@@ -535,8 +535,8 @@ void PairLJSFDipoleSF::read_restart_settings(FILE *fp)
 
 // PairLJSFDipoleSF: calculation of force is missing (to be implemented)
 double PairLJSFDipoleSF::single(int i, int j, int itype, int jtype, double rsq,
-				double factor_coul, double factor_lj,
-				double &fforce)
+                                double factor_coul, double factor_lj,
+                                double &fforce)
 {
   double r2inv,r6inv;
   double pdotp,pidotr,pjdotr,pre1,delx,dely,delz;
@@ -580,7 +580,7 @@ double PairLJSFDipoleSF::single(int i, int j, int itype, int jtype, double rsq,
       pidotr = mu[i][0]*delx + mu[i][1]*dely + mu[i][2]*delz;
       pjdotr = mu[j][0]*delx + mu[j][1]*dely + mu[j][2]*delz;
       bfac = 1.0 - 4.0*rsq*sqrt(rsq)*rcutcoul2inv*sqrt(rcutcoul2inv) +
-	3.0*rsq*rsq*rcutcoul2inv*rcutcoul2inv;
+        3.0*rsq*rsq*rcutcoul2inv*rcutcoul2inv;
     }
     if (mu[i][3] > 0.0 && q[j] != 0.0) {
       r3inv = r2inv*rinv;
@@ -588,7 +588,7 @@ double PairLJSFDipoleSF::single(int i, int j, int itype, int jtype, double rsq,
       pidotr = mu[i][0]*delx + mu[i][1]*dely + mu[i][2]*delz;
       rcutcoul2inv=1.0/cut_coulsq[itype][jtype];
       pqfac = 1.0 - 3.0*rsq*rcutcoul2inv +
-	2.0*rsq*sqrt(rsq)*rcutcoul2inv*sqrt(rcutcoul2inv);
+        2.0*rsq*sqrt(rsq)*rcutcoul2inv*sqrt(rcutcoul2inv);
     }
     if (mu[j][3] > 0.0 && qtmp != 0.0) {
       r3inv = r2inv*rinv;
@@ -596,7 +596,7 @@ double PairLJSFDipoleSF::single(int i, int j, int itype, int jtype, double rsq,
       pjdotr = mu[j][0]*delx + mu[j][1]*dely + mu[j][2]*delz;
       rcutcoul2inv=1.0/cut_coulsq[itype][jtype];
       qpfac = 1.0 - 3.0*rsq*rcutcoul2inv +
-	2.0*rsq*sqrt(rsq)*rcutcoul2inv*sqrt(rcutcoul2inv);
+        2.0*rsq*sqrt(rsq)*rcutcoul2inv*sqrt(rcutcoul2inv);
     }
   }
   if (rsq < cut_ljsq[itype][jtype]) {

@@ -780,9 +780,9 @@ void Set::set(int keyword)
     else if (keyword == DENSITY) {
       if (dvalue <= 0.0) error->one(FLERR,"Invalid density in set command");
       if (atom->radius_flag && atom->radius[i] > 0.0)
-	if (discflag) 
+        if (discflag) 
           atom->rmass[i] = MY_PI*atom->radius[i]*atom->radius[i] * dvalue;
-	else 
+        else 
           atom->rmass[i] = 4.0*MY_PI/3.0 * 
             atom->radius[i]*atom->radius[i]*atom->radius[i] * dvalue;
       else if (atom->ellipsoid_flag && atom->ellipsoid[i] >= 0) {
@@ -791,7 +791,7 @@ void Set::set(int keyword)
         //   options (fix nve/asphere, fix nh/asphere) are also implemented
         // if (discflag) 
         // atom->rmass[i] = MY_PI*shape[0]*shape[1] * dvalue;
-	// else 
+        // else 
         atom->rmass[i] = 4.0*MY_PI/3.0 * shape[0]*shape[1]*shape[2] * dvalue;
       } else if (atom->line_flag && atom->line[i] >= 0) {
         double length = avec_line->bonus[atom->line[i]].length;
@@ -837,7 +837,7 @@ void Set::set(int keyword)
       if (domain->dimension == 2 && (xvalue != 0.0 || yvalue != 0.0))
         error->one(FLERR,"Cannot set quaternion with xy components "
                    "for 2d system");
-	
+        
       double theta2 = MY_PI2 * wvalue/180.0;
       double sintheta2 = sin(theta2);
       quat[0] = cos(theta2);
@@ -995,8 +995,8 @@ void Set::setrandom(int keyword)
             quat = avec_ellipsoid->bonus[atom->ellipsoid[i]].quat;
           else if (avec_tri && atom->tri[i] >= 0)
             quat = avec_tri->bonus[atom->tri[i]].quat;
-	  else if (avec_body && atom->body[i] >= 0)
-	    quat = avec_body->bonus[atom->body[i]].quat;
+          else if (avec_body && atom->body[i] >= 0)
+            quat = avec_body->bonus[atom->body[i]].quat;
           else
             error->one(FLERR,"Cannot set quaternion for atom that has none");
 
@@ -1019,8 +1019,8 @@ void Set::setrandom(int keyword)
         if (select[i]) {
           if (avec_ellipsoid && atom->ellipsoid[i] >= 0)
             quat = avec_ellipsoid->bonus[atom->ellipsoid[i]].quat;
-	  else if (avec_body && atom->body[i] >= 0)
-	    quat = avec_body->bonus[atom->body[i]].quat;
+          else if (avec_body && atom->body[i] >= 0)
+            quat = avec_body->bonus[atom->body[i]].quat;
           else
             error->one(FLERR,"Cannot set quaternion for atom that has none");
 
@@ -1040,11 +1040,11 @@ void Set::setrandom(int keyword)
     int nlocal = atom->nlocal;
     for (i = 0; i < nlocal; i++) {
       if (select[i]) {
-	if (atom->line[i] < 0)
-	  error->one(FLERR,"Cannot set theta for atom that is not a line");
-	random->reset(seed,x[i]);
-	avec_line->bonus[atom->line[i]].theta = MY_2PI*random->uniform();
-	count++;
+        if (atom->line[i] < 0)
+          error->one(FLERR,"Cannot set theta for atom that is not a line");
+        random->reset(seed,x[i]);
+        avec_line->bonus[atom->line[i]].theta = MY_2PI*random->uniform();
+        count++;
       }
     }
   }

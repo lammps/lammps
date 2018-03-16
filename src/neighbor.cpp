@@ -1455,7 +1455,7 @@ void Neighbor::print_pairwise_info()
               nlist,nperpetual,noccasional,nextra);
 
       for (i = 0; i < nlist; i++) {
-	rq = requests[i];
+        rq = requests[i];
         if (rq->pair) {
           char *pname = force->pair_match_ptr((Pair *) rq->requestor);
           sprintf(str,"  (%d) pair %s",i+1,pname);
@@ -1491,12 +1491,12 @@ void Neighbor::print_pairwise_info()
         if (rq->half) fprintf(out,"half");
         else if (rq->full) fprintf(out,"full");
 
-	if (rq->newton == 0) {
-	  if (force->newton_pair) fprintf(out,", newton on");
-	  else fprintf(out,", newton off");
-	} else if (rq->newton == 1) fprintf(out,", newton on");
-	else if (rq->newton == 2) fprintf(out,", newton off");
-	
+        if (rq->newton == 0) {
+          if (force->newton_pair) fprintf(out,", newton on");
+          else fprintf(out,", newton off");
+        } else if (rq->newton == 1) fprintf(out,", newton on");
+        else if (rq->newton == 2) fprintf(out,", newton off");
+        
         if (rq->ghost) fprintf(out,", ghost");
         if (rq->size) fprintf(out,", size");
         if (rq->history) fprintf(out,", history");
@@ -2303,7 +2303,7 @@ void Neighbor::modify_params(int narg, char **arg)
         iarg += 4;
 
       } else if (strcmp(arg[iarg+1],"molecule/inter") == 0 ||
-		 strcmp(arg[iarg+1],"molecule/intra") == 0) {
+                 strcmp(arg[iarg+1],"molecule/intra") == 0) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal neigh_modify command");
         if (atom->molecule_flag == 0)
           error->all(FLERR,"Neigh_modify exclude molecule "
@@ -2319,13 +2319,13 @@ void Neighbor::modify_params(int narg, char **arg)
         ex_mol_group[nex_mol] = group->find(arg[iarg+2]);
         if (ex_mol_group[nex_mol] == -1)
           error->all(FLERR,"Invalid group ID in neigh_modify command");
-	if (strcmp(arg[iarg+1],"molecule/intra") == 0)
-	  ex_mol_intra[nex_mol] = 1;
-	else
-	  ex_mol_intra[nex_mol] = 0;
+        if (strcmp(arg[iarg+1],"molecule/intra") == 0)
+          ex_mol_intra[nex_mol] = 1;
+        else
+          ex_mol_intra[nex_mol] = 0;
         nex_mol++;
         iarg += 3;
-	
+        
       } else if (strcmp(arg[iarg+1],"none") == 0) {
         nex_type = nex_group = nex_mol = 0;
         iarg += 2;

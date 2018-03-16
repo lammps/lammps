@@ -633,8 +633,8 @@ int Domain::inside(double* x)
     hi = boxhi;
 
     if (x[0] < lo[0] || x[0] >= hi[0] ||
-	x[1] < lo[1] || x[1] >= hi[1] ||
-	x[2] < lo[2] || x[2] >= hi[2]) return 0;
+        x[1] < lo[1] || x[1] >= hi[1] ||
+        x[2] < lo[2] || x[2] >= hi[2]) return 0;
     else return 1;
     
   } else {
@@ -644,8 +644,8 @@ int Domain::inside(double* x)
     x2lamda(x,lamda);
 
     if (lamda[0] < lo[0] || lamda[0] >= hi[0] ||
-	lamda[1] < lo[1] || lamda[1] >= hi[1] ||
-	lamda[2] < lo[2] || lamda[2] >= hi[2]) return 0;
+        lamda[1] < lo[1] || lamda[1] >= hi[1] ||
+        lamda[2] < lo[2] || lamda[2] >= hi[2]) return 0;
     else return 1;
     
   }

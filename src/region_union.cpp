@@ -183,7 +183,7 @@ int RegUnion::surface_interior(double *x, double cutoff)
         contact[n].dely = regions[iregion]->contact[m].dely;
         contact[n].delz = regions[iregion]->contact[m].delz;
         contact[n].iwall = regions[iregion]->contact[m].iwall + walloffset;
-	contact[n].varflag = regions[iregion]->contact[m].varflag;
+        contact[n].varflag = regions[iregion]->contact[m].varflag;
         n++;
       }
     }

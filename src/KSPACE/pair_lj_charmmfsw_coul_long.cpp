@@ -609,7 +609,7 @@ void PairLJCharmmfswCoulLong::compute_outer(int eflag, int vflag)
           if (rsq < cut_coulsq) {
             if (!ncoultablebits || rsq <= tabinnersq) {
               forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-	      if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+              if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
             } else {
               table = vtable[itable] + fraction*dvtable[itable];
               forcecoul = qtmp*q[j] * table;

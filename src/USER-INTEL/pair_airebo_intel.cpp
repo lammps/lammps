@@ -233,18 +233,18 @@ PairAIREBOIntelParam<flt_t,acc_t> PairAIREBOIntel::get_param()
 
 #define A(a)                                                           \
   for (int i = 0; i < sizeof(this->a)/sizeof(double); i++) {           \
-    reinterpret_cast<flt_t*>(&fc.a)[i] =			       \
-      reinterpret_cast<double*>(&this->a)[i];			       \
+    reinterpret_cast<flt_t*>(&fc.a)[i] =                               \
+      reinterpret_cast<double*>(&this->a)[i];                          \
   }
-#define A0(a)								\
-  for (int i = 0; i < sizeof(fc.a)/sizeof(flt_t); i++) {		\
-    reinterpret_cast<flt_t*>(&fc.a)[i] =				\
-      reinterpret_cast<double*>(this->a[0])[i];				\
+#define A0(a)                                                           \
+  for (int i = 0; i < sizeof(fc.a)/sizeof(flt_t); i++) {                \
+    reinterpret_cast<flt_t*>(&fc.a)[i] =                                \
+      reinterpret_cast<double*>(this->a[0])[i];                         \
   }
-#define B(a)								\
-  for (int i = 0; i < sizeof(this->a)/sizeof(double); i++) {		\
-    reinterpret_cast<acc_t*>(&fc.a)[i] =				\
-      reinterpret_cast<double*>(&this->a)[i];				\
+#define B(a)                                                            \
+  for (int i = 0; i < sizeof(this->a)/sizeof(double); i++) {            \
+    reinterpret_cast<acc_t*>(&fc.a)[i] =                                \
+      reinterpret_cast<double*>(&this->a)[i];                           \
   }
 
   A(cutlj) A(cutljrebosq) A(cut3rebo) A(sigmin);
@@ -265,11 +265,11 @@ PairAIREBOIntelParam<flt_t,acc_t> PairAIREBOIntel::get_param()
   for (int i = 0; i < 5; i++) fc.gDom[i] = fc.gCdom[i];
   for (int i = 0; i < 4; i++) fc.gDom[5+i] = fc.gHdom[i];
   for (int i = 0; i < 4; i++) for (int j = 0; j < 6; j++) 
-				fc.gVal[6*i+j] = fc.gC1[i][j];
+                                fc.gVal[6*i+j] = fc.gC1[i][j];
   for (int i = 0; i < 4; i++) for (int j = 0; j < 6; j++) 
-				fc.gVal[4*6+6*i+j] = fc.gC2[i][j];
+                                fc.gVal[4*6+6*i+j] = fc.gC2[i][j];
   for (int i = 0; i < 3; i++) for (int j = 0; j < 6; j++) 
-				fc.gVal[8*6+6*i+j] = fc.gH[i][j];
+                                fc.gVal[8*6+6*i+j] = fc.gH[i][j];
 
   return fc;
 }
@@ -408,8 +408,8 @@ void PairAIREBOIntel::eval(
 
   int x_size, q_size, f_stride, ev_size, separate_flag;
   IP_PRE_get_transfern(ago, 1 /*NEWTON_PAIR*/, EFLAG, vflag,
-		       buffers, offload, fix, separate_flag,
-		       x_size, q_size, ev_size, f_stride);
+                       buffers, offload, fix, separate_flag,
+                       x_size, q_size, ev_size, f_stride);
 
   int tc;
   FORCE_T * _noalias f_start;
@@ -469,7 +469,7 @@ void PairAIREBOIntel::eval(
     #endif
 
     IP_PRE_repack_for_offload(1 /*NEWTON_PAIR*/, separate_flag, nlocal, nall,
-			      f_stride, x, 0/*q*/);
+                              f_stride, x, 0/*q*/);
 
     acc_t oevdwl, oecoul, ov0, ov1, ov2, ov3, ov4, ov5;
     if (EVFLAG) {
@@ -480,7 +480,7 @@ void PairAIREBOIntel::eval(
     // loop over neighbors of my atoms
     #if defined(_OPENMP)
     #pragma omp parallel \
-      shared(f_start,f_stride,nlocal,nall,minlocal)	\
+      shared(f_start,f_stride,nlocal,nall,minlocal)     \
       reduction(+:oevdwl,oecoul,ov0,ov1,ov2,ov3,ov4,ov5)
     #endif
     {
@@ -740,7 +740,7 @@ inline flt_t gSpline(KernelArgsAIREBOT<flt_t,acc_t> * ka, int itype, flt_t cos, 
 
 template<typename flt_t>
 inline flt_t eval_poly_bi(int n, flt_t * coeffs, flt_t x, flt_t y, 
-			  flt_t * deriv) {
+                          flt_t * deriv) {
   flt_t dy;
   flt_t vy = eval_poly_lin(n, &coeffs[n * (n - 1)], y, &dy);
   flt_t result = vy;
@@ -759,7 +759,7 @@ inline flt_t eval_poly_bi(int n, flt_t * coeffs, flt_t x, flt_t y,
 
 template<typename flt_t>
 inline flt_t eval_poly_tri(int n, flt_t * coeffs, flt_t x, flt_t y, flt_t z, 
-			   flt_t * deriv) {
+                           flt_t * deriv) {
   flt_t dyz[2];
   flt_t vyz = eval_poly_bi(n, &coeffs[n * n * (n - 1)], y, z, &dyz[0]);
   flt_t result = vyz;
@@ -781,7 +781,7 @@ inline flt_t eval_poly_tri(int n, flt_t * coeffs, flt_t x, flt_t y, flt_t z,
 
 template<typename flt_t, typename acc_t>
 inline flt_t PijSpline(KernelArgsAIREBOT<flt_t,acc_t> * ka, int itype, 
-		       int jtype, flt_t NC, flt_t NH, flt_t * dN) {
+                       int jtype, flt_t NC, flt_t NH, flt_t * dN) {
   dN[0] = 0.0;
   dN[1] = 0.0;
   if (itype == HYDROGEN) return 0;
@@ -814,7 +814,7 @@ inline flt_t TijSpline(KernelArgsAIREBOT<flt_t,acc_t> * ka, flt_t Nij,
   int nji = floor(Nji);
   int nijconj = floor(Nijconj);
   if (fabs(Nij - nij) < TOL && fabs(Nji - nji) < 
-			  TOL && fabs(Nijconj - nijconj) < TOL) {
+                          TOL && fabs(Nijconj - nijconj) < TOL) {
     dN3[0] = ka->params.Tdfdx[nij][nji][nijconj];
     dN3[1] = ka->params.Tdfdy[nij][nji][nijconj];
     dN3[2] = ka->params.Tdfdz[nij][nji][nijconj];
@@ -835,11 +835,11 @@ inline flt_t piRCSpline(KernelArgsAIREBOT<flt_t,acc_t> * ka, int itype,
   /* const int CC = 0; */
   int select = itype + jtype;
   #define piRCSelect(a, b, c) (select == HH ? ka->params.a : select == CH ? \
-			       ka->params.b : ka->params.c)
+                               ka->params.b : ka->params.c)
   flt_t * piIJdom = &piRCSelect(piHHdom, piCHdom, piCCdom)[0][0];
   if (select == HH) {
     if (Nij < piIJdom[0] || Nij > piIJdom[1] || Nji < piIJdom[2] || 
-	Nji > piIJdom[3] || Nijconj < piIJdom[4] || Nijconj > piIJdom[5]) {
+        Nji > piIJdom[3] || Nijconj < piIJdom[4] || Nijconj > piIJdom[5]) {
       Nij = 0;
       Nji = 0;
       Nijconj = 0;
@@ -852,7 +852,7 @@ inline flt_t piRCSpline(KernelArgsAIREBOT<flt_t,acc_t> * ka, int itype,
   int nji = floor(Nji);
   int nijconj = floor(Nijconj);
   if (fabs(Nij - nij) < TOL && fabs(Nji - nji) < 
-			  TOL && fabs(Nijconj - nijconj) < TOL) {
+                          TOL && fabs(Nijconj - nijconj) < TOL) {
     dN3[0] = piRCSelect(piHHdfdx, piCHdfdx, piCCdfdx)[nij][nji][nijconj];
     dN3[1] = piRCSelect(piHHdfdy, piCHdfdy, piCCdfdy)[nij][nji][nijconj];
     dN3[2] = piRCSelect(piHHdfdz, piCHdfdz, piCCdfdz)[nij][nji][nijconj];
@@ -922,7 +922,7 @@ inline flt_t frebo_pij(KernelArgsAIREBOT<flt_t,acc_t> * ka, int i, int j,
       flt_t wik = Sp(rikmag, rcminik, rcmaxik, &dwik);
       flt_t Nki = nC[k] + nH[k] - wik;
       flt_t cosjik = (rijx * rikx + rijy * riky + rijz * rikz) / 
-	(rijmag * rikmag);
+        (rijmag * rikmag);
       cosjik = fmin_nonan<flt_t>(1, fmax_nonan<flt_t>(-1, cosjik));
       flt_t dgdc, dgdN;
       flt_t g = gSpline(ka, itype, cosjik, Nij, &dgdc, &dgdN);
@@ -1132,7 +1132,7 @@ inline flt_t frebo_sum_omega(KernelArgsAIREBOT<flt_t,acc_t> * ka, int i, int j,
       flt_t r34z = x[a3].z - x[a4].z;
       flt_t r34mag = overloaded::sqrt(r34x * r34x + r34y * r34y + r34z * r34z);
       flt_t cos234 = (r32x * r34x + r32y * r34y + r32z * r34z) / 
-	(r23mag * r34mag);
+        (r23mag * r34mag);
       cos234 = fmin_nonan<flt_t>(1, fmax_nonan<flt_t>(-1, cos234));
       flt_t sin234 = overloaded::sqrt(1 - cos234 * cos234);
       if (sin234 == 0) continue;
@@ -2128,9 +2128,9 @@ void ref_lennard_jones_single_interaction(KernelArgsAIREBOT<flt_t,acc_t> * ka,
     flt_t r6inv = r2inv * r2inv * r2inv;
 
     vdw = r6inv * (ka->params.lj3[itype][jtype]*r6inv - 
-		   ka->params.lj4[itype][jtype]);
+                   ka->params.lj4[itype][jtype]);
     dvdw = -r6inv * (ka->params.lj1[itype][jtype]*r6inv - 
-		     ka->params.lj2[itype][jtype]) / rij;
+                     ka->params.lj2[itype][jtype]) / rij;
   }
 
   flt_t VLJ = vdw * slw;
@@ -2165,7 +2165,7 @@ void ref_lennard_jones_single_interaction(KernelArgsAIREBOT<flt_t,acc_t> * ka,
 
 template<typename flt_t, typename acc_t>
 void ref_lennard_jones_single_atom(KernelArgsAIREBOT<flt_t,acc_t> * ka, int i,
-				   int morseflag) {
+                                   int morseflag) {
   AtomAIREBOT<flt_t> * x = ka->x;
   int jj;
   int * neighs = ka->neigh_lmp.entries + ka->neigh_lmp.offset[i];
@@ -2320,10 +2320,10 @@ static void aut_rebo_neigh(KernelArgsAIREBOT<flt_t,acc_t> * ka) {
     fvec rcmin1 = fvec::set1(ka->params.rcmin[itype][1]);
     fvec rcmaxskinsq0 = fvec::set1(
         (ka->params.rcmax[itype][0] + ka->skin) * (ka->params.rcmax[itype][0] +
-						   ka->skin));
+                                                   ka->skin));
     fvec rcmaxskinsq1 = fvec::set1(
         (ka->params.rcmax[itype][1] + ka->skin) * (ka->params.rcmax[itype][1] +
-						   ka->skin));
+                                                   ka->skin));
     fvec nC = fvec::setzero();
     fvec nH = fvec::setzero();
 
@@ -2356,7 +2356,7 @@ static void aut_rebo_neigh(KernelArgsAIREBOT<flt_t,acc_t> * ka) {
       fvec rsq = delx *  delx +  dely *  dely +  delz *  delz;
       if (ka->rebuild_flag) {
         fvec rcmaxskinsq = fvec::mask_blend(jtype_mask, rcmaxskinsq0, 
-					    rcmaxskinsq1);
+                                            rcmaxskinsq1);
         bvec c_mask = fvec::mask_cmplt(j_mask, rsq, rcmaxskinsq);
         ivec::mask_compressstore(c_mask, &skin_target[n_skin], ji);
         n_skin += bvec::popcnt(c_mask);
@@ -2393,7 +2393,7 @@ static void aut_rebo_neigh(KernelArgsAIREBOT<flt_t,acc_t> * ka) {
 
 
 static fvec aut_eval_poly_lin_pd_2(int n, flt_t * vals, ivec idx, fvec x, 
-				   fvec * deriv) {
+                                   fvec * deriv) {
   fvec c_1 = fvec::set1(1);
   fvec x_i = c_1;
   fvec x_im1 = fvec::setzero();
@@ -2413,8 +2413,8 @@ static fvec aut_eval_poly_lin_pd_2(int n, flt_t * vals, ivec idx, fvec x,
 }
 
 static fvec aut_mask_gSpline_pd_2(KernelArgsAIREBOT<flt_t,acc_t> * ka, 
-				  bvec active_mask, int itype, fvec cosjik, 
-				  fvec Nij, fvec *dgdc, fvec *dgdN) {
+                                  bvec active_mask, int itype, fvec cosjik, 
+                                  fvec Nij, fvec *dgdc, fvec *dgdN) {
   int i;
   flt_t * gDom = NULL;
   int nDom = 0;
@@ -2431,7 +2431,7 @@ static fvec aut_mask_gSpline_pd_2(KernelArgsAIREBOT<flt_t,acc_t> * ka,
     offs = ivec::set1(8 * 6);
   }
   cosjik = fvec::max(fvec::set1(gDom[0]), fvec::min(fvec::set1(gDom[nDom]), 
-						    cosjik));
+                                                    cosjik));
   ivec index6 = ivec::setzero();
   for (i = 0; i < nDom; i++) {
     bvec cosge = fvec::cmpnlt(cosjik, fvec::set1(gDom[i])); //ge
@@ -2439,7 +2439,7 @@ static fvec aut_mask_gSpline_pd_2(KernelArgsAIREBOT<flt_t,acc_t> * ka,
     index6 = ivec::mask_blend(cosge & cosle, index6, ivec::set1(6*i));
   }
   fvec g = aut_eval_poly_lin_pd_2(6, &ka->params.gVal[0], offs +  index6, 
-				  cosjik, dgdc);
+                                  cosjik, dgdc);
   *dgdN = fvec::setzero();
   if (itype == 0) {
     fvec NCmax = fvec::set1(ka->params.NCmax);
@@ -2448,7 +2448,7 @@ static fvec aut_mask_gSpline_pd_2(KernelArgsAIREBOT<flt_t,acc_t> * ka,
     if (bvec::test_any_set(Nmask)) {
       fvec dg1;
       fvec g1 = aut_eval_poly_lin_pd_2(6, &ka->params.gVal[0], index6, cosjik, 
-				       &dg1);
+                                       &dg1);
       fvec dS;
       fvec cut = aut_Sp_deriv(Nij, NCmin, NCmax, &dS);
       *dgdN = fvec::mask_mul(*dgdN, Nmask, dS, g1 -  g);
@@ -2460,7 +2460,7 @@ static fvec aut_mask_gSpline_pd_2(KernelArgsAIREBOT<flt_t,acc_t> * ka,
 }
 
 static fvec aut_PijSpline(KernelArgsAIREBOT<flt_t,acc_t> * ka, int itype, 
-			  int jtype, fvec NijC, fvec NijH, fvec *dN2) {
+                          int jtype, fvec NijC, fvec NijH, fvec *dN2) {
   flt_t ret[fvec::VL] __attribute__((aligned(64)));
   flt_t dN20[fvec::VL] __attribute__((aligned(64)));
   flt_t dN21[fvec::VL] __attribute__((aligned(64)));
@@ -2580,10 +2580,10 @@ static fvec aut_frebo_pij_pd_2(
   fvec sum_dpij_dN = fvec::setzero();
   fvec dN2[2];
   ivec offseti = ivec::mask_gather(ivec::setzero(), bvec::full(), vi, 
-				   ka->neigh_rebo.offset, sizeof(int));
+                                   ka->neigh_rebo.offset, sizeof(int));
   int buf_len = 0;
   ivec knum = ivec::mask_gather(ivec::setzero(), bvec::full(), vi, 
-				ka->neigh_rebo.num, sizeof(int));
+                                ka->neigh_rebo.num, sizeof(int));
   ivec kk = ivec::setzero();
   bvec active_mask = ivec::cmplt(kk, knum);
   ivec c_i1 = ivec::set1(1);
@@ -2613,7 +2613,7 @@ static fvec aut_frebo_pij_pd_2(
   {
     while (bvec::test_any_set(active_mask)) {
       ivec k = ivec::mask_gather(ivec::setzero(), active_mask, kk +  offseti, 
-				 ka->neigh_rebo.entries, sizeof(int));
+                                 ka->neigh_rebo.entries, sizeof(int));
       bvec excluded_mask = ivec::cmpeq(k, vj) & active_mask;
       if (bvec::test_any_set(excluded_mask)) {
         kk = ivec::mask_add(kk, excluded_mask, kk, c_i1);
@@ -2623,35 +2623,35 @@ static fvec aut_frebo_pij_pd_2(
       fvec x_k, y_k, z_k;
       bvec ktype_mask;
       aut_loadatoms_vec(x, k, &x_k, &y_k, &z_k, &ktype_mask, ka->map, map_i, 
-			c_i1);
+                        c_i1);
       fvec rikx = x_i -  x_k;
       fvec riky = y_i -  y_k;
       fvec rikz = z_i -  z_k;
       fvec rikmag = fvec::sqrt(rikx *  rikx +  riky *  riky +  rikz *  rikz);
       fvec rho_k = fvec::mask_blend(ktype_mask, rho_k0, rho_k1);
       fvec lamdajik = c_4 *  factor_itype * ( rho_k -  rikmag - ( rho_j -  
-								  rijmag));
+                                                                  rijmag));
       fvec ex_lam = fvec::exp(lamdajik);
       fvec rcmax = fvec::mask_blend(ktype_mask, rcmax0, rcmax1);
       fvec rcmin = fvec::mask_blend(ktype_mask, rcmin0, rcmin1);
       fvec dwik;
       fvec wik = aut_Sp_deriv(rikmag, rcmin, rcmax, &dwik);
       fvec Nki = fvec::gather(k, nC, sizeof(flt_t)) +  
-	fvec::gather(k, nH, sizeof(flt_t)) -  wik;
+        fvec::gather(k, nH, sizeof(flt_t)) -  wik;
       fvec cosjik = (rijx *  rikx +  rijy *  riky +  rijz *  rikz) / 
-	( rijmag *  rikmag);
+        ( rijmag *  rikmag);
       cosjik = fvec::min(c_1, fvec::max(c_m1, cosjik));
       fvec dgdc, dgdN;
       fvec g = aut_mask_gSpline_pd_2(ka, active_mask, itype, cosjik, Nij, 
-				     &dgdc, &dgdN);
+                                     &dgdc, &dgdN);
       sum_pij = fvec::mask_add(sum_pij, active_mask, sum_pij, wik * g * ex_lam);
       sum_dpij_dN = fvec::mask_add(sum_dpij_dN, active_mask, sum_dpij_dN, 
-				   wik * ex_lam * dgdN);
+                                   wik * ex_lam * dgdN);
       fvec dcutN;
       fvec cutN = aut_Sp_deriv(Nki, Nmin, Nmax, &dcutN);
       *sum_N = fvec::mask_add(*sum_N, active_mask, *sum_N, 
-			      fvec::mask_blend(ktype_mask, c_1, 
-					       fvec::setzero()) * wik * cutN);
+                              fvec::mask_blend(ktype_mask, c_1, 
+                                               fvec::setzero()) * wik * cutN);
       if (buf_len == BUF_CAP) goto exceed_buffer;
       data->rikx_buf[buf_len] = rikx;
       data->riky_buf[buf_len] = riky;
@@ -2956,15 +2956,15 @@ static void aut_frebo_N_spline_force(
 }
 
 static fvec aut_frebo_pi_rc_pd(KernelArgsAIREBOT<flt_t,acc_t> * ka, int itype,
-			       int jtype, fvec Nij, fvec Nji, fvec Nijconj, 
-			       fvec * dN3) {
+                               int jtype, fvec Nij, fvec Nji, fvec Nijconj, 
+                               fvec * dN3) {
   flt_t ret[fvec::VL] __attribute__((aligned(64)));
   flt_t dN3ret[3][fvec::VL] __attribute__((aligned(64)));
   int i;
   for (i = 0; i < fvec::VL; i++) {
     flt_t dN3tmp[3];
     ret[i] = frebo_pi_rc(ka, itype, jtype, fvec::at(Nij, i), fvec::at(Nji, i), 
-			 fvec::at(Nijconj, i), &dN3tmp[0]);
+                         fvec::at(Nijconj, i), &dN3tmp[0]);
     dN3ret[0][i] = dN3tmp[0];
     dN3ret[1][i] = dN3tmp[1];
     dN3ret[2][i] = dN3tmp[2];
@@ -2976,15 +2976,15 @@ static fvec aut_frebo_pi_rc_pd(KernelArgsAIREBOT<flt_t,acc_t> * ka, int itype,
 }
 
 static fvec aut_frebo_Tij(KernelArgsAIREBOT<flt_t,acc_t> * ka, int itype, 
-			  int jtype, fvec Nij, fvec Nji, fvec Nijconj, 
-			  fvec * dN3) {
+                          int jtype, fvec Nij, fvec Nji, fvec Nijconj, 
+                          fvec * dN3) {
   flt_t ret[fvec::VL] __attribute__((aligned(64)));
   flt_t dN3ret[3][fvec::VL] __attribute__((aligned(64)));
   int i;
   for (i = 0; i < fvec::VL; i++) {
     flt_t dN3tmp[3];
     ret[i] = frebo_Tij(ka, itype, jtype, fvec::at(Nij, i), fvec::at(Nji, i), 
-		       fvec::at(Nijconj, i), &dN3tmp[0]);
+                       fvec::at(Nijconj, i), &dN3tmp[0]);
     dN3ret[0][i] = dN3tmp[0];
     dN3ret[1][i] = dN3tmp[1];
     dN3ret[2][i] = dN3tmp[2];
@@ -3031,9 +3031,9 @@ static fvec aut_frebo_sum_omega(
     bvec mask_outer = fvec::cmpneq(fvec::setzero(), sin321) & mask_start;
     // add "continue"
     fvec sink2i = fvec::mask_recip(fvec::undefined(), mask_outer, 
-				   sin321 * sin321);
+                                   sin321 * sin321);
     fvec rik2i = fvec::mask_recip(fvec::undefined(), mask_outer, 
-				  r21mag * r21mag);
+                                  r21mag * r21mag);
     fvec rr = r23mag *  r23mag -  r21mag *  r21mag;
     fvec r31x = r21x -  r23x;
     fvec r31y = r21y -  r23y;
@@ -3042,9 +3042,9 @@ static fvec aut_frebo_sum_omega(
     fvec rijrik = c_2 *  r23mag *  r21mag;
     fvec r21mag2 = r21mag *  r21mag;
     fvec dctik = fvec::mask_div(fvec::undefined(), mask_outer, r31mag2 -  rr, 
-				rijrik *  r21mag2);
+                                rijrik *  r21mag2);
     fvec dctij = fvec::mask_div(fvec::undefined(), mask_outer, r31mag2 +  rr, 
-				rijrik *  r23mag *  r23mag);
+                                rijrik *  r23mag *  r23mag);
     fvec dctjk = fvec::mask_div(fvec::undefined(), mask_outer, c_m2, rijrik);
     fvec dw21 = i_data->dwik_buf[buf_idx_i];
     fvec w21 = i_data->wik_buf[buf_idx_i];
@@ -3057,25 +3057,25 @@ static fvec aut_frebo_sum_omega(
       // l == a4 == buf_idx_j
       ivec l = j_data->k_buf[buf_idx_j];
       bvec mask_inner_0 = ivec::mask_cmpneq(mask_outer, k, l) & 
-	j_data->mask_buf[buf_idx_j];
+        j_data->mask_buf[buf_idx_j];
       // add "continue"
       fvec r34x = j_data->rikx_buf[buf_idx_j];
       fvec r34y = j_data->riky_buf[buf_idx_j];
       fvec r34z = j_data->rikz_buf[buf_idx_j];
       fvec r34mag = j_data->rikmag_buf[buf_idx_j];
       fvec cos234 = fvec::mask_div(fvec::undefined(), mask_inner_0, 
-				   r32x * r34x + r32y * r34y + r32z * r34z, 
-				   r23mag * r34mag);
+                                   r32x * r34x + r32y * r34y + r32z * r34z, 
+                                   r23mag * r34mag);
       cos234 = fvec::min(c_1, fvec::max(c_m1, cos234));
       fvec sin234 = fvec::mask_sqrt(fvec::undefined(), mask_inner_0, 
-				    c_1 - cos234 * cos234);
+                                    c_1 - cos234 * cos234);
       bvec mask_inner_1 = fvec::mask_cmpneq(mask_inner_0, sin234, 
-					    fvec::setzero());
+                                            fvec::setzero());
       // add "continue"
       fvec sinl2i = fvec::mask_recip(fvec::undefined(), mask_inner_1, 
-				     sin234 * sin234);
+                                     sin234 * sin234);
       fvec rjl2i = fvec::mask_recip(fvec::undefined(), mask_inner_1, 
-				    r34mag * r34mag);
+                                    r34mag * r34mag);
       fvec dw34 = j_data->dwik_buf[buf_idx_j];
       fvec w34 = j_data->wik_buf[buf_idx_j];
       fvec rr = r23mag *  r23mag - r34mag * r34mag;
@@ -3086,11 +3086,11 @@ static fvec aut_frebo_sum_omega(
       fvec rijrjl = c_2 *  r23mag *  r34mag;
       fvec rjl2 = r34mag *  r34mag;
       fvec dctjl = fvec::mask_div(fvec::undefined(), mask_inner_1, r242 -  rr, 
-				  rijrjl *  rjl2);
+                                  rijrjl *  rjl2);
       fvec dctji = fvec::mask_div(fvec::undefined(), mask_inner_1, r242 +  rr, 
-				  rijrjl *  r23mag *  r23mag);
+                                  rijrjl *  r23mag *  r23mag);
       fvec dctil = fvec::mask_div(fvec::undefined(), mask_inner_1, c_m2, 
-				  rijrjl);
+                                  rijrjl);
       fvec dtsijl;
       fvec tspijl = aut_Sp2_deriv(cos234, thmin, thmax, &dtsijl);
       dtsijl = fvec::setzero() -  dtsijl;
@@ -3104,22 +3104,22 @@ static fvec aut_frebo_sum_omega(
       fvec cross234z = r23x *  r34y -  r23y *  r34x;
 
       fvec cwnum = cross321x * cross234x + cross321y * cross234y + cross321z *
-	cross234z;
+        cross234z;
       fvec cwnom = r21mag * r34mag * r23mag * r23mag * sin321 * sin234;
       fvec om1234 = fvec::mask_div(fvec::undefined(), mask_inner_1, cwnum, 
-				   cwnom);
+                                   cwnom);
       fvec cw = om1234;
       fvec sum_omega_contrib = (c_1 -  om1234 *  om1234) *  w21 *  w34 *
-	(c_1 -  tspjik) * ( c_1 -  tspijl);
+        (c_1 -  tspjik) * ( c_1 -  tspijl);
       sum_omega = fvec::mask_add(sum_omega, mask_inner_1, sum_omega, 
-				 sum_omega_contrib);
+                                 sum_omega_contrib);
       fvec dt1dik = rik2i -  dctik *  sink2i *  cos321;
       fvec dt1djk = fvec::setzero() -  dctjk *  sink2i *  cos321;
       fvec dt1djl = rjl2i -  dctjl *  sinl2i *  cos234;
       fvec dt1dil = fvec::setzero() -  dctil *  sinl2i *  cos234;
       fvec dt1dij =   fvec::mask_div(fvec::undefined(), mask_inner_1, c_2, 
-				     r23mag * r23mag) - 
-	dctij * sink2i * cos321 -  dctji *  sinl2i *  cos234;
+                                     r23mag * r23mag) - 
+        dctij * sink2i * cos321 -  dctji *  sinl2i *  cos234;
 
       fvec dt2dikx = r23y *  cross234z -  r23z *  cross234y;
       fvec dt2diky = r23z *  cross234x -  r23x *  cross234z;
@@ -3130,23 +3130,23 @@ static fvec aut_frebo_sum_omega(
       fvec dt2djlz = r23y *  cross321x -  r23x *  cross321y;
 
       fvec dt2dijx = r21z *  cross234y +  r34y *  cross321z -
-	( r34z *  cross321y +  r21y *  cross234z);
+        ( r34z *  cross321y +  r21y *  cross234z);
       fvec dt2dijy = r21x *  cross234z +  r34z *  cross321x -
-	( r34x *  cross321z +  r21z *  cross234x);
+        ( r34x *  cross321z +  r21z *  cross234x);
       fvec dt2dijz = r21y *  cross234x +  r34x *  cross321y -
-	( r34y *  cross321x +  r21x *  cross234y);
+        ( r34y *  cross321x +  r21x *  cross234y);
 
       fvec aa = prefactor *  c_2 *  fvec::mask_div(fvec::undefined(), 
-						   mask_inner_1, cw, cwnom) *
-	w21 *  w34 *  (c_1 -  tspjik) * ( c_1 -  tspijl);
+                                                   mask_inner_1, cw, cwnom) *
+        w21 *  w34 *  (c_1 -  tspjik) * ( c_1 -  tspijl);
       fvec aaa1 = (fvec::setzero() - prefactor) * (c_1 - om1234 * om1234) *
-	(c_1 - tspjik) * (c_1 - tspijl);
+        (c_1 - tspjik) * (c_1 - tspijl);
       fvec aaa2 = (fvec::setzero() -  prefactor) * (c_1 -  om1234 *  om1234) *
-	w21 * w34;
+        w21 * w34;
       fvec at2 = aa * cwnum;
 
       fvec fcijpc = aaa2 * dtsjik * dctij * (c_1 - tspijl) +  aaa2 * dtsijl * 
-	dctji * (c_1 - tspjik) - dt1dij * at2;
+        dctji * (c_1 - tspjik) - dt1dij * at2;
       fvec fcikpc =  aaa2 * dtsjik * dctik * (c_1 - tspijl) - dt1dik * at2;
       fvec fcjlpc =  aaa2 * dtsijl * dctjl * (c_1 - tspjik) - dt1djl * at2;
       fvec fcjkpc =  aaa2 * dtsjik * dctjk * (c_1 - tspijl) - dt1djk * at2;
@@ -3193,8 +3193,8 @@ static fvec aut_frebo_sum_omega(
           F23z +  F24z -  F31z);
 
       fvec tmp20 = VA * (c_1 - om1234 * om1234) * (c_1 - tspjik) * 
-	(c_1 - tspijl) * dw21 * w34 * fvec::mask_recip(fvec::undefined(), 
-						       mask_inner_1, r21mag);
+        (c_1 - tspijl) * dw21 * w34 * fvec::mask_recip(fvec::undefined(), 
+                                                       mask_inner_1, r21mag);
       f2x = f2x -  tmp20 *  r21x;
       f2y = f2y -  tmp20 *  r21y;
       f2z = f2z -  tmp20 *  r21z;
@@ -3203,8 +3203,8 @@ static fvec aut_frebo_sum_omega(
       f1z = f1z +  tmp20 *  r21z;
 
       fvec tmp21 = VA * (c_1 - om1234 * om1234) * (c_1 - tspjik) * 
-	(c_1 - tspijl) * w21 * dw34 * fvec::mask_recip(fvec::undefined(), 
-						       mask_inner_1, r34mag);
+        (c_1 - tspijl) * w21 * dw34 * fvec::mask_recip(fvec::undefined(), 
+                                                       mask_inner_1, r34mag);
       f3x = f3x -  tmp21 *  r34x;
       f3y = f3y -  tmp21 *  r34y;
       f3z = f3z -  tmp21 *  r34z;
@@ -3214,35 +3214,35 @@ static fvec aut_frebo_sum_omega(
 
       // 1 == buf_idx_i, 2 == i, 3 == j, 4 == buf_idx_j
       i_data->force_k_x_buf[buf_idx_i] = 
-	fvec::mask_add(i_data->force_k_x_buf[buf_idx_i], 
-		       mask_inner_1, i_data->force_k_x_buf[buf_idx_i], f1x);
+        fvec::mask_add(i_data->force_k_x_buf[buf_idx_i], 
+                       mask_inner_1, i_data->force_k_x_buf[buf_idx_i], f1x);
       i_data->force_k_y_buf[buf_idx_i] = 
-	fvec::mask_add(i_data->force_k_y_buf[buf_idx_i], mask_inner_1, 
-		       i_data->force_k_y_buf[buf_idx_i], f1y);
+        fvec::mask_add(i_data->force_k_y_buf[buf_idx_i], mask_inner_1, 
+                       i_data->force_k_y_buf[buf_idx_i], f1y);
       i_data->force_k_z_buf[buf_idx_i] = 
-	fvec::mask_add(i_data->force_k_z_buf[buf_idx_i], mask_inner_1, 
-		       i_data->force_k_z_buf[buf_idx_i], f1z);
+        fvec::mask_add(i_data->force_k_z_buf[buf_idx_i], mask_inner_1, 
+                       i_data->force_k_z_buf[buf_idx_i], f1z);
       i_data->force_i_x = 
-	fvec::mask_add(i_data->force_i_x, mask_inner_1, i_data->force_i_x, f2x);
+        fvec::mask_add(i_data->force_i_x, mask_inner_1, i_data->force_i_x, f2x);
       i_data->force_i_y = 
-	fvec::mask_add(i_data->force_i_y, mask_inner_1, i_data->force_i_y, f2y);
+        fvec::mask_add(i_data->force_i_y, mask_inner_1, i_data->force_i_y, f2y);
       i_data->force_i_z = 
-	fvec::mask_add(i_data->force_i_z, mask_inner_1, i_data->force_i_z, f2z);
+        fvec::mask_add(i_data->force_i_z, mask_inner_1, i_data->force_i_z, f2z);
       j_data->force_i_x = 
-	fvec::mask_add(j_data->force_i_x, mask_inner_1, j_data->force_i_x, f3x);
+        fvec::mask_add(j_data->force_i_x, mask_inner_1, j_data->force_i_x, f3x);
       j_data->force_i_y = 
-	fvec::mask_add(j_data->force_i_y, mask_inner_1, j_data->force_i_y, f3y);
+        fvec::mask_add(j_data->force_i_y, mask_inner_1, j_data->force_i_y, f3y);
       j_data->force_i_z = 
-	fvec::mask_add(j_data->force_i_z, mask_inner_1, j_data->force_i_z, f3z);
+        fvec::mask_add(j_data->force_i_z, mask_inner_1, j_data->force_i_z, f3z);
       j_data->force_k_x_buf[buf_idx_j] = 
-	fvec::mask_add(j_data->force_k_x_buf[buf_idx_j], mask_inner_1, 
-		       j_data->force_k_x_buf[buf_idx_j], f4x);
+        fvec::mask_add(j_data->force_k_x_buf[buf_idx_j], mask_inner_1, 
+                       j_data->force_k_x_buf[buf_idx_j], f4x);
       j_data->force_k_y_buf[buf_idx_j] = 
-	fvec::mask_add(j_data->force_k_y_buf[buf_idx_j], mask_inner_1, 
-		       j_data->force_k_y_buf[buf_idx_j], f4y);
+        fvec::mask_add(j_data->force_k_y_buf[buf_idx_j], mask_inner_1, 
+                       j_data->force_k_y_buf[buf_idx_j], f4y);
       j_data->force_k_z_buf[buf_idx_j] = 
-	fvec::mask_add(j_data->force_k_z_buf[buf_idx_j], mask_inner_1, 
-		       j_data->force_k_z_buf[buf_idx_j], f4z);
+        fvec::mask_add(j_data->force_k_z_buf[buf_idx_j], mask_inner_1, 
+                       j_data->force_k_z_buf[buf_idx_j], f4z);
     }
   }
   return sum_omega;
@@ -3269,9 +3269,9 @@ static fvec aut_frebo_pi_dh(
         r23x, r23y, r23z, r23mag, VA *  Tij, fij);
     sum_omega = fvec::mask_blend(TijgtTOLmask, fvec::setzero(), sum_omega);
     aut_frebo_N_spline_force(ka, i_data, itype, jtype, vi, vj, VA * sum_omega,
-			     dN3[0], dN3[2], NconjtmpI);
+                             dN3[0], dN3[2], NconjtmpI);
     aut_frebo_N_spline_force(ka, j_data, jtype, itype, vj, vi, VA * sum_omega,
-			     dN3[1], dN3[2], NconjtmpJ);
+                             dN3[1], dN3[2], NconjtmpJ);
   }
   return Tij *  sum_omega;
 }
@@ -3351,7 +3351,7 @@ static void aut_torsion_vec(
     for (int buf_idx_j = 0; buf_idx_j < j_data->buf_len; buf_idx_j++) {
       ivec l = j_data->k_buf[buf_idx_j];
       bvec mask_inner_0 = ivec::mask_cmpneq(mask_start, k, l) & 
-	j_data->mask_buf[buf_idx_j];
+        j_data->mask_buf[buf_idx_j];
       if (! bvec::test_any_set(mask_inner_0)) continue;
       fvec del34x = j_data->rikx_buf[buf_idx_j];
       fvec del34y = j_data->riky_buf[buf_idx_j];
@@ -3380,16 +3380,16 @@ static void aut_torsion_vec(
       fvec cross321y = del32z * del21x - del32x * del21z;
       fvec cross321z = del32x * del21y - del32y * del21x;
       fvec cross321mag = fvec::sqrt(cross321x * cross321x + 
-				    cross321y * cross321y + 
-				    cross321z * cross321z);
+                                    cross321y * cross321y + 
+                                    cross321z * cross321z);
       fvec cross234x = del23y * del34z - del23z * del34y;
       fvec cross234y = del23z * del34x - del23x * del34z;
       fvec cross234z = del23x * del34y - del23y * del34x;
       fvec cross234mag = fvec::sqrt(cross234x * cross234x + 
-				    cross234y * cross234y + 
-				    cross234z * cross234z);
+                                    cross234y * cross234y + 
+                                    cross234z * cross234z);
       fvec cwnum = cross321x * cross234x + cross321y * cross234y + 
-	cross321z * cross234z;
+        cross321z * cross234z;
       fvec cwnom = r21 * r34 * r32 * r32 * sin321 * sin234;
       fvec cw = cwnum /  cwnom;
 
@@ -3459,7 +3459,7 @@ static void aut_torsion_vec(
       fvec dcwdn = fvec::recip(cwnom);
       fvec cw2_4 = cw2 *  cw2 *  cw2 *  cw2;
       fvec dvpdcw = c_2_5 * Ec * cw2_4 * w23 * w21 * w34 * (c_1_0 - tspjik) *
-	(c_1_0 - tspijl);
+        (c_1_0 - tspijl);
 
       fvec Ftmpx = dvpdcw * (dcwdn * dndijx + dcwddn * ddndij * del23x / r23);
       fvec Ftmpy = dvpdcw * (dcwdn * dndijy + dcwddn * ddndij * del23y / r23);
@@ -3514,7 +3514,7 @@ static void aut_torsion_vec(
       // coordination forces
 
       fvec fpair = Vtors * dw21 * w23 * w34 * (c_1_0 - tspjik) * 
-	(c_1_0 - tspijl) /  r21;
+        (c_1_0 - tspijl) /  r21;
       fix = fix -  del21x * fpair;
       fiy = fiy -  del21y * fpair;
       fiz = fiz -  del21z * fpair;
@@ -3523,7 +3523,7 @@ static void aut_torsion_vec(
       fkz = fkz +  del21z * fpair;
 
       fpair = Vtors * w21 * dw23 * w34 * (c_1_0 - tspjik) * (c_1_0 - tspijl) /
-	r23;
+        r23;
       fix = fix -  del23x * fpair;
       fiy = fiy -  del23y * fpair;
       fiz = fiz -  del23z * fpair;
@@ -3532,7 +3532,7 @@ static void aut_torsion_vec(
       fjz = fjz +  del23z * fpair;
 
       fpair = Vtors * w21 * w23 * dw34 * (c_1_0 - tspjik) * (c_1_0 - tspijl) /
-	r34;
+        r34;
       fjx = fjx -  del34x * fpair;
       fjy = fjy -  del34y * fpair;
       fjz = fjz -  del34z * fpair;
@@ -3543,7 +3543,7 @@ static void aut_torsion_vec(
       // additional cut off function forces
 
       fvec fcpc = fvec::setzero() - Vtors * w21 * w23 * w34 * dtsjik * (c_1_0 -
-									tspijl);
+                                                                        tspijl);
       fpair = fcpc * dcidij / rij;
       fix = fix +  fpair * del23x;
       fiy = fiy +  fpair * del23y;
@@ -3569,7 +3569,7 @@ static void aut_torsion_vec(
       fkz = fkz -  fpair * deljkz;
 
       fcpc = fvec::setzero() - Vtors * w21 * w23 * w34 * (c_1_0 - tspjik) * 
-	dtsijl;
+        dtsijl;
       fpair = fcpc * dcjdji / rij;
       fix = fix +  fpair * del23x;
       fiy = fiy +  fpair * del23y;
@@ -3597,35 +3597,35 @@ static void aut_torsion_vec(
       // sum per-atom forces into atom force array
 
       i_data->force_i_x = fvec::mask_add(i_data->force_i_x, mask_inner_0, 
-					 i_data->force_i_x, fix);
+                                         i_data->force_i_x, fix);
       i_data->force_i_y = fvec::mask_add(i_data->force_i_y, mask_inner_0, 
-					 i_data->force_i_y, fiy);
+                                         i_data->force_i_y, fiy);
       i_data->force_i_z = fvec::mask_add(i_data->force_i_z, mask_inner_0, 
-					 i_data->force_i_z, fiz);
+                                         i_data->force_i_z, fiz);
       i_data->force_j_x = fvec::mask_add(i_data->force_j_x, mask_inner_0, 
-					 i_data->force_j_x, fjx);
+                                         i_data->force_j_x, fjx);
       i_data->force_j_y = fvec::mask_add(i_data->force_j_y, mask_inner_0, 
-					 i_data->force_j_y, fjy);
+                                         i_data->force_j_y, fjy);
       i_data->force_j_z = fvec::mask_add(i_data->force_j_z, mask_inner_0, 
-					 i_data->force_j_z, fjz);
+                                         i_data->force_j_z, fjz);
       i_data->force_k_x_buf[buf_idx_i] = 
-	fvec::mask_add(i_data->force_k_x_buf[buf_idx_i], mask_inner_0, 
-		       i_data->force_k_x_buf[buf_idx_i], fkx);
+        fvec::mask_add(i_data->force_k_x_buf[buf_idx_i], mask_inner_0, 
+                       i_data->force_k_x_buf[buf_idx_i], fkx);
       i_data->force_k_y_buf[buf_idx_i] = 
-	fvec::mask_add(i_data->force_k_y_buf[buf_idx_i], mask_inner_0, 
-		       i_data->force_k_y_buf[buf_idx_i], fky);
+        fvec::mask_add(i_data->force_k_y_buf[buf_idx_i], mask_inner_0, 
+                       i_data->force_k_y_buf[buf_idx_i], fky);
       i_data->force_k_z_buf[buf_idx_i] = 
-	fvec::mask_add(i_data->force_k_z_buf[buf_idx_i], mask_inner_0, 
-		       i_data->force_k_z_buf[buf_idx_i], fkz);
+        fvec::mask_add(i_data->force_k_z_buf[buf_idx_i], mask_inner_0, 
+                       i_data->force_k_z_buf[buf_idx_i], fkz);
       j_data->force_k_x_buf[buf_idx_j] = 
-	fvec::mask_add(j_data->force_k_x_buf[buf_idx_j], mask_inner_0, 
-		       j_data->force_k_x_buf[buf_idx_j], flx);
+        fvec::mask_add(j_data->force_k_x_buf[buf_idx_j], mask_inner_0, 
+                       j_data->force_k_x_buf[buf_idx_j], flx);
       j_data->force_k_y_buf[buf_idx_j] = 
-	fvec::mask_add(j_data->force_k_y_buf[buf_idx_j], mask_inner_0, 
-		       j_data->force_k_y_buf[buf_idx_j], fly);
+        fvec::mask_add(j_data->force_k_y_buf[buf_idx_j], mask_inner_0, 
+                       j_data->force_k_y_buf[buf_idx_j], fly);
       j_data->force_k_z_buf[buf_idx_j] = 
-	fvec::mask_add(j_data->force_k_z_buf[buf_idx_j], mask_inner_0, 
-		       j_data->force_k_z_buf[buf_idx_j], flz);
+        fvec::mask_add(j_data->force_k_z_buf[buf_idx_j], mask_inner_0, 
+                       j_data->force_k_z_buf[buf_idx_j], flz);
     }
   }
 }
@@ -3636,8 +3636,8 @@ static void aut_torsion_vec(
  * torsion calculaltion.
  */
 static void aut_frebo_batch_of_kind(KernelArgsAIREBOT<flt_t,acc_t> * ka, 
-				    int torflag, int itype, int jtype, 
-				    int * i_buf, int * j_buf) {
+                                    int torflag, int itype, int jtype, 
+                                    int * i_buf, int * j_buf) {
  { // jump-scope for exceed_limits
   AtomAIREBOT<flt_t> * x = ka->x;
   int * map = ka->map;
@@ -3758,12 +3758,12 @@ static void aut_frebo_batch_of_kind(KernelArgsAIREBOT<flt_t,acc_t> * ka,
   fvec dN3[3];
   fvec pi_rc = aut_frebo_pi_rc_pd(ka, itype, jtype, Nij, Nji, Nijconj, dN3);
   aut_frebo_N_spline_force(ka, &i_data, itype, jtype, vi, vj, VA, dN3[0], 
-			   dN3[2], NconjtmpI);
+                           dN3[2], NconjtmpI);
   aut_frebo_N_spline_force(ka, &j_data, jtype, itype, vj, vi, VA, dN3[1], 
-			   dN3[2], NconjtmpJ);
+                           dN3[2], NconjtmpJ);
   fvec pi_dh = aut_frebo_pi_dh(ka, &i_data, &j_data, itype, jtype, vi, vj, 
-			       delx, dely, delz, rij, VA, Nij, Nji, Nijconj,
-			       NconjtmpI, NconjtmpJ, fij);
+                               delx, dely, delz, rij, VA, Nij, Nji, Nijconj,
+                               NconjtmpI, NconjtmpJ, fij);
 
   fvec bij = c_0_5 * ( pij +  pji) +  pi_rc +  pi_dh;
   fvec dVAdi = bij *  dVA;
@@ -3895,7 +3895,7 @@ static void aut_frebo(KernelArgsAIREBOT<flt_t,acc_t> * ka, int torflag) {
         int j = j_buf[itype][jtype][l];
         ref_frebo_single_interaction(ka, i, j);
         if (torflag && itype == 0 && jtype == 0) 
-	  ref_torsion_single_interaction(ka, i, j);
+          ref_torsion_single_interaction(ka, i, j);
       }
     }
   }
@@ -3983,7 +3983,7 @@ static bool aut_airebo_lj_test_all_paths(KernelArgsAIREBOT<flt_t,acc_t> * ka,
     int start_hash_slot = aut_lj_tap_hash_fn(j, attempt);
     int hash_slot = start_hash_slot;
     while (result->i[hash_slot] == i && result->j[hash_slot] != j && 
-	   attempt < OPT_TEST_PATH_SIZE) {
+           attempt < OPT_TEST_PATH_SIZE) {
       hash_slot = aut_lj_tap_hash_fn(j, ++attempt);
     }
     if (attempt >= OPT_TEST_PATH_SIZE) goto exceed_limits;
@@ -3996,7 +3996,7 @@ static bool aut_airebo_lj_test_all_paths(KernelArgsAIREBOT<flt_t,acc_t> * ka,
         if (path_insert_pos >= OPT_TEST_PATH_ITEMS) goto exceed_limits;
         result->testpath_idx[hash_slot] = path_insert_pos;
         LennardJonesPathAIREBOT<flt_t> *path = 
-	  &result->testpath[path_insert_pos++];
+          &result->testpath[path_insert_pos++];
         path->num = 2;
         path->del[0].x = dijx;
         path->del[0].y = dijy;
@@ -4028,7 +4028,7 @@ static bool aut_airebo_lj_test_all_paths(KernelArgsAIREBOT<flt_t,acc_t> * ka,
       int start_hash_slot = aut_lj_tap_hash_fn(k, attempt);
       int hash_slot = start_hash_slot;
       while (result->i[hash_slot] == i && result->j[hash_slot] != k && 
-	     attempt < OPT_TEST_PATH_SIZE) {
+             attempt < OPT_TEST_PATH_SIZE) {
         hash_slot = aut_lj_tap_hash_fn(k, ++attempt);
       }
       if (attempt >= OPT_TEST_PATH_SIZE) goto exceed_limits;
@@ -4041,7 +4041,7 @@ static bool aut_airebo_lj_test_all_paths(KernelArgsAIREBOT<flt_t,acc_t> * ka,
           if (path_insert_pos >= OPT_TEST_PATH_ITEMS) goto exceed_limits;
           result->testpath_idx[hash_slot] = path_insert_pos;
           LennardJonesPathAIREBOT<flt_t> *path = 
-	    &result->testpath[path_insert_pos++];
+            &result->testpath[path_insert_pos++];
           path->num = 3;
           path->del[0].x = dijx;
           path->del[0].y = dijy;
@@ -4081,7 +4081,7 @@ static bool aut_airebo_lj_test_all_paths(KernelArgsAIREBOT<flt_t,acc_t> * ka,
         int start_hash_slot = aut_lj_tap_hash_fn(l, attempt);
         int hash_slot = start_hash_slot;
         while (result->i[hash_slot] == i && result->j[hash_slot] != l && 
-	       attempt < OPT_TEST_PATH_SIZE) {
+               attempt < OPT_TEST_PATH_SIZE) {
           hash_slot = aut_lj_tap_hash_fn(l, ++attempt);
         }
         if (attempt >= OPT_TEST_PATH_SIZE) goto exceed_limits;
@@ -4094,7 +4094,7 @@ static bool aut_airebo_lj_test_all_paths(KernelArgsAIREBOT<flt_t,acc_t> * ka,
             if (path_insert_pos >= OPT_TEST_PATH_ITEMS) goto exceed_limits;
             result->testpath_idx[hash_slot] = path_insert_pos;
             LennardJonesPathAIREBOT<flt_t> *path = 
-	      &result->testpath[path_insert_pos++];
+              &result->testpath[path_insert_pos++];
             path->num = 4;
             path->del[0].x = dijx;
             path->del[0].y = dijy;
@@ -4174,7 +4174,7 @@ static fvec aut_airebo_lj_tap_test_path(KernelArgsAIREBOT<flt_t,acc_t> * ka,
     another_attempt = correct_i & ~ found_items;
   }
   cij = fvec::mask_gather(cij, found_items, hash_slot, 
-			  &test_path_result->cij[0], sizeof(flt_t));
+                          &test_path_result->cij[0], sizeof(flt_t));
   bvec need_testpath = fvec::mask_cmplt(found_items, fvec::setzero(), cij);
   if (bvec::test_any_set(need_testpath)) {
     for (int i = 0; i < fvec::VL; i++) {
@@ -4304,8 +4304,8 @@ static void aut_lj_with_bo(
 
   fvec NconjtmpI;
   fvec pij = aut_frebo_pij_pd_2(ka, &i_data, itype, jtype, vi, vj, 
-				delx * scale, dely * scale, delz * scale, 
-				the_r, wij, VA, &NconjtmpI, fij);
+                                delx * scale, dely * scale, delz * scale, 
+                                the_r, wij, VA, &NconjtmpI, fij);
 
   if (i_data.buf_len < 0) goto exceed_limits;
 
@@ -4314,8 +4314,8 @@ static void aut_lj_with_bo(
   fvec rjiy = fvec::setzero() -  dely;
   fvec rjiz = fvec::setzero() -  delz;
   fvec pji = aut_frebo_pij_pd_2(ka, &j_data, jtype, itype, vj, vi, 
-				rjix * scale, rjiy * scale, rjiz * scale, 
-				the_r, wij, VA, &NconjtmpJ, fji);
+                                rjix * scale, rjiy * scale, rjiz * scale, 
+                                the_r, wij, VA, &NconjtmpJ, fji);
   fij[0] = fij[0] -  fji[0];
   fij[1] = fij[1] -  fji[1];
   fij[2] = fij[2] -  fji[2];
@@ -4376,23 +4376,23 @@ static void aut_lj_with_bo(
     fijc[1] = dStb * fij[1];
     fijc[2] = dStb * fij[2];
     fij[0] = scale * (fijc[0] - (delx * delx * fijc[0] + dely * delx * 
-				 fijc[1] + delz * delx * fijc[2]) / rsq);
+                                 fijc[1] + delz * delx * fijc[2]) / rsq);
     fij[1] = scale * (fijc[1] - (delx * dely * fijc[0] + dely * dely * 
-				 fijc[1] + delz * dely * fijc[2]) / rsq);
+                                 fijc[1] + delz * dely * fijc[2]) / rsq);
     fij[2] = scale * (fijc[2] - (delx * delz * fijc[0] + dely * delz * 
-				 fijc[1] + delz * delz * fijc[2]) / rsq);
+                                 fijc[1] + delz * delz * fijc[2]) / rsq);
 
     aut_frebo_N_spline_force(ka, &i_data, itype, jtype, vi, vj, dStb * VA, 
-			     dN3[0], dN3[2], NconjtmpI);
+                             dN3[0], dN3[2], NconjtmpI);
     aut_frebo_N_spline_force(ka, &j_data, jtype, itype, vj, vi, dStb * VA, 
-			     dN3[1], dN3[2], NconjtmpJ);
+                             dN3[1], dN3[2], NconjtmpJ);
     if (bvec::test_any_set(TijgtTOLmask)) {
       aut_frebo_N_spline_force(ka, &i_data, itype, jtype, vi, vj, 
-			       dStb * VA * sum_omega, dN3_dh[0], dN3_dh[2], 
-			       NconjtmpI);
+                               dStb * VA * sum_omega, dN3_dh[0], dN3_dh[2], 
+                               NconjtmpI);
       aut_frebo_N_spline_force(ka, &j_data, jtype, itype, vj, vi, 
-			       dStb * VA * sum_omega, dN3_dh[1], dN3_dh[2], 
-			       NconjtmpJ);
+                               dStb * VA * sum_omega, dN3_dh[1], dN3_dh[2], 
+                               NconjtmpJ);
     }
 
     aut_frebo_data_writeback(ka, &i_data);
@@ -4475,7 +4475,7 @@ static void aut_lj_with_bo(
 exceed_limits:
   for (int l = 0; l < fvec::VL; l++) {
     ref_lennard_jones_single_interaction(ka, ivec::at(i, l), ivec::at(j, l), 
-					 MORSEFLAG);
+                                         MORSEFLAG);
   }
   return;
 }
@@ -4584,14 +4584,14 @@ static void aut_lennard_jones(KernelArgsAIREBOT<flt_t,acc_t> * ka) {
       ivec j;
       if (rest_j) {
         bvec mask_0 = bvec::full();
-	//0xFF >> (8 - (jnum - jj));
+        //0xFF >> (8 - (jnum - jj));
         if (jj + (fvec::VL - 1) >= jnum) mask_0 = bvec::only(jnum - jj);
         j = ivec::maskz_loadu(mask_0, &neighs[jj]);
         fvec x_j, y_j, z_j;
         aut_loadatoms_vec(x, j, &x_j, &y_j, &z_j, &jtype_mask, map, map_i, 
-			  c_i1);
+                          c_i1);
         fvec::gather_prefetch0(ivec::mullo(c_i4, 
-	  ivec::maskz_loadu(bvec::full(), &neighs[jj + fvec::VL])), x);
+          ivec::maskz_loadu(bvec::full(), &neighs[jj + fvec::VL])), x);
         _mm_prefetch((const char*)&neighs[jj + 2 * fvec::VL], _MM_HINT_T0);
         delx = x_i -  x_j;
         dely = y_i -  y_j;
@@ -4624,7 +4624,7 @@ static void aut_lennard_jones(KernelArgsAIREBOT<flt_t,acc_t> * ka) {
           }
 
           num_2 -= fvec::VL;
-	  //(0xFF >> (8 - num_2)) << (_cc_popcnt(within_cutoff) - num_2);
+          //(0xFF >> (8 - num_2)) << (_cc_popcnt(within_cutoff) - num_2);
           mask_2 = bvec::onlyafter(num_2, bvec::popcnt(within_cutoff) - num_2);
           {
             ivec tmp_j = j_2;
@@ -4676,7 +4676,7 @@ static void aut_lennard_jones(KernelArgsAIREBOT<flt_t,acc_t> * ka) {
         fvec p_rcmax = fvec::mask_blend(jtype_mask, p_rcmax0, p_rcmax1);
         #pragma noinline
         cij = aut_airebo_lj_tap_test_path(ka, &test_path_result, need_search, 
-					  i_bc, j, testpath);
+                                          i_bc, j, testpath);
       }
       current_mask = fvec::mask_cmplt(current_mask, c_0_0, cij);
       if (bvec::test_all_unset(current_mask)) {
@@ -4735,13 +4735,13 @@ static void aut_lennard_jones(KernelArgsAIREBOT<flt_t,acc_t> * ka) {
           fvec cijtmp = fvec::masku_compress(need_bo_with_jtype, cij);
           bvec insert_mask = bvec::after(num_bo[itype][jtype]);
           i_bo[itype][jtype] = ivec::mask_expand(i_bo[itype][jtype], 
-						 insert_mask, itmp);
+                                                 insert_mask, itmp);
           j_bo[itype][jtype] = ivec::mask_expand(j_bo[itype][jtype], 
-						 insert_mask, jtmp);
+                                                 insert_mask, jtmp);
           cij_bo[itype][jtype] = fvec::mask_expand(cij_bo[itype][jtype], 
-						   insert_mask, cijtmp);
+                                                   insert_mask, cijtmp);
           bvec need_path_force_with_jtype = need_bo_with_jtype & 
-	    need_path_force;
+            need_path_force;
           int testpath_end = fvec::VL;
           if (bvec::test_any_set(need_path_force_with_jtype)) {
             int pos = num_bo[itype][jtype];
@@ -4759,16 +4759,16 @@ static void aut_lennard_jones(KernelArgsAIREBOT<flt_t,acc_t> * ka) {
             }
           }
           num_bo[itype][jtype] = num_bo[itype][jtype] + 
-	    bvec::popcnt(need_bo_with_jtype);
+            bvec::popcnt(need_bo_with_jtype);
           if (num_bo[itype][jtype] >= fvec::VL) {
             #pragma noinline
             aut_lj_with_bo<MORSEFLAG>(ka, itype, jtype, i_bo[itype][jtype], 
-				      j_bo[itype][jtype], cij_bo[itype][jtype],
-				      testpath_bo[itype][jtype]);
+                                      j_bo[itype][jtype], cij_bo[itype][jtype],
+                                      testpath_bo[itype][jtype]);
             num_bo[itype][jtype] -= fvec::VL;
             insert_mask = bvec::onlyafter(num_bo[itype][jtype], 
-					  bvec::popcnt(need_bo_with_jtype) - 
-					  num_bo[itype][jtype]);
+                                          bvec::popcnt(need_bo_with_jtype) - 
+                                          num_bo[itype][jtype]);
             i_bo[itype][jtype] = ivec::masku_compress(insert_mask, itmp);
             j_bo[itype][jtype] = ivec::masku_compress(insert_mask, jtmp);
             cij_bo[itype][jtype] = fvec::masku_compress(insert_mask, cijtmp);
@@ -4798,30 +4798,30 @@ static void aut_lennard_jones(KernelArgsAIREBOT<flt_t,acc_t> * ka) {
       fvec fiy = fpair *  dely +  fij[1];
       fvec fiz = fpair *  delz +  fij[2];
       result_f_i_x = fvec::mask_add(result_f_i_x, current_mask, result_f_i_x, 
-				    fix);
+                                    fix);
       result_f_i_y = fvec::mask_add(result_f_i_y, current_mask, result_f_i_y, 
-				    fiy);
+                                    fiy);
       result_f_i_z = fvec::mask_add(result_f_i_z, current_mask, result_f_i_z, 
-				    fiz);
+                                    fiz);
       result_eng = fvec::mask_add(result_eng, current_mask, result_eng, evdwl);
 
       ivec j_dbl_idx = ivec::mullo(j, c_i4);
       avec fjx = avec::mask_gather(avec::undefined(), current_mask, j_dbl_idx, 
-				   &ka->result_f[0].x, sizeof(acc_t));
+                                   &ka->result_f[0].x, sizeof(acc_t));
       avec fjy = avec::mask_gather(avec::undefined(), current_mask, j_dbl_idx, 
-				   &ka->result_f[0].y, sizeof(acc_t));
+                                   &ka->result_f[0].y, sizeof(acc_t));
       avec fjz = avec::mask_gather(avec::undefined(), current_mask, j_dbl_idx, 
-				   &ka->result_f[0].z, sizeof(acc_t));
+                                   &ka->result_f[0].z, sizeof(acc_t));
 
       fjx = fjx -  fix;
       fjy = fjy -  fiy;
       fjz = fjz -  fiz;
       avec::mask_i32loscatter(&ka->result_f[0].x, current_mask, j_dbl_idx, fjx, 
-			      sizeof(acc_t));
+                              sizeof(acc_t));
       avec::mask_i32loscatter(&ka->result_f[0].y, current_mask, j_dbl_idx, fjy, 
-			      sizeof(acc_t));
+                              sizeof(acc_t));
       avec::mask_i32loscatter(&ka->result_f[0].z, current_mask, j_dbl_idx, fjz, 
-			      sizeof(acc_t));
+                              sizeof(acc_t));
 
       if (bvec::test_any_set(need_path_force)) {
         fvec dC = VLJ * ( Str *  Stb +  c_1_0 -  Str);
@@ -4839,8 +4839,8 @@ static void aut_lennard_jones(KernelArgsAIREBOT<flt_t,acc_t> * ka) {
     for (int jtype = 0; jtype < 2; jtype++) {
       for (int l = 0; l < num_bo[itype][jtype]; l++) {
         ref_lennard_jones_single_interaction(ka,ivec::at(i_bo[itype][jtype],l),
-					     ivec::at(j_bo[itype][jtype], l),
-					     MORSEFLAG);
+                                             ivec::at(j_bo[itype][jtype], l),
+                                             MORSEFLAG);
       }
     }
   }

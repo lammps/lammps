@@ -33,6 +33,6 @@
 #include "reaxc_torsion_angles.h"
 
 void Torsion_AnglesOMP( reax_system*, control_params*, simulation_data*,
-			storage*, reax_list**, output_controls* );
+                        storage*, reax_list**, output_controls* );
 
 #endif

@@ -366,8 +366,8 @@ void PairMomb::read_restart_settings(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 double PairMomb::single(int i, int j, int itype, int jtype, double rsq,
-			 double factor_coul, double factor_lj,
-			 double &fforce)
+                         double factor_coul, double factor_lj,
+                         double &fforce)
 {
   double r,dr,dexp,phi,r2inv,r6inv,ddexp,invexp;
 

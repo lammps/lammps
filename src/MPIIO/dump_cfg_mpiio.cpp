@@ -137,10 +137,10 @@ void DumpCFGMPIIO::write()
 {
 
 #ifdef LMP_USER_IO_TIMER
-	long startTimeBase, endTimeBase;
-	MPI_Barrier(world); // timestamp barrier
-	if (me == 0)
-		startTimeBase = GetTimeBase();
+        long startTimeBase, endTimeBase;
+        MPI_Barrier(world); // timestamp barrier
+        if (me == 0)
+                startTimeBase = GetTimeBase();
 #endif
 
   if (domain->triclinic == 0) {
@@ -211,23 +211,23 @@ void DumpCFGMPIIO::write()
   MPI_Bcast(&sumFileSize, 1, MPI_LMP_BIGINT, (nprocs-1), world);
 
 #ifdef LMP_USER_IO_TIMER
-	MPI_Barrier(world); // timestamp barrier
-	dumpCFGTimestamps[0] = GetTimeBase();
+        MPI_Barrier(world); // timestamp barrier
+        dumpCFGTimestamps[0] = GetTimeBase();
 #endif
 
   openfile();
 
 #ifdef LMP_USER_IO_TIMER
-	MPI_Barrier(world); // timestamp barrier
-	dumpCFGTimestamps[1] = GetTimeBase();
+        MPI_Barrier(world); // timestamp barrier
+        dumpCFGTimestamps[1] = GetTimeBase();
 #endif
 
   performEstimate = 0;
   write_header(nheader); // mpifo now points to end of header info
 
 #ifdef LMP_USER_IO_TIMER
-	MPI_Barrier(world); // timestamp barrier
-	dumpCFGTimestamps[2] = GetTimeBase();
+        MPI_Barrier(world); // timestamp barrier
+        dumpCFGTimestamps[2] = GetTimeBase();
 #endif
 
   // now actually write the data
@@ -235,20 +235,20 @@ void DumpCFGMPIIO::write()
   write_data(nme,buf);
 
 #ifdef LMP_USER_IO_TIMER
-	MPI_Barrier(world); // timestamp barrier
-	dumpCFGTimestamps[3] = GetTimeBase();
+        MPI_Barrier(world); // timestamp barrier
+        dumpCFGTimestamps[3] = GetTimeBase();
 #endif
 
   if (multifile)    MPI_File_close(&mpifh);
   if (multifile) delete [] filecurrent;
 
 #ifdef LMP_USER_IO_TIMER
-	MPI_Barrier(world); // timestamp barrier
-	dumpCFGTimestamps[4] = GetTimeBase();
-	if (me == 0) {
-		endTimeBase = GetTimeBase();
-		printf("total dump cycles: %ld - estimates and setup: %ld openfile: %ld write header: %ld write data: %ld close file: %ld\n",(long) (endTimeBase-startTimeBase),(long) (dumpCFGTimestamps[0]-startTimeBase),(long) (dumpCFGTimestamps[1]-dumpCFGTimestamps[0]),(long) (dumpCFGTimestamps[2]-dumpCFGTimestamps[1]),(long) (dumpCFGTimestamps[3]-dumpCFGTimestamps[2]),(long) (dumpCFGTimestamps[4]-dumpCFGTimestamps[3]));
-	}
+        MPI_Barrier(world); // timestamp barrier
+        dumpCFGTimestamps[4] = GetTimeBase();
+        if (me == 0) {
+                endTimeBase = GetTimeBase();
+                printf("total dump cycles: %ld - estimates and setup: %ld openfile: %ld write header: %ld write data: %ld close file: %ld\n",(long) (endTimeBase-startTimeBase),(long) (dumpCFGTimestamps[0]-startTimeBase),(long) (dumpCFGTimestamps[1]-dumpCFGTimestamps[0]),(long) (dumpCFGTimestamps[2]-dumpCFGTimestamps[1]),(long) (dumpCFGTimestamps[3]-dumpCFGTimestamps[2]),(long) (dumpCFGTimestamps[4]-dumpCFGTimestamps[3]));
+        }
 #endif
 
 }
@@ -401,10 +401,10 @@ int DumpCFGMPIIO::convert_string_omp(int n, double *mybuf)
         for (int j = 0; j < size_one; j++) {
           double unwrap_coord;
           if (j == 0) {
-	  //offset += sprintf(&sbuf[offset],"%f \n",mybuf[m]);
+          //offset += sprintf(&sbuf[offset],"%f \n",mybuf[m]);
             mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),"%f \n",mybuf[bufOffset[tid]+m]);
           } else if (j == 1) {
-	 // offset += sprintf(&sbuf[offset],"%s \n",typenames[(int) mybuf[m]]);
+         // offset += sprintf(&sbuf[offset],"%s \n",typenames[(int) mybuf[m]]);
             mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),"%s \n",typenames[(int) mybuf[bufOffset[tid]+m]]);
           } else if (j >= 2 && j <= 4) {
             unwrap_coord = (mybuf[bufOffset[tid]+m] - 0.5)/UNWRAPEXPAND + 0.5;

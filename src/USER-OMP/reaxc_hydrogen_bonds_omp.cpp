@@ -124,7 +124,7 @@ void Hydrogen_BondsOMP( reax_system *system, control_params *control,
         pbond_ij = &( bond_list[pi] );
         i = pbond_ij->nbr;
         type_i = system->my_atoms[i].type;
-	if(type_i < 0) continue;
+        if(type_i < 0) continue;
         bo_ij = &(pbond_ij->bo_data);
 
         if( system->reax_param.sbp[type_i].p_hbond == 2 &&
@@ -136,7 +136,7 @@ void Hydrogen_BondsOMP( reax_system *system, control_params *control,
         /* set k's varibles */
         k = hbond_list[pk].nbr;
         type_k = system->my_atoms[k].type;
-	if(type_k < 0) continue;
+        if(type_k < 0) continue;
         nbr_jk = hbond_list[pk].ptr;
         r_jk = nbr_jk->d;
         rvec_Scale( dvec_jk, hbond_list[pk].scl, nbr_jk->dvec );
@@ -149,7 +149,7 @@ void Hydrogen_BondsOMP( reax_system *system, control_params *control,
           if( system->my_atoms[i].orig_id != system->my_atoms[k].orig_id ) {
             bo_ij = &(pbond_ij->bo_data);
             type_i = system->my_atoms[i].type;
-	    if(type_i < 0) continue;
+            if(type_i < 0) continue;
             hbp = &(system->reax_param.hbp[ type_i ][ type_j ][ type_k ]);
             ++num_hb_intrs;
 
@@ -157,8 +157,8 @@ void Hydrogen_BondsOMP( reax_system *system, control_params *control,
                              &theta, &cos_theta );
             /* the derivative of cos(theta) */
             Calculate_dCos_ThetaOMP( pbond_ij->dvec, pbond_ij->d, dvec_jk, r_jk,
-				     &dcos_theta_di, &dcos_theta_dj,
-				     &dcos_theta_dk );
+                                     &dcos_theta_di, &dcos_theta_dj,
+                                     &dcos_theta_dk );
 
             /* hydrogen bond energy*/
             sin_theta2 = sin( theta/2.0 );
@@ -180,7 +180,7 @@ void Hydrogen_BondsOMP( reax_system *system, control_params *control,
             bo_ij->Cdbo += CEhb1; // dbo term
 
             if( control->virial == 0 ) {
-	      // dcos terms
+              // dcos terms
               rvec_ScaledAdd(workspace->forceReduction[reductionOffset+i], +CEhb2, dcos_theta_di );
               rvec_ScaledAdd(workspace->forceReduction[reductionOffset+j], +CEhb2, dcos_theta_dj );
               rvec_ScaledAdd(workspace->forceReduction[reductionOffset+k], +CEhb2, dcos_theta_dk );
@@ -192,7 +192,7 @@ void Hydrogen_BondsOMP( reax_system *system, control_params *control,
               /* for pressure coupling, terms that are not related to bond order
                  derivatives are added directly into pressure vector/tensor */
               rvec_Scale( force, +CEhb2, dcos_theta_di ); // dcos terms
-	      rvec_Add(workspace->forceReduction[reductionOffset+i], force );
+              rvec_Add(workspace->forceReduction[reductionOffset+i], force );
               rvec_iMultiply( ext_press, pbond_ij->rel_box, force );
               rvec_ScaledAdd( workspace->my_ext_pressReduction[tid],1.0, ext_press );
 
@@ -224,7 +224,7 @@ void Hydrogen_BondsOMP( reax_system *system, control_params *control,
               rvec_ScaledAdd(fk_tmp, CEhb3/r_jk, dvec_jk);
 
               pair_reax_ptr->ev_tally3_thr_proxy(system->pair_ptr,i,j,k,e_hb,0.0,fi_tmp,fk_tmp,delij,delkj,thr);
-	    }
+            }
           }
         }
       }

@@ -393,22 +393,22 @@ struct AtomVecAngleKokkos_PackCommSelf {
 /* ---------------------------------------------------------------------- */
 
 int AtomVecAngleKokkos::pack_comm_self(const int &n, const DAT::tdual_int_2d &list,
-				       const int & iswap,
-				       const int nfirst, const int &pbc_flag,
-				       const int* const pbc) {
+                                       const int & iswap,
+                                       const int nfirst, const int &pbc_flag,
+                                       const int* const pbc) {
   if(commKK->forward_comm_on_host) {
     sync(Host,X_MASK);
     modified(Host,X_MASK);
     if(pbc_flag) {
       if(domain->triclinic) {
       struct AtomVecAngleKokkos_PackCommSelf<LMPHostType,1,1>
-	f(atomKK->k_x,nfirst,list,iswap,
+        f(atomKK->k_x,nfirst,list,iswap,
           domain->xprd,domain->yprd,domain->zprd,
           domain->xy,domain->xz,domain->yz,pbc);
       Kokkos::parallel_for(n,f);
       } else {
       struct AtomVecAngleKokkos_PackCommSelf<LMPHostType,1,0>
-	f(atomKK->k_x,nfirst,list,iswap,
+        f(atomKK->k_x,nfirst,list,iswap,
           domain->xprd,domain->yprd,domain->zprd,
           domain->xy,domain->xz,domain->yz,pbc);
       Kokkos::parallel_for(n,f);
@@ -416,13 +416,13 @@ int AtomVecAngleKokkos::pack_comm_self(const int &n, const DAT::tdual_int_2d &li
     } else {
       if(domain->triclinic) {
       struct AtomVecAngleKokkos_PackCommSelf<LMPHostType,0,1>
-	f(atomKK->k_x,nfirst,list,iswap,
+        f(atomKK->k_x,nfirst,list,iswap,
           domain->xprd,domain->yprd,domain->zprd,
           domain->xy,domain->xz,domain->yz,pbc);
       Kokkos::parallel_for(n,f);
       } else {
       struct AtomVecAngleKokkos_PackCommSelf<LMPHostType,0,0>
-	f(atomKK->k_x,nfirst,list,iswap,
+        f(atomKK->k_x,nfirst,list,iswap,
           domain->xprd,domain->yprd,domain->zprd,
           domain->xy,domain->xz,domain->yz,pbc);
       Kokkos::parallel_for(n,f);
@@ -434,13 +434,13 @@ int AtomVecAngleKokkos::pack_comm_self(const int &n, const DAT::tdual_int_2d &li
     if(pbc_flag) {
       if(domain->triclinic) {
       struct AtomVecAngleKokkos_PackCommSelf<LMPDeviceType,1,1>
-	f(atomKK->k_x,nfirst,list,iswap,
+        f(atomKK->k_x,nfirst,list,iswap,
           domain->xprd,domain->yprd,domain->zprd,
           domain->xy,domain->xz,domain->yz,pbc);
       Kokkos::parallel_for(n,f);
       } else {
       struct AtomVecAngleKokkos_PackCommSelf<LMPDeviceType,1,0>
-	f(atomKK->k_x,nfirst,list,iswap,
+        f(atomKK->k_x,nfirst,list,iswap,
           domain->xprd,domain->yprd,domain->zprd,
           domain->xy,domain->xz,domain->yz,pbc);
       Kokkos::parallel_for(n,f);
@@ -448,20 +448,20 @@ int AtomVecAngleKokkos::pack_comm_self(const int &n, const DAT::tdual_int_2d &li
     } else {
       if(domain->triclinic) {
       struct AtomVecAngleKokkos_PackCommSelf<LMPDeviceType,0,1>
-	f(atomKK->k_x,nfirst,list,iswap,
+        f(atomKK->k_x,nfirst,list,iswap,
           domain->xprd,domain->yprd,domain->zprd,
           domain->xy,domain->xz,domain->yz,pbc);
       Kokkos::parallel_for(n,f);
       } else {
       struct AtomVecAngleKokkos_PackCommSelf<LMPDeviceType,0,0>
-	f(atomKK->k_x,nfirst,list,iswap,
+        f(atomKK->k_x,nfirst,list,iswap,
           domain->xprd,domain->yprd,domain->zprd,
           domain->xy,domain->xz,domain->yz,pbc);
       Kokkos::parallel_for(n,f);
       }
     }
   }
-	return n*3;
+        return n*3;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1137,7 +1137,7 @@ struct AtomVecAngleKokkos_PackExchangeFunctor {
     // 1 to store buffer length
     elements = 17+atom->maxspecial+2*atom->bond_per_atom+4*atom->angle_per_atom;
     const int maxsendlist = (buf.template view<DeviceType>().dimension_0()*
-			     buf.template view<DeviceType>().dimension_1())/elements;
+                             buf.template view<DeviceType>().dimension_1())/elements;
     buffer_view<DeviceType>(_buf,buf,maxsendlist,elements);
   }
 
@@ -1221,7 +1221,7 @@ int AtomVecAngleKokkos::pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_
 {
   const int elements = 17+atom->maxspecial+2*atom->bond_per_atom+4*atom->angle_per_atom;
   if(nsend > (int) (k_buf.view<LMPHostType>().dimension_0()*
-	      k_buf.view<LMPHostType>().dimension_1())/elements) {
+              k_buf.view<LMPHostType>().dimension_1())/elements) {
     int newsize = nsend*elements/k_buf.view<LMPHostType>().dimension_1()+1;
     k_buf.resize(newsize,k_buf.view<LMPHostType>().dimension_1());
   }
@@ -1414,7 +1414,7 @@ int AtomVecAngleKokkos::unpack_exchange(double *buf)
   if (nlocal == nmax) grow(0);
   modified(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
            MASK_MASK | IMAGE_MASK | MOLECULE_MASK | BOND_MASK |
-	   ANGLE_MASK | SPECIAL_MASK);
+           ANGLE_MASK | SPECIAL_MASK);
 
   int k;
   int m = 1;
@@ -1705,7 +1705,7 @@ void AtomVecAngleKokkos::write_data(FILE *fp, int n, double **buf)
   for (int i = 0; i < n; i++)
     fprintf(fp,"%d %d %d %-1.16e %-1.16e %-1.16e %d %d %d\n",
             (int) buf[i][0],(int) buf[i][1], (int) buf[i][2],
-	    buf[i][3],buf[i][4],buf[i][5],
+            buf[i][3],buf[i][4],buf[i][5],
             (int) buf[i][6],(int) buf[i][7],(int) buf[i][8]);
 }
 

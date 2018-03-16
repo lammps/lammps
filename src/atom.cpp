@@ -1387,27 +1387,27 @@ void Atom::data_bodies(int n, char *buf, AtomVecBody *avec_body,
     
     if ((m = map(tagdata)) >= 0) {
       if (ninteger > maxint) {
-	delete [] ivalues;
-	maxint = ninteger;
-	ivalues = new int[maxint];
+        delete [] ivalues;
+        maxint = ninteger;
+        ivalues = new int[maxint];
       }
       if (ndouble > maxdouble) {
-	delete [] dvalues;
-	maxdouble = ndouble;
-	dvalues = new double[maxdouble];
+        delete [] dvalues;
+        maxdouble = ndouble;
+        dvalues = new double[maxdouble];
       }
       
       for (j = 0; j < ninteger; j++)
-	ivalues[j] = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
+        ivalues[j] = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
       for (j = 0; j < ndouble; j++)
-	dvalues[j] = force->numeric(FLERR,strtok(NULL," \t\n\r\f"));
+        dvalues[j] = force->numeric(FLERR,strtok(NULL," \t\n\r\f"));
       
       avec_body->data_body(m,ninteger,ndouble,ivalues,dvalues);
       
     } else {
       nvalues = ninteger + ndouble;    // number of values to skip
       for (j = 0; j < nvalues; j++)
-	strtok(NULL," \t\n\r\f");
+        strtok(NULL," \t\n\r\f");
     }
   }
 
@@ -1673,7 +1673,7 @@ void Atom::add_molecule_atom(Molecule *onemol, int iatom,
   if (onemol->bodyflag) {
     body[ilocal] = 0;     // as if a body read from data file
     onemol->avec_body->data_body(ilocal,onemol->nibody,onemol->ndbody,
-				 onemol->ibodyparams,onemol->dbodyparams);
+                                 onemol->ibodyparams,onemol->dbodyparams);
     onemol->avec_body->set_quat(ilocal,onemol->quat_external);
   }
   

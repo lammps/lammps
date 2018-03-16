@@ -101,7 +101,7 @@ void AngleDipole::compute(int eflag, int vflag)
     torque[iDip][0] += delTx;
     torque[iDip][1] += delTy;
     torque[iDip][2] += delTz;
-	
+        
     // Force couple that counterbalances dipolar torque
     fx = dely*delTz - delz*delTy; // direction (fi): - r x (-T)
     fy = delz*delTx - delx*delTz; 

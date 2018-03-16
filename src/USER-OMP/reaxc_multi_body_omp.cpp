@@ -119,7 +119,7 @@ void Atom_EnergyOMP( reax_system *system, control_params *control,
     /* calculate the energy */
     if(numbonds > 0)
       total_Elp += e_lp =
-	p_lp2 * workspace->Delta_lp[i] * inv_expvd2;
+        p_lp2 * workspace->Delta_lp[i] * inv_expvd2;
 
     dElp = p_lp2 * inv_expvd2 +
       75 * p_lp2 * workspace->Delta_lp[i] * expvd2 * SQR(inv_expvd2);
@@ -130,34 +130,34 @@ void Atom_EnergyOMP( reax_system *system, control_params *control,
     /* tally into per-atom energy */
     if( system->pair_ptr->evflag)
       pair_reax_ptr->ev_tally_thr_proxy(system->pair_ptr, i, i, system->n, 1,
-					e_lp, 0.0, 0.0, 0.0, 0.0, 0.0, thr);
+                                        e_lp, 0.0, 0.0, 0.0, 0.0, 0.0, thr);
 
     /* correction for C2 */
     if( p_lp3 > 0.001 && !strcmp(system->reax_param.sbp[type_i].name, "C") )
       for( pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj ) {
         j = bonds->select.bond_list[pj].nbr;
         type_j = system->my_atoms[j].type;
-	if(type_j < 0) continue;
+        if(type_j < 0) continue;
 
         if( !strcmp( system->reax_param.sbp[type_j].name, "C" ) ) {
           twbp = &( system->reax_param.tbp[type_i][type_j]);
           bo_ij = &( bonds->select.bond_list[pj].bo_data );
           Di = workspace->Delta[i];
           vov3 = bo_ij->BO - Di - 0.040*pow(Di, 4.);
-	
+        
           if( vov3 > 3. ) {
-	    total_Elp += e_lph = p_lp3 * SQR(vov3-3.0);
+            total_Elp += e_lph = p_lp3 * SQR(vov3-3.0);
 
             deahu2dbo = 2.*p_lp3*(vov3 - 3.);
             deahu2dsbo = 2.*p_lp3*(vov3 - 3.)*(-1. - 0.16*pow(Di, 3.));
-	
+        
             bo_ij->Cdbo += deahu2dbo;
             workspace->CdDelta[i] += deahu2dsbo;
-	
+        
             /* tally into per-atom energy */
             if( system->pair_ptr->evflag)
               pair_reax_ptr->ev_tally_thr_proxy(system->pair_ptr, i, j, system->n, 1,
-						e_lph, 0.0, 0.0, 0.0, 0.0, 0.0, thr);
+                                                e_lph, 0.0, 0.0, 0.0, 0.0, 0.0, thr);
           }
         }
       }
@@ -187,7 +187,7 @@ void Atom_EnergyOMP( reax_system *system, control_params *control,
 
       sum_ovun1 += twbp->p_ovun1 * twbp->De_s * bo_ij->BO;
       sum_ovun2 += (workspace->Delta[j] - dfvl*workspace->Delta_lp_temp[j])*
-	( bo_ij->BO_pi + bo_ij->BO_pi2 );
+        ( bo_ij->BO_pi + bo_ij->BO_pi2 );
     }
 
     exp_ovun1 = p_ovun3 * exp( p_ovun4 * sum_ovun2 );
@@ -228,7 +228,7 @@ void Atom_EnergyOMP( reax_system *system, control_params *control,
       numbonds ++;
 
     if(numbonds > 0) total_Eun += e_un =
-		       -p_ovun5 * (1.0 - exp_ovun6) * inv_exp_ovun2n * inv_exp_ovun8;
+                       -p_ovun5 * (1.0 - exp_ovun6) * inv_exp_ovun2n * inv_exp_ovun8;
 
     CEunder1 = inv_exp_ovun2n *
       ( p_ovun5 * p_ovun6 * exp_ovun6 * inv_exp_ovun8 +
@@ -243,7 +243,7 @@ void Atom_EnergyOMP( reax_system *system, control_params *control,
       eng_tmp = e_ov;
       if(numbonds > 0) eng_tmp+= e_un;
       pair_reax_ptr->ev_tally_thr_proxy(system->pair_ptr, i, i, system->n, 1,
-					eng_tmp, 0.0, 0.0, 0.0, 0.0, 0.0, thr);
+                                        eng_tmp, 0.0, 0.0, 0.0, 0.0, 0.0, thr);
     }
 
     /* forces */
@@ -259,7 +259,7 @@ void Atom_EnergyOMP( reax_system *system, control_params *control,
 
       bo_ij->Cdbo += CEover1 * twbp->p_ovun1 * twbp->De_s; // OvCoor-1st
       workspace->CdDeltaReduction[reductionOffset+j] +=
-	CEover4 * (1.0 - dfvl*workspace->dDelta_lp[j]) * (bo_ij->BO_pi + bo_ij->BO_pi2); // OvCoor-3a
+        CEover4 * (1.0 - dfvl*workspace->dDelta_lp[j]) * (bo_ij->BO_pi + bo_ij->BO_pi2); // OvCoor-3a
 
       bo_ij->Cdbopi += CEover4 *
         (workspace->Delta[j] - dfvl*workspace->Delta_lp_temp[j]); // OvCoor-3b
@@ -267,7 +267,7 @@ void Atom_EnergyOMP( reax_system *system, control_params *control,
         (workspace->Delta[j] - dfvl*workspace->Delta_lp_temp[j]);  // OvCoor-3b
 
       workspace->CdDeltaReduction[reductionOffset+j] +=
-	CEunder4 * (1.0 - dfvl*workspace->dDelta_lp[j]) * (bo_ij->BO_pi + bo_ij->BO_pi2);   // UnCoor - 2a
+        CEunder4 * (1.0 - dfvl*workspace->dDelta_lp[j]) * (bo_ij->BO_pi + bo_ij->BO_pi2);   // UnCoor - 2a
 
       bo_ij->Cdbopi += CEunder4 *
         (workspace->Delta[j] - dfvl*workspace->Delta_lp_temp[j]);  // UnCoor-2b

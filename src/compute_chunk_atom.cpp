@@ -407,14 +407,14 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
       if (which == BIN2D) ndim = 2;
       if (which == BIN3D) ndim = 3;
       for (int idim = 0; idim < ndim; idim++) {
-	if (dim[idim] == 0) scale = xscale;
-	else if (dim[idim] == 1) scale = yscale;
-	else if (dim[idim] == 2) scale = zscale;
-	delta[idim] *= scale;
-	invdelta[idim] = 1.0/delta[idim];
-	if (originflag[idim] == COORD) origin[idim] *= scale;
-	if (minflag[idim] == COORD) minvalue[idim] *= scale;
-	if (maxflag[idim] == COORD) maxvalue[idim] *= scale;
+        if (dim[idim] == 0) scale = xscale;
+        else if (dim[idim] == 1) scale = yscale;
+        else if (dim[idim] == 2) scale = zscale;
+        delta[idim] *= scale;
+        invdelta[idim] = 1.0/delta[idim];
+        if (originflag[idim] == COORD) origin[idim] *= scale;
+        if (minflag[idim] == COORD) minvalue[idim] *= scale;
+        if (maxflag[idim] == COORD) maxvalue[idim] *= scale;
       }
     } else if (which == BINSPHERE) {
       sorigin_user[0] *= xscale;

@@ -256,25 +256,25 @@ void ComputeAcklandAtom::compute_peratom()
                             +(double)chi[1]+(double)chi[2]+(double)chi[3]
                             -9.0))/12.0;
 
-	 // Identification of the local structure according to the reference
+         // Identification of the local structure according to the reference
 
         if (delta_bcc >= 0.1 && delta_cp >= 0.1 && delta_fcc >= 0.1
             && delta_hcp >= 0.1) structure[i] = UNKNOWN;
 
-	// not part of Ackland-Jones 2006; included for backward compatibility
+        // not part of Ackland-Jones 2006; included for backward compatibility
         if (chi[4] < 3. && n1 == 12) structure[i] = ICO;
 
         else {
-	  if (delta_bcc <= delta_cp && n1 > 10 && n1 < 13) structure[i] = BCC;
-	  else {
-	    if (n0 > 12) structure[i] = UNKNOWN;
-	    else {
-	      if (delta_fcc < delta_hcp) structure[i] = FCC;
-	      else
-	      structure[i] = HCP;
-	    }
-	  }
-	}
+          if (delta_bcc <= delta_cp && n1 > 10 && n1 < 13) structure[i] = BCC;
+          else {
+            if (n0 > 12) structure[i] = UNKNOWN;
+            else {
+              if (delta_fcc < delta_hcp) structure[i] = FCC;
+              else
+              structure[i] = HCP;
+            }
+          }
+        }
       }
     } else structure[i] = 0.0;
   }

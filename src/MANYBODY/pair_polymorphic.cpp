@@ -234,13 +234,13 @@ void PairPolymorphic::compute(int eflag, int vflag)
 
       jtag = tag[j];
       if (itag > jtag) {
-	if ((itag+jtag) % 2 == 0) continue;
+        if ((itag+jtag) % 2 == 0) continue;
       } else if (itag < jtag) {
-	if ((itag+jtag) % 2 == 1) continue;
+        if ((itag+jtag) % 2 == 1) continue;
       } else {
-	if (x[j][2] < x[i][2]) continue;
-	if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
-	if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
+        if (x[j][2] < x[i][2]) continue;
+        if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
+        if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
       }
 
       if (rsq >= (p.U)->get_xmaxsq() || (p.U)->get_vmax() <= epsilon) continue;
@@ -255,7 +255,7 @@ void PairPolymorphic::compute(int eflag, int vflag)
       f[j][2] -= delz*fpair;
 
       if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			   evdwl,0.0,fpair,delx,dely,delz);
+                           evdwl,0.0,fpair,delx,dely,delz);
     }
 
     if (eta) {
@@ -524,8 +524,8 @@ void PairPolymorphic::coeff(int narg, char **arg)
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       if (map[i] >= 0 && map[j] >= 0) {
-	setflag[i][j] = 1;
-	count++;
+        setflag[i][j] = 1;
+        count++;
       }
 
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
@@ -851,8 +851,8 @@ void PairPolymorphic::ters_zetaterm_d(double prefactor,
 /* ---------------------------------------------------------------------- */
 
 void PairPolymorphic::costheta_d(double *rij_hat, double rij,
-			     double *rik_hat, double rik,
-			     double *dri, double *drj, double *drk)
+                             double *rik_hat, double rik,
+                             double *dri, double *drj, double *drk)
 {
   // first element is devative wrt Ri, second wrt Rj, third wrt Rk
 

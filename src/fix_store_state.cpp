@@ -418,7 +418,7 @@ void FixStoreState::init()
       icustom = atom->find_custom(ids[m],iflag);
       if ((icustom < 0) || (iflag != 0))
         error->all(FLERR,
-		   "Custom integer vector for fix store/state does not exist");
+                   "Custom integer vector for fix store/state does not exist");
       value2index[m] = icustom;
 
     } else if (which[m] == DNAME) {
@@ -426,7 +426,7 @@ void FixStoreState::init()
       icustom = atom->find_custom(ids[m],iflag);
       if ((icustom < 0) || (iflag != 1))
         error->all(FLERR,
-		   "Custom floating point vector for fix store/state does not exist");
+                   "Custom floating point vector for fix store/state does not exist");
       value2index[m] = icustom;
 
     } else if (which[m] == FIX) {
@@ -1089,7 +1089,7 @@ void FixStoreState::pack_xsu_triclinic(int n)
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) 
       vbuf[n] = h_inv[0]*(x[i][0]-boxlo[0]) + h_inv[5]*(x[i][1]-boxlo[1]) +
-	h_inv[4]*(x[i][2]-boxlo[2]) + (image[i] & IMGMASK) - IMGMAX;
+        h_inv[4]*(x[i][2]-boxlo[2]) + (image[i] & IMGMASK) - IMGMAX;
     else vbuf[n] = 0.0;
     n += nvalues;
   }
@@ -1110,7 +1110,7 @@ void FixStoreState::pack_ysu_triclinic(int n)
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) 
       vbuf[n] = h_inv[1]*(x[i][1]-boxlo[1]) + h_inv[3]*(x[i][2]-boxlo[2]) +
-	(image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+        (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
     else vbuf[n] = 0.0;
     n += nvalues;
   }

@@ -112,7 +112,7 @@ void PairBornCoulDSFCS::compute(int eflag, int vflag)
         if (rsq < cut_coulsq) {
           r = sqrt(rsq);
           prefactor = qqrd2e*qtmp*q[j] / r;
-	  arg = alpha * r ;
+          arg = alpha * r ;
           erfcd = MathSpecial::expmsq(arg);
           erfcc = MathSpecial::my_erfcx(arg) * erfcd;
           forcecoul = prefactor * (erfcc/r + 2.0*alpha/MY_PIS * erfcd +

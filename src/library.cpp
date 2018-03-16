@@ -1002,7 +1002,7 @@ void lammps_scatter_atoms(void *ptr, char *name,
 ------------------------------------------------------------------------- */
 
 void lammps_create_atoms(void *ptr, int n, tagint *id, int *type,
-			 double *x, double *v, imageint *image,
+                         double *x, double *v, imageint *image,
                          int shrinkexceed)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
@@ -1044,9 +1044,9 @@ void lammps_create_atoms(void *ptr, int n, tagint *id, int *type,
       if (id) atom->tag[nlocal] = id[i];
       else atom->tag[nlocal] = i+1;
       if (v) {
-	atom->v[nlocal][0] = v[3*i];
-	atom->v[nlocal][1] = v[3*i+1];
-	atom->v[nlocal][2] = v[3*i+2];
+        atom->v[nlocal][0] = v[3*i];
+        atom->v[nlocal][1] = v[3*i+1];
+        atom->v[nlocal][2] = v[3*i+2];
       }
       if (image) atom->image[nlocal] = image[i];
       nlocal++;

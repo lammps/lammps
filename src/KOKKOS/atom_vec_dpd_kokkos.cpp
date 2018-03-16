@@ -335,7 +335,7 @@ int AtomVecDPDKokkos::pack_comm_kokkos(const int &n,
     }
   }
 
-	return n*size_forward;
+        return n*size_forward;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -404,7 +404,7 @@ struct AtomVecDPDKokkos_PackCommSelf {
 /* ---------------------------------------------------------------------- */
 
 int AtomVecDPDKokkos::pack_comm_self(const int &n, const DAT::tdual_int_2d &list, const int & iswap,
-										const int nfirst, const int &pbc_flag, const int* const pbc) {
+                                                                                const int nfirst, const int &pbc_flag, const int* const pbc) {
   if(commKK->forward_comm_on_host) {
     sync(Host,X_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
     modified(Host,X_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
@@ -478,7 +478,7 @@ int AtomVecDPDKokkos::pack_comm_self(const int &n, const DAT::tdual_int_2d &list
       }
     }
   }
-	return n*3;
+        return n*3;
 }
 
 /* ---------------------------------------------------------------------- */

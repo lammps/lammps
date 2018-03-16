@@ -889,7 +889,7 @@ char *Variable::retrieve(char *name)
     sprintf(data[ivar][0],"%.15g",dvalue[ivar]);
     str = data[ivar][0];
   } else if (style[ivar] == ATOM || style[ivar] == ATOMFILE ||
-	     style[ivar] == VECTOR) return NULL;
+             style[ivar] == VECTOR) return NULL;
   
   eval_in_progress[ivar] = 0;
 
@@ -1279,11 +1279,11 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           print_var_error(FLERR,"Variable evaluation before "
                           "simulation box is defined",ivar);
 
-	// uppercase used to force access of 
-	// global vector vs global scalar, and global array vs global vector
+        // uppercase used to force access of 
+        // global vector vs global scalar, and global array vs global vector
 
-	int lowercase = 1;
-	if (word[0] == 'C') lowercase = 0;
+        int lowercase = 1;
+        if (word[0] == 'C') lowercase = 0;
 
         int icompute = modify->find_compute(word+2);
         if (icompute < 0)
@@ -1396,7 +1396,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           } else argstack[nargstack++] = value1;
 
         // c_ID = vector from global vector, lowercase or uppercase
-	
+        
         } else if (nbracket == 0 && compute->vector_flag) {
 
           if (tree == NULL)
@@ -1428,7 +1428,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           treestack[ntreestack++] = newtree;
 
         // c_ID[i] = vector from global array, lowercase or uppercase
-	
+        
         } else if (nbracket == 1 && compute->array_flag) {
 
           if (tree == NULL)
@@ -1576,11 +1576,11 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
         if (domain->box_exist == 0)
           print_var_error(FLERR,"Variable evaluation before simulation box is defined",ivar);
 
-	// uppercase used to force access of 
-	// global vector vs global scalar, and global array vs global vector
+        // uppercase used to force access of 
+        // global vector vs global scalar, and global array vs global vector
 
-	int lowercase = 1;
-	if (word[0] == 'F') lowercase = 0;
+        int lowercase = 1;
+        if (word[0] == 'F') lowercase = 0;
 
         int ifix = modify->find_fix(word+2);
         if (ifix < 0) {
@@ -1686,11 +1686,11 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           if (fix->size_vector == 0) 
             print_var_error(FLERR,"Variable formula fix vector is zero length",ivar);
 
-	  int nvec = fix->size_vector;
-	  double *vec;
-	  memory->create(vec,nvec,"variable:values");
-	  for (int m = 0; m < nvec; m++)
-	    vec[m] = fix->compute_vector(m);
+          int nvec = fix->size_vector;
+          double *vec;
+          memory->create(vec,nvec,"variable:values");
+          for (int m = 0; m < nvec; m++)
+            vec[m] = fix->compute_vector(m);
 
           Tree *newtree = new Tree();
           newtree->type = VECTORARRAY;
@@ -1917,7 +1917,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
         // v_name = vector from vector-style variable
         // evaluate the vector-style variable, put result in newtree
 
-	} else if (nbracket == 0 && style[ivar] == VECTOR) {
+        } else if (nbracket == 0 && style[ivar] == VECTOR) {
 
           if (tree == NULL)
             print_var_error(FLERR,"Vector-style variable in "
@@ -1926,18 +1926,18 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             print_var_error(FLERR,"Vector-style variable in "
                             "atom-style variable formula",ivar);
 
-	  double *vec;
-	  int nvec = compute_vector(ivar,&vec);
+          double *vec;
+          int nvec = compute_vector(ivar,&vec);
 
-	  Tree *newtree = new Tree();
-	  newtree->type = VECTORARRAY;
-	  newtree->array = vec;
-	  newtree->nvector = nvec;
-	  newtree->nstride = 1;
-	  newtree->selfalloc = 0;
-	  newtree->first = newtree->second = NULL;
-	  newtree->nextra = 0;
-	  treestack[ntreestack++] = newtree;
+          Tree *newtree = new Tree();
+          newtree->type = VECTORARRAY;
+          newtree->array = vec;
+          newtree->nvector = nvec;
+          newtree->nstride = 1;
+          newtree->selfalloc = 0;
+          newtree->first = newtree->second = NULL;
+          newtree->nextra = 0;
+          treestack[ntreestack++] = newtree;
 
         // v_name[N] = scalar from atom-style variable
         // compute the per-atom variable in result
@@ -1964,11 +1964,11 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
         } else if (nbracket && style[ivar] == VECTOR) {
 
-	  double *vec;
-	  int nvec = compute_vector(ivar,&vec);
-	  if (index <= 0 || index > nvec)
-	    print_var_error(FLERR,"Invalid index into vector-style variable",ivar);
-	  int m = index;   // convert from tagint to int
+          double *vec;
+          int nvec = compute_vector(ivar,&vec);
+          if (index <= 0 || index > nvec)
+            print_var_error(FLERR,"Invalid index into vector-style variable",ivar);
+          int m = index;   // convert from tagint to int
 
           if (tree) {
             Tree *newtree = new Tree();
@@ -2661,9 +2661,9 @@ double Variable::collapse_tree(Tree *tree)
       double delta = ivalue1*(ivalue3-1.0)/ivalue2;
       int count = 0;
       while (update->ntimestep >= tree->value) {
-	tree->value += delta;
-	count++;
-	if (count % ivalue2 == 0) delta *= ivalue3;
+        tree->value += delta;
+        count++;
+        if (count % ivalue2 == 0) delta *= ivalue3;
       }
     }
     tree->value = ceil(tree->value);
@@ -2697,7 +2697,7 @@ double Variable::collapse_tree(Tree *tree)
     int ivalue6 = static_cast<int> (collapse_tree(tree->extra[3]));
     if (tree->first->type != VALUE || tree->second->type != VALUE ||
         tree->extra[0]->type != VALUE || tree->extra[1]->type != VALUE ||
-	tree->extra[2]->type != VALUE || tree->extra[3]->type != VALUE)
+        tree->extra[2]->type != VALUE || tree->extra[3]->type != VALUE)
       return 0.0;
     tree->type = VALUE;
     if (ivalue1 < 0 || ivalue2 < 0 || ivalue3 <= 0 || ivalue1 > ivalue2)
@@ -2998,9 +2998,9 @@ double Variable::eval_tree(Tree *tree, int i)
       double delta = ivalue1*(ivalue3-1.0)/ivalue2;
       int count = 0;
       while (update->ntimestep >= arg) {
-	arg += delta;
-	count++;
-	if (count % ivalue2 == 0) delta *= ivalue3;
+        arg += delta;
+        count++;
+        if (count % ivalue2 == 0) delta *= ivalue3;
       }
     }
     arg = ceil(arg);
@@ -3534,13 +3534,13 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
       if (update->ntimestep < ivalue1) value = ivalue1;
       else {
         value = ivalue1;
-	double delta = ivalue1*(ivalue3-1.0)/ivalue2;
-	int count = 0;
+        double delta = ivalue1*(ivalue3-1.0)/ivalue2;
+        int count = 0;
         while (update->ntimestep >= value) {
-	  value += delta;
-	  count++;
-	  if (count % ivalue2 == 0) delta *= ivalue3;
-	}
+          value += delta;
+          count++;
+          if (count % ivalue2 == 0) delta *= ivalue3;
+        }
       }
       argstack[nargstack++] = ceil(value);
     }
@@ -3581,7 +3581,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
       if (ivalue4 < 0 || ivalue5 < 0 || ivalue6 <= 0 || ivalue4 > ivalue5)
         error->one(FLERR,"Invalid math function in variable formula");
       if (ivalue4 < ivalue1 || ivalue5 > ivalue2)
-	error->one(FLERR,"Invalid math function in variable formula");
+        error->one(FLERR,"Invalid math function in variable formula");
       bigint istep;
       if (update->ntimestep < ivalue1) istep = ivalue1;
       else if (update->ntimestep < ivalue2) {
@@ -4117,7 +4117,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
       double one;
       double *vec = vecs[ivar].values;
       for (int i = 0; i < nvec; i++) {
-	one = vec[i];
+        one = vec[i];
         if (method == SUM) value += one;
         else if (method == XMIN) value = MIN(value,one);
         else if (method == XMAX) value = MAX(value,one);

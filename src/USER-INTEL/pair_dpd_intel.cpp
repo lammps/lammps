@@ -255,33 +255,33 @@ void PairDPDIntel::eval(const int offload, const int vflag,
         const flt_t xtmp = x[i].x;
         const flt_t ytmp = x[i].y;
         const flt_t ztmp = x[i].z;
-	const flt_t vxtmp = v[i].x;
-	const flt_t vytmp = v[i].y;
-	const flt_t vztmp = v[i].z;
+        const flt_t vxtmp = v[i].x;
+        const flt_t vytmp = v[i].y;
+        const flt_t vztmp = v[i].z;
         fxtmp = fytmp = fztmp = (acc_t)0;
         if (EFLAG) fwtmp = sevdwl = (acc_t)0;
         if (NEWTON_PAIR == 0)
           if (vflag==1) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0;
 
-	if (rngi + jnum > rng_size) {
+        if (rngi + jnum > rng_size) {
           #ifdef LMP_USE_MKL_RNG
-	  if (sizeof(flt_t) == sizeof(float))
-	    vsRngGaussian(VSL_RNG_METHOD_GAUSSIAN_ICDF, *my_random, rngi, 
-			  (float*)my_rand_buffer, (float)0.0, (float)1.0 );
-	  else
-	    vdRngGaussian(VSL_RNG_METHOD_GAUSSIAN_ICDF, *my_random, rngi, 
-	  		  (double*)my_rand_buffer, 0.0, 1.0 );
+          if (sizeof(flt_t) == sizeof(float))
+            vsRngGaussian(VSL_RNG_METHOD_GAUSSIAN_ICDF, *my_random, rngi, 
+                          (float*)my_rand_buffer, (float)0.0, (float)1.0 );
+          else
+            vdRngGaussian(VSL_RNG_METHOD_GAUSSIAN_ICDF, *my_random, rngi, 
+                          (double*)my_rand_buffer, 0.0, 1.0 );
           #else
           for (int jj = 0; jj < rngi; jj++)
             my_rand_buffer[jj] = my_random->gaussian();
           #endif
-	  rngi = 0;
-	}
+          rngi = 0;
+        }
 
         #if defined(LMP_SIMD_COMPILER)
-	#pragma vector aligned
-	#pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
-	                         sv0, sv1, sv2, sv3, sv4, sv5)
+        #pragma vector aligned
+        #pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
+                                 sv0, sv1, sv2, sv3, sv4, sv5)
         #endif
         for (int jj = 0; jj < jnum; jj++) {
           flt_t forcelj, evdwl;
@@ -302,29 +302,29 @@ void PairDPDIntel::eval(const int offload, const int vflag,
             icut = parami[jtype].icut;
           }
           const flt_t rsq = delx * delx + dely * dely + delz * delz;
-	  const flt_t rinv = (flt_t)1.0/sqrt(rsq);
+          const flt_t rinv = (flt_t)1.0/sqrt(rsq);
 
           if (rinv > icut) {
             flt_t factor_dpd;
             if (!ONETYPE) factor_dpd = special_lj[sbindex];
 
-	    flt_t delvx = vxtmp - v[j].x;
-	    flt_t delvy = vytmp - v[j].y;
-	    flt_t delvz = vztmp - v[j].z;
-	    flt_t dot = delx*delvx + dely*delvy + delz*delvz;
-	    flt_t randnum = my_rand_buffer[jj];
+            flt_t delvx = vxtmp - v[j].x;
+            flt_t delvy = vytmp - v[j].y;
+            flt_t delvz = vztmp - v[j].z;
+            flt_t dot = delx*delvx + dely*delvy + delz*delvz;
+            flt_t randnum = my_rand_buffer[jj];
 
-	    flt_t iwd = rinv - icut;
-	    if (rinv > (flt_t)IEPSILON) iwd = (flt_t)0.0;
+            flt_t iwd = rinv - icut;
+            if (rinv > (flt_t)IEPSILON) iwd = (flt_t)0.0;
 
-	    if (!ONETYPE) {
-	      a0 = parami[jtype].a0;
-	      gamma = parami[jtype].gamma;
-	      sigma = parami[jtype].sigma;
-	    }
-	    flt_t fpair = a0 - iwd * gamma * dot + sigma * randnum * dtinvsqrt;
-	    if (!ONETYPE) fpair *= factor_dpd;
-	    fpair *= iwd;
+            if (!ONETYPE) {
+              a0 = parami[jtype].a0;
+              gamma = parami[jtype].gamma;
+              sigma = parami[jtype].sigma;
+            }
+            flt_t fpair = a0 - iwd * gamma * dot + sigma * randnum * dtinvsqrt;
+            if (!ONETYPE) fpair *= factor_dpd;
+            fpair *= iwd;
 
             const flt_t fpx = fpair * delx;
             fxtmp += fpx;
@@ -337,10 +337,10 @@ void PairDPDIntel::eval(const int offload, const int vflag,
             if (NEWTON_PAIR) f[j].z -= fpz;
 
             if (EFLAG) {
-	      flt_t cut = (flt_t)1.0/icut;
-	      flt_t r = (flt_t)1.0/rinv;
-	      evdwl = (flt_t)0.5 * a0 * (cut - (flt_t)2.0*r + rsq * icut);
-	      if (!ONETYPE) evdwl *= factor_dpd;
+              flt_t cut = (flt_t)1.0/icut;
+              flt_t r = (flt_t)1.0/rinv;
+              evdwl = (flt_t)0.5 * a0 * (cut - (flt_t)2.0*r + rsq * icut);
+              if (!ONETYPE) evdwl *= factor_dpd;
               sevdwl += evdwl;
               if (eatom) {
                 fwtmp += (flt_t)0.5 * evdwl;
@@ -364,7 +364,7 @@ void PairDPDIntel::eval(const int offload, const int vflag,
         }
 
         IP_PRE_ev_tally_atom(NEWTON_PAIR, EFLAG, vflag, f, fwtmp);
-	rngi += jnum;
+        rngi += jnum;
       } // for ii
 
       IP_PRE_fdotr_reduce_omp(NEWTON_PAIR, nall, minlocal, nthreads, f_start,
@@ -441,7 +441,7 @@ void PairDPDIntel::settings(int narg, char **arg) {
   {
     int tid = omp_get_thread_num();
     vslNewStream(&random_thread[tid], LMP_MKL_RNG, 
-		 seed + comm->me + comm->nprocs * tid );
+                 seed + comm->me + comm->nprocs * tid );
   }
   #endif
 
@@ -545,7 +545,7 @@ void PairDPDIntel::pack_force_const(ForceConst<flt_t> &fc,
 template <class flt_t>
 void PairDPDIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
                                                  const int nthreads,
-						 const int max_nbors,
+                                                 const int max_nbors,
                                                  Memory *memory,
                                                  const int cop) {
   if (ntypes != _ntypes) {
@@ -558,7 +558,7 @@ void PairDPDIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       _cop = cop;
       memory->create(param,ntypes,ntypes,"fc.param");
       memory->create(rand_buffer_thread, nthreads, max_nbors, 
-		     "fc.rand_buffer_thread");
+                     "fc.rand_buffer_thread");
       memory->create(rngi,nthreads,"fc.param");
       for (int i = 0; i < nthreads; i++) rngi[i] = max_nbors;
     }
@@ -596,7 +596,7 @@ void PairDPDIntel::read_restart_settings(FILE *fp)
   {
     int tid = omp_get_thread_num();
     vslNewStream(&random_thread[tid], LMP_MKL_RNG, 
-		 seed + comm->me + comm->nprocs * tid );
+                 seed + comm->me + comm->nprocs * tid );
   }
   #endif
 

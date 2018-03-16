@@ -48,7 +48,7 @@ FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
   // fix # group lb/fluid nevery typeLB viscosity densityinit_real
   //
   //  where: nevery:            call this fix every nevery timesteps.
-  //		                 (keep this set to 1 for now).
+  //                             (keep this set to 1 for now).
   //         typeLB:            there are two different integrators
   //                             in the code labeled "1" and "2".
   //         viscosity:         the viscosity of the fluid.
@@ -124,37 +124,37 @@ FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg){
     if(strcmp(arg[iarg],"setArea")==0){
       if(setGamma == 1)
-	error->all(FLERR,"Illegal fix lb/fluid command: cannot use a combination of default and user-specified gamma values");
+        error->all(FLERR,"Illegal fix lb/fluid command: cannot use a combination of default and user-specified gamma values");
       setArea = 1;
       int itype = atoi(arg[iarg+1]);
       double areafactor = atof(arg[iarg+2]);
       if(itype <= 0 || itype > atom->ntypes || areafactor < 0.0)
-	error->all(FLERR,"Illegal fix lb/fluid command: setArea");
+        error->all(FLERR,"Illegal fix lb/fluid command: setArea");
       if(NodeArea == NULL){
-	NodeArea = new double[atom->ntypes+1];
-	for(int i=0; i<=atom->ntypes; i++) NodeArea[i] = -1.0;
+        NodeArea = new double[atom->ntypes+1];
+        for(int i=0; i<=atom->ntypes; i++) NodeArea[i] = -1.0;
       }
       NodeArea[itype] = areafactor;
       iarg += 3;
     }
     else if(strcmp(arg[iarg],"setGamma")==0){
       if(setArea == 1)
-	error->all(FLERR,"Illegal fix lb/fluid command: cannot use a combination of default and user-specified gamma values");
+        error->all(FLERR,"Illegal fix lb/fluid command: cannot use a combination of default and user-specified gamma values");
       setGamma = 1;
       double Gammaone;
       Gammaone = atof(arg[iarg+1]);
       if(Gamma == NULL)
-	Gamma = new double[atom->ntypes+1];
+        Gamma = new double[atom->ntypes+1];
       for(int i=0; i<=atom->ntypes; i++) Gamma[i] = Gammaone;
       iarg += 2;
     }
     else if(strcmp(arg[iarg],"scaleGamma")==0){
       if(setGamma == 0)
-	error->all(FLERR,"Illegal fix lb/fluid command: must set a value for Gamma before scaling it");
+        error->all(FLERR,"Illegal fix lb/fluid command: must set a value for Gamma before scaling it");
       int itype = atoi(arg[iarg+1]);
       double scalefactor = atof(arg[iarg+2]);
       if(itype <= 0 || itype > atom->ntypes || scalefactor < 0.0)
-	error->all(FLERR,"Illegal fix lb/fluid command: scaleGamma");
+        error->all(FLERR,"Illegal fix lb/fluid command: scaleGamma");
       Gamma[itype] *= scalefactor;
       iarg += 3;
     }
@@ -295,7 +295,7 @@ a z wall velocity without implementing fixed BCs in z");
   if(setGamma == 0){
     if(setArea == 0){
       if(comm->me==0){
-	error->message(FLERR,"Assuming an area per node of dx*dx for all of the MD particles.  This should only be used if these all correspond to point particles; otherwise, change using the setArea keyword");
+        error->message(FLERR,"Assuming an area per node of dx*dx for all of the MD particles.  This should only be used if these all correspond to point particles; otherwise, change using the setArea keyword");
       }
       NodeArea = new double[atom->ntypes+1];
       for(int i=0; i<=atom->ntypes; i++) NodeArea[i] = -1.0;
@@ -637,10 +637,10 @@ void FixLbFluid::init(void)
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
       for(j=0; j<nlocal; j++){
-	if((mask[j] & groupbit) && (mask[j] & groupbit_viscouslb) && (mask[j] & groupbit_pc))
-	  error->one(FLERR,"should not use the lb/viscous command when integrating with the lb/pc fix");
-	if((mask[j] & groupbit) && (mask[j] & groupbit_viscouslb) && (mask[j] & groupbit_rigid_pc_sphere))
-	  error->one(FLERR,"should not use the lb/viscous command when integrating with the lb/rigid/pc/sphere fix");
+        if((mask[j] & groupbit) && (mask[j] & groupbit_viscouslb) && (mask[j] & groupbit_pc))
+          error->one(FLERR,"should not use the lb/viscous command when integrating with the lb/pc fix");
+        if((mask[j] & groupbit) && (mask[j] & groupbit_viscouslb) && (mask[j] & groupbit_rigid_pc_sphere))
+          error->one(FLERR,"should not use the lb/viscous command when integrating with the lb/rigid/pc/sphere fix");
       }
    }
 
@@ -817,15 +817,15 @@ void FixLbFluid::calc_fluidforce(void)
     for(i=0; i<nlocal; i++){
       if(mask[i] & group->bitmask[igroupforce]){
 
-	domain->unmap(x[i],image[i],unwrap);
+        domain->unmap(x[i],image[i],unwrap);
 
-	if(rmass) massone = rmass[i];
-	else massone = mass[type[i]];
+        if(rmass) massone = rmass[i];
+        else massone = mass[type[i]];
 
-	sum[0] += unwrap[0]*massone;
-	sum[1] += unwrap[1]*massone;
-	sum[2] += unwrap[2]*massone;
-	sum[3] += massone;
+        sum[0] += unwrap[0]*massone;
+        sum[1] += unwrap[1]*massone;
+        sum[2] += unwrap[2]*massone;
+        sum[3] += massone;
       }
     }
     MPI_Allreduce(&sum[0],&xcm[0],4,MPI_DOUBLE,MPI_SUM,world);
@@ -840,26 +840,26 @@ void FixLbFluid::calc_fluidforce(void)
   for(i=0; i<nlocal; i++){
     if(mask[i] & groupbit){
       if(trilinear_stencil==1) {
-	trilinear_interpolation(i);
+        trilinear_interpolation(i);
       }else{
-	peskin_interpolation(i);
+        peskin_interpolation(i);
       }
 
       if(force_diagnostic > 0 && update->ntimestep > 0 && (update->ntimestep % force_diagnostic == 0)){
-	if(mask[i] & group->bitmask[igroupforce]){
+        if(mask[i] & group->bitmask[igroupforce]){
 
-	  domain->unmap(x[i],image[i],unwrap);
-	  dx = unwrap[0] - xcm[0];
-	  dy = unwrap[1] - xcm[1];
-	  dz = unwrap[2] - xcm[2];
+          domain->unmap(x[i],image[i],unwrap);
+          dx = unwrap[0] - xcm[0];
+          dy = unwrap[1] - xcm[1];
+          dz = unwrap[2] - xcm[2];
 
-	  forceloc[0] += hydroF[i][0];
-	  forceloc[1] += hydroF[i][1];
-	  forceloc[2] += hydroF[i][2];
-	  torqueloc[0] += dy*hydroF[i][2] - dz*hydroF[i][1];
-	  torqueloc[1] += dz*hydroF[i][0] - dx*hydroF[i][2];
-	  torqueloc[2] += dx*hydroF[i][1] - dy*hydroF[i][0];
-	}
+          forceloc[0] += hydroF[i][0];
+          forceloc[1] += hydroF[i][1];
+          forceloc[2] += hydroF[i][2];
+          torqueloc[0] += dy*hydroF[i][2] - dz*hydroF[i][1];
+          torqueloc[1] += dz*hydroF[i][0] - dx*hydroF[i][2];
+          torqueloc[2] += dx*hydroF[i][1] - dy*hydroF[i][0];
+        }
       }
     }
   }
@@ -885,11 +885,11 @@ void FixLbFluid::calc_fluidforce(void)
   for(j=0; j<subNby+3; j++){
     for(k=0; k<subNbz+3; k++){
       for(m=0; m<3; m++){
-	Ff[subNbx-2][j][k][m] += Fftempx[0][j][k][m];
-	Ff[subNbx-3][j][k][m] += Fftempx[1][j][k][m];
-	Ff[1][j][k][m] += Fftempx[2][j][k][m];
-	Ff[2][j][k][m] += Fftempx[3][j][k][m];
-	Ff[3][j][k][m] += Fftempx[4][j][k][m];
+        Ff[subNbx-2][j][k][m] += Fftempx[0][j][k][m];
+        Ff[subNbx-3][j][k][m] += Fftempx[1][j][k][m];
+        Ff[1][j][k][m] += Fftempx[2][j][k][m];
+        Ff[2][j][k][m] += Fftempx[3][j][k][m];
+        Ff[3][j][k][m] += Fftempx[4][j][k][m];
       }
     }
   }
@@ -911,11 +911,11 @@ void FixLbFluid::calc_fluidforce(void)
   for(i=0; i<subNbx+3; i++){
     for(k=0; k<subNbz+3; k++){
       for(m=0; m<3; m++){
-	Ff[i][subNby-2][k][m] += Fftempy[i][0][k][m];
-	Ff[i][subNby-3][k][m] += Fftempy[i][1][k][m];
-	Ff[i][1][k][m] += Fftempy[i][2][k][m];
-	Ff[i][2][k][m] += Fftempy[i][3][k][m];
-	Ff[i][3][k][m] += Fftempy[i][4][k][m];
+        Ff[i][subNby-2][k][m] += Fftempy[i][0][k][m];
+        Ff[i][subNby-3][k][m] += Fftempy[i][1][k][m];
+        Ff[i][1][k][m] += Fftempy[i][2][k][m];
+        Ff[i][2][k][m] += Fftempy[i][3][k][m];
+        Ff[i][3][k][m] += Fftempy[i][4][k][m];
       }
     }
   }
@@ -937,11 +937,11 @@ void FixLbFluid::calc_fluidforce(void)
   for(i=0; i<subNbx+3; i++){
     for(j=0; j<subNby+3; j++){
       for(m=0; m<3; m++){
-	Ff[i][j][subNbz-2][m] += Fftempz[i][j][0][m];
-	Ff[i][j][subNbz-3][m] += Fftempz[i][j][1][m];
-	Ff[i][j][1][m] += Fftempz[i][j][2][m];
-	Ff[i][j][2][m] += Fftempz[i][j][3][m];
-	Ff[i][j][3][m] += Fftempz[i][j][4][m];
+        Ff[i][j][subNbz-2][m] += Fftempz[i][j][0][m];
+        Ff[i][j][subNbz-3][m] += Fftempz[i][j][1][m];
+        Ff[i][j][1][m] += Fftempz[i][j][2][m];
+        Ff[i][j][2][m] += Fftempz[i][j][3][m];
+        Ff[i][j][3][m] += Fftempz[i][j][4][m];
       }
     }
   }
@@ -955,7 +955,7 @@ void FixLbFluid::calc_fluidforce(void)
 
     if(me==0){
       printf("%E %E %E %E %E %E\n",force[0],force[1],force[2],
- 	     torque[0],torque[1],torque[2]);
+             torque[0],torque[1],torque[2]);
 
     }
   }
@@ -1022,63 +1022,63 @@ void FixLbFluid::peskin_interpolation(int i)
     else{
       r=sqrt(rsq);
       if(rsq>1){
-	weightx=(5.0-2.0*r-sqrt(-7.0+12.0*r-4.0*rsq))/8.;
+        weightx=(5.0-2.0*r-sqrt(-7.0+12.0*r-4.0*rsq))/8.;
       } else{
-	weightx=(3.0-2.0*r+sqrt(1.0+4.0*r-4.0*rsq))/8.;
+        weightx=(3.0-2.0*r+sqrt(1.0+4.0*r-4.0*rsq))/8.;
       }
     }
     for(jj=-1; jj<3; jj++){
       rsq=(-dy1+jj)*(-dy1+jj);
       if(rsq>=4)
-	weighty=0.0;
+        weighty=0.0;
       else{
-	r=sqrt(rsq);
-	if(rsq>1){
-	  weighty=(5.0-2.0*r-sqrt(-7.0+12.0*r-4.0*rsq))/8.;
-	} else{
-	  weighty=(3.0-2.0*r+sqrt(1.0+4.0*r-4.0*rsq))/8.;
-	}
+        r=sqrt(rsq);
+        if(rsq>1){
+          weighty=(5.0-2.0*r-sqrt(-7.0+12.0*r-4.0*rsq))/8.;
+        } else{
+          weighty=(3.0-2.0*r+sqrt(1.0+4.0*r-4.0*rsq))/8.;
+        }
       }
       for(kk=-1; kk<3; kk++){
-	rsq=(-dz1+kk)*(-dz1+kk);
-	if(rsq>=4)
-	  weightz=0.0;
-	else{
-	  r=sqrt(rsq);
-	  if(rsq>1){
-	    weightz=(5.0-2.0*r-sqrt(-7.0+12.0*r-4.0*rsq))/8.;
-	  } else{
-	    weightz=(3.0-2.0*r+sqrt(1.0+4.0*r-4.0*rsq))/8.;
-	  }
-	}
-	ixp = ix+ii;
-	iyp = iy+jj;
-	izp = iz+kk;
+        rsq=(-dz1+kk)*(-dz1+kk);
+        if(rsq>=4)
+          weightz=0.0;
+        else{
+          r=sqrt(rsq);
+          if(rsq>1){
+            weightz=(5.0-2.0*r-sqrt(-7.0+12.0*r-4.0*rsq))/8.;
+          } else{
+            weightz=(3.0-2.0*r+sqrt(1.0+4.0*r-4.0*rsq))/8.;
+          }
+        }
+        ixp = ix+ii;
+        iyp = iy+jj;
+        izp = iz+kk;
 
-	//The atom is allowed to be within one lattice grid point outside the
-	//local processor sub-domain.
-	if(ixp < -1 || ixp > (subNbx+1) || iyp < -1 || iyp > (subNby+1) || izp < -1 || izp > (subNbz+1))
-	  error->one(FLERR,"Atom outside local processor simulation domain.  Either unstable fluid pararmeters, or \
+        //The atom is allowed to be within one lattice grid point outside the
+        //local processor sub-domain.
+        if(ixp < -1 || ixp > (subNbx+1) || iyp < -1 || iyp > (subNby+1) || izp < -1 || izp > (subNbz+1))
+          error->one(FLERR,"Atom outside local processor simulation domain.  Either unstable fluid pararmeters, or \
 require more frequent neighborlist rebuilds");
 
-	if(domain->periodicity[2] == 0 && comm->myloc[2] == 0 && izp < 1)
-	  error->warning(FLERR,"Atom too close to lower z wall.  Unphysical results may occur");
-	if(domain->periodicity[2] == 0 && comm->myloc[2] == (comm->procgrid[2]-1) && (izp > (subNbz-2) ))
-	  error->warning(FLERR,"Atom too close to upper z wall.  Unphysical results may occur");
+        if(domain->periodicity[2] == 0 && comm->myloc[2] == 0 && izp < 1)
+          error->warning(FLERR,"Atom too close to lower z wall.  Unphysical results may occur");
+        if(domain->periodicity[2] == 0 && comm->myloc[2] == (comm->procgrid[2]-1) && (izp > (subNbz-2) ))
+          error->warning(FLERR,"Atom too close to upper z wall.  Unphysical results may occur");
 
-	if(ixp==-1) ixp=subNbx+2;
-	if(iyp==-1) iyp=subNby+2;
-	if(izp==-1) izp=subNbz+2;
+        if(ixp==-1) ixp=subNbx+2;
+        if(iyp==-1) iyp=subNby+2;
+        if(izp==-1) izp=subNbz+2;
 
-	FfP[isten] = weightx*weighty*weightz;
-	// interpolated velocity based on delta function.
-	for(k=0; k<3; k++){
-	  unode[k] += u_lb[ixp][iyp][izp][k]*FfP[isten];
-	}
-	if(setGamma==0)
-	  mnode += density_lb[ixp][iyp][izp]*FfP[isten];
+        FfP[isten] = weightx*weighty*weightz;
+        // interpolated velocity based on delta function.
+        for(k=0; k<3; k++){
+          unode[k] += u_lb[ixp][iyp][izp][k]*FfP[isten];
+        }
+        if(setGamma==0)
+          mnode += density_lb[ixp][iyp][izp]*FfP[isten];
 
-	isten++;
+        isten++;
       }
     }
   }
@@ -1099,20 +1099,20 @@ require more frequent neighborlist rebuilds");
   for(ii=-1; ii<3; ii++)
     for(jj=-1; jj<3; jj++)
       for(kk=-1; kk<3; kk++){
-	ixp = ix+ii;
-	iyp = iy+jj;
-	izp = iz+kk;
+        ixp = ix+ii;
+        iyp = iy+jj;
+        izp = iz+kk;
 
-	if(ixp==-1) ixp=subNbx+2;
-	if(iyp==-1) iyp=subNby+2;
-	if(izp==-1) izp=subNbz+2;
-	// Compute the force on the fluid.  Need to convert the velocity from
-	// LAMMPS units to LB units.
-	for(k=0; k<3; k++){
-	  Ff[ixp][iyp][izp][k] += gammavalue*((v[i][k]*dt_lb/dx_lb)-unode[k])*FfP[isten];
-	}
+        if(ixp==-1) ixp=subNbx+2;
+        if(iyp==-1) iyp=subNby+2;
+        if(izp==-1) izp=subNbz+2;
+        // Compute the force on the fluid.  Need to convert the velocity from
+        // LAMMPS units to LB units.
+        for(k=0; k<3; k++){
+          Ff[ixp][iyp][izp][k] += gammavalue*((v[i][k]*dt_lb/dx_lb)-unode[k])*FfP[isten];
+        }
 
-	isten++;
+        isten++;
       }
   for(k=0; k<3; k++)
     hydroF[i][k] = -1.0*gammavalue*((v[i][k]*dt_lb/dx_lb)-unode[k])*dm_lb*dx_lb/dt_lb/dt_lb;
@@ -1191,7 +1191,7 @@ require more frequent neighborlist rebuilds");
     error->warning(FLERR,"Atom too close to upper z wall.  Unphysical results may occur");
 
 
-  for (k=0; k<3; k++) { 	// tri-linearly interpolated velocity at node
+  for (k=0; k<3; k++) {         // tri-linearly interpolated velocity at node
     unode[k] = u_lb[ix][iy][iz][k]*FfP[0]
       + u_lb[ix][iy][izp][k]*FfP[1]
       + u_lb[ix][iyp][iz][k]*FfP[2]
@@ -1397,7 +1397,7 @@ satisfy the Courant condition.\n");
     Dcoeff=(1.0-(1.0-expminusdtovertau)*tau);
     namp = 2.0*kB*T/3.;
     noisefactor=sqrt((1.0-expminusdtovertau*expminusdtovertau)/
-		     (2.0))/(1.0-expminusdtovertau);
+                     (2.0))/(1.0-expminusdtovertau);
     K_0 = 4.5*(1.0/3.0-a_0);
     dtoverdtcollision = dt_lb*3.0*viscosity/densityinit_real/dx_lb/dx_lb;
   }
@@ -1558,16 +1558,16 @@ void FixLbFluid::initializeLB15(void)
   for(i=0; i<subNbx+3; i++)
     for(j=0; j<subNby+3; j++)
       for(k=0; k<subNbz+3; k++){
-	u_lb[i][j][k][0]=0.0;
-	u_lb[i][j][k][1]=0.0;
-	u_lb[i][j][k][2]=0.0;
-	density_lb[i][j][k] = densityinit;
+        u_lb[i][j][k][0]=0.0;
+        u_lb[i][j][k][1]=0.0;
+        u_lb[i][j][k][2]=0.0;
+        density_lb[i][j][k] = densityinit;
   }
   for(i=0; i<subNbx; i++)
     for(j=0; j<subNby; j++)
       for(k=0; k<subNbz; k++)
-	for(m=0; m<15; m++)
-	  f_lb[i][j][k][m] = density_lb[i][j][k]/15.0;
+        for(m=0; m<15; m++)
+          f_lb[i][j][k][m] = density_lb[i][j][k]/15.0;
 
 }
 
@@ -1795,16 +1795,16 @@ void FixLbFluid::initializeLB19(void)
   for(i=0; i<subNbx+3; i++)
     for(j=0; j<subNby+3; j++)
       for(k=0; k<subNbz+3; k++){
-	u_lb[i][j][k][0]=0.0;
-	u_lb[i][j][k][1]=0.0;
-	u_lb[i][j][k][2]=0.0;
-	density_lb[i][j][k] = densityinit;
+        u_lb[i][j][k][0]=0.0;
+        u_lb[i][j][k][1]=0.0;
+        u_lb[i][j][k][2]=0.0;
+        density_lb[i][j][k] = densityinit;
   }
   for(i=0; i<subNbx; i++)
     for(j=0; j<subNby; j++)
       for(k=0; k<subNbz; k++)
-	for(m=0; m<19; m++)
-	  f_lb[i][j][k][m] = density_lb[i][j][k]/19.0;
+        for(m=0; m<19; m++)
+          f_lb[i][j][k][m] = density_lb[i][j][k]/19.0;
 
 }
 
@@ -1881,12 +1881,12 @@ void FixLbFluid::initialize_feq(void)
     //Save feqold.
     if(typeLB == 2){
       for(i=0; i<subNbx; i++)
-	for(j=0; j<subNby; j++)
-	  for(k=0; k<subNbz; k++)
-	    for(p=0; p<numvel; p++){
-	      feqold[i][j][k][p] = feq[i][j][k][p];
-	      feqoldn[i][j][k][p] = feqn[i][j][k][p];
-	    }
+        for(j=0; j<subNby; j++)
+          for(k=0; k<subNbz; k++)
+            for(p=0; p<numvel; p++){
+              feqold[i][j][k][p] = feq[i][j][k][p];
+              feqoldn[i][j][k][p] = feqn[i][j][k][p];
+            }
     }
   }else{
     step = 1;
@@ -1895,7 +1895,7 @@ void FixLbFluid::initialize_feq(void)
 
     if(typeLB == 2){
       for(i=0; i<8; i++)
-	requests[i]=MPI_REQUEST_NULL;
+        requests[i]=MPI_REQUEST_NULL;
       MPI_Isend(&feqold[1][1][1][0],1,passxf,comm->procneigh[0][0],15,world,&requests[0]);
       MPI_Irecv(&feqold[0][1][1][0],1,passxf,comm->procneigh[0][0],25,world,&requests[1]);
       MPI_Isend(&feqold[subNbx-2][1][1][0],1,passxf,comm->procneigh[0][1],25,world,&requests[2]);
@@ -1907,7 +1907,7 @@ void FixLbFluid::initialize_feq(void)
       MPI_Waitall(8,requests,MPI_STATUS_IGNORE);
 
       for(i=0; i<8; i++)
-	requests[i]=MPI_REQUEST_NULL;
+        requests[i]=MPI_REQUEST_NULL;
       MPI_Isend(&feqold[0][1][1][0],1,passyf,comm->procneigh[1][0],15,world,&requests[0]);
       MPI_Irecv(&feqold[0][0][1][0],1,passyf,comm->procneigh[1][0],25,world,&requests[1]);
       MPI_Isend(&feqold[0][subNby-2][1][0],1,passyf,comm->procneigh[1][1],25,world,&requests[2]);
@@ -1919,7 +1919,7 @@ void FixLbFluid::initialize_feq(void)
       MPI_Waitall(8,requests,MPI_STATUS_IGNORE);
 
       for(i=0; i<8; i++)
-	requests[i]=MPI_REQUEST_NULL;
+        requests[i]=MPI_REQUEST_NULL;
       MPI_Isend(&feqold[0][0][1][0],1,passzf,comm->procneigh[2][0],15,world,&requests[0]);
       MPI_Irecv(&feqold[0][0][0][0],1,passzf,comm->procneigh[2][0],25,world,&requests[1]);
       MPI_Isend(&feqold[0][0][subNbz-2][0],1,passzf,comm->procneigh[2][1],25,world,&requests[2]);
@@ -1963,151 +1963,151 @@ void FixLbFluid::equilibriumdist15(int xstart, int xend, int ystart, int yend, i
       jup=j+1;
       jdwn=j-1;
       for (k=zstart; k<zend; k++) {
-	kup=k+1;
-	kdwn=k-1;
+        kup=k+1;
+        kdwn=k-1;
 
-	rho=density_lb[i][j][k];
-	total_density += rho;
+        rho=density_lb[i][j][k];
+        total_density += rho;
 
-	// Derivatives.
-	drhox = (density_lb[iup][j][k] - density_lb[idwn][j][k])/2.0;
-	drhoxx = (density_lb[iup][j][k] - 2.0*density_lb[i][j][k] +
-		  density_lb[idwn][j][k]);
+        // Derivatives.
+        drhox = (density_lb[iup][j][k] - density_lb[idwn][j][k])/2.0;
+        drhoxx = (density_lb[iup][j][k] - 2.0*density_lb[i][j][k] +
+                  density_lb[idwn][j][k]);
 
-	drhoy = (density_lb[i][jup][k] - density_lb[i][jdwn][k])/2.0;
-	drhoyy = (density_lb[i][jup][k] - 2.0*density_lb[i][j][k] +
-		  density_lb[i][jdwn][k]);
+        drhoy = (density_lb[i][jup][k] - density_lb[i][jdwn][k])/2.0;
+        drhoyy = (density_lb[i][jup][k] - 2.0*density_lb[i][j][k] +
+                  density_lb[i][jdwn][k]);
 
-	drhoz = (density_lb[i][j][kup] - density_lb[i][j][kdwn])/2.0;
-	drhozz = (density_lb[i][j][kup] - 2.0*density_lb[i][j][k] +
-		  density_lb[i][j][kdwn]);
+        drhoz = (density_lb[i][j][kup] - density_lb[i][j][kdwn])/2.0;
+        drhozz = (density_lb[i][j][kup] - 2.0*density_lb[i][j][k] +
+                  density_lb[i][j][kdwn]);
 
-	// Need one-sided derivatives for the boundary of the domain, if fixed boundary
-	// conditions are used.
-	if(domain->periodicity[2]==0){
-	  if(comm->myloc[2]==0 && k==1){
-	    drhoz = (-3.0*density_lb[i][j][k] + 4.0*density_lb[i][j][k+1] -
-		     density_lb[i][j][k+2])/2.0;
-	    drhozz = (-density_lb[i][j][k+3] + 4.0*density_lb[i][j][k+2] -
-		      5.0*density_lb[i][j][k+1] + 2.0*rho);
-	  }
-	  if(comm->myloc[2]==comm->procgrid[2]-1 && k==subNbz-2){
-	    drhoz = -(-3.0*density_lb[i][j][k] + 4.0*density_lb[i][j][k-1] -
-		      density_lb[i][j][k-2])/2.0;
-	    drhozz = (-density_lb[i][j][k-3] + 4.0*density_lb[i][j][k-2] -
-		      5.0*density_lb[i][j][k-1] + 2.0*rho);
-	  }
-	}
+        // Need one-sided derivatives for the boundary of the domain, if fixed boundary
+        // conditions are used.
+        if(domain->periodicity[2]==0){
+          if(comm->myloc[2]==0 && k==1){
+            drhoz = (-3.0*density_lb[i][j][k] + 4.0*density_lb[i][j][k+1] -
+                     density_lb[i][j][k+2])/2.0;
+            drhozz = (-density_lb[i][j][k+3] + 4.0*density_lb[i][j][k+2] -
+                      5.0*density_lb[i][j][k+1] + 2.0*rho);
+          }
+          if(comm->myloc[2]==comm->procgrid[2]-1 && k==subNbz-2){
+            drhoz = -(-3.0*density_lb[i][j][k] + 4.0*density_lb[i][j][k-1] -
+                      density_lb[i][j][k-2])/2.0;
+            drhozz = (-density_lb[i][j][k-3] + 4.0*density_lb[i][j][k-2] -
+                      5.0*density_lb[i][j][k-1] + 2.0*rho);
+          }
+        }
 
-	grs = drhox*drhox + drhoy*drhoy + drhoz*drhoz;
+        grs = drhox*drhox + drhoy*drhoy + drhoz*drhoz;
 
-	p0 = rho*a_0-kappa_lb*rho*(drhoxx + drhoyy + drhozz);
+        p0 = rho*a_0-kappa_lb*rho*(drhoxx + drhoyy + drhozz);
 //                   kappa_lb is the square gradient coeff in the pressure tensor
 
-	dPdrho = a_0; //assuming here that kappa_lb = 0.
+        dPdrho = a_0; //assuming here that kappa_lb = 0.
 
 
-	if(typeLB==1){
-	  Pxx = p0 + kappa_lb*(drhox*drhox - 0.5*grs)+(tau-0.5)*(1.0/3.0-dPdrho)*
-	    (3.0*u_lb[i][j][k][0]*drhox+u_lb[i][j][k][1]*drhoy+u_lb[i][j][k][2]*drhoz);
-	  Pyy = p0 + kappa_lb*(drhoy*drhoy - 0.5*grs)+(tau-0.5)*(1.0/3.0-dPdrho)*
-	    (u_lb[i][j][k][0]*drhox+3.0*u_lb[i][j][k][1]*drhoy+u_lb[i][j][k][2]*drhoz);
-	  Pzz = p0 + kappa_lb*(drhoz*drhoz - 0.5*grs)+(tau-0.5)*(1.0/3.0-dPdrho)*
-	    (u_lb[i][j][k][0]*drhox+u_lb[i][j][k][1]*drhoy+3.0*u_lb[i][j][k][2]*drhoz);
-	  Pxy = kappa_lb*drhox*drhoy+(tau-0.5)*(1.0/3.0-dPdrho)*
-	    (u_lb[i][j][k][0]*drhoy+u_lb[i][j][k][1]*drhox);
-	  Pxz = kappa_lb*drhox*drhoz+(tau-0.5)*(1.0/3.0-dPdrho)*
-	    (u_lb[i][j][k][0]*drhoz+u_lb[i][j][k][2]*drhox);
-	  Pyz = kappa_lb*drhoy*drhoz+(tau-0.5)*(1.0/3.0-dPdrho)*
-	    (u_lb[i][j][k][1]*drhoz+u_lb[i][j][k][2]*drhoy);
-	}else if(typeLB==2){
-	  Pxx = p0 + kappa_lb*(drhox*drhox - 0.5*grs)+tau*(1.0/3.0-dPdrho)*
-	    (3.0*u_lb[i][j][k][0]*drhox+u_lb[i][j][k][1]*drhoy+u_lb[i][j][k][2]*drhoz);
-	  Pyy = p0 + kappa_lb*(drhoy*drhoy - 0.5*grs)+tau*(1.0/3.0-dPdrho)*
-	    (u_lb[i][j][k][0]*drhox+3.0*u_lb[i][j][k][1]*drhoy+u_lb[i][j][k][2]*drhoz);
-	  Pzz = p0 + kappa_lb*(drhoz*drhoz - 0.5*grs)+tau*(1.0/3.0-dPdrho)*
-	    (u_lb[i][j][k][0]*drhox+u_lb[i][j][k][1]*drhoy+3.0*u_lb[i][j][k][2]*drhoz);
-	  Pxy = kappa_lb*drhox*drhoy+tau*(1.0/3.0-dPdrho)*
-	    (u_lb[i][j][k][0]*drhoy+u_lb[i][j][k][1]*drhox);
-	  Pxz = kappa_lb*drhox*drhoz+tau*(1.0/3.0-dPdrho)*
-	    (u_lb[i][j][k][0]*drhoz+u_lb[i][j][k][2]*drhox);
-	  Pyz = kappa_lb*drhoy*drhoz+tau*(1.0/3.0-dPdrho)*
-	    (u_lb[i][j][k][1]*drhoz+u_lb[i][j][k][2]*drhoy);
-	}
+        if(typeLB==1){
+          Pxx = p0 + kappa_lb*(drhox*drhox - 0.5*grs)+(tau-0.5)*(1.0/3.0-dPdrho)*
+            (3.0*u_lb[i][j][k][0]*drhox+u_lb[i][j][k][1]*drhoy+u_lb[i][j][k][2]*drhoz);
+          Pyy = p0 + kappa_lb*(drhoy*drhoy - 0.5*grs)+(tau-0.5)*(1.0/3.0-dPdrho)*
+            (u_lb[i][j][k][0]*drhox+3.0*u_lb[i][j][k][1]*drhoy+u_lb[i][j][k][2]*drhoz);
+          Pzz = p0 + kappa_lb*(drhoz*drhoz - 0.5*grs)+(tau-0.5)*(1.0/3.0-dPdrho)*
+            (u_lb[i][j][k][0]*drhox+u_lb[i][j][k][1]*drhoy+3.0*u_lb[i][j][k][2]*drhoz);
+          Pxy = kappa_lb*drhox*drhoy+(tau-0.5)*(1.0/3.0-dPdrho)*
+            (u_lb[i][j][k][0]*drhoy+u_lb[i][j][k][1]*drhox);
+          Pxz = kappa_lb*drhox*drhoz+(tau-0.5)*(1.0/3.0-dPdrho)*
+            (u_lb[i][j][k][0]*drhoz+u_lb[i][j][k][2]*drhox);
+          Pyz = kappa_lb*drhoy*drhoz+(tau-0.5)*(1.0/3.0-dPdrho)*
+            (u_lb[i][j][k][1]*drhoz+u_lb[i][j][k][2]*drhoy);
+        }else if(typeLB==2){
+          Pxx = p0 + kappa_lb*(drhox*drhox - 0.5*grs)+tau*(1.0/3.0-dPdrho)*
+            (3.0*u_lb[i][j][k][0]*drhox+u_lb[i][j][k][1]*drhoy+u_lb[i][j][k][2]*drhoz);
+          Pyy = p0 + kappa_lb*(drhoy*drhoy - 0.5*grs)+tau*(1.0/3.0-dPdrho)*
+            (u_lb[i][j][k][0]*drhox+3.0*u_lb[i][j][k][1]*drhoy+u_lb[i][j][k][2]*drhoz);
+          Pzz = p0 + kappa_lb*(drhoz*drhoz - 0.5*grs)+tau*(1.0/3.0-dPdrho)*
+            (u_lb[i][j][k][0]*drhox+u_lb[i][j][k][1]*drhoy+3.0*u_lb[i][j][k][2]*drhoz);
+          Pxy = kappa_lb*drhox*drhoy+tau*(1.0/3.0-dPdrho)*
+            (u_lb[i][j][k][0]*drhoy+u_lb[i][j][k][1]*drhox);
+          Pxz = kappa_lb*drhox*drhoz+tau*(1.0/3.0-dPdrho)*
+            (u_lb[i][j][k][0]*drhoz+u_lb[i][j][k][2]*drhox);
+          Pyz = kappa_lb*drhoy*drhoz+tau*(1.0/3.0-dPdrho)*
+            (u_lb[i][j][k][1]*drhoz+u_lb[i][j][k][2]*drhoy);
+        }
 
- 	Fx_w = Ff[i][j][k][0];
- 	Fy_w = Ff[i][j][k][1];
- 	Fz_w = Ff[i][j][k][2];
+        Fx_w = Ff[i][j][k][0];
+        Fy_w = Ff[i][j][k][1];
+        Fz_w = Ff[i][j][k][2];
 
-	etacov[0] = rho;
-	etacov[1] = rho*u_lb[i][j][k][0] + Fx_w*tau + rho*bodyforcex*tau;
-	etacov[2] = rho*u_lb[i][j][k][1] + Fy_w*tau + rho*bodyforcey*tau;
-	etacov[3] = rho*u_lb[i][j][k][2] + Fz_w*tau + rho*bodyforcez*tau;
+        etacov[0] = rho;
+        etacov[1] = rho*u_lb[i][j][k][0] + Fx_w*tau + rho*bodyforcex*tau;
+        etacov[2] = rho*u_lb[i][j][k][1] + Fy_w*tau + rho*bodyforcey*tau;
+        etacov[3] = rho*u_lb[i][j][k][2] + Fz_w*tau + rho*bodyforcez*tau;
 
-	etacov[4] = Pxx + rho*u_lb[i][j][k][0]*u_lb[i][j][k][0] -rho/3. +
-	  tau*(2.0*u_lb[i][j][k][0]*(Fx_w+rho*bodyforcex));
-	etacov[5] = Pyy + rho*u_lb[i][j][k][1]*u_lb[i][j][k][1] -rho/3. +
-	  tau*(2.0*u_lb[i][j][k][1]*(Fy_w+rho*bodyforcey));
-	etacov[6] = Pzz + rho*u_lb[i][j][k][2]*u_lb[i][j][k][2] -rho/3. +
-	  tau*(2.0*u_lb[i][j][k][2]*(Fz_w+rho*bodyforcez));
-	etacov[7] = Pxy + rho*u_lb[i][j][k][0]*u_lb[i][j][k][1] +
-	  tau*(u_lb[i][j][k][0]*(Fy_w+rho*bodyforcey) + (Fx_w+rho*bodyforcex)*u_lb[i][j][k][1]);
-	etacov[8] = Pyz + rho*u_lb[i][j][k][1]*u_lb[i][j][k][2] +
-	  tau*(u_lb[i][j][k][1]*(Fz_w+rho*bodyforcez) + (Fy_w+rho*bodyforcey)*u_lb[i][j][k][2]);
-	etacov[9] = Pxz + rho*u_lb[i][j][k][0]*u_lb[i][j][k][2] +
-	  tau*(u_lb[i][j][k][0]*(Fz_w+rho*bodyforcez) + (Fx_w+rho*bodyforcex)*u_lb[i][j][k][2]);
-	etacov[10] = 0.0;
-	etacov[11] = 0.0;
-	etacov[12] = 0.0;
-	etacov[13] = rho*u_lb[i][j][k][0]*u_lb[i][j][k][1]*u_lb[i][j][k][2];
-	const double TrP = Pxx+Pyy+Pzz;
-	etacov[14] = K_0*(rho-TrP);
+        etacov[4] = Pxx + rho*u_lb[i][j][k][0]*u_lb[i][j][k][0] -rho/3. +
+          tau*(2.0*u_lb[i][j][k][0]*(Fx_w+rho*bodyforcex));
+        etacov[5] = Pyy + rho*u_lb[i][j][k][1]*u_lb[i][j][k][1] -rho/3. +
+          tau*(2.0*u_lb[i][j][k][1]*(Fy_w+rho*bodyforcey));
+        etacov[6] = Pzz + rho*u_lb[i][j][k][2]*u_lb[i][j][k][2] -rho/3. +
+          tau*(2.0*u_lb[i][j][k][2]*(Fz_w+rho*bodyforcez));
+        etacov[7] = Pxy + rho*u_lb[i][j][k][0]*u_lb[i][j][k][1] +
+          tau*(u_lb[i][j][k][0]*(Fy_w+rho*bodyforcey) + (Fx_w+rho*bodyforcex)*u_lb[i][j][k][1]);
+        etacov[8] = Pyz + rho*u_lb[i][j][k][1]*u_lb[i][j][k][2] +
+          tau*(u_lb[i][j][k][1]*(Fz_w+rho*bodyforcez) + (Fy_w+rho*bodyforcey)*u_lb[i][j][k][2]);
+        etacov[9] = Pxz + rho*u_lb[i][j][k][0]*u_lb[i][j][k][2] +
+          tau*(u_lb[i][j][k][0]*(Fz_w+rho*bodyforcez) + (Fx_w+rho*bodyforcex)*u_lb[i][j][k][2]);
+        etacov[10] = 0.0;
+        etacov[11] = 0.0;
+        etacov[12] = 0.0;
+        etacov[13] = rho*u_lb[i][j][k][0]*u_lb[i][j][k][1]*u_lb[i][j][k][2];
+        const double TrP = Pxx+Pyy+Pzz;
+        etacov[14] = K_0*(rho-TrP);
 
-	for (l=0; l<15; l++) {
+        for (l=0; l<15; l++) {
 
-	  feq[i][j][k][l] = 0.0;
- 	  for (int ii=0; ii<15; ii++)
- 	    feq[i][j][k][l] += w_lb[l]*mg_lb[ii][l]*etacov[ii]*Ng_lb[ii];
+          feq[i][j][k][l] = 0.0;
+          for (int ii=0; ii<15; ii++)
+            feq[i][j][k][l] += w_lb[l]*mg_lb[ii][l]*etacov[ii]*Ng_lb[ii];
 
-	  if(typeLB == 2){
-	    feqn[i][j][k][l] = feq[i][j][k][l];
-	  }
-	}
+          if(typeLB == 2){
+            feqn[i][j][k][l] = feq[i][j][k][l];
+          }
+        }
 
-	if(noisestress==1){
-	  std = sqrt(namp*rho);
+        if(noisestress==1){
+          std = sqrt(namp*rho);
 
-	  for(jj=0; jj<3; jj++)
-	    S[0][jj] = std*random->gaussian();
-	  for(jj=0; jj<3; jj++)
-	    S[1][jj] = std*random->gaussian();
+          for(jj=0; jj<3; jj++)
+            S[0][jj] = std*random->gaussian();
+          for(jj=0; jj<3; jj++)
+            S[1][jj] = std*random->gaussian();
 
-	  etacov[4] = (S[0][0]*sqrt(3.0-3.0*a_0));
-	  etacov[5] = ((1.0-3.0*a_0)*S[0][0]/sqrt(3.0-3.0*a_0)+
-		       sqrt((8.0-12.0*a_0)/(3.0-3.0*a_0))*S[0][1]);
-	  etacov[6] = ((1.0-3.0*a_0)*S[0][0]/sqrt(3.0-3.0*a_0)+
-		       (2.0-6.0*a_0)*S[0][1]/sqrt((8.0-12.0*a_0)*(3.0-3.0*a_0))+
-		       sqrt((5.0-9.0*a_0)/(2.0-3.0*a_0))*S[0][2]);
-	  etacov[7] = S[1][0];
-	  etacov[8] = S[1][1];
-	  etacov[9] = S[1][2];
+          etacov[4] = (S[0][0]*sqrt(3.0-3.0*a_0));
+          etacov[5] = ((1.0-3.0*a_0)*S[0][0]/sqrt(3.0-3.0*a_0)+
+                       sqrt((8.0-12.0*a_0)/(3.0-3.0*a_0))*S[0][1]);
+          etacov[6] = ((1.0-3.0*a_0)*S[0][0]/sqrt(3.0-3.0*a_0)+
+                       (2.0-6.0*a_0)*S[0][1]/sqrt((8.0-12.0*a_0)*(3.0-3.0*a_0))+
+                       sqrt((5.0-9.0*a_0)/(2.0-3.0*a_0))*S[0][2]);
+          etacov[7] = S[1][0];
+          etacov[8] = S[1][1];
+          etacov[9] = S[1][2];
 
-	  for (l=10; l<15; l++) {
-	    etacov[l] = sqrt(9.0*namp*rho/Ng_lb[l])*random->gaussian();
-	  }
-	  etacov[14] += -K_0*(etacov[4]+etacov[5]+etacov[6]);  //correction from noise to TrP
+          for (l=10; l<15; l++) {
+            etacov[l] = sqrt(9.0*namp*rho/Ng_lb[l])*random->gaussian();
+          }
+          etacov[14] += -K_0*(etacov[4]+etacov[5]+etacov[6]);  //correction from noise to TrP
 
-	  for (l=0; l<15; l++) {
-	    ghostnoise = w_lb[l]*
-	      (mg_lb[4][l]*etacov[4]*Ng_lb[4] + mg_lb[5][l]*etacov[5]*Ng_lb[5] +
-	       mg_lb[6][l]*etacov[6]*Ng_lb[6] + mg_lb[7][l]*etacov[7]*Ng_lb[7] +
-	       mg_lb[8][l]*etacov[8]*Ng_lb[8] + mg_lb[9][l]*etacov[9]*Ng_lb[9] +
-	       mg_lb[10][l]*etacov[10]*Ng_lb[10] + mg_lb[11][l]*etacov[11]*Ng_lb[11]
-	       + mg_lb[12][l]*etacov[12]*Ng_lb[12] + mg_lb[13][l]*etacov[13]*Ng_lb[13]
-	       + mg_lb[14][l]*etacov[14]*Ng_lb[14]);
-	    feq[i][j][k][l] += ghostnoise*noisefactor;
-	  }
-	}
+          for (l=0; l<15; l++) {
+            ghostnoise = w_lb[l]*
+              (mg_lb[4][l]*etacov[4]*Ng_lb[4] + mg_lb[5][l]*etacov[5]*Ng_lb[5] +
+               mg_lb[6][l]*etacov[6]*Ng_lb[6] + mg_lb[7][l]*etacov[7]*Ng_lb[7] +
+               mg_lb[8][l]*etacov[8]*Ng_lb[8] + mg_lb[9][l]*etacov[9]*Ng_lb[9] +
+               mg_lb[10][l]*etacov[10]*Ng_lb[10] + mg_lb[11][l]*etacov[11]*Ng_lb[11]
+               + mg_lb[12][l]*etacov[12]*Ng_lb[12] + mg_lb[13][l]*etacov[13]*Ng_lb[13]
+               + mg_lb[14][l]*etacov[14]*Ng_lb[14]);
+            feq[i][j][k][l] += ghostnoise*noisefactor;
+          }
+        }
       }
     }
   }
@@ -2141,155 +2141,155 @@ void FixLbFluid::equilibriumdist19(int xstart, int xend, int ystart, int yend, i
       jup=j+1;
       jdwn=j-1;
       for (k=zstart; k<zend; k++) {
-	kup=k+1;
-	kdwn=k-1;
+        kup=k+1;
+        kdwn=k-1;
 
-	rho=density_lb[i][j][k];
-	total_density += rho;
+        rho=density_lb[i][j][k];
+        total_density += rho;
 
-	// Derivatives.
-	drhox = (density_lb[iup][j][k] - density_lb[idwn][j][k])/2.0;
-	drhoxx = (density_lb[iup][j][k] - 2.0*density_lb[i][j][k] +
-		  density_lb[idwn][j][k]);
+        // Derivatives.
+        drhox = (density_lb[iup][j][k] - density_lb[idwn][j][k])/2.0;
+        drhoxx = (density_lb[iup][j][k] - 2.0*density_lb[i][j][k] +
+                  density_lb[idwn][j][k]);
 
-	drhoy = (density_lb[i][jup][k] - density_lb[i][jdwn][k])/2.0;
-	drhoyy = (density_lb[i][jup][k] - 2.0*density_lb[i][j][k] +
-		  density_lb[i][jdwn][k]);
+        drhoy = (density_lb[i][jup][k] - density_lb[i][jdwn][k])/2.0;
+        drhoyy = (density_lb[i][jup][k] - 2.0*density_lb[i][j][k] +
+                  density_lb[i][jdwn][k]);
 
-	drhoz = (density_lb[i][j][kup] - density_lb[i][j][kdwn])/2.0;
-	drhozz = (density_lb[i][j][kup] - 2.0*density_lb[i][j][k] +
-		  density_lb[i][j][kdwn]);
+        drhoz = (density_lb[i][j][kup] - density_lb[i][j][kdwn])/2.0;
+        drhozz = (density_lb[i][j][kup] - 2.0*density_lb[i][j][k] +
+                  density_lb[i][j][kdwn]);
 
-	// Need one-sided derivatives for the boundary of the domain, if fixed boundary
-	// conditions are used.
-	if(domain->periodicity[2]==0){
-	  if(comm->myloc[2]==0 && k==1){
-	    drhoz = (-3.0*density_lb[i][j][k] + 4.0*density_lb[i][j][k+1] -
-		     density_lb[i][j][k+2])/2.0;
-	    drhozz = (-density_lb[i][j][k+3] + 4.0*density_lb[i][j][k+2] -
-		      5.0*density_lb[i][j][k+1] + 2.0*rho);
-	  }
-	  if(comm->myloc[2]==comm->procgrid[2]-1 && k==subNbz-2){
-	    drhoz = -(-3.0*density_lb[i][j][k] + 4.0*density_lb[i][j][k-1] -
-		      density_lb[i][j][k-2])/2.0;
-	    drhozz = (-density_lb[i][j][k-3] + 4.0*density_lb[i][j][k-2] -
-		      5.0*density_lb[i][j][k-1] + 2.0*rho);
-	  }
-	}
+        // Need one-sided derivatives for the boundary of the domain, if fixed boundary
+        // conditions are used.
+        if(domain->periodicity[2]==0){
+          if(comm->myloc[2]==0 && k==1){
+            drhoz = (-3.0*density_lb[i][j][k] + 4.0*density_lb[i][j][k+1] -
+                     density_lb[i][j][k+2])/2.0;
+            drhozz = (-density_lb[i][j][k+3] + 4.0*density_lb[i][j][k+2] -
+                      5.0*density_lb[i][j][k+1] + 2.0*rho);
+          }
+          if(comm->myloc[2]==comm->procgrid[2]-1 && k==subNbz-2){
+            drhoz = -(-3.0*density_lb[i][j][k] + 4.0*density_lb[i][j][k-1] -
+                      density_lb[i][j][k-2])/2.0;
+            drhozz = (-density_lb[i][j][k-3] + 4.0*density_lb[i][j][k-2] -
+                      5.0*density_lb[i][j][k-1] + 2.0*rho);
+          }
+        }
 
-	grs = drhox*drhox + drhoy*drhoy + drhoz*drhoz;
+        grs = drhox*drhox + drhoy*drhoy + drhoz*drhoz;
 
-	p0 = rho*a_0-kappa_lb*rho*(drhoxx + drhoyy + drhozz);
+        p0 = rho*a_0-kappa_lb*rho*(drhoxx + drhoyy + drhozz);
 //                   kappa_lb is the square gradient coeff in the pressure tensor
 
-	dPdrho = a_0; //assuming here that kappa_lb = 0.
+        dPdrho = a_0; //assuming here that kappa_lb = 0.
 
 
-	if(typeLB==1){
-	  Pxx = p0 + kappa_lb*(drhox*drhox - 0.5*grs)+(tau-0.5)*(1.0/3.0-dPdrho)*
-	    (3.0*u_lb[i][j][k][0]*drhox+u_lb[i][j][k][1]*drhoy+u_lb[i][j][k][2]*drhoz);
-	  Pyy = p0 + kappa_lb*(drhoy*drhoy - 0.5*grs)+(tau-0.5)*(1.0/3.0-dPdrho)*
-	    (u_lb[i][j][k][0]*drhox+3.0*u_lb[i][j][k][1]*drhoy+u_lb[i][j][k][2]*drhoz);
-	  Pzz = p0 + kappa_lb*(drhoz*drhoz - 0.5*grs)+(tau-0.5)*(1.0/3.0-dPdrho)*
-	    (u_lb[i][j][k][0]*drhox+u_lb[i][j][k][1]*drhoy+3.0*u_lb[i][j][k][2]*drhoz);
-	  Pxy = kappa_lb*drhox*drhoy+(tau-0.5)*(1.0/3.0-dPdrho)*
-	    (u_lb[i][j][k][0]*drhoy+u_lb[i][j][k][1]*drhox);
-	  Pxz = kappa_lb*drhox*drhoz+(tau-0.5)*(1.0/3.0-dPdrho)*
-	    (u_lb[i][j][k][0]*drhoz+u_lb[i][j][k][2]*drhox);
-	  Pyz = kappa_lb*drhoy*drhoz+(tau-0.5)*(1.0/3.0-dPdrho)*
-	    (u_lb[i][j][k][1]*drhoz+u_lb[i][j][k][2]*drhoy);
-	}else if(typeLB==2){
-	  Pxx = p0 + kappa_lb*(drhox*drhox - 0.5*grs)+tau*(1.0/3.0-dPdrho)*
-	    (3.0*u_lb[i][j][k][0]*drhox+u_lb[i][j][k][1]*drhoy+u_lb[i][j][k][2]*drhoz);
-	  Pyy = p0 + kappa_lb*(drhoy*drhoy - 0.5*grs)+tau*(1.0/3.0-dPdrho)*
-	    (u_lb[i][j][k][0]*drhox+3.0*u_lb[i][j][k][1]*drhoy+u_lb[i][j][k][2]*drhoz);
-	  Pzz = p0 + kappa_lb*(drhoz*drhoz - 0.5*grs)+tau*(1.0/3.0-dPdrho)*
-	    (u_lb[i][j][k][0]*drhox+u_lb[i][j][k][1]*drhoy+3.0*u_lb[i][j][k][2]*drhoz);
-	  Pxy = kappa_lb*drhox*drhoy+tau*(1.0/3.0-dPdrho)*
-	    (u_lb[i][j][k][0]*drhoy+u_lb[i][j][k][1]*drhox);
-	  Pxz = kappa_lb*drhox*drhoz+tau*(1.0/3.0-dPdrho)*
-	    (u_lb[i][j][k][0]*drhoz+u_lb[i][j][k][2]*drhox);
-	  Pyz = kappa_lb*drhoy*drhoz+tau*(1.0/3.0-dPdrho)*
-	    (u_lb[i][j][k][1]*drhoz+u_lb[i][j][k][2]*drhoy);
-	}
+        if(typeLB==1){
+          Pxx = p0 + kappa_lb*(drhox*drhox - 0.5*grs)+(tau-0.5)*(1.0/3.0-dPdrho)*
+            (3.0*u_lb[i][j][k][0]*drhox+u_lb[i][j][k][1]*drhoy+u_lb[i][j][k][2]*drhoz);
+          Pyy = p0 + kappa_lb*(drhoy*drhoy - 0.5*grs)+(tau-0.5)*(1.0/3.0-dPdrho)*
+            (u_lb[i][j][k][0]*drhox+3.0*u_lb[i][j][k][1]*drhoy+u_lb[i][j][k][2]*drhoz);
+          Pzz = p0 + kappa_lb*(drhoz*drhoz - 0.5*grs)+(tau-0.5)*(1.0/3.0-dPdrho)*
+            (u_lb[i][j][k][0]*drhox+u_lb[i][j][k][1]*drhoy+3.0*u_lb[i][j][k][2]*drhoz);
+          Pxy = kappa_lb*drhox*drhoy+(tau-0.5)*(1.0/3.0-dPdrho)*
+            (u_lb[i][j][k][0]*drhoy+u_lb[i][j][k][1]*drhox);
+          Pxz = kappa_lb*drhox*drhoz+(tau-0.5)*(1.0/3.0-dPdrho)*
+            (u_lb[i][j][k][0]*drhoz+u_lb[i][j][k][2]*drhox);
+          Pyz = kappa_lb*drhoy*drhoz+(tau-0.5)*(1.0/3.0-dPdrho)*
+            (u_lb[i][j][k][1]*drhoz+u_lb[i][j][k][2]*drhoy);
+        }else if(typeLB==2){
+          Pxx = p0 + kappa_lb*(drhox*drhox - 0.5*grs)+tau*(1.0/3.0-dPdrho)*
+            (3.0*u_lb[i][j][k][0]*drhox+u_lb[i][j][k][1]*drhoy+u_lb[i][j][k][2]*drhoz);
+          Pyy = p0 + kappa_lb*(drhoy*drhoy - 0.5*grs)+tau*(1.0/3.0-dPdrho)*
+            (u_lb[i][j][k][0]*drhox+3.0*u_lb[i][j][k][1]*drhoy+u_lb[i][j][k][2]*drhoz);
+          Pzz = p0 + kappa_lb*(drhoz*drhoz - 0.5*grs)+tau*(1.0/3.0-dPdrho)*
+            (u_lb[i][j][k][0]*drhox+u_lb[i][j][k][1]*drhoy+3.0*u_lb[i][j][k][2]*drhoz);
+          Pxy = kappa_lb*drhox*drhoy+tau*(1.0/3.0-dPdrho)*
+            (u_lb[i][j][k][0]*drhoy+u_lb[i][j][k][1]*drhox);
+          Pxz = kappa_lb*drhox*drhoz+tau*(1.0/3.0-dPdrho)*
+            (u_lb[i][j][k][0]*drhoz+u_lb[i][j][k][2]*drhox);
+          Pyz = kappa_lb*drhoy*drhoz+tau*(1.0/3.0-dPdrho)*
+            (u_lb[i][j][k][1]*drhoz+u_lb[i][j][k][2]*drhoy);
+        }
 
- 	Fx_w = Ff[i][j][k][0];
- 	Fy_w = Ff[i][j][k][1];
- 	Fz_w = Ff[i][j][k][2];
+        Fx_w = Ff[i][j][k][0];
+        Fy_w = Ff[i][j][k][1];
+        Fz_w = Ff[i][j][k][2];
 
-	etacov[0] = rho;
-	etacov[1] = rho*u_lb[i][j][k][0] + Fx_w*tau + rho*bodyforcex*tau;
-	etacov[2] = rho*u_lb[i][j][k][1] + Fy_w*tau + rho*bodyforcey*tau;
-	etacov[3] = rho*u_lb[i][j][k][2] + Fz_w*tau + rho*bodyforcez*tau;
+        etacov[0] = rho;
+        etacov[1] = rho*u_lb[i][j][k][0] + Fx_w*tau + rho*bodyforcex*tau;
+        etacov[2] = rho*u_lb[i][j][k][1] + Fy_w*tau + rho*bodyforcey*tau;
+        etacov[3] = rho*u_lb[i][j][k][2] + Fz_w*tau + rho*bodyforcez*tau;
 
-	etacov[4] = Pxx + rho*u_lb[i][j][k][0]*u_lb[i][j][k][0] -rho/3. +
-	  tau*(2.0*u_lb[i][j][k][0]*(Fx_w+rho*bodyforcex));
-	etacov[5] = Pyy + rho*u_lb[i][j][k][1]*u_lb[i][j][k][1] -rho/3. +
-	  tau*(2.0*u_lb[i][j][k][1]*(Fy_w+rho*bodyforcey));
-	etacov[6] = Pzz + rho*u_lb[i][j][k][2]*u_lb[i][j][k][2] -rho/3. +
-	  tau*(2.0*u_lb[i][j][k][2]*(Fz_w+rho*bodyforcez));
-	etacov[7] = Pxy + rho*u_lb[i][j][k][0]*u_lb[i][j][k][1] +
-	  tau*(u_lb[i][j][k][0]*(Fy_w+rho*bodyforcey) + (Fx_w+rho*bodyforcex)*u_lb[i][j][k][1]);
-	etacov[8] = Pxz + rho*u_lb[i][j][k][0]*u_lb[i][j][k][2] +
-	  tau*(u_lb[i][j][k][0]*(Fz_w+rho*bodyforcez) + (Fx_w+rho*bodyforcex)*u_lb[i][j][k][2]);
-	etacov[9] = Pyz + rho*u_lb[i][j][k][1]*u_lb[i][j][k][2] +
-	  tau*(u_lb[i][j][k][1]*(Fz_w+rho*bodyforcez) + (Fy_w+rho*bodyforcey)*u_lb[i][j][k][2]);
-	etacov[10] = 0.0;
-	etacov[11] = 0.0;
-	etacov[12] = 0.0;
-	etacov[13] = 0.0;
-	etacov[14] = 0.0;
-	etacov[15] = 0.0;
-	etacov[16] = 0.0;
-	etacov[17] = 0.0;
-	etacov[18] = 0.0;
+        etacov[4] = Pxx + rho*u_lb[i][j][k][0]*u_lb[i][j][k][0] -rho/3. +
+          tau*(2.0*u_lb[i][j][k][0]*(Fx_w+rho*bodyforcex));
+        etacov[5] = Pyy + rho*u_lb[i][j][k][1]*u_lb[i][j][k][1] -rho/3. +
+          tau*(2.0*u_lb[i][j][k][1]*(Fy_w+rho*bodyforcey));
+        etacov[6] = Pzz + rho*u_lb[i][j][k][2]*u_lb[i][j][k][2] -rho/3. +
+          tau*(2.0*u_lb[i][j][k][2]*(Fz_w+rho*bodyforcez));
+        etacov[7] = Pxy + rho*u_lb[i][j][k][0]*u_lb[i][j][k][1] +
+          tau*(u_lb[i][j][k][0]*(Fy_w+rho*bodyforcey) + (Fx_w+rho*bodyforcex)*u_lb[i][j][k][1]);
+        etacov[8] = Pxz + rho*u_lb[i][j][k][0]*u_lb[i][j][k][2] +
+          tau*(u_lb[i][j][k][0]*(Fz_w+rho*bodyforcez) + (Fx_w+rho*bodyforcex)*u_lb[i][j][k][2]);
+        etacov[9] = Pyz + rho*u_lb[i][j][k][1]*u_lb[i][j][k][2] +
+          tau*(u_lb[i][j][k][1]*(Fz_w+rho*bodyforcez) + (Fy_w+rho*bodyforcey)*u_lb[i][j][k][2]);
+        etacov[10] = 0.0;
+        etacov[11] = 0.0;
+        etacov[12] = 0.0;
+        etacov[13] = 0.0;
+        etacov[14] = 0.0;
+        etacov[15] = 0.0;
+        etacov[16] = 0.0;
+        etacov[17] = 0.0;
+        etacov[18] = 0.0;
 
-	for (l=0; l<19; l++) {
+        for (l=0; l<19; l++) {
 
-	  feq[i][j][k][l] = 0.0;
- 	  for (int ii=0; ii<19; ii++)
- 	    feq[i][j][k][l] += w_lb[l]*mg_lb[ii][l]*etacov[ii]*Ng_lb[ii];
+          feq[i][j][k][l] = 0.0;
+          for (int ii=0; ii<19; ii++)
+            feq[i][j][k][l] += w_lb[l]*mg_lb[ii][l]*etacov[ii]*Ng_lb[ii];
 
-	  if(typeLB == 2){
-	    feqn[i][j][k][l] = feq[i][j][k][l];
-	  }
-	}
+          if(typeLB == 2){
+            feqn[i][j][k][l] = feq[i][j][k][l];
+          }
+        }
 
-	if(noisestress==1){
-	  std = sqrt(namp*rho);
+        if(noisestress==1){
+          std = sqrt(namp*rho);
 
-	  for(jj=0; jj<3; jj++)
-	    S[0][jj] = std*random->gaussian();
-	  for(jj=0; jj<3; jj++)
-	    S[1][jj] = std*random->gaussian();
+          for(jj=0; jj<3; jj++)
+            S[0][jj] = std*random->gaussian();
+          for(jj=0; jj<3; jj++)
+            S[1][jj] = std*random->gaussian();
 
-	  etacov[4] = (S[0][0]*sqrt(3.0-3.0*a_0));
-	  etacov[5] = ((1.0-3.0*a_0)*S[0][0]/sqrt(3.0-3.0*a_0)+
-		       sqrt((8.0-12.0*a_0)/(3.0-3.0*a_0))*S[0][1]);
-	  etacov[6] = ((1.0-3.0*a_0)*S[0][0]/sqrt(3.0-3.0*a_0)+
-		       (2.0-6.0*a_0)*S[0][1]/sqrt((8.0-12.0*a_0)*(3.0-3.0*a_0))+
-		       sqrt((5.0-9.0*a_0)/(2.0-3.0*a_0))*S[0][2]);
-	  etacov[7] = S[1][0];
-	  etacov[8] = S[1][1];
-	  etacov[9] = S[1][2];
+          etacov[4] = (S[0][0]*sqrt(3.0-3.0*a_0));
+          etacov[5] = ((1.0-3.0*a_0)*S[0][0]/sqrt(3.0-3.0*a_0)+
+                       sqrt((8.0-12.0*a_0)/(3.0-3.0*a_0))*S[0][1]);
+          etacov[6] = ((1.0-3.0*a_0)*S[0][0]/sqrt(3.0-3.0*a_0)+
+                       (2.0-6.0*a_0)*S[0][1]/sqrt((8.0-12.0*a_0)*(3.0-3.0*a_0))+
+                       sqrt((5.0-9.0*a_0)/(2.0-3.0*a_0))*S[0][2]);
+          etacov[7] = S[1][0];
+          etacov[8] = S[1][1];
+          etacov[9] = S[1][2];
 
-	  for (l=10; l<19; l++) {
-	    etacov[l] = sqrt(9.0*namp*rho/Ng_lb[l])*random->gaussian();
-	  }
+          for (l=10; l<19; l++) {
+            etacov[l] = sqrt(9.0*namp*rho/Ng_lb[l])*random->gaussian();
+          }
 
-	  for (l=0; l<19; l++) {
-	    ghostnoise = w_lb[l]*
-	      (mg_lb[4][l]*etacov[4]*Ng_lb[4] + mg_lb[5][l]*etacov[5]*Ng_lb[5] +
-	       mg_lb[6][l]*etacov[6]*Ng_lb[6] + mg_lb[7][l]*etacov[7]*Ng_lb[7] +
-	       mg_lb[8][l]*etacov[8]*Ng_lb[8] + mg_lb[9][l]*etacov[9]*Ng_lb[9] +
-	       mg_lb[10][l]*etacov[10]*Ng_lb[10] + mg_lb[11][l]*etacov[11]*Ng_lb[11]
-	       + mg_lb[12][l]*etacov[12]*Ng_lb[12] + mg_lb[13][l]*etacov[13]*Ng_lb[13]
-	       + mg_lb[14][l]*etacov[14]*Ng_lb[14] + mg_lb[15][l]*etacov[15]*Ng_lb[15]
-	       + mg_lb[16][l]*etacov[16]*Ng_lb[16] + mg_lb[17][l]*etacov[17]*Ng_lb[17]
-	       + mg_lb[18][l]*etacov[18]*Ng_lb[18]);
-	    feq[i][j][k][l] += ghostnoise*noisefactor;
-	  }
-	}
+          for (l=0; l<19; l++) {
+            ghostnoise = w_lb[l]*
+              (mg_lb[4][l]*etacov[4]*Ng_lb[4] + mg_lb[5][l]*etacov[5]*Ng_lb[5] +
+               mg_lb[6][l]*etacov[6]*Ng_lb[6] + mg_lb[7][l]*etacov[7]*Ng_lb[7] +
+               mg_lb[8][l]*etacov[8]*Ng_lb[8] + mg_lb[9][l]*etacov[9]*Ng_lb[9] +
+               mg_lb[10][l]*etacov[10]*Ng_lb[10] + mg_lb[11][l]*etacov[11]*Ng_lb[11]
+               + mg_lb[12][l]*etacov[12]*Ng_lb[12] + mg_lb[13][l]*etacov[13]*Ng_lb[13]
+               + mg_lb[14][l]*etacov[14]*Ng_lb[14] + mg_lb[15][l]*etacov[15]*Ng_lb[15]
+               + mg_lb[16][l]*etacov[16]*Ng_lb[16] + mg_lb[17][l]*etacov[17]*Ng_lb[17]
+               + mg_lb[18][l]*etacov[18]*Ng_lb[18]);
+            feq[i][j][k][l] += ghostnoise*noisefactor;
+          }
+        }
 
       }
     }
@@ -2430,38 +2430,38 @@ void FixLbFluid::parametercalc_part(int xstart, int xend, int ystart, int yend, 
     for(j=ystart; j<yend; j++){
       for(k=zstart; k<zend; k++){
 
-	density_lb[i][j][k]=0.0;
-	u_lb[i][j][k][0]=0.0;
-	u_lb[i][j][k][1]=0.0;
-	u_lb[i][j][k][2]=0.0;
-	for (m=0; m<numvel; m++) {
+        density_lb[i][j][k]=0.0;
+        u_lb[i][j][k][0]=0.0;
+        u_lb[i][j][k][1]=0.0;
+        u_lb[i][j][k][2]=0.0;
+        for (m=0; m<numvel; m++) {
 
-	  density_lb[i][j][k] += f_lb[i][j][k][m];
+          density_lb[i][j][k] += f_lb[i][j][k][m];
 
-	  u_lb[i][j][k][0] += f_lb[i][j][k][m]*e[m][0];
-	  u_lb[i][j][k][1] += f_lb[i][j][k][m]*e[m][1];
-	  u_lb[i][j][k][2] += f_lb[i][j][k][m]*e[m][2];
+          u_lb[i][j][k][0] += f_lb[i][j][k][m]*e[m][0];
+          u_lb[i][j][k][1] += f_lb[i][j][k][m]*e[m][1];
+          u_lb[i][j][k][2] += f_lb[i][j][k][m]*e[m][2];
 
-	}
+        }
 
-	//For the on-lattice wall scheme, need to set this velocity to zero.
-	if(domain->periodicity[2]==0){
-	  if(comm->myloc[2]==0){
-	    if(k==1){
-	      u_lb[i][j][k][2]=0.0;
-	    }
-	  }
-	  if(comm->myloc[2]==comm->procgrid[2]-1){
-	    if(k==subNbz-2){
-	      u_lb[i][j][k][2]=0.0;
-	    }
-	  }
+        //For the on-lattice wall scheme, need to set this velocity to zero.
+        if(domain->periodicity[2]==0){
+          if(comm->myloc[2]==0){
+            if(k==1){
+              u_lb[i][j][k][2]=0.0;
+            }
+          }
+          if(comm->myloc[2]==comm->procgrid[2]-1){
+            if(k==subNbz-2){
+              u_lb[i][j][k][2]=0.0;
+            }
+          }
 
-	}
+        }
 
-	u_lb[i][j][k][0]=u_lb[i][j][k][0]/density_lb[i][j][k];
-	u_lb[i][j][k][1]=u_lb[i][j][k][1]/density_lb[i][j][k];
-	u_lb[i][j][k][2]=u_lb[i][j][k][2]/density_lb[i][j][k];
+        u_lb[i][j][k][0]=u_lb[i][j][k][0]/density_lb[i][j][k];
+        u_lb[i][j][k][1]=u_lb[i][j][k][1]/density_lb[i][j][k];
+        u_lb[i][j][k][2]=u_lb[i][j][k][2]/density_lb[i][j][k];
       }
     }
   }
@@ -2481,37 +2481,37 @@ void FixLbFluid::update_periodic(int xstart, int xend, int ystart, int yend, int
     for(j=ystart; j<yend; j++)
       for(k=zstart; k<zend; k++){
 
-	if(typeLB==1){
-	  for(m=0; m<numvel; m++){
-	    imod = i-e[m][0];
-	    jmod = j-e[m][1];
-	    kmod = k-e[m][2];
+        if(typeLB==1){
+          for(m=0; m<numvel; m++){
+            imod = i-e[m][0];
+            jmod = j-e[m][1];
+            kmod = k-e[m][2];
 
-	    fnew[i][j][k][m] = f_lb[imod][jmod][kmod][m] + (feq[imod][jmod][kmod][m]-f_lb[imod][jmod][kmod][m])/tau;
-	  }
-	}else if(typeLB==2){
-	  for(m=0; m<numvel; m++){
-	    imod = i-e[m][0];
-	    jmod = j-e[m][1];
-	    kmod = k-e[m][2];
+            fnew[i][j][k][m] = f_lb[imod][jmod][kmod][m] + (feq[imod][jmod][kmod][m]-f_lb[imod][jmod][kmod][m])/tau;
+          }
+        }else if(typeLB==2){
+          for(m=0; m<numvel; m++){
+            imod = i-e[m][0];
+            jmod = j-e[m][1];
+            kmod = k-e[m][2];
 
-	    fnew[i][j][k][m] = feq[imod][jmod][kmod][m] + (f_lb[imod][jmod][kmod][m] - feq[imod][jmod][kmod][m])*expminusdtovertau;
-	  }
+            fnew[i][j][k][m] = feq[imod][jmod][kmod][m] + (f_lb[imod][jmod][kmod][m] - feq[imod][jmod][kmod][m])*expminusdtovertau;
+          }
 
-	  fnew[i][j][k][0]+=Dcoeff*(feq[i][j][k][0]-feqold[i][j][k][0]);
-	  for(m=1; m<numvel; m++){
-	    imod = i-e[m][0];
-	    jmod = j-e[m][1];
-	    kmod = k-e[m][2];
-	    imodm = i+e[m][0];
-	    jmodm = j+e[m][1];
-	    kmodm = k+e[m][2];
+          fnew[i][j][k][0]+=Dcoeff*(feq[i][j][k][0]-feqold[i][j][k][0]);
+          for(m=1; m<numvel; m++){
+            imod = i-e[m][0];
+            jmod = j-e[m][1];
+            kmod = k-e[m][2];
+            imodm = i+e[m][0];
+            jmodm = j+e[m][1];
+            kmodm = k+e[m][2];
 
-	     fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) + (0.5-Dcoeff*(tau+0.5))*
-	       (feqn[imodm][jmodm][kmodm][m] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
+             fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) + (0.5-Dcoeff*(tau+0.5))*
+               (feqn[imodm][jmodm][kmodm][m] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
 
-	  }
-	}
+          }
+        }
       }
 }
 
@@ -2536,10 +2536,10 @@ void FixLbFluid::streamout(void)
   // for(i=1; i<subNbx-1; i++){
   //   for(j=1; j<subNby-1; j++){
   //     for(k=1; k<subNbz-1; k++){
-  // 	massloc += density_lb[i][j][k];
-  // 	momentumloc[0] += density_lb[i][j][k]*u_lb[i][j][k][0];
-  // 	momentumloc[1] += density_lb[i][j][k]*u_lb[i][j][k][1];
-  // 	momentumloc[2] += density_lb[i][j][k]*u_lb[i][j][k][2];
+  //    massloc += density_lb[i][j][k];
+  //    momentumloc[0] += density_lb[i][j][k]*u_lb[i][j][k][0];
+  //    momentumloc[1] += density_lb[i][j][k]*u_lb[i][j][k][1];
+  //    momentumloc[2] += density_lb[i][j][k]*u_lb[i][j][k][2];
   //     }
   //   }
   // }
@@ -2557,45 +2557,45 @@ void FixLbFluid::streamout(void)
   if(me==0){
     for(iproc=0; iproc < comm->nprocs; iproc++){
       if(iproc){
-	MPI_Irecv(&buf[0][0][0][0],size,MPI_DOUBLE,iproc,0,world,&request_recv);
-	MPI_Wait(&request_recv,&status);
+        MPI_Irecv(&buf[0][0][0][0],size,MPI_DOUBLE,iproc,0,world,&request_recv);
+        MPI_Wait(&request_recv,&status);
 
-	istart=static_cast<int> (buf[0][0][0][0]);
-	jstart=static_cast<int> (buf[0][0][0][1]);
-	kstart=static_cast<int> (buf[0][0][0][2]);
-	iend=static_cast<int> (buf[0][0][1][0]);
-	jend=static_cast<int> (buf[0][0][1][1]);
-	kend=static_cast<int> (buf[0][0][1][2]);
+        istart=static_cast<int> (buf[0][0][0][0]);
+        jstart=static_cast<int> (buf[0][0][0][1]);
+        kstart=static_cast<int> (buf[0][0][0][2]);
+        iend=static_cast<int> (buf[0][0][1][0]);
+        jend=static_cast<int> (buf[0][0][1][1]);
+        kend=static_cast<int> (buf[0][0][1][2]);
 
-	for(i=istart; i<iend; i++){
-	  for(j=jstart; j<jend; j++){
-	    for(k=kstart; k<kend; k++){
-	      for(w=0; w<4; w++){
-		altogether[i][j][k][w]=buf[i-istart+1][j-jstart+1][k-kstart+1][w];
-	      }
-	    }
-	  }
-	}
+        for(i=istart; i<iend; i++){
+          for(j=jstart; j<jend; j++){
+            for(k=kstart; k<kend; k++){
+              for(w=0; w<4; w++){
+                altogether[i][j][k][w]=buf[i-istart+1][j-jstart+1][k-kstart+1][w];
+              }
+            }
+          }
+        }
       }else{
-	for(i=1; i<subNbx-1; i++){
-	  for(j=1; j<subNby-1; j++){
-	    for(k=1; k<subNbz-1; k++){
-	      altogether[i-1][j-1][k-1][0]=density_lb[i][j][k];
-	      altogether[i-1][j-1][k-1][1]=u_lb[i][j][k][0];
-	      altogether[i-1][j-1][k-1][2]=u_lb[i][j][k][1];
-	      altogether[i-1][j-1][k-1][3]=u_lb[i][j][k][2];
-	    }
-	  }
-	}
+        for(i=1; i<subNbx-1; i++){
+          for(j=1; j<subNby-1; j++){
+            for(k=1; k<subNbz-1; k++){
+              altogether[i-1][j-1][k-1][0]=density_lb[i][j][k];
+              altogether[i-1][j-1][k-1][1]=u_lb[i][j][k][0];
+              altogether[i-1][j-1][k-1][2]=u_lb[i][j][k][1];
+              altogether[i-1][j-1][k-1][3]=u_lb[i][j][k][2];
+            }
+          }
+        }
       }
     }
     //i = Nbx/2;
     //j = Nby/2;
     for(i=0; i<Nbx; i++)
       for(j=0; j<Nby; j++)
-	for(k=0; k<Nbz; k++){
-	  printf("%16.12f %16.12f %16.12f %16.12f\n",altogether[i][j][k][0]*dm_lb/dx_lb/dx_lb/dx_lb,altogether[i][j][k][1]*dx_lb/dt_lb,altogether[i][j][k][2]*dx_lb/dt_lb,altogether[i][j][k][3]*dx_lb/dt_lb);
-	}
+        for(k=0; k<Nbz; k++){
+          printf("%16.12f %16.12f %16.12f %16.12f\n",altogether[i][j][k][0]*dm_lb/dx_lb/dx_lb/dx_lb,altogether[i][j][k][1]*dx_lb/dt_lb,altogether[i][j][k][2]*dx_lb/dt_lb,altogether[i][j][k][3]*dx_lb/dt_lb);
+        }
 
 
   } else {
@@ -2603,9 +2603,9 @@ void FixLbFluid::streamout(void)
     jstart=comm->myloc[1]*(subNby-2);
     if(domain->periodicity[2]==0){
       if(comm->myloc[2]==comm->procgrid[2]-1){
-	kstart=comm->myloc[2]*(subNbz-3);
+        kstart=comm->myloc[2]*(subNbz-3);
       }else{
-	kstart=comm->myloc[2]*(subNbz-2);
+        kstart=comm->myloc[2]*(subNbz-2);
       }
     }else{
       kstart=comm->myloc[2]*(subNbz-2);
@@ -2615,12 +2615,12 @@ void FixLbFluid::streamout(void)
     kend=kstart+subNbz-2;
     for(i=0; i<subNbx; i++){
       for(j=0; j<subNby; j++){
-	for(k=0; k<subNbz; k++){
-	  buf[i][j][k][0]=density_lb[i][j][k];
-	  buf[i][j][k][1]=u_lb[i][j][k][0];
-	  buf[i][j][k][2]=u_lb[i][j][k][1];
-	  buf[i][j][k][3]=u_lb[i][j][k][2];
-	}
+        for(k=0; k<subNbz; k++){
+          buf[i][j][k][0]=density_lb[i][j][k];
+          buf[i][j][k][1]=u_lb[i][j][k][0];
+          buf[i][j][k][2]=u_lb[i][j][k][1];
+          buf[i][j][k][3]=u_lb[i][j][k][2];
+        }
       }
     }
     buf[0][0][0][0]=istart;
@@ -2721,124 +2721,124 @@ void FixLbFluid::update_full15(void)
        update_periodic(1,subNbx-1,1,subNby-1,subNbz-2,subNbz-1);
      }else if(typeLB==2){
        if(comm->myloc[2]==0){
-     	 for(i=1; i<subNbx-1; i++){
-     	   for(j=1;j<subNby-1;j++){
-     	     k=1;
-     	     for(m=0; m<15; m++){
-     	       imod = i-e[m][0];
-     	       jmod = j-e[m][1];
-     	       kmod = k-e[m][2];
+         for(i=1; i<subNbx-1; i++){
+           for(j=1;j<subNby-1;j++){
+             k=1;
+             for(m=0; m<15; m++){
+               imod = i-e[m][0];
+               jmod = j-e[m][1];
+               kmod = k-e[m][2];
 
-     	       fnew[i][j][k][m] = feq[imod][jmod][kmod][m] + (f_lb[imod][jmod][kmod][m]-feq[imod][jmod][kmod][m])*expminusdtovertau;
-     	     }
+               fnew[i][j][k][m] = feq[imod][jmod][kmod][m] + (f_lb[imod][jmod][kmod][m]-feq[imod][jmod][kmod][m])*expminusdtovertau;
+             }
 
-     	     for(m=0; m<15; m++){
-     	       imod = i-e[m][0];
-     	       jmod = j-e[m][1];
-     	       kmod = k-e[m][2];
-	       imodm = i+e[m][0];
-	       jmodm = j+e[m][1];
-	       kmodm = k+e[m][2];
+             for(m=0; m<15; m++){
+               imod = i-e[m][0];
+               jmod = j-e[m][1];
+               kmod = k-e[m][2];
+               imodm = i+e[m][0];
+               jmodm = j+e[m][1];
+               kmodm = k+e[m][2];
 
-     	       if(m==5)
-     	       	 fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][6] - feqold[imod][jmod][kmod][m]) +
-     	       	   (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][6] - feqn[imod][jmod][kmod][6]);
-     	       else if(m==7)
-     	       	 fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][11] - feqold[imod][jmod][kmod][m]) +
-     	       	   (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][11] - feqn[imod][jmod][kmod][11]);
-     	       else if(m==8)
-     	       	 fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][12] - feqold[imod][jmod][kmod][m]) +
-     	       	   (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][12] - feqn[imod][jmod][kmod][12]);
-     	       else if(m==9)
-     	       	 fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][13] - feqold[imod][jmod][kmod][m]) +
-     	       	   (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][13] - feqn[imod][jmod][kmod][13]);
-     	       else if(m==10)
-     	       	 fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][14] - feqold[imod][jmod][kmod][m]) +
-     	       	   (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][14] - feqn[imod][jmod][kmod][14]);
-	       else if(m==6)
-		 fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m]-feqold[imod][jmod][kmod][m]) +
-		   (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][5] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
-	       else if(m==11)
-		 fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m]-feqold[imod][jmod][kmod][m]) +
-		   (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][7] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
-	       else if(m==12)
-		 fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m]-feqold[imod][jmod][kmod][m]) +
-		   (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][8] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
-	       else if(m==13)
-		 fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m]-feqold[imod][jmod][kmod][m]) +
-		   (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][9] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
-	       else if(m==14)
-		 fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m]-feqold[imod][jmod][kmod][m]) +
-		   (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][10] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
-     	       else
-     	       	 fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
-     	       	   (0.5-Dcoeff*(tau+0.5))*(feqn[imodm][jmodm][kmodm][m] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
+               if(m==5)
+                 fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][6] - feqold[imod][jmod][kmod][m]) +
+                   (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][6] - feqn[imod][jmod][kmod][6]);
+               else if(m==7)
+                 fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][11] - feqold[imod][jmod][kmod][m]) +
+                   (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][11] - feqn[imod][jmod][kmod][11]);
+               else if(m==8)
+                 fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][12] - feqold[imod][jmod][kmod][m]) +
+                   (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][12] - feqn[imod][jmod][kmod][12]);
+               else if(m==9)
+                 fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][13] - feqold[imod][jmod][kmod][m]) +
+                   (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][13] - feqn[imod][jmod][kmod][13]);
+               else if(m==10)
+                 fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][14] - feqold[imod][jmod][kmod][m]) +
+                   (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][14] - feqn[imod][jmod][kmod][14]);
+               else if(m==6)
+                 fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m]-feqold[imod][jmod][kmod][m]) +
+                   (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][5] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
+               else if(m==11)
+                 fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m]-feqold[imod][jmod][kmod][m]) +
+                   (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][7] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
+               else if(m==12)
+                 fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m]-feqold[imod][jmod][kmod][m]) +
+                   (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][8] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
+               else if(m==13)
+                 fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m]-feqold[imod][jmod][kmod][m]) +
+                   (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][9] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
+               else if(m==14)
+                 fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m]-feqold[imod][jmod][kmod][m]) +
+                   (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][10] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
+               else
+                 fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
+                   (0.5-Dcoeff*(tau+0.5))*(feqn[imodm][jmodm][kmodm][m] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
 
-     	     }
-     	   }
-     	 }
+             }
+           }
+         }
        }else{
-     	 update_periodic(1,subNbx-1,1,subNby-1,1,2);
+         update_periodic(1,subNbx-1,1,subNby-1,1,2);
        }
        if(comm->myloc[2]==comm->procgrid[2]-1){
-     	 for(i=1;i<subNbx-1;i++){
-     	   for(j=1;j<subNby-1;j++){
-     	     k=subNbz-2;
-     	     for(m=0; m<15; m++){
-     	       imod = i-e[m][0];
-     	       jmod = j-e[m][1];
-     	       kmod = k-e[m][2];
+         for(i=1;i<subNbx-1;i++){
+           for(j=1;j<subNby-1;j++){
+             k=subNbz-2;
+             for(m=0; m<15; m++){
+               imod = i-e[m][0];
+               jmod = j-e[m][1];
+               kmod = k-e[m][2];
 
-     	       fnew[i][j][k][m] = feq[imod][jmod][kmod][m] + (f_lb[imod][jmod][kmod][m]-feq[imod][jmod][kmod][m])*expminusdtovertau;
-     	     }
-     	     for(m=0; m<15; m++){
-     	       imod = i-e[m][0];
-     	       jmod = j-e[m][1];
-     	       kmod = k-e[m][2];
-	       imodm = i+e[m][0];
-	       jmodm = j+e[m][1];
-	       kmodm = k+e[m][2];
+               fnew[i][j][k][m] = feq[imod][jmod][kmod][m] + (f_lb[imod][jmod][kmod][m]-feq[imod][jmod][kmod][m])*expminusdtovertau;
+             }
+             for(m=0; m<15; m++){
+               imod = i-e[m][0];
+               jmod = j-e[m][1];
+               kmod = k-e[m][2];
+               imodm = i+e[m][0];
+               jmodm = j+e[m][1];
+               kmodm = k+e[m][2];
 
-     	       if(m==6)
-     	       	 fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][5] - feqold[imod][jmod][kmod][m]) +
-     	       	   (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][5] - feqn[imod][jmod][kmod][5]);
-     	       else if(m==11)
-     	       	 fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][7] - feqold[imod][jmod][kmod][m]) +
-     	       	   (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][7] - feqn[imod][jmod][kmod][7]);
-     	       else if(m==12)
-     	       	 fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][8] - feqold[imod][jmod][kmod][m]) +
-     	       	   (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][8] - feqn[imod][jmod][kmod][8]);
-     	       else if(m==13)
-     	       	 fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][9] - feqold[imod][jmod][kmod][m]) +
-     	       	   (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][9] - feqn[imod][jmod][kmod][9]);
-     	       else if(m==14)
-     	       	 fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][10] - feqold[imod][jmod][kmod][m]) +
-     	       	   (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][10] - feqn[imod][jmod][kmod][10]);
-	       else if(m==5)
-		 fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
-		   (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][6] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
-	       else if(m==7)
-		 fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
-		   (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][11] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
-	       else if(m==8)
-		 fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
-		   (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][12] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
- 	       else if(m==9)
-		 fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
-		   (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][13] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
-	       else if(m==10)
-		 fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
-		   (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][14] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
-     	       else
-     	       	 fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
-     	       	   (0.5-Dcoeff*(tau+0.5))*(feqn[imodm][jmodm][kmodm][m] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
+               if(m==6)
+                 fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][5] - feqold[imod][jmod][kmod][m]) +
+                   (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][5] - feqn[imod][jmod][kmod][5]);
+               else if(m==11)
+                 fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][7] - feqold[imod][jmod][kmod][m]) +
+                   (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][7] - feqn[imod][jmod][kmod][7]);
+               else if(m==12)
+                 fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][8] - feqold[imod][jmod][kmod][m]) +
+                   (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][8] - feqn[imod][jmod][kmod][8]);
+               else if(m==13)
+                 fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][9] - feqold[imod][jmod][kmod][m]) +
+                   (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][9] - feqn[imod][jmod][kmod][9]);
+               else if(m==14)
+                 fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][10] - feqold[imod][jmod][kmod][m]) +
+                   (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][10] - feqn[imod][jmod][kmod][10]);
+               else if(m==5)
+                 fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
+                   (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][6] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
+               else if(m==7)
+                 fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
+                   (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][11] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
+               else if(m==8)
+                 fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
+                   (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][12] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
+               else if(m==9)
+                 fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
+                   (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][13] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
+               else if(m==10)
+                 fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
+                   (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][14] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
+               else
+                 fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
+                   (0.5-Dcoeff*(tau+0.5))*(feqn[imodm][jmodm][kmodm][m] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
 
-     	     }
-     	   }
-     	 }
+             }
+           }
+         }
        }
        else{
-     	 update_periodic(1,subNbx-1,1,subNby-1,subNbz-2,subNbz-1);
+         update_periodic(1,subNbx-1,1,subNby-1,subNbz-2,subNbz-1);
        }
      }
 
@@ -2861,39 +2861,39 @@ void FixLbFluid::update_full15(void)
        MPI_Wait(&req_recv25,&status);
 
        for(i=1;i<subNbx-1;i++){
-	 for(j=1;j<subNby-1;j++){
-	   k=1;
-	   if(typeLB == 1){
-	     fnew[i][j][k][5]=fnew[i][j][k-1][6];
-	     tmp1=fnew[i][j][k-1][11]+fnew[i][j][k-1][12]+fnew[i][j][k-1][13]+fnew[i][j][k-1][14];
-	   }
-	   else{
-	     fnew[i][j][k][5]=fnew[i][j][k-1][6] + (0.5-Dcoeff*(tau+0.5))*feqn[i][j][k+1][5];
-	     tmp1=fnew[i][j][k-1][11]+fnew[i][j][k-1][12]+fnew[i][j][k-1][13]+fnew[i][j][k-1][14] +
-	       (0.5-Dcoeff*(tau+0.5))*(feqn[i-1][j-1][k+1][7] + feqn[i+1][j-1][k+1][8] +
-				       feqn[i+1][j+1][k+1][9] + feqn[i-1][j+1][k+1][10]);
-	   }
+         for(j=1;j<subNby-1;j++){
+           k=1;
+           if(typeLB == 1){
+             fnew[i][j][k][5]=fnew[i][j][k-1][6];
+             tmp1=fnew[i][j][k-1][11]+fnew[i][j][k-1][12]+fnew[i][j][k-1][13]+fnew[i][j][k-1][14];
+           }
+           else{
+             fnew[i][j][k][5]=fnew[i][j][k-1][6] + (0.5-Dcoeff*(tau+0.5))*feqn[i][j][k+1][5];
+             tmp1=fnew[i][j][k-1][11]+fnew[i][j][k-1][12]+fnew[i][j][k-1][13]+fnew[i][j][k-1][14] +
+               (0.5-Dcoeff*(tau+0.5))*(feqn[i-1][j-1][k+1][7] + feqn[i+1][j-1][k+1][8] +
+                                       feqn[i+1][j+1][k+1][9] + feqn[i-1][j+1][k+1][10]);
+           }
 
-	   fnew[i][j][k][7]=-0.25*(fnew[i][j][k][1]+fnew[i][j][k][2]-fnew[i][j][k][3]-
-	   			   fnew[i][j][k][4]+2.0*fnew[i][j][k][11]-2.0*fnew[i][j][k][13]-tmp1);
-	   fnew[i][j][k][8]=0.25*(fnew[i][j][k][1]-fnew[i][j][k][2]-fnew[i][j][k][3]+
-	   			  fnew[i][j][k][4]+2.0*fnew[i][j][k][14]-2.0*fnew[i][j][k][12]+tmp1);
-	   fnew[i][j][k][9]=0.25*(fnew[i][j][k][1]+fnew[i][j][k][2]-fnew[i][j][k][3]-
-	   			  fnew[i][j][k][4]+2.0*fnew[i][j][k][11]-2.0*fnew[i][j][k][13]+tmp1);
-	   fnew[i][j][k][10]=-0.25*(fnew[i][j][k][1]-fnew[i][j][k][2]-fnew[i][j][k][3]+
-	   			    fnew[i][j][k][4]+2.0*fnew[i][j][k][14]-2.0*fnew[i][j][k][12]-tmp1);
+           fnew[i][j][k][7]=-0.25*(fnew[i][j][k][1]+fnew[i][j][k][2]-fnew[i][j][k][3]-
+                                   fnew[i][j][k][4]+2.0*fnew[i][j][k][11]-2.0*fnew[i][j][k][13]-tmp1);
+           fnew[i][j][k][8]=0.25*(fnew[i][j][k][1]-fnew[i][j][k][2]-fnew[i][j][k][3]+
+                                  fnew[i][j][k][4]+2.0*fnew[i][j][k][14]-2.0*fnew[i][j][k][12]+tmp1);
+           fnew[i][j][k][9]=0.25*(fnew[i][j][k][1]+fnew[i][j][k][2]-fnew[i][j][k][3]-
+                                  fnew[i][j][k][4]+2.0*fnew[i][j][k][11]-2.0*fnew[i][j][k][13]+tmp1);
+           fnew[i][j][k][10]=-0.25*(fnew[i][j][k][1]-fnew[i][j][k][2]-fnew[i][j][k][3]+
+                                    fnew[i][j][k][4]+2.0*fnew[i][j][k][14]-2.0*fnew[i][j][k][12]-tmp1);
 
 
 
-	   rb=fnew[i][j][k][0]+fnew[i][j][k][1]+fnew[i][j][k][2]+fnew[i][j][k][3]+fnew[i][j][k][4]+
-	     fnew[i][j][k][5]+fnew[i][j][k][6]+tmp1+fnew[i][j][k][11]+fnew[i][j][k][12]+
-	     fnew[i][j][k][13]+fnew[i][j][k][14];
+           rb=fnew[i][j][k][0]+fnew[i][j][k][1]+fnew[i][j][k][2]+fnew[i][j][k][3]+fnew[i][j][k][4]+
+             fnew[i][j][k][5]+fnew[i][j][k][6]+tmp1+fnew[i][j][k][11]+fnew[i][j][k][12]+
+             fnew[i][j][k][13]+fnew[i][j][k][14];
 
-	   fnew[i][j][k][7] += 0.25*rb*vwbt;
-	   fnew[i][j][k][8] += 0.25*rb*vwbt;
-	   fnew[i][j][k][9] += -0.25*rb*vwbt;
-	   fnew[i][j][k][10] += -0.25*rb*vwbt;
-	 }
+           fnew[i][j][k][7] += 0.25*rb*vwbt;
+           fnew[i][j][k][8] += 0.25*rb*vwbt;
+           fnew[i][j][k][9] += -0.25*rb*vwbt;
+           fnew[i][j][k][10] += -0.25*rb*vwbt;
+         }
        }
 
      }
@@ -2902,39 +2902,39 @@ void FixLbFluid::update_full15(void)
        MPI_Wait(&req_recv15,&status);
 
        for(i=1;i<subNbx-1;i++){
-	 for(j=1;j<subNby-1;j++){
-	   k=subNbz-2;
+         for(j=1;j<subNby-1;j++){
+           k=subNbz-2;
 
-	   if(typeLB == 1){
-	     fnew[i][j][k][6]=fnew[i][j][k+1][5];
-	     tmp1=fnew[i][j][k+1][7]+fnew[i][j][k+1][8]+fnew[i][j][k+1][9]+fnew[i][j][k+1][10];
-	   }
-	   else{
-	     fnew[i][j][k][6]=fnew[i][j][k+1][5] + (0.5-Dcoeff*(tau+0.5))*feqn[i][j][k-1][6];
-	     tmp1=fnew[i][j][k+1][7]+fnew[i][j][k+1][8]+fnew[i][j][k+1][9]+fnew[i][j][k+1][10] +
-	       (0.5-Dcoeff*(tau+0.5))*(feqn[i-1][j-1][k-1][11] + feqn[i+1][j-1][k-1][12] +
-				       feqn[i+1][j+1][k-1][13] + feqn[i-1][j+1][k-1][14]);
-	   }
+           if(typeLB == 1){
+             fnew[i][j][k][6]=fnew[i][j][k+1][5];
+             tmp1=fnew[i][j][k+1][7]+fnew[i][j][k+1][8]+fnew[i][j][k+1][9]+fnew[i][j][k+1][10];
+           }
+           else{
+             fnew[i][j][k][6]=fnew[i][j][k+1][5] + (0.5-Dcoeff*(tau+0.5))*feqn[i][j][k-1][6];
+             tmp1=fnew[i][j][k+1][7]+fnew[i][j][k+1][8]+fnew[i][j][k+1][9]+fnew[i][j][k+1][10] +
+               (0.5-Dcoeff*(tau+0.5))*(feqn[i-1][j-1][k-1][11] + feqn[i+1][j-1][k-1][12] +
+                                       feqn[i+1][j+1][k-1][13] + feqn[i-1][j+1][k-1][14]);
+           }
 
-	   fnew[i][j][k][11]=-0.25*(fnew[i][j][k][1]+fnew[i][j][k][2]-fnew[i][j][k][3]-
-	   			    fnew[i][j][k][4]+2.0*fnew[i][j][k][7]-2.0*fnew[i][j][k][9]-tmp1);
-	   fnew[i][j][k][12]=0.25*(fnew[i][j][k][1]-fnew[i][j][k][2]-fnew[i][j][k][3]+
-	   			   fnew[i][j][k][4]-2.0*fnew[i][j][k][8]+2.0*fnew[i][j][k][10]+tmp1);
-	   fnew[i][j][k][13]=0.25*(fnew[i][j][k][1]+fnew[i][j][k][2]-fnew[i][j][k][3]-
-	   			   fnew[i][j][k][4]+2.0*fnew[i][j][k][7]-2.0*fnew[i][j][k][9]+tmp1);
-	   fnew[i][j][k][14]=-0.25*(fnew[i][j][k][1]-fnew[i][j][k][2]-fnew[i][j][k][3]+
-	   			    fnew[i][j][k][4]-2.0*fnew[i][j][k][8]+2.0*fnew[i][j][k][10]-tmp1);
+           fnew[i][j][k][11]=-0.25*(fnew[i][j][k][1]+fnew[i][j][k][2]-fnew[i][j][k][3]-
+                                    fnew[i][j][k][4]+2.0*fnew[i][j][k][7]-2.0*fnew[i][j][k][9]-tmp1);
+           fnew[i][j][k][12]=0.25*(fnew[i][j][k][1]-fnew[i][j][k][2]-fnew[i][j][k][3]+
+                                   fnew[i][j][k][4]-2.0*fnew[i][j][k][8]+2.0*fnew[i][j][k][10]+tmp1);
+           fnew[i][j][k][13]=0.25*(fnew[i][j][k][1]+fnew[i][j][k][2]-fnew[i][j][k][3]-
+                                   fnew[i][j][k][4]+2.0*fnew[i][j][k][7]-2.0*fnew[i][j][k][9]+tmp1);
+           fnew[i][j][k][14]=-0.25*(fnew[i][j][k][1]-fnew[i][j][k][2]-fnew[i][j][k][3]+
+                                    fnew[i][j][k][4]-2.0*fnew[i][j][k][8]+2.0*fnew[i][j][k][10]-tmp1);
 
 
-	   rb=fnew[i][j][k][0]+fnew[i][j][k][1]+fnew[i][j][k][2]+fnew[i][j][k][3]+fnew[i][j][k][4]+
-	     fnew[i][j][k][5]+fnew[i][j][k][6]+fnew[i][j][k][7]+fnew[i][j][k][8]+fnew[i][j][k][9]+
-	     fnew[i][j][k][10]+tmp1;
+           rb=fnew[i][j][k][0]+fnew[i][j][k][1]+fnew[i][j][k][2]+fnew[i][j][k][3]+fnew[i][j][k][4]+
+             fnew[i][j][k][5]+fnew[i][j][k][6]+fnew[i][j][k][7]+fnew[i][j][k][8]+fnew[i][j][k][9]+
+             fnew[i][j][k][10]+tmp1;
 
-	   fnew[i][j][k][11] += 0.25*rb*vwtp;
-	   fnew[i][j][k][12] += 0.25*rb*vwtp;
-	   fnew[i][j][k][13] += -0.25*rb*vwtp;
-	   fnew[i][j][k][14] += -0.25*rb*vwtp;
-	 }
+           fnew[i][j][k][11] += 0.25*rb*vwtp;
+           fnew[i][j][k][12] += 0.25*rb*vwtp;
+           fnew[i][j][k][13] += -0.25*rb*vwtp;
+           fnew[i][j][k][14] += -0.25*rb*vwtp;
+         }
        }
      }
 
@@ -3080,122 +3080,122 @@ void FixLbFluid::update_full19(void)
       update_periodic(1,subNbx-1,1,subNby-1,subNbz-2,subNbz-1);
     }else if(typeLB==2){
       if(comm->myloc[2]==0){
-	for(i=1; i<subNbx-1; i++){
-	  for(j=1;j<subNby-1;j++){
-	    k=1;
-	    for(m=0; m<19; m++){
-	      imod = i-e[m][0];
-	      jmod = j-e[m][1];
-	      kmod = k-e[m][2];
+        for(i=1; i<subNbx-1; i++){
+          for(j=1;j<subNby-1;j++){
+            k=1;
+            for(m=0; m<19; m++){
+              imod = i-e[m][0];
+              jmod = j-e[m][1];
+              kmod = k-e[m][2];
 
-	      fnew[i][j][k][m] = feq[imod][jmod][kmod][m] + (f_lb[imod][jmod][kmod][m]-feq[imod][jmod][kmod][m])*expminusdtovertau;
-	    }
+              fnew[i][j][k][m] = feq[imod][jmod][kmod][m] + (f_lb[imod][jmod][kmod][m]-feq[imod][jmod][kmod][m])*expminusdtovertau;
+            }
 
-	    for(m=0; m<19; m++){
-	      imod = i-e[m][0];
-	      jmod = j-e[m][1];
-	      kmod = k-e[m][2];
-	      imodm = i+e[m][0];
-	      jmodm = j+e[m][1];
-	      kmodm = k+e[m][2];
+            for(m=0; m<19; m++){
+              imod = i-e[m][0];
+              jmod = j-e[m][1];
+              kmod = k-e[m][2];
+              imodm = i+e[m][0];
+              jmodm = j+e[m][1];
+              kmodm = k+e[m][2];
 
-	      if(m==5)
-		fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][6] - feqold[imod][jmod][kmod][m]) +
-		  (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][6] - feqn[imod][jmod][kmod][6]);
-	      else if(m==11)
-		fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][12] - feqold[imod][jmod][kmod][m]) +
-		  (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][12] - feqn[imod][jmod][kmod][12]);
-	      else if(m==13)
-		fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][14] - feqold[imod][jmod][kmod][m]) +
-		  (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][14] - feqn[imod][jmod][kmod][14]);
-	      else if(m==15)
-		fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][16] - feqold[imod][jmod][kmod][m]) +
-		  (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][16] - feqn[imod][jmod][kmod][16]);
-	      else if(m==17)
-		fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][18] - feqold[imod][jmod][kmod][m]) +
-		  (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][18] - feqn[imod][jmod][kmod][18]);
-	      else if(m==6)
-		fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
-		  (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][5] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
-	      else if(m==12)
-		fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
-		  (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][11] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
-	      else if(m==14)
-		fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
-		  (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][13] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
-	      else if(m==16)
-		fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
-		  (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][15] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
-	      else if(m==18)
-		fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
-		  (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][17] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
-	      else
-		fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
-		  (0.5-Dcoeff*(tau+0.5))*(feqn[imodm][jmodm][kmodm][m] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
-	    }
-	  }
-	}
+              if(m==5)
+                fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][6] - feqold[imod][jmod][kmod][m]) +
+                  (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][6] - feqn[imod][jmod][kmod][6]);
+              else if(m==11)
+                fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][12] - feqold[imod][jmod][kmod][m]) +
+                  (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][12] - feqn[imod][jmod][kmod][12]);
+              else if(m==13)
+                fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][14] - feqold[imod][jmod][kmod][m]) +
+                  (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][14] - feqn[imod][jmod][kmod][14]);
+              else if(m==15)
+                fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][16] - feqold[imod][jmod][kmod][m]) +
+                  (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][16] - feqn[imod][jmod][kmod][16]);
+              else if(m==17)
+                fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][18] - feqold[imod][jmod][kmod][m]) +
+                  (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][18] - feqn[imod][jmod][kmod][18]);
+              else if(m==6)
+                fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
+                  (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][5] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
+              else if(m==12)
+                fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
+                  (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][11] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
+              else if(m==14)
+                fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
+                  (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][13] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
+              else if(m==16)
+                fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
+                  (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][15] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
+              else if(m==18)
+                fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
+                  (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][17] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
+              else
+                fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
+                  (0.5-Dcoeff*(tau+0.5))*(feqn[imodm][jmodm][kmodm][m] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
+            }
+          }
+        }
       }else{
-	update_periodic(1,subNbx-1,1,subNby-1,1,2);
+        update_periodic(1,subNbx-1,1,subNby-1,1,2);
       }
       if(comm->myloc[2]==comm->procgrid[2]-1){
-	for(i=1;i<subNbx-1;i++){
-	  for(j=1;j<subNby-1;j++){
-	    k=subNbz-2;
-	    for(m=0; m<19; m++){
-	      imod = i-e[m][0];
-	      jmod = j-e[m][1];
-	      kmod = k-e[m][2];
+        for(i=1;i<subNbx-1;i++){
+          for(j=1;j<subNby-1;j++){
+            k=subNbz-2;
+            for(m=0; m<19; m++){
+              imod = i-e[m][0];
+              jmod = j-e[m][1];
+              kmod = k-e[m][2];
 
-	      fnew[i][j][k][m] = feq[imod][jmod][kmod][m] + (f_lb[imod][jmod][kmod][m]-feq[imod][jmod][kmod][m])*expminusdtovertau;
-	    }
-	    for(m=0; m<19; m++){
-	      imod = i-e[m][0];
-	      jmod = j-e[m][1];
-	      kmod = k-e[m][2];
-	      imodm = i+e[m][0];
-	      jmodm = j+e[m][1];
-	      kmodm = k+e[m][2];
+              fnew[i][j][k][m] = feq[imod][jmod][kmod][m] + (f_lb[imod][jmod][kmod][m]-feq[imod][jmod][kmod][m])*expminusdtovertau;
+            }
+            for(m=0; m<19; m++){
+              imod = i-e[m][0];
+              jmod = j-e[m][1];
+              kmod = k-e[m][2];
+              imodm = i+e[m][0];
+              jmodm = j+e[m][1];
+              kmodm = k+e[m][2];
 
-	      if(m==6)
-		fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][5] - feqold[imod][jmod][kmod][m]) +
-		  (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][5] - feqn[imod][jmod][kmod][5]);
-	      else if(m==12)
-		fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][11] - feqold[imod][jmod][kmod][m]) +
-		  (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][11] - feqn[imod][jmod][kmod][11]);
-	      else if(m==14)
-		fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][13] - feqold[imod][jmod][kmod][m]) +
-		  (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][13] - feqn[imod][jmod][kmod][13]);
-	      else if(m==16)
-		fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][15] - feqold[imod][jmod][kmod][m]) +
-		  (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][15] - feqn[imod][jmod][kmod][15]);
-	      else if(m==18)
-		fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][17] - feqold[imod][jmod][kmod][m]) +
-		  (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][17] - feqn[imod][jmod][kmod][17]);
-	      else if(m==5)
-		fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
-		  (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][6] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
-	      else if(m==11)
-		fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
-		  (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][12] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
-	      else if(m==13)
-		fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
-		  (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][14] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
-	      else if(m==15)
-		fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
-		  (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][16] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
-	      else if(m==17)
-		fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
-		  (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][18] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
-	      else
-		fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
-		  (0.5-Dcoeff*(tau+0.5))*(feqn[imodm][jmodm][kmodm][m] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
-	    }
-	  }
-	}
+              if(m==6)
+                fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][5] - feqold[imod][jmod][kmod][m]) +
+                  (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][5] - feqn[imod][jmod][kmod][5]);
+              else if(m==12)
+                fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][11] - feqold[imod][jmod][kmod][m]) +
+                  (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][11] - feqn[imod][jmod][kmod][11]);
+              else if(m==14)
+                fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][13] - feqold[imod][jmod][kmod][m]) +
+                  (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][13] - feqn[imod][jmod][kmod][13]);
+              else if(m==16)
+                fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][15] - feqold[imod][jmod][kmod][m]) +
+                  (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][15] - feqn[imod][jmod][kmod][15]);
+              else if(m==18)
+                fnew[i][j][k][m] += Dcoeff*(feq[imod][jmod][kmod][17] - feqold[imod][jmod][kmod][m]) +
+                  (0.5-Dcoeff*(tau+0.5))*(feqoldn[imod][jmod][kmod][m] - feqoldn[imod][jmod][kmod][17] - feqn[imod][jmod][kmod][17]);
+              else if(m==5)
+                fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
+                  (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][6] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
+              else if(m==11)
+                fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
+                  (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][12] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
+              else if(m==13)
+                fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
+                  (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][14] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
+              else if(m==15)
+                fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
+                  (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][16] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
+              else if(m==17)
+                fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
+                  (0.5-Dcoeff*(tau+0.5))*(feqn[i][j][k][18] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
+              else
+                fnew[i][j][k][m] += Dcoeff*(feq[i][j][k][m] - feqold[imod][jmod][kmod][m]) +
+                  (0.5-Dcoeff*(tau+0.5))*(feqn[imodm][jmodm][kmodm][m] - feqoldn[i][j][k][m] - feqn[i][j][k][m] + feqoldn[imod][jmod][kmod][m]);
+            }
+          }
+        }
       }
       else{
-	update_periodic(1,subNbx-1,1,subNby-1,subNbz-2,subNbz-1);
+        update_periodic(1,subNbx-1,1,subNby-1,subNbz-2,subNbz-1);
       }
     }
 
@@ -3218,35 +3218,35 @@ void FixLbFluid::update_full19(void)
       MPI_Wait(&req_recv25,&status);
 
       for(i=1;i<subNbx-1;i++){
-	for(j=1;j<subNby-1;j++){
-	  k=1;
+        for(j=1;j<subNby-1;j++){
+          k=1;
 
-	  if(typeLB == 1){
-	    fnew[i][j][k][5]=fnew[i][j][k-1][6];
-	    tmp1=fnew[i][j][k-1][12]+fnew[i][j][k-1][14]+fnew[i][j][k-1][16]+fnew[i][j][k-1][18];
-	  }
-	  else{
-	    fnew[i][j][k][5]=fnew[i][j][k-1][6] + (0.5-Dcoeff*(tau+0.5))*feqn[i][j][k+1][5];
-	    tmp1=fnew[i][j][k-1][12]+fnew[i][j][k-1][14]+fnew[i][j][k-1][16]+fnew[i][j][k-1][18] +
-	      (0.5-Dcoeff*(tau+0.5))*(feqn[i-1][j][k+1][11] + feqn[i+1][j][k+1][13] +
-				      feqn[i][j-1][k+1][15] + feqn[i][j+1][k+1][17]);
-	  }
+          if(typeLB == 1){
+            fnew[i][j][k][5]=fnew[i][j][k-1][6];
+            tmp1=fnew[i][j][k-1][12]+fnew[i][j][k-1][14]+fnew[i][j][k-1][16]+fnew[i][j][k-1][18];
+          }
+          else{
+            fnew[i][j][k][5]=fnew[i][j][k-1][6] + (0.5-Dcoeff*(tau+0.5))*feqn[i][j][k+1][5];
+            tmp1=fnew[i][j][k-1][12]+fnew[i][j][k-1][14]+fnew[i][j][k-1][16]+fnew[i][j][k-1][18] +
+              (0.5-Dcoeff*(tau+0.5))*(feqn[i-1][j][k+1][11] + feqn[i+1][j][k+1][13] +
+                                      feqn[i][j-1][k+1][15] + feqn[i][j+1][k+1][17]);
+          }
 
-	  tmp2=fnew[i][j][k][3]+fnew[i][j][k][9]+fnew[i][j][k][10]+fnew[i][j][k][14]-
-	    fnew[i][j][k][1]-fnew[i][j][k][7]-fnew[i][j][k][8]-fnew[i][j][k][12];
+          tmp2=fnew[i][j][k][3]+fnew[i][j][k][9]+fnew[i][j][k][10]+fnew[i][j][k][14]-
+            fnew[i][j][k][1]-fnew[i][j][k][7]-fnew[i][j][k][8]-fnew[i][j][k][12];
 
-	  rb=fnew[i][j][k][0]+fnew[i][j][k][1]+fnew[i][j][k][2]+fnew[i][j][k][3]+fnew[i][j][k][4]+
-	    fnew[i][j][k][5]+fnew[i][j][k][6]+fnew[i][j][k][7]+fnew[i][j][k][8]+fnew[i][j][k][9]+
-	    fnew[i][j][k][10]+fnew[i][j][k][12]+fnew[i][j][k][14]+fnew[i][j][k][16]+fnew[i][j][k][18]+tmp1;
+          rb=fnew[i][j][k][0]+fnew[i][j][k][1]+fnew[i][j][k][2]+fnew[i][j][k][3]+fnew[i][j][k][4]+
+            fnew[i][j][k][5]+fnew[i][j][k][6]+fnew[i][j][k][7]+fnew[i][j][k][8]+fnew[i][j][k][9]+
+            fnew[i][j][k][10]+fnew[i][j][k][12]+fnew[i][j][k][14]+fnew[i][j][k][16]+fnew[i][j][k][18]+tmp1;
 
-	  tmp3=rb*vwbt-fnew[i][j][k][2]+fnew[i][j][k][4]-fnew[i][j][k][7]+fnew[i][j][k][8]-fnew[i][j][k][9]+
-	    fnew[i][j][k][10]-fnew[i][j][k][16]+fnew[i][j][k][18];
+          tmp3=rb*vwbt-fnew[i][j][k][2]+fnew[i][j][k][4]-fnew[i][j][k][7]+fnew[i][j][k][8]-fnew[i][j][k][9]+
+            fnew[i][j][k][10]-fnew[i][j][k][16]+fnew[i][j][k][18];
 
-	  fnew[i][j][k][11] = 0.25*(tmp1+2.0*tmp2);
-	  fnew[i][j][k][13] = 0.25*(tmp1-2.0*tmp2);
-	  fnew[i][j][k][15] = 0.25*(tmp1+2.0*tmp3);
-	  fnew[i][j][k][17] = 0.25*(tmp1-2.0*tmp3);
-	}
+          fnew[i][j][k][11] = 0.25*(tmp1+2.0*tmp2);
+          fnew[i][j][k][13] = 0.25*(tmp1-2.0*tmp2);
+          fnew[i][j][k][15] = 0.25*(tmp1+2.0*tmp3);
+          fnew[i][j][k][17] = 0.25*(tmp1-2.0*tmp3);
+        }
       }
 
     }
@@ -3255,35 +3255,35 @@ void FixLbFluid::update_full19(void)
       MPI_Wait(&req_recv15,&status);
 
       for(i=1;i<subNbx-1;i++){
-	for(j=1;j<subNby-1;j++){
-	  k=subNbz-2;
+        for(j=1;j<subNby-1;j++){
+          k=subNbz-2;
 
-	  if(typeLB == 1){
-	    fnew[i][j][k][6]=fnew[i][j][k+1][5];
-	    tmp1=fnew[i][j][k+1][11]+fnew[i][j][k+1][13]+fnew[i][j][k+1][15]+fnew[i][j][k+1][17];
-	  }
-	  else{
-	    fnew[i][j][k][6]=fnew[i][j][k+1][5] + (0.5-Dcoeff*(tau+0.5))*feqn[i][j][k-1][6];
-	    tmp1=fnew[i][j][k+1][11]+fnew[i][j][k+1][13]+fnew[i][j][k+1][15]+fnew[i][j][k+1][17] +
-	      (0.5-Dcoeff*(tau+0.5))*(feqn[i-1][j][k-1][12] + feqn[i+1][j][k-1][14] +
-				      feqn[i][j-1][k-1][16] + feqn[i][j+1][k-1][18]);
-	  }
+          if(typeLB == 1){
+            fnew[i][j][k][6]=fnew[i][j][k+1][5];
+            tmp1=fnew[i][j][k+1][11]+fnew[i][j][k+1][13]+fnew[i][j][k+1][15]+fnew[i][j][k+1][17];
+          }
+          else{
+            fnew[i][j][k][6]=fnew[i][j][k+1][5] + (0.5-Dcoeff*(tau+0.5))*feqn[i][j][k-1][6];
+            tmp1=fnew[i][j][k+1][11]+fnew[i][j][k+1][13]+fnew[i][j][k+1][15]+fnew[i][j][k+1][17] +
+              (0.5-Dcoeff*(tau+0.5))*(feqn[i-1][j][k-1][12] + feqn[i+1][j][k-1][14] +
+                                      feqn[i][j-1][k-1][16] + feqn[i][j+1][k-1][18]);
+          }
 
-	  tmp2=fnew[i][j][k][3]+fnew[i][j][k][9]+fnew[i][j][k][10]+fnew[i][j][k][13]-fnew[i][j][k][1]-
-	    fnew[i][j][k][7]-fnew[i][j][k][8]-fnew[i][j][k][11];
+          tmp2=fnew[i][j][k][3]+fnew[i][j][k][9]+fnew[i][j][k][10]+fnew[i][j][k][13]-fnew[i][j][k][1]-
+            fnew[i][j][k][7]-fnew[i][j][k][8]-fnew[i][j][k][11];
 
-	  rb=fnew[i][j][k][0]+fnew[i][j][k][1]+fnew[i][j][k][2]+fnew[i][j][k][3]+fnew[i][j][k][4]+
-	    fnew[i][j][k][5]+fnew[i][j][k][6]+fnew[i][j][k][7]+fnew[i][j][k][8]+fnew[i][j][k][9]+
-	    fnew[i][j][k][10]+fnew[i][j][k][11]+fnew[i][j][k][13]+fnew[i][j][k][15]+fnew[i][j][k][17]+tmp1;
+          rb=fnew[i][j][k][0]+fnew[i][j][k][1]+fnew[i][j][k][2]+fnew[i][j][k][3]+fnew[i][j][k][4]+
+            fnew[i][j][k][5]+fnew[i][j][k][6]+fnew[i][j][k][7]+fnew[i][j][k][8]+fnew[i][j][k][9]+
+            fnew[i][j][k][10]+fnew[i][j][k][11]+fnew[i][j][k][13]+fnew[i][j][k][15]+fnew[i][j][k][17]+tmp1;
 
-	  tmp3=rb*vwtp-fnew[i][j][k][2]+fnew[i][j][k][4]-fnew[i][j][k][7]+fnew[i][j][k][8]-fnew[i][j][k][9]+
-	    fnew[i][j][k][10]-fnew[i][j][k][15]+fnew[i][j][k][17];
+          tmp3=rb*vwtp-fnew[i][j][k][2]+fnew[i][j][k][4]-fnew[i][j][k][7]+fnew[i][j][k][8]-fnew[i][j][k][9]+
+            fnew[i][j][k][10]-fnew[i][j][k][15]+fnew[i][j][k][17];
 
-	  fnew[i][j][k][12] = 0.25*(tmp1+2.0*tmp2);
-	  fnew[i][j][k][14] = 0.25*(tmp1-2.0*tmp2);
-	  fnew[i][j][k][16] = 0.25*(tmp1+2.0*tmp3);
-	  fnew[i][j][k][18] = 0.25*(tmp1-2.0*tmp3);
-	}
+          fnew[i][j][k][12] = 0.25*(tmp1+2.0*tmp2);
+          fnew[i][j][k][14] = 0.25*(tmp1-2.0*tmp2);
+          fnew[i][j][k][16] = 0.25*(tmp1+2.0*tmp3);
+          fnew[i][j][k][18] = 0.25*(tmp1-2.0*tmp3);
+        }
       }
     }
 

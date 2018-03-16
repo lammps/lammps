@@ -41,7 +41,7 @@ class NPairFullBinGhostIntel : public NPairIntel {
   void fbi(NeighList * list, IntelBuffers<flt_t,acc_t> * buffers);
   template<class flt_t, class acc_t, int need_ic>
   void fbi(const int offload, NeighList * list,
-	   IntelBuffers<flt_t,acc_t> * buffers,
+           IntelBuffers<flt_t,acc_t> * buffers,
            const int astart, const int aend);
 };
 

@@ -47,7 +47,7 @@ void FixWallLJ1043::precompute(int m)
   double r2inv = rinv*rinv;
   double r4inv = r2inv*r2inv;
   offset[m] = coeff1[m]*r4inv*r4inv*r2inv - coeff2[m]*r4inv -
-	coeff3[m]*pow(cutoff[m]+coeff4[m],-3.0);
+        coeff3[m]*pow(cutoff[m]+coeff4[m],-3.0);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -78,10 +78,10 @@ void FixWallLJ1043::wall_particle(int m, int which, double coord)
       r10inv = r4inv*r4inv*r2inv;
 
       fwall = side * (coeff5[m]*r10inv*rinv - coeff6[m]*r4inv*rinv -
-	coeff7[m]*pow(delta+coeff4[m],-4.0));
+        coeff7[m]*pow(delta+coeff4[m],-4.0));
       f[i][dim] -= fwall;
       ewall[0] += coeff1[m]*r10inv - coeff2[m]*r4inv -
-	coeff3[m]*pow(delta+coeff4[m],-3.0) - offset[m];
+        coeff3[m]*pow(delta+coeff4[m],-3.0) - offset[m];
       ewall[m+1] += fwall;
 
       if (evflag) {

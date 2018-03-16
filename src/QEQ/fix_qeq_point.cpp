@@ -79,8 +79,8 @@ void FixQEqPoint::pre_force(int vflag)
     reallocate_matrix();
 
   init_matvec();
-  matvecs = CG(b_s, s);    	// CG on s - parallel
-  matvecs += CG(b_t, t); 	// CG on t - parallel
+  matvecs = CG(b_s, s);         // CG on s - parallel
+  matvecs += CG(b_t, t);        // CG on t - parallel
   calculate_Q();
 
   if (force->kspace) force->kspace->qsum_qsq();
@@ -143,16 +143,16 @@ void FixQEqPoint::compute_H()
 
       for( jj = 0; jj < jnum; jj++ ) {
         j = jlist[jj];
-	j &= NEIGHMASK;
+        j &= NEIGHMASK;
 
         dx = x[j][0] - x[i][0];
         dy = x[j][1] - x[i][1];
         dz = x[j][2] - x[i][2];
         r_sqr = dx*dx + dy*dy + dz*dz;
 
-	if (r_sqr <= cutoff_sq) {
+        if (r_sqr <= cutoff_sq) {
           H.jlist[m_fill] = j;
-	  r = sqrt(r_sqr);
+          r = sqrt(r_sqr);
           H.val[m_fill] = 0.5/r;
           m_fill++;
         }

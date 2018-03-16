@@ -257,7 +257,7 @@ void Init_Forces_noQEq( reax_system *system, control_params *control,
 
       if( flag ) {
         type_j = atom_j->type;
-	if (type_j < 0) continue;
+        if (type_j < 0) continue;
         sbp_j = &(system->reax_param.sbp[type_j]);
         twbp = &(system->reax_param.tbp[type_i][type_j]);
 

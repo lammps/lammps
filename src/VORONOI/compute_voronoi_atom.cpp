@@ -80,7 +80,7 @@ ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
     }
     else if (strcmp(arg[iarg], "radius") == 0) {
       if (iarg + 2 > narg || strstr(arg[iarg+1],"v_") != arg[iarg+1] )
-	error->all(FLERR,"Illegal compute voronoi/atom command");
+        error->all(FLERR,"Illegal compute voronoi/atom command");
       int n = strlen(&arg[iarg+1][2]) + 1;
       radstr = new char[n];
       strcpy(radstr,&arg[iarg+1][2]);
@@ -274,8 +274,8 @@ void ComputeVoronoi::buildCells()
       sublo_bound[i] = sublo_lamda[i]-cut[i]-e;
       subhi_bound[i] = subhi_lamda[i]+cut[i]+e;
       if (domain->periodicity[i]==0) {
-	sublo_bound[i] = MAX(sublo_bound[i],0.0);
-	subhi_bound[i] = MIN(subhi_bound[i],1.0);
+        sublo_bound[i] = MAX(sublo_bound[i],0.0);
+        subhi_bound[i] = MIN(subhi_bound[i],1.0);
       }
     }
     if (dim == 2) {
@@ -295,8 +295,8 @@ void ComputeVoronoi::buildCells()
       sublo_bound[i] = sublo[i]-cut[i]-e;
       subhi_bound[i] = subhi[i]+cut[i]+e;
       if (domain->periodicity[i]==0) {
-	sublo_bound[i] = MAX(sublo_bound[i],domain->boxlo[i]);
-	subhi_bound[i] = MIN(subhi_bound[i],domain->boxhi[i]);
+        sublo_bound[i] = MAX(sublo_bound[i],domain->boxlo[i]);
+        subhi_bound[i] = MIN(subhi_bound[i],domain->boxhi[i]);
       }
     }
     if (dim == 2) {
@@ -345,13 +345,13 @@ void ComputeVoronoi::buildCells()
     // polydisperse voro++ container
     delete con_poly;
     con_poly = new container_poly(sublo_bound[0],
-				  subhi_bound[0],
-				  sublo_bound[1],
-				  subhi_bound[1],
-				  sublo_bound[2],
-				  subhi_bound[2],
-				  int(n[0]),int(n[1]),int(n[2]),
-				  false,false,false,8);
+                                  subhi_bound[0],
+                                  sublo_bound[1],
+                                  subhi_bound[1],
+                                  sublo_bound[2],
+                                  subhi_bound[2],
+                                  int(n[0]),int(n[1]),int(n[2]),
+                                  false,false,false,8);
 
     // pass coordinates for local and ghost atoms to voro++
     for (i = 0; i < nall; i++) {
@@ -363,13 +363,13 @@ void ComputeVoronoi::buildCells()
     delete con_mono;
 
     con_mono = new container(sublo_bound[0],
-			     subhi_bound[0],
-			     sublo_bound[1],
-			     subhi_bound[1],
-			     sublo_bound[2],
-			     subhi_bound[2],
-			     int(n[0]),int(n[1]),int(n[2]),
-			     false,false,false,8);
+                             subhi_bound[0],
+                             sublo_bound[1],
+                             subhi_bound[1],
+                             sublo_bound[2],
+                             subhi_bound[2],
+                             int(n[0]),int(n[1]),int(n[2]),
+                             false,false,false,8);
 
     // pass coordinates for local and ghost atoms to voro++
     for (i = 0; i < nall; i++)
@@ -581,9 +581,9 @@ void ComputeVoronoi::processCell(voronoicell_neighbor &c, int i)
 
     if (faces_flag) {
       if (nfaces+voro[i][1] > nfacesmax) {
-	while (nfacesmax < nfaces+voro[i][1]) nfacesmax += FACESDELTA;
-	memory->grow(faces,nfacesmax,size_local_cols,"compute/voronoi/atom:faces");
-	array_local = faces;
+        while (nfacesmax < nfaces+voro[i][1]) nfacesmax += FACESDELTA;
+        memory->grow(faces,nfacesmax,size_local_cols,"compute/voronoi/atom:faces");
+        array_local = faces;
       }
 
       if (!have_narea) c.face_areas(narea);
@@ -594,19 +594,19 @@ void ComputeVoronoi::processCell(voronoicell_neighbor &c, int i)
       tagint *tag = atom->tag;
       itag = tag[i];
       for (j=0; j<neighs; ++j)
-	if (narea[j] > fthresh) {
+        if (narea[j] > fthresh) {
 
-	  // external faces assigned the tag 0
+          // external faces assigned the tag 0
 
-	  int jj = neigh[j];
-	  if (jj >= 0) jtag = tag[jj];
-	  else jtag = 0;
+          int jj = neigh[j];
+          if (jj >= 0) jtag = tag[jj];
+          else jtag = 0;
 
-	  faces[nfaces][0] = itag;
-	  faces[nfaces][1] = jtag;
-	  faces[nfaces][2] = narea[j];
-	  nfaces++;
-	}
+          faces[nfaces][0] = itag;
+          faces[nfaces][1] = jtag;
+          faces[nfaces][2] = narea[j];
+          nfaces++;
+        }
     }
       
 

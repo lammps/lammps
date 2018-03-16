@@ -1644,9 +1644,9 @@ void ReadData::bodies(int firstpass)
           eof = fgets(&buffer[m],MAXLINE,fp);
           if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
           ncount = atom->count_words(&buffer[m],copy);
-	  if (ncount == 0)
-	    error->one(FLERR,"Too few values in body lines in data file");
-	  nword += ncount;
+          if (ncount == 0)
+            error->one(FLERR,"Too few values in body lines in data file");
+          nword += ncount;
           m += strlen(&buffer[m]);
           onebody++;
         }
@@ -1658,9 +1658,9 @@ void ReadData::bodies(int firstpass)
           eof = fgets(&buffer[m],MAXLINE,fp);
           if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
           ncount = atom->count_words(&buffer[m],copy);
-	  if (ncount == 0)
-	    error->one(FLERR,"Too few values in body lines in data file");
-	  nword += ncount;
+          if (ncount == 0)
+            error->one(FLERR,"Too few values in body lines in data file");
+          nword += ncount;
           m += strlen(&buffer[m]);
           onebody++;
         }

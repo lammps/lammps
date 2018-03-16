@@ -62,7 +62,7 @@ FixNVESphere::FixNVESphere(LAMMPS *lmp, int narg, char **arg) :
     else if (strcmp(arg[iarg],"disc")==0) {
       inertia = 0.5;
       if (domain->dimension != 2)
-	error->all(FLERR,"Fix nve/sphere disc requires 2d simulation");	
+        error->all(FLERR,"Fix nve/sphere disc requires 2d simulation"); 
       iarg++;
     }
     else error->all(FLERR,"Illegal fix nve/sphere command");

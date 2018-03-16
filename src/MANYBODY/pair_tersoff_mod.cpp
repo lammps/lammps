@@ -76,8 +76,8 @@ void PairTersoffMOD::read_file(char *file)
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
       if (ptr == NULL) {
-	    eof = 1;
-	    fclose(fp);
+            eof = 1;
+            fclose(fp);
       } else n = strlen(line) + 1;
     }
     MPI_Bcast(&eof,1,MPI_INT,0,world);
@@ -98,8 +98,8 @@ void PairTersoffMOD::read_file(char *file)
       if (comm->me == 0) {
         ptr = fgets(&line[n],MAXLINE-n,fp);
         if (ptr == NULL) {
-	      eof = 1;
-	      fclose(fp);
+              eof = 1;
+              fclose(fp);
         } else n = strlen(line) + 1;
       }
       MPI_Bcast(&eof,1,MPI_INT,0,world);
@@ -138,7 +138,7 @@ void PairTersoffMOD::read_file(char *file)
     if (nparams == maxparam) {
       maxparam += DELTA;
       params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
-					  "pair:params");
+                                          "pair:params");
     }
 
     params[nparams].ielement = ielement;
@@ -203,16 +203,16 @@ void PairTersoffMOD::setup_params()
   for (i = 0; i < nelements; i++)
     for (j = 0; j < nelements; j++)
       for (k = 0; k < nelements; k++) {
-	n = -1;
-	for (m = 0; m < nparams; m++) {
-	  if (i == params[m].ielement && j == params[m].jelement &&
-	      k == params[m].kelement) {
-	    if (n >= 0) error->all(FLERR,"Potential file has duplicate entry");
-	    n = m;
-	  }
-	}
-	if (n < 0) error->all(FLERR,"Potential file is missing an entry");
-	elem2param[i][j][k] = n;
+        n = -1;
+        for (m = 0; m < nparams; m++) {
+          if (i == params[m].ielement && j == params[m].jelement &&
+              k == params[m].kelement) {
+            if (n >= 0) error->all(FLERR,"Potential file has duplicate entry");
+            n = m;
+          }
+        }
+        if (n < 0) error->all(FLERR,"Potential file is missing an entry");
+        elem2param[i][j][k] = n;
       }
 
 
@@ -236,14 +236,14 @@ void PairTersoffMOD::setup_params()
 /* ---------------------------------------------------------------------- */
 
 double PairTersoffMOD::zeta(Param *param, double rsqij, double rsqik,
-			 double *delrij, double *delrik)
+                         double *delrij, double *delrik)
 {
   double rij,rik,costheta,arg,ex_delr;
 
   rij = sqrt(rsqij);
   rik = sqrt(rsqik);
   costheta = (delrij[0]*delrik[0] + delrij[1]*delrik[1] +
-	      delrij[2]*delrik[2]) / (rij*rik);
+              delrij[2]*delrik[2]) / (rij*rik);
 
   if (param->powermint == 3) arg = pow(param->lam3 * (rij-rik),3.0);
   else arg = param->lam3 * (rij-rik);
@@ -297,21 +297,21 @@ double PairTersoffMOD::ters_bij_d(double zeta, Param *param)
 {
   double tmp = param->beta * zeta;
   if (tmp > param->ca1) return -0.5*(param->powern/param->powern_del)*
-	  pow(tmp,-0.5*(param->powern/param->powern_del)) / zeta;
+          pow(tmp,-0.5*(param->powern/param->powern_del)) / zeta;
   if (tmp < param->ca4) return 0.0;
 
   double tmp_n = pow(tmp,param->powern);
   return -0.5 *(param->powern/param->powern_del)*
-	  pow(1.0+tmp_n, -1.0-(1.0/(2.0*param->powern_del)))*tmp_n / zeta;
+          pow(1.0+tmp_n, -1.0-(1.0/(2.0*param->powern_del)))*tmp_n / zeta;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairTersoffMOD::ters_zetaterm_d(double prefactor,
-				  double *rij_hat, double rij,
-				  double *rik_hat, double rik,
-				  double *dri, double *drj, double *drk,
-				  Param *param)
+                                  double *rij_hat, double rij,
+                                  double *rik_hat, double rik,
+                                  double *dri, double *drj, double *drk,
+                                  Param *param)
 {
   double gijk,gijk_d,ex_delr,ex_delr_d,fc,dfc,cos_theta,tmp;
   double dcosdri[3],dcosdrj[3],dcosdrk[3];

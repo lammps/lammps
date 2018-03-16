@@ -95,7 +95,7 @@ class PairEDIPMulti : public Pair {
   //dr_ij=r_j - r_i
   //dr_ik=r_k - r_i
   void costheta_d(double *dr_ij, double r_ij, double *dr_ik, double r_ik,
-		  double *dri, double *drj, double *drk)
+                  double *dri, double *drj, double *drk)
   {
     double costheta;
 

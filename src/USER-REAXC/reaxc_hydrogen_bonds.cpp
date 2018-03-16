@@ -76,7 +76,7 @@ void Hydrogen_Bonds( reax_system *system, control_params *control,
         pbond_ij = &( bond_list[pi] );
         i = pbond_ij->nbr;
         type_i = system->my_atoms[i].type;
-	if (type_i < 0) continue;
+        if (type_i < 0) continue;
         bo_ij = &(pbond_ij->bo_data);
 
         if( system->reax_param.sbp[type_i].p_hbond == 2 &&
@@ -88,7 +88,7 @@ void Hydrogen_Bonds( reax_system *system, control_params *control,
         /* set k's varibles */
         k = hbond_list[pk].nbr;
         type_k = system->my_atoms[k].type;
-	if (type_k < 0) continue;
+        if (type_k < 0) continue;
         nbr_jk = hbond_list[pk].ptr;
         r_jk = nbr_jk->d;
         rvec_Scale( dvec_jk, hbond_list[pk].scl, nbr_jk->dvec );
@@ -101,9 +101,9 @@ void Hydrogen_Bonds( reax_system *system, control_params *control,
           if( system->my_atoms[i].orig_id != system->my_atoms[k].orig_id ) {
             bo_ij = &(pbond_ij->bo_data);
             type_i = system->my_atoms[i].type;
-	    if (type_i < 0) continue;
+            if (type_i < 0) continue;
             hbp = &(system->reax_param.hbp[ type_i ][ type_j ][ type_k ]);
-	    if (hbp->r0_hb <= 0.0) continue;
+            if (hbp->r0_hb <= 0.0) continue;
             ++num_hb_intrs;
 
             Calculate_Theta( pbond_ij->dvec, pbond_ij->d, dvec_jk, r_jk,

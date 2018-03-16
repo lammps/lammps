@@ -1037,8 +1037,8 @@ void FixSRD::reset_velocities()
   for (i = 0; i < nbins; i++){
     if (vbin[i].owner) {
       if (vbin[i].n > 1) {
-	srd_bin_temp += vbin[i].value[0]/(vbin[i].n-dof_temp);
-	srd_bin_count++;
+        srd_bin_temp += vbin[i].value[0]/(vbin[i].n-dof_temp);
+        srd_bin_count++;
       }
     }
   }
@@ -1348,16 +1348,16 @@ void FixSRD::collisions_single()
                         "inside big particle " TAGINT_FORMAT
                         " on step " BIGINT_FORMAT " bounce %d",
                         atom->tag[i],atom->tag[j],update->ntimestep,ibounce+1);
-		if (insideflag == INSIDE_ERROR) error->one(FLERR,str);
-		error->warning(FLERR,str);
-	      } else{
+                if (insideflag == INSIDE_ERROR) error->one(FLERR,str);
+                error->warning(FLERR,str);
+              } else{
                 sprintf(str,
                         "SRD particle " TAGINT_FORMAT " started "
                         "inside wall %d on step " BIGINT_FORMAT " bounce %d",
                         atom->tag[i],j,update->ntimestep,ibounce+1);
-		if (insideflag == INSIDE_ERROR) error->one(FLERR,str);
-		error->warning(FLERR,str);
-	      }
+                if (insideflag == INSIDE_ERROR) error->one(FLERR,str);
+                error->warning(FLERR,str);
+              }
             }
             break;
           }
@@ -1507,16 +1507,16 @@ void FixSRD::collisions_multi()
                         "inside big particle " TAGINT_FORMAT
                         " on step " BIGINT_FORMAT " bounce %d",
                         atom->tag[i],atom->tag[j],update->ntimestep,ibounce+1);
-		if (insideflag == INSIDE_ERROR) error->one(FLERR,str);
-		error->warning(FLERR,str);
-	      } else{
+                if (insideflag == INSIDE_ERROR) error->one(FLERR,str);
+                error->warning(FLERR,str);
+              } else{
                 sprintf(str,
                         "SRD particle " TAGINT_FORMAT " started "
                         "inside wall %d on step " BIGINT_FORMAT " bounce %d",
                         atom->tag[i],j,update->ntimestep,ibounce+1);
-		if (insideflag == INSIDE_ERROR) error->one(FLERR,str);
-		error->warning(FLERR,str);
-	      }
+                if (insideflag == INSIDE_ERROR) error->one(FLERR,str);
+                error->warning(FLERR,str);
+              }
             }
             t_first = 0.0;
             break;

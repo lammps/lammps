@@ -440,8 +440,8 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
         force->numeric(FLERR,arg[iarg+3]);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (dimension == 2) {
-	      p_start[2] = p_stop[2] = p_period[2] = 0.0;
-      	p_flag[2] = 0;
+              p_start[2] = p_stop[2] = p_period[2] = 0.0;
+        p_flag[2] = 0;
       }
       iarg += 4;
 
@@ -457,8 +457,8 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
         force->numeric(FLERR,arg[iarg+3]);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (dimension == 2) {
-      	p_start[2] = p_stop[2] = p_period[2] = 0.0;
-	      p_flag[2] = 0;
+        p_start[2] = p_stop[2] = p_period[2] = 0.0;
+              p_flag[2] = 0;
       }
       iarg += 4;
 

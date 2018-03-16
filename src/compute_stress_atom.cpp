@@ -61,7 +61,7 @@ ComputeStressAtom::ComputeStressAtom(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR,"Could not find compute stress/atom temperature ID");
     if (modify->compute[icompute]->tempflag == 0)
       error->all(FLERR,
-		 "Compute stress/atom temperature ID does not "
+                 "Compute stress/atom temperature ID does not "
                  "compute temperature");
   }
 
@@ -263,28 +263,28 @@ void ComputeStressAtom::compute_peratom()
 
     if (biasflag == NOBIAS) {
       if (rmass) {
-	for (i = 0; i < nlocal; i++)
-	  if (mask[i] & groupbit) {
-	    onemass = mvv2e * rmass[i];
-	    stress[i][0] += onemass*v[i][0]*v[i][0];
-	    stress[i][1] += onemass*v[i][1]*v[i][1];
-	    stress[i][2] += onemass*v[i][2]*v[i][2];
-	    stress[i][3] += onemass*v[i][0]*v[i][1];
-	    stress[i][4] += onemass*v[i][0]*v[i][2];
-	    stress[i][5] += onemass*v[i][1]*v[i][2];
-	  }
+        for (i = 0; i < nlocal; i++)
+          if (mask[i] & groupbit) {
+            onemass = mvv2e * rmass[i];
+            stress[i][0] += onemass*v[i][0]*v[i][0];
+            stress[i][1] += onemass*v[i][1]*v[i][1];
+            stress[i][2] += onemass*v[i][2]*v[i][2];
+            stress[i][3] += onemass*v[i][0]*v[i][1];
+            stress[i][4] += onemass*v[i][0]*v[i][2];
+            stress[i][5] += onemass*v[i][1]*v[i][2];
+          }
 
       } else {
-	for (i = 0; i < nlocal; i++)
-	  if (mask[i] & groupbit) {
-	    onemass = mvv2e * mass[type[i]];
-	    stress[i][0] += onemass*v[i][0]*v[i][0];
-	    stress[i][1] += onemass*v[i][1]*v[i][1];
-	    stress[i][2] += onemass*v[i][2]*v[i][2];
-	    stress[i][3] += onemass*v[i][0]*v[i][1];
-	    stress[i][4] += onemass*v[i][0]*v[i][2];
-	    stress[i][5] += onemass*v[i][1]*v[i][2];
-	  }
+        for (i = 0; i < nlocal; i++)
+          if (mask[i] & groupbit) {
+            onemass = mvv2e * mass[type[i]];
+            stress[i][0] += onemass*v[i][0]*v[i][0];
+            stress[i][1] += onemass*v[i][1]*v[i][1];
+            stress[i][2] += onemass*v[i][2]*v[i][2];
+            stress[i][3] += onemass*v[i][0]*v[i][1];
+            stress[i][4] += onemass*v[i][0]*v[i][2];
+            stress[i][5] += onemass*v[i][1]*v[i][2];
+          }
       }
 
     } else {
@@ -293,35 +293,35 @@ void ComputeStressAtom::compute_peratom()
       // this insures bias factor is pre-computed
 
       if (keflag && temperature->invoked_scalar != update->ntimestep)
-	temperature->compute_scalar();
+        temperature->compute_scalar();
 
       if (rmass) {
-	for (i = 0; i < nlocal; i++)
-	  if (mask[i] & groupbit) {
-	    temperature->remove_bias(i,v[i]);
-	    onemass = mvv2e * rmass[i];
-	    stress[i][0] += onemass*v[i][0]*v[i][0];
-	    stress[i][1] += onemass*v[i][1]*v[i][1];
-	    stress[i][2] += onemass*v[i][2]*v[i][2];
-	    stress[i][3] += onemass*v[i][0]*v[i][1];
-	    stress[i][4] += onemass*v[i][0]*v[i][2];
-	    stress[i][5] += onemass*v[i][1]*v[i][2];
-	    temperature->restore_bias(i,v[i]);
-	  }
+        for (i = 0; i < nlocal; i++)
+          if (mask[i] & groupbit) {
+            temperature->remove_bias(i,v[i]);
+            onemass = mvv2e * rmass[i];
+            stress[i][0] += onemass*v[i][0]*v[i][0];
+            stress[i][1] += onemass*v[i][1]*v[i][1];
+            stress[i][2] += onemass*v[i][2]*v[i][2];
+            stress[i][3] += onemass*v[i][0]*v[i][1];
+            stress[i][4] += onemass*v[i][0]*v[i][2];
+            stress[i][5] += onemass*v[i][1]*v[i][2];
+            temperature->restore_bias(i,v[i]);
+          }
 
       } else {
-	for (i = 0; i < nlocal; i++)
-	  if (mask[i] & groupbit) {
-	    temperature->remove_bias(i,v[i]);
-	    onemass = mvv2e * mass[type[i]];
-	    stress[i][0] += onemass*v[i][0]*v[i][0];
-	    stress[i][1] += onemass*v[i][1]*v[i][1];
-	    stress[i][2] += onemass*v[i][2]*v[i][2];
-	    stress[i][3] += onemass*v[i][0]*v[i][1];
-	    stress[i][4] += onemass*v[i][0]*v[i][2];
-	    stress[i][5] += onemass*v[i][1]*v[i][2];
-	    temperature->restore_bias(i,v[i]);
-	  }
+        for (i = 0; i < nlocal; i++)
+          if (mask[i] & groupbit) {
+            temperature->remove_bias(i,v[i]);
+            onemass = mvv2e * mass[type[i]];
+            stress[i][0] += onemass*v[i][0]*v[i][0];
+            stress[i][1] += onemass*v[i][1]*v[i][1];
+            stress[i][2] += onemass*v[i][2]*v[i][2];
+            stress[i][3] += onemass*v[i][0]*v[i][1];
+            stress[i][4] += onemass*v[i][0]*v[i][2];
+            stress[i][5] += onemass*v[i][1]*v[i][2];
+            temperature->restore_bias(i,v[i]);
+          }
       }
     }
   }

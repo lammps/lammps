@@ -736,8 +736,8 @@ void CommKokkos::borders()
 
 template<class DeviceType>
 struct BuildBorderListFunctor {
-	typedef DeviceType device_type;
-	typedef ArrayTypes<DeviceType> AT;
+        typedef DeviceType device_type;
+        typedef ArrayTypes<DeviceType> AT;
   X_FLOAT lo,hi;
   typename AT::t_x_array x;
   int iswap,maxsendlist;

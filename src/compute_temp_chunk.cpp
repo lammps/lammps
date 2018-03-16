@@ -342,34 +342,34 @@ void ComputeTempChunk::compute_vector()
   if (!comflag) {
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	index = ichunk[i]-1;
-	if (index < 0) continue;
-	if (rmass) massone = rmass[i];
-	else massone = mass[type[i]];
-	t[0] += massone * v[i][0]*v[i][0];
-	t[1] += massone * v[i][1]*v[i][1];
-	t[2] += massone * v[i][2]*v[i][2];
-	t[3] += massone * v[i][0]*v[i][1];
-	t[4] += massone * v[i][0]*v[i][2];
-	t[5] += massone * v[i][1]*v[i][2];
+        index = ichunk[i]-1;
+        if (index < 0) continue;
+        if (rmass) massone = rmass[i];
+        else massone = mass[type[i]];
+        t[0] += massone * v[i][0]*v[i][0];
+        t[1] += massone * v[i][1]*v[i][1];
+        t[2] += massone * v[i][2]*v[i][2];
+        t[3] += massone * v[i][0]*v[i][1];
+        t[4] += massone * v[i][0]*v[i][2];
+        t[5] += massone * v[i][1]*v[i][2];
       }
   } else {
     double vx,vy,vz;
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	index = ichunk[i]-1;
-	if (index < 0) continue;
-	if (rmass) massone = rmass[i];
-	else massone = mass[type[i]];
-	vx = v[i][0] - vcmall[index][0];
-	vy = v[i][1] - vcmall[index][1];
-	vz = v[i][2] - vcmall[index][2];
-	t[0] += massone * vx*vx;
-	t[1] += massone * vy*vy;
-	t[2] += massone * vz*vz;
-	t[3] += massone * vx*vy;
-	t[4] += massone * vx*vz;
-	t[5] += massone * vy*vz;
+        index = ichunk[i]-1;
+        if (index < 0) continue;
+        if (rmass) massone = rmass[i];
+        else massone = mass[type[i]];
+        vx = v[i][0] - vcmall[index][0];
+        vy = v[i][1] - vcmall[index][1];
+        vz = v[i][2] - vcmall[index][2];
+        t[0] += massone * vx*vx;
+        t[1] += massone * vy*vy;
+        t[2] += massone * vz*vz;
+        t[3] += massone * vx*vy;
+        t[4] += massone * vx*vz;
+        t[5] += massone * vy*vz;
       }
   }
 

@@ -163,20 +163,20 @@ void PairOxdna2Dh::compute(int eflag, int vflag)
 
       if (rsq <= cutsq_dh_c[atype][btype]) {
 
-	r = sqrt(rsq);
-	rinv = 1.0/r;
+        r = sqrt(rsq);
+        rinv = 1.0/r;
 
-	if (r <= cut_dh_ast[atype][btype]) {
+        if (r <= cut_dh_ast[atype][btype]) {
 
-	  fpair = qeff_dh_pf[atype][btype] * exp(-kappa_dh[atype][btype] * r) * 
-		  (kappa_dh[atype][btype] + rinv) * rinv * rinv;
+          fpair = qeff_dh_pf[atype][btype] * exp(-kappa_dh[atype][btype] * r) * 
+                  (kappa_dh[atype][btype] + rinv) * rinv * rinv;
 
-	  if (eflag) {
-	    evdwl = qeff_dh_pf[atype][btype] * exp(-kappa_dh[atype][btype]*r) * rinv;
-	  }
+          if (eflag) {
+            evdwl = qeff_dh_pf[atype][btype] * exp(-kappa_dh[atype][btype]*r) * rinv;
+          }
 
-	}
-	else {
+        }
+        else {
 
           fpair = 2.0 * b_dh[atype][btype] * (cut_dh_c[atype][btype] - r) * rinv;
 
@@ -184,50 +184,50 @@ void PairOxdna2Dh::compute(int eflag, int vflag)
             evdwl = b_dh[atype][btype] * (r - cut_dh_c[atype][btype]) * (r - cut_dh_c[atype][btype]);
           }
 
-	}
+        }
 
         // knock out nearest-neighbour interaction between adjacent backbone sites 
         fpair *= factor_lj;
         evdwl *= factor_lj;
 
-	delf[0] = delr[0] * fpair;
-	delf[1] = delr[1] * fpair;
-	delf[2] = delr[2] * fpair;
+        delf[0] = delr[0] * fpair;
+        delf[1] = delr[1] * fpair;
+        delf[2] = delr[2] * fpair;
 
-	// apply force and torque to each of 2 atoms
+        // apply force and torque to each of 2 atoms
 
-	if (newton_pair || a < nlocal) {
+        if (newton_pair || a < nlocal) {
 
-	  f[a][0] += delf[0];
-	  f[a][1] += delf[1];
-	  f[a][2] += delf[2];
+          f[a][0] += delf[0];
+          f[a][1] += delf[1];
+          f[a][2] += delf[2];
 
-	  MathExtra::cross3(ra_cs,delf,delta);
+          MathExtra::cross3(ra_cs,delf,delta);
 
-	  torque[a][0] += delta[0];
-	  torque[a][1] += delta[1];
-	  torque[a][2] += delta[2];
+          torque[a][0] += delta[0];
+          torque[a][1] += delta[1];
+          torque[a][2] += delta[2];
 
-	}
+        }
 
-	if (newton_pair || b < nlocal) {
+        if (newton_pair || b < nlocal) {
 
-	  f[b][0] -= delf[0];
-	  f[b][1] -= delf[1];
-	  f[b][2] -= delf[2];
+          f[b][0] -= delf[0];
+          f[b][1] -= delf[1];
+          f[b][2] -= delf[2];
 
-	  MathExtra::cross3(rb_cs,delf,deltb);
+          MathExtra::cross3(rb_cs,delf,deltb);
 
-	  torque[b][0] -= deltb[0];
-	  torque[b][1] -= deltb[1];
-	  torque[b][2] -= deltb[2];
+          torque[b][0] -= deltb[0];
+          torque[b][1] -= deltb[1];
+          torque[b][2] -= deltb[2];
 
-	}
+        }
 
-	// increment energy and virial
+        // increment energy and virial
 
-	  if (evflag) ev_tally(a,b,nlocal,newton_pair,
-		  evdwl,0.0,fpair,delr[0],delr[1],delr[2]);
+          if (evflag) ev_tally(a,b,nlocal,newton_pair,
+                  evdwl,0.0,fpair,delr[0],delr[1],delr[2]);
       }
 
     }
@@ -302,7 +302,7 @@ void PairOxdna2Dh::coeff(int narg, char **arg)
     The numerical factor is the Debye length in s.u. 
     lambda(T = 300 K = 0.1) = 
     sqrt(eps_0 * eps_r * k_B * T/(2 * N_A * e^2 * 1000 mol/m^3))
-	  * 1/oxDNA_energy_unit
+          * 1/oxDNA_energy_unit
     (see B. Snodin et al., J. Chem. Phys. 142, 234901 (2015).)
 
   We use 
@@ -324,7 +324,7 @@ void PairOxdna2Dh::coeff(int narg, char **arg)
     NOTE: 
       The numerical factor is 
       qeff_dh_pf = e^2/(4 * pi * eps_0 * eps_r)
-		    * 1/(oxDNA_energy_unit * oxDNA_length_unit)
+                    * 1/(oxDNA_energy_unit * oxDNA_length_unit)
       (see B. Snodin et al., J. Chem. Phys. 142, 234901 (2015).)
 
     In addition to the above units we use
@@ -515,10 +515,10 @@ void PairOxdna2Dh::write_data(FILE *fp)
   for (int i = 1; i <= atom->ntypes; i++)
     fprintf(fp,"%d\
          %g %g\
-	 %g %g %g\
+         %g %g %g\
          \n",i,
         kappa_dh[i][i],qeff_dh_pf[i][i], 
-	b_dh[i][i],cut_dh_ast[i][i],cut_dh_c[i][i]);
+        b_dh[i][i],cut_dh_ast[i][i],cut_dh_c[i][i]);
 }
 
 /* ----------------------------------------------------------------------
@@ -531,10 +531,10 @@ void PairOxdna2Dh::write_data_all(FILE *fp)
     for (int j = i; j <= atom->ntypes; j++)
       fprintf(fp,"%d %d\
          %g %g\
-	 %g %g %g\
+         %g %g %g\
          \n",i,j,
         kappa_dh[i][j],qeff_dh_pf[i][j], 
-	b_dh[i][j],cut_dh_ast[i][j],cut_dh_c[i][j]);
+        b_dh[i][j],cut_dh_ast[i][j],cut_dh_c[i][j]);
 }
 
 /* ---------------------------------------------------------------------- */

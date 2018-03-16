@@ -176,14 +176,14 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg],"norm") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/chunk command");
       if (strcmp(arg[iarg+1],"all") == 0) {
-	normflag = ALL;
-	scaleflag = ATOM;
+        normflag = ALL;
+        scaleflag = ATOM;
       } else if (strcmp(arg[iarg+1],"sample") == 0) {
-	normflag = SAMPLE;
-	scaleflag = ATOM;
+        normflag = SAMPLE;
+        scaleflag = ATOM;
       } else if (strcmp(arg[iarg+1],"none") == 0) {
-	normflag = SAMPLE;
-	scaleflag = NOSCALE;
+        normflag = SAMPLE;
+        scaleflag = NOSCALE;
       } else error->all(FLERR,"Illegal fix ave/chunk command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"ave") == 0) {
@@ -686,16 +686,16 @@ void FixAveChunk::end_of_step()
       double *rmass = atom->rmass;
 
       if (rmass) {
-	for (i = 0; i < nlocal; i++)
-	  if (mask[i] & groupbit && ichunk[i] > 0) {
-	    index = ichunk[i]-1;
-	    values_one[index][m] += rmass[i];
+        for (i = 0; i < nlocal; i++)
+          if (mask[i] & groupbit && ichunk[i] > 0) {
+            index = ichunk[i]-1;
+            values_one[index][m] += rmass[i];
           }
       } else {
         for (i = 0; i < nlocal; i++)
-	  if (mask[i] & groupbit && ichunk[i] > 0) {
-	    index = ichunk[i]-1;
-	    values_one[index][m] += mass[type[i]];
+          if (mask[i] & groupbit && ichunk[i] > 0) {
+            index = ichunk[i]-1;
+            values_one[index][m] += mass[type[i]];
           }
       }
 

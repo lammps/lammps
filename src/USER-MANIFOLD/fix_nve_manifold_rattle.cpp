@@ -156,7 +156,7 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
       next_output = update->ntimestep + nevery;
       if( comm->me == 0 ){
         fprintf(screen,"Outputing every %d steps, next is %d\n",
-			nevery, next_output);
+                        nevery, next_output);
       }
       argi += 2;
     }else if( error_on_unknown_keyword ){

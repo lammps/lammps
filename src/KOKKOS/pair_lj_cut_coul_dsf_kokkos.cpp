@@ -245,7 +245,7 @@ compute_fcoul(const F_FLOAT& rsq, const int& i, const int&j,
   const F_FLOAT erfcc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * erfcd;
 
   return prefactor * (erfcc/r + 2.0*alpha/MY_PIS * erfcd + r*f_shift) *
-	  r2inv;
+          r2inv;
 }
 
 /* ----------------------------------------------------------------------

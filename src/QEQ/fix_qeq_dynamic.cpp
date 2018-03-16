@@ -79,7 +79,7 @@ void FixQEqDynamic::init()
   if (tolerance < 1e-4)
     if (comm->me == 0)
       error->warning(FLERR,"Fix qeq/dynamic tolerance may be too small"
-		    " for damped dynamics");
+                    " for damped dynamics");
 
   if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
@@ -161,7 +161,7 @@ void FixQEqDynamic::pre_force(int vflag)
     if (iloop == maxiter) {
       char str[128];
       sprintf(str,"Charges did not converge at step " BIGINT_FORMAT
-		  ": %lg",update->ntimestep,enegchk);
+                  ": %lg",update->ntimestep,enegchk);
       error->warning(FLERR,str);
     }
   }
@@ -211,7 +211,7 @@ double FixQEqDynamic::compute_eneg()
 
       for (jj = 0; jj < jnum; jj++) {
         j = jlist[jj];
-	j &= NEIGHMASK;
+        j &= NEIGHMASK;
 
         delr[0] = x[i][0] - x[j][0];
         delr[1] = x[i][1] - x[j][1];
@@ -221,9 +221,9 @@ double FixQEqDynamic::compute_eneg()
         if (rsq > cutoff_sq) continue;
 
         r = sqrt(rsq);
-	rinv = 1.0/r;
-	qf[i] += q[j] * rinv;
-	qf[j] += q[i] * rinv;
+        rinv = 1.0/r;
+        qf[i] += q[j] * rinv;
+        qf[j] += q[i] * rinv;
       }
     }
   }

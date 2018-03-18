@@ -844,9 +844,7 @@ void CreateAtoms::lattice_mask()
 
 
         if (ninsert > total_lattpts)
-          error->all(FLERR,"Attempting to insert more particles than available lattice points");
-        if (ninsert < 0)
-          error->all(FLERR,"Cannot insert a negative number of particles (in this universe)");
+          error->one(FLERR,"Attempting to insert more particles than available lattice points");
 
         // using proc 0, let's insert N particles onto available lattice points by instead
         // poking [nlattpts - N] holes into the lattice, randomly

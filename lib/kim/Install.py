@@ -247,6 +247,10 @@ if buildflag:
 # add single OpenKIM model
 if addflag:
 
+  if os.path.isfile(os.path.join(thisdir, "Makefile.KIM_DIR")):
+    cmd = 'make -f Makefile.KIM_DIR print_dir'
+    kimdir = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+
   if not os.path.isdir(kimdir):
     print("\nkim-api is not installed")
     error()

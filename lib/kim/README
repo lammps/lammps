@@ -21,46 +21,33 @@ Instructions:
 1. Configure lammps for use with the kim-api library installed in this directory
 
 $ printf "KIM_INSTALL_DIR=${PWD}\n" > ./Makefile.KIM_DIR
-$ printf "include ${PWD}/lib/kim-api/Makefile.KIM_Config\n" > ./Makefile.KIM_Config
 
 2. Download and unpack the kim-api
 
 # replace X.Y.Z as appropriate here and below
-$ wget http://s3.openkim.org/kim-api/kim-api-vX.Y.Z.tgz
-$ tar zxvf kim-api-vX.Y.Z.tgz
+$ wget http://s3.openkim.org/kim-api/kim-api-vX.Y.Z.txz
+$ tar zxvf kim-api-vX.Y.Z.txz
 
 # configure the kim-api
 $ cd kim-api-vX.Y.Z
-$ ./configure --prefix=${PWD}/../
-
-# setup the desired kim item
-$ make add-Pair_Johnson_Fe__MO_857282754307_002
+$ ./configure --prefix=${PWD}/../installed-kim-api-vX.Y.Z
 
 3. Build and install the kim-api and model
 
 $ make
 $ make install
 
-# replace X with the KIM API major version number
-$ make install-set-default-to-vX
-$ cd ../
-
 4. Remove source and build files
 
 $ rm -rf kim-api-vX.Y.Z
-$ rm -rf kim-api-vX.Y.Z.tgz
+$ rm -rf kim-api-vX.Y.Z.txz
 
-5. To add additional items do the following (replace the kim item name with your
+5. To add items do the following (replace the kim item name with your
    desired value)
 
-$ wget https://openkim.org/download/EAM_Johnson_NearestNeighbor_Cu__MO_887933271505_001.tgz
-$ tar zxvf EAM_Johnson_NearestNeighbor_Cu__MO_887933271505_001.tgz
-$ cd EAM_Johnson_NearestNeighbor_Cu__MO_887933271505_001
-$ make
-$ make install
-$ cd ..
-$ rm -rf EAM_Johnson_NearestNeighbor_Cu__MO_887933271505_001
-$ rm -rf EAM_Johnson_NearestNeighbor_Cu__MO_887933271505_001.tgz
+$ source ${PWD}/../kim-api-vX.Y.Z/bin/kim-api-v1-activate
+$ kim-api-v1-collections-management install system Pair_Johnson_Fe__MO_857282754307_002
+
 
 -----------------
 

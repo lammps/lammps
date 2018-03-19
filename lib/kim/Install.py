@@ -21,7 +21,7 @@ Syntax from lib dir: python Install.py -b -v version  -a kim-name
 specify one or more options, order does not matter
 
   -v = version of KIM API library to use
-       default = kim-api-v1.9.2 (current as of Oct 2017)
+       default = kim-api-v1.9.4 (current as of Mar 2018)
   -b = download and build base KIM API library with example Models
        this will delete any previous installation in the current folder
   -n = do NOT download and build base KIM API library.
@@ -109,7 +109,7 @@ nargs = len(args)
 if nargs == 0: error()
 
 thisdir = os.environ['PWD']
-version = "kim-api-v1.9.2"
+version = "kim-api-v1.9.4"
 
 buildflag = False
 everythingflag = False
@@ -246,6 +246,10 @@ if buildflag:
 
 # add single OpenKIM model
 if addflag:
+
+  if os.path.isfile(os.path.join(thisdir, "Makefile.KIM_DIR")):
+    cmd = 'make -f Makefile.KIM_DIR print_dir'
+    kimdir = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
 
   if not os.path.isdir(kimdir):
     print("\nkim-api is not installed")

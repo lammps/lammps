@@ -78,6 +78,8 @@ Force::Force(LAMMPS *lmp) : Pointers(lmp)
   kspace_style = new char[n];
   strcpy(kspace_style,str);
 
+  pair_restart = NULL;
+
   // fill pair map with pair styles listed in style_pair.h
 
   pair_map = new PairCreatorMap();
@@ -146,6 +148,8 @@ Force::~Force()
   delete [] improper_style;
   delete [] kspace_style;
 
+  delete [] pair_restart;
+
   if (pair) delete pair;
   if (bond) delete bond;
   if (angle) delete angle;
@@ -197,8 +201,10 @@ void Force::create_pair(const char *style, int trysuffix)
 {
   delete [] pair_style;
   if (pair) delete pair;
+  if (pair_restart) delete [] pair_restart;
   pair_style = NULL;
   pair = NULL;
+  pair_restart = NULL;
 
   int sflag;
   pair = new_pair(style,trysuffix,sflag);

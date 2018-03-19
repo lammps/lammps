@@ -62,7 +62,7 @@ enum{VERSION,SMALLINT,TAGINT,BIGINT,
      MULTIPROC,MPIIO,PROCSPERFILE,PERPROC,
      IMAGEINT,BOUNDMIN,TIMESTEP,
      ATOM_ID,ATOM_MAP_STYLE,ATOM_MAP_USER,ATOM_SORTFREQ,ATOM_SORTBIN,
-     COMM_MODE,COMM_CUTOFF,COMM_VEL};
+     COMM_MODE,COMM_CUTOFF,COMM_VEL,NO_PAIR};
 
 #define LB_FACTOR 1.1
 
@@ -949,30 +949,71 @@ void ReadRestart::force_fields()
       force->create_pair(style,1);
       delete [] style;
       force->pair->read_restart(fp);
+      if (comm->me ==0) {
+        if (screen) fprintf(screen,"  restored pair style %s from "
+                            "restart\n", force->pair_style);
+        if (logfile) fprintf(logfile,"  restored pair style %s from "
+                             "restart\n", force->pair_style);
+      }
+
+    } else if (flag == NO_PAIR) {
+      style = read_string();
+      if (comm->me ==0) {
+        if (screen) fprintf(screen,"  pair style %s stores no "
+                            "restart info\n", style);
+        if (logfile) fprintf(logfile,"  pair style %s stores no "
+                             "restart info\n", style);
+      }
+      force->create_pair("none",0);
+      force->pair_restart = style;
 
     } else if (flag == BOND) {
       style = read_string();
       force->create_bond(style,1);
       delete [] style;
       force->bond->read_restart(fp);
+      if (comm->me ==0) {
+        if (screen) fprintf(screen,"  restored bond style %s from "
+                            "restart\n", force->bond_style);
+        if (logfile) fprintf(logfile,"  restored bond style %s from "
+                             "restart\n", force->bond_style);
+      }
 
     } else if (flag == ANGLE) {
       style = read_string();
       force->create_angle(style,1);
       delete [] style;
       force->angle->read_restart(fp);
+      if (comm->me ==0) {
+        if (screen) fprintf(screen,"  restored angle style %s from "
+                            "restart\n", force->angle_style);
+        if (logfile) fprintf(logfile,"  restored angle style %s from "
+                             "restart\n", force->angle_style);
+      }
 
     } else if (flag == DIHEDRAL) {
       style = read_string();
       force->create_dihedral(style,1);
       delete [] style;
       force->dihedral->read_restart(fp);
+      if (comm->me ==0) {
+        if (screen) fprintf(screen,"  restored dihedral style %s from "
+                            "restart\n", force->dihedral_style);
+        if (logfile) fprintf(logfile,"  restored dihedral style %s from "
+                             "restart\n", force->dihedral_style);
+      }
 
     } else if (flag == IMPROPER) {
       style = read_string();
       force->create_improper(style,1);
       delete [] style;
       force->improper->read_restart(fp);
+      if (comm->me ==0) {
+        if (screen) fprintf(screen,"  restored improper style %s from "
+                            "restart\n", force->improper_style);
+        if (logfile) fprintf(logfile,"  restored improper style %s from "
+                             "restart\n", force->improper_style);
+      }
 
     } else error->all(FLERR,
                       "Invalid flag in force field section of restart file");

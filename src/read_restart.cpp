@@ -832,6 +832,12 @@ void ReadRestart::header(int incompatible)
       for (int i = 0; i < nargcopy; i++)
         argcopy[i] = read_string();
       atom->create_avec(style,nargcopy,argcopy,1);
+      if (comm->me ==0) {
+        if (screen) fprintf(screen,"  restoring atom style %s from "
+                            "restart\n", style);
+        if (logfile) fprintf(logfile,"  restoring atom style %s from "
+                             "restart\n", style);
+      }
       for (int i = 0; i < nargcopy; i++) delete [] argcopy[i];
       delete [] argcopy;
       delete [] style;

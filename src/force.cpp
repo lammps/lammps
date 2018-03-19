@@ -178,6 +178,16 @@ void Force::init()
 {
   qqrd2e = qqr2e/dielectric;
 
+  // check if pair style must be specified after restart
+  if (pair_restart) {
+    if (!pair) {
+      char msg[128];
+      sprintf(msg,"Must re-specify non-restarted pair style (%s) "
+              "after read_restart", pair_restart);
+      error->all(FLERR,msg);
+    }
+  }
+
   if (kspace) kspace->init();         // kspace must come before pair
   if (pair) pair->init();             // so g_ewald is defined
   if (bond) bond->init();

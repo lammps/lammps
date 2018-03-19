@@ -770,25 +770,3 @@ MEAM::interpolate_meam(int ind)
     this->phirar6[ind][j] = 3.0 * this->phirar3[ind][j] / drar;
   }
 }
-
-//---------------------------------------------------------------------
-// Compute Rose energy function, I.16
-//
-double
-MEAM::compute_phi(double rij, int elti, int eltj)
-{
-  double pp;
-  int ind, kk;
-
-  ind = this->eltind[elti][eltj];
-  pp = rij * this->rdrar;
-  kk = (int)pp;
-  kk = std::min(kk, this->nrar - 2);
-  pp = pp - kk;
-  pp = std::min(pp, 1.0);
-  double result =
-    ((this->phirar3[ind][kk] * pp + this->phirar2[ind][kk]) * pp + this->phirar1[ind][kk]) * pp +
-    this->phirar[ind][kk];
-
-  return result;
-}

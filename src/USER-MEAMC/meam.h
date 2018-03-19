@@ -208,7 +208,6 @@ protected:
   void get_sijk(double, int, int, int, double*);
   void get_densref(double, int, int, double*, double*, double*, double*, double*, double*, double*, double*);
   void interpolate_meam(int);
-  double compute_phi(double, int, int);
 
 public:
   void meam_setup_global(int nelt, lattice_t* lat, double* z, int* ielement, double* atwt, double* alpha,

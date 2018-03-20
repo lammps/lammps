@@ -25,13 +25,13 @@ velocity all create 100 4928459 rot yes dist gaussian
 #pair_style hybrid/overlay eam/alloy pair/spin/exchange 4.0 pair/spin/soc/neel 4.0
 pair_style hybrid/overlay eam/alloy pair/spin/exchange 3.5
 pair_coeff * * eam/alloy ../examples/SPIN/iron/Fe_Mishin2006.eam.alloy Fe
-pair_coeff * * pair/spin/exchange exchange 4.0 0.025498 0.281 1.999 
+pair_coeff * * pair/spin/exchange exchange 3.4 0.02726 0.2171 1.841
 #pair_coeff * * pair/spin/soc/neel neel 4.0 0.003330282 0.864159 2.13731 
 
 neighbor 0.1 bin
 neigh_modify every 10 check yes delay 20
 
-fix 1 all force/spin zeeman 0.1 0.0 0.0 1.0
+fix 1 all force/spin zeeman 0.0 0.0 0.0 1.0
 fix 2 all langevin/spin 0.0 0.0 21
 
 fix 3 all integration/spin lattice yes
@@ -50,10 +50,10 @@ variable emag      equal c_out_mag[5]
 variable tmag      equal c_out_mag[6]
 variable mag_force equal f_1
 
-thermo_style    custom step time v_magnorm v_emag temp etotal
+thermo_style    custom step time v_magnorm v_tmag temp v_emag ke pe etotal
 thermo          50
 
 dump 1 all custom 50 dump_iron.lammpstrj type x y z spx spy spz
 
-run 10000
+run 100000
 

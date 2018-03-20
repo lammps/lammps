@@ -29,7 +29,7 @@ pair_coeff * * pair/spin/exchange exchange 4.0 0.0446928 0.003496 1.4885
 neighbor 0.1 bin
 neigh_modify every 10 check yes delay 20
 
-fix 1 all force/spin zeeman 0.01 0.0 0.0 1.0
+fix 1 all force/spin zeeman 0.0 0.0 0.0 1.0
 fix 2 all langevin/spin 0.0 0.0 21
 
 fix 3 all integration/spin lattice yes
@@ -51,7 +51,7 @@ variable mag_force equal f_1
 thermo_style    custom step time v_magnorm v_emag temp etotal
 thermo          10
 
-#dump 1 all custom 50 dump_cobalt.lammpstrj type x y z spx spy spz
+dump 1 all custom 50 dump_cobalt.lammpstrj type x y z spx spy spz
 
-run 500
+run 10000
 

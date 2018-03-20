@@ -42,7 +42,7 @@ The components of eta are drawn from a Gaussian probability law. Their amplitude
 is defined as a proportion of the temperature of the external thermostat T (in K 
 in metal units).
 
-More details about this implementation are reported in "(Tranchida)"_#Tranchida1.
+More details about this implementation are reported in "(Tranchida)"_#Tranchida2.
 
 Note: due to the form of the sLLG equation, this fix has to be the last defined 
 magnetic fix before the integration/spin fix. As an example:
@@ -97,6 +97,5 @@ This fix has to be the last defined magnetic fix before the integration fix
 :link(Mayergoyz1)
 [(Mayergoyz)] I.D. Mayergoyz, G. Bertotti, C. Serpico (2009). Elsevier (2009)
 
-:link(Tranchida1)
-[(Tranchida)] J. Tranchida, S.J. Plimpton, P. Thibaudeau, A.P. Thompson. 
-arXiv preprint arXiv:1801.10233. (2018)
+:link(Tranchida2)
+[(Tranchida)] Tranchida, Plimpton, Thibaudeau and Thompson. 

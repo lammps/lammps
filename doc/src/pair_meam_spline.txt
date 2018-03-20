@@ -164,5 +164,9 @@ for more info.
 Kress, Modelling Simulation Materials Science Engineering, 8, 825
 (2000).
 
+<<<<<<< HEAD
 :link(Zhang4)
+=======
+:link(Zhang2)
+>>>>>>> Documentation V1
 [(Zhang)] Zhang and Trinkle, Computational Materials Science, 124, 204-210 (2016).

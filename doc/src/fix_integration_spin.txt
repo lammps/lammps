@@ -40,8 +40,8 @@ the equations of motion of the spin lattice system, following the scheme:
 according to the implementation reported in "(Omelyan)"_#Omelyan1.
 
 A sectoring enables this scheme for parallel calculations. 
-The implementation of this sectoring algorithm is reported in
-"(Tranchida)"_#Tranchida1. 
+The implementation of this sectoring algorithm is reported 
+in "(Tranchida)"_#Tranchida1.
 
 :line
 
@@ -50,7 +50,6 @@ The implementation of this sectoring algorithm is reported in
 This fix style can only be used if LAMMPS was built with the
 SPIN package. See the "Making LAMMPS"_Section_start.html#start_3
 section for more info on packages.
-
 
 [Related commands:]
 
@@ -61,9 +60,8 @@ section for more info on packages.
 :line
 
 :link(Omelyan1)
-[(Omelyan)] I.P. Omelyan, I.M. Mryglod, R. Folk. Phys. Rev. Lett. 
-86(5), 898. (2001)
+[(Omelyan)] Omelyan, Mryglod, and Folk. Phys. Rev. Lett. 
+86(5), 898. (2001).
 
 :link(Tranchida1)
-[(Tranchida)] J. Tranchida, S.J. Plimpton, P. Thibaudeau, A.P. Thompson. 
-arXiv preprint arXiv:1801.10233. (2018)
+[(Tranchida)] Tranchida, Plimpton, Thibaudeau and Thompson.

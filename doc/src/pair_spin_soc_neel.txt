@@ -49,7 +49,7 @@ the value of the DM interaction for the N neighbor shells taken
 into account.
 
 Examples and more explanations about this function and its parametrization are reported 
-in "(Tranchida)"_#Tranchida1.
+in "(Tranchida)"_#Tranchida6.
 
 From this DM interaction, each spin i will be submitted to a magnetic torque
 omega and its associated atom to a force F (for spin-lattice calculations only), 
@@ -60,7 +60,7 @@ such as:
 with h the Planck constant (in metal units).
 
 More details about the derivation of these torques/forces are reported in
-"(Tranchida)"_#Tranchida1.
+"(Tranchida)"_#Tranchida6.
 
 :line
 
@@ -80,6 +80,6 @@ See the "Making LAMMPS"_Section_start.html#start_3 section for more info.
 
 :line
 
-:link(Tranchida1)
-[(Tranchida)]https://arxiv.org/abs/1801.10233
+:link(Tranchida6)
+[(Tranchida)] Tranchida, Plimpton, Thibaudeau and Thompson.
 

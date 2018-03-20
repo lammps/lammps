@@ -45,7 +45,7 @@ force F for spin-lattice calculations (see
 with h the Planck constant (in metal units).
 
 More details about the derivation of these torques/forces are reported in
-"(Tranchida)"_#Tranchida1.
+"(Tranchida)"_#Tranchida4.
 
 :line
 
@@ -68,6 +68,5 @@ See the "Making LAMMPS"_Section_start.html#start_3 section for more info.
 :link(Katsura1)
 [(Katsura)] H. Katsura, N. Nagaosa, A.V. Balatsky. Phys. Rev. Lett., 95(5), 057205. (2005)
 
-:link(Tranchida1)
-[(Tranchida)] J. Tranchida, S.J. Plimpton, P. Thibaudeau, A.P. Thompson. 
-arXiv preprint arXiv:1801.10233. (2018)
+:link(Tranchida4)
+[(Tranchida)] Tranchida, Plimpton, Thibaudeau, and Thompson. 

@@ -6,7 +6,7 @@
 
 :line
 
-1. Introduction :h3
+1. Introduction :h2
 
 This section provides an overview of what LAMMPS can and can't do,
 describes what it means for LAMMPS to be an open-source code, and
@@ -97,7 +97,7 @@ favorite interatomic potential, boundary condition, or atom type, see
 "Section 10"_Section_modify.html, which describes how you can add
 it to LAMMPS.
 
-General features :h5
+General features :h4
 
   runs on a single processor or in parallel
   distributed-memory message-passing parallelism (MPI)
@@ -114,7 +114,7 @@ General features :h5
   build as library, invoke LAMMPS thru library interface or provided Python wrapper
   couple with other codes: LAMMPS calls other code, other code calls LAMMPS, umbrella code calls both :ul
 
-Particle and model types :h5
+Particle and model types :h4
 ("atom style"_atom_style.html command)
 
   atoms
@@ -130,7 +130,7 @@ Particle and model types :h5
   rigid collections of particles
   hybrid combinations of these :ul
 
-Force fields :h5
+Force fields :h4
 ("pair style"_pair_style.html, "bond style"_bond_style.html,
 "angle style"_angle_style.html, "dihedral style"_dihedral_style.html,
 "improper style"_improper_style.html, "kspace style"_kspace_style.html
@@ -169,7 +169,7 @@ commands)
     potentials can be used in one simulation
   overlaid potentials: superposition of multiple pair potentials :ul
 
-Atom creation :h5
+Atom creation :h4
 ("read_data"_read_data.html, "lattice"_lattice.html,
 "create_atoms"_create_atoms.html, "delete_atoms"_delete_atoms.html,
 "displace_atoms"_displace_atoms.html, "replicate"_replicate.html commands)
@@ -180,7 +180,7 @@ Atom creation :h5
   replicate existing atoms multiple times
   displace atoms :ul
 
-Ensembles, constraints, and boundary conditions :h5
+Ensembles, constraints, and boundary conditions :h4
 ("fix"_fix.html command)
 
   2d or 3d systems
@@ -198,7 +198,7 @@ Ensembles, constraints, and boundary conditions :h5
   non-equilibrium molecular dynamics (NEMD)
   variety of additional boundary conditions and constraints :ul
 
-Integrators :h5
+Integrators :h4
 ("run"_run.html, "run_style"_run_style.html, "minimize"_minimize.html commands)
 
   velocity-Verlet integrator
@@ -208,11 +208,11 @@ Integrators :h5
   rRESPA hierarchical timestepping
   rerun command for post-processing of dump files :ul
 
-Diagnostics :h5
+Diagnostics :h4
 
   see the various flavors of the "fix"_fix.html and "compute"_compute.html commands :ul
 
-Output :h5
+Output :h4
 ("dump"_dump.html, "restart"_restart.html commands)
 
   log file of thermodynamic info
@@ -225,14 +225,14 @@ Output :h5
   time averaging of system-wide quantities
   atom snapshots in native, XYZ, XTC, DCD, CFG formats :ul
 
-Multi-replica models :h5
+Multi-replica models :h4
 
 "nudged elastic band"_neb.html
 "parallel replica dynamics"_prd.html
 "temperature accelerated dynamics"_tad.html
 "parallel tempering"_temper.html
 
-Pre- and post-processing :h5
+Pre- and post-processing :h4
 
 Various pre- and post-processing serial tools are packaged
 with LAMMPS; see these "doc pages"_Section_tools.html. :ulb,l
@@ -247,7 +247,7 @@ Pizza.py WWW site"_pizza. :l
 :link(pizza,http://www.sandia.gov/~sjplimp/pizza.html)
 :link(python,http://www.python.org)
 
-Specialized features :h5
+Specialized features :h4
 
 LAMMPS can be built with optional packages which implement a variety
 of additional capabilities.  An overview of all the packages is "given
@@ -468,7 +468,7 @@ encouraged. :l
 
 :line
 
-1.5 Acknowledgments and citations :h4,link(intro_5)
+1.5 Acknowledgments and citations :h3,link(intro_5)
 
 LAMMPS development has been funded by the "US Department of
 Energy"_doe (DOE), through its CRADA, LDRD, ASCI, and Genomes-to-Life

@@ -6,7 +6,7 @@
 
 :line
 
-3. Commands :h3
+3. Commands :h2
 
 This section describes how a LAMMPS input script is formatted and the
 input script commands used to define a LAMMPS simulation.
@@ -190,7 +190,7 @@ allowed, but that should be sufficient for most use cases.
 
 :line
 
-3.3 Input script structure :h4,link(cmd_3)
+3.3 Input script structure :h3,link(cmd_3)
 
 This section describes the structure of a typical LAMMPS input script.
 The "examples" directory in the LAMMPS distribution contains many
@@ -414,7 +414,7 @@ Input script control:
 
 :line
 
-3.5 Individual commands :h4,link(cmd_5),link(comm)
+3.5 Individual commands :h3,link(cmd_5),link(comm)
 
 This section lists all LAMMPS commands alphabetically, with a separate
 listing below of styles within certain commands.  The "previous
@@ -537,7 +537,7 @@ package"_Section_start.html#start_3.
 
 :line
 
-Fix styles :h4
+Fix styles :h3
 
 See the "fix"_fix.html command for one-line descriptions of each style
 or click on the style itself for a full description.  Some of the
@@ -751,7 +751,7 @@ package"_Section_start.html#start_3.
 
 :line
 
-Compute styles :h4
+Compute styles :h3
 
 See the "compute"_compute.html command for one-line descriptions of
 each style or click on the style itself for a full description.  Some
@@ -894,7 +894,7 @@ package"_Section_start.html#start_3.
 
 :line
 
-Pair_style potentials :h4
+Pair_style potentials :h3
 
 See the "pair_style"_pair_style.html command for an overview of pair
 potentials.  Click on the style itself for a full description.  Many
@@ -1107,7 +1107,7 @@ package"_Section_start.html#start_3.
 
 :line
 
-Bond_style potentials :h4
+Bond_style potentials :h3
 
 See the "bond_style"_bond_style.html command for an overview of bond
 potentials.  Click on the style itself for a full description.  Some
@@ -1141,7 +1141,7 @@ package"_Section_start.html#start_3.
 
 :line
 
-Angle_style potentials :h4
+Angle_style potentials :h3
 
 See the "angle_style"_angle_style.html command for an overview of
 angle potentials.  Click on the style itself for a full description.
@@ -1177,7 +1177,7 @@ package"_Section_start.html#start_3.
 
 :line
 
-Dihedral_style potentials :h4
+Dihedral_style potentials :h3
 
 See the "dihedral_style"_dihedral_style.html command for an overview
 of dihedral potentials.  Click on the style itself for a full
@@ -1211,7 +1211,7 @@ package"_Section_start.html#start_3.
 
 :line
 
-Improper_style potentials :h4
+Improper_style potentials :h3
 
 See the "improper_style"_improper_style.html command for an overview
 of improper potentials.  Click on the style itself for a full
@@ -1240,7 +1240,7 @@ package"_Section_start.html#start_3.
 
 :line
 
-Kspace solvers :h4
+Kspace solvers :h3
 
 See the "kspace_style"_kspace_style.html command for an overview of
 Kspace solvers.  Click on the style itself for a full description.

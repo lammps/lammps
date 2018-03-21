@@ -22,7 +22,6 @@ FixStyle(qeq/reax/kk/host,FixQEqReaxKokkos<LMPHostType>)
 #ifndef LMP_FIX_QEQ_REAX_KOKKOS_H
 #define LMP_FIX_QEQ_REAX_KOKKOS_H
 
-#include <Kokkos_ScatterView.hpp>
 #include "fix_qeq_reax.h"
 #include "kokkos_type.h"
 #include "neigh_list.h"

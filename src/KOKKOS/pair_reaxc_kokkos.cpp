@@ -812,6 +812,7 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     ndup_dDeltap_self = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_dDeltap_self);
     ndup_total_bo     = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_total_bo);
   }
+
   // Neighbor lists for bond and hbond
 
   // try, resize if necessary

@@ -24,7 +24,6 @@ PairStyle(reax/c/kk/host,PairReaxCKokkos<LMPHostType>)
 #define LMP_PAIR_REAXC_KOKKOS_H
 
 #include <stdio.h>
-#include <Kokkos_ScatterView.hpp>
 #include "pair_kokkos.h"
 #include "pair_reaxc.h"
 #include "neigh_list_kokkos.h"

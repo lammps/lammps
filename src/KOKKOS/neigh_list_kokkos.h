@@ -20,7 +20,7 @@
 
 namespace LAMMPS_NS {
 
-enum{FULL=1u,HALFTHREAD=2u,HALF=4u,N2=8u};
+enum{FULL=1u,HALFTHREAD=2u,HALF=4u,N2=8u}; // same as in kokkos_type.h
 
 class AtomNeighbors
 {

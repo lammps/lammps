@@ -36,6 +36,7 @@ fix 3 all integration/spin lattice yes
 
 timestep	0.0001
 
+# compute and output options
 
 compute out_mag    all compute/spin
 compute out_pe     all pe

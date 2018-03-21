@@ -10,29 +10,29 @@ boundary p p p
 # check why?
 atom_modify map array 
 
-lattice fcc 3.54
+lattice fcc 3.524
 region box block 0.0 5.0 0.0 5.0 0.0 5.0
 create_box 1 box
 create_atoms 1 box
 
 # setting mass, mag. moments, and interactions for cobalt
 
-mass		1 58.93
+mass		1 58.69
 
-set group all spin/random 31 1.72
+set group all spin/random 31 0.6
 velocity all create 100 4928459 rot yes dist gaussian
 
 #pair_style hybrid/overlay eam/alloy pair/spin/exchange 4.0 pair/spin/soc/neel 4.0
 pair_style hybrid/overlay eam/alloy pair/spin/exchange 4.0
-pair_coeff * * eam/alloy ../examples/SPIN/cobalt/Co_PurjaPun_2012.eam.alloy Co
-pair_coeff * * pair/spin/exchange exchange 4.0 0.0446928 0.003496 1.4885 
+pair_coeff * * eam/alloy ../examples/SPIN/nickel/Ni99.eam.alloy Ni
+pair_coeff * * pair/spin/exchange exchange 4.0 0.009718152197 0.000153 1.243
 #pair_coeff * * pair/spin/soc/neel neel 4.0 0.003330282 0.864159 2.13731 
 
 neighbor 0.1 bin
 neigh_modify every 10 check yes delay 20
 
-fix 1 all force/spin zeeman 0.1 0.0 0.0 1.0
-fix 2 all langevin/spin 0.0 0.1 21
+fix 1 all force/spin zeeman 0.0 0.0 0.0 1.0
+fix 2 all langevin/spin 0.0 0.0 21
 
 fix 3 all integration/spin lattice yes
 

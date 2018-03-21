@@ -17,7 +17,7 @@ pair_coeff	* * CdTe.bop Cd Te
 mass		1 112.4
 mass		2 127.6
 
-communicate	single cutoff 14.7
+comm_modify	cutoff 14.7
 
 velocity	all create 1000.0 376847 loop geom
 

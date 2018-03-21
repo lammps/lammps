@@ -1,0 +1,77 @@
+LAMMPS (16 Mar 2018)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (../comm.cpp:90)
+  using 1 OpenMP thread(s) per MPI task
+# EIM benchmark
+# if run long enough (e.g. 1M steps), the unstable CsCl form of a NaCl single
+# crystal can be annealed to the correct NaCl type of NaCl polycrystals
+
+units		metal
+atom_style      atomic
+
+read_data       data.eim
+  orthogonal box = (-0.5 -0.5 -0.5) to (71.58 143.66 71.58)
+  1 by 4 by 1 MPI processor grid
+  reading atoms ...
+  32000 atoms
+  reading velocities ...
+  32000 velocities
+
+pair_style      eim
+pair_coeff      * * Na Cl ffield.eim Na Cl
+
+neighbor	0.3 bin
+neigh_modify    delay 0 every 1
+
+timestep        0.0005
+thermo_style    custom step pe pxx pyy pzz temp
+
+velocity        all create 1400.0 43454 dist gaussian mom yes
+
+fix             int all npt temp 1400.0 1400.0 0.1 aniso 0.0 0.0 0.1
+# anneal in much longer run
+#fix             int all npt temp 1400.0 300.0 0.1 aniso 0.0 0.0 0.1
+
+run             100
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 7.906
+  ghost atom cutoff = 7.906
+  binsize = 3.953, bins = 19 37 19
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair eim, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 7.285 | 7.285 | 7.285 Mbytes
+Step PotEng Pxx Pyy Pzz Temp 
+       0    -90567.58    -117883.6   -118039.81   -117894.07         1400 
+     100   -91997.012   -4104.7052    -4138.276   -4145.8936    944.10136 
+Loop time of 3.12061 on 4 procs for 100 steps with 32000 atoms
+
+Performance: 1.384 ns/day, 17.337 hours/ns, 32.045 timesteps/s
+98.8% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 2.6504     | 2.6583     | 2.6685     |   0.5 | 85.18
+Neigh   | 0.36996    | 0.37847    | 0.39396    |   1.5 | 12.13
+Comm    | 0.037041   | 0.040586   | 0.04504    |   1.4 |  1.30
+Output  | 7.081e-05  | 8.75e-05   | 0.00012994 |   0.0 |  0.00
+Modify  | 0.029286   | 0.035978   | 0.047942   |   3.9 |  1.15
+Other   |            | 0.007206   |            |       |  0.23
+
+Nlocal:    8000 ave 8000 max 8000 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    9460.25 ave 9469 max 9449 min
+Histogram: 1 0 0 0 0 1 0 1 0 1
+Neighs:    395975 ave 397239 max 394616 min
+Histogram: 1 0 0 1 0 0 0 1 0 1
+
+Total # of neighbors = 1583901
+Ave neighs/atom = 49.4969
+Neighbor list builds = 37
+Dangerous builds = 12
+Total wall time: 0:00:03

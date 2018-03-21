@@ -42,7 +42,7 @@ vstore(NULL), astore(NULL), rbuf(NULL)
 
   disable = 0;
   nvalues = vecflag = 0;
-  flavor = UNKNOWN; 
+  flavor = UNKNOWN;
 
   if (strcmp(arg[3],"global") == 0) flavor = GLOBAL;
   else if (strcmp(arg[3],"peratom") == 0) flavor = PERATOM;

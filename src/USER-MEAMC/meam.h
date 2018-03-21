@@ -144,7 +144,7 @@ protected:
       a3 = a * a * a;
       a4 = a * a3;
       a1m4 = 1.0-a4;
-      
+
       dfc = 8 * a1m4 * a3;
       return a1m4*a1m4;
     }

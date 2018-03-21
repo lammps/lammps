@@ -163,8 +163,8 @@ void Input::file()
       while (1) {
         if (maxline-m < 2) reallocate(line,maxline,0);
 
-	// end of file reached, so break
-	// n == 0 if nothing read, else n = line with str terminator
+        // end of file reached, so break
+        // n == 0 if nothing read, else n = line with str terminator
 
         if (fgets(&line[m],maxline-m,infile) == NULL) {
           if (m) n = strlen(line) + 1;
@@ -172,23 +172,23 @@ void Input::file()
           break;
         }
 
-	// continue if last char read was not a newline
-	// could happen if line is very long
+        // continue if last char read was not a newline
+        // could happen if line is very long
 
         m = strlen(line);
         if (line[m-1] != '\n') continue;
 
-	// continue reading if final printable char is & char
-	// or if odd number of triple quotes
-	// else break with n = line with str terminator
+        // continue reading if final printable char is & char
+        // or if odd number of triple quotes
+        // else break with n = line with str terminator
 
         m--;
         while (m >= 0 && isspace(line[m])) m--;
         if (m < 0 || line[m] != '&') {
-	  if (numtriple(line) % 2) {
-	    m += 2;
-	    continue;
-	  }
+          if (numtriple(line) % 2) {
+            m += 2;
+            continue;
+          }
           line[m+1] = '\0';
           n = m+2;
           break;
@@ -559,17 +559,17 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
 
     if (quoteflag == 0) {
       if (strstr(ptr,"\"\"\"") == ptr) {
-	quoteflag = 3;
-	*ptr2++ = *ptr++;
-	*ptr2++ = *ptr++;
+        quoteflag = 3;
+        *ptr2++ = *ptr++;
+        *ptr2++ = *ptr++;
       }
       else if (*ptr == '"') quoteflag = 2;
       else if (*ptr == '\'') quoteflag = 1;
     } else {
       if (quoteflag == 3 && strstr(ptr,"\"\"\"") == ptr) {
-	quoteflag = 0;
-	*ptr2++ = *ptr++;
-	*ptr2++ = *ptr++;
+        quoteflag = 0;
+        *ptr2++ = *ptr++;
+        *ptr2++ = *ptr++;
       }
       else if (quoteflag == 2 && *ptr == '"') quoteflag = 0;
       else if (quoteflag == 1 && *ptr == '\'') quoteflag = 0;
@@ -626,62 +626,62 @@ int Input::expand_args(int narg, char **arg, int mode, char **&earg)
 
       ptr1 = strchr(&arg[iarg][2],'[');
       if (ptr1) {
-	ptr2 = strchr(ptr1,']');
-	if (ptr2) {
-	  *ptr2 = '\0';
-	  if (strchr(ptr1,'*')) {
-	    if (arg[iarg][0] == 'c') {
-	      *ptr1 = '\0';
-	      icompute = modify->find_compute(&arg[iarg][2]);
-	      *ptr1 = '[';
+        ptr2 = strchr(ptr1,']');
+        if (ptr2) {
+          *ptr2 = '\0';
+          if (strchr(ptr1,'*')) {
+            if (arg[iarg][0] == 'c') {
+              *ptr1 = '\0';
+              icompute = modify->find_compute(&arg[iarg][2]);
+              *ptr1 = '[';
 
               // check for global vector/array, peratom array, local array
 
-	      if (icompute >= 0) {
-		if (mode == 0 && modify->compute[icompute]->vector_flag) {
-		  nmax = modify->compute[icompute]->size_vector;
-		  expandflag = 1;
-		} else if (mode == 1 && modify->compute[icompute]->array_flag) {
-		  nmax = modify->compute[icompute]->size_array_cols;
-		  expandflag = 1;
-                } else if (modify->compute[icompute]->peratom_flag && 
+              if (icompute >= 0) {
+                if (mode == 0 && modify->compute[icompute]->vector_flag) {
+                  nmax = modify->compute[icompute]->size_vector;
+                  expandflag = 1;
+                } else if (mode == 1 && modify->compute[icompute]->array_flag) {
+                  nmax = modify->compute[icompute]->size_array_cols;
+                  expandflag = 1;
+                } else if (modify->compute[icompute]->peratom_flag &&
                            modify->compute[icompute]->size_peratom_cols) {
-		  nmax = modify->compute[icompute]->size_peratom_cols;
-		  expandflag = 1;
-                } else if (modify->compute[icompute]->local_flag && 
+                  nmax = modify->compute[icompute]->size_peratom_cols;
+                  expandflag = 1;
+                } else if (modify->compute[icompute]->local_flag &&
                            modify->compute[icompute]->size_local_cols) {
-		  nmax = modify->compute[icompute]->size_local_cols;
-		  expandflag = 1;
-		}
-	      }	      
-	    } else if (arg[iarg][0] == 'f') {
-	      *ptr1 = '\0';
-	      ifix = modify->find_fix(&arg[iarg][2]);
-	      *ptr1 = '[';
+                  nmax = modify->compute[icompute]->size_local_cols;
+                  expandflag = 1;
+                }
+              }
+            } else if (arg[iarg][0] == 'f') {
+              *ptr1 = '\0';
+              ifix = modify->find_fix(&arg[iarg][2]);
+              *ptr1 = '[';
 
               // check for global vector/array, peratom array, local array
 
-	      if (ifix >= 0) {
-		if (mode == 0 && modify->fix[ifix]->vector_flag) {
-		  nmax = modify->fix[ifix]->size_vector;
-		  expandflag = 1;
-		} else if (mode == 1 && modify->fix[ifix]->array_flag) {
-		  nmax = modify->fix[ifix]->size_array_cols;
-		  expandflag = 1;
-                } else if (modify->fix[ifix]->peratom_flag && 
+              if (ifix >= 0) {
+                if (mode == 0 && modify->fix[ifix]->vector_flag) {
+                  nmax = modify->fix[ifix]->size_vector;
+                  expandflag = 1;
+                } else if (mode == 1 && modify->fix[ifix]->array_flag) {
+                  nmax = modify->fix[ifix]->size_array_cols;
+                  expandflag = 1;
+                } else if (modify->fix[ifix]->peratom_flag &&
                            modify->fix[ifix]->size_peratom_cols) {
-		  nmax = modify->fix[ifix]->size_peratom_cols;
-		  expandflag = 1;
-                } else if (modify->fix[ifix]->local_flag && 
+                  nmax = modify->fix[ifix]->size_peratom_cols;
+                  expandflag = 1;
+                } else if (modify->fix[ifix]->local_flag &&
                            modify->fix[ifix]->size_local_cols) {
-		  nmax = modify->fix[ifix]->size_local_cols;
-		  expandflag = 1;
-		}
-	      }
-	    }
-	  }
-	  *ptr2 = ']';
-	}
+                  nmax = modify->fix[ifix]->size_local_cols;
+                  expandflag = 1;
+                }
+              }
+            }
+          }
+          *ptr2 = ']';
+        }
       }
     }
 
@@ -690,23 +690,23 @@ int Input::expand_args(int narg, char **arg, int mode, char **&earg)
       force->bounds(FLERR,ptr1+1,nmax,nlo,nhi);
       *ptr2 = ']';
       if (newarg+nhi-nlo+1 > maxarg) {
-	maxarg += nhi-nlo+1;
-	earg = (char **) 
+        maxarg += nhi-nlo+1;
+        earg = (char **)
           memory->srealloc(earg,maxarg*sizeof(char *),"input:earg");
       }
       for (index = nlo; index <= nhi; index++) {
-	n = strlen(arg[iarg]) + 16;   // 16 = space for large inserted integer
-	str = earg[newarg] = new char[n];
-	strncpy(str,arg[iarg],ptr1+1-arg[iarg]);
-	sprintf(&str[ptr1+1-arg[iarg]],"%d",index);
-	strcat(str,ptr2);
+        n = strlen(arg[iarg]) + 16;   // 16 = space for large inserted integer
+        str = earg[newarg] = new char[n];
+        strncpy(str,arg[iarg],ptr1+1-arg[iarg]);
+        sprintf(&str[ptr1+1-arg[iarg]],"%d",index);
+        strcat(str,ptr2);
         newarg++;
       }
 
     } else {
       if (newarg == maxarg) {
-	maxarg++;
-	earg = (char **) 
+        maxarg++;
+        earg = (char **)
           memory->srealloc(earg,maxarg*sizeof(char *),"input:earg");
       }
       n = strlen(arg[iarg]) + 1;

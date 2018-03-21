@@ -38,7 +38,8 @@ extern "C" {
   void latte(int *, int *, double *, int *, int *,
              double *, double *, double *, double *,
              double *, double *, double *, int*,
-             double *, double *, double *, double * );
+             double *, double *, double *, double *, bool *);
+  int latte_abiversion();
 }
 
 #define INVOKED_PERATOM 8
@@ -53,6 +54,9 @@ FixLatte::FixLatte(LAMMPS *lmp, int narg, char **arg) :
 
   if (comm->nprocs != 1)
     error->all(FLERR,"Fix latte currently runs only in serial");
+
+  if (20180207 != latte_abiversion())
+    error->all(FLERR,"LAMMPS is linked against incompatible LATTE library");
 
   if (narg != 4) error->all(FLERR,"Illegal fix latte command");
 
@@ -267,7 +271,7 @@ void FixLatte::post_force(int vflag)
   flags[1] = coulombflag;     // 1 for LAMMPS computes Coulombics, 0 for LATTE
   flags[2] = eflag_atom;      // 1 to return per-atom energies, 0 for no
   flags[3] = vflag_global && thermo_virial;    // 1 to return global/per-atom
-  flags[4] = vflag_atom && thermo_virial;      //   virial, 0 for no       
+  flags[4] = vflag_atom && thermo_virial;      //   virial, 0 for no
   flags[5] = neighflag;       // 1 to pass neighbor list to LATTE, 0 for no
 
   // setup LATTE arguments
@@ -279,16 +283,17 @@ void FixLatte::post_force(int vflag)
   double *mass = &atom->mass[1];
   double *boxlo = domain->boxlo;
   double *boxhi = domain->boxhi;
-
   double *forces;
+  bool latteerror = 0;
   if (coulomb) forces = &flatte[0][0];
   else forces = &atom->f[0][0];
-
   int maxiter = -1;
-  
+
   latte(flags,&natoms,coords,type,&ntypes,mass,boxlo,boxhi,&domain->xy,
-        &domain->xz,&domain->yz,
-        forces,&maxiter,&latte_energy,&atom->v[0][0],&update->dt,virial);
+        &domain->xz,&domain->yz,forces,&maxiter,&latte_energy,
+        &atom->v[0][0],&update->dt,virial,&latteerror);
+
+  if (latteerror) error->all(FLERR,"Internal LATTE problem");
 
   // sum LATTE forces to LAMMPS forces
   // e.g. LAMMPS may compute Coulombics at some point

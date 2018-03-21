@@ -44,8 +44,8 @@ enum{PERATOM,LOCAL};
 
 ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  nvalues(0), which(NULL), argindex(NULL), flavor(NULL), 
-  value2index(NULL), ids(NULL), onevec(NULL), replace(NULL), indices(NULL), 
+  nvalues(0), which(NULL), argindex(NULL), flavor(NULL),
+  value2index(NULL), ids(NULL), onevec(NULL), replace(NULL), indices(NULL),
   owner(NULL), idregion(NULL), varatom(NULL)
 {
   int iarg = 0;

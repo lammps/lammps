@@ -12,10 +12,10 @@
  ------------------------------------------------------------------------- */
 
 /*-----------------------------------------------------------------------
-   This is a Child Class PairMDPD for taking care of density summation 
+   This is a Child Class PairMDPD for taking care of density summation
    before the force calculation.
    The code uses 3D Lucy kernel, it can be modified for other kernels.
-      
+
    Contributing author: Zhen Li (Brown University)
 ------------------------------------------------------------------------- */
 
@@ -62,7 +62,11 @@ PairMDPDRhoSum::~PairMDPDRhoSum() {
  init specific to this pair style
  ------------------------------------------------------------------------- */
 
-void PairMDPDRhoSum::init_style() {
+void PairMDPDRhoSum::init_style()
+{
+  if (!atom->rho_flag)
+    error->all(FLERR,"Pair style mdpd/rhosum requires atom attribute rho");
+
   // need a full neighbor list
   int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->half = 0;
@@ -121,7 +125,7 @@ void PairMDPDRhoSum::compute(int eflag, int vflag) {
     wf = 2.0889086280811262819e0 / (h * h * h);
     rho[i] = 0;
   }
-  
+
   // add density at each atom via kernel function overlap
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];

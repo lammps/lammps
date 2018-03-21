@@ -111,7 +111,7 @@ class Molecule : protected Pointers {
 
   double *quat_external;   // orientation imposed by external class
                            // e.g. FixPour or CreateAtoms
-  
+
   Molecule(class LAMMPS *, int, char **, int &);
   ~Molecule();
   void compute_center();
@@ -127,7 +127,7 @@ class Molecule : protected Pointers {
   int toffset,boffset,aoffset,doffset,ioffset;
   int autospecial;
   double sizescale;
-  
+
   void read(int);
   void coords(char *);
   void types(char *);

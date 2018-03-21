@@ -93,13 +93,13 @@ void FixQEqReaxKokkos<DeviceType>::init()
 
   neighflag = lmp->kokkos->neighflag_qeq;
   int irequest = neighbor->nrequest - 1;
-  
+
   neighbor->requests[irequest]->
     kokkos_host = Kokkos::Impl::is_same<DeviceType,LMPHostType>::value &&
     !Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
   neighbor->requests[irequest]->
     kokkos_device = Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
-    
+
   if (neighflag == FULL) {
     neighbor->requests[irequest]->fix = 1;
     neighbor->requests[irequest]->pair = 0;
@@ -214,8 +214,6 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int vflag)
 
   copymode = 1;
 
-  int teamsize = TEAMSIZE;
-
   // allocate
   allocate_array();
 
@@ -281,7 +279,6 @@ void FixQEqReaxKokkos<DeviceType>::num_neigh_item(int ii, int &maxneigh) const
 template<class DeviceType>
 void FixQEqReaxKokkos<DeviceType>::allocate_matrix()
 {
-  int i,ii,m;
   const int inum = list->inum;
 
   nmax = atom->nmax;
@@ -369,7 +366,7 @@ KOKKOS_INLINE_FUNCTION
 void FixQEqReaxKokkos<DeviceType>::compute_h_item(int ii, int &m_fill, const bool &final) const
 {
   const int i = d_ilist[ii];
-  int j,jj,jtype,flag;
+  int j,jj,jtype;
 
   if (mask[i] & groupbit) {
 
@@ -471,7 +468,6 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
 // b = b_s, x = s;
 {
   const int inum = list->inum;
-  const int ignum = inum + list->gnum;
   F_FLOAT tmp, sig_old, b_norm;
 
   const int teamsize = TEAMSIZE;
@@ -602,7 +598,6 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
 // b = b_t, x = t;
 {
   const int inum = list->inum;
-  const int ignum = inum + list->gnum;
   F_FLOAT tmp, sig_old, b_norm;
 
   const int teamsize = TEAMSIZE;

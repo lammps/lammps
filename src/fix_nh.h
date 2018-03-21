@@ -221,9 +221,9 @@ Self-explanatory.
 E: Using update dipole flag requires atom attribute mu
 
 Self-explanatory.
- 
+
 E: The dlm flag must be used with update dipole
- 
+
 Self-explanatory.
 
 E: Fix nvt/npt/nph damping parameters must be > 0.0

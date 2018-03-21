@@ -53,7 +53,7 @@ int xdr3dfcoord(XDR *, float *, int *, float *);
 
 /* ---------------------------------------------------------------------- */
 
-DumpXTC::DumpXTC(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg), 
+DumpXTC::DumpXTC(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
   coords(NULL)
 {
   if (narg != 5) error->all(FLERR,"Illegal dump xtc command");

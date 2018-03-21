@@ -55,6 +55,7 @@ using namespace LAMMPS_NS;
 PairTersoffTable::PairTersoffTable(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
+  restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
 
@@ -939,8 +940,10 @@ void PairTersoffTable::read_file(char *file)
     params[nparams].beta = atof(words[10]);
     params[nparams].lam2 = atof(words[11]);
     params[nparams].bigb = atof(words[12]);
+
     // current implementation is based on functional form
     // of tersoff_2 as reported in the reference paper
+
     double bigr = atof(words[13]);
     double bigd = atof(words[14]);
     params[nparams].cutoffR = bigr - bigd;
@@ -948,15 +951,17 @@ void PairTersoffTable::read_file(char *file)
     params[nparams].lam1 = atof(words[15]);
     params[nparams].biga = atof(words[16]);
 
-    // currently only allow m exponent of 1 or 3
-    params[nparams].powermint = int(params[nparams].powerm);
-
-    if (params[nparams].c < 0.0 || params[nparams].d < 0.0 ||
-        params[nparams].powern < 0.0 || params[nparams].beta < 0.0 ||
-        params[nparams].lam2 < 0.0 || params[nparams].bigb < 0.0 ||
-        params[nparams].cutoffR < 0.0 ||params[nparams].cutoffS < 0.0 ||
+    if (params[nparams].c < 0.0 ||
+        params[nparams].d < 0.0 ||
+        params[nparams].powern < 0.0 ||
+        params[nparams].beta < 0.0 ||
+        params[nparams].lam2 < 0.0 ||
+        params[nparams].bigb < 0.0 ||
+        params[nparams].cutoffR < 0.0 ||
+        params[nparams].cutoffS < 0.0 ||
         params[nparams].cutoffR > params[nparams].cutoffS ||
-        params[nparams].lam1 < 0.0 || params[nparams].biga < 0.0
+        params[nparams].lam1 < 0.0 ||
+        params[nparams].biga < 0.0
     ) error->all(FLERR,"Illegal Tersoff parameter");
 
     // only tersoff_2 parametrization is implemented

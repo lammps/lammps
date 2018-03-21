@@ -335,7 +335,7 @@ int AtomVecDPDKokkos::pack_comm_kokkos(const int &n,
     }
   }
 
-	return n*size_forward;
+        return n*size_forward;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -368,7 +368,7 @@ struct AtomVecDPDKokkos_PackCommSelf {
       _dpdTheta(dpdTheta.view<DeviceType>()),
       _uCond(uCond.view<DeviceType>()),
       _uMech(uMech.view<DeviceType>()),
-      _uChem(uChem.view<DeviceType>()),      
+      _uChem(uChem.view<DeviceType>()),
       _nfirst(nfirst),_list(list.view<DeviceType>()),_iswap(iswap),
       _xprd(xprd),_yprd(yprd),_zprd(zprd),
       _xy(xy),_xz(xz),_yz(yz) {
@@ -397,14 +397,14 @@ struct AtomVecDPDKokkos_PackCommSelf {
       _dpdTheta(i+_nfirst) = _dpdTheta(j);
       _uCond(i+_nfirst) = _uCond(j);
       _uMech(i+_nfirst) = _uMech(j);
-      _uChem(i+_nfirst) = _uChem(j); 
+      _uChem(i+_nfirst) = _uChem(j);
   }
 };
 
 /* ---------------------------------------------------------------------- */
 
 int AtomVecDPDKokkos::pack_comm_self(const int &n, const DAT::tdual_int_2d &list, const int & iswap,
-										const int nfirst, const int &pbc_flag, const int* const pbc) {
+                                                                                const int nfirst, const int &pbc_flag, const int* const pbc) {
   if(commKK->forward_comm_on_host) {
     sync(Host,X_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
     modified(Host,X_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
@@ -478,7 +478,7 @@ int AtomVecDPDKokkos::pack_comm_self(const int &n, const DAT::tdual_int_2d &list
       }
     }
   }
-	return n*3;
+        return n*3;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -656,7 +656,7 @@ int AtomVecDPDKokkos::pack_comm_vel(int n, int *list, double *buf,
         buf[m++] = h_dpdTheta(j);
         buf[m++] = h_uCond(j);
         buf[m++] = h_uMech(j);
-        buf[m++] = h_uChem(j); 
+        buf[m++] = h_uChem(j);
       }
     }
   }

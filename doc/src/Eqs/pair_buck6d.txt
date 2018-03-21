@@ -1,0 +1,9 @@
+\documentclass[12pt]{article}
+
+\begin{document}
+
+\begin{eqnarray*}
+  E = A e^{-\kappa r} - \frac{C}{r^6} \cdot \frac{1}{1 + D r^{14}} \qquad r < r_c \\
+\end{eqnarray*}
+
+\end{document}

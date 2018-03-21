@@ -48,6 +48,7 @@ FixTempRescale::FixTempRescale(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   global_freq = nevery;
   extscalar = 1;
+  dynamic_group_allow = 1;
 
   tstr = NULL;
   if (strstr(arg[4],"v_") == arg[4]) {

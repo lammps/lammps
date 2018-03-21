@@ -418,12 +418,12 @@ void BO( reax_system *system, control_params *control, simulation_data *data,
           bo_ij->C2dbo = 0.000000;
           bo_ij->C3dbo = 0.000000;
 
-          bo_ij->C1dbopi = bo_ij->BO_pi;
+          bo_ij->C1dbopi = 1.000000;
           bo_ij->C2dbopi = 0.000000;
           bo_ij->C3dbopi = 0.000000;
           bo_ij->C4dbopi = 0.000000;
 
-          bo_ij->C1dbopi2 = bo_ij->BO_pi2;
+          bo_ij->C1dbopi2 = 1.000000;
           bo_ij->C2dbopi2 = 0.000000;
           bo_ij->C3dbopi2 = 0.000000;
           bo_ij->C4dbopi2 = 0.000000;

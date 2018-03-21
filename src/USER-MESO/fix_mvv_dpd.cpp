@@ -12,8 +12,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   This is a time integrator for position and velocity (x and v) using the 
-   modified velocity-Verlet (MVV) algorithm. 
+   This is a time integrator for position and velocity (x and v) using the
+   modified velocity-Verlet (MVV) algorithm.
    Setting verlet = 0.5 recovers the standard velocity-Verlet algorithm.
 
    Contributing author: Zhen Li (Brown University)
@@ -61,6 +61,9 @@ int FixMvvDPD::setmask()
 
 void FixMvvDPD::init()
 {
+  if (!atom->vest_flag)
+    error->all(FLERR,"Fix mvv/dpd requires atom attribute vest");
+
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
 }
@@ -87,7 +90,7 @@ void FixMvvDPD::initial_integrate(int vflag)
   if (mask[i] & groupbit) {
      if (rmass) dtfm = dtf / rmass[i];
      else dtfm = dtf / mass[type[i]];
-       
+
      vest[i][0] = v[i][0] + dtfm * f[i][0];
      vest[i][1] = v[i][1] + dtfm * f[i][1];
      vest[i][2] = v[i][2] + dtfm * f[i][2];

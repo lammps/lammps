@@ -37,8 +37,8 @@ FixStyle(smd/integrate_tlsph,FixSMDIntegrateTlsph)
 namespace LAMMPS_NS {
 
 class FixSMDIntegrateTlsph: public Fix {
-	friend class Neighbor;
-	friend class PairTlsph;
+        friend class Neighbor;
+        friend class PairTlsph;
 public:
     FixSMDIntegrateTlsph(class LAMMPS *, int, char **);
     virtual ~FixSMDIntegrateTlsph() {

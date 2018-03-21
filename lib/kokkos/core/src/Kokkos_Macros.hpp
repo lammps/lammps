@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -100,6 +100,12 @@
     defined(KOKKOS_ENABLE_OPENMP) || defined(KOKKOS_ENABLE_QTHREADS) || \
     defined(KOKKOS_ENABLE_ROCM) || defined(KOKKOS_ENABLE_OPENMPTARGET)
   #define KOKKOS_INTERNAL_ENABLE_NON_CUDA_BACKEND
+#endif
+
+#if !defined(KOKKOS_ENABLE_THREADS) && !defined(KOKKOS_ENABLE_CUDA) && \
+    !defined(KOKKOS_ENABLE_OPENMP) && !defined(KOKKOS_ENABLE_QTHREADS) && \
+    !defined(KOKKOS_ENABLE_ROCM) && !defined(KOKKOS_ENABLE_OPENMPTARGET)
+  #define KOKKOS_INTERNAL_NOT_PARALLEL
 #endif
 
 #define KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA
@@ -170,6 +176,7 @@
   #define KOKKOS_INLINE_FUNCTION       __device__  __host__  inline
   #define KOKKOS_FUNCTION              __device__  __host__
   #ifdef KOKKOS_COMPILER_CLANG
+  #define KOKKOS_INLINE_FUNCTION_DEFAULTED KOKKOS_INLINE_FUNCTION
   #define KOKKOS_FUNCTION_DEFAULTED KOKKOS_FUNCTION
   #endif
 #endif // #if defined( __CUDA_ARCH__ )
@@ -180,6 +187,7 @@
   #define KOKKOS_INLINE_FUNCTION       __attribute__((amp,cpu)) inline
   #define KOKKOS_FUNCTION              __attribute__((amp,cpu))
   #define KOKKOS_LAMBDA                [=] __attribute__((amp,cpu))
+  #define KOKKOS_INLINE_FUNCTION_DEFAULTED KOKKOS_INLINE_FUNCTION
   #define KOKKOS_FUNCTION_DEFAULTED    KOKKOS_FUNCTION
 #endif
 
@@ -416,6 +424,7 @@
 #endif
 
 #if !defined( KOKKOS_FUNCTION_DEFAULTED )
+  #define KOKKOS_INLINE_FUNCTION_DEFAULTED inline
   #define KOKKOS_FUNCTION_DEFAULTED /**/
 #endif
 
@@ -430,11 +439,11 @@
 // Define Macro for alignment:
 
 #if ! defined( KOKKOS_MEMORY_ALIGNMENT )
-  #define KOKKOS_MEMORY_ALIGNMENT 16
+  #define KOKKOS_MEMORY_ALIGNMENT 64
 #endif
 
 #if ! defined( KOKKOS_MEMORY_ALIGNMENT_THRESHOLD )
-  #define KOKKOS_MEMORY_ALIGNMENT_THRESHOLD 4
+  #define KOKKOS_MEMORY_ALIGNMENT_THRESHOLD 1
 #endif
 
 #if !defined( KOKKOS_IMPL_ALIGN_PTR )

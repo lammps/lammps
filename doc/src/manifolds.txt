@@ -6,7 +6,7 @@
 
 :line
 
-Manifolds (surfaces) :h3
+Manifolds (surfaces) :h1
 
 [Overview:]
 

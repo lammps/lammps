@@ -65,7 +65,7 @@ enum{FULL_BODY,INITIAL,FINAL,FORCE_TORQUE,VCM_ANGMOM,XCM_MASS,ITENSOR,DOF};
 /* ---------------------------------------------------------------------- */
 
 FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), step_respa(NULL), 
+  Fix(lmp, narg, arg), step_respa(NULL),
   infile(NULL), body(NULL), bodyown(NULL), bodytag(NULL), atom2body(NULL),
   xcmimage(NULL), displace(NULL), eflags(NULL), orient(NULL), dorient(NULL),
   avec_ellipsoid(NULL), avec_line(NULL), avec_tri(NULL), counts(NULL),
@@ -138,7 +138,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
         MPI_Allreduce(&vmin,&minval,1,MPI_INT,MPI_MIN,world);
 
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit) 
+          if (mask[i] & groupbit)
             bodyid[i] = (tagint)(value[i] - minval + 1);
           else bodyid[i] = 0;
 
@@ -267,7 +267,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid/small command");
       if (strcmp(style,"rigid/npt/small") != 0 &&
           strcmp(style,"rigid/nph/small") != 0)
-	      error->all(FLERR,"Illegal fix rigid/small command");
+              error->all(FLERR,"Illegal fix rigid/small command");
       pcouple = XYZ;
       p_start[0] = p_start[1] = p_start[2] = force->numeric(FLERR,arg[iarg+1]);
       p_stop[0] = p_stop[1] = p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
@@ -275,8 +275,8 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
         force->numeric(FLERR,arg[iarg+3]);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (domain->dimension == 2) {
-	      p_start[2] = p_stop[2] = p_period[2] = 0.0;
-      	p_flag[2] = 0;
+              p_start[2] = p_stop[2] = p_period[2] = 0.0;
+        p_flag[2] = 0;
       }
       iarg += 4;
 
@@ -284,15 +284,15 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid/small command");
       if (strcmp(style,"rigid/npt/small") != 0 &&
           strcmp(style,"rigid/nph/small") != 0)
-	      error->all(FLERR,"Illegal fix rigid/small command");
+              error->all(FLERR,"Illegal fix rigid/small command");
       p_start[0] = p_start[1] = p_start[2] = force->numeric(FLERR,arg[iarg+1]);
       p_stop[0] = p_stop[1] = p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
       p_period[0] = p_period[1] = p_period[2] =
         force->numeric(FLERR,arg[iarg+3]);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (domain->dimension == 2) {
-      	p_start[2] = p_stop[2] = p_period[2] = 0.0;
-	      p_flag[2] = 0;
+        p_start[2] = p_stop[2] = p_period[2] = 0.0;
+              p_flag[2] = 0;
       }
       iarg += 4;
 
@@ -801,14 +801,14 @@ void FixRigidSmall::post_force(int vflag)
     vcm = body[ibody].vcm;
     omega = body[ibody].omega;
     inertia = body[ibody].inertia;
-    
+
     gamma1 = -body[ibody].mass / t_period / ftm2v;
     gamma2 = sqrt(body[ibody].mass) * tsqrt *
       sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
     langextra[ibody][0] = gamma1*vcm[0] + gamma2*(random->uniform()-0.5);
     langextra[ibody][1] = gamma1*vcm[1] + gamma2*(random->uniform()-0.5);
     langextra[ibody][2] = gamma1*vcm[2] + gamma2*(random->uniform()-0.5);
-    
+
     gamma1 = -1.0 / t_period / ftm2v;
     gamma2 = tsqrt * sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
     langextra[ibody][3] = inertia[0]*gamma1*omega[0] +

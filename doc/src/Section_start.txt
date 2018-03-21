@@ -259,7 +259,6 @@ within the LAMMPS code.  The options that are currently recognized are:
 -DLAMMPS_PNG
 -DLAMMPS_FFMPEG
 -DLAMMPS_MEMALIGN
--DLAMMPS_XDR
 -DLAMMPS_SMALLBIG
 -DLAMMPS_BIGBIG
 -DLAMMPS_SMALLSMALL
@@ -307,11 +306,6 @@ vector instructions of modern CPUS, since dynamically allocated memory
 has to be aligned on larger than default byte boundaries (e.g. 16
 bytes instead of 8 bytes on x86 type platforms) for optimal
 performance.
-
-If you use -DLAMMPS_XDR, the build will include XDR compatibility
-files for doing particle dumps in XTC format.  This is only necessary
-if your platform does have its own XDR files available.  See the
-Restrictions section of the "dump"_dump.html command for details.
 
 Use at most one of the -DLAMMPS_SMALLBIG, -DLAMMPS_BIGBIG,
 -DLAMMPS_SMALLSMALL settings.  The default is -DLAMMPS_SMALLBIG. These
@@ -808,6 +802,10 @@ Typing "make package-status" or "make ps" will show which packages are
 currently installed. For those that are installed, it will list any
 files that are different in the src directory and package
 sub-directory.
+
+Typing "make package-installed" or "make pi" will list which packages are
+currently installed, without listing the status of packages that are not
+installed.
 
 Typing "make package-update" or "make pu" will overwrite src files
 with files from the package sub-directories if the package is

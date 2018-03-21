@@ -57,6 +57,7 @@ class FixGCMC : public Fix {
   double memory_usage();
   void write_restart(FILE *);
   void restart(char *);
+  void grow_molecule_arrays(int);
 
  private:
   int molecule_group,molecule_group_bit;
@@ -64,10 +65,12 @@ class FixGCMC : public Fix {
   int exclusion_group,exclusion_group_bit;
   int ngcmc_type,nevery,seed;
   int ncycles,nexchanges,nmcmoves;
+  double patomtrans, pmoltrans, pmolrotate, pmctot;
   int ngas;                 // # of gas atoms on all procs
   int ngas_local;           // # of gas atoms on this proc
   int ngas_before;          // # of gas atoms on procs < this proc
-  int mode;                 // ATOM or MOLECULE
+  int exchmode;             // exchange ATOM or MOLECULE
+  int movemode;             // move ATOM or MOLECULE
   int regionflag;           // 0 = anywhere in box, 1 = specific region
   int iregion;              // gcmc region
   char *idregion;           // gcmc region id
@@ -75,7 +78,8 @@ class FixGCMC : public Fix {
   bool charge_flag;         // true if user specified atomic charge
   bool full_flag;           // true if doing full system energy calculations
 
-  int natoms_per_molecule;  // number of atoms in each gas molecule
+  int natoms_per_molecule;  // number of atoms in each inserted molecule
+  int nmaxmolatoms;         // number of atoms allocated for molecule arrays
 
   int groupbitall;          // group bitmask for inserted atoms
   int ngroups;              // number of group-ids for inserted atoms
@@ -110,11 +114,13 @@ class FixGCMC : public Fix {
   double *sublo,*subhi;
   int *local_gas_list;
   double **cutsq;
-  double **atom_coord;
+  double **molcoords;
+  double *molq;
+  imageint *molimage;
   imageint imagezero;
-  double overlap_cutoffsq; // square distance cutoff for overlap 
+  double overlap_cutoffsq; // square distance cutoff for overlap
   int overlap_flag;
-  
+
   double energy_intra;
 
   class Pair *pair;
@@ -126,8 +132,6 @@ class FixGCMC : public Fix {
 
   class Molecule **onemols;
   int imol,nmol;
-  double **coords;
-  imageint *imageflags;
   class Fix *fixrigid, *fixshake;
   int rigidflag, shakeflag;
   char *idrigid, *idshake;
@@ -215,13 +219,19 @@ W: Fix gcmc using full_energy option
 Fix gcmc has automatically turned on the full_energy option since it
 is required for systems like the one specified by the user. User input
 included one or more of the following: kspace, a hybrid
-pair style, an eam pair style, tail correction, 
+pair style, an eam pair style, tail correction,
 or no "single" function for the pair style.
 
-W: Energy of old configuration in fix gcmc is > MAXENERGYTEST. 
+W: Energy of old configuration in fix gcmc is > MAXENERGYTEST.
 
-This probably means that a pair of atoms are closer than the 
+This probably means that a pair of atoms are closer than the
 overlap cutoff distance for keyword overlap_cutoff.
+
+W: Fix gcmc is being applied to the default group all
+
+This is allowed, but it will result in Monte Carlo moves
+being performed on all the atoms in the system, which is
+often not what is intended.
 
 E: Invalid atom type in fix gcmc command
 

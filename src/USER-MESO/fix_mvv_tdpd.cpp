@@ -12,15 +12,15 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   This is a time integrator for position, velocity and concentration (x, 
-   v and cc) using the modified velocity-Verlet (MVV) algorithm. 
+   This is a time integrator for position, velocity and concentration (x,
+   v and cc) using the modified velocity-Verlet (MVV) algorithm.
    Setting verlet = 0.5 recovers the standard velocity-Verlet algorithm.
 
    Contributing author: Zhen Li (Brown University)
    Email: zhen_li@brown.edu
 
    Please cite the related publication:
-   Z. Li, A. Yazdani, A. Tartakovsky and G.E. Karniadakis. "Transport 
+   Z. Li, A. Yazdani, A. Tartakovsky and G.E. Karniadakis. "Transport
    dissipative particle dynamics model for mesoscopic advection-diffusion
    -reaction problems". The Journal of Chemical Physics, 2015, 143: 014101.
 ------------------------------------------------------------------------- */
@@ -98,7 +98,7 @@ void FixMvvTDPD::initial_integrate(int vflag)
   if (mask[i] & groupbit) {
      if (rmass) dtfm = dtf / rmass[i];
      else dtfm = dtf / mass[type[i]];
-        
+
      vest[i][0] = v[i][0] + dtfm * f[i][0];
      vest[i][1] = v[i][1] + dtfm * f[i][1];
      vest[i][2] = v[i][2] + dtfm * f[i][2];

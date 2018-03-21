@@ -600,7 +600,7 @@ double PairMEAMSpline::init_one(int i, int j)
 /* ---------------------------------------------------------------------- */
 
 int PairMEAMSpline::pack_forward_comm(int n, int *list, double *buf,
-				      int pbc_flag, int *pbc)
+                                      int pbc_flag, int *pbc)
 {
   int* list_iter = list;
   int* list_iter_end = list + n;
@@ -640,7 +640,7 @@ double PairMEAMSpline::memory_usage()
 
 /// Parses the spline knots from a text file.
 void PairMEAMSpline::SplineFunction::parse(FILE* fp, Error* error,
-					   bool isNewFormat)
+                                           bool isNewFormat)
 {
   char line[MAXLINE];
 
@@ -756,7 +756,7 @@ void PairMEAMSpline::SplineFunction::communicate(MPI_Comm& world, int me)
 ///
 /// This function is for debugging only!
 void PairMEAMSpline::SplineFunction::writeGnuplot(const char* filename,
-						  const char* title) const
+                                                  const char* title) const
 {
   FILE* fp = fopen(filename, "w");
   fprintf(fp, "#!/usr/bin/env gnuplot\n");

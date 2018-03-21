@@ -85,10 +85,10 @@ void StabCholesky(int n, const double* MMt, double* M)
     for(i=0; i<n; ++i)
     {
 #ifdef GLE_DEBUG
-		if (D[i]<0) fprintf(stderr,"GLE Cholesky: Negative diagonal term %le, has been set to zero.\n", D[i]);
+                if (D[i]<0) fprintf(stderr,"GLE Cholesky: Negative diagonal term %le, has been set to zero.\n", D[i]);
 #endif
-		D[i]=(D[i]>0.?sqrt(D[i]):0.);
-	}
+                D[i]=(D[i]>0.?sqrt(D[i]):0.);
+        }
 
     for(i=0; i<n; ++i) for (j=0; j<n; j++) M[midx(n,i,j)]=L[midx(n,i,j)]*D[j];
 }

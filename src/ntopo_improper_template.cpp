@@ -30,7 +30,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NTopoImproperTemplate::NTopoImproperTemplate(LAMMPS *lmp) : 
+NTopoImproperTemplate::NTopoImproperTemplate(LAMMPS *lmp) :
   NTopo(lmp)
 {
   allocate_improper();

@@ -38,7 +38,7 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralFourier::DihedralFourier(LAMMPS *lmp) : Dihedral(lmp) 
+DihedralFourier::DihedralFourier(LAMMPS *lmp) : Dihedral(lmp)
 {
    writedata = 1;
 }

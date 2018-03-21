@@ -40,7 +40,7 @@ class PairTersoffMOD : public PairTersoff {
   double ters_bij(double, Param *);
   double ters_bij_d(double, Param *);
   void ters_zetaterm_d(double, double *, double, double *, double,
-			       double *, double *, double *, Param *);
+                               double *, double *, double *, Param *);
 
   // inlined functions for efficiency
   // these replace but do not override versions in PairTersoff

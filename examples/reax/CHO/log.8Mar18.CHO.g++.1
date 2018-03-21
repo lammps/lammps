@@ -1,0 +1,81 @@
+LAMMPS (8 Mar 2018)
+  using 1 OpenMP thread(s) per MPI task
+# REAX potential for CHO system
+# .....
+
+units		real
+
+atom_style	charge
+read_data	data.CHO
+  orthogonal box = (0 0 0) to (25 25 25)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  105 atoms
+
+pair_style	reax/c lmp_control
+pair_coeff	* * ffield.reax.cho H C O
+Reading potential file ffield.reax.cho with DATE: 2011-02-18
+
+neighbor	2 bin
+neigh_modify	every 10 delay 0 check no
+
+fix		1 all nve
+fix             2 all qeq/reax 1 0.0 10.0 1e-6 param.qeq
+fix             3 all temp/berendsen 500.0 500.0 100.0
+
+timestep	0.25
+
+#dump		1 all atom 30 dump.reax.cho
+
+run		3000
+Neighbor list info ...
+  update every 10 steps, delay 0 steps, check no
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12
+  ghost atom cutoff = 12
+  binsize = 6, bins = 5 5 5
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair reax/c, perpetual
+      attributes: half, newton off, ghost
+      pair build: half/bin/newtoff/ghost
+      stencil: half/ghost/bin/3d/newtoff
+      bin: standard
+  (2) fix qeq/reax, perpetual, copy from (1)
+      attributes: half, newton off, ghost
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 18.68 | 18.68 | 18.68 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            0   -10226.557            0   -10226.557   -106.09755 
+    3000     548.5116   -10170.389            0   -10000.348    40.372297 
+Loop time of 12.6046 on 1 procs for 3000 steps with 105 atoms
+
+Performance: 5.141 ns/day, 4.668 hours/ns, 238.008 timesteps/s
+98.9% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 10.931     | 10.931     | 10.931     |   0.0 | 86.72
+Neigh   | 0.33107    | 0.33107    | 0.33107    |   0.0 |  2.63
+Comm    | 0.017975   | 0.017975   | 0.017975   |   0.0 |  0.14
+Output  | 2.0742e-05 | 2.0742e-05 | 2.0742e-05 |   0.0 |  0.00
+Modify  | 1.3197     | 1.3197     | 1.3197     |   0.0 | 10.47
+Other   |            | 0.005059   |            |       |  0.04
+
+Nlocal:    105 ave 105 max 105 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    643 ave 643 max 643 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    4237 ave 4237 max 4237 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 4237
+Ave neighs/atom = 40.3524
+Neighbor list builds = 300
+Dangerous builds not checked
+
+Please see the log.cite file for references relevant to this simulation
+
+Total wall time: 0:00:12

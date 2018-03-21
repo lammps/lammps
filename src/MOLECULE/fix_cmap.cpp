@@ -62,12 +62,12 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixCMAP::FixCMAP(LAMMPS *lmp, int narg, char **arg) : 
+FixCMAP::FixCMAP(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  crosstermlist(NULL), num_crossterm(NULL), crossterm_type(NULL), 
-  crossterm_atom1(NULL), crossterm_atom2(NULL), crossterm_atom3(NULL), 
+  crosstermlist(NULL), num_crossterm(NULL), crossterm_type(NULL),
+  crossterm_atom1(NULL), crossterm_atom2(NULL), crossterm_atom3(NULL),
   crossterm_atom4(NULL), crossterm_atom5(NULL),
-  g_axis(NULL), cmapgrid(NULL), d1cmapgrid(NULL), d2cmapgrid(NULL), 
+  g_axis(NULL), cmapgrid(NULL), d1cmapgrid(NULL), d2cmapgrid(NULL),
   d12cmapgrid(NULL)
 {
   if (narg != 4) error->all(FLERR,"Illegal fix cmap command");

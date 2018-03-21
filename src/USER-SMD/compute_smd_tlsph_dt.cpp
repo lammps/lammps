@@ -38,71 +38,71 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeSMDTlsphDt::ComputeSMDTlsphDt(LAMMPS *lmp, int narg, char **arg) :
-		Compute(lmp, narg, arg) {
-	if (narg != 3)
-		error->all(FLERR, "Illegal compute smd/tlsph_dt command");
-	if (atom->contact_radius_flag != 1)
-		error->all(FLERR,
-				"compute smd/tlsph_dt command requires atom_style with contact_radius (e.g. smd)");
+                Compute(lmp, narg, arg) {
+        if (narg != 3)
+                error->all(FLERR, "Illegal compute smd/tlsph_dt command");
+        if (atom->contact_radius_flag != 1)
+                error->all(FLERR,
+                                "compute smd/tlsph_dt command requires atom_style with contact_radius (e.g. smd)");
 
-	peratom_flag = 1;
-	size_peratom_cols = 0;
+        peratom_flag = 1;
+        size_peratom_cols = 0;
 
-	nmax = 0;
-	dt_vector = NULL;
+        nmax = 0;
+        dt_vector = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
 
 ComputeSMDTlsphDt::~ComputeSMDTlsphDt() {
-	memory->sfree(dt_vector);
+        memory->sfree(dt_vector);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void ComputeSMDTlsphDt::init() {
 
-	int count = 0;
-	for (int i = 0; i < modify->ncompute; i++)
-		if (strcmp(modify->compute[i]->style, "smd/tlsph_dt") == 0)
-			count++;
-	if (count > 1 && comm->me == 0)
-		error->warning(FLERR, "More than one compute smd/tlsph_dt");
+        int count = 0;
+        for (int i = 0; i < modify->ncompute; i++)
+                if (strcmp(modify->compute[i]->style, "smd/tlsph_dt") == 0)
+                        count++;
+        if (count > 1 && comm->me == 0)
+                error->warning(FLERR, "More than one compute smd/tlsph_dt");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void ComputeSMDTlsphDt::compute_peratom() {
-	invoked_peratom = update->ntimestep;
+        invoked_peratom = update->ntimestep;
 
-	// grow rhoVector array if necessary
+        // grow rhoVector array if necessary
 
-	if (atom->nmax > nmax) {
-		memory->sfree(dt_vector);
-		nmax = atom->nmax;
-		dt_vector = (double *) memory->smalloc(nmax * sizeof(double),
-				"atom:tlsph_dt_vector");
-		vector_atom = dt_vector;
-	}
+        if (atom->nmax > nmax) {
+                memory->sfree(dt_vector);
+                nmax = atom->nmax;
+                dt_vector = (double *) memory->smalloc(nmax * sizeof(double),
+                                "atom:tlsph_dt_vector");
+                vector_atom = dt_vector;
+        }
 
-	int itmp = 0;
-	double *particle_dt = (double *) force->pair->extract("smd/tlsph/particle_dt_ptr",
-			itmp);
-	if (particle_dt == NULL) {
-		error->all(FLERR,
-				"compute smd/tlsph_dt failed to access particle_dt array");
-	}
+        int itmp = 0;
+        double *particle_dt = (double *) force->pair->extract("smd/tlsph/particle_dt_ptr",
+                        itmp);
+        if (particle_dt == NULL) {
+                error->all(FLERR,
+                                "compute smd/tlsph_dt failed to access particle_dt array");
+        }
 
-	int *mask = atom->mask;
-	int nlocal = atom->nlocal;
+        int *mask = atom->mask;
+        int nlocal = atom->nlocal;
 
-	for (int i = 0; i < nlocal; i++) {
-		if (mask[i] & groupbit) {
-			dt_vector[i] = particle_dt[i];
-		} else {
-			dt_vector[i] = 0.0;
-		}
-	}
+        for (int i = 0; i < nlocal; i++) {
+                if (mask[i] & groupbit) {
+                        dt_vector[i] = particle_dt[i];
+                } else {
+                        dt_vector[i] = 0.0;
+                }
+        }
 }
 
 /* ----------------------------------------------------------------------
@@ -110,6 +110,6 @@ void ComputeSMDTlsphDt::compute_peratom() {
  ------------------------------------------------------------------------- */
 
 double ComputeSMDTlsphDt::memory_usage() {
-	double bytes = nmax * sizeof(double);
-	return bytes;
+        double bytes = nmax * sizeof(double);
+        return bytes;
 }

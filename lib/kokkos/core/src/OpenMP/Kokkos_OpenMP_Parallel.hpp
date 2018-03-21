@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -460,25 +460,24 @@ private:
   typedef typename Policy::WorkRange                        WorkRange ;
   typedef typename Policy::member_type                      Member ;
 
-  typedef FunctorAnalysis< FunctorPatternInterface::REDUCE , Policy , FunctorType > Analysis ;
+  typedef FunctorAnalysis< FunctorPatternInterface::REDUCE , MDRangePolicy , FunctorType > Analysis ;
 
   typedef Kokkos::Impl::if_c< std::is_same<InvalidType,ReducerType>::value, FunctorType, ReducerType> ReducerConditional;
   typedef typename ReducerConditional::type ReducerTypeFwd;
   typedef typename Kokkos::Impl::if_c< std::is_same<InvalidType,ReducerType>::value, WorkTag, void>::type WorkTagFwd;
 
-  typedef typename ReducerTypeFwd::value_type ValueType; 
-
   typedef Kokkos::Impl::FunctorValueInit<   ReducerTypeFwd, WorkTagFwd > ValueInit ;
   typedef Kokkos::Impl::FunctorValueJoin<   ReducerTypeFwd, WorkTagFwd > ValueJoin ;
 
   typedef typename Analysis::pointer_type    pointer_type ;
+  typedef typename Analysis::value_type      value_type ;
   typedef typename Analysis::reference_type  reference_type ;
 
   using iterate_type = typename Kokkos::Impl::HostIterateTile< MDRangePolicy
-                                                                           , FunctorType
-                                                                           , WorkTag
-                                                                           , ValueType
-                                                                           >;
+                                                             , FunctorType
+                                                             , WorkTag
+                                                             , reference_type
+                                                             >;
 
         OpenMPExec   * m_instance ;
   const FunctorType   m_functor ;

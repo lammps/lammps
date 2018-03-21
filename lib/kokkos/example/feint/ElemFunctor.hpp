@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -353,10 +353,10 @@ struct LumpElemToNode {
     : m_node_value( node_value )
     , m_elem_value( elem_value )
     , m_node_scan( "node_scan" ,
-                   AlreadyUsedAtomic ? 0 : node_value.dimension_0() + 1 )
+                   AlreadyUsedAtomic ? 0 : node_value.extent(0) + 1 )
     , m_node_elem( "node_elem" ,
-                   AlreadyUsedAtomic ? 0 : elem_node.dimension_0() *
-                                           elem_node.dimension_1() )
+                   AlreadyUsedAtomic ? 0 : elem_node.extent(0) *
+                                           elem_node.extent(1) )
     {
       if ( ! AlreadyUsedAtomic ) {
         map_node_to_elem( elem_node , m_node_scan , m_node_elem );
@@ -442,9 +442,9 @@ void map_node_to_elem( const ViewElemNode & elem_node ,
   const typename ViewNodeElem::HostMirror host_node_elem =
     Kokkos::create_mirror_view(node_elem);
 
-  const int elem_count      = host_elem_node.dimension_0();
-  const int elem_node_count = host_elem_node.dimension_1();
-  const int node_count      = host_node_scan.dimension_0() - 1 ;
+  const int elem_count      = host_elem_node.extent(0);
+  const int elem_node_count = host_elem_node.extent(1);
+  const int node_count      = host_node_scan.extent(0) - 1 ;
 
   const View<int*, host_mirror_space >
     node_elem_count( "node_elem_count" , node_count );

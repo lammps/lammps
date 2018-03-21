@@ -62,9 +62,9 @@ An atom style with this attribute is needed.
 E: Fix nve/sphere requires extended particles
 
 This fix can only be used for particles of a finite size.
- 
+
 E: Fix nve/sphere dlm must be used with update dipole
- 
+
 The DLM algorithm can only be used in conjunction with update dipole.
 
 

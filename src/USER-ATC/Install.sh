@@ -26,6 +26,16 @@ action () {
   fi
 }
 
+# ATC library has a reference to PairEAM, so we must
+# require the MANYBODY package to be installed.
+
+if (test $1 = 1) then
+  if (test ! -e ../pair_eam.cpp) then
+    echo "Must install MANYBODY package with USER-ATC"
+    exit 1
+  fi
+fi
+
 # all package files with no dependencies
 
 for file in *.cpp *.h; do

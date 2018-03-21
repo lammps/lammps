@@ -116,7 +116,7 @@ void FixMomentumKokkos<DeviceType>::end_of_step()
 
     // adjust velocities by vcm to zero linear momentum
     // only adjust a component if flag is set
-    
+
     auto xflag2 = xflag;
     auto yflag2 = yflag;
     auto zflag2 = zflag;

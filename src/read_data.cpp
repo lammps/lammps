@@ -124,7 +124,7 @@ void ReadData::command(int narg, char **arg)
 
   addflag = NONE;
   coeffflag = 1;
-  id_offset = 0;
+  id_offset = mol_offset = 0;
   offsetflag = shiftflag = 0;
   toffset = boffset = aoffset = doffset = ioffset = 0;
   shift[0] = shift[1] = shift[2] = 0.0;
@@ -145,11 +145,21 @@ void ReadData::command(int narg, char **arg)
       if (strcmp(arg[iarg+1],"append") == 0) addflag = APPEND;
       else if (strcmp(arg[iarg+1],"merge") == 0) addflag = MERGE;
       else {
+        if (atom->molecule_flag && (iarg+3 > narg))
+          error->all(FLERR,"Illegal read_data command");
         addflag = VALUE;
         bigint offset = force->bnumeric(FLERR,arg[iarg+1]);
         if (offset > MAXTAGINT)
-          error->all(FLERR,"Read data add offset is too big");
+          error->all(FLERR,"Read data add atomID offset is too big");
         id_offset = offset;
+
+        if (atom->molecule_flag) {
+          offset = force->bnumeric(FLERR,arg[iarg+2]);
+          if (offset > MAXTAGINT)
+            error->all(FLERR,"Read data add molID offset is too big");
+          mol_offset = offset;
+          iarg++;
+        }
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"offset") == 0) {
@@ -310,14 +320,18 @@ void ReadData::command(int narg, char **arg)
     update->ntimestep = 0;
   }
 
-  // compute atomID offset for addflag = MERGE
+  // compute atomID and optionally moleculeID offset for addflag = APPEND
 
   if (addflag == APPEND) {
     tagint *tag = atom->tag;
+    tagint *molecule = atom->molecule;
     int nlocal = atom->nlocal;
-    tagint max = 0;
-    for (int i = 0; i < nlocal; i++) max = MAX(max,tag[i]);
-    MPI_Allreduce(&max,&id_offset,1,MPI_LMP_TAGINT,MPI_MAX,world);
+    tagint maxid = 0, maxmol = 0;
+    for (int i = 0; i < nlocal; i++) maxid = MAX(maxid,tag[i]);
+    if (atom->molecule_flag)
+      for (int i = 0; i < nlocal; i++) maxmol = MAX(maxmol,molecule[i]);
+    MPI_Allreduce(&maxid,&id_offset,1,MPI_LMP_TAGINT,MPI_MAX,world);
+    MPI_Allreduce(&maxmol,&mol_offset,1,MPI_LMP_TAGINT,MPI_MAX,world);
   }
 
   // set up pointer to hold original styles while we replace them with "zero"
@@ -743,7 +757,7 @@ void ReadData::command(int narg, char **arg)
   }
 
   // init per-atom fix/compute/variable values for created atoms
-  
+
   atom->data_fix_compute_variable(nlocal_previous,atom->nlocal);
 
   // assign atoms added by this data file to specified group
@@ -872,7 +886,7 @@ void ReadData::command(int narg, char **arg)
   }
 
   // restore old styles, when reading with nocoeff flag given
-  
+
   if (coeffflag == 0) {
     if (force->pair) delete force->pair;
     force->pair = saved_pair;
@@ -1137,7 +1151,7 @@ void ReadData::atoms()
     nchunk = MIN(natoms-nread,CHUNK);
     eof = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
     if (eof) error->all(FLERR,"Unexpected end of data file");
-    atom->data_atoms(nchunk,buffer,id_offset,toffset,shiftflag,shift);
+    atom->data_atoms(nchunk,buffer,id_offset,mol_offset,toffset,shiftflag,shift);
     nread += nchunk;
   }
 
@@ -1630,13 +1644,13 @@ void ReadData::bodies(int firstpass)
           eof = fgets(&buffer[m],MAXLINE,fp);
           if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
           ncount = atom->count_words(&buffer[m],copy);
-	  if (ncount == 0)
-	    error->one(FLERR,"Too few values in body lines in data file");
-	  nword += ncount;
+          if (ncount == 0)
+            error->one(FLERR,"Too few values in body lines in data file");
+          nword += ncount;
           m += strlen(&buffer[m]);
           onebody++;
         }
-        if (nword > ninteger) 
+        if (nword > ninteger)
           error->one(FLERR,"Too many values in body lines in data file");
 
         nword = 0;
@@ -1644,13 +1658,13 @@ void ReadData::bodies(int firstpass)
           eof = fgets(&buffer[m],MAXLINE,fp);
           if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
           ncount = atom->count_words(&buffer[m],copy);
-	  if (ncount == 0)
-	    error->one(FLERR,"Too few values in body lines in data file");
-	  nword += ncount;
+          if (ncount == 0)
+            error->one(FLERR,"Too few values in body lines in data file");
+          nword += ncount;
           m += strlen(&buffer[m]);
           onebody++;
         }
-        if (nword > ndouble) 
+        if (nword > ndouble)
           error->one(FLERR,"Too many values in body lines in data file");
 
         if (onebody+1 > MAXBODY)

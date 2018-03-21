@@ -553,7 +553,8 @@ bool colvarparse::key_lookup(std::string const &conf,
                              size_t *save_pos)
 {
   if (cvm::debug()) {
-    cvm::log("Looking for the keyword \""+std::string(key_in)+"\" and its value.\n");
+    cvm::log("Looking for the keyword \""+std::string(key_in)+
+             "\" and its value.\n");
   }
 
   // add this keyword to the register (in its camelCase version)

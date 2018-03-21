@@ -13,7 +13,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Andrew Jewett (Caltech)
-   [ using code borrowed from Loukas D. Peristeras (Scienomics SARL) 
+   [ using code borrowed from Loukas D. Peristeras (Scienomics SARL)
      and Paul Crozier (SNL) ]
 ------------------------------------------------------------------------- */
 
@@ -168,9 +168,9 @@ void DihedralSpherical::compute(int eflag, int vflag)
   //
   //             proj12on23                          proj34on23
   //             --------->                         ----------->
-  //                            
-  //                           
-  //                          
+  //
+  //
+  //
   //                  x[i2]                         x[i3]
   //    .                __@----------vb23-------->@                   .
   //   /|\                /|                        \                  |
@@ -364,9 +364,9 @@ void DihedralSpherical::compute(int eflag, int vflag)
                             //where d=0,1,2 corresponds to x,y,z  (g_dim==3)
 
     double L12sqr     = dot3(vb12, vb12);
-    double L12        = sqrt(L12sqr);   
+    double L12        = sqrt(L12sqr);
     double L34sqr     = dot3(vb34, vb34);
-    double L34        = sqrt(L34sqr);   
+    double L34        = sqrt(L34sqr);
     double inv_L12sqr = 0.0;
     double inv_L12    = 0.0;
     double inv_L34sqr = 0.0;
@@ -400,7 +400,7 @@ void DihedralSpherical::compute(int eflag, int vflag)
      *                           .               .  proj23on34
      *                          .                 .
      *                         .                   .
-     *                  x[i2] .                    _./   x[i3] 
+     *                  x[i2] .                    _./   x[i3]
      *                     __@----------vb23-------->@
      *                      /|    /              \    \
      *                     /   theta1          theta2  \
@@ -469,7 +469,7 @@ void DihedralSpherical::compute(int eflag, int vflag)
     double m_du_dphi = 0.0;  // m_du_dphi = -du / d phi
 
     u = CalcGeneralizedForces(type,
-                              phi, theta1, theta2, 
+                              phi, theta1, theta2,
                               &m_du_dth1, &m_du_dth2, &m_du_dphi);
 
     if (eflag) edihedral = u;
@@ -600,7 +600,7 @@ CalcGeneralizedForces(int type,
     energy     +=  Ccoeff[i][j] * (phi_offset[i][j]    - cp) *
                                   (theta1_offset[i][j] - ct1) *
                                   (theta2_offset[i][j] - ct2);
-                                 
+
     // Forces:
     *m_du_dphi += -Ccoeff[i][j] *  sp * phi_mult[i][j] *
                                   (theta1_offset[i][j] - ct1) *
@@ -609,11 +609,11 @@ CalcGeneralizedForces(int type,
     *m_du_dth1 += -Ccoeff[i][j] * (phi_offset[i][j]    - cp) *
                                    st1 * theta1_mult[i][j] *
                                   (theta2_offset[i][j] - ct2);
-                                 
+
     *m_du_dth2 += -Ccoeff[i][j] * (phi_offset[i][j]    - cp) *
                                   (theta1_offset[i][j] - ct1) *
                                    st2 * theta2_mult[i][j];
-                                 
+
 
     // Things to consider later:
     // To speed up the computation, one could try to simplify the expansion:
@@ -622,13 +622,13 @@ CalcGeneralizedForces(int type,
     //     cos(L*theta2), sin(L*theta2), and
     //     cos(M*phi), sin(M*phi)
     // Also: For integer K,L,M, the trig functions cos(M*phi) and sin(M*phi)
-    //       can be calculated more efficiently using polynomials of 
+    //       can be calculated more efficiently using polynomials of
     //       cos(phi) and sin(phi)
 
   } //for (int j = 0; j < nterms[i]; j++) {
 
   return energy;
-  
+
 } //CalcGeneralizedForces()
 
 
@@ -869,7 +869,7 @@ void DihedralSpherical::write_data(FILE *fp)
 //  double theta2 = acos(ct2);
 //
 //  double u = CalcGeneralizedForces(type,
-//                                   phi, theta1, theta2, 
+//                                   phi, theta1, theta2,
 //                                   &m_du_dth1, &m_du_dth2, &m_du_dphi);
 //  return u;
 //}

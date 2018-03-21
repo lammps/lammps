@@ -259,7 +259,7 @@ void ComputeGroupGroup::pair_contribution()
 
       // skip if atom J is not in either group
 
-      if (!(mask[j] & groupbit || mask[j] & jgroupbit)) continue; 
+      if (!(mask[j] & groupbit || mask[j] & jgroupbit)) continue;
 
       // skip if atoms I,J are only in the same group
 
@@ -267,8 +267,8 @@ void ComputeGroupGroup::pair_contribution()
       int ji_flag = 0;
       if (mask[i] & groupbit && mask[j] & jgroupbit) ij_flag = 1;
       if (mask[j] & groupbit && mask[i] & jgroupbit) ji_flag = 1;
-      if (!ij_flag && !ji_flag) continue; 
-      
+      if (!ij_flag && !ji_flag) continue;
+
       // skip if molecule IDs of atoms I,J do not satisfy molflag setting
 
       if (molflag != OFF) {

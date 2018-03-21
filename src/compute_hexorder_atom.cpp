@@ -65,12 +65,12 @@ ComputeHexOrderAtom::ComputeHexOrderAtom(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"nnn") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute hexorder/atom command");
-      if (strcmp(arg[iarg+1],"NULL") == 0) 
-	nnn = 0;
+      if (strcmp(arg[iarg+1],"NULL") == 0)
+        nnn = 0;
       else {
-	nnn = force->numeric(FLERR,arg[iarg+1]);
-	if (nnn < 0)
-	  error->all(FLERR,"Illegal compute hexorder/atom command");
+        nnn = force->numeric(FLERR,arg[iarg+1]);
+        if (nnn < 0)
+          error->all(FLERR,"Illegal compute hexorder/atom command");
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"cutoff") == 0) {
@@ -154,8 +154,10 @@ void ComputeHexOrderAtom::compute_peratom()
   }
 
   // invoke full neighbor list (will copy or build if necessary)
+  // on the first step of a run, set preflag to one in neighbor->build_one(...)
 
-  neighbor->build_one(list);
+  if (update->firststep == update->ntimestep) neighbor->build_one(list,1);
+  else neighbor->build_one(list);
 
   inum = list->inum;
   ilist = list->ilist;
@@ -177,7 +179,7 @@ void ComputeHexOrderAtom::compute_peratom()
       ztmp = x[i][2];
       jlist = firstneigh[i];
       jnum = numneigh[i];
-      
+
       // insure distsq and nearest arrays are long enough
 
       if (jnum > maxneigh) {
@@ -210,30 +212,30 @@ void ComputeHexOrderAtom::compute_peratom()
       // if not nnn neighbors, order parameter = 0;
 
       if (ncount < nnn) {
-	qn[0] = qn[1] = 0.0;
+        qn[0] = qn[1] = 0.0;
         continue;
       }
 
       // if nnn > 0, use only nearest nnn neighbors
 
       if (nnn > 0) {
-	select2(nnn,ncount,distsq,nearest);
-	ncount = nnn;
+        select2(nnn,ncount,distsq,nearest);
+        ncount = nnn;
       }
 
       double usum = 0.0;
       double vsum = 0.0;
-      
+
       for (jj = 0; jj < ncount; jj++) {
-	j = nearest[jj];
-	j &= NEIGHMASK;
-	
-	delx = xtmp - x[j][0];
-	dely = ytmp - x[j][1];
-	double u, v;
-	calc_qn_complex(delx, dely, u, v);
-	usum += u;
-	vsum += v;
+        j = nearest[jj];
+        j &= NEIGHMASK;
+
+        delx = xtmp - x[j][0];
+        dely = ytmp - x[j][1];
+        double u, v;
+        calc_qn_complex(delx, dely, u, v);
+        usum += u;
+        vsum += v;
       }
       qn[0] = usum/nnn;
       qn[1] = vsum/nnn;
@@ -337,8 +339,8 @@ void ComputeHexOrderAtom::select2(int k, int n, double *arr, int *iarr)
 double ComputeHexOrderAtom::memory_usage()
 {
   double bytes = ncol*nmax * sizeof(double);
-  bytes += maxneigh * sizeof(double); 
-  bytes += maxneigh * sizeof(int); 
+  bytes += maxneigh * sizeof(double);
+  bytes += maxneigh * sizeof(int);
 
   return bytes;
 }

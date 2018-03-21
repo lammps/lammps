@@ -49,14 +49,14 @@ void ImbalanceStore::compute(double *weight)
 {
   int dflag = 0;
   int idx = atom->find_custom(name,dflag);
-  
+
   // property does not exist
-  
+
   if (idx < 0 || dflag != 1) return;
-  
+
   double *prop = atom->dvector[idx];
   const int nlocal = atom->nlocal;
-  
+
   for (int i = 0; i < nlocal; ++i)
     prop[i] = weight[i];
 }

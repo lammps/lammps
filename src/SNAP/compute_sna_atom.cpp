@@ -30,7 +30,7 @@
 using namespace LAMMPS_NS;
 
 ComputeSNAAtom::ComputeSNAAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), cutsq(NULL), list(NULL), sna(NULL), 
+  Compute(lmp, narg, arg), cutsq(NULL), list(NULL), sna(NULL),
   radelem(NULL), wjelem(NULL)
 {
   double rmin0, rfac0;
@@ -87,29 +87,29 @@ ComputeSNAAtom::ComputeSNAAtom(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"diagonal") == 0) {
       if (iarg+2 > narg)
-	error->all(FLERR,"Illegal compute sna/atom command");
+        error->all(FLERR,"Illegal compute sna/atom command");
       diagonalstyle = atoi(arg[iarg+1]);
       if (diagonalstyle < 0 || diagonalstyle > 3)
-	error->all(FLERR,"Illegal compute sna/atom command");
+        error->all(FLERR,"Illegal compute sna/atom command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"rmin0") == 0) {
       if (iarg+2 > narg)
-	error->all(FLERR,"Illegal compute sna/atom command");
+        error->all(FLERR,"Illegal compute sna/atom command");
       rmin0 = atof(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"switchflag") == 0) {
       if (iarg+2 > narg)
-	error->all(FLERR,"Illegal compute sna/atom command");
+        error->all(FLERR,"Illegal compute sna/atom command");
       switchflag = atoi(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"bzeroflag") == 0) {
       if (iarg+2 > narg)
-	error->all(FLERR,"Illegal compute sna/atom command");
+        error->all(FLERR,"Illegal compute sna/atom command");
       bzeroflag = atoi(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"quadraticflag") == 0) {
       if (iarg+2 > narg)
-	error->all(FLERR,"Illegal compute sna/atom command");
+        error->all(FLERR,"Illegal compute sna/atom command");
       quadraticflag = atoi(arg[iarg+1]);
       iarg += 2;
     } else error->all(FLERR,"Illegal compute sna/atom command");
@@ -246,23 +246,23 @@ void ComputeSNAAtom::compute_peratom()
 
       int ninside = 0;
       for (int jj = 0; jj < jnum; jj++) {
-	int j = jlist[jj];
-	j &= NEIGHMASK;
+        int j = jlist[jj];
+        j &= NEIGHMASK;
 
-	const double delx = xtmp - x[j][0];
-	const double dely = ytmp - x[j][1];
-	const double delz = ztmp - x[j][2];
-	const double rsq = delx*delx + dely*dely + delz*delz;
-	int jtype = type[j];
-	if (rsq < cutsq[itype][jtype] && rsq>1e-20) {
-	  snaptr[tid]->rij[ninside][0] = delx;
-	  snaptr[tid]->rij[ninside][1] = dely;
-	  snaptr[tid]->rij[ninside][2] = delz;
-	  snaptr[tid]->inside[ninside] = j;
-	  snaptr[tid]->wj[ninside] = wjelem[jtype];
-	  snaptr[tid]->rcutij[ninside] = (radi+radelem[jtype])*rcutfac;
-	  ninside++;
-	}
+        const double delx = xtmp - x[j][0];
+        const double dely = ytmp - x[j][1];
+        const double delz = ztmp - x[j][2];
+        const double rsq = delx*delx + dely*dely + delz*delz;
+        int jtype = type[j];
+        if (rsq < cutsq[itype][jtype] && rsq>1e-20) {
+          snaptr[tid]->rij[ninside][0] = delx;
+          snaptr[tid]->rij[ninside][1] = dely;
+          snaptr[tid]->rij[ninside][2] = delz;
+          snaptr[tid]->inside[ninside] = j;
+          snaptr[tid]->wj[ninside] = wjelem[jtype];
+          snaptr[tid]->rcutij[ninside] = (radi+radelem[jtype])*rcutfac;
+          ninside++;
+        }
       }
 
       snaptr[tid]->compute_ui(ninside);
@@ -270,21 +270,21 @@ void ComputeSNAAtom::compute_peratom()
       snaptr[tid]->compute_bi();
       snaptr[tid]->copy_bi2bvec();
       for (int icoeff = 0; icoeff < ncoeff; icoeff++)
-	sna[i][icoeff] = snaptr[tid]->bvec[icoeff];
+        sna[i][icoeff] = snaptr[tid]->bvec[icoeff];
       if (quadraticflag) {
         int ncount = ncoeff;
         for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
           double bi = snaptr[tid]->bvec[icoeff];
 
           // upper-triangular elements of quadratic matrix
-          
+
           for (int jcoeff = icoeff; jcoeff < ncoeff; jcoeff++)
             sna[i][ncount++] = bi*snaptr[tid]->bvec[jcoeff];
         }
       }
     } else {
       for (int icoeff = 0; icoeff < size_peratom_cols; icoeff++)
-	sna[i][icoeff] = 0.0;
+        sna[i][icoeff] = 0.0;
     }
   }
 }

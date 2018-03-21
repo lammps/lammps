@@ -66,12 +66,6 @@
 #include <math.h>
 #include "accelerator_kokkos.h"
 
-#ifdef LMP_KOKKOS
-#define RND_INLINE KOKKOS_INLINE_FUNCTION
-#else
-#define RND_INLINE inline
-#endif
-
 
 /// \file random_external_state.h
 /// \brief Pseudorandom number generators
@@ -88,7 +82,7 @@ namespace random_external_state {
   enum {MAX_URAND = 0xffffffffU};
   enum {MAX_URAND64 = 0xffffffffffffffffULL-1};
 
-  RND_INLINE
+  LAMMPS_INLINE
   uint32_t es_urand(es_RNG_t &state_) {
     state_ ^= state_ >> 12;
     state_ ^= state_ << 25;
@@ -99,7 +93,7 @@ namespace random_external_state {
     return static_cast<uint32_t>(tmp&MAX_URAND);
   }
 
-  RND_INLINE
+  LAMMPS_INLINE
   uint64_t es_urand64(es_RNG_t &state_) {
     state_ ^= state_ >> 12;
     state_ ^= state_ << 25;
@@ -107,18 +101,18 @@ namespace random_external_state {
     return (state_ * 2685821657736338717ULL) - 1;
   }
 
-  RND_INLINE
+  LAMMPS_INLINE
   int es_rand(es_RNG_t &state_) {
     return static_cast<int>(es_urand(state_)/2);
   }
 
-  RND_INLINE
+  LAMMPS_INLINE
   double es_drand(es_RNG_t &state_) {
     return 1.0 * es_urand64(state_)/MAX_URAND64;
   }
 
   //Marsaglia polar method for drawing a standard normal distributed random number
-  RND_INLINE
+  LAMMPS_INLINE
   double es_normal(es_RNG_t &state_) {
     double S, U;
     do {
@@ -129,7 +123,7 @@ namespace random_external_state {
     return U*sqrt(-2.0*log(S)/S);
   }
 
-  RND_INLINE
+  LAMMPS_INLINE
   double es_normalPair(es_RNG_t &state_, double &second) {
     double S, U, V;
     do {
@@ -145,7 +139,7 @@ namespace random_external_state {
   // Use es_init() to init a serial RNG, that is then
   // used to generate the initial state of your k parallel
   // RNGs with k calls to genNextParallelState()
-  RND_INLINE
+  LAMMPS_INLINE
   void es_init(es_RNG_t &serial_state, uint64_t seed) {
     if(seed==0) seed = uint64_t(1318319);
     serial_state = seed;
@@ -154,7 +148,7 @@ namespace random_external_state {
 
   // Call genNextParallelState() once for each RNG to generate
   // the initial state for that RNG.
-  RND_INLINE
+  LAMMPS_INLINE
   void es_genNextParallelState(es_RNG_t &serial_state, es_RNG_t &new_state) {
     int n1 = es_rand(serial_state);
     int n2 = es_rand(serial_state);

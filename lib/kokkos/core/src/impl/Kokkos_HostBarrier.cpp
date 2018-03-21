@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -47,11 +47,11 @@
 #include <impl/Kokkos_HostBarrier.hpp>
 #include <impl/Kokkos_Spinwait.hpp>
 
+#include <chrono>
+
 namespace Kokkos { namespace Impl {
 
 namespace {
-
-enum : int { HEADER_SIZE = HostBarrier::HEADER / sizeof(uint64_t) };
 
 inline constexpr int length64( const int nthreads ) noexcept
 {
@@ -92,11 +92,11 @@ void rendezvous_initialize( volatile void * buffer
   else {
 
     const int n = length64(size);
-    volatile uint64_t * buff = reinterpret_cast<volatile uint64_t *>(buffer) + HEADER_SIZE;
+    volatile uint64_t * buff = reinterpret_cast<volatile uint64_t *>(buffer) + RENDEZVOUS_HEADER/sizeof(uint64_t);
 
     // wait for other threads to finish initializing
     for (int i=0; i<n; ++i) {
-      spinwait_until_equal( buff[i], zero64 );
+      root_spinwait_until_equal( buff[i], zero64 );
     }
 
     // release the waiting threads
@@ -146,7 +146,7 @@ bool rendezvous( volatile void * buffer
     }
   }
   else { // rank 0
-    volatile uint64_t * buff = reinterpret_cast<volatile uint64_t *>(buffer) + HEADER_SIZE;
+    volatile uint64_t * buff = reinterpret_cast<volatile uint64_t *>(buffer) + RENDEZVOUS_HEADER/sizeof(uint64_t);
     const int n = length64(size);
 
     uint64_t comp = byte_value;
@@ -168,9 +168,9 @@ bool rendezvous( volatile void * buffer
     const uint64_t tail = rem ? tmp.value : comp;
 
     for (int i=0; i<n-1; ++i) {
-      spinwait_until_equal( buff[i], comp );
+      root_spinwait_until_equal( buff[i], comp );
     }
-    spinwait_until_equal( buff[n-1], tail );
+    root_spinwait_until_equal( buff[n-1], tail );
 
   }
 

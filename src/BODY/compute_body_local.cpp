@@ -62,7 +62,7 @@ ComputeBodyLocal::ComputeBodyLocal(LAMMPS *lmp, int narg, char **arg) :
 
   int indexmax = bptr->noutcol();
   for (int i = 0; i < nvalues; i++) {
-    if (which[i] == INDEX && (index[i] < 0 || index[i] >= indexmax)) 
+    if (which[i] == INDEX && (index[i] < 0 || index[i] >= indexmax))
       error->all(FLERR,"Invalid index in compute body/local command");
   }
 
@@ -93,7 +93,7 @@ void ComputeBodyLocal::init()
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) 
+    if (mask[i] & groupbit)
       if (body[i] < 0) nonbody = 1;
 
   int flag;

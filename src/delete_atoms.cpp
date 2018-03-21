@@ -109,11 +109,14 @@ void DeleteAtoms::command(int narg, char **arg)
   // reset atom tags to be contiguous
   // set all atom IDs to 0, call tag_extend()
 
-  if (atom->molecular == 0 && compress_flag) {
-    tagint *tag = atom->tag;
-    int nlocal = atom->nlocal;
-    for (int i = 0; i < nlocal; i++) tag[i] = 0;
-    atom->tag_extend();
+  if (compress_flag) {
+    if (atom->molecular == 0) {
+      tagint *tag = atom->tag;
+      int nlocal = atom->nlocal;
+      for (int i = 0; i < nlocal; i++) tag[i] = 0;
+      atom->tag_extend();
+    } else if (comm->me == 0)
+        error->warning(FLERR,"Ignoring 'compress yes' for molecular system");
   }
 
   // reset atom->natoms and also topology counts
@@ -311,7 +314,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
   comm->exchange();
   comm->borders();
   if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
-  neighbor->build();
+  neighbor->build(1);
 
   // build neighbor list this command needs based on earlier request
 

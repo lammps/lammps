@@ -722,10 +722,18 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   d_neighbors = k_list->d_neighbors;
   d_ilist = k_list->d_ilist;
 
+  need_dup = lmp->kokkos->need_dup<DeviceType>();
+
   // allocate duplicated memory
-  dup_f            = Kokkos::Experimental::create_scatter_view<>(f);
-  dup_eatom        = Kokkos::Experimental::create_scatter_view<>(v_eatom);
-  dup_vatom        = Kokkos::Experimental::create_scatter_view<>(v_vatom);
+  if (need_dup) {
+    dup_f            = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(f);
+    dup_eatom        = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_eatom);
+    dup_vatom        = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_vatom);
+  } else {
+    ndup_f            = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(f);
+    ndup_eatom        = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_eatom);
+    ndup_vatom        = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_vatom);
+  }
 
   if (eflag_global) {
     for (int i = 0; i < 14; i++)
@@ -797,9 +805,13 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
 
   // allocate duplicated memory
-  dup_dDeltap_self = Kokkos::Experimental::create_scatter_view<>(d_dDeltap_self);
-  dup_total_bo     = Kokkos::Experimental::create_scatter_view<>(d_total_bo);
-
+  if (need_dup) {
+    dup_dDeltap_self = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_dDeltap_self);
+    dup_total_bo     = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_total_bo);
+  } else {
+    ndup_dDeltap_self = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_dDeltap_self);
+    ndup_total_bo     = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_total_bo);
+  }
   // Neighbor lists for bond and hbond
 
   // try, resize if necessary
@@ -840,19 +852,32 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     resize = resize_bo || resize_hb;
     if (resize) {
       allocate_array();
-      dup_dDeltap_self = Kokkos::Experimental::create_scatter_view<>(d_dDeltap_self);
-      dup_total_bo     = Kokkos::Experimental::create_scatter_view<>(d_total_bo);
+      if (need_dup) {
+        dup_dDeltap_self = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_dDeltap_self);
+        dup_total_bo     = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_total_bo);
+      } else {
+        ndup_dDeltap_self = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_dDeltap_self);
+        ndup_total_bo     = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_total_bo);
+      }
     }
   }
 
   // allocate duplicated memory
-  dup_CdDelta = Kokkos::Experimental::create_scatter_view<>(d_CdDelta);
-  //dup_Cdbo    = Kokkos::Experimental::create_scatter_view<>(d_Cdbo);
-  //dup_Cdbopi  = Kokkos::Experimental::create_scatter_view<>(d_Cdbopi);
-  //dup_Cdbopi2 = Kokkos::Experimental::create_scatter_view<>(d_Cdbopi2);
+  if (need_dup) {
+    dup_CdDelta = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_CdDelta);
+    //dup_Cdbo    = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_Cdbo);
+    //dup_Cdbopi  = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_Cdbopi);
+    //dup_Cdbopi2 = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_Cdbopi2);
+  } else { 
+    ndup_CdDelta = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_CdDelta);
+    //ndup_Cdbo    = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_Cdbo);
+    //ndup_Cdbopi  = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_Cdbopi);
+    //ndup_Cdbopi2 = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_Cdbopi2);
+  }
 
   // reduction over duplicated memory
-  Kokkos::Experimental::contribute(d_total_bo, dup_total_bo); // needed in BondOrder1
+  if (need_dup)
+    Kokkos::Experimental::contribute(d_total_bo, dup_total_bo); // needed in BondOrder1
 
   // Bond order
   if (neighflag == HALF) {
@@ -958,24 +983,28 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   ev_all.evdwl += ev.ereax[8];
 
   // reduction over duplicated memory
-  Kokkos::Experimental::contribute(d_dDeltap_self, dup_dDeltap_self); // needed in ComputeBond2
-  Kokkos::Experimental::contribute(d_CdDelta, dup_CdDelta); // needed in ComputeBond2
+  if (need_dup) {
+    Kokkos::Experimental::contribute(d_dDeltap_self, dup_dDeltap_self); // needed in ComputeBond2
+    Kokkos::Experimental::contribute(d_CdDelta, dup_CdDelta); // needed in ComputeBond2
 
-  //Kokkos::Experimental::contribute(d_Cdbo, dup_Cdbo); // needed in UpdateBond, but also used in UpdateBond
-  //Kokkos::Experimental::contribute(d_Cdbopi, dup_Cdbopi); // needed in UpdateBond, but also used in UpdateBond
-  //Kokkos::Experimental::contribute(d_Cdbopi2, dup_Cdbopi2); // needed in UpdateBond, but also used in UpdateBond
-  //dup_Cdbo.reset_except(d_Cdbo);
-  //dup_Cdbopi.reset_except(d_Cdbopi);
-  //dup_Cdbopi2.reset_except(d_Cdbopi2);
+    //Kokkos::Experimental::contribute(d_Cdbo, dup_Cdbo); // needed in UpdateBond, but also used in UpdateBond
+    //Kokkos::Experimental::contribute(d_Cdbopi, dup_Cdbopi); // needed in UpdateBond, but also used in UpdateBond
+    //Kokkos::Experimental::contribute(d_Cdbopi2, dup_Cdbopi2); // needed in UpdateBond, but also used in UpdateBond
+    //dup_Cdbo.reset_except(d_Cdbo);
+    //dup_Cdbopi.reset_except(d_Cdbopi);
+    //dup_Cdbopi2.reset_except(d_Cdbopi2);
+  }
 
   // Bond force
   if (neighflag == HALF) {
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxUpdateBond<HALF> >(0,ignum),*this);
 
     // reduction over duplicated memory
-    //Kokkos::Experimental::contribute(d_Cdbo, dup_Cdbo); // needed in ComputeBond2
-    //Kokkos::Experimental::contribute(d_Cdbopi, dup_Cdbopi); // needed in ComputeBond2
-    //Kokkos::Experimental::contribute(d_Cdbopi2, dup_Cdbopi2); // needed in ComputeBond2
+    //if (need_dup) {
+    //  Kokkos::Experimental::contribute(d_Cdbo, dup_Cdbo); // needed in ComputeBond2
+    //  Kokkos::Experimental::contribute(d_Cdbopi, dup_Cdbopi); // needed in ComputeBond2
+    //  Kokkos::Experimental::contribute(d_Cdbopi2, dup_Cdbopi2); // needed in ComputeBond2
+    //}
 
     if (evflag)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeBond2<HALF,1> >(0,ignum),*this,ev);
@@ -987,9 +1016,11 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxUpdateBond<HALFTHREAD> >(0,ignum),*this);
 
     // reduction over duplicated memory
-    //Kokkos::Experimental::contribute(d_Cdbo, dup_Cdbo); // needed in ComputeBond2
-    //Kokkos::Experimental::contribute(d_Cdbopi, dup_Cdbopi); // needed in ComputeBond2
-    //Kokkos::Experimental::contribute(d_Cdbopi2, dup_Cdbopi2); // needed in ComputeBond2
+    //if (need_dup) {
+    //  Kokkos::Experimental::contribute(d_Cdbo, dup_Cdbo); // needed in ComputeBond2
+    //  Kokkos::Experimental::contribute(d_Cdbopi, dup_Cdbopi); // needed in ComputeBond2
+    //  Kokkos::Experimental::contribute(d_Cdbopi2, dup_Cdbopi2); // needed in ComputeBond2
+    //}
 
     if (evflag)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeBond2<HALFTHREAD,1> >(0,ignum),*this,ev);
@@ -1000,7 +1031,8 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
 
   // reduction over duplicated memory
-  Kokkos::Experimental::contribute(f, dup_f);
+  if (need_dup)
+    Kokkos::Experimental::contribute(f, dup_f);
 
   if (eflag_global) {
     eng_vdwl += ev_all.evdwl;
@@ -1018,13 +1050,15 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
 
   if (eflag_atom) {
-    Kokkos::Experimental::contribute(v_eatom, dup_eatom);
+    if (need_dup)
+      Kokkos::Experimental::contribute(d_eatom, dup_eatom);
     k_eatom.template modify<DeviceType>();
     k_eatom.template sync<LMPHostType>();
   }
 
   if (vflag_atom) {
-    Kokkos::Experimental::contribute(v_vatom, dup_vatom);
+    if (need_dup)
+      Kokkos::Experimental::contribute(d_vatom, dup_vatom);
     k_vatom.template modify<DeviceType>();
     k_vatom.template sync<LMPHostType>();
   }
@@ -1033,15 +1067,17 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     FindBondSpecies();
 
   // free duplicated memory
-  dup_f            = decltype(dup_f)();
-  dup_dDeltap_self = decltype(dup_dDeltap_self)();
-  dup_total_bo     = decltype(dup_total_bo)();
-  dup_CdDelta      = decltype(dup_CdDelta)();
-  //dup_Cdbo         = decltype(dup_Cdbo)();
-  //dup_Cdbopi       = decltype(dup_Cdbopi)();
-  //dup_Cdbopi2      = decltype(dup_Cdbopi2)();
-  dup_eatom        = decltype(dup_eatom)();
-  dup_vatom        = decltype(dup_vatom)();
+  if (need_dup) {
+    dup_f            = decltype(dup_f)();
+    dup_dDeltap_self = decltype(dup_dDeltap_self)();
+    dup_total_bo     = decltype(dup_total_bo)();
+    dup_CdDelta      = decltype(dup_CdDelta)();
+    //dup_Cdbo         = decltype(dup_Cdbo)();
+    //dup_Cdbopi       = decltype(dup_Cdbopi)();
+    //dup_Cdbopi2      = decltype(dup_Cdbopi2)();
+    dup_eatom        = decltype(dup_eatom)();
+    dup_vatom        = decltype(dup_vatom)();
+  }
 
   copymode = 0;
 }
@@ -1084,7 +1120,8 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeLJCoulomb<NEIGHFLAG,
 
   // The f array is atomic for Half/Thread neighbor style
   //Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
-  auto a_f = dup_f.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto v_f = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
+  auto a_f = v_f.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   F_FLOAT powr_vdw, powgi_vdw, fn13, dfn13, exp1, exp2, etmp;
   F_FLOAT evdwl, fvdwl;
@@ -1244,7 +1281,8 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTabulatedLJCoulomb<N
 
   // The f array is atomic for Half/Thread neighbor style
   //Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
-  auto a_f = dup_f.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto v_f = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
+  auto a_f = v_f.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   const int i = d_ilist[ii];
   const X_FLOAT xtmp = x(i,0);
@@ -1444,18 +1482,18 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxZero, const int &n) const {
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxZeroEAtom, const int &i) const {
-  v_eatom(i) = 0.0;
+  d_eatom(i) = 0.0;
 }
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxZeroVAtom, const int &i) const {
-  v_vatom(i,0) = 0.0;
-  v_vatom(i,1) = 0.0;
-  v_vatom(i,2) = 0.0;
-  v_vatom(i,3) = 0.0;
-  v_vatom(i,4) = 0.0;
-  v_vatom(i,5) = 0.0;
+  d_vatom(i,0) = 0.0;
+  d_vatom(i,1) = 0.0;
+  d_vatom(i,2) = 0.0;
+  d_vatom(i,3) = 0.0;
+  d_vatom(i,4) = 0.0;
+  d_vatom(i,5) = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1626,9 +1664,11 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBuildListsHalf<NEIGHFLAG>, 
     return;
 
   //Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_dDeltap_self = d_dDeltap_self;
+  auto v_dDeltap_self = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_dDeltap_self),decltype(ndup_dDeltap_self)>::get(dup_dDeltap_self,ndup_dDeltap_self);
+  auto a_dDeltap_self = v_dDeltap_self.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
   //Kokkos::View<F_FLOAT*, typename DAT::t_float_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_total_bo = d_total_bo;
-  auto a_dDeltap_self = dup_dDeltap_self.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
-  auto a_total_bo = dup_total_bo.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto v_total_bo = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_total_bo),decltype(ndup_total_bo)>::get(dup_total_bo,ndup_total_bo);
+  auto a_total_bo = v_total_bo.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   const int i = d_ilist[ii];
   const X_FLOAT xtmp = x(i,0);
@@ -2320,7 +2360,8 @@ KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeMulti2<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
   //Kokkos::View<F_FLOAT*, typename DAT::t_float_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_CdDelta = d_CdDelta;
-  auto a_CdDelta = dup_CdDelta.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto v_CdDelta = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_CdDelta),decltype(ndup_CdDelta)>::get(dup_CdDelta,ndup_CdDelta);
+  auto a_CdDelta = v_CdDelta.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   const int i = d_ilist[ii];
   const int itype = type(i);
@@ -2472,12 +2513,13 @@ KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeAngular<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
   //Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
+  auto v_f = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
+  auto a_f = v_f.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
   Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbo = d_Cdbo;
-  //Kokkos::View<F_FLOAT*, typename DAT::t_float_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_CdDelta = d_CdDelta;
-  auto a_f = dup_f.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
   //auto a_Cdbo = dup_Cdbo.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
-  auto a_CdDelta = dup_CdDelta.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
-
+  //Kokkos::View<F_FLOAT*, typename DAT::t_float_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_CdDelta = d_CdDelta;
+  auto v_CdDelta = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_CdDelta),decltype(ndup_CdDelta)>::get(dup_CdDelta,ndup_CdDelta);
+  auto a_CdDelta = v_CdDelta.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   const int i = d_ilist[ii];
   const int itype = type(i);
@@ -2785,10 +2827,12 @@ KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTorsion<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
   //Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
+  auto v_f = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
+  auto a_f = v_f.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
   //Kokkos::View<F_FLOAT*, typename DAT::t_float_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_CdDelta = d_CdDelta;
+  auto v_CdDelta = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_CdDelta),decltype(ndup_CdDelta)>::get(dup_CdDelta,ndup_CdDelta);
+  auto a_CdDelta = v_CdDelta.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
   Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbo = d_Cdbo;
-  auto a_f = dup_f.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
-  auto a_CdDelta = dup_CdDelta.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
   //auto a_Cdbo = dup_Cdbo.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   // in reaxc_torsion_angles: j = i, k = j, i = k;
@@ -3160,7 +3204,8 @@ KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeHydrogen<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
   //Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
-  auto a_f = dup_f.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto v_f = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
+  auto a_f = v_f.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   int hblist[MAX_BONDS];
   F_FLOAT theta, cos_theta, sin_xhz4, cos_xhz1, sin_theta2;
@@ -3360,9 +3405,12 @@ KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeBond1<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
   //Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
+  auto v_f = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
+  auto a_f = v_f.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
   //Kokkos::View<F_FLOAT*, typename DAT::t_ffloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_CdDelta = d_CdDelta;
-  auto a_f = dup_f.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
-  auto a_CdDelta = dup_CdDelta.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto v_CdDelta = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_CdDelta),decltype(ndup_CdDelta)>::get(dup_CdDelta,ndup_CdDelta);
+  auto a_CdDelta = v_CdDelta.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+
 
   F_FLOAT delij[3];
   F_FLOAT p_be1, p_be2, De_s, De_p, De_pp, pow_BOs_be2, exp_be12, CEbo, ebond;
@@ -3500,7 +3548,8 @@ KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeBond2<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
   //Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
-  auto a_f = dup_f.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto v_f = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
+  auto a_f = v_f.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   F_FLOAT delij[3], delik[3], deljk[3], tmpvec[3];
   F_FLOAT dBOp_i[3], dBOp_k[3], dln_BOp_pi[3], dln_BOp_pi2[3];
@@ -3713,10 +3762,12 @@ void PairReaxCKokkos<DeviceType>::ev_tally(EV_FLOAT_REAX &ev, const int &i, cons
   const int VFLAG = vflag_either;
 
   // The eatom and vatom arrays are atomic for Half/Thread neighbor style
-  //Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_eatom = v_eatom;
-  //Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_vatom = v_vatom;
-  auto a_eatom = dup_eatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
-  auto a_vatom = dup_vatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  //Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_eatom = d_eatom;
+  auto v_eatom = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_eatom),decltype(ndup_eatom)>::get(dup_eatom,ndup_eatom);
+  auto a_eatom = v_eatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  //Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_vatom = d_vatom;
+  auto v_vatom = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
+  auto a_vatom = v_vatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   if (eflag_atom) {
     const E_FLOAT epairhalf = 0.5 * epair;
@@ -3782,8 +3833,9 @@ void PairReaxCKokkos<DeviceType>::e_tally(EV_FLOAT_REAX &ev, const int &i, const
   // The eatom array is atomic for Half/Thread neighbor style
 
   if (eflag_atom) {
-    //Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_eatom = v_eatom;
-    auto a_eatom = dup_eatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+    //Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_eatom = d_eatom;
+    auto v_eatom = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_eatom),decltype(ndup_eatom)>::get(dup_eatom,ndup_eatom);
+    auto a_eatom = v_eatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
     const E_FLOAT epairhalf = 0.5 * epair;
     a_eatom[i] += epairhalf;
@@ -3800,8 +3852,9 @@ void PairReaxCKokkos<DeviceType>::e_tally_single(EV_FLOAT_REAX &ev, const int &i
       const F_FLOAT &epair) const
 {
   // The eatom array is atomic for Half/Thread neighbor style
-  //Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_eatom = v_eatom;
-  auto a_eatom = dup_eatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  //Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_eatom = d_eatom;
+  auto v_eatom = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_eatom),decltype(ndup_eatom)>::get(dup_eatom,ndup_eatom);
+  auto a_eatom = v_eatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   a_eatom[i] += epair;
 }
@@ -3834,8 +3887,9 @@ void PairReaxCKokkos<DeviceType>::v_tally(EV_FLOAT_REAX &ev, const int &i,
   }
 
   if (vflag_atom) {
-    //Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_vatom = v_vatom;
-    auto a_vatom = dup_vatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+    //Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_vatom = d_vatom;
+    auto v_vatom = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
+    auto a_vatom = v_vatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
     a_vatom(i,0) += v[0]; a_vatom(i,1) += v[1]; a_vatom(i,2) += v[2];
     a_vatom(i,3) += v[3]; a_vatom(i,4) += v[4]; a_vatom(i,5) += v[5];
@@ -3852,8 +3906,9 @@ void PairReaxCKokkos<DeviceType>::v_tally3(EV_FLOAT_REAX &ev, const int &i, cons
 {
 
   // The eatom and vatom arrays are atomic for Half/Thread neighbor style
-  //Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_vatom = v_vatom;
-  auto a_vatom = dup_vatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  //Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_vatom = d_vatom;
+  auto v_vatom = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
+  auto a_vatom = v_vatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   F_FLOAT v[6];
 
@@ -3913,8 +3968,9 @@ void PairReaxCKokkos<DeviceType>::v_tally4(EV_FLOAT_REAX &ev, const int &i, cons
   }
 
   if (vflag_atom) {
-    //Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_vatom = v_vatom;
-    auto a_vatom = dup_vatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+    //Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_vatom = d_vatom;
+    auto v_vatom = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
+    auto a_vatom = v_vatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
     a_vatom(i,0) += 0.25 * v[0]; a_vatom(i,1) += 0.25 * v[1]; a_vatom(i,2) += 0.25 * v[2];
     a_vatom(i,3) += 0.25 * v[3]; a_vatom(i,4) += 0.25 * v[4]; a_vatom(i,5) += 0.25 * v[5];
@@ -4012,13 +4068,13 @@ void PairReaxCKokkos<DeviceType>::ev_setup(int eflag, int vflag)
     maxeatom = atom->nmax;
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
-    v_eatom = k_eatom.view<DeviceType>();
+    d_eatom = k_eatom.view<DeviceType>();
   }
   if (vflag_atom && atom->nmax > maxvatom) {
     maxvatom = atom->nmax;
     memoryKK->destroy_kokkos(k_vatom,vatom);
     memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
-    v_vatom = k_vatom.view<DeviceType>();
+    d_vatom = k_vatom.view<DeviceType>();
   }
 
   // zero accumulators

@@ -95,8 +95,8 @@ struct AtomicDup<HALFTHREAD,Kokkos::Threads> {
 
 // Determine duplication traits for force array
 // Use duplication when running threaded and not using atomics
-template<class DeviceType>
-struct DupF {
+template<int NEIGHFLAG, class DeviceType>
+struct NeedDup {
   enum {value = Kokkos::Experimental::ScatterNonDuplicated};
 };
 
@@ -104,19 +104,40 @@ struct DupF {
 
 #ifdef KOKKOS_ENABLE_OPENMP
 template<>
-struct DupF<Kokkos::OpenMP> {
+struct NeedDup<HALFTHREAD,Kokkos::OpenMP> {
   enum {value = Kokkos::Experimental::ScatterDuplicated};
 };
 #endif
 
 #ifdef KOKKOS_ENABLE_THREADS
 template<>
-struct DupF<Kokkos::Threads> {
+struct NeedDup<HALFTHREAD,Kokkos::Threads> {
   enum {value = Kokkos::Experimental::ScatterDuplicated};
 };
 #endif
 
 #endif
+
+template<int value, typename T1, typename T2>
+class ScatterViewHelper {};
+
+template<typename T1, typename T2>
+class ScatterViewHelper<Kokkos::Experimental::ScatterDuplicated,T1,T2> {
+public:
+  KOKKOS_INLINE_FUNCTION
+  static T1 get(const T1 &dup, const T2 &nondup) {
+    return dup;
+  }
+};
+
+template<typename T1, typename T2>
+class ScatterViewHelper<Kokkos::Experimental::ScatterNonDuplicated,T1,T2> {
+public:
+  KOKKOS_INLINE_FUNCTION
+  static T2 get(const T1 &dup, const T2 &nondup) {
+    return nondup;
+  }
+};
 
 
 //Specialisation for Neighborlist types Half, HalfThread, Full

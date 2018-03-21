@@ -50,11 +50,11 @@ enum{FULL_BODY,INITIAL,FINAL,FORCE_TORQUE,VCM_ANGMOM,XCM_MASS,ITENSOR,DOF};
 /* ---------------------------------------------------------------------- */
 
 FixRigidNHSmall::FixRigidNHSmall(LAMMPS *lmp, int narg, char **arg) :
-  FixRigidSmall(lmp, narg, arg), w(NULL), wdti1(NULL), 
-  wdti2(NULL), wdti4(NULL), q_t(NULL), q_r(NULL), eta_t(NULL), 
-  eta_r(NULL), eta_dot_t(NULL), eta_dot_r(NULL), f_eta_t(NULL), 
-  f_eta_r(NULL), q_b(NULL), eta_b(NULL), eta_dot_b(NULL), 
-  f_eta_b(NULL), rfix(NULL), id_temp(NULL), id_press(NULL), 
+  FixRigidSmall(lmp, narg, arg), w(NULL), wdti1(NULL),
+  wdti2(NULL), wdti4(NULL), q_t(NULL), q_r(NULL), eta_t(NULL),
+  eta_r(NULL), eta_dot_t(NULL), eta_dot_r(NULL), f_eta_t(NULL),
+  f_eta_r(NULL), q_b(NULL), eta_b(NULL), eta_dot_b(NULL),
+  f_eta_b(NULL), rfix(NULL), id_temp(NULL), id_press(NULL),
   temperature(NULL), pressure(NULL)
 {
   // error checks
@@ -268,9 +268,9 @@ void FixRigidNHSmall::init()
 
     for (int i = 0; i < modify->nfix; i++)
       if (strcmp(modify->fix[i]->style,"deform") == 0) {
-      	int *dimflag = ((FixDeform *) modify->fix[i])->dimflag;
-      	if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) ||
-      	    (p_flag[2] && dimflag[2]))
+        int *dimflag = ((FixDeform *) modify->fix[i])->dimflag;
+        if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) ||
+            (p_flag[2] && dimflag[2]))
           error->all(FLERR,"Cannot use fix rigid npt/nph and fix deform on "
                      "same component of stress tensor");
       }
@@ -322,7 +322,7 @@ void FixRigidNHSmall::setup(int vflag)
 {
   FixRigidSmall::setup(vflag);
   compute_dof();
-  
+
   double mbody[3];
   akin_t = akin_r = 0.0;
   for (int ibody = 0; ibody < nlocal_body; ibody++) {

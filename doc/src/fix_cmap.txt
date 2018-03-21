@@ -97,6 +97,11 @@ The "fix_modify"_fix_modify.html {energy} option is supported by this
 fix to add the potential "energy" of the CMAP interactions system's
 potential energy as part of "thermodynamic output"_thermo_style.html.
 
+The "fix_modify"_fix_modify.html {virial} option is supported by this
+fix to add the contribution due to the interaction between atoms to
+the system's virial as part of "thermodynamic output"_thermo_style.html.
+The default is {virial yes}
+
 This fix computes a global scalar which can be accessed by various
 "output commands"_Section_howto.html#howto_15.  The scalar is the
 potential energy discussed above.  The scalar value calculated by this
@@ -114,6 +119,10 @@ quantity being minimized), you MUST enable the
 "fix_modify"_fix_modify.html {energy} option for this fix.
 
 [Restrictions:]
+
+To function as expected this fix command must be issued {before} a
+"read_data"_read_data.html command but {after} a
+"read_restart"_read_restart.html command.
 
 This fix can only be used if LAMMPS was built with the MOLECULE
 package.  See the "Making

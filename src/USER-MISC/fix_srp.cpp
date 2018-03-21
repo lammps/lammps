@@ -98,7 +98,7 @@ int FixSRP::setmask()
 
 void FixSRP::init()
 {
-  if (force->pair_match("hybrid",1) == NULL)
+  if (force->pair_match("hybrid",1) == NULL && force->pair_match("hybrid/overlay",1) == NULL)
     error->all(FLERR,"Cannot use pair srp without pair_style hybrid");
 
   int has_rigid = 0;
@@ -304,7 +304,7 @@ void FixSRP::setup_pre_force(int zz)
   domain->image_check();
   domain->box_too_small_check();
   modify->setup_pre_neighbor();
-  neighbor->build();
+  neighbor->build(1);
   neighbor->ncalls = 0;
 
   // new atom counts

@@ -30,6 +30,8 @@ FixViscous::FixViscous(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   gamma(NULL)
 {
+  dynamic_group_allow = 1;
+
   if (narg < 4) error->all(FLERR,"Illegal fix viscous command");
 
   double gamma_one = force->numeric(FLERR,arg[3]);

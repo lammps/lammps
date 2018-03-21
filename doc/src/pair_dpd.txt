@@ -8,6 +8,7 @@
 
 pair_style dpd command :h3
 pair_style dpd/gpu command :h3
+pair_style dpd/intel command :h3
 pair_style dpd/omp command :h3
 pair_style dpd/tstat command :h3
 pair_style dpd/tstat/gpu command :h3
@@ -36,7 +37,7 @@ pair_coeff 1 1 1.0 1.0 :pre
 [Description:]
 
 Style {dpd} computes a force field for dissipative particle dynamics
-(DPD) following the exposition in "(Groot)"_#Groot.
+(DPD) following the exposition in "(Groot)"_#Groot1.
 
 Style {dpd/tstat} invokes a DPD thermostat on pairwise interactions,
 which is equivalent to the non-conservative portion of the DPD force
@@ -196,7 +197,7 @@ langevin"_fix_langevin.html, "pair_style srp"_pair_srp.html
 
 :line
 
-:link(Groot)
+:link(Groot1)
 [(Groot)] Groot and Warren, J Chem Phys, 107, 4423-35 (1997).
 
 :link(Afshar)

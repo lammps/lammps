@@ -32,9 +32,10 @@
 #include "domain.h"
 #include "fft3d_wrap.h"
 #include "remap_wrap.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
+#include "kokkos.h"
 
 #include "math_const.h"
 #include "math_special_kokkos.h"
@@ -161,9 +162,9 @@ PPPMKokkos<DeviceType>::~PPPMKokkos()
   if (peratom_allocate_flag) deallocate_peratom();
   //memory->destroy(part2grid);
   //memory->destroy(acons);
-  
-  memory->destroy_kokkos(k_eatom,eatom);
-  memory->destroy_kokkos(k_vatom,vatom);
+
+  memoryKK->destroy_kokkos(k_eatom,eatom);
+  memoryKK->destroy_kokkos(k_vatom,vatom);
   eatom = NULL;
   vatom = NULL;
 }
@@ -618,13 +619,13 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
   // reallocate per-atom arrays if necessary
 
   if (eflag_atom) {
-    memory->destroy_kokkos(k_eatom,eatom);
-    memory->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
+    memoryKK->destroy_kokkos(k_eatom,eatom);
+    memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
     d_eatom = k_eatom.view<DeviceType>();
   }
   if (vflag_atom) {
-    memory->destroy_kokkos(k_vatom,vatom);
-    memory->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
+    memoryKK->destroy_kokkos(k_vatom,vatom);
+    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
     d_vatom = k_vatom.view<DeviceType>();
   }
 
@@ -805,12 +806,12 @@ void PPPMKokkos<DeviceType>::allocate()
 {
   d_density_brick = typename AT::t_FFT_SCALAR_3d("pppm:density_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
 
-  memory->create_kokkos(k_density_fft,density_fft,nfft_both,"pppm:d_density_fft");
+  memoryKK->create_kokkos(k_density_fft,density_fft,nfft_both,"pppm:d_density_fft");
   d_density_fft = k_density_fft.view<DeviceType>();
 
   d_greensfn = typename AT::t_float_1d("pppm:greensfn",nfft_both);
-  memory->create_kokkos(k_work1,work1,2*nfft_both,"pppm:work1");
-  memory->create_kokkos(k_work2,work2,2*nfft_both,"pppm:work2");
+  memoryKK->create_kokkos(k_work1,work1,2*nfft_both,"pppm:work1");
+  memoryKK->create_kokkos(k_work2,work2,2*nfft_both,"pppm:work2");
   d_work1 = k_work1.view<DeviceType>();
   d_work2 = k_work2.view<DeviceType>();
   d_vg = typename AT::t_virial_array("pppm:vg",nfft_both);
@@ -878,13 +879,13 @@ void PPPMKokkos<DeviceType>::allocate()
 template<class DeviceType>
 void PPPMKokkos<DeviceType>::deallocate()
 {
-  memory->destroy_kokkos(d_density_fft,density_fft);
+  memoryKK->destroy_kokkos(d_density_fft,density_fft);
   density_fft = NULL;
-  memory->destroy_kokkos(d_greensfn,greensfn);
+  memoryKK->destroy_kokkos(d_greensfn,greensfn);
   greensfn = NULL;
-  memory->destroy_kokkos(d_work1,work1);
+  memoryKK->destroy_kokkos(d_work1,work1);
   work1 = NULL;
-  memory->destroy_kokkos(d_work2,work2);
+  memoryKK->destroy_kokkos(d_work2,work2);
   work2 = NULL;
 
   delete fft1;
@@ -968,6 +969,8 @@ void PPPMKokkos<DeviceType>::set_grid_global()
   if (!gewaldflag) {
     if (accuracy <= 0.0)
       error->all(FLERR,"KSpace accuracy must be > 0");
+    if (q2 == 0.0)
+      error->all(FLERR,"Must use 'kspace_modify gewald' for uncharged system");
     g_ewald = accuracy*sqrt(natoms*cutoff*xprd*yprd*zprd) / (2.0*q2);
     if (g_ewald >= 1.0) g_ewald = (1.35 - 0.15*log(accuracy))/cutoff;
     else g_ewald = sqrt(-log(g_ewald)) / cutoff;
@@ -1178,6 +1181,7 @@ double PPPMKokkos<DeviceType>::final_accuracy()
   double yprd = domain->yprd;
   double zprd = domain->zprd;
   bigint natoms = atomKK->natoms;
+  if (natoms == 0) natoms = 1; // avoid division by zero
 
   double df_kspace = compute_df_kspace();
   double q2_over_sqrt = q2 / sqrt(natoms*cutoff*xprd*yprd*zprd);
@@ -2631,7 +2635,7 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_fieldforce_peratom, const int &i
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PPPMKokkos<DeviceType>::pack_forward_kokkos(int flag, Kokkos::DualView<FFT_SCALAR*,Kokkos::LayoutRight,LMPDeviceType> &k_buf, int nlist, DAT::tdual_int_2d &k_list, int index)
+void PPPMKokkos<DeviceType>::pack_forward_kspace_kokkos(int flag, Kokkos::DualView<FFT_SCALAR*,Kokkos::LayoutRight,LMPDeviceType> &k_buf, int nlist, DAT::tdual_int_2d &k_list, int index)
 {
   typename AT::t_int_2d_um d_list = k_list.view<DeviceType>();
   d_list_index = Kokkos::subview(d_list,index,Kokkos::ALL());
@@ -2687,7 +2691,7 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_pack_forward2, const int &i) con
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PPPMKokkos<DeviceType>::unpack_forward_kokkos(int flag, Kokkos::DualView<FFT_SCALAR*,Kokkos::LayoutRight,LMPDeviceType> &k_buf, int nlist, DAT::tdual_int_2d &k_list, int index)
+void PPPMKokkos<DeviceType>::unpack_forward_kspace_kokkos(int flag, Kokkos::DualView<FFT_SCALAR*,Kokkos::LayoutRight,LMPDeviceType> &k_buf, int nlist, DAT::tdual_int_2d &k_list, int index)
 {
   typename AT::t_int_2d_um d_list = k_list.view<DeviceType>();
   d_list_index = Kokkos::subview(d_list,index,Kokkos::ALL());
@@ -2744,7 +2748,7 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_unpack_forward2, const int &i) c
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PPPMKokkos<DeviceType>::pack_reverse_kokkos(int flag, Kokkos::DualView<FFT_SCALAR*,Kokkos::LayoutRight,LMPDeviceType> &k_buf, int nlist, DAT::tdual_int_2d &k_list, int index)
+void PPPMKokkos<DeviceType>::pack_reverse_kspace_kokkos(int flag, Kokkos::DualView<FFT_SCALAR*,Kokkos::LayoutRight,LMPDeviceType> &k_buf, int nlist, DAT::tdual_int_2d &k_list, int index)
 {
   typename AT::t_int_2d_um d_list = k_list.view<DeviceType>();
   d_list_index = Kokkos::subview(d_list,index,Kokkos::ALL());
@@ -2774,7 +2778,7 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_pack_reverse, const int &i) cons
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PPPMKokkos<DeviceType>::unpack_reverse_kokkos(int flag, Kokkos::DualView<FFT_SCALAR*,Kokkos::LayoutRight,LMPDeviceType> &k_buf, int nlist, DAT::tdual_int_2d &k_list, int index)
+void PPPMKokkos<DeviceType>::unpack_reverse_kspace_kokkos(int flag, Kokkos::DualView<FFT_SCALAR*,Kokkos::LayoutRight,LMPDeviceType> &k_buf, int nlist, DAT::tdual_int_2d &k_list, int index)
 {
   typename AT::t_int_2d_um d_list = k_list.view<DeviceType>();
   d_list_index = Kokkos::subview(d_list,index,Kokkos::ALL());

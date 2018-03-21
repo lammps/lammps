@@ -316,18 +316,17 @@ void PairDPDfdt::init_style()
   if (comm->ghost_velocity == 0)
     error->all(FLERR,"Pair dpd/fdt requires ghost atoms store velocity");
 
-  // if newton off, forces between atoms ij will be double computed
-  // using different random numbers
-
-  if (force->newton_pair == 0 && comm->me == 0) error->warning(FLERR,
-      "Pair dpd/fdt requires newton pair on");
-
   splitFDT_flag = false;
   int irequest = neighbor->request(this,instance_me);
   for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"shardlow") == 0){
+    if (strncmp(modify->fix[i]->style,"shardlow", 8) == 0){
       splitFDT_flag = true;
     }
+
+  // if newton off, forces between atoms ij will be double computed
+  // using different random numbers if splitFDT_flag is false
+  if (!splitFDT_flag && (force->newton_pair == 0) && (comm->me == 0)) error->warning(FLERR,
+      "Pair dpd/fdt requires newton pair on if not also using fix shardlow");
 }
 
 /* ----------------------------------------------------------------------

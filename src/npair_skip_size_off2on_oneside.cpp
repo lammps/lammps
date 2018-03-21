@@ -17,9 +17,7 @@
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "molecule.h"
 #include "domain.h"
-#include "fix_shear_history.h"
 #include "my_page.h"
 #include "error.h"
 
@@ -35,25 +33,13 @@ NPairSkipSizeOff2onOneside::NPairSkipSizeOff2onOneside(LAMMPS *lmp) :
    iskip and ijskip flag which atom types and type pairs to skip
    parent non-skip list used newton off and was not onesided,
      this skip list is newton on and onesided
-   if list requests it, preserve shear history via fix shear/history
 ------------------------------------------------------------------------- */
 
 void NPairSkipSizeOff2onOneside::build(NeighList *list)
 {
-  int i,j,ii,jj,m,n,nn,itype,jnum,joriginal,flip,dnum,dnumbytes,tmp;
-  tagint jtag;
+  int i,j,ii,jj,n,itype,jnum,joriginal,flip,tmp;
   int *surf,*jlist;
 
-  int *npartner;
-  tagint **partner;
-  double **shearpartner;
-  int **firsttouch;
-  double **firstshear;
-  MyPage<int> *ipage_touch;
-  MyPage<double> *dpage_shear;
-  NeighList *listhistory;
-
-  tagint *tag = atom->tag;
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
@@ -73,28 +59,8 @@ void NPairSkipSizeOff2onOneside::build(NeighList *list)
   if (domain->dimension == 2) surf = atom->line;
   else surf = atom->tri;
 
-  FixShearHistory *fix_history = (FixShearHistory *) list->fix_history;
-  if (fix_history) {
-    fix_history->nlocal_neigh = nlocal;
-    fix_history->nall_neigh = nlocal + atom->nghost;
-    npartner = fix_history->npartner;
-    partner = fix_history->partner;
-    shearpartner = fix_history->shearpartner;
-    listhistory = list->listhistory;
-    firsttouch = listhistory->firstneigh;
-    firstshear = listhistory->firstdouble;
-    ipage_touch = listhistory->ipage;
-    dpage_shear = listhistory->dpage;
-    dnum = listhistory->dnum;
-    dnumbytes = dnum * sizeof(double);
-  }
-
   int inum = 0;
   ipage->reset();
-  if (fix_history) {
-    ipage_touch->reset();
-    dpage_shear->reset();
-  }
 
   // two loops over parent list required, one to count, one to store
   // because onesided constraint means pair I,J may be stored with I or J
@@ -139,7 +105,7 @@ void NPairSkipSizeOff2onOneside::build(NeighList *list)
     }
   }
 
-  // allocate all per-atom neigh list chunks, including history
+  // allocate all per-atom neigh list chunks
 
   for (i = 0; i < nlocal; i++) {
     if (numneigh[i] == 0) continue;
@@ -147,10 +113,6 @@ void NPairSkipSizeOff2onOneside::build(NeighList *list)
     firstneigh[i] = ipage->get(n);
     if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
-    if (fix_history) {
-      firsttouch[i] = ipage_touch->get(n);
-      firstshear[i] = dpage_shear->get(dnum*n);
-    }
   }
 
   // second loop over atoms in other list to store neighbors
@@ -189,32 +151,11 @@ void NPairSkipSizeOff2onOneside::build(NeighList *list)
       // OK, b/c there is no special list flagging for surfs
 
       firstneigh[i][numneigh[i]] = j;
-
-      // no numeric test for current touch
-      // just use FSH partner list to infer it
-      // would require complex calculation for surfs
-
-      if (fix_history) {
-        jtag = tag[j];
-        n = numneigh[i];
-        nn = dnum*n;
-        for (m = 0; m < npartner[i]; m++)
-          if (partner[i][m] == jtag) break;
-        if (m < npartner[i]) {
-          firsttouch[i][n] = 1;
-          memcpy(&firstshear[i][nn],&shearpartner[i][dnum*m],dnumbytes);
-        } else {
-          firsttouch[i][n] = 0;
-          memcpy(&firstshear[i][nn],zeroes,dnumbytes);
-        }
-      }
-
       numneigh[i]++;
       if (flip) i = j;
     }
 
     // only add atom I to ilist if it has neighbors
-    // fix shear/history allows for this in pre_exchange_onesided()
 
     if (numneigh[i]) ilist[inum++] = i;
   }

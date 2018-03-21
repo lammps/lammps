@@ -27,22 +27,22 @@ namespace LAMMPS_NS {
 class FixSMDWallSurface: public Fix {
 
 public:
-	FixSMDWallSurface(class LAMMPS *, int, char **);
-	virtual ~FixSMDWallSurface();
-	int setmask();
-	void init();
-	void setup(int);
-	void min_setup(int);
+        FixSMDWallSurface(class LAMMPS *, int, char **);
+        virtual ~FixSMDWallSurface();
+        int setmask();
+        void init();
+        void setup(int);
+        void min_setup(int);
 
-	int count_words(const char *line);
-	void read_triangles(int pass);
+        int count_words(const char *line);
+        void read_triangles(int pass);
 
 private:
-	int first;                 // flag for first time initialization
-	double sublo[3], subhi[3];   // epsilon-extended proc sub-box for adding atoms;
-	char *filename;
-	int wall_particle_type;
-	int wall_molecule_id;
+        int first;                 // flag for first time initialization
+        double sublo[3], subhi[3];   // epsilon-extended proc sub-box for adding atoms;
+        char *filename;
+        int wall_particle_type;
+        int wall_molecule_id;
 };
 }
 

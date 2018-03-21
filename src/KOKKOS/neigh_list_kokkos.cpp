@@ -13,7 +13,7 @@
 
 #include "neigh_list_kokkos.h"
 #include "atom.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 
 using namespace LAMMPS_NS;
 
@@ -49,15 +49,6 @@ void NeighListKokkos<Device>::grow(int nmax)
   d_neighbors =
     typename ArrayTypes<Device>::t_neighbors_2d("neighlist:neighbors",
                                                 maxatoms,maxneighs);
-
-  memory->sfree(firstneigh);
-  memory->sfree(firstdouble);
-
-  firstneigh = (int **) memory->smalloc(maxatoms*sizeof(int *),
-                                        "neighlist:firstneigh");
-  if (dnum)
-    firstdouble = (double **) memory->smalloc(maxatoms*sizeof(double *),
-                                              "neighlist:firstdouble");
 }
 
 /* ---------------------------------------------------------------------- */

@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -137,12 +137,6 @@
 #ifdef KOKKOS_HAVE_CUSPARSE
 #ifndef KOKKOS_ENABLE_CUSPARSE
 #define KOKKOS_ENABLE_CUSPARSE KOKKOS_HAVE_CUSPARSE
-#endif
-#endif
-
-#ifdef KOKKOS_HAVE_CXX11_DISPATCH_LAMBDA
-#ifndef KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA
-#define KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA KOKKOS_HAVE_CXX11_DISPATCH_LAMBDA
 #endif
 #endif
 

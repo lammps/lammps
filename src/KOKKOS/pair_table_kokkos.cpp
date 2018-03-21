@@ -27,7 +27,7 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
 
@@ -92,13 +92,13 @@ void PairTableKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
   // reallocate per-atom arrays if necessary
 
   if (eflag_atom) {
-    memory->destroy_kokkos(k_eatom,eatom);
-    memory->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
+    memoryKK->destroy_kokkos(k_eatom,eatom);
+    memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
     d_eatom = k_eatom.view<DeviceType>();
   }
   if (vflag_atom) {
-    memory->destroy_kokkos(k_vatom,vatom);
-    memory->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
+    memoryKK->destroy_kokkos(k_vatom,vatom);
+    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
     d_vatom = k_vatom.view<DeviceType>();
   }
 
@@ -141,8 +141,8 @@ void PairTableKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
     } else if (neighflag == N2) {
       PairComputeFunctor<PairTableKokkos<DeviceType>,N2,false,S_TableCompute<DeviceType,TABSTYLE> >
         f(this,(NeighListKokkos<DeviceType>*) list);
-      if (eflag || vflag) Kokkos::parallel_reduce(nlocal,f,ev);
-      else Kokkos::parallel_for(nlocal,f);
+      if (eflag || vflag) Kokkos::parallel_reduce(list->inum,f,ev);
+      else Kokkos::parallel_for(list->inum,f);
     }
   } else {
     if (neighflag == FULL) {
@@ -163,8 +163,8 @@ void PairTableKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
     } else if (neighflag == N2) {
       PairComputeFunctor<PairTableKokkos<DeviceType>,N2,true,S_TableCompute<DeviceType,TABSTYLE> >
         f(this,(NeighListKokkos<DeviceType>*) list);
-      if (eflag || vflag) Kokkos::parallel_reduce(nlocal,f,ev);
-      else Kokkos::parallel_for(nlocal,f);
+      if (eflag || vflag) Kokkos::parallel_reduce(list->inum,f,ev);
+      else Kokkos::parallel_for(list->inum,f);
     }
   }
 
@@ -265,41 +265,41 @@ void PairTableKokkos<DeviceType>::create_kokkos_tables()
 {
   const int tlm1 = tablength-1;
 
-  memory->create_kokkos(d_table->nshiftbits,h_table->nshiftbits,ntables,"Table::nshiftbits");
-  memory->create_kokkos(d_table->nmask,h_table->nmask,ntables,"Table::nmask");
-  memory->create_kokkos(d_table->innersq,h_table->innersq,ntables,"Table::innersq");
-  memory->create_kokkos(d_table->invdelta,h_table->invdelta,ntables,"Table::invdelta");
-  memory->create_kokkos(d_table->deltasq6,h_table->deltasq6,ntables,"Table::deltasq6");
+  memoryKK->create_kokkos(d_table->nshiftbits,h_table->nshiftbits,ntables,"Table::nshiftbits");
+  memoryKK->create_kokkos(d_table->nmask,h_table->nmask,ntables,"Table::nmask");
+  memoryKK->create_kokkos(d_table->innersq,h_table->innersq,ntables,"Table::innersq");
+  memoryKK->create_kokkos(d_table->invdelta,h_table->invdelta,ntables,"Table::invdelta");
+  memoryKK->create_kokkos(d_table->deltasq6,h_table->deltasq6,ntables,"Table::deltasq6");
 
   if(tabstyle == LOOKUP) {
-    memory->create_kokkos(d_table->e,h_table->e,ntables,tlm1,"Table::e");
-    memory->create_kokkos(d_table->f,h_table->f,ntables,tlm1,"Table::f");
+    memoryKK->create_kokkos(d_table->e,h_table->e,ntables,tlm1,"Table::e");
+    memoryKK->create_kokkos(d_table->f,h_table->f,ntables,tlm1,"Table::f");
   }
 
   if(tabstyle == LINEAR) {
-    memory->create_kokkos(d_table->rsq,h_table->rsq,ntables,tablength,"Table::rsq");
-    memory->create_kokkos(d_table->e,h_table->e,ntables,tablength,"Table::e");
-    memory->create_kokkos(d_table->f,h_table->f,ntables,tablength,"Table::f");
-    memory->create_kokkos(d_table->de,h_table->de,ntables,tlm1,"Table::de");
-    memory->create_kokkos(d_table->df,h_table->df,ntables,tlm1,"Table::df");
+    memoryKK->create_kokkos(d_table->rsq,h_table->rsq,ntables,tablength,"Table::rsq");
+    memoryKK->create_kokkos(d_table->e,h_table->e,ntables,tablength,"Table::e");
+    memoryKK->create_kokkos(d_table->f,h_table->f,ntables,tablength,"Table::f");
+    memoryKK->create_kokkos(d_table->de,h_table->de,ntables,tlm1,"Table::de");
+    memoryKK->create_kokkos(d_table->df,h_table->df,ntables,tlm1,"Table::df");
   }
 
   if(tabstyle == SPLINE) {
-    memory->create_kokkos(d_table->rsq,h_table->rsq,ntables,tablength,"Table::rsq");
-    memory->create_kokkos(d_table->e,h_table->e,ntables,tablength,"Table::e");
-    memory->create_kokkos(d_table->f,h_table->f,ntables,tablength,"Table::f");
-    memory->create_kokkos(d_table->e2,h_table->e2,ntables,tablength,"Table::e2");
-    memory->create_kokkos(d_table->f2,h_table->f2,ntables,tablength,"Table::f2");
+    memoryKK->create_kokkos(d_table->rsq,h_table->rsq,ntables,tablength,"Table::rsq");
+    memoryKK->create_kokkos(d_table->e,h_table->e,ntables,tablength,"Table::e");
+    memoryKK->create_kokkos(d_table->f,h_table->f,ntables,tablength,"Table::f");
+    memoryKK->create_kokkos(d_table->e2,h_table->e2,ntables,tablength,"Table::e2");
+    memoryKK->create_kokkos(d_table->f2,h_table->f2,ntables,tablength,"Table::f2");
   }
 
   if(tabstyle == BITMAP) {
     int ntable = 1 << tablength;
-    memory->create_kokkos(d_table->rsq,h_table->rsq,ntables,ntable,"Table::rsq");
-    memory->create_kokkos(d_table->e,h_table->e,ntables,ntable,"Table::e");
-    memory->create_kokkos(d_table->f,h_table->f,ntables,ntable,"Table::f");
-    memory->create_kokkos(d_table->de,h_table->de,ntables,ntable,"Table::de");
-    memory->create_kokkos(d_table->df,h_table->df,ntables,ntable,"Table::df");
-    memory->create_kokkos(d_table->drsq,h_table->drsq,ntables,ntable,"Table::drsq");
+    memoryKK->create_kokkos(d_table->rsq,h_table->rsq,ntables,ntable,"Table::rsq");
+    memoryKK->create_kokkos(d_table->e,h_table->e,ntables,ntable,"Table::e");
+    memoryKK->create_kokkos(d_table->f,h_table->f,ntables,ntable,"Table::f");
+    memoryKK->create_kokkos(d_table->de,h_table->de,ntables,ntable,"Table::de");
+    memoryKK->create_kokkos(d_table->df,h_table->df,ntables,ntable,"Table::df");
+    memoryKK->create_kokkos(d_table->drsq,h_table->drsq,ntables,ntable,"Table::drsq");
   }
 
 
@@ -410,8 +410,8 @@ void PairTableKokkos<DeviceType>::allocate()
   const int nt = atom->ntypes + 1;
 
   memory->create(setflag,nt,nt,"pair:setflag");
-  memory->create_kokkos(d_table->cutsq,h_table->cutsq,cutsq,nt,nt,"pair:cutsq");
-  memory->create_kokkos(d_table->tabindex,h_table->tabindex,tabindex,nt,nt,"pair:tabindex");
+  memoryKK->create_kokkos(d_table->cutsq,h_table->cutsq,cutsq,nt,nt,"pair:cutsq");
+  memoryKK->create_kokkos(d_table->tabindex,h_table->tabindex,tabindex,nt,nt,"pair:tabindex");
   d_table_const.cutsq = d_table->cutsq;
   d_table_const.tabindex = d_table->tabindex;
 

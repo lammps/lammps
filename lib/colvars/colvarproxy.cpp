@@ -10,6 +10,15 @@
 #include <sstream>
 #include <string.h>
 
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
+
+#if defined(NAMD_TCL) || defined(VMDTCL)
+#define COLVARS_TCL
+#include <tcl.h>
+#endif
+
 #include "colvarmodule.h"
 #include "colvarproxy.h"
 #include "colvarscript.h"
@@ -35,6 +44,12 @@ void colvarproxy_system::request_total_force(bool yesno)
 
 
 bool colvarproxy_system::total_forces_enabled() const
+{
+  return false;
+}
+
+
+bool colvarproxy_system::total_forces_same_step() const
 {
   return false;
 }
@@ -204,7 +219,13 @@ void colvarproxy_atom_groups::clear_atom_group(int index)
 
 colvarproxy_smp::colvarproxy_smp()
 {
-  b_smp_active = true;
+  b_smp_active = true; // May be disabled by user option
+  omp_lock_state = NULL;
+#if defined(_OPENMP)
+  if (smp_thread_id() == 0) {
+    omp_init_lock(reinterpret_cast<omp_lock_t *>(omp_lock_state));
+  }
+#endif
 }
 
 
@@ -213,57 +234,140 @@ colvarproxy_smp::~colvarproxy_smp() {}
 
 int colvarproxy_smp::smp_enabled()
 {
+#if defined(_OPENMP)
+  if (b_smp_active) {
+    return COLVARS_OK;
+  }
+  return COLVARS_ERROR;
+#else
   return COLVARS_NOT_IMPLEMENTED;
+#endif
 }
 
 
 int colvarproxy_smp::smp_colvars_loop()
 {
+#if defined(_OPENMP)
+  colvarmodule *cv = cvm::main();
+  colvarproxy *proxy = cv->proxy;
+#pragma omp parallel for
+  for (size_t i = 0; i < cv->variables_active_smp()->size(); i++) {
+    colvar *x = (*(cv->variables_active_smp()))[i];
+    int x_item = (*(cv->variables_active_smp_items()))[i];
+    if (cvm::debug()) {
+      cvm::log("["+cvm::to_str(proxy->smp_thread_id())+"/"+
+               cvm::to_str(proxy->smp_num_threads())+
+               "]: calc_colvars_items_smp(), i = "+cvm::to_str(i)+", cv = "+
+               x->name+", cvc = "+cvm::to_str(x_item)+"\n");
+    }
+    x->calc_cvcs(x_item, 1);
+  }
+  return cvm::get_error();
+#else
   return COLVARS_NOT_IMPLEMENTED;
+#endif
 }
 
 
 int colvarproxy_smp::smp_biases_loop()
 {
+#if defined(_OPENMP)
+  colvarmodule *cv = cvm::main();
+#pragma omp parallel
+  {
+#pragma omp for
+    for (size_t i = 0; i < cv->biases_active()->size(); i++) {
+      colvarbias *b = (*(cv->biases_active()))[i];
+      if (cvm::debug()) {
+        cvm::log("Calculating bias \""+b->name+"\" on thread "+
+                 cvm::to_str(smp_thread_id())+"\n");
+      }
+      b->update();
+    }
+  }
+  return cvm::get_error();
+#else
   return COLVARS_NOT_IMPLEMENTED;
+#endif
 }
 
 
 int colvarproxy_smp::smp_biases_script_loop()
 {
+#if defined(_OPENMP)
+  colvarmodule *cv = cvm::main();
+#pragma omp parallel
+  {
+#pragma omp single nowait
+    {
+      cv->calc_scripted_forces();
+    }
+#pragma omp for
+    for (size_t i = 0; i < cv->biases_active()->size(); i++) {
+      colvarbias *b = (*(cv->biases_active()))[i];
+      if (cvm::debug()) {
+        cvm::log("Calculating bias \""+b->name+"\" on thread "+
+                 cvm::to_str(smp_thread_id())+"\n");
+      }
+      b->update();
+    }
+  }
+  return cvm::get_error();
+#else
   return COLVARS_NOT_IMPLEMENTED;
+#endif
 }
+
+
 
 
 int colvarproxy_smp::smp_thread_id()
 {
+#if defined(_OPENMP)
+  return omp_get_thread_num();
+#else
   return COLVARS_NOT_IMPLEMENTED;
+#endif
 }
 
 
 int colvarproxy_smp::smp_num_threads()
 {
+#if defined(_OPENMP)
+  return omp_get_max_threads();
+#else
   return COLVARS_NOT_IMPLEMENTED;
+#endif
 }
 
 
 int colvarproxy_smp::smp_lock()
 {
+#if defined(_OPENMP)
+  omp_set_lock(reinterpret_cast<omp_lock_t *>(omp_lock_state));
+#endif
   return COLVARS_OK;
 }
 
 
 int colvarproxy_smp::smp_trylock()
 {
+#if defined(_OPENMP)
+  return omp_test_lock(reinterpret_cast<omp_lock_t *>(omp_lock_state)) ?
+    COLVARS_OK : COLVARS_ERROR;
+#else
   return COLVARS_OK;
+#endif
 }
 
 
 int colvarproxy_smp::smp_unlock()
 {
+#if defined(_OPENMP)
+  omp_unset_lock(reinterpret_cast<omp_lock_t *>(omp_lock_state));
+#endif
   return COLVARS_OK;
 }
-
 
 
 
@@ -321,8 +425,10 @@ colvarproxy_script::colvarproxy_script()
 colvarproxy_script::~colvarproxy_script() {}
 
 
-char *colvarproxy_script::script_obj_to_str(unsigned char *obj)
+char const *colvarproxy_script::script_obj_to_str(unsigned char *obj)
 {
+  cvm::error("Error: trying to print a script object without a scripting "
+             "language interface.\n", BUG_ERROR);
   return reinterpret_cast<char *>(obj);
 }
 
@@ -350,6 +456,140 @@ int colvarproxy_script::run_colvar_gradient_callback(
   return COLVARS_NOT_IMPLEMENTED;
 }
 
+
+
+colvarproxy_tcl::colvarproxy_tcl()
+{
+  _tcl_interp = NULL;
+}
+
+
+colvarproxy_tcl::~colvarproxy_tcl()
+{
+}
+
+
+void colvarproxy_tcl::init_tcl_pointers()
+{
+  cvm::error("Error: Tcl support is currently unavailable "
+             "outside NAMD or VMD.\n", COLVARS_NOT_IMPLEMENTED);
+}
+
+
+char const *colvarproxy_tcl::tcl_obj_to_str(unsigned char *obj)
+{
+#if defined(COLVARS_TCL)
+  return Tcl_GetString(reinterpret_cast<Tcl_Obj *>(obj));
+#else
+  return NULL;
+#endif
+}
+
+
+int colvarproxy_tcl::tcl_run_force_callback()
+{
+#if defined(COLVARS_TCL)
+  Tcl_Interp *const tcl_interp = reinterpret_cast<Tcl_Interp *>(_tcl_interp);
+  std::string cmd = std::string("calc_colvar_forces ")
+    + cvm::to_str(cvm::step_absolute());
+  int err = Tcl_Eval(tcl_interp, cmd.c_str());
+  if (err != TCL_OK) {
+    cvm::log(std::string("Error while executing calc_colvar_forces:\n"));
+    cvm::error(Tcl_GetStringResult(tcl_interp));
+    return COLVARS_ERROR;
+  }
+  return cvm::get_error();
+#else
+  return COLVARS_NOT_IMPLEMENTED;
+#endif
+}
+
+
+int colvarproxy_tcl::tcl_run_colvar_callback(
+                         std::string const &name,
+                         std::vector<const colvarvalue *> const &cvc_values,
+                         colvarvalue &value)
+{
+#if defined(COLVARS_TCL)
+
+  Tcl_Interp *const tcl_interp = reinterpret_cast<Tcl_Interp *>(_tcl_interp);
+  size_t i;
+  std::string cmd = std::string("calc_") + name;
+  for (i = 0; i < cvc_values.size(); i++) {
+    cmd += std::string(" {") + (*(cvc_values[i])).to_simple_string() +
+      std::string("}");
+  }
+  int err = Tcl_Eval(tcl_interp, cmd.c_str());
+  const char *result = Tcl_GetStringResult(tcl_interp);
+  if (err != TCL_OK) {
+    return cvm::error(std::string("Error while executing ")
+                      + cmd + std::string(":\n") +
+                      std::string(Tcl_GetStringResult(tcl_interp)), COLVARS_ERROR);
+  }
+  std::istringstream is(result);
+  if (value.from_simple_string(is.str()) != COLVARS_OK) {
+    cvm::log("Error parsing colvar value from script:");
+    cvm::error(result);
+    return COLVARS_ERROR;
+  }
+  return cvm::get_error();
+
+#else
+
+  return COLVARS_NOT_IMPLEMENTED;
+
+#endif
+}
+
+
+int colvarproxy_tcl::tcl_run_colvar_gradient_callback(
+                         std::string const &name,
+                         std::vector<const colvarvalue *> const &cvc_values,
+                         std::vector<cvm::matrix2d<cvm::real> > &gradient)
+{
+#if defined(COLVARS_TCL)
+
+  Tcl_Interp *const tcl_interp = reinterpret_cast<Tcl_Interp *>(_tcl_interp);
+  size_t i;
+  std::string cmd = std::string("calc_") + name + "_gradient";
+  for (i = 0; i < cvc_values.size(); i++) {
+    cmd += std::string(" {") + (*(cvc_values[i])).to_simple_string() +
+      std::string("}");
+  }
+  int err = Tcl_Eval(tcl_interp, cmd.c_str());
+  if (err != TCL_OK) {
+    return cvm::error(std::string("Error while executing ")
+                      + cmd + std::string(":\n") +
+                      std::string(Tcl_GetStringResult(tcl_interp)), COLVARS_ERROR);
+  }
+  Tcl_Obj **list;
+  int n;
+  Tcl_ListObjGetElements(tcl_interp, Tcl_GetObjResult(tcl_interp),
+                         &n, &list);
+  if (n != int(gradient.size())) {
+    cvm::error("Error parsing list of gradient values from script: found "
+               + cvm::to_str(n) + " values instead of " +
+               cvm::to_str(gradient.size()));
+    return COLVARS_ERROR;
+  }
+  for (i = 0; i < gradient.size(); i++) {
+    std::istringstream is(Tcl_GetString(list[i]));
+    if (gradient[i].from_simple_string(is.str()) != COLVARS_OK) {
+      cvm::log("Gradient matrix size: " + cvm::to_str(gradient[i].size()));
+      cvm::log("Gradient string: " + cvm::to_str(Tcl_GetString(list[i])));
+      cvm::error("Error parsing gradient value from script", COLVARS_ERROR);
+      return COLVARS_ERROR;
+    }
+  }
+
+  return cvm::get_error();
+
+#else
+
+  return COLVARS_NOT_IMPLEMENTED;
+
+#endif
+}
 
 
 
@@ -442,6 +682,7 @@ colvarproxy::colvarproxy()
 {
   colvars = NULL;
   b_simulation_running = true;
+  b_delete_requested = false;
 }
 
 
@@ -454,6 +695,14 @@ int colvarproxy::reset()
   error_code |= colvarproxy_atoms::reset();
   error_code |= colvarproxy_atom_groups::reset();
   return error_code;
+}
+
+
+int colvarproxy::request_deletion()
+{
+  return cvm::error("Error: \"delete\" command is only available in VMD; "
+                    "please use \"reset\" instead.\n",
+                    COLVARS_NOT_IMPLEMENTED);
 }
 
 
@@ -479,14 +728,4 @@ size_t colvarproxy::restart_frequency()
 {
   return 0;
 }
-
-
-
-
-
-
-
-
-
-
 

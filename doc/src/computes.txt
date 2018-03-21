@@ -30,6 +30,7 @@ Computes :h1
    compute_displace_atom
    compute_dpd
    compute_dpd_atom
+   compute_edpd_temp_atom
    compute_erotate_asphere
    compute_erotate_rigid
    compute_erotate_sphere
@@ -64,6 +65,7 @@ Computes :h1
    compute_pe_atom
    compute_plasticity_atom
    compute_pressure
+   compute_pressure_uef
    compute_property_atom
    compute_property_chunk
    compute_property_local
@@ -95,6 +97,7 @@ Computes :h1
    compute_sna_atom
    compute_stress_atom
    compute_tally
+   compute_tdpd_cc_atom
    compute_temp
    compute_temp_asphere
    compute_temp_body
@@ -112,6 +115,7 @@ Computes :h1
    compute_temp_region_eff
    compute_temp_rotate
    compute_temp_sphere
+   compute_temp_uef
    compute_ti
    compute_torque_chunk
    compute_vacf

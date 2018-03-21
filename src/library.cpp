@@ -37,6 +37,7 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 
@@ -202,7 +203,10 @@ void lammps_file(void *ptr, char *str)
 
   BEGIN_CAPTURE
   {
-    lmp->input->file(str);
+    if (lmp->update->whichflag != 0)
+      lmp->error->all(FLERR,"Library error: issuing LAMMPS command during run");
+    else
+      lmp->input->file(str);
   }
   END_CAPTURE
 }
@@ -220,7 +224,10 @@ char *lammps_command(void *ptr, char *str)
 
   BEGIN_CAPTURE
   {
-    result = lmp->input->one(str);
+    if (lmp->update->whichflag != 0)
+      lmp->error->all(FLERR,"Library error: issuing LAMMPS command during run");
+    else
+      result = lmp->input->one(str);
   }
   END_CAPTURE
 
@@ -261,7 +268,7 @@ void lammps_commands_list(void *ptr, int ncmd, char **cmds)
 
 /* ----------------------------------------------------------------------
    process multiple input commands in single long str, separated by newlines
-   single command can span multiple lines via continuation characters 
+   single command can span multiple lines via continuation characters
    multi-line commands enabled by triple quotes will not work
 ------------------------------------------------------------------------- */
 
@@ -277,6 +284,10 @@ void lammps_commands_string(void *ptr, char *str)
 
   BEGIN_CAPTURE
   {
+    if (lmp->update->whichflag != 0) {
+      lmp->error->all(FLERR,"Library error: issuing LAMMPS command during run");
+    }
+
     char *ptr = copy;
     for (int i=0; i < n-1; ++i) {
 
@@ -370,6 +381,7 @@ void *lammps_extract_global(void *ptr, char *name)
   if (strcmp(name,"nlocal") == 0) return (void *) &lmp->atom->nlocal;
   if (strcmp(name,"nghost") == 0) return (void *) &lmp->atom->nghost;
   if (strcmp(name,"nmax") == 0) return (void *) &lmp->atom->nmax;
+  if (strcmp(name,"ntypes") == 0) return (void *) &lmp->atom->ntypes;
   if (strcmp(name,"ntimestep") == 0) return (void *) &lmp->update->ntimestep;
 
   if (strcmp(name,"units") == 0) return (void *) lmp->update->unit_style;
@@ -383,6 +395,28 @@ void *lammps_extract_global(void *ptr, char *name)
 
   if (strcmp(name,"atime") == 0) return (void *) &lmp->update->atime;
   if (strcmp(name,"atimestep") == 0) return (void *) &lmp->update->atimestep;
+
+  // global constants defined by units
+
+  if (strcmp(name,"boltz") == 0) return (void *) &lmp->force->boltz;
+  if (strcmp(name,"hplanck") == 0) return (void *) &lmp->force->hplanck;
+  if (strcmp(name,"mvv2e") == 0) return (void *) &lmp->force->mvv2e;
+  if (strcmp(name,"ftm2v") == 0) return (void *) &lmp->force->ftm2v;
+  if (strcmp(name,"mv2d") == 0) return (void *) &lmp->force->mv2d;
+  if (strcmp(name,"nktv2p") == 0) return (void *) &lmp->force->nktv2p;
+  if (strcmp(name,"qqr2e") == 0) return (void *) &lmp->force->qqr2e;
+  if (strcmp(name,"qe2f") == 0) return (void *) &lmp->force->qe2f;
+  if (strcmp(name,"vxmu2f") == 0) return (void *) &lmp->force->vxmu2f;
+  if (strcmp(name,"xxt2kmu") == 0) return (void *) &lmp->force->xxt2kmu;
+  if (strcmp(name,"dielectric") == 0) return (void *) &lmp->force->dielectric;
+  if (strcmp(name,"qqrd2e") == 0) return (void *) &lmp->force->qqrd2e;
+  if (strcmp(name,"e_mass") == 0) return (void *) &lmp->force->e_mass;
+  if (strcmp(name,"hhmrr2e") == 0) return (void *) &lmp->force->hhmrr2e;
+  if (strcmp(name,"mvh2r") == 0) return (void *) &lmp->force->mvh2r;
+
+  if (strcmp(name,"angstrom") == 0) return (void *) &lmp->force->angstrom;
+  if (strcmp(name,"femtosecond") == 0) return (void *) &lmp->force->femtosecond;
+  if (strcmp(name,"qelectron") == 0) return (void *) &lmp->force->qelectron;
 
   return NULL;
 }
@@ -415,7 +449,7 @@ void lammps_extract_box(void *ptr, double *boxlo, double *boxhi,
   periodicity[0] = domain->periodicity[0];
   periodicity[1] = domain->periodicity[1];
   periodicity[2] = domain->periodicity[2];
-  
+
   *box_change = domain->box_change;
 }
 
@@ -757,7 +791,7 @@ void lammps_gather_atoms(void *ptr, char *name,
     // error if tags are not defined or not consecutive
 
     int flag = 0;
-    if (lmp->atom->tag_enable == 0 || lmp->atom->tag_consecutive() == 0) 
+    if (lmp->atom->tag_enable == 0 || lmp->atom->tag_consecutive() == 0)
       flag = 1;
     if (lmp->atom->natoms > MAXSMALLINT) flag = 1;
     if (flag) {
@@ -811,7 +845,7 @@ void lammps_gather_atoms(void *ptr, char *name,
           for (j = 0; j < count; j++)
             copy[offset++] = array[i][j];
         }
-      
+
       MPI_Allreduce(copy,data,count*natoms,MPI_INT,MPI_SUM,lmp->world);
       lmp->memory->destroy(copy);
 
@@ -866,7 +900,7 @@ void lammps_scatter_atoms(void *ptr, char *name,
     // error if tags are not defined or not consecutive or no atom map
 
     int flag = 0;
-    if (lmp->atom->tag_enable == 0 || lmp->atom->tag_consecutive() == 0) 
+    if (lmp->atom->tag_enable == 0 || lmp->atom->tag_consecutive() == 0)
       flag = 1;
     if (lmp->atom->natoms > MAXSMALLINT) flag = 1;
     if (lmp->atom->map_style == 0) flag = 1;
@@ -968,7 +1002,7 @@ void lammps_scatter_atoms(void *ptr, char *name,
 ------------------------------------------------------------------------- */
 
 void lammps_create_atoms(void *ptr, int n, tagint *id, int *type,
-			 double *x, double *v, imageint *image,
+                         double *x, double *v, imageint *image,
                          int shrinkexceed)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
@@ -997,7 +1031,7 @@ void lammps_create_atoms(void *ptr, int n, tagint *id, int *type,
     bigint natoms_prev = atom->natoms;
     int nlocal_prev = nlocal;
     double xdata[3];
-    
+
     for (int i = 0; i < n; i++) {
       xdata[0] = x[3*i];
       xdata[1] = x[3*i+1];
@@ -1005,14 +1039,14 @@ void lammps_create_atoms(void *ptr, int n, tagint *id, int *type,
       imageint * img = image ? &image[i] : NULL;
       tagint     tag = id    ? id[i]     : -1;
       if (!domain->ownatom(tag, xdata, img, shrinkexceed)) continue;
-  
+
       atom->avec->create_atom(type[i],xdata);
       if (id) atom->tag[nlocal] = id[i];
       else atom->tag[nlocal] = i+1;
       if (v) {
-	atom->v[nlocal][0] = v[3*i];
-	atom->v[nlocal][1] = v[3*i+1];
-	atom->v[nlocal][2] = v[3*i+2];
+        atom->v[nlocal][0] = v[3*i];
+        atom->v[nlocal][1] = v[3*i+1];
+        atom->v[nlocal][2] = v[3*i+2];
       }
       if (image) atom->image[nlocal] = image[i];
       nlocal++;
@@ -1037,7 +1071,7 @@ void lammps_create_atoms(void *ptr, int n, tagint *id, int *type,
     }
 
     // warn if new natoms is not correct
-    
+
     if (lmp->atom->natoms != natoms_prev + n) {
       char str[128];
       sprintf(str,"Library warning in lammps_create_atoms, "

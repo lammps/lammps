@@ -15,8 +15,9 @@ dump_modify dump-ID keyword values ... :pre
 dump-ID = ID of dump to modify :ulb,l
 one or more keyword/value pairs may be appended :l
 these keywords apply to various dump styles :l
-keyword = {append} or {buffer} or {element} or {every} or {fileper} or {first} or {flush} or {format} or {image} or {label} or {nfile} or {pad} or {precision} or {region} or {scale} or {sort} or {thresh} or {unwrap} :l
-  {append} arg = {yes} or {no} or {at} N
+keyword = {append} or {at} or {buffer} or {element} or {every} or {fileper} or {first} or {flush} or {format} or {image} or {label} or {nfile} or {pad} or {precision} or {region} or {scale} or {sort} or {thresh} or {unwrap} :l
+  {append} arg = {yes} or {no}
+  {at} arg = N
     N = index of frame written upon first dump
   {buffer} arg = {yes} or {no}
   {element} args = E1 E2 ... EN, where N = # of atom types
@@ -141,13 +142,18 @@ and {dcd}.  It also applies only to text output files, not to binary
 or gzipped or image/movie files.  If specified as {yes}, then dump
 snapshots are appended to the end of an existing dump file.  If
 specified as {no}, then a new dump file will be created which will
-overwrite an existing file with the same name.  If the {at} option is present
-({netcdf} only), then the frame to append to can be specified.  Negative values
-are counted from the end of the file.  This keyword can only take effect if the
-dump_modify command is used after the "dump"_dump.html command, but before the
-first command that causes dump snapshots to be output, e.g. a "run"_run.html or
-"minimize"_minimize.html command.  Once the dump file has been opened, this
-keyword has no further effect.
+overwrite an existing file with the same name.
+
+:line
+
+The {at} keyword only applies to the {netcdf} dump style.  It can only
+be used if the {append yes} keyword is also used.  The {N} argument is
+the index of which frame to append to.  A negative value can be
+specified for {N}, which means a frame counted from the end of the
+file.  The {at} keyword can only be used if the dump_modify command is
+before the first command that causes dump snapshots to be output,
+e.g. a "run"_run.html or "minimize"_minimize.html command.  Once the
+dump file has been opened, this keyword has no further effect.
 
 :line
 

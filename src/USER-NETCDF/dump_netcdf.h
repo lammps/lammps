@@ -66,7 +66,7 @@ class DumpNetCDF : public DumpCustom {
   bool thermo;                 // write thermo output to netcdf file
 
   bigint n_buffer;             // size of buffer
-  int *int_buffer;             // buffer for passing data to netcdf
+  bigint *int_buffer;          // buffer for passing data to netcdf
   double *double_buffer;       // buffer for passing data to netcdf
 
   int ncid;
@@ -92,7 +92,6 @@ class DumpNetCDF : public DumpCustom {
   void closefile();
   virtual void write_header(bigint);
   virtual void write_data(int, double *);
-  void write_prmtop();
 
   virtual int modify_param(int, char **);
 

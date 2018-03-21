@@ -297,19 +297,19 @@ void PairLJCharmmCoulCharmmIntel::eval(const int offload, const int vflag,
           const int sbindex = tj[jj] >> SBBITS & 3;
           const flt_t rsq = trsq[jj];
           const flt_t r2inv = (flt_t)1.0 / rsq;
-	  const flt_t r_inv = (flt_t)1.0 / sqrt(rsq);
-	  forcecoul = qqrd2e * qtmp * q[j] * r_inv;
-	  if (rsq > cut_coul_innersq) {
-	    const flt_t ccr = cut_coulsq - rsq;
-	    const flt_t switch1 = ccr * ccr * inv_denom_coul *
+          const flt_t r_inv = (flt_t)1.0 / sqrt(rsq);
+          forcecoul = qqrd2e * qtmp * q[j] * r_inv;
+          if (rsq > cut_coul_innersq) {
+            const flt_t ccr = cut_coulsq - rsq;
+            const flt_t switch1 = ccr * ccr * inv_denom_coul *
               (cut_coulsq + (flt_t)2.0 * rsq - (flt_t)3.0 * cut_coul_innersq);
-            forcecoul *= switch1; 
+            forcecoul *= switch1;
           }
 
           #ifdef INTEL_VMASK
           if (rsq < cut_ljsq) {
           #endif
-	    const int jtype = tjtype[jj];
+            const int jtype = tjtype[jj];
             flt_t r6inv = r2inv * r2inv * r2inv;
             forcelj = r6inv * (lji[jtype].x * r6inv - lji[jtype].y);
             if (EFLAG) evdwl = r6inv*(lji[jtype].z * r6inv - lji[jtype].w);
@@ -348,12 +348,12 @@ void PairLJCharmmCoulCharmmIntel::eval(const int offload, const int vflag,
           #else
           if (rsq > cut_ljsq) { forcelj = (flt_t)0.0; evdwl = (flt_t)0.0; }
           #endif
-	  if (sbindex) {
-  	    const flt_t factor_coul = special_coul[sbindex];
-	    forcecoul *= factor_coul;
-	    const flt_t factor_lj = special_lj[sbindex];
-	    forcelj *= factor_lj;
-	    if (EFLAG) evdwl *= factor_lj;
+          if (sbindex) {
+            const flt_t factor_coul = special_coul[sbindex];
+            forcecoul *= factor_coul;
+            const flt_t factor_lj = special_lj[sbindex];
+            forcelj *= factor_lj;
+            if (EFLAG) evdwl *= factor_lj;
           }
 
           const flt_t fpair = (forcecoul + forcelj) * r2inv;
@@ -521,8 +521,8 @@ void PairLJCharmmCoulCharmmIntel::pack_force_const(ForceConst<flt_t> &fc,
     fc.special_lj[0] = 1.0;
   }
 
-  for (int i = 0; i < tp1; i++) {
-    for (int j = 0; j < tp1; j++) {
+  for (int i = 1; i < tp1; i++) {
+    for (int j = 1; j < tp1; j++) {
       fc.lj[i][j].x = lj1[i][j];
       fc.lj[i][j].y = lj2[i][j];
       fc.lj[i][j].z = lj3[i][j];

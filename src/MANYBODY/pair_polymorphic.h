@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -21,6 +21,7 @@ PairStyle(polymorphic,PairPolymorphic)
 #define LMP_PAIR_POLYMORPHIC_H
 
 #include "pair.h"
+#include <math.h>
 
 namespace LAMMPS_NS {
 
@@ -74,7 +75,7 @@ class PairPolymorphic : public Pair {
     tabularFunction(int n, double x1, double x2) {
       size = n;
       xmin = x1;
-      xmax = x2; 
+      xmax = x2;
       xmaxsq = xmax*xmax;
       xs = new double[n];
       ys = new double[n];
@@ -86,9 +87,9 @@ class PairPolymorphic : public Pair {
       ys6 = new double[n];
     }
     virtual ~tabularFunction() {
-      if (xs) delete [] xs; 
-      if (ys) delete [] ys; 
-      if (ys1) delete [] ys1; 
+      if (xs) delete [] xs;
+      if (ys) delete [] ys;
+      if (ys1) delete [] ys1;
       if (ys2) delete [] ys2;
       if (ys3) delete [] ys3;
       if (ys4) delete [] ys4;
@@ -254,7 +255,7 @@ class PairPolymorphic : public Pair {
   bool eta; // global indicator
   int nx,nr,ng; // table sizes
   double maxX;
-  
+
   // parameter sets
   PairParameters    * pairParameters;    // for I-J interaction
   TripletParameters * tripletParameters; // for I-J-K interaction
@@ -263,7 +264,7 @@ class PairPolymorphic : public Pair {
   int *firstneighV,*firstneighW,*firstneighW1;
   double *delxV,*delyV,*delzV,*drV;
   double *delxW,*delyW,*delzW,*drW;
-  
+
   char **elements;              // names of unique elements
   int **elem2param;             // map: element pairs to parameters
   int ***elem3param;            // map: element triplets to parameters
@@ -287,7 +288,7 @@ class PairPolymorphic : public Pair {
   void ters_zetaterm_d(double, double *, double, double *, double, double *,
                        double *, double *, PairParameters *, TripletParameters *);
   void costheta_d(double *, double, double *, double,
-		  double *, double *, double *);
+                  double *, double *, double *);
 
   // inlined functions for efficiency
 
@@ -295,18 +296,18 @@ class PairPolymorphic : public Pair {
     return x[0]*y[0] + x[1]*y[1] + x[2]*y[2];
   }
 
-  inline void vec3_add(const double x[3], const double y[3], 
-		       double * const z) const {
+  inline void vec3_add(const double x[3], const double y[3],
+                       double * const z) const {
     z[0] = x[0]+y[0];  z[1] = x[1]+y[1];  z[2] = x[2]+y[2];
   }
 
   inline void vec3_scale(const double k, const double x[3],
-			 double y[3]) const {
+                         double y[3]) const {
     y[0] = k*x[0];  y[1] = k*x[1];  y[2] = k*x[2];
   }
 
-  inline void vec3_scaleadd(const double k, const double x[3], 
-			    const double y[3], double * const z) const {
+  inline void vec3_scaleadd(const double k, const double x[3],
+                            const double y[3], double * const z) const {
     z[0] = k*x[0]+y[0];
     z[1] = k*x[1]+y[1];
     z[2] = k*x[2]+y[2];

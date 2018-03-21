@@ -50,7 +50,7 @@ enum{ISO,ANISO,TRICLINIC};
    NVT,NPH,NPT integrators for improved Nose-Hoover equations of motion
  ---------------------------------------------------------------------- */
 
-FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : 
+FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   rfix(NULL), id_dilate(NULL), irregular(NULL), id_temp(NULL), id_press(NULL),
   eta(NULL), eta_dot(NULL), eta_dotdot(NULL),
@@ -348,10 +348,19 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
       fixedpoint[2] = force->numeric(FLERR,arg[iarg+3]);
       iarg += 4;
 
-    // disc keyword is also parsed in fix/nh/sphere  
+    // disc keyword is also parsed in fix/nh/sphere
 
     } else if (strcmp(arg[iarg],"disc") == 0) {
       iarg++;
+
+    // keywords erate, strain, and ext are also parsed in fix/nh/uef
+
+    } else if (strcmp(arg[iarg],"erate") == 0) {
+      iarg += 3;
+    } else if (strcmp(arg[iarg],"strain") == 0) {
+      iarg += 3;
+    } else if (strcmp(arg[iarg],"ext") == 0) {
+      iarg += 2;
 
     } else error->all(FLERR,"Illegal fix nvt/npt/nph command");
   }

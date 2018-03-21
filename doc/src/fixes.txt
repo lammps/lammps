@@ -33,6 +33,7 @@ Fixes :h1
    fix_drude
    fix_drude_transform
    fix_dpd_energy
+   fix_dpd_source
    fix_dt_reset
    fix_efield
    fix_ehex
@@ -58,6 +59,7 @@ Fixes :h1
    fix_langevin
    fix_langevin_drude
    fix_langevin_eff
+   fix_latte
    fix_lb_fluid
    fix_lb_momentum
    fix_lb_pc
@@ -71,9 +73,11 @@ Fixes :h1
    fix_move
    fix_mscg
    fix_msst
+   fix_mvv_dpd
    fix_neb
    fix_nh
    fix_nh_eff
+   fix_nh_uef
    fix_nph_asphere
    fix_nph_body
    fix_nph_sphere
@@ -111,7 +115,8 @@ Fixes :h1
    fix_press_berendsen
    fix_print
    fix_property_atom
-   fix_python
+   fix_python_invoke
+   fix_python_move
    fix_qbmsst
    fix_qeq
    fix_qeq_comb
@@ -122,6 +127,7 @@ Fixes :h1
    fix_reaxc_species
    fix_recenter
    fix_restrain
+   fix_rhok
    fix_rigid
    fix_rx
    fix_saed_vtk
@@ -142,6 +148,7 @@ Fixes :h1
    fix_srd
    fix_store_force
    fix_store_state
+   fix_surface_global
    fix_temp_berendsen
    fix_temp_csvr
    fix_temp_rescale

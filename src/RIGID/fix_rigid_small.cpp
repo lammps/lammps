@@ -29,7 +29,9 @@
 #include "group.h"
 #include "comm.h"
 #include "force.h"
+#include "input.h"
 #include "output.h"
+#include "variable.h"
 #include "random_mars.h"
 #include "math_const.h"
 #include "memory.h"
@@ -63,12 +65,13 @@ enum{FULL_BODY,INITIAL,FINAL,FORCE_TORQUE,VCM_ANGMOM,XCM_MASS,ITENSOR,DOF};
 /* ---------------------------------------------------------------------- */
 
 FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), step_respa(NULL), 
-  infile(NULL), body(NULL), bodyown(NULL), bodytag(NULL), atom2body(NULL), 
-  xcmimage(NULL), displace(NULL), eflags(NULL), orient(NULL), dorient(NULL), 
-  avec_ellipsoid(NULL), avec_line(NULL), avec_tri(NULL), counts(NULL), 
-  itensor(NULL), mass_body(NULL), langextra(NULL), random(NULL), id_dilate(NULL), 
-  onemols(NULL), hash(NULL), bbox(NULL), ctr(NULL), idclose(NULL), rsqclose(NULL)
+  Fix(lmp, narg, arg), step_respa(NULL),
+  infile(NULL), body(NULL), bodyown(NULL), bodytag(NULL), atom2body(NULL),
+  xcmimage(NULL), displace(NULL), eflags(NULL), orient(NULL), dorient(NULL),
+  avec_ellipsoid(NULL), avec_line(NULL), avec_tri(NULL), counts(NULL),
+  itensor(NULL), mass_body(NULL), langextra(NULL), random(NULL),
+  id_dilate(NULL), onemols(NULL), hash(NULL), bbox(NULL), ctr(NULL),
+  idclose(NULL), rsqclose(NULL)
 {
   int i;
 
@@ -78,6 +81,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   time_integrate = 1;
   rigid_flag = 1;
   virial_flag = 1;
+  thermo_virial = 1;
   create_attribute = 1;
   dof_flag = 1;
   enforce2d_flag = 1;
@@ -88,7 +92,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based arrays
   // register with Atom class
 
-  extended = orientflag = dorientflag = 0;
+  extended = orientflag = dorientflag = customflag = 0;
   bodyown = NULL;
   bodytag = NULL;
   atom2body = NULL;
@@ -102,24 +106,71 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
 
   // parse args for rigid body specification
 
-  if (narg < 4) error->all(FLERR,"Illegal fix rigid/small command");
-  if (strcmp(arg[3],"molecule") != 0)
-    error->all(FLERR,"Illegal fix rigid/small command");
+  int *mask = atom->mask;
+  tagint *bodyid = NULL;
+  int nlocal = atom->nlocal;
 
-  if (atom->molecule_flag == 0)
-    error->all(FLERR,"Fix rigid/small requires atom attribute molecule");
+  if (narg < 4) error->all(FLERR,"Illegal fix rigid/small command");
+  if (strcmp(arg[3],"molecule") == 0) {
+    if (atom->molecule_flag == 0)
+      error->all(FLERR,"Fix rigid/small requires atom attribute molecule");
+    bodyid = atom->molecule;
+
+  } else if (strcmp(arg[3],"custom") == 0) {
+    if (narg < 5) error->all(FLERR,"Illegal fix rigid/small command");
+      bodyid = new tagint[nlocal];
+      customflag = 1;
+
+      // determine whether atom-style variable or atom property is used.
+      if (strstr(arg[4],"i_") == arg[4]) {
+        int is_double=0;
+        int custom_index = atom->find_custom(arg[4]+2,is_double);
+        if (custom_index == -1)
+          error->all(FLERR,"Fix rigid/small custom requires previously defined property/atom");
+        else if (is_double)
+          error->all(FLERR,"Fix rigid/small custom requires integer-valued property/atom");
+
+        int minval = INT_MAX;
+        int *value = atom->ivector[custom_index];
+        for (i = 0; i < nlocal; i++)
+          if (mask[i] & groupbit) minval = MIN(minval,value[i]);
+        int vmin = minval;
+        MPI_Allreduce(&vmin,&minval,1,MPI_INT,MPI_MIN,world);
+
+        for (i = 0; i < nlocal; i++)
+          if (mask[i] & groupbit)
+            bodyid[i] = (tagint)(value[i] - minval + 1);
+          else bodyid[i] = 0;
+
+      } else if (strstr(arg[4],"v_") == arg[4]) {
+        int ivariable = input->variable->find(arg[4]+2);
+        if (ivariable < 0)
+          error->all(FLERR,"Variable name for fix rigid/small custom does not exist");
+        if (input->variable->atomstyle(ivariable) == 0)
+          error->all(FLERR,"Fix rigid/small custom variable is no atom-style variable");
+        double *value = new double[nlocal];
+        input->variable->compute_atom(ivariable,0,value,1,0);
+        int minval = INT_MAX;
+        for (i = 0; i < nlocal; i++)
+          if (mask[i] & groupbit) minval = MIN(minval,(int)value[i]);
+        int vmin = minval;
+        MPI_Allreduce(&vmin,&minval,1,MPI_INT,MPI_MIN,world);
+
+        for (i = 0; i < nlocal; i++)
+          if (mask[i] & groupbit)
+            bodyid[i] = (tagint)((tagint)value[i] - minval + 1);
+          else bodyid[0] = 0;
+        delete[] value;
+      } else error->all(FLERR,"Unsupported fix rigid custom property");
+  } else error->all(FLERR,"Illegal fix rigid/small command");
+
   if (atom->map_style == 0)
     error->all(FLERR,"Fix rigid/small requires an atom map, see atom_modify");
 
-  // maxmol = largest molecule #
-
-  int *mask = atom->mask;
-  tagint *molecule = atom->molecule;
-  int nlocal = atom->nlocal;
-
+  // maxmol = largest bodyid #
   maxmol = -1;
   for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) maxmol = MAX(maxmol,molecule[i]);
+    if (mask[i] & groupbit) maxmol = MAX(maxmol,bodyid[i]);
 
   tagint itmp;
   MPI_Allreduce(&maxmol,&itmp,1,MPI_LMP_TAGINT,MPI_MAX,world);
@@ -154,6 +205,8 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   }
 
   int iarg = 4;
+  if (customflag) ++iarg;
+
   while (iarg < narg) {
     if (strcmp(arg[iarg],"langevin") == 0) {
       if (iarg+5 > narg) error->all(FLERR,"Illegal fix rigid/small command");
@@ -214,7 +267,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid/small command");
       if (strcmp(style,"rigid/npt/small") != 0 &&
           strcmp(style,"rigid/nph/small") != 0)
-	      error->all(FLERR,"Illegal fix rigid/small command");
+              error->all(FLERR,"Illegal fix rigid/small command");
       pcouple = XYZ;
       p_start[0] = p_start[1] = p_start[2] = force->numeric(FLERR,arg[iarg+1]);
       p_stop[0] = p_stop[1] = p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
@@ -222,8 +275,8 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
         force->numeric(FLERR,arg[iarg+3]);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (domain->dimension == 2) {
-	      p_start[2] = p_stop[2] = p_period[2] = 0.0;
-      	p_flag[2] = 0;
+              p_start[2] = p_stop[2] = p_period[2] = 0.0;
+        p_flag[2] = 0;
       }
       iarg += 4;
 
@@ -231,15 +284,15 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid/small command");
       if (strcmp(style,"rigid/npt/small") != 0 &&
           strcmp(style,"rigid/nph/small") != 0)
-	      error->all(FLERR,"Illegal fix rigid/small command");
+              error->all(FLERR,"Illegal fix rigid/small command");
       p_start[0] = p_start[1] = p_start[2] = force->numeric(FLERR,arg[iarg+1]);
       p_stop[0] = p_stop[1] = p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
       p_period[0] = p_period[1] = p_period[2] =
         force->numeric(FLERR,arg[iarg+3]);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (domain->dimension == 2) {
-      	p_start[2] = p_stop[2] = p_period[2] = 0.0;
-	      p_flag[2] = 0;
+        p_start[2] = p_stop[2] = p_period[2] = 0.0;
+              p_flag[2] = 0;
       }
       iarg += 4;
 
@@ -343,11 +396,12 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   if (pcouple == XYZ || (domain->dimension == 2 && pcouple == XY)) pstyle = ISO;
   else pstyle = ANISO;
 
-  // create rigid bodies based on molecule ID
+  // create rigid bodies based on molecule or custom ID
   // sets bodytag for owned atoms
   // body attributes are computed later by setup_bodies()
 
-  create_bodies();
+  create_bodies(bodyid);
+  if (customflag) delete [] bodyid;
 
   // set nlocal_body and allocate bodies I own
 
@@ -747,14 +801,14 @@ void FixRigidSmall::post_force(int vflag)
     vcm = body[ibody].vcm;
     omega = body[ibody].omega;
     inertia = body[ibody].inertia;
-    
+
     gamma1 = -body[ibody].mass / t_period / ftm2v;
     gamma2 = sqrt(body[ibody].mass) * tsqrt *
       sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
     langextra[ibody][0] = gamma1*vcm[0] + gamma2*(random->uniform()-0.5);
     langextra[ibody][1] = gamma1*vcm[1] + gamma2*(random->uniform()-0.5);
     langextra[ibody][2] = gamma1*vcm[2] + gamma2*(random->uniform()-0.5);
-    
+
     gamma1 = -1.0 / t_period / ftm2v;
     gamma2 = tsqrt * sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
     langextra[ibody][3] = inertia[0]*gamma1*omega[0] +
@@ -1423,7 +1477,7 @@ void FixRigidSmall::set_v()
    set bodytag for all owned atoms
 ------------------------------------------------------------------------- */
 
-void FixRigidSmall::create_bodies()
+void FixRigidSmall::create_bodies(tagint *bodyid)
 {
   int i,m,n;
   double unwrap[3];
@@ -1463,8 +1517,8 @@ void FixRigidSmall::create_bodies()
   double *buf;
   memory->create(buf,ncount*percount,"rigid/small:buf");
 
-  // create map hash for storing unique molecule IDs of my atoms
-  // key = molecule ID
+  // create map hash for storing unique body IDs of my atoms
+  // key = body ID
   // value = index into per-body data structure
   // n = # of entries in hash
 
@@ -1476,12 +1530,10 @@ void FixRigidSmall::create_bodies()
   // value = index into N-length data structure
   // n = count of unique bodies my atoms are part of
 
-  tagint *molecule = atom->molecule;
-
   n = 0;
   for (i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
-    if (hash->find(molecule[i]) == hash->end()) (*hash)[molecule[i]] = n++;
+    if (hash->find(bodyid[i]) == hash->end()) (*hash)[bodyid[i]] = n++;
   }
 
   // bbox = bounding box of each rigid body my atoms are part of
@@ -1493,7 +1545,7 @@ void FixRigidSmall::create_bodies()
     bbox[i][1] = bbox[i][3] = bbox[i][5] = -BIG;
   }
 
-  // pack my atoms into buffer as molecule ID, unwrapped coords
+  // pack my atoms into buffer as body ID, unwrapped coords
 
   double **x = atom->x;
 
@@ -1501,7 +1553,7 @@ void FixRigidSmall::create_bodies()
   for (i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
     domain->unmap(x[i],image[i],unwrap);
-    buf[m++] = molecule[i];
+    buf[m++] = bodyid[i];
     buf[m++] = unwrap[0];
     buf[m++] = unwrap[1];
     buf[m++] = unwrap[2];
@@ -1541,7 +1593,7 @@ void FixRigidSmall::create_bodies()
 
   for (i = 0; i < n; i++) rsqclose[i] = BIG;
 
-  // pack my atoms into buffer as molecule ID, atom ID, unwrapped coords
+  // pack my atoms into buffer as body ID, atom ID, unwrapped coords
 
   tagint *tag = atom->tag;
 
@@ -1549,7 +1601,7 @@ void FixRigidSmall::create_bodies()
   for (i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
     domain->unmap(x[i],image[i],unwrap);
-    buf[m++] = molecule[i];
+    buf[m++] = bodyid[i];
     buf[m++] = ubuf(tag[i]).d;
     buf[m++] = unwrap[0];
     buf[m++] = unwrap[1];
@@ -1569,7 +1621,7 @@ void FixRigidSmall::create_bodies()
   for (i = 0; i < nlocal; i++) {
     bodytag[i] = 0;
     if (!(mask[i] & groupbit)) continue;
-    m = hash->find(molecule[i])->second;
+    m = hash->find(bodyid[i])->second;
     bodytag[i] = idclose[m];
     rsqmax = MAX(rsqmax,rsqclose[m]);
   }

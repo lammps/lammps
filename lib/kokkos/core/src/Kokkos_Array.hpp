@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -152,10 +152,10 @@ public:
   KOKKOS_INLINE_FUNCTION pointer       data()       { return pointer(0) ; }
   KOKKOS_INLINE_FUNCTION const_pointer data() const { return const_pointer(0); }
 
-  ~Array() = default ;
-  Array() = default ;
-  Array( const Array & ) = default ;
-  Array & operator = ( const Array & ) = default ;
+  KOKKOS_FUNCTION_DEFAULTED ~Array() = default ;
+  KOKKOS_FUNCTION_DEFAULTED Array() = default ;
+  KOKKOS_FUNCTION_DEFAULTED Array( const Array & ) = default ;
+  KOKKOS_FUNCTION_DEFAULTED Array & operator = ( const Array & ) = default ;
 
   // Some supported compilers are not sufficiently C++11 compliant
   // for default move constructor and move assignment operator.
@@ -209,7 +209,7 @@ public:
   KOKKOS_INLINE_FUNCTION pointer       data()       { return m_elem ; }
   KOKKOS_INLINE_FUNCTION const_pointer data() const { return m_elem ; }
 
-  ~Array() = default ;
+  KOKKOS_FUNCTION_DEFAULTED ~Array() = default ;
   Array() = delete ;
   Array( const Array & rhs ) = delete ;
 
@@ -278,7 +278,7 @@ public:
   KOKKOS_INLINE_FUNCTION pointer       data()       { return m_elem ; }
   KOKKOS_INLINE_FUNCTION const_pointer data() const { return m_elem ; }
 
-  ~Array() = default ;
+  KOKKOS_FUNCTION_DEFAULTED ~Array() = default ;
   Array()  = delete ;
   Array( const Array & ) = delete ;
 

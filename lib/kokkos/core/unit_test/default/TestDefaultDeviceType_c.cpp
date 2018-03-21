@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -46,6 +46,7 @@
 #include <Kokkos_Core.hpp>
 
 #if !defined( KOKKOS_ENABLE_CUDA ) || defined( __CUDACC__ )
+#if !defined( KOKKOS_ENABLE_ROCM ) 
 
 #include <default/TestDefaultDeviceType_Category.hpp>
 #include <TestReduceCombinatorical.hpp>
@@ -59,4 +60,5 @@ TEST_F( defaultdevicetype, reduce_instantiation_c )
 
 } // namespace Test
 
+#endif
 #endif

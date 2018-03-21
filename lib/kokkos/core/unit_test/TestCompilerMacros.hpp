@@ -35,13 +35,26 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
 */
 
 #include <Kokkos_Core.hpp>
+
+#if defined(KOKKOS_ENABLE_CUDA) && \
+    ( !defined(KOKKOS_ENABLE_CUDA_LAMBDA) || \
+      (  ( defined(KOKKOS_ENABLE_SERIAL) || defined(KOKKOS_ENABLE_OPENMP) ) && \
+         (  (CUDA_VERSION < 8000) && defined( __NVCC__ ))))
+  #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
+    #error "Macro bug: KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA shouldn't be defined"
+  #endif
+#else
+  #if !defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
+    #error "Macro bug: KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA should be defined"
+  #endif
+#endif
 
 #define KOKKOS_PRAGMA_UNROLL(a)
 
@@ -54,7 +67,7 @@ struct AddFunctor {
   type a, b;
   int length;
 
-  AddFunctor( type a_, type b_ ) : a( a_ ), b( b_ ), length( a.dimension_1() ) {}
+  AddFunctor( type a_, type b_ ) : a( a_ ), b( b_ ), length( a.extent(1) ) {}
 
   KOKKOS_INLINE_FUNCTION
   void operator()( int i ) const {

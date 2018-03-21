@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -69,11 +69,11 @@ void test_policy(int team_range, int thread_range, int vector_range,
           int team_size, int vector_size, int test_type,
           ViewType1 &v1, ViewType2 &v2, ViewType3 &v3,
           double &result, double &result_expect, double &time) {
-  
+
   typedef Kokkos::TeamPolicy<ScheduleType,IndexType> t_policy;
   typedef typename t_policy::member_type t_team;
   Kokkos::Timer timer;
-  
+
   for(int orep = 0; orep<outer_repeat; orep++) {
 
     if (test_type == 100) {
@@ -95,7 +95,7 @@ void test_policy(int team_range, int thread_range, int vector_range,
               v2( idx, t ) = t;
               // prevent compiler optimizing loop away
             });
-          }             
+          }
       });
     }
     if (test_type == 111) {
@@ -178,12 +178,13 @@ void test_policy(int team_range, int thread_range, int vector_range,
           for (int tr = 0; tr<thread_repeat; ++tr) {
             Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team,thread_range), [&] (const int t, double &lval) {
               double vector_result = 0.0;
-              for (int vr = 0; vr<inner_repeat; ++vr)
+              for (int vr = 0; vr<inner_repeat; ++vr) {
                 vector_result = 0.0;
                 Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team,vector_range), [&] (const int vi, double &vval) {
                   vval += 1;
                 }, vector_result);
                 lval += vector_result;
+              }
             }, team_result);
           }
           v1(idx) = team_result;
@@ -191,7 +192,7 @@ void test_policy(int team_range, int thread_range, int vector_range,
       });
     }
     if (test_type == 200) {
-      Kokkos::parallel_reduce("200 outer reduce", t_policy(team_range,team_size),                        
+      Kokkos::parallel_reduce("200 outer reduce", t_policy(team_range,team_size),
         KOKKOS_LAMBDA (const t_team& team, double& lval) {
           lval+=team.team_size()*team.league_rank() + team.team_rank();
       },result);
@@ -315,7 +316,7 @@ void test_policy(int team_range, int thread_range, int vector_range,
 
     // parallel_for RangePolicy: range = team_size*team_range
     if (test_type == 300) {
-      Kokkos::parallel_for("300 outer for", team_size*team_range, 
+      Kokkos::parallel_for("300 outer for", team_size*team_range,
         KOKKOS_LAMBDA (const int idx) {
           v1(idx) = idx;
           // prevent compiler from optimizing away the loop
@@ -323,7 +324,7 @@ void test_policy(int team_range, int thread_range, int vector_range,
     }
     // parallel_reduce RangePolicy: range = team_size*team_range
     if (test_type == 400) {
-      Kokkos::parallel_reduce("400 outer reduce", team_size*team_range, 
+      Kokkos::parallel_reduce("400 outer reduce", team_size*team_range,
         KOKKOS_LAMBDA (const int idx, double& val) {
           val += idx;
       }, result);
@@ -331,7 +332,7 @@ void test_policy(int team_range, int thread_range, int vector_range,
     }
     // parallel_scan RangePolicy: range = team_size*team_range
     if (test_type == 500) {
-      Kokkos::parallel_scan("500 outer scan", team_size*team_range, 
+      Kokkos::parallel_scan("500 outer scan", team_size*team_range,
         ParallelScanFunctor<ViewType1>(v1)
 #if 0
         // This does not compile with pre Cuda 8.0 - see Github Issue #913 for explanation

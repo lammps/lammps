@@ -32,6 +32,8 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "modify.h"
+#include "domain.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -376,19 +378,6 @@ void PairLJCutTholeLong::init_style()
   // setup force tables
 
   if (ncoultablebits) init_tables(cut_coul,cut_respa);
-}
-
-/* ----------------------------------------------------------------------
-   neighbor callback to inform pair style of neighbor list to use
-   regular or rRESPA
-------------------------------------------------------------------------- */
-
-void PairLJCutTholeLong::init_list(int id, NeighList *ptr)
-{
-  if (id == 0) list = ptr;
-  else if (id == 1) listinner = ptr;
-  else if (id == 2) listmiddle = ptr;
-  else if (id == 3) listouter = ptr;
 }
 
 /* ----------------------------------------------------------------------

@@ -48,7 +48,7 @@ class PPPMTIP4POMP : public PPPMTIP4P, public ThrOMP {
   void compute_rho1d_thr(FFT_SCALAR * const * const, const FFT_SCALAR &,
                          const FFT_SCALAR &, const FFT_SCALAR &);
   void compute_drho1d_thr(FFT_SCALAR * const * const, const FFT_SCALAR &,
-			  const FFT_SCALAR &, const FFT_SCALAR &);
+                          const FFT_SCALAR &, const FFT_SCALAR &);
 
   void find_M_thr(const int, int &, int &, dbl3_t &);
 

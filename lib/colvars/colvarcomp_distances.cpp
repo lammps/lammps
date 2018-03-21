@@ -581,6 +581,12 @@ colvar::distance_inv::distance_inv(std::string const &conf)
     }
   }
 
+  if (is_enabled(f_cvc_debug_gradient)) {
+    cvm::log("Warning: debugGradients will not give correct results "
+             "for distanceInv, because its value and gradients are computed "
+             "simultaneously.\n");
+  }
+
   x.type(colvarvalue::type_scalar);
 }
 
@@ -601,11 +607,9 @@ void colvar::distance_inv::calc_value()
       for (cvm::atom_iter ai2 = group2->begin(); ai2 != group2->end(); ai2++) {
         cvm::rvector const dv = ai2->pos - ai1->pos;
         cvm::real const d2 = dv.norm2();
-        cvm::real dinv = 1.0;
-        for (int ne = 0; ne < exponent/2; ne++)
-          dinv *= 1.0/d2;
+        cvm::real const dinv = cvm::integer_power(d2, -1*(exponent/2));
         x.real_value += dinv;
-        cvm::rvector const dsumddv = -(cvm::real(exponent)) * dinv/d2 * dv;
+        cvm::rvector const dsumddv = -1.0*(exponent/2) * dinv/d2 * 2.0 * dv;
         ai1->grad += -1.0 * dsumddv;
         ai2->grad +=        dsumddv;
       }
@@ -615,11 +619,9 @@ void colvar::distance_inv::calc_value()
       for (cvm::atom_iter ai2 = group2->begin(); ai2 != group2->end(); ai2++) {
         cvm::rvector const dv = cvm::position_distance(ai1->pos, ai2->pos);
         cvm::real const d2 = dv.norm2();
-        cvm::real dinv = 1.0;
-        for (int ne = 0; ne < exponent/2; ne++)
-          dinv *= 1.0/d2;
+        cvm::real const dinv = cvm::integer_power(d2, -1*(exponent/2));
         x.real_value += dinv;
-        cvm::rvector const dsumddv = -(cvm::real(exponent)) * dinv/d2 * dv;
+        cvm::rvector const dsumddv = -1.0*(exponent/2) * dinv/d2 * 2.0 * dv;
         ai1->grad += -1.0 * dsumddv;
         ai2->grad +=        dsumddv;
       }
@@ -627,19 +629,22 @@ void colvar::distance_inv::calc_value()
   }
 
   x.real_value *= 1.0 / cvm::real(group1->size() * group2->size());
-  x.real_value = std::pow(x.real_value, -1.0/(cvm::real(exponent)));
-}
+  x.real_value = std::pow(x.real_value, -1.0/cvm::real(exponent));
 
-
-void colvar::distance_inv::calc_gradients()
-{
-  cvm::real const dxdsum = (-1.0/(cvm::real(exponent))) * std::pow(x.real_value, exponent+1) / cvm::real(group1->size() * group2->size());
+  cvm::real const dxdsum = (-1.0/(cvm::real(exponent))) *
+    cvm::integer_power(x.real_value, exponent+1) /
+    cvm::real(group1->size() * group2->size());
   for (cvm::atom_iter ai1 = group1->begin(); ai1 != group1->end(); ai1++) {
     ai1->grad *= dxdsum;
   }
   for (cvm::atom_iter ai2 = group2->begin(); ai2 != group2->end(); ai2++) {
     ai2->grad *= dxdsum;
   }
+}
+
+
+void colvar::distance_inv::calc_gradients()
+{
 }
 
 
@@ -1066,8 +1071,9 @@ void colvar::rmsd::calc_force_invgrads()
 void colvar::rmsd::calc_Jacobian_derivative()
 {
   // divergence of the rotated coordinates (including only derivatives of the rotation matrix)
-  cvm::real divergence = 0.0;
+  cvm::real rotation_term = 0.0;
 
+  // The rotation term only applies is coordinates are rotated
   if (atoms->b_rotate) {
 
     // gradient of the rotation matrix
@@ -1104,7 +1110,7 @@ void colvar::rmsd::calc_Jacobian_derivative()
 
       for (size_t alpha = 0; alpha < 3; alpha++) {
         for (size_t beta = 0; beta < 3; beta++) {
-          divergence += grad_rot_mat[beta][alpha][alpha] * y[beta];
+          rotation_term += grad_rot_mat[beta][alpha][alpha] * y[beta];
         // Note: equation was derived for inverse rotation (see colvars paper)
         // so here the matrix is transposed
         // (eq would give   divergence += grad_rot_mat[alpha][beta][alpha] * y[beta];)
@@ -1112,7 +1118,13 @@ void colvar::rmsd::calc_Jacobian_derivative()
       }
     }
   }
-  jd.real_value = x.real_value > 0.0 ? (3.0 * atoms->size() - 4.0 - divergence) / x.real_value : 0.0;
+
+  // The translation term only applies is coordinates are centered
+  cvm::real translation_term = atoms->b_center ? 3.0 : 0.0;
+
+  jd.real_value = x.real_value > 0.0 ?
+    (3.0 * atoms->size() - 1.0 - translation_term - rotation_term) / x.real_value :
+    0.0;
 }
 
 

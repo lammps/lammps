@@ -238,7 +238,7 @@ void Dump::init()
     int gcmcflag = 0;
     for (int i = 0; i < modify->nfix; i++)
       if ((strcmp(modify->fix[i]->style,"gcmc") == 0))
-	gcmcflag = 1;
+        gcmcflag = 1;
 
     if (sortcol == 0 && atom->tag_consecutive() && !gcmcflag) {
       tagint *tag = atom->tag;
@@ -898,7 +898,7 @@ void Dump::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"fileper") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
       if (!multiproc)
-	error->all(FLERR,"Cannot use dump_modify fileper "
+        error->all(FLERR,"Cannot use dump_modify fileper "
                    "without % in dump file name");
       int nper = force->inumeric(FLERR,arg[iarg+1]);
       if (nper <= 0) error->all(FLERR,"Illegal dump_modify command");
@@ -973,7 +973,7 @@ void Dump::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"nfile") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
       if (!multiproc)
-	error->all(FLERR,"Cannot use dump_modify nfile "
+        error->all(FLERR,"Cannot use dump_modify nfile "
                    "without % in dump file name");
       int nfile = force->inumeric(FLERR,arg[iarg+1]);
       if (nfile <= 0) error->all(FLERR,"Illegal dump_modify command");

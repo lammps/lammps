@@ -617,7 +617,7 @@ void PairLJLongCoulLongOpt::eval()
 
       if (rsq < cut_ljsqi[typej]) {                        // lj
         if (ORDER6) {                                        // long-range lj
-          if(!LJTABLE || rsq <= tabinnerdispsq) {				// series real space
+          if(!LJTABLE || rsq <= tabinnerdispsq) {               // series real space
             register double rn = r2inv*r2inv*r2inv;
             register double x2 = g2*rsq, a2 = 1.0/x2;
             x2 = a2*exp(-x2)*lj4i[typej];
@@ -635,7 +635,7 @@ void PairLJLongCoulLongOpt::eval()
                 evdwl = f*rn*lj3i[typej]-g6*((a2+1.0)*a2+0.5)*x2+t*lj4i[typej];
             }
           }
-          else {						// table real space
+          else {                        // table real space
             register union_int_float_t disp_t;
             disp_t.f = rsq;
             register const int disp_k = (disp_t.i & ndispmask)>>ndispshiftbits;
@@ -645,7 +645,7 @@ void PairLJLongCoulLongOpt::eval()
               force_lj = (rn*=rn)*lj1i[typej]-(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*lj4i[typej];
               if (EFLAG) evdwl = rn*lj3i[typej]-(edisptable[disp_k]+f_disp*dedisptable[disp_k])*lj4i[typej];
             }
-            else {					// special case
+            else {                  // special case
               register double f = special_lj[ni], t = rn*(1.0-f);
               force_lj = f*(rn *= rn)*lj1i[typej]-(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*lj4i[typej]+t*lj2i[typej];
               if (EFLAG) evdwl = f*rn*lj3i[typej]-(edisptable[disp_k]+f_disp*dedisptable[disp_k])*lj4i[typej]+t*lj4i[typej];
@@ -726,7 +726,7 @@ void PairLJLongCoulLongOpt::eval_outer()
   double cut_in_off_sq = cut_in_off*cut_in_off;
   double cut_in_on_sq = cut_in_on*cut_in_on;
 
-  ineighn = (ineigh = listouter->ilist)+listouter->inum;
+  ineighn = (ineigh = list->ilist)+list->inum;
 
   for (; ineigh<ineighn; ++ineigh) {                        // loop over my atoms
     i = *ineigh; fi = f0+3*i;
@@ -735,7 +735,7 @@ void PairLJLongCoulLongOpt::eval_outer()
     lj1i = lj1[typei]; lj2i = lj2[typei]; lj3i = lj3[typei]; lj4i = lj4[typei];
     cutsqi = cutsq[typei]; cut_ljsqi = cut_ljsq[typei];
     memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
-    jneighn = (jneigh = listouter->firstneigh[i])+listouter->numneigh[i];
+    jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
 
     for (; jneigh<jneighn; ++jneigh) {                        // loop over neighbors
       j = *jneigh;
@@ -824,7 +824,7 @@ void PairLJLongCoulLongOpt::eval_outer()
                 evdwl = f*rn*lj3i[typej]-g6*((a2+1.0)*a2+0.5)*x2+t*lj4i[typej];
             }
           }
-          else {						// table real space
+          else {                        // table real space
             register union_int_float_t disp_t;
             disp_t.f = rsq;
             register const int disp_k = (disp_t.i & ndispmask)>>ndispshiftbits;
@@ -834,7 +834,7 @@ void PairLJLongCoulLongOpt::eval_outer()
               force_lj = (rn*=rn)*lj1i[typej]-(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*lj4i[typej]-respa_lj;
               if (EFLAG) evdwl = rn*lj3i[typej]-(edisptable[disp_k]+f_disp*dedisptable[disp_k])*lj4i[typej];
             }
-            else {					// special case
+            else {                  // special case
               register double f = special_lj[ni], t = rn*(1.0-f);
               force_lj = f*(rn *= rn)*lj1i[typej]-(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*lj4i[typej]+t*lj2i[typej]-respa_lj;
               if (EFLAG) evdwl = f*rn*lj3i[typej]-(edisptable[disp_k]+f_disp*dedisptable[disp_k])*lj4i[typej]+t*lj4i[typej];

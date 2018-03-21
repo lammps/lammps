@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -52,7 +52,33 @@
 namespace Kokkos {
 namespace Experimental {
 
+// Simple metafunction for choosing memory space
+// In the current implementation, if memory_space == CudaSpace, 
+// use CudaUVMSpace for the chunk 'array' allocation, which
+// contains will contain pointers to chunks of memory allocated 
+// in CudaSpace
+namespace Impl {
+template < class MemSpace >
+struct ChunkArraySpace {
+  using memory_space = MemSpace;
+};
+
+#ifdef KOKKOS_ENABLE_CUDA
+template <>
+struct ChunkArraySpace< Kokkos::CudaSpace > {
+  using memory_space = typename Kokkos::CudaUVMSpace;
+};
+#endif
+#ifdef KOKKOS_ENABLE_ROCM
+template <>
+struct ChunkArraySpace< Kokkos::Experimental::ROCmSpace > {
+  using memory_space = typename Kokkos::Experimental::ROCmHostPinnedSpace;
+};
+#endif
+} // end namespace Impl
+
 /** \brief Dynamic views are restricted to rank-one and no layout.
+ *         Resize only occurs on host outside of parallel_regions.
  *         Subviews are not allowed.
  */
 template< typename DataType , typename ... P >
@@ -66,14 +92,16 @@ private:
 
   template< class , class ... > friend class DynamicView ;
 
-  typedef Kokkos::Experimental::Impl::SharedAllocationTracker   track_type ;
+  typedef Kokkos::Impl::SharedAllocationTracker   track_type ;
 
   static_assert( traits::rank == 1 && traits::rank_dynamic == 1
                , "DynamicView must be rank-one" );
 
   static_assert( std::is_trivial< typename traits::value_type >::value &&
-                 std::is_same< typename traits::specialize , void >::value
-               , "DynamicView must have trivial data type" );
+                 std::is_same< typename traits::specialize , void >::value &&
+                 Kokkos::Impl::is_power_of_two
+                   <sizeof(typename traits::value_type)>::value
+               , "DynamicView must have trivial value_type and sizeof(value_type) is a power-of-two");
 
 
   template< class Space , bool = Kokkos::Impl::MemorySpaceAccess< Space , typename traits::memory_space >::accessible > struct verify_space
@@ -84,18 +112,14 @@ private:
         { Kokkos::abort("Kokkos::DynamicView ERROR: attempt to access inaccessible memory space"); };
     };
 
-public:
-
-  typedef Kokkos::MemoryPool< typename traits::device_type > memory_pool ;
-
 private:
 
-  memory_pool                    m_pool ;
   track_type                     m_track ;
-  typename traits::value_type ** m_chunks ;
-  unsigned                       m_chunk_shift ;
-  unsigned                       m_chunk_mask ;
-  unsigned                       m_chunk_max ;
+  typename traits::value_type ** m_chunks ;      // array of pointers to 'chunks' of memory
+  unsigned                       m_chunk_shift ; // ceil(log2(m_chunk_size))
+  unsigned                       m_chunk_mask ;  // m_chunk_size - 1
+  unsigned                       m_chunk_max ;   // number of entries in the chunk array - each pointing to a chunk of extent == m_chunk_size entries
+  unsigned                       m_chunk_size ;  // 2 << (m_chunk_shift - 1)
 
 public:
 
@@ -124,27 +148,23 @@ public:
   enum { Rank = 1 };
 
   KOKKOS_INLINE_FUNCTION
+  size_t allocation_extent() const noexcept
+    {
+      uintptr_t n = *reinterpret_cast<const uintptr_t*>( m_chunks + m_chunk_max );
+      return (n << m_chunk_shift);
+    }
+
+  KOKKOS_INLINE_FUNCTION
+  size_t chunk_size() const noexcept
+    {
+      return m_chunk_size;
+    }
+
+  KOKKOS_INLINE_FUNCTION
   size_t size() const noexcept
     {
-      uintptr_t n = 0 ;
-
-      if ( Kokkos::Impl::MemorySpaceAccess
-            < Kokkos::Impl::ActiveExecutionMemorySpace
-            , typename traits::memory_space
-            >::accessible ) {
-        n = *reinterpret_cast<const uintptr_t*>( m_chunks + m_chunk_max );
-      }
-#if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
-      else {
-        Kokkos::Impl::DeepCopy< Kokkos::HostSpace
-                              , typename traits::memory_space
-                              , Kokkos::HostSpace::execution_space >
-          ( & n
-          , reinterpret_cast<const uintptr_t*>( m_chunks + m_chunk_max )
-          , sizeof(uintptr_t) );
-      }
-#endif
-      return n << m_chunk_shift ;
+      size_t extent_0 = *reinterpret_cast<const size_t*>( m_chunks + m_chunk_max +1 );
+      return extent_0;
     }
 
   template< typename iType >
@@ -157,6 +177,7 @@ public:
   size_t extent_int( const iType & r ) const
     { return r == 0 ? size() : 1 ; }
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
   KOKKOS_INLINE_FUNCTION size_t dimension_0() const { return size(); }
   KOKKOS_INLINE_FUNCTION constexpr size_t dimension_1() const { return 1 ; }
   KOKKOS_INLINE_FUNCTION constexpr size_t dimension_2() const { return 1 ; }
@@ -165,6 +186,7 @@ public:
   KOKKOS_INLINE_FUNCTION constexpr size_t dimension_5() const { return 1 ; }
   KOKKOS_INLINE_FUNCTION constexpr size_t dimension_6() const { return 1 ; }
   KOKKOS_INLINE_FUNCTION constexpr size_t dimension_7() const { return 1 ; }
+#endif
 
   KOKKOS_INLINE_FUNCTION constexpr size_t stride_0() const { return 0 ; }
   KOKKOS_INLINE_FUNCTION constexpr size_t stride_1() const { return 0 ; }
@@ -177,6 +199,17 @@ public:
 
   template< typename iType >
   KOKKOS_INLINE_FUNCTION void stride( iType * const s ) const { *s = 0 ; }
+
+  //----------------------------------------
+  // Allocation tracking properties
+
+  KOKKOS_INLINE_FUNCTION
+  int use_count() const
+    { return m_track.use_count(); }
+
+  inline
+  const std::string label() const
+    { return m_track.template get_label< typename traits::memory_space >(); }
 
   //----------------------------------------------------------------------
   // Range span is the span which contains all members.
@@ -232,65 +265,15 @@ public:
     }
 
   //----------------------------------------
-  /** \brief  Resizing in parallel only increases the array size,
-   *          never decrease.
-   */
-  KOKKOS_INLINE_FUNCTION
-  void resize_parallel( size_t n ) const
-    {
-      typedef typename traits::value_type value_type ;
-
-      DynamicView::template verify_space< Kokkos::Impl::ActiveExecutionMemorySpace >::check();
-
-      const uintptr_t NC = ( n + m_chunk_mask ) >> m_chunk_shift ;
-
-      if ( m_chunk_max < NC ) {
-#if defined( KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK )
-        printf("DynamicView::resize_parallel(%lu) m_chunk_max(%u) NC(%lu)\n"
-              , n , m_chunk_max , NC );
-#endif
-        Kokkos::abort("DynamicView::resize_parallel exceeded maximum size");
-      }
-
-      typename traits::value_type * volatile * const ch = m_chunks ;
-
-      // The allocated chunk counter is m_chunks[ m_chunk_max ]
-      uintptr_t volatile * const pc =
-        reinterpret_cast<uintptr_t volatile*>( m_chunks + m_chunk_max );
-
-      // Potentially concurrent iteration of allocation to the required size.
-
-      for ( uintptr_t jc = *pc ; jc < NC ; ) {
-
-        // Claim the 'jc' chunk to-be-allocated index
-
-        const uintptr_t jc_try = jc ;
-
-        // Jump iteration to the chunk counter.
-
-        jc = atomic_compare_exchange( pc , jc_try , jc_try + 1 );
-
-        if ( jc_try == jc ) {
-
-          ch[jc_try] = reinterpret_cast<value_type*>(
-            m_pool.allocate( sizeof(value_type) << m_chunk_shift ));
-
-          if ( 0 == ch[jc_try] ) {
-            Kokkos::abort("DynamicView::resize_parallel exhausted memory pool");
-          }
-
-          Kokkos::memory_fence();
-        }
-      }
-    }
-
-  /** \brief  Resizing in serial can grow or shrink the array size, */
+  /** \brief  Resizing in serial can grow or shrink the array size
+   *          up to the maximum number of chunks
+   * */
   template< typename IntType >
   inline
   typename std::enable_if
     < std::is_integral<IntType>::value &&
       Kokkos::Impl::MemorySpaceAccess< Kokkos::HostSpace
-                                     , typename traits::memory_space
+                                     , typename Impl::ChunkArraySpace< typename traits::memory_space >::memory_space 
                                      >::accessible
     >::type
   resize_serial( IntType const & n )
@@ -298,108 +281,35 @@ public:
       typedef typename traits::value_type value_type ;
       typedef value_type * pointer_type ;
 
-      const uintptr_t NC = ( n + m_chunk_mask ) >> m_chunk_shift ;
+      const uintptr_t NC = ( n + m_chunk_mask ) >> m_chunk_shift ; // New total number of chunks needed for resize
 
       if ( m_chunk_max < NC ) {
         Kokkos::abort("DynamicView::resize_serial exceeded maximum size");
       }
 
+      // *m_chunks[m_chunk_max] stores the current number of chunks being used
       uintptr_t * const pc =
         reinterpret_cast<uintptr_t*>( m_chunks + m_chunk_max );
 
       if ( *pc < NC ) {
         while ( *pc < NC ) {
           m_chunks[*pc] = reinterpret_cast<pointer_type>
-            ( m_pool.allocate( sizeof(value_type) << m_chunk_shift ) );
+            ( 
+             typename traits::memory_space().allocate( sizeof(value_type) << m_chunk_shift ) 
+            );
           ++*pc ;
         }
       }
       else {
         while ( NC + 1 <= *pc ) {
           --*pc ;
-          m_pool.deallocate( m_chunks[*pc]
-                           , sizeof(value_type) << m_chunk_shift );
+          typename traits::memory_space().deallocate( m_chunks[*pc]
+                                         , sizeof(value_type) << m_chunk_shift );
           m_chunks[*pc] = 0 ;
         }
       }
-    }
-
-  //----------------------------------------
-
-  struct ResizeSerial {
-    memory_pool                    m_pool ;
-    typename traits::value_type ** m_chunks ;
-    uintptr_t                    * m_pc ;
-    uintptr_t                      m_nc ;
-    unsigned                       m_chunk_shift ;
-
-    KOKKOS_INLINE_FUNCTION
-    void operator()( int ) const
-      {
-        typedef typename traits::value_type value_type ;
-        typedef value_type * pointer_type ;
-
-        if ( *m_pc < m_nc ) {
-          while ( *m_pc < m_nc ) {
-            m_chunks[*m_pc] = reinterpret_cast<pointer_type>
-              ( m_pool.allocate( sizeof(value_type) << m_chunk_shift ) );
-            ++*m_pc ;
-          }
-        }
-        else {
-          while ( m_nc + 1 <= *m_pc ) {
-            --*m_pc ;
-            m_pool.deallocate( m_chunks[*m_pc]
-                             , sizeof(value_type) << m_chunk_shift );
-            m_chunks[*m_pc] = 0 ;
-          }
-        }
-      }
-
-    ResizeSerial( memory_pool            const & arg_pool
-                , typename traits::value_type ** arg_chunks
-                , uintptr_t                    * arg_pc
-                , uintptr_t                      arg_nc
-                , unsigned                       arg_chunk_shift
-                )
-      : m_pool( arg_pool )
-      , m_chunks( arg_chunks )
-      , m_pc( arg_pc )
-      , m_nc( arg_nc )
-      , m_chunk_shift( arg_chunk_shift )
-      {}
-  };
-
-  template< typename IntType >
-  inline
-  typename std::enable_if
-    < std::is_integral<IntType>::value &&
-      ! Kokkos::Impl::MemorySpaceAccess< Kokkos::HostSpace
-                                       , typename traits::memory_space
-                                       >::accessible
-    >::type
-  resize_serial( IntType const & n )
-    {
-      const uintptr_t NC = ( n + m_chunk_mask ) >> m_chunk_shift ;
-
-      if ( m_chunk_max < NC ) {
-        Kokkos::abort("DynamicView::resize_serial exceeded maximum size");
-      }
-
-      // Must dispatch kernel
-
-      typedef Kokkos::RangePolicy< typename traits::execution_space > Range ;
-
-      uintptr_t * const pc =
-        reinterpret_cast<uintptr_t*>( m_chunks + m_chunk_max );
-
-      Kokkos::Impl::ParallelFor<ResizeSerial,Range>
-        closure( ResizeSerial( m_pool, m_chunks, pc, NC, m_chunk_shift )
-               , Range(0,1) );
-
-      closure.execute();
-
-      traits::execution_space::fence();
+      // *m_chunks[m_chunk_max+1] stores the 'extent' requested by resize
+      *(pc+1) = n;
     }
 
   //----------------------------------------------------------------------
@@ -413,12 +323,12 @@ public:
 
   template< class RT , class ... RP >
   DynamicView( const DynamicView<RT,RP...> & rhs )
-    : m_pool( rhs.m_pool )
-    , m_track( rhs.m_track )
+    : m_track( rhs.m_track )
     , m_chunks( (typename traits::value_type **) rhs.m_chunks )
     , m_chunk_shift( rhs.m_chunk_shift )
     , m_chunk_mask( rhs.m_chunk_mask )
     , m_chunk_max( rhs.m_chunk_max )
+    , m_chunk_size( rhs.m_chunk_size )
     {
       typedef typename DynamicView<RT,RP...>::traits  SrcTraits ;
       typedef Kokkos::Impl::ViewMapping< traits , SrcTraits , void >  Mapping ;
@@ -428,35 +338,36 @@ public:
   //----------------------------------------------------------------------
 
   struct Destroy {
-    memory_pool                    m_pool ;
     typename traits::value_type ** m_chunks ;
     unsigned                       m_chunk_max ;
     bool                           m_destroy ;
+    unsigned                       m_chunk_size ;
 
     // Initialize or destroy array of chunk pointers.
     // Two entries beyond the max chunks are allocation counters.
-
-    KOKKOS_INLINE_FUNCTION
+    inline
     void operator()( unsigned i ) const
       {
         if ( m_destroy && i < m_chunk_max && 0 != m_chunks[i] ) {
-          m_pool.deallocate( m_chunks[i] , m_pool.min_block_size() );
+          typename traits::memory_space().deallocate( m_chunks[i], m_chunk_size );
         }
         m_chunks[i] = 0 ;
       }
 
     void execute( bool arg_destroy )
       {
-        typedef Kokkos::RangePolicy< typename traits::execution_space > Range ;
+        typedef Kokkos::RangePolicy< typename HostSpace::execution_space > Range ;
+        //typedef Kokkos::RangePolicy< typename Impl::ChunkArraySpace< typename traits::memory_space >::memory_space::execution_space > Range ;
 
         m_destroy = arg_destroy ;
 
         Kokkos::Impl::ParallelFor<Destroy,Range>
-          closure( *this , Range(0, m_chunk_max + 1) );
+          closure( *this , Range(0, m_chunk_max + 2) ); // Add 2 to 'destroy' extra slots storing num_chunks and extent; previously + 1
 
         closure.execute();
 
         traits::execution_space::fence();
+        //Impl::ChunkArraySpace< typename traits::memory_space >::memory_space::execution_space::fence(); 
       }
 
     void construct_shared_allocation()
@@ -471,66 +382,64 @@ public:
     Destroy & operator = ( Destroy && ) = default ;
     Destroy & operator = ( const Destroy & ) = default ;
 
-    Destroy( const memory_pool & arg_pool
-           , typename traits::value_type ** arg_chunk
-           , const unsigned arg_chunk_max )
-     : m_pool( arg_pool )
-     , m_chunks( arg_chunk )
+    Destroy( typename traits::value_type ** arg_chunk
+           , const unsigned arg_chunk_max 
+           , const unsigned arg_chunk_size )
+     : m_chunks( arg_chunk )
      , m_chunk_max( arg_chunk_max )
      , m_destroy( false )
+     , m_chunk_size( arg_chunk_size )
      {}
   };
 
 
   /**\brief  Allocation constructor
    *
-   *  Memory is allocated in chunks from the memory pool.
-   *  The chunk size conforms to the memory pool's chunk size.
+   *  Memory is allocated in chunks
    *  A maximum size is required in order to allocate a
    *  chunk-pointer array.
    */
   explicit inline
   DynamicView( const std::string & arg_label
-             , const memory_pool & arg_pool
-             , const size_t        arg_size_max )
-    : m_pool( arg_pool )
-    , m_track()
+             , const unsigned min_chunk_size
+             , const unsigned max_extent ) 
+    : m_track()
     , m_chunks(0)
-    // The memory pool chunk is guaranteed to be a power of two
+    // The chunk size is guaranteed to be a power of two
     , m_chunk_shift(
-        Kokkos::Impl::integral_power_of_two(
-          m_pool.min_block_size()/sizeof(typename traits::value_type)) )
-    , m_chunk_mask( ( 1 << m_chunk_shift ) - 1 )
-    , m_chunk_max( ( arg_size_max + m_chunk_mask ) >> m_chunk_shift )
+        Kokkos::Impl::integral_power_of_two_that_contains( min_chunk_size ) ) // div ceil(log2(min_chunk_size))
+    , m_chunk_mask( ( 1 << m_chunk_shift ) - 1 )                              // mod
+    , m_chunk_max( ( max_extent + m_chunk_mask ) >> m_chunk_shift )           // max num pointers-to-chunks in array
+    , m_chunk_size ( 2 << (m_chunk_shift - 1) )
     {
+      typedef typename Impl::ChunkArraySpace< typename traits::memory_space >::memory_space chunk_array_memory_space;
       // A functor to deallocate all of the chunks upon final destruction
-
-      typedef typename traits::memory_space  memory_space ;
-      typedef Kokkos::Experimental::Impl::SharedAllocationRecord< memory_space , Destroy > record_type ;
+      typedef Kokkos::Impl::SharedAllocationRecord< chunk_array_memory_space , Destroy > record_type ;
 
       // Allocate chunk pointers and allocation counter
       record_type * const record =
-        record_type::allocate( memory_space()
+        record_type::allocate( chunk_array_memory_space()
                              , arg_label
-                             , ( sizeof(pointer_type) * ( m_chunk_max + 1 ) ) );
+                             , ( sizeof(pointer_type) * ( m_chunk_max + 2 ) ) ); 
+      // Allocate + 2 extra slots so that *m_chunk[m_chunk_max] == num_chunks_alloc and *m_chunk[m_chunk_max+1] == extent
+      // This must match in Destroy's execute(...) method
 
       m_chunks = reinterpret_cast<pointer_type*>( record->data() );
 
-      record->m_destroy = Destroy( m_pool , m_chunks , m_chunk_max );
+      record->m_destroy = Destroy( m_chunks , m_chunk_max, m_chunk_size );
 
       // Initialize to zero
-
       record->m_destroy.construct_shared_allocation();
 
       m_track.assign_allocated_record_to_uninitialized( record );
     }
+
 };
 
 } // namespace Experimental
 } // namespace Kokkos
 
 namespace Kokkos {
-namespace Experimental {
 
 template< class T , class ... P >
 inline
@@ -543,11 +452,11 @@ create_mirror_view( const Kokkos::Experimental::DynamicView<T,P...> & src )
 template< class T , class ... DP , class ... SP >
 inline
 void deep_copy( const View<T,DP...> & dst
-              , const DynamicView<T,SP...> & src
+              , const Kokkos::Experimental::DynamicView<T,SP...> & src
               )
 {
   typedef View<T,DP...>        dst_type ;
-  typedef DynamicView<T,SP...> src_type ;
+  typedef Kokkos::Experimental::DynamicView<T,SP...> src_type ;
 
   typedef typename ViewTraits<T,DP...>::execution_space  dst_execution_space ;
   typedef typename ViewTraits<T,SP...>::memory_space     src_memory_space ;
@@ -566,11 +475,11 @@ void deep_copy( const View<T,DP...> & dst
 
 template< class T , class ... DP , class ... SP >
 inline
-void deep_copy( const DynamicView<T,DP...> & dst
+void deep_copy( const Kokkos::Experimental::DynamicView<T,DP...> & dst
               , const View<T,SP...> & src
               )
 {
-  typedef DynamicView<T,SP...> dst_type ;
+  typedef Kokkos::Experimental::DynamicView<T,SP...> dst_type ;
   typedef View<T,DP...>        src_type ;
 
   typedef typename ViewTraits<T,DP...>::execution_space  dst_execution_space ;
@@ -588,7 +497,81 @@ void deep_copy( const DynamicView<T,DP...> & dst
   }
 }
 
-} // namespace Experimental
+namespace Impl {
+template<class Arg0, class ... DP , class ... SP>
+struct CommonSubview<Kokkos::Experimental::DynamicView<DP...>,Kokkos::Experimental::DynamicView<SP...>,1,Arg0> {
+  typedef Kokkos::Experimental::DynamicView<DP...> DstType;
+  typedef Kokkos::Experimental::DynamicView<SP...> SrcType;
+  typedef DstType dst_subview_type;
+  typedef SrcType src_subview_type;
+  dst_subview_type dst_sub;
+  src_subview_type src_sub;
+  CommonSubview(const DstType& dst, const SrcType& src, const Arg0& arg0):
+    dst_sub(dst),src_sub(src) {}
+};
+
+template<class ...DP, class SrcType, class Arg0>
+struct CommonSubview<Kokkos::Experimental::DynamicView<DP...>,SrcType,1,Arg0> {
+  typedef Kokkos::Experimental::DynamicView<DP...> DstType;
+  typedef DstType dst_subview_type;
+  typedef typename Kokkos::Subview<SrcType,Arg0> src_subview_type;
+  dst_subview_type dst_sub;
+  src_subview_type src_sub;
+  CommonSubview(const DstType& dst, const SrcType& src, const Arg0& arg0):
+    dst_sub(dst),src_sub(src,arg0) {}
+};
+
+template<class DstType, class ...SP, class Arg0>
+struct CommonSubview<DstType,Kokkos::Experimental::DynamicView<SP...>,1,Arg0> {
+  typedef Kokkos::Experimental::DynamicView<SP...> SrcType;
+  typedef typename Kokkos::Subview<DstType,Arg0> dst_subview_type;
+  typedef SrcType src_subview_type;
+  dst_subview_type dst_sub;
+  src_subview_type src_sub;
+  CommonSubview(const DstType& dst, const SrcType& src, const Arg0& arg0):
+    dst_sub(dst,arg0),src_sub(src) {}
+};
+
+template<class ...DP,class ViewTypeB, class Layout, class ExecSpace,typename iType>
+struct ViewCopy<Kokkos::Experimental::DynamicView<DP...>,ViewTypeB,Layout,ExecSpace,1,iType> {
+  Kokkos::Experimental::DynamicView<DP...> a;
+  ViewTypeB b;
+
+  typedef Kokkos::RangePolicy<ExecSpace,Kokkos::IndexType<iType>> policy_type;
+
+  ViewCopy(const Kokkos::Experimental::DynamicView<DP...>& a_, const ViewTypeB& b_):a(a_),b(b_) {
+    Kokkos::parallel_for("Kokkos::ViewCopy-2D",
+       policy_type(0,b.extent(0)),*this);
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator() (const iType& i0) const {
+      a(i0) = b(i0);
+  };
+};
+
+template<class ...DP,class ...SP, class Layout, class ExecSpace,typename iType>
+struct ViewCopy<Kokkos::Experimental::DynamicView<DP...>,
+                Kokkos::Experimental::DynamicView<SP...>,Layout,ExecSpace,1,iType> {
+  Kokkos::Experimental::DynamicView<DP...> a;
+  Kokkos::Experimental::DynamicView<SP...> b;
+
+  typedef Kokkos::RangePolicy<ExecSpace,Kokkos::IndexType<iType>> policy_type;
+
+  ViewCopy(const Kokkos::Experimental::DynamicView<DP...>& a_,
+           const Kokkos::Experimental::DynamicView<SP...>& b_):a(a_),b(b_) {
+    const iType n = std::min(a.extent(0),b.extent(0));
+    Kokkos::parallel_for("Kokkos::ViewCopy-2D",
+       policy_type(0,n),*this);
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator() (const iType& i0) const {
+      a(i0) = b(i0);
+  };
+};
+
+} // namespace Impl
 } // namespace Kokkos
 
 #endif /* #ifndef KOKKOS_DYNAMIC_VIEW_HPP */

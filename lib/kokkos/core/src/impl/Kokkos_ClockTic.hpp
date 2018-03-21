@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -71,6 +71,10 @@ uint64_t clock_tic(void) noexcept
   // Return value of 64-bit hi-res clock register.
 
   return clock64();
+
+#elif defined(__HCC_ACCELERATOR__)
+    // Get clock register
+    return hc::__clock_u64();
 
 #elif defined( __i386__ ) || defined( __x86_64 )
 

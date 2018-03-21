@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -107,6 +107,7 @@ struct TestViewCtorProp_EmbeddedDim {
         Kokkos::deep_copy( hcv1, cv1 );
 
         ASSERT_EQ( (std::is_same< CommonViewValueType, double >::value) , true ) ;
+        ASSERT_EQ( (std::is_same< typename decltype(view_alloc_arg)::scalar_array_type, CommonViewValueType>::value) , true ) ;
       #if 0
       // debug output
       for ( int i = 0; i < N0*N1; ++i ) {

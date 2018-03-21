@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -66,10 +66,11 @@ namespace Impl {
 template< typename T >
 __device__ inline
 void cuda_shfl( T & out , T const & in , int lane ,
-  typename std::enable_if< sizeof(int) == sizeof(T) , int >::type width )
+  typename std::enable_if< sizeof(int) == sizeof(T) , int >::type width
+  , unsigned mask = 0xffffffff )
 {
   *reinterpret_cast<int*>(&out) =
-    __shfl( *reinterpret_cast<int const *>(&in) , lane , width );
+    KOKKOS_IMPL_CUDA_SHFL_MASK( mask , *reinterpret_cast<int const *>(&in) , lane , width );
 }
 
 template< typename T >
@@ -77,13 +78,13 @@ __device__ inline
 void cuda_shfl( T & out , T const & in , int lane ,
   typename std::enable_if
     < ( sizeof(int) < sizeof(T) ) && ( 0 == ( sizeof(T) % sizeof(int) ) )
-    , int >::type width )
+    , int >::type width, unsigned mask = 0xffffffff )
 {
   enum : int { N = sizeof(T) / sizeof(int) };
 
   for ( int i = 0 ; i < N ; ++i ) {
     reinterpret_cast<int*>(&out)[i] =
-      __shfl( reinterpret_cast<int const *>(&in)[i] , lane , width );
+      KOKKOS_IMPL_CUDA_SHFL_MASK( mask , reinterpret_cast<int const *>(&in)[i] , lane , width );
   }
 }
 
@@ -92,10 +93,10 @@ void cuda_shfl( T & out , T const & in , int lane ,
 template< typename T >
 __device__ inline
 void cuda_shfl_down( T & out , T const & in , int delta ,
-  typename std::enable_if< sizeof(int) == sizeof(T) , int >::type width )
+  typename std::enable_if< sizeof(int) == sizeof(T) , int >::type width , unsigned mask = 0xffffffff )
 {
   *reinterpret_cast<int*>(&out) =
-    __shfl_down( *reinterpret_cast<int const *>(&in) , delta , width );
+    KOKKOS_IMPL_CUDA_SHFL_DOWN_MASK( mask , *reinterpret_cast<int const *>(&in) , delta , width );
 }
 
 template< typename T >
@@ -103,13 +104,13 @@ __device__ inline
 void cuda_shfl_down( T & out , T const & in , int delta ,
   typename std::enable_if
     < ( sizeof(int) < sizeof(T) ) && ( 0 == ( sizeof(T) % sizeof(int) ) )
-    , int >::type width )
+    , int >::type width , unsigned mask = 0xffffffff )
 {
   enum : int { N = sizeof(T) / sizeof(int) };
 
   for ( int i = 0 ; i < N ; ++i ) {
     reinterpret_cast<int*>(&out)[i] =
-      __shfl_down( reinterpret_cast<int const *>(&in)[i] , delta , width );
+      KOKKOS_IMPL_CUDA_SHFL_DOWN_MASK( mask , reinterpret_cast<int const *>(&in)[i] , delta , width );
   }
 }
 
@@ -118,10 +119,10 @@ void cuda_shfl_down( T & out , T const & in , int delta ,
 template< typename T >
 __device__ inline
 void cuda_shfl_up( T & out , T const & in , int delta ,
-  typename std::enable_if< sizeof(int) == sizeof(T) , int >::type width )
+  typename std::enable_if< sizeof(int) == sizeof(T) , int >::type width , unsigned mask = 0xffffffff )
 {
   *reinterpret_cast<int*>(&out) =
-    __shfl_up( *reinterpret_cast<int const *>(&in) , delta , width );
+    KOKKOS_IMPL_CUDA_SHFL_UP_MASK( mask , *reinterpret_cast<int const *>(&in) , delta , width );
 }
 
 template< typename T >
@@ -129,13 +130,13 @@ __device__ inline
 void cuda_shfl_up( T & out , T const & in , int delta ,
   typename std::enable_if
     < ( sizeof(int) < sizeof(T) ) && ( 0 == ( sizeof(T) % sizeof(int) ) )
-    , int >::type width )
+    , int >::type width , unsigned mask = 0xffffffff )
 {
   enum : int { N = sizeof(T) / sizeof(int) };
 
   for ( int i = 0 ; i < N ; ++i ) {
     reinterpret_cast<int*>(&out)[i] =
-      __shfl_up( reinterpret_cast<int const *>(&in)[i] , delta , width );
+      KOKKOS_IMPL_CUDA_SHFL_UP_MASK( mask , reinterpret_cast<int const *>(&in)[i] , delta , width );
   }
 }
 
@@ -268,31 +269,31 @@ bool cuda_inter_block_reduction( typename FunctorValueTraits< FunctorType , ArgT
         if( id + 1 < int(gridDim.x) )
           join(value, tmp);
       }
-      int active = __ballot(1);
+      int active = KOKKOS_IMPL_CUDA_BALLOT(1);
       if (int(blockDim.x*blockDim.y) > 2) {
         value_type tmp = Kokkos::shfl_down(value, 2,32);
         if( id + 2 < int(gridDim.x) )
           join(value, tmp);
       }
-      active += __ballot(1);
+      active += KOKKOS_IMPL_CUDA_BALLOT(1);
       if (int(blockDim.x*blockDim.y) > 4) {
         value_type tmp = Kokkos::shfl_down(value, 4,32);
         if( id + 4 < int(gridDim.x) )
           join(value, tmp);
       }
-      active += __ballot(1);
+      active += KOKKOS_IMPL_CUDA_BALLOT(1);
       if (int(blockDim.x*blockDim.y) > 8) {
         value_type tmp = Kokkos::shfl_down(value, 8,32);
         if( id + 8 < int(gridDim.x) )
           join(value, tmp);
       }
-      active += __ballot(1);
+      active += KOKKOS_IMPL_CUDA_BALLOT(1);
       if (int(blockDim.x*blockDim.y) > 16) {
         value_type tmp = Kokkos::shfl_down(value, 16,32);
         if( id + 16 < int(gridDim.x) )
           join(value, tmp);
       }
-      active += __ballot(1);
+      active += KOKKOS_IMPL_CUDA_BALLOT(1);
     }
   }
   //The last block has in its thread=0 the global reduction value through "value"
@@ -432,31 +433,31 @@ cuda_inter_block_reduction( const ReducerType& reducer,
         if( id + 1 < int(gridDim.x) )
           reducer.join(value, tmp);
       }
-      int active = __ballot(1);
+      int active = KOKKOS_IMPL_CUDA_BALLOT(1);
       if (int(blockDim.x*blockDim.y) > 2) {
         value_type tmp = Kokkos::shfl_down(value, 2,32);
         if( id + 2 < int(gridDim.x) )
           reducer.join(value, tmp);
       }
-      active += __ballot(1);
+      active += KOKKOS_IMPL_CUDA_BALLOT(1);
       if (int(blockDim.x*blockDim.y) > 4) {
         value_type tmp = Kokkos::shfl_down(value, 4,32);
         if( id + 4 < int(gridDim.x) )
           reducer.join(value, tmp);
       }
-      active += __ballot(1);
+      active += KOKKOS_IMPL_CUDA_BALLOT(1);
       if (int(blockDim.x*blockDim.y) > 8) {
         value_type tmp = Kokkos::shfl_down(value, 8,32);
         if( id + 8 < int(gridDim.x) )
           reducer.join(value, tmp);
       }
-      active += __ballot(1);
+      active += KOKKOS_IMPL_CUDA_BALLOT(1);
       if (int(blockDim.x*blockDim.y) > 16) {
         value_type tmp = Kokkos::shfl_down(value, 16,32);
         if( id + 16 < int(gridDim.x) )
           reducer.join(value, tmp);
       }
-      active += __ballot(1);
+      active += KOKKOS_IMPL_CUDA_BALLOT(1);
     }
   }
 
@@ -512,12 +513,18 @@ void cuda_intra_block_reduce_scan( const FunctorType & functor ,
   const pointer_type tdata_intra = base_data + value_count * threadIdx.y ;
 
   { // Intra-warp reduction:
+    KOKKOS_IMPL_CUDA_SYNCWARP;
     BLOCK_REDUCE_STEP(rtid_intra,tdata_intra,0)
+    KOKKOS_IMPL_CUDA_SYNCWARP;
     BLOCK_REDUCE_STEP(rtid_intra,tdata_intra,1)
+    KOKKOS_IMPL_CUDA_SYNCWARP;
     BLOCK_REDUCE_STEP(rtid_intra,tdata_intra,2)
+    KOKKOS_IMPL_CUDA_SYNCWARP;
     BLOCK_REDUCE_STEP(rtid_intra,tdata_intra,3)
+    KOKKOS_IMPL_CUDA_SYNCWARP;
     BLOCK_REDUCE_STEP(rtid_intra,tdata_intra,4)
-  }
+    KOKKOS_IMPL_CUDA_SYNCWARP;
+ }
 
   __syncthreads(); // Wait for all warps to reduce
 

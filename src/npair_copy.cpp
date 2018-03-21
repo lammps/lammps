@@ -40,7 +40,5 @@ void NPairCopy::build(NeighList *list)
   list->ilist = listcopy->ilist;
   list->numneigh = listcopy->numneigh;
   list->firstneigh = listcopy->firstneigh;
-  list->firstdouble = listcopy->firstdouble;
   list->ipage = listcopy->ipage;
-  list->dpage = listcopy->dpage;
 }

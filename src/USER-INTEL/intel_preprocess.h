@@ -211,16 +211,23 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
                            datasize);                           \
   }
 
-#define IP_PRE_omp_range_id_vec(ifrom, ito, tid, inum,          \
-                                nthreads, vecsize)              \
+#define IP_PRE_omp_range_vec(ifrom, ito, tid, inum, nthreads,   \
+                             vecsize)                           \
   {                                                             \
-    tid = omp_get_thread_num();                                 \
     int idelta = static_cast<int>(ceil(static_cast<float>(inum) \
                                        /vecsize/nthreads));     \
     idelta *= vecsize;                                          \
     ifrom = tid*idelta;                                         \
     ito = ifrom + idelta;                                       \
     if (ito > inum) ito = inum;                                 \
+  }
+
+#define IP_PRE_omp_range_id_vec(ifrom, ito, tid, inum,          \
+                                nthreads, vecsize)              \
+  {                                                             \
+    tid = omp_get_thread_num();                                 \
+    IP_PRE_omp_range_vec(ifrom, ito, tid, inum, nthreads,       \
+                         vecsize);                              \
   }
 
 #define IP_PRE_omp_stride_id_vec(ifrom, ip, ito, tid, inum,     \
@@ -235,13 +242,12 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
       int nd = nthr / INTEL_HTHREADS;                           \
       int td = tid / INTEL_HTHREADS;                            \
       int tm = tid % INTEL_HTHREADS;                            \
-      IP_PRE_omp_range_id_vec(ifrom, ito, td, inum, nd,         \
-        vecsize);                                               \
+      IP_PRE_omp_range_vec(ifrom, ito, td, inum, nd, vecsize);  \
       ifrom += tm * vecsize;                                    \
       ip = INTEL_HTHREADS * vecsize;                            \
     } else {                                                    \
-      IP_PRE_omp_range_id_vec(ifrom, ito, tid, inum, nthr,      \
-                              vecsize);                         \
+      IP_PRE_omp_range_vec(ifrom, ito, tid, inum, nthr,         \
+                           vecsize);                            \
       ip = vecsize;                                             \
     }                                                           \
   }
@@ -255,11 +261,10 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
     ito = inum;                                                 \
   }
 
-#define IP_PRE_omp_range(ifrom, ip, ito, tid, inum, nthreads)   \
+#define IP_PRE_omp_range(ifrom, ito, tid, inum, nthreads)       \
   {                                                             \
     ifrom = 0;                                                  \
     ito = inum;                                                 \
-    ip = 1;                                                     \
   }
 
 #define IP_PRE_omp_stride_id(ifrom, ip, ito, tid, inum, nthr)   \
@@ -290,6 +295,15 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
   {                                                             \
     tid = 0;                                                    \
     ifrom = 0;                                                  \
+    ito = inum;                                                 \
+  }
+
+#define IP_PRE_omp_stride_id_vec(ifrom, ip, ito, tid, inum,     \
+                                 nthr, vecsize)                 \
+  {                                                             \
+    tid = 0;                                                    \
+    ifrom = 0;                                                  \
+    ip = 1;                                                     \
     ito = inum;                                                 \
   }
 

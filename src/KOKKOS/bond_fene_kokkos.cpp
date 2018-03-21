@@ -23,7 +23,7 @@
 #include "domain.h"
 #include "comm.h"
 #include "force.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
 
@@ -56,8 +56,8 @@ template<class DeviceType>
 BondFENEKokkos<DeviceType>::~BondFENEKokkos()
 {
   if (!copymode) {
-    memory->destroy_kokkos(k_eatom,eatom);
-    memory->destroy_kokkos(k_vatom,vatom);
+    memoryKK->destroy_kokkos(k_eatom,eatom);
+    memoryKK->destroy_kokkos(k_vatom,vatom);
   }
 }
 
@@ -75,13 +75,13 @@ void BondFENEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // reallocate per-atom arrays if necessary
 
   if (eflag_atom) {
-    memory->destroy_kokkos(k_eatom,eatom);
-    memory->create_kokkos(k_eatom,eatom,maxeatom,"bond:eatom");
+    memoryKK->destroy_kokkos(k_eatom,eatom);
+    memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"bond:eatom");
     d_eatom = k_eatom.view<DeviceType>();
   }
   if (vflag_atom) {
-    memory->destroy_kokkos(k_vatom,vatom);
-    memory->create_kokkos(k_vatom,vatom,maxvatom,6,"bond:vatom");
+    memoryKK->destroy_kokkos(k_vatom,vatom);
+    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"bond:vatom");
     d_vatom = k_vatom.view<DeviceType>();
   }
 
@@ -253,10 +253,10 @@ void BondFENEKokkos<DeviceType>::allocate()
   k_epsilon = DAT::tdual_ffloat_1d("BondFene::epsilon",n+1);
   k_sigma = DAT::tdual_ffloat_1d("BondFene::sigma",n+1);
 
-  d_k = k_k.d_view;
-  d_r0 = k_r0.d_view;
-  d_epsilon = k_epsilon.d_view;
-  d_sigma = k_sigma.d_view;
+  d_k = k_k.template view<DeviceType>();
+  d_r0 = k_r0.template view<DeviceType>();
+  d_epsilon = k_epsilon.template view<DeviceType>();
+  d_sigma = k_sigma.template view<DeviceType>();
 }
 
 /* ----------------------------------------------------------------------

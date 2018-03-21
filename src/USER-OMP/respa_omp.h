@@ -30,7 +30,7 @@ class RespaOMP : public Respa, public ThrOMP {
   RespaOMP(class LAMMPS *, int, char **);
   virtual ~RespaOMP() {}
   virtual void init();
-  virtual void setup();
+  virtual void setup(int);
   virtual void setup_minimal(int);
 
  protected:

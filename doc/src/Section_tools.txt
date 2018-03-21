@@ -48,6 +48,7 @@ own sub-directories with their own Makefiles and/or README files.
 "chain"_#chain
 "colvars"_#colvars
 "createatoms"_#createatoms
+"doxygen"_#doxygen
 "drude"_#drude
 "eam database"_#eamdb
 "eam generate"_#eamgn
@@ -110,13 +111,20 @@ back-and-forth between the CHARMM MD code and LAMMPS.
 They are intended to make it easy to use CHARMM as a builder and as a
 post-processor for LAMMPS. Using charmm2lammps.pl, you can convert a
 PDB file with associated CHARMM info, including CHARMM force field
-data, into its LAMMPS equivalent.  Using lammps2pdb.pl you can convert
-LAMMPS atom dumps into PDB files.
+data, into its LAMMPS equivalent. Support for the CMAP correction of
+CHARMM22 and later is available as an option. This tool can also add
+solvent water molecules and Na+ or Cl- ions to the system.
+Using lammps2pdb.pl you can convert LAMMPS atom dumps into PDB files.
 
 See the README file in the ch2lmp sub-directory for more information.
 
 These tools were created by Pieter in't Veld (pjintve at sandia.gov)
 and Paul Crozier (pscrozi at sandia.gov) at Sandia.
+
+CMAP support added and tested by Xiaohu Hu (hux2 at ornl.gov) and
+Robert A. Latour (latourr at clemson.edu), David Hyde-Volpe, and
+Tigran Abramyan, (Clemson University) and
+Chris Lorenz (chris.lorenz at kcl.ac.uk), King's College London.
 
 :line
 
@@ -169,6 +177,18 @@ coordinates in LAMMPS or other formats.
 See the included Manual.pdf for details.
 
 The tool is authored by Xiaowang Zhou (Sandia), xzhou at sandia.gov.
+
+:line
+
+doxygen tool :h4,link(doxygen)
+
+The tools/doxygen directory contains a shell script called
+doxygen.sh which can generate a call graph and API lists using
+the "Doxygen software"_http://doxygen.org.
+
+See the included README file for details.
+
+The tool is authored by Nandor Tamaskovics, numericalfreedom at googlemail.com.
 
 :line
 

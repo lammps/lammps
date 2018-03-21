@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -79,15 +79,15 @@ struct SomeCorrelation {
     int i = thread.league_rank();
 
     // Allocate a shared array for the team.
-    shared_1d_int count(thread.team_shmem(),data.dimension_1());
+    shared_1d_int count(thread.team_shmem(),data.extent(1));
 
     // With each team run a parallel_for with its threads
-    Kokkos::parallel_for(Kokkos::TeamThreadRange(thread,data.dimension_1()), [=] (const int& j) {
+    Kokkos::parallel_for(Kokkos::TeamThreadRange(thread,data.extent(1)), [=] (const int& j) {
       int tsum;
       // Run a vector loop reduction over the inner dimension of data
       // Count how many values are multiples of 4
       // Every vector lane gets the same reduction value (tsum) back, it is broadcast to all vector lanes
-      Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(thread,data.dimension_2()), [=] (const int& k, int & vsum) {
+      Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(thread,data.extent(2)), [=] (const int& k, int & vsum) {
         vsum+= (data(i,j,k) % 4 == 0)?1:0;
       },tsum);
 
@@ -105,7 +105,7 @@ struct SomeCorrelation {
     // data segments have the same number of values divisible by 4
     // The team reduction value is again broadcast to every team member (and every vector lane)
     int team_sum = 0;
-    Kokkos::parallel_reduce(Kokkos::TeamThreadRange(thread, data.dimension_1()-1), [=] (const int& j, int& thread_sum) {
+    Kokkos::parallel_reduce(Kokkos::TeamThreadRange(thread, data.extent(1)-1), [=] (const int& j, int& thread_sum) {
       // It is not valid to directly add to thread_sum
       // Use a single function with broadcast instead
       // team_sum will be used as input to the operator (i.e. it is used to initialize sum)
@@ -123,7 +123,7 @@ struct SomeCorrelation {
 
   // The functor needs to define how much shared memory it requests given a team_size.
   size_t team_shmem_size( int team_size ) const {
-    return shared_1d_int::shmem_size(data.dimension_1());
+    return shared_1d_int::shmem_size(data.extent(1));
   }
 };
 

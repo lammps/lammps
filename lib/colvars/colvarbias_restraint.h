@@ -16,7 +16,8 @@
 /// see derived classes for specific types
 /// (implementation of \link colvarbias \endlink)
 class colvarbias_restraint
-  : public virtual colvarbias
+  : public virtual colvarbias,
+    public virtual colvarbias_ti
 {
 
 public:
@@ -88,14 +89,18 @@ public:
   virtual int change_configuration(std::string const &conf);
 
 protected:
+
   /// \brief Restraint force constant
   cvm::real force_k;
+
+  /// \brief Whether the force constant should be positive
+  bool check_positive_k;
 };
 
 
 /// Options to change the restraint configuration over time (shared between centers and k moving)
 class colvarbias_restraint_moving
-  : public virtual colvarparse {
+  : public virtual colvarparse, public virtual colvardeps {
 public:
 
   colvarbias_restraint_moving(char const *key);
@@ -128,6 +133,9 @@ protected:
   /// \brief Number of steps required to reach the target force constant
   /// or restraint centers
   long target_nsteps;
+
+  /// \brief Accumulated work (computed when outputAccumulatedWork == true)
+  cvm::real acc_work;
 };
 
 
@@ -156,8 +164,7 @@ protected:
   /// \brief Initial value of the restraint centers
   std::vector<colvarvalue> initial_centers;
 
-  /// \brief Amplitude of the restraint centers' increment at each step
-  /// towards the new values (calculated from target_nsteps)
+  /// \brief Increment of the restraint centers at each step
   std::vector<colvarvalue> centers_incr;
 
   /// \brief Update the centers by interpolating between initial and target
@@ -165,12 +172,6 @@ protected:
 
   /// Whether to write the current restraint centers to the trajectory file
   bool b_output_centers;
-
-  /// Whether to write the current accumulated work to the trajectory file
-  bool b_output_acc_work;
-
-  /// \brief Accumulated work
-  cvm::real acc_work;
 
   /// Update the accumulated work
   int update_acc_work();
@@ -211,6 +212,12 @@ protected:
 
   /// \brief Equilibration steps for restraint FE calculation through TI
   cvm::real target_equil_steps;
+
+  /// \brief Increment of the force constant at each step
+  cvm::real force_k_incr;
+
+  /// Update the accumulated work
+  int update_acc_work();
 };
 
 
@@ -226,6 +233,8 @@ public:
   virtual int update();
   virtual std::string const get_state_params() const;
   virtual int set_state_params(std::string const &conf);
+  virtual std::ostream & write_state_data(std::ostream &os);
+  virtual std::istream & read_state_data(std::istream &os);
   virtual std::ostream & write_traj_label(std::ostream &os);
   virtual std::ostream & write_traj(std::ostream &os);
   virtual int change_configuration(std::string const &conf);
@@ -252,6 +261,8 @@ public:
   virtual void communicate_forces();
   virtual std::string const get_state_params() const;
   virtual int set_state_params(std::string const &conf);
+  virtual std::ostream & write_state_data(std::ostream &os);
+  virtual std::istream & read_state_data(std::istream &os);
   virtual std::ostream & write_traj_label(std::ostream &os);
   virtual std::ostream & write_traj(std::ostream &os);
 
@@ -292,6 +303,8 @@ public:
 
   virtual std::string const get_state_params() const;
   virtual int set_state_params(std::string const &conf);
+  virtual std::ostream & write_state_data(std::ostream &os);
+  virtual std::istream & read_state_data(std::istream &os);
   virtual std::ostream & write_traj_label(std::ostream &os);
   virtual std::ostream & write_traj(std::ostream &os);
 

@@ -107,6 +107,8 @@ PairSNAP::PairSNAP(LAMMPS *lmp) : Pair(lmp)
 
 PairSNAP::~PairSNAP()
 {
+  if (copymode) return;
+
   if (nelements) {
     for (int i = 0; i < nelements; i++)
       delete[] elements[i];
@@ -130,9 +132,9 @@ PairSNAP::~PairSNAP()
       time[i] = 0;
       timeave[i] = 0;
       for (int tid = 0; tid<nthreads; tid++) {
-	if (sna[tid]->timers[i]>time[i])
-	  time[i] = sna[tid]->timers[i];
-	timeave[i] += sna[tid]->timers[i];
+        if (sna[tid]->timers[i]>time[i])
+          time[i] = sna[tid]->timers[i];
+        timeave[i] += sna[tid]->timers[i];
       }
       timeave[i] /= nthreads;
     }
@@ -222,13 +224,13 @@ void PairSNAP::compute_regular(int eflag, int vflag)
       int jelem = map[jtype];
 
       if (rsq < cutsq[itype][jtype]&&rsq>1e-20) {
-	snaptr->rij[ninside][0] = delx;
-	snaptr->rij[ninside][1] = dely;
-	snaptr->rij[ninside][2] = delz;
-	snaptr->inside[ninside] = j;
-	snaptr->wj[ninside] = wjelem[jelem];
-	snaptr->rcutij[ninside] = (radi + radelem[jelem])*rcutfac;
-	ninside++;
+        snaptr->rij[ninside][0] = delx;
+        snaptr->rij[ninside][1] = dely;
+        snaptr->rij[ninside][2] = delz;
+        snaptr->inside[ninside] = j;
+        snaptr->wj[ninside] = wjelem[jelem];
+        snaptr->rcutij[ninside] = (radi + radelem[jelem])*rcutfac;
+        ninside++;
       }
     }
 
@@ -236,6 +238,10 @@ void PairSNAP::compute_regular(int eflag, int vflag)
 
     snaptr->compute_ui(ninside);
     snaptr->compute_zi();
+    if (quadraticflag) {
+      snaptr->compute_bi();
+      snaptr->copy_bi2bvec();
+    }
 
     // for neighbors of I within cutoff:
     // compute dUi/drj and dBi/drj
@@ -246,7 +252,7 @@ void PairSNAP::compute_regular(int eflag, int vflag)
     for (int jj = 0; jj < ninside; jj++) {
       int j = snaptr->inside[jj];
       snaptr->compute_duidrj(snaptr->rij[jj],
-			     snaptr->wj[jj],snaptr->rcutij[jj]);
+                             snaptr->wj[jj],snaptr->rcutij[jj]);
 
       snaptr->compute_dbidrj();
       snaptr->copy_dbi2dbvec();
@@ -256,19 +262,17 @@ void PairSNAP::compute_regular(int eflag, int vflag)
       fij[2] = 0.0;
 
       // linear contributions
-      
+
       for (int k = 1; k <= ncoeff; k++) {
-	double bgb = coeffi[k];
-	fij[0] += bgb*snaptr->dbvec[k-1][0];
-	fij[1] += bgb*snaptr->dbvec[k-1][1];
-	fij[2] += bgb*snaptr->dbvec[k-1][2];
+        double bgb = coeffi[k];
+        fij[0] += bgb*snaptr->dbvec[k-1][0];
+        fij[1] += bgb*snaptr->dbvec[k-1][1];
+        fij[2] += bgb*snaptr->dbvec[k-1][2];
       }
 
       // quadratic contributions
-      
+
       if (quadraticflag) {
-        snaptr->compute_bi();
-        snaptr->copy_bi2bvec();
         int k = ncoeff+1;
         for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
           double bveci = snaptr->bvec[icoeff];
@@ -298,12 +302,12 @@ void PairSNAP::compute_regular(int eflag, int vflag)
       f[j][2] -= fij[2];
 
       // tally per-atom virial contribution
-      
+
       if (vflag)
         ev_tally_xyz(i,j,nlocal,newton_pair,0.0,0.0,
-		     fij[0],fij[1],fij[2],
-		     -snaptr->rij[jj][0],-snaptr->rij[jj][1],
-		     -snaptr->rij[jj][2]);
+                     fij[0],fij[1],fij[2],
+                     -snaptr->rij[jj][0],-snaptr->rij[jj][1],
+                     -snaptr->rij[jj][2]);
     }
 
     // tally energy contribution
@@ -317,7 +321,7 @@ void PairSNAP::compute_regular(int eflag, int vflag)
         snaptr->compute_bi();
         snaptr->copy_bi2bvec();
       }
-      
+
       // E = beta.B + 0.5*B^t.alpha.B
       // coeff[k] = beta[k-1] or
       // coeff[k] = alpha_ii or
@@ -528,8 +532,8 @@ void PairSNAP::compute_optimized(int eflag, int vflag)
         i = i_pairs[iijj][0];
         if (iold != i) {
           set_sna_to_shared(tid,i_pairs[iijj][3]);
-	  ielem = map[type[i]];
-	}
+          ielem = map[type[i]];
+        }
         iold = i;
       } else {
         i = pairs[iijj][0];
@@ -539,8 +543,8 @@ void PairSNAP::compute_optimized(int eflag, int vflag)
           const double ytmp = x[i][1];
           const double ztmp = x[i][2];
           const int itype = type[i];
-	  ielem = map[itype];
-	  const double radi = radelem[ielem];
+          ielem = map[itype];
+          const double radi = radelem[ielem];
 
           if (i < nlocal) {
             jlist = firstneigh[i];
@@ -569,7 +573,7 @@ void PairSNAP::compute_optimized(int eflag, int vflag)
             delz = x[j][2] - ztmp;
             rsq = delx*delx + dely*dely + delz*delz;
             jtype = type[j];
-	    int jelem = map[jtype];
+            int jelem = map[jtype];
 
             if (rsq < cutsq[itype][jtype]&&rsq>1e-20) { //unitialised
               sna[tid]->rij[ninside][0] = delx;
@@ -578,7 +582,7 @@ void PairSNAP::compute_optimized(int eflag, int vflag)
               sna[tid]->inside[ninside] = j;
               sna[tid]->wj[ninside] = wjelem[jelem];
               sna[tid]->rcutij[ninside] = (radi + radelem[jelem])*rcutfac;
-	      ninside++;
+              ninside++;
 
               // update index list with inside index
               pairs[iijj + (jj - pairs[iijj][1])][2] =
@@ -591,6 +595,10 @@ void PairSNAP::compute_optimized(int eflag, int vflag)
           sna[tid]->compute_ui(ninside); //unitialised
           sna[tid]->compute_zi();
         }
+      }
+      if (quadraticflag) {
+        sna[tid]->compute_bi();
+        sna[tid]->copy_bi2bvec();
       }
 
       // for neighbors of I within cutoff:
@@ -605,7 +613,7 @@ void PairSNAP::compute_optimized(int eflag, int vflag)
         jj = pairs[iijj][2];
         int j = sna[tid]->inside[jj];
         sna[tid]->compute_duidrj(sna[tid]->rij[jj],
-				 sna[tid]->wj[jj],sna[tid]->rcutij[jj]);
+                                 sna[tid]->wj[jj],sna[tid]->rcutij[jj]);
 
         sna[tid]->compute_dbidrj();
         sna[tid]->copy_dbi2dbvec();
@@ -617,17 +625,15 @@ void PairSNAP::compute_optimized(int eflag, int vflag)
         // linear contributions
 
         for (k = 1; k <= ncoeff; k++) {
-	  double bgb = coeffi[k];
-	  fij[0] += bgb*sna[tid]->dbvec[k-1][0];
-	  fij[1] += bgb*sna[tid]->dbvec[k-1][1];
-	  fij[2] += bgb*sna[tid]->dbvec[k-1][2];
+          double bgb = coeffi[k];
+          fij[0] += bgb*sna[tid]->dbvec[k-1][0];
+          fij[1] += bgb*sna[tid]->dbvec[k-1][1];
+          fij[2] += bgb*sna[tid]->dbvec[k-1][2];
         }
 
       // quadratic contributions
-        
+
       if (quadraticflag) {
-        sna[tid]->compute_bi();
-        sna[tid]->copy_bi2bvec();
         int k = ncoeff+1;
         for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
           double bveci = sna[tid]->bvec[icoeff];
@@ -675,10 +681,12 @@ void PairSNAP::compute_optimized(int eflag, int vflag)
       // if atom has no pairs, eatom=0, which is wrong
 
       if (eflag&&pairs[iijj][1] == 0) {
-	evdwl = coeffi[0];
+        evdwl = coeffi[0];
 
-        sna[tid]->compute_bi();
-        sna[tid]->copy_bi2bvec();
+        if (!quadraticflag) {
+          sna[tid]->compute_bi();
+          sna[tid]->copy_bi2bvec();
+        }
 
         // E = beta.B + 0.5*B^t.alpha.B
         // coeff[k] = beta[k-1] or
@@ -686,12 +694,12 @@ void PairSNAP::compute_optimized(int eflag, int vflag)
         // coeff[k] = alpha_ij = alpha_ji, j != i
 
         // linear contributions
-        
+
         for (int k = 1; k <= ncoeff; k++)
           evdwl += coeffi[k]*sna[tid]->bvec[k-1];
 
         // quadratic contributions
-        
+
         if (quadraticflag) {
           int k = ncoeff+1;
           for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
@@ -702,7 +710,7 @@ void PairSNAP::compute_optimized(int eflag, int vflag)
             }
           }
         }
-        
+
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
@@ -1176,7 +1184,7 @@ void PairSNAP::build_per_atom_arrays()
         const double delz = atom->x[j][2] - ztmp;
         const double rsq = delx*delx + dely*dely + delz*delz;
         int jtype = atom->type[j];
-	int jelem = map[jtype];
+        int jelem = map[jtype];
 
         i_pairs[i_numpairs][0] = i;
         i_pairs[i_numpairs][1] = jj;
@@ -1342,40 +1350,40 @@ void PairSNAP::settings(int narg, char **arg)
     if (strcmp(arg[i],"loadbalance")==0) {
       do_load_balance = force->inumeric(FLERR,arg[++i]);
       if (do_load_balance) {
-	double mincutoff = extra_cutoff() +
-	  rcutmax + neighbor->skin;
-	if (comm->cutghostuser < mincutoff) {
-	  char buffer[255];
+        double mincutoff = extra_cutoff() +
+          rcutmax + neighbor->skin;
+        if (comm->cutghostuser < mincutoff) {
+          char buffer[255];
 
-	  //apparently mincutoff is 0 after sprintf command ?????
+          //apparently mincutoff is 0 after sprintf command ?????
 
-	  double tmp = mincutoff + 0.1;
-	  sprintf(buffer, "Communication cutoff is too small "
-		  "for SNAP micro load balancing, increased to %lf",
-		  mincutoff+0.1);
-	  if (comm->me==0)
-	    error->warning(FLERR,buffer);
+          double tmp = mincutoff + 0.1;
+          sprintf(buffer, "Communication cutoff is too small "
+                  "for SNAP micro load balancing, increased to %lf",
+                  mincutoff+0.1);
+          if (comm->me==0)
+            error->warning(FLERR,buffer);
 
-	  comm->cutghostuser = tmp;
+          comm->cutghostuser = tmp;
 
-	}
+        }
       }
       continue;
     }
     if (strcmp(arg[i],"schedule")==0) {
       i++;
       if (strcmp(arg[i],"static")==0)
-	schedule_user = 1;
+        schedule_user = 1;
       if (strcmp(arg[i],"dynamic")==0)
-	schedule_user = 2;
+        schedule_user = 2;
       if (strcmp(arg[i],"guided")==0)
-	schedule_user = 3;
+        schedule_user = 3;
       if (strcmp(arg[i],"auto")==0)
-	schedule_user = 4;
+        schedule_user = 4;
       if (strcmp(arg[i],"determine")==0)
-	schedule_user = 5;
+        schedule_user = 5;
       if (schedule_user == 0)
-	error->all(FLERR,"Illegal pair_style command");
+        error->all(FLERR,"Illegal pair_style command");
       continue;
     }
     error->all(FLERR,"Illegal pair_style command");
@@ -1395,9 +1403,9 @@ void PairSNAP::settings(int narg, char **arg)
 
   if (!use_optimized)
     if (nthreads > 1 ||
-	use_shared_arrays ||
-	do_load_balance ||
-	schedule_user)
+        use_shared_arrays ||
+        do_load_balance ||
+        schedule_user)
       error->all(FLERR,"Illegal pair_style command");
 }
 
@@ -1457,8 +1465,8 @@ void PairSNAP::coeff(int narg, char **arg)
 
     // ncoeffall should be (ncoeff+2)*(ncoeff+1)/2
     // so, ncoeff = floor(sqrt(2*ncoeffall))-1
-    
-    ncoeff = sqrt(2*ncoeffall)-1; 
+
+    ncoeff = sqrt(2*ncoeffall)-1;
     ncoeffq = (ncoeff*(ncoeff+1))/2;
     int ntmp = 1+ncoeff+ncoeffq;
     if (ntmp != ncoeffall) {
@@ -1476,7 +1484,7 @@ void PairSNAP::coeff(int narg, char **arg)
     int jelem;
     for (jelem = 0; jelem < nelements; jelem++)
       if (strcmp(elemname,elements[jelem]) == 0)
-	break;
+        break;
 
     if (jelem < nelements)
       map[i] = jelem;
@@ -1515,14 +1523,14 @@ void PairSNAP::coeff(int narg, char **arg)
     int tid = omp_get_thread_num();
     sna[tid] = new SNA(lmp,rfac0,twojmax,
                        diagonalstyle,use_shared_arrays,
-		       rmin0,switchflag,bzeroflag);
+                       rmin0,switchflag,bzeroflag);
     if (!use_shared_arrays)
       sna[tid]->grow_rij(nmax);
   }
 
-  printf("ncoeff = %d snancoeff = %d \n",ncoeff,sna[0]->ncoeff);
-  if (ncoeff != sna[0]->ncoeff) {
+  if (comm->me == 0)
     printf("ncoeff = %d snancoeff = %d \n",ncoeff,sna[0]->ncoeff);
+  if (ncoeff != sna[0]->ncoeff) {
     error->all(FLERR,"Incorrect SNAP parameter file");
   }
 
@@ -1567,7 +1575,7 @@ double PairSNAP::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
   return (radelem[map[i]] +
-  	  radelem[map[j]])*rcutfac;
+          radelem[map[j]])*rcutfac;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1624,7 +1632,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 
   int nelemfile = atoi(words[0]);
   ncoeffall = atoi(words[1]);
-  
+
   // Set up element lists
 
   memory->create(radelem,nelements,"pair:radelem");
@@ -1642,8 +1650,8 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fpcoeff);
       if (ptr == NULL) {
-	eof = 1;
-	fclose(fpcoeff);
+        eof = 1;
+        fclose(fpcoeff);
       } else n = strlen(line) + 1;
     }
     MPI_Bcast(&eof,1,MPI_INT,0,world);
@@ -1674,8 +1682,8 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
       if (strcmp(elemtmp,elements[ielem]) == 0) break;
     if (ielem == nelements) {
       if (comm->me == 0)
-	for (int icoeff = 0; icoeff < ncoeffall; icoeff++)
-	  ptr = fgets(line,MAXLINE,fpcoeff);
+        for (int icoeff = 0; icoeff < ncoeffall; icoeff++)
+          ptr = fgets(line,MAXLINE,fpcoeff);
       continue;
     }
 
@@ -1683,8 +1691,8 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 
     if (found[ielem]) {
       if (comm->me == 0)
-	for (int icoeff = 0; icoeff < ncoeffall; icoeff++)
-	  ptr = fgets(line,MAXLINE,fpcoeff);
+        for (int icoeff = 0; icoeff < ncoeffall; icoeff++)
+          ptr = fgets(line,MAXLINE,fpcoeff);
       continue;
     }
 
@@ -1695,29 +1703,29 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 
     if (comm->me == 0) {
       if (screen) fprintf(screen,"SNAP Element = %s, Radius %g, Weight %g \n",
-			  elements[ielem], radelem[ielem], wjelem[ielem]);
+                          elements[ielem], radelem[ielem], wjelem[ielem]);
       if (logfile) fprintf(logfile,"SNAP Element = %s, Radius %g, Weight %g \n",
-			  elements[ielem], radelem[ielem], wjelem[ielem]);
+                          elements[ielem], radelem[ielem], wjelem[ielem]);
     }
 
     for (int icoeff = 0; icoeff < ncoeffall; icoeff++) {
       if (comm->me == 0) {
-	ptr = fgets(line,MAXLINE,fpcoeff);
-	if (ptr == NULL) {
-	  eof = 1;
-	  fclose(fpcoeff);
-	} else n = strlen(line) + 1;
+        ptr = fgets(line,MAXLINE,fpcoeff);
+        if (ptr == NULL) {
+          eof = 1;
+          fclose(fpcoeff);
+        } else n = strlen(line) + 1;
       }
 
       MPI_Bcast(&eof,1,MPI_INT,0,world);
       if (eof)
-	error->all(FLERR,"Incorrect format in SNAP coefficient file");
+        error->all(FLERR,"Incorrect format in SNAP coefficient file");
       MPI_Bcast(&n,1,MPI_INT,0,world);
       MPI_Bcast(line,n,MPI_CHAR,0,world);
 
       nwords = atom->count_words(line);
       if (nwords != 1)
-	error->all(FLERR,"Incorrect format in SNAP coefficient file");
+        error->all(FLERR,"Incorrect format in SNAP coefficient file");
 
       iword = 0;
       words[iword] = strtok(line,"' \t\n\r\f");
@@ -1740,7 +1748,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
   switchflag = 1;
   bzeroflag = 1;
   quadraticflag = 0;
-  
+
   // open SNAP parameter file on proc 0
 
   FILE *fpparam;

@@ -7,6 +7,7 @@
 :line
 
 dihedral_style fourier command :h3
+dihedral_style fourier/intel command :h3
 dihedral_style fourier/omp command :h3
 
 [Syntax:]

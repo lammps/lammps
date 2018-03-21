@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 // 
 // ************************************************************************
 //@HEADER
@@ -51,6 +51,10 @@ template void test_fixture< Kokkos::HostSpace::execution_space >();
 
 #if defined( KOKKOS_ENABLE_CUDA )
 template void test_fixture<Kokkos::Cuda>();
+#endif
+
+#if defined( KOKKOS_ENABLE_ROCM )
+template void test_fixture<Kokkos::Experimental::ROCm>();
 #endif
 
 } /* namespace Example */

@@ -46,21 +46,21 @@ else
 end
 while done == 0 & last_status == 0
     id = fgetl(dump);
-    if (strcmpi(id,'ITEM: TIMESTEP'))
+    if (strncmpi(id,'ITEM: TIMESTEP',numel('ITEM: TIMESTEP')))
             if t == 0
                 timestep(i) = str2num(fgetl(dump));
                 t=1;
             end
     else
-     if (strcmpi(id,'ITEM: NUMBER OF ATOMS'))
+     if (strcmpi(id,'ITEM: NUMBER OF ATOMS',numel('ITEM: NUMBER OF ATOMS')))
             Natoms = str2num(fgetl(dump));
      else
-      if (strcmpi(id,'ITEM: BOX BOUNDS'))
+      if (strcmpi(id,'ITEM: BOX BOUNDS',numel('ITEM: BOX BOUNDS')))
             x_bound(1,:) = str2num(fgetl(dump));
             y_bound(1,:) = str2num(fgetl(dump));
             z_bound(1,:) = str2num(fgetl(dump));
       else
-       if (strcmpi(id(1:11),'ITEM: ATOMS'))
+       if (strncmpi('ITEM: ATOMS',numel('ITEM: ATOMS')))
             atom_data = zeros(Natoms,ncol);%Allocate memory for atom data
             for j = 1 : 1: Natoms
                 atom_data(j,:) = str2num(fgetl(dump));

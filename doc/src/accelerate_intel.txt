@@ -25,14 +25,14 @@ LAMMPS to run on the CPU cores and coprocessor cores simultaneously.
 [Currently Available USER-INTEL Styles:]
 
 Angle Styles: charmm, harmonic :ulb,l
-Bond Styles: fene, harmonic :l
+Bond Styles: fene, fourier, harmonic :l
 Dihedral Styles: charmm, harmonic, opls :l
-Fixes: nve, npt, nvt, nvt/sllod :l
+Fixes: nve, npt, nvt, nvt/sllod, nve/asphere :l
 Improper Styles: cvff, harmonic :l
 Pair Styles: airebo, airebo/morse, buck/coul/cut, buck/coul/long, 
-buck, eam, eam/alloy, eam/fs, gayberne, lj/charmm/coul/charmm, 
-lj/charmm/coul/long, lj/cut, lj/cut/coul/long, lj/long/coul/long, rebo,
-sw, tersoff :l
+buck, dpd, eam, eam/alloy, eam/fs, gayberne, lj/charmm/coul/charmm, 
+lj/charmm/coul/long, lj/cut, lj/cut/coul/long, lj/long/coul/long, 
+rebo, sw, tersoff :l
 K-Space Styles: pppm, pppm/disp :l
 :ule
 
@@ -54,11 +54,12 @@ warmup run (for use with offload benchmarks).
 :c,image(JPG/user_intel.png)
 
 Results are speedups obtained on Intel Xeon E5-2697v4 processors
-(code-named Broadwell) and Intel Xeon Phi 7250 processors
-(code-named Knights Landing) with "June 2017" LAMMPS built with
-Intel Parallel Studio 2017 update 2. Results are with 1 MPI task
-per physical core. See {src/USER-INTEL/TEST/README} for the raw
-simulation rates and instructions to reproduce.
+(code-named Broadwell), Intel Xeon Phi 7250 processors (code-named
+Knights Landing), and Intel Xeon Gold 6148 processors (code-named
+Skylake) with "June 2017" LAMMPS built with Intel Parallel Studio
+2017 update 2. Results are with 1 MPI task per physical core. See
+{src/USER-INTEL/TEST/README} for the raw simulation rates and
+instructions to reproduce.
 
 :line
 
@@ -77,11 +78,16 @@ order of operations compared to LAMMPS without acceleration:
 Neighbor lists can be created in a different order :ulb,l
 Bins used for sorting atoms can be oriented differently :l
 The default stencil order for PPPM is 7. By default, LAMMPS will
-calculate other PPPM parameters to fit the desired acuracy with
+calculate other PPPM parameters to fit the desired accuracy with
 this order :l
 The {newton} setting applies to all atoms, not just atoms shared
 between MPI tasks :l
 Vectorization can change the order for adding pairwise forces :l
+When using the -DLMP_USE_MKL_RNG define (all included intel optimized
+makefiles do) at build time, the random number generator for
+dissipative particle dynamics (pair style dpd/intel) uses the Mersenne
+Twister generator included in the Intel MKL library (that should be
+more robust than the default Masaglia random number generator) :l
 :ule
 
 The precision mode (described below) used with the USER-INTEL
@@ -108,7 +114,7 @@ $t should be 2 for Intel Xeon CPUs and 2 or 4 for Intel Xeon Phi :l
 For some of the simple 2-body potentials without long-range
 electrostatics, performance and scalability can be better with
 the "newton off" setting added to the input script :l
-For simulations on higher node counts, add "processors * * * grid 
+For simulations on higher node counts, add "processors * * * grid
 numa" to the beginning of the input script for better scalability :l
 If using {kspace_style pppm} in the input script, add
 "kspace_modify diff ad" for better performance :l
@@ -119,8 +125,8 @@ For Intel Xeon Phi CPUs:
 Runs should be performed using MCDRAM. :ulb,l
 :ule
 
-For simulations using {kspace_style pppm} on Intel CPUs
-supporting AVX-512:
+For simulations using {kspace_style pppm} on Intel CPUs supporting
+AVX-512:
 
 Add "kspace_modify diff ad" to the input script :ulb,l
 The command-line option should be changed to
@@ -237,14 +243,17 @@ However, if you do not have coprocessors on your system, building
 without offload support will produce a smaller binary.
 
 The general requirements for Makefiles with the USER-INTEL package
-are as follows. "-DLAMMPS_MEMALIGN=64" is required for CCFLAGS. When
-using Intel compilers, "-restrict" is required and "-qopenmp" is
-highly recommended for CCFLAGS and LINKFLAGS. LIB should include
-"-ltbbmalloc". For builds supporting offload, "-DLMP_INTEL_OFFLOAD"
-is required for CCFLAGS and "-qoffload" is required for LINKFLAGS.
-Other recommended CCFLAG options for best performance are
-"-O2 -fno-alias -ansi-alias -qoverride-limits fp-model fast=2
--no-prec-div".
+are as follows. When using Intel compilers, "-restrict" is required 
+and "-qopenmp" is highly recommended for CCFLAGS and LINKFLAGS. 
+CCFLAGS should include "-DLMP_INTEL_USELRT" (unless POSIX Threads
+are not supported in the build environment) and "-DLMP_USE_MKL_RNG"
+(unless Intel Math Kernel Library (MKL) is not available in the build
+environment). For Intel compilers, LIB should include "-ltbbmalloc" 
+or if the library is not available, "-DLMP_INTEL_NO_TBB" can be added
+to CCFLAGS. For builds supporting offload, "-DLMP_INTEL_OFFLOAD" is
+required for CCFLAGS and "-qoffload" is required for LINKFLAGS. Other
+recommended CCFLAG options for best performance are "-O2 -fno-alias
+-ansi-alias -qoverride-limits fp-model fast=2 -no-prec-div".
 
 NOTE: The vectorization and math capabilities can differ depending on
 the CPU. For Intel compilers, the "-x" flag specifies the type of
@@ -361,10 +370,14 @@ intel"_package.html command that can improve performance when using
 "PPPM"_kspace_style.html for long-range electrostatics on processors
 with SMT. It generates an extra pthread for each MPI task. The thread
 is dedicated to performing some of the PPPM calculations and MPI
-communications. On Intel Xeon Phi x200 series CPUs, this will likely
-always improve performance, even on a single node. On Intel Xeon
-processors, using this mode might result in better performance when
-using multiple nodes, depending on the machine. To use this mode,
+communications. This feature requires setting the preprocessor flag
+-DLMP_INTEL_USELRT in the makefile when compiling LAMMPS. It is unset
+in the default makefiles ({Makefile.mpi} and {Makefile.serial}) but
+it is set in all makefiles tuned for the USER-INTEL package.  On Intel
+Xeon Phi x200 series CPUs, the LRT feature will likely improve
+performance, even on a single node. On Intel Xeon processors, using
+this mode might result in better performance when using multiple nodes,
+depending on the specific machine configuration. To enable LRT mode,
 specify that the number of OpenMP threads is one less than would
 normally be used for the run and add the "lrt yes" option to the "-pk"
 command-line suffix or "package intel" command. For example, if a run

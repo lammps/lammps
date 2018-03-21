@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -48,6 +48,10 @@
 #include <Kokkos_Macros.hpp>
 #if defined( KOKKOS_ATOMIC_HPP ) && ! defined( KOKKOS_ATOMIC_FETCH_SUB_HPP )
 #define KOKKOS_ATOMIC_FETCH_SUB_HPP
+
+#if defined(KOKKOS_ENABLE_CUDA)
+#include<Cuda/Kokkos_Cuda_Version_9_8_Compatibility.hpp>
+#endif
 
 namespace Kokkos {
 
@@ -117,7 +121,7 @@ T atomic_fetch_sub( volatile T * const dest ,
   T return_val;
   // This is a way to (hopefully) avoid dead lock in a warp
   int done = 0;
-  unsigned int active = __ballot(1);
+  unsigned int active = KOKKOS_IMPL_CUDA_BALLOT(1);
   unsigned int done_active = 0;
   while (active!=done_active) {
     if(!done) {
@@ -128,13 +132,14 @@ T atomic_fetch_sub( volatile T * const dest ,
         done = 1;
       }
     }
-    done_active = __ballot(done);
+    done_active = KOKKOS_IMPL_CUDA_BALLOT(done);
   }
   return return_val;
 }
 #endif
 #endif
 //----------------------------------------------------------------------------
+#if !defined(KOKKOS_ENABLE_ROCM_ATOMICS)
 #if !defined(__CUDA_ARCH__) || defined(KOKKOS_IMPL_CUDA_CLANG_WORKAROUND)
 #if defined(KOKKOS_ENABLE_GNU_ATOMICS) || defined(KOKKOS_ENABLE_INTEL_ATOMICS)
 
@@ -261,8 +266,21 @@ T atomic_fetch_sub( volatile T * const dest , const T val )
   return retval;
 }
 
+#elif defined( KOKKOS_ENABLE_SERIAL_ATOMICS )
+
+template< typename T >
+T atomic_fetch_sub( volatile T * const dest_v , const T val )
+{
+  T* dest = const_cast<T*>(dest_v);
+  T retval = *dest;
+  *dest -= val;
+  return retval;
+}
+
 #endif
 #endif
+#endif // !defined ROCM_ATOMICS
+
 // Simpler version of atomic_fetch_sub without the fetch
 template <typename T>
 KOKKOS_INLINE_FUNCTION

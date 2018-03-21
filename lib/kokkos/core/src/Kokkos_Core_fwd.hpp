@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -122,6 +122,13 @@ class CudaHostPinnedSpace;  ///< Memory space on Host accessible to Cuda GPU
 class Cuda;                 ///< Execution space for Cuda GPU
 #endif
 
+#if defined( KOKKOS_ENABLE_ROCM )
+namespace Experimental {
+class ROCmSpace ;            ///< Memory space on ROCm GPU
+class ROCm ;                 ///< Execution space for ROCm GPU
+}
+#endif
+
 template<class ExecutionSpace, class MemorySpace>
 struct Device;
 
@@ -140,6 +147,8 @@ namespace Kokkos {
   typedef Cuda DefaultExecutionSpace;
 #elif defined ( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMPTARGET )
   typedef Experimental::OpenMPTarget DefaultExecutionSpace ;
+#elif defined ( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_ROCM )
+  typedef Experimental::ROCm DefaultExecutionSpace ;
 #elif defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMP )
   typedef OpenMP DefaultExecutionSpace;
 #elif defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_THREADS )
@@ -185,6 +194,8 @@ namespace Impl {
 
 #if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA ) && defined( KOKKOS_ENABLE_CUDA )
 typedef Kokkos::CudaSpace  ActiveExecutionMemorySpace;
+#elif defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_ROCM_GPU )
+typedef Kokkos::HostSpace  ActiveExecutionMemorySpace ;
 #elif defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
 typedef Kokkos::HostSpace  ActiveExecutionMemorySpace;
 #else
@@ -227,6 +238,13 @@ namespace Kokkos {
 namespace Kokkos {
 
 namespace Impl {
+
+template<class ViewType, class Layout = typename ViewType::array_layout,
+         class ExecSpace = typename ViewType::execution_space, int Rank = ViewType::Rank, typename iType = int64_t>
+struct ViewFill;
+
+template<class ViewTypeA,class ViewTypeB, class Layout, class ExecSpace, int Rank, typename iType>
+struct ViewCopy;
 
 template< class Functor
         , class Policy

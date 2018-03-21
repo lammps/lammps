@@ -11,6 +11,12 @@ function(FindStyleHeaders path style_class file_pattern headers)
     set_property(GLOBAL PROPERTY ${headers} "${hlist}")
 endfunction(FindStyleHeaders)
 
+function(AddStyleHeader path headers)
+    get_property(hlist GLOBAL PROPERTY ${headers})
+    list(APPEND hlist ${path})
+    set_property(GLOBAL PROPERTY ${headers} "${hlist}")
+endfunction(AddStyleHeader)
+
 function(FindStyleHeadersExt path style_class extension headers sources)
     get_property(hlist GLOBAL PROPERTY ${headers})
     get_property(slist GLOBAL PROPERTY ${sources})
@@ -62,6 +68,22 @@ function(GenerateStyleHeader path property style)
     CreateStyleHeader("${path}" "style_${style}.h" ${files})
 endfunction(GenerateStyleHeader)
 
+function(RegisterNBinStyles search_path)
+    FindStyleHeaders(${search_path} NBIN_CLASS      nbin_      NBIN      ) # nbin      ) # neighbor
+endfunction(RegisterNBinStyles)
+
+function(RegisterNPairStyles search_path)
+    FindStyleHeaders(${search_path} NPAIR_CLASS     npair_     NPAIR     ) # npair     ) # neighbor
+endfunction(RegisterNPairStyles)
+
+function(RegisterNBinStyle path)
+    AddStyleHeader(${path} NBIN)
+endfunction(RegisterNBinStyle)
+
+function(RegisterNPairStyle path)
+    AddStyleHeader(${path} NPAIR)
+endfunction(RegisterNPairStyle)
+
 function(RegisterStyles search_path)
     FindStyleHeaders(${search_path} ANGLE_CLASS     angle_     ANGLE     ) # angle     ) # force
     FindStyleHeaders(${search_path} ATOM_CLASS      atom_vec_  ATOM_VEC  ) # atom      ) # atom      atom_vec_hybrid
@@ -84,6 +106,35 @@ function(RegisterStyles search_path)
     FindStyleHeaders(${search_path} READER_CLASS    reader_    READER    ) # reader    ) # read_dump
     FindStyleHeaders(${search_path} REGION_CLASS    region_    REGION    ) # region    ) # domain
 endfunction(RegisterStyles)
+
+function(RemovePackageHeader headers pkg_header)
+    get_property(hlist GLOBAL PROPERTY ${headers})
+    list(REMOVE_ITEM hlist ${pkg_header})
+    set_property(GLOBAL PROPERTY ${headers} "${hlist}")
+endfunction(RemovePackageHeader)
+
+function(DetectAndRemovePackageHeader fname)
+    RemovePackageHeader(ANGLE     ${fname})
+    RemovePackageHeader(ATOM_VEC  ${fname})
+    RemovePackageHeader(BODY      ${fname})
+    RemovePackageHeader(BOND      ${fname})
+    RemovePackageHeader(COMMAND   ${fname})
+    RemovePackageHeader(COMPUTE   ${fname})
+    RemovePackageHeader(DIHEDRAL  ${fname})
+    RemovePackageHeader(DUMP      ${fname})
+    RemovePackageHeader(FIX       ${fname})
+    RemovePackageHeader(IMPROPER  ${fname})
+    RemovePackageHeader(INTEGRATE ${fname})
+    RemovePackageHeader(KSPACE    ${fname})
+    RemovePackageHeader(MINIMIZE  ${fname})
+    RemovePackageHeader(NBIN      ${fname})
+    RemovePackageHeader(NPAIR     ${fname})
+    RemovePackageHeader(NSTENCIL  ${fname})
+    RemovePackageHeader(NTOPO     ${fname})
+    RemovePackageHeader(PAIR      ${fname})
+    RemovePackageHeader(READER    ${fname})
+    RemovePackageHeader(REGION    ${fname})
+endfunction(DetectAndRemovePackageHeader)
 
 function(RegisterStylesExt search_path extension sources)
     FindStyleHeadersExt(${search_path} ANGLE_CLASS     ${extension}  ANGLE     ${sources})

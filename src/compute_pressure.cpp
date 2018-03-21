@@ -99,7 +99,7 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
 
   if (keflag && id_temp == NULL)
     error->all(FLERR,"Compute pressure requires temperature ID "
-	       "to include kinetic energy");
+               "to include kinetic energy");
 
   vector = new double[6];
   nvirial = 0;
@@ -147,7 +147,7 @@ void ComputePressure::init()
   if (improperflag && atom->molecular && force->improper) nvirial++;
   if (fixflag)
     for (int i = 0; i < modify->nfix; i++)
-      if (modify->fix[i]->virial_flag) nvirial++;
+      if (modify->fix[i]->thermo_virial) nvirial++;
 
   if (nvirial) {
     vptr = new double*[nvirial];
@@ -161,7 +161,7 @@ void ComputePressure::init()
       vptr[nvirial++] = force->improper->virial;
     if (fixflag)
       for (int i = 0; i < modify->nfix; i++)
-        if (modify->fix[i]->virial_flag)
+        if (modify->fix[i]->thermo_virial)
           vptr[nvirial++] = modify->fix[i]->virial;
   }
 
@@ -224,7 +224,7 @@ void ComputePressure::compute_vector()
 
   if (force->kspace && kspace_virial && force->kspace->scalar_pressure_flag)
     error->all(FLERR,"Must use 'kspace_modify pressure/scalar no' for "
-	       "tensor components with kspace_style msm");
+               "tensor components with kspace_style msm");
 
   // invoke temperature if it hasn't been already
 

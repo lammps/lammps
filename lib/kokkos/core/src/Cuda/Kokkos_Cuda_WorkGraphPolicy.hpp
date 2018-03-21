@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -48,50 +48,52 @@ namespace Kokkos {
 namespace Impl {
 
 template< class FunctorType , class ... Traits >
-class ParallelFor< FunctorType ,
-                   Kokkos::Experimental::WorkGraphPolicy< Traits ... > ,
-                   Kokkos::Cuda
+class ParallelFor< FunctorType
+                 , Kokkos::WorkGraphPolicy< Traits ... >
+                 , Kokkos::Cuda
                  >
-  : public Kokkos::Impl::Experimental::
-           WorkGraphExec< FunctorType,
-                          Kokkos::Cuda,
-                          Traits ...
-                        >
 {
 public:
 
-  typedef Kokkos::Experimental::WorkGraphPolicy< Traits ... >   Policy ;
-  typedef Kokkos::Impl::Experimental::
-          WorkGraphExec<FunctorType, Kokkos::Cuda, Traits ... > Base ;
+  typedef Kokkos::WorkGraphPolicy< Traits ... >   Policy ;
   typedef ParallelFor<FunctorType, Policy, Kokkos::Cuda>        Self ;
 
 private:
 
-  template< class TagType >
-  __device__
-  typename std::enable_if< std::is_same< TagType , void >::value >::type
-  exec_one(const typename Policy::member_type& i) const {
-    Base::m_functor( i );
-  }
+  Policy       m_policy ;
+  FunctorType  m_functor ;
 
   template< class TagType >
-  __device__
+  __device__ inline
+  typename std::enable_if< std::is_same< TagType , void >::value >::type
+  exec_one( const std::int32_t w ) const noexcept
+    { m_functor( w ); }
+
+  template< class TagType >
+  __device__ inline
   typename std::enable_if< ! std::is_same< TagType , void >::value >::type
-  exec_one(const typename Policy::member_type& i) const {
-    const TagType t{} ;
-    Base::m_functor( t , i );
-  }
+  exec_one( const std::int32_t w ) const noexcept
+    { const TagType t{} ; m_functor( t , w ); }
 
 public:
 
-  __device__
-  inline
-  void operator()() const {
-    for (std::int32_t i; (-1 != (i = Base::before_work())); ) {
-      exec_one< typename Policy::work_tag >( i );
-      Base::after_work(i);
+  __device__ inline
+  void operator()() const noexcept
+    {
+      if ( 0 == ( threadIdx.y % 16 ) ) {
+
+        // Spin until COMPLETED_TOKEN.
+        // END_TOKEN indicates no work is currently available.
+
+        for ( std::int32_t w = Policy::END_TOKEN ;
+              Policy::COMPLETED_TOKEN != ( w = m_policy.pop_work() ) ; ) {
+          if ( Policy::END_TOKEN != w ) {
+            exec_one< typename Policy::work_tag >( w );
+            m_policy.completed_work(w);
+          }
+        }
+      }
     }
-  }
 
   inline
   void execute()
@@ -108,9 +110,9 @@ public:
   inline
   ParallelFor( const FunctorType & arg_functor
              , const Policy      & arg_policy )
-    : Base( arg_functor, arg_policy )
-  {
-  }
+    : m_policy( arg_policy )
+    , m_functor( arg_functor )
+  {}
 };
 
 } // namespace Impl

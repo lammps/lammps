@@ -12,8 +12,8 @@ pair_style smd/ulsph command :h3
 
 pair_style smd/ulsph args :pre
 
-these keywords must be given :l
-keyword = {*DENSITY_SUMMATION} or {*DENSITY_CONTINUITY} and {*VELOCITY_GRADIENT} or {*NO_VELOCITY_GRADIENT} and {*GRADIENT_CORRECTION} or {*NO_GRADIENT_CORRECTION}
+these keywords must be given :ul
+keyword = {*DENSITY_SUMMATION} or {*DENSITY_CONTINUITY} and {*VELOCITY_GRADIENT} or {*NO_VELOCITY_GRADIENT} and {*GRADIENT_CORRECTION} or {*NO_GRADIENT_CORRECTION} :pre
 
 [Examples:]
 

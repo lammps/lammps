@@ -95,7 +95,7 @@ FixQEqReax::FixQEqReax(LAMMPS *lmp, int narg, char **arg) :
   pack_flag = 0;
   s = NULL;
   t = NULL;
-  nprev = 5;
+  nprev = 4;
 
   Hdia_inv = NULL;
   b_s = NULL;
@@ -428,7 +428,7 @@ void FixQEqReax::init_taper()
   Tap[3] = 140.0 * (swa3*swb + 3.0*swa2*swb2 + swa*swb3) / d7;
   Tap[2] =-210.0 * (swa3*swb2 + swa2*swb3) / d7;
   Tap[1] = 140.0 * swa3 * swb3 / d7;
-  Tap[0] = (-35.0*swa3*swb2*swb2 + 21.0*swa2*swb3*swb2 +
+  Tap[0] = (-35.0*swa3*swb2*swb2 + 21.0*swa2*swb3*swb2 -
             7.0*swa*swb3*swb3 + swb3*swb3*swb) / d7;
 }
 
@@ -504,7 +504,7 @@ void FixQEqReax::pre_force(int vflag)
 
   init_matvec();
 
-  matvecs_s = CG(b_s, s);    	// CG on s - parallel
+  matvecs_s = CG(b_s, s);       // CG on s - parallel
   matvecs_t = CG(b_t, t);       // CG on t - parallel
   matvecs = matvecs_s + matvecs_t;
 
@@ -631,9 +631,9 @@ void FixQEqReax::compute_H()
               if (dy > SMALL) flag = 1;
               else if (fabs(dy) < SMALL && dx > SMALL)
                 flag = 1;
-	    }
-	  }
-	}
+            }
+          }
+        }
 
         if (flag) {
           H.jlist[m_fill] = j;
@@ -817,7 +817,7 @@ void FixQEqReax::calculate_Q()
       q[i] = s[i] - u * t[i];
 
       /* backup s & t */
-      for (k = 4; k > 0; --k) {
+      for (k = nprev-1; k > 0; --k) {
         s_hist[i][k] = s_hist[i][k-1];
         t_hist[i][k] = t_hist[i][k-1];
       }

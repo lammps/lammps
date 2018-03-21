@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -48,12 +48,17 @@
 #include <iostream>
 #include <sstream>
 #include <cstdlib>
+#include <stack>
 
 //----------------------------------------------------------------------------
 
-namespace Kokkos {
-namespace Impl {
 namespace {
+bool g_is_initialized = false;
+bool g_show_warnings = true;
+std::stack<std::function<void()> > finalize_hooks;
+}
+
+namespace Kokkos { namespace Impl { namespace {
 
 bool is_unsigned_int(const char* str)
 {
@@ -75,12 +80,16 @@ void initialize_internal(const InitArguments& args)
 setenv("MEMKIND_HBW_NODES", "1", 0);
 #endif
 
+  if (args.disable_warnings) {
+    g_show_warnings = false;
+  }
+
   // Protect declarations, to prevent "unused variable" warnings.
 #if defined( KOKKOS_ENABLE_OPENMP ) || defined( KOKKOS_ENABLE_THREADS ) || defined( KOKKOS_ENABLE_OPENMPTARGET )
   const int num_threads = args.num_threads;
   const int use_numa = args.num_numa;
 #endif // defined( KOKKOS_ENABLE_OPENMP ) || defined( KOKKOS_ENABLE_THREADS )
-#if defined( KOKKOS_ENABLE_CUDA )
+#if defined( KOKKOS_ENABLE_CUDA ) || defined( KOKKOS_ENABLE_ROCM )
   const int use_gpu = args.device_id;
 #endif // defined( KOKKOS_ENABLE_CUDA )
 
@@ -125,10 +134,8 @@ setenv("MEMKIND_HBW_NODES", "1", 0);
   // struct, you may remove this line of code.
   (void) args;
 
-  if( std::is_same< Kokkos::Serial , Kokkos::DefaultExecutionSpace >::value ||
-      std::is_same< Kokkos::Serial , Kokkos::HostSpace::execution_space >::value ) {
-    Kokkos::Serial::initialize();
-  }
+  // Always initialize Serial if it is configure time enabled
+  Kokkos::Serial::initialize();
 #endif
 
 #if defined( KOKKOS_ENABLE_OPENMPTARGET )
@@ -162,13 +169,46 @@ setenv("MEMKIND_HBW_NODES", "1", 0);
   }
 #endif
 
+#if defined( KOKKOS_ENABLE_ROCM )
+  if( std::is_same< Kokkos::Experimental::ROCm , Kokkos::DefaultExecutionSpace >::value || 0 < use_gpu ) {
+    if (use_gpu > -1) {
+      Kokkos::Experimental::ROCm::initialize( Kokkos::Experimental::ROCm::SelectDevice( use_gpu ) );
+    }
+    else {
+      Kokkos::Experimental::ROCm::initialize();
+    }
+    std::cout << "Kokkos::initialize() fyi: ROCm enabled and initialized" << std::endl ;
+  }
+#endif
+
 #if defined(KOKKOS_ENABLE_PROFILING)
     Kokkos::Profiling::initialize();
 #endif
+    g_is_initialized = true;
 }
 
 void finalize_internal( const bool all_spaces = false )
 {
+
+  typename decltype(finalize_hooks)::size_type  numSuccessfulCalls = 0;
+  while(! finalize_hooks.empty()) {
+    auto f = finalize_hooks.top();
+    try {
+      f();
+    }
+    catch(...) {
+      std::cerr << "Kokkos::finalize: A finalize hook (set via "
+        "Kokkos::push_finalize_hook) threw an exception that it did not catch."
+        "  Per std::atexit rules, this results in std::terminate.  This is "
+        "finalize hook number " << numSuccessfulCalls << " (1-based indexing) "
+        "out of " << finalize_hooks.size() << " to call.  Remember that "
+        "Kokkos::finalize calls finalize hooks in reverse order from how they "
+        "were pushed." << std::endl;
+      std::terminate();
+    }
+    finalize_hooks.pop();
+    ++numSuccessfulCalls;
+  }
 
 #if defined(KOKKOS_ENABLE_PROFILING)
     Kokkos::Profiling::finalize();
@@ -178,6 +218,13 @@ void finalize_internal( const bool all_spaces = false )
   if( std::is_same< Kokkos::Cuda , Kokkos::DefaultExecutionSpace >::value || all_spaces ) {
     if(Kokkos::Cuda::is_initialized())
       Kokkos::Cuda::finalize();
+  }
+#endif
+
+#if defined( KOKKOS_ENABLE_ROCM )
+  if( std::is_same< Kokkos::Experimental::ROCm , Kokkos::DefaultExecutionSpace >::value || all_spaces ) {
+    if(Kokkos::Experimental::ROCm::is_initialized())
+      Kokkos::Experimental::ROCm::finalize();
   }
 #endif
 
@@ -207,13 +254,12 @@ void finalize_internal( const bool all_spaces = false )
 #endif
 
 #if defined( KOKKOS_ENABLE_SERIAL )
-  if( std::is_same< Kokkos::Serial , Kokkos::DefaultExecutionSpace >::value ||
-      std::is_same< Kokkos::Serial , Kokkos::HostSpace::execution_space >::value ||
-      all_spaces ) {
-    if(Kokkos::Serial::is_initialized())
-      Kokkos::Serial::finalize();
-  }
+  if(Kokkos::Serial::is_initialized())
+    Kokkos::Serial::finalize();
 #endif
+
+  g_is_initialized = false;
+  g_show_warnings = true;
 }
 
 void fence_internal()
@@ -222,6 +268,12 @@ void fence_internal()
 #if defined( KOKKOS_ENABLE_CUDA )
   if( std::is_same< Kokkos::Cuda , Kokkos::DefaultExecutionSpace >::value ) {
     Kokkos::Cuda::fence();
+  }
+#endif
+
+#if defined( KOKKOS_ENABLE_ROCM )
+  if( std::is_same< Kokkos::Experimental::ROCm , Kokkos::DefaultExecutionSpace >::value ) {
+    Kokkos::Experimental::ROCm::fence();
   }
 #endif
 
@@ -281,9 +333,7 @@ bool check_int_arg(char const* arg, char const* expected, int* value) {
   return true;
 }
 
-} // namespace
-} // namespace Impl
-} // namespace Kokkos
+}}} // namespace Kokkos::Impl::{unnamed}
 
 //----------------------------------------------------------------------------
 
@@ -294,6 +344,7 @@ void initialize(int& narg, char* arg[])
     int num_threads = -1;
     int numa = -1;
     int device = -1;
+    bool disable_warnings = false;
 
     int kokkos_threads_found = 0;
     int kokkos_numa_found = 0;
@@ -348,6 +399,7 @@ void initialize(int& narg, char* arg[])
         }
         if((strncmp(arg[iarg],"--kokkos-ndevices",17) == 0) || !kokkos_ndevices_found)
           ndevices = atoi(num1_only);
+        delete [] num1_only;
 
         if( num2 != NULL ) {
           if(( !Impl::is_unsigned_int(num2+1) ) || (strlen(num2)==1) )
@@ -390,6 +442,12 @@ void initialize(int& narg, char* arg[])
         } else {
           iarg++;
         }
+      } else if ( strcmp(arg[iarg],"--kokkos-disable-warnings") == 0) {
+        disable_warnings = true;
+        for(int k=iarg;k<narg-1;k++) {
+          arg[k] = arg[k+1];
+        }
+        narg--;
       } else if ((strcmp(arg[iarg],"--kokkos-help") == 0) || (strcmp(arg[iarg],"--help") == 0)) {
          std::cout << std::endl;
          std::cout << "--------------------------------------------------------------------------------" << std::endl;
@@ -398,10 +456,11 @@ void initialize(int& narg, char* arg[])
          std::cout << "The following arguments exist also without prefix 'kokkos' (e.g. --help)." << std::endl;
          std::cout << "The prefixed arguments will be removed from the list by Kokkos::initialize()," << std::endl;
          std::cout << "the non-prefixed ones are not removed. Prefixed versions take precedence over " << std::endl;
-         std::cout << "non prefixed ones, and the last occurence of an argument overwrites prior" << std::endl;
+         std::cout << "non prefixed ones, and the last occurrence of an argument overwrites prior" << std::endl;
          std::cout << "settings." << std::endl;
          std::cout << std::endl;
          std::cout << "--kokkos-help               : print this message" << std::endl;
+         std::cout << "--kokkos-disable-warnings   : disable kokkos warning messages" << std::endl;
          std::cout << "--kokkos-threads=INT        : specify total number of threads or" << std::endl;
          std::cout << "                              number of threads per NUMA region if " << std::endl;
          std::cout << "                              used in conjunction with '--numa' option. " << std::endl;
@@ -432,12 +491,17 @@ void initialize(int& narg, char* arg[])
       iarg++;
     }
 
-    InitArguments arguments{num_threads, numa, device};
+    InitArguments arguments{num_threads, numa, device, disable_warnings};
     Impl::initialize_internal(arguments);
 }
 
 void initialize(const InitArguments& arguments) {
   Impl::initialize_internal(arguments);
+}
+
+void push_finalize_hook(std::function<void()> f)
+{
+  finalize_hooks.push(f);
 }
 
 void finalize()
@@ -602,7 +666,12 @@ void print_configuration( std::ostream & out , const bool detail )
 #else
   msg << "no" << std::endl;
 #endif
-
+  msg << "  KOKKOS_ENABLE_SERIAL_ATOMICS: ";
+#ifdef KOKKOS_ENABLE_SERIAL_ATOMICS
+  msg << "yes" << std::endl;
+#else
+  msg << "no" << std::endl;
+#endif
 
   msg << "Vectorization:" << std::endl;
   msg << "  KOKKOS_ENABLE_PRAGMA_IVDEP: ";
@@ -761,6 +830,10 @@ void print_configuration( std::ostream & out , const bool detail )
 
   out << msg.str() << std::endl;
 }
+
+bool is_initialized() noexcept { return g_is_initialized; }
+
+bool show_warnings() noexcept { return g_show_warnings; }
 
 } // namespace Kokkos
 

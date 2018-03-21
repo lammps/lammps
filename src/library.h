@@ -36,7 +36,7 @@ void lammps_free(void *);
 
 int lammps_extract_setting(void *, char *);
 void *lammps_extract_global(void *, char *);
-void lammps_extract_box(void *, double *, double *, 
+void lammps_extract_box(void *, double *, double *,
                         double *, double *, double *, int *, int *);
 void *lammps_extract_atom(void *, char *);
 void *lammps_extract_compute(void *, char *, int, int);
@@ -56,10 +56,10 @@ void lammps_scatter_atoms(void *, char *, int, int, void *);
 // caller must match to how LAMMPS library is built
 
 #ifdef LAMMPS_BIGBIG
-void lammps_create_atoms(void *, int, int64_t *, int *, 
+void lammps_create_atoms(void *, int, int64_t *, int *,
                          double *, double *, int64_t *, int);
 #else
-void lammps_create_atoms(void *, int, int *, int *, 
+void lammps_create_atoms(void *, int, int *, int *,
                          double *, double *, int *, int);
 #endif
 

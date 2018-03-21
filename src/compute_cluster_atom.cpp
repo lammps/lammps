@@ -63,7 +63,7 @@ void ComputeClusterAtom::init()
   if (atom->tag_enable == 0)
     error->all(FLERR,"Cannot use compute cluster/atom unless atoms have IDs");
   if (force->pair == NULL)
-    error->all(FLERR,"Compute cluster/atom requires a pair style be defined");
+    error->all(FLERR,"Compute cluster/atom requires a pair style to be defined");
   if (sqrt(cutsq) > force->pair->cutforce)
     error->all(FLERR,
                "Compute cluster/atom cutoff is longer than pairwise cutoff");
@@ -112,8 +112,10 @@ void ComputeClusterAtom::compute_peratom()
   }
 
   // invoke full neighbor list (will copy or build if necessary)
+  // on the first step of a run, set preflag to one in neighbor->build_one(...)
 
-  neighbor->build_one(list);
+  if (update->firststep == update->ntimestep) neighbor->build_one(list,1);
+  else neighbor->build_one(list);
 
   inum = list->inum;
   ilist = list->ilist;

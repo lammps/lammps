@@ -664,7 +664,7 @@ void DihedralClass2::coeff(int narg, char **arg)
     }
 
   } else if (strcmp(arg[1],"ebt") == 0) {
-    if (narg != 10) 
+    if (narg != 10)
       error->all(FLERR,"Incorrect args for dihedral coefficients");
 
     double f1_1_one = force->numeric(FLERR,arg[2]);
@@ -690,7 +690,7 @@ void DihedralClass2::coeff(int narg, char **arg)
     }
 
   } else if (strcmp(arg[1],"at") == 0) {
-    if (narg != 10) 
+    if (narg != 10)
       error->all(FLERR,"Incorrect args for dihedral coefficients");
 
     double f1_1_one = force->numeric(FLERR,arg[2]);

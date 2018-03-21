@@ -105,6 +105,7 @@ class NPairKokkos : public NPair {
   int atoms_per_bin;
   DAT::tdual_int_1d k_bincount;
   DAT::tdual_int_2d k_bins;
+  DAT::tdual_int_1d k_atom2bin;
 
   // data from NStencil class
 
@@ -148,6 +149,8 @@ class NeighborKokkosExecute
   const typename AT::t_int_1d_const c_bincount;
   typename AT::t_int_2d bins;
   typename AT::t_int_2d_const c_bins;
+  const typename AT::t_int_1d atom2bin;
+  const typename AT::t_int_1d_const c_atom2bin;
 
 
   // data from NStencil class
@@ -190,6 +193,7 @@ class NeighborKokkosExecute
                         const typename AT::t_xfloat_2d_randomread &_cutneighsq,
                         const typename AT::t_int_1d &_bincount,
                         const typename AT::t_int_2d &_bins,
+                        const typename AT::t_int_1d &_atom2bin,
                         const int _nstencil,
                         const typename AT::t_int_1d &_d_stencil,
                         const typename AT::t_int_1d_3 &_d_stencilxyz,
@@ -224,6 +228,7 @@ class NeighborKokkosExecute
                         const int & _xprd_half, const int & _yprd_half, const int & _zprd_half):
     neigh_list(_neigh_list), cutneighsq(_cutneighsq),
     bincount(_bincount),c_bincount(_bincount),bins(_bins),c_bins(_bins),
+    atom2bin(_atom2bin),c_atom2bin(_atom2bin),
     nstencil(_nstencil),d_stencil(_d_stencil),d_stencilxyz(_d_stencilxyz),
     nlocal(_nlocal),
     x(_x),type(_type),mask(_mask),molecule(_molecule),
@@ -280,41 +285,6 @@ class NeighborKokkosExecute
   __device__ inline
   void build_ItemCuda(typename Kokkos::TeamPolicy<DeviceType>::member_type dev) const;
 #endif
-
-  KOKKOS_INLINE_FUNCTION
-  void binatomsItem(const int &i) const;
-
-  KOKKOS_INLINE_FUNCTION
-  int coord2bin(const X_FLOAT & x,const X_FLOAT & y,const X_FLOAT & z) const
-  {
-    int ix,iy,iz;
-
-    if (x >= bboxhi[0])
-      ix = static_cast<int> ((x-bboxhi[0])*bininvx) + nbinx;
-    else if (x >= bboxlo[0]) {
-      ix = static_cast<int> ((x-bboxlo[0])*bininvx);
-      ix = MIN(ix,nbinx-1);
-    } else
-      ix = static_cast<int> ((x-bboxlo[0])*bininvx) - 1;
-
-    if (y >= bboxhi[1])
-      iy = static_cast<int> ((y-bboxhi[1])*bininvy) + nbiny;
-    else if (y >= bboxlo[1]) {
-      iy = static_cast<int> ((y-bboxlo[1])*bininvy);
-      iy = MIN(iy,nbiny-1);
-    } else
-      iy = static_cast<int> ((y-bboxlo[1])*bininvy) - 1;
-
-    if (z >= bboxhi[2])
-      iz = static_cast<int> ((z-bboxhi[2])*bininvz) + nbinz;
-    else if (z >= bboxlo[2]) {
-      iz = static_cast<int> ((z-bboxlo[2])*bininvz);
-      iz = MIN(iz,nbinz-1);
-    } else
-      iz = static_cast<int> ((z-bboxlo[2])*bininvz) - 1;
-
-    return (iz-mbinzlo)*mbiny*mbinx + (iy-mbinylo)*mbinx + (ix-mbinxlo);
-  }
 
   KOKKOS_INLINE_FUNCTION
   int coord2bin(const X_FLOAT & x,const X_FLOAT & y,const X_FLOAT & z, int* i) const
@@ -409,7 +379,7 @@ struct NPairKokkosBuildFunctor<LMPHostType,HALF_NEIGH,GHOST_NEWTON,TRI> {
     c.template build_Item<HALF_NEIGH,GHOST_NEWTON,TRI>(i);
   }
 
-  void operator() (typename Kokkos::TeamPolicy<LMPHostType>::member_type dev) const {}
+  void operator() (typename Kokkos::TeamPolicy<LMPHostType>::member_type dev) const {} // Should error out
 };
 
 template<class DeviceType,int HALF_NEIGH>

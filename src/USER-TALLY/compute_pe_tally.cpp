@@ -20,6 +20,7 @@
 #include "memory.h"
 #include "error.h"
 #include "force.h"
+#include "comm.h"
 
 using namespace LAMMPS_NS;
 

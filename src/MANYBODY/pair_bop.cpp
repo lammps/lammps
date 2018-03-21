@@ -61,6 +61,7 @@ using namespace LAMMPS_NS;
 PairBOP::PairBOP(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
+  restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
   ghostneigh = 1;

@@ -544,8 +544,8 @@ void PairLJCutCoulLongIntel::pack_force_const(ForceConst<flt_t> &fc,
     fc.special_lj[0] = 1.0;
   }
 
-  for (int i = 0; i < tp1; i++) {
-    for (int j = 0; j < tp1; j++) {
+  for (int i = 1; i < tp1; i++) {
+    for (int j = 1; j < tp1; j++) {
       if (cutsq[i][j] < cut_ljsq[i][j])
         error->all(FLERR,
          "Intel variant of lj/cut/coul/long expects lj cutoff<=coulombic");

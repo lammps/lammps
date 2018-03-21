@@ -8,8 +8,10 @@
 // Colvars repository at GitHub.
 
 #include "colvarmodule.h"
+#include "colvarproxy.h"
 #include "colvarvalue.h"
 #include "colvarbias.h"
+#include "colvargrid.h"
 
 
 colvarbias::colvarbias(char const *key)
@@ -31,12 +33,14 @@ int colvarbias::init(std::string const &conf)
 {
   colvarparse::init(conf);
 
+  size_t i = 0;
+
   if (name.size() == 0) {
 
     // first initialization
 
     cvm::log("Initializing a new \""+bias_type+"\" instance.\n");
-    rank = cvm::num_biases_type(bias_type);
+    rank = cvm::main()->num_biases_type(bias_type);
     get_keyval(conf, "name", name, bias_type+cvm::to_str(rank));
 
     {
@@ -62,7 +66,7 @@ int colvarbias::init(std::string const &conf)
                      INPUT_ERROR);
           return INPUT_ERROR;
         }
-        for (size_t i = 0; i < colvar_names.size(); i++) {
+        for (i = 0; i < colvar_names.size(); i++) {
           add_colvar(colvar_names[i]);
         }
       }
@@ -148,6 +152,13 @@ int colvarbias::clear()
 }
 
 
+int colvarbias::clear_state_data()
+{
+  // no mutable content to delete for base class
+  return COLVARS_OK;
+}
+
+
 int colvarbias::add_colvar(std::string const &cv_name)
 {
   if (colvar *cv = cvm::colvar_by_name(cv_name)) {
@@ -163,6 +174,8 @@ int colvarbias::add_colvar(std::string const &cv_name)
     colvar_forces.back().type(cv->value()); // make sure each force is initialized to zero
     colvar_forces.back().is_derivative(); // colvar constraints are not applied to the force
     colvar_forces.back().reset();
+
+    previous_colvar_forces.push_back(colvar_forces.back());
 
     cv->biases.push_back(this); // add back-reference to this bias to colvar
 
@@ -204,7 +217,8 @@ int colvarbias::update()
 
 void colvarbias::communicate_forces()
 {
-  for (size_t i = 0; i < num_variables(); i++) {
+  size_t i = 0;
+  for (i = 0; i < num_variables(); i++) {
     if (cvm::debug()) {
       cvm::log("Communicating a force to colvar \""+
                variables(i)->name+"\".\n");
@@ -215,6 +229,9 @@ void colvarbias::communicate_forces()
     // which is why rescaling has to happen now: the colvar is not
     // aware of this bias' time_step_factor
     variables(i)->add_bias_force(cvm::real(time_step_factor) * colvar_forces[i]);
+  }
+  for (i = 0; i < num_variables(); i++) {
+    previous_colvar_forces[i] = colvar_forces[i];
   }
 }
 
@@ -388,6 +405,259 @@ std::ostream & colvarbias::write_traj(std::ostream &os)
        << bias_energy;
   return os;
 }
+
+
+
+colvarbias_ti::colvarbias_ti(char const *key)
+  : colvarbias(key)
+{
+  provide(f_cvb_calc_ti_samples);
+  ti_avg_forces = NULL;
+  ti_count = NULL;
+}
+
+
+colvarbias_ti::~colvarbias_ti()
+{
+  colvarbias_ti::clear_state_data();
+}
+
+
+int colvarbias_ti::clear_state_data()
+{
+  if (ti_avg_forces != NULL) {
+    delete ti_avg_forces;
+    ti_avg_forces = NULL;
+  }
+  if (ti_count != NULL) {
+    delete ti_count;
+    ti_count = NULL;
+  }
+  return COLVARS_OK;
+}
+
+
+int colvarbias_ti::init(std::string const &conf)
+{
+  int error_code = COLVARS_OK;
+
+  get_keyval_feature(this, conf, "writeTISamples",
+                     f_cvb_write_ti_samples,
+                     is_enabled(f_cvb_write_ti_samples));
+
+  get_keyval_feature(this, conf, "writeTIPMF",
+                     f_cvb_write_ti_pmf,
+                     is_enabled(f_cvb_write_ti_pmf));
+
+  if ((num_variables() > 1) && is_enabled(f_cvb_write_ti_pmf)) {
+    return cvm::error("Error: only 1-dimensional PMFs can be written "
+                      "on the fly.\n"
+                      "Consider using writeTISamples instead and "
+                      "post-processing the sampled free-energy gradients.\n",
+                      COLVARS_NOT_IMPLEMENTED);
+  } else {
+    error_code |= init_grids();
+  }
+
+  if (is_enabled(f_cvb_write_ti_pmf)) {
+    enable(f_cvb_write_ti_samples);
+  }
+
+  if (is_enabled(f_cvb_calc_ti_samples)) {
+    std::vector<std::string> const time_biases =
+      cvm::main()->time_dependent_biases();
+    if (time_biases.size() > 0) {
+      if ((time_biases.size() > 1) || (time_biases[0] != this->name)) {
+        for (size_t i = 0; i < num_variables(); i++) {
+          if (! variables(i)->is_enabled(f_cv_subtract_applied_force)) {
+            return cvm::error("Error: cannot collect TI samples while other "
+                              "time-dependent biases are active and not all "
+                              "variables have subtractAppliedForces on.\n",
+                              INPUT_ERROR);
+          }
+        }
+      }
+    }
+  }
+
+  return error_code;
+}
+
+
+int colvarbias_ti::init_grids()
+{
+  if (is_enabled(f_cvb_calc_ti_samples)) {
+    if (ti_avg_forces == NULL) {
+      ti_bin.resize(num_variables());
+      ti_system_forces.resize(num_variables());
+      for (size_t icv = 0; icv < num_variables(); icv++) {
+        ti_system_forces[icv].type(variables(icv)->value());
+        ti_system_forces[icv].is_derivative();
+        ti_system_forces[icv].reset();
+      }
+      ti_avg_forces = new colvar_grid_gradient(colvars);
+      ti_count = new colvar_grid_count(colvars);
+      ti_avg_forces->samples = ti_count;
+      ti_count->has_parent_data = true;
+    }
+  }
+
+  return COLVARS_OK;
+}
+
+
+int colvarbias_ti::update()
+{
+  return update_system_forces(NULL);
+}
+
+
+int colvarbias_ti::update_system_forces(std::vector<colvarvalue> const
+                                        *subtract_forces)
+{
+  if (! is_enabled(f_cvb_calc_ti_samples)) {
+    return COLVARS_OK;
+  }
+
+  has_data = true;
+
+  if (cvm::debug()) {
+    cvm::log("Updating system forces for bias "+this->name+"\n");
+  }
+
+  colvarproxy *proxy = cvm::main()->proxy;
+
+  size_t i;
+
+  if (proxy->total_forces_same_step()) {
+    for (i = 0; i < num_variables(); i++) {
+      ti_bin[i] = ti_avg_forces->current_bin_scalar(i);
+    }
+  }
+
+  // Collect total colvar forces
+  if ((cvm::step_relative() > 0) || proxy->total_forces_same_step()) {
+    if (ti_avg_forces->index_ok(ti_bin)) {
+      for (i = 0; i < num_variables(); i++) {
+        if (variables(i)->is_enabled(f_cv_subtract_applied_force)) {
+          // this colvar is already subtracting all applied forces
+          ti_system_forces[i] = variables(i)->total_force();
+        } else {
+          ti_system_forces[i] = variables(i)->total_force() -
+            ((subtract_forces != NULL) ?
+             (*subtract_forces)[i] : previous_colvar_forces[i]);
+        }
+      }
+      ti_avg_forces->acc_value(ti_bin, ti_system_forces);
+    }
+  }
+
+  if (!proxy->total_forces_same_step()) {
+    // Set the index for use in the next iteration, when total forces come in
+    for (i = 0; i < num_variables(); i++) {
+      ti_bin[i] = ti_avg_forces->current_bin_scalar(i);
+    }
+  }
+
+  return COLVARS_OK;
+}
+
+
+std::string const colvarbias_ti::get_state_params() const
+{
+  return std::string("");
+}
+
+
+int colvarbias_ti::set_state_params(std::string const &state_conf)
+{
+  return COLVARS_OK;
+}
+
+
+std::ostream & colvarbias_ti::write_state_data(std::ostream &os)
+{
+  if (! is_enabled(f_cvb_calc_ti_samples)) {
+    return os;
+  }
+  os << "\nhistogram\n";
+  ti_count->write_raw(os);
+  os << "\nsystem_forces\n";
+  ti_avg_forces->write_raw(os);
+  return os;
+}
+
+
+std::istream & colvarbias_ti::read_state_data(std::istream &is)
+{
+  if (! is_enabled(f_cvb_calc_ti_samples)) {
+    return is;
+  }
+  if (cvm::debug()) {
+    cvm::log("Reading state data for the TI estimator.\n");
+  }
+  if (! read_state_data_key(is, "histogram")) {
+    return is;
+  }
+  if (! ti_count->read_raw(is)) {
+    return is;
+  }
+  if (! read_state_data_key(is, "system_forces")) {
+    return is;
+  }
+  if (! ti_avg_forces->read_raw(is)) {
+    return is;
+  }
+  if (cvm::debug()) {
+    cvm::log("Done reading state data for the TI estimator.\n");
+  }
+  return is;
+}
+
+
+int colvarbias_ti::write_output_files()
+{
+  if (!has_data) {
+    // nothing to write
+    return COLVARS_OK;
+  }
+
+  std::string const ti_output_prefix = cvm::output_prefix()+"."+this->name;
+
+  std::ostream *os = NULL;
+
+  if (is_enabled(f_cvb_write_ti_samples)) {
+    std::string const ti_count_file_name(ti_output_prefix+".ti.count");
+    os = cvm::proxy->output_stream(ti_count_file_name);
+    if (os) {
+      ti_count->write_multicol(*os);
+      cvm::proxy->close_output_stream(ti_count_file_name);
+    }
+
+    std::string const ti_grad_file_name(ti_output_prefix+".ti.grad");
+    os = cvm::proxy->output_stream(ti_grad_file_name);
+    if (os) {
+      ti_avg_forces->write_multicol(*os);
+      cvm::proxy->close_output_stream(ti_grad_file_name);
+    }
+  }
+
+  if (is_enabled(f_cvb_write_ti_pmf)) {
+    std::string const pmf_file_name(ti_output_prefix+".ti.pmf");
+    cvm::log("Writing TI PMF to file \""+pmf_file_name+"\".\n");
+    os = cvm::proxy->output_stream(pmf_file_name);
+    if (os) {
+      // get the FE gradient
+      ti_avg_forces->multiply_constant(-1.0);
+      ti_avg_forces->write_1D_integral(*os);
+      ti_avg_forces->multiply_constant(-1.0);
+      cvm::proxy->close_output_stream(pmf_file_name);
+    }
+  }
+
+  return COLVARS_OK;
+}
+
 
 // Static members
 

@@ -67,7 +67,7 @@ class FixShake : public Fix {
   int max_iter;                          // max # of SHAKE iterations
   int output_every;                      // SHAKE stat output every so often
   bigint next_output;                    // timestep for next output
-  
+
                                          // settings from input command
   int *bond_flag,*angle_flag;            // bond/angle types to constrain
   int *type_flag;                        // constrain bonds to these types

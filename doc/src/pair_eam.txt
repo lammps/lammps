@@ -294,7 +294,7 @@ distribution have a ".cdeam" suffix.
 
 Style {eam/fs} computes pairwise interactions for metals and metal
 alloys using a generalized form of EAM potentials due to Finnis and
-Sinclair "(Finnis)"_#Finnis.  The total energy Ei of an atom I is
+Sinclair "(Finnis)"_#Finnis1.  The total energy Ei of an atom I is
 given by
 
 :c,image(Eqs/pair_eam_fs.jpg)
@@ -442,7 +442,7 @@ of Physics: Condensed Matter, 16, S2629 (2004).
 [(Daw)] Daw, Baskes, Phys Rev Lett, 50, 1285 (1983).
 Daw, Baskes, Phys Rev B, 29, 6443 (1984).
 
-:link(Finnis)
+:link(Finnis1)
 [(Finnis)] Finnis, Sinclair, Philosophical Magazine A, 50, 45 (1984).
 
 :link(Stukowski)

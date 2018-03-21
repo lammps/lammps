@@ -13,8 +13,8 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Paul Crozier (SNL)
-     The lj-fsw sections (force-switched) were provided by 
-     Robert Meissner and Lucio Colombi Ciacchi of 
+     The lj-fsw sections (force-switched) were provided by
+     Robert Meissner and Lucio Colombi Ciacchi of
      Bremen University, Bremen, Germany, with
      additional assistance from Robert A. Latour, Clemson University
 ------------------------------------------------------------------------- */
@@ -229,15 +229,15 @@ void PairLJCharmmfswCoulLong::compute(int eflag, int vflag)
               r = sqrt(rsq);
               rinv = 1.0/r;
               r3inv = rinv*rinv*rinv;
-              evdwl12 = lj3[itype][jtype]*cut_lj6*denom_lj12 * 
+              evdwl12 = lj3[itype][jtype]*cut_lj6*denom_lj12 *
                 (r6inv - cut_lj6inv)*(r6inv - cut_lj6inv);
-              evdwl6 = -lj4[itype][jtype]*cut_lj3*denom_lj6 * 
+              evdwl6 = -lj4[itype][jtype]*cut_lj3*denom_lj6 *
                 (r3inv - cut_lj3inv)*(r3inv - cut_lj3inv);;
               evdwl = evdwl12 + evdwl6;
             } else {
-              evdwl12 = r6inv*lj3[itype][jtype]*r6inv - 
+              evdwl12 = r6inv*lj3[itype][jtype]*r6inv -
                 lj3[itype][jtype]*cut_lj_inner6inv*cut_lj6inv;
-              evdwl6 = -lj4[itype][jtype]*r6inv + 
+              evdwl6 = -lj4[itype][jtype]*r6inv +
                 lj4[itype][jtype]*cut_lj_inner3inv*cut_lj3inv;
               evdwl = evdwl12 + evdwl6;
             }
@@ -274,10 +274,10 @@ void PairLJCharmmfswCoulLong::compute_inner()
   int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
 
-  inum = listinner->inum;
-  ilist = listinner->ilist;
-  numneigh = listinner->numneigh;
-  firstneigh = listinner->firstneigh;
+  inum = list->inum_inner;
+  ilist = list->ilist_inner;
+  numneigh = list->numneigh_inner;
+  firstneigh = list->firstneigh_inner;
 
   double cut_out_on = cut_respa[0];
   double cut_out_off = cut_respa[1];
@@ -359,10 +359,10 @@ void PairLJCharmmfswCoulLong::compute_middle()
   int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
 
-  inum = listmiddle->inum;
-  ilist = listmiddle->ilist;
-  numneigh = listmiddle->numneigh;
-  firstneigh = listmiddle->firstneigh;
+  inum = list->inum_middle;
+  ilist = list->ilist_middle;
+  numneigh = list->numneigh_middle;
+  firstneigh = list->firstneigh_middle;
 
   double cut_in_off = cut_respa[0];
   double cut_in_on = cut_respa[1];
@@ -465,10 +465,10 @@ void PairLJCharmmfswCoulLong::compute_outer(int eflag, int vflag)
   int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
 
-  inum = listouter->inum;
-  ilist = listouter->ilist;
-  numneigh = listouter->numneigh;
-  firstneigh = listouter->firstneigh;
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
 
   double cut_in_off = cut_respa[2];
   double cut_in_on = cut_respa[3];
@@ -589,15 +589,15 @@ void PairLJCharmmfswCoulLong::compute_outer(int eflag, int vflag)
             if (rsq > cut_lj_innersq) {
               rinv = 1.0/r;
               r3inv = rinv*rinv*rinv;
-              evdwl12 = lj3[itype][jtype]*cut_lj6*denom_lj12 * 
+              evdwl12 = lj3[itype][jtype]*cut_lj6*denom_lj12 *
                 (r6inv - cut_lj6inv)*(r6inv - cut_lj6inv);
-              evdwl6 = -lj4[itype][jtype]*cut_lj3*denom_lj6 * 
+              evdwl6 = -lj4[itype][jtype]*cut_lj3*denom_lj6 *
                 (r3inv - cut_lj3inv)*(r3inv - cut_lj3inv);;
               evdwl = evdwl12 + evdwl6;
             } else {
-              evdwl12 = r6inv*lj3[itype][jtype]*r6inv - 
+              evdwl12 = r6inv*lj3[itype][jtype]*r6inv -
                 lj3[itype][jtype]*cut_lj_inner6inv*cut_lj6inv;
-              evdwl6 = -lj4[itype][jtype]*r6inv + 
+              evdwl6 = -lj4[itype][jtype]*r6inv +
                 lj4[itype][jtype]*cut_lj_inner3inv*cut_lj3inv;
               evdwl = evdwl12 + evdwl6;
             }
@@ -609,7 +609,7 @@ void PairLJCharmmfswCoulLong::compute_outer(int eflag, int vflag)
           if (rsq < cut_coulsq) {
             if (!ncoultablebits || rsq <= tabinnersq) {
               forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-	      if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+              if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
             } else {
               table = vtable[itable] + fraction*dvtable[itable];
               forcecoul = qtmp*q[j] * table;
@@ -822,19 +822,6 @@ void PairLJCharmmfswCoulLong::init_style()
   // setup force tables
 
   if (ncoultablebits) init_tables(cut_coul,cut_respa);
-}
-
-/* ----------------------------------------------------------------------
-   neighbor callback to inform pair style of neighbor list to use
-   regular or rRESPA
-------------------------------------------------------------------------- */
-
-void PairLJCharmmfswCoulLong::init_list(int id, NeighList *ptr)
-{
-  if (id == 0) list = ptr;
-  else if (id == 1) listinner = ptr;
-  else if (id == 2) listmiddle = ptr;
-  else if (id == 3) listouter = ptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -1055,15 +1042,15 @@ double PairLJCharmmfswCoulLong::single(int i, int j, int itype, int jtype,
 
   if (rsq < cut_ljsq) {
     if (rsq > cut_lj_innersq) {
-      philj12 = lj3[itype][jtype]*cut_lj6*denom_lj12 * 
+      philj12 = lj3[itype][jtype]*cut_lj6*denom_lj12 *
         (r6inv - cut_lj6inv)*(r6inv - cut_lj6inv);
-      philj6 = -lj4[itype][jtype]*cut_lj3*denom_lj6 * 
+      philj6 = -lj4[itype][jtype]*cut_lj3*denom_lj6 *
         (r3inv - cut_lj3inv)*(r3inv - cut_lj3inv);;
       philj = philj12 + philj6;
     } else {
-      philj12 = r6inv*lj3[itype][jtype]*r6inv - 
+      philj12 = r6inv*lj3[itype][jtype]*r6inv -
         lj3[itype][jtype]*cut_lj_inner6inv*cut_lj6inv;
-      philj6 = -lj4[itype][jtype]*r6inv + 
+      philj6 = -lj4[itype][jtype]*r6inv +
         lj4[itype][jtype]*cut_lj_inner3inv*cut_lj3inv;
       philj = philj12 + philj6;
     }

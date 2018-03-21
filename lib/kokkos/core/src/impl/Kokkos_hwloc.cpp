@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -48,6 +48,7 @@
 #include <algorithm>
 
 #include <Kokkos_Macros.hpp>
+#include <Kokkos_Core.hpp>
 #include <Kokkos_hwloc.hpp>
 #include <impl/Kokkos_Error.hpp>
 
@@ -312,14 +313,18 @@ Sentinel::Sentinel()
   hwloc_get_cpubind( s_hwloc_topology , s_process_binding ,  HWLOC_CPUBIND_PROCESS );
 
   if ( hwloc_bitmap_iszero( s_process_binding ) ) {
-    std::cerr << "WARNING: Cannot detect process binding -- ASSUMING ALL processing units" << std::endl;
+    if (Kokkos::show_warnings() ) {
+      std::cerr << "WARNING: Cannot detect process binding -- ASSUMING ALL processing units" << std::endl;
+    }
     const int pu_depth = hwloc_get_type_depth( s_hwloc_topology, HWLOC_OBJ_PU );
     int num_pu = 1;
     if ( pu_depth != HWLOC_TYPE_DEPTH_UNKNOWN ) {
       num_pu = hwloc_get_nbobjs_by_depth( s_hwloc_topology, pu_depth );
     }
     else {
-      std::cerr << "WARNING: Cannot detect number of processing units -- ASSUMING 1 (serial)." << std::endl;
+      if (Kokkos::show_warnings() ) {
+        std::cerr << "WARNING: Cannot detect number of processing units -- ASSUMING 1 (serial)." << std::endl;
+      }
       num_pu = 1;
     }
     hwloc_bitmap_set_range( s_process_binding, 0, num_pu-1);
@@ -349,7 +354,7 @@ Sentinel::Sentinel()
 
       hwloc_bitmap_free( s_process_no_core_zero );
 
-      if ( ! ok ) {
+      if ( Kokkos::show_warnings() && ! ok ) {
         std::cerr << "WARNING: Kokkos::hwloc attempted and failed to move process off of core #0" << std::endl ;
       }
     }
@@ -503,8 +508,8 @@ Sentinel::Sentinel()
 
   hwloc_bitmap_free( proc_cpuset_location );
 
-  if ( ! symmetric ) {
-    std::cout << "Kokkos::hwloc WARNING: Using a symmetric subset of a non-symmetric core topology."
+  if ( Kokkos::show_warnings() && ! symmetric ) {
+    std::cerr << "Kokkos::hwloc WARNING: Using a symmetric subset of a non-symmetric core topology."
               << std::endl ;
   }
 }

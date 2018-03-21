@@ -1,0 +1,41 @@
+import "martini.lt"
+
+DUPC inherits MARTINI {
+
+  # atomID   molID  atomTyle  charge     X        Y          Z
+  # (guessing the coordinates, and scaling them manually)
+  write('Data Atoms') {
+    $atom:NC3 $mol:. @atom:Q0   1.0   0.000000   0.000000   6.000000
+    $atom:PO4 $mol:. @atom:Qa  -1.0   0.000000   0.000000   5.000000
+    $atom:GL1 $mol:. @atom:Na   0.0   0.000000   0.000000   4.000000
+    $atom:GL2 $mol:. @atom:Na   0.0   0.000000   1.000000   4.000000
+    $atom:C1A $mol:. @atom:C1   0.0   0.000000  -1.000000   4.000000
+    $atom:E2A $mol:. @atom:C41  0.0   0.000000  -1.000000   3.000000
+    $atom:D3A $mol:. @atom:C4   0.0   0.000000  -1.000000   2.000000
+    $atom:C4A $mol:. @atom:C1   0.0   0.000000  -1.000000   1.000000
+    $atom:C1B $mol:. @atom:C1   0.0   0.000000   1.000000   3.000000
+    $atom:F2B $mol:. @atom:C42  0.0   0.000000   1.000000   2.000000
+    $atom:D3B $mol:. @atom:C4   0.0   0.000000   1.000000   1.000000
+    $atom:C4B $mol:. @atom:C1   0.0   0.000000   1.000000   0.000000
+  }
+
+  write('Data Bond List') {
+    $bond:b1 $atom:NC3 $atom:PO4
+    $bond:b2 $atom:PO4 $atom:GL1
+    $bond:b3 $atom:GL1 $atom:GL2
+    $bond:b4 $atom:GL1 $atom:C1A
+    $bond:b5 $atom:C1A $atom:E2A
+    $bond:b6 $atom:E2A $atom:D3A
+    $bond:b9 $atom:D3A $atom:C4A
+    $bond:b10 $atom:GL2 $atom:C1B
+    $bond:b11 $atom:C1B $atom:F2B
+    $bond:b12 $atom:F2B $atom:D3B
+    $bond:b13 $atom:D3B $atom:C4B
+  }
+
+} 
+DUPC.scale(4.7)
+
+# Optional: Move the molecule to a convenient location for buildling a bilayer:
+#           Center the molecule in the X,Y directions and set the min Z value.
+DUPC.move(-0,-0.391667,2.35)

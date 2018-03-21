@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -453,10 +453,10 @@ public:
 
       std::string str( "TestKernelReduce" );
       if ( count % 2 == 0 ) {
-        Kokkos::parallel_reduce( nw, functor_type( nw, count ), host_result.ptr_on_device() );
+        Kokkos::parallel_reduce( nw, functor_type( nw, count ), host_result.data() );
       }
       else {
-        Kokkos::parallel_reduce( str, nw, functor_type( nw, count ), host_result.ptr_on_device() );
+        Kokkos::parallel_reduce( str, nw, functor_type( nw, count ), host_result.data() );
       }
 
       for ( unsigned j = 0; j < count; ++j ) {
@@ -474,6 +474,8 @@ public:
 //--------------------------------------------------------------------------
 
 namespace Test {
+
+struct ReducerTag {};
 
 template< class Scalar, class ExecSpace = Kokkos::DefaultExecutionSpace >
 struct TestReducers {
@@ -590,6 +592,118 @@ struct TestReducers {
     }
   };
 
+  struct SumFunctorTag {
+    Kokkos::View< const Scalar*, ExecSpace > values;
+
+    KOKKOS_INLINE_FUNCTION
+    void operator()( const ReducerTag, const int & i, Scalar & value ) const {
+      value += values( i );
+    }
+  };
+
+  struct ProdFunctorTag {
+    Kokkos::View< const Scalar*, ExecSpace > values;
+
+    KOKKOS_INLINE_FUNCTION
+    void operator()( const ReducerTag, const int & i, Scalar & value ) const {
+      value *= values( i );
+    }
+  };
+
+  struct MinFunctorTag {
+    Kokkos::View< const Scalar*, ExecSpace > values;
+
+    KOKKOS_INLINE_FUNCTION
+    void operator()( const ReducerTag, const int & i, Scalar & value ) const {
+      if ( values( i ) < value ) value = values( i );
+    }
+  };
+
+  struct MaxFunctorTag {
+    Kokkos::View< const Scalar*, ExecSpace > values;
+
+    KOKKOS_INLINE_FUNCTION
+    void operator()( const ReducerTag, const int & i, Scalar & value ) const {
+      if ( values( i ) > value ) value = values( i );
+    }
+  };
+
+  struct MinLocFunctorTag {
+    Kokkos::View< const Scalar*, ExecSpace > values;
+
+    KOKKOS_INLINE_FUNCTION
+    void operator()( const ReducerTag, const int & i, typename Kokkos::Experimental::MinLoc< Scalar, int >::value_type & value ) const {
+      if ( values( i ) < value.val ) {
+        value.val = values( i );
+        value.loc = i;
+      }
+    }
+  };
+
+  struct MaxLocFunctorTag {
+    Kokkos::View< const Scalar*, ExecSpace > values;
+
+    KOKKOS_INLINE_FUNCTION
+    void operator()( const ReducerTag, const int & i, typename Kokkos::Experimental::MaxLoc< Scalar, int >::value_type & value ) const {
+      if ( values( i ) > value.val ) {
+        value.val = values( i );
+        value.loc = i;
+      }
+    }
+  };
+
+  struct MinMaxLocFunctorTag {
+    Kokkos::View< const Scalar*, ExecSpace > values;
+
+    KOKKOS_INLINE_FUNCTION
+    void operator()( const ReducerTag, const int & i, typename Kokkos::Experimental::MinMaxLoc< Scalar, int >::value_type & value ) const {
+      if ( values( i ) > value.max_val ) {
+        value.max_val = values( i );
+        value.max_loc = i;
+      }
+
+      if ( values( i ) < value.min_val ) {
+        value.min_val = values( i );
+        value.min_loc = i;
+      }
+    }
+  };
+
+  struct BAndFunctorTag {
+    Kokkos::View< const Scalar*, ExecSpace > values;
+
+    KOKKOS_INLINE_FUNCTION
+    void operator()( const ReducerTag, const int & i, Scalar & value ) const {
+      value = value & values( i );
+    }
+  };
+
+  struct BOrFunctorTag {
+    Kokkos::View< const Scalar*, ExecSpace > values;
+
+    KOKKOS_INLINE_FUNCTION
+    void operator()( const ReducerTag, const int & i, Scalar & value ) const {
+      value = value | values( i );
+    }
+  };
+
+  struct LAndFunctorTag {
+    Kokkos::View< const Scalar*, ExecSpace > values;
+
+    KOKKOS_INLINE_FUNCTION
+    void operator()( const ReducerTag, const int & i, Scalar & value ) const {
+      value = value && values( i );
+    }
+  };
+
+  struct LOrFunctorTag {
+    Kokkos::View< const Scalar*, ExecSpace > values;
+
+    KOKKOS_INLINE_FUNCTION
+    void operator()( const ReducerTag, const int & i, Scalar & value ) const {
+      value = value || values( i );
+    }
+  };
   static void test_sum( int N ) {
     Kokkos::View< Scalar*, ExecSpace > values( "Values", N );
     auto h_values = Kokkos::create_mirror_view( values );
@@ -603,13 +717,19 @@ struct TestReducers {
 
     SumFunctor f;
     f.values = values;
+    SumFunctorTag f_tag;
+    f_tag.values = values;
     Scalar init = 0;
 
     {
       Scalar sum_scalar = init;
       Kokkos::Experimental::Sum< Scalar > reducer_scalar( sum_scalar );
+      
       Kokkos::parallel_reduce( Kokkos::RangePolicy< ExecSpace >( 0, N ), f, reducer_scalar );
-
+      ASSERT_EQ( sum_scalar, reference_sum );
+     
+      sum_scalar = init;
+      Kokkos::parallel_reduce( Kokkos::RangePolicy< ExecSpace , ReducerTag >( 0, N ), f_tag, reducer_scalar );
       ASSERT_EQ( sum_scalar, reference_sum );
 
       Scalar sum_scalar_view = reducer_scalar.reference();
@@ -643,13 +763,19 @@ struct TestReducers {
 
     ProdFunctor f;
     f.values = values;
+    ProdFunctorTag f_tag;
+    f_tag.values = values;
     Scalar init = 1;
 
     {
       Scalar prod_scalar = init;
       Kokkos::Experimental::Prod< Scalar > reducer_scalar( prod_scalar );
+   
       Kokkos::parallel_reduce( Kokkos::RangePolicy< ExecSpace >( 0, N ), f, reducer_scalar );
-
+      ASSERT_EQ( prod_scalar, reference_prod );
+      
+      prod_scalar = init;
+      Kokkos::parallel_reduce( Kokkos::RangePolicy< ExecSpace , ReducerTag >( 0, N ), f_tag, reducer_scalar );
       ASSERT_EQ( prod_scalar, reference_prod );
 
       Scalar prod_scalar_view = reducer_scalar.reference();
@@ -684,13 +810,19 @@ struct TestReducers {
 
     MinFunctor f;
     f.values = values;
+    MinFunctorTag f_tag;
+    f_tag.values = values;
     Scalar init = std::numeric_limits< Scalar >::max();
 
     {
       Scalar min_scalar = init;
       Kokkos::Experimental::Min< Scalar > reducer_scalar( min_scalar );
+     
       Kokkos::parallel_reduce( Kokkos::RangePolicy< ExecSpace >( 0, N ), f, reducer_scalar );
+      ASSERT_EQ( min_scalar, reference_min );
 
+      min_scalar = init;
+      Kokkos::parallel_reduce( Kokkos::RangePolicy< ExecSpace , ReducerTag >( 0, N ), f_tag, reducer_scalar );
       ASSERT_EQ( min_scalar, reference_min );
 
       Scalar min_scalar_view = reducer_scalar.reference();
@@ -725,13 +857,19 @@ struct TestReducers {
 
     MaxFunctor f;
     f.values = values;
+    MaxFunctorTag f_tag;
+    f_tag.values = values;
     Scalar init = std::numeric_limits< Scalar >::min();
 
     {
       Scalar max_scalar = init;
       Kokkos::Experimental::Max< Scalar > reducer_scalar( max_scalar );
-      Kokkos::parallel_reduce( Kokkos::RangePolicy< ExecSpace >( 0, N ), f, reducer_scalar );
 
+      Kokkos::parallel_reduce( Kokkos::RangePolicy< ExecSpace >( 0, N ), f, reducer_scalar );
+      ASSERT_EQ( max_scalar, reference_max );
+
+      max_scalar = init;
+      Kokkos::parallel_reduce( Kokkos::RangePolicy< ExecSpace , ReducerTag >( 0, N ), f_tag, reducer_scalar );
       ASSERT_EQ( max_scalar, reference_max );
 
       Scalar max_scalar_view = reducer_scalar.reference();
@@ -776,12 +914,19 @@ struct TestReducers {
 
     MinLocFunctor f;
     f.values = values;
+    MinLocFunctorTag f_tag;
+    f_tag.values = values;
 
     {
       value_type min_scalar;
       Kokkos::Experimental::MinLoc< Scalar, int > reducer_scalar( min_scalar );
-      Kokkos::parallel_reduce( Kokkos::RangePolicy< ExecSpace >( 0, N ), f, reducer_scalar );
 
+      Kokkos::parallel_reduce( Kokkos::RangePolicy< ExecSpace >( 0, N ), f, reducer_scalar );
+      ASSERT_EQ( min_scalar.val, reference_min );
+      ASSERT_EQ( min_scalar.loc, reference_loc );
+
+      min_scalar = value_type();
+      Kokkos::parallel_reduce( Kokkos::RangePolicy< ExecSpace , ReducerTag >( 0, N ), f_tag, reducer_scalar );
       ASSERT_EQ( min_scalar.val, reference_min );
       ASSERT_EQ( min_scalar.loc, reference_loc );
 
@@ -829,12 +974,19 @@ struct TestReducers {
 
     MaxLocFunctor f;
     f.values = values;
+    MaxLocFunctorTag f_tag;
+    f_tag.values = values;
 
     {
       value_type max_scalar;
       Kokkos::Experimental::MaxLoc< Scalar, int > reducer_scalar( max_scalar );
-      Kokkos::parallel_reduce( Kokkos::RangePolicy< ExecSpace >( 0, N ), f, reducer_scalar );
 
+      Kokkos::parallel_reduce( Kokkos::RangePolicy< ExecSpace >( 0, N ), f, reducer_scalar );
+      ASSERT_EQ( max_scalar.val, reference_max );
+      ASSERT_EQ( max_scalar.loc, reference_loc );
+
+      max_scalar = value_type();
+      Kokkos::parallel_reduce( Kokkos::RangePolicy< ExecSpace , ReducerTag >( 0, N ), f_tag, reducer_scalar );
       ASSERT_EQ( max_scalar.val, reference_max );
       ASSERT_EQ( max_scalar.loc, reference_loc );
 
@@ -898,12 +1050,35 @@ struct TestReducers {
 
      MinMaxLocFunctor f;
      f.values = values;
+     MinMaxLocFunctorTag f_tag;
+     f_tag.values = values;
 
      {
        value_type minmax_scalar;
        Kokkos::Experimental::MinMaxLoc< Scalar, int > reducer_scalar( minmax_scalar );
-       Kokkos::parallel_reduce( Kokkos::RangePolicy< ExecSpace >( 0, N ), f, reducer_scalar );
 
+       Kokkos::parallel_reduce( Kokkos::RangePolicy< ExecSpace >( 0, N ), f, reducer_scalar );
+       ASSERT_EQ( minmax_scalar.min_val, reference_min );
+
+       for ( int i = 0; i < N; i++ ) {
+         if ( ( i == minmax_scalar.min_loc ) && ( h_values( i ) == reference_min ) ) {
+           reference_minloc = i;
+         }
+       }
+
+       ASSERT_EQ( minmax_scalar.min_loc, reference_minloc );
+       ASSERT_EQ( minmax_scalar.max_val, reference_max );
+
+       for ( int i = 0; i < N; i++ ) {
+         if ( ( i == minmax_scalar.max_loc ) && ( h_values( i ) == reference_max ) ) {
+           reference_maxloc = i;
+         }
+       }
+
+       ASSERT_EQ( minmax_scalar.max_loc, reference_maxloc );
+
+       minmax_scalar = value_type();
+       Kokkos::parallel_reduce( Kokkos::RangePolicy< ExecSpace , ReducerTag >( 0, N ), f_tag, reducer_scalar );
        ASSERT_EQ( minmax_scalar.min_val, reference_min );
 
        for ( int i = 0; i < N; i++ ) {
@@ -962,14 +1137,21 @@ struct TestReducers {
 
     BAndFunctor f;
     f.values = values;
+    BAndFunctorTag f_tag;
+    f_tag.values = values;
     Scalar init = Scalar() | ( ~Scalar() );
 
     {
       Scalar band_scalar = init;
       Kokkos::Experimental::BAnd< Scalar > reducer_scalar( band_scalar );
-      Kokkos::parallel_reduce( Kokkos::RangePolicy< ExecSpace >( 0, N ), f, reducer_scalar );
 
+      Kokkos::parallel_reduce( Kokkos::RangePolicy< ExecSpace >( 0, N ), f, reducer_scalar );
       ASSERT_EQ( band_scalar, reference_band );
+
+      band_scalar = init;
+      Kokkos::parallel_reduce( Kokkos::RangePolicy< ExecSpace , ReducerTag >( 0, N ), f_tag, reducer_scalar );
+      ASSERT_EQ( band_scalar, reference_band );
+
       Scalar band_scalar_view = reducer_scalar.reference();
 
       ASSERT_EQ( band_scalar_view, reference_band );
@@ -1002,13 +1184,19 @@ struct TestReducers {
 
     BOrFunctor f;
     f.values = values;
+    BOrFunctorTag f_tag;
+    f_tag.values = values;
     Scalar init = Scalar() & ( ~Scalar() );
 
     {
       Scalar bor_scalar = init;
       Kokkos::Experimental::BOr< Scalar > reducer_scalar( bor_scalar );
-      Kokkos::parallel_reduce( Kokkos::RangePolicy< ExecSpace >( 0, N ), f, reducer_scalar );
 
+      Kokkos::parallel_reduce( Kokkos::RangePolicy< ExecSpace >( 0, N ), f, reducer_scalar );
+      ASSERT_EQ( bor_scalar, reference_bor );
+
+      bor_scalar = init;
+      Kokkos::parallel_reduce( Kokkos::RangePolicy< ExecSpace , ReducerTag >( 0, N ), f_tag, reducer_scalar );
       ASSERT_EQ( bor_scalar, reference_bor );
 
       Scalar bor_scalar_view = reducer_scalar.reference();
@@ -1042,13 +1230,19 @@ struct TestReducers {
 
     LAndFunctor f;
     f.values = values;
+    LAndFunctorTag f_tag;
+    f_tag.values = values;
     Scalar init = 1;
 
     {
       Scalar land_scalar = init;
       Kokkos::Experimental::LAnd< Scalar > reducer_scalar( land_scalar );
-      Kokkos::parallel_reduce( Kokkos::RangePolicy< ExecSpace >( 0, N ), f, reducer_scalar );
 
+      Kokkos::parallel_reduce( Kokkos::RangePolicy< ExecSpace >( 0, N ), f, reducer_scalar );
+      ASSERT_EQ( land_scalar, reference_land );
+
+      land_scalar = init;
+      Kokkos::parallel_reduce( Kokkos::RangePolicy< ExecSpace , ReducerTag >( 0, N ), f_tag, reducer_scalar );
       ASSERT_EQ( land_scalar, reference_land );
 
       Scalar land_scalar_view = reducer_scalar.reference();
@@ -1082,13 +1276,19 @@ struct TestReducers {
 
     LOrFunctor f;
     f.values = values;
+    LOrFunctorTag f_tag;
+    f_tag.values = values;
     Scalar init = 0;
 
     {
       Scalar lor_scalar = init;
       Kokkos::Experimental::LOr< Scalar > reducer_scalar( lor_scalar );
-      Kokkos::parallel_reduce( Kokkos::RangePolicy< ExecSpace >( 0, N ), f, reducer_scalar );
 
+      Kokkos::parallel_reduce( Kokkos::RangePolicy< ExecSpace >( 0, N ), f, reducer_scalar );
+      ASSERT_EQ( lor_scalar, reference_lor );
+
+      lor_scalar = init;
+      Kokkos::parallel_reduce( Kokkos::RangePolicy< ExecSpace , ReducerTag >( 0, N ), f_tag, reducer_scalar );
       ASSERT_EQ( lor_scalar, reference_lor );
 
       Scalar lor_scalar_view = reducer_scalar.reference();

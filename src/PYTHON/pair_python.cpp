@@ -181,6 +181,7 @@ void PairPython::compute(int eflag, int vflag)
           error->all(FLERR,"Calling 'compute_force' function failed");
         }
         fpair = factor_lj*PyFloat_AsDouble(py_value);
+        Py_DECREF(py_value);
 
         f[i][0] += delx*fpair;
         f[i][1] += dely*fpair;
@@ -194,6 +195,7 @@ void PairPython::compute(int eflag, int vflag)
         if (eflag) {
           py_value = PyObject_CallObject(py_compute_energy,py_compute_args);
           evdwl = factor_lj*PyFloat_AsDouble(py_value);
+          Py_DECREF(py_value);
         } else evdwl = 0.0;
 
         if (evflag) ev_tally(i,j,nlocal,newton_pair,
@@ -467,6 +469,7 @@ double PairPython::single(int i, int j, int itype, int jtype, double rsq,
     error->all(FLERR,"Calling 'compute_force' function failed");
   }
   fforce = factor_lj*PyFloat_AsDouble(py_value);
+  Py_DECREF(py_value);
 
   py_value = PyObject_CallObject(py_compute_energy,py_compute_args);
   if (!py_value) {
@@ -476,6 +479,7 @@ double PairPython::single(int i, int j, int itype, int jtype, double rsq,
     error->all(FLERR,"Calling 'compute_energy' function failed");
   }
   double evdwl = factor_lj*PyFloat_AsDouble(py_value);
+  Py_DECREF(py_value);
 
   Py_DECREF(py_compute_args);
   PyGILState_Release(gstate);

@@ -35,13 +35,14 @@
  // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  //
- // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+ // Questions? Contact Christian R. Trott (crtrott@sandia.gov)
  //
  // ************************************************************************
  //@HEADER
  */
 
 #include <Kokkos_Macros.hpp>
+
 #if defined(KOKKOS_ENABLE_PROFILING)
 
 #include <impl/Kokkos_Profiling_Interface.hpp>
@@ -68,6 +69,13 @@ static deallocateDataFunction deallocateDataCallee = nullptr;
 
 static beginDeepCopyFunction beginDeepCopyCallee = nullptr;
 static endDeepCopyFunction endDeepCopyCallee = nullptr;
+
+static createProfileSectionFunction createSectionCallee = nullptr;
+static startProfileSectionFunction startSectionCallee = nullptr;
+static stopProfileSectionFunction stopSectionCallee = nullptr;
+static destroyProfileSectionFunction destroySectionCallee = nullptr;
+
+static profileEventFunction profileEventCallee = nullptr;
 
 SpaceHandle::SpaceHandle(const char* space_name) {
   strncpy(name,space_name,64);
@@ -162,6 +170,37 @@ void endDeepCopy() {
   }
 }
 
+void createProfileSection(const std::string& sectionName, uint32_t* secID) {
+
+	if(nullptr != createSectionCallee) {
+		(*createSectionCallee)(sectionName.c_str(), secID);
+	}
+}
+
+void startSection(const uint32_t secID) {
+	if(nullptr != startSectionCallee) {
+		(*startSectionCallee)(secID);
+	}
+}
+
+void stopSection(const uint32_t secID) {
+	if(nullptr != stopSectionCallee) {
+		(*stopSectionCallee)(secID);
+	}
+}
+
+void destroyProfileSection(const uint32_t secID) {
+	if(nullptr != destroySectionCallee) {
+		(*destroySectionCallee)(secID);
+	}
+}
+
+void markEvent(const std::string& eventName) {
+	if(nullptr != profileEventCallee) {
+		(*profileEventCallee)(eventName.c_str());
+	}
+}
+
 void initialize() {
 
   // Make sure initialize calls happens only once
@@ -190,6 +229,8 @@ void initialize() {
     if(nullptr == firstProfileLibrary) {
       std::cerr << "Error: Unable to load KokkosP library: " <<
         profileLibraryName << std::endl;
+      std::cerr << "dlopen(" << profileLibraryName << ", RTLD_NOW | RTLD_GLOBAL) failed with "
+        << dlerror() << '\n';
     } else {
 #ifdef KOKKOS_ENABLE_PROFILING_LOAD_PRINT
       std::cout << "KokkosP: Library Loaded: " << profileLibraryName << std::endl;
@@ -230,7 +271,18 @@ void initialize() {
       beginDeepCopyCallee = *((beginDeepCopyFunction*) &p13);
       auto p14 = dlsym(firstProfileLibrary, "kokkosp_end_deep_copy");
       endDeepCopyCallee = *((endDeepCopyFunction*) &p14);
-
+      
+      auto p15 = dlsym(firstProfileLibrary, "kokkosp_create_profile_section");
+      createSectionCallee = *((createProfileSectionFunction*) &p15);
+      auto p16 = dlsym(firstProfileLibrary, "kokkosp_start_profile_section");
+      startSectionCallee = *((startProfileSectionFunction*) &p16);
+      auto p17 = dlsym(firstProfileLibrary, "kokkosp_stop_profile_section");
+      stopSectionCallee = *((stopProfileSectionFunction*) &p17);      
+      auto p18 = dlsym(firstProfileLibrary, "kokkosp_destroy_profile_section");
+      destroySectionCallee = *((destroyProfileSectionFunction*) &p18);
+      
+      auto p19 = dlsym(firstProfileLibrary, "kokkosp_profile_event");
+      profileEventCallee = *((profileEventFunction*) &p19);
     }
   }
 
@@ -274,12 +326,56 @@ void finalize() {
 
     beginDeepCopyCallee = nullptr;
     endDeepCopyCallee = nullptr;
+    
+    createSectionCallee = nullptr;
+	startSectionCallee = nullptr;
+	stopSectionCallee = nullptr;
+	destroySectionCallee = nullptr;
+
+	profileEventCallee = nullptr;
   }
 }
 }
 }
 
 #else
-void KOKKOS_CORE_SRC_IMPL_PROFILING_INTERFACE_PREVENT_LINK_ERROR() {}
-#endif
 
+#include <impl/Kokkos_Profiling_Interface.hpp>
+#include <cstring>
+
+namespace Kokkos {
+namespace Profiling {
+
+bool profileLibraryLoaded() { return false; }
+
+
+void beginParallelFor(const std::string& , const uint32_t , uint64_t* ) {}
+void endParallelFor(const uint64_t ) {}
+void beginParallelScan(const std::string& , const uint32_t , uint64_t* ) {}
+void endParallelScan(const uint64_t ) {}
+void beginParallelReduce(const std::string& , const uint32_t , uint64_t* ) {}
+void endParallelReduce(const uint64_t ) {}
+
+void pushRegion(const std::string& ) {}
+void popRegion() {}
+void createProfileSection(const std::string& , uint32_t* ) {}
+void startSection(const uint32_t ) {}
+void stopSection(const uint32_t ) {}
+void destroyProfileSection(const uint32_t ) {}
+
+void markEvent(const std::string& ) {}
+
+void allocateData(const SpaceHandle , const std::string , const void* , const uint64_t ) {}
+void deallocateData(const SpaceHandle , const std::string , const void* , const uint64_t ) {}
+
+void beginDeepCopy(const SpaceHandle , const std::string , const void* , 
+    const SpaceHandle , const std::string , const void* ,
+    const uint64_t ) {}
+void endDeepCopy() {}
+
+void initialize() {}
+void finalize() {}
+
+}} // end namespace Kokkos::Profiling
+
+#endif

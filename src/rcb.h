@@ -57,7 +57,7 @@ class RCB : protected Pointers {
     double valuelo,valuehi;   // position of dot(s) nearest to cut
     double wtlo,wthi;         // total weight of dot(s) at that position
     int countlo,counthi;      // # of dots at that position
-    int proclo,prochi;	      // unique proc who owns a nearest dot
+    int proclo,prochi;        // unique proc who owns a nearest dot
   };
 
   struct BBox {
@@ -79,8 +79,8 @@ class RCB : protected Pointers {
   // tree of RCB cuts
 
   struct Tree {
-    double cut;        	// position of cut
-    int dim;	        // dimension = 0/1/2 of cut
+    double cut;         // position of cut
+    int dim;            // dimension = 0/1/2 of cut
   };
 
   // inversion message
@@ -119,13 +119,13 @@ class RCB : protected Pointers {
   double bboxhi[3];
   Tree *tree;       // tree of RCB cuts, used by reuse()
   int counters[7];  // diagnostic counts
-		    // 0 = # of median iterations
-		    // 1 = # of points sent
-		    // 2 = # of points received
-		    // 3 = most points this proc ever owns
-		    // 4 = most point memory this proc ever allocs
-		    // 5 = # of times a previous cut is re-used
-		    // 6 = # of reallocs of point vector
+                    // 0 = # of median iterations
+                    // 1 = # of points sent
+                    // 2 = # of points received
+                    // 3 = most points this proc ever owns
+                    // 4 = most point memory this proc ever allocs
+                    // 5 = # of times a previous cut is re-used
+                    // 6 = # of reallocs of point vector
 };
 
 }

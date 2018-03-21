@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -164,10 +164,6 @@ void HBWSpace::deallocate( void * const arg_alloc_ptr , const size_t arg_alloc_s
     }
 
   }
-}
-
-constexpr const char* HBWSpace::name() {
-  return m_name;
 }
 
 } // namespace Experimental

@@ -18,8 +18,9 @@
 #include "nbin_intel.h"
 #include "atom.h"
 #include "group.h"
-#include "domain.h"
 #include "comm.h"
+#include "domain.h"
+#include "modify.h"
 #include "update.h"
 #include "error.h"
 
@@ -211,8 +212,8 @@ void NBinIntel::bin_atoms(IntelBuffers<flt_t,acc_t> * buffers) {
     for (i = nall-1; i >= nlocal; i--) {
       if (mask[i] & bitmask) {
         ibin = coord2bin(atom->x[i]);
-	// Only necessary to store when neighboring ghost
-	atombin[i] = ibin;
+        // Only necessary to store when neighboring ghost
+        atombin[i] = ibin;
         bins[i] = binhead[ibin];
         binhead[ibin] = i;
       }

@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -47,7 +47,7 @@
 #include <Kokkos_Macros.hpp>
 #if defined( KOKKOS_ENABLE_OPENMP )
 
-#if !defined(_OPENMP)
+#if !defined(_OPENMP) && !defined(__CUDA_ARCH__)
 #error "You enabled Kokkos OpenMP support without enabling OpenMP in the compiler!"
 #endif
 
@@ -211,6 +211,7 @@ void OpenMP::partition_master( F const& f
                                                  , thread_local_bytes
                                                  );
 
+      omp_set_num_threads(partition_size);
       f( omp_get_thread_num(), omp_get_num_threads() );
 
       Impl::t_openmp_instance->~Exec();
@@ -331,7 +332,7 @@ public:
 } // namespace Experimental
 
 
-#if !defined( KOKKOS_DISABLE_DEPRECATED )
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
 
 inline
 int OpenMP::thread_pool_size( int depth )
@@ -357,7 +358,7 @@ int OpenMP::max_hardware_threads() noexcept
   return Impl::g_openmp_hardware_max_threads;
 }
 
-#endif // KOKKOS_DISABLE_DEPRECATED
+#endif
 
 } // namespace Kokkos
 

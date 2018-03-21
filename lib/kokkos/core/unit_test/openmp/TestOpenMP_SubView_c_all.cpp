@@ -10,3 +10,4 @@
 #include <openmp/TestOpenMP_SubView_c10.cpp>
 #include <openmp/TestOpenMP_SubView_c11.cpp>
 #include <openmp/TestOpenMP_SubView_c12.cpp>
+#include <openmp/TestOpenMP_SubView_c13.cpp>

@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -79,14 +79,18 @@ struct TestViewMappingSubview
   typedef Kokkos::View< int***[13][14], Kokkos::LayoutLeft, ExecSpace >  DLT;
   typedef Kokkos::Subview< DLT, range, int, int, int, int >  DLS1;
 
+  #if !defined(KOKKOS_IMPL_CUDA_VERSION_9_WORKAROUND)
   static_assert( DLS1::rank == 1 && std::is_same< typename DLS1::array_layout, Kokkos::LayoutLeft >::value
                , "Subview layout error for rank 1 subview of left-most range of LayoutLeft" );
+  #endif
 
   typedef Kokkos::View< int***[13][14], Kokkos::LayoutRight, ExecSpace >  DRT;
   typedef Kokkos::Subview< DRT, int, int, int, int, range >  DRS1;
 
+  #if !defined(KOKKOS_IMPL_CUDA_VERSION_9_WORKAROUND)
   static_assert( DRS1::rank == 1 && std::is_same< typename DRS1::array_layout, Kokkos::LayoutRight >::value
                , "Subview layout error for rank 1 subview of right-most range of LayoutRight" );
+  #endif
 
   AT Aa;
   AS Ab;
@@ -100,16 +104,16 @@ struct TestViewMappingSubview
 
   TestViewMappingSubview()
     : Aa( "Aa", AN )
-    , Ab( Kokkos::Experimental::subview( Aa, std::pair< int, int >( 1, AN - 1 ) ) )
+    , Ab( Kokkos::subview( Aa, std::pair< int, int >( 1, AN - 1 ) ) )
     , Ac( Aa, std::pair< int, int >( 1, AN - 1 ) )
     , Ba( "Ba", BN0, BN1, BN2 )
-    , Bb( Kokkos::Experimental::subview( Ba
+    , Bb( Kokkos::subview( Ba
                                         , std::pair< int, int >( 1, BN0 - 1 )
                                         , std::pair< int, int >( 1, BN1 - 1 )
                                         , std::pair< int, int >( 1, BN2 - 1 )
                                         ) )
     , Ca( "Ca", CN0, CN1, CN2 )
-    , Cb( Kokkos::Experimental::subview( Ca
+    , Cb( Kokkos::subview( Ca
                                         , std::pair< int, int >( 1, CN0 - 1 )
                                         , std::pair< int, int >( 1, CN1 - 1 )
                                         , std::pair< int, int >( 1, CN2 - 1 )
@@ -117,7 +121,7 @@ struct TestViewMappingSubview
                                         , 2
                                         ) )
     , Da( "Da", DN0, DN1, DN2 )
-    , Db( Kokkos::Experimental::subview( Da
+    , Db( Kokkos::subview( Da
                                         , 1
                                         , std::pair< int, int >( 1, DN1 - 1 )
                                         , std::pair< int, int >( 1, DN2 - 1 )
@@ -129,7 +133,7 @@ struct TestViewMappingSubview
   KOKKOS_INLINE_FUNCTION
   void operator()( const int, long & error_count ) const
   {
-    auto Ad = Kokkos::Experimental::subview< Kokkos::MemoryUnmanaged >( Aa, Kokkos::pair< int, int >( 1, AN - 1 ) );
+    auto Ad = Kokkos::subview< Kokkos::MemoryUnmanaged >( Aa, Kokkos::pair< int, int >( 1, AN - 1 ) );
 
     for ( int i = 1; i < AN - 1; ++i ) if( & Aa[i] != & Ab[i - 1] ) ++error_count;
     for ( int i = 1; i < AN - 1; ++i ) if( & Aa[i] != & Ac[i - 1] ) ++error_count;
@@ -163,34 +167,34 @@ struct TestViewMappingSubview
 
     TestViewMappingSubview< ExecSpace > self;
 
-    ASSERT_EQ( Aa.dimension_0(), AN );
-    ASSERT_EQ( Ab.dimension_0(), AN - 2 );
-    ASSERT_EQ( Ac.dimension_0(), AN - 2 );
-    ASSERT_EQ( Ba.dimension_0(), BN0 );
-    ASSERT_EQ( Ba.dimension_1(), BN1 );
-    ASSERT_EQ( Ba.dimension_2(), BN2 );
-    ASSERT_EQ( Bb.dimension_0(), BN0 - 2 );
-    ASSERT_EQ( Bb.dimension_1(), BN1 - 2 );
-    ASSERT_EQ( Bb.dimension_2(), BN2 - 2 );
+    ASSERT_EQ( Aa.extent(0), AN );
+    ASSERT_EQ( Ab.extent(0), AN - 2 );
+    ASSERT_EQ( Ac.extent(0), AN - 2 );
+    ASSERT_EQ( Ba.extent(0), BN0 );
+    ASSERT_EQ( Ba.extent(1), BN1 );
+    ASSERT_EQ( Ba.extent(2), BN2 );
+    ASSERT_EQ( Bb.extent(0), BN0 - 2 );
+    ASSERT_EQ( Bb.extent(1), BN1 - 2 );
+    ASSERT_EQ( Bb.extent(2), BN2 - 2 );
 
-    ASSERT_EQ( Ca.dimension_0(), CN0 );
-    ASSERT_EQ( Ca.dimension_1(), CN1 );
-    ASSERT_EQ( Ca.dimension_2(), CN2 );
-    ASSERT_EQ( Ca.dimension_3(), 13 ); 
-    ASSERT_EQ( Ca.dimension_4(), 14 );
-    ASSERT_EQ( Cb.dimension_0(), CN0 - 2 );
-    ASSERT_EQ( Cb.dimension_1(), CN1 - 2 );
-    ASSERT_EQ( Cb.dimension_2(), CN2 - 2 );
+    ASSERT_EQ( Ca.extent(0), CN0 );
+    ASSERT_EQ( Ca.extent(1), CN1 );
+    ASSERT_EQ( Ca.extent(2), CN2 );
+    ASSERT_EQ( Ca.extent(3), 13 ); 
+    ASSERT_EQ( Ca.extent(4), 14 );
+    ASSERT_EQ( Cb.extent(0), CN0 - 2 );
+    ASSERT_EQ( Cb.extent(1), CN1 - 2 );
+    ASSERT_EQ( Cb.extent(2), CN2 - 2 );
 
-    ASSERT_EQ( Da.dimension_0(), DN0 );
-    ASSERT_EQ( Da.dimension_1(), DN1 );
-    ASSERT_EQ( Da.dimension_2(), DN2 );
-    ASSERT_EQ( Da.dimension_3(), DN3 );
-    ASSERT_EQ( Da.dimension_4(), DN4 );
+    ASSERT_EQ( Da.extent(0), DN0 );
+    ASSERT_EQ( Da.extent(1), DN1 );
+    ASSERT_EQ( Da.extent(2), DN2 );
+    ASSERT_EQ( Da.extent(3), DN3 );
+    ASSERT_EQ( Da.extent(4), DN4 );
 
-    ASSERT_EQ( Db.dimension_0(), DN1 - 2 );
-    ASSERT_EQ( Db.dimension_1(), DN2 - 2 );
-    ASSERT_EQ( Db.dimension_2(), DN3 - 2 );
+    ASSERT_EQ( Db.extent(0), DN1 - 2 );
+    ASSERT_EQ( Db.extent(1), DN2 - 2 );
+    ASSERT_EQ( Db.extent(2), DN3 - 2 );
 
     ASSERT_EQ( Da.stride_1(), Db.stride_0() );
     ASSERT_EQ( Da.stride_2(), Db.stride_1() );

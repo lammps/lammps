@@ -105,7 +105,7 @@ void FixQEqShielded::init_shielding()
   Tap[3] = 140.0 * (swa3*swb + 3.0*swa2*swb2 + swa*swb3 ) / d7;
   Tap[2] =-210.0 * (swa3*swb2 + swa2*swb3) / d7;
   Tap[1] = 140.0 * swa3 * swb3 / d7;
-  Tap[0] = (-35.0*swa3*swb2*swb2 + 21.0*swa2*swb3*swb2 +
+  Tap[0] = (-35.0*swa3*swb2*swb2 + 21.0*swa2*swb3*swb2 -
             7.0*swa*swb3*swb3 + swb3*swb3*swb ) / d7;
 }
 
@@ -123,8 +123,8 @@ void FixQEqShielded::pre_force(int vflag)
     reallocate_matrix();
 
   init_matvec();
-  matvecs = CG(b_s, s);    	// CG on s - parallel
-  matvecs += CG(b_t, t); 	// CG on t - parallel
+  matvecs = CG(b_s, s);         // CG on s - parallel
+  matvecs += CG(b_t, t);        // CG on t - parallel
   calculate_Q();
 
   if (force->kspace) force->kspace->qsum_qsq();
@@ -189,16 +189,16 @@ void FixQEqShielded::compute_H()
 
       for( jj = 0; jj < jnum; jj++ ) {
         j = jlist[jj];
-	j &= NEIGHMASK;
+        j &= NEIGHMASK;
 
         dx = x[j][0] - x[i][0];
         dy = x[j][1] - x[i][1];
         dz = x[j][2] - x[i][2];
         r_sqr = dx*dx + dy*dy + dz*dz;
 
-	if (r_sqr <= cutoff_sq) {
+        if (r_sqr <= cutoff_sq) {
           H.jlist[m_fill] = j;
-	  r = sqrt(r_sqr);
+          r = sqrt(r_sqr);
           H.val[m_fill] = 0.5 * calculate_H( r, shld[type[i]][type[j]] );
           m_fill++;
         }

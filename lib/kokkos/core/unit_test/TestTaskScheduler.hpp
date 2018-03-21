@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -141,13 +141,13 @@ struct TestFib
 
     enum { MinBlockSize   =   64 };
     enum { MaxBlockSize   = 1024 };
-    enum { SuperBlockSize = 1u << 12 };
+    enum { SuperBlockSize = 4096 };
 
     sched_type root_sched( memory_space()
                          , MemoryCapacity
                          , MinBlockSize
-                         , MaxBlockSize
-                         , SuperBlockSize );
+                         , std::min(size_t(MaxBlockSize),MemoryCapacity)
+                         , std::min(size_t(SuperBlockSize),MemoryCapacity) );
 
     future_type f = Kokkos::host_spawn( Kokkos::TaskSingle( root_sched )
                                       , TestFib( root_sched, i ) );
@@ -205,11 +205,10 @@ struct TestTaskSpawn {
   {
     typedef typename sched_type::memory_space memory_space;
 
-    // enum { MemoryCapacity = 4000 }; // Triggers infinite loop in memory pool.
     enum { MemoryCapacity = 16000 };
     enum { MinBlockSize   =   64 };
     enum { MaxBlockSize   = 1024 };
-    enum { SuperBlockSize = 1u << 12 };
+    enum { SuperBlockSize = 4096 };
 
     sched_type sched( memory_space()
                     , MemoryCapacity
@@ -250,34 +249,23 @@ struct TestTaskDependence {
     const int n = CHUNK < m_count ? CHUNK : m_count;
 
     if ( 1 < m_count ) {
-      // Test use of memory pool for temporary allocation:
 
-      // Raw allocation:
-      future_type * const f =
-        (future_type *) m_sched.memory()->allocate( sizeof(future_type) * n );
+      const int increment = ( m_count + n - 1 ) / n;
 
-      // In-place construction:
-      for ( int i = 0; i < n; ++i ) new(f+i) future_type();
+      future_type f =
+        m_sched.when_all( n , [this,increment]( int i ) {
+          const long inc   = increment ;
+          const long begin = i * inc ;
+          const long count = begin + inc < m_count ? inc : m_count - begin ;
 
-      const int inc = ( m_count + n - 1 ) / n;
-
-      for ( int i = 0; i < n; ++i ) {
-        long begin = i * inc;
-        long count = begin + inc < m_count ? inc : m_count - begin;
-
-        f[i] = Kokkos::task_spawn( Kokkos::TaskSingle( m_sched )
-                                 , TestTaskDependence( count, m_sched, m_accum ) );
-      }
+          return Kokkos::task_spawn
+            ( Kokkos::TaskSingle( m_sched )
+            , TestTaskDependence( count, m_sched, m_accum ) );
+        });
 
       m_count = 0;
 
-      Kokkos::respawn( this, Kokkos::when_all( f, n ) );
-
-      // In-place destruction to release future:
-      for ( int i = 0; i < n; ++i ) (f+i)->~future_type();
-
-      // Raw deallocation:
-      m_sched.memory()->deallocate( f , sizeof(future_type) * n );
+      Kokkos::respawn( this, f );
     }
     else if ( 1 == m_count ) {
       Kokkos::atomic_increment( & m_accum() );
@@ -288,11 +276,10 @@ struct TestTaskDependence {
   {
     typedef typename sched_type::memory_space memory_space;
 
-    // enum { MemoryCapacity = 4000 }; // Triggers infinite loop in memory pool.
     enum { MemoryCapacity = 16000 };
     enum { MinBlockSize   =   64 };
     enum { MaxBlockSize   = 1024 };
-    enum { SuperBlockSize = 1u << 12 };
+    enum { SuperBlockSize = 4096 };
 
     sched_type sched( memory_space()
                     , MemoryCapacity
@@ -372,7 +359,9 @@ struct TestTaskTeam {
                                                  , begin - 1 )
                                    );
 
+        #ifndef __HCC_ACCELERATOR__
         assert( !future.is_null() );
+        #endif
 
         Kokkos::respawn( this, future );
       }
@@ -480,13 +469,11 @@ struct TestTaskTeam {
 
   static void run( long n )
   {
-    //const unsigned memory_capacity = 10000; // Causes memory pool infinite loop.
-    //const unsigned memory_capacity = 100000; // Fails with SPAN=1 for serial and OMP.
     const unsigned memory_capacity = 400000;
 
     enum { MinBlockSize   =   64 };
     enum { MaxBlockSize   = 1024 };
-    enum { SuperBlockSize = 1u << 12 };
+    enum { SuperBlockSize = 4096 };
 
     sched_type root_sched( typename sched_type::memory_space()
                          , memory_capacity
@@ -609,12 +596,11 @@ struct TestTaskTeamValue {
 
   static void run( long n )
   {
-    //const unsigned memory_capacity = 10000; // Causes memory pool infinite loop.
     const unsigned memory_capacity = 100000;
 
     enum { MinBlockSize   =   64 };
     enum { MaxBlockSize   = 1024 };
-    enum { SuperBlockSize = 1u << 12 };
+    enum { SuperBlockSize = 4096 };
 
     sched_type root_sched( typename sched_type::memory_space()
                          , memory_capacity

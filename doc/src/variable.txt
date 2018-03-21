@@ -689,7 +689,7 @@ increase in increments of z, starting at x, until a is reached.  At
 that point the timestep increases in increments of c, from a to b,
 then after b, increments by z are resumed until y is reached.  For any
 current timestep, the next timestep in the sequence is returned.  Thus
-if stride(1000,2000,100,1350,1360,1) is used in a variable by the
+if stride2(1000,2000,100,1350,1360,1) is used in a variable by the
 "dump_modify every"_dump_modify.html command, it will generate the
 sequence of output timesteps:
 

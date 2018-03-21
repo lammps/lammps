@@ -315,10 +315,10 @@ double KSpace::estimate_table_accuracy(double q2_over_sqrt, double spr)
   if (comm->me == 0) {
     char str[128];
     if (nctb)
-      sprintf(str,"Using %d-bit tables for long-range coulomb",nctb);
+      sprintf(str,"  using %d-bit tables for long-range coulomb",nctb);
     else
-      sprintf(str,"Using polynomial approximation for long-range coulomb");
-    error->warning(FLERR,str);
+      sprintf(str,"  using polynomial approximation for long-range coulomb");
+    error->message(FLERR,str);
   }
 
   if (nctb) {
@@ -541,11 +541,11 @@ void KSpace::modify_params(int narg, char **arg)
       ky_ewald = atoi(arg[iarg+2]);
       kz_ewald = atoi(arg[iarg+3]);
       if (kx_ewald < 0 || ky_ewald < 0 || kz_ewald < 0)
-	error->all(FLERR,"Bad kspace_modify kmax/ewald parameter");
+        error->all(FLERR,"Bad kspace_modify kmax/ewald parameter");
       if (kx_ewald > 0 && ky_ewald > 0 && kz_ewald > 0)
-	kewaldflag = 1;
+        kewaldflag = 1;
       else
-	kewaldflag = 0;
+        kewaldflag = 0;
       iarg += 4;
     } else if (strcmp(arg[iarg],"mix/disp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");

@@ -319,7 +319,7 @@ void PairBuckLongCoulLongOMP::compute_inner()
 
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;
-  const int inum = listinner->inum;
+  const int inum = list->inum_inner;
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
 #endif
@@ -343,7 +343,7 @@ void PairBuckLongCoulLongOMP::compute_middle()
 
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;
-  const int inum = listmiddle->inum;
+  const int inum = list->inum_middle;
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
@@ -373,7 +373,7 @@ void PairBuckLongCoulLongOMP::compute_outer(int eflag, int vflag)
 
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;
-  const int inum = listouter->inum;
+  const int inum = list->inum;
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none) shared(eflag,vflag)
@@ -788,7 +788,7 @@ void PairBuckLongCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
       }
 
       if (EVFLAG) ev_tally_thr(this,i,j,nlocal,NEWTON_PAIR,
-			       evdwl,ecoul,fpair,d[0],d[1],d[2],thr);
+                               evdwl,ecoul,fpair,d[0],d[1],d[2],thr);
     }
   }
 }
@@ -811,7 +811,7 @@ void PairBuckLongCoulLongOMP::eval_inner(int iifrom, int iito, ThrData * const t
   const double *x0 = x[0];
   double *f0 = f[0], *fi = 0;
 
-  int *ilist = listinner->ilist;
+  int *ilist = list->ilist_inner;
 
   const int newton_pair = force->newton_pair;
 
@@ -835,7 +835,7 @@ void PairBuckLongCoulLongOMP::eval_inner(int iifrom, int iito, ThrData * const t
     memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
     cut_bucksqi = cut_bucksq[typei = type[i]];
     buck1i = buck1[typei]; buck2i = buck2[typei]; rhoinvi = rhoinv[typei];
-    jneighn = (jneigh = listinner->firstneigh[i])+listinner->numneigh[i];
+    jneighn = (jneigh = list->firstneigh_inner[i])+list->numneigh_inner[i];
 
     for (; jneigh<jneighn; ++jneigh) {                        // loop over neighbors
       j = *jneigh;
@@ -904,7 +904,7 @@ void PairBuckLongCoulLongOMP::eval_middle(int iifrom, int iito, ThrData * const 
   const double *x0 = x[0];
   double *f0 = f[0], *fi = 0;
 
-  int *ilist = listmiddle->ilist;
+  int *ilist = list->ilist_middle;
 
   const int newton_pair = force->newton_pair;
 
@@ -932,7 +932,7 @@ void PairBuckLongCoulLongOMP::eval_middle(int iifrom, int iito, ThrData * const 
     memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
     cut_bucksqi = cut_bucksq[typei = type[i]];
     buck1i = buck1[typei]; buck2i = buck2[typei]; rhoinvi = rhoinv[typei];
-    jneighn = (jneigh = listmiddle->firstneigh[i])+listmiddle->numneigh[i];
+    jneighn = (jneigh = list->firstneigh_middle[i])+list->numneigh_middle[i];
 
     for (; jneigh<jneighn; ++jneigh) {                        // loop over neighbors
       j = *jneigh;
@@ -1009,7 +1009,7 @@ void PairBuckLongCoulLongOMP::eval_outer(int iiform, int iito, ThrData * const t
   const double *x0 = x[0];
   double *f0 = f[0], *fi = f0;
 
-  int *ilist = listouter->ilist;
+  int *ilist = list->ilist;
 
   int i, j, ii;
   int *jneigh, *jneighn, typei, typej, ni, respa_flag;
@@ -1035,7 +1035,7 @@ void PairBuckLongCoulLongOMP::eval_outer(int iiform, int iito, ThrData * const t
     buckai = buck_a[typei]; buckci = buck_c[typei]; rhoinvi = rhoinv[typei];
     cutsqi = cutsq[typei]; cut_bucksqi = cut_bucksq[typei];
     memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
-    jneighn = (jneigh = listouter->firstneigh[i])+listouter->numneigh[i];
+    jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
 
     for (; jneigh<jneighn; ++jneigh) {                        // loop over neighbors
       j = *jneigh;
@@ -1116,7 +1116,7 @@ void PairBuckLongCoulLongOMP::eval_outer(int iiform, int iito, ThrData * const t
               force_buck =
                 r*expr*buck1i[typej]-g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq-respa_buck;
               if (EFLAG) evdwl = expr*buckai[typej]-g6*((a2+1.0)*a2+0.5)*x2;
-	    }
+            }
             else {                                        // correct for special
               register double f = special_lj[ni], t = rn*(1.0-f);
               force_buck = f*r*expr*buck1i[typej]-
@@ -1175,7 +1175,7 @@ void PairBuckLongCoulLongOMP::eval_outer(int iiform, int iito, ThrData * const t
       if (EVFLAG) {
         fvirial = (force_coul + force_buck + respa_coul + respa_buck)*r2inv;
         ev_tally_thr(this,i,j,nlocal,NEWTON_PAIR,
-		     evdwl,ecoul,fvirial,d[0],d[1],d[2],thr);
+                     evdwl,ecoul,fvirial,d[0],d[1],d[2],thr);
       }
     }
   }

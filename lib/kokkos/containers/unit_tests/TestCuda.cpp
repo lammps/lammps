@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -62,6 +62,7 @@
 #include <TestVector.hpp>
 #include <TestDualView.hpp>
 #include <TestDynamicView.hpp>
+#include <TestScatterView.hpp>
 
 #include <Kokkos_DynRankView.hpp>
 #include <TestDynViewAPI.hpp>
@@ -82,13 +83,9 @@ protected:
   static void SetUpTestCase()
   {
     std::cout << std::setprecision(5) << std::scientific;
-    Kokkos::HostSpace::execution_space::initialize();
-    Kokkos::Cuda::initialize( Kokkos::Cuda::SelectDevice(0) );
   }
   static void TearDownTestCase()
   {
-    Kokkos::Cuda::finalize();
-    Kokkos::HostSpace::execution_space::finalize();
   }
 };
 
@@ -201,10 +198,18 @@ void cuda_test_bitset()
       cuda_test_dualview_combinations(size);                     \
   }
 
+#define CUDA_SCATTERVIEW_TEST( size )             \
+  TEST_F( cuda, scatterview_##size##x) {                      \
+    test_scatter_view<Kokkos::Cuda>(size);               \
+  }
+
 CUDA_DUALVIEW_COMBINE_TEST( 10 )
 CUDA_VECTOR_COMBINE_TEST( 10 )
 CUDA_VECTOR_COMBINE_TEST( 3057 )
 
+CUDA_SCATTERVIEW_TEST( 10 )
+
+CUDA_SCATTERVIEW_TEST( 1000000 )
 
 CUDA_INSERT_TEST(close,               100000, 90000, 100, 500)
 CUDA_INSERT_TEST(far,                 100000, 90000, 100, 500)

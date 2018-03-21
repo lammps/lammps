@@ -38,8 +38,6 @@ class PPPMIntel : public PPPM {
   virtual ~PPPMIntel();
   virtual void init();
   virtual void compute(int, int);
-  virtual void pack_forward(int, FFT_SCALAR *, int, int *);
-  virtual void unpack_forward(int, FFT_SCALAR *, int, int *);
   virtual double memory_usage();
   void compute_first(int, int);
   void compute_second(int, int);
@@ -64,12 +62,6 @@ class PPPMIntel : public PPPM {
   FFT_SCALAR **drho_lookup;
   FFT_SCALAR half_rho_scale, half_rho_scale_plus;
 
-  int _use_packing;
-  FFT_SCALAR ***vdxy_brick;
-  FFT_SCALAR ***vdz0_brick;
-  FFT_SCALAR *work3;
-  class GridComm *cg_pack;
-
   #ifdef _LMP_INTEL_OFFLOAD
   int _use_base;
   #endif
@@ -92,23 +84,14 @@ class PPPMIntel : public PPPM {
       make_rho<flt_t,acc_t,0>(buffers);
     }
   }
-  void poisson_ik_intel();
-  template<class flt_t, class acc_t, int use_table, int use_packing>
+  template<class flt_t, class acc_t, int use_table>
   void fieldforce_ik(IntelBuffers<flt_t,acc_t> *buffers);
   template<class flt_t, class acc_t>
   void fieldforce_ik(IntelBuffers<flt_t,acc_t> *buffers) {
     if (_use_table == 1) {
-      if (_use_packing == 1) {
-        fieldforce_ik<flt_t, acc_t, 1, 1>(buffers);
-      } else {
-        fieldforce_ik<flt_t, acc_t, 1, 0>(buffers);
-      }
+      fieldforce_ik<flt_t, acc_t, 1>(buffers);
     } else {
-      if (_use_packing == 1) {
-        fieldforce_ik<flt_t, acc_t, 0, 1>(buffers);
-      } else {
-        fieldforce_ik<flt_t, acc_t, 0, 0>(buffers);
-      }
+      fieldforce_ik<flt_t, acc_t, 0>(buffers);
     }
   }
   template<class flt_t, class acc_t, int use_table>
@@ -122,7 +105,7 @@ class PPPMIntel : public PPPM {
     }
   }
   FFT_SCALAR ***create3d_offset(FFT_SCALAR ***&, int, int, int,
-				int, int, int, const char *name);
+                                int, int, int, const char *name);
 };
 
 }

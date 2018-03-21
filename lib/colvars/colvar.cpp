@@ -195,7 +195,7 @@ int colvar::init(std::string const &conf)
   // - it is homogeneous
   // - all cvcs are periodic
   // - all cvcs have the same period
-  if (cvcs[0]->b_periodic) { // TODO make this a CVC feature
+  if (is_enabled(f_cv_homogeneous) && cvcs[0]->b_periodic) { // TODO make this a CVC feature
     bool b_periodic = true;
     period = cvcs[0]->period;
     for (i = 1; i < cvcs.size(); i++) {
@@ -1008,6 +1008,8 @@ int colvar::calc()
 
 int colvar::calc_cvcs(int first_cvc, size_t num_cvcs)
 {
+  colvarproxy *proxy = cvm::main()->proxy;
+
   int error_code = COLVARS_OK;
   if (cvm::debug())
     cvm::log("Calculating colvar \""+this->name+"\", components "+
@@ -1018,14 +1020,18 @@ int colvar::calc_cvcs(int first_cvc, size_t num_cvcs)
     return error_code;
   }
 
-  if (cvm::step_relative() > 0) {
-    // Total force depends on Jacobian derivative from previous timestep
+  if ((cvm::step_relative() > 0) && (!proxy->total_forces_same_step())){
+    // Use Jacobian derivative from previous timestep
     error_code |= calc_cvc_total_force(first_cvc, num_cvcs);
   }
   // atom coordinates are updated by the next line
   error_code |= calc_cvc_values(first_cvc, num_cvcs);
   error_code |= calc_cvc_gradients(first_cvc, num_cvcs);
   error_code |= calc_cvc_Jacobians(first_cvc, num_cvcs);
+  if (proxy->total_forces_same_step()){
+    // Use Jacobian derivative from this timestep
+    error_code |= calc_cvc_total_force(first_cvc, num_cvcs);
+  }
 
   if (cvm::debug())
     cvm::log("Done calculating colvar \""+this->name+"\".\n");
@@ -1043,6 +1049,7 @@ int colvar::collect_cvc_data()
 
   if (cvm::step_relative() > 0) {
     // Total force depends on Jacobian derivative from previous timestep
+    // collect_cvc_total_forces() uses the previous value of jd
     error_code |= collect_cvc_total_forces();
   }
   error_code |= collect_cvc_values();
@@ -1138,7 +1145,7 @@ int colvar::collect_cvc_values()
       if (!cvcs[i]->is_enabled()) continue;
       x += (cvcs[i])->sup_coeff *
       ( ((cvcs[i])->sup_np != 1) ?
-        std::pow((cvcs[i])->value().real_value, (cvcs[i])->sup_np) :
+        cvm::integer_power((cvcs[i])->value().real_value, (cvcs[i])->sup_np) :
         (cvcs[i])->value().real_value );
     }
   } else {
@@ -1219,7 +1226,7 @@ int colvar::collect_cvc_gradients()
       if (!cvcs[i]->is_enabled()) continue;
       // Coefficient: d(a * x^n) = a * n * x^(n-1) * dx
       cvm::real coeff = (cvcs[i])->sup_coeff * cvm::real((cvcs[i])->sup_np) *
-        std::pow((cvcs[i])->value().real_value, (cvcs[i])->sup_np-1);
+        cvm::integer_power((cvcs[i])->value().real_value, (cvcs[i])->sup_np-1);
 
       for (size_t j = 0; j < cvcs[i]->atom_groups.size(); j++) {
 
@@ -1471,9 +1478,15 @@ cvm::real colvar::update_forces_energy()
     // Coupling force is a slow force, to be applied to atomic coords impulse-style
     f *= cvm::real(time_step_factor);
 
-    // The total force acting on the extended variable is f_ext
-    // This will be used in the next timestep
-    ft_reported = f_ext;
+    if (is_enabled(f_cv_subtract_applied_force)) {
+      // Report a "system" force without the biases on this colvar
+      // that is, just the spring force
+      ft_reported = (-0.5 * ext_force_k) * this->dist2_lgrad(xr, x);
+    } else {
+      // The total force acting on the extended variable is f_ext
+      // This will be used in the next timestep
+      ft_reported = f_ext;
+    }
 
     // leapfrog: starting from x_i, f_i, v_(i-1/2)
     vr  += (0.5 * dt) * f_ext / ext_mass;
@@ -1580,9 +1593,9 @@ void colvar::communicate_forces()
     for (i = 0; i < cvcs.size(); i++) {
       if (!cvcs[i]->is_enabled()) continue;
       (cvcs[i])->apply_force(f * (cvcs[i])->sup_coeff *
-                              cvm::real((cvcs[i])->sup_np) *
-                              (std::pow((cvcs[i])->value().real_value,
-                                      (cvcs[i])->sup_np-1)) );
+                             cvm::real((cvcs[i])->sup_np) *
+                             (cvm::integer_power((cvcs[i])->value().real_value,
+                                                 (cvcs[i])->sup_np-1)) );
     }
 
   } else {

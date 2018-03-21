@@ -23,7 +23,10 @@
 #include <math.h>
 #include "pppm_intel.h"
 #include "atom.h"
+#include "comm.h"
+#include "domain.h"
 #include "error.h"
+#include "modify.h"
 #include "fft3d_wrap.h"
 #include "gridcomm.h"
 #include "math_const.h"
@@ -66,11 +69,7 @@ PPPMIntel::PPPMIntel(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp, narg, arg)
   rho_lookup = drho_lookup = NULL;
   rho_points = 0;
 
-  vdxy_brick = vdz0_brick = NULL;
-  work3 = NULL;
-  cg_pack = NULL;
-
-  _use_table = _use_packing = _use_lrt = 0;
+  _use_table = _use_lrt = 0;
 }
 
 PPPMIntel::~PPPMIntel()
@@ -82,12 +81,6 @@ PPPMIntel::~PPPMIntel()
 
   memory->destroy(rho_lookup);
   memory->destroy(drho_lookup);
-
-  memory->destroy3d_offset(vdxy_brick, nzlo_out, nylo_out, 2*nxlo_out);
-  memory->destroy3d_offset(vdz0_brick, nzlo_out, nylo_out, 2*nxlo_out);
-  memory->destroy(work3);
-
-  delete cg_pack;
 }
 
 /* ----------------------------------------------------------------------
@@ -141,36 +134,6 @@ void PPPMIntel::init()
   if (order > INTEL_P3M_MAXORDER)
     error->all(FLERR,"PPPM order greater than supported by USER-INTEL\n");
 
-  _use_packing = (order == 7) && (INTEL_VECTOR_WIDTH == 16)
-                              && (sizeof(FFT_SCALAR) == sizeof(float))
-                              && (differentiation_flag == 0);
-  if (_use_packing) {
-    memory->destroy3d_offset(vdx_brick,nzlo_out,nylo_out,nxlo_out);
-    memory->destroy3d_offset(vdy_brick,nzlo_out,nylo_out,nxlo_out);
-    memory->destroy3d_offset(vdz_brick,nzlo_out,nylo_out,nxlo_out);
-    memory->destroy3d_offset(vdxy_brick, nzlo_out, nylo_out, 2*nxlo_out);
-    create3d_offset(vdxy_brick, nzlo_out, nzhi_out+2,
-		    nylo_out, nyhi_out, 2*nxlo_out, 2*nxhi_out+1,
-		    "pppmintel:vdxy_brick");
-    memory->destroy3d_offset(vdz0_brick, nzlo_out, nylo_out, 2*nxlo_out);
-    create3d_offset(vdz0_brick, nzlo_out, nzhi_out+2,
-		    nylo_out, nyhi_out, 2*nxlo_out, 2*nxhi_out+1,
-		    "pppmintel:vdz0_brick");
-    memory->destroy(work3);
-    memory->create(work3, 2*nfft_both, "pppmintel:work3");
-
-    // new communicator for the double-size bricks
-    delete cg_pack;
-    int (*procneigh)[2] = comm->procneigh;
-    cg_pack = new GridComm(lmp,world,2,0, 2*nxlo_in,2*nxhi_in+1,nylo_in,
-                           nyhi_in,nzlo_in,nzhi_in, 2*nxlo_out,2*nxhi_out+1,
-                           nylo_out,nyhi_out,nzlo_out,nzhi_out,
-                           procneigh[0][0],procneigh[0][1],procneigh[1][0],
-                           procneigh[1][1],procneigh[2][0],procneigh[2][1]);
-
-    cg_pack->ghost_notify();
-    cg_pack->setup();
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -272,18 +235,13 @@ void PPPMIntel::compute_first(int eflag, int vflag)
   // also performs per-atom calculations via poisson_peratom()
 
   if (differentiation_flag == 1) poisson_ad();
-  else poisson_ik_intel();
+  else poisson_ik();
 
   // all procs communicate E-field values
   // to fill ghost cells surrounding their 3d bricks
 
   if (differentiation_flag == 1) cg->forward_comm(this,FORWARD_AD);
-  else {
-    if (_use_packing)
-      cg_pack->forward_comm(this,FORWARD_IK);
-    else
-      cg->forward_comm(this,FORWARD_IK);
-  }
+  else cg->forward_comm(this,FORWARD_IK);
 
   // extra per-atom energy/virial communication
 
@@ -604,7 +562,7 @@ void PPPMIntel::make_rho(IntelBuffers<flt_t,acc_t> *buffers)
    interpolate from grid to get electric field & force on my particles for ik
 ------------------------------------------------------------------------- */
 
-template<class flt_t, class acc_t, int use_table, int use_packing>
+template<class flt_t, class acc_t, int use_table>
 void PPPMIntel::fieldforce_ik(IntelBuffers<flt_t,acc_t> *buffers)
 {
   // loop over my charges, interpolate electric field from nearby grid points
@@ -649,9 +607,9 @@ void PPPMIntel::fieldforce_ik(IntelBuffers<flt_t,acc_t> *buffers)
       int ny = part2grid[i][1];
       int nz = part2grid[i][2];
 
-      int nxsum = (use_packing ? 2 : 1) * (nx + nlower);
+      int nxsum = nx + nlower;
       int nysum = ny + nlower;
-      int nzsum = nz + nlower;;
+      int nzsum = nz + nlower;
 
       FFT_SCALAR dx = nx+fshiftone - (x[i].x-lo0)*xi;
       FFT_SCALAR dy = ny+fshiftone - (x[i].y-lo1)*yi;
@@ -668,12 +626,7 @@ void PPPMIntel::fieldforce_ik(IntelBuffers<flt_t,acc_t> *buffers)
         #pragma simd
         #endif
         for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
-          if (use_packing) {
-            rho0[2 * k] = rho_lookup[idx][k];
-            rho0[2 * k + 1] = rho_lookup[idx][k];
-          } else {
-            rho0[k] = rho_lookup[idx][k];
-          }
+          rho0[k] = rho_lookup[idx][k];
           rho1[k] = rho_lookup[idy][k];
           rho2[k] = rho_lookup[idz][k];
         }
@@ -690,12 +643,7 @@ void PPPMIntel::fieldforce_ik(IntelBuffers<flt_t,acc_t> *buffers)
             r2 = rho_coeff[l][k] + r2*dy;
             r3 = rho_coeff[l][k] + r3*dz;
           }
-          if (use_packing) {
-            rho0[2 * (k-nlower)] = r1;
-            rho0[2 * (k-nlower) + 1] = r1;
-          } else {
-            rho0[k-nlower] = r1;
-          }
+          rho0[k-nlower] = r1;
           rho1[k-nlower] = r2;
           rho2[k-nlower] = r3;
         }
@@ -722,18 +670,12 @@ void PPPMIntel::fieldforce_ik(IntelBuffers<flt_t,acc_t> *buffers)
           #if defined(LMP_SIMD_COMPILER)
           #pragma simd
           #endif
-          for (int l = 0; l < (use_packing ? 2 : 1) *
-                 INTEL_P3M_ALIGNED_MAXORDER; l++) {
+          for (int l = 0; l < INTEL_P3M_ALIGNED_MAXORDER; l++) {
             int mx = l+nxsum;
             FFT_SCALAR x0 = y0*rho0[l];
-            if (use_packing) {
-              ekxy_arr[l] -= x0*vdxy_brick[mz][my][mx];
-              ekz0_arr[l] -= x0*vdz0_brick[mz][my][mx];
-            } else {
-              ekx_arr[l] -= x0*vdx_brick[mz][my][mx];
-              eky_arr[l] -= x0*vdy_brick[mz][my][mx];
-              ekz_arr[l] -= x0*vdz_brick[mz][my][mx];
-            }
+            ekx_arr[l] -= x0*vdx_brick[mz][my][mx];
+            eky_arr[l] -= x0*vdy_brick[mz][my][mx];
+            ekz_arr[l] -= x0*vdz_brick[mz][my][mx];
           }
         }
       }
@@ -741,18 +683,10 @@ void PPPMIntel::fieldforce_ik(IntelBuffers<flt_t,acc_t> *buffers)
       FFT_SCALAR ekx, eky, ekz;
       ekx = eky = ekz = ZEROF;
 
-      if (use_packing) {
-        for (int l = 0; l < 2*order; l += 2) {
-          ekx += ekxy_arr[l];
-          eky += ekxy_arr[l+1];
-          ekz += ekz0_arr[l];
-        }
-      } else {
-        for (int l = 0; l < order; l++) {
-          ekx += ekx_arr[l];
-          eky += eky_arr[l];
-          ekz += ekz_arr[l];
-        }
+      for (int l = 0; l < order; l++) {
+        ekx += ekx_arr[l];
+        eky += eky_arr[l];
+        ekz += ekz_arr[l];
       }
 
       // convert E-field to force
@@ -966,137 +900,6 @@ void PPPMIntel::fieldforce_ad(IntelBuffers<flt_t,acc_t> *buffers)
 }
 
 /* ----------------------------------------------------------------------
-   FFT-based Poisson solver for ik
-   Does special things for packing mode to avoid repeated copies
-------------------------------------------------------------------------- */
-
-void PPPMIntel::poisson_ik_intel()
-{
-  if (_use_packing == 0) {
-    poisson_ik();
-    return;
-  }
-
-  int i,j,k,n;
-  double eng;
-
-  // transform charge density (r -> k)
-
-  n = 0;
-  for (i = 0; i < nfft; i++) {
-    work1[n++] = density_fft[i];
-    work1[n++] = ZEROF;
-  }
-
-  fft1->compute(work1,work1,1);
-
-  // global energy and virial contribution
-
-  double scaleinv = 1.0/(nx_pppm*ny_pppm*nz_pppm);
-  double s2 = scaleinv*scaleinv;
-
-  if (eflag_global || vflag_global) {
-    if (vflag_global) {
-      n = 0;
-      for (i = 0; i < nfft; i++) {
-        eng = s2 * greensfn[i] * (work1[n]*work1[n] +
-                                  work1[n+1]*work1[n+1]);
-        for (j = 0; j < 6; j++) virial[j] += eng*vg[i][j];
-        if (eflag_global) energy += eng;
-        n += 2;
-      }
-    } else {
-      n = 0;
-      for (i = 0; i < nfft; i++) {
-        energy +=
-          s2 * greensfn[i] * (work1[n]*work1[n] + work1[n+1]*work1[n+1]);
-        n += 2;
-      }
-    }
-  }
-
-  // scale by 1/total-grid-pts to get rho(k)
-  // multiply by Green's function to get V(k)
-
-  n = 0;
-  for (i = 0; i < nfft; i++) {
-    work1[n++] *= scaleinv * greensfn[i];
-    work1[n++] *= scaleinv * greensfn[i];
-  }
-
-  // extra FFTs for per-atom energy/virial
-
-  if (evflag_atom) poisson_peratom();
-
-  // triclinic system
-
-  if (triclinic) {
-    poisson_ik_triclinic();
-    return;
-  }
-
-  // compute gradients of V(r) in each of 3 dims by transformimg -ik*V(k)
-  // FFT leaves data in 3d brick decomposition
-  // copy it into inner portion of vdx,vdy,vdz arrays
-
-  // x direction gradient
-  n = 0;
-  for (k = nzlo_fft; k <= nzhi_fft; k++)
-    for (j = nylo_fft; j <= nyhi_fft; j++)
-      for (i = nxlo_fft; i <= nxhi_fft; i++) {
-        work2[n] = fkx[i]*work1[n+1];
-        work2[n+1] = -fkx[i]*work1[n];
-        n += 2;
-      }
-
-  fft2->compute(work2,work2,-1);
-
-  // y direction gradient
-
-  n = 0;
-  for (k = nzlo_fft; k <= nzhi_fft; k++)
-    for (j = nylo_fft; j <= nyhi_fft; j++)
-      for (i = nxlo_fft; i <= nxhi_fft; i++) {
-        work3[n] = fky[j]*work1[n+1];
-        work3[n+1] = -fky[j]*work1[n];
-        n += 2;
-      }
-
-  fft2->compute(work3,work3,-1);
-
-  n = 0;
-  for (k = nzlo_in; k <= nzhi_in; k++)
-    for (j = nylo_in; j <= nyhi_in; j++)
-      for (i = nxlo_in; i <= nxhi_in; i++) {
-        vdxy_brick[k][j][2*i] = work2[n];
-        vdxy_brick[k][j][2*i+1] = work3[n];
-        n += 2;
-      }
-
-  // z direction gradient
-
-  n = 0;
-  for (k = nzlo_fft; k <= nzhi_fft; k++)
-    for (j = nylo_fft; j <= nyhi_fft; j++)
-      for (i = nxlo_fft; i <= nxhi_fft; i++) {
-        work2[n] = fkz[k]*work1[n+1];
-        work2[n+1] = -fkz[k]*work1[n];
-        n += 2;
-      }
-
-  fft2->compute(work2,work2,-1);
-
-  n = 0;
-  for (k = nzlo_in; k <= nzhi_in; k++)
-    for (j = nylo_in; j <= nyhi_in; j++)
-      for (i = nxlo_in; i <= nxhi_in; i++) {
-        vdz0_brick[k][j][2*i] = work2[n];
-        vdz0_brick[k][j][2*i+1] = 0.;
-        n += 2;
-      }
-}
-
-/* ----------------------------------------------------------------------
    precompute rho coefficients as a lookup table to save time in make_rho
    and fieldforce.  Instead of doing this polynomial for every atom 6 times
    per time step, precompute it for some number of points.
@@ -1142,46 +945,6 @@ void PPPMIntel::precompute_rho()
 }
 
 /* ----------------------------------------------------------------------
-   pack own values to buf to send to another proc
-------------------------------------------------------------------------- */
-
-void PPPMIntel::pack_forward(int flag, FFT_SCALAR *buf, int nlist, int *list)
-{
-  int n = 0;
-
-  if ((flag == FORWARD_IK) && _use_packing) {
-    FFT_SCALAR *xsrc = &vdxy_brick[nzlo_out][nylo_out][2*nxlo_out];
-    FFT_SCALAR *zsrc = &vdz0_brick[nzlo_out][nylo_out][2*nxlo_out];
-    for (int i = 0; i < nlist; i++) {
-      buf[n++] = xsrc[list[i]];
-      buf[n++] = zsrc[list[i]];
-    }
-  } else {
-    PPPM::pack_forward(flag, buf, nlist, list);
-  }
-}
-
-/* ----------------------------------------------------------------------
-   unpack another proc's own values from buf and set own ghost values
-------------------------------------------------------------------------- */
-
-void PPPMIntel::unpack_forward(int flag, FFT_SCALAR *buf, int nlist, int *list)
-{
-  int n = 0;
-
-  if ((flag == FORWARD_IK) && _use_packing) {
-    FFT_SCALAR *xdest = &vdxy_brick[nzlo_out][nylo_out][2*nxlo_out];
-    FFT_SCALAR *zdest = &vdz0_brick[nzlo_out][nylo_out][2*nxlo_out];
-    for (int i = 0; i < nlist; i++) {
-      xdest[list[i]] = buf[n++];
-      zdest[list[i]] = buf[n++];
-    }
-  } else {
-    PPPM::unpack_forward(flag, buf, nlist, list);
-  }
-}
-
-/* ----------------------------------------------------------------------
    memory usage of local arrays
 ------------------------------------------------------------------------- */
 
@@ -1200,14 +963,6 @@ double PPPMIntel::memory_usage()
     if (differentiation_flag == 1) {
       bytes += rho_points * INTEL_P3M_ALIGNED_MAXORDER * sizeof(FFT_SCALAR);
     }
-  }
-  if (_use_packing) {
-    bytes += 2 * (nzhi_out + 2 - nzlo_out + 1) * (nyhi_out - nylo_out + 1)
-               * (2 * nxhi_out + 1 - 2 * nxlo_out + 1) * sizeof(FFT_SCALAR);
-    bytes -= 3 * (nxhi_out - nxlo_out + 1) * (nyhi_out - nylo_out + 1)
-               * (nzhi_out - nzlo_out + 1) * sizeof(FFT_SCALAR);
-    bytes += 2 * nfft_both * sizeof(FFT_SCALAR);
-    bytes += cg_pack->memory_usage();
   }
   return bytes;
 }
@@ -1249,22 +1004,22 @@ void PPPMIntel::allocate()
   PPPM::allocate();
   memory->destroy3d_offset(density_brick,nzlo_out,nylo_out,nxlo_out);
   create3d_offset(density_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
-		  nxlo_out,nxhi_out,"pppm:density_brick");
+                  nxlo_out,nxhi_out,"pppm:density_brick");
 
   if (differentiation_flag == 1) {
     memory->destroy3d_offset(u_brick,nzlo_out,nylo_out,nxlo_out);
     create3d_offset(u_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
-	            nxlo_out,nxhi_out,"pppm:u_brick");
+                    nxlo_out,nxhi_out,"pppm:u_brick");
   } else {
     memory->destroy3d_offset(vdx_brick,nzlo_out,nylo_out,nxlo_out);
     memory->destroy3d_offset(vdy_brick,nzlo_out,nylo_out,nxlo_out);
     memory->destroy3d_offset(vdz_brick,nzlo_out,nylo_out,nxlo_out);
     create3d_offset(vdx_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
-	            nxlo_out,nxhi_out,"pppm:vdx_brick");
+                    nxlo_out,nxhi_out,"pppm:vdx_brick");
     create3d_offset(vdy_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
-	            nxlo_out,nxhi_out,"pppm:vdy_brick");
+                    nxlo_out,nxhi_out,"pppm:vdy_brick");
     create3d_offset(vdz_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
-	            nxlo_out,nxhi_out,"pppm:vdz_brick");
+                    nxlo_out,nxhi_out,"pppm:vdz_brick");
   }
 }
 
@@ -1272,16 +1027,16 @@ void PPPMIntel::allocate()
    Create 3D-offset allocation with extra padding for vector writes
 ------------------------------------------------------------------------- */
 
-FFT_SCALAR *** PPPMIntel::create3d_offset(FFT_SCALAR ***&array, int n1lo, 
-	                                  int n1hi, int n2lo, int n2hi, 
-	                                  int n3lo, int n3hi,
-	                                  const char *name)
+FFT_SCALAR *** PPPMIntel::create3d_offset(FFT_SCALAR ***&array, int n1lo,
+                                          int n1hi, int n2lo, int n2hi,
+                                          int n3lo, int n3hi,
+                                          const char *name)
 {
   int n1 = n1hi - n1lo + 1;
   int n2 = n2hi - n2lo + 1;
   int n3 = n3hi - n3lo + 1;
 
-  bigint nbytes = ((bigint) sizeof(FFT_SCALAR)) * n1*n2*n3 + 
+  bigint nbytes = ((bigint) sizeof(FFT_SCALAR)) * n1*n2*n3 +
     INTEL_P3M_ALIGNED_MAXORDER*2;
   FFT_SCALAR *data = (FFT_SCALAR *) memory->smalloc(nbytes,name);
   nbytes = ((bigint) sizeof(FFT_SCALAR *)) * n1*n2;

@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -47,6 +47,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <Kokkos_Macros.hpp>
+#include <impl/Kokkos_BitOps.hpp>
 #include <string>
 #include <type_traits>
 
@@ -435,21 +436,12 @@ struct power_of_two<1,true>
 /** \brief  If power of two then return power,
  *          otherwise return ~0u.
  */
-static KOKKOS_FORCEINLINE_FUNCTION
+KOKKOS_FORCEINLINE_FUNCTION
 unsigned power_of_two_if_valid( const unsigned N )
 {
   unsigned p = ~0u ;
-  if ( N && ! ( N & ( N - 1 ) ) ) {
-#if defined( __CUDA_ARCH__ ) && defined( KOKKOS_ENABLE_CUDA )
-    p = __ffs(N) - 1 ;
-#elif defined( __GNUC__ ) || defined( __GNUG__ )
-    p = __builtin_ffs(N) - 1 ;
-#elif defined( __INTEL_COMPILER )
-    p = _bit_scan_forward(N);
-#else
-    p = 0 ;
-    for ( unsigned j = 1 ; ! ( N & j ) ; j <<= 1 ) { ++p ; }
-#endif
+  if ( is_integral_power_of_two ( N ) ) {
+    p = bit_scan_forward ( N ) ;
   }
   return p ;
 }

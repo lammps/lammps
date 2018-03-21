@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -92,7 +92,7 @@ struct TestScan {
     Kokkos::deep_copy( errors_a, 0 );
     errors = errors_a;
 
-    parallel_scan( N , *this );
+    Kokkos::parallel_scan( N , *this );
   }
 
   TestScan( const WorkSpec & Start , const WorkSpec & N )
@@ -103,7 +103,7 @@ struct TestScan {
     Kokkos::deep_copy( errors_a, 0 );
     errors = errors_a;
 
-    parallel_scan( exec_policy( Start , N ) , *this );
+    Kokkos::parallel_scan( exec_policy( Start , N ) , *this );
   }
 
   static void test_range( const WorkSpec & begin, const WorkSpec & end )

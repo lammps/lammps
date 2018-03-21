@@ -62,11 +62,11 @@ static const char cite_fix_poems[] =
 ------------------------------------------------------------------------- */
 
 FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), step_respa(NULL), natom2body(NULL), 
-  atom2body(NULL), displace(NULL), nrigid(NULL), masstotal(NULL), 
-  xcm(NULL), vcm(NULL), fcm(NULL), inertia(NULL), ex_space(NULL), 
-  ey_space(NULL), ez_space(NULL), angmom(NULL), omega(NULL), 
-  torque(NULL), sum(NULL), all(NULL), jointbody(NULL), 
+  Fix(lmp, narg, arg), step_respa(NULL), natom2body(NULL),
+  atom2body(NULL), displace(NULL), nrigid(NULL), masstotal(NULL),
+  xcm(NULL), vcm(NULL), fcm(NULL), inertia(NULL), ex_space(NULL),
+  ey_space(NULL), ez_space(NULL), angmom(NULL), omega(NULL),
+  torque(NULL), sum(NULL), all(NULL), jointbody(NULL),
   xjoint(NULL), freelist(NULL), poems(NULL)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_poems);
@@ -76,6 +76,7 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
   time_integrate = 1;
   rigid_flag = 1;
   virial_flag = 1;
+  thermo_virial = 1;
   dof_flag = 1;
 
   MPI_Comm_rank(world,&me);
@@ -683,12 +684,14 @@ void FixPOEMS::setup(int vflag)
 
   // guestimate virial as 2x the set_v contribution
 
-  if (vflag_global)
-    for (n = 0; n < 6; n++) virial[n] *= 2.0;
-  if (vflag_atom) {
-    for (i = 0; i < nlocal; i++)
-      for (n = 0; n < 6; n++)
-        vatom[i][n] *= 2.0;
+  if (evflag) {
+    if (vflag_global)
+      for (n = 0; n < 6; n++) virial[n] *= 2.0;
+    if (vflag_atom) {
+      for (i = 0; i < nlocal; i++)
+        for (n = 0; n < 6; n++)
+          vatom[i][n] *= 2.0;
+    }
   }
 
   // use post_force() to compute initial fcm & torque

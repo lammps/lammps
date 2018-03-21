@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -59,6 +59,8 @@ namespace Impl {
 namespace {
 
 HostThreadTeamData g_serial_thread_team_data ;
+
+bool g_serial_is_initialized = false;
 
 }
 
@@ -136,9 +138,9 @@ HostThreadTeamData * serial_get_thread_team_data()
 
 namespace Kokkos {
 
-int Serial::is_initialized()
+bool Serial::is_initialized()
 {
-  return 1 ;
+  return Impl::g_serial_is_initialized ;
 }
 
 void Serial::initialize( unsigned threads_count
@@ -158,6 +160,8 @@ void Serial::initialize( unsigned threads_count
   #if defined(KOKKOS_ENABLE_PROFILING)
     Kokkos::Profiling::initialize();
   #endif
+
+  Impl::g_serial_is_initialized = true;
 }
 
 void Serial::finalize()
@@ -177,6 +181,8 @@ void Serial::finalize()
   #if defined(KOKKOS_ENABLE_PROFILING)
     Kokkos::Profiling::finalize();
   #endif
+
+  Impl::g_serial_is_initialized = false;
 }
 
 const char* Serial::name() { return "Serial"; }

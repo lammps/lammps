@@ -32,8 +32,9 @@
 #include "compute.h"
 #include "fix.h"
 #include "timer.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "error.h"
+#include "kokkos.h"
 
 #include <ctime>
 
@@ -118,7 +119,7 @@ void VerletKokkos::setup(int flag)
 
   atomKK->modified(Host,ALL_MASK);
 
-  neighbor->build();
+  neighbor->build(1);
   neighbor->ncalls = 0;
 
   // compute all forces
@@ -221,7 +222,7 @@ void VerletKokkos::setup_minimal(int flag)
 
     atomKK->modified(Host,ALL_MASK);
 
-    neighbor->build();
+    neighbor->build(1);
     neighbor->ncalls = 0;
   }
 
@@ -294,6 +295,7 @@ void VerletKokkos::run(int n)
   int n_pre_exchange = modify->n_pre_exchange;
   int n_pre_neighbor = modify->n_pre_neighbor;
   int n_pre_force = modify->n_pre_force;
+  int n_pre_reverse = modify->n_pre_reverse;
   int n_post_force = modify->n_post_force;
   int n_end_of_step = modify->n_end_of_step;
 
@@ -304,9 +306,9 @@ void VerletKokkos::run(int n)
 
   f_merge_copy = DAT::t_f_array("VerletKokkos::f_merge_copy",atomKK->k_f.dimension_0());
 
-  static double time = 0.0;
   atomKK->sync(Device,ALL_MASK);
-  Kokkos::Impl::Timer ktimer;
+  //static double time = 0.0;
+  //Kokkos::Impl::Timer ktimer;
 
   timer->init_timeout();
   for (int i = 0; i < n; i++) {
@@ -320,10 +322,10 @@ void VerletKokkos::run(int n)
 
     // initial time integration
 
-    ktimer.reset();
+    //ktimer.reset();
     timer->stamp();
     modify->initial_integrate(vflag);
-    time += ktimer.seconds();
+    //time += ktimer.seconds();
     if (n_post_integrate) modify->post_integrate();
     timer->stamp(Timer::MODIFY);
 
@@ -376,7 +378,7 @@ void VerletKokkos::run(int n)
         modify->pre_neighbor();
         timer->stamp(Timer::MODIFY);
       }
-      neighbor->build();
+      neighbor->build(1);
       timer->stamp(Timer::NEIGH);
     }
 
@@ -523,11 +525,18 @@ void VerletKokkos::run(int n)
       atomKK->k_f.modify<LMPDeviceType>();
     }
 
+    if (n_pre_reverse) {
+      modify->pre_reverse(eflag,vflag);
+      timer->stamp(Timer::MODIFY);
+    }
 
     // reverse communication of forces
 
-    if (force->newton) comm->reverse_comm();
-    timer->stamp(Timer::COMM);
+    if (force->newton) {
+      Kokkos::fence();
+      comm->reverse_comm();
+      timer->stamp(Timer::COMM);
+    }
 
     // force modifications, final time integration, diagnostics
 

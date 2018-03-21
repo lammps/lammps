@@ -31,6 +31,9 @@ do
       KOKKOS_DEVICES="${KOKKOS_DEVICES},Cuda"
       CUDA_PATH="${key#*=}"
       ;;
+    --with-rocm)
+      KOKKOS_DEVICES="${KOKKOS_DEVICES},ROCm"
+      ;;
     --with-openmp)
       KOKKOS_DEVICES="${KOKKOS_DEVICES},OpenMP"
       ;;
@@ -55,6 +58,9 @@ do
       ;;
     --with-hwloc*)
       HWLOC_PATH="${key#*=}"
+      ;;
+    --with-memkind*)
+      MEMKIND_PATH="${key#*=}"
       ;;
     --arch*)
       KOKKOS_ARCH="${key#*=}"
@@ -111,33 +117,38 @@ do
       echo ""
       echo "--arch=[OPT]:  Set target architectures. Options are:"
       echo "               [AMD]"
-      echo "                 AMDAVX         = AMD CPU"
+      echo "                 AMDAVX          = AMD CPU"
       echo "               [ARM]"
-      echo "                 ARMv80         = ARMv8.0 Compatible CPU"
-      echo "                 ARMv81         = ARMv8.1 Compatible CPU"
-      echo "                 ARMv8-ThunderX = ARMv8 Cavium ThunderX CPU"
+      echo "                 ARMv80          = ARMv8.0 Compatible CPU"
+      echo "                 ARMv81          = ARMv8.1 Compatible CPU"
+      echo "                 ARMv8-ThunderX  = ARMv8 Cavium ThunderX CPU"
+      echo "                 ARMv8-TX2       = ARMv8 Cavium ThunderX2 CPU"
       echo "               [IBM]"
-      echo "                 Power8         = IBM POWER8 CPUs"
-      echo "                 Power9         = IBM POWER9 CPUs"
+      echo "                 BGQ             = IBM Blue Gene Q"
+      echo "                 Power7          = IBM POWER7 and POWER7+ CPUs"
+      echo "                 Power8          = IBM POWER8 CPUs"
+      echo "                 Power9          = IBM POWER9 CPUs"
       echo "               [Intel]"
-      echo "                 WSM            = Intel Westmere CPUs"
-      echo "                 SNB            = Intel Sandy/Ivy Bridge CPUs"
-      echo "                 HSW            = Intel Haswell CPUs"
-      echo "                 BDW            = Intel Broadwell Xeon E-class CPUs"
-      echo "                 SKX            = Intel Sky Lake Xeon E-class HPC CPUs (AVX512)"
+      echo "                 WSM             = Intel Westmere CPUs"
+      echo "                 SNB             = Intel Sandy/Ivy Bridge CPUs"
+      echo "                 HSW             = Intel Haswell CPUs"
+      echo "                 BDW             = Intel Broadwell Xeon E-class CPUs"
+      echo "                 SKX             = Intel Sky Lake Xeon E-class HPC CPUs (AVX512)"
       echo "               [Intel Xeon Phi]"
-      echo "                 KNC            = Intel Knights Corner Xeon Phi"
-      echo "                 KNL            = Intel Knights Landing Xeon Phi"
+      echo "                 KNC             = Intel Knights Corner Xeon Phi"
+      echo "                 KNL             = Intel Knights Landing Xeon Phi"
       echo "               [NVIDIA]"
-      echo "                 Kepler30       = NVIDIA Kepler generation CC 3.0"
-      echo "                 Kepler32       = NVIDIA Kepler generation CC 3.2"
-      echo "                 Kepler35       = NVIDIA Kepler generation CC 3.5"
-      echo "                 Kepler37       = NVIDIA Kepler generation CC 3.7"
-      echo "                 Maxwell50      = NVIDIA Maxwell generation CC 5.0"
-      echo "                 Maxwell52      = NVIDIA Maxwell generation CC 5.2"
-      echo "                 Maxwell53      = NVIDIA Maxwell generation CC 5.3"
-      echo "                 Pascal60       = NVIDIA Pascal generation CC 6.0"
-      echo "                 Pascal61       = NVIDIA Pascal generation CC 6.1"
+      echo "                 Kepler30        = NVIDIA Kepler generation CC 3.0"
+      echo "                 Kepler32        = NVIDIA Kepler generation CC 3.2"
+      echo "                 Kepler35        = NVIDIA Kepler generation CC 3.5"
+      echo "                 Kepler37        = NVIDIA Kepler generation CC 3.7"
+      echo "                 Maxwell50       = NVIDIA Maxwell generation CC 5.0"
+      echo "                 Maxwell52       = NVIDIA Maxwell generation CC 5.2"
+      echo "                 Maxwell53       = NVIDIA Maxwell generation CC 5.3"
+      echo "                 Pascal60        = NVIDIA Pascal generation CC 6.0"
+      echo "                 Pascal61        = NVIDIA Pascal generation CC 6.1"
+      echo "                 Volta70         = NVIDIA Volta generation CC 7.0"
+      echo "                 Volta72         = NVIDIA Volta generation CC 7.2"
       echo ""
       echo "--compiler=/Path/To/Compiler  Set the compiler."
       echo "--debug,-dbg:                 Enable Debugging."
@@ -151,7 +162,8 @@ do
       echo "                                -lpthread, etc.)."
       echo "--with-gtest=/Path/To/Gtest:  Set path to gtest.  (Used in unit and performance"
       echo "                                tests.)"
-      echo "--with-hwloc=/Path/To/Hwloc:  Set path to hwloc."
+      echo "--with-hwloc=/Path/To/Hwloc:  Set path to hwloc library."
+      echo "--with-memkind=/Path/To/MemKind:  Set path to memkind library."
       echo "--with-options=[OPT]:         Additional options to Kokkos:"
       echo "                                compiler_warnings"
       echo "                                aggressive_vectorization = add ivdep on loops"
@@ -228,7 +240,17 @@ else
 fi
 
 if [ ${#HWLOC_PATH} -gt 0 ]; then
-  KOKKOS_SETTINGS="${KOKKOS_SETTINGS} HWLOC_PATH=${HWLOC_PATH} KOKKOS_USE_TPLS=hwloc"
+  KOKKOS_SETTINGS="${KOKKOS_SETTINGS} HWLOC_PATH=${HWLOC_PATH}"
+  KOKKOS_USE_TPLS="${KOKKOS_USE_TPLS},hwloc"
+fi
+
+if [ ${#MEMKIND_PATH} -gt 0 ]; then
+  KOKKOS_SETTINGS="${KOKKOS_SETTINGS} MEMKIND_PATH=${MEMKIND_PATH}" 
+  KOKKOS_USE_TPLS="${KOKKOS_USE_TPLS},experimental_memkind"
+fi
+
+if [ ${#KOKKOS_USE_TPLS} -gt 0 ]; then
+  KOKKOS_SETTINGS="${KOKKOS_SETTINGS} KOKKOS_USE_TPLS=${KOKKOS_USE_TPLS}"
 fi
 
 if [ ${#QTHREADS_PATH} -gt 0 ]; then
@@ -253,9 +275,10 @@ else
 fi
 
 mkdir -p install
-echo "#Makefile to satisfy existens of target kokkos-clean before installing the library" > install/Makefile.kokkos
-echo "kokkos-clean:" >> install/Makefile.kokkos
-echo "" >> install/Makefile.kokkos
+gen_makefile=Makefile.kokkos
+echo "#Makefile to satisfy existens of target kokkos-clean before installing the library" > install/${gen_makefile}
+echo "kokkos-clean:" >> install/${gen_makefile}
+echo "" >> install/${gen_makefile}
 mkdir -p core
 mkdir -p core/unit_test
 mkdir -p core/perf_test

@@ -68,7 +68,7 @@ void VerletLRTIntel::init()
 
   _intel_kspace = (PPPMIntel*)(force->kspace_match("pppm/intel", 0));
 
-  #ifdef LMP_INTEL_NOLRT
+  #ifndef LMP_INTEL_USELRT
   error->all(FLERR,
              "LRT otion for Intel package disabled at compile time");
   #endif
@@ -142,7 +142,7 @@ void VerletLRTIntel::setup(int flag)
   domain->image_check();
   domain->box_too_small_check();
   modify->setup_pre_neighbor();
-  neighbor->build();
+  neighbor->build(1);
   neighbor->ncalls = 0;
 
   // compute all forces
@@ -276,7 +276,7 @@ void VerletLRTIntel::run(int n)
         modify->pre_neighbor();
         timer->stamp(Timer::MODIFY);
       }
-      neighbor->build();
+      neighbor->build(1);
       timer->stamp(Timer::NEIGH);
     }
 

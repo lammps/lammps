@@ -253,49 +253,23 @@ void PairLJLongCoulLong::init_style()
 
   if (force->kspace->neighrequest_flag) {
     int irequest;
+    int respa = 0;
 
     if (update->whichflag == 1 && strstr(update->integrate_style,"respa")) {
-      int respa = 0;
       if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
       if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
+    }
 
-      if (respa == 0) irequest = neighbor->request(this,instance_me);
-      else if (respa == 1) {
-        irequest = neighbor->request(this,instance_me);
-        neighbor->requests[irequest]->id = 1;
-        neighbor->requests[irequest]->respainner = 1;
-        irequest = neighbor->request(this,instance_me);
-        neighbor->requests[irequest]->id = 3;
-        neighbor->requests[irequest]->respaouter = 1;
-      } else {
-        irequest = neighbor->request(this,instance_me);
-        neighbor->requests[irequest]->id = 1;
-        neighbor->requests[irequest]->respainner = 1;
-        irequest = neighbor->request(this,instance_me);
-        neighbor->requests[irequest]->id = 2;
-        neighbor->requests[irequest]->respamiddle = 1;
-        irequest = neighbor->request(this,instance_me);
-        neighbor->requests[irequest]->id = 3;
-        neighbor->requests[irequest]->respaouter = 1;
-      }
+    irequest = neighbor->request(this,instance_me);
 
-    } else irequest = neighbor->request(this,instance_me);
+    if (respa >= 1) {
+      neighbor->requests[irequest]->respaouter = 1;
+      neighbor->requests[irequest]->respainner = 1;
+    }
+    if (respa == 2) neighbor->requests[irequest]->respamiddle = 1;
   }
 
   cut_coulsq = cut_coul * cut_coul;
-}
-
-/* ----------------------------------------------------------------------
-   neighbor callback to inform pair style of neighbor list to use
-   regular or rRESPA
-------------------------------------------------------------------------- */
-
-void PairLJLongCoulLong::init_list(int id, NeighList *ptr)
-{
-  if (id == 0) list = ptr;
-  else if (id == 1) listinner = ptr;
-  else if (id == 2) listmiddle = ptr;
-  else if (id == 3) listouter = ptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -547,7 +521,7 @@ void PairLJLongCoulLong::compute(int eflag, int vflag)
 
       if (rsq < cut_ljsqi[typej]) {                        // lj
         if (order6) {                                        // long-range lj
-          if(!ndisptablebits || rsq <= tabinnerdispsq) {				// series real space
+          if(!ndisptablebits || rsq <= tabinnerdispsq) {                // series real space
             register double rn = r2inv*r2inv*r2inv;
             register double x2 = g2*rsq, a2 = 1.0/x2;
             x2 = a2*exp(-x2)*lj4i[typej];
@@ -565,7 +539,7 @@ void PairLJLongCoulLong::compute(int eflag, int vflag)
                 evdwl = f*rn*lj3i[typej]-g6*((a2+1.0)*a2+0.5)*x2+t*lj4i[typej];
             }
           }
-          else {						// table real space
+          else {                        // table real space
             register union_int_float_t disp_t;
             disp_t.f = rsq;
             register const int disp_k = (disp_t.i & ndispmask)>>ndispshiftbits;
@@ -575,7 +549,7 @@ void PairLJLongCoulLong::compute(int eflag, int vflag)
               force_lj = (rn*=rn)*lj1i[typej]-(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*lj4i[typej];
               if (eflag) evdwl = rn*lj3i[typej]-(edisptable[disp_k]+f_disp*dedisptable[disp_k])*lj4i[typej];
             }
-            else {					// special case
+            else {                  // special case
               register double f = special_lj[ni], t = rn*(1.0-f);
               force_lj = f*(rn *= rn)*lj1i[typej]-(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*lj4i[typej]+t*lj2i[typej];
               if (eflag) evdwl = f*rn*lj3i[typej]-(edisptable[disp_k]+f_disp*dedisptable[disp_k])*lj4i[typej]+t*lj4i[typej];
@@ -649,13 +623,13 @@ void PairLJLongCoulLong::compute_inner()
   double qri, *cut_ljsqi, *lj1i, *lj2i;
   vector xi, d;
 
-  ineighn = (ineigh = listinner->ilist)+listinner->inum;
+  ineighn = (ineigh = list->ilist_inner)+list->inum_inner;
   for (; ineigh<ineighn; ++ineigh) {                        // loop over my atoms
     i = *ineigh; fi = f0+3*i;
     memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
     cut_ljsqi = cut_ljsq[typei = type[i]];
     lj1i = lj1[typei]; lj2i = lj2[typei];
-    jneighn = (jneigh = listinner->firstneigh[i])+listinner->numneigh[i];
+    jneighn = (jneigh = list->firstneigh_inner[i])+list->numneigh_inner[i];
     for (; jneigh<jneighn; ++jneigh) {                        // loop over neighbors
       j = *jneigh;
       ni = sbmask(j);
@@ -736,7 +710,7 @@ void PairLJLongCoulLong::compute_middle()
   double qri, *cut_ljsqi, *lj1i, *lj2i;
   vector xi, d;
 
-  ineighn = (ineigh = listmiddle->ilist)+listmiddle->inum;
+  ineighn = (ineigh = list->ilist_middle)+list->inum_middle;
 
   for (; ineigh<ineighn; ++ineigh) {                        // loop over my atoms
     i = *ineigh; fi = f0+3*i;
@@ -744,7 +718,7 @@ void PairLJLongCoulLong::compute_middle()
     memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
     cut_ljsqi = cut_ljsq[typei = type[i]];
     lj1i = lj1[typei]; lj2i = lj2[typei];
-    jneighn = (jneigh = listmiddle->firstneigh[i])+listmiddle->numneigh[i];
+    jneighn = (jneigh = list->firstneigh_middle[i])+list->numneigh_middle[i];
 
     for (; jneigh<jneighn; ++jneigh) {
       j = *jneigh;
@@ -833,7 +807,7 @@ void PairLJLongCoulLong::compute_outer(int eflag, int vflag)
   double cut_in_off_sq = cut_in_off*cut_in_off;
   double cut_in_on_sq = cut_in_on*cut_in_on;
 
-  ineighn = (ineigh = listouter->ilist)+listouter->inum;
+  ineighn = (ineigh = list->ilist)+list->inum;
 
   for (; ineigh<ineighn; ++ineigh) {                        // loop over my atoms
     i = *ineigh; fi = f0+3*i;
@@ -842,7 +816,7 @@ void PairLJLongCoulLong::compute_outer(int eflag, int vflag)
     lj1i = lj1[typei]; lj2i = lj2[typei]; lj3i = lj3[typei]; lj4i = lj4[typei];
     cutsqi = cutsq[typei]; cut_ljsqi = cut_ljsq[typei];
     memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
-    jneighn = (jneigh = listouter->firstneigh[i])+listouter->numneigh[i];
+    jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
 
     for (; jneigh<jneighn; ++jneigh) {                        // loop over neighbors
       j = *jneigh;
@@ -931,7 +905,7 @@ void PairLJLongCoulLong::compute_outer(int eflag, int vflag)
                 evdwl = f*rn*lj3i[typej]-g6*((a2+1.0)*a2+0.5)*x2+t*lj4i[typej];
             }
           }
-          else {						// table real space
+          else {                        // table real space
             register union_int_float_t disp_t;
             disp_t.f = rsq;
             register const int disp_k = (disp_t.i & ndispmask)>>ndispshiftbits;
@@ -941,7 +915,7 @@ void PairLJLongCoulLong::compute_outer(int eflag, int vflag)
               force_lj = (rn*=rn)*lj1i[typej]-(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*lj4i[typej]-respa_lj;
               if (eflag) evdwl = rn*lj3i[typej]-(edisptable[disp_k]+f_disp*dedisptable[disp_k])*lj4i[typej];
             }
-            else {					// special case
+            else {                  // special case
               register double f = special_lj[ni], t = rn*(1.0-f);
               force_lj = f*(rn *= rn)*lj1i[typej]-(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*lj4i[typej]+t*lj2i[typej]-respa_lj;
               if (eflag) evdwl = f*rn*lj3i[typej]-(edisptable[disp_k]+f_disp*dedisptable[disp_k])*lj4i[typej]+t*lj4i[typej];

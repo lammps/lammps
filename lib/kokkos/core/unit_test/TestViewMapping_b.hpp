@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -133,11 +133,15 @@ TEST_F( TEST_CATEGORY , view_mapping_atomic )
   f.run();
 }
 
+}
+
 /*--------------------------------------------------------------------------*/
+
 namespace Test {
-struct ValueType {
+
+struct MappingClassValueType {
     KOKKOS_INLINE_FUNCTION
-    ValueType() 
+    MappingClassValueType() 
     {
 #if 0
 #if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA )
@@ -150,7 +154,7 @@ struct ValueType {
 #endif
     }
     KOKKOS_INLINE_FUNCTION
-    ~ValueType()
+    ~MappingClassValueType()
     {
 #if 0
 #if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA )
@@ -163,7 +167,6 @@ struct ValueType {
 #endif
     }
   };
-}
 
 template< class Space >
 void test_view_mapping_class_value()
@@ -172,7 +175,7 @@ void test_view_mapping_class_value()
 
   ExecSpace::fence();
   {
-    Kokkos::View< Test::ValueType, ExecSpace > a( "a" );
+    Kokkos::View< MappingClassValueType, ExecSpace > a( "a" );
     ExecSpace::fence();
   }
   ExecSpace::fence();
@@ -184,3 +187,74 @@ TEST_F( TEST_CATEGORY , view_mapping_class_value )
 }
 
 }
+
+/*--------------------------------------------------------------------------*/
+
+namespace Test {
+
+TEST_F( TEST_CATEGORY , view_mapping_assignable )
+{
+  typedef TEST_EXECSPACE exec_space ;
+
+  { // Assignment of rank-0 Left = Right
+    typedef Kokkos::ViewTraits<int,Kokkos::LayoutLeft, exec_space> dst_traits ;
+    typedef Kokkos::ViewTraits<int,Kokkos::LayoutRight,exec_space> src_traits ;
+    typedef Kokkos::Impl::ViewMapping<dst_traits,src_traits,void> mapping ;
+    static_assert( mapping::is_assignable , "" );
+
+    Kokkos::View<int,Kokkos::LayoutRight,exec_space> src ;
+    Kokkos::View<int,Kokkos::LayoutLeft,exec_space> dst( src );
+    dst = src ;
+  }
+
+  { // Assignment of rank-0 Right = Left
+    typedef Kokkos::ViewTraits<int,Kokkos::LayoutRight,exec_space> dst_traits ;
+    typedef Kokkos::ViewTraits<int,Kokkos::LayoutLeft, exec_space> src_traits ;
+    typedef Kokkos::Impl::ViewMapping<dst_traits,src_traits,void> mapping ;
+    static_assert( mapping::is_assignable , "" );
+
+    Kokkos::View<int,Kokkos::LayoutLeft,exec_space> src ;
+    Kokkos::View<int,Kokkos::LayoutRight,exec_space> dst( src );
+    dst = src ;
+  }
+
+  { // Assignment of rank-1 Left = Right
+    typedef Kokkos::ViewTraits<int*,Kokkos::LayoutLeft, exec_space> dst_traits ;
+    typedef Kokkos::ViewTraits<int*,Kokkos::LayoutRight,exec_space> src_traits ;
+    typedef Kokkos::Impl::ViewMapping<dst_traits,src_traits,void> mapping ;
+    static_assert( mapping::is_assignable , "" );
+
+    Kokkos::View<int*,Kokkos::LayoutRight,exec_space> src ;
+    Kokkos::View<int*,Kokkos::LayoutLeft,exec_space> dst( src );
+    dst = src ;
+  }
+
+  { // Assignment of rank-1 Right = Left
+    typedef Kokkos::ViewTraits<int*,Kokkos::LayoutRight,exec_space> dst_traits ;
+    typedef Kokkos::ViewTraits<int*,Kokkos::LayoutLeft, exec_space> src_traits ;
+    typedef Kokkos::Impl::ViewMapping<dst_traits,src_traits,void> mapping ;
+    static_assert( mapping::is_assignable , "" );
+
+    Kokkos::View<int*,Kokkos::LayoutLeft,exec_space> src ;
+    Kokkos::View<int*,Kokkos::LayoutRight,exec_space> dst( src );
+    dst = src ;
+  }
+
+  { // Assignment of rank-2 Left = Right
+    typedef Kokkos::ViewTraits<int**,Kokkos::LayoutLeft, exec_space> dst_traits ;
+    typedef Kokkos::ViewTraits<int**,Kokkos::LayoutRight,exec_space> src_traits ;
+    typedef Kokkos::Impl::ViewMapping<dst_traits,src_traits,void> mapping ;
+    static_assert( ! mapping::is_assignable , "" );
+  }
+
+  { // Assignment of rank-2 Right = Left
+    typedef Kokkos::ViewTraits<int**,Kokkos::LayoutRight,exec_space> dst_traits ;
+    typedef Kokkos::ViewTraits<int**,Kokkos::LayoutLeft, exec_space> src_traits ;
+    typedef Kokkos::Impl::ViewMapping<dst_traits,src_traits,void> mapping ;
+    static_assert( ! mapping::is_assignable , "" );
+  }
+
+}
+
+}
+

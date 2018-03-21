@@ -32,6 +32,8 @@ pair_style lj/cut/coul/long/omp command :h3
 pair_style lj/cut/coul/msm command :h3
 pair_style lj/cut/coul/msm/gpu command :h3
 pair_style lj/cut/coul/msm/omp command :h3
+pair_style lj/cut/coul/wolf command :h3
+pair_style lj/cut/coul/wolf/omp command :h3
 pair_style lj/cut/tip4p/cut command :h3
 pair_style lj/cut/tip4p/cut/omp command :h3
 pair_style lj/cut/tip4p/long command :h3
@@ -62,6 +64,10 @@ args = list of arguments for a particular style :ul
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
   {lj/cut/coul/msm} args = cutoff (cutoff2)
     cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
+    cutoff2 = global cutoff for Coulombic (optional) (distance units)
+  {lj/cut/coul/wolf} args = alpha cutoff (cutoff2)
+    alpha = damping parameter (inverse distance units)
+    cutoff = global cutoff for LJ (and Coulombic if only 2 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
   {lj/cut/tip4p/cut} args = otype htype btype atype qdist cutoff (cutoff2)
     otype,htype = atom types for TIP4P O and H
@@ -114,6 +120,10 @@ pair_style lj/cut/tip4p/cut 1 2 7 8 0.15 12.0
 pair_style lj/cut/tip4p/cut 1 2 7 8 0.15 12.0 10.0
 pair_coeff * * 100.0 3.0
 pair_coeff 1 1 100.0 3.5 9.0 :pre
+
+pair_style lj/cut/coul/wolf 0.2 5. 10.0
+pair_coeff * * 1.0 1.0
+pair_coeff 1 1 1.0 1.0 2.5 :pre
 
 pair_style lj/cut/tip4p/long 1 2 7 8 0.15 12.0
 pair_style lj/cut/tip4p/long 1 2 7 8 0.15 12.0 10.0
@@ -178,6 +188,24 @@ Style {lj/cut/coul/long/cs} is identical to {lj/cut/coul/long} except
 that a term is added for the "core/shell
 model"_Section_howto.html#howto_25 to allow charges on core and shell
 particles to be separated by r = 0.0.
+
+Style {coul/wolf} adds a Coulombic pairwise interaction via the Wolf
+summation method, described in "Wolf"_#Wolf1, given by:
+
+:c,image(Eqs/pair_coul_wolf.jpg)
+
+where {alpha} is the damping parameter, and erfc() is the
+complementary error-function terms.  This potential
+is essentially a short-range, spherically-truncated,
+charge-neutralized, shifted, pairwise {1/r} summation.  With a
+manipulation of adding and subtracting a self term (for i = j) to the
+first and second term on the right-hand-side, respectively, and a
+small enough {alpha} damping parameter, the second term shrinks and
+the potential becomes a rapidly-converging real-space summation.  With
+a long enough cutoff and small enough alpha parameter, the energy and
+forces calculated by the Wolf summation method approach those of the
+Ewald sum.  So it is a means of getting effective long-range
+interactions with a short-range potential.
 
 Styles {lj/cut/tip4p/cut} and {lj/cut/tip4p/long} implement the TIP4P
 water model of "(Jorgensen)"_#Jorgensen2, which introduces a massless

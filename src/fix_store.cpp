@@ -42,7 +42,7 @@ vstore(NULL), astore(NULL), rbuf(NULL)
 
   disable = 0;
   nvalues = vecflag = 0;
-  flavor = UNKNOWN; 
+  flavor = UNKNOWN;
 
   if (strcmp(arg[3],"global") == 0) flavor = GLOBAL;
   else if (strcmp(arg[3],"peratom") == 0) flavor = PERATOM;
@@ -155,8 +155,7 @@ void FixStore::reset_global(int nrow_caller, int ncol_caller)
   else memory->create(astore,nrow,ncol,"fix/store:astore");
   memory->create(rbuf,nrow*ncol+2,"fix/store:rbuf");
 
-
-  printf("AAA HOW GET HERE\n");
+ // printf("AAA HOW GET HERE\n");
 }
 
 /* ----------------------------------------------------------------------

@@ -233,7 +233,8 @@ void PairBuckLongCoulLong::init_style()
 
   if (!atom->q_flag && (ewald_order&(1<<1)))
     error->all(FLERR,
-        "Invoking coulombic in pair style buck/long/coul/long requires atom attribute q");
+               "Invoking coulombic in pair style buck/long/coul/long "
+               "requires atom attribute q");
 
   // ensure use of KSpace long-range solver, set two g_ewalds
 
@@ -258,49 +259,23 @@ void PairBuckLongCoulLong::init_style()
 
   if (force->kspace->neighrequest_flag) {
     int irequest;
+    int respa = 0;
 
     if (update->whichflag == 1 && strstr(update->integrate_style,"respa")) {
-      int respa = 0;
       if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
       if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
+    }
 
-      if (respa == 0) irequest = neighbor->request(this,instance_me);
-      else if (respa == 1) {
-        irequest = neighbor->request(this,instance_me);
-        neighbor->requests[irequest]->id = 1;
-        neighbor->requests[irequest]->respainner = 1;
-        irequest = neighbor->request(this,instance_me);
-        neighbor->requests[irequest]->id = 3;
-        neighbor->requests[irequest]->respaouter = 1;
-      } else {
-        irequest = neighbor->request(this,instance_me);
-        neighbor->requests[irequest]->id = 1;
-        neighbor->requests[irequest]->respainner = 1;
-        irequest = neighbor->request(this,instance_me);
-        neighbor->requests[irequest]->id = 2;
-        neighbor->requests[irequest]->respamiddle = 1;
-        irequest = neighbor->request(this,instance_me);
-        neighbor->requests[irequest]->id = 3;
-        neighbor->requests[irequest]->respaouter = 1;
-      }
+    irequest = neighbor->request(this,instance_me);
 
-    } else irequest = neighbor->request(this,instance_me);
+    if (respa >= 1) {
+      neighbor->requests[irequest]->respaouter = 1;
+      neighbor->requests[irequest]->respainner = 1;
+    }
+    if (respa == 2) neighbor->requests[irequest]->respamiddle = 1;
   }
 
   cut_coulsq = cut_coul * cut_coul;
-}
-
-/* ----------------------------------------------------------------------
-   neighbor callback to inform pair style of neighbor list to use
-   regular or rRESPA
-------------------------------------------------------------------------- */
-
-void PairBuckLongCoulLong::init_list(int id, NeighList *ptr)
-{
-  if (id == 0) list = ptr;
-  else if (id == 1) listinner = ptr;
-  else if (id == 2) listmiddle = ptr;
-  else if (id == 3) listouter = ptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -651,14 +626,14 @@ void PairBuckLongCoulLong::compute_inner()
   double qri, *cut_bucksqi, *buck1i, *buck2i, *rhoinvi;
   vector xi, d;
 
-  ineighn = (ineigh = listinner->ilist) + listinner->inum;
+  ineighn = (ineigh = list->ilist_inner) + list->inum_inner;
   for (; ineigh<ineighn; ++ineigh) {                        // loop over my atoms
     i = *ineigh; fi = f0+3*i;
     if (order1) qri = qqrd2e*q[i];
     memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
     cut_bucksqi = cut_bucksq[typei = type[i]];
     buck1i = buck1[typei]; buck2i = buck2[typei]; rhoinvi = rhoinv[typei];
-    jneighn = (jneigh = listinner->firstneigh[i])+listinner->numneigh[i];
+    jneighn = (jneigh = list->firstneigh_inner[i])+list->numneigh_inner[i];
 
     for (; jneigh<jneighn; ++jneigh) {                        // loop over neighbors
       j = *jneigh;
@@ -740,7 +715,7 @@ void PairBuckLongCoulLong::compute_middle()
   double qri, *cut_bucksqi, *buck1i, *buck2i, *rhoinvi;
   vector xi, d;
 
-  ineighn = (ineigh = listmiddle->ilist)+listmiddle->inum;
+  ineighn = (ineigh = list->ilist_middle)+list->inum_middle;
 
   for (; ineigh<ineighn; ++ineigh) {                        // loop over my atoms
     i = *ineigh; fi = f0+3*i;
@@ -748,7 +723,7 @@ void PairBuckLongCoulLong::compute_middle()
     memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
     cut_bucksqi = cut_bucksq[typei = type[i]];
     buck1i = buck1[typei]; buck2i = buck2[typei]; rhoinvi = rhoinv[typei];
-    jneighn = (jneigh = listmiddle->firstneigh[i])+listmiddle->numneigh[i];
+    jneighn = (jneigh = list->firstneigh_middle[i])+list->numneigh_middle[i];
 
     for (; jneigh<jneighn; ++jneigh) {                        // loop over neighbors
       j = *jneigh;
@@ -839,7 +814,7 @@ void PairBuckLongCoulLong::compute_outer(int eflag, int vflag)
   double cut_in_off_sq = cut_in_off*cut_in_off;
   double cut_in_on_sq = cut_in_on*cut_in_on;
 
-  ineighn = (ineigh = listouter->ilist)+listouter->inum;
+  ineighn = (ineigh = list->ilist)+list->inum;
 
   for (; ineigh<ineighn; ++ineigh) {                        // loop over my atoms
     i = *ineigh; fi = f0+3*i;
@@ -849,7 +824,7 @@ void PairBuckLongCoulLong::compute_outer(int eflag, int vflag)
     buckai = buck_a[typei]; buckci = buck_c[typei]; rhoinvi = rhoinv[typei];
     cutsqi = cutsq[typei]; cut_bucksqi = cut_bucksq[typei];
     memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
-    jneighn = (jneigh = listouter->firstneigh[i])+listouter->numneigh[i];
+    jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
 
     for (; jneigh<jneighn; ++jneigh) {                        // loop over neighbors
       j = *jneigh;
@@ -930,7 +905,7 @@ void PairBuckLongCoulLong::compute_outer(int eflag, int vflag)
               force_buck =
                 r*expr*buck1i[typej]-g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq-respa_buck;
               if (eflag) evdwl = expr*buckai[typej]-g6*((a2+1.0)*a2+0.5)*x2;
-	    }
+            }
             else {                                        // correct for special
               register double f = special_lj[ni], t = rn*(1.0-f);
               force_buck = f*r*expr*buck1i[typej]-

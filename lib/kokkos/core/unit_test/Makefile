@@ -10,6 +10,8 @@ vpath %.cpp ${KOKKOS_PATH}/core/unit_test/openmp
 vpath %.cpp ${KOKKOS_PATH}/core/unit_test/openmptarget
 vpath %.cpp ${KOKKOS_PATH}/core/unit_test/qthreads
 vpath %.cpp ${KOKKOS_PATH}/core/unit_test/cuda
+vpath %.cpp ${KOKKOS_PATH}/core/unit_test/rocm
+
 
 TEST_HEADERS = $(wildcard $(KOKKOS_PATH)/core/unit_test/*.hpp)
 TEST_HEADERS += $(wildcard $(KOKKOS_PATH)/core/unit_test/*/*.hpp)
@@ -25,7 +27,8 @@ endif
 
 CXXFLAGS = -O3
 LINK ?= $(CXX)
-LDFLAGS ?= -lpthread
+LDFLAGS ?=
+override LDFLAGS += -lpthread
 
 include $(KOKKOS_PATH)/Makefile.kokkos
 
@@ -46,15 +49,12 @@ ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
 	OBJ_CUDA += TestCudaHostPinned_ViewAPI.o
 	OBJ_CUDA += TestCudaHostPinned_ViewMapping_a.o TestCudaHostPinned_ViewMapping_b.o TestCudaHostPinned_ViewMapping_subview.o
 	OBJ_CUDA += TestCuda_ViewOfClass.o
-ifeq ($(KOKKOS_INTERNAL_COMPILER_XL), 1)
-	OBJ_CUDA += TestCuda_SubView_c_all.o
-else
 	OBJ_CUDA += TestCuda_SubView_a.o TestCuda_SubView_b.o
 	OBJ_CUDA += TestCuda_SubView_c01.o TestCuda_SubView_c02.o TestCuda_SubView_c03.o
 	OBJ_CUDA += TestCuda_SubView_c04.o TestCuda_SubView_c05.o TestCuda_SubView_c06.o
 	OBJ_CUDA += TestCuda_SubView_c07.o TestCuda_SubView_c08.o TestCuda_SubView_c09.o
 	OBJ_CUDA += TestCuda_SubView_c10.o TestCuda_SubView_c11.o TestCuda_SubView_c12.o
-endif
+	OBJ_CUDA += TestCuda_SubView_c13.o
 	OBJ_CUDA += TestCuda_Reductions.o TestCuda_Scan.o
 	OBJ_CUDA += TestCuda_Complex.o
 	OBJ_CUDA += TestCuda_AtomicOperations.o TestCuda_AtomicViews.o TestCuda_Atomics.o
@@ -62,13 +62,64 @@ endif
 	OBJ_CUDA += TestCuda_TeamReductionScan.o
 	OBJ_CUDA += TestCuda_Other.o
 	OBJ_CUDA += TestCuda_MDRange.o
+	OBJ_CUDA += TestCuda_Crs.o
 	OBJ_CUDA += TestCuda_Task.o TestCuda_WorkGraph.o
 	OBJ_CUDA += TestCuda_Spaces.o
 	OBJ_CUDA += TestCuda_UniqueToken.o
 	
 	TARGETS += KokkosCore_UnitTest_Cuda
-
+    TARGETS += KokkosCore_UnitTest_CudaInterOp
 	TEST_TARGETS += test-cuda
+endif
+
+ifeq ($(KOKKOS_INTERNAL_USE_ROCM), 1)
+        OBJ_ROCM = UnitTestMainInit.o gtest-all.o
+        OBJ_ROCM += TestROCm_Init.o
+        OBJ_ROCM += TestROCm_Complex.o
+        OBJ_ROCM += TestROCm_RangePolicy.o
+        OBJ_ROCM += TestROCm_AtomicOperations.o
+        OBJ_ROCM += TestROCm_Atomics.o
+# complex failing
+        OBJ_ROCM += TestROCm_AtomicViews.o
+        OBJ_ROCM += TestROCm_Other.o
+#        OBJ_ROCM += TestROCm_MDRange.o
+# rocm.memory_pool
+        OBJ_ROCM += TestROCm_Scan.o
+        OBJ_ROCM += TestROCm_SharedAlloc.o
+        OBJ_ROCM += TestROCm_SubView_a.o
+        OBJ_ROCM += TestROCm_SubView_b.o
+# relies on host accessable device memory
+#        OBJ_ROCM += TestROCm_SubView_c01.o
+#        OBJ_ROCM += TestROCm_SubView_c02.o
+#        OBJ_ROCM += TestROCm_SubView_c03.o
+#        OBJ_ROCM += TestROCm_SubView_c04.o
+#        OBJ_ROCM += TestROCm_SubView_c05.o
+#        OBJ_ROCM += TestROCm_SubView_c06.o
+#        OBJ_ROCM += TestROCm_SubView_c07.o
+#        OBJ_ROCM += TestROCm_SubView_c08.o
+#        OBJ_ROCM += TestROCm_SubView_c09.o
+#        OBJ_ROCM += TestROCm_SubView_c10.o
+#        OBJ_ROCM += TestROCm_SubView_c11.o
+#        OBJ_ROCM += TestROCm_SubView_c12.o
+# all of the above use UVM or Host accessable memory
+#        OBJ_ROCM += TestROCm_Team.o
+# compile fails
+#        OBJ_ROCM += TestROCm_TeamReductionScan.o
+# compile fails
+#        OBJ_ROCM += TestROCm_TeamScratch.o
+        OBJ_ROCM += TestROCm_ViewAPI_b.o
+        OBJ_ROCM += TestROCm_ViewMapping_a.o
+        OBJ_ROCM += TestROCm_ViewMapping_b.o
+        OBJ_ROCM += TestROCm_ViewMapping_subview.o
+	OBJ_ROCM += TestROCmHostPinned_ViewAPI.o
+	OBJ_ROCM += TestROCmHostPinned_ViewMapping_a.o 
+	OBJ_ROCM += TestROCmHostPinned_ViewMapping_b.o 
+	OBJ_ROCM += TestROCmHostPinned_ViewMapping_subview.o
+        OBJ_ROCM += TestROCm_ViewOfClass.o
+	OBJ_ROCM += TestROCm_Spaces.o
+     
+        TARGETS += KokkosCore_UnitTest_ROCm
+        TEST_TARGETS += test-rocm
 endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_PTHREADS), 1)
@@ -106,15 +157,12 @@ ifeq ($(KOKKOS_INTERNAL_USE_OPENMP), 1)
 	OBJ_OPENMP += TestOpenMP_ViewAPI_b.o
 	OBJ_OPENMP += TestOpenMP_ViewMapping_a.o TestOpenMP_ViewMapping_b.o TestOpenMP_ViewMapping_subview.o
 	OBJ_OPENMP += TestOpenMP_ViewOfClass.o
-ifeq ($(KOKKOS_INTERNAL_COMPILER_XL), 1)
-	OBJ_OPENMP += TestOpenMP_SubView_c_all.o
-else
 	OBJ_OPENMP += TestOpenMP_SubView_a.o TestOpenMP_SubView_b.o
 	OBJ_OPENMP += TestOpenMP_SubView_c01.o TestOpenMP_SubView_c02.o TestOpenMP_SubView_c03.o
 	OBJ_OPENMP += TestOpenMP_SubView_c04.o TestOpenMP_SubView_c05.o TestOpenMP_SubView_c06.o
 	OBJ_OPENMP += TestOpenMP_SubView_c07.o TestOpenMP_SubView_c08.o TestOpenMP_SubView_c09.o
 	OBJ_OPENMP += TestOpenMP_SubView_c10.o TestOpenMP_SubView_c11.o TestOpenMP_SubView_c12.o
-endif
+	OBJ_OPENMP += TestOpenMP_SubView_c13.o
 	OBJ_OPENMP += TestOpenMP_Reductions.o TestOpenMP_Scan.o
 	OBJ_OPENMP += TestOpenMP_Complex.o
 	OBJ_OPENMP += TestOpenMP_AtomicOperations.o TestOpenMP_AtomicViews.o TestOpenMP_Atomics.o
@@ -122,10 +170,12 @@ endif
 	OBJ_OPENMP += TestOpenMP_TeamReductionScan.o
 	OBJ_OPENMP += TestOpenMP_Other.o
 	OBJ_OPENMP += TestOpenMP_MDRange.o
+	OBJ_OPENMP += TestOpenMP_Crs.o
 	OBJ_OPENMP += TestOpenMP_Task.o TestOpenMP_WorkGraph.o
 	OBJ_OPENMP += TestOpenMP_UniqueToken.o
 	
 	TARGETS += KokkosCore_UnitTest_OpenMP
+    TARGETS += KokkosCore_UnitTest_OpenMPInterOp
 
 	TEST_TARGETS += test-openmp
 endif
@@ -168,14 +218,10 @@ endif
 ifeq ($(KOKKOS_INTERNAL_USE_QTHREADS), 1)
 	OBJ_QTHREADS = TestQthreads_Other.o TestQthreads_Reductions.o TestQthreads_Atomics.o TestQthreads_Team.o
 	OBJ_QTHREADS += TestQthreads_SubView_a.o TestQthreads_SubView_b.o
-ifeq ($(KOKKOS_INTERNAL_COMPILER_XL), 1)
-	OBJ_QTHREADS += TestQthreads_SubView_c_all.o
-else
 	OBJ_QTHREADS += TestQthreads_SubView_c01.o TestQthreads_SubView_c02.o TestQthreads_SubView_c03.o
 	OBJ_QTHREADS += TestQthreads_SubView_c04.o TestQthreads_SubView_c05.o TestQthreads_SubView_c06.o
 	OBJ_QTHREADS += TestQthreads_SubView_c07.o TestQthreads_SubView_c08.o TestQthreads_SubView_c09.o
 	OBJ_QTHREADS += TestQthreads_SubView_c10.o TestQthreads_SubView_c11.o TestQthreads_SubView_c12.o
-endif
 	OBJ_QTHREADS += TestQthreads_ViewAPI_a.o TestQthreads_ViewAPI_b.o UnitTestMain.o gtest-all.o
 	TARGETS += KokkosCore_UnitTest_Qthreads
 
@@ -194,22 +240,23 @@ ifeq ($(KOKKOS_INTERNAL_USE_SERIAL), 1)
         OBJ_SERIAL += TestSerial_ViewAPI_b.o
         OBJ_SERIAL += TestSerial_ViewMapping_a.o TestSerial_ViewMapping_b.o TestSerial_ViewMapping_subview.o
         OBJ_SERIAL += TestSerial_ViewOfClass.o
-ifeq ($(KOKKOS_INTERNAL_COMPILER_XL), 1)
-	    OBJ_SERIAL += TestSerial_SubView_c_all.o
-else
         OBJ_SERIAL += TestSerial_SubView_a.o TestSerial_SubView_b.o
         OBJ_SERIAL += TestSerial_SubView_c01.o TestSerial_SubView_c02.o TestSerial_SubView_c03.o
         OBJ_SERIAL += TestSerial_SubView_c04.o TestSerial_SubView_c05.o TestSerial_SubView_c06.o
         OBJ_SERIAL += TestSerial_SubView_c07.o TestSerial_SubView_c08.o TestSerial_SubView_c09.o
         OBJ_SERIAL += TestSerial_SubView_c10.o TestSerial_SubView_c11.o TestSerial_SubView_c12.o
-endif
+        OBJ_SERIAL += TestSerial_SubView_c13.o
         OBJ_SERIAL += TestSerial_Reductions.o TestSerial_Scan.o
         OBJ_SERIAL += TestSerial_Complex.o
         OBJ_SERIAL += TestSerial_AtomicOperations.o TestSerial_AtomicViews.o TestSerial_Atomics.o
         OBJ_SERIAL += TestSerial_Team.o TestSerial_TeamScratch.o
         OBJ_SERIAL += TestSerial_TeamReductionScan.o
         OBJ_SERIAL += TestSerial_Other.o
+        #HCC_WORKAROUND
+        ifneq ($(KOKKOS_INTERNAL_COMPILER_HCC), 1)
         OBJ_SERIAL += TestSerial_MDRange.o
+        endif
+        OBJ_SERIAL += TestSerial_Crs.o
         OBJ_SERIAL += TestSerial_Task.o TestSerial_WorkGraph.o
 	
 	TARGETS += KokkosCore_UnitTest_Serial
@@ -223,11 +270,19 @@ TEST_TARGETS += test-hwloc
 
 OBJ_DEFAULT = UnitTestMainInit.o gtest-all.o
 ifneq ($(KOKKOS_INTERNAL_USE_OPENMPTARGET), 1)
+ifneq ($(KOKKOS_INTERNAL_COMPILER_HCC), 1)
   OBJ_DEFAULT += TestDefaultDeviceType.o TestDefaultDeviceType_a.o TestDefaultDeviceType_b.o TestDefaultDeviceType_c.o TestDefaultDeviceType_d.o
+endif
 endif
 
 TARGETS += KokkosCore_UnitTest_Default
 TEST_TARGETS += test-default
+
+TARGETS += KokkosCore_UnitTest_PushFinalizeHook
+TEST_TARGETS += test-push-finalize-hook
+
+TARGETS += KokkosCore_UnitTest_PushFinalizeHook_terminate
+TEST_TARGETS += test-push-finalize-hook-terminate
 
 NUM_INITTESTS = 16
 INITTESTS_NUMBERS := $(shell seq 1 ${NUM_INITTESTS})
@@ -238,12 +293,21 @@ TEST_TARGETS += ${INITTESTS_TEST_TARGETS}
 
 KokkosCore_UnitTest_Cuda: $(OBJ_CUDA) $(KOKKOS_LINK_DEPENDS)
 	$(LINK) $(EXTRA_PATH) $(OBJ_CUDA) $(KOKKOS_LIBS) $(LIB) $(KOKKOS_LDFLAGS) $(LDFLAGS) -o KokkosCore_UnitTest_Cuda
+	
+KokkosCore_UnitTest_CudaInterOp: UnitTestMain.o gtest-all.o TestCuda_InterOp.o
+	$(LINK) $(EXTRA_PATH) UnitTestMain.o gtest-all.o TestCuda_InterOp.o $(KOKKOS_LIBS) $(LIB) $(KOKKOS_LDFLAGS) $(LDFLAGS) -o KokkosCore_UnitTest_CudaInterOp
+	
+KokkosCore_UnitTest_ROCm: $(OBJ_ROCM) $(KOKKOS_LINK_DEPENDS)
+	$(LINK) $(EXTRA_PATH) $(OBJ_ROCM) $(KOKKOS_LIBS) $(LIB) $(KOKKOS_LDFLAGS) $(LDFLAGS) -o KokkosCore_UnitTest_ROCm
 
 KokkosCore_UnitTest_Threads: $(OBJ_THREADS) $(KOKKOS_LINK_DEPENDS)
 	$(LINK) $(EXTRA_PATH) $(OBJ_THREADS) $(KOKKOS_LIBS) $(LIB) $(KOKKOS_LDFLAGS) $(LDFLAGS) -o KokkosCore_UnitTest_Threads
 
 KokkosCore_UnitTest_OpenMP: $(OBJ_OPENMP) $(KOKKOS_LINK_DEPENDS)
 	$(LINK) $(EXTRA_PATH) $(OBJ_OPENMP) $(KOKKOS_LIBS) $(LIB) $(KOKKOS_LDFLAGS) $(LDFLAGS) -o KokkosCore_UnitTest_OpenMP
+
+KokkosCore_UnitTest_OpenMPInterOp: UnitTestMain.o gtest-all.o TestOpenMP_InterOp.o
+	$(LINK) $(EXTRA_PATH) UnitTestMain.o gtest-all.o TestOpenMP_InterOp.o $(KOKKOS_LIBS) $(LIB) $(KOKKOS_LDFLAGS) $(LDFLAGS) -o KokkosCore_UnitTest_OpenMPInterOp
 
 KokkosCore_UnitTest_OpenMPTarget: $(OBJ_OPENMPTARGET) $(KOKKOS_LINK_DEPENDS)
 	$(LINK) $(KOKKOS_LDFLAGS) $(LDFLAGS) $(EXTRA_PATH) $(OBJ_OPENMPTARGET) $(KOKKOS_LIBS) $(LIB) -o KokkosCore_UnitTest_OpenMPTarget
@@ -261,22 +325,34 @@ KokkosCore_UnitTest_HWLOC: $(OBJ_HWLOC) $(KOKKOS_LINK_DEPENDS)
 	$(LINK) $(EXTRA_PATH) $(OBJ_HWLOC) $(KOKKOS_LIBS) $(LIB) $(KOKKOS_LDFLAGS) $(LDFLAGS) -o KokkosCore_UnitTest_HWLOC
 
 KokkosCore_UnitTest_AllocationTracker: $(OBJ_ALLOCATIONTRACKER) $(KOKKOS_LINK_DEPENDS)
-	$(LINK) $(EXTRA_PATH) $(OBJ_ALLOCATIONTRACKER) $(KOKKOS_LIBS) $( $(KOKKOS_LDFLAGS) $(LDFLAGS)LIB) -o KokkosCore_UnitTest_AllocationTracker
+	$(LINK) $(EXTRA_PATH) $(OBJ_ALLOCATIONTRACKER) $(KOKKOS_LIBS) $(KOKKOS_LDFLAGS) $(LDFLAGS) $(LIB) -o KokkosCore_UnitTest_AllocationTracker
 
 KokkosCore_UnitTest_Default: $(OBJ_DEFAULT) $(KOKKOS_LINK_DEPENDS)
 	$(LINK) $(EXTRA_PATH) $(OBJ_DEFAULT) $(KOKKOS_LIBS) $(LIB) $(KOKKOS_LDFLAGS) $(LDFLAGS) -o KokkosCore_UnitTest_Default
+
+KokkosCore_UnitTest_PushFinalizeHook: $(OBJ_DEFAULT) $(KOKKOS_LINK_DEPENDS)
+	$(LINK) $(EXTRA_PATH) $(OBJ_DEFAULT) $(KOKKOS_LIBS) $(LIB) $(KOKKOS_LDFLAGS) $(LDFLAGS) -o KokkosCore_UnitTest_PushFinalizeHook
+
+KokkosCore_UnitTest_PushFinalizeHook_terminate: $(OBJ_DEFAULT) $(KOKKOS_LINK_DEPENDS)
+	$(LINK) $(EXTRA_PATH) $(OBJ_DEFAULT) $(KOKKOS_LIBS) $(LIB) $(KOKKOS_LDFLAGS) $(LDFLAGS) -o KokkosCore_UnitTest_PushFinalizeHook_terminate
+
 
 ${INITTESTS_TARGETS}: KokkosCore_UnitTest_DefaultDeviceTypeInit_%: TestDefaultDeviceTypeInit_%.o UnitTestMain.o gtest-all.o $(KOKKOS_LINK_DEPENDS)
 	$(LINK) $(EXTRA_PATH) TestDefaultDeviceTypeInit_$*.o UnitTestMain.o gtest-all.o $(KOKKOS_LIBS) $(LIB) $(KOKKOS_LDFLAGS) $(LDFLAGS) -o KokkosCore_UnitTest_DefaultDeviceTypeInit_$*
 
 test-cuda: KokkosCore_UnitTest_Cuda
 	./KokkosCore_UnitTest_Cuda
+	./KokkosCore_UnitTest_CudaInterOp
+
+test-rocm: KokkosCore_UnitTest_ROCm
+	./KokkosCore_UnitTest_ROCm
 
 test-threads: KokkosCore_UnitTest_Threads
 	./KokkosCore_UnitTest_Threads
 
 test-openmp: KokkosCore_UnitTest_OpenMP
 	./KokkosCore_UnitTest_OpenMP
+	./KokkosCore_UnitTest_OpenMPInterOp
 
 test-openmptarget: KokkosCore_UnitTest_OpenMPTarget
 	./KokkosCore_UnitTest_OpenMPTarget
@@ -296,6 +372,12 @@ test-allocationtracker: KokkosCore_UnitTest_AllocationTracker
 
 test-default: KokkosCore_UnitTest_Default
 	./KokkosCore_UnitTest_Default
+
+test-push-finalize-hook: KokkosCore_UnitTest_PushFinalizeHook
+	./KokkosCore_UnitTest_PushFinalizeHook
+
+test-push-finalize-hook-terminate: KokkosCore_UnitTest_PushFinalizeHook_terminate
+	./KokkosCore_UnitTest_PushFinalizeHook_terminate
 
 ${INITTESTS_TEST_TARGETS}: test-default-init-%: KokkosCore_UnitTest_DefaultDeviceTypeInit_%
 	./KokkosCore_UnitTest_DefaultDeviceTypeInit_$*

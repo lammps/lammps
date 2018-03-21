@@ -36,8 +36,8 @@ typedef double FFT_SCALAR;
 namespace LAMMPS_NS {
 
 
-#define EWALD_MAXORDER	6
-#define EWALD_FUNCS	4
+#define EWALD_MAXORDER  6
+#define EWALD_FUNCS     4
 
 class PPPMDisp : public KSpace {
  public:
@@ -218,8 +218,8 @@ Variables needed for calculating the 1/r and 1/r^6 potential
                           int&, int&,int&, int&, int&,int&,
                           int&, int&,int&, int&, int&,int&,
                           int&, int&,int&, int&, int&,
-			  int&, int&, int&,
-		          double&, double&, int&);
+                          int&, int&, int&,
+                          double&, double&, int&);
   void set_n_pppm_6();
   void adjust_gewald();
   void adjust_gewald_6();
@@ -266,7 +266,7 @@ Variables needed for calculating the 1/r and 1/r^6 potential
                              int, int, int,
                              int, int, int);
   virtual void particle_map_c(double, double, double,
-			      double, int **, int, int,
+                              double, int **, int, int,
                               int, int, int,
                               int, int, int );
   virtual void make_rho_c();
@@ -275,19 +275,19 @@ Variables needed for calculating the 1/r and 1/r^6 potential
   virtual void make_rho_none();
 
   virtual void brick2fft(int, int, int, int, int, int,
-			 FFT_SCALAR ***, FFT_SCALAR *, FFT_SCALAR *,
+                         FFT_SCALAR ***, FFT_SCALAR *, FFT_SCALAR *,
                          LAMMPS_NS::Remap *);
   virtual void brick2fft_a();
   virtual void brick2fft_none();
 
   virtual void poisson_ik(FFT_SCALAR *, FFT_SCALAR *,
-		          FFT_SCALAR *, LAMMPS_NS::FFT3d *,LAMMPS_NS::FFT3d *,
+                          FFT_SCALAR *, LAMMPS_NS::FFT3d *,LAMMPS_NS::FFT3d *,
                           int, int, int, int, int, int, int,
-		          int, int, int, int, int, int,
+                          int, int, int, int, int, int,
                           int, int, int, double&, double *,
                           double *, double *, double *,
                           double *, double *, double *,
-		          FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***, double *, double **, double **,
+                          FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***, double *, double **, double **,
                           FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
                           FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***);
 
@@ -310,31 +310,31 @@ Variables needed for calculating the 1/r and 1/r^6 potential
                              FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
                              FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
                              FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
-			     FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
+                             FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
                              FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
-			     FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***);
+                             FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***);
   virtual void poisson_2s_ad(FFT_SCALAR *, FFT_SCALAR *,
                              FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
-			     FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
+                             FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
                              FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
-			     FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***);
+                             FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***);
 
   virtual void poisson_2s_peratom(FFT_SCALAR***, FFT_SCALAR***, FFT_SCALAR***,
-				  FFT_SCALAR***, FFT_SCALAR***, FFT_SCALAR***,
+                                  FFT_SCALAR***, FFT_SCALAR***, FFT_SCALAR***,
                                   FFT_SCALAR***, FFT_SCALAR***, FFT_SCALAR***,
                                   FFT_SCALAR***, FFT_SCALAR***, FFT_SCALAR***);
 
   virtual void poisson_none_ad(int, int, FFT_SCALAR *, FFT_SCALAR *,
                                FFT_SCALAR ***, FFT_SCALAR ***,
                                FFT_SCALAR ****, FFT_SCALAR ****, FFT_SCALAR ****,
-			       FFT_SCALAR ****, FFT_SCALAR ****, FFT_SCALAR ****);
+                               FFT_SCALAR ****, FFT_SCALAR ****, FFT_SCALAR ****);
   virtual void poisson_none_ik(int, int, FFT_SCALAR *, FFT_SCALAR *,
                                FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
                                FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
                                FFT_SCALAR ****, FFT_SCALAR ****, FFT_SCALAR ****, FFT_SCALAR ****,
-			       FFT_SCALAR ****, FFT_SCALAR ****, FFT_SCALAR ****);
+                               FFT_SCALAR ****, FFT_SCALAR ****, FFT_SCALAR ****);
   virtual void poisson_none_peratom(int, int, FFT_SCALAR***, FFT_SCALAR***, FFT_SCALAR***,
-				    FFT_SCALAR***, FFT_SCALAR***, FFT_SCALAR***,
+                                    FFT_SCALAR***, FFT_SCALAR***, FFT_SCALAR***,
                                     FFT_SCALAR***, FFT_SCALAR***, FFT_SCALAR***,
                                     FFT_SCALAR***, FFT_SCALAR***, FFT_SCALAR***);
 
@@ -353,9 +353,9 @@ Variables needed for calculating the 1/r and 1/r^6 potential
   virtual void fieldforce_none_peratom();
   void procs2grid2d(int,int,int,int *, int*);
   void compute_rho1d(const FFT_SCALAR &, const FFT_SCALAR &,
-		     const FFT_SCALAR &, int, FFT_SCALAR **, FFT_SCALAR **);
+                     const FFT_SCALAR &, int, FFT_SCALAR **, FFT_SCALAR **);
   void compute_drho1d(const FFT_SCALAR &, const FFT_SCALAR &,
-		      const FFT_SCALAR &, int, FFT_SCALAR **, FFT_SCALAR **);
+                      const FFT_SCALAR &, int, FFT_SCALAR **, FFT_SCALAR **);
   void compute_rho_coeff(FFT_SCALAR **,FFT_SCALAR **, int);
   void slabcorr(int);
 

@@ -1,12 +1,12 @@
 /*----------------------------------------------------------------------
   PuReMD - Purdue ReaxFF Molecular Dynamics Program
   Website: https://www.cs.purdue.edu/puremd
-  
+
   Copyright (2010) Purdue University
-  
-  Contributing authors: 
+
+  Contributing authors:
   H. M. Aktulga, J. Fogarty, S. Pandit, A. Grama
-  Corresponding author: 
+  Corresponding author:
   Hasan Metin Aktulga, Michigan State University, hma@cse.msu.edu
 
   Please cite the related publication:
@@ -33,6 +33,6 @@
 #include "reaxc_torsion_angles.h"
 
 void Torsion_AnglesOMP( reax_system*, control_params*, simulation_data*,
-			storage*, reax_list**, output_controls* );
+                        storage*, reax_list**, output_controls* );
 
 #endif

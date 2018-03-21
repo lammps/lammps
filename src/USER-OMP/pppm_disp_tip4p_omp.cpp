@@ -269,23 +269,23 @@ void PPPMDispTIP4POMP::compute_gf_6()
           nn = k-nxlo_fft_6 + nnx*(l-nylo_fft_6 + nny*(m-nzlo_fft_6));
           if ((nn < nnfrom) || (nn >=nnto)) continue;
 
-	  kper = k - nx_pppm_6*(2*k/nx_pppm_6);
+          kper = k - nx_pppm_6*(2*k/nx_pppm_6);
           qx = unitkx*kper;
-	  snx = sin(0.5*unitkx*kper*xprd/nx_pppm_6);
-	  snx2 = snx*snx;
+          snx = sin(0.5*unitkx*kper*xprd/nx_pppm_6);
+          snx2 = snx*snx;
           sx = exp(-qx*qx*inv2ew*inv2ew);
-	  wx = 1.0;
-	  argx = 0.5*qx*xprd/nx_pppm_6;
-	  if (argx != 0.0) wx = pow(sin(argx)/argx,order_6);
+          wx = 1.0;
+          argx = 0.5*qx*xprd/nx_pppm_6;
+          if (argx != 0.0) wx = pow(sin(argx)/argx,order_6);
           wx *= wx;
 
-	  sqk = pow(qx,2.0) + pow(qy,2.0) + pow(qz,2.0);
+          sqk = pow(qx,2.0) + pow(qy,2.0) + pow(qz,2.0);
 
-	  denominator = gf_denom(snx2,sny2,snz2, gf_b_6, order_6);
-	  rtsqk = sqrt(sqk);
+          denominator = gf_denom(snx2,sny2,snz2, gf_b_6, order_6);
+          rtsqk = sqrt(sqk);
           term = (1-2*sqk*inv2ew*inv2ew)*sx*sy*sz +
                   2*sqk*rtsqk*inv2ew*inv2ew*inv2ew*rtpi*erfc(rtsqk*inv2ew);
-	  greensfn_6[nn] = numerator*term*wx*wy*wz/denominator;
+          greensfn_6[nn] = numerator*term*wx*wy*wz/denominator;
         }
       }
     }
@@ -1383,27 +1383,27 @@ void PPPMDispTIP4POMP::fieldforce_a_ik()
             for (l = nlower_6; l <= nupper_6; l++) {
               mx = l+nx;
               x0 = y0*r1d[0][l];
-	      ekx0 -= x0*vdx_brick_a0[mz][my][mx];
-	      eky0 -= x0*vdy_brick_a0[mz][my][mx];
-	      ekz0 -= x0*vdz_brick_a0[mz][my][mx];
-	      ekx1 -= x0*vdx_brick_a1[mz][my][mx];
-	      eky1 -= x0*vdy_brick_a1[mz][my][mx];
-	      ekz1 -= x0*vdz_brick_a1[mz][my][mx];
+              ekx0 -= x0*vdx_brick_a0[mz][my][mx];
+              eky0 -= x0*vdy_brick_a0[mz][my][mx];
+              ekz0 -= x0*vdz_brick_a0[mz][my][mx];
+              ekx1 -= x0*vdx_brick_a1[mz][my][mx];
+              eky1 -= x0*vdy_brick_a1[mz][my][mx];
+              ekz1 -= x0*vdz_brick_a1[mz][my][mx];
               ekx2 -= x0*vdx_brick_a2[mz][my][mx];
-	      eky2 -= x0*vdy_brick_a2[mz][my][mx];
-	      ekz2 -= x0*vdz_brick_a2[mz][my][mx];
-	      ekx3 -= x0*vdx_brick_a3[mz][my][mx];
-	      eky3 -= x0*vdy_brick_a3[mz][my][mx];
-	      ekz3 -= x0*vdz_brick_a3[mz][my][mx];
-	      ekx4 -= x0*vdx_brick_a4[mz][my][mx];
-	      eky4 -= x0*vdy_brick_a4[mz][my][mx];
-	      ekz4 -= x0*vdz_brick_a4[mz][my][mx];
+              eky2 -= x0*vdy_brick_a2[mz][my][mx];
+              ekz2 -= x0*vdz_brick_a2[mz][my][mx];
+              ekx3 -= x0*vdx_brick_a3[mz][my][mx];
+              eky3 -= x0*vdy_brick_a3[mz][my][mx];
+              ekz3 -= x0*vdz_brick_a3[mz][my][mx];
+              ekx4 -= x0*vdx_brick_a4[mz][my][mx];
+              eky4 -= x0*vdy_brick_a4[mz][my][mx];
+              ekz4 -= x0*vdz_brick_a4[mz][my][mx];
               ekx5 -= x0*vdx_brick_a5[mz][my][mx];
-	      eky5 -= x0*vdy_brick_a5[mz][my][mx];
-	      ekz5 -= x0*vdz_brick_a5[mz][my][mx];
+              eky5 -= x0*vdy_brick_a5[mz][my][mx];
+              ekz5 -= x0*vdz_brick_a5[mz][my][mx];
               ekx6 -= x0*vdx_brick_a6[mz][my][mx];
-	      eky6 -= x0*vdy_brick_a6[mz][my][mx];
-	      ekz6 -= x0*vdz_brick_a6[mz][my][mx];
+              eky6 -= x0*vdy_brick_a6[mz][my][mx];
+              ekz6 -= x0*vdz_brick_a6[mz][my][mx];
             }
           }
         }
@@ -1701,7 +1701,7 @@ void PPPMDispTIP4POMP::fieldforce_a_peratom()
                 u4 += x0*u_brick_a4[mz][my][mx];
                 u5 += x0*u_brick_a5[mz][my][mx];
                 u6 += x0*u_brick_a6[mz][my][mx];
-	      }
+              }
               if (vflag_atom) {
                 v00 += x0*v0_brick_a0[mz][my][mx];
                 v10 += x0*v1_brick_a0[mz][my][mx];
@@ -1787,7 +1787,7 @@ void PPPMDispTIP4POMP::fieldforce_a_peratom()
    dx,dy,dz = distance of particle from "lower left" grid point
 ------------------------------------------------------------------------- */
 void PPPMDispTIP4POMP::compute_rho1d_thr(FFT_SCALAR * const * const r1d, const FFT_SCALAR &dx,
-				    const FFT_SCALAR &dy, const FFT_SCALAR &dz,
+                                    const FFT_SCALAR &dy, const FFT_SCALAR &dz,
                                     const int ord, FFT_SCALAR * const * const rho_c)
 {
   int k,l;
@@ -1813,7 +1813,7 @@ void PPPMDispTIP4POMP::compute_rho1d_thr(FFT_SCALAR * const * const r1d, const F
 ------------------------------------------------------------------------- */
 
 void PPPMDispTIP4POMP::compute_drho1d_thr(FFT_SCALAR * const * const dr1d, const FFT_SCALAR &dx,
-				    const FFT_SCALAR &dy, const FFT_SCALAR &dz,
+                                    const FFT_SCALAR &dy, const FFT_SCALAR &dz,
                                     const int ord, FFT_SCALAR * const * const drho_c)
 {
   int k,l;

@@ -103,7 +103,7 @@ class PairSWKokkos : public PairSW {
   typedef typename tdual_int_3d::t_host t_host_int_3d;
 
   t_int_3d_randomread d_elem2param;
-  DAT::t_int_1d_randomread d_map;
+  typename AT::t_int_1d_randomread d_map;
 
   typedef Kokkos::DualView<Param*,DeviceType> tdual_param_1d;
   typedef typename tdual_param_1d::t_dev t_param_1d;
@@ -112,9 +112,15 @@ class PairSWKokkos : public PairSW {
   t_param_1d d_params;
 
   virtual void setup_params();
+
+  KOKKOS_INLINE_FUNCTION
   void twobody(const Param&, const F_FLOAT&, F_FLOAT&, const int&, F_FLOAT&) const;
+
+  KOKKOS_INLINE_FUNCTION
   void threebody(const Param&, const Param&, const Param&, const F_FLOAT&, const F_FLOAT&, F_FLOAT *, F_FLOAT *,
                  F_FLOAT *, F_FLOAT *, const int&, F_FLOAT&) const;
+
+  KOKKOS_INLINE_FUNCTION
   void threebodyj(const Param&, const Param&, const Param&, const F_FLOAT&, const F_FLOAT&, F_FLOAT *, F_FLOAT *,
                  F_FLOAT *) const;
 
@@ -125,12 +131,12 @@ class PairSWKokkos : public PairSW {
 
   DAT::tdual_efloat_1d k_eatom;
   DAT::tdual_virial_array k_vatom;
-  typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
-  typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
+  typename AT::t_efloat_1d d_eatom;
+  typename AT::t_virial_array d_vatom;
 
-  DAT::t_int_1d_randomread d_type2frho;
-  DAT::t_int_2d_randomread d_type2rhor;
-  DAT::t_int_2d_randomread d_type2z2r;
+  typename AT::t_int_1d_randomread d_type2frho;
+  typename AT::t_int_2d_randomread d_type2rhor;
+  typename AT::t_int_2d_randomread d_type2z2r;
 
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d_randomread d_ilist;

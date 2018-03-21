@@ -1,12 +1,12 @@
 /*----------------------------------------------------------------------
   PuReMD - Purdue ReaxFF Molecular Dynamics Program
   Website: https://www.cs.purdue.edu/puremd
-  
+
   Copyright (2010) Purdue University
-  
-  Contributing authors: 
+
+  Contributing authors:
   H. M. Aktulga, J. Fogarty, S. Pandit, A. Grama
-  Corresponding author: 
+  Corresponding author:
   Hasan Metin Aktulga, Michigan State University, hma@cse.msu.edu
 
   Please cite the related publication:

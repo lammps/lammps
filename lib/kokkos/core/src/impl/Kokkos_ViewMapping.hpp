@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -361,7 +361,8 @@ struct SubviewExtents {
 private:
 
   // Cannot declare zero-length arrays
-  enum { InternalRangeRank = RangeRank ? RangeRank : 1u };
+  // '+' is used to silence GCC 7.2.0 -Wduplicated-branches warning when RangeRank=1
+  enum { InternalRangeRank = RangeRank ? RangeRank : +1u };
 
   size_t   m_begin[  DomainRank ];
   size_t   m_length[ InternalRangeRank ];
@@ -369,9 +370,9 @@ private:
 
   template< size_t ... DimArgs >
   KOKKOS_FORCEINLINE_FUNCTION
-  bool set( unsigned domain_rank
-          , unsigned range_rank
-          , const ViewDimension< DimArgs ... > & dim )
+  bool set( unsigned
+          , unsigned
+          , const ViewDimension< DimArgs ... > & )
     { return true ; }
 
   template< class T , size_t ... DimArgs , class ... Args >
@@ -1015,8 +1016,13 @@ struct ViewOffset< Dimension , Kokkos::LayoutLeft
   constexpr ViewOffset( const ViewOffset< DimRHS , Kokkos::LayoutRight , void > & rhs )
     : m_dim( rhs.m_dim.N0, 0, 0, 0, 0, 0, 0, 0 )
     {
-      static_assert( DimRHS::rank == 1 && dimension_type::rank == 1 && dimension_type::rank_dynamic == 1
-                   , "ViewOffset LayoutLeft and LayoutRight are only compatible when rank == 1" );
+      static_assert(
+        ( DimRHS::rank == 0 &&
+          dimension_type::rank == 0 ) ||
+        ( DimRHS::rank == 1 &&
+          dimension_type::rank == 1 &&
+          dimension_type::rank_dynamic == 1 )
+        , "ViewOffset LayoutLeft and LayoutRight are only compatible when rank <= 1" );
     }
 
   template< class DimRHS >
@@ -1024,8 +1030,13 @@ struct ViewOffset< Dimension , Kokkos::LayoutLeft
   ViewOffset( const ViewOffset< DimRHS , Kokkos::LayoutStride , void > & rhs )
     : m_dim( rhs.m_dim.N0, 0, 0, 0, 0, 0, 0, 0 )
     {
-      static_assert( DimRHS::rank == 1 && dimension_type::rank == 1 && dimension_type::rank_dynamic == 1
-                   , "ViewOffset LayoutLeft and LayoutStride are only compatible when rank == 1" );
+      static_assert( 
+        ( DimRHS::rank == 0 &&
+          dimension_type::rank == 0 ) ||
+        ( DimRHS::rank == 1 &&
+          dimension_type::rank == 1 &&
+          dimension_type::rank_dynamic == 1 )
+        , "ViewOffset LayoutLeft and LayoutStride are only compatible when rank <= 1" );
       if ( rhs.m_stride.S0 != 1 ) {
         Kokkos::abort("Kokkos::Impl::ViewOffset assignment of LayoutLeft from LayoutStride  requires stride == 1" );
       }
@@ -1037,7 +1048,7 @@ struct ViewOffset< Dimension , Kokkos::LayoutLeft
   template< class DimRHS >
   KOKKOS_INLINE_FUNCTION
   constexpr ViewOffset(
-    const ViewOffset< DimRHS , Kokkos::LayoutLeft , void > & rhs ,
+    const ViewOffset< DimRHS , Kokkos::LayoutLeft , void > & ,
     const SubviewExtents< DimRHS::rank , dimension_type::rank > & sub )
     : m_dim( sub.range_extent(0), 0, 0, 0, 0, 0, 0, 0 )
     {
@@ -1242,7 +1253,7 @@ public:
   template< unsigned TrivialScalarSize >
   KOKKOS_INLINE_FUNCTION
   constexpr ViewOffset
-    ( std::integral_constant<unsigned,TrivialScalarSize> const & padding_type_size
+    ( std::integral_constant<unsigned,TrivialScalarSize> const &
     , Kokkos::LayoutLeft const & arg_layout
     )
     : m_dim( arg_layout.dimension[0] , arg_layout.dimension[1]
@@ -1493,8 +1504,13 @@ struct ViewOffset< Dimension , Kokkos::LayoutRight
   constexpr ViewOffset( const ViewOffset< DimRHS , Kokkos::LayoutLeft , void > & rhs )
     : m_dim( rhs.m_dim.N0, 0, 0, 0, 0, 0, 0, 0 )
     {
-      static_assert( DimRHS::rank == 1 && dimension_type::rank == 1 && dimension_type::rank_dynamic == 1
-                   , "ViewOffset LayoutRight and LayoutLeft are only compatible when rank == 1" );
+      static_assert(
+       ( DimRHS::rank == 0 &&
+         dimension_type::rank == 0 ) ||
+       ( DimRHS::rank == 1 &&
+         dimension_type::rank == 1 &&
+         dimension_type::rank_dynamic == 1 )
+      , "ViewOffset LayoutRight and LayoutLeft are only compatible when rank <= 1" );
     }
 
   template< class DimRHS >
@@ -1502,8 +1518,13 @@ struct ViewOffset< Dimension , Kokkos::LayoutRight
   ViewOffset( const ViewOffset< DimRHS , Kokkos::LayoutStride , void > & rhs )
     : m_dim( rhs.m_dim.N0, 0, 0, 0, 0, 0, 0, 0 )
     {
-      static_assert( DimRHS::rank == 1 && dimension_type::rank == 1 && dimension_type::rank_dynamic == 1
-                   , "ViewOffset LayoutLeft/Right and LayoutStride are only compatible when rank == 1" );
+      static_assert(
+       ( DimRHS::rank == 0 &&
+         dimension_type::rank == 0 ) ||
+       ( DimRHS::rank == 1 &&
+         dimension_type::rank == 1 &&
+         dimension_type::rank_dynamic == 1 )
+      , "ViewOffset LayoutRight and LayoutString are only compatible when rank <= 1" );
       if ( rhs.m_stride.S0 != 1 ) {
         Kokkos::abort("Kokkos::Impl::ViewOffset assignment of LayoutLeft/Right from LayoutStride  requires stride == 1" );
       }
@@ -1721,7 +1742,7 @@ public:
   template< unsigned TrivialScalarSize >
   KOKKOS_INLINE_FUNCTION
   constexpr ViewOffset
-    ( std::integral_constant<unsigned,TrivialScalarSize> const & padding_type_size
+    ( std::integral_constant<unsigned,TrivialScalarSize> const &
     , Kokkos::LayoutRight const & arg_layout
     )
     : m_dim( arg_layout.dimension[0] , arg_layout.dimension[1]
@@ -2348,7 +2369,7 @@ struct ViewDataHandle< Traits ,
                           )>::type >
 {
   typedef typename Traits::value_type  value_type ;
-  typedef typename Traits::value_type * KOKKOS_ALIGN_PTR(KOKKOS_ALIGN_SIZE) handle_type ;
+  typedef typename Traits::value_type * KOKKOS_IMPL_ALIGN_PTR(KOKKOS_MEMORY_ALIGNMENT) handle_type ;
   typedef typename Traits::value_type & return_type ;
   typedef Kokkos::Impl::SharedAllocationTracker  track_type  ;
 
@@ -2356,7 +2377,7 @@ struct ViewDataHandle< Traits ,
   static handle_type assign( value_type * arg_data_ptr
                            , track_type const & /*arg_tracker*/ )
   {
-    if ( reinterpret_cast<uintptr_t>(arg_data_ptr) % KOKKOS_ALIGN_SIZE ) {
+    if ( reinterpret_cast<uintptr_t>(arg_data_ptr) % Impl::MEMORY_ALIGNMENT ) {
       Kokkos::abort("Assigning NonAligned View or Pointer to Kokkos::View with Aligned attribute");
     }
     return handle_type( arg_data_ptr );
@@ -2366,7 +2387,7 @@ struct ViewDataHandle< Traits ,
   static handle_type assign( handle_type const arg_data_ptr
                            , size_t offset )
   {
-    if ( reinterpret_cast<uintptr_t>(arg_data_ptr+offset) % KOKKOS_ALIGN_SIZE ) {
+    if ( reinterpret_cast<uintptr_t>(arg_data_ptr+offset) % Impl::MEMORY_ALIGNMENT ) {
       Kokkos::abort("Assigning NonAligned View or Pointer to Kokkos::View with Aligned attribute");
     }
     return handle_type( arg_data_ptr + offset );
@@ -2391,7 +2412,7 @@ struct ViewDataHandle< Traits ,
                           )>::type >
 {
   typedef typename Traits::value_type  value_type ;
-  typedef typename Traits::value_type * KOKKOS_RESTRICT KOKKOS_ALIGN_PTR(KOKKOS_ALIGN_SIZE) handle_type ;
+  typedef typename Traits::value_type * KOKKOS_RESTRICT KOKKOS_IMPL_ALIGN_PTR(KOKKOS_MEMORY_ALIGNMENT) handle_type ;
   typedef typename Traits::value_type & return_type ;
   typedef Kokkos::Impl::SharedAllocationTracker  track_type  ;
 
@@ -2399,7 +2420,7 @@ struct ViewDataHandle< Traits ,
   static handle_type assign( value_type * arg_data_ptr
                            , track_type const & /*arg_tracker*/ )
   {
-    if ( reinterpret_cast<uintptr_t>(arg_data_ptr) % KOKKOS_ALIGN_SIZE ) {
+    if ( reinterpret_cast<uintptr_t>(arg_data_ptr) % Impl::MEMORY_ALIGNMENT ) {
       Kokkos::abort("Assigning NonAligned View or Pointer to Kokkos::View with Aligned attribute");
     }
     return handle_type( arg_data_ptr );
@@ -2409,7 +2430,7 @@ struct ViewDataHandle< Traits ,
   static handle_type assign( handle_type const arg_data_ptr
                            , size_t offset )
   {
-    if ( reinterpret_cast<uintptr_t>(arg_data_ptr+offset) % KOKKOS_ALIGN_SIZE ) {
+    if ( reinterpret_cast<uintptr_t>(arg_data_ptr+offset) % Impl::MEMORY_ALIGNMENT ) {
       Kokkos::abort("Assigning NonAligned View or Pointer to Kokkos::View with Aligned attribute");
     }
     return handle_type( arg_data_ptr + offset );
@@ -2763,6 +2784,11 @@ public:
     , m_offset( std::integral_constant< unsigned , 0 >() , arg_layout )
     {}
 
+  /**\brief  Assign data */
+  KOKKOS_INLINE_FUNCTION
+  void assign_data( pointer_type arg_ptr )
+    { m_handle = handle_type( arg_ptr ); }
+
   //----------------------------------------
   /*  Allocate and construct mapped array.
    *  Allocate via shared allocation record and
@@ -2800,23 +2826,26 @@ public:
                            , ( (Kokkos::Impl::ViewCtorProp<void,std::string>  const &) arg_prop ).value
                            , alloc_size );
 
-    //  Only set the the pointer and initialize if the allocation is non-zero.
-    //  May be zero if one of the dimensions is zero.
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
     if ( alloc_size ) {
+#endif
+    m_handle = handle_type( reinterpret_cast< pointer_type >( record->data() ) );
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
+    }
+#endif
 
-      m_handle = handle_type( reinterpret_cast< pointer_type >( record->data() ) );
+    //  Only initialize if the allocation is non-zero.
+    //  May be zero if one of the dimensions is zero.
+    if ( alloc_size && alloc_prop::initialize ) {
+      // Assume destruction is only required when construction is requested.
+      // The ViewValueFunctor has both value construction and destruction operators.
+      record->m_destroy = functor_type( ( (Kokkos::Impl::ViewCtorProp<void,execution_space> const &) arg_prop).value
+                                      , (value_type *) m_handle
+                                      , m_offset.span()
+                                      );
 
-      if ( alloc_prop::initialize ) {
-        // Assume destruction is only required when construction is requested.
-        // The ViewValueFunctor has both value construction and destruction operators.
-        record->m_destroy = functor_type( ( (Kokkos::Impl::ViewCtorProp<void,execution_space> const &) arg_prop).value
-                                        , (value_type *) m_handle
-                                        , m_offset.span()
-                                        );
-
-        // Construct values
-        record->m_destroy.construct_shared_allocation();
-      }
+      // Construct values
+      record->m_destroy.construct_shared_allocation();
     }
 
     return record ;
@@ -3166,10 +3195,8 @@ template< class MapType >
 struct OperatorBoundsErrorOnDevice< MapType, true > {
 KOKKOS_INLINE_FUNCTION
 static void run(MapType const& map) {
-  char const* const user_alloc_start = reinterpret_cast<char const*>(map.data());
-  char const* const header_start = user_alloc_start - sizeof(SharedAllocationHeader);
   SharedAllocationHeader const* const header =
-    reinterpret_cast<SharedAllocationHeader const*>(header_start);
+    SharedAllocationHeader::get_header((void*)(map.data()));
   char const* const label = header->label();
   enum { LEN = 128 };
   char msg[LEN];

@@ -97,9 +97,9 @@ void ImbalanceTime::compute(double *weight)
   }
 
   for (int i = 0; i < nlocal; i++) weight[i] *= localwt;
-  
+
   // record time up to this point
-  
+
   last += cost;
 }
 

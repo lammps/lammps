@@ -88,10 +88,10 @@ class AtomVecBody : public AtomVec {
   void data_body(int, int, int, int *, double *);
 
   // methods used by other classes to query/set body info
-  
+
   double radius_body(int, int, int *, double *);
   void set_quat(int, double *);
-  
+
  private:
   tagint *tag;
   int *type,*mask;

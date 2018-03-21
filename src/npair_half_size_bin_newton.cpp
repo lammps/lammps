@@ -17,9 +17,6 @@
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "molecule.h"
-#include "domain.h"
-#include "fix_shear_history.h"
 #include "my_page.h"
 #include "error.h"
 
@@ -32,73 +29,39 @@ NPairHalfSizeBinNewton::NPairHalfSizeBinNewton(LAMMPS *lmp) : NPair(lmp) {}
 /* ----------------------------------------------------------------------
    size particles
    binned neighbor list construction with full Newton's 3rd law
-   shear history must be accounted for when a neighbor pair is added
    each owned atom i checks its own bin and other bins in Newton stencil
    every pair stored exactly once by some processor
 ------------------------------------------------------------------------- */
 
 void NPairHalfSizeBinNewton::build(NeighList *list)
 {
-  int i,j,k,m,n,nn,ibin,dnum,dnumbytes;
+  int i,j,k,n,ibin;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   double radi,radsum,cutsq;
-  int *neighptr,*touchptr;
-  double *shearptr;
-
-  int *npartner;
-  tagint **partner;
-  double **shearpartner;
-  int **firsttouch;
-  double **firstshear;
-  MyPage<int> *ipage_touch;
-  MyPage<double> *dpage_shear;
-  NeighList *listhistory;
+  int *neighptr;
 
   double **x = atom->x;
   double *radius = atom->radius;
-  tagint *tag = atom->tag;
   int *type = atom->type;
   int *mask = atom->mask;
   tagint *molecule = atom->molecule;
   int nlocal = atom->nlocal;
   if (includegroup) nlocal = atom->nfirst;
 
+  int history = list->history;
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
   MyPage<int> *ipage = list->ipage;
 
-  FixShearHistory *fix_history = (FixShearHistory *) list->fix_history;
-  if (fix_history) {
-    fix_history->nlocal_neigh = nlocal;
-    fix_history->nall_neigh = nlocal + atom->nghost;
-    npartner = fix_history->npartner;
-    partner = fix_history->partner;
-    shearpartner = fix_history->shearpartner;
-    listhistory = list->listhistory;
-    firsttouch = listhistory->firstneigh;
-    firstshear = listhistory->firstdouble;
-    ipage_touch = listhistory->ipage;
-    dpage_shear = listhistory->dpage;
-    dnum = listhistory->dnum;
-    dnumbytes = dnum * sizeof(double);
-  }
+  int mask_history = 3 << SBBITS;
 
   int inum = 0;
   ipage->reset();
-  if (fix_history) {
-    ipage_touch->reset();
-    dpage_shear->reset();
-  }
 
   for (i = 0; i < nlocal; i++) {
     n = 0;
     neighptr = ipage->vget();
-    if (fix_history) {
-      nn = 0;
-      touchptr = ipage_touch->vget();
-      shearptr = dpage_shear->vget();
-    }
 
     xtmp = x[i][0];
     ytmp = x[i][1];
@@ -128,29 +91,10 @@ void NPairHalfSizeBinNewton::build(NeighList *list)
       cutsq = (radsum+skin) * (radsum+skin);
 
       if (rsq <= cutsq) {
-        neighptr[n] = j;
-
-        if (fix_history) {
-          if (rsq < radsum*radsum) {
-            for (m = 0; m < npartner[i]; m++)
-              if (partner[i][m] == tag[j]) break;
-            if (m < npartner[i]) {
-              touchptr[n] = 1;
-              memcpy(&shearptr[nn],&shearpartner[i][dnum*m],dnumbytes);
-              nn += dnum;
-            } else {
-              touchptr[n] = 0;
-              memcpy(&shearptr[nn],zeroes,dnumbytes);
-              nn += dnum;
-            }
-          } else {
-            touchptr[n] = 0;
-            memcpy(&shearptr[nn],zeroes,dnumbytes);
-            nn += dnum;
-          }
-        }
-
-        n++;
+        if (history && rsq < radsum*radsum)
+          neighptr[n++] = j ^ mask_history;
+        else
+          neighptr[n++] = j;
       }
     }
 
@@ -169,29 +113,10 @@ void NPairHalfSizeBinNewton::build(NeighList *list)
         cutsq = (radsum+skin) * (radsum+skin);
 
         if (rsq <= cutsq) {
-          neighptr[n] = j;
-
-          if (fix_history) {
-            if (rsq < radsum*radsum) {
-              for (m = 0; m < npartner[i]; m++)
-                if (partner[i][m] == tag[j]) break;
-              if (m < npartner[i]) {
-                touchptr[n] = 1;
-                memcpy(&shearptr[nn],&shearpartner[i][dnum*m],dnumbytes);
-                nn += dnum;
-              } else {
-                touchptr[n] = 0;
-                memcpy(&shearptr[nn],zeroes,dnumbytes);
-                nn += dnum;
-              }
-            } else {
-              touchptr[n] = 0;
-              memcpy(&shearptr[nn],zeroes,dnumbytes);
-              nn += dnum;
-            }
-          }
-
-          n++;
+          if (history && rsq < radsum*radsum)
+            neighptr[n++] = j ^ mask_history;
+          else
+            neighptr[n++] = j;
         }
       }
     }
@@ -202,13 +127,6 @@ void NPairHalfSizeBinNewton::build(NeighList *list)
     ipage->vgot(n);
     if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
-
-    if (fix_history) {
-      firsttouch[i] = touchptr;
-      firstshear[i] = shearptr;
-      ipage_touch->vgot(n);
-      dpage_shear->vgot(nn);
-    }
   }
 
   list->inum = inum;

@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -46,26 +46,7 @@
 namespace Kokkos {
 namespace Impl {
 
-namespace {
-
-__thread int t_tracking_enabled = 1;
-
-}
-
-int SharedAllocationRecord< void , void >::tracking_enabled()
-{ return t_tracking_enabled; }
-
-void SharedAllocationRecord< void , void >::tracking_disable()
-{
-  t_tracking_enabled = 0;
-}
-
-void SharedAllocationRecord< void , void >::tracking_enable()
-{
-  t_tracking_enabled = 1;
-}
-
-//----------------------------------------------------------------------------
+__thread int SharedAllocationRecord<void, void>::t_tracking_enabled = 1;
 
 bool
 SharedAllocationRecord< void , void >::
@@ -306,7 +287,7 @@ print_host_accessible_records( std::ostream & s
               , reinterpret_cast<uintptr_t>( r->m_dealloc )
               , r->m_alloc_ptr->m_label
               );
-      std::cout << buffer ;
+      s << buffer ;
       r = r->m_next ;
     } while ( r != root );
   }
@@ -334,7 +315,7 @@ print_host_accessible_records( std::ostream & s
       else {
         snprintf( buffer , 256 , "%s [ 0 + 0 ]\n" , space_name );
       }
-      std::cout << buffer ;
+      s << buffer ;
       r = r->m_next ;
     } while ( r != root );
   }

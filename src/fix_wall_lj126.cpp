@@ -22,7 +22,10 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixWallLJ126::FixWallLJ126(LAMMPS *lmp, int narg, char **arg) :
-  FixWall(lmp, narg, arg) {}
+  FixWall(lmp, narg, arg)
+{
+  dynamic_group_allow = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -48,6 +51,7 @@ void FixWallLJ126::precompute(int m)
 void FixWallLJ126::wall_particle(int m, int which, double coord)
 {
   double delta,rinv,r2inv,r6inv,fwall;
+  double vn;
 
   double **x = atom->x;
   double **f = atom->f;
@@ -76,6 +80,12 @@ void FixWallLJ126::wall_particle(int m, int which, double coord)
       f[i][dim] -= fwall;
       ewall[0] += r6inv*(coeff3[m]*r6inv - coeff4[m]) - offset[m];
       ewall[m+1] += fwall;
+
+      if (evflag) {
+        if (side < 0) vn = -fwall*delta;
+        else vn = fwall*delta;
+        v_tally(dim, i, vn);
+      }
     }
 
   if (onflag) error->one(FLERR,"Particle on or inside fix wall surface");

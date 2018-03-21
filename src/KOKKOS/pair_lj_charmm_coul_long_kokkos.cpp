@@ -31,7 +31,7 @@
 #include "integrate.h"
 #include "respa.h"
 #include "math_const.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
 
@@ -73,8 +73,8 @@ template<class DeviceType>
 PairLJCharmmCoulLongKokkos<DeviceType>::~PairLJCharmmCoulLongKokkos()
 {
   if (!copymode) {
-    memory->destroy_kokkos(k_eatom,eatom);
-    memory->destroy_kokkos(k_vatom,vatom);
+    memoryKK->destroy_kokkos(k_eatom,eatom);
+    memoryKK->destroy_kokkos(k_vatom,vatom);
     k_cutsq = DAT::tdual_ffloat_2d();
     k_cut_ljsq = DAT::tdual_ffloat_2d();
     k_cut_coulsq = DAT::tdual_ffloat_2d();
@@ -118,13 +118,13 @@ void PairLJCharmmCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // reallocate per-atom arrays if necessary
 
   if (eflag_atom) {
-    memory->destroy_kokkos(k_eatom,eatom);
-    memory->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
+    memoryKK->destroy_kokkos(k_eatom,eatom);
+    memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
     d_eatom = k_eatom.view<DeviceType>();
   }
   if (vflag_atom) {
-    memory->destroy_kokkos(k_vatom,vatom);
-    memory->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
+    memoryKK->destroy_kokkos(k_vatom,vatom);
+    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
     d_vatom = k_vatom.view<DeviceType>();
   }
 
@@ -217,8 +217,8 @@ compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,
               (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
     switch2 = 12.0*rsq * (cut_ljsq-rsq) * (rsq-cut_lj_innersq) / denom_lj;
     englj = r6inv *
-	    ((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv -
-	     (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4));
+            ((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv -
+             (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4));
     forcelj = forcelj*switch1 + englj*switch2;
   }
 
@@ -336,18 +336,18 @@ void PairLJCharmmCoulLongKokkos<DeviceType>::allocate()
   int n = atom->ntypes;
 
   memory->destroy(cutsq);
-  memory->create_kokkos(k_cutsq,cutsq,n+1,n+1,"pair:cutsq");
+  memoryKK->create_kokkos(k_cutsq,cutsq,n+1,n+1,"pair:cutsq");
   d_cutsq = k_cutsq.template view<DeviceType>();
 
   //memory->destroy(cut_ljsq);
-  memory->create_kokkos(k_cut_ljsq,n+1,n+1,"pair:cut_ljsq");
+  memoryKK->create_kokkos(k_cut_ljsq,n+1,n+1,"pair:cut_ljsq");
   d_cut_ljsq = k_cut_ljsq.template view<DeviceType>();
 
-  memory->create_kokkos(k_cut_coulsq,n+1,n+1,"pair:cut_coulsq");
+  memoryKK->create_kokkos(k_cut_coulsq,n+1,n+1,"pair:cut_coulsq");
   d_cut_coulsq = k_cut_coulsq.template view<DeviceType>();
 
   k_params = Kokkos::DualView<params_lj_coul**,Kokkos::LayoutRight,DeviceType>("PairLJCharmmCoulLong::params",n+1,n+1);
-  params = k_params.d_view;
+  params = k_params.template view<DeviceType>();
 }
 
 template<class DeviceType>

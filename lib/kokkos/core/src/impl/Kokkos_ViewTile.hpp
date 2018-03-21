@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -143,10 +143,10 @@ public:
 
   //----------------------------------------
 
-  ~ViewOffset() = default ;
-  KOKKOS_INLINE_FUNCTION ViewOffset() = default ;
-  KOKKOS_INLINE_FUNCTION ViewOffset( const ViewOffset & ) = default ;
-  KOKKOS_INLINE_FUNCTION ViewOffset & operator = ( const ViewOffset & ) = default ;
+  KOKKOS_FUNCTION_DEFAULTED ~ViewOffset() = default ;
+  KOKKOS_FUNCTION_DEFAULTED ViewOffset() = default ;
+  KOKKOS_FUNCTION_DEFAULTED ViewOffset( const ViewOffset & ) = default ;
+  KOKKOS_FUNCTION_DEFAULTED ViewOffset & operator = ( const ViewOffset & ) = default ;
 
   template< unsigned TrivialScalarSize >
   KOKKOS_INLINE_FUNCTION

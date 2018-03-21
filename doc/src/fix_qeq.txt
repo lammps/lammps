@@ -90,9 +90,14 @@ file specified by {qfile}.  The file has the following format
 ...
 Ntype chi eta gamma zeta qcore :pre
 
-There is one line per atom type with the following parameters.
+There have to be parameters given for every atom type. Wildcard entries
+are possible using the same syntax as elsewhere in LAMMPS
+(i.e., n*m, n*, *m, *). Later entries will overwrite previous ones.
+Empty lines or any text following the pound sign (#) are ignored.
+Each line starts with the atom type followed by five parameters.
 Only a subset of the parameters is used by each QEq style as described
-below, thus the others can be set to 0.0 if desired.
+below, thus the others can be set to 0.0 if desired, but all five
+entries per line are required.
 
 {chi} = electronegativity in energy units
 {eta} = self-Coulomb potential in energy units

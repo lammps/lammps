@@ -85,6 +85,8 @@ PairMultiLucyRX::PairMultiLucyRX(LAMMPS *lmp) : Pair(lmp),
 
 PairMultiLucyRX::~PairMultiLucyRX()
 {
+  if (copymode) return;
+
   for (int m = 0; m < ntables; m++) free_table(&tables[m]);
   memory->sfree(tables);
 

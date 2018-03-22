@@ -69,4 +69,5 @@ See the "Making LAMMPS"_Section_start.html#start_3 section for more info.
 [(Katsura)] H. Katsura, N. Nagaosa, A.V. Balatsky. Phys. Rev. Lett., 95(5), 057205. (2005)
 
 :link(Tranchida4)
-[(Tranchida)] Tranchida, Plimpton, Thibaudeau, and Thompson. 
+[(Tranchida)] Tranchida, Plimpton, Thibaudeau, and Thompson, 
+arXiv preprint arXiv:1801.10233, (2018).

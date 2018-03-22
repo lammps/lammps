@@ -7,7 +7,7 @@ atom_style 	spin
 dimension 	3
 boundary 	p p f
 
-# check why?
+# necessary for the serial algorithm (sametag)
 atom_modify 	map array 
 
 lattice 	sc 3.96

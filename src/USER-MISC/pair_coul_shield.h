@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(coul/shield,PairCoulshield)
+PairStyle(coul/shield,PairCoulShield)
 
 #else
 
@@ -24,10 +24,10 @@ PairStyle(coul/shield,PairCoulshield)
 
 namespace LAMMPS_NS {
 
-class PairCoulshield : public Pair {
+class PairCoulShield : public Pair {
  public:
-  PairCoulshield(class LAMMPS *);
-  virtual ~PairCoulshield();
+  PairCoulShield(class LAMMPS *);
+  virtual ~PairCoulShield();
 
   virtual void compute(int, int);
 
@@ -47,7 +47,7 @@ class PairCoulshield : public Pair {
   double **cut;
   double **sigmae, **offset;
   //double a_eps, b_eps, eps_s;
-  int Tapflag;
+  int tap_flag;
 
   void allocate();
 

@@ -13,7 +13,7 @@
 /* ----------------------------------------------------------------------
    Contributing author: Wengen Ouyang (Tel Aviv University)
    e-mail: w.g.ouyang at gmail dot com
-  
+
    This is a Coulomb potential described in
    [Maaravi et al, J. Phys. Chem. C 121, 22826-22835 (2017)]
 ------------------------------------------------------------------------- */
@@ -29,19 +29,20 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "memory.h"
+#include "math_special.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulshield::PairCoulshield(LAMMPS *lmp) : Pair(lmp) {
-Tapflag = 1;
+PairCoulShield::PairCoulShield(LAMMPS *lmp) : Pair(lmp) {
+  tap_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulshield::~PairCoulshield()
+PairCoulShield::~PairCoulShield()
 {
   if (allocated) {
     memory->destroy(setflag);
@@ -55,7 +56,7 @@ PairCoulshield::~PairCoulshield()
 
 /* ---------------------------------------------------------------------- */
 
-void PairCoulshield::compute(int eflag, int vflag)
+void PairCoulShield::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,ecoul,fpair,Tap,dTap;
@@ -107,15 +108,16 @@ void PairCoulshield::compute(int eflag, int vflag)
       // only include the interation between different layers
       if (rsq < cutsq[itype][jtype] && atom->molecule[i] != atom->molecule[j]) {
         r = sqrt(rsq);
-	r3 = rsq*r;
+        r3 = rsq*r;
         rarg = 1.0/sigmae[itype][jtype];
-        th = r3 + pow(rarg,3.0);
+        th = r3 + MathSpecial::cube(rarg);
         epsr = 1.0/pow(th,0.333333333333333333333333);
-        depsdr = pow(epsr,4.0);
-	Vc = qqrd2e*qtmp*q[j]*epsr;
+        depsdr = MathSpecial::square(epsr);
+        depsdr *= depsdr;
+        Vc = qqrd2e*qtmp*q[j]*epsr;
 
-	// turn on/off Tapper function
-        if (Tapflag) {
+        // turn on/off taper function
+        if (tap_flag) {
           Tap = calc_Tap(r,sqrt(cutsq[itype][jtype]));
           dTap = calc_dTap(r,sqrt(cutsq[itype][jtype]));
         } else {Tap = 1.0; dTap = 0.0;}
@@ -134,8 +136,8 @@ void PairCoulshield::compute(int eflag, int vflag)
         }
 
         if (eflag) {
-	  if (Tapflag) ecoul = Vc*Tap;
-	  else ecoul = Vc - offset[itype][jtype];
+          if (tap_flag) ecoul = Vc*Tap;
+          else ecoul = Vc - offset[itype][jtype];
           ecoul *= factor_coul;
         }
 
@@ -152,7 +154,7 @@ void PairCoulshield::compute(int eflag, int vflag)
    allocate all arrays
 ------------------------------------------------------------------------- */
 
-void PairCoulshield::allocate()
+void PairCoulShield::allocate()
 {
   allocated = 1;
   int n = atom->ntypes;
@@ -165,7 +167,6 @@ void PairCoulshield::allocate()
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
   memory->create(cut,n+1,n+1,"pair:cut");
   memory->create(sigmae,n+1,n+1,"pair:sigmae");
-  //memory->create(rme,n+1,n+1,"pair:rme");
   memory->create(offset,n+1,n+1,"pair:offset");
 }
 
@@ -173,12 +174,12 @@ void PairCoulshield::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairCoulshield::settings(int narg, char **arg)
+void PairCoulShield::settings(int narg, char **arg)
 {
   if (narg < 1 || narg > 2) error->all(FLERR,"Illegal pair_style command");
 
   cut_global = force->numeric(FLERR,arg[0]);
-  if (narg == 2) Tapflag = force->numeric(FLERR,arg[1]);
+  if (narg == 2) tap_flag = force->numeric(FLERR,arg[1]);
 
   // reset cutoffs that have been explicitly set
 
@@ -194,7 +195,7 @@ void PairCoulshield::settings(int narg, char **arg)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairCoulshield::coeff(int narg, char **arg)
+void PairCoulShield::coeff(int narg, char **arg)
 {
   if (narg < 3 || narg > 4) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
@@ -226,7 +227,7 @@ void PairCoulshield::coeff(int narg, char **arg)
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-void PairCoulshield::init_style()
+void PairCoulShield::init_style()
 {
   if (!atom->q_flag)
     error->all(FLERR,"Pair style coul/shield requires atom attribute q");
@@ -238,7 +239,7 @@ void PairCoulshield::init_style()
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairCoulshield::init_one(int i, int j)
+double PairCoulShield::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) {
     error->all(FLERR,"for pair style coul/shield, parameters need to be set explicitly for all pairs.");
@@ -252,7 +253,7 @@ double PairCoulshield::init_one(int i, int j)
      r = cut[i][j];
      r3 = r*r*r;
      rarg = 1.0/sigmae[i][j];
-     th = r3 + pow(rarg,3.0);
+     th = r3 + MathSpecial::cube(rarg);
      epsr = 1.0/pow(th,0.333333333333333333);
      offset[i][j] = qqrd2e*q[i]*q[j]*epsr;
   } else offset[i][j] = 0.0;
@@ -269,7 +270,7 @@ double PairCoulshield::init_one(int i, int j)
   proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairCoulshield::write_restart(FILE *fp)
+void PairCoulShield::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
 
@@ -288,7 +289,7 @@ void PairCoulshield::write_restart(FILE *fp)
   proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairCoulshield::read_restart(FILE *fp)
+void PairCoulShield::read_restart(FILE *fp)
 {
   read_restart_settings(fp);
   allocate();
@@ -312,7 +313,7 @@ void PairCoulshield::read_restart(FILE *fp)
   proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairCoulshield::write_restart_settings(FILE *fp)
+void PairCoulShield::write_restart_settings(FILE *fp)
 {
   fwrite(&cut_global,sizeof(double),1,fp);
   fwrite(&offset_flag,sizeof(int),1,fp);
@@ -323,7 +324,7 @@ void PairCoulshield::write_restart_settings(FILE *fp)
   proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairCoulshield::read_restart_settings(FILE *fp)
+void PairCoulShield::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
     fread(&cut_global,sizeof(double),1,fp);
@@ -337,7 +338,7 @@ void PairCoulshield::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairCoulshield::single(int i, int j, int itype, int jtype,
+double PairCoulShield::single(int i, int j, int itype, int jtype,
                            double rsq, double factor_coul, double factor_lj,
                            double &fforce)
 {
@@ -349,13 +350,14 @@ double PairCoulshield::single(int i, int j, int itype, int jtype,
    r = sqrt(rsq);
    r3 = rsq*r;
    rarg = 1.0/sigmae[itype][jtype];
-   th = r3 + pow(rarg,3.0);
+   th = r3 + MathSpecial::cube(rarg);
    epsr = 1.0/pow(th,0.333333333333333333);
-   depsdr = pow(epsr,4.0);
+   depsdr = epsr*epsr;
+   depsdr *= depsdr;
    Vc = qqrd2e*q[i]*q[j]*epsr;
 
-   // turn on/off Tapper function
-   if (Tapflag) {
+   // turn on/off taper function
+   if (tap_flag) {
      Tap = calc_Tap(r,sqrt(cutsq[itype][jtype]));
      dTap = calc_dTap(r,sqrt(cutsq[itype][jtype]));
    } else {Tap = 1.0; dTap = 0.0;}
@@ -364,7 +366,7 @@ double PairCoulshield::single(int i, int j, int itype, int jtype,
    fvc = forcecoul*Tap - Vc*dTap/r;
    fforce = factor_coul*fvc;
 
-  if (Tapflag) phishieldec = factor_coul*Vc*Tap;
+  if (tap_flag) phishieldec = factor_coul*Vc*Tap;
   else phishieldec = Vc - offset[itype][jtype];
   return factor_coul*phishieldec;
 }

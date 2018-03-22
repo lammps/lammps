@@ -16,11 +16,11 @@ group membrane  type 1 2
 group adsorbate type 3
 
 ######################## Potential defition ########################
-pair_style  hybrid/overlay rebo tersoff ILP/graphene/hBN 16.0 coul/shield 16.0
+pair_style  hybrid/overlay rebo tersoff ilp/graphene/hbn 16.0 coul/shield 16.0
 ####################################################################
 pair_coeff  * * rebo               CH.airebo     NULL NULL C    # chemical
 pair_coeff  * * tersoff            BNC.tersoff   B    N    NULL # chemical
-pair_coeff  * * ILP/graphene/hBN   BNCH-old.ILP  B    N    C    # long range
+pair_coeff  * * ilp/graphene/hbn   BNCH-old.ILP  B    N    C    # long range
 pair_coeff  1 1 coul/shield 0.70
 pair_coeff  1 2 coul/shield 0.69498201415576216335
 pair_coeff  2 2 coul/shield 0.69
@@ -46,7 +46,7 @@ fix       thermostat all nve
 
 compute   0 all pair rebo
 compute   1 all pair tersoff
-compute   2 all pair ILP/graphene/hBN
+compute   2 all pair ilp/graphene/hbn
 compute   3 all pair coul/shield
 variable  REBO     equal  c_0
 variable  Tersoff  equal  c_1
@@ -61,11 +61,11 @@ variable        Evdw equal c_sldsub
 
 # Output
 thermo          100
-thermo_style    custom step cpu etotal pe ke v_Evdw v_Tersoff v_REBO v_EILP v_Ecoul temp v_adsxcom v_adsycom v_adszcom v_adsvxcom v_adsvycom v_adsvzcom
-thermo_modify   line one format float %.16f
+thermo_style    custom step etotal pe ke v_Evdw v_Tersoff v_REBO v_EILP v_Ecoul temp v_adsxcom v_adsycom v_adszcom v_adsvxcom v_adsvycom v_adsvzcom
+thermo_modify   line one format float %.10f
 
-dump            1 all custom 1000 traj.lammpstrj id mol type xu yu zu
-dump_modify     1 format line "%7d %3d %3d %15.10g %15.10g %15.10g" flush yes
+#dump            1 all custom 1000 traj.lammpstrj id mol type xu yu zu
+#dump_modify     1 format line "%7d %3d %3d %15.10g %15.10g %15.10g" flush yes
 
 ###### Run molecular dynamics ######
-run 100000
+run 1000

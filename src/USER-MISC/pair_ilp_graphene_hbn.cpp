@@ -5,8 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under
-   the GNU General Public License.
+   certain rights in this software.  This software is distributed under the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
@@ -14,18 +13,19 @@
 /* ----------------------------------------------------------------------
    Contributing author: Wengen Ouyang (Tel Aviv University)
    e-mail: w.g.ouyang at gmail dot com
-   based on previous versions by Jaap Kroes
 
-   This is a complete version of the potential described in
+   This is a full version of the potential described in
+   [Maaravi et al, J. Phys. Chem. C 121, 22826-22835 (2017)]
+   The definition of normals are the same as that in
    [Kolmogorov & Crespi, Phys. Rev. B 71, 235415 (2005)]
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <mpi.h>
-#include "pair_kolmogorov_crespi_full.h"
+#include "pair_ilp_graphene_hbn.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -44,9 +44,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairKolmogorovCrespiFull::PairKolmogorovCrespiFull(LAMMPS *lmp) : Pair(lmp)
+PairILPGrapheneHBN::PairILPGrapheneHBN(LAMMPS *lmp) : Pair(lmp)
 {
   writedata = 1;
+  restartinfo = 0;
 
   // initialize element to parameter maps
   nelements = 0;
@@ -54,13 +55,13 @@ PairKolmogorovCrespiFull::PairKolmogorovCrespiFull(LAMMPS *lmp) : Pair(lmp)
   nparams = maxparam = 0;
   params = NULL;
   elem2param = NULL;
-  cutKCsq = NULL;
+  cutILPsq = NULL;
   map = NULL;
 
   nmax = 0;
   maxlocal = 0;
-  KC_numneigh = NULL;
-  KC_firstneigh = NULL;
+  ILP_numneigh = NULL;
+  ILP_firstneigh = NULL;
   ipage = NULL;
   pgsize = oneatom = 0;
 
@@ -73,15 +74,15 @@ PairKolmogorovCrespiFull::PairKolmogorovCrespiFull(LAMMPS *lmp) : Pair(lmp)
 
   // set comm size needed by this Pair
   comm_forward = 39;
-  tap_flag = 0;
+  tap_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
 
-PairKolmogorovCrespiFull::~PairKolmogorovCrespiFull()
+PairILPGrapheneHBN::~PairILPGrapheneHBN()
 {
-  memory->destroy(KC_numneigh);
-  memory->sfree(KC_firstneigh);
+  memory->destroy(ILP_numneigh);
+  memory->sfree(ILP_firstneigh);
   delete [] ipage;
   memory->destroy(normal);
   memory->destroy(dnormal);
@@ -99,22 +100,22 @@ PairKolmogorovCrespiFull::~PairKolmogorovCrespiFull()
   delete [] elements;
   memory->destroy(params);
   memory->destroy(elem2param);
-  memory->destroy(cutKCsq);
+  memory->destroy(cutILPsq);
   if (allocated) delete [] map;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairKolmogorovCrespiFull::compute(int eflag, int vflag)
+void PairILPGrapheneHBN::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype,k,l,kk,ll;
   tagint itag,jtag;
   double prodnorm1,prodnorm2,fkcx,fkcy,fkcz;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair,fpair1,fpair2;
-  double rsq,r,rhosq1,rhosq2,exp0,exp1,exp2,r2inv,r6inv,r8inv,Tap,dTap,Vkc;
-  double frho1,frho2,sumC1,sumC2,sumC11,sumC22,sumCff,fsum,rdsq1,rdsq2;
+  double rsq,r,Rcut,rhosq1,rhosq2,exp0,exp1,exp2,r2inv,r6inv,r8inv,Tap,dTap,Vkc;
+  double frho1,frho2,TSvdw,TSvdw2inv,Erep,fsum,rdsq1,rdsq2;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  int *KC_neighs_i,*KC_neighs_j;
+  int *ILP_neighs_i,*ILP_neighs_j;
 
   evdwl = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
@@ -133,12 +134,12 @@ void PairKolmogorovCrespiFull::compute(int eflag, int vflag)
   double fprod1[3] = {0.0, 0.0, 0.0};
   double fprod2[3] = {0.0, 0.0, 0.0};
 
-  inum = list->inum;	
+  inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
   // Build full neighbor list
-  KC_neigh();
+  ILP_neigh();
   // Calculate the normals
   calc_normal();
 
@@ -187,12 +188,13 @@ void PairKolmogorovCrespiFull::compute(int eflag, int vflag)
         r = sqrt(rsq);
         r2inv = 1.0/rsq;
         r6inv = r2inv*r2inv*r2inv;
-        r8inv = r2inv*r6inv;
-	// turn on/off taper function
-	if (tap_flag) {
-	  Tap = calc_Tap(r,sqrt(cutsq[itype][jtype]));
-	  dTap = calc_dTap(r,sqrt(cutsq[itype][jtype]));
-	} else {Tap = 1.0; dTap = 0.0;}
+        r8inv = r6inv*r2inv;
+        // turn on/off taper function
+        if (tap_flag) {
+          Rcut = sqrt(cutsq[itype][jtype]);
+          Tap = calc_Tap(r,Rcut);
+          dTap = calc_dTap(r,Rcut);
+        } else {Tap = 1.0; dTap = 0.0;}
 
         // Calculate the transverse distance
         // note that rho_ij does not equal to rho_ji except when normals are all along z
@@ -208,19 +210,17 @@ void PairKolmogorovCrespiFull::compute(int eflag, int vflag)
         exp1 = exp(-rdsq1);
         exp2 = exp(-rdsq2);
 
-        sumC1 = p.C0 + p.C2*rdsq1 + p.C4*rdsq1*rdsq1;
-        sumC2 = p.C0 + p.C2*rdsq2 + p.C4*rdsq2*rdsq2;
-        sumC11 = (p.C2 + 2.0*p.C4*rdsq1)*p.delta2inv;
-        sumC22 = (p.C2 + 2.0*p.C4*rdsq2)*p.delta2inv;
-        frho1 = exp1*sumC1;
-        frho2 = exp2*sumC2;
-        sumCff = p.C + frho1 + frho2;
-	Vkc = -p.A*p.z06*r6inv + exp0*sumCff;
+        TSvdw = 1.0 + exp(-p.d*(r/p.seff - 1.0));
+        TSvdw2inv = 1.0/pow(TSvdw,2.0);
+        frho1 = exp1*p.C;
+        frho2 = exp2*p.C;
+        Erep = p.epsilon + frho1 + frho2;
+        Vkc = -p.C6*r6inv/TSvdw + exp0*Erep;
 
         // derivatives
-        fpair = -6.0*p.A*p.z06*r8inv + p.lambda*exp0/r*sumCff;
-        fpair1 = 2.0*exp0*exp1*(p.delta2inv*sumC1 - sumC11);
-        fpair2 = 2.0*exp0*exp2*(p.delta2inv*sumC2 - sumC22);
+        fpair = -6.0*p.C6*r8inv/TSvdw + p.d/p.seff*p.C6*(TSvdw-1.0)*TSvdw2inv*r8inv*r + p.lambda*exp0/r*Erep;
+        fpair1 = 2.0*exp0*frho1*p.delta2inv;
+        fpair2 = 2.0*exp0*frho2*p.delta2inv;
         fsum = fpair + fpair1 + fpair2;
         // derivatives of the product of rij and ni, the result is a vector
         dprodnorm1[0] = dnormdri[0][0][i]*delx + dnormdri[1][0][i]*dely + dnormdri[2][0][i]*delz;
@@ -255,35 +255,35 @@ void PairKolmogorovCrespiFull::compute(int eflag, int vflag)
           f[j][2] -= fkcz + fprod2[2]*Tap;
         }
 
-	// calculate the forces acted on the neighbors of atom i from atom j
-	KC_neighs_i = KC_firstneigh[i];
-  	for (kk = 0; kk < KC_numneigh[i]; kk++) {
-	  k = KC_neighs_i[kk];
+        // calculate the forces acted on the neighbors of atom i from atom j
+        ILP_neighs_i = ILP_firstneigh[i];
+        for (kk = 0; kk < ILP_numneigh[i]; kk++) {
+          k = ILP_neighs_i[kk];
           if (k == i) continue;
           // derivatives of the product of rij and ni respect to rk, k=0,1,2, where atom k is the neighbors of atom i
           dprodnorm1[0] = dnormal[0][0][kk][i]*delx + dnormal[1][0][kk][i]*dely + dnormal[2][0][kk][i]*delz;
           dprodnorm1[1] = dnormal[0][1][kk][i]*delx + dnormal[1][1][kk][i]*dely + dnormal[2][1][kk][i]*delz;
           dprodnorm1[2] = dnormal[0][2][kk][i]*delx + dnormal[1][2][kk][i]*dely + dnormal[2][2][kk][i]*delz;
-	  f[k][0] += (-prodnorm1*dprodnorm1[0]*fpair1)*Tap;
-	  f[k][1] += (-prodnorm1*dprodnorm1[1]*fpair1)*Tap;
-	  f[k][2] += (-prodnorm1*dprodnorm1[2]*fpair1)*Tap;
-	}
+          f[k][0] += (-prodnorm1*dprodnorm1[0]*fpair1)*Tap;
+          f[k][1] += (-prodnorm1*dprodnorm1[1]*fpair1)*Tap;
+          f[k][2] += (-prodnorm1*dprodnorm1[2]*fpair1)*Tap;
+        }
 
-	// calculate the forces acted on the neighbors of atom j from atom i
-	KC_neighs_j = KC_firstneigh[j];
-  	for (ll = 0; ll < KC_numneigh[j]; ll++) {
-	  l = KC_neighs_j[ll];
+        // calculate the forces acted on the neighbors of atom j from atom i
+        ILP_neighs_j = ILP_firstneigh[j];
+        for (ll = 0; ll < ILP_numneigh[j]; ll++) {
+          l = ILP_neighs_j[ll];
           if (l == j) continue;
           if (newton_pair || l < nlocal) {
             // derivatives of the product of rji and nj respect to rl, l=0,1,2, where atom l is the neighbors of atom j
             dprodnorm2[0] = dnormal[0][0][ll][j]*delx + dnormal[1][0][ll][j]*dely + dnormal[2][0][ll][j]*delz;
             dprodnorm2[1] = dnormal[0][1][ll][j]*delx + dnormal[1][1][ll][j]*dely + dnormal[2][1][ll][j]*delz;
             dprodnorm2[2] = dnormal[0][2][ll][j]*delx + dnormal[1][2][ll][j]*dely + dnormal[2][2][ll][j]*delz;
-	    f[l][0] += (-prodnorm2*dprodnorm2[0]*fpair2)*Tap;
-	    f[l][1] += (-prodnorm2*dprodnorm2[1]*fpair2)*Tap;
-	    f[l][2] += (-prodnorm2*dprodnorm2[2]*fpair2)*Tap;
-	  }
-	}
+            f[l][0] += (-prodnorm2*dprodnorm2[0]*fpair2)*Tap;
+            f[l][1] += (-prodnorm2*dprodnorm2[1]*fpair2)*Tap;
+            f[l][2] += (-prodnorm2*dprodnorm2[2]*fpair2)*Tap;
+          }
+        }
 
         if (eflag) {
           if (tap_flag) evdwl = Tap*Vkc;
@@ -303,7 +303,7 @@ void PairKolmogorovCrespiFull::compute(int eflag, int vflag)
 /* ----------------------------------------------------------------------
    Calculate the normals for each atom
 ------------------------------------------------------------------------- */
-void PairKolmogorovCrespiFull::calc_normal()
+void PairILPGrapheneHBN::calc_normal()
 {
   int i,j,ii,jj,inum,jnum;
   int cont,id,ip,m;
@@ -321,12 +321,12 @@ void PairKolmogorovCrespiFull::calc_normal()
     memory->destroy(dnormal);
     memory->destroy(dnormdri);
     nmax = atom->nmax;
-    memory->create(normal,nmax,3,"KolmogorovCrespiFull:normal");
-    memory->create(dnormdri,3,3,nmax,"KolmogorovCrespiFull:dnormdri");
-    memory->create(dnormal,3,3,3,nmax,"KolmogorovCrespiFull:dnormal");
+    memory->create(normal,nmax,3,"ILP:normal");
+    memory->create(dnormdri,3,3,nmax,"ILP:dnormdri");
+    memory->create(dnormal,3,3,3,nmax,"ILP:dnormal");
   }
 
-  inum = list->inum;	
+  inum = list->inum;
   ilist = list->ilist;
   //Calculate normals
   for (ii = 0; ii < inum; ii++) {
@@ -359,8 +359,8 @@ void PairKolmogorovCrespiFull::calc_normal()
     }
 
     cont = 0;
-    jlist = KC_firstneigh[i];
-    jnum = KC_numneigh[i];
+    jlist = ILP_firstneigh[i];
+    jnum = ILP_numneigh[i];
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
@@ -378,7 +378,6 @@ void PairKolmogorovCrespiFull::calc_normal()
       normal[i][0] = 0.0;
       normal[i][1] = 0.0;
       normal[i][2] = 1.0;
-      // derivatives of normal vector is zero
       for (id = 0; id < 3; id++){
         for (ip = 0; ip < 3; ip++){
           dnormdri[id][ip][i] = 0.0;
@@ -389,21 +388,22 @@ void PairKolmogorovCrespiFull::calc_normal()
       }
     }
     else if (cont == 2) {
-      // for the atoms at the edge who has only two neighbor atoms
       pv12[0] = vet[0][1]*vet[1][2] - vet[1][1]*vet[0][2];
       pv12[1] = vet[0][2]*vet[1][0] - vet[1][2]*vet[0][0];
       pv12[2] = vet[0][0]*vet[1][1] - vet[1][0]*vet[0][1];
+      // derivatives of pv12[0] to ri
       dpvdri[0][0] = 0.0;
       dpvdri[0][1] = vet[0][2]-vet[1][2];
       dpvdri[0][2] = vet[1][1]-vet[0][1];
+      // derivatives of pv12[1] to ri
       dpvdri[1][0] = vet[1][2]-vet[0][2];
       dpvdri[1][1] = 0.0;
       dpvdri[1][2] = vet[0][0]-vet[1][0];
+      // derivatives of pv12[2] to ri
       dpvdri[2][0] = vet[0][1]-vet[1][1];
       dpvdri[2][1] = vet[1][0]-vet[0][0];
       dpvdri[2][2] = 0.0;
 
-      // derivatives respect to the first neighbor, atom k
       dpv12[0][0][0] =  0.0;
       dpv12[0][1][0] =  vet[1][2];
       dpv12[0][2][0] = -vet[1][1];
@@ -426,6 +426,7 @@ void PairKolmogorovCrespiFull::calc_normal()
       dpv12[2][2][1] =  0.0;
 
       // derivatives respect to the third neighbor, atom n
+      // derivatives of pv12 to rn is zero
       for (id = 0; id < 3; id++){
         for (ip = 0; ip < 3; ip++){
           dpv12[id][ip][2] = 0.0;
@@ -453,7 +454,6 @@ void PairKolmogorovCrespiFull::calc_normal()
           dnormdri[id][ip][i] = dpvdri[id][ip]/nn - n1[id]*dni[ip]/nn2;
         }
       }
-
       // derivatives of non-normalized normal vector, dn1:3x3x3 array
       for (id = 0; id < 3; id++){
         for (ip = 0; ip < 3; ip++){
@@ -483,7 +483,6 @@ void PairKolmogorovCrespiFull::calc_normal()
 //##############################################################################################
 
     else if(cont == 3) {
-      // for the atoms at the edge who has only two neighbor atoms
       pv12[0] = vet[0][1]*vet[1][2] - vet[1][1]*vet[0][2];
       pv12[1] = vet[0][2]*vet[1][0] - vet[1][2]*vet[0][0];
       pv12[2] = vet[0][0]*vet[1][1] - vet[1][0]*vet[0][1];
@@ -532,15 +531,12 @@ void PairKolmogorovCrespiFull::calc_normal()
       dpv31[0][0][2] =  0.0;
       dpv31[0][1][2] =  vet[0][2];
       dpv31[0][2][2] = -vet[0][1];
-      // derivatives of pv13[1] to rn
       dpv31[1][0][2] = -vet[0][2];
       dpv31[1][1][2] =  0.0;
       dpv31[1][2][2] =  vet[0][0];
-      // derivatives of pv13[2] to rn
       dpv31[2][0][2] =  vet[0][1];
       dpv31[2][1][2] = -vet[0][0];
       dpv31[2][2][2] =  0.0;
-
       // derivatives respect to the second neighbor, atom l
       for (id = 0; id < 3; id++){
         for (ip = 0; ip < 3; ip++){
@@ -597,7 +593,7 @@ void PairKolmogorovCrespiFull::calc_normal()
         for (ip = 0; ip < 3; ip++){
           dnormdri[id][ip][i] = 0.0;
         }
-      } // end of derivatives of normals respect to atom i
+      }
 
       // derivatives of non-normalized normal vector, dn1:3x3x3 array
       for (id = 0; id < 3; id++){
@@ -637,10 +633,10 @@ void PairKolmogorovCrespiFull::calc_normal()
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-void PairKolmogorovCrespiFull::init_style()
+void PairILPGrapheneHBN::init_style()
 {
   if (force->newton_pair == 0)
-    error->all(FLERR,"Pair style KC requires newton pair on");
+    error->all(FLERR,"Pair style ILP requires newton pair on");
 
   // need a full neighbor list, including neighbors of ghosts
 
@@ -649,7 +645,7 @@ void PairKolmogorovCrespiFull::init_style()
   neighbor->requests[irequest]->full = 1;
   neighbor->requests[irequest]->ghost = 1;
 
-  // local KC neighbor list
+  // local ILP neighbor list
   // create pages if first time or if neighbor pgsize/oneatom has changed
 
   int create = 0;
@@ -671,13 +667,13 @@ void PairKolmogorovCrespiFull::init_style()
 
 
 /* ----------------------------------------------------------------------
-   create KC neighbor list from main neighbor list
-   KC neighbor list stores neighbors of ghost atoms
-   KC_numneigh for calcualting normals and
-   KC_pair_numneigh for calculating force
+   create ILP neighbor list from main neighbor list
+   ILP neighbor list stores neighbors of ghost atoms
+   ILP_numneigh for calcualting normals and
+   ILP_pair_numneigh for calculating force
 ------------------------------------------------------------------------- */
 
-void PairKolmogorovCrespiFull::KC_neigh()
+void PairILPGrapheneHBN::ILP_neigh()
 {
   int i,j,ii,jj,n,allnum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
@@ -689,11 +685,10 @@ void PairKolmogorovCrespiFull::KC_neigh()
 
   if (atom->nmax > maxlocal) {
     maxlocal = atom->nmax;
-    memory->destroy(KC_numneigh);
-    memory->sfree(KC_firstneigh);
-    memory->create(KC_numneigh,maxlocal,"KolmogorovCrespiFull:numneigh");
-    KC_firstneigh = (int **) memory->smalloc(maxlocal*sizeof(int *),
-                                             "KolmogorovCrespiFull:firstneigh");
+    memory->destroy(ILP_numneigh);
+    memory->sfree(ILP_firstneigh);
+    memory->create(ILP_numneigh,maxlocal,"ILP:numneigh");
+    ILP_firstneigh = (int **) memory->smalloc(maxlocal*sizeof(int *),"ILP:firstneigh");
   }
 
   allnum = list->inum + list->gnum;
@@ -701,7 +696,7 @@ void PairKolmogorovCrespiFull::KC_neigh()
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  // store all KC neighs of owned and ghost atoms
+  // store all ILP neighs of owned and ghost atoms
   // scan full neighbor list of I
 
   ipage->reset();
@@ -728,13 +723,13 @@ void PairKolmogorovCrespiFull::KC_neigh()
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
 
-      if (rsq != 0 && rsq < cutKCsq[itype][jtype] && atom->molecule[i] == atom->molecule[j]) {
+      if (rsq != 0 && rsq < cutILPsq[itype][jtype] && atom->molecule[i] == atom->molecule[j]) {
         neighptr[n++] = j;
       }
     }
 
-    KC_firstneigh[i] = neighptr;
-    KC_numneigh[i] = n;
+    ILP_firstneigh[i] = neighptr;
+    ILP_numneigh[i] = n;
     ipage->vgot(n);
     if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
@@ -746,7 +741,7 @@ void PairKolmogorovCrespiFull::KC_neigh()
    allocate all arrays
 ------------------------------------------------------------------------- */
 
-void PairKolmogorovCrespiFull::allocate()
+void PairILPGrapheneHBN::allocate()
 {
   allocated = 1;
   int n = atom->ntypes;
@@ -766,7 +761,7 @@ void PairKolmogorovCrespiFull::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairKolmogorovCrespiFull::settings(int narg, char **arg)
+void PairILPGrapheneHBN::settings(int narg, char **arg)
 {
   if (narg < 1 || narg > 2) error->all(FLERR,"Illegal pair_style command");
   if (strcmp(force->pair_style,"hybrid/overlay")!=0)
@@ -789,7 +784,7 @@ void PairKolmogorovCrespiFull::settings(int narg, char **arg)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairKolmogorovCrespiFull::coeff(int narg, char **arg)
+void PairILPGrapheneHBN::coeff(int narg, char **arg)
 {
   int i,j,n;
 
@@ -852,14 +847,14 @@ void PairKolmogorovCrespiFull::coeff(int narg, char **arg)
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairKolmogorovCrespiFull::init_one(int i, int j)
+double PairILPGrapheneHBN::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
-  if (offset_flag && (cut[i][j] > 0.0)) {
+  if (offset_flag  && (cut[i][j] > 0.0)) {
     int iparam_ij = elem2param[map[i]][map[j]];
     Param& p = params[iparam_ij];
-    offset[i][j] = -p.A*pow(p.z0/cut[i][j],6);
+    offset[i][j] = -p.C6*pow(1.0/cut[i][j],6)/(1.0 + exp(-p.d*(cut[i][j]/p.seff - 1.0)));
   } else offset[i][j] = 0.0;
   offset[j][i] = offset[i][j];
 
@@ -867,12 +862,12 @@ double PairKolmogorovCrespiFull::init_one(int i, int j)
 }
 
 /* ----------------------------------------------------------------------
-   read Kolmogorov-Crespi potential file
+   read Interlayer potential file
 ------------------------------------------------------------------------- */
 
-void PairKolmogorovCrespiFull::read_file(char *filename)
+void PairILPGrapheneHBN::read_file(char *filename)
 {
-  int params_per_line = 12;
+  int params_per_line = 13;
   char **words = new char*[params_per_line+1];
   memory->sfree(params);
   params = NULL;
@@ -885,7 +880,7 @@ void PairKolmogorovCrespiFull::read_file(char *filename)
     fp = force->open_potential(filename);
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open KC potential file %s",filename);
+      sprintf(str,"Cannot open ILP potential file %s",filename);
       error->one(FLERR,str);
     }
   }
@@ -936,7 +931,7 @@ void PairKolmogorovCrespiFull::read_file(char *filename)
     }
 
     if (nwords != params_per_line)
-      error->all(FLERR,"Insufficient format in KC potential file");
+      error->all(FLERR,"Insufficient format in ILP potential file");
 
     // words = ptrs to all words in line
 
@@ -966,36 +961,36 @@ void PairKolmogorovCrespiFull::read_file(char *filename)
     params[nparams].ielement = ielement;
     params[nparams].jelement = jelement;
     params[nparams].z0       = atof(words[2]);
-    params[nparams].C0       = atof(words[3]);
-    params[nparams].C2       = atof(words[4]);
-    params[nparams].C4       = atof(words[5]);
+    params[nparams].alpha    = atof(words[3]);
+    params[nparams].delta    = atof(words[4]);
+    params[nparams].epsilon  = atof(words[5]);
     params[nparams].C        = atof(words[6]);
-    params[nparams].delta    = atof(words[7]);
-    params[nparams].lambda   = atof(words[8]);
-    params[nparams].A        = atof(words[9]);
+    params[nparams].d        = atof(words[7]);
+    params[nparams].sR       = atof(words[8]);
+    params[nparams].reff     = atof(words[9]);
+    params[nparams].C6       = atof(words[10]);
     // S provides a convenient scaling of all energies
-    params[nparams].S        = atof(words[10]);
-    params[nparams].rcut     = atof(words[11]);
+    params[nparams].S        = atof(words[11]);
+    params[nparams].rcut     = atof(words[12]);
 
     // energies in meV further scaled by S
-    double meV = 1.0e-3*params[nparams].S;
+    // S = 43.3634 meV = 1 kcal/mol
+    double meV = 1e-3*params[nparams].S;
     params[nparams].C *= meV;
-    params[nparams].A *= meV;
-    params[nparams].C0 *= meV;
-    params[nparams].C2 *= meV;
-    params[nparams].C4 *= meV;
+    params[nparams].C6 *= meV;
+    params[nparams].epsilon *= meV;
 
     // precompute some quantities
-    params[nparams].delta2inv = pow(params[nparams].delta,-2);
-    params[nparams].z06 = pow(params[nparams].z0,6);
+    params[nparams].delta2inv = pow(params[nparams].delta,-2.0);
+    params[nparams].lambda = params[nparams].alpha/params[nparams].z0;
+    params[nparams].seff = params[nparams].sR * params[nparams].reff;
 
     nparams++;
-    //if(nparams >= pow(atom->ntypes,3)) break;
   }
   memory->destroy(elem2param);
-  memory->destroy(cutKCsq);
+  memory->destroy(cutILPsq);
   memory->create(elem2param,nelements,nelements,"pair:elem2param");
-  memory->create(cutKCsq,nelements,nelements,"pair:cutKCsq");
+  memory->create(cutILPsq,nelements,nelements,"pair:cutILPsq");
   for (i = 0; i < nelements; i++) {
     for (j = 0; j < nelements; j++) {
       n = -1;
@@ -1007,7 +1002,7 @@ void PairKolmogorovCrespiFull::read_file(char *filename)
       }
       if (n < 0) error->all(FLERR,"Potential file is missing an entry");
       elem2param[i][j] = n;
-      cutKCsq[i][j] = params[n].rcut*params[n].rcut;
+      cutILPsq[i][j] = params[n].rcut*params[n].rcut;
     }
   }
   delete [] words;
@@ -1015,12 +1010,12 @@ void PairKolmogorovCrespiFull::read_file(char *filename)
 
 /* ---------------------------------------------------------------------- */
 
-double PairKolmogorovCrespiFull::single(int i, int j, int itype, int jtype, double rsq,
+double PairILPGrapheneHBN::single(int i, int j, int itype, int jtype, double rsq,
                          double factor_coul, double factor_lj,
                          double &fforce)
 {
-  double r,r2inv,r6inv,r8inv,forcelj,philj;
-  double Tap,dTap,Vkc,fpair;
+  double r,r2inv,r6inv,r8inv,forcelj,philj,fpair;
+  double Tap,dTap,Vkc,TSvdw,TSvdw2inv;
 
   int iparam_ij = elem2param[map[itype]][map[jtype]];
   Param& p = params[iparam_ij];
@@ -1036,23 +1031,25 @@ double PairKolmogorovCrespiFull::single(int i, int j, int itype, int jtype, doub
   r6inv = r2inv*r2inv*r2inv;
   r8inv = r2inv*r6inv;
 
-  Vkc = -p.A*p.z06*r6inv;
+  TSvdw = 1.0 + exp(-p.d*(r/p.seff - 1.0));
+  TSvdw2inv = pow(TSvdw,-2.0);
+  Vkc = -p.C6*r6inv/TSvdw;
   // derivatives
-  fpair = -6.0*p.A*p.z06*r8inv;
+  fpair = -6.0*p.C6*r8inv/TSvdw + p.d/p.seff*p.C6*(TSvdw - 1.0)*r6inv*TSvdw2inv/r;
   forcelj = fpair;
   fforce = factor_lj*(forcelj*Tap - Vkc*dTap/r);
 
-  if (tap_flag) philj = Vkc*Tap;
-  else philj = Vkc - offset[itype][jtype];
+  philj = Vkc*Tap;
   return factor_lj*philj;
 }
 
+
 /* ---------------------------------------------------------------------- */
 
-int PairKolmogorovCrespiFull::pack_forward_comm(int n, int *list, double *buf,
+int PairILPGrapheneHBN::pack_forward_comm(int n, int *list, double *buf,
                                int pbc_flag, int *pbc)
 {
-  int i,j,m,l,ip,id;
+  int i,j,m,id,ip,l;
 
   m = 0;
   for (i = 0; i < n; i++) {
@@ -1072,7 +1069,7 @@ int PairKolmogorovCrespiFull::pack_forward_comm(int n, int *list, double *buf,
     for (l = 0; l < 3; l++){
       for (id = 0; id < 3; id++){
         for (ip = 0; ip < 3; ip++){
-	  buf[m++] = dnormal[id][ip][l][j];
+          buf[m++] = dnormal[id][ip][l][j];
         }
       }
     }
@@ -1082,9 +1079,9 @@ int PairKolmogorovCrespiFull::pack_forward_comm(int n, int *list, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
-void PairKolmogorovCrespiFull::unpack_forward_comm(int n, int first, double *buf)
+void PairILPGrapheneHBN::unpack_forward_comm(int n, int first, double *buf)
 {
-  int i,m,last,l,ip,id;
+  int i,m,last,id,ip,l;
 
   m = 0;
   last = first + n;
@@ -1104,7 +1101,7 @@ void PairKolmogorovCrespiFull::unpack_forward_comm(int n, int first, double *buf
     for (l = 0; l < 3; l++){
       for (id = 0; id < 3; id++){
         for (ip = 0; ip < 3; ip++){
-	  dnormal[id][ip][l][i] = buf[m++];
+          dnormal[id][ip][l][i] = buf[m++];
         }
       }
     }

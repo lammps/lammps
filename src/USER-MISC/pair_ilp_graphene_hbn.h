@@ -13,12 +13,12 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(kolmogorov/crespi/full,PairKolmogorovCrespiFull)
+PairStyle(ilp/graphene/hbn,PairILPGrapheneHBN)
 
 #else
 
-#ifndef LMP_PAIR_KolmogorovCrespi_FULL_H
-#define LMP_PAIR_KolmogorovCrespi_FULL_H
+#ifndef LMP_PAIR_ILP_GRAPHENE_HBN_H
+#define LMP_PAIR_ILP_GRAPHENE_HBN_H
 
 #include "pair.h"
 #include "my_page.h"
@@ -26,10 +26,10 @@ PairStyle(kolmogorov/crespi/full,PairKolmogorovCrespiFull)
 
 namespace LAMMPS_NS {
 
-class PairKolmogorovCrespiFull : public Pair {
+class PairILPGrapheneHBN : public Pair {
  public:
-  PairKolmogorovCrespiFull(class LAMMPS *);
-  virtual ~PairKolmogorovCrespiFull();
+  PairILPGrapheneHBN(class LAMMPS *);
+  virtual ~PairILPGrapheneHBN();
 
   virtual void compute(int, int);
   void settings(int, char **);
@@ -47,14 +47,13 @@ class PairKolmogorovCrespiFull : public Pair {
   int pgsize;                      // size of neighbor page
   int oneatom;                     // max # of neighbors for one atom
   MyPage<int> *ipage;              // neighbor list pages
-  int *KC_numneigh;                // # of pair neighbors for each atom
-  int **KC_firstneigh;             // ptr to 1st neighbor of each atom
+  int *ILP_numneigh;                // # of pair neighbors for each atom
+  int **ILP_firstneigh;             // ptr to 1st neighbor of each atom
   int tap_flag;			   // flag to turn on/off taper function
 
-
   struct Param {
-    double z0,C0,C2,C4,C,delta,lambda,A,S;
-    double delta2inv,z06,rcut;
+    double z0,alpha,epsilon,C,delta,d,sR,reff,C6,S;
+    double delta2inv,seff,lambda,rcut;
     int ielement,jelement;
   };
   Param *params;       // parameter set for I-J interactions
@@ -69,7 +68,7 @@ class PairKolmogorovCrespiFull : public Pair {
   double cut_global;
   double cut_normal;
   double **cut;
-  double **cutKCsq;
+  double **cutILPsq;    // mapping the cutoff from element pairs to parameters
   double **offset;
   double **normal;
   double ***dnormdri;
@@ -77,8 +76,7 @@ class PairKolmogorovCrespiFull : public Pair {
 
   void read_file( char * );
   void allocate();
-  void KC_neigh();
-
+  void ILP_neigh();
 
   /* ----Calculate the long-range cutoff term */
   inline double calc_Tap(double r_ij, double Rcut) {
@@ -87,7 +85,7 @@ class PairKolmogorovCrespiFull : public Pair {
 
     r = r_ij/Rcut;
     if(r >= 1.0) {Tap = 0.0;}
-    else{
+    else {
       Tap = Tap_coeff[7] * r + Tap_coeff[6];
       Tap = Tap * r  + Tap_coeff[5];
       Tap = Tap * r  + Tap_coeff[4];
@@ -96,9 +94,8 @@ class PairKolmogorovCrespiFull : public Pair {
       Tap = Tap * r  + Tap_coeff[1];
       Tap = Tap * r  + Tap_coeff[0];
     }
-
     return(Tap);
-  }
+}
 
   /* ----Calculate the derivatives of long-range cutoff term */
   inline double calc_dTap(double r_ij, double Rcut) {
@@ -116,7 +113,6 @@ class PairKolmogorovCrespiFull : public Pair {
       dTap = dTap * r  + Tap_coeff[1];
       dTap = dTap/Rcut;
     }
-
     return(dTap);
   }
 };

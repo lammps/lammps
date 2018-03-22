@@ -50,7 +50,7 @@ class KokkosLMP : protected Pointers {
       value = NeedDup<HALFTHREAD,DeviceType>::value;
   
     return value;
-  };
+  }
 
  private:
   static void my_signal_handler(int);

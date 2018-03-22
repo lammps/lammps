@@ -98,4 +98,5 @@ This fix has to be the last defined magnetic fix before the integration fix
 [(Mayergoyz)] I.D. Mayergoyz, G. Bertotti, C. Serpico (2009). Elsevier (2009)
 
 :link(Tranchida2)
-[(Tranchida)] Tranchida, Plimpton, Thibaudeau and Thompson. 
+[(Tranchida)] Tranchida, Plimpton, Thibaudeau and Thompson, 
+arXiv preprint arXiv:1801.10233, (2018).

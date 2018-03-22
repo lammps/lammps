@@ -51,6 +51,15 @@ This fix style can only be used if LAMMPS was built with the
 SPIN package. See the "Making LAMMPS"_Section_start.html#start_3
 section for more info on packages.
 
+When the spin algorithm is used for serial calculations, it is 
+necessary to define a map via the atom_modify command. 
+Typically, by adding the command:
+
+atom_modify map array :pre
+
+before you create the simulation box. Note that the keyword "hash"
+instead of "array" is also valid.
+
 [Related commands:]
 
 "atom_style spin"_atom_style.html, "fix nve"_fix_nve.html
@@ -64,4 +73,5 @@ section for more info on packages.
 86(5), 898. (2001).
 
 :link(Tranchida1)
-[(Tranchida)] Tranchida, Plimpton, Thibaudeau and Thompson.
+[(Tranchida)] Tranchida, Plimpton, Thibaudeau and Thompson,
+arXiv preprint arXiv:1801.10233, (2018).

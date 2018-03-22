@@ -530,10 +530,9 @@ while (ct-- > 0) {
 void FixShardlow::initial_integrate(int vflag)
 {
   int ii;
-  int *ilist;
 
-  int nlocal = atom->nlocal;
-  int nghost = atom->nghost;
+  const int nlocal = atom->nlocal;
+  const int nghost = atom->nghost;
 
   const bool useDPDE = (pairDPDE != NULL);
 
@@ -592,7 +591,6 @@ void FixShardlow::initial_integrate(int vflag)
   // Allocate memory for v_t0 to hold the initial velocities for the ghosts
   v_t0 = (double (*)[3]) memory->smalloc(sizeof(double)*3*nghost, "FixShardlow:v_t0");
 
-  ilist = list->ilist;
   dtsqrt = sqrt(update->dt);
 
   // process neighbors in the local AIR

@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -73,7 +73,7 @@ void run_test_graph()
   dx = Kokkos::create_staticcrsgraph<dView>( "dx" , graph );
   hx = Kokkos::create_mirror( dx );
 
-  ASSERT_EQ( hx.row_map.dimension_0() - 1 , LENGTH );
+  ASSERT_EQ( hx.row_map.extent(0) - 1 , LENGTH );
 
   for ( size_t i = 0 ; i < LENGTH ; ++i ) {
     const size_t begin = hx.row_map[i];
@@ -115,17 +115,17 @@ void run_test_graph2()
   hView hx = Kokkos::create_mirror( dx );
   hView mx = Kokkos::create_mirror( dx );
 
-  ASSERT_EQ( (size_t) dx.row_map.dimension_0() , (size_t) LENGTH + 1 );
-  ASSERT_EQ( (size_t) hx.row_map.dimension_0() , (size_t) LENGTH + 1 );
-  ASSERT_EQ( (size_t) mx.row_map.dimension_0() , (size_t) LENGTH + 1 );
+  ASSERT_EQ( (size_t) dx.row_map.extent(0) , (size_t) LENGTH + 1 );
+  ASSERT_EQ( (size_t) hx.row_map.extent(0) , (size_t) LENGTH + 1 );
+  ASSERT_EQ( (size_t) mx.row_map.extent(0) , (size_t) LENGTH + 1 );
 
-  ASSERT_EQ( (size_t) dx.entries.dimension_0() , (size_t) total_length );
-  ASSERT_EQ( (size_t) hx.entries.dimension_0() , (size_t) total_length );
-  ASSERT_EQ( (size_t) mx.entries.dimension_0() , (size_t) total_length );
+  ASSERT_EQ( (size_t) dx.entries.extent(0) , (size_t) total_length );
+  ASSERT_EQ( (size_t) hx.entries.extent(0) , (size_t) total_length );
+  ASSERT_EQ( (size_t) mx.entries.extent(0) , (size_t) total_length );
 
-  ASSERT_EQ( (size_t) dx.entries.dimension_1() , (size_t) 3 );
-  ASSERT_EQ( (size_t) hx.entries.dimension_1() , (size_t) 3 );
-  ASSERT_EQ( (size_t) mx.entries.dimension_1() , (size_t) 3 );
+  ASSERT_EQ( (size_t) dx.entries.extent(1) , (size_t) 3 );
+  ASSERT_EQ( (size_t) hx.entries.extent(1) , (size_t) 3 );
+  ASSERT_EQ( (size_t) mx.entries.extent(1) , (size_t) 3 );
 
   for ( size_t i = 0 ; i < LENGTH ; ++i ) {
     const size_t entry_begin = hx.row_map[i];
@@ -140,7 +140,7 @@ void run_test_graph2()
   Kokkos::deep_copy( dx.entries , hx.entries );
   Kokkos::deep_copy( mx.entries , dx.entries );
 
-  ASSERT_EQ( mx.row_map.dimension_0() , (size_t) LENGTH + 1 );
+  ASSERT_EQ( mx.row_map.extent(0) , (size_t) LENGTH + 1 );
 
   for ( size_t i = 0 ; i < LENGTH ; ++i ) {
     const size_t entry_begin = mx.row_map[i];

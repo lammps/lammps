@@ -52,6 +52,7 @@ using namespace MathSpecial;
 PairAIREBO::PairAIREBO(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
+  restartinfo = 0;
   one_coeff = 1;
   ghostneigh = 1;
   ljflag = torflag = 1;
@@ -2084,7 +2085,7 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
 
 /* ----------------------------------------------------------------------
    Bij* function
-------------------------------------------------------------------------- 
+-------------------------------------------------------------------------
 
 This function calculates S(t_b(b_ij*)) as specified in the AIREBO paper.
 To do so, it needs to compute b_ij*, i.e. the bondorder given that the
@@ -2290,7 +2291,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij_mod[3], double rijmag_mo
         cos321 = MAX(cos321,-1.0);
         sin321 = sqrt(1.0 - cos321*cos321);
         if ((sin321 > TOL) && (r21mag > TOL)) { // XXX was sin321 != 0.0
-          w21 = Sp(r21mag,rcmin[itype][ktype],rcmaxp[itype][ktype],dw21); 
+          w21 = Sp(r21mag,rcmin[itype][ktype],rcmaxp[itype][ktype],dw21);
           tspjik = Sp2(cos321,thmin,thmax,dtsjik);
 
           REBO_neighs_j = REBO_firstneigh[j];
@@ -2470,7 +2471,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij_mod[3], double rijmag_mo
           (rijmag*rjlmag);
         cosijl = MIN(cosijl,1.0);
         cosijl = MAX(cosijl,-1.0);
-        
+
         dcosijldri[0] = (-rjl[0]/(rijmag*rjlmag)) -
           (cosijl*rij[0]/(rijmag*rijmag));
         dcosijldri[1] = (-rjl[1]/(rijmag*rjlmag)) -
@@ -2500,7 +2501,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij_mod[3], double rijmag_mo
         fl[0] = -tmp2*dcosijldrl[0];
         fl[1] = -tmp2*dcosijldrl[1];
         fl[2] = -tmp2*dcosijldrl[2];
-  
+
         tmp2 = VA*.5*(tmp*wjl*g*exp(lamdaijl)*4.0*kronecker(jtype,1));
         fj[0] += tmp2*(rjl[0]/rjlmag);
         fj[1] += tmp2*(rjl[1]/rjlmag);

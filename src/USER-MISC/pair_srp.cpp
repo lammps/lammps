@@ -290,7 +290,7 @@ void PairSRP::compute(int eflag, int vflag)
         dij = sqrt(dijsq);
 
         if (dij < SMALL)
- 	  continue;     // dij can be 0.0 with soft potentials
+      continue;     // dij can be 0.0 with soft potentials
 
         wd = 1.0 - dij / cut[bptype][bptype];
         fpair = a0[bptype][bptype] * wd / dij;

@@ -22,7 +22,10 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixWallHarmonic::FixWallHarmonic(LAMMPS *lmp, int narg, char **arg) :
-  FixWall(lmp, narg, arg) {}
+  FixWall(lmp, narg, arg)
+{
+  dynamic_group_allow = 1;
+}
 
 /* ----------------------------------------------------------------------
    interaction of all particles in group with a wall

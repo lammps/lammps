@@ -40,7 +40,7 @@ void RandPoolWrap::destroy()
   if (random_thr) {
     for (int i=1; i < nthreads; ++i)
       delete random_thr[i];
-  
+
     delete[] random_thr;
     random_thr = NULL;
   }
@@ -52,10 +52,10 @@ void RandPoolWrap::init(RanMars* random, int seed)
   if (random_thr) {
     for (int i=1; i < this->nthreads; ++i)
       delete random_thr[i];
-  
+
     delete[] random_thr;
   }
-  
+
   // allocate pool of RNGs
   // generate a random number generator instance for
   // all threads != 0. make sure we use unique seeds.

@@ -110,13 +110,13 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
 
     if (screen) {
       if (reset_thr)
-	fprintf(screen,"set %d OpenMP thread(s) per MPI task\n", nthreads);
+        fprintf(screen,"set %d OpenMP thread(s) per MPI task\n", nthreads);
       fprintf(screen,"using %s neighbor list subroutines\n", nmode);
     }
 
     if (logfile) {
       if (reset_thr)
-	fprintf(logfile,"set %d OpenMP thread(s) per MPI task\n", nthreads);
+        fprintf(logfile,"set %d OpenMP thread(s) per MPI task\n", nthreads);
       fprintf(logfile,"using %s neighbor list subroutines\n", nmode);
     }
 #else
@@ -226,29 +226,29 @@ void FixOMP::init()
 // determine which is the last force style with OpenMP
 // support as this is the one that has to reduce the forces
 
-#define CheckStyleForOMP(name)						\
-  check_hybrid = 0;							\
-  if (force->name) {							\
-    if ( (strcmp(force->name ## _style,"hybrid") == 0) ||		\
-         (strcmp(force->name ## _style,"hybrid/overlay") == 0) )	\
-      check_hybrid=1;							\
-    if (force->name->suffix_flag & Suffix::OMP) {			\
-      last_force_name = (const char *) #name;				\
-      last_omp_name = force->name ## _style;				\
-      last_omp_style = (void *) force->name;				\
-    }									\
+#define CheckStyleForOMP(name)                                          \
+  check_hybrid = 0;                                                     \
+  if (force->name) {                                                    \
+    if ( (strcmp(force->name ## _style,"hybrid") == 0) ||               \
+         (strcmp(force->name ## _style,"hybrid/overlay") == 0) )        \
+      check_hybrid=1;                                                   \
+    if (force->name->suffix_flag & Suffix::OMP) {                       \
+      last_force_name = (const char *) #name;                           \
+      last_omp_name = force->name ## _style;                            \
+      last_omp_style = (void *) force->name;                            \
+    }                                                                   \
   }
 
 #define CheckHybridForOMP(name,Class) \
-  if (check_hybrid) {					      \
+  if (check_hybrid) {                                         \
     Class ## Hybrid *style = (Class ## Hybrid *) force->name; \
-    for (int i=0; i < style->nstyles; i++) {		      \
+    for (int i=0; i < style->nstyles; i++) {                  \
       if (style->styles[i]->suffix_flag & Suffix::OMP) {      \
-        last_force_name = (const char *) #name;		      \
-        last_omp_name = style->keywords[i];		      \
-        last_omp_style = style->styles[i];		      \
-      }							      \
-    }							      \
+        last_force_name = (const char *) #name;               \
+        last_omp_name = style->keywords[i];                   \
+        last_omp_style = style->styles[i];                    \
+      }                                                       \
+    }                                                         \
   }
 
   if (kspace_split <= 0) {

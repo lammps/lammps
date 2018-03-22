@@ -134,7 +134,7 @@ NeighList::~NeighList()
 void NeighList::post_constructor(NeighRequest *nq)
 {
   // copy request settings used by list itself
-  
+
   occasional = nq->occasional;
   ghost = nq->ghost;
   ssa = nq->ssa;

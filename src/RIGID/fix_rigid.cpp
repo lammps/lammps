@@ -58,15 +58,15 @@ enum{ISO,ANISO,TRICLINIC};
 /* ---------------------------------------------------------------------- */
 
 FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), step_respa(NULL), 
-  infile(NULL), nrigid(NULL), mol2body(NULL), body2mol(NULL), 
-  body(NULL), displace(NULL), masstotal(NULL), xcm(NULL), 
-  vcm(NULL), fcm(NULL), inertia(NULL), ex_space(NULL), 
-  ey_space(NULL), ez_space(NULL), angmom(NULL), omega(NULL), 
-  torque(NULL), quat(NULL), imagebody(NULL), fflag(NULL), 
-  tflag(NULL), langextra(NULL), sum(NULL), all(NULL), 
-  remapflag(NULL), xcmimage(NULL), eflags(NULL), orient(NULL), 
-  dorient(NULL), id_dilate(NULL), random(NULL), avec_ellipsoid(NULL), 
+  Fix(lmp, narg, arg), step_respa(NULL),
+  infile(NULL), nrigid(NULL), mol2body(NULL), body2mol(NULL),
+  body(NULL), displace(NULL), masstotal(NULL), xcm(NULL),
+  vcm(NULL), fcm(NULL), inertia(NULL), ex_space(NULL),
+  ey_space(NULL), ez_space(NULL), angmom(NULL), omega(NULL),
+  torque(NULL), quat(NULL), imagebody(NULL), fflag(NULL),
+  tflag(NULL), langextra(NULL), sum(NULL), all(NULL),
+  remapflag(NULL), xcmimage(NULL), eflags(NULL), orient(NULL),
+  dorient(NULL), id_dilate(NULL), random(NULL), avec_ellipsoid(NULL),
   avec_line(NULL), avec_tri(NULL)
 {
   int i,ibody;
@@ -440,8 +440,8 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
         force->numeric(FLERR,arg[iarg+3]);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (dimension == 2) {
-	      p_start[2] = p_stop[2] = p_period[2] = 0.0;
-      	p_flag[2] = 0;
+              p_start[2] = p_stop[2] = p_period[2] = 0.0;
+        p_flag[2] = 0;
       }
       iarg += 4;
 
@@ -457,8 +457,8 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
         force->numeric(FLERR,arg[iarg+3]);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (dimension == 2) {
-      	p_start[2] = p_stop[2] = p_period[2] = 0.0;
-	      p_flag[2] = 0;
+        p_start[2] = p_stop[2] = p_period[2] = 0.0;
+              p_flag[2] = 0;
       }
       iarg += 4;
 
@@ -966,7 +966,7 @@ void FixRigid::post_force(int vflag)
       langextra[i][0] = gamma1*vcm[i][0] + gamma2*(random->uniform()-0.5);
       langextra[i][1] = gamma1*vcm[i][1] + gamma2*(random->uniform()-0.5);
       langextra[i][2] = gamma1*vcm[i][2] + gamma2*(random->uniform()-0.5);
-      
+
       gamma1 = -1.0 / t_period / ftm2v;
       gamma2 = tsqrt * sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
       langextra[i][3] = inertia[i][0]*gamma1*omega[i][0] +

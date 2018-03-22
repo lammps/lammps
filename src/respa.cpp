@@ -44,9 +44,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Respa::Respa(LAMMPS *lmp, int narg, char **arg) : 
+Respa::Respa(LAMMPS *lmp, int narg, char **arg) :
   Integrate(lmp, narg, arg),
-  step(NULL), loop(NULL), hybrid_level(NULL), hybrid_compute(NULL), 
+  step(NULL), loop(NULL), hybrid_level(NULL), hybrid_compute(NULL),
   newton(NULL), fix_respa(NULL)
 {
   nhybrid_styles = 0;

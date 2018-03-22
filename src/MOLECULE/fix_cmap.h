@@ -63,7 +63,7 @@ class FixCMAP : public Fix {
   int unpack_exchange(int, double *);
 
   double memory_usage();
- 
+
  private:
   int nprocs,me;
   int newton_bond,eflag_caller;
@@ -111,7 +111,7 @@ class FixCMAP : public Fix {
   void spl_interpolate(double, double *, double *, double &, double &);
 
   // calculate dihedral angles
-     
+
   double dihedral_angle_atan2(double, double, double, double, double, double,
                               double, double, double, double);
 

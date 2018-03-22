@@ -153,7 +153,7 @@ void ComputePEAtom::compute_peratom()
   // add in per-atom contributions from relevant fixes
   // always only for owned atoms, not ghost
 
-  if (fixflag && modify->n_thermo_energy_atom) 
+  if (fixflag && modify->n_thermo_energy_atom)
     modify->thermo_energy_atom(nlocal,energy);
 
   // communicate ghost energy between neighbor procs

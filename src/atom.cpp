@@ -822,8 +822,8 @@ void Atom::deallocate_topology()
    call style-specific routine to parse line
 ------------------------------------------------------------------------- */
 
-void Atom::data_atoms(int n, char *buf, tagint id_offset, int type_offset,
-                      int shiftflag, double *shift)
+void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
+                      int type_offset, int shiftflag, double *shift)
 {
   int m,xptr,iptr;
   imageint imagedata;
@@ -948,6 +948,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, int type_offset,
         coord[2] >= sublo[2] && coord[2] < subhi[2]) {
       avec->data_atom(xdata,imagedata,values);
       if (id_offset) tag[nlocal-1] += id_offset;
+      if (mol_offset) molecule[nlocal-1] += mol_offset;
       if (type_offset) {
         type[nlocal-1] += type_offset;
         if (type[nlocal-1] > ntypes)
@@ -1383,30 +1384,30 @@ void Atom::data_bodies(int n, char *buf, AtomVecBody *avec_body,
 
     ninteger = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
     ndouble = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
-    
+
     if ((m = map(tagdata)) >= 0) {
       if (ninteger > maxint) {
-	delete [] ivalues;
-	maxint = ninteger;
-	ivalues = new int[maxint];
+        delete [] ivalues;
+        maxint = ninteger;
+        ivalues = new int[maxint];
       }
       if (ndouble > maxdouble) {
-	delete [] dvalues;
-	maxdouble = ndouble;
-	dvalues = new double[maxdouble];
+        delete [] dvalues;
+        maxdouble = ndouble;
+        dvalues = new double[maxdouble];
       }
-      
+
       for (j = 0; j < ninteger; j++)
-	ivalues[j] = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
+        ivalues[j] = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
       for (j = 0; j < ndouble; j++)
-	dvalues[j] = force->numeric(FLERR,strtok(NULL," \t\n\r\f"));
-      
+        dvalues[j] = force->numeric(FLERR,strtok(NULL," \t\n\r\f"));
+
       avec_body->data_body(m,ninteger,ndouble,ivalues,dvalues);
-      
+
     } else {
       nvalues = ninteger + ndouble;    // number of values to skip
       for (j = 0; j < nvalues; j++)
-	strtok(NULL," \t\n\r\f");
+        strtok(NULL," \t\n\r\f");
     }
   }
 
@@ -1539,7 +1540,7 @@ void Atom::check_mass(const char *file, int line)
   if (mass == NULL) return;
   if (rmass_flag) return;
   for (int itype = 1; itype <= ntypes; itype++)
-    if (mass_setflag[itype] == 0) 
+    if (mass_setflag[itype] == 0)
       error->all(file,line,"Not all per-type masses are set");
 }
 
@@ -1672,10 +1673,10 @@ void Atom::add_molecule_atom(Molecule *onemol, int iatom,
   if (onemol->bodyflag) {
     body[ilocal] = 0;     // as if a body read from data file
     onemol->avec_body->data_body(ilocal,onemol->nibody,onemol->ndbody,
-				 onemol->ibodyparams,onemol->dbodyparams);
+                                 onemol->ibodyparams,onemol->dbodyparams);
     onemol->avec_body->set_quat(ilocal,onemol->quat_external);
   }
-  
+
   if (molecular != 1) return;
 
   // add bond topology info

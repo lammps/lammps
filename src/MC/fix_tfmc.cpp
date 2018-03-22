@@ -235,7 +235,7 @@ void FixTFMC::initial_integrate(int vflag)
       xcm_dall[1] /= masstotal;
       xcm_dall[2] /= masstotal;
     } else xcm_dall[0] = xcm_dall[1] = xcm_dall[2] = 0.0;
-    
+
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         if (xflag) x[i][0] -= xcm_dall[0];
@@ -255,11 +255,11 @@ void FixTFMC::initial_integrate(int vflag)
     group->xcm(igroup,masstotal,cm);
 
     // to zero rotations, we can employ the same principles the
-	// velocity command uses to zero the angular momentum. of course,
-	// there is no (conserved) momentum in MC, but we can substitute
-	// "velocities" by a displacement vector and proceed from there.
-	// this of course requires "forking" group->angmom(), which is
-	// what we do here.
+        // velocity command uses to zero the angular momentum. of course,
+        // there is no (conserved) momentum in MC, but we can substitute
+        // "velocities" by a displacement vector and proceed from there.
+        // this of course requires "forking" group->angmom(), which is
+        // what we do here.
 
     double p[3];
     p[0] = p[1] = p[2] = 0.0;

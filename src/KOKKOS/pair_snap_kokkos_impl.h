@@ -114,8 +114,8 @@ struct FindMaxNumNeighs {
   typedef DeviceType device_type;
   NeighListKokkos<DeviceType> k_list;
 
-  FindMaxNumNeighs(NeighListKokkos<DeviceType>* nl): k_list(*nl) {}  
-  ~FindMaxNumNeighs() {k_list.copymode = 1;}  
+  FindMaxNumNeighs(NeighListKokkos<DeviceType>* nl): k_list(*nl) {}
+  ~FindMaxNumNeighs() {k_list.copymode = 1;}
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int& ii, int& max_neighs) const {
@@ -134,14 +134,14 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 {
   eflag = eflag_in;
   vflag = vflag_in;
-  
+
   if (neighflag == FULL) no_virial_fdotr_compute = 1;
-  
+
   if (eflag || vflag) ev_setup(eflag,vflag,0);
   else evflag = vflag_fdotr = 0;
 
   // reallocate per-atom arrays if necessary
-  
+
   if (eflag_atom) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
@@ -188,7 +188,7 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   int team_size_max = Kokkos::TeamPolicy<DeviceType>::team_size_max(*this);
   int vector_length = 8;
 #ifdef KOKKOS_ENABLE_CUDA
-  int team_size = 20;//max_neighs;
+  int team_size = 32;//max_neighs;
   if (team_size*vector_length > team_size_max)
     team_size = team_size_max/vector_length;
 #else
@@ -241,7 +241,7 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     virial[4] += ev.v[4];
     virial[5] += ev.v[5];
   }
-  
+
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
 
   if (eflag_atom) {
@@ -282,7 +282,7 @@ double PairSNAPKokkos<DeviceType>::init_one(int i, int j)
   double cutone = PairSNAP::init_one(i,j);
   k_cutsq.h_view(i,j) = k_cutsq.h_view(j,i) = cutone*cutone;
   k_cutsq.template modify<LMPHostType>();
-  
+
   return cutone;
 }
 
@@ -469,7 +469,7 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAP<NEIGHFLAG,EVFLAG>,const
     }
 
     if (quadraticflag) {
-    
+
       int k = ncoeff+1;
       for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
         double bveci = my_sna.bvec[icoeff];
@@ -535,7 +535,7 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAP<NEIGHFLAG,EVFLAG>,const
         my_sna.compute_bi(team);
         my_sna.copy_bi2bvec(team);
       }
-      
+
       // E = beta.B + 0.5*B^t.alpha.B
       // coeff[k] = beta[k-1] or
       // coeff[k] = alpha_ii or
@@ -545,7 +545,7 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAP<NEIGHFLAG,EVFLAG>,const
       Kokkos::single(Kokkos::PerThread(team), [&] () {
 
       // evdwl = energy of atom I, sum over coeffs_k * Bi_k
-    
+
       double evdwl = d_coeffi[0];
 
       // linear contributions
@@ -553,7 +553,7 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAP<NEIGHFLAG,EVFLAG>,const
           evdwl += d_coeffi[k]*my_sna.bvec[k-1];
 
         // quadratic contributions
-        
+
         if (quadraticflag) {
           int k = ncoeff+1;
           for (int icoeff = 0; icoeff < ncoeff; icoeff++) {

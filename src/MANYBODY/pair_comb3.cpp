@@ -166,11 +166,11 @@ void PairComb3::settings(int narg, char **arg)
   if (strcmp(arg[0],"polar_on") == 0) {
     pol_flag = 1;
     if (comm->me == 0 && screen) fprintf(screen,
-		    "	PairComb3: polarization is on \n");
+                    "   PairComb3: polarization is on \n");
   } else if (strcmp(arg[0],"polar_off") == 0) {
     pol_flag = 0;
     if (comm->me == 0 && screen) fprintf(screen,
-		    "	PairComb3: polarization is off \n");
+                    "   PairComb3: polarization is off \n");
   } else {
     error->all(FLERR,"Illegal pair_style command");
   }
@@ -209,7 +209,7 @@ void PairComb3::coeff(int narg, char **arg)
   for (i = 3; i < narg; i++) {
     if ((strcmp(arg[i],"C") == 0) && (cflag == 0)) {
       if( comm->me == 0 && screen) fprintf(screen,
-      "	PairComb3: Found C: reading additional library file\n");
+      " PairComb3: Found C: reading additional library file\n");
     read_lib();
     cflag = 1;
     }
@@ -248,8 +248,8 @@ void PairComb3::coeff(int narg, char **arg)
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       if (map[i] >= 0 && map[j] >= 0) {
-	setflag[i][j] = 1;
-	count++;
+        setflag[i][j] = 1;
+        count++;
       }
 
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
@@ -417,7 +417,7 @@ void PairComb3::read_lib()
             pcn_gridx[ll][ii][jj][kk]    = atof(words[5]);
             pcn_gridy[ll][ii][jj][kk]    = atof(words[6]);
             pcn_gridz[ll][ii][jj][kk]    = atof(words[7]);
-	  }
+          }
 
     for (l=0; l<nsplpcn; l++)
       for (i=0; i<maxx; i++)
@@ -439,9 +439,9 @@ void PairComb3::read_lib()
              for(m=0; m<32 ; m++) {
                mm=iii*32+m;
                pcn_cubs[ll][ii][jj][kk][mm] = atof(words[m]);
-	     }
-	   }
-	  }
+             }
+           }
+          }
 
     for (l=0; l<nsplrad; l++)
       for (i=0; i<maxxc+1; i++)
@@ -459,7 +459,7 @@ void PairComb3::read_lib()
             rad_gridx[ll][ii][jj][kk]    = atof(words[5]);
             rad_gridy[ll][ii][jj][kk]    = atof(words[6]);
             rad_gridz[ll][ii][jj][kk]    = atof(words[7]);
-	  }
+          }
 
     for (l=0; l<nsplrad; l++)
       for (i=0; i<maxxc; i++)
@@ -481,9 +481,9 @@ void PairComb3::read_lib()
               for(m=0; m<32 ; m++){
                 mm=iii*32+m;
                 rad_spl[ll][ii][jj][kk][mm] = atof(words[m]);
-	      }
-	    }
-	  }
+              }
+            }
+          }
 
     for (l=0; l<nspltor; l++)
       for (i=0; i<maxxc+1; i++)
@@ -501,7 +501,7 @@ void PairComb3::read_lib()
             tor_gridx[ll][ii][jj][kk]    = atof(words[5]);
             tor_gridy[ll][ii][jj][kk]    = atof(words[6]);
             tor_gridz[ll][ii][jj][kk]    = atof(words[7]);
-	  }
+          }
 
     for (l=0; l<nspltor; l++)
       for (i=0; i<maxxc; i++)
@@ -523,9 +523,9 @@ void PairComb3::read_lib()
               for (m=0; m<32 ; m++){
                 mm=iii*32+m;
                 tor_spl[ll][ii][jj][kk][mm] = atof(words[m]);
-	      }
-	    }
-	  }
+              }
+            }
+          }
 
     fclose(fp);
   }
@@ -623,8 +623,8 @@ void PairComb3::read_file(char *file)
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
       if (ptr == NULL) {
-	eof = 1;
-	fclose(fp);
+        eof = 1;
+        fclose(fp);
       } else n = strlen(line) + 1;
     }
     MPI_Bcast(&eof,1,MPI_INT,0,world);
@@ -647,8 +647,8 @@ void PairComb3::read_file(char *file)
       if (comm->me == 0) {
         ptr = fgets(&line[n],MAXLINE-n,fp);
         if (ptr == NULL) {
-	  eof = 1;
-	  fclose(fp);
+          eof = 1;
+          fclose(fp);
         } else n = strlen(line) + 1;
       }
       MPI_Bcast(&eof,1,MPI_INT,0,world);
@@ -689,7 +689,7 @@ void PairComb3::read_file(char *file)
     if (nparams == maxparam) {
       maxparam += DELTA;
       params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
-					  "pair:params");
+                                          "pair:params");
     }
 
     params[nparams].ielement = ielement;
@@ -771,20 +771,20 @@ void PairComb3::read_file(char *file)
     // parameter sanity checks
 
     if (params[nparams].lambda < 0.0 || params[nparams].powern < 0.0 ||
-	params[nparams].beta < 0.0 || params[nparams].alpha1 < 0.0 ||
-	params[nparams].bigB1< 0.0 || params[nparams].bigA< 0.0 ||
-	params[nparams].bigB2< 0.0 || params[nparams].alpha2 <0.0 ||
-	params[nparams].bigB3< 0.0 || params[nparams].alpha3 <0.0 ||
-	params[nparams].bigr < 0.0 || params[nparams].bigd < 0.0 ||
-	params[nparams].bigd > params[nparams].bigr ||
-	params[nparams].powerm - params[nparams].powermint != 0.0 ||
-	params[nparams].addrepr < 0.0 || params[nparams].powermint < 1.0 ||
-	params[nparams].QL > 0.0 || params[nparams].QU < 0.0 ||
-	params[nparams].DL < 0.0 || params[nparams].DU > 0.0 ||
-	params[nparams].pcross < 0.0 ||
-	params[nparams].esm < 0.0 || params[nparams].veps < 0.0 ||
-	params[nparams].vsig < 0.0 || params[nparams].vdwflag < 0.0
-	)
+        params[nparams].beta < 0.0 || params[nparams].alpha1 < 0.0 ||
+        params[nparams].bigB1< 0.0 || params[nparams].bigA< 0.0 ||
+        params[nparams].bigB2< 0.0 || params[nparams].alpha2 <0.0 ||
+        params[nparams].bigB3< 0.0 || params[nparams].alpha3 <0.0 ||
+        params[nparams].bigr < 0.0 || params[nparams].bigd < 0.0 ||
+        params[nparams].bigd > params[nparams].bigr ||
+        params[nparams].powerm - params[nparams].powermint != 0.0 ||
+        params[nparams].addrepr < 0.0 || params[nparams].powermint < 1.0 ||
+        params[nparams].QL > 0.0 || params[nparams].QU < 0.0 ||
+        params[nparams].DL < 0.0 || params[nparams].DU > 0.0 ||
+        params[nparams].pcross < 0.0 ||
+        params[nparams].esm < 0.0 || params[nparams].veps < 0.0 ||
+        params[nparams].vsig < 0.0 || params[nparams].vdwflag < 0.0
+        )
       error->all(FLERR,"Illegal COMB3 parameter");
 
     nparams++;
@@ -809,16 +809,16 @@ void PairComb3::setup_params()
   for (i = 0; i < nelements; i++)
     for (j = 0; j < nelements; j++)
       for (k = 0; k < nelements; k++) {
-	n = -1;
-	for (m = 0; m < nparams; m++) {
-	  if (i == params[m].ielement && j == params[m].jelement &&
-	      k == params[m].kelement) {
-	    if (n >= 0) error->all(FLERR,"Potential file has duplicate entry");
-	    n = m;
-	  }
-	}
-	if (n < 0) error->all(FLERR,"Potential file is missing an entry");
-	elem2param[i][j][k] = n;
+        n = -1;
+        for (m = 0; m < nparams; m++) {
+          if (i == params[m].ielement && j == params[m].jelement &&
+              k == params[m].kelement) {
+            if (n >= 0) error->all(FLERR,"Potential file has duplicate entry");
+            n = m;
+          }
+        }
+        if (n < 0) error->all(FLERR,"Potential file is missing an entry");
+        elem2param[i][j][k] = n;
       }
 
   // compute parameter values derived from inputs
@@ -837,9 +837,9 @@ void PairComb3::setup_params()
       (1.0-pow(fabs(params[m].Qo/params[m].dQ),10)); // (A20)
     params[m].bB = pow(fabs(params[m].aB),0.1)/params[m].dQ; // (A19)
     params[m].nD = log(params[m].DU/(params[m].DU-params[m].DL))/
-		    log(params[m].QU/(params[m].QU-params[m].QL));
+                    log(params[m].QU/(params[m].QU-params[m].QL));
     params[m].bD = (pow((params[m].DL-params[m].DU),(1.0/params[m].nD)))/
-		    (params[m].QU-params[m].QL);
+                    (params[m].QU-params[m].QL);
 
     params[m].lcut = params[m].coulcut;
     params[m].lcutsq = params[m].lcut*params[m].lcut;
@@ -873,7 +873,7 @@ void PairComb3::Short_neigh()
     memory->sfree(sht_first);
     nmax = atom->nmax;
     sht_first = (int **) memory->smalloc(nmax*sizeof(int *),
-		    			"pair:sht_first");
+                                        "pair:sht_first");
     memory->grow(dpl,nmax,3,"pair:dpl");
     memory->grow(xcctmp,nmax,"pair:xcctmp");
     memory->grow(xchtmp,nmax,"pair:xchtmp");
@@ -929,9 +929,9 @@ void PairComb3::Short_neigh()
       if( icontrol == 1)
           xcctmp[i] += comb_fc(rr1,&params[iparam_ij]) * params[iparam_ij].pcross;
       if (icontrol == 2)
-	  xchtmp[i] += comb_fc(rr1,&params[iparam_ij]) * params[iparam_ij].pcross;
+          xchtmp[i] += comb_fc(rr1,&params[iparam_ij]) * params[iparam_ij].pcross;
       if (icontrol == 3)
-	  xcotmp[i] += comb_fc(rr1,&params[iparam_ij]) * params[iparam_ij].pcross;
+          xcotmp[i] += comb_fc(rr1,&params[iparam_ij]) * params[iparam_ij].pcross;
 
     }
 
@@ -1125,20 +1125,20 @@ void PairComb3::compute(int eflag, int vflag)
       f[j][2] -= delz*fpair;
 
       if (evflag)
-	ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,fpair,delx,dely,delz);
+        ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,fpair,delx,dely,delz);
 
       // Q-dependent: Coulombic, field, polarization
       // 1/r energy and forces
 
       direct(&params[iparam_ij], &params[iparam_ji],
-		mr1, mr2, mr3, rsq, sr1, sr2, sr3, iq, jq,
-		fac11, fac11e, eng_tmp, fvionij, i, j);
+                mr1, mr2, mr3, rsq, sr1, sr2, sr3, iq, jq,
+                fac11, fac11e, eng_tmp, fvionij, i, j);
 
       vionij = eng_tmp;
 
       // field correction to self energy
       field(&params[iparam_ij], &params[iparam_ji],rsq,iq,jq,
-	     eng_tmp,fvionij);
+             eng_tmp,fvionij);
       vionij += eng_tmp;
 
       // sums up long range Q-dependent forces (excluding dipole)
@@ -1151,18 +1151,18 @@ void PairComb3::compute(int eflag, int vflag)
 
       // sums up long range Q-dependent energies (excluding dipole)
       if (evflag)
-	ev_tally(i,j,nlocal,newton_pair,0.0,vionij,fvionij,delx,dely,delz);
+        ev_tally(i,j,nlocal,newton_pair,0.0,vionij,fvionij,delx,dely,delz);
 
       // polarization field
       if (pol_flag) {
         dipole_calc(&params[iparam_ij], &params[iparam_ji],fac11,
-		delx,dely,delz,rsq,mr1,mr2,mr3,
-		sr1,sr2,sr3,iq,jq,i,j,eng_tmp,fvionij,ddprx);
-	vionij = eng_tmp;
+                delx,dely,delz,rsq,mr1,mr2,mr3,
+                sr1,sr2,sr3,iq,jq,i,j,eng_tmp,fvionij,ddprx);
+        vionij = eng_tmp;
 
         // sums up dipole energies
         if (evflag)
-	  ev_tally(i,j,nlocal,newton_pair,0.0,vionij,fvionij,delx,dely,delz);
+          ev_tally(i,j,nlocal,newton_pair,0.0,vionij,fvionij,delx,dely,delz);
 
         // sums up dipole forces
         f[i][0] += (ddprx[0] + delx*fvionij);
@@ -1176,7 +1176,7 @@ void PairComb3::compute(int eflag, int vflag)
       if (rsq > params[iparam_ij].cutsq) continue;
 
       repulsive(&params[iparam_ij], &params[iparam_ji], rsq,
-	      fpair, eflag, eng_tmp, iq, jq);
+              fpair, eflag, eng_tmp, iq, jq);
 
       evdwl = eng_tmp;
 
@@ -1189,7 +1189,7 @@ void PairComb3::compute(int eflag, int vflag)
       f[j][2] -= delz*fpair;
 
       if (evflag)
-	ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,fpair,delx,dely,delz);
+        ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,fpair,delx,dely,delz);
     }
 
     // many-body interactions: start of short-range
@@ -1222,27 +1222,27 @@ void PairComb3::compute(int eflag, int vflag)
       bbtor = 0.0;
       kconjug = 0.0;
 
-      for (kk = 0; kk < sht_jnum; kk++) {	// kk is neighbor of ii
-	k = sht_jlist[kk];
-	if (j == k) continue;
+      for (kk = 0; kk < sht_jnum; kk++) {       // kk is neighbor of ii
+        k = sht_jlist[kk];
+        if (j == k) continue;
 
-	ktype = map[type[k]];
-	iparam_ijk = elem2param[itype][jtype][ktype];
-	iparam_ikj = elem2param[itype][ktype][jtype];
-	iparam_jik = elem2param[jtype][itype][ktype];
-	iparam_ik  = elem2param[itype][ktype][ktype];
-	delrk[0] = x[k][0] - xtmp;
-	delrk[1] = x[k][1] - ytmp;
-	delrk[2] = x[k][2] - ztmp;
-	rsq2 = vec3_dot(delrk,delrk);
+        ktype = map[type[k]];
+        iparam_ijk = elem2param[itype][jtype][ktype];
+        iparam_ikj = elem2param[itype][ktype][jtype];
+        iparam_jik = elem2param[jtype][itype][ktype];
+        iparam_ik  = elem2param[itype][ktype][ktype];
+        delrk[0] = x[k][0] - xtmp;
+        delrk[1] = x[k][1] - ytmp;
+        delrk[2] = x[k][2] - ztmp;
+        rsq2 = vec3_dot(delrk,delrk);
 
-	if (rsq2 > params[iparam_ik].cutsq) continue;
+        if (rsq2 > params[iparam_ik].cutsq) continue;
 
-	// 3-body zeta in bond order
-	zeta_ij += zeta(&params[iparam_ijk], &params[iparam_ik],
-			rsq1, rsq2, delrj, delrk, i, xcn);
+        // 3-body zeta in bond order
+        zeta_ij += zeta(&params[iparam_ijk], &params[iparam_ik],
+                        rsq1, rsq2, delrj, delrk, i, xcn);
 
-	// radical initialization: apply only to CC,CO,OC bonds
+        // radical initialization: apply only to CC,CO,OC bonds
         if (params[iparam_ij].rad_flag > 0 &&
             params[iparam_ik].ielementgp == 1 &&
             params[iparam_ik].jelementgp == 1) {
@@ -1252,68 +1252,68 @@ void PairComb3::compute(int eflag, int vflag)
 
         }
 
-	// torsion: i-j-k-l: apply to all C-C bonds
+        // torsion: i-j-k-l: apply to all C-C bonds
 
-	if( params[iparam_ij].tor_flag != 0 ) {
-	  srmu = vec3_dot(delrj,delrk)/(sqrt(rsq1*rsq2));
-	  srmu = sqrt(1.0-srmu*srmu);
+        if( params[iparam_ij].tor_flag != 0 ) {
+          srmu = vec3_dot(delrj,delrk)/(sqrt(rsq1*rsq2));
+          srmu = sqrt(1.0-srmu*srmu);
 
-	  if(srmu > 0.1) {
-            for (ll = 0; ll < sht_lnum; ll++) {	// ll is neighbor of jj
-	      l = sht_llist[ll];
+          if(srmu > 0.1) {
+            for (ll = 0; ll < sht_lnum; ll++) { // ll is neighbor of jj
+              l = sht_llist[ll];
 
-	      if(l==i || l==j || l==k) continue;
+              if(l==i || l==j || l==k) continue;
 
-	      ltype = map[type[l]];
+              ltype = map[type[l]];
 
-	      delrl[0] = x[l][0] - x[j][0];
-	      delrl[1] = x[l][1] - x[j][1];
-	      delrl[2] = x[l][2] - x[j][2];
-	      rsq3 = vec3_dot(delrl,delrl);
-	      iparam_jl = elem2param[jtype][ltype][ltype];
+              delrl[0] = x[l][0] - x[j][0];
+              delrl[1] = x[l][1] - x[j][1];
+              delrl[2] = x[l][2] - x[j][2];
+              rsq3 = vec3_dot(delrl,delrl);
+              iparam_jl = elem2param[jtype][ltype][ltype];
 
-	      if (rsq3 > params[iparam_jl].cutsq) continue;
+              if (rsq3 > params[iparam_jl].cutsq) continue;
 
-	      iparam_ikl = elem2param[itype][ktype][ltype];
+              iparam_ikl = elem2param[itype][ktype][ltype];
               torindx = params[iparam_ij].tor_flag;
-	      bbtor += bbtor1(torindx, &params[iparam_ikl],&params[iparam_jl],
+              bbtor += bbtor1(torindx, &params[iparam_ikl],&params[iparam_jl],
                        rsq1,rsq2,rsq3,delrj,delrk,delrl,srmu);
-	    }
-	  }
-	}
+            }
+          }
+        }
       }
 
       zeta_ji = 0.0;
       lconjug = 0.0;
 
       for (ll = 0; ll < sht_lnum; ll++) {
-	l = sht_llist[ll];
-	if (l == i) continue;
+        l = sht_llist[ll];
+        if (l == i) continue;
 
-	ltype = map[type[l]];
-	iparam_jil = elem2param[jtype][itype][ltype];
-	iparam_ijl = elem2param[itype][jtype][ltype];
-	iparam_jl  = elem2param[jtype][ltype][ltype];
-	iparam_lj  = elem2param[ltype][jtype][jtype];
+        ltype = map[type[l]];
+        iparam_jil = elem2param[jtype][itype][ltype];
+        iparam_ijl = elem2param[itype][jtype][ltype];
+        iparam_jl  = elem2param[jtype][ltype][ltype];
+        iparam_lj  = elem2param[ltype][jtype][jtype];
 
-	delrk[0] = x[l][0] - x[j][0];
-	delrk[1] = x[l][1] - x[j][1];
-	delrk[2] = x[l][2] - x[j][2];
-	rsq2 = vec3_dot(delrk,delrk);
+        delrk[0] = x[l][0] - x[j][0];
+        delrk[1] = x[l][1] - x[j][1];
+        delrk[2] = x[l][2] - x[j][2];
+        rsq2 = vec3_dot(delrk,delrk);
 
-	delrl[0] = x[l][0] - x[j][0];
-	delrl[1] = x[l][1] - x[j][1];
-	delrl[2] = x[l][2] - x[j][2];
-	rsq2 = vec3_dot(delrl,delrl);
+        delrl[0] = x[l][0] - x[j][0];
+        delrl[1] = x[l][1] - x[j][1];
+        delrl[2] = x[l][2] - x[j][2];
+        rsq2 = vec3_dot(delrl,delrl);
 
-	if (rsq2 > params[iparam_jl].cutsq) continue;
+        if (rsq2 > params[iparam_jl].cutsq) continue;
 
-	vec3_scale(-1,delrj,delrl);	// ji_hat is -(ij_hat)
+        vec3_scale(-1,delrj,delrl);     // ji_hat is -(ij_hat)
 
-	zeta_ji += zeta(&params[iparam_jil], &params[iparam_jl]
-			, rsq1, rsq2, delrl, delrk, j, ycn);
+        zeta_ji += zeta(&params[iparam_jil], &params[iparam_jl]
+                        , rsq1, rsq2, delrl, delrk, j, ycn);
 
-	// radical initialization: apply only to CC,CO,OC bonds
+        // radical initialization: apply only to CC,CO,OC bonds
         if(params[iparam_ji].rad_flag > 0
           && params[iparam_jl].ielementgp == 1
           && params[iparam_jl].jelementgp == 1) {
@@ -1324,10 +1324,10 @@ void PairComb3::compute(int eflag, int vflag)
       }
 
       force_zeta(&params[iparam_ij], &params[iparam_ji],
-	 rsq1, xcn, ycn, zeta_ij, zeta_ji, fpair,
-	 prefac_ij1, prefac_ij2, prefac_ij3, prefac_ij4, prefac_ij5,
-	 prefac_ji1, prefac_ji2, prefac_ji3, prefac_ji4, prefac_ji5,
-	 eflag, eng_tmp, iq, jq, i, j, nj, bbtor, kconjug, lconjug);
+         rsq1, xcn, ycn, zeta_ij, zeta_ji, fpair,
+         prefac_ij1, prefac_ij2, prefac_ij3, prefac_ij4, prefac_ij5,
+         prefac_ji1, prefac_ji2, prefac_ji3, prefac_ji4, prefac_ji5,
+         eflag, eng_tmp, iq, jq, i, j, nj, bbtor, kconjug, lconjug);
 
       evdwl = eng_tmp;
       selfp6p(&params[iparam_ij],&params[iparam_ji],rsq1,eng_tmp,fpair);
@@ -1347,77 +1347,77 @@ void PairComb3::compute(int eflag, int vflag)
       zet_addj=0;
 
       for (kk = 0; kk < sht_jnum; kk++) {
-	k = sht_jlist[kk];
-	if (j == k) continue;
+        k = sht_jlist[kk];
+        if (j == k) continue;
         sht_mlist = sht_first[k];
         sht_mnum = sht_num[k];
 
-	ktype = map[type[k]];
-	iparam_ijk = elem2param[itype][jtype][ktype];
-	iparam_ikj = elem2param[itype][ktype][jtype];
-	iparam_jik = elem2param[jtype][itype][ktype];
-	iparam_ik  = elem2param[itype][ktype][ktype];
-	delrk[0] = x[k][0] - xtmp;
-	delrk[1] = x[k][1] - ytmp;
-	delrk[2] = x[k][2] - ztmp;
-	rsq2 = vec3_dot(delrk,delrk);
-	if (rsq2 > params[iparam_ik].cutsq) continue;
+        ktype = map[type[k]];
+        iparam_ijk = elem2param[itype][jtype][ktype];
+        iparam_ikj = elem2param[itype][ktype][jtype];
+        iparam_jik = elem2param[jtype][itype][ktype];
+        iparam_ik  = elem2param[itype][ktype][ktype];
+        delrk[0] = x[k][0] - xtmp;
+        delrk[1] = x[k][1] - ytmp;
+        delrk[2] = x[k][2] - ztmp;
+        rsq2 = vec3_dot(delrk,delrk);
+        if (rsq2 > params[iparam_ik].cutsq) continue;
 
-	// BO-dependent 3-body E & F
-	attractive(&params[iparam_ijk], &params[iparam_jik],&params[iparam_ikj],
-		prefac_ij1, prefac_ij2, prefac_ij3, prefac_ij4, prefac_ij5,
-		rsq1,rsq2,delrj,delrk,fi,fj,fk,i,xcn);
+        // BO-dependent 3-body E & F
+        attractive(&params[iparam_ijk], &params[iparam_jik],&params[iparam_ikj],
+                prefac_ij1, prefac_ij2, prefac_ij3, prefac_ij4, prefac_ij5,
+                rsq1,rsq2,delrj,delrk,fi,fj,fk,i,xcn);
 
-	ep6p_ij = ep6p(&params[iparam_ijk],&params[iparam_ikj],rsq1,rsq2,delrj,delrk,zet_addi);
-	fp6p(&params[iparam_ijk],&params[iparam_ikj],rsq1,rsq2,delrj,delrk,fip6p,fjp6p,fkp6p);
+        ep6p_ij = ep6p(&params[iparam_ijk],&params[iparam_ikj],rsq1,rsq2,delrj,delrk,zet_addi);
+        fp6p(&params[iparam_ijk],&params[iparam_ikj],rsq1,rsq2,delrj,delrk,fip6p,fjp6p,fkp6p);
 
-	// Sums up i-j-k forces: LP contribution
-	for (im = 0; im < 3; im++) {
-	  fi[im] += fip6p[im];
-	  fj[im] += fjp6p[im];
-	  fk[im] += fkp6p[im];
-	}
+        // Sums up i-j-k forces: LP contribution
+        for (im = 0; im < 3; im++) {
+          fi[im] += fip6p[im];
+          fj[im] += fjp6p[im];
+          fk[im] += fkp6p[im];
+        }
 
-	// Sums up i-j-k forces: Tallies into global force vector
-	for (im = 0; im < 3; im++) {
-	  f[i][im] += fi[im];
-	  f[j][im] += fj[im];
-	  f[k][im] += fk[im];
-	}
+        // Sums up i-j-k forces: Tallies into global force vector
+        for (im = 0; im < 3; im++) {
+          f[i][im] += fi[im];
+          f[j][im] += fj[im];
+          f[k][im] += fk[im];
+        }
 
-	// torsion and radical: apply to all C-C bonds
-	if( params[iparam_ijk].tor_flag != 0 && fabs(ptorr)>1.0e-8) {
-	  srmu = vec3_dot(delrj,delrk)/(sqrt(rsq1*rsq2));
-	  srmu = sqrt(1.0-srmu*srmu);
+        // torsion and radical: apply to all C-C bonds
+        if( params[iparam_ijk].tor_flag != 0 && fabs(ptorr)>1.0e-8) {
+          srmu = vec3_dot(delrj,delrk)/(sqrt(rsq1*rsq2));
+          srmu = sqrt(1.0-srmu*srmu);
 
-	  if(srmu > 0.1) {
-            for (ll = 0; ll < sht_lnum; ll++) {	// ll is neighbor of jj
-	      l = sht_llist[ll];
-	      if (l==i||l==j||l==k) continue;
+          if(srmu > 0.1) {
+            for (ll = 0; ll < sht_lnum; ll++) { // ll is neighbor of jj
+              l = sht_llist[ll];
+              if (l==i||l==j||l==k) continue;
 
-	      ltype = map[type[l]];
+              ltype = map[type[l]];
 
-	      delrl[0] = x[l][0] - x[j][0];
-	      delrl[1] = x[l][1] - x[j][1];
-	      delrl[2] = x[l][2] - x[j][2];
-	      rsq3 = vec3_dot(delrl,delrl);
+              delrl[0] = x[l][0] - x[j][0];
+              delrl[1] = x[l][1] - x[j][1];
+              delrl[2] = x[l][2] - x[j][2];
+              rsq3 = vec3_dot(delrl,delrl);
 
-	      iparam_jl = elem2param[jtype][ltype][ltype];
-	      if (rsq3 > params[iparam_jl].cutsq) continue;
-	      iparam_ikl = elem2param[itype][ktype][ltype];
+              iparam_jl = elem2param[jtype][ltype][ltype];
+              if (rsq3 > params[iparam_jl].cutsq) continue;
+              iparam_ikl = elem2param[itype][ktype][ltype];
               torindx = params[iparam_ij].tor_flag;
-	      tor_force(torindx, &params[iparam_ikl], &params[iparam_jl],srmu,
+              tor_force(torindx, &params[iparam_ikl], &params[iparam_jl],srmu,
                           rsq1,rsq2,rsq3,delrj,delrk,delrl);
 
-	      for (im = 0; im < 3; im++) {
-		f[i][im] += fi_tor[im];
-		f[j][im] += fj_tor[im];
-		f[k][im] += fk_tor[im];
-		f[l][im] += fl_tor[im];
-	      }
-	    }
-	  }
-	}
+              for (im = 0; im < 3; im++) {
+                f[i][im] += fi_tor[im];
+                f[j][im] += fj_tor[im];
+                f[k][im] += fk_tor[im];
+                f[l][im] += fl_tor[im];
+              }
+            }
+          }
+        }
 
         if( params[iparam_ijk].rad_flag>=1 &&
           params[iparam_ijk].ielementgp==1 &&
@@ -1427,95 +1427,95 @@ void PairComb3::compute(int eflag, int vflag)
           double rik=sqrt(rsq2);
           kradtot = -comb_fc(rik,&params[iparam_ki])*params[iparam_ki].pcross+kcn;
 
-	  rad_forceik(&params[iparam_ki],rsq2,delrk,kconjug,kradtot);
+          rad_forceik(&params[iparam_ki],rsq2,delrk,kconjug,kradtot);
 
-	  for (im = 0; im < 3; im++) {
-	    f[i][im] += fi_rad[im];
-	    f[k][im] += fk_rad[im];
-	  }
+          for (im = 0; im < 3; im++) {
+            f[i][im] += fi_rad[im];
+            f[k][im] += fk_rad[im];
+          }
 
           if (fabs(radtmp) > 1.0e-12) {
-	    for (mm = 0; mm < sht_mnum; mm++) {	// mm is neighbor of kk
-	       m = sht_mlist[mm];
-	       if (m == k) continue;
+            for (mm = 0; mm < sht_mnum; mm++) { // mm is neighbor of kk
+               m = sht_mlist[mm];
+               if (m == k) continue;
 
                mtype = map[type[m]];
 
-	      delrm[0] = x[m][0] - x[k][0];
-	      delrm[1] = x[m][1] - x[k][1];
-	      delrm[2] = x[m][2] - x[k][2];
-	      rsq3 = vec3_dot(delrm,delrm);
+              delrm[0] = x[m][0] - x[k][0];
+              delrm[1] = x[m][1] - x[k][1];
+              delrm[2] = x[m][2] - x[k][2];
+              rsq3 = vec3_dot(delrm,delrm);
 
-	      iparam_km = elem2param[ktype][mtype][mtype];
-	      iparam_ki = elem2param[ktype][itype][itype];
+              iparam_km = elem2param[ktype][mtype][mtype];
+              iparam_ki = elem2param[ktype][itype][itype];
 
-	      if (rsq3 > params[iparam_km].cutsq) continue;
+              if (rsq3 > params[iparam_km].cutsq) continue;
 
-	      rad_force(&params[iparam_km],rsq3,delrm,radtmp);
+              rad_force(&params[iparam_km],rsq3,delrm,radtmp);
 
-	      for (im = 0; im < 3; im++) {
-	        f[k][im] += fj_rad[im];
-	        f[m][im] += fk_rad[im];
-	      }
-	    }
-	  }
-	}
+              for (im = 0; im < 3; im++) {
+                f[k][im] += fj_rad[im];
+                f[m][im] += fk_rad[im];
+              }
+            }
+          }
+        }
 
         if (evflag)
-	  ev_tally(i,j,nlocal,newton_pair,ep6p_ij,0.0,0.0,0.0,0.0,0.0);
-	if (vflag_atom)
-	  v_tally3(i,j,k,fj,fk,delrj,delrk);
+          ev_tally(i,j,nlocal,newton_pair,ep6p_ij,0.0,0.0,0.0,0.0,0.0);
+        if (vflag_atom)
+          v_tally3(i,j,k,fj,fk,delrj,delrk);
 
-      }	// k-loop
+      } // k-loop
 
       // attractive term via loop over l (3-body forces: j-i-l)
       for (ll = 0; ll < sht_lnum; ll++) {
-	l = sht_llist[ll];
-	if (l == i) continue;
+        l = sht_llist[ll];
+        if (l == i) continue;
 
         sht_plist = sht_first[l];
         sht_pnum = sht_num[l];
 
-	ltype = map[type[l]];
-	iparam_jil = elem2param[jtype][itype][ltype];
-	iparam_jli = elem2param[jtype][ltype][itype];
-	iparam_ijl = elem2param[itype][jtype][ltype];
-	iparam_jl  = elem2param[jtype][ltype][ltype];
-	delrk[0] = x[l][0] - x[j][0];
-	delrk[1] = x[l][1] - x[j][1];
-	delrk[2] = x[l][2] - x[j][2];
+        ltype = map[type[l]];
+        iparam_jil = elem2param[jtype][itype][ltype];
+        iparam_jli = elem2param[jtype][ltype][itype];
+        iparam_ijl = elem2param[itype][jtype][ltype];
+        iparam_jl  = elem2param[jtype][ltype][ltype];
+        delrk[0] = x[l][0] - x[j][0];
+        delrk[1] = x[l][1] - x[j][1];
+        delrk[2] = x[l][2] - x[j][2];
 
-	rsq2 = vec3_dot(delrk,delrk);
-	if (rsq2 > params[iparam_jl].cutsq) continue;
-	vec3_scale(-1,delrj,delrl);
+        rsq2 = vec3_dot(delrk,delrk);
+        if (rsq2 > params[iparam_jl].cutsq) continue;
+        vec3_scale(-1,delrj,delrl);
 
-	attractive(&params[iparam_jil],&params[iparam_ijl],&params[iparam_jli],
-		prefac_ji1,prefac_ji2,prefac_ji3,prefac_ji4,prefac_ji5,
-		rsq1,rsq2,delrl,delrk,fj,fi,fl,j,ycn);
+        attractive(&params[iparam_jil],&params[iparam_ijl],&params[iparam_jli],
+                prefac_ji1,prefac_ji2,prefac_ji3,prefac_ji4,prefac_ji5,
+                rsq1,rsq2,delrl,delrk,fj,fi,fl,j,ycn);
 
-	// BO-independent 3-body j-i-l LP and BB correction and forces
-	ep6p_ji = ep6p(&params[iparam_jil],&params[iparam_jli],rsq1,rsq2,delrl,delrk,zet_addj);
-	fp6p(&params[iparam_jil],&params[iparam_jli],rsq1,rsq2,delrl,delrk,fjp6p,fip6p,flp6p);
+        // BO-independent 3-body j-i-l LP and BB correction and forces
+        ep6p_ji = ep6p(&params[iparam_jil],&params[iparam_jli],rsq1,rsq2,delrl,delrk,zet_addj);
+        fp6p(&params[iparam_jil],&params[iparam_jli],rsq1,rsq2,delrl,delrk,fjp6p,fip6p,flp6p);
 
         if (evflag)
-	  ev_tally(j,i,nlocal,newton_pair,ep6p_ji,0.0,0.0,0.0,0.0,0.0);
+          ev_tally(j,i,nlocal,newton_pair,ep6p_ji,0.0,0.0,0.0,0.0,0.0);
 
-	// BO-dependent 3-body E & F
-	for (im = 0; im < 3; im++) {
-	  fj[im] += fjp6p[im];
-	  fi[im] += fip6p[im];
-	  fl[im] += flp6p[im];
-	}
+        // BO-dependent 3-body E & F
+        for (im = 0; im < 3; im++) {
+          fj[im] += fjp6p[im];
+          fi[im] += fip6p[im];
+          fl[im] += flp6p[im];
+        }
 
-	// Sums up j-i-l forces: Tallies into global force vector
-	for (im = 0; im < 3; im++) {
-	  f[j][im] += fj[im];
-	  f[i][im] += fi[im];
-	  f[l][im] += fl[im];
-	}
+        // Sums up j-i-l forces: Tallies into global force vector
+        for (im = 0; im < 3; im++) {
+          f[j][im] += fj[im];
+          f[i][im] += fi[im];
+          f[l][im] += fl[im];
+        }
 
-	// radical i-j-l-p: apply to all CC,CO,OC bonds
-	if( params[iparam_jil].rad_flag >= 1 &&
+        // radical i-j-l-p: apply to all CC,CO,OC bonds
+        if( params[iparam_jil].rad_flag >= 1 &&
           params[iparam_jil].ielementgp == 1 &&
           params[iparam_jil].kelementgp == 1 ) {
             iparam_lj = elem2param[ltype][jtype][jtype];
@@ -1525,39 +1525,39 @@ void PairComb3::compute(int eflag, int vflag)
 
             rad_forceik(&params[iparam_lj],rsq2,delrk,lconjug,lradtot);
 
-	    for (im = 0; im < 3; im++) {
-	      f[j][im] += fi_rad[im];
-	      f[l][im] += fk_rad[im];
-	    }
+            for (im = 0; im < 3; im++) {
+              f[j][im] += fi_rad[im];
+              f[l][im] += fk_rad[im];
+            }
 
             if (fabs(radtmp)>1.0e-12) {
-	      for (pp = 0; pp < sht_pnum; pp++) {	// pp is neighbor of ll
-	        p = sht_plist[pp];
-	        if (p == l) continue;
-	        ptype = map[type[p]];
+              for (pp = 0; pp < sht_pnum; pp++) {       // pp is neighbor of ll
+                p = sht_plist[pp];
+                if (p == l) continue;
+                ptype = map[type[p]];
 
-	        delrp[0] = x[p][0] - x[l][0];
-	        delrp[1] = x[p][1] - x[l][1];
-	        delrp[2] = x[p][2] - x[l][2];
-	        rsq3 = vec3_dot(delrp,delrp);
+                delrp[0] = x[p][0] - x[l][0];
+                delrp[1] = x[p][1] - x[l][1];
+                delrp[2] = x[p][2] - x[l][2];
+                rsq3 = vec3_dot(delrp,delrp);
 
-	        iparam_lp = elem2param[ltype][ptype][ptype];
+                iparam_lp = elem2param[ltype][ptype][ptype];
 
-	        if (rsq3 > params[iparam_lp].cutsq) continue;
+                if (rsq3 > params[iparam_lp].cutsq) continue;
 
-	        vec3_scale(-1,delrj,delrj);
-	        rad_force(&params[iparam_lp],rsq3,delrp,radtmp);
-	        vec3_scale(-1,delrj,delrj);
-	        for (im = 0; im < 3; im++) {
-	          f[l][im] += fj_rad[im];
-	          f[p][im] += fk_rad[im];
-		}
-	      }
-	    }
-	}
+                vec3_scale(-1,delrj,delrj);
+                rad_force(&params[iparam_lp],rsq3,delrp,radtmp);
+                vec3_scale(-1,delrj,delrj);
+                for (im = 0; im < 3; im++) {
+                  f[l][im] += fj_rad[im];
+                  f[p][im] += fk_rad[im];
+                }
+              }
+            }
+        }
 
-	if (vflag_atom)
-	  v_tally3(j,i,l,fi,fl,delrl,delrk);
+        if (vflag_atom)
+          v_tally3(j,i,l,fi,fl,delrl,delrk);
       }
     }
   }
@@ -1569,7 +1569,7 @@ void PairComb3::compute(int eflag, int vflag)
 /* ---------------------------------------------------------------------- */
 
 void PairComb3::repulsive(Param *parami, Param *paramj, double rsq,
-	double &fforce,int eflag, double &eng, double iq, double jq)
+        double &fforce,int eflag, double &eng, double iq, double jq)
 {
   double r,tmp_fc,tmp_fc_d,Di,Dj;
   double caj,vrcs,fvrcs;
@@ -1614,7 +1614,7 @@ void PairComb3::repulsive(Param *parami, Param *paramj, double rsq,
 /* ---------------------------------------------------------------------- */
 
 double PairComb3::zeta(Param *parami, Param *paramj, double rsqij,
-	double rsqik, double *delrij, double *delrik, int i, double xcn)
+        double rsqik, double *delrij, double *delrik, int i, double xcn)
 {
   double rij,rik,costheta,arg,ex_delr,rlm3;
 
@@ -1635,7 +1635,7 @@ double PairComb3::zeta(Param *parami, Param *paramj, double rsqij,
 /* ---------------------------------------------------------------------- */
 
 void PairComb3::selfp6p(Param *parami, Param *paramj, double rsq,
-	double &eng, double &force)
+        double &eng, double &force)
 {
   double r,comtti,comttj,fcj,fcj_d;
 
@@ -1661,7 +1661,7 @@ void PairComb3::selfp6p(Param *parami, Param *paramj, double rsq,
 /* ---------------------------------------------------------------------- */
 
 double PairComb3::ep6p(Param *paramj, Param *paramk, double rsqij, double rsqik,
-		     double *delrij, double *delrik , double &zet_add)
+                     double *delrij, double *delrik , double &zet_add)
 {
   double comtt;
   double pplp0 = paramj->p6p0;
@@ -1693,8 +1693,8 @@ double PairComb3::ep6p(Param *paramj, Param *paramk, double rsqij, double rsqik,
 /*---------------------------------------------------------------------- */
 
 void PairComb3::fp6p(Param *paramij,Param *paramik, double rsqij, double rsqik,
-		   double *delrij, double *delrik, double *drilp,
-		   double *drjlp, double *drklp)
+                   double *delrij, double *delrik, double *drilp,
+                   double *drjlp, double *drklp)
 {
   double pplp0 = paramij->p6p0;
   double pplp1 = paramij->p6p1, pplp2 = paramij->p6p2, pplp3 = paramij->p6p3;
@@ -1760,13 +1760,13 @@ void PairComb3::fp6p(Param *paramij,Param *paramik, double rsqij, double rsqik,
 /* ---------------------------------------------------------------------- */
 
 void PairComb3::force_zeta(Param *parami, Param *paramj, double rsq,
-	double xcn, double ycn, double &zeta_ij, double &zeta_ji, double &fforce,
-	double &prefac_ij1, double &prefac_ij2, double &prefac_ij3,
-	double &prefac_ij4, double &prefac_ij5,
+        double xcn, double ycn, double &zeta_ij, double &zeta_ji, double &fforce,
+        double &prefac_ij1, double &prefac_ij2, double &prefac_ij3,
+        double &prefac_ij4, double &prefac_ij5,
         double &prefac_ji1, double &prefac_ji2, double &prefac_ji3,
         double &prefac_ji4, double &prefac_ji5,
         int eflag, double &eng, double iq, double jq,
-	int i, int j, int nj, double bbtor, double kconjug, double lconjug)
+        int i, int j, int nj, double bbtor, double kconjug, double lconjug)
 {
   double r,att_eng,att_force,bij;  // att_eng is -cbj
   double boij, dbij1, dbij2, dbij3, dbij4, dbij5;
@@ -1803,17 +1803,17 @@ void PairComb3::force_zeta(Param *parami, Param *paramj, double rsq,
   fforce = 1.0*bij*att_force/r; // divide by r will done compute
   bbij[i][nj] = bij;
 
-  prefac_ij1 = -0.5*att_eng*dbij1;	// prefac_ij1 = -pfij
-  prefac_ij2 = -0.5*att_eng*dbij2;	// prefac_ij2 = -pfij1
-  prefac_ij3 = -0.5*att_eng*dbij3;	// prefac_ij3 = -pfij2
-  prefac_ij4 = -0.5*att_eng*dbij4;	// prefac_ij4 = -pfij3
-  prefac_ij5 = -0.5*att_eng*dbij5;	// prefac_ij5 = -pfij4
+  prefac_ij1 = -0.5*att_eng*dbij1;      // prefac_ij1 = -pfij
+  prefac_ij2 = -0.5*att_eng*dbij2;      // prefac_ij2 = -pfij1
+  prefac_ij3 = -0.5*att_eng*dbij3;      // prefac_ij3 = -pfij2
+  prefac_ij4 = -0.5*att_eng*dbij4;      // prefac_ij4 = -pfij3
+  prefac_ij5 = -0.5*att_eng*dbij5;      // prefac_ij5 = -pfij4
 
-  prefac_ji1 = -0.5*att_eng*dbji1;	// prefac_ji1 = -pfji
-  prefac_ji2 = -0.5*att_eng*dbji2;	// prefac_ji2 = -pfji1
-  prefac_ji3 = -0.5*att_eng*dbji3;	// prefac_ji3 = -pfji2
-  prefac_ji4 = -0.5*att_eng*dbji4;	// prefac_ji4 = -pfji3
-  prefac_ji5 = -0.5*att_eng*dbji5;	// prefac_ji5 = -pfji4
+  prefac_ji1 = -0.5*att_eng*dbji1;      // prefac_ji1 = -pfji
+  prefac_ji2 = -0.5*att_eng*dbji2;      // prefac_ji2 = -pfji1
+  prefac_ji3 = -0.5*att_eng*dbji3;      // prefac_ji3 = -pfji2
+  prefac_ji4 = -0.5*att_eng*dbji4;      // prefac_ji4 = -pfji3
+  prefac_ji5 = -0.5*att_eng*dbji5;      // prefac_ji5 = -pfji4
 
   // combines com6 & com7 below
   if ( parami->rad_flag>0 || parami->tor_flag!=0 ) {
@@ -1954,7 +1954,7 @@ double PairComb3::self(Param *param, double qi)
 /* ---------------------------------------------------------------------- */
 
 void PairComb3::comb_fa(double r, Param *parami, Param *paramj, double iq,
-	double jq, double &att_eng, double &att_force)
+        double jq, double &att_eng, double &att_force)
 {
   double Bsi;
   double qi,qj,Di,Dj;
@@ -1977,12 +1977,12 @@ void PairComb3::comb_fa(double r, Param *parami, Param *paramj, double iq,
   if (YYBn*YYBj > 0.0 ) {
     AlfDiAlfDj = exp(0.5*(parami->alfi*Di+paramj->alfi*Dj));
     Bsi = (pbij1*exp(-alfij1*r)+pbij2*exp(-alfij2*r)+pbij3*exp(-alfij3*r))*
-      sqrt(YYBn*YYBj)*AlfDiAlfDj; 				// Bsi is cbj
+      sqrt(YYBn*YYBj)*AlfDiAlfDj;                               // Bsi is cbj
 
     att_eng = -Bsi * comb_fc(r,parami);
     att_force = -(Bsi*comb_fc_d(r,parami)-comb_fc(r,parami)*sqrt(YYBn*YYBj)*
-	AlfDiAlfDj*(alfij1*pbij1*exp(-alfij1*r)+
-	alfij2*pbij2*exp(-alfij2*r)+alfij3*pbij3*exp(-alfij3*r)));
+        AlfDiAlfDj*(alfij1*pbij1*exp(-alfij1*r)+
+        alfij2*pbij2*exp(-alfij2*r)+alfij3*pbij3*exp(-alfij3*r)));
 
   } else {
     att_eng = 0.0;
@@ -1994,15 +1994,15 @@ void PairComb3::comb_fa(double r, Param *parami, Param *paramj, double iq,
 /* ---------------------------------------------------------------------- */
 
 void PairComb3::comb_bij_d(double zet, Param *param, double r, int i,
-	double &tbij, double &tbij1, double &tbij2,
-	double &tbij3, double &tbij4, double &tbij5, double xcn)
+        double &tbij, double &tbij1, double &tbij2,
+        double &tbij3, double &tbij4, double &tbij5, double xcn)
 {
   double pcorn,dpcorn,dxccij,dxchij,dxcoij;
   double zeta = zet;
   double zetang,tmp_tbij, pow_n;
 
   pcorn = dpcorn = dxccij = dxchij = dxcoij = 0.0;
-  coord(param,r,i,pcorn,dpcorn,dxccij,dxchij,dxcoij,xcn);	// coordination term
+  coord(param,r,i,pcorn,dpcorn,dxccij,dxchij,dxcoij,xcn);       // coordination term
 
   zetang=zeta;
   pow_n=param->powern;
@@ -2042,8 +2042,8 @@ void PairComb3::comb_bij_d(double zet, Param *param, double r, int i,
 /* ---------------------------------------------------------------------- */
 
 void PairComb3::coord(Param *param, double r, int i,
-	double &pcorn, double &dpcorn, double &dxccij,
-	double &dxchij, double &dxcoij, double xcn)
+        double &pcorn, double &dpcorn, double &dxccij,
+        double &dxchij, double &dxcoij, double xcn)
 {
   int ixmin,iymin,izmin;
   double xcntot,xcccn,xchcn,xcocn;
@@ -2109,7 +2109,7 @@ void PairComb3::coord(Param *param, double r, int i,
 
 void PairComb3::cntri_int(int tri_flag, double xval, double yval,
                 double zval, int ixmin, int iymin, int izmin, double &vval,
-		double &dvalx, double &dvaly, double &dvalz, Param *param)
+                double &dvalx, double &dvaly, double &dvalz, Param *param)
 {
   double x;
   vval = 0.0; dvalx = 0.0; dvaly = 0.0; dvalz = 0.0;
@@ -2183,7 +2183,7 @@ double PairComb3::comb_gijk(double costheta, Param *param, double nco_tmp)
 /* ---------------------------------------------------------------------- */
 
 void PairComb3::comb_gijk_d(double costheta, Param *param, double nco_tmp,
-		double &gijk_d, double &com3jk)
+                double &gijk_d, double &com3jk)
 {
   double rmu1 = costheta;
   double rmu2 = rmu1*rmu1;
@@ -2252,9 +2252,9 @@ void PairComb3::comb_gijk_d(double costheta, Param *param, double nco_tmp,
 /*------------------------------------------------------------------------- */
 
 void PairComb3::attractive(Param *parami, Param *paramj , Param *paramk, double prefac_ij1,
-	double prefac_ij2, double prefac_ij3, double prefac_ij4,
-	double prefac_ij5, double rsqij, double rsqik, double *delrij,
-	double *delrik, double *fi, double *fj,double *fk, int i, double xcn)
+        double prefac_ij2, double prefac_ij3, double prefac_ij4,
+        double prefac_ij5, double rsqij, double rsqik, double *delrij,
+        double *delrik, double *fi, double *fj,double *fk, int i, double xcn)
 {
   double rij_hat[3],rik_hat[3];
   double rij,rijinv,rik,rikinv;
@@ -2268,16 +2268,16 @@ void PairComb3::attractive(Param *parami, Param *paramj , Param *paramk, double 
   vec3_scale(rikinv,delrik,rik_hat);
 
   comb_zetaterm_d(prefac_ij1, prefac_ij2, prefac_ij3, prefac_ij4, prefac_ij5,
-	rij_hat, rij,rik_hat, rik, fi, fj, fk, parami, paramj, paramk,xcn);
+        rij_hat, rij,rik_hat, rik, fi, fj, fk, parami, paramj, paramk,xcn);
 
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairComb3::comb_zetaterm_d(double prefac_ij1, double prefac_ij2,
-	double prefac_ij3, double prefac_ij4, double prefac_ij5,
-	double *rij_hat, double rij, double *rik_hat, double rik, double *dri,
-	double *drj, double *drk, Param *parami, Param *paramj, Param *paramk, double xcn)
+        double prefac_ij3, double prefac_ij4, double prefac_ij5,
+        double *rij_hat, double rij, double *rik_hat, double rik, double *dri,
+        double *drj, double *drk, Param *parami, Param *paramj, Param *paramk, double xcn)
 {
   double gijk,gijk_d,ex_delr,ex_delr_d,fc_k,cos_theta,tmp,rlm3;
   double dcosdri[3],dcosdrj[3],dcosdrk[3],dfc_i,dfc_k;
@@ -2325,32 +2325,32 @@ void PairComb3::comb_zetaterm_d(double prefac_ij1, double prefac_ij2,
   }
 
   ex_delr_d = mint*pow(rlm3,mint)*pow((rij-rik),(mint-1))*ex_delr; // com3
-  vec3_scale(-dfc_k*gijk*ex_delr,rik_hat,dri);		// com1
-  vec3_scaleadd(fc_k*gijk_d*ex_delr,dcosdri,dri,dri);	// com2
-  vec3_scaleadd(fc_k*gijk*ex_delr_d,rik_hat,dri,dri);	// com3 cont'd
-  vec3_scaleadd(-fc_k*gijk*ex_delr_d,rij_hat,dri,dri);	// com3 sums j
-  vec3_scaleadd(-com3k,rik_hat,dri,dri);   		// com3k
-  vec3_scaleadd(-com3j,rij_hat,dri,dri);   		// com3j
+  vec3_scale(-dfc_k*gijk*ex_delr,rik_hat,dri);          // com1
+  vec3_scaleadd(fc_k*gijk_d*ex_delr,dcosdri,dri,dri);   // com2
+  vec3_scaleadd(fc_k*gijk*ex_delr_d,rik_hat,dri,dri);   // com3 cont'd
+  vec3_scaleadd(-fc_k*gijk*ex_delr_d,rij_hat,dri,dri);  // com3 sums j
+  vec3_scaleadd(-com3k,rik_hat,dri,dri);                // com3k
+  vec3_scaleadd(-com3j,rij_hat,dri,dri);                // com3j
   vec3_scale(prefac_ij1,dri,dri);
-  vec3_scaleadd(-com6,rik_hat,dri,dri);			// com6
+  vec3_scaleadd(-com6,rik_hat,dri,dri);                 // com6
 
-  vec3_scale(fc_k*gijk_d*ex_delr,dcosdrj,drj);		// com2
-  vec3_scaleadd(fc_k*gijk*ex_delr_d,rij_hat,drj,drj);	// com3 cont'd
-  vec3_scaleadd(com3j,rij_hat,drj,drj);   		// com3j
+  vec3_scale(fc_k*gijk_d*ex_delr,dcosdrj,drj);          // com2
+  vec3_scaleadd(fc_k*gijk*ex_delr_d,rij_hat,drj,drj);   // com3 cont'd
+  vec3_scaleadd(com3j,rij_hat,drj,drj);                 // com3j
   vec3_scale(prefac_ij1,drj,drj);
 
-  vec3_scale(dfc_k*gijk*ex_delr,rik_hat,drk);		// com1
-  vec3_scaleadd(fc_k*gijk_d*ex_delr,dcosdrk,drk,drk);	// com2
-  vec3_scaleadd(-fc_k*gijk*ex_delr_d,rik_hat,drk,drk);	// com3 cont'd
-  vec3_scaleadd(com3k,rik_hat,drk,drk);   		// com3k
+  vec3_scale(dfc_k*gijk*ex_delr,rik_hat,drk);           // com1
+  vec3_scaleadd(fc_k*gijk_d*ex_delr,dcosdrk,drk,drk);   // com2
+  vec3_scaleadd(-fc_k*gijk*ex_delr_d,rik_hat,drk,drk);  // com3 cont'd
+  vec3_scaleadd(com3k,rik_hat,drk,drk);                 // com3k
   vec3_scale(prefac_ij1,drk,drk);
-  vec3_scaleadd(com6,rik_hat,drk,drk);			// com6
+  vec3_scaleadd(com6,rik_hat,drk,drk);                  // com6
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairComb3::costheta_d(double *rij_hat, double rij, double *rik_hat,
-	double rik, double *dri, double *drj, double *drk)
+        double rik, double *dri, double *drj, double *drk)
 {
   double cos_theta = vec3_dot(rij_hat,rik_hat);
 
@@ -2641,11 +2641,11 @@ void PairComb3::tables()
             drf13= 12.0*(1.0/vrc[12]-1.0/r13);
             vvdw[k][inty] = vepst*(vsigt*vsigt*rf12-vsigt*rf6);
             vdvdw[k][inty] = vepst*(vsigt*vsigt*drf13-vsigt*drf7);
-	  }
-	} else {
+          }
+        } else {
           vvdw[k][inty]=0.0;
           vdvdw[k][inty]=0.0;
-	}
+        }
           r += dra;
       }
     }
@@ -2673,7 +2673,7 @@ void PairComb3::potal_calc(double &calc1, double &calc2, double &calc3)
   esucon = force->qqr2e;
 
   calc2 = (erfc(rcoul*alf)/rcoul/rcoul+2.0*alf/MY_PIS*
-	   exp(-alf*alf*rcoul*rcoul)/rcoul)*esucon/rcoul;
+           exp(-alf*alf*rcoul*rcoul)/rcoul)*esucon/rcoul;
   calc3 = (erfc(rcoul*alf)/rcoul)*esucon;
   calc1 = -(alf/MY_PIS*esucon+calc3*0.5);
 }
@@ -2681,7 +2681,7 @@ void PairComb3::potal_calc(double &calc1, double &calc2, double &calc3)
 /* ---------------------------------------------------------------------- */
 
 void PairComb3::tri_point(double rsq, int &mr1, int &mr2,
-		 int &mr3, double &sr1, double &sr2, double &sr3)
+                 int &mr3, double &sr1, double &sr2, double &sr3)
 {
   double r, rin, dr, dd, rr1, rridr, rridr2;
 
@@ -2710,8 +2710,8 @@ void PairComb3::tri_point(double rsq, int &mr1, int &mr2,
 /* ---------------------------------------------------------------------- */
 
 void PairComb3::vdwaals(int inty, int mr1, int mr2, int mr3, double rsq,
-		      double sr1, double sr2, double sr3,
-		      double &eng, double &fforce)
+                      double sr1, double sr2, double sr3,
+                      double &eng, double &fforce)
 {
   double r = sqrt(rsq);
 
@@ -2722,9 +2722,9 @@ void PairComb3::vdwaals(int inty, int mr1, int mr2, int mr3, double rsq,
 /* ---------------------------------------------------------------------- */
 
 void PairComb3::direct(Param *parami, Param *paramj, int mr1,
-	int mr2, int mr3, double rsq, double sr1, double sr2, double sr3,
-	double iq, double jq, double fac11, double fac11e,
-	double &pot_tmp, double &for_tmp, int i, int j)
+        int mr2, int mr3, double rsq, double sr1, double sr2, double sr3,
+        double iq, double jq, double fac11, double fac11e,
+        double &pot_tmp, double &for_tmp, int i, int j)
 {
   double r,erfcc,fafbnl,potij,esucon;
   double r3,erfcd,dfafbnl,smf2,dvdrr,alf,alfdpi;
@@ -2814,7 +2814,7 @@ void PairComb3::direct(Param *parami, Param *paramj, int mr1,
 /* ---------------------------------------------------------------------- */
 
 void PairComb3::field(Param *parami, Param *paramj, double rsq, double iq,
-		double jq, double &eng_tmp,double &for_tmp)
+                double jq, double &eng_tmp,double &for_tmp)
 {
   double r,r3,r4,r5,rc,rc2,rc3,rc4,rc5;
   double cmi1,cmi2,cmj1,cmj2,pcmi1,pcmi2;
@@ -2868,7 +2868,7 @@ void PairComb3::field(Param *parami, Param *paramj, double rsq, double iq,
 /* ---------------------------------------------------------------------- */
 
 double PairComb3::rad_init(double rsq2,Param *param,int i,
-		double &radtot, double cnconj)
+                double &radtot, double cnconj)
 {
   double r, fc1k, radcut;
 
@@ -2882,7 +2882,7 @@ double PairComb3::rad_init(double rsq2,Param *param,int i,
 /* ---------------------------------------------------------------------- */
 
 void PairComb3::rad_calc(double r, Param *parami, Param *paramj,
-	double kconjug, double lconjug, int i, int j, double xcn, double ycn)
+        double kconjug, double lconjug, int i, int j, double xcn, double ycn)
 {
   int ixmin, iymin, izmin;
   int radindx;
@@ -2907,7 +2907,7 @@ void PairComb3::rad_calc(double r, Param *parami, Param *paramj,
       fabs(float(iymin)-yrad)>1.0e-8 ||
       fabs(float(izmin)-zcon)>1.0e-8) {
     rad_int(radindx,xrad,yrad,zcon,ixmin,iymin,izmin,
-	      vrad,pradx,prady,pradz);
+              vrad,pradx,prady,pradz);
   } else {
     vrad  = rad_grid[radindx][ixmin][iymin][izmin-1];
     pradx = rad_gridx[radindx][ixmin][iymin][izmin-1];
@@ -2924,8 +2924,8 @@ void PairComb3::rad_calc(double r, Param *parami, Param *paramj,
 /* ---------------------------------------------------------------------- */
 
 void PairComb3::rad_int(int radindx,double xrad, double yrad, double zcon, int l,
-		int m, int n, double &vrad, double &pradx, double &prady,
-		double &pradz)
+                int m, int n, double &vrad, double &pradx, double &prady,
+                double &pradz)
 {
   int j;
   double x;
@@ -2936,7 +2936,7 @@ void PairComb3::rad_int(int radindx,double xrad, double yrad, double zcon, int l
 
   for (j=0; j<64; j++) {
     x = rad_spl[radindx][l][m][n-1][j] * pow(xrad,iin3[j][0])
-	  * pow(yrad,iin3[j][1]) * pow(zcon,iin3[j][2]);
+          * pow(yrad,iin3[j][1]) * pow(zcon,iin3[j][2]);
     vrad  += x;
     if(xrad > 1.0e-8) pradx += x*iin3[j][0]/xrad;
     if(yrad > 1.0e-8) prady += x*iin3[j][1]/yrad;
@@ -2983,7 +2983,7 @@ void PairComb3::rad_forceik(Param *paramk, double rsq2, double *delrk,
 /* ---------------------------------------------------------------------- */
 
 void PairComb3::rad_force(Param *paramm, double rsq3,
-	double *delrm, double dpradk)
+        double *delrm, double dpradk)
 {
   int nm;
   double rkm, fcp1m;
@@ -3061,7 +3061,7 @@ double PairComb3::bbtor1(int torindx, Param *paramk, Param *paraml,
 /* ---------------------------------------------------------------------- */
 
 void PairComb3::tor_calc(double r, Param *parami, Param *paramj,
-	double kconjug, double lconjug, int i, int j, double xcn, double ycn)
+        double kconjug, double lconjug, int i, int j, double xcn, double ycn)
 {
   int ixmin, iymin, izmin;
   double vtor, dtorx, dtory, dtorz;
@@ -3115,7 +3115,7 @@ void PairComb3::tor_calc(double r, Param *parami, Param *paramj,
 /* ---------------------------------------------------------------------- */
 
 void PairComb3::tor_int(int torindx,double xtor, double ytor, double zcon, int l,
-	int m, int n, double &vtor, double &dtorx, double &dtory, double &dtorz)
+        int m, int n, double &vtor, double &dtorx, double &dtory, double &dtorz)
 {
   int j;
   double x;
@@ -3127,7 +3127,7 @@ void PairComb3::tor_int(int torindx,double xtor, double ytor, double zcon, int l
 
   for (j=0; j<64; j++) {
     x = tor_spl[torindx][l][m][n-1][j] * pow(xtor,iin3[j][0])
-	  * pow(ytor,iin3[j][1]) * pow(zcon,iin3[j][2]);
+          * pow(ytor,iin3[j][1]) * pow(zcon,iin3[j][2]);
     vtor += x;
 
   if(xtor > 1.0e-8 ) dtorx += x*iin3[j][0]/xtor;
@@ -3191,11 +3191,11 @@ void PairComb3::tor_force(int torindx, Param *paramk, Param *paraml,
     dt2djl[1] =  delrj[2]*tork[0] - delrj[0]*tork[2];
     dt2djl[2] =  delrj[0]*tork[1] - delrj[1]*tork[0];
     dt2dij[0] = -delrk[2]*torl[1] + delrl[2]*tork[1]
-	       + delrk[1]*torl[2] - delrl[1]*tork[2];
+               + delrk[1]*torl[2] - delrl[1]*tork[2];
     dt2dij[1] = -delrk[0]*torl[2] + delrl[0]*tork[2]
-	       + delrk[2]*torl[0] - delrl[2]*tork[0];
+               + delrk[2]*torl[0] - delrl[2]*tork[0];
     dt2dij[2] = -delrk[1]*torl[0] + delrl[1]*tork[0]
-	       + delrk[0]*torl[1] - delrl[0]*tork[1];
+               + delrk[0]*torl[1] - delrl[0]*tork[1];
 
     rmut = TT2/TT1;
 
@@ -3217,10 +3217,10 @@ void PairComb3::tor_force(int torindx, Param *paramk, Param *paraml,
     tfij[3] = AA2/rij/rij - dt1djl*AA2*rmul/rij/rij;
     tfik[0] = tfij[0];
     tfik[1] = (AA2/rik - btt*ptorr*fc1l*fcp1k)/rik -
-	    dt1dik*AA2*rmu/rik/rik;
+            dt1dik*AA2*rmu/rik/rik;
     tfjl[0] = tfij[2];
     tfjl[1] = (AA2/rjl - btt*ptorr*fc1k*fcp1l)/rjl -
-	    dt1djl*AA2*rmul/rjl/rjl;
+            dt1djl*AA2*rmul/rjl/rjl;
 
     tjx[0] = tfij[0]*delrk[0] - tfij[1]*delrj[0];
     tjy[0] = tfij[0]*delrk[1] - tfij[1]*delrj[1];
@@ -3338,7 +3338,7 @@ double PairComb3::combqeq(double *qf_fix, int &igroup)
       for (jj = 0; jj < jnum; jj++) {
         j = jlist[jj] & NEIGHMASK;
 
-	jtag = tag[j];
+        jtag = tag[j];
         if (itag >= jtag) continue;
 
         jtype = map[type[j]];
@@ -3362,30 +3362,30 @@ double PairComb3::combqeq(double *qf_fix, int &igroup)
 
         // 1/r charge forces
         qfo_direct(&params[iparam_ij],&params[iparam_ji],
-		mr1,mr2,mr3,rsq1,sr1,sr2,sr3,fac11e,fqij,fqji,
-		iq,jq,i,j);
+                mr1,mr2,mr3,rsq1,sr1,sr2,sr3,fac11e,fqij,fqji,
+                iq,jq,i,j);
 
         fqi += fqij;  qf[j] += fqji;
 
        // field correction to self energy and charge force
         qfo_field(&params[iparam_ij],&params[iparam_ji],rsq1,
-		iq,jq,fqij,fqji);
+                iq,jq,fqij,fqji);
 
         fqi += fqij;  qf[j] += fqji;
 
         // polarization field charge force
-	if (pol_flag) {
-	  qfo_dipole(fac11,mr1,mr2,mr3,inty,rsq1,delrj,sr1,sr2,sr3,
-		fqij,fqji,i,j);
+        if (pol_flag) {
+          qfo_dipole(fac11,mr1,mr2,mr3,inty,rsq1,delrj,sr1,sr2,sr3,
+                fqij,fqji,i,j);
 
           fqi += fqij;  qf[j] += fqji;
-	}
+        }
       }
 
       for (jj = 0; jj < sht_jnum; jj++) {
         j = sht_jlist[jj];
 
-	jtag = tag[j];
+        jtag = tag[j];
         if (itag >= jtag) continue;
 
         jtype = map[type[j]];
@@ -3401,11 +3401,11 @@ double PairComb3::combqeq(double *qf_fix, int &igroup)
         iparam_ji = elem2param[jtype][itype][itype];
 
         if (rsq1 >= params[iparam_ij].cutsq) continue;
-	nj ++;
+        nj ++;
 
         // charge force in Aij and Bij
          qfo_short(&params[iparam_ij],&params[iparam_ji],
-		rsq1,iq,jq,fqij,fqji,i,j,nj);
+                rsq1,iq,jq,fqij,fqji,i,j,nj);
 
         fqi += fqij;  qf[j] += fqji;
       }
@@ -3422,7 +3422,7 @@ double PairComb3::combqeq(double *qf_fix, int &igroup)
     i = ilist[ii];
     if (mask[i] & groupbit){
       eneg += qf[i];
-	  itag=tag[i];
+          itag=tag[i];
     }
   }
 
@@ -3458,9 +3458,9 @@ double PairComb3::qfo_self(Param *param, double qi)
 /* ---------------------------------------------------------------------- */
 
 void PairComb3::qfo_direct(Param *parami, Param *paramj, int mr1,
-	  int mr2, int mr3, double rsq, double sr1, double sr2,
-	  double sr3, double fac11e, double &fqij, double &fqji,
-	  double iq, double jq, int i, int j)
+          int mr2, int mr3, double rsq, double sr1, double sr2,
+          double sr3, double fac11e, double &fqij, double &fqji,
+          double iq, double jq, int i, int j)
 {
   double r, erfcc, fafbnl, vm, vmfafb, esucon;
   double afbn, afbj, sme1n, sme1j;
@@ -3519,7 +3519,7 @@ void PairComb3::qfo_direct(Param *parami, Param *paramj, int mr1,
 /* ---------------------------------------------------------------------- */
 
 void PairComb3::qfo_field(Param *parami, Param *paramj, double rsq,
-	double iq,double jq, double &fqij, double &fqji)
+        double iq,double jq, double &fqij, double &fqji)
 {
   double r,r3,r5,rc,rc2,rc3,rc4,rc5;
   double cmi1,cmi2,cmj1,cmj2,pcmi1,pcmi2;
@@ -3561,8 +3561,8 @@ void PairComb3::qfo_field(Param *parami, Param *paramj, double rsq,
 /* ---------------------------------------------------------------------- */
 
 void PairComb3::qfo_dipole(double fac11, int mr1, int mr2, int mr3,
-	int inty, double rsq, double *delrj, double sr1, double sr2,
-	double sr3, double &fqij, double &fqji, int i, int j)
+        int inty, double rsq, double *delrj, double sr1, double sr2,
+        double sr3, double &fqij, double &fqji, int i, int j)
 {
   double erfcc, erfcd, dvdrr, dfafbnl, smf2;
   double r, r3, alfdpi, esucon;
@@ -3588,8 +3588,8 @@ void PairComb3::qfo_dipole(double fac11, int mr1, int mr2, int mr3,
 /* ---------------------------------------------------------------------- */
 
 void PairComb3::qfo_short(Param *parami, Param *paramj, double rsq,
-	double iq, double jq, double &fqij, double &fqji,
-	int i, int j, int nj)
+        double iq, double jq, double &fqij, double &fqji,
+        int i, int j, int nj)
 {
   double r, tmp_fc;
   double Di, Dj, dDi, dDj, Bsi, Bsj, dBsi, dBsj;
@@ -3623,10 +3623,10 @@ void PairComb3::qfo_short(Param *parami, Param *paramj, double rsq,
     Di = parami->DU;
     dDi = Bsi = dBsi = 0.0;
   } else {
-    Di = parami->DU + pow(QUchi,parami->nD);				// YYDin
-    dDi = -parami->nD * parami->bD * pow(QUchi,(parami->nD-1.0));	// YYDiqp
-    Bsi = parami->aB - pow(QOchi,10);					// YYBsin
-    dBsi = -parami->bB * 10.0 * pow(QOchi,9.0);				// YYBsiqp
+    Di = parami->DU + pow(QUchi,parami->nD);                            // YYDin
+    dDi = -parami->nD * parami->bD * pow(QUchi,(parami->nD-1.0));       // YYDiqp
+    Bsi = parami->aB - pow(QOchi,10);                                   // YYBsin
+    dBsi = -parami->bB * 10.0 * pow(QOchi,9.0);                         // YYBsiqp
   }
 
   if (jq < paramj->QL-0.2) {
@@ -3638,10 +3638,10 @@ void PairComb3::qfo_short(Param *parami, Param *paramj, double rsq,
     Dj = paramj->DU;
     dDj = Bsj = dBsj = 0.0;
   } else {
-    Dj = paramj->DU + pow(QUchj,paramj->nD);				// YYDij
-    dDj = -paramj->nD * paramj->bD * pow(QUchj,(paramj->nD-1.0));	// YYDiqpj
-    Bsj = paramj->aB - pow(QOchj,10);					// YYBsij
-    dBsj = -paramj->bB * 10.0 * pow(QOchj,9.0);				// YYBsiqpj
+    Dj = paramj->DU + pow(QUchj,paramj->nD);                            // YYDij
+    dDj = -paramj->nD * paramj->bD * pow(QUchj,(paramj->nD-1.0));       // YYDiqpj
+    Bsj = paramj->aB - pow(QOchj,10);                                   // YYBsij
+    dBsj = -paramj->bB * 10.0 * pow(QOchj,9.0);                         // YYBsiqpj
   }
 
   LamDiLamDj = exp(0.5*(parami->lami*Di+paramj->lami*Dj)-rlm1*r);
@@ -3668,8 +3668,8 @@ void PairComb3::qfo_short(Param *parami, Param *paramj, double rsq,
 /* ---------------------------------------------------------------------- */
 
 void PairComb3::dipole_init(Param *parami, Param *paramj, double fac11,
-	double *delrj, double rsq, int mr1, int mr2, int mr3, double sr1,
-	double sr2, double sr3, double iq, double jq, int i, int j)
+        double *delrj, double rsq, int mr1, int mr2, int mr3, double sr1,
+        double sr2, double sr3, double iq, double jq, int i, int j)
 {
   double erfcc, erfcd, dvdrr, dfafbnl, smf2, phinn, phinj, efn, efj;
   double r, r3, alfdpi, esucon;
@@ -3730,10 +3730,10 @@ double PairComb3::dipole_self(Param *parami, int i)
 /* ---------------------------------------------------------------------- */
 
 void PairComb3::dipole_calc(Param *parami, Param *paramj, double fac11,
-	double delx, double dely, double delz, double rsq,
-	int mr1, int mr2, int mr3, double sr1, double sr2, double sr3,
-	double iq, double jq, int i, int j, double &vionij,
-	double &fvionij, double *ddprx)
+        double delx, double dely, double delz, double rsq,
+        int mr1, int mr2, int mr3, double sr1, double sr2, double sr3,
+        double iq, double jq, int i, int j, double &vionij,
+        double &fvionij, double *ddprx)
 {
   double erfcc, erfcd, dvdrr, dfafbnl, ef, phinn, phinj, efn, efj;
   double r, r3, alf, alfdpi, esucon, dphinn, dphinj, ddfafbnl;
@@ -3803,7 +3803,7 @@ void PairComb3::dipole_calc(Param *parami, Param *paramj, double fac11,
 
   for (nm = 0; nm < 3; nm ++) {
     ddprx[nm] = dcoef * (ddpr*delr1[nm] - tmurn*dpl[j][nm] - tmurj*dpl[i][nm])
-	  + demuTmu * delr1[nm];
+          + demuTmu * delr1[nm];
   }
 
   // dipole - charge force
@@ -3847,7 +3847,7 @@ double PairComb3::switching(double rr)
   if (rr <= 0.0) return 1.0;
   else if (rr >= 1.0) return 0.0;
   else return heaviside(-rr)+heaviside(rr)*heaviside(1.0-rr)
-	  * (1.0-(3.0-2.0*rr)*rr*rr);
+          * (1.0-(3.0-2.0*rr)*rr*rr);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -3857,7 +3857,7 @@ double PairComb3::switching_d(double rr)
   if (rr <= 0.0) return 0.0;
   else if (rr >= 1.0) return 0.0;
   else return heaviside(rr)*heaviside(1.0-rr)
-	  * 6.0*rr*(rr-1.0);
+          * 6.0*rr*(rr-1.0);
 }
 
 /* ---------------------------------------------------------------------- */

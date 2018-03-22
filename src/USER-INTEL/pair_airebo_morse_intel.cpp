@@ -22,7 +22,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairAIREBOMorseIntel::PairAIREBOMorseIntel(LAMMPS *lmp) 
+PairAIREBOMorseIntel::PairAIREBOMorseIntel(LAMMPS *lmp)
   : PairAIREBOIntel(lmp) {}
 
 /* ----------------------------------------------------------------------

@@ -197,7 +197,7 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
 
   // setup of array of coordinates for molecule insertion
   // also used by rotation moves for any molecule
-  
+
   if (exchmode == EXCHATOM) natoms_per_molecule = 1;
   else natoms_per_molecule = onemols[imol]->natoms;
   nmaxmolatoms = natoms_per_molecule;
@@ -469,7 +469,7 @@ void FixGCMC::init()
     pmoltrans /= pmctot;
     pmolrotate /= pmctot;
   }
-  
+
   // decide whether to switch to the full_energy option
 
   if (!full_flag) {
@@ -689,7 +689,7 @@ void FixGCMC::init()
   if (groupbit & 1)
     error->warning(FLERR, "Fix gcmc is being applied "
                    "to the default group all");
-    
+
   // construct group bitmask for all new atoms
   // aggregated over all group keywords
 
@@ -713,6 +713,12 @@ void FixGCMC::init()
       grouptypebits[igroup] = group->bitmask[jgroup];
     }
   }
+
+  // Current implementation is broken using
+  // full_flag on molecules on more than one processor.
+  // Print error if this is the current mode
+  if (full_flag && (exchmode == EXCHMOL || movemode == MOVEMOL) && comm->nprocs > 1)
+    error->all(FLERR,"fix gcmc does currently not support full_energy option with molecules on more than 1 MPI process.");
 
 }
 
@@ -1162,7 +1168,7 @@ void FixGCMC::attempt_molecule_rotation()
 
   if (nmolcoords > nmaxmolatoms)
     grow_molecule_arrays(nmolcoords);
-  
+
   double com[3];
   com[0] = com[1] = com[2] = 0.0;
   group->xcm(molecule_group,gas_mass,com);
@@ -1823,7 +1829,7 @@ void FixGCMC::attempt_molecule_rotation_full()
 
   if (nmolcoords > nmaxmolatoms)
     grow_molecule_arrays(nmolcoords);
-  
+
   double com[3];
   com[0] = com[1] = com[2] = 0.0;
   group->xcm(molecule_group,gas_mass,com);
@@ -1847,7 +1853,7 @@ void FixGCMC::attempt_molecule_rotation_full()
 
   double **x = atom->x;
   imageint *image = atom->image;
-  
+
   int n = 0;
   for (int i = 0; i < atom->nlocal; i++) {
     if (mask[i] & molecule_group_bit) {
@@ -1915,10 +1921,10 @@ void FixGCMC::attempt_molecule_deletion_full()
   for (int i = 0; i < atom->nlocal; i++)
     if (atom->molecule[i] == deletion_molecule)
       if (atom->q_flag) nmolq++;
-  
+
   if (nmolq > nmaxmolatoms)
     grow_molecule_arrays(nmolq);
-  
+
   int m = 0;
   int tmpmask[atom->nlocal];
   for (int i = 0; i < atom->nlocal; i++) {

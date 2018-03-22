@@ -95,7 +95,7 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   nznodes = force->inumeric(FLERR,arg[7]);
   if (nxnodes <= 0 || nynodes <= 0 || nznodes <= 0)
     error->all(FLERR,"Fix ttm/mod number of nodes must be > 0");
-  
+
   FILE *fpr = force->open_potential(arg[8]);
   if (fpr == NULL) {
     char str[128];

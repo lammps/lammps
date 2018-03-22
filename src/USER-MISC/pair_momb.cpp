@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Kristen Fichthorn, Tonnam Balankura, 
+   Contributing authors: Kristen Fichthorn, Tonnam Balankura,
                          Ya Zhou (Penn State University)
 ------------------------------------------------------------------------- */
 
@@ -255,7 +255,7 @@ double PairMomb::init_one(int i, int j)
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   morse1[i][j] = 2.0*d0[i][j]*alpha[i][j];
- 
+
   if (offset_flag) {
     double alpha_dr = -alpha[i][j] * (cut[i][j] - r0[i][j]);
     offset[i][j] = d0[i][j] * (exp(2.0*alpha_dr) - 2.0*exp(alpha_dr));
@@ -366,8 +366,8 @@ void PairMomb::read_restart_settings(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 double PairMomb::single(int i, int j, int itype, int jtype, double rsq,
-			 double factor_coul, double factor_lj,
-			 double &fforce)
+                         double factor_coul, double factor_lj,
+                         double &fforce)
 {
   double r,dr,dexp,phi,r2inv,r6inv,ddexp,invexp;
 

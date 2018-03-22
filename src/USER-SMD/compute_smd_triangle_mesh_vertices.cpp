@@ -78,8 +78,8 @@ void ComputeSMDTriangleVertices::init() {
 
 void ComputeSMDTriangleVertices::compute_peratom() {
 
-	double **smd_data_9 = atom->smd_data_9;
-	tagint *mol = atom->molecule;
+        double **smd_data_9 = atom->smd_data_9;
+        tagint *mol = atom->molecule;
 
     invoked_peratom = update->ntimestep;
 

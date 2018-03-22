@@ -74,7 +74,9 @@ int colvarscript::run(int objc, unsigned char *const objv[])
   }
 
   if (objc < 2) {
-    return exec_command(cv_help, NULL, objc, objv);
+    set_str_result("No commands given: use \"cv help\" "
+                   "for a list of commands.");
+    return COLVARSCRIPT_ERROR;
   }
 
   std::string const cmd(obj_to_str(objv[1]));
@@ -123,8 +125,7 @@ int colvarscript::run(int objc, unsigned char *const objv[])
   if (cmd == "delete") {
     // Note: the delete bit may be ignored by some backends
     // it is mostly useful in VMD
-    colvars->set_error_bits(DELETE_COLVARS);
-    return COLVARS_OK;
+    return proxy->request_deletion();
   }
 
   if (cmd == "update") {
@@ -269,6 +270,11 @@ int colvarscript::proc_colvar(colvar *cv, int objc, unsigned char *const objv[])
 
   if (subcmd == "value") {
     result = (cv->value()).to_simple_string();
+    return COLVARS_OK;
+  }
+
+  if (subcmd == "run_ave") {
+    result = (cv->run_ave()).to_simple_string();
     return COLVARS_OK;
   }
 

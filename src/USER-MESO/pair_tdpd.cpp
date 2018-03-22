@@ -176,7 +176,7 @@ void PairTDPD::compute(int eflag, int vflag)
           }
         }
         //-----------------------------------------------------------
-        
+
         if (newton_pair || j < nlocal) {
           f[j][0] -= delx*fpair;
           f[j][1] -= dely*fpair;
@@ -205,7 +205,7 @@ void PairTDPD::allocate()
   int i,j;
   allocated = 1;
   int n = atom->ntypes;
-  
+
   memory->create(setflag,n+1,n+1,"pair:setflag");
   for (i = 1; i <= n; i++)
   for (j = i; j <= n; j++)
@@ -220,7 +220,7 @@ void PairTDPD::allocate()
   memory->create(sigma,n+1,n+1,"pair:sigma");
   memory->create(power,n+1,n+1,"pair:power");
   memory->create(kappa,n+1,n+1,cc_species,"pair:kappa");
-  memory->create(epsilon,n+1,n+1,cc_species,"pair:epsilon");  
+  memory->create(epsilon,n+1,n+1,cc_species,"pair:epsilon");
   memory->create(powercc,n+1,n+1,cc_species,"pair:powercc");
 
   for (i = 0; i <= atom->ntypes; i++)

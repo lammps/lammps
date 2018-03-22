@@ -47,11 +47,11 @@ enum{ISO,ANISO,TRICLINIC};   // same as in FixRigid
 /* ---------------------------------------------------------------------- */
 
 FixRigidNH::FixRigidNH(LAMMPS *lmp, int narg, char **arg) :
-  FixRigid(lmp, narg, arg), conjqm(NULL), w(NULL), 
-  wdti1(NULL), wdti2(NULL), wdti4(NULL), q_t(NULL), q_r(NULL), 
-  eta_t(NULL), eta_r(NULL), eta_dot_t(NULL), eta_dot_r(NULL), 
-  f_eta_t(NULL), f_eta_r(NULL), q_b(NULL), eta_b(NULL), 
-  eta_dot_b(NULL), f_eta_b(NULL), rfix(NULL), id_temp(NULL), 
+  FixRigid(lmp, narg, arg), conjqm(NULL), w(NULL),
+  wdti1(NULL), wdti2(NULL), wdti4(NULL), q_t(NULL), q_r(NULL),
+  eta_t(NULL), eta_r(NULL), eta_dot_t(NULL), eta_dot_r(NULL),
+  f_eta_t(NULL), f_eta_r(NULL), q_b(NULL), eta_b(NULL),
+  eta_dot_b(NULL), f_eta_b(NULL), rfix(NULL), id_temp(NULL),
   id_press(NULL), temperature(NULL), pressure(NULL)
 {
   // error checks: could be moved up to FixRigid
@@ -270,9 +270,9 @@ void FixRigidNH::init()
 
     for (int i = 0; i < modify->nfix; i++)
       if (strcmp(modify->fix[i]->style,"deform") == 0) {
-      	int *dimflag = ((FixDeform *) modify->fix[i])->dimflag;
-      	if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) ||
-      	    (p_flag[2] && dimflag[2]))
+        int *dimflag = ((FixDeform *) modify->fix[i])->dimflag;
+        if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) ||
+            (p_flag[2] && dimflag[2]))
           error->all(FLERR,"Cannot use fix rigid npt/nph and fix deform on "
                      "same component of stress tensor");
       }
@@ -1399,4 +1399,3 @@ void FixRigidNH::deallocate_order()
   delete [] wdti2;
   delete [] wdti4;
 }
-

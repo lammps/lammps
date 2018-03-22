@@ -53,7 +53,7 @@ Ewald::Ewald(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg),
 
   ewaldflag = 1;
   group_group_enable = 1;
-  
+
   accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
 
   kmax = 0;

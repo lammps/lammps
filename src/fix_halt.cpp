@@ -175,7 +175,7 @@ void FixHalt::end_of_step()
   } else if (operation == NEQ) {
     if (attvalue == value) return;
   } else if (operation == XOR) {
-    if ((attvalue == 0.0 && value == 0.0) || 
+    if ((attvalue == 0.0 && value == 0.0) ||
         (attvalue != 0.0 && value != 0.0)) return;
   }
 
@@ -251,7 +251,7 @@ double FixHalt::tlimit()
 
   if (cpu < value) {
     bigint elapsed = update->ntimestep - update->firststep;
-    bigint final = update->firststep + 
+    bigint final = update->firststep +
       static_cast<bigint> (tratio*value/cpu * elapsed);
     nextstep = (final/nevery)*nevery + nevery;
     if (nextstep == update->ntimestep) nextstep += nevery;

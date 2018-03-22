@@ -67,9 +67,9 @@ ComputeVACF::ComputeVACF(LAMMPS *lmp, int narg, char **arg) :
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	voriginal[i][0] = v[i][0];
-	voriginal[i][1] = v[i][1];
-	voriginal[i][2] = v[i][2];
+        voriginal[i][0] = v[i][0];
+        voriginal[i][1] = v[i][1];
+        voriginal[i][2] = v[i][2];
       } else voriginal[i][0] = voriginal[i][1] = voriginal[i][2] = 0.0;
   }
 

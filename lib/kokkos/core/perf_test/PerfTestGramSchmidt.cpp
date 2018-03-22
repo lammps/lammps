@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 // 
 // ************************************************************************
 //@HEADER
@@ -86,7 +86,7 @@ void invnorm2( const VectorView & x ,
                const ValueView  & r ,
                const ValueView  & r_inv )
 {
-  Kokkos::parallel_reduce( x.dimension_0() , InvNorm2< VectorView , ValueView >( x , r , r_inv ) );
+  Kokkos::parallel_reduce( x.extent(0) , InvNorm2< VectorView , ValueView >( x , r , r_inv ) );
 }
 
 // PostProcess : tmp = - ( R(j,k) = result );
@@ -122,7 +122,7 @@ void dot_neg( const VectorView & x ,
               const ValueView  & r ,
               const ValueView  & r_neg )
 {
-  Kokkos::parallel_reduce( x.dimension_0() , DotM< VectorView , ValueView >( x , y , r , r_neg ) );
+  Kokkos::parallel_reduce( x.extent(0) , DotM< VectorView , ValueView >( x , y , r , r_neg ) );
 }
 
 
@@ -151,7 +151,7 @@ struct ModifiedGramSchmidt
   static double factorization( const multivector_type Q_ ,
                                const multivector_type R_ )
   {
-    const size_type count  = Q_.dimension_1();
+    const size_type count  = Q_.extent(1);
     value_view tmp("tmp");
     value_view one("one");
 

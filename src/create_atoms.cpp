@@ -365,7 +365,7 @@ void CreateAtoms::command(int narg, char **arg)
   else add_lattice();
 
   // init per-atom fix/compute/variable values for created atoms
-  
+
   atom->data_fix_compute_variable(nlocal_previous,atom->nlocal);
 
   // set new total # of atoms and error check

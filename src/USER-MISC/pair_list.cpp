@@ -54,6 +54,7 @@ typedef struct { double x,y,z; } dbl3_t;
 PairList::PairList(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
+  restartinfo = 0;
   respa_enable = 0;
   cut_global = 0.0;
   style = NULL;

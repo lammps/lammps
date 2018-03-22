@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NTopoDihedralPartial::NTopoDihedralPartial(LAMMPS *lmp) : 
+NTopoDihedralPartial::NTopoDihedralPartial(LAMMPS *lmp) :
   NTopo(lmp)
 {
   allocate_dihedral();

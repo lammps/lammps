@@ -1,4 +1,5 @@
-LAMMPS (17 Nov 2016)
+LAMMPS (8 Mar 2018)
+  using 1 OpenMP thread(s) per MPI task
 # Initialization
 units           metal
 boundary        p p p
@@ -10,7 +11,7 @@ processors      * * 1     # domain decomposition over x and y
 # interactions can be specified separately
 read_data       data.graphene-adsorbant   # read lammps data file
   orthogonal box = (0 0 -10) to (17.04 19.6761 40)
-  1 by 1 by 1 MPI processor grid
+  2 by 2 by 1 MPI processor grid
   reading atoms ...
   129 atoms
 mass            1 12.0107   # carbon mass (g/mole) | membrane
@@ -51,13 +52,23 @@ thermo_modify   line one format float %14.8f
 ###### Run molecular dynamics ######
 run 10000
 Neighbor list info ...
-  2 neighbor list requests
   update every 1 steps, delay 0 steps, check yes
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 16
   ghost atom cutoff = 16
-  binsize = 8 -> bins = 3 3 7
-Memory usage per processor = 2.48399 Mbytes
+  binsize = 8, bins = 3 3 7
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair kolmogorov/crespi/z, perpetual, skip from (2)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (2) neighbor class addition, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.167 | 3.167 | 3.168 Mbytes
 Step Time TotEng PotEng Temp c_COM1[3] c_COM2[3] 
        0     0.00000000    -0.02562011    -0.02562011     0.00000000     0.00000000     3.30000000 
      100     0.01000000    -0.02562011    -0.02584808     0.01377831     0.00000000     3.30302413 
@@ -160,27 +171,27 @@ Step Time TotEng PotEng Temp c_COM1[3] c_COM2[3]
     9800     0.98000000    -0.02562012    -0.05705439     1.89989139     0.00000000     3.27725394 
     9900     0.99000000    -0.02562012    -0.05592079     1.83137685     0.00000000     3.25026233 
    10000     1.00000000    -0.02562012    -0.05404919     1.71825669     0.00000000     3.22110695 
-Loop time of 0.381846 on 1 procs for 10000 steps with 129 atoms
+Loop time of 0.524797 on 4 procs for 10000 steps with 129 atoms
 
-Performance: 226.269 ns/day, 0.106 hours/ns, 26188.568 timesteps/s
-131.8% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 164.635 ns/day, 0.146 hours/ns, 19054.971 timesteps/s
+97.4% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.30936    | 0.30936    | 0.30936    |   0.0 | 81.02
-Neigh   | 0.000139   | 0.000139   | 0.000139   |   0.0 |  0.04
-Comm    | 0.051287   | 0.051287   | 0.051287   |   0.0 | 13.43
-Output  | 0.00181    | 0.00181    | 0.00181    |   0.0 |  0.47
-Modify  | 0.005645   | 0.005645   | 0.005645   |   0.0 |  1.48
-Other   |            | 0.01361    |            |       |  3.56
+Pair    | 0.043099   | 0.060851   | 0.10153    |   9.7 | 11.60
+Neigh   | 6.2704e-05 | 6.628e-05  | 6.8188e-05 |   0.0 |  0.01
+Comm    | 0.35059    | 0.39384    | 0.41232    |   4.0 | 75.05
+Output  | 0.0028515  | 0.0031345  | 0.0037408  |   0.6 |  0.60
+Modify  | 0.0063083  | 0.0065277  | 0.0066838  |   0.2 |  1.24
+Other   |            | 0.06038    |            |       | 11.50
 
-Nlocal:    129 ave 129 max 129 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    1867 ave 1867 max 1867 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    290 ave 290 max 290 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:    32.25 ave 33 max 32 min
+Histogram: 3 0 0 0 0 0 0 0 0 1
+Nghost:    1305.75 ave 1306 max 1305 min
+Histogram: 1 0 0 0 0 0 0 0 0 3
+Neighs:    72.5 ave 144 max 43 min
+Histogram: 2 1 0 0 0 0 0 0 0 1
 
 Total # of neighbors = 290
 Ave neighs/atom = 2.24806

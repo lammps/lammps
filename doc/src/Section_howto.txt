@@ -1861,7 +1861,7 @@ and C and Python codes which show how a driver code can link to LAMMPS
 as a library, run LAMMPS on a subset of processors, grab data from
 LAMMPS, change it, and put it back into LAMMPS.
 
-Library.cpp contains the following functions for creating and
+library.cpp contains the following functions for creating and
 destroying an instance of LAMMPS and sending it commands to execute.
 See the documentation in the src/library.cpp file for details.
 
@@ -1943,7 +1943,7 @@ the library allocated previously via other function calls.  See
 comments in src/library.cpp file for which other functions need this
 clean-up.
 
-Library.cpp also contains these functions for extracting information
+library.cpp also contains these functions for extracting information
 from LAMMPS and setting value within LAMMPS.  Again, see the
 documentation in the src/library.cpp file for details, including
 which quantities can be queried by name:

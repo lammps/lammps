@@ -321,9 +321,9 @@ void PairILPGrapheneHBN::calc_normal()
     memory->destroy(dnormal);
     memory->destroy(dnormdri);
     nmax = atom->nmax;
-    memory->create(normal,nmax,3,"ILP:normal");
-    memory->create(dnormdri,3,3,nmax,"ILP:dnormdri");
-    memory->create(dnormal,3,3,3,nmax,"ILP:dnormal");
+    memory->create(normal,nmax,3,"ILPGrapheneHBN:normal");
+    memory->create(dnormdri,3,3,nmax,"ILPGrapheneHBN:dnormdri");
+    memory->create(dnormal,3,3,3,nmax,"ILPGrapheneHBN:dnormal");
   }
 
   inum = list->inum;
@@ -667,10 +667,7 @@ void PairILPGrapheneHBN::init_style()
 
 
 /* ----------------------------------------------------------------------
-   create ILP neighbor list from main neighbor list
-   ILP neighbor list stores neighbors of ghost atoms
-   ILP_numneigh for calcualting normals and
-   ILP_pair_numneigh for calculating force
+   create ILP neighbor list from main neighbor list to calcualte normals
 ------------------------------------------------------------------------- */
 
 void PairILPGrapheneHBN::ILP_neigh()
@@ -687,8 +684,8 @@ void PairILPGrapheneHBN::ILP_neigh()
     maxlocal = atom->nmax;
     memory->destroy(ILP_numneigh);
     memory->sfree(ILP_firstneigh);
-    memory->create(ILP_numneigh,maxlocal,"ILP:numneigh");
-    ILP_firstneigh = (int **) memory->smalloc(maxlocal*sizeof(int *),"ILP:firstneigh");
+    memory->create(ILP_numneigh,maxlocal,"ILPGrapheneHBN:numneigh");
+    ILP_firstneigh = (int **) memory->smalloc(maxlocal*sizeof(int *),"ILPGrapheneHBN:firstneigh");
   }
 
   allnum = list->inum + list->gnum;
@@ -730,6 +727,7 @@ void PairILPGrapheneHBN::ILP_neigh()
 
     ILP_firstneigh[i] = neighptr;
     ILP_numneigh[i] = n;
+    if (n > 3) error->all(FLERR,"There are too many neighbors for some atoms, please reduce the cutoff for normals");
     ipage->vgot(n);
     if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");

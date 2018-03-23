@@ -671,10 +671,7 @@ void PairKolmogorovCrespiFull::init_style()
 
 
 /* ----------------------------------------------------------------------
-   create KC neighbor list from main neighbor list
-   KC neighbor list stores neighbors of ghost atoms
-   KC_numneigh for calcualting normals and
-   KC_pair_numneigh for calculating force
+ create neighbor list from main neighbor list for calculating the normals
 ------------------------------------------------------------------------- */
 
 void PairKolmogorovCrespiFull::KC_neigh()
@@ -735,6 +732,7 @@ void PairKolmogorovCrespiFull::KC_neigh()
 
     KC_firstneigh[i] = neighptr;
     KC_numneigh[i] = n;
+    if (n > 3) error->all(FLERR,"There are too many neighbors for some atoms, please reduce the cutoff for normals");
     ipage->vgot(n);
     if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");

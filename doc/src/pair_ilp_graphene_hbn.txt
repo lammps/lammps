@@ -30,12 +30,12 @@ pair_coeff  2 2 coul/shield 0.69
 
 [Description:]
 
-The {ILP/graphene/hBN} style computes the registry-dependent interlayer
+The {ilp/graphene/hbn} style computes the registry-dependent interlayer
 potential (RDILP) potential as described in "(Leven)"_#Leven and
 "(Maaravi)"_#Maaravi2. The normals are calculated in the way as described
 in "(Kolmogorov)"_#Kolmogorov2.
 
-:c,image(Eqs/pair_ilp_gr_hBN.jpg)
+:c,image(Eqs/pair_ilp_graphene_hbn.jpg)
 
 Where Tap(r_ij) is the taper function which provides a continuous
 cutoff (up to third derivative) for interatomic separations larger than

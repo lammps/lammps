@@ -6,7 +6,7 @@
 
 :line
 
-Body particles :h3
+Body particles :h1
 
 [Overview:]
 
@@ -261,7 +261,7 @@ For images created by the "dump image"_dump_image.html command, if the
 polygon consisting of N line segments.  Note that the line segments
 are drawn between the N vertices, which does not correspond exactly to
 the physical extent of the body (because the "pair_style
-rounded/polygon"_pair_body_rounded_polygon.cpp defines finite-size
+rounded/polygon"_pair_body_rounded_polygon.html defines finite-size
 spheres at those point and the line segments between the spheres are
 tangent to the spheres).  The drawn diameter of each line segment is
 determined by the {bflag1} parameter for the {body} keyword.  The

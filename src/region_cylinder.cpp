@@ -399,13 +399,13 @@ int RegCylinder::surface_exterior(double *x, double cutoff)
         yp = c1 + del1*radius/r;
         zp = c2 + del2*radius/r;
         crad = 2.0*radius;
-	varflag = 1;
+        varflag = 1;
       } else {
         yp = x[1];
         zp = x[2];
       }
       if (x[0] < lo) xp = lo;
-      else if (x[0] > hi)	xp = hi;
+      else if (x[0] > hi)       xp = hi;
       else xp = x[0];
     }
 
@@ -493,7 +493,7 @@ int RegCylinder::surface_exterior(double *x, double cutoff)
         xp = c1 + del1*radius/r;
         zp = c2 + del2*radius/r;
         crad = 2.0*radius;
-	varflag = 1;
+        varflag = 1;
       } else {
         xp = x[0];
         zp = x[2];
@@ -587,7 +587,7 @@ int RegCylinder::surface_exterior(double *x, double cutoff)
         xp = c1 + del1*radius/r;
         yp = c2 + del2*radius/r;
         crad = 2.0*radius;
-	varflag = 1;
+        varflag = 1;
       } else {
         xp = x[0];
         yp = x[1];

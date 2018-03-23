@@ -49,11 +49,11 @@ enum{NO,YES};
 /* ---------------------------------------------------------------------- */
 
 DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
-  DumpCustom(lmp, narg, arg), thetastr(NULL), phistr(NULL), cxstr(NULL), 
-  cystr(NULL), czstr(NULL), upxstr(NULL), upystr(NULL), upzstr(NULL), 
-  zoomstr(NULL), perspstr(NULL), diamtype(NULL), diamelement(NULL), 
-  bdiamtype(NULL), colortype(NULL), colorelement(NULL), bcolortype(NULL), 
-  avec_line(NULL), avec_tri(NULL), avec_body(NULL), fixptr(NULL), image(NULL), 
+  DumpCustom(lmp, narg, arg), thetastr(NULL), phistr(NULL), cxstr(NULL),
+  cystr(NULL), czstr(NULL), upxstr(NULL), upystr(NULL), upzstr(NULL),
+  zoomstr(NULL), perspstr(NULL), diamtype(NULL), diamelement(NULL),
+  bdiamtype(NULL), colortype(NULL), colorelement(NULL), bcolortype(NULL),
+  avec_line(NULL), avec_tri(NULL), avec_body(NULL), fixptr(NULL), image(NULL),
   chooseghost(NULL), bufcopy(NULL)
 {
   if (binary || multiproc) error->all(FLERR,"Invalid dump image filename");
@@ -376,17 +376,17 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
 
   if (lineflag) {
     avec_line = (AtomVecLine *) atom->style_match("line");
-    if (!avec_line) 
+    if (!avec_line)
       error->all(FLERR,"Dump image line requires atom style line");
   }
   if (triflag) {
     avec_tri = (AtomVecTri *) atom->style_match("tri");
-    if (!avec_tri) 
+    if (!avec_tri)
       error->all(FLERR,"Dump image tri requires atom style tri");
   }
   if (bodyflag) {
     avec_body = (AtomVecBody *) atom->style_match("body");
-    if (!avec_body) 
+    if (!avec_body)
       error->all(FLERR,"Dump image body yes requires atom style body");
   }
 

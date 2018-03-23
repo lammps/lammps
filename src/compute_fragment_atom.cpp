@@ -44,6 +44,7 @@ ComputeFragmentAtom::ComputeFragmentAtom(LAMMPS *lmp, int narg, char **arg) :
   peratom_flag = 1;
   size_peratom_cols = 0;
   comm_forward = 1;
+  comm_reverse = 1;
 
   nmax = 0;
 }
@@ -122,6 +123,11 @@ void ComputeFragmentAtom::compute_peratom()
   while (1) {
     comm->forward_comm_compute(this);
 
+    // reverse communication when bonds are not stored on every processor
+
+    if (force->newton_bond)
+      comm->reverse_comm_compute(this);
+
     change = 0;
     while (1) {
       done = 1;
@@ -183,10 +189,47 @@ void ComputeFragmentAtom::unpack_forward_comm(int n, int first, double *buf)
   m = 0;
   last = first + n;
   if (commflag)
-    for (i = first; i < last; i++) fragmentID[i] = buf[m++];
+    for (i = first; i < last; i++) {
+      double x = buf[m++];
+
+      // only overwrite ghost IDs with values lower than current ones
+
+      fragmentID[i] = MIN(x,fragmentID[i]);
+    }
   else {
     int *mask = atom->mask;
     for (i = first; i < last; i++) mask[i] = (int) ubuf(buf[m++]).i;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+int ComputeFragmentAtom::pack_reverse_comm(int n, int first, double *buf)
+{
+  int i,m,last;
+
+  m = 0;
+  last = first + n;
+  for (i = first; i < last; i++) {
+    buf[m++] = fragmentID[i];
+  }
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputeFragmentAtom::unpack_reverse_comm(int n, int *list, double *buf)
+{
+  int i,j,m;
+
+  m = 0;
+  for (i = 0; i < n; i++) {
+    j = list[i];
+    double x = buf[m++];
+
+    // only overwrite local IDs with values lower than current ones
+
+    fragmentID[j] = MIN(x,fragmentID[j]);
   }
 }
 

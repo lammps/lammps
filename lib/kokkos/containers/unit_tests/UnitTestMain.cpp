@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -43,10 +43,13 @@
 
 #include <gtest/gtest.h>
 #include <cstdlib>
-#include <Kokkos_Macros.hpp>
+#include <Kokkos_Core.hpp>
 
 int main(int argc, char *argv[]) {
+  Kokkos::initialize(argc,argv);
   ::testing::InitGoogleTest(&argc,argv);
-  return RUN_ALL_TESTS();
+  int result = RUN_ALL_TESTS();
+  Kokkos::finalize();
+  return result;
 }
 

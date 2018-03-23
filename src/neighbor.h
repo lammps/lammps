@@ -111,7 +111,7 @@ class Neighbor : protected Pointers {
   int decide();                     // decide whether to build or not
   virtual int check_distance();     // check max distance moved since last build
   void setup_bins();                // setup bins based on box and cutoff
-  virtual void build(int topoflag=1);  // build all perpetual neighbor lists
+  virtual void build(int);          // build all perpetual neighbor lists
   virtual void build_topology();    // pairwise topology neighbor lists
   void build_one(class NeighList *list, int preflag=0);
                                     // create a one-time pairwise neigh list

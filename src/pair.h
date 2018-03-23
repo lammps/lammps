@@ -138,7 +138,7 @@ class Pair : protected Pointers {
 
   virtual double single(int, int, int, int,
                         double, double, double,
-			double& fforce) {
+                        double& fforce) {
     fforce = 0.0;
     return 0.0;
   }

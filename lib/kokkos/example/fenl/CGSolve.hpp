@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 // 
 // ************************************************************************
 //@HEADER
@@ -69,7 +69,7 @@ struct CrsMatrix {
 
   CrsMatrix( const StaticCrsGraphType & arg_graph )
     : graph( arg_graph )
-    , coeff( "crs_matrix_coeff" , arg_graph.entries.dimension_0() )
+    , coeff( "crs_matrix_coeff" , arg_graph.entries.extent(0) )
     {}
 };
 

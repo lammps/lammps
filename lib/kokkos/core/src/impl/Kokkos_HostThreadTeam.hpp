@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -402,10 +402,13 @@ fflush(stdout);
 
   std::pair<int64_t,int64_t> get_work_partition() noexcept
     {
+      int64_t first = m_work_range.first;
+      int64_t second = m_work_range.second;
+      first *= m_work_chunk;
+      second *= m_work_chunk;
       return std::pair<int64_t,int64_t>
-        ( m_work_range.first * m_work_chunk
-        , m_work_range.second * m_work_chunk < m_work_end
-        ? m_work_range.second * m_work_chunk : m_work_end );
+        ( first
+        , second < m_work_end ? second : m_work_end );
     }
 
   std::pair<int64_t,int64_t> get_work_stealing_chunk() noexcept
@@ -546,6 +549,7 @@ public:
   template< class Closure , typename T >
   KOKKOS_INLINE_FUNCTION
   void team_broadcast( Closure const & f , T & value , const int source_team_rank) const noexcept
+#if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
     {
       T volatile * const shared_value = (T*) m_data.team_reduce();
 
@@ -569,6 +573,9 @@ public:
         value = *shared_value ;
       }
     }
+#else
+    { Kokkos::abort("HostThreadTeamMember team_broadcast\n"); }
+#endif
 
   //--------------------------------------------------------------------------
   // team_reduce( Sum(result) );

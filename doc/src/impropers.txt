@@ -12,6 +12,7 @@ Improper Styles :h1
    improper_fourier
    improper_harmonic
    improper_hybrid
+   improper_inversion_harmonic
    improper_none
    improper_ring
    improper_umbrella

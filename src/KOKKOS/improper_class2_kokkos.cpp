@@ -252,7 +252,7 @@ void ImproperClass2Kokkos<DeviceType>::operator()(TagImproperClass2Compute<NEWTO
     delr[2][2] = x(i4,2) - x(i2,2);
 
     // bond lengths and associated values
-    
+
     for (i = 0; i < 3; i++) {
       rmag2[i] = delr[i][0]*delr[i][0] + delr[i][1]*delr[i][1] + delr[i][2]*delr[i][2];
       rmag[i] = sqrt(rmag2[i]);

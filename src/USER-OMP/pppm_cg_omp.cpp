@@ -159,35 +159,35 @@ void PPPMCGOMP::compute_gf_ik()
       sqk = square(unitkx*kper) + square(unitky*lper) + square(unitkz*mper);
 
       if (sqk != 0.0) {
-	numerator = 12.5663706/sqk;
-	denominator = gf_denom(snx,sny,snz);
-	sum1 = 0.0;
+        numerator = 12.5663706/sqk;
+        denominator = gf_denom(snx,sny,snz);
+        sum1 = 0.0;
 
-	for (nx = -nbx; nx <= nbx; nx++) {
-	  qx = unitkx*(kper+nx_pppm*nx);
-	  sx = exp(-0.25*square(qx/g_ewald));
-	  argx = 0.5*qx*xprd/nx_pppm;
-	  wx = powsinxx(argx,twoorder);
+        for (nx = -nbx; nx <= nbx; nx++) {
+          qx = unitkx*(kper+nx_pppm*nx);
+          sx = exp(-0.25*square(qx/g_ewald));
+          argx = 0.5*qx*xprd/nx_pppm;
+          wx = powsinxx(argx,twoorder);
 
-	  for (ny = -nby; ny <= nby; ny++) {
-	    qy = unitky*(lper+ny_pppm*ny);
-	    sy = exp(-0.25*square(qy/g_ewald));
-	    argy = 0.5*qy*yprd/ny_pppm;
-	    wy = powsinxx(argy,twoorder);
+          for (ny = -nby; ny <= nby; ny++) {
+            qy = unitky*(lper+ny_pppm*ny);
+            sy = exp(-0.25*square(qy/g_ewald));
+            argy = 0.5*qy*yprd/ny_pppm;
+            wy = powsinxx(argy,twoorder);
 
-	    for (nz = -nbz; nz <= nbz; nz++) {
-	      qz = unitkz*(mper+nz_pppm*nz);
-	      sz = exp(-0.25*square(qz/g_ewald));
-	      argz = 0.5*qz*zprd_slab/nz_pppm;
-	      wz = powsinxx(argz,twoorder);
+            for (nz = -nbz; nz <= nbz; nz++) {
+              qz = unitkz*(mper+nz_pppm*nz);
+              sz = exp(-0.25*square(qz/g_ewald));
+              argz = 0.5*qz*zprd_slab/nz_pppm;
+              wz = powsinxx(argz,twoorder);
 
-	      dot1 = unitkx*kper*qx + unitky*lper*qy + unitkz*mper*qz;
-	      dot2 = qx*qx+qy*qy+qz*qz;
-	      sum1 += (dot1/dot2) * sx*sy*sz * wx*wy*wz;
-	    }
-	  }
-	}
-	greensfn[n] = numerator*sum1/denominator;
+              dot1 = unitkx*kper*qx + unitky*lper*qy + unitkz*mper*qz;
+              dot2 = qx*qx+qy*qy+qz*qz;
+              sum1 += (dot1/dot2) * sx*sy*sz * wx*wy*wz;
+            }
+          }
+        }
+        greensfn[n] = numerator*sum1/denominator;
       } else greensfn[n] = 0.0;
     }
     thr->timer(Timer::KSPACE);
@@ -263,23 +263,23 @@ void PPPMCGOMP::compute_gf_ad()
       sqk = qx*qx + qy*qy + qz*qz;
 
       if (sqk != 0.0) {
-	numerator = MY_4PI/sqk;
-	denominator = gf_denom(snx,sny,snz);
-	greensfn[n] = numerator*sx*sy*sz*wx*wy*wz/denominator;
-	sf0 += sf_precoeff1[n]*greensfn[n];
-	sf1 += sf_precoeff2[n]*greensfn[n];
-	sf2 += sf_precoeff3[n]*greensfn[n];
-	sf3 += sf_precoeff4[n]*greensfn[n];
-	sf4 += sf_precoeff5[n]*greensfn[n];
-	sf5 += sf_precoeff6[n]*greensfn[n];
+        numerator = MY_4PI/sqk;
+        denominator = gf_denom(snx,sny,snz);
+        greensfn[n] = numerator*sx*sy*sz*wx*wy*wz/denominator;
+        sf0 += sf_precoeff1[n]*greensfn[n];
+        sf1 += sf_precoeff2[n]*greensfn[n];
+        sf2 += sf_precoeff3[n]*greensfn[n];
+        sf3 += sf_precoeff4[n]*greensfn[n];
+        sf4 += sf_precoeff5[n]*greensfn[n];
+        sf5 += sf_precoeff6[n]*greensfn[n];
       } else {
-	greensfn[n] = 0.0;
-	sf0 += sf_precoeff1[n]*greensfn[n];
-	sf1 += sf_precoeff2[n]*greensfn[n];
-	sf2 += sf_precoeff3[n]*greensfn[n];
-	sf3 += sf_precoeff4[n]*greensfn[n];
-	sf4 += sf_precoeff5[n]*greensfn[n];
-	sf5 += sf_precoeff6[n]*greensfn[n];
+        greensfn[n] = 0.0;
+        sf0 += sf_precoeff1[n]*greensfn[n];
+        sf1 += sf_precoeff2[n]*greensfn[n];
+        sf2 += sf_precoeff3[n]*greensfn[n];
+        sf3 += sf_precoeff4[n]*greensfn[n];
+        sf4 += sf_precoeff5[n]*greensfn[n];
+        sf5 += sf_precoeff6[n]*greensfn[n];
       }
     }
     thr->timer(Timer::KSPACE);
@@ -713,7 +713,7 @@ void PPPMCGOMP::compute_rho1d_thr(FFT_SCALAR * const * const r1d, const FFT_SCAL
 ------------------------------------------------------------------------- */
 
 void PPPMCGOMP::compute_drho1d_thr(FFT_SCALAR * const * const d1d, const FFT_SCALAR &dx,
-			      const FFT_SCALAR &dy, const FFT_SCALAR &dz)
+                              const FFT_SCALAR &dy, const FFT_SCALAR &dz)
 {
   int k,l;
   FFT_SCALAR r1,r2,r3;

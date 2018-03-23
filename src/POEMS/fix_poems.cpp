@@ -62,11 +62,11 @@ static const char cite_fix_poems[] =
 ------------------------------------------------------------------------- */
 
 FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), step_respa(NULL), natom2body(NULL), 
-  atom2body(NULL), displace(NULL), nrigid(NULL), masstotal(NULL), 
-  xcm(NULL), vcm(NULL), fcm(NULL), inertia(NULL), ex_space(NULL), 
-  ey_space(NULL), ez_space(NULL), angmom(NULL), omega(NULL), 
-  torque(NULL), sum(NULL), all(NULL), jointbody(NULL), 
+  Fix(lmp, narg, arg), step_respa(NULL), natom2body(NULL),
+  atom2body(NULL), displace(NULL), nrigid(NULL), masstotal(NULL),
+  xcm(NULL), vcm(NULL), fcm(NULL), inertia(NULL), ex_space(NULL),
+  ey_space(NULL), ez_space(NULL), angmom(NULL), omega(NULL),
+  torque(NULL), sum(NULL), all(NULL), jointbody(NULL),
   xjoint(NULL), freelist(NULL), poems(NULL)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_poems);

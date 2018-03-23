@@ -40,7 +40,7 @@ ComputeBond::ComputeBond(LAMMPS *lmp, int narg, char **arg) :
   if (!bond)
     error->all(FLERR,"Bond style for compute bond command is not hybrid");
   size_vector = nsub = bond->nstyles;
-  
+
   emine = new double[nsub];
   vector = new double[nsub];
 }
@@ -62,7 +62,7 @@ void ComputeBond::init()
   bond = (BondHybrid *) force->bond_match("hybrid");
   if (!bond)
     error->all(FLERR,"Bond style for compute bond command is not hybrid");
-  if (bond->nstyles != nsub) 
+  if (bond->nstyles != nsub)
     error->all(FLERR,"Bond style for compute bond command has changed");
 }
 

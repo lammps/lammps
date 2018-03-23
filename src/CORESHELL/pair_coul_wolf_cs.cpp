@@ -102,35 +102,35 @@ void PairCoulWolfCS::compute(int eflag, int vflag)
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq < cut_coulsq) {
-	rsq += EPSILON;
-	// Add EPISLON for case: r = 0; Interaction must be removed
-	// by special bond
-	r = sqrt(rsq);
-	prefactor = qqrd2e*qtmp*q[j]/r;
-	erfcc = erfc(alf*r);
-	erfcd = exp(-alf*alf*r*r);
-	v_sh = (erfcc - e_shift*r) * prefactor;
-	dvdrr = (erfcc/rsq + 2.0*alf/MY_PIS * erfcd/r) + f_shift;
-	forcecoul = dvdrr*rsq*prefactor;
-	if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
-	fpair = forcecoul / rsq;
+        rsq += EPSILON;
+        // Add EPISLON for case: r = 0; Interaction must be removed
+        // by special bond
+        r = sqrt(rsq);
+        prefactor = qqrd2e*qtmp*q[j]/r;
+        erfcc = erfc(alf*r);
+        erfcd = exp(-alf*alf*r*r);
+        v_sh = (erfcc - e_shift*r) * prefactor;
+        dvdrr = (erfcc/rsq + 2.0*alf/MY_PIS * erfcd/r) + f_shift;
+        forcecoul = dvdrr*rsq*prefactor;
+        if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+        fpair = forcecoul / rsq;
 
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
 
-	if (eflag) {
-	  ecoul = v_sh;
-	  if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
-	} else ecoul = 0.0;
+        if (eflag) {
+          ecoul = v_sh;
+          if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
+        } else ecoul = 0.0;
 
-	if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			     0.0,ecoul,fpair,delx,dely,delz);
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,
+                             0.0,ecoul,fpair,delx,dely,delz);
       }
     }
   }

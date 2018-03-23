@@ -156,7 +156,7 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
       next_output = update->ntimestep + nevery;
       if( comm->me == 0 ){
         fprintf(screen,"Outputing every %d steps, next is %d\n",
-			nevery, next_output);
+                        nevery, next_output);
       }
       argi += 2;
     }else if( error_on_unknown_keyword ){
@@ -280,9 +280,9 @@ void FixNVEManifoldRattle::init()
 
 void FixNVEManifoldRattle::update_var_params()
 {
- 
+
   double *ptr_params = ptr_m->params;
-  
+
   for( int i = 0; i < nvars; ++i ){
     if( is_var[i] ){
       tvars[i] = input->variable->find(tstrs[i]);
@@ -293,7 +293,7 @@ void FixNVEManifoldRattle::update_var_params()
       if( input->variable->equalstyle(tvars[i]) ){
         tstyle[i] = EQUAL;
         double new_val = input->variable->compute_equal(tvars[i]);
-        
+
         ptr_params[i] = new_val;
       }else{
         error->all(FLERR,

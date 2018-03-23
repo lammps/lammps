@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -130,8 +130,8 @@ public:
    */
   KOKKOS_INLINE_FUNCTION
   size_type numRows() const {
-    return (row_map.dimension_0 () != 0) ?
-      row_map.dimension_0 () - static_cast<size_type> (1) :
+    return (row_map.extent(0) != 0) ?
+      row_map.extent(0) - static_cast<size_type> (1) :
       static_cast<size_type> (0);
   }
 };
@@ -359,7 +359,7 @@ struct CountAndFillBase {
        we could compare to row_map(i + 1), but that is a read from global memory,
        whereas dimension_0() should be part of the View in registers (or constant memory) */
     data_type* fill =
-      (j == static_cast<decltype(j)>(m_crs.entries.dimension_0())) ?
+      (j == static_cast<decltype(j)>(m_crs.entries.extent(0))) ?
       nullptr : (&(m_crs.entries(j)));
     m_functor(i, fill);
   }
@@ -393,7 +393,7 @@ struct CountAndFillBase<CrsType, Functor, Kokkos::Cuda> {
        we could compare to row_map(i + 1), but that is a read from global memory,
        whereas dimension_0() should be part of the View in registers (or constant memory) */
     data_type* fill =
-      (j == static_cast<decltype(j)>(m_crs.entries.dimension_0())) ?
+      (j == static_cast<decltype(j)>(m_crs.entries.extent(0))) ?
       nullptr : (&(m_crs.entries(j)));
     m_functor(i, fill);
   }

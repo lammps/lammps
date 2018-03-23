@@ -47,8 +47,8 @@ class PairAIREBOIntel : public PairAIREBO {
 
   template <int EVFLAG, int EFLAG, class flt_t, class acc_t>
   void eval(const int offload, const int vflag,
-	    IntelBuffers<flt_t,acc_t> * buffers,
-	    const int astart, const int aend);
+            IntelBuffers<flt_t,acc_t> * buffers,
+            const int astart, const int aend);
 
   template <class flt_t, class acc_t>
   void pack_force_const(IntelBuffers<flt_t,acc_t> * buffers);

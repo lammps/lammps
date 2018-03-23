@@ -43,9 +43,9 @@ AtomVecMDPD::AtomVecMDPD(LAMMPS *lmp) : AtomVec(lmp)
   size_reverse = 3 + 1; // 3 + drho
   size_border =  6 + 4; // 6 + rho + vest[3]
   size_velocity = 3;
-  size_data_atom = 5;
+  size_data_atom = 6;
   size_data_vel = 4;
-  xcol_data = 3;
+  xcol_data = 4;
 
   atom->rho_flag = 1;
   atom->vest_flag = 1;
@@ -527,7 +527,7 @@ int AtomVecMDPD::pack_border_vel(int n, int *list, double *buf, int pbc_flag,
         } else {
           buf[m++] = v[j][0];
           buf[m++] = v[j][1];
-          buf[m++] = v[j][2]; 
+          buf[m++] = v[j][2];
           buf[m++] = rho[j];
           buf[m++] = vest[j][0];
           buf[m++] = vest[j][1];
@@ -817,7 +817,7 @@ void AtomVecMDPD::data_atom(double *coord, imageint imagetmp, char **values) {
   vest[nlocal][1] = 0.0;
   vest[nlocal][2] = 0.0;
 
-  rho[nlocal] = 0.0;
+  rho[nlocal] = atof(values[2]);
   drho[nlocal] = 0.0;
 
   atom->nlocal++;

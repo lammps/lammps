@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -62,13 +62,10 @@ class serial : public ::testing::Test {
 protected:
   static void SetUpTestCase()
   {
-    std::cout << std::setprecision (5) << std::scientific;
-    Kokkos::Serial::initialize ();
   }
 
   static void TearDownTestCase ()
   {
-    Kokkos::Serial::finalize ();
   }
 };
 

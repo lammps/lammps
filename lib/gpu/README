@@ -135,6 +135,7 @@ Current styles supporting GPU acceleration:
     38  yukawa/colloid
     39  yukawa
     40  pppm
+    41  ufm
 
 
                      MULTIPLE LAMMPS PROCESSES

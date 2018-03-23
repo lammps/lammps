@@ -106,6 +106,71 @@ typedef double FFT_SCALAR;
     }
   };
 
+template<class Scalar>
+struct t_scalar3 {
+  Scalar x,y,z;
+
+  KOKKOS_FORCEINLINE_FUNCTION
+  t_scalar3() {
+    x = 0; y = 0; z = 0;
+  }
+
+  KOKKOS_FORCEINLINE_FUNCTION
+  t_scalar3(const t_scalar3& rhs) {
+    x = rhs.x; y = rhs.y; z = rhs.z;
+  }
+
+  KOKKOS_FORCEINLINE_FUNCTION
+  t_scalar3(const Scalar& x_, const Scalar& y_, const Scalar& z_ ) {
+    x = x_; y = y_; z = z_;
+  }
+
+  KOKKOS_FORCEINLINE_FUNCTION
+  t_scalar3 operator= (const t_scalar3& rhs) {
+    x = rhs.x; y = rhs.y; z = rhs.z;
+    return *this;
+  }
+
+  KOKKOS_FORCEINLINE_FUNCTION
+  t_scalar3 operator= (const volatile t_scalar3& rhs) {
+    x = rhs.x; y = rhs.y; z = rhs.z;
+    return *this;
+  }
+
+  KOKKOS_FORCEINLINE_FUNCTION
+  t_scalar3 operator+= (const t_scalar3& rhs) {
+    x += rhs.x; y += rhs.y; z += rhs.z;
+    return *this;
+  }
+
+  KOKKOS_FORCEINLINE_FUNCTION
+  t_scalar3 operator+= (const volatile t_scalar3& rhs) volatile {
+    x += rhs.x; y += rhs.y; z += rhs.z;
+    return *this;
+  }
+};
+
+template<class Scalar>
+KOKKOS_FORCEINLINE_FUNCTION
+t_scalar3<Scalar> operator +
+  (const t_scalar3<Scalar>& a, const t_scalar3<Scalar>& b) {
+  return t_scalar3<Scalar>(a.x+b.x,a.y+b.y,a.z+b.z);
+}
+
+template<class Scalar>
+KOKKOS_FORCEINLINE_FUNCTION
+t_scalar3<Scalar> operator *
+  (const t_scalar3<Scalar>& a, const Scalar& b) {
+  return t_scalar3<Scalar>(a.x*b,a.y*b,a.z*b);
+}
+
+template<class Scalar>
+KOKKOS_FORCEINLINE_FUNCTION
+t_scalar3<Scalar> operator *
+  (const Scalar& b, const t_scalar3<Scalar>& a) {
+  return t_scalar3<Scalar>(a.x*b,a.y*b,a.z*b);
+}
+
 #if !defined(__CUDACC__) && !defined(__VECTOR_TYPES_H__)
   struct double2 {
     double x, y;
@@ -323,6 +388,8 @@ typedef double K_FLOAT;
 typedef double2 K_FLOAT2;
 typedef double4 K_FLOAT4;
 #endif
+
+typedef int T_INT;
 
 // ------------------------------------------------------------------------
 
@@ -917,7 +984,7 @@ void memset_kokkos (ViewType &view) {
 
 struct params_lj_coul {
   KOKKOS_INLINE_FUNCTION
-  params_lj_coul(){cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};   
+  params_lj_coul(){cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
   KOKKOS_INLINE_FUNCTION
   params_lj_coul(int i){cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
   F_FLOAT cut_ljsq,cut_coulsq,lj1,lj2,lj3,lj4,offset;

@@ -8,6 +8,7 @@ Angle Styles :h1
    angle_charmm
    angle_class2
    angle_cosine
+   angle_cosine_buck6d
    angle_cosine_delta
    angle_cosine_periodic
    angle_cosine_shift

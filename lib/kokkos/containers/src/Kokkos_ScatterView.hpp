@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -623,14 +623,12 @@ public:
         typename ExecSpace::memory_space,
         typename dest_type::memory_space>::value,
         "ScatterView deep_copy destination memory space not accessible");
-    size_t strides[8];
-    internal_view.stride(strides);
     bool is_equal = (dest.data() == internal_view.data());
     size_t start = is_equal ? 1 : 0;
     Kokkos::Impl::Experimental::ReduceDuplicates<ExecSpace, original_value_type, Op>(
         internal_view.data(),
         dest.data(),
-        strides[0],
+        internal_view.stride(0),
         start,
         internal_view.extent(0),
         internal_view.label());
@@ -772,9 +770,6 @@ public:
         typename ExecSpace::memory_space,
         typename dest_type::memory_space>::value,
         "ScatterView deep_copy destination memory space not accessible");
-    size_t strides[8];
-    internal_view.stride(strides);
-    size_t stride = strides[internal_view_type::rank - 1];
     auto extent = internal_view.extent(
         internal_view_type::rank - 1);
     bool is_equal = (dest.data() == internal_view.data());
@@ -782,7 +777,7 @@ public:
     Kokkos::Impl::Experimental::ReduceDuplicates<ExecSpace, original_value_type, Op>(
         internal_view.data(),
         dest.data(),
-        stride,
+        internal_view.stride(internal_view_type::rank - 1),
         start,
         extent,
         internal_view.label());

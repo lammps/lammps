@@ -755,7 +755,7 @@ void FixIntel::add_oresults(const ft * _noalias const f_in,
         double * _noalias const lmp_eatom = force->pair->eatom + out_offset;
         #if defined(LMP_SIMD_COMPILER)
         #pragma vector aligned
-	#pragma ivdep
+        #pragma ivdep
         #endif
         for (int i = ifrom; i < ito; i++) {
           f[i].x += f_in[ii].x;
@@ -770,7 +770,7 @@ void FixIntel::add_oresults(const ft * _noalias const f_in,
       } else {
         #if defined(LMP_SIMD_COMPILER)
         #pragma vector aligned
-	#pragma ivdep
+        #pragma ivdep
         #endif
         for (int i = ifrom; i < ito; i++) {
           f[i].x += f_in[ii].x;
@@ -787,7 +787,7 @@ void FixIntel::add_oresults(const ft * _noalias const f_in,
         double * _noalias const lmp_eatom = force->pair->eatom + out_offset;
         #if defined(LMP_SIMD_COMPILER)
         #pragma vector aligned
-	#pragma ivdep
+        #pragma ivdep
         #endif
         for (int i = ifrom; i < ito; i++) {
           f[i].x += f_in[i].x;
@@ -798,7 +798,7 @@ void FixIntel::add_oresults(const ft * _noalias const f_in,
       } else {
         #if defined(LMP_SIMD_COMPILER)
         #pragma vector aligned
-	#pragma ivdep
+        #pragma ivdep
         #endif
         for (int i = ifrom; i < ito; i++) {
           f[i].x += f_in[i].x;

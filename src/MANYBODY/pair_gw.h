@@ -101,7 +101,7 @@ class PairGW : public Pair {
     const double gw_d = param->d * param->d;
     const double hcth = param->h - costheta;
 
-	  //printf("gw_gijk: gw_c=%f gw_d=%f hcth=%f=%f-%f\n", gw_c, gw_d, hcth, param->h, costheta);
+          //printf("gw_gijk: gw_c=%f gw_d=%f hcth=%f=%f-%f\n", gw_c, gw_d, hcth, param->h, costheta);
 
     return param->gamma*(1.0 + gw_c/gw_d - gw_c / (gw_d + hcth*hcth));
   }

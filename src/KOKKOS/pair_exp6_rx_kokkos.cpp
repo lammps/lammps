@@ -771,7 +771,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
       evdwl = evdwlOld;
       if (EVFLAG)
         ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR||(j<nlocal)))?1.0:0.5)*evdwl;
-      //if (vflag_either || eflag_atom) 
+      //if (vflag_either || eflag_atom)
       if (EVFLAG) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,evdwl,fpair,delx,dely,delz);
     }
   }
@@ -1142,7 +1142,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIG
       evdwl = evdwlOld;
       if (EVFLAG)
         ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR||(j<nlocal)))?1.0:0.5)*evdwl;
-      //if (vflag_either || eflag_atom) 
+      //if (vflag_either || eflag_atom)
       if (EVFLAG) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,evdwl,fpair,delx,dely,delz);
     }
   }
@@ -1588,7 +1588,7 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
       double evdwl = evdwlOld_j[jlane];
       if (EVFLAG)
         ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR||(j<nlocal)))?1.0:0.5)*evdwl;
-      //if (vflag_either || eflag_atom) 
+      //if (vflag_either || eflag_atom)
       if (EVFLAG) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,evdwl,fpair_j[jlane],delx_j[jlane],dely_j[jlane],delz_j[jlane]);
     }
   }
@@ -1678,7 +1678,7 @@ template<class DeviceType>
 void PairExp6rxKokkos<DeviceType>::coeff(int narg, char **arg)
 {
   PairExp6rx::coeff(narg,arg);
-  
+
   if (scalingFlag == POLYNOMIAL)
     for (int i = 0; i < 6; i++) {
       s_coeffAlpha[i] = coeffAlpha[i];
@@ -2117,7 +2117,7 @@ void partition_range( const int begin, const int end, int &thread_begin, int &th
 #ifndef KOKKOS_HAVE_CUDA
 template<class DeviceType>
   template<class ArrayT>
-void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int errorFlag, 
+void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int errorFlag,
                           ArrayT &epsilon1, ArrayT &alpha1, ArrayT &rm1,  ArrayT &mixWtSite1, ArrayT &epsilon2, ArrayT &alpha2, ArrayT &rm2, ArrayT &mixWtSite2, ArrayT &epsilon1_old, ArrayT &alpha1_old, ArrayT &rm1_old,  ArrayT &mixWtSite1old, ArrayT &epsilon2_old, ArrayT &alpha2_old, ArrayT &rm2_old, ArrayT &mixWtSite2old) const
 {
   ArrayT epsilon          = PairExp6ParamDataVect.epsilon         ;

@@ -13,8 +13,8 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Paul Crozier (SNL)
-     The lj-fsw sections (force-switched) were provided by 
-     Robert Meissner and Lucio Colombi Ciacchi of 
+     The lj-fsw sections (force-switched) were provided by
+     Robert Meissner and Lucio Colombi Ciacchi of
      Bremen University, Bremen, Germany, with
      additional assistance from Robert A. Latour, Clemson University
 ------------------------------------------------------------------------- */
@@ -229,15 +229,15 @@ void PairLJCharmmfswCoulLong::compute(int eflag, int vflag)
               r = sqrt(rsq);
               rinv = 1.0/r;
               r3inv = rinv*rinv*rinv;
-              evdwl12 = lj3[itype][jtype]*cut_lj6*denom_lj12 * 
+              evdwl12 = lj3[itype][jtype]*cut_lj6*denom_lj12 *
                 (r6inv - cut_lj6inv)*(r6inv - cut_lj6inv);
-              evdwl6 = -lj4[itype][jtype]*cut_lj3*denom_lj6 * 
+              evdwl6 = -lj4[itype][jtype]*cut_lj3*denom_lj6 *
                 (r3inv - cut_lj3inv)*(r3inv - cut_lj3inv);;
               evdwl = evdwl12 + evdwl6;
             } else {
-              evdwl12 = r6inv*lj3[itype][jtype]*r6inv - 
+              evdwl12 = r6inv*lj3[itype][jtype]*r6inv -
                 lj3[itype][jtype]*cut_lj_inner6inv*cut_lj6inv;
-              evdwl6 = -lj4[itype][jtype]*r6inv + 
+              evdwl6 = -lj4[itype][jtype]*r6inv +
                 lj4[itype][jtype]*cut_lj_inner3inv*cut_lj3inv;
               evdwl = evdwl12 + evdwl6;
             }
@@ -589,15 +589,15 @@ void PairLJCharmmfswCoulLong::compute_outer(int eflag, int vflag)
             if (rsq > cut_lj_innersq) {
               rinv = 1.0/r;
               r3inv = rinv*rinv*rinv;
-              evdwl12 = lj3[itype][jtype]*cut_lj6*denom_lj12 * 
+              evdwl12 = lj3[itype][jtype]*cut_lj6*denom_lj12 *
                 (r6inv - cut_lj6inv)*(r6inv - cut_lj6inv);
-              evdwl6 = -lj4[itype][jtype]*cut_lj3*denom_lj6 * 
+              evdwl6 = -lj4[itype][jtype]*cut_lj3*denom_lj6 *
                 (r3inv - cut_lj3inv)*(r3inv - cut_lj3inv);;
               evdwl = evdwl12 + evdwl6;
             } else {
-              evdwl12 = r6inv*lj3[itype][jtype]*r6inv - 
+              evdwl12 = r6inv*lj3[itype][jtype]*r6inv -
                 lj3[itype][jtype]*cut_lj_inner6inv*cut_lj6inv;
-              evdwl6 = -lj4[itype][jtype]*r6inv + 
+              evdwl6 = -lj4[itype][jtype]*r6inv +
                 lj4[itype][jtype]*cut_lj_inner3inv*cut_lj3inv;
               evdwl = evdwl12 + evdwl6;
             }
@@ -609,7 +609,7 @@ void PairLJCharmmfswCoulLong::compute_outer(int eflag, int vflag)
           if (rsq < cut_coulsq) {
             if (!ncoultablebits || rsq <= tabinnersq) {
               forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-	      if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+              if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
             } else {
               table = vtable[itable] + fraction*dvtable[itable];
               forcecoul = qtmp*q[j] * table;
@@ -1042,15 +1042,15 @@ double PairLJCharmmfswCoulLong::single(int i, int j, int itype, int jtype,
 
   if (rsq < cut_ljsq) {
     if (rsq > cut_lj_innersq) {
-      philj12 = lj3[itype][jtype]*cut_lj6*denom_lj12 * 
+      philj12 = lj3[itype][jtype]*cut_lj6*denom_lj12 *
         (r6inv - cut_lj6inv)*(r6inv - cut_lj6inv);
-      philj6 = -lj4[itype][jtype]*cut_lj3*denom_lj6 * 
+      philj6 = -lj4[itype][jtype]*cut_lj3*denom_lj6 *
         (r3inv - cut_lj3inv)*(r3inv - cut_lj3inv);;
       philj = philj12 + philj6;
     } else {
-      philj12 = r6inv*lj3[itype][jtype]*r6inv - 
+      philj12 = r6inv*lj3[itype][jtype]*r6inv -
         lj3[itype][jtype]*cut_lj_inner6inv*cut_lj6inv;
-      philj6 = -lj4[itype][jtype]*r6inv + 
+      philj6 = -lj4[itype][jtype]*r6inv +
         lj4[itype][jtype]*cut_lj_inner3inv*cut_lj3inv;
       philj = philj12 + philj6;
     }

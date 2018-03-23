@@ -27,7 +27,8 @@
 #define PATHSEP "/"
 #endif
 
-
+#include "colvarmodule.h"
+#include "colvarproxy.h"
 #include "colvar.h"
 #include "colvarbias_meta.h"
 

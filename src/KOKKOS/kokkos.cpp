@@ -176,7 +176,7 @@ void KokkosLMP::accelerator(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"half") == 0) {
         if (num_threads > 1 || ngpu > 0)
           neighflag = HALFTHREAD;
-        else 
+        else
           neighflag = HALF;
       } else if (strcmp(arg[iarg+1],"n2") == 0) neighflag = N2;
       else error->all(FLERR,"Illegal package kokkos command");
@@ -188,7 +188,7 @@ void KokkosLMP::accelerator(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"half") == 0) {
         if (num_threads > 1 || ngpu > 0)
           neighflag_qeq = HALFTHREAD;
-        else 
+        else
           neighflag_qeq = HALF;
       } else if (strcmp(arg[iarg+1],"n2") == 0) neighflag_qeq = N2;
       else error->all(FLERR,"Illegal package kokkos command");

@@ -45,69 +45,69 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeSMDULSPHstrain::ComputeSMDULSPHstrain(LAMMPS *lmp, int narg, char **arg) :
-		Compute(lmp, narg, arg) {
-	if (narg != 3)
-		error->all(FLERR, "Illegal compute smd/tlsph_strain command");
+                Compute(lmp, narg, arg) {
+        if (narg != 3)
+                error->all(FLERR, "Illegal compute smd/tlsph_strain command");
 
-	peratom_flag = 1;
-	size_peratom_cols = 6;
+        peratom_flag = 1;
+        size_peratom_cols = 6;
 
-	nmax = 0;
-	strainVector = NULL;
+        nmax = 0;
+        strainVector = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
 
 ComputeSMDULSPHstrain::~ComputeSMDULSPHstrain() {
-	memory->sfree(strainVector);
+        memory->sfree(strainVector);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void ComputeSMDULSPHstrain::init() {
 
-	int count = 0;
-	for (int i = 0; i < modify->ncompute; i++)
-		if (strcmp(modify->compute[i]->style, "smd/tlsph_strain") == 0)
-			count++;
-	if (count > 1 && comm->me == 0)
-		error->warning(FLERR, "More than one compute smd/tlsph_strain");
+        int count = 0;
+        for (int i = 0; i < modify->ncompute; i++)
+                if (strcmp(modify->compute[i]->style, "smd/tlsph_strain") == 0)
+                        count++;
+        if (count > 1 && comm->me == 0)
+                error->warning(FLERR, "More than one compute smd/tlsph_strain");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void ComputeSMDULSPHstrain::compute_peratom() {
-	double **atom_data9 = atom->smd_data_9; // ULSPH strain is stored in the first 6 entries of this data field
+        double **atom_data9 = atom->smd_data_9; // ULSPH strain is stored in the first 6 entries of this data field
 
-	invoked_peratom = update->ntimestep;
+        invoked_peratom = update->ntimestep;
 
-	// grow vector array if necessary
+        // grow vector array if necessary
 
-	if (atom->nmax > nmax) {
-		memory->destroy(strainVector);
-		nmax = atom->nmax;
-		memory->create(strainVector, nmax, size_peratom_cols, "strainVector");
-		array_atom = strainVector;
-	}
+        if (atom->nmax > nmax) {
+                memory->destroy(strainVector);
+                nmax = atom->nmax;
+                memory->create(strainVector, nmax, size_peratom_cols, "strainVector");
+                array_atom = strainVector;
+        }
 
-	int *mask = atom->mask;
-	int nlocal = atom->nlocal;
+        int *mask = atom->mask;
+        int nlocal = atom->nlocal;
 
-	for (int i = 0; i < nlocal; i++) {
-		if (mask[i] & groupbit) {
+        for (int i = 0; i < nlocal; i++) {
+                if (mask[i] & groupbit) {
 
-			strainVector[i][0] = atom_data9[i][0];
-			strainVector[i][1] = atom_data9[i][1];
-			strainVector[i][2] = atom_data9[i][2];
-			strainVector[i][3] = atom_data9[i][3];
-			strainVector[i][4] = atom_data9[i][4];
-			strainVector[i][5] = atom_data9[i][5];
-		} else {
-			for (int j = 0; j < size_peratom_cols; j++) {
-				strainVector[i][j] = 0.0;
-			}
-		}
-	}
+                        strainVector[i][0] = atom_data9[i][0];
+                        strainVector[i][1] = atom_data9[i][1];
+                        strainVector[i][2] = atom_data9[i][2];
+                        strainVector[i][3] = atom_data9[i][3];
+                        strainVector[i][4] = atom_data9[i][4];
+                        strainVector[i][5] = atom_data9[i][5];
+                } else {
+                        for (int j = 0; j < size_peratom_cols; j++) {
+                                strainVector[i][j] = 0.0;
+                        }
+                }
+        }
 }
 
 /* ----------------------------------------------------------------------
@@ -115,6 +115,6 @@ void ComputeSMDULSPHstrain::compute_peratom() {
  ------------------------------------------------------------------------- */
 
 double ComputeSMDULSPHstrain::memory_usage() {
-	double bytes = size_peratom_cols * nmax * sizeof(double);
-	return bytes;
+        double bytes = size_peratom_cols * nmax * sizeof(double);
+        return bytes;
 }

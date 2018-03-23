@@ -216,10 +216,10 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
         K[2] = k * dK[2];
         dinv2 = (K[0] * K[0] + K[1] * K[1] + K[2] * K[2]);
         if  (4 >= dinv2 * lambda * lambda ) {
-       	  ang = asin(lambda * sqrt(dinv2) * 0.5);
+          ang = asin(lambda * sqrt(dinv2) * 0.5);
           if ((ang <= Max2Theta) && (ang >= Min2Theta)) {
           nRows++;
-	        }
+                }
         }
       }
     }

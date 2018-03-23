@@ -1,4 +1,4 @@
-# Created by charmm2lammps v1.9.1 on Wed Oct  5 18:18:20 EDT 2016
+# Created by charmm2lammps v1.9.1 on Sun Jan 28 05:46:18 EST 2018
 # Command: charmm2lammps.pl -water -ions -border=2.0 all27_na 1ac7
 
 units           real

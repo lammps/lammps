@@ -549,9 +549,9 @@ void FixColvars::setup(int vflag)
         } else {
           m[i] = atom->mass[type[k]];
         }
-	if (atom->q_flag) {
-	  q[i] = atom->q[k];
-	}
+        if (atom->q_flag) {
+          q[i] = atom->q[k];
+        }
       }
     }
 
@@ -616,7 +616,7 @@ void FixColvars::setup(int vflag)
           comm_buf[nme].m = atom->mass[type[k]];
         }
 
-	if (atom->q_flag) {
+        if (atom->q_flag) {
           comm_buf[nme].q = atom->q[k];
         }
 

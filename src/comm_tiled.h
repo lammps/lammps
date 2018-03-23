@@ -97,8 +97,8 @@ class CommTiled : public Comm {
 
   struct RCBinfo {
     double mysplit[3][2];      // fractional RCB bounding box for one proc
-    double cutfrac;    	       // fractional position of cut this proc owns
-    int dim;	               // dimension = 0/1/2 of cut
+    double cutfrac;            // fractional position of cut this proc owns
+    int dim;                   // dimension = 0/1/2 of cut
   };
 
   RCBinfo *rcbinfo;            // list of RCB info for all procs

@@ -204,7 +204,7 @@ void BondHarmonicShift::write_data(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 double BondHarmonicShift::single(int type, double rsq, int i, int j,
-				 double &fforce)
+                                 double &fforce)
 {
   double r = sqrt(rsq);
   double dr = r - r0[type];

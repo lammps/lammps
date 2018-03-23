@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors, for weighted balancing: 
+   Contributing authors, for weighted balancing:
      Axel Kohlmeyer (Temple U), Iain Bethune (EPCC)
 ------------------------------------------------------------------------- */
 
@@ -291,7 +291,7 @@ void Balance::command(int narg, char **arg)
 #endif
 
   int niter = 0;
-  
+
   // perform load-balance
   // style XYZ = explicit setting of cutting planes of logical 3d grid
 
@@ -661,7 +661,7 @@ int *Balance::bisection(int sortflag)
       rcb->compute(dim,atom->nlocal,atom->x,weight,shrinklo,shrinkhi);
     } else rcb->compute(dim,atom->nlocal,atom->x,NULL,shrinklo,shrinkhi);
   }
-    
+
   rcb->invert(sortflag);
 
   // reset RCB lo/hi bounding box to full simulation box as needed

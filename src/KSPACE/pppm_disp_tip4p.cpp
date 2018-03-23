@@ -103,8 +103,8 @@ void PPPMDispTIP4P::particle_map_c(double delx, double dely, double delz,
     // check that entire stencil around nx,ny,nz will fit in my 3d brick
 
     if (nx+nlow < nxlo || nx+nup > nxhi ||
-	ny+nlow < nylo || ny+nup > nyhi ||
-	nz+nlow < nzlo || nz+nup > nzhi)
+        ny+nlow < nylo || ny+nup > nyhi ||
+        nz+nlow < nzlo || nz+nup > nzhi)
       flag = 1;
   }
 
@@ -159,12 +159,12 @@ void PPPMDispTIP4P::make_rho_c()
       mz = n+nz;
       y0 = z0*rho1d[2][n];
       for (m = nlower; m <= nupper; m++) {
-	my = m+ny;
-	x0 = y0*rho1d[1][m];
-	for (l = nlower; l <= nupper; l++) {
-	  mx = l+nx;
-	  density_brick[mz][my][mx] += x0*rho1d[0][l];
-	}
+        my = m+ny;
+        x0 = y0*rho1d[1][m];
+        for (l = nlower; l <= nupper; l++) {
+          mx = l+nx;
+          density_brick[mz][my][mx] += x0*rho1d[0][l];
+        }
       }
     }
   }
@@ -217,14 +217,14 @@ void PPPMDispTIP4P::fieldforce_c_ik()
       mz = n+nz;
       z0 = rho1d[2][n];
       for (m = nlower; m <= nupper; m++) {
-	my = m+ny;
-	y0 = z0*rho1d[1][m];
-	for (l = nlower; l <= nupper; l++) {
-	  mx = l+nx;
-	  x0 = y0*rho1d[0][l];
-	  ekx -= x0*vdx_brick[mz][my][mx];
-	  eky -= x0*vdy_brick[mz][my][mx];
-	  ekz -= x0*vdz_brick[mz][my][mx];
+        my = m+ny;
+        y0 = z0*rho1d[1][m];
+        for (l = nlower; l <= nupper; l++) {
+          mx = l+nx;
+          x0 = y0*rho1d[0][l];
+          ekx -= x0*vdx_brick[mz][my][mx];
+          eky -= x0*vdy_brick[mz][my][mx];
+          ekz -= x0*vdz_brick[mz][my][mx];
         }
       }
     }
@@ -426,20 +426,20 @@ void PPPMDispTIP4P::fieldforce_c_peratom()
       mz = n+nz;
       z0 = rho1d[2][n];
       for (m = nlower; m <= nupper; m++) {
-	my = m+ny;
-	y0 = z0*rho1d[1][m];
-	for (l = nlower; l <= nupper; l++) {
-	  mx = l+nx;
-	  x0 = y0*rho1d[0][l];
-	  if (eflag_atom) u_pa += x0*u_brick[mz][my][mx];
-	  if (vflag_atom) {
+        my = m+ny;
+        y0 = z0*rho1d[1][m];
+        for (l = nlower; l <= nupper; l++) {
+          mx = l+nx;
+          x0 = y0*rho1d[0][l];
+          if (eflag_atom) u_pa += x0*u_brick[mz][my][mx];
+          if (vflag_atom) {
             v0 += x0*v0_brick[mz][my][mx];
             v1 += x0*v1_brick[mz][my][mx];
             v2 += x0*v2_brick[mz][my][mx];
             v3 += x0*v3_brick[mz][my][mx];
             v4 += x0*v4_brick[mz][my][mx];
             v5 += x0*v5_brick[mz][my][mx];
-	  }
+          }
         }
       }
     }

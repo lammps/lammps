@@ -594,19 +594,21 @@ void *lammps_extract_fix(void *ptr, char *id, int style, int type,
     Fix *fix = lmp->modify->fix[ifix];
 
     if (style == 0) {
-      double *dptr = (double *) malloc(sizeof(double));
       if (type == 0) {
         if (!fix->scalar_flag) return NULL;
+        double *dptr = (double *) malloc(sizeof(double));
         *dptr = fix->compute_scalar();
         return (void *) dptr;
       }
       if (type == 1) {
         if (!fix->vector_flag) return NULL;
+        double *dptr = (double *) malloc(sizeof(double));
         *dptr = fix->compute_vector(i);
         return (void *) dptr;
       }
       if (type == 2) {
         if (!fix->array_flag) return NULL;
+        double *dptr = (double *) malloc(sizeof(double));
         *dptr = fix->compute_array(i,j);
         return (void *) dptr;
       }

@@ -61,7 +61,7 @@ void FixPropertyAtomKokkos::grow_arrays(int nmax)
       size_t nbytes = (nmax-nmax_old) * sizeof(int);
       memset(&atom->ivector[index[m]][nmax_old],0,nbytes);
     } else if (style[m] == DOUBLE) {
-      memoryKK->grow_kokkos(atomKK->k_dvector,atomKK->dvector,atomKK->k_dvector.dimension_0(),nmax,
+      memoryKK->grow_kokkos(atomKK->k_dvector,atomKK->dvector,atomKK->k_dvector.extent(0),nmax,
                           "atom:dvector");
       //memory->grow(atom->dvector[index[m]],nmax,"atom:dvector");
       //size_t nbytes = (nmax-nmax_old) * sizeof(double);

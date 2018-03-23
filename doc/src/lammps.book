@@ -437,6 +437,7 @@ pair_colloid.html
 pair_comb.html
 pair_coul.html
 pair_coul_diel.html
+pair_coul_shield.html
 pair_cs.html
 pair_dipole.html
 pair_dpd.html
@@ -453,9 +454,11 @@ pair_gayberne.html
 pair_gran.html
 pair_gromacs.html
 pair_gw.html
+pair_ilp_graphene_hbn.html
 pair_hbond_dreiding.html
 pair_hybrid.html
 pair_kim.html
+pair_kolmogorov_crespi_full.html
 pair_kolmogorov_crespi_z.html
 pair_lcbop.html
 pair_line_lj.html

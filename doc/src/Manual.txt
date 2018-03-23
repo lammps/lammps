@@ -18,12 +18,10 @@
 
 :line
 
-<H1></H1>
+LAMMPS Documentation :c,h1
+16 Mar 2018 version :c,h2
 
-LAMMPS Documentation :c,h3
-16 Mar 2018 version :c,h4
-
-Version info: :h4
+Version info: :h3
 
 The LAMMPS "version" is the date when it was released, such as 1 May
 2010. LAMMPS is updated continuously.  Whenever we fix a bug or add a

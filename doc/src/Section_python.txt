@@ -6,7 +6,7 @@
 
 :line
 
-11. Python interface to LAMMPS :h3
+11. Python interface to LAMMPS :h2
 
 LAMMPS can work together with Python in three ways.  First, Python can
 wrap LAMMPS through the "LAMMPS library
@@ -443,7 +443,7 @@ If an error occurs, carefully go thru the steps in "Section
 library and about insuring Python can find the necessary two files
 it needs.
 
-[Test LAMMPS and Python in serial:] :h5
+[Test LAMMPS and Python in serial:] :h4
 
 To run a LAMMPS test in serial, type these lines into Python
 interactively from the bench directory:
@@ -462,7 +462,7 @@ typed something like:
 
 lmp_g++ -in in.lj :pre
 
-[Test LAMMPS and Python in parallel:] :h5
+[Test LAMMPS and Python in parallel:] :h4
 
 To run LAMMPS in parallel, assuming you have installed the
 "PyPar"_https://github.com/daleroberts/pypar package as discussed
@@ -510,7 +510,7 @@ described in the PyPar documentation.  The last line of your Python
 script should be pypar.finalize(), to insure MPI is shut down
 correctly.
 
-[Running Python scripts:] :h5
+[Running Python scripts:] :h4
 
 Note that any Python script (not just for LAMMPS) can be invoked in
 one of several ways:

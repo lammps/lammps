@@ -19,7 +19,7 @@ snapshot Kokkos from github.com/kokkos to Trilinos.
 
 3) Snapshot the current commit in the Kokkos clone into the Trilinos clone.
    This overwrites ${TRILINOS}/packages/kokkos with the content of ${KOKKOS}:
-	${KOKKOS}/config/snapshot.py --verbose ${KOKKOS} ${TRILINOS}/packages
+	${KOKKOS}/scripts/snapshot.py --verbose ${KOKKOS} ${TRILINOS}/packages
 
 4) Verify the snapshot commit happened as expected
 	cd ${TRILINOS}/packages/kokkos

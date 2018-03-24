@@ -450,7 +450,7 @@ void PairLineLJ::discretize(int i, double size)
   double length = bonus[atom->line[i]].length;
   double theta = bonus[atom->line[i]].theta;
   int n = static_cast<int> (length/size) + 1;
-  
+
   dnum[i] = n;
   dfirst[i] = ndiscrete;
 

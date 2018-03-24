@@ -124,32 +124,32 @@ void PairNb3bHarmonic::compute(int eflag, int vflag)
       if (rsq1 > params[ijparam].cutsq) continue;
 
       for (kk = jj+1; kk < jnum; kk++) {
-	k = jlist[kk];
-	k &= NEIGHMASK;
-	ktype = map[type[k]];
-	ikparam = elem2param[itype][ktype][ktype];
-	ijkparam = elem2param[itype][jtype][ktype];
+        k = jlist[kk];
+        k &= NEIGHMASK;
+        ktype = map[type[k]];
+        ikparam = elem2param[itype][ktype][ktype];
+        ijkparam = elem2param[itype][jtype][ktype];
 
-	delr2[0] = x[k][0] - xtmp;
-	delr2[1] = x[k][1] - ytmp;
-	delr2[2] = x[k][2] - ztmp;
-	rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
-	if (rsq2 > params[ikparam].cutsq) continue;
+        delr2[0] = x[k][0] - xtmp;
+        delr2[1] = x[k][1] - ytmp;
+        delr2[2] = x[k][2] - ztmp;
+        rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
+        if (rsq2 > params[ikparam].cutsq) continue;
 
         threebody(&params[ijparam],&params[ikparam],&params[ijkparam],
                   rsq1,rsq2,delr1,delr2,fj,fk,eflag,evdwl);
 
-	f[i][0] -= fj[0] + fk[0];
-	f[i][1] -= fj[1] + fk[1];
-	f[i][2] -= fj[2] + fk[2];
-	f[j][0] += fj[0];
-	f[j][1] += fj[1];
-	f[j][2] += fj[2];
-	f[k][0] += fk[0];
-	f[k][1] += fk[1];
-	f[k][2] += fk[2];
+        f[i][0] -= fj[0] + fk[0];
+        f[i][1] -= fj[1] + fk[1];
+        f[i][2] -= fj[2] + fk[2];
+        f[j][0] += fj[0];
+        f[j][1] += fj[1];
+        f[j][2] += fj[2];
+        f[k][0] += fk[0];
+        f[k][1] += fk[1];
+        f[k][2] += fk[2];
 
-	if (evflag) ev_tally3(i,j,k,evdwl,0.0,fj,fk,delr1,delr2);
+        if (evflag) ev_tally3(i,j,k,evdwl,0.0,fj,fk,delr1,delr2);
       }
     }
   }
@@ -244,8 +244,8 @@ void PairNb3bHarmonic::coeff(int narg, char **arg)
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       if (map[i] >= 0 && map[j] >= 0) {
-	setflag[i][j] = 1;
-	count++;
+        setflag[i][j] = 1;
+        count++;
       }
 
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
@@ -316,8 +316,8 @@ void PairNb3bHarmonic::read_file(char *file)
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
       if (ptr == NULL) {
-	eof = 1;
-	fclose(fp);
+        eof = 1;
+        fclose(fp);
       } else n = strlen(line) + 1;
     }
     MPI_Bcast(&eof,1,MPI_INT,0,world);
@@ -338,8 +338,8 @@ void PairNb3bHarmonic::read_file(char *file)
       if (comm->me == 0) {
         ptr = fgets(&line[n],MAXLINE-n,fp);
         if (ptr == NULL) {
-	  eof = 1;
-	  fclose(fp);
+          eof = 1;
+          fclose(fp);
         } else n = strlen(line) + 1;
       }
       MPI_Bcast(&eof,1,MPI_INT,0,world);
@@ -378,7 +378,7 @@ void PairNb3bHarmonic::read_file(char *file)
     if (nparams == maxparam) {
       maxparam += DELTA;
       params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
-					  "pair:params");
+                                          "pair:params");
     }
 
     params[nparams].ielement = ielement;
@@ -415,16 +415,16 @@ void PairNb3bHarmonic::setup_params()
   for (i = 0; i < nelements; i++)
     for (j = 0; j < nelements; j++)
       for (k = 0; k < nelements; k++) {
-	n = -1;
-	for (m = 0; m < nparams; m++) {
-	  if (i == params[m].ielement && j == params[m].jelement &&
-	      k == params[m].kelement) {
-	    if (n >= 0) error->all(FLERR,"Potential file has duplicate entry");
-	    n = m;
-	  }
-	}
-	if (n < 0) error->all(FLERR,"Potential file is missing an entry");
-	elem2param[i][j][k] = n;
+        n = -1;
+        for (m = 0; m < nparams; m++) {
+          if (i == params[m].ielement && j == params[m].jelement &&
+              k == params[m].kelement) {
+            if (n >= 0) error->all(FLERR,"Potential file has duplicate entry");
+            n = m;
+          }
+        }
+        if (n < 0) error->all(FLERR,"Potential file is missing an entry");
+        elem2param[i][j][k] = n;
       }
 
   // compute parameter values derived from inputs

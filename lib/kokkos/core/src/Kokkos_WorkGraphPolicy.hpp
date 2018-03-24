@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -139,7 +139,7 @@ public:
         if ( w == END_TOKEN ) { return END_TOKEN ; }
 
         if ( ( w != BEGIN_TOKEN ) &&
-             ( w == atomic_compare_exchange(ready_queue+i,w,BEGIN_TOKEN) ) ) {
+             ( w == atomic_compare_exchange(ready_queue+i,w,(std::int32_t)BEGIN_TOKEN) ) ) {
           // Attempt to claim ready work index succeeded,
           // update the hint and return work index
           atomic_increment( begin_hint );

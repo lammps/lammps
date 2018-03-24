@@ -135,7 +135,7 @@ class PairReaxCKokkos : public PairReaxC {
   PairReaxCKokkos(class LAMMPS *);
   virtual ~PairReaxCKokkos();
 
-  void ev_setup(int, int);
+  void ev_setup(int, int, int alloc = 1);
   void compute(int, int);
   void *extract(const char *, int &);
   void init_style();

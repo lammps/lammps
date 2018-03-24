@@ -211,8 +211,8 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
                            datasize);                           \
   }
 
-#define IP_PRE_omp_range_vec(ifrom, ito, tid, inum, nthreads,	\
-                             vecsize)				\
+#define IP_PRE_omp_range_vec(ifrom, ito, tid, inum, nthreads,   \
+                             vecsize)                           \
   {                                                             \
     int idelta = static_cast<int>(ceil(static_cast<float>(inum) \
                                        /vecsize/nthreads));     \
@@ -226,8 +226,8 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
                                 nthreads, vecsize)              \
   {                                                             \
     tid = omp_get_thread_num();                                 \
-    IP_PRE_omp_range_vec(ifrom, ito, tid, inum, nthreads,	\
-			 vecsize);				\
+    IP_PRE_omp_range_vec(ifrom, ito, tid, inum, nthreads,       \
+                         vecsize);                              \
   }
 
 #define IP_PRE_omp_stride_id_vec(ifrom, ip, ito, tid, inum,     \
@@ -242,12 +242,12 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
       int nd = nthr / INTEL_HTHREADS;                           \
       int td = tid / INTEL_HTHREADS;                            \
       int tm = tid % INTEL_HTHREADS;                            \
-      IP_PRE_omp_range_vec(ifrom, ito, td, inum, nd, vecsize);	\
+      IP_PRE_omp_range_vec(ifrom, ito, td, inum, nd, vecsize);  \
       ifrom += tm * vecsize;                                    \
       ip = INTEL_HTHREADS * vecsize;                            \
     } else {                                                    \
-      IP_PRE_omp_range_vec(ifrom, ito, tid, inum, nthr,		\
-			   vecsize);				\
+      IP_PRE_omp_range_vec(ifrom, ito, tid, inum, nthr,         \
+                           vecsize);                            \
       ip = vecsize;                                             \
     }                                                           \
   }
@@ -301,10 +301,10 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
 #define IP_PRE_omp_stride_id_vec(ifrom, ip, ito, tid, inum,     \
                                  nthr, vecsize)                 \
   {                                                             \
-    tid = 0;							\
-    ifrom = 0;							\
-    ip = 1;							\
-    ito = inum;							\
+    tid = 0;                                                    \
+    ifrom = 0;                                                  \
+    ip = 1;                                                     \
+    ito = inum;                                                 \
   }
 
 #endif

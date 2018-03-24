@@ -32,7 +32,7 @@ class GridCommKokkos : protected Pointers {
  public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
- 
+
   GridCommKokkos(class LAMMPS *, MPI_Comm, int, int,
            int, int, int, int, int, int,
            int, int, int, int, int, int,

@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -180,7 +180,7 @@ public:
   TaskBase & operator = ( TaskBase && ) = delete ;
   TaskBase & operator = ( const TaskBase & ) = delete ;
 
-  KOKKOS_INLINE_FUNCTION ~TaskBase() = default ;
+  KOKKOS_INLINE_FUNCTION_DEFAULTED ~TaskBase() = default ;
 
   KOKKOS_INLINE_FUNCTION constexpr
   TaskBase()
@@ -518,15 +518,22 @@ public:
       member_type * const member = reinterpret_cast< member_type * >( exec );
       result_type * const result = TaskResult< result_type >::ptr( task );
 
-      task->apply_functor( member , result );
-
       // Task may be serial or team.
       // If team then must synchronize before querying if respawn was requested.
       // If team then only one thread calls destructor.
 
+      const bool only_one_thread =
+#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA)
+        0 == threadIdx.x && 0 == threadIdx.y ;
+#else
+        0 == member->team_rank();
+#endif
+
+      task->apply_functor( member , result );
+
       member->team_barrier();
 
-      if ( 0 == member->team_rank() && !(task->requested_respawn()) ) {
+      if ( only_one_thread && !(task->requested_respawn()) ) {
         // Did not respawn, destroy the functor to free memory.
         static_cast<functor_type*>(task)->~functor_type();
         // Cannot destroy and deallocate the task until its dependences
@@ -537,7 +544,7 @@ public:
   // Constructor for runnable task
   KOKKOS_INLINE_FUNCTION constexpr
   TaskBase( FunctorType && arg_functor )
-    : root_type() , functor_type( std::move(arg_functor) ) {}
+    : root_type() , functor_type( arg_functor ) {}
 
   KOKKOS_INLINE_FUNCTION
   ~TaskBase() {}

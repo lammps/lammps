@@ -35,13 +35,13 @@ struct s_EVM_FLOAT {
   F_FLOAT vp[6];
   KOKKOS_INLINE_FUNCTION
   s_EVM_FLOAT() {
-	  evdwl = 0;
-	  ecoul = 0;
-	  emol = 0;
-	  v[0] = 0; v[1] = 0; v[2] = 0;
-	  v[3] = 0; v[4] = 0; v[5] = 0;
-	  vp[0] = 0; vp[1] = 0; vp[2] = 0;
-	  vp[3] = 0; vp[4] = 0; vp[5] = 0;
+          evdwl = 0;
+          ecoul = 0;
+          emol = 0;
+          v[0] = 0; v[1] = 0; v[2] = 0;
+          v[3] = 0; v[4] = 0; v[5] = 0;
+          vp[0] = 0; vp[1] = 0; vp[2] = 0;
+          vp[3] = 0; vp[4] = 0; vp[5] = 0;
   }
 
   KOKKOS_INLINE_FUNCTION

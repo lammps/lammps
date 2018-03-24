@@ -115,7 +115,7 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
 
   if (nevery) force_reneighbor = 1;
   lastbalance = -1;
-  
+
   // compute initial outputs
 
   itercount = 0;

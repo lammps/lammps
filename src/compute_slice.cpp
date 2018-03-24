@@ -343,7 +343,7 @@ void ComputeSlice::extract_one(int m, double *vec, int stride)
   } else if (which[m] == VARIABLE) {
     double *varvec;
     int nvec = input->variable->compute_vector(value2index[m],&varvec);
-    if (nvec < nstop) 
+    if (nvec < nstop)
       error->all(FLERR,"Compute slice variable is not long enough");
     j = 0;
     for (i = nstart; i < nstop; i += nskip) {

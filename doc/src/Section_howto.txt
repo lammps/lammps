@@ -6,7 +6,7 @@
 
 :line
 
-6. How-to discussions :h3
+6. How-to discussions :h2
 
 This section describes how to perform common tasks using LAMMPS.
 
@@ -1058,7 +1058,7 @@ Example input scripts for these kinds of models are in the body,
 colloid, dipole, ellipse, line, peri, pour, and tri directories of the
 "examples directory"_Section_example.html in the LAMMPS distribution.
 
-Atom styles :h5
+Atom styles :h4
 
 There are several "atom styles"_atom_style.html that allow for
 definition of finite-size particles: sphere, dipole, ellipsoid, line,
@@ -1140,7 +1140,7 @@ ellipses.  This means they have the same moment of inertia as the 3d
 object.  When temperature is computed, the correct degrees of freedom
 are used for rotation in a 2d versus 3d system.
 
-Pair potentials :h5
+Pair potentials :h4
 
 When a system with finite-size particles is defined, the particles
 will only rotate and experience torque if the force field computes
@@ -1168,7 +1168,7 @@ Brownian and lubrication potentials are used with spherical particles.
 The line, tri, and body potentials are used with line segment,
 triangular, and body particles respectively.
 
-Time integration :h5
+Time integration :h4
 
 There are several fixes that perform time integration on finite-size
 spherical particles, meaning the integrators update the rotational
@@ -1204,7 +1204,7 @@ Note that for mixtures of point and finite-size particles, these
 integration fixes can only be used with "groups"_group.html which
 contain finite-size particles.
 
-Computes, thermodynamics, and dump output :h5
+Computes, thermodynamics, and dump output :h4
 
 There are several computes that calculate the temperature or
 rotational energy of spherical or ellipsoidal particles:
@@ -1236,7 +1236,7 @@ angular momentum, the quaternion, the torque, the end-point and
 corner-point coordinates (for line and tri particles), and
 sub-particle attributes of body particles.
 
-Rigid bodies composed of finite-size particles :h5
+Rigid bodies composed of finite-size particles :h4
 
 The "fix rigid"_fix_rigid.html command treats a collection of
 particles as a rigid body, computes its inertia tensor, sums the total
@@ -1319,7 +1319,7 @@ to output and the kind of data they operate on and produce:
 "Variables that generate values to output"_#variable
 "Summary table of output options and data flow between commands"_#table :ul
 
-Global/per-atom/local data :h5,link(global)
+Global/per-atom/local data :h4,link(global)
 
 Various output-related commands work with three different styles of
 data: global, per-atom, or local.  A global datum is one or more
@@ -1329,7 +1329,7 @@ atom.  Local datums are calculated by each processor based on the
 atoms it owns, but there may be zero or more per atom, e.g. a list of
 bond distances.
 
-Scalar/vector/array data :h5,link(scalar)
+Scalar/vector/array data :h4,link(scalar)
 
 Global, per-atom, and local datums can each come in three kinds: a
 single scalar value, a vector of values, or a 2d array of values.  The
@@ -1352,7 +1352,7 @@ the dimension twice (array -> scalar).  Thus a command that uses
 scalar values as input can typically also process elements of a vector
 or array.
 
-Thermodynamic output :h5,link(thermo)
+Thermodynamic output :h4,link(thermo)
 
 The frequency and format of thermodynamic output is set by the
 "thermo"_thermo.html, "thermo_style"_thermo_style.html, and
@@ -1377,7 +1377,7 @@ intensive values; you can include a division by "natoms" in the
 formula if desired, to make an extensive calculation produce an
 intensive result.
 
-Dump file output :h5,link(dump)
+Dump file output :h4,link(dump)
 
 Dump file output is specified by the "dump"_dump.html and
 "dump_modify"_dump_modify.html commands.  There are several
@@ -1401,7 +1401,7 @@ provides the values to be output.  In each case, the compute or fix
 must generate local values for input to the "dump local"_dump.html
 command.
 
-Fixes that write output files :h5,link(fixoutput)
+Fixes that write output files :h4,link(fixoutput)
 
 Several fixes take various quantities as input and can write output
 files: "fix ave/time"_fix_ave_time.html, "fix
@@ -1455,7 +1455,7 @@ values for a specific atom.  Thus the "fix print"_fix_print.html
 command is a means to output a wide variety of quantities separate
 from normal thermodynamic or dump file output.
 
-Computes that process output quantities :h5,link(computeoutput)
+Computes that process output quantities :h4,link(computeoutput)
 
 The "compute reduce"_compute_reduce.html and "compute
 reduce/region"_compute_reduce.html commands take one or more per-atom
@@ -1481,7 +1481,7 @@ info, etc) and stores the values in a local vector or array.  These
 are produced as output values which can be used as input to other
 output commands.
 
-Fixes that process output quantities :h5,link(fixprocoutput)
+Fixes that process output quantities :h4,link(fixprocoutput)
 
 The "fix vector"_fix_vector.html command can create global vectors as
 output from global scalars as input, accumulating them one element at
@@ -1503,7 +1503,7 @@ including per-atom quantities calculated by a "compute"_compute.html,
 by a "fix"_fix.html, or by an atom-style "variable"_variable.html.
 The output of this fix can be used as input to other output commands.
 
-Computes that generate values to output :h5,link(compute)
+Computes that generate values to output :h4,link(compute)
 
 Every "compute"_compute.html in LAMMPS produces either global or
 per-atom or local values.  The values can be scalars or vectors or
@@ -1513,7 +1513,7 @@ describes what it produces.  Computes that produce per-atom or local
 values have the word "atom" or "local" in their style name.  Computes
 without the word "atom" or "local" produce global values.
 
-Fixes that generate values to output :h5,link(fix)
+Fixes that generate values to output :h4,link(fix)
 
 Some "fixes"_fix.html in LAMMPS produces either global or per-atom or
 local values which can be accessed by other commands.  The values can
@@ -1522,7 +1522,7 @@ using the other commands described in this section.  The doc page for
 each fix command tells whether it produces any output quantities and
 describes them.
 
-Variables that generate values to output :h5,link(variable)
+Variables that generate values to output :h4,link(variable)
 
 "Variables"_variable.html defined in an input script can store one or
 more strings.  But equal-style, vector-style, and atom-style or
@@ -1534,7 +1534,7 @@ computes, fixes, and other variables.  The values generated by
 variables can be used as input to and thus output by the other
 commands described in this section.
 
-Summary table of output options and data flow between commands :h5,link(table)
+Summary table of output options and data flow between commands :h4,link(table)
 
 This table summarizes the various commands that can be used for
 generating output from LAMMPS.  Each command produces output data of
@@ -2264,7 +2264,7 @@ Here, each of the 3 kinds of chunk-related commands is briefly
 overviewed.  Then some examples are given of how to compute different
 properties with chunk commands.
 
-Compute chunk/atom command: :h5
+Compute chunk/atom command: :h4
 
 This compute can assign atoms to chunks of various styles.  Only atoms
 in the specified group and optional specified region are assigned to a
@@ -2303,7 +2303,7 @@ do this.  You can also define a "per-atom variable"_variable.html in
 the input script that uses a formula to generate a chunk ID for each
 atom.
 
-Fix ave/chunk command: :h5
+Fix ave/chunk command: :h4
 
 This fix takes the ID of a "compute
 chunk/atom"_compute_chunk_atom.html command as input.  For each chunk,
@@ -2320,7 +2320,7 @@ values to be time-averaged in various ways, and output to a file.  The
 fix produces a global array as output with one row of values per
 chunk.
 
-Compute */chunk commands: :h5
+Compute */chunk commands: :h4
 
 Currently the following computes operate on chunks of atoms to produce
 per-chunk values.
@@ -2365,7 +2365,7 @@ variables"_variable.html, like sum() and max().  E.g. to find the
 largest cluster or fastest diffusing molecule. :l
 :ule
 
-Example calculations with chunks :h5
+Example calculations with chunks :h4
 
 Here are examples using chunk commands to calculate various
 properties:

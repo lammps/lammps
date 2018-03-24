@@ -78,6 +78,8 @@ Force::Force(LAMMPS *lmp) : Pointers(lmp)
   kspace_style = new char[n];
   strcpy(kspace_style,str);
 
+  pair_restart = NULL;
+
   // fill pair map with pair styles listed in style_pair.h
 
   pair_map = new PairCreatorMap();
@@ -146,6 +148,8 @@ Force::~Force()
   delete [] improper_style;
   delete [] kspace_style;
 
+  delete [] pair_restart;
+
   if (pair) delete pair;
   if (bond) delete bond;
   if (angle) delete angle;
@@ -174,6 +178,16 @@ void Force::init()
 {
   qqrd2e = qqr2e/dielectric;
 
+  // check if pair style must be specified after restart
+  if (pair_restart) {
+    if (!pair) {
+      char msg[128];
+      sprintf(msg,"Must re-specify non-restarted pair style (%s) "
+              "after read_restart", pair_restart);
+      error->all(FLERR,msg);
+    }
+  }
+
   if (kspace) kspace->init();         // kspace must come before pair
   if (pair) pair->init();             // so g_ewald is defined
   if (bond) bond->init();
@@ -197,8 +211,10 @@ void Force::create_pair(const char *style, int trysuffix)
 {
   delete [] pair_style;
   if (pair) delete pair;
+  if (pair_restart) delete [] pair_restart;
   pair_style = NULL;
   pair = NULL;
+  pair_restart = NULL;
 
   int sflag;
   pair = new_pair(style,trysuffix,sflag);

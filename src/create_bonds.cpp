@@ -329,7 +329,7 @@ void CreateBonds::single_bond()
 
   int allcount;
   MPI_Allreduce(&count,&allcount,1,MPI_INT,MPI_SUM,world);
-  if (allcount != 2) 
+  if (allcount != 2)
     error->all(FLERR,"Create_bonds single/bond atoms do not exist");
 
   // create bond once or 2x if newton_bond set
@@ -373,7 +373,7 @@ void CreateBonds::single_angle()
 
   int allcount;
   MPI_Allreduce(&count,&allcount,1,MPI_INT,MPI_SUM,world);
-  if (allcount != 3) 
+  if (allcount != 3)
     error->all(FLERR,"Create_bonds single/angle atoms do not exist");
 
   // create angle once or 3x if newton_bond set
@@ -434,7 +434,7 @@ void CreateBonds::single_dihedral()
 
   int allcount;
   MPI_Allreduce(&count,&allcount,1,MPI_INT,MPI_SUM,world);
-  if (allcount != 4) 
+  if (allcount != 4)
     error->all(FLERR,"Create_bonds single/dihedral atoms do not exist");
 
   // create bond once or 4x if newton_bond set

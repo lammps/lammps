@@ -16,7 +16,7 @@
    (now at Lawrence Berkeley National Laboratory, hmaktulga@lbl.gov)
    Per-atom energy/virial added by Ray Shan (Sandia)
    Fix reax/c/bonds and fix reax/c/species for pair_style reax/c added by
-   	Ray Shan (Sandia)
+        Ray Shan (Sandia)
    Hybrid and hybrid/overlay compatibility added by Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
@@ -261,14 +261,14 @@ void PairReaxC::settings(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reax/c command");
       system->safezone = force->numeric(FLERR,arg[iarg+1]);
       if (system->safezone < 0.0)
-	error->all(FLERR,"Illegal pair_style reax/c safezone command");
+        error->all(FLERR,"Illegal pair_style reax/c safezone command");
       system->saferzone = system->safezone*1.2 + 0.2;
       iarg += 2;
     } else if (strcmp(arg[iarg],"mincap") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reax/c command");
       system->mincap = force->inumeric(FLERR,arg[iarg+1]);
       if (system->mincap < 0)
-	error->all(FLERR,"Illegal pair_style reax/c mincap command");
+        error->all(FLERR,"Illegal pair_style reax/c mincap command");
       iarg += 2;
     } else error->all(FLERR,"Illegal pair_style reax/c command");
   }
@@ -325,7 +325,7 @@ void PairReaxC::coeff( int nargs, char **args )
     for (int j = 0; j < nreax_types; j++)
       if (strcasecmp(args[i],system->reax_param.sbp[j].name) == 0) {
         map[i-2] = j;
-	itmp ++;
+        itmp ++;
       }
 
   // error check
@@ -390,8 +390,8 @@ void PairReaxC::init_style( )
   cutmax = MAX3(control->nonb_cut, control->hbond_cut, control->bond_cut);
   if ((cutmax < 2.0*control->bond_cut) && (comm->me == 0))
     error->warning(FLERR,"Total cutoff < 2*bond cutoff. May need to use an "
-		   "increased neighbor list skin.");
-		   
+                   "increased neighbor list skin.");
+
   for( int i = 0; i < LIST_N; ++i )
     lists[i].allocated = 0;
 
@@ -597,7 +597,7 @@ void PairReaxC::compute(int eflag, int vflag)
     for (i = 0; i < system->N; i ++)
       for (j = 0; j < MAXSPECBOND; j ++) {
         tmpbo[i][j] = 0.0;
-	tmpid[i][j] = 0;
+        tmpid[i][j] = 0;
       }
     FindBond();
   }
@@ -841,10 +841,10 @@ void PairReaxC::FindBond()
       bo_tmp = bo_ij->bo_data.BO;
 
       if (bo_tmp >= bo_cut ) {
-	tmpid[i][nj] = j;
-	tmpbo[i][nj] = bo_tmp;
-	nj ++;
-	if (nj > MAXSPECBOND) error->all(FLERR,"Increase MAXSPECBOND in reaxc_defs.h");
+        tmpid[i][nj] = j;
+        tmpbo[i][nj] = bo_tmp;
+        nj ++;
+        if (nj > MAXSPECBOND) error->all(FLERR,"Increase MAXSPECBOND in reaxc_defs.h");
       }
     }
   }

@@ -34,7 +34,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -73,10 +73,10 @@ struct ReduceTileErrors
   KOKKOS_INLINE_FUNCTION
   void operator()( size_t iwork ) const
   {
-    const size_t i = iwork % m_array.dimension_0();
-    const size_t j = iwork / m_array.dimension_0();
+    const size_t i = iwork % m_array.extent(0);
+    const size_t j = iwork / m_array.extent(0);
 
-    if ( j < m_array.dimension_1() ) {
+    if ( j < m_array.extent(1) ) {
       m_array( i, j ) = &m_array( i, j ) - &m_array( 0, 0 );
 
       //printf( "m_array(%d, %d) = %d\n", int( i ), int( j ), int( m_array( i, j ) ) );
@@ -87,8 +87,8 @@ struct ReduceTileErrors
   KOKKOS_INLINE_FUNCTION
   void operator()( size_t iwork, value_type & errors ) const
   {
-    const size_t tile_dim0 = ( m_array.dimension_0() + TileLayout::N0 - 1 ) / TileLayout::N0;
-    const size_t tile_dim1 = ( m_array.dimension_1() + TileLayout::N1 - 1 ) / TileLayout::N1;
+    const size_t tile_dim0 = ( m_array.extent(0) + TileLayout::N0 - 1 ) / TileLayout::N0;
+    const size_t tile_dim1 = ( m_array.extent(1) + TileLayout::N1 - 1 ) / TileLayout::N1;
 
     const size_t itile = iwork % tile_dim0;
     const size_t jtile = iwork / tile_dim0;
@@ -105,7 +105,7 @@ struct ReduceTileErrors
             const size_t iglobal = i + itile * TileLayout::N0;
             const size_t jglobal = j + jtile * TileLayout::N1;
 
-            if ( iglobal < m_array.dimension_0() && jglobal < m_array.dimension_1() ) {
+            if ( iglobal < m_array.extent(0) && jglobal < m_array.extent(1) ) {
               if ( tile( i, j ) != ptrdiff_t( tile( 0, 0 ) + i + j * TileLayout::N0 ) ) ++errors;
 
               //printf( "tile(%d, %d)(%d, %d) = %d\n", int( itile ), int( jtile ), int( i ), int( j ), int( tile( i, j ) ) );

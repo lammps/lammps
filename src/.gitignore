@@ -685,6 +685,8 @@
 /pair_coul_long.h
 /pair_coul_msm.cpp
 /pair_coul_msm.h
+/pair_coul_shield.cpp
+/pair_coul_shield.h
 /pair_dipole_cut.cpp
 /pair_dipole_cut.h
 /pair_dipole_sf.cpp
@@ -728,6 +730,10 @@
 /pair_hbond_dreiding_lj.h
 /pair_hbond_dreiding_morse.cpp
 /pair_hbond_dreiding_morse.h
+/pair_ilp_graphene_hbn.cpp
+/pair_ilp_graphene_hbn.h
+/pair_kolmogorov_crespi_full.cpp
+/pair_kolmogorov_crespi_full.h
 /pair_kolmogorov_crespi_z.cpp
 /pair_kolmogorov_crespi_z.h
 /pair_lcbop.cpp

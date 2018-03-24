@@ -633,10 +633,10 @@ int Domain::inside(double* x)
     hi = boxhi;
 
     if (x[0] < lo[0] || x[0] >= hi[0] ||
-	x[1] < lo[1] || x[1] >= hi[1] ||
-	x[2] < lo[2] || x[2] >= hi[2]) return 0;
+        x[1] < lo[1] || x[1] >= hi[1] ||
+        x[2] < lo[2] || x[2] >= hi[2]) return 0;
     else return 1;
-    
+
   } else {
     lo = boxlo_lamda;
     hi = boxhi_lamda;
@@ -644,10 +644,10 @@ int Domain::inside(double* x)
     x2lamda(x,lamda);
 
     if (lamda[0] < lo[0] || lamda[0] >= hi[0] ||
-	lamda[1] < lo[1] || lamda[1] >= hi[1] ||
-	lamda[2] < lo[2] || lamda[2] >= hi[2]) return 0;
+        lamda[1] < lo[1] || lamda[1] >= hi[1] ||
+        lamda[2] < lo[2] || lamda[2] >= hi[2]) return 0;
     else return 1;
-    
+
   }
 
 }
@@ -1617,7 +1617,7 @@ void Domain::image_flip(int m, int n, int p)
    return 1 if this proc owns atom with coords x, else return 0
    x is returned remapped into periodic box
    if image flag is passed, flag is updated via remap(x,image)
-   if image = NULL is passed, no update with remap(x) 
+   if image = NULL is passed, no update with remap(x)
    if shrinkexceed, atom can be outside shrinkwrap boundaries
    called from create_atoms() in library.cpp
 ------------------------------------------------------------------------- */
@@ -1626,7 +1626,7 @@ int Domain::ownatom(int id, double *x, imageint *image, int shrinkexceed)
 {
   double lamda[3];
   double *coord,*blo,*bhi,*slo,*shi;
-  
+
   if (image) remap(x,*image);
   else remap(x);
 
@@ -1653,7 +1653,7 @@ int Domain::ownatom(int id, double *x, imageint *image, int shrinkexceed)
       coord[1] >= slo[1] && coord[1] < shi[1] &&
       coord[2] >= slo[2] && coord[2] < shi[2]) return 1;
 
-  // check if atom did not return 1 only b/c it was 
+  // check if atom did not return 1 only b/c it was
   //   outside a shrink-wrapped boundary
 
   if (shrinkexceed) {

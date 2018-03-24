@@ -64,8 +64,8 @@ class FixQEq : public Fix {
   double swa, swb;      // lower/upper Taper cutoff radius
   double Tap[8];        // Taper function
   double tolerance;     // tolerance for the norm of the rel residual in CG
-  int maxiter;		// maximum number of QEq iterations
-  double cutoff, cutoff_sq;   	// neighbor cutoff
+  int maxiter;      // maximum number of QEq iterations
+  double cutoff, cutoff_sq;     // neighbor cutoff
 
   double *chi,*eta,*gamma,*zeta,*zcore;  // qeq parameters
   double *chizj;

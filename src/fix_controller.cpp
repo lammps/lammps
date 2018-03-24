@@ -32,7 +32,7 @@ enum{COMPUTE,FIX,VARIABLE};
 
 /* ---------------------------------------------------------------------- */
 
-FixController::FixController(LAMMPS *lmp, int narg, char **arg) : 
+FixController::FixController(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   pvID(NULL), cvID(NULL)
 {
@@ -64,7 +64,7 @@ FixController::FixController(LAMMPS *lmp, int narg, char **arg) :
     int n = strlen(arg[iarg]);
     char *suffix = new char[n];
     strcpy(suffix,&arg[iarg][2]);
-    
+
     char *ptr = strchr(suffix,'[');
     if (ptr) {
       if (suffix[strlen(suffix)-1] != ']')
@@ -72,7 +72,7 @@ FixController::FixController(LAMMPS *lmp, int narg, char **arg) :
       pvindex = atoi(ptr+1);
       *ptr = '\0';
     } else pvindex = 0;
-    
+
     n = strlen(suffix) + 1;
     pvID = new char[n];
     strcpy(pvID,suffix);
@@ -161,10 +161,10 @@ void FixController::init()
 {
   if (pvwhich == COMPUTE) {
     int icompute = modify->find_compute(pvID);
-    if (icompute < 0) 
+    if (icompute < 0)
       error->all(FLERR,"Compute ID for fix controller does not exist");
     pcompute = modify->compute[icompute];
-    
+
   } else if (pvwhich == FIX) {
     int ifix = modify->find_fix(pvID);
     if (ifix < 0) error->all(FLERR,"Fix ID for fix controller does not exist");
@@ -172,7 +172,7 @@ void FixController::init()
 
   } else if (pvwhich == VARIABLE) {
     pvar = input->variable->find(pvID);
-    if (pvar < 0) 
+    if (pvar < 0)
       error->all(FLERR,"Variable name for fix controller does not exist");
   }
 
@@ -214,13 +214,13 @@ void FixController::end_of_step()
     }
 
   // access fix field, guaranteed to be ready
-    
+
   } else if (pvwhich == FIX) {
     if (pvindex == 0) current = pfix->compute_scalar();
     else current = pfix->compute_vector(pvindex-1);
-    
+
   // evaluate equal-style variable
-    
+
   } else if (pvwhich == VARIABLE) {
     current = input->variable->compute_equal(pvar);
   }
@@ -232,7 +232,7 @@ void FixController::end_of_step()
   // note: this deviates from standard notation, which is
   // cv = kp*err +ki*sumerr +kd*deltaerr
   // the difference is in the sign and the time integral
-  
+
   err = current - setpoint;
 
   if (firsttime) {

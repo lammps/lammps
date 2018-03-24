@@ -37,6 +37,6 @@ void PairREBOIntel::settings(int narg, char **arg)
   //
   // this one parameter for C-C interactions is different in REBO vs AIREBO
   // see Favata, Micheletti, Ryu, Pugno, Comp Phys Comm (2016)
-  
+
   PCCf_2_0 = 0.0;
 }

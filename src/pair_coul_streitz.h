@@ -74,11 +74,11 @@ class PairCoulStreitz : public Pair {
   void coulomb_integral_wolf(double, double, double, double &, double &,
         double &, double &);
   void wolf_sum(double, double, double, double, double, double, double,
-		  double, double &, double &);
+                  double, double &, double &);
   void coulomb_integral_ewald(double, double, double, double &, double &,
         double &, double &);
   void ewald_sum(double, double, double, double, double, double, double,
-		  double, double &, double &, double);
+                  double, double &, double &, double);
 
 };
 

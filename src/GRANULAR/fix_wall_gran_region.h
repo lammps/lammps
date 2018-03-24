@@ -32,7 +32,7 @@ class FixWallGranRegion : public FixWallGran {
   void write_restart(FILE *);
   void restart(char* );
   void init();
-    
+
   double memory_usage();
   void grow_arrays(int);
   void copy_arrays(int, int, int);
@@ -48,17 +48,17 @@ class FixWallGranRegion : public FixWallGran {
   class Region *region;
   char *region_style;
   int nregion;
-  
+
   // shear history for multiple contacts per particle
 
-  int tmax;              // max # of region walls one particle can touch 
+  int tmax;              // max # of region walls one particle can touch
   int *ncontact;         // # of shear contacts per particle
   int **walls;           // which wall each contact is with
   double ***shearmany;   // shear history per particle per contact
   int *c2r;              // contact to region mapping
                          // c2r[i] = index of Ith contact in
                          //   region-contact[] list of contacts
-  int motion_resetflag;  // used by restart to indicate that region 
+  int motion_resetflag;  // used by restart to indicate that region
                          //    vel info is to be reset
 
   void update_contacts(int, int);

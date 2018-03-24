@@ -265,7 +265,7 @@ void NeighborKokkos::build_kokkos(int topoflag)
     atomKK->sync(ExecutionSpaceFromDevice<DeviceType>::space,X_MASK);
     x = atomKK->k_x;
     if (includegroup) nlocal = atom->nfirst;
-    int maxhold_kokkos = xhold.view<DeviceType>().dimension_0();
+    int maxhold_kokkos = xhold.view<DeviceType>().extent(0);
     if (atom->nmax > maxhold || maxhold_kokkos < maxhold) {
       maxhold = atom->nmax;
       xhold = DAT::tdual_x_array("neigh:xhold",maxhold);
@@ -386,7 +386,7 @@ void NeighborKokkos::build_topology() {
     k_improperlist = neighbond_device.k_improperlist;
 
     // Transfer topology neighbor lists to Host for non-Kokkos styles
- 
+
     if (force->bond && force->bond->execution_space == Host)
       k_bondlist.sync<LMPHostType>();
     if (force->angle && force->angle->execution_space == Host)

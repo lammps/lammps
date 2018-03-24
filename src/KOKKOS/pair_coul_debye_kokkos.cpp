@@ -181,7 +181,7 @@ compute_fcoul(const F_FLOAT& rsq, const int& i, const int&j,
   F_FLOAT forcecoul;
 
   forcecoul = qqrd2e * qtmp * q(j) * screening * (kappa + rinv) *
-	  (STACKPARAMS?m_params[itype][jtype].scale:params(itype,jtype).scale);
+          (STACKPARAMS?m_params[itype][jtype].scale:params(itype,jtype).scale);
 
   return factor_coul*forcecoul*r2inv;
 
@@ -203,7 +203,7 @@ compute_ecoul(const F_FLOAT& rsq, const int& i, const int&j,
   const F_FLOAT screening = exp(-kappa*r);
 
   return factor_coul * qqrd2e * qtmp * q(j) * rinv * screening *
-	  (STACKPARAMS?m_params[itype][jtype].scale:params(itype,jtype).scale);
+          (STACKPARAMS?m_params[itype][jtype].scale:params(itype,jtype).scale);
 
 }
 

@@ -2,12 +2,12 @@
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
  http://lammps.sandia.gov, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
- 
+
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
  DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
  certain rights in this software.  This software is distributed under
  the GNU General Public License.
- 
+
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
@@ -49,7 +49,7 @@ int ufml_gpu_init(const int ntypes, double **cutsq, double **host_uf1,
 
 int ufml_gpu_reinit(const int ntypes, double **cutsq, double **host_uf1,
                    double **host_uf2, double **host_uf3, double **host_uf4,
-		   double **offset);
+                   double **offset);
 
 void ufml_gpu_clear();
 int ** ufml_gpu_compute_n(const int ago, const int inum,
@@ -222,10 +222,10 @@ void PairUFMGPU::cpu_compute(int start, int inum, int eflag, int vflag,
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	expuf = exp(- rsq * uf2[itype][jtype]);
+        expuf = exp(- rsq * uf2[itype][jtype]);
         fpair = factor_lj * uf1[itype][jtype] * expuf /(1.0 - expuf);
 
-	f[i][0] += delx*fpair;
+        f[i][0] += delx*fpair;
         f[i][1] += dely*fpair;
         f[i][2] += delz*fpair;
 

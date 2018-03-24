@@ -217,8 +217,8 @@ compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,
               (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
     switch2 = 12.0*rsq * (cut_ljsq-rsq) * (rsq-cut_lj_innersq) / denom_lj;
     englj = r6inv *
-	    ((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv -
-	     (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4));
+            ((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv -
+             (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4));
     forcelj = forcelj*switch1 + englj*switch2;
   }
 

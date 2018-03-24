@@ -322,7 +322,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
       (dim[0] == dim[1] || dim[1] == dim[2] || dim[0] == dim[2]))
       error->all(FLERR,"Illegal compute chunk/atom command");
   if (which == BINSPHERE) {
-    if (domain->dimension == 2 && sorigin_user[2] != 0.0) 
+    if (domain->dimension == 2 && sorigin_user[2] != 0.0)
       error->all(FLERR,"Compute chunk/atom sphere z origin must be 0.0 for 2d");
     if (sradmin_user < 0.0 || sradmin_user >= sradmax_user || nsbin < 1)
       error->all(FLERR,"Illegal compute chunk/atom command");
@@ -330,7 +330,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
   if (which == BINCYLINDER) {
     if (delta[0] <= 0.0)
       error->all(FLERR,"Illegal compute chunk/atom command");
-    if (domain->dimension == 2 && dim[0] != 2) 
+    if (domain->dimension == 2 && dim[0] != 2)
       error->all(FLERR,"Compute chunk/atom cylinder axis must be z for 2d");
     if (cradmin_user < 0.0 || cradmin_user >= cradmax_user || ncbin < 1)
       error->all(FLERR,"Illegal compute chunk/atom command");
@@ -401,20 +401,20 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
 
   if (binflag) {
     double scale;
-    if (which == BIN1D || which == BIN2D || which == BIN3D || 
+    if (which == BIN1D || which == BIN2D || which == BIN3D ||
         which == BINCYLINDER) {
       if (which == BIN1D || which == BINCYLINDER) ndim = 1;
       if (which == BIN2D) ndim = 2;
       if (which == BIN3D) ndim = 3;
       for (int idim = 0; idim < ndim; idim++) {
-	if (dim[idim] == 0) scale = xscale;
-	else if (dim[idim] == 1) scale = yscale;
-	else if (dim[idim] == 2) scale = zscale;
-	delta[idim] *= scale;
-	invdelta[idim] = 1.0/delta[idim];
-	if (originflag[idim] == COORD) origin[idim] *= scale;
-	if (minflag[idim] == COORD) minvalue[idim] *= scale;
-	if (maxflag[idim] == COORD) maxvalue[idim] *= scale;
+        if (dim[idim] == 0) scale = xscale;
+        else if (dim[idim] == 1) scale = yscale;
+        else if (dim[idim] == 2) scale = zscale;
+        delta[idim] *= scale;
+        invdelta[idim] = 1.0/delta[idim];
+        if (originflag[idim] == COORD) origin[idim] *= scale;
+        if (minflag[idim] == COORD) minvalue[idim] *= scale;
+        if (maxflag[idim] == COORD) maxvalue[idim] *= scale;
       }
     } else if (which == BINSPHERE) {
       sorigin_user[0] *= xscale;
@@ -1305,9 +1305,9 @@ int ComputeChunkAtom::setup_sphere_bins()
     int flag = 0;
     if (periodicity[0] && sradmax > prd_half[0]) flag = 1;
     if (periodicity[1] && sradmax > prd_half[1]) flag = 1;
-    if (domain->dimension == 3 && 
+    if (domain->dimension == 3 &&
         periodicity[2] && sradmax > prd_half[2]) flag = 1;
-    if (flag) 
+    if (flag)
       error->all(FLERR,"Compute chunk/atom bin/sphere radius "
                  "is too large for periodic box");
   }
@@ -1370,7 +1370,7 @@ int ComputeChunkAtom::setup_cylinder_bins()
     int flag = 0;
     if (periodicity[cdim1] && sradmax > prd_half[cdim1]) flag = 1;
     if (periodicity[cdim2] && sradmax > prd_half[cdim2]) flag = 1;
-    if (flag) 
+    if (flag)
       error->all(FLERR,"Compute chunk/atom bin/cylinder radius "
                  "is too large for periodic box");
   }
@@ -1804,18 +1804,18 @@ void ComputeChunkAtom::atom2binsphere()
 
     xremap = x[i][0];
     if (periodicity[0]) {
-      if (xremap < boxlo[0]) xremap += prd[0];
-      if (xremap >= boxhi[0]) xremap -= prd[0];
+      while (xremap < boxlo[0]) {xremap += prd[0];}
+      while (xremap >= boxhi[0]) {xremap -= prd[0];}
     }
     yremap = x[i][1];
     if (periodicity[1]) {
-      if (yremap < boxlo[1]) yremap += prd[1];
-      if (yremap >= boxhi[1]) yremap -= prd[1];
+      while (yremap < boxlo[1]) {yremap += prd[1];}
+      while (yremap >= boxhi[1]) {yremap -= prd[1];}
     }
     zremap = x[i][2];
     if (periodicity[2]) {
-      if (zremap < boxlo[2]) zremap += prd[2];
-      if (zremap >= boxhi[2]) zremap -= prd[2];
+      while (zremap < boxlo[2]) {zremap += prd[2];}
+      while (zremap >= boxhi[2]) {zremap -= prd[2];}
     }
 
     dx = xremap - sorigin[0];
@@ -1829,19 +1829,19 @@ void ComputeChunkAtom::atom2binsphere()
 
     if (pbcflag) {
       if (periodicity[0]) {
-        if (fabs(dx) > prd_half[0]) {
+        while (fabs(dx) > prd_half[0]) {
           if (dx < 0.0) dx += prd[0];
           else dx -= prd[0];
         }
       }
       if (periodicity[1]) {
-        if (fabs(dy) > prd_half[1]) {
+        while (fabs(dy) > prd_half[1]) {
           if (dy < 0.0) dy += prd[1];
           else dy -= prd[1];
         }
       }
       if (periodicity[2]) {
-        if (fabs(dz) > prd_half[2]) {
+        while (fabs(dz) > prd_half[2]) {
           if (dz < 0.0) dz += prd[2];
           else dz -= prd[2];
         }

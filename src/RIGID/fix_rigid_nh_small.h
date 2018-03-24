@@ -79,7 +79,7 @@ class FixRigidNHSmall : public FixRigidSmall {
   void compute_press_target();
   void nh_epsilon_dot();
   void compute_dof();
-  
+
   void allocate_chain();
   void allocate_order();
   void deallocate_chain();

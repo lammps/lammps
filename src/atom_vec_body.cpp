@@ -1055,9 +1055,9 @@ int AtomVecBody::unpack_exchange(double *buf)
     bonus[nlocal_bonus].ndouble = (int) ubuf(buf[m++]).i;
     // corresponding put() calls are in copy()
     bonus[nlocal_bonus].ivalue = icp->get(bonus[nlocal_bonus].ninteger,
-					  bonus[nlocal_bonus].iindex);
+                                          bonus[nlocal_bonus].iindex);
     bonus[nlocal_bonus].dvalue = dcp->get(bonus[nlocal_bonus].ndouble,
-					  bonus[nlocal_bonus].dindex);
+                                          bonus[nlocal_bonus].dindex);
     memcpy(bonus[nlocal_bonus].ivalue,&buf[m],
            bonus[nlocal_bonus].ninteger*sizeof(int));
     if (intdoubleratio == 1) m += bonus[nlocal_bonus].ninteger;
@@ -1209,9 +1209,9 @@ int AtomVecBody::unpack_restart(double *buf)
     bonus[nlocal_bonus].ninteger = (int) ubuf(buf[m++]).i;
     bonus[nlocal_bonus].ndouble = (int) ubuf(buf[m++]).i;
     bonus[nlocal_bonus].ivalue = icp->get(bonus[nlocal_bonus].ninteger,
-					  bonus[nlocal_bonus].iindex);
+                                          bonus[nlocal_bonus].iindex);
     bonus[nlocal_bonus].dvalue = dcp->get(bonus[nlocal_bonus].ndouble,
-					  bonus[nlocal_bonus].dindex);
+                                          bonus[nlocal_bonus].dindex);
     memcpy(bonus[nlocal_bonus].ivalue,&buf[m],
            bonus[nlocal_bonus].ninteger*sizeof(int));
     if (intdoubleratio == 1) m += bonus[nlocal_bonus].ninteger;
@@ -1331,7 +1331,7 @@ int AtomVecBody::data_atom_hybrid(int nlocal, char **values)
 ------------------------------------------------------------------------- */
 
 void AtomVecBody::data_body(int m, int ninteger, int ndouble,
-			    int *ivalues, double *dvalues)
+                            int *ivalues, double *dvalues)
 {
   if (body[m]) error->one(FLERR,"Assigning body parameters to non-body atom");
   if (nlocal_bonus == nmax_bonus) grow_bonus();
@@ -1482,7 +1482,7 @@ int AtomVecBody::write_vel_hybrid(FILE *fp, double *buf)
 ------------------------------------------------------------------------- */
 
 double AtomVecBody::radius_body(int ninteger, int ndouble,
-				int *ivalues, double *dvalues)
+                                int *ivalues, double *dvalues)
 {
   return bptr->radius_body(ninteger,ndouble,ivalues,dvalues);
 }

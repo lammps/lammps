@@ -143,7 +143,7 @@ void PairMorseSmoothLinearOMP::eval(int iifrom, int iito, ThrData * const thr)
 
         if (EFLAG) {
           evdwl = d0[itype][jtype] * (dexp*dexp - 2.0*dexp) -
-	          offset[itype][jtype];
+                  offset[itype][jtype];
           evdwl += ( r - cut[itype][jtype] ) * der_at_cutoff[itype][jtype];
           evdwl *= factor_lj;
         }

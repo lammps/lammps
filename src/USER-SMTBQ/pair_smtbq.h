@@ -65,7 +65,7 @@ protected:
   char *QEqMode;                // name of QEqMode
   char *Bavard;                 // Verbose parameter
   char *writepot;               // write or not the electronegativity component
-  char *writeenerg;        	// write or not the energy component
+  char *writeenerg;         // write or not the energy component
   char *QInitMode;              // mode of initialization of charges
   double zlim1QEq;              // z limit for QEq equilibration
   double zlim2QEq;              // z limit for QEq equilibration
@@ -73,8 +73,8 @@ protected:
   int *map;                     // mapping from atom types to elements
   int nparams;                  // # of stored parameter sets
   int maxparam;                 // max # of parameter sets
-  int maxintparam;        	// max # of interaction sets
-  int maxintsm;        		// max # of interaction SM
+  int maxintparam;          // max # of interaction sets
+  int maxintsm;             // max # of interaction SM
   double r1Coord,r2Coord;
   Param *params;                // parameter set for an I atom
   Intparam *intparams;          // parameter set for an I interaction

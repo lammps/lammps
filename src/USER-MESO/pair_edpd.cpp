@@ -65,7 +65,7 @@ static const char cite_pair_edpd[] =
 
 PairEDPD::PairEDPD(LAMMPS *lmp) : Pair(lmp)
 {
-  if (lmp->citeme) lmp->citeme->add(cite_pair_edpd); 
+  if (lmp->citeme) lmp->citeme->add(cite_pair_edpd);
   writedata = 1;
   random = NULL;
   randomT = NULL;
@@ -116,7 +116,7 @@ void PairEDPD::compute(int eflag, int vflag)
   int newton_pair = force->newton_pair;
   double dtinvsqrt = 1.0/sqrt(update->dt);
   double kboltz = 1.0;
-  
+
   int inum = list->inum;
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -166,12 +166,12 @@ void PairEDPD::compute(int eflag, int vflag)
 
         double power_d = power[itype][jtype];
         if(power_flag){
-          double factor = 1.0; 
+          double factor = 1.0;
           for(int k = 0; k < 4; k++)
             factor += sc[itype][jtype][k]*T_pow[k];
           power_d *= factor;
         }
-        
+
         power_d = MAX(0.01,power_d);
         double wc = 1.0 - r/cut[itype][jtype];
         wc = MAX(0.0,MIN(1.0,wc));
@@ -198,9 +198,9 @@ void PairEDPD::compute(int eflag, int vflag)
           wrT = pow(wrT, 0.5*powerT[itype][jtype]);
           double randnumT = randomT->gaussian();
           randnumT = MAX(-5.0,MIN(randnum,5.0));
-          
+
           double kappaT = kappa[itype][jtype];
-          if(kappa_flag) { 
+          if(kappa_flag) {
             double factor = 1.0;
             for(int k = 0; k < 4; k++)
               factor += kc[itype][jtype][k]*T_pow[k];
@@ -209,7 +209,7 @@ void PairEDPD::compute(int eflag, int vflag)
 
           double kij = cv[i]*cv[j]*kappaT * T_ij*T_ij;
           double alphaij = sqrt(2.0*kboltz*kij);
- 
+
           dQc  = kij * wrT*wrT * ( T[j] - T[i] )/(T[i]*T[j]);
           dQd  = wr*wr*( GammaIJ * vijeij*vijeij - SigmaIJ*SigmaIJ/mass[itype] ) - SigmaIJ * wr *vijeij *randnum;
           dQd /= (cv[i]+cv[j]);
@@ -217,7 +217,7 @@ void PairEDPD::compute(int eflag, int vflag)
           Q[i] += (dQc + dQd + dQr );
         }
         //-----------------------------------------------------------
-        
+
         if (newton_pair || j < nlocal) {
           f[j][0] -= delx*fpair;
           f[j][1] -= dely*fpair;
@@ -247,7 +247,7 @@ void PairEDPD::allocate()
   int i,j;
   allocated = 1;
   int n = atom->ntypes;
-  
+
   memory->create(setflag,n+1,n+1,"pair:setflag");
   for (i = 1; i <= n; i++)
   for (j = i; j <= n; j++)
@@ -285,8 +285,8 @@ void PairEDPD::settings(int narg, char **arg)
   }
   delete random;
   random = new RanMars(lmp,(seed + comm->me) % 900000000);
-  randomT = new RanMars(lmp,(2*seed + comm->me) % 900000000);  
-  
+  randomT = new RanMars(lmp,(2*seed + comm->me) % 900000000);
+
   // reset cutoffs that have been explicitly set
 
   if (allocated) {
@@ -341,7 +341,7 @@ void PairEDPD::coeff(int narg, char **arg)
       memory->create(kc,n+1,n+1,4,"pair:kc");
     } else error->all(FLERR,"Illegal pair edpd coefficients");
   }
-    
+
   int count = 0;
   for (int i = ilo; i <= ihi; i++)
   for (int j = MAX(jlo,i); j <= jhi; j++) {
@@ -352,15 +352,15 @@ void PairEDPD::coeff(int narg, char **arg)
     kappa[i][j] = kappa_one;
     powerT[i][j]= powerT_one;
     cutT[i][j]  = cutT_one;
-   
-    if(power_flag) 
+
+    if(power_flag)
     for (int k = 0; k < 4; k++)
       sc[i][j][k] = sc_one[k];
 
     if(kappa_flag)
     for (int k = 0; k < 4; k++)
       kc[i][j][k] = kc_one[k];
- 
+
     setflag[i][j] = 1;
     count++;
   }
@@ -401,7 +401,7 @@ double PairEDPD::init_one(int i, int j)
   power[j][i] = power[i][j];
   kappa[j][i] = kappa[i][j];
   powerT[j][i]= powerT[i][j];
- 
+
   if(power_flag)
   for (int k = 0; k < 4; k++)
     sc[j][i][k] = sc[i][j][k];
@@ -409,7 +409,7 @@ double PairEDPD::init_one(int i, int j)
   if(kappa_flag)
   for (int k = 0; k < 4; k++)
     kc[j][i][k] = kc[i][j][k];
- 
+
   return cut[i][j];
 }
 
@@ -435,7 +435,7 @@ void PairEDPD::write_restart(FILE *fp)
       if(power_flag)
       for (int k = 0; k < 4; k++)
         fwrite(&sc[i][j][k],sizeof(double),1,fp);
-      
+
       if(kappa_flag)
       for (int k = 0; k < 4; k++)
         fwrite(&kc[i][j][k],sizeof(double),1,fp);
@@ -470,7 +470,7 @@ void PairEDPD::read_restart(FILE *fp)
           if(power_flag)
           for (int k = 0; k < 4; k++)
             fread(&sc[i][j][k],sizeof(double),1,fp);
-         
+
           if(kappa_flag)
           for (int k = 0; k < 4; k++)
             fread(&kc[i][j][k],sizeof(double),1,fp);
@@ -480,12 +480,12 @@ void PairEDPD::read_restart(FILE *fp)
         MPI_Bcast(&power[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&kappa[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&powerT[i][j],1,MPI_DOUBLE,0,world); 
+        MPI_Bcast(&powerT[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cutT[i][j],1,MPI_DOUBLE,0,world);
         if(power_flag)
         for (int k = 0; k < 4; k++)
           MPI_Bcast(&sc[i][j][k],1,MPI_DOUBLE,0,world);
-  
+
         if(kappa_flag)
         for (int k = 0; k < 4; k++)
           MPI_Bcast(&kc[i][j][k],1,MPI_DOUBLE,0,world);

@@ -40,7 +40,7 @@ using namespace MFOxdna;
 
 // sequence-specific base-pairing strength
 // A:0 C:1 G:2 T:3, 5'- (i,j) -3'
-static const double alpha[4][4] = 
+static const double alpha[4][4] =
 {{1.00000,1.00000,1.00000,0.82915},
  {1.00000,1.00000,1.15413,1.00000},
  {1.00000,1.15413,1.00000,1.00000},

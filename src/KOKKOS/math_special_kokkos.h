@@ -37,7 +37,7 @@ namespace MathSpecialKokkos {
   }
 
   // exp(-x*x) for coul/long styles
-  
+
   static inline double expmsq(double x)
   {
     x *= x;

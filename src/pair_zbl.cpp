@@ -114,15 +114,15 @@ void PairZBL::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cut_globalsq) {
-	r = sqrt(rsq);
+        r = sqrt(rsq);
         fpair = dzbldr(r, itype, jtype);
 
-	if (rsq > cut_innersq) {
-	  t = r - cut_inner;
-	  fswitch = t*t *
-	    (sw1[itype][jtype] + sw2[itype][jtype]*t);
-	  fpair += fswitch;
-	}
+        if (rsq > cut_innersq) {
+          t = r - cut_inner;
+          fswitch = t*t *
+            (sw1[itype][jtype] + sw2[itype][jtype]*t);
+          fpair += fswitch;
+        }
 
         fpair *= -1.0/r;
         f[i][0] += delx*fpair;
@@ -136,12 +136,12 @@ void PairZBL::compute(int eflag, int vflag)
 
         if (eflag) {
           evdwl = e_zbl(r, itype, jtype);
-	  evdwl += sw5[itype][jtype];
-	  if (rsq > cut_innersq) {
-	    eswitch = t*t*t *
-	      (sw3[itype][jtype] + sw4[itype][jtype]*t);
-	    evdwl += eswitch;
-	  }
+          evdwl += sw5[itype][jtype];
+          if (rsq > cut_innersq) {
+            eswitch = t*t*t *
+              (sw3[itype][jtype] + sw4[itype][jtype]*t);
+            evdwl += eswitch;
+          }
         }
 
         if (evflag) ev_tally(i,j,nlocal,newton_pair,
@@ -228,9 +228,9 @@ void PairZBL::coeff(int narg, char **arg)
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
       if (i == j) {
-	if (z_one != z_two)
-	  error->all(FLERR,"Incorrect args for pair coefficients");
-	z[i] = z_one;
+        if (z_one != z_two)
+          error->all(FLERR,"Incorrect args for pair coefficients");
+        z[i] = z_one;
       }
       setflag[i][j] = 1;
       set_coeff(i, j, z_one, z_two);
@@ -385,7 +385,7 @@ double PairZBL::d2zbldr2(double r, int i, int j) {
   sum_pp += c4*e4*d4aij*d4aij;
 
   double result = zzeij*(sum_pp + 2.0*sum_p*rinv +
-			 2.0*sum*rinv*rinv)*rinv;
+                         2.0*sum*rinv*rinv)*rinv;
 
   return result;
 }

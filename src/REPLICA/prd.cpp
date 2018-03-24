@@ -118,7 +118,7 @@ void PRD::command(int narg, char **arg)
 
   // comm mode for inter-replica exchange of coords
 
-  if (nreplica == nprocs_universe && atom->sortfreq == 0) 
+  if (nreplica == nprocs_universe && atom->sortfreq == 0)
     cmode = SINGLE_PROC_DIRECT;
   else if (nreplica == nprocs_universe) cmode = SINGLE_PROC_MAP;
   else cmode = MULTI_PROC;
@@ -854,20 +854,20 @@ void PRD::replicate(int ireplica)
     MPI_Gatherv(atom->x[0],3*atom->nlocal,MPI_DOUBLE,
                 xall[0],counts,displacements,MPI_DOUBLE,0,world);
   }
-  
+
   if (me == 0) {
     MPI_Bcast(tagall,natoms,MPI_LMP_TAGINT,ireplica,comm_replica);
     MPI_Bcast(imageall,natoms,MPI_LMP_IMAGEINT,ireplica,comm_replica);
     MPI_Bcast(xall[0],3*natoms,MPI_DOUBLE,ireplica,comm_replica);
   }
-  
+
   MPI_Bcast(tagall,natoms,MPI_LMP_TAGINT,0,world);
   MPI_Bcast(imageall,natoms,MPI_LMP_IMAGEINT,0,world);
   MPI_Bcast(xall[0],3*natoms,MPI_DOUBLE,0,world);
-  
+
   double **x = atom->x;
   int nlocal = atom->nlocal;
-  
+
   for (i = 0; i < natoms; i++) {
     m = atom->map(tagall[i]);
     if (m < 0 || m >= nlocal) continue;

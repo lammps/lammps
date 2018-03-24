@@ -41,7 +41,7 @@ AtomVecEDPD::AtomVecEDPD(LAMMPS *lmp) : AtomVec(lmp)
   size_forward = 3 + 5; // edpd_temp + vest[4]
   size_reverse = 3 + 1;     // edpd_flux
   size_border = 6 + 6;  // edpd_temp + edpd_cv + vest[4]
-  size_velocity = 3;  
+  size_velocity = 3;
   size_data_atom = 5 + 2; // we read id + type + edpd_temp + edpd_cv + xyz[3]
   size_data_vel = 4;
   xcol_data = 5;
@@ -90,7 +90,7 @@ void AtomVecEDPD::grow_reset()
   tag = atom->tag; type = atom->type;
   mask = atom->mask; image = atom->image;
   x = atom->x; v = atom->v; f = atom->f;
-  edpd_cv = atom->cv; edpd_temp = atom->edpd_temp; edpd_flux = atom->edpd_flux; 
+  edpd_cv = atom->cv; edpd_temp = atom->edpd_temp; edpd_flux = atom->edpd_flux;
   vest = atom->vest;
 }
 
@@ -150,7 +150,7 @@ int AtomVecEDPD::pack_comm(int n, int *list, double *buf,
       buf[m++] = vest[j][0];
       buf[m++] = vest[j][1];
       buf[m++] = vest[j][2];
-      buf[m++] = vest[j][3]; 
+      buf[m++] = vest[j][3];
     }
   } else {
     if (domain->triclinic == 0) {
@@ -271,7 +271,7 @@ void AtomVecEDPD::unpack_comm(int n, int first, double *buf)
     vest[i][0] = buf[m++];
     vest[i][1] = buf[m++];
     vest[i][2] = buf[m++];
-    vest[i][3] = buf[m++]; 
+    vest[i][3] = buf[m++];
   }
 }
 
@@ -354,7 +354,7 @@ int AtomVecEDPD::pack_border(int n, int *list, double *buf,
       buf[m++] = vest[j][0];
       buf[m++] = vest[j][1];
       buf[m++] = vest[j][2];
-      buf[m++] = vest[j][3]; 
+      buf[m++] = vest[j][3];
     }
   } else {
     if (domain->triclinic == 0) {
@@ -663,7 +663,7 @@ int AtomVecEDPD::pack_restart(int i, double *buf)
   buf[m++] = vest[i][0];
   buf[m++] = vest[i][1];
   buf[m++] = vest[i][2];
-  buf[m++] = vest[i][3];  
+  buf[m++] = vest[i][3];
 
   if (atom->nextra_restart)
     for (int iextra = 0; iextra < atom->nextra_restart; iextra++)
@@ -697,14 +697,14 @@ int AtomVecEDPD::unpack_restart(double *buf)
   v[nlocal][0] = buf[m++];
   v[nlocal][1] = buf[m++];
   v[nlocal][2] = buf[m++];
-   
+
   edpd_temp[nlocal] = buf[m++];
   edpd_cv[nlocal]= buf[m++];
   vest[nlocal][0] = buf[m++];
   vest[nlocal][1] = buf[m++];
   vest[nlocal][2] = buf[m++];
   vest[nlocal][3] = buf[m++];
-  
+
   double **extra = atom->extra;
   if (atom->nextra_store) {
     int size = static_cast<int> (buf[0]) - m;

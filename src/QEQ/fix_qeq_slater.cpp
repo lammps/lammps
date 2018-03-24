@@ -101,7 +101,7 @@ void FixQEqSlater::extract_streitz()
   if (chi == NULL || eta == NULL || gamma == NULL
                   || zeta == NULL || zcore == NULL)
     error->all(FLERR,
-	"Fix qeq/slater could not extract params from pair coul/streitz");
+        "Fix qeq/slater could not extract params from pair coul/streitz");
 
 }
 
@@ -120,8 +120,8 @@ void FixQEqSlater::pre_force(int vflag)
     reallocate_matrix();
 
   init_matvec();
-  matvecs = CG(b_s, s);    	// CG on s - parallel
-  matvecs += CG(b_t, t); 	// CG on t - parallel
+  matvecs = CG(b_s, s);         // CG on s - parallel
+  matvecs += CG(b_t, t);        // CG on t - parallel
   calculate_Q();
 
   if (force->kspace) force->kspace->qsum_qsq();
@@ -223,7 +223,7 @@ void FixQEqSlater::compute_H()
 /* ---------------------------------------------------------------------- */
 
 double FixQEqSlater::calculate_H(double zei, double zej, double zj,
-		double r, double &zjtmp)
+                double r, double &zjtmp)
 {
   double rinv = 1.0/r;
 
@@ -276,7 +276,7 @@ double FixQEqSlater::calculate_H(double zei, double zej, double zj,
 /* ---------------------------------------------------------------------- */
 
 double FixQEqSlater::calculate_H_wolf(double zei, double zej, double zj,
-		double r, double &zjtmp)
+                double r, double &zjtmp)
 {
   double rinv = 1.0/r;
 
@@ -321,7 +321,7 @@ double FixQEqSlater::calculate_H_wolf(double zei, double zej, double zj,
   if (zei == zej) {
     eshift = -exp2zirsh*(rcinv + zei*(sm1 + sm2*zei*rc + sm3*zei2*rc*rc));
     ci_fifj = -exp2zir*(rinv + zei*(sm1 + sm2*zei*r + sm3*zei2*r*r))
-	      - eshift - (r-rc)*fshift;
+              - eshift - (r-rc)*fshift;
   } else {
     e1 = zei*zej4/((zei+zej)*(zei+zej)*(zei-zej)*(zei-zej));
     e2 = zej*zei4/((zei+zej)*(zei+zej)*(zej-zei)*(zej-zei));
@@ -332,7 +332,7 @@ double FixQEqSlater::calculate_H_wolf(double zei, double zej, double zj,
 
     eshift = -exp2zirsh*(e1+e3/rc) - exp2zjrsh*(e2+e4/rc);
     ci_fifj = -exp2zir*(e1+e3/r) - exp2zjr*(e2+e4/r)
-	      - eshift - (r-rc)*fshift;
+              - eshift - (r-rc)*fshift;
   }
 
   etmp1 = erfcr/r - erfcrc/rc;

@@ -8,7 +8,7 @@ Section"_Section_accelerate.html :c
 
 :line
 
-4. Packages :h3
+4. Packages :h2
 
 This section gives an overview of the optional packages that extend
 LAMMPS functionality with instructions on how to build LAMMPS with

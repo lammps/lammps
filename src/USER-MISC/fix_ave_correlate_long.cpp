@@ -699,8 +699,8 @@ double FixAveCorrelateLong::memory_usage() {
   //    ncorrelation:     numcorrelators x p
   //    naccumulator:     numcorrelators
   //    insertindex:      numcorrelators
-  //    t:		numcorrelators x p
-  //    f:		npair x numcorrelators x p
+  //    t:      numcorrelators x p
+  //    f:      npair x numcorrelators x p
   double bytes = (4*npair*numcorrelators*p + 2*npair*numcorrelators
                   + numcorrelators*p)*sizeof(double)
     + numcorrelators*p*sizeof(unsigned long int)

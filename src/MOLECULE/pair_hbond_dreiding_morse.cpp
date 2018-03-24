@@ -162,7 +162,7 @@ void PairHbondDreidingMorse::compute(int eflag, int vflag)
             eng_morse = pm.d0 * (dexp*dexp - 2.0*dexp);
             force_kernel = pm.morse1*(dexp*dexp - dexp)/r * powint(c,pm.ap);
             force_angle = pm.ap * eng_morse * powint(c,pm.ap-1)*s;
-	    force_switch = 0.0;
+            force_switch = 0.0;
 
             if (rsq > pm.cut_innersq) {
               switch1 = (pm.cut_outersq-rsq) * (pm.cut_outersq-rsq) *
@@ -172,8 +172,8 @@ void PairHbondDreidingMorse::compute(int eflag, int vflag)
                         (rsq-pm.cut_innersq) / pm.denom_vdw;
 
               force_kernel *= switch1;
-	      force_angle  *= switch1;
-	      force_switch  = eng_morse*switch2/rsq;
+              force_angle  *= switch1;
+              force_switch  = eng_morse*switch2/rsq;
               eng_morse    *= switch1;
             }
 

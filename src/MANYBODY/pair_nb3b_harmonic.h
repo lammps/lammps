@@ -55,7 +55,7 @@ class PairNb3bHarmonic : public Pair {
   void setup_params();
   void twobody(Param *, double, double &, int, double &);
   void threebody(Param *, Param *, Param *, double, double, double *, double *,
-		 double *, double *, int, double &);
+                 double *, double *, int, double &);
 };
 
 }

@@ -35,7 +35,7 @@
  // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  //
- // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+ // Questions? Contact Christian R. Trott (crtrott@sandia.gov)
  //
  // ************************************************************************
  //@HEADER
@@ -45,18 +45,19 @@
 #define KOKKOSP_INTERFACE_HPP
 
 #include <Kokkos_Macros.hpp>
-
-#if defined(KOKKOS_ENABLE_PROFILING)
-
+#include <cinttypes>
 #include <cstddef>
 #include <Kokkos_Core_fwd.hpp>
 #include <string>
-#include <cinttypes>
 
-#include <impl/Kokkos_Profiling_DeviceInfo.hpp>
-#include <dlfcn.h>
 #include <iostream>
 #include <cstdlib>
+
+
+#if defined(KOKKOS_ENABLE_PROFILING)
+#include <dlfcn.h>
+
+#include <impl/Kokkos_Profiling_DeviceInfo.hpp>
 
 #define KOKKOSP_INTERFACE_VERSION 20171029
 
@@ -120,6 +121,49 @@ void deallocateData(const SpaceHandle space, const std::string label, const void
 void beginDeepCopy(const SpaceHandle dst_space, const std::string dst_label, const void* dst_ptr,
     const SpaceHandle src_space, const std::string src_label, const void* src_ptr,
     const uint64_t size);
+void endDeepCopy();
+
+void initialize();
+void finalize();
+
+}
+}
+
+#else
+namespace Kokkos {
+namespace Profiling {
+
+struct SpaceHandle {
+  SpaceHandle(const char* space_name);
+  char name[64];
+};
+
+
+bool profileLibraryLoaded();
+
+
+void beginParallelFor(const std::string& , const uint32_t , uint64_t* );
+void endParallelFor(const uint64_t );
+void beginParallelScan(const std::string& , const uint32_t , uint64_t* );
+void endParallelScan(const uint64_t );
+void beginParallelReduce(const std::string& , const uint32_t , uint64_t* );
+void endParallelReduce(const uint64_t );
+
+void pushRegion(const std::string& );
+void popRegion();
+void createProfileSection(const std::string& , uint32_t* );
+void startSection(const uint32_t );
+void stopSection(const uint32_t );
+void destroyProfileSection(const uint32_t );
+
+void markEvent(const std::string& );
+
+void allocateData(const SpaceHandle , const std::string , const void* , const uint64_t );
+void deallocateData(const SpaceHandle , const std::string , const void* , const uint64_t );
+
+void beginDeepCopy(const SpaceHandle , const std::string , const void* , 
+    const SpaceHandle , const std::string , const void* ,
+    const uint64_t );
 void endDeepCopy();
 
 void initialize();

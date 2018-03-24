@@ -49,7 +49,7 @@ class PairLJCharmmfswCoulLong : public Pair {
 
  protected:
   int implicit;
-  int dihedflag; 
+  int dihedflag;
 
   double cut_lj_inner,cut_lj,cut_ljinv,cut_lj_innerinv;
   double cut_lj_innersq,cut_ljsq;

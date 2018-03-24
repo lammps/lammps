@@ -182,14 +182,14 @@ void Torsion_Angles( reax_system *system, control_params *control,
       BOA_jk = bo_jk->BO - control->thb_cut;
 
       if( system->my_atoms[j].orig_id > system->my_atoms[k].orig_id )
-	continue;
+        continue;
       if( system->my_atoms[j].orig_id == system->my_atoms[k].orig_id ) {
         if (system->my_atoms[k].x[2] <  system->my_atoms[j].x[2]) continue;
-      	if (system->my_atoms[k].x[2] == system->my_atoms[j].x[2] &&
-      	    system->my_atoms[k].x[1] <  system->my_atoms[j].x[1]) continue;
         if (system->my_atoms[k].x[2] == system->my_atoms[j].x[2] &&
-      	    system->my_atoms[k].x[1] == system->my_atoms[j].x[1] &&
-      	    system->my_atoms[k].x[0] <  system->my_atoms[j].x[0]) continue;
+            system->my_atoms[k].x[1] <  system->my_atoms[j].x[1]) continue;
+        if (system->my_atoms[k].x[2] == system->my_atoms[j].x[2] &&
+            system->my_atoms[k].x[1] == system->my_atoms[j].x[1] &&
+            system->my_atoms[k].x[0] <  system->my_atoms[j].x[0]) continue;
       }
 
       if( bo_jk->BO > control->thb_cut/*0*/ && Num_Entries(pk, thb_intrs) ) {

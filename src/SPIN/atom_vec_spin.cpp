@@ -1,4 +1,5 @@
 /* ----------------------------------------------------------------------
+
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -43,14 +44,13 @@ AtomVecSpin::AtomVecSpin(LAMMPS *lmp) : AtomVec(lmp)
 
   size_forward = 7;
   size_reverse = 6;
-  size_border = 11;
+  size_border = 10;
   size_velocity = 3;
   size_data_atom = 9;
   size_data_vel = 4;
   xcol_data = 4;
  
   forceclearflag = 1;
-  atom->mumag_flag = 1;
   atom->sp_flag = 1;
 
 }
@@ -83,7 +83,6 @@ void AtomVecSpin::grow(int n)
 
   // allocating mag. quantities
 
-  mumag = memory->grow(atom->mumag,nmax,"atom:mumag");
   sp = memory->grow(atom->sp,nmax,4,"atom:sp");
   fm = memory->grow(atom->fm,nmax*comm->nthreads,3,"atom:fm");
 
@@ -101,7 +100,7 @@ void AtomVecSpin::grow_reset()
   tag = atom->tag; type = atom->type;
   mask = atom->mask; image = atom->image;
   x = atom->x; v = atom->v; f = atom->f; 
-  mumag = atom->mumag; sp = atom->sp; fm = atom->fm;
+  sp = atom->sp; fm = atom->fm;
 }
 
 
@@ -122,7 +121,6 @@ void AtomVecSpin::copy(int i, int j, int delflag)
   v[j][1] = v[i][1];
   v[j][2] = v[i][2];
 
-  mumag[j] = mumag[i];
   sp[j][0] = sp[i][0];
   sp[j][1] = sp[i][1];
   sp[j][2] = sp[i][2];
@@ -381,7 +379,6 @@ int AtomVecSpin::pack_border(int n, int *list, double *buf,
       buf[m++] = ubuf(tag[j]).d;
       buf[m++] = ubuf(type[j]).d;
       buf[m++] = ubuf(mask[j]).d;
-      buf[m++] = mumag[j];
       buf[m++] = sp[j][0];
       buf[m++] = sp[j][1];
       buf[m++] = sp[j][2];
@@ -405,7 +402,6 @@ int AtomVecSpin::pack_border(int n, int *list, double *buf,
       buf[m++] = ubuf(tag[j]).d;
       buf[m++] = ubuf(type[j]).d;
       buf[m++] = ubuf(mask[j]).d;
-      buf[m++] = mumag[j];
       buf[m++] = sp[j][0];
       buf[m++] = sp[j][1];
       buf[m++] = sp[j][2];
@@ -438,7 +434,6 @@ int AtomVecSpin::pack_border_vel(int n, int *list, double *buf,
       buf[m++] = ubuf(tag[j]).d;
       buf[m++] = ubuf(type[j]).d;
       buf[m++] = ubuf(mask[j]).d;
-      buf[m++] = mumag[j];
       buf[m++] = sp[j][0];
       buf[m++] = sp[j][1];
       buf[m++] = sp[j][2];
@@ -466,7 +461,6 @@ int AtomVecSpin::pack_border_vel(int n, int *list, double *buf,
         buf[m++] = ubuf(tag[j]).d;
         buf[m++] = ubuf(type[j]).d;
         buf[m++] = ubuf(mask[j]).d;
-        buf[m++] = mumag[j];
         buf[m++] = sp[j][0];
         buf[m++] = sp[j][1];
         buf[m++] = sp[j][2];
@@ -487,7 +481,6 @@ int AtomVecSpin::pack_border_vel(int n, int *list, double *buf,
         buf[m++] = ubuf(tag[j]).d;
         buf[m++] = ubuf(type[j]).d;
         buf[m++] = ubuf(mask[j]).d;
-        buf[m++] = mumag[j];
         buf[m++] = sp[j][0];
         buf[m++] = sp[j][1];
         buf[m++] = sp[j][2];
@@ -521,7 +514,6 @@ int AtomVecSpin::pack_border_hybrid(int n, int *list, double *buf)
   m = 0;
   for (i = 0; i < n; i++) {
     j = list[i];
-    buf[m++] = mumag[j];
     buf[m++] = sp[j][0];
     buf[m++] = sp[j][1];
     buf[m++] = sp[j][2];
@@ -547,7 +539,6 @@ void AtomVecSpin::unpack_border(int n, int first, double *buf)
     tag[i] = (tagint) ubuf(buf[m++]).i;
     type[i] = (int) ubuf(buf[m++]).i;
     mask[i] = (int) ubuf(buf[m++]).i;
-    mumag[i] = buf[m++];
     sp[i][0] = buf[m++];
     sp[i][1] = buf[m++];
     sp[i][2] = buf[m++];
@@ -577,7 +568,6 @@ void AtomVecSpin::unpack_border_vel(int n, int first, double *buf)
     tag[i] = (tagint) ubuf(buf[m++]).i;
     type[i] = (int) ubuf(buf[m++]).i;
     mask[i] = (int) ubuf(buf[m++]).i;
-    mumag[i] = buf[m++];
     sp[i][0] = buf[m++];
     sp[i][1] = buf[m++];
     sp[i][2] = buf[m++];
@@ -603,7 +593,6 @@ int AtomVecSpin::unpack_border_hybrid(int n, int first, double *buf)
   m = 0;
   last = first + n;
   for (i = first; i < last; i++) {
-    mumag[i] = buf[m++];
     sp[i][0] = buf[m++];
     sp[i][1] = buf[m++];
     sp[i][2] = buf[m++];
@@ -632,7 +621,6 @@ int AtomVecSpin::pack_exchange(int i, double *buf)
   buf[m++] = ubuf(mask[i]).d;
   buf[m++] = ubuf(image[i]).d;
 
-  buf[m++] = mumag[i];
   buf[m++] = sp[i][0];
   buf[m++] = sp[i][1];
   buf[m++] = sp[i][2];
@@ -665,7 +653,6 @@ int AtomVecSpin::unpack_exchange(double *buf)
   mask[nlocal] = (int) ubuf(buf[m++]).i;
   image[nlocal] = (imageint) ubuf(buf[m++]).i;
 
-  mumag[nlocal] = buf[m++];
   sp[nlocal][0] = buf[m++];
   sp[nlocal][1] = buf[m++];
   sp[nlocal][2] = buf[m++];
@@ -722,7 +709,6 @@ int AtomVecSpin::pack_restart(int i, double *buf)
   buf[m++] = v[i][1];
   buf[m++] = v[i][2];
 
-  buf[m++] = mumag[i];
   buf[m++] = sp[i][0];
   buf[m++] = sp[i][1];
   buf[m++] = sp[i][2];
@@ -761,7 +747,6 @@ int AtomVecSpin::unpack_restart(double *buf)
   v[nlocal][1] = buf[m++];
   v[nlocal][2] = buf[m++];
 
-  mumag[nlocal] = buf[m++];
   sp[nlocal][0] = buf[m++];
   sp[nlocal][1] = buf[m++];
   sp[nlocal][2] = buf[m++];
@@ -800,7 +785,6 @@ void AtomVecSpin::create_atom(int itype, double *coord)
   v[nlocal][1] = 0.0;
   v[nlocal][2] = 0.0;
 
-  mumag[nlocal] = 0.0;
   sp[nlocal][0] = 0.0;
   sp[nlocal][1] = 0.0;
   sp[nlocal][2] = 0.0;
@@ -824,18 +808,20 @@ void AtomVecSpin::data_atom(double *coord, imageint imagetmp, char **values)
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
-  mumag[nlocal] = atof(values[2]);
-
   x[nlocal][0] = coord[0];
   x[nlocal][1] = coord[1];
   x[nlocal][2] = coord[2];
 
-  sp[nlocal][0] = atof(values[6]);
-  sp[nlocal][1] = atof(values[7]);
-  sp[nlocal][2] = atof(values[8]);
-  sp[nlocal][3] = sqrt(sp[nlocal][0]*sp[nlocal][0] +
-                       sp[nlocal][1]*sp[nlocal][1] +
-                       sp[nlocal][2]*sp[nlocal][2]);
+  sp[nlocal][3] = atof(values[2]);
+  sp[nlocal][0] = atof(values[5]);
+  sp[nlocal][1] = atof(values[6]);
+  sp[nlocal][2] = atof(values[7]);
+  double inorm = 1.0/sqrt(sp[nlocal][0]*sp[nlocal][0] +
+                          sp[nlocal][1]*sp[nlocal][1] +
+                          sp[nlocal][2]*sp[nlocal][2]);
+  sp[nlocal][0] *= inorm;
+  sp[nlocal][1] *= inorm;
+  sp[nlocal][2] *= inorm;
 
   image[nlocal] = imagetmp;
 
@@ -854,13 +840,17 @@ void AtomVecSpin::data_atom(double *coord, imageint imagetmp, char **values)
 
 int AtomVecSpin::data_atom_hybrid(int nlocal, char **values)
 {
-  mumag[nlocal] = atof(values[0]);
-  sp[nlocal][0] = atof(values[1]);
-  sp[nlocal][1] = atof(values[2]);
-  sp[nlocal][2] = atof(values[3]);
-  sp[nlocal][3] = sqrt(sp[nlocal][0]*sp[nlocal][0] +
-                       sp[nlocal][1]*sp[nlocal][1] +
-                       sp[nlocal][2]*sp[nlocal][2]);
+  
+  sp[nlocal][0] = atof(values[0]);
+  sp[nlocal][1] = atof(values[1]);
+  sp[nlocal][2] = atof(values[2]);
+  double inorm = 1.0/sqrt(sp[nlocal][0]*sp[nlocal][0] +
+                          sp[nlocal][1]*sp[nlocal][1] +
+                          sp[nlocal][2]*sp[nlocal][2]);
+  sp[nlocal][0] *= inorm;
+  sp[nlocal][1] *= inorm;
+  sp[nlocal][2] *= inorm;
+  sp[nlocal][3] = atof(values[3]);
   
   return 4;
 }
@@ -875,17 +865,16 @@ void AtomVecSpin::pack_data(double **buf)
   for (int i = 0; i < nlocal; i++) {
     buf[i][0] = ubuf(tag[i]).d;
     buf[i][1] = ubuf(type[i]).d;
-    buf[i][2] = mumag[i];
+    buf[i][2] = sp[i][3];
     buf[i][3] = x[i][0];
     buf[i][4] = x[i][1];
     buf[i][5] = x[i][2];
     buf[i][6] = sp[i][0];
     buf[i][7] = sp[i][1];
     buf[i][8] = sp[i][2];
-    buf[i][9] = sp[i][3];
-    buf[i][10] = ubuf((image[i] & IMGMASK) - IMGMAX).d;
-    buf[i][11] = ubuf((image[i] >> IMGBITS & IMGMASK) - IMGMAX).d;
-    buf[i][12] = ubuf((image[i] >> IMG2BITS) - IMGMAX).d;
+    buf[i][9] = ubuf((image[i] & IMGMASK) - IMGMAX).d;
+    buf[i][10] = ubuf((image[i] >> IMGBITS & IMGMASK) - IMGMAX).d;
+    buf[i][11] = ubuf((image[i] >> IMG2BITS) - IMGMAX).d;
   } 
 }
 
@@ -895,13 +884,13 @@ void AtomVecSpin::pack_data(double **buf)
 
 int AtomVecSpin::pack_data_hybrid(int i, double *buf)
 { 
-  buf[0] = mumag[i];
-  buf[1] = sp[i][0];
-  buf[2] = sp[i][1];
-  buf[3] = sp[i][2];
-  buf[4] = sp[i][3];
   
-  return 5;
+  buf[0] = sp[i][0];
+  buf[1] = sp[i][1];
+  buf[2] = sp[i][2];
+  buf[3] = sp[i][3];
+  
+  return 4;
 }
 
 /* ----------------------------------------------------------------------
@@ -947,7 +936,6 @@ bigint AtomVecSpin::memory_usage()
   if (atom->memcheck("v")) bytes += memory->usage(v,nmax,3);
   if (atom->memcheck("f")) bytes += memory->usage(f,nmax*comm->nthreads,3);
   
-  if (atom->memcheck("mumag")) bytes += memory->usage(mumag,nmax);
   if (atom->memcheck("sp")) bytes += memory->usage(sp,nmax,4);
   if (atom->memcheck("fm")) bytes += memory->usage(fm,nmax*comm->nthreads,3);
 

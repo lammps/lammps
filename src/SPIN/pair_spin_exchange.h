@@ -74,7 +74,7 @@ E: Incorrect args for pair coefficients
 
 Self-explanatory.  Check the input script or data file.
 
-E: Pair spin requires atom attributes sp, mumag
+E: Pair spin requires atom attribute spin
 
 The atom style defined does not have these attributes.
 

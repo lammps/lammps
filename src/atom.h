@@ -63,7 +63,7 @@ class Atom : protected Pointers {
 
   // SPIN package
 
-  double *mumag, **sp;
+  double **sp;
   double **fm;
 
   // PERI package
@@ -153,7 +153,7 @@ class Atom : protected Pointers {
 
   //USER-SPIN package
 
-  int mumag_flag,sp_flag;
+  int sp_flag;
 
   // USER-SMD package
 

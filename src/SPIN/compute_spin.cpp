@@ -91,7 +91,6 @@ void ComputeSpin::compute_vector()
   int *mask = atom->mask;
   int *type = atom->type;
   imageint *image = atom->image;
-  double *mumag = atom->mumag;
   double **sp = atom->sp;  
   double **fm = atom->fm;
   double tx,ty,tz;
@@ -103,7 +102,7 @@ void ComputeSpin::compute_vector()
 
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      if (atom->mumag_flag && atom->sp_flag) {
+      if (atom->sp_flag) {
 		mag[0] += sp[i][0];
 		mag[1] += sp[i][1];
 		mag[2] += sp[i][2];
@@ -116,7 +115,7 @@ void ComputeSpin::compute_vector()
 		countsp++;
       }
     }
-    else error->all(FLERR,"Compute spin/compute declared magnetic quantities (sp and mumag flags)");
+    else error->all(FLERR,"Compute compute/spin requires atom/spin style");
   }
 
   MPI_Allreduce(mag,magtot,4,MPI_DOUBLE,MPI_SUM,world);

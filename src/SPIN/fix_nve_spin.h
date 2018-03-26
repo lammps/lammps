@@ -13,29 +13,29 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(integration/spin,FixIntegrationSpin)
+FixStyle(nve/spin,FixNVESpin)
 
 #else
 
-#ifndef LMP_FIX_INTEGRATION_SPIN_H
-#define LMP_FIX_INTEGRATION_SPIN_H
+#ifndef LMP_FIX_NVE_SPIN_H
+#define LMP_FIX_NVE_SPIN_H
 
 #include "fix.h"
 
 namespace LAMMPS_NS {
 
-class FixIntegrationSpin : public Fix {
+class FixNVESpin : public Fix {
 	
  public:
-  FixIntegrationSpin(class LAMMPS *, int, char **);
-  virtual ~FixIntegrationSpin();
+  FixNVESpin(class LAMMPS *, int, char **);
+  virtual ~FixNVESpin();
   int setmask();
   void init();
   virtual void initial_integrate(int);
   virtual void final_integrate();
 
   void ComputeInteractionsSpin(int);	// compute and advance single spin functions 
-  void AdvanceSingleSpin(int, double);
+  void AdvanceSingleSpin(int);
 
   void sectoring();			// sectoring operation functions 
   int coords2sector(double *);
@@ -44,21 +44,20 @@ class FixIntegrationSpin : public Fix {
   void pre_neighbor();
 
  protected:
-  int extra;
-  int mpi_flag;			// mpi_flag = 0  if serial algorithm
-  				// mpi_flag = 1  if parallel algorithm
+  int sector_flag;		// sector_flag = 0  if serial algorithm
+  				// sector_flag = 1  if parallel algorithm
   int mech_flag; 		// mech_flag = 0 if spins only
   				// mech_flag = 1 if spin-lattice calc. 
 
-  double dtv,dtf,dts;		// velocity, force, and spin timesteps
+  double dtv, dtf, dts;		// velocity, force, and spin timesteps
   
-  int magpair_flag;		// magnetic pair flags
+  int magpair_flag;			// magnetic pair flags
   int exch_flag;
   int soc_neel_flag, soc_dmi_flag;
   int me_flag;
-  int magforce_flag;		// magnetic force flags
+  int magprecession_flag;		// magnetic precession flags
   int zeeman_flag, aniso_flag;
-  int maglangevin_flag;		// magnetic langevin flags
+  int maglangevin_flag;			// magnetic langevin flags
   int tdamp_flag, temp_flag;
 
   // pointers to magnetic interaction classes
@@ -68,7 +67,7 @@ class FixIntegrationSpin : public Fix {
   class PairSpinSocNeel *lockpairspinsocneel;
   class PairSpinSocDmi *lockpairspinsocdmi;
   class PairSpinMe *lockpairspinme;
-  class FixForceSpin *lockforcespin;
+  class FixPrecessionSpin *lockprecessionspin;
   class FixLangevinSpin *locklangevinspin; 
 
   int nsectors;			// sectoring variables
@@ -90,13 +89,13 @@ class FixIntegrationSpin : public Fix {
 
 /* ERROR/WARNING messages:
 
-E: Illegal fix integration/spin command
+E: Illegal fix NVE/spin command
 
 Self-explanatory.  Check the input script syntax and compare to the 
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Fix integration/spin requires spin attribute mumag
+E: Pair spin requires atom attribute spin
 
 An atom/spin style with this attribute is needed.
 

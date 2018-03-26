@@ -854,36 +854,6 @@ int DumpCustom::count()
         for (i = 0; i < nlocal; i++) dchoose[i] = 2.0*radius[i];
         ptr = dchoose;
         nstride = 1;
-      } else if (thresh_array[ithresh] == MUMAG) {//Magnetic properties
-        if (!atom->mumag_flag)
-          error->all(FLERR,
-                     "Threshold for an atom property that isn't allocated");
-        ptr = atom->mumag;
-        nstride = 1;
-      } else if (thresh_array[ithresh] == SPX) {
-        if (!atom->sp_flag)
-          error->all(FLERR,
-                     "Threshold for an atom property that isn't allocated");
-        ptr = &atom->sp[0][0];
-        nstride = 4;
-      } else if (thresh_array[ithresh] == SPY) {
-        if (!atom->sp_flag)
-          error->all(FLERR,
-                     "Threshold for an atom property that isn't allocated");
-        ptr = &atom->sp[0][1];
-        nstride = 4;
-      } else if (thresh_array[ithresh] == SPZ) {
-        if (!atom->sp_flag)
-          error->all(FLERR,
-                     "Threshold for an atom property that isn't allocated");
-        ptr = &atom->sp[0][2];
-        nstride = 4;
-      } else if (thresh_array[ithresh] == SP) {
-        if (!atom->sp_flag)
-          error->all(FLERR,
-                     "Threshold for an atom property that isn't allocated");
-        ptr = &atom->sp[0][3];
-        nstride = 4;
       } else if (thresh_array[ithresh] == OMEGAX) {
         if (!atom->omega_flag)
           error->all(FLERR,
@@ -1311,36 +1281,6 @@ int DumpCustom::parse_fields(int narg, char **arg)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_mu;
       vtype[i] = DOUBLE;
-
-    } else if (strcmp(arg[iarg],"mumag") == 0) {//Magnetic properties
-      if (!atom->mumag_flag)
-        error->all(FLERR,"Dumping an atom property that isn't allocated");
-      pack_choice[i] = &DumpCustom::pack_mumag;
-      vtype[i] = DOUBLE;
-    } else if (strcmp(arg[iarg],"spx") == 0) {
-      strcpy(arg[iarg],"vx");
-      if (!atom->sp_flag)
-        error->all(FLERR,"Dumping an atom property that isn't allocated");
-      pack_choice[i] = &DumpCustom::pack_spx;
-      vtype[i] = DOUBLE;
-    } else if (strcmp(arg[iarg],"spy") == 0) {
-      strcpy(arg[iarg],"vy");
-      if (!atom->sp_flag)
-        error->all(FLERR,"Dumping an atom property that isn't allocated");
-      pack_choice[i] = &DumpCustom::pack_spy;
-      vtype[i] = DOUBLE;
-    } else if (strcmp(arg[iarg],"spz") == 0) {
-      strcpy(arg[iarg],"vz");
-      if (!atom->sp_flag)
-        error->all(FLERR,"Dumping an atom property that isn't allocated");
-      pack_choice[i] = &DumpCustom::pack_spz;
-      vtype[i] = DOUBLE;
-    } else if (strcmp(arg[iarg],"sp") == 0) {
-      if (!atom->sp_flag)
-        error->all(FLERR,"Dumping an atom property that isn't allocated");
-      pack_choice[i] = &DumpCustom::pack_sp;
-      vtype[i] = DOUBLE;
-
     } else if (strcmp(arg[iarg],"radius") == 0) {
       if (!atom->radius_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
@@ -1843,13 +1783,6 @@ int DumpCustom::modify_param(int narg, char **arg)
     else if (strcmp(arg[1],"muy") == 0) thresh_array[nthresh] = MUY;
     else if (strcmp(arg[1],"muz") == 0) thresh_array[nthresh] = MUZ;
     else if (strcmp(arg[1],"mu") == 0) thresh_array[nthresh] = MU;
-    
-    //Magnetic quantities
-    else if (strcmp(arg[1],"mumag") == 0) thresh_array[nthresh] = MUMAG;
-    else if (strcmp(arg[1],"spx") == 0) thresh_array[nthresh] = SPX;
-    else if (strcmp(arg[1],"spy") == 0) thresh_array[nthresh] = SPY;
-    else if (strcmp(arg[1],"spz") == 0) thresh_array[nthresh] = SPZ;
-    else if (strcmp(arg[1],"sp") == 0) thresh_array[nthresh] = SP;
 
     else if (strcmp(arg[1],"radius") == 0) thresh_array[nthresh] = RADIUS;
     else if (strcmp(arg[1],"diameter") == 0) thresh_array[nthresh] = DIAMETER;
@@ -2760,66 +2693,6 @@ void DumpCustom::pack_mu(int n)
 
   for (int i = 0; i < nchoose; i++) {
     buf[n] = mu[clist[i]][3];
-    n += size_one;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-//Magnetic quantities
-void DumpCustom::pack_mumag(int n)
-{
-  double *mumag = atom->mumag;
-
-  for (int i = 0; i < nchoose; i++) {
-    buf[n] = mumag[clist[i]];
-    n += size_one;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpCustom::pack_spx(int n)
-{
-  double **sp = atom->sp;
-
-  for (int i = 0; i < nchoose; i++) {
-    buf[n] = sp[clist[i]][0];
-    n += size_one;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpCustom::pack_spy(int n)
-{
-  double **sp = atom->sp;
-
-  for (int i = 0; i < nchoose; i++) {
-    buf[n] = sp[clist[i]][1];
-    n += size_one;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpCustom::pack_spz(int n)
-{
-  double **sp = atom->sp;
-
-  for (int i = 0; i < nchoose; i++) {
-    buf[n] = sp[clist[i]][2];
-    n += size_one;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpCustom::pack_sp(int n)
-{
-  double **sp = atom->sp;
-
-  for (int i = 0; i < nchoose; i++) {
-    buf[n] = sp[clist[i]][3];
     n += size_one;
   }
 }

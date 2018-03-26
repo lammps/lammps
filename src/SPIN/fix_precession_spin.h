@@ -13,23 +13,23 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(force/spin,FixForceSpin)
+FixStyle(precession/spin,FixPrecessionSpin)
 
 #else
 
-#ifndef LMP_FIX_FORCE_SPIN_H
-#define LMP_FIX_FORCE_SPIN_H
+#ifndef LMP_FIX_PRECESSION_SPIN_H
+#define LMP_FIX_PRECESSION_SPIN_H
 
 #include "fix.h"
 
 namespace LAMMPS_NS {
 
-class FixForceSpin : public Fix {
+class FixPrecessionSpin : public Fix {
   friend class FixPour;
 
  public:
-  FixForceSpin(class LAMMPS *, int, char **);
-  ~FixForceSpin();
+  FixPrecessionSpin(class LAMMPS *, int, char **);
+  ~FixPrecessionSpin();
   int setmask();
   void init();
   void setup(int);
@@ -42,7 +42,7 @@ class FixForceSpin : public Fix {
   void compute_anisotropy(int, double [3], double [3]);
 
  protected:
-  int style; 			// style of the magnetic force
+  int style; 			// style of the magnetic precession
   
   double degree2rad;
   double hbar;
@@ -68,7 +68,7 @@ class FixForceSpin : public Fix {
   double nax, nay, naz;
   double Kax, Kay, Kaz; 	// temp. force variables
 
-  void set_magneticforce();
+  void set_magneticprecession();
  
 };
 
@@ -79,10 +79,13 @@ class FixForceSpin : public Fix {
 
 /* ERROR/WARNING messages:
 
-E: Illegal force/spin command
+E: Illegal precession/spin command
 
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
+precession/spin fix command has 7 arguments: 
+fix  ID  group  precession/spin  magnitude (T or eV)  style (zeeman or anisotropy)  
+direction (3 cartesian coordinates) 
 */

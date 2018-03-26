@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 # start a spin-lattice simulation from a data file
 clear 
 units 		metal
@@ -12,23 +13,29 @@ atom_modify 	map array
 
 read_data 	../examples/SPIN/read_restart/Norm_randXY_8x8x32.data
 =======
+=======
+# start a spin-lattice simulation from a data file
+>>>>>>> Commit modifs before release 1 (03/26/18)
 clear 
-units metal
-dimension 3
-boundary p p p 
+units 		metal
+dimension 	3
+boundary 	p p p 
 
-atom_style spin
+atom_style 	spin
 
 # necessary for the serial algorithm (sametag)
-atom_modify map array 
+atom_modify 	map array 
 
-read_data ../examples/SPIN/Norm_randXY_8x8x32_test.data 
-
+<<<<<<< HEAD
 >>>>>>> Commit before meeting 032218
+=======
+read_data 	../examples/SPIN/read_restart/Norm_randXY_8x8x32.data
+>>>>>>> Commit modifs before release 1 (03/26/18)
 
 mass		1 58.93
 
 # define magneto-mechanical potentials and forces
+<<<<<<< HEAD
 <<<<<<< HEAD
 pair_style 	hybrid/overlay eam/alloy pair/spin/exchange 4.0
 pair_coeff 	* * eam/alloy ../examples/SPIN/read_restart/Co_PurjaPun_2012.eam.alloy Co
@@ -49,18 +56,27 @@ pair_style hybrid/overlay eam/alloy pair/spin/exchange 4.0 pair/spin/soc/neel 4.
 pair_coeff * * eam/alloy ../examples/SPIN/Co_PurjaPun_2012.eam.alloy Co
 pair_coeff * * pair/spin/exchange exchange 4.0 0.0446928 0.003496 1.4885 
 pair_coeff * * pair/spin/soc/neel neel 4.0 0.003330282 0.864159 2.13731 
+=======
+pair_style 	hybrid/overlay eam/alloy pair/spin/exchange 4.0
+pair_coeff 	* * eam/alloy ../examples/SPIN/read_restart/Co_PurjaPun_2012.eam.alloy Co
+pair_coeff 	* * pair/spin/exchange exchange 4.0 0.0446928 0.003496 1.4885 
+>>>>>>> Commit modifs before release 1 (03/26/18)
 
-neighbor 1.0 bin
-neigh_modify every 1 check no delay 0 
+neighbor 	1.0 bin
+neigh_modify 	every 1 check no delay 0 
 
-fix 1 all force/spin zeeman 0.0 0.0 0.0 1.0
-fix 2 all langevin/spin 0.0 0.0 21
+fix 		1 all precession/spin zeeman 0.0 0.0 0.0 1.0
+fix 		2 all langevin/spin 0.0 0.0 21
 
-fix 3 all integration/spin serial
+fix 		3 all nve/spin lattice yes
 timestep	0.0001
 
+<<<<<<< HEAD
 # define outputs
 >>>>>>> Commit before meeting 032218
+=======
+# define outputs and computes
+>>>>>>> Commit modifs before release 1 (03/26/18)
 
 compute 	out_mag    all compute/spin
 compute 	out_pe     all pe
@@ -77,6 +93,7 @@ thermo_style    custom step time v_magnorm v_emag v_tmag temp etotal
 thermo_modify   format float %20.15g
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 compute 	outsp all property/atom spx spy spz sp fmx fmy fmz
 dump 		100 all custom 1 dump.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3] c_outsp[4] c_outsp[5] c_outsp[6] c_outsp[7]
 
@@ -86,4 +103,10 @@ dump 1 all custom 1 dump.lammpstrj type x y z spx spy spz
 
 run 10000
 >>>>>>> Commit before meeting 032218
+=======
+compute 	outsp all property/atom spx spy spz sp fmx fmy fmz
+dump 		100 all custom 1 dump.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3] c_outsp[4] c_outsp[5] c_outsp[6] c_outsp[7]
+
+run 		100
+>>>>>>> Commit modifs before release 1 (03/26/18)
 

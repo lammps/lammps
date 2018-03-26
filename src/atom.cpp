@@ -96,7 +96,6 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 
   // SPIN package
 
-  mumag = NULL;
   sp = fm = NULL;
   
   // USER-DPD
@@ -167,7 +166,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
  
   // magnetic flags
 
-  sp_flag = mumag_flag = 0;
+  sp_flag = 0;
 
   vfrac_flag = 0;
   spin_flag = eradius_flag = ervel_flag = erforce_flag = ervelforce_flag = 0;
@@ -270,7 +269,6 @@ Atom::~Atom()
   memory->destroy(tri);
   memory->destroy(body);
 
-  memory->destroy(mumag);
   memory->destroy(sp);
   memory->destroy(fm);
 
@@ -421,7 +419,7 @@ void Atom::create_avec(const char *style, int narg, char **arg, int trysuffix)
 
   // magnetic flags
 
-  sp_flag = mumag_flag = 0;
+  sp_flag = 0;
 
   vfrac_flag = 0;
   spin_flag = eradius_flag = ervel_flag = erforce_flag = ervelforce_flag = 0;

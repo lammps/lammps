@@ -23,8 +23,8 @@
 #include "atom.h"
 #include "atom_vec.h"
 #include "error.h"
-#include "fix_force_spin.h"
-#include "fix_integration_spin.h"
+#include "fix_precession_spin.h"
+#include "fix_nve_spin.h"
 #include "fix_langevin_spin.h"
 #include "force.h"
 #include "math_vector.h"
@@ -48,63 +48,69 @@ using namespace FixConst;
 using namespace MathConst;
 using namespace MathExtra;
 
-enum{NONE,SPIN};
+enum{NONE};
 
 /* ---------------------------------------------------------------------- */
 
-FixIntegrationSpin::FixIntegrationSpin(LAMMPS *lmp, int narg, char **arg) :
+FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), 
   rsec(NULL), stack_head(NULL), stack_foot(NULL), 
   backward_stacks(NULL), forward_stacks(NULL),
-  lockpairspinexchange(NULL), lockpairspinsocneel(NULL), lockforcespin(NULL),
+  lockpairspinexchange(NULL), lockpairspinsocneel(NULL), lockprecessionspin(NULL),
   locklangevinspin(NULL)
 {
   
-  if (narg < 4) error->all(FLERR,"Illegal fix/integration/spin command");  
+  if (narg < 4) error->all(FLERR,"Illegal fix/NVE/spin command");  
   
   time_integrate = 1;
   
-  extra = NONE;
-  mpi_flag = NONE;
+  sector_flag = NONE;
   mech_flag = 1;
- 
-  if (strcmp(arg[2],"integration/spin") == 0) {
-    extra = SPIN;
-  } else error->all(FLERR,"Illegal fix integration/spin command");
-  
-  // defining mpi_flag 
+
+  // checking if map array or hash is defined
+
+  if (atom->map_style == 0)
+    error->all(FLERR,"Fix NVE/spin requires an atom map, see atom_modify");
+
+  // defining sector_flag 
 
   int nprocs_tmp = comm->nprocs;
   if (nprocs_tmp == 1) {
-    mpi_flag = 0;
+    sector_flag = 0;
   } else if (nprocs_tmp >= 1) {
-    mpi_flag = 1;
-  } else error->all(FLERR,"Illegal fix/integration/spin command");
+    sector_flag = 1;
+  } else error->all(FLERR,"Illegal fix/NVE/spin command");
 
   // defining mech_flag 
 
   int iarg = 3;
   while (iarg < narg) { 
     if (strcmp(arg[iarg],"lattice") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix/integration/spin command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix/NVE/spin command");
       if (strcmp(arg[iarg+1],"no") == 0) mech_flag = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) mech_flag = 1;
-      else error->all(FLERR,"Illegal fix/integration/spin command");
+      else error->all(FLERR,"Illegal fix/NVE/spin command");
       iarg += 2;
-    } else error->all(FLERR,"Illegal fix/integration/spin command");
+    } else error->all(FLERR,"Illegal fix/NVE/spin command");
   }
 
-  if (extra == SPIN && !atom->mumag_flag)
-    error->all(FLERR,"Fix integration/spin requires spin attribute mumag");
+  // check if the atom/spin style is defined
 
-  if (mpi_flag == 0 && nprocs_tmp > 1)
-    error->all(FLERR,"Illegal fix/integration/spin command");
+  if (!atom->sp_flag)
+    error->all(FLERR,"Fix NVE/spin requires atom/spin style");
+
+  // check if sector_flag is correctly defined
+
+  if (sector_flag == 0 && nprocs_tmp > 1)
+    error->all(FLERR,"Illegal fix/NVE/spin command");
+
+  // initialize the magnetic interaction flags
 
   magpair_flag = 0;
   exch_flag = 0;
   soc_neel_flag = soc_dmi_flag = 0;
   me_flag = 0;
-  magforce_flag = 0;
+  magprecession_flag = 0;
   zeeman_flag = aniso_flag = 0;
   maglangevin_flag = 0;
   tdamp_flag = temp_flag = 0;
@@ -113,7 +119,7 @@ FixIntegrationSpin::FixIntegrationSpin(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-FixIntegrationSpin::~FixIntegrationSpin()
+FixNVESpin::~FixNVESpin()
 {
   memory->destroy(rsec);
   memory->destroy(stack_head);
@@ -124,7 +130,7 @@ FixIntegrationSpin::~FixIntegrationSpin()
 
 /* ---------------------------------------------------------------------- */
 
-int FixIntegrationSpin::setmask()
+int FixNVESpin::setmask()
 {
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
@@ -135,7 +141,7 @@ int FixIntegrationSpin::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixIntegrationSpin::init()
+void FixNVESpin::init()
 {
 
   // set timesteps
@@ -177,15 +183,15 @@ void FixIntegrationSpin::init()
 	lockpairspinme = (PairSpinMe *) lockhybrid->styles[ipair];
       }
     }
-  } else error->all(FLERR,"Illegal fix integration/spin command");
+  } else error->all(FLERR,"Illegal fix NVE/spin command");
 
   // check errors, and handle simple hybrid (not overlay), and no pair/spin interaction
 
   int iforce;
   for (iforce = 0; iforce < modify->nfix; iforce++) {
-    if (strstr(modify->fix[iforce]->style,"force/spin")) {
-      magforce_flag = 1;
-      lockforcespin = (FixForceSpin *) modify->fix[iforce]; 
+    if (strstr(modify->fix[iforce]->style,"precession/spin")) {
+      magprecession_flag = 1;
+      lockprecessionspin = (FixPrecessionSpin *) modify->fix[iforce]; 
     }
   }
 
@@ -196,9 +202,9 @@ void FixIntegrationSpin::init()
     } 
   }
 
-  if (magforce_flag) { 
-    if (lockforcespin->zeeman_flag == 1) zeeman_flag = 1;
-    if (lockforcespin->aniso_flag == 1) aniso_flag = 1;
+  if (magprecession_flag) { 
+    if (lockprecessionspin->zeeman_flag == 1) zeeman_flag = 1;
+    if (lockprecessionspin->aniso_flag == 1) aniso_flag = 1;
   }
 
   if (maglangevin_flag) {
@@ -207,24 +213,24 @@ void FixIntegrationSpin::init()
   }
   
   nsectors = 0;
-  memory->create(rsec,3,"integration/spin:rsec");
+  memory->create(rsec,3,"NVE/spin:rsec");
   
-  // perform the sectoring if mpi integration
+  // perform the sectoring operation
 
-  if (mpi_flag) sectoring();
+  if (sector_flag) sectoring();
 
-  // grow tables of stacking variables (mpi)
+  // init. size tables of stacking variables (sectoring)
   
-  stack_head = memory->grow(stack_head,nsectors,"integration/spin:stack_head");
-  stack_foot = memory->grow(stack_foot,nsectors,"integration/spin:stack_foot");
-  forward_stacks = memory->grow(forward_stacks,atom->nmax,"integration/spin:forward_stacks");
-  backward_stacks = memory->grow(backward_stacks,atom->nmax,"integration/spin:backward_stacks");
+  stack_head = memory->grow(stack_head,nsectors,"NVE/spin:stack_head");
+  stack_foot = memory->grow(stack_foot,nsectors,"NVE/spin:stack_foot");
+  forward_stacks = memory->grow(forward_stacks,atom->nmax,"NVE/spin:forward_stacks");
+  backward_stacks = memory->grow(backward_stacks,atom->nmax,"NVE/spin:backward_stacks");
 
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixIntegrationSpin::initial_integrate(int vflag)
+void FixNVESpin::initial_integrate(int vflag)
 {
   double dtfm,msq,scale,fm2,fmsq,sp2,spsq,energy;
   double spi[3], fmi[3];
@@ -257,40 +263,36 @@ void FixIntegrationSpin::initial_integrate(int vflag)
 
   // update half s for all atoms
 
-  if (extra == SPIN) {
-    if (mpi_flag) {				// mpi seq. update
-      for (int j = 0; j < nsectors; j++) {	// advance quarter s for nlocal
-        comm->forward_comm();
-	int i = stack_foot[j];
-        while (i >= 0) {
-	  ComputeInteractionsSpin(i);
-    	  AdvanceSingleSpin(i,dts);
-	  i = forward_stacks[i];
-	}
-      }
-      for (int j = nsectors-1; j >= 0; j--) {	// advance quarter s for nlocal 
-        comm->forward_comm();
-	int i = stack_head[j];
-	while (i >= 0) {
-	  ComputeInteractionsSpin(i);
-    	  AdvanceSingleSpin(i,dts);
-	  i = backward_stacks[i];
-	}
-      }
-    } else if (mpi_flag == 0) {			// serial seq. update
-      comm->forward_comm();			// comm. positions of ghost atoms
-      for (int i = 0; i < nlocal-1; i++){	// advance quarter s for nlocal-1
+  if (sector_flag) {				// sectoring seq. update
+    for (int j = 0; j < nsectors; j++) {	// advance quarter s for nlocal
+      comm->forward_comm();
+      int i = stack_foot[j];
+      while (i >= 0) {
         ComputeInteractionsSpin(i);
-    	AdvanceSingleSpin(i,dts);
+    	AdvanceSingleSpin(i);
+	i = forward_stacks[i];
       }
-      ComputeInteractionsSpin(nlocal-1);
-      AdvanceSingleSpin(nlocal-1,2.0*dts);	// advance half s for 1
-      for (int i = nlocal-2; i >= 0; i--){	// advance quarter s for nlocal-1
+    }
+    for (int j = nsectors-1; j >= 0; j--) {	// advance quarter s for nlocal 
+      comm->forward_comm();
+      int i = stack_head[j];
+      while (i >= 0) {
         ComputeInteractionsSpin(i);
-        AdvanceSingleSpin(i,dts);
+    	AdvanceSingleSpin(i);
+	i = backward_stacks[i];
       }
-    } else error->all(FLERR,"Illegal fix integration/spin command");
-  }
+    }
+  } else if (sector_flag == 0) {		// serial seq. update
+    comm->forward_comm();			// comm. positions of ghost atoms
+    for (int i = 0; i < nlocal; i++){		// advance quarter s for nlocal
+      ComputeInteractionsSpin(i);
+      AdvanceSingleSpin(i);
+    }
+    for (int i = nlocal-1; i >= 0; i--){	// advance quarter s for nlocal
+      ComputeInteractionsSpin(i);
+      AdvanceSingleSpin(i);
+    }
+  } else error->all(FLERR,"Illegal fix NVE/spin command");
 
   // update x for all particles
 
@@ -306,40 +308,36 @@ void FixIntegrationSpin::initial_integrate(int vflag)
 
   // update half s for all particles
 
-  if (extra == SPIN) {
-    if (mpi_flag) {				// mpi seq. update
-      for (int j = 0; j < nsectors; j++) {	// advance quarter s for nlocal
-        comm->forward_comm();
-	int i = stack_foot[j];
-        while (i >= 0) {
-	  ComputeInteractionsSpin(i);
-    	  AdvanceSingleSpin(i,dts);
-	  i = forward_stacks[i];
-	}
-      }
-      for (int j = nsectors-1; j >= 0; j--) {	// advance quarter s for nlocal 
-        comm->forward_comm();
-	int i = stack_head[j];
-	while (i >= 0) {
-	  ComputeInteractionsSpin(i);
-    	  AdvanceSingleSpin(i,dts);
-	  i = backward_stacks[i];
-	}
-      }
-    } else if (mpi_flag == 0) {			// serial seq. update
-      comm->forward_comm();			// comm. positions of ghost atoms
-      for (int i = 0; i < nlocal-1; i++){	// advance quarter s for nlocal-1
+  if (sector_flag) {				// sectoring seq. update
+    for (int j = 0; j < nsectors; j++) {	// advance quarter s for nlocal
+      comm->forward_comm();
+      int i = stack_foot[j];
+      while (i >= 0) {
         ComputeInteractionsSpin(i);
-        AdvanceSingleSpin(i,dts);
+    	AdvanceSingleSpin(i);
+	i = forward_stacks[i];
       }
-      ComputeInteractionsSpin(nlocal-1);
-      AdvanceSingleSpin(nlocal-1,2.0*dts);	// advance half s for 1
-      for (int i = nlocal-2; i >= 0; i--){	// advance quarter s for nlocal-1
+    }
+    for (int j = nsectors-1; j >= 0; j--) {	// advance quarter s for nlocal 
+      comm->forward_comm();
+      int i = stack_head[j];
+      while (i >= 0) {
         ComputeInteractionsSpin(i);
-        AdvanceSingleSpin(i,dts);
+    	AdvanceSingleSpin(i);
+	i = backward_stacks[i];
       }
-    } else error->all(FLERR,"Illegal fix integration/spin command");
-  }
+    }
+  } else if (sector_flag == 0) {			// serial seq. update
+    comm->forward_comm();			// comm. positions of ghost atoms
+    for (int i = 0; i < nlocal; i++){	// advance quarter s for nlocal-1
+      ComputeInteractionsSpin(i);
+      AdvanceSingleSpin(i);
+    }
+    for (int i = nlocal-2; i >= 0; i--){	// advance quarter s for nlocal-1
+      ComputeInteractionsSpin(i);
+      AdvanceSingleSpin(i);
+    }
+  } else error->all(FLERR,"Illegal fix NVE/spin command");
 
 }
 
@@ -347,16 +345,16 @@ void FixIntegrationSpin::initial_integrate(int vflag)
    setup pre_neighbor()
 ---------------------------------------------------------------------- */
 
-void FixIntegrationSpin::setup_pre_neighbor()
+void FixNVESpin::setup_pre_neighbor()
 {
   pre_neighbor();
 }
 
 /* ---------------------------------------------------------------------- 
-   store in two linked lists the advance order of the spins (mpi)
+   store in two linked lists the advance order of the spins (sectoring)
 ---------------------------------------------------------------------- */
 
-void FixIntegrationSpin::pre_neighbor()
+void FixNVESpin::pre_neighbor()
 {
   double **x = atom->x;	
   int nlocal = atom->nlocal;
@@ -387,10 +385,10 @@ void FixIntegrationSpin::pre_neighbor()
 }
 
 /* ---------------------------------------------------------------------- 
-   compute the magnetic force for the spin ii
+   compute the magnetic torque for the spin ii
 ---------------------------------------------------------------------- */
 
-void FixIntegrationSpin::ComputeInteractionsSpin(int ii)
+void FixNVESpin::ComputeInteractionsSpin(int ii)
 {
   const int nlocal = atom->nlocal;
   double xi[3], rij[3], eij[3];
@@ -480,9 +478,6 @@ void FixIntegrationSpin::ComputeInteractionsSpin(int ii)
       temp_cut = lockpairspinsocdmi->cut_soc_dmi[itype][jtype];
       cut_2 = temp_cut*temp_cut;
       if (rsq <= cut_2) {
-	eij[0] = rij[0]*inorm;
-	eij[1] = rij[1]*inorm;
-	eij[2] = rij[2]*inorm;
 	lockpairspinsocdmi->compute_soc_dmi(i,j,fmi,spi,spj);
       }
     }
@@ -500,12 +495,12 @@ void FixIntegrationSpin::ComputeInteractionsSpin(int ii)
 
   }  
   
-  if (magforce_flag) {		// mag. forces
+  if (magprecession_flag) {		// magnetic precession
     if (zeeman_flag) {		// zeeman
-      lockforcespin->compute_zeeman(i,fmi);
+      lockprecessionspin->compute_zeeman(i,fmi);
     }
     if (aniso_flag) {		// aniso
-      lockforcespin->compute_anisotropy(i,spi,fmi);
+      lockprecessionspin->compute_anisotropy(i,spi,fmi);
     }
   }
 
@@ -530,7 +525,7 @@ void FixIntegrationSpin::ComputeInteractionsSpin(int ii)
    divide each domain into sectors
 ---------------------------------------------------------------------- */
 
-void FixIntegrationSpin::sectoring()
+void FixNVESpin::sectoring()
 {
   int sec[3];
   double sublo[3],subhi[3];
@@ -560,7 +555,7 @@ void FixIntegrationSpin::sectoring()
 
   nsectors = sec[0]*sec[1]*sec[2];
 
-  if (mpi_flag == 1 && nsectors != 8) 
+  if (sector_flag == 1 && nsectors != 8) 
     error->all(FLERR,"Illegal sectoring operation");
 
   rsec[0] = rsx;
@@ -576,7 +571,7 @@ void FixIntegrationSpin::sectoring()
    define sector for an atom at a position x[i]
 ---------------------------------------------------------------------- */
 
-int FixIntegrationSpin::coords2sector(double *x)
+int FixNVESpin::coords2sector(double *x)
 {
   int nseci;
   int seci[3];
@@ -596,10 +591,10 @@ int FixIntegrationSpin::coords2sector(double *x)
 }
 
 /* ---------------------------------------------------------------------- 
-   advance the spin i of a timestep dtl
+   advance the spin i of a timestep dts
 ---------------------------------------------------------------------- */
 
-void FixIntegrationSpin::AdvanceSingleSpin(int i, double dtl)
+void FixNVESpin::AdvanceSingleSpin(int i)
 {
   int j=0;
   int *sametag = atom->sametag;
@@ -613,15 +608,15 @@ void FixIntegrationSpin::AdvanceSingleSpin(int i, double dtl)
   fm2 = (fm[i][0]*fm[i][0])+(fm[i][1]*fm[i][1])+(fm[i][2]*fm[i][2]);
   fmsq = sqrt(fm2);
   energy = (sp[i][0]*fm[i][0])+(sp[i][1]*fm[i][1])+(sp[i][2]*fm[i][2]);
-  dts2 = dtl*dtl;		
+  dts2 = dts*dts;		
 
   cp[0] = fm[i][1]*sp[i][2]-fm[i][2]*sp[i][1];
   cp[1] = fm[i][2]*sp[i][0]-fm[i][0]*sp[i][2];
   cp[2] = fm[i][0]*sp[i][1]-fm[i][1]*sp[i][0];
 
-  g[0] = sp[i][0]+cp[0]*dtl;
-  g[1] = sp[i][1]+cp[1]*dtl;
-  g[2] = sp[i][2]+cp[2]*dtl;
+  g[0] = sp[i][0]+cp[0]*dts;
+  g[1] = sp[i][1]+cp[1]*dts;
+  g[2] = sp[i][2]+cp[2]*dts;
 			  
   g[0] += (fm[i][0]*energy-0.5*sp[i][0]*fm2)*0.5*dts2;
   g[1] += (fm[i][1]*energy-0.5*sp[i][1]*fm2)*0.5*dts2;
@@ -645,7 +640,7 @@ void FixIntegrationSpin::AdvanceSingleSpin(int i, double dtl)
 
   // comm. sp[i] to atoms with same tag (for serial algo)
 
-  if (mpi_flag == 0) {
+  if (sector_flag == 0) {
     if (sametag[i] >= 0) {
       j = sametag[i];
       while (j >= 0) {
@@ -661,7 +656,7 @@ void FixIntegrationSpin::AdvanceSingleSpin(int i, double dtl)
 
 /* ---------------------------------------------------------------------- */
 
-void FixIntegrationSpin::final_integrate()
+void FixNVESpin::final_integrate()
 {	
   double dtfm,msq,scale,fm2,fmsq,energy;
   double cp[3],g[3]; 	
@@ -669,8 +664,6 @@ void FixIntegrationSpin::final_integrate()
   double **x = atom->x;	
   double **v = atom->v;
   double **f = atom->f;
-  double **sp = atom->sp;
-  double **fm = atom->fm;
   double *rmass = atom->rmass;
   double *mass = atom->mass;  
   int nlocal = atom->nlocal;

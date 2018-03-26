@@ -31,7 +31,6 @@ class FixLangevinSpin : public Fix {
   int setmask();
   void init();
   void setup(int);
-//  virtual void post_force(int);
   void post_force_respa(int, int, int);
   void add_tdamping(double spi[3], double fmi[3]);	// add transverse damping
   void add_temperature(double fmi[3]);			// add temperature

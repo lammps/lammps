@@ -28,9 +28,9 @@ pair_coeff 	* * pair/spin/me me 4.5 0.000109 1.0 1.0 1.0
 neighbor 	0.1 bin
 neigh_modify 	every 10 check yes delay 20
 
-fix 		1 all force/spin anisotropy 0.0000033 0.0 0.0 1.0
+fix 		1 all precession/spin anisotropy 0.0000033 0.0 0.0 1.0
 fix 		2 all langevin/spin 0.0 0.1 21
-fix 		3 all integration/spin lattice no
+fix 		3 all nve/spin lattice yes
 
 timestep	0.0002
 
@@ -43,12 +43,12 @@ variable 	magz	 equal c_out_mag[3]
 variable 	magnorm	 equal c_out_mag[4]
 variable 	emag	 equal c_out_mag[5]
 variable 	tmag	 equal c_out_mag[6]
-variable 	mag_force equal f_1
 
 thermo_style    custom step time v_magnorm v_emag temp etotal
 thermo          50
 
-dump 		1 all custom 50 dump_spin_BFO.lammpstrj type x y z spx spy spz
+compute outsp all property/atom spx spy spz sp fmx fmy fmz
+dump 100 all custom 1 dump_bfo.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3]
 
 run 		5000
 

@@ -93,7 +93,6 @@ void PairSpinSocNeel::compute(int eflag, int vflag)
   double **x = atom->x;
   double **f = atom->f;
   double **fm = atom->fm;
-  double *mumag = atom->mumag;
   double **sp = atom->sp;	
   int *type = atom->type;  
   int nlocal = atom->nlocal;  
@@ -502,8 +501,8 @@ void PairSpinSocNeel::coeff(int narg, char **arg)
 
 void PairSpinSocNeel::init_style()
 {
-  if (!atom->sp_flag || !atom->mumag_flag)
-    error->all(FLERR,"Pair spin requires atom attributes sp, mumag");
+  if (!atom->sp_flag)
+    error->all(FLERR,"Pair spin requires atom/spin style");
 
   neighbor->request(this,instance_me);
 

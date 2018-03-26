@@ -767,14 +767,11 @@ void Set::set(int keyword)
 
     else if (keyword == SPIN) {
       double **sp = atom->sp;
-      double *mumag = atom->mumag;      
-      double sp_norm = sqrt(xvalue*xvalue+yvalue*yvalue+zvalue*zvalue);
-      sp[i][0] = xvalue/sp_norm;
-      sp[i][1] = yvalue/sp_norm;
-      sp[i][2] = zvalue/sp_norm;
-      sp[i][3] = sqrt(sp[i][0]*sp[i][0] + sp[i][1]*sp[i][1] +
-                      sp[i][2]*sp[i][2]); //Should be 1 for atomic spins
-      mumag[i] = dvalue;
+      double inorm = 1.0/sqrt(xvalue*xvalue+yvalue*yvalue+zvalue*zvalue);
+      sp[i][0] = inorm*xvalue;
+      sp[i][1] = inorm*yvalue;
+      sp[i][2] = inorm*zvalue;
+      sp[i][3] = dvalue;
     }
 
     // set quaternion orientation of ellipsoid or tri or body particle
@@ -941,7 +938,6 @@ void Set::setrandom(int keyword)
 
   } else if (keyword == SPIN_RANDOM) {
     double **sp = atom->sp;
-    double *mumag = atom->mumag;
     int nlocal = atom->nlocal;
 
     double sp_sq,scale;
@@ -958,8 +954,7 @@ void Set::setrandom(int keyword)
           sp[i][0] *= scale;
           sp[i][1] *= scale;
           sp[i][2] *= scale;
-          sp[i][3] = sqrt(sp_sq);
-          mumag[i] = dvalue;
+          sp[i][3] = dvalue;
           count++;
         }
 
@@ -974,8 +969,7 @@ void Set::setrandom(int keyword)
           scale = 1.0/sqrt(sp_sq);
           sp[i][0] *= scale;
           sp[i][1] *= scale;
-          sp[i][3] = sqrt(sp_sq);
-          mumag[i] = dvalue;
+          sp[i][3] = dvalue;
           count++;
         }
     }

@@ -75,7 +75,7 @@ void Verlet::init()
   torqueflag = extraflag = 0;
   if (atom->torque_flag) torqueflag = 1;
   if (atom->avec->forceclearflag) extraflag = 1;
-  if (atom->mumag_flag) extraflag = 1;
+  if (atom->sp_flag) extraflag = 1;
 
   // orthogonal vs triclinic simulation box
 

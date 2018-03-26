@@ -1,31 +1,30 @@
-# fcc nickel in a 3d periodic box
+# fcc cobalt in a 3d periodic box
 
 clear 
 units 		metal
 atom_style 	spin
 
 dimension 	3
-boundary 	p p p
+boundary	p p p
 
 # necessary for the serial algorithm (sametag)
 atom_modify 	map array 
 
-lattice 	fcc 3.524
+lattice 	fcc 3.54
 region 		box block 0.0 5.0 0.0 5.0 0.0 5.0
 create_box 	1 box
 create_atoms 	1 box
 
 # setting mass, mag. moments, and interactions for cobalt
 
-mass		1 58.69
+mass		1 58.93
 
-set 		group all spin/random 31 0.63
-#set 		group all spin 0.63 0.0 0.0 1.0 
+set 		group all spin/random 31 1.72
 velocity 	all create 100 4928459 rot yes dist gaussian
 
 pair_style 	hybrid/overlay eam/alloy pair/spin/exchange 4.0
-pair_coeff 	* * eam/alloy ../examples/SPIN/nickel/Ni99.eam.alloy Ni
-pair_coeff 	* * pair/spin/exchange exchange 4.0 0.50 0.2280246862 1.229983475
+pair_coeff 	* * eam/alloy ../examples/SPIN/cobalt_fcc/Co_PurjaPun_2012.eam.alloy Co
+pair_coeff 	* * pair/spin/exchange exchange 4.0 0.0446928 0.003496 1.4885 
 
 neighbor 	0.1 bin
 neigh_modify 	every 10 check yes delay 20
@@ -48,11 +47,12 @@ variable 	magnorm   equal c_out_mag[4]
 variable 	emag      equal c_out_mag[5]
 variable 	tmag      equal c_out_mag[6]
 
-thermo_style    custom step time v_magnorm v_emag temp v_tmag etotal
-thermo          50
+thermo_style    custom step time v_magnorm v_emag temp etotal
+thermo          10
 
 compute 	outsp all property/atom spx spy spz sp fmx fmy fmz
-dump 		50 all custom 1 dump.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3] c_outsp[4] c_outsp[5] c_outsp[6] c_outsp[7]
+dump 		100 all custom 1 dump.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3] c_outsp[4] c_outsp[5] c_outsp[6] c_outsp[7]
 
-run 		2000
+run 		10000
+write_restart 	restart_fcc_cobalt.equil
 

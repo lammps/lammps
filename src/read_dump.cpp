@@ -698,7 +698,7 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
   if (purgeflag && (replaceflag || trimflag))
     error->all(FLERR,"If read_dump purges it cannot replace or trim");
   if (addflag == KEEPADD && atom->tag_enable == 0)
-    error->all(FLERR,"Read_dump cannot add keep with atom IDs disabled");
+    error->all(FLERR,"Read_dump cannot use 'add keep' without atom IDs");
 
   return narg-iarg;
 }
@@ -847,7 +847,7 @@ void ReadDump::process_atoms(int n)
   int tflag = 0;
   for (ifield = 0; ifield < nfield; ifield++)
     if (fieldtype[ifield] == TYPE) tflag = 1;
-  if (!tflag) 
+  if (!tflag)
     error->all(FLERR,"Cannot add atoms if dump file does not store atom type");
 
   MPI_Allreduce(ucflag,ucflag_all,n,MPI_INT,MPI_SUM,world);
@@ -905,7 +905,7 @@ void ReadDump::process_atoms(int n)
     for (ifield = 0; ifield < nfield; ifield++) {
       switch (fieldtype[ifield]) {
       case ID:
-        if (addflag == KEEPADD) 
+        if (addflag == KEEPADD)
           tag[m] = static_cast<tagint> (fields[i][ifield]);
         break;
       case VX:

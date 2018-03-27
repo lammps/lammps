@@ -78,6 +78,10 @@ class Dump : protected Pointers {
   int sortcolm1;             // sortcol - 1
   int sortorder;             // ASCEND or DESCEND
 
+  int refreshflag;           // 1 if dump_modify refresh specified
+  char *refresh;             // compute ID to invoke refresh() on
+  int irefresh;              // index of compute
+
   char boundstr[9];          // encoding of boundary flags
 
   char *format;              // format string for the file write

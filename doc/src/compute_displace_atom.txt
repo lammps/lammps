@@ -12,18 +12,23 @@ compute displace/atom command :h3
 
 compute ID group-ID displace/atom :pre
 
-ID, group-ID are documented in "compute"_compute.html command
-displace/atom = style name of this compute command :ul
+ID, group-ID are documented in "compute"_compute.html command :ulb,l
+displace/atom = style name of this compute command :l
+zero or more keyword/arg pairs may be appended :l
+keyword = {refresh} :l
+  {replace} arg = per-atom variable ID :pre
+:ule
 
 [Examples:]
 
-compute 1 all displace/atom :pre
+compute 1 all displace/atom
+compute 1 all displace/atom refresh myVar :pre
 
 [Description:]
 
 Define a computation that calculates the current displacement of each
-atom in the group from its original coordinates, including all effects
-due to atoms passing thru periodic boundaries.
+atom in the group from its original (reference) coordinates, including
+all effects due to atoms passing thru periodic boundaries.
 
 A vector of four quantities per atom is calculated by this compute.
 The first 3 elements of the vector are the dx,dy,dz displacements.
@@ -49,6 +54,60 @@ This is so that the fix this compute creates to store per-atom
 quantities will also have the same ID, and thus be initialized
 correctly with time=0 atom coordinates from the restart file.
 
+:line
+
+The {refresh} option can be used in conjuction with the "dump_modify
+refresh" command to generate incremental dump files.
+
+The definition and motivation of an incremental dump file is as
+follows.  Instead of outputting all atoms at each snapshot (with some
+associated values), you may only wish to output the subset of atoms
+with a value that has changed in some way compared to the value the
+last time that atom was output.  In some scenarios this can result in
+a dramatically smaller dump file.  If desired, by post-processing the
+sequence of snapshots, the values for all atoms at all timesteps can
+be inferred.
+
+A concrete example using this compute, is a simulation of atom
+diffusion in a solid, represented as atoms on a lattice.  Diffusive
+hops are rare.  Imagine that when a hop occurs an atom moves more than
+a distance {Dhop}.  For any snapshot we only want to output atoms that
+have hopped since the last snapshot.  This can be accomplished with
+something like the following commands:
+
+variable        Dhop equal 0.6
+variable        check atom "c_dsp[4] > v_Dhop"
+compute         dsp all displace/atom refresh check
+dump            1 all custom 20 tmp.dump id type x y z
+dump_modify     1 append yes thresh c_dsp[4] > ${Dhop} refresh c_dsp :pre
+
+The "dump_modify thresh"_dump_modify.html command will cause only
+atoms that have displaced more than 0.6 Angstroms to be output on a
+given snapshot (assuming metal units).  The dump_modify {refresh}
+option triggers a call to this compute at the end of every dump.
+
+The argument for compute displace/atom refresh is the ID of an
+"atom-style variable"_variable.html which calculates a Boolean value
+(0 or 1) based on the same criterion used by dump_modify thresh.  What
+this compute will then do is evaluate the atom-style variable and for
+each atom that returns 1 (true), it will update the original
+(reference) coordinates of the atom, which are stored by this compute.
+
+The effect of these commands is that a particular atom will only be
+output in the dump file on shapshots following a diffusive hop.  It
+will not be output again until it performs another hop.
+
+Note that the first snapshot (geneated by the first run after the dump
+and this compute are defined), no atoms will be typically be output.
+That is because the initial displacement for all atoms is 0.0.  If an
+initial dump snapshot is desired, containing the initial reference
+position of all atoms, a command like this can be used before the
+first simulation is performed
+
+write_dump      all custom tmp.dump.initial id type x y z :pre
+
+:line
+
 [Output info:]
 
 This compute calculates a per-atom array with 4 columns, which can be
@@ -58,6 +117,10 @@ a compute as input.  See "Section
 options.
 
 The per-atom array values will be in distance "units"_units.html.
+
+This compute supports the {refresh} option as explained above, for use
+in conjunction with "dump_modify refresh"_dump_modify.html to generate
+incremental dump files.
 
 [Restrictions:] none
 

@@ -299,10 +299,10 @@ void Balance::command(int narg, char **arg)
     if (comm->layout == LAYOUT_UNIFORM) {
       if (xflag == USER || yflag == USER || zflag == USER)
         comm->layout = LAYOUT_NONUNIFORM;
-    } else if (comm->style == LAYOUT_NONUNIFORM) {
+    } else if (comm->layout == LAYOUT_NONUNIFORM) {
       if (xflag == UNIFORM && yflag == UNIFORM && zflag == UNIFORM)
         comm->layout = LAYOUT_UNIFORM;
-    } else if (comm->style == LAYOUT_TILED) {
+    } else if (comm->layout == LAYOUT_TILED) {
       if (xflag == UNIFORM && yflag == UNIFORM && zflag == UNIFORM)
         comm->layout = LAYOUT_UNIFORM;
       else comm->layout = LAYOUT_NONUNIFORM;

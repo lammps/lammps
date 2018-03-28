@@ -22,13 +22,13 @@
 #include "force.h"
 #include "group.h"
 #include "region.h"
+#include "modify.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "random_mars.h"
 #include "memory.h"
 #include "error.h"
-#include "modify.h"
 
 #include <map>
 
@@ -68,7 +68,8 @@ void DeleteAtoms::command(int narg, char **arg)
 
   if (allflag) {
     int igroup = group->find("all");
-    if ((igroup >= 0) && modify->check_rigid_group_overlap(group->bitmask[igroup]))
+    if ((igroup >= 0) && 
+        modify->check_rigid_group_overlap(group->bitmask[igroup]))
       error->warning(FLERR,"Attempting to delete atoms in rigid bodies");
   } else {
     if (modify->check_rigid_list_overlap(dlist))
@@ -105,7 +106,7 @@ void DeleteAtoms::command(int narg, char **arg)
     memory->destroy(dlist);
   }
 
-  // if non-molecular system and compress flag set,
+  // if non-molecular system and compress flag set:
   // reset atom tags to be contiguous
   // set all atom IDs to 0, call tag_extend()
 

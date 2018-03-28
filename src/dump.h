@@ -77,6 +77,8 @@ class Dump : protected Pointers {
   int sortcol;               // 0 to sort on ID, 1-N on columns
   int sortcolm1;             // sortcol - 1
   int sortorder;             // ASCEND or DESCEND
+  int delay_flag;            // 1 if delay output until delaystep
+  bigint delaystep;
 
   char boundstr[9];          // encoding of boundary flags
 

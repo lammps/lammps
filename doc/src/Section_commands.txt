@@ -497,6 +497,7 @@ in the command's documentation.
 "region"_region.html,
 "replicate"_replicate.html,
 "rerun"_rerun.html,
+"reset_ids"_reset_ids.html,
 "reset_timestep"_reset_timestep.html,
 "restart"_restart.html,
 "run"_run.html,

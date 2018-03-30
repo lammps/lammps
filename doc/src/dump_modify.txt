@@ -15,11 +15,13 @@ dump_modify dump-ID keyword values ... :pre
 dump-ID = ID of dump to modify :ulb,l
 one or more keyword/value pairs may be appended :l
 these keywords apply to various dump styles :l
-keyword = {append} or {at} or {buffer} or {element} or {every} or {fileper} or {first} or {flush} or {format} or {image} or {label} or {nfile} or {pad} or {precision} or {region} or {scale} or {sort} or {thresh} or {unwrap} :l
+keyword = {append} or {at} or {buffer} or {delay} or {element} or {every} or {fileper} or {first} or {flush} or {format} or {image} or {label} or {nfile} or {pad} or {precision} or {region} or {scale} or {sort} or {thresh} or {unwrap} :l
   {append} arg = {yes} or {no}
   {at} arg = N
     N = index of frame written upon first dump
   {buffer} arg = {yes} or {no}
+  {delay} arg = Dstep
+    Dstep = delay output until this timestep
   {element} args = E1 E2 ... EN, where N = # of atom types
     E1,...,EN = element name, e.g. C or Fe or Ga
   {every} arg = N
@@ -172,6 +174,14 @@ The buffering mode is typically faster since each processor does the
 relatively expensive task of formatting the output for its own atoms.
 However it requires about twice the memory (per processor) for the
 extra buffering.
+
+:line
+
+The {delay} keyword applies to all dump styles.  No snapshots will be
+output until the specified {Dstep} timestep or later.  Specifying
+{Dstep} < 0 is the same as turning off the delay setting.  This is a
+way to turn off unwanted output early in a simulation, for example,
+during an equilibration phase.
 
 :line
 
@@ -460,8 +470,11 @@ to respond to the call from the dump command, and update the
 appropriate reference positions.  This is done be defining an
 "atom-style variable"_variable.html, {check} in this example, which
 calculates a Boolean value (0 or 1) for each atom, based on the same
-criterion used by dump_modify thresh.  See the "compute
-displace/atom"_compute_displace_atom.html command for more details.
+criterion used by dump_modify thresh.  
+
+See the "compute displace/atom"_compute_displace_atom.html command for
+more details, including an example of how to produce output that
+includes an initial snapshot with the reference position of all atoms.
 
 Note that only computes with a {refresh} option will work with
 dump_modify refresh.  See individual compute doc pages for details.

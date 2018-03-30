@@ -15,8 +15,9 @@ compute ID group-ID displace/atom :pre
 ID, group-ID are documented in "compute"_compute.html command :ulb,l
 displace/atom = style name of this compute command :l
 zero or more keyword/arg pairs may be appended :l
-keyword = {refresh} :l
-  {refresh} arg = per-atom variable ID :pre
+keyword = {refresh} :
+  {replace} arg = name of per-atom variable :pre
+
 :ule
 
 [Examples:]
@@ -75,36 +76,41 @@ a distance {Dhop}.  For any snapshot we only want to output atoms that
 have hopped since the last snapshot.  This can be accomplished with
 something like the following commands:
 
+write_dump      all custom tmp.dump id type x y z    # see comment below :pre
+
 variable        Dhop equal 0.6
 variable        check atom "c_dsp[4] > v_Dhop"
 compute         dsp all displace/atom refresh check
-dump            1 all custom 20 tmp.dump id type x y z
-dump_modify     1 append yes thresh c_dsp[4] > ${Dhop} refresh c_dsp :pre
+dump            1 all custom 100 tmp.dump id type x y z
+dump_modify     1 append yes thresh c_dsp[4] > ${Dhop} &
+                refresh c_dsp delay 100 :pre
 
-The "dump_modify thresh"_dump_modify.html command will cause only
-atoms that have displaced more than 0.6 Angstroms to be output on a
-given snapshot (assuming metal units).  The dump_modify {refresh}
-option triggers a call to this compute at the end of every dump.
+The "dump_modify thresh"_dump_modify.html command will only ouptut
+atoms that have displaced more than 0.6 Angstroms on each snapshot
+(assuming metal units).  The dump_modify {refresh} option triggers a
+call to this compute at the end of every dump.
 
-The argument for compute displace/atom refresh is the ID of an
-"atom-style variable"_variable.html which calculates a Boolean value
-(0 or 1) based on the same criterion used by dump_modify thresh.  What
-this compute will then do is evaluate the atom-style variable and for
-each atom that returns 1 (true), it will update the original
-(reference) coordinates of the atom, which are stored by this compute.
+The {refresh} argument for this compute is the ID of an "atom-style
+variable"_variable.html which calculates a Boolean value (0 or 1)
+based on the same criterion used by dump_modify thresh.  This compute
+evaluates the atom-style variable.  For each atom that returns 1
+(true), the original (reference) coordinates of the atom (stored by
+this compute) are updated.
 
 The effect of these commands is that a particular atom will only be
-output in the dump file on shapshots following a diffusive hop.  It
-will not be output again until it performs another hop.
+output in the dump file on the snapshot after it makes a diffusive
+hop.  It will not be output again until it makes another hop.
 
-Note that the first snapshot (geneated by the first run after the dump
-and this compute are defined), no atoms will be typically be output.
-That is because the initial displacement for all atoms is 0.0.  If an
-initial dump snapshot is desired, containing the initial reference
-position of all atoms, a command like this can be used before the
-first simulation is performed
-
-write_dump      all custom tmp.dump.initial id type x y z :pre
+Note that in the first snapshot of a subsequent run, no atoms will be
+typically be output.  That is because the initial displacement for all
+atoms is 0.0.  If an initial dump snapshot is desired, containing the
+initial reference positions of all atoms, one way to do this is
+illustrated above.  An initial write_dump command can be used before
+the first run.  It will contain the positions of all the atoms,
+Options in the "dump_modify"_dump_modify.html command above will
+append new output to that same file and delay the output until a later
+timestep.  The {delay} setting avoids a second time = 0 snapshot which
+would be empty.
 
 :line
 

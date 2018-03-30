@@ -89,6 +89,7 @@ Dump::Dump(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   buffer_flag = 0;
   padflag = 0;
   pbcflag = 0;
+  delay_flag = 0;
 
   maxbuf = maxids = maxsort = maxproc = 0;
   buf = bufsort = NULL;
@@ -319,6 +320,10 @@ void Dump::write()
 {
   imageint *imagehold;
   double **xhold,**vhold;
+
+  // if timestep < delaystep, just return
+
+  if (delay_flag && update->ntimestep < delaystep) return;
 
   // if file per timestep, open new file
 
@@ -895,6 +900,13 @@ void Dump::modify_params(int narg, char **arg)
       else error->all(FLERR,"Illegal dump_modify command");
       if (buffer_flag && buffer_allow == 0)
         error->all(FLERR,"Dump_modify buffer yes not allowed for this style");
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"delay") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      delaystep = force->bnumeric(FLERR,arg[iarg+1]);
+      if (delaystep >= 0) delay_flag = 1;
+      else delay_flag = 0;
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"every") == 0) {

@@ -89,6 +89,7 @@ read_restart.html
 region.html
 replicate.html
 rerun.html
+reset_ids.html
 reset_timestep.html
 restart.html
 run.html

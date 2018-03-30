@@ -577,13 +577,14 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
   fieldlabel = new char*[narg+2];
 
   // add id and type fields as needed
-  // scan ahead to see if "add yes" keyword/value is used
+  // scan ahead to see if "add yes/keep" keyword/value is used
   // requires extra "type" field from from dump file
 
   int iarg;
   for (iarg = 0; iarg < narg; iarg++)
     if (strcmp(arg[iarg],"add") == 0)
-      if (iarg < narg-1 && strcmp(arg[iarg+1],"yes") == 0) break;
+      if (iarg < narg-1 && (strcmp(arg[iarg+1],"yes") == 0 ||
+                            strcmp(arg[iarg+1],"keep") == 0)) break;
 
   nfield = 0;
   fieldtype[nfield++] = ID;

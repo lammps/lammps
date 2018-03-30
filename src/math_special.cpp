@@ -537,10 +537,8 @@ double MathSpecial::exp2_x86(double x)
 
 double MathSpecial::fm_exp(double x)
 {
-#if defined(__BYTE_ORDER__)
-#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+#if defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
     return exp2_x86(FM_DOUBLE_LOG2OFE * x);
-#endif
 #else
     return ::exp(x);
 #endif

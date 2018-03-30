@@ -80,6 +80,10 @@ class Dump : protected Pointers {
   int delay_flag;            // 1 if delay output until delaystep
   bigint delaystep;
 
+  int refreshflag;           // 1 if dump_modify refresh specified
+  char *refresh;             // compute ID to invoke refresh() on
+  int irefresh;              // index of compute
+
   char boundstr[9];          // encoding of boundary flags
 
   char *format;              // format string for the file write

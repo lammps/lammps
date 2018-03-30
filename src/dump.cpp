@@ -22,11 +22,12 @@
 #include "domain.h"
 #include "group.h"
 #include "output.h"
-#include "memory.h"
-#include "error.h"
 #include "force.h"
 #include "modify.h"
 #include "fix.h"
+#include "compute.h"
+#include "memory.h"
+#include "error.h"
 
 using namespace LAMMPS_NS;
 
@@ -77,6 +78,9 @@ Dump::Dump(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   format_int_user = NULL;
   format_bigint_user = NULL;
   format_column_user = NULL;
+
+  refreshflag = 0;
+  refresh = NULL;
 
   clearstep = 0;
   sort_flag = 0;
@@ -160,6 +164,8 @@ Dump::~Dump()
   delete [] format_float_user;
   delete [] format_int_user;
   delete [] format_bigint_user;
+
+  delete [] refresh;
 
   // format_column_user is deallocated by child classes that use it
 
@@ -276,6 +282,16 @@ void Dump::init()
         ntotal_reorder = isize;
       }
     }
+  }
+
+  // search for refresh compute specified by dump_modify refresh
+
+  if (refreshflag) {
+    int icompute;
+    for (icompute = 0; icompute < modify->ncompute; icompute++)
+      if (strcmp(refresh,modify->compute[icompute]->id) == 0) break;
+    if (icompute < modify->ncompute) irefresh = icompute;
+    else error->all(FLERR,"Dump could not find refresh compute ID");
   }
 
   // preallocation for PBC copies if requested
@@ -482,6 +498,11 @@ void Dump::write()
     atom->v = vhold;
     atom->image = imagehold;
   }
+
+  // trigger post-dump refresh by specified compute
+  // currently used for incremental dump files
+
+  if (refreshflag) modify->compute[irefresh]->refresh();
 
   // if file per timestep, close file if I am filewriter
 

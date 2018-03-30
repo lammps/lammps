@@ -15,8 +15,9 @@ compute ID group-ID displace/atom :pre
 ID, group-ID are documented in "compute"_compute.html command :ulb,l
 displace/atom = style name of this compute command :l
 zero or more keyword/arg pairs may be appended :l
-keyword = {refresh} :l
-  {replace} arg = per-atom variable ID :pre
+keyword = {refresh} :
+  {replace} arg = name of per-atom variable :pre
+
 :ule
 
 [Examples:]

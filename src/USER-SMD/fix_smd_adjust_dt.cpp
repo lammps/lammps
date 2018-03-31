@@ -144,14 +144,14 @@ void FixSMDTlsphDtReset::end_of_step() {
 //      double **f = atom->f;
 //      double *rmass = atom->rmass;
 //      double *radius = atom->radius;
-//      int *mask = atom->mask;
+//      int **mask = atom->mask;
 //      int nlocal = atom->nlocal;
 //      double dtv, dtf, dtsq;
 //      double vsq, fsq, massinv, xmax;
 //      double delx, dely, delz, delr;
 
 //      for (int i = 0; i < nlocal; i++) {
-//              if (mask[i] & groupbit) {
+//              if (mask[i][groupbin] & groupbit) {
 //                      xmax = 0.005 * radius[i];
 //                      massinv = 1.0 / rmass[i];
 //                      vsq = v[i][0] * v[i][0] + v[i][1] * v[i][1] + v[i][2] * v[i][2];

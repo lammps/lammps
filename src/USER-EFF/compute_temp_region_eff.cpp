@@ -118,7 +118,7 @@ double ComputeTempRegionEff::compute_scalar()
   double *mass = atom->mass;
   int *spin = atom->spin;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   double mefactor = domain->dimension/4.0;
 
@@ -131,7 +131,7 @@ double ComputeTempRegionEff::compute_scalar()
 
   if (mass) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+      if (mask[i][groupbin] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
         count++;
         t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) *
           mass[type[i]];
@@ -153,7 +153,7 @@ double ComputeTempRegionEff::compute_scalar()
 
   int one = 0;
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+    if (mask[i][groupbin] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
       if (abs(spin[i])==1) one++;
     }
 
@@ -176,7 +176,7 @@ void ComputeTempRegionEff::compute_vector()
   double *mass = atom->mass;
   int *spin = atom->spin;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   double mefactor = domain->dimension/4.0;
 
@@ -187,7 +187,7 @@ void ComputeTempRegionEff::compute_vector()
   for (i = 0; i < 6; i++) t[i] = 0.0;
 
   for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+    if (mask[i][groupbin] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
       massone = mass[type[i]];
 
       t[0] += massone * v[i][0]*v[i][0];
@@ -234,7 +234,7 @@ void ComputeTempRegionEff::remove_bias_all()
 {
   double **x = atom->x;
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   if (atom->nmax > maxbias) {
@@ -246,7 +246,7 @@ void ComputeTempRegionEff::remove_bias_all()
   Region *region = domain->regions[iregion];
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       if (region->match(x[i][0],x[i][1],x[i][2]))
         vbiasall[i][0] = vbiasall[i][1] = vbiasall[i][2] = 0.0;
       else {
@@ -278,11 +278,11 @@ void ComputeTempRegionEff::restore_bias(int i, double *v)
 void ComputeTempRegionEff::restore_bias_all()
 {
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       v[i][0] += vbiasall[i][0];
       v[i][1] += vbiasall[i][1];
       v[i][2] += vbiasall[i][2];

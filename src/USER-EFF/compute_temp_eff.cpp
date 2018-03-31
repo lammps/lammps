@@ -72,12 +72,12 @@ void ComputeTempEff::dof_compute()
   dof -= extra_dof + fix_dof;
 
   int *spin = atom->spin;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   int one = 0;
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       if (abs(spin[i])==1) one++;
     }
   int nelectrons;
@@ -102,7 +102,7 @@ double ComputeTempEff::compute_scalar()
   double *mass = atom->mass;
   int *spin = atom->spin;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   double mefactor = domain->dimension/4.0;
 
@@ -110,7 +110,7 @@ double ComputeTempEff::compute_scalar()
 
   if (mass) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) *
           mass[type[i]];
         if (abs(spin[i])==1) t += mefactor*mass[type[i]]*ervel[i]*ervel[i];
@@ -139,7 +139,7 @@ void ComputeTempEff::compute_vector()
   double *mass = atom->mass;
   int *spin = atom->spin;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   double mefactor = domain->dimension/4.0;
 
@@ -147,7 +147,7 @@ void ComputeTempEff::compute_vector()
   for (i = 0; i < 6; i++) t[i] = 0.0;
 
   for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       massone = mass[type[i]];
       t[0] += massone * v[i][0]*v[i][0];
       t[1] += massone * v[i][1]*v[i][1];

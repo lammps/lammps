@@ -966,14 +966,15 @@ void Variable::compute_atom(int ivar, int igroup,
   }
 
   int groupbit = group->bitmask[igroup];
-  int *mask = atom->mask;
+  int groupbin = floor((float)igroup/(float)group->grp_per_bin);
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   if (style[ivar] == ATOM) {
     if (sumflag == 0) {
       int m = 0;
       for (int i = 0; i < nlocal; i++) {
-        if (mask[i] & groupbit) result[m] = eval_tree(tree,i);
+        if (mask[i][groupbin] & groupbit) result[m] = eval_tree(tree,i);
         else result[m] = 0.0;
         m += stride;
       }
@@ -981,7 +982,7 @@ void Variable::compute_atom(int ivar, int igroup,
     } else {
       int m = 0;
       for (int i = 0; i < nlocal; i++) {
-        if (mask[i] & groupbit) result[m] += eval_tree(tree,i);
+        if (mask[i][groupbin] & groupbit) result[m] += eval_tree(tree,i);
         m += stride;
       }
     }
@@ -990,7 +991,7 @@ void Variable::compute_atom(int ivar, int igroup,
     if (sumflag == 0) {
       int m = 0;
       for (int i = 0; i < nlocal; i++) {
-        if (mask[i] & groupbit) result[m] = vstore[i];
+        if (mask[i][groupbin] & groupbit) result[m] = vstore[i];
         else result[m] = 0.0;
         m += stride;
       }
@@ -998,7 +999,7 @@ void Variable::compute_atom(int ivar, int igroup,
     } else {
       int m = 0;
       for (int i = 0; i < nlocal; i++) {
-        if (mask[i] & groupbit) result[m] += vstore[i];
+        if (mask[i][groupbin] & groupbit) result[m] += vstore[i];
         m += stride;
       }
     }
@@ -3090,7 +3091,7 @@ double Variable::eval_tree(Tree *tree, int i)
   }
 
   if (tree->type == GMASK) {
-    if (atom->mask[i] & tree->ivalue1) return 1.0;
+    if (atom->mask[i][tree->ivalue1bin] & tree->ivalue1) return 1.0;
     else return 0.0;
   }
 
@@ -3102,7 +3103,7 @@ double Variable::eval_tree(Tree *tree, int i)
   }
 
   if (tree->type == GRMASK) {
-    if ((atom->mask[i] & tree->ivalue1) &&
+    if ((atom->mask[i][tree->ivalue1bin] & tree->ivalue1) &&
         (domain->regions[tree->ivalue2]->match(atom->x[i][0],
                                                atom->x[i][1],
                                                atom->x[i][2]))) return 1.0;
@@ -4170,6 +4171,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
     Tree *newtree = new Tree();
     newtree->type = GMASK;
     newtree->ivalue1 = group->bitmask[igroup];
+    newtree->ivalue1bin = floor((float)igroup/(float)group->grp_per_bin);
     newtree->first = newtree->second = NULL;
     newtree->nextra = 0;
     treestack[ntreestack++] = newtree;
@@ -4205,6 +4207,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
     Tree *newtree = new Tree();
     newtree->type = GRMASK;
     newtree->ivalue1 = group->bitmask[igroup];
+    newtree->ivalue1bin = floor((float)igroup/(float)group->grp_per_bin);
     newtree->ivalue2 = iregion;
     newtree->first = newtree->second = NULL;
     newtree->nextra = 0;

@@ -594,10 +594,11 @@ void Set::selection(int n)
     int igroup = group->find(id);
     if (igroup == -1) error->all(FLERR,"Could not find set group ID");
     int groupbit = group->bitmask[igroup];
+  int groupbin = floor((float)igroup/(float)group->grp_per_bin);
 
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     for (int i = 0; i < n; i++)
-      if (mask[i] & groupbit) select[i] = 1;
+      if (mask[i][groupbin] & groupbit) select[i] = 1;
       else select[i] = 0;
 
   } else if (style == REGION_SELECT) {

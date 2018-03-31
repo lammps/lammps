@@ -120,7 +120,7 @@ void ComputeContactAtom::compute_peratom()
 
   double **x = atom->x;
   double *radius = atom->radius;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
 
@@ -128,7 +128,7 @@ void ComputeContactAtom::compute_peratom()
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       xtmp = x[i][0];
       ytmp = x[i][1];
       ztmp = x[i][2];

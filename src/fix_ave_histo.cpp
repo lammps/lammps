@@ -900,12 +900,12 @@ void FixAveHisto::bin_vector(int n, double *values, int stride)
 
 void FixAveHisto::bin_atoms(double *values, int stride)
 {
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   int m = 0;
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) bin_one(values[m]);
+    if (mask[i][groupbin] & groupbit) bin_one(values[m]);
     m += stride;
   }
 }

@@ -181,7 +181,7 @@ int FixEOStableRX::setmask()
 void FixEOStableRX::setup(int vflag)
 {
   int nlocal = atom->nlocal;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   double *uCond = atom->uCond;
   double *uMech = atom->uMech;
   double *uChem = atom->uChem;
@@ -192,7 +192,7 @@ void FixEOStableRX::setup(int vflag)
 
   if(!this->restart_reset){
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit){
+      if (mask[i][groupbin] & groupbit){
         duChem = uCG[i] - uCGnew[i];
         uChem[i] += duChem;
         uCG[i] = 0.0;
@@ -204,7 +204,7 @@ void FixEOStableRX::setup(int vflag)
   comm->forward_comm_fix(this);
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       temperature_lookup(i,uCond[i]+uMech[i]+uChem[i],dpdTheta[i]);
 }
 
@@ -213,7 +213,7 @@ void FixEOStableRX::setup(int vflag)
 void FixEOStableRX::init()
 {
   int nlocal = atom->nlocal;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   double *uCond = atom->uCond;
   double *uMech = atom->uMech;
   double *uChem = atom->uChem;
@@ -222,11 +222,11 @@ void FixEOStableRX::init()
 
   if(this->restart_reset){
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
+      if (mask[i][groupbin] & groupbit)
         temperature_lookup(i,uCond[i]+uMech[i]+uChem[i],dpdTheta[i]);
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         if(dpdTheta[i] <= 0.0)
           error->one(FLERR,"Internal temperature <= zero");
         energy_lookup(i,dpdTheta[i],tmp);
@@ -243,14 +243,14 @@ void FixEOStableRX::init()
 void FixEOStableRX::post_integrate()
 {
   int nlocal = atom->nlocal;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   double *uCond = atom->uCond;
   double *uMech = atom->uMech;
   double *uChem = atom->uChem;
   double *dpdTheta = atom->dpdTheta;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit){
+    if (mask[i][groupbin] & groupbit){
       temperature_lookup(i,uCond[i]+uMech[i]+uChem[i],dpdTheta[i]);
       if(dpdTheta[i] <= 0.0)
         error->one(FLERR,"Internal temperature <= zero");
@@ -262,7 +262,7 @@ void FixEOStableRX::post_integrate()
 void FixEOStableRX::end_of_step()
 {
   int nlocal = atom->nlocal;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   double *uCond = atom->uCond;
   double *uMech = atom->uMech;
   double *uChem = atom->uChem;
@@ -275,7 +275,7 @@ void FixEOStableRX::end_of_step()
   comm->reverse_comm_fix(this);
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit){
+    if (mask[i][groupbin] & groupbit){
       duChem = uCG[i] - uCGnew[i];
       uChem[i] += duChem;
       uCG[i] = 0.0;
@@ -286,7 +286,7 @@ void FixEOStableRX::end_of_step()
   comm->forward_comm_fix(this);
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit){
+    if (mask[i][groupbin] & groupbit){
       temperature_lookup(i,uCond[i]+uMech[i]+uChem[i],dpdTheta[i]);
       if(dpdTheta[i] <= 0.0)
         error->one(FLERR,"Internal temperature <= zero");

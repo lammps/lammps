@@ -149,13 +149,13 @@ void DumpXYZ::pack(tagint *ids)
 
   tagint *tag = atom->tag;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
   m = n = 0;
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       buf[m++] = tag[i];
       buf[m++] = type[i];
       buf[m++] = x[i][0];

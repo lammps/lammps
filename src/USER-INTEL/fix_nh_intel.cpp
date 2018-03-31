@@ -79,7 +79,7 @@ void FixNHIntel::remap()
   double expfac;
 
   dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   double *h = domain->h;
 
@@ -117,7 +117,7 @@ void FixNHIntel::remap()
     #pragma simd
     #endif
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & dilate_group_bit) {
+      if (mask[i][dilate_group_bin] & dilate_group_bit) {
         const double d0 = x[i].x - b0;
         const double d1 = x[i].y - b1;
         const double d2 = x[i].z - b2;
@@ -293,7 +293,7 @@ void FixNHIntel::remap()
     #pragma simd
     #endif
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & dilate_group_bit) {
+      if (mask[i][dilate_group_bin] & dilate_group_bit) {
         x[i].x = h0*x[i].x + h5*x[i].y + h4*x[i].z + nb0;
         x[i].y = h1*x[i].y + h3*x[i].z + nb1;
         x[i].z = h2*x[i].z + nb2;
@@ -328,7 +328,7 @@ void FixNHIntel::reset_dt()
   if (tstat_flag)
     tdrag_factor = 1.0 - (update->dt * t_freq * drag / nc_tchain);
 
-  const int * const mask = atom->mask;
+  int ** mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst :
     atom->nlocal;
 
@@ -364,7 +364,7 @@ void FixNHIntel::reset_dt()
       const double * const rmass = atom->rmass;
       int n = 0;
       for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           _dtfm[n++] = dtf / rmass[i];
           _dtfm[n++] = dtf / rmass[i];
           _dtfm[n++] = dtf / rmass[i];
@@ -378,7 +378,7 @@ void FixNHIntel::reset_dt()
       const int * const type = atom->type;
       int n = 0;
       for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           _dtfm[n++] = dtf / mass[type[i]];
           _dtfm[n++] = dtf / mass[type[i]];
           _dtfm[n++] = dtf / mass[type[i]];
@@ -403,7 +403,7 @@ void FixNHIntel::nh_v_press()
   }
 
   dbl3_t * _noalias const v = (dbl3_t *)atom->v[0];
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
@@ -430,7 +430,7 @@ void FixNHIntel::nh_v_press()
     #pragma simd
     #endif
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         v[i].x *= f0;
         v[i].y *= f1;
         v[i].z *= f2;

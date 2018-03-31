@@ -35,7 +35,7 @@ class PPPMGPU : public PPPM {
   int timing_3d(int, double &);
   double memory_usage();
 
-  virtual void compute_group_group(int, int, int);
+  virtual void compute_group_group(int, int, int, int, int);
 
  protected:
   FFT_SCALAR ***density_brick_gpu, ***vd_brick;

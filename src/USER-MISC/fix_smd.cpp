@@ -95,6 +95,7 @@ FixSMD::FixSMD(LAMMPS *lmp, int narg, char **arg) :
     if (igroup2 == igroup)
       error->all(FLERR,"Two groups cannot be the same in fix smd couple");
     group2bit = group->bitmask[igroup2];
+    group2bin = floor((float)igroup2/(float)group->grp_per_bin);
 
     if (strcmp(arg[argoffs+2],"NULL") == 0) xflag = 0;
     else if (strcmp(arg[argoffs+2],"auto") == 0) styleflag |= SMD_AUTOX;
@@ -247,7 +248,7 @@ void FixSMD::smd_tether()
   double **x = atom->x;
   double **f = atom->f;
   imageint *image = atom->image;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
@@ -260,7 +261,7 @@ void FixSMD::smd_tether()
 
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         massfrac = rmass[i]/masstotal;
         f[i][0] -= fx*massfrac;
         f[i][1] -= fy*massfrac;
@@ -281,7 +282,7 @@ void FixSMD::smd_tether()
       }
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         massfrac = mass[type[i]]/masstotal;
         f[i][0] -= fx*massfrac;
         f[i][1] -= fy*massfrac;
@@ -377,7 +378,7 @@ void FixSMD::smd_couple()
   // f = -k*(r-r0)*mass/masstotal
 
   double **f = atom->f;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
@@ -389,7 +390,7 @@ void FixSMD::smd_couple()
   double massfrac;
   if (rmass) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         massfrac = rmass[i]/masstotal;
         f[i][0] += fx*massfrac;
         f[i][1] += fy*massfrac;
@@ -398,7 +399,7 @@ void FixSMD::smd_couple()
         ftotal[1] += fy*massfrac;
         ftotal[2] += fz*massfrac;
       }
-      if (mask[i] & group2bit) {
+      if (mask[i][group2bin] & group2bit) {
         massfrac = rmass[i]/masstotal2;
         f[i][0] -= fx*massfrac;
         f[i][1] -= fy*massfrac;
@@ -407,7 +408,7 @@ void FixSMD::smd_couple()
     }
   } else {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         massfrac = mass[type[i]]/masstotal;
         f[i][0] += fx*massfrac;
         f[i][1] += fy*massfrac;
@@ -416,7 +417,7 @@ void FixSMD::smd_couple()
         ftotal[1] += fy*massfrac;
         ftotal[2] += fz*massfrac;
       }
-      if (mask[i] & group2bit) {
+      if (mask[i][group2bin] & group2bit) {
         massfrac = mass[type[i]]/masstotal2;
         f[i][0] -= fx*massfrac;
         f[i][1] -= fy*massfrac;

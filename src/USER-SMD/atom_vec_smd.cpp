@@ -52,7 +52,7 @@ AtomVecSMD::AtomVecSMD(LAMMPS *lmp) :
         comm_f_only = 0;
         size_forward = 6; // variables that are changed by time integration
         size_reverse = 4; // f[3] + de
-        size_border = 31;
+        size_border = 30 + atom->ngroupbin;
         size_velocity = 6; // v + vest
         size_data_atom = 13; // 7 + 3 x0 + 3 x
         size_data_vel = 4;
@@ -167,7 +167,8 @@ void AtomVecSMD::grow_reset() {
 void AtomVecSMD::copy(int i, int j, int delflag) {
         tag[j] = tag[i];
         type[j] = type[i];
-        mask[j] = mask[i];
+        for (int k = 0; k < atom->ngroupbin; k++)
+    mask[j][k] = mask[i][k];
         image[j] = image[i];
         x[j][0] = x[i][0];
         x[j][1] = x[i][1];
@@ -288,7 +289,7 @@ int AtomVecSMD::pack_comm_vel(int n, int *list, double *buf, int pbc_flag, int *
                                 buf[m++] = x[j][2] + dz;
                                 buf[m++] = radius[j];
                                 buf[m++] = vfrac[j];
-                                if (mask[i] & deform_groupbit) {
+                                if (mask[i][deform_groupbin] & deform_groupbit) {
                                         buf[m++] = v[j][0] + dvx;
                                         buf[m++] = v[j][1] + dvy;
                                         buf[m++] = v[j][2] + dvz;
@@ -466,7 +467,8 @@ int AtomVecSMD::pack_border_vel(int n, int *list, double *buf, int pbc_flag, int
                         buf[m++] = x0[j][2]; // 6
                         buf[m++] = ubuf(tag[j]).d;
                         buf[m++] = ubuf(type[j]).d;
-                        buf[m++] = ubuf(mask[j]).d;
+                        for (int k = 0; k < atom->ngroupbin; k++)
+        buf[m++] = ubuf(mask[j][k]).d;
                         buf[m++] = ubuf(molecule[j]).d; // 10
                         buf[m++] = radius[j];
                         buf[m++] = rmass[j];
@@ -513,7 +515,8 @@ int AtomVecSMD::pack_border_vel(int n, int *list, double *buf, int pbc_flag, int
                                 buf[m++] = x0[j][2]; // 6
                                 buf[m++] = ubuf(tag[j]).d;
                                 buf[m++] = ubuf(type[j]).d;
-                                buf[m++] = ubuf(mask[j]).d;
+                                for (int k = 0; k < atom->ngroupbin; k++)
+        buf[m++] = ubuf(mask[j][k]).d;
                                 buf[m++] = ubuf(molecule[j]).d; // 10
                                 buf[m++] = radius[j];
                                 buf[m++] = rmass[j];
@@ -554,7 +557,8 @@ int AtomVecSMD::pack_border_vel(int n, int *list, double *buf, int pbc_flag, int
                                 buf[m++] = x0[j][2]; // 6
                                 buf[m++] = ubuf(tag[j]).d;
                                 buf[m++] = ubuf(type[j]).d;
-                                buf[m++] = ubuf(mask[j]).d;
+                                for (int k = 0; k < atom->ngroupbin; k++)
+        buf[m++] = ubuf(mask[j][k]).d;
                                 buf[m++] = ubuf(molecule[j]).d; // 10
                                 buf[m++] = radius[j];
                                 buf[m++] = rmass[j];
@@ -571,7 +575,7 @@ int AtomVecSMD::pack_border_vel(int n, int *list, double *buf, int pbc_flag, int
                                         buf[m++] = tlsph_stress[j][k];
                                 } // 31
 
-                                if (mask[i] & deform_groupbit) {
+                                if (mask[i][deform_groupbin] & deform_groupbit) {
                                         buf[m++] = v[j][0] + dvx;
                                         buf[m++] = v[j][1] + dvy;
                                         buf[m++] = v[j][2] + dvz; // 34
@@ -655,7 +659,8 @@ void AtomVecSMD::unpack_border_vel(int n, int first, double *buf) {
                 x0[i][2] = buf[m++]; // 6
                 tag[i] = (tagint) ubuf(buf[m++]).i;
                 type[i] = (int) ubuf(buf[m++]).i;
-                mask[i] = (int) ubuf(buf[m++]).i;
+                for (int k = 0; k < atom->ngroupbin; k++)
+      mask[i][k] = (int) ubuf(buf[m++]).i;
                 molecule[i] = (tagint) ubuf(buf[m++]).i; // 10
 
                 radius[i] = buf[m++];
@@ -734,7 +739,8 @@ int AtomVecSMD::pack_exchange(int i, double *buf) {
         buf[m++] = x0[i][2]; // 6
         buf[m++] = ubuf(tag[i]).d;
         buf[m++] = ubuf(type[i]).d;
-        buf[m++] = ubuf(mask[i]).d;
+        for (int k = 0; k < atom->ngroupbin; k++)
+    buf[m++] = ubuf(mask[i][k]).d;
         buf[m++] = ubuf(image[i]).d;
         buf[m++] = ubuf(molecule[i]).d; // 11
         buf[m++] = radius[i];
@@ -787,7 +793,8 @@ int AtomVecSMD::unpack_exchange(double *buf) {
         x0[nlocal][2] = buf[m++]; // 6
         tag[nlocal] = (tagint) ubuf(buf[m++]).i;
         type[nlocal] = (int) ubuf(buf[m++]).i;
-        mask[nlocal] = (int) ubuf(buf[m++]).i;
+        for (int k = 0; k < atom->ngroupbin; k++)
+    mask[nlocal][k] = (int) ubuf(buf[m++]).i;
         image[nlocal] = (imageint) ubuf(buf[m++]).i;
         molecule[nlocal] = (tagint) ubuf(buf[m++]).i; // 11
 
@@ -833,7 +840,7 @@ int AtomVecSMD::size_restart() {
         int i;
 
         int nlocal = atom->nlocal;
-        int n = 43 * nlocal; // count pack_restart + 1 (size of buffer)
+        int n = (42 + atom->ngroupbin) * nlocal; // count pack_restart + 1 (size of buffer)
 
         if (atom->nextra_restart)
                 for (int iextra = 0; iextra < atom->nextra_restart; iextra++)
@@ -859,7 +866,8 @@ int AtomVecSMD::pack_restart(int i, double *buf) {
         buf[m++] = x0[i][2]; // 7
         buf[m++] = ubuf(tag[i]).d;
         buf[m++] = ubuf(type[i]).d;
-        buf[m++] = ubuf(mask[i]).d; // 10
+        for (int k = 0; k < atom->ngroupbin; k++)
+    buf[m++] = ubuf(mask[i][k]).d; // 10
         buf[m++] = ubuf(image[i]).d;
         buf[m++] = ubuf(molecule[i]).d;
         buf[m++] = radius[i];
@@ -917,7 +925,8 @@ int AtomVecSMD::unpack_restart(double *buf) {
         x0[nlocal][2] = buf[m++]; // 6
         tag[nlocal] = (tagint) ubuf(buf[m++]).i;
         type[nlocal] = (int) ubuf(buf[m++]).i;
-        mask[nlocal] = (int) ubuf(buf[m++]).i;
+        for (int k = 0; k < atom->ngroupbin; k++)
+    mask[nlocal][k] = (int) ubuf(buf[m++]).i;
         image[nlocal] = (imageint) ubuf(buf[m++]).i;
         molecule[nlocal] = (tagint) ubuf(buf[m++]).i; // 11
 
@@ -983,7 +992,8 @@ void AtomVecSMD::create_atom(int itype, double *coord) {
         x0[nlocal][0] = coord[0];
         x0[nlocal][1] = coord[1];
         x0[nlocal][2] = coord[2];
-        mask[nlocal] = 1;
+        for (int k = 0; k < atom->ngroupbin; k++)
+    mask[nlocal][k] = !k;
         image[nlocal] = ((imageint) IMGMAX << IMG2BITS) | ((imageint) IMGMAX << IMGBITS) | IMGMAX;
         v[nlocal][0] = 0.0;
         v[nlocal][1] = 0.0;
@@ -1065,7 +1075,8 @@ void AtomVecSMD::data_atom(double *coord, imageint imagetmp, char **values) {
 
         image[nlocal] = imagetmp;
 
-        mask[nlocal] = 1;
+        for (int k = 0; k < atom->ngroupbin; k++)
+    mask[nlocal][k] = !k;
         v[nlocal][0] = 0.0;
         v[nlocal][1] = 0.0;
         v[nlocal][2] = 0.0;

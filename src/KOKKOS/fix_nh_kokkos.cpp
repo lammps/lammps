@@ -511,7 +511,7 @@ template<class DeviceType>
 template<int TRICLINIC_FLAG>
 KOKKOS_INLINE_FUNCTION
 void FixNHKokkos<DeviceType>::operator()(TagFixNH_nh_v_press<TRICLINIC_FLAG>, const int &i) const {
-  if (mask[i] & groupbit) {
+  if (mask[i][groupbin] & groupbit) {
     v(i,0) *= factor[0];
     v(i,1) *= factor[1];
     v(i,2) *= factor[2];
@@ -557,14 +557,14 @@ template<int RMASS>
 KOKKOS_INLINE_FUNCTION
 void FixNHKokkos<DeviceType>::operator()(TagFixNH_nve_v<RMASS>, const int &i) const {
   if (RMASS) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       const F_FLOAT dtfm = dtf / rmass[i];
       v(i,0) += dtfm*f(i,0);
       v(i,1) += dtfm*f(i,1);
       v(i,2) += dtfm*f(i,2);
     }
   } else {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       const F_FLOAT dtfm = dtf / mass[type[i]];
       v(i,0) += dtfm*f(i,0);
       v(i,1) += dtfm*f(i,1);
@@ -599,7 +599,7 @@ void FixNHKokkos<DeviceType>::nve_x()
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixNHKokkos<DeviceType>::operator()(TagFixNH_nve_x, const int &i) const {
-  if (mask[i] & groupbit) {
+  if (mask[i][groupbin] & groupbit) {
     x(i,0) += dtv * v(i,0);
     x(i,1) += dtv * v(i,1);
     x(i,2) += dtv * v(i,2);
@@ -642,7 +642,7 @@ void FixNHKokkos<DeviceType>::nh_v_temp()
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixNHKokkos<DeviceType>::operator()(TagFixNH_nh_v_temp, const int &i) const {
-  if (mask[i] & groupbit) {
+  if (mask[i][groupbin] & groupbit) {
     v(i,0) *= factor_eta;
     v(i,1) *= factor_eta;
     v(i,2) *= factor_eta;

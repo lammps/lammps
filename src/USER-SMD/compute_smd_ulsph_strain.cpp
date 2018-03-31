@@ -90,11 +90,11 @@ void ComputeSMDULSPHstrain::compute_peratom() {
                 array_atom = strainVector;
         }
 
-        int *mask = atom->mask;
+        int **mask = atom->mask;
         int nlocal = atom->nlocal;
 
         for (int i = 0; i < nlocal; i++) {
-                if (mask[i] & groupbit) {
+                if (mask[i][groupbin] & groupbit) {
 
                         strainVector[i][0] = atom_data9[i][0];
                         strainVector[i][1] = atom_data9[i][1];

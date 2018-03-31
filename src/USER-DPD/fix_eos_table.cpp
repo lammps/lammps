@@ -105,7 +105,7 @@ int FixEOStable::setmask()
 void FixEOStable::init()
 {
   int nlocal = atom->nlocal;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   double *uCond = atom->uCond;
   double *uMech = atom->uMech;
   double *dpdTheta = atom->dpdTheta;
@@ -113,11 +113,11 @@ void FixEOStable::init()
 
   if(this->restart_reset){
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
+      if (mask[i][groupbin] & groupbit)
         temperature_lookup(uCond[i]+uMech[i],dpdTheta[i]);
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         if(dpdTheta[i] <= 0.0)
           error->one(FLERR,"Internal temperature <= zero");
         energy_lookup(dpdTheta[i],tmp);
@@ -132,13 +132,13 @@ void FixEOStable::init()
 void FixEOStable::post_integrate()
 {
   int nlocal = atom->nlocal;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   double *uCond = atom->uCond;
   double *uMech = atom->uMech;
   double *dpdTheta = atom->dpdTheta;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit){
+    if (mask[i][groupbin] & groupbit){
       temperature_lookup(uCond[i]+uMech[i],dpdTheta[i]);
       if(dpdTheta[i] <= 0.0)
         error->one(FLERR,"Internal temperature <= zero");
@@ -150,13 +150,13 @@ void FixEOStable::post_integrate()
 void FixEOStable::end_of_step()
 {
   int nlocal = atom->nlocal;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   double *uCond = atom->uCond;
   double *uMech = atom->uMech;
   double *dpdTheta = atom->dpdTheta;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit){
+    if (mask[i][groupbin] & groupbit){
       temperature_lookup(uCond[i]+uMech[i],dpdTheta[i]);
       if(dpdTheta[i] <= 0.0)
         error->one(FLERR,"Internal temperature <= zero");

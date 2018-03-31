@@ -58,9 +58,11 @@ class NPair : protected Pointers {
   int nex_group;                   // # of entries in group exclusion list
   int *ex1_group,*ex2_group;       // pairs of group #'s to exclude
   int *ex1_bit,*ex2_bit;           // pairs of group bits to exclude
+  int *ex1_bin,*ex2_bin;           // pairs of group bits to exclude
 
   int nex_mol;                     // # of entries in molecule exclusion list
   int *ex_mol_bit;                 // molecule group bits to exclude
+  int *ex_mol_bin;                 // molecule group bits to exclude
   int *ex_mol_group;               // molecule group #'s to exclude
   int *ex_mol_intra;               // 0 = exclude if in 2 molecules (inter)
                                    // 1 = exclude if in same molecule (intra)
@@ -98,7 +100,7 @@ class NPair : protected Pointers {
   virtual void copy_stencil_info();
 
   int exclusion(int, int, int,
-                int, int *, tagint *) const;   // test for pair exclusion
+                int, int **, tagint *) const;   // test for pair exclusion
   int coord2bin(double *);                     // mapping atom coord to a bin
   int coord2bin(double *, int &, int &, int&); // ditto
 

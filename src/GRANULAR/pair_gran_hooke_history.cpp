@@ -129,7 +129,7 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
   double **torque = atom->torque;
   double *radius = atom->radius;
   double *rmass = atom->rmass;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
 
@@ -216,8 +216,8 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
         }
 
         meff = mi*mj / (mi+mj);
-        if (mask[i] & freeze_group_bit) meff = mj;
-        if (mask[j] & freeze_group_bit) meff = mi;
+        if (mask[i][freeze_group_bin] & freeze_group_bit) meff = mj;
+        if (mask[j][freeze_group_bin] & freeze_group_bit) meff = mi;
 
         // normal forces = Hookian contact + normal velocity damping
 
@@ -428,8 +428,10 @@ void PairGranHookeHistory::init_style()
 
   for (i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"freeze") == 0) break;
-  if (i < modify->nfix) freeze_group_bit = modify->fix[i]->groupbit;
-  else freeze_group_bit = 0;
+  if (i < modify->nfix) {
+    freeze_group_bit = modify->fix[i]->groupbit;
+    freeze_group_bin = modify->fix[i]->groupbin;
+  } else freeze_group_bit = 0;
 
   // check for FixRigid so can extract rigid body masses
 
@@ -469,12 +471,12 @@ void PairGranHookeHistory::init_style()
   }
 
   double *radius = atom->radius;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
   for (i = 0; i < nlocal; i++)
-    if (mask[i] & freeze_group_bit)
+    if (mask[i][freeze_group_bin] & freeze_group_bit)
       onerad_frozen[type[i]] = MAX(onerad_frozen[type[i]],radius[i]);
     else
       onerad_dynamic[type[i]] = MAX(onerad_dynamic[type[i]],radius[i]);
@@ -651,7 +653,7 @@ double PairGranHookeHistory::single(int i, int j, int itype, int jtype,
   // if I or J is frozen, meff is other particle
 
   double *rmass = atom->rmass;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
 
   mi = rmass[i];
   mj = rmass[j];
@@ -662,8 +664,8 @@ double PairGranHookeHistory::single(int i, int j, int itype, int jtype,
   }
 
   meff = mi*mj / (mi+mj);
-  if (mask[i] & freeze_group_bit) meff = mj;
-  if (mask[j] & freeze_group_bit) meff = mi;
+  if (mask[i][freeze_group_bin] & freeze_group_bit) meff = mj;
+  if (mask[j][freeze_group_bin] & freeze_group_bit) meff = mi;
 
   // normal forces = Hookian contact + normal velocity damping
 

@@ -106,7 +106,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
 
   // parse args for rigid body specification
 
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   tagint *bodyid = NULL;
   int nlocal = atom->nlocal;
 
@@ -133,12 +133,12 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
         int minval = INT_MAX;
         int *value = atom->ivector[custom_index];
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit) minval = MIN(minval,value[i]);
+          if (mask[i][groupbin] & groupbit) minval = MIN(minval,value[i]);
         int vmin = minval;
         MPI_Allreduce(&vmin,&minval,1,MPI_INT,MPI_MIN,world);
 
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit)
+          if (mask[i][groupbin] & groupbit)
             bodyid[i] = (tagint)(value[i] - minval + 1);
           else bodyid[i] = 0;
 
@@ -152,12 +152,12 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
         input->variable->compute_atom(ivariable,0,value,1,0);
         int minval = INT_MAX;
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit) minval = MIN(minval,(int)value[i]);
+          if (mask[i][groupbin] & groupbit) minval = MIN(minval,(int)value[i]);
         int vmin = minval;
         MPI_Allreduce(&vmin,&minval,1,MPI_INT,MPI_MIN,world);
 
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit)
+          if (mask[i][groupbin] & groupbit)
             bodyid[i] = (tagint)((tagint)value[i] - minval + 1);
           else bodyid[0] = 0;
         delete[] value;
@@ -170,7 +170,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   // maxmol = largest bodyid #
   maxmol = -1;
   for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) maxmol = MAX(maxmol,bodyid[i]);
+    if (mask[i][groupbin] & groupbit) maxmol = MAX(maxmol,bodyid[i]);
 
   tagint itmp;
   MPI_Allreduce(&maxmol,&itmp,1,MPI_LMP_TAGINT,MPI_MAX,world);
@@ -1074,6 +1074,7 @@ int FixRigidSmall::dof(int tgroup)
   }
 
   int tgroupbit = group->bitmask[tgroup];
+  int tgroupbin = floor((float)tgroup/(float)group->grp_per_bin);
 
   // counts = 3 values per rigid body I own
   // 0 = # of point particles in rigid body and in temperature group
@@ -1089,14 +1090,14 @@ int FixRigidSmall::dof(int tgroup)
   // 1 = # of finite-size particles in rigid body and in temperature group
   // 2 = # of particles in rigid body, disregarding temperature group
 
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (i = 0; i < nlocal; i++) {
     if (atom2body[i] < 0) continue;
     j = atom2body[i];
     counts[j][2]++;
-    if (mask[i] & tgroupbit) {
+    if (mask[i][tgroupbin] & tgroupbit) {
       if (extended && (eflags[i] & ~(POINT | DIPOLE))) counts[j][1]++;
       else counts[j][0]++;
     }
@@ -1485,7 +1486,7 @@ void FixRigidSmall::create_bodies(tagint *bodyid)
   // error check on image flags of atoms in rigid bodies
 
   imageint *image = atom->image;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   int *periodicity = domain->periodicity;
@@ -1493,7 +1494,7 @@ void FixRigidSmall::create_bodies(tagint *bodyid)
 
   int flag = 0;
   for (i = 0; i < nlocal; i++) {
-    if (!(mask[i] & groupbit)) continue;
+    if (!(mask[i][groupbin] & groupbit)) continue;
     xbox = (image[i] & IMGMASK) - IMGMAX;
     ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
     zbox = (image[i] >> IMG2BITS) - IMGMAX;
@@ -1511,7 +1512,7 @@ void FixRigidSmall::create_bodies(tagint *bodyid)
 
   int ncount = 0;
   for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) ncount++;
+    if (mask[i][groupbin] & groupbit) ncount++;
 
   int percount = 5;
   double *buf;
@@ -1532,7 +1533,7 @@ void FixRigidSmall::create_bodies(tagint *bodyid)
 
   n = 0;
   for (i = 0; i < nlocal; i++) {
-    if (!(mask[i] & groupbit)) continue;
+    if (!(mask[i][groupbin] & groupbit)) continue;
     if (hash->find(bodyid[i]) == hash->end()) (*hash)[bodyid[i]] = n++;
   }
 
@@ -1551,7 +1552,7 @@ void FixRigidSmall::create_bodies(tagint *bodyid)
 
   m = 0;
   for (i = 0; i < nlocal; i++) {
-    if (!(mask[i] & groupbit)) continue;
+    if (!(mask[i][groupbin] & groupbit)) continue;
     domain->unmap(x[i],image[i],unwrap);
     buf[m++] = bodyid[i];
     buf[m++] = unwrap[0];
@@ -1599,7 +1600,7 @@ void FixRigidSmall::create_bodies(tagint *bodyid)
 
   m = 0;
   for (i = 0; i < nlocal; i++) {
-    if (!(mask[i] & groupbit)) continue;
+    if (!(mask[i][groupbin] & groupbit)) continue;
     domain->unmap(x[i],image[i],unwrap);
     buf[m++] = bodyid[i];
     buf[m++] = ubuf(tag[i]).d;
@@ -1620,7 +1621,7 @@ void FixRigidSmall::create_bodies(tagint *bodyid)
   double rsqmax = 0.0;
   for (i = 0; i < nlocal; i++) {
     bodytag[i] = 0;
-    if (!(mask[i] & groupbit)) continue;
+    if (!(mask[i][groupbin] & groupbit)) continue;
     m = hash->find(bodyid[i])->second;
     bodytag[i] = idclose[m];
     rsqmax = MAX(rsqmax,rsqclose[m]);
@@ -1630,7 +1631,7 @@ void FixRigidSmall::create_bodies(tagint *bodyid)
 
   m = 0;
   for (i = 0; i < nlocal; i++) {
-    if (!(mask[i] & groupbit)) continue;
+    if (!(mask[i][groupbin] & groupbit)) continue;
     domain->unmap(x[i],image[i],unwrap);
     buf[m++] = ubuf(bodytag[i]).d;
     buf[m++] = unwrap[0];

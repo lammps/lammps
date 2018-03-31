@@ -55,7 +55,7 @@ void DomainOMP::pbc()
     if (xperiodic) {
       if (x[i].x < lo[0]) {
         x[i].x += period[0];
-        if (deform_vremap && mask[i] & deform_groupbit) v[i].x += h_rate[0];
+        if (deform_vremap && mask[i][deform_groupbin] & deform_groupbit) v[i].x += h_rate[0];
         idim = image[i] & IMGMASK;
         otherdims = image[i] ^ idim;
         idim--;
@@ -65,7 +65,7 @@ void DomainOMP::pbc()
       if (x[i].x >= hi[0]) {
         x[i].x -= period[0];
         x[i].x = MAX(x[i].x,lo[0]);
-        if (deform_vremap && mask[i] & deform_groupbit) v[i].x -= h_rate[0];
+        if (deform_vremap && mask[i][deform_groupbin] & deform_groupbit) v[i].x -= h_rate[0];
         idim = image[i] & IMGMASK;
         otherdims = image[i] ^ idim;
         idim++;
@@ -77,7 +77,7 @@ void DomainOMP::pbc()
     if (yperiodic) {
       if (x[i].y < lo[1]) {
         x[i].y += period[1];
-        if (deform_vremap && mask[i] & deform_groupbit) {
+        if (deform_vremap && mask[i][deform_groupbin] & deform_groupbit) {
           v[i].x += h_rate[5];
           v[i].y += h_rate[1];
         }
@@ -90,7 +90,7 @@ void DomainOMP::pbc()
       if (x[i].y >= hi[1]) {
         x[i].y -= period[1];
         x[i].y = MAX(x[i].y,lo[1]);
-        if (deform_vremap && mask[i] & deform_groupbit) {
+        if (deform_vremap && mask[i][deform_groupbin] & deform_groupbit) {
           v[i].x -= h_rate[5];
           v[i].y -= h_rate[1];
         }
@@ -105,7 +105,7 @@ void DomainOMP::pbc()
     if (zperiodic) {
       if (x[i].z < lo[2]) {
         x[i].z += period[2];
-        if (deform_vremap && mask[i] & deform_groupbit) {
+        if (deform_vremap && mask[i][deform_groupbin] & deform_groupbit) {
           v[i].x += h_rate[4];
           v[i].y += h_rate[3];
           v[i].z += h_rate[2];
@@ -119,7 +119,7 @@ void DomainOMP::pbc()
       if (x[i].z >= hi[2]) {
         x[i].z -= period[2];
         x[i].z = MAX(x[i].z,lo[2]);
-        if (deform_vremap && mask[i] & deform_groupbit) {
+        if (deform_vremap && mask[i][deform_groupbin] & deform_groupbit) {
           v[i].x -= h_rate[4];
           v[i].y -= h_rate[3];
           v[i].z -= h_rate[2];

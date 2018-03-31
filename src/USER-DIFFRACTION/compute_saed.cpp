@@ -358,11 +358,11 @@ void ComputeSAED::compute_vector()
   int nlocal = atom->nlocal;
   int *type  = atom->type;
   int natoms = group->count(igroup);
-  int *mask = atom->mask;
+  int **mask = atom->mask;
 
   nlocalgroup = 0;
   for (int ii = 0; ii < nlocal; ii++) {
-    if (mask[ii] & groupbit) {
+    if (mask[ii][groupbin] & groupbit) {
      nlocalgroup++;
     }
   }
@@ -372,7 +372,7 @@ void ComputeSAED::compute_vector()
 
   nlocalgroup = 0;
   for (int ii = 0; ii < nlocal; ii++) {
-    if (mask[ii] & groupbit) {
+    if (mask[ii][groupbin] & groupbit) {
      xlocal[3*nlocalgroup+0] = atom->x[ii][0];
      xlocal[3*nlocalgroup+1] = atom->x[ii][1];
      xlocal[3*nlocalgroup+2] = atom->x[ii][2];
@@ -385,7 +385,7 @@ void ComputeSAED::compute_vector()
   double *x = new double [3*nlocal];
   int nlocalgroup = 0;
   for (int ii = 0; ii < nlocal; ii++) {
-    if (mask[ii] & groupbit) {
+    if (mask[ii][groupbin] & groupbit) {
      x[3*ii+0] = atom->x[ii][0];
      x[3*ii+1] = atom->x[ii][1];
      x[3*ii+2] = atom->x[ii][2];

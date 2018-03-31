@@ -507,9 +507,9 @@ int DumpCustom::count()
   // un-choose if not in group
 
   if (igroup) {
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     for (i = 0; i < nlocal; i++)
-      if (!(mask[i] & groupbit))
+      if (!(mask[i][groupbin] & groupbit))
         choose[i] = 0;
   }
 

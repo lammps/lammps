@@ -31,7 +31,7 @@ class DisplaceAtoms : protected Pointers {
   void command(int, char **);
 
  private:
-  int igroup,groupbit;
+  int igroup,groupbit,groupbin;
   int scaleflag;
   double *mvec;
 

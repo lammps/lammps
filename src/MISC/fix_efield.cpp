@@ -254,7 +254,7 @@ void FixEfield::post_force(int vflag)
 {
   double **f = atom->f;
   double *q = atom->q;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
@@ -299,7 +299,7 @@ void FixEfield::post_force(int vflag)
 
     if (qflag) {
       for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
           fx = q[i]*ex;
           fy = q[i]*ey;
@@ -333,7 +333,7 @@ void FixEfield::post_force(int vflag)
       double **t = atom->torque;
       double tx,ty,tz;
       for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
           tx = ez*mu[i][1] - ey*mu[i][2];
           ty = ex*mu[i][2] - ez*mu[i][0];
@@ -371,7 +371,7 @@ void FixEfield::post_force(int vflag)
 
     if (qflag) {
       for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
           if (xstyle == ATOM) fx = qe2f * q[i]*efield[i][0];
           else fx = q[i]*ex;
@@ -397,7 +397,7 @@ void FixEfield::post_force(int vflag)
       double **t = atom->torque;
       double tx,ty,tz;
       for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
           tx = ez*mu[i][1] - ey*mu[i][2];
           ty = ex*mu[i][2] - ez*mu[i][0];

@@ -259,7 +259,7 @@ void FixGrem::min_setup(int vflag)
 void FixGrem::post_force(int vflag)
 {
   double **f = atom->f;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double tmpvolume = domain->xprd * domain->yprd * domain->zprd;
@@ -271,7 +271,7 @@ void FixGrem::post_force(int vflag)
   scale_grem = tbath/teffective;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       f[i][0] *= scale_grem;
       f[i][1] *= scale_grem;
       f[i][2] *= scale_grem;

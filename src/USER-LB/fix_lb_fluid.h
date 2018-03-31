@@ -74,6 +74,7 @@ public:
     double **hydroF;
 
     int groupbit_viscouslb, groupbit_pc, groupbit_rigid_pc_sphere;
+    int groupbin_viscouslb, groupbin_pc, groupbin_rigid_pc_sphere;
 
     double ***density_lb;                            // fluid density
     double ****u_lb;                                 // fluid velocity
@@ -164,4 +165,3 @@ public:
 }
 #endif
 #endif
-

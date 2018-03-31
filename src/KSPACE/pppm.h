@@ -47,7 +47,7 @@ class PPPM : public KSpace {
   virtual int timing_3d(int, double &);
   virtual double memory_usage();
 
-  virtual void compute_group_group(int, int, int);
+  virtual void compute_group_group(int, int, int, int, int);
 
  protected:
   int me,nprocs;
@@ -166,9 +166,9 @@ class PPPM : public KSpace {
 
   virtual void allocate_groups();
   virtual void deallocate_groups();
-  virtual void make_rho_groups(int, int, int);
+  virtual void make_rho_groups(int, int, int, int, int);
   virtual void poisson_groups(int);
-  virtual void slabcorr_groups(int,int,int);
+  virtual void slabcorr_groups(int, int, int, int, int);
 
 /* ----------------------------------------------------------------------
    denominator for Hockney-Eastwood Green's function

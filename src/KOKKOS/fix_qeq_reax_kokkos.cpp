@@ -345,7 +345,7 @@ void FixQEqReaxKokkos<DeviceType>::zero_item(int ii) const
   const int i = d_ilist[ii];
   const int itype = type(i);
 
-  if (mask[i] & groupbit) {
+  if (mask[i][groupbin] & groupbit) {
     d_Hdia_inv[i] = 1.0 / params(itype).eta;
     d_b_s[i] = -params(itype).chi;
     d_b_t[i] = -1.0;
@@ -368,7 +368,7 @@ void FixQEqReaxKokkos<DeviceType>::compute_h_item(int ii, int &m_fill, const boo
   const int i = d_ilist[ii];
   int j,jj,jtype;
 
-  if (mask[i] & groupbit) {
+  if (mask[i][groupbin] & groupbit) {
 
     const X_FLOAT xtmp = x(i,0);
     const X_FLOAT ytmp = x(i,1);
@@ -451,7 +451,7 @@ void FixQEqReaxKokkos<DeviceType>::matvec_item(int ii) const
   const int i = d_ilist[ii];
   const int itype = type(i);
 
-  if (mask[i] & groupbit) {
+  if (mask[i][groupbin] & groupbit) {
     d_Hdia_inv[i] = 1.0 / params(itype).eta;
     d_b_s[i] = -params(itype).chi;
     d_b_t[i] = -1.0;
@@ -767,7 +767,7 @@ void FixQEqReaxKokkos<DeviceType>::sparse12_item(int ii) const
 {
   const int i = d_ilist[ii];
   const int itype = type(i);
-  if (mask[i] & groupbit) {
+  if (mask[i][groupbin] & groupbit) {
     d_o[i] = params(itype).eta * d_s[i];
   }
 }
@@ -783,7 +783,7 @@ void FixQEqReaxKokkos<DeviceType>::sparse13_item(int ii) const
   Kokkos::View<F_FLOAT*, typename DAT::t_float_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_o = d_o;
 
   const int i = d_ilist[ii];
-  if (mask[i] & groupbit) {
+  if (mask[i][groupbin] & groupbit) {
     F_FLOAT tmp = 0.0;
     for(int jj = d_firstnbr[i]; jj < d_firstnbr[i] + d_numnbrs[i]; jj++) {
       const int j = d_jlist(jj);
@@ -801,7 +801,7 @@ KOKKOS_INLINE_FUNCTION
 void FixQEqReaxKokkos<DeviceType>::operator() (TagSparseMatvec1, const membertype1 &team) const
 {
   const int i = d_ilist[team.league_rank()];
-  if (mask[i] & groupbit) {
+  if (mask[i][groupbin] & groupbit) {
     F_FLOAT doitmp;
     Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team, d_firstnbr[i], d_firstnbr[i] + d_numnbrs[i]), [&] (const int &jj, F_FLOAT &doi) {
       const int j = d_jlist(jj);
@@ -819,7 +819,7 @@ void FixQEqReaxKokkos<DeviceType>::sparse22_item(int ii) const
 {
   const int i = d_ilist[ii];
   const int itype = type(i);
-  if (mask[i] & groupbit) {
+  if (mask[i][groupbin] & groupbit) {
     d_o[i] = params(itype).eta * d_d[i];
   }
 }
@@ -835,7 +835,7 @@ void FixQEqReaxKokkos<DeviceType>::sparse23_item(int ii) const
   Kokkos::View<F_FLOAT*, typename DAT::t_float_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_o = d_o;
 
   const int i = d_ilist[ii];
-  if (mask[i] & groupbit) {
+  if (mask[i][groupbin] & groupbit) {
     F_FLOAT tmp = 0.0;
     for(int jj = d_firstnbr[i]; jj < d_firstnbr[i] + d_numnbrs[i]; jj++) {
       const int j = d_jlist(jj);
@@ -853,7 +853,7 @@ KOKKOS_INLINE_FUNCTION
 void FixQEqReaxKokkos<DeviceType>::operator() (TagSparseMatvec2, const membertype2 &team) const
 {
   const int i = d_ilist[team.league_rank()];
-  if (mask[i] & groupbit) {
+  if (mask[i][groupbin] & groupbit) {
     F_FLOAT doitmp;
     Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team, d_firstnbr[i], d_firstnbr[i] + d_numnbrs[i]), [&] (const int &jj, F_FLOAT &doi) {
       const int j = d_jlist(jj);
@@ -867,7 +867,7 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixQEqReaxKokkos<DeviceType>::operator() (TagZeroQGhosts, const int &i) const
 {
-  if (mask[i] & groupbit)
+  if (mask[i][groupbin] & groupbit)
     d_o[i] = 0.0;
 }
 
@@ -879,7 +879,7 @@ void FixQEqReaxKokkos<DeviceType>::sparse32_item(int ii) const
 {
   const int i = d_ilist[ii];
   const int itype = type(i);
-  if (mask[i] & groupbit)
+  if (mask[i][groupbin] & groupbit)
     d_o[i] = params(itype).eta * d_t[i];
 }
 
@@ -894,7 +894,7 @@ void FixQEqReaxKokkos<DeviceType>::sparse33_item(int ii) const
   Kokkos::View<F_FLOAT*, typename DAT::t_float_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_o = d_o;
 
   const int i = d_ilist[ii];
-  if (mask[i] & groupbit) {
+  if (mask[i][groupbin] & groupbit) {
     F_FLOAT tmp = 0.0;
     for(int jj = d_firstnbr[i]; jj < d_firstnbr[i] + d_numnbrs[i]; jj++) {
       const int j = d_jlist(jj);
@@ -912,7 +912,7 @@ KOKKOS_INLINE_FUNCTION
 void FixQEqReaxKokkos<DeviceType>::operator() (TagSparseMatvec3, const membertype3 &team) const
 {
   const int i = d_ilist[team.league_rank()];
-  if (mask[i] & groupbit) {
+  if (mask[i][groupbin] & groupbit) {
     F_FLOAT doitmp;
     Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team, d_firstnbr[i], d_firstnbr[i] + d_numnbrs[i]), [&] (const int &jj, F_FLOAT &doi) {
       const int j = d_jlist(jj);
@@ -929,7 +929,7 @@ KOKKOS_INLINE_FUNCTION
 void FixQEqReaxKokkos<DeviceType>::vecsum2_item(int ii) const
 {
   const int i = d_ilist[ii];
-  if (mask[i] & groupbit)
+  if (mask[i][groupbin] & groupbit)
     d_d[i] = 1.0 * d_p[i] + beta * d_d[i];
 }
 
@@ -941,7 +941,7 @@ double FixQEqReaxKokkos<DeviceType>::norm1_item(int ii) const
 {
   F_FLOAT tmp = 0;
   const int i = d_ilist[ii];
-  if (mask[i] & groupbit) {
+  if (mask[i][groupbin] & groupbit) {
     d_r[i] = 1.0*d_b_s[i] + -1.0*d_o[i];
     d_d[i] = d_r[i] * d_Hdia_inv[i];
     tmp = d_b_s[i] * d_b_s[i];
@@ -957,7 +957,7 @@ double FixQEqReaxKokkos<DeviceType>::norm2_item(int ii) const
 {
   F_FLOAT tmp = 0;
   const int i = d_ilist[ii];
-  if (mask[i] & groupbit) {
+  if (mask[i][groupbin] & groupbit) {
     d_r[i] = 1.0*d_b_t[i] + -1.0*d_o[i];
     d_d[i] = d_r[i] * d_Hdia_inv[i];
     tmp = d_b_t[i] * d_b_t[i];
@@ -973,7 +973,7 @@ double FixQEqReaxKokkos<DeviceType>::dot1_item(int ii) const
 {
   F_FLOAT tmp = 0.0;
   const int i = d_ilist[ii];
-  if (mask[i] & groupbit)
+  if (mask[i][groupbin] & groupbit)
     tmp = d_r[i] * d_d[i];
   return tmp;
 }
@@ -986,7 +986,7 @@ double FixQEqReaxKokkos<DeviceType>::dot2_item(int ii) const
 {
   double tmp = 0.0;
   const int i = d_ilist[ii];
-  if (mask[i] & groupbit) {
+  if (mask[i][groupbin] & groupbit) {
     tmp = d_d[i] * d_o[i];
   }
   return tmp;
@@ -999,7 +999,7 @@ KOKKOS_INLINE_FUNCTION
 void FixQEqReaxKokkos<DeviceType>::precon1_item(int ii) const
 {
   const int i = d_ilist[ii];
-  if (mask[i] & groupbit) {
+  if (mask[i][groupbin] & groupbit) {
     d_s[i] += alpha * d_d[i];
     d_r[i] += -alpha * d_o[i];
   }
@@ -1012,7 +1012,7 @@ KOKKOS_INLINE_FUNCTION
 void FixQEqReaxKokkos<DeviceType>::precon2_item(int ii) const
 {
   const int i = d_ilist[ii];
-  if (mask[i] & groupbit) {
+  if (mask[i][groupbin] & groupbit) {
     d_t[i] += alpha * d_d[i];
     d_r[i] += -alpha * d_o[i];
   }
@@ -1026,7 +1026,7 @@ double FixQEqReaxKokkos<DeviceType>::precon_item(int ii) const
 {
   F_FLOAT tmp = 0.0;
   const int i = d_ilist[ii];
-  if (mask[i] & groupbit) {
+  if (mask[i][groupbin] & groupbit) {
     d_p[i] = d_r[i] * d_Hdia_inv[i];
     tmp = d_r[i] * d_p[i];
   }
@@ -1041,7 +1041,7 @@ double FixQEqReaxKokkos<DeviceType>::vecacc1_item(int ii) const
 {
   F_FLOAT tmp = 0.0;
   const int i = d_ilist[ii];
-  if (mask[i] & groupbit)
+  if (mask[i][groupbin] & groupbit)
     tmp = d_s[i];
   return tmp;
 }
@@ -1054,7 +1054,7 @@ double FixQEqReaxKokkos<DeviceType>::vecacc2_item(int ii) const
 {
   F_FLOAT tmp = 0.0;
   const int i = d_ilist[ii];
-  if (mask[i] & groupbit) {
+  if (mask[i][groupbin] & groupbit) {
     tmp = d_t[i];
   }
   return tmp;
@@ -1067,7 +1067,7 @@ KOKKOS_INLINE_FUNCTION
 void FixQEqReaxKokkos<DeviceType>::calculate_q_item(int ii) const
 {
   const int i = d_ilist[ii];
-  if (mask[i] & groupbit) {
+  if (mask[i][groupbin] & groupbit) {
     q(i) = d_s[i] - delta * d_t[i];
 
     for (int k = nprev-1; k > 0; --k) {

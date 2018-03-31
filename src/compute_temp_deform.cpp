@@ -116,7 +116,7 @@ double ComputeTempDeform::compute_scalar()
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   // lamda = 0-1 triclinic lamda coords
@@ -129,7 +129,7 @@ double ComputeTempDeform::compute_scalar()
   double t = 0.0;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       domain->x2lamda(x[i],lamda);
       vstream[0] = h_rate[0]*lamda[0] + h_rate[5]*lamda[1] +
         h_rate[4]*lamda[2] + h_ratelo[0];
@@ -167,7 +167,7 @@ void ComputeTempDeform::compute_vector()
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double *h_rate = domain->h_rate;
@@ -177,7 +177,7 @@ void ComputeTempDeform::compute_vector()
   for (int i = 0; i < 6; i++) t[i] = 0.0;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       domain->x2lamda(x[i],lamda);
       vstream[0] = h_rate[0]*lamda[0] + h_rate[5]*lamda[1] +
         h_rate[4]*lamda[2] + h_ratelo[0];
@@ -248,7 +248,7 @@ void ComputeTempDeform::remove_bias_thr(int i, double *v, double *b)
 void ComputeTempDeform::remove_bias_all()
 {
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   if (atom->nmax > maxbias) {
@@ -262,7 +262,7 @@ void ComputeTempDeform::remove_bias_all()
   double *h_ratelo = domain->h_ratelo;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       domain->x2lamda(atom->x[i],lamda);
       vbiasall[i][0] = h_rate[0]*lamda[0] + h_rate[5]*lamda[1] +
         h_rate[4]*lamda[2] + h_ratelo[0];
@@ -306,11 +306,11 @@ void ComputeTempDeform::restore_bias_thr(int i, double *v, double *b)
 void ComputeTempDeform::restore_bias_all()
 {
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       v[i][0] += vbiasall[i][0];
       v[i][1] += vbiasall[i][1];
       v[i][2] += vbiasall[i][2];

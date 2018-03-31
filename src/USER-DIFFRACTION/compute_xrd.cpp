@@ -312,11 +312,11 @@ void ComputeXRD::compute_array()
   int nlocal = atom->nlocal;
   int *type  = atom->type;
   int natoms = group->count(igroup);
-  int *mask = atom->mask;
+  int **mask = atom->mask;
 
   nlocalgroup = 0;
   for (int ii = 0; ii < nlocal; ii++) {
-    if (mask[ii] & groupbit) {
+    if (mask[ii][groupbin] & groupbit) {
      nlocalgroup++;
     }
   }
@@ -326,7 +326,7 @@ void ComputeXRD::compute_array()
 
   nlocalgroup = 0;
   for (int ii = 0; ii < nlocal; ii++) {
-    if (mask[ii] & groupbit) {
+    if (mask[ii][groupbin] & groupbit) {
      xlocal[3*nlocalgroup+0] = atom->x[ii][0];
      xlocal[3*nlocalgroup+1] = atom->x[ii][1];
      xlocal[3*nlocalgroup+2] = atom->x[ii][2];

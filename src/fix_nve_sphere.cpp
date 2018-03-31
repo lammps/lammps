@@ -86,11 +86,11 @@ void FixNVESphere::init()
   // no point particles allowed
 
   double *radius = atom->radius;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       if (radius[i] == 0.0)
         error->one(FLERR,"Fix nve/sphere requires extended particles");
 }
@@ -111,7 +111,7 @@ void FixNVESphere::initial_integrate(int vflag)
   double **torque = atom->torque;
   double *radius = atom->radius;
   double *rmass = atom->rmass;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
@@ -123,7 +123,7 @@ void FixNVESphere::initial_integrate(int vflag)
   // d_omega/dt = torque / inertia
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       dtfm = dtf / rmass[i];
       v[i][0] += dtfm * f[i][0];
       v[i][1] += dtfm * f[i][1];
@@ -149,7 +149,7 @@ void FixNVESphere::initial_integrate(int vflag)
       // renormalize mu to dipole length
 
       for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit)
+        if (mask[i][groupbin] & groupbit)
           if (mu[i][3] > 0.0) {
             g[0] = mu[i][0] + dtv * (omega[i][1]*mu[i][2]-omega[i][2]*mu[i][1]);
             g[1] = mu[i][1] + dtv * (omega[i][2]*mu[i][0]-omega[i][0]*mu[i][2]);
@@ -165,7 +165,7 @@ void FixNVESphere::initial_integrate(int vflag)
       // integrate orientation following Dullweber-Leimkuhler-Maclachlan scheme
 
       for (int i = 0; i < nlocal; i++) {
-        if (mask[i] & groupbit && mu[i][3] > 0.0) {
+        if (mask[i][groupbin] & groupbit && mu[i][3] > 0.0) {
 
           // Construct Q from dipole:
           // Q is the rotation matrix from space frame to body frame
@@ -286,7 +286,7 @@ void FixNVESphere::final_integrate()
   double **torque = atom->torque;
   double *rmass = atom->rmass;
   double *radius = atom->radius;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
@@ -299,7 +299,7 @@ void FixNVESphere::final_integrate()
 
   double rke = 0.0;
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       dtfm = dtf / rmass[i];
       v[i][0] += dtfm * f[i][0];
       v[i][1] += dtfm * f[i][1];

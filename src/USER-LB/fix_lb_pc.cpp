@@ -57,19 +57,21 @@ FixLbPC::FixLbPC(LAMMPS *lmp, int narg, char **arg) :
   Gamma_MD = new double[atom->ntypes+1];
 
  int groupbit_lb_fluid = 0;
+ int groupbin_lb_fluid = 0;
   for(int ifix=0; ifix<modify->nfix; ifix++)
     if(strcmp(modify->fix[ifix]->style,"lb/fluid")==0){
       fix_lb_fluid = (FixLbFluid *)modify->fix[ifix];
       groupbit_lb_fluid = group->bitmask[modify->fix[ifix]->igroup];
+      groupbin_lb_fluid = floor((float)modify->fix[i]->igroup/(float)group->grp_per_bin);
     }
 
   if(groupbit_lb_fluid == 0)
     error->all(FLERR,"the lb/fluid fix must also be used if using the lb/pc fix");
 
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   for(int j=0; j<nlocal; j++){
-    if((mask[j] & groupbit) && !(mask[j] & groupbit_lb_fluid))
+    if((mask[j][groupbin] & groupbit) && !(mask[j][groupbin_lb_fluid] & groupbit_lb_fluid))
       error->one(FLERR,"can only use the lb/pc fix for an atom if also using the lb/fluid fix for that atom");
   }
 
@@ -129,7 +131,7 @@ void FixLbPC::initial_integrate(int vflag) {
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
@@ -147,7 +149,7 @@ void FixLbPC::initial_integrate(int vflag) {
 
   if(rmass){
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         dtfm = dtf/rmass[i];
         expminusdttimesgamma = exp(-dtv*Gamma_MD[type[i]]/rmass[i]);
 
@@ -178,7 +180,7 @@ void FixLbPC::initial_integrate(int vflag) {
   } else {
     // this does NOT take varying masses into account
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         dtfm = dtf/mass[type[i]];
         expminusdttimesgamma = exp(-dtv*Gamma_MD[type[i]]/mass[type[i]]);
 
@@ -217,7 +219,7 @@ void FixLbPC::final_integrate()
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
@@ -225,7 +227,7 @@ void FixLbPC::final_integrate()
 
   if(rmass){
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         dtfm = dtf/rmass[i];
         expminusdttimesgamma = exp(-dtv*Gamma_MD[type[i]]/rmass[i]);
         DMDcoeff = (dtv - rmass[i]*(1.0-expminusdttimesgamma)/Gamma_MD[type[i]]);
@@ -246,7 +248,7 @@ void FixLbPC::final_integrate()
   } else {
     // this does NOT take varying masses into account
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         dtfm = dtf/mass[type[i]];
         expminusdttimesgamma = exp(-dtv*Gamma_MD[type[i]]/mass[type[i]]);
         DMDcoeff = (dtv - mass[type[i]]*(1.0-expminusdttimesgamma)/Gamma_MD[type[i]]);
@@ -342,7 +344,7 @@ int FixLbPC::unpack_exchange(int nlocal, double *buf)
 /* ---------------------------------------------------------------------- */
  void FixLbPC::compute_up(void)
  {
-   int *mask = atom->mask;
+   int **mask = atom->mask;
    int nlocal = atom->nlocal;
    double **x = atom->x;
    int i,k;
@@ -361,7 +363,7 @@ int FixLbPC::unpack_exchange(int nlocal, double *buf)
    int trilinear_stencil = fix_lb_fluid->trilinear_stencil;
 
    for(i=0; i<nlocal; i++){
-    if(mask[i] & groupbit){
+    if(mask[i][groupbin] & groupbit){
 
       //Calculate nearest leftmost grid point.
       //Since array indices from 1 to subNb-2 correspond to the

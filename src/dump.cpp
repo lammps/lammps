@@ -55,6 +55,7 @@ Dump::Dump(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   igroup = group->find(arg[1]);
   groupbit = group->bitmask[igroup];
+  groupbin = floor((float)igroup/(float)group->grp_per_bin);
 
   n = strlen(arg[2]) + 1;
   style = new char[n];
@@ -242,13 +243,13 @@ void Dump::init()
 
     if (sortcol == 0 && atom->tag_consecutive() && !gcmcflag) {
       tagint *tag = atom->tag;
-      int *mask = atom->mask;
+      int **mask = atom->mask;
       int nlocal = atom->nlocal;
 
       tagint min = MAXTAGINT;
       tagint max = 0;
       for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           min = MIN(min,tag[i]);
           max = MAX(max,tag[i]);
         }
@@ -288,12 +289,12 @@ int Dump::count()
 {
   if (igroup == 0) return atom->nlocal;
 
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   int m = 0;
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) m++;
+    if (mask[i][groupbin] & groupbit) m++;
   return m;
 }
 

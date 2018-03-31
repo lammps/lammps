@@ -65,7 +65,7 @@ class AtomVecHybridKokkos : public AtomVecKokkos {
   void pack_vel(double **);
   void write_vel(FILE *, int, double **);
   int property_atom(char *);
-  void pack_property_atom(int, double *, int, int);
+  void pack_property_atom(int, double *, int, int, int);
   bigint memory_usage();
 
   int pack_comm_kokkos(const int &n, const DAT::tdual_int_2d &k_sendlist,
@@ -98,7 +98,7 @@ class AtomVecHybridKokkos : public AtomVecKokkos {
 
  private:
   tagint *tag;
-  int *type,*mask;
+  int *type,**mask;
   imageint *image;
   double **x,**v,**f;
   double **omega,**angmom;

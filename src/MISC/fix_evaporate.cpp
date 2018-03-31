@@ -120,13 +120,14 @@ void FixEvaporate::init()
   // deleting such an atom would not leave firstgroup atoms first
 
   if (atom->firstgroup >= 0) {
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
     int firstgroupbit = group->bitmask[atom->firstgroup];
+    int firstgroupbin = floor((float)atom->firstgroup/(float)group->grp_per_bin);
 
     int flag = 0;
     for (int i = 0; i < nlocal; i++)
-      if ((mask[i] & groupbit) && (mask[i] && firstgroupbit)) flag = 1;
+      if ((mask[i][groupbin] & groupbit) && (mask[i][firstgroupbin] && firstgroupbit)) flag = 1;
 
     int flagall;
     MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
@@ -139,11 +140,11 @@ void FixEvaporate::init()
 
   if (molflag == 0 && atom->molecule_flag) {
     tagint *molecule = atom->molecule;
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
     int flag = 0;
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
+      if (mask[i][groupbin] & groupbit)
         if (molecule[i]) flag = 1;
     int flagall;
     MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
@@ -189,13 +190,13 @@ void FixEvaporate::pre_exchange()
   region->prematch();
 
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
 
   int ncount = 0;
   for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       if (region->match(x[i][0],x[i][1],x[i][2])) list[ncount++] = i;
 
   int nall,nbefore;

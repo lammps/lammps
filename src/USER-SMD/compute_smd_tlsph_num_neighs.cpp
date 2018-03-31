@@ -79,7 +79,7 @@ void ComputeSMDTLSPHNumNeighs::compute_peratom() {
         vector_atom = numNeighsRefConfigOutput;
     }
 
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
 
     int itmp = 0;
@@ -89,7 +89,7 @@ void ComputeSMDTLSPHNumNeighs::compute_peratom() {
     }
 
     for (int i = 0; i < nlocal; i++) {
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
             numNeighsRefConfigOutput[i] = numNeighsRefConfig[i];
         } else {
             numNeighsRefConfigOutput[i] = 0.0;

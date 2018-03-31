@@ -1253,7 +1253,7 @@ double Ewald::memory_usage()
    compute the Ewald total long-range force and energy for groups A and B
  ------------------------------------------------------------------------- */
 
-void Ewald::compute_group_group(int groupbit_A, int groupbit_B, int AA_flag)
+void Ewald::compute_group_group(int groupbit_A, int groupbin_A, int groupbit_B, int groupbin_B, int AA_flag)
 {
   if (slabflag && triclinic)
     error->all(FLERR,"Cannot (yet) use K-space slab "
@@ -1292,7 +1292,7 @@ void Ewald::compute_group_group(int groupbit_A, int groupbit_B, int AA_flag)
 
   double *q = atom->q;
   int nlocal = atom->nlocal;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
 
   int kx,ky,kz;
   double cypz,sypz,exprl,expim;
@@ -1306,10 +1306,10 @@ void Ewald::compute_group_group(int groupbit_A, int groupbit_B, int AA_flag)
 
     for (i = 0; i < nlocal; i++) {
 
-      if (!((mask[i] & groupbit_A) && (mask[i] & groupbit_B)))
+      if (!((mask[i][groupbin_A] & groupbit_A) && (mask[i][groupbin_B] & groupbit_B)))
         if (AA_flag) continue;
 
-      if ((mask[i] & groupbit_A) || (mask[i] & groupbit_B)) {
+      if ((mask[i][groupbin_A] & groupbit_A) || (mask[i][groupbin_B] & groupbit_B)) {
 
         cypz = cs[ky][1][i]*cs[kz][2][i] - sn[ky][1][i]*sn[kz][2][i];
         sypz = sn[ky][1][i]*cs[kz][2][i] + cs[ky][1][i]*sn[kz][2][i];
@@ -1318,14 +1318,14 @@ void Ewald::compute_group_group(int groupbit_A, int groupbit_B, int AA_flag)
 
         // group A
 
-        if (mask[i] & groupbit_A) {
+        if (mask[i][groupbin_A] & groupbit_A) {
           sfacrl_A[k] += q[i]*exprl;
           sfacim_A[k] += q[i]*expim;
         }
 
         // group B
 
-        if (mask[i] & groupbit_B) {
+        if (mask[i][groupbin_B] & groupbit_B) {
           sfacrl_B[k] += q[i]*exprl;
           sfacim_B[k] += q[i]*expim;
         }
@@ -1372,7 +1372,7 @@ void Ewald::compute_group_group(int groupbit_A, int groupbit_B, int AA_flag)
   // 2d slab correction
 
   if (slabflag == 1)
-    slabcorr_groups(groupbit_A, groupbit_B, AA_flag);
+    slabcorr_groups(groupbit_A, groupbin_A, groupbit_B, groupbin_B, AA_flag);
 }
 
 /* ----------------------------------------------------------------------
@@ -1383,14 +1383,14 @@ void Ewald::compute_group_group(int groupbit_A, int groupbit_B, int AA_flag)
    extended to non-neutral systems (J. Chem. Phys. 131, 094107).
 ------------------------------------------------------------------------- */
 
-void Ewald::slabcorr_groups(int groupbit_A, int groupbit_B, int AA_flag)
+void Ewald::slabcorr_groups(int groupbit_A, int groupbin_A, int groupbit_B, int groupbin_B, int AA_flag)
 {
   // compute local contribution to global dipole moment
 
   double *q = atom->q;
   double **x = atom->x;
   double zprd = domain->zprd;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double qsum_A = 0.0;
@@ -1401,16 +1401,16 @@ void Ewald::slabcorr_groups(int groupbit_A, int groupbit_B, int AA_flag)
   double dipole_r2_B = 0.0;
 
   for (int i = 0; i < nlocal; i++) {
-    if (!((mask[i] & groupbit_A) && (mask[i] & groupbit_B)))
+    if (!((mask[i][groupbin_A] & groupbit_A) && (mask[i][groupbin_B] & groupbit_B)))
       if (AA_flag) continue;
 
-    if (mask[i] & groupbit_A) {
+    if (mask[i][groupbin_A] & groupbit_A) {
       qsum_A += q[i];
       dipole_A += q[i]*x[i][2];
       dipole_r2_A += q[i]*x[i][2]*x[i][2];
     }
 
-    if (mask[i] & groupbit_B) {
+    if (mask[i][groupbin_B] & groupbit_B) {
       qsum_B += q[i];
       dipole_B += q[i]*x[i][2];
       dipole_r2_B += q[i]*x[i][2]*x[i][2];

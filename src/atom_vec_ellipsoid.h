@@ -85,7 +85,7 @@ class AtomVecEllipsoid : public AtomVec {
 
  private:
   tagint *tag;
-  int *type,*mask;
+  int *type,**mask;
   imageint *image;
   double **x,**v,**f;
   double *rmass;

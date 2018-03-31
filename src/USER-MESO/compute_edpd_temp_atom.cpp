@@ -73,11 +73,11 @@ void ComputeEDPDTempAtom::compute_peratom()
   }
 
   double *edpd_temp = atom->edpd_temp;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
               temp_vector[i] = edpd_temp[i];
       }
       else {

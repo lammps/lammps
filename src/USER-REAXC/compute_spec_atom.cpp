@@ -193,13 +193,13 @@ double ComputeSpecAtom::memory_usage()
 void ComputeSpecAtom::pack_q(int n)
 {
   double *q = atom->q;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
 
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = q[i];
+    if (mask[i][groupbin] & groupbit) buf[n] = q[i];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -210,13 +210,13 @@ void ComputeSpecAtom::pack_q(int n)
 void ComputeSpecAtom::pack_x(int n)
 {
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
 
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = x[i][0];
+    if (mask[i][groupbin] & groupbit) buf[n] = x[i][0];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -227,13 +227,13 @@ void ComputeSpecAtom::pack_x(int n)
 void ComputeSpecAtom::pack_y(int n)
 {
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
 
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = x[i][1];
+    if (mask[i][groupbin] & groupbit) buf[n] = x[i][1];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -244,13 +244,13 @@ void ComputeSpecAtom::pack_y(int n)
 void ComputeSpecAtom::pack_z(int n)
 {
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
 
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = x[i][2];
+    if (mask[i][groupbin] & groupbit) buf[n] = x[i][2];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -261,13 +261,13 @@ void ComputeSpecAtom::pack_z(int n)
 void ComputeSpecAtom::pack_vx(int n)
 {
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
 
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = v[i][0];
+    if (mask[i][groupbin] & groupbit) buf[n] = v[i][0];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -278,13 +278,13 @@ void ComputeSpecAtom::pack_vx(int n)
 void ComputeSpecAtom::pack_vy(int n)
 {
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
 
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = v[i][1];
+    if (mask[i][groupbin] & groupbit) buf[n] = v[i][1];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -295,13 +295,13 @@ void ComputeSpecAtom::pack_vy(int n)
 void ComputeSpecAtom::pack_vz(int n)
 {
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
 
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = v[i][2];
+    if (mask[i][groupbin] & groupbit) buf[n] = v[i][2];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -311,11 +311,11 @@ void ComputeSpecAtom::pack_vz(int n)
 
 void ComputeSpecAtom::pack_abo01(int n)
 {
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = reaxc->tmpbo[i][0];
+    if (mask[i][groupbin] & groupbit) buf[n] = reaxc->tmpbo[i][0];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -325,11 +325,11 @@ void ComputeSpecAtom::pack_abo01(int n)
 
 void ComputeSpecAtom::pack_abo02(int n)
 {
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = reaxc->tmpbo[i][1];
+    if (mask[i][groupbin] & groupbit) buf[n] = reaxc->tmpbo[i][1];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -339,11 +339,11 @@ void ComputeSpecAtom::pack_abo02(int n)
 
 void ComputeSpecAtom::pack_abo03(int n)
 {
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = reaxc->tmpbo[i][2];
+    if (mask[i][groupbin] & groupbit) buf[n] = reaxc->tmpbo[i][2];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -353,11 +353,11 @@ void ComputeSpecAtom::pack_abo03(int n)
 
 void ComputeSpecAtom::pack_abo04(int n)
 {
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = reaxc->tmpbo[i][3];
+    if (mask[i][groupbin] & groupbit) buf[n] = reaxc->tmpbo[i][3];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -367,11 +367,11 @@ void ComputeSpecAtom::pack_abo04(int n)
 
 void ComputeSpecAtom::pack_abo05(int n)
 {
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = reaxc->tmpbo[i][4];
+    if (mask[i][groupbin] & groupbit) buf[n] = reaxc->tmpbo[i][4];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -381,11 +381,11 @@ void ComputeSpecAtom::pack_abo05(int n)
 
 void ComputeSpecAtom::pack_abo06(int n)
 {
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = reaxc->tmpbo[i][5];
+    if (mask[i][groupbin] & groupbit) buf[n] = reaxc->tmpbo[i][5];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -395,11 +395,11 @@ void ComputeSpecAtom::pack_abo06(int n)
 
 void ComputeSpecAtom::pack_abo07(int n)
 {
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = reaxc->tmpbo[i][6];
+    if (mask[i][groupbin] & groupbit) buf[n] = reaxc->tmpbo[i][6];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -409,11 +409,11 @@ void ComputeSpecAtom::pack_abo07(int n)
 
 void ComputeSpecAtom::pack_abo08(int n)
 {
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = reaxc->tmpbo[i][7];
+    if (mask[i][groupbin] & groupbit) buf[n] = reaxc->tmpbo[i][7];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -423,11 +423,11 @@ void ComputeSpecAtom::pack_abo08(int n)
 
 void ComputeSpecAtom::pack_abo09(int n)
 {
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = reaxc->tmpbo[i][8];
+    if (mask[i][groupbin] & groupbit) buf[n] = reaxc->tmpbo[i][8];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -437,11 +437,11 @@ void ComputeSpecAtom::pack_abo09(int n)
 
 void ComputeSpecAtom::pack_abo10(int n)
 {
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = reaxc->tmpbo[i][9];
+    if (mask[i][groupbin] & groupbit) buf[n] = reaxc->tmpbo[i][9];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -451,11 +451,11 @@ void ComputeSpecAtom::pack_abo10(int n)
 
 void ComputeSpecAtom::pack_abo11(int n)
 {
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = reaxc->tmpbo[i][10];
+    if (mask[i][groupbin] & groupbit) buf[n] = reaxc->tmpbo[i][10];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -465,11 +465,11 @@ void ComputeSpecAtom::pack_abo11(int n)
 
 void ComputeSpecAtom::pack_abo12(int n)
 {
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = reaxc->tmpbo[i][11];
+    if (mask[i][groupbin] & groupbit) buf[n] = reaxc->tmpbo[i][11];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -479,11 +479,11 @@ void ComputeSpecAtom::pack_abo12(int n)
 
 void ComputeSpecAtom::pack_abo13(int n)
 {
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = reaxc->tmpbo[i][12];
+    if (mask[i][groupbin] & groupbit) buf[n] = reaxc->tmpbo[i][12];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -493,11 +493,11 @@ void ComputeSpecAtom::pack_abo13(int n)
 
 void ComputeSpecAtom::pack_abo14(int n)
 {
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = reaxc->tmpbo[i][13];
+    if (mask[i][groupbin] & groupbit) buf[n] = reaxc->tmpbo[i][13];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -507,11 +507,11 @@ void ComputeSpecAtom::pack_abo14(int n)
 
 void ComputeSpecAtom::pack_abo15(int n)
 {
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = reaxc->tmpbo[i][14];
+    if (mask[i][groupbin] & groupbit) buf[n] = reaxc->tmpbo[i][14];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -521,11 +521,11 @@ void ComputeSpecAtom::pack_abo15(int n)
 
 void ComputeSpecAtom::pack_abo16(int n)
 {
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = reaxc->tmpbo[i][15];
+    if (mask[i][groupbin] & groupbit) buf[n] = reaxc->tmpbo[i][15];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -535,11 +535,11 @@ void ComputeSpecAtom::pack_abo16(int n)
 
 void ComputeSpecAtom::pack_abo17(int n)
 {
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = reaxc->tmpbo[i][16];
+    if (mask[i][groupbin] & groupbit) buf[n] = reaxc->tmpbo[i][16];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -549,11 +549,11 @@ void ComputeSpecAtom::pack_abo17(int n)
 
 void ComputeSpecAtom::pack_abo18(int n)
 {
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = reaxc->tmpbo[i][17];
+    if (mask[i][groupbin] & groupbit) buf[n] = reaxc->tmpbo[i][17];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -563,11 +563,11 @@ void ComputeSpecAtom::pack_abo18(int n)
 
 void ComputeSpecAtom::pack_abo19(int n)
 {
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = reaxc->tmpbo[i][18];
+    if (mask[i][groupbin] & groupbit) buf[n] = reaxc->tmpbo[i][18];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -577,11 +577,11 @@ void ComputeSpecAtom::pack_abo19(int n)
 
 void ComputeSpecAtom::pack_abo20(int n)
 {
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = reaxc->tmpbo[i][19];
+    if (mask[i][groupbin] & groupbit) buf[n] = reaxc->tmpbo[i][19];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -591,11 +591,11 @@ void ComputeSpecAtom::pack_abo20(int n)
 
 void ComputeSpecAtom::pack_abo21(int n)
 {
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = reaxc->tmpbo[i][20];
+    if (mask[i][groupbin] & groupbit) buf[n] = reaxc->tmpbo[i][20];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -605,11 +605,11 @@ void ComputeSpecAtom::pack_abo21(int n)
 
 void ComputeSpecAtom::pack_abo22(int n)
 {
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = reaxc->tmpbo[i][21];
+    if (mask[i][groupbin] & groupbit) buf[n] = reaxc->tmpbo[i][21];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -619,11 +619,11 @@ void ComputeSpecAtom::pack_abo22(int n)
 
 void ComputeSpecAtom::pack_abo23(int n)
 {
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = reaxc->tmpbo[i][22];
+    if (mask[i][groupbin] & groupbit) buf[n] = reaxc->tmpbo[i][22];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -633,11 +633,11 @@ void ComputeSpecAtom::pack_abo23(int n)
 
 void ComputeSpecAtom::pack_abo24(int n)
 {
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = reaxc->tmpbo[i][23];
+    if (mask[i][groupbin] & groupbit) buf[n] = reaxc->tmpbo[i][23];
     else buf[n] = 0.0;
     n += nvalues;
   }

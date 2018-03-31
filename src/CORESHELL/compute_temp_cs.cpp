@@ -60,11 +60,13 @@ ComputeTempCS::ComputeTempCS(LAMMPS *lmp, int narg, char **arg) :
   if (cgroup == -1)
     error->all(FLERR,"Cannot find specified group ID for core particles");
   groupbit_c = group->bitmask[cgroup];
+  groupbin_c = floor((float)cgroup/(float)group->grp_per_bin);
 
   sgroup = group->find(arg[4]);
   if (sgroup == -1)
     error->all(FLERR,"Cannot find specified group ID for shell particles");
   groupbit_s = group->bitmask[sgroup];
+  groupbin_s = floor((float)sgroup/(float)group->grp_per_bin);
 
   // create a new fix STORE style
   // id = compute-ID + COMPUTE_STORE, fix group = compute group
@@ -153,7 +155,7 @@ void ComputeTempCS::setup()
     int *num_bond = atom->num_bond;
     tagint **bond_atom = atom->bond_atom;
     tagint *tag = atom->tag;
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
 
     double *partner = fix->vstore;
@@ -164,14 +166,14 @@ void ComputeTempCS::setup()
 
     int i,j,m,match;
     for (i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit_c || mask[i] & groupbit_s) {
+      if (mask[i][groupbin_c] & groupbit_c || mask[i][groupbin_s] & groupbit_s) {
         for (m = 0; m < num_bond[i]; m++) {
           partnerID = bond_atom[i][m];
           j = atom->map(partnerID);
           if (j == -1) error->one(FLERR,"Core/shell partner atom not found");
           match = 0;
-          if (mask[i] & groupbit_c && mask[j] & groupbit_s) match = 1;
-          if (mask[i] & groupbit_s && mask[j] & groupbit_c) match = 1;
+          if (mask[i][groupbin_c] & groupbit_c && mask[j][groupbin_s] & groupbit_s) match = 1;
+          if (mask[i][groupbin_s] & groupbit_s && mask[j][groupbin_c] & groupbit_c) match = 1;
           if (match) {
             partner[i] = ubuf(partnerID).d;
             partner[j] = ubuf(tag[i]).d;
@@ -189,7 +191,7 @@ void ComputeTempCS::setup()
 
     int flag = 0;
     for (i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit_c || mask[i] & groupbit_s) {
+      if (mask[i][groupbin_c] & groupbit_c || mask[i][groupbin_s] & groupbit_s) {
         partnerID = (tagint) ubuf(partner[i]).i;
         if (partnerID == 0) flag = 1;
       }
@@ -233,7 +235,7 @@ double ComputeTempCS::compute_scalar()
   // velocities of its according core/shell pairs
 
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
@@ -242,7 +244,7 @@ double ComputeTempCS::compute_scalar()
   double t = 0.0;
 
   for (int i = 0; i < nlocal; i++){
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       vthermal[0] = v[i][0] - vint[i][0];
       vthermal[1] = v[i][1] - vint[i][1];
       vthermal[2] = v[i][2] - vint[i][2];
@@ -270,7 +272,7 @@ void ComputeTempCS::compute_vector()
   invoked_vector = update->ntimestep;
 
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
@@ -281,7 +283,7 @@ void ComputeTempCS::compute_vector()
   for (int i = 0; i < 6; i++) t[i] = 0.0;
 
   for (int i = 0; i < nlocal; i++){
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
       t[0] += massone * v[i][0]*v[i][0];
@@ -319,7 +321,7 @@ void ComputeTempCS::vcm_pairs()
   // vint = internal velocity of each C/S atom, used as bias
 
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
@@ -328,8 +330,8 @@ void ComputeTempCS::vcm_pairs()
   tagint partnerID;
 
   for (i = 0; i < nlocal; i++) {
-    if ((mask[i] & groupbit) &&
-        (mask[i] & groupbit_c || mask[i] & groupbit_s)) {
+    if ((mask[i][groupbin] & groupbit) &&
+        (mask[i][groupbin_c] & groupbit_c || mask[i][groupbin_s] & groupbit_s)) {
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
       vcm[0] = v[i][0]*massone;
@@ -376,11 +378,11 @@ void ComputeTempCS::remove_bias(int i, double *v)
 void ComputeTempCS::remove_bias_all()
 {
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       v[i][0] -= vint[i][0];
       v[i][1] -= vint[i][1];
       v[i][2] -= vint[i][2];
@@ -396,7 +398,7 @@ void ComputeTempCS::remove_bias_all()
 void ComputeTempCS::reapply_bias_all()
 {
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   // recalculate current COM velocities
@@ -407,7 +409,7 @@ void ComputeTempCS::reapply_bias_all()
   // will not further alter the velocities within a C/S pair
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       v[i][0] -= vint[i][0];
       v[i][1] -= vint[i][1];
       v[i][2] -= vint[i][2];
@@ -437,11 +439,11 @@ void ComputeTempCS::restore_bias(int i, double *v)
 void ComputeTempCS::restore_bias_all()
 {
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       v[i][0] += vint[i][0];
       v[i][1] += vint[i][1];
       v[i][2] += vint[i][2];

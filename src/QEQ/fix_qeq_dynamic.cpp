@@ -95,7 +95,7 @@ void FixQEqDynamic::pre_force(int vflag)
   double enegchkall,enegmaxall;
 
   double *q = atom->q;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
 
   double enegchk = 0.0;
   double enegtot = 0.0;
@@ -119,7 +119,7 @@ void FixQEqDynamic::pre_force(int vflag)
   for (iloop = 0; iloop < maxiter; iloop ++ ) {
     for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         q1[i] += qf[i]*dtq2 - qdamp*q1[i];
         q[i]  += q1[i];
       }
@@ -135,7 +135,7 @@ void FixQEqDynamic::pre_force(int vflag)
 
     for (ii = 0; ii < inum ; ii++) {
       i = ilist[ii];
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         q2[i] = enegtot-qf[i];
         enegmax = MAX(enegmax,fabs(q2[i]));
         enegchk += fabs(q2[i]);
@@ -152,7 +152,7 @@ void FixQEqDynamic::pre_force(int vflag)
 
     for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
-      if (mask[i] & groupbit)
+      if (mask[i][groupbin] & groupbit)
         q1[i] += qf[i]*dtq2 - qdamp*q1[i];
     }
   }
@@ -179,7 +179,7 @@ double FixQEqDynamic::compute_eneg()
   double r, rsq, delr[3], rinv;
 
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   double *q = atom->q;
   double **x = atom->x;
 
@@ -190,7 +190,7 @@ double FixQEqDynamic::compute_eneg()
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       qf[i] = 0.0;
   }
 
@@ -202,7 +202,7 @@ double FixQEqDynamic::compute_eneg()
     i = ilist[ii];
     itype = type[i];
 
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
 
       qf[i] += chi[itype] + eta[itype] * q[i];
 
@@ -236,7 +236,7 @@ double FixQEqDynamic::compute_eneg()
   eneg = enegtot = 0.0;
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       eneg += qf[i];
   }
   MPI_Allreduce(&eneg,&enegtot,1,MPI_DOUBLE,MPI_SUM,world);

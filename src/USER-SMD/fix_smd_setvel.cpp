@@ -236,7 +236,7 @@ void FixSMDSetVel::post_force(int vflag) {
         double **f = atom->f;
         double **v = atom->v;
         double **vest = atom->vest;
-        int *mask = atom->mask;
+        int **mask = atom->mask;
         int nlocal = atom->nlocal;
 
         // update region if necessary
@@ -260,7 +260,7 @@ void FixSMDSetVel::post_force(int vflag) {
 
         if (varflag == CONSTANT) {
                 for (int i = 0; i < nlocal; i++)
-                        if (mask[i] & groupbit) {
+                        if (mask[i][groupbin] & groupbit) {
                                 if (region && !region->match(x[i][0], x[i][1], x[i][2]))
                                         continue;
                                 foriginal[0] += f[i][0];
@@ -307,7 +307,7 @@ void FixSMDSetVel::post_force(int vflag) {
                 //printf("setting velocity at timestep %d\n", update->ntimestep);
 
                 for (int i = 0; i < nlocal; i++)
-                        if (mask[i] & groupbit) {
+                        if (mask[i][groupbin] & groupbit) {
                                 if (region && !region->match(x[i][0], x[i][1], x[i][2]))
                                         continue;
                                 foriginal[0] += f[i][0];

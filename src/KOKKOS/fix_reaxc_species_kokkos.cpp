@@ -79,7 +79,7 @@ void FixReaxCSpeciesKokkos::FindMolecule()
 {
   int i,j,ii,jj,inum,itype,jtype,loop,looptot;
   int change,done,anychange;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   double bo_tmp,bo_cut;
   double **spec_atom = f_SPECBOND->array_atom;
 
@@ -97,7 +97,7 @@ void FixReaxCSpeciesKokkos::FindMolecule()
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       clusterID[i] = atom->tag[i];
       x0[i].x = spec_atom[i][1];
       x0[i].y = spec_atom[i][2];
@@ -117,7 +117,7 @@ void FixReaxCSpeciesKokkos::FindMolecule()
 
       for (ii = 0; ii < inum; ii++) {
         i = ilist[ii];
-        if (!(mask[i] & groupbit)) continue;
+        if (!(mask[i][groupbin] & groupbit)) continue;
 
         itype = atom->type[i];
 
@@ -125,7 +125,7 @@ void FixReaxCSpeciesKokkos::FindMolecule()
           j = reaxc->tmpid[i][jj];
 
           if ((j == 0) && (j < i)) continue;
-          if (!(mask[j] & groupbit)) continue;
+          if (!(mask[j][groupbin] & groupbit)) continue;
 
           if (clusterID[i] == clusterID[j]
             && x0[i].x == x0[j].x && x0[i].y == x0[j].y && x0[i].z == x0[j].z) continue;

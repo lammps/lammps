@@ -148,14 +148,14 @@ void FixManifoldForce::post_force(int vflag)
 {
   double **x = atom->x;
   double **f = atom->f;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double n[3];
   double invn2;
   double dot;
   for (int i = 0; i < nlocal; i++){
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       // Determine normal of particle:
       ptr_m->n(x[i],n);
 

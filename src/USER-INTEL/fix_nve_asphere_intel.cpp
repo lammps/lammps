@@ -58,11 +58,11 @@ void FixNVEAsphereIntel::init()
   // no point particles allowed, spherical is OK
 
   int *ellipsoid = atom->ellipsoid;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       if (ellipsoid[i] < 0)
         error->one(FLERR,"Fix nve/asphere requires extended particles");
 
@@ -90,7 +90,7 @@ void FixNVEAsphereIntel::initial_integrate(int vflag)
   double * _noalias const x = atom->x[0];
   double * _noalias const v = atom->v[0];
   const double * _noalias const f = atom->f[0];
-  int *mask = atom->mask;
+  int **mask = atom->mask;
 
   double **angmom = atom->angmom;
   double **torque = atom->torque;
@@ -128,7 +128,7 @@ void FixNVEAsphereIntel::initial_integrate(int vflag)
     #pragma simd
     #endif
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         double *quat = bonus[ellipsoid[i]].quat;
         ME_omega_richardson(dtf, dtq, angmom[i], quat, torque[i], _inertia0[i],
                             _inertia1[i], _inertia2[i]);
@@ -167,7 +167,7 @@ void FixNVEAsphereIntel::reset_dt() {
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
 
-  const int * const mask = atom->mask;
+  int ** mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst :
     atom->nlocal;
 
@@ -209,7 +209,7 @@ void FixNVEAsphereIntel::reset_dt() {
     const double * const rmass = atom->rmass;
     int n = 0;
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         _dtfm[n++] = dtf / rmass[i];
         _dtfm[n++] = dtf / rmass[i];
         _dtfm[n++] = dtf / rmass[i];

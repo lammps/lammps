@@ -128,7 +128,7 @@ void FixSMD_TLSPH_ReferenceConfiguration::pre_exchange() {
         double *rmass = atom->rmass;
         int nlocal = atom->nlocal;
         int i, itmp;
-        int *mask = atom->mask;
+        int **mask = atom->mask;
         if (igroup == atom->firstgroup) {
                 nlocal = atom->nfirst;
         }
@@ -154,7 +154,7 @@ void FixSMD_TLSPH_ReferenceConfiguration::pre_exchange() {
 
                 for (i = 0; i < nlocal; i++) {
 
-                        if (mask[i] & groupbit) {
+                        if (mask[i][groupbin] & groupbit) {
 
                                 // re-set x0 coordinates
                                 x0[i][0] = x[i][0];
@@ -218,7 +218,7 @@ void FixSMD_TLSPH_ReferenceConfiguration::setup(int vflag) {
 
         double **x0 = atom->x;
         double *radius = atom->radius;
-        int *mask = atom->mask;
+        int **mask = atom->mask;
         tagint *tag = atom->tag;
         NeighList *list = pair->list;
         inum = list->inum;
@@ -322,7 +322,7 @@ void FixSMD_TLSPH_ReferenceConfiguration::setup(int vflag) {
                 n = 0;
                 int count = 0;
                 for (i = 0; i < nlocal; i++) {
-                        if (mask[i] & groupbit) {
+                        if (mask[i][groupbin] & groupbit) {
                                 n += npartner[i];
                                 count += 1;
                         }

@@ -78,19 +78,19 @@ class Variable : protected Pointers {
   int precedence[18];      // precedence level of math operators
                            // set length to include up to XOR in enum
 
-  struct Tree {            // parse tree for atom-style or vector-style vars
-    double value;          // single scalar
-    double *array;         // per-atom or per-type list of doubles
-    int *iarray;           // per-atom list of ints
-    bigint *barray;        // per-atom list of bigints
-    int type;              // operation, see enum{} in variable.cpp
-    int nvector;           // length of array for vector-style variable
-    int nstride;           // stride between atoms if array is a 2d array
-    int selfalloc;         // 1 if array is allocated here, else 0
-    int ivalue1,ivalue2;   // extra values for needed for gmask,rmask,grmask
-    int nextra;            // # of additional args beyond first 2
-    Tree *first,*second;   // ptrs further down tree for first 2 args
-    Tree **extra;          // ptrs further down tree for nextra args
+  struct Tree {                       // parse tree for atom-style or vector-style vars
+    double value;                     // single scalar
+    double *array;                    // per-atom or per-type list of doubles
+    int *iarray;                      // per-atom list of ints
+    bigint *barray;                   // per-atom list of bigints
+    int type;                         // operation, see enum{} in variable.cpp
+    int nvector;                      // length of array for vector-style variable
+    int nstride;                      // stride between atoms if array is a 2d array
+    int selfalloc;                    // 1 if array is allocated here, else 0
+    int ivalue1,ivalue1bin,ivalue2;   // extra values for needed for gmask,rmask,grmask
+    int nextra;                       // # of additional args beyond first 2
+    Tree *first,*second;              // ptrs further down tree for first 2 args
+    Tree **extra;                     // ptrs further down tree for nextra args
   };
 
   int compute_python(int);

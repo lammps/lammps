@@ -472,7 +472,7 @@ void FixQBMSST::setup(int vflag)
     // transfer energy from atom velocities to cell volume motion
     // to bias initial compression
     double **v = atom->v;
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     double sqrt_initial_temperature_scaling = sqrt(1.0-tscale);
 
     double fac1 =  tscale*total_mass/qmass*ke_temp/force->mvv2e;
@@ -491,7 +491,7 @@ void FixQBMSST::setup(int vflag)
                 fac2,tscale);
     }
     for (int i = 0; i < atom->nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         for (int k = 0; k < 3; k++ ) {
           v[i][k]*=sqrt_initial_temperature_scaling;
         }
@@ -515,7 +515,7 @@ void FixQBMSST::initial_integrate(int vflag)
   int i, k;
   double vol;
   int nlocal = atom->nlocal;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   double **v = atom->v;
   double **f = atom->f;
   double *mass = atom->mass;
@@ -581,7 +581,7 @@ void FixQBMSST::initial_integrate(int vflag)
       fran[j][0] = 0.0;
       fran[j][1] = 0.0;
       fran[j][2] = 0.0;
-      if (mask[j] & groupbit) {
+      if (mask[j][groupbin] & groupbit) {
         double gamma3 = gfactor[type[j]];
 
         for (int m = 0; m < 2*N_f; m++) {
@@ -627,7 +627,7 @@ void FixQBMSST::initial_integrate(int vflag)
   // temporarily propagating the velocities.
   velocity_sum = compute_vsum();
   for (i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       for ( k = 0; k < 3; k++ ) {
         double C = (f[i][k] + fran[i][k])* force->ftm2v / mass[type[i]];//  this term now has a random force part
         double D = mu * omega[sd] * omega[sd] /
@@ -651,7 +651,7 @@ void FixQBMSST::initial_integrate(int vflag)
 
   // reset the velocities.
   for (i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       for ( k = 0; k < 3; k++ ) {
         v[i][k] = old_velocity[i][k];
       }
@@ -660,7 +660,7 @@ void FixQBMSST::initial_integrate(int vflag)
 
   // propagate velocities 1/2 step using the new velocity sum.
   for (i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       for ( k = 0; k < 3; k++ ) {
         double C = (f[i][k] + fran[i][k])* force->ftm2v / mass[type[i]];//  this term now has a random force part
         double D = mu * omega[sd] * omega[sd] /
@@ -689,7 +689,7 @@ void FixQBMSST::initial_integrate(int vflag)
 
   // propagate particle positions 1 time step.
   for (i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       x[i][0] += dtv * v[i][0];
       x[i][1] += dtv * v[i][1];
       x[i][2] += dtv * v[i][2];
@@ -719,7 +719,7 @@ void FixQBMSST::final_integrate()
   double **f = atom->f;
   double *mass = atom->mass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   double vol = compute_vol();
   double p_qbmsst;
@@ -728,7 +728,7 @@ void FixQBMSST::final_integrate()
   // propagate particle velocities 1/2 step.
 
   for (i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       for ( int k = 0; k < 3; k++ ) {
         double C = (f[i][k] + fran[i][k]) * force->ftm2v / mass[type[i]];//  this term now has a random force part
         double D = mu * omega[sd] * omega[sd] /
@@ -1114,13 +1114,13 @@ double FixQBMSST::compute_vsum()
   double vsum;
 
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double t = 0.0;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) ;
     }
   }

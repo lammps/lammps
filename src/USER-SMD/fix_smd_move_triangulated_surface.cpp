@@ -257,7 +257,7 @@ void FixSMDMoveTriSurf::initial_integrate(int vflag) {
         double **smd_data_9 = atom->smd_data_9;
         tagint *mol = atom->molecule;
 
-        int *mask = atom->mask;
+        int **mask = atom->mask;
         int nlocal = atom->nlocal;
         double phi;
         int i;
@@ -271,7 +271,7 @@ void FixSMDMoveTriSurf::initial_integrate(int vflag) {
 
         if (linearFlag) { // translate particles
                 for (i = 0; i < nlocal; i++) {
-                        if (mask[i] & groupbit) {
+                        if (mask[i][groupbin] & groupbit) {
 
                                 v[i][0] = vx;
                                 v[i][1] = vy;
@@ -317,7 +317,7 @@ void FixSMDMoveTriSurf::initial_integrate(int vflag) {
                 //printf("wiggle vz is %f, wiggle_max_travel is %f, dir=%f\n", wiggle_vz, wiggle_max_travel, wiggle_direction);
 
                 for (i = 0; i < nlocal; i++) {
-                        if (mask[i] & groupbit) {
+                        if (mask[i][groupbin] & groupbit) {
 
                                 v[i][0] = wiggle_vx;
                                 v[i][1] = wiggle_vy;
@@ -370,7 +370,7 @@ void FixSMDMoveTriSurf::initial_integrate(int vflag) {
                 Rot = cos(phi) * eye + sin(phi) * u_cross + (1.0 - cos(phi)) * uxu;
 
                 for (i = 0; i < nlocal; i++) {
-                        if (mask[i] & groupbit) {
+                        if (mask[i][groupbin] & groupbit) {
 
                                 /*
                                  * generate vector R from origin to point which is to be rotated

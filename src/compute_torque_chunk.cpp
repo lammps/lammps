@@ -110,7 +110,7 @@ void ComputeTorqueChunk::compute_array()
   // compute COM for each chunk
 
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   imageint *image = atom->image;
   double *mass = atom->mass;
@@ -118,7 +118,7 @@ void ComputeTorqueChunk::compute_array()
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       index = ichunk[i]-1;
       if (index < 0) continue;
       if (rmass) massone = rmass[i];
@@ -146,7 +146,7 @@ void ComputeTorqueChunk::compute_array()
   double **f = atom->f;
 
   for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       index = ichunk[i]-1;
       if (index < 0) continue;
       domain->unmap(x[i],image[i],unwrap);

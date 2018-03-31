@@ -79,7 +79,7 @@ void ComputeDpdAtom::compute_peratom()
   double *uChem = atom->uChem;
   double *dpdTheta = atom->dpdTheta;
   int nlocal = atom->nlocal;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   if (nlocal > nmax) {
     memory->destroy(dpdAtom);
     nmax = atom->nmax;
@@ -88,7 +88,7 @@ void ComputeDpdAtom::compute_peratom()
   }
 
   for (int i = 0; i < nlocal; i++){
-    if (mask[i] & groupbit){
+    if (mask[i][groupbin] & groupbit){
       dpdAtom[i][0] =  uCond[i];
       dpdAtom[i][1] =  uMech[i];
       dpdAtom[i][2] =  uChem[i];

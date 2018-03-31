@@ -61,9 +61,11 @@ void CreateBonds::command(int narg, char **arg)
     igroup = group->find(arg[1]);
     if (igroup == -1) error->all(FLERR,"Cannot find create_bonds group ID");
     group1bit = group->bitmask[igroup];
+    group1bin = floor((float)igroup/(float)group->grp_per_bin);
     igroup = group->find(arg[2]);
     if (igroup == -1) error->all(FLERR,"Cannot find create_bonds group ID");
     group2bit = group->bitmask[igroup];
+    group2bin = floor((float)igroup/(float)group->grp_per_bin);
     btype = force->inumeric(FLERR,arg[3]);
     rmin = force->numeric(FLERR,arg[4]);
     rmax = force->numeric(FLERR,arg[5]);
@@ -222,7 +224,7 @@ void CreateBonds::many()
   // check that bond list does not overflow
 
   tagint *tag = atom->tag;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   double **x = atom->x;
   int *num_bond = atom->num_bond;
   int **bond_type = atom->bond_type;
@@ -270,8 +272,8 @@ void CreateBonds::many()
       // only consider bond creation if igroup and jgroup match I,J atoms
 
       flag = 0;
-      if ((mask[i] & group1bit) && (mask[j] & group2bit)) flag = 1;
-      if ((mask[i] & group2bit) && (mask[j] & group1bit)) flag = 1;
+      if ((mask[i][group1bin] & group1bit) && (mask[j][group2bin] & group2bit)) flag = 1;
+      if ((mask[i][group2bin] & group2bit) && (mask[j][group1bin] & group1bit)) flag = 1;
       if (!flag) continue;
 
       // create bond, check for overflow

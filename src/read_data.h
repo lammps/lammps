@@ -70,7 +70,7 @@ class ReadData : protected Pointers {
   double shift[3];
   int extra_atom_types,extra_bond_types,extra_angle_types;
   int extra_dihedral_types,extra_improper_types;
-  int groupbit;
+  int groupbit,groupbin;
 
   int nfix;
   int *fix_index;

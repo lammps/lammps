@@ -160,7 +160,7 @@ void FixFlowGauss::post_force(int vflag)
   double **f   = atom->f;
   double **v   = atom->v;
 
-  int *mask    = atom->mask;
+  int **mask    = atom->mask;
   int *type    = atom->type;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
@@ -177,7 +177,7 @@ void FixFlowGauss::post_force(int vflag)
 
   //add all forces on each processor
   for(ii=0; ii<nlocal; ii++)
-    if (mask[ii] & groupbit)
+    if (mask[ii][groupbin] & groupbit)
       for (jj=0; jj<3; jj++)
         if (flow[jj])
           f_thisProc[jj] += f[ii][jj];
@@ -193,7 +193,7 @@ void FixFlowGauss::post_force(int vflag)
   double f_app[3];
   double peAdded=0.0;
   for( ii = 0; ii<nlocal; ii++)
-    if (mask[ii] & groupbit) {
+    if (mask[ii][groupbin] & groupbit) {
       if (rmass) {
         f_app[0] = a_app[0]*rmass[ii];
         f_app[1] = a_app[1]*rmass[ii];

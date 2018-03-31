@@ -269,7 +269,7 @@ void FixGravity::post_force(int vflag)
   double **f = atom->f;
   double *rmass = atom->rmass;
   double *mass = atom->mass;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   int nlocal = atom->nlocal;
   double massone;
@@ -279,7 +279,7 @@ void FixGravity::post_force(int vflag)
 
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         massone = rmass[i];
         f[i][0] += massone*xacc;
         f[i][1] += massone*yacc;
@@ -288,7 +288,7 @@ void FixGravity::post_force(int vflag)
       }
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         massone = mass[type[i]];
         f[i][0] += massone*xacc;
         f[i][1] += massone*yacc;

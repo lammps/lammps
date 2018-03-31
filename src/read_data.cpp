@@ -265,6 +265,7 @@ void ReadData::command(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
       int igroup = group->find_or_create(arg[iarg+1]);
       groupbit = group->bitmask[igroup];
+      groupbin = floor((float)igroup/(float)group->grp_per_bin);
       iarg += 2;
     } else if (strcmp(arg[iarg],"fix") == 0) {
       if (iarg+4 > narg)
@@ -763,10 +764,10 @@ void ReadData::command(int narg, char **arg)
   // assign atoms added by this data file to specified group
 
   if (groupbit) {
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
     for (int i = nlocal_previous; i < nlocal; i++)
-      mask[i] |= groupbit;
+      mask[i][groupbin] |= groupbit;
   }
 
   // create special bond lists for molecular systems

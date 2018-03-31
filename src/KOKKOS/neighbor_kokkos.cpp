@@ -63,7 +63,10 @@ NeighborKokkos::~NeighborKokkos()
     memoryKK->destroy_kokkos(k_ex_mol_group,ex_mol_group);
     memoryKK->destroy_kokkos(k_ex1_bit,ex1_bit);
     memoryKK->destroy_kokkos(k_ex2_bit,ex2_bit);
+    memoryKK->destroy_kokkos(k_ex1_bin,ex1_bin);
+    memoryKK->destroy_kokkos(k_ex2_bin,ex2_bin);
     memoryKK->destroy_kokkos(k_ex_mol_bit,ex_mol_bit);
+    memoryKK->destroy_kokkos(k_ex_mol_bin,ex_mol_bin);
     memoryKK->destroy_kokkos(k_ex_mol_intra,ex_mol_intra);
 
     memoryKK->destroy_kokkos(k_bondlist,bondlist);
@@ -124,6 +127,10 @@ void NeighborKokkos::init_ex_bit_kokkos()
   k_ex1_bit.modify<LMPHostType>();
   memoryKK->create_kokkos(k_ex2_bit, ex2_bit, nex_group, "neigh:ex2_bit");
   k_ex2_bit.modify<LMPHostType>();
+  memoryKK->create_kokkos(k_ex1_bin, ex1_bin, nex_group, "neigh:ex1_bin");
+  k_ex1_bin.modify<LMPHostType>();
+  memoryKK->create_kokkos(k_ex2_bin, ex2_bin, nex_group, "neigh:ex2_bin");
+  k_ex2_bin.modify<LMPHostType>();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -132,6 +139,8 @@ void NeighborKokkos::init_ex_mol_bit_kokkos()
 {
   memoryKK->create_kokkos(k_ex_mol_bit, ex_mol_bit, nex_mol, "neigh:ex_mol_bit");
   k_ex_mol_bit.modify<LMPHostType>();
+  memoryKK->create_kokkos(k_ex_mol_bin, ex_mol_bin, nex_mol, "neigh:ex_mol_bin");
+  k_ex_mol_bin.modify<LMPHostType>();
 }
 
 /* ---------------------------------------------------------------------- */

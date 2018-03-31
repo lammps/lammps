@@ -62,6 +62,7 @@ ComputeGroupGroup::ComputeGroupGroup(LAMMPS *lmp, int narg, char **arg) :
   if (jgroup == -1)
     error->all(FLERR,"Compute group/group group ID does not exist");
   jgroupbit = group->bitmask[jgroup];
+  jgroupbin = floor((float)jgroup/(float)group->grp_per_bin);
 
   pairflag = 1;
   kspaceflag = 0;
@@ -160,6 +161,7 @@ void ComputeGroupGroup::init()
   if (jgroup == -1)
     error->all(FLERR,"Compute group/group group ID does not exist");
   jgroupbit = group->bitmask[jgroup];
+  jgroupbin = floor((float)jgroup/(float)group->grp_per_bin);
 
   // need an occasional half neighbor list
 
@@ -218,7 +220,7 @@ void ComputeGroupGroup::pair_contribution()
   double **x = atom->x;
   tagint *molecule = atom->molecule;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
@@ -242,7 +244,7 @@ void ComputeGroupGroup::pair_contribution()
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     // skip if atom I is not in either group
-    if (!(mask[i] & groupbit || mask[i] & jgroupbit)) continue;
+    if (!(mask[i][groupbin] & groupbit || mask[i][jgroupbin] & jgroupbit)) continue;
 
     xtmp = x[i][0];
     ytmp = x[i][1];
@@ -259,14 +261,14 @@ void ComputeGroupGroup::pair_contribution()
 
       // skip if atom J is not in either group
 
-      if (!(mask[j] & groupbit || mask[j] & jgroupbit)) continue;
+      if (!(mask[j][groupbin] & groupbit || mask[j][jgroupbin] & jgroupbit)) continue;
 
       // skip if atoms I,J are only in the same group
 
       int ij_flag = 0;
       int ji_flag = 0;
-      if (mask[i] & groupbit && mask[j] & jgroupbit) ij_flag = 1;
-      if (mask[j] & groupbit && mask[i] & jgroupbit) ji_flag = 1;
+      if (mask[i][groupbin] & groupbit && mask[j][jgroupbin] & jgroupbit) ij_flag = 1;
+      if (mask[j][groupbin] & groupbit && mask[i][jgroupbin] & jgroupbit) ji_flag = 1;
       if (!ij_flag && !ji_flag) continue;
 
       // skip if molecule IDs of atoms I,J do not satisfy molflag setting
@@ -331,7 +333,7 @@ void ComputeGroupGroup::kspace_contribution()
 {
   double *vector_kspace = force->kspace->f2group;
 
-  force->kspace->compute_group_group(groupbit,jgroupbit,0);
+  force->kspace->compute_group_group(groupbit,groupbin,jgroupbit,jgroupbin,0);
   scalar += 2.0*force->kspace->e2group;
   vector[0] += vector_kspace[0];
   vector[1] += vector_kspace[1];
@@ -341,7 +343,7 @@ void ComputeGroupGroup::kspace_contribution()
   //   real-space style of compute group-group
   // add extra Kspace term to energy
 
-  force->kspace->compute_group_group(groupbit,jgroupbit,1);
+  force->kspace->compute_group_group(groupbit,groupbin,jgroupbit,jgroupbin,1);
   scalar -= force->kspace->e2group;
 
   // self energy correction term
@@ -374,15 +376,17 @@ void ComputeGroupGroup::kspace_correction()
   qsqsum_group = qsum_A = qsum_B = 0.0;
 
   double *q = atom->q;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int groupbit_A = groupbit;
+  int groupbin_A = groupbin;
   int groupbit_B = jgroupbit;
+  int groupbin_B = jgroupbin;
 
   for (int i = 0; i < atom->nlocal; i++) {
-    if ((mask[i] & groupbit_A) && (mask[i] & groupbit_B))
+    if ((mask[i][groupbin_A] & groupbit_A) && (mask[i][groupbin_B] & groupbit_B))
       qsqsum_group += q[i]*q[i];
-    if (mask[i] & groupbit_A) qsum_A += q[i];
-    if (mask[i] & groupbit_B) qsum_B += q[i];
+    if (mask[i][groupbin_A] & groupbit_A) qsum_A += q[i];
+    if (mask[i][groupbin_B] & groupbit_B) qsum_B += q[i];
   }
 
   double tmp;
@@ -410,11 +414,11 @@ void ComputeGroupGroup::kspace_correction()
   qsum_A = qsum_B = 0.0;
 
   for (int i = 0; i < atom->nlocal; i++) {
-    if (!((mask[i] & groupbit_A) && (mask[i] & groupbit_B)))
+    if (!((mask[i][groupbin_A] & groupbit_A) && (mask[i][groupbin_B] & groupbit_B)))
       continue;
 
-    if (mask[i] & groupbit_A) qsum_A += q[i];
-    if (mask[i] & groupbit_B) qsum_B += q[i];
+    if (mask[i][groupbin_A] & groupbit_A) qsum_A += q[i];
+    if (mask[i][groupbin_B] & groupbit_B) qsum_B += q[i];
   }
 
   MPI_Allreduce(&qsum_A,&tmp,1,MPI_DOUBLE,MPI_SUM,world);

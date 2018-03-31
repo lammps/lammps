@@ -82,12 +82,12 @@ void FixMvvDPD::initial_integrate(int vflag)
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   for (int i = 0; i < nlocal; i++)
-  if (mask[i] & groupbit) {
+  if (mask[i][groupbin] & groupbit) {
      if (rmass) dtfm = dtf / rmass[i];
      else dtfm = dtf / mass[type[i]];
 
@@ -115,12 +115,12 @@ void FixMvvDPD::final_integrate()
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   for (int i = 0; i < nlocal; i++)
-  if (mask[i] & groupbit) {
+  if (mask[i][groupbin] & groupbit) {
      if (rmass) dtfm = dtf / rmass[i];
      else dtfm = dtf / mass[type[i]];
 

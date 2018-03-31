@@ -53,7 +53,7 @@ void NBinSSA::bin_atoms()
   int nall = nlocal + atom->nghost;
   if (includegroup) nlocal = atom->nfirst;
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int xbin,ybin,zbin;
 
   last_bin = update->ntimestep;
@@ -73,11 +73,12 @@ void NBinSSA::bin_atoms()
 
   if (includegroup) {
     int bitmask = group->bitmask[includegroup];
+    int maskbin = floor((float)includegroup/(float)group->grp_per_bin);
     int nowned = atom->nlocal; // NOTE: nlocal was set to atom->nfirst above
     for (i = nall-1; i >= nowned; i--) {
       ibin = coord2ssaAIR(x[i]);
       if (ibin < 1) continue; // skip ghost atoms not in AIR
-      if (mask[i] & bitmask) {
+      if (mask[i][maskbin] & bitmask) {
         bins[i] = gairhead_ssa[ibin];
         gairhead_ssa[ibin] = i;
       }

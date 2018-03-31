@@ -235,7 +235,7 @@ void FixAddForce::post_force(int vflag)
 {
   double **x = atom->x;
   double **f = atom->f;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   imageint *image = atom->image;
   double v[6];
   int nlocal = atom->nlocal;
@@ -279,7 +279,7 @@ void FixAddForce::post_force(int vflag)
   if (varflag == CONSTANT) {
     double unwrap[3];
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
         domain->unmap(x[i],image[i],unwrap);
         foriginal[0] -= xvalue*unwrap[0] + yvalue*unwrap[1] + zvalue*unwrap[2];
@@ -324,7 +324,7 @@ void FixAddForce::post_force(int vflag)
     modify->addstep_compute(update->ntimestep + 1);
 
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
         domain->unmap(x[i],image[i],unwrap);
         if (xstyle == ATOM) xvalue = sforce[i][0];

@@ -94,7 +94,7 @@ void FixWallGranOMP::post_force(int vflag)
   double * const * const torque = atom->torque;
   double * const radius = atom->radius;
   double * const rmass = atom->rmass;
-  const int * const mask = atom->mask;
+  int ** mask = atom->mask;
   const int nlocal = atom->nlocal;
 
   shearupdate = (update->setupflag) ? 0 : 1;
@@ -105,7 +105,7 @@ void FixWallGranOMP::post_force(int vflag)
 #endif
   for (i = 0; i < nlocal; i++) {
 
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       double dx,dy,dz,del1,del2,delxy,delr,rsq;
       double rwall = 0.0;
 

@@ -239,8 +239,10 @@ FixSRD::FixSRD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
 
   // initialize data structs and flags
 
-  if (bigexist) biggroupbit = group->bitmask[biggroup];
-  else biggroupbit = 0;
+  if (bigexist) {
+    biggroupbit = group->bitmask[biggroup];
+    biggroupbin = floor((float)biggroup/(float)group->grp_per_bin);
+  } else biggroupbit = 0;
 
   nmax = 0;
   binhead = NULL;
@@ -402,14 +404,14 @@ void FixSRD::init()
   // limit initial SRD velocities if necessary
 
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double vsq;
   nrescale = 0;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       vsq = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
       if (vsq > vmaxsq) {
         nrescale++;
@@ -493,11 +495,11 @@ void FixSRD::pre_neighbor()
     if (bigexist) {
       if (biggroup == atom->firstgroup) nbig = atom->nfirst + atom->nghost;
       else {
-        int *mask = atom->mask;
+        int **mask = atom->mask;
         int nlocal = atom->nlocal;
         nbig = atom->nghost;
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & biggroupbit) nbig++;
+          if (mask[i][biggroupbin] & biggroupbit) nbig++;
       }
     } else nbig = 0;
 
@@ -511,15 +513,15 @@ void FixSRD::pre_neighbor()
     }
 
     if (bigexist) {
-      int *mask = atom->mask;
+      int **mask = atom->mask;
       int nlocal = atom->nlocal;
       if (biggroup == atom->firstgroup) nlocal = atom->nfirst;
       nbig = 0;
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & biggroupbit) biglist[nbig++].index = i;
+        if (mask[i][biggroupbin] & biggroupbit) biglist[nbig++].index = i;
       int nall = atom->nlocal + atom->nghost;
       for (i = atom->nlocal; i < nall; i++)
-        if (mask[i] & biggroupbit) biglist[nbig++].index = i;
+        if (mask[i][biggroupbin] & biggroupbit) biglist[nbig++].index = i;
       big_static();
     }
 
@@ -548,7 +550,7 @@ void FixSRD::pre_neighbor()
   // if firstgroup is defined, only loop over first and ghost particles
   // for each big particle: loop over stencil to find overlap bins
 
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   double **x = atom->x;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
@@ -562,7 +564,7 @@ void FixSRD::pre_neighbor()
   if (bigexist) {
     i = nbig = 0;
     while (i < nall) {
-      if (mask[i] & biggroupbit) {
+      if (mask[i][biggroupbin] & biggroupbit) {
         ix = static_cast<int> ((x[i][0]-xblo2)*bininv2x);
         iy = static_cast<int> ((x[i][1]-yblo2)*bininv2y);
         iz = static_cast<int> ((x[i][2]-zblo2)*bininv2z);
@@ -732,13 +734,13 @@ void FixSRD::post_force(int vflag)
   // advect SRD particles
   // assign to search bins if big particles or walls exist
 
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   double **x = atom->x;
   double **v = atom->v;
 
   if (bigexist || wallexist) {
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         x[i][0] += dt_big*v[i][0];
         x[i][1] += dt_big*v[i][1];
         x[i][2] += dt_big*v[i][2];
@@ -765,7 +767,7 @@ void FixSRD::post_force(int vflag)
 
   } else {
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         x[i][0] += dt_big*v[i][0];
         x[i][1] += dt_big*v[i][1];
         x[i][2] += dt_big*v[i][2];
@@ -796,7 +798,7 @@ void FixSRD::post_force(int vflag)
 
   if (triclinic) domain->x2lamda(nlocal);
   for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       if (x[i][0] < srdlo_reneigh[0] || x[i][0] > srdhi_reneigh[0] ||
           x[i][1] < srdlo_reneigh[1] || x[i][1] > srdhi_reneigh[1] ||
           x[i][2] < srdlo_reneigh[2] || x[i][2] > srdhi_reneigh[2]) flag = 1;
@@ -868,7 +870,7 @@ void FixSRD::reset_velocities()
   // binnext = index of next particle in bin
   // bin assignment is done in lamda units for triclinic
 
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   double **x = atom->x;
   double **v = atom->v;
   int nlocal = atom->nlocal;
@@ -878,7 +880,7 @@ void FixSRD::reset_velocities()
   for (i = 0; i < nbins; i++) binhead[i] = -1;
 
   for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       ix = static_cast<int> ((x[i][0]-corner[0])*bininv1x);
       ix = MAX(ix,binlo[0]);
       ix = MIN(ix,binhi[0]);
@@ -1049,7 +1051,7 @@ void FixSRD::reset_velocities()
 
   if (rescale_rotate) {
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         vsq = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
         if (vsq > vmaxsq) {
           nrescale++;
@@ -1283,11 +1285,11 @@ void FixSRD::collisions_single()
   double **v = atom->v;
   double **f = atom->f;
   double **torque = atom->torque;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (i = 0; i < nlocal; i++) {
-    if (!(mask[i] & groupbit)) continue;
+    if (!(mask[i][groupbin] & groupbit)) continue;
 
     ibin = binsrd[i];
     if (nbinbig[ibin] == 0) continue;
@@ -1439,11 +1441,11 @@ void FixSRD::collisions_multi()
   double **v = atom->v;
   double **f = atom->f;
   double **torque = atom->torque;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (i = 0; i < nlocal; i++) {
-    if (!(mask[i] & groupbit)) continue;
+    if (!(mask[i][groupbin] & groupbit)) continue;
 
     ibin = binsrd[i];
     if (nbinbig[ibin] == 0) continue;
@@ -2554,7 +2556,7 @@ void FixSRD::parameterize()
   int *ellipsoid = atom->ellipsoid;
   int *line = atom->line;
   int *tri = atom->tri;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   int any_ellipsoids = 0;
@@ -2564,7 +2566,7 @@ void FixSRD::parameterize()
   minbigdiam = BIG;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & biggroupbit) {
+    if (mask[i][biggroupbin] & biggroupbit) {
       if (radius && radius[i] > 0.0) {
         maxbigdiam = MAX(maxbigdiam,2.0*radius[i]);
         minbigdiam = MIN(minbigdiam,2.0*radius[i]);
@@ -2631,7 +2633,7 @@ void FixSRD::parameterize()
   mass_srd = 0.0;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       if (rmass) {
         if (mass_srd == 0.0) mass_srd = rmass[i];
         else if (rmass[i] != mass_srd) flag = 1;
@@ -2673,7 +2675,7 @@ void FixSRD::parameterize()
 
   if (dimension == 3) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & biggroupbit) {
+      if (mask[i][biggroupbin] & biggroupbit) {
         if (radius && radius[i] > 0.0) {
           double r = radfactor * radius[i];
           volbig += 4.0/3.0*MY_PI * r*r*r;;
@@ -2694,7 +2696,7 @@ void FixSRD::parameterize()
       }
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & biggroupbit) {
+      if (mask[i][biggroupbin] & biggroupbit) {
         if (radius && radius[i] > 0.0) {
           double r = radfactor * radius[i];
           volbig += MY_PI * r*r;
@@ -2721,7 +2723,7 @@ void FixSRD::parameterize()
 
   mass_big = 0.0;
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & biggroupbit) {
+    if (mask[i][biggroupbin] & biggroupbit) {
       if (rmass) mass_big += rmass[i];
       else mass_big += mass[type[i]];
     }
@@ -3855,9 +3857,10 @@ double FixSRD::compute_vector(int n)
 void FixSRD::velocity_stats(int groupnum)
 {
   int bitmask = group->bitmask[groupnum];
+  int maskbin = floor((float)groupnum/(float)group->grp_per_bin);
 
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double vone;
@@ -3865,7 +3868,7 @@ void FixSRD::velocity_stats(int groupnum)
   double vmax = 0.0;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & bitmask) {
+    if (mask[i][maskbin] & bitmask) {
       vone = sqrt(v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
       vave += vone;
       if (vone > vmax) vmax = vone;

@@ -100,14 +100,14 @@ void ComputeSmdTlsphShape::compute_peratom() {
                 error->all(FLERR, "compute smd/tlsph_shape failed to access deformation gradient array");
         }
 
-        int *mask = atom->mask;
+        int **mask = atom->mask;
         int nlocal = atom->nlocal;
         Matrix3d E, eye;
         eye.setIdentity();
         Quaterniond q;
 
         for (int i = 0; i < nlocal; i++) {
-                if (mask[i] & groupbit) {
+                if (mask[i][groupbin] & groupbit) {
 
                         E = 0.5 * (F[i].transpose() * F[i] - eye); // Green-Lagrange strain
                         strainVector[i][0] = contact_radius[i] * (1.0 + E(0, 0));

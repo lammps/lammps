@@ -109,10 +109,10 @@ FixRhok::init()
 
   // Count the number of affected particles
   int nThisLocal = 0;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   for( int i = 0; i < nlocal; i++ ) {   // Iterate through all atoms on this CPU
-    if( mask[i] & groupbit ) {          // ...only those affected by this fix
+    if( mask[i][groupbin] & groupbit ) {          // ...only those affected by this fix
       nThisLocal++;
     }
   }
@@ -148,7 +148,7 @@ FixRhok::post_force( int inVFlag )
 {
   double **x = atom->x;
   double **f = atom->f;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   // Loop over locally-owned atoms affected by this fix and calculate the
@@ -157,7 +157,7 @@ FixRhok::post_force( int inVFlag )
   mRhoKLocal[1] = 0.0;
 
   for( int i = 0; i < nlocal; i++ ) {   // Iterate through all atoms on this CPU
-    if( mask[i] & groupbit ) {          // ...only those affected by this fix
+    if( mask[i][groupbin] & groupbit ) {          // ...only those affected by this fix
 
       // rho_k = sum_i exp( - i k.r_i )
       mRhoKLocal[0] += cos( mK[0]*x[i][0] + mK[1]*x[i][1] + mK[2]*x[i][2] );
@@ -180,7 +180,7 @@ FixRhok::post_force( int inVFlag )
                       + mRhoKGlobal[1]*mRhoKGlobal[1] );
 
   for( int i = 0; i < nlocal; i++ ) {   // Iterate through all atoms on this CPU
-    if( mask[i] & groupbit ) {          // ...only those affected by this fix
+    if( mask[i][groupbin] & groupbit ) {          // ...only those affected by this fix
 
       // Calculate forces
       // U = kappa/2 ( |rho_k| - rho_k^0 )^2

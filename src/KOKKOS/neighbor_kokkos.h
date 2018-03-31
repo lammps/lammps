@@ -54,6 +54,7 @@ class NeighborKokkos : public Neighbor {
   DAT::tdual_int_1d k_ex1_bit,k_ex2_bit;
   DAT::tdual_int_1d k_ex_mol_group;
   DAT::tdual_int_1d k_ex_mol_bit;
+  DAT::tdual_int_1d k_ex_mol_bin;
   DAT::tdual_int_1d k_ex_mol_intra;
 
   NeighBondKokkos<LMPHostType> neighbond_host;

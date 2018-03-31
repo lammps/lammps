@@ -114,7 +114,7 @@ void FixLbMomentum::end_of_step()
     // only adjust a component if flag is set
 
     double **v = atom->v;
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
 
     int typeLB = fix_lb_fluid->typeLB;
@@ -159,7 +159,7 @@ void FixLbMomentum::end_of_step()
 
     //Subtract vcm from the particles.
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         if (xflag) v[i][0] -= vcmtotal[0];
         if (yflag) v[i][1] -= vcmtotal[1];
         if (zflag) v[i][2] -= vcmtotal[2];

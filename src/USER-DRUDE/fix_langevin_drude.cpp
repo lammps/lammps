@@ -165,13 +165,13 @@ void FixLangevinDrude::setup(int vflag)
     error->all(FLERR,"fix langevin/drude requires ghost velocities. Use comm_modify vel yes");
 
   if (zero) {
-      int *mask = atom->mask;
+      int **mask = atom->mask;
       int nlocal = atom->nlocal;
       int *drudetype = fix_drude->drudetype;
       int *type = atom->type;
       bigint ncore_loc = 0;
       for (int i=0; i<nlocal; i++)
-          if (mask[i] & groupbit && drudetype[type[i]] != DRUDE_TYPE)
+          if (mask[i][groupbin] & groupbit && drudetype[type[i]] != DRUDE_TYPE)
               ncore_loc++;
       MPI_Allreduce(&ncore_loc, &ncore, 1, MPI_LMP_BIGINT, MPI_SUM, world);
   }
@@ -211,7 +211,7 @@ void FixLangevinDrude::post_force(int /*vflag*/)
   // Each core-Drude pair is thermalized only once: where the core is local.
 
   double **v = atom->v, **f = atom->f;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal, nall = atom->nlocal + atom->nghost;
   int *type = atom->type;
   double *mass = atom->mass;
@@ -261,7 +261,7 @@ void FixLangevinDrude::post_force(int /*vflag*/)
 
   // NB : the masses are the real masses, not the reduced ones
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) { // only the cores need to be in the group
+    if (mask[i][groupbin] & groupbit) { // only the cores need to be in the group
       if (drudetype[type[i]] == NOPOL_TYPE) { // Non-polarizable atom
         double mi;
         if (rmass)
@@ -330,7 +330,7 @@ void FixLangevinDrude::post_force(int /*vflag*/)
     MPI_Allreduce(fcoreloc, fcoresum, dim, MPI_DOUBLE, MPI_SUM, world);
     for (int k=0; k<dim; k++) fcoresum[k] /= ncore;
     for (int i=0; i<nlocal; i++) {
-      if (mask[i] & groupbit) { // only the cores need to be in the group
+      if (mask[i][groupbin] & groupbit) { // only the cores need to be in the group
         if (drudetype[type[i]] == NOPOL_TYPE) {
           for (int k=0; k<dim; k++) f[i][k] -= fcoresum[k];
         } else {

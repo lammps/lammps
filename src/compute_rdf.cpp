@@ -228,12 +228,12 @@ void ComputeRDF::init_norm()
 
   const int nlocal = atom->nlocal;
   const int ntypes = atom->ntypes;
-  const int * const mask = atom->mask;
+  int ** mask = atom->mask;
   const int * const type = atom->type;
 
   for (i = 1; i <= ntypes; i++) typecount[i] = 0;
   for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) typecount[type[i]]++;
+    if (mask[i][groupbin] & groupbit) typecount[type[i]]++;
 
   // icount = # of I atoms participating in I,J pairs for each histogram
   // jcount = # of J atoms participating in I,J pairs for each histogram
@@ -305,7 +305,7 @@ void ComputeRDF::compute_array()
 
   double **x = atom->x;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double *special_coul = force->special_coul;
@@ -314,7 +314,7 @@ void ComputeRDF::compute_array()
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (!(mask[i] & groupbit)) continue;
+    if (!(mask[i][groupbin] & groupbit)) continue;
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
@@ -334,7 +334,7 @@ void ComputeRDF::compute_array()
 
       if (factor_lj == 0.0 && factor_coul == 0.0) continue;
 
-      if (!(mask[j] & groupbit)) continue;
+      if (!(mask[j][groupbin] & groupbit)) continue;
       jtype = type[j];
       ipair = nrdfpair[itype][jtype];
       jpair = nrdfpair[jtype][itype];

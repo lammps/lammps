@@ -85,6 +85,7 @@ class Domain : protected Pointers {
   int deform_flag;                // 1 if fix deform exist, else 0
   int deform_vremap;              // 1 if fix deform remaps v, else 0
   int deform_groupbit;            // atom group to perform v remap for
+  int deform_groupbin;            // group bin to perform v remap for
 
   class Lattice *lattice;                  // user-defined lattice
 

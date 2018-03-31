@@ -554,7 +554,7 @@ FSUM FixLangevinKokkos<DeviceType>::post_force_item(int i) const
   double fswap;
   double tsqrt_t = tsqrt;
 
-  if (mask[i] & groupbit) {
+  if (mask[i][groupbin] & groupbit) {
     rand_type rand_gen = rand_pool.get_state();
     if(Tp_TSTYLEATOM) tsqrt_t = sqrt(d_tforce[i]);
     if(Tp_RMASS){
@@ -633,7 +633,7 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixLangevinKokkos<DeviceType>::zero_force_item(int i) const
 {
-  if (mask[i] & groupbit) {
+  if (mask[i][groupbin] & groupbit) {
     f(i,0) -= d_fsumall[0];
     f(i,1) -= d_fsumall[1];
     f(i,2) -= d_fsumall[2];
@@ -679,7 +679,7 @@ void FixLangevinKokkos<DeviceType>::compute_target()
       input->variable->compute_atom(tvar,igroup,tforce,1,0); // tforce is modified on host
       k_tforce.template modify<LMPHostType>();
       for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit)
+        if (mask[i][groupbin] & groupbit)
           if (h_tforce[i] < 0.0)
             error->one(FLERR,
                        "Fix langevin variable returned negative temperature");
@@ -741,7 +741,7 @@ KOKKOS_INLINE_FUNCTION
 double FixLangevinKokkos<DeviceType>::compute_energy_item(int i) const
 {
   double energy;
-  if (mask[i] & groupbit)
+  if (mask[i][groupbin] & groupbit)
     energy = d_flangevin(i,0)*v(i,0) + d_flangevin(i,1)*v(i,1) +
       d_flangevin(i,2)*v(i,2);
   return energy;

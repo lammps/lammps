@@ -71,7 +71,7 @@ class AtomVecAtomicKokkos : public AtomVecKokkos {
  protected:
   tagint *tag;
   imageint *image;
-  int *type,*mask;
+  int *type,**mask;
   double **x,**v,**f;
 
   DAT::t_tagint_1d d_tag;

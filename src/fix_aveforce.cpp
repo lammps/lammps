@@ -208,14 +208,14 @@ void FixAveForce::post_force(int vflag)
 
   double **x = atom->x;
   double **f = atom->f;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double foriginal[4];
   foriginal[0] = foriginal[1] = foriginal[2] = foriginal[3] = 0.0;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
       foriginal[0] += f[i][0];
       foriginal[1] += f[i][1];
@@ -249,7 +249,7 @@ void FixAveForce::post_force(int vflag)
   // only for active dimensions
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
       if (xstyle) f[i][0] = fave[0];
       if (ystyle) f[i][1] = fave[1];
@@ -274,14 +274,14 @@ void FixAveForce::post_force_respa(int vflag, int ilevel, int iloop)
 
     double **x = atom->x;
     double **f = atom->f;
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
 
     double foriginal[4];
     foriginal[0] = foriginal[1] = foriginal[2] = foriginal[3] = 0.0;
 
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
         foriginal[0] += f[i][0];
         foriginal[1] += f[i][1];
@@ -300,7 +300,7 @@ void FixAveForce::post_force_respa(int vflag, int ilevel, int iloop)
     fave[2] = foriginal_all[2]/ncount;
 
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
         if (xstyle) f[i][0] = fave[0];
         if (ystyle) f[i][1] = fave[1];

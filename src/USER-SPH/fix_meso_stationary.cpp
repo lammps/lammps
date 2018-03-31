@@ -75,7 +75,7 @@ void FixMesoStationary::initial_integrate(int vflag) {
   double *e = atom->e;
   double *de = atom->de;
 
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   int i;
 
@@ -83,7 +83,7 @@ void FixMesoStationary::initial_integrate(int vflag) {
     nlocal = atom->nfirst;
 
   for (i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       e[i] += dtf * de[i]; // half-step update of particle internal energy
       rho[i] += dtf * drho[i]; // ... and density
     }
@@ -98,13 +98,13 @@ void FixMesoStationary::final_integrate() {
   double *de = atom->de;
   double *rho = atom->rho;
   double *drho = atom->drho;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup)
     nlocal = atom->nfirst;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       e[i] += dtf * de[i];
       rho[i] += dtf * drho[i];
     }

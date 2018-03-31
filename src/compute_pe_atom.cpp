@@ -164,10 +164,10 @@ void ComputePEAtom::compute_peratom()
   // zero energy of atoms not in group
   // only do this after comm since ghost contributions must be included
 
-  int *mask = atom->mask;
+  int **mask = atom->mask;
 
   for (i = 0; i < nlocal; i++)
-    if (!(mask[i] & groupbit)) energy[i] = 0.0;
+    if (!(mask[i][groupbin] & groupbit)) energy[i] = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */

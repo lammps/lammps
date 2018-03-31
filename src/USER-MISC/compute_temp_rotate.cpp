@@ -109,7 +109,7 @@ double ComputeTempRotate::compute_scalar()
   double *rmass = atom->rmass;
   int *type = atom->type;
   imageint *image = atom->image;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   if (atom->nmax > maxbias) {
@@ -121,7 +121,7 @@ double ComputeTempRotate::compute_scalar()
   double t = 0.0;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       domain->unmap(x[i],image[i],unwrap);
       dx = unwrap[0] - xcm[0];
       dy = unwrap[1] - xcm[1];
@@ -172,7 +172,7 @@ void ComputeTempRotate::compute_vector()
   double *rmass = atom->rmass;
   int *type = atom->type;
   imageint *image = atom->image;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   if (atom->nmax > maxbias) {
@@ -185,7 +185,7 @@ void ComputeTempRotate::compute_vector()
   for (int i = 0; i < 6; i++) t[i] = 0.0;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       domain->unmap(x[i],image[i],unwrap);
       dx = unwrap[0] - xcm[0];
       dy = unwrap[1] - xcm[1];
@@ -239,11 +239,11 @@ void ComputeTempRotate::remove_bias_thr(int i, double *v, double *)
 void ComputeTempRotate::remove_bias_all()
 {
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       v[i][0] -= vbiasall[i][0];
       v[i][1] -= vbiasall[i][1];
       v[i][2] -= vbiasall[i][2];
@@ -282,11 +282,11 @@ void ComputeTempRotate::restore_bias_thr(int i, double *v, double *)
 void ComputeTempRotate::restore_bias_all()
 {
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       v[i][0] += vbiasall[i][0];
       v[i][1] += vbiasall[i][1];
       v[i][2] += vbiasall[i][2];

@@ -178,7 +178,7 @@ int ComputePairLocal::compute_pairs(int flag)
   double *radius = atom->radius;
   tagint *tag = atom->tag;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
@@ -207,7 +207,7 @@ int ComputePairLocal::compute_pairs(int flag)
   m = 0;
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (!(mask[i] & groupbit)) continue;
+    if (!(mask[i][groupbin] & groupbit)) continue;
 
     xtmp = x[i][0];
     ytmp = x[i][1];
@@ -223,7 +223,7 @@ int ComputePairLocal::compute_pairs(int flag)
       factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
 
-      if (!(mask[j] & groupbit)) continue;
+      if (!(mask[j][groupbin] & groupbit)) continue;
 
       // itag = jtag is possible for long cutoffs that include images of self
 

@@ -95,11 +95,11 @@ void FixOneWay::end_of_step()
   const int idx = direction & XYZMASK;
   const double * const * const x = atom->x;
   double * const * const v = atom->v;
-  const int *mask = atom->mask;
+  int **mask = atom->mask;
   const int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; ++i) {
-    if ((mask[i] & groupbit) && region->match(x[i][0],x[i][1],x[i][2])) {
+    if ((mask[i][groupbin] & groupbit) && region->match(x[i][0],x[i][1],x[i][2])) {
       if (direction & MINUS) {
         if (v[i][idx] > 0.0) v[i][idx] = -v[i][idx];
       } else {
@@ -108,4 +108,3 @@ void FixOneWay::end_of_step()
     }
   }
 }
-

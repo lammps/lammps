@@ -86,12 +86,12 @@ ComputeMSD::ComputeMSD(LAMMPS *lmp, int narg, char **arg) :
     double **xoriginal = fix->astore;
 
     double **x = atom->x;
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     imageint *image = atom->image;
     int nlocal = atom->nlocal;
 
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) domain->unmap(x[i],image[i],xoriginal[i]);
+      if (mask[i][groupbin] & groupbit) domain->unmap(x[i],image[i],xoriginal[i]);
       else xoriginal[i][0] = xoriginal[i][1] = xoriginal[i][2] = 0.0;
 
     // adjust for COM if requested
@@ -101,7 +101,7 @@ ComputeMSD::ComputeMSD(LAMMPS *lmp, int narg, char **arg) :
       masstotal = group->mass(igroup);
       group->xcm(igroup,masstotal,cm);
       for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           xoriginal[i][0] -= cm[0];
           xoriginal[i][1] -= cm[1];
           xoriginal[i][2] -= cm[2];
@@ -166,7 +166,7 @@ void ComputeMSD::compute_vector()
   double **xoriginal = fix->astore;
 
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
@@ -194,7 +194,7 @@ void ComputeMSD::compute_vector()
 
   if (domain->triclinic == 0) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         xbox = (image[i] & IMGMASK) - IMGMAX;
         ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
         zbox = (image[i] >> IMG2BITS) - IMGMAX;
@@ -221,7 +221,7 @@ void ComputeMSD::compute_vector()
       }
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         xbox = (image[i] & IMGMASK) - IMGMAX;
         ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
         zbox = (image[i] >> IMG2BITS) - IMGMAX;

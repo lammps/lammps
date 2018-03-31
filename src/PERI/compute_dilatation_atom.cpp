@@ -109,11 +109,11 @@ void ComputeDilatationAtom::compute_peratom()
   if (isVES) theta = ((PairPeriVES *) anypair)->theta;
   if (isEPS) theta = ((PairPeriEPS *) anypair)->theta;
 
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) dilatation[i] = theta[i];
+    if (mask[i][groupbin] & groupbit) dilatation[i] = theta[i];
 }
 
 /* ----------------------------------------------------------------------

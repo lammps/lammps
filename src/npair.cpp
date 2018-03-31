@@ -85,10 +85,13 @@ void NPair::copy_neighbor_info()
   ex2_group = neighbor->ex2_group;
   ex1_bit = neighbor->ex1_bit;
   ex2_bit = neighbor->ex2_bit;
+  ex1_bin = neighbor->ex1_bin;
+  ex2_bin = neighbor->ex2_bin;
 
   nex_mol = neighbor->nex_mol;
   ex_mol_group = neighbor->ex_mol_group;
   ex_mol_bit = neighbor->ex_mol_bit;
+  ex_mol_bin = neighbor->ex_mol_bin;
   ex_mol_intra = neighbor->ex_mol_intra;
 
   // special info
@@ -171,15 +174,15 @@ void NPair::build_setup()
 ------------------------------------------------------------------------- */
 
 int NPair::exclusion(int i, int j, int itype, int jtype,
-                     int *mask, tagint *molecule) const {
+                     int **mask, tagint *molecule) const {
   int m;
 
   if (nex_type && ex_type[itype][jtype]) return 1;
 
   if (nex_group) {
     for (m = 0; m < nex_group; m++) {
-      if (mask[i] & ex1_bit[m] && mask[j] & ex2_bit[m]) return 1;
-      if (mask[i] & ex2_bit[m] && mask[j] & ex1_bit[m]) return 1;
+      if (mask[i][ex1_bin[m]] & ex1_bit[m] && mask[j][ex2_bin[m]] & ex2_bit[m]) return 1;
+      if (mask[i][ex2_bin[m]] & ex2_bit[m] && mask[j][ex1_bin[m]] & ex1_bit[m]) return 1;
     }
   }
 
@@ -190,10 +193,10 @@ int NPair::exclusion(int i, int j, int itype, int jtype,
       // inter-chain: exclude i-j pair if in different molecules
 
       if (ex_mol_intra[m]) {
-        if (mask[i] & ex_mol_bit[m] && mask[j] & ex_mol_bit[m] &&
+        if (mask[i][ex_mol_bin[m]] & ex_mol_bit[m] && mask[j][ex_mol_bin[m]] & ex_mol_bit[m] &&
             molecule[i] == molecule[j]) return 1;
       } else {
-        if (mask[i] & ex_mol_bit[m] && mask[j] & ex_mol_bit[m] &&
+        if (mask[i][ex_mol_bin[m]] & ex_mol_bit[m] && mask[j][ex_mol_bin[m]] & ex_mol_bit[m] &&
             molecule[i] != molecule[j]) return 1;
       }
   }
@@ -240,4 +243,3 @@ int NPair::coord2bin(double *x, int &ix, int &iy, int &iz)
   iz -= mbinzlo;
   return iz*mbiny*mbinx + iy*mbinx + ix;
 }
-

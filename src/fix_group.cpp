@@ -43,6 +43,7 @@ idregion(NULL), idvar(NULL), idprop(NULL)
   strcpy(dgroup,&id[strlen("GROUP_")]);
   gbit = group->bitmask[group->find(dgroup)];
   gbitinverse = group->inversemask[group->find(dgroup)];
+  gbin = floor((float)group->find(dgroup)/(float)group->grp_per_bin);
   delete [] dgroup;
 
   // process optional args
@@ -233,11 +234,11 @@ void FixGroup::set_group()
   // it must do forward_comm() to update them
 
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int inflag;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       inflag = 1;
       if (regionflag && !region->match(x[i][0],x[i][1],x[i][2])) inflag = 0;
       if (varflag && var[i] == 0.0) inflag = 0;
@@ -245,8 +246,8 @@ void FixGroup::set_group()
       if (propflag && typeflag && dvector[i] == 0) inflag = 0;
     } else inflag = 0;
 
-    if (inflag) mask[i] |= gbit;
-    else mask[i] &= gbitinverse;
+    if (inflag) mask[i][gbin] |= gbit;
+    else mask[i][gbin] &= gbitinverse;
   }
 
   if (varflag) memory->destroy(var);

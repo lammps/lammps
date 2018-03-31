@@ -83,12 +83,12 @@ void FixPlaneForce::min_setup(int vflag)
 void FixPlaneForce::post_force(int vflag)
 {
   double **f = atom->f;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double dot;
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       dot = f[i][0]*xdir + f[i][1]*ydir + f[i][2]*zdir;
       f[i][0] -= dot * xdir;
       f[i][1] -= dot * ydir;

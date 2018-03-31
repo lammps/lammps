@@ -309,11 +309,11 @@ void FixNVEManifoldRattle::update_var_params()
    ---------------------------------------------------------------------------*/
 int FixNVEManifoldRattle::dof(int igroup)
 {
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   int natoms = 0;
   for( int i = 0; i < nlocal; ++i ){
-    if(mask[i] & groupbit) ++natoms;
+    if(mask[i][groupbin] & groupbit) ++natoms;
   }
 
   int dofs;
@@ -388,7 +388,7 @@ void FixNVEManifoldRattle::nve_x_rattle(int igroup, int groupbit)
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   int natoms = 0;
 
@@ -399,7 +399,7 @@ void FixNVEManifoldRattle::nve_x_rattle(int igroup, int groupbit)
 
   if (rmass) {
     for (int i = 0; i < nlocal; i++){
-      if (mask[i] & groupbit){
+      if (mask[i][groupbin] & groupbit){
         natoms++;
         dtfm = dtf / rmass[i];
         rattle_manifold_x( x[i], v[i], f[i], dtv, dtfm, atom->tag[i] );
@@ -407,7 +407,7 @@ void FixNVEManifoldRattle::nve_x_rattle(int igroup, int groupbit)
     }
   } else {
     for (int i = 0; i < nlocal; i++){
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         natoms++;
         dtfm = dtf / mass[type[i]];
         rattle_manifold_x( x[i], v[i], f[i], dtv, dtfm, atom->tag[i] );
@@ -435,21 +435,21 @@ void FixNVEManifoldRattle::nve_v_rattle(int igroup, int groupbit)
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   if (rmass) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         dtfm = dtf / rmass[i];
         rattle_manifold_v( v[i], f[i], x[i], dtfm, atom->tag[i] );
       }
     }
   } else {
     for (int i = 0; i < nlocal; i++){
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         dtfm = dtf / mass[type[i]];
         rattle_manifold_v( v[i], f[i], x[i], dtfm, atom->tag[i] );
       }

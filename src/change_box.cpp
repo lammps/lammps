@@ -58,6 +58,7 @@ void ChangeBox::command(int narg, char **arg)
   int igroup = group->find(arg[0]);
   if (igroup == -1) error->all(FLERR,"Could not find change_box group ID");
   int groupbit = group->bitmask[igroup];
+  int groupbin = floor((float)igroup/(float)group->grp_per_bin);
 
   // parse operation arguments
   // allocate ops to max possible length
@@ -316,7 +317,7 @@ void ChangeBox::command(int narg, char **arg)
 
     } else if (ops[m].style == REMAP) {
 
-      if (modify->check_rigid_group_overlap(groupbit))
+      if (modify->check_rigid_group_overlap(groupbit,groupbin))
         error->warning(FLERR,"Attempting to remap atoms in rigid bodies");
 
       // convert atoms to lamda coords, using last box state
@@ -324,15 +325,15 @@ void ChangeBox::command(int narg, char **arg)
       // save current box state
 
       double **x = atom->x;
-      int *mask = atom->mask;
+      int **mask = atom->mask;
       int nlocal = atom->nlocal;
 
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit)
+        if (mask[i][groupbin] & groupbit)
           domain->x2lamda(x[i],x[i],boxlo,h_inv);
 
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit)
+        if (mask[i][groupbin] & groupbit)
           domain->lamda2x(x[i],x[i]);
 
       save_box_state();

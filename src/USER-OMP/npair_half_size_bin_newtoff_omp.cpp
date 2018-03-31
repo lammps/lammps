@@ -59,7 +59,7 @@ void NPairHalfSizeBinNewtoffOmp::build(NeighList *list)
   double **x = atom->x;
   double *radius = atom->radius;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   tagint *molecule = atom->molecule;
 
   int *ilist = list->ilist;

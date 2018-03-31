@@ -399,12 +399,12 @@ void ComputeFEP::perturb_params()
       if (pert->aparam == CHARGE) {      // modify charges
         int *atype = atom->type;
         double *q = atom->q;
-        int *mask = atom->mask;
+        int **mask = atom->mask;
         int natom = atom->nlocal + atom->nghost;
 
         for (i = 0; i < natom; i++)
           if (atype[i] >= pert->ilo && atype[i] <= pert->ihi)
-            if (mask[i] & groupbit)
+            if (mask[i][groupbin] & groupbit)
               q[i] += delta;
 
       }

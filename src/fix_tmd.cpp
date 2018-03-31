@@ -90,7 +90,7 @@ nfileevery(0), fp(NULL), xf(NULL), xold(NULL)
   // rho_start = initial rho
   // xold = initial x or 0.0 if not in group
 
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   imageint *image = atom->image;
   double **x = atom->x;
@@ -102,7 +102,7 @@ nfileevery(0), fp(NULL), xf(NULL), xold(NULL)
   rho_start = 0.0;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       domain->unmap(x[i],image[i],xold[i]);
       dx = xold[i][0] - xf[i][0];
       dy = xold[i][1] - xf[i][1];
@@ -185,7 +185,7 @@ void FixTMD::initial_integrate(int vflag)
   double *mass = atom->mass;
   imageint *image = atom->image;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double delta = update->ntimestep - update->beginstep;
@@ -196,7 +196,7 @@ void FixTMD::initial_integrate(int vflag)
 
   a = b = e = 0.0;
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       dxold = xold[i][0] - xf[i][0];
       dyold = xold[i][1] - xf[i][1];
       dzold = xold[i][2] - xf[i][2];
@@ -236,7 +236,7 @@ void FixTMD::initial_integrate(int vflag)
 
   fr = kt = 0.0;
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       dxold = xold[i][0] - xf[i][0];
       dyold = xold[i][1] - xf[i][1];
       dzold = xold[i][2] - xf[i][2];
@@ -280,7 +280,7 @@ void FixTMD::initial_integrate(int vflag)
   // apply the constraint and save constrained positions for next step
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       dtfm = dtf / mass[type[i]];
       dxold = xold[i][0] - xf[i][0];
       x[i][0] += gamma_forward*dxold;
@@ -386,7 +386,7 @@ void FixTMD::readfile(char *file)
     open(file);
   }
 
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   char *buffer = new char[CHUNK*MAXLINE];
@@ -468,7 +468,7 @@ void FixTMD::readfile(char *file)
       }
 
       m = atom->map(itag);
-      if (m >= 0 && m < nlocal && mask[m] & groupbit) {
+      if (m >= 0 && m < nlocal && mask[m][groupbin] & groupbit) {
         if (imageflag) {
           xf[m][0] = x + ix*xprd;
           xf[m][1] = y + iy*yprd;
@@ -498,7 +498,7 @@ void FixTMD::readfile(char *file)
 
   int gcount = 0;
   for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) gcount++;
+    if (mask[i][groupbin] & groupbit) gcount++;
     else xf[i][0] = xf[i][1] = xf[i][2] = 0.0;
 
   int flag = 0;

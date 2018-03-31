@@ -1197,7 +1197,7 @@ int FixRxKokkos<DeviceType>::k_rhs_sparse(double t, const VectorType& y, VectorT
     KOKKOS_INLINE_FUNCTION
 void FixRxKokkos<DeviceType>::operator()(SolverType, const int &i) const
 {
-  if (atom->mask[i] & groupbit)
+  if (atom->mask[i][groupbin] & groupbit)
   {
     double *rwork = new double[8*nspecies];
 
@@ -1350,7 +1350,7 @@ template <typename DeviceType>
   KOKKOS_INLINE_FUNCTION
 void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_solveSystems<ZERO_RATES>, const int& i, CounterType& counter) const
 {
-  if (d_mask(i) & groupbit)
+  if (d_mask(i)(groupbin) & groupbit)
   {
     StridedArrayType<double,1> y( d_scratchSpace.data() + scratchSpaceSize * i );
     StridedArrayType<double,1> rwork( &y[nspecies] );
@@ -1552,7 +1552,7 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreF
 #if 0
   Kokkos::parallel_reduce( nlocal, LAMMPS_LAMBDA(int i, CounterType &counter)
     {
-      if (d_mask(i) & groupbit)
+      if (d_mask(i)(groupbin) & groupbit)
       {
         //double *y = new double[8*nspecies];
         //double *rwork = y + nspecies;
@@ -1798,7 +1798,7 @@ void FixRxKokkos<DeviceType>::odeDiagnostics(void)
     }
 
     for (int j = 0; j < nlocal; ++j)
-      if (h_mask(j) & groupbit)
+      if (h_mask(j)(groupbin) & groupbit)
       {
         int nSteps = h_diagnosticCounterPerODEnSteps(j);
         double diff_nSteps = double( nSteps ) - avg_per_atom[StepSum];

@@ -46,7 +46,7 @@ class ComputeStressTally : public Compute {
 
  private:
   bigint did_setup;
-  int nmax,igroup2,groupbit2;
+  int nmax,igroup2,groupbit2,groupbin2;
   double **stress;
   double *virial;
 };

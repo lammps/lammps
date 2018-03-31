@@ -373,7 +373,7 @@ void FixBondCreate::post_integrate()
   int *num_bond = atom->num_bond;
   int **nspecial = atom->nspecial;
   tagint **special = atom->special;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
 
   neighbor->build_one(list,1);
@@ -384,7 +384,7 @@ void FixBondCreate::post_integrate()
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (!(mask[i] & groupbit)) continue;
+    if (!(mask[i][groupbin] & groupbit)) continue;
     itype = type[i];
     xtmp = x[i][0];
     ytmp = x[i][1];
@@ -395,7 +395,7 @@ void FixBondCreate::post_integrate()
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
-      if (!(mask[j] & groupbit)) continue;
+      if (!(mask[j][groupbin] & groupbit)) continue;
       jtype = type[j];
 
       possible = 0;

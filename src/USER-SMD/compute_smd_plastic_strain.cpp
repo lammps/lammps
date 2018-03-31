@@ -85,11 +85,11 @@ void ComputeSMDPlasticStrain::compute_peratom()
   }
 
   double *plastic_strain = atom->eff_plastic_strain;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
               plastic_strain_vector[i] = plastic_strain[i];
       }
       else {

@@ -87,7 +87,7 @@ void FixFreeze::post_force(int vflag)
 {
   double **f = atom->f;
   double **torque = atom->torque;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
@@ -95,7 +95,7 @@ void FixFreeze::post_force(int vflag)
   force_flag = 0;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       foriginal[0] += f[i][0];
       foriginal[1] += f[i][1];
       foriginal[2] += f[i][2];

@@ -116,12 +116,12 @@ void FixWallRegion::init()
       error->all(FLERR,"Fix wall/region colloid requires atom style sphere");
 
     double *radius = atom->radius;
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
 
     int flag = 0;
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
+      if (mask[i][groupbin] & groupbit)
         if (radius[i] == 0.0) flag = 1;
 
     int flagall;
@@ -211,7 +211,7 @@ void FixWallRegion::post_force(int vflag)
   double **x = atom->x;
   double **f = atom->f;
   double *radius = atom->radius;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   Region *region = domain->regions[iregion];
@@ -234,7 +234,7 @@ void FixWallRegion::post_force(int vflag)
   ewall[0] = ewall[1] = ewall[2] = ewall[3] = 0.0;
 
   for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       if (!region->match(x[i][0],x[i][1],x[i][2])) {
         onflag = 1;
         continue;

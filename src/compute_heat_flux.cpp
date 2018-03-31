@@ -131,7 +131,7 @@ void ComputeHeatFlux::compute_vector()
   double **stress = c_stress->array_atom;
 
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double jc[3] = {0.0,0.0,0.0};
@@ -139,7 +139,7 @@ void ComputeHeatFlux::compute_vector()
   double eng;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       eng = pe[i] + ke[i];
       jc[0] += eng*v[i][0];
       jc[1] += eng*v[i][1];

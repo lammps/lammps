@@ -469,7 +469,7 @@ double ComputeReduce::compute_one(int m, int flag)
   int vidx = value2index[m];
   int aidx = argindex[m];
 
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double one = 0.0;
@@ -480,19 +480,19 @@ double ComputeReduce::compute_one(int m, int flag)
     double **x = atom->x;
     if (flag < 0) {
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) combine(one,x[i][aidx],i);
+        if (mask[i][groupbin] & groupbit) combine(one,x[i][aidx],i);
     } else one = x[flag][aidx];
   } else if (which[m] == V) {
     double **v = atom->v;
     if (flag < 0) {
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) combine(one,v[i][aidx],i);
+        if (mask[i][groupbin] & groupbit) combine(one,v[i][aidx],i);
     } else one = v[flag][aidx];
   } else if (which[m] == F) {
     double **f = atom->f;
     if (flag < 0) {
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) combine(one,f[i][aidx],i);
+        if (mask[i][groupbin] & groupbit) combine(one,f[i][aidx],i);
     } else one = f[flag][aidx];
 
   // invoke compute if not previously invoked
@@ -511,7 +511,7 @@ double ComputeReduce::compute_one(int m, int flag)
         int n = nlocal;
         if (flag < 0) {
           for (i = 0; i < n; i++)
-            if (mask[i] & groupbit) combine(one,comp_vec[i],i);
+            if (mask[i][groupbin] & groupbit) combine(one,comp_vec[i],i);
         } else one = comp_vec[flag];
       } else {
         double **carray_atom = compute->array_atom;
@@ -519,7 +519,7 @@ double ComputeReduce::compute_one(int m, int flag)
         int aidxm1 = aidx - 1;
         if (flag < 0) {
           for (i = 0; i < n; i++)
-            if (mask[i] & groupbit) combine(one,carray_atom[i][aidxm1],i);
+            if (mask[i][groupbin] & groupbit) combine(one,carray_atom[i][aidxm1],i);
         } else one = carray_atom[flag][aidxm1];
       }
 
@@ -561,14 +561,14 @@ double ComputeReduce::compute_one(int m, int flag)
         int n = nlocal;
         if (flag < 0) {
           for (i = 0; i < n; i++)
-            if (mask[i] & groupbit) combine(one,fix_vector[i],i);
+            if (mask[i][groupbin] & groupbit) combine(one,fix_vector[i],i);
         } else one = fix_vector[flag];
       } else {
         double **fix_array = fix->array_atom;
         int aidxm1 = aidx - 1;
         if (flag < 0) {
           for (i = 0; i < nlocal; i++)
-            if (mask[i] & groupbit) combine(one,fix_array[i][aidxm1],i);
+            if (mask[i][groupbin] & groupbit) combine(one,fix_array[i][aidxm1],i);
         } else one = fix_array[flag][aidxm1];
       }
 
@@ -603,7 +603,7 @@ double ComputeReduce::compute_one(int m, int flag)
     input->variable->compute_atom(vidx,igroup,varatom,1,0);
     if (flag < 0) {
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) combine(one,varatom[i],i);
+        if (mask[i][groupbin] & groupbit) combine(one,varatom[i],i);
     } else one = varatom[flag];
   }
 

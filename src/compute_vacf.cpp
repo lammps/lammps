@@ -62,11 +62,11 @@ ComputeVACF::ComputeVACF(LAMMPS *lmp, int narg, char **arg) :
     double **voriginal = fix->astore;
 
     double **v = atom->v;
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
 
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         voriginal[i][0] = v[i][0];
         voriginal[i][1] = v[i][1];
         voriginal[i][2] = v[i][2];
@@ -114,7 +114,7 @@ void ComputeVACF::compute_vector()
   double **voriginal = fix->astore;
 
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double vxsq,vysq,vzsq;
@@ -122,7 +122,7 @@ void ComputeVACF::compute_vector()
   vacf[0] = vacf[1] = vacf[2] = vacf[3] = 0.0;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       vxsq = v[i][0] * voriginal[i][0];
       vysq = v[i][1] * voriginal[i][1];
       vzsq = v[i][2] * voriginal[i][2];

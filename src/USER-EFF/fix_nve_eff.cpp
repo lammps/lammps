@@ -85,7 +85,7 @@ void FixNVEEff::initial_integrate(int vflag)
   int *spin = atom->spin;
   double mefactor = domain->dimension/4.0;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
@@ -93,7 +93,7 @@ void FixNVEEff::initial_integrate(int vflag)
 
   if (mass) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         dtfm = dtf / mass[type[i]];
         v[i][0] += dtfm * f[i][0];
         v[i][1] += dtfm * f[i][1];
@@ -124,7 +124,7 @@ void FixNVEEff::final_integrate()
   int *spin = atom->spin;
   double mefactor = domain->dimension/4.0;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
@@ -132,7 +132,7 @@ void FixNVEEff::final_integrate()
 
   if (mass) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         dtfm = dtf / mass[type[i]];
         v[i][0] += dtfm * f[i][0];
         v[i][1] += dtfm * f[i][1];

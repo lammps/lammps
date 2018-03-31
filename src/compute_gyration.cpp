@@ -77,7 +77,7 @@ void ComputeGyration::compute_vector()
   group->xcm(igroup,masstotal,xcm);
 
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   imageint *image = atom->image;
   double *mass = atom->mass;
@@ -91,7 +91,7 @@ void ComputeGyration::compute_vector()
   rg[0] = rg[1] = rg[2] = rg[3] = rg[4] = rg[5] = 0.0;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
 

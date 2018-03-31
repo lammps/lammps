@@ -92,12 +92,12 @@ double ComputeTempCOM::compute_scalar()
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double t = 0.0;
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       vthermal[0] = v[i][0] - vbias[0];
       vthermal[1] = v[i][1] - vbias[1];
       vthermal[2] = v[i][2] - vbias[2];
@@ -133,14 +133,14 @@ void ComputeTempCOM::compute_vector()
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double massone,t[6];
   for (i = 0; i < 6; i++) t[i] = 0.0;
 
   for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       vthermal[0] = v[i][0] - vbias[0];
       vthermal[1] = v[i][1] - vbias[1];
       vthermal[2] = v[i][2] - vbias[2];
@@ -188,11 +188,11 @@ void ComputeTempCOM::remove_bias_thr(int, double *v, double *)
 void ComputeTempCOM::remove_bias_all()
 {
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       v[i][0] -= vbias[0];
       v[i][1] -= vbias[1];
       v[i][2] -= vbias[2];
@@ -231,11 +231,11 @@ void ComputeTempCOM::restore_bias_thr(int, double *v, double *)
 void ComputeTempCOM::restore_bias_all()
 {
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       v[i][0] += vbias[0];
       v[i][1] += vbias[1];
       v[i][2] += vbias[2];

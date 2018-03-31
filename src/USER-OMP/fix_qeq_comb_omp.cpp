@@ -120,7 +120,7 @@ void FixQEQCombOMP::post_force(int vflag)
   double enegmax = 0.0;
 
   double *q = atom->q;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
 
   inum = comb->list->inum;
   ilist = comb->list->ilist;
@@ -133,7 +133,7 @@ void FixQEQCombOMP::post_force(int vflag)
   for (iloop = 0; iloop < loopmax; iloop ++ ) {
     for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         q1[i] += qf[i]*dtq2 - heatpq*q1[i];
         q[i]  += q1[i];
       }
@@ -146,7 +146,7 @@ void FixQEQCombOMP::post_force(int vflag)
 
     for (ii = 0; ii < inum ; ii++) {
       i = ilist[ii];
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         q2[i] = enegtot-qf[i];
         enegmax = MAX(enegmax,fabs(q2[i]));
         enegchk += fabs(q2[i]);
@@ -168,7 +168,7 @@ void FixQEQCombOMP::post_force(int vflag)
 
     for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
-      if (mask[i] & groupbit)
+      if (mask[i][groupbin] & groupbit)
         q1[i] += qf[i]*dtq2 - heatpq*q1[i];
     }
   }

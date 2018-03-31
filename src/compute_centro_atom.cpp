@@ -163,12 +163,12 @@ void ComputeCentroAtom::compute_peratom()
   // use full neighbor list
 
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   double cutsq = force->pair->cutforce * force->pair->cutforce;
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       xtmp = x[i][0];
       ytmp = x[i][1];
       ztmp = x[i][2];
@@ -318,7 +318,7 @@ void ComputeCentroAtom::compute_peratom()
   if (axes_flag)
     for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
-      if (mask[i] & groupbit)
+      if (mask[i][groupbin] & groupbit)
         array_atom[i][0] = centro[i];
     }
 }

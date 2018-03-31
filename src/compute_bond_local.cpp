@@ -162,7 +162,7 @@ int ComputeBondLocal::compute_bonds(int flag)
   int *num_bond = atom->num_bond;
   tagint **bond_atom = atom->bond_atom;
   int **bond_type = atom->bond_type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
 
   int *molindex = atom->molindex;
   int *molatom = atom->molatom;
@@ -182,7 +182,7 @@ int ComputeBondLocal::compute_bonds(int flag)
 
   m = n = 0;
   for (atom1 = 0; atom1 < nlocal; atom1++) {
-    if (!(mask[atom1] & groupbit)) continue;
+    if (!(mask[atom1][groupbin] & groupbit)) continue;
 
     if (molecular == 1) nb = num_bond[atom1];
     else {
@@ -202,7 +202,7 @@ int ComputeBondLocal::compute_bonds(int flag)
         atom2 = atom->map(onemols[imol]->bond_atom[iatom][i]+tagprev);
       }
 
-      if (atom2 < 0 || !(mask[atom2] & groupbit)) continue;
+      if (atom2 < 0 || !(mask[atom2][groupbin] & groupbit)) continue;
       if (newton_bond == 0 && tag[atom1] > tag[atom2]) continue;
       if (btype == 0) continue;
 

@@ -95,7 +95,7 @@ void FixMomentum::init()
 void FixMomentum::end_of_step()
 {
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   const int nlocal = atom->nlocal;
   double ekin_old,ekin_new;
   ekin_old = ekin_new = 0.0;
@@ -118,12 +118,12 @@ void FixMomentum::end_of_step()
 
     if (rmass) {
       for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit)
+        if (mask[i][groupbin] & groupbit)
           ke += rmass[i] *
             (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
     } else {
       for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit)
+        if (mask[i][groupbin] & groupbit)
           ke +=  mass[type[i]] *
             (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
     }
@@ -138,7 +138,7 @@ void FixMomentum::end_of_step()
     // only adjust a component if flag is set
 
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         if (xflag) v[i][0] -= vcm[0];
         if (yflag) v[i][1] -= vcm[1];
         if (zflag) v[i][2] -= vcm[2];
@@ -158,7 +158,7 @@ void FixMomentum::end_of_step()
 
     double **x = atom->x;
     double **v = atom->v;
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     imageint *image = atom->image;
     int nlocal = atom->nlocal;
 
@@ -166,7 +166,7 @@ void FixMomentum::end_of_step()
     double unwrap[3];
 
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         domain->unmap(x[i],image[i],unwrap);
         dx = unwrap[0] - xcm[0];
         dy = unwrap[1] - xcm[1];
@@ -188,12 +188,12 @@ void FixMomentum::end_of_step()
 
     if (rmass) {
       for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit)
+        if (mask[i][groupbin] & groupbit)
           ke += rmass[i] *
             (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
     } else {
       for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit)
+        if (mask[i][groupbin] & groupbit)
           ke +=  mass[type[i]] *
             (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
     }
@@ -201,7 +201,7 @@ void FixMomentum::end_of_step()
 
     if (ekin_new != 0.0) factor = sqrt(ekin_old/ekin_new);
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         v[i][0] *= factor;
         v[i][1] *= factor;
         v[i][2] *= factor;

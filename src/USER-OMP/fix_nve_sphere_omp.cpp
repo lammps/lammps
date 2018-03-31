@@ -46,7 +46,7 @@ void FixNVESphereOMP::initial_integrate(int vflag)
   const double * const * const torque = atom->torque;
   const double * const radius = atom->radius;
   const double * const rmass = atom->rmass;
-  const int * const mask = atom->mask;
+  int ** mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
   int i;
 
@@ -59,7 +59,7 @@ void FixNVESphereOMP::initial_integrate(int vflag)
 #pragma omp parallel for private(i) default(none)
 #endif
   for (i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       const double dtfm = dtf / rmass[i];
       v[i][0] += dtfm * f[i][0];
       v[i][1] += dtfm * f[i][1];
@@ -87,7 +87,7 @@ void FixNVESphereOMP::initial_integrate(int vflag)
 #endif
       for (i = 0; i < nlocal; i++) {
         double g0,g1,g2,msq,scale;
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           if (mu[i][3] > 0.0) {
             g0 = mu[i][0] + dtv * (omega[i][1]*mu[i][2]-omega[i][2]*mu[i][1]);
             g1 = mu[i][1] + dtv * (omega[i][2]*mu[i][0]-omega[i][0]*mu[i][2]);
@@ -109,7 +109,7 @@ void FixNVESphereOMP::initial_integrate(int vflag)
         vector w, w_temp, a;
         matrix Q, Q_temp, R;
 
-        if (mask[i] & groupbit && mu[i][3] > 0.0) {
+        if (mask[i][groupbin] & groupbit && mu[i][3] > 0.0) {
 
           // Construct Q from dipole:
           // Q is the rotation matrix from space frame to body frame
@@ -219,7 +219,7 @@ void FixNVESphereOMP::final_integrate()
   const double * const * const torque = atom->torque;
   const double * const rmass = atom->rmass;
   const double * const radius = atom->radius;
-  const int * const mask = atom->mask;
+  int ** mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
   int i;
 
@@ -234,7 +234,7 @@ void FixNVESphereOMP::final_integrate()
 #pragma omp parallel for private(i) default(none)
 #endif
   for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       const double dtfm = dtf / rmass[i];
       v[i][0] += dtfm * f[i][0];
       v[i][1] += dtfm * f[i][1];

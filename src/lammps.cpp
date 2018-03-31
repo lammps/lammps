@@ -95,6 +95,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   else exename = NULL;
   packargs = NULL;
   num_package = 0;
+  num_group = 32;
   char *rfile = NULL;
   char *dfile = NULL;
   int wdfirst,wdlast;
@@ -140,6 +141,12 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
         error->universe_all(FLERR,"Invalid command-line argument");
       iarg += 3;
       while (iarg < narg && arg[iarg][0] != '-') iarg++;
+    } else if (strcmp(arg[iarg],"-ngroups") == 0 ||
+               strcmp(arg[iarg],"-ng") == 0) {
+      if (iarg+2 > narg)
+        error->universe_all(FLERR,"Invalid command-line argument");
+      num_group = atoi(arg[iarg + 1]);
+      iarg += 2;
     } else if (strcmp(arg[iarg],"-echo") == 0 ||
                strcmp(arg[iarg],"-e") == 0) {
       if (iarg+2 > narg)
@@ -820,6 +827,7 @@ void LAMMPS::help()
           "-reorder topology-specs     : processor reordering (-r)\n"
           "-screen none/filename       : where to send screen output (-sc)\n"
           "-suffix gpu/intel/opt/omp   : style suffix to apply (-sf)\n"
+          "-ngroups N                  : max number of groups (-ng)\n"
           "-var varname value          : set index style variable (-v)\n\n",
           exename);
 

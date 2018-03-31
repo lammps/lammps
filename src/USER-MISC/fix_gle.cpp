@@ -465,7 +465,7 @@ void FixGLE::init_gle()
 void FixGLE::init_gles()
 {
 
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   double *rootC  = new double[ns1sq];
   double *rootCT = new double[ns1sq];
@@ -483,7 +483,7 @@ void FixGLE::init_gles()
 
   int nk=0; // unpacks temporary into gle_s
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       // first loads velocities
       for (int k = 0; k<3; k++) {
         for (int j=0; j<ns; ++j)
@@ -517,7 +517,7 @@ void FixGLE::gle_integrate()
   double **v = atom->v;
   double *rmass = atom->rmass, smi, ismi;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
@@ -528,7 +528,7 @@ void FixGLE::gle_integrate()
   // loads momentum data (mass-scaled) into the temporary vectors for the propagation
   int nk=0, ni=0; double deltae=0.0;
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       ni++;
       if (rmass) {
         smi = sqrt(rmass[i]);
@@ -558,7 +558,7 @@ void FixGLE::gle_integrate()
 
   // unloads momentum data (mass-scaled) from the temporary vectors
   nk=0;
-  for (int i = 0; i < nlocal; i++) if (mask[i] & groupbit) {
+  for (int i = 0; i < nlocal; i++) if (mask[i][groupbin] & groupbit) {
      if (rmass) ismi = 1.0/sqrt(rmass[i]); else ismi=1.0/sqrt_m[type[i]];
      for (int k = 0; k<3; k++)
      {
@@ -584,7 +584,7 @@ void FixGLE::initial_integrate(int vflag)
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
@@ -598,7 +598,7 @@ void FixGLE::initial_integrate(int vflag)
 
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         dtfm = dtf / rmass[i];
         v[i][0] += dtfm * f[i][0];
         v[i][1] += dtfm * f[i][1];
@@ -610,7 +610,7 @@ void FixGLE::initial_integrate(int vflag)
 
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         dtfm = dtf / mass[type[i]];
         v[i][0] += dtfm * f[i][0];
         v[i][1] += dtfm * f[i][1];
@@ -633,13 +633,13 @@ void FixGLE::final_integrate()
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         dtfm = dtf / rmass[i];
         v[i][0] += dtfm * f[i][0];
         v[i][1] += dtfm * f[i][1];
@@ -648,7 +648,7 @@ void FixGLE::final_integrate()
 
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         dtfm = dtf / mass[type[i]];
         v[i][0] += dtfm * f[i][0];
         v[i][1] += dtfm * f[i][1];

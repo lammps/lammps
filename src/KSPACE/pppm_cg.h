@@ -42,7 +42,7 @@ class PPPMCG : public PPPM {
   virtual void fieldforce_ad();
   virtual void fieldforce_peratom();
   virtual void slabcorr();
-  virtual void make_rho_groups(int, int, int);
+  virtual void make_rho_groups(int, int, int, int, int);
 };
 
 }

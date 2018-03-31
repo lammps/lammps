@@ -43,7 +43,7 @@ void NPairFullBinGhost::build(NeighList *list)
 
   double **x = atom->x;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   tagint *tag = atom->tag;
   tagint *molecule = atom->molecule;
   tagint **special = atom->special;

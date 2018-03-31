@@ -41,6 +41,7 @@ void NPairHalfRespaNsqNewtoffOmp::build(NeighList *list)
 {
   const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
   const int bitmask = (includegroup) ? group->bitmask[includegroup] : 0;
+  const int maskbin = (includegroup) ? floor((float)includegroup/(float)group->grp_per_bin) : 0;
   const int molecular = atom->molecular;
   const int moltemplate = (molecular == 2) ? 1 : 0;
 
@@ -62,7 +63,7 @@ void NPairHalfRespaNsqNewtoffOmp::build(NeighList *list)
 
   double **x = atom->x;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   tagint *tag = atom->tag;
   tagint *molecule = atom->molecule;
   tagint **special = atom->special;
@@ -127,7 +128,7 @@ void NPairHalfRespaNsqNewtoffOmp::build(NeighList *list)
     // loop over remaining atoms, owned and ghost
 
     for (j = i+1; j < nall; j++) {
-      if (includegroup && !(mask[j] & bitmask)) continue;
+      if (includegroup && !(mask[j][maskbin] & bitmask)) continue;
       jtype = type[j];
       if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
 

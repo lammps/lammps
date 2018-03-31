@@ -75,11 +75,11 @@ void ComputeMesoTAtom::compute_peratom()
 
   double *e = atom->e;
   double *cv = atom->cv;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
               if (cv[i] > 0.0) {
                       tvector[i] = e[i] / cv[i];
               }

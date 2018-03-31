@@ -70,13 +70,13 @@ void FixMeso::setup_pre_force(int vflag)
   // set vest equal to v
   double **v = atom->v;
   double **vest = atom->vest;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup)
     nlocal = atom->nfirst;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       vest[i][0] = v[i][0];
       vest[i][1] = v[i][1];
       vest[i][2] = v[i][2];
@@ -104,7 +104,7 @@ void FixMeso::initial_integrate(int vflag) {
   int rmass_flag = atom->rmass_flag;
 
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   int i;
   double dtfm;
@@ -113,7 +113,7 @@ void FixMeso::initial_integrate(int vflag) {
     nlocal = atom->nfirst;
 
   for (i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       if (rmass_flag) {
         dtfm = dtf / rmass[i];
       } else {
@@ -152,7 +152,7 @@ void FixMeso::final_integrate() {
   double *rho = atom->rho;
   double *drho = atom->drho;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   double *mass = atom->mass;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup)
@@ -162,7 +162,7 @@ void FixMeso::final_integrate() {
   int rmass_flag = atom->rmass_flag;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
 
       if (rmass_flag) {
         dtfm = dtf / rmass[i];

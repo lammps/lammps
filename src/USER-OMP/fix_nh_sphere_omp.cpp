@@ -49,11 +49,11 @@ void FixNHSphereOMP::init()
   // no point particles allowed
 
   double *radius = atom->radius;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       if (radius[i] == 0.0)
         error->one(FLERR,"Fix nvt/npt/nph/sphere/omp require extended particles");
 
@@ -92,7 +92,7 @@ void FixNHSphereOMP::nve_v()
 #pragma omp parallel for default(none) private(i) schedule(static)
 #endif
   for (i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       const double dtfm = dtf / rmass[i];
       v[i].x += dtfm*f[i].x;
       v[i].y += dtfm*f[i].y;
@@ -123,7 +123,7 @@ void FixNHSphereOMP::nh_v_temp()
 #pragma omp parallel for default(none) private(i) schedule(static)
 #endif
     for (i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         v[i].x *= factor_eta;
         v[i].y *= factor_eta;
         v[i].z *= factor_eta;
@@ -138,7 +138,7 @@ void FixNHSphereOMP::nh_v_temp()
 #endif
     for (i = 0; i < nlocal; i++) {
       double buf[3];
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         temperature->remove_bias_thr(i,&v[i].x,buf);
         v[i].x *= factor_eta;
         v[i].y *= factor_eta;

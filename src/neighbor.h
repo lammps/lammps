@@ -66,10 +66,12 @@ class Neighbor : protected Pointers {
   int nex_group;                   // # of entries in group exclusion list
   int *ex1_group,*ex2_group;       // pairs of group #'s to exclude
   int *ex1_bit,*ex2_bit;           // pairs of group bits to exclude
+  int *ex1_bin,*ex2_bin;           // pairs of group bins to exclude
 
   int nex_mol;                     // # of entries in molecule exclusion list
   int *ex_mol_group;               // molecule group #'s to exclude
   int *ex_mol_bit;                 // molecule group bits to exclude
+  int *ex_mol_bin;                 // molecule group bins to exclude
   int *ex_mol_intra;               // 0 = exclude if in 2 molecules (inter)
                                    // 1 = exclude if in same molecule (intra)
 
@@ -164,7 +166,7 @@ class Neighbor : protected Pointers {
   int maxex_group;                 // max # in exclusion group list
   int maxex_mol;                   // max # in exclusion molecule list
 
-  int maxatom;                     // max size of atom-based NeighList arrays
+    int maxatom;                     // max size of atom-based NeighList arrays
   int maxrequest;                  // max size of NeighRequest list
   int maxwt;                       // max weighting factor applied + 1
 

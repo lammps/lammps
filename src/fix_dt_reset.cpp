@@ -142,13 +142,13 @@ void FixDtReset::end_of_step()
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double dtmin = BIG;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       if (rmass) massinv = 1.0/rmass[i];
       else massinv = 1.0/mass[type[i]];
       vsq = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];

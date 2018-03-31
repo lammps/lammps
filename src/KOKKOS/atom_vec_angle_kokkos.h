@@ -90,7 +90,7 @@ class AtomVecAngleKokkos : public AtomVecKokkos {
  protected:
 
   tagint *tag;
-  int *type,*mask;
+  int *type,**mask;
   imageint *image;
   double **x,**v,**f;
 

@@ -84,11 +84,11 @@ void ComputeSMDVol::compute_peratom() {
         }
 
         double *vfrac = atom->vfrac;
-        int *mask = atom->mask;
+        int **mask = atom->mask;
         int nlocal = atom->nlocal;
 
         for (int i = 0; i < nlocal; i++) {
-                if (mask[i] & groupbit) {
+                if (mask[i][groupbin] & groupbit) {
                         volVector[i] = vfrac[i];
                 } else {
                         volVector[i] = 0.0;
@@ -102,12 +102,12 @@ double ComputeSMDVol::compute_scalar() {
 
         invoked_scalar = update->ntimestep;
         double *vfrac = atom->vfrac;
-        int *mask = atom->mask;
+        int **mask = atom->mask;
         int nlocal = atom->nlocal;
 
         double this_proc_sum_volumes = 0.0;
         for (int i = 0; i < nlocal; i++) {
-                if (mask[i] & groupbit) {
+                if (mask[i][groupbin] & groupbit) {
                         this_proc_sum_volumes += vfrac[i];
                 }
         }

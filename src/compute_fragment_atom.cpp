@@ -100,13 +100,13 @@ void ComputeFragmentAtom::compute_peratom()
 
   int nlocal = atom->nlocal;
   tagint *tag = atom->tag;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *num_bond = atom->num_bond;
   int **bond_type = atom->bond_type;
   tagint **bond_atom = atom->bond_atom;
 
   for (i = 0; i < nlocal + atom->nghost; i++)
-    if (mask[i] & groupbit) fragmentID[i] = tag[i];
+    if (mask[i][groupbin] & groupbit) fragmentID[i] = tag[i];
     else fragmentID[i] = 0;
 
   // loop until no more changes on any proc:
@@ -132,13 +132,13 @@ void ComputeFragmentAtom::compute_peratom()
     while (1) {
       done = 1;
       for (i = 0; i < nlocal; i++) {
-        if (!(mask[i] & groupbit)) continue;
+        if (!(mask[i][groupbin] & groupbit)) continue;
 
         for (j = 0; j < num_bond[i]; j++) {
           if (bond_type[i][j] == 0) continue;
           k = atom->map(bond_atom[i][j]);
           if (k < 0) continue;
-          if (!(mask[k] & groupbit)) continue;
+          if (!(mask[k][groupbin] & groupbit)) continue;
           if (fragmentID[i] == fragmentID[k]) continue;
 
           fragmentID[i] = fragmentID[k] = MIN(fragmentID[i],fragmentID[k]);
@@ -170,10 +170,11 @@ int ComputeFragmentAtom::pack_forward_comm(int n, int *list, double *buf,
       buf[m++] = fragmentID[j];
     }
   } else {
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     for (i = 0; i < n; i++) {
       j = list[i];
-      buf[m++] = ubuf(mask[j]).d;
+      for (int k = 0; k < atom->ngroupbin; k++)
+        buf[m++] = ubuf(mask[j][k]).d;
     }
   }
 
@@ -197,8 +198,10 @@ void ComputeFragmentAtom::unpack_forward_comm(int n, int first, double *buf)
       fragmentID[i] = MIN(x,fragmentID[i]);
     }
   else {
-    int *mask = atom->mask;
-    for (i = first; i < last; i++) mask[i] = (int) ubuf(buf[m++]).i;
+    int **mask = atom->mask;
+    for (i = first; i < last; i++)
+      for (int k = 0; k < atom->ngroupbin; k++)
+        mask[i][k] = (int) ubuf(buf[m++]).i;
   }
 }
 

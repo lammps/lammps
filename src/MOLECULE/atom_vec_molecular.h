@@ -58,7 +58,7 @@ class AtomVecMolecular : public AtomVec {
 
  private:
   tagint *tag;
-  int *type,*mask;
+  int *type,**mask;
   imageint *image;
   double **x,**v,**f;
   tagint *molecule;

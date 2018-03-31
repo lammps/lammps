@@ -139,13 +139,13 @@ void ComputeTempSphere::dof_compute()
   // user should correct this via compute_modify if needed
 
   double *radius = atom->radius;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   count = 0;
   if (domain->dimension == 3) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         if (radius[i] == 0.0) {
           if (mode == ALL) count += 3;
         } else {
@@ -155,7 +155,7 @@ void ComputeTempSphere::dof_compute()
       }
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         if (radius[i] == 0.0) {
           if (mode == ALL) count += 2;
         } else {
@@ -174,7 +174,7 @@ void ComputeTempSphere::dof_compute()
     if (mode == ALL) dof -= tbias->dof_remove(-1) * natoms_temp;
 
   } else if (tempbias == 2) {
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
 
     tbias->dof_remove_pre();
@@ -182,7 +182,7 @@ void ComputeTempSphere::dof_compute()
     count = 0;
     if (domain->dimension == 3) {
       for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           if (tbias->dof_remove(i)) {
             if (radius[i] == 0.0) {
               if (mode == ALL) count += 3;
@@ -194,7 +194,7 @@ void ComputeTempSphere::dof_compute()
         }
     } else {
       for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           if (tbias->dof_remove(i)) {
             if (radius[i] == 0.0) {
               if (mode == ALL) count += 2;
@@ -230,7 +230,7 @@ double ComputeTempSphere::compute_scalar()
   double **omega = atom->omega;
   double *radius = atom->radius;
   double *rmass = atom->rmass;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   // point particles will not contribute rotation due to radius = 0
@@ -239,14 +239,14 @@ double ComputeTempSphere::compute_scalar()
 
   if (mode == ALL) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * rmass[i];
         t += (omega[i][0]*omega[i][0] + omega[i][1]*omega[i][1] +
               omega[i][2]*omega[i][2]) * INERTIA*rmass[i]*radius[i]*radius[i];
       }
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
+      if (mask[i][groupbin] & groupbit)
         t += (omega[i][0]*omega[i][0] + omega[i][1]*omega[i][1] +
               omega[i][2]*omega[i][2]) * INERTIA*rmass[i]*radius[i]*radius[i];
   }
@@ -276,7 +276,7 @@ void ComputeTempSphere::compute_vector()
   double **omega = atom->omega;
   double *rmass = atom->rmass;
   double *radius = atom->radius;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   // point particles will not contribute rotation due to radius = 0
@@ -286,7 +286,7 @@ void ComputeTempSphere::compute_vector()
 
   if (mode == ALL) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         massone = rmass[i];
         t[0] += massone * v[i][0]*v[i][0];
         t[1] += massone * v[i][1]*v[i][1];
@@ -305,7 +305,7 @@ void ComputeTempSphere::compute_vector()
       }
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         inertiaone = INERTIA*rmass[i]*radius[i]*radius[i];
         t[0] += inertiaone * omega[i][0]*omega[i][0];
         t[1] += inertiaone * omega[i][1]*omega[i][1];

@@ -380,7 +380,7 @@ void FixNHUef::nve_v()
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   double ex = erate[0]*dtf/2;
   double ey = erate[1]*dtf/2;
@@ -392,7 +392,7 @@ void FixNHUef::nve_v()
 
   if (rmass) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         dtfm = dtf / rmass[i];
         v[i][0] *= e0;
         v[i][1] *= e1;
@@ -407,7 +407,7 @@ void FixNHUef::nve_v()
     }
   } else {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         dtfm = dtf / mass[type[i]];
         v[i][0] *= e0;
         v[i][1] *= e1;
@@ -464,7 +464,7 @@ void FixNHUef::nve_x()
 {
   double **x = atom->x;
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   double ex = erate[0]*dtv;
   strain[0] += ex;
@@ -478,7 +478,7 @@ void FixNHUef::nve_x()
 
   // x update by full step only for atoms in group
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       x[i][0] *= e0;
       x[i][1] *= e1;
       x[i][2] *= e2;
@@ -561,14 +561,14 @@ void FixNHUef::pre_exchange()
 void FixNHUef::rotate_x(double r[3][3])
 {
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   double xn[3];
   for (int i=0;i<nlocal;i++)
   {
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
     {
       xn[0]=r[0][0]*x[i][0]+r[0][1]*x[i][1]+r[0][2]*x[i][2];
       xn[1]=r[1][0]*x[i][0]+r[1][1]*x[i][1]+r[1][2]*x[i][2];
@@ -583,14 +583,14 @@ void FixNHUef::rotate_x(double r[3][3])
 void FixNHUef::inv_rotate_x(double r[3][3])
 {
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   double xn[3];
   for (int i=0;i<nlocal;i++)
   {
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
     {
       x[i][0] -= domain->boxlo[0];
       x[i][1] -= domain->boxlo[1];
@@ -608,14 +608,14 @@ void FixNHUef::inv_rotate_x(double r[3][3])
 void FixNHUef::rotate_v(double r[3][3])
 {
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   double vn[3];
   for (int i=0;i<nlocal;i++)
   {
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
     {
       vn[0]=r[0][0]*v[i][0]+r[0][1]*v[i][1]+r[0][2]*v[i][2];
       vn[1]=r[1][0]*v[i][0]+r[1][1]*v[i][1]+r[1][2]*v[i][2];
@@ -628,14 +628,14 @@ void FixNHUef::rotate_v(double r[3][3])
 void FixNHUef::inv_rotate_v(double r[3][3])
 {
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   double vn[3];
   for (int i=0;i<nlocal;i++)
   {
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
     {
       vn[0]=r[0][0]*v[i][0]+r[1][0]*v[i][1]+r[2][0]*v[i][2];
       vn[1]=r[0][1]*v[i][0]+r[1][1]*v[i][1]+r[2][1]*v[i][2];
@@ -648,14 +648,14 @@ void FixNHUef::inv_rotate_v(double r[3][3])
 void FixNHUef::rotate_f(double r[3][3])
 {
   double **f = atom->f;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   double fn[3];
   for (int i=0;i<nlocal;i++)
   {
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
     {
       fn[0]=r[0][0]*f[i][0]+r[0][1]*f[i][1]+r[0][2]*f[i][2];
       fn[1]=r[1][0]*f[i][0]+r[1][1]*f[i][1]+r[1][2]*f[i][2];
@@ -668,13 +668,13 @@ void FixNHUef::rotate_f(double r[3][3])
 void FixNHUef::inv_rotate_f(double r[3][3])
 {
   double **f = atom->f;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
   double fn[3];
   for (int i=0;i<nlocal;i++)
   {
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
     {
       fn[0]=r[0][0]*f[i][0]+r[1][0]*f[i][1]+r[2][0]*f[i][2];
       fn[1]=r[0][1]*f[i][0]+r[1][1]*f[i][1]+r[2][1]*f[i][2];

@@ -34,7 +34,8 @@ ComputePEMolTally::ComputePEMolTally(LAMMPS *lmp, int narg, char **arg) :
   igroup2 = group->find(arg[3]);
   if (igroup2 == -1)
     error->all(FLERR,"Could not find compute pe/mol/tally second group ID");
-  groupbit2 = group->bitmask[igroup2];
+    groupbit2 = group->bitmask[igroup2];
+    groupbin2 = floor((float)igroup2/(float)group->grp_per_bin);
 
   vector_flag = 1;
   size_vector = 4;
@@ -91,11 +92,11 @@ void ComputePEMolTally::pair_tally_callback(int i, int j, int nlocal, int newton
                                          double evdwl, double ecoul, double,
                                          double, double, double)
 {
-  const int * const mask = atom->mask;
+  int ** mask = atom->mask;
   const tagint * const molid = atom->molecule;
 
-  if ( ((mask[i] & groupbit) && (mask[j] & groupbit2))
-     || ((mask[i] & groupbit2) && (mask[j] & groupbit)) ){
+  if ( ((mask[i][groupbin] & groupbit) && (mask[j][groupbin2] & groupbit2))
+     || ((mask[i][groupbin2] & groupbit2) && (mask[j][groupbin] & groupbit)) ){
 
     evdwl *= 0.5; ecoul *= 0.5;
     if (newton || i < nlocal) {
@@ -127,4 +128,3 @@ void ComputePEMolTally::compute_vector()
 
   MPI_Allreduce(etotal,vector,size_vector,MPI_DOUBLE,MPI_SUM,world);
 }
-

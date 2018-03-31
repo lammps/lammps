@@ -38,7 +38,7 @@ NPairHalfRespaNsqNewton::NPairHalfRespaNsqNewton(LAMMPS *lmp) : NPair(lmp) {}
 
 void NPairHalfRespaNsqNewton::build(NeighList *list)
 {
-  int i,j,n,itype,jtype,itag,jtag,n_inner,n_middle,bitmask;
+  int i,j,n,itype,jtype,itag,jtag,n_inner,n_middle,bitmask,maskbin;
   int imol,iatom,moltemplate;
   tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
@@ -46,7 +46,7 @@ void NPairHalfRespaNsqNewton::build(NeighList *list)
 
   double **x = atom->x;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   tagint *tag = atom->tag;
   tagint *molecule = atom->molecule;
   tagint **special = atom->special;
@@ -56,6 +56,7 @@ void NPairHalfRespaNsqNewton::build(NeighList *list)
   if (includegroup) {
     nlocal = atom->nfirst;
     bitmask = group->bitmask[includegroup];
+    maskbin = floor((float)includegroup/(float)group->grp_per_bin);
   }
 
   int *molindex = atom->molindex;
@@ -114,7 +115,7 @@ void NPairHalfRespaNsqNewton::build(NeighList *list)
     // loop over remaining atoms, owned and ghost
 
     for (j = i+1; j < nall; j++) {
-      if (includegroup && !(mask[j] & bitmask)) continue;
+      if (includegroup && !(mask[j][maskbin] & bitmask)) continue;
 
       if (j >= nlocal) {
         jtag = tag[j];

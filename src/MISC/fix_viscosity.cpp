@@ -182,13 +182,13 @@ void FixViscosity::end_of_step()
   double **x = atom->x;
   double **v = atom->v;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   npositive = nnegative = 0;
 
   for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       coord = x[i][pdim];
       if (coord < boxlo && periodicity) coord += prd;
       else if (coord >= boxhi && periodicity) coord -= prd;

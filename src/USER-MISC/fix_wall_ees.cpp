@@ -64,11 +64,11 @@ void FixWallEES::init()
   // no point particles allowed, spherical is OK
 
   int *ellipsoid = atom->ellipsoid;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       if (ellipsoid[i] < 0)
         error->one(FLERR,"Fix wall/ees requires extended particles");
 
@@ -95,7 +95,7 @@ void FixWallEES::wall_particle(int m, int which, double coord)
   avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
   AtomVecEllipsoid::Bonus *bonus = avec->bonus;
   int *ellipsoid = atom->ellipsoid;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
 
@@ -106,7 +106,7 @@ void FixWallEES::wall_particle(int m, int which, double coord)
   int onflag = 0;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
 
       if (side < 0)
         delta = x[i][dim] - coord;

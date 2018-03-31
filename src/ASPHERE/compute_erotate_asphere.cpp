@@ -56,12 +56,12 @@ void ComputeERotateAsphere::init()
   int *ellipsoid = atom->ellipsoid;
   int *line = atom->line;
   int *tri = atom->tri;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   int flag;
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       flag = 0;
       if (ellipsoid && ellipsoid[i] >= 0) flag = 1;
       if (line && line[i] >= 0) flag = 1;
@@ -91,7 +91,7 @@ double ComputeERotateAsphere::compute_scalar()
   double **omega = atom->omega;
   double **angmom = atom->angmom;
   double *rmass = atom->rmass;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   // sum rotational energy for each particle
@@ -104,7 +104,7 @@ double ComputeERotateAsphere::compute_scalar()
   double erotate = 0.0;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       if (ellipsoid && ellipsoid[i] >= 0) {
         shape = ebonus[ellipsoid[i]].shape;
         quat = ebonus[ellipsoid[i]].quat;

@@ -167,6 +167,7 @@ class FixRigidSmall : public Fix {
 
   int allremap;              // remap all atoms
   int dilate_group_bit;      // mask for dilation group
+  int dilate_group_bin;      // bin for dilation group
   char *id_dilate;           // group name to dilate
 
   double p_current[3],p_target[3];

@@ -317,7 +317,7 @@ void FixAveAtom::end_of_step()
 
   modify->clearstep_compute();
 
-  int *mask = atom->mask;
+  int **mask = atom->mask;
 
   for (m = 0; m < nvalues; m++) {
     n = value2index[m];
@@ -326,17 +326,17 @@ void FixAveAtom::end_of_step()
     if (which[m] == X) {
       double **x = atom->x;
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) array[i][m] += x[i][j];
+        if (mask[i][groupbin] & groupbit) array[i][m] += x[i][j];
 
     } else if (which[m] == V) {
       double **v = atom->v;
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) array[i][m] += v[i][j];
+        if (mask[i][groupbin] & groupbit) array[i][m] += v[i][j];
 
     } else if (which[m] == F) {
       double **f = atom->f;
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) array[i][m] += f[i][j];
+        if (mask[i][groupbin] & groupbit) array[i][m] += f[i][j];
 
     // invoke compute if not previously invoked
 
@@ -350,12 +350,12 @@ void FixAveAtom::end_of_step()
       if (j == 0) {
         double *compute_vector = compute->vector_atom;
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit) array[i][m] += compute_vector[i];
+          if (mask[i][groupbin] & groupbit) array[i][m] += compute_vector[i];
       } else {
         int jm1 = j - 1;
         double **compute_array = compute->array_atom;
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit) array[i][m] += compute_array[i][jm1];
+          if (mask[i][groupbin] & groupbit) array[i][m] += compute_array[i][jm1];
       }
 
     // access fix fields, guaranteed to be ready
@@ -364,12 +364,12 @@ void FixAveAtom::end_of_step()
       if (j == 0) {
         double *fix_vector = modify->fix[n]->vector_atom;
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit) array[i][m] += fix_vector[i];
+          if (mask[i][groupbin] & groupbit) array[i][m] += fix_vector[i];
       } else {
         int jm1 = j - 1;
         double **fix_array = modify->fix[n]->array_atom;
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit) array[i][m] += fix_array[i][jm1];
+          if (mask[i][groupbin] & groupbit) array[i][m] += fix_array[i][jm1];
       }
 
     // evaluate atom-style variable

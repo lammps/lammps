@@ -753,7 +753,7 @@ void PPPMGPU::setup()
    compute the PPPM total long-range force and energy for groups A and B
  ------------------------------------------------------------------------- */
 
-void PPPMGPU::compute_group_group(int groupbit_A, int groupbit_B, int AA_flag)
+void PPPMGPU::compute_group_group(int groupbit_A, int groupbin_A, int groupbit_B, int groupbin_B, int AA_flag)
 {
   if (slabflag && triclinic)
     error->all(FLERR,"Cannot (yet) use K-space slab "
@@ -857,4 +857,3 @@ void PPPMGPU::compute_group_group(int groupbit_A, int groupbit_B, int AA_flag)
   if (slabflag == 1)
     slabcorr_groups(groupbit_A, groupbit_B, AA_flag);
 }
-

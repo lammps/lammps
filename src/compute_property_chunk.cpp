@@ -273,10 +273,10 @@ void ComputePropertyChunk::pack_count(int n)
 
   for (int m = 0; m < nchunk; m++) count_one[m] = 0;
 
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       index = ichunk[i]-1;
       if (index < 0) continue;
       count_one[index]++;

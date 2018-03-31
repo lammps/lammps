@@ -81,7 +81,7 @@ void FixLangevinEff::post_force_no_tally()
   double *erforce = atom->erforce;
   int *spin = atom->spin;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   double mefactor = domain->dimension/4.0;
   double sqrtmefactor = sqrt(mefactor);
@@ -111,7 +111,7 @@ void FixLangevinEff::post_force_no_tally()
       }
       input->variable->compute_atom(tvar,igroup,tforce,1,0);
       for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit)
+        if (mask[i][groupbin] & groupbit)
             if (tforce[i] < 0.0)
               error->one(FLERR,
                          "Fix langevin/eff variable returned negative temperature");
@@ -150,7 +150,7 @@ void FixLangevinEff::post_force_no_tally()
 
   int one = 0;
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       if (abs(spin[i])==1) one++;
     }
   int nelectrons, dofelectrons, dofnuclei;
@@ -164,7 +164,7 @@ void FixLangevinEff::post_force_no_tally()
 
   if (tbiasflag == NOBIAS) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         if (tstyle == ATOM) tsqrt = sqrt(tforce[i]);
         gamma1 = gfactor1[type[i]] * gfactor3;
         gamma2 = gfactor2[type[i]] * tsqrt;
@@ -187,7 +187,7 @@ void FixLangevinEff::post_force_no_tally()
   } else if (tbiasflag == BIAS) {
     temperature->compute_scalar();
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         if (tstyle == ATOM) tsqrt = sqrt(tforce[i]);
         gamma1 = gfactor1[type[i]] * gfactor3;
         gamma2 = gfactor2[type[i]] * tsqrt;
@@ -223,7 +223,7 @@ void FixLangevinEff::post_force_no_tally()
     fsumall[2] /= particles;
     fsumall[3] /= nelectrons;
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         f[i][0] -= fsumall[0];
         f[i][1] -= fsumall[1];
         f[i][2] -= fsumall[2];
@@ -258,7 +258,7 @@ void FixLangevinEff::post_force_tally()
   double sqrtmefactor = sqrt(mefactor);
 
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double delta = update->ntimestep - update->beginstep;
@@ -286,7 +286,7 @@ void FixLangevinEff::post_force_tally()
       }
       input->variable->compute_atom(tvar,igroup,tforce,1,0);
       for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit)
+        if (mask[i][groupbin] & groupbit)
             if (tforce[i] < 0.0)
               error->one(FLERR,
                          "Fix langevin/eff variable returned negative temperature");
@@ -319,7 +319,7 @@ void FixLangevinEff::post_force_tally()
 
   int one = 0;
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       if (abs(spin[i])==1) one++;
     }
   int nelectrons, dofelectrons, dofnuclei;
@@ -333,7 +333,7 @@ void FixLangevinEff::post_force_tally()
 
   if (tbiasflag == NOBIAS) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         if (tstyle == ATOM) tsqrt = sqrt(tforce[i]);
         gamma1 = gfactor1[type[i]] * gfactor3;
         gamma2 = gfactor2[type[i]] * tsqrt;
@@ -352,7 +352,7 @@ void FixLangevinEff::post_force_tally()
   } else if (tbiasflag == BIAS) {
     temperature->compute_scalar();
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         if (tstyle == ATOM) tsqrt = sqrt(tforce[i]);
         gamma1 = gfactor1[type[i]] * gfactor3;
         gamma2 = gfactor2[type[i]] * tsqrt;
@@ -386,14 +386,14 @@ void FixLangevinEff::end_of_step()
   if (!tallyflag) return;
 
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   int *spin = atom->spin;
 
   energy_onestep = 0.0;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       energy_onestep += flangevin[i][0]*v[i][0] + flangevin[i][1]*v[i][1] +
           flangevin[i][2]*v[i][2];
       if (abs(spin[i])==1) energy_onestep += erforcelangevin[i];
@@ -410,14 +410,14 @@ double FixLangevinEff::compute_scalar()
   // capture the very first energy transfer to thermal reservoir
 
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   int *spin = atom->spin;
 
   if (update->ntimestep == update->beginstep) {
     energy_onestep = 0.0;
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         energy_onestep += flangevin[i][0]*v[i][0] + flangevin[i][1]*v[i][1] +
           flangevin[i][2]*v[i][2];
         if (abs(spin[i])==1) energy_onestep += erforcelangevin[i];

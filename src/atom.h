@@ -44,12 +44,13 @@ class Atom : protected Pointers {
   int firstgroup;               // store atoms in this group first, -1 if unset
   int nfirst;                   // # of atoms in first group on this proc
   char *firstgroupname;         // group-ID to store first, NULL if unset
+  int ngroupbin;                // # of bins, 32 groups per bin
 
   // per-atom arrays
   // customize by adding new array
 
   tagint *tag;
-  int *type,*mask;
+  int *type,**mask;
   imageint *image;
   double **x,**v,**f;
 

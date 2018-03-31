@@ -88,7 +88,7 @@ void PairGranHertzHistory::compute(int eflag, int vflag)
   double **torque = atom->torque;
   double *radius = atom->radius;
   double *rmass = atom->rmass;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
 
@@ -175,8 +175,8 @@ void PairGranHertzHistory::compute(int eflag, int vflag)
         }
 
         meff = mi*mj / (mi+mj);
-        if (mask[i] & freeze_group_bit) meff = mj;
-        if (mask[j] & freeze_group_bit) meff = mi;
+        if (mask[i][freeze_group_bin] & freeze_group_bit) meff = mj;
+        if (mask[j][freeze_group_bin] & freeze_group_bit) meff = mi;
 
         // normal force = Hertzian contact + normal velocity damping
 
@@ -370,7 +370,7 @@ double PairGranHertzHistory::single(int i, int j, int itype, int jtype,
   // if I or J is frozen, meff is other particle
 
   double *rmass = atom->rmass;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
 
   mi = rmass[i];
   mj = rmass[j];
@@ -381,8 +381,8 @@ double PairGranHertzHistory::single(int i, int j, int itype, int jtype,
   }
 
   meff = mi*mj / (mi+mj);
-  if (mask[i] & freeze_group_bit) meff = mj;
-  if (mask[j] & freeze_group_bit) meff = mi;
+  if (mask[i][freeze_group_bin] & freeze_group_bit) meff = mj;
+  if (mask[j][freeze_group_bin] & freeze_group_bit) meff = mi;
 
 
   // normal force = Hertzian contact + normal velocity damping

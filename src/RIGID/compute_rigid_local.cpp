@@ -159,12 +159,12 @@ int ComputeRigidLocal::compute_rigid(int flag)
 
   tagint *tag = atom->tag;
   tagint *molecule = atom->molecule;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   m = 0;
   for (i = 0; i < nlocal; i++) {
-    if (!(mask[i] & groupbit)) continue;
+    if (!(mask[i][groupbin] & groupbit)) continue;
     ibody = fixrigid->bodyown[i];
     if (ibody < 0) continue;
     body = &fixrigid->body[ibody];

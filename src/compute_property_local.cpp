@@ -369,7 +369,7 @@ int ComputePropertyLocal::count_pairs(int allflag, int forceflag)
   double *radius = atom->radius;
   tagint *tag = atom->tag;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
 
@@ -393,7 +393,7 @@ int ComputePropertyLocal::count_pairs(int allflag, int forceflag)
   m = 0;
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (!(mask[i] & groupbit)) continue;
+    if (!(mask[i][groupbin] & groupbit)) continue;
 
     xtmp = x[i][0];
     ytmp = x[i][1];
@@ -407,7 +407,7 @@ int ComputePropertyLocal::count_pairs(int allflag, int forceflag)
       j = jlist[jj];
       j &= NEIGHMASK;
 
-      if (!(mask[j] & groupbit)) continue;
+      if (!(mask[j][groupbin] & groupbit)) continue;
 
       // itag = jtag is possible for long cutoffs that include images of self
 
@@ -468,16 +468,16 @@ int ComputePropertyLocal::count_bonds(int flag)
   tagint **bond_atom = atom->bond_atom;
   int **bond_type = atom->bond_type;
   tagint *tag = atom->tag;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   int newton_bond = force->newton_bond;
 
   int m = 0;
   for (atom1 = 0; atom1 < nlocal; atom1++) {
-    if (!(mask[atom1] & groupbit)) continue;
+    if (!(mask[atom1][groupbin] & groupbit)) continue;
     for (i = 0; i < num_bond[atom1]; i++) {
       atom2 = atom->map(bond_atom[atom1][i]);
-      if (atom2 < 0 || !(mask[atom2] & groupbit)) continue;
+      if (atom2 < 0 || !(mask[atom2][groupbin] & groupbit)) continue;
       if (newton_bond == 0 && tag[atom1] > tag[atom2]) continue;
       if (bond_type[atom1][i] == 0) continue;
 
@@ -511,18 +511,18 @@ int ComputePropertyLocal::count_angles(int flag)
   tagint **angle_atom3 = atom->angle_atom3;
   int **angle_type = atom->angle_type;
   tagint *tag = atom->tag;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   int m = 0;
   for (atom2 = 0; atom2 < nlocal; atom2++) {
-    if (!(mask[atom2] & groupbit)) continue;
+    if (!(mask[atom2][groupbin] & groupbit)) continue;
     for (i = 0; i < num_angle[atom2]; i++) {
       if (tag[atom2] != angle_atom2[atom2][i]) continue;
       atom1 = atom->map(angle_atom1[atom2][i]);
-      if (atom1 < 0 || !(mask[atom1] & groupbit)) continue;
+      if (atom1 < 0 || !(mask[atom1][groupbin] & groupbit)) continue;
       atom3 = atom->map(angle_atom3[atom2][i]);
-      if (atom3 < 0 || !(mask[atom3] & groupbit)) continue;
+      if (atom3 < 0 || !(mask[atom3][groupbin] & groupbit)) continue;
       if (angle_type[atom2][i] == 0) continue;
 
       if (flag) {
@@ -553,20 +553,20 @@ int ComputePropertyLocal::count_dihedrals(int flag)
   tagint **dihedral_atom3 = atom->dihedral_atom3;
   tagint **dihedral_atom4 = atom->dihedral_atom4;
   tagint *tag = atom->tag;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   int m = 0;
   for (atom2 = 0; atom2 < nlocal; atom2++) {
-    if (!(mask[atom2] & groupbit)) continue;
+    if (!(mask[atom2][groupbin] & groupbit)) continue;
     for (i = 0; i < num_dihedral[atom2]; i++) {
       if (tag[atom2] != dihedral_atom2[atom2][i]) continue;
       atom1 = atom->map(dihedral_atom1[atom2][i]);
-      if (atom1 < 0 || !(mask[atom1] & groupbit)) continue;
+      if (atom1 < 0 || !(mask[atom1][groupbin] & groupbit)) continue;
       atom3 = atom->map(dihedral_atom3[atom2][i]);
-      if (atom3 < 0 || !(mask[atom3] & groupbit)) continue;
+      if (atom3 < 0 || !(mask[atom3][groupbin] & groupbit)) continue;
       atom4 = atom->map(dihedral_atom4[atom2][i]);
-      if (atom4 < 0 || !(mask[atom4] & groupbit)) continue;
+      if (atom4 < 0 || !(mask[atom4][groupbin] & groupbit)) continue;
 
       if (flag) {
         indices[m][0] = atom2;
@@ -596,20 +596,20 @@ int ComputePropertyLocal::count_impropers(int flag)
   tagint **improper_atom3 = atom->improper_atom3;
   tagint **improper_atom4 = atom->improper_atom4;
   tagint *tag = atom->tag;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   int m = 0;
   for (atom2 = 0; atom2 < nlocal; atom2++) {
-    if (!(mask[atom2] & groupbit)) continue;
+    if (!(mask[atom2][groupbin] & groupbit)) continue;
     for (i = 0; i < num_improper[atom2]; i++) {
       if (tag[atom2] != improper_atom2[atom2][i]) continue;
       atom1 = atom->map(improper_atom1[atom2][i]);
-      if (atom1 < 0 || !(mask[atom1] & groupbit)) continue;
+      if (atom1 < 0 || !(mask[atom1][groupbin] & groupbit)) continue;
       atom3 = atom->map(improper_atom3[atom2][i]);
-      if (atom3 < 0 || !(mask[atom3] & groupbit)) continue;
+      if (atom3 < 0 || !(mask[atom3][groupbin] & groupbit)) continue;
       atom4 = atom->map(improper_atom4[atom2][i]);
-      if (atom4 < 0 || !(mask[atom4] & groupbit)) continue;
+      if (atom4 < 0 || !(mask[atom4][groupbin] & groupbit)) continue;
 
       if (flag) {
         indices[m][0] = atom2;

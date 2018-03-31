@@ -243,7 +243,7 @@ double FixQEqFire::compute_eneg()
   double r, rsq, delr[3], rinv;
 
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   double *q = atom->q;
   double **x = atom->x;
 
@@ -254,7 +254,7 @@ double FixQEqFire::compute_eneg()
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       qf[i] = 0.0;
   }
 
@@ -266,7 +266,7 @@ double FixQEqFire::compute_eneg()
     i = ilist[ii];
     itype = type[i];
 
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
 
       qf[i] += chi[itype] + eta[itype] * q[i];
 
@@ -300,7 +300,7 @@ double FixQEqFire::compute_eneg()
   eneg = enegtot = 0.0;
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       eneg += qf[i];
   }
   MPI_Allreduce(&eneg,&enegtot,1,MPI_DOUBLE,MPI_SUM,world);

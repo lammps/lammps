@@ -82,12 +82,12 @@ FixTISpring::FixTISpring(LAMMPS *lmp, int narg, char **arg) :
   // xoriginal = initial unwrapped positions of atoms
 
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) domain->unmap(x[i],image[i],xoriginal[i]);
+    if (mask[i][groupbin] & groupbit) domain->unmap(x[i],image[i],xoriginal[i]);
     else xoriginal[i][0] = xoriginal[i][1] = xoriginal[i][2] = 0.0;
   }
 
@@ -174,7 +174,7 @@ void FixTISpring::post_force(int vflag)
 
   double **x = atom->x;
   double **f = atom->f;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
@@ -184,7 +184,7 @@ void FixTISpring::post_force(int vflag)
   espring = 0.0;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       domain->unmap(x[i],image[i],unwrap);
       dx = unwrap[0] - xoriginal[i][0];
       dy = unwrap[1] - xoriginal[i][1];

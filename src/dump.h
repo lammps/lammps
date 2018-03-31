@@ -25,7 +25,7 @@ class Dump : protected Pointers {
   char *id;                  // user-defined name of Dump
   char *style;               // style of Dump
   char *filename;            // user-specified file
-  int igroup,groupbit;       // group that Dump is performed on
+  int igroup,groupbit,groupbin;       // group that Dump is performed on
 
   int first_flag;            // 0 if no initial dump, 1 if yes initial dump
   int clearstep;             // 1 if dump invokes computes, 0 if not

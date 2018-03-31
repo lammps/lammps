@@ -93,11 +93,11 @@ void ComputeSMDTlsphDt::compute_peratom() {
                                 "compute smd/tlsph_dt failed to access particle_dt array");
         }
 
-        int *mask = atom->mask;
+        int **mask = atom->mask;
         int nlocal = atom->nlocal;
 
         for (int i = 0; i < nlocal; i++) {
-                if (mask[i] & groupbit) {
+                if (mask[i][groupbin] & groupbit) {
                         dt_vector[i] = particle_dt[i];
                 } else {
                         dt_vector[i] = 0.0;

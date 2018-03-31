@@ -617,12 +617,15 @@ void FixLbFluid::init(void)
     if (strcmp(modify->fix[i]->style,"lb/viscous") == 0){
       fixviscouslb = 1;
       groupbit_viscouslb = group->bitmask[modify->fix[i]->igroup];
+      groupbin_viscouslb = floor((float)modify->fix[i]->igroup/(float)group->grp_per_bin);
     }
     if(strcmp(modify->fix[i]->style,"lb/pc")==0){
       groupbit_pc = group->bitmask[modify->fix[i]->igroup];
+      groupbin_pc = floor((float)modify->fix[i]->igroup/(float)group->grp_per_bin);
     }
     if(strcmp(modify->fix[i]->style,"lb/rigid/pc/sphere")==0){
       groupbit_rigid_pc_sphere = group->bitmask[modify->fix[i]->igroup];
+      groupbin_rigid_pc_sphere = floor((float)modify->fix[i]->igroup/(float)group->grp_per_bin);
     }
   }
 
@@ -634,12 +637,14 @@ void FixLbFluid::init(void)
   // If fix lb/viscous is called for a particular atom, make sure
   // lb/pc or lb/rigid/pc/sphere are not:
   if(fixviscouslb == 1){
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
       for(j=0; j<nlocal; j++){
-        if((mask[j] & groupbit) && (mask[j] & groupbit_viscouslb) && (mask[j] & groupbit_pc))
+        if((mask[j][groupbin] & groupbit) && (mask[j][groupbin_viscouslb] & groupbit_viscouslb) &&
+           (mask[j][groupbin_pc] & groupbit_pc))
           error->one(FLERR,"should not use the lb/viscous command when integrating with the lb/pc fix");
-        if((mask[j] & groupbit) && (mask[j] & groupbit_viscouslb) && (mask[j] & groupbit_rigid_pc_sphere))
+        if((mask[j][groupbin] & groupbit) && (mask[j][groupbin_viscouslb] & groupbit_viscouslb) &&
+           (mask[j][groupbin_rigid_pc_sphere] & groupbit_rigid_pc_sphere))
           error->one(FLERR,"should not use the lb/viscous command when integrating with the lb/rigid/pc/sphere fix");
       }
    }
@@ -777,7 +782,7 @@ int FixLbFluid::unpack_exchange(int nlocal, double *buf)
 //==========================================================================
 void FixLbFluid::calc_fluidforce(void)
 {
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   double **x = atom->x;
   int i,j,k,m;
@@ -814,8 +819,10 @@ void FixLbFluid::calc_fluidforce(void)
     //Calculate the center of mass of the particle group
     //(needed to calculate the torque).
     sum[0] = sum[1] = sum[2] = sum[3] = 0.0;
+    int maskbin;
     for(i=0; i<nlocal; i++){
-      if(mask[i] & group->bitmask[igroupforce]){
+      maskbin = floor((float)igroupforce/(float)group->grp_per_bin);
+      if(mask[i][maskbin] & group->bitmask[igroupforce]){
 
         domain->unmap(x[i],image[i],unwrap);
 
@@ -837,8 +844,9 @@ void FixLbFluid::calc_fluidforce(void)
   //--------------------------------------------------------------------------
   //Calculate the contribution to the force on the fluid.
   //--------------------------------------------------------------------------
+  int maskbin;
   for(i=0; i<nlocal; i++){
-    if(mask[i] & groupbit){
+    if(mask[i][groupbin] & groupbit){
       if(trilinear_stencil==1) {
         trilinear_interpolation(i);
       }else{
@@ -846,7 +854,8 @@ void FixLbFluid::calc_fluidforce(void)
       }
 
       if(force_diagnostic > 0 && update->ntimestep > 0 && (update->ntimestep % force_diagnostic == 0)){
-        if(mask[i] & group->bitmask[igroupforce]){
+        maskbin = floor((float)igroupforce/(float)group->grp_per_bin);
+        if(mask[i][maskbin] & group->bitmask[igroupforce]){
 
           domain->unmap(x[i],image[i],unwrap);
           dx = unwrap[0] - xcm[0];
@@ -3344,5 +3353,3 @@ void FixLbFluid::update_full19(void)
   }
 
 }
-
-

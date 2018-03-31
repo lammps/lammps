@@ -322,7 +322,8 @@ void FixSRP::setup_pre_force(int zz)
 
   for(i=0; i< nlocal; i++)
     if(atom->type[i] == bptype) {
-      atom->mask[i] = 0;
+      for (int k = 0; k < atom->ngroupbin; k++)
+        atom->mask[i][k] = 0;
       atom->v[i][0] = atom->v[i][1] = atom->v[i][2] = 0.0;
     }
 }
@@ -635,4 +636,3 @@ int FixSRP::modify_param(int narg, char **arg)
   }
   return 0;
 }
-

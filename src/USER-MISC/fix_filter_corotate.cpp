@@ -823,7 +823,7 @@ void FixFilterCorotate::find_clusters()
 
   tagint *tag = atom->tag;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int **nspecial = atom->nspecial;
@@ -905,7 +905,7 @@ void FixFilterCorotate::find_clusters()
 
       m = atom->map(partner_tag[i][j]);
       if (m >= 0 && m < nlocal) {
-        partner_mask[i][j] = mask[m];
+        partner_mask[i][j] = mask[m][groupbin];
         partner_type[i][j] = type[m];
         if (nmass) {
           if (rmass) massone = rmass[m];
@@ -977,7 +977,7 @@ void FixFilterCorotate::find_clusters()
   for (i = 0; i < nlocal; i++){
     for (j = 0; j < npartner[i]; j++) {
       if (partner_type[i][j] == 0) flag = 1;
-      if (!(mask[i] & groupbit)) continue;
+      if (!(mask[i][groupbin] & groupbit)) continue;
       if (!(partner_mask[i][j] & groupbit)) continue;
       if (partner_bondtype[i][j] == 0) flag = 1;
     }
@@ -1005,7 +1005,7 @@ void FixFilterCorotate::find_clusters()
     for (j = 0; j < np; j++) {
       partner_shake[i][j] = 0;
 
-      if (!(mask[i] & groupbit)) continue;
+      if (!(mask[i][groupbin] & groupbit)) continue;
       if (!(partner_mask[i][j] & groupbit)) continue;
       if (partner_bondtype[i][j] <= 0) continue;
 
@@ -1309,7 +1309,7 @@ void FixFilterCorotate::ring_bonds(int ndatum, char *cbuf, void *ptr)
   Atom *atom = ffptr->atom;
   double *rmass = atom->rmass;
   double *mass = atom->mass;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int nmass = ffptr->nmass;

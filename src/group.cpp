@@ -37,7 +37,7 @@
 
 using namespace LAMMPS_NS;
 
-#define MAX_GROUP 32
+#define GRP_PER_BIN 32
 #define EPSILON 1.0e-6
 
 enum{TYPE,MOLECULE,ID};
@@ -53,15 +53,20 @@ Group::Group(LAMMPS *lmp) : Pointers(lmp)
 {
   MPI_Comm_rank(world,&me);
 
-  names = new char*[MAX_GROUP];
-  bitmask = new int[MAX_GROUP];
-  inversemask = new int[MAX_GROUP];
-  dynamic = new int[MAX_GROUP];
+  grp_per_bin = GRP_PER_BIN; // for external referencing
+  max_group = atom->ngroupbin*GRP_PER_BIN;
 
-  for (int i = 0; i < MAX_GROUP; i++) names[i] = NULL;
-  for (int i = 0; i < MAX_GROUP; i++) bitmask[i] = 1 << i;
-  for (int i = 0; i < MAX_GROUP; i++) inversemask[i] = bitmask[i] ^ ~0;
-  for (int i = 0; i < MAX_GROUP; i++) dynamic[i] = 0;
+  names = new char*[max_group];
+  bitmask = new int[max_group];
+  inversemask = new int[max_group];
+  dynamic = new int[max_group];
+
+  for (int i = 0; i < max_group; i++) names[i] = NULL;
+  for (int i = 0; i < atom->ngroupbin; i++)
+    for (int j = 0; j < GRP_PER_BIN; j++)
+      bitmask[j+i*GRP_PER_BIN] = 1 << j;
+  for (int i = 0; i < max_group; i++) inversemask[i] = bitmask[i] ^ ~0;
+  for (int i = 0; i < max_group; i++) dynamic[i] = 0;
 
   // create "all" group
 
@@ -78,7 +83,7 @@ Group::Group(LAMMPS *lmp) : Pointers(lmp)
 
 Group::~Group()
 {
-  for (int i = 0; i < MAX_GROUP; i++) delete [] names[i];
+  for (int i = 0; i < max_group; i++) delete [] names[i];
   delete [] names;
   delete [] bitmask;
   delete [] inversemask;
@@ -117,10 +122,11 @@ void Group::assign(int narg, char **arg)
       error->all(FLERR,
                  "Cannot delete group currently used by atom_modify first");
 
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
     int bits = inversemask[igroup];
-    for (i = 0; i < nlocal; i++) mask[i] &= bits;
+    int groupbin = floor((float)igroup/(float)GRP_PER_BIN);
+    for (i = 0; i < nlocal; i++) mask[i][groupbin] &= bits;
 
     if (dynamic[igroup]) {
       int n = strlen("GROUP_") + strlen(names[igroup]) + 1;
@@ -145,10 +151,11 @@ void Group::assign(int narg, char **arg)
     if (igroup == -1) error->all (FLERR,"Could not find group clear group ID");
     if (igroup == 0) error->all (FLERR,"Cannot clear group all");
 
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
     int bits = inversemask[igroup];
-    for (i = 0; i < nlocal; i++) mask[i] &= bits;
+    int groupbin = floor((float)igroup/(float)GRP_PER_BIN);
+    for (i = 0; i < nlocal; i++) mask[i][groupbin] &= bits;
 
     return;
   }
@@ -159,7 +166,7 @@ void Group::assign(int narg, char **arg)
   int igroup = find(arg[0]);
 
   if (igroup == -1) {
-    if (ngroup == MAX_GROUP) error->all(FLERR,"Too many groups");
+    if (ngroup == max_group) error->all(FLERR,"Too many groups");
     igroup = find_unused();
     int n = strlen(arg[0]) + 1;
     names[igroup] = new char[n];
@@ -168,9 +175,10 @@ void Group::assign(int narg, char **arg)
   }
 
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   int bit = bitmask[igroup];
+  int bin = floor((float)igroup/(float)GRP_PER_BIN);
 
   // style = region
   // add to group if atom is in region
@@ -186,7 +194,7 @@ void Group::assign(int narg, char **arg)
 
     for (i = 0; i < nlocal; i++)
       if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
-        mask[i] |= bit;
+        mask[i][bin] |= bit;
 
   // create an empty group
 
@@ -245,50 +253,50 @@ void Group::assign(int narg, char **arg)
       if (attribute) {
         if (condition == LT) {
           for (i = 0; i < nlocal; i++)
-            if (attribute[i] < bound1) mask[i] |= bit;
+            if (attribute[i] < bound1) mask[i][bin] |= bit;
         } else if (condition == LE) {
           for (i = 0; i < nlocal; i++)
-            if (attribute[i] <= bound1) mask[i] |= bit;
+            if (attribute[i] <= bound1) mask[i][bin] |= bit;
         } else if (condition == GT) {
           for (i = 0; i < nlocal; i++)
-            if (attribute[i] > bound1) mask[i] |= bit;
+            if (attribute[i] > bound1) mask[i][bin] |= bit;
         } else if (condition == GE) {
           for (i = 0; i < nlocal; i++)
-            if (attribute[i] >= bound1) mask[i] |= bit;
+            if (attribute[i] >= bound1) mask[i][bin] |= bit;
         } else if (condition == EQ) {
           for (i = 0; i < nlocal; i++)
-            if (attribute[i] == bound1) mask[i] |= bit;
+            if (attribute[i] == bound1) mask[i][bin] |= bit;
         } else if (condition == NEQ) {
           for (i = 0; i < nlocal; i++)
-            if (attribute[i] != bound1) mask[i] |= bit;
+            if (attribute[i] != bound1) mask[i][bin] |= bit;
         } else if (condition == BETWEEN) {
           for (i = 0; i < nlocal; i++)
             if (attribute[i] >= bound1 && attribute[i] <= bound2)
-              mask[i] |= bit;
+              mask[i][bin] |= bit;
         }
       } else {
         if (condition == LT) {
           for (i = 0; i < nlocal; i++)
-            if (tattribute[i] < bound1) mask[i] |= bit;
+            if (tattribute[i] < bound1) mask[i][bin] |= bit;
         } else if (condition == LE) {
           for (i = 0; i < nlocal; i++)
-            if (tattribute[i] <= bound1) mask[i] |= bit;
+            if (tattribute[i] <= bound1) mask[i][bin] |= bit;
         } else if (condition == GT) {
           for (i = 0; i < nlocal; i++)
-            if (tattribute[i] > bound1) mask[i] |= bit;
+            if (tattribute[i] > bound1) mask[i][bin] |= bit;
         } else if (condition == GE) {
           for (i = 0; i < nlocal; i++)
-            if (tattribute[i] >= bound1) mask[i] |= bit;
+            if (tattribute[i] >= bound1) mask[i][bin] |= bit;
         } else if (condition == EQ) {
           for (i = 0; i < nlocal; i++)
-            if (tattribute[i] == bound1) mask[i] |= bit;
+            if (tattribute[i] == bound1) mask[i][bin] |= bit;
         } else if (condition == NEQ) {
           for (i = 0; i < nlocal; i++)
-            if (tattribute[i] != bound1) mask[i] |= bit;
+            if (tattribute[i] != bound1) mask[i][bin] |= bit;
         } else if (condition == BETWEEN) {
           for (i = 0; i < nlocal; i++)
             if (tattribute[i] >= bound1 && tattribute[i] <= bound2)
-              mask[i] |= bit;
+              mask[i][bin] |= bit;
         }
       }
 
@@ -324,11 +332,11 @@ void Group::assign(int narg, char **arg)
         if (attribute) {
           for (i = 0; i < nlocal; i++)
             if (attribute[i] >= start && attribute[i] <= stop &&
-                (attribute[i]-start) % delta == 0) mask[i] |= bit;
+                (attribute[i]-start) % delta == 0) mask[i][bin] |= bit;
         } else {
           for (i = 0; i < nlocal; i++)
             if (tattribute[i] >= start && tattribute[i] <= stop &&
-                (tattribute[i]-start) % delta == 0) mask[i] |= bit;
+                (tattribute[i]-start) % delta == 0) mask[i][bin] |= bit;
         }
       }
     }
@@ -353,7 +361,7 @@ void Group::assign(int narg, char **arg)
     // add to group if per-atom variable evaluated to non-zero
 
     for (i = 0; i < nlocal; i++)
-      if (aflag[i] != 0.0) mask[i] |= bit;
+      if (aflag[i] != 0.0) mask[i][bin] |= bit;
 
     memory->destroy(aflag);
 
@@ -365,7 +373,7 @@ void Group::assign(int narg, char **arg)
     if (strcmp(arg[2],"molecule") != 0)
       error->all(FLERR,"Illegal group command");
 
-    add_molecules(igroup,bit);
+    add_molecules(igroup,bit,bin);
 
   // style = subtract
 
@@ -388,19 +396,23 @@ void Group::assign(int narg, char **arg)
     // add to group if in 1st group in list
 
     int otherbit = bitmask[list[0]];
+    int otherbin = floor((float)list[0]/(float)GRP_PER_BIN);
+
 
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & otherbit) mask[i] |= bit;
+      if (mask[i][otherbin] & otherbit) mask[i][bin] |= bit;
 
     // remove atoms if they are in any of the other groups
     // AND with inverse mask removes the atom from group
 
     int inverse = inversemask[igroup];
+    int inversebin = floor((float)igroup/(float)group->grp_per_bin);
 
     for (int ilist = 1; ilist < length; ilist++) {
       otherbit = bitmask[list[ilist]];
+      otherbin = floor((float)list[ilist]/(float)GRP_PER_BIN);
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & otherbit) mask[i] &= inverse;
+        if (mask[i][otherbin] & otherbit) mask[i][inversebin] &= inverse;
     }
 
     delete [] list;
@@ -426,11 +438,13 @@ void Group::assign(int narg, char **arg)
     // add to group if in any other group in list
 
     int otherbit;
+    int otherbin;
 
     for (int ilist = 0; ilist < length; ilist++) {
       otherbit = bitmask[list[ilist]];
+      otherbin = floor((float)list[ilist]/(float)GRP_PER_BIN);
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & otherbit) mask[i] |= bit;
+        if (mask[i][otherbin] & otherbit) mask[i][bin] |= bit;
     }
 
     delete [] list;
@@ -455,15 +469,16 @@ void Group::assign(int narg, char **arg)
 
     // add to group if in all groups in list
 
-    int otherbit,ok,ilist;
+    int otherbit,otherbin,ok,ilist;
 
     for (i = 0; i < nlocal; i++) {
       ok = 1;
       for (ilist = 0; ilist < length; ilist++) {
         otherbit = bitmask[list[ilist]];
-        if ((mask[i] & otherbit) == 0) ok = 0;
+        otherbin = floor((float)list[ilist]/(float)group->grp_per_bin);
+        if ((mask[i][otherbin] & otherbit) == 0) ok = 0;
       }
-      if (ok) mask[i] |= bit;
+      if (ok) mask[i][bin] |= bit;
     }
 
     delete [] list;
@@ -530,7 +545,7 @@ void Group::assign(int narg, char **arg)
 
   int n;
   n = 0;
-  for (i = 0; i < nlocal; i++) if (mask[i] & bit) n++;
+  for (i = 0; i < nlocal; i++) if (mask[i][bin] & bit) n++;
 
   double rlocal = n;
   double all;
@@ -563,7 +578,7 @@ void Group::create(char *name, int *flag)
   int igroup = find(name);
 
   if (igroup == -1) {
-    if (ngroup == MAX_GROUP) error->all(FLERR,"Too many groups");
+    if (ngroup == max_group) error->all(FLERR,"Too many groups");
     igroup = find_unused();
     int n = strlen(name) + 1;
     names[igroup] = new char[n];
@@ -573,12 +588,13 @@ void Group::create(char *name, int *flag)
 
   // add atoms to group whose flags are set
 
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   int bit = bitmask[igroup];
+  int bin = floor((float)igroup/(float)GRP_PER_BIN);
 
   for (i = 0; i < nlocal; i++)
-    if (flag[i]) mask[i] |= bit;
+    if (flag[i]) mask[i][bin] |= bit;
 }
 
 /* ----------------------------------------------------------------------
@@ -587,7 +603,7 @@ void Group::create(char *name, int *flag)
 
 int Group::find(const char *name)
 {
-  for (int igroup = 0; igroup < MAX_GROUP; igroup++)
+  for (int igroup = 0; igroup < max_group; igroup++)
     if (names[igroup] && strcmp(name,names[igroup]) == 0) return igroup;
   return -1;
 }
@@ -602,7 +618,7 @@ int Group::find_or_create(const char *name)
   int igroup = find(name);
   if (igroup >= 0) return igroup;
 
-  if (ngroup == MAX_GROUP) error->all(FLERR,"Too many groups");
+  if (ngroup == max_group) error->all(FLERR,"Too many groups");
   igroup = find_unused();
   int n = strlen(name) + 1;
   names[igroup] = new char[n];
@@ -619,7 +635,7 @@ int Group::find_or_create(const char *name)
 
 int Group::find_unused()
 {
-  for (int igroup = 0; igroup < MAX_GROUP; igroup++)
+  for (int igroup = 0; igroup < max_group; igroup++)
     if (names[igroup] == NULL) return igroup;
   return -1;
 }
@@ -629,18 +645,18 @@ int Group::find_unused()
    do not include molID = 0
 ------------------------------------------------------------------------- */
 
-void Group::add_molecules(int igroup, int bit)
+void Group::add_molecules(int igroup, int bit, int bin)
 {
   // hash = unique molecule IDs of atoms already in group
 
   hash = new std::map<tagint,int>();
 
   tagint *molecule = atom->molecule;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & bit) {
+    if (mask[i][bin] & bit) {
       if (molecule[i] == 0) continue;
       if (hash->find(molecule[i]) == hash->end()) (*hash)[molecule[i]] = 1;
     }
@@ -657,6 +673,7 @@ void Group::add_molecules(int igroup, int bit)
   for (pos = hash->begin(); pos != hash->end(); ++pos) list[n++] = pos->first;
 
   molbit = bit;
+  molbin = bin;
   comm->ring(n,sizeof(tagint),list,1,molring,NULL,(void *)this);
 
   delete hash;
@@ -677,14 +694,15 @@ void Group::molring(int n, char *cbuf, void *ptr)
   std::map<tagint,int> *hash = gptr->hash;
   int nlocal = gptr->atom->nlocal;
   tagint *molecule = gptr->atom->molecule;
-  int *mask = gptr->atom->mask;
+  int **mask = gptr->atom->mask;
   int molbit = gptr->molbit;
+  int molbin = gptr->molbin;
 
   hash->clear();
   for (int i = 0; i < n; i++) (*hash)[list[i]] = 1;
 
   for (int i = 0; i < nlocal; i++)
-    if (hash->find(molecule[i]) != hash->end()) mask[i] |= molbit;
+    if (hash->find(molecule[i]) != hash->end()) mask[i][molbin] |= molbit;
 }
 
 /* ----------------------------------------------------------------------
@@ -701,7 +719,7 @@ void Group::write_restart(FILE *fp)
 
   int n;
   int count = 0;
-  for (int i = 0; i < MAX_GROUP; i++) {
+  for (int i = 0; i < max_group; i++) {
     if (names[i]) n = strlen(names[i]) + 1;
     else n = 0;
     fwrite(&n,sizeof(int),1,fp);
@@ -725,7 +743,7 @@ void Group::read_restart(FILE *fp)
   // delete existing group names
   // atom masks will be overwritten by reading of restart file
 
-  for (i = 0; i < MAX_GROUP; i++) delete [] names[i];
+  for (i = 0; i < max_group; i++) delete [] names[i];
 
   if (me == 0) fread(&ngroup,sizeof(int),1,fp);
   MPI_Bcast(&ngroup,1,MPI_INT,0,world);
@@ -734,7 +752,7 @@ void Group::read_restart(FILE *fp)
   // remove this on next major release
 
   int count = 0;
-  for (i = 0; i < MAX_GROUP; i++) {
+  for (i = 0; i < max_group; i++) {
     if (count == ngroup) {
       names[i] = NULL;
       continue;
@@ -761,13 +779,14 @@ void Group::read_restart(FILE *fp)
 bigint Group::count(int igroup)
 {
   int groupbit = bitmask[igroup];
+  int groupbin = floor((float)igroup/(float)GRP_PER_BIN);
 
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   int n = 0;
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) n++;
+    if (mask[i][groupbin] & groupbit) n++;
 
   bigint nsingle = n;
   bigint nall;
@@ -782,16 +801,17 @@ bigint Group::count(int igroup)
 bigint Group::count(int igroup, int iregion)
 {
   int groupbit = bitmask[igroup];
+  int groupbin = floor((float)igroup/(float)GRP_PER_BIN);
   Region *region = domain->regions[iregion];
   region->prematch();
 
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   int n = 0;
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) n++;
+    if (mask[i][groupbin] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) n++;
 
   bigint nsingle = n;
   bigint nall;
@@ -807,10 +827,11 @@ bigint Group::count(int igroup, int iregion)
 double Group::mass(int igroup)
 {
   int groupbit = bitmask[igroup];
+  int groupbin = floor((float)igroup/(float)GRP_PER_BIN);
 
   double *mass = atom->mass;
   double *rmass = atom->rmass;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
@@ -818,10 +839,10 @@ double Group::mass(int igroup)
 
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) one += rmass[i];
+      if (mask[i][groupbin] & groupbit) one += rmass[i];
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) one += mass[type[i]];
+      if (mask[i][groupbin] & groupbit) one += mass[type[i]];
   }
 
   double all;
@@ -837,13 +858,14 @@ double Group::mass(int igroup)
 double Group::mass(int igroup, int iregion)
 {
   int groupbit = bitmask[igroup];
+  int groupbin = floor((float)igroup/(float)GRP_PER_BIN);
   Region *region = domain->regions[iregion];
   region->prematch();
 
   double **x = atom->x;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
@@ -851,11 +873,11 @@ double Group::mass(int igroup, int iregion)
 
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+      if (mask[i][groupbin] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
         one += rmass[i];
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+      if (mask[i][groupbin] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
         one += mass[type[i]];
   }
 
@@ -871,14 +893,15 @@ double Group::mass(int igroup, int iregion)
 double Group::charge(int igroup)
 {
   int groupbit = bitmask[igroup];
+  int groupbin = floor((float)igroup/(float)GRP_PER_BIN);
 
   double *q = atom->q;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double qone = 0.0;
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) qone += q[i];
+    if (mask[i][groupbin] & groupbit) qone += q[i];
 
   double qall;
   MPI_Allreduce(&qone,&qall,1,MPI_DOUBLE,MPI_SUM,world);
@@ -892,17 +915,18 @@ double Group::charge(int igroup)
 double Group::charge(int igroup, int iregion)
 {
   int groupbit = bitmask[igroup];
+  int groupbin = floor((float)igroup/(float)GRP_PER_BIN);
   Region *region = domain->regions[iregion];
   region->prematch();
 
   double **x = atom->x;
   double *q = atom->q;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double qone = 0.0;
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+    if (mask[i][groupbin] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
       qone += q[i];
 
   double qall;
@@ -918,17 +942,18 @@ double Group::charge(int igroup, int iregion)
 void Group::bounds(int igroup, double *minmax)
 {
   int groupbit = bitmask[igroup];
+  int groupbin = floor((float)igroup/(float)GRP_PER_BIN);
 
   double extent[6];
   extent[0] = extent[2] = extent[4] = BIG;
   extent[1] = extent[3] = extent[5] = -BIG;
 
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       extent[0] = MIN(extent[0],x[i][0]);
       extent[1] = MAX(extent[1],x[i][0]);
       extent[2] = MIN(extent[2],x[i][1]);
@@ -961,6 +986,7 @@ void Group::bounds(int igroup, double *minmax)
 void Group::bounds(int igroup, double *minmax, int iregion)
 {
   int groupbit = bitmask[igroup];
+  int groupbin = floor((float)igroup/(float)GRP_PER_BIN);
   Region *region = domain->regions[iregion];
   region->prematch();
 
@@ -969,11 +995,11 @@ void Group::bounds(int igroup, double *minmax, int iregion)
   extent[1] = extent[3] = extent[5] = -BIG;
 
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+    if (mask[i][groupbin] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
       extent[0] = MIN(extent[0],x[i][0]);
       extent[1] = MAX(extent[1],x[i][0]);
       extent[2] = MIN(extent[2],x[i][1]);
@@ -1008,9 +1034,10 @@ void Group::bounds(int igroup, double *minmax, int iregion)
 void Group::xcm(int igroup, double masstotal, double *cm)
 {
   int groupbit = bitmask[igroup];
+  int groupbin = floor((float)igroup/(float)GRP_PER_BIN);
 
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   imageint *image = atom->image;
   double *mass = atom->mass;
@@ -1025,7 +1052,7 @@ void Group::xcm(int igroup, double masstotal, double *cm)
 
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         massone = rmass[i];
         domain->unmap(x[i],image[i],unwrap);
         cmone[0] += unwrap[0] * massone;
@@ -1034,7 +1061,7 @@ void Group::xcm(int igroup, double masstotal, double *cm)
       }
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         massone = mass[type[i]];
         domain->unmap(x[i],image[i],unwrap);
         cmone[0] += unwrap[0] * massone;
@@ -1061,11 +1088,12 @@ void Group::xcm(int igroup, double masstotal, double *cm)
 void Group::xcm(int igroup, double masstotal, double *cm, int iregion)
 {
   int groupbit = bitmask[igroup];
+  int groupbin = floor((float)igroup/(float)GRP_PER_BIN);
   Region *region = domain->regions[iregion];
   region->prematch();
 
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   imageint *image = atom->image;
   double *mass = atom->mass;
@@ -1080,7 +1108,7 @@ void Group::xcm(int igroup, double masstotal, double *cm, int iregion)
 
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+      if (mask[i][groupbin] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
         massone = rmass[i];
         domain->unmap(x[i],image[i],unwrap);
         cmone[0] += unwrap[0] * massone;
@@ -1089,7 +1117,7 @@ void Group::xcm(int igroup, double masstotal, double *cm, int iregion)
       }
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+      if (mask[i][groupbin] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
         massone = mass[type[i]];
         domain->unmap(x[i],image[i],unwrap);
         cmone[0] += unwrap[0] * massone;
@@ -1115,9 +1143,10 @@ void Group::xcm(int igroup, double masstotal, double *cm, int iregion)
 void Group::vcm(int igroup, double masstotal, double *cm)
 {
   int groupbit = bitmask[igroup];
+  int groupbin = floor((float)igroup/(float)GRP_PER_BIN);
 
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
@@ -1128,7 +1157,7 @@ void Group::vcm(int igroup, double masstotal, double *cm)
 
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         massone = rmass[i];
         p[0] += v[i][0]*massone;
         p[1] += v[i][1]*massone;
@@ -1136,7 +1165,7 @@ void Group::vcm(int igroup, double masstotal, double *cm)
       }
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         massone = mass[type[i]];
         p[0] += v[i][0]*massone;
         p[1] += v[i][1]*massone;
@@ -1161,12 +1190,13 @@ void Group::vcm(int igroup, double masstotal, double *cm)
 void Group::vcm(int igroup, double masstotal, double *cm, int iregion)
 {
   int groupbit = bitmask[igroup];
+  int groupbin = floor((float)igroup/(float)GRP_PER_BIN);
   Region *region = domain->regions[iregion];
   region->prematch();
 
   double **x = atom->x;
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
@@ -1177,7 +1207,7 @@ void Group::vcm(int igroup, double masstotal, double *cm, int iregion)
 
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+      if (mask[i][groupbin] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
         massone = rmass[i];
         p[0] += v[i][0]*massone;
         p[1] += v[i][1]*massone;
@@ -1185,7 +1215,7 @@ void Group::vcm(int igroup, double masstotal, double *cm, int iregion)
       }
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+      if (mask[i][groupbin] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
         massone = mass[type[i]];
         p[0] += v[i][0]*massone;
         p[1] += v[i][1]*massone;
@@ -1208,16 +1238,17 @@ void Group::vcm(int igroup, double masstotal, double *cm, int iregion)
 void Group::fcm(int igroup, double *cm)
 {
   int groupbit = bitmask[igroup];
+  int groupbin = floor((float)igroup/(float)GRP_PER_BIN);
 
   double **f = atom->f;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double flocal[3];
   flocal[0] = flocal[1] = flocal[2] = 0.0;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       flocal[0] += f[i][0];
       flocal[1] += f[i][1];
       flocal[2] += f[i][2];
@@ -1233,19 +1264,20 @@ void Group::fcm(int igroup, double *cm)
 void Group::fcm(int igroup, double *cm, int iregion)
 {
   int groupbit = bitmask[igroup];
+  int groupbin = floor((float)igroup/(float)GRP_PER_BIN);
   Region *region = domain->regions[iregion];
   region->prematch();
 
   double **x = atom->x;
   double **f = atom->f;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double flocal[3];
   flocal[0] = flocal[1] = flocal[2] = 0.0;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+    if (mask[i][groupbin] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
       flocal[0] += f[i][0];
       flocal[1] += f[i][1];
       flocal[2] += f[i][2];
@@ -1261,9 +1293,10 @@ void Group::fcm(int igroup, double *cm, int iregion)
 double Group::ke(int igroup)
 {
   int groupbit = bitmask[igroup];
+  int groupbin = floor((float)igroup/(float)GRP_PER_BIN);
 
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
@@ -1273,12 +1306,12 @@ double Group::ke(int igroup)
 
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
+      if (mask[i][groupbin] & groupbit)
         one += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) *
           rmass[i];
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
+      if (mask[i][groupbin] & groupbit)
         one += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) *
           mass[type[i]];
   }
@@ -1296,12 +1329,13 @@ double Group::ke(int igroup)
 double Group::ke(int igroup, int iregion)
 {
   int groupbit = bitmask[igroup];
+  int groupbin = floor((float)igroup/(float)GRP_PER_BIN);
   Region *region = domain->regions[iregion];
   region->prematch();
 
   double **x = atom->x;
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
@@ -1311,12 +1345,12 @@ double Group::ke(int igroup, int iregion)
 
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+      if (mask[i][groupbin] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
         one += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) *
           rmass[i];
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+      if (mask[i][groupbin] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
         one += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) *
           mass[type[i]];
   }
@@ -1336,9 +1370,10 @@ double Group::ke(int igroup, int iregion)
 double Group::gyration(int igroup, double masstotal, double *cm)
 {
   int groupbit = bitmask[igroup];
+  int groupbin = floor((float)igroup/(float)GRP_PER_BIN);
 
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   imageint *image = atom->image;
   double *mass = atom->mass;
@@ -1350,7 +1385,7 @@ double Group::gyration(int igroup, double masstotal, double *cm)
   double rg = 0.0;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       domain->unmap(x[i],image[i],unwrap);
       dx = unwrap[0] - cm[0];
       dy = unwrap[1] - cm[1];
@@ -1375,11 +1410,12 @@ double Group::gyration(int igroup, double masstotal, double *cm)
 double Group::gyration(int igroup, double masstotal, double *cm, int iregion)
 {
   int groupbit = bitmask[igroup];
+  int groupbin = floor((float)igroup/(float)GRP_PER_BIN);
   Region *region = domain->regions[iregion];
   region->prematch();
 
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   imageint *image = atom->image;
   double *mass = atom->mass;
@@ -1391,7 +1427,7 @@ double Group::gyration(int igroup, double masstotal, double *cm, int iregion)
   double rg = 0.0;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+    if (mask[i][groupbin] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
       domain->unmap(x[i],image[i],unwrap);
       dx = unwrap[0] - cm[0];
       dy = unwrap[1] - cm[1];
@@ -1416,10 +1452,11 @@ double Group::gyration(int igroup, double masstotal, double *cm, int iregion)
 void Group::angmom(int igroup, double *cm, double *lmom)
 {
   int groupbit = bitmask[igroup];
+  int groupbin = floor((float)igroup/(float)GRP_PER_BIN);
 
   double **x = atom->x;
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   imageint *image = atom->image;
   double *mass = atom->mass;
@@ -1433,7 +1470,7 @@ void Group::angmom(int igroup, double *cm, double *lmom)
   p[0] = p[1] = p[2] = 0.0;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       domain->unmap(x[i],image[i],unwrap);
       dx = unwrap[0] - cm[0];
       dy = unwrap[1] - cm[1];
@@ -1457,12 +1494,13 @@ void Group::angmom(int igroup, double *cm, double *lmom)
 void Group::angmom(int igroup, double *cm, double *lmom, int iregion)
 {
   int groupbit = bitmask[igroup];
+  int groupbin = floor((float)igroup/(float)GRP_PER_BIN);
   Region *region = domain->regions[iregion];
   region->prematch();
 
   double **x = atom->x;
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   imageint *image = atom->image;
   double *mass = atom->mass;
@@ -1476,7 +1514,7 @@ void Group::angmom(int igroup, double *cm, double *lmom, int iregion)
   p[0] = p[1] = p[2] = 0.0;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+    if (mask[i][groupbin] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
       domain->unmap(x[i],image[i],unwrap);
       dx = unwrap[0] - cm[0];
       dy = unwrap[1] - cm[1];
@@ -1500,10 +1538,11 @@ void Group::angmom(int igroup, double *cm, double *lmom, int iregion)
 void Group::torque(int igroup, double *cm, double *tq)
 {
   int groupbit = bitmask[igroup];
+  int groupbin = floor((float)igroup/(float)GRP_PER_BIN);
 
   double **x = atom->x;
   double **f = atom->f;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
@@ -1514,7 +1553,7 @@ void Group::torque(int igroup, double *cm, double *tq)
   tlocal[0] = tlocal[1] = tlocal[2] = 0.0;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       domain->unmap(x[i],image[i],unwrap);
       dx = unwrap[0] - cm[0];
       dy = unwrap[1] - cm[1];
@@ -1536,12 +1575,13 @@ void Group::torque(int igroup, double *cm, double *tq)
 void Group::torque(int igroup, double *cm, double *tq, int iregion)
 {
   int groupbit = bitmask[igroup];
+  int groupbin = floor((float)igroup/(float)GRP_PER_BIN);
   Region *region = domain->regions[iregion];
   region->prematch();
 
   double **x = atom->x;
   double **f = atom->f;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
@@ -1552,7 +1592,7 @@ void Group::torque(int igroup, double *cm, double *tq, int iregion)
   tlocal[0] = tlocal[1] = tlocal[2] = 0.0;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+    if (mask[i][groupbin] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
       domain->unmap(x[i],image[i],unwrap);
       dx = unwrap[0] - cm[0];
       dy = unwrap[1] - cm[1];
@@ -1575,9 +1615,10 @@ void Group::inertia(int igroup, double *cm, double itensor[3][3])
   int i,j;
 
   int groupbit = bitmask[igroup];
+  int groupbin = floor((float)igroup/(float)GRP_PER_BIN);
 
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   imageint *image = atom->image;
   double *mass = atom->mass;
@@ -1593,7 +1634,7 @@ void Group::inertia(int igroup, double *cm, double itensor[3][3])
       ione[i][j] = 0.0;
 
   for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       domain->unmap(x[i],image[i],unwrap);
       dx = unwrap[0] - cm[0];
       dy = unwrap[1] - cm[1];
@@ -1624,11 +1665,12 @@ void Group::inertia(int igroup, double *cm, double itensor[3][3], int iregion)
   int i,j;
 
   int groupbit = bitmask[igroup];
+  int groupbin = floor((float)igroup/(float)GRP_PER_BIN);
   Region *region = domain->regions[iregion];
   region->prematch();
 
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   imageint *image = atom->image;
   double *mass = atom->mass;
@@ -1644,7 +1686,7 @@ void Group::inertia(int igroup, double *cm, double itensor[3][3], int iregion)
       ione[i][j] = 0.0;
 
   for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+    if (mask[i][groupbin] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
       domain->unmap(x[i],image[i],unwrap);
       dx = unwrap[0] - cm[0];
       dy = unwrap[1] - cm[1];

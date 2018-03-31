@@ -393,13 +393,13 @@ double PairCombOMP::yasu_char(double *qf_fix, int &igroup)
   const int * const numneigh = list->numneigh;
   const int * const * const firstneigh = list->firstneigh;
 
-  const int * const mask = atom->mask;
+  int ** mask = atom->mask;
   const int groupbit = group->bitmask[igroup];
 
   qf = qf_fix;
   for (ii = 0; ii < inum; ii++) {
     const int i = ilist[ii];
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       qf[i] = 0.0;
   }
 
@@ -424,7 +424,7 @@ double PairCombOMP::yasu_char(double *qf_fix, int &igroup)
     const tagint itag = tag[i];
     int nj = 0;
 
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       fqi = fqj = fqij = fqji = fqjj = 0.0; // should not be needed.
       int itype = map[type[i]];
       const double xtmp = x[i][0];
@@ -531,7 +531,7 @@ double PairCombOMP::yasu_char(double *qf_fix, int &igroup)
   double eneg = 0.0;
   for (ii = 0; ii < inum; ii++) {
     const int i = ilist[ii];
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       eneg += qf[i];
   }
   double enegtot;

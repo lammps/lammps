@@ -155,11 +155,11 @@ void FixExternal::post_force(int vflag)
 
   if (ntimestep % napply == 0) {
     double **f = atom->f;
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
 
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         f[i][0] += fexternal[i][0];
         f[i][1] += fexternal[i][1];
         f[i][2] += fexternal[i][2];

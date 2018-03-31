@@ -280,17 +280,17 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
   int *line = atom->line;
   int *tri = atom->tri;
   int *body = atom->body;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) domain->unmap(x[i],image[i],xoriginal[i]);
+    if (mask[i][groupbin] & groupbit) domain->unmap(x[i],image[i],xoriginal[i]);
     else xoriginal[i][0] = xoriginal[i][1] = xoriginal[i][2] = 0.0;
   }
 
   if (theta_flag) {
     for (int i = 0; i < nlocal; i++) {
-      if ((mask[i] & groupbit) && line[i] >= 0)
+      if ((mask[i][groupbin] & groupbit) && line[i] >= 0)
         toriginal[i] = avec_line->bonus[line[i]].theta;
       else toriginal[i] = 0.0;
     }
@@ -300,7 +300,7 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
     double *quat;
     for (int i = 0; i < nlocal; i++) {
       quat = NULL;
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         if (ellipsoid_flag && ellipsoid[i] >= 0)
           quat = avec_ellipsoid->bonus[ellipsoid[i]].quat;
         else if (tri_flag && tri[i] >= 0)
@@ -477,7 +477,7 @@ void FixMove::initial_integrate(int vflag)
   int *line = atom->line;
   int *tri = atom->tri;
   int *body = atom->body;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
 
   int nlocal = atom->nlocal;
 
@@ -485,7 +485,7 @@ void FixMove::initial_integrate(int vflag)
 
   if (mstyle == LINEAR) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         xold[0] = x[i][0];
         xold[1] = x[i][1];
         xold[2] = x[i][2];
@@ -541,7 +541,7 @@ void FixMove::initial_integrate(int vflag)
     double cosine = cos(arg);
 
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         xold[0] = x[i][0];
         xold[1] = x[i][1];
         xold[2] = x[i][2];
@@ -616,7 +616,7 @@ void FixMove::initial_integrate(int vflag)
     qrotate[3] = runit[2]*qsine;
 
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         xold[0] = x[i][0];
         xold[1] = x[i][1];
         xold[2] = x[i][2];
@@ -773,7 +773,7 @@ void FixMove::initial_integrate(int vflag)
     // update x,v
 
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         xold[0] = x[i][0];
         xold[1] = x[i][1];
         xold[2] = x[i][2];
@@ -905,11 +905,11 @@ void FixMove::final_integrate()
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       if (xflag) {
         if (rmass) {
           dtfm = dtf / rmass[i];
@@ -1048,11 +1048,11 @@ void FixMove::set_arrays(int i)
   int *line = atom->line;
   int *tri = atom->tri;
   int *body = atom->body;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
 
   // particle not in group
 
-  if (!(mask[i] & groupbit)) {
+  if (!(mask[i][groupbin] & groupbit)) {
     xoriginal[i][0] = xoriginal[i][1] = xoriginal[i][2] = 0.0;
     return;
   }

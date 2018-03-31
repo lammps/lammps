@@ -36,14 +36,14 @@ NPairHalfNsqNewtoff::NPairHalfNsqNewtoff(LAMMPS *lmp) : NPair(lmp) {}
 
 void NPairHalfNsqNewtoff::build(NeighList *list)
 {
-  int i,j,n,itype,jtype,which,bitmask,imol,iatom,moltemplate;
+  int i,j,n,itype,jtype,which,bitmask,maskbin,imol,iatom,moltemplate;
   tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr;
 
   double **x = atom->x;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   tagint *tag = atom->tag;
   tagint *molecule = atom->molecule;
   tagint **special = atom->special;
@@ -53,6 +53,7 @@ void NPairHalfNsqNewtoff::build(NeighList *list)
   if (includegroup) {
     nlocal = atom->nfirst;
     bitmask = group->bitmask[includegroup];
+    maskbin = floor((float)includegroup/(float)group->grp_per_bin);
   }
 
   int *molindex = atom->molindex;
@@ -87,7 +88,7 @@ void NPairHalfNsqNewtoff::build(NeighList *list)
     // only store pair if i < j
 
     for (j = i+1; j < nall; j++) {
-      if (includegroup && !(mask[j] & bitmask)) continue;
+      if (includegroup && !(mask[j][maskbin] & bitmask)) continue;
       jtype = type[j];
       if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
 

@@ -428,11 +428,11 @@ double ComputePropertyAtom::memory_usage()
 void ComputePropertyAtom::pack_id(int n)
 {
   tagint *tag = atom->tag;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = tag[i];
+    if (mask[i][groupbin] & groupbit) buf[n] = tag[i];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -443,11 +443,11 @@ void ComputePropertyAtom::pack_id(int n)
 void ComputePropertyAtom::pack_molecule(int n)
 {
   tagint *molecule = atom->molecule;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = molecule[i];
+    if (mask[i][groupbin] & groupbit) buf[n] = molecule[i];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -457,12 +457,12 @@ void ComputePropertyAtom::pack_molecule(int n)
 
 void ComputePropertyAtom::pack_proc(int n)
 {
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   int me = comm->me;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = me;
+    if (mask[i][groupbin] & groupbit) buf[n] = me;
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -473,11 +473,11 @@ void ComputePropertyAtom::pack_proc(int n)
 void ComputePropertyAtom::pack_type(int n)
 {
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = type[i];
+    if (mask[i][groupbin] & groupbit) buf[n] = type[i];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -490,18 +490,18 @@ void ComputePropertyAtom::pack_mass(int n)
   int *type = atom->type;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   if (rmass) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) buf[n] = rmass[i];
+      if (mask[i][groupbin] & groupbit) buf[n] = rmass[i];
       else buf[n] = 0.0;
       n += nvalues;
     }
   } else {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) buf[n] = mass[type[i]];
+      if (mask[i][groupbin] & groupbit) buf[n] = mass[type[i]];
       else buf[n] = 0.0;
       n += nvalues;
     }
@@ -513,11 +513,11 @@ void ComputePropertyAtom::pack_mass(int n)
 void ComputePropertyAtom::pack_x(int n)
 {
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = x[i][0];
+    if (mask[i][groupbin] & groupbit) buf[n] = x[i][0];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -528,11 +528,11 @@ void ComputePropertyAtom::pack_x(int n)
 void ComputePropertyAtom::pack_y(int n)
 {
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = x[i][1];
+    if (mask[i][groupbin] & groupbit) buf[n] = x[i][1];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -543,11 +543,11 @@ void ComputePropertyAtom::pack_y(int n)
 void ComputePropertyAtom::pack_z(int n)
 {
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = x[i][2];
+    if (mask[i][groupbin] & groupbit) buf[n] = x[i][2];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -558,14 +558,14 @@ void ComputePropertyAtom::pack_z(int n)
 void ComputePropertyAtom::pack_xs(int n)
 {
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double boxxlo = domain->boxlo[0];
   double invxprd = 1.0/domain->xprd;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = (x[i][0] - boxxlo) * invxprd;
+    if (mask[i][groupbin] & groupbit) buf[n] = (x[i][0] - boxxlo) * invxprd;
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -576,14 +576,14 @@ void ComputePropertyAtom::pack_xs(int n)
 void ComputePropertyAtom::pack_ys(int n)
 {
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double boxylo = domain->boxlo[1];
   double invyprd = 1.0/domain->yprd;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = (x[i][1] - boxylo) * invyprd;
+    if (mask[i][groupbin] & groupbit) buf[n] = (x[i][1] - boxylo) * invyprd;
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -594,14 +594,14 @@ void ComputePropertyAtom::pack_ys(int n)
 void ComputePropertyAtom::pack_zs(int n)
 {
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double boxzlo = domain->boxlo[2];
   double invzprd = 1.0/domain->zprd;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = (x[i][2] - boxzlo) * invzprd;
+    if (mask[i][groupbin] & groupbit) buf[n] = (x[i][2] - boxzlo) * invzprd;
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -612,14 +612,14 @@ void ComputePropertyAtom::pack_zs(int n)
 void ComputePropertyAtom::pack_xs_triclinic(int n)
 {
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double *boxlo = domain->boxlo;
   double *h_inv = domain->h_inv;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       buf[n] = h_inv[0]*(x[i][0]-boxlo[0]) +
         h_inv[5]*(x[i][1]-boxlo[1]) + h_inv[4]*(x[i][2]-boxlo[2]);
     else buf[n] = 0.0;
@@ -632,14 +632,14 @@ void ComputePropertyAtom::pack_xs_triclinic(int n)
 void ComputePropertyAtom::pack_ys_triclinic(int n)
 {
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double *boxlo = domain->boxlo;
   double *h_inv = domain->h_inv;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       buf[n] = h_inv[1]*(x[i][1]-boxlo[1]) + h_inv[3]*(x[i][2]-boxlo[2]);
     else buf[n] = 0.0;
     n += nvalues;
@@ -651,14 +651,14 @@ void ComputePropertyAtom::pack_ys_triclinic(int n)
 void ComputePropertyAtom::pack_zs_triclinic(int n)
 {
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double *boxlo = domain->boxlo;
   double *h_inv = domain->h_inv;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       buf[n] = h_inv[2]*(x[i][2]-boxlo[2]);
     else buf[n] = 0.0;
     n += nvalues;
@@ -671,13 +671,13 @@ void ComputePropertyAtom::pack_xu(int n)
 {
   double **x = atom->x;
   imageint *image = atom->image;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double xprd = domain->xprd;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       buf[n] = x[i][0] + ((image[i] & IMGMASK) - IMGMAX) * xprd;
     else buf[n] = 0.0;
     n += nvalues;
@@ -690,13 +690,13 @@ void ComputePropertyAtom::pack_yu(int n)
 {
   double **x = atom->x;
   imageint *image = atom->image;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double yprd = domain->yprd;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       buf[n] = x[i][1] + ((image[i] >> IMGBITS & IMGMASK) - IMGMAX) * yprd;
     else buf[n] = 0.0;
     n += nvalues;
@@ -709,13 +709,13 @@ void ComputePropertyAtom::pack_zu(int n)
 {
   double **x = atom->x;
   imageint *image = atom->image;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double zprd = domain->zprd;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       buf[n] = x[i][2] + ((image[i] >> IMG2BITS) - IMGMAX) * zprd;
     else buf[n] = 0.0;
     n += nvalues;
@@ -728,14 +728,14 @@ void ComputePropertyAtom::pack_xu_triclinic(int n)
 {
   double **x = atom->x;
   imageint *image = atom->image;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double *h = domain->h;
   int xbox,ybox,zbox;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       xbox = (image[i] & IMGMASK) - IMGMAX;
       ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
       zbox = (image[i] >> IMG2BITS) - IMGMAX;
@@ -751,14 +751,14 @@ void ComputePropertyAtom::pack_yu_triclinic(int n)
 {
   double **x = atom->x;
   imageint *image = atom->image;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double *h = domain->h;
   int ybox,zbox;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
       zbox = (image[i] >> IMG2BITS) - IMGMAX;
       buf[n] = x[i][1] + h[1]*ybox + h[3]*zbox;
@@ -773,14 +773,14 @@ void ComputePropertyAtom::pack_zu_triclinic(int n)
 {
   double **x = atom->x;
   imageint *image = atom->image;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double *h = domain->h;
   int zbox;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       zbox = (image[i] >> IMG2BITS) - IMGMAX;
       buf[n] = x[i][2] + h[2]*zbox;
     } else buf[n] = 0.0;
@@ -793,11 +793,11 @@ void ComputePropertyAtom::pack_zu_triclinic(int n)
 void ComputePropertyAtom::pack_ix(int n)
 {
   imageint *image = atom->image;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = (image[i] & IMGMASK) - IMGMAX;
+    if (mask[i][groupbin] & groupbit) buf[n] = (image[i] & IMGMASK) - IMGMAX;
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -808,11 +808,11 @@ void ComputePropertyAtom::pack_ix(int n)
 void ComputePropertyAtom::pack_iy(int n)
 {
   imageint *image = atom->image;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+    if (mask[i][groupbin] & groupbit) buf[n] = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -823,11 +823,11 @@ void ComputePropertyAtom::pack_iy(int n)
 void ComputePropertyAtom::pack_iz(int n)
 {
   imageint *image = atom->image;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = (image[i] >> IMG2BITS) - IMGMAX;
+    if (mask[i][groupbin] & groupbit) buf[n] = (image[i] >> IMG2BITS) - IMGMAX;
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -838,11 +838,11 @@ void ComputePropertyAtom::pack_iz(int n)
 void ComputePropertyAtom::pack_vx(int n)
 {
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = v[i][0];
+    if (mask[i][groupbin] & groupbit) buf[n] = v[i][0];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -853,11 +853,11 @@ void ComputePropertyAtom::pack_vx(int n)
 void ComputePropertyAtom::pack_vy(int n)
 {
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = v[i][1];
+    if (mask[i][groupbin] & groupbit) buf[n] = v[i][1];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -868,11 +868,11 @@ void ComputePropertyAtom::pack_vy(int n)
 void ComputePropertyAtom::pack_vz(int n)
 {
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = v[i][2];
+    if (mask[i][groupbin] & groupbit) buf[n] = v[i][2];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -883,11 +883,11 @@ void ComputePropertyAtom::pack_vz(int n)
 void ComputePropertyAtom::pack_fx(int n)
 {
   double **f = atom->f;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = f[i][0];
+    if (mask[i][groupbin] & groupbit) buf[n] = f[i][0];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -898,11 +898,11 @@ void ComputePropertyAtom::pack_fx(int n)
 void ComputePropertyAtom::pack_fy(int n)
 {
   double **f = atom->f;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = f[i][1];
+    if (mask[i][groupbin] & groupbit) buf[n] = f[i][1];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -913,11 +913,11 @@ void ComputePropertyAtom::pack_fy(int n)
 void ComputePropertyAtom::pack_fz(int n)
 {
   double **f = atom->f;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = f[i][2];
+    if (mask[i][groupbin] & groupbit) buf[n] = f[i][2];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -928,11 +928,11 @@ void ComputePropertyAtom::pack_fz(int n)
 void ComputePropertyAtom::pack_q(int n)
 {
   double *q = atom->q;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = q[i];
+    if (mask[i][groupbin] & groupbit) buf[n] = q[i];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -943,11 +943,11 @@ void ComputePropertyAtom::pack_q(int n)
 void ComputePropertyAtom::pack_mux(int n)
 {
   double **mu = atom->mu;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = mu[i][0];
+    if (mask[i][groupbin] & groupbit) buf[n] = mu[i][0];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -958,11 +958,11 @@ void ComputePropertyAtom::pack_mux(int n)
 void ComputePropertyAtom::pack_muy(int n)
 {
   double **mu = atom->mu;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = mu[i][1];
+    if (mask[i][groupbin] & groupbit) buf[n] = mu[i][1];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -973,11 +973,11 @@ void ComputePropertyAtom::pack_muy(int n)
 void ComputePropertyAtom::pack_muz(int n)
 {
   double **mu = atom->mu;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = mu[i][2];
+    if (mask[i][groupbin] & groupbit) buf[n] = mu[i][2];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -988,11 +988,11 @@ void ComputePropertyAtom::pack_muz(int n)
 void ComputePropertyAtom::pack_mu(int n)
 {
   double **mu = atom->mu;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = mu[i][3];
+    if (mask[i][groupbin] & groupbit) buf[n] = mu[i][3];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -1003,11 +1003,11 @@ void ComputePropertyAtom::pack_mu(int n)
 void ComputePropertyAtom::pack_radius(int n)
 {
   double *radius = atom->radius;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = radius[i];
+    if (mask[i][groupbin] & groupbit) buf[n] = radius[i];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -1018,11 +1018,11 @@ void ComputePropertyAtom::pack_radius(int n)
 void ComputePropertyAtom::pack_diameter(int n)
 {
   double *radius = atom->radius;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = 2.0*radius[i];
+    if (mask[i][groupbin] & groupbit) buf[n] = 2.0*radius[i];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -1033,11 +1033,11 @@ void ComputePropertyAtom::pack_diameter(int n)
 void ComputePropertyAtom::pack_omegax(int n)
 {
   double **omega = atom->omega;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = omega[i][0];
+    if (mask[i][groupbin] & groupbit) buf[n] = omega[i][0];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -1048,11 +1048,11 @@ void ComputePropertyAtom::pack_omegax(int n)
 void ComputePropertyAtom::pack_omegay(int n)
 {
   double **omega = atom->omega;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = omega[i][1];
+    if (mask[i][groupbin] & groupbit) buf[n] = omega[i][1];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -1063,11 +1063,11 @@ void ComputePropertyAtom::pack_omegay(int n)
 void ComputePropertyAtom::pack_omegaz(int n)
 {
   double **omega = atom->omega;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = omega[i][2];
+    if (mask[i][groupbin] & groupbit) buf[n] = omega[i][2];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -1078,11 +1078,11 @@ void ComputePropertyAtom::pack_omegaz(int n)
 void ComputePropertyAtom::pack_angmomx(int n)
 {
   double **angmom = atom->angmom;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = angmom[i][0];
+    if (mask[i][groupbin] & groupbit) buf[n] = angmom[i][0];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -1093,11 +1093,11 @@ void ComputePropertyAtom::pack_angmomx(int n)
 void ComputePropertyAtom::pack_angmomy(int n)
 {
   double **angmom = atom->angmom;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = angmom[i][1];
+    if (mask[i][groupbin] & groupbit) buf[n] = angmom[i][1];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -1108,11 +1108,11 @@ void ComputePropertyAtom::pack_angmomy(int n)
 void ComputePropertyAtom::pack_angmomz(int n)
 {
   double **angmom = atom->angmom;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = angmom[i][2];
+    if (mask[i][groupbin] & groupbit) buf[n] = angmom[i][2];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -1124,11 +1124,11 @@ void ComputePropertyAtom::pack_shapex(int n)
 {
   AtomVecEllipsoid::Bonus *bonus = avec_ellipsoid->bonus;
   int *ellipsoid = atom->ellipsoid;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if ((mask[i] & groupbit) && ellipsoid[i] >= 0)
+    if ((mask[i][groupbin] & groupbit) && ellipsoid[i] >= 0)
       buf[n] = bonus[ellipsoid[i]].shape[0];
     else buf[n] = 0.0;
     n += nvalues;
@@ -1141,11 +1141,11 @@ void ComputePropertyAtom::pack_shapey(int n)
 {
   AtomVecEllipsoid::Bonus *bonus = avec_ellipsoid->bonus;
   int *ellipsoid = atom->ellipsoid;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if ((mask[i] & groupbit) && ellipsoid[i] >= 0)
+    if ((mask[i][groupbin] & groupbit) && ellipsoid[i] >= 0)
       buf[n] = bonus[ellipsoid[i]].shape[1];
     else buf[n] = 0.0;
     n += nvalues;
@@ -1158,11 +1158,11 @@ void ComputePropertyAtom::pack_shapez(int n)
 {
   AtomVecEllipsoid::Bonus *bonus = avec_ellipsoid->bonus;
   int *ellipsoid = atom->ellipsoid;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if ((mask[i] & groupbit) && ellipsoid[i] >= 0)
+    if ((mask[i][groupbin] & groupbit) && ellipsoid[i] >= 0)
       buf[n] = bonus[ellipsoid[i]].shape[2];
     else buf[n] = 0.0;
     n += nvalues;
@@ -1176,11 +1176,11 @@ void ComputePropertyAtom::pack_quatw(int n)
   if (avec_ellipsoid) {
     AtomVecEllipsoid::Bonus *bonus = avec_ellipsoid->bonus;
     int *ellipsoid = atom->ellipsoid;
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
 
     for (int i = 0; i < nlocal; i++) {
-      if ((mask[i] & groupbit) && ellipsoid[i] >= 0)
+      if ((mask[i][groupbin] & groupbit) && ellipsoid[i] >= 0)
         buf[n] = bonus[ellipsoid[i]].quat[0];
       else buf[n] = 0.0;
       n += nvalues;
@@ -1189,11 +1189,11 @@ void ComputePropertyAtom::pack_quatw(int n)
   } else {
     AtomVecBody::Bonus *bonus = avec_body->bonus;
     int *body = atom->body;
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
 
     for (int i = 0; i < nlocal; i++) {
-      if ((mask[i] & groupbit) && body[i] >= 0)
+      if ((mask[i][groupbin] & groupbit) && body[i] >= 0)
         buf[n] = bonus[body[i]].quat[0];
       else buf[n] = 0.0;
       n += nvalues;
@@ -1208,11 +1208,11 @@ void ComputePropertyAtom::pack_quati(int n)
   if (avec_ellipsoid) {
     AtomVecEllipsoid::Bonus *bonus = avec_ellipsoid->bonus;
     int *ellipsoid = atom->ellipsoid;
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
 
     for (int i = 0; i < nlocal; i++) {
-      if ((mask[i] & groupbit) && ellipsoid[i] >= 0)
+      if ((mask[i][groupbin] & groupbit) && ellipsoid[i] >= 0)
         buf[n] = bonus[ellipsoid[i]].quat[1];
       else buf[n] = 0.0;
       n += nvalues;
@@ -1221,11 +1221,11 @@ void ComputePropertyAtom::pack_quati(int n)
   } else {
     AtomVecBody::Bonus *bonus = avec_body->bonus;
     int *body = atom->body;
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
 
     for (int i = 0; i < nlocal; i++) {
-      if ((mask[i] & groupbit) && body[i] >= 0)
+      if ((mask[i][groupbin] & groupbit) && body[i] >= 0)
         buf[n] = bonus[body[i]].quat[1];
       else buf[n] = 0.0;
       n += nvalues;
@@ -1240,11 +1240,11 @@ void ComputePropertyAtom::pack_quatj(int n)
   if (avec_ellipsoid) {
     AtomVecEllipsoid::Bonus *bonus = avec_ellipsoid->bonus;
     int *ellipsoid = atom->ellipsoid;
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
 
     for (int i = 0; i < nlocal; i++) {
-      if ((mask[i] & groupbit) && ellipsoid[i] >= 0)
+      if ((mask[i][groupbin] & groupbit) && ellipsoid[i] >= 0)
         buf[n] = bonus[ellipsoid[i]].quat[2];
       else buf[n] = 0.0;
       n += nvalues;
@@ -1253,11 +1253,11 @@ void ComputePropertyAtom::pack_quatj(int n)
   } else {
     AtomVecBody::Bonus *bonus = avec_body->bonus;
     int *body = atom->body;
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
 
     for (int i = 0; i < nlocal; i++) {
-      if ((mask[i] & groupbit) && body[i] >= 0)
+      if ((mask[i][groupbin] & groupbit) && body[i] >= 0)
         buf[n] = bonus[body[i]].quat[2];
       else buf[n] = 0.0;
       n += nvalues;
@@ -1272,11 +1272,11 @@ void ComputePropertyAtom::pack_quatk(int n)
   if (avec_ellipsoid) {
     AtomVecEllipsoid::Bonus *bonus = avec_ellipsoid->bonus;
     int *ellipsoid = atom->ellipsoid;
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
 
     for (int i = 0; i < nlocal; i++) {
-      if ((mask[i] & groupbit) && ellipsoid[i] >= 0)
+      if ((mask[i][groupbin] & groupbit) && ellipsoid[i] >= 0)
         buf[n] = bonus[ellipsoid[i]].quat[3];
       else buf[n] = 0.0;
       n += nvalues;
@@ -1285,11 +1285,11 @@ void ComputePropertyAtom::pack_quatk(int n)
   } else {
     AtomVecBody::Bonus *bonus = avec_body->bonus;
     int *body = atom->body;
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
 
     for (int i = 0; i < nlocal; i++) {
-      if ((mask[i] & groupbit) && body[i] >= 0)
+      if ((mask[i][groupbin] & groupbit) && body[i] >= 0)
         buf[n] = bonus[body[i]].quat[3];
       else buf[n] = 0.0;
       n += nvalues;
@@ -1302,11 +1302,11 @@ void ComputePropertyAtom::pack_quatk(int n)
 void ComputePropertyAtom::pack_tqx(int n)
 {
   double **torque = atom->torque;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = torque[i][0];
+    if (mask[i][groupbin] & groupbit) buf[n] = torque[i][0];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -1317,11 +1317,11 @@ void ComputePropertyAtom::pack_tqx(int n)
 void ComputePropertyAtom::pack_tqy(int n)
 {
   double **torque = atom->torque;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = torque[i][1];
+    if (mask[i][groupbin] & groupbit) buf[n] = torque[i][1];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -1332,11 +1332,11 @@ void ComputePropertyAtom::pack_tqy(int n)
 void ComputePropertyAtom::pack_tqz(int n)
 {
   double **torque = atom->torque;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = torque[i][2];
+    if (mask[i][groupbin] & groupbit) buf[n] = torque[i][2];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -1349,11 +1349,11 @@ void ComputePropertyAtom::pack_end1x(int n)
   AtomVecLine::Bonus *bonus = avec_line->bonus;
   int *line = atom->line;
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if ((mask[i] & groupbit) && line[i] >= 0)
+    if ((mask[i][groupbin] & groupbit) && line[i] >= 0)
       buf[n] = x[i][0] - 0.5*bonus[line[i]].length*cos(bonus[line[i]].theta);
     else buf[n] = 0.0;
     n += nvalues;
@@ -1367,11 +1367,11 @@ void ComputePropertyAtom::pack_end1y(int n)
   AtomVecLine::Bonus *bonus = avec_line->bonus;
   int *line = atom->line;
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if ((mask[i] & groupbit) && line[i] >= 0)
+    if ((mask[i][groupbin] & groupbit) && line[i] >= 0)
       buf[n] = x[i][1] - 0.5*bonus[line[i]].length*sin(bonus[line[i]].theta);
     else buf[n] = 0.0;
     n += nvalues;
@@ -1383,11 +1383,11 @@ void ComputePropertyAtom::pack_end1y(int n)
 void ComputePropertyAtom::pack_end1z(int n)
 {
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = x[i][2];
+    if (mask[i][groupbin] & groupbit) buf[n] = x[i][2];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -1400,11 +1400,11 @@ void ComputePropertyAtom::pack_end2x(int n)
   AtomVecLine::Bonus *bonus = avec_line->bonus;
   int *line = atom->line;
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if ((mask[i] & groupbit) && line[i] >= 0)
+    if ((mask[i][groupbin] & groupbit) && line[i] >= 0)
       buf[n] = x[i][0] + 0.5*bonus[line[i]].length*cos(bonus[line[i]].theta);
     else buf[n] = 0.0;
     n += nvalues;
@@ -1418,11 +1418,11 @@ void ComputePropertyAtom::pack_end2y(int n)
   AtomVecLine::Bonus *bonus = avec_line->bonus;
   int *line = atom->line;
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if ((mask[i] & groupbit) && line[i] >= 0)
+    if ((mask[i][groupbin] & groupbit) && line[i] >= 0)
       buf[n] = x[i][1] + 0.5*bonus[line[i]].length*sin(bonus[line[i]].theta);
     else buf[n] = 0.0;
     n += nvalues;
@@ -1434,11 +1434,11 @@ void ComputePropertyAtom::pack_end2y(int n)
 void ComputePropertyAtom::pack_end2z(int n)
 {
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = x[i][2];
+    if (mask[i][groupbin] & groupbit) buf[n] = x[i][2];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -1451,12 +1451,12 @@ void ComputePropertyAtom::pack_corner1x(int n)
   AtomVecTri::Bonus *bonus = avec_tri->bonus;
   int *tri = atom->tri;
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double p[3][3],c[3];
   for (int i = 0; i < nlocal; i++) {
-    if ((mask[i] & groupbit) && tri[i] >= 0) {
+    if ((mask[i][groupbin] & groupbit) && tri[i] >= 0) {
       MathExtra::quat_to_mat(bonus[tri[i]].quat,p);
       MathExtra::matvec(p,bonus[tri[i]].c1,c);
       buf[n] = x[i][0] + c[0];
@@ -1472,12 +1472,12 @@ void ComputePropertyAtom::pack_corner1y(int n)
   AtomVecTri::Bonus *bonus = avec_tri->bonus;
   int *tri = atom->tri;
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double p[3][3],c[3];
   for (int i = 0; i < nlocal; i++) {
-    if ((mask[i] & groupbit) && tri[i] >= 0) {
+    if ((mask[i][groupbin] & groupbit) && tri[i] >= 0) {
       MathExtra::quat_to_mat(bonus[tri[i]].quat,p);
       MathExtra::matvec(p,bonus[tri[i]].c1,c);
       buf[n] = x[i][1] + c[1];
@@ -1493,12 +1493,12 @@ void ComputePropertyAtom::pack_corner1z(int n)
   AtomVecTri::Bonus *bonus = avec_tri->bonus;
   int *tri = atom->tri;
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double p[3][3],c[3];
   for (int i = 0; i < nlocal; i++) {
-    if ((mask[i] & groupbit) && tri[i] >= 0) {
+    if ((mask[i][groupbin] & groupbit) && tri[i] >= 0) {
       MathExtra::quat_to_mat(bonus[tri[i]].quat,p);
       MathExtra::matvec(p,bonus[tri[i]].c1,c);
       buf[n] = x[i][2] + c[2];
@@ -1514,12 +1514,12 @@ void ComputePropertyAtom::pack_corner2x(int n)
   AtomVecTri::Bonus *bonus = avec_tri->bonus;
   int *tri = atom->tri;
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double p[3][3],c[3];
   for (int i = 0; i < nlocal; i++) {
-    if ((mask[i] & groupbit) && tri[i] >= 0) {
+    if ((mask[i][groupbin] & groupbit) && tri[i] >= 0) {
       MathExtra::quat_to_mat(bonus[tri[i]].quat,p);
       MathExtra::matvec(p,bonus[tri[i]].c2,c);
       buf[n] = x[i][0] + c[0];
@@ -1535,12 +1535,12 @@ void ComputePropertyAtom::pack_corner2y(int n)
   AtomVecTri::Bonus *bonus = avec_tri->bonus;
   int *tri = atom->tri;
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double p[3][3],c[3];
   for (int i = 0; i < nlocal; i++) {
-    if ((mask[i] & groupbit) && tri[i] >= 0) {
+    if ((mask[i][groupbin] & groupbit) && tri[i] >= 0) {
       MathExtra::quat_to_mat(bonus[tri[i]].quat,p);
       MathExtra::matvec(p,bonus[tri[i]].c2,c);
       buf[n] = x[i][1] + c[1];
@@ -1556,12 +1556,12 @@ void ComputePropertyAtom::pack_corner2z(int n)
   AtomVecTri::Bonus *bonus = avec_tri->bonus;
   int *tri = atom->tri;
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double p[3][3],c[3];
   for (int i = 0; i < nlocal; i++) {
-    if ((mask[i] & groupbit) && tri[i] >= 0) {
+    if ((mask[i][groupbin] & groupbit) && tri[i] >= 0) {
       MathExtra::quat_to_mat(bonus[tri[i]].quat,p);
       MathExtra::matvec(p,bonus[tri[i]].c2,c);
       buf[n] = x[i][2] + c[2];
@@ -1577,12 +1577,12 @@ void ComputePropertyAtom::pack_corner3x(int n)
   AtomVecTri::Bonus *bonus = avec_tri->bonus;
   int *tri = atom->tri;
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double p[3][3],c[3];
   for (int i = 0; i < nlocal; i++) {
-    if ((mask[i] & groupbit) && tri[i] >= 0) {
+    if ((mask[i][groupbin] & groupbit) && tri[i] >= 0) {
       MathExtra::quat_to_mat(bonus[tri[i]].quat,p);
       MathExtra::matvec(p,bonus[tri[i]].c3,c);
       buf[n] = x[i][0] + c[0];
@@ -1598,12 +1598,12 @@ void ComputePropertyAtom::pack_corner3y(int n)
   AtomVecTri::Bonus *bonus = avec_tri->bonus;
   int *tri = atom->tri;
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double p[3][3],c[3];
   for (int i = 0; i < nlocal; i++) {
-    if ((mask[i] & groupbit) && tri[i] >= 0) {
+    if ((mask[i][groupbin] & groupbit) && tri[i] >= 0) {
       MathExtra::quat_to_mat(bonus[tri[i]].quat,p);
       MathExtra::matvec(p,bonus[tri[i]].c3,c);
       buf[n] = x[i][1] + c[1];
@@ -1619,12 +1619,12 @@ void ComputePropertyAtom::pack_corner3z(int n)
   AtomVecTri::Bonus *bonus = avec_tri->bonus;
   int *tri = atom->tri;
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double p[3][3],c[3];
   for (int i = 0; i < nlocal; i++) {
-    if ((mask[i] & groupbit) && tri[i] >= 0) {
+    if ((mask[i][groupbin] & groupbit) && tri[i] >= 0) {
       MathExtra::quat_to_mat(bonus[tri[i]].quat,p);
       MathExtra::matvec(p,bonus[tri[i]].c3,c);
       buf[n] = x[i][2] + c[2];
@@ -1638,11 +1638,11 @@ void ComputePropertyAtom::pack_corner3z(int n)
 void ComputePropertyAtom::pack_nbonds(int n)
 {
   int *num_bond = atom->num_bond;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = num_bond[i];
+    if (mask[i][groupbin] & groupbit) buf[n] = num_bond[i];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -1653,11 +1653,11 @@ void ComputePropertyAtom::pack_nbonds(int n)
 void ComputePropertyAtom::pack_iname(int n)
 {
   int *ivector = atom->ivector[index[n]];
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = ivector[i];
+    if (mask[i][groupbin] & groupbit) buf[n] = ivector[i];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -1668,11 +1668,11 @@ void ComputePropertyAtom::pack_iname(int n)
 void ComputePropertyAtom::pack_dname(int n)
 {
   double *dvector = atom->dvector[index[n]];
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = dvector[i];
+    if (mask[i][groupbin] & groupbit) buf[n] = dvector[i];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -1682,5 +1682,5 @@ void ComputePropertyAtom::pack_dname(int n)
 
 void ComputePropertyAtom::pack_property_atom(int n)
 {
-  atom->avec->pack_property_atom(index[n],&buf[n],nvalues,groupbit);
+  atom->avec->pack_property_atom(index[n],&buf[n],nvalues,groupbin,groupbit);
 }

@@ -106,19 +106,19 @@ double ComputeTempPartial::compute_scalar()
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double t = 0.0;
 
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
+      if (mask[i][groupbin] & groupbit)
         t += (xflag*v[i][0]*v[i][0] + yflag*v[i][1]*v[i][1] +
               zflag*v[i][2]*v[i][2]) * rmass[i];
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
+      if (mask[i][groupbin] & groupbit)
         t += (xflag*v[i][0]*v[i][0] + yflag*v[i][1]*v[i][1] +
               zflag*v[i][2]*v[i][2]) * mass[type[i]];
   }
@@ -143,14 +143,14 @@ void ComputeTempPartial::compute_vector()
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double massone,t[6];
   for (i = 0; i < 6; i++) t[i] = 0.0;
 
   for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
       t[0] += massone * xflag*v[i][0]*v[i][0];
@@ -212,7 +212,7 @@ void ComputeTempPartial::remove_bias_thr(int i, double *v, double *b)
 void ComputeTempPartial::remove_bias_all()
 {
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   if (atom->nmax > maxbias) {
@@ -223,21 +223,21 @@ void ComputeTempPartial::remove_bias_all()
 
   if (!xflag) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         vbiasall[i][0] = v[i][0];
         v[i][0] = 0.0;
       }
   }
   if (!yflag) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         vbiasall[i][1] = v[i][1];
         v[i][1] = 0.0;
       }
   }
   if (!zflag) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         vbiasall[i][2] = v[i][2];
         v[i][2] = 0.0;
       }
@@ -253,20 +253,20 @@ void ComputeTempPartial::remove_bias_all()
 void ComputeTempPartial::reapply_bias_all()
 {
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   if (!xflag) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) v[i][0] = 0.0;
+      if (mask[i][groupbin] & groupbit) v[i][0] = 0.0;
   }
   if (!yflag) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) v[i][1] = 0.0;
+      if (mask[i][groupbin] & groupbit) v[i][1] = 0.0;
   }
   if (!zflag) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) v[i][2] = 0.0;
+      if (mask[i][groupbin] & groupbit) v[i][2] = 0.0;
   }
 }
 
@@ -302,22 +302,22 @@ void ComputeTempPartial::restore_bias_thr(int i, double *v, double *b)
 void ComputeTempPartial::restore_bias_all()
 {
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   if (!xflag) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
+      if (mask[i][groupbin] & groupbit)
         v[i][0] += vbiasall[i][0];
   }
   if (!yflag) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
+      if (mask[i][groupbin] & groupbit)
         v[i][1] += vbiasall[i][1];
   }
   if (!zflag) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
+      if (mask[i][groupbin] & groupbit)
         v[i][2] += vbiasall[i][2];
   }
 }

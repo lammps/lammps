@@ -468,7 +468,7 @@ void FixQMMM::exchange_positions()
       for (i=0; i<nlocal; ++i) {
         const int k = (int) tag[i]-1;
         mm_mask_all[ k ] = -1;
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           const int j = 3*taginthash_lookup((taginthash_t *)qm_idmap, tag[i]);
           if (j != 3*HASH_FAIL) {
             qm_coord[j]   = x[i][0];
@@ -512,7 +512,7 @@ void FixQMMM::exchange_positions()
 
     /* update coordinates of (QM) atoms */
     for (int i=0; i < nlocal; ++i) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         for (int j=0; j < num_qm; ++j) {
           if (tag[i] == qm_remap[j]) {
             x[i][0] = qm_coord[3*j];
@@ -590,7 +590,7 @@ void FixQMMM::exchange_forces()
     /* apply forces resulting from QM/MM coupling */
     if (qmmm_mode == QMMM_MODE_MECH) {
       for (int i=0; i < nlocal; ++i) {
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           for (int j=0; j < num_qm; ++j) {
             if (tag[i] == buf[j].tag) {
               f[i][0] += buf[j].x;
@@ -602,7 +602,7 @@ void FixQMMM::exchange_forces()
       }
     } else if (qmmm_mode == QMMM_MODE_ELEC) {
       for (int i=0; i < nlocal; ++i) {
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           for (int j=0; j < num_qm; ++j) {
             if (tag[i] == buf[j].tag) {
               f[i][0] += buf[j].x;
@@ -629,7 +629,7 @@ void FixQMMM::exchange_forces()
 
     memset( mm_force_on_qm_atoms, 0, 3*num_qm*sizeof(double) );
     for (int i=0; i < nlocal; ++i) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         const int j = 3*taginthash_lookup((taginthash_t *)qm_idmap, tag[i]);
         if (j != 3*HASH_FAIL) {
           mm_force_on_qm_atoms[j]   = f[i][0];
@@ -730,7 +730,7 @@ void FixQMMM::init()
     const int nlocal = atom->nlocal;
     int i, j, tmp, ndata, qm_ntag;
     tagint *tag = atom->tag;
-    int *mask  = atom->mask;
+    int **mask  = atom->mask;
     struct commdata *buf = static_cast<struct commdata *>(comm_buf);
 
     if (me == 0) {
@@ -739,7 +739,7 @@ void FixQMMM::init()
       tagint *qm_taglist = new tagint[num_qm];
       qm_ntag = 0;
       for (i=0; i < nlocal; ++i) {
-        if (mask[i] & groupbit)
+        if (mask[i][groupbin] & groupbit)
           qm_taglist[qm_ntag++] = tag[i];
       }
 
@@ -783,7 +783,7 @@ void FixQMMM::init()
     } else {
       j = 0;
       for (i=0; i < nlocal; ++i) {
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           buf[j].x = -1.0;
           buf[j].tag = tag[i];
           ++j;

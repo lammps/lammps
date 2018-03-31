@@ -263,7 +263,7 @@ void FixOrientFCC::post_force(int vflag)
 
   double **x = atom->x;
   double **f = atom->f;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
   int nall = atom->nlocal + atom->nghost;
@@ -388,7 +388,7 @@ void FixOrientFCC::post_force(int vflag)
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (!(mask[i] & groupbit)) continue;
+    if (!(mask[i][groupbin] & groupbit)) continue;
     n = nbr[i].n;
     duxi = nbr[i].duxi;
 

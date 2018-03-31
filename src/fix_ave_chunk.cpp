@@ -642,11 +642,11 @@ void FixAveChunk::end_of_step()
   // sum within each chunk, only include atoms in fix group
   // compute/fix/variable may invoke computes so wrap with clear/add
 
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit && ichunk[i] > 0)
+    if (mask[i][groupbin] & groupbit && ichunk[i] > 0)
       count_one[ichunk[i]-1]++;
 
   modify->clearstep_compute();
@@ -663,7 +663,7 @@ void FixAveChunk::end_of_step()
       else attribute = atom->f;
 
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit && ichunk[i] > 0) {
+        if (mask[i][groupbin] & groupbit && ichunk[i] > 0) {
           index = ichunk[i]-1;
           values_one[index][m] += attribute[i][j];
         }
@@ -673,7 +673,7 @@ void FixAveChunk::end_of_step()
     } else if (which[m] == DENSITY_NUMBER) {
 
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit && ichunk[i] > 0) {
+        if (mask[i][groupbin] & groupbit && ichunk[i] > 0) {
           index = ichunk[i]-1;
           values_one[index][m] += 1.0;
         }
@@ -687,13 +687,13 @@ void FixAveChunk::end_of_step()
 
       if (rmass) {
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit && ichunk[i] > 0) {
+          if (mask[i][groupbin] & groupbit && ichunk[i] > 0) {
             index = ichunk[i]-1;
             values_one[index][m] += rmass[i];
           }
       } else {
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit && ichunk[i] > 0) {
+          if (mask[i][groupbin] & groupbit && ichunk[i] > 0) {
             index = ichunk[i]-1;
             values_one[index][m] += mass[type[i]];
           }
@@ -716,14 +716,14 @@ void FixAveChunk::end_of_step()
 
       if (rmass) {
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit && ichunk[i] > 0) {
+          if (mask[i][groupbin] & groupbit && ichunk[i] > 0) {
             index = ichunk[i]-1;
             values_one[index][m] +=
               (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * rmass[i];
           }
       } else {
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit && ichunk[i] > 0) {
+          if (mask[i][groupbin] & groupbit && ichunk[i] > 0) {
             index = ichunk[i]-1;
             values_one[index][m] +=
               (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) *
@@ -747,7 +747,7 @@ void FixAveChunk::end_of_step()
       int jm1 = j - 1;
 
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit && ichunk[i] > 0) {
+        if (mask[i][groupbin] & groupbit && ichunk[i] > 0) {
           index = ichunk[i]-1;
           if (j == 0) values_one[index][m] += vector[i];
           else values_one[index][m] += array[i][jm1];
@@ -762,7 +762,7 @@ void FixAveChunk::end_of_step()
       int jm1 = j - 1;
 
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit && ichunk[i] > 0) {
+        if (mask[i][groupbin] & groupbit && ichunk[i] > 0) {
           index = ichunk[i]-1;
           if (j == 0) values_one[index][m] += vector[i];
           else values_one[index][m] += array[i][jm1];
@@ -781,7 +781,7 @@ void FixAveChunk::end_of_step()
       input->variable->compute_atom(n,igroup,varatom,1,0);
 
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit && ichunk[i] > 0) {
+        if (mask[i][groupbin] & groupbit && ichunk[i] > 0) {
           index = ichunk[i]-1;
           values_one[index][m] += varatom[i];
         }

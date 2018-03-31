@@ -105,11 +105,11 @@ void FixStoreForce::post_force(int vflag)
   }
 
   double **f = atom->f;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       foriginal[i][0] = f[i][0];
       foriginal[i][1] = f[i][1];
       foriginal[i][2] = f[i][2];

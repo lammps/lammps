@@ -337,7 +337,7 @@ void ComputeGlobalAtom::compute_peratom()
   // integer indices are rounded down from double values
   // indices are decremented from 1 to N -> 0 to N-1
 
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   if (whichref == COMPUTE) {
@@ -351,13 +351,13 @@ void ComputeGlobalAtom::compute_peratom()
     if (indexref == 0) {
       double *compute_vector = compute->vector_atom;
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit)
+        if (mask[i][groupbin] & groupbit)
           indices[i] = static_cast<int> (compute_vector[i]) - 1;
     } else {
       double **compute_array = compute->array_atom;
       int im1 = indexref - 1;
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit)
+        if (mask[i][groupbin] & groupbit)
           indices[i] = static_cast<int> (compute_array[i][im1]) - 1;
     }
 
@@ -370,13 +370,13 @@ void ComputeGlobalAtom::compute_peratom()
     if (indexref == 0) {
       double *fix_vector = fix->vector_atom;
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit)
+        if (mask[i][groupbin] & groupbit)
           indices[i] = static_cast<int> (fix_vector[i]) - 1;
     } else {
       double **fix_array = fix->array_atom;
       int im1 = indexref - 1;
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit)
+        if (mask[i][groupbin] & groupbit)
           indices[i] = static_cast<int> (fix_array[i][im1]) - 1;
     }
 
@@ -389,7 +389,7 @@ void ComputeGlobalAtom::compute_peratom()
 
     input->variable->compute_atom(ref2index,igroup,varatom,1,0);
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
+      if (mask[i][groupbin] & groupbit)
         indices[i] = static_cast<int> (varatom[i]) - 1;
   }
 
@@ -439,7 +439,7 @@ void ComputeGlobalAtom::compute_peratom()
       if (nvalues == 1) {
         for (i = 0; i < nlocal; i++) {
           vector_atom[i] = 0.0;
-          if (mask[i] & groupbit) {
+          if (mask[i][groupbin] & groupbit) {
             j = indices[i];
             if (j >= 0 && j < vmax) vector_atom[i] = source[j];
           }
@@ -447,7 +447,7 @@ void ComputeGlobalAtom::compute_peratom()
       } else {
         for (i = 0; i < nlocal; i++) {
           array_atom[i][m] = 0.0;
-          if (mask[i] & groupbit) {
+          if (mask[i][groupbin] & groupbit) {
             j = indices[i];
             if (j >= 0 && j < vmax) array_atom[i][m] = source[j];
           }
@@ -508,7 +508,7 @@ void ComputeGlobalAtom::compute_peratom()
       if (nvalues == 1) {
         for (i = 0; i < nlocal; i++) {
           vector_atom[i] = 0.0;
-          if (mask[i] & groupbit) {
+          if (mask[i][groupbin] & groupbit) {
             j = indices[i];
             if (j >= 0 && j < vmax) vector_atom[i] = source[j];
           }
@@ -516,7 +516,7 @@ void ComputeGlobalAtom::compute_peratom()
       } else {
         for (i = 0; i < nlocal; i++) {
           array_atom[i][m] = 0.0;
-          if (mask[i] & groupbit) {
+          if (mask[i][groupbin] & groupbit) {
             j = indices[i];
             if (j >= 0 && j < vmax) array_atom[i][m] = source[j];
           }

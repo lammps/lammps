@@ -138,7 +138,7 @@ void ComputeAggregateAtom::compute_peratom()
   int nlocal = atom->nlocal;
   int inum = list->inum;
   tagint *tag = atom->tag;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *num_bond = atom->num_bond;
   int **bond_type = atom->bond_type;
   tagint **bond_atom = atom->bond_atom;
@@ -148,7 +148,7 @@ void ComputeAggregateAtom::compute_peratom()
   double **x = atom->x;
 
   for (i = 0; i < nlocal + atom->nghost; i++)
-    if (mask[i] & groupbit) aggregateID[i] = tag[i];
+    if (mask[i][groupbin] & groupbit) aggregateID[i] = tag[i];
     else aggregateID[i] = 0;
 
   // loop until no more changes on any proc:
@@ -176,13 +176,13 @@ void ComputeAggregateAtom::compute_peratom()
     while (1) {
       done = 1;
       for (i = 0; i < nlocal; i++) {
-        if (!(mask[i] & groupbit)) continue;
+        if (!(mask[i][groupbin] & groupbit)) continue;
 
         for (j = 0; j < num_bond[i]; j++) {
           if (bond_type[i][j] == 0) continue;
           k = atom->map(bond_atom[i][j]);
           if (k < 0) continue;
-          if (!(mask[k] & groupbit)) continue;
+          if (!(mask[k][groupbin] & groupbit)) continue;
           if (aggregateID[i] == aggregateID[k]) continue;
 
           aggregateID[i] = aggregateID[k] = MIN(aggregateID[i],aggregateID[k]);
@@ -192,7 +192,7 @@ void ComputeAggregateAtom::compute_peratom()
 
       for (int ii = 0; ii < inum; ii++) {
         i = ilist[ii];
-        if (!(mask[i] & groupbit)) continue;
+        if (!(mask[i][groupbin] & groupbit)) continue;
 
         const double xtmp = x[i][0];
         const double ytmp = x[i][1];
@@ -203,7 +203,7 @@ void ComputeAggregateAtom::compute_peratom()
         for (int jj = 0; jj < jnum; jj++) {
           j = jlist[jj];
           j &= NEIGHMASK;
-          if (!(mask[j] & groupbit)) continue;
+          if (!(mask[j][groupbin] & groupbit)) continue;
           if (aggregateID[i] == aggregateID[j]) continue;
 
           const double delx = xtmp - x[j][0];
@@ -242,10 +242,11 @@ int ComputeAggregateAtom::pack_forward_comm(int n, int *list, double *buf,
       buf[m++] = aggregateID[j];
     }
   } else {
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     for (i = 0; i < n; i++) {
       j = list[i];
-      buf[m++] = ubuf(mask[j]).d;
+      for (int k = 0; k < atom->ngroupbin; k++)
+        buf[m++] = ubuf(mask[j][k]).d;
     }
   }
 
@@ -269,8 +270,10 @@ void ComputeAggregateAtom::unpack_forward_comm(int n, int first, double *buf)
       aggregateID[i] = MIN(x,aggregateID[i]);
     }
   else {
-    int *mask = atom->mask;
-    for (i = first; i < last; i++) mask[i] = (int) ubuf(buf[m++]).i;
+    int **mask = atom->mask;
+    for (i = first; i < last; i++)
+      for (int k = 0; k < atom->ngroupbin; k++)
+        mask[i][k] = (int) ubuf(buf[m++]).i;
   }
 }
 

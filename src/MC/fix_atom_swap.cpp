@@ -245,7 +245,7 @@ void FixAtomSwap::init()
     for (int iswaptype = 0; iswaptype < nswaptypes; iswaptype++) {
       first = 1;
       for (int i = 0; i < atom->nlocal; i++) {
-        if (atom->mask[i] & groupbit) {
+        if (atom->mask[i][groupbin] & groupbit) {
           if (type[i] == type_list[iswaptype]) {
             if (first) {
               qtype[iswaptype] = atom->q[i];
@@ -285,12 +285,13 @@ void FixAtomSwap::init()
   // swapping such an atom might not leave firstgroup atoms first
 
   if (atom->firstgroup >= 0) {
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int firstgroupbit = group->bitmask[atom->firstgroup];
+    int firstgroupbin = floor((float)atom->firstgroup/(float)group->grp_per_bin);
 
     int flag = 0;
     for (int i = 0; i < atom->nlocal; i++)
-      if ((mask[i] == groupbit) && (mask[i] && firstgroupbit)) flag = 1;
+      if ((mask[i][groupbin] == groupbit) && (mask[i][firstgroupbin] && firstgroupbit)) flag = 1;
 
     int flagall;
     MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
@@ -599,7 +600,7 @@ void FixAtomSwap::update_semi_grand_atoms_list()
 
     for (int i = 0; i < nlocal; i++) {
       if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]) == 1) {
-        if (atom->mask[i] & groupbit) {
+        if (atom->mask[i][groupbin] & groupbit) {
           int itype = atom->type[i];
           int iswaptype;
           for (iswaptype = 0; iswaptype < nswaptypes; iswaptype++)
@@ -613,7 +614,7 @@ void FixAtomSwap::update_semi_grand_atoms_list()
 
   } else {
     for (int i = 0; i < nlocal; i++) {
-      if (atom->mask[i] & groupbit) {
+      if (atom->mask[i][groupbin] & groupbit) {
           int itype = atom->type[i];
           int iswaptype;
           for (iswaptype = 0; iswaptype < nswaptypes; iswaptype++)
@@ -658,7 +659,7 @@ void FixAtomSwap::update_swap_atoms_list()
 
     for (int i = 0; i < nlocal; i++) {
       if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]) == 1) {
-        if (atom->mask[i] & groupbit) {
+        if (atom->mask[i][groupbin] & groupbit) {
           if (type[i] ==  type_list[0]) {
             local_swap_iatom_list[niswap_local] = i;
             niswap_local++;
@@ -672,7 +673,7 @@ void FixAtomSwap::update_swap_atoms_list()
 
   } else {
     for (int i = 0; i < nlocal; i++) {
-      if (atom->mask[i] & groupbit) {
+      if (atom->mask[i][groupbin] & groupbit) {
         if (type[i] ==  type_list[0]) {
           local_swap_iatom_list[niswap_local] = i;
           niswap_local++;

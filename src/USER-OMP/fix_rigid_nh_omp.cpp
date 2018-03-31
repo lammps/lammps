@@ -535,7 +535,7 @@ void FixRigidNHOMP::remap()
 #pragma omp parallel for private(i) default(none) schedule(static)
 #endif
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & dilate_group_bit)
+      if (mask[i][dilate_group_bin] & dilate_group_bit)
         domain->x2lamda(x[i],x[i]);
   }
 
@@ -568,7 +568,7 @@ void FixRigidNHOMP::remap()
 #pragma omp parallel for private(i) default(none) schedule(static)
 #endif
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & dilate_group_bit)
+      if (mask[i][dilate_group_bin] & dilate_group_bit)
         domain->lamda2x(x[i],x[i]);
   }
 

@@ -662,7 +662,7 @@ void PPPMCG::slabcorr()
  in global grid for group-group interactions
  ------------------------------------------------------------------------- */
 
-void PPPMCG::make_rho_groups(int groupbit_A, int groupbit_B, int BA_flag)
+void PPPMCG::make_rho_groups(int groupbit_A, int groupbin_A, int groupbit_B, int groupbin_B, int BA_flag)
 {
   int i,l,m,n,nx,ny,nz,mx,my,mz;
   FFT_SCALAR dx,dy,dz,x0,y0,z0;
@@ -682,15 +682,15 @@ void PPPMCG::make_rho_groups(int groupbit_A, int groupbit_B, int BA_flag)
 
   const double * const q = atom->q;
   const double * const * const x = atom->x;
-  const int * const mask = atom->mask;
+  int ** mask = atom->mask;
 
   for (int j = 0; j < num_charged; j++) {
     i = is_charged[j];
 
-    if ((mask[i] & groupbit_A) && (mask[i] & groupbit_B))
+    if ((mask[i][groupbin_A] & groupbit_A) && (mask[i][groupbin_B] & groupbit_B))
       if (BA_flag) continue;
 
-    if ((mask[i] & groupbit_A) || (mask[i] & groupbit_B)) {
+    if ((mask[i][groupbin_A] & groupbit_A) || (mask[i][groupbin_B] & groupbit_B)) {
 
       nx = part2grid[i][0];
       ny = part2grid[i][1];
@@ -713,12 +713,12 @@ void PPPMCG::make_rho_groups(int groupbit_A, int groupbit_B, int BA_flag)
 
             // group A
 
-            if (mask[i] & groupbit_A)
+            if (mask[i][groupbin_A] & groupbit_A)
               density_A_brick[mz][my][mx] += x0*rho1d[0][l];
 
             // group B
 
-            if (mask[i] & groupbit_B)
+            if (mask[i][groupbin_B] & groupbit_B)
               density_B_brick[mz][my][mx] += x0*rho1d[0][l];
           }
         }

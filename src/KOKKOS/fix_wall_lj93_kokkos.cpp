@@ -75,7 +75,7 @@ void FixWallLJ93Kokkos<DeviceType>::wall_particle(int m_in, int which, double co
 template <class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixWallLJ93Kokkos<DeviceType>::wall_particle_item(int i, value_type ewall) const {
-  if (mask(i) & groupbit) {
+  if (mask(i)(groupbin) & groupbit) {
     double delta;
     if (side < 0) delta = x(i,dim) - coord;
     else delta = coord - x(i,dim);

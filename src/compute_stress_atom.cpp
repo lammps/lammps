@@ -238,10 +238,10 @@ void ComputeStressAtom::compute_peratom()
   // zero virial of atoms not in group
   // only do this after comm since ghost contributions must be included
 
-  int *mask = atom->mask;
+  int **mask = atom->mask;
 
   for (i = 0; i < nlocal; i++)
-    if (!(mask[i] & groupbit)) {
+    if (!(mask[i][groupbin] & groupbit)) {
       stress[i][0] = 0.0;
       stress[i][1] = 0.0;
       stress[i][2] = 0.0;
@@ -264,7 +264,7 @@ void ComputeStressAtom::compute_peratom()
     if (biasflag == NOBIAS) {
       if (rmass) {
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit) {
+          if (mask[i][groupbin] & groupbit) {
             onemass = mvv2e * rmass[i];
             stress[i][0] += onemass*v[i][0]*v[i][0];
             stress[i][1] += onemass*v[i][1]*v[i][1];
@@ -276,7 +276,7 @@ void ComputeStressAtom::compute_peratom()
 
       } else {
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit) {
+          if (mask[i][groupbin] & groupbit) {
             onemass = mvv2e * mass[type[i]];
             stress[i][0] += onemass*v[i][0]*v[i][0];
             stress[i][1] += onemass*v[i][1]*v[i][1];
@@ -297,7 +297,7 @@ void ComputeStressAtom::compute_peratom()
 
       if (rmass) {
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit) {
+          if (mask[i][groupbin] & groupbit) {
             temperature->remove_bias(i,v[i]);
             onemass = mvv2e * rmass[i];
             stress[i][0] += onemass*v[i][0]*v[i][0];
@@ -311,7 +311,7 @@ void ComputeStressAtom::compute_peratom()
 
       } else {
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit) {
+          if (mask[i][groupbin] & groupbit) {
             temperature->remove_bias(i,v[i]);
             onemass = mvv2e * mass[type[i]];
             stress[i][0] += onemass*v[i][0]*v[i][0];
@@ -330,7 +330,7 @@ void ComputeStressAtom::compute_peratom()
 
   double nktv2p = -force->nktv2p;
   for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       stress[i][0] *= nktv2p;
       stress[i][1] *= nktv2p;
       stress[i][2] *= nktv2p;

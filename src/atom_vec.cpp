@@ -79,6 +79,7 @@ void AtomVec::init()
 {
   deform_vremap = domain->deform_vremap;
   deform_groupbit = domain->deform_groupbit;
+  deform_groupbin = domain->deform_groupbin;
   h_rate = domain->h_rate;
 
   if (lmp->kokkos != NULL && !kokkosable)

@@ -72,17 +72,17 @@ void FixNVK::init()
   double **v = atom->v;
   double *rmass = atom->rmass;
   double *mass = atom->mass;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   int nlocal = atom->nlocal;
   double ke = 0.0;
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
+      if (mask[i][groupbin] & groupbit)
         ke += rmass[i] * (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
+      if (mask[i][groupbin] & groupbit)
         ke += mass[type[i]] *
           (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
   }
@@ -105,7 +105,7 @@ void FixNVK::initial_integrate(int vflag)
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
@@ -113,7 +113,7 @@ void FixNVK::initial_integrate(int vflag)
   double a_local = 0.0;
   double b_local = 0.0;
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       a_local += MathExtra::dot3(f[i], v[i]);
       if (rmass) b_local += MathExtra::dot3(f[i], f[i]) / rmass[i];
       else b_local += MathExtra::dot3(f[i], f[i]) / mass[type[i]];
@@ -130,7 +130,7 @@ void FixNVK::initial_integrate(int vflag)
   // note that equation 4.15, 4.17 should read p = (p+F*s/m)/sdot
   // note that equation 4.16 should read r = r + delt*p/m
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       if (rmass) sm = s / rmass[i];
       else sm = s / mass[type[i]];
       v[i][0] = (v[i][0] + f[i][0] * sm * force->ftm2v) / sdot;
@@ -154,7 +154,7 @@ void FixNVK::final_integrate()
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
@@ -162,7 +162,7 @@ void FixNVK::final_integrate()
   double a_local = 0.0;
   double b_local = 0.0;
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       a_local += MathExtra::dot3(f[i], v[i]);
       if (rmass) b_local += MathExtra::dot3(f[i], f[i]) / rmass[i];
       else b_local += MathExtra::dot3(f[i], f[i]) / mass[type[i]];
@@ -179,7 +179,7 @@ void FixNVK::final_integrate()
   // note that equation 4.15, 4.17 should read p = (p+F*s/m)/sdot
   // note that equation 4.16 should read r = r + delt*p/m
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       if (rmass) sm = s / rmass[i];
       else sm = s / mass[type[i]];
       v[i][0] = (v[i][0] + f[i][0] * sm * force->ftm2v) / sdot;

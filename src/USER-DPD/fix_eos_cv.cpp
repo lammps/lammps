@@ -55,18 +55,18 @@ int FixEOScv::setmask()
 void FixEOScv::init()
 {
   int nlocal = atom->nlocal;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   double *uCond = atom->uCond;
   double *uMech = atom->uMech;
   double *dpdTheta = atom->dpdTheta;
 
   if(this->restart_reset){
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
+      if (mask[i][groupbin] & groupbit)
         dpdTheta[i] = (uCond[i]+uMech[i])/cvEOS;
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         if(dpdTheta[i] <= 0.0)
           error->one(FLERR,"Internal temperature <= zero");
         uCond[i] = 0.0;
@@ -80,13 +80,13 @@ void FixEOScv::init()
 void FixEOScv::post_integrate()
 {
   int nlocal = atom->nlocal;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   double *uCond = atom->uCond;
   double *uMech = atom->uMech;
   double *dpdTheta = atom->dpdTheta;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit){
+    if (mask[i][groupbin] & groupbit){
       dpdTheta[i] = (uCond[i]+uMech[i])/cvEOS;
       if(dpdTheta[i] <= 0.0)
         error->one(FLERR,"Internal temperature <= zero");
@@ -98,13 +98,13 @@ void FixEOScv::post_integrate()
 void FixEOScv::end_of_step()
 {
   int nlocal = atom->nlocal;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   double *uCond = atom->uCond;
   double *uMech = atom->uMech;
   double *dpdTheta = atom->dpdTheta;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit){
+    if (mask[i][groupbin] & groupbit){
       dpdTheta[i] = (uCond[i]+uMech[i])/cvEOS;
       if(dpdTheta[i] <= 0.0)
         error->one(FLERR,"Internal temperature <= zero");

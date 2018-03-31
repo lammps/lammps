@@ -42,7 +42,7 @@ AtomVecWavepacket::AtomVecWavepacket(LAMMPS *lmp) : AtomVec(lmp)
 
   size_forward = 4; // coords[3]+radius[1]
   size_reverse = 10; // force[3]+erforce[1]+ervelforce[1]+vforce[3]+csforce[2]
-  size_border = 10; // coords[3]+tag[1]+type[1]+mask[1]+q[1]+spin[1]+eradius[1]+etag[1]
+  size_border = 9 + atom->ngroupbin; // coords[3]+tag[1]+type[1]+mask[ngroupbin]+q[1]+spin[1]+eradius[1]+etag[1]
   size_velocity = 6; // +velocities[3]+ ervel[1]+cs[2]
   size_data_atom = 11; // for input file: 1-tag 2-type 3-q 4-spin 5-eradius 6-etag 7-cs_re 8-cs_im 9-x 10-y 11-z
   size_data_vel = 5; // for input file: vx vy vz ervel <??>
@@ -70,7 +70,7 @@ void AtomVecWavepacket::grow(int n)
 
   tag = memory->grow(atom->tag,nmax,"atom:tag");
   type = memory->grow(atom->type,nmax,"atom:type");
-  mask = memory->grow(atom->mask,nmax,"atom:mask");
+  mask = memory->grow(atom->mask,nmax,atom->ngroupbin,"atom:mask");
   image = memory->grow(atom->image,nmax,"atom:image");
   x = memory->grow(atom->x,nmax,3,"atom:x");
   v = memory->grow(atom->v,nmax,3,"atom:v");
@@ -120,7 +120,8 @@ void AtomVecWavepacket::copy(int i, int j, int delflag)
 {
   tag[j] = tag[i];
   type[j] = type[i];
-  mask[j] = mask[i];
+  for (int k = 0; k < atom->ngroupbin; k++)
+    mask[j][k] = mask[i][k];
   image[j] = image[i];
   x[j][0] = x[i][0];
   x[j][1] = x[i][1];
@@ -250,7 +251,7 @@ int AtomVecWavepacket::pack_comm_vel(int n, int *list, double *buf,
         buf[m++] = x[j][1] + dy;
         buf[m++] = x[j][2] + dz;
         buf[m++] = eradius[j];
-        if (mask[i] & deform_groupbit) {
+        if (mask[i][deform_groupbin] & deform_groupbit) {
           buf[m++] = v[j][0] + dvx;
           buf[m++] = v[j][1] + dvy;
           buf[m++] = v[j][2] + dvz;
@@ -447,7 +448,8 @@ int AtomVecWavepacket::pack_border(int n, int *list, double *buf,
       buf[m++] = x[j][2];
       buf[m++] = ubuf(tag[j]).d;
       buf[m++] = ubuf(type[j]).d;
-      buf[m++] = ubuf(mask[j]).d;
+      for (int k = 0; k < atom->ngroupbin; k++)
+        buf[m++] = ubuf(mask[j][k]).d;
       buf[m++] = q[j];
       buf[m++] = ubuf(spin[j]).d;
       buf[m++] = eradius[j];
@@ -470,7 +472,8 @@ int AtomVecWavepacket::pack_border(int n, int *list, double *buf,
       buf[m++] = x[j][2] + dz;
       buf[m++] = ubuf(tag[j]).d;
       buf[m++] = ubuf(type[j]).d;
-      buf[m++] = ubuf(mask[j]).d;
+      for (int k = 0; k < atom->ngroupbin; k++)
+        buf[m++] = ubuf(mask[j][k]).d;
       buf[m++] = q[j];
       buf[m++] = ubuf(spin[j]).d;
       buf[m++] = eradius[j];
@@ -502,7 +505,8 @@ int AtomVecWavepacket::pack_border_vel(int n, int *list, double *buf,
       buf[m++] = x[j][2];
       buf[m++] = ubuf(tag[j]).d;
       buf[m++] = ubuf(type[j]).d;
-      buf[m++] = ubuf(mask[j]).d;
+      for (int k = 0; k < atom->ngroupbin; k++)
+        buf[m++] = ubuf(mask[j][k]).d;
       buf[m++] = q[j];
       buf[m++] = ubuf(spin[j]).d;
       buf[m++] = eradius[j];
@@ -534,7 +538,8 @@ int AtomVecWavepacket::pack_border_vel(int n, int *list, double *buf,
         buf[m++] = x[j][2] + dz;
         buf[m++] = ubuf(tag[j]).d;
         buf[m++] = ubuf(type[j]).d;
-        buf[m++] = ubuf(mask[j]).d;
+        for (int k = 0; k < atom->ngroupbin; k++)
+        buf[m++] = ubuf(mask[j][k]).d;
         buf[m++] = q[j];
         buf[m++] = ubuf(spin[j]).d;
         buf[m++] = eradius[j];
@@ -560,13 +565,14 @@ int AtomVecWavepacket::pack_border_vel(int n, int *list, double *buf,
         buf[m++] = x[j][2] + dz;
         buf[m++] = ubuf(tag[j]).d;
         buf[m++] = ubuf(type[j]).d;
-        buf[m++] = ubuf(mask[j]).d;
+        for (int k = 0; k < atom->ngroupbin; k++)
+        buf[m++] = ubuf(mask[j][k]).d;
         buf[m++] = q[j];
         buf[m++] = ubuf(spin[j]).d;
         buf[m++] = eradius[j];
         buf[m++] = ubuf(etag[j]).d;
 
-        if (mask[i] & deform_groupbit) {
+        if (mask[i][deform_groupbin] & deform_groupbit) {
           buf[m++] = v[j][0] + dvx;
           buf[m++] = v[j][1] + dvy;
           buf[m++] = v[j][2] + dvz;
@@ -626,7 +632,8 @@ void AtomVecWavepacket::unpack_border(int n, int first, double *buf)
     x[i][2] = buf[m++];
     tag[i] = (tagint) ubuf(buf[m++]).i;
     type[i] = (int) ubuf(buf[m++]).i;
-    mask[i] = (int) ubuf(buf[m++]).i;
+    for (int k = 0; k < atom->ngroupbin; k++)
+      mask[i][k] = (int) ubuf(buf[m++]).i;
     q[i] = buf[m++];
     spin[i] = (int) ubuf(buf[m++]).i;
     eradius[i] = buf[m++];
@@ -654,7 +661,8 @@ void AtomVecWavepacket::unpack_border_vel(int n, int first, double *buf)
     x[i][2] = buf[m++];
     tag[i] = (tagint) ubuf(buf[m++]).i;
     type[i] = (int) ubuf(buf[m++]).i;
-    mask[i] = (int) ubuf(buf[m++]).i;
+    for (int k = 0; k < atom->ngroupbin; k++)
+      mask[i][k] = (int) ubuf(buf[m++]).i;
     q[i] = buf[m++];
     spin[i] = (int) ubuf(buf[m++]).i;
     eradius[i] = buf[m++];
@@ -709,7 +717,8 @@ int AtomVecWavepacket::pack_exchange(int i, double *buf)
   buf[m++] = v[i][2];
   buf[m++] = ubuf(tag[i]).d;
   buf[m++] = ubuf(type[i]).d;
-  buf[m++] = ubuf(mask[i]).d;
+  for (int k = 0; k < atom->ngroupbin; k++)
+    buf[m++] = ubuf(mask[i][k]).d;
   buf[m++] = ubuf(image[i]).d;
 
   buf[m++] = q[i];
@@ -745,7 +754,8 @@ int AtomVecWavepacket::unpack_exchange(double *buf)
   v[nlocal][2] = buf[m++];
   tag[nlocal] = (tagint) ubuf(buf[m++]).i;
   type[nlocal] = (int) ubuf(buf[m++]).i;
-  mask[nlocal] = (int) ubuf(buf[m++]).i;
+  for (int k = 0; k < atom->ngroupbin; k++)
+    mask[nlocal][k] = (int) ubuf(buf[m++]).i;
   image[nlocal] = (imageint) ubuf(buf[m++]).i;
 
   q[nlocal] = buf[m++];
@@ -776,7 +786,7 @@ int AtomVecWavepacket::size_restart()
   int i;
 
   int nlocal = atom->nlocal;
-  int n = 18 * nlocal;        // Associated with pack_restart
+  int n = (17 + atom->ngroupbin) * nlocal;        // Associated with pack_restart
 
   if (atom->nextra_restart)
     for (int iextra = 0; iextra < atom->nextra_restart; iextra++)
@@ -800,7 +810,8 @@ int AtomVecWavepacket::pack_restart(int i, double *buf)
   buf[m++] = x[i][2];
   buf[m++] = ubuf(tag[i]).d;
   buf[m++] = ubuf(type[i]).d;
-  buf[m++] = ubuf(mask[i]).d;
+  for (int k = 0; k < atom->ngroupbin; k++)
+    buf[m++] = ubuf(mask[i][k]).d;
   buf[m++] = ubuf(image[i]).d;
   buf[m++] = v[i][0];
   buf[m++] = v[i][1];
@@ -842,7 +853,8 @@ int AtomVecWavepacket::unpack_restart(double *buf)
   x[nlocal][2] = buf[m++];
   tag[nlocal] = (tagint) ubuf(buf[m++]).i;
   type[nlocal] = (int) ubuf(buf[m++]).i;
-  mask[nlocal] = (int) ubuf(buf[m++]).i;
+  for (int k = 0; k < atom->ngroupbin; k++)
+    mask[nlocal][k] = (int) ubuf(buf[m++]).i;
   image[nlocal] = (imageint) ubuf(buf[m++]).i;
   v[nlocal][0] = buf[m++];
   v[nlocal][1] = buf[m++];
@@ -883,7 +895,8 @@ void AtomVecWavepacket::create_atom(int itype, double *coord)
   x[nlocal][0] = coord[0];
   x[nlocal][1] = coord[1];
   x[nlocal][2] = coord[2];
-  mask[nlocal] = 1;
+  for (int k = 0; k < atom->ngroupbin; k++)
+    mask[nlocal][k] = !k;
   image[nlocal] = ((imageint) IMGMAX << IMG2BITS) |
     ((imageint) IMGMAX << IMGBITS) | IMGMAX;
   v[nlocal][0] = 0.0;
@@ -936,7 +949,8 @@ void AtomVecWavepacket::data_atom(double *coord, imageint imagetmp,
 
   image[nlocal] = imagetmp;
 
-  mask[nlocal] = 1;
+  for (int k = 0; k < atom->ngroupbin; k++)
+    mask[nlocal][k] = !k;
   v[nlocal][0] = 0.0;
   v[nlocal][1] = 0.0;
   v[nlocal][2] = 0.0;
@@ -1129,33 +1143,33 @@ int AtomVecWavepacket::property_atom(char *name)
 ------------------------------------------------------------------------- */
 
 void AtomVecWavepacket::pack_property_atom(int index, double *buf,
-                                           int nvalues, int groupbit)
+                                           int nvalues, int groupbin, int groupbit)
 {
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   int n = 0;
 
   if (index == 0) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) buf[n] = spin[i];
+      if (mask[i][groupbin] & groupbit) buf[n] = spin[i];
       else buf[n] = 0.0;
       n += nvalues;
     }
   } else if (index == 1) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) buf[n] = eradius[i];
+      if (mask[i][groupbin] & groupbit) buf[n] = eradius[i];
       else buf[n] = 0.0;
       n += nvalues;
     }
   } else if (index == 2) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) buf[n] = ervel[i];
+      if (mask[i][groupbin] & groupbit) buf[n] = ervel[i];
       else buf[n] = 0.0;
       n += nvalues;
     }
   } else if (index == 3) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) buf[n] = erforce[i];
+      if (mask[i][groupbin] & groupbit) buf[n] = erforce[i];
       else buf[n] = 0.0;
       n += nvalues;
     }
@@ -1172,7 +1186,7 @@ bigint AtomVecWavepacket::memory_usage()
 
   if (atom->memcheck("tag")) bytes += memory->usage(tag,nmax);
   if (atom->memcheck("type")) bytes += memory->usage(type,nmax);
-  if (atom->memcheck("mask")) bytes += memory->usage(mask,nmax);
+  if (atom->memcheck("mask")) bytes += memory->usage(mask,nmax,atom->ngroupbin);
   if (atom->memcheck("image")) bytes += memory->usage(image,nmax);
   if (atom->memcheck("x")) bytes += memory->usage(x,nmax,3);
   if (atom->memcheck("v")) bytes += memory->usage(v,nmax,3);

@@ -62,11 +62,11 @@ void FixNVETri::init()
   // no point particles allowed
 
   int *tri = atom->tri;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       if (tri[i] < 0) error->one(FLERR,"Fix nve/tri requires tri particles");
     }
 
@@ -88,7 +88,7 @@ void FixNVETri::initial_integrate(int vflag)
   double **angmom = atom->angmom;
   double **torque = atom->torque;
   double *rmass = atom->rmass;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
@@ -97,7 +97,7 @@ void FixNVETri::initial_integrate(int vflag)
   dtq = 0.5 * dtv;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       dtfm = dtf / rmass[i];
       v[i][0] += dtfm * f[i][0];
       v[i][1] += dtfm * f[i][1];
@@ -134,7 +134,7 @@ void FixNVETri::final_integrate()
   double **angmom = atom->angmom;
   double **torque = atom->torque;
   double *rmass = atom->rmass;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
@@ -142,7 +142,7 @@ void FixNVETri::final_integrate()
   // d_omega/dt = torque / inertia
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       dtfm = dtf / rmass[i];
       v[i][0] += dtfm * f[i][0];
       v[i][1] += dtfm * f[i][1];

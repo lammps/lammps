@@ -174,13 +174,13 @@ void FixThermalConductivity::end_of_step()
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   nhi = nlo = 0;
 
   for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       coord = x[i][edim];
       if (coord < boxlo && periodicity) coord += prd;
       else if (coord >= boxhi && periodicity) coord -= prd;

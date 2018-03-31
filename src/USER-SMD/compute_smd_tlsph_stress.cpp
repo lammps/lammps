@@ -101,10 +101,10 @@ void ComputeSMDTLSPHStress::compute_peratom() {
                 error->all(FLERR, "compute smd/tlsph_stress could not access stress tensors. Are the matching pair styles present?");
         }
         int nlocal = atom->nlocal;
-        int *mask = atom->mask;
+        int **mask = atom->mask;
 
         for (int i = 0; i < nlocal; i++) {
-                if (mask[i] & groupbit) {
+                if (mask[i][groupbin] & groupbit) {
                         stress_deviator = Deviator(T[i]);
                         von_mises_stress = sqrt(3. / 2.) * stress_deviator.norm();
                         stress_array[i][0] = T[i](0, 0); // xx

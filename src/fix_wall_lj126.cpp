@@ -55,7 +55,7 @@ void FixWallLJ126::wall_particle(int m, int which, double coord)
 
   double **x = atom->x;
   double **f = atom->f;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   int dim = which / 2;
@@ -65,7 +65,7 @@ void FixWallLJ126::wall_particle(int m, int which, double coord)
   int onflag = 0;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       if (side < 0) delta = x[i][dim] - coord;
       else delta = coord - x[i][dim];
       if (delta >= cutoff[m]) continue;

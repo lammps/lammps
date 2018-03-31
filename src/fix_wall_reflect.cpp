@@ -195,7 +195,7 @@ void FixWallReflect::post_integrate()
 
   double **x = atom->x;
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   if (varflag) modify->clearstep_compute();
@@ -212,7 +212,7 @@ void FixWallReflect::post_integrate()
     side = wallwhich[m] % 2;
 
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         if (side == 0) {
           if (x[i][dim] < coord) {
             x[i][dim] = coord + (coord - x[i][dim]);

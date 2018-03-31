@@ -65,12 +65,12 @@ ComputeDisplaceAtom::ComputeDisplaceAtom(LAMMPS *lmp, int narg, char **arg) :
     double **xoriginal = fix->astore;
 
     double **x = atom->x;
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     imageint *image = atom->image;
     int nlocal = atom->nlocal;
 
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) domain->unmap(x[i],image[i],xoriginal[i]);
+      if (mask[i][groupbin] & groupbit) domain->unmap(x[i],image[i],xoriginal[i]);
       else xoriginal[i][0] = xoriginal[i][1] = xoriginal[i][2] = 0.0;
   }
 
@@ -124,7 +124,7 @@ void ComputeDisplaceAtom::compute_peratom()
   double **xoriginal = fix->astore;
 
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
@@ -138,7 +138,7 @@ void ComputeDisplaceAtom::compute_peratom()
 
   if (domain->triclinic == 0) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         xbox = (image[i] & IMGMASK) - IMGMAX;
         ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
         zbox = (image[i] >> IMG2BITS) - IMGMAX;
@@ -154,7 +154,7 @@ void ComputeDisplaceAtom::compute_peratom()
 
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         xbox = (image[i] & IMGMASK) - IMGMAX;
         ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
         zbox = (image[i] >> IMG2BITS) - IMGMAX;

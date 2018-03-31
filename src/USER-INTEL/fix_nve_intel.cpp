@@ -129,7 +129,7 @@ void FixNVEIntel::reset_dt() {
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
 
-  const int * const mask = atom->mask;
+  int ** mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst :
     atom->nlocal;
 
@@ -165,7 +165,7 @@ void FixNVEIntel::reset_dt() {
       const double * const rmass = atom->rmass;
       int n = 0;
       for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           _dtfm[n++] = dtf / rmass[i];
           _dtfm[n++] = dtf / rmass[i];
           _dtfm[n++] = dtf / rmass[i];
@@ -179,7 +179,7 @@ void FixNVEIntel::reset_dt() {
       const int * const type = atom->type;
       int n = 0;
       for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           _dtfm[n++] = dtf / mass[type[i]];
           _dtfm[n++] = dtf / mass[type[i]];
           _dtfm[n++] = dtf / mass[type[i]];

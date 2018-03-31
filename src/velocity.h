@@ -33,7 +33,7 @@ class Velocity : protected Pointers {
   void create(double, int);
 
  private:
-  int igroup,groupbit;
+  int igroup,groupbit,groupbin;
   int style;
   int dist_flag,sum_flag,momentum_flag,rotation_flag;
   int bias_flag,loop_flag,scale_flag,rfix;

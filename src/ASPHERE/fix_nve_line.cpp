@@ -68,11 +68,11 @@ void FixNVELine::init()
   // no point particles allowed
 
   int *line = atom->line;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       if (line[i] < 0) error->one(FLERR,"Fix nve/line requires line particles");
     }
 
@@ -93,7 +93,7 @@ void FixNVELine::initial_integrate(int vflag)
   double **omega = atom->omega;
   double **torque = atom->torque;
   double *rmass = atom->rmass;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
@@ -106,7 +106,7 @@ void FixNVELine::initial_integrate(int vflag)
   // bound theta by -PI to PI
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       dtfm = dtf / rmass[i];
       v[i][0] += dtfm * f[i][0];
       v[i][1] += dtfm * f[i][1];
@@ -137,7 +137,7 @@ void FixNVELine::final_integrate()
   double **omega = atom->omega;
   double **torque = atom->torque;
   double *rmass = atom->rmass;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
@@ -149,7 +149,7 @@ void FixNVELine::final_integrate()
   // d_omega/dt = torque / inertia
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       dtfm = dtf / rmass[i];
       v[i][0] += dtfm * f[i][0];
       v[i][1] += dtfm * f[i][1];

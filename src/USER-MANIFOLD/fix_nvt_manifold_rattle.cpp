@@ -339,7 +339,7 @@ void FixNVTManifoldRattle::nhc_temp_integrate()
 void FixNVTManifoldRattle::nh_v_temp()
 {
   double **v = atom->v;
-  int *mask  = atom->mask;
+  int **mask  = atom->mask;
   int nlocal = atom->nlocal;
   if( igroup == atom->firstgroup) nlocal = atom->nfirst;
 
@@ -348,7 +348,7 @@ void FixNVTManifoldRattle::nh_v_temp()
 
   if( which == NOBIAS ){
     for( int i = 0; i < nlocal; ++i ){
-      if( mask[i] & groupbit ){
+      if( mask[i][groupbin] & groupbit ){
         v[i][0] *= factor_eta;
         v[i][1] *= factor_eta;
         v[i][2] *= factor_eta;
@@ -356,7 +356,7 @@ void FixNVTManifoldRattle::nh_v_temp()
     }
   }else if( which == BIAS ){
     for( int i = 0; i < nlocal; ++i ){
-      if( mask[i] & groupbit ){
+      if( mask[i][groupbin] & groupbit ){
         temperature->remove_bias(i,v[i]);
         v[i][0] *= factor_eta;
         v[i][1] *= factor_eta;

@@ -50,6 +50,7 @@ using namespace MathConst;
 #define DELTA 1
 #define DELTA_MEMSTR 1024
 #define EPSILON 1.0e-6
+#define GRP_PER_BIN 32
 
 enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 
@@ -63,6 +64,9 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   nbondtypes = nangletypes = ndihedraltypes = nimpropertypes = 0;
   nbonds = nangles = ndihedrals = nimpropers = 0;
 
+  // ngroupbin -> num of bins, 32 groups (one integer) for each bin
+  ngroupbin = ceil((float)lmp->num_group/(float)GRP_PER_BIN);
+
   firstgroupname = NULL;
   sortfreq = 1000;
   nextsort = 0;
@@ -75,7 +79,8 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   // customize by adding new array
 
   tag = NULL;
-  type = mask = NULL;
+  type = NULL;
+  mask = NULL;
   image = NULL;
   x = v = f = NULL;
 
@@ -1748,15 +1753,16 @@ void Atom::first_reorder()
   // when find firstgroup atom out of place, swap it with atom nfirst
 
   int bitmask = group->bitmask[firstgroup];
+  int maskbin = floor((float)firstgroup/(float)group->grp_per_bin);
   nfirst = 0;
-  while (nfirst < nlocal && mask[nfirst] & bitmask) nfirst++;
+  while (nfirst < nlocal && mask[nfirst][maskbin] & bitmask) nfirst++;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & bitmask && i > nfirst) {
+    if (mask[i][maskbin] & bitmask && i > nfirst) {
       avec->copy(i,nlocal,0);
       avec->copy(nfirst,i,0);
       avec->copy(nlocal,nfirst,0);
-      while (nfirst < nlocal && mask[nfirst] & bitmask) nfirst++;
+      while (nfirst < nlocal && mask[nfirst][maskbin] & bitmask) nfirst++;
     }
   }
 }

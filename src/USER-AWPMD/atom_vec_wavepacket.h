@@ -72,12 +72,12 @@ public:
   void write_vel(FILE *, int, double **);
   int write_vel_hybrid(FILE *, double *);
   int property_atom(char *);
-  void pack_property_atom(int, double *, int, int);
+  void pack_property_atom(int, double *, int, int, int);
   bigint memory_usage();
 
 private:
   tagint *tag;
-  int *type,*mask;
+  int *type,**mask;
   imageint *image;
   double **x,**v,**f;
 

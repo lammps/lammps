@@ -246,7 +246,7 @@ void FixQTB::post_force(int vflag)
   double **v = atom->v;
   double **f = atom->f;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   bigint nlocal = atom->nlocal;
   bigint ntotal = atom->natoms;
 
@@ -277,7 +277,7 @@ void FixQTB::post_force(int vflag)
       fran[j][2] = 0.0;
 
       //reset random force
-      if (mask[j] & groupbit) {
+      if (mask[j][groupbin] & groupbit) {
         gamma3 = gfactor3[type[j]];
 
         for (int m = 0; m < 2*N_f; m++) {
@@ -299,7 +299,7 @@ void FixQTB::post_force(int vflag)
 
   for (int j = 0; j < nlocal; j++) {
     //sum over each atom
-    if (mask[j] & groupbit) {
+    if (mask[j][groupbin] & groupbit) {
       gamma1 = gfactor1[type[j]];
 
       fsum[0]+=fran[j][0]-gamma1*v[j][0];
@@ -318,7 +318,7 @@ void FixQTB::post_force(int vflag)
     f[j][1] -= fsumall[1]/ntotal;
     f[j][2] -= fsumall[2]/ntotal;
 
-    if (mask[j] & groupbit) {
+    if (mask[j][groupbin] & groupbit) {
       gamma1 = gfactor1[type[j]];
 
       f[j][0]+=fran[j][0]-gamma1*v[j][0];

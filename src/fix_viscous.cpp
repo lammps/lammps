@@ -117,14 +117,14 @@ void FixViscous::post_force(int vflag)
 
   double **v = atom->v;
   double **f = atom->f;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
   double drag;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       drag = gamma[type[i]];
       f[i][0] -= drag*v[i][0];
       f[i][1] -= drag*v[i][1];

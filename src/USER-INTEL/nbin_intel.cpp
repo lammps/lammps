@@ -205,12 +205,13 @@ void NBinIntel::bin_atoms(IntelBuffers<flt_t,acc_t> * buffers) {
 
   for (i = 0; i < mbins; i++) binhead[i] = -1;
 
-  int *mask = atom->mask;
+  int **mask = atom->mask;
 
   if (includegroup) {
     int bitmask = group->bitmask[includegroup];
+    int maskbin = floor((float)includegroup/(float)group->grp_per_bin);
     for (i = nall-1; i >= nlocal; i--) {
-      if (mask[i] & bitmask) {
+      if (mask[i][maskbin] & bitmask) {
         ibin = coord2bin(atom->x[i]);
         // Only necessary to store when neighboring ghost
         atombin[i] = ibin;

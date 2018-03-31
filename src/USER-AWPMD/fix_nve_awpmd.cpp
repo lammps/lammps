@@ -91,7 +91,7 @@ void FixNVEAwpmd::initial_integrate(int vflag)
 
   double *mass = atom->mass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
@@ -99,7 +99,7 @@ void FixNVEAwpmd::initial_integrate(int vflag)
 
   // simple Euler update
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       double dtfm = dtf / mass[type[i]];
       double dtfmr=dtfm;
       for(int j=0;j<3;j++){

@@ -208,7 +208,7 @@ void DumpXTC::pack(tagint *ids)
   tagint *tag = atom->tag;
   double **x = atom->x;
   imageint *image = atom->image;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   m = n = 0;
@@ -221,7 +221,7 @@ void DumpXTC::pack(tagint *ids)
     double yz = domain->yz;
 
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         int ix = (image[i] & IMGMASK) - IMGMAX;
         int iy = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
         int iz = (image[i] >> IMG2BITS) - IMGMAX;
@@ -240,7 +240,7 @@ void DumpXTC::pack(tagint *ids)
 
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         buf[m++] = sfactor*x[i][0];
         buf[m++] = sfactor*x[i][1];
         buf[m++] = sfactor*x[i][2];

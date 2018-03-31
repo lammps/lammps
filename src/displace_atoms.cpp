@@ -74,8 +74,9 @@ void DisplaceAtoms::command(int narg, char **arg)
   igroup = group->find(arg[0]);
   if (igroup == -1) error->all(FLERR,"Could not find displace_atoms group ID");
   groupbit = group->bitmask[igroup];
+  groupbin = floor((float)igroup/(float)group->grp_per_bin);
 
-  if (modify->check_rigid_group_overlap(groupbit))
+  if (modify->check_rigid_group_overlap(groupbit,groupbin))
     error->warning(FLERR,"Attempting to displace atoms in rigid bodies");
 
   int style = -1;
@@ -155,13 +156,13 @@ void DisplaceAtoms::command(int narg, char **arg)
     }
 
     double **x = atom->x;
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
 
     double fraction,dramp;
 
     for (i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         fraction = (x[i][coord_dim] - coord_lo) / (coord_hi - coord_lo);
         fraction = MAX(fraction,0.0);
         fraction = MIN(fraction,1.0);
@@ -184,11 +185,11 @@ void DisplaceAtoms::command(int narg, char **arg)
     if (seed <= 0) error->all(FLERR,"Illegal displace_atoms random command");
 
     double **x = atom->x;
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
 
     for (i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         random->reset(seed,x[i]);
         x[i][0] += dx * 2.0*(random->uniform()-0.5);
         x[i][1] += dy * 2.0*(random->uniform()-0.5);
@@ -272,12 +273,12 @@ void DisplaceAtoms::command(int narg, char **arg)
     int *line = atom->line;
     int *tri = atom->tri;
     int *body = atom->body;
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
     imageint *image = atom->image;
 
     for (i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         // unwrap coordinate and reset image flags accordingly
         domain->unmap(x[i],image[i]);
         image[i] = ((imageint) IMGMAX << IMG2BITS) |
@@ -368,13 +369,13 @@ void DisplaceAtoms::command(int narg, char **arg)
 void DisplaceAtoms::move(int idim, char *arg, double scale)
 {
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   if (strstr(arg,"v_") != arg) {
     double delta = scale*force->numeric(FLERR,arg);
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) x[i][idim] += delta;
+      if (mask[i][groupbin] & groupbit) x[i][idim] += delta;
 
   } else {
     int ivar = input->variable->find(arg+2);
@@ -384,12 +385,12 @@ void DisplaceAtoms::move(int idim, char *arg, double scale)
     if (input->variable->equalstyle(ivar)) {
       double delta = scale * input->variable->compute_equal(ivar);
       for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) x[i][idim] += delta;
+        if (mask[i][groupbin] & groupbit) x[i][idim] += delta;
     } else if (input->variable->atomstyle(ivar)) {
       if (mvec == NULL) memory->create(mvec,nlocal,"displace_atoms:mvec");
       input->variable->compute_atom(ivar,igroup,mvec,1,0);
       for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) x[i][idim] += scale*mvec[i];
+        if (mask[i][groupbin] & groupbit) x[i][idim] += scale*mvec[i];
     } else error->all(FLERR,"Variable for displace_atoms is invalid style");
   }
 }

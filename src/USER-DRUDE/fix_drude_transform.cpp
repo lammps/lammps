@@ -138,7 +138,8 @@ void FixDrudeTransform<inverse>::real_to_reduced()
   int nlocal = atom->nlocal;
   int ntypes = atom->ntypes;
   int dim = domain->dimension;
-  int * mask = atom->mask, * type = atom->type;
+  int ** mask = atom->mask;
+  int * type = atom->type;
   double ** x = atom->x, ** v = atom->v, ** f = atom->f;
   double * rmass = atom->rmass, * mass = atom->mass;
   double mcore, mdrude, coeff;
@@ -151,12 +152,12 @@ void FixDrudeTransform<inverse>::real_to_reduced()
       if (mcoeff[itype] < 1.5) mass[itype] *= 1. - mcoeff[itype];
   }
   for (int i=0; i<nlocal; i++) {
-    if (mask[i] & groupbit && drudetype[type[i]] != NOPOL_TYPE) {
+    if (mask[i][groupbin] & groupbit && drudetype[type[i]] != NOPOL_TYPE) {
       drudeid[i] = (tagint) domain->closest_image(i, atom->map(drudeid[i]));
     }
   }
   for (int i=0; i<nlocal; i++) {
-    if (mask[i] & groupbit && drudetype[type[i]] != NOPOL_TYPE) {
+    if (mask[i][groupbin] & groupbit && drudetype[type[i]] != NOPOL_TYPE) {
       int j = (int) drudeid[i];
       if (drudetype[type[i]] == DRUDE_TYPE && j < nlocal) continue;
 
@@ -196,7 +197,8 @@ void FixDrudeTransform<inverse>::reduced_to_real()
   int nlocal = atom->nlocal;
   int ntypes = atom->ntypes;
   int dim = domain->dimension;
-  int * mask = atom->mask, * type = atom->type;
+  int ** mask = atom->mask;
+  int * type = atom->type;
   double ** x = atom->x, ** v = atom->v, ** f = atom->f;
   double * rmass = atom->rmass, * mass = atom->mass;
   double mcore, mdrude, coeff;
@@ -205,7 +207,7 @@ void FixDrudeTransform<inverse>::reduced_to_real()
   int * drudetype = fix_drude->drudetype;
 
   for (int i=0; i<nlocal; i++) {
-    if (mask[i] & groupbit && drudetype[type[i]] != NOPOL_TYPE) {
+    if (mask[i][groupbin] & groupbit && drudetype[type[i]] != NOPOL_TYPE) {
       int j = (int) drudeid[i]; // local index of drude partner because drudeid is in reduced form
       if (drudetype[type[i]] == DRUDE_TYPE && j < nlocal) continue;
 
@@ -245,7 +247,7 @@ void FixDrudeTransform<inverse>::reduced_to_real()
     }
   }
   for (int i=0; i<nlocal; i++) {
-    if (mask[i] & groupbit && drudetype[type[i]] != NOPOL_TYPE) {
+    if (mask[i][groupbin] & groupbit && drudetype[type[i]] != NOPOL_TYPE) {
       drudeid[i] = atom->tag[(int) drudeid[i]];
     }
   }
@@ -316,4 +318,3 @@ void FixDrudeTransform<inverse>::unpack_forward_comm(int n, int first, double *b
 /* ---------------------------------------------------------------------- */
 template class FixDrudeTransform<false>;
 template class FixDrudeTransform<true>;
-

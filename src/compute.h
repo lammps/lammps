@@ -23,7 +23,7 @@ class Compute : protected Pointers {
   static int instance_total;     // # of Compute classes ever instantiated
 
   char *id,*style;
-  int igroup,groupbit;
+  int igroup,groupbit,groupbin;
 
   double scalar;            // computed global scalar
   double *vector;           // computed global vector

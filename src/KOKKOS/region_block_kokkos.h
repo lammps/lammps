@@ -46,7 +46,7 @@ class RegBlockKokkos : public RegBlock, public KokkosBase {
   void operator()(TagRegBlockMatchAll, const int&) const;
 
  private:
-  int groupbit;
+  int groupbit,groupbin;
   typename AT::t_int_1d d_match;
 
   typename AT::t_x_array_randomread x;

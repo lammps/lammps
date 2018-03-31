@@ -669,7 +669,7 @@ void FixRX::setup_pre_force(int vflag)
 {
   int nlocal = atom->nlocal;
   int nghost = atom->nghost;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int newton_pair = force->newton_pair;
   double tmp;
 
@@ -700,7 +700,7 @@ void FixRX::setup_pre_force(int vflag)
       }
 
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit){
+      if (mask[i][groupbin] & groupbit){
 
         // Set the reaction rate constants to zero:  no reactions occur at step 0
         for(int irxn=0;irxn<nreactions;irxn++)
@@ -730,7 +730,7 @@ void FixRX::pre_force(int vflag)
 
   int nlocal = atom->nlocal;
   int nghost = atom->nghost;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   double *dpdTheta = atom->dpdTheta;
   int newton_pair = force->newton_pair;
 
@@ -769,7 +769,7 @@ void FixRX::pre_force(int vflag)
     //#pragma omp for schedule(runtime)
     for (int i = 0; i < nlocal; i++)
     {
-      if (mask[i] & groupbit)
+      if (mask[i][groupbin] & groupbit)
       {
         double theta;
         if (localTempFlag)
@@ -1352,7 +1352,7 @@ void FixRX::odeDiagnostics(void)
         double *rx_weight = atom->dvector[rx_weight_index];
 
         const int nlocal = atom->nlocal;
-        const int *mask = atom->mask;
+        int **mask = atom->mask;
 
         if (odeIntegrationFlag == ODE_LAMMPS_RKF45 && diagnosticFrequency == 1)
         {
@@ -1363,7 +1363,7 @@ void FixRX::odeDiagnostics(void)
           double tsum = 0.0;
           double tmin = 100000, tmax = 0;
           for (int i = 0; i < nlocal; ++i)
-            if (mask[i] & groupbit)
+            if (mask[i][groupbin] & groupbit)
             {
               double nfunc_ratio = double( diagnosticCounterPerODE[FuncSum][i] ) / diagnosticCounter[FuncSum];
               rx_weight[i] = nfunc_ratio * fixrx_time + (total_time - fixrx_time) / nlocal;
@@ -1380,7 +1380,7 @@ void FixRX::odeDiagnostics(void)
           error->warning(FLERR, "Dynamic load balancing enabled but per-atom weights not available.");
 
           for (int i = 0; i < nlocal; ++i)
-            if (mask[i] & groupbit)
+            if (mask[i][groupbin] & groupbit)
               rx_weight[i] = 1.0;
         }
      }
@@ -1425,7 +1425,7 @@ void FixRX::odeDiagnostics(void)
     double my_max[numCounters], my_min[numCounters];
 
     const int nlocal = atom->nlocal;
-    const int *mask = atom->mask;
+    int **mask = atom->mask;
 
     for (int i = 0; i < numCounters; ++i){
       my_sum_sq[i+numCounters] = 0;
@@ -1434,7 +1434,7 @@ void FixRX::odeDiagnostics(void)
 
       if (diagnosticCounterPerODE[i] != NULL){
         for (int j = 0; j < nlocal; ++j)
-          if (mask[j] & groupbit){
+          if (mask[j][groupbin] & groupbit){
             double diff = double(diagnosticCounterPerODE[i][j]) - avg_per_atom[i];
             my_sum_sq[i+numCounters] += diff*diff;
 

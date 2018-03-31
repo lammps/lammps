@@ -144,7 +144,7 @@ void FixQEqShielded::init_matvec()
 
   for( ii = 0; ii < inum; ++ii ) {
     i = ilist[ii];
-    if (atom->mask[i] & groupbit) {
+    if (atom->mask[i][groupbin] & groupbit) {
       Hdia_inv[i] = 1. / eta[ atom->type[i] ];
       b_s[i]      = -( chi[atom->type[i]] + chizj[i] );
       b_t[i]      = -1.0;
@@ -170,7 +170,7 @@ void FixQEqShielded::compute_H()
 
   int *type = atom->type;
   x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -182,7 +182,7 @@ void FixQEqShielded::compute_H()
   r_sqr = 0;
   for( ii = 0; ii < inum; ii++ ) {
     i = ilist[ii];
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       jlist = firstneigh[i];
       jnum = numneigh[i];
       H.firstnbr[i] = m_fill;

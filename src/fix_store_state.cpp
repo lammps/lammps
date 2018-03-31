@@ -488,7 +488,7 @@ void FixStoreState::end_of_step()
       n = value2index[m];
       j = argindex[m];
 
-      int *mask = atom->mask;
+      int **mask = atom->mask;
       int nlocal = atom->nlocal;
 
       // invoke compute if not previously invoked
@@ -503,12 +503,12 @@ void FixStoreState::end_of_step()
         if (j == 0) {
           double *compute_vector = compute->vector_atom;
           for (i = 0; i < nlocal; i++)
-            if (mask[i] & groupbit) values[i][m] = compute_vector[i];
+            if (mask[i][groupbin] & groupbit) values[i][m] = compute_vector[i];
         } else {
           int jm1 = j - 1;
           double **compute_array = compute->array_atom;
           for (i = 0; i < nlocal; i++)
-            if (mask[i] & groupbit) values[i][m] = compute_array[i][jm1];
+            if (mask[i][groupbin] & groupbit) values[i][m] = compute_array[i][jm1];
         }
 
       // access fix fields, guaranteed to be ready
@@ -517,12 +517,12 @@ void FixStoreState::end_of_step()
         if (j == 0) {
           double *fix_vector = modify->fix[n]->vector_atom;
           for (i = 0; i < nlocal; i++)
-            if (mask[i] & groupbit) values[i][m] = fix_vector[i];
+            if (mask[i][groupbin] & groupbit) values[i][m] = fix_vector[i];
         } else {
           int jm1 = j - 1;
           double **fix_array = modify->fix[n]->array_atom;
           for (i = 0; i < nlocal; i++)
-            if (mask[i] & groupbit) values[i][m] = fix_array[i][jm1];
+            if (mask[i][groupbin] & groupbit) values[i][m] = fix_array[i][jm1];
         }
 
       // access custom atom property fields
@@ -530,12 +530,12 @@ void FixStoreState::end_of_step()
       } else if (which[m] == INAME) {
         int *ivector = atom->ivector[n];
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit) values[i][m] = ivector[i];
+          if (mask[i][groupbin] & groupbit) values[i][m] = ivector[i];
 
       } else if (which[m] == DNAME) {
         double *dvector = atom->dvector[n];
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit) values[i][m] = dvector[i];
+          if (mask[i][groupbin] & groupbit) values[i][m] = dvector[i];
 
       // evaluate atom-style variable
 
@@ -662,11 +662,11 @@ int FixStoreState::size_restart(int nlocal)
 void FixStoreState::pack_id(int n)
 {
   tagint *tag = atom->tag;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = tag[i];
+    if (mask[i][groupbin] & groupbit) vbuf[n] = tag[i];
     else vbuf[n] = 0.0;
     n += nvalues;
   }
@@ -677,11 +677,11 @@ void FixStoreState::pack_id(int n)
 void FixStoreState::pack_molecule(int n)
 {
   tagint *molecule = atom->molecule;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = molecule[i];
+    if (mask[i][groupbin] & groupbit) vbuf[n] = molecule[i];
     else vbuf[n] = 0.0;
     n += nvalues;
   }
@@ -692,11 +692,11 @@ void FixStoreState::pack_molecule(int n)
 void FixStoreState::pack_type(int n)
 {
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = type[i];
+    if (mask[i][groupbin] & groupbit) vbuf[n] = type[i];
     else vbuf[n] = 0.0;
     n += nvalues;
   }
@@ -709,18 +709,18 @@ void FixStoreState::pack_mass(int n)
   int *type = atom->type;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   if (rmass) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) vbuf[n] = rmass[i];
+      if (mask[i][groupbin] & groupbit) vbuf[n] = rmass[i];
       else vbuf[n] = 0.0;
       n += nvalues;
     }
   } else {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) vbuf[n] = mass[type[i]];
+      if (mask[i][groupbin] & groupbit) vbuf[n] = mass[type[i]];
       else vbuf[n] = 0.0;
       n += nvalues;
     }
@@ -732,11 +732,11 @@ void FixStoreState::pack_mass(int n)
 void FixStoreState::pack_x(int n)
 {
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = x[i][0];
+    if (mask[i][groupbin] & groupbit) vbuf[n] = x[i][0];
     else vbuf[n] = 0.0;
     n += nvalues;
   }
@@ -747,11 +747,11 @@ void FixStoreState::pack_x(int n)
 void FixStoreState::pack_y(int n)
 {
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = x[i][1];
+    if (mask[i][groupbin] & groupbit) vbuf[n] = x[i][1];
     else vbuf[n] = 0.0;
     n += nvalues;
   }
@@ -762,11 +762,11 @@ void FixStoreState::pack_y(int n)
 void FixStoreState::pack_z(int n)
 {
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = x[i][2];
+    if (mask[i][groupbin] & groupbit) vbuf[n] = x[i][2];
     else vbuf[n] = 0.0;
     n += nvalues;
   }
@@ -777,14 +777,14 @@ void FixStoreState::pack_z(int n)
 void FixStoreState::pack_xs(int n)
 {
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double boxxlo = domain->boxlo[0];
   double invxprd = 1.0/domain->xprd;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = (x[i][0] - boxxlo) * invxprd;
+    if (mask[i][groupbin] & groupbit) vbuf[n] = (x[i][0] - boxxlo) * invxprd;
     else vbuf[n] = 0.0;
     n += nvalues;
   }
@@ -795,14 +795,14 @@ void FixStoreState::pack_xs(int n)
 void FixStoreState::pack_ys(int n)
 {
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double boxylo = domain->boxlo[1];
   double invyprd = 1.0/domain->yprd;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = (x[i][1] - boxylo) * invyprd;
+    if (mask[i][groupbin] & groupbit) vbuf[n] = (x[i][1] - boxylo) * invyprd;
     else vbuf[n] = 0.0;
     n += nvalues;
   }
@@ -813,14 +813,14 @@ void FixStoreState::pack_ys(int n)
 void FixStoreState::pack_zs(int n)
 {
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double boxzlo = domain->boxlo[2];
   double invzprd = 1.0/domain->zprd;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = (x[i][2] - boxzlo) * invzprd;
+    if (mask[i][groupbin] & groupbit) vbuf[n] = (x[i][2] - boxzlo) * invzprd;
     else vbuf[n] = 0.0;
     n += nvalues;
   }
@@ -831,14 +831,14 @@ void FixStoreState::pack_zs(int n)
 void FixStoreState::pack_xs_triclinic(int n)
 {
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double *boxlo = domain->boxlo;
   double *h_inv = domain->h_inv;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       vbuf[n] = h_inv[0]*(x[i][0]-boxlo[0]) +
         h_inv[5]*(x[i][1]-boxlo[1]) + h_inv[4]*(x[i][2]-boxlo[2]);
     else vbuf[n] = 0.0;
@@ -851,14 +851,14 @@ void FixStoreState::pack_xs_triclinic(int n)
 void FixStoreState::pack_ys_triclinic(int n)
 {
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double *boxlo = domain->boxlo;
   double *h_inv = domain->h_inv;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       vbuf[n] = h_inv[1]*(x[i][1]-boxlo[1]) + h_inv[3]*(x[i][2]-boxlo[2]);
     else vbuf[n] = 0.0;
     n += nvalues;
@@ -870,14 +870,14 @@ void FixStoreState::pack_ys_triclinic(int n)
 void FixStoreState::pack_zs_triclinic(int n)
 {
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double *boxlo = domain->boxlo;
   double *h_inv = domain->h_inv;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       vbuf[n] = h_inv[2]*(x[i][2]-boxlo[2]);
     else vbuf[n] = 0.0;
     n += nvalues;
@@ -890,13 +890,13 @@ void FixStoreState::pack_xu(int n)
 {
   double **x = atom->x;
   imageint *image = atom->image;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double xprd = domain->xprd;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       vbuf[n] = x[i][0] + ((image[i] & IMGMASK) - IMGMAX) * xprd;
       if (comflag) vbuf[n] -= cm[0];
     } else vbuf[n] = 0.0;
@@ -910,13 +910,13 @@ void FixStoreState::pack_yu(int n)
 {
   double **x = atom->x;
   imageint *image = atom->image;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double yprd = domain->yprd;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       vbuf[n] = x[i][1] + ((image[i] >> IMGBITS & IMGMASK) - IMGMAX) * yprd;
       if (comflag) vbuf[n] -= cm[1];
     } else vbuf[n] = 0.0;
@@ -930,13 +930,13 @@ void FixStoreState::pack_zu(int n)
 {
   double **x = atom->x;
   imageint *image = atom->image;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double zprd = domain->zprd;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       vbuf[n] = x[i][2] + ((image[i] >> IMG2BITS) - IMGMAX) * zprd;
       if (comflag) vbuf[n] -= cm[2];
     } else vbuf[n] = 0.0;
@@ -950,14 +950,14 @@ void FixStoreState::pack_xu_triclinic(int n)
 {
   double **x = atom->x;
   imageint *image = atom->image;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double *h = domain->h;
   int xbox,ybox,zbox;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       xbox = (image[i] & IMGMASK) - IMGMAX;
       ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
       zbox = (image[i] >> IMG2BITS) - IMGMAX;
@@ -974,14 +974,14 @@ void FixStoreState::pack_yu_triclinic(int n)
 {
   double **x = atom->x;
   imageint *image = atom->image;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double *h = domain->h;
   int ybox,zbox;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
       zbox = (image[i] >> IMG2BITS) - IMGMAX;
       vbuf[n] = x[i][1] + h[1]*ybox + h[3]*zbox;
@@ -997,14 +997,14 @@ void FixStoreState::pack_zu_triclinic(int n)
 {
   double **x = atom->x;
   imageint *image = atom->image;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double *h = domain->h;
   int zbox;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       zbox = (image[i] >> IMG2BITS) - IMGMAX;
       vbuf[n] = x[i][2] + h[2]*zbox;
       if (comflag) vbuf[n] -= cm[2];
@@ -1019,14 +1019,14 @@ void FixStoreState::pack_xsu(int n)
 {
   double **x = atom->x;
   imageint *image = atom->image;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double boxxlo = domain->boxlo[0];
   double invxprd = 1.0/domain->xprd;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       vbuf[n] = (x[i][0]-boxxlo)*invxprd + ((image[i] & IMGMASK) - IMGMAX);
     else vbuf[n] = 0.0;
     n += nvalues;
@@ -1039,14 +1039,14 @@ void FixStoreState::pack_ysu(int n)
 {
   double **x = atom->x;
   imageint *image = atom->image;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double boxylo = domain->boxlo[1];
   double invyprd = 1.0/domain->yprd;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       vbuf[n] = (x[i][1]-boxylo)*invyprd +
         (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
     else vbuf[n] = 0.0;
@@ -1060,14 +1060,14 @@ void FixStoreState::pack_zsu(int n)
 {
   double **x = atom->x;
   imageint *image = atom->image;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double boxzlo = domain->boxlo[2];
   double invzprd = 1.0/domain->zprd;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       vbuf[n] = (x[i][2]-boxzlo)*invzprd + (image[i] >> IMG2BITS) - IMGMAX;
     else vbuf[n] = 0.0;
     n += nvalues;
@@ -1080,14 +1080,14 @@ void FixStoreState::pack_xsu_triclinic(int n)
 {
   double **x = atom->x;
   imageint *image = atom->image;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double *boxlo = domain->boxlo;
   double *h_inv = domain->h_inv;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       vbuf[n] = h_inv[0]*(x[i][0]-boxlo[0]) + h_inv[5]*(x[i][1]-boxlo[1]) +
         h_inv[4]*(x[i][2]-boxlo[2]) + (image[i] & IMGMASK) - IMGMAX;
     else vbuf[n] = 0.0;
@@ -1101,14 +1101,14 @@ void FixStoreState::pack_ysu_triclinic(int n)
 {
   double **x = atom->x;
   imageint *image = atom->image;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double *boxlo = domain->boxlo;
   double *h_inv = domain->h_inv;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       vbuf[n] = h_inv[1]*(x[i][1]-boxlo[1]) + h_inv[3]*(x[i][2]-boxlo[2]) +
         (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
     else vbuf[n] = 0.0;
@@ -1122,14 +1122,14 @@ void FixStoreState::pack_zsu_triclinic(int n)
 {
   double **x = atom->x;
   imageint *image = atom->image;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double *boxlo = domain->boxlo;
   double *h_inv = domain->h_inv;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       vbuf[n] = h_inv[2]*(x[i][2]-boxlo[2]) + (image[i] >> IMG2BITS) - IMGMAX;
     else vbuf[n] = 0.0;
     n += nvalues;
@@ -1141,11 +1141,11 @@ void FixStoreState::pack_zsu_triclinic(int n)
 void FixStoreState::pack_ix(int n)
 {
   imageint *image = atom->image;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = (image[i] & IMGMASK) - IMGMAX;
+    if (mask[i][groupbin] & groupbit) vbuf[n] = (image[i] & IMGMASK) - IMGMAX;
     else vbuf[n] = 0.0;
     n += nvalues;
   }
@@ -1156,11 +1156,11 @@ void FixStoreState::pack_ix(int n)
 void FixStoreState::pack_iy(int n)
 {
   imageint *image = atom->image;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       vbuf[n] = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
     else vbuf[n] = 0.0;
     n += nvalues;
@@ -1172,11 +1172,11 @@ void FixStoreState::pack_iy(int n)
 void FixStoreState::pack_iz(int n)
 {
   imageint *image = atom->image;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = (image[i] >> IMG2BITS) - IMGMAX;
+    if (mask[i][groupbin] & groupbit) vbuf[n] = (image[i] >> IMG2BITS) - IMGMAX;
     else vbuf[n] = 0.0;
     n += nvalues;
   }
@@ -1187,11 +1187,11 @@ void FixStoreState::pack_iz(int n)
 void FixStoreState::pack_vx(int n)
 {
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = v[i][0];
+    if (mask[i][groupbin] & groupbit) vbuf[n] = v[i][0];
     else vbuf[n] = 0.0;
     n += nvalues;
   }
@@ -1202,11 +1202,11 @@ void FixStoreState::pack_vx(int n)
 void FixStoreState::pack_vy(int n)
 {
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = v[i][1];
+    if (mask[i][groupbin] & groupbit) vbuf[n] = v[i][1];
     else vbuf[n] = 0.0;
     n += nvalues;
   }
@@ -1217,11 +1217,11 @@ void FixStoreState::pack_vy(int n)
 void FixStoreState::pack_vz(int n)
 {
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = v[i][2];
+    if (mask[i][groupbin] & groupbit) vbuf[n] = v[i][2];
     else vbuf[n] = 0.0;
     n += nvalues;
   }
@@ -1232,11 +1232,11 @@ void FixStoreState::pack_vz(int n)
 void FixStoreState::pack_fx(int n)
 {
   double **f = atom->f;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = f[i][0];
+    if (mask[i][groupbin] & groupbit) vbuf[n] = f[i][0];
     else vbuf[n] = 0.0;
     n += nvalues;
   }
@@ -1247,11 +1247,11 @@ void FixStoreState::pack_fx(int n)
 void FixStoreState::pack_fy(int n)
 {
   double **f = atom->f;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = f[i][1];
+    if (mask[i][groupbin] & groupbit) vbuf[n] = f[i][1];
     else vbuf[n] = 0.0;
     n += nvalues;
   }
@@ -1262,11 +1262,11 @@ void FixStoreState::pack_fy(int n)
 void FixStoreState::pack_fz(int n)
 {
   double **f = atom->f;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = f[i][2];
+    if (mask[i][groupbin] & groupbit) vbuf[n] = f[i][2];
     else vbuf[n] = 0.0;
     n += nvalues;
   }
@@ -1277,11 +1277,11 @@ void FixStoreState::pack_fz(int n)
 void FixStoreState::pack_q(int n)
 {
   double *q = atom->q;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = q[i];
+    if (mask[i][groupbin] & groupbit) vbuf[n] = q[i];
     else vbuf[n] = 0.0;
     n += nvalues;
   }
@@ -1292,11 +1292,11 @@ void FixStoreState::pack_q(int n)
 void FixStoreState::pack_mux(int n)
 {
   double **mu = atom->mu;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = mu[i][0];
+    if (mask[i][groupbin] & groupbit) vbuf[n] = mu[i][0];
     else vbuf[n] = 0.0;
     n += nvalues;
   }
@@ -1307,11 +1307,11 @@ void FixStoreState::pack_mux(int n)
 void FixStoreState::pack_muy(int n)
 {
   double **mu = atom->mu;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = mu[i][1];
+    if (mask[i][groupbin] & groupbit) vbuf[n] = mu[i][1];
     else vbuf[n] = 0.0;
     n += nvalues;
   }
@@ -1322,11 +1322,11 @@ void FixStoreState::pack_muy(int n)
 void FixStoreState::pack_muz(int n)
 {
   double **mu = atom->mu;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = mu[i][2];
+    if (mask[i][groupbin] & groupbit) vbuf[n] = mu[i][2];
     else vbuf[n] = 0.0;
     n += nvalues;
   }
@@ -1337,11 +1337,11 @@ void FixStoreState::pack_muz(int n)
 void FixStoreState::pack_mu(int n)
 {
   double **mu = atom->mu;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = mu[i][3];
+    if (mask[i][groupbin] & groupbit) vbuf[n] = mu[i][3];
     else vbuf[n] = 0.0;
     n += nvalues;
   }
@@ -1352,11 +1352,11 @@ void FixStoreState::pack_mu(int n)
 void FixStoreState::pack_radius(int n)
 {
   double *radius = atom->radius;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = radius[i];
+    if (mask[i][groupbin] & groupbit) vbuf[n] = radius[i];
     else vbuf[n] = 0.0;
     n += nvalues;
   }
@@ -1367,11 +1367,11 @@ void FixStoreState::pack_radius(int n)
 void FixStoreState::pack_diameter(int n)
 {
   double *radius = atom->radius;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = 2.0*radius[i];
+    if (mask[i][groupbin] & groupbit) vbuf[n] = 2.0*radius[i];
     else vbuf[n] = 0.0;
     n += nvalues;
   }
@@ -1382,11 +1382,11 @@ void FixStoreState::pack_diameter(int n)
 void FixStoreState::pack_omegax(int n)
 {
   double **omega = atom->omega;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = omega[i][0];
+    if (mask[i][groupbin] & groupbit) vbuf[n] = omega[i][0];
     else vbuf[n] = 0.0;
     n += nvalues;
   }
@@ -1397,11 +1397,11 @@ void FixStoreState::pack_omegax(int n)
 void FixStoreState::pack_omegay(int n)
 {
   double **omega = atom->omega;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = omega[i][1];
+    if (mask[i][groupbin] & groupbit) vbuf[n] = omega[i][1];
     else vbuf[n] = 0.0;
     n += nvalues;
   }
@@ -1412,11 +1412,11 @@ void FixStoreState::pack_omegay(int n)
 void FixStoreState::pack_omegaz(int n)
 {
   double **omega = atom->omega;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = omega[i][2];
+    if (mask[i][groupbin] & groupbit) vbuf[n] = omega[i][2];
     else vbuf[n] = 0.0;
     n += nvalues;
   }
@@ -1427,11 +1427,11 @@ void FixStoreState::pack_omegaz(int n)
 void FixStoreState::pack_angmomx(int n)
 {
   double **angmom = atom->angmom;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = angmom[i][0];
+    if (mask[i][groupbin] & groupbit) vbuf[n] = angmom[i][0];
     else vbuf[n] = 0.0;
     n += nvalues;
   }
@@ -1442,11 +1442,11 @@ void FixStoreState::pack_angmomx(int n)
 void FixStoreState::pack_angmomy(int n)
 {
   double **angmom = atom->angmom;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = angmom[i][1];
+    if (mask[i][groupbin] & groupbit) vbuf[n] = angmom[i][1];
     else vbuf[n] = 0.0;
     n += nvalues;
   }
@@ -1457,11 +1457,11 @@ void FixStoreState::pack_angmomy(int n)
 void FixStoreState::pack_angmomz(int n)
 {
   double **angmom = atom->angmom;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = angmom[i][2];
+    if (mask[i][groupbin] & groupbit) vbuf[n] = angmom[i][2];
     else vbuf[n] = 0.0;
     n += nvalues;
   }
@@ -1472,11 +1472,11 @@ void FixStoreState::pack_angmomz(int n)
 void FixStoreState::pack_tqx(int n)
 {
   double **torque = atom->torque;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = torque[i][0];
+    if (mask[i][groupbin] & groupbit) vbuf[n] = torque[i][0];
     else vbuf[n] = 0.0;
     n += nvalues;
   }
@@ -1487,11 +1487,11 @@ void FixStoreState::pack_tqx(int n)
 void FixStoreState::pack_tqy(int n)
 {
   double **torque = atom->torque;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = torque[i][1];
+    if (mask[i][groupbin] & groupbit) vbuf[n] = torque[i][1];
     else vbuf[n] = 0.0;
     n += nvalues;
   }
@@ -1502,11 +1502,11 @@ void FixStoreState::pack_tqy(int n)
 void FixStoreState::pack_tqz(int n)
 {
   double **torque = atom->torque;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = torque[i][2];
+    if (mask[i][groupbin] & groupbit) vbuf[n] = torque[i][2];
     else vbuf[n] = 0.0;
     n += nvalues;
   }

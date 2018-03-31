@@ -67,10 +67,11 @@ void Velocity::command(int narg, char **arg)
   igroup = group->find(arg[0]);
   if (igroup == -1) error->all(FLERR,"Could not find velocity group ID");
   groupbit = group->bitmask[igroup];
+  groupbin = floor((float)igroup/(float)group->grp_per_bin);
 
   // check if velocities of atoms in rigid bodies are updated
 
-  if (modify->check_rigid_group_overlap(groupbit))
+  if (modify->check_rigid_group_overlap(groupbit,groupbin))
     error->warning(FLERR,"Changing velocities of atoms in rigid bodies. "
                      "This has no effect unless rigid bodies are rebuild");
 
@@ -149,6 +150,7 @@ void Velocity::init_external(const char *extgroup)
   igroup = group->find(extgroup);
   if (igroup == -1) error->all(FLERR,"Could not find velocity group ID");
   groupbit = group->bitmask[igroup];
+  groupbin = floor((float)igroup/(float)group->grp_per_bin);
 
   temperature = NULL;
   dist_flag = 0;
@@ -242,7 +244,7 @@ void Velocity::create(double t_desired, int seed)
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   int dim = domain->dimension;
 
@@ -292,7 +294,7 @@ void Velocity::create(double t_desired, int seed)
       }
       m = atom->map(i);
       if (m >= 0 && m < nlocal) {
-        if (mask[m] & groupbit) {
+        if (mask[m][groupbin] & groupbit) {
           if (rmass) factor = 1.0/sqrt(rmass[m]);
           else factor = 1.0/sqrt(mass[type[m]]);
           v[m][0] = vx * factor;
@@ -315,7 +317,7 @@ void Velocity::create(double t_desired, int seed)
     for (i = 0; i < WARMUP; i++) random->uniform();
 
     for (i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         if (dist_flag == 0) {
           vx = random->uniform() - 0.5;
           vy = random->uniform() - 0.5;
@@ -339,7 +341,7 @@ void Velocity::create(double t_desired, int seed)
     double **x = atom->x;
 
     for (i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         random->reset(seed,x[i]);
         if (dist_flag == 0) {
           vx = random->uniform() - 0.5;
@@ -391,7 +393,7 @@ void Velocity::create(double t_desired, int seed)
 
   if (sum_flag) {
     for (i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         v[i][0] += vhold[i][0];
         v[i][1] += vhold[i][1];
         v[i][2] += vhold[i][2];
@@ -510,12 +512,12 @@ void Velocity::set(int narg, char **arg)
   // set velocities via constants
 
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   if (varflag == CONSTANT) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         if (sum_flag == 0) {
           if (xstyle) v[i][0] = vx;
           if (ystyle) v[i][1] = vy;
@@ -548,7 +550,7 @@ void Velocity::set(int narg, char **arg)
     }
 
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         if (sum_flag == 0) {
           if (xstyle == ATOM) v[i][0] = vfield[i][0];
           else if (xstyle) v[i][0] = vx;
@@ -685,13 +687,13 @@ void Velocity::ramp(int narg, char **arg)
 
   double **x = atom->x;
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double fraction,vramp;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       fraction = (x[i][coord_dim] - coord_lo) / (coord_hi - coord_lo);
       fraction = MAX(fraction,0.0);
       fraction = MIN(fraction,1.0);
@@ -740,11 +742,11 @@ void Velocity::rescale(double t_old, double t_new)
   double factor = sqrt(t_new/t_old);
 
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       v[i][0] *= factor;
       v[i][1] *= factor;
       v[i][2] *= factor;
@@ -771,11 +773,11 @@ void Velocity::zero_momentum()
   // adjust velocities by vcm to zero linear momentum
 
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       v[i][0] -= vcm[0];
       v[i][1] -= vcm[1];
       v[i][2] -= vcm[2];
@@ -810,7 +812,7 @@ void Velocity::zero_rotation()
 
   double **x = atom->x;
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
@@ -818,7 +820,7 @@ void Velocity::zero_rotation()
   double unwrap[3];
 
   for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       domain->unmap(x[i],image[i],unwrap);
       dx = unwrap[0] - xcm[0];
       dy = unwrap[1] - xcm[1];

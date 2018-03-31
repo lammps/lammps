@@ -87,11 +87,11 @@ void ComputeErotateSphereAtom::compute_peratom()
   double **omega = atom->omega;
   double *radius = atom->radius;
   double *rmass = atom->rmass;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       erot[i] = (omega[i][0]*omega[i][0] + omega[i][1]*omega[i][1] +
                  omega[i][2]*omega[i][2]) * radius[i]*radius[i]*rmass[i];
       erot[i] *= pfactor;

@@ -35,7 +35,8 @@ ComputeForceTally::ComputeForceTally(LAMMPS *lmp, int narg, char **arg) :
   igroup2 = group->find(arg[3]);
   if (igroup2 == -1)
     error->all(FLERR,"Could not find compute force/tally second group ID");
-  groupbit2 = group->bitmask[igroup2];
+    groupbit2 = group->bitmask[igroup2];
+    groupbin2 = floor((float)igroup2/(float)group->grp_per_bin);
 
   scalar_flag = 1;
   vector_flag = 0;
@@ -113,13 +114,13 @@ void ComputeForceTally::pair_tally_callback(int i, int j, int nlocal, int newton
                                             double, double, double fpair,
                                             double dx, double dy, double dz)
 {
-  const int * const mask = atom->mask;
+  int ** mask = atom->mask;
 
-  if ( ((mask[i] & groupbit) && (mask[j] & groupbit2))
-       || ((mask[i] & groupbit2) && (mask[j] & groupbit)) ) {
+  if ( ((mask[i][groupbin] & groupbit) && (mask[j][groupbin2] & groupbit2))
+       || ((mask[i][groupbin2] & groupbit2) && (mask[j][groupbin] & groupbit)) ) {
 
     if (newton || i < nlocal) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         ftotal[0] += fpair*dx;
         ftotal[1] += fpair*dy;
         ftotal[2] += fpair*dz;
@@ -129,7 +130,7 @@ void ComputeForceTally::pair_tally_callback(int i, int j, int nlocal, int newton
       fatom[i][2] += fpair*dz;
     }
     if (newton || j < nlocal) {
-      if (mask[j] & groupbit) {
+      if (mask[j][groupbin] & groupbit) {
         ftotal[0] -= fpair*dx;
         ftotal[1] -= fpair*dy;
         ftotal[2] -= fpair*dz;
@@ -220,4 +221,3 @@ double ComputeForceTally::memory_usage()
   double bytes = (nmax < 0) ? 0 : nmax*size_peratom_cols * sizeof(double);
   return bytes;
 }
-

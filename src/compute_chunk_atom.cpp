@@ -908,18 +908,18 @@ void ComputeChunkAtom::assign_chunk_ids()
   // exclude atoms not in group or not in optional region
 
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   if (regionflag) {
     for (i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit &&
+      if (mask[i][groupbin] & groupbit &&
           region->match(x[i][0],x[i][1],x[i][2])) exclude[i] = 0;
       else exclude[i] = 1;
     }
   } else {
     for (i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) exclude[i] = 0;
+      if (mask[i][groupbin] & groupbit) exclude[i] = 0;
       else exclude[i] = 1;
     }
   }

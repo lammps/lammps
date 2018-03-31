@@ -36,7 +36,7 @@ AtomVecMeso::AtomVecMeso(LAMMPS *lmp) : AtomVec(lmp)
   comm_f_only = 0; // we also communicate de and drho in reverse direction
   size_forward = 8; // 3 + rho + e + vest[3], that means we may only communicate 5 in hybrid
   size_reverse = 5; // 3 + drho + de
-  size_border = 12; // 6 + rho + e + vest[3] + cv
+  size_border = 11 + atom->ngroupbin; // 6 + rho + e + vest[3] + cv
   size_velocity = 3;
   size_data_atom = 8;
   size_data_vel = 4;
@@ -108,7 +108,8 @@ void AtomVecMeso::copy(int i, int j, int delflag) {
   //printf("in AtomVecMeso::copy\n");
   tag[j] = tag[i];
   type[j] = type[i];
-  mask[j] = mask[i];
+  for (int k = 0; k < atom->ngroupbin; k++)
+    mask[j][k] = mask[i][k];
   image[j] = image[i];
   x[j][0] = x[i][0];
   x[j][1] = x[i][1];
@@ -434,7 +435,8 @@ int AtomVecMeso::pack_border(int n, int *list, double *buf, int pbc_flag,
       buf[m++] = x[j][2];
       buf[m++] = ubuf(tag[j]).d;
       buf[m++] = ubuf(type[j]).d;
-      buf[m++] = ubuf(mask[j]).d;
+      for (int k = 0; k < atom->ngroupbin; k++)
+        buf[m++] = ubuf(mask[j][k]).d;
       buf[m++] = rho[j];
       buf[m++] = e[j];
       buf[m++] = cv[j];
@@ -459,7 +461,8 @@ int AtomVecMeso::pack_border(int n, int *list, double *buf, int pbc_flag,
       buf[m++] = x[j][2] + dz;
       buf[m++] = ubuf(tag[j]).d;
       buf[m++] = ubuf(type[j]).d;
-      buf[m++] = ubuf(mask[j]).d;
+      for (int k = 0; k < atom->ngroupbin; k++)
+        buf[m++] = ubuf(mask[j][k]).d;
       buf[m++] = rho[j];
       buf[m++] = e[j];
       buf[m++] = cv[j];
@@ -493,7 +496,8 @@ int AtomVecMeso::pack_border_vel(int n, int *list, double *buf, int pbc_flag,
       buf[m++] = x[j][2];
       buf[m++] = ubuf(tag[j]).d;
       buf[m++] = ubuf(type[j]).d;
-      buf[m++] = ubuf(mask[j]).d;
+      for (int k = 0; k < atom->ngroupbin; k++)
+        buf[m++] = ubuf(mask[j][k]).d;
       buf[m++] = v[j][0];
       buf[m++] = v[j][1];
       buf[m++] = v[j][2];
@@ -522,7 +526,8 @@ int AtomVecMeso::pack_border_vel(int n, int *list, double *buf, int pbc_flag,
         buf[m++] = x[j][2] + dz;
         buf[m++] = ubuf(tag[j]).d;
         buf[m++] = ubuf(type[j]).d;
-        buf[m++] = ubuf(mask[j]).d;
+        for (int k = 0; k < atom->ngroupbin; k++)
+        buf[m++] = ubuf(mask[j][k]).d;
         buf[m++] = v[j][0];
         buf[m++] = v[j][1];
         buf[m++] = v[j][2];
@@ -544,8 +549,9 @@ int AtomVecMeso::pack_border_vel(int n, int *list, double *buf, int pbc_flag,
         buf[m++] = x[j][2] + dz;
         buf[m++] = ubuf(tag[j]).d;
         buf[m++] = ubuf(type[j]).d;
-        buf[m++] = ubuf(mask[j]).d;
-        if (mask[i] & deform_groupbit) {
+        for (int k = 0; k < atom->ngroupbin; k++)
+        buf[m++] = ubuf(mask[j][k]).d;
+        if (mask[i][deform_groupbin] & deform_groupbit) {
           buf[m++] = v[j][0] + dvx;
           buf[m++] = v[j][1] + dvy;
           buf[m++] = v[j][2] + dvz;
@@ -590,7 +596,8 @@ void AtomVecMeso::unpack_border(int n, int first, double *buf) {
     x[i][2] = buf[m++];
     tag[i] = (tagint) ubuf(buf[m++]).i;
     type[i] = (int) ubuf(buf[m++]).i;
-    mask[i] = (int) ubuf(buf[m++]).i;
+    for (int k = 0; k < atom->ngroupbin; k++)
+      mask[i][k] = (int) ubuf(buf[m++]).i;
     rho[i] = buf[m++];
     e[i] = buf[m++];
     cv[i] = buf[m++];
@@ -621,7 +628,8 @@ void AtomVecMeso::unpack_border_vel(int n, int first, double *buf) {
     x[i][2] = buf[m++];
     tag[i] = (tagint) ubuf(buf[m++]).i;
     type[i] = (int) ubuf(buf[m++]).i;
-    mask[i] = (int) ubuf(buf[m++]).i;
+    for (int k = 0; k < atom->ngroupbin; k++)
+      mask[i][k] = (int) ubuf(buf[m++]).i;
     v[i][0] = buf[m++];
     v[i][1] = buf[m++];
     v[i][2] = buf[m++];
@@ -655,7 +663,8 @@ int AtomVecMeso::pack_exchange(int i, double *buf) {
   buf[m++] = v[i][2];
   buf[m++] = ubuf(tag[i]).d;
   buf[m++] = ubuf(type[i]).d;
-  buf[m++] = ubuf(mask[i]).d;
+  for (int k = 0; k < atom->ngroupbin; k++)
+    buf[m++] = ubuf(mask[i][k]).d;
   buf[m++] = ubuf(image[i]).d;
   buf[m++] = rho[i];
   buf[m++] = e[i];
@@ -689,7 +698,8 @@ int AtomVecMeso::unpack_exchange(double *buf) {
   v[nlocal][2] = buf[m++];
   tag[nlocal] = (tagint) ubuf(buf[m++]).i;
   type[nlocal] = (int) ubuf(buf[m++]).i;
-  mask[nlocal] = (int) ubuf(buf[m++]).i;
+  for (int k = 0; k < atom->ngroupbin; k++)
+    mask[nlocal][k] = (int) ubuf(buf[m++]).i;
   image[nlocal] = (imageint) ubuf(buf[m++]).i;
   rho[nlocal] = buf[m++];
   e[nlocal] = buf[m++];
@@ -716,7 +726,7 @@ int AtomVecMeso::size_restart() {
   int i;
 
   int nlocal = atom->nlocal;
-  int n = 17 * nlocal; // 11 + rho + e + cv + vest[3]
+  int n = (16 + atom->ngroupbin) * nlocal; // 11 + rho + e + cv + vest[3]
 
   if (atom->nextra_restart)
     for (int iextra = 0; iextra < atom->nextra_restart; iextra++)
@@ -739,7 +749,8 @@ int AtomVecMeso::pack_restart(int i, double *buf) {
   buf[m++] = x[i][2];
   buf[m++] = ubuf(tag[i]).d;
   buf[m++] = ubuf(type[i]).d;
-  buf[m++] = ubuf(mask[i]).d;
+  for (int k = 0; k < atom->ngroupbin; k++)
+    buf[m++] = ubuf(mask[i][k]).d;
   buf[m++] = ubuf(image[i]).d;
   buf[m++] = v[i][0];
   buf[m++] = v[i][1];
@@ -777,7 +788,8 @@ int AtomVecMeso::unpack_restart(double *buf) {
   x[nlocal][2] = buf[m++];
   tag[nlocal] = (tagint) ubuf(buf[m++]).i;
   type[nlocal] = (int) ubuf(buf[m++]).i;
-  mask[nlocal] = (int) ubuf(buf[m++]).i;
+  for (int k = 0; k < atom->ngroupbin; k++)
+    mask[nlocal][k] = (int) ubuf(buf[m++]).i;
   image[nlocal] = (imageint) ubuf(buf[m++]).i;
   v[nlocal][0] = buf[m++];
   v[nlocal][1] = buf[m++];
@@ -815,7 +827,8 @@ void AtomVecMeso::create_atom(int itype, double *coord) {
   x[nlocal][0] = coord[0];
   x[nlocal][1] = coord[1];
   x[nlocal][2] = coord[2];
-  mask[nlocal] = 1;
+  for (int k = 0; k < atom->ngroupbin; k++)
+    mask[nlocal][k] = !k;
   image[nlocal] = ((imageint) IMGMAX << IMG2BITS) |
     ((imageint) IMGMAX << IMGBITS) | IMGMAX;
   v[nlocal][0] = 0.0;
@@ -859,7 +872,8 @@ void AtomVecMeso::data_atom(double *coord, imageint imagetmp, char **values) {
 
   image[nlocal] = imagetmp;
 
-  mask[nlocal] = 1;
+  for (int k = 0; k < atom->ngroupbin; k++)
+    mask[nlocal][k] = !k;
   v[nlocal][0] = 0.0;
   v[nlocal][1] = 0.0;
   v[nlocal][2] = 0.0;
@@ -970,39 +984,39 @@ int AtomVecMeso::property_atom(char *name)
 ------------------------------------------------------------------------- */
 
 void AtomVecMeso::pack_property_atom(int index, double *buf,
-                                     int nvalues, int groupbit)
+                                     int nvalues, int groupbin, int groupbit)
 {
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   int n = 0;
 
   if (index == 0) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) buf[n] = rho[i];
+      if (mask[i][groupbin] & groupbit) buf[n] = rho[i];
       else buf[n] = 0.0;
       n += nvalues;
     }
   } else if (index == 1) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) buf[n] = drho[i];
+      if (mask[i][groupbin] & groupbit) buf[n] = drho[i];
       else buf[n] = 0.0;
       n += nvalues;
     }
   } else if (index == 2) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) buf[n] = e[i];
+      if (mask[i][groupbin] & groupbit) buf[n] = e[i];
       else buf[n] = 0.0;
       n += nvalues;
     }
   } else if (index == 3) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) buf[n] = de[i];
+      if (mask[i][groupbin] & groupbit) buf[n] = de[i];
       else buf[n] = 0.0;
       n += nvalues;
     }
   } else if (index == 4) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) buf[n] = cv[i];
+      if (mask[i][groupbin] & groupbit) buf[n] = cv[i];
       else buf[n] = 0.0;
       n += nvalues;
     }

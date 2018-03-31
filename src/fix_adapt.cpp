@@ -265,11 +265,11 @@ void FixAdapt::post_constructor()
     else {
       double *vec = fix_diam->vstore;
       double *radius = atom->radius;
-      int *mask = atom->mask;
+      int **mask = atom->mask;
       int nlocal = atom->nlocal;
 
       for (int i = 0; i < nlocal; i++) {
-        if (mask[i] & groupbit) vec[i] = radius[i];
+        if (mask[i][groupbin] & groupbit) vec[i] = radius[i];
         else vec[i] = 0.0;
       }
     }
@@ -288,11 +288,11 @@ void FixAdapt::post_constructor()
     else {
       double *vec = fix_chg->vstore;
       double *q = atom->q;
-      int *mask = atom->mask;
+      int **mask = atom->mask;
       int nlocal = atom->nlocal;
 
       for (int i = 0; i < nlocal; i++) {
-        if (mask[i] & groupbit) vec[i] = q[i];
+        if (mask[i][groupbin] & groupbit) vec[i] = q[i];
         else vec[i] = 0.0;
       }
     }
@@ -577,17 +577,17 @@ void FixAdapt::change_settings()
 
         double *radius = atom->radius;
         double *rmass = atom->rmass;
-        int *mask = atom->mask;
+        int **mask = atom->mask;
         int nlocal = atom->nlocal;
         int nall = nlocal + atom->nghost;
 
         if (mflag == 0) {
           for (i = 0; i < nall; i++)
-            if (mask[i] & groupbit)
+            if (mask[i][groupbin] & groupbit)
               radius[i] = 0.5*value;
         } else {
           for (i = 0; i < nall; i++)
-            if (mask[i] & groupbit) {
+            if (mask[i][groupbin] & groupbit) {
               density = rmass[i] / (4.0*MY_PI/3.0 *
                                     radius[i]*radius[i]*radius[i]);
               radius[i] = 0.5*value;
@@ -597,12 +597,12 @@ void FixAdapt::change_settings()
         }
       } else if (ad->aparam == CHARGE) {
         double *q = atom->q;
-        int *mask = atom->mask;
+        int **mask = atom->mask;
         int nlocal = atom->nlocal;
         int nall = nlocal + atom->nghost;
 
         for (i = 0; i < nall; i++)
-          if (mask[i] & groupbit) q[i] = value;
+          if (mask[i][groupbin] & groupbit) q[i] = value;
       }
     }
   }
@@ -668,11 +668,11 @@ void FixAdapt::restore_settings()
         double *vec = fix_diam->vstore;
         double *radius = atom->radius;
         double *rmass = atom->rmass;
-        int *mask = atom->mask;
+        int **mask = atom->mask;
         int nlocal = atom->nlocal;
 
         for (int i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit) {
+          if (mask[i][groupbin] & groupbit) {
             density = rmass[i] / (4.0*MY_PI/3.0 *
                                   radius[i]*radius[i]*radius[i]);
             radius[i] = vec[i];
@@ -682,11 +682,11 @@ void FixAdapt::restore_settings()
       if (chgflag) {
         double *vec = fix_chg->vstore;
         double *q = atom->q;
-        int *mask = atom->mask;
+        int **mask = atom->mask;
         int nlocal = atom->nlocal;
 
         for (int i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit) q[i] = vec[i];
+          if (mask[i][groupbin] & groupbit) q[i] = vec[i];
       }
     }
   }

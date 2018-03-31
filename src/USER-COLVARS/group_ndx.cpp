@@ -78,7 +78,7 @@ static void write_group(FILE *fp, int gid, Atom *atom, Group *group, int me,
   }
 
   if (num > 0) {
-    const int * const mask = atom->mask;
+    int ** mask = atom->mask;
     const tagint * const tag = atom->tag;
     const int groupbit = group->bitmask[gid];
     const int nlocal = atom->nlocal;
@@ -88,7 +88,7 @@ static void write_group(FILE *fp, int gid, Atom *atom, Group *group, int me,
     recvlist = new tagint[num];
     lnum = 0;
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) sendlist[lnum++] = tag[i];
+      if (mask[i][groupbin] & groupbit) sendlist[lnum++] = tag[i];
 
     int nrecv,allrecv;
     if (me == 0) {

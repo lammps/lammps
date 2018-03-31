@@ -215,7 +215,7 @@ void FixBondSwap::post_integrate()
   // local ptrs to atom arrays
 
   tagint *tag = atom->tag;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   tagint *molecule = atom->molecule;
   int *num_bond = atom->num_bond;
   tagint **bond_atom = atom->bond_atom;
@@ -251,7 +251,7 @@ void FixBondSwap::post_integrate()
   int neligible = 0;
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       alist[neligible++] = i;
   }
 
@@ -269,7 +269,7 @@ void FixBondSwap::post_integrate()
   // atom j must be on-processor (j < nlocal)
   // atom j must be in fix group
   // i and j must be same distance from chain end (mol[i] = mol[j])
-  // NOTE: must use extra parens in if test on mask[j] & groupbit
+  // NOTE: must use extra parens in if test on mask[j][groupbin] & groupbit
 
   int ntest = static_cast<int> (fraction * neligible);
   int accept = 0;
@@ -283,7 +283,7 @@ void FixBondSwap::post_integrate()
       j = jlist[jj];
       j &= NEIGHMASK;
       if (j >= nlocal) continue;
-      if ((mask[j] & groupbit) == 0) continue;
+      if ((mask[j][groupbin] & groupbit) == 0) continue;
       if (molecule[i] != molecule[j]) continue;
 
       // look at all bond partners of atoms i and j

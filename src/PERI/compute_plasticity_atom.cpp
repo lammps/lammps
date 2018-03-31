@@ -93,11 +93,11 @@ void ComputePlasticityAtom::compute_peratom()
 
   double *lambdaValue = ((FixPeriNeigh *) modify->fix[ifix_peri])->lambdaValue;
 
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) plasticity[i] = lambdaValue[i];
+    if (mask[i][groupbin] & groupbit) plasticity[i] = lambdaValue[i];
 }
 
 /* ----------------------------------------------------------------------

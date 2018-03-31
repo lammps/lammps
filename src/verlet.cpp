@@ -133,7 +133,6 @@ void Verlet::setup(int flag)
 
   if (pair_compute_flag) force->pair->compute(eflag,vflag);
   else if (force->pair) force->pair->compute_dummy(eflag,vflag);
-
   if (atom->molecular) {
     if (force->bond) force->bond->compute(eflag,vflag);
     if (force->angle) force->angle->compute(eflag,vflag);
@@ -149,7 +148,6 @@ void Verlet::setup(int flag)
 
   modify->setup_pre_reverse(eflag,vflag);
   if (force->newton) comm->reverse_comm();
-
   modify->setup(vflag);
   output->setup(flag);
   update->setupflag = 0;

@@ -320,7 +320,7 @@ void FixDeformKokkos::end_of_step()
 
     domainKK->x2lamda(nlocal);
     //for (i = 0; i < nlocal; i++)
-    //  if (mask[i] & groupbit)
+    //  if (mask[i][groupbin] & groupbit)
     //    domain->x2lamda(x[i],x[i]);
 
     if (nrigid)
@@ -360,7 +360,7 @@ void FixDeformKokkos::end_of_step()
 
     domainKK->lamda2x(nlocal);
     //for (i = 0; i < nlocal; i++)
-    //  if (mask[i] & groupbit)
+    //  if (mask[i][groupbin] & groupbit)
     //    domain->lamda2x(x[i],x[i]);
 
     //if (nrigid)

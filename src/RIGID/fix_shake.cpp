@@ -646,8 +646,9 @@ void FixShake::post_force_respa(int vflag, int ilevel, int iloop)
 int FixShake::dof(int igroup)
 {
   int groupbit = group->bitmask[igroup];
+  int groupbin = floor((float)igroup/(float)group->grp_per_bin);
 
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
 
@@ -656,7 +657,7 @@ int FixShake::dof(int igroup)
 
   int n = 0;
   for (int i = 0; i < nlocal; i++) {
-    if (!(mask[i] & groupbit)) continue;
+    if (!(mask[i][groupbin] & groupbit)) continue;
     if (shake_flag[i] == 0) continue;
     if (shake_atom[i][0] != tag[i]) continue;
     if (shake_flag[i] == 1) n += 3;
@@ -695,7 +696,7 @@ void FixShake::find_clusters()
 
   tagint *tag = atom->tag;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int **nspecial = atom->nspecial;
@@ -745,7 +746,7 @@ void FixShake::find_clusters()
   memory->create(nshake,nlocal,"shake:nshake");
 
   tagint **partner_tag;
-  int **partner_mask,**partner_type,**partner_massflag;
+  int **partner_mask,**partner_type,**partner_massflag; // would require refactoring for Ngroups option -jg
   int **partner_bondtype,**partner_shake,**partner_nshake;
   memory->create(partner_tag,nlocal,max,"shake:partner_tag");
   memory->create(partner_mask,nlocal,max,"shake:partner_mask");
@@ -800,7 +801,7 @@ void FixShake::find_clusters()
 
       m = atom->map(partner_tag[i][j]);
       if (m >= 0 && m < nlocal) {
-        partner_mask[i][j] = mask[m];
+        partner_mask[i][j] = mask[m][groupbin];
         partner_type[i][j] = type[m];
         if (nmass) {
           if (rmass) massone = rmass[m];
@@ -871,7 +872,7 @@ void FixShake::find_clusters()
   for (i = 0; i < nlocal; i++)
     for (j = 0; j < npartner[i]; j++) {
       if (partner_type[i][j] == 0) flag = 1;
-      if (!(mask[i] & groupbit)) continue;
+      if (!(mask[i][groupbin] & groupbit)) continue;
       if (!(partner_mask[i][j] & groupbit)) continue;
       if (partner_bondtype[i][j] == 0) flag = 1;
     }
@@ -897,7 +898,7 @@ void FixShake::find_clusters()
     for (j = 0; j < np; j++) {
       partner_shake[i][j] = 0;
 
-      if (!(mask[i] & groupbit)) continue;
+      if (!(mask[i][groupbin] & groupbit)) continue;
       if (!(partner_mask[i][j] & groupbit)) continue;
       if (partner_bondtype[i][j] <= 0) continue;
 
@@ -1211,7 +1212,7 @@ void FixShake::ring_bonds(int ndatum, char *cbuf, void *ptr)
   Atom *atom = fsptr->atom;
   double *rmass = atom->rmass;
   double *mass = atom->mass;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int nmass = fsptr->nmass;

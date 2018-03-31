@@ -329,7 +329,7 @@ void FixNEB::min_post_force(int vflag)
   pe->addstep(update->ntimestep+1);
 
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   double dot = 0.0;
   double prefactor = 0.0;
 
@@ -348,7 +348,7 @@ void FixNEB::min_post_force(int vflag)
   if (ireplica == nreplica-1) {
 
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         delxp = x[i][0] - xprev[i][0];
         delyp = x[i][1] - xprev[i][1];
         delzp = x[i][2] - xprev[i][2];
@@ -369,7 +369,7 @@ void FixNEB::min_post_force(int vflag)
 
   } else if (ireplica == 0) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         delxn = xnext[i][0] - x[i][0];
         delyn = xnext[i][1] - x[i][1];
         delzn = xnext[i][2] - x[i][2];
@@ -400,7 +400,7 @@ void FixNEB::min_post_force(int vflag)
 
 
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         delxp = x[i][0] - xprev[i][0];
         delyp = x[i][1] - xprev[i][1];
         delzp = x[i][2] - xprev[i][2];
@@ -478,7 +478,7 @@ void FixNEB::min_post_force(int vflag)
   if (tlen > 0.0) {
     double tleninv = 1.0/tlen;
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         tangent[i][0] *= tleninv;
         tangent[i][1] *= tleninv;
         tangent[i][2] *= tleninv;
@@ -506,7 +506,7 @@ void FixNEB::min_post_force(int vflag)
       else prefactor = -dot + kspringIni*(veng-EIniIni);
 
       for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           f[i][0] += prefactor *tangent[i][0];
           f[i][1] += prefactor *tangent[i][1];
           f[i][2] += prefactor *tangent[i][2];
@@ -525,7 +525,7 @@ void FixNEB::min_post_force(int vflag)
         else prefactor = -dot + kspringFinal*(veng-EFinalIni);
       }
       for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           f[i][0] += prefactor *tangent[i][0];
           f[i][1] += prefactor *tangent[i][1];
           f[i][2] += prefactor *tangent[i][2];
@@ -543,7 +543,7 @@ void FixNEB::min_post_force(int vflag)
         else prefactor = -dot + kspringFinal*(veng-vIni);
       }
       for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           f[i][0] += prefactor *tangent[i][0];
           f[i][1] += prefactor *tangent[i][1];
           f[i][2] += prefactor *tangent[i][2];
@@ -595,7 +595,7 @@ void FixNEB::min_post_force(int vflag)
   dotSpringTangent=0;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       dot += f[i][0]*tangent[i][0] + f[i][1]*tangent[i][1] +
         f[i][2]*tangent[i][2];
       dotSpringTangent += springF[i][0]*tangent[i][0] +
@@ -620,7 +620,7 @@ void FixNEB::min_post_force(int vflag)
 
     if (FinalAndInterWithRespToEIni&& veng<vIni) {
       for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           f[i][0] = 0;
           f[i][1] = 0;
           f[i][2] = 0;
@@ -631,7 +631,7 @@ void FixNEB::min_post_force(int vflag)
   }
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       f[i][0] += prefactor*tangent[i][0] +
         AngularContr*(springF[i][0] - dotSpringTangent*tangent[i][0]);
       f[i][1] += prefactor*tangent[i][1] +
@@ -662,7 +662,7 @@ void FixNEB::inter_replica_comm()
   double **x = atom->x;
   double **f = atom->f;
   tagint *tag = atom->tag;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   // -----------------------------------------------------
@@ -703,7 +703,7 @@ void FixNEB::inter_replica_comm()
   if (cmode == SINGLE_PROC_MAP) {
     m = 0;
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         tagsend[m] = tag[i];
         xsend[m][0] = x[i][0];
         xsend[m][1] = x[i][1];
@@ -767,7 +767,7 @@ void FixNEB::inter_replica_comm()
 
   m = 0;
   for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       tagsend[m] = tag[i];
       xsend[m][0] = x[i][0];
       xsend[m][1] = x[i][1];

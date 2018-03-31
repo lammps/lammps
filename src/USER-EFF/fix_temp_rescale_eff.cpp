@@ -129,7 +129,7 @@ void FixTempRescaleEff::end_of_step()
     double efactor = 0.5 * force->boltz * temperature->dof;
 
     double **v = atom->v;
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
     int *spin = atom->spin;
     double *ervel = atom->ervel;
@@ -137,7 +137,7 @@ void FixTempRescaleEff::end_of_step()
     if (which == NOBIAS) {
       energy += (t_current-t_target) * efactor;
       for (int i = 0; i < nlocal; i++) {
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           v[i][0] *= factor;
           v[i][1] *= factor;
           v[i][2] *= factor;
@@ -148,7 +148,7 @@ void FixTempRescaleEff::end_of_step()
     } else {
       energy += (t_current-t_target) * efactor;
       for (int i = 0; i < nlocal; i++) {
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           temperature->remove_bias(i,v[i]);
           v[i][0] *= factor;
           v[i][1] *= factor;

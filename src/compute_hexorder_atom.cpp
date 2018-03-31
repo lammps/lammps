@@ -168,12 +168,12 @@ void ComputeHexOrderAtom::compute_peratom()
   // use full neighbor list to count atoms less than cutoff
 
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     double* qn = qnarray[i];
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       xtmp = x[i][0];
       ytmp = x[i][1];
       ztmp = x[i][2];

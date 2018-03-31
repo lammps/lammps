@@ -173,7 +173,7 @@ void FixWallGranRegion::post_force(int vflag)
   double *radius = atom->radius;
   double *rmass = atom->rmass;
 
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   // set current motion attributes of region
@@ -185,7 +185,7 @@ void FixWallGranRegion::post_force(int vflag)
   }
 
   for (i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       if (!region->match(x[i][0],x[i][1],x[i][2])) continue;
 
       nc = region->surface(x[i][0],x[i][1],x[i][2],radius[i]);

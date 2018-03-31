@@ -121,7 +121,7 @@ int ComputeDihedralLocal::compute_dihedrals(int flag)
   tagint **dihedral_atom2 = atom->dihedral_atom2;
   tagint **dihedral_atom3 = atom->dihedral_atom3;
   tagint **dihedral_atom4 = atom->dihedral_atom4;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
 
   int *molindex = atom->molindex;
   int *molatom = atom->molatom;
@@ -141,7 +141,7 @@ int ComputeDihedralLocal::compute_dihedrals(int flag)
 
   m = n = 0;
   for (atom2 = 0; atom2 < nlocal; atom2++) {
-    if (!(mask[atom2] & groupbit)) continue;
+    if (!(mask[atom2][groupbin] & groupbit)) continue;
 
     if (molecular == 1) nd = num_dihedral[atom2];
     else {
@@ -165,9 +165,9 @@ int ComputeDihedralLocal::compute_dihedrals(int flag)
         atom4 = atom->map(onemols[imol]->dihedral_atom4[atom2][i]+tagprev);
       }
 
-      if (atom1 < 0 || !(mask[atom1] & groupbit)) continue;
-      if (atom3 < 0 || !(mask[atom3] & groupbit)) continue;
-      if (atom4 < 0 || !(mask[atom4] & groupbit)) continue;
+      if (atom1 < 0 || !(mask[atom1][groupbin] & groupbit)) continue;
+      if (atom3 < 0 || !(mask[atom3][groupbin] & groupbit)) continue;
+      if (atom4 < 0 || !(mask[atom4][groupbin] & groupbit)) continue;
 
       if (flag) {
 

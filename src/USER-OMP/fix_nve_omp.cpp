@@ -36,7 +36,7 @@ void FixNVEOMP::initial_integrate(int vflag)
   dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
   dbl3_t * _noalias const v = (dbl3_t *) atom->v[0];
   const dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];
-  const int * const mask = atom->mask;
+  int ** mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
   int i;
 
@@ -46,7 +46,7 @@ void FixNVEOMP::initial_integrate(int vflag)
 #pragma omp parallel for private(i) default(none) schedule(static)
 #endif
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         const double dtfm = dtf / rmass[i];
         v[i].x += dtfm * f[i].x;
         v[i].y += dtfm * f[i].y;
@@ -63,7 +63,7 @@ void FixNVEOMP::initial_integrate(int vflag)
 #pragma omp parallel for private(i) default(none) schedule(static)
 #endif
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         const double dtfm = dtf / mass[type[i]];
         v[i].x += dtfm * f[i].x;
         v[i].y += dtfm * f[i].y;
@@ -83,7 +83,7 @@ void FixNVEOMP::final_integrate()
 
   dbl3_t * _noalias const v = (dbl3_t *) atom->v[0];
   const dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];
-  const int * const mask = atom->mask;
+  int ** mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
   int i;
 
@@ -93,7 +93,7 @@ void FixNVEOMP::final_integrate()
 #pragma omp parallel for private(i) default(none) schedule(static)
 #endif
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         const double dtfm = dtf / rmass[i];
         v[i].x += dtfm * f[i].x;
         v[i].y += dtfm * f[i].y;
@@ -107,7 +107,7 @@ void FixNVEOMP::final_integrate()
 #pragma omp parallel for private(i) default(none) schedule(static)
 #endif
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         const double dtfm = dtf / mass[type[i]];
         v[i].x += dtfm * f[i].x;
         v[i].y += dtfm * f[i].y;

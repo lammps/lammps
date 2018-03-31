@@ -49,11 +49,11 @@ void FixNHAsphere::init()
   // no point particles allowed, spherical is OK
 
   int *ellipsoid = atom->ellipsoid;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       if (ellipsoid[i] < 0)
         error->one(FLERR,"Fix nvt/nph/npt asphere requires extended particles");
 
@@ -72,14 +72,14 @@ void FixNHAsphere::nve_v()
 
   double **angmom = atom->angmom;
   double **torque = atom->torque;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   // update angular momentum by 1/2 step for all particles
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       angmom[i][0] += dtf*torque[i][0];
       angmom[i][1] += dtf*torque[i][1];
       angmom[i][2] += dtf*torque[i][2];
@@ -103,7 +103,7 @@ void FixNHAsphere::nve_x()
   int *ellipsoid = atom->ellipsoid;
   double **angmom = atom->angmom;
   double *rmass = atom->rmass;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
@@ -119,7 +119,7 @@ void FixNHAsphere::nve_x()
   double inertia[3];
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
 
       // principal moments of inertia
 
@@ -150,12 +150,12 @@ void FixNHAsphere::nh_v_temp()
   FixNH::nh_v_temp();
 
   double **angmom = atom->angmom;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       angmom[i][0] *= factor_eta;
       angmom[i][1] *= factor_eta;
       angmom[i][2] *= factor_eta;

@@ -53,11 +53,11 @@ void FixNVEAsphereNoforce::init()
   // no point particles allowed, spherical is OK
 
   int *ellipsoid = atom->ellipsoid;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       if (ellipsoid[i] < 0)
         error->one(FLERR,"Fix nve/asphere/noforce requires extended particles");
 }
@@ -73,7 +73,7 @@ void FixNVEAsphereNoforce::initial_integrate(int vflag)
   double **angmom = atom->angmom;
   double *rmass = atom->rmass;
   int *ellipsoid = atom->ellipsoid;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
@@ -83,7 +83,7 @@ void FixNVEAsphereNoforce::initial_integrate(int vflag)
   // update positions and quaternions for all particles
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
 
       x[i][0] += dtv * v[i][0];
       x[i][1] += dtv * v[i][1];

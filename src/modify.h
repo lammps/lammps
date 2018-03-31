@@ -103,8 +103,8 @@ class Modify : protected Pointers {
   int find_fix(const char *);
   int find_fix_by_style(const char *);
   int check_package(const char *);
-  int check_rigid_group_overlap(int);
-  int check_rigid_region_overlap(int, class Region *);
+  int check_rigid_group_overlap(int, int);
+  int check_rigid_region_overlap(int, int, class Region *);
   int check_rigid_list_overlap(int *);
 
   void add_compute(int, char **, int trysuffix=1);

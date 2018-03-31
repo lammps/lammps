@@ -58,15 +58,17 @@ int ImbalanceGroup::options(int narg, char **arg)
 
 void ImbalanceGroup::compute(double *weight)
 {
-  const int * const mask = atom->mask;
+  int ** mask = atom->mask;
   const int * const bitmask = group->bitmask;
   const int nlocal = atom->nlocal;
 
   if (num == 0) return;
 
+  int maskbin;
   for (int i = 0; i < nlocal; ++i) {
-    const int imask = mask[i];
     for (int j = 0; j < num; ++j) {
+      maskbin = floor((float)id[j]/(float)group->grp_per_bin);
+      const int imask = mask[i][maskbin];
       if (imask & bitmask[id[j]])
         weight[i] *= factor[j];
     }

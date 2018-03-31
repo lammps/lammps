@@ -124,12 +124,14 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Could not find fix poems group ID");
     }
 
-    int *mask = atom->mask;
+    int **mask = atom->mask;
 
+    int maskbin;
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit)
+      if (mask[i][groupbin] & groupbit)
         for (ibody = 0; ibody < nbody; ibody++)
-          if (mask[i] & group->bitmask[igroups[ibody]]) {
+          maskbin = floor((float)igroups[ibody]/(float)group->grp_per_bin);
+          if (mask[i][maskbin] & group->bitmask[igroups[ibody]]) {
             if (natom2body[i] < MAXBODY) atom2body[i][natom2body[i]] = ibody;
             natom2body[i]++;
           }
@@ -145,9 +147,9 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
 
     readfile(arg[4]);
 
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     for (int i = 0; i < nlocal; i++)
-      if (!(mask[i] & groupbit)) natom2body[i] = 0;
+      if (!(mask[i][groupbin] & groupbit)) natom2body[i] = 0;
 
   // each molecule in fix group is a rigid body
   // maxmol = largest molecule ID
@@ -161,13 +163,13 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR,
                  "Must use a molecular atom style with fix poems molecule");
 
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     tagint *molecule = atom->molecule;
     int nlocal = atom->nlocal;
 
     tagint maxmol_tag = -1;
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) maxmol_tag = MAX(maxmol_tag,molecule[i]);
+      if (mask[i][groupbin] & groupbit) maxmol_tag = MAX(maxmol_tag,molecule[i]);
 
     tagint itmp;
     MPI_Allreduce(&maxmol_tag,&itmp,1,MPI_LMP_TAGINT,MPI_MAX,world);
@@ -180,7 +182,7 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
     for (i = 0; i <= maxmol; i++) ncount[i] = 0;
 
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) ncount[molecule[i]]++;
+      if (mask[i][groupbin] & groupbit) ncount[molecule[i]]++;
 
     int *nall;
     memory->create(nall,maxmol+1,"rigid:ncount");
@@ -193,7 +195,7 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
 
     for (i = 0; i < nlocal; i++) {
       natom2body[i] = 0;
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         natom2body[i] = 1;
         atom2body[i][0] = nall[molecule[i]];
       }
@@ -850,18 +852,19 @@ void FixPOEMS::pre_neighbor() {}
 int FixPOEMS::dof(int igroup)
 {
   int groupbit = group->bitmask[igroup];
+  int groupbin = floor((float)igroup/(float)group->grp_per_bin);
 
   // ncount = # of atoms in each rigid body that are also in group
   // only count joint atoms as part of first body
 
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   int *ncount = new int[nbody];
   for (int ibody = 0; ibody < nbody; ibody++) ncount[ibody] = 0;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       if (natom2body[i]) ncount[atom2body[i][0]]++;
 
   int *nall = new int[nbody];
@@ -877,7 +880,7 @@ int FixPOEMS::dof(int igroup)
 
   int m = 0;
   for (int i = 0; i < nlocal; i++)
-    if (natom2body[i] > 1 && (mask[i] & groupbit)) m += 3*(natom2body[i]-1);
+    if (natom2body[i] > 1 && (mask[i][groupbin] & groupbit)) m += 3*(natom2body[i]-1);
   int mall;
   MPI_Allreduce(&m,&mall,1,MPI_INT,MPI_SUM,world);
   n += mall;

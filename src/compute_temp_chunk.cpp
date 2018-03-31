@@ -221,7 +221,7 @@ double ComputeTempChunk::compute_scalar()
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double t = 0.0;
@@ -230,7 +230,7 @@ double ComputeTempChunk::compute_scalar()
   if (!comflag) {
     if (rmass) {
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           index = ichunk[i]-1;
           if (index < 0) continue;
           t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) *
@@ -239,7 +239,7 @@ double ComputeTempChunk::compute_scalar()
         }
     } else {
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           index = ichunk[i]-1;
           if (index < 0) continue;
           t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) *
@@ -252,7 +252,7 @@ double ComputeTempChunk::compute_scalar()
     double vx,vy,vz;
     if (rmass) {
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           index = ichunk[i]-1;
           if (index < 0) continue;
           vx = v[i][0] - vcmall[index][0];
@@ -263,7 +263,7 @@ double ComputeTempChunk::compute_scalar()
         }
     } else {
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           index = ichunk[i]-1;
           if (index < 0) continue;
           vx = v[i][0] - vcmall[index][0];
@@ -333,7 +333,7 @@ void ComputeTempChunk::compute_vector()
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double massone,t[6];
@@ -341,7 +341,7 @@ void ComputeTempChunk::compute_vector()
 
   if (!comflag) {
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         index = ichunk[i]-1;
         if (index < 0) continue;
         if (rmass) massone = rmass[i];
@@ -356,7 +356,7 @@ void ComputeTempChunk::compute_vector()
   } else {
     double vx,vy,vz;
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         index = ichunk[i]-1;
         if (index < 0) continue;
         if (rmass) massone = rmass[i];
@@ -447,14 +447,14 @@ void ComputeTempChunk::vcm_compute()
   }
 
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
 
   for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       index = ichunk[i]-1;
       if (index < 0) continue;
       if (rmass) massone = rmass[i];
@@ -500,14 +500,14 @@ void ComputeTempChunk::temperature(int icol)
   double **v = atom->v;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
   if (!comflag) {
     if (rmass) {
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           index = ichunk[i]-1;
           if (index < 0) continue;
           sum[index] += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) *
@@ -516,7 +516,7 @@ void ComputeTempChunk::temperature(int icol)
         }
     } else {
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           index = ichunk[i]-1;
           if (index < 0) continue;
           sum[index] += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) *
@@ -529,7 +529,7 @@ void ComputeTempChunk::temperature(int icol)
     double vx,vy,vz;
     if (rmass) {
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           index = ichunk[i]-1;
           if (index < 0) continue;
           vx = v[i][0] - vcmall[index][0];
@@ -540,7 +540,7 @@ void ComputeTempChunk::temperature(int icol)
         }
     } else {
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           index = ichunk[i]-1;
           if (index < 0) continue;
           vx = v[i][0] - vcmall[index][0];
@@ -588,14 +588,14 @@ void ComputeTempChunk::kecom(int icol)
 
   double *mass = atom->mass;
   double *rmass = atom->rmass;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
   double vx,vy,vz;
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         index = ichunk[i]-1;
         if (index < 0) continue;
         vx = vcmall[index][0];
@@ -605,7 +605,7 @@ void ComputeTempChunk::kecom(int icol)
       }
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         index = ichunk[i]-1;
         if (index < 0) continue;
         vx = vcmall[index][0];
@@ -644,14 +644,14 @@ void ComputeTempChunk::internal(int icol)
   double **v = atom->v;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
   double vx,vy,vz;
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         index = ichunk[i]-1;
         if (index < 0) continue;
         vx = v[i][0] - vcmall[index][0];
@@ -661,7 +661,7 @@ void ComputeTempChunk::internal(int icol)
       }
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         index = ichunk[i]-1;
         if (index < 0) continue;
         vx = v[i][0] - vcmall[index][0];
@@ -707,11 +707,11 @@ void ComputeTempChunk::remove_bias_all()
   int *ichunk = cchunk->ichunk;
 
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       index = ichunk[i]-1;
       if (index < 0) continue;
       v[i][0] -= vcmall[index][0];
@@ -745,11 +745,11 @@ void ComputeTempChunk::restore_bias_all()
   int *ichunk = cchunk->ichunk;
 
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       index = ichunk[i]-1;
       if (index < 0) continue;
       v[i][0] += vcmall[index][0];

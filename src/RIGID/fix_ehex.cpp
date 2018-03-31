@@ -413,7 +413,7 @@ bool FixEHEX::check_cluster(tagint *shake_atom, int n, Region * region) {
   double * rmass = atom->rmass;
   double * mass  = atom->mass;
   int    * type  = atom->type;
-  int    * mask  = atom->mask;
+  int   ** mask  = atom->mask;
   double   xcom[3], xtemp[3];
   double   mcluster, mi;
   bool     stat;
@@ -435,7 +435,7 @@ bool FixEHEX::check_cluster(tagint *shake_atom, int n, Region * region) {
 
     // check if all sites of the cluster belong to the correct group
 
-    stat = stat && (mask[lid[i]] & groupbit);
+    stat = stat && (mask[lid[i]][groupbin] & groupbit);
 
     if (region && stat)  {
 
@@ -496,7 +496,7 @@ bool FixEHEX::rescale_atom(int i, Region*region) {
 
   // check mask and group
 
-  stat = (atom->mask[i] & groupbit);
+  stat = (atom->mask[i][groupbin] & groupbit);
 
   if (region) {
 
@@ -619,4 +619,3 @@ void FixEHEX::com_properties(double * vr, double * sfr, double *sfvr, double *K,
 
    *sfvr =  buf[8] - (vr[0]*sfr[0] + vr[1]*sfr[1] + vr[2]*sfr[2]);
 }
-

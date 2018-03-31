@@ -230,7 +230,7 @@ void ComputeSNADAtom::compute_peratom()
   // use full neighbor list to count atoms less than cutoff
 
   double** const x = atom->x;
-  const int* const mask = atom->mask;
+  int** const mask = atom->mask;
 
 #if defined(_OPENMP)
 #pragma omp parallel for default(none)
@@ -238,7 +238,7 @@ void ComputeSNADAtom::compute_peratom()
   for (int ii = 0; ii < inum; ii++) {
     const int tid = omp_get_thread_num();
     const int i = ilist[ii];
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
 
       const double xtmp = x[i][0];
       const double ytmp = x[i][1];

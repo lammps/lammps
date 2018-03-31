@@ -168,7 +168,7 @@ void FixAddTorque::post_force(int vflag)
 {
   double **x = atom->x;
   double **f = atom->f;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   imageint *image = atom->image;
   double *mass = atom->mass;
@@ -205,7 +205,7 @@ void FixAddTorque::post_force(int vflag)
 
   tlocal[0] = tlocal[1] = tlocal[2] = 0.0;
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       domain->unmap(x[i],image[i],unwrap);
       dx = unwrap[0] - xcm[0];
       dy = unwrap[1] - xcm[1];
@@ -225,7 +225,7 @@ void FixAddTorque::post_force(int vflag)
   group->omega(tcm,inertia,domegadt);
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       domain->unmap(x[i],image[i],unwrap);
       dx = unwrap[0] - xcm[0];
       dy = unwrap[1] - xcm[1];

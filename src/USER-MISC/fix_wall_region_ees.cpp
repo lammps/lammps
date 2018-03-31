@@ -104,11 +104,11 @@ void FixWallRegionEES::init()
   // no point particles allowed, spherical is OK
 
   int *ellipsoid = atom->ellipsoid;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       if (ellipsoid[i] < 0)
         error->one(FLERR,"Fix wall/region/ees requires extended particles");
 
@@ -167,7 +167,7 @@ void FixWallRegionEES::post_force(int vflag)
   AtomVecEllipsoid::Bonus *bonus = avec->bonus;
   int *ellipsoid = atom->ellipsoid;
 
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   Region *region = domain->regions[iregion];
@@ -180,7 +180,7 @@ void FixWallRegionEES::post_force(int vflag)
   // in COLLOID case, r <= radius is an error
 
   for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       if (!region->match(x[i][0],x[i][1],x[i][2])) {
         onflag = 1;
         continue;

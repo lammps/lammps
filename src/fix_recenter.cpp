@@ -67,6 +67,7 @@ FixRecenter::FixRecenter(LAMMPS *lmp, int narg, char **arg) :
   // optional args
 
   group2bit = groupbit;
+  group2bin = groupbin;
   scaleflag = LATTICE;
 
   int iarg = 6;
@@ -75,6 +76,7 @@ FixRecenter::FixRecenter(LAMMPS *lmp, int narg, char **arg) :
       int igroup2 = group->find(arg[iarg+1]);
       if (igroup2 < 0) error->all(FLERR,"Could not find fix recenter group ID");
       group2bit = group->bitmask[igroup2];
+      group2bin = floor((float)igroup2/(float)group->grp_per_bin);
       iarg += 2;
     } else if (strcmp(arg[iarg],"units") == 0) {
       if (strcmp(arg[iarg+1],"box") == 0) scaleflag = BOX;
@@ -193,7 +195,7 @@ void FixRecenter::initial_integrate(int vflag)
   // shift coords by difference between actual COM and requested COM
 
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   shift[0] = xflag ? (xtarget - xcm[0]) : 0.0;
@@ -202,7 +204,7 @@ void FixRecenter::initial_integrate(int vflag)
   distance = sqrt(shift[0]*shift[0] + shift[1]*shift[1] + shift[2]*shift[2]);
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & group2bit) {
+    if (mask[i][group2bin] & group2bit) {
       x[i][0] += shift[0];
       x[i][1] += shift[1];
       x[i][2] += shift[2];

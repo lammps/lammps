@@ -129,6 +129,7 @@ class FixRigid : public Fix {
 
   int allremap;              // remap all atoms
   int dilate_group_bit;      // mask for dilation group
+  int dilate_group_bin;      // mask bin for dilation group
   char *id_dilate;           // group name to dilate
 
   class RanMars *random;

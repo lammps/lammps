@@ -512,7 +512,7 @@ void FixReaxCSpecies::FindMolecule ()
 {
   int i,j,ii,jj,inum,itype,jtype,loop,looptot;
   int change,done,anychange;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *ilist;
   double bo_tmp,bo_cut;
   double **spec_atom = f_SPECBOND->array_atom;
@@ -522,7 +522,7 @@ void FixReaxCSpecies::FindMolecule ()
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       clusterID[i] = atom->tag[i];
       x0[i].x = spec_atom[i][1];
       x0[i].y = spec_atom[i][2];
@@ -542,7 +542,7 @@ void FixReaxCSpecies::FindMolecule ()
 
       for (ii = 0; ii < inum; ii++) {
         i = ilist[ii];
-        if (!(mask[i] & groupbit)) continue;
+        if (!(mask[i][groupbin] & groupbit)) continue;
 
         itype = atom->type[i];
 
@@ -550,7 +550,7 @@ void FixReaxCSpecies::FindMolecule ()
           j = reaxc->tmpid[i][jj];
 
           if ((j == 0) || (j < i)) continue;
-          if (!(mask[j] & groupbit)) continue;
+          if (!(mask[j][groupbin] & groupbit)) continue;
 
           if (clusterID[i] == clusterID[j]
               && x0[i].x == x0[j].x
@@ -588,12 +588,12 @@ void FixReaxCSpecies::SortMolecule(int &Nmole)
   molmap = NULL;
 
   int n, idlo, idhi;
-  int *mask =atom->mask;
+  int **mask =atom->mask;
   int lo = ntotal;
   int hi = -ntotal;
   int flag = 0;
   for (n = 0; n < nlocal; n++) {
-    if (!(mask[n] & groupbit)) continue;
+    if (!(mask[n][groupbin] & groupbit)) continue;
     if (clusterID[n] == 0.0) flag = 1;
     lo = MIN(lo,nint(clusterID[n]));
     hi = MAX(hi,nint(clusterID[n]));
@@ -615,7 +615,7 @@ void FixReaxCSpecies::SortMolecule(int &Nmole)
   for (n = 0; n < nlen; n++) molmap[n] = 0;
 
   for (n = 0; n < nlocal; n++) {
-    if (!(mask[n] & groupbit)) continue;
+    if (!(mask[n][groupbin] & groupbit)) continue;
     molmap[nint(clusterID[n])-idlo] = 1;
   }
 
@@ -632,7 +632,7 @@ void FixReaxCSpecies::SortMolecule(int &Nmole)
 
   flag = 0;
   for (n = 0; n < nlocal; n++) {
-    if (mask[n] & groupbit) continue;
+    if (mask[n][groupbin] & groupbit) continue;
     if (nint(clusterID[n]) < idlo || nint(clusterID[n]) > idhi) continue;
     if (molmap[nint(clusterID[n])-idlo] >= 0) flag = 1;
   }
@@ -642,7 +642,7 @@ void FixReaxCSpecies::SortMolecule(int &Nmole)
     error->warning(FLERR,"One or more cluster has atoms not in group");
 
   for (n = 0; n < nlocal; n++) {
-    if (!(mask[n] & groupbit)) continue;
+    if (!(mask[n][groupbin] & groupbit)) continue;
     clusterID[n] = molmap[nint(clusterID[n])-idlo] + 1;
   }
 
@@ -658,7 +658,7 @@ void FixReaxCSpecies::FindSpecies(int Nmole, int &Nspec)
   int k, l, m, n, itype, cid;
   int flag_identity, flag_mol, flag_spec;
   int flag_tmp;
-  int *mask =atom->mask;
+  int **mask =atom->mask;
   int *Nameall, *NMolall;
 
   memory->destroy(MolName);
@@ -677,7 +677,7 @@ void FixReaxCSpecies::FindSpecies(int Nmole, int &Nspec)
   for (m = 1, Nspec = 0; m <= Nmole; m ++) {
     for (n = 0; n < ntypes; n ++) Name[n] = 0;
     for (n = 0, flag_mol = 0; n < nlocal; n ++) {
-      if (!(mask[n] & groupbit)) continue;
+      if (!(mask[n][groupbin] & groupbit)) continue;
       cid = nint(clusterID[n]);
       if (cid == m) {
         itype = atom->type[n]-1;
@@ -813,7 +813,7 @@ void FixReaxCSpecies::WritePos(int Nmole, int Nspec)
   int i, itype, cid;
   int count, count_tmp, m, n, k;
   int *Nameall;
-  int *mask =atom->mask;
+  int **mask =atom->mask;
   double avq, avq_tmp, avx[3], avx_tmp, box[3], halfbox[3];
   double **spec_atom = f_SPECBOND->array_atom;
 
@@ -850,7 +850,7 @@ void FixReaxCSpecies::WritePos(int Nmole, int Nspec)
       Name[n] = 0;
 
     for (i = 0; i < nlocal; i ++) {
-      if (!(mask[i] & groupbit)) continue;
+      if (!(mask[i][groupbin] & groupbit)) continue;
       cid = nint(clusterID[i]);
       if (cid == m) {
         itype = atom->type[i]-1;

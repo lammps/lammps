@@ -74,13 +74,13 @@ void FixNVE::initial_integrate(int vflag)
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         dtfm = dtf / rmass[i];
         v[i][0] += dtfm * f[i][0];
         v[i][1] += dtfm * f[i][1];
@@ -92,7 +92,7 @@ void FixNVE::initial_integrate(int vflag)
 
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         dtfm = dtf / mass[type[i]];
         v[i][0] += dtfm * f[i][0];
         v[i][1] += dtfm * f[i][1];
@@ -117,13 +117,13 @@ void FixNVE::final_integrate()
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         dtfm = dtf / rmass[i];
         v[i][0] += dtfm * f[i][0];
         v[i][1] += dtfm * f[i][1];
@@ -132,7 +132,7 @@ void FixNVE::final_integrate()
 
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         dtfm = dtf / mass[type[i]];
         v[i][0] += dtfm * f[i][0];
         v[i][1] += dtfm * f[i][1];

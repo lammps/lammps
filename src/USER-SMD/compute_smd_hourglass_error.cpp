@@ -90,11 +90,11 @@ void ComputeSMDHourglassError::compute_peratom() {
                 error->all(FLERR, "compute smd/hourglass_error failed to access hourglass_error array");
         }
 
-        int *mask = atom->mask;
+        int **mask = atom->mask;
         int nlocal = atom->nlocal;
 
         for (int i = 0; i < nlocal; i++) {
-                if (mask[i] & groupbit) {
+                if (mask[i][groupbin] & groupbit) {
                         hourglass_error_vector[i] = hourglass_error[i];
                 } else {
                         hourglass_error_vector[i] = 0.0;

@@ -40,7 +40,7 @@ class ComputePEMolTally : public Compute {
 
  private:
   bigint did_setup;
-  int igroup2,groupbit2;
+  int igroup2,groupbit2,groupbin2;
   double etotal[4];
 };
 

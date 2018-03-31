@@ -23,6 +23,8 @@ namespace LAMMPS_NS {
 class Group : protected Pointers {
  public:
   int ngroup;                  // # of defined groups
+  int max_group;               // max number of groups
+  int grp_per_bin;             // groups per bin
   char **names;                // name of each group
   int *bitmask;                // one-bit mask for each group
   int *inversemask;            // inverse mask for each group
@@ -68,12 +70,12 @@ class Group : protected Pointers {
   std::map<tagint,int> *hash;
 
   int find_unused();
-  void add_molecules(int, int);
+  void add_molecules(int, int, int);
 
   // callback functions for ring communication
 
   static void molring(int, char *, void *);
-  int molbit;
+  int molbit,molbin;
 };
 
 }

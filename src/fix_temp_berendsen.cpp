@@ -128,7 +128,7 @@ void FixTempBerendsen::init()
     error->all(FLERR,"Temperature ID for fix temp/berendsen does not exist");
   temperature = modify->compute[icompute];
 
-  if (modify->check_rigid_group_overlap(groupbit))
+  if (modify->check_rigid_group_overlap(groupbit,groupbin))
     error->warning(FLERR,"Cannot thermostat atoms in rigid bodies");
 
   if (temperature->tempbias) which = BIAS;
@@ -177,12 +177,12 @@ void FixTempBerendsen::end_of_step()
   energy += t_current * (1.0-lamda*lamda) * efactor;
 
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   if (which == NOBIAS) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         v[i][0] *= lamda;
         v[i][1] *= lamda;
         v[i][2] *= lamda;
@@ -190,7 +190,7 @@ void FixTempBerendsen::end_of_step()
     }
   } else {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         temperature->remove_bias(i,v[i]);
         v[i][0] *= lamda;
         v[i][1] *= lamda;

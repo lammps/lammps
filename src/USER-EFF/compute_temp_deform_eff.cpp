@@ -108,12 +108,12 @@ void ComputeTempDeformEff::dof_compute()
   // just include nuclear dof
 
   int *spin = atom->spin;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   int one = 0;
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       if (abs(spin[i]) == 1) one++;
     }
   int nelectrons;
@@ -141,7 +141,7 @@ double ComputeTempDeformEff::compute_scalar()
   double *mass = atom->mass;
   int *spin = atom->spin;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   double mefactor = domain->dimension/4.0;
 
@@ -155,7 +155,7 @@ double ComputeTempDeformEff::compute_scalar()
   double t = 0.0;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       domain->x2lamda(x[i],lamda);
       vstream[0] = h_rate[0]*lamda[0] + h_rate[5]*lamda[1] +
         h_rate[4]*lamda[2] + h_ratelo[0];
@@ -194,7 +194,7 @@ void ComputeTempDeformEff::compute_vector()
   double *mass = atom->mass;
   int *spin = atom->spin;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   double mefactor = domain->dimension/4.0;
 
@@ -205,7 +205,7 @@ void ComputeTempDeformEff::compute_vector()
   for (int i = 0; i < 6; i++) t[i] = 0.0;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       domain->x2lamda(x[i],lamda);
       vstream[0] = h_rate[0]*lamda[0] + h_rate[5]*lamda[1] +
         h_rate[4]*lamda[2] + h_ratelo[0];
@@ -261,7 +261,7 @@ void ComputeTempDeformEff::remove_bias(int i, double *v)
 void ComputeTempDeformEff::remove_bias_all()
 {
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   if (atom->nmax > maxbias) {
@@ -275,7 +275,7 @@ void ComputeTempDeformEff::remove_bias_all()
   double *h_ratelo = domain->h_ratelo;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       domain->x2lamda(atom->x[i],lamda);
       vbiasall[i][0] = h_rate[0]*lamda[0] + h_rate[5]*lamda[1] +
         h_rate[4]*lamda[2] + h_ratelo[0];
@@ -307,11 +307,11 @@ void ComputeTempDeformEff::restore_bias(int i, double *v)
 void ComputeTempDeformEff::restore_bias_all()
 {
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       v[i][0] += vbiasall[i][0];
       v[i][1] += vbiasall[i][1];
       v[i][2] += vbiasall[i][2];

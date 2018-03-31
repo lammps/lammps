@@ -49,11 +49,11 @@ void FixNVEDot::init()
   // no point particles allowed, spherical is OK
 
   int *ellipsoid = atom->ellipsoid;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       if (ellipsoid[i] < 0)
         error->one(FLERR,"Fix nve/dot requires extended particles");
 
@@ -75,7 +75,7 @@ void FixNVEDot::initial_integrate(int vflag)
   double **angmom = atom->angmom;
   double **torque = atom->torque;
   double *rmass = atom->rmass;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
@@ -85,7 +85,7 @@ void FixNVEDot::initial_integrate(int vflag)
   dthlf = 0.5 * dt;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
 
       dthlfm = dthlf / rmass[i];
       quat = bonus[ellipsoid[i]].quat;
@@ -156,7 +156,7 @@ void FixNVEDot::final_integrate()
   double **angmom = atom->angmom;
   double **torque = atom->torque;
   double *rmass = atom->rmass;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
@@ -166,7 +166,7 @@ void FixNVEDot::final_integrate()
   dthlf = 0.5 * dt;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
 
       dthlfm = dthlf / rmass[i];
       quat = bonus[ellipsoid[i]].quat;

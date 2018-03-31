@@ -1663,13 +1663,14 @@ double PairComb::yasu_char(double *qf_fix, int &igroup)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int groupbit = group->bitmask[igroup];
+  int groupbin = floor((float)igroup/(float)group->grp_per_bin);
 
   qf = qf_fix;
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       qf[i] = 0.0;
   }
 
@@ -1689,7 +1690,7 @@ double PairComb::yasu_char(double *qf_fix, int &igroup)
     i = ilist[ii];
     itag = tag[i];
     nj = 0;
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       itype = map[type[i]];
       xtmp = x[i][0];
       ytmp = x[i][1];
@@ -1787,7 +1788,7 @@ double PairComb::yasu_char(double *qf_fix, int &igroup)
   double eneg = 0.0;
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       eneg += qf[i];
   }
   MPI_Allreduce(&eneg,&enegtot,1,MPI_DOUBLE,MPI_SUM,world);

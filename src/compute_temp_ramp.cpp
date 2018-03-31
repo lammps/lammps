@@ -146,12 +146,12 @@ double ComputeTempRamp::compute_scalar()
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double t = 0.0;
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       fraction = (x[i][coord_dim] - coord_lo) / (coord_hi - coord_lo);
       fraction = MAX(fraction,0.0);
       fraction = MIN(fraction,1.0);
@@ -190,14 +190,14 @@ void ComputeTempRamp::compute_vector()
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double massone,t[6];
   for (i = 0; i < 6; i++) t[i] = 0.0;
 
   for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       fraction = (x[i][coord_dim] - coord_lo) / (coord_hi - coord_lo);
       fraction = MAX(fraction,0.0);
       fraction = MIN(fraction,1.0);
@@ -254,7 +254,7 @@ void ComputeTempRamp::remove_bias_thr(int i, double *v, double *b)
 void ComputeTempRamp::remove_bias_all()
 {
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   if (atom->nmax > maxbias) {
@@ -265,7 +265,7 @@ void ComputeTempRamp::remove_bias_all()
 
   double fraction;
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       fraction = (atom->x[i][coord_dim] - coord_lo) / (coord_hi - coord_lo);
       fraction = MAX(fraction,0.0);
       fraction = MIN(fraction,1.0);
@@ -302,11 +302,11 @@ void ComputeTempRamp::restore_bias_thr(int i, double *v, double *b)
 void ComputeTempRamp::restore_bias_all()
 {
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       v[i][v_dim] += vbiasall[i][v_dim];
 }
 

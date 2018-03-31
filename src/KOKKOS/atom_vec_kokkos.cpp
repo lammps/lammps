@@ -389,7 +389,7 @@ int AtomVecKokkos::pack_comm_vel(int n, int *list, double *buf,
         buf[m++] = h_x(j,0) + dx;
         buf[m++] = h_x(j,1) + dy;
         buf[m++] = h_x(j,2) + dz;
-        if (atom->mask[i] & deform_groupbit) {
+        if (atom->mask[i][deform_groupbin] & deform_groupbit) {
           buf[m++] = h_v(j,0) + dvx;
           buf[m++] = h_v(j,1) + dvy;
           buf[m++] = h_v(j,2) + dvz;

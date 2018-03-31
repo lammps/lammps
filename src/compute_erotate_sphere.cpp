@@ -57,7 +57,7 @@ double ComputeERotateSphere::compute_scalar()
   double **omega = atom->omega;
   double *radius = atom->radius;
   double *rmass = atom->rmass;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   // sum rotational energy for each particle
@@ -65,7 +65,7 @@ double ComputeERotateSphere::compute_scalar()
 
   double erotate = 0.0;
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       erotate += (omega[i][0]*omega[i][0] + omega[i][1]*omega[i][1] +
                   omega[i][2]*omega[i][2]) * radius[i]*radius[i]*rmass[i];
 

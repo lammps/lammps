@@ -68,8 +68,11 @@ void NPairSSAKokkos<DeviceType>::copy_neighbor_info()
   k_ex2_group = neighborKK->k_ex2_group;
   k_ex1_bit = neighborKK->k_ex1_bit;
   k_ex2_bit = neighborKK->k_ex2_bit;
+  k_ex1_bin = neighborKK->k_ex1_bin;
+  k_ex2_bin = neighborKK->k_ex2_bin;
   k_ex_mol_group = neighborKK->k_ex_mol_group;
   k_ex_mol_bit = neighborKK->k_ex_mol_bit;
+  k_ex_mol_bin = neighborKK->k_ex_mol_bin;
   k_ex_mol_intra = neighborKK->k_ex_mol_intra;
 }
 
@@ -219,10 +222,10 @@ int NPairSSAKokkosExecute<DeviceType>::exclusion(const int &i,const int &j,
   if (nex_mol) {
     for (m = 0; m < nex_mol; m++)
       if (ex_mol_intra[m]) { // intra-chain: exclude i-j pair if on same molecule
-        if (mask[i] & ex_mol_bit[m] && mask[j] & ex_mol_bit[m] &&
+        if (mask[i][ex_mol_bin[m]] & ex_mol_bit[m] && mask[j][ex_mol_bin[m]] & ex_mol_bit[m] &&
             molecule[i] == molecule[j]) return 1;
       } else                 // exclude i-j pair if on different molecules
-        if (mask[i] & ex_mol_bit[m] && mask[j] & ex_mol_bit[m] &&
+        if (mask[i][ex_mol_bin[m]] & ex_mol_bit[m] && mask[j][ex_mol_bin[m]] & ex_mol_bit[m] &&
             molecule[i] != molecule[j]) return 1;
   }
 
@@ -420,9 +423,12 @@ fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inu
          k_ex2_group.view<DeviceType>(),
          k_ex1_bit.view<DeviceType>(),
          k_ex2_bit.view<DeviceType>(),
+         k_ex1_bin.view<DeviceType>(),
+         k_ex2_bin.view<DeviceType>(),
          nex_mol,
          k_ex_mol_group.view<DeviceType>(),
          k_ex_mol_bit.view<DeviceType>(),
+         k_ex_mol_bin.view<DeviceType>(),
          k_ex_mol_intra.view<DeviceType>(),
          bboxhi,bboxlo,
          domain->xperiodic,domain->yperiodic,domain->zperiodic,
@@ -436,8 +442,11 @@ fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inu
   k_ex2_group.sync<DeviceType>();
   k_ex1_bit.sync<DeviceType>();
   k_ex2_bit.sync<DeviceType>();
+  k_ex1_bin.sync<DeviceType>();
+  k_ex2_bin.sync<DeviceType>();
   k_ex_mol_group.sync<DeviceType>();
   k_ex_mol_bit.sync<DeviceType>();
+  k_ex_mol_bin.sync<DeviceType>();
   k_ex_mol_intra.sync<DeviceType>();
   k_bincount.sync<DeviceType>();
   k_bins.sync<DeviceType>();

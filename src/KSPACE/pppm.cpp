@@ -3112,7 +3112,7 @@ double PPPM::memory_usage()
    compute the PPPM total long-range force and energy for groups A and B
  ------------------------------------------------------------------------- */
 
-void PPPM::compute_group_group(int groupbit_A, int groupbit_B, int AA_flag)
+void PPPM::compute_group_group(int groupbit_A, int groupbin_A, int groupbit_B, int groupbin_B, int AA_flag)
 {
   if (slabflag && triclinic)
     error->all(FLERR,"Cannot (yet) use K-space slab "
@@ -3139,7 +3139,7 @@ void PPPM::compute_group_group(int groupbit_A, int groupbit_B, int AA_flag)
 
   // map my particle charge onto my local 3d density grid
 
-  make_rho_groups(groupbit_A,groupbit_B,AA_flag);
+  make_rho_groups(groupbit_A,groupbin_A,groupbit_B,groupbin_B,AA_flag);
 
   // all procs communicate density values from their ghost cells
   //   to fully sum contribution in their 3d bricks
@@ -3203,7 +3203,7 @@ void PPPM::compute_group_group(int groupbit_A, int groupbit_B, int AA_flag)
   if (triclinic) domain->lamda2x(atom->nlocal);
 
   if (slabflag == 1)
-    slabcorr_groups(groupbit_A, groupbit_B, AA_flag);
+    slabcorr_groups(groupbit_A, groupbin_A, groupbit_B, groupbin_B, AA_flag);
 }
 
 /* ----------------------------------------------------------------------
@@ -3243,7 +3243,7 @@ void PPPM::deallocate_groups()
  in global grid for group-group interactions
  ------------------------------------------------------------------------- */
 
-void PPPM::make_rho_groups(int groupbit_A, int groupbit_B, int AA_flag)
+void PPPM::make_rho_groups(int groupbit_A, int groupbin_A, int groupbit_B, int groupbin_B, int AA_flag)
 {
   int l,m,n,nx,ny,nz,mx,my,mz;
   FFT_SCALAR dx,dy,dz,x0,y0,z0;
@@ -3264,14 +3264,14 @@ void PPPM::make_rho_groups(int groupbit_A, int groupbit_B, int AA_flag)
   double *q = atom->q;
   double **x = atom->x;
   int nlocal = atom->nlocal;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
 
   for (int i = 0; i < nlocal; i++) {
 
-    if (!((mask[i] & groupbit_A) && (mask[i] & groupbit_B)))
+    if (!((mask[i][groupbin_A] & groupbit_A) && (mask[i][groupbin_B] & groupbit_B)))
       if (AA_flag) continue;
 
-    if ((mask[i] & groupbit_A) || (mask[i] & groupbit_B)) {
+    if ((mask[i][groupbin_A] & groupbit_A) || (mask[i][groupbin_B] & groupbit_B)) {
 
       nx = part2grid[i][0];
       ny = part2grid[i][1];
@@ -3294,12 +3294,12 @@ void PPPM::make_rho_groups(int groupbit_A, int groupbit_B, int AA_flag)
 
             // group A
 
-            if (mask[i] & groupbit_A)
+            if (mask[i][groupbin_A] & groupbit_A)
               density_A_brick[mz][my][mx] += x0*rho1d[0][l];
 
             // group B
 
-            if (mask[i] & groupbit_B)
+            if (mask[i][groupbin_B] & groupbit_B)
               density_B_brick[mz][my][mx] += x0*rho1d[0][l];
           }
         }
@@ -3466,14 +3466,14 @@ void PPPM::poisson_groups_triclinic()
    extended to non-neutral systems (J. Chem. Phys. 131, 094107).
 ------------------------------------------------------------------------- */
 
-void PPPM::slabcorr_groups(int groupbit_A, int groupbit_B, int AA_flag)
+void PPPM::slabcorr_groups(int groupbit_A, int groupbin_A, int groupbit_B, int groupbin_B, int AA_flag)
 {
   // compute local contribution to global dipole moment
 
   double *q = atom->q;
   double **x = atom->x;
   double zprd = domain->zprd;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double qsum_A = 0.0;
@@ -3484,16 +3484,16 @@ void PPPM::slabcorr_groups(int groupbit_A, int groupbit_B, int AA_flag)
   double dipole_r2_B = 0.0;
 
   for (int i = 0; i < nlocal; i++) {
-    if (!((mask[i] & groupbit_A) && (mask[i] & groupbit_B)))
+    if (!((mask[i][groupbin_A] & groupbit_A) && (mask[i][groupbin_B] & groupbit_B)))
       if (AA_flag) continue;
 
-    if (mask[i] & groupbit_A) {
+    if (mask[i][groupbin_A] & groupbit_A) {
       qsum_A += q[i];
       dipole_A += q[i]*x[i][2];
       dipole_r2_A += q[i]*x[i][2]*x[i][2];
     }
 
-    if (mask[i] & groupbit_B) {
+    if (mask[i][groupbin_B] & groupbit_B) {
       qsum_B += q[i];
       dipole_B += q[i]*x[i][2];
       dipole_r2_B += q[i]*x[i][2]*x[i][2];

@@ -60,9 +60,9 @@ class FixGCMC : public Fix {
   void grow_molecule_arrays(int);
 
  private:
-  int molecule_group,molecule_group_bit;
-  int molecule_group_inversebit;
-  int exclusion_group,exclusion_group_bit;
+  int molecule_group,molecule_group_bit,molecule_group_bin;
+  int molecule_group_inversebit,molecule_group_inversebin;
+  int exclusion_group,exclusion_group_bit,exclusion_group_bin;
   int ngcmc_type,nevery,seed;
   int ncycles,nexchanges,nmcmoves;
   double patomtrans, pmoltrans, pmolrotate, pmctot;
@@ -81,12 +81,13 @@ class FixGCMC : public Fix {
   int natoms_per_molecule;  // number of atoms in each inserted molecule
   int nmaxmolatoms;         // number of atoms allocated for molecule arrays
 
-  int groupbitall;          // group bitmask for inserted atoms
+  int* groupbitall;         // group bitmasks for inserted atoms
   int ngroups;              // number of group-ids for inserted atoms
   char** groupstrings;      // list of group-ids for inserted atoms
   int ngrouptypes;          // number of type-based group-ids for inserted atoms
   char** grouptypestrings;  // list of type-based group-ids for inserted atoms
   int* grouptypebits;       // list of type-based group bitmasks
+  int* grouptypebins;       // list of type-based group bitmasks
   int* grouptypes;          // list of type-based group types
   double ntranslation_attempts;
   double ntranslation_successes;

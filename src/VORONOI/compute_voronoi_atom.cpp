@@ -322,7 +322,7 @@ void ComputeVoronoi::buildCells()
   // initialize voro++ container
   // preallocates 8 atoms per cell
   // voro++ allocates more memory if needed
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   if (radstr) {
     // check and fetch atom style variable data
     int radvar = input->variable->find(radstr);
@@ -355,7 +355,7 @@ void ComputeVoronoi::buildCells()
 
     // pass coordinates for local and ghost atoms to voro++
     for (i = 0; i < nall; i++) {
-      if( !onlyGroup || (mask[i] & groupbit) )
+      if( !onlyGroup || (mask[i][groupbin] & groupbit) )
         con_poly->put(i,x[i][0],x[i][1],x[i][2],rfield[i]);
     }
   } else {
@@ -373,7 +373,7 @@ void ComputeVoronoi::buildCells()
 
     // pass coordinates for local and ghost atoms to voro++
     for (i = 0; i < nall; i++)
-      if( !onlyGroup || (mask[i] & groupbit) )
+      if( !onlyGroup || (mask[i][groupbin] & groupbit) )
         con_mono->put(i,x[i][0],x[i][1],x[i][2]);
   }
 }
@@ -491,7 +491,7 @@ void ComputeVoronoi::loopCells()
 ------------------------------------------------------------------------- */
 void ComputeVoronoi::processCell(voronoicell_neighbor &c, int i)
 {
-  int j,k, *mask = atom->mask;
+  int j,k, **mask = atom->mask;
   std::vector<int> neigh, norder, vlist;
   std::vector<double> narea, vcell;
   bool have_narea = false;
@@ -499,7 +499,7 @@ void ComputeVoronoi::processCell(voronoicell_neighbor &c, int i)
   // zero out surface area if surface computation was requested
   if (surface != VOROSURF_NONE && !onlyGroup) voro[i][2] = 0.0;
 
-  if (i < atom->nlocal && (mask[i] & groupbit)) {
+  if (i < atom->nlocal && (mask[i][groupbin] & groupbit)) {
     // cell volume
     voro[i][0] = c.volume();
 

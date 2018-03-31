@@ -245,7 +245,7 @@ void DumpAtom::pack_scale_image(tagint *ids)
   tagint *tag = atom->tag;
   int *type = atom->type;
   imageint *image = atom->image;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
@@ -255,7 +255,7 @@ void DumpAtom::pack_scale_image(tagint *ids)
 
   m = n = 00;
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       buf[m++] = tag[i];
       buf[m++] = type[i];
       buf[m++] = (x[i][0] - boxxlo) * invxprd;
@@ -276,7 +276,7 @@ void DumpAtom::pack_scale_noimage(tagint *ids)
 
   tagint *tag = atom->tag;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
@@ -286,7 +286,7 @@ void DumpAtom::pack_scale_noimage(tagint *ids)
 
   m = n = 0;
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       buf[m++] = tag[i];
       buf[m++] = type[i];
       buf[m++] = (x[i][0] - boxxlo) * invxprd;
@@ -305,7 +305,7 @@ void DumpAtom::pack_scale_image_triclinic(tagint *ids)
   tagint *tag = atom->tag;
   int *type = atom->type;
   imageint *image = atom->image;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
@@ -313,7 +313,7 @@ void DumpAtom::pack_scale_image_triclinic(tagint *ids)
 
   m = n = 0;
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       buf[m++] = tag[i];
       buf[m++] = type[i];
       domain->x2lamda(x[i],lamda);
@@ -335,7 +335,7 @@ void DumpAtom::pack_scale_noimage_triclinic(tagint *ids)
 
   tagint *tag = atom->tag;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
@@ -343,7 +343,7 @@ void DumpAtom::pack_scale_noimage_triclinic(tagint *ids)
 
   m = n = 0;
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       buf[m++] = tag[i];
       buf[m++] = type[i];
       domain->x2lamda(x[i],lamda);
@@ -363,13 +363,13 @@ void DumpAtom::pack_noscale_image(tagint *ids)
   tagint *tag = atom->tag;
   int *type = atom->type;
   imageint *image = atom->image;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
   m = n = 0;
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       buf[m++] = tag[i];
       buf[m++] = type[i];
       buf[m++] = x[i][0];
@@ -390,13 +390,13 @@ void DumpAtom::pack_noscale_noimage(tagint *ids)
 
   tagint *tag = atom->tag;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
   m = n = 0;
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       buf[m++] = tag[i];
       buf[m++] = type[i];
       buf[m++] = x[i][0];

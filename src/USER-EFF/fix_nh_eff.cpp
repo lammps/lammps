@@ -53,14 +53,14 @@ void FixNHEff::nve_v()
   int *spin = atom->spin;
   double mefactor = domain->dimension/4.0;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   double dtfm;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       if (abs(spin[i])==1) {
         dtfm = dtf / mass[type[i]];
         ervel[i] = dtfm * erforce[i] / mefactor;
@@ -82,12 +82,12 @@ void FixNHEff::nve_x()
   double *eradius = atom->eradius;
   double *ervel = atom->ervel;
   int *spin = atom->spin;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       if (abs(spin[i])==1) eradius[i] += dtv * ervel[i];
 }
 
@@ -103,11 +103,11 @@ void FixNHEff::nh_v_temp()
 
   double *ervel = atom->ervel;
   int *spin = atom->spin;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       if (abs(spin[i])==1) ervel[i] *= factor_eta;
 }

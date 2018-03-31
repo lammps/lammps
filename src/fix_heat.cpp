@@ -127,7 +127,7 @@ void FixHeat::init()
   }
 
   // check for rigid bodies in region (done here for performance reasons)
-  if (iregion >= 0 && modify->check_rigid_region_overlap(groupbit,domain->regions[iregion]))
+  if (iregion >= 0 && modify->check_rigid_region_overlap(groupbit,groupbin,domain->regions[iregion]))
     error->warning(FLERR,"Cannot apply fix heat to atoms in rigid bodies");
 
   // cannot have 0 atoms in group
@@ -149,7 +149,7 @@ void FixHeat::end_of_step()
 
   double **x = atom->x;
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   int *type = atom->type;
   double *mass = atom->mass;
@@ -210,14 +210,14 @@ void FixHeat::end_of_step()
 
     if (iregion < 0) {
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           v[i][0] = scale*v[i][0] - vsub[0];
           v[i][1] = scale*v[i][1] - vsub[1];
           v[i][2] = scale*v[i][2] - vsub[2];
         }
     } else {
       for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+        if (mask[i][groupbin] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
           v[i][0] = scale*v[i][0] - vsub[0];
           v[i][1] = scale*v[i][1] - vsub[1];
           v[i][2] = scale*v[i][2] - vsub[2];
@@ -233,7 +233,7 @@ void FixHeat::end_of_step()
     vsub[0] = vsub[1] = vsub[2] = 0.0;
     if (iregion < 0) {
       for (i = 0; i < nlocal; i++) {
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           heat = vheat[i]*nevery*update->dt*force->ftm2v;
           vscale[i] =
             (ke + heat - 0.5*vcmsq*masstotal)/(ke - 0.5*vcmsq*masstotal);
@@ -254,7 +254,7 @@ void FixHeat::end_of_step()
       vsub[2] /= masstotal;
 
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           scale = sqrt(vscale[i]);
           v[i][0] = scale*v[i][0] - vsub[0];
           v[i][1] = scale*v[i][1] - vsub[1];
@@ -263,7 +263,7 @@ void FixHeat::end_of_step()
 
     } else {
       for (i = 0; i < nlocal; i++) {
-        if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+        if (mask[i][groupbin] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
           heat = vheat[i]*nevery*update->dt*force->ftm2v;
           vscale[i] =
             (ke + heat - 0.5*vcmsq*masstotal)/(ke - 0.5*vcmsq*masstotal);
@@ -284,7 +284,7 @@ void FixHeat::end_of_step()
       vsub[2] /= masstotal;
 
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+        if (mask[i][groupbin] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
           scale = sqrt(vscale[i]);
           v[i][0] = scale*v[i][0] - vsub[0];
           v[i][1] = scale*v[i][1] - vsub[1];
@@ -302,12 +302,12 @@ double FixHeat::compute_scalar()
   if (hstyle == ATOM) {
     double scale_sum = 0.0;
     int ncount = 0;
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     double **x = atom->x;
     int nlocal = atom->nlocal;
     if (iregion < 0) {
       for (int i = 0; i < nlocal; i++) {
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           scale_sum += sqrt(vscale[i]);
           ncount++;
         }
@@ -316,7 +316,7 @@ double FixHeat::compute_scalar()
       Region *region = domain->regions[iregion];
       region->prematch();
       for (int i = 0; i < nlocal; i++) {
-        if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+        if (mask[i][groupbin] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
           scale_sum += sqrt(vscale[i]);
           ncount++;
         }

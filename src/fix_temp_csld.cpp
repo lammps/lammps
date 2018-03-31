@@ -155,7 +155,7 @@ void FixTempCSLD::init()
     error->all(FLERR,"Temperature ID for fix temp/csld does not exist");
   temperature = modify->compute[icompute];
 
-  if (modify->check_rigid_group_overlap(groupbit))
+  if (modify->check_rigid_group_overlap(groupbit,groupbin))
     error->warning(FLERR,"Cannot thermostat atoms in rigid bodies");
 
   if (temperature->tempbias) which = BIAS;
@@ -192,7 +192,7 @@ void FixTempCSLD::end_of_step()
   if (temperature->dof < 1) return;
 
   double * const * const v = atom->v;
-  const int * const mask = atom->mask;
+  int ** mask = atom->mask;
   const int * const type = atom->type;
   const int nlocal = atom->nlocal;
 
@@ -209,7 +209,7 @@ void FixTempCSLD::end_of_step()
   // see Bussi and Parrinello, Phys. Rev. E (2007).
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       double m;
       if (atom->rmass_flag) m = atom->rmass[i];
       else m = atom->mass[type[i]];
@@ -233,7 +233,7 @@ void FixTempCSLD::end_of_step()
 
   if (which == NOBIAS) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         v[i][0] = vhold[i][0]*c1 + v[i][0]*c2;
         v[i][1] = vhold[i][1]*c1 + v[i][1]*c2;
         v[i][2] = vhold[i][2]*c1 + v[i][2]*c2;
@@ -241,7 +241,7 @@ void FixTempCSLD::end_of_step()
     }
   } else {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         temperature->remove_bias(i,vhold[i]);
         v[i][0] = vhold[i][0]*c1 + v[i][0]*c2;
         v[i][1] = vhold[i][1]*c1 + v[i][1]*c2;

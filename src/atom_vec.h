@@ -113,14 +113,14 @@ class AtomVec : protected Pointers {
   void write_improper(FILE *, int, tagint **, int);
 
   virtual int property_atom(char *) {return -1;}
-  virtual void pack_property_atom(int, double *, int, int) {}
+  virtual void pack_property_atom(int, double *, int, int, int) {}
 
   virtual bigint memory_usage() = 0;
 
  protected:
   int nmax;                             // local copy of atom->nmax
   int deform_vremap;                    // local copy of domain properties
-  int deform_groupbit;
+  int deform_groupbit,deform_groupbin;
   double *h_rate;
 
   // union data struct for packing 32-bit and 64-bit ints into double bufs

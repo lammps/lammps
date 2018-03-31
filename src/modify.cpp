@@ -254,17 +254,18 @@ void Modify::init()
   // warn if any particle is time integrated more than once
 
   int nlocal = atom->nlocal;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
 
   int *flag = new int[nlocal];
   for (i = 0; i < nlocal; i++) flag[i] = 0;
 
-  int groupbit;
+  int groupbit,groupbin;
   for (i = 0; i < nfix; i++) {
     if (fix[i]->time_integrate == 0) continue;
     groupbit = fix[i]->groupbit;
+    groupbin = fix[i]->groupbin;
     for (j = 0; j < nlocal; j++)
-      if (mask[j] & groupbit) flag[j]++;
+      if (mask[j][groupbin] & groupbit) flag[j]++;
   }
 
   int check = 0;
@@ -1045,9 +1046,9 @@ int Modify::check_package(const char *package_fix_name)
    currently existing rigid fixes. return 1 in this case otherwise 0
 ------------------------------------------------------------------------- */
 
-int Modify::check_rigid_group_overlap(int groupbit)
+int Modify::check_rigid_group_overlap(int groupbit, int groupbin)
 {
-  const int * const mask = atom->mask;
+  int ** mask = atom->mask;
   const int nlocal = atom->nlocal;
   int dim;
 
@@ -1058,7 +1059,7 @@ int Modify::check_rigid_group_overlap(int groupbit)
       if ((body == NULL) || (dim != 1)) break;
 
       for (int i=0; (i < nlocal) && (n == 0); ++i)
-        if ((mask[i] & groupbit) && (body[i] >= 0)) ++n;
+        if ((mask[i][groupbin] & groupbit) && (body[i] >= 0)) ++n;
     }
   }
 
@@ -1075,9 +1076,9 @@ int Modify::check_rigid_group_overlap(int groupbit)
    return 1 in this case, otherwise 0
 ------------------------------------------------------------------------- */
 
-int Modify::check_rigid_region_overlap(int groupbit, Region *reg)
+int Modify::check_rigid_region_overlap(int groupbit, int groupbin, Region *reg)
 {
-  const int * const mask = atom->mask;
+  int ** mask = atom->mask;
   const double * const * const x = atom->x;
   const int nlocal = atom->nlocal;
   int dim;
@@ -1090,7 +1091,7 @@ int Modify::check_rigid_region_overlap(int groupbit, Region *reg)
       if ((body == NULL) || (dim != 1)) break;
 
       for (int i=0; (i < nlocal) && (n == 0); ++i)
-        if ((mask[i] & groupbit) && (body[i] >= 0)
+        if ((mask[i][groupbin] & groupbit) && (body[i] >= 0)
             && reg->match(x[i][0],x[i][1],x[i][2])) ++n;
     }
   }

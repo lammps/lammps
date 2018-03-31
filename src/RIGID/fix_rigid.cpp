@@ -115,12 +115,12 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
     iarg = 4;
     nbody = 1;
 
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
 
     for (i = 0; i < nlocal; i++) {
       body[i] = -1;
-      if (mask[i] & groupbit) body[i] = 0;
+      if (mask[i][groupbin] & groupbit) body[i] = 0;
     }
 
   // each molecule in fix group is a rigid body
@@ -132,7 +132,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   } else if (strcmp(arg[3],"molecule") == 0 || strcmp(arg[3],"custom") == 0) {
     rstyle = MOLECULE;
     tagint *molecule;
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
     int custom_flag = strcmp(arg[3],"custom") == 0;
     if (custom_flag) {
@@ -149,12 +149,12 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
         int minval = INT_MAX;
         int *value = atom->ivector[custom_index];
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit) minval = MIN(minval,value[i]);
+          if (mask[i][groupbin] & groupbit) minval = MIN(minval,value[i]);
         int vmin = minval;
         MPI_Allreduce(&vmin,&minval,1,MPI_INT,MPI_MIN,world);
         molecule = new tagint[nlocal];
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit)
+          if (mask[i][groupbin] & groupbit)
             molecule[i] = (tagint)(value[i] - minval + 1);
           else
             molecule[i] = 0;
@@ -169,12 +169,12 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
         input->variable->compute_atom(ivariable,0,value,1,0);
         int minval = INT_MAX;
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit) minval = MIN(minval,(int)value[i]);
+          if (mask[i][groupbin] & groupbit) minval = MIN(minval,(int)value[i]);
         int vmin = minval;
         MPI_Allreduce(&vmin,&minval,1,MPI_INT,MPI_MIN,world);
         molecule = new tagint[nlocal];
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit) molecule[i] = (tagint)((tagint)value[i] - minval + 1);
+          if (mask[i][groupbin] & groupbit) molecule[i] = (tagint)((tagint)value[i] - minval + 1);
         delete[] value;
       } else error->all(FLERR,"Unsupported fix rigid custom property");
     } else {
@@ -186,7 +186,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
     tagint maxmol_tag = -1;
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) maxmol_tag = MAX(maxmol_tag,molecule[i]);
+      if (mask[i][groupbin] & groupbit) maxmol_tag = MAX(maxmol_tag,molecule[i]);
 
     tagint itmp;
     MPI_Allreduce(&maxmol_tag,&itmp,1,MPI_LMP_TAGINT,MPI_MAX,world);
@@ -199,7 +199,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
     for (i = 0; i <= maxmol; i++) ncount[i] = 0;
 
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) ncount[molecule[i]]++;
+      if (mask[i][groupbin] & groupbit) ncount[molecule[i]]++;
 
     memory->create(mol2body,maxmol+1,"rigid:mol2body");
     MPI_Allreduce(ncount,mol2body,maxmol+1,MPI_INT,MPI_SUM,world);
@@ -217,7 +217,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
     for (i = 0; i < nlocal; i++) {
       body[i] = -1;
-      if (mask[i] & groupbit) body[i] = mol2body[molecule[i]];
+      if (mask[i][groupbin] & groupbit) body[i] = mol2body[molecule[i]];
     }
 
     memory->destroy(ncount);
@@ -243,15 +243,17 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Could not find fix rigid group ID");
     }
 
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
 
     int flag = 0;
+    int maskbin;
     for (i = 0; i < nlocal; i++) {
       body[i] = -1;
-      if (mask[i] & groupbit)
+      if (mask[i][groupbin] & groupbit)
         for (ibody = 0; ibody < nbody; ibody++)
-          if (mask[i] & group->bitmask[igroups[ibody]]) {
+          maskbin = floor((float)igroups[ibody]/(float)group->grp_per_bin);
+          if (mask[i][maskbin] & group->bitmask[igroups[ibody]]) {
             if (body[i] >= 0) flag = 1;
             body[i] = ibody;
           }
@@ -1190,12 +1192,13 @@ int FixRigid::dof(int tgroup)
   }
 
   int tgroupbit = group->bitmask[tgroup];
+  int tgroupbin = floor((float)tgroup/(float)group->grp_per_bin);
 
   // nall = # of point particles in each rigid body
   // mall = # of finite-size particles in each rigid body
   // particles must also be in temperature group
 
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   int *ncount = new int[nbody];
@@ -1204,7 +1207,7 @@ int FixRigid::dof(int tgroup)
     ncount[ibody] = mcount[ibody] = 0;
 
   for (int i = 0; i < nlocal; i++)
-    if (body[i] >= 0 && mask[i] & tgroupbit) {
+    if (body[i] >= 0 && mask[i][tgroupbin] & tgroupbit) {
       // do not count point particles or point dipoles as extended particles
       // a spheroid dipole will be counted as extended
       if (extended && (eflags[i] & ~(POINT | DIPOLE))) mcount[body[i]]++;

@@ -202,14 +202,15 @@ void NBinStandard::bin_atoms()
   // also puts ghost atoms at end of list, which is necessary
 
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
 
   if (includegroup) {
     int bitmask = group->bitmask[includegroup];
+    int maskbin = floor((float)includegroup/(float)group->grp_per_bin);
     for (i = nall-1; i >= nlocal; i--) {
-      if (mask[i] & bitmask) {
+      if (mask[i][maskbin] & bitmask) {
         ibin = coord2bin(x[i]);
         atom2bin[i] = ibin;
         bins[i] = binhead[ibin];

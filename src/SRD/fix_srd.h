@@ -41,7 +41,7 @@ class FixSRD : public Fix {
 
  private:
   int me,nprocs;
-  int bigexist,biggroup,biggroupbit;
+  int bigexist,biggroup,biggroupbit,biggroupbin;
   int collidestyle,lamdaflag,overlap,insideflag,exactflag,maxbounceallow;
   int cubicflag,shiftuser,shiftseed,shiftflag,tstat;
   int rescale_rotate,rescale_collide;

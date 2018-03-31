@@ -86,7 +86,7 @@ void ComputeDamageAtom::compute_peratom()
   // compute damage for each atom in group
 
   int nlocal = atom->nlocal;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   double *vfrac = atom->vfrac;
   double *vinter = ((FixPeriNeigh *) modify->fix[ifix_peri])->vinter;
   tagint **partner = ((FixPeriNeigh *) modify->fix[ifix_peri])->partner;
@@ -96,7 +96,7 @@ void ComputeDamageAtom::compute_peratom()
   double damage_temp;
 
   for (i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       jnum = npartner[i];
       damage_temp = 0.0;
       for (jj = 0; jj < jnum; jj++) {

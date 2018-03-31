@@ -122,7 +122,7 @@ int ComputeAngleLocal::compute_angles(int flag)
   tagint **angle_atom2 = atom->angle_atom2;
   tagint **angle_atom3 = atom->angle_atom3;
   int **angle_type = atom->angle_type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
 
   int *molindex = atom->molindex;
   int *molatom = atom->molatom;
@@ -147,7 +147,7 @@ int ComputeAngleLocal::compute_angles(int flag)
 
   m = n = 0;
   for (atom2 = 0; atom2 < nlocal; atom2++) {
-    if (!(mask[atom2] & groupbit)) continue;
+    if (!(mask[atom2][groupbin] & groupbit)) continue;
 
     if (molecular == 1) na = num_angle[atom2];
     else {
@@ -171,8 +171,8 @@ int ComputeAngleLocal::compute_angles(int flag)
         atom3 = atom->map(onemols[imol]->angle_atom3[atom2][i]+tagprev);
       }
 
-      if (atom1 < 0 || !(mask[atom1] & groupbit)) continue;
-      if (atom3 < 0 || !(mask[atom3] & groupbit)) continue;
+      if (atom1 < 0 || !(mask[atom1][groupbin] & groupbit)) continue;
+      if (atom3 < 0 || !(mask[atom3][groupbin] & groupbit)) continue;
       if (atype == 0) continue;
 
       if (flag) {

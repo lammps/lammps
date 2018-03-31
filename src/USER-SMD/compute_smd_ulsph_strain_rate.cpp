@@ -73,7 +73,7 @@ void ComputeSMDULSPHStrainRate::init() {
 
 void ComputeSMDULSPHStrainRate::compute_peratom() {
         invoked_peratom = update->ntimestep;
-        int *mask = atom->mask;
+        int **mask = atom->mask;
 
         // grow vector array if necessary
 
@@ -94,7 +94,7 @@ void ComputeSMDULSPHStrainRate::compute_peratom() {
         Matrix3d D;
 
         for (int i = 0; i < nlocal; i++) {
-                if (mask[i] & groupbit) {
+                if (mask[i][groupbin] & groupbit) {
                         D = 0.5 * (L[i] + L[i].transpose());
                         strain_rate_array[i][0] = D(0, 0); // xx
                         strain_rate_array[i][1] = D(1, 1); // yy

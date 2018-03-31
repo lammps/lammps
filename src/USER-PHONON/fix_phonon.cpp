@@ -326,7 +326,7 @@ void FixPhonon::end_of_step()
   if ( (update->ntimestep-prev_nstep) <= waitsteps) return;
 
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   tagint *tag = atom->tag;
   imageint *image = atom->image;
   int nlocal = atom->nlocal;
@@ -343,7 +343,7 @@ void FixPhonon::end_of_step()
   // evaluate R(r) on local proc
   nfind = 0;
   for (i = 0; i < nlocal; ++i){
-    if (mask[i] & groupbit){
+    if (mask[i][groupbin] & groupbit){
       itag = tag[i];
       idx  = tag2surf[itag];
 
@@ -464,7 +464,7 @@ int FixPhonon::modify_param(int narg, char **arg)
 void FixPhonon::getmass()
 {
   int nlocal = atom->nlocal;
-  int *mask  = atom->mask;
+  int **mask  = atom->mask;
   tagint *tag   = atom->tag;
   int *type  = atom->type;
   double *rmass = atom->rmass;
@@ -480,7 +480,7 @@ void FixPhonon::getmass()
 
   if (rmass){
     for (int i = 0; i < nlocal; ++i){
-      if (mask[i] & groupbit){
+      if (mask[i][groupbin] & groupbit){
         itag = tag[i];
         idx  = tag2surf[itag];
         int iu = idx%nucell;
@@ -490,7 +490,7 @@ void FixPhonon::getmass()
     }
   } else {
     for (int i = 0; i < nlocal; ++i){
-      if (mask[i] & groupbit){
+      if (mask[i][groupbin] & groupbit){
         itag = tag[i];
         idx  = tag2surf[itag];
         int iu = idx%nucell;
@@ -540,7 +540,7 @@ void FixPhonon::readmap()
     // get atom IDs on local proc
     int nfind = 0;
     for (int i = 0; i < atom->nlocal; ++i){
-      if (atom->mask[i] & groupbit) tag_loc[nfind++] = atom->tag[i];
+      if (atom->mask[i][groupbin] & groupbit) tag_loc[nfind++] = atom->tag[i];
     }
 
     // gather IDs on local proc
@@ -610,12 +610,12 @@ void FixPhonon::readmap()
   if (info) error->all(FLERR,"Error while reading mapping file!");
 
   // check the correctness of mapping
-  int *mask  = atom->mask;
+  int **mask  = atom->mask;
   tagint *tag   = atom->tag;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; ++i) {
-    if (mask[i] & groupbit){
+    if (mask[i][groupbin] & groupbit){
       itag = tag[i];
       idx  = tag2surf[itag];
       if (itag != surf2tag[idx])

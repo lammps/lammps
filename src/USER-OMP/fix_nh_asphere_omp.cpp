@@ -53,11 +53,11 @@ void FixNHAsphereOMP::init()
   // no point particles allowed, spherical is OK
 
   int *ellipsoid = atom->ellipsoid;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       if (ellipsoid[i] < 0)
         error->one(FLERR,"Fix nvt/nph/npt asphere requires extended particles");
 
@@ -86,7 +86,7 @@ void FixNHAsphereOMP::nve_v()
 #pragma omp parallel for default(none) private(i) schedule(static)
 #endif
   for (i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       const double dtfm = dtf / rmass[i];
       v[i].x += dtfm*f[i].x;
       v[i].y += dtfm*f[i].y;
@@ -127,7 +127,7 @@ void FixNHAsphereOMP::nve_x()
 #pragma omp parallel for default(none) private(i) schedule(static)
 #endif
   for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       double omega[3], inertia[3];
 
       x[i].x += dtv * v[i].x;
@@ -169,7 +169,7 @@ void FixNHAsphereOMP::nh_v_temp()
 #pragma omp parallel for default(none) private(i) schedule(static)
 #endif
     for (i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         v[i].x *= factor_eta;
         v[i].y *= factor_eta;
         v[i].z *= factor_eta;
@@ -184,7 +184,7 @@ void FixNHAsphereOMP::nh_v_temp()
 #endif
     for (i = 0; i < nlocal; i++) {
       double buf[3];
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         temperature->remove_bias_thr(i,&v[i].x,buf);
         v[i].x *= factor_eta;
         v[i].y *= factor_eta;

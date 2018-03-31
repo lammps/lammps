@@ -132,11 +132,11 @@ void ComputeClusterAtom::compute_peratom()
   // every atom starts in its own cluster, with clusterID = atomID
 
   tagint *tag = atom->tag;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (mask[i] & groupbit) clusterID[i] = tag[i];
+    if (mask[i][groupbin] & groupbit) clusterID[i] = tag[i];
     else clusterID[i] = 0;
   }
 
@@ -160,7 +160,7 @@ void ComputeClusterAtom::compute_peratom()
       done = 1;
       for (ii = 0; ii < inum; ii++) {
         i = ilist[ii];
-        if (!(mask[i] & groupbit)) continue;
+        if (!(mask[i][groupbin] & groupbit)) continue;
 
         xtmp = x[i][0];
         ytmp = x[i][1];
@@ -171,7 +171,7 @@ void ComputeClusterAtom::compute_peratom()
         for (jj = 0; jj < jnum; jj++) {
           j = jlist[jj];
           j &= NEIGHMASK;
-          if (!(mask[j] & groupbit)) continue;
+          if (!(mask[j][groupbin] & groupbit)) continue;
           if (clusterID[i] == clusterID[j]) continue;
 
           delx = xtmp - x[j][0];
@@ -209,10 +209,11 @@ int ComputeClusterAtom::pack_forward_comm(int n, int *list, double *buf,
       buf[m++] = clusterID[j];
     }
   } else {
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     for (i = 0; i < n; i++) {
       j = list[i];
-      buf[m++] = ubuf(mask[j]).d;
+      for (int k = 0; k < atom->ngroupbin; k++)
+        buf[m++] = ubuf(mask[j][k]).d;
     }
   }
 
@@ -230,8 +231,10 @@ void ComputeClusterAtom::unpack_forward_comm(int n, int first, double *buf)
   if (commflag)
     for (i = first; i < last; i++) clusterID[i] = buf[m++];
   else {
-    int *mask = atom->mask;
-    for (i = first; i < last; i++) mask[i] = (int) ubuf(buf[m++]).i;
+    int **mask = atom->mask;
+    for (i = first; i < last; i++)
+      for (int k = 0; k < atom->ngroupbin; k++)
+        mask[i][k] = (int) ubuf(buf[m++]).i;
   }
 }
 

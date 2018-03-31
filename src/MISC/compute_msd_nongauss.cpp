@@ -54,7 +54,7 @@ void ComputeMSDNonGauss::compute_vector()
   double **xoriginal = fix->astore;
 
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
@@ -71,7 +71,7 @@ void ComputeMSDNonGauss::compute_vector()
 
   if (domain->triclinic == 0) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         xbox = (image[i] & IMGMASK) - IMGMAX;
         ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
         zbox = (image[i] >> IMG2BITS) - IMGMAX;
@@ -84,7 +84,7 @@ void ComputeMSDNonGauss::compute_vector()
 
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         xbox = (image[i] & IMGMASK) - IMGMAX;
         ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
         zbox = (image[i] >> IMG2BITS) - IMGMAX;

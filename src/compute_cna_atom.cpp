@@ -148,7 +148,7 @@ void ComputeCNAAtom::compute_peratom()
   // since CNA calculation requires neighbors of neighbors
 
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   int nerror = 0;
@@ -197,7 +197,7 @@ void ComputeCNAAtom::compute_peratom()
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
 
-    if (!(mask[i] & groupbit)) {
+    if (!(mask[i][groupbin] & groupbit)) {
       pattern[i] = UNKNOWN;
       continue;
     }

@@ -1,0 +1,44 @@
+# massively grouped 2d soft melt
+# to be run with something like:
+# mpiexec lmp_mpi -ng 101 < in.melt > out.lammps 
+
+dimension       2
+units		lj
+atom_style	atomic
+
+lattice	        sq 1
+region		box block 0 10 0 10 -.5 .5
+create_box	1 box
+create_atoms	1 box
+mass		1 1.0
+
+velocity	all create 3.0 87287
+
+pair_style soft 1.0
+pair_coeff * * 10.0
+
+neighbor	0.3 bin
+neigh_modify	every 20 delay 0 check no
+
+include         define_groups
+include         define_springs
+fix		101 all nve
+fix             102 all temp/rescale 1 3.0 3.1 0.02 0.5
+
+#dump		id all atom 50 dump.melt
+
+dump id all xyz 1 test_vis.xyz
+
+#dump		2 all image 25 image.*.jpg type type &
+#		axes yes 0.8 0.02 view 60 -30
+#dump_modify	2 pad 3
+
+#dump		3 all movie 25 movie.mpg type type &
+#		axes yes 0.8 0.02 view 60 -30
+#dump_modify	3 pad 3
+
+thermo		50
+run		2000
+write_data data.lammps
+write_restart restart.lammps
+

@@ -60,7 +60,7 @@ class AtomVecDipole : public AtomVec {
 
  private:
   tagint *tag;
-  int *type,*mask;
+  int *type,**mask;
   imageint *image;
   double **x,**v,**f;
   double *q,**mu;

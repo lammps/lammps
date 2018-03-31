@@ -97,13 +97,13 @@ void ComputeSMDTLSPHstrain::compute_peratom() {
                 error->all(FLERR, "compute smd/tlsph_strain failed to access Fincr array");
         }
 
-        int *mask = atom->mask;
+        int **mask = atom->mask;
         int nlocal = atom->nlocal;
         Matrix3d E, eye, Ftotal, F0;
         eye.setIdentity();
 
         for (int i = 0; i < nlocal; i++) {
-                if (mask[i] & groupbit) {
+                if (mask[i][groupbin] & groupbit) {
 
                         // old deformation gradient
                         F0(0, 0) = defgrad0[i][0];

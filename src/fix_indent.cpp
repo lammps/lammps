@@ -214,13 +214,13 @@ void FixIndent::post_force(int vflag)
 
     double **x = atom->x;
     double **f = atom->f;
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
 
     double delx,dely,delz,r,dr,fmag,fx,fy,fz;
 
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         delx = x[i][0] - ctr[0];
         dely = x[i][1] - ctr[1];
         delz = x[i][2] - ctr[2];
@@ -282,13 +282,13 @@ void FixIndent::post_force(int vflag)
 
     double **x = atom->x;
     double **f = atom->f;
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
 
     double delx,dely,delz,r,dr,fmag,fx,fy,fz;
 
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         if (cdim == 0) {
           delx = 0;
           dely = x[i][1] - ctr[1];
@@ -336,13 +336,13 @@ void FixIndent::post_force(int vflag)
 
     double **x = atom->x;
     double **f = atom->f;
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
 
     double dr,fatom;
 
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         dr = planeside * (plane - x[i][cdim]);
         if (dr >= 0.0) continue;
         fatom = -planeside * k*dr*dr;

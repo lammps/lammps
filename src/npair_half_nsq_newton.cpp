@@ -36,14 +36,14 @@ NPairHalfNsqNewton::NPairHalfNsqNewton(LAMMPS *lmp) : NPair(lmp) {}
 
 void NPairHalfNsqNewton::build(NeighList *list)
 {
-  int i,j,n,itype,jtype,which,bitmask,imol,iatom,moltemplate;
+  int i,j,n,itype,jtype,which,bitmask,maskbin,imol,iatom,moltemplate;
   tagint itag,jtag,tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr;
 
   double **x = atom->x;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   tagint *tag = atom->tag;
   tagint *molecule = atom->molecule;
   tagint **special = atom->special;
@@ -53,6 +53,7 @@ void NPairHalfNsqNewton::build(NeighList *list)
   if (includegroup) {
     nlocal = atom->nfirst;
     bitmask = group->bitmask[includegroup];
+    maskbin = floor((float)includegroup/(float)group->grp_per_bin);
   }
 
   int *molindex = atom->molindex;
@@ -88,7 +89,7 @@ void NPairHalfNsqNewton::build(NeighList *list)
     // itag = jtag is possible for long cutoffs that include images of self
 
     for (j = i+1; j < nall; j++) {
-      if (includegroup && !(mask[j] & bitmask)) continue;
+      if (includegroup && !(mask[j][maskbin] & bitmask)) continue;
 
       if (j >= nlocal) {
         jtag = tag[j];

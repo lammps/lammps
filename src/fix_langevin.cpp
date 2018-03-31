@@ -236,11 +236,11 @@ void FixLangevin::init()
 
   if (oflag) {
     double *radius = atom->radius;
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
 
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
+      if (mask[i][groupbin] & groupbit)
         if (radius[i] == 0.0)
           error->one(FLERR,"Fix langevin omega requires extended particles");
   }
@@ -251,11 +251,11 @@ void FixLangevin::init()
       error->all(FLERR,"Fix langevin angmom requires atom style ellipsoid");
 
     int *ellipsoid = atom->ellipsoid;
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
 
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
+      if (mask[i][groupbin] & groupbit)
         if (ellipsoid[i] < 0)
           error->one(FLERR,"Fix langevin angmom requires extended particles");
   }
@@ -466,7 +466,7 @@ void FixLangevin::post_force_untemplated
   double **f = atom->f;
   double *rmass = atom->rmass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   // apply damping and thermostat to atoms in group
@@ -522,7 +522,7 @@ void FixLangevin::post_force_untemplated
   if (Tp_BIAS) temperature->compute_scalar();
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       if (Tp_TSTYLEATOM) tsqrt = sqrt(tforce[i]);
       if (Tp_RMASS) {
         gamma1 = -rmass[i] / t_period / ftm2v;
@@ -601,7 +601,7 @@ void FixLangevin::post_force_untemplated
     fsumall[1] /= count;
     fsumall[2] /= count;
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         f[i][0] -= fsumall[0];
         f[i][1] -= fsumall[1];
         f[i][2] -= fsumall[2];
@@ -621,7 +621,7 @@ void FixLangevin::post_force_untemplated
 
 void FixLangevin::compute_target()
 {
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double delta = update->ntimestep - update->beginstep;
@@ -648,7 +648,7 @@ void FixLangevin::compute_target()
       }
       input->variable->compute_atom(tvar,igroup,tforce,1,0);
       for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit)
+        if (mask[i][groupbin] & groupbit)
             if (tforce[i] < 0.0)
               error->one(FLERR,
                          "Fix langevin variable returned negative temperature");
@@ -674,7 +674,7 @@ void FixLangevin::omega_thermostat()
   double **omega = atom->omega;
   double *radius = atom->radius;
   double *rmass = atom->rmass;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
@@ -687,7 +687,7 @@ void FixLangevin::omega_thermostat()
   double inertiaone;
 
   for (int i = 0; i < nlocal; i++) {
-    if ((mask[i] & groupbit) && (radius[i] > 0.0)) {
+    if ((mask[i][groupbin] & groupbit) && (radius[i] > 0.0)) {
       inertiaone = SINERTIA*radius[i]*radius[i]*rmass[i];
       if (tstyle == ATOM) tsqrt = sqrt(tforce[i]);
       gamma1 = -tendivthree*inertiaone / t_period / ftm2v;
@@ -722,7 +722,7 @@ void FixLangevin::angmom_thermostat()
   double **angmom = atom->angmom;
   double *rmass = atom->rmass;
   int *ellipsoid = atom->ellipsoid;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
@@ -735,7 +735,7 @@ void FixLangevin::angmom_thermostat()
   double *shape,*quat;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       shape = bonus[ellipsoid[i]].shape;
       inertia[0] = EINERTIA*rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]);
       inertia[1] = EINERTIA*rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]);
@@ -767,13 +767,13 @@ void FixLangevin::end_of_step()
   if (!tallyflag) return;
 
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   energy_onestep = 0.0;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       energy_onestep += flangevin[i][0]*v[i][0] + flangevin[i][1]*v[i][1] +
         flangevin[i][2]*v[i][2];
 
@@ -836,13 +836,13 @@ double FixLangevin::compute_scalar()
   // capture the very first energy transfer to thermal reservoir
 
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   if (update->ntimestep == update->beginstep) {
     energy_onestep = 0.0;
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
+      if (mask[i][groupbin] & groupbit)
         energy_onestep += flangevin[i][0]*v[i][0] + flangevin[i][1]*v[i][1] +
           flangevin[i][2]*v[i][2];
     energy = 0.5*energy_onestep*update->dt;

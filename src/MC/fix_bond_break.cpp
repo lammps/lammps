@@ -219,7 +219,7 @@ void FixBondBreak::post_integrate()
 
   double **x = atom->x;
   tagint *tag = atom->tag;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int **bondlist = neighbor->bondlist;
   int nbondlist = neighbor->nbondlist;
 
@@ -227,8 +227,8 @@ void FixBondBreak::post_integrate()
     i1 = bondlist[n][0];
     i2 = bondlist[n][1];
     type = bondlist[n][2];
-    if (!(mask[i1] & groupbit)) continue;
-    if (!(mask[i2] & groupbit)) continue;
+    if (!(mask[i1][groupbin] & groupbit)) continue;
+    if (!(mask[i2][groupbin] & groupbit)) continue;
     if (type != btype) continue;
 
     delx = x[i1][0] - x[i2][0];

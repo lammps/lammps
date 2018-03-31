@@ -636,6 +636,7 @@ void FixNH::init()
     if (idilate == -1)
       error->all(FLERR,"Fix nvt/npt/nph dilate group ID does not exist");
     dilate_group_bit = group->bitmask[idilate];
+    groupbin = floor((float)idilate/(float)group->grp_per_bin);
   }
 
   // ensure no conflict with fix deform
@@ -1062,7 +1063,7 @@ void FixNH::remap()
   double expfac;
 
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   double *h = domain->h;
 
@@ -1075,7 +1076,7 @@ void FixNH::remap()
   if (allremap) domain->x2lamda(nlocal);
   else {
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & dilate_group_bit)
+      if (mask[i][dilate_group_bin] & dilate_group_bit)
         domain->x2lamda(x[i],x[i]);
   }
 
@@ -1222,7 +1223,7 @@ void FixNH::remap()
   if (allremap) domain->lamda2x(nlocal);
   else {
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & dilate_group_bit)
+      if (mask[i][dilate_group_bin] & dilate_group_bit)
         domain->lamda2x(x[i],x[i]);
   }
 
@@ -1924,7 +1925,7 @@ void FixNH::nh_v_press()
 {
   double factor[3];
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
@@ -1934,7 +1935,7 @@ void FixNH::nh_v_press()
 
   if (which == NOBIAS) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         v[i][0] *= factor[0];
         v[i][1] *= factor[1];
         v[i][2] *= factor[2];
@@ -1949,7 +1950,7 @@ void FixNH::nh_v_press()
     }
   } else if (which == BIAS) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         temperature->remove_bias(i,v[i]);
         v[i][0] *= factor[0];
         v[i][1] *= factor[1];
@@ -1979,13 +1980,13 @@ void FixNH::nve_v()
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   if (rmass) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         dtfm = dtf / rmass[i];
         v[i][0] += dtfm*f[i][0];
         v[i][1] += dtfm*f[i][1];
@@ -1994,7 +1995,7 @@ void FixNH::nve_v()
     }
   } else {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         dtfm = dtf / mass[type[i]];
         v[i][0] += dtfm*f[i][0];
         v[i][1] += dtfm*f[i][1];
@@ -2012,14 +2013,14 @@ void FixNH::nve_x()
 {
   double **x = atom->x;
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   // x update by full step only for atoms in group
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       x[i][0] += dtv * v[i][0];
       x[i][1] += dtv * v[i][1];
       x[i][2] += dtv * v[i][2];
@@ -2034,13 +2035,13 @@ void FixNH::nve_x()
 void FixNH::nh_v_temp()
 {
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   if (which == NOBIAS) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         v[i][0] *= factor_eta;
         v[i][1] *= factor_eta;
         v[i][2] *= factor_eta;
@@ -2048,7 +2049,7 @@ void FixNH::nh_v_temp()
     }
   } else if (which == BIAS) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         temperature->remove_bias(i,v[i]);
         v[i][0] *= factor_eta;
         v[i][1] *= factor_eta;

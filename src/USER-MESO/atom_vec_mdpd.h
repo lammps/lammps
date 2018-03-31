@@ -61,12 +61,12 @@ class AtomVecMDPD : public AtomVec {
   void write_data(FILE *, int, double **);
   int write_data_hybrid(FILE *, double *);
   int property_atom(char *);
-  void pack_property_atom(int, double *, int, int);
+  void pack_property_atom(int, double *, int, int, int);
   bigint memory_usage();
 
  private:
   tagint *tag;
-  int *type,*mask;
+  int *type,**mask;
   imageint *image;
   double **x,**v,**f;
   double *rho, *drho;

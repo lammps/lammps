@@ -63,7 +63,7 @@ void FixNHOMP::remap()
 #pragma omp parallel for private(i) default(none) schedule(static)
 #endif
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & dilate_group_bit)
+      if (mask[i][dilate_group_bin] & dilate_group_bit)
         domain->x2lamda(x[i],x[i]);
   }
 
@@ -214,7 +214,7 @@ void FixNHOMP::remap()
 #pragma omp parallel for private(i) default(none) schedule(static)
 #endif
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & dilate_group_bit)
+      if (mask[i][dilate_group_bin] & dilate_group_bit)
         domain->lamda2x(x[i],x[i]);
   }
 
@@ -243,7 +243,7 @@ void FixNHOMP::nh_v_press()
 #pragma omp parallel for default(none) private(i) schedule(static)
 #endif
     for (i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         v[i].x *= factor0;
         v[i].y *= factor1;
         v[i].z *= factor2;
@@ -262,7 +262,7 @@ void FixNHOMP::nh_v_press()
 #endif
     for (i = 0; i < nlocal; i++) {
       double buf[3];
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         temperature->remove_bias_thr(i,&v[i].x,buf);
         v[i].x *= factor0;
         v[i].y *= factor1;
@@ -298,7 +298,7 @@ void FixNHOMP::nve_v()
 #pragma omp parallel for default(none) private(i) schedule(static)
 #endif
     for (i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         const double dtfm = dtf / rmass[i];
         v[i].x += dtfm*f[i].x;
         v[i].y += dtfm*f[i].y;
@@ -312,7 +312,7 @@ void FixNHOMP::nve_v()
 #pragma omp parallel for default(none) private(i) schedule(static)
 #endif
     for (i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         const double dtfm = dtf / mass[type[i]];
         v[i].x += dtfm*f[i].x;
         v[i].y += dtfm*f[i].y;
@@ -340,7 +340,7 @@ void FixNHOMP::nve_x()
 #pragma omp parallel for default(none) private(i) schedule(static)
 #endif
   for (i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       x[i].x += dtv * v[i].x;
       x[i].y += dtv * v[i].y;
       x[i].z += dtv * v[i].z;
@@ -363,7 +363,7 @@ void FixNHOMP::nh_v_temp()
 #pragma omp parallel for default(none) private(i) schedule(static)
 #endif
     for (i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         v[i].x *= factor_eta;
         v[i].y *= factor_eta;
         v[i].z *= factor_eta;
@@ -375,7 +375,7 @@ void FixNHOMP::nh_v_temp()
 #endif
     for (i = 0; i < nlocal; i++) {
       double buf[3];
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         temperature->remove_bias_thr(i,&v[i].x,buf);
         v[i].x *= factor_eta;
         v[i].y *= factor_eta;
@@ -385,4 +385,3 @@ void FixNHOMP::nh_v_temp()
     }
   }
 }
-

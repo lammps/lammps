@@ -44,7 +44,7 @@ class FixSMD : public Fix {
   int styleflag;
   double r_old,r_now,pmf;
 
-  int igroup2,group2bit;
+  int igroup2,group2bit,group2bin;
   double masstotal,masstotal2;
   int ilevel_respa;
   double ftotal[3],ftotal_all[7];

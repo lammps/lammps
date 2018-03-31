@@ -60,6 +60,7 @@ void DeleteBonds::command(int narg, char **arg)
   int igroup = group->find(arg[0]);
   if (igroup == -1) error->all(FLERR,"Cannot find delete_bonds group ID");
   int groupbit = group->bitmask[igroup];
+  int groupbin = floor((float)igroup/(float)group->grp_per_bin);
 
   // set style and which = type value
 
@@ -139,7 +140,7 @@ void DeleteBonds::command(int narg, char **arg)
   //   set interaction type negative if undo_flag = 0
   //   set interaction type positive if undo_flag = 1
 
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
@@ -156,9 +157,9 @@ void DeleteBonds::command(int narg, char **arg)
         atom1 = atom->map(atom->bond_atom[i][m]);
         if (atom1 == -1) error->one(FLERR,"Bond atom missing in delete_bonds");
         consider = 0;
-        if (!any_flag && mask[i] & groupbit && mask[atom1] & groupbit)
+        if (!any_flag && mask[i][groupbin] & groupbit && mask[atom1][groupbin] & groupbit)
           consider = 1;
-        if (any_flag && (mask[i] & groupbit || mask[atom1] & groupbit))
+        if (any_flag && (mask[i][groupbin] & groupbit || mask[atom1][groupbin] & groupbit))
           consider = 1;
         if (consider) {
           flag = 0;
@@ -193,10 +194,10 @@ void DeleteBonds::command(int narg, char **arg)
         if (atom1 == -1 || atom2 == -1 || atom3 == -1)
           error->one(FLERR,"Angle atom missing in delete_bonds");
         consider = 0;
-        if (!any_flag && mask[atom1] & groupbit && mask[atom2] & groupbit &&
-            mask[atom3] & groupbit) consider = 1;
-        if (any_flag && (mask[atom1] & groupbit || mask[atom2] & groupbit ||
-                          mask[atom3] & groupbit)) consider = 1;
+        if (!any_flag && mask[atom1][groupbin] & groupbit && mask[atom2][groupbin] & groupbit &&
+            mask[atom3][groupbin] & groupbit) consider = 1;
+        if (any_flag && (mask[atom1][groupbin] & groupbit || mask[atom2][groupbin] & groupbit ||
+                          mask[atom3][groupbin] & groupbit)) consider = 1;
         if (consider) {
           flag = 0;
           if (style == MULTI) flag = 1;
@@ -232,10 +233,10 @@ void DeleteBonds::command(int narg, char **arg)
         if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1)
           error->one(FLERR,"Dihedral atom missing in delete_bonds");
         consider = 0;
-        if (!any_flag && mask[atom1] & groupbit && mask[atom2] & groupbit &&
-            mask[atom3] & groupbit && mask[atom4] & groupbit) consider = 1;
-        if (any_flag && (mask[atom1] & groupbit || mask[atom2] & groupbit ||
-                         mask[atom3] & groupbit || mask[atom4] & groupbit))
+        if (!any_flag && mask[atom1][groupbin] & groupbit && mask[atom2][groupbin] & groupbit &&
+            mask[atom3][groupbin] & groupbit && mask[atom4][groupbin] & groupbit) consider = 1;
+        if (any_flag && (mask[atom1][groupbin] & groupbit || mask[atom2][groupbin] & groupbit ||
+                         mask[atom3][groupbin] & groupbit || mask[atom4][groupbin] & groupbit))
           consider = 1;
         if (consider) {
           flag = 0;
@@ -272,10 +273,10 @@ void DeleteBonds::command(int narg, char **arg)
         if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1)
           error->one(FLERR,"Improper atom missing in delete_bonds");
         consider = 0;
-        if (!any_flag && mask[atom1] & groupbit && mask[atom2] & groupbit &&
-            mask[atom3] & groupbit && mask[atom4] & groupbit) consider = 1;
-        if (any_flag && (mask[atom1] & groupbit || mask[atom2] & groupbit ||
-                         mask[atom3] & groupbit || mask[atom4] & groupbit))
+        if (!any_flag && mask[atom1][groupbin] & groupbit && mask[atom2][groupbin] & groupbit &&
+            mask[atom3][groupbin] & groupbit && mask[atom4][groupbin] & groupbit) consider = 1;
+        if (any_flag && (mask[atom1][groupbin] & groupbit || mask[atom2][groupbin] & groupbit ||
+                         mask[atom3][groupbin] & groupbit || mask[atom4][groupbin] & groupbit))
           consider = 1;
         if (consider) {
           flag = 0;
@@ -324,9 +325,9 @@ void DeleteBonds::command(int narg, char **arg)
           if (atom->bond_type[i][m] <= 0) {
             atom1 = atom->map(atom->bond_atom[i][m]);
             flag = 0;
-            if (!any_flag && mask[i] & groupbit && mask[atom1] & groupbit)
+            if (!any_flag && mask[i][groupbin] & groupbit && mask[atom1][groupbin] & groupbit)
               flag = 1;
-            if (any_flag && (mask[i] & groupbit || mask[atom1] & groupbit))
+            if (any_flag && (mask[i][groupbin] & groupbit || mask[atom1][groupbin] & groupbit))
               flag = 1;
             if (flag) {
               n = atom->num_bond[i];
@@ -348,10 +349,10 @@ void DeleteBonds::command(int narg, char **arg)
             atom2 = atom->map(atom->angle_atom2[i][m]);
             atom3 = atom->map(atom->angle_atom3[i][m]);
             flag = 0;
-            if (!any_flag && mask[atom1] & groupbit && mask[atom2] & groupbit &&
-                mask[atom3] & groupbit) flag = 1;
-            if (any_flag && (mask[atom1] & groupbit || mask[atom2] & groupbit ||
-                             mask[atom3] & groupbit)) flag = 1;
+            if (!any_flag && mask[atom1][groupbin] & groupbit && mask[atom2][groupbin] & groupbit &&
+                mask[atom3][groupbin] & groupbit) flag = 1;
+            if (any_flag && (mask[atom1][groupbin] & groupbit || mask[atom2][groupbin] & groupbit ||
+                             mask[atom3][groupbin] & groupbit)) flag = 1;
             if (flag) {
               n = atom->num_angle[i];
               atom->angle_type[i][m] = atom->angle_type[i][n-1];
@@ -375,10 +376,10 @@ void DeleteBonds::command(int narg, char **arg)
             atom3 = atom->map(atom->dihedral_atom3[i][m]);
             atom4 = atom->map(atom->dihedral_atom4[i][m]);
             flag = 0;
-            if (!any_flag && mask[atom1] & groupbit && mask[atom2] & groupbit &&
-                mask[atom3] & groupbit && mask[atom4] & groupbit) flag = 1;
-            if (any_flag && (mask[atom1] & groupbit || mask[atom2] & groupbit ||
-                             mask[atom3] & groupbit || mask[atom4] & groupbit))
+            if (!any_flag && mask[atom1][groupbin] & groupbit && mask[atom2][groupbin] & groupbit &&
+                mask[atom3][groupbin] & groupbit && mask[atom4][groupbin] & groupbit) flag = 1;
+            if (any_flag && (mask[atom1][groupbin] & groupbit || mask[atom2][groupbin] & groupbit ||
+                             mask[atom3][groupbin] & groupbit || mask[atom4][groupbin] & groupbit))
               flag = 1;
             if (flag) {
               n = atom->num_dihedral[i];
@@ -404,10 +405,10 @@ void DeleteBonds::command(int narg, char **arg)
             atom3 = atom->map(atom->improper_atom3[i][m]);
             atom4 = atom->map(atom->improper_atom4[i][m]);
             flag = 0;
-            if (!any_flag && mask[atom1] & groupbit && mask[atom2] & groupbit &&
-                mask[atom3] & groupbit && mask[atom4] & groupbit) flag = 1;
-            if (any_flag && (mask[atom1] & groupbit || mask[atom2] & groupbit ||
-                             mask[atom3] & groupbit || mask[atom4] & groupbit))
+            if (!any_flag && mask[atom1][groupbin] & groupbit && mask[atom2][groupbin] & groupbit &&
+                mask[atom3][groupbin] & groupbit && mask[atom4][groupbin] & groupbit) flag = 1;
+            if (any_flag && (mask[atom1][groupbin] & groupbit || mask[atom2][groupbin] & groupbit ||
+                             mask[atom3][groupbin] & groupbit || mask[atom4][groupbin] & groupbit))
               flag = 1;
             if (flag) {
               n = atom->num_improper[i];

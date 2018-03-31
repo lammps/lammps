@@ -90,7 +90,7 @@ void AtomVecHybridKokkos::process_args(int narg, char **arg)
 
   size_forward = 3;
   size_reverse = 3;
-  size_border = 6;
+  size_border = 5 + atom->ngroupbin;
   size_data_atom = 5;
   size_data_vel = 4;
   xcol_data = 3;
@@ -116,7 +116,7 @@ void AtomVecHybridKokkos::process_args(int narg, char **arg)
     comm_f_only = MIN(comm_f_only,styles[k]->comm_f_only);
     size_forward += styles[k]->size_forward - 3;
     size_reverse += styles[k]->size_reverse - 3;
-    size_border += styles[k]->size_border - 6;
+    size_border += styles[k]->size_border - (5 + atom->ngroupbin);
     size_data_atom += styles[k]->size_data_atom - 5;
     size_data_vel += styles[k]->size_data_vel - 4;
   }
@@ -415,7 +415,7 @@ int AtomVecHybridKokkos::pack_comm_vel(int n, int *list, double *buf,
         buf[m++] = h_x(j,0) + dx;
         buf[m++] = h_x(j,1) + dy;
         buf[m++] = h_x(j,2) + dz;
-        if (h_mask[i] & deform_groupbit) {
+        if (h_mask[i][deform_groupbin] & deform_groupbit) {
           buf[m++] = h_v(j,0) + dvx;
           buf[m++] = h_v(j,1) + dvy;
           buf[m++] = h_v(j,2) + dvz;
@@ -685,7 +685,7 @@ int AtomVecHybridKokkos::pack_border_vel(int n, int *list, double *buf,
         buf[m++] = ubuf(h_tag[j]).d;
         buf[m++] = ubuf(h_type[j]).d;
         buf[m++] = ubuf(h_mask[j]).d;
-        if (h_mask[i] & deform_groupbit) {
+        if (h_mask[i][deform_groupbin] & deform_groupbit) {
           buf[m++] = h_v(j,0) + dvx;
           buf[m++] = h_v(j,1) + dvy;
           buf[m++] = h_v(j,2) + dvz;
@@ -1144,11 +1144,11 @@ int AtomVecHybridKokkos::property_atom(char *name)
 ------------------------------------------------------------------------- */
 
 void AtomVecHybridKokkos::pack_property_atom(int multiindex, double *buf,
-                                       int nvalues, int groupbit)
+                                       int nvalues, int groupbin, int groupbit)
 {
   int k = multiindex % nstyles;
   int index = multiindex/nstyles;
-  styles[k]->pack_property_atom(index,buf,nvalues,groupbit);
+  styles[k]->pack_property_atom(index,buf,nvalues,groupbin,groupbit);
 }
 
 /* ----------------------------------------------------------------------

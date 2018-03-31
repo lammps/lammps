@@ -52,7 +52,7 @@ void NPairHalfBinAtomonlyNewtonOmp::build(NeighList *list)
 
   double **x = atom->x;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   tagint *molecule = atom->molecule;
 
   int *ilist = list->ilist;

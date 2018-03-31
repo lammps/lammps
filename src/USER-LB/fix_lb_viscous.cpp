@@ -38,20 +38,22 @@ FixLbViscous::FixLbViscous(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 3) error->all(FLERR,"Illegal fix lb/viscous command");
 
   int groupbit_lb_fluid = 0;
+  int groupbin_lb_fluid = 0;
 
   for(int ifix=0; ifix<modify->nfix; ifix++)
     if(strcmp(modify->fix[ifix]->style,"lb/fluid")==0){
       fix_lb_fluid = (FixLbFluid *)modify->fix[ifix];
       groupbit_lb_fluid = group->bitmask[modify->fix[ifix]->igroup];
+      groupbin_lb_fluid = floor((float)modify->fix[ifix]->igroup/(float)group->grp_per_bin);
     }
 
   if(groupbit_lb_fluid == 0)
     error->all(FLERR,"the lb/fluid fix must also be used if using the lb/viscous fix");
 
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   for(int j=0; j<nlocal; j++){
-    if((mask[j] & groupbit) && !(mask[j] & groupbit_lb_fluid))
+    if((mask[j][groupbin] & groupbit) && !(mask[j][groupbin_lb_fluid] & groupbit_lb_fluid))
       error->one(FLERR,"to apply a fluid force onto an atom, the lb/fluid fix must be used for that atom.");
   }
 
@@ -116,12 +118,12 @@ void FixLbViscous::post_force(int vflag)
   // magnitude depends on atom type
 
   double **f = atom->f;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   double **hydroF = fix_lb_fluid->hydroF;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       f[i][0] += hydroF[i][0];
       f[i][1] += hydroF[i][1];
       f[i][2] += hydroF[i][2];
@@ -143,4 +145,3 @@ void FixLbViscous::min_post_force(int vflag)
 {
   post_force(vflag);
 }
-

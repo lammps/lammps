@@ -33,7 +33,7 @@ class Ewald : public KSpace {
   virtual void compute(int, int);
   double memory_usage();
 
-  void compute_group_group(int, int, int);
+  void compute_group_group(int, int, int, int, int);
 
  protected:
   int kxmax,kymax,kzmax;
@@ -71,7 +71,7 @@ class Ewald : public KSpace {
 
   // group-group interactions
 
-  void slabcorr_groups(int,int,int);
+  void slabcorr_groups(int,int,int,int,int);
   void allocate_groups();
   void deallocate_groups();
 };

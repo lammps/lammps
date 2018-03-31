@@ -263,12 +263,12 @@ void FixTempCSVR::end_of_step()
   MPI_Bcast(&lamda,1,MPI_DOUBLE,0,world);
 
   double * const * const v = atom->v;
-  const int * const mask = atom->mask;
+  int ** mask = atom->mask;
   const int nlocal = atom->nlocal;
 
   if (which == NOBIAS) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         v[i][0] *= lamda;
         v[i][1] *= lamda;
         v[i][2] *= lamda;
@@ -276,7 +276,7 @@ void FixTempCSVR::end_of_step()
     }
   } else {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         temperature->remove_bias(i,v[i]);
         v[i][0] *= lamda;
         v[i][1] *= lamda;

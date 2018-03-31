@@ -137,19 +137,19 @@ void FixTFMC::init()
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   double mass_min_local = DBL_MAX;
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         if (mass_min_local > rmass[i]) mass_min_local = rmass[i];
       }
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         if (mass_min_local > mass[type[i]]) mass_min_local = mass[type[i]];
       }
   }
@@ -172,7 +172,7 @@ void FixTFMC::initial_integrate(int vflag)
   double gamma, gamma_exp, gamma_expi;
   double P_acc, P_ran;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
@@ -192,7 +192,7 @@ void FixTFMC::initial_integrate(int vflag)
 
   // generate displacements for each atom
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
       d_i = d_max * pow(mass_min/massone, 0.25);
@@ -237,7 +237,7 @@ void FixTFMC::initial_integrate(int vflag)
     } else xcm_dall[0] = xcm_dall[1] = xcm_dall[2] = 0.0;
 
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         if (xflag) x[i][0] -= xcm_dall[0];
         if (yflag) x[i][1] -= xcm_dall[1];
         if (zflag) x[i][2] -= xcm_dall[2];
@@ -265,7 +265,7 @@ void FixTFMC::initial_integrate(int vflag)
     p[0] = p[1] = p[2] = 0.0;
 
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         domain->unmap(x[i],image[i],unwrap);
         dx = unwrap[0] - cm[0];
         dy = unwrap[1] - cm[1];
@@ -285,7 +285,7 @@ void FixTFMC::initial_integrate(int vflag)
 
     // now, get rid of the rotation
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         domain->unmap(x[i],image[i],unwrap);
         dx = unwrap[0] - cm[0];
         dy = unwrap[1] - cm[1];

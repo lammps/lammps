@@ -85,11 +85,11 @@ void ComputeSMDContactRadius::compute_peratom()
   }
 
   double *contact_radius = atom->contact_radius;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
               contact_radius_vector[i] = contact_radius[i];
       }
       else {

@@ -142,7 +142,7 @@ void FixEOStableRXKokkos<DeviceType>::setup(int vflag)
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixEOStableRXKokkos<DeviceType>::operator()(TagFixEOStableRXSetup, const int &i) const {
-  if (mask[i] & groupbit) {
+  if (mask[i][groupbin] & groupbit) {
     const double duChem = uCG[i] - uCGnew[i];
     uChem[i] += duChem;
     uCG[i] = 0.0;
@@ -153,7 +153,7 @@ void FixEOStableRXKokkos<DeviceType>::operator()(TagFixEOStableRXSetup, const in
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixEOStableRXKokkos<DeviceType>::operator()(TagFixEOStableRXTemperatureLookup, const int &i) const {
-  if (mask[i] & groupbit)
+  if (mask[i][groupbin] & groupbit)
     temperature_lookup(i,uCond[i]+uMech[i]+uChem[i],dpdTheta[i]);
 }
 
@@ -195,7 +195,7 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixEOStableRXKokkos<DeviceType>::operator()(TagFixEOStableRXInit, const int &i) const {
   double tmp;
-  if (mask[i] & groupbit) {
+  if (mask[i][groupbin] & groupbit) {
     if(dpdTheta[i] <= 0.0)
       k_error_flag.template view<DeviceType>()() = 1;
     energy_lookup(i,dpdTheta[i],tmp);
@@ -236,7 +236,7 @@ void FixEOStableRXKokkos<DeviceType>::post_integrate()
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixEOStableRXKokkos<DeviceType>::operator()(TagFixEOStableRXTemperatureLookup2, const int &i) const {
-  if (mask[i] & groupbit){
+  if (mask[i][groupbin] & groupbit){
     temperature_lookup(i,uCond[i]+uMech[i]+uChem[i],dpdTheta[i]);
     if (dpdTheta[i] <= 0.0)
       k_error_flag.template view<DeviceType>()() = 1;

@@ -68,7 +68,8 @@ void DeleteAtoms::command(int narg, char **arg)
 
   if (allflag) {
     int igroup = group->find("all");
-    if ((igroup >= 0) && modify->check_rigid_group_overlap(group->bitmask[igroup]))
+    int groupbin = floor((float)igroup/(float)group->grp_per_bin);
+    if ((igroup >= 0) && modify->check_rigid_group_overlap(group->bitmask[igroup],groupbin))
       error->warning(FLERR,"Attempting to delete atoms in rigid bodies");
   } else {
     if (modify->check_rigid_list_overlap(dlist))
@@ -217,11 +218,12 @@ void DeleteAtoms::delete_group(int narg, char **arg)
   memory->create(dlist,nlocal,"delete_atoms:dlist");
   for (int i = 0; i < nlocal; i++) dlist[i] = 0;
 
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int groupbit = group->bitmask[igroup];
+  int groupbin = floor((float)igroup/(float)group->grp_per_bin);
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) dlist[i] = 1;
+    if (mask[i][groupbin] & groupbit) dlist[i] = 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -273,7 +275,9 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
   options(narg-4,&arg[4]);
 
   int group1bit = group->bitmask[igroup1];
+  int group1bin = floor((float)igroup1/(float)group->grp_per_bin);
   int group2bit = group->bitmask[igroup2];
+  int group2bin = floor((float)igroup2/(float)group->grp_per_bin);
 
   if (comm->me == 0 && screen)
     fprintf(screen,"System init for delete_atoms ...\n");
@@ -333,7 +337,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
   // only ever delete owned atom I in I loop iteration, never J even if owned
 
   tagint *tag = atom->tag;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   double **x = atom->x;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
@@ -387,8 +391,8 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
       // only consider deletion if I,J are in groups 1,2 respectively
       // true whether J is owned or ghost atom
 
-      if (!(mask[i] & group1bit)) continue;
-      if (!(mask[j] & group2bit)) continue;
+      if (!(mask[i][group1bin] & group1bit)) continue;
+      if (!(mask[j][group2bin] & group2bit)) continue;
 
       // J is owned atom:
       //   delete atom I if atom J has not already been deleted
@@ -402,7 +406,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
 
       if (j < nlocal) {
         if (dlist[j]) continue;
-      } else if ((mask[i] & group2bit) && (mask[j] & group1bit)) {
+      } else if ((mask[i][group2bin] & group2bit) && (mask[j][group1bin] & group1bit)) {
         if (tag[i] > tag[j]) continue;
       }
 

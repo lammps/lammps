@@ -88,7 +88,7 @@ void FixWallReflectKokkos<DeviceType>::post_integrate()
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixWallReflectKokkos<DeviceType>::operator()(TagFixWallReflectPostIntegrate, const int &i) const {
-  if (mask[i] & groupbit) {
+  if (mask[i][groupbin] & groupbit) {
     if (side == 0) {
       if (x(i,dim) < coord) {
         x(i,dim) = coord + (coord - x(i,dim));

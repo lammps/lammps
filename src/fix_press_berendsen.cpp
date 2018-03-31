@@ -421,7 +421,7 @@ void FixPressBerendsen::remap()
   double oldlo,oldhi,ctr;
 
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   // convert pertinent atoms and rigid bodies to lamda coords
@@ -429,7 +429,7 @@ void FixPressBerendsen::remap()
   if (allremap) domain->x2lamda(nlocal);
   else {
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
+      if (mask[i][groupbin] & groupbit)
         domain->x2lamda(x[i],x[i]);
   }
 
@@ -457,7 +457,7 @@ void FixPressBerendsen::remap()
   if (allremap) domain->lamda2x(nlocal);
   else {
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
+      if (mask[i][groupbin] & groupbit)
         domain->lamda2x(x[i],x[i]);
   }
 

@@ -50,11 +50,11 @@ void FixNHBody::init()
   // no point particles allowed, spherical is OK
 
   int *body = atom->body;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       if (body[i] < 0)
         error->one(FLERR,"Fix nvt/nph/npt body requires bodies");
 
@@ -73,14 +73,14 @@ void FixNHBody::nve_v()
 
   double **angmom = atom->angmom;
   double **torque = atom->torque;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   // update angular momentum by 1/2 step for all particles
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       angmom[i][0] += dtf*torque[i][0];
       angmom[i][1] += dtf*torque[i][1];
       angmom[i][2] += dtf*torque[i][2];
@@ -104,7 +104,7 @@ void FixNHBody::nve_x()
   AtomVecBody::Bonus *bonus = avec->bonus;
   int *body = atom->body;
   double **angmom = atom->angmom;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
@@ -115,7 +115,7 @@ void FixNHBody::nve_x()
   // update quaternion a full step via Richardson iteration
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
 
       // compute omega at 1/2 step from angmom at 1/2 step and current q
       // update quaternion a full step via Richardson iteration
@@ -139,12 +139,12 @@ void FixNHBody::nh_v_temp()
   FixNH::nh_v_temp();
 
   double **angmom = atom->angmom;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       angmom[i][0] *= factor_eta;
       angmom[i][1] *= factor_eta;
       angmom[i][2] *= factor_eta;

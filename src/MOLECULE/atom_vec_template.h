@@ -60,7 +60,7 @@ class AtomVecTemplate : public AtomVec {
 
  protected:
   tagint *tag;
-  int *type,*mask;
+  int *type,**mask;
   tagint *image;
   double **x,**v,**f;
   tagint *molecule;

@@ -165,10 +165,10 @@ pairclass(NULL), pairnames(NULL), pairmasks(NULL)
   ex_type = NULL;
 
   nex_group = maxex_group = 0;
-  ex1_group = ex2_group = ex1_bit = ex2_bit = NULL;
+  ex1_group = ex2_group = ex1_bit = ex2_bit = ex1_bin = ex2_bin = NULL;
 
   nex_mol = maxex_mol = 0;
-  ex_mol_group = ex_mol_bit = ex_mol_intra = NULL;
+  ex_mol_group = ex_mol_bit = ex_mol_bin = ex_mol_intra = NULL;
 
   // Kokkos setting
 
@@ -231,9 +231,12 @@ Neighbor::~Neighbor()
   memory->destroy(ex2_group);
   delete [] ex1_bit;
   delete [] ex2_bit;
+  delete [] ex1_bin;
+  delete [] ex2_bin;
 
   memory->destroy(ex_mol_group);
   delete [] ex_mol_bit;
+  delete [] ex_mol_bin;
   memory->destroy(ex_mol_intra);
 }
 
@@ -446,13 +449,19 @@ void Neighbor::init()
     else {
       delete [] ex1_bit;
       delete [] ex2_bit;
+      delete [] ex1_bin;
+      delete [] ex2_bin;
       ex1_bit = new int[nex_group];
       ex2_bit = new int[nex_group];
+      ex1_bin = new int[nex_group];
+      ex2_bin = new int[nex_group];
     }
 
     for (i = 0; i < nex_group; i++) {
       ex1_bit[i] = group->bitmask[ex1_group[i]];
+      ex1_bin[i] = floor((float)ex1_group[i]/(float)group->grp_per_bin);
       ex2_bit[i] = group->bitmask[ex2_group[i]];
+      ex2_bin[i] = floor((float)ex2_group[i]/(float)group->grp_per_bin);
     }
   }
 
@@ -461,11 +470,15 @@ void Neighbor::init()
       init_ex_mol_bit_kokkos();
     else {
       delete [] ex_mol_bit;
+      delete [] ex_mol_bin;
       ex_mol_bit = new int[nex_mol];
+      ex_mol_bin = new int[nex_mol];
     }
 
-    for (i = 0; i < nex_mol; i++)
+    for (i = 0; i < nex_mol; i++) {
       ex_mol_bit[i] = group->bitmask[ex_mol_group[i]];
+      ex_mol_bin[i] = floor((float)ex_mol_group[i]/(float)group->grp_per_bin);
+    }
   }
 
   if (exclude && force->kspace && me == 0)
@@ -2356,6 +2369,8 @@ void Neighbor::exclusion_group_group_delete(int group1, int group2)
     ex2_group[m-1] = ex2_group[m];
     ex1_bit[m-1] = ex1_bit[m];
     ex2_bit[m-1] = ex2_bit[m];
+    ex1_bin[m-1] = ex1_bin[m];
+    ex2_bin[m-1] = ex2_bin[m];
   }
   nex_group--;
 }

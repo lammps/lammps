@@ -247,7 +247,7 @@ struct DomainPBCFunctor {
     if (PERIODIC && xperiodic) {
       if (x(i,0) < lo[0]) {
         x(i,0) += period[0];
-        if (DEFORM_VREMAP && (mask[i] & deform_groupbit)) v(i,0) += h_rate[0];
+        if (DEFORM_VREMAP && (mask[i][deform_groupbin] & deform_groupbit)) v(i,0) += h_rate[0];
         imageint idim = image[i] & IMGMASK;
         const imageint otherdims = image[i] ^ idim;
         idim--;
@@ -257,7 +257,7 @@ struct DomainPBCFunctor {
       if (x(i,0) >= hi[0]) {
         x(i,0) -= period[0];
         x(i,0) = MAX(x(i,0),lo[0]);
-        if (DEFORM_VREMAP && (mask[i] & deform_groupbit)) v(i,0) -= h_rate[0];
+        if (DEFORM_VREMAP && (mask[i][deform_groupbin] & deform_groupbit)) v(i,0) -= h_rate[0];
         imageint idim = image[i] & IMGMASK;
         const imageint otherdims = image[i] ^ idim;
         idim++;
@@ -269,7 +269,7 @@ struct DomainPBCFunctor {
     if (PERIODIC && yperiodic) {
       if (x(i,1) < lo[1]) {
         x(i,1) += period[1];
-        if (DEFORM_VREMAP && (mask[i] & deform_groupbit)) {
+        if (DEFORM_VREMAP && (mask[i][deform_groupbin] & deform_groupbit)) {
           v(i,0) += h_rate[5];
           v(i,1) += h_rate[1];
         }
@@ -282,7 +282,7 @@ struct DomainPBCFunctor {
       if (x(i,1) >= hi[1]) {
         x(i,1) -= period[1];
         x(i,1) = MAX(x(i,1),lo[1]);
-        if (DEFORM_VREMAP && (mask[i] & deform_groupbit)) {
+        if (DEFORM_VREMAP && (mask[i][deform_groupbin] & deform_groupbit)) {
           v(i,0) -= h_rate[5];
           v(i,1) -= h_rate[1];
         }
@@ -297,7 +297,7 @@ struct DomainPBCFunctor {
     if (PERIODIC && zperiodic) {
       if (x(i,2) < lo[2]) {
         x(i,2) += period[2];
-        if (DEFORM_VREMAP && (mask[i] & deform_groupbit)) {
+        if (DEFORM_VREMAP && (mask[i][deform_groupbin] & deform_groupbit)) {
           v(i,0) += h_rate[4];
           v(i,1) += h_rate[3];
           v(i,2) += h_rate[2];
@@ -311,7 +311,7 @@ struct DomainPBCFunctor {
       if (x(i,2) >= hi[2]) {
         x(i,2) -= period[2];
         x(i,2) = MAX(x(i,2),lo[2]);
-        if (DEFORM_VREMAP && (mask[i] & deform_groupbit)) {
+        if (DEFORM_VREMAP && (mask[i][deform_groupbin] & deform_groupbit)) {
           v(i,0) -= h_rate[4];
           v(i,1) -= h_rate[3];
           v(i,2) -= h_rate[2];

@@ -108,7 +108,7 @@ void FixNVTSllod::nh_v_temp()
   if (nondeformbias) temperature->compute_scalar();
 
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
@@ -116,7 +116,7 @@ void FixNVTSllod::nh_v_temp()
   MathExtra::multiply_shape_shape(domain->h_rate,domain->h_inv,h_two);
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       vdelu[0] = h_two[0]*v[i][0] + h_two[5]*v[i][1] + h_two[4]*v[i][2];
       vdelu[1] = h_two[1]*v[i][1] + h_two[3]*v[i][2];
       vdelu[2] = h_two[2]*v[i][2];

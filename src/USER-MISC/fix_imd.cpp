@@ -689,12 +689,12 @@ void FixIMD::setup(int)
    */
   int i,j;
   int nmax,nme,nlocal;
-  int *mask  = atom->mask;
+  int **mask  = atom->mask;
   tagint *tag  = atom->tag;
   nlocal = atom->nlocal;
   nme=0;
   for (i=0; i < nlocal; ++i)
-    if (mask[i] & groupbit) ++nme;
+    if (mask[i][groupbin] & groupbit) ++nme;
 
   MPI_Allreduce(&nme,&nmax,1,MPI_INT,MPI_MAX,world);
   memory->destroy(comm_buf);
@@ -723,7 +723,7 @@ void FixIMD::setup(int)
     int numtag=0; /* counter to map atom tags to a 0-based consecutive index list */
 
     for (i=0; i < nlocal; ++i) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         taglist[numtag] = tag[i];
         ++numtag;
       }
@@ -757,7 +757,7 @@ void FixIMD::setup(int)
   } else {
     nme=0;
     for (i=0; i < nlocal; ++i) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         buf[nme].tag = tag[i];
         ++nme;
       }
@@ -828,7 +828,7 @@ void FixIMD::post_force(int vflag)
   double **x = atom->x;
   imageint *image = atom->image;
   int nlocal = atom->nlocal;
-  int *mask  = atom->mask;
+  int **mask  = atom->mask;
   struct commdata *buf;
 
   if (me == 0) {
@@ -987,7 +987,7 @@ void FixIMD::post_force(int vflag)
        * to the total system size, so we don't hurt too much. */
       for (int j=0; j < imd_forces; ++j) {
         for (int i=0; i < nlocal; ++i) {
-          if (mask[i] & groupbit) {
+          if (mask[i][groupbin] & groupbit) {
             if (buf[j].tag == tag[i]) {
               f[i][0] += imd_fscale*buf[j].x;
               f[i][1] += imd_fscale*buf[j].y;
@@ -1003,7 +1003,7 @@ void FixIMD::post_force(int vflag)
   /* check and potentially grow local communication buffers. */
   int i, k, nmax, nme=0;
   for (i=0; i < nlocal; ++i)
-    if (mask[i] & groupbit) ++nme;
+    if (mask[i][groupbin] & groupbit) ++nme;
 
   MPI_Allreduce(&nme,&nmax,1,MPI_INT,MPI_MAX,world);
   if (nmax*size_one > maxbuf) {
@@ -1036,7 +1036,7 @@ void FixIMD::post_force(int vflag)
       double yz = domain->yz;
 
       for (i=0; i<nlocal; ++i) {
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           const tagint j = 3*taginthash_lookup((taginthash_t *)idmap, tag[i]);
           if (j != 3*HASH_FAIL) {
             int ix = (image[i] & IMGMASK) - IMGMAX;
@@ -1057,7 +1057,7 @@ void FixIMD::post_force(int vflag)
       }
     } else {
       for (i=0; i<nlocal; ++i) {
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           const tagint j = 3*taginthash_lookup((taginthash_t *)idmap, tag[i]);
           if (j != 3*HASH_FAIL) {
             recvcoord[j]   = x[i][0];
@@ -1114,7 +1114,7 @@ void FixIMD::post_force(int vflag)
       double yz = domain->yz;
 
       for (i=0; i<nlocal; ++i) {
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           int ix = (image[i] & IMGMASK) - IMGMAX;
           int iy = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
           int iz = (image[i] >> IMG2BITS) - IMGMAX;
@@ -1135,7 +1135,7 @@ void FixIMD::post_force(int vflag)
       }
     } else {
       for (i=0; i<nlocal; ++i) {
-        if (mask[i] & groupbit) {
+        if (mask[i][groupbin] & groupbit) {
           buf[nme].tag = tag[i];
           buf[nme].x   = x[i][0];
           buf[nme].y   = x[i][1];

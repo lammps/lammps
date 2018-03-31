@@ -3284,8 +3284,9 @@ double PairComb3::combqeq(double *qf_fix, int &igroup)
   tagint *tag = atom->tag;
   int *type = atom->type;
   int inum = list->inum;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int groupbit = group->bitmask[igroup];
+  int groupbin = floor((float)igroup/(float)group->grp_per_bin);
 
   ilist = list->ilist;
   numneigh = list->numneigh;
@@ -3294,7 +3295,7 @@ double PairComb3::combqeq(double *qf_fix, int &igroup)
   qf = qf_fix;
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       qf[i] = 0.0;
       dpl[i][0] = dpl[i][1] = dpl[i][2] = 0.0;
     }
@@ -3316,7 +3317,7 @@ double PairComb3::combqeq(double *qf_fix, int &igroup)
     i = ilist[ii];
     itag = tag[i];
     nj = 0;
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       itype = map[type[i]];
       xtmp = x[i][0];
       ytmp = x[i][1];
@@ -3420,7 +3421,7 @@ double PairComb3::combqeq(double *qf_fix, int &igroup)
   double eneg = 0.0;
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (mask[i] & groupbit){
+    if (mask[i][groupbin] & groupbit){
       eneg += qf[i];
           itag=tag[i];
     }

@@ -405,7 +405,7 @@ void FixMSST::setup(int vflag)
     // to bias initial compression
 
     double **v = atom->v;
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     double sqrt_initial_temperature_scaling = sqrt(1.0-tscale);
 
     double fac1 =  tscale*total_mass/qmass*ke_temp/force->mvv2e;
@@ -424,7 +424,7 @@ void FixMSST::setup(int vflag)
                 fac2,tscale);
     }
     for (int i = 0; i < atom->nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         for (int k = 0; k < 3; k++ ) {
           v[i][k]*=sqrt_initial_temperature_scaling;
         }
@@ -449,7 +449,7 @@ void FixMSST::initial_integrate(int vflag)
   double vol;
 
   int nlocal = atom->nlocal;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   double **v = atom->v;
   double **f = atom->f;
   double *mass = atom->mass;
@@ -522,7 +522,7 @@ void FixMSST::initial_integrate(int vflag)
 
   if (dftb) {
     for (i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         for ( k = 0; k < 3; k++ ) {
           const double C = f[i][k] * force->ftm2v / mass[type[i]];
           const double TS_term = TS_dot/(mass[type[i]]*velocity_sum);
@@ -545,7 +545,7 @@ void FixMSST::initial_integrate(int vflag)
     }
   } else {
     for (i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         for ( k = 0; k < 3; k++ ) {
           const double C = f[i][k] * force->ftm2v / mass[type[i]];
           double D = mu * omega[sd] * omega[sd] /
@@ -571,7 +571,7 @@ void FixMSST::initial_integrate(int vflag)
   // reset the velocities
 
   for (i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       v[i][0] = old_velocity[i][0];
       v[i][1] = old_velocity[i][1];
       v[i][2] = old_velocity[i][2];
@@ -582,7 +582,7 @@ void FixMSST::initial_integrate(int vflag)
 
   if (dftb) {
     for (i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         for ( k = 0; k < 3; k++ ) {
           const double C = f[i][k] * force->ftm2v / mass[type[i]];
           const double TS_term = TS_dot/(mass[type[i]]*velocity_sum);
@@ -604,7 +604,7 @@ void FixMSST::initial_integrate(int vflag)
     }
   } else {
     for (i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         for ( k = 0; k < 3; k++ ) {
           const double C = f[i][k] * force->ftm2v / mass[type[i]];
           double D = mu * omega[sd] * omega[sd] /
@@ -636,7 +636,7 @@ void FixMSST::initial_integrate(int vflag)
   // propagate particle positions 1 time step
 
   for (i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       x[i][0] += dtv * v[i][0];
       x[i][1] += dtv * v[i][1];
       x[i][2] += dtv * v[i][2];
@@ -670,7 +670,7 @@ void FixMSST::final_integrate()
   double **f = atom->f;
   double *mass = atom->mass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   double vol = compute_vol();
 
@@ -700,7 +700,7 @@ void FixMSST::final_integrate()
 
   if (dftb) {
     for (i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         for ( int k = 0; k < 3; k++ ) {
           const double C = f[i][k] * force->ftm2v / mass[type[i]];
           const double TS_term = TS_dot/(mass[type[i]]*velocity_sum);
@@ -722,7 +722,7 @@ void FixMSST::final_integrate()
     }
   } else {
     for (i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         for ( int k = 0; k < 3; k++ ) {
           const double C = f[i][k] * force->ftm2v / mass[type[i]];
           double D = mu * omega[sd] * omega[sd] /
@@ -1083,13 +1083,13 @@ double FixMSST::compute_vsum()
   double vsum;
 
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double t = 0.0;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) ;
     }
   }

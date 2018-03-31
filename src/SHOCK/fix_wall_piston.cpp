@@ -184,7 +184,7 @@ void FixWallPiston::post_integrate()
 
   double **x = atom->x;
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   double t    = (update->ntimestep - update->beginstep) * update->dt;
   double tott = (update->endstep - update->beginstep) * update->dt;
@@ -278,7 +278,7 @@ void FixWallPiston::post_integrate()
   // VIRIAL PRESSURE CONTRIBUTION?
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       roughoff = 0.0;
       if (roughflag) {
         roughoff += roughdist*fabs((x[i][0] - domain->boxlo[0])/

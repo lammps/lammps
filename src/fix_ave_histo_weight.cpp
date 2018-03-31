@@ -557,13 +557,13 @@ void FixAveHistoWeight::bin_vector_weights(int n, double *values,
 void FixAveHistoWeight::bin_atoms_weights(double *values, int stride,
                                           double *weights, int stridewt)
 {
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   int m = 0;
   int m2 = 0;
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) bin_one_weights(values[m],weights[m2]);
+    if (mask[i][groupbin] & groupbit) bin_one_weights(values[m],weights[m2]);
     m += stride;
     m2 += stridewt;
   }

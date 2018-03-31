@@ -49,6 +49,7 @@ class LAMMPS {
   char *exename;                 // pointer to argv[0]
   char ***packargs;              // arguments for cmdline package commands
   int num_package;               // number of cmdline package commands
+  int num_group;                 // number of groups
   int cite_enable;               // 1 if generating log.cite, 0 if disabled
 
   class KokkosLMP *kokkos;       // KOKKOS accelerator class

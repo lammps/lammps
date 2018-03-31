@@ -92,14 +92,14 @@ void FixEDPDSource::post_force(int vflag)
   double **x = atom->x;
   double *edpd_flux = atom->edpd_flux;
   double *edpd_cv = atom->edpd_cv;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double drx, dry, drz, rsq;
   double radius_sq = radius*radius*radius;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       if(option == 0){
         drx = x[i][0] - center[0];
         dry = x[i][1] - center[1];

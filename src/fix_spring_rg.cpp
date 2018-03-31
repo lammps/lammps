@@ -112,7 +112,7 @@ void FixSpringRG::post_force(int vflag)
 
   double **f = atom->f;
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   imageint *image = atom->image;
   double *mass = atom->mass;
@@ -123,7 +123,7 @@ void FixSpringRG::post_force(int vflag)
   double unwrap[3];
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       domain->unmap(x[i],image[i],unwrap);
       dx = unwrap[0] - xcm[0];
       dy = unwrap[1] - xcm[1];

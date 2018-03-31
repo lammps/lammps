@@ -48,6 +48,7 @@ class PairGranHookeHistory : public Pair {
   int dampflag;
   double dt;
   int freeze_group_bit;
+  int freeze_group_bin;
   int history;
 
   int neighprev;

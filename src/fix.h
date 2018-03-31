@@ -23,7 +23,7 @@ class Fix : protected Pointers {
   static int instance_total;     // # of Fix classes ever instantiated
 
   char *id,*style;
-  int igroup,groupbit;
+  int igroup,groupbit,groupbin;
 
   int restart_global;            // 1 if Fix saves global state, 0 if not
   int restart_peratom;           // 1 if Fix saves peratom state, 0 if not

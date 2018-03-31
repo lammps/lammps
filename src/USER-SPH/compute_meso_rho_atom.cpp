@@ -75,11 +75,11 @@ void ComputeMesoRhoAtom::compute_peratom()
   // compute kinetic energy for each atom in group
 
   double *rho = atom->rho;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
               rhoVector[i] = rho[i];
       }
       else {

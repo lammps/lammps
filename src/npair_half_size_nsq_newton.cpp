@@ -37,7 +37,7 @@ NPairHalfSizeNsqNewton::NPairHalfSizeNsqNewton(LAMMPS *lmp) : NPair(lmp) {}
 
 void NPairHalfSizeNsqNewton::build(NeighList *list)
 {
-  int i,j,n,itag,jtag,bitmask;
+  int i,j,n,itag,jtag,bitmask,maskbin;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   double radi,radsum,cutsq;
   int *neighptr;
@@ -46,13 +46,14 @@ void NPairHalfSizeNsqNewton::build(NeighList *list)
   double *radius = atom->radius;
   tagint *tag = atom->tag;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   tagint *molecule = atom->molecule;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
   if (includegroup) {
     nlocal = atom->nfirst;
     bitmask = group->bitmask[includegroup];
+    maskbin = floor((float)includegroup/(float)group->grp_per_bin);
   }
 
   int history = list->history;
@@ -79,7 +80,7 @@ void NPairHalfSizeNsqNewton::build(NeighList *list)
     // loop over remaining atoms, owned and ghost
 
     for (j = i+1; j < nall; j++) {
-      if (includegroup && !(mask[j] & bitmask)) continue;
+      if (includegroup && !(mask[j][maskbin] & bitmask)) continue;
 
       if (j >= nlocal) {
         jtag = tag[j];

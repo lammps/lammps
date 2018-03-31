@@ -35,7 +35,7 @@ class FixGroup : public Fix {
   void post_integrate_respa(int,int);
 
  private:
-  int gbit,gbitinverse;
+  int gbit,gbitinverse,gbin;
   int regionflag,varflag,propflag,typeflag;
   int iregion,ivar,iprop;
   char *idregion,*idvar,*idprop;

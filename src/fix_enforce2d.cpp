@@ -114,12 +114,12 @@ void FixEnforce2D::post_force(int vflag)
 {
   double **v = atom->v;
   double **f = atom->f;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       v[i][2] = 0.0;
       f[i][2] = 0.0;
     }
@@ -129,7 +129,7 @@ void FixEnforce2D::post_force(int vflag)
   if (atom->omega_flag) {
     double **omega = atom->omega;
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         omega[i][0] = 0.0;
         omega[i][1] = 0.0;
       }
@@ -138,7 +138,7 @@ void FixEnforce2D::post_force(int vflag)
   if (atom->angmom_flag) {
     double **angmom = atom->angmom;
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         angmom[i][0] = 0.0;
         angmom[i][1] = 0.0;
       }
@@ -147,7 +147,7 @@ void FixEnforce2D::post_force(int vflag)
   if (atom->torque_flag) {
     double **torque = atom->torque;
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         torque[i][0] = 0.0;
         torque[i][1] = 0.0;
       }

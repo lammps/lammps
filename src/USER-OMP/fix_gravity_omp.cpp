@@ -81,7 +81,7 @@ void FixGravityOMP::post_force(int vflag)
 #pragma omp parallel for private(i,massone) default(none) reduction(-:grav)
 #endif
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         massone = rmass[i];
         f[i][0] += massone*xacc_thr;
         f[i][1] += massone*yacc_thr;
@@ -93,7 +93,7 @@ void FixGravityOMP::post_force(int vflag)
 #pragma omp parallel for private(i,massone) default(none) reduction(-:grav)
 #endif
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         massone = mass[type[i]];
         f[i][0] += massone*xacc_thr;
         f[i][1] += massone*yacc_thr;

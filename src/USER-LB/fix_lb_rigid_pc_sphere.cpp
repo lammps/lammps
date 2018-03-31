@@ -79,12 +79,12 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
     iarg = 4;
     nbody = 1;
 
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
 
     for (i = 0; i < nlocal; i++) {
       body[i] = -1;
-      if (mask[i] & groupbit) body[i] = 0;
+      if (mask[i][groupbin] & groupbit) body[i] = 0;
     }
 
   // each molecule in fix group is a rigid body
@@ -99,13 +99,13 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR,"Must use a molecular atom style with "
                  "fix lb/rigid/pc/sphere molecule");
 
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     tagint *molecule = atom->molecule;
     int nlocal = atom->nlocal;
 
     tagint maxmol_tag = -1;
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) maxmol_tag = MAX(maxmol_tag,molecule[i]);
+      if (mask[i][groupbin] & groupbit) maxmol_tag = MAX(maxmol_tag,molecule[i]);
 
     tagint itmp;
     MPI_Allreduce(&maxmol_tag,&itmp,1,MPI_LMP_TAGINT,MPI_MAX,world);
@@ -118,7 +118,7 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
     for (i = 0; i <= maxmol; i++) ncount[i] = 0;
 
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) ncount[molecule[i]]++;
+      if (mask[i][groupbin] & groupbit) ncount[molecule[i]]++;
 
     int *nall;
     memory->create(nall,maxmol+1,"rigid:ncount");
@@ -131,7 +131,7 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
 
     for (i = 0; i < nlocal; i++) {
       body[i] = -1;
-      if (mask[i] & groupbit) body[i] = nall[molecule[i]];
+      if (mask[i][groupbin] & groupbit) body[i] = nall[molecule[i]];
     }
 
     memory->destroy(ncount);
@@ -157,15 +157,17 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Could not find fix lb/rigid/pc/sphere group ID");
     }
 
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
 
     int flag = 0;
+    int maskbin;
     for (i = 0; i < nlocal; i++) {
       body[i] = -1;
-      if (mask[i] & groupbit)
+      if (mask[i][groupbin] & groupbit)
         for (ibody = 0; ibody < nbody; ibody++)
-          if (mask[i] & group->bitmask[igroups[ibody]]) {
+          maskbin = floor((float)igroups[ibody]/(float)group->grp_per_bin);
+          if (mask[i][maskbin] & group->bitmask[igroups[ibody]]) {
             if (body[i] >= 0) flag = 1;
             body[i] = ibody;
           }
@@ -329,10 +331,12 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
 
   //count the number of atoms in the shell.
   if(inner_nodes == 1){
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     for(ibody=0; ibody<nbody; ibody++) ncount[ibody] = 0;
+    int maskbin;
     for(i=0; i<nlocal; i++){
-      if(!(mask[i] & group->bitmask[igroupinner])){
+      maskbin = floor((float)igroupinner/(float)group->grp_per_bin);
+      if(!(mask[i][maskbin] & group->bitmask[igroupinner])){
         if(body[i] >= 0) ncount[body[i]]++;
       }
     }
@@ -366,30 +370,36 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
   }
 
   int groupbit_lb_fluid = 0;
+  int groupbin_lb_fluid = 0;
 
   for(int ifix=0; ifix<modify->nfix; ifix++)
     if(strcmp(modify->fix[ifix]->style,"lb/fluid")==0){
       fix_lb_fluid = (FixLbFluid *)modify->fix[ifix];
       groupbit_lb_fluid = group->bitmask[modify->fix[ifix]->igroup];
+      groupbin_lb_fluid = floor((float)modify->fix[i]->igroup/(float)group->grp_per_bin);
     }
 
    if(groupbit_lb_fluid == 0)
     error->all(FLERR,"the lb/fluid fix must also be used if using the lb/rigid/pc/sphere fix");
 
-   int *mask = atom->mask;
+   int **mask = atom->mask;
+   int maskbin;
    if(inner_nodes == 1){
      for(int j=0; j<nlocal; j++){
-       if((mask[j] & groupbit) && !(mask[j] & group->bitmask[igroupinner]) && !(mask[j] & groupbit_lb_fluid))
+       maskbin = floor((float)igroupinner/(float)group->grp_per_bin);
+       if((mask[j][groupbin] & groupbit) && !(mask[j][maskbin] & group->bitmask[igroupinner]) &&
+          !(mask[j][groupbin_lb_fluid] & groupbit_lb_fluid))
          error->one(FLERR,"use the innerNodes keyword in the lb/rigid/pc/sphere fix for atoms which do not interact with the lb/fluid");
 
   // If inner nodes are present, which should not interact with the fluid, make
   // sure these are not used by the lb/fluid fix to apply a force to the fluid.
-       if((mask[j] & groupbit) && (mask[j] & groupbit_lb_fluid) && (mask[j] & group->bitmask[igroupinner]))
+       if((mask[j][groupbin] & groupbit) && (mask[j][groupbin_lb_fluid] & groupbit_lb_fluid) &&
+          (mask[j][maskbin] & group->bitmask[igroupinner]))
          error->one(FLERR,"the inner nodes specified in lb/rigid/pc/sphere should not be included in the lb/fluid fix");
      }
    }else{
      for(int j=0; j<nlocal; j++){
-       if((mask[j] & groupbit) && !(mask[j] & groupbit_lb_fluid))
+       if((mask[j][groupbin] & groupbit) && !(mask[j][groupbin_lb_fluid] & groupbit_lb_fluid))
          error->one(FLERR,"use the innerNodes keyword in the lb/rigid/pc/sphere fix for atoms which do not interact with the lb/fluid");
      }
    }
@@ -485,7 +495,7 @@ void FixLbRigidPCSphere::init()
   double *radius = atom->radius;
   int *ellipsoid = atom->ellipsoid;
   int extended = 0;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
 
   // Warn if any extended particles are included.
   if (atom->radius_flag || atom->ellipsoid_flag || atom->mu_flag) {
@@ -509,6 +519,7 @@ void FixLbRigidPCSphere::init()
   int xbox,ybox,zbox;
   double massone,xunwrap,yunwrap,zunwrap;
 
+  int maskbin;
   for (i = 0; i < nlocal; i++) {
     if (body[i] < 0) continue;
     ibody = body[i];
@@ -533,7 +544,8 @@ void FixLbRigidPCSphere::init()
     sum[ibody][2] += zunwrap * massone;
     sum[ibody][3] += massone;
     if(inner_nodes == 1){
-      if(!(mask[i] & group->bitmask[igroupinner])){
+      maskbin = floor((float)igroupinner/(float)group->grp_per_bin);
+      if(!(mask[i][maskbin] & group->bitmask[igroupinner])){
         sum[ibody][4] += massone;
       }
     }else{
@@ -563,7 +575,7 @@ void FixLbRigidPCSphere::init()
   for (i=0; i<nlocal; i++){
     if(body[i] < 0) continue;
     if(inner_nodes == 1){
-      if(!(mask[i] & group->bitmask[igroupinner])){
+      if(!(mask[i][maskbin] & group->bitmask[igroupinner])){
         ibody = body[i];
 
         xbox = (image[i] & IMGMASK) - IMGMAX;
@@ -613,7 +625,7 @@ void FixLbRigidPCSphere::init()
   for (i=0; i<nlocal; i++){
     if(body[i] < 0) continue;
     if(inner_nodes == 1){
-      if(!(mask[i] & group->bitmask[igroupinner])){
+      if(!(mask[i][maskbin] & group->bitmask[igroupinner])){
         ibody = body[i];
 
         if(Gamma_MD[ibody]*dt_lb/dm_lb - Gamma[type[i]] > eps)
@@ -777,7 +789,7 @@ void FixLbRigidPCSphere::initial_integrate(int vflag)
   double unwrap[3];
   double dx,dy,dz;
 
-  int *mask = atom->mask;
+  int **mask = atom->mask;
 
   // compute the fluid velocity at the initial particle positions
   compute_up();
@@ -786,6 +798,7 @@ void FixLbRigidPCSphere::initial_integrate(int vflag)
     for (i = 0; i < 6; i++) sum[ibody][i] = 0.0;
   // Store the fluid velocity at the center of mass
 
+  int maskbin;
   for (i = 0; i < nlocal; i++) {
     if (body[i] < 0) continue;
     ibody = body[i];
@@ -793,7 +806,8 @@ void FixLbRigidPCSphere::initial_integrate(int vflag)
     else massone = mass[type[i]];
 
     if(inner_nodes == 1){
-      if(!(mask[i] & group->bitmask[igroupinner])){
+      maskbin = floor((float)igroupinner/(float)group->grp_per_bin);
+      if(!(mask[i][maskbin] & group->bitmask[igroupinner])){
         sum[ibody][0] += up[i][0]*massone;
         sum[ibody][1] += up[i][1]*massone;
         sum[ibody][2] += up[i][2]*massone;
@@ -830,7 +844,7 @@ void FixLbRigidPCSphere::initial_integrate(int vflag)
     else massone = mass[type[i]];
 
     if(inner_nodes == 1){
-      if(!(mask[i] & group->bitmask[igroupinner])){
+      if(!(mask[i][maskbin] & group->bitmask[igroupinner])){
         sum[ibody][0] += Gamma_MD[ibody]*(dy * ((up[i][2]-vcm[ibody][2])) -
                                           dz * ((up[i][1]-vcm[ibody][1])));
         sum[ibody][1] += Gamma_MD[ibody]*(dz * ((up[i][0]-vcm[ibody][0])) -
@@ -967,7 +981,7 @@ void FixLbRigidPCSphere::final_integrate()
   double unwrap[3];
   double dx,dy,dz;
 
-  int *mask = atom->mask;
+  int **mask = atom->mask;
 
   for (ibody = 0; ibody < nbody; ibody++)
     for (i = 0; i < 6; i++) sum[ibody][i] = 0.0;
@@ -1030,6 +1044,7 @@ void FixLbRigidPCSphere::final_integrate()
     for (i = 0; i < 6; i++) sum[ibody][i] = 0.0;
    // Store the fluid velocity at the center of mass, and the total force
    // due to the fluid.
+   int maskbin;
   for (i = 0; i < nlocal; i++) {
     if (body[i] < 0) continue;
     ibody = body[i];
@@ -1043,7 +1058,8 @@ void FixLbRigidPCSphere::final_integrate()
     dz = unwrap[2] - xcm[ibody][2];
 
     if(inner_nodes == 1){
-      if(!(mask[i] & group->bitmask[igroupinner])){
+      maskbin = floor((float)igroupinner/(float)group->grp_per_bin);
+      if(!(mask[i][maskbin] & group->bitmask[igroupinner])){
         sum[ibody][0] += up[i][0]*massone;
         sum[ibody][1] += up[i][1]*massone;
         sum[ibody][2] += up[i][2]*massone;
@@ -1394,17 +1410,18 @@ void FixLbRigidPCSphere::pre_neighbor()
 int FixLbRigidPCSphere::dof(int igroup)
 {
   int groupbit = group->bitmask[igroup];
+  int groupbin = floor((float)igroup/(float)group->grp_per_bin);
 
   // ncount = # of atoms in each rigid body that are also in group
 
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   int *ncount = new int[nbody];
   for (int ibody = 0; ibody < nbody; ibody++) ncount[ibody] = 0;
 
   for (int i = 0; i < nlocal; i++)
-    if (body[i] >= 0 && mask[i] & groupbit) ncount[body[i]]++;
+    if (body[i] >= 0 && mask[i][groupbin] & groupbit) ncount[body[i]]++;
 
   int *nall = new int[nbody];
   MPI_Allreduce(ncount,nall,nbody,MPI_INT,MPI_SUM,world);
@@ -1560,7 +1577,7 @@ double FixLbRigidPCSphere::compute_array(int i, int j)
 /* ---------------------------------------------------------------------- */
  void FixLbRigidPCSphere::compute_up(void)
  {
-   int *mask = atom->mask;
+   int **mask = atom->mask;
    int nlocal = atom->nlocal;
    double **x = atom->x;
    int i,k;
@@ -1580,7 +1597,7 @@ double FixLbRigidPCSphere::compute_array(int i, int j)
 
 
   for(i=0; i<nlocal; i++){
-    if(mask[i] & groupbit){
+    if(mask[i][groupbin] & groupbit){
 
       //Calculate nearest leftmost grid point.
       //Since array indices from 1 to subNb-2 correspond to the

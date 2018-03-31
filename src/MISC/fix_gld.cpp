@@ -149,7 +149,7 @@ FixGLD::FixGLD(LAMMPS *lmp, int narg, char **arg) :
        } else if (strcmp(arg[iarg+1],"yes") == 0) {
          freezeflag = 1;
          for (int i = 0; i < atom->nlocal; i++) {
-           if (atom->mask[i] & groupbit) {
+           if (atom->mask[i][groupbin] & groupbit) {
              for (int k = 0; k < 3*prony_terms; k=k+3)
              {
                s_gld[i][k] = 0.0;
@@ -234,7 +234,7 @@ void FixGLD::initial_integrate(int vflag)
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
@@ -246,7 +246,7 @@ void FixGLD::initial_integrate(int vflag)
 
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         dtfm = dtf / rmass[i];
         // Advance V by dt/2
         v[i][0] += dtfm * f[i][0];
@@ -306,7 +306,7 @@ void FixGLD::initial_integrate(int vflag)
 
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         dtfm = dtf / mass[type[i]];
         // Advance V by dt/2
         v[i][0] += dtfm * f[i][0];
@@ -376,7 +376,7 @@ void FixGLD::initial_integrate(int vflag)
     fsumall[1] /= (count*prony_terms);
     fsumall[2] /= (count*prony_terms);
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         for (int k = 0; k < 3*prony_terms; k=k+3) {
           s_gld[i][k]   -= fsumall[0];
           s_gld[i][k+1] -= fsumall[1];
@@ -403,13 +403,13 @@ void FixGLD::final_integrate()
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         dtfm = dtf / rmass[i];
         v[i][0] += dtfm * f[i][0];
         v[i][1] += dtfm * f[i][1];
@@ -423,7 +423,7 @@ void FixGLD::final_integrate()
 
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         dtfm = dtf / mass[type[i]];
         v[i][0] += dtfm * f[i][0];
         v[i][1] += dtfm * f[i][1];
@@ -625,7 +625,7 @@ void FixGLD::init_s_gld()
 #endif
 
   for (int i = 0; i < atom->nlocal; i++) {
-    if (atom->mask[i] & groupbit) {
+    if (atom->mask[i][groupbin] & groupbit) {
       icoeff = 0;
       for (int k = 0; k < 3*prony_terms; k=k+3) {
         eq_sdev = scale*sqrt(prony_c[icoeff]/prony_tau[icoeff]);

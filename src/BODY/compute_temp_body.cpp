@@ -96,11 +96,11 @@ void ComputeTempBody::init()
   // check that all particles are finite-size, no point particles allowed
 
   int *body = atom->body;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       if (body[i] < 0)
         error->one(FLERR,"Compute temp/body requires bodies");
 
@@ -163,14 +163,14 @@ void ComputeTempBody::dof_compute()
     if (mode == ALL) dof -= tbias->dof_remove(-1) * natoms_temp;
 
   } else if (tempbias == 2) {
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
 
     tbias->dof_remove_pre();
 
     int count = 0;
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
+      if (mask[i][groupbin] & groupbit)
         if (tbias->dof_remove(i)) count++;
     int count_all;
     MPI_Allreduce(&count,&count_all,1,MPI_INT,MPI_SUM,world);
@@ -198,7 +198,7 @@ double ComputeTempBody::compute_scalar()
   double **angmom = atom->angmom;
   double *rmass = atom->rmass;
   int *body = atom->body;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double *inertia,*quat;
@@ -211,7 +211,7 @@ double ComputeTempBody::compute_scalar()
 
   if (mode == ALL) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * rmass[i];
 
         // principal moments of inertia
@@ -236,7 +236,7 @@ double ComputeTempBody::compute_scalar()
 
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
 
         // principal moments of inertia
 
@@ -287,7 +287,7 @@ void ComputeTempBody::compute_vector()
   double **angmom = atom->angmom;
   double *rmass = atom->rmass;
   int *body = atom->body;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double *inertia,*quat;
@@ -301,7 +301,7 @@ void ComputeTempBody::compute_vector()
 
   if (mode == ALL) {
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         massone = rmass[i];
         t[0] += massone * v[i][0]*v[i][0];
         t[1] += massone * v[i][1]*v[i][1];
@@ -338,7 +338,7 @@ void ComputeTempBody::compute_vector()
 
   } else {
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
 
         // principal moments of inertia
 

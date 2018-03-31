@@ -354,11 +354,11 @@ void FixIPI::initial_integrate(int vflag)
 
   // picks local atoms from the buffer
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       x[i][0]=buffer[3*(atom->tag[i]-1)+0]*posconv;
       x[i][1]=buffer[3*(atom->tag[i]-1)+1]*posconv;
       x[i][2]=buffer[3*(atom->tag[i]-1)+2]*posconv;

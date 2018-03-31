@@ -241,7 +241,7 @@ void FixTTM::post_force(int vflag)
   double **v = atom->v;
   double **f = atom->f;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double gamma1,gamma2;
@@ -249,7 +249,7 @@ void FixTTM::post_force(int vflag)
   // apply damping and thermostat to all atoms in fix group
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
 
       double xscale = (x[i][0] - domain->boxlo[0])/domain->xprd;
       double yscale = (x[i][1] - domain->boxlo[1])/domain->yprd;
@@ -290,13 +290,13 @@ void FixTTM::post_force(int vflag)
 void FixTTM::post_force_setup(int vflag)
 {
   double **f = atom->f;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   // apply langevin forces that have been stored from previous run
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       f[i][0] += flangevin[i][0];
       f[i][1] += flangevin[i][1];
       f[i][2] += flangevin[i][2];
@@ -374,7 +374,7 @@ void FixTTM::end_of_step()
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int ixnode = 0; ixnode < nxnodes; ixnode++)
@@ -383,7 +383,7 @@ void FixTTM::end_of_step()
         net_energy_transfer[ixnode][iynode][iznode] = 0;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       double xscale = (x[i][0] - domain->boxlo[0])/domain->xprd;
       double yscale = (x[i][1] - domain->boxlo[1])/domain->yprd;
       double zscale = (x[i][2] - domain->boxlo[2])/domain->zprd;
@@ -489,7 +489,7 @@ void FixTTM::end_of_step()
 
     double massone;
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         if (rmass) massone = rmass[i];
         else massone = mass[type[i]];
         double xscale = (x[i][0] - domain->boxlo[0])/domain->xprd;

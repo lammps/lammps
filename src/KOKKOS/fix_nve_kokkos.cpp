@@ -82,7 +82,7 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixNVEKokkos<DeviceType>::initial_integrate_item(int i) const
 {
-  if (mask[i] & groupbit) {
+  if (mask[i][groupbin] & groupbit) {
     const double dtfm = dtf / mass[type[i]];
     v(i,0) += dtfm * f(i,0);
     v(i,1) += dtfm * f(i,1);
@@ -97,7 +97,7 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixNVEKokkos<DeviceType>::initial_integrate_rmass_item(int i) const
 {
-  if (mask[i] & groupbit) {
+  if (mask[i][groupbin] & groupbit) {
     const double dtfm = dtf / rmass[type[i]];
     v(i,0) += dtfm * f(i,0);
     v(i,1) += dtfm * f(i,1);
@@ -141,7 +141,7 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixNVEKokkos<DeviceType>::final_integrate_item(int i) const
 {
-  if (mask[i] & groupbit) {
+  if (mask[i][groupbin] & groupbit) {
     const double dtfm = dtf / mass[type[i]];
     v(i,0) += dtfm * f(i,0);
     v(i,1) += dtfm * f(i,1);
@@ -153,7 +153,7 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixNVEKokkos<DeviceType>::final_integrate_rmass_item(int i) const
 {
-  if (mask[i] & groupbit) {
+  if (mask[i][groupbin] & groupbit) {
     const double dtfm = dtf / rmass[type[i]];
     v(i,0) += dtfm * f(i,0);
     v(i,1) += dtfm * f(i,1);

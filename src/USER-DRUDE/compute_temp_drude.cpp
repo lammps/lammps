@@ -97,7 +97,7 @@ void ComputeTempDrude::dof_compute()
 
   bigint dof_core_loc = 0, dof_drude_loc = 0;
   for (int i = 0; i < nlocal; i++) {
-    if (atom->mask[i] & groupbit) {
+    if (atom->mask[i][groupbin] & groupbit) {
       if (drudetype[type[i]] == DRUDE_TYPE) // Non-polarizable atom
           dof_drude_loc++;
       else
@@ -146,7 +146,7 @@ void ComputeTempDrude::compute_vector()
     invoked_vector = update->ntimestep;
 
     int nlocal = atom->nlocal;
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int *type = atom->type;
     double *rmass = atom->rmass, *mass = atom->mass;
     double **v = atom->v;
@@ -160,7 +160,7 @@ void ComputeTempDrude::compute_vector()
     double *vcore, *vdrude;
     double kineng_core_loc = 0., kineng_drude_loc = 0.;
     for (int i=0; i<nlocal; i++){
-        if (groupbit & mask[i] && drudetype[type[i]] != DRUDE_TYPE){
+        if (groupbit & mask[i][groupbin] && drudetype[type[i]] != DRUDE_TYPE){
             if (drudetype[type[i]] == NOPOL_TYPE) {
                 ecore = 0.;
                 vcore = v[i];
@@ -222,4 +222,3 @@ double ComputeTempDrude::compute_scalar(){
     scalar = vector[0];
     return scalar;
 }
-

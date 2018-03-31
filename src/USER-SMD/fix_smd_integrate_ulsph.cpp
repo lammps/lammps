@@ -166,7 +166,7 @@ void FixSMDIntegrateUlsph::initial_integrate(int vflag) {
         double **vest = atom->vest;
         double *rmass = atom->rmass;
 
-        int *mask = atom->mask;
+        int **mask = atom->mask;
         int nlocal = atom->nlocal;
         int i, itmp;
         double dtfm, vsq, scale;
@@ -190,7 +190,7 @@ void FixSMDIntegrateUlsph::initial_integrate(int vflag) {
                 nlocal = atom->nfirst;
 
         for (i = 0; i < nlocal; i++) {
-                if (mask[i] & groupbit) {
+                if (mask[i][groupbin] & groupbit) {
                         dtfm = dtf / rmass[i];
 
                         v[i][0] += dtfm * f[i][0];
@@ -254,7 +254,7 @@ void FixSMDIntegrateUlsph::final_integrate() {
         double *vfrac = atom->vfrac;
         double *radius = atom->radius;
         double *contact_radius = atom->contact_radius;
-        int *mask = atom->mask;
+        int **mask = atom->mask;
         int nlocal = atom->nlocal;
         if (igroup == atom->firstgroup)
                 nlocal = atom->nfirst;
@@ -279,7 +279,7 @@ void FixSMDIntegrateUlsph::final_integrate() {
         }
 
         for (int i = 0; i < nlocal; i++) {
-                if (mask[i] & groupbit) {
+                if (mask[i][groupbin] & groupbit) {
 
                         dtfm = dtf / rmass[i];
                         v[i][0] += dtfm * f[i][0];

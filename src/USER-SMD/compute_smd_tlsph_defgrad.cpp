@@ -88,11 +88,11 @@ void ComputeSMDTLSPHDefgrad::compute_peratom() {
                 array_atom = defgradVector;
         }
 
-        int *mask = atom->mask;
+        int **mask = atom->mask;
         int nlocal = atom->nlocal;
 
         for (int i = 0; i < nlocal; i++) {
-                if (mask[i] & groupbit) {
+                if (mask[i][groupbin] & groupbit) {
                         F(0, 0) = defgrad[i][0];
                         F(0, 1) = defgrad[i][1];
                         F(0, 2) = defgrad[i][2];

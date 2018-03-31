@@ -37,14 +37,14 @@ NPairHalfRespaNsqNewtoff::NPairHalfRespaNsqNewtoff(LAMMPS *lmp) : NPair(lmp) {}
 
 void NPairHalfRespaNsqNewtoff::build(NeighList *list)
 {
-  int i,j,n,itype,jtype,n_inner,n_middle,bitmask,imol,iatom,moltemplate;
+  int i,j,n,itype,jtype,n_inner,n_middle,bitmask,maskbin,imol,iatom,moltemplate;
   tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*neighptr_inner,*neighptr_middle;
 
   double **x = atom->x;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   tagint *tag = atom->tag;
   tagint *molecule = atom->molecule;
   tagint **special = atom->special;
@@ -54,6 +54,7 @@ void NPairHalfRespaNsqNewtoff::build(NeighList *list)
   if (includegroup) {
     nlocal = atom->nfirst;
     bitmask = group->bitmask[includegroup];
+    maskbin = floor((float)includegroup/(float)group->grp_per_bin);
   }
 
   int *molindex = atom->molindex;
@@ -111,7 +112,7 @@ void NPairHalfRespaNsqNewtoff::build(NeighList *list)
     // loop over remaining atoms, owned and ghost
 
     for (j = i+1; j < nall; j++) {
-      if (includegroup && !(mask[j] & bitmask)) continue;
+      if (includegroup && !(mask[j][maskbin] & bitmask)) continue;
       jtype = type[j];
       if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
 

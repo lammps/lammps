@@ -136,7 +136,7 @@ void FixSMDIntegrateTlsph::initial_integrate(int vflag) {
         double **vest = atom->vest;
         double **f = atom->f;
         double *rmass = atom->rmass;
-        int *mask = atom->mask;
+        int **mask = atom->mask;
         int nlocal = atom->nlocal;
         int itmp;
         double vxsph_x, vxsph_y, vxsph_z;
@@ -153,7 +153,7 @@ void FixSMDIntegrateTlsph::initial_integrate(int vflag) {
         }
 
         for (int i = 0; i < nlocal; i++) {
-                if (mask[i] & groupbit) {
+                if (mask[i][groupbin] & groupbit) {
                         dtfm = dtf / rmass[i];
 
                         // 1st part of Velocity_Verlet: push velocties 1/2 time increment ahead
@@ -213,14 +213,14 @@ void FixSMDIntegrateTlsph::final_integrate() {
         double *e = atom->e;
         double *de = atom->de;
         double *rmass = atom->rmass;
-        int *mask = atom->mask;
+        int **mask = atom->mask;
         int nlocal = atom->nlocal;
         if (igroup == atom->firstgroup)
                 nlocal = atom->nfirst;
         int i;
 
         for (i = 0; i < nlocal; i++) {
-                if (mask[i] & groupbit) {
+                if (mask[i][groupbin] & groupbit) {
                         dtfm = dtf / rmass[i];
 
                         v[i][0] += dtfm * f[i][0]; // 3rd part of Velocity-Verlet: push velocities another half time increment ahead

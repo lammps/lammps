@@ -360,7 +360,7 @@ int FixQEq::CG( double *b, double *x )
 
   for( ii = 0; ii < inum; ++ii ) {
     i = ilist[ii];
-    if (atom->mask[i] & groupbit)
+    if (atom->mask[i][groupbin] & groupbit)
       d[i] = r[i] * Hdia_inv[i];
     else d[i] = 0.0;
   }
@@ -381,7 +381,7 @@ int FixQEq::CG( double *b, double *x )
 
     for( ii = 0; ii < inum; ++ii ) {
       i = ilist[ii];
-      if (atom->mask[i] & groupbit)
+      if (atom->mask[i][groupbin] & groupbit)
         p[i] = r[i] * Hdia_inv[i];
     }
 
@@ -413,17 +413,17 @@ void FixQEq::sparse_matvec( sparse_matrix *A, double *x, double *b )
   nall = atom->nlocal + atom->nghost;
 
   for( i = 0; i < nlocal; ++i ) {
-    if (atom->mask[i] & groupbit)
+    if (atom->mask[i][groupbin] & groupbit)
       b[i] = eta[ atom->type[i] ] * x[i];
   }
 
   for( i = nlocal; i < nall; ++i ) {
-    if (atom->mask[i] & groupbit)
+    if (atom->mask[i][groupbin] & groupbit)
       b[i] = 0;
   }
 
   for( i = 0; i < nlocal; ++i ) {
-    if (atom->mask[i] & groupbit) {
+    if (atom->mask[i][groupbin] & groupbit) {
       for( itr_j=A->firstnbr[i]; itr_j<A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
         j = A->jlist[itr_j];
         b[i] += A->val[itr_j] * x[j];
@@ -452,7 +452,7 @@ void FixQEq::calculate_Q()
 
   for( ii = 0; ii < inum; ++ii ) {
     i = ilist[ii];
-    if (atom->mask[i] & groupbit) {
+    if (atom->mask[i][groupbin] & groupbit) {
       q[i] = s[i] - u * t[i];
 
       for( k = 4; k > 0; --k ) {
@@ -598,7 +598,7 @@ double FixQEq::parallel_norm( double *v, int n )
   norm_sqr = 0.0;
   for( ii = 0; ii < n; ++ii ) {
     i = ilist[ii];
-    if (atom->mask[i] & groupbit)
+    if (atom->mask[i][groupbin] & groupbit)
       my_sum += v[i]*v[i];
   }
 
@@ -623,7 +623,7 @@ double FixQEq::parallel_dot( double *v1, double *v2, int n)
   res = 0.0;
   for( ii = 0; ii < n; ++ii ) {
     i = ilist[ii];
-    if (atom->mask[i] & groupbit)
+    if (atom->mask[i][groupbin] & groupbit)
       my_dot += v1[i] * v2[i];
   }
 
@@ -648,7 +648,7 @@ double FixQEq::parallel_vector_acc( double *v, int n )
   res = 0.0;
   for( ii = 0; ii < n; ++ii ) {
     i = ilist[ii];
-    if (atom->mask[i] & groupbit)
+    if (atom->mask[i][groupbin] & groupbit)
       my_acc += v[i];
   }
 
@@ -669,7 +669,7 @@ void FixQEq::vector_sum( double* dest, double c, double* v,
 
   for( --k; k>=0; --k ) {
     kk = ilist[k];
-    if (atom->mask[kk] & groupbit)
+    if (atom->mask[kk][groupbin] & groupbit)
       dest[kk] = c * v[kk] + d * y[kk];
   }
 }
@@ -685,7 +685,7 @@ void FixQEq::vector_add( double* dest, double c, double* v, int k )
 
   for( --k; k>=0; --k ) {
     kk = ilist[k];
-    if (atom->mask[kk] & groupbit)
+    if (atom->mask[kk][groupbin] & groupbit)
       dest[kk] += c * v[kk];
   }
 }

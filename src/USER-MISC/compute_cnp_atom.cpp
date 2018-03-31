@@ -65,7 +65,7 @@ ComputeCNPAtom::ComputeCNPAtom(LAMMPS *lmp, int narg, char **arg) :
   int lasttype = -1;
   int n = -1;
   for (int i=0; i < atom->nlocal; ++i) {
-    if (atom->mask[i] & groupbit) {
+    if (atom->mask[i][groupbin] & groupbit) {
       if (lasttype != atom->type[i]) {
         lasttype = atom->type[i];
         ++n;
@@ -168,7 +168,7 @@ void ComputeCNPAtom::compute_peratom()
   // since CNP calculation requires neighbors of neighbors
 
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   int nerror = 0;
@@ -224,7 +224,7 @@ void ComputeCNPAtom::compute_peratom()
 
     // skip computation of cnpv for atoms outside the compute group
 
-    if (!(mask[i] & groupbit)) continue;
+    if (!(mask[i][groupbin] & groupbit)) continue;
 
     // loop over nearest neighbors of I to build cnp data structure
     //  cnp[k][NCOMMON] = # of common neighbors of I with each of its neighbors

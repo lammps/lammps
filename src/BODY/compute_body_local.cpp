@@ -88,12 +88,12 @@ void ComputeBodyLocal::init()
   // if non-body particles in group insure only indices 1,2,3 are used
 
   int nonbody = 0;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *body = atom->body;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       if (body[i] < 0) nonbody = 1;
 
   int flag;
@@ -137,13 +137,13 @@ int ComputeBodyLocal::compute_body(int flag)
 {
   // perform count
 
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *body = atom->body;
   int nlocal = atom->nlocal;
 
   int ncount = 0;
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       if (body[i] < 0) ncount++;
       else ncount += bptr->noutrow(body[i]);
     }
@@ -161,7 +161,7 @@ int ComputeBodyLocal::compute_body(int flag)
 
   ncount = 0;
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       if (body[i] < 0) {
         if (nvalues == 1) {
           if (which[0] == ID) vector[ncount] = tag[i];

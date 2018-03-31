@@ -364,7 +364,7 @@ void DumpH5MD::pack(tagint *ids)
   int *species = atom->type;
   double *q = atom->q;
   imageint *image = atom->image;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   int dim=domain->dimension;
 
@@ -374,7 +374,7 @@ void DumpH5MD::pack(tagint *ids)
 
   m = n = 0;
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       if (every_position>=0) {
         int ix = (image[i] & IMGMASK) - IMGMAX;
         int iy = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;

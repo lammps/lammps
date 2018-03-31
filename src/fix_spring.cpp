@@ -79,6 +79,7 @@ FixSpring::FixSpring(LAMMPS *lmp, int narg, char **arg) :
     if (igroup2 == igroup)
       error->all(FLERR,"Two groups cannot be the same in fix spring couple");
     group2bit = group->bitmask[igroup2];
+    group2bin = floor((float)igroup2/(float)group->grp_per_bin);
 
     k_spring = force->numeric(FLERR,arg[5]);
     xflag = yflag = zflag = 1;
@@ -126,6 +127,7 @@ void FixSpring::init()
     if (igroup2 == -1)
       error->all(FLERR,"Fix spring couple group ID does not exist");
     group2bit = group->bitmask[igroup2];
+    group2bin = floor((float)igroup2/(float)group->grp_per_bin);
   }
 
   masstotal = group->mass(igroup);
@@ -209,7 +211,7 @@ void FixSpring::spring_tether()
   // apply restoring force to atoms in group
 
   double **f = atom->f;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
@@ -219,7 +221,7 @@ void FixSpring::spring_tether()
 
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         massone = rmass[i];
         f[i][0] -= fx*massone;
         f[i][1] -= fy*massone;
@@ -227,7 +229,7 @@ void FixSpring::spring_tether()
       }
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         massone = mass[type[i]];
         f[i][0] -= fx*massone;
         f[i][1] -= fy*massone;
@@ -292,7 +294,7 @@ void FixSpring::spring_couple()
   // f = -k*(r-r0)*mass/masstotal
 
   double **f = atom->f;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
@@ -302,13 +304,13 @@ void FixSpring::spring_couple()
 
   if (rmass) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         massone = rmass[i];
         f[i][0] += fx*massone;
         f[i][1] += fy*massone;
         f[i][2] += fz*massone;
       }
-      if (mask[i] & group2bit) {
+      if (mask[i][group2bin] & group2bit) {
         massone = rmass[i];
         f[i][0] -= fx2*massone;
         f[i][1] -= fy2*massone;
@@ -317,13 +319,13 @@ void FixSpring::spring_couple()
     }
   } else {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         massone = mass[type[i]];
         f[i][0] += fx*massone;
         f[i][1] += fy*massone;
         f[i][2] += fz*massone;
       }
-      if (mask[i] & group2bit) {
+      if (mask[i][group2bin] & group2bit) {
         massone = mass[type[i]];
         f[i][0] -= fx2*massone;
         f[i][1] -= fy2*massone;

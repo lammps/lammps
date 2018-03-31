@@ -62,11 +62,11 @@ void FixNHSphere::init()
   // no point particles allowed
 
   double *radius = atom->radius;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit)
+    if (mask[i][groupbin] & groupbit)
       if (radius[i] == 0.0)
         error->one(FLERR,"Fix nvt/npt/nph/sphere require extended particles");
 
@@ -87,7 +87,7 @@ void FixNHSphere::nve_v()
   double **torque = atom->torque;
   double *radius = atom->radius;
   double *rmass = atom->rmass;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
@@ -101,7 +101,7 @@ void FixNHSphere::nve_v()
   // 4 cases depending on radius vs shape and rmass vs mass
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       dtirotate = dtfrotate / (radius[i]*radius[i]*rmass[i]);
       omega[i][0] += dtirotate*torque[i][0];
       omega[i][1] += dtirotate*torque[i][1];
@@ -124,7 +124,7 @@ void FixNHSphere::nve_x()
   if (dipole_flag) {
     double **mu = atom->mu;
     double **omega = atom->omega;
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
     if (dlm_flag == 0){
       // d_mu/dt = omega cross mu
@@ -132,7 +132,7 @@ void FixNHSphere::nve_x()
       double msq,scale,g[3];
 
       for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit)
+        if (mask[i][groupbin] & groupbit)
           if (mu[i][3] > 0.0) {
             g[0] = mu[i][0] + dtv * (omega[i][1]*mu[i][2]-omega[i][2]*mu[i][1]);
             g[1] = mu[i][1] + dtv * (omega[i][2]*mu[i][0]-omega[i][0]*mu[i][2]);
@@ -150,7 +150,7 @@ void FixNHSphere::nve_x()
       double scale,s2,inv_len_mu;
 
       for (int i = 0; i < nlocal; i++) {
-        if (mask[i] & groupbit && mu[i][3] > 0.0) {
+        if (mask[i][groupbin] & groupbit && mu[i][3] > 0.0) {
 
           // Construct Q from dipole:
           // Q is the rotation matrix from space frame to body frame
@@ -261,12 +261,12 @@ void FixNHSphere::nh_v_temp()
   FixNH::nh_v_temp();
 
   double **omega = atom->omega;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       omega[i][0] *= factor_eta;
       omega[i][1] *= factor_eta;
       omega[i][2] *= factor_eta;

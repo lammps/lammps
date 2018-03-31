@@ -151,13 +151,14 @@ void Domain::init()
 
   // check for fix deform
 
-  deform_flag = deform_vremap = deform_groupbit = 0;
+  deform_flag = deform_vremap = deform_groupbit = deform_groupbin = 0;
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"deform") == 0) {
       deform_flag = 1;
       if (((FixDeform *) modify->fix[i])->remapflag == V_REMAP) {
         deform_vremap = 1;
         deform_groupbit = modify->fix[i]->groupbit;
+        deform_groupbin = modify->fix[i]->groupbin;
       }
     }
 
@@ -507,7 +508,7 @@ void Domain::pbc()
   int nlocal = atom->nlocal;
   double **x = atom->x;
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   imageint *image = atom->image;
 
   // verify owned atoms have valid numerical coords
@@ -539,7 +540,7 @@ void Domain::pbc()
     if (xperiodic) {
       if (x[i][0] < lo[0]) {
         x[i][0] += period[0];
-        if (deform_vremap && mask[i] & deform_groupbit) v[i][0] += h_rate[0];
+        if (deform_vremap && mask[i][deform_groupbin] & deform_groupbit) v[i][0] += h_rate[0];
         idim = image[i] & IMGMASK;
         otherdims = image[i] ^ idim;
         idim--;
@@ -549,7 +550,7 @@ void Domain::pbc()
       if (x[i][0] >= hi[0]) {
         x[i][0] -= period[0];
         x[i][0] = MAX(x[i][0],lo[0]);
-        if (deform_vremap && mask[i] & deform_groupbit) v[i][0] -= h_rate[0];
+        if (deform_vremap && mask[i][deform_groupbin] & deform_groupbit) v[i][0] -= h_rate[0];
         idim = image[i] & IMGMASK;
         otherdims = image[i] ^ idim;
         idim++;
@@ -561,7 +562,7 @@ void Domain::pbc()
     if (yperiodic) {
       if (x[i][1] < lo[1]) {
         x[i][1] += period[1];
-        if (deform_vremap && mask[i] & deform_groupbit) {
+        if (deform_vremap && mask[i][deform_groupbin] & deform_groupbit) {
           v[i][0] += h_rate[5];
           v[i][1] += h_rate[1];
         }
@@ -574,7 +575,7 @@ void Domain::pbc()
       if (x[i][1] >= hi[1]) {
         x[i][1] -= period[1];
         x[i][1] = MAX(x[i][1],lo[1]);
-        if (deform_vremap && mask[i] & deform_groupbit) {
+        if (deform_vremap && mask[i][deform_groupbin] & deform_groupbit) {
           v[i][0] -= h_rate[5];
           v[i][1] -= h_rate[1];
         }
@@ -589,7 +590,7 @@ void Domain::pbc()
     if (zperiodic) {
       if (x[i][2] < lo[2]) {
         x[i][2] += period[2];
-        if (deform_vremap && mask[i] & deform_groupbit) {
+        if (deform_vremap && mask[i][deform_groupbin] & deform_groupbit) {
           v[i][0] += h_rate[4];
           v[i][1] += h_rate[3];
           v[i][2] += h_rate[2];
@@ -603,7 +604,7 @@ void Domain::pbc()
       if (x[i][2] >= hi[2]) {
         x[i][2] -= period[2];
         x[i][2] = MAX(x[i][2],lo[2]);
-        if (deform_vremap && mask[i] & deform_groupbit) {
+        if (deform_vremap && mask[i][deform_groupbin] & deform_groupbit) {
           v[i][0] -= h_rate[4];
           v[i][1] -= h_rate[3];
           v[i][2] -= h_rate[2];

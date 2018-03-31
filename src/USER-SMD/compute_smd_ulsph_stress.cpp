@@ -82,7 +82,7 @@ void ComputeSMDULSPHStress::init() {
 
 void ComputeSMDULSPHStress::compute_peratom() {
         invoked_peratom = update->ntimestep;
-        int *mask = atom->mask;
+        int **mask = atom->mask;
         Matrix3d stress_deviator;
         double von_mises_stress;
 
@@ -104,7 +104,7 @@ void ComputeSMDULSPHStress::compute_peratom() {
 
         for (int i = 0; i < nlocal; i++) {
 
-                if (mask[i] & groupbit) {
+                if (mask[i][groupbin] & groupbit) {
                         stress_deviator = Deviator(T[i]);
                         von_mises_stress = sqrt(3. / 2.) * stress_deviator.norm();
                         stress_array[i][0] = T[i](0, 0); // xx

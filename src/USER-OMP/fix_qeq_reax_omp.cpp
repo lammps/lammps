@@ -158,7 +158,7 @@ void FixQEqReaxOMP::compute_H()
   int *type = atom->type;
   tagint * tag = atom->tag;
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
 
   if (reaxc) {
     inum = reaxc->list->inum;
@@ -203,7 +203,7 @@ void FixQEqReaxOMP::compute_H()
 #endif
     for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         jlist = firstneigh[i];
         jnum = numneigh[i];
         mfill = H.firstnbr[i];
@@ -389,7 +389,7 @@ void FixQEqReaxOMP::init_matvec()
 #endif
     for (int ii = 0; ii < nn; ++ii) {
       i = ilist[ii];
-      if (atom->mask[i] & groupbit) {
+      if (atom->mask[i][groupbin] & groupbit) {
 
         /* init pre-conditioner for H and init solution vectors */
         Hdia_inv[i] = 1. / eta[ atom->type[i] ];
@@ -417,7 +417,7 @@ void FixQEqReaxOMP::init_matvec()
 #endif
     for (int ii = 0; ii < nn; ++ii) {
       i = ilist[ii];
-      if (atom->mask[i] & groupbit) {
+      if (atom->mask[i][groupbin] & groupbit) {
 
         /* init pre-conditioner for H and init solution vectors */
         Hdia_inv[i] = 1. / eta[ atom->type[i] ];
@@ -484,7 +484,7 @@ int FixQEqReaxOMP::CG( double *b, double *x)
 #endif
   for (jj = 0; jj < nn; ++jj) {
     i = ilist[jj];
-    if (atom->mask[i] & groupbit) {
+    if (atom->mask[i][groupbin] & groupbit) {
       r[i] = b[i] - q[i];
       d[i] = r[i] * Hdia_inv[i]; //pre-condition
 
@@ -517,7 +517,7 @@ int FixQEqReaxOMP::CG( double *b, double *x)
 #endif
       for (jj = 0; jj < nn; jj++) {
         ii = ilist[jj];
-        if (atom->mask[ii] & groupbit) tmp1 += d[ii] * q[ii];
+        if (atom->mask[ii][groupbin] & groupbit) tmp1 += d[ii] * q[ii];
       }
 
 #if defined(_OPENMP)
@@ -537,7 +537,7 @@ int FixQEqReaxOMP::CG( double *b, double *x)
 #endif
       for (jj = 0; jj < nn; jj++) {
         ii = ilist[jj];
-        if (atom->mask[ii] & groupbit) {
+        if (atom->mask[ii][groupbin] & groupbit) {
           x[ii] += alpha * d[ii];
           r[ii] -= alpha * q[ii];
 
@@ -560,7 +560,7 @@ int FixQEqReaxOMP::CG( double *b, double *x)
 #endif
     for (jj = 0; jj < nn; jj++) {
       ii = ilist[jj];
-      if (atom->mask[ii] & groupbit) d[ii] = p[ii] + beta * d[ii];
+      if (atom->mask[ii][groupbin] & groupbit) d[ii] = p[ii] + beta * d[ii];
     }
   }
 
@@ -607,7 +607,7 @@ void FixQEqReaxOMP::sparse_matvec( sparse_matrix *A, double *x, double *b)
 #endif
     for (ii = 0; ii < nn; ++ii) {
       i = ilist[ii];
-      if (atom->mask[i] & groupbit) b[i] = eta[ atom->type[i] ] * x[i];
+      if (atom->mask[i][groupbin] & groupbit) b[i] = eta[ atom->type[i] ] * x[i];
     }
 
 #if defined(_OPENMP)
@@ -615,7 +615,7 @@ void FixQEqReaxOMP::sparse_matvec( sparse_matrix *A, double *x, double *b)
 #endif
     for (ii = nn; ii < NN; ++ii) {
       i = ilist[ii];
-      if (atom->mask[i] & groupbit) b[i] = 0;
+      if (atom->mask[i][groupbin] & groupbit) b[i] = 0;
     }
 
 #if defined(_OPENMP)
@@ -631,7 +631,7 @@ void FixQEqReaxOMP::sparse_matvec( sparse_matrix *A, double *x, double *b)
 #endif
     for (ii = 0; ii < nn; ++ii) {
       i = ilist[ii];
-      if (atom->mask[i] & groupbit) {
+      if (atom->mask[i][groupbin] & groupbit) {
         for (itr_j=A->firstnbr[i]; itr_j<A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
           j = A->jlist[itr_j];
           b[i] += A->val[itr_j] * x[j];
@@ -677,7 +677,7 @@ void FixQEqReaxOMP::calculate_Q()
 #endif
   for (int ii = 0; ii < nn; ii++) {
     i = ilist[ii];
-    if (atom->mask[i] & groupbit) {
+    if (atom->mask[i][groupbin] & groupbit) {
       tmp1 += s[i];
       tmp2 += t[i];
     }
@@ -699,7 +699,7 @@ void FixQEqReaxOMP::calculate_Q()
 #endif
   for (int ii = 0; ii < nn; ++ii) {
     i = ilist[ii];
-    if (atom->mask[i] & groupbit) {
+    if (atom->mask[i][groupbin] & groupbit) {
       q[i] = s[i] - u * t[i];
 
       // backup s & t
@@ -732,7 +732,7 @@ void FixQEqReaxOMP::vector_sum( double* dest, double c, double* v,
 #endif
   for (int ii=0; ii<k; ii++) {
     i = ilist[ii];
-    if (atom->mask[i] & groupbit) dest[i] = c * v[i] + d * y[i];
+    if (atom->mask[i][groupbin] & groupbit) dest[i] = c * v[i] + d * y[i];
   }
 }
 
@@ -751,7 +751,7 @@ void FixQEqReaxOMP::vector_add( double* dest, double c, double* v, int k)
 #endif
   for (int ii=0; ii<k; ii++) {
     i = ilist[ii];
-    if (atom->mask[i] & groupbit) dest[i] += c * v[i];
+    if (atom->mask[i][groupbin] & groupbit) dest[i] += c * v[i];
   }
 }
 
@@ -799,7 +799,7 @@ int FixQEqReaxOMP::dual_CG( double *b1, double *b2, double *x1, double *x2)
 #endif
   for (jj = 0; jj < nn; ++jj) {
     i = ilist[jj];
-    if (atom->mask[i] & groupbit) {
+    if (atom->mask[i][groupbin] & groupbit) {
       int indxI = 2 * i;
       r[indxI  ] = b1[i] - q[indxI  ];
       r[indxI+1] = b2[i] - q[indxI+1];
@@ -844,7 +844,7 @@ int FixQEqReaxOMP::dual_CG( double *b1, double *b2, double *x1, double *x2)
 #endif
       for (jj = 0; jj < nn; jj++) {
         ii = ilist[jj];
-        if (atom->mask[ii] & groupbit) {
+        if (atom->mask[ii][groupbin] & groupbit) {
           int indxI = 2 * ii;
           tmp1 += d[indxI  ] * q[indxI  ];
           tmp2 += d[indxI+1] * q[indxI+1];
@@ -873,7 +873,7 @@ int FixQEqReaxOMP::dual_CG( double *b1, double *b2, double *x1, double *x2)
 #endif
       for (jj = 0; jj < nn; jj++) {
         ii = ilist[jj];
-        if (atom->mask[ii] & groupbit) {
+        if (atom->mask[ii][groupbin] & groupbit) {
           int indxI = 2 * ii;
           x1[ii] += alpha_s * d[indxI  ];
           x2[ii] += alpha_t * d[indxI+1];
@@ -913,7 +913,7 @@ int FixQEqReaxOMP::dual_CG( double *b1, double *b2, double *x1, double *x2)
 #endif
     for (jj = 0; jj < nn; jj++) {
       ii = ilist[jj];
-      if (atom->mask[ii] & groupbit) {
+      if (atom->mask[ii][groupbin] & groupbit) {
         int indxI = 2 * ii;
 
         d[indxI  ] = p[indxI  ] + beta_s * d[indxI  ];
@@ -1005,7 +1005,7 @@ void FixQEqReaxOMP::dual_sparse_matvec( sparse_matrix *A, double *x1, double *x2
 #endif
     for (ii = 0; ii < nn; ++ii) {
       i = ilist[ii];
-      if (atom->mask[i] & groupbit) {
+      if (atom->mask[i][groupbin] & groupbit) {
         indxI = 2 * i;
         b[indxI  ] = eta[ atom->type[i] ] * x1[i];
         b[indxI+1] = eta[ atom->type[i] ] * x2[i];
@@ -1017,7 +1017,7 @@ void FixQEqReaxOMP::dual_sparse_matvec( sparse_matrix *A, double *x1, double *x2
 #endif
     for (ii = nn; ii < NN; ++ii) {
       i = ilist[ii];
-      if (atom->mask[i] & groupbit) {
+      if (atom->mask[i][groupbin] & groupbit) {
         indxI = 2 * i;
         b[indxI]   = 0;
         b[indxI+1] = 0;
@@ -1042,7 +1042,7 @@ void FixQEqReaxOMP::dual_sparse_matvec( sparse_matrix *A, double *x1, double *x2
 #endif
     for (ii = 0; ii < nn; ++ii) {
       i = ilist[ii];
-      if (atom->mask[i] & groupbit) {
+      if (atom->mask[i][groupbin] & groupbit) {
         indxI = 2 * i;
         for (itr_j=A->firstnbr[i]; itr_j<A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
           j = A->jlist[itr_j];
@@ -1107,7 +1107,7 @@ void FixQEqReaxOMP::dual_sparse_matvec( sparse_matrix *A, double *x, double *b )
 #endif
     for (ii = 0; ii < nn; ++ii) {
       i = ilist[ii];
-      if (atom->mask[i] & groupbit) {
+      if (atom->mask[i][groupbin] & groupbit) {
         indxI = 2 * i;
         b[indxI  ] = eta[ atom->type[i] ] * x[indxI  ];
         b[indxI+1] = eta[ atom->type[i] ] * x[indxI+1];
@@ -1119,7 +1119,7 @@ void FixQEqReaxOMP::dual_sparse_matvec( sparse_matrix *A, double *x, double *b )
 #endif
     for (ii = nn; ii < NN; ++ii) {
       i = ilist[ii];
-      if (atom->mask[i] & groupbit) {
+      if (atom->mask[i][groupbin] & groupbit) {
         indxI = 2 * i;
         b[indxI]   = 0;
         b[indxI+1] = 0;
@@ -1144,7 +1144,7 @@ void FixQEqReaxOMP::dual_sparse_matvec( sparse_matrix *A, double *x, double *b )
 #endif
     for (ii = 0; ii < nn; ++ii) {
       i = ilist[ii];
-      if (atom->mask[i] & groupbit) {
+      if (atom->mask[i][groupbin] & groupbit) {
         indxI = 2 * i;
         for (itr_j=A->firstnbr[i]; itr_j<A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
           j = A->jlist[itr_j];

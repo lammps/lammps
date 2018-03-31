@@ -74,8 +74,10 @@ class NPairSSAKokkos : public NPair {
   DAT::tdual_int_2d k_ex_type;
   DAT::tdual_int_1d k_ex1_group,k_ex2_group;
   DAT::tdual_int_1d k_ex1_bit,k_ex2_bit;
+  DAT::tdual_int_1d k_ex1_bin,k_ex2_bin;
   DAT::tdual_int_1d k_ex_mol_group;
   DAT::tdual_int_1d k_ex_mol_bit;
+  DAT::tdual_int_1d k_ex_mol_bin;
   DAT::tdual_int_1d k_ex_mol_intra;
 
   // data from NBinSSA class
@@ -120,10 +122,12 @@ class NPairSSAKokkosExecute
   const int nex_group;
   const typename AT::t_int_1d_const ex1_group,ex2_group;
   const typename AT::t_int_1d_const ex1_bit,ex2_bit;
+  const typename AT::t_int_1d_const ex1_bin,ex2_bin;
 
   const int nex_mol;
   const typename AT::t_int_1d_const ex_mol_group;
   const typename AT::t_int_1d_const ex_mol_bit;
+  const typename AT::t_int_1d_const ex_mol_bin;
   const typename AT::t_int_1d_const ex_mol_intra;
 
   // data from NBinSSA class
@@ -232,9 +236,12 @@ class NPairSSAKokkosExecute
         const typename AT::t_int_1d_const & _ex2_group,
         const typename AT::t_int_1d_const & _ex1_bit,
         const typename AT::t_int_1d_const & _ex2_bit,
+        const typename AT::t_int_1d_const & _ex1_bin,
+        const typename AT::t_int_1d_const & _ex2_bin,
         const int & _nex_mol,
         const typename AT::t_int_1d_const & _ex_mol_group,
         const typename AT::t_int_1d_const & _ex_mol_bit,
+        const typename AT::t_int_1d_const & _ex_mol_bin,
         const typename AT::t_int_1d_const & _ex_mol_intra,
         const X_FLOAT *_bboxhi, const X_FLOAT* _bboxlo,
         const int & _xperiodic, const int & _yperiodic, const int & _zperiodic,
@@ -267,8 +274,9 @@ class NPairSSAKokkosExecute
     ex1_type(_ex1_type),ex2_type(_ex2_type),ex_type(_ex_type),
     nex_group(_nex_group),
     ex1_group(_ex1_group),ex2_group(_ex2_group),
-    ex1_bit(_ex1_bit),ex2_bit(_ex2_bit),nex_mol(_nex_mol),
-    ex_mol_group(_ex_mol_group),ex_mol_bit(_ex_mol_bit),
+    ex1_bit(_ex1_bit),ex2_bit(_ex2_bit),
+    ex1_bin(_ex1_bin),ex2_bin(_ex2_bin),nex_mol(_nex_mol),
+    ex_mol_group(_ex_mol_group),ex_mol_bit(_ex_mol_bit),ex_mol_bin(_ex_mol_bin),
     ex_mol_intra(_ex_mol_intra),
     xperiodic(_xperiodic),yperiodic(_yperiodic),zperiodic(_zperiodic),
     xprd_half(_xprd_half),yprd_half(_yprd_half),zprd_half(_zprd_half) {

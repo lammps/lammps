@@ -118,7 +118,7 @@ void ComputeGyrationChunk::compute_vector()
   // compute Rg for each chunk
 
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   imageint *image = atom->image;
   double *mass = atom->mass;
@@ -126,7 +126,7 @@ void ComputeGyrationChunk::compute_vector()
   int nlocal = atom->nlocal;
 
   for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       index = ichunk[i]-1;
       if (index < 0) continue;
       domain->unmap(x[i],image[i],unwrap);
@@ -162,7 +162,7 @@ void ComputeGyrationChunk::compute_array()
     for (j = 0; j < 6; j++) rgt[i][j] = 0.0;
 
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   imageint *image = atom->image;
   double *mass = atom->mass;
@@ -170,7 +170,7 @@ void ComputeGyrationChunk::compute_array()
   int nlocal = atom->nlocal;
 
   for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       index = ichunk[i]-1;
       if (index < 0) continue;
       domain->unmap(x[i],image[i],unwrap);
@@ -231,7 +231,7 @@ void ComputeGyrationChunk::com_chunk()
   // compute COM for each chunk
 
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   imageint *image = atom->image;
   double *mass = atom->mass;
@@ -239,7 +239,7 @@ void ComputeGyrationChunk::com_chunk()
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       index = ichunk[i]-1;
       if (index < 0) continue;
       if (rmass) massone = rmass[i];

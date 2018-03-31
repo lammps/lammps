@@ -45,7 +45,7 @@ class ComputeForceTally : public Compute {
                            double, double, double);
  private:
   bigint did_setup;
-  int nmax,igroup2,groupbit2;
+  int nmax,igroup2,groupbit2,groupbin2;
   double **fatom;
   double ftotal[3];
 };

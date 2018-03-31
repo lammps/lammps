@@ -37,7 +37,7 @@ AtomVecFullKokkos::AtomVecFullKokkos(LAMMPS *lmp) : AtomVecKokkos(lmp)
   comm_x_only = comm_f_only = 1;
   size_forward = 3;
   size_reverse = 3;
-  size_border = 8;
+  size_border = 7 + atom->ngroupbin;
   size_velocity = 3;
   size_data_atom = 7;
   size_data_vel = 4;
@@ -250,7 +250,8 @@ void AtomVecFullKokkos::copy(int i, int j, int delflag)
 
   h_tag[j] = h_tag[i];
   h_type[j] = h_type[i];
-  mask[j] = mask[i];
+  for (int k = 0; k < atom->ngroupbin; k++)
+    mask[j][k] = mask[i][k];
   h_image[j] = h_image[i];
   h_x(j,0) = h_x(i,0);
   h_x(j,1) = h_x(i,1);
@@ -524,7 +525,7 @@ int AtomVecFullKokkos::pack_border_vel(int n, int *list, double *buf,
         buf[m++] = ubuf(h_mask(j)).d;
         buf[m++] = h_q(j);
         buf[m++] = ubuf(h_molecule(j)).d;
-        if (mask[i] & deform_groupbit) {
+        if (mask[i][deform_groupbin] & deform_groupbit) {
           buf[m++] = h_v(j,0) + dvx;
           buf[m++] = h_v(j,1) + dvy;
           buf[m++] = h_v(j,2) + dvz;
@@ -1593,7 +1594,7 @@ bigint AtomVecFullKokkos::memory_usage()
 
   if (atom->memcheck("tag")) bytes += memory->usage(tag,nmax);
   if (atom->memcheck("type")) bytes += memory->usage(type,nmax);
-  if (atom->memcheck("mask")) bytes += memory->usage(mask,nmax);
+  if (atom->memcheck("mask")) bytes += memory->usage(mask,nmax,atom->ngroupbin);
   if (atom->memcheck("image")) bytes += memory->usage(image,nmax);
   if (atom->memcheck("x")) bytes += memory->usage(x,nmax,3);
   if (atom->memcheck("v")) bytes += memory->usage(v,nmax,3);
@@ -1979,4 +1980,3 @@ void AtomVecFullKokkos::modified(ExecutionSpace space, unsigned int mask)
     }
   }
 }
-

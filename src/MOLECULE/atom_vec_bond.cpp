@@ -34,7 +34,7 @@ AtomVecBond::AtomVecBond(LAMMPS *lmp) : AtomVec(lmp)
   comm_x_only = comm_f_only = 1;
   size_forward = 3;
   size_reverse = 3;
-  size_border = 7;
+  size_border = 6 + atom->ngroupbin;
   size_velocity = 3;
   size_data_atom = 6;
   size_data_vel = 4;
@@ -59,7 +59,7 @@ void AtomVecBond::grow(int n)
 
   tag = memory->grow(atom->tag,nmax,"atom:tag");
   type = memory->grow(atom->type,nmax,"atom:type");
-  mask = memory->grow(atom->mask,nmax,"atom:mask");
+  mask = memory->grow(atom->mask,nmax,atom->ngroupbin,"atom:mask");
   image = memory->grow(atom->image,nmax,"atom:image");
   x = memory->grow(atom->x,nmax,3,"atom:x");
   v = memory->grow(atom->v,nmax,3,"atom:v");
@@ -106,7 +106,8 @@ void AtomVecBond::copy(int i, int j, int delflag)
 
   tag[j] = tag[i];
   type[j] = type[i];
-  mask[j] = mask[i];
+  for (int k = 0; k < atom->ngroupbin; k++)
+    mask[j][k] = mask[i][k];
   image[j] = image[i];
   x[j][0] = x[i][0];
   x[j][1] = x[i][1];
@@ -217,7 +218,7 @@ int AtomVecBond::pack_comm_vel(int n, int *list, double *buf,
         buf[m++] = x[j][0] + dx;
         buf[m++] = x[j][1] + dy;
         buf[m++] = x[j][2] + dz;
-        if (mask[i] & deform_groupbit) {
+        if (mask[i][deform_groupbin] & deform_groupbit) {
           buf[m++] = v[j][0] + dvx;
           buf[m++] = v[j][1] + dvy;
           buf[m++] = v[j][2] + dvz;
@@ -313,7 +314,8 @@ int AtomVecBond::pack_border(int n, int *list, double *buf,
       buf[m++] = x[j][2];
       buf[m++] = ubuf(tag[j]).d;
       buf[m++] = ubuf(type[j]).d;
-      buf[m++] = ubuf(mask[j]).d;
+      for (int k = 0; k < atom->ngroupbin; k++)
+        buf[m++] = ubuf(mask[j][k]).d;
       buf[m++] = ubuf(molecule[j]).d;
     }
   } else {
@@ -333,7 +335,8 @@ int AtomVecBond::pack_border(int n, int *list, double *buf,
       buf[m++] = x[j][2] + dz;
       buf[m++] = ubuf(tag[j]).d;
       buf[m++] = ubuf(type[j]).d;
-      buf[m++] = ubuf(mask[j]).d;
+      for (int k = 0; k < atom->ngroupbin; k++)
+        buf[m++] = ubuf(mask[j][k]).d;
       buf[m++] = ubuf(molecule[j]).d;
     }
   }
@@ -362,7 +365,8 @@ int AtomVecBond::pack_border_vel(int n, int *list, double *buf,
       buf[m++] = x[j][2];
       buf[m++] = ubuf(tag[j]).d;
       buf[m++] = ubuf(type[j]).d;
-      buf[m++] = ubuf(mask[j]).d;
+      for (int k = 0; k < atom->ngroupbin; k++)
+        buf[m++] = ubuf(mask[j][k]).d;
       buf[m++] = ubuf(molecule[j]).d;
       buf[m++] = v[j][0];
       buf[m++] = v[j][1];
@@ -386,7 +390,8 @@ int AtomVecBond::pack_border_vel(int n, int *list, double *buf,
         buf[m++] = x[j][2] + dz;
         buf[m++] = ubuf(tag[j]).d;
         buf[m++] = ubuf(type[j]).d;
-        buf[m++] = ubuf(mask[j]).d;
+        for (int k = 0; k < atom->ngroupbin; k++)
+        buf[m++] = ubuf(mask[j][k]).d;
         buf[m++] = ubuf(molecule[j]).d;
         buf[m++] = v[j][0];
         buf[m++] = v[j][1];
@@ -403,9 +408,10 @@ int AtomVecBond::pack_border_vel(int n, int *list, double *buf,
         buf[m++] = x[j][2] + dz;
         buf[m++] = ubuf(tag[j]).d;
         buf[m++] = ubuf(type[j]).d;
-        buf[m++] = ubuf(mask[j]).d;
+        for (int k = 0; k < atom->ngroupbin; k++)
+        buf[m++] = ubuf(mask[j][k]).d;
         buf[m++] = ubuf(molecule[j]).d;
-        if (mask[i] & deform_groupbit) {
+        if (mask[i][deform_groupbin] & deform_groupbit) {
           buf[m++] = v[j][0] + dvx;
           buf[m++] = v[j][1] + dvy;
           buf[m++] = v[j][2] + dvz;
@@ -454,7 +460,8 @@ void AtomVecBond::unpack_border(int n, int first, double *buf)
     x[i][2] = buf[m++];
     tag[i] = (tagint) ubuf(buf[m++]).i;
     type[i] = (int) ubuf(buf[m++]).i;
-    mask[i] = (int) ubuf(buf[m++]).i;
+    for (int k = 0; k < atom->ngroupbin; k++)
+      mask[i][k] = (int) ubuf(buf[m++]).i;
     molecule[i] = (tagint) ubuf(buf[m++]).i;
   }
 
@@ -479,7 +486,8 @@ void AtomVecBond::unpack_border_vel(int n, int first, double *buf)
     x[i][2] = buf[m++];
     tag[i] = (tagint) ubuf(buf[m++]).i;
     type[i] = (int) ubuf(buf[m++]).i;
-    mask[i] = (int) ubuf(buf[m++]).i;
+    for (int k = 0; k < atom->ngroupbin; k++)
+      mask[i][k] = (int) ubuf(buf[m++]).i;
     molecule[i] = (tagint) ubuf(buf[m++]).i;
     v[i][0] = buf[m++];
     v[i][1] = buf[m++];
@@ -523,7 +531,8 @@ int AtomVecBond::pack_exchange(int i, double *buf)
   buf[m++] = v[i][2];
   buf[m++] = ubuf(tag[i]).d;
   buf[m++] = ubuf(type[i]).d;
-  buf[m++] = ubuf(mask[i]).d;
+  for (int k = 0; k < atom->ngroupbin; k++)
+    buf[m++] = ubuf(mask[i][k]).d;
   buf[m++] = ubuf(image[i]).d;
 
   buf[m++] = ubuf(molecule[i]).d;
@@ -565,7 +574,8 @@ int AtomVecBond::unpack_exchange(double *buf)
   v[nlocal][2] = buf[m++];
   tag[nlocal] = (tagint) ubuf(buf[m++]).i;
   type[nlocal] = (int) ubuf(buf[m++]).i;
-  mask[nlocal] = (int) ubuf(buf[m++]).i;
+  for (int k = 0; k < atom->ngroupbin; k++)
+    mask[nlocal][k] = (int) ubuf(buf[m++]).i;
   image[nlocal] = (imageint) ubuf(buf[m++]).i;
 
   molecule[nlocal] = (tagint) ubuf(buf[m++]).i;
@@ -603,7 +613,7 @@ int AtomVecBond::size_restart()
   int nlocal = atom->nlocal;
   int n = 0;
   for (i = 0; i < nlocal; i++)
-    n += 13 + 2*num_bond[i];
+    n += 12 + atom->ngroupbin + 2*num_bond[i];
 
   if (atom->nextra_restart)
     for (int iextra = 0; iextra < atom->nextra_restart; iextra++)
@@ -629,7 +639,8 @@ int AtomVecBond::pack_restart(int i, double *buf)
   buf[m++] = x[i][2];
   buf[m++] = ubuf(tag[i]).d;
   buf[m++] = ubuf(type[i]).d;
-  buf[m++] = ubuf(mask[i]).d;
+  for (int k = 0; k < atom->ngroupbin; k++)
+    buf[m++] = ubuf(mask[i][k]).d;
   buf[m++] = ubuf(image[i]).d;
   buf[m++] = v[i][0];
   buf[m++] = v[i][1];
@@ -672,7 +683,8 @@ int AtomVecBond::unpack_restart(double *buf)
   x[nlocal][2] = buf[m++];
   tag[nlocal] = (tagint) ubuf(buf[m++]).i;
   type[nlocal] = (int) ubuf(buf[m++]).i;
-  mask[nlocal] = (int) ubuf(buf[m++]).i;
+  for (int k = 0; k < atom->ngroupbin; k++)
+    mask[nlocal][k] = (int) ubuf(buf[m++]).i;
   image[nlocal] = (imageint) ubuf(buf[m++]).i;
   v[nlocal][0] = buf[m++];
   v[nlocal][1] = buf[m++];
@@ -713,7 +725,8 @@ void AtomVecBond::create_atom(int itype, double *coord)
   x[nlocal][0] = coord[0];
   x[nlocal][1] = coord[1];
   x[nlocal][2] = coord[2];
-  mask[nlocal] = 1;
+  for (int k = 0; k < atom->ngroupbin; k++)
+    mask[nlocal][k] = !k;
   image[nlocal] = ((imageint) IMGMAX << IMG2BITS) |
     ((imageint) IMGMAX << IMGBITS) | IMGMAX;
   v[nlocal][0] = 0.0;
@@ -749,7 +762,8 @@ void AtomVecBond::data_atom(double *coord, imageint imagetmp, char **values)
 
   image[nlocal] = imagetmp;
 
-  mask[nlocal] = 1;
+  for (int k = 0; k < atom->ngroupbin; k++)
+    mask[nlocal][k] = !k;
   v[nlocal][0] = 0.0;
   v[nlocal][1] = 0.0;
   v[nlocal][2] = 0.0;
@@ -838,7 +852,7 @@ bigint AtomVecBond::memory_usage()
 
   if (atom->memcheck("tag")) bytes += memory->usage(tag,nmax);
   if (atom->memcheck("type")) bytes += memory->usage(type,nmax);
-  if (atom->memcheck("mask")) bytes += memory->usage(mask,nmax);
+  if (atom->memcheck("mask")) bytes += memory->usage(mask,nmax,atom->ngroupbin);
   if (atom->memcheck("image")) bytes += memory->usage(image,nmax);
   if (atom->memcheck("x")) bytes += memory->usage(x,nmax,3);
   if (atom->memcheck("v")) bytes += memory->usage(v,nmax,3);

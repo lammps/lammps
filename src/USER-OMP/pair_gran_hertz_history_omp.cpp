@@ -127,7 +127,7 @@ void PairGranHertzHistoryOMP::eval(int iifrom, int iito, ThrData * const thr)
   const double * const rmass = atom->rmass;
   double * const * const f = thr->get_f();
   double * const * const torque = thr->get_torque();
-  const int * const mask = atom->mask;
+  int ** mask = atom->mask;
   const int nlocal = atom->nlocal;
   double fxtmp,fytmp,fztmp;
   double t1tmp,t2tmp,t3tmp;
@@ -216,8 +216,8 @@ void PairGranHertzHistoryOMP::eval(int iifrom, int iito, ThrData * const thr)
         }
 
         meff = mi*mj / (mi+mj);
-        if (mask[i] & freeze_group_bit) meff = mj;
-        if (mask[j] & freeze_group_bit) meff = mi;
+        if (mask[i][freeze_group_bin] & freeze_group_bit) meff = mj;
+        if (mask[j][freeze_group_bin] & freeze_group_bit) meff = mi;
 
         // normal force = Hertzian contact + normal velocity damping
 

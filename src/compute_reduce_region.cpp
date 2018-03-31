@@ -66,7 +66,7 @@ double ComputeReduceRegion::compute_one(int m, int flag)
 
   index = -1;
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   int n = value2index[m];
@@ -79,21 +79,21 @@ double ComputeReduceRegion::compute_one(int m, int flag)
   if (which[m] == X) {
     if (flag < 0) {
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+        if (mask[i][groupbin] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
           combine(one,x[i][j],i);
     } else one = x[flag][j];
   } else if (which[m] == V) {
     double **v = atom->v;
     if (flag < 0) {
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+        if (mask[i][groupbin] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
           combine(one,v[i][j],i);
     } else one = v[flag][j];
   } else if (which[m] == F) {
     double **f = atom->f;
     if (flag < 0) {
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+        if (mask[i][groupbin] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
           combine(one,f[i][j],i);
     } else one = f[flag][j];
 
@@ -113,7 +113,7 @@ double ComputeReduceRegion::compute_one(int m, int flag)
         int n = nlocal;
         if (flag < 0) {
           for (i = 0; i < n; i++)
-            if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+            if (mask[i][groupbin] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
               combine(one,compute_vector[i],i);
         } else one = compute_vector[flag];
       } else {
@@ -122,7 +122,7 @@ double ComputeReduceRegion::compute_one(int m, int flag)
         int jm1 = j - 1;
         if (flag < 0) {
           for (i = 0; i < n; i++)
-            if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+            if (mask[i][groupbin] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
               combine(one,compute_array[i][jm1],i);
         } else one = compute_array[flag][jm1];
       }
@@ -165,7 +165,7 @@ double ComputeReduceRegion::compute_one(int m, int flag)
         int n = nlocal;
         if (flag < 0) {
           for (i = 0; i < n; i++)
-            if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+            if (mask[i][groupbin] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
               combine(one,fix_vector[i],i);
         } else one = fix_vector[flag];
       } else {
@@ -173,7 +173,7 @@ double ComputeReduceRegion::compute_one(int m, int flag)
         int jm1 = j - 1;
         if (flag < 0) {
           for (i = 0; i < nlocal; i++)
-            if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+            if (mask[i][groupbin] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
               combine(one,fix_array[i][jm1],i);
         } else one = fix_array[flag][jm1];
       }
@@ -209,7 +209,7 @@ double ComputeReduceRegion::compute_one(int m, int flag)
     input->variable->compute_atom(n,igroup,varatom,1,0);
     if (flag < 0) {
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+        if (mask[i][groupbin] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
           combine(one,varatom[i],i);
     } else one = varatom[flag];
   }

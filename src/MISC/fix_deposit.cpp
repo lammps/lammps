@@ -537,7 +537,8 @@ void FixDeposit::pre_exchange()
             atom->molatom[n] = m;
           }
         }
-        atom->mask[n] = 1 | groupbit;
+        atom->mask[n][groupbin] = groupbit;
+        atom->mask[n][1] |= 1;
         atom->image[n] = imageflags[m];
         atom->v[n][0] = vnew[0];
         atom->v[n][1] = vnew[1];

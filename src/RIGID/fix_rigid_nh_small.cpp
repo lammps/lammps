@@ -219,6 +219,7 @@ void FixRigidNHSmall::init()
     if (idilate == -1)
       error->all(FLERR,"Fix rigid npt/nph dilate group ID does not exist");
     dilate_group_bit = group->bitmask[idilate];
+    dilate_group_bin = floor((float)idilate/(float)group->grp_per_bin);
   }
 
   // initialize thermostats
@@ -1134,7 +1135,7 @@ void FixRigidNHSmall::remap()
   double oldlo,oldhi,ctr,expfac;
 
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   // epsilon is not used, except for book-keeping
@@ -1146,7 +1147,7 @@ void FixRigidNHSmall::remap()
   if (allremap) domain->x2lamda(nlocal);
   else {
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & dilate_group_bit)
+      if (mask[i][dilate_group_bin] & dilate_group_bit)
         domain->x2lamda(x[i],x[i]);
   }
 
@@ -1175,7 +1176,7 @@ void FixRigidNHSmall::remap()
   if (allremap) domain->lamda2x(nlocal);
   else {
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & dilate_group_bit)
+      if (mask[i][dilate_group_bin] & dilate_group_bit)
         domain->lamda2x(x[i],x[i]);
   }
 

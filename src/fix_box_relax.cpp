@@ -655,7 +655,7 @@ void FixBoxRelax::remap()
   // scale atom coords for all atoms or only for fix group atoms
 
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   n = atom->nlocal + atom->nghost;
 
   // convert pertinent atoms and rigid bodies to lamda coords
@@ -663,7 +663,7 @@ void FixBoxRelax::remap()
   if (allremap) domain->x2lamda(n);
   else {
     for (i = 0; i < n; i++)
-      if (mask[i] & groupbit)
+      if (mask[i][groupbin] & groupbit)
         domain->x2lamda(x[i],x[i]);
   }
 
@@ -703,7 +703,7 @@ void FixBoxRelax::remap()
   if (allremap) domain->lamda2x(n);
   else {
     for (i = 0; i < n; i++)
-      if (mask[i] & groupbit)
+      if (mask[i][groupbin] & groupbit)
         domain->lamda2x(x[i],x[i]);
   }
 

@@ -220,12 +220,12 @@ double ComputeTempProfile::compute_scalar()
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double t = 0.0;
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       ibin = bin[i];
       if (xflag) vthermal[0] = v[i][0] - binave[ibin][ivx];
       else vthermal[0] = v[i][0];
@@ -265,14 +265,14 @@ void ComputeTempProfile::compute_vector()
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double massone,t[6];
   for (i = 0; i < 6; i++) t[i] = 0.0;
 
   for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       ibin = bin[i];
       if (xflag) vthermal[0] = v[i][0] - binave[ibin][ivx];
       else vthermal[0] = v[i][0];
@@ -310,13 +310,13 @@ void ComputeTempProfile::compute_array()
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (i = 0; i < nbins; i++) tbin[i] = 0.0;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       ibin = bin[i];
       if (xflag) vthermal[0] = v[i][0] - binave[ibin][ivx];
       else vthermal[0] = v[i][0];
@@ -375,12 +375,12 @@ void ComputeTempProfile::remove_bias_thr(int i, double *v, double *)
 void ComputeTempProfile::remove_bias_all()
 {
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   int ibin;
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       ibin = bin[i];
       if (xflag) v[i][0] -= binave[ibin][ivx];
       if (yflag) v[i][1] -= binave[ibin][ivy];
@@ -419,12 +419,12 @@ void ComputeTempProfile::restore_bias_thr(int i, double *v, double *)
 void ComputeTempProfile::restore_bias_all()
 {
   double **v = atom->v;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   int ibin;
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       ibin = bin[i];
       if (xflag) v[i][0] += binave[ibin][ivx];
       if (yflag) v[i][1] += binave[ibin][ivy];
@@ -454,7 +454,7 @@ void ComputeTempProfile::bin_average()
   double **v = atom->v;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
@@ -463,7 +463,7 @@ void ComputeTempProfile::bin_average()
 
   if (rmass) {
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         ibin = bin[i];
         if (xflag) vbin[ibin][ivx] += rmass[i]*v[i][0];
         if (yflag) vbin[ibin][ivy] += rmass[i]*v[i][1];
@@ -474,7 +474,7 @@ void ComputeTempProfile::bin_average()
   } else {
     double onemass;
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+      if (mask[i][groupbin] & groupbit) {
         ibin = bin[i];
         onemass = mass[type[i]];
         if (xflag) vbin[ibin][ivx] += onemass*v[i][0];
@@ -526,7 +526,7 @@ void ComputeTempProfile::bin_assign()
   // if triclinic, do this in lamda space
 
   double **x = atom->x;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   int nlocal = atom->nlocal;
 
   int ibinx,ibiny,ibinz;
@@ -535,7 +535,7 @@ void ComputeTempProfile::bin_assign()
   if (triclinic) domain->x2lamda(nlocal);
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       if (nbinx > 1) {
         coord = x[i][0];
         if (periodicity[0]) {

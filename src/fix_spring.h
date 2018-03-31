@@ -44,7 +44,7 @@ class FixSpring : public Fix {
   int xflag,yflag,zflag;
   int styleflag;
   char *group2;
-  int igroup2,group2bit;
+  int igroup2,group2bit,group2bin;
   double masstotal,masstotal2;
   int ilevel_respa;
   double espring,ftotal[4];

@@ -52,6 +52,7 @@ Fix::Fix(LAMMPS *lmp, int narg, char **arg) :
   igroup = group->find(arg[1]);
   if (igroup == -1) error->all(FLERR,"Could not find fix group ID");
   groupbit = group->bitmask[igroup];
+  groupbin = floor((float)igroup/(float)group->grp_per_bin);
 
   n = strlen(arg[2]) + 1;
   style = new char[n];

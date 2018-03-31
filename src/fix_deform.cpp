@@ -892,11 +892,11 @@ void FixDeform::end_of_step()
 
   if (remapflag == X_REMAP) {
     double **x = atom->x;
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
 
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
+      if (mask[i][groupbin] & groupbit)
         domain->x2lamda(x[i],x[i]);
 
     if (nrigid)
@@ -932,11 +932,11 @@ void FixDeform::end_of_step()
 
   if (remapflag == X_REMAP) {
     double **x = atom->x;
-    int *mask = atom->mask;
+    int **mask = atom->mask;
     int nlocal = atom->nlocal;
 
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
+      if (mask[i][groupbin] & groupbit)
         domain->lamda2x(x[i],x[i]);
 
     if (nrigid)

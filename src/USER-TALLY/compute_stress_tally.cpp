@@ -35,7 +35,8 @@ ComputeStressTally::ComputeStressTally(LAMMPS *lmp, int narg, char **arg) :
   igroup2 = group->find(arg[3]);
   if (igroup2 == -1)
     error->all(FLERR,"Could not find compute stress/tally second group ID");
-  groupbit2 = group->bitmask[igroup2];
+    groupbit2 = group->bitmask[igroup2];
+    groupbin2 = floor((float)igroup2/(float)group->grp_per_bin);
 
   scalar_flag = 1;
   vector_flag = 0;
@@ -115,10 +116,10 @@ void ComputeStressTally::pair_tally_callback(int i, int j, int nlocal, int newto
                                              double, double, double fpair,
                                              double dx, double dy, double dz)
 {
-  const int * const mask = atom->mask;
+  int ** mask = atom->mask;
 
-  if ( ((mask[i] & groupbit) && (mask[j] & groupbit2))
-       || ((mask[i] & groupbit2) && (mask[j] & groupbit)) ) {
+  if ( ((mask[i][groupbin] & groupbit) && (mask[j][groupbin2] & groupbit2))
+       || ((mask[i][groupbin2] & groupbit2) && (mask[j][groupbin] & groupbit)) ) {
 
     fpair *= 0.5;
     const double v0 = dx*dx*fpair;
@@ -247,4 +248,3 @@ double ComputeStressTally::memory_usage()
   double bytes = (nmax < 0) ? 0 : nmax*size_peratom_cols * sizeof(double);
   return bytes;
 }
-

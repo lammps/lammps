@@ -34,7 +34,8 @@ ComputeHeatFluxTally::ComputeHeatFluxTally(LAMMPS *lmp, int narg, char **arg) :
   igroup2 = group->find(arg[3]);
   if (igroup2 == -1)
     error->all(FLERR,"Could not find compute heat/flux/tally second group ID");
-  groupbit2 = group->bitmask[igroup2];
+    groupbit2 = group->bitmask[igroup2];
+    groupbin2 = floor((float)igroup2/(float)group->grp_per_bin);
 
   vector_flag = 1;
   timeflag = 1;
@@ -122,10 +123,10 @@ void ComputeHeatFluxTally::pair_tally_callback(int i, int j, int nlocal, int new
                                              double evdwl, double ecoul, double fpair,
                                              double dx, double dy, double dz)
 {
-  const int * const mask = atom->mask;
+  int ** mask = atom->mask;
 
-  if ( ((mask[i] & groupbit) && (mask[j] & groupbit2))
-       || ((mask[i] & groupbit2) && (mask[j] & groupbit)) ) {
+  if ( ((mask[i][groupbin] & groupbit) && (mask[j][groupbin2] & groupbit2))
+       || ((mask[i][groupbin2] & groupbit2) && (mask[j][groupbin] & groupbit)) ) {
 
     const double epairhalf = 0.5 * (evdwl + ecoul);
     fpair *= 0.5;
@@ -230,7 +231,7 @@ void ComputeHeatFluxTally::compute_vector()
   //              + (F_ij . v_i)*dR_ij/2 )
 
   int nlocal = atom->nlocal;
-  int *mask = atom->mask;
+  int **mask = atom->mask;
   const double pfactor = 0.5 * force->mvv2e;
   double **v = atom->v;
   double *mass = atom->mass;
@@ -241,7 +242,7 @@ void ComputeHeatFluxTally::compute_vector()
   double jv[3] = {0.0,0.0,0.0};
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if (mask[i][groupbin] & groupbit) {
       const double * const vi = v[i];
       const double * const si = stress[i];
       double ke_i;
@@ -279,4 +280,3 @@ double ComputeHeatFluxTally::memory_usage()
   double bytes = (nmax < 0) ? 0 : nmax*comm_reverse * sizeof(double);
   return bytes;
 }
-

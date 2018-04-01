@@ -31,6 +31,7 @@ class ComputeDisplaceAtom : public Compute {
   void init();
   void compute_peratom();
   void set_arrays(int);
+  void refresh();
   double memory_usage();
 
  private:
@@ -38,6 +39,10 @@ class ComputeDisplaceAtom : public Compute {
   double **displace;
   char *id_fix;
   class FixStore *fix;
+
+  int refreshflag,ivar,nvmax;    // refresh option is enabled
+  char *rvar;                    // for incremental dumps
+  double *varatom;
 };
 
 }

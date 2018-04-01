@@ -187,7 +187,8 @@ class Atom : protected Pointers {
   int nextra_store;
 
   int map_style;                  // style of atom map: 0=none, 1=array, 2=hash
-  int map_user;                   // user selected style = same 0,1,2
+  int map_user;                   // user requested map style:
+                                  // 0 = no request, 1=array, 2=hash, 3=yes
   tagint map_tag_max;             // max atom ID that map() is setup for
 
   // spatial sorting of atoms

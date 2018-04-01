@@ -77,6 +77,12 @@ class Dump : protected Pointers {
   int sortcol;               // 0 to sort on ID, 1-N on columns
   int sortcolm1;             // sortcol - 1
   int sortorder;             // ASCEND or DESCEND
+  int delay_flag;            // 1 if delay output until delaystep
+  bigint delaystep;
+
+  int refreshflag;           // 1 if dump_modify refresh specified
+  char *refresh;             // compute ID to invoke refresh() on
+  int irefresh;              // index of compute
 
   char boundstr[9];          // encoding of boundary flags
 

@@ -43,13 +43,17 @@ void *lammps_extract_compute(void *, char *, int, int);
 void *lammps_extract_fix(void *, char *, int, int, int, int);
 void *lammps_extract_variable(void *, char *, char *);
 
-void lammps_reset_box(void *, double *, double *, double, double, double);
-int lammps_set_variable(void *, char *, char *);
 double lammps_get_thermo(void *, char *);
-
 int lammps_get_natoms(void *);
+
+int lammps_set_variable(void *, char *, char *);
+void lammps_reset_box(void *, double *, double *, double, double, double);
+
 void lammps_gather_atoms(void *, char *, int, int, void *);
+void lammps_gather_atoms_concat(void *, char *, int, int, void *);
+void lammps_gather_atoms_subset(void *, char *, int, int, int, int *, void *);
 void lammps_scatter_atoms(void *, char *, int, int, void *);
+void lammps_scatter_atoms_subset(void *, char *, int, int, int, int *, void *);
 
 // lammps_create_atoms() takes tagint and imageint as args
 // ifdef insures they are compatible with rest of LAMMPS

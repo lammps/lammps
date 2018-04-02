@@ -487,8 +487,13 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
   Kokkos::parallel_for(inum,sparse12_functor);
   if (neighflag != FULL) {
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagZeroQGhosts>(nlocal,nlocal+atom->nghost),*this);
-    FixQEqReaxKokkosSparse13Functor<DeviceType,HALFTHREAD> sparse13_functor(this);
-    Kokkos::parallel_for(inum,sparse13_functor);
+    if (neighflag == HALF) {
+      FixQEqReaxKokkosSparse13Functor<DeviceType,HALF> sparse13_functor(this);
+      Kokkos::parallel_for(inum,sparse13_functor);
+    } else if (neighflag == HALFTHREAD) {
+      FixQEqReaxKokkosSparse13Functor<DeviceType,HALFTHREAD> sparse13_functor(this);
+      Kokkos::parallel_for(inum,sparse13_functor);
+    }
     if (need_dup)
         if (need_dup)
     Kokkos::Experimental::contribute(d_o, dup_o);
@@ -541,8 +546,13 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagZeroQGhosts>(nlocal,nlocal+atom->nghost),*this);
       if (need_dup)
         dup_o.reset_except(d_o);
-      FixQEqReaxKokkosSparse23Functor<DeviceType,HALFTHREAD> sparse23_functor(this);
-      Kokkos::parallel_for(inum,sparse23_functor);
+      if (neighflag == HALF) {
+        FixQEqReaxKokkosSparse23Functor<DeviceType,HALF> sparse23_functor(this);
+        Kokkos::parallel_for(inum,sparse23_functor);
+      } else if (neighflag == HALFTHREAD) {
+        FixQEqReaxKokkosSparse23Functor<DeviceType,HALFTHREAD> sparse23_functor(this);
+        Kokkos::parallel_for(inum,sparse23_functor);
+      }
       if (need_dup)
           if (need_dup)
     Kokkos::Experimental::contribute(d_o, dup_o);
@@ -616,8 +626,13 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagZeroQGhosts>(nlocal,nlocal+atom->nghost),*this);
     if (need_dup)
       dup_o.reset_except(d_o);
-    FixQEqReaxKokkosSparse33Functor<DeviceType,HALFTHREAD> sparse33_functor(this);
-    Kokkos::parallel_for(inum,sparse33_functor);
+    if (neighflag == HALF) {
+      FixQEqReaxKokkosSparse33Functor<DeviceType,HALF> sparse33_functor(this);
+      Kokkos::parallel_for(inum,sparse33_functor);
+    } else if (neighflag == HALFTHREAD) {
+      FixQEqReaxKokkosSparse33Functor<DeviceType,HALFTHREAD> sparse33_functor(this);
+      Kokkos::parallel_for(inum,sparse33_functor);
+    }
     if (need_dup)
         if (need_dup)
     Kokkos::Experimental::contribute(d_o, dup_o);
@@ -670,8 +685,13 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagZeroQGhosts>(nlocal,nlocal+atom->nghost),*this);
       if (need_dup)
         dup_o.reset_except(d_o);
-      FixQEqReaxKokkosSparse23Functor<DeviceType,HALFTHREAD> sparse23_functor(this);
-      Kokkos::parallel_for(inum,sparse23_functor);
+      if (neighflag == HALF) {
+        FixQEqReaxKokkosSparse23Functor<DeviceType,HALF> sparse23_functor(this);
+        Kokkos::parallel_for(inum,sparse23_functor);
+      } else if (neighflag == HALFTHREAD) {
+        FixQEqReaxKokkosSparse23Functor<DeviceType,HALFTHREAD> sparse23_functor(this);
+        Kokkos::parallel_for(inum,sparse23_functor);
+      }
       if (need_dup)
           if (need_dup)
     Kokkos::Experimental::contribute(d_o, dup_o);

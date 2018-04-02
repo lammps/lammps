@@ -67,6 +67,8 @@ FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
   sector_flag = NONE;
   mech_flag = 1;
 
+  nlocal_max = 0;
+
   // checking if map array or hash is defined
 
   if (atom->map_style == 0)
@@ -220,11 +222,14 @@ void FixNVESpin::init()
   if (sector_flag) sectoring();
 
   // init. size tables of stacking variables (sectoring)
-  
+
+  nlocal_max = atom->nlocal;
   stack_head = memory->grow(stack_head,nsectors,"NVE/spin:stack_head");
   stack_foot = memory->grow(stack_foot,nsectors,"NVE/spin:stack_foot");
-  forward_stacks = memory->grow(forward_stacks,atom->nmax,"NVE/spin:forward_stacks");
-  backward_stacks = memory->grow(backward_stacks,atom->nmax,"NVE/spin:backward_stacks");
+  forward_stacks = memory->grow(forward_stacks,nlocal_max,"NVE/spin:forward_stacks");
+  backward_stacks = memory->grow(backward_stacks,nlocal_max,"NVE/spin:backward_stacks");
+  if (nlocal_max == 0)
+    error->all(FLERR,"Incorrect value of nlocal_max");
 
 }
 
@@ -359,6 +364,12 @@ void FixNVESpin::pre_neighbor()
   double **x = atom->x;	
   int nlocal = atom->nlocal;
 
+  if (nlocal_max < nlocal) {			// grow linked lists if necessary
+    nlocal_max = nlocal;
+    forward_stacks = memory->grow(forward_stacks,nlocal_max,"NVE/spin:forward_stacks");
+    backward_stacks = memory->grow(backward_stacks,nlocal_max,"NVE/spin:backward_stacks");
+  }
+
   for (int j = 0; j < nsectors; j++) {
     stack_head[j] = -1;
     stack_foot[j] = -1;
@@ -455,7 +466,7 @@ void FixNVESpin::ComputeInteractionsSpin(int ii)
 
     temp_cut = 0.0;
 
-    if (exch_flag) {		// exchange
+    if (exch_flag) {			// exchange
       temp_cut = lockpairspinexchange->cut_spin_exchange[itype][jtype];
       cut_2 = temp_cut*temp_cut;
       if (rsq <= cut_2) {
@@ -474,7 +485,7 @@ void FixNVESpin::ComputeInteractionsSpin(int ii)
       }
     }
     
-    if (soc_dmi_flag) {		// soc_dmi
+    if (soc_dmi_flag) {			// soc_dmi
       temp_cut = lockpairspinsocdmi->cut_soc_dmi[itype][jtype];
       cut_2 = temp_cut*temp_cut;
       if (rsq <= cut_2) {
@@ -482,7 +493,7 @@ void FixNVESpin::ComputeInteractionsSpin(int ii)
       }
     }
 
-    if (me_flag) {		// me
+    if (me_flag) {			// me
       temp_cut = lockpairspinme->cut_spin_me[itype][jtype];
       cut_2 = temp_cut*temp_cut;
       if (rsq <= cut_2) {
@@ -496,19 +507,19 @@ void FixNVESpin::ComputeInteractionsSpin(int ii)
   }  
   
   if (magprecession_flag) {		// magnetic precession
-    if (zeeman_flag) {		// zeeman
+    if (zeeman_flag) {			// zeeman
       lockprecessionspin->compute_zeeman(i,fmi);
     }
-    if (aniso_flag) {		// aniso
+    if (aniso_flag) {			// aniso
       lockprecessionspin->compute_anisotropy(i,spi,fmi);
     }
   }
 
-  if (maglangevin_flag) {	// mag. langevin
-    if (tdamp_flag) {		// transverse damping
+  if (maglangevin_flag) {		// mag. langevin
+    if (tdamp_flag) {			// transverse damping
       locklangevinspin->add_tdamping(spi,fmi);   
     }
-    if (temp_flag) { 		// spin temperature
+    if (temp_flag) { 			// spin temperature
       locklangevinspin->add_temperature(fmi);
     } 
   }
@@ -522,7 +533,7 @@ void FixNVESpin::ComputeInteractionsSpin(int ii)
 }
 
 /* ---------------------------------------------------------------------- 
-   divide each domain into sectors
+   divide each domain into 8 sectors
 ---------------------------------------------------------------------- */
 
 void FixNVESpin::sectoring()

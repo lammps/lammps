@@ -11,6 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ------------------------------------------------------------------------
+   Contributing authors: Julien Tranchida (SNL)
+                         Aidan Thompson (SNL)
+------------------------------------------------------------------------- */
+
 #ifdef FIX_CLASS
 
 FixStyle(nve/spin,FixNVESpin)
@@ -44,13 +49,15 @@ class FixNVESpin : public Fix {
   void pre_neighbor();
 
  protected:
-  int sector_flag;		// sector_flag = 0  if serial algorithm
-  				// sector_flag = 1  if parallel algorithm
-  int mech_flag; 		// mech_flag = 0 if spins only
-  				// mech_flag = 1 if spin-lattice calc. 
+  int sector_flag;			// sector_flag = 0  if serial algorithm
+  					// sector_flag = 1  if parallel algorithm
+  int mech_flag; 			// mech_flag = 0 if spins only
+  					// mech_flag = 1 if spin-lattice calc. 
 
-  double dtv, dtf, dts;		// velocity, force, and spin timesteps
+  double dtv, dtf, dts;			// velocity, force, and spin timesteps
   
+  int nlocal_max;			// max value of nlocal (for lists size)
+
   int magpair_flag;			// magnetic pair flags
   int exch_flag;
   int soc_neel_flag, soc_dmi_flag;

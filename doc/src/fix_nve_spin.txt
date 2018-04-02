@@ -6,22 +6,22 @@
 
 :line
 
-fix integration/spin command :h3
+fix nve/spin command :h3
 
 [Syntax:]
 
-fix ID group-ID integration/spin keyword values :pre
+fix ID group-ID nve/spin keyword values :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
-integration/spin = style name of this fix command :l
+nve/spin = style name of this fix command :l
 keyword = {lattice} :l
   {lattice} value = {no} or {yes} :pre
 :ule
 
 [Examples:]
 
-fix 3 all integration/spin lattice yes
-fix 1 all integration/spin lattice no :pre
+fix 3 all nve/spin lattice yes
+fix 1 all nve/spin lattice no :pre
 
 [Description:]
 
@@ -32,7 +32,7 @@ of fixed atoms (lattice = no), or if atoms are moving (lattice = yes).
 
 By default (lattice = yes), a spin-lattice integration is performed.
 
-The {integration/spin} fix applies a Suzuki-Trotter decomposition to 
+The {nve/spin} fix applies a Suzuki-Trotter decomposition to 
 the equations of motion of the spin lattice system, following the scheme:
 
 :c,image(Eqs/fix_integration_spin_stdecomposition.jpg)
@@ -51,9 +51,8 @@ This fix style can only be used if LAMMPS was built with the
 SPIN package. See the "Making LAMMPS"_Section_start.html#start_3
 section for more info on packages.
 
-When the spin algorithm is used for serial calculations, it is 
-necessary to define a map via the atom_modify command. 
-Typically, by adding the command:
+To use the spin algorithm, it is necessary to define a map with 
+the atom_modify command. Typically, by adding the command:
 
 atom_modify map array :pre
 

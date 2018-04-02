@@ -6,14 +6,14 @@
 
 :line
 
-fix force/spin command :h3
+fix precession/spin command :h3
 
 [Syntax:]
 
-fix ID group force/spin style args :pre
+fix ID group precession/spin style args :pre
 
 ID, group are documented in "fix"_fix.html command :ulb,l
-force/spin = style name of this fix command :l
+precession/spin = style name of this fix command :l
 style = {zeeman} or {aniso} :l
   {zeeman} args = H x y z 
     H = intensity of the magnetic field (in Tesla)
@@ -25,8 +25,8 @@ style = {zeeman} or {aniso} :l
 
 [Examples:]
 
-fix 1 all force/spin zeeman 0.1 0.0 0.0 1.0
-fix 1 all force/spin aniso 0.001 0.0 0.0 1.0 :pre
+fix 1 all precession/spin zeeman 0.1 0.0 0.0 1.0
+fix 1 all precession/spin aniso 0.001 0.0 0.0 1.0 :pre
 
 [Description:]
 
@@ -61,7 +61,7 @@ files"_restart.html.
 
 [Restrictions:]
 
-The {force/spin} style is part of the SPIN package. 
+The {precession/spin} style is part of the SPIN package. 
 This style is only enabled if LAMMPS was built with this package, and
 if the atom_style "spin" was declared. 
 See the "Making LAMMPS"_Section_start.html#start_3 section for more info.

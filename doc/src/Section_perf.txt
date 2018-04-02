@@ -6,7 +6,7 @@
 
 :line
 
-8. Performance & scalability :h3
+8. Performance & scalability :h2
 
 Current LAMMPS performance is discussed on the Benchmarks page of the
 "LAMMPS WWW Site"_lws where CPU timings and parallel efficiencies are

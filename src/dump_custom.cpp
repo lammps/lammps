@@ -60,7 +60,8 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   earg(NULL), vtype(NULL), vformat(NULL), columns(NULL), choose(NULL),
   dchoose(NULL), clist(NULL), field2index(NULL), argindex(NULL), id_compute(NULL),
   compute(NULL), id_fix(NULL), fix(NULL), id_variable(NULL), variable(NULL),
-  vbuf(NULL), id_custom(NULL), flag_custom(NULL), typenames(NULL), pack_choice(NULL)
+  vbuf(NULL), id_custom(NULL), flag_custom(NULL), typenames(NULL), 
+  pack_choice(NULL)
 {
   if (narg == 5) error->all(FLERR,"No dump custom arguments specified");
 
@@ -1671,6 +1672,19 @@ int DumpCustom::modify_param(int narg, char **arg)
       strcpy(typenames[itype],arg[itype]);
     }
     return ntypes+1;
+  }
+
+  if (strcmp(arg[0],"refresh") == 0) {
+    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
+    if (strncmp(arg[1],"c_",2) != 0) 
+      error->all(FLERR,"Illegal dump_modify command");
+    if (refreshflag) error->all(FLERR,"Dump modify can only have one refresh");
+
+    refreshflag = 1;
+    int n = strlen(arg[1]);
+    refresh = new char[n];
+    strcpy(refresh,&arg[1][2]);
+    return 2;
   }
 
   if (strcmp(arg[0],"thresh") == 0) {

@@ -207,13 +207,13 @@ void PairTersoffKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // build short neighbor list
 
-  int max_neighs = d_neighbors.dimension_1();
+  int max_neighs = d_neighbors.extent(1);
 
-  if ((d_neighbors_short.dimension_1() != max_neighs) ||
-     (d_neighbors_short.dimension_0() != ignum)) {
+  if ((d_neighbors_short.extent(1) != max_neighs) ||
+     (d_neighbors_short.extent(0) != ignum)) {
     d_neighbors_short = Kokkos::View<int**,DeviceType>("Tersoff::neighbors_short",ignum,max_neighs);
   }
-  if (d_numneigh_short.dimension_0()!=ignum)
+  if (d_numneigh_short.extent(0)!=ignum)
     d_numneigh_short = Kokkos::View<int*,DeviceType>("Tersoff::numneighs_short",ignum);
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagPairTersoffComputeShortNeigh>(0,neighflag==FULL?ignum:inum), *this);
 

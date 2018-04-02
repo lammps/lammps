@@ -15,11 +15,13 @@ dump_modify dump-ID keyword values ... :pre
 dump-ID = ID of dump to modify :ulb,l
 one or more keyword/value pairs may be appended :l
 these keywords apply to various dump styles :l
-keyword = {append} or {at} or {buffer} or {element} or {every} or {fileper} or {first} or {flush} or {format} or {image} or {label} or {nfile} or {pad} or {precision} or {region} or {scale} or {sort} or {thresh} or {unwrap} :l
+keyword = {append} or {at} or {buffer} or {delay} or {element} or {every} or {fileper} or {first} or {flush} or {format} or {image} or {label} or {nfile} or {pad} or {precision} or {region} or {scale} or {sort} or {thresh} or {unwrap} :l
   {append} arg = {yes} or {no}
   {at} arg = N
     N = index of frame written upon first dump
   {buffer} arg = {yes} or {no}
+  {delay} arg = Dstep
+    Dstep = delay output until this timestep
   {element} args = E1 E2 ... EN, where N = # of atom types
     E1,...,EN = element name, e.g. C or Fe or Ga
   {every} arg = N
@@ -41,6 +43,7 @@ keyword = {append} or {at} or {buffer} or {element} or {every} or {fileper} or {
   {pbc} arg = {yes} or {no} = remap atoms via periodic boundary conditions
   {precision} arg = power-of-10 value from 10 to 1000000
   {region} arg = region-ID or "none"
+  {refresh} arg = c_ID = compute ID that supports a refresh operation
   {scale} arg = {yes} or {no}
   {sfactor} arg = coordinate scaling factor (> 0.0)
   {thermo} arg = {yes} or {no}
@@ -171,6 +174,14 @@ The buffering mode is typically faster since each processor does the
 relatively expensive task of formatting the output for its own atoms.
 However it requires about twice the memory (per processor) for the
 extra buffering.
+
+:line
+
+The {delay} keyword applies to all dump styles.  No snapshots will be
+output until the specified {Dstep} timestep or later.  Specifying
+{Dstep} < 0 is the same as turning off the delay setting.  This is a
+way to turn off unwanted output early in a simulation, for example,
+during an equilibration phase.
 
 :line
 
@@ -407,25 +418,70 @@ nanometer accuracy, e.g. for N = 1000, the coordinates are written to
 
 :line
 
-The {sfactor} and {tfactor} keywords only apply to the dump {xtc}
-style.  They allow customization of the unit conversion factors used
-when writing to XTC files.  By default they are initialized for
-whatever "units"_units.html style is being used, to write out
-coordinates in nanometers and time in picoseconds.  I.e. for {real}
-units, LAMMPS defines {sfactor} = 0.1 and {tfactor} = 0.001, since the
-Angstroms and fmsec used by {real} units are 0.1 nm and 0.001 psec
-respectively.  If you are using a units system with distance and time
-units far from nm and psec, you may wish to write XTC files with
-different units, since the compression algorithm used in XTC files is
-most effective when the typical magnitude of position data is between
-10.0 and 0.1.
+The {refresh} keyword only applies to the dump {custom}, {cfg},
+{image}, and {movie} styles.  It allows an "incremental" dump file to
+be written, by refreshing a compute that is used as a threshold for
+determining which atoms are included in a dump snapshot.  The
+specified {c_ID} gives the ID of the compute.  It is prefixed by "c_"
+to indicate a compute, which is the only current option.  At some
+point, other options may be added, e.g. fixes or variables.
 
-:line
+NOTE: This keyword can only be specified once for a dump.  Refreshes
+of multiple computes cannot yet be performed.
 
-The {thermo} keyword ({netcdf} only) triggers writing of "thermo"_thermo.html
-information to the dump file alongside per-atom data. The data included in the
-dump file is identical to the data specified by
-"thermo_style"_thermo_style.html.
+The definition and motivation of an incremental dump file is as
+follows.  Instead of outputting all atoms at each snapshot (with some
+associated values), you may only wish to output the subset of atoms
+with a value that has changed in some way compared to the value the
+last time that atom was output.  In some scenarios this can result in
+a dramatically smaller dump file.  If desired, by post-processing the
+sequence of snapshots, the values for all atoms at all timesteps can
+be inferred.
+
+A concrete example is a simulation of atom diffusion in a solid,
+represented as atoms on a lattice.  Diffusive hops are rare.  Imagine
+that when a hop occurs an atom moves more than a distance {Dhop}.  For
+any snapshot we only want to output atoms that have hopped since the
+last snapshot.  This can be accomplished with something the following
+commands:
+
+variable        Dhop equal 0.6
+variable        check atom "c_dsp[4] > v_Dhop"
+compute         dsp all displace/atom refresh check
+dump            1 all custom 20 tmp.dump id type x y z
+dump_modify     1 append yes thresh c_dsp[4] > ${Dhop} refresh c_dsp :pre
+
+The "compute displace/atom"_compute_displace_atom.html command
+calculates the displacement of each atom from its reference position.
+The "4" index is the scalar displacement; 1,2,3 are the xyz components
+of the displacement.  The "dump_modify thresh"_dump_modify.html
+command will cause only atoms that have displaced more than 0.6
+Angstroms to be output on a given snapshot (assuming metal units).
+However, note that when an atom is output, we also need to update the
+reference position for that atom to its new coordinates.  So that it
+will not be output in every snapshot thereafter.  That reference
+position is stored by "compute
+displace/atom"_compute_displace_atom.html.  So the dump_modify
+{refresh} option triggers a call to compute displace/atom at the end
+of every dump to perform that update.  The {refresh check} option
+shown as part of the "compute
+displace/atom"_compute_displace_atom.html command enables the compute
+to respond to the call from the dump command, and update the
+appropriate reference positions.  This is done be defining an
+"atom-style variable"_variable.html, {check} in this example, which
+calculates a Boolean value (0 or 1) for each atom, based on the same
+criterion used by dump_modify thresh.  
+
+See the "compute displace/atom"_compute_displace_atom.html command for
+more details, including an example of how to produce output that
+includes an initial snapshot with the reference position of all atoms.
+
+Note that only computes with a {refresh} option will work with
+dump_modify refresh.  See individual compute doc pages for details.
+Currently, only compute displace/atom supports this option.  Others
+may be added at some point.  If you use a compute that doesn't support
+refresh operations, LAMMPS will not complain; dump_modify refresh will
+simply do nothing.
 
 :line
 
@@ -449,6 +505,21 @@ value of {no} means they are written in absolute distance units
 
 :line
 
+The {sfactor} and {tfactor} keywords only apply to the dump {xtc}
+style.  They allow customization of the unit conversion factors used
+when writing to XTC files.  By default they are initialized for
+whatever "units"_units.html style is being used, to write out
+coordinates in nanometers and time in picoseconds.  I.e. for {real}
+units, LAMMPS defines {sfactor} = 0.1 and {tfactor} = 0.001, since the
+Angstroms and fmsec used by {real} units are 0.1 nm and 0.001 psec
+respectively.  If you are using a units system with distance and time
+units far from nm and psec, you may wish to write XTC files with
+different units, since the compression algorithm used in XTC files is
+most effective when the typical magnitude of position data is between
+10.0 and 0.1.
+
+:line
+
 The {sort} keyword determines whether lines of per-atom output in a
 snapshot are sorted or not.  A sort value of {off} means they will
 typically be written in indeterminate order, either in serial or
@@ -469,6 +540,13 @@ performed.
 NOTE: Unless it is required by the dump style, sorting dump file
 output requires extra overhead in terms of CPU and communication cost,
 as well as memory, versus unsorted output.
+
+:line
+
+The {thermo} keyword only applies the dump {netcdf} style.  It
+triggers writing of "thermo"_thermo.html information to the dump file
+alongside per-atom data.  The values included in the dump file are
+identical to the values specified by "thermo_style"_thermo_style.html.
 
 :line
 

@@ -89,14 +89,14 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI>::copy_stencil_info()
 
   int maxstencil = ns->get_maxstencil();
 
-  if (maxstencil > k_stencil.dimension_0())
+  if (maxstencil > k_stencil.extent(0))
     k_stencil = DAT::tdual_int_1d("neighlist:stencil",maxstencil);
   for (int k = 0; k < maxstencil; k++)
     k_stencil.h_view(k) = ns->stencil[k];
     k_stencil.modify<LMPHostType>();
     k_stencil.sync<DeviceType>();
   if (GHOST) {
-    if (maxstencil > k_stencilxyz.dimension_0())
+    if (maxstencil > k_stencilxyz.extent(0))
       k_stencilxyz = DAT::tdual_int_1d_3("neighlist:stencilxyz",maxstencil);
     for (int k = 0; k < maxstencil; k++) {
       k_stencilxyz.h_view(k,0) = ns->stencilxyz[k][0];
@@ -224,7 +224,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI>::build(NeighList *list_)
     if(data.h_resize()) {
       deep_copy(data.h_new_maxneighs, data.new_maxneighs);
       list->maxneighs = data.h_new_maxneighs() * 1.2;
-      list->d_neighbors = typename ArrayTypes<DeviceType>::t_neighbors_2d("neighbors", list->d_neighbors.dimension_0(), list->maxneighs);
+      list->d_neighbors = typename ArrayTypes<DeviceType>::t_neighbors_2d("neighbors", list->d_neighbors.extent(0), list->maxneighs);
       data.neigh_list.d_neighbors = list->d_neighbors;
       data.neigh_list.maxneighs = list->maxneighs;
     }
@@ -455,14 +455,14 @@ void NeighborKokkosExecute<DeviceType>::build_ItemCuda(typename Kokkos::TeamPoli
 {
   /* loop over atoms in i's bin,
   */
-  const int atoms_per_bin = c_bins.dimension_1();
+  const int atoms_per_bin = c_bins.extent(1);
   const int BINS_PER_TEAM = dev.team_size()/atoms_per_bin<1?1:dev.team_size()/atoms_per_bin;
   const int TEAMS_PER_BIN = atoms_per_bin/dev.team_size()<1?1:atoms_per_bin/dev.team_size();
   const int MY_BIN = dev.team_rank()/atoms_per_bin;
 
   const int ibin = dev.league_rank()*BINS_PER_TEAM+MY_BIN;
 
-  if(ibin >=c_bincount.dimension_0()) return;
+  if(ibin >=c_bincount.extent(0)) return;
   X_FLOAT* other_x = sharedmem;
   other_x = other_x + 5*atoms_per_bin*MY_BIN;
 

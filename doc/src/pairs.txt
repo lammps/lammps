@@ -24,6 +24,7 @@ Pair Styles :h1
    pair_comb
    pair_coul
    pair_coul_diel
+   pair_coul_shield
    pair_cs
    pair_dipole
    pair_dpd
@@ -42,7 +43,9 @@ Pair Styles :h1
    pair_gw
    pair_hbond_dreiding
    pair_hybrid
+   pair_ilp_graphene_hbn
    pair_kim
+   pair_kolmogorov_crespi_full
    pair_kolmogorov_crespi_z
    pair_lcbop
    pair_line_lj

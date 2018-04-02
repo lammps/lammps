@@ -319,8 +319,8 @@ struct AtomVecMolecularKokkos_PackComm {
       _x(x.view<DeviceType>()),_list(list.view<DeviceType>()),_iswap(iswap),
       _xprd(xprd),_yprd(yprd),_zprd(zprd),
       _xy(xy),_xz(xz),_yz(yz) {
-        const size_t maxsend = (buf.view<DeviceType>().dimension_0()
-                                *buf.view<DeviceType>().dimension_1())/3;
+        const size_t maxsend = (buf.view<DeviceType>().extent(0)
+                                *buf.view<DeviceType>().extent(1))/3;
         const size_t elements = 3;
         buffer_view<DeviceType>(_buf,buf,maxsend,elements);
         _pbc[0] = pbc[0]; _pbc[1] = pbc[1]; _pbc[2] = pbc[2];
@@ -1250,8 +1250,8 @@ struct AtomVecMolecularKokkos_PackExchangeFunctor {
     // 1 to store buffer length
     elements = 19+atom->maxspecial+2*atom->bond_per_atom+4*atom->angle_per_atom+
       5*atom->dihedral_per_atom + 5*atom->improper_per_atom;
-    const int maxsendlist = (buf.template view<DeviceType>().dimension_0()*
-                             buf.template view<DeviceType>().dimension_1())/elements;
+    const int maxsendlist = (buf.template view<DeviceType>().extent(0)*
+                             buf.template view<DeviceType>().extent(1))/elements;
     buffer_view<DeviceType>(_buf,buf,maxsendlist,elements);
   }
 
@@ -1368,10 +1368,10 @@ int AtomVecMolecularKokkos::pack_exchange_kokkos(const int &nsend,DAT::tdual_xfl
 {
   const int elements = 19+atom->maxspecial+2*atom->bond_per_atom+4*atom->angle_per_atom+
       5*atom->dihedral_per_atom + 5*atom->improper_per_atom;
-  if(nsend > (int) (k_buf.view<LMPHostType>().dimension_0()*
-              k_buf.view<LMPHostType>().dimension_1())/elements) {
-    int newsize = nsend*elements/k_buf.view<LMPHostType>().dimension_1()+1;
-    k_buf.resize(newsize,k_buf.view<LMPHostType>().dimension_1());
+  if(nsend > (int) (k_buf.view<LMPHostType>().extent(0)*
+              k_buf.view<LMPHostType>().extent(1))/elements) {
+    int newsize = nsend*elements/k_buf.view<LMPHostType>().extent(1)+1;
+    k_buf.resize(newsize,k_buf.view<LMPHostType>().extent(1));
   }
   if(space == Host) {
     AtomVecMolecularKokkos_PackExchangeFunctor<LMPHostType>
@@ -1521,8 +1521,8 @@ struct AtomVecMolecularKokkos_UnpackExchangeFunctor {
 
     elements = 19+atom->maxspecial+2*atom->bond_per_atom+4*atom->angle_per_atom+
       5*atom->dihedral_per_atom + 5*atom->improper_per_atom;
-    const int maxsendlist = (buf.template view<DeviceType>().dimension_0()*
-                             buf.template view<DeviceType>().dimension_1())/elements;
+    const int maxsendlist = (buf.template view<DeviceType>().extent(0)*
+                             buf.template view<DeviceType>().extent(1))/elements;
     buffer_view<DeviceType>(_buf,buf,maxsendlist,elements);
   }
 

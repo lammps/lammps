@@ -82,6 +82,7 @@ Commands :h1
    region
    replicate
    rerun
+   reset_ids
    reset_timestep
    restart
    run

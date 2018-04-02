@@ -219,7 +219,7 @@ struct AtomVecDPDKokkos_PackComm {
       _list(list.view<DeviceType>()),_iswap(iswap),
       _xprd(xprd),_yprd(yprd),_zprd(zprd),
       _xy(xy),_xz(xz),_yz(yz) {
-        const size_t maxsend = (buf.view<DeviceType>().dimension_0()*buf.view<DeviceType>().dimension_1())/3;
+        const size_t maxsend = (buf.view<DeviceType>().extent(0)*buf.view<DeviceType>().extent(1))/3;
         const size_t elements = 3;
         buffer_view<DeviceType>(_buf,buf,maxsend,elements);
         _pbc[0] = pbc[0]; _pbc[1] = pbc[1]; _pbc[2] = pbc[2];
@@ -1324,7 +1324,7 @@ struct AtomVecDPDKokkos_PackExchangeFunctor {
                 _nlocal(nlocal),_dim(dim),
                 _lo(lo),_hi(hi){
     const size_t elements = 17;
-    const int maxsendlist = (buf.template view<DeviceType>().dimension_0()*buf.template view<DeviceType>().dimension_1())/elements;
+    const int maxsendlist = (buf.template view<DeviceType>().extent(0)*buf.template view<DeviceType>().extent(1))/elements;
 
     buffer_view<DeviceType>(_buf,buf,maxsendlist,elements);
   }
@@ -1376,9 +1376,9 @@ struct AtomVecDPDKokkos_PackExchangeFunctor {
 
 int AtomVecDPDKokkos::pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2d &k_buf, DAT::tdual_int_1d k_sendlist,DAT::tdual_int_1d k_copylist,ExecutionSpace space,int dim,X_FLOAT lo,X_FLOAT hi )
 {
-  if(nsend > (int) (k_buf.view<LMPHostType>().dimension_0()*k_buf.view<LMPHostType>().dimension_1())/17) {
-    int newsize = nsend*17/k_buf.view<LMPHostType>().dimension_1()+1;
-    k_buf.resize(newsize,k_buf.view<LMPHostType>().dimension_1());
+  if(nsend > (int) (k_buf.view<LMPHostType>().extent(0)*k_buf.view<LMPHostType>().extent(1))/17) {
+    int newsize = nsend*17/k_buf.view<LMPHostType>().extent(1)+1;
+    k_buf.resize(newsize,k_buf.view<LMPHostType>().extent(1));
   }
   sync(space,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
              MASK_MASK | IMAGE_MASK| DPDTHETA_MASK | UCOND_MASK |
@@ -1467,7 +1467,7 @@ struct AtomVecDPDKokkos_UnpackExchangeFunctor {
                 _nlocal(nlocal.template view<DeviceType>()),_dim(dim),
                 _lo(lo),_hi(hi){
     const size_t elements = 17;
-    const int maxsendlist = (buf.template view<DeviceType>().dimension_0()*buf.template view<DeviceType>().dimension_1())/elements;
+    const int maxsendlist = (buf.template view<DeviceType>().extent(0)*buf.template view<DeviceType>().extent(1))/elements;
 
     buffer_view<DeviceType>(_buf,buf,maxsendlist,elements);
   }

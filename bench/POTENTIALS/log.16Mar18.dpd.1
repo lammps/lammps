@@ -1,0 +1,75 @@
+LAMMPS (16 Mar 2018)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (../comm.cpp:90)
+  using 1 OpenMP thread(s) per MPI task
+# DPD benchmark
+
+units		lj
+atom_style	atomic
+comm_modify     mode single vel yes
+
+lattice		fcc 3.0
+Lattice spacing in x,y,z = 1.10064 1.10064 1.10064
+region		box block 0 20 0 20 0 20
+create_box	1 box
+Created orthogonal box = (0 0 0) to (22.0128 22.0128 22.0128)
+  1 by 1 by 1 MPI processor grid
+create_atoms	1 box
+Created 32000 atoms
+  Time spent = 0.0018332 secs
+mass		1 1.0
+
+velocity	all create 1.0 87287 loop geom
+
+pair_style	dpd 1.0 1.0 928948
+pair_coeff	1 1 25.0 4.5
+
+neighbor	0.5 bin
+neigh_modify    delay 0 every 1
+
+fix		1 all nve
+timestep	0.04
+
+run		100
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.5
+  ghost atom cutoff = 1.5
+  binsize = 0.75, bins = 30 30 30
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair dpd, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 11.32 | 11.32 | 11.32 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            1    3.6872574            0    5.1872105    28.880274 
+     100    1.0246036    4.5727353            0    6.1095927    23.859969 
+Loop time of 3.09286 on 1 procs for 100 steps with 32000 atoms
+
+Performance: 111741.340 tau/day, 32.333 timesteps/s
+99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.5326     | 1.5326     | 1.5326     |   0.0 | 49.55
+Neigh   | 1.4771     | 1.4771     | 1.4771     |   0.0 | 47.76
+Comm    | 0.044292   | 0.044292   | 0.044292   |   0.0 |  1.43
+Output  | 0.00011039 | 0.00011039 | 0.00011039 |   0.0 |  0.00
+Modify  | 0.022322   | 0.022322   | 0.022322   |   0.0 |  0.72
+Other   |            | 0.01648    |            |       |  0.53
+
+Nlocal:    32000 ave 32000 max 32000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    14981 ave 14981 max 14981 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    660587 ave 660587 max 660587 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 660587
+Ave neighs/atom = 20.6433
+Neighbor list builds = 50
+Dangerous builds = 0
+Total wall time: 0:00:03

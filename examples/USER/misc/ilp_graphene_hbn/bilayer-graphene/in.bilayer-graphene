@@ -1,0 +1,61 @@
+# Initialization
+units           metal
+boundary        p p p
+atom_style      full
+processors      * * 1     # domain decomposition over x and y
+
+# System and atom definition
+# we use 2 atom types so that inter- and intra-layer
+# interactions can be specified separately
+# read lammps data file
+read_data       Bi_gr_AB_stack_2L_noH_300K.data
+mass            1 12.0107   # carbon mass (g/mole) | membrane
+mass            2 12.0107   # carbon mass (g/mole) | adsorbate
+# Separate atom groups
+group membrane  type 1
+group adsorbate type 2
+
+######################## Potential defition ########################
+pair_style  hybrid/overlay  rebo  ilp/graphene/hbn 16.0
+####################################################################
+pair_coeff  * * rebo               CH.airebo      NULL C  # chemical
+pair_coeff  * * ilp/graphene/hbn   BNCH-old.ILP   C    C  # long range
+####################################################################
+# Neighbor update settings
+neighbor        2.0 bin
+neigh_modify    every 1
+neigh_modify    delay 0
+neigh_modify    check yes
+
+# calculate the COM
+variable        adsxcom equal xcm(adsorbate,x)
+variable        adsycom equal xcm(adsorbate,y)
+variable        adszcom equal xcm(adsorbate,z)
+variable        adsvxcom equal vcm(adsorbate,x)
+variable        adsvycom equal vcm(adsorbate,y)
+variable        adsvzcom equal vcm(adsorbate,z)
+
+#### Simulation settings ####
+timestep  0.001
+#velocity  adsorbate create 300.0 12345
+fix       subf membrane setforce 0.0 0.0 0.0
+fix       thermostat all nve
+
+compute   0 all pair rebo
+compute   1 all pair ilp/graphene/hbn
+variable  REBO     equal c_0
+variable  ILP      equal c_1
+
+############################
+
+# Output
+thermo          100
+thermo_style    custom step etotal pe ke v_REBO v_ILP temp v_adsxcom v_adsycom v_adszcom v_adsvxcom v_adsvycom v_adsvzcom
+thermo_modify   line one format float %.10f
+thermo_modify   flush yes norm no lost warn
+
+#dump            1 all custom 1000 traj.lammpstrj id mol type xu yu zu
+#dump_modify     1 format line "%7d %3d %3d %15.10g %15.10g %15.10g" flush yes
+
+###### Run molecular dynamics ######
+run 1000

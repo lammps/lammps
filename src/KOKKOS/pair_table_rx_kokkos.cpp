@@ -70,11 +70,11 @@ void getMixingWeights(
   nTotal = 0.0;
   nTotalOld = 0.0;
   assert(id >= 0);
-  assert(id < dvector.dimension_1());
+  assert(id < dvector.extent(1));
   for (int ispecies = 0; ispecies < nspecies; ++ispecies){
-    assert(ispecies < dvector.dimension_0());
+    assert(ispecies < dvector.extent(0));
     nTotal += dvector(ispecies,id);
-    assert(ispecies+nspecies < dvector.dimension_0());
+    assert(ispecies+nspecies < dvector.extent(0));
     nTotalOld += dvector(ispecies+nspecies,id);
   }
 
@@ -653,7 +653,7 @@ void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
   // loop over neighbors of my atoms
 
   const int ntotal = atom->nlocal + atom->nghost;
-  if (ntotal > mixWtSite1.dimension_0()) {
+  if (ntotal > mixWtSite1.extent(0)) {
     mixWtSite1old = Kokkos::View<double*, DeviceType>("PairTableRXKokkos::mixWtSite1old", ntotal);
     mixWtSite2old = Kokkos::View<double*, DeviceType>("PairTableRXKokkos::mixWtSite2old", ntotal);
     mixWtSite1 = Kokkos::View<double*, DeviceType>("PairTableRXKokkos::mixWtSite1", ntotal);
@@ -848,21 +848,21 @@ void PairTableRXKokkos<DeviceType>::create_kokkos_tables()
     h_table->invdelta[i] = tb->invdelta;
     h_table->deltasq6[i] = tb->deltasq6;
 
-    for(int j = 0; j<h_table->rsq.dimension_1(); j++)
+    for(int j = 0; j<h_table->rsq.extent(1); j++)
       h_table->rsq(i,j) = tb->rsq[j];
-    for(int j = 0; j<h_table->drsq.dimension_1(); j++)
+    for(int j = 0; j<h_table->drsq.extent(1); j++)
       h_table->drsq(i,j) = tb->drsq[j];
-    for(int j = 0; j<h_table->e.dimension_1(); j++)
+    for(int j = 0; j<h_table->e.extent(1); j++)
       h_table->e(i,j) = tb->e[j];
-    for(int j = 0; j<h_table->de.dimension_1(); j++)
+    for(int j = 0; j<h_table->de.extent(1); j++)
       h_table->de(i,j) = tb->de[j];
-    for(int j = 0; j<h_table->f.dimension_1(); j++)
+    for(int j = 0; j<h_table->f.extent(1); j++)
       h_table->f(i,j) = tb->f[j];
-    for(int j = 0; j<h_table->df.dimension_1(); j++)
+    for(int j = 0; j<h_table->df.extent(1); j++)
       h_table->df(i,j) = tb->df[j];
-    for(int j = 0; j<h_table->e2.dimension_1(); j++)
+    for(int j = 0; j<h_table->e2.extent(1); j++)
       h_table->e2(i,j) = tb->e2[j];
-    for(int j = 0; j<h_table->f2.dimension_1(); j++)
+    for(int j = 0; j<h_table->f2.extent(1); j++)
       h_table->f2(i,j) = tb->f2[j];
   }
 

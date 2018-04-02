@@ -80,7 +80,15 @@ deleted, then atom IDs are re-assigned so that they run from 1 to the
 number of atoms in the system.  Note that this is not done for
 molecular systems (see the "atom_style"_atom_style.html command),
 regardless of the {compress} setting, since it would foul up the bond
-connectivity that has already been assigned.
+connectivity that has already been assigned.  However, the
+"reset_ids"_reset_ids.html command can be used after this command to
+accomplish the same thing.
+
+Note that the re-assignement of IDs is not really a compression, where
+gaps in atom IDs are removed by decrementing atom IDs that are larger.
+Instead the IDs for all atoms are erased, and new IDs are assigned so
+that the atoms owned by individual processors have consecutive IDs, as
+the "create_atoms"_create_atoms.html command explains.
 
 A molecular system with fixed bonds, angles, dihedrals, or improper
 interactions, is one where the topology of the interactions is
@@ -137,7 +145,7 @@ using molecule template files via the "molecule"_molecule.html and
 
 [Related commands:]
 
-"create_atoms"_create_atoms.html
+"create_atoms"_create_atoms.html, "reset_ids"_reset_ids.html
 
 [Default:]
 

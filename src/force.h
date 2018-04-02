@@ -50,6 +50,7 @@ class Force : protected Pointers {
 
   class Pair *pair;
   char *pair_style;
+  char *pair_restart;
 
   class Bond *bond;
   char *bond_style;

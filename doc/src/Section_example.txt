@@ -6,7 +6,7 @@
 
 :line
 
-7. Example problems :h3
+7. Example problems :h2
 
 The LAMMPS distribution includes an examples sub-directory with many
 sample problems.  Many are 2d models that run quickly are are
@@ -46,7 +46,7 @@ Lists of both kinds of directories are given below.
 
 :line
 
-Lowercase directories :h4
+Lowercase directories :h3
 
 accelerate: run with various acceleration options (OpenMP, GPU, Phi)
 airebo:   polyethylene with AIREBO potential
@@ -122,7 +122,7 @@ browser.
 
 :line
 
-Uppercase directories :h4
+Uppercase directories :h3
 
 ASPHERE: various aspherical particle models, using ellipsoids, rigid bodies, line/triangle particles, etc
 COUPLE: examples of how to use LAMMPS as a library

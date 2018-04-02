@@ -8,7 +8,7 @@ Section"_Section_history.html :c
 
 :line
 
-12. Errors :h3
+12. Errors :h2
 
 This section describes the errors you can encounter when using LAMMPS,
 either conceptually, or as printed out by the program.
@@ -167,7 +167,7 @@ As a last resort, you can send an email directly to the
 
 :line
 
-12.3 Error & warning messages :h4,link(err_3)
+12.3 Error & warning messages :h3,link(err_3)
 
 These are two alphabetic lists of the "ERROR"_#error and
 "WARNING"_#warn messages LAMMPS prints out and the reason why.  If the
@@ -186,7 +186,7 @@ packages"_Section_start.html#start_3 are not listed here.  If such an
 error occurs and is not self-explanatory, you'll need to look in the
 source code or contact the author of the package.
 
-Errors: :h4,link(error)
+Errors: :h3,link(error)
 
 :dlb
 
@@ -11037,7 +11037,7 @@ Self-explanatory. :dd
 
 :dle
 
-Warnings: :h4,link(warn)
+Warnings: :h3,link(warn)
 
 :dlb
 

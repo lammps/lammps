@@ -1053,7 +1053,7 @@ void buffer_view(BufferView &buf, DualView &view,
                  const size_t n7 = 0) {
 
   buf = BufferView(
-          view.template view<DeviceType>().ptr_on_device(),
+          view.template view<DeviceType>().data(),
           n0,n1,n2,n3,n4,n5,n6,n7);
 
 }
@@ -1070,7 +1070,7 @@ struct MemsetZeroFunctor {
 template<class ViewType>
 void memset_kokkos (ViewType &view) {
   static MemsetZeroFunctor<typename ViewType::execution_space> f;
-  f.ptr = view.ptr_on_device();
+  f.ptr = view.data();
   #ifndef KOKKOS_USING_DEPRECATED_VIEW
   Kokkos::parallel_for(view.span()*sizeof(typename ViewType::value_type)/4, f);
   #else

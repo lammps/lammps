@@ -18,6 +18,6 @@
 
 include ../../lib/kim/Makefile.KIM_DIR
 
-kim_SYSINC  = -DKIM_INSTALL_DIR=\"${KIM_INSTALL_DIR}\"
-kim_SYSLIB  =
+kim_SYSINC  = -I../../lib/kim -DKIM_INSTALL_DIR=\"$(KIM_INSTALL_DIR)\"
+kim_SYSLIB  = -ldl
 kim_SYSPATH =

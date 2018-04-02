@@ -21,7 +21,7 @@ Syntax from lib dir: python Install.py -b -v version  -a kim-name
 specify one or more options, order does not matter
 
   -v = version of KIM API library to use
-       default = kim-api-v1.9.4 (current as of Mar 2018)
+       default = kim-api-v1.9.4 (current as of Apr 2018)
   -b = download and build base KIM API library with example Models
        this will delete any previous installation in the current folder
   -n = do NOT download and build base KIM API library.
@@ -166,9 +166,6 @@ if pathflag:
     mkfile.write("print_dir:\n")
     mkfile.write("	@printf $(KIM_INSTALL_DIR)\n")
 
-  with open("%s/Makefile.KIM_Config" % thisdir, 'w') as cfgfile:
-    cfgfile.write("include %s/lib/kim-api/Makefile.KIM_Config" % kimdir)
-
   print("Created %s/Makefile.KIM_DIR\n  using %s" % (thisdir,kimdir))
 else:
   kimdir = os.path.join(os.path.abspath(thisdir), "installed-" + version)
@@ -190,9 +187,6 @@ if buildflag:
     mkfile.write(".DUMMY: print_dir\n\n")
     mkfile.write("print_dir:\n")
     mkfile.write("	@printf $(KIM_INSTALL_DIR)\n")
-
-  with open("%s/Makefile.KIM_Config" % thisdir, 'w') as cfgfile:
-    cfgfile.write("include %s/lib/kim-api/Makefile.KIM_Config" % kimdir)
 
   print("Created %s/Makefile.KIM_DIR\n  using %s" % (thisdir,kimdir))
 
@@ -247,8 +241,9 @@ if buildflag:
 # add single OpenKIM model
 if addflag:
 
-  if os.path.isfile(os.path.join(thisdir, "Makefile.KIM_DIR")):
-    cmd = 'make -f Makefile.KIM_DIR print_dir'
+  makefile_path = os.path.join(thisdir, "Makefile.KIM_DIR")
+  if os.path.isfile(makefile_path):
+    cmd = 'make --no-print-directory -f %s print_dir' % makefile_path
     kimdir = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
 
   if not os.path.isdir(kimdir):

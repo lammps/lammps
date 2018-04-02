@@ -31,12 +31,11 @@ PairStyle(kim,PairKIM)
 #ifndef LMP_PAIR_KIM_H
 #define LMP_PAIR_KIM_H
 
-// includes from KIM & LAMMPS
-//class KIM_API_model;
 #include "pair.h"
 
-
 namespace LAMMPS_NS {
+   // Forward declare KIM_LAMMPS_PlugIn
+   class KIM_LAMMPS_PlugIn;
 
    class PairKIM : public Pair {
    public:
@@ -87,6 +86,7 @@ namespace LAMMPS_NS {
       unit_sys lmps_units;
 
       // values set in set_kim_model_has_flags(), called by kim_init()
+      KIM_LAMMPS_PlugIn * kim;
       void * pkim;
       bool kim_model_has_energy;
       bool kim_model_has_forces;
@@ -145,40 +145,10 @@ namespace LAMMPS_NS {
       void set_kim_model_has_flags();
       void write_descriptor(char** test_descriptor_string);
       // static methods used as callbacks from KIM
+      static void * (*kim_get_sim_buffer)(void *, int *);
       static int get_neigh(void** kimmdl, int* mode, int* request,
                            int* atom, int* numnei, int** nei1atom,
                            double** pRij);
-
-     bool setup_kim_api_library();
-     static bool kim_api_is_strictly_between_1_5_and_2_0;
-     // KIM symbols
-     static void* kim_api_library;
-     static int (*report_error)(int line, const char *, const char *, int);
-     static void (*kim_api_setm_compute_by_index)(void *, int *, ...);
-     static int (*kim_api_model_compute)(void *);
-     static int (*kim_api_model_init)(void *);
-     static int (*kim_api_model_reinit)(void *);
-     static void * (*kim_api_get_sim_buffer)(void *, int *);
-     static void * (*kim_api_get_data_by_index)(void *, int, int *);
-     static int (*kim_api_model_destroy)(void *);
-     static void (*kim_api_free)(void *, int *);
-     static int (*kim_api_string_init)(void *, const char *, const char *);
-     static int (*kim_api_is_half_neighbors)(void *, int *);
-     static int (*kim_api_get_NBC_method)(void *, const char **);
-     static int (*kim_api_get_index)(void *, const char *, int *);
-     static int (*kim_api_getm_index)(void *, int *, int, ...);
-     static int (*kim_api_get_species_code)(void *, const char *, int *);
-     static void (*kim_api_setm_data_by_index)(void *, int *, int, ...);
-     static int (*kim_api_set_method_by_index)(void *, int, intptr_t, void (*)());
-     static void (*kim_api_set_sim_buffer)(void *, void *, int *);
-     static int (*kim_api_set_data_by_index)(void *, int, intptr_t, void *);
-     static void (*kim_api_set_compute_by_index)(void *, int, int, int*);
-     static int (*kim_api_get_num_params)(void *, int *, int *);
-     static int (*kim_api_get_free_parameter)(void *, const int, const char **);
-     static void * (*kim_api_get_data)(void *, const char *, int *);
-     static intptr_t (*kim_api_get_rank)(void *, const char *, int *);
-     static intptr_t (*kim_api_get_shape)(void *, const char *, int *, int *);
-     static int (*kim_api_model_info)(void *, const char *);
    };
 }
 

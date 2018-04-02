@@ -20,11 +20,11 @@ Instructions:
 
 1. Configure lammps for use with the kim-api library installed in this directory
 
-$ printf "KIM_INSTALL_DIR=${PWD}\n" > ./Makefile.KIM_DIR
+# replace X.Y.Z as appropriate here and below
+$ printf "KIM_INSTALL_DIR=${PWD}/installed-kim-api-vX.Y.Z\n" > ./Makefile.KIM_DIR
 
 2. Download and unpack the kim-api
 
-# replace X.Y.Z as appropriate here and below
 $ wget http://s3.openkim.org/kim-api/kim-api-vX.Y.Z.txz
 $ tar zxvf kim-api-vX.Y.Z.txz
 
@@ -36,6 +36,7 @@ $ ./configure --prefix=${PWD}/../installed-kim-api-vX.Y.Z
 
 $ make
 $ make install
+$ cd ..
 
 4. Remove source and build files
 
@@ -45,7 +46,7 @@ $ rm -rf kim-api-vX.Y.Z.txz
 5. To add items do the following (replace the kim item name with your
    desired value)
 
-$ source ${PWD}/../kim-api-vX.Y.Z/bin/kim-api-v1-activate
+$ source ${PWD}/kim-api-vX.Y.Z/bin/kim-api-v1-activate
 $ kim-api-v1-collections-management install system Pair_Johnson_Fe__MO_857282754307_002
 
 
@@ -60,4 +61,4 @@ $ make g++ (or whatever target you wish)
 
 Note that the Makefile.lammps and Makefile.KIM_DIR files in this directory
 are required to allow the LAMMPS build to find the necessary KIM files.
-You should not normally need to edit this file.
+You should not normally need to edit these files.

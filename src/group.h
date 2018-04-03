@@ -174,4 +174,8 @@ E: Group all cannot be made dynamic
 
 This operation is not allowed.
 
+E: Insufficient Jacobi rotations for group::omega
+
+UNDOCUMENTED
+
 */

@@ -54,14 +54,21 @@ E: Insufficient memory on accelerator
 There is insufficient memory on one of the devices specified for the gpu
 package
 
-E: Pair style tersoff/gpu requires newton pair off
+E: Pair style tersoff/zbl/gpu requires atom IDs
 
-See the newton command.  This is a restriction to use this pair style.
+UNDOCUMENTED
+
+E: Pair style tersoff/zbl/gpu requires newton pair off
+
+UNDOCUMENTED
 
 E: All pair coeffs are not set
 
 All pair coefficients must be set in the data file or by the
 pair_coeff command before running a simulation.
 
-*/
+U: Pair style tersoff/gpu requires newton pair off
 
+See the newton command.  This is a restriction to use this pair style.
+
+*/

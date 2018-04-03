@@ -57,6 +57,10 @@ class RegCylinder : public Region {
 
 /* ERROR/WARNING messages:
 
+E: Invalid region cylinder open setting
+
+UNDOCUMENTED
+
 E: Illegal ... command
 
 Self-explanatory.  Check the input script syntax and compare to the

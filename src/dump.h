@@ -180,6 +180,10 @@ E: Too many atoms to dump sort
 
 Cannot sort when running with more than 2^31 atoms.
 
+E: Dump could not find refresh compute ID
+
+UNDOCUMENTED
+
 E: Too much per-proc info for dump
 
 Number of local atoms times number of columns must fit in a 32-bit

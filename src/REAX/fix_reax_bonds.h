@@ -56,6 +56,10 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
+E: Cannot open gzipped file
+
+UNDOCUMENTED
+
 E: Cannot open fix reax/bonds file %s
 
 The output file for the fix reax/bonds command cannot be opened.

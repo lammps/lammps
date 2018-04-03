@@ -125,6 +125,10 @@ E: Fix ave/correlate variable is not equal-style variable
 
 Self-explanatory.
 
+E: Fix ave/correlate variable is not vector-style variable
+
+UNDOCUMENTED
+
 E: Error writing file header
 
 Something in the output to the file triggered an error.

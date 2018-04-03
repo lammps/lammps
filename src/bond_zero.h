@@ -54,6 +54,10 @@ class BondZero : public Bond {
 
 /* ERROR/WARNING messages:
 
+E: Illegal ... command
+
+UNDOCUMENTED
+
 E: Incorrect args for bond coefficients
 
 Self-explanatory.  Check the input script or data file.

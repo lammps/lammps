@@ -79,15 +79,51 @@ int lammps_get_last_error_message(void *, char *, int);
 
 /* ERROR/WARNING messages:
 
+E: Library error: issuing LAMMPS command during run
+
+UNDOCUMENTED
+
 W: Library error in lammps_gather_atoms
 
 This library function cannot be used if atom IDs are not defined
 or are not consecutively numbered.
+
+W: lammps_gather_atoms: unknown property name
+
+UNDOCUMENTED
+
+W: Library error in lammps_gather_atoms_subset
+
+UNDOCUMENTED
+
+W: lammps_gather_atoms_subset: unknown property name
+
+UNDOCUMENTED
 
 W: Library error in lammps_scatter_atoms
 
 This library function cannot be used if atom IDs are not defined or
 are not consecutively numbered, or if no atom map is defined.  See the
 atom_modify command for details about atom maps.
+
+W: lammps_scatter_atoms: unknown property name
+
+UNDOCUMENTED
+
+W: Library error in lammps_scatter_atoms_subset
+
+UNDOCUMENTED
+
+W: lammps_scatter_atoms_subset: unknown property name
+
+UNDOCUMENTED
+
+W: Library error in lammps_create_atoms
+
+UNDOCUMENTED
+
+W: Library warning in lammps_create_atoms, invalid total atoms %ld %ld
+
+UNDOCUMENTED
 
 */

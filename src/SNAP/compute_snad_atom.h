@@ -66,11 +66,15 @@ E: Compute snad/atom requires a pair style be defined
 
 Self-explanatory.
 
-E: Compute snad/atom cutoff is longer than pairwise cutoff
+E: Compute sna/atom cutoff is longer than pairwise cutoff
+
+UNDOCUMENTED
+
+W: More than one compute snad/atom
 
 Self-explanatory.
 
-W: More than one compute snad/atom
+U: Compute snad/atom cutoff is longer than pairwise cutoff
 
 Self-explanatory.
 

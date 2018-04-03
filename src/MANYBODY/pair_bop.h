@@ -286,4 +286,8 @@ E: Incorrect table format check for element types
 
 Self-explanatory.
 
+E: Unsupported BOP potential file format
+
+UNDOCUMENTED
+
 */

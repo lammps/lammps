@@ -209,6 +209,10 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
+E: Must redefine kspace_style after changing to triclinic box
+
+UNDOCUMENTED
+
 E: Cannot (yet) use PPPM with triclinic box and kspace_modify diff ad
 
 This feature is not yet supported.
@@ -267,10 +271,6 @@ E: Bad TIP4P bond type for PPPM/TIP4P
 
 Specified bond type is not valid.
 
-E: Cannot (yet) use PPPM with triclinic box and TIP4P
-
-This feature is not yet supported.
-
 W: Reducing PPPM order b/c stencil extends beyond nearest neighbor processor
 
 This may lead to a larger grid than desired.  See the kspace_modify overlap
@@ -288,6 +288,10 @@ This is not allowed if the kspace_modify overlap setting is no.
 E: KSpace accuracy must be > 0
 
 The kspace accuracy designated in the input must be greater than zero.
+
+E: Must use kspace_modify gewald for uncharged system
+
+UNDOCUMENTED
 
 E: Could not compute grid size
 
@@ -334,5 +338,9 @@ This option is not yet supported.
 E: Cannot (yet) use kspace_modify diff ad with compute group/group
 
 This option is not yet supported.
+
+U: Cannot (yet) use PPPM with triclinic box and TIP4P
+
+This feature is not yet supported.
 
 */

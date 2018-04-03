@@ -11,36 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef NPAIR_CLASS
-
-NPairStyle(half/bin/newtoff/ghost,
-           NPairHalfBinNewtoffGhost,
-           NP_HALF | NP_BIN | NP_NEWTOFF | NP_GHOST | NP_ORTHO | NP_TRI)
-
-#else
-
-#ifndef LMP_NPAIR_HALF_BIN_NEWTOFF_GHOST_H
-#define LMP_NPAIR_HALF_BIN_NEWTOFF_GHOST_H
-
-#include "npair.h"
-
-namespace LAMMPS_NS {
-
-class NPairHalfBinNewtoffGhost : public NPair {
- public:
-  NPairHalfBinNewtoffGhost(class LAMMPS *);
-  ~NPairHalfBinNewtoffGhost() {}
-  void build(class NeighList *);
-};
-
-}
-
-#endif
-#endif
-
 /* ERROR/WARNING messages:
 
-E: Neighbor list overflow, boost neigh_modify one
+E: Cannot create an atom map unless atoms have IDs
 
 UNDOCUMENTED
 

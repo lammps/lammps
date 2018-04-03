@@ -18,6 +18,15 @@
 
 include ../../lib/kim/Makefile.KIM_DIR
 
-kim_SYSINC  = -I../../lib/kim -DKIM_INSTALL_DIR=\"$(KIM_INSTALL_DIR)\"
-kim_SYSLIB  = -ldl
-kim_SYSPATH =
+ifeq ($(wildcard $(KIM_INSTALL_DIR)/bin/kim-api-v1-build-config),)
+  KIM_CONFIG_HELPER = kim-api-v1-build-config
+else
+  KIM_CONFIG_HELPER = $(KIM_INSTALL_DIR)/bin/kim-api-v1-build-config
+endif
+ifeq ($(shell $(KIM_CONFIG_HELPER) --version 2> /dev/null),)
+  $(error $(KIM_CONFIG_HELPER) utility is not available.  Something is wrong with your KIM API package setup)
+endif
+
+kim_SYSINC  = $(shell $(KIM_CONFIG_HELPER) --includes)
+kim_SYSLIB  = $(shell $(KIM_CONFIG_HELPER) --ldlibs)
+kim_SYSPATH = $(shell $(KIM_CONFIG_HELPER) --ldflags)

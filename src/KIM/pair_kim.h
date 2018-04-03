@@ -31,11 +31,12 @@ PairStyle(kim,PairKIM)
 #ifndef LMP_PAIR_KIM_H
 #define LMP_PAIR_KIM_H
 
+// includes from KIM & LAMMPS
+class KIM_API_model;
 #include "pair.h"
 
+
 namespace LAMMPS_NS {
-   // Forward declare KIM_LAMMPS_PlugIn
-   class KIM_LAMMPS_PlugIn;
 
    class PairKIM : public Pair {
    public:
@@ -86,8 +87,7 @@ namespace LAMMPS_NS {
       unit_sys lmps_units;
 
       // values set in set_kim_model_has_flags(), called by kim_init()
-      KIM_LAMMPS_PlugIn * kim;
-      void * pkim;
+      KIM_API_model* pkim;
       bool kim_model_has_energy;
       bool kim_model_has_forces;
       bool kim_model_has_particleEnergy;
@@ -145,7 +145,6 @@ namespace LAMMPS_NS {
       void set_kim_model_has_flags();
       void write_descriptor(char** test_descriptor_string);
       // static methods used as callbacks from KIM
-      static void * (*kim_get_sim_buffer)(void *, int *);
       static int get_neigh(void** kimmdl, int* mode, int* request,
                            int* atom, int* numnei, int** nei1atom,
                            double** pRij);
@@ -162,10 +161,6 @@ E: Illegal ... command
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
-
-E: KIM API library cannot be found
-
-Self-explanatory.
 
 E: Unrecognized virial argument in pair_style command
 

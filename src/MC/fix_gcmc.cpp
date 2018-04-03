@@ -1253,6 +1253,10 @@ void FixGCMC::attempt_molecule_deletion()
 
   if (ngas == 0) return;
 
+  // work-around to avoid n=0 problem with fix rigid/nvt/small
+
+  if (ngas == natoms_per_molecule) return;
+
   tagint deletion_molecule = pick_random_gas_molecule();
   if (deletion_molecule == -1) return;
 
@@ -1909,6 +1913,10 @@ void FixGCMC::attempt_molecule_deletion_full()
   ndeletion_attempts += 1.0;
 
   if (ngas == 0) return;
+
+  // work-around to avoid n=0 problem with fix rigid/nvt/small
+
+  if (ngas == natoms_per_molecule) return;
 
   tagint deletion_molecule = pick_random_gas_molecule();
   if (deletion_molecule == -1) return;

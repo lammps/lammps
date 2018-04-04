@@ -223,6 +223,26 @@ E: Fix rigid/small requires atom attribute molecule
 
 Self-explanatory.
 
+E: Fix rigid/small custom requires previously defined property/atom
+
+UNDOCUMENTED
+
+E: Fix rigid/small custom requires integer-valued property/atom
+
+UNDOCUMENTED
+
+E: Variable name for fix rigid/small custom does not exist
+
+UNDOCUMENTED
+
+E: Fix rigid/small custom variable is no atom-style variable
+
+UNDOCUMENTED
+
+E: Unsupported fix rigid custom property
+
+UNDOCUMENTED
+
 E: Fix rigid/small requires an atom map, see atom_modify
 
 Self-explanatory.

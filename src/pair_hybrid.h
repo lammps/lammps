@@ -90,10 +90,6 @@ class PairHybrid : public Pair {
 
 /* ERROR/WARNING messages:
 
-E: Cannot yet use pair hybrid with Kokkos
-
-This feature is not yet supported.
-
 E: Illegal ... command
 
 Self-explanatory.  Check the input script syntax and compare to the
@@ -111,6 +107,10 @@ Self-explanatory.
 E: Incorrect args for pair coefficients
 
 Self-explanatory.  Check the input script or data file.
+
+E: Cannot yet use pair hybrid with Kokkos
+
+This feature is not yet supported.
 
 E: Pair coeff for hybrid has invalid style
 

@@ -54,6 +54,10 @@ class AngleZero : public Angle {
 
 /* ERROR/WARNING messages:
 
+E: Illegal ... command
+
+UNDOCUMENTED
+
 E: Incorrect args for angle coefficients
 
 Self-explanatory.  Check the input script or data file.

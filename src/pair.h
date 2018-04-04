@@ -301,6 +301,10 @@ E: Pair style requires a KSpace style
 
 No kspace style is defined.
 
+E: BUG: restartinfo=1 but no restart support in pair style
+
+UNDOCUMENTED
+
 E: Cannot yet use compute tally with Kokkos
 
 This feature is not yet supported.

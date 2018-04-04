@@ -117,9 +117,9 @@ E: Unknown dump reader style
 
 The choice of dump reader style via the format keyword is unknown.
 
-E: No box information in dump. You have to use 'box no'
+E: No box information in dump, must use 'box no'
 
-Self-explanatory.
+UNDOCUMENTED
 
 E: Read_dump triclinic status does not match simulation
 
@@ -156,5 +156,17 @@ E: If read_dump purges it cannot replace or trim
 
 These operations are not compatible.  See the read_dump doc
 page for details.
+
+E: Read_dump cannot use 'add keep' without atom IDs
+
+UNDOCUMENTED
+
+E: Cannot add atoms if dump file does not store atom type
+
+UNDOCUMENTED
+
+U: No box information in dump. You have to use 'box no'
+
+Self-explanatory.
 
 */

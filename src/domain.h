@@ -172,10 +172,9 @@ class Domain : protected Pointers {
 
 /* ERROR/WARNING messages:
 
-E: Box bounds are invalid
+E: Box bounds are invalid or missing
 
-The box boundaries specified in the read_data file are invalid.  The
-lo value must be less than the hi value for all 3 dimensions.
+UNDOCUMENTED
 
 E: Cannot skew triclinic box in z for 2d simulation
 
@@ -199,6 +198,10 @@ LAMMPS simulation may be inefficient as a result.
 E: Illegal simulation box
 
 The lower bound of the simulation box is greater than the upper bound.
+
+E: Non-numeric atom coords - simulation unstable
+
+UNDOCUMENTED
 
 E: Bond atom missing in image check
 
@@ -278,5 +281,10 @@ E: Both sides of boundary must be periodic
 
 Cannot specify a boundary as periodic only on the lo or hi side.  Must
 be periodic on both sides.
+
+U: Box bounds are invalid
+
+The box boundaries specified in the read_data file are invalid.  The
+lo value must be less than the hi value for all 3 dimensions.
 
 */

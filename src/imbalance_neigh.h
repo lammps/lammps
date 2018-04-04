@@ -39,3 +39,19 @@ class ImbalanceNeigh : public Imbalance {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+UNDOCUMENTED
+
+W: Balance weight neigh skipped b/c no list found
+
+UNDOCUMENTED
+
+E: Balance weight <= 0.0
+
+UNDOCUMENTED
+
+*/

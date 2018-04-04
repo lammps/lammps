@@ -521,7 +521,8 @@ void PairGW::setup_params()
         for (m = 0; m < nparams; m++) {
           if (i == params[m].ielement && j == params[m].jelement &&
               k == params[m].kelement) {
-            if (n >= 0) error->all(FLERR,"Potential file has duplicate entry");
+            if (n >= 0) 
+              error->all(FLERR,"Potential file has duplicate entry");
             n = m;
           }
         }

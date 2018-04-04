@@ -55,11 +55,11 @@ E: Illegal Tersoff parameter
 One or more of the coefficients defined in the potential file is
 invalid.
 
-E: Potential file has duplicate entry
+U: Potential file has duplicate entry
 
 The potential file has more than one entry for the same element.
 
-E: Potential file is missing an entry
+U: Potential file is missing an entry
 
 The potential file does not have a needed entry.
 

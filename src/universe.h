@@ -79,4 +79,8 @@ E: Invalid command-line argument
 One or more command-line arguments is invalid.  Check the syntax of
 the command you are using to launch LAMMPS.
 
+E: Invalid partition string '%s'
+
+UNDOCUMENTED
+
 */

@@ -134,4 +134,8 @@ E: Cannot open EAM potential file %s
 The specified EAM potential file cannot be opened.  Check that the
 path and name are correct.
 
+E: Invalid EAM potential file
+
+UNDOCUMENTED
+
 */

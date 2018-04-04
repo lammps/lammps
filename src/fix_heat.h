@@ -73,9 +73,17 @@ E: Variable for fix heat is invalid style
 
 Only equal-style or atom-style variables can be used.
 
+W: Cannot apply fix heat to atoms in rigid bodies
+
+UNDOCUMENTED
+
 E: Fix heat group has no atoms
 
 Self-explanatory.
+
+E: Fix heat group has invalid mass
+
+UNDOCUMENTED
 
 E: Fix heat kinetic energy went negative
 

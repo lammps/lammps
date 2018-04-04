@@ -124,10 +124,13 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Read data add offset is too big
+E: Read data add atomID offset is too big
 
-It cannot be larger than the size of atom IDs, e.g. the maximum 32-bit
-integer.
+UNDOCUMENTED
+
+E: Read data add molID offset is too big
+
+UNDOCUMENTED
 
 E: Non-zero read_data shift z value for 2d simulation
 
@@ -148,6 +151,10 @@ Self-explanatory.
 E: No impropers allowed with this atom style
 
 Self-explanatory.
+
+E: No bonded interactions allowed with this atom style
+
+UNDOCUMENTED
 
 E: Fix ID for read_data does not exist
 
@@ -556,5 +563,10 @@ E: Cannot open file %s
 The specified file cannot be opened.  Check that the path and name are
 correct. If the file is a compressed file, also check that the gzip
 executable can be found and run.
+
+U: Read data add offset is too big
+
+It cannot be larger than the size of atom IDs, e.g. the maximum 32-bit
+integer.
 
 */

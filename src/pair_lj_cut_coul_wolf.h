@@ -67,4 +67,8 @@ E: Incorrect args for pair coefficients
 
 Self-explanatory.  Check the input script or data file.
 
+E: Pair style lj/cut/coul/wolf requires atom attribute q
+
+UNDOCUMENTED
+
 */

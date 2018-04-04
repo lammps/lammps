@@ -137,9 +137,9 @@ E: Region ID for fix deposit does not exist
 
 Self-explanatory.
 
-E: Fix pour rigid fix does not exist
+E: Fix deposit rigid fix does not exist
 
-Self-explanatory.
+UNDOCUMENTED
 
 E: Fix deposit and fix rigid/small not using same molecule template ID
 
@@ -159,6 +159,10 @@ This test is performed for finite size particles with a diameter, not
 for point particles.  The near setting is smaller than the particle
 diameter which can lead to overlaps.
 
+E: Unknown particle distribution in fix deposit
+
+UNDOCUMENTED
+
 W: Particle deposition was unsuccessful
 
 The fix deposit command was not able to insert as many atoms as
@@ -174,6 +178,10 @@ E: New atom IDs exceed maximum allowed ID
 See the setting for tagint in the src/lmptype.h file.
 
 E: Molecule template ID for fix deposit does not exist
+
+Self-explanatory.
+
+U: Fix pour rigid fix does not exist
 
 Self-explanatory.
 

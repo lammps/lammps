@@ -65,6 +65,10 @@ class PythonImpl : protected Pointers, public PythonInterface {
 
 /* ERROR/WARNING messages:
 
+E: Could not initialize embedded Python
+
+The main module in Python was not accessible.
+
 E: Invalid python command
 
 Self-explanatory.  Check the input script syntax and compare to the
@@ -80,14 +84,9 @@ E: Python variable does not match Python function
 This matching is defined by the python-style variable and the python
 command.
 
-E: Cannot embed Python when also extending Python with LAMMPS
+E: Could not process Python source command
 
-When running LAMMPS via Python through the LAMMPS library interface
-you cannot also user the input script python command.
-
-E: Could not initialize embedded Python
-
-The main module in Python was not accessible.
+UNDOCUMENTED
 
 E: Could not open Python file
 
@@ -123,10 +122,23 @@ E: Could not evaluate Python function input variable
 
 Self-explanatory.
 
+E: Unsupported variable type
+
+UNDOCUMENTED
+
 E: Python function evaluation failed
 
 The Python function did not run successfully and/or did not return a
 value (if it is supposed to return a value).  This is probably due to
 some error condition in the function.
+
+E: Python command length keyword cannot be used unless output is a string
+
+UNDOCUMENTED
+
+U: Cannot embed Python when also extending Python with LAMMPS
+
+When running LAMMPS via Python through the LAMMPS library interface
+you cannot also user the input script python command.
 
 */

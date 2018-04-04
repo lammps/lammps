@@ -88,13 +88,21 @@ E: Fix property/atom cannot specify q twice
 
 Self-explanatory.
 
+E: Fix property/atom rmass when atom_style already has rmass attribute
+
+UNDOCUMENTED
+
+E: Fix property/atom cannot specify rmass twice
+
+UNDOCUMENTED
+
 E: Fix property/atom vector name already exists
 
 The name for an integer or floating-point vector must be unique.
 
-W: Fix property/atom mol or charge w/out ghost communication
+W: Fix property/atom mol or charge or rmass w/out ghost communication
 
-A model typically needs these properties defined for ghost atoms.
+UNDOCUMENTED
 
 E: Atom style was redefined after using fix property/atom
 
@@ -113,5 +121,9 @@ E: Invalid atom ID in %s section of data file
 
 An atom in a section of the data file being read by fix property/atom
 has an invalid atom ID that is <= 0 or > the maximum existing atom ID.
+
+U: Fix property/atom mol or charge w/out ghost communication
+
+A model typically needs these properties defined for ghost atoms.
 
 */

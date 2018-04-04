@@ -358,4 +358,12 @@ E: Element not defined in potential file
 
 The specified element is not in the potential file.
 
+E: Potential file incompatible with this pair style version
+
+UNDOCUMENTED
+
+E: Error reading potential file header
+
+UNDOCUMENTED
+
 */

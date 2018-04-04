@@ -59,6 +59,10 @@ E: Invalid timestep reset for fix ave/histo
 Resetting the timestep has invalidated the sequence of timesteps this
 fix needs to process.
 
+E: Fix ave/histo/weight option not yet supported
+
+UNDOCUMENTED
+
 E: Error writing out histogram data
 
 Something in the output to the file triggered an error.

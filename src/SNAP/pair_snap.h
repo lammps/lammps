@@ -137,6 +137,10 @@ E: Incorrect args for pair coefficients
 
 Self-explanatory.  Check the input script or data file.
 
+E: Incorrect SNAP coeff file
+
+UNDOCUMENTED
+
 E: Incorrect SNAP parameter file
 
 The file cannot be parsed correctly, check its internal syntax.

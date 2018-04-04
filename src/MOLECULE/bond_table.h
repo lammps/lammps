@@ -110,6 +110,18 @@ E: Did not find keyword in table file
 
 Keyword used in pair_coeff command was not found in table file.
 
+E: Premature end of file in bond table
+
+UNDOCUMENTED
+
+W: %d of %d force values in table are inconsistent with -dE/dr.\n  Should only be flagged at inflection points
+
+UNDOCUMENTED
+
+W: %d of %d lines in table were incomplete or could not be parsed completely
+
+UNDOCUMENTED
+
 E: Invalid keyword in bond table parameters
 
 Self-explanatory.
@@ -117,5 +129,17 @@ Self-explanatory.
 E: Bond table parameters did not set N
 
 List of bond table parameters must include N setting.
+
+E: Illegal bond in bond style table
+
+UNDOCUMENTED
+
+E: Bond length < table inner cutoff: type %d length %g
+
+UNDOCUMENTED
+
+E: Bond length > table outer cutoff: type %d length %g
+
+UNDOCUMENTED
 
 */

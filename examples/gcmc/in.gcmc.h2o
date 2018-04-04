@@ -73,7 +73,7 @@ reset_timestep 0
 # gcmc
 
 variable        tfac equal 5.0/3.0 # (3 trans + 2 rot)/(3 trans)
-fix             mygcmc all gcmc 100 100 0 0 54341 ${temp} ${mu} ${disp} mol &
+fix             mygcmc h2o gcmc 100 100 0 0 54341 ${temp} ${mu} ${disp} mol &
                 h2omol tfac_insert ${tfac} group h2o shake wshake
 
 # atom counts

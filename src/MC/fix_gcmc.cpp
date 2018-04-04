@@ -686,7 +686,7 @@ void FixGCMC::init()
 
   // warning if group id is "all"
 
-  if (groupbit & 1)
+  if ((comm->me == 0) && (groupbit & 1))
     error->warning(FLERR, "Fix gcmc is being applied "
                    "to the default group all");
 

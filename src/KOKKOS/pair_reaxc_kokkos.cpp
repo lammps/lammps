@@ -1229,7 +1229,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTabulatedLJCoulomb<N
 
     const int tmin  = MIN( itype, jtype );
     const int tmax  = MAX( itype, jtype );
-    const LR_lookup_table_kk<DeviceType> t = d_LR(tmin,tmax);
+    const LR_lookup_table_kk<DeviceType>& t = d_LR(tmin,tmax);
 
 
     /* Cubic Spline Interpolation */

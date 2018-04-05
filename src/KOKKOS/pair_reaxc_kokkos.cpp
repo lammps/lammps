@@ -94,8 +94,6 @@ PairReaxCKokkos<DeviceType>::~PairReaxCKokkos()
 
   for (int i = 0; i < k_LR.extent(0); i++) {
     for (int j = 0; j < k_LR.extent(1); j++) {
-      k_LR.h_view(i,j).d_y      = decltype(k_LR.h_view(i,j).d_y     )();
-      k_LR.h_view(i,j).d_H      = decltype(k_LR.h_view(i,j).d_H     )();
       k_LR.h_view(i,j).d_vdW    = decltype(k_LR.h_view(i,j).d_vdW   )();
       k_LR.h_view(i,j).d_CEvd   = decltype(k_LR.h_view(i,j).d_CEvd  )();
       k_LR.h_view(i,j).d_ele    = decltype(k_LR.h_view(i,j).d_ele   )();
@@ -389,47 +387,31 @@ void PairReaxCKokkos<DeviceType>::init_md()
       for (int j = i; j <= ntypes; ++j) {
         int n = LR[i][j].n;
         if (n == 0) continue;
-        k_LR.h_view(i,j).xmin   = LR[i][j].xmin;
-        k_LR.h_view(i,j).xmax   = LR[i][j].xmax;
-        k_LR.h_view(i,j).n      = LR[i][j].n;
         k_LR.h_view(i,j).dx     = LR[i][j].dx;
         k_LR.h_view(i,j).inv_dx = LR[i][j].inv_dx;
-        k_LR.h_view(i,j).a      = LR[i][j].a;
-        k_LR.h_view(i,j).m      = LR[i][j].m;
-        k_LR.h_view(i,j).c      = LR[i][j].c;
 
-        typename LR_lookup_table_kk<DeviceType>::tdual_LR_data_1d           k_y      = typename LR_lookup_table_kk<DeviceType>::tdual_LR_data_1d("lookup:LR[i,j].y",n);
-        typename LR_lookup_table_kk<DeviceType>::tdual_cubic_spline_coef_1d k_H      = typename LR_lookup_table_kk<DeviceType>::tdual_cubic_spline_coef_1d("lookup:LR[i,j].H",n);
         typename LR_lookup_table_kk<DeviceType>::tdual_cubic_spline_coef_1d k_vdW    = typename LR_lookup_table_kk<DeviceType>::tdual_cubic_spline_coef_1d("lookup:LR[i,j].vdW",n);
         typename LR_lookup_table_kk<DeviceType>::tdual_cubic_spline_coef_1d k_CEvd   = typename LR_lookup_table_kk<DeviceType>::tdual_cubic_spline_coef_1d("lookup:LR[i,j].CEvd",n);
         typename LR_lookup_table_kk<DeviceType>::tdual_cubic_spline_coef_1d k_ele    = typename LR_lookup_table_kk<DeviceType>::tdual_cubic_spline_coef_1d("lookup:LR[i,j].ele",n);
         typename LR_lookup_table_kk<DeviceType>::tdual_cubic_spline_coef_1d k_CEclmb = typename LR_lookup_table_kk<DeviceType>::tdual_cubic_spline_coef_1d("lookup:LR[i,j].CEclmb",n);
 
-        k_LR.h_view(i,j).d_y      = k_y.template view<DeviceType>();
-        k_LR.h_view(i,j).d_H      = k_H.template view<DeviceType>();
         k_LR.h_view(i,j).d_vdW    = k_vdW.template view<DeviceType>();
         k_LR.h_view(i,j).d_CEvd   = k_CEvd.template view<DeviceType>();
         k_LR.h_view(i,j).d_ele    = k_ele.template view<DeviceType>();
         k_LR.h_view(i,j).d_CEclmb = k_CEclmb.template view<DeviceType>();
 
         for (int k = 0; k < n; k++) {
-          k_y.h_view(k)      = LR[i][j].y[k];
-          k_H.h_view(k)      = LR[i][j].H[k];
           k_vdW.h_view(k)    = LR[i][j].vdW[k];
           k_CEvd.h_view(k)   = LR[i][j].CEvd[k];
           k_ele.h_view(k)    = LR[i][j].ele[k];
           k_CEclmb.h_view(k) = LR[i][j].CEclmb[k];
         }
 
-        k_y.template modify<LMPHostType>();
-        k_H.template modify<LMPHostType>();
         k_vdW.template modify<LMPHostType>();
         k_CEvd.template modify<LMPHostType>();
         k_ele.template modify<LMPHostType>();
         k_CEclmb.template modify<LMPHostType>();
 
-        k_y.template sync<DeviceType>();
-        k_H.template sync<DeviceType>();
         k_vdW.template sync<DeviceType>();
         k_CEvd.template sync<DeviceType>();
         k_ele.template sync<DeviceType>();

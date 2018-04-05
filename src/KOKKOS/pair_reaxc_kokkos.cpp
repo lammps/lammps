@@ -89,6 +89,19 @@ PairReaxCKokkos<DeviceType>::~PairReaxCKokkos()
   tmpid = NULL;
   memoryKK->destroy_kokkos(k_tmpbo,tmpbo);
   tmpbo = NULL;
+
+  // deallocate views of views in serial to prevent race condition in profiling tools
+
+  for (int i = 0; i < k_LR.extent(0); i++) {
+    for (int j = 0; j < k_LR.extent(1); j++) {
+      k_LR.h_view(i,j).d_y      = decltype(k_LR.h_view(i,j).d_y     )();
+      k_LR.h_view(i,j).d_H      = decltype(k_LR.h_view(i,j).d_H     )();
+      k_LR.h_view(i,j).d_vdW    = decltype(k_LR.h_view(i,j).d_vdW   )();
+      k_LR.h_view(i,j).d_CEvd   = decltype(k_LR.h_view(i,j).d_CEvd  )();
+      k_LR.h_view(i,j).d_ele    = decltype(k_LR.h_view(i,j).d_ele   )();
+      k_LR.h_view(i,j).d_CEclmb = decltype(k_LR.h_view(i,j).d_CEclmb)();
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */

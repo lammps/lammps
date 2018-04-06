@@ -290,7 +290,21 @@ if(ENABLE_USER-VTK)
 endif()
 
 if(ENABLE_KIM)
-  find_package(KIM REQUIRED)
+  find_package(KIM QUIET)
+  if(NOT KIM_FOUND)
+    message(STATUS "KIM not found - we will build our own")
+    include(ExternalProject)
+    ExternalProject_Add(kim_build
+      URL https://github.com/openkim/kim-api/archive/v1.9.3.tar.gz
+      URL_MD5 86bb67622a09bcd45332c6506dc0ddd9
+      BUILD_IN_SOURCE 1
+      CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
+      )
+    ExternalProject_get_property(kim_build INSTALL_DIR)
+    set(KIM_INCLUDE_DIRS ${INSTALL_DIR}/include/kim-api-v1)
+    set(KIM_LIBRARIES ${INSTALL_DIR}/lib/libkim-api-v1.so)
+    list(APPEND LAMMPS_DEPS kim_build)
+  endif()
   list(APPEND LAMMPS_LINK_LIBS ${KIM_LIBRARIES})
   include_directories(${KIM_INCLUDE_DIRS})
 endif()

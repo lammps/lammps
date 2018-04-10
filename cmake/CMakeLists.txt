@@ -240,8 +240,8 @@ if(ENABLE_LATTE)
     message(STATUS "LATTE not found - we will build our own")
     include(ExternalProject)
     ExternalProject_Add(latte_build
-      URL https://github.com/lanl/LATTE/archive/v1.0.1.tar.gz
-      URL_MD5 5137e28cb1a64444bd571c98c98a6eee
+      URL https://github.com/lanl/LATTE/archive/v1.1.1.tar.gz
+      URL_MD5 cb86f1d2473ce00aa61ff6a023154b03
       SOURCE_SUBDIR cmake
       CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> -DCMAKE_POSITION_INDEPENDENT_CODE=${CMAKE_POSITION_INDEPENDENT_CODE}
       )

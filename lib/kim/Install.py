@@ -251,6 +251,6 @@ if addflag:
     error()
 
   # download single model
-  cmd = '%s/bin/kim-api-v1-collections-management install system %s' % (kimdir, addmodelname)
+  cmd = '%s/bin/kim-api-v1-collections-management install system %s' % (kimdir.decode("UTF-8"), addmodelname)
   txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   if verboseflag: print (txt.decode("UTF-8"))

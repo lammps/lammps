@@ -265,8 +265,8 @@ reaction mechanism into several reaction steps, each defined by a fix
 bond/react. 2) While typically a bond is formed between the bonding
 atom pairs specified in the pre-reacted molecule template, this is not
 required. 3) By reversing the order of the pre- and post-reacted
-molecule template in another fix bond/react command, you can allow for
-the possibility of one or more reverse reactions.
+molecule templates in another 'react' argument, you can allow for the
+possibility of one or more reverse reactions.
 
 The optional keywords deal with the probability of a given reaction
 occurring as well as the stable equilibration of each reaction site as
@@ -287,7 +287,7 @@ equilibration time' should be tuned to be as small as possible while
 retaining stability for a given system or reaction step. After a
 limited number of case studies, this number has been set to a default
 of 60 timesteps. Ideally, it should be individually tuned for each fix
-bond/react. Note that in some situations, decreasing rather than
+reaction step. Note that in some situations, decreasing rather than
 increasing this parameter will result in an increase in stability.
 
 A few other considerations:
@@ -302,7 +302,7 @@ reaction:
 fix 1 bond_react_MASTER_group temp/rescale 1 300 300 10 1
 
 NOTE: This command must be added after the fix bond/react command, and
-will apply to all reaction specifications.
+will apply to all reaction steps.
 
 Computationally, each timestep this fix operates, it loops over
 neighbor lists and computes distances between pairs of atoms in the
@@ -338,8 +338,8 @@ minimization"_minimize.html.
 
 [Restrictions:]
 
-This fix is part of the USER-MISC package.  It is only enabled if LAMMPS was
-built with that package.  See the "Making
+This fix is part of the USER-MISC package.  It is only enabled if
+LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]

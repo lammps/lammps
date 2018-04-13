@@ -607,14 +607,15 @@ this situation there are several methods which should be implemented:
 
 \begin{itemize}
 \item \verb|double memory_usage| - return how much memory fix uses
-\item \verb|void grow_arrays(int)| - do reallocation of the per particle arrays 
+\item \verb|void grow_arrays(int)| - do reallocation of the per particle arrays
   in your fix
-\item \verb|void copy_arrays(int i, int j)| - copy i-th per-particle information 
-  to j-th. Used when atoms sorting is performed
+\item \verb|void copy_arrays(int i, int j, int delflag)| - copy i-th per-particle
+  information to j-th. Used when atoms sorting is performed. if delflag is set
+  and atom j owns a body, move the body information to atom i.
 \item \verb|void set_arrays(int i)| - sets i-th particle related information to zero
 \end{itemize}
 
-Note, that if your class implements these methods, it must call add calls of 
+Note, that if your class implements these methods, it must call add calls of
 add\_callback and delete\_callback to constructor and destructor:
 
 \begin{center}
@@ -654,7 +655,7 @@ void FixSavePos::grow_arrays(int nmax)
     memory->grow(this->x, nmax, 3, "FixSavePos:x");
 }
 
-void FixSavePos::copy_arrays(int i, int j)
+void FixSavePos::copy_arrays(int i, int j, int delflag)
 {
     memcpy(this->x[j], this->x[i], sizeof(double) * 3);
 }

@@ -26,6 +26,7 @@ namespace LAMMPS_NS {
 
 class RegBlock : public Region {
   friend class FixPour;
+  friend class FixPourOpt;
 
  public:
   RegBlock(class LAMMPS *, int, char **);
@@ -33,6 +34,8 @@ class RegBlock : public Region {
   int inside(double, double, double);
   int surface_interior(double *, double);
   int surface_exterior(double *, double);
+
+  void get_bounding_box(double * x_lo, double * x_hi) const;
 
  protected:
   double xlo,xhi,ylo,yhi,zlo,zhi;

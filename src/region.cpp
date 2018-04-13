@@ -596,3 +596,12 @@ void Region::reset_vel()
 {
   for (int i = 0; i < size_restart; i++) prev[i] = 0;
 }
+
+void Region::get_bounding_box(double * xlo, double * xhi) const {
+    xlo[0] = 0.0;
+    xlo[1] = 0.0;
+    xlo[2] = 0.0;
+    xhi[0] = 0.0;
+    xhi[1] = 0.0;
+    xhi[2] = 0.0;
+}

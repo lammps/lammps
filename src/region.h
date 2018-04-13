@@ -96,6 +96,8 @@ class Region : protected Pointers {
   virtual void set_velocity_shape() {}
   virtual void velocity_contact_shape(double*, double*) {}
 
+  virtual void get_bounding_box(double * xlo, double * xhi) const;
+
  protected:
   void add_contact(int, double *, double, double, double);
   void options(int, char **);

@@ -434,3 +434,14 @@ int RegBlock::inside_face(double *xproj, int iface)
 
   return 0;
 }
+
+
+void RegBlock::get_bounding_box(double * x_lo, double * x_hi) const
+{
+    x_lo[0] = xlo;
+    x_lo[1] = ylo;
+    x_lo[2] = zlo;
+    x_hi[0] = xhi;
+    x_hi[1] = yhi;
+    x_hi[2] = zhi;
+}

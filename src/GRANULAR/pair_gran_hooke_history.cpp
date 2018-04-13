@@ -442,7 +442,7 @@ void PairGranHookeHistory::init_style()
 
   int ipour;
   for (ipour = 0; ipour < modify->nfix; ipour++)
-    if (strcmp(modify->fix[ipour]->style,"pour") == 0) break;
+    if (strncmp(modify->fix[ipour]->style,"pour", 4) == 0) break;
   if (ipour == modify->nfix) ipour = -1;
 
   int idep;

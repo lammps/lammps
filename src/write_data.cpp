@@ -74,6 +74,7 @@ void WriteData::command(int narg, char **arg)
 
   pairflag = II;
   coeffflag = 1;
+  fixflag = 1;
   int noinit = 0;
 
   int iarg = 1;
@@ -89,6 +90,9 @@ void WriteData::command(int narg, char **arg)
       iarg++;
     } else if (strcmp(arg[iarg],"nocoeff") == 0) {
       coeffflag = 0;
+      iarg++;
+    } else if (strcmp(arg[iarg],"nofix") == 0) {
+      fixflag = 0;
       iarg++;
     } else error->all(FLERR,"Illegal write_data command");
   }
@@ -206,10 +210,10 @@ void WriteData::write(char *file)
   }
 
   // extra sections managed by fixes
-
-  for (int i = 0; i < modify->nfix; i++)
-    if (modify->fix[i]->wd_section)
-      for (int m = 0; m < modify->fix[i]->wd_section; m++) fix(i,m);
+  if (fixflag)
+    for (int i = 0; i < modify->nfix; i++)
+      if (modify->fix[i]->wd_section)
+        for (int m = 0; m < modify->fix[i]->wd_section; m++) fix(i,m);
 
   // close data file
 
@@ -252,10 +256,11 @@ void WriteData::header()
     }
   }
 
-  for (int i = 0; i < modify->nfix; i++)
-    if (modify->fix[i]->wd_header)
-      for (int m = 0; m < modify->fix[i]->wd_header; m++)
-        modify->fix[i]->write_data_header(fp,m);
+  if (fixflag) 
+    for (int i = 0; i < modify->nfix; i++)
+      if (modify->fix[i]->wd_header)
+        for (int m = 0; m < modify->fix[i]->wd_header; m++)
+          modify->fix[i]->write_data_header(fp,m);
 
   fprintf(fp,"\n");
 

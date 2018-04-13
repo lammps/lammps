@@ -449,15 +449,15 @@ Writing fixes is a flexible way of extending LAMMPS.  Users can
 implement many things using fixes:
 
 \begin{itemize}
-\item changing particles attributes (positions, velocities, forces, etc.). 
+\item changing particles attributes (positions, velocities, forces, etc.).
 Example: FixFreeze.
 \item reading/writing data. Example: FixRestart.
 \item implementing boundary conditions. Example: FixWall.
-\item saving information about particles for future use (previous positions, 
+\item saving information about particles for future use (previous positions,
 for instance). Example: FixStoreState.
 \end{itemize}
 
-All fixes are derived from class Fix and must have constructor with the 
+All fixes are derived from class Fix and must have constructor with the
 signature: FixMine(class LAMMPS *, int, char **).
 
 Every fix must be registered in LAMMPS by writing the following lines
@@ -478,7 +478,7 @@ included in the file "style\_fix.h". In case if you use LAMMPS make,
 this file is generated automatically - all files starting with prefix
 fix\_ are included, so call your header the same way. Otherwise, don’t
 forget to add your include into "style\_fix.h".
- 
+
 Let's write a simple fix which will print average velocity at the end
 of each timestep. First of all, implement a constructor:
 
@@ -487,11 +487,11 @@ of each timestep. First of all, implement a constructor:
 FixPrintVel::FixPrintVel(LAMMPS *lmp, int narg, char **arg)
 : Fix(lmp, narg, arg)
 {
-  if (narg < 4) 
+  if (narg < 4)
       error->all(FLERR,"Illegal fix print command");
- 
+
   nevery = atoi(arg[3]);
-  if (nevery <= 0) 
+  if (nevery <= 0)
       error->all(FLERR,"Illegal fix print command");
 }
   \end{verbatim}
@@ -545,7 +545,7 @@ void FixPrintVel::end_of_step()
 {
   // for add3, scale3
   using namespace MathExtra;
-  
+
   double** v = atom->v;
   int nlocal = atom->nlocal;
   double localAvgVel[4]; // 4th element for particles count
@@ -559,7 +559,7 @@ void FixPrintVel::end_of_step()
   MPI_Allreduce(localAvgVel, globalAvgVel, 4, MPI_DOUBLE, MPI_SUM, world);
   scale3(1.0 / globalAvgVel[3], globalAvgVel);
   if (comm->me == 0) {
-    printf("\%e, \%e, \%e\n", 
+    printf("\%e, \%e, \%e\n",
       globalAvgVel[0], globalAvgVel[1], globalAvgVel[2]);
   }
 }
@@ -671,7 +671,7 @@ int FixSavePos::pack_exchange(int i, double *buf)
   buf[m++] = x[i][0];
   buf[m++] = x[i][1];
   buf[m++] = x[i][2];
-  
+
   return m;
 }
 

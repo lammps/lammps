@@ -32,22 +32,21 @@ class CellList : protected Pointers {
     }
   };
 
-  typedef std::vector<Element> Bin;
-  typedef std::vector<int> Stencil;
-  typedef std::vector<Bin> BinList;
-
   int nbinx, nbiny, nbinz;         // # of global bins
   int mbinx, mbiny, mbinz;
   int mbinxlo, mbinylo, mbinzlo;
-  int nitems;
 
   double binsizex, binsizey, binsizez;  // bin sizes and inverse sizes
   double bininvx, bininvy, bininvz;
   double bboxlo[3];
   double bboxhi[3];
 
-  BinList bins;
-  Stencil stencil;
+  std::vector<int> binhead;
+  std::vector<int> next;
+  std::vector<Element> elements;
+
+  const static int NSTENCIL = 27;
+  int stencil[NSTENCIL];
 
   int coord2bin(double *x) const;
 

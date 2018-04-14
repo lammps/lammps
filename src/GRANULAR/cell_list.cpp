@@ -19,12 +19,14 @@
 #include <assert.h>
 #include "domain.h"
 #include "comm.h"
+#include <algorithm>
 
 #define SMALL 1.0e-6
 
 using namespace LAMMPS_NS;
+using namespace std;
 
-CellList::CellList(LAMMPS *lmp) : Pointers(lmp), nitems(0)
+CellList::CellList(LAMMPS *lmp) : Pointers(lmp)
 {
 }
 
@@ -35,9 +37,13 @@ CellList::CellList(LAMMPS *lmp) : Pointers(lmp), nitems(0)
 void CellList::insert(double * x, double r)
 {
   int ibin = coord2bin(x);
-  assert(ibin >= 0 && ibin <= bins.size());
-  bins[ibin].push_back(CellList::Element(x, r));
-  ++nitems;
+  assert(ibin >= 0 && ibin <= binhead.size());
+
+  int new_idx = elements.size();
+  next.push_back(binhead[ibin]);
+  elements.push_back(CellList::Element(x, r));
+
+  binhead[ibin] = new_idx;
 }
 
 /* ----------------------------------------------------------------------
@@ -46,9 +52,9 @@ void CellList::insert(double * x, double r)
 
 void CellList::clear()
 {
-  bins.clear();
-  stencil.clear();
-  nitems = 0;
+  fill(binhead.begin(), binhead.end(), -1);
+  next.clear();
+  elements.clear();
 }
 
 /* ----------------------------------------------------------------------
@@ -59,14 +65,12 @@ void CellList::clear()
 bool CellList::has_overlap(double *x, double r) const
 {
   int ibin = coord2bin(x);
-  if (ibin < 0 || ibin >= bins.size()) return false;
+  if (ibin < 0 || ibin >= binhead.size()) return false;
 
-  for (Stencil::const_iterator it = stencil.cbegin(); it != stencil.cend(); ++it) {
-    const int offset = *it;
-    const Bin & bin = bins[ibin + offset];
-
-    for (Bin::const_iterator eit = bin.cbegin(); eit != bin.cend(); ++eit) {
-        const CellList::Element & elem = *eit;
+  for (int k = 0; k < NSTENCIL; ++k) {
+    const int offset = stencil[k];
+    for (int j = binhead[ibin+stencil[k]]; j >= 0; j = next[j]) {
+        const CellList::Element & elem = elements[j];
         double dx = x[0] - elem.x[0];
         double dy = x[1] - elem.x[1];
         double dz = x[2] - elem.x[2];
@@ -174,7 +178,8 @@ void CellList::setup(double * bboxlo, double * bboxhi, double binsize)
   bigint bbin = ((bigint) mbinx) * ((bigint) mbiny) * ((bigint) mbinz) + 1;
   assert(bbin < MAXSMALLINT);
 
-  bins.resize(bbin);
+  binhead.resize(bbin);
+  fill(binhead.begin(), binhead.end(), -1);
 
   /*if(comm->me == 0) {
     fprintf(screen, "Created cell list for insertion region:\n");
@@ -183,12 +188,12 @@ void CellList::setup(double * bboxlo, double * bboxhi, double binsize)
   }*/
 
   // create 3D stencil for cell lookup
-  stencil.clear();
+  int s = 0;
 
   for (int k = -1; k <= 1; ++k) {
     for (int j = -1; j <= 1; ++j) {
       for (int i = -1; i <= 1; ++i) {
-        stencil.push_back(k*mbinx*mbiny + j*mbinx + i);
+        stencil[s++] = k*mbinx*mbiny + j*mbinx + i;
       }
     }
   }
@@ -230,5 +235,5 @@ int CellList::coord2bin(double *x) const
 
 
 size_t CellList::count() const {
-    return nitems;
+    return elements.size();
 }

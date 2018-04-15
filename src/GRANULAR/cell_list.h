@@ -16,21 +16,12 @@
 
 #include <vector>
 #include "pointers.h"
+#include <mpi.h>
 
 namespace LAMMPS_NS {
 
 class CellList : protected Pointers {
-  struct Element {
-    double x[3];
-    double r;
-
-    Element(double * x, double r) {
-        this->x[0] = x[0]; 
-        this->x[1] = x[1]; 
-        this->x[2] = x[2]; 
-        this->r = r;
-    }
-  };
+  friend class DistributedCellList;
 
   int nbinx, nbiny, nbinz;         // # of global bins
   int mbinx, mbiny, mbinz;
@@ -41,9 +32,37 @@ class CellList : protected Pointers {
   double bboxlo[3];
   double bboxhi[3];
 
+protected:
+  struct Element {
+    double x[3];
+    double r;
+    
+    Element() {
+        x[0] = 0.0;
+        x[1] = 0.0;
+        x[2] = 0.0;
+        r = 0.0;
+    }
+
+    Element(const Element & other) {
+        x[0] = other.x[0];
+        x[1] = other.x[1];
+        x[2] = other.x[2];
+        r = other.r;
+    }
+
+    Element(double * x, double r) {
+        this->x[0] = x[0]; 
+        this->x[1] = x[1]; 
+        this->x[2] = x[2]; 
+        this->r = r;
+    }
+  };
+
   std::vector<int> binhead;
   std::vector<int> next;
   std::vector<Element> elements;
+  int nbins;
 
   const static int NSTENCIL = 27;
   int stencil[NSTENCIL];
@@ -61,6 +80,19 @@ public:
     size_t count() const;
 
     bool has_overlap(double *x, double r) const;
+};
+
+
+class DistributedCellList : public CellList {
+  int me;
+  int nprocs;
+  std::vector<int> recvcounts;
+  std::vector<int> displs;
+  MPI_Datatype mpi_element_type;
+public:
+    DistributedCellList(LAMMPS * lmp);
+
+    void allreduce(CellList & clist);
 };
 
 }

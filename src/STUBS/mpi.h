@@ -56,6 +56,7 @@ extern "C" {
 #define MPI_Request int
 #define MPI_Datatype int
 #define MPI_Op int
+#define MPI_Aint long
 #define MPI_Fint int
 #define MPI_Group int
 #define MPI_Offset long
@@ -130,6 +131,10 @@ int MPI_Cart_rank(MPI_Comm comm, int *coords, int *rank);
 
 int MPI_Type_contiguous(int count, MPI_Datatype oldtype,
                         MPI_Datatype *newtype);
+int MPI_Type_create_struct(int count, int array_of_blocklengths[],
+                           const MPI_Aint array_of_displacements[],
+                           const MPI_Datatype array_of_types[],
+                           MPI_Datatype *newtype);
 int MPI_Type_commit(MPI_Datatype *datatype);
 int MPI_Type_free(MPI_Datatype *datatype);
 

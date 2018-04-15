@@ -392,6 +392,20 @@ int MPI_Type_contiguous(int count, MPI_Datatype oldtype,
 
 /* ---------------------------------------------------------------------- */
 
+/* store size of user struct in extra lists */
+
+int MPI_Type_create_struct(int count, int array_of_blocklengths[], const MPI_Aint array_of_displacements[], const MPI_Datatype array_of_types[], MPI_Datatype *newtype)
+{
+  if (nextra_datatype == MAXEXTRA_DATATYPE) return -1;
+  ptr_datatype[nextra_datatype] = newtype;
+  index_datatype[nextra_datatype] = -(nextra_datatype + 1);
+  size_datatype[nextra_datatype] = array_of_displacements[count-1] + array_of_blocklengths[count-1]*stubtypesize(array_of_types[count-1]);
+  nextra_datatype++;
+  return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
 /* set value of user datatype to internal negative index,
    based on match of ptr */
 

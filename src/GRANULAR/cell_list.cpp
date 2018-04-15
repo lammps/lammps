@@ -20,6 +20,8 @@
 #include "domain.h"
 #include "comm.h"
 #include <algorithm>
+#include <numeric>
+#include <mpi.h>
 
 #define SMALL 1.0e-6
 
@@ -37,7 +39,7 @@ CellList::CellList(LAMMPS *lmp) : Pointers(lmp)
 void CellList::insert(double * x, double r)
 {
   int ibin = coord2bin(x);
-  assert(ibin >= 0 && ibin <= binhead.size());
+  assert(ibin >= 0 && ibin <= nbins);
 
   int new_idx = elements.size();
   next.push_back(binhead[ibin]);
@@ -65,7 +67,7 @@ void CellList::clear()
 bool CellList::has_overlap(double *x, double r) const
 {
   int ibin = coord2bin(x);
-  if (ibin < 0 || ibin >= binhead.size()) return false;
+  if (ibin < 0 || ibin >= nbins) return false;
 
   for (int k = 0; k < NSTENCIL; ++k) {
     const int offset = stencil[k];
@@ -178,14 +180,9 @@ void CellList::setup(double * bboxlo, double * bboxhi, double binsize)
   bigint bbin = ((bigint) mbinx) * ((bigint) mbiny) * ((bigint) mbinz) + 1;
   assert(bbin < MAXSMALLINT);
 
+  nbins = bbin;
   binhead.resize(bbin);
   fill(binhead.begin(), binhead.end(), -1);
-
-  /*if(comm->me == 0) {
-    fprintf(screen, "Created cell list for insertion region:\n");
-    fprintf(screen, " - %d x %d x %d\n", mbinx, mbiny, mbinz);
-    fprintf(screen, " - %ld bins created\n", bbin);
-  }*/
 
   // create 3D stencil for cell lookup
   int s = 0;
@@ -236,4 +233,100 @@ int CellList::coord2bin(double *x) const
 
 size_t CellList::count() const {
     return elements.size();
+}
+
+/* -------------------------------------------------------------------------- */
+
+DistributedCellList::DistributedCellList(LAMMPS * lmp) : CellList(lmp) {
+  MPI_Comm_rank(world, &me);
+  MPI_Comm_size(world, &nprocs);
+  recvcounts.resize(nprocs);
+  displs.resize(nprocs);
+ 
+  MPI_Datatype types[2] = {MPI_DOUBLE, MPI_DOUBLE};
+  int blocklenghts[2]   = {3, 1};
+  MPI_Aint offsets[2] = {0, 3*sizeof(double)}; 
+  MPI_Type_create_struct(2, blocklenghts, offsets, types, &mpi_element_type);
+  MPI_Type_commit(&mpi_element_type);
+}
+
+void DistributedCellList::allreduce(CellList & clist) {
+  int ncount_local = clist.count();
+  assert(nbins == clist.nbins);
+
+  MPI_Allgather(&ncount_local, 1, MPI_INT, &recvcounts[0], 1, MPI_INT, world);
+  int ncount_global = std::accumulate(recvcounts.begin(), recvcounts.end(), 0);
+
+  binhead.resize(nprocs * nbins);
+  next.resize(ncount_global);
+  elements.resize(ncount_global);
+
+  displs[0] = 0;
+  for (int iproc = 1; iproc < nprocs; iproc++) {
+    displs[iproc] = displs[iproc-1] + recvcounts[iproc-1];
+  }
+
+  // collect binheads from all processors
+  MPI_Allgather(&clist.binhead[0], nbins, MPI_INT, &binhead[0], nbins, MPI_INT, world);
+
+  // collect next array from all processors that have elements
+  int * nextptr = NULL;
+  if (ncount_local) nextptr = &clist.next[0];
+  MPI_Allgatherv(nextptr, ncount_local, MPI_INT, &next[0], &recvcounts[0], &displs[0], MPI_INT, world);
+
+  // collect element arrays from all processors that have elements
+  CellList::Element * elementptr = NULL;
+  if (ncount_local) elementptr = &clist.elements[0];
+  MPI_Allgatherv(elementptr, ncount_local, mpi_element_type, &elements[0], &recvcounts[0], &displs[0], mpi_element_type, world);
+
+  // at this point all processors have a full list of all elements in the global cell list,
+  // however, their binheads still need to be merged
+
+  // step 1: correct element indices, each process has been counting from 0.
+  //         now that we have them in one array we can reuse the displs array to correct the indices
+  
+  for (int iproc = 1; iproc < nprocs; iproc++) {
+      const int offset = displs[iproc];
+      const int ibin_offset = iproc * nbins;
+
+      // correct binhead index
+      for(int ibin = 0; ibin < nbins; ++ibin) {
+          int & head = binhead[ibin+ibin_offset];
+          if (head >= 0) {
+              head += offset;
+          }
+      }
+
+      // correct next index
+      for(int i = 0; i < recvcounts[iproc]; ++i) {
+          int & n = next[offset + i];
+          if (n >= 0) {
+              n += offset;
+          }
+      }
+  }
+
+  // step 2: reduce binheads and next to single binning structure by merging lists
+  for(int ibin = 0; ibin < nbins; ++ibin) {
+      int iproc = 0;            
+      int j = binhead[ibin];
+      int prev = -1;
+
+      while(iproc < nprocs) {
+          while(j >= 0) {
+              prev = j;
+              j = next[j];
+          }
+          
+          iproc++;
+
+          if(iproc < nprocs) {
+              const int ibin_offset = iproc * nbins;
+              j = binhead[ibin_offset + ibin];
+              if(prev >= 0) {
+                next[prev] = j;
+              }
+          }
+      }
+  }
 }

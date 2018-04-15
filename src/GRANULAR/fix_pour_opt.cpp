@@ -54,8 +54,8 @@ enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 FixPourOpt::FixPourOpt(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), radius_poly(NULL), frac_poly(NULL),
   idrigid(NULL), idshake(NULL), onemols(NULL), molfrac(NULL), coords(NULL),
-  imageflags(NULL), fixrigid(NULL), fixshake(NULL), recvcounts(NULL),
-  displs(NULL), random(NULL), random2(NULL), clist(lmp)
+  imageflags(NULL), fixrigid(NULL), fixshake(NULL),
+  random(NULL), random2(NULL), clist(lmp), dist_clist(lmp)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix pour command");
 
@@ -174,13 +174,6 @@ FixPourOpt::FixPourOpt(LAMMPS *lmp, int narg, char **arg) :
 
   random = new RanPark(lmp,seed);
 
-  // allgather arrays
-
-  MPI_Comm_rank(world,&me);
-  MPI_Comm_size(world,&nprocs);
-  recvcounts = new int[nprocs];
-  displs = new int[nprocs];
-
   // grav = gravity in distance/time^2 units
   // assume grav = -magnitude at this point, enforce in init()
 
@@ -294,8 +287,6 @@ FixPourOpt::~FixPourOpt()
   delete [] frac_poly;
   memory->destroy(coords);
   memory->destroy(imageflags);
-  delete [] recvcounts;
-  delete [] displs;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -372,6 +363,15 @@ void FixPourOpt::init()
       error->all(FLERR,"Fix pour and fix shake not using "
                  "same molecule template ID");
   }
+
+
+  double x_lo[3], x_hi[3];
+  domain->regions[iregion]->get_bounding_box(x_lo, x_hi);
+  clist.setup(x_lo, x_hi, 4*radius_max); 
+
+  if(comm->nprocs > 1) {
+    dist_clist.setup(x_lo, x_hi, 4*radius_max);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -415,78 +415,31 @@ void FixPourOpt::pre_exchange()
     hi_current = yhi + (update->ntimestep - nfirst) * update->dt * rate;
   }
 
-  // ncount = # of my atoms that overlap the insertion region
-  // nprevious = total of ncount across all procs
-
-  int ncount = 0;
-  for (i = 0; i < atom->nlocal; i++)
-    if (overlap(i)) ncount++;
-
-  int nprevious;
-  MPI_Allreduce(&ncount,&nprevious,1,MPI_INT,MPI_SUM,world);
-
-  // xmine is for my atoms
-  // xnear is for atoms from all procs + atoms to be inserted
-
-  double **xmine,**xnear;
-  memory->create(xmine,ncount,4,"fix_pour:xmine");
-  memory->create(xnear,nprevious+nnew*natom_max,4,"fix_pour:xnear");
-  int nnear = nprevious;
-
-  // setup for allgatherv
-
-  int n = 4*ncount;
-  MPI_Allgather(&n,1,MPI_INT,recvcounts,1,MPI_INT,world);
-
-  displs[0] = 0;
-  for (int iproc = 1; iproc < nprocs; iproc++)
-    displs[iproc] = displs[iproc-1] + recvcounts[iproc-1];
-
-  // load up xmine array
-
+  // build local cell list
   double **x = atom->x;
   double *radius = atom->radius;
 
-  ncount = 0;
-  for (i = 0; i < atom->nlocal; i++)
-    if (overlap(i)) {
-      xmine[ncount][0] = x[i][0];
-      xmine[ncount][1] = x[i][1];
-      xmine[ncount][2] = x[i][2];
-      xmine[ncount][3] = radius[i];
-      ncount++;
-    }
-
-  // perform allgatherv to acquire list of nearby particles on all procs
-
-  double *ptr = NULL;
-  if (ncount) ptr = xmine[0];
-  MPI_Allgatherv(ptr,4*ncount,MPI_DOUBLE,
-                 xnear[0],recvcounts,displs,MPI_DOUBLE,world);
-
-  // build cell list
-  //
-  // this is a first version. ideally we should find a way to merge xmine, xnear and clist
-  // right now this is only about avoiding the high cost of individual insertion, at the cost
-  // of more memory usage
-  //
-  // one idea would be to mimic the binhead & bins flat data structure from nbins.cpp
-  // use the binning to create a sorted version of binhead and bins and xmine
-  // allgatherv binhead, bins and xmine
-  // merge cell lists
   clist.clear();
-  double x_lo[3], x_hi[3];
-  domain->regions[iregion]->get_bounding_box(x_lo, x_hi);
-  clist.setup(x_lo, x_hi, 4*radius_max); 
 
-  for (i = 0; i < nnear; i++) {
-    clist.insert(xnear[i], xnear[i][3]);
+  for (i = 0; i < atom->nlocal; i++) {
+    if (overlap(i)) {
+        clist.insert(x[i], radius[i]);
+    }
   }
 
-  // insert new particles into xnear list, one by one
+  CellList * full_clist = &clist;
+
+  if(comm->nprocs > 1) {
+    dist_clist.allreduce(clist);
+    full_clist = &dist_clist;
+  }
+
+  int nprevious = full_clist->count();
+
+  // insert new particles into cell list, one by one
   // check against all nearby atoms and previously inserted ones
   // if there is an overlap then try again at same z (3d) or y (2d) coord
-  // else insert by adding to xnear list
+  // else insert by adding to cell list
   // max = maximum # of insertion attempts for all particles
   // h = height, biased to give uniform distribution in time of insertion
   // for MOLECULE mode:
@@ -566,18 +519,8 @@ void FixPourOpt::pre_exchange()
       // use minimum_image() to account for PBC
 
       for (m = 0; m < natom; m++) {
-        if (clist.has_overlap(coords[m], coords[m][3]))
+        if (full_clist->has_overlap(coords[m], coords[m][3]))
             break;
-        // for (i = 0; i < nnear; i++) {
-        //   delx = coords[m][0] - xnear[i][0];
-        //   dely = coords[m][1] - xnear[i][1];
-        //   delz = coords[m][2] - xnear[i][2];
-        //   domain->minimum_image(delx,dely,delz);
-        //   rsq = delx*delx + dely*dely + delz*delz;
-        //   radsum = coords[m][3] + xnear[i][3];
-        //   if (rsq <= radsum*radsum) break;
-        // }
-        // if (i < nnear) break;
       }
       if (m == natom) {
         success = 1;
@@ -592,15 +535,10 @@ void FixPourOpt::pre_exchange()
     nsuccess++;
     nlocalprev = atom->nlocal;
 
-    // add all atoms in particle to xnear
+    // add all atoms in particle to cell list
 
     for (m = 0; m < natom; m++) {
-      clist.insert(coords[m], coords[m][3]);
-      // xnear[nnear][0] = coords[m][0];
-      // xnear[nnear][1] = coords[m][1];
-      // xnear[nnear][2] = coords[m][2];
-      // xnear[nnear][3] = coords[m][3];
-      // nnear++;
+      full_clist->insert(coords[m], coords[m][3]);
     }
 
     // choose random velocity for new particle
@@ -701,7 +639,7 @@ void FixPourOpt::pre_exchange()
 
   // warn if not successful with all insertions b/c too many attempts
 
-  int ninserted_atoms = clist.count() - nprevious;
+  int ninserted_atoms = full_clist->count() - nprevious;
   int ninserted_mols = ninserted_atoms / natom;
   ninserted += ninserted_mols;
   if (ninserted_mols < nnew && me == 0)
@@ -730,11 +668,6 @@ void FixPourOpt::pre_exchange()
       atom->map_set();
     }
   }
-
-  // free local memory
-
-  memory->destroy(xmine);
-  memory->destroy(xnear);
 
   // next timestep to insert
 

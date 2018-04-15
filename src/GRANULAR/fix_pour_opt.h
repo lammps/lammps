@@ -63,7 +63,6 @@ class FixPourOpt : public Fix {
   double oneradius;
 
   int me,nprocs;
-  int *recvcounts,*displs;
   int nfreq,nfirst,ninserted,nper;
   double lo_current,hi_current;
   tagint maxtag_all,maxmol_all;
@@ -77,6 +76,7 @@ class FixPourOpt : public Fix {
   void options(int, char **);
 
   CellList clist;
+  DistributedCellList dist_clist;
 };
 
 }

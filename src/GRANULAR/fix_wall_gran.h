@@ -47,16 +47,16 @@ class FixWallGran : public Fix {
   void reset_dt();
 
   void hooke(double, double, double, double, double *,
-             double *, double *, double *, double *, double, double);
+             double *, double *, double *, double *, double, double, double*);
   void hooke_history(double, double, double, double, double *,
                      double *, double *, double *, double *, double, double,
-                     double *);
+                     double *, double *);
   void hertz_history(double, double, double, double, double *, double,
                      double *, double *, double *, double *, double, double,
-                     double *);
+                     double *, double *);
   void bonded_history(double, double, double, double, double *, double,
                        double *, double *, double *, double *, double, double,
-                       double *);
+                       double *, double *);
 
  protected:
   int wallstyle,wiggle,wshear,axis;
@@ -82,6 +82,9 @@ class FixWallGran : public Fix {
   class Fix *fix_rigid;    // ptr to rigid body fix, NULL if none
   double *mass_rigid;      // rigid mass for owned+ghost atoms
   int nmax;                // allocated size of mass_rigid
+
+  // Store particle interactions
+  int store;
 };
 
 }

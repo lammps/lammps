@@ -100,7 +100,6 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
 
     iarg = 10;
   }
-
   else {
     if (narg < 10) error->all(FLERR,"Illegal fix wall/gran command");
 
@@ -165,6 +164,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
 
   wiggle = 0;
   wshear = 0;
+  peratom_flag = 0;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"wiggle") == 0) {
@@ -186,7 +186,13 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
       vshear = force->numeric(FLERR,arg[iarg+2]);
       wshear = 1;
       iarg += 3;
+    } else if (strcmp(arg[iarg],"store_contacts") == 0){
+      peratom_flag = 1;
+      size_peratom_cols = 8; //Could make this a user input option?
+      peratom_freq = 1;
+      iarg += 1;
     } else error->all(FLERR,"Illegal fix wall/gran command");
+
   }
 
   if (wallstyle == XPLANE && domain->xperiodic)
@@ -237,6 +243,13 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
     for (int i = 0; i < nlocal; i++)
       for (int j = 0; j < sheardim; j++)
         shearone[i][j] = 0.0;
+  }
+
+  if (peratom_flag){
+    int nlocal = atom->nlocal;
+    for (int i = 0; i < nlocal; i++)
+      for (int m = 0; m < size_peratom_cols; m++)
+        array_atom[i][m] = 0.0;
   }
 
   time_origin = update->ntimestep;
@@ -425,20 +438,37 @@ void FixWallGran::post_force(int vflag)
         meff = rmass[i];
         if (fix_rigid && mass_rigid[i] > 0.0) meff = mass_rigid[i];
 
+        // store contact info
+        if (peratom_flag){
+          array_atom[i][0] = (double)atom->tag[i];
+          array_atom[i][4] = x[i][0] - dx;
+          array_atom[i][5] = x[i][1] - dy;
+          array_atom[i][6] = x[i][2] - dz;
+          array_atom[i][7] = radius[i];
+        }
+
         // invoke sphere/wall interaction
+	double *contact;
+        if (peratom_flag)
+          contact = array_atom[i];
+        else
+	  contact = NULL;
 
         if (pairstyle == HOOKE)
           hooke(rsq,dx,dy,dz,vwall,v[i],f[i],
-                omega[i],torque[i],radius[i],meff);
+                omega[i],torque[i],radius[i],meff, contact);
         else if (pairstyle == HOOKE_HISTORY)
           hooke_history(rsq,dx,dy,dz,vwall,v[i],f[i],
-                        omega[i],torque[i],radius[i],meff,shearone[i]);
+                        omega[i],torque[i],radius[i],meff,shearone[i],
+                        contact);
         else if (pairstyle == HERTZ_HISTORY)
           hertz_history(rsq,dx,dy,dz,vwall,rwall,v[i],f[i],
-                        omega[i],torque[i],radius[i],meff,shearone[i]);
+                        omega[i],torque[i],radius[i],meff,shearone[i],
+                        contact);
         else if (pairstyle == BONDED_HISTORY)
           bonded_history(rsq,dx,dy,dz,vwall,rwall,v[i],f[i],
-                         omega[i],torque[i],radius[i],meff,shearone[i]);
+                         omega[i],torque[i],radius[i],meff,shearone[i],
+                         contact);
       }
     }
   }
@@ -456,7 +486,7 @@ void FixWallGran::post_force_respa(int vflag, int ilevel, int iloop)
 void FixWallGran::hooke(double rsq, double dx, double dy, double dz,
                         double *vwall, double *v,
                         double *f, double *omega, double *torque,
-                        double radius, double meff)
+                        double radius, double meff, double* contact)
 {
   double r,vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
   double wr1,wr2,wr3,damp,ccel,vtr1,vtr2,vtr3,vrel;
@@ -523,6 +553,12 @@ void FixWallGran::hooke(double rsq, double dx, double dy, double dz,
   fy = dy*ccel + fs2;
   fz = dz*ccel + fs3;
 
+  if (peratom_flag){
+     contact[1] = fx;
+     contact[2] = fy;
+     contact[3] = fz;
+   }
+
   f[0] += fx;
   f[1] += fy;
   f[2] += fz;
@@ -540,7 +576,8 @@ void FixWallGran::hooke(double rsq, double dx, double dy, double dz,
 void FixWallGran::hooke_history(double rsq, double dx, double dy, double dz,
                                 double *vwall, double *v,
                                 double *f, double *omega, double *torque,
-                                double radius, double meff, double *shear)
+                                double radius, double meff, double *shear,
+                                double *contact)
 {
   double r,vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
   double wr1,wr2,wr3,damp,ccel,vtr1,vtr2,vtr3,vrel;
@@ -643,6 +680,12 @@ void FixWallGran::hooke_history(double rsq, double dx, double dy, double dz,
   f[1] += fy;
   f[2] += fz;
 
+  if (peratom_flag){
+    contact[1] = fx;
+    contact[2] = fy;
+    contact[3] = fz;
+  }
+
   tor1 = rinv * (dy*fs3 - dz*fs2);
   tor2 = rinv * (dz*fs1 - dx*fs3);
   tor3 = rinv * (dx*fs2 - dy*fs1);
@@ -656,7 +699,8 @@ void FixWallGran::hooke_history(double rsq, double dx, double dy, double dz,
 void FixWallGran::hertz_history(double rsq, double dx, double dy, double dz,
                                 double *vwall, double rwall, double *v,
                                 double *f, double *omega, double *torque,
-                                double radius, double meff, double *shear)
+                                double radius, double meff, double *shear,
+                                double *contact)
 {
   double r,vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
   double wr1,wr2,wr3,damp,ccel,vtr1,vtr2,vtr3,vrel;
@@ -762,6 +806,12 @@ void FixWallGran::hertz_history(double rsq, double dx, double dy, double dz,
   fy = dy*ccel + fs2;
   fz = dz*ccel + fs3;
 
+  if (peratom_flag){
+     contact[1] = fx;
+     contact[2] = fy;
+     contact[3] = fz;
+   }
+
   f[0] += fx;
   f[1] += fy;
   f[2] += fz;
@@ -780,7 +830,8 @@ void FixWallGran::hertz_history(double rsq, double dx, double dy, double dz,
 void FixWallGran::bonded_history(double rsq, double dx, double dy, double dz,
                                  double *vwall, double rwall, double *v,
                                  double *f, double *omega, double *torque,
-                                 double radius, double meff, double *shear)
+                                 double radius, double meff, double *shear,
+                                 double *contact)
 {
   double r,vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
   double wr1,wr2,wr3,damp,ccel,vtr1,vtr2,vtr3,vrel;
@@ -999,6 +1050,12 @@ void FixWallGran::bonded_history(double rsq, double dx, double dy, double dz,
   f[1] += fy;
   f[2] += fz;
 
+  if (peratom_flag){
+     contact[1] = fx;
+     contact[2] = fy;
+     contact[3] = fz;
+   }
+
   tor1 = rinv * (dy*fs3 - dz*fs2);
   tor2 = rinv * (dz*fs1 - dx*fs3);
   tor3 = rinv * (dx*fs2 - dy*fs1);
@@ -1025,6 +1082,7 @@ double FixWallGran::memory_usage()
   double bytes = 0.0;
   if (history) bytes += nmax*sheardim * sizeof(double);   // shear history
   if (fix_rigid) bytes += nmax * sizeof(int);             // mass_rigid
+  if (peratom_flag) bytes += nmax*size_peratom_cols*sizeof(double); //store contacts
   return bytes;
 }
 
@@ -1035,6 +1093,9 @@ double FixWallGran::memory_usage()
 void FixWallGran::grow_arrays(int nmax)
 {
   if (history) memory->grow(shearone,nmax,sheardim,"fix_wall_gran:shearone");
+  if (peratom_flag){
+    memory->grow(array_atom,nmax,size_peratom_cols,"fix_wall_gran:array_atom");
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1046,6 +1107,10 @@ void FixWallGran::copy_arrays(int i, int j, int delflag)
   if (history)
     for (int m = 0; m < sheardim; m++)
       shearone[j][m] = shearone[i][m];
+  if (peratom_flag){
+      for (int m = 0; m < size_peratom_cols; m++)
+        array_atom[j][m] = array_atom[i][m];
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1057,6 +1122,10 @@ void FixWallGran::set_arrays(int i)
   if (history)
     for (int m = 0; m < sheardim; m++)
       shearone[i][m] = 0;
+  if (peratom_flag){
+    for (int m = 0; m < size_peratom_cols; m++)
+    	array_atom[i][m] = 0;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1065,11 +1134,15 @@ void FixWallGran::set_arrays(int i)
 
 int FixWallGran::pack_exchange(int i, double *buf)
 {
-  if (!history) return 0;
-
   int n = 0;
-  for (int m = 0; m < sheardim; m++)
-    buf[n++] = shearone[i][m];
+  if (history){
+    for (int m = 0; m < sheardim; m++)
+      buf[n++] = shearone[i][m];
+  }
+  if (peratom_flag){
+    for (int m = 0; m < size_peratom_cols; m++)
+      buf[n++] = array_atom[i][m];
+  }
   return n;
 }
 
@@ -1079,11 +1152,15 @@ int FixWallGran::pack_exchange(int i, double *buf)
 
 int FixWallGran::unpack_exchange(int nlocal, double *buf)
 {
-  if (!history) return 0;
-
   int n = 0;
-  for (int m = 0; m < sheardim; m++)
-    shearone[nlocal][m] = buf[n++];
+  if (history){
+    for (int m = 0; m < sheardim; m++)
+      shearone[nlocal][m] = buf[n++];
+  }
+  if (peratom_flag){
+    for (int m = 0; m < size_peratom_cols; m++)
+      array_atom[nlocal][m] = buf[n++];
+  }
   return n;
 }
 
@@ -1148,3 +1225,4 @@ void FixWallGran::reset_dt()
 {
   dt = update->dt;
 }
+

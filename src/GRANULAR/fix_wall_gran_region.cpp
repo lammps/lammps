@@ -238,23 +238,37 @@ void FixWallGranRegion::post_force(int vflag)
         meff = rmass[i];
         if (fix_rigid && mass_rigid[i] > 0.0) meff = mass_rigid[i];
 
-        // invoke sphere/wall interaction
+        // store contact info
+        if (peratom_flag){
+          array_atom[i][0] = (double)atom->tag[i];
+          array_atom[i][4] = x[i][0] - dx;
+          array_atom[i][5] = x[i][1] - dy;
+          array_atom[i][6] = x[i][2] - dz;
+          array_atom[i][7] = radius[i];
+        }
 
+        // invoke sphere/wall interaction
+        double *contact;
+        if (peratom_flag)
+          contact = array_atom[i];
+        else
+          contact = NULL;
+	
         if (pairstyle == HOOKE)
           hooke(rsq,dx,dy,dz,vwall,v[i],f[i],
-                omega[i],torque[i],radius[i],meff);
+                omega[i],torque[i],radius[i],meff, contact);
         else if (pairstyle == HOOKE_HISTORY)
           hooke_history(rsq,dx,dy,dz,vwall,v[i],f[i],
                         omega[i],torque[i],radius[i],meff,
-                        shearmany[i][c2r[ic]]);
+                        shearmany[i][c2r[ic]], contact);
         else if (pairstyle == HERTZ_HISTORY)
           hertz_history(rsq,dx,dy,dz,vwall,region->contact[ic].radius,
                         v[i],f[i],omega[i],torque[i],
-                        radius[i],meff,shearmany[i][c2r[ic]]);
+                        radius[i],meff,shearmany[i][c2r[ic]], contact);
         else if (pairstyle == BONDED_HISTORY)
           bonded_history(rsq,dx,dy,dz,vwall,region->contact[ic].radius,
                          v[i],f[i],omega[i],torque[i],
-                         radius[i],meff,shearmany[i][c2r[ic]]);
+                         radius[i],meff,shearmany[i][c2r[ic]], contact);
       }
     }
   }
@@ -341,6 +355,9 @@ void FixWallGranRegion::grow_arrays(int nmax)
     memory->grow(walls,nmax,tmax,"fix_wall_gran:walls");
     memory->grow(shearmany,nmax,tmax,sheardim,"fix_wall_gran:shearmany");
   }
+  if (peratom_flag){
+    memory->grow(array_atom,nmax,size_peratom_cols,"fix_wall_gran:array_atom");
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -351,16 +368,20 @@ void FixWallGranRegion::copy_arrays(int i, int j, int delflag)
 {
   int m,n,iwall;
 
-  if (!history) return;
-
-  n = ncontact[i];
-
-  for (iwall = 0; iwall < n; iwall++) {
-    walls[j][iwall] = walls[i][iwall];
-    for (m = 0; m < sheardim; m++)
-      shearmany[j][iwall][m] = shearmany[i][iwall][m];
+  if (history){
+    n = ncontact[i];
+    for (iwall = 0; iwall < n; iwall++) {
+      walls[j][iwall] = walls[i][iwall];
+      for (m = 0; m < sheardim; m++)
+        shearmany[j][iwall][m] = shearmany[i][iwall][m];
+    }
+    ncontact[j] = ncontact[i];
   }
-  ncontact[j] = ncontact[i];
+
+  if (peratom_flag){
+    for (int m = 0; m < size_peratom_cols; m++)
+      array_atom[j][m] = array_atom[i][m];
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -369,8 +390,12 @@ void FixWallGranRegion::copy_arrays(int i, int j, int delflag)
 
 void FixWallGranRegion::set_arrays(int i)
 {
-  if (!history) return;
-  ncontact[i] = 0;
+  if (history)
+    ncontact[i] = 0;
+  if (peratom_flag){
+    for (int m = 0; m < size_peratom_cols; m++)
+        array_atom[i][m] = 0;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -381,16 +406,19 @@ int FixWallGranRegion::pack_exchange(int i, double *buf)
 {
   int m;
 
-  if (!history) return 0;
-
   int n = 0;
-  int count = ncontact[i];
-
-  buf[n++] = ubuf(count).d;
-  for (int iwall = 0; iwall < count; iwall++) {
-    buf[n++] = ubuf(walls[i][iwall]).d;
-    for (m = 0; m < sheardim; m++)
-      buf[n++] = shearmany[i][iwall][m];
+  if (history){
+    int count = ncontact[i];
+    buf[n++] = ubuf(count).d;
+    for (int iwall = 0; iwall < count; iwall++) {
+      buf[n++] = ubuf(walls[i][iwall]).d;
+      for (m = 0; m < sheardim; m++)
+        buf[n++] = shearmany[i][iwall][m];
+    }
+  }
+  if (peratom_flag){
+    for (int m = 0; m < size_peratom_cols; m++)
+      buf[n++] = array_atom[i][m];
   }
 
   return n;
@@ -404,15 +432,19 @@ int FixWallGranRegion::unpack_exchange(int nlocal, double *buf)
 {
   int m;
 
-  if (!history) return 0;
 
   int n = 0;
-  int count = ncontact[nlocal] = (int) ubuf(buf[n++]).i;
-
-  for (int iwall = 0; iwall < count; iwall++) {
-    walls[nlocal][iwall] = (int) ubuf(buf[n++]).i;
-    for (m = 0; m < sheardim; m++)
-      shearmany[nlocal][iwall][m] = buf[n++];
+  if (history){
+    int count = ncontact[nlocal] = (int) ubuf(buf[n++]).i;
+    for (int iwall = 0; iwall < count; iwall++) {
+      walls[nlocal][iwall] = (int) ubuf(buf[n++]).i;
+      for (m = 0; m < sheardim; m++)
+        shearmany[nlocal][iwall][m] = buf[n++];
+    }
+  }
+  if (peratom_flag){
+    for (int m = 0; m < size_peratom_cols; m++)
+      array_atom[nlocal][m] = buf[n++];
   }
 
   return n;

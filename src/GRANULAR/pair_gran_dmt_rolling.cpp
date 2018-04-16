@@ -44,9 +44,9 @@ enum {INDEP, BRILLROLL};
 /* ---------------------------------------------------------------------- */
 
 PairGranDMTRolling::PairGranDMTRolling(LAMMPS *lmp) :
-  PairGranHookeHistory(lmp, 7),
-  E_one(0), G_one(0), pois(0), muS_one(0), cor(0), alpha_one(0),
-  Ecoh_one(0), kR_one(0), muR_one(0), etaR_one(0)
+      PairGranHookeHistory(lmp, 7),
+      E_one(0), G_one(0), pois(0), muS_one(0), cor(0), alpha_one(0),
+      Ecoh_one(0), kR_one(0), muR_one(0), etaR_one(0)
 {
   int ntypes = atom->ntypes;
   memory->create(E,ntypes+1,ntypes+1,"pair:E");
@@ -122,19 +122,19 @@ void PairGranDMTRolling::compute(int eflag, int vflag)
   // mass_body = mass of each rigid body
 
   if (fix_rigid && neighbor->ago == 0){
-      int tmp;
-      int *body = (int *) fix_rigid->extract("body",tmp);
-      double *mass_body = (double *) fix_rigid->extract("masstotal",tmp);
-      if (atom->nmax > nmax) {
-	  memory->destroy(mass_rigid);
-	  nmax = atom->nmax;
-	  memory->create(mass_rigid,nmax,"pair:mass_rigid");
-      }
-      int nlocal = atom->nlocal;
-      for (i = 0; i < nlocal; i++)
-	if (body[i] >= 0) mass_rigid[i] = mass_body[body[i]];
-	else mass_rigid[i] = 0.0;
-      comm->forward_comm_pair(this);
+    int tmp;
+    int *body = (int *) fix_rigid->extract("body",tmp);
+    double *mass_body = (double *) fix_rigid->extract("masstotal",tmp);
+    if (atom->nmax > nmax) {
+      memory->destroy(mass_rigid);
+      nmax = atom->nmax;
+      memory->create(mass_rigid,nmax,"pair:mass_rigid");
+    }
+    int nlocal = atom->nlocal;
+    for (i = 0; i < nlocal; i++)
+      if (body[i] >= 0) mass_rigid[i] = mass_body[body[i]];
+      else mass_rigid[i] = 0.0;
+    comm->forward_comm_pair(this);
   }
 
   double **x = atom->x;
@@ -158,304 +158,304 @@ void PairGranDMTRolling::compute(int eflag, int vflag)
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
-      i = ilist[ii];
-      itype = type[i];
-      xtmp = x[i][0];
-      ytmp = x[i][1];
-      ztmp = x[i][2];
-      radi = radius[i];
-      touch = firsttouch[i];
-      allshear = firstshear[i];
-      jlist = firstneigh[i];
-      jnum = numneigh[i];
+    i = ilist[ii];
+    itype = type[i];
+    xtmp = x[i][0];
+    ytmp = x[i][1];
+    ztmp = x[i][2];
+    radi = radius[i];
+    touch = firsttouch[i];
+    allshear = firstshear[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
 
-      for (jj = 0; jj < jnum; jj++) {
-	  j = jlist[jj];
-	  jtype = type[j];
-	  j &= NEIGHMASK;
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      jtype = type[j];
+      j &= NEIGHMASK;
 
-	  delx = xtmp - x[j][0];
-	  dely = ytmp - x[j][1];
-	  delz = ztmp - x[j][2];
-	  rsq = delx*delx + dely*dely + delz*delz;
-	  radj = radius[j];
-	  radsum = radi + radj;
+      delx = xtmp - x[j][0];
+      dely = ytmp - x[j][1];
+      delz = ztmp - x[j][2];
+      rsq = delx*delx + dely*dely + delz*delz;
+      radj = radius[j];
+      radsum = radi + radj;
 
-	  if (rsq >= radsum*radsum){
-	      // unset non-touching neighbors
-	      touch[jj] = 0;
-	      shear = &allshear[size_history*jj];
-	      for (int k = 0; k < size_history; k++)
-		shear[k] = 0.0;
-	  } else {
-	      r = sqrt(rsq);
-	      rinv = 1.0/r;
-	      rsqinv = 1.0/rsq;
-	      R = radi*radj/(radi+radj);
-	      nx = delx*rinv;
-	      ny = dely*rinv;
-	      nz = delz*rinv;
+      if (rsq >= radsum*radsum){
+        // unset non-touching neighbors
+        touch[jj] = 0;
+        shear = &allshear[size_history*jj];
+        for (int k = 0; k < size_history; k++)
+          shear[k] = 0.0;
+      } else {
+        r = sqrt(rsq);
+        rinv = 1.0/r;
+        rsqinv = 1.0/rsq;
+        R = radi*radj/(radi+radj);
+        nx = delx*rinv;
+        ny = dely*rinv;
+        nz = delz*rinv;
 
-	      // relative translational velocity
+        // relative translational velocity
 
-	      vr1 = v[i][0] - v[j][0];
-	      vr2 = v[i][1] - v[j][1];
-	      vr3 = v[i][2] - v[j][2];
+        vr1 = v[i][0] - v[j][0];
+        vr2 = v[i][1] - v[j][1];
+        vr3 = v[i][2] - v[j][2];
 
-	      // normal component
+        // normal component
 
-	      vnnr = vr1*nx + vr2*ny + vr3*nz; //v_R . n
-	      vn1 = nx*vnnr;
-	      vn2 = ny*vnnr;
-	      vn3 = nz*vnnr;
+        vnnr = vr1*nx + vr2*ny + vr3*nz; //v_R . n
+        vn1 = nx*vnnr;
+        vn2 = ny*vnnr;
+        vn3 = nz*vnnr;
 
-	      // meff = effective mass of pair of particles
-	      // if I or J part of rigid body, use body mass
-	      // if I or J is frozen, meff is other particle
+        // meff = effective mass of pair of particles
+        // if I or J part of rigid body, use body mass
+        // if I or J is frozen, meff is other particle
 
-	      mi = rmass[i];
-	      mj = rmass[j];
-	      if (fix_rigid) {
-		  if (mass_rigid[i] > 0.0) mi = mass_rigid[i];
-		  if (mass_rigid[j] > 0.0) mj = mass_rigid[j];
-	      }
+        mi = rmass[i];
+        mj = rmass[j];
+        if (fix_rigid) {
+          if (mass_rigid[i] > 0.0) mi = mass_rigid[i];
+          if (mass_rigid[j] > 0.0) mj = mass_rigid[j];
+        }
 
-	      meff = mi*mj / (mi+mj);
-	      if (mask[i] & freeze_group_bit) meff = mj;
-	      if (mask[j] & freeze_group_bit) meff = mi;
+        meff = mi*mj / (mi+mj);
+        if (mask[i] & freeze_group_bit) meff = mj;
+        if (mask[j] & freeze_group_bit) meff = mi;
 
-	      //****************************************
-	      //Normal force = Hertzian contact + DMT + damping
-	      //****************************************
-	      overlap = radsum - r;
-	      a = sqrt(R*overlap);
-	      kn = 4.0/3.0*E[itype][jtype]*a;
-	      Fhz = kn*overlap;
+        //****************************************
+        //Normal force = Hertzian contact + DMT + damping
+        //****************************************
+        overlap = radsum - r;
+        a = sqrt(R*overlap);
+        kn = 4.0/3.0*E[itype][jtype]*a;
+        Fhz = kn*overlap;
 
-	      //Damping (based on Tsuji et al)
-	      if (normaldamp == BRILLIANTOV) eta_N = a*meff*gamman[itype][jtype];
-	      else if (normaldamp == TSUJI) eta_N=alpha[itype][jtype]*sqrt(meff*kn);
+        //Damping (based on Tsuji et al)
+        if (normaldamp == BRILLIANTOV) eta_N = a*meff*gamman[itype][jtype];
+        else if (normaldamp == TSUJI) eta_N=alpha[itype][jtype]*sqrt(meff*kn);
 
-	      Fdamp = -eta_N*vnnr; //F_nd eq 23 and Zhao eq 19
+        Fdamp = -eta_N*vnnr; //F_nd eq 23 and Zhao eq 19
 
-	      //DMT
-	      Fdmt = -4*MY_PI*Ecoh[itype][jtype]*R;
+        //DMT
+        Fdmt = -4*MY_PI*Ecoh[itype][jtype]*R;
 
-	      Fne = Fhz + Fdmt;
-	      Fntot = Fne + Fdamp;
+        Fne = Fhz + Fdmt;
+        Fntot = Fne + Fdamp;
 
-	      //****************************************
-	      //Tangential force, including shear history effects
-	      //****************************************
+        //****************************************
+        //Tangential force, including shear history effects
+        //****************************************
 
-	      // tangential component
-	      vt1 = vr1 - vn1;
-	      vt2 = vr2 - vn2;
-	      vt3 = vr3 - vn3;
+        // tangential component
+        vt1 = vr1 - vn1;
+        vt2 = vr2 - vn2;
+        vt3 = vr3 - vn3;
 
-	      // relative rotational velocity
-	      //Luding Gran Matt 2008, v10,p235 suggests correcting radi and radj by subtracting
-	      //delta/2, i.e. instead of radi, use distance to center of contact point?
-	      wr1 = (radi*omega[i][0] + radj*omega[j][0]);
-	      wr2 = (radi*omega[i][1] + radj*omega[j][1]);
-	      wr3 = (radi*omega[i][2] + radj*omega[j][2]);
+        // relative rotational velocity
+        //Luding Gran Matt 2008, v10,p235 suggests correcting radi and radj by subtracting
+        //delta/2, i.e. instead of radi, use distance to center of contact point?
+        wr1 = (radi*omega[i][0] + radj*omega[j][0]);
+        wr2 = (radi*omega[i][1] + radj*omega[j][1]);
+        wr3 = (radi*omega[i][2] + radj*omega[j][2]);
 
-	      // relative tangential velocities
-	      vtr1 = vt1 - (nz*wr2-ny*wr3);
-	      vtr2 = vt2 - (nx*wr3-nz*wr1);
-	      vtr3 = vt3 - (ny*wr1-nx*wr2);
-	      vrel = vtr1*vtr1 + vtr2*vtr2 + vtr3*vtr3;
-	      vrel = sqrt(vrel);
+        // relative tangential velocities
+        vtr1 = vt1 - (nz*wr2-ny*wr3);
+        vtr2 = vt2 - (nx*wr3-nz*wr1);
+        vtr3 = vt3 - (ny*wr1-nx*wr2);
+        vrel = vtr1*vtr1 + vtr2*vtr2 + vtr3*vtr3;
+        vrel = sqrt(vrel);
 
-	      // shear history effects
-	      touch[jj] = 1;
-	      shear = &allshear[size_history*jj];
-	      shrmag = sqrt(shear[0]*shear[0] + shear[1]*shear[1] +
-			    shear[2]*shear[2]);
+        // shear history effects
+        touch[jj] = 1;
+        shear = &allshear[size_history*jj];
+        shrmag = sqrt(shear[0]*shear[0] + shear[1]*shear[1] +
+            shear[2]*shear[2]);
 
-	      // Rotate and update shear displacements.
-	      // See e.g. eq. 17 of Luding, Gran. Matter 2008, v10,p235
-	      if (shearupdate) {
-		  rsht = shear[0]*nx + shear[1]*ny + shear[2]*nz;
-		  if (fabs(rsht) < EPSILON) rsht = 0;
-		  if (rsht > 0){
-		      scalefac = shrmag/(shrmag - rsht); //if rhst == shrmag, contacting pair has rotated 90 deg. in one step, in which case you deserve a crash!
-		      shear[0] -= rsht*nx;
-		      shear[1] -= rsht*ny;
-		      shear[2] -= rsht*nz;
-		      //Also rescale to preserve magnitude
-		      shear[0] *= scalefac;
-		      shear[1] *= scalefac;
-		      shear[2] *= scalefac;
-		  }
-		  //Update shear history
-		  shear[0] += vtr1*dt;
-		  shear[1] += vtr2*dt;
-		  shear[2] += vtr3*dt;
-	      }
+        // Rotate and update shear displacements.
+        // See e.g. eq. 17 of Luding, Gran. Matter 2008, v10,p235
+        if (shearupdate) {
+          rsht = shear[0]*nx + shear[1]*ny + shear[2]*nz;
+          if (fabs(rsht) < EPSILON) rsht = 0;
+          if (rsht > 0){
+            scalefac = shrmag/(shrmag - rsht); //if rhst == shrmag, contacting pair has rotated 90 deg. in one step, in which case you deserve a crash!
+            shear[0] -= rsht*nx;
+            shear[1] -= rsht*ny;
+            shear[2] -= rsht*nz;
+            //Also rescale to preserve magnitude
+            shear[0] *= scalefac;
+            shear[1] *= scalefac;
+            shear[2] *= scalefac;
+          }
+          //Update shear history
+          shear[0] += vtr1*dt;
+          shear[1] += vtr2*dt;
+          shear[2] += vtr3*dt;
+        }
 
-	      // tangential forces = shear + tangential velocity damping
-	      // following Zhao and Marshall Phys Fluids v20, p043302 (2008)
-	      kt=8.0*G[itype][jtype]*a;
+        // tangential forces = shear + tangential velocity damping
+        // following Zhao and Marshall Phys Fluids v20, p043302 (2008)
+        kt=8.0*G[itype][jtype]*a;
 
-	      eta_T = eta_N; //Based on discussion in Marshall; eta_T can also be an independent parameter
-	      fs1 = -kt*shear[0] - eta_T*vtr1; //eq 26
-	      fs2 = -kt*shear[1] - eta_T*vtr2;
-	      fs3 = -kt*shear[2] - eta_T*vtr3;
+        eta_T = eta_N; //Based on discussion in Marshall; eta_T can also be an independent parameter
+        fs1 = -kt*shear[0] - eta_T*vtr1; //eq 26
+        fs2 = -kt*shear[1] - eta_T*vtr2;
+        fs3 = -kt*shear[2] - eta_T*vtr3;
 
-	      // rescale frictional displacements and forces if needed
-	      Fscrit = muS[itype][jtype] * fabs(Fne);
-	      // For JKR, use eq 43 of Marshall. For DMT, use Fne instead
-	      shrmag = sqrt(shear[0]*shear[0] + shear[1]*shear[1] +
-			    shear[2]*shear[2]);
-	      fs = sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
-	      if (fs > Fscrit) {
-		  if (shrmag != 0.0) {
-		      //shear[0] = (Fcrit/fs) * (shear[0] + eta_T*vtr1/kt) - eta_T*vtr1/kt;
-		      //shear[1] = (Fcrit/fs) * (shear[1] + eta_T*vtr1/kt) - eta_T*vtr1/kt;
-		      //shear[2] = (Fcrit/fs) * (shear[2] + eta_T*vtr1/kt) - eta_T*vtr1/kt;
-		      shear[0] = -1.0/kt*(Fscrit*fs1/fs + eta_T*vtr1); //Same as above, but simpler (check!)
-		      shear[1] = -1.0/kt*(Fscrit*fs2/fs + eta_T*vtr2);
-		      shear[2] = -1.0/kt*(Fscrit*fs3/fs + eta_T*vtr3);
-		      fs1 *= Fscrit/fs;
-		      fs2 *= Fscrit/fs;
-		      fs3 *= Fscrit/fs;
-		  } else fs1 = fs2 = fs3 = 0.0;
-	      }
+        // rescale frictional displacements and forces if needed
+        Fscrit = muS[itype][jtype] * fabs(Fne);
+        // For JKR, use eq 43 of Marshall. For DMT, use Fne instead
+        shrmag = sqrt(shear[0]*shear[0] + shear[1]*shear[1] +
+            shear[2]*shear[2]);
+        fs = sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
+        if (fs > Fscrit) {
+          if (shrmag != 0.0) {
+            //shear[0] = (Fcrit/fs) * (shear[0] + eta_T*vtr1/kt) - eta_T*vtr1/kt;
+            //shear[1] = (Fcrit/fs) * (shear[1] + eta_T*vtr1/kt) - eta_T*vtr1/kt;
+            //shear[2] = (Fcrit/fs) * (shear[2] + eta_T*vtr1/kt) - eta_T*vtr1/kt;
+            shear[0] = -1.0/kt*(Fscrit*fs1/fs + eta_T*vtr1); //Same as above, but simpler (check!)
+            shear[1] = -1.0/kt*(Fscrit*fs2/fs + eta_T*vtr2);
+            shear[2] = -1.0/kt*(Fscrit*fs3/fs + eta_T*vtr3);
+            fs1 *= Fscrit/fs;
+            fs2 *= Fscrit/fs;
+            fs3 *= Fscrit/fs;
+          } else fs1 = fs2 = fs3 = 0.0;
+        }
 
-	      //****************************************
-	      // Rolling force, including shear history effects
-	      //****************************************
+        //****************************************
+        // Rolling force, including shear history effects
+        //****************************************
 
-	      relrot1 = omega[i][0] - omega[j][0];
-	      relrot2 = omega[i][1] - omega[j][1];
-	      relrot3 = omega[i][2] - omega[j][2];
+        relrot1 = omega[i][0] - omega[j][0];
+        relrot2 = omega[i][1] - omega[j][1];
+        relrot3 = omega[i][2] - omega[j][2];
 
-	      // rolling velocity, see eq. 31 of Wang et al, Particuology v 23, p 49 (2015)
-	      // This is different from the Marshall papers, which use the Bagi/Kuhn formulation
-	      // for rolling velocity (see Wang et al for why the latter is wrong)
-	      vrl1 = R*(relrot2*nz - relrot3*ny); //- 0.5*((radj-radi)/radsum)*vtr1;
-	      vrl2 = R*(relrot3*nx - relrot1*nz); //- 0.5*((radj-radi)/radsum)*vtr2;
-	      vrl3 = R*(relrot1*ny - relrot2*nx); //- 0.5*((radj-radi)/radsum)*vtr3;
-	      vrlmag = sqrt(vrl1*vrl1+vrl2*vrl2+vrl3*vrl3);
-	      if (vrlmag != 0.0) vrlmaginv = 1.0/vrlmag;
-	      else vrlmaginv = 0.0;
+        // rolling velocity, see eq. 31 of Wang et al, Particuology v 23, p 49 (2015)
+        // This is different from the Marshall papers, which use the Bagi/Kuhn formulation
+        // for rolling velocity (see Wang et al for why the latter is wrong)
+        vrl1 = R*(relrot2*nz - relrot3*ny); //- 0.5*((radj-radi)/radsum)*vtr1;
+        vrl2 = R*(relrot3*nx - relrot1*nz); //- 0.5*((radj-radi)/radsum)*vtr2;
+        vrl3 = R*(relrot1*ny - relrot2*nx); //- 0.5*((radj-radi)/radsum)*vtr3;
+        vrlmag = sqrt(vrl1*vrl1+vrl2*vrl2+vrl3*vrl3);
+        if (vrlmag != 0.0) vrlmaginv = 1.0/vrlmag;
+        else vrlmaginv = 0.0;
 
-	      // Rolling displacement
-	      rollmag = sqrt(shear[3]*shear[3] + shear[4]*shear[4] + shear[5]*shear[5]);
-	      rolldotn = shear[3]*nx + shear[4]*ny + shear[5]*nz;
+        // Rolling displacement
+        rollmag = sqrt(shear[3]*shear[3] + shear[4]*shear[4] + shear[5]*shear[5]);
+        rolldotn = shear[3]*nx + shear[4]*ny + shear[5]*nz;
 
-	      if (shearupdate) {
-		  if (fabs(rolldotn) < EPSILON) rolldotn = 0;
-		  if (rolldotn > 0){ //Rotate into tangential plane
-		      scalefac = rollmag/(rollmag - rolldotn);
-		      shear[3] -= rolldotn*nx;
-		      shear[4] -= rolldotn*ny;
-		      shear[5] -= rolldotn*nz;
-		      //Also rescale to preserve magnitude
-		      shear[3] *= scalefac;
-		      shear[4] *= scalefac;
-		      shear[5] *= scalefac;
-		  }
-		  shear[3] += vrl1*dt;
-		  shear[4] += vrl2*dt;
-		  shear[5] += vrl3*dt;
-	      }
+        if (shearupdate) {
+          if (fabs(rolldotn) < EPSILON) rolldotn = 0;
+          if (rolldotn > 0){ //Rotate into tangential plane
+            scalefac = rollmag/(rollmag - rolldotn);
+            shear[3] -= rolldotn*nx;
+            shear[4] -= rolldotn*ny;
+            shear[5] -= rolldotn*nz;
+            //Also rescale to preserve magnitude
+            shear[3] *= scalefac;
+            shear[4] *= scalefac;
+            shear[5] *= scalefac;
+          }
+          shear[3] += vrl1*dt;
+          shear[4] += vrl2*dt;
+          shear[5] += vrl3*dt;
+        }
 
-	      k_R = kR[itype][jtype];
-	      if (rollingdamp == INDEP) eta_R = etaR[itype][jtype];
-	      else if (rollingdamp == BRILLROLL) eta_R = muR[itype][jtype]*fabs(Fne);
-	      fr1 = -k_R*shear[3] - eta_R*vrl1;
-	      fr2 = -k_R*shear[4] - eta_R*vrl2;
-	      fr3 = -k_R*shear[5] - eta_R*vrl3;
+        k_R = kR[itype][jtype];
+        if (rollingdamp == INDEP) eta_R = etaR[itype][jtype];
+        else if (rollingdamp == BRILLROLL) eta_R = muR[itype][jtype]*fabs(Fne);
+        fr1 = -k_R*shear[3] - eta_R*vrl1;
+        fr2 = -k_R*shear[4] - eta_R*vrl2;
+        fr3 = -k_R*shear[5] - eta_R*vrl3;
 
-	      // rescale frictional displacements and forces if needed
-	      Frcrit = muR[itype][jtype] * fabs(Fne);
+        // rescale frictional displacements and forces if needed
+        Frcrit = muR[itype][jtype] * fabs(Fne);
 
-	      fr = sqrt(fr1*fr1 + fr2*fr2 + fr3*fr3);
-	      if (fr > Frcrit) {
-		  if (rollmag != 0.0) {
-		      shear[3] = -1.0/k_R*(Frcrit*fr1/fr + eta_R*vrl1);
-		      shear[4] = -1.0/k_R*(Frcrit*fr2/fr + eta_R*vrl2);
-		      shear[5] = -1.0/k_R*(Frcrit*fr3/fr + eta_R*vrl3);
-		      fr1 *= Frcrit/fr;
-		      fr2 *= Frcrit/fr;
-		      fr3 *= Frcrit/fr;
-		  } else fr1 = fr2 = fr3 = 0.0;
-	      }
+        fr = sqrt(fr1*fr1 + fr2*fr2 + fr3*fr3);
+        if (fr > Frcrit) {
+          if (rollmag != 0.0) {
+            shear[3] = -1.0/k_R*(Frcrit*fr1/fr + eta_R*vrl1);
+            shear[4] = -1.0/k_R*(Frcrit*fr2/fr + eta_R*vrl2);
+            shear[5] = -1.0/k_R*(Frcrit*fr3/fr + eta_R*vrl3);
+            fr1 *= Frcrit/fr;
+            fr2 *= Frcrit/fr;
+            fr3 *= Frcrit/fr;
+          } else fr1 = fr2 = fr3 = 0.0;
+        }
 
 
-	      //****************************************
-	      // Twisting torque, including shear history effects
-	      //****************************************
-	      magtwist = relrot1*nx + relrot2*ny + relrot3*nz; //Omega_T (eq 29 of Marshall)
-	      shear[6] += magtwist*dt;
-	      k_Q = 0.5*kt*a*a;; //eq 32
-	      eta_Q = 0.5*eta_T*a*a;
-	      magtortwist = -k_Q*shear[6] - eta_Q*magtwist;//M_t torque (eq 30)
+        //****************************************
+        // Twisting torque, including shear history effects
+        //****************************************
+        magtwist = relrot1*nx + relrot2*ny + relrot3*nz; //Omega_T (eq 29 of Marshall)
+        shear[6] += magtwist*dt;
+        k_Q = 0.5*kt*a*a;; //eq 32
+        eta_Q = 0.5*eta_T*a*a;
+        magtortwist = -k_Q*shear[6] - eta_Q*magtwist;//M_t torque (eq 30)
 
-	      signtwist = (magtwist > 0) - (magtwist < 0);
-	      Mtcrit=TWOTHIRDS*a*Fscrit;//critical torque (eq 44)
-	      if (fabs(magtortwist) > Mtcrit){
-		  shear[6] = 1.0/k_Q*(Mtcrit*signtwist - eta_Q*magtwist);
-		  magtortwist = -Mtcrit * signtwist; //eq 34
-	      }
+        signtwist = (magtwist > 0) - (magtwist < 0);
+        Mtcrit=TWOTHIRDS*a*Fscrit;//critical torque (eq 44)
+        if (fabs(magtortwist) > Mtcrit){
+          shear[6] = 1.0/k_Q*(Mtcrit*signtwist - eta_Q*magtwist);
+          magtortwist = -Mtcrit * signtwist; //eq 34
+        }
 
-	      // Apply forces & torques
+        // Apply forces & torques
 
-	      fx = nx*Fntot + fs1;
-	      fy = ny*Fntot + fs2;
-	      fz = nz*Fntot + fs3;
+        fx = nx*Fntot + fs1;
+        fy = ny*Fntot + fs2;
+        fz = nz*Fntot + fs3;
 
-	      f[i][0] += fx;
-	      f[i][1] += fy;
-	      f[i][2] += fz;
+        f[i][0] += fx;
+        f[i][1] += fy;
+        f[i][2] += fz;
 
-	      tor1 = ny*fs3 - nz*fs2;
-	      tor2 = nz*fs1 - nx*fs3;
-	      tor3 = nx*fs2 - ny*fs1;
+        tor1 = ny*fs3 - nz*fs2;
+        tor2 = nz*fs1 - nx*fs3;
+        tor3 = nx*fs2 - ny*fs1;
 
-	      torque[i][0] -= radi*tor1;
-	      torque[i][1] -= radi*tor2;
-	      torque[i][2] -= radi*tor3;
+        torque[i][0] -= radi*tor1;
+        torque[i][1] -= radi*tor2;
+        torque[i][2] -= radi*tor3;
 
-	      tortwist1 = magtortwist * nx;
-	      tortwist2 = magtortwist * ny;
-	      tortwist3 = magtortwist * nz;
+        tortwist1 = magtortwist * nx;
+        tortwist2 = magtortwist * ny;
+        tortwist3 = magtortwist * nz;
 
-	      torque[i][0] += tortwist1;
-	      torque[i][1] += tortwist2;
-	      torque[i][2] += tortwist3;
+        torque[i][0] += tortwist1;
+        torque[i][1] += tortwist2;
+        torque[i][2] += tortwist3;
 
-	      torroll1 = R*(ny*fr3 - nz*fr2); //n cross fr
-	      torroll2 = R*(nz*fr1 - nx*fr3);
-	      torroll3 = R*(nx*fr2 - ny*fr1);
+        torroll1 = R*(ny*fr3 - nz*fr2); //n cross fr
+        torroll2 = R*(nz*fr1 - nx*fr3);
+        torroll3 = R*(nx*fr2 - ny*fr1);
 
-	      torque[i][0] += torroll1;
-	      torque[i][1] += torroll2;
-	      torque[i][2] += torroll3;
+        torque[i][0] += torroll1;
+        torque[i][1] += torroll2;
+        torque[i][2] += torroll3;
 
-	      if (force->newton_pair || j < nlocal) {
-		  f[j][0] -= fx;
-		  f[j][1] -= fy;
-		  f[j][2] -= fz;
+        if (force->newton_pair || j < nlocal) {
+          f[j][0] -= fx;
+          f[j][1] -= fy;
+          f[j][2] -= fz;
 
-		  torque[j][0] -= radj*tor1;
-		  torque[j][1] -= radj*tor2;
-		  torque[j][2] -= radj*tor3;
+          torque[j][0] -= radj*tor1;
+          torque[j][1] -= radj*tor2;
+          torque[j][2] -= radj*tor3;
 
-		  torque[j][0] -= tortwist1;
-		  torque[j][1] -= tortwist2;
-		  torque[j][2] -= tortwist3;
+          torque[j][0] -= tortwist1;
+          torque[j][1] -= tortwist2;
+          torque[j][2] -= tortwist3;
 
-		  torque[j][0] -= torroll1;
-		  torque[j][1] -= torroll2;
-		  torque[j][2] -= torroll3;
-	      }
-	      if (evflag) ev_tally_xyz(i,j,nlocal,0,
-				       0.0,0.0,fx,fy,fz,delx,dely,delz);
-	  }
+          torque[j][0] -= torroll1;
+          torque[j][1] -= torroll2;
+          torque[j][2] -= torroll3;
+        }
+        if (evflag) ev_tally_xyz(i,j,nlocal,0,
+            0.0,0.0,fx,fy,fz,delx,dely,delz);
       }
+    }
   }
 }
 
@@ -483,14 +483,14 @@ void PairGranDMTRolling::settings(int narg, char **arg)
   etaR_one = new double[ntypes+1];
 
   for (int i=0; i < ntypes;i++){
-      E_one[i+1] = force->numeric(FLERR, arg[i]);
-      G_one[i+1] = force->numeric(FLERR, arg[ntypes+i]);
-      muS_one[i+1] = force->numeric(FLERR, arg[2*ntypes+i]);
-      cor[i+1] = force->numeric(FLERR, arg[3*ntypes+i]);
-      Ecoh_one[i+1] = force->numeric(FLERR, arg[4*ntypes+i]);
-      kR_one[i+1] = force->numeric(FLERR, arg[5*ntypes+i]);
-      muR_one[i+1] = force->numeric(FLERR, arg[6*ntypes+i]);
-      etaR_one[i+1] = force->numeric(FLERR, arg[7*ntypes+i]);
+    E_one[i+1] = force->numeric(FLERR, arg[i]);
+    G_one[i+1] = force->numeric(FLERR, arg[ntypes+i]);
+    muS_one[i+1] = force->numeric(FLERR, arg[2*ntypes+i]);
+    cor[i+1] = force->numeric(FLERR, arg[3*ntypes+i]);
+    Ecoh_one[i+1] = force->numeric(FLERR, arg[4*ntypes+i]);
+    kR_one[i+1] = force->numeric(FLERR, arg[5*ntypes+i]);
+    muR_one[i+1] = force->numeric(FLERR, arg[6*ntypes+i]);
+    etaR_one[i+1] = force->numeric(FLERR, arg[7*ntypes+i]);
   }
 
   //Defaults
@@ -499,53 +499,53 @@ void PairGranDMTRolling::settings(int narg, char **arg)
 
   int iarg = 8*ntypes;
   while (iarg < narg){
-      if (strcmp(arg[iarg],"normaldamp") == 0){
-	  if (iarg+2 > narg) error->all(FLERR, "Invalid pair/gran/dmt/rolling entry");
-	  if (strcmp(arg[iarg+1],"tsuji") == 0) normaldamp = TSUJI;
-	  else if (strcmp(arg[iarg+1],"brilliantov") == 0) normaldamp = BRILLIANTOV;
-	  else error->all(FLERR, "Invalid normal damping model for pair/gran/dmt/rolling");
-	  iarg += 2;
-      }
-      else if (strcmp(arg[iarg],"rollingdamp") == 0){
-      	  if (iarg+2 > narg) error->all(FLERR, "Invalid pair/gran/dmt/rolling entry");
-      	  if (strcmp(arg[iarg+1],"independent") == 0) rollingdamp = INDEP;
-      	  else if (strcmp(arg[iarg+1],"brilliantov") == 0) rollingdamp = BRILLROLL;
-      	  else error->all(FLERR, "Invalid rolling damping model for pair/gran/dmt/rolling");
-      	  iarg += 2;
-      }
-      else{
-	  iarg +=1;
-      }
+    if (strcmp(arg[iarg],"normaldamp") == 0){
+      if (iarg+2 > narg) error->all(FLERR, "Invalid pair/gran/dmt/rolling entry");
+      if (strcmp(arg[iarg+1],"tsuji") == 0) normaldamp = TSUJI;
+      else if (strcmp(arg[iarg+1],"brilliantov") == 0) normaldamp = BRILLIANTOV;
+      else error->all(FLERR, "Invalid normal damping model for pair/gran/dmt/rolling");
+      iarg += 2;
+    }
+    else if (strcmp(arg[iarg],"rollingdamp") == 0){
+      if (iarg+2 > narg) error->all(FLERR, "Invalid pair/gran/dmt/rolling entry");
+      if (strcmp(arg[iarg+1],"independent") == 0) rollingdamp = INDEP;
+      else if (strcmp(arg[iarg+1],"brilliantov") == 0) rollingdamp = BRILLROLL;
+      else error->all(FLERR, "Invalid rolling damping model for pair/gran/dmt/rolling");
+      iarg += 2;
+    }
+    else{
+      iarg +=1;
+    }
   }
 
   //Derived from inputs
   for (int i=1; i <= ntypes; i++){
-      pois[i] = E_one[i]/(2.0*G_one[i]) - 1.0;
-      alpha_one[i] = 1.2728-4.2783*cor[i]+11.087*cor[i]*cor[i]-22.348*cor[i]*cor[i]*cor[i]+27.467*cor[i]*cor[i]*cor[i]*cor[i]-18.022*cor[i]*cor[i]*cor[i]*cor[i]*cor[i]+4.8218*cor[i]*cor[i]*cor[i]*cor[i]*cor[i]*cor[i];
-      for (int j=i; j <= ntypes; j++){
-	  E[i][j] = E[j][i] = 1/((1-pois[i]*pois[i])/E_one[i]+(1-pois[j]*pois[j])/E_one[j]);
-	  G[i][j] = G[j][i] = 1/((2-pois[i])/G_one[i]+(2-pois[j])/G_one[j]);
-	  if (normaldamp == TSUJI){
-	      alpha[i][j] = alpha[j][i] = sqrt(alpha_one[i]*alpha_one[j]);
-	  }
-	  else if (normaldamp == BRILLIANTOV){
-	      gamman[i][j] = gamman[j][i] = sqrt(cor[i]*cor[j]);
-	  }
-	  muS[i][j] = muS[j][i] = sqrt(muS_one[i]*muS_one[j]);
-	  Ecoh[i][j] = Ecoh[j][i] = sqrt(Ecoh_one[i]*Ecoh_one[j]);
-	  kR[i][j] = kR[j][i] = sqrt(kR_one[i]*kR_one[j]);
-	  etaR[i][j] = etaR[j][i] = sqrt(etaR_one[i]*etaR_one[j]);
-	  muR[i][j] = muR[j][i] = sqrt(muR_one[i]*muR_one[j]);
+    pois[i] = E_one[i]/(2.0*G_one[i]) - 1.0;
+    alpha_one[i] = 1.2728-4.2783*cor[i]+11.087*cor[i]*cor[i]-22.348*cor[i]*cor[i]*cor[i]+27.467*cor[i]*cor[i]*cor[i]*cor[i]-18.022*cor[i]*cor[i]*cor[i]*cor[i]*cor[i]+4.8218*cor[i]*cor[i]*cor[i]*cor[i]*cor[i]*cor[i];
+    for (int j=i; j <= ntypes; j++){
+      E[i][j] = E[j][i] = 1/((1-pois[i]*pois[i])/E_one[i]+(1-pois[j]*pois[j])/E_one[j]);
+      G[i][j] = G[j][i] = 1/((2-pois[i])/G_one[i]+(2-pois[j])/G_one[j]);
+      if (normaldamp == TSUJI){
+        alpha[i][j] = alpha[j][i] = sqrt(alpha_one[i]*alpha_one[j]);
       }
+      else if (normaldamp == BRILLIANTOV){
+        gamman[i][j] = gamman[j][i] = sqrt(cor[i]*cor[j]);
+      }
+      muS[i][j] = muS[j][i] = sqrt(muS_one[i]*muS_one[j]);
+      Ecoh[i][j] = Ecoh[j][i] = sqrt(Ecoh_one[i]*Ecoh_one[j]);
+      kR[i][j] = kR[j][i] = sqrt(kR_one[i]*kR_one[j]);
+      etaR[i][j] = etaR[j][i] = sqrt(etaR_one[i]*etaR_one[j]);
+      muR[i][j] = muR[j][i] = sqrt(muR_one[i]*muR_one[j]);
+    }
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
 double PairGranDMTRolling::single(int i, int j, int itype, int jtype,
-				  double rsq,
-				  double factor_coul, double factor_lj,
-				  double &fforce)
+    double rsq,
+    double factor_coul, double factor_lj,
+    double &fforce)
 {
   double radi,radj,radsum;
   double r,rinv,rsqinv,delx,dely,delz, nx, ny, nz, R;
@@ -565,9 +565,9 @@ double PairGranDMTRolling::single(int i, int j, int itype, int jtype,
   radsum = radi + radj;
 
   if (rsq >= radsum*radsum) {
-      fforce = 0.0;
-      svector[0] = svector[1] = svector[2] = svector[3] = 0.0;
-      return 0.0;
+    fforce = 0.0;
+    svector[0] = svector[1] = svector[2] = svector[3] = 0.0;
+    return 0.0;
   }
 
   r = sqrt(rsq);
@@ -623,9 +623,9 @@ double PairGranDMTRolling::single(int i, int j, int itype, int jtype,
   mi = rmass[i];
   mj = rmass[j];
   if (fix_rigid) {
-      // NOTE: ensure mass_rigid is current for owned+ghost atoms?
-      if (mass_rigid[i] > 0.0) mi = mass_rigid[i];
-      if (mass_rigid[j] > 0.0) mj = mass_rigid[j];
+    // NOTE: ensure mass_rigid is current for owned+ghost atoms?
+    if (mass_rigid[i] > 0.0) mi = mass_rigid[i];
+    if (mass_rigid[j] > 0.0) mj = mass_rigid[j];
   }
 
   meff = mi*mj / (mi+mj);
@@ -669,14 +669,14 @@ double PairGranDMTRolling::single(int i, int j, int itype, int jtype,
   double *allshear = fix_history->firstvalue[i];
 
   for (int jj = 0; jj < jnum; jj++) {
-      neighprev++;
-      if (neighprev >= jnum) neighprev = 0;
-      if (jlist[neighprev] == j) break;
+    neighprev++;
+    if (neighprev >= jnum) neighprev = 0;
+    if (jlist[neighprev] == j) break;
   }
 
   double *shear = &allshear[size_history*neighprev];
   shrmag = sqrt(shear[0]*shear[0] + shear[1]*shear[1] +
-		shear[2]*shear[2]);
+      shear[2]*shear[2]);
 
   // tangential forces = shear + tangential velocity damping 
   kt=8.0*G[itype][jtype]*a;
@@ -692,12 +692,12 @@ double PairGranDMTRolling::single(int i, int j, int itype, int jtype,
   Fscrit= muS[itype][jtype] * fabs(Fne);
 
   if (fs > Fscrit) {
-      if (shrmag != 0.0) {
-	  fs1 *= Fscrit/fs;
-	  fs2 *= Fscrit/fs;
-	  fs3 *= Fscrit/fs;
-	  fs *= Fscrit/fs;
-      } else fs1 = fs2 = fs3 = fs = 0.0;
+    if (shrmag != 0.0) {
+      fs1 *= Fscrit/fs;
+      fs2 *= Fscrit/fs;
+      fs3 *= Fscrit/fs;
+      fs *= Fscrit/fs;
+    } else fs1 = fs2 = fs3 = fs = 0.0;
   }
 
   // set all forces and return no energy

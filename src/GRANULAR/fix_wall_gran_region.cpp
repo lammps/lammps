@@ -39,15 +39,15 @@ using namespace MathConst;
 
 // same as FixWallGran
 
-enum{HOOKE,HOOKE_HISTORY,HERTZ_HISTORY,BONDED_HISTORY};
+enum{HOOKE,HOOKE_HISTORY,HERTZ_HISTORY,JKR_ROLLING,DMT_ROLLING};
 
 #define BIG 1.0e20
 
 /* ---------------------------------------------------------------------- */
 
 FixWallGranRegion::FixWallGranRegion(LAMMPS *lmp, int narg, char **arg) :
-  FixWallGran(lmp, narg, arg), region(NULL), region_style(NULL), ncontact(NULL),
-  walls(NULL), shearmany(NULL), c2r(NULL)
+      FixWallGran(lmp, narg, arg), region(NULL), region_style(NULL), ncontact(NULL),
+      walls(NULL), shearmany(NULL), c2r(NULL)
 {
   restart_global = 1;
   motion_resetflag = 0;
@@ -114,7 +114,7 @@ void FixWallGranRegion::init()
       nregion != region->nregion) {
     char str[256];
     sprintf(str,"Region properties for region %s changed between runs, "
-            "resetting its motion",idregion);
+        "resetting its motion",idregion);
     error->warning(FLERR,str);
     region->reset_vel();
   }
@@ -122,7 +122,7 @@ void FixWallGranRegion::init()
   if (motion_resetflag){
     char str[256];
     sprintf(str,"Region properties for region %s are inconsistent "
-            "with restart file, resetting its motion",idregion);
+        "with restart file, resetting its motion",idregion);
     error->warning(FLERR,str);
     region->reset_vel();
   }
@@ -253,22 +253,22 @@ void FixWallGranRegion::post_force(int vflag)
           contact = array_atom[i];
         else
           contact = NULL;
-	
+
         if (pairstyle == HOOKE)
           hooke(rsq,dx,dy,dz,vwall,v[i],f[i],
-                omega[i],torque[i],radius[i],meff, contact);
+              omega[i],torque[i],radius[i],meff, contact);
         else if (pairstyle == HOOKE_HISTORY)
           hooke_history(rsq,dx,dy,dz,vwall,v[i],f[i],
-                        omega[i],torque[i],radius[i],meff,
-                        shearmany[i][c2r[ic]], contact);
+              omega[i],torque[i],radius[i],meff,
+              shearmany[i][c2r[ic]], contact);
         else if (pairstyle == HERTZ_HISTORY)
           hertz_history(rsq,dx,dy,dz,vwall,region->contact[ic].radius,
-                        v[i],f[i],omega[i],torque[i],
-                        radius[i],meff,shearmany[i][c2r[ic]], contact);
-        else if (pairstyle == BONDED_HISTORY)
-          bonded_history(rsq,dx,dy,dz,vwall,region->contact[ic].radius,
-                         v[i],f[i],omega[i],torque[i],
-                         radius[i],meff,shearmany[i][c2r[ic]], contact);
+              v[i],f[i],omega[i],torque[i],
+              radius[i],meff,shearmany[i][c2r[ic]], contact);
+        else if (pairstyle == DMT_ROLLING)
+          dmt_rolling(rsq,dx,dy,dz,vwall,region->contact[ic].radius,
+              v[i],f[i],omega[i],torque[i],
+              radius[i],meff,shearmany[i][c2r[ic]], contact);
       }
     }
   }
@@ -394,7 +394,7 @@ void FixWallGranRegion::set_arrays(int i)
     ncontact[i] = 0;
   if (peratom_flag){
     for (int m = 0; m < size_peratom_cols; m++)
-        array_atom[i][m] = 0;
+      array_atom[i][m] = 0;
   }
 }
 

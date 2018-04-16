@@ -47,23 +47,31 @@ class FixWallGran : public Fix {
   void reset_dt();
 
   void hooke(double, double, double, double, double *,
-             double *, double *, double *, double *, double, double, double*);
+      double *, double *, double *, double *, double, double, double*);
   void hooke_history(double, double, double, double, double *,
-                     double *, double *, double *, double *, double, double,
-                     double *, double *);
+      double *, double *, double *, double *, double, double,
+      double *, double *);
   void hertz_history(double, double, double, double, double *, double,
-                     double *, double *, double *, double *, double, double,
-                     double *, double *);
-  void bonded_history(double, double, double, double, double *, double,
-                       double *, double *, double *, double *, double, double,
-                       double *, double *);
+      double *, double *, double *, double *, double, double,
+      double *, double *);
+  void dmt_rolling(double, double, double, double, double *, double,
+      double *, double *, double *, double *, double, double,
+      double *, double *);
+ // void jkr_rolling(double, double, double, double, double *, double,
+ //     double *, double *, double *, double *, double, double,
+ //     double *, double *);
 
  protected:
   int wallstyle,wiggle,wshear,axis;
   int pairstyle,nlevels_respa;
   bigint time_origin;
   double kn,kt,gamman,gammat,xmu;
-  double E,G,SurfEnergy;
+
+  //For DMT/ROLLING
+  int normaldamp, rollingdamp;
+  double Emod, Gmod, alpha, Ecoh, kR, muR, etaR;
+
+
   double lo,hi,cylradius;
   double amplitude,period,omega,vshear;
   double dt;

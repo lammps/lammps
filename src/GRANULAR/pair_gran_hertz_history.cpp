@@ -36,7 +36,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairGranHertzHistory::PairGranHertzHistory(LAMMPS *lmp) :
-  PairGranHookeHistory(lmp) {}
+  PairGranHookeHistory(lmp, 3) {}
 
 /* ---------------------------------------------------------------------- */
 

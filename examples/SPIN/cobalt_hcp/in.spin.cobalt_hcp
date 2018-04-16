@@ -22,11 +22,11 @@ mass		1 58.93
 set 		group all spin/random 31 1.72
 velocity 	all create 100 4928459 rot yes dist gaussian
 
-#pair_style 	hybrid/overlay eam/alloy pair/spin/exchange 4.0 pair/spin/soc/neel 4.0
+#pair_style 	hybrid/overlay eam/alloy pair/spin/exchange 4.0 pair/spin/neel 4.0
 pair_style 	hybrid/overlay eam/alloy pair/spin/exchange 4.0
 pair_coeff 	* * eam/alloy ../examples/SPIN/cobalt_hcp/Co_PurjaPun_2012.eam.alloy Co
 pair_coeff 	* * pair/spin/exchange exchange 4.0 0.3593 1.135028015e-05 1.064568567
-#pair_coeff 	* * pair/spin/soc/neel neel 4.0 0.0048 0.234 1.168 2.6905 0.705 0.652  
+#pair_coeff 	* * pair/spin/neel neel 4.0 0.0048 0.234 1.168 2.6905 0.705 0.652  
 
 neighbor 	0.1 bin
 neigh_modify 	every 10 check yes delay 20

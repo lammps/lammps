@@ -11,48 +11,57 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ------------------------------------------------------------------------
+   Contributing authors: Julien Tranchida (SNL)
+                         Aidan Thompson (SNL)
+   
+   Please cite the related publication:
+   Tranchida, J., Plimpton, S. J., Thibaudeau, P., & Thompson, A. P. (2018). 
+   Massively parallel symplectic algorithm for coupled magnetic spin dynamics 
+   and molecular dynamics. arXiv preprint arXiv:1801.10233.
+------------------------------------------------------------------------- */
+
 #ifdef PAIR_CLASS
 
-PairStyle(pair/spin/soc/dmi,PairSpinSocDmi)
+PairStyle(pair/spin/neel,PairSpinNeel)
 
 #else
 
-#ifndef LMP_PAIR_SPIN_SOC_DMI_H
-#define LMP_PAIR_SPIN_SOC_DMI_H
+#ifndef LMP_PAIR_SPIN_NEEL_H
+#define LMP_PAIR_SPIN_NEEL_H
 
-#include "pair.h"
+#include "pair_spin.h"
 
 namespace LAMMPS_NS {
 
-class PairSpinSocDmi : public Pair {
+class PairSpinNeel : public PairSpin {
  public:
-  PairSpinSocDmi(class LAMMPS *);
-  virtual ~PairSpinSocDmi();
-  virtual void compute(int, int);
+  PairSpinNeel(class LAMMPS *);
+  virtual ~PairSpinNeel();
   void settings(int, char **);
   void coeff(int, char **);
   void init_style();
   double init_one(int, int);
 
+  void compute(int, int); 
+  void compute_neel(int, int, double, double *, double *, double *, double *);
+  void compute_neel_mech(int, int, double, double *, double *, double *, double *);
+  
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
-  
-  void compute_soc_dmi(int, int, double fmi[3], double spi[3], double spj[3]);
-  void compute_soc_dmi_mech(int, int, double fi[3], double spi[3], double spj[3]);
- 
-  int soc_dmi_flag;			// dmi flag
 
-  double cut_soc_global;		// short range pair cutoff
-  double **cut_soc_dmi;      		// cutoff distance dmi
+  double cut_spin_neel_global;	// global neel cutoff distance
 
  protected:
-  int newton_pair_spin; 
-  double hbar;
-
-  double **DM;                     	// dmi coeff in eV 
-  double **v_dmx, **v_dmy, **v_dmz;	// dmi direction
+  // pseudo-dipolar coeff.
+  double **g1, **g1_mech; 	// exchange coeffs gij
+  double **g2, **g3; 		// g1 in eV, g2 adim, g3 in Ang
+  // pseudo-quadrupolar coeff.
+  double **q1, **q1_mech; 	// exchange coeffs qij
+  double **q2, **q3; 		// q1 in eV, q2 adim, q3 in Ang
+  double **cut_spin_neel;	// cutoff distance exchange
 
   void allocate();
 };

@@ -6,11 +6,11 @@
 
 :line
 
-pair_style pair/spin/soc/dmi command :h3
+pair_style pair/spin/dmi command :h3
 
 [Syntax:]
 
-pair_style pair/spin/soc/dmi cutoff :pre
+pair_style pair/spin/dmi cutoff :pre
 
 cutoff = global cutoff pair (distance in metal units) :ulb,l
 
@@ -18,19 +18,16 @@ cutoff = global cutoff pair (distance in metal units) :ulb,l
 	
 [Examples:]
 
-pair_style pair/spin/soc/dmi 4.0
+pair_style pair/spin/dmi 4.0
 pair_coeff * * dmi 2.6 0.001 1.0 0.0 0.0	
 pair_coeff 1 2 dmi 4.0 0.00109 0.0 0.0 1.0 :pre
 
 [Description:]
 
-Styles {pair/spin/soc} compute pair interactions arising from the spin-orbit 
-coupling (soc). 
-
-Style {pair/spin/soc/dmi} computes the Dzyaloshinskii-Moriya (DM) interaction
+Style {pair/spin/dmi} computes the Dzyaloshinskii-Moriya (DM) interaction
 between pairs of magnetic spins: 
 
-:c,image(Eqs/pair_spin_soc_dmi_interaction.jpg)
+:c,image(Eqs/pair_spin_dmi_interaction.jpg)
 
 where si and sj are two neighboring magnetic spins of two particles, 
 rij = ri - rj is the inter-atomic distance between the two particles,

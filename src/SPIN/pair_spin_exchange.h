@@ -11,6 +11,16 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ------------------------------------------------------------------------
+   Contributing authors: Julien Tranchida (SNL)
+                         Aidan Thompson (SNL)
+   
+   Please cite the related publication:
+   Tranchida, J., Plimpton, S. J., Thibaudeau, P., & Thompson, A. P. (2018). 
+   Massively parallel symplectic algorithm for coupled magnetic spin dynamics 
+   and molecular dynamics. arXiv preprint arXiv:1801.10233.
+------------------------------------------------------------------------- */
+
 #ifdef PAIR_CLASS
 
 PairStyle(pair/spin/exchange,PairSpinExchange)
@@ -20,37 +30,34 @@ PairStyle(pair/spin/exchange,PairSpinExchange)
 #ifndef LMP_PAIR_SPIN_EXCHANGE_H
 #define LMP_PAIR_SPIN_EXCHANGE_H
 
-#include "pair.h"
+#include "pair_spin.h"
 
 namespace LAMMPS_NS {
 
-class PairSpinExchange : public Pair {
+class PairSpinExchange : public PairSpin {
  public:
   PairSpinExchange(class LAMMPS *);
   virtual ~PairSpinExchange();
-  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   void init_style();
   double init_one(int, int);
 
+  void compute(int, int); 
+  void compute_exchange(int, int, double, double *, double *, double *);
+  void compute_exchange_mech(int, int, double, double *, double *, double *, double *);
+  
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
-  
-  void compute_exchange(int, int, double, double fmi[3], double spi[3], double spj[3]);
-  void compute_exchange_mech(int, int, double, double rij[3], double fi[3], double spi[3], double spj[3]);
- 
-  int exch_flag;			// magnetic exchange flag
-  int exch_mech_flag;			// mechanic exchange flags
-  double cut_spin_exchange_global;	// global exchange cutoff
-  double **cut_spin_exchange;		// cutoff distance per exchange
+
+  double cut_spin_exchange_global;	// global neel cutoff distance
 
  protected:
-  double hbar;
-  double **J1_mag, **J1_mech;		// exchange coeffs Jij
-  double **J2, **J3;			// J1 in eV, J2 adim, J3 in Ang
+  double **J1_mag, **J1_mech;           // exchange coeffs Jij
+  double **J2, **J3;                    // J1 in eV, J2 adim, J3 in Ang
+  double **cut_spin_exchange;		// cutoff distance exchange
 
   void allocate();
 };

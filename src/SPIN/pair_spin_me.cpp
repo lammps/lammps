@@ -14,6 +14,11 @@
 /* ------------------------------------------------------------------------
    Contributing authors: Julien Tranchida (SNL)
                          Aidan Thompson (SNL)
+   
+   Please cite the related publication:
+   Tranchida, J., Plimpton, S. J., Thibaudeau, P., & Thompson, A. P. (2018). 
+   Massively parallel symplectic algorithm for coupled magnetic spin dynamics 
+   and molecular dynamics. arXiv preprint arXiv:1801.10233.
 ------------------------------------------------------------------------- */
 
 #include <math.h>
@@ -23,6 +28,8 @@
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
+#include "fix.h"
+#include "fix_nve_spin.h"
 #include "force.h"
 #include "pair_hybrid.h"
 #include "neighbor.h"
@@ -38,17 +45,9 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairSpinMe::PairSpinMe(LAMMPS *lmp) : Pair(lmp)
+PairSpinMe::PairSpinMe(LAMMPS *lmp) : PairSpin(lmp)
 {
-  hbar = force->hplanck/MY_2PI;
-
-  //newton_pair_spin = 0; // no newton pair for now
- // newton_pair = 0;
-
   single_enable = 0;
-  me_flag = 0;
-  me_mech_flag = 0;
-
   no_virial_fdotr_compute = 1;
 }
 
@@ -58,16 +57,134 @@ PairSpinMe::~PairSpinMe()
 {
   if (allocated) {
     memory->destroy(setflag);
-
     memory->destroy(cut_spin_me);
     memory->destroy(ME);
     memory->destroy(ME_mech);
     memory->destroy(v_mex);
     memory->destroy(v_mey);
     memory->destroy(v_mez);
-
-    memory->destroy(cutsq);
+    memory->destroy(cutsq); // to be deteled
   }
+}
+
+/* ----------------------------------------------------------------------
+   global settings
+------------------------------------------------------------------------- */
+
+void PairSpinMe::settings(int narg, char **arg)
+{
+  if (narg < 1 || narg > 2)
+    error->all(FLERR,"Incorrect number of args in pair_style pair/spin command");
+
+  if (strcmp(update->unit_style,"metal") != 0)
+    error->all(FLERR,"Spin simulations require metal unit style");
+    
+  cut_spin_me_global = force->numeric(FLERR,arg[0]);
+    
+  // reset cutoffs that have been explicitly set
+
+  if (allocated) {
+    int i,j;
+    for (i = 1; i <= atom->ntypes; i++)
+      for (j = i+1; j <= atom->ntypes; j++)
+        if (setflag[i][j]) {
+          cut_spin_me[i][j] = cut_spin_me_global;
+        }
+  }
+   
+}
+
+/* ----------------------------------------------------------------------
+   set coeffs for one or more type spin pairs (only one for now)
+------------------------------------------------------------------------- */
+
+void PairSpinMe::coeff(int narg, char **arg)
+{
+  const double hbar = force->hplanck/MY_2PI;
+
+  if (!allocated) allocate();
+
+  if (strcmp(arg[2],"me")==0) {
+    if (narg != 8) error->all(FLERR,"Incorrect args in pair_style command");
+    int ilo,ihi,jlo,jhi;
+    force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+    force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+    
+    const double rij = force->numeric(FLERR,arg[3]);
+    const double me = (force->numeric(FLERR,arg[4]));
+    double mex = force->numeric(FLERR,arg[5]);  
+    double mey = force->numeric(FLERR,arg[6]); 
+    double mez = force->numeric(FLERR,arg[7]); 
+
+    double inorm = 1.0/(mex*mex+mey*mey+mez*mez);
+    mex *= inorm; 
+    mey *= inorm; 
+    mez *= inorm; 
+ 
+    int count = 0;
+    for (int i = ilo; i <= ihi; i++) {
+      for (int j = MAX(jlo,i); j <= jhi; j++) {
+        cut_spin_me[i][j] = rij;
+        ME[i][j] = me/hbar;
+        ME_mech[i][j] = me;
+        v_mex[i][j] = mex;
+        v_mey[i][j] = mey;
+        v_mez[i][j] = mez;
+        setflag[i][j] = 1;
+        count++;
+      }
+    }
+    if (count == 0) error->all(FLERR,"Incorrect args in pair_style command"); 
+  } else error->all(FLERR,"Incorrect args in pair_style command");
+
+}
+
+/* ----------------------------------------------------------------------
+   init specific to this pair style
+------------------------------------------------------------------------- */
+
+void PairSpinMe::init_style()
+{
+  if (!atom->sp_flag)
+    error->all(FLERR,"Pair spin requires atom/spin style");
+
+  // need a full neighbor list
+  
+  int irequest = neighbor->request(this,instance_me);
+  neighbor->requests[irequest]->half = 0;
+  neighbor->requests[irequest]->full = 1;
+
+  // checking if nve/spin is a listed fix
+
+  int ifix = 0;
+  while (ifix < modify->nfix) {
+    if (strcmp(modify->fix[ifix]->style,"nve/spin") == 0) break;
+    ifix++;
+  }
+  if (ifix == modify->nfix)
+    error->all(FLERR,"pair/spin style requires nve/spin");
+
+  // get the lattice_flag from nve/spin
+
+  for (int i = 0; i < modify->nfix; i++) {
+    if (strcmp(modify->fix[i]->style,"nve/spin") == 0) {
+      lockfixnvespin = (FixNVESpin *) modify->fix[i];
+      lattice_flag = lockfixnvespin->lattice_flag;
+    }
+  }
+
+}
+
+/* ----------------------------------------------------------------------
+   init for one type pair i,j and corresponding j,i
+------------------------------------------------------------------------- */
+
+double PairSpinMe::init_one(int i, int j)
+{
+   
+   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+
+  return cut_spin_me_global;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -146,12 +263,12 @@ void PairSpinMe::compute(int eflag, int vflag)
       itype = type[i];
       jtype = type[j];
 
-      // me interaction
+      // compute me interaction
 
-      if (me_flag){
-        cut_me_2 = cut_spin_me[itype][jtype]*cut_spin_me[itype][jtype];
-        if (rsq <= cut_me_2){
-          compute_me(i,j,rij,fmi,spi,spj);
+      cut_me_2 = cut_spin_me[itype][jtype]*cut_spin_me[itype][jtype];
+      if (rsq <= cut_me_2){
+        compute_me(i,j,rsq,rij,fmi,spi,spj);
+	if (lattice_flag) {
           compute_me_mech(i,j,fi,spi,spj);
         } 
       }
@@ -188,41 +305,45 @@ void PairSpinMe::compute(int eflag, int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void PairSpinMe::compute_me(int i, int j, double eij[3], double fmi[3], double spi[3], double spj[3]) 
+void PairSpinMe::compute_me(int i, int j, double rsq, double eij[3], double fmi[3], double spi[3], double spj[3]) 
 {
   int *type = atom->type;  
   int itype, jtype;
   itype = type[i];
   jtype = type[j];
-  double meix,meiy,meiz;
-  double rx, ry, rz;
-  double vx, vy, vz;
-
-  rx = eij[0];
-  ry = eij[1]; 
-  rz = eij[2]; 
-
-  vx = v_mex[itype][jtype];
-  vy = v_mey[itype][jtype];
-  vz = v_mez[itype][jtype];
   
-  meix = vy*rz - vz*ry; 
-  meiy = vz*rx - vx*rz; 
-  meiz = vx*ry - vy*rx; 
-
-  meix *= ME[itype][jtype]; 
-  meiy *= ME[itype][jtype]; 
-  meiz *= ME[itype][jtype]; 
-
-  fmi[0] += spj[1]*meiz - spj[2]*meiy;
-  fmi[1] += spj[2]*meix - spj[0]*meiz;
-  fmi[2] += spj[0]*meiy - spj[1]*meix;
-
+  double local_cut2 = cut_spin_me[itype][jtype]*cut_spin_me[itype][jtype]; 
+ 
+  if (rsq <= local_cut2) {
+    double meix,meiy,meiz;
+    double rx, ry, rz;
+    double vx, vy, vz;
+  
+    rx = eij[0];
+    ry = eij[1]; 
+    rz = eij[2]; 
+  
+    vx = v_mex[itype][jtype];
+    vy = v_mey[itype][jtype];
+    vz = v_mez[itype][jtype];
+    
+    meix = vy*rz - vz*ry; 
+    meiy = vz*rx - vx*rz; 
+    meiz = vx*ry - vy*rx; 
+  
+    meix *= ME[itype][jtype]; 
+    meiy *= ME[itype][jtype]; 
+    meiz *= ME[itype][jtype]; 
+  
+    fmi[0] += spj[1]*meiz - spj[2]*meiy;
+    fmi[1] += spj[2]*meix - spj[0]*meiz;
+    fmi[2] += spj[0]*meiy - spj[1]*meix;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairSpinMe::compute_me_mech(int i, int j, double fi[3], double spi[3], double spj[3]) 
+void PairSpinMe::compute_me_mech(int i, int j, double fi[3], double spi[3], double spj[3])
 {
   int *type = atom->type;  
   int itype, jtype;
@@ -270,113 +391,7 @@ void PairSpinMe::allocate()
   memory->create(v_mex,n+1,n+1,"pair/spin/me:ME_vector_x");
   memory->create(v_mey,n+1,n+1,"pair/spin/me:ME_vector_y");
   memory->create(v_mez,n+1,n+1,"pair/spin/me:ME_vector_z");
- 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");  
-  
-}
-
-/* ----------------------------------------------------------------------
-   global settings
-------------------------------------------------------------------------- */
-
-void PairSpinMe::settings(int narg, char **arg)
-{
-  if (narg < 1 || narg > 2)
-    error->all(FLERR,"Incorrect number of args in pair_style pair/spin command");
-
-  if (strcmp(update->unit_style,"metal") != 0)
-    error->all(FLERR,"Spin simulations require metal unit style");
-    
-  cut_spin_me_global = force->numeric(FLERR,arg[0]);
-    
-  // reset cutoffs that have been explicitly set
-
-  if (allocated) {
-    int i,j;
-    for (i = 1; i <= atom->ntypes; i++)
-      for (j = i+1; j <= atom->ntypes; j++)
-        if (setflag[i][j]) {
-          cut_spin_me[i][j] = cut_spin_me_global;
-        }
-  }
-   
-}
-
-/* ----------------------------------------------------------------------
-   set coeffs for one or more type spin pairs (only one for now)
-------------------------------------------------------------------------- */
-
-void PairSpinMe::coeff(int narg, char **arg)
-{
-  const double hbar = force->hplanck/MY_2PI;
-
-  if (!allocated) allocate();
-
-  if (strcmp(arg[2],"me")==0) {
-    if (narg != 8) error->all(FLERR,"Incorrect args in pair_style command");
-    me_flag = 1;    
-    int ilo,ihi,jlo,jhi;
-    force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-    force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
-    
-    const double rij = force->numeric(FLERR,arg[3]);
-    const double me = (force->numeric(FLERR,arg[4]));
-    double mex = force->numeric(FLERR,arg[5]);  
-    double mey = force->numeric(FLERR,arg[6]); 
-    double mez = force->numeric(FLERR,arg[7]); 
-
-    double inorm = 1.0/(mex*mex+mey*mey+mez*mez);
-    mex *= inorm; 
-    mey *= inorm; 
-    mez *= inorm; 
- 
-    int count = 0;
-    for (int i = ilo; i <= ihi; i++) {
-      for (int j = MAX(jlo,i); j <= jhi; j++) {
-        cut_spin_me[i][j] = rij;
-        ME[i][j] = me/hbar;
-        ME_mech[i][j] = me;
-        v_mex[i][j] = mex;
-        v_mey[i][j] = mey;
-        v_mez[i][j] = mez;
-        setflag[i][j] = 1;
-        count++;
-      }
-    }
-    if (count == 0) error->all(FLERR,"Incorrect args in pair_style command"); 
-  } else error->all(FLERR,"Incorrect args in pair_style command");
-
-}
-
-
-/* ----------------------------------------------------------------------
-   init specific to this pair style
-------------------------------------------------------------------------- */
-
-void PairSpinMe::init_style()
-{
-  if (!atom->sp_flag)
-    error->all(FLERR,"Pair spin requires atom/spin style");
-
-  neighbor->request(this,instance_me);
-
-  // check this half/full request  => to be corrected/reviewed
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-
-}
-
-/* ----------------------------------------------------------------------
-   init for one type pair i,j and corresponding j,i
-------------------------------------------------------------------------- */
-
-double PairSpinMe::init_one(int i, int j)
-{
-   
-   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
-
-  return cut_spin_me_global;
 }
 
 /* ----------------------------------------------------------------------
@@ -392,13 +407,11 @@ void PairSpinMe::write_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
-        if (me_flag) {
-          fwrite(&ME[i][j],sizeof(double),1,fp);
-          fwrite(&v_mex[i][j],sizeof(double),1,fp);
-          fwrite(&v_mey[i][j],sizeof(double),1,fp);
-          fwrite(&v_mez[i][j],sizeof(double),1,fp);
-          fwrite(&cut_spin_me[i][j],sizeof(double),1,fp);
-        } 
+        fwrite(&ME[i][j],sizeof(double),1,fp);
+        fwrite(&v_mex[i][j],sizeof(double),1,fp);
+        fwrite(&v_mey[i][j],sizeof(double),1,fp);
+        fwrite(&v_mez[i][j],sizeof(double),1,fp);
+        fwrite(&cut_spin_me[i][j],sizeof(double),1,fp);
       }
     }
 }
@@ -437,7 +450,6 @@ void PairSpinMe::read_restart(FILE *fp)
   }
 }
 
- 
 /* ----------------------------------------------------------------------
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */

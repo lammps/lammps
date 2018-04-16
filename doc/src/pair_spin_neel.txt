@@ -6,11 +6,11 @@
 
 :line
 
-pair_style pair/spin/soc/neel command :h3
+pair_style pair/spin/neel command :h3
 
 [Syntax:]
 
-pair_style pair/spin/soc/neel cutoff :pre
+pair_style pair/spin/neel cutoff :pre
 
 cutoff = global cutoff pair (distance in metal units) :ulb,l
 
@@ -18,19 +18,16 @@ cutoff = global cutoff pair (distance in metal units) :ulb,l
 	
 [Examples:]
 
-pair_style pair/spin/soc/neel 4.0
+pair_style pair/spin/neel 4.0
 pair_coeff * * neel 4.0 0.0048 0.234 1.168 2.6905 0.705 0.652
 pair_coeff 1 2 neel 4.0 0.0048 0.234 1.168 0.0 0.0 1.0 :pre
 
 [Description:]
 
-Styles {pair/spin/soc} compute pair interactions arising from the spin-orbit 
-coupling (soc). 
-
-Style {pair/spin/soc/neel} computes the Neel pair anisotropy model 
+Style {pair/spin/neel} computes the Neel pair anisotropy model 
 between pairs of magnetic spins: 
 
-:c,image(Eqs/pair_spin_soc_dmi_interaction.jpg)
+:c,image(Eqs/pair_spin_dmi_interaction.jpg)
 
 where si and sj are two neighboring magnetic spins of two particles, 
 rij = ri - rj is the inter-atomic distance between the two particles,

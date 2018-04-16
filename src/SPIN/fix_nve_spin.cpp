@@ -14,6 +14,11 @@
 /* ------------------------------------------------------------------------
    Contributing authors: Julien Tranchida (SNL)
                          Aidan Thompson (SNL)
+   
+   Please cite the related publication:
+   Tranchida, J., Plimpton, S. J., Thibaudeau, P., & Thompson, A. P. (2018). 
+   Massively parallel symplectic algorithm for coupled magnetic spin dynamics 
+   and molecular dynamics. arXiv preprint arXiv:1801.10233.
 ------------------------------------------------------------------------- */
 
 #include <math.h>
@@ -36,10 +41,7 @@
 #include "neigh_list.h"
 #include "pair.h"
 #include "pair_hybrid.h"
-#include "pair_spin_exchange.h"
-#include "pair_spin_me.h"
-#include "pair_spin_soc_dmi.h"
-#include "pair_spin_soc_neel.h"
+#include "pair_spin.h"
 #include "respa.h"
 #include "update.h"
 
@@ -56,8 +58,7 @@ FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), 
   rsec(NULL), stack_head(NULL), stack_foot(NULL), 
   backward_stacks(NULL), forward_stacks(NULL),
-  lockpairspinexchange(NULL), lockpairspinsocneel(NULL), lockprecessionspin(NULL),
-  locklangevinspin(NULL)
+  lockpairspin(NULL)
 {
   
   if (narg < 4) error->all(FLERR,"Illegal fix/NVE/spin command");  
@@ -65,7 +66,7 @@ FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
   time_integrate = 1;
   
   sector_flag = NONE;
-  mech_flag = 1;
+  lattice_flag = 1;
 
   nlocal_max = 0;
 
@@ -83,14 +84,14 @@ FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
     sector_flag = 1;
   } else error->all(FLERR,"Illegal fix/NVE/spin command");
 
-  // defining mech_flag 
+  // defining lattice_flag 
 
   int iarg = 3;
   while (iarg < narg) { 
     if (strcmp(arg[iarg],"lattice") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix/NVE/spin command");
-      if (strcmp(arg[iarg+1],"no") == 0) mech_flag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) mech_flag = 1;
+      if (strcmp(arg[iarg+1],"no") == 0) lattice_flag = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) lattice_flag = 1;
       else error->all(FLERR,"Illegal fix/NVE/spin command");
       iarg += 2;
     } else error->all(FLERR,"Illegal fix/NVE/spin command");
@@ -109,9 +110,6 @@ FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
   // initialize the magnetic interaction flags
 
   magpair_flag = 0;
-  exch_flag = 0;
-  soc_neel_flag = soc_dmi_flag = 0;
-  me_flag = 0;
   magprecession_flag = 0;
   zeeman_flag = aniso_flag = 0;
   maglangevin_flag = 0;
@@ -128,6 +126,7 @@ FixNVESpin::~FixNVESpin()
   memory->destroy(stack_foot);
   memory->destroy(forward_stacks);
   memory->destroy(backward_stacks);
+  delete lockpairspin;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -152,42 +151,14 @@ void FixNVESpin::init()
   dtf = 0.5 * update->dt * force->ftm2v;
   dts = 0.25 * update->dt;
 
-  // set necessary pointers to interaction classes
+  // ptrs on PairSpin classes
 
-  if (strstr(force->pair_style,"pair/spin/exchange")) {
-    exch_flag = 1;
-    lockpairspinexchange = (PairSpinExchange *) force->pair;
-  } else if (strstr(force->pair_style,"pair/spin/soc/neel")) {
-    soc_neel_flag = 1;
-    lockpairspinsocneel = (PairSpinSocNeel *) force->pair;
-  } else if (strstr(force->pair_style,"pair/spin/soc/dmi")) {
-    soc_dmi_flag = 1;
-    lockpairspinsocdmi = (PairSpinSocDmi *) force->pair;
-  } else if (strstr(force->pair_style,"pair/spin/me")) {
-    me_flag = 1;
-    lockpairspinme = (PairSpinMe *) force->pair;
-  } else if (strstr(force->pair_style,"hybrid/overlay")) {
-    PairHybrid *lockhybrid = (PairHybrid *) force->pair;
-    int nhybrid_styles = lockhybrid->nstyles;
-    int ipair;
-    for (ipair = 0; ipair < nhybrid_styles; ipair++) {
-      if (strstr(lockhybrid->keywords[ipair],"pair/spin/exchange")) {
-        exch_flag = 1;
-	lockpairspinexchange = (PairSpinExchange *) lockhybrid->styles[ipair];
-      } else if (strstr(lockhybrid->keywords[ipair],"pair/spin/soc/neel")) {
-	soc_neel_flag = 1;
-	lockpairspinsocneel = (PairSpinSocNeel *) lockhybrid->styles[ipair];
-      } else if (strstr(lockhybrid->keywords[ipair],"pair/spin/soc/dmi")) {
-	soc_dmi_flag = 1;
-	lockpairspinsocdmi = (PairSpinSocDmi *) lockhybrid->styles[ipair];
-      } else if (strstr(lockhybrid->keywords[ipair],"pair/spin/me")) {
-	me_flag = 1;
-	lockpairspinme = (PairSpinMe *) lockhybrid->styles[ipair];
-      }
-    }
-  } else error->all(FLERR,"Illegal fix NVE/spin command");
+  lockpairspin = new PairSpin(lmp);
+  magpair_flag = lockpairspin->init_pair();
+  if (magpair_flag != 0 && magpair_flag != 1)
+    error->all(FLERR,"Incorrect value of magpair_flag");
 
-  // check errors, and handle simple hybrid (not overlay), and no pair/spin interaction
+  // ptrs FixPrecessionSpin classes
 
   int iforce;
   for (iforce = 0; iforce < modify->nfix; iforce++) {
@@ -197,6 +168,13 @@ void FixNVESpin::init()
     }
   }
 
+  if (magprecession_flag) { 
+    if (lockprecessionspin->zeeman_flag == 1) zeeman_flag = 1;
+    if (lockprecessionspin->aniso_flag == 1) aniso_flag = 1;
+  }
+
+  // ptrs on the FixLangevinSpin class
+  
   for (iforce = 0; iforce < modify->nfix; iforce++) {
     if (strstr(modify->fix[iforce]->style,"langevin/spin")) {
       maglangevin_flag = 1;
@@ -204,16 +182,13 @@ void FixNVESpin::init()
     } 
   }
 
-  if (magprecession_flag) { 
-    if (lockprecessionspin->zeeman_flag == 1) zeeman_flag = 1;
-    if (lockprecessionspin->aniso_flag == 1) aniso_flag = 1;
-  }
-
   if (maglangevin_flag) {
    if (locklangevinspin->tdamp_flag == 1) tdamp_flag = 1;
    if (locklangevinspin->temp_flag == 1) temp_flag = 1;
   }
-  
+ 
+  // setting the sector variables/lists
+
   nsectors = 0;
   memory->create(rsec,3,"NVE/spin:rsec");
   
@@ -221,7 +196,7 @@ void FixNVESpin::init()
 
   if (sector_flag) sectoring();
 
-  // init. size tables of stacking variables (sectoring)
+  // init. size of stacking lists (sectoring)
 
   nlocal_max = atom->nlocal;
   stack_head = memory->grow(stack_head,nsectors,"NVE/spin:stack_head");
@@ -254,7 +229,7 @@ void FixNVESpin::initial_integrate(int vflag)
 
   // update half v for all atoms
   
-  if (mech_flag) {
+  if (lattice_flag) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         if (rmass) dtfm = dtf / rmass[i];
@@ -301,7 +276,7 @@ void FixNVESpin::initial_integrate(int vflag)
 
   // update x for all particles
 
-  if (mech_flag) {
+  if (lattice_flag) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         x[i][0] += dtv * v[i][0];
@@ -399,113 +374,32 @@ void FixNVESpin::pre_neighbor()
    compute the magnetic torque for the spin ii
 ---------------------------------------------------------------------- */
 
-void FixNVESpin::ComputeInteractionsSpin(int ii)
+void FixNVESpin::ComputeInteractionsSpin(int i)
 {
   const int nlocal = atom->nlocal;
-  double xi[3], rij[3], eij[3];
-  double spi[3], spj[3];
-  double fmi[3];
+  double spi[3], fmi[3];
 
-  int i,j,jj,inum,jnum,itype,jtype;
-  int *ilist,*jlist,*numneigh,**firstneigh;
-  double **x = atom->x;
   double **sp = atom->sp;
   double **fm = atom->fm;
-  int *type = atom->type;
-  const int newton_pair = force->newton_pair;
-
-  // add test here (only exchange quantities here)
-  if (exch_flag) { 
-    inum = lockpairspinexchange->list->inum;
-    ilist = lockpairspinexchange->list->ilist;
-    numneigh = lockpairspinexchange->list->numneigh;
-    firstneigh = lockpairspinexchange->list->firstneigh;
-  }
  
-  double rsq, rd;
-  double temp_cut, cut_2, inorm;
-  temp_cut = cut_2 = inorm = 0.0;  
-
   int eflag = 1;
   int vflag = 0;
   int pair_compute_flag = 1;
 
   // force computation for spin i
 
-  i = ilist[ii];
-  
   spi[0] = sp[i][0];
   spi[1] = sp[i][1];
   spi[2] = sp[i][2];
- 
-  xi[0] = x[i][0];
-  xi[1] = x[i][1];
-  xi[2] = x[i][2];
-  fmi[0] = fmi[1] = fmi[2] = 0.0;
-  jlist = firstneigh[i];
-  jnum = numneigh[i];
-
-  // loop on neighbors for pair interactions
-
-  for (int jj = 0; jj < jnum; jj++) {
-
-    j = jlist[jj];
-    j &= NEIGHMASK;
-    itype = type[ii];
-    jtype = type[j];
-
-    spj[0] = sp[j][0];
-    spj[1] = sp[j][1];
-    spj[2] = sp[j][2];
-
-    rij[0] = x[j][0] - xi[0];
-    rij[1] = x[j][1] - xi[1];
-    rij[2] = x[j][2] - xi[2];
-    rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
-    inorm = 1.0/sqrt(rsq);
-
-    temp_cut = 0.0;
-
-    if (exch_flag) {			// exchange
-      temp_cut = lockpairspinexchange->cut_spin_exchange[itype][jtype];
-      cut_2 = temp_cut*temp_cut;
-      if (rsq <= cut_2) {
-	lockpairspinexchange->compute_exchange(i,j,rsq,fmi,spi,spj);
-      }  
-    }
-
-    if (soc_neel_flag) {		// soc_neel
-      temp_cut = lockpairspinsocneel->cut_soc_neel[itype][jtype];
-      cut_2 = temp_cut*temp_cut;
-      if (rsq <= cut_2) {
-	eij[0] = rij[0]*inorm;
-	eij[1] = rij[1]*inorm;
-	eij[2] = rij[2]*inorm;
-	lockpairspinsocneel->compute_soc_neel(i,j,rsq,eij,fmi,spi,spj);
-      }
-    }
-    
-    if (soc_dmi_flag) {			// soc_dmi
-      temp_cut = lockpairspinsocdmi->cut_soc_dmi[itype][jtype];
-      cut_2 = temp_cut*temp_cut;
-      if (rsq <= cut_2) {
-	lockpairspinsocdmi->compute_soc_dmi(i,j,fmi,spi,spj);
-      }
-    }
-
-    if (me_flag) {			// me
-      temp_cut = lockpairspinme->cut_spin_me[itype][jtype];
-      cut_2 = temp_cut*temp_cut;
-      if (rsq <= cut_2) {
-	eij[0] = rij[0]*inorm;
-	eij[1] = rij[1]*inorm;
-	eij[2] = rij[2]*inorm;
-	lockpairspinme->compute_me(i,j,eij,fmi,spi,spj);
-      }
-    }
-
-  }  
   
+  fmi[0] = fmi[1] = fmi[2] = 0.0;
+
+  // evaluate magnetic pair interactions
+
+  if (magpair_flag) lockpairspin->compute_pair_single_spin(i,fmi);
+
+  // evaluate magnetic precession interactions
+
   if (magprecession_flag) {		// magnetic precession
     if (zeeman_flag) {			// zeeman
       lockprecessionspin->compute_zeeman(i,fmi);
@@ -542,7 +436,7 @@ void FixNVESpin::sectoring()
   double sublo[3],subhi[3];
   double* sublotmp = domain->sublo;
   double* subhitmp = domain->subhi;
-  for (int dim = 0 ; dim<3 ; dim++) {
+  for (int dim = 0 ; dim < 3 ; dim++) {
     sublo[dim]=sublotmp[dim];
     subhi[dim]=subhitmp[dim];
   }
@@ -551,7 +445,10 @@ void FixNVESpin::sectoring()
   const double rsy = subhi[1] - sublo[1];  
   const double rsz = subhi[2] - sublo[2];  
 
-  const double rv = lockpairspinexchange->cut_spin_exchange_global;
+  // temp
+  //const double rv = 2.0;
+  //const double rv = lockpairspinexchange->cut_spin_exchange_global;
+  const double rv = lockpairspin->larger_cutoff;
 
   double rax = rsx/rv;  
   double ray = rsy/rv;  
@@ -684,7 +581,7 @@ void FixNVESpin::final_integrate()
 
   // update half v for all particles
 
-  if (mech_flag) {
+  if (lattice_flag) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         if (rmass) dtfm = dtf / rmass[i];

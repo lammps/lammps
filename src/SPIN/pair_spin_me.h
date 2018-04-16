@@ -11,6 +11,16 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ------------------------------------------------------------------------
+   Contributing authors: Julien Tranchida (SNL)
+                         Aidan Thompson (SNL)
+   
+   Please cite the related publication:
+   Tranchida, J., Plimpton, S. J., Thibaudeau, P., & Thompson, A. P. (2018). 
+   Massively parallel symplectic algorithm for coupled magnetic spin dynamics 
+   and molecular dynamics. arXiv preprint arXiv:1801.10233.
+------------------------------------------------------------------------- */
+
 #ifdef PAIR_CLASS
 
 PairStyle(pair/spin/me,PairSpinMe)
@@ -20,40 +30,34 @@ PairStyle(pair/spin/me,PairSpinMe)
 #ifndef LMP_PAIR_SPIN_ME_H
 #define LMP_PAIR_SPIN_ME_H
 
-#include "pair.h"
+#include "pair_spin.h"
 
 namespace LAMMPS_NS {
 
-class PairSpinMe : public Pair {
+class PairSpinMe : public PairSpin {
  public:
   PairSpinMe(class LAMMPS *);
   virtual ~PairSpinMe();
-  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   void init_style();
   double init_one(int, int);
 
+  void compute(int, int);
+  void compute_me(int, int, double, double *, double *, double *, double *);  
+  void compute_me_mech(int, int, double *, double *, double *);  
+ 
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
   
-  void compute_me(int, int, double [3], double [3], double [3], double [3]);  
-  void compute_me_mech(int, int, double [3], double [3], double [3]);  
- 
-  int me_flag;				// me flag
-  int me_mech_flag;			// mech calculation flag
-
   double cut_spin_me_global;		// global me cutoff
-  double **cut_spin_me;			// me cutoff distance 
 
  protected:
-  int newton_pair_spin; 
-  double hbar;
-
   double **ME, **ME_mech;		// me coeff in eV
   double **v_mex, **v_mey, **v_mez;	// me direction
+  double **cut_spin_me;			// me cutoff distance 
 
   void allocate();
 };

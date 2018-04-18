@@ -749,3 +749,12 @@ void RegCylinder::velocity_contact_shape(double *vwall, double *xc)
   //printf ("R is %g, prev %g, velocity of wall at %g %g %g is %g %g %g\n",radius,rprev,xc[0],xc[1],xc[2],vwall[0],vwall[1],vwall[2]);
 }
 
+void RegCylinder::get_bounding_box(double * x_lo, double * x_hi) const
+{
+    x_lo[0] = extent_xlo;
+    x_lo[1] = extent_ylo;
+    x_lo[2] = extent_zlo;
+    x_hi[0] = extent_xhi;
+    x_hi[1] = extent_yhi;
+    x_hi[2] = extent_zhi;
+}

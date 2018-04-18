@@ -51,17 +51,17 @@ class FixAveCorrelateLong : public Fix {
   unsigned int *naccumulator;
   unsigned int *insertindex;
 
-  unsigned int numcorrelators; // Recommended 20
-  unsigned int p; // Points per correlator (recommended 16)
+  int numcorrelators; // Recommended 20
+  int p; // Points per correlator (recommended 16)
   unsigned int m; // Num points for average (recommended 2; p mod m = 0)
   unsigned int dmin; // Min distance between ponts for correlators k>0; dmin=p/m
 
-  unsigned int length; // Length of result arrays
-  unsigned int kmax; // Maximum correlator attained during simulation
+  int length; // Length of result arrays
+  int kmax; // Maximum correlator attained during simulation
 
   int me,nvalues;
   int nfreq;
-  bigint nvalid,nvalid_last;
+  bigint nvalid,nvalid_last,last_accumulated_step;
   int *which,*argindex,*value2index;
   char **ids;
   FILE *fp;
@@ -76,8 +76,8 @@ class FixAveCorrelateLong : public Fix {
   void evaluate();
   bigint nextvalid();
 
-  void add(const int i, const double w, const unsigned int k = 0);
-  void add(const int i, const double wA, const double wB, const unsigned int k = 0);
+  void add(const int i, const double w, const int k = 0);
+  void add(const int i, const double wA, const double wB, const int k = 0);
 
 };
 

@@ -231,6 +231,8 @@ void PairCoulShield::init_style()
 {
   if (!atom->q_flag)
     error->all(FLERR,"Pair style coul/shield requires atom attribute q");
+  if (!atom->molecule_flag)
+    error->all(FLERR,"Pair style coul/shield requires atom attribute molecule");
 
   neighbor->request(this,instance_me);
 }

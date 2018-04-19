@@ -640,7 +640,9 @@ void PairKolmogorovCrespiFull::calc_normal()
 void PairKolmogorovCrespiFull::init_style()
 {
   if (force->newton_pair == 0)
-    error->all(FLERR,"Pair style KC requires newton pair on");
+    error->all(FLERR,"Pair style kolmolgorov/crespi/full requires newton pair on");
+  if (!atom->molecule_flag)
+    error->all(FLERR,"Pair style kolmolgorov/crespi/full requires atom attribute molecule");
 
   // need a full neighbor list, including neighbors of ghosts
 

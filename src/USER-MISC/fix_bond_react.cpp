@@ -2220,19 +2220,19 @@ void FixBondReact::update_everything()
   // all atom-level info (bond,angles, etc...) were kinda inherited from a common data struct --JG
 
   int Tdelta_bonds;
-  MPI_Allreduce(&delta_bonds,&Tdelta_bonds,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  MPI_Allreduce(&delta_bonds,&Tdelta_bonds,1,MPI_INT,MPI_SUM,world);
   atom->nbonds += Tdelta_bonds;
 
   int Tdelta_angle;
-  MPI_Allreduce(&delta_angle,&Tdelta_angle,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  MPI_Allreduce(&delta_angle,&Tdelta_angle,1,MPI_INT,MPI_SUM,world);
   atom->nangles += Tdelta_angle;
 
   int Tdelta_dihed;
-  MPI_Allreduce(&delta_dihed,&Tdelta_dihed,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  MPI_Allreduce(&delta_dihed,&Tdelta_dihed,1,MPI_INT,MPI_SUM,world);
   atom->ndihedrals += Tdelta_dihed;
 
   int Tdelta_imprp;
-  MPI_Allreduce(&delta_imprp,&Tdelta_imprp,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  MPI_Allreduce(&delta_imprp,&Tdelta_imprp,1,MPI_INT,MPI_SUM,world);
   atom->nimpropers += Tdelta_imprp;
 }
 

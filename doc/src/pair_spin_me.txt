@@ -6,11 +6,11 @@
 
 :line
 
-pair_style pair/spin/me command :h3
+pair_style spin/me command :h3
 
 [Syntax:]
 
-pair_style pair/spin/me cutoff :pre
+pair_style spin/me cutoff :pre
 
 cutoff = global cutoff pair (distance in metal units) :ulb,l
 
@@ -18,12 +18,12 @@ cutoff = global cutoff pair (distance in metal units) :ulb,l
 	
 [Examples:]
 
-pair_style pair/spin/me 4.5
-pair_coeff * * pair/spin/me me 4.5 0.00109 1.0 1.0 1.0 :pre
+pair_style spin/me 4.5
+pair_coeff * * me 4.5 0.00109 1.0 1.0 1.0 :pre
 
 [Description:]
 
-Style {pair/spin/me} computes a magneto-electric interaction between
+Style {spin/me} computes a magneto-electric interaction between
 pairs of magnetic spins. According to the derivation reported in
 "(Katsura)"_#Katsura1, this interaction is defined as: 
 

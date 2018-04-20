@@ -23,7 +23,7 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(pair/spin/neel,PairSpinNeel)
+PairStyle(spin/neel,PairSpinNeel)
 
 #else
 
@@ -42,8 +42,11 @@ class PairSpinNeel : public PairSpin {
   void coeff(int, char **);
   void init_style();
   double init_one(int, int);
+  void *extract(const char *, int &);
 
   void compute(int, int); 
+  void compute_single_pair(int, double *);
+
   void compute_neel(int, int, double, double *, double *, double *, double *);
   void compute_neel_mech(int, int, double, double *, double *, double *, double *);
   

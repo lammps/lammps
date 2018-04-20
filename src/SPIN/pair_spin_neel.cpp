@@ -174,16 +174,6 @@ void PairSpinNeel::init_style()
   }
   if (ifix == modify->nfix)
     error->all(FLERR,"pair/spin style requires nve/spin");
-
-  // get the lattice_flag from nve/spin
-
-  for (int i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style,"nve/spin") == 0) {
-      lockfixnvespin = (FixNVESpin *) modify->fix[i];
-      lattice_flag = lockfixnvespin->lattice_flag;
-    }
-  }
-
 }
 
 /* ----------------------------------------------------------------------
@@ -198,6 +188,17 @@ double PairSpinNeel::init_one(int i, int j)
   return cut_spin_neel_global;
 }
 
+/* ----------------------------------------------------------------------
+   extract the larger cutoff
+------------------------------------------------------------------------- */
+
+void *PairSpinNeel::extract(const char *str, int &dim)
+{
+  dim = 0;
+  if (strcmp(str,"cut") == 0) return (void *) &cut_spin_neel_global;
+  return NULL;
+}
+
 /* ---------------------------------------------------------------------- */
 
 void PairSpinNeel::compute(int eflag, int vflag)
@@ -207,14 +208,12 @@ void PairSpinNeel::compute(int eflag, int vflag)
   double xi[3], rij[3], eij[3];
   double spi[3], spj[3];
   double fi[3], fmi[3];
-  double cut_spin_neel_2, cut_spin_neel_global2;
   double rsq, rd, inorm;
   int *ilist,*jlist,*numneigh,**firstneigh;  
 
   evdwl = ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
-  cut_spin_neel_global2 = cut_spin_neel_global*cut_spin_neel_global;
   
   double **x = atom->x;
   double **f = atom->f;
@@ -273,14 +272,9 @@ void PairSpinNeel::compute(int eflag, int vflag)
 
       // compute magnetic and mechanical components of soc_neel
 
-      cut_spin_neel_2 = cut_spin_neel[itype][jtype]*cut_spin_neel[itype][jtype];
-      if (rsq <= cut_spin_neel_2) {
-        compute_neel(i,j,rsq,eij,fmi,spi,spj);
-        if (lattice_flag) {
-	  compute_neel_mech(i,j,rsq,eij,fi,spi,spj);
-	}
-      }
-
+      compute_neel(i,j,rsq,eij,fmi,spi,spj);
+      compute_neel_mech(i,j,rsq,eij,fi,spi,spj);
+      
       f[i][0] += fi[0];	 
       f[i][1] += fi[1];	  	  
       f[i][2] += fi[2];
@@ -296,11 +290,9 @@ void PairSpinNeel::compute(int eflag, int vflag)
       }
 
       if (eflag) {
-	if (rsq <= cut_spin_neel_2) {
-	  evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
-	  evdwl *= hbar;
-	} else evdwl = 0.0;
-      }
+	evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
+	evdwl *= hbar;
+      } else evdwl = 0.0;
 
       if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
 	  evdwl,ecoul,fi[0],fi[1],fi[2],rij[0],rij[1],rij[2]);
@@ -309,6 +301,67 @@ void PairSpinNeel::compute(int eflag, int vflag)
 
   if (vflag_fdotr) virial_fdotr_compute();
   
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairSpinNeel::compute_single_pair(int ii, double fmi[3]) 
+{
+
+  const int nlocal = atom->nlocal;
+  int *type = atom->type;
+  double **x = atom->x;
+  double **sp = atom->sp;
+
+  double xi[3], rij[3], eij[3];
+  double spi[3], spj[3];
+
+  int iexchange, idmi, ineel, ime;
+  int i,j,jj,inum,jnum,itype,jtype;
+  int *ilist,*jlist,*numneigh,**firstneigh;
+
+  double rsq, rd, inorm;
+
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+
+  i = ilist[ii];
+
+  spi[0] = sp[i][0];
+  spi[1] = sp[i][1];
+  spi[2] = sp[i][2];
+ 
+  xi[0] = x[i][0];
+  xi[1] = x[i][1];
+  xi[2] = x[i][2];
+  
+  eij[0] = eij[1] = eij[2] = 0.0;
+ 
+  jlist = firstneigh[i];
+  jnum = numneigh[i];
+
+  for (int jj = 0; jj < jnum; jj++) {
+
+    j = jlist[jj];
+    j &= NEIGHMASK;
+    itype = type[ii];
+    jtype = type[j];
+
+    spj[0] = sp[j][0];
+    spj[1] = sp[j][1];
+    spj[2] = sp[j][2];
+
+    rij[0] = x[j][0] - xi[0];
+    rij[1] = x[j][1] - xi[1];
+    rij[2] = x[j][2] - xi[2];
+    rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
+    inorm = 1.0/sqrt(rsq);
+
+    compute_neel(i,j,rsq,eij,fmi,spi,spj);
+  }
+
 }
 
 /* ---------------------------------------------------------------------- */

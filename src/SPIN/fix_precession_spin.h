@@ -47,9 +47,10 @@ class FixPrecessionSpin : public Fix {
   virtual void post_force_respa(int, int, int);
   double compute_scalar();
 
-  int zeeman_flag, aniso_flag;	
-  void compute_zeeman(int, double [3]);
-  void compute_anisotropy(int, double [3], double [3]);
+  int zeeman_flag, aniso_flag;
+  void compute_single_precession(int, double *, double *);  
+  void compute_zeeman(int, double *);
+  void compute_anisotropy(int, double *, double *);
 
  protected:
   int style; 			// style of the magnetic precession

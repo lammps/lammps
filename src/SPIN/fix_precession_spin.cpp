@@ -43,14 +43,12 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-enum{ZEEMAN,ANISOTROPY};
 enum{CONSTANT,EQUAL};
 
 /* ---------------------------------------------------------------------- */
 
 FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
-	
   if (narg < 7) error->all(FLERR,"Illegal precession/spin command");
   
   // magnetic interactions coded for cartesian coordinates
@@ -75,26 +73,28 @@ FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lm
   Kax = Kay = Kaz = 0.0;
 
   zeeman_flag = aniso_flag = 0;
- 
-  if (strcmp(arg[3],"zeeman") == 0) {
-	  if (narg != 8) error->all(FLERR,"Illegal precession/spin command");
-	  style = ZEEMAN;
-          zeeman_flag = 1;
-	  H_field = force->numeric(FLERR,arg[4]);
-	  nhx = force->numeric(FLERR,arg[5]);
-	  nhy = force->numeric(FLERR,arg[6]);
-	  nhz = force->numeric(FLERR,arg[7]);	
-	  magfieldstyle = CONSTANT; 	  	  
-  } else if (strcmp(arg[3],"anisotropy") == 0) {
-	  if (narg != 8) error->all(FLERR,"Illegal precession/spin command");
-	  style = ANISOTROPY;
-          aniso_flag = 1;
-	  Ka = force->numeric(FLERR,arg[4]);
-	  nax = force->numeric(FLERR,arg[5]);
-	  nay = force->numeric(FLERR,arg[6]);
-	  naz = force->numeric(FLERR,arg[7]);	  
-  } else error->all(FLERR,"Illegal precession/spin command");
- 
+
+  int iarg = 3;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"zeeman") == 0) {
+      if (iarg+4 > narg) error->all(FLERR,"Illegal fix precession/spin command");
+      zeeman_flag = 1;
+      H_field = force->numeric(FLERR,arg[iarg+1]);
+      nhx = force->numeric(FLERR,arg[iarg+2]);
+      nhy = force->numeric(FLERR,arg[iarg+3]);
+      nhz = force->numeric(FLERR,arg[iarg+4]);
+      iarg += 5;
+    } else if (strcmp(arg[iarg],"anisotropy") == 0) {
+      if (iarg+4 > narg) error->all(FLERR,"Illegal fix precession/spin command");
+      aniso_flag = 1;
+      Ka = force->numeric(FLERR,arg[iarg+1]);
+      nax = force->numeric(FLERR,arg[iarg+2]);
+      nay = force->numeric(FLERR,arg[iarg+3]);
+      naz = force->numeric(FLERR,arg[iarg+4]);
+      iarg += 5;
+    } else error->all(FLERR,"Illegal precession/spin command");
+  }
+
   degree2rad = MY_PI/180.0;
   time_origin = update->ntimestep;
 
@@ -171,7 +171,7 @@ void FixPrecessionSpin::setup(int vflag)
 
 void FixPrecessionSpin::post_force(int vflag)
 {
-  // update gravity due to variables
+  // update mag field with time (potential improvement)
 
   if (varflag != CONSTANT) {
     modify->clearstep_compute();
@@ -209,7 +209,19 @@ void FixPrecessionSpin::post_force(int vflag)
     fm[i][0] += fmi[0];
     fm[i][1] += fmi[1];
     fm[i][2] += fmi[2];
-  } 
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPrecessionSpin::compute_single_precession(int i, double spi[3], double fmi[3])
+{
+  if (zeeman_flag) {
+    compute_zeeman(i,fmi);
+  }
+  if (aniso_flag) {
+    compute_anisotropy(i,spi,fmi);
+  }
 }
 
 
@@ -244,12 +256,12 @@ void FixPrecessionSpin::post_force_respa(int vflag, int ilevel, int iloop)
 
 void FixPrecessionSpin::set_magneticprecession()
 {
-  if (style == ZEEMAN) {
+  if (zeeman_flag) {
 	  hx = H_field*nhx;
 	  hy = H_field*nhy;
 	  hz = H_field*nhz;	  
   }
-  if (style == ANISOTROPY) {
+  if (aniso_flag) {
 	  Kax = 2.0*Ka*nax;
 	  Kay = 2.0*Ka*nay;
 	  Kaz = 2.0*Ka*naz;	  

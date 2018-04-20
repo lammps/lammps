@@ -6,11 +6,11 @@
 
 :line
 
-pair_style pair/spin/exchange command :h3
+pair_style spin/exchange command :h3
 
 [Syntax:]
 
-pair_style pair/spin/exchange cutoff :pre
+pair_style spin/exchange cutoff :pre
 
 cutoff = global cutoff pair (distance in metal units) :ulb,l
 
@@ -18,13 +18,13 @@ cutoff = global cutoff pair (distance in metal units) :ulb,l
 	
 [Examples:]
 
-pair_style pair/spin/exchange 4.0	
+pair_style spin/exchange 4.0	
 pair_coeff * * exchange 4.0 0.0446928 0.003496 1.4885
 pair_coeff 1 2 exchange 6.0 -0.01575 0.0 1.965 :pre
 
 [Description:]
 
-Style {pair/spin/exchange} computes the exchange interaction between 
+Style {spin/exchange} computes the exchange interaction between 
 pairs of magnetic spins: 
 
 :c,image(Eqs/pair_spin_exchange_interaction.jpg)

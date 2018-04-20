@@ -14,11 +14,11 @@ fix ID group precession/spin style args :pre
 
 ID, group are documented in "fix"_fix.html command :ulb,l
 precession/spin = style name of this fix command :l
-style = {zeeman} or {aniso} :l
+style = {zeeman} or {anisotropy} :l
   {zeeman} args = H x y z 
     H = intensity of the magnetic field (in Tesla)
     x y z = vector direction of the field
-  {aniso} args = K x y z
+  {anisotropy} args = K x y z
     K = intensity of the magnetic anisotropy (in eV)
     x y z = vector direction of the anisotropy :pre
 :ule
@@ -26,7 +26,8 @@ style = {zeeman} or {aniso} :l
 [Examples:]
 
 fix 1 all precession/spin zeeman 0.1 0.0 0.0 1.0
-fix 1 all precession/spin aniso 0.001 0.0 0.0 1.0 :pre
+fix 1 all precession/spin anisotropy 0.001 0.0 0.0 1.0 
+fix 1 all precession/spin zeeman 0.1 0.0 0.0 1.0 anisotropy 0.001 0.0 0.0 1.0 :pre
 
 [Description:]
 
@@ -41,7 +42,7 @@ magnetic field:
 with mu0 the vacuum permeability, muB the Bohr magneton (muB = 5.788 eV/T 
 in metal units). 
 
-Style {aniso} is used to simulate an easy axis or an easy plane 
+Style {anisotropy} is used to simulate an easy axis or an easy plane 
 for the magnetic spins in the defined group: 
 
 :c,image(Eqs/force_spin_aniso.jpg)
@@ -52,9 +53,22 @@ If K>0, an easy axis is defined, and if K<0, an easy plane is defined.
 In both cases, the choice of (x y z) imposes the vector direction for the force. 
 Only the direction of the vector is important; it's length is ignored.  
 
+Both styles can be combined within one single command line. 
+
 :line
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
+
+By default, the energy associated to this fix is not added to the potential 
+energy of the system. 
+The "fix_modify"_fix_modify.html {energy} option is supported by this fix 
+to add this magnetic potential energy to the potential energy of the system, 
+
+fix             1 all precession/spin zeeman 1.0 0.0 0.0 1.0
+fix_modify      1 energy yes :pre
+
+This fix computes a global scalar which can be accessed by various 
+"output commands"_Section_howto.html#howto_15. 
 
 No information about this fix is written to "binary restart
 files"_restart.html.

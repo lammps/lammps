@@ -31,7 +31,6 @@ class PairHybrid : public Pair {
   friend class FixOMP;
   friend class Force;
   friend class Respa;
-  friend class PairSpin;
   friend class Info;
  public:
   PairHybrid(class LAMMPS *);

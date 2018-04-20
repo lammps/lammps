@@ -23,9 +23,9 @@ set 		group all spin/random 31 0.63
 #set 		group all spin 0.63 0.0 0.0 1.0 
 velocity 	all create 100 4928459 rot yes dist gaussian
 
-pair_style 	hybrid/overlay eam/alloy pair/spin/exchange 4.0
+pair_style 	hybrid/overlay eam/alloy spin/exchange 4.0
 pair_coeff 	* * eam/alloy ../examples/SPIN/nickel/Ni99.eam.alloy Ni
-pair_coeff 	* * pair/spin/exchange exchange 4.0 0.50 0.2280246862 1.229983475
+pair_coeff 	* * spin/exchange exchange 4.0 0.50 0.2280246862 1.229983475
 
 neighbor 	0.1 bin
 neigh_modify 	every 10 check yes delay 20

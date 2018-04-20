@@ -23,7 +23,7 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(pair/spin/exchange,PairSpinExchange)
+PairStyle(spin/exchange,PairSpinExchange)
 
 #else
 
@@ -42,8 +42,11 @@ class PairSpinExchange : public PairSpin {
   void coeff(int, char **);
   void init_style();
   double init_one(int, int);
+  void *extract(const char *, int &);
 
   void compute(int, int); 
+  void compute_single_pair(int, double *);
+
   void compute_exchange(int, int, double, double *, double *, double *);
   void compute_exchange_mech(int, int, double, double *, double *, double *, double *);
   
@@ -52,12 +55,16 @@ class PairSpinExchange : public PairSpin {
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
 
-  double cut_spin_exchange_global;	// global neel cutoff distance
+  double cut_spin_exchange_global;	// global exchange cutoff distance
 
  protected:
-  double **J1_mag, **J1_mech;           // exchange coeffs Jij
+  double **J1_mag;			// exchange coeffs in eV
+  double **J1_mech;			// mech exchange coeffs in 
   double **J2, **J3;                    // J1 in eV, J2 adim, J3 in Ang
   double **cut_spin_exchange;		// cutoff distance exchange
+
+  int lattice_flag; 			// flag for mech force computation
+  class FixNVESpin *lockfixnvespin;	// ptr to FixNVESpin for setups
 
   void allocate();
 };

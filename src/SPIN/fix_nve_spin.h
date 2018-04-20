@@ -67,18 +67,22 @@ friend class PairSpin;
   
   int nlocal_max;			// max value of nlocal (for lists size)
 
-  int magpair_flag;			// magnetic pair flags
-  int magprecession_flag;		// magnetic precession flags
-  int zeeman_flag, aniso_flag;
+  int pair_spin_flag;			// magnetic pair flags
+  int precession_spin_flag;			// magnetic precession flags
   int maglangevin_flag;			// magnetic langevin flags
   int tdamp_flag, temp_flag;
 
-  // pointers to magnetic interaction classes
+  // pointers to magnetic fixes
   
-  class PairSpin *lockpairspin;
   class FixPrecessionSpin *lockprecessionspin;
   class FixLangevinSpin *locklangevinspin; 
 
+  // pointers to magnetic pair styles
+ 
+  int npairs, npairspin;		// # of pairs, and # of spin pairs
+  class Pair *pair;
+  class PairSpin **spin_pairs;		// vector of spin pairs
+  
   // sectoring variables
  
   int nsectors;

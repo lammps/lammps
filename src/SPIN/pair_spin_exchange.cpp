@@ -45,10 +45,13 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairSpinExchange::PairSpinExchange(LAMMPS *lmp) : PairSpin(lmp)
+PairSpinExchange::PairSpinExchange(LAMMPS *lmp) : PairSpin(lmp),
+lockfixnvespin(NULL)
 {
+  hbar = force->hplanck/MY_2PI;
   single_enable = 0;
   no_virial_fdotr_compute = 1;
+  lattice_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -99,8 +102,6 @@ void PairSpinExchange::settings(int narg, char **arg)
 
 void PairSpinExchange::coeff(int narg, char **arg)
 {
-  const double hbar = force->hplanck/MY_2PI;
-
   if (!allocated) allocate();
   
   // check if args correct
@@ -185,16 +186,27 @@ double PairSpinExchange::init_one(int i, int j)
   return cut_spin_exchange_global;
 }
 
+/* ----------------------------------------------------------------------
+   extract the larger cutoff
+------------------------------------------------------------------------- */
+
+void *PairSpinExchange::extract(const char *str, int &dim)
+{
+  dim = 0;
+  if (strcmp(str,"cut") == 0) return (void *) &cut_spin_exchange_global;
+  return NULL;
+}
+
 /* ---------------------------------------------------------------------- */
 
 void PairSpinExchange::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;  
   double evdwl,ecoul;
-  double xi[3], rij[3];
+  double xi[3], rij[3], eij[3];
   double fi[3], fmi[3];
   double cut_ex_2,cut_spin_exchange_global2;
-  double rsq,rd,inorm;
+  double rsq, inorm;
   int *ilist,*jlist,*numneigh,**firstneigh;  
   double spi[3],spj[3];
 
@@ -202,7 +214,7 @@ void PairSpinExchange::compute(int eflag, int vflag)
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
   cut_spin_exchange_global2 = cut_spin_exchange_global*cut_spin_exchange_global;
-  
+
   double **x = atom->x;
   double **f = atom->f;
   double **fm = atom->fm;
@@ -229,12 +241,14 @@ void PairSpinExchange::compute(int eflag, int vflag)
     spi[0] = sp[i][0]; 
     spi[1] = sp[i][1]; 
     spi[2] = sp[i][2];
+    itype = type[i];
   
     // loop on neighbors
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
+      jtype = type[j];
 
       spj[0] = sp[j][0]; 
       spj[1] = sp[j][1]; 
@@ -248,22 +262,19 @@ void PairSpinExchange::compute(int eflag, int vflag)
       rij[0] = x[j][0] - xi[0];
       rij[1] = x[j][1] - xi[1];
       rij[2] = x[j][2] - xi[2];
-      rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2]; 
+      rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
       inorm = 1.0/sqrt(rsq);
-      rij[0] *= inorm;
-      rij[1] *= inorm;
-      rij[2] *= inorm;
-
-      itype = type[i];
-      jtype = type[j];
-
-      // compute exchange interaction
+      eij[0] = inorm*rij[0]; 
+      eij[1] = inorm*rij[1]; 
+      eij[2] = inorm*rij[2]; 
 
       cut_ex_2 = cut_spin_exchange[itype][jtype]*cut_spin_exchange[itype][jtype];
+
+      // compute exchange interaction
       if (rsq <= cut_ex_2) {
-        compute_exchange(i,j,rsq,fmi,spi,spj); 
-	if (lattice_flag) {
-	  compute_exchange_mech(i,j,rsq,rij,fi,spi,spj);
+	compute_exchange(i,j,rsq,fmi,spi,spj);
+        if (lattice_flag) {
+	  compute_exchange_mech(i,j,rsq,eij,fi,spi,spj);
 	}
       }
 
@@ -285,8 +296,9 @@ void PairSpinExchange::compute(int eflag, int vflag)
 	if (rsq <= cut_ex_2) {
 	  evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
 	  evdwl *= hbar;
-	} else evdwl = 0.0;
-      }
+	}
+      } else evdwl = 0.0;
+
 
       if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
 	  evdwl,ecoul,fi[0],fi[1],fi[2],rij[0],rij[1],rij[2]);
@@ -295,6 +307,71 @@ void PairSpinExchange::compute(int eflag, int vflag)
 
   if (vflag_fdotr) virial_fdotr_compute();
   
+}
+
+/* ----------------------------------------------------------------------
+   update the pair interactions fmi acting on the spin ii
+------------------------------------------------------------------------- */
+
+void PairSpinExchange::compute_single_pair(int ii, double fmi[3]) 
+{
+
+  const int nlocal = atom->nlocal;
+  int *type = atom->type;
+  double **x = atom->x;
+  double **sp = atom->sp;
+  double local_cut2;
+
+  double xi[3], rij[3];
+  double spi[3], spj[3];
+
+  int iexchange, idmi, ineel, ime;
+  int i,j,jj,inum,jnum,itype,jtype;
+  int *ilist,*jlist,*numneigh,**firstneigh;
+
+  double rsq;
+
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+
+  i = ilist[ii];
+  itype = type[i];
+
+  spi[0] = sp[i][0];
+  spi[1] = sp[i][1];
+  spi[2] = sp[i][2];
+ 
+  xi[0] = x[i][0];
+  xi[1] = x[i][1];
+  xi[2] = x[i][2];
+ 
+  jlist = firstneigh[i];
+  jnum = numneigh[i];
+
+  for (int jj = 0; jj < jnum; jj++) {
+
+    j = jlist[jj];
+    j &= NEIGHMASK;
+    jtype = type[j];
+    local_cut2 = cut_spin_exchange[itype][jtype]*cut_spin_exchange[itype][jtype];
+
+    spj[0] = sp[j][0];
+    spj[1] = sp[j][1];
+    spj[2] = sp[j][2];
+
+    rij[0] = x[j][0] - xi[0];
+    rij[1] = x[j][1] - xi[1];
+    rij[2] = x[j][2] - xi[2];
+    rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
+
+    if (rsq <= local_cut2) {
+      compute_exchange(i,j,rsq,fmi,spi,spj);
+    }
+
+  }
+
 }
 
 /* ----------------------------------------------------------------------
@@ -321,6 +398,7 @@ void PairSpinExchange::compute_exchange(int i, int j, double rsq, double fmi[3],
     fmi[0] += Jex*spj[0];
     fmi[1] += Jex*spj[1];
     fmi[2] += Jex*spj[2];
+
   }
 }
 

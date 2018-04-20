@@ -58,17 +58,18 @@ FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), 
   rsec(NULL), stack_head(NULL), stack_foot(NULL), 
   backward_stacks(NULL), forward_stacks(NULL),
-  lockpairspin(NULL)
+  pair(NULL), spin_pairs(NULL)
 {
   
   if (narg < 4) error->all(FLERR,"Illegal fix/NVE/spin command");  
   
   time_integrate = 1;
-  
   sector_flag = NONE;
   lattice_flag = 1;
-
   nlocal_max = 0;
+  npairs = 0;
+  npairspin = 0;
+
 
   // checking if map array or hash is defined
 
@@ -109,9 +110,8 @@ FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
 
   // initialize the magnetic interaction flags
 
-  magpair_flag = 0;
-  magprecession_flag = 0;
-  zeeman_flag = aniso_flag = 0;
+  pair_spin_flag = 0;
+  precession_spin_flag = 0;
   maglangevin_flag = 0;
   tdamp_flag = temp_flag = 0;
 
@@ -126,7 +126,7 @@ FixNVESpin::~FixNVESpin()
   memory->destroy(stack_foot);
   memory->destroy(forward_stacks);
   memory->destroy(backward_stacks);
-  delete lockpairspin;
+  delete [] spin_pairs;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -151,26 +151,58 @@ void FixNVESpin::init()
   dtf = 0.5 * update->dt * force->ftm2v;
   dts = 0.25 * update->dt;
 
-  // ptrs on PairSpin classes
+  // set ptrs on Pair/Spin styles
 
-  lockpairspin = new PairSpin(lmp);
-  magpair_flag = lockpairspin->init_pair();
-  if (magpair_flag != 0 && magpair_flag != 1)
-    error->all(FLERR,"Incorrect value of magpair_flag");
+  // loop 1: obtain # of Pairs, and # of Pair/Spin styles
+
+  if (force->pair_match("spin",0,0)) {        // only one Pair/Spin style
+    pair = force->pair_match("spin",0,0);
+    npairs = pair->instance_total;
+    npairspin = 1;
+  } else if (force->pair_match("spin",0,1)) { // more than one Pair/Spin style
+    pair = force->pair_match("spin",0,1);
+    npairs = pair->instance_total;
+    for (int i = 0; i<npairs; i++) {
+      if (force->pair_match("spin",0,i)) {
+	npairspin ++;
+      }
+    }
+  } 
+
+  // init length of vector of ptrs to Pair/Spin styles
+
+  if (npairspin > 0) {
+    spin_pairs = new PairSpin*[npairspin];
+  }
+
+  // loop 2: fill vector with ptrs to Pair/Spin styles
+
+  int count = 0;
+  if (npairspin == 1) {
+    count = 1;
+    spin_pairs[0] = (PairSpin *) force->pair_match("spin",0,0);
+  } else if (npairspin > 1) {
+    for (int i = 0; i<npairs; i++) {
+      if (force->pair_match("spin",0,i)) {
+	spin_pairs[count] = (PairSpin *) force->pair_match("spin",0,i);
+	count++;
+      }
+    }
+  }
+
+  if (count != npairspin)
+    error->all(FLERR,"Incorrect number of spin pairs");
+
+  if (npairspin >= 1) pair_spin_flag = 1; 
 
   // ptrs FixPrecessionSpin classes
 
   int iforce;
   for (iforce = 0; iforce < modify->nfix; iforce++) {
     if (strstr(modify->fix[iforce]->style,"precession/spin")) {
-      magprecession_flag = 1;
+      precession_spin_flag = 1;
       lockprecessionspin = (FixPrecessionSpin *) modify->fix[iforce]; 
     }
-  }
-
-  if (magprecession_flag) { 
-    if (lockprecessionspin->zeeman_flag == 1) zeeman_flag = 1;
-    if (lockprecessionspin->aniso_flag == 1) aniso_flag = 1;
   }
 
   // ptrs on the FixLangevinSpin class
@@ -307,13 +339,13 @@ void FixNVESpin::initial_integrate(int vflag)
 	i = backward_stacks[i];
       }
     }
-  } else if (sector_flag == 0) {			// serial seq. update
+  } else if (sector_flag == 0) {		// serial seq. update
     comm->forward_comm();			// comm. positions of ghost atoms
-    for (int i = 0; i < nlocal; i++){	// advance quarter s for nlocal-1
+    for (int i = 0; i < nlocal; i++){		// advance quarter s for nlocal-1
       ComputeInteractionsSpin(i);
       AdvanceSingleSpin(i);
     }
-    for (int i = nlocal-2; i >= 0; i--){	// advance quarter s for nlocal-1
+    for (int i = nlocal-1; i >= 0; i--){	// advance quarter s for nlocal-1
       ComputeInteractionsSpin(i);
       AdvanceSingleSpin(i);
     }
@@ -381,9 +413,10 @@ void FixNVESpin::ComputeInteractionsSpin(int i)
 
   double **sp = atom->sp;
   double **fm = atom->fm;
- 
+
   int eflag = 1;
   int vflag = 0;
+
   int pair_compute_flag = 1;
 
   // force computation for spin i
@@ -394,20 +427,21 @@ void FixNVESpin::ComputeInteractionsSpin(int i)
   
   fmi[0] = fmi[1] = fmi[2] = 0.0;
 
-  // evaluate magnetic pair interactions
+  // update magnetic pair interactions
 
-  if (magpair_flag) lockpairspin->compute_pair_single_spin(i,fmi);
-
-  // evaluate magnetic precession interactions
-
-  if (magprecession_flag) {		// magnetic precession
-    if (zeeman_flag) {			// zeeman
-      lockprecessionspin->compute_zeeman(i,fmi);
-    }
-    if (aniso_flag) {			// aniso
-      lockprecessionspin->compute_anisotropy(i,spi,fmi);
+  if (pair_spin_flag) {
+    for (int k = 0; k < npairspin; k++) {
+      spin_pairs[k]->compute_single_pair(i,fmi);
     }
   }
+ 
+  // update magnetic precession interactions
+
+  if (precession_spin_flag) { 
+    lockprecessionspin->compute_single_precession(i,spi,fmi);
+  }
+
+  // update langevin damping and random force
 
   if (maglangevin_flag) {		// mag. langevin
     if (tdamp_flag) {			// transverse damping
@@ -418,7 +452,7 @@ void FixNVESpin::ComputeInteractionsSpin(int i)
     } 
   }
 
-  // replace the magnetic force fm[i] by its new value
+  // replace the magnetic force fm[i] by its new value fmi
 
   fm[i][0] = fmi[0];
   fm[i][1] = fmi[1];
@@ -445,10 +479,18 @@ void FixNVESpin::sectoring()
   const double rsy = subhi[1] - sublo[1];  
   const double rsz = subhi[2] - sublo[2];  
 
-  // temp
-  //const double rv = 2.0;
-  //const double rv = lockpairspinexchange->cut_spin_exchange_global;
-  const double rv = lockpairspin->larger_cutoff;
+  // extract larger cutoff from PairSpin styles
+
+  double rv, cutoff;
+  rv = cutoff = 0.0;
+  int dim = 0;
+  for (int i = 0; i < npairspin ; i++) {
+    cutoff = *((double *) spin_pairs[i]->extract("cut",dim));
+    rv = MAX(rv,cutoff);
+  }
+
+  if (rv == 0.0)
+   error->all(FLERR,"Illegal sectoring operation");
 
   double rax = rsx/rv;  
   double ray = rsy/rv;  
@@ -509,7 +551,7 @@ void FixNVESpin::AdvanceSingleSpin(int i)
   double **sp = atom->sp;
   double **fm = atom->fm;
   double dtfm,msq,scale,fm2,fmsq,sp2,spsq,energy,dts2;
-  double cp[3],g[3]; 	
+  double cp[3],g[3]; 
 
   cp[0] = cp[1] = cp[2] = 0.0;
   g[0] = g[1] = g[2] = 0.0;

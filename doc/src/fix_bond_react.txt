@@ -261,12 +261,10 @@ angles, dihedrals or impropers are supported.
 
 A few capabilities to note: 1) You may specify as many 'react'
 arguments as desired. For example, you could break down a complicated
-reaction mechanism into several reaction steps, each defined by a fix
-bond/react. 2) While typically a bond is formed between the bonding
-atom pairs specified in the pre-reacted molecule template, this is not
-required. 3) By reversing the order of the pre- and post-reacted
-molecule templates in another 'react' argument, you can allow for the
-possibility of one or more reverse reactions.
+reaction mechanism into several reaction steps, each defined by its
+own 'react' argument. 2) While typically a bond is formed between the
+bonding atom pairs specified in the pre-reacted molecule template,
+this is not required.
 
 The optional keywords deal with the probability of a given reaction
 occurring as well as the stable equilibration of each reaction site as

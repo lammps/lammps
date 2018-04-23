@@ -333,3 +333,12 @@ void DihedralQuadratic::read_restart(FILE *fp)
   for (int i = 1; i <= atom->ndihedraltypes; i++) setflag[i] = 1;
 }
 
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void DihedralQuadratic::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->ndihedraltypes; i++)
+    fprintf(fp,"%d %g %g \n",i,k[i],phi0[i]*180.0/MY_PI);
+}

@@ -367,7 +367,7 @@ void FixPourOpt::init()
 
   double x_lo[3], x_hi[3];
   domain->regions[iregion]->get_bounding_box(x_lo, x_hi);
-  clist.setup(x_lo, x_hi, 4*radius_max); 
+  clist.setup(x_lo, x_hi, 4*radius_max);
 
   if(comm->nprocs > 1) {
     dist_clist.setup(x_lo, x_hi, 4*radius_max);
@@ -405,14 +405,20 @@ void FixPourOpt::pre_exchange()
   if (ninserted + nnew > ninsert) nnew = ninsert - ninserted;
 
   // lo/hi current = z (or y) bounds of insertion region this timestep
+  double x_lo[3], x_hi[3];
+  domain->regions[iregion]->get_bounding_box(x_lo, x_hi);
 
   int dimension = domain->dimension;
   if (dimension == 3) {
     lo_current = zlo + (update->ntimestep - nfirst) * update->dt * rate;
     hi_current = zhi + (update->ntimestep - nfirst) * update->dt * rate;
+    x_lo[2] = lo_current;
+    x_hi[2] = hi_current;
   } else {
     lo_current = ylo + (update->ntimestep - nfirst) * update->dt * rate;
     hi_current = yhi + (update->ntimestep - nfirst) * update->dt * rate;
+    x_lo[1] = lo_current;
+    x_hi[1] = hi_current;
   }
 
   // build local cell list
@@ -420,6 +426,11 @@ void FixPourOpt::pre_exchange()
   double *radius = atom->radius;
 
   clist.clear();
+  clist.setup(x_lo, x_hi, 4*radius_max);
+
+  if(comm->nprocs > 1) {
+    dist_clist.setup(x_lo, x_hi, 4*radius_max);
+  }
 
   for (i = 0; i < atom->nlocal; i++) {
     if (overlap(i)) {

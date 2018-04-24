@@ -101,7 +101,6 @@ void PairSpinDmi::settings(int narg, char **arg)
 
 void PairSpinDmi::coeff(int narg, char **arg)
 {
-//  const double hbar = force->hplanck/MY_2PI;
 
   if (!allocated) allocate();
 
@@ -130,15 +129,16 @@ void PairSpinDmi::coeff(int narg, char **arg)
     for (int j = MAX(jlo,i); j <= jhi; j++) {
       cut_spin_dmi[i][j] = rij;
       DM[i][j] = dm;
-      v_dmx[i][j] = dmx;
-      v_dmy[i][j] = dmy;
-      v_dmz[i][j] = dmz;
+      v_dmx[i][j] = dmx * dm;
+      v_dmy[i][j] = dmy * dm;
+      v_dmz[i][j] = dmz * dm;
       setflag[i][j] = 1;
       count++;
     }
   }
   if (count == 0) 
     error->all(FLERR,"Incorrect args in pair_style command"); 
+
 }
 
 /* ----------------------------------------------------------------------
@@ -351,7 +351,6 @@ void PairSpinDmi::compute_single_pair(int ii, double fmi[3])
 
 }
 
-
 /* ----------------------------------------------------------------------
    compute the dmi interaction between spin i and spin j
 ------------------------------------------------------------------------- */
@@ -368,13 +367,16 @@ void PairSpinDmi::compute_dmi(int i, int j, double rsq, double fmi[3], double sp
   if (rsq <= local_cut2) {
     double dmix, dmiy, dmiz;	
 
-    dmix = DM[itype][jtype] * v_dmx[itype][jtype];
-    dmiy = DM[itype][jtype] * v_dmy[itype][jtype];
-    dmiz = DM[itype][jtype] * v_dmz[itype][jtype];
+    //dmix = DM[itype][jtype] * v_dmx[itype][jtype];
+    //dmiy = DM[itype][jtype] * v_dmy[itype][jtype];
+    //dmiz = DM[itype][jtype] * v_dmz[itype][jtype];
+    dmix = v_dmx[itype][jtype];
+    dmiy = v_dmy[itype][jtype];
+    dmiz = v_dmz[itype][jtype];
 
-    fmi[0] -= (spj[1]*dmiz - spj[2]*dmiy);
-    fmi[1] -= (spj[2]*dmix - spj[0]*dmiz);
-    fmi[2] -= (spj[0]*dmiy - spj[1]*dmix);
+    fmi[0] += (spj[1]*dmiz - spj[2]*dmiy);
+    fmi[1] += (spj[2]*dmix - spj[0]*dmiz);
+    fmi[2] += (spj[0]*dmiy - spj[1]*dmix);
 
   }
 }
@@ -389,7 +391,6 @@ void PairSpinDmi::compute_dmi_mech(int i, int j, double fi[3], double spi[3], do
   fi[1] += 0.0;
   fi[2] += 0.0;
 }
-
 
 /* ----------------------------------------------------------------------
    allocate all arrays

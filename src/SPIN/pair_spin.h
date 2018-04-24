@@ -11,7 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#ifdef PAIR_CLASS
+
 PairStyle(pair/spin,PairSpin)
+
+#else
 
 #ifndef LMP_PAIR_SPIN_H
 #define LMP_PAIR_SPIN_H

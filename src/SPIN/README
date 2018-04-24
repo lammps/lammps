@@ -1,0 +1,25 @@
+The SPIN package enables coupled spin dynamics and molecular 
+dynamics simulations. 
+
+The package provides the following features:
+
+* defining a classical magnetic atomic spin associated to each magnetic
+atom in the system
+* integrating the equations of motion for the coupled spin-lattice system
+* implementing magnetic pair interactions and magnetic forces
+* thermostating and applying a transverse damping to the magnetic spins
+* computing and outputing magnetic quantities
+
+The different options provided by this package are explained in the 
+LAMMPS documentation.
+
+Once you have successfully built LAMMPS with this package, you can test 
+it using one of the input files provided from the examples/SPIN dir:
+
+./lmp_serial < lammps/examples/SPIN/cobalt_hcp/in.spin.cobalt_hcp
+
+
+== Credits and license ==
+
+The person who created this package is Julien Tranchida (jtranch at
+sandia.gov). You can contact him if you have questions.

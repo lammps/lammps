@@ -27,6 +27,7 @@
 
 #include "atom.h"
 #include "atom_vec.h"
+#include "citeme.h"
 #include "error.h"
 #include "fix_precession_spin.h"
 #include "fix_nve_spin.h"
@@ -50,6 +51,16 @@ using namespace FixConst;
 using namespace MathConst;
 using namespace MathExtra;
 
+static const char cite_fix_nve_spin[] =
+  "fix nve/spin command:\n\n"
+  "@article{tranchida2018massively,\n"
+  "title={Massively parallel symplectic algorithm for coupled magnetic spin "
+  "dynamics and molecular dynamics},\n"
+  "author={Tranchida, J and Plimpton, SJ and Thibaudeau, P and Thompson, AP},\n"
+  "journal={arXiv preprint arXiv:1801.10233},\n"
+  "year={2018}\n"
+  "}\n\n";
+
 enum{NONE};
 
 /* ---------------------------------------------------------------------- */
@@ -60,7 +71,8 @@ FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
   backward_stacks(NULL), forward_stacks(NULL),
   pair(NULL), spin_pairs(NULL)
 {
-  
+  if (lmp->citeme) lmp->citeme->add(cite_fix_nve_spin);
+
   if (narg < 4) error->all(FLERR,"Illegal fix/NVE/spin command");  
   
   time_integrate = 1;

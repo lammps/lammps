@@ -59,19 +59,29 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Fix mscg does not yet support mpi
+E: Fix mscg does not yet support parallel use via MPI
 
-Self-explanatory.
+UNDOCUMENTED
+
+E: Fix mscg must be used with 32-bit atom IDs
+
+UNDOCUMENTED
 
 E: Fix mscg does not yet support triclinic geometries
 
 Self-explanatory.
 
-E: Bond/Angle/Dihedral list overflow, boost fix_mscg max
+E: Bond list overflow, boost fix_mscg max
 
-A site has more bond/angle/dihedral partners that the maximum and
-has overflowed the bond/angle/dihedral partners list. Increase the
-corresponding fix_mscg max arg.
+UNDOCUMENTED
+
+E: Angle list overflow, boost fix_mscg max
+
+UNDOCUMENTED
+
+E: Dihedral list overflow, boost fix_mscg max
+
+UNDOCUMENTED
 
 W: Fix mscg n_frames is inconsistent with control.in
 
@@ -86,5 +96,15 @@ The control.in file read by the MSCG lib has a parameter block_size
 that should be a divisor of the number of frames processed by the
 fix mscg command. If not, the fix will still run, but some frames may
 not be included in the MSCG calculations.
+
+U: Fix mscg does not yet support mpi
+
+Self-explanatory.
+
+U: Bond/Angle/Dihedral list overflow, boost fix_mscg max
+
+A site has more bond/angle/dihedral partners that the maximum and
+has overflowed the bond/angle/dihedral partners list. Increase the
+corresponding fix_mscg max arg.
 
 */

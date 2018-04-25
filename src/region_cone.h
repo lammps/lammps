@@ -49,6 +49,10 @@ class RegCone : public Region {
 
 /* ERROR/WARNING messages:
 
+E: Invalid region cone open setting
+
+UNDOCUMENTED
+
 E: Illegal ... command
 
 Self-explanatory.  Check the input script syntax and compare to the

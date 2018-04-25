@@ -161,6 +161,26 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
+E: Fix rigid custom requires previously defined property/atom
+
+UNDOCUMENTED
+
+E: Fix rigid custom requires integer-valued property/atom
+
+UNDOCUMENTED
+
+E: Variable name for fix rigid custom does not exist
+
+UNDOCUMENTED
+
+E: Fix rigid custom variable is no atom-style variable
+
+UNDOCUMENTED
+
+E: Unsupported fix rigid custom property
+
+UNDOCUMENTED
+
 E: Fix rigid molecule requires atom attribute molecule
 
 Self-explanatory.

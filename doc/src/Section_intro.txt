@@ -526,14 +526,14 @@ and efforts.
 Axel Kohlmeyer (Temple U), akohlmey at gmail.com, SVN and Git repositories, indefatigable mail list responder, USER-CGSDK, USER-OMP, USER-COLVARS, USER-MOLFILE, USER-QMMM, USER-TALLY, and COMPRESS packages
 Roy Pollock (LLNL), Ewald and PPPM solvers
 Mike Brown (ORNL), brownw at ornl.gov, GPU and USER-INTEL package
-Greg Wagner (Sandia), gjwagne at sandia.gov, MEAM package for MEAM potential
+Greg Wagner (Sandia), gjwagne at sandia.gov, MEAM package for MEAM potential (superseded by USER-MEAMC)
 Mike Parks (Sandia), mlparks at sandia.gov, PERI package for Peridynamics
 Rudra Mukherjee (JPL), Rudranarayan.M.Mukherjee at jpl.nasa.gov, POEMS package for articulated rigid body motion
 Reese Jones (Sandia) and collaborators, rjones at sandia.gov, USER-ATC package for atom/continuum coupling
 Ilya Valuev (JIHT), valuev at physik.hu-berlin.de, USER-AWPMD package for wave-packet MD
-Christian Trott (U Tech Ilmenau), christian.trott at tu-ilmenau.de, USER-CUDA and KOKKOS packages
+Christian Trott (U Tech Ilmenau), christian.trott at tu-ilmenau.de, USER-CUDA (obsoleted by KOKKOS) and KOKKOS packages
 Andres Jaramillo-Botero (Caltech), ajaramil at wag.caltech.edu, USER-EFF package for electron force field
-Christoph Kloss (JKU), Christoph.Kloss at jku.at, USER-LIGGGHTS package for granular models and granular/fluid coupling
+Christoph Kloss (JKU), Christoph.Kloss at jku.at, LIGGGHTS fork for granular models and granular/fluid coupling
 Metin Aktulga (LBL), hmaktulga at lbl.gov, USER-REAXC package for C version of ReaxFF
 Georg Gunzenmuller (EMI), georg.ganzenmueller at emi.fhg.de, USER-SMD and USER-SPH packages
 Colin Denniston (U Western Ontario), cdennist at uwo.ca, USER-LB package :ul

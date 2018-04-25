@@ -81,6 +81,10 @@ E: Cannot open fix tmd file %s
 The output file for the fix tmd command cannot be opened.  Check that
 the path and name are correct.
 
+E: Cannot use fix TMD on massless group
+
+UNDOCUMENTED
+
 E: Fix tmd must come after integration fixes
 
 Any fix tmd command must appear in the input script after all time
@@ -90,6 +94,10 @@ details.
 E: Incorrect format in TMD target file
 
 Format of file read by fix tmd command is incorrect.
+
+W: Ignoring empty or incorrectly formatted line in target file
+
+UNDOCUMENTED
 
 E: TMD target file did not list all group atoms
 

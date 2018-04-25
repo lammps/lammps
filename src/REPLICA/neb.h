@@ -82,14 +82,6 @@ E: Cannot use NEB with a single replica
 
 Self-explanatory.
 
-E: Can only use NEB with 1-processor replicas
-
-This is current restriction for NEB as implemented in LAMMPS.
-
-E: Cannot use NEB with atom_modify sort enabled
-
-This is current restriction for NEB implemented in LAMMPS.
-
 E: Cannot use NEB unless atom map exists
 
 Use the atom_modify command to create an atom map.
@@ -133,5 +125,13 @@ E: Cannot open file %s
 The specified file cannot be opened.  Check that the path and name are
 correct. If the file is a compressed file, also check that the gzip
 executable can be found and run.
+
+U: Can only use NEB with 1-processor replicas
+
+This is current restriction for NEB as implemented in LAMMPS.
+
+U: Cannot use NEB with atom_modify sort enabled
+
+This is current restriction for NEB implemented in LAMMPS.
 
 */

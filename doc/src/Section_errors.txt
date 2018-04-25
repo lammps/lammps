@@ -1565,15 +1565,6 @@ This operation is not allowed. :dd
 
 This operation is not allowed. :dd
 
-{Cannot use -cuda on and -kokkos on together} :dt
-
-This is not allowed since both packages can use GPUs. :dd
-
-{Cannot use -cuda on without USER-CUDA installed} :dt
-
-The USER-CUDA package must be installed via "make yes-user-cuda"
-before LAMMPS is built. :dd
-
 {Cannot use -kokkos on without KOKKOS installed} :dt
 
 Self-explanatory. :dd
@@ -1596,11 +1587,6 @@ solver/pair style. :dd
 {Cannot use EwaldDisp with 2d simulation} :dt
 
 This is a current restriction of this command. :dd
-
-{Cannot use GPU package with USER-CUDA package enabled} :dt
-
-You cannot use both the GPU and USER-CUDA packages
-together.  Use one or the other. :dd
 
 {Cannot use Kokkos pair style with rRESPA inner/middle} :dt
 
@@ -8252,12 +8238,6 @@ Self-explanatory. :dd
 The package command cannot be used afer a read_data, read_restart, or
 create_box command. :dd
 
-{Package cuda command without USER-CUDA package enabled} :dt
-
-The USER-CUDA package must be installed via "make yes-user-cuda"
-before LAMMPS is built, and the "-c on" must be used to enable the
-package. :dd
-
 {Package gpu command without GPU package installed} :dt
 
 The GPU package must be installed via "make yes-gpu" before LAMMPS is
@@ -10230,22 +10210,6 @@ it in different ways. :dd
 
 Self-explanatory. :dd
 
-{USER-CUDA mode requires CUDA variant of min style} :dt
-
-CUDA mode is enabled, so the min style must include a cuda suffix. :dd
-
-{USER-CUDA mode requires CUDA variant of run style} :dt
-
-CUDA mode is enabled, so the run style must include a cuda suffix. :dd
-
-{USER-CUDA package does not yet support comm_style tiled} :dt
-
-Self-explanatory. :dd
-
-{USER-CUDA package requires a cuda enabled atom_style} :dt
-
-Self-explanatory. :dd
-
 {Unable to initialize accelerator for use} :dt
 
 There was a problem initializing an accelerator for the gpu package :dd
@@ -10493,10 +10457,6 @@ Must use remap v option with fix deform with this pair style. :dd
 {Using pair lubricate/poly with inconsistent fix deform remap option} :dt
 
 If fix deform is used, the remap v option is required. :dd
-
-{Using suffix cuda without USER-CUDA package enabled} :dt
-
-Self-explanatory. :dd
 
 {Using suffix gpu without GPU package installed} :dt
 

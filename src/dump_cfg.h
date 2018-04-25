@@ -62,12 +62,12 @@ E: Dump cfg arguments can not mix xs|ys|zs with xsu|ysu|zsu
 
 Self-explanatory.
 
-E: Invalid keyword in dump cfg command
-
-Self-explanatory.
-
 E: Dump cfg requires one snapshot per file
 
 Use the wildcard "*" character in the filename.
+
+U: Invalid keyword in dump cfg command
+
+Self-explanatory.
 
 */

@@ -39,4 +39,20 @@ class ResetIDs : protected Pointers {
 
 /* ERROR/WARNING messages:
 
+E: Reset_ids command before simulation box is defined
+
+UNDOCUMENTED
+
+E: Illegal ... command
+
+UNDOCUMENTED
+
+E: Cannot use reset_ids unless atoms have IDs
+
+UNDOCUMENTED
+
+E: Reset_ids missing %d bond topology atom IDs - use comm_modify cutoff
+
+UNDOCUMENTED
+
 */

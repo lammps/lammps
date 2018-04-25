@@ -135,4 +135,8 @@ When both yz and xy are changing, it induces changes in xz if the
 box must flip from one tilt extreme to another.  Thus it is not
 allowed for yz to grow so much that a flip is induced.
 
+E: Fix deform settings not consistent with restart
+
+UNDOCUMENTED
+
 */

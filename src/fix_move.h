@@ -101,9 +101,9 @@ E: Fix move cannot set wiggle z motion for 2d problem
 
 Self-explanatory.
 
-E: Fix move cannot rotate aroung non z-axis for 2d problem
+E: Fix move cannot rotate around non z-axis for 2d problem
 
-Self-explanatory.
+UNDOCUMENTED
 
 E: Fix move cannot define z or vz variable for 2d problem
 
@@ -128,5 +128,9 @@ Atoms can not be added afterwards to this fix option.
 E: Resetting timestep size is not allowed with fix move
 
 This is because fix move is moving atoms based on elapsed time.
+
+U: Fix move cannot rotate aroung non z-axis for 2d problem
+
+Self-explanatory.
 
 */

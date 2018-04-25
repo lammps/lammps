@@ -116,18 +116,9 @@ class Min : protected Pointers {
 
 /* ERROR/WARNING messages:
 
-W: Resetting reneighboring criteria during minimization
+W: Using 'neigh_modify every 1 delay 0 check yes' setting during minimization
 
-Minimization requires that neigh_modify settings be delay = 0, every =
-1, check = yes.  Since these settings were not in place, LAMMPS
-changed them and will restore them to their original values after the
-minimization.
-
-W: Energy due to X extra global DOFs will be included in minimizer energies
-
-When using fixes like box/relax, the potential energy used by the minimizer
-is augmented by an additional energy provided by the fix. Thus the printed
-converged energy may be different from the total potential energy.
+UNDOCUMENTED
 
 E: Minimization could not find thermo_pe compute
 
@@ -144,10 +135,31 @@ E: Cannot use a damped dynamics min style with per-atom DOF
 This is a current restriction in LAMMPS.  Use another minimizer
 style.
 
+E: Cannot use hftn min style with fix box/relax
+
+UNDOCUMENTED
+
+E: Cannot use hftn min style with per-atom DOF
+
+UNDOCUMENTED
+
 E: Illegal ... command
 
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
+
+U: Resetting reneighboring criteria during minimization
+
+Minimization requires that neigh_modify settings be delay = 0, every =
+1, check = yes.  Since these settings were not in place, LAMMPS
+changed them and will restore them to their original values after the
+minimization.
+
+U: Energy due to X extra global DOFs will be included in minimizer energies
+
+When using fixes like box/relax, the potential energy used by the minimizer
+is augmented by an additional energy provided by the fix. Thus the printed
+converged energy may be different from the total potential energy.
 
 */

@@ -117,4 +117,8 @@ E: Angle table parameters did not set N
 
 List of angle table parameters must include N setting.
 
+E: Illegal angle in angle style table
+
+UNDOCUMENTED
+
 */

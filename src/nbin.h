@@ -77,4 +77,8 @@ class NBin : protected Pointers {
 
 /* ERROR/WARNING messages:
 
+E: Non-numeric positions - simulation unstable
+
+UNDOCUMENTED
+
 */

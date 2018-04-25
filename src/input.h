@@ -181,10 +181,9 @@ E: Invalid immediate variable
 
 Syntax of immediate value is incorrect.
 
-E: Substitution for illegal variable
+E: Substitution for illegal variable %s
 
-Input script line contained a variable that could not be substituted
-for.
+UNDOCUMENTED
 
 E: Illegal ... command
 
@@ -253,6 +252,14 @@ The chosen atom style does not allow for bonds to be defined.
 E: Bond_style command when no bonds allowed
 
 The chosen atom style does not allow for bonds to be defined.
+
+E: Bond_write command when no bonds allowed
+
+UNDOCUMENTED
+
+E: Bond_write command before bond_style is defined
+
+UNDOCUMENTED
 
 E: Boundary command after simulation box is defined
 
@@ -380,5 +387,10 @@ E: Units command after simulation box is defined
 
 The units command cannot be used after a read_data, read_restart, or
 create_box command.
+
+U: Substitution for illegal variable
+
+Input script line contained a variable that could not be substituted
+for.
 
 */

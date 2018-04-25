@@ -73,6 +73,18 @@ E: Incorrect weight arg for dihedral coefficients
 
 Self-explanatory.  Check the input script or data file.
 
+E: Dihedral style charmmfsw must be set to same r-RESPA level as 'pair'
+
+UNDOCUMENTED
+
+E: Dihedral style charmmfsw must be set to same r-RESPA level as 'outer'
+
+UNDOCUMENTED
+
+E: Must use 'special_bonds charmm' with dihedral style charmm for use with CHARMM pair styles
+
+UNDOCUMENTED
+
 E: Dihedral charmmfsw is incompatible with Pair style
 
 Dihedral style charmmfsw must be used with a pair style charmm

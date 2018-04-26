@@ -28,6 +28,8 @@
 #include "atom.h"
 #include "atom_vec.h"
 #include "citeme.h"
+#include "comm.h"
+#include "domain.h"
 #include "error.h"
 #include "fix_precession_spin.h"
 #include "fix_nve_spin.h"

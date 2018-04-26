@@ -38,6 +38,7 @@
 #include "neigh_request.h"
 #include "math_const.h"
 #include "memory.h"
+#include "modify.h"
 #include "pair_spin_neel.h"
 #include "update.h"
 

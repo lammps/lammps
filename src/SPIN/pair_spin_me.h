@@ -52,6 +52,9 @@ class PairSpinMe : public PairSpin {
   double **v_mex, **v_mey, **v_mez;	// me direction
   double **cut_spin_me;			// me cutoff distance 
 
+  int lattice_flag;                     // flag for mech force computation
+  class FixNVESpin *lockfixnvespin;     // ptr to FixNVESpin for setups
+
   void allocate();
 };
 

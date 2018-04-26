@@ -204,16 +204,15 @@ void PairSpinExchange::compute(int eflag, int vflag)
   int i,j,ii,jj,inum,jnum,itype,jtype;  
   double evdwl,ecoul;
   double xi[3], rij[3], eij[3];
+  double spi[3], spj[3];
   double fi[3], fmi[3];
-  double cut_ex_2,cut_spin_exchange_global2;
+  double local_cut2;
   double rsq, inorm;
   int *ilist,*jlist,*numneigh,**firstneigh;  
-  double spi[3],spj[3];
 
   evdwl = ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
-  cut_spin_exchange_global2 = cut_spin_exchange_global*cut_spin_exchange_global;
 
   double **x = atom->x;
   double **f = atom->f;
@@ -268,10 +267,11 @@ void PairSpinExchange::compute(int eflag, int vflag)
       eij[1] = inorm*rij[1]; 
       eij[2] = inorm*rij[2]; 
 
-      cut_ex_2 = cut_spin_exchange[itype][jtype]*cut_spin_exchange[itype][jtype];
+      local_cut2 = cut_spin_exchange[itype][jtype]*cut_spin_exchange[itype][jtype];
 
       // compute exchange interaction
-      if (rsq <= cut_ex_2) {
+      
+      if (rsq <= local_cut2) {
 	compute_exchange(i,j,rsq,fmi,spi,spj);
         if (lattice_flag) {
 	  compute_exchange_mech(i,j,rsq,eij,fi,spi,spj);
@@ -285,7 +285,6 @@ void PairSpinExchange::compute(int eflag, int vflag)
       fm[i][1] += fmi[1];	  	  
       fm[i][2] += fmi[2];
 
-      // check newton pair  =>  see if needs correction
       if (newton_pair || j < nlocal) {
 	f[j][0] -= fi[0];	 
         f[j][1] -= fi[1];	  	  
@@ -293,7 +292,7 @@ void PairSpinExchange::compute(int eflag, int vflag)
       }
 
       if (eflag) {
-	if (rsq <= cut_ex_2) {
+	if (rsq <= local_cut2) {
 	  evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
 	  evdwl *= hbar;
 	}
@@ -375,31 +374,25 @@ void PairSpinExchange::compute_single_pair(int ii, double fmi[3])
 }
 
 /* ----------------------------------------------------------------------
-   compute the magnetic exchange interaction between spin i and spin j
+   compute exchange interaction between spins i and j
 ------------------------------------------------------------------------- */
 
 void PairSpinExchange::compute_exchange(int i, int j, double rsq, double fmi[3], double spi[3], double spj[3])
 {
   int *type = atom->type;  
   int itype, jtype;
+  double Jex, ra;
   itype = type[i];
   jtype = type[j];
-  
-  double local_cut2 = cut_spin_exchange[itype][jtype]*cut_spin_exchange[itype][jtype];
-  
-  if (rsq <= local_cut2) {
-    double Jex, ra;
 
-    ra = rsq/J3[itype][jtype]/J3[itype][jtype]; 
-    Jex = 4.0*J1_mag[itype][jtype]*ra;
-    Jex *= (1.0-J2[itype][jtype]*ra);
-    Jex *= exp(-ra);
- 
-    fmi[0] += Jex*spj[0];
-    fmi[1] += Jex*spj[1];
-    fmi[2] += Jex*spj[2];
+  ra = rsq/J3[itype][jtype]/J3[itype][jtype]; 
+  Jex = 4.0*J1_mag[itype][jtype]*ra;
+  Jex *= (1.0-J2[itype][jtype]*ra);
+  Jex *= exp(-ra);
 
-  }
+  fmi[0] += Jex*spj[0];
+  fmi[1] += Jex*spj[1];
+  fmi[2] += Jex*spj[2];
 }
 
 /* ----------------------------------------------------------------------
@@ -410,29 +403,23 @@ void PairSpinExchange::compute_exchange_mech(int i, int j, double rsq, double ri
 {
   int *type = atom->type;  
   int itype, jtype;
+  double Jex, Jex_mech, ra, rr, iJ3;
   itype = type[i];
   jtype = type[j];
- 
-  double local_cut2 = cut_spin_exchange[itype][jtype]*cut_spin_exchange[itype][jtype];
+    
+  Jex = J1_mech[itype][jtype];
+  iJ3 = 1.0/(J3[itype][jtype]*J3[itype][jtype]);
 
-  if (rsq <= local_cut2) {
-    double Jex, Jex_mech, ra, rr, iJ3;
-    Jex = J1_mech[itype][jtype];
-    iJ3 = 1.0/(J3[itype][jtype]*J3[itype][jtype]);
+  ra = rsq*iJ3; 
+  rr = sqrt(rsq)*iJ3;
 
-    ra = rsq*iJ3; 
-    rr = sqrt(rsq)*iJ3;
+  Jex_mech = 1.0-ra-J2[itype][jtype]*ra*(2.0-ra);
+  Jex_mech *= 8.0*Jex*rr*exp(-ra);
+  Jex_mech *= (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]); 
 
-    Jex_mech = 1.0-ra-J2[itype][jtype]*ra*(2.0-ra);
-    Jex_mech *= 8.0*Jex*rr*exp(-ra);
-    Jex_mech *= (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]); 
-
-    fi[0] -= Jex_mech*rij[0];
-    fi[1] -= Jex_mech*rij[1];
-    fi[2] -= Jex_mech*rij[2];
-
-  }
-          
+  fi[0] -= Jex_mech*rij[0];
+  fi[1] -= Jex_mech*rij[1];
+  fi[2] -= Jex_mech*rij[2];
 }
 
 /* ----------------------------------------------------------------------

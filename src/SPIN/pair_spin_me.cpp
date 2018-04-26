@@ -49,6 +49,7 @@ PairSpinMe::PairSpinMe(LAMMPS *lmp) : PairSpin(lmp)
 {
   single_enable = 0;
   no_virial_fdotr_compute = 1;
+  lattice_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -163,6 +164,16 @@ void PairSpinMe::init_style()
   }
   if (ifix == modify->nfix)
     error->all(FLERR,"pair/spin style requires nve/spin");
+  
+  // get the lattice_flag from nve/spin
+
+  for (int i = 0; i < modify->nfix; i++) {
+    if (strcmp(modify->fix[i]->style,"nve/spin") == 0) {
+      lockfixnvespin = (FixNVESpin *) modify->fix[i];
+      lattice_flag = lockfixnvespin->lattice_flag;
+    }
+  }
+
 }
 
 /* ----------------------------------------------------------------------
@@ -195,11 +206,12 @@ void PairSpinMe::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;  
   double evdwl, ecoul;
-  double xi[3], rij[3];
+  double xi[3], rij[3], eij[3];
   double spi[3], spj[3];
   double fi[3], fj[3];
   double fmi[3], fmj[3];
-  double rsq, rd, inorm;
+  double local_cut2;
+  double rsq, inorm;
   int *ilist,*jlist,*numneigh,**firstneigh;  
 
   evdwl = ecoul = 0.0;
@@ -224,6 +236,8 @@ void PairSpinMe::compute(int eflag, int vflag)
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
+    itype = type[i];
+
     xi[0] = x[i][0];
     xi[1] = x[i][1];
     xi[2] = x[i][2];
@@ -256,17 +270,22 @@ void PairSpinMe::compute(int eflag, int vflag)
       rij[2] = x[j][2] - xi[2];
       rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2]; 
       inorm = 1.0/sqrt(rsq);
-      rij[0] *= inorm;
-      rij[1] *= inorm;
-      rij[2] *= inorm;
+      eij[0] *= inorm;
+      eij[1] *= inorm;
+      eij[2] *= inorm;
 
-      itype = type[i];
       jtype = type[j];
+
+      local_cut2 = cut_spin_me[itype][jtype]*cut_spin_me[itype][jtype];
 
       // compute me interaction
 
-      compute_me(i,j,rsq,rij,fmi,spi,spj);
-      compute_me_mech(i,j,fi,spi,spj);
+      if (rsq <= local_cut2) {
+	compute_me(i,j,rsq,eij,fmi,spi,spj);
+	if (lattice_flag) {
+	  compute_me_mech(i,j,fi,spi,spj);
+	}
+      }
 
       f[i][0] += fi[0];	 
       f[i][1] += fi[1];	  	  
@@ -305,6 +324,7 @@ void PairSpinMe::compute_single_pair(int ii, double fmi[3])
   int *type = atom->type;
   double **x = atom->x;
   double **sp = atom->sp;
+  double local_cut2;
 
   double xi[3], rij[3], eij[3];
   double spi[3], spj[3];
@@ -313,7 +333,7 @@ void PairSpinMe::compute_single_pair(int ii, double fmi[3])
   int i,j,jj,inum,jnum,itype,jtype;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  double rsq, rd, inorm;
+  double rsq, inorm;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -321,6 +341,7 @@ void PairSpinMe::compute_single_pair(int ii, double fmi[3])
   firstneigh = list->firstneigh;
 
   i = ilist[ii];
+  itype = type[i];
 
   spi[0] = sp[i][0];
   spi[1] = sp[i][1];
@@ -339,8 +360,8 @@ void PairSpinMe::compute_single_pair(int ii, double fmi[3])
 
     j = jlist[jj];
     j &= NEIGHMASK;
-    itype = type[ii];
     jtype = type[j];
+    local_cut2 = cut_spin_me[itype][jtype]*cut_spin_me[itype][jtype];
 
     spj[0] = sp[j][0];
     spj[1] = sp[j][1];
@@ -355,7 +376,9 @@ void PairSpinMe::compute_single_pair(int ii, double fmi[3])
     eij[1] = inorm*rij[1];
     eij[2] = inorm*rij[2];
 
-    compute_me(i,j,rsq,eij,fmi,spi,spj);
+    if (rsq <= local_cut2) {
+      compute_me(i,j,rsq,eij,fmi,spi,spj);
+    }
   }
 
 }

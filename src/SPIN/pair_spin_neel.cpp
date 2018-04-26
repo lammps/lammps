@@ -50,6 +50,7 @@ PairSpinNeel::PairSpinNeel(LAMMPS *lmp) : PairSpin(lmp)
 {
   single_enable = 0;
   no_virial_fdotr_compute = 1;
+  lattice_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -174,6 +175,16 @@ void PairSpinNeel::init_style()
   }
   if (ifix == modify->nfix)
     error->all(FLERR,"pair/spin style requires nve/spin");
+  
+  // get the lattice_flag from nve/spin
+
+  for (int i = 0; i < modify->nfix; i++) {
+    if (strcmp(modify->fix[i]->style,"nve/spin") == 0) {
+      lockfixnvespin = (FixNVESpin *) modify->fix[i];
+      lattice_flag = lockfixnvespin->lattice_flag;
+    }
+  }
+
 }
 
 /* ----------------------------------------------------------------------
@@ -208,7 +219,8 @@ void PairSpinNeel::compute(int eflag, int vflag)
   double xi[3], rij[3], eij[3];
   double spi[3], spj[3];
   double fi[3], fmi[3];
-  double rsq, rd, inorm;
+  double local_cut2;
+  double rsq, inorm;
   int *ilist,*jlist,*numneigh,**firstneigh;  
 
   evdwl = ecoul = 0.0;
@@ -228,7 +240,7 @@ void PairSpinNeel::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  // pair spin computations
+  // computation of the neel interaction
   // loop over atoms and their neighbors
 
   for (ii = 0; ii < inum; ii++) {
@@ -270,10 +282,16 @@ void PairSpinNeel::compute(int eflag, int vflag)
       itype = type[i];
       jtype = type[j];
 
+      local_cut2 = cut_spin_neel[itype][jtype]*cut_spin_neel[itype][jtype];
+
       // compute magnetic and mechanical components of soc_neel
 
-      compute_neel(i,j,rsq,eij,fmi,spi,spj);
-      compute_neel_mech(i,j,rsq,eij,fi,spi,spj);
+      if (rsq <= local_cut2) {
+	compute_neel(i,j,rsq,eij,fmi,spi,spj);
+	if (lattice_flag) {
+	  compute_neel_mech(i,j,rsq,eij,fi,spi,spj);
+	}
+      }
       
       f[i][0] += fi[0];	 
       f[i][1] += fi[1];	  	  
@@ -307,11 +325,11 @@ void PairSpinNeel::compute(int eflag, int vflag)
 
 void PairSpinNeel::compute_single_pair(int ii, double fmi[3]) 
 {
-
   const int nlocal = atom->nlocal;
   int *type = atom->type;
   double **x = atom->x;
   double **sp = atom->sp;
+  double local_cut2;
 
   double xi[3], rij[3], eij[3];
   double spi[3], spj[3];
@@ -328,6 +346,7 @@ void PairSpinNeel::compute_single_pair(int ii, double fmi[3])
   firstneigh = list->firstneigh;
 
   i = ilist[ii];
+  itype = type[i];
 
   spi[0] = sp[i][0];
   spi[1] = sp[i][1];
@@ -346,8 +365,9 @@ void PairSpinNeel::compute_single_pair(int ii, double fmi[3])
 
     j = jlist[jj];
     j &= NEIGHMASK;
-    itype = type[ii];
     jtype = type[j];
+
+    local_cut2 = cut_spin_neel[itype][jtype]*cut_spin_neel[itype][jtype];
 
     spj[0] = sp[j][0];
     spj[1] = sp[j][1];
@@ -359,7 +379,9 @@ void PairSpinNeel::compute_single_pair(int ii, double fmi[3])
     rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
     inorm = 1.0/sqrt(rsq);
 
-    compute_neel(i,j,rsq,eij,fmi,spi,spj);
+    if (rsq <= local_cut2) {
+      compute_neel(i,j,rsq,eij,fmi,spi,spj);
+    }
   }
 
 }
@@ -373,67 +395,64 @@ void PairSpinNeel::compute_neel(int i, int j, double rsq, double eij[3], double 
   itype = type[i];
   jtype = type[j];
 
-  double local_cut2 = cut_spin_neel[itype][jtype]*cut_spin_neel[itype][jtype];
+  double gij, q1ij, q2ij, ra;
+  double pdx, pdy, pdz;
+  double pq1x, pq1y, pq1z;
+  double pq2x, pq2y, pq2z;
 
-  if (rsq <= local_cut2) {
-    double gij, q1ij, q2ij, ra;
-    double pdx, pdy, pdz;
-    double pq1x, pq1y, pq1z;
-    double pq2x, pq2y, pq2z;
+  // pseudo-dipolar component
+  
+  ra = rsq/g3[itype][jtype]/g3[itype][jtype]; 
+  gij = 4.0*g1[itype][jtype]*ra;
+  gij *= (1.0-g2[itype][jtype]*ra);
+  gij *= exp(-ra);
 
-    // pseudo-dipolar component
-    ra = rsq/g3[itype][jtype]/g3[itype][jtype]; 
-    gij = 4.0*g1[itype][jtype]*ra;
-    gij *= (1.0-g2[itype][jtype]*ra);
-    gij *= exp(-ra);
+  double scalar_eij_si = eij[0]*spi[0] + eij[1]*spi[1] + eij[2]*spi[2];
+  double scalar_eij_sj = eij[0]*spj[0] + eij[1]*spj[1] + eij[2]*spj[2];
+  double scalar_si_sj = spi[0]*spj[0] + spi[1]*spj[1] + spi[2]*spj[2];
 
-    double scalar_eij_si = eij[0]*spi[0] + eij[1]*spi[1] + eij[2]*spi[2];
-    double scalar_eij_sj = eij[0]*spj[0] + eij[1]*spj[1] + eij[2]*spj[2];
-    double scalar_si_sj = spi[0]*spj[0] + spi[1]*spj[1] + spi[2]*spj[2];
+  double gij_eij_sj = gij*scalar_eij_sj; 
+  double gij_3 = gij/3.0;
+  pdx = gij_eij_sj*eij[0] - gij_3*spj[0];
+  pdy = gij_eij_sj*eij[1] - gij_3*spj[1];
+  pdz = gij_eij_sj*eij[2] - gij_3*spj[2];
 
-    double gij_eij_sj = gij*scalar_eij_sj; 
-    double gij_3 = gij/3.0;
-    pdx = gij_eij_sj*eij[0] - gij_3*spj[0];
-    pdy = gij_eij_sj*eij[1] - gij_3*spj[1];
-    pdz = gij_eij_sj*eij[2] - gij_3*spj[2];
+  // pseudo-quadrupolar component
 
-    // pseudo-quadrupolar component
-    ra = rsq/q3[itype][jtype]/q3[itype][jtype];
-    q1ij = 4.0*q1[itype][jtype]*ra;
-    q1ij *= (1.0-q2[itype][jtype]*ra);
-    q1ij *= exp(-ra);
-    q2ij = (-2.0*q1ij/9.0);
+  ra = rsq/q3[itype][jtype]/q3[itype][jtype];
+  q1ij = 4.0*q1[itype][jtype]*ra;
+  q1ij *= (1.0-q2[itype][jtype]*ra);
+  q1ij *= exp(-ra);
+  q2ij = (-2.0*q1ij/9.0);
 
-    double scalar_eij_si_2 = scalar_eij_si*scalar_eij_si;
-    pq1x = -(scalar_eij_si_2*scalar_eij_si_2 - scalar_si_sj/3.0)*spj[0]/3.0;
-    pq1y = -(scalar_eij_si_2*scalar_eij_si_2 - scalar_si_sj/3.0)*spj[1]/3.0;
-    pq1z = -(scalar_eij_si_2*scalar_eij_si_2 - scalar_si_sj/3.0)*spj[2]/3.0;
+  double scalar_eij_si_2 = scalar_eij_si*scalar_eij_si;
+  pq1x = -(scalar_eij_si_2*scalar_eij_si_2 - scalar_si_sj/3.0)*spj[0]/3.0;
+  pq1y = -(scalar_eij_si_2*scalar_eij_si_2 - scalar_si_sj/3.0)*spj[1]/3.0;
+  pq1z = -(scalar_eij_si_2*scalar_eij_si_2 - scalar_si_sj/3.0)*spj[2]/3.0;
 
-    double pqt1 = (scalar_eij_sj*scalar_eij_sj-scalar_si_sj/3.0);
-    pq1x += pqt1*(2.0*scalar_eij_si*eij[0] - spj[0]/3.0);
-    pq1y += pqt1*(2.0*scalar_eij_si*eij[1] - spj[1]/3.0);
-    pq1z += pqt1*(2.0*scalar_eij_si*eij[2] - spj[2]/3.0);
+  double pqt1 = (scalar_eij_sj*scalar_eij_sj-scalar_si_sj/3.0);
+  pq1x += pqt1*(2.0*scalar_eij_si*eij[0] - spj[0]/3.0);
+  pq1y += pqt1*(2.0*scalar_eij_si*eij[1] - spj[1]/3.0);
+  pq1z += pqt1*(2.0*scalar_eij_si*eij[2] - spj[2]/3.0);
 
-    pq1x *= q1ij;
-    pq1y *= q1ij;
-    pq1z *= q1ij;
+  pq1x *= q1ij;
+  pq1y *= q1ij;
+  pq1z *= q1ij;
 
-    double scalar_eij_sj_3 = scalar_eij_sj*scalar_eij_sj*scalar_eij_sj;
-    pq2x = 3.0*scalar_eij_si_2*scalar_eij_sj*eij[0] + scalar_eij_sj_3*eij[0];
-    pq2y = 3.0*scalar_eij_si_2*scalar_eij_sj*eij[1] + scalar_eij_sj_3*eij[1];
-    pq2z = 3.0*scalar_eij_si_2*scalar_eij_sj*eij[2] + scalar_eij_sj_3*eij[2];
+  double scalar_eij_sj_3 = scalar_eij_sj*scalar_eij_sj*scalar_eij_sj;
+  pq2x = 3.0*scalar_eij_si_2*scalar_eij_sj*eij[0] + scalar_eij_sj_3*eij[0];
+  pq2y = 3.0*scalar_eij_si_2*scalar_eij_sj*eij[1] + scalar_eij_sj_3*eij[1];
+  pq2z = 3.0*scalar_eij_si_2*scalar_eij_sj*eij[2] + scalar_eij_sj_3*eij[2];
 
-    pq2x *= q2ij;
-    pq2y *= q2ij;
-    pq2z *= q2ij;
+  pq2x *= q2ij;
+  pq2y *= q2ij;
+  pq2z *= q2ij;
 
-    // summing three contributions
-    fmi[0] += (pdx + pq1x + pq2x);
-    fmi[1] += (pdy + pq1y + pq2y);
-    fmi[2] += (pdz + pq1z + pq2z);
+  // adding three contributions
 
-  }
-
+  fmi[0] += (pdx + pq1x + pq2x);
+  fmi[1] += (pdy + pq1y + pq2y);
+  fmi[2] += (pdz + pq1z + pq2z);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -445,9 +464,6 @@ void PairSpinNeel::compute_neel_mech(int i, int j, double rsq, double eij[3], do
   itype = type[i];
   jtype = type[j];
   
-  double local_cut2 = cut_spin_neel[itype][jtype]*cut_spin_neel[itype][jtype];
-
-  if (rsq <= local_cut2) {
     double g_mech, gij, dgij;
     double q_mech, q1ij, dq1ij;
     double q2ij, dq2ij;
@@ -463,6 +479,7 @@ void PairSpinNeel::compute_neel_mech(int i, int j, double rsq, double eij[3], do
     double scalar_eij_sj = eij[0]*spj[0]+eij[1]*spj[1]+eij[2]*spj[2];
   
     // pseudo-dipolar component
+    
     g_mech = g1_mech[itype][jtype];        
     ig3 = 1.0/(g3[itype][jtype]*g3[itype][jtype]);
   
@@ -485,6 +502,7 @@ void PairSpinNeel::compute_neel_mech(int i, int j, double rsq, double eij[3], do
     pdz = -(pdt1*eij[2] + pdt2*spi[2] + pdt3*spj[2]);
   
     // pseudo-quadrupolar component
+    
     q_mech = q1_mech[itype][jtype];        
     iq3 = 1.0/(q3[itype][jtype]*q3[itype][jtype]);
   
@@ -500,73 +518,72 @@ void PairSpinNeel::compute_neel_mech(int i, int j, double rsq, double eij[3], do
   dq1ij *= 8.0*q_mech*rr*exp(-ra);
   dq2ij = -2.0*dq1ij/9.0;
 
-    double scalar_eij_si_2 = scalar_eij_si*scalar_eij_si;
-    double scalar_eij_sj_2 = scalar_eij_sj*scalar_eij_sj;
-    double pqt1 = scalar_eij_si_2 - scalar_si_sj/3.0;
-    double pqt2 = scalar_eij_sj_2 - scalar_si_sj/3.0;
-    pq1x = dq1ij * pqt1 * pqt2 * eij[0];
-    pq1y = dq1ij * pqt1 * pqt2 * eij[1];
-    pq1z = dq1ij * pqt1 * pqt2 * eij[2]; 
-  
-    double scalar_eij_si_3 = scalar_eij_si*scalar_eij_si*scalar_eij_si;
-    double scalar_eij_sj_3 = scalar_eij_sj*scalar_eij_sj*scalar_eij_sj;
-    double scalar_si_sj_2 = scalar_si_sj*scalar_si_sj;
-  /*  double pqt3 = 2.0*scalar_eij_si*scalar_eij_sj_3/drij; 
-    double pqt4 = 2.0*scalar_eij_sj*scalar_eij_si_3/drij; 
-    double pqt5 = -2.0*scalar_si_sj*scalar_eij_si/(3.0*drij);
-    double pqt6 = -2.0*scalar_si_sj*scalar_eij_sj/(3.0*drij);
-  //  pq1x += q1ij*(spi[0]*(pqt3+pqt6) + spj[0]*(pqt4+));
-    pq1x += q1ij*(pqt3*spi[0]+pqt4*spj[0]+pqt5*spi[0]+pqt6*spi[0]);
-    pq1y += q1ij*(pqt3*spi[1]+pqt4*spj[1]+pqt5*spi[1]+pqt6*spj[1]);
-    pq1z += q1ij*(pqt3*spi[2]+pqt4*spj[2]+pqt5*spi[2]+pqt6*spj[2]);
-  */
-    double pqt3 = 2.0*scalar_eij_si*(scalar_eij_sj_2-scalar_si_sj/3.0)/drij;
-    double pqt4 = 2.0*scalar_eij_sj*(scalar_eij_si_2-scalar_si_sj/3.0)/drij;
-    pq1x += q1ij*(pqt3*spi[0] + pqt4*spj[0]);
-    pq1y += q1ij*(pqt3*spi[1] + pqt4*spj[1]);
-    pq1z += q1ij*(pqt3*spi[2] + pqt4*spj[2]);
-    double pqt7 = 4.0*scalar_eij_si_2*scalar_eij_sj_2/drij;
-    double pqt8 = 2.0*scalar_si_sj_2*scalar_eij_sj/(3.0*drij);
-    double pqt9 = 2.0*scalar_si_sj_2*scalar_eij_si/(3.0*drij);
-    pq1x -= q1ij*(pqt7 + pqt8 + pqt9)*eij[0];
-    pq1y -= q1ij*(pqt7 + pqt8 + pqt9)*eij[1];
-    pq1z -= q1ij*(pqt7 + pqt8 + pqt9)*eij[2];
-  
-  /*
-    double pqt3 = 2.0*scalar_eij_si*(scalar_eij_sj_2-scalar_si_sj/3.0)/drij;
-    double pqt4 = 2.0*scalar_eij_sj*(scalar_eij_si_2-scalar_si_sj/3.0)/drij;
-    pq1x += q1ij*(pqt3*spi[0] + pqt4*spj[0]);
-    pq1y += q1ij*(pqt3*spi[1] + pqt4*spj[1]);
-    pq1z += q1ij*(pqt3*spi[2] + pqt4*spj[2]);
-  */
-  
-    //double scalar_eij_si_3 = scalar_eij_si*scalar_eij_si*scalar_eij_si;
-    //double scalar_eij_sj_3 = scalar_eij_sj*scalar_eij_sj*scalar_eij_sj;
-    double pqt10 = scalar_eij_sj*scalar_eij_si_3;
-    double pqt11 = scalar_eij_si*scalar_eij_sj_3;
-    pq2x = dq2ij*(pqt10 + pqt11)*eij[0];
-    pq2y = dq2ij*(pqt10 + pqt11)*eij[1];
-    pq2z = dq2ij*(pqt10 + pqt11)*eij[2];
-  
-    double pqt12 = scalar_eij_si_3/drij;
-    double pqt13 = scalar_eij_sj_3/drij;
-    double pqt14 = 3.0*scalar_eij_sj*scalar_eij_si_2/drij;
-    double pqt15 = 3.0*scalar_eij_si*scalar_eij_sj_2/drij;
-    pq2x += q2ij*((pqt12+pqt15)*spj[0]+(pqt13+pqt14)*spi[0]);
-    pq2y += q2ij*((pqt12+pqt15)*spj[1]+(pqt13+pqt14)*spi[1]);
-    pq2z += q2ij*((pqt12+pqt15)*spj[2]+(pqt13+pqt14)*spi[2]);
-    double pqt16 = 4.0*scalar_eij_sj*scalar_eij_si_3/drij;
-    double pqt17 = 4.0*scalar_eij_si*scalar_eij_sj_3/drij;
-    pq2x -= q2ij*(pqt16 + pqt17)*eij[0];
-    pq2y -= q2ij*(pqt16 + pqt17)*eij[1];
-    pq2z -= q2ij*(pqt16 + pqt17)*eij[2];
-  
-    fi[0] = pdx + pq1x + pq2x;
-    fi[2] = pdy + pq1y + pq2y;
-    fi[3] = pdz + pq1z + pq2z;
-  
-  }
+  double scalar_eij_si_2 = scalar_eij_si*scalar_eij_si;
+  double scalar_eij_sj_2 = scalar_eij_sj*scalar_eij_sj;
+  double pqt1 = scalar_eij_si_2 - scalar_si_sj/3.0;
+  double pqt2 = scalar_eij_sj_2 - scalar_si_sj/3.0;
+  pq1x = dq1ij * pqt1 * pqt2 * eij[0];
+  pq1y = dq1ij * pqt1 * pqt2 * eij[1];
+  pq1z = dq1ij * pqt1 * pqt2 * eij[2]; 
 
+  double scalar_eij_si_3 = scalar_eij_si*scalar_eij_si*scalar_eij_si;
+  double scalar_eij_sj_3 = scalar_eij_sj*scalar_eij_sj*scalar_eij_sj;
+  double scalar_si_sj_2 = scalar_si_sj*scalar_si_sj;
+/*  double pqt3 = 2.0*scalar_eij_si*scalar_eij_sj_3/drij; 
+  double pqt4 = 2.0*scalar_eij_sj*scalar_eij_si_3/drij; 
+  double pqt5 = -2.0*scalar_si_sj*scalar_eij_si/(3.0*drij);
+  double pqt6 = -2.0*scalar_si_sj*scalar_eij_sj/(3.0*drij);
+//  pq1x += q1ij*(spi[0]*(pqt3+pqt6) + spj[0]*(pqt4+));
+  pq1x += q1ij*(pqt3*spi[0]+pqt4*spj[0]+pqt5*spi[0]+pqt6*spi[0]);
+  pq1y += q1ij*(pqt3*spi[1]+pqt4*spj[1]+pqt5*spi[1]+pqt6*spj[1]);
+  pq1z += q1ij*(pqt3*spi[2]+pqt4*spj[2]+pqt5*spi[2]+pqt6*spj[2]);
+*/
+  double pqt3 = 2.0*scalar_eij_si*(scalar_eij_sj_2-scalar_si_sj/3.0)/drij;
+  double pqt4 = 2.0*scalar_eij_sj*(scalar_eij_si_2-scalar_si_sj/3.0)/drij;
+  pq1x += q1ij*(pqt3*spi[0] + pqt4*spj[0]);
+  pq1y += q1ij*(pqt3*spi[1] + pqt4*spj[1]);
+  pq1z += q1ij*(pqt3*spi[2] + pqt4*spj[2]);
+  double pqt7 = 4.0*scalar_eij_si_2*scalar_eij_sj_2/drij;
+  double pqt8 = 2.0*scalar_si_sj_2*scalar_eij_sj/(3.0*drij);
+  double pqt9 = 2.0*scalar_si_sj_2*scalar_eij_si/(3.0*drij);
+  pq1x -= q1ij*(pqt7 + pqt8 + pqt9)*eij[0];
+  pq1y -= q1ij*(pqt7 + pqt8 + pqt9)*eij[1];
+  pq1z -= q1ij*(pqt7 + pqt8 + pqt9)*eij[2];
+
+/*
+  double pqt3 = 2.0*scalar_eij_si*(scalar_eij_sj_2-scalar_si_sj/3.0)/drij;
+  double pqt4 = 2.0*scalar_eij_sj*(scalar_eij_si_2-scalar_si_sj/3.0)/drij;
+  pq1x += q1ij*(pqt3*spi[0] + pqt4*spj[0]);
+  pq1y += q1ij*(pqt3*spi[1] + pqt4*spj[1]);
+  pq1z += q1ij*(pqt3*spi[2] + pqt4*spj[2]);
+*/
+
+  //double scalar_eij_si_3 = scalar_eij_si*scalar_eij_si*scalar_eij_si;
+  //double scalar_eij_sj_3 = scalar_eij_sj*scalar_eij_sj*scalar_eij_sj;
+  double pqt10 = scalar_eij_sj*scalar_eij_si_3;
+  double pqt11 = scalar_eij_si*scalar_eij_sj_3;
+  pq2x = dq2ij*(pqt10 + pqt11)*eij[0];
+  pq2y = dq2ij*(pqt10 + pqt11)*eij[1];
+  pq2z = dq2ij*(pqt10 + pqt11)*eij[2];
+
+  double pqt12 = scalar_eij_si_3/drij;
+  double pqt13 = scalar_eij_sj_3/drij;
+  double pqt14 = 3.0*scalar_eij_sj*scalar_eij_si_2/drij;
+  double pqt15 = 3.0*scalar_eij_si*scalar_eij_sj_2/drij;
+  pq2x += q2ij*((pqt12+pqt15)*spj[0]+(pqt13+pqt14)*spi[0]);
+  pq2y += q2ij*((pqt12+pqt15)*spj[1]+(pqt13+pqt14)*spi[1]);
+  pq2z += q2ij*((pqt12+pqt15)*spj[2]+(pqt13+pqt14)*spi[2]);
+  double pqt16 = 4.0*scalar_eij_sj*scalar_eij_si_3/drij;
+  double pqt17 = 4.0*scalar_eij_si*scalar_eij_sj_3/drij;
+  pq2x -= q2ij*(pqt16 + pqt17)*eij[0];
+  pq2y -= q2ij*(pqt16 + pqt17)*eij[1];
+  pq2z -= q2ij*(pqt16 + pqt17)*eij[2];
+
+  // adding three contributions
+
+  fi[0] = pdx + pq1x + pq2x;
+  fi[2] = pdy + pq1y + pq2y;
+  fi[3] = pdz + pq1z + pq2z;
 }
 
 /* ----------------------------------------------------------------------

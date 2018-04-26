@@ -49,6 +49,7 @@ PairSpinDmi::PairSpinDmi(LAMMPS *lmp) : PairSpin(lmp)
 {
   single_enable = 0;
   no_virial_fdotr_compute = 1;
+  lattice_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -165,6 +166,16 @@ void PairSpinDmi::init_style()
   }
   if (ifix == modify->nfix)
     error->all(FLERR,"pair/spin style requires nve/spin");
+  
+  // get the lattice_flag from nve/spin
+
+  for (int i = 0; i < modify->nfix; i++) {
+    if (strcmp(modify->fix[i]->style,"nve/spin") == 0) {
+      lockfixnvespin = (FixNVESpin *) modify->fix[i];
+      lattice_flag = lockfixnvespin->lattice_flag;
+    }
+  }
+
 }
 
 /* ----------------------------------------------------------------------
@@ -194,12 +205,13 @@ void *PairSpinDmi::extract(const char *str, int &dim)
 
 void PairSpinDmi::compute(int eflag, int vflag)
 {
-  int i,j,ii,jj,inum,jnum;
+  int i,j,ii,jj,inum,jnum,itype,jtype;
   double evdwl, ecoul;
-  double xi[3], rij[3];
+  double xi[3], rij[3], eij[3];
   double spi[3], spj[3];
   double fi[3], fmi[3];
-  double rsq;
+  double local_cut2;
+  double rsq, inorm;
   int *ilist,*jlist,*numneigh,**firstneigh;  
 
   evdwl = ecoul = 0.0;
@@ -224,6 +236,7 @@ void PairSpinDmi::compute(int eflag, int vflag)
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
+    itype = type[i];
     
     xi[0] = x[i][0];
     xi[1] = x[i][1];
@@ -242,6 +255,7 @@ void PairSpinDmi::compute(int eflag, int vflag)
    
       j = jlist[jj];
       j &= NEIGHMASK;
+      jtype = type[j];
 
       spj[0] = sp[j][0]; 
       spj[1] = sp[j][1]; 
@@ -252,16 +266,27 @@ void PairSpinDmi::compute(int eflag, int vflag)
       fi[0] = fi[1] = fi[2] = 0.0;
       fmi[0] = fmi[1] = fmi[2] = 0.0;
       rij[0] = rij[1] = rij[2] = 0.0;
+      eij[0] = eij[1] = eij[2] = 0.0;
      
       rij[0] = x[j][0] - xi[0];
       rij[1] = x[j][1] - xi[1];
       rij[2] = x[j][2] - xi[2];
       rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2]; 
-      
+      inorm = 1.0/sqrt(rsq);
+      eij[0] = rij[0]*inorm;
+      eij[1] = rij[1]*inorm;
+      eij[2] = rij[2]*inorm;
+
+      local_cut2 = cut_spin_dmi[itype][jtype]*cut_spin_dmi[itype][jtype];
+
       // compute magnetic and mechanical components of soc_dmi
       
-      compute_dmi(i,j,rsq,fmi,spi,spj);
-      compute_dmi_mech(i,j,fi,spi,spj);
+      if (rsq <= local_cut2) {
+	compute_dmi(i,j,rsq,eij,fmi,spi,spj);
+	if (lattice_flag) {
+	  compute_dmi_mech(i,j,fi,spi,spj);
+	}
+      }
 
       f[i][0] += fi[0];	 
       f[i][1] += fi[1];	  	  
@@ -300,15 +325,16 @@ void PairSpinDmi::compute_single_pair(int ii, double fmi[3])
   int *type = atom->type;
   double **x = atom->x;
   double **sp = atom->sp;
+  double local_cut2;
 
-  double xi[3], rij[3];
+  double xi[3], rij[3], eij[3];
   double spi[3], spj[3];
 
   int iexchange, idmi, ineel, ime;
   int i,j,jj,inum,jnum,itype,jtype;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  double rsq, rd, inorm;
+  double rsq, inorm;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -316,6 +342,7 @@ void PairSpinDmi::compute_single_pair(int ii, double fmi[3])
   firstneigh = list->firstneigh;
 
   i = ilist[ii];
+  itype = type[i];
 
   spi[0] = sp[i][0];
   spi[1] = sp[i][1];
@@ -332,7 +359,6 @@ void PairSpinDmi::compute_single_pair(int ii, double fmi[3])
 
     j = jlist[jj];
     j &= NEIGHMASK;
-    itype = type[ii];
     jtype = type[j];
 
     spj[0] = sp[j][0];
@@ -344,8 +370,15 @@ void PairSpinDmi::compute_single_pair(int ii, double fmi[3])
     rij[2] = x[j][2] - xi[2];
     rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
     inorm = 1.0/sqrt(rsq);
+    eij[0] = rij[0]*inorm;
+    eij[1] = rij[1]*inorm;
+    eij[2] = rij[2]*inorm;
 
-    compute_dmi(i,j,rsq,fmi,spi,spj);
+    local_cut2 = cut_spin_dmi[itype][jtype]*cut_spin_dmi[itype][jtype];
+
+    if (rsq <= local_cut2) {
+      compute_dmi(i,j,rsq,eij,fmi,spi,spj);
+    }
 
   }
 
@@ -355,30 +388,21 @@ void PairSpinDmi::compute_single_pair(int ii, double fmi[3])
    compute the dmi interaction between spin i and spin j
 ------------------------------------------------------------------------- */
 
-void PairSpinDmi::compute_dmi(int i, int j, double rsq, double fmi[3], double spi[3], double spj[3])
+void PairSpinDmi::compute_dmi(int i, int j, double rsq, double eij[3], double fmi[3], double spi[3], double spj[3])
 {
   int *type = atom->type;  
   int itype, jtype;
+  double dmix, dmiy, dmiz;	
   itype = type[i];
   jtype = type[j];
 
-  double local_cut2 = cut_spin_dmi[itype][jtype]*cut_spin_dmi[itype][jtype];
+  dmix = eij[1]*v_dmz[itype][jtype] - eij[2]*v_dmy[itype][jtype];
+  dmiy = eij[2]*v_dmx[itype][jtype] - eij[2]*v_dmz[itype][jtype];
+  dmiz = eij[0]*v_dmy[itype][jtype] - eij[1]*v_dmx[itype][jtype];
 
-  if (rsq <= local_cut2) {
-    double dmix, dmiy, dmiz;	
-
-    //dmix = DM[itype][jtype] * v_dmx[itype][jtype];
-    //dmiy = DM[itype][jtype] * v_dmy[itype][jtype];
-    //dmiz = DM[itype][jtype] * v_dmz[itype][jtype];
-    dmix = v_dmx[itype][jtype];
-    dmiy = v_dmy[itype][jtype];
-    dmiz = v_dmz[itype][jtype];
-
-    fmi[0] += (spj[1]*dmiz - spj[2]*dmiy);
-    fmi[1] += (spj[2]*dmix - spj[0]*dmiz);
-    fmi[2] += (spj[0]*dmiy - spj[1]*dmix);
-
-  }
+  fmi[0] += (spj[1]*dmiz - spj[2]*dmiy);
+  fmi[1] += (spj[2]*dmix - spj[0]*dmiz);
+  fmi[2] += (spj[0]*dmiy - spj[1]*dmix);
 }
 
 /* ----------------------------------------------------------------------

@@ -32,7 +32,11 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-AngleDipole::AngleDipole(LAMMPS *lmp) : Angle(lmp) {}
+AngleDipole::AngleDipole(LAMMPS *lmp) : Angle(lmp)
+{
+  k = NULL;
+  gamma0 = NULL;
+}
 
 /* ---------------------------------------------------------------------- */
 

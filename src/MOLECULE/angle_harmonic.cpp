@@ -30,7 +30,11 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-AngleHarmonic::AngleHarmonic(LAMMPS *lmp) : Angle(lmp) {}
+AngleHarmonic::AngleHarmonic(LAMMPS *lmp) : Angle(lmp)
+{
+  k = NULL;
+  theta0 = NULL;
+}
 
 /* ---------------------------------------------------------------------- */
 

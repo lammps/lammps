@@ -34,7 +34,11 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-AngleCosineSquared::AngleCosineSquared(LAMMPS *lmp) : Angle(lmp) {}
+AngleCosineSquared::AngleCosineSquared(LAMMPS *lmp) : Angle(lmp)
+{
+  k = NULL;
+  theta0 = NULL;
+}
 
 /* ---------------------------------------------------------------------- */
 

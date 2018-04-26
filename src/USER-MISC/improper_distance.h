@@ -33,6 +33,7 @@ class ImproperDistance : public Improper {
   void coeff(int, char **);
   void write_restart(FILE *);
   void read_restart(FILE *);
+  void write_data(FILE *);
 
  private:
   double *k,*chi;

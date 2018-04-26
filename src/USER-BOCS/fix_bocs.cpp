@@ -34,7 +34,7 @@
 #include "domain.h"
 #include "memory.h"
 #include "error.h"
-
+#include "citeme.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

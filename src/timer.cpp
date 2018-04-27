@@ -22,7 +22,7 @@
 
 #ifdef _WIN32
 #include <windows.h>
-#include <cstdint>
+#include <stdint.h> // <cstdint> requires C++-11
 #else
 #include <sys/time.h>
 #include <sys/resource.h>

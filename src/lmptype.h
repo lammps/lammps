@@ -37,7 +37,7 @@
 #endif
 
 #include <climits>
-#include <cstdint>
+#include <stdint.h> // <cstdint> requires C++-11
 #include <cinttypes>
 
 // grrr - IBM Power6 does not provide this def in their system header files

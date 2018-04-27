@@ -14,7 +14,7 @@
 
 #include <cmath>
 #include <cstring>
-#include <cstdint>
+#include <stdint.h> // <cstdint> requires C++-11
 #include "pair_agni_omp.h"
 #include "atom.h"
 #include "comm.h"

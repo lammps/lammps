@@ -23,7 +23,7 @@
 #include <cstring>
 #include <cmath>
 #include <cstdio>
-#include <cstdint>
+#include <stdint.h> // <cstdint> requires C++-11
 #include <cassert>
 #include <cstddef>
 #include "lmptype.h"

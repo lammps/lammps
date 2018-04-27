@@ -1,5 +1,5 @@
 #include <cmath>
-#include <cstdint>
+#include <stdint.h> // <cstdint> requires C++-11
 #include "math_special.h"
 
 using namespace LAMMPS_NS;

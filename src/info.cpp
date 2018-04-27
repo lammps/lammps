@@ -51,7 +51,7 @@
 #ifdef _WIN32
 #define PSAPI_VERSION 1
 #include <windows.h>
-#include <cstdint>
+#include <stdint.h> // <cstdint> requires C++-11
 #include <psapi.h>
 #else
 #include <sys/time.h>

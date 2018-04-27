@@ -20,7 +20,7 @@ DihedralStyle(helix,DihedralHelix)
 #ifndef LMP_DIHEDRAL_HELIX_H
 #define LMP_DIHEDRAL_HELIX_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "dihedral.h"
 
 namespace LAMMPS_NS {

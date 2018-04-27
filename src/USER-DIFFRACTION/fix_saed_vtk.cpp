@@ -16,8 +16,9 @@
    Incorporating SAED: Shawn Coleman (Arkansas)
 ------------------------------------------------------------------------- */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
+#include <cmath>
 #include "fix_saed_vtk.h"
 #include "update.h"
 #include "modify.h"
@@ -29,7 +30,6 @@
 #include "memory.h"
 #include "error.h"
 #include "force.h"
-#include <math.h>
 #include "domain.h"
 
 using namespace LAMMPS_NS;

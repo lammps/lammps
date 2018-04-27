@@ -15,7 +15,7 @@
    Contributing author: James Larentzos (U.S. Army Research Laboratory)
 ------------------------------------------------------------------------- */
 
-#include <stdlib.h>
+#include <cstdlib>
 #include "atom_vec_dpd.h"
 #include "atom.h"
 #include "comm.h"

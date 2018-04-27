@@ -22,7 +22,7 @@ PairStyle(kolmogorov/crespi/full,PairKolmogorovCrespiFull)
 
 #include "pair.h"
 #include "my_page.h"
-#include <math.h>
+#include <cmath>
 
 namespace LAMMPS_NS {
 

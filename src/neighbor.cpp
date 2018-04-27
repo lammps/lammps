@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"

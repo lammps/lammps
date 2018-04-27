@@ -12,9 +12,9 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <string.h>
-#include <stdint.h>
+#include <cmath>
+#include <cstring>
+#include <cstdint>
 #include "pair_agni_omp.h"
 #include "atom.h"
 #include "comm.h"

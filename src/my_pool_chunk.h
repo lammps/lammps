@@ -43,7 +43,7 @@ public variables:
 #ifndef LAMMPS_MY_POOL_CHUNK_H
 #define LAMMPS_MY_POOL_CHUNK_H
 
-#include <stdlib.h>
+#include <cstdlib>
 
 namespace LAMMPS_NS {
 

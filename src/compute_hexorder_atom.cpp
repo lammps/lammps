@@ -16,8 +16,8 @@
 ------------------------------------------------------------------------- */
 
 #include <complex>
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 #include "compute_hexorder_atom.h"
 #include "atom.h"
 #include "update.h"

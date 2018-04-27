@@ -16,8 +16,8 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 #include "improper_distance.h"
 #include "atom.h"
 #include "comm.h"

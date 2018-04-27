@@ -12,8 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <string.h>
-#include <ctype.h>
+#include <cstring>
+#include <cctype>
 #include "lammps.h"
 #include "style_angle.h"
 #include "style_atom.h"

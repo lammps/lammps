@@ -14,10 +14,10 @@
    Contributing author: Oliver Henrich (University of Strathclyde, Glasgow)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_oxdna_hbond.h"
 #include "mf_oxdna.h"
 #include "atom.h"

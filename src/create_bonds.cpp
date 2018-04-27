@@ -15,8 +15,8 @@
    Contributing authors: Mike Salerno (NRL) added single methods
 ------------------------------------------------------------------------- */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include "create_bonds.h"
 #include "atom.h"
 #include "domain.h"

@@ -37,8 +37,8 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 #include "improper_ring.h"
 #include "atom.h"
 #include "comm.h"

@@ -15,8 +15,8 @@
    Contributing author: Naveen Michaud-Agrawal (Johns Hopkins U)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 #include "angle_cosine_squared.h"
 #include "atom.h"
 #include "neighbor.h"

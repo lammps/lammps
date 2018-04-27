@@ -15,9 +15,9 @@
    Contributing author: Paul Coffman (IBM)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "dump_cfg_mpiio.h"
 #include "atom.h"
 #include "domain.h"
@@ -34,7 +34,6 @@
 #ifdef LMP_USER_IO_TIMER
 #include <sys/times.h>
 #include <hwi/include/bqc/A2_inlines.h>
-#include <stdlib.h>
 long dumpCFGTimestamps[10];
 #endif
 

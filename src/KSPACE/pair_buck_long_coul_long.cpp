@@ -15,10 +15,10 @@
    Contributing author: Pieter J. in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "math_vector.h"
 #include "pair_buck_long_coul_long.h"
 #include "atom.h"

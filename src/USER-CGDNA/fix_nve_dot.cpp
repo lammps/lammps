@@ -14,9 +14,9 @@
    Contributing author: Oliver Henrich (University of Strathclyde, Glasgow)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstring>
 #include "fix_nve_dot.h"
 #include "math_extra.h"
 #include "atom.h"

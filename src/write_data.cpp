@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <string.h>
+#include <cstring>
 #include "write_data.h"
 #include "atom.h"
 #include "atom_vec.h"

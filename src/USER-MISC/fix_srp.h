@@ -20,7 +20,7 @@ FixStyle(SRP,FixSRP)
 #ifndef LMP_FIX_SRP_H
 #define LMP_FIX_SRP_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "fix.h"
 
 namespace LAMMPS_NS {

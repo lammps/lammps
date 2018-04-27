@@ -17,10 +17,10 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstring>
+#include <cstdio>
+#include <cstdlib>
+#include <cmath>
 #include "pppm_disp.h"
 #include "math_const.h"
 #include "atom.h"
@@ -4278,7 +4278,7 @@ void PPPMDisp::particle_map(double delx, double dely, double delz,
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
-  if (!ISFINITE(boxlo[0]) || !ISFINITE(boxlo[1]) || !ISFINITE(boxlo[2]))
+  if (!std::isfinite(boxlo[0]) || !std::isfinite(boxlo[1]) || !std::isfinite(boxlo[2]))
     error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
 
   int flag = 0;

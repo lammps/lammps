@@ -12,8 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 #include "dump_local.h"
 #include "atom.h"
 #include "modify.h"

@@ -36,9 +36,9 @@
 #define __STDC_FORMAT_MACROS
 #endif
 
-#include <limits.h>
-#include <stdint.h>
-#include <inttypes.h>
+#include <climits>
+#include <cstdint>
+#include <cinttypes>
 
 // grrr - IBM Power6 does not provide this def in their system header files
 
@@ -199,8 +199,6 @@ typedef int bigint;
 #else
 #define _noalias
 #endif
-
-#define ISFINITE(x) isfinite(x)
 
 // settings to enable LAMMPS to build under Windows
 

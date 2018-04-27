@@ -16,10 +16,10 @@
    (based on Stillinger-Weber pair style)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_nb3b_harmonic.h"
 #include "atom.h"
 #include "neighbor.h"

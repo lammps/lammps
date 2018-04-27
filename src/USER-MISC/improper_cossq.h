@@ -20,7 +20,7 @@ ImproperStyle(cossq,ImproperCossq)
 #ifndef LMP_IMPROPER_COSSQ_H
 #define LMP_IMPROPER_COSSQ_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "improper.h"
 
 namespace LAMMPS_NS {

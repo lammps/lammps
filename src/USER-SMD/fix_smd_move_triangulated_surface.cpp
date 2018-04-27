@@ -22,12 +22,12 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
+#include <cmath>
+#include <cstdlib>
+#include <Eigen/Eigen>
 #include "fix_smd_move_triangulated_surface.h"
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -41,7 +41,6 @@
 #include "error.h"
 #include "pair.h"
 #include "domain.h"
-#include <Eigen/Eigen>
 #include "math_const.h"
 
 using namespace Eigen;

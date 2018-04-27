@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
+#include <cmath>
 #include "compute_gyration.h"
 #include "update.h"
 #include "atom.h"

@@ -15,8 +15,8 @@
    Contributing authors: Randy Schunk (Sandia)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 #include "pair_yukawa_colloid.h"
 #include "atom.h"
 #include "atom_vec.h"

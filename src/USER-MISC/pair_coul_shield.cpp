@@ -18,10 +18,10 @@
    [Maaravi et al, J. Phys. Chem. C 121, 22826-22835 (2017)]
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_coul_shield.h"
 #include "atom.h"
 #include "comm.h"

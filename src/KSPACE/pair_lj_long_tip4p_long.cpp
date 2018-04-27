@@ -16,10 +16,10 @@
                          Rolf Isele-Holder (Aachen University)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_lj_long_tip4p_long.h"
 #include "angle.h"
 #include "atom.h"

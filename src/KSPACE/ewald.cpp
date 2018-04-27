@@ -19,10 +19,10 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
+#include <cmath>
 #include "ewald.h"
 #include "atom.h"
 #include "comm.h"

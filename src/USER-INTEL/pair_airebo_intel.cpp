@@ -19,12 +19,13 @@
 #pragma offload_attribute(push, target(mic))
 #endif
 #include <unistd.h>
-#include <stdlib.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <assert.h>
-#include <stddef.h>
+#include <cstdlib>
+#include <cstring>
+#include <cmath>
+#include <cstdio>
+#include <cstdint>
+#include <cassert>
+#include <cstddef>
 #include "lmptype.h"
 #include "intel_preprocess.h"
 #include "intel_intrinsics_airebo.h"
@@ -35,7 +36,6 @@
 #if defined(_OPENMP)
 #include <omp.h>
 #endif
-#include <string.h>
 #include "pair_airebo_intel.h"
 #include "atom.h"
 #include "neighbor.h"

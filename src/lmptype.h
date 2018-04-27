@@ -39,6 +39,7 @@
 #include <limits.h>
 #include <stdint.h>
 #include <inttypes.h>
+#include <cmath>
 
 // grrr - IBM Power6 does not provide this def in their system header files
 
@@ -200,7 +201,7 @@ typedef int bigint;
 #define _noalias
 #endif
 
-#define ISFINITE(x) isfinite(x)
+#define ISFINITE(x) std::isfinite(x)
 
 // settings to enable LAMMPS to build under Windows
 

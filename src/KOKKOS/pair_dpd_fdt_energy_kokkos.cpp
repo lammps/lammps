@@ -111,7 +111,10 @@ void PairDPDfdtEnergyKokkos<DeviceType>::init_style()
 #ifdef DPD_USE_RAN_MARS
   rand_pool.init(random,seed);
 #else
-  rand_pool.init(seed + comm->me,DeviceType::max_hardware_threads());
+  typedef Kokkos::Experimental::UniqueToken<
+    DeviceType, Kokkos::Experimental::UniqueTokenScope::Global> unique_token_type;
+  unique_token_type unique_token;
+  rand_pool.init(seed + comm->me,unique_token.size());
 #endif
 }
 

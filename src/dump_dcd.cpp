@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include <cmath>
-#include <cinttypes>
+#include <inttypes.h> // <cinttypes> requires C++-11
 #include <cstdio>
 #include <ctime>
 #include <cstring>

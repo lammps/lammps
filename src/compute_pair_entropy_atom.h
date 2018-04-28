@@ -39,8 +39,6 @@ class ComputePairEntropyAtom : public Compute {
   double *pair_entropy;
   double sigma, cutoff, cutoff2;
   double cutsq, cutsq2;
-  double *rbin, *rbinsq;
-  double *gofr;
   double deltar;
   int deltabin;
   double invNormConstantBase;

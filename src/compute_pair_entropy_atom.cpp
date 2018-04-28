@@ -40,9 +40,9 @@ using namespace MathConst;
 
 ComputePairEntropyAtom::ComputePairEntropyAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  gofr(NULL), pair_entropy(NULL)
+  list(NULL), pair_entropy(NULL)
 {
-  if (narg < 5 || narg > 7)
+  if (narg < 5 || narg > 5)
     error->all(FLERR,"Illegal compute pentropy/atom command");
 
   sigma = force->numeric(FLERR,arg[3]);
@@ -52,7 +52,6 @@ ComputePairEntropyAtom::ComputePairEntropyAtom(LAMMPS *lmp, int narg, char **arg
   avg_flag = 0;
 
   // optional keywords
-
   int iarg = 5;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"avg") == 0) {
@@ -60,12 +59,12 @@ ComputePairEntropyAtom::ComputePairEntropyAtom(LAMMPS *lmp, int narg, char **arg
         error->all(FLERR,"Illegal compute pentropy/atom missing arguments after avg");
       if (strcmp(arg[iarg+1],"yes") == 0) avg_flag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) avg_flag = 0;
-      else error->all(FLERR,"Illegal compute centro/atom argument after avg should be yes or no");
+      else error->all(FLERR,"Illegal compute pentropy/atom argument after avg should be yes or no");
       cutoff2 = force->numeric(FLERR,arg[iarg+2]);
       if (cutoff2 < 0.0) error->all(FLERR,"Illegal compute pentropy/atom command; negative cutoff2");
       cutsq2 = cutoff2*cutoff2;
       iarg += 2;
-    } else error->all(FLERR,"Illegal compute centro/atom argument after sigma and cutoff should be avg");
+    } else error->all(FLERR,"Illegal compute pentropy/atom argument after sigma and cutoff should be avg");
   }
 
   peratom_flag = 1;
@@ -74,14 +73,8 @@ ComputePairEntropyAtom::ComputePairEntropyAtom(LAMMPS *lmp, int narg, char **arg
   nbin = static_cast<int>(cutoff / sigma) + 1;
   nmax = 0;
   maxneigh = 0;
-  deltabin = 2;
+  deltabin = 1;
   deltar = sigma; 
-  rbin = new double(nbin);
-  rbinsq = new double(nbin);
-  for (int i = 0; i < nbin; i++) {
-    rbin[i] = i*deltar;
-    rbinsq[i] = rbin[i]*rbin[i];
-  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -89,7 +82,6 @@ ComputePairEntropyAtom::ComputePairEntropyAtom(LAMMPS *lmp, int narg, char **arg
 ComputePairEntropyAtom::~ComputePairEntropyAtom()
 {
   memory->destroy(pair_entropy);
-  memory->destroy(gofr);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -141,8 +133,15 @@ void ComputePairEntropyAtom::compute_peratom()
   int i,j,k,ii,jj,kk,n,inum,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq,value;
   int *ilist,*jlist,*numneigh,**firstneigh;
+  double rbin[nbin], rbinsq[nbin];
 
   invoked_peratom = update->ntimestep;
+
+  // Initialize distance vectors
+  for (int i = 0; i < nbin; i++) {
+    rbin[i] = i*deltar;
+    rbinsq[i] = rbin[i]*rbin[i];
+  }
 
   // grow pair_entropy array if necessary
 
@@ -162,6 +161,11 @@ void ComputePairEntropyAtom::compute_peratom()
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
+  // Compute some constants
+  double nlist_cutoff = force->pair->cutforce;
+  double sigmasq2=2*sigma*sigma;
+  double volume = (4./3.)*MY_PI*nlist_cutoff*nlist_cutoff*nlist_cutoff;
+
   // compute pair entropy for each atom in group
   // use full neighbor list
 
@@ -179,18 +183,16 @@ void ComputePairEntropyAtom::compute_peratom()
 
       
       // calculate kernel normalization
-      double nlist_cutoff = force->pair->cutforce;
-      double density = jnum/((4./3.)*MY_PI*cutoff*nlist_cutoff*nlist_cutoff*nlist_cutoff);
+      double density = jnum/volume;
       double normConstantBase = 2*MY_PI*density; // Normalization of g(r)
       normConstantBase *= sqrt(2.*MY_PI)*sigma; // Normalization of gaussian
       double invNormConstantBase = 1./normConstantBase;
-      double sigmasq2=2*sigma*sigma;
 
       // loop over list of all neighbors within force cutoff
 
-      // re-initialize gofr
-      delete [] gofr;
-      gofr = new double(nbin);
+      // initialize gofr
+      double gofr[nbin];
+      for(int k=0;k<nbin;++k) gofr[k]=0.;
 
       for (jj = 0; jj < jnum; jj++) {
         j = jlist[jj];
@@ -219,20 +221,38 @@ void ComputePairEntropyAtom::compute_peratom()
         }
       }
 
-      //value = 0.0;
-      //for (j = 0; j < nhalf; j++) value += pairs[j];
-      pair_entropy[i] = gofr[0];
+      /*
+      if (ii==500) {
+        for(int k=0;k<nbin;++k) {
+          fprintf(screen,"%f %f \n",rbin[k], gofr[k]);
+        }
+      }
+      */
+
+      // Calculate integrand
+      double integrand[nbin];
+      for(int k=0;k<nbin;++k){
+        if (gofr[k]<1.e-10) {
+          integrand[k] = rbinsq[k];
+        } else {
+          integrand[k] = (gofr[k]*log(gofr[k])-gofr[k]+1)*rbinsq[k];
+        }
+      }
+
+      // Integrate with trapezoid rule
+      double value = 0.;
+      for(int k=1;k<nbin-1;++k){
+        value += integrand[k];
+      }
+      value += 0.5*integrand[0];
+      value += 0.5*integrand[nbin-1];
+      value *= deltar;
+
+      pair_entropy[i] = -2*MY_PI*density*value;
 
     }
   }
 
-  //delete [] pairs;
-
-  for (ii = 0; ii < inum; ii++) {
-    i = ilist[ii];
-    if (mask[i] & groupbit)
-      array_atom[i][0] = pair_entropy[i];
-  }
 }
 
 

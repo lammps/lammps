@@ -36,7 +36,7 @@ class ComputePairEntropyAtom : public Compute {
  private:
   int nmax,maxneigh, nbin;
   class NeighList *list;
-  double *pair_entropy;
+  double *pair_entropy, *pair_entropy_avg;
   double sigma, cutoff, cutoff2;
   double cutsq, cutsq2;
   double deltar;

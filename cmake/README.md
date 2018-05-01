@@ -16,6 +16,42 @@ The following is a tutorial-style introduction in using the CMake system. It
 should give you the necessary foundation to understand how to do the most common
 tasks, act as a reference and provide examples of typical use cases.
 
+## Table of Contents
+
+   * [Quick Start for the Impatient](#quick-start-for-the-impatient)
+   * [Building LAMMPS using cmake](#building-lammps-using-cmake-1)
+      * [Prerequisites](#prerequisites)
+      * [Build directory vs. Source Directory](#build-directory-vs-source-directory)
+   * [Reference](#reference)
+      * [Common CMAKE Configuration Options](#common-cmake-configuration-options)
+      * [LAMMPS Configuration Options](#lammps-configuration-options)
+      * [Parallelization and Accelerator Packages](#parallelization-and-accelerator-packages)
+      * [Default Packages](#default-packages)
+      * [Other Packages](#other-packages)
+      * [User Packages](#user-packages)
+      * [Package-Specific Configuration Options](#package-specific-configuration-options)
+         * [KSPACE Package](#kspace-package)
+         * [MKL](#mkl)
+         * [FFTW2](#fftw2)
+         * [FFTW3](#fftw3)
+         * [LAPACK](#lapack)
+         * [PYTHON Package](#python-package)
+         * [GPU Package](#gpu-package)
+         * [VORONOI Package](#voronoi-package)
+         * [USER-SMD Package](#user-smd-package)
+      * [Optional Features](#optional-features)
+         * [zlib support](#zlib-support)
+         * [JPEG support](#jpeg-support)
+         * [PNG support](#png-support)
+         * [GZIP support](#gzip-support)
+         * [FFMPEG support](#ffmpeg-support)
+      * [Compilers](#compilers)
+         * [Building with GNU Compilers](#building-with-gnu-compilers)
+         * [Building with Intel Compilers](#building-with-intel-compilers)
+         * [Building with LLVM/Clang Compilers](#building-with-llvmclang-compilers)
+      * [Examples](#examples)
+
+
 ## Quick Start for the Impatient
 If you want to skip ahead and just run the compilation using `cmake`, please
 find a minimal example below. Together with the options reference below, this

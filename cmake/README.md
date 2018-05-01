@@ -488,7 +488,12 @@ providing the identical features and USER interface.</strong></p>
 </tr>
 <tr>
   <td><code>ENABLE_MOLECULE</code></td>
-  <td></td>
+  <td>
+  A large number of atom, pair, bond, angle, dihedral, improper styles that are
+  used to model molecular systems with fixed covalent bonds. The pair styles
+  include the Dreiding (hydrogen-bonding) and CHARMM force fields, and a TIP4P
+  water model.
+  </td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -498,7 +503,11 @@ providing the identical features and USER interface.</strong></p>
 </tr>
 <tr>
   <td><code>ENABLE_PERI</code></td>
-  <td></td>
+  <td>
+  An atom style, several pair styles which implement different Peridynamics
+  materials models, and several computes which calculate diagnostics.
+  Peridynamics is a a particle-based meshless continuum model.
+  </td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -508,7 +517,11 @@ providing the identical features and USER interface.</strong></p>
 </tr>
 <tr>
   <td><code>ENABLE_QEQ</code></td>
-  <td></td>
+  <td>
+  Several fixes for performing charge equilibration (QEq) via different
+  algorithms. These can be used with pair styles that perform QEq as part of
+  their formulation.
+  </td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -518,7 +531,12 @@ providing the identical features and USER interface.</strong></p>
 </tr>
 <tr>
   <td><code>ENABLE_REAX</code></td>
-  <td></td>
+  <td>
+  A pair style which wraps a Fortran library which implements the ReaxFF
+  potential, which is a universal reactive force field. See the USER-REAXC
+  package for an alternate implementation in C/C++. Also a fix reax/bonds
+  command for monitoring molecules as bonds are created and destroyed.
+  </td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -528,7 +546,15 @@ providing the identical features and USER interface.</strong></p>
 </tr>
 <tr>
   <td><code>ENABLE_REPLICA</code></td>
-  <td></td>
+  <td>
+  A collection of multi-replica methods which can be used when running multiple
+  LAMMPS simulations (replicas). See Section 6.5 for an overview of how to run
+  multi-replica simulations in LAMMPS. Methods in the package include nudged
+  elastic band (NEB), parallel replica dynamics (PRD), temperature accelerated
+  dynamics (TAD), parallel tempering, and a verlet/split algorithm for
+  performing long-range Coulombics on one set of processors, and the remainder
+  of the force field calcalation on another set.
+  </td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -538,7 +564,12 @@ providing the identical features and USER interface.</strong></p>
 </tr>
 <tr>
   <td><code>ENABLE_RIGID</code></td>
-  <td></td>
+  <td>
+  Fixes which enforce rigid constraints on collections of atoms or particles.
+  This includes SHAKE and RATTLE, as well as varous rigid-body integrators for a
+  few large bodies or many small bodies. Also several computes which calculate
+  properties of rigid bodies.
+  </td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -548,7 +579,10 @@ providing the identical features and USER interface.</strong></p>
 </tr>
 <tr>
   <td><code>ENABLE_SHOCK</code></td>
-  <td></td>
+  <td>
+  Fixes for running impact simulations where a shock-wave passes through a
+  material.
+  </td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -558,7 +592,12 @@ providing the identical features and USER interface.</strong></p>
 </tr>
 <tr>
   <td><code>ENABLE_SNAP</code></td>
-  <td></td>
+  <td>
+  A pair style for the spectral neighbor analysis potential (SNAP). SNAP is
+  methodology for deriving a highly accurate classical potential fit to a large
+  archive of quantum mechanical (DFT) data. Also several computes which analyze
+  attributes of the potential.
+  </td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -568,7 +607,10 @@ providing the identical features and USER interface.</strong></p>
 </tr>
 <tr>
   <td><code>ENABLE_SRD</code></td>
-  <td></td>
+  <td>
+  A pair of fixes which implement the Stochastic Rotation Dynamics (SRD) method
+  for coarse-graining of a solvent, typically around large colloidal particles.
+  </td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -602,7 +644,7 @@ providing the identical features and USER interface.</strong></p>
 </tr>
 <tr>
   <td><code>ENABLE_PYTHON</code></td>
-  <td>Enable all default packages</td>
+  <td>Enable support for Python scripting inside of LAMMPS.</td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -612,7 +654,10 @@ providing the identical features and USER interface.</strong></p>
 </tr>
 <tr>
   <td><code>ENABLE_MSCG</code></td>
-  <td>Enable all default packages</td>
+  <td>
+  A fix mscg command which can parameterize a Multi-Scale Coarse-Graining (MSCG)
+  model using the open-source MS-CG library.
+  </td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -622,7 +667,9 @@ providing the identical features and USER interface.</strong></p>
 </tr>
 <tr>
   <td><code>ENABLE_MPIIO</code></td>
-  <td>Enable all default packages</td>
+  <td>
+  Support for parallel output/input of dump and restart files via the MPIIO library.
+  </td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -632,7 +679,12 @@ providing the identical features and USER interface.</strong></p>
 </tr>
 <tr>
   <td><code>ENABLE_POEMS</code></td>
-  <td>Enable all default packages</td>
+  <td>
+  A fix that wraps the Parallelizable Open source Efficient Multibody Software
+  (POEMS) library, which is able to simulate the dynamics of articulated body
+  systems. These are systems with multiple rigid bodies (collections of
+  particles) whose motion is coupled by connections at hinge points.
+  </td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -642,7 +694,11 @@ providing the identical features and USER interface.</strong></p>
 </tr>
 <tr>
   <td><code>ENABLE_LATTE</code></td>
-  <td>Enable all default packages</td>
+  <td>
+  A fix command which wraps the LATTE DFTB code, so that molecular dynamics can
+  be run with LAMMPS using density-functional tight-binding quantum forces
+  calculated by LATTE.
+  </td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -666,7 +722,11 @@ providing the identical features and USER interface.</strong></p>
 <tbody>
 <tr>
   <td><code>ENABLE_USER-ATC</code></td>
-  <td></td>
+  <td>
+  ATC stands for atoms-to-continuum. This package implements a fix atc command
+  to either couple molecular dynamics with continuum finite element equations or
+  perform on-the-fly conversion of atomic information to continuum fields.
+  </td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -676,7 +736,11 @@ providing the identical features and USER interface.</strong></p>
 </tr>
 <tr>
   <td><code>ENABLE_USER-AWPMD</code></td>
-  <td></td>
+  <td>
+  AWPMD stands for Antisymmetrized Wave Packet Molecular Dynamics. This package
+  implements an atom, pair, and fix style which allows electrons to be treated
+  as explicit particles in a classical molecular dynamics model.
+  </td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -686,17 +750,12 @@ providing the identical features and USER interface.</strong></p>
 </tr>
 <tr>
   <td><code>ENABLE_USER-CGDNA</code></td>
-  <td></td>
   <td>
-  <dl>
-    <dt><code>off</code> (default)</dt>
-    <dt><code>on</code></dt>
-  </dl>
+  Several pair styles, a bond style, and integration fixes for coarse-grained
+  models of single- and double-stranded DNA based on the oxDNA model of Doye,
+  Louis and Ouldridge at the University of Oxford. This includes Langevin-type
+  rigid-body integrators with improved stability.
   </td>
-</tr>
-<tr>
-  <td><code>ENABLE_USER-MESO</code></td>
-  <td></td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -706,7 +765,11 @@ providing the identical features and USER interface.</strong></p>
 </tr>
 <tr>
   <td><code>ENABLE_USER-CGSDK</code></td>
-  <td></td>
+  <td>
+  Several pair styles and an angle style which implement the coarse-grained SDK
+  model of Shinoda, DeVane, and Klein which enables simulation of ionic liquids,
+  electrolytes, lipids and charged amino acids.
+  </td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -716,7 +779,13 @@ providing the identical features and USER interface.</strong></p>
 </tr>
 <tr>
   <td><code>ENABLE_USER-COLVARS</code></td>
-  <td></td>
+  <td>
+  COLVARS stands for collective variables, which can be used to implement
+  various enhanced sampling methods, including Adaptive Biasing Force,
+  Metadynamics, Steered MD, Umbrella Sampling and Restraints. A fix colvars
+  command is implemented which wraps a COLVARS library, which implements these
+  methods. simulations.
+  </td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -726,7 +795,10 @@ providing the identical features and USER interface.</strong></p>
 </tr>
 <tr>
   <td><code>ENABLE_USER-DIFFRACTION</code></td>
-  <td></td>
+  <td>
+  Two computes and a fix for calculating x-ray and electron diffraction
+  intensities based on kinematic diffraction theory.
+  </td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -736,7 +808,16 @@ providing the identical features and USER interface.</strong></p>
 </tr>
 <tr>
   <td><code>ENABLE_USER-DPD</code></td>
-  <td></td>
+  <td>
+  DPD stands for dissipative particle dynamics. This package implements
+  coarse-grained DPD-based models for energetic, reactive molecular crystalline
+  materials. It includes many pair styles specific to these systems, including
+  for reactive DPD, where each particle has internal state for multiple species
+  and a coupled set of chemical reaction ODEs are integrated each timestep.
+  Highly accurate time integrators for isothermal, isoenergetic, isobaric and
+  isenthalpic conditions are included. These enable long timesteps via the
+  Shardlow splitting algorithm.
+  </td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -746,7 +827,10 @@ providing the identical features and USER interface.</strong></p>
 </tr>
 <tr>
   <td><code>ENABLE_USER-DRUDE</code></td>
-  <td></td>
+  <td>
+  Fixes, pair styles, and a compute to simulate thermalized Drude oscillators as
+  a model of polarization.
+  </td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -756,7 +840,13 @@ providing the identical features and USER interface.</strong></p>
 </tr>
 <tr>
   <td><code>ENABLE_USER-EFF</code></td>
-  <td></td>
+  <td>
+  EFF stands for electron force field which allows a classical MD code to model
+  electrons as particles of variable radius. This package contains atom, pair,
+  fix and compute styles which implement the eFF as described in A.
+  Jaramillo-Botero, J. Su, Q. An, and W.A. Goddard III, JCC, 2010. The eFF
+  potential was first introduced by Su and Goddard, in 2007.
+  </td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -766,7 +856,11 @@ providing the identical features and USER interface.</strong></p>
 </tr>
 <tr>
   <td><code>ENABLE_USER-FEP</code></td>
-  <td></td>
+  <td>
+  FEP stands for free energy perturbation. This package provides methods for
+  performing FEP simulations by using a fix adapt/fep command with soft-core
+  pair potentials, which have a “soft” in their style name.
+  </td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -776,7 +870,12 @@ providing the identical features and USER interface.</strong></p>
 </tr>
 <tr>
   <td><code>ENABLE_USER-H5MD</code></td>
-  <td></td>
+  <td>
+  H5MD stands for HDF5 for MD. HDF5 is a portable, binary, self-describing file
+  format, used by many scientific simulations. H5MD is a format for molecular
+  simulations, built on top of HDF5. This package implements a dump h5md command
+  to output LAMMPS snapshots in this format.
+  </td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -786,7 +885,10 @@ providing the identical features and USER interface.</strong></p>
 </tr>
 <tr>
   <td><code>ENABLE_USER-LB</code></td>
-  <td></td>
+  <td>
+  Fixes which implement a background Lattice-Boltzmann (LB) fluid, which can be
+  used to model MD particles influenced by hydrodynamic forces.
+  </td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -796,7 +898,13 @@ providing the identical features and USER interface.</strong></p>
 </tr>
 <tr>
   <td><code>ENABLE_USER-MANIFOLD</code></td>
-  <td></td>
+  <td>
+  Several fixes and a “manifold” class which enable simulations of particles
+  constrained to a manifold (a 2D surface within the 3D simulation box). This is
+  done by applying the RATTLE constraint algorithm to formulate single-particle
+  constraint functions g(xi,yi,zi) = 0 and their derivative (i.e. the normal of
+  the manifold) n = grad(g).
+  </td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -806,7 +914,29 @@ providing the identical features and USER interface.</strong></p>
 </tr>
 <tr>
   <td><code>ENABLE_USER-MEAMC</code></td>
-  <td></td>
+  <td>
+  A pair style for the modified embedded atom (MEAM) potential translated from
+  the Fortran version in the MEAM package to plain C++. In contrast to the MEAM
+  package, no library needs to be compiled and the pair style can be
+  instantiated multiple times.
+  </td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
+  <td><code>ENABLE_USER-MESO</code></td>
+  <td>
+  Several extensions of the the dissipative particle dynamics (DPD) method.
+  Specifically, energy-conserving DPD (eDPD) that can model non-isothermal
+  processes, many-body DPD (mDPD) for simulating vapor-liquid coexistence, and
+  transport DPD (tDPD) for modeling advection-diffusion-reaction systems. The
+  equations of motion of these DPD extensions are integrated through a modified
+  velocity-Verlet (MVV) algorithm.
+  </td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -816,7 +946,16 @@ providing the identical features and USER interface.</strong></p>
 </tr>
 <tr>
   <td><code>ENABLE_USER-MGPT</code></td>
-  <td></td>
+  <td>
+  A pair style which provides a fast implementation of the quantum-based MGPT
+  multi-ion potentials. The MGPT or model GPT method derives from
+  first-principles DFT-based generalized pseudopotential theory (GPT) through a
+  series of systematic approximations valid for mid-period transition metals
+  with nearly half-filled d bands. The MGPT method was originally developed by
+  John Moriarty at LLNL. The pair style in this package calculates forces and
+  energies using an optimized matrix-MGPT algorithm due to Tomas Oppelstrup at
+  LLNL.
+  </td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -826,7 +965,11 @@ providing the identical features and USER interface.</strong></p>
 </tr>
 <tr>
   <td><code>ENABLE_USER-MISC</code></td>
-  <td></td>
+  <td>
+  A potpourri of (mostly) unrelated features contributed to LAMMPS by users.
+  Each feature is a single fix, compute, pair, bond, angle, dihedral, improper,
+  or command style.
+  </td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -836,7 +979,14 @@ providing the identical features and USER interface.</strong></p>
 </tr>
 <tr>
   <td><code>ENABLE_USER-MOFFF</code></td>
-  <td></td>
+  <td>
+  Pair, angle and improper styles needed to employ the MOF-FF force field by
+  Schmid and coworkers with LAMMPS. MOF-FF is a first principles derived force
+  field with the primary aim to simulate MOFs and related porous framework
+  materials, using spherical Gaussian charges. It is described in S. Bureekaew
+  et al., Phys. Stat. Sol. B 2013, 250, 1128-1141. For the usage of MOF-FF see
+  the example in the example directory as well as the MOF+ website.
+  </td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -846,7 +996,11 @@ providing the identical features and USER interface.</strong></p>
 </tr>
 <tr>
   <td><code>ENABLE_USER-MOLFILE</code></td>
-  <td></td>
+  <td>
+  A dump molfile command which uses molfile plugins that are bundled with the
+  VMD molecular visualization and analysis program, to enable LAMMPS to dump
+  snapshots in formats compatible with various molecular simulation tools.
+  </td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -856,7 +1010,12 @@ providing the identical features and USER interface.</strong></p>
 </tr>
 <tr>
   <td><code>ENABLE_USER-NETCDF</code></td>
-  <td></td>
+  <td>
+  Dump styles for writing NetCDF formatted dump files. NetCDF is a portable,
+  binary, self-describing file format developed on top of HDF5. The file
+  contents follow the AMBER NetCDF trajectory conventions
+  (http://ambermd.org/netcdf/nctraj.xhtml), but include extensions.
+  </td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -866,7 +1025,11 @@ providing the identical features and USER interface.</strong></p>
 </tr>
 <tr>
   <td><code>ENABLE_USER-PHONON</code></td>
-  <td></td>
+  <td>
+  A fix phonon command that calculates dynamical matrices, which can then be
+  used to compute phonon dispersion relations, directly from molecular dynamics
+  simulations.
+  </td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -876,67 +1039,9 @@ providing the identical features and USER interface.</strong></p>
 </tr>
 <tr>
   <td><code>ENABLE_USER-QTB</code></td>
-  <td></td>
   <td>
-  <dl>
-    <dt><code>off</code> (default)</dt>
-    <dt><code>on</code></dt>
-  </dl>
+  Two fixes which provide a self-consistent quantum treatment of vibrational modes in a classical molecular dynamics simulation. By coupling the MD simulation to a colored thermostat, it introduces zero point energy into the system, altering the energy power spectrum and the heat capacity to account for their quantum nature. This is useful when modeling systems at temperatures lower than their classical limits or when temperatures ramp across the classical limits in a simulation.
   </td>
-</tr>
-<tr>
-  <td><code>ENABLE_USER-REAXC</code></td>
-  <td></td>
-  <td>
-  <dl>
-    <dt><code>off</code> (default)</dt>
-    <dt><code>on</code></dt>
-  </dl>
-  </td>
-</tr>
-<tr>
-  <td><code>ENABLE_USER-SMD</code></td>
-  <td></td>
-  <td>
-  <dl>
-    <dt><code>off</code> (default)</dt>
-    <dt><code>on</code></dt>
-  </dl>
-  </td>
-</tr>
-<tr>
-  <td><code>ENABLE_USER-SMTBQ</code></td>
-  <td></td>
-  <td>
-  <dl>
-    <dt><code>off</code> (default)</dt>
-    <dt><code>on</code></dt>
-  </dl>
-  </td>
-</tr>
-<tr>
-  <td><code>ENABLE_USER-SPH</code></td>
-  <td></td>
-  <td>
-  <dl>
-    <dt><code>off</code> (default)</dt>
-    <dt><code>on</code></dt>
-  </dl>
-  </td>
-</tr>
-<tr>
-  <td><code>ENABLE_USER-UEF</code></td>
-  <td></td>
-  <td>
-  <dl>
-    <dt><code>off</code> (default)</dt>
-    <dt><code>on</code></dt>
-  </dl>
-  </td>
-</tr>
-<tr>
-  <td><code>ENABLE_USER-VTK</code></td>
-  <td></td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -946,7 +1051,11 @@ providing the identical features and USER interface.</strong></p>
 </tr>
 <tr>
   <td><code>ENABLE_USER-QUIP</code></td>
-  <td></td>
+  <td>
+  A pair_style quip command which wraps the QUIP libAtoms library, which
+  includes a variety of interatomic potentials, including Gaussian Approximation
+  Potential (GAP) models developed by the Cambridge University group.
+  </td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -956,7 +1065,109 @@ providing the identical features and USER interface.</strong></p>
 </tr>
 <tr>
   <td><code>ENABLE_USER-QMMM</code></td>
-  <td></td>
+  <td>
+  A fix qmmm command which allows LAMMPS to be used in a QM/MM simulation,
+  currently only in combination with the Quantum ESPRESSO package.
+  </td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
+  <td><code>ENABLE_USER-REAXC</code></td>
+  <td>
+  A pair style which implements the ReaxFF potential in C/C++ (in contrast to
+  the REAX package and its Fortran library). ReaxFF is universal reactive force
+  field. See the src/USER-REAXC/README file for more info on differences between
+  the two packages. Also two fixes for monitoring molecules as bonds are created
+  and destroyed.
+  </td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
+  <td><code>ENABLE_USER-SMD</code></td>
+  <td>
+  An atom style, fixes, computes, and several pair styles which implements
+  smoothed Mach dynamics (SMD) for solids, which is a model related to smoothed
+  particle hydrodynamics (SPH) for liquids (see the USER-SPH package).
+  </td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
+  <td><code>ENABLE_USER-SMTBQ</code></td>
+  <td>
+  A pair style which implements a Second Moment Tight Binding model with QEq
+  charge equilibration (SMTBQ) potential for the description of ionocovalent
+  bonds in oxides.
+  </td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
+  <td><code>ENABLE_USER-SPH</code></td>
+  <td>
+  An atom style, fixes, computes, and several pair styles which implements
+  smoothed particle hydrodynamics (SPH) for liquids. See the related USER-SMD
+  package package for smooth Mach dynamics (SMD) for solids.
+  </td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
+  <td><code>ENABLE_USER-TALLY</code></td>
+  <td>
+  Several compute styles that can be called when pairwise interactions are
+  calculated to tally information (forces, heat flux, energy, stress, etc) about
+  individual interactions.
+  </td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
+  <td><code>ENABLE_USER-UEF</code></td>
+  <td>
+  A fix style for the integration of the equations of motion under extensional
+  flow with proper boundary conditions, as well as several supporting compute
+  styles and an output option.
+  </td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
+  <td><code>ENABLE_USER-VTK</code></td>
+  <td>
+  A dump vtk command which outputs snapshot info in the VTK format, enabling
+  visualization by Paraview or other visualization packages.
+  </td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>
@@ -1022,13 +1233,13 @@ providing the identical features and USER interface.</strong></p>
 <tbody>
 <tr>
   <td><code>MKL_INCLUDE_DIRS</code></td>
-  <td>Optimization for FFT</td>
+  <td></td>
   <td>
   </td>
 </tr>
 <tr>
   <td><code>MKL_LIBRARIES</code></td>
-  <td>Optimization for FFT</td>
+  <td></td>
   <td>
   </td>
 </tr>
@@ -1050,13 +1261,13 @@ TODO static vs dynamic linking
 <tbody>
 <tr>
   <td><code>FFTW2_INCLUDE_DIRS</code></td>
-  <td>Optimization for FFT</td>
+  <td></td>
   <td>
   </td>
 </tr>
 <tr>
   <td><code>FFTW2_LIBRARIES</code></td>
-  <td>Optimization for FFT</td>
+  <td></td>
   <td>
   </td>
 </tr>
@@ -1076,13 +1287,13 @@ TODO static vs dynamic linking
 <tbody>
 <tr>
   <td><code>FFTW3_INCLUDE_DIRS</code></td>
-  <td>Optimization for FFT</td>
+  <td></td>
   <td>
   </td>
 </tr>
 <tr>
   <td><code>FFTW3_LIBRARIES</code></td>
-  <td>Optimization for FFT</td>
+  <td></td>
   <td>
   </td>
 </tr>

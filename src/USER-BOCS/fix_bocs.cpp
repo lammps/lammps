@@ -36,6 +36,8 @@
 #include "error.h"
 #include "citeme.h"
 
+#include "compute_pressure_bocs.h"
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
@@ -225,9 +227,6 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
                                "Supply a file name after cubic_spline.");
         p_basis_type = 2;
         spline_length = read_F_table( arg[iarg+1], p_basis_type );
-//        build_cubic_splines(); MRD I moved this into read_F_table 
-//        and that's why I pass p_basis_type in there too. I was having 
-//        a fight getting "double ** data" stuff to work
         iarg += 2;
       }  else
       {
@@ -708,7 +707,6 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
   delete [] newarg;
   pcomputeflag = 1;
 
-
 /*~ MRD End of stuff copied from fix_npt.cpp~*/
 
 }
@@ -787,26 +785,6 @@ void FixBocs::init()
           error->all(FLERR,"Cannot use fix npt and fix deform on "
                      "same component of stress tensor");
       } 
-    if (p_match_flag) // MRD NJD
-    { 
-      if (pressure)
-      {
-        if (p_basis_type == 0)
-        {
-          pressure->send_cg_info(p_basis_type, N_p_match, p_match_coeffs, 
-                                                             N_mol, vavg);
-        }
-        else if ( p_basis_type == 1 || p_basis_type == 2 )
-        {
-          pressure->send_cg_info(p_basis_type, splines, spline_length);
-        }
-      }
-      else
-      {
-        error->all(FLERR,"Unable to find pressure. Are you sure you included"
-                        " the compute bocsPress and fix_modify commands?");
-      }
-    }
   }
 
   // set temperature and pressure ptrs
@@ -824,6 +802,33 @@ void FixBocs::init()
       error->all(FLERR,"Pressure ID for fix bocs does not exist");
     pressure = modify->compute[icompute];
   }
+
+
+  if (pstat_flag)
+  {
+    if (p_match_flag) // MRD NJD
+    {
+      if (pressure)
+      {
+        if (p_basis_type == 0)
+        {
+          ((ComputePressureBocs *)pressure)->send_cg_info(p_basis_type,
+                               N_p_match, p_match_coeffs, N_mol, vavg);
+        }
+        else if ( p_basis_type == 1 || p_basis_type == 2 )
+        {
+          ((ComputePressureBocs *)pressure)->send_cg_info(p_basis_type,
+                                               splines, spline_length);
+        }
+      }
+      else
+      {
+        error->all(FLERR,"Unable to find pressure. Are you sure you included"
+                        " the compute bocsPress and fix_modify commands?");
+      }
+    }
+  }
+
 
   // set timesteps and frequencies
 
@@ -1755,12 +1760,13 @@ int FixBocs::modify_param(int narg, char **arg)
     {
       if ( p_basis_type == 0 ) 
       { 
-        pressure->send_cg_info(p_basis_type, N_p_match, p_match_coeffs, 
-                                                             N_mol, vavg);
+        ((ComputePressureBocs *)pressure)->send_cg_info(p_basis_type, N_p_match, 
+                                                   p_match_coeffs, N_mol, vavg);
       }
       else if ( p_basis_type == 1 || p_basis_type == 2  ) 
       { 
-        pressure->send_cg_info(p_basis_type, splines, spline_length ); 
+        ((ComputePressureBocs *)pressure)->send_cg_info(p_basis_type, splines, 
+                                                                spline_length ); 
       }
     }
 

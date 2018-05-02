@@ -16,9 +16,6 @@ Dunn, NJH; Lebold, KM; DeLyser, MR; Rudzinski, JF; Noid, WG.
 "BOCS: Bottom-Up Open-Source Coarse-Graining Software."
 J. Phys. Chem. B. 122, 13, 3363-3377 (2018).
 
-The MOD_COMPUTE_H file is identical to the original compute.h except for 
-the two lines (three with comments) needed for USER-BOCS to work.
-
 Along with the source code files, the following files have been included 
   (in the /bocs/ directory):
 methanol.lmp

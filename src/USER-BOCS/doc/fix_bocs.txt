@@ -27,9 +27,7 @@ fix 1 all bocs temp 300.0 300.0 100.0 cgiso 0.986 0.986 1000.0 analytic 66476.01
  
 fix 1 all bocs temp 300.0 300.0 100.0 cgiso 0.986 0.986 1000.0 cubic_spline input_Fv.dat :pre
 
-compute bocsPress all pressureBocs thermo_temp
-thermo_modify press bocsPress
-fix_modify 1 press bocsPress :pre
+thermo_modify press 1_press :pre
 
 
 [Description:]
@@ -78,23 +76,13 @@ As this is computing a (modified) pressure, group-ID should be {all}.
 The pressure correction has only been tested for use with an isotropic 
 pressure coupling in 3 dimensions.   
 
-There are three additional commands that must be supplied along with fix 
-bocs. They are given in the examples section. The name {bocsPress} can be 
-changed for any name of your choosing, provided it remains consistent across 
-all three commands. Additionally, the ID {1} in the {fix_modify} command must 
-match up with the {ID} specified in the original {fix bocs} command. Everything else 
-in those three commands must be unchanged. The first two commands can be 
-specified before the {fix bocs} command, but the {fix_modify} command must be 
-given after the original {fix bocs} command.
-
-The {compute} command tells LAMMPS to compute the pressure using the modified 
-barostat.
-
-The {thermo_modify} command tells LAMMPS to report the pressure from the modified 
-barostat instead of the default pressure, i.e. thermo_press.
-
-The {fix_modify} command tells LAMMPS to use the pressure from the modified 
-barostat for the fix, instead of using the default presure, i.e. thermo_press. 
+By default, LAMMPS will still report the normal value for the pressure
+if the pressure is printed via a {thermo} command, or if the pressures
+are written to a file every so often. In order to have LAMMPS report the
+modified pressure, you must include the {thermo_modify} command given in 
+the examples. For the last argument in the command, you should put 
+XXXX_press, where XXXX is the ID given to the fix bocs command (in the
+example, the ID of the fix bocs command is 1 ).
 
 [Related:]
 

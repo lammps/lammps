@@ -42,12 +42,8 @@ variable UVDW equal evdwl*4.184
 #       ID group-ID style_name thermostat T_init T_end T_couple barostat P_start P_end  P_couple pmatch_basis avg_vol     N_sites N_coeffs coeff1      coeff2
 fix 	1  all      bocs       temp       300.0  300.0 100.0    cgiso    0.986   0.986  1000.0   analytic     66476.015   968     2        245030.10   8962.20 
 
-# Compute the modified pressure
-compute 	bocsPress all pressureBocs thermo_temp
 # Report the modified pressure
-thermo_modify 	press bocsPress
-# Use the modified pressure for fix bocs instead of thermo_press
-fix_modify 	1 press bocsPress
+thermo_modify 	press 1_press
 
 
 

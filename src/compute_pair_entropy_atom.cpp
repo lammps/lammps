@@ -47,6 +47,13 @@ ComputePairEntropyAtom::ComputePairEntropyAtom(LAMMPS *lmp, int narg, char **arg
   if (narg < 5 || narg > 8)
     error->all(FLERR,"Illegal compute pentropy/atom command");
 
+  // Arguments are: sigma cutoff avg yes/no cutoff2
+  //   sigma is the gaussian width 
+  //   cutoff is the cutoff for the calculation of g(r) 
+  //   avg is optional and it means averaginf the pair entropy over the neighbors
+  //   the next argument should be yes or no 
+  //   cutoff2 is the cutoff for the averaging
+
   sigma = force->numeric(FLERR,arg[3]);
   cutoff = force->numeric(FLERR,arg[4]);
   if (cutoff < 0.0) error->all(FLERR,"Illegal compute pentropy/atom command; negative cutoff");
@@ -74,7 +81,7 @@ ComputePairEntropyAtom::ComputePairEntropyAtom(LAMMPS *lmp, int narg, char **arg
   nbin = static_cast<int>(cutoff / sigma) + 1;
   nmax = 0;
   maxneigh = 0;
-  deltabin = 2;
+  deltabin = 2; // 2 seems a good compromise between speed and good mollification
   deltar = sigma; 
   peratom_flag = 1;
   size_peratom_cols = 0;
@@ -234,7 +241,7 @@ void ComputePairEntropyAtom::compute_peratom()
           maxbin=bin +  deltabin;
           if (maxbin > (nbin-1)) maxbin=nbin-1;
           for(int k=minbin;k<maxbin+1;k++) {
-            double invNormKernel=invNormConstantBase/rbinsq[bin];
+            double invNormKernel=invNormConstantBase/rbinsq[k];
             double distance = r - rbin[k];
             gofr[k] += invNormKernel*exp(-distance*distance/sigmasq2) ; 
           }

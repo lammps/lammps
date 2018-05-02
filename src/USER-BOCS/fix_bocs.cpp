@@ -154,18 +154,6 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
                    "Target temperature for fix bocs cannot be 0.0");
       iarg += 4;
     } else if (strcmp(arg[iarg],"iso") == 0) {
-/*      if (iarg+4 > narg) error->all(FLERR,"Illegal fix bocs command");
-      pcouple = XYZ;
-      p_start[0] = p_start[1] = p_start[2] = force->numeric(FLERR,arg[iarg+1]);
-      p_stop[0] = p_stop[1] = p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
-      p_period[0] = p_period[1] = p_period[2] =
-        force->numeric(FLERR,arg[iarg+3]);
-      p_flag[0] = p_flag[1] = p_flag[2] = 1;
-      if (dimension == 2) {
-        p_start[2] = p_stop[2] = p_period[2] = 0.0;
-        p_flag[2] = 0;
-      }
-      iarg += 4;*/
       error->all(FLERR,"Illegal fix bocs command. Pressure fix must be "
                        "cgiso . Use regular fix npt/nph for iso"); // MRD NJD
     } else if (strcmp(arg[iarg],"cgiso") == 0) { // MRD NJD the whole else if
@@ -235,132 +223,7 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
              "basis types: analytic linear_spline cubic_spline",arg[iarg]);
          error->all(FLERR,errmsg);
       } // END NJD MRD  
-    } /*else if (strcmp(arg[iarg],"aniso") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      pcouple = NONE;
-      p_start[0] = p_start[1] = p_start[2] = force->numeric(FLERR,arg[iarg+1]);
-      p_stop[0] = p_stop[1] = p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
-      p_period[0] = p_period[1] = p_period[2] =
-        force->numeric(FLERR,arg[iarg+3]);
-      p_flag[0] = p_flag[1] = p_flag[2] = 1;
-      if (dimension == 2) {
-        p_start[2] = p_stop[2] = p_period[2] = 0.0;
-        p_flag[2] = 0;
-      }
-      iarg += 4;
-    } else if (strcmp(arg[iarg],"tri") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      pcouple = NONE;
-      scalexy = scalexz = scaleyz = 0;
-      p_start[0] = p_start[1] = p_start[2] = force->numeric(FLERR,arg[iarg+1]);
-      p_stop[0] = p_stop[1] = p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
-      p_period[0] = p_period[1] = p_period[2] =
-        force->numeric(FLERR,arg[iarg+3]);
-      p_flag[0] = p_flag[1] = p_flag[2] = 1;
-      p_start[3] = p_start[4] = p_start[5] = 0.0;
-      p_stop[3] = p_stop[4] = p_stop[5] = 0.0;
-      p_period[3] = p_period[4] = p_period[5] =
-        force->numeric(FLERR,arg[iarg+3]);
-      p_flag[3] = p_flag[4] = p_flag[5] = 1;
-      if (dimension == 2) {
-        p_start[2] = p_stop[2] = p_period[2] = 0.0;
-        p_flag[2] = 0;
-        p_start[3] = p_stop[3] = p_period[3] = 0.0;
-        p_flag[3] = 0;
-        p_start[4] = p_stop[4] = p_period[4] = 0.0;
-        p_flag[4] = 0;
-      }
-      iarg += 4;
-    } else if (strcmp(arg[iarg],"x") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      p_start[0] = force->numeric(FLERR,arg[iarg+1]);
-      p_stop[0] = force->numeric(FLERR,arg[iarg+2]);
-      p_period[0] = force->numeric(FLERR,arg[iarg+3]);
-      p_flag[0] = 1;
-      deviatoric_flag = 1;
-      iarg += 4;
-    } else if (strcmp(arg[iarg],"y") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      p_start[1] = force->numeric(FLERR,arg[iarg+1]);
-      p_stop[1] = force->numeric(FLERR,arg[iarg+2]);
-      p_period[1] = force->numeric(FLERR,arg[iarg+3]);
-      p_flag[1] = 1;
-      deviatoric_flag = 1;
-      iarg += 4;
-    } else if (strcmp(arg[iarg],"z") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      p_start[2] = force->numeric(FLERR,arg[iarg+1]);
-      p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
-      p_period[2] = force->numeric(FLERR,arg[iarg+3]);
-      p_flag[2] = 1;
-      deviatoric_flag = 1;
-      iarg += 4;
-      if (dimension == 2)
-        error->all(FLERR,"Invalid fix nvt/npt/nph command for a 2d simulation");
-
-    } else if (strcmp(arg[iarg],"yz") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      p_start[3] = force->numeric(FLERR,arg[iarg+1]);
-      p_stop[3] = force->numeric(FLERR,arg[iarg+2]);
-      p_period[3] = force->numeric(FLERR,arg[iarg+3]);
-      p_flag[3] = 1;
-      deviatoric_flag = 1;
-      scaleyz = 0;
-      iarg += 4;
-      if (dimension == 2)
-        error->all(FLERR,"Invalid fix nvt/npt/nph command for a 2d simulation");
-    } else if (strcmp(arg[iarg],"xz") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      p_start[4] = force->numeric(FLERR,arg[iarg+1]);
-      p_stop[4] = force->numeric(FLERR,arg[iarg+2]);
-      p_period[4] = force->numeric(FLERR,arg[iarg+3]);
-      p_flag[4] = 1;
-      deviatoric_flag = 1;
-      scalexz = 0;
-      iarg += 4;
-      if (dimension == 2)
-        error->all(FLERR,"Invalid fix nvt/npt/nph command for a 2d simulation");
-    } else if (strcmp(arg[iarg],"xy") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      p_start[5] = force->numeric(FLERR,arg[iarg+1]);
-      p_stop[5] = force->numeric(FLERR,arg[iarg+2]);
-      p_period[5] = force->numeric(FLERR,arg[iarg+3]);
-      p_flag[5] = 1;
-      deviatoric_flag = 1;
-      scalexy = 0;
-      iarg += 4;
-
-    } else if (strcmp(arg[iarg],"couple") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      if (strcmp(arg[iarg+1],"xyz") == 0) pcouple = XYZ;
-      else if (strcmp(arg[iarg+1],"xy") == 0) pcouple = XY;
-      else if (strcmp(arg[iarg+1],"yz") == 0) pcouple = YZ;
-      else if (strcmp(arg[iarg+1],"xz") == 0) pcouple = XZ;
-      else if (strcmp(arg[iarg+1],"none") == 0) pcouple = NONE;
-      else error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      iarg += 2;
-
-    } else if (strcmp(arg[iarg],"drag") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      drag = force->numeric(FLERR,arg[iarg+1]);
-      if (drag < 0.0) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"dilate") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      if (strcmp(arg[iarg+1],"all") == 0) allremap = 1;
-      else {
-        allremap = 0;
-        delete [] id_dilate;
-        int n = strlen(arg[iarg+1]) + 1;
-        id_dilate = new char[n];
-        strcpy(id_dilate,arg[iarg+1]);
-        int idilate = group->find(id_dilate);
-        if (idilate == -1)
-          error->all(FLERR,"Fix nvt/npt/nph dilate group ID does not exist");
-      }
-      iarg += 2;
-
-    }*/ else if (strcmp(arg[iarg],"tchain") == 0) {
+    } else if (strcmp(arg[iarg],"tchain") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       mtchain = force->inumeric(FLERR,arg[iarg+1]);
       // used by FixNVTSllod to preserve non-default value
@@ -388,56 +251,7 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
       nc_pchain = force->inumeric(FLERR,arg[iarg+1]);
       if (nc_pchain < 0) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       iarg += 2;
-    } /*else if (strcmp(arg[iarg],"nreset") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      nreset_h0 = force->inumeric(FLERR,arg[iarg+1]);
-      if (nreset_h0 < 0) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"scalexy") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      if (strcmp(arg[iarg+1],"yes") == 0) scalexy = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) scalexy = 0;
-      else error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"scalexz") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      if (strcmp(arg[iarg+1],"yes") == 0) scalexz = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) scalexz = 0;
-      else error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"scaleyz") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      if (strcmp(arg[iarg+1],"yes") == 0) scaleyz = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) scaleyz = 0;
-      else error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"flip") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      if (strcmp(arg[iarg+1],"yes") == 0) flipflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) flipflag = 0;
-      else error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"update") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      if (strcmp(arg[iarg+1],"dipole") == 0) dipole_flag = 1;
-      else if (strcmp(arg[iarg+1],"dipole/dlm") == 0) {
-        dipole_flag = 1;
-        dlm_flag = 1;
-      } else error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"fixedpoint") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      fixedpoint[0] = force->numeric(FLERR,arg[iarg+1]);
-      fixedpoint[1] = force->numeric(FLERR,arg[iarg+2]);
-      fixedpoint[2] = force->numeric(FLERR,arg[iarg+3]);
-      iarg += 4;
-
-    // disc keyword is also parsed in fix/nh/sphere  
-
-    } else if (strcmp(arg[iarg],"disc") == 0) {
-      iarg++;
-
-    }*/ else {
+    } else {
       char * errmsg = (char *) calloc(80,sizeof(char));
       sprintf(errmsg,"Illegal fix bocs command: unrecognized keyword %s"
                                                              ,arg[iarg]);
@@ -448,25 +262,8 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
 
   if (dimension != 3) // MRD NJD
     error->all(FLERR,"Invalid fix bocs command. Must use 3 dimensions");
-  
-/*  if (dimension == 2 && (p_flag[2] || p_flag[3] || p_flag[4]))
-    error->all(FLERR,"Invalid fix nvt/npt/nph command for a 2d simulation");
-  if (dimension == 2 && (pcouple == YZ || pcouple == XZ))
-    error->all(FLERR,"Invalid fix nvt/npt/nph command for a 2d simulation");
-  if (dimension == 2 && (scalexz == 1 || scaleyz == 1 ))
-    error->all(FLERR,"Invalid fix nvt/npt/nph command for a 2d simulation");*/
 
 // With cgiso, p_flag[0] = p_flag[1] = p_flag[2] = 1
-/*  if (pcouple == XYZ && (p_flag[0] == 0 || p_flag[1] == 0))
-    error->all(FLERR,"Invalid fix nvt/npt/nph command pressure settings");
-  if (pcouple == XYZ && dimension == 3 && p_flag[2] == 0)
-    error->all(FLERR,"Invalid fix nvt/npt/nph command pressure settings");
-  if (pcouple == XY && (p_flag[0] == 0 || p_flag[1] == 0))
-    error->all(FLERR,"Invalid fix nvt/npt/nph command pressure settings");
-  if (pcouple == YZ && (p_flag[1] == 0 || p_flag[2] == 0))
-    error->all(FLERR,"Invalid fix nvt/npt/nph command pressure settings");
-  if (pcouple == XZ && (p_flag[0] == 0 || p_flag[2] == 0))
-    error->all(FLERR,"Invalid fix nvt/npt/nph command pressure settings");*/
 
   // require periodicity in tensile dimension
 
@@ -476,66 +273,6 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Cannot use fix bocs on a non-periodic dimension");
   if (p_flag[2] && domain->zperiodic == 0)
     error->all(FLERR,"Cannot use fix bocs on a non-periodic dimension");
-
-  // require periodicity in 2nd dim of off-diagonal tilt component
-
-/*  if (p_flag[3] && domain->zperiodic == 0)
-    error->all(FLERR,
-               "Cannot use fix nvt/npt/nph on a 2nd non-periodic dimension");
-  if (p_flag[4] && domain->zperiodic == 0)
-    error->all(FLERR,
-               "Cannot use fix nvt/npt/nph on a 2nd non-periodic dimension");
-  if (p_flag[5] && domain->yperiodic == 0)
-    error->all(FLERR,
-               "Cannot use fix nvt/npt/nph on a 2nd non-periodic dimension");
-*/
-  if (scaleyz == 1 && domain->zperiodic == 0)
-    error->all(FLERR,"Cannot use fix bocs "
-               "with yz scaling when z is non-periodic dimension");
-  if (scalexz == 1 && domain->zperiodic == 0)
-    error->all(FLERR,"Cannot use fix bocs "
-               "with xz scaling when z is non-periodic dimension");
-  if (scalexy == 1 && domain->yperiodic == 0)
-    error->all(FLERR,"Cannot use fix bocs "
-               "with xy scaling when y is non-periodic dimension");
-
-/*  if (p_flag[3] && scaleyz == 1)
-    error->all(FLERR,"Cannot use fix nvt/npt/nph with "
-               "both yz dynamics and yz scaling");
-  if (p_flag[4] && scalexz == 1)
-    error->all(FLERR,"Cannot use fix nvt/npt/nph with "
-               "both xz dynamics and xz scaling");
-  if (p_flag[5] && scalexy == 1)
-    error->all(FLERR,"Cannot use fix nvt/npt/nph with "
-               "both xy dynamics and xy scaling");*/
-
-// 
-/*  if (!domain->triclinic && (p_flag[3] || p_flag[4] || p_flag[5]))
-    error->all(FLERR,"Can not specify Pxy/Pxz/Pyz in "
-               "fix nvt/npt/nph with non-triclinic box");*/
-
-// This is all forced in cgiso
-/*  if (pcouple == XYZ && dimension == 3 &&
-      (p_start[0] != p_start[1] || p_start[0] != p_start[2] ||
-       p_stop[0] != p_stop[1] || p_stop[0] != p_stop[2] ||
-       p_period[0] != p_period[1] || p_period[0] != p_period[2]))
-    error->all(FLERR,"Invalid fix nvt/npt/nph pressure settings");
-  if (pcouple == XYZ && dimension == 2 &&
-      (p_start[0] != p_start[1] || p_stop[0] != p_stop[1] ||
-       p_period[0] != p_period[1]))
-    error->all(FLERR,"Invalid fix nvt/npt/nph pressure settings");
-  if (pcouple == XY &&
-      (p_start[0] != p_start[1] || p_stop[0] != p_stop[1] ||
-       p_period[0] != p_period[1]))
-    error->all(FLERR,"Invalid fix nvt/npt/nph pressure settings");
-  if (pcouple == YZ &&
-      (p_start[1] != p_start[2] || p_stop[1] != p_stop[2] ||
-       p_period[1] != p_period[2]))
-    error->all(FLERR,"Invalid fix nvt/npt/nph pressure settings");
-  if (pcouple == XZ &&
-      (p_start[0] != p_start[2] || p_stop[0] != p_stop[2] ||
-       p_period[0] != p_period[2]))
-    error->all(FLERR,"Invalid fix nvt/npt/nph pressure settings");*/
 
   if (dipole_flag) {
     if (!atom->sphere_flag)
@@ -568,13 +305,6 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
     no_change_box = 1;
     if (allremap == 0) restart_pbc = 1;
 
-    // pstyle = TRICLINIC if any off-diagonal term is controlled -> 6 dof
-    // else pstyle = ISO if XYZ coupling or XY coupling in 2d -> 1 dof
-    // else pstyle = ANISO -> 3 dof
-
-/*    if (p_flag[3] || p_flag[4] || p_flag[5]) pstyle = TRICLINIC;
-    else if (pcouple == XYZ || (dimension == 2 && pcouple == XY)) pstyle = ISO;
-    else pstyle = ANISO;*/
     pstyle = ISO; // MRD this is the only one that can happen
 
     // pre_exchange only required if flips can occur due to shape changes

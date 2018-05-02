@@ -549,7 +549,7 @@ void colvardeps::init_cv_requires() {
     f_req_exclude(f_cv_custom_function, f_cv_scripted);
 
     init_feature(f_cv_periodic, "periodic", f_type_static);
-    f_req_self(f_cv_periodic, f_cv_homogeneous);
+    f_req_self(f_cv_periodic, f_cv_scalar);
     init_feature(f_cv_scalar, "scalar", f_type_static);
     init_feature(f_cv_linear, "linear", f_type_static);
     init_feature(f_cv_homogeneous, "homogeneous", f_type_static);

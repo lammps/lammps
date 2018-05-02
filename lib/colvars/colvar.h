@@ -216,6 +216,7 @@ public:
 
   /// Period, if this variable is periodic
   cvm::real period;
+  cvm::real wrap_center;
 
 
   /// \brief Expand the boundaries of multiples of width, to keep the

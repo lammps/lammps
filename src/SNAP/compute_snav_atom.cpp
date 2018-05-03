@@ -122,7 +122,7 @@ ComputeSNAVAtom::ComputeSNAVAtom(LAMMPS *lmp, int narg, char **arg) :
   }
 
   ncoeff = snaptr[0]->ncoeff;
-  nperdim = ncoeff;  
+  nperdim = ncoeff;
   if (quadraticflag) nperdim += (ncoeff*(ncoeff+1))/2;
   size_peratom_cols = 6*nperdim*atom->ntypes;
   comm_reverse = size_peratom_cols;
@@ -323,7 +323,7 @@ void ComputeSNAVAtom::compute_peratom()
             double biz = snaptr[tid]->dbvec[icoeff][2];
 
             // diagonal element of quadratic matrix
-            
+
             double dbxtmp = bi*bix;
             double dbytmp = bi*biy;
             double dbztmp = bi*biz;

@@ -126,7 +126,7 @@ ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
   }
 
   ncoeff = snaptr[0]->ncoeff;
-  nperdim = ncoeff;  
+  nperdim = ncoeff;
   if (quadraticflag) nperdim += (ncoeff*(ncoeff+1))/2;
   yoffset = nperdim;
   zoffset = 2*nperdim;

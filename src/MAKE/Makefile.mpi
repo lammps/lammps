@@ -13,7 +13,7 @@ DEPFLAGS =	-M
 
 LINK =		mpicxx
 LINKFLAGS =	-g -O
-LIB =           -lgfortran  
+LIB = 
 SIZE =		size
 
 ARCHIVE =	ar
@@ -112,3 +112,4 @@ fastdep.exe: ../DEPEND/fastdep.c
 	cc -O -o $@ $<
 
 sinclude .depend
+

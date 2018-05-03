@@ -20,7 +20,7 @@ FixStyle(move,FixMove)
 #ifndef LMP_FIX_MOVE_H
 #define LMP_FIX_MOVE_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "fix.h"
 
 namespace LAMMPS_NS {

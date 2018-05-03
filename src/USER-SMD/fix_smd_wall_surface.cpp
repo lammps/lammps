@@ -15,7 +15,10 @@
    Contributing authors: Mike Parks (SNL), Ezwanur Rahman, J.T. Foster (UTSA)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
+#include <cmath>
+#include <cstring>
+#include <cstdio>
+#include <Eigen/Eigen>
 #include "fix_smd_wall_surface.h"
 #include "atom.h"
 #include "domain.h"
@@ -29,10 +32,7 @@
 #include "lattice.h"
 #include "memory.h"
 #include "error.h"
-#include <Eigen/Eigen>
-#include <stdio.h>
 #include "atom_vec.h"
-#include <string.h>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

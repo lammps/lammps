@@ -22,9 +22,9 @@
    Richard Berger (JKU)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "dump_vtk.h"
 #include "atom.h"
 #include "force.h"

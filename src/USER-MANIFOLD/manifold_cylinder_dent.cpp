@@ -1,7 +1,7 @@
 #include "manifold_cylinder_dent.h"
 #include "math_const.h"
 
-#include <math.h>
+#include <cmath>
 
 
 using namespace LAMMPS_NS;

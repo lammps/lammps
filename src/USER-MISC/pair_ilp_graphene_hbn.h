@@ -22,7 +22,7 @@ PairStyle(ilp/graphene/hbn,PairILPGrapheneHBN)
 
 #include "pair.h"
 #include "my_page.h"
-#include <math.h>
+#include <cmath>
 
 namespace LAMMPS_NS {
 

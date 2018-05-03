@@ -15,10 +15,10 @@
    Contributing author: Stan Moore (Sandia)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_exp6_rx_kokkos.h"
 #include "atom.h"
 #include "comm.h"
@@ -30,7 +30,7 @@
 #include "error.h"
 #include "modify.h"
 #include "fix.h"
-#include <float.h>
+#include <cfloat>
 #include "atom_masks.h"
 #include "neigh_request.h"
 #include "atom_kokkos.h"

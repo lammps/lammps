@@ -20,7 +20,7 @@ BondStyle(fene,BondFENE)
 #ifndef LMP_BOND_FENE_H
 #define LMP_BOND_FENE_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "bond.h"
 
 namespace LAMMPS_NS {

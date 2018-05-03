@@ -24,7 +24,7 @@
 #include "comm.h"
 #include "domain.h"
 
-#include <string.h>
+#include <cstring>
 
 #if defined(_OPENMP)
 #include <omp.h>

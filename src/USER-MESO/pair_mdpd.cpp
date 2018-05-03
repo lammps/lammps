@@ -16,9 +16,10 @@
    Email: zhen_li@brown.edu
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
 #include "pair_mdpd.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -31,7 +32,6 @@
 #include "citeme.h"
 #include "memory.h"
 #include "error.h"
-#include <time.h>
 
 using namespace LAMMPS_NS;
 

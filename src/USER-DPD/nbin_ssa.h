@@ -22,8 +22,8 @@ NBinStyle(ssa,
 #ifndef LMP_NBIN_SSA_H
 #define LMP_NBIN_SSA_H
 
+#include <cmath>
 #include "nbin_standard.h"
-#include "math.h"
 #include "error.h"
 
 namespace LAMMPS_NS {
@@ -54,7 +54,7 @@ class NBinSSA : public NBinStandard {
   {
     int ix,iy,iz;
 
-    if (!ISFINITE(x) || !ISFINITE(y) || !ISFINITE(z))
+    if (!std::isfinite(x) || !std::isfinite(y) || !std::isfinite(z))
       error->one(FLERR,"Non-numeric positions - simulation unstable");
 
     if (x >= bboxhi_[0])

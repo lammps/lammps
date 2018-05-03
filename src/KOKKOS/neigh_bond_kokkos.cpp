@@ -28,7 +28,7 @@
 #include "error.h"
 #include "modify.h"
 #include "fix.h"
-#include <string.h>
+#include <cstring>
 #include "atom_masks.h"
 #include "domain.h"
 

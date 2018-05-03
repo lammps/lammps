@@ -14,7 +14,7 @@
 #ifndef LMP_UNIVERSE_H
 #define LMP_UNIVERSE_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "pointers.h"
 
 namespace LAMMPS_NS {

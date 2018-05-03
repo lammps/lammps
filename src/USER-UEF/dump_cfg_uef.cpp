@@ -14,9 +14,9 @@
 ------------------------------------------------------------------------- */
 
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "dump_cfg.h"
 #include "atom.h"
 #include "domain.h"

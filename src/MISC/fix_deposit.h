@@ -20,7 +20,7 @@ FixStyle(deposit,FixDeposit)
 #ifndef LMP_FIX_DEPOSIT_H
 #define LMP_FIX_DEPOSIT_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "fix.h"
 
 namespace LAMMPS_NS {

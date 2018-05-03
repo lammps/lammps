@@ -15,6 +15,8 @@
    Contributing author:  Axel Kohlmeyer (ICTP)
 ------------------------------------------------------------------------- */
 
+#include <cstdlib>
+#include <cstring>
 #include "fix_qmmm.h"
 #include "atom.h"
 #include "domain.h"
@@ -24,9 +26,6 @@
 #include "error.h"
 #include "group.h"
 #include "memory.h"
-
-#include <stdlib.h>
-#include <string.h>
 
 #include "libqmmm.h"
 

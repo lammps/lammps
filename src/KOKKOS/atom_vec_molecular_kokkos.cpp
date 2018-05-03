@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <stdlib.h>
+#include <cstdlib>
 #include "atom_vec_molecular_kokkos.h"
 #include "atom_kokkos.h"
 #include "comm_kokkos.h"

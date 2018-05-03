@@ -15,7 +15,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
+#include <cmath>
 #include "dihedral_quadratic_omp.h"
 #include "atom.h"
 #include "comm.h"

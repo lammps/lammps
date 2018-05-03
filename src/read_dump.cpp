@@ -21,8 +21,8 @@
 
 #include "lmptype.h"
 #include <mpi.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 #include "read_dump.h"
 #include "reader.h"
 #include "style_reader.h"

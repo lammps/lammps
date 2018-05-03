@@ -15,9 +15,9 @@
    Contributing author: Paul Coffman (IBM)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "dump_xyz_mpiio.h"
 #include "atom.h"
 #include "force.h"
@@ -32,7 +32,6 @@
 #include "fix.h"
 #include "memory.h"
 #include "error.h"
-#include <stdlib.h>
 
 #if defined(_OPENMP)
 #include <omp.h>

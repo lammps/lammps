@@ -15,7 +15,7 @@
    Contributing author:  Abdoreza Ershadinia, a.ershadinia at gmail.com
 ------------------------------------------------------------------------- */
 
-#include <math.h>
+#include <cmath>
 #include "math_extra.h"
 #include "fix_wall_ees.h"
 #include "atom.h"

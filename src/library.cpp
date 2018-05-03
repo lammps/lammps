@@ -15,8 +15,8 @@
 // customize by adding new LAMMPS-specific functions
 
 #include <mpi.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 #include "library.h"
 #include "lmptype.h"
 #include "lammps.h"

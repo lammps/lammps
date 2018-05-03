@@ -17,7 +17,7 @@
 #include "error.h"
 #include "update.h"
 
-#include <string.h>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 #define UNWRAPEXPAND 10.0

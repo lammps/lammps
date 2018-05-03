@@ -20,7 +20,7 @@ CommandStyle(balance,Balance)
 #ifndef LMP_BALANCE_H
 #define LMP_BALANCE_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "pointers.h"
 
 namespace LAMMPS_NS {

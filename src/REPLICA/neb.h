@@ -20,7 +20,7 @@ CommandStyle(neb,NEB)
 #ifndef LMP_NEB_H
 #define LMP_NEB_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "pointers.h"
 
 namespace LAMMPS_NS {

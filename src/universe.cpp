@@ -12,10 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <ctype.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
+#include <cctype>
+#include <cstdlib>
+#include <cstring>
+#include <cstdio>
 #include "universe.h"
 #include "version.h"
 #include "error.h"

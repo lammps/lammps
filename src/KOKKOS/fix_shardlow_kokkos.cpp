@@ -33,9 +33,9 @@
    135, 204105.
 ------------------------------------------------------------------------- */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "fix_shardlow_kokkos.h"
 #include "atom.h"
 #include "atom_masks.h"
@@ -44,7 +44,7 @@
 #include "update.h"
 #include "respa.h"
 #include "error.h"
-#include <math.h>
+#include <cmath>
 #include "atom_vec.h"
 #include "comm.h"
 #include "neighbor.h"

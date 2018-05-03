@@ -15,9 +15,9 @@
    Contributing author: Ravi Agrawal (Northwestern U)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstring>
+#include <cstdlib>
 #include "fix_indent.h"
 #include "atom.h"
 #include "input.h"

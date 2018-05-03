@@ -13,7 +13,7 @@
    Most code borrowed from pair_morse_omp.cpp
 ------------------------------------------------------------------------- */
 
-#include <math.h>
+#include <cmath>
 #include "pair_morse_smooth_linear_omp.h"
 #include "atom.h"
 #include "comm.h"

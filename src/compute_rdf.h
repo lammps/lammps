@@ -20,7 +20,7 @@ ComputeStyle(rdf,ComputeRDF)
 #ifndef LMP_COMPUTE_RDF_H
 #define LMP_COMPUTE_RDF_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "compute.h"
 
 namespace LAMMPS_NS {

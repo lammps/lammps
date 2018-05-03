@@ -20,7 +20,7 @@ AngleStyle(table,AngleTable)
 #ifndef LMP_ANGLE_TABLE_H
 #define LMP_ANGLE_TABLE_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "angle.h"
 
 namespace LAMMPS_NS {

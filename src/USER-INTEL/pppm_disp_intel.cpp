@@ -16,8 +16,8 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstdlib>
+#include <cmath>
 #include "pppm_disp_intel.h"
 #include "atom.h"
 #include "comm.h"
@@ -728,7 +728,7 @@ void PPPMDispIntel::particle_map(double delx, double dely, double delz,
   int nlocal = atom->nlocal;
   int nthr = comm->nthreads;
 
-  if (!ISFINITE(boxlo[0]) || !ISFINITE(boxlo[1]) || !ISFINITE(boxlo[2]))
+  if (!std::isfinite(boxlo[0]) || !std::isfinite(boxlo[1]) || !std::isfinite(boxlo[2]))
     error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
 
   int flag = 0;

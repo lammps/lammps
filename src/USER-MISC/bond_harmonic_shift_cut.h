@@ -20,7 +20,7 @@ BondStyle(harmonic/shift/cut,BondHarmonicShiftCut)
 #ifndef LMP_BOND_HARMONIC_SHIFT_CUT_H
 #define LMP_BOND_HARMONIC_SHIFT_CUT_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "bond.h"
 
 namespace LAMMPS_NS {

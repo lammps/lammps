@@ -112,3 +112,4 @@ fastdep.exe: ../DEPEND/fastdep.c
 	cc -O -o $@ $<
 
 sinclude .depend
+

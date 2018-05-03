@@ -24,18 +24,19 @@ keyword = {bond} or {angle} or {dihedral} :l
     atom1,atom2,atom3 = IDs of 3 atoms in angle, atom2 = middle atom
     Kstart,Kstop = restraint coefficients at start/end of run (energy units)
     theta0 = equilibrium angle theta (degrees)
-  {dihedral} args = atom1 atom2 atom3 atom4 Kstart Kstop phi0
+  {dihedral} args = atom1 atom2 atom3 atom4 Kstart Kstop phi0 n
     atom1,atom2,atom3,atom4 = IDs of 4 atoms in dihedral in linear order
     Kstart,Kstop = restraint coefficients at start/end of run (energy units)
-    phi0 = equilibrium dihedral angle phi (degrees) :pre
+    phi0 = equilibrium dihedral angle phi (degrees) 
+    n = multiplicity :pre
 :ule
 
 [Examples:]
 
 fix holdem all restrain bond 45 48 2000.0 2000.0 2.75
-fix holdem all restrain dihedral 1 2 3 4 2000.0 2000.0 120.0
-fix holdem all restrain bond 45 48 2000.0 2000.0 2.75 dihedral 1 2 3 4 2000.0 2000.0 120.0
-fix texas_holdem all restrain dihedral 1 2 3 4 0.0 2000.0 120.0 dihedral 1 2 3 5 0.0 2000.0 -120.0 dihedral 1 2 3 6 0.0 2000.0 0.0 :pre
+fix holdem all restrain dihedral 1 2 3 4 2000.0 2000.0 120.0 1
+fix holdem all restrain bond 45 48 2000.0 2000.0 2.75 dihedral 1 2 3 4 2000.0 2000.0 120.0 1
+fix texas_holdem all restrain dihedral 1 2 3 4 0.0 2000.0 120.0 1 dihedral 1 2 3 5 0.0 2000.0 -120.0 1 dihedral 1 2 3 6 0.0 2000.0 0.0 1 :pre
 
 [Description:]
 
@@ -155,12 +156,11 @@ associated with the restraint is
 with the following coefficients:
 
 K (energy)
-n = 1
+n (integer >= 0)
 d (degrees) = phi0 + 180 :ul
 
-K and phi0 are specified with the fix.  Note that the value of n is
-hard-wired to 1.  Also note that the energy will be a minimum when the
-current dihedral angle phi is equal to phi0.
+K and phi0 are specified with the fix.  Also note that the energy will 
+be a minimum when the current dihedral angle phi is equal to phi0.
 
 :line
 

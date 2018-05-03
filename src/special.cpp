@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <stdio.h>
+#include <cstdio>
 #include "special.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -591,7 +591,8 @@ void Special::combine()
     AtomKokkos* atomKK = (AtomKokkos*) atom;
     atomKK->modified(Host,SPECIAL_MASK);
     atomKK->sync(Device,SPECIAL_MASK);
-    memory->grow_kokkos(atomKK->k_special,atom->special,
+    MemoryKokkos* memoryKK = (MemoryKokkos*) memory;
+    memoryKK->grow_kokkos(atomKK->k_special,atom->special,
                         atom->nmax,atom->maxspecial,"atom:special");
     atomKK->modified(Device,SPECIAL_MASK);
     atomKK->sync(Host,SPECIAL_MASK);

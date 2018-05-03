@@ -134,6 +134,9 @@ class NPair : protected Pointers {
     }
     return 0;
   };
+
+  int copymode;
+  ExecutionSpace execution_space;
 };
 
 }
@@ -141,5 +144,9 @@ class NPair : protected Pointers {
 #endif
 
 /* ERROR/WARNING messages:
+
+E: Non-numeric positions - simulation unstable
+
+UNDOCUMENTED
 
 */

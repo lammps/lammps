@@ -6,7 +6,7 @@
 
 :line
 
-2. Getting Started :h3
+2. Getting Started :h2
 
 This section describes how to build and run LAMMPS, for both new and
 experienced users.
@@ -22,7 +22,7 @@ experienced users.
 
 :line
 
-2.1 What's in the LAMMPS distribution :h4,link(start_1)
+2.1 What's in the LAMMPS distribution :h3,link(start_1)
 
 When you download a LAMMPS tarball you will need to unzip and untar
 the downloaded file with the following commands, after placing the
@@ -64,7 +64,7 @@ launch a LAMMPS Windows executable on a Windows box.
 
 :line
 
-2.2 Making LAMMPS :h4,link(start_2)
+2.2 Making LAMMPS :h3,link(start_2)
 
 This section has the following sub-sections:
 
@@ -77,9 +77,9 @@ This section has the following sub-sections:
 
 :line
 
-Read this first :h5,link(start_2_1)
+Read this first :h4,link(start_2_1)
 
-If you want to avoid building LAMMPS yourself, read the preceeding
+If you want to avoid building LAMMPS yourself, read the preceding
 section about options available for downloading and installing
 executables.  Details are discussed on the "download"_download page.
 
@@ -148,9 +148,9 @@ include it in the LAMMPS distribution.
 
 :line
 
-Steps to build a LAMMPS executable :h5,link(start_2_2)
+Steps to build a LAMMPS executable :h4,link(start_2_2)
 
-Step 0 :h6
+Step 0 :h5
 
 The src directory contains the C++ source and header files for LAMMPS.
 It also contains a top-level Makefile and a MAKE sub-directory with
@@ -198,7 +198,7 @@ Note that by default only a few of LAMMPS optional packages are
 installed.  To build LAMMPS with optional packages, see "this
 section"_#start_3 below.
 
-Step 1 :h6
+Step 1 :h5
 
 If Step 0 did not work, you will need to create a low-level Makefile
 for your machine, like Makefile.foo.  You should make a copy of an
@@ -209,13 +209,13 @@ the first line, the "compiler/linker settings" section, and the
 file in src/MAKE/MINE and it will not be altered by any future LAMMPS
 updates.
 
-Step 2 :h6
+Step 2 :h5
 
 Change the first line of Makefile.foo to list the word "foo" after the
 "#", and whatever other options it will set.  This is the line you
 will see if you just type "make".
 
-Step 3 :h6
+Step 3 :h5
 
 The "compiler/linker settings" section lists compiler and linker
 settings for your C++ compiler, including optimization flags.  You can
@@ -244,7 +244,7 @@ first time on a new platform, a long list of *.d files will be printed
 out rapidly.  This is not an error; it is the Makefile doing its
 normal creation of dependencies.
 
-Step 4 :h6
+Step 4 :h5
 
 The "system-specific settings" section has several parts.  Note that
 if you change any -D setting in this section, you should do a full
@@ -252,14 +252,13 @@ re-compile, after typing "make clean" (which will describe different
 clean options).
 
 The LMP_INC variable is used to include options that turn on ifdefs
-within the LAMMPS code.  The options that are currently recogized are:
+within the LAMMPS code.  The options that are currently recognized are:
 
 -DLAMMPS_GZIP
 -DLAMMPS_JPEG
 -DLAMMPS_PNG
 -DLAMMPS_FFMPEG
 -DLAMMPS_MEMALIGN
--DLAMMPS_XDR
 -DLAMMPS_SMALLBIG
 -DLAMMPS_BIGBIG
 -DLAMMPS_SMALLSMALL
@@ -308,11 +307,6 @@ has to be aligned on larger than default byte boundaries (e.g. 16
 bytes instead of 8 bytes on x86 type platforms) for optimal
 performance.
 
-If you use -DLAMMPS_XDR, the build will include XDR compatibility
-files for doing particle dumps in XTC format.  This is only necessary
-if your platform does have its own XDR files available.  See the
-Restrictions section of the "dump"_dump.html command for details.
-
 Use at most one of the -DLAMMPS_SMALLBIG, -DLAMMPS_BIGBIG,
 -DLAMMPS_SMALLSMALL settings.  The default is -DLAMMPS_SMALLBIG. These
 settings refer to use of 4-byte (small) vs 8-byte (big) integers
@@ -351,7 +345,7 @@ platforms.  The -DPACK_ARRAY setting is the default.  See the
 "kspace_style"_kspace_style.html command for info about PPPM.  See
 Step 6 below for info about building LAMMPS with an FFT library.
 
-Step 5 :h6
+Step 5 :h5
 
 The 3 MPI variables are used to specify an MPI library to build LAMMPS
 with.  Note that you do not need to set these if you use the MPI
@@ -363,7 +357,7 @@ installed on your platform.  If MPI is installed on your system in the
 usual place (under /usr/local), you also may not need to specify these
 3 variables, assuming /usr/local is in your path.  On some large
 parallel machines which use "modules" for their compile/link
-environements, you may simply need to include the correct module in
+environments, you may simply need to include the correct module in
 your build environment, before building LAMMPS.  Or the parallel
 machine may have a vendor-provided MPI which the compiler has no
 trouble finding.
@@ -407,7 +401,7 @@ Note that the ANSI-standard function clock() rolls over after an hour
 or so, and is therefore insufficient for timing long LAMMPS
 simulations.
 
-Step 6 :h6
+Step 6 :h5
 
 The 3 FFT variables allow you to specify an FFT library which LAMMPS
 uses (for performing 1d FFTs) when running the particle-particle
@@ -431,7 +425,7 @@ use the KISS library described above.
 You may also need to set the FFT_INC, FFT_PATH, and FFT_LIB variables,
 so the compiler and linker can find the needed FFT header and library
 files.  Note that on some large parallel machines which use "modules"
-for their compile/link environements, you may simply need to include
+for their compile/link environments, you may simply need to include
 the correct module in your build environment.  Or the parallel machine
 may have a vendor-provided FFT library which the compiler has no
 trouble finding.  See the src/MAKE/OPTIONS/Makefile.fftw file for an
@@ -470,7 +464,7 @@ precision.
 
 The FFT_INC variable also allows for a -DFFT_SINGLE setting that will
 use single-precision FFTs with PPPM, which can speed-up long-range
-calulations, particularly in parallel or on GPUs.  Fourier transform
+calculations, particularly in parallel or on GPUs.  Fourier transform
 and related PPPM operations are somewhat insensitive to floating point
 truncation errors and thus do not always need to be performed in
 double precision.  Using the -DFFT_SINGLE setting trades off a little
@@ -483,12 +477,12 @@ with support for single-precision, as explained above.  For FFTW3 you
 also need to include -lfftw3f with the FFT_LIB setting, in addition to
 -lfftw3.  For FFTW2, you also need to specify -DFFT_SIZE with the
 FFT_INC setting and -lsfftw with the FFT_LIB setting (in place of
--lfftw).  Similarly, if FFTW2 has been preinstalled with an explicit
+-lfftw).  Similarly, if FFTW2 has been pre-installed with an explicit
 double-precision library (libdfftw.a and not the default libfftw.a),
 then you can specify -DFFT_SIZE (and not -DFFT_SINGLE), and specify
 -ldfftw to use double-precision FFTs.
 
-Step 7 :h6
+Step 7 :h5
 
 The 3 JPG variables allow you to specify a JPEG and/or PNG library
 which LAMMPS uses when writing out JPEG or PNG files via the "dump
@@ -511,13 +505,13 @@ find it.
 As before, if these header and library files are in the usual place on
 your machine, you may not need to set these variables.
 
-Step 8 :h6
+Step 8 :h5
 
 Note that by default only a few of LAMMPS optional packages are
 installed.  To build LAMMPS with optional packages, see "this
 section"_#start_3 below, before proceeding to Step 9.
 
-Step 9 :h6
+Step 9 :h5
 
 That's it.  Once you have a correct Makefile.foo, and you have
 pre-built any other needed libraries (e.g. MPI, FFT, etc) all you need
@@ -536,7 +530,7 @@ You should get the executable lmp_foo when the build is complete.
 
 :line
 
-Errors that can occur when making LAMMPS :h5 :link(start_2_3)
+Errors that can occur when making LAMMPS :h4 :link(start_2_3)
 
 If an error occurs when building LAMMPS, the compiler or linker will
 state very explicitly what the problem is.  The error message should
@@ -573,21 +567,21 @@ above in Step 4.
 
 :line
 
-Additional build tips :h5,link(start_2_4)
+Additional build tips :h4,link(start_2_4)
 
-Building LAMMPS for multiple platforms. :h6
+Building LAMMPS for multiple platforms. :h5
 
 You can make LAMMPS for multiple platforms from the same src
 directory.  Each target creates its own object sub-directory called
 Obj_target where it stores the system-specific *.o files.
 
-Cleaning up. :h6
+Cleaning up. :h5
 
 Typing "make clean-all" or "make clean-machine" will delete *.o object
 files created when LAMMPS is built, for either all builds or for a
 particular machine.
 
-Changing the LAMMPS size limits via -DLAMMPS_SMALLBIG or -DLAMMPS_BIGBIG or -DLAMMPS_SMALLSMALL :h6
+Changing the LAMMPS size limits via -DLAMMPS_SMALLBIG or -DLAMMPS_BIGBIG or -DLAMMPS_SMALLSMALL :h5
 
 As explained above, any of these 3 settings can be specified on the
 LMP_INC line in your low-level src/MAKE/Makefile.foo.
@@ -637,14 +631,14 @@ neighbor lists and would run very slowly in terms of CPU secs/timestep.
 
 :line
 
-Building for a Mac :h5,link(start_2_5)
+Building for a Mac :h4,link(start_2_5)
 
 OS X is a derivative of BSD Unix, so it should just work.  See the
 src/MAKE/MACHINES/Makefile.mac and Makefile.mac_mpi files.
 
 :line
 
-Building for Windows :h5,link(start_2_6)
+Building for Windows :h4,link(start_2_6)
 
 If you want to build a Windows version of LAMMPS, you can build it
 yourself, but it may require some effort. LAMMPS expects a Unix-like
@@ -684,7 +678,7 @@ examples, but no source code.
 
 :line
 
-2.3 Making LAMMPS with optional packages :h4,link(start_3)
+2.3 Making LAMMPS with optional packages :h3,link(start_3)
 
 This section has the following sub-sections:
 
@@ -694,7 +688,7 @@ This section has the following sub-sections:
 
 :line
 
-Package basics: :h5,link(start_3_1)
+Package basics: :h4,link(start_3_1)
 
 The source code for LAMMPS is structured as a set of core files which
 are always included, plus optional packages.  Packages are groups of
@@ -714,7 +708,7 @@ list various make commands that can be used to manage packages.
 If you use a command in a LAMMPS input script that is part of a
 package, you must have built LAMMPS with that package, else you will
 get an error that the style is invalid or the command is unknown.
-Every command's doc page specfies if it is part of a package.  You can
+Every command's doc page specifies if it is part of a package.  You can
 type
 
 lmp_machine -h :pre
@@ -725,7 +719,7 @@ known to your executable, and immediately exit.
 
 :line
 
-Including/excluding packages :h5,link(start_3_2)
+Including/excluding packages :h4,link(start_3_2)
 
 To use (or not use) a package you must install it (or un-install it)
 before building LAMMPS.  From the src directory, this is as simple as:
@@ -809,6 +803,10 @@ currently installed. For those that are installed, it will list any
 files that are different in the src directory and package
 sub-directory.
 
+Typing "make package-installed" or "make pi" will list which packages are
+currently installed, without listing the status of packages that are not
+installed.
+
 Typing "make package-update" or "make pu" will overwrite src files
 with files from the package sub-directories if the package is
 installed.  It should be used after a patch has been applied, since
@@ -825,7 +823,7 @@ options.
 
 :line
 
-Packages that require extra libraries :h5,link(start_3_3)
+Packages that require extra libraries :h4,link(start_3_3)
 
 A few of the standard and user packages require extra libraries.  See
 "Section 4"_Section_packages.html for two tables of packages which
@@ -859,7 +857,7 @@ details for each package.
 [External libraries:]
 
 Packages in the tables "Section 4"_Section_packages.html with an "ext"
-in the last column link to exernal libraries whose source code is not
+in the last column link to external libraries whose source code is not
 included with LAMMPS.  You must first download and install the library
 before building LAMMPS with that package installed.  E.g. the voronoi
 package links to the freely available "Voro++ library"_voro_home2.  You
@@ -927,7 +925,7 @@ Makefile.opt :ul
 
 :line
 
-2.4 Building LAMMPS as a library :h4,link(start_4)
+2.4 Building LAMMPS as a library :h3,link(start_4)
 
 LAMMPS can be built as either a static or shared library, which can
 then be called from another application or a scripting language.  See
@@ -935,7 +933,7 @@ then be called from another application or a scripting language.  See
 LAMMPS to other codes.  See "this section"_Section_python.html for
 more info on wrapping and running LAMMPS from Python.
 
-Static library :h5
+Static library :h4
 
 To build LAMMPS as a static library (*.a file on Linux), type
 
@@ -949,7 +947,7 @@ will create the file liblammps_foo.a which another application can
 link to.  It will also create a soft link liblammps.a, which will
 point to the most recently built static library.
 
-Shared library :h5
+Shared library :h4
 
 To build LAMMPS as a shared library (*.so file on Linux), which can be
 dynamically loaded, e.g. from Python, type
@@ -963,7 +961,7 @@ src/MAKE/Makefile.foo and perform the build in the directory
 Obj_shared_foo.  This is so that each file can be compiled with the
 -fPIC flag which is required for inclusion in a shared library.  The
 build will create the file liblammps_foo.so which another application
-can link to dyamically.  It will also create a soft link liblammps.so,
+can link to dynamically.  It will also create a soft link liblammps.so,
 which will point to the most recently built shared library.  This is
 the file the Python wrapper loads by default.
 
@@ -1006,7 +1004,7 @@ You may need to use "sudo make install" in place of the last line if
 you do not have write privileges for /usr/local/lib.  The end result
 should be the file /usr/local/lib/libmpich.so.
 
-[Additional requirement for using a shared library:] :h5
+[Additional requirement for using a shared library:] :h4
 
 The operating system finds shared libraries to load at run-time using
 the environment variable LD_LIBRARY_PATH.  So you may wish to copy the
@@ -1021,7 +1019,7 @@ For the csh or tcsh shells, you would add something like this to your
 
 setenv LD_LIBRARY_PATH $\{LD_LIBRARY_PATH\}:/home/sjplimp/lammps/src :pre
 
-Calling the LAMMPS library :h5
+Calling the LAMMPS library :h4
 
 Either flavor of library (static or shared) allows one or more LAMMPS
 objects to be instantiated from the calling program.
@@ -1049,7 +1047,7 @@ interface and how to extend it for your needs.
 
 :line
 
-2.5 Running LAMMPS :h4,link(start_5)
+2.5 Running LAMMPS :h3,link(start_5)
 
 By default, LAMMPS runs by reading commands from standard input.  Thus
 if you run the LAMMPS executable by itself, e.g.
@@ -1195,7 +1193,7 @@ more processors or setup a smaller problem.
 
 :line
 
-2.6 Command-line options :h4,link(start_6)
+2.6 Command-line options :h3,link(start_6)
 
 At run time, LAMMPS recognizes several optional command-line switches
 which may be used in any order.  Either the full word or a one-or-two
@@ -1329,8 +1327,8 @@ LAMMPS is compiled with CUDA=yes.
 numa Nm :pre
 
 This option is only relevant when using pthreads with hwloc support.
-In this case Nm defines the number of NUMA regions (typicaly sockets)
-on a node which will be utilizied by a single MPI rank.  By default Nm
+In this case Nm defines the number of NUMA regions (typically sockets)
+on a node which will be utilized by a single MPI rank.  By default Nm
 = 1.  If this option is used the total number of worker-threads per
 MPI rank is threads*numa.  Currently it is always almost better to
 assign at least one MPI rank per NUMA region, and leave numa set to
@@ -1394,7 +1392,7 @@ replica runs on on one or a few processors.  Note that with MPI
 installed on a machine (e.g. your desktop), you can run on more
 (virtual) processors than you have physical processors.
 
-To run multiple independent simulatoins from one input script, using
+To run multiple independent simulations from one input script, using
 multiple partitions, see "Section 6.4"_Section_howto.html#howto_4
 of the manual.  World- and universe-style "variables"_variable.html
 are useful in this context.
@@ -1625,7 +1623,7 @@ negative numeric value.  It is OK if the first value1 starts with a
 
 :line
 
-2.7 LAMMPS screen output :h4,link(start_7)
+2.7 LAMMPS screen output :h3,link(start_7)
 
 As LAMMPS reads an input script, it prints information to both the
 screen and a log file about significant actions it takes to setup a
@@ -1673,7 +1671,7 @@ The first section provides a global loop timing summary. The {loop time}
 is the total wall time for the section.  The {Performance} line is
 provided for convenience to help predicting the number of loop
 continuations required and for comparing performance with other,
-similar MD codes.  The {CPU use} line provides the CPU utilzation per
+similar MD codes.  The {CPU use} line provides the CPU utilization per
 MPI task; it should be close to 100% times the number of OpenMP
 threads (or 1 of no OpenMP). Lower numbers correspond to delays due
 to file I/O or insufficient thread utilization.
@@ -1781,7 +1779,7 @@ communication, roughly 75% in the example above.
 
 :line
 
-2.8 Tips for users of previous LAMMPS versions :h4,link(start_8)
+2.8 Tips for users of previous LAMMPS versions :h3,link(start_8)
 
 The current C++ began with a complete rewrite of LAMMPS 2001, which
 was written in F90.  Features of earlier versions of LAMMPS are listed

@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
+#include <cstring>
 #include "npair_skip_size_off2on_oneside.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -37,11 +37,9 @@ NPairSkipSizeOff2onOneside::NPairSkipSizeOff2onOneside(LAMMPS *lmp) :
 
 void NPairSkipSizeOff2onOneside::build(NeighList *list)
 {
-  int i,j,ii,jj,m,n,nn,itype,jnum,joriginal,flip,dnum,dnumbytes,tmp;
-  tagint jtag;
+  int i,j,ii,jj,n,itype,jnum,joriginal,flip,tmp;
   int *surf,*jlist;
 
-  tagint *tag = atom->tag;
   int *type = atom->type;
   int nlocal = atom->nlocal;
 

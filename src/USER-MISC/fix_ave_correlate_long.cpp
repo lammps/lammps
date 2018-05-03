@@ -21,9 +21,9 @@
    see J. Chem. Phys. 133, 154103 (2010)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include <unistd.h>
 #include "fix_ave_correlate_long.h"
 #include "update.h"
@@ -31,6 +31,7 @@
 #include "compute.h"
 #include "input.h"
 #include "variable.h"
+#include "citeme.h"
 #include "memory.h"
 #include "error.h"
 #include "force.h"
@@ -45,11 +46,24 @@ enum{AUTO,UPPER,LOWER,AUTOUPPER,AUTOLOWER,FULL};
 #define INVOKED_VECTOR 2
 #define INVOKED_ARRAY 4
 
+static const char cite_fix_ave_correlate_long[] =
+"fix ave/correlate/long command:\n\n"
+"@Article{Ramirez10,\n"
+" author = {Jorge Rami{\'}rez and Sathish K. Sukumaran and Bart Vorselaars and Alexei E. Likhtman},\n"
+" title =   {Efficient on the fly calculation of time correlation functions in computer simulations},"
+" journal = {J.~Chem.~Phys.},\n"
+" year =    2010,\n"
+" volume =  133,\n"
+" pages =   {154103}\n"
+"}\n\n";
+
 /* ---------------------------------------------------------------------- */
 
 FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS * lmp, int narg, char **arg):
   Fix (lmp, narg, arg)
 {
+  if (lmp->citeme) lmp->citeme->add(cite_fix_ave_correlate_long);
+
   // At least nevery nfrez and one value are needed
   if (narg < 6) error->all(FLERR,"Illegal fix ave/correlate/long command");
 
@@ -321,6 +335,8 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS * lmp, int narg, char **arg):
   nvalid_last = -1;
   nvalid = nextvalid();
   modify->addstep_compute_all(nvalid);
+  last_accumulated_step = -1;
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -479,7 +495,7 @@ void FixAveCorrelateLong::end_of_step()
     fprintf(fp,"# Timestep: " BIGINT_FORMAT "\n", ntimestep);
     for (unsigned int i=0;i<npcorr;++i) {
       fprintf(fp, "%lg ", t[i]*update->dt);
-      for (unsigned int j=0;j<npair;++j) {
+      for (int j=0;j<npair;++j) {
         fprintf(fp, "%lg ", f[j][i]);
       }
     fprintf(fp, "\n");
@@ -499,7 +515,7 @@ void FixAveCorrelateLong::evaluate() {
   unsigned int jm=0;
 
   // First correlator
-  for (unsigned int j=0;j<p;++j) {
+  for (int j=0;j<p;++j) {
     if (ncorrelation[0][j] > 0) {
       t[jm] = j;
       for (int i=0;i<npair;++i)
@@ -532,7 +548,7 @@ void FixAveCorrelateLong::accumulate()
 {
   int i,j,ipair;
 
-  //printf("DEBUG %i %i\n", nvalues, npair);
+  if (update->ntimestep <= last_accumulated_step) return;
 
   if (type == AUTO) {
     for (i=0; i<nvalues;i++) add(i,values[i]);
@@ -566,13 +582,14 @@ void FixAveCorrelateLong::accumulate()
         else add(ipair++,values[i],values[j]);
       }
   }
+  last_accumulated_step = update->ntimestep;
 }
 
 
 /* ----------------------------------------------------------------------
    Add a scalar value to the autocorrelator k of pair i
 ------------------------------------------------------------------------- */
-void FixAveCorrelateLong::add(const int i, const double w, const unsigned int k){
+void FixAveCorrelateLong::add(const int i, const double w, const int k){
   // If we exceed the correlator side, the value is discarded
   if (k == numcorrelators) return;
   if (k > kmax) kmax=k;
@@ -593,7 +610,7 @@ void FixAveCorrelateLong::add(const int i, const double w, const unsigned int k)
   unsigned int ind1=insertindex[k];
   if (k==0) { // First correlator is different
     int ind2=ind1;
-    for (unsigned int j=0;j<p;++j) {
+    for (int j=0;j<p;++j) {
       if (shift[i][k][ind2] > -1e10) {
         correlation[i][k][j]+= shift[i][k][ind1]*shift[i][k][ind2];
         if (i==0) ++ncorrelation[k][j];
@@ -603,7 +620,7 @@ void FixAveCorrelateLong::add(const int i, const double w, const unsigned int k)
     }
   } else {
     int ind2=ind1-dmin;
-    for (unsigned int j=dmin;j<p;++j) {
+    for (int j=dmin;j<p;++j) {
       if (ind2<0) ind2+=p;
       if (shift[i][k][ind2] > -1e10) {
         correlation[i][k][j]+= shift[i][k][ind1]*shift[i][k][ind2];
@@ -624,7 +641,7 @@ void FixAveCorrelateLong::add(const int i, const double w, const unsigned int k)
    Add 2 scalar values to the cross-correlator k of pair i
 ------------------------------------------------------------------------- */
 void FixAveCorrelateLong::add(const int i, const double wA, const double wB,
-                        const unsigned int k) {
+                        const int k) {
   if (k == numcorrelators) return;
   if (k > kmax) kmax=k;
 
@@ -644,7 +661,7 @@ void FixAveCorrelateLong::add(const int i, const double wA, const double wB,
   unsigned int ind1=insertindex[k];
   if (k==0) {
     int ind2=ind1;
-    for (unsigned int j=0;j<p;++j) {
+    for (int j=0;j<p;++j) {
       if (shift[i][k][ind2] > -1e10) {
         correlation[i][k][j]+= shift[i][k][ind1]*shift2[i][k][ind2];
         if (i==0) ++ncorrelation[k][j];
@@ -655,7 +672,7 @@ void FixAveCorrelateLong::add(const int i, const double wA, const double wB,
   }
   else {
     int ind2=ind1-dmin;
-    for (unsigned int j=dmin;j<p;++j) {
+    for (int j=dmin;j<p;++j) {
       if (ind2<0) ind2+=p;
       if (shift[i][k][ind2] > -1e10) {
         correlation[i][k][j]+= shift[i][k][ind1]*shift2[i][k][ind2];
@@ -699,8 +716,8 @@ double FixAveCorrelateLong::memory_usage() {
   //    ncorrelation:     numcorrelators x p
   //    naccumulator:     numcorrelators
   //    insertindex:      numcorrelators
-  //    t:		numcorrelators x p
-  //    f:		npair x numcorrelators x p
+  //    t:              numcorrelators x p
+  //    f:              npair x numcorrelators x p
   double bytes = (4*npair*numcorrelators*p + 2*npair*numcorrelators
                   + numcorrelators*p)*sizeof(double)
     + numcorrelators*p*sizeof(unsigned long int)
@@ -723,8 +740,7 @@ void FixAveCorrelateLong::write_restart(FILE *fp) {
     list[n++]=numcorrelators;
     list[n++]=p;
     list[n++]=m;
-    list[n++]=nvalid;
-    list[n++]=nvalid_last;
+    list[n++] = last_accumulated_step;
     for (int i=0;i<npair;i++)
       for (int j=0;j<numcorrelators;j++) {
         for (int k=0;k<p;k++) {
@@ -760,8 +776,7 @@ void FixAveCorrelateLong::restart(char *buf)
   int numcorrelatorsin = static_cast<int> (list[n++]);
   int pin = static_cast<int> (list[n++]);
   int min = static_cast<int> (list[n++]);
-  nvalid = static_cast<int> (list[n++]);
-  nvalid_last = static_cast<int> (list[n++]);
+  last_accumulated_step = static_cast<int> (list[n++]);
 
   if ((npairin!=npair) || (numcorrelatorsin!=numcorrelators)
       || (pin!=p) || (min!=m))

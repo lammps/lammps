@@ -13,7 +13,8 @@
 
 #include "error.h"
 #include <cstring>
- 
+#include <cstdlib>
+
 Notice::Notice() {
 	nullout=new ostream(NULL);
 	noteout=&cout;

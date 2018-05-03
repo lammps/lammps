@@ -23,7 +23,8 @@ PairStyle(eam/kk/host,PairEAMKokkos<LMPHostType>)
 #ifndef LMP_PAIR_EAM_KOKKOS_H
 #define LMP_PAIR_EAM_KOKKOS_H
 
-#include <stdio.h>
+#include <cstdio>
+#include "kokkos_base.h"
 #include "pair_kokkos.h"
 #include "pair_eam.h"
 #include "neigh_list_kokkos.h"
@@ -47,7 +48,7 @@ template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 struct TagPairEAMKernelC{};
 
 template<class DeviceType>
-class PairEAMKokkos : public PairEAM {
+class PairEAMKokkos : public PairEAM, public KokkosBase {
  public:
   enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF};
   enum {COUL_FLAG=0};
@@ -57,7 +58,7 @@ class PairEAMKokkos : public PairEAM {
 
   PairEAMKokkos(class LAMMPS *);
   virtual ~PairEAMKokkos();
-  virtual void compute(int, int);
+  void compute(int, int);
   void init_style();
   void *extract(const char *, int &) { return NULL; }
 
@@ -104,11 +105,11 @@ class PairEAMKokkos : public PairEAM {
       const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
                   const F_FLOAT &dely, const F_FLOAT &delz) const;
 
-  virtual int pack_forward_comm_kokkos(int, DAT::tdual_int_2d, int, DAT::tdual_xfloat_1d&,
-                               int, int *);
-  virtual void unpack_forward_comm_kokkos(int, int, DAT::tdual_xfloat_1d&);
-  virtual int pack_forward_comm(int, int *, double *, int, int *);
-  virtual void unpack_forward_comm(int, int, double *);
+  int pack_forward_comm_kokkos(int, DAT::tdual_int_2d, int, DAT::tdual_xfloat_1d&,
+                       int, int *);
+  void unpack_forward_comm_kokkos(int, int, DAT::tdual_xfloat_1d&);
+  int pack_forward_comm(int, int *, double *, int, int *);
+  void unpack_forward_comm(int, int, double *);
   int pack_reverse_comm(int, int, double *);
   void unpack_reverse_comm(int, int *, double *);
 
@@ -146,7 +147,7 @@ class PairEAMKokkos : public PairEAM {
   t_ffloat_2d_n7_randomread d_z2r_spline;
   void interpolate(int, double, double *, t_host_ffloat_2d_n7, int);
 
-  virtual void file2array();
+  void file2array();
   void array2spline();
 
   typename AT::t_neighbors_2d d_neighbors;

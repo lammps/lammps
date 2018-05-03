@@ -22,8 +22,8 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 #include <iostream>
+#include <cstdio>
 #include "math_special.h"
-#include <stdio.h>
 
 #include <Eigen/Eigen>
 
@@ -41,13 +41,13 @@ using namespace Eigen;
  ------------------------------------------------------------------------- */
 void LinearEOS(double lambda, double pInitial, double d, double dt, double &pFinal, double &p_rate) {
 
-	/*
-	 * pressure rate
-	 */
-	p_rate = lambda * d;
+        /*
+         * pressure rate
+         */
+        p_rate = lambda * d;
 
-	pFinal = pInitial + dt * p_rate; // increment pressure using pressure rate
-	//cout << "hurz" << endl;
+        pFinal = pInitial + dt * p_rate; // increment pressure using pressure rate
+        //cout << "hurz" << endl;
 
 }
 
@@ -70,16 +70,16 @@ void LinearEOS(double lambda, double pInitial, double d, double dt, double &pFin
 
  ------------------------------------------------------------------------- */
 void ShockEOS(double rho, double rho0, double e, double e0, double c0, double S, double Gamma, double pInitial, double dt,
-		double &pFinal, double &p_rate) {
+                double &pFinal, double &p_rate) {
 
-	double mu = rho / rho0 - 1.0;
-	double pH = rho0 * square(c0) * mu * (1.0 + mu) / square(1.0 - (S - 1.0) * mu);
+        double mu = rho / rho0 - 1.0;
+        double pH = rho0 * square(c0) * mu * (1.0 + mu) / square(1.0 - (S - 1.0) * mu);
 
-	pFinal = (pH + rho * Gamma * (e - e0));
+        pFinal = (-pH + rho * Gamma * (e - e0));
 
-	//printf("shock EOS: rho = %g, rho0 = %g, Gamma=%f, c0=%f, S=%f, e=%f, e0=%f\n", rho, rho0, Gamma, c0, S, e, e0);
-	//printf("pFinal = %f\n", pFinal);
-	p_rate = (pFinal - pInitial) / dt;
+        //printf("shock EOS: rho = %g, rho0 = %g, Gamma=%f, c0=%f, S=%f, e=%f, e0=%f\n", rho, rho0, Gamma, c0, S, e, e0);
+        //printf("pFinal = %f\n", pFinal);
+        p_rate = (pFinal - pInitial) / dt;
 
 }
 
@@ -98,20 +98,20 @@ void ShockEOS(double rho, double rho0, double e, double e0, double c0, double S,
 
  ------------------------------------------------------------------------- */
 void polynomialEOS(double rho, double rho0, double e, double C0, double C1, double C2, double C3, double C4, double C5, double C6,
-		double pInitial, double dt, double &pFinal, double &p_rate) {
+                double pInitial, double dt, double &pFinal, double &p_rate) {
 
-	double mu = rho / rho0 - 1.0;
+        double mu = rho / rho0 - 1.0;
 
-	if (mu > 0.0) {
-		pFinal = C0 + C1 * mu + C2 * mu * mu + C3 * mu * mu * mu; // + (C4 + C5 * mu + C6 * mu * mu) * e;
-	} else {
-		pFinal = C0 + C1 * mu + C3 * mu * mu * mu; //  + (C4 + C5 * mu) * e;
-	}
-	pFinal = -pFinal; // we want the mean stress, not the pressure.
+        if (mu > 0.0) {
+                pFinal = C0 + C1 * mu + C2 * mu * mu + C3 * mu * mu * mu; // + (C4 + C5 * mu + C6 * mu * mu) * e;
+        } else {
+                pFinal = C0 + C1 * mu + C3 * mu * mu * mu; //  + (C4 + C5 * mu) * e;
+        }
+        pFinal = -pFinal; // we want the mean stress, not the pressure.
 
 
-	//printf("pFinal = %f\n", pFinal);
-	p_rate = (pFinal - pInitial) / dt;
+        //printf("pFinal = %f\n", pFinal);
+        p_rate = (pFinal - pInitial) / dt;
 
 }
 
@@ -126,17 +126,17 @@ void polynomialEOS(double rho, double rho0, double e, double C0, double C1, doub
  (2) current speed of sound
  ------------------------------------------------------------------------- */
 void TaitEOS_density(const double exponent, const double c0_reference, const double rho_reference, const double rho_current,
-		double &pressure, double &sound_speed) {
+                double &pressure, double &sound_speed) {
 
-	double B = rho_reference * c0_reference * c0_reference / exponent;
-	double tmp = pow(rho_current / rho_reference, exponent);
-	pressure = B * (tmp - 1.0);
-	double bulk_modulus = B * tmp * exponent; // computed as rho * d(pressure)/d(rho)
-	sound_speed = sqrt(bulk_modulus / rho_current);
+        double B = rho_reference * c0_reference * c0_reference / exponent;
+        double tmp = pow(rho_current / rho_reference, exponent);
+        pressure = B * (tmp - 1.0);
+        double bulk_modulus = B * tmp * exponent; // computed as rho * d(pressure)/d(rho)
+        sound_speed = sqrt(bulk_modulus / rho_current);
 
-//	if (fabs(pressure) > 0.01) {
-//		printf("tmp = %f, press=%f, K=%f\n", tmp, pressure, bulk_modulus);
-//	}
+//      if (fabs(pressure) > 0.01) {
+//              printf("tmp = %f, press=%f, K=%f\n", tmp, pressure, bulk_modulus);
+//      }
 
 }
 
@@ -154,20 +154,20 @@ void TaitEOS_density(const double exponent, const double c0_reference, const dou
  ------------------------------------------------------------------------- */
 void PerfectGasEOS(const double gamma, const double vol, const double mass, const double energy, double &pFinal, double &c0) {
 
-	/*
-	 * perfect gas EOS is p = (gamma - 1) rho e
-	 */
+        /*
+         * perfect gas EOS is p = (gamma - 1) rho e
+         */
 
-	if (energy > 0.0) {
+        if (energy > 0.0) {
 
-		pFinal = (1.0 - gamma) * energy / vol;
+                pFinal = (1.0 - gamma) * energy / vol;
 //printf("gamma = %f, vol%f, e=%g ==> p=%g\n", gamma, vol, energy, *pFinal__/1.0e-9);
 
-		c0 = sqrt((gamma - 1.0) * energy / mass);
+                c0 = sqrt((gamma - 1.0) * energy / mass);
 
-	} else {
-		pFinal = c0 = 0.0;
-	}
+        } else {
+                pFinal = c0 = 0.0;
+        }
 
 }
 
@@ -179,17 +179,17 @@ void PerfectGasEOS(const double gamma, const double vol, const double mass, cons
  output:  sigmaFinal_dev, sigmaFinal_dev_rate__: final stress deviator and its rate.
  ------------------------------------------------------------------------- */
 void LinearStrength(const double mu, const Matrix3d sigmaInitial_dev, const Matrix3d d_dev, const double dt,
-		Matrix3d &sigmaFinal_dev__, Matrix3d &sigma_dev_rate__) {
+                Matrix3d &sigmaFinal_dev__, Matrix3d &sigma_dev_rate__) {
 
-	/*
-	 * deviatoric rate of unrotated stress
-	 */
-	sigma_dev_rate__ = 2.0 * mu * d_dev;
+        /*
+         * deviatoric rate of unrotated stress
+         */
+        sigma_dev_rate__ = 2.0 * mu * d_dev;
 
-	/*
-	 * elastic update to the deviatoric stress
-	 */
-	sigmaFinal_dev__ = sigmaInitial_dev + dt * sigma_dev_rate__;
+        /*
+         * elastic update to the deviatoric stress
+         */
+        sigmaFinal_dev__ = sigmaInitial_dev + dt * sigma_dev_rate__;
 }
 
 /* ----------------------------------------------------------------------
@@ -199,13 +199,13 @@ void LinearStrength(const double mu, const Matrix3d sigmaInitial_dev, const Matr
  output:  total stress tensor, deviator + pressure
  ------------------------------------------------------------------------- */
 //void PairTlsph::LinearStrengthDefgrad(double lambda, double mu, Matrix3d F, Matrix3d *T) {
-//	Matrix3d E, PK2, eye, sigma, S, tau;
+//      Matrix3d E, PK2, eye, sigma, S, tau;
 //
-//	eye.setIdentity();
+//      eye.setIdentity();
 //
-//	E = 0.5 * (F * F.transpose() - eye); // strain measure E = 0.5 * (B - I) = 0.5 * (F * F^T - I)
-//	tau = lambda * E.trace() * eye + 2.0 * mu * E; // Kirchhoff stress, work conjugate to above strain
-//	sigma = tau / F.determinant(); // convert Kirchhoff stress to Cauchy stress
+//      E = 0.5 * (F * F.transpose() - eye); // strain measure E = 0.5 * (B - I) = 0.5 * (F * F^T - I)
+//      tau = lambda * E.trace() * eye + 2.0 * mu * E; // Kirchhoff stress, work conjugate to above strain
+//      sigma = tau / F.determinant(); // convert Kirchhoff stress to Cauchy stress
 //
 ////printf("l=%f, mu=%f, sigma xy = %f\n", lambda, mu, sigma(0,1));
 //
@@ -214,20 +214,20 @@ void LinearStrength(const double mu, const Matrix3d sigmaInitial_dev, const Matr
 ////    tau = F * S * F.transpose(); // convert PK2 to Kirchhoff stress
 ////    sigma = tau / F.determinant();
 //
-//	//*T = sigma;
+//      //*T = sigma;
 //
-//	/*
-//	 * neo-hookean model due to Bonet
-//	 */
+//      /*
+//       * neo-hookean model due to Bonet
+//       */
 ////    lambda = mu = 100.0;
 ////    // left Cauchy-Green Tensor, b = F.F^T
-//	double J = F.determinant();
-//	double logJ = log(J);
-//	Matrix3d b;
-//	b = F * F.transpose();
+//      double J = F.determinant();
+//      double logJ = log(J);
+//      Matrix3d b;
+//      b = F * F.transpose();
 //
-//	sigma = (mu / J) * (b - eye) + (lambda / J) * logJ * eye;
-//	*T = sigma;
+//      sigma = (mu / J) * (b - eye) + (lambda / J) * logJ * eye;
+//      *T = sigma;
 //}
 /* ----------------------------------------------------------------------
  linear strength model for use with linear elasticity
@@ -237,55 +237,55 @@ void LinearStrength(const double mu, const Matrix3d sigmaInitial_dev, const Matr
  output:  sigmaFinal_dev, sigmaFinal_dev_rate__: final stress deviator and its rate.
  ------------------------------------------------------------------------- */
 void LinearPlasticStrength(const double G, const double yieldStress, const Matrix3d sigmaInitial_dev, const Matrix3d d_dev,
-		const double dt, Matrix3d &sigmaFinal_dev__, Matrix3d &sigma_dev_rate__, double &plastic_strain_increment) {
+                const double dt, Matrix3d &sigmaFinal_dev__, Matrix3d &sigma_dev_rate__, double &plastic_strain_increment) {
 
-	Matrix3d sigmaTrial_dev, dev_rate;
-	double J2;
+        Matrix3d sigmaTrial_dev, dev_rate;
+        double J2;
 
-	/*
-	 * deviatoric rate of unrotated stress
-	 */
-	dev_rate = 2.0 * G * d_dev;
+        /*
+         * deviatoric rate of unrotated stress
+         */
+        dev_rate = 2.0 * G * d_dev;
 
-	/*
-	 * perform a trial elastic update to the deviatoric stress
-	 */
-	sigmaTrial_dev = sigmaInitial_dev + dt * dev_rate; // increment stress deviator using deviatoric rate
+        /*
+         * perform a trial elastic update to the deviatoric stress
+         */
+        sigmaTrial_dev = sigmaInitial_dev + dt * dev_rate; // increment stress deviator using deviatoric rate
 
-	/*
-	 * check yield condition
-	 */
-	J2 = sqrt(3. / 2.) * sigmaTrial_dev.norm();
+        /*
+         * check yield condition
+         */
+        J2 = sqrt(3. / 2.) * sigmaTrial_dev.norm();
 
-	if (J2 < yieldStress) {
-		/*
-		 * no yielding has occured.
-		 * final deviatoric stress is trial deviatoric stress
-		 */
-		sigma_dev_rate__ = dev_rate;
-		sigmaFinal_dev__ = sigmaTrial_dev;
-		plastic_strain_increment = 0.0;
-		//printf("no yield\n");
+        if (J2 < yieldStress) {
+                /*
+                 * no yielding has occured.
+                 * final deviatoric stress is trial deviatoric stress
+                 */
+                sigma_dev_rate__ = dev_rate;
+                sigmaFinal_dev__ = sigmaTrial_dev;
+                plastic_strain_increment = 0.0;
+                //printf("no yield\n");
 
-	} else {
-		//printf("yiedl\n");
-		/*
-		 * yielding has occured
-		 */
-		plastic_strain_increment = (J2 - yieldStress) / (3.0 * G);
+        } else {
+                //printf("yiedl\n");
+                /*
+                 * yielding has occured
+                 */
+                plastic_strain_increment = (J2 - yieldStress) / (3.0 * G);
 
-		/*
-		 * new deviatoric stress:
-		 * obtain by scaling the trial stress deviator
-		 */
-		sigmaFinal_dev__ = (yieldStress / J2) * sigmaTrial_dev;
+                /*
+                 * new deviatoric stress:
+                 * obtain by scaling the trial stress deviator
+                 */
+                sigmaFinal_dev__ = (yieldStress / J2) * sigmaTrial_dev;
 
-		/*
-		 * new deviatoric stress rate
-		 */
-		sigma_dev_rate__ = sigmaFinal_dev__ - sigmaInitial_dev;
-		//printf("yielding has occured.\n");
-	}
+                /*
+                 * new deviatoric stress rate
+                 */
+                sigma_dev_rate__ = sigmaFinal_dev__ - sigmaInitial_dev;
+                //printf("yielding has occured.\n");
+        }
 }
 
 /* ----------------------------------------------------------------------
@@ -307,66 +307,66 @@ void LinearPlasticStrength(const double G, const double yieldStress, const Matri
  output:  sigmaFinal_dev, sigmaFinal_dev_rate__: final stress deviator and its rate.
  ------------------------------------------------------------------------- */
 void JohnsonCookStrength(const double G, const double cp, const double espec, const double A, const double B, const double a,
-		const double C, const double epdot0, const double T0, const double Tmelt, const double M, const double dt, const double ep,
-		const double epdot, const Matrix3d sigmaInitial_dev, const Matrix3d d_dev, Matrix3d &sigmaFinal_dev__,
-		Matrix3d &sigma_dev_rate__, double &plastic_strain_increment) {
+                const double C, const double epdot0, const double T0, const double Tmelt, const double M, const double dt, const double ep,
+                const double epdot, const Matrix3d sigmaInitial_dev, const Matrix3d d_dev, Matrix3d &sigmaFinal_dev__,
+                Matrix3d &sigma_dev_rate__, double &plastic_strain_increment) {
 
-	Matrix3d sigmaTrial_dev, dev_rate;
-	double J2, yieldStress;
+        Matrix3d sigmaTrial_dev, dev_rate;
+        double J2, yieldStress;
 
-	double deltaT = espec / cp;
-	double TH = deltaT / (Tmelt - T0);
-	TH = MAX(TH, 0.0);
-	double epdot_ratio = epdot / epdot0;
-	epdot_ratio = MAX(epdot_ratio, 1.0);
-	//printf("current temperature delta is %f, TH=%f\n", deltaT, TH);
+        double deltaT = espec / cp;
+        double TH = deltaT / (Tmelt - T0);
+        TH = MAX(TH, 0.0);
+        double epdot_ratio = epdot / epdot0;
+        epdot_ratio = MAX(epdot_ratio, 1.0);
+        //printf("current temperature delta is %f, TH=%f\n", deltaT, TH);
 
-	yieldStress = (A + B * pow(ep, a)) * (1.0 + C * log(epdot_ratio)); // * (1.0 - pow(TH, M));
+        yieldStress = (A + B * pow(ep, a)) * (1.0 + C * log(epdot_ratio)); // * (1.0 - pow(TH, M));
 
-	/*
-	 * deviatoric rate of unrotated stress
-	 */
-	dev_rate = 2.0 * G * d_dev;
+        /*
+         * deviatoric rate of unrotated stress
+         */
+        dev_rate = 2.0 * G * d_dev;
 
-	/*
-	 * perform a trial elastic update to the deviatoric stress
-	 */
-	sigmaTrial_dev = sigmaInitial_dev + dt * dev_rate; // increment stress deviator using deviatoric rate
+        /*
+         * perform a trial elastic update to the deviatoric stress
+         */
+        sigmaTrial_dev = sigmaInitial_dev + dt * dev_rate; // increment stress deviator using deviatoric rate
 
-	/*
-	 * check yield condition
-	 */
-	J2 = sqrt(3. / 2.) * sigmaTrial_dev.norm();
+        /*
+         * check yield condition
+         */
+        J2 = sqrt(3. / 2.) * sigmaTrial_dev.norm();
 
-	if (J2 < yieldStress) {
-		/*
-		 * no yielding has occured.
-		 * final deviatoric stress is trial deviatoric stress
-		 */
-		sigma_dev_rate__ = dev_rate;
-		sigmaFinal_dev__ = sigmaTrial_dev;
-		plastic_strain_increment = 0.0;
-		//printf("no yield\n");
+        if (J2 < yieldStress) {
+                /*
+                 * no yielding has occured.
+                 * final deviatoric stress is trial deviatoric stress
+                 */
+                sigma_dev_rate__ = dev_rate;
+                sigmaFinal_dev__ = sigmaTrial_dev;
+                plastic_strain_increment = 0.0;
+                //printf("no yield\n");
 
-	} else {
-		//printf("yiedl\n");
-		/*
-		 * yielding has occured
-		 */
-		plastic_strain_increment = (J2 - yieldStress) / (3.0 * G);
+        } else {
+                //printf("yiedl\n");
+                /*
+                 * yielding has occured
+                 */
+                plastic_strain_increment = (J2 - yieldStress) / (3.0 * G);
 
-		/*
-		 * new deviatoric stress:
-		 * obtain by scaling the trial stress deviator
-		 */
-		sigmaFinal_dev__ = (yieldStress / J2) * sigmaTrial_dev;
+                /*
+                 * new deviatoric stress:
+                 * obtain by scaling the trial stress deviator
+                 */
+                sigmaFinal_dev__ = (yieldStress / J2) * sigmaTrial_dev;
 
-		/*
-		 * new deviatoric stress rate
-		 */
-		sigma_dev_rate__ = sigmaFinal_dev__ - sigmaInitial_dev;
-		//printf("yielding has occured.\n");
-	}
+                /*
+                 * new deviatoric stress rate
+                 */
+                sigma_dev_rate__ = sigmaFinal_dev__ - sigmaInitial_dev;
+                //printf("yielding has occured.\n");
+        }
 }
 
 /* ----------------------------------------------------------------------
@@ -382,19 +382,19 @@ void JohnsonCookStrength(const double G, const double cp, const double espec, co
 
 bool IsotropicMaxStrainDamage(const Matrix3d E, const double maxStrain) {
 
-	/*
-	 * compute Eigenvalues of strain matrix
-	 */
-	SelfAdjointEigenSolver < Matrix3d > es;
-	es.compute(E); // compute eigenvalue and eigenvectors of strain
+        /*
+         * compute Eigenvalues of strain matrix
+         */
+        SelfAdjointEigenSolver < Matrix3d > es;
+        es.compute(E); // compute eigenvalue and eigenvectors of strain
 
-	double max_eigenvalue = es.eigenvalues().maxCoeff();
+        double max_eigenvalue = es.eigenvalues().maxCoeff();
 
-	if (max_eigenvalue > maxStrain) {
-		return true;
-	} else {
-		return false;
-	}
+        if (max_eigenvalue > maxStrain) {
+                return true;
+        } else {
+                return false;
+        }
 }
 
 /* ----------------------------------------------------------------------
@@ -410,19 +410,19 @@ bool IsotropicMaxStrainDamage(const Matrix3d E, const double maxStrain) {
 
 bool IsotropicMaxStressDamage(const Matrix3d S, const double maxStress) {
 
-	/*
-	 * compute Eigenvalues of strain matrix
-	 */
-	SelfAdjointEigenSolver < Matrix3d > es;
-	es.compute(S); // compute eigenvalue and eigenvectors of strain
+        /*
+         * compute Eigenvalues of strain matrix
+         */
+        SelfAdjointEigenSolver < Matrix3d > es;
+        es.compute(S); // compute eigenvalue and eigenvectors of strain
 
-	double max_eigenvalue = es.eigenvalues().maxCoeff();
+        double max_eigenvalue = es.eigenvalues().maxCoeff();
 
-	if (max_eigenvalue > maxStress) {
-		return true;
-	} else {
-		return false;
-	}
+        if (max_eigenvalue > maxStress) {
+                return true;
+        } else {
+                return false;
+        }
 }
 
 /* ----------------------------------------------------------------------
@@ -436,39 +436,39 @@ bool IsotropicMaxStressDamage(const Matrix3d S, const double maxStress) {
  ------------------------------------------------------------------------- */
 
 double JohnsonCookFailureStrain(const double p, const Matrix3d Sdev, const double d1, const double d2, const double d3,
-		const double d4, const double epdot0, const double epdot) {
+                const double d4, const double epdot0, const double epdot) {
 
 
 
-	double vm = sqrt(3. / 2.) * Sdev.norm(); // von-Mises equivalent stress
-	if (vm < 0.0) {
-		cout << "this is sdev " << endl << Sdev << endl;
-		printf("vm=%f < 0.0, surely must be an error\n", vm);
-		exit(1);
-	}
+        double vm = sqrt(3. / 2.) * Sdev.norm(); // von-Mises equivalent stress
+        if (vm < 0.0) {
+                cout << "this is sdev " << endl << Sdev << endl;
+                printf("vm=%f < 0.0, surely must be an error\n", vm);
+                exit(1);
+        }
 
-	// determine stress triaxiality
-	double triax = p / (vm + 0.01 * fabs(p)); // have softening in denominator to avoid divison by zero
-	if (triax < 0.0) {
-		triax = 0.0;
-	} else if (triax > 3.0) {
-		triax = 3.0;
-	}
+        // determine stress triaxiality
+        double triax = p / (vm + 0.01 * fabs(p)); // have softening in denominator to avoid divison by zero
+        if (triax < 0.0) {
+                triax = 0.0;
+        } else if (triax > 3.0) {
+                triax = 3.0;
+        }
 
-	// Johnson-Cook failure strain, dependence on stress triaxiality
-	double jc_failure_strain = d1 + d2 * exp(d3 * triax);
+        // Johnson-Cook failure strain, dependence on stress triaxiality
+        double jc_failure_strain = d1 + d2 * exp(d3 * triax);
 
-	// include strain rate dependency if parameter d4 is defined and current plastic strain rate exceeds reference strain rate
-	if (d4 > 0.0) { //
-		if (epdot > epdot0) {
-			double epdot_ratio = epdot / epdot0;
-			jc_failure_strain *= (1.0 + d4 * log(epdot_ratio));
-			//printf("epsdot=%f, epsdot0=%f, factor = %f\n", epdot, epdot0, (1.0 + d4 * log(epdot_ratio)));
-			//exit(1);
+        // include strain rate dependency if parameter d4 is defined and current plastic strain rate exceeds reference strain rate
+        if (d4 > 0.0) { //
+                if (epdot > epdot0) {
+                        double epdot_ratio = epdot / epdot0;
+                        jc_failure_strain *= (1.0 + d4 * log(epdot_ratio));
+                        //printf("epsdot=%f, epsdot0=%f, factor = %f\n", epdot, epdot0, (1.0 + d4 * log(epdot_ratio)));
+                        //exit(1);
 
-		}
-	}
+                }
+        }
 
-	return jc_failure_strain;
+        return jc_failure_strain;
 
 }

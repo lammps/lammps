@@ -29,9 +29,14 @@
 #include "update.h"
 #include "fix_intel.h"
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include <cstring>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+
+#ifdef LAMMPS_BIGBIG
+#error "The USER-INTEL package is not compatible with -DLAMMPS_BIGBIG"
+#endif
 
 #ifdef _LMP_INTEL_OFFLOAD
 #ifndef INTEL_OFFLOAD_NOAFFINITY
@@ -750,7 +755,7 @@ void FixIntel::add_oresults(const ft * _noalias const f_in,
         double * _noalias const lmp_eatom = force->pair->eatom + out_offset;
         #if defined(LMP_SIMD_COMPILER)
         #pragma vector aligned
-	#pragma ivdep
+        #pragma ivdep
         #endif
         for (int i = ifrom; i < ito; i++) {
           f[i].x += f_in[ii].x;
@@ -765,7 +770,7 @@ void FixIntel::add_oresults(const ft * _noalias const f_in,
       } else {
         #if defined(LMP_SIMD_COMPILER)
         #pragma vector aligned
-	#pragma ivdep
+        #pragma ivdep
         #endif
         for (int i = ifrom; i < ito; i++) {
           f[i].x += f_in[ii].x;
@@ -782,7 +787,7 @@ void FixIntel::add_oresults(const ft * _noalias const f_in,
         double * _noalias const lmp_eatom = force->pair->eatom + out_offset;
         #if defined(LMP_SIMD_COMPILER)
         #pragma vector aligned
-	#pragma ivdep
+        #pragma ivdep
         #endif
         for (int i = ifrom; i < ito; i++) {
           f[i].x += f_in[i].x;
@@ -793,7 +798,7 @@ void FixIntel::add_oresults(const ft * _noalias const f_in,
       } else {
         #if defined(LMP_SIMD_COMPILER)
         #pragma vector aligned
-	#pragma ivdep
+        #pragma ivdep
         #endif
         for (int i = ifrom; i < ito; i++) {
           f[i].x += f_in[i].x;

@@ -6,7 +6,7 @@
 
 :line
 
-11. Python interface to LAMMPS :h3
+11. Python interface to LAMMPS :h2
 
 LAMMPS can work together with Python in three ways.  First, Python can
 wrap LAMMPS through the "LAMMPS library
@@ -123,7 +123,7 @@ code directly from an input script:
 
 "python"_python.html
 "variable python"_variable.html
-"fix python"_fix_python.html
+"fix python/invoke"_fix_python_invoke.html
 "pair_style python"_pair_python.html :ul
 
 The "python"_python.html command which can be used to define and
@@ -165,7 +165,7 @@ doc page for its python-style variables for more info, including
 examples of Python code you can write for both pure Python operations
 and callbacks to LAMMPS.
 
-The "fix python"_fix_python.html command can execute
+The "fix python/invoke"_fix_python_invoke.html command can execute
 Python code at selected timesteps during a simulation run.
 
 The "pair_style python"_pair_python command allows you to define
@@ -443,7 +443,7 @@ If an error occurs, carefully go thru the steps in "Section
 library and about insuring Python can find the necessary two files
 it needs.
 
-[Test LAMMPS and Python in serial:] :h5
+[Test LAMMPS and Python in serial:] :h4
 
 To run a LAMMPS test in serial, type these lines into Python
 interactively from the bench directory:
@@ -462,7 +462,7 @@ typed something like:
 
 lmp_g++ -in in.lj :pre
 
-[Test LAMMPS and Python in parallel:] :h5
+[Test LAMMPS and Python in parallel:] :h4
 
 To run LAMMPS in parallel, assuming you have installed the
 "PyPar"_https://github.com/daleroberts/pypar package as discussed
@@ -510,7 +510,7 @@ described in the PyPar documentation.  The last line of your Python
 script should be pypar.finalize(), to insure MPI is shut down
 correctly.
 
-[Running Python scripts:] :h5
+[Running Python scripts:] :h4
 
 Note that any Python script (not just for LAMMPS) can be invoked in
 one of several ways:
@@ -551,10 +551,13 @@ Python script, as follows:
 from lammps import lammps :pre
 
 These are the methods defined by the lammps module.  If you look at
-the files src/library.cpp and src/library.h you will see that they
+the files src/library.cpp and src/library.h you will see they
 correspond one-to-one with calls you can make to the LAMMPS library
 from a C++ or C or Fortran program, and which are described in
 "Section 6.19"_Section_howto.html#howto_19 of the manual.
+
+The python/examples directory has Python scripts which show how Python
+can run LAMMPS, grab data, change it, and put it back into LAMMPS.
 
 lmp = lammps()           # create a LAMMPS object using the default liblammps.so library
                          # 4 optional args are allowed: name, cmdargs, ptr, comm
@@ -565,17 +568,21 @@ lmp = lammps(name="g++",cmdargs=list)    # add LAMMPS command-line args, e.g. li
 
 lmp.close()              # destroy a LAMMPS object :pre
 
-version = lmp.version()  # return the numerical version id, e.g. LAMMPS 2 Sep 2015 -> 20150902
+version = lmp.version()  # return the numerical version id, e.g. LAMMPS 2 Sep 2015 -> 20150902 :pre
 
 lmp.file(file)           # run an entire input script, file = "in.lj"
-lmp.command(cmd)         # invoke a single LAMMPS command, cmd = "run 100" :pre
+lmp.command(cmd)         # invoke a single LAMMPS command, cmd = "run 100"
 lmp.commands_list(cmdlist)     # invoke commands in cmdlist = ["run 10", "run 20"]
-lmp.commands_string(multicmd)  # invoke commands in multicmd = "run 10\nrun 20"
+lmp.commands_string(multicmd)  # invoke commands in multicmd = "run 10\nrun 20" :pre
+
+size = lmp.extract_setting(name)     # return data type info :pre
 
 xlo = lmp.extract_global(name,type)  # extract a global quantity
                                      # name = "boxxlo", "nlocal", etc
                                      # type = 0 = int
                                      #        1 = double :pre
+
+boxlo,boxhi,xy,yz,xz,periodicity,box_change = lmp.extract_box()  # extract box info :pre
 
 coords = lmp.extract_atom(name,type)      # extract a per-atom quantity
                                           # name = "x", "type", etc
@@ -601,16 +608,23 @@ var = lmp.extract_variable(name,group,flag)  # extract value(s) from a variable
                                              # flag = 0 = equal-style variable
                                              #        1 = atom-style variable :pre
 
-flag = lmp.set_variable(name,value)       # set existing named string-style variable to value, flag = 0 if successful
 value = lmp.get_thermo(name)              # return current value of a thermo keyword
+natoms = lmp.get_natoms()                 # total # of atoms as int :pre
 
-natoms = lmp.get_natoms()                 # total # of atoms as int
+flag = lmp.set_variable(name,value)       # set existing named string-style variable to value, flag = 0 if successful
+lmp.reset_box(boxlo,boxhi,xy,yz,xz)       # reset the simulation box size :pre
+
 data = lmp.gather_atoms(name,type,count)  # return per-atom property of all atoms gathered into data, ordered by atom ID
                                           # name = "x", "charge", "type", etc
-                                          # count = # of per-atom values, 1 or 3, etc
+data = lmp.gather_atoms_concat(name,type,count)  # ditto, but concatenated atom values from each proc (unordered)
+data = lmp.gather_atoms_subset(name,type,count,ndata,ids)  # ditto, but for subset of Ndata atoms with IDs :pre
+
 lmp.scatter_atoms(name,type,count,data)   # scatter per-atom property to all atoms from data, ordered by atom ID
                                           # name = "x", "charge", "type", etc
                                           # count = # of per-atom values, 1 or 3, etc :pre
+lmp.scatter_atoms_subset(name,type,count,ndata,ids,data)  # ditto, but for subset of Ndata atoms with IDs :pre
+
+lmp.create_atoms(n,ids,types,x,v,image,shrinkexceed)   # create N atoms with IDs, types, x, v, and image flags :pre
 
 :line
 
@@ -655,9 +669,10 @@ The file(), command(), commands_list(), commands_string() methods
 allow an input script, a single command, or multiple commands to be
 invoked.
 
-The extract_global(), extract_atom(), extract_compute(),
-extract_fix(), and extract_variable() methods return values or
-pointers to data structures internal to LAMMPS.
+The extract_setting(), extract_global(), extract_box(),
+extract_atom(), extract_compute(), extract_fix(), and
+extract_variable() methods return values or pointers to data
+structures internal to LAMMPS.
 
 For extract_global() see the src/library.cpp file for the list of
 valid names.  New names could easily be added.  A double or integer is
@@ -697,60 +712,46 @@ doubles is returned, one value per atom, which you can use via normal
 Python subscripting. The values will be zero for atoms not in the
 specified group.
 
+The get_thermo() method returns returns the current value of a thermo
+keyword as a float.
+
 The get_natoms() method returns the total number of atoms in the
 simulation, as an int.
 
-The gather_atoms() method allows any per-atom property (coordinates,
-velocities, etc) to be extracted from LAMMPS.  It returns a ctypes
-vector of ints or doubles as specified by type, of length
-count*natoms, for the named property for all atoms in the simulation.
-The data is ordered by count and then by atom ID.  See the extract()
-method in the src/atom.cpp file for a list of valid names.  Again, new
-names could easily be added if the property you want is missing.  The
-vector can be used via normal Python subscripting.  If atom IDs are
-not consecutively ordered within LAMMPS, a None is returned as
-indication of an error. A special treatment is applied for image flags
-stored in the "image" property. All three image flags are stored in
-a packed format in a single integer, so count would be 1 to retrieve
-that integer, however also a count value of 3 can be used and then
-the image flags will be unpacked into 3 individual integers, ordered
-in a similar fashion as coordinates.
+The set_variable() methosd sets an existing string-style variable to a
+new string value, so that subsequent LAMMPS commands can access the
+variable.
 
-Note that the data structure gather_atoms("x") returns is different
-from the data structure returned by extract_atom("x") in four ways.
-(1) Gather_atoms() returns a vector which you index as x\[i\];
-extract_atom() returns an array which you index as x\[i\]\[j\].  (2)
-Gather_atoms() orders the atoms by atom ID while extract_atom() does
-not.  (3) Gathert_atoms() returns a list of all atoms in the
-simulation; extract_atoms() returns just the atoms local to each
-processor.  (4) Finally, the gather_atoms() data structure is a copy
-of the atom coords stored internally in LAMMPS, whereas extract_atom()
-returns an array that effectively points directly to the internal
-data.  This means you can change values inside LAMMPS from Python by
-assigning a new values to the extract_atom() array.  To do this with
-the gather_atoms() vector, you need to change values in the vector,
-then invoke the scatter_atoms() method.
+The reset_box() emthods resets the size and shape of the simulation
+box, e.g. as part of restoring a previously extracted and saved state
+of a simulation.
 
-The scatter_atoms() method allows any per-atom property (coordinates,
-velocities, etc) to be inserted into LAMMPS, overwriting the current
-property.  It takes a vector of ints or doubles as specified by type,
-of length count*natoms, for the named property for all atoms in the
-simulation.  The data should be ordered by count and then by atom ID.
-See the extract() method in the src/atom.cpp file for a list of valid
-names.  Again, new names could easily be added if the property you
-want is missing.  It uses the vector of data to overwrite the
-corresponding properties for each atom inside LAMMPS.  This requires
-LAMMPS to have its "map" option enabled; see the
-"atom_modify"_atom_modify.html command for details.  If it is not, or
-if atom IDs are not consecutively ordered, no coordinates are reset.
-Similar as for gather_atoms() a special treatment is applied for image
-flags, which can be provided in packed (count = 1) or unpacked (count = 3)
-format and in the latter case, they will be packed before applied to
-atoms.
+The gather methods collect peratom info of the requested type (atom
+coords, atom types, forces, etc) from all processors, and returns the
+same vector of values to each callling processor.  The scatter
+functions do the inverse.  They distribute a vector of peratom values,
+passed by all calling processors, to invididual atoms, which may be
+owned by different processos.
 
-The array of coordinates passed to scatter_atoms() must be a ctypes
-vector of ints or doubles, allocated and initialized something like
-this:
+Note that the data returned by the gather methods,
+e.g. gather_atoms("x"), is different from the data structure returned
+by extract_atom("x") in four ways.  (1) Gather_atoms() returns a
+vector which you index as x\[i\]; extract_atom() returns an array
+which you index as x\[i\]\[j\].  (2) Gather_atoms() orders the atoms
+by atom ID while extract_atom() does not.  (3) Gather_atoms() returns
+a list of all atoms in the simulation; extract_atoms() returns just
+the atoms local to each processor.  (4) Finally, the gather_atoms()
+data structure is a copy of the atom coords stored internally in
+LAMMPS, whereas extract_atom() returns an array that effectively
+points directly to the internal data.  This means you can change
+values inside LAMMPS from Python by assigning a new values to the
+extract_atom() array.  To do this with the gather_atoms() vector, you
+need to change values in the vector, then invoke the scatter_atoms()
+method.
+
+For the scatter methods, the array of coordinates passed to must be a
+ctypes vector of ints or doubles, allocated and initialized something
+like this:
 
 from ctypes import *
 natoms = lmp.get_natoms()
@@ -765,7 +766,7 @@ x\[n3-1\] = z coord of atom with ID natoms
 lmp.scatter_atoms("x",1,3,x) :pre
 
 Alternatively, you can just change values in the vector returned by
-gather_atoms("x",1,3), since it is a ctypes vector of doubles.
+the gather methods, since they are also ctypes vectors.
 
 :line
 

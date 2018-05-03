@@ -15,8 +15,8 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 #include "math_extra.h"
 
 #define MAXJACOBI 50
@@ -616,7 +616,7 @@ void BuildRxMatrix(double R[3][3], const double angle)
   const double angleSq = angle * angle;
   const double cosAngle = (1.0 - angleSq * 0.25) / (1.0 + angleSq * 0.25);
   const double sinAngle = angle / (1.0 + angleSq * 0.25);
-  
+
   R[0][0] = 1.0;  R[0][1] = 0.0;       R[0][2] = 0.0;
   R[1][0] = 0.0;  R[1][1] = cosAngle;  R[1][2] = -sinAngle;
   R[2][0] = 0.0;  R[2][1] = sinAngle;  R[2][2] = cosAngle;
@@ -631,7 +631,7 @@ void BuildRyMatrix(double R[3][3], const double angle)
   const double angleSq = angle * angle;
   const double cosAngle = (1.0 - angleSq * 0.25) / (1.0 + angleSq * 0.25);
   const double sinAngle = angle / (1.0 + angleSq * 0.25);
-  
+
   R[0][0] = cosAngle;   R[0][1] = 0.0;  R[0][2] = sinAngle;
   R[1][0] = 0.0;        R[1][1] = 1.0;  R[1][2] = 0.0;
   R[2][0] = -sinAngle;  R[2][1] = 0.0;  R[2][2] = cosAngle;
@@ -646,7 +646,7 @@ void BuildRzMatrix(double R[3][3], const double angle)
   const double angleSq = angle * angle;
   const double cosAngle = (1.0 - angleSq * 0.25) / (1.0 + angleSq * 0.25);
   const double sinAngle = angle / (1.0 + angleSq * 0.25);
-  
+
   R[0][0] = cosAngle;  R[0][1] = -sinAngle;  R[0][2] = 0.0;
   R[1][0] = sinAngle;  R[1][1] = cosAngle;   R[1][2] = 0.0;
   R[2][0] = 0.0;       R[2][1] = 0.0;        R[2][2] = 1.0;

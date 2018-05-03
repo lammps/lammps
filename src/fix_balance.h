@@ -20,7 +20,7 @@ FixStyle(balance,FixBalance)
 #ifndef LMP_FIX_BALANCE_H
 #define LMP_FIX_BALANCE_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "fix.h"
 
 namespace LAMMPS_NS {
@@ -82,7 +82,11 @@ E: Fix balance rcb cannot be used with comm_style brick
 
 Comm_style tiled must be used instead.
 
-E: Cannot open fix balance output file
+E: Fix balance nevery = 0 cannot be used with weight var
+
+UNDOCUMENTED
+
+U: Cannot open fix balance output file
 
 Self-explanatory.
 

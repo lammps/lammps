@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 // 
 // ************************************************************************
 //@HEADER
@@ -567,7 +567,7 @@ ROCmInternal::scratch_flags( const Kokkos::Experimental::ROCm::size_type size )
 
     m_scratchFlagsCount = ( size + sizeScratchGrain - 1 ) / sizeScratchGrain ;
 
-    typedef Kokkos::Experimental::Impl::SharedAllocationRecord< Kokkos::HostSpace , void > Record ;
+    typedef Kokkos::Impl::SharedAllocationRecord< Kokkos::HostSpace , void > Record ;
 
     Record * const r = Record::allocate( Kokkos::HostSpace()
                                        , "InternalScratchFlags"
@@ -590,7 +590,7 @@ ROCmInternal::scratch_space( const Kokkos::Experimental::ROCm::size_type size )
 
     m_scratchSpaceCount = ( size + sizeScratchGrain - 1 ) / sizeScratchGrain ;
 
-     typedef Kokkos::Experimental::Impl::SharedAllocationRecord< Kokkos::HostSpace , void > Record ;
+     typedef Kokkos::Impl::SharedAllocationRecord< Kokkos::HostSpace , void > Record ;
 
      Record * const r = Record::allocate( Kokkos::HostSpace()
                                         , "InternalScratchSpace"
@@ -608,6 +608,7 @@ ROCmInternal::scratch_space( const Kokkos::Experimental::ROCm::size_type size )
 
 void ROCmInternal::finalize()
 {
+  Kokkos::Impl::rocm_device_synchronize();
   was_finalized = 1;
   if ( 0 != m_scratchSpace || 0 != m_scratchFlags ) {
 
@@ -615,8 +616,8 @@ void ROCmInternal::finalize()
 //    scratch_lock_array_rocm_space_ptr(false);
 //    threadid_lock_array_rocm_space_ptr(false);
 
-    typedef Kokkos::Experimental::Impl::SharedAllocationRecord< HostSpace > RecordROCm ;
-    typedef Kokkos::Experimental::Impl::SharedAllocationRecord< Kokkos::Experimental::ROCmHostPinnedSpace > RecordHost ;
+    typedef Kokkos::Impl::SharedAllocationRecord< HostSpace > RecordROCm ;
+    typedef Kokkos::Impl::SharedAllocationRecord< Kokkos::Experimental::ROCmHostPinnedSpace > RecordHost ;
 
     RecordROCm::decrement( RecordROCm::get_record( m_scratchFlags ) );
     RecordROCm::decrement( RecordROCm::get_record( m_scratchSpace ) );

@@ -14,7 +14,7 @@
 #ifndef LMP_MODIFY_H
 #define LMP_MODIFY_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "pointers.h"
 #include <map>
 #include <string>
@@ -224,9 +224,9 @@ The ID and style of a fix match for a fix you are changing with a fix
 command, but the new group you are specifying does not match the old
 group.
 
-E: Unknown fix style
+E: Unknown fix style %s
 
-The choice of fix style is unknown.
+UNDOCUMENTED
 
 E: Could not find fix_modify ID
 
@@ -240,9 +240,9 @@ E: Reuse of compute ID
 
 A compute ID cannot be used twice.
 
-E: Unknown compute style
+E: Unknown compute style %s
 
-The choice of compute style is unknown.
+UNDOCUMENTED
 
 E: Could not find compute_modify ID
 
@@ -251,5 +251,13 @@ Self-explanatory.
 E: Could not find compute ID to delete
 
 Self-explanatory.
+
+U: Unknown fix style
+
+The choice of fix style is unknown.
+
+U: Unknown compute style
+
+The choice of compute style is unknown.
 
 */

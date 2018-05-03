@@ -15,9 +15,9 @@
    Contributing author: Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
-#include <string.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstring>
+#include <cstdlib>
+#include <cmath>
 #include "fix_nh_kokkos.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -33,7 +33,7 @@
 #include "update.h"
 #include "respa.h"
 #include "domain_kokkos.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
 #include "atom_kokkos.h"

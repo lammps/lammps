@@ -15,10 +15,10 @@
    Contributing author: Markus Höhnerbach (RWTH)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_tersoff_intel.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -1372,7 +1372,7 @@ void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::attractive_vector(
   fvec vrij_hatx = vrijinv * vdijx;
   fvec vrij_haty = vrijinv * vdijy;
   fvec vrij_hatz = vrijinv * vdijz;
-  fvec rikinv = invsqrt(rsq2);
+  fvec rikinv = v::invsqrt(rsq2);
   fvec rik_hatx = rikinv * dikx;
   fvec rik_haty = rikinv * diky;
   fvec rik_hatz = rikinv * dikz;

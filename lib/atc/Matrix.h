@@ -356,7 +356,7 @@ DenseMatrix<T> Matrix<T>::pow(double n) const
   int sz=this->size(); for(INDEX i=0; i<sz; i++)
   {
     double val = R[i];
-    R[i] = pow(val,n);
+    R[i] = std::pow(val,n);
   }
   return R;
 }

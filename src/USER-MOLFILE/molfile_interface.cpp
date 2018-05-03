@@ -18,11 +18,11 @@
 #include "molfile_interface.h"
 
 #include <sys/types.h>
-#include <stdio.h>
+#include <cstdio>
 #include <dirent.h>
-#include <string.h>
-#include <stdlib.h>
-#include <ctype.h>
+#include <cstring>
+#include <cstdlib>
+#include <cctype>
 
 #if defined(_WIN32)
 #include <windows.h>
@@ -107,7 +107,7 @@ extern "C" {
    * J. Phys. Chem., 68, 441 - 452, 1964,
    * except the value for H, which is taken from R.S. Rowland & R. Taylor,
    * J.Phys.Chem., 100, 7384 - 7391, 1996. Radii that are not available in
-   * either of these publications have RvdW = 2.00 Å.
+   * either of these publications have RvdW = 2.00 \AA.
    * The radii for Ions (Na, K, Cl, Ca, Mg, and Cs are based on the CHARMM27
    * Rmin/2 parameters for (SOD, POT, CLA, CAL, MG, CES) by default.
    */

@@ -16,8 +16,8 @@
    Joel.Eaves@Colorado.edu
 ------------------------------------------------------------------------- */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include "fix_flow_gauss.h"
 #include "atom.h"
 #include "force.h"
@@ -179,8 +179,8 @@ void FixFlowGauss::post_force(int vflag)
   for(ii=0; ii<nlocal; ii++)
     if (mask[ii] & groupbit)
       for (jj=0; jj<3; jj++)
-	if (flow[jj])
-	  f_thisProc[jj] += f[ii][jj];
+        if (flow[jj])
+          f_thisProc[jj] += f[ii][jj];
 
   //add the processor sums together
   MPI_Allreduce(f_thisProc, f_tot, 3, MPI_DOUBLE, MPI_SUM, world);
@@ -210,7 +210,7 @@ void FixFlowGauss::post_force(int vflag)
 
       //calculate added energy, since more costly, only do this if requested
       if (workflag)
-	peAdded += f_app[0]*v[ii][0] + f_app[1]*v[ii][1] + f_app[2]*v[ii][2];
+        peAdded += f_app[0]*v[ii][0] + f_app[1]*v[ii][1] + f_app[2]*v[ii][2];
     }
 
   //finish calculation of work done, sum over all procs

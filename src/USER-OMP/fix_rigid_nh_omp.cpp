@@ -29,7 +29,7 @@
 #include "modify.h"
 #include "update.h"
 
-#include <string.h>
+#include <cstring>
 
 #if defined(_OPENMP)
 #include <omp.h>
@@ -42,8 +42,8 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-enum{SINGLE,MOLECULE,GROUP};	// same as in FixRigid
-enum{ISO,ANISO,TRICLINIC};	// same as in FixRigid
+enum{SINGLE,MOLECULE,GROUP};    // same as in FixRigid
+enum{ISO,ANISO,TRICLINIC};      // same as in FixRigid
 
 #define EINERTIA 0.4            // moment of inertia prefactor for ellipsoid
 
@@ -237,7 +237,8 @@ void FixRigidNHOMP::initial_integrate(int vflag)
 
 void FixRigidNHOMP::compute_forces_and_torques()
 {
-  int ibody;
+  int ibody
+
   double * const * _noalias const x = atom->x;
   const dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];
   const double * const * const torque_one = atom->torque;
@@ -246,131 +247,131 @@ void FixRigidNHOMP::compute_forces_and_torques()
   // sum over atoms to get force and torque on rigid body
   // we have 3 different strategies for multi-threading this.
 
-  if (rstyle == SINGLE) {
-    // we have just one rigid body. use OpenMP reduction to get sum[]
-    double s0=0.0,s1=0.0,s2=0.0,s3=0.0,s4=0.0,s5=0.0;
-    int i;
+   if (rstyle == SINGLE) {
+     // we have just one rigid body. use OpenMP reduction to get sum[]
+     double s0=0.0,s1=0.0,s2=0.0,s3=0.0,s4=0.0,s5=0.0;
+     int i;
 
 #if defined(_OPENMP)
 #pragma omp parallel for default(none) private(i) reduction(+:s0,s1,s2,s3,s4,s5)
 #endif
-    for (i = 0; i < nlocal; i++) {
-      const int ibody = body[i];
-      if (ibody < 0) continue;
+     for (i = 0; i < nlocal; i++) {
+       const int ibody = body[i];
+       if (ibody < 0) continue;
 
-      double unwrap[3];
-      domain->unmap(x[i],xcmimage[i],unwrap);
-      const double dx = unwrap[0] - xcm[0][0];
-      const double dy = unwrap[1] - xcm[0][1];
-      const double dz = unwrap[2] - xcm[0][2];
+       double unwrap[3];
+       domain->unmap(x[i],xcmimage[i],unwrap);
+       const double dx = unwrap[0] - xcm[0][0];
+       const double dy = unwrap[1] - xcm[0][1];
+       const double dz = unwrap[2] - xcm[0][2];
 
-      s0 += f[i].x;
-      s1 += f[i].y;
-      s2 += f[i].z;
+       s0 += f[i].x;
+       s1 += f[i].y;
+       s2 += f[i].z;
 
-      s3 += dy*f[i].z - dz*f[i].y;
-      s4 += dz*f[i].x - dx*f[i].z;
-      s5 += dx*f[i].y - dy*f[i].x;
+       s3 += dy*f[i].z - dz*f[i].y;
+       s4 += dz*f[i].x - dx*f[i].z;
+       s5 += dx*f[i].y - dy*f[i].x;
 
-      if (extended && (eflags[i] & TORQUE)) {
-        s3 += torque_one[i][0];
-        s4 += torque_one[i][1];
-        s5 += torque_one[i][2];
-      }
-    }
-    sum[0][0]=s0; sum[0][1]=s1; sum[0][2]=s2;
-    sum[0][3]=s3; sum[0][4]=s4; sum[0][5]=s5;
+       if (extended && (eflags[i] & TORQUE)) {
+         s3 += torque_one[i][0];
+         s4 += torque_one[i][1];
+         s5 += torque_one[i][2];
+       }
+     }
+     sum[0][0]=s0; sum[0][1]=s1; sum[0][2]=s2;
+     sum[0][3]=s3; sum[0][4]=s4; sum[0][5]=s5;
 
   } else if (rstyle == GROUP) {
 
-    // we likely have only a rather number of groups so we loops
-    // over bodies and thread over all atoms for each of them.
+     // we likely have only a rather number of groups so we loops
+     // over bodies and thread over all atoms for each of them.
 
-    for (int ib = 0; ib < nbody; ++ib) {
-      double s0=0.0,s1=0.0,s2=0.0,s3=0.0,s4=0.0,s5=0.0;
-      int i;
+     for (int ib = 0; ib < nbody; ++ib) {
+       double s0=0.0,s1=0.0,s2=0.0,s3=0.0,s4=0.0,s5=0.0;
+       int i;
 
 #if defined(_OPENMP)
 #pragma omp parallel for default(none) private(i) shared(ib) reduction(+:s0,s1,s2,s3,s4,s5)
 #endif
-      for (i = 0; i < nlocal; i++) {
-        const int ibody = body[i];
-        if (ibody != ib) continue;
+       for (i = 0; i < nlocal; i++) {
+         const int ibody = body[i];
+         if (ibody != ib) continue;
 
-        s0 += f[i].x;
-        s1 += f[i].y;
-        s2 += f[i].z;
+         s0 += f[i].x;
+         s1 += f[i].y;
+         s2 += f[i].z;
 
-        double unwrap[3];
-        domain->unmap(x[i],xcmimage[i],unwrap);
-        const double dx = unwrap[0] - xcm[ibody][0];
-        const double dy = unwrap[1] - xcm[ibody][1];
-        const double dz = unwrap[2] - xcm[ibody][2];
+         double unwrap[3];
+         domain->unmap(x[i],xcmimage[i],unwrap);
+         const double dx = unwrap[0] - xcm[ibody][0];
+         const double dy = unwrap[1] - xcm[ibody][1];
+         const double dz = unwrap[2] - xcm[ibody][2];
 
-        s3 += dy*f[i].z - dz*f[i].y;
-        s4 += dz*f[i].x - dx*f[i].z;
-        s5 += dx*f[i].y - dy*f[i].x;
+         s3 += dy*f[i].z - dz*f[i].y;
+         s4 += dz*f[i].x - dx*f[i].z;
+         s5 += dx*f[i].y - dy*f[i].x;
 
-        if (extended && (eflags[i] & TORQUE)) {
-          s3 += torque_one[i][0];
-          s4 += torque_one[i][1];
-          s5 += torque_one[i][2];
-        }
-      }
+         if (extended && (eflags[i] & TORQUE)) {
+           s3 += torque_one[i][0];
+           s4 += torque_one[i][1];
+           s5 += torque_one[i][2];
+         }
+       }
 
-      sum[ib][0]=s0; sum[ib][1]=s1; sum[ib][2]=s2;
-      sum[ib][3]=s3; sum[ib][4]=s4; sum[ib][5]=s5;
-    }
+       sum[ib][0]=s0; sum[ib][1]=s1; sum[ib][2]=s2;
+       sum[ib][3]=s3; sum[ib][4]=s4; sum[ib][5]=s5;
+     }
 
   } else if (rstyle == MOLECULE) {
 
-    // we likely have a large number of rigid objects with only a
-    // a few atoms each. so we loop over all atoms for all threads
-    // and then each thread only processes some bodies.
+     // we likely have a large number of rigid objects with only a
+     // a few atoms each. so we loop over all atoms for all threads
+     // and then each thread only processes some bodies.
 
-    const int nthreads=comm->nthreads;
-    memset(&sum[0][0],0,6*nbody*sizeof(double));
+     const int nthreads=comm->nthreads;
+     memset(&sum[0][0],0,6*nbody*sizeof(double));
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
 #endif
-    {
+     {
 #if defined(_OPENMP)
-      const int tid = omp_get_thread_num();
+       const int tid = omp_get_thread_num();
 #else
-      const int tid = 0;
+       const int tid = 0;
 #endif
 
-      for (int i = 0; i < nlocal; i++) {
-        const int ibody = body[i];
-        if ((ibody < 0) || (ibody % nthreads != tid)) continue;
+       for (int i = 0; i < nlocal; i++) {
+         const int ibody = body[i];
+         if ((ibody < 0) || (ibody % nthreads != tid)) continue;
 
-        double unwrap[3];
-        domain->unmap(x[i],xcmimage[i],unwrap);
-        const double dx = unwrap[0] - xcm[ibody][0];
-        const double dy = unwrap[1] - xcm[ibody][1];
-        const double dz = unwrap[2] - xcm[ibody][2];
+         double unwrap[3];
+         domain->unmap(x[i],xcmimage[i],unwrap);
+         const double dx = unwrap[0] - xcm[ibody][0];
+         const double dy = unwrap[1] - xcm[ibody][1];
+         const double dz = unwrap[2] - xcm[ibody][2];
 
-        const double s0 = f[i].x;
-        const double s1 = f[i].y;
-        const double s2 = f[i].z;
+         const double s0 = f[i].x;
+         const double s1 = f[i].y;
+         const double s2 = f[i].z;
 
-        double s3 = dy*s2 - dz*s1;
-        double s4 = dz*s0 - dx*s2;
-        double s5 = dx*s1 - dy*s0;
+         double s3 = dy*s2 - dz*s1;
+         double s4 = dz*s0 - dx*s2;
+         double s5 = dx*s1 - dy*s0;
 
-        if (extended && (eflags[i] & TORQUE)) {
-          s3 += torque_one[i][0];
-          s4 += torque_one[i][1];
-          s5 += torque_one[i][2];
-        }
+         if (extended && (eflags[i] & TORQUE)) {
+           s3 += torque_one[i][0];
+           s4 += torque_one[i][1];
+           s5 += torque_one[i][2];
+         }
 
-        sum[ibody][0] += s0; sum[ibody][1] += s1; sum[ibody][2] += s2;
-        sum[ibody][3] += s3; sum[ibody][4] += s4; sum[ibody][5] += s5;
-      }
-    }
-  } else
-    error->all(FLERR,"rigid style is unsupported by fix rigid/omp");
+         sum[ibody][0] += s0; sum[ibody][1] += s1; sum[ibody][2] += s2;
+         sum[ibody][3] += s3; sum[ibody][4] += s4; sum[ibody][5] += s5;
+       }
+     }
+   } else
+     error->all(FLERR,"rigid style is unsupported by fix rigid/omp");
 
   MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
 
@@ -691,22 +692,22 @@ void FixRigidNHOMP::set_xv_thr()
       // Fix::v_tally() is not thread safe, so we do this manually here
       // accumulate global virial into thread-local variables for reduction
       if (vflag_global) {
-	v0 += vr[0];
-	v1 += vr[1];
-	v2 += vr[2];
-	v3 += vr[3];
-	v4 += vr[4];
-	v5 += vr[5];
+        v0 += vr[0];
+        v1 += vr[1];
+        v2 += vr[2];
+        v3 += vr[3];
+        v4 += vr[4];
+        v5 += vr[5];
       }
 
       // accumulate per atom virial directly since we parallelize over atoms.
       if (vflag_atom) {
-	vatom[i][0] += vr[0];
-	vatom[i][1] += vr[1];
-	vatom[i][2] += vr[2];
-	vatom[i][3] += vr[3];
-	vatom[i][4] += vr[4];
-	vatom[i][5] += vr[5];
+        vatom[i][0] += vr[0];
+        vatom[i][1] += vr[1];
+        vatom[i][2] += vr[2];
+        vatom[i][3] += vr[3];
+        vatom[i][4] += vr[4];
+        vatom[i][5] += vr[5];
       }
     }
   }
@@ -881,22 +882,22 @@ void FixRigidNHOMP::set_v_thr()
       // Fix::v_tally() is not thread safe, so we do this manually here
       // accumulate global virial into thread-local variables and reduce them later
       if (vflag_global) {
-	v0 += vr[0];
-	v1 += vr[1];
-	v2 += vr[2];
-	v3 += vr[3];
-	v4 += vr[4];
-	v5 += vr[5];
+        v0 += vr[0];
+        v1 += vr[1];
+        v2 += vr[2];
+        v3 += vr[3];
+        v4 += vr[4];
+        v5 += vr[5];
       }
 
       // accumulate per atom virial directly since we parallelize over atoms.
       if (vflag_atom) {
-	vatom[i][0] += vr[0];
-	vatom[i][1] += vr[1];
-	vatom[i][2] += vr[2];
-	vatom[i][3] += vr[3];
-	vatom[i][4] += vr[4];
-	vatom[i][5] += vr[5];
+        vatom[i][0] += vr[0];
+        vatom[i][1] += vr[1];
+        vatom[i][2] += vr[2];
+        vatom[i][3] += vr[3];
+        vatom[i][4] += vr[4];
+        vatom[i][5] += vr[5];
       }
     }
   } // end of parallel for

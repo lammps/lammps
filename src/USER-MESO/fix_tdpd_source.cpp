@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include "fix_tdpd_source.h"
 #include "atom.h"
 #include "comm.h"
@@ -33,12 +33,12 @@ using namespace FixConst;
 FixTDPDSource::FixTDPDSource(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (strcmp(style,"tdpd/source") != 0 && narg < 4) 
+  if (strcmp(style,"tdpd/source") != 0 && narg < 4)
     error->all(FLERR,"Illegal fix tdpd/source command");
 
   int iarg = 3;
   cc_index = force->inumeric(FLERR,arg[iarg++]);
-  
+
   if (strcmp(arg[iarg],"sphere") == 0) option = 0;
   else if (strcmp(arg[iarg],"cuboid") == 0) option = 1;
   else error->all(FLERR,"Illegal fix tdpd/source command");
@@ -56,10 +56,10 @@ FixTDPDSource::FixTDPDSource(LAMMPS *lmp, int narg, char **arg) :
     if (narg != 12 ) error->all(FLERR,"Illegal fix tdpd/edpd command (7 args for cuboid)");
     center[0] = force->numeric(FLERR,arg[iarg++]);
     center[1] = force->numeric(FLERR,arg[iarg++]);
-    center[2] = force->numeric(FLERR,arg[iarg++]);    
+    center[2] = force->numeric(FLERR,arg[iarg++]);
     dLx = force->numeric(FLERR,arg[iarg++]);
     dLy = force->numeric(FLERR,arg[iarg++]);
-    dLz = force->numeric(FLERR,arg[iarg++]); 
+    dLz = force->numeric(FLERR,arg[iarg++]);
     value = force->numeric(FLERR,arg[iarg++]);
   }
   else error->all(FLERR,"Illegal fix tdpd/source command");

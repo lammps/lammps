@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -254,7 +254,12 @@ void * HostSpace::allocate( const size_t arg_alloc_size ) const
 }
 
 
-void HostSpace::deallocate( void * const arg_alloc_ptr , const size_t arg_alloc_size ) const
+void HostSpace::deallocate( void * const arg_alloc_ptr
+    , const size_t
+#if defined( KOKKOS_IMPL_POSIX_MMAP_FLAGS )
+    arg_alloc_size
+#endif
+    ) const
 {
   if ( arg_alloc_ptr ) {
 
@@ -409,7 +414,7 @@ SharedAllocationRecord< Kokkos::HostSpace , void >::get_record( void * alloc_ptr
 
 // Iterate records to print orphaned memory ...
 void SharedAllocationRecord< Kokkos::HostSpace , void >::
-print_records( std::ostream & s , const Kokkos::HostSpace & space , bool detail )
+print_records( std::ostream & s , const Kokkos::HostSpace & , bool detail )
 {
   SharedAllocationRecord< void , void >::print_host_accessible_records( s , "HostSpace" , & s_root_record , detail );
 }

@@ -21,10 +21,10 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_reax.h"
 #include "pair_reax_fortran.h"
 #include "atom.h"
@@ -171,10 +171,6 @@ void PairREAX::compute(int eflag, int vflag)
   // determine whether this bond is owned by the processor or not
 
   FORTRAN(srtbon1, SRTBON1)(&iprune, &ihb, &hbcut, &ihbnew, &itripstaball);
-
-  // communicate with other processors for the atomic bond order calculations
-
-  FORTRAN(cbkabo, CBKABO).abo;
 
   // communicate local atomic bond order to ghost atomic bond order
 
@@ -720,7 +716,7 @@ void PairREAX::taper_setup()
   swc3= 140.0e0*(swa3*swb+3.0e0*swa2*swb2+swa*swb3)/d7;
   swc2=-210.0e0*(swa3*swb2+swa2*swb3)/d7;
   swc1= 140.0e0*swa3*swb3/d7;
-  swc0=(-35.0e0*swa3*swb2*swb2+21.0e0*swa2*swb3*swb2+
+  swc0=(-35.0e0*swa3*swb2*swb2+21.0e0*swa2*swb3*swb2-
         7.0e0*swa*swb3*swb3+swb3*swb3*swb)/d7;
 }
 
@@ -943,7 +939,7 @@ void PairREAX::cg_solve(const int & nlocal, const int & nghost,
                         double aval[], int acol_ind[], int arow_ptr[],
                         double x[], double b[])
 {
-  double one, zero, rho, rho_old, alpha, beta, gamma;
+  double one, rho, rho_old, alpha, beta, gamma;
   int iter, maxiter;
   int n;
   double sumtmp;
@@ -963,7 +959,6 @@ void PairREAX::cg_solve(const int & nlocal, const int & nghost,
   n = nlocal+nghost+1;
 
   one = 1.0;
-  zero = 0.0;
   maxiter = 100;
 
   for (int i = 0; i < n; i++) w[i] = 0;

@@ -58,7 +58,7 @@ required in order to eliminate velocity components along the bonds
 In order to formulate individual constraints for SHAKE and RATTLE,
 focus on a single molecule whose bonds are constrained.  Let Ri and Vi
 be the position and velocity of atom {i} at time {n}, for
-{i}=1,...,{N}, where {N} is the number of sites of our reference
+{i} =1,...,{N}, where {N} is the number of sites of our reference
 molecule. The distance vector between sites {i} and {j} is given by
 
 :c,image(Eqs/fix_rattle_rij.jpg)

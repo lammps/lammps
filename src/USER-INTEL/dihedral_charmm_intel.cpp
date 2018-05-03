@@ -16,11 +16,12 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
+#include <cmath>
 #include "dihedral_charmm_intel.h"
 #include "atom.h"
 #include "comm.h"
 #include "memory.h"
+#include "modify.h"
 #include "neighbor.h"
 #include "domain.h"
 #include "force.h"

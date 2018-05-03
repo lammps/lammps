@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -125,7 +125,7 @@ namespace Kokkos {
     oldval.t = *dest ;
     assume.i = oldval.i ;
     newval.t = val ;
-    atomic_compare_exchange( reinterpret_cast<int*>(dest) , assume.i, newval.i );
+    atomic_compare_exchange( (int*)(dest) , assume.i, newval.i );
 
     return oldval.t ;    
   }
@@ -398,7 +398,7 @@ namespace Kokkos {
 
   template<class T>
   KOKKOS_INLINE_FUNCTION
-  T atomic_fetch_sub(volatile T* dest, typename std::enable_if<sizeof(T) == sizeof(int),T>::type & val) {
+  T atomic_fetch_sub(volatile T* dest, typename std::enable_if<sizeof(T) == sizeof(int),T>::type val) {
     union U {
       int i ;
       T t ;
@@ -435,5 +435,43 @@ namespace Kokkos {
 
     return oldval.t ;    
   }
+//  KOKKOS_INLINE_FUNCTION
+//  char atomic_fetch_sub(volatile char * dest, const char& val) {
+  template<class T>
+  KOKKOS_INLINE_FUNCTION
+  T atomic_fetch_sub(volatile T* dest, typename std::enable_if<sizeof(T) == sizeof(char),T>::type val) {
+
+    unsigned int oldval,newval,assume;
+    oldval = *(int *)dest ;
+
+    do {
+      assume = oldval ;
+      newval = assume&0x7fffff00 + ((assume&0xff)-val)&0xff ;
+      oldval = hc::atomic_compare_exchange_unsigned((unsigned int*)dest, assume,newval);
+    } while ( assume != oldval );
+
+    return (T) oldval&0xff ;
+  }
+
+//  KOKKOS_INLINE_FUNCTION
+//  short atomic_fetch_sub(volatile short * dest, const short& val) {
+  template<class T>
+  KOKKOS_INLINE_FUNCTION
+  T atomic_fetch_sub(volatile T* dest, typename std::enable_if<sizeof(T) == sizeof(short),T>::type val) {
+
+    unsigned int oldval,newval,assume;
+    oldval = *(int *)dest ;
+
+    do {
+      assume = oldval ;
+      newval = assume&0x7fff0000 + ((assume&0xffff)-val)&0xffff;
+      oldval = hc::atomic_compare_exchange_unsigned((unsigned int*)dest, assume,newval);
+    } while ( assume != oldval );
+
+    return (T) oldval&0xffff ;
+  }
+
+
+
 }
 #endif

@@ -13,12 +13,12 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Liang Wan (Chinese Academy of Sciences)
-   	Memory efficiency improved by Ray Shan (Sandia)
+        Memory efficiency improved by Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "dump_cfg.h"
 #include "atom.h"
 #include "domain.h"
@@ -177,9 +177,9 @@ int DumpCFG::convert_string(int n, double *mybuf)
 
       for (j = 0; j < size_one; j++) {
         if (j == 0) {
-	  offset += sprintf(&sbuf[offset],"%f \n",mybuf[m]);
+          offset += sprintf(&sbuf[offset],"%f \n",mybuf[m]);
         } else if (j == 1) {
-	  offset += sprintf(&sbuf[offset],"%s \n",typenames[(int) mybuf[m]]);
+          offset += sprintf(&sbuf[offset],"%s \n",typenames[(int) mybuf[m]]);
         } else if (j >= 2) {
           if (vtype[j] == INT)
             offset +=
@@ -209,9 +209,9 @@ int DumpCFG::convert_string(int n, double *mybuf)
 
       for (j = 0; j < size_one; j++) {
         if (j == 0) {
-	  offset += sprintf(&sbuf[offset],"%f \n",mybuf[m]);
+          offset += sprintf(&sbuf[offset],"%f \n",mybuf[m]);
         } else if (j == 1) {
-	  offset += sprintf(&sbuf[offset],"%s \n",typenames[(int) mybuf[m]]);
+          offset += sprintf(&sbuf[offset],"%s \n",typenames[(int) mybuf[m]]);
         } else if (j >= 2 && j <= 4) {
           unwrap_coord = (mybuf[m] - 0.5)/UNWRAPEXPAND + 0.5;
           offset += sprintf(&sbuf[offset],vformat[j],unwrap_coord);

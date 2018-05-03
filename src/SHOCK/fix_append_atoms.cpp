@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstring>
+#include <cstdlib>
 #include "fix_append_atoms.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -37,7 +37,7 @@ enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 /* ---------------------------------------------------------------------- */
 
 FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), randomx(NULL), randomt(NULL), basistype(NULL), 
+  Fix(lmp, narg, arg), randomx(NULL), randomt(NULL), basistype(NULL),
   spatialid(NULL), gfactor1(NULL), gfactor2(NULL)
 {
   force_reneighbor = 1;

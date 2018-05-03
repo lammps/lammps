@@ -15,15 +15,15 @@
    Contributing author: Stan Moore (Sandia)
 ------------------------------------------------------------------------- */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include "fix_eos_table_rx_kokkos.h"
 #include "atom_kokkos.h"
 #include "error.h"
 #include "force.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "comm.h"
-#include <math.h>
+#include <cmath>
 #include "modify.h"
 #include "atom_masks.h"
 
@@ -387,7 +387,7 @@ void FixEOStableRXKokkos<DeviceType>::temperature_lookup(int id, double ui, doub
   // Apply the Secant Method
   for(it=0; it<maxit; it++){
     if(fabs(f2-f1) < MY_EPSILON){
-      if(isnan(f1) || isnan(f2)) k_error_flag.template view<DeviceType>()() = 2;
+      if(std::isnan(f1) || std::isnan(f2)) k_error_flag.template view<DeviceType>()() = 2;
       temp = t1;
       temp = MAX(temp,lo);
       temp = MIN(temp,hi);
@@ -403,7 +403,7 @@ void FixEOStableRXKokkos<DeviceType>::temperature_lookup(int id, double ui, doub
     f2 = u2 - ui;
   }
   if(it==maxit){
-    if(isnan(f1) || isnan(f2) || isnan(ui) || isnan(thetai) || isnan(t1) || isnan(t2))
+    if(std::isnan(f1) || std::isnan(f2) || std::isnan(ui) || std::isnan(thetai) || std::isnan(t1) || std::isnan(t2))
       k_error_flag.template view<DeviceType>()() = 2;
     else
       k_error_flag.template view<DeviceType>()() = 3;
@@ -517,14 +517,14 @@ void FixEOStableRXKokkos<DeviceType>::create_kokkos_tables()
 {
   const int tlm1 = tablength-1;
 
-  memory->create_kokkos(d_table->lo,h_table->lo,ntables,"Table::lo");
-  memory->create_kokkos(d_table->hi,h_table->hi,ntables,"Table::hi");
-  memory->create_kokkos(d_table->invdelta,h_table->invdelta,ntables,"Table::invdelta");
+  memoryKK->create_kokkos(d_table->lo,h_table->lo,ntables,"Table::lo");
+  memoryKK->create_kokkos(d_table->hi,h_table->hi,ntables,"Table::hi");
+  memoryKK->create_kokkos(d_table->invdelta,h_table->invdelta,ntables,"Table::invdelta");
 
   if(tabstyle == LINEAR) {
-    memory->create_kokkos(d_table->r,h_table->r,ntables,tablength,"Table::r");
-    memory->create_kokkos(d_table->e,h_table->e,ntables,tablength,"Table::e");
-    memory->create_kokkos(d_table->de,h_table->de,ntables,tlm1,"Table::de");
+    memoryKK->create_kokkos(d_table->r,h_table->r,ntables,tablength,"Table::r");
+    memoryKK->create_kokkos(d_table->e,h_table->e,ntables,tablength,"Table::e");
+    memoryKK->create_kokkos(d_table->de,h_table->de,ntables,tlm1,"Table::de");
   }
 
   for(int i=0; i < ntables; i++) {
@@ -534,11 +534,11 @@ void FixEOStableRXKokkos<DeviceType>::create_kokkos_tables()
     h_table->hi[i] = tb->hi;
     h_table->invdelta[i] = tb->invdelta;
 
-    for(int j = 0; j<h_table->r.dimension_1(); j++)
+    for(int j = 0; j<h_table->r.extent(1); j++)
       h_table->r(i,j) = tb->r[j];
-    for(int j = 0; j<h_table->e.dimension_1(); j++)
+    for(int j = 0; j<h_table->e.extent(1); j++)
       h_table->e(i,j) = tb->e[j];
-    for(int j = 0; j<h_table->de.dimension_1(); j++)
+    for(int j = 0; j<h_table->de.extent(1); j++)
       h_table->de(i,j) = tb->de[j];
   }
 

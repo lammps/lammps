@@ -34,7 +34,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 // 
 // ************************************************************************
 //@HEADER
@@ -297,6 +297,17 @@ int main()
     Kokkos::Cuda::initialize( Kokkos::Cuda::SelectDevice(0) );
     Kokkos::Example::test_fixture< Kokkos::Cuda >();
     Kokkos::Cuda::finalize();
+    Kokkos::HostSpace::execution_space::finalize();
+  }
+#endif
+
+#if defined( KOKKOS_ENABLE_ROCM )
+  {
+    std::cout << "test_fixture< ROCm >" << std::endl ;
+    Kokkos::HostSpace::execution_space::initialize();
+    Kokkos::Experimental::ROCm::initialize( Kokkos::Experimental::ROCm::SelectDevice(0) );
+    Kokkos::Example::test_fixture< Kokkos::Experimental::ROCm >();
+    Kokkos::Experimental::ROCm::finalize();
     Kokkos::HostSpace::execution_space::finalize();
   }
 #endif

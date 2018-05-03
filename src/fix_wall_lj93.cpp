@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
+#include <cmath>
 #include "fix_wall_lj93.h"
 #include "atom.h"
 #include "error.h"
@@ -22,7 +22,10 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixWallLJ93::FixWallLJ93(LAMMPS *lmp, int narg, char **arg) :
-  FixWall(lmp, narg, arg) {}
+  FixWall(lmp, narg, arg)
+{
+  dynamic_group_allow = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 

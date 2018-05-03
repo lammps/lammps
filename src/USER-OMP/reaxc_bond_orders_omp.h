@@ -1,12 +1,12 @@
 /*----------------------------------------------------------------------
   PuReMD - Purdue ReaxFF Molecular Dynamics Program
   Website: https://www.cs.purdue.edu/puremd
-  
+
   Copyright (2010) Purdue University
-  
-  Contributing authors: 
+
+  Contributing authors:
   H. M. Aktulga, J. Fogarty, S. Pandit, A. Grama
-  Corresponding author: 
+  Corresponding author:
   Hasan Metin Aktulga, Michigan State University, hma@cse.msu.edu
 
   Please cite the related publication:
@@ -33,12 +33,12 @@
 #include "reaxc_bond_orders.h"
 
 void Add_dBond_to_ForcesOMP( reax_system*, int, int, storage*, reax_list** );
-void Add_dBond_to_Forces_NPTOMP( reax_system *system, int, int, simulation_data*,
-                              storage*, reax_list** );
+void Add_dBond_to_Forces_NPTOMP( reax_system *system, int, int,
+                                 simulation_data*, storage*, reax_list** );
 
 int BOp_OMP(storage*, reax_list*, double, int, int, far_neighbor_data*,
-	    single_body_parameters*, single_body_parameters*, two_body_parameters*,
-	    int, double, double, double, double, double, double, double);
+            single_body_parameters*, single_body_parameters*, two_body_parameters*,
+            int, double, double, double, double, double, double, double);
 
 void BOOMP( reax_system*, control_params*, simulation_data*,
          storage*, reax_list**, output_controls* );

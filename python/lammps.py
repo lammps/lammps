@@ -5,7 +5,7 @@
 #
 #   Copyright (2003) Sandia Corporation.  Under the terms of Contract
 #   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-#   certain rights in this software.  This software is distributed under 
+#   certain rights in this software.  This software is distributed under
 #   the GNU General Public License.
 #
 #   See the README file in the top-level LAMMPS directory.
@@ -46,17 +46,15 @@ class MPIAbortException(Exception):
   def __str__(self):
     return repr(self.message)
 
-
 class lammps(object):
-  
+
   # detect if Python is using version of mpi4py that can pass a communicator
 
-  has_mpi4py_v2 = False
+  has_mpi4py = False
   try:
     from mpi4py import MPI
     from mpi4py import __version__ as mpi4py_version
-    if mpi4py_version.split('.')[0] == '2':
-      has_mpi4py_v2 = True
+    if mpi4py_version.split('.')[0] in ['2','3']: has_mpi4py = True
   except:
     pass
 
@@ -73,7 +71,7 @@ class lammps(object):
 
     # if a pointer to a LAMMPS object is handed in,
     # all symbols should already be available
-    
+
     try:
       if ptr: self.lib = CDLL("",RTLD_GLOBAL)
     except:
@@ -86,7 +84,7 @@ class lammps(object):
     #   so that LD_LIBRARY_PATH does not need to be set for regular install
     # fall back to loading with a relative path,
     #   typically requires LD_LIBRARY_PATH to be set appropriately
-      
+
     if not self.lib:
       try:
         if not name: self.lib = CDLL(join(modpath,"liblammps.so"),RTLD_GLOBAL)
@@ -95,6 +93,39 @@ class lammps(object):
       except:
         if not name: self.lib = CDLL("liblammps.so",RTLD_GLOBAL)
         else: self.lib = CDLL("liblammps_%s.so" % name,RTLD_GLOBAL)
+
+    # define ctypes API for each library method
+    # NOTE: should add one of these for each lib function
+
+    self.lib.lammps_extract_box.argtypes = \
+      [c_void_p,POINTER(c_double),POINTER(c_double),
+       POINTER(c_double),POINTER(c_double),POINTER(c_double),
+       POINTER(c_int),POINTER(c_int)]
+    self.lib.lammps_extract_box.restype = None
+
+    self.lib.lammps_reset_box.argtypes = \
+      [c_void_p,POINTER(c_double),POINTER(c_double),c_double,c_double,c_double]
+    self.lib.lammps_reset_box.restype = None
+
+    self.lib.lammps_gather_atoms.argtypes = \
+      [c_void_p,c_char_p,c_int,c_int,c_void_p]
+    self.lib.lammps_gather_atoms.restype = None
+
+    self.lib.lammps_gather_atoms_concat.argtypes = \
+      [c_void_p,c_char_p,c_int,c_int,c_void_p]
+    self.lib.lammps_gather_atoms_concat.restype = None
+
+    self.lib.lammps_gather_atoms_subset.argtypes = \
+      [c_void_p,c_char_p,c_int,c_int,c_int,POINTER(c_int),c_void_p]
+    self.lib.lammps_gather_atoms_subset.restype = None
+
+    self.lib.lammps_scatter_atoms.argtypes = \
+      [c_void_p,c_char_p,c_int,c_int,c_void_p]
+    self.lib.lammps_scatter_atoms.restype = None
+
+    self.lib.lammps_scatter_atoms_subset.argtypes = \
+      [c_void_p,c_char_p,c_int,c_int,c_int,POINTER(c_int),c_void_p]
+    self.lib.lammps_scatter_atoms_subset.restype = None
 
     # if no ptr provided, create an instance of LAMMPS
     #   don't know how to pass an MPI communicator from PyPar
@@ -106,12 +137,14 @@ class lammps(object):
     #   just convert it to ctypes ptr and store in self.lmp
 
     if not ptr:
-      
+
       # with mpi4py v2, can pass MPI communicator to LAMMPS
       # need to adjust for type of MPI communicator object
       # allow for int (like MPICH) or void* (like OpenMPI)
 
-      if lammps.has_mpi4py_v2 and comm != None:
+      if comm:
+        if not lammps.has_mpi4py:
+          raise Exception('Python mpi4py version is not 2 or 3')
         if lammps.MPI._sizeof(lammps.MPI.Comm) == sizeof(c_int):
           MPI_Comm = c_int
         else:
@@ -177,6 +210,8 @@ class lammps(object):
     self.c_tagint = get_ctypes_int(self.extract_setting("tagint"))
     self.c_imageint = get_ctypes_int(self.extract_setting("imageint"))
 
+  # shut-down LAMMPS instance
+
   def __del__(self):
     if self.lmp and self.opened:
       self.lib.lammps_close(self.lmp)
@@ -195,7 +230,7 @@ class lammps(object):
     self.lib.lammps_file(self.lmp,file)
 
   # send a single command
-    
+
   def command(self,cmd):
     if cmd: cmd = cmd.encode()
     self.lib.lammps_command(self.lmp,cmd)
@@ -215,16 +250,22 @@ class lammps(object):
     cmds = [x.encode() for x in cmdlist if type(x) is str]
     args = (c_char_p * len(cmdlist))(*cmds)
     self.lib.lammps_commands_list(self.lmp,len(cmdlist),args)
-    
+
   # send a string of commands
 
   def commands_string(self,multicmd):
-    if type(multicmd) is str:
-        multicmd = multicmd.encode()
+    if type(multicmd) is str: multicmd = multicmd.encode()
     self.lib.lammps_commands_string(self.lmp,c_char_p(multicmd))
-    
+
+  # extract lammps type byte sizes
+
+  def extract_setting(self, name):
+    if name: name = name.encode()
+    self.lib.lammps_extract_atom.restype = c_int
+    return int(self.lib.lammps_extract_setting(self.lmp,name))
+
   # extract global info
-    
+
   def extract_global(self,name,type):
     if name: name = name.encode()
     if type == 0:
@@ -235,8 +276,35 @@ class lammps(object):
     ptr = self.lib.lammps_extract_global(self.lmp,name)
     return ptr[0]
 
+  # extract global info
+
+  def extract_box(self):
+    boxlo = (3*c_double)()
+    boxhi = (3*c_double)()
+    xy = c_double()
+    yz = c_double()
+    xz = c_double()
+    periodicity = (3*c_int)()
+    box_change = c_int()
+
+    self.lib.lammps_extract_box(self.lmp,boxlo,boxhi,
+                                byref(xy),byref(yz),byref(xz),
+                                periodicity,byref(box_change))
+
+    boxlo = boxlo[:3]
+    boxhi = boxhi[:3]
+    xy = xy.value
+    yz = yz.value
+    xz = xz.value
+    periodicity = periodicity[:3]
+    box_change = box_change.value
+
+    return boxlo,boxhi,xy,yz,xz,periodicity,box_change
+
   # extract per-atom info
-  
+  # NOTE: need to insure are converting to/from correct Python type
+  #   e.g. for Python list or NumPy or ctypes
+
   def extract_atom(self,name,type):
     if name: name = name.encode()
     if type == 0:
@@ -251,13 +319,6 @@ class lammps(object):
     ptr = self.lib.lammps_extract_atom(self.lmp,name)
     return ptr
 
-  # extract lammps type byte sizes
-
-  def extract_setting(self, name):
-    if name: name = name.encode()
-    self.lib.lammps_extract_atom.restype = c_int
-    return int(self.lib.lammps_extract_setting(self.lmp,name))
-
   @property
   def numpy(self):
     if not self._numpy:
@@ -266,25 +327,41 @@ class lammps(object):
         def __init__(self, lmp):
           self.lmp = lmp
 
-        def extract_atom_iarray(self, name, nelem, dim=1):
-          if dim == 1:
-              tmp = self.lmp.extract_atom(name, 0)
-              ptr = cast(tmp, POINTER(c_int * nelem))
-          else:
-              tmp = self.lmp.extract_atom(name, 1)
-              ptr = cast(tmp[0], POINTER(c_int * nelem * dim))
+        def _ctype_to_numpy_int(self, ctype_int):
+          if ctype_int == c_int32:
+            return np.int32
+          elif ctype_int == c_int64:
+            return np.int64
+          return np.intc
 
-          a = np.frombuffer(ptr.contents, dtype=np.intc)
+        def extract_atom_iarray(self, name, nelem, dim=1):
+          if name in ['id', 'molecule']:
+            c_int_type = self.lmp.c_tagint
+          elif name in ['image']:
+            c_int_type = self.lmp.c_imageint
+          else:
+            c_int_type = c_int
+
+          np_int_type = self._ctype_to_numpy_int(c_int_type)
+
+          if dim == 1:
+            tmp = self.lmp.extract_atom(name, 0)
+            ptr = cast(tmp, POINTER(c_int_type * nelem))
+          else:
+            tmp = self.lmp.extract_atom(name, 1)
+            ptr = cast(tmp[0], POINTER(c_int_type * nelem * dim))
+
+          a = np.frombuffer(ptr.contents, dtype=np_int_type)
           a.shape = (nelem, dim)
           return a
 
         def extract_atom_darray(self, name, nelem, dim=1):
           if dim == 1:
-              tmp = self.lmp.extract_atom(name, 2)
-              ptr = cast(tmp, POINTER(c_double * nelem))
+            tmp = self.lmp.extract_atom(name, 2)
+            ptr = cast(tmp, POINTER(c_double * nelem))
           else:
-              tmp = self.lmp.extract_atom(name, 3)
-              ptr = cast(tmp[0], POINTER(c_double * nelem * dim))
+            tmp = self.lmp.extract_atom(name, 3)
+            ptr = cast(tmp[0], POINTER(c_double * nelem * dim))
 
           a = np.frombuffer(ptr.contents)
           a.shape = (nelem, dim)
@@ -294,7 +371,7 @@ class lammps(object):
     return self._numpy
 
   # extract compute info
-  
+
   def extract_compute(self,id,style,type):
     if id: id = id.encode()
     if type == 0:
@@ -307,9 +384,14 @@ class lammps(object):
       ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
       return ptr
     if type == 2:
-      self.lib.lammps_extract_compute.restype = POINTER(POINTER(c_double))
-      ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
-      return ptr
+      if style == 0:
+        self.lib.lammps_extract_compute.restype = POINTER(c_int)
+        ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
+        return ptr[0]
+      else:
+        self.lib.lammps_extract_compute.restype = POINTER(POINTER(c_double))
+        ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
+        return ptr
     return None
 
   # extract fix info
@@ -362,15 +444,6 @@ class lammps(object):
       return result
     return None
 
-  # set variable value
-  # value is converted to string
-  # returns 0 for success, -1 if failed
-
-  def set_variable(self,name,value):
-    if name: name = name.encode()
-    if value: value = str(value).encode()
-    return self.lib.lammps_set_variable(self.lmp,name,value)
-
   # return current value of thermo keyword
 
   def get_thermo(self,name):
@@ -383,15 +456,31 @@ class lammps(object):
   def get_natoms(self):
     return self.lib.lammps_get_natoms(self.lmp)
 
-  # return vector of atom properties gathered across procs, ordered by atom ID
+  # set variable value
+  # value is converted to string
+  # returns 0 for success, -1 if failed
+
+  def set_variable(self,name,value):
+    if name: name = name.encode()
+    if value: value = str(value).encode()
+    return self.lib.lammps_set_variable(self.lmp,name,value)
+
+  # reset simulation box size
+
+  def reset_box(self,boxlo,boxhi,xy,yz,xz):
+    cboxlo = (3*c_double)(*boxlo)
+    cboxhi = (3*c_double)(*boxhi)
+    self.lib.lammps_reset_box(self.lmp,cboxlo,cboxhi,xy,yz,xz)
+
+  # return vector of atom properties gathered across procs
+  # 3 variants to match src/library.cpp
   # name = atom property recognized by LAMMPS in atom->extract()
   # type = 0 for integer values, 1 for double values
   # count = number of per-atom valus, 1 for type or charge, 3 for x or f
   # returned data is a 1d vector - doc how it is ordered?
-  # NOTE: how could we insure are converting to correct Python type
-  #   e.g. for Python list or NumPy, etc
-  #   ditto for extact_atom() above
-  
+  # NOTE: need to insure are converting to/from correct Python type
+  #   e.g. for Python list or NumPy or ctypes
+
   def gather_atoms(self,name,type,count):
     if name: name = name.encode()
     natoms = self.lib.lammps_get_natoms(self.lmp)
@@ -404,17 +493,45 @@ class lammps(object):
     else: return None
     return data
 
-  # scatter vector of atom properties across procs, ordered by atom ID
+  def gather_atoms_concat(self,name,type,count):
+    if name: name = name.encode()
+    natoms = self.lib.lammps_get_natoms(self.lmp)
+    if type == 0:
+      data = ((count*natoms)*c_int)()
+      self.lib.lammps_gather_atoms_concat(self.lmp,name,type,count,data)
+    elif type == 1:
+      data = ((count*natoms)*c_double)()
+      self.lib.lammps_gather_atoms_concat(self.lmp,name,type,count,data)
+    else: return None
+    return data
+
+  def gather_atoms_subset(self,name,type,count,ndata,ids):
+    if name: name = name.encode()
+    if type == 0:
+      data = ((count*ndata)*c_int)()
+      self.lib.lammps_gather_atoms_subset(self.lmp,name,type,count,ndata,ids,data)
+    elif type == 1:
+      data = ((count*ndata)*c_double)()
+      self.lib.lammps_gather_atoms_subset(self.lmp,name,type,count,ndata,ids,data)
+    else: return None
+    return data
+
+  # scatter vector of atom properties across procs
+  # 2 variants to match src/library.cpp
   # name = atom property recognized by LAMMPS in atom->extract()
   # type = 0 for integer values, 1 for double values
   # count = number of per-atom valus, 1 for type or charge, 3 for x or f
   # assume data is of correct type and length, as created by gather_atoms()
-  # NOTE: how could we insure are passing correct type to LAMMPS
-  # e.g. for Python list or NumPy, etc
-    
+  # NOTE: need to insure are converting to/from correct Python type
+  #   e.g. for Python list or NumPy or ctypes
+
   def scatter_atoms(self,name,type,count,data):
     if name: name = name.encode()
     self.lib.lammps_scatter_atoms(self.lmp,name,type,count,data)
+
+  def scatter_atoms_subset(self,name,type,count,ndata,ids,data):
+    if name: name = name.encode()
+    self.lib.lammps_scatter_atoms_subset(self.lmp,name,type,count,ndata,ids,data)
 
   # create N atoms on all procs
   # N = global number of atoms
@@ -441,8 +558,8 @@ class lammps(object):
 
     type_lmp = (c_int * n)()
     type_lmp[:] = type
-    self.lib.lammps_create_atoms(self.lmp,n,id_lmp,type_lmp,x,v,image_lmp,shrinkexceed)
-
+    self.lib.lammps_create_atoms(self.lmp,n,id_lmp,type_lmp,x,v,image_lmp,
+                                 shrinkexceed)
 
   @property
   def uses_exceptions(self):
@@ -603,6 +720,30 @@ class Atom2D(Atom):
             self.lmp.eval("fy[%d]" % self.index))
 
 
+class variable_set:
+    def __init__(self, name, variable_dict):
+        self._name = name
+        array_pattern = re.compile(r"(?P<arr>.+)\[(?P<index>[0-9]+)\]")
+
+        for key, value in variable_dict.items():
+            m = array_pattern.match(key)
+            if m:
+                g = m.groupdict()
+                varname = g['arr']
+                idx = int(g['index'])
+                if varname not in self.__dict__:
+                    self.__dict__[varname] = {}
+                self.__dict__[varname][idx] = value
+            else:
+                self.__dict__[key] = value
+
+    def __str__(self):
+        return "{}({})".format(self._name, ','.join(["{}={}".format(k, self.__dict__[k]) for k in self.__dict__.keys() if not k.startswith('_')]))
+
+    def __repr__(self):
+        return self.__str__()
+
+
 def get_thermo_data(output):
     """ traverse output of runs and extract thermo data columns """
     if isinstance(output, str):
@@ -630,7 +771,7 @@ def get_thermo_data(output):
         elif line.startswith("Loop time of "):
             in_run = False
             columns = None
-            thermo_data = namedtuple('ThermoData', list(current_run.keys()))(*list(current_run.values()))
+            thermo_data = variable_set('ThermoData', current_run)
             r = {'thermo' : thermo_data }
             runs.append(namedtuple('Run', list(r.keys()))(*list(r.values())))
         elif in_run and len(columns) > 0:

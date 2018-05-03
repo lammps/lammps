@@ -34,7 +34,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -78,7 +78,7 @@ struct pair
   /// This calls the default constructors of T1 and T2.  It won't
   /// compile if those default constructors are not defined and
   /// public.
-  KOKKOS_FORCEINLINE_FUNCTION constexpr
+  KOKKOS_FUNCTION_DEFAULTED constexpr
   pair() = default ;
 
   /// \brief Constructor that takes both elements of the pair.
@@ -458,7 +458,7 @@ struct pair<T1,void>
   first_type  first;
   enum { second = 0 };
 
-  KOKKOS_FORCEINLINE_FUNCTION constexpr
+  KOKKOS_FUNCTION_DEFAULTED constexpr
   pair() = default ;
 
   KOKKOS_FORCEINLINE_FUNCTION constexpr

@@ -104,7 +104,7 @@ set(OTHER_PACKAGES KIM PYTHON MSCG MPIIO VORONOI POEMS LATTE
   USER-ATC USER-AWPMD USER-CGDNA USER-MESO
   USER-CGSDK USER-COLVARS USER-DIFFRACTION USER-DPD USER-DRUDE USER-EFF
   USER-FEP USER-H5MD USER-LB USER-MANIFOLD USER-MEAMC USER-MGPT USER-MISC
-  USER-MOLFILE USER-NETCDF USER-PHONON USER-QTB USER-REAXC USER-SMD
+  USER-MOFFF USER-MOLFILE USER-NETCDF USER-PHONON USER-QTB USER-REAXC USER-SMD
   USER-SMTBQ USER-SPH USER-TALLY USER-UEF USER-VTK USER-QUIP USER-QMMM)
 set(ACCEL_PACKAGES USER-OMP KOKKOS OPT USER-INTEL GPU)
 foreach(PKG ${DEFAULT_PACKAGES})
@@ -170,13 +170,6 @@ if(ENABLE_KSPACE)
   endif()
 endif()
 
-if(ENABLE_MISC)
-  option(LAMMPS_XDR "include XDR compatibility files for doing particle dumps in XTC format" OFF)
-  if(LAMMPS_XDR)
-    add_definitions(-DLAMMPS_XDR) # for liblammps
-  endif()
-endif()
-
 if(ENABLE_MSCG OR ENABLE_USER-ATC OR ENABLE_USER-AWPMD OR ENABLE_USER-QUIP OR ENABLE_LATTE)
   find_package(LAPACK)
   if(NOT LAPACK_FOUND)
@@ -198,14 +191,13 @@ if(ENABLE_PYTHON)
   add_definitions(-DLMP_PYTHON)
   include_directories(${PYTHON_INCLUDE_DIR})
   list(APPEND LAMMPS_LINK_LIBS ${PYTHON_LIBRARY})
-  if(NOT PYTHON_INSTDIR)
-    execute_process(COMMAND ${PYTHON_EXECUTABLE}
-	  -c "import distutils.sysconfig as cg; print(cg.get_python_lib(1,0,prefix='${CMAKE_INSTALL_PREFIX}'))"
-      OUTPUT_VARIABLE PYTHON_INSTDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
-  endif()
-  install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../python/lammps.py DESTINATION ${PYTHON_INSTDIR})
-  if(NOT BUILD_SHARED_LIBS)
-    message(FATAL_ERROR "Python package need lammps to be build shared, use -DBUILD_SHARED_LIBS=ON")
+  if(BUILD_SHARED_LIBS)
+    if(NOT PYTHON_INSTDIR)
+      execute_process(COMMAND ${PYTHON_EXECUTABLE}
+        -c "import distutils.sysconfig as cg; print(cg.get_python_lib(1,0,prefix='${CMAKE_INSTALL_PREFIX}'))"
+        OUTPUT_VARIABLE PYTHON_INSTDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
+    endif()
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../python/lammps.py DESTINATION ${PYTHON_INSTDIR})
   endif()
 endif()
 
@@ -248,8 +240,8 @@ if(ENABLE_LATTE)
     message(STATUS "LATTE not found - we will build our own")
     include(ExternalProject)
     ExternalProject_Add(latte_build
-      URL https://github.com/lanl/LATTE/archive/v1.0.1.tar.gz
-      URL_MD5 5137e28cb1a64444bd571c98c98a6eee
+      URL https://github.com/lanl/LATTE/archive/v1.1.1.tar.gz
+      URL_MD5 cb86f1d2473ce00aa61ff6a023154b03
       SOURCE_SUBDIR cmake
       CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> -DCMAKE_POSITION_INDEPENDENT_CODE=${CMAKE_POSITION_INDEPENDENT_CODE}
       )
@@ -298,7 +290,21 @@ if(ENABLE_USER-VTK)
 endif()
 
 if(ENABLE_KIM)
-  find_package(KIM REQUIRED)
+  find_package(KIM QUIET)
+  if(NOT KIM_FOUND)
+    message(STATUS "KIM not found - we will build our own")
+    include(ExternalProject)
+    ExternalProject_Add(kim_build
+      URL https://github.com/openkim/kim-api/archive/v1.9.4.tar.gz
+      URL_MD5 f4d35a1705eed46d64c7c0ab448ff3e0
+      BUILD_IN_SOURCE 1
+      CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
+      )
+    ExternalProject_get_property(kim_build INSTALL_DIR)
+    set(KIM_INCLUDE_DIRS ${INSTALL_DIR}/include/kim-api-v1)
+    set(KIM_LIBRARIES ${INSTALL_DIR}/lib/libkim-api-v1.so)
+    list(APPEND LAMMPS_DEPS kim_build)
+  endif()
   list(APPEND LAMMPS_LINK_LIBS ${KIM_LIBRARIES})
   include_directories(${KIM_INCLUDE_DIRS})
 endif()
@@ -401,6 +407,10 @@ foreach(SIMPLE_LIB REAX MEAM POEMS USER-ATC USER-AWPMD USER-COLVARS USER-H5MD
       target_include_directories(awpmd PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/awpmd/systems/interact ${LAMMPS_LIB_SOURCE_DIR}/awpmd/ivutils/include)
     elseif(PKG_LIB STREQUAL h5md)
       target_include_directories(h5md PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/h5md/include)
+    elseif(PKG_LIB STREQUAL colvars)
+      target_compile_options(colvars PRIVATE -DLEPTON)
+      target_include_directories(colvars PRIVATE ${LAMMPS_LIB_SOURCE_DIR}/colvars/lepton/include)
+      target_include_directories(colvars PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/colvars)
     else()
       target_include_directories(${PKG_LIB} PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB})
     endif()
@@ -480,12 +490,25 @@ if(ENABLE_KOKKOS)
                          ${KOKKOS_PKG_SOURCES_DIR}/neigh_list_kokkos.cpp
                          ${KOKKOS_PKG_SOURCES_DIR}/neigh_bond_kokkos.cpp
                          ${KOKKOS_PKG_SOURCES_DIR}/fix_nh_kokkos.cpp
+                         ${KOKKOS_PKG_SOURCES_DIR}/nbin_kokkos.cpp
+                         ${KOKKOS_PKG_SOURCES_DIR}/npair_kokkos.cpp
                          ${KOKKOS_PKG_SOURCES_DIR}/domain_kokkos.cpp
                          ${KOKKOS_PKG_SOURCES_DIR}/modify_kokkos.cpp)
   set_property(GLOBAL PROPERTY "KOKKOS_PKG_SOURCES" "${KOKKOS_PKG_SOURCES}")
 
   # detects styles which have KOKKOS version
   RegisterStylesExt(${KOKKOS_PKG_SOURCES_DIR} kokkos KOKKOS_PKG_SOURCES)
+
+  # register kokkos-only styles
+  RegisterNBinStyle(${KOKKOS_PKG_SOURCES_DIR}/nbin_kokkos.h)
+  RegisterNPairStyle(${KOKKOS_PKG_SOURCES_DIR}/npair_kokkos.h)
+
+  if(ENABLE_USER-DPD)
+    get_property(KOKKOS_PKG_SOURCES GLOBAL PROPERTY KOKKOS_PKG_SOURCES)
+    list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/npair_ssa_kokkos.cpp)
+    RegisterNPairStyle(${KOKKOS_PKG_SOURCES_DIR}/npair_ssa_kokkos.h)
+    set_property(GLOBAL PROPERTY "KOKKOS_PKG_SOURCES" "${KOKKOS_PKG_SOURCES}")
+  endif()
 
   get_property(KOKKOS_PKG_SOURCES GLOBAL PROPERTY KOKKOS_PKG_SOURCES)
 

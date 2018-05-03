@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <string.h>
+#include <cstring>
 #include "write_data.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -74,6 +74,7 @@ void WriteData::command(int narg, char **arg)
 
   pairflag = II;
   coeffflag = 1;
+  fixflag = 1;
   int noinit = 0;
 
   int iarg = 1;
@@ -89,6 +90,9 @@ void WriteData::command(int narg, char **arg)
       iarg++;
     } else if (strcmp(arg[iarg],"nocoeff") == 0) {
       coeffflag = 0;
+      iarg++;
+    } else if (strcmp(arg[iarg],"nofix") == 0) {
+      fixflag = 0;
       iarg++;
     } else error->all(FLERR,"Illegal write_data command");
   }
@@ -152,8 +156,8 @@ void WriteData::write(char *file)
   if (natoms != atom->natoms && output->thermo->lostflag == ERROR)
     error->all(FLERR,"Atom count is inconsistent, cannot write data file");
 
-  // sum up bond,angle counts
-  // may be different than atom->nbonds,nangles if broken/turned-off
+  // sum up bond,angle,dihedral,improper counts
+  // may be different than atom->nbonds,nangles, etc. if broken/turned-off
 
   if (atom->molecular == 1 && (atom->nbonds || atom->nbondtypes)) {
     nbonds_local = atom->avec->pack_bond(NULL);
@@ -162,6 +166,16 @@ void WriteData::write(char *file)
   if (atom->molecular == 1 && (atom->nangles || atom->nangletypes)) {
     nangles_local = atom->avec->pack_angle(NULL);
     MPI_Allreduce(&nangles_local,&nangles,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  }
+
+  if (atom->molecular == 1 && (atom->ndihedrals || atom->ndihedraltypes)) {
+    ndihedrals_local = atom->avec->pack_dihedral(NULL);
+    MPI_Allreduce(&ndihedrals_local,&ndihedrals,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  }
+
+  if (atom->molecular == 1 && (atom->nimpropers || atom->nimpropertypes)) {
+    nimpropers_local = atom->avec->pack_improper(NULL);
+    MPI_Allreduce(&nimpropers_local,&nimpropers,1,MPI_LMP_BIGINT,MPI_SUM,world);
   }
 
   // open data file
@@ -196,10 +210,10 @@ void WriteData::write(char *file)
   }
 
   // extra sections managed by fixes
-
-  for (int i = 0; i < modify->nfix; i++)
-    if (modify->fix[i]->wd_section)
-      for (int m = 0; m < modify->fix[i]->wd_section; m++) fix(i,m);
+  if (fixflag)
+    for (int i = 0; i < modify->nfix; i++)
+      if (modify->fix[i]->wd_section)
+        for (int m = 0; m < modify->fix[i]->wd_section; m++) fix(i,m);
 
   // close data file
 
@@ -233,19 +247,20 @@ void WriteData::header()
       fprintf(fp,"%d angle types\n",atom->nangletypes);
     }
     if (atom->ndihedrals || atom->ndihedraltypes) {
-      fprintf(fp,BIGINT_FORMAT " dihedrals\n",atom->ndihedrals);
+      fprintf(fp,BIGINT_FORMAT " dihedrals\n",ndihedrals);
       fprintf(fp,"%d dihedral types\n",atom->ndihedraltypes);
     }
     if (atom->nimpropers || atom->nimpropertypes) {
-      fprintf(fp,BIGINT_FORMAT " impropers\n",atom->nimpropers);
+      fprintf(fp,BIGINT_FORMAT " impropers\n",nimpropers);
       fprintf(fp,"%d improper types\n",atom->nimpropertypes);
     }
   }
 
-  for (int i = 0; i < modify->nfix; i++)
-    if (modify->fix[i]->wd_header)
-      for (int m = 0; m < modify->fix[i]->wd_header; m++)
-        modify->fix[i]->write_data_header(fp,m);
+  if (fixflag) 
+    for (int i = 0; i < modify->nfix; i++)
+      if (modify->fix[i]->wd_header)
+        for (int m = 0; m < modify->fix[i]->wd_header; m++)
+          modify->fix[i]->write_data_header(fp,m);
 
   fprintf(fp,"\n");
 

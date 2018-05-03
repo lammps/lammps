@@ -15,10 +15,10 @@
    Contributing author: Ganga P Purja Pun (George Mason University, Fairfax)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_tersoff_mod_c.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -71,8 +71,8 @@ void PairTersoffMODC::read_file(char *file)
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
       if (ptr == NULL) {
-	    eof = 1;
-	    fclose(fp);
+            eof = 1;
+            fclose(fp);
       } else n = strlen(line) + 1;
     }
     MPI_Bcast(&eof,1,MPI_INT,0,world);
@@ -93,8 +93,8 @@ void PairTersoffMODC::read_file(char *file)
       if (comm->me == 0) {
         ptr = fgets(&line[n],MAXLINE-n,fp);
         if (ptr == NULL) {
-	      eof = 1;
-	      fclose(fp);
+              eof = 1;
+              fclose(fp);
         } else n = strlen(line) + 1;
       }
       MPI_Bcast(&eof,1,MPI_INT,0,world);
@@ -133,7 +133,7 @@ void PairTersoffMODC::read_file(char *file)
     if (nparams == maxparam) {
       maxparam += DELTA;
       params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
-					  "pair:params");
+                                          "pair:params");
     }
 
     params[nparams].ielement = ielement;
@@ -158,19 +158,24 @@ void PairTersoffMODC::read_file(char *file)
     params[nparams].c5 = atof(words[19]);
     params[nparams].c0 = atof(words[20]);
 
-    // currently only allow m exponent of 1
+    // currently only allow m exponent of 1 or 3
 
     params[nparams].powermint = int(params[nparams].powerm);
 
     if (
-	params[nparams].lam3 < 0.0 || params[nparams].powern < 0.0 ||
-	params[nparams].beta < 0.0 || params[nparams].lam2 < 0.0 ||
-	params[nparams].bigb < 0.0 || params[nparams].bigr < 0.0 ||
-	params[nparams].bigd < 0.0 ||
-                               params[nparams].bigd > params[nparams].bigr ||
-	params[nparams].lam3 < 0.0 || params[nparams].biga < 0.0 ||
-	params[nparams].powerm - params[nparams].powermint != 0.0 ||
-    (params[nparams].powermint != 3 && params[nparams].powermint != 1))
+      params[nparams].powern < 0.0 ||
+      params[nparams].beta < 0.0 ||
+      params[nparams].lam2 < 0.0 ||
+      params[nparams].bigb < 0.0 ||
+      params[nparams].bigr < 0.0 ||
+      params[nparams].bigd < 0.0 ||
+      params[nparams].bigd > params[nparams].bigr ||
+      params[nparams].lam1 < 0.0 ||
+      params[nparams].biga < 0.0 ||
+      params[nparams].powerm - params[nparams].powermint != 0.0 ||
+      (params[nparams].powermint != 3 &&
+       params[nparams].powermint != 1)
+      )
       error->all(FLERR,"Illegal Tersoff parameter");
 
     nparams++;

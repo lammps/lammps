@@ -16,10 +16,10 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
-#include <ctype.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cctype>
+#include <cstdlib>
+#include <cstring>
 #include "image.h"
 #include "math_extra.h"
 #include "random_mars.h"
@@ -35,7 +35,7 @@
 #ifdef LAMMPS_PNG
 #include <png.h>
 #include <zlib.h>
-#include <setjmp.h>
+#include <csetjmp>
 #include "version.h"
 #endif
 

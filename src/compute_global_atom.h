@@ -59,83 +59,155 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Region ID for compute reduce/region does not exist
+E: Compute ID for compute global/atom does not exist
+
+UNDOCUMENTED
+
+E: Compute global/atom compute does not calculate a per-atom vector or array
+
+UNDOCUMENTED
+
+E: Compute global/atom compute does not calculate a per-atom vector
+
+UNDOCUMENTED
+
+E: Compute global/atom compute does not calculate a per-atom array
+
+UNDOCUMENTED
+
+E: Compute global/atom compute array is accessed out-of-range
+
+UNDOCUMENTED
+
+E: Fix ID for compute global/atom does not exist
+
+UNDOCUMENTED
+
+E: Compute global/atom fix does not calculate a per-atom vector or array
+
+UNDOCUMENTED
+
+E: Compute global/atom fix does not calculate a per-atom vector
+
+UNDOCUMENTED
+
+E: Compute global/atom fix does not calculate a per-atom array
+
+UNDOCUMENTED
+
+E: Compute global/atom fix array is accessed out-of-range
+
+UNDOCUMENTED
+
+E: Variable name for compute global/atom does not exist
+
+UNDOCUMENTED
+
+E: Compute global/atom variable is not atom-style variable
+
+UNDOCUMENTED
+
+E: Compute global/atom compute does not calculate a global vector
+
+UNDOCUMENTED
+
+E: Compute global/atom compute does not calculate a global array
+
+UNDOCUMENTED
+
+E: Compute global/atom fix does not calculate a global vector
+
+UNDOCUMENTED
+
+E: Compute global/atom fix does not calculate a global array
+
+UNDOCUMENTED
+
+E: Compute global/atom variable is not vector-style variable
+
+UNDOCUMENTED
+
+E: Fix used in compute global/atom not computed at compatible time
+
+UNDOCUMENTED
+
+U: Region ID for compute reduce/region does not exist
 
 Self-explanatory.
 
-E: Compute reduce replace requires min or max mode
+U: Compute reduce replace requires min or max mode
 
 Self-explanatory.
 
-E: Invalid replace values in compute reduce
+U: Invalid replace values in compute reduce
 
 Self-explanatory.
 
-E: Compute ID for compute reduce does not exist
+U: Compute ID for compute reduce does not exist
 
 Self-explanatory.
 
-E: Compute reduce compute does not calculate a per-atom vector
+U: Compute reduce compute does not calculate a per-atom vector
 
 Self-explanatory.
 
-E: Compute reduce compute does not calculate a per-atom array
+U: Compute reduce compute does not calculate a per-atom array
 
 Self-explanatory.
 
-E: Compute reduce compute array is accessed out-of-range
+U: Compute reduce compute array is accessed out-of-range
 
 An index for the array is out of bounds.
 
-E: Compute reduce compute does not calculate a local vector
+U: Compute reduce compute does not calculate a local vector
 
 Self-explanatory.
 
-E: Compute reduce compute does not calculate a local array
+U: Compute reduce compute does not calculate a local array
 
 Self-explanatory.
 
-E: Compute reduce compute calculates global values
+U: Compute reduce compute calculates global values
 
 A compute that calculates peratom or local values is required.
 
-E: Fix ID for compute reduce does not exist
+U: Fix ID for compute reduce does not exist
 
 Self-explanatory.
 
-E: Compute reduce fix does not calculate a per-atom vector
+U: Compute reduce fix does not calculate a per-atom vector
 
 Self-explanatory.
 
-E: Compute reduce fix does not calculate a per-atom array
+U: Compute reduce fix does not calculate a per-atom array
 
 Self-explanatory.
 
-E: Compute reduce fix array is accessed out-of-range
+U: Compute reduce fix array is accessed out-of-range
 
 An index for the array is out of bounds.
 
-E: Compute reduce fix does not calculate a local vector
+U: Compute reduce fix does not calculate a local vector
 
 Self-explanatory.
 
-E: Compute reduce fix does not calculate a local array
+U: Compute reduce fix does not calculate a local array
 
 Self-explanatory.
 
-E: Compute reduce fix calculates global values
+U: Compute reduce fix calculates global values
 
 A fix that calculates peratom or local values is required.
 
-E: Variable name for compute reduce does not exist
+U: Variable name for compute reduce does not exist
 
 Self-explanatory.
 
-E: Compute reduce variable is not atom-style variable
+U: Compute reduce variable is not atom-style variable
 
 Self-explanatory.
 
-E: Fix used in compute reduce not computed at compatible time
+U: Fix used in compute reduce not computed at compatible time
 
 Fixes generate their values on specific timesteps.  Compute reduce is
 requesting a value on a non-allowed timestep.

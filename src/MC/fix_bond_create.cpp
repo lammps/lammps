@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
+#include <cmath>
 #include <mpi.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 #include "fix_bond_create.h"
 #include "update.h"
 #include "respa.h"
@@ -1414,20 +1414,20 @@ void FixBondCreate::print_bb()
     for (int j = 0; j < atom->num_dihedral[i]; j++) {
       printf(" " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " "
              TAGINT_FORMAT ",", atom->dihedral_atom1[i][j],
-	     atom->dihedral_atom2[i][j],atom->dihedral_atom3[i][j],
-	     atom->dihedral_atom4[i][j]);
+             atom->dihedral_atom2[i][j],atom->dihedral_atom3[i][j],
+             atom->dihedral_atom4[i][j]);
     }
     printf("\n");
     printf("TAG " TAGINT_FORMAT ": %d nimpropers: ",atom->tag[i],atom->num_improper[i]);
     for (int j = 0; j < atom->num_improper[i]; j++) {
       printf(" " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " "
              TAGINT_FORMAT ",",atom->improper_atom1[i][j],
-	     atom->improper_atom2[i][j],atom->improper_atom3[i][j],
-	     atom->improper_atom4[i][j]);
+             atom->improper_atom2[i][j],atom->improper_atom3[i][j],
+             atom->improper_atom4[i][j]);
     }
     printf("\n");
     printf("TAG " TAGINT_FORMAT ": %d %d %d nspecial: ",atom->tag[i],
-	   atom->nspecial[i][0],atom->nspecial[i][1],atom->nspecial[i][2]);
+           atom->nspecial[i][0],atom->nspecial[i][1],atom->nspecial[i][2]);
     for (int j = 0; j < atom->nspecial[i][2]; j++) {
       printf(" " TAGINT_FORMAT,atom->special[i][j]);
     }

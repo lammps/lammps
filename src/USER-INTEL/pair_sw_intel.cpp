@@ -25,9 +25,9 @@
 #pragma offload_attribute(pop)
 #endif
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_request.h"
@@ -346,10 +346,10 @@ void PairSWIntel::eval(const int offload, const int vflag,
           }
         }
 
-	int ejrem = ejnum & (pad_width - 1);
-	if (ejrem) ejrem = pad_width - ejrem;
-	const int ejnum_pad = ejnum + ejrem;
-	for (int jj = ejnum; jj < ejnum_pad; jj++) {
+        int ejrem = ejnum & (pad_width - 1);
+        if (ejrem) ejrem = pad_width - ejrem;
+        const int ejnum_pad = ejnum + ejrem;
+        for (int jj = ejnum; jj < ejnum_pad; jj++) {
           tdelx[jj] = (flt_t)0.0;
           tdely[jj] = (flt_t)0.0;
           tdelz[jj] = (flt_t)0.0;

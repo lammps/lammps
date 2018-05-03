@@ -90,13 +90,11 @@ likewise for this post-processing example:
  run 1000 :pre
 
 the mesh's linear interpolation functions can be used as the localization function
- by using the field option:
+by using the field option:
 
  fix AtC internal atc field
-
  fix_modify AtC mesh create 1 1 1 box p p p
-
- ...
+ ... :pre
 
 Note coupling and post-processing can be combined in the same simulations using separate fixes.
 
@@ -108,11 +106,10 @@ No information about this fix is written to "binary restart files"_restart.html.
 
 [Restrictions:]
 
-Thermal and two_temperature (coupling) types use a Verlet time-integration algorithm. The hardy type does not contain its own time-integrator and must be used with a separate fix that does contain one, e.g. nve, nvt, etc.
+Thermal and two_temperature (coupling) types use a Verlet time-integration algorithm. The hardy type does not contain its own time-integrator and must be used with a separate fix that does contain one, e.g. nve, nvt, etc. In addition, currently:
 
-Currently,
-- the coupling is restricted to thermal physics
-- the FE computations are done in serial on each processor. :ul
+the coupling is restricted to thermal physics :ulb,l
+the FE computations are done in serial on each processor. :l,ule
 
 [Related commands:]
 

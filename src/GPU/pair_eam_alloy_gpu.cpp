@@ -15,9 +15,9 @@
    Contributing authors: Trung Dac Nguyen (ORNL), W. Michael Brown (ORNL)
 ------------------------------------------------------------------------- */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_eam_alloy_gpu.h"
 #include "atom.h"
 #include "force.h"
@@ -28,6 +28,7 @@
 #include "error.h"
 #include "neigh_request.h"
 #include "gpu_extra.h"
+#include "domain.h"
 
 using namespace LAMMPS_NS;
 

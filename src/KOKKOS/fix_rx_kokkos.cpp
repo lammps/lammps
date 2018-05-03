@@ -11,13 +11,13 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 #include "fix_rx_kokkos.h"
 #include "atom_masks.h"
 #include "atom_kokkos.h"
 #include "force.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "update.h"
 #include "respa.h"
 #include "modify.h"
@@ -26,8 +26,11 @@
 #include "neigh_request.h"
 #include "error.h"
 #include "math_special_kokkos.h"
+#include "comm.h"
+#include "domain.h"
+#include "kokkos.h"
 
-#include <float.h> // DBL_EPSILON
+#include <cfloat> // DBL_EPSILON
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -81,15 +84,15 @@ FixRxKokkos<DeviceType>::~FixRxKokkos()
   if (copymode) return;
 
   if (localTempFlag)
-    memory->destroy_kokkos(k_dpdThetaLocal, dpdThetaLocal);
+    memoryKK->destroy_kokkos(k_dpdThetaLocal, dpdThetaLocal);
 
-  memory->destroy_kokkos(k_sumWeights, sumWeights);
-  //memory->destroy_kokkos(k_sumWeights);
+  memoryKK->destroy_kokkos(k_sumWeights, sumWeights);
+  //memoryKK->destroy_kokkos(k_sumWeights);
 
   //delete [] scratchSpace;
-  memory->destroy_kokkos(d_scratchSpace);
+  memoryKK->destroy_kokkos(d_scratchSpace);
 
-  memory->destroy_kokkos(k_cutsq);
+  memoryKK->destroy_kokkos(k_cutsq);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -149,7 +152,7 @@ void FixRxKokkos<DeviceType>::init()
     !Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
   neighbor->requests[irequest]->
     kokkos_device = Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
- 
+
   if (neighflag == FULL) {
     neighbor->requests[irequest]->full = 1;
     neighbor->requests[irequest]->half = 0;
@@ -1233,9 +1236,9 @@ void FixRxKokkos<DeviceType>::create_kinetics_data(void)
 {
   //printf("Inside FixRxKokkos::create_kinetics_data\n");
 
-  memory->create_kokkos( d_kineticsData.Arr, h_kineticsData.Arr, nreactions, "KineticsType::Arr");
-  memory->create_kokkos( d_kineticsData.nArr, h_kineticsData.nArr, nreactions, "KineticsType::nArr");
-  memory->create_kokkos( d_kineticsData.Ea, h_kineticsData.Ea, nreactions, "KineticsType::Ea");
+  memoryKK->create_kokkos( d_kineticsData.Arr, h_kineticsData.Arr, nreactions, "KineticsType::Arr");
+  memoryKK->create_kokkos( d_kineticsData.nArr, h_kineticsData.nArr, nreactions, "KineticsType::nArr");
+  memoryKK->create_kokkos( d_kineticsData.Ea, h_kineticsData.Ea, nreactions, "KineticsType::Ea");
 
   for (int i = 0; i < nreactions; ++i)
   {
@@ -1251,8 +1254,8 @@ void FixRxKokkos<DeviceType>::create_kinetics_data(void)
   if (useSparseKinetics)
   {
 
-    memory->create_kokkos( d_kineticsData.nu , h_kineticsData.nu , nreactions, sparseKinetics_maxSpecies, "KineticsType::nu");
-    memory->create_kokkos( d_kineticsData.nuk, h_kineticsData.nuk, nreactions, sparseKinetics_maxSpecies, "KineticsType::nuk");
+    memoryKK->create_kokkos( d_kineticsData.nu , h_kineticsData.nu , nreactions, sparseKinetics_maxSpecies, "KineticsType::nu");
+    memoryKK->create_kokkos( d_kineticsData.nuk, h_kineticsData.nuk, nreactions, sparseKinetics_maxSpecies, "KineticsType::nuk");
 
     for (int i = 0; i < nreactions; ++i)
       for (int k = 0; k < sparseKinetics_maxSpecies; ++k)
@@ -1266,8 +1269,8 @@ void FixRxKokkos<DeviceType>::create_kinetics_data(void)
 
     if (SparseKinetics_enableIntegralReactions)
     {
-      memory->create_kokkos( d_kineticsData.inu, h_kineticsData.inu, nreactions, sparseKinetics_maxSpecies, "KineticsType::inu");
-      memory->create_kokkos( d_kineticsData.isIntegral, h_kineticsData.isIntegral, nreactions, "KineticsType::isIntegral");
+      memoryKK->create_kokkos( d_kineticsData.inu, h_kineticsData.inu, nreactions, sparseKinetics_maxSpecies, "KineticsType::inu");
+      memoryKK->create_kokkos( d_kineticsData.isIntegral, h_kineticsData.isIntegral, nreactions, "KineticsType::isIntegral");
 
       for (int i = 0; i < nreactions; ++i)
       {
@@ -1286,9 +1289,9 @@ void FixRxKokkos<DeviceType>::create_kinetics_data(void)
   //{
 
     // Dense option
-    memory->create_kokkos( d_kineticsData.stoich, h_kineticsData.stoich, nreactions, nspecies, "KineticsType::stoich");
-    memory->create_kokkos( d_kineticsData.stoichReactants, h_kineticsData.stoichReactants, nreactions, nspecies, "KineticsType::stoichReactants");
-    memory->create_kokkos( d_kineticsData.stoichProducts, h_kineticsData.stoichProducts, nreactions, nspecies, "KineticsType::stoichProducts");
+    memoryKK->create_kokkos( d_kineticsData.stoich, h_kineticsData.stoich, nreactions, nspecies, "KineticsType::stoich");
+    memoryKK->create_kokkos( d_kineticsData.stoichReactants, h_kineticsData.stoichReactants, nreactions, nspecies, "KineticsType::stoichReactants");
+    memoryKK->create_kokkos( d_kineticsData.stoichProducts, h_kineticsData.stoichProducts, nreactions, nspecies, "KineticsType::stoichProducts");
 
     for (int i = 0; i < nreactions; ++i)
       for (int k = 0; k < nspecies; ++k)
@@ -1349,7 +1352,7 @@ void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_solveSystems<ZERO_RATES
 {
   if (d_mask(i) & groupbit)
   {
-    StridedArrayType<double,1> y( d_scratchSpace.ptr_on_device() + scratchSpaceSize * i );
+    StridedArrayType<double,1> y( d_scratchSpace.data() + scratchSpaceSize * i );
     StridedArrayType<double,1> rwork( &y[nspecies] );
 
     UserRHSDataKokkos<1> userData;
@@ -1444,9 +1447,9 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreF
   {
     const int count = nlocal + (newton_pair ? nghost : 0);
 
-    if (count > k_dpdThetaLocal.template view<DeviceType>().dimension_0()) {
-      memory->destroy_kokkos (k_dpdThetaLocal, dpdThetaLocal);
-      memory->create_kokkos (k_dpdThetaLocal, dpdThetaLocal, count, "FixRxKokkos::dpdThetaLocal");
+    if (count > k_dpdThetaLocal.template view<DeviceType>().extent(0)) {
+      memoryKK->destroy_kokkos (k_dpdThetaLocal, dpdThetaLocal);
+      memoryKK->create_kokkos (k_dpdThetaLocal, dpdThetaLocal, count, "FixRxKokkos::dpdThetaLocal");
       this->d_dpdThetaLocal = k_dpdThetaLocal.template view<DeviceType>();
       this->h_dpdThetaLocal = k_dpdThetaLocal.h_view;
     }
@@ -1490,10 +1493,10 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreF
   // ...
 
   // Local references to the atomKK objects.
-  //typename ArrayTypes<DeviceType>::t_efloat_1d d_dpdTheta = atomKK->k_dpdTheta.view<DeviceType>(); 
+  //typename ArrayTypes<DeviceType>::t_efloat_1d d_dpdTheta = atomKK->k_dpdTheta.view<DeviceType>();
   //typename ArrayTypes<DeviceType>::t_float_2d  d_dvector  = atomKK->k_dvector.view<DeviceType>();
   //typename ArrayTypes<DeviceType>::t_int_1d    d_mask     = atomKK->k_mask.view<DeviceType>();
-  this->d_dpdTheta = atomKK->k_dpdTheta.view<DeviceType>(); 
+  this->d_dpdTheta = atomKK->k_dpdTheta.view<DeviceType>();
   this->d_dvector  = atomKK->k_dvector.view<DeviceType>();
   this->d_mask     = atomKK->k_mask.view<DeviceType>();
 
@@ -1511,8 +1514,8 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreF
 
   if (odeIntegrationFlag == ODE_LAMMPS_RKF45 && diagnosticFrequency == 1)
   {
-    memory->create_kokkos (k_diagnosticCounterPerODEnSteps, diagnosticCounterPerODEnSteps, nlocal, "FixRxKokkos::diagnosticCounterPerODEnSteps");
-    memory->create_kokkos (k_diagnosticCounterPerODEnFuncs, diagnosticCounterPerODEnFuncs, nlocal, "FixRxKokkos::diagnosticCounterPerODEnFuncs");
+    memoryKK->create_kokkos (k_diagnosticCounterPerODEnSteps, diagnosticCounterPerODEnSteps, nlocal, "FixRxKokkos::diagnosticCounterPerODEnSteps");
+    memoryKK->create_kokkos (k_diagnosticCounterPerODEnFuncs, diagnosticCounterPerODEnFuncs, nlocal, "FixRxKokkos::diagnosticCounterPerODEnFuncs");
 
     d_diagnosticCounterPerODEnSteps = k_diagnosticCounterPerODEnSteps.template view<DeviceType>();
     d_diagnosticCounterPerODEnFuncs = k_diagnosticCounterPerODEnFuncs.template view<DeviceType>();
@@ -1541,9 +1544,9 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreF
   //double *scratchSpace = new double[ scratchSpaceSize * nlocal ];
 
   //typename ArrayTypes<DeviceType>::t_double_1d d_scratchSpace("d_scratchSpace", scratchSpaceSize * nlocal);
-  if (nlocal*scratchSpaceSize > d_scratchSpace.dimension_0()) {
-    memory->destroy_kokkos (d_scratchSpace);
-    memory->create_kokkos (d_scratchSpace, nlocal*scratchSpaceSize, "FixRxKokkos::d_scratchSpace");
+  if (nlocal*scratchSpaceSize > d_scratchSpace.extent(0)) {
+    memoryKK->destroy_kokkos (d_scratchSpace);
+    memoryKK->create_kokkos (d_scratchSpace, nlocal*scratchSpaceSize, "FixRxKokkos::d_scratchSpace");
   }
 
 #if 0
@@ -1557,7 +1560,7 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreF
         //StridedArrayType<double,1> _y( y );
         //StridedArrayType<double,1> _rwork( rwork );
 
-        StridedArrayType<double,1> y( d_scratchSpace.ptr_on_device() + scratchSpaceSize * i );
+        StridedArrayType<double,1> y( d_scratchSpace.data() + scratchSpaceSize * i );
         StridedArrayType<double,1> rwork( &y[nspecies] );
 
         //UserRHSData userData;
@@ -1811,8 +1814,8 @@ void FixRxKokkos<DeviceType>::odeDiagnostics(void)
         my_min[FuncSum] = std::min( my_min[FuncSum], (double)nFuncs );
       }
 
-    memory->destroy_kokkos( k_diagnosticCounterPerODEnSteps, diagnosticCounterPerODEnSteps );
-    memory->destroy_kokkos( k_diagnosticCounterPerODEnFuncs, diagnosticCounterPerODEnFuncs );
+    memoryKK->destroy_kokkos( k_diagnosticCounterPerODEnSteps, diagnosticCounterPerODEnSteps );
+    memoryKK->destroy_kokkos( k_diagnosticCounterPerODEnFuncs, diagnosticCounterPerODEnFuncs );
 
     MPI_Reduce (my_sum_sq, sum_sq, 2*numCounters, MPI_DOUBLE, MPI_SUM, 0, world);
 
@@ -1917,7 +1920,7 @@ void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_firstPairOperator<WT_FL
   double i_sumWeights    = 0.0;
 
   const int i = d_ilist(ii);
- 
+
   const double xtmp = d_x(i,0);
   const double ytmp = d_x(i,1);
   const double ztmp = d_x(i,2);
@@ -1997,10 +2000,10 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
 {
   //typename ArrayTypes<DeviceType>::t_x_array_randomread d_x        = atomKK->k_x.view<DeviceType>();
   //typename ArrayTypes<DeviceType>::t_int_1d_randomread  d_type     = atomKK->k_type.view<DeviceType>();
-  //typename ArrayTypes<DeviceType>::t_efloat_1d          d_dpdTheta = atomKK->k_dpdTheta.view<DeviceType>(); 
+  //typename ArrayTypes<DeviceType>::t_efloat_1d          d_dpdTheta = atomKK->k_dpdTheta.view<DeviceType>();
   d_x        = atomKK->k_x.view<DeviceType>();
   d_type     = atomKK->k_type.view<DeviceType>();
-  d_dpdTheta = atomKK->k_dpdTheta.view<DeviceType>(); 
+  d_dpdTheta = atomKK->k_dpdTheta.view<DeviceType>();
 
   atomKK->sync(execution_space, X_MASK | TYPE_MASK | DPDTHETA_MASK );
 
@@ -2022,10 +2025,10 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
   {
     const int ntypes = atom->ntypes;
 
-    //memory->create_kokkos (k_cutsq, h_cutsq, ntypes+1, ntypes+1, "pair:cutsq");
-    if (ntypes+1 > k_cutsq.dimension_0()) {
-      memory->destroy_kokkos (k_cutsq);
-      memory->create_kokkos (k_cutsq, ntypes+1, ntypes+1, "FixRxKokkos::k_cutsq");
+    //memoryKK->create_kokkos (k_cutsq, h_cutsq, ntypes+1, ntypes+1, "pair:cutsq");
+    if (ntypes+1 > k_cutsq.extent(0)) {
+      memoryKK->destroy_kokkos (k_cutsq);
+      memoryKK->create_kokkos (k_cutsq, ntypes+1, ntypes+1, "FixRxKokkos::k_cutsq");
       d_cutsq = k_cutsq.template view<DeviceType>();
     }
 
@@ -2043,10 +2046,10 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
   // Initialize the local temperature weight array
   int sumWeightsCt = nlocal + (NEWTON_PAIR ? nghost : 0);
 
-  //memory->create_kokkos (k_sumWeights, sumWeights, sumWeightsCt, "FixRxKokkos::sumWeights");
-  if (sumWeightsCt > k_sumWeights.template view<DeviceType>().dimension_0()) {
-    memory->destroy_kokkos(k_sumWeights, sumWeights);
-    memory->create_kokkos (k_sumWeights, sumWeightsCt, "FixRxKokkos::sumWeights");
+  //memoryKK->create_kokkos (k_sumWeights, sumWeights, sumWeightsCt, "FixRxKokkos::sumWeights");
+  if (sumWeightsCt > k_sumWeights.template view<DeviceType>().extent(0)) {
+    memoryKK->destroy_kokkos(k_sumWeights, sumWeights);
+    memoryKK->create_kokkos (k_sumWeights, sumWeightsCt, "FixRxKokkos::sumWeights");
     d_sumWeights = k_sumWeights.template view<DeviceType>();
     h_sumWeights = k_sumWeights.h_view;
   }
@@ -2093,7 +2096,7 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
           double i_sumWeights    = 0.0;
 
           const int i = d_ilist(ii);
- 
+
           const double xtmp = d_x(i,0);
           const double ytmp = d_x(i,1);
           const double ztmp = d_x(i,2);

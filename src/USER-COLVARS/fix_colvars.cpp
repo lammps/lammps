@@ -24,10 +24,10 @@
    Contributing author:  Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <errno.h>
 
 #include "fix_colvars.h"
@@ -379,6 +379,7 @@ int FixColvars::setmask()
   mask |= POST_FORCE;
   mask |= POST_FORCE_RESPA;
   mask |= END_OF_STEP;
+  mask |= POST_RUN;
   return mask;
 }
 
@@ -548,9 +549,9 @@ void FixColvars::setup(int vflag)
         } else {
           m[i] = atom->mass[type[k]];
         }
-	if (atom->q_flag) {
-	  q[i] = atom->q[k];
-	}
+        if (atom->q_flag) {
+          q[i] = atom->q[k];
+        }
       }
     }
 
@@ -615,7 +616,7 @@ void FixColvars::setup(int vflag)
           comm_buf[nme].m = atom->mass[type[k]];
         }
 
-	if (atom->q_flag) {
+        if (atom->q_flag) {
           comm_buf[nme].q = atom->q[k];
         }
 
@@ -930,6 +931,15 @@ void FixColvars::restart(char *buf)
   if (me == 0) {
     std::string rest_text(buf);
     proxy->deserialize_status(rest_text);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixColvars::post_run()
+{
+  if (me == 0) {
+    proxy->write_output_files();
   }
 }
 

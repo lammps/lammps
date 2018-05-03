@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -67,7 +67,7 @@ struct AddFunctor {
   type a, b;
   int length;
 
-  AddFunctor( type a_, type b_ ) : a( a_ ), b( b_ ), length( a.dimension_1() ) {}
+  AddFunctor( type a_, type b_ ) : a( a_ ), b( b_ ), length( a.extent(1) ) {}
 
   KOKKOS_INLINE_FUNCTION
   void operator()( int i ) const {

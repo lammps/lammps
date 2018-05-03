@@ -15,7 +15,7 @@
    Contributing author: Axel Kohlmeyer (ICTP, Italy)
 ------------------------------------------------------------------------- */
 
-#include <string.h>
+#include <cstring>
 #include "fix_oneway.h"
 #include "atom.h"
 #include "domain.h"

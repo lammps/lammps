@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "region.h"
 #include "update.h"
 #include "domain.h"
@@ -28,9 +28,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Region::Region(LAMMPS *lmp, int narg, char **arg) : 
+Region::Region(LAMMPS *lmp, int narg, char **arg) :
   Pointers(lmp),
-  id(NULL), style(NULL), contact(NULL), list(NULL), 
+  id(NULL), style(NULL), contact(NULL), list(NULL),
   xstr(NULL), ystr(NULL), zstr(NULL), tstr(NULL)
 {
   int n = strlen(arg[0]) + 1;
@@ -140,15 +140,6 @@ int Region::match(double x, double y, double z)
   if (dynamic) inverse_transform(x,y,z);
   if (openflag) return 1;
   return !(inside(x,y,z) ^ interior);
-}
-
-/* ----------------------------------------------------------------------
-   generate error if Kokkos function defaults to base class
-------------------------------------------------------------------------- */
-
-void Region::match_all_kokkos(int, DAT::tdual_int_1d)
-{
-  error->all(FLERR,"Can only use Kokkos supported regions with Kokkos package");
 }
 
 /* ----------------------------------------------------------------------

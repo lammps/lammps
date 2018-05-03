@@ -15,14 +15,15 @@
    Contributing author: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 #include "angle_harmonic_intel.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"
 #include "comm.h"
 #include "force.h"
+#include "modify.h"
 #include "math_const.h"
 #include "memory.h"
 #include "suffix.h"

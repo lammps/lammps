@@ -32,6 +32,8 @@ class ComputeFragmentAtom : public Compute {
   void compute_peratom();
   int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);
+  int pack_reverse_comm(int, int, double *);
+  void unpack_reverse_comm(int, int *, double *);
   double memory_usage();
 
  private:
@@ -51,6 +53,10 @@ E: Illegal ... command
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
+
+E: Compute fragment/atom used when bonds are not allowed
+
+UNDOCUMENTED
 
 E: Cannot use compute fragment/atom unless atoms have IDs
 

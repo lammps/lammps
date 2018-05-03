@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
+#include <cstring>
 #include "comm_tiled_kokkos.h"
 #include "comm_brick.h"
 #include "atom_kokkos.h"
@@ -25,7 +25,7 @@
 #include "compute.h"
 #include "output.h"
 #include "dump.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
 

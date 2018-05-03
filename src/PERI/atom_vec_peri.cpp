@@ -15,9 +15,9 @@
    Contributing author: Mike Parks (SNL)
 ------------------------------------------------------------------------- */
 
-#include <float.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cfloat>
+#include <cstdlib>
+#include <cstring>
 #include "atom_vec_peri.h"
 #include "atom.h"
 #include "comm.h"

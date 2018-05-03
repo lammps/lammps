@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
+#include <cstring>
 #include "fix_group.h"
 #include "group.h"
 #include "update.h"
@@ -33,7 +33,7 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixGroup::FixGroup(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
-idregion(NULL), idvar(NULL)
+idregion(NULL), idvar(NULL), idprop(NULL)
 {
   // dgroupbit = bitmask of dynamic group
   // group ID is last part of fix ID
@@ -49,6 +49,7 @@ idregion(NULL), idvar(NULL)
 
   regionflag = 0;
   varflag = 0;
+  propflag = 0;
   nevery = 1;
 
   int iarg = 3;
@@ -73,7 +74,17 @@ idregion(NULL), idvar(NULL)
       idvar = new char[n];
       strcpy(idvar,arg[iarg+1]);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"every") == 0) {
+    } else if (strcmp(arg[iarg],"property") == 0) {
+          if (iarg+2 > narg) error->all(FLERR,"Illegal group command");
+          if (atom->find_custom(arg[iarg+1],typeflag) < 0)
+        error->all(FLERR,"Per atom property for group dynamic does not exist");
+      propflag = 1;
+      delete [] idprop;
+      int n = strlen(arg[iarg+1]) + 1;
+      idprop = new char[n];
+      strcpy(idprop,arg[iarg+1]);
+      iarg += 2;
+        } else if (strcmp(arg[iarg],"every") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal group command");
       nevery = force->inumeric(FLERR,arg[iarg+1]);
       if (nevery <= 0) error->all(FLERR,"Illegal group command");
@@ -88,6 +99,7 @@ FixGroup::~FixGroup()
 {
   delete [] idregion;
   delete [] idvar;
+  delete [] idprop;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -128,6 +140,12 @@ void FixGroup::init()
       error->all(FLERR,"Variable name for group dynamic does not exist");
     if (!input->variable->atomstyle(ivar))
       error->all(FLERR,"Variable for group dynamic is invalid style");
+  }
+
+  if (propflag) {
+    iprop = atom->find_custom(idprop,typeflag);
+    if (iprop < 0)
+      error->all(FLERR,"Per-atom property for group dynamic does not exist");
   }
 
   // warn if any FixGroup is not at tail end of all post_integrate fixes
@@ -188,6 +206,9 @@ void FixGroup::set_group()
   // invoke atom-style variable if defined
 
   double *var = NULL;
+  int *ivector = NULL;
+  double *dvector = NULL;
+
 
   if (varflag) {
     modify->clearstep_compute();
@@ -195,6 +216,12 @@ void FixGroup::set_group()
     input->variable->compute_atom(ivar,igroup,var,1,0);
     modify->addstep_compute(update->ntimestep + nevery);
   }
+
+  // invoke per-atom property if defined
+
+  if (propflag && !typeflag) ivector = atom->ivector[iprop]; //check nlocal > 0?
+
+  if (propflag && typeflag) dvector = atom->dvector[iprop]; //check nlocal > 0?
 
   // update region in case it has a variable dependence or is dynamic
 
@@ -214,6 +241,8 @@ void FixGroup::set_group()
       inflag = 1;
       if (regionflag && !region->match(x[i][0],x[i][1],x[i][2])) inflag = 0;
       if (varflag && var[i] == 0.0) inflag = 0;
+      if (propflag && !typeflag && ivector[i] == 0) inflag = 0;
+      if (propflag && typeflag && dvector[i] == 0) inflag = 0;
     } else inflag = 0;
 
     if (inflag) mask[i] |= gbit;

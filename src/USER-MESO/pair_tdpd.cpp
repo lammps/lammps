@@ -16,9 +16,10 @@
    Email: zhen_li@brown.edu
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
 #include "pair_tdpd.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -31,7 +32,6 @@
 #include "citeme.h"
 #include "memory.h"
 #include "error.h"
-#include <time.h>
 
 using namespace LAMMPS_NS;
 
@@ -176,7 +176,7 @@ void PairTDPD::compute(int eflag, int vflag)
           }
         }
         //-----------------------------------------------------------
-        
+
         if (newton_pair || j < nlocal) {
           f[j][0] -= delx*fpair;
           f[j][1] -= dely*fpair;
@@ -205,7 +205,7 @@ void PairTDPD::allocate()
   int i,j;
   allocated = 1;
   int n = atom->ntypes;
-  
+
   memory->create(setflag,n+1,n+1,"pair:setflag");
   for (i = 1; i <= n; i++)
   for (j = i; j <= n; j++)
@@ -220,7 +220,7 @@ void PairTDPD::allocate()
   memory->create(sigma,n+1,n+1,"pair:sigma");
   memory->create(power,n+1,n+1,"pair:power");
   memory->create(kappa,n+1,n+1,cc_species,"pair:kappa");
-  memory->create(epsilon,n+1,n+1,cc_species,"pair:epsilon");  
+  memory->create(epsilon,n+1,n+1,cc_species,"pair:epsilon");
   memory->create(powercc,n+1,n+1,cc_species,"pair:powercc");
 
   for (i = 0; i <= atom->ntypes; i++)
@@ -315,13 +315,17 @@ void PairTDPD::coeff(int narg, char **arg)
 void PairTDPD::init_style()
 {
   if (comm->ghost_velocity == 0)
-    error->all(FLERR,"Pair tdpd requires ghost atoms store velocity");
+    error->all(FLERR,"Pair style tdpd requires ghost atoms store velocity");
+
+  if (!atom->tdpd_flag)
+    error->all(FLERR,"Pair style tdpd requires atom properties cc/cc_flux");
 
   // if newton off, forces between atoms ij will be double computed
   // using different random numbers
 
-  if (force->newton_pair == 0 && comm->me == 0) error->warning(FLERR,
-      "Pair tdpd needs newton pair on for momentum conservation");
+  if (force->newton_pair == 0 && comm->me == 0)
+    error->warning(FLERR,"Pair tdpd needs newton pair on "
+                   "for momentum conservation");
 
   neighbor->request(this,instance_me);
 }

@@ -17,9 +17,9 @@
 
 #include "lmptype.h"
 #include <mpi.h>
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "thermo.h"
 #include "atom.h"
 #include "update.h"
@@ -55,7 +55,7 @@ using namespace MathConst;
 
 // customize a new keyword by adding to this list:
 
-// step, elapsed, elaplong, dt, time, cpu, tpcpu, spcpu, cpuremain, 
+// step, elapsed, elaplong, dt, time, cpu, tpcpu, spcpu, cpuremain,
 // part, timeremain
 // atoms, temp, press, pe, ke, etotal, enthalpy
 // evdwl, ecoul, epair, ebond, eangle, edihed, eimp, emol, elong, etail
@@ -197,7 +197,7 @@ Thermo::~Thermo()
   deallocate();
 
   // format strings
-  
+
   delete [] format_line_user;
   delete [] format_float_user;
   delete [] format_int_user;
@@ -1091,7 +1091,7 @@ int Thermo::evaluate_keyword(char *word, double *answer)
   //   this will trigger next timestep for energy tallying via addstep()
   //   this means keywords that use pe (pe, etotal, enthalpy)
   //     need to always invoke it even if invoked_flag is set,
-  //     because evdwl/etc may have set invoked_flag w/out 
+  //     because evdwl/etc may have set invoked_flag w/out
   //       actually invoking pe->compute_scalar()
 
   if (strcmp(word,"step") == 0) {
@@ -1571,7 +1571,7 @@ void Thermo::compute_variable()
     dvalue = input->variable->compute_equal(variables[field2index[ifield]]);
   else {
     double *varvec;
-    int nvec = 
+    int nvec =
       input->variable->compute_vector(variables[field2index[ifield]],&varvec);
     if (nvec < iarg) dvalue = 0.0;
     else dvalue = varvec[iarg-1];

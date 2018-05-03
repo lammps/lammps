@@ -1,6 +1,6 @@
 #include "manifold_plane_wiggle.h"
 
-#include <math.h>
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace user_manifold;
@@ -24,5 +24,5 @@ void manifold_plane_wiggle::n( const double *x, double *n )
   double w = params[1];
   n[2] = 1;
   n[1] = 0.0;
-  n[0] = -a*w*cos(x[0]);
+  n[0] = -a*w*cos(w*x[0]);
 }

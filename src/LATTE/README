@@ -17,7 +17,7 @@ Once you have successfully built LAMMPS with this package and the
 LATTE library you can test it using an input file from the examples
 latte dir, e.g.
 
-lmp_serial < lammps/examples/latte/in.latte.water
+lmp_serial -in lammps/examples/latte/in.latte.water
 
 This pair style was written in collaboration with the LATTE
 developers.

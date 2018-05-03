@@ -16,11 +16,12 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
+#include <cmath>
 #include "dihedral_fourier_intel.h"
 #include "atom.h"
 #include "comm.h"
 #include "memory.h"
+#include "modify.h"
 #include "neighbor.h"
 #include "domain.h"
 #include "force.h"
@@ -69,8 +70,8 @@ void DihedralFourierIntel::compute(int eflag, int vflag)
 
 template <class flt_t, class acc_t>
 void DihedralFourierIntel::compute(int eflag, int vflag,
-				   IntelBuffers<flt_t,acc_t> *buffers,
-				   const ForceConst<flt_t> &fc)
+                                   IntelBuffers<flt_t,acc_t> *buffers,
+                                   const ForceConst<flt_t> &fc)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
@@ -98,8 +99,8 @@ void DihedralFourierIntel::compute(int eflag, int vflag,
 
 template <int EFLAG, int VFLAG, int NEWTON_BOND, class flt_t, class acc_t>
 void DihedralFourierIntel::eval(const int vflag,
-				IntelBuffers<flt_t,acc_t> *buffers,
-				const ForceConst<flt_t> &fc)
+                                IntelBuffers<flt_t,acc_t> *buffers,
+                                const ForceConst<flt_t> &fc)
 
 {
   const int inum = neighbor->ndihedrallist;
@@ -235,32 +236,32 @@ void DihedralFourierIntel::eval(const int vflag,
       flt_t deng;
       flt_t df = (flt_t)0.0;
       if (EFLAG) deng = (flt_t)0.0;
-      
+
       for (int j = 0; j < nterms[type]; j++) {
-	const flt_t tcos_shift = fc.bp[j][type].cos_shift;
-	const flt_t tsin_shift = fc.bp[j][type].sin_shift;
-	const flt_t tk = fc.bp[j][type].k;
-	const int m = fc.bp[j][type].multiplicity;
+        const flt_t tcos_shift = fc.bp[j][type].cos_shift;
+        const flt_t tsin_shift = fc.bp[j][type].sin_shift;
+        const flt_t tk = fc.bp[j][type].k;
+        const int m = fc.bp[j][type].multiplicity;
 
-	flt_t p = (flt_t)1.0;
-	flt_t ddf1, df1;
-	ddf1 = df1 = (flt_t)0.0;
+        flt_t p = (flt_t)1.0;
+        flt_t ddf1, df1;
+        ddf1 = df1 = (flt_t)0.0;
 
-	for (int i = 0; i < m; i++) {
-	  ddf1 = p*c - df1*s;
-	  df1 = p*s + df1*c;
-	  p = ddf1;
-	}
+        for (int i = 0; i < m; i++) {
+          ddf1 = p*c - df1*s;
+          df1 = p*s + df1*c;
+          p = ddf1;
+        }
 
-	p = p*tcos_shift + df1*tsin_shift;
-	df1 = df1*tcos_shift - ddf1*tsin_shift;
-	df1 *= -m;
-	p += (flt_t)1.0;
-	
-	if (m == 0) {
-	  p = (flt_t)1.0 + tcos_shift;
-	  df1 = (flt_t)0.0;
-	}
+        p = p*tcos_shift + df1*tsin_shift;
+        df1 = df1*tcos_shift - ddf1*tsin_shift;
+        df1 *= -m;
+        p += (flt_t)1.0;
+
+        if (m == 0) {
+          p = (flt_t)1.0 + tcos_shift;
+          df1 = (flt_t)0.0;
+        }
 
         if (EFLAG) deng += tk * p;
         df -= tk * df1;
@@ -400,7 +401,7 @@ void DihedralFourierIntel::init_style()
 
 template <class flt_t, class acc_t>
 void DihedralFourierIntel::pack_force_const(ForceConst<flt_t> &fc,
-					    IntelBuffers<flt_t,acc_t> *buffers)
+                                            IntelBuffers<flt_t,acc_t> *buffers)
 {
   const int bp1 = atom->ndihedraltypes + 1;
   fc.set_ntypes(bp1, setflag, nterms, memory);
@@ -409,9 +410,9 @@ void DihedralFourierIntel::pack_force_const(ForceConst<flt_t> &fc,
     if (setflag[i]) {
       for (int j = 0; j < nterms[i]; j++) {
         fc.bp[j][i].cos_shift = cos_shift[i][j];
-	fc.bp[j][i].sin_shift = sin_shift[i][j];
-	fc.bp[j][i].k = k[i][j];
-	fc.bp[j][i].multiplicity = multiplicity[i][j];
+        fc.bp[j][i].sin_shift = sin_shift[i][j];
+        fc.bp[j][i].k = k[i][j];
+        fc.bp[j][i].multiplicity = multiplicity[i][j];
       }
     }
   }
@@ -422,8 +423,8 @@ void DihedralFourierIntel::pack_force_const(ForceConst<flt_t> &fc,
 template <class flt_t>
 void DihedralFourierIntel::ForceConst<flt_t>::set_ntypes(const int nbondtypes,
                                                          int *setflag,
-							 int *nterms,
-							 Memory *memory) {
+                                                         int *nterms,
+                                                         Memory *memory) {
   if (nbondtypes != _nbondtypes) {
     if (_nbondtypes > 0)
       _memory->destroy(bp);

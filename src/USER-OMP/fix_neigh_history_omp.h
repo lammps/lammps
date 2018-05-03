@@ -28,7 +28,10 @@ class FixNeighHistoryOMP : public FixNeighHistory {
 
  public:
   FixNeighHistoryOMP(class LAMMPS *lmp, int narg, char **argv);
-  virtual void pre_exchange();
+  void pre_exchange_onesided();
+  void pre_exchange_newton();
+  void pre_exchange_no_newton();
+  void post_neighbor();
 };
 
 }

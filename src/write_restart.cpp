@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <string.h>
+#include <cstring>
 #include "write_restart.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -61,7 +61,7 @@ enum{VERSION,SMALLINT,TAGINT,BIGINT,
      MULTIPROC,MPIIO,PROCSPERFILE,PERPROC,
      IMAGEINT,BOUNDMIN,TIMESTEP,
      ATOM_ID,ATOM_MAP_STYLE,ATOM_MAP_USER,ATOM_SORTFREQ,ATOM_SORTBIN,
-     COMM_MODE,COMM_CUTOFF,COMM_VEL};
+     COMM_MODE,COMM_CUTOFF,COMM_VEL,NO_PAIR};
 
 enum{IGNORE,WARN,ERROR};                    // same as thermo.cpp
 
@@ -95,6 +95,7 @@ void WriteRestart::command(int narg, char **arg)
   if ((ptr = strchr(arg[0],'*'))) {
     *ptr = '\0';
     sprintf(file,"%s" BIGINT_FORMAT "%s",arg[0],update->ntimestep,ptr+1);
+    *ptr = '*'; // must restore arg[0] so it can be correctly parsed below
   } else strcpy(file,arg[0]);
 
   // check for multiproc output and an MPI-IO filename
@@ -554,9 +555,13 @@ void WriteRestart::type_arrays()
 
 void WriteRestart::force_fields()
 {
-  if (force->pair && force->pair->restartinfo) {
-    write_string(PAIR,force->pair_style);
-    force->pair->write_restart(fp);
+  if (force->pair) {
+    if (force->pair->restartinfo) {
+      write_string(PAIR,force->pair_style);
+      force->pair->write_restart(fp);
+    } else {
+      write_string(NO_PAIR,force->pair_style);
+    }
   }
   if (atom->avec->bonds_allow && force->bond) {
     write_string(BOND,force->bond_style);

@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -45,6 +45,10 @@
 #if defined( KOKKOS_ATOMIC_HPP ) && ! defined( KOKKOS_ATOMIC_GENERIC_HPP )
 #define KOKKOS_ATOMIC_GENERIC_HPP
 #include <Kokkos_Macros.hpp>
+
+#if defined(KOKKOS_ENABLE_CUDA)
+#include<Cuda/Kokkos_Cuda_Version_9_8_Compatibility.hpp>
+#endif
 
 // Combination operands to be used in an Compare and Exchange based atomic operation
 namespace Kokkos {
@@ -242,7 +246,7 @@ T atomic_fetch_oper( const Oper& op, volatile T * const dest ,
   // This is a way to (hopefully) avoid dead lock in a warp
   T return_val;
   int done = 0;
-  unsigned int active = __ballot(1);
+  unsigned int active = KOKKOS_IMPL_CUDA_BALLOT(1);
   unsigned int done_active = 0;
   while (active!=done_active) {
     if(!done) {
@@ -253,7 +257,7 @@ T atomic_fetch_oper( const Oper& op, volatile T * const dest ,
         done=1;
       }
     }
-    done_active = __ballot(done);
+    done_active = KOKKOS_IMPL_CUDA_BALLOT(done);
   }
   return return_val;
 #endif
@@ -281,7 +285,7 @@ T atomic_oper_fetch( const Oper& op, volatile T * const dest ,
   T return_val;
   // This is a way to (hopefully) avoid dead lock in a warp
   int done = 0;
-  unsigned int active = __ballot(1);
+  unsigned int active = KOKKOS_IMPL_CUDA_BALLOT(1);
   unsigned int done_active = 0;
   while (active!=done_active) {
     if(!done) {
@@ -292,7 +296,7 @@ T atomic_oper_fetch( const Oper& op, volatile T * const dest ,
         done=1;
       }
     }
-    done_active = __ballot(done);
+    done_active = KOKKOS_IMPL_CUDA_BALLOT(done);
   }
   return return_val;
 #endif
@@ -334,6 +338,8 @@ T atomic_fetch_mod(volatile T * const dest, const T val) {
   return Impl::atomic_fetch_oper(Impl::ModOper<T,const T>(),dest,val);
 }
 
+#if !defined( KOKKOS_ENABLE_SERIAL_ATOMICS )
+
 template < typename T >
 KOKKOS_INLINE_FUNCTION
 T atomic_fetch_and(volatile T * const dest, const T val) {
@@ -345,6 +351,8 @@ KOKKOS_INLINE_FUNCTION
 T atomic_fetch_or(volatile T * const dest, const T val) {
   return Impl::atomic_fetch_oper(Impl::OrOper<T,const T>(),dest,val);
 }
+
+#endif
 
 template < typename T >
 KOKKOS_INLINE_FUNCTION

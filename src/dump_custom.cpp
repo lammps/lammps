@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "dump_custom.h"
 #include "atom.h"
 #include "force.h"
@@ -60,7 +60,8 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   earg(NULL), vtype(NULL), vformat(NULL), columns(NULL), choose(NULL),
   dchoose(NULL), clist(NULL), field2index(NULL), argindex(NULL), id_compute(NULL),
   compute(NULL), id_fix(NULL), fix(NULL), id_variable(NULL), variable(NULL),
-  vbuf(NULL), id_custom(NULL), flag_custom(NULL), typenames(NULL), pack_choice(NULL)
+  vbuf(NULL), id_custom(NULL), flag_custom(NULL), typenames(NULL), 
+  pack_choice(NULL)
 {
   if (narg == 5) error->all(FLERR,"No dump custom arguments specified");
 
@@ -937,16 +938,16 @@ int DumpCustom::count()
         nstride = 1;
 
       } else if (thresh_array[ithresh] == DNAME) {
-	int iwhich,tmp;
+        int iwhich,tmp;
         i = nfield + ithresh;
-	iwhich = atom->find_custom(id_custom[field2index[i]],tmp);
+        iwhich = atom->find_custom(id_custom[field2index[i]],tmp);
         ptr = atom->dvector[iwhich];
         nstride = 1;
 
       } else if (thresh_array[ithresh] == INAME) {
-	int iwhich,tmp;
+        int iwhich,tmp;
         i = nfield + ithresh;
-	iwhich = atom->find_custom(id_custom[field2index[i]],tmp);
+        iwhich = atom->find_custom(id_custom[field2index[i]],tmp);
 
         int *ivector = atom->ivector[iwhich];
         for (i = 0; i < nlocal; i++)
@@ -960,87 +961,87 @@ int DumpCustom::count()
       // copy ptr attribute into thresh_fix if this is first comparison
 
       if (thresh_last[ithresh] < 0) {
-	lastflag = 0;
-	value = thresh_value[ithresh];
+        lastflag = 0;
+        value = thresh_value[ithresh];
       } else {
-	lastflag = 1;
-	int ilast = thresh_last[ithresh];
-	values = thresh_fix[ilast]->vstore;
-	ptrhold = ptr;
-	if (thresh_first[ilast]) {
-	  thresh_first[ilast] = 0;
-	  for (i = 0; i < nlocal; i++, ptr += nstride) values[i] = *ptr;
-	  ptr = ptrhold;
-	}
+        lastflag = 1;
+        int ilast = thresh_last[ithresh];
+        values = thresh_fix[ilast]->vstore;
+        ptrhold = ptr;
+        if (thresh_first[ilast]) {
+          thresh_first[ilast] = 0;
+          for (i = 0; i < nlocal; i++, ptr += nstride) values[i] = *ptr;
+          ptr = ptrhold;
+        }
       }
 
       if (thresh_op[ithresh] == LT) {
-	if (lastflag) {
-	  for (i = 0; i < nlocal; i++, ptr += nstride)
-	    if (choose[i] && *ptr >= values[i]) choose[i] = 0;
-	} else {
-	  for (i = 0; i < nlocal; i++, ptr += nstride)
-	    if (choose[i] && *ptr >= value) choose[i] = 0;
-	}
+        if (lastflag) {
+          for (i = 0; i < nlocal; i++, ptr += nstride)
+            if (choose[i] && *ptr >= values[i]) choose[i] = 0;
+        } else {
+          for (i = 0; i < nlocal; i++, ptr += nstride)
+            if (choose[i] && *ptr >= value) choose[i] = 0;
+        }
       } else if (thresh_op[ithresh] == LE) {
-	if (lastflag) {
-	  for (i = 0; i < nlocal; i++, ptr += nstride)
-	    if (choose[i] && *ptr > values[i]) choose[i] = 0;
-	} else {
-	  for (i = 0; i < nlocal; i++, ptr += nstride)
-	    if (choose[i] && *ptr > value) choose[i] = 0;
-	}
+        if (lastflag) {
+          for (i = 0; i < nlocal; i++, ptr += nstride)
+            if (choose[i] && *ptr > values[i]) choose[i] = 0;
+        } else {
+          for (i = 0; i < nlocal; i++, ptr += nstride)
+            if (choose[i] && *ptr > value) choose[i] = 0;
+        }
       } else if (thresh_op[ithresh] == GT) {
-	if (lastflag) {
-	  for (i = 0; i < nlocal; i++, ptr += nstride)
-	    if (choose[i] && *ptr <= values[i]) choose[i] = 0;
-	} else {
-	  for (i = 0; i < nlocal; i++, ptr += nstride)
-	    if (choose[i] && *ptr <= value) choose[i] = 0;
-	}
+        if (lastflag) {
+          for (i = 0; i < nlocal; i++, ptr += nstride)
+            if (choose[i] && *ptr <= values[i]) choose[i] = 0;
+        } else {
+          for (i = 0; i < nlocal; i++, ptr += nstride)
+            if (choose[i] && *ptr <= value) choose[i] = 0;
+        }
       } else if (thresh_op[ithresh] == GE) {
-	if (lastflag) {
-	  for (i = 0; i < nlocal; i++, ptr += nstride)
-	    if (choose[i] && *ptr < values[i]) choose[i] = 0;
-	} else {
-	  for (i = 0; i < nlocal; i++, ptr += nstride)
-	    if (choose[i] && *ptr < value) choose[i] = 0;
-	}
+        if (lastflag) {
+          for (i = 0; i < nlocal; i++, ptr += nstride)
+            if (choose[i] && *ptr < values[i]) choose[i] = 0;
+        } else {
+          for (i = 0; i < nlocal; i++, ptr += nstride)
+            if (choose[i] && *ptr < value) choose[i] = 0;
+        }
       } else if (thresh_op[ithresh] == EQ) {
-	if (lastflag) {
-	  for (i = 0; i < nlocal; i++, ptr += nstride)
-	    if (choose[i] && *ptr != values[i]) choose[i] = 0;
-	} else {
-	  for (i = 0; i < nlocal; i++, ptr += nstride)
-	    if (choose[i] && *ptr != value) choose[i] = 0;
-	}
+        if (lastflag) {
+          for (i = 0; i < nlocal; i++, ptr += nstride)
+            if (choose[i] && *ptr != values[i]) choose[i] = 0;
+        } else {
+          for (i = 0; i < nlocal; i++, ptr += nstride)
+            if (choose[i] && *ptr != value) choose[i] = 0;
+        }
       } else if (thresh_op[ithresh] == NEQ) {
-	if (lastflag) {
-	  for (i = 0; i < nlocal; i++, ptr += nstride)
-	    if (choose[i] && *ptr == values[i]) choose[i] = 0;
-	} else {
-	  for (i = 0; i < nlocal; i++, ptr += nstride)
-	    if (choose[i] && *ptr == value) choose[i] = 0;
-	}
+        if (lastflag) {
+          for (i = 0; i < nlocal; i++, ptr += nstride)
+            if (choose[i] && *ptr == values[i]) choose[i] = 0;
+        } else {
+          for (i = 0; i < nlocal; i++, ptr += nstride)
+            if (choose[i] && *ptr == value) choose[i] = 0;
+        }
       } else if (thresh_op[ithresh] == XOR) {
-	if (lastflag) {
-	  for (i = 0; i < nlocal; i++, ptr += nstride)
-	    if (choose[i] && (*ptr == 0.0 && values[i] == 0.0) || 
-		(*ptr != 0.0 && values[i] != 0.0))
-	      choose[i] = 0;
-	} else {
-	  for (i = 0; i < nlocal; i++, ptr += nstride)
-	    if (choose[i] && (*ptr == 0.0 && value == 0.0) || 
-		(*ptr != 0.0 && value != 0.0))
-	      choose[i] = 0;
-	}
+        if (lastflag) {
+          for (i = 0; i < nlocal; i++, ptr += nstride)
+            if (choose[i] && (*ptr == 0.0 && values[i] == 0.0) ||
+                (*ptr != 0.0 && values[i] != 0.0))
+              choose[i] = 0;
+        } else {
+          for (i = 0; i < nlocal; i++, ptr += nstride)
+            if (choose[i] && (*ptr == 0.0 && value == 0.0) ||
+                (*ptr != 0.0 && value != 0.0))
+              choose[i] = 0;
+        }
       }
 
       // update values stored in threshfix
 
       if (lastflag) {
-	ptr = ptrhold;
-	for (i = 0; i < nlocal; i++, ptr += nstride) values[i] = *ptr;
+        ptr = ptrhold;
+        for (i = 0; i < nlocal; i++, ptr += nstride) values[i] = *ptr;
       }
     }
   }
@@ -1673,6 +1674,19 @@ int DumpCustom::modify_param(int narg, char **arg)
     return ntypes+1;
   }
 
+  if (strcmp(arg[0],"refresh") == 0) {
+    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
+    if (strncmp(arg[1],"c_",2) != 0) 
+      error->all(FLERR,"Illegal dump_modify command");
+    if (refreshflag) error->all(FLERR,"Dump modify can only have one refresh");
+
+    refreshflag = 1;
+    int n = strlen(arg[1]);
+    refresh = new char[n];
+    strcpy(refresh,&arg[1][2]);
+    return 2;
+  }
+
   if (strcmp(arg[0],"thresh") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
     if (strcmp(arg[1],"none") == 0) {
@@ -1684,12 +1698,12 @@ int DumpCustom::modify_param(int narg, char **arg)
         thresh_op = NULL;
         thresh_value = NULL;
         thresh_last = NULL;
-	for (int i = 0; i < nthreshlast; i++) {
-	  modify->delete_fix(thresh_fixID[i]);
-	  delete [] thresh_fixID[i];
-	}
-	thresh_fix = NULL;
-	thresh_fixID = NULL;
+        for (int i = 0; i < nthreshlast; i++) {
+          modify->delete_fix(thresh_fixID[i]);
+          delete [] thresh_fixID[i];
+        }
+        thresh_fix = NULL;
+        thresh_fixID = NULL;
         thresh_first = NULL;
       }
       nthresh = nthreshlast = 0;
@@ -1704,7 +1718,7 @@ int DumpCustom::modify_param(int narg, char **arg)
     memory->grow(thresh_op,(nthresh+1),"dump:thresh_op");
     memory->grow(thresh_value,(nthresh+1),"dump:thresh_value");
     memory->grow(thresh_last,(nthresh+1),"dump:thresh_last");
-    
+
     // set attribute type of threshold
     // customize by adding to if statement
 
@@ -1949,12 +1963,12 @@ int DumpCustom::modify_param(int narg, char **arg)
       thresh_value[nthresh] = force->numeric(FLERR,arg[3]);
       thresh_last[nthresh] = -1;
     } else {
-      thresh_fix = (FixStore **) 
-	memory->srealloc(thresh_fix,(nthreshlast+1)*sizeof(FixStore *),
-			 "dump:thresh_fix");
+      thresh_fix = (FixStore **)
+        memory->srealloc(thresh_fix,(nthreshlast+1)*sizeof(FixStore *),
+                         "dump:thresh_fix");
       thresh_fixID = (char **)
-	memory->srealloc(thresh_fixID,(nthreshlast+1)*sizeof(char *),
-			 "dump:thresh_fixID");
+        memory->srealloc(thresh_fixID,(nthreshlast+1)*sizeof(char *),
+                         "dump:thresh_fixID");
       memory->grow(thresh_first,(nthreshlast+1),"dump:thresh_first");
 
       int n = strlen(id) + strlen("_DUMP_STORE") + 8;

@@ -10,17 +10,21 @@ import sys,os,re,subprocess
 
 help = """
 Syntax from src dir: make lib-latte args="-b"
-                     make lib-latte args="-p /usr/local/latte"
-                     make lib-latte args="-m gfortran"
+                 or: make lib-latte args="-p /usr/local/latte"
+                 or: make lib-latte args="-m gfortran"
+                 or: make lib-latte args="-b -v 1.1.1"
+
 Syntax from lib dir: python Install.py -b
-                     python Install.py -p /usr/local/latte
-                     python Install.py -m gfortran
+                 or: python Install.py -p /usr/local/latte
+                 or: python Install.py -m gfortran
+                 or: python Install.py -v 1.1.1 -b
 
 specify one or more options, order does not matter
 
   -b = download and build the LATTE library
   -p = specify folder of existing LATTE installation
   -m = copy Makefile.lammps.suffix to Makefile.lammps
+  -v = set version of LATTE library to download and set up (default = 1.1.1)
 
 Example:
 
@@ -30,7 +34,7 @@ make lib-latte args="-p $HOME/latte"   # use existing LATTE installation
 
 # settings
 
-url = "https://github.com/lanl/LATTE/archive/master.tar.gz"
+version = '1.1.1'
 
 # print error message or help
 
@@ -94,7 +98,6 @@ nargs = len(args)
 if nargs == 0: error()
 
 homepath = "."
-homedir = "LATTE-master"
 
 buildflag = False
 pathflag = False
@@ -116,12 +119,19 @@ while iarg < nargs:
     suffix = args[iarg+1]
     suffixflag = True
     iarg += 2
+  elif args[iarg] == "-v":
+    if iarg+2 > nargs: error()
+    version = args[iarg+1]
+    iarg += 2
   else: error()
+
+homedir = "LATTE-%s" % version
 
 if (buildflag and pathflag):
     error("Cannot use -b and -p flag at the same time")
 
 if buildflag:
+  url = "https://github.com/lanl/LATTE/archive/v%s.tar.gz" % version
   lattepath = fullpath(homepath)
   lattedir = "%s/%s" % (lattepath,homedir)
 
@@ -132,15 +142,15 @@ if pathflag:
 
 if buildflag:
   print("Downloading LATTE ...")
-  geturl(url,"master.tar.gz")
+  geturl(url,"LATTE.tar.gz")
 
   print("Unpacking LATTE zipfile ...")
   if os.path.exists(lattedir):
     cmd = 'rm -rf "%s"' % lattedir
     subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  cmd = 'cd "%s"; tar zxvf master.tar.gz' % lattepath
+  cmd = 'cd "%s"; tar zxvf LATTE.tar.gz' % lattepath
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  os.remove("%s/master.tar.gz" % lattepath)
+  os.remove("%s/LATTE.tar.gz" % lattepath)
 
 # build LATTE
 

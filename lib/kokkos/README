@@ -1,91 +1,101 @@
-Kokkos implements a programming model in C++ for writing performance portable
+Kokkos Core implements a programming model in C++ for writing performance portable
 applications targeting all major HPC platforms. For that purpose it provides
 abstractions for both parallel execution of code and data management.
 Kokkos is designed to target complex node architectures with N-level memory
 hierarchies and multiple types of execution resources. It currently can use
 OpenMP, Pthreads and CUDA as backend programming models.
 
-Kokkos is licensed under standard 3-clause BSD terms of use. For specifics
-see the LICENSE file contained in the repository or distribution.
+Kokkos Core is part of the Kokkos C++ Performance Portability Programming EcoSystem,
+which also provides math kernels (https://github.com/kokkos/kokkos-kernels), as well as 
+profiling and debugging tools (https://github.com/kokkos/kokkos-tools).  
 
-The core developers of Kokkos are Carter Edwards and Christian Trott
-at the Computer Science Research Institute of the Sandia National
-Laboratories.
+# Learning about Kokkos
 
-The KokkosP interface and associated tools are developed by the Application
-Performance Team and Kokkos core developers at Sandia National Laboratories.
+A programming guide can be found on the Wiki, the API reference is under development.
 
-To learn more about Kokkos consider watching one of our presentations:
-GTC 2015:
-  http://on-demand.gputechconf.com/gtc/2015/video/S5166.html
-  http://on-demand.gputechconf.com/gtc/2015/presentation/S5166-H-Carter-Edwards.pdf
+For questions find us on Slack: https://kokkosteam.slack.com or open a github issue.
 
-A programming guide can be found under doc/Kokkos_PG.pdf. This is an initial version
-and feedback is greatly appreciated.
+For non-public questions send an email to
+crtrott(at)sandia.gov
 
 A separate repository with extensive tutorial material can be found under 
 https://github.com/kokkos/kokkos-tutorials.
 
-If you have a patch to contribute please feel free to issue a pull request against
-the develop branch. For major contributions it is better to contact us first
-for guidance.
+Furthermore, the 'example/tutorial' directory provides step by step tutorial
+examples which explain many of the features of Kokkos. They work with
+simple Makefiles. To build with g++ and OpenMP simply type 'make'
+in the 'example/tutorial' directory. This will build all examples in the
+subfolders. To change the build options refer to the Programming Guide
+in the compilation section.
 
-For questions please send an email to
-kokkos-users@software.sandia.gov
+To learn more about Kokkos consider watching one of our presentations:
+* GTC 2015:
+  - http://on-demand.gputechconf.com/gtc/2015/video/S5166.html
+  - http://on-demand.gputechconf.com/gtc/2015/presentation/S5166-H-Carter-Edwards.pdf
 
-For non-public questions send an email to
-hcedwar(at)sandia.gov and crtrott(at)sandia.gov
 
-============================================================================
-====Requirements============================================================
-============================================================================
+# Contributing to Kokkos
 
-Primary tested compilers on X86 are:
-  GCC 4.7.2
-  GCC 4.8.4
-  GCC 4.9.2
-  GCC 5.1.0
-  GCC 5.2.0
-  Intel 14.0.4
-  Intel 15.0.2
-  Intel 16.0.1
-  Intel 17.0.098
-  Intel 17.1.132
-  Clang 3.5.2
-  Clang 3.6.1
-  Clang 3.7.1
-  Clang 3.8.1
-  Clang 3.9.0
-  PGI 17.1
+We are open and try to encourage contributions from external developers. 
+To do so please first open an issue describing the contribution and then issue
+a pull request against the develop branch. For larger features it may be good
+to get guidance from the core development team first through the github issue. 
 
-Primary tested compilers on Power 8 are:
-  GCC 5.4.0 (OpenMP,Serial)
-  IBM XL 13.1.3 (OpenMP, Serial) (There is a workaround in place to avoid a compiler bug)
+Note that Kokkos Core is licensed under standard 3-clause BSD terms of use. 
+Which means contributing to Kokkos allows anyone else to use your contributions
+not just for public purposes but also for closed source commercial projects.
+For specifics see the LICENSE file contained in the repository or distribution.
 
-Primary tested compilers on Intel KNL are:
-   GCC 6.2.0
-   Intel 16.2.181 (with gcc 4.7.2)
-   Intel 17.0.098 (with gcc 4.7.2)
-   Intel 17.1.132 (with gcc 4.9.3)
-   Intel 17.2.174 (with gcc 4.9.3)
-   Intel 18.0.061 (beta) (with gcc 4.9.3)
+# Requirements
 
-Secondary tested compilers are:
-  CUDA 7.0 (with gcc 4.8.4)
-  CUDA 7.5 (with gcc 4.8.4)
-  CUDA 8.0 (with gcc 5.3.0 on X86 and gcc 5.4.0 on Power8)
-  CUDA/Clang 8.0 using Clang/Trunk compiler
+### Primary tested compilers on X86 are:
+  * GCC 4.8.4
+  * GCC 4.9.3
+  * GCC 5.1.0
+  * GCC 5.3.0
+  * GCC 6.1.0
+  * Intel 15.0.2
+  * Intel 16.0.1
+  * Intel 17.1.043
+  * Intel 17.4.196
+  * Intel 18.0.128
+  * Clang 3.6.1
+  * Clang 3.7.1
+  * Clang 3.8.1
+  * Clang 3.9.0
+  * Clang 4.0.0
+  * Clang 4.0.0 for CUDA (CUDA Toolkit 8.0.44)
+  * Clang 6.0.0 for CUDA (CUDA Toolkit 9.1)
+  * PGI 17.10
+  * NVCC 7.0 for CUDA (with gcc 4.8.4)
+  * NVCC 7.5 for CUDA (with gcc 4.8.4)
+  * NVCC 8.0.44 for CUDA (with gcc 5.3.0)
+  * NVCC 9.1 for CUDA (with gcc 6.1.0)
 
-Other compilers working:
-  X86:
-   Cygwin 2.1.0 64bit with gcc 4.9.3
+### Primary tested compilers on Power 8 are:
+  * GCC 5.4.0 (OpenMP,Serial)
+  * IBM XL 13.1.6 (OpenMP, Serial)
+  * NVCC 8.0.44 for CUDA (with gcc 5.4.0)
+  * NVCC 9.0.103 for CUDA (with gcc 6.3.0 and XL 13.1.6)
 
-Limited testing of the following compilers on POWER7+ systems:
-  GCC 4.8.5 (on RHEL7.1 POWER7+)
+### Primary tested compilers on Intel KNL are:
+  * GCC 6.2.0
+  * Intel 16.4.258 (with gcc 4.7.2)
+  * Intel 17.2.174 (with gcc 4.9.3)
+  * Intel 18.0.128 (with gcc 4.9.3)
 
-Known non-working combinations:
-  Power8:
-   Pthreads backend
+### Primary tested compilers on ARM
+  * GCC 6.1.0 
+  
+### Other compilers working:
+  * X86:
+   - Cygwin 2.1.0 64bit with gcc 4.9.3
+
+### Known non-working combinations:
+  * Power8:
+   - Pthreads backend
+  * ARM
+   - Pthreads backend
 
 
 Primary tested compiler are passing in release mode
@@ -96,25 +106,12 @@ GCC:   -Wall -Wshadow -pedantic -Werror -Wsign-compare -Wtype-limits
        -Wignored-qualifiers -Wempty-body -Wclobbered -Wuninitialized
 Intel: -Wall -Wshadow -pedantic -Werror -Wsign-compare -Wtype-limits -Wuninitialized
 Clang: -Wall -Wshadow -pedantic -Werror -Wsign-compare -Wtype-limits -Wuninitialized
+NVCC: -Wall -Wshadow -pedantic -Werror -Wsign-compare -Wtype-limits -Wuninitialized
 
-Secondary compilers are passing without -Werror.
 Other compilers are tested occasionally, in particular when pushing from develop to 
 master branch, without -Werror and only for a select set of backends.
 
-============================================================================
-====Getting started=========================================================
-============================================================================
-
-In the 'example/tutorial' directory you will find step by step tutorial
-examples which explain many of the features of Kokkos. They work with
-simple Makefiles. To build with g++ and OpenMP simply type 'make'
-in the 'example/tutorial' directory. This will build all examples in the
-subfolders. To change the build options refer to the Programming Guide
-in the compilation section. 
-
-============================================================================
-====Running Unit Tests======================================================
-============================================================================
+# Running Unit Tests
 
 To run the unit tests create a build directory and run the following commands
 
@@ -125,30 +122,35 @@ make test
 Run KOKKOS_PATH/generate_makefile.bash --help for more detailed options such as
 changing the device type for which to build.
 
-============================================================================
-====Install the library=====================================================
-============================================================================
+# Installing the library
 
 To install Kokkos as a library create a build directory and run the following
 
 KOKKOS_PATH/generate_makefile.bash --prefix=INSTALL_PATH
-make lib
+make kokkoslib
 make install
 
 KOKKOS_PATH/generate_makefile.bash --help for more detailed options such as
 changing the device type for which to build.
 
-============================================================================
-====CMakeFiles==============================================================
-============================================================================
+Note that in many cases it is preferable to build Kokkos inline with an 
+application. The main reason is that you may otherwise need many different
+configurations of Kokkos installed depending on the required compile time
+features an application needs. For example there is only one default 
+execution space, which means you need different installations to have OpenMP
+or Pthreads as the default space. Also for the CUDA backend there are certain
+choices, such as allowing relocatable device code, which must be made at 
+installation time. Building Kokkos inline uses largely the same process
+as compiling an application against an installed Kokkos library. See for 
+example benchmarks/bytes_and_flops/Makefile which can be used with an installed
+library and for an inline build.  
 
-The CMake files contained in this repository require Tribits and are used
-for integration with Trilinos. They do not currently support a standalone
-CMake build.
+### CMake
 
-===========================================================================
-====Kokkos and CUDA UVM====================================================
-===========================================================================
+Kokkos supports being build as part of a CMake applications. An example can 
+be found in example/cmake_build. 
+
+# Kokkos and CUDA UVM
 
 Kokkos does support UVM as a specific memory space called CudaUVMSpace. 
 Allocations made with that space are accessible from host and device. 
@@ -158,25 +160,16 @@ In either case UVM comes with a number of restrictions:
 running. This will lead to segfaults. To avoid that you either need to 
 call Kokkos::Cuda::fence() (or just Kokkos::fence()), after kernels, or
 you can set the environment variable CUDA_LAUNCH_BLOCKING=1.
-Furthermore in multi socket multi GPU machines, UVM defaults to using 
-zero copy allocations for technical reasons related to using multiple
+Furthermore in multi socket multi GPU machines without NVLINK, UVM defaults 
+to using zero copy allocations for technical reasons related to using multiple
 GPUs from the same process. If an executable doesn't do that (e.g. each
 MPI rank of an application uses a single GPU [can be the same GPU for 
 multiple MPI ranks]) you can set CUDA_MANAGED_FORCE_DEVICE_ALLOC=1.
 This will enforce proper UVM allocations, but can lead to errors if 
 more than a single GPU is used by a single process.
 
-===========================================================================
-====Contributing===========================================================
-===========================================================================
 
-Contributions to Kokkos are welcome. In order to do so, please open an issue
-where a feature request or bug can be discussed. Then issue a pull request
-with your contribution. Pull requests must be issued against the develop branch. 
-
-===========================================================================
-====Citing Kokkos==========================================================
-===========================================================================
+# Citing Kokkos
 
 If you publish work which mentions Kokkos, please cite the following paper:
 

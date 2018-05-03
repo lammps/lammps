@@ -17,9 +17,9 @@
 
 #include "lmptype.h"
 #include <mpi.h>
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "neb.h"
 #include "universe.h"
 #include "atom.h"
@@ -229,8 +229,8 @@ void NEB::run()
                 "RDN PEN\n");
       }
     }
-    
-    if (ulogfile) {    
+
+    if (ulogfile) {
       if (verbose) {
         fprintf(ulogfile,"Step MaxReplicaForce MaxAtomForce "
                 "GradV0 GradV1 GradVc EBF EBR RDT RD1 PE1 RD2 PE2 ... "
@@ -657,15 +657,15 @@ void NEB::print_status()
       if (verbose) {
         fprintf(uscreen,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",
                 NAN,180-acos(all[0][5])*todeg,180-acos(all[0][6])*todeg,
-                all[0][3],freplica[0],fmaxatomInRepl[0]);  
+                all[0][3],freplica[0],fmaxatomInRepl[0]);
         for (int i = 1; i < nreplica-1; i++)
           fprintf(uscreen,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",
                   180-acos(all[i][4])*todeg,180-acos(all[i][5])*todeg,
                   180-acos(all[i][6])*todeg,all[i][3],freplica[i],
-                  fmaxatomInRepl[i]);  
+                  fmaxatomInRepl[i]);
         fprintf(uscreen,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",
                 NAN,180-acos(all[nreplica-1][5])*todeg,NAN,all[nreplica-1][3],
-                freplica[nreplica-1],fmaxatomInRepl[nreplica-1]);  
+                freplica[nreplica-1],fmaxatomInRepl[nreplica-1]);
       }
       fprintf(uscreen,"\n");
     }
@@ -681,15 +681,15 @@ void NEB::print_status()
       if (verbose) {
         fprintf(ulogfile,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",
                 NAN,180-acos(all[0][5])*todeg,180-acos(all[0][6])*todeg,
-                all[0][3],freplica[0],fmaxatomInRepl[0]);  
+                all[0][3],freplica[0],fmaxatomInRepl[0]);
         for (int i = 1; i < nreplica-1; i++)
           fprintf(ulogfile,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",
                   180-acos(all[i][4])*todeg,180-acos(all[i][5])*todeg,
                   180-acos(all[i][6])*todeg,all[i][3],freplica[i],
-                  fmaxatomInRepl[i]);  
+                  fmaxatomInRepl[i]);
         fprintf(ulogfile,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",
                 NAN,180-acos(all[nreplica-1][5])*todeg,NAN,all[nreplica-1][3],
-                freplica[nreplica-1],fmaxatomInRepl[nreplica-1]);  
+                freplica[nreplica-1],fmaxatomInRepl[nreplica-1]);
       }
       fprintf(ulogfile,"\n");
       fflush(ulogfile);

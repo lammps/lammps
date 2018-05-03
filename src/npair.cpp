@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
+#include <cmath>
 #include "npair.h"
 #include "neighbor.h"
 #include "neigh_request.h"
@@ -32,12 +32,16 @@ NPair::NPair(LAMMPS *lmp)
   last_build = -1;
   mycutneighsq = NULL;
   molecular = atom->molecular;
+  copymode = 0;
+  execution_space = Host;
 }
 
 /* ---------------------------------------------------------------------- */
 
 NPair::~NPair()
 {
+  if (copymode) return;
+
   memory->destroy(mycutneighsq);
 }
 
@@ -204,7 +208,7 @@ int NPair::exclusion(int i, int j, int itype, int jtype,
 
 int NPair::coord2bin(double *x, int &ix, int &iy, int &iz)
 {
-  if (!ISFINITE(x[0]) || !ISFINITE(x[1]) || !ISFINITE(x[2]))
+  if (!std::isfinite(x[0]) || !std::isfinite(x[1]) || !std::isfinite(x[2]))
     error->one(FLERR,"Non-numeric positions - simulation unstable");
 
   if (x[0] >= bboxhi[0])

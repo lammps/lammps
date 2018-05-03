@@ -112,9 +112,15 @@ class PairSWKokkos : public PairSW {
   t_param_1d d_params;
 
   virtual void setup_params();
+
+  KOKKOS_INLINE_FUNCTION
   void twobody(const Param&, const F_FLOAT&, F_FLOAT&, const int&, F_FLOAT&) const;
+
+  KOKKOS_INLINE_FUNCTION
   void threebody(const Param&, const Param&, const Param&, const F_FLOAT&, const F_FLOAT&, F_FLOAT *, F_FLOAT *,
                  F_FLOAT *, F_FLOAT *, const int&, F_FLOAT&) const;
+
+  KOKKOS_INLINE_FUNCTION
   void threebodyj(const Param&, const Param&, const Param&, const F_FLOAT&, const F_FLOAT&, F_FLOAT *, F_FLOAT *,
                  F_FLOAT *) const;
 

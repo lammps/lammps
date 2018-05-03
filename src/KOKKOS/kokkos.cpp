@@ -11,11 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include <signal.h>
+#include <cstdio>
+#include <cstring>
+#include <cstdlib>
+#include <cctype>
+#include <csignal>
 #include <unistd.h>
 #include "kokkos.h"
 #include "lammps.h"
@@ -23,6 +23,7 @@
 #include "neighbor_kokkos.h"
 #include "neigh_list_kokkos.h"
 #include "error.h"
+#include "memory_kokkos.h"
 
 using namespace LAMMPS_NS;
 
@@ -32,6 +33,10 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 {
   kokkos_exists = 1;
   lmp->kokkos = this;
+
+  delete memory;
+  memory = new MemoryKokkos(lmp);
+  memoryKK = (MemoryKokkos*) memory;
 
   auto_sync = 1;
 
@@ -171,7 +176,7 @@ void KokkosLMP::accelerator(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"half") == 0) {
         if (num_threads > 1 || ngpu > 0)
           neighflag = HALFTHREAD;
-        else 
+        else
           neighflag = HALF;
       } else if (strcmp(arg[iarg+1],"n2") == 0) neighflag = N2;
       else error->all(FLERR,"Illegal package kokkos command");
@@ -183,7 +188,7 @@ void KokkosLMP::accelerator(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"half") == 0) {
         if (num_threads > 1 || ngpu > 0)
           neighflag_qeq = HALFTHREAD;
-        else 
+        else
           neighflag_qeq = HALF;
       } else if (strcmp(arg[iarg+1],"n2") == 0) neighflag_qeq = N2;
       else error->all(FLERR,"Illegal package kokkos command");

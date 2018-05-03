@@ -15,14 +15,15 @@
    Contributing authors: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_eam_intel.h"
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
+#include "modify.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"

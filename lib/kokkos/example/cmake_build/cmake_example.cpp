@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -43,6 +43,8 @@
 
 #include <Kokkos_Core.hpp>
 #include <cstdio>
+
+extern "C" void print_fortran_();
 
 int main(int argc, char* argv[]) {
   Kokkos::initialize(argc, argv);
@@ -80,6 +82,8 @@ int main(int argc, char* argv[]) {
 
   count_time = timer.seconds();
   printf("Sequential: %ld    %10.6f\n", seq_count, count_time);
+
+  print_fortran_();
 
   Kokkos::finalize();
 

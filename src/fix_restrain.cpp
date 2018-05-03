@@ -16,9 +16,9 @@
      support for bond and angle restraints by Andres Jaramillo-Botero (Caltech)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstring>
+#include <cstdlib>
 #include "fix_restrain.h"
 #include "atom.h"
 #include "force.h"
@@ -45,7 +45,7 @@ enum{BOND,ANGLE,DIHEDRAL};
 
 FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  rstyle(NULL), ids(NULL), kstart(NULL), kstop(NULL), target(NULL), 
+  rstyle(NULL), ids(NULL), kstart(NULL), kstop(NULL), target(NULL),
   cos_target(NULL), sin_target(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix restrain command");
@@ -59,7 +59,7 @@ FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
   // parse args
 
   nrestrain = maxrestrain = 0;
-  
+
   int iarg = 3;
   while (iarg < narg) {
     if (nrestrain == maxrestrain) {
@@ -261,7 +261,7 @@ void FixRestrain::restrain_bond(int m)
   if (r > 0.0) fbond = -2.0*rk/r;
   else fbond = 0.0;
 
-  energy = rk*dr;
+  energy += rk*dr;
 
   // apply force to each of 2 atoms
 
@@ -368,7 +368,7 @@ void FixRestrain::restrain_angle(int m)
   dtheta = acos(c) - target[m];
   tk = k * dtheta;
 
-  energy = tk*dtheta;
+  energy += tk*dtheta;
 
   a = -2.0 * tk * s;
   a11 = a*c / rsq1;
@@ -549,7 +549,7 @@ void FixRestrain::restrain_dihedral(int m)
   df1 *= -mult;
   p += 1.0;
 
-  energy = k * p;
+  energy += k * p;
 
   fg = vb1x*vb2xm + vb1y*vb2ym + vb1z*vb2zm;
   hg = vb3x*vb2xm + vb3y*vb2ym + vb3z*vb2zm;

@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -65,8 +65,8 @@ struct CountFillFunctor {
 
 template< class ExecSpace >
 void test_count_fill(std::int32_t nrows) {
-  Kokkos::Experimental::Crs<std::int32_t, ExecSpace, void, std::int32_t> graph;
-  Kokkos::Experimental::count_and_fill_crs(graph, nrows, CountFillFunctor<ExecSpace>());
+  Kokkos::Crs<std::int32_t, ExecSpace, void, std::int32_t> graph;
+  Kokkos::count_and_fill_crs(graph, nrows, CountFillFunctor<ExecSpace>());
   ASSERT_EQ(graph.numRows(), nrows);
   auto row_map = Kokkos::create_mirror_view(graph.row_map);
   Kokkos::deep_copy(row_map, graph.row_map);

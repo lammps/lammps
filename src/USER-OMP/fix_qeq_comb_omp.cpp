@@ -16,7 +16,8 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
+#include <cmath>
+#include <cstring>
 #include "fix_qeq_comb_omp.h"
 #include "fix_omp.h"
 #include "atom.h"
@@ -32,8 +33,6 @@
 #include "respa.h"
 #include "update.h"
 #include "pair_comb_omp.h"
-
-#include <string.h>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

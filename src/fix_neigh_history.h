@@ -38,9 +38,9 @@ class FixNeighHistory : public Fix {
   int setmask();
   void init();
   void setup_post_neighbor();
-  virtual void pre_exchange();
+  void pre_exchange();
   void min_pre_exchange();
-  void post_neighbor();
+  virtual void post_neighbor();
   void min_post_neighbor();
   void post_run();
 
@@ -87,9 +87,9 @@ class FixNeighHistory : public Fix {
   MyPage<int> *ipage_neigh;     // pages of local atom indices
   MyPage<double> *dpage_neigh;  // pages of partner values
 
-  void pre_exchange_onesided();
-  void pre_exchange_newton();
-  void pre_exchange_no_newton();
+  virtual void pre_exchange_onesided();
+  virtual void pre_exchange_newton();
+  virtual void pre_exchange_no_newton();
   void allocate_pages();
 
   inline int sbmask(int j) const {
@@ -104,12 +104,28 @@ class FixNeighHistory : public Fix {
 
 /* ERROR/WARNING messages:
 
-E: Pair style granular with history requires atoms have IDs
+E: Illegal ... command
+
+UNDOCUMENTED
+
+E: Neighbor history requires atoms have IDs
+
+UNDOCUMENTED
+
+E: Neighbor history overflow, boost neigh_modify one
+
+UNDOCUMENTED
+
+E: Unsupported comm mode in neighbor history
+
+UNDOCUMENTED
+
+U: Pair style granular with history requires atoms have IDs
 
 Atoms in the simulation do not have IDs, so history effects
 cannot be tracked by the granular pair potential.
 
-E: Shear history overflow, boost neigh_modify one
+U: Shear history overflow, boost neigh_modify one
 
 There are too many neighbors of a single atom.  Use the neigh_modify
 command to increase the max number of neighbors allowed for one atom.

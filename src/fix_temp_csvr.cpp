@@ -16,9 +16,9 @@
    Based on code by Paolo Raiteri (Curtin U) and Giovanni Bussi (SISSA)
 ------------------------------------------------------------------------- */
 
-#include <string.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstring>
+#include <cstdlib>
+#include <cmath>
 #include "fix_temp_csvr.h"
 #include "atom.h"
 #include "force.h"

@@ -36,9 +36,9 @@ class FixGroup : public Fix {
 
  private:
   int gbit,gbitinverse;
-  int regionflag,varflag;
-  int iregion,ivar;
-  char *idregion,*idvar;
+  int regionflag,varflag,propflag,typeflag;
+  int iregion,ivar,iprop;
+  char *idregion,*idvar,*idprop;
   class Region *region;
 
   int nlevels_respa;
@@ -67,6 +67,10 @@ E: Variable name for group dynamic does not exist
 
 Self-explanatory.
 
+E: Per atom property for group dynamic does not exist
+
+UNDOCUMENTED
+
 E: Group dynamic parent group cannot be dynamic
 
 Self-explanatory.
@@ -74,6 +78,10 @@ Self-explanatory.
 E: Variable for group dynamic is invalid style
 
 The variable must be an atom-style variable.
+
+E: Per-atom property for group dynamic does not exist
+
+UNDOCUMENTED
 
 W: One or more dynamic groups may not be updated at correct point in timestep
 

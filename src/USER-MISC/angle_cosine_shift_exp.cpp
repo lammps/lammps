@@ -15,8 +15,8 @@
    Contributing author: Carsten Svaneborg, science@zqex.dk
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 #include "angle_cosine_shift_exp.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -34,7 +34,16 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-AngleCosineShiftExp::AngleCosineShiftExp(LAMMPS *lmp) : Angle(lmp) {}
+AngleCosineShiftExp::AngleCosineShiftExp(LAMMPS *lmp) : Angle(lmp)
+{
+  doExpansion = NULL;
+  umin = NULL;
+  a = NULL;
+  opt1 = NULL;
+  theta0 = NULL;
+  sint = NULL;
+  cost = NULL;
+}
 
 /* ---------------------------------------------------------------------- */
 

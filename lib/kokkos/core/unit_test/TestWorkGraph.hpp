@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -67,7 +67,7 @@ template< class ExecSpace >
 struct TestWorkGraph {
 
   using MemorySpace = typename ExecSpace::memory_space;
-  using Policy = Kokkos::Experimental::WorkGraphPolicy<std::int32_t, ExecSpace>;
+  using Policy = Kokkos::WorkGraphPolicy<std::int32_t, ExecSpace>;
   using Graph = typename Policy::graph_type;
   using RowMap = typename Graph::row_map_type;
   using Entries = typename Graph::entries_type;
@@ -117,6 +117,7 @@ struct TestWorkGraph {
     m_graph.row_map = RowMap("row_map", hg.size() + 1); // row map always has one more
     m_graph.entries = Entries("entries", hg.size() - 1); // all but the first have a parent
     m_values = Values("values", hg.size());
+    //printf("%zu work items\n", hg.size());
     auto h_row_map = Kokkos::create_mirror_view(m_graph.row_map);
     auto h_entries = Kokkos::create_mirror_view(m_graph.entries);
     auto h_values = Kokkos::create_mirror_view(m_values);
@@ -156,17 +157,15 @@ struct TestWorkGraph {
 
 } // anonymous namespace
 
-TEST_F( TEST_CATEGORY, DISABLED_workgraph_fib )
+TEST_F( TEST_CATEGORY, workgraph_fib )
 {
-  #ifdef KOKKOS_IMPL_CUDA_CLANG_WORKAROUND
-  int limit = 15;
-  #else
   int limit = 27;
-  #endif
   for ( int i = 0; i < limit; ++i) {
     TestWorkGraph< TEST_EXECSPACE > f(i);
     f.test_for();
   }
+  //TestWorkGraph< TEST_EXECSPACE > f(2);
+  //f.test_for();
 }
 
 } // namespace Test

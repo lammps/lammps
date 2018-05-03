@@ -20,7 +20,7 @@ CommandStyle(write_data,WriteData)
 #ifndef LMP_WRITE_DATA_H
 #define LMP_WRITE_DATA_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -35,9 +35,12 @@ class WriteData : protected Pointers {
   int me,nprocs;
   int pairflag;
   int coeffflag;
+  int fixflag;
   FILE *fp;
   bigint nbonds_local,nbonds;
   bigint nangles_local,nangles;
+  bigint ndihedrals_local,ndihedrals;
+  bigint nimpropers_local,nimpropers;
 
   void header();
   void type_arrays();

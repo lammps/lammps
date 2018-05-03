@@ -25,7 +25,10 @@
 #include "comm_tiled_kokkos.h"
 #include "domain_kokkos.h"
 #include "neighbor_kokkos.h"
+#include "memory_kokkos.h"
 #include "modify_kokkos.h"
+
+#define LAMMPS_INLINE KOKKOS_INLINE_FUNCTION
 
 #else
 
@@ -37,7 +40,10 @@
 #include "comm_tiled.h"
 #include "domain.h"
 #include "neighbor.h"
+#include "memory.h"
 #include "modify.h"
+
+#define LAMMPS_INLINE inline
 
 namespace LAMMPS_NS {
 
@@ -87,6 +93,13 @@ class NeighborKokkos : public Neighbor {
  public:
   NeighborKokkos(class LAMMPS *lmp) : Neighbor(lmp) {}
   ~NeighborKokkos() {}
+};
+
+class MemoryKokkos : public Memory {
+ public:
+  MemoryKokkos(class LAMMPS *lmp) : Memory(lmp) {}
+  ~MemoryKokkos() {}
+  void grow_kokkos(tagint **, tagint **, int, int, const char*) {}
 };
 
 class ModifyKokkos : public Modify {

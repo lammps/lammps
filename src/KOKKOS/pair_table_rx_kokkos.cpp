@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "pair_table_rx_kokkos.h"
 #include "kokkos.h"
 #include "atom.h"
@@ -27,11 +27,13 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
 #include "fix.h"
 #include "kokkos_few.h"
+#include "kokkos.h"
+#include "modify.h"
 #include <cassert>
 
 using namespace LAMMPS_NS;
@@ -68,11 +70,11 @@ void getMixingWeights(
   nTotal = 0.0;
   nTotalOld = 0.0;
   assert(id >= 0);
-  assert(id < dvector.dimension_1());
+  assert(id < dvector.extent(1));
   for (int ispecies = 0; ispecies < nspecies; ++ispecies){
-    assert(ispecies < dvector.dimension_0());
+    assert(ispecies < dvector.extent(0));
     nTotal += dvector(ispecies,id);
-    assert(ispecies+nspecies < dvector.dimension_0());
+    assert(ispecies+nspecies < dvector.extent(0));
     nTotalOld += dvector(ispecies+nspecies,id);
   }
 
@@ -162,12 +164,12 @@ PairTableRXKokkos<DeviceType>::~PairTableRXKokkos()
   delete [] site1;
   delete [] site2;
 
-  memory->destroy_kokkos(k_eatom,eatom);
-  memory->destroy_kokkos(k_vatom,vatom);
+  memoryKK->destroy_kokkos(k_eatom,eatom);
+  memoryKK->destroy_kokkos(k_vatom,vatom);
 
   if (allocated) {
-    memory->destroy_kokkos(d_table->cutsq, cutsq);
-    memory->destroy_kokkos(d_table->tabindex, tabindex);
+    memoryKK->destroy_kokkos(d_table->cutsq, cutsq);
+    memoryKK->destroy_kokkos(d_table->tabindex, tabindex);
   }
 
   delete h_table;
@@ -621,13 +623,13 @@ void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
   else evflag = vflag_fdotr = 0;
 
   if (eflag_atom) {
-    memory->destroy_kokkos(k_eatom,eatom);
-    memory->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
+    memoryKK->destroy_kokkos(k_eatom,eatom);
+    memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
     d_eatom = k_eatom.template view<DeviceType>();
   }
   if (vflag_atom) {
-    memory->destroy_kokkos(k_vatom,vatom);
-    memory->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
+    memoryKK->destroy_kokkos(k_vatom,vatom);
+    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
     d_vatom = k_vatom.template view<DeviceType>();
   }
 
@@ -651,7 +653,7 @@ void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
   // loop over neighbors of my atoms
 
   const int ntotal = atom->nlocal + atom->nghost;
-  if (ntotal > mixWtSite1.dimension_0()) {
+  if (ntotal > mixWtSite1.extent(0)) {
     mixWtSite1old = Kokkos::View<double*, DeviceType>("PairTableRXKokkos::mixWtSite1old", ntotal);
     mixWtSite2old = Kokkos::View<double*, DeviceType>("PairTableRXKokkos::mixWtSite2old", ntotal);
     mixWtSite1 = Kokkos::View<double*, DeviceType>("PairTableRXKokkos::mixWtSite1", ntotal);
@@ -798,41 +800,41 @@ void PairTableRXKokkos<DeviceType>::create_kokkos_tables()
 {
   const int tlm1 = tablength-1;
 
-  memory->create_kokkos(d_table->nshiftbits,h_table->nshiftbits,ntables,"Table::nshiftbits");
-  memory->create_kokkos(d_table->nmask,h_table->nmask,ntables,"Table::nmask");
-  memory->create_kokkos(d_table->innersq,h_table->innersq,ntables,"Table::innersq");
-  memory->create_kokkos(d_table->invdelta,h_table->invdelta,ntables,"Table::invdelta");
-  memory->create_kokkos(d_table->deltasq6,h_table->deltasq6,ntables,"Table::deltasq6");
+  memoryKK->create_kokkos(d_table->nshiftbits,h_table->nshiftbits,ntables,"Table::nshiftbits");
+  memoryKK->create_kokkos(d_table->nmask,h_table->nmask,ntables,"Table::nmask");
+  memoryKK->create_kokkos(d_table->innersq,h_table->innersq,ntables,"Table::innersq");
+  memoryKK->create_kokkos(d_table->invdelta,h_table->invdelta,ntables,"Table::invdelta");
+  memoryKK->create_kokkos(d_table->deltasq6,h_table->deltasq6,ntables,"Table::deltasq6");
 
   if(tabstyle == LOOKUP) {
-    memory->create_kokkos(d_table->e,h_table->e,ntables,tlm1,"Table::e");
-    memory->create_kokkos(d_table->f,h_table->f,ntables,tlm1,"Table::f");
+    memoryKK->create_kokkos(d_table->e,h_table->e,ntables,tlm1,"Table::e");
+    memoryKK->create_kokkos(d_table->f,h_table->f,ntables,tlm1,"Table::f");
   }
 
   if(tabstyle == LINEAR) {
-    memory->create_kokkos(d_table->rsq,h_table->rsq,ntables,tablength,"Table::rsq");
-    memory->create_kokkos(d_table->e,h_table->e,ntables,tablength,"Table::e");
-    memory->create_kokkos(d_table->f,h_table->f,ntables,tablength,"Table::f");
-    memory->create_kokkos(d_table->de,h_table->de,ntables,tlm1,"Table::de");
-    memory->create_kokkos(d_table->df,h_table->df,ntables,tlm1,"Table::df");
+    memoryKK->create_kokkos(d_table->rsq,h_table->rsq,ntables,tablength,"Table::rsq");
+    memoryKK->create_kokkos(d_table->e,h_table->e,ntables,tablength,"Table::e");
+    memoryKK->create_kokkos(d_table->f,h_table->f,ntables,tablength,"Table::f");
+    memoryKK->create_kokkos(d_table->de,h_table->de,ntables,tlm1,"Table::de");
+    memoryKK->create_kokkos(d_table->df,h_table->df,ntables,tlm1,"Table::df");
   }
 
   if(tabstyle == SPLINE) {
-    memory->create_kokkos(d_table->rsq,h_table->rsq,ntables,tablength,"Table::rsq");
-    memory->create_kokkos(d_table->e,h_table->e,ntables,tablength,"Table::e");
-    memory->create_kokkos(d_table->f,h_table->f,ntables,tablength,"Table::f");
-    memory->create_kokkos(d_table->e2,h_table->e2,ntables,tablength,"Table::e2");
-    memory->create_kokkos(d_table->f2,h_table->f2,ntables,tablength,"Table::f2");
+    memoryKK->create_kokkos(d_table->rsq,h_table->rsq,ntables,tablength,"Table::rsq");
+    memoryKK->create_kokkos(d_table->e,h_table->e,ntables,tablength,"Table::e");
+    memoryKK->create_kokkos(d_table->f,h_table->f,ntables,tablength,"Table::f");
+    memoryKK->create_kokkos(d_table->e2,h_table->e2,ntables,tablength,"Table::e2");
+    memoryKK->create_kokkos(d_table->f2,h_table->f2,ntables,tablength,"Table::f2");
   }
 
   if(tabstyle == BITMAP) {
     int ntable = 1 << tablength;
-    memory->create_kokkos(d_table->rsq,h_table->rsq,ntables,ntable,"Table::rsq");
-    memory->create_kokkos(d_table->e,h_table->e,ntables,ntable,"Table::e");
-    memory->create_kokkos(d_table->f,h_table->f,ntables,ntable,"Table::f");
-    memory->create_kokkos(d_table->de,h_table->de,ntables,ntable,"Table::de");
-    memory->create_kokkos(d_table->df,h_table->df,ntables,ntable,"Table::df");
-    memory->create_kokkos(d_table->drsq,h_table->drsq,ntables,ntable,"Table::drsq");
+    memoryKK->create_kokkos(d_table->rsq,h_table->rsq,ntables,ntable,"Table::rsq");
+    memoryKK->create_kokkos(d_table->e,h_table->e,ntables,ntable,"Table::e");
+    memoryKK->create_kokkos(d_table->f,h_table->f,ntables,ntable,"Table::f");
+    memoryKK->create_kokkos(d_table->de,h_table->de,ntables,ntable,"Table::de");
+    memoryKK->create_kokkos(d_table->df,h_table->df,ntables,ntable,"Table::df");
+    memoryKK->create_kokkos(d_table->drsq,h_table->drsq,ntables,ntable,"Table::drsq");
   }
 
 
@@ -846,21 +848,21 @@ void PairTableRXKokkos<DeviceType>::create_kokkos_tables()
     h_table->invdelta[i] = tb->invdelta;
     h_table->deltasq6[i] = tb->deltasq6;
 
-    for(int j = 0; j<h_table->rsq.dimension_1(); j++)
+    for(int j = 0; j<h_table->rsq.extent(1); j++)
       h_table->rsq(i,j) = tb->rsq[j];
-    for(int j = 0; j<h_table->drsq.dimension_1(); j++)
+    for(int j = 0; j<h_table->drsq.extent(1); j++)
       h_table->drsq(i,j) = tb->drsq[j];
-    for(int j = 0; j<h_table->e.dimension_1(); j++)
+    for(int j = 0; j<h_table->e.extent(1); j++)
       h_table->e(i,j) = tb->e[j];
-    for(int j = 0; j<h_table->de.dimension_1(); j++)
+    for(int j = 0; j<h_table->de.extent(1); j++)
       h_table->de(i,j) = tb->de[j];
-    for(int j = 0; j<h_table->f.dimension_1(); j++)
+    for(int j = 0; j<h_table->f.extent(1); j++)
       h_table->f(i,j) = tb->f[j];
-    for(int j = 0; j<h_table->df.dimension_1(); j++)
+    for(int j = 0; j<h_table->df.extent(1); j++)
       h_table->df(i,j) = tb->df[j];
-    for(int j = 0; j<h_table->e2.dimension_1(); j++)
+    for(int j = 0; j<h_table->e2.extent(1); j++)
       h_table->e2(i,j) = tb->e2[j];
-    for(int j = 0; j<h_table->f2.dimension_1(); j++)
+    for(int j = 0; j<h_table->f2.extent(1); j++)
       h_table->f2(i,j) = tb->f2[j];
   }
 
@@ -943,8 +945,8 @@ void PairTableRXKokkos<DeviceType>::allocate()
   const int nt = atom->ntypes + 1;
 
   memory->create(setflag,nt,nt,"pair:setflag");
-  memory->create_kokkos(d_table->cutsq,h_table->cutsq,cutsq,nt,nt,"pair:cutsq");
-  memory->create_kokkos(d_table->tabindex,h_table->tabindex,tabindex,nt,nt,"pair:tabindex");
+  memoryKK->create_kokkos(d_table->cutsq,h_table->cutsq,cutsq,nt,nt,"pair:cutsq");
+  memoryKK->create_kokkos(d_table->tabindex,h_table->tabindex,tabindex,nt,nt,"pair:tabindex");
   d_table_const.cutsq = d_table->cutsq;
   d_table_const.tabindex = d_table->tabindex;
 

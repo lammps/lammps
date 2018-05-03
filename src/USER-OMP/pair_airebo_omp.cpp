@@ -12,7 +12,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
+#include <cmath>
 #include "pair_airebo_omp.h"
 #include "atom.h"
 #include "comm.h"
@@ -1846,7 +1846,7 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3], double rijmag,
 
 /* ----------------------------------------------------------------------
    Bij* function
-------------------------------------------------------------------------- 
+-------------------------------------------------------------------------
 
 This function calculates S(t_b(b_ij*)) as specified in the AIREBO paper.
 To do so, it needs to compute b_ij*, i.e. the bondorder given that the
@@ -2045,7 +2045,7 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij_mod[3], double ri
         cos321 = MAX(cos321,-1.0);
         sin321 = sqrt(1.0 - cos321*cos321);
         if ((sin321 > TOL) && (r21mag > TOL)) { // XXX was sin321 != 0.0
-          w21 = Sp(r21mag,rcmin[itype][ktype],rcmaxp[itype][ktype],dw21); 
+          w21 = Sp(r21mag,rcmin[itype][ktype],rcmaxp[itype][ktype],dw21);
           tspjik = Sp2(cos321,thmin,thmax,dtsjik);
 
           REBO_neighs_j = REBO_firstneigh[j];
@@ -2225,7 +2225,7 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij_mod[3], double ri
           (rijmag*rjlmag);
         cosijl = MIN(cosijl,1.0);
         cosijl = MAX(cosijl,-1.0);
-        
+
         dcosijldri[0] = (-rjl[0]/(rijmag*rjlmag)) -
           (cosijl*rij[0]/(rijmag*rijmag));
         dcosijldri[1] = (-rjl[1]/(rijmag*rjlmag)) -
@@ -2255,7 +2255,7 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij_mod[3], double ri
         fl[0] = -tmp2*dcosijldrl[0];
         fl[1] = -tmp2*dcosijldrl[1];
         fl[2] = -tmp2*dcosijldrl[2];
-  
+
         tmp2 = VA*.5*(tmp*wjl*g*exp(lamdaijl)*4.0*kronecker(jtype,1));
         fj[0] += tmp2*(rjl[0]/rjlmag);
         fj[1] += tmp2*(rjl[1]/rjlmag);

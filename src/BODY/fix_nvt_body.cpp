@@ -15,7 +15,7 @@
    Contributing author: Trung Dac Nguyen (ndactrung@gmail.com)
 ------------------------------------------------------------------------- */
 
-#include <string.h>
+#include <cstring>
 #include "fix_nvt_body.h"
 #include "group.h"
 #include "modify.h"

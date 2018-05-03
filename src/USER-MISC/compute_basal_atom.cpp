@@ -16,7 +16,8 @@
                         Copyright (C) 2013
 ------------------------------------------------------------------------- */
 
-#include <string.h>
+#include <cmath>
+#include <cstring>
 #include "compute_basal_atom.h"
 #include "atom.h"
 #include "update.h"
@@ -29,7 +30,6 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
-#include <math.h>
 
 using namespace LAMMPS_NS;
 
@@ -144,15 +144,15 @@ void ComputeBasalAtom::compute_peratom()
       // ensure distsq and nearest arrays are long enough
 
       if (jnum > maxneigh) {
-      	memory->destroy(distsq);
-      	memory->destroy(nearest);
-	memory->destroy(nearest_n0);
-	memory->destroy(nearest_n1);
-      	maxneigh = jnum;
-      	memory->create(distsq,maxneigh,"compute/basal/atom:distsq");
-      	memory->create(nearest,maxneigh,"compute/basal/atom:nearest");
-	memory->create(nearest_n0,maxneigh,"compute/basal/atom:nearest_n0");
-	memory->create(nearest_n1,maxneigh,"compute/basal/atom:nearest_n1");
+        memory->destroy(distsq);
+        memory->destroy(nearest);
+        memory->destroy(nearest_n0);
+        memory->destroy(nearest_n1);
+        maxneigh = jnum;
+        memory->create(distsq,maxneigh,"compute/basal/atom:distsq");
+        memory->create(nearest,maxneigh,"compute/basal/atom:nearest");
+        memory->create(nearest_n0,maxneigh,"compute/basal/atom:nearest_n0");
+        memory->create(nearest_n1,maxneigh,"compute/basal/atom:nearest_n1");
       }
       // neighbor selection is identical to ackland/atom algorithm
 
@@ -162,17 +162,17 @@ void ComputeBasalAtom::compute_peratom()
 
       n = 0;
       for (jj = 0; jj < jnum; jj++) {
-      	j = jlist[jj];
-	j &= NEIGHMASK;
+        j = jlist[jj];
+        j &= NEIGHMASK;
 
-      	delx = xtmp - x[j][0];
-      	dely = ytmp - x[j][1];
-      	delz = ztmp - x[j][2];
-      	rsq = delx*delx + dely*dely + delz*delz;
-      	if (rsq < cutsq) {
-	  distsq[n] = rsq;
-	  nearest[n++] = j;
-	}
+        delx = xtmp - x[j][0];
+        dely = ytmp - x[j][1];
+        delz = ztmp - x[j][2];
+        rsq = delx*delx + dely*dely + delz*delz;
+        if (rsq < cutsq) {
+          distsq[n] = rsq;
+          nearest[n++] = j;
+        }
       }
 
       // Select 6 nearest neighbors
@@ -189,7 +189,7 @@ void ComputeBasalAtom::compute_peratom()
       // n1 near neighbors with: distsq<1.55*r0_sq
 
       double n0_dist_sq = 1.45*r0_sq,
-	n1_dist_sq = 1.55*r0_sq;
+        n1_dist_sq = 1.55*r0_sq;
       int n0 = 0, n1 = 0;
       for (j = 0; j < n; j++) {
          if (distsq[j] < n1_dist_sq) {
@@ -207,31 +207,31 @@ void ComputeBasalAtom::compute_peratom()
       double x_ij, y_ij, z_ij, x_ik, y_ik, z_ik,x3[n0],y3[n0],z3[n0],
         xmean5, ymean5, zmean5, xmean6, ymean6, zmean6, xmean7, ymean7, zmean7;
       for (j = 0; j < n0; j++) {
-	x_ij = x[i][0]-x[nearest_n0[j]][0];
-	y_ij = x[i][1]-x[nearest_n0[j]][1];
-	z_ij = x[i][2]-x[nearest_n0[j]][2];
-	norm_j = sqrt (x_ij*x_ij + y_ij*y_ij + z_ij*z_ij);
-	if (norm_j <= 0.) {continue;}
-	for (k = j+1; k < n0; k++) {
-	  x_ik = x[i][0]-x[nearest_n0[k]][0];
-	  y_ik = x[i][1]-x[nearest_n0[k]][1];
-	  z_ik = x[i][2]-x[nearest_n0[k]][2];
-	  norm_k = sqrt (x_ik*x_ik + y_ik*y_ik + z_ik*z_ik);
-	  if (norm_k <= 0.) {continue;}
-	  bond_angle = (x_ij*x_ik + y_ij*y_ik + z_ij*z_ik) / (norm_j*norm_k);
-	  //find all bond angles that are about 180 degrees
-	  if (-1. <= bond_angle && bond_angle < -0.945) {
-		x3[chi[0]] = x_ik - x_ij;
-		y3[chi[0]] = y_ik - y_ij;
-		z3[chi[0]] = z_ik - z_ij;
+        x_ij = x[i][0]-x[nearest_n0[j]][0];
+        y_ij = x[i][1]-x[nearest_n0[j]][1];
+        z_ij = x[i][2]-x[nearest_n0[j]][2];
+        norm_j = sqrt (x_ij*x_ij + y_ij*y_ij + z_ij*z_ij);
+        if (norm_j <= 0.) {continue;}
+        for (k = j+1; k < n0; k++) {
+          x_ik = x[i][0]-x[nearest_n0[k]][0];
+          y_ik = x[i][1]-x[nearest_n0[k]][1];
+          z_ik = x[i][2]-x[nearest_n0[k]][2];
+          norm_k = sqrt (x_ik*x_ik + y_ik*y_ik + z_ik*z_ik);
+          if (norm_k <= 0.) {continue;}
+          bond_angle = (x_ij*x_ik + y_ij*y_ik + z_ij*z_ik) / (norm_j*norm_k);
+          //find all bond angles that are about 180 degrees
+          if (-1. <= bond_angle && bond_angle < -0.945) {
+                x3[chi[0]] = x_ik - x_ij;
+                y3[chi[0]] = y_ik - y_ij;
+                z3[chi[0]] = z_ik - z_ij;
                 chi[0]++;
- 	  }
-	}
+          }
+        }
       }
       // for atoms that have 2 or 3 ~180 bond angles:
       if (2 == chi[0] || 3 == chi[0]) {
           count = value = 0;
-      	  if (chi[0] == 2) {
+          if (chi[0] == 2) {
             k2[0] = 0;
             j1[0] = 1;
           }
@@ -244,13 +244,13 @@ void ComputeBasalAtom::compute_peratom()
             j1[2]=2;
           }
           xmean5 = ymean5 = zmean5 = xmean6 = ymean6 = zmean6 = xmean7 = ymean7 = zmean7 = 0.0;
-	  for (j = 0; j < chi[0]; j++) {
+          for (j = 0; j < chi[0]; j++) {
             for (k = j+1; k < chi[0]; k++) {
-	       //get cross products
+               //get cross products
                x4[count] = y3[j1[count]]*z3[k2[count]]-y3[k2[count]]*z3[j1[count]];
                y4[count] = z3[j1[count]]*x3[k2[count]]-z3[k2[count]]*x3[j1[count]];
                z4[count] = x3[j1[count]]*y3[k2[count]]-x3[k2[count]]*y3[j1[count]];
-	       //get all sign combinations of cross products
+               //get all sign combinations of cross products
                x5[count] = x4[count]*copysign(1.0,x4[count]);
                y5[count] = y4[count]*copysign(1.0,x4[count]);
                z5[count] = z4[count]*copysign(1.0,x4[count]);
@@ -260,7 +260,7 @@ void ComputeBasalAtom::compute_peratom()
                x7[count] = x4[count]*copysign(1.0,z4[count]);
                y7[count] = y4[count]*copysign(1.0,z4[count]);
                z7[count] = z4[count]*copysign(1.0,z4[count]);
-	       //get average cross products
+               //get average cross products
                xmean5 += x5[count];
                ymean5 += y5[count];
                zmean5 += z5[count];
@@ -285,7 +285,7 @@ void ComputeBasalAtom::compute_peratom()
             zmean7 /= count;
           }
           var5 = var6 = var7 = 0.0;
-	  //find standard deviations
+          //find standard deviations
           for (j=0;j<count;j++){
             var5 = var5 + x5[j]*x5[j]-2*x5[j]*xmean5+xmean5*xmean5+y5[j]*y5[j]-2*y5[j]*ymean5+ymean5*ymean5+z5[j]*z5[j]-2*z5[j]*zmean5+zmean5*zmean5;
             var6 = var6 + x6[j]*x6[j]-2*x6[j]*xmean6+xmean6*xmean6+y6[j]*y6[j]-2*y6[j]*ymean6+ymean6*ymean6+z6[j]*z6[j]-2*z6[j]*zmean6+zmean6*zmean6;
@@ -298,7 +298,7 @@ void ComputeBasalAtom::compute_peratom()
           }
           else if (var6 < var7) {value = 1;}
           else {value = 2;}
-	  //BPV is average of cross products of all neighbor vectors which are part of 180 degree angles
+          //BPV is average of cross products of all neighbor vectors which are part of 180 degree angles
           BPV[i][0] = 0;
           BPV[i][1] = 0;
           BPV[i][2] = 0;
@@ -332,12 +332,12 @@ void ComputeBasalAtom::compute_peratom()
           j1[0]=1;
           j1[1]=2;
           j1[2]=2;
-	  //algorithm is as above, but now all combinations of three 180 degree angles are compared, and the combination with minimum standard deviation is chosen
+          //algorithm is as above, but now all combinations of three 180 degree angles are compared, and the combination with minimum standard deviation is chosen
           for (j=0; j<chi[0]; j++) {
               for (k=j+1; k<chi[0]; k++) {
                   for (l=k+1; l<chi[0]; l++) {
                       if (k >= chi[0] || l >= chi[0]) continue;
-		      //get unique combination of three neighbor vectors
+                      //get unique combination of three neighbor vectors
                       x4[0] = x3[j];
                       x4[1] = x3[k];
                       x4[2] = x3[l];
@@ -349,7 +349,7 @@ void ComputeBasalAtom::compute_peratom()
                       z4[2] = z3[l];
                       xmean5 = ymean5 = zmean5 = xmean6 = ymean6 = zmean6 = xmean7 = ymean7 = zmean7 = 0;
                       for (m=0;m<3;m++) {
-			//get cross products
+                        //get cross products
                         x44[m] = y4[j1[m]]*z4[k2[m]]-y4[k2[m]]*z4[j1[m]];
                         y44[m] = z4[j1[m]]*x4[k2[m]]-z4[k2[m]]*x4[j1[m]];
                         z44[m] = x4[j1[m]]*y4[k2[m]]-x4[k2[m]]*y4[j1[m]];
@@ -362,7 +362,7 @@ void ComputeBasalAtom::compute_peratom()
                         x7[m] = x44[m]*copysign(1.0,z44[m]);
                         y7[m] = y44[m]*copysign(1.0,z44[m]);
                         z7[m] = z44[m]*copysign(1.0,z44[m]);
-			//get average cross products
+                        //get average cross products
                         xmean5 = xmean5 + x5[m];
                         ymean5 = ymean5 + y5[m];
                         zmean5 = zmean5 + z5[m];
@@ -383,13 +383,13 @@ void ComputeBasalAtom::compute_peratom()
                       zmean6 = zmean6/3;
                       zmean7 = zmean7/3;
                       var5 = var6 = var7 = 0;
-		      //get standard deviations
+                      //get standard deviations
                       for (m=0;m<3;m++){
                             var5 = var5 + x5[m]*x5[m]-2*x5[m]*xmean5+xmean5*xmean5+y5[m]*y5[m]-2*y5[m]*ymean5+ymean5*ymean5+z5[m]*z5[m]-2*z5[m]*zmean5+zmean5*zmean5;
                             var6 = var6 + x6[m]*x6[m]-2*x6[m]*xmean6+xmean6*xmean6+y6[m]*y6[m]-2*y6[m]*ymean6+ymean6*ymean6+z6[m]*z6[m]-2*z6[m]*zmean6+zmean6*zmean6;
                             var7 = var7 + x7[m]*x7[m]-2*x7[m]*xmean7+xmean7*xmean7+y7[m]*y7[m]-2*y7[m]*ymean7+ymean7*ymean7+z7[m]*z7[m]-2*z7[m]*zmean7+zmean7*zmean7;
                       }
-		      //choose minimum standard deviation
+                      //choose minimum standard deviation
                       if (var5 < S0) {
                           S0 = var5;
                           BPV[i][0] = (x5[0]+x5[1]+x5[2])/3;
@@ -446,29 +446,29 @@ void ComputeBasalAtom::select(int k, int n, double *arr)
   for (;;) {
     if (ir <= l+1) {
       if (ir == l+1 && arr[ir] < arr[l]) {
-	SWAP(arr[l],arr[ir])
+        SWAP(arr[l],arr[ir])
       }
       return;
     } else {
       mid=(l+ir) >> 1;
       SWAP(arr[mid],arr[l+1])
       if (arr[l] > arr[ir]) {
-	SWAP(arr[l],arr[ir])
+        SWAP(arr[l],arr[ir])
       }
       if (arr[l+1] > arr[ir]) {
-	SWAP(arr[l+1],arr[ir])
+        SWAP(arr[l+1],arr[ir])
       }
       if (arr[l] > arr[l+1]) {
-	SWAP(arr[l],arr[l+1])
+        SWAP(arr[l],arr[l+1])
       }
       i = l+1;
       j = ir;
       a = arr[l+1];
       for (;;) {
-	do i++; while (arr[i] < a);
-	do j--; while (arr[j] > a);
-	if (j < i) break;
-	SWAP(arr[i],arr[j])
+        do i++; while (arr[i] < a);
+        do j--; while (arr[j] > a);
+        if (j < i) break;
+        SWAP(arr[i],arr[j])
       }
       arr[l+1] = arr[j];
       arr[j] = a;
@@ -492,8 +492,8 @@ void ComputeBasalAtom::select2(int k, int n, double *arr, int *iarr)
   for (;;) {
     if (ir <= l+1) {
       if (ir == l+1 && arr[ir] < arr[l]) {
-	SWAP(arr[l],arr[ir])
-	ISWAP(iarr[l],iarr[ir])
+        SWAP(arr[l],arr[ir])
+        ISWAP(iarr[l],iarr[ir])
       }
       return;
     } else {
@@ -501,27 +501,27 @@ void ComputeBasalAtom::select2(int k, int n, double *arr, int *iarr)
       SWAP(arr[mid],arr[l+1])
       ISWAP(iarr[mid],iarr[l+1])
       if (arr[l] > arr[ir]) {
-	SWAP(arr[l],arr[ir])
-	ISWAP(iarr[l],iarr[ir])
+        SWAP(arr[l],arr[ir])
+        ISWAP(iarr[l],iarr[ir])
       }
       if (arr[l+1] > arr[ir]) {
-	SWAP(arr[l+1],arr[ir])
-	ISWAP(iarr[l+1],iarr[ir])
+        SWAP(arr[l+1],arr[ir])
+        ISWAP(iarr[l+1],iarr[ir])
       }
       if (arr[l] > arr[l+1]) {
-	SWAP(arr[l],arr[l+1])
-	ISWAP(iarr[l],iarr[l+1])
+        SWAP(arr[l],arr[l+1])
+        ISWAP(iarr[l],iarr[l+1])
       }
       i = l+1;
       j = ir;
       a = arr[l+1];
       ia = iarr[l+1];
       for (;;) {
-	do i++; while (arr[i] < a);
-	do j--; while (arr[j] > a);
-	if (j < i) break;
-	SWAP(arr[i],arr[j])
-	ISWAP(iarr[i],iarr[j])
+        do i++; while (arr[i] < a);
+        do j--; while (arr[j] > a);
+        if (j < i) break;
+        SWAP(arr[i],arr[j])
+        ISWAP(iarr[i],iarr[j])
       }
       arr[l+1] = arr[j];
       arr[j] = a;

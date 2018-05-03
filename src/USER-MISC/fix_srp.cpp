@@ -15,8 +15,8 @@
    Contributing authors: Timothy Sirk (ARL), Pieter in't Veld (BASF)
 ------------------------------------------------------------------------- */
 
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 #include "fix_srp.h"
 #include "atom.h"
 #include "force.h"
@@ -264,12 +264,21 @@ void FixSRP::setup_pre_force(int zz)
   rmax = sqrt(rsqmax);
   double cutneighmax_srp = neighbor->cutneighmax + 0.51*rmax;
 
-  // find smallest cutghost
-  double cutghostmin = comm->cutghost[0];
-  if (cutghostmin > comm->cutghost[1])
-    cutghostmin = comm->cutghost[1];
-  if (cutghostmin > comm->cutghost[2])
-    cutghostmin = comm->cutghost[2];
+  double length0,length1,length2;
+  if (domain->triclinic) {
+    double *h_inv = domain->h_inv;
+    length0 = sqrt(h_inv[0]*h_inv[0] + h_inv[5]*h_inv[5] + h_inv[4]*h_inv[4]);
+    length1 = sqrt(h_inv[1]*h_inv[1] + h_inv[3]*h_inv[3]);
+    length2 = h_inv[2];
+  } else length0 = length1 = length2 = 1.0;
+
+  // find smallest cutghost.
+  // comm->cutghost is stored in fractional coordinates for triclinic
+  double cutghostmin = comm->cutghost[0]/length0;
+  if (cutghostmin > comm->cutghost[1]/length1)
+    cutghostmin = comm->cutghost[1]/length1;
+  if (cutghostmin > comm->cutghost[2]/length2)
+    cutghostmin = comm->cutghost[2]/length2;
 
   // stop if cutghost is insufficient
   if (cutneighmax_srp > cutghostmin){
@@ -304,7 +313,7 @@ void FixSRP::setup_pre_force(int zz)
   domain->image_check();
   domain->box_too_small_check();
   modify->setup_pre_neighbor();
-  neighbor->build();
+  neighbor->build(1);
   neighbor->ncalls = 0;
 
   // new atom counts

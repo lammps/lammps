@@ -16,10 +16,10 @@
      based on pair_airebo by Ase Henry (MIT)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <mpi.h>
 #include "pair_lcbop.h"
 #include "atom.h"
@@ -44,8 +44,10 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairLCBOP::PairLCBOP(LAMMPS *lmp) : Pair(lmp) {
+PairLCBOP::PairLCBOP(LAMMPS *lmp) : Pair(lmp)
+{
   single_enable = 0;
+  restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
   ghostneigh = 1;

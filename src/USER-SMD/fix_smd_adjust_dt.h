@@ -37,21 +37,21 @@ namespace LAMMPS_NS {
 
 class FixSMDTlsphDtReset: public Fix {
 public:
-	FixSMDTlsphDtReset(class LAMMPS *, int, char **);
-	~FixSMDTlsphDtReset() {
-	}
-	int setmask();
-	void init();
-	void setup(int);
-	void initial_integrate(int);
-	void end_of_step();
-	double compute_scalar();
-	void write_restart(FILE *);
-	void restart(char *);
+        FixSMDTlsphDtReset(class LAMMPS *, int, char **);
+        ~FixSMDTlsphDtReset() {
+        }
+        int setmask();
+        void init();
+        void setup(int);
+        void initial_integrate(int);
+        void end_of_step();
+        double compute_scalar();
+        void write_restart(FILE *);
+        void restart(char *);
 
 private:
-	double safety_factor;
-	double dt, t_elapsed;
+        double safety_factor;
+        double dt, t_elapsed;
 };
 
 }

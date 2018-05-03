@@ -221,10 +221,6 @@ Self-explanatory.
 E: Using update dipole flag requires atom attribute mu
 
 Self-explanatory.
- 
-E: The dlm flag must be used with update dipole
- 
-Self-explanatory.
 
 E: Fix nvt/npt/nph damping parameters must be > 0.0
 
@@ -241,6 +237,10 @@ Self-explanatory.
 E: Pressure ID for fix npt/nph does not exist
 
 Self-explanatory.
+
+E: Non-numeric pressure - simulation unstable
+
+UNDOCUMENTED
 
 E: Fix npt/nph has tilted box too far in one step - periodic cell is too far from equilibrium state
 
@@ -271,5 +271,9 @@ The compute ID for computing pressure does not exist.
 E: Fix_modify pressure ID does not compute pressure
 
 The compute ID assigned to the fix must compute pressure.
+
+U: The dlm flag must be used with update dipole
+
+Self-explanatory.
 
 */

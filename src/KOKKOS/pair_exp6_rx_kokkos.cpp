@@ -15,10 +15,10 @@
    Contributing author: Stan Moore (Sandia)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_exp6_rx_kokkos.h"
 #include "atom.h"
 #include "comm.h"
@@ -26,13 +26,15 @@
 #include "neigh_list.h"
 #include "math_const.h"
 #include "math_special_kokkos.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "error.h"
 #include "modify.h"
 #include "fix.h"
-#include <float.h>
+#include <cfloat>
 #include "atom_masks.h"
 #include "neigh_request.h"
+#include "atom_kokkos.h"
+#include "kokkos.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -89,18 +91,18 @@ PairExp6rxKokkos<DeviceType>::~PairExp6rxKokkos()
 {
   if (copymode) return;
 
-  memory->destroy_kokkos(k_eatom,eatom);
-  memory->destroy_kokkos(k_vatom,vatom);
+  memoryKK->destroy_kokkos(k_eatom,eatom);
+  memoryKK->destroy_kokkos(k_vatom,vatom);
 
-  memory->destroy_kokkos(k_cutsq,cutsq);
+  memoryKK->destroy_kokkos(k_cutsq,cutsq);
 
   for (int i=0; i < nparams; ++i) {
     delete[] params[i].name;
     delete[] params[i].potential;
   }
-  memory->destroy_kokkos(k_params,params);
+  memoryKK->destroy_kokkos(k_params,params);
 
-  memory->destroy_kokkos(k_mol2param,mol2param);
+  memoryKK->destroy_kokkos(k_mol2param,mol2param);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -151,13 +153,13 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // reallocate per-atom arrays if necessary
 
   if (eflag_atom) {
-    memory->destroy_kokkos(k_eatom,eatom);
-    memory->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
+    memoryKK->destroy_kokkos(k_eatom,eatom);
+    memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
     d_eatom = k_eatom.template view<DeviceType>();
   }
   if (vflag_atom) {
-    memory->destroy_kokkos(k_vatom,vatom);
-    memory->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
+    memoryKK->destroy_kokkos(k_vatom,vatom);
+    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
     d_vatom = k_vatom.template view<DeviceType>();
   }
 
@@ -187,7 +189,7 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   {
      const int np_total = nlocal + atom->nghost;
 
-     if (np_total > PairExp6ParamData.epsilon1.dimension_0()) {
+     if (np_total > PairExp6ParamData.epsilon1.extent(0)) {
        PairExp6ParamData.epsilon1      = typename AT::t_float_1d("PairExp6ParamData.epsilon1"     ,np_total);
        PairExp6ParamData.alpha1        = typename AT::t_float_1d("PairExp6ParamData.alpha1"       ,np_total);
        PairExp6ParamData.rm1           = typename AT::t_float_1d("PairExp6ParamData.rm1"          ,np_total);
@@ -306,8 +308,8 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 #else // No atomics
 
   num_threads = lmp->kokkos->num_threads;
-  int nmax = f.dimension_0();
-  if (nmax > t_f.dimension_1()) {
+  int nmax = f.extent(0);
+  if (nmax > t_f.extent(1)) {
     t_f = t_f_array_thread("pair_exp6_rx:t_f",num_threads,nmax);
     t_uCG = t_efloat_1d_thread("pair_exp6_rx:t_uCG",num_threads,nmax);
     t_uCGnew = t_efloat_1d_thread("pair_exp6_rx:t_UCGnew",num_threads,nmax);
@@ -769,7 +771,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
       evdwl = evdwlOld;
       if (EVFLAG)
         ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR||(j<nlocal)))?1.0:0.5)*evdwl;
-      //if (vflag_either || eflag_atom) 
+      //if (vflag_either || eflag_atom)
       if (EVFLAG) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,evdwl,fpair,delx,dely,delz);
     }
   }
@@ -1140,7 +1142,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIG
       evdwl = evdwlOld;
       if (EVFLAG)
         ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR||(j<nlocal)))?1.0:0.5)*evdwl;
-      //if (vflag_either || eflag_atom) 
+      //if (vflag_either || eflag_atom)
       if (EVFLAG) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,evdwl,fpair,delx,dely,delz);
     }
   }
@@ -1586,7 +1588,7 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
       double evdwl = evdwlOld_j[jlane];
       if (EVFLAG)
         ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR||(j<nlocal)))?1.0:0.5)*evdwl;
-      //if (vflag_either || eflag_atom) 
+      //if (vflag_either || eflag_atom)
       if (EVFLAG) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,evdwl,fpair_j[jlane],delx_j[jlane],dely_j[jlane],delz_j[jlane]);
     }
   }
@@ -1660,7 +1662,7 @@ void PairExp6rxKokkos<DeviceType>::allocate()
     for (int j = i; j <= ntypes; j++)
       setflag[i][j] = 0;
 
-  memory->create_kokkos(k_cutsq,cutsq,ntypes+1,ntypes+1,"pair:cutsq");
+  memoryKK->create_kokkos(k_cutsq,cutsq,ntypes+1,ntypes+1,"pair:cutsq");
   d_cutsq = k_cutsq.template view<DeviceType>();
   k_cutsq.template modify<LMPHostType>();
 
@@ -1676,7 +1678,7 @@ template<class DeviceType>
 void PairExp6rxKokkos<DeviceType>::coeff(int narg, char **arg)
 {
   PairExp6rx::coeff(narg,arg);
-  
+
   if (scalingFlag == POLYNOMIAL)
     for (int i = 0; i < 6; i++) {
       s_coeffAlpha[i] = coeffAlpha[i];
@@ -1697,7 +1699,7 @@ void PairExp6rxKokkos<DeviceType>::read_file(char *file)
   int params_per_line = 5;
   char **words = new char*[params_per_line+1];
 
-  memory->destroy_kokkos(k_params,params);
+  memoryKK->destroy_kokkos(k_params,params);
   params = NULL;
   nparams = maxparam = 0;
 
@@ -1777,7 +1779,7 @@ void PairExp6rxKokkos<DeviceType>::read_file(char *file)
     if (nparams == maxparam) {
       k_params.template modify<LMPHostType>();
       maxparam += DELTA;
-      memory->grow_kokkos(k_params,params,maxparam,
+      memoryKK->grow_kokkos(k_params,params,maxparam,
                           "pair:params");
     }
 
@@ -1816,8 +1818,8 @@ void PairExp6rxKokkos<DeviceType>::setup()
   // set mol2param for all combinations
   // must be a single exact match to lines read from file
 
-  memory->destroy_kokkos(k_mol2param,mol2param);
-  memory->create_kokkos(k_mol2param,mol2param,nspecies,"pair:mol2param");
+  memoryKK->destroy_kokkos(k_mol2param,mol2param);
+  memoryKK->create_kokkos(k_mol2param,mol2param,nspecies,"pair:mol2param");
 
   for (i = 0; i < nspecies; i++) {
     n = -1;
@@ -2115,7 +2117,7 @@ void partition_range( const int begin, const int end, int &thread_begin, int &th
 #ifndef KOKKOS_HAVE_CUDA
 template<class DeviceType>
   template<class ArrayT>
-void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int errorFlag, 
+void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int errorFlag,
                           ArrayT &epsilon1, ArrayT &alpha1, ArrayT &rm1,  ArrayT &mixWtSite1, ArrayT &epsilon2, ArrayT &alpha2, ArrayT &rm2, ArrayT &mixWtSite2, ArrayT &epsilon1_old, ArrayT &alpha1_old, ArrayT &rm1_old,  ArrayT &mixWtSite1old, ArrayT &epsilon2_old, ArrayT &alpha2_old, ArrayT &rm2_old, ArrayT &mixWtSite2old) const
 {
   ArrayT epsilon          = PairExp6ParamDataVect.epsilon         ;

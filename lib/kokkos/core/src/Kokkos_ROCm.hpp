@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -47,6 +47,13 @@
 #include <Kokkos_Core_fwd.hpp>
 
 #if defined( KOKKOS_ENABLE_ROCM )
+
+class dim3 {
+public:
+int x,y,z;
+dim3(int _x, int _y, int _z):x(_x),y(_y),z(_z) {};
+};
+
 #include <ROCm/hc_math_std.hpp>
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -204,11 +211,14 @@ struct VerifyExecutionCanAccessMemorySpace
   >
 {
   enum { value = false };
-  inline static void verify( void ) { Experimental::ROCmSpace::access_error(); }
-  inline static void verify( const void * p ) { Experimental::ROCmSpace::access_error(p); }
+  inline static void verify( void ) { Kokkos::Experimental::ROCmSpace::access_error(); }
+  inline static void verify( const void * p ) { Kokkos::Experimental::ROCmSpace::access_error(p); }
 };
+
 } // namespace Experimental
 } // namespace Kokkos
+
+
 
 
 

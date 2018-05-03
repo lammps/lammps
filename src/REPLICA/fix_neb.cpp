@@ -17,9 +17,9 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "fix_neb.h"
 #include "universe.h"
 #include "update.h"
@@ -94,26 +94,26 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix neb command");
       if (strcmp(arg[iarg+1],"first") == 0) {
         FreeEndIni = true;
-	kspringIni = force->numeric(FLERR,arg[iarg+2]);
+        kspringIni = force->numeric(FLERR,arg[iarg+2]);
       } else if (strcmp(arg[iarg+1],"last") == 0) {
         FreeEndFinal = true;
         FinalAndInterWithRespToEIni = false;
         FreeEndFinalWithRespToEIni = false;
-	kspringFinal = force->numeric(FLERR,arg[iarg+2]);
+        kspringFinal = force->numeric(FLERR,arg[iarg+2]);
       } else if (strcmp(arg[iarg+1],"last/efirst") == 0) {
         FreeEndFinal = false;
         FinalAndInterWithRespToEIni = false;
         FreeEndFinalWithRespToEIni = true;
-	kspringFinal = force->numeric(FLERR,arg[iarg+2]);
+        kspringFinal = force->numeric(FLERR,arg[iarg+2]);
       } else if (strcmp(arg[iarg+1],"last/efirst/middle") == 0) {
         FreeEndFinal = false;
         FinalAndInterWithRespToEIni = true;
         FreeEndFinalWithRespToEIni = true;
-	kspringFinal = force->numeric(FLERR,arg[iarg+2]);
+        kspringFinal = force->numeric(FLERR,arg[iarg+2]);
       } else error->all(FLERR,"Illegal fix neb command");
 
       iarg += 3;
-    
+
     } else error->all(FLERR,"Illegal fix neb command");
   }
 
@@ -298,12 +298,14 @@ void FixNEB::min_post_force(int vflag)
   if (ireplica == 0) vIni=veng;
 
   if (FreeEndFinalWithRespToEIni) {
-    if (me == 0) {
+    if (cmode == SINGLE_PROC_DIRECT || cmode == SINGLE_PROC_MAP) {
       int procFirst;
       procFirst=universe->root_proc[0];
       MPI_Bcast(&vIni,1,MPI_DOUBLE,procFirst,uworld);
-    }
-    if (cmode == MULTI_PROC) {
+    }else {
+      if (me == 0)
+        MPI_Bcast(&vIni,1,MPI_DOUBLE,0,rootworld);
+
       MPI_Bcast(&vIni,1,MPI_DOUBLE,0,world);
     }
   }
@@ -313,8 +315,8 @@ void FixNEB::min_post_force(int vflag)
     //    if (me == 0 )
       if (update->ntimestep == 0) {
         EIniIni = veng;
-	//	if (cmode == MULTI_PROC)
-	// MPI_Bcast(&EIniIni,1,MPI_DOUBLE,0,world);
+        //      if (cmode == MULTI_PROC)
+        // MPI_Bcast(&EIniIni,1,MPI_DOUBLE,0,world);
       }
       }*/
 
@@ -360,7 +362,7 @@ void FixNEB::min_post_force(int vflag)
           tangent[i][2]=delzp;
           tlen += tangent[i][0]*tangent[i][0] +
             tangent[i][1]*tangent[i][1] + tangent[i][2]*tangent[i][2];
-          dot += f[i][0]*tangent[i][0] + f[i][1]*tangent[i][1] + 
+          dot += f[i][0]*tangent[i][0] + f[i][1]*tangent[i][1] +
             f[i][2]*tangent[i][2];
         }
       }
@@ -383,9 +385,9 @@ void FixNEB::min_post_force(int vflag)
           tangent[i][0]=delxn;
           tangent[i][1]=delyn;
           tangent[i][2]=delzn;
-          tlen += tangent[i][0]*tangent[i][0] + 
+          tlen += tangent[i][0]*tangent[i][0] +
             tangent[i][1]*tangent[i][1] + tangent[i][2]*tangent[i][2];
-          dot += f[i][0]*tangent[i][0] + f[i][1]*tangent[i][1] + 
+          dot += f[i][0]*tangent[i][0] + f[i][1]*tangent[i][1] +
             f[i][2]*tangent[i][2];
         }
       }
@@ -423,23 +425,27 @@ void FixNEB::min_post_force(int vflag)
             tangent[i][0] = vmax*delxn + vmin*delxp;
             tangent[i][1] = vmax*delyn + vmin*delyp;
             tangent[i][2] = vmax*delzn + vmin*delzp;
-          } else {
+          } else if (vnext < vprev) {
             tangent[i][0] = vmin*delxn + vmax*delxp;
             tangent[i][1] = vmin*delyn + vmax*delyp;
             tangent[i][2] = vmin*delzn + vmax*delzp;
+          } else { // vnext == vprev, e.g. for potentials that do not compute an energy
+            tangent[i][0] = delxn + delxp;
+            tangent[i][1] = delyn + delyp;
+            tangent[i][2] = delzn + delzp;
           }
         }
 
         nlen += delxn*delxn + delyn*delyn + delzn*delzn;
-        tlen += tangent[i][0]*tangent[i][0] + 
+        tlen += tangent[i][0]*tangent[i][0] +
           tangent[i][1]*tangent[i][1] + tangent[i][2]*tangent[i][2];
         gradlen += f[i][0]*f[i][0] + f[i][1]*f[i][1] + f[i][2]*f[i][2];
         dotpath += delxp*delxn + delyp*delyn + delzp*delzn;
-        dottangrad += tangent[i][0]*f[i][0] + 
+        dottangrad += tangent[i][0]*f[i][0] +
           tangent[i][1]*f[i][1] + tangent[i][2]*f[i][2];
-        gradnextlen += fnext[i][0]*fnext[i][0] + 
+        gradnextlen += fnext[i][0]*fnext[i][0] +
           fnext[i][1]*fnext[i][1] +fnext[i][2] * fnext[i][2];
-        dotgrad += f[i][0]*fnext[i][0] + f[i][1]*fnext[i][1] + 
+        dotgrad += f[i][0]*fnext[i][0] + f[i][1]*fnext[i][1] +
           f[i][2]*fnext[i][2];
 
         springF[i][0] = kspringPerp*(delxn-delxp);
@@ -514,9 +520,10 @@ void FixNEB::min_post_force(int vflag)
       MPI_Allreduce(&dot,&dotall,1,MPI_DOUBLE,MPI_SUM,world);
       dot=dotall/tlen;
 
-      if (dot<0) prefactor = -dot - kspringFinal*(veng-EFinalIni);
-      else prefactor = -dot + kspringFinal*(veng-EFinalIni);
-
+      if (veng<EFinalIni) {
+        if (dot<0) prefactor = -dot - kspringFinal*(veng-EFinalIni);
+        else prefactor = -dot + kspringFinal*(veng-EFinalIni);
+      }
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) {
           f[i][0] += prefactor *tangent[i][0];
@@ -531,10 +538,10 @@ void FixNEB::min_post_force(int vflag)
       double dotall;
       MPI_Allreduce(&dot,&dotall,1,MPI_DOUBLE,MPI_SUM,world);
       dot=dotall/tlen;
-
-      if (dot<0) prefactor = -dot - kspringFinal*(veng-vIni);
-      else prefactor = -dot + kspringFinal*(veng-vIni);
-
+      if (veng<vIni) {
+        if (dot<0) prefactor = -dot - kspringFinal*(veng-vIni);
+        else prefactor = -dot + kspringFinal*(veng-vIni);
+      }
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) {
           f[i][0] += prefactor *tangent[i][0];
@@ -589,7 +596,7 @@ void FixNEB::min_post_force(int vflag)
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      dot += f[i][0]*tangent[i][0] + f[i][1]*tangent[i][1] + 
+      dot += f[i][0]*tangent[i][0] + f[i][1]*tangent[i][1] +
         f[i][2]*tangent[i][2];
       dotSpringTangent += springF[i][0]*tangent[i][0] +
         springF[i][1]*tangent[i][1] + springF[i][2]*tangent[i][2];}
@@ -625,11 +632,11 @@ void FixNEB::min_post_force(int vflag)
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      f[i][0] += prefactor*tangent[i][0] + 
+      f[i][0] += prefactor*tangent[i][0] +
         AngularContr*(springF[i][0] - dotSpringTangent*tangent[i][0]);
-      f[i][1] += prefactor*tangent[i][1] + 
+      f[i][1] += prefactor*tangent[i][1] +
         AngularContr*(springF[i][1] - dotSpringTangent*tangent[i][1]);
-      f[i][2] += prefactor*tangent[i][2] + 
+      f[i][2] += prefactor*tangent[i][2] +
         AngularContr*(springF[i][2] - dotSpringTangent*tangent[i][2]);
     }
 }

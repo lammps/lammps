@@ -17,6 +17,7 @@ pair_style born/coul/long/omp command :h3
 pair_style born/coul/msm command :h3
 pair_style born/coul/msm/omp command :h3
 pair_style born/coul/wolf command :h3
+pair_style born/coul/wolf/cs command :h3
 pair_style born/coul/wolf/gpu command :h3
 pair_style born/coul/wolf/omp command :h3
 pair_style born/coul/dsf command :h3
@@ -36,7 +37,7 @@ args = list of arguments for a particular style :ul
   {born/coul/msm} args = cutoff (cutoff2)
     cutoff = global cutoff for non-Coulombic (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
-  {born/coul/wolf} args = alpha cutoff (cutoff2)
+  {born/coul/wolf} or {born/coul/wolf/cs} args = alpha cutoff (cutoff2)
     alpha = damping parameter (inverse distance units)
     cutoff = global cutoff for non-Coulombic (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
@@ -65,6 +66,7 @@ pair_coeff 1 1 6.08 0.317 2.340 24.18 11.51 :pre
 
 pair_style born/coul/wolf 0.25 10.0
 pair_style born/coul/wolf 0.25 10.0 9.0
+pair_style born/coul/wolf/cs 0.25 10.0 9.0
 pair_coeff * * 6.08 0.317 2.340 24.18 11.51
 pair_coeff 1 1 6.08 0.317 2.340 24.18 11.51 :pre
 
@@ -106,8 +108,9 @@ damped shifted force model as in the "coul/dsf"_pair_coul.html style.
 Style {born/coul/long/cs} is identical to {born/coul/long} except that
 a term is added for the "core/shell model"_Section_howto.html#howto_25
 to allow charges on core and shell particles to be separated by r =
-0.0. The same correction is introduced for {born/coul/dsf/cs} style
-which is identical to {born/coul/dsf}.
+0.0.  The same correction is introduced for the {born/coul/dsf/cs}
+style which is identical to {born/coul/dsf}.  And likewise for
+{born/coul/wolf/cs} style which is identical to {born/coul/wolf}.
 
 Note that these potentials are related to the "Buckingham
 potential"_pair_buck.html.

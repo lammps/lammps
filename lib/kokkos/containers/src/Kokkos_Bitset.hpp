@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -147,7 +147,7 @@ public:
     if (m_last_block_mask) {
       //clear the unused bits in the last block
       typedef Kokkos::Impl::DeepCopy< typename execution_space::memory_space, Kokkos::HostSpace > raw_deep_copy;
-      raw_deep_copy( m_blocks.ptr_on_device() + (m_blocks.dimension_0() -1u), &m_last_block_mask, sizeof(unsigned));
+      raw_deep_copy( m_blocks.data() + (m_blocks.extent(0) -1u), &m_last_block_mask, sizeof(unsigned));
     }
   }
 
@@ -212,7 +212,7 @@ public:
   KOKKOS_FORCEINLINE_FUNCTION
   unsigned max_hint() const
   {
-    return m_blocks.dimension_0();
+    return m_blocks.extent(0);
   }
 
   /// find a bit set to 1 near the hint
@@ -221,10 +221,10 @@ public:
   KOKKOS_INLINE_FUNCTION
   Kokkos::pair<bool, unsigned> find_any_set_near( unsigned hint , unsigned scan_direction = BIT_SCAN_FORWARD_MOVE_HINT_FORWARD ) const
   {
-    const unsigned block_idx = (hint >> block_shift) < m_blocks.dimension_0() ? (hint >> block_shift) : 0;
+    const unsigned block_idx = (hint >> block_shift) < m_blocks.extent(0) ? (hint >> block_shift) : 0;
     const unsigned offset = hint & block_mask;
     unsigned block = volatile_load(&m_blocks[ block_idx ]);
-    block = !m_last_block_mask || (block_idx < (m_blocks.dimension_0()-1)) ? block : block & m_last_block_mask ;
+    block = !m_last_block_mask || (block_idx < (m_blocks.extent(0)-1)) ? block : block & m_last_block_mask ;
 
     return find_any_helper(block_idx, offset, block, scan_direction);
   }
@@ -238,7 +238,7 @@ public:
     const unsigned block_idx = hint >> block_shift;
     const unsigned offset = hint & block_mask;
     unsigned block = volatile_load(&m_blocks[ block_idx ]);
-    block = !m_last_block_mask || (block_idx < (m_blocks.dimension_0()-1) ) ? ~block : ~block & m_last_block_mask ;
+    block = !m_last_block_mask || (block_idx < (m_blocks.extent(0)-1) ) ? ~block : ~block & m_last_block_mask ;
 
     return find_any_helper(block_idx, offset, block, scan_direction);
   }
@@ -281,8 +281,8 @@ private:
   unsigned update_hint( long long block_idx, unsigned offset, unsigned scan_direction ) const
   {
     block_idx += scan_direction & MOVE_HINT_BACKWARD ? -1 : 1;
-    block_idx = block_idx >= 0 ? block_idx : m_blocks.dimension_0() - 1;
-    block_idx = block_idx < static_cast<long long>(m_blocks.dimension_0()) ? block_idx : 0;
+    block_idx = block_idx >= 0 ? block_idx : m_blocks.extent(0) - 1;
+    block_idx = block_idx < static_cast<long long>(m_blocks.extent(0)) ? block_idx : 0;
 
     return static_cast<unsigned>(block_idx)*block_size + offset;
   }
@@ -407,7 +407,7 @@ void deep_copy( Bitset<DstDevice> & dst, Bitset<SrcDevice> const& src)
   }
 
   typedef Kokkos::Impl::DeepCopy< typename DstDevice::memory_space, typename SrcDevice::memory_space > raw_deep_copy;
-  raw_deep_copy(dst.m_blocks.ptr_on_device(), src.m_blocks.ptr_on_device(), sizeof(unsigned)*src.m_blocks.dimension_0());
+  raw_deep_copy(dst.m_blocks.data(), src.m_blocks.data(), sizeof(unsigned)*src.m_blocks.extent(0));
 }
 
 template <typename DstDevice, typename SrcDevice>
@@ -418,7 +418,7 @@ void deep_copy( Bitset<DstDevice> & dst, ConstBitset<SrcDevice> const& src)
   }
 
   typedef Kokkos::Impl::DeepCopy< typename DstDevice::memory_space, typename SrcDevice::memory_space > raw_deep_copy;
-  raw_deep_copy(dst.m_blocks.ptr_on_device(), src.m_blocks.ptr_on_device(), sizeof(unsigned)*src.m_blocks.dimension_0());
+  raw_deep_copy(dst.m_blocks.data(), src.m_blocks.data(), sizeof(unsigned)*src.m_blocks.extent(0));
 }
 
 template <typename DstDevice, typename SrcDevice>
@@ -429,7 +429,7 @@ void deep_copy( ConstBitset<DstDevice> & dst, ConstBitset<SrcDevice> const& src)
   }
 
   typedef Kokkos::Impl::DeepCopy< typename DstDevice::memory_space, typename SrcDevice::memory_space > raw_deep_copy;
-  raw_deep_copy(dst.m_blocks.ptr_on_device(), src.m_blocks.ptr_on_device(), sizeof(unsigned)*src.m_blocks.dimension_0());
+  raw_deep_copy(dst.m_blocks.data(), src.m_blocks.data(), sizeof(unsigned)*src.m_blocks.extent(0));
 }
 
 } // namespace Kokkos

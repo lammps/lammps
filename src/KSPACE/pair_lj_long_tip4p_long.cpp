@@ -16,10 +16,10 @@
                          Rolf Isele-Holder (Aachen University)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_lj_long_tip4p_long.h"
 #include "angle.h"
 #include "atom.h"
@@ -186,9 +186,9 @@ void PairLJLongTIP4PLong::compute(int eflag, int vflag)
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
 
-      if (rsq < cut_ljsq[itype][jtype]) {			// lj
+      if (rsq < cut_ljsq[itype][jtype]) {           // lj
         r2inv = 1.0/rsq;
-       	if (order6) {					// long-range lj
+        if (order6) {                   // long-range lj
           if (!ndisptablebits || rsq <= tabinnerdispsq) {
             register double rn = r2inv*r2inv*r2inv;
             register double x2 = g2*rsq, a2 = 1.0/x2;
@@ -199,7 +199,7 @@ void PairLJLongTIP4PLong::compute(int eflag, int vflag)
               if (eflag)
                 evdwl = rn*lj3i[jtype]-g6*((a2+1.0)*a2+0.5)*x2;
             }
-            else {					// special case
+            else {                  // special case
               register double f = special_lj[ni], t = rn*(1.0-f);
               forcelj = f*(rn *= rn)*lj1i[jtype]-
                 g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq+t*lj2i[jtype];
@@ -217,20 +217,20 @@ void PairLJLongTIP4PLong::compute(int eflag, int vflag)
               forcelj = (rn*=rn)*lj1i[jtype]-(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*lj4i[jtype];
               if (eflag) evdwl = rn*lj3i[jtype]-(edisptable[disp_k]+f_disp*dedisptable[disp_k])*lj4i[jtype];
             }
-            else {					// special case
+            else {                  // special case
               register double f = special_lj[ni], t = rn*(1.0-f);
               forcelj = f*(rn *= rn)*lj1i[jtype]-(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*lj4i[jtype]+t*lj2i[jtype];
               if (eflag) evdwl = f*rn*lj3i[jtype]-(edisptable[disp_k]+f_disp*dedisptable[disp_k])*lj4i[jtype]+t*lj4i[jtype];
             }
           }
         }
-        else {						// cut lj
+        else {                      // cut lj
           register double rn = r2inv*r2inv*r2inv;
           if (ni == 0) {
             forcelj = rn*(rn*lj1i[jtype]-lj2i[jtype]);
             if (eflag) evdwl = rn*(rn*lj3i[jtype]-lj4i[jtype])-offseti[jtype];
           }
-          else {					// special case
+          else {                    // special case
             register double f = special_lj[ni];
             forcelj = f*rn*(rn*lj1i[jtype]-lj2i[jtype]);
             if (eflag)
@@ -320,7 +320,7 @@ void PairLJLongTIP4PLong::compute(int eflag, int vflag)
           cforce = forcecoul * r2inv;
 
           //if (evflag) ev_tally(i,j,nlocal,newton_pair,
-          //		       evdwl,0.0,cforce,delx,dely,delz);
+          //               evdwl,0.0,cforce,delx,dely,delz);
 
           // if i,j are not O atoms, force is applied directly
           // if i or j are O atoms, force is on fictitious atom & partitioned
@@ -441,7 +441,7 @@ void PairLJLongTIP4PLong::compute(int eflag, int vflag)
               v[4] += x[j][0]*fO[2] + xH1[0]*fH[2] + xH2[0]*fH[2];
               v[5] += x[j][1]*fO[2] + xH1[1]*fH[2] + xH2[1]*fH[2];
             }
-      	    vlist[n++] = j;
+            vlist[n++] = j;
             vlist[n++] = jH1;
             vlist[n++] = jH2;
           }
@@ -575,7 +575,7 @@ void PairLJLongTIP4PLong::compute_inner()
         r2inv = 1.0/rsq;
         register double rn = r2inv*r2inv*r2inv;
         if (ni == 0) forcelj = rn*(rn*lj1i[jtype]-lj2i[jtype]);
-        else {					// special case
+        else {                  // special case
           register double f = special_lj[ni];
           forcelj = f*rn*(rn*lj1i[jtype]-lj2i[jtype]);
         }
@@ -649,7 +649,7 @@ void PairLJLongTIP4PLong::compute_inner()
           cforce = forcecoul * r2inv;
 
           //if (evflag) ev_tally(i,j,nlocal,newton_pair,
-          //		       evdwl,0.0,cforce,delx,dely,delz);
+          //               evdwl,0.0,cforce,delx,dely,delz);
 
           // if i,j are not O atoms, force is applied directly
           // if i or j are O atoms, force is on fictitious atom & partitioned
@@ -828,7 +828,7 @@ void PairLJLongTIP4PLong::compute_middle()
         r2inv = 1.0/rsq;
         register double rn = r2inv*r2inv*r2inv;
         if (ni == 0) forcelj = rn*(rn*lj1i[jtype]-lj2i[jtype]);
-        else {					// special case
+        else {                  // special case
           register double f = special_lj[ni];
           forcelj = f*rn*(rn*lj1i[jtype]-lj2i[jtype]);
         }
@@ -910,7 +910,7 @@ void PairLJLongTIP4PLong::compute_middle()
           cforce = forcecoul * r2inv;
 
           //if (evflag) ev_tally(i,j,nlocal,newton_pair,
-          //		       evdwl,0.0,cforce,delx,dely,delz);
+          //               evdwl,0.0,cforce,delx,dely,delz);
 
           // if i,j are not O atoms, force is applied directly
           // if i or j are O atoms, force is on fictitious atom & partitioned
@@ -1108,7 +1108,7 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
 
       respa_coul = 0;
       respa_lj = 0;
-      if (rsq < cut_ljsq[itype][jtype]) {			// lj
+      if (rsq < cut_ljsq[itype][jtype]) {           // lj
         frespa = 1.0;                                       // check whether and how to compute respa corrections
         respa_flag = rsq < cut_in_on_sq ? 1 : 0;
         if (respa_flag && (rsq > cut_in_off_sq)) {
@@ -1138,7 +1138,7 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
                 evdwl = f*rn*lj3i[jtype]-g6*((a2+1.0)*a2+0.5)*x2+t*lj4i[jtype];
             }
           }
-          else {						// table real space
+          else {                        // table real space
             register union_int_float_t disp_t;
             disp_t.f = rsq;
             register const int disp_k = (disp_t.i & ndispmask)>>ndispshiftbits;
@@ -1147,7 +1147,7 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
               forcelj = (rn*=rn)*lj1i[jtype]-(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*lj4i[jtype]-respa_lj;
               if (eflag) evdwl = rn*lj3i[jtype]-(edisptable[disp_k]+f_disp*dedisptable[disp_k])*lj4i[jtype];
             }
-            else {					// special case
+            else {                  // special case
               register double f = special_lj[ni], t = rn*(1.0-f);
               forcelj = f*(rn *= rn)*lj1i[jtype]-(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*lj4i[jtype]+t*lj2i[jtype]-respa_lj;
               if (eflag) evdwl = f*rn*lj3i[jtype]-(edisptable[disp_k]+f_disp*dedisptable[disp_k])*lj4i[jtype]+t*lj4i[jtype];
@@ -1417,7 +1417,7 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
               v[4] += x[j][0]*fO[2] + xH1[0]*fH[2] + xH2[0]*fH[2];
               v[5] += x[j][1]*fO[2] + xH1[1]*fH[2] + xH2[1]*fH[2];
             }
-      	    vlist[n++] = j;
+            vlist[n++] = j;
             vlist[n++] = jH1;
             vlist[n++] = jH2;
           }

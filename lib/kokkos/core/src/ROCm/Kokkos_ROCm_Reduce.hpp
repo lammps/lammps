@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -102,11 +102,12 @@ void reduce_enqueue(
 
   typedef Kokkos::Impl::if_c< std::is_same<InvalidType,ReducerType>::value, F, ReducerType> ReducerConditional;
   typedef typename ReducerConditional::type ReducerTypeFwd;
+  typedef typename Kokkos::Impl::if_c< std::is_same<InvalidType, ReducerType>::value, Tag, void >::type TagFwd;
 
-  typedef Kokkos::Impl::FunctorValueTraits< ReducerTypeFwd , Tag > ValueTraits ;
-  typedef Kokkos::Impl::FunctorValueInit< ReducerTypeFwd , Tag >   ValueInit ;
-  typedef Kokkos::Impl::FunctorValueJoin< ReducerTypeFwd , Tag >   ValueJoin ;
-  typedef Kokkos::Impl::FunctorFinal< ReducerTypeFwd , Tag >       ValueFinal ;
+  typedef Kokkos::Impl::FunctorValueTraits< ReducerTypeFwd , TagFwd > ValueTraits ;
+  typedef Kokkos::Impl::FunctorValueInit< ReducerTypeFwd , TagFwd >   ValueInit ;
+  typedef Kokkos::Impl::FunctorValueJoin< ReducerTypeFwd , TagFwd >   ValueJoin ;
+  typedef Kokkos::Impl::FunctorFinal< ReducerTypeFwd , TagFwd >       ValueFinal ;
 
   typedef typename ValueTraits::pointer_type   pointer_type ;
   typedef typename ValueTraits::reference_type reference_type ;

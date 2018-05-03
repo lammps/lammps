@@ -11,7 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
+#include <cstring>
+#include <cmath>
 #include "compute_force_tally.h"
 #include "atom.h"
 #include "group.h"
@@ -20,6 +21,7 @@
 #include "memory.h"
 #include "error.h"
 #include "force.h"
+#include "comm.h"
 
 using namespace LAMMPS_NS;
 

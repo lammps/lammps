@@ -18,10 +18,10 @@
      Hybrid and sub-group capabilities: Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "fix_qeq_reax.h"
 #include "pair_reaxc.h"
 #include "atom.h"
@@ -428,7 +428,7 @@ void FixQEqReax::init_taper()
   Tap[3] = 140.0 * (swa3*swb + 3.0*swa2*swb2 + swa*swb3) / d7;
   Tap[2] =-210.0 * (swa3*swb2 + swa2*swb3) / d7;
   Tap[1] = 140.0 * swa3 * swb3 / d7;
-  Tap[0] = (-35.0*swa3*swb2*swb2 + 21.0*swa2*swb3*swb2 +
+  Tap[0] = (-35.0*swa3*swb2*swb2 + 21.0*swa2*swb3*swb2 -
             7.0*swa*swb3*swb3 + swb3*swb3*swb) / d7;
 }
 
@@ -504,7 +504,7 @@ void FixQEqReax::pre_force(int vflag)
 
   init_matvec();
 
-  matvecs_s = CG(b_s, s);    	// CG on s - parallel
+  matvecs_s = CG(b_s, s);       // CG on s - parallel
   matvecs_t = CG(b_t, t);       // CG on t - parallel
   matvecs = matvecs_s + matvecs_t;
 
@@ -631,9 +631,9 @@ void FixQEqReax::compute_H()
               if (dy > SMALL) flag = 1;
               else if (fabs(dy) < SMALL && dx > SMALL)
                 flag = 1;
-	    }
-	  }
-	}
+            }
+          }
+        }
 
         if (flag) {
           H.jlist[m_fill] = j;

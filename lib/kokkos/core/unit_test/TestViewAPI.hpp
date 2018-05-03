@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -153,14 +153,14 @@ struct TestViewOperator_LeftAndRight< DataType, DeviceType, 8 >
   {
     long offset = -1;
 
-    for ( unsigned i7 = 0; i7 < unsigned( left.dimension_7() ); ++i7 )
-    for ( unsigned i6 = 0; i6 < unsigned( left.dimension_6() ); ++i6 )
-    for ( unsigned i5 = 0; i5 < unsigned( left.dimension_5() ); ++i5 )
-    for ( unsigned i4 = 0; i4 < unsigned( left.dimension_4() ); ++i4 )
-    for ( unsigned i3 = 0; i3 < unsigned( left.dimension_3() ); ++i3 )
-    for ( unsigned i2 = 0; i2 < unsigned( left.dimension_2() ); ++i2 )
-    for ( unsigned i1 = 0; i1 < unsigned( left.dimension_1() ); ++i1 )
-    for ( unsigned i0 = 0; i0 < unsigned( left.dimension_0() ); ++i0 )
+    for ( unsigned i7 = 0; i7 < unsigned( left.extent(7) ); ++i7 )
+    for ( unsigned i6 = 0; i6 < unsigned( left.extent(6) ); ++i6 )
+    for ( unsigned i5 = 0; i5 < unsigned( left.extent(5) ); ++i5 )
+    for ( unsigned i4 = 0; i4 < unsigned( left.extent(4) ); ++i4 )
+    for ( unsigned i3 = 0; i3 < unsigned( left.extent(3) ); ++i3 )
+    for ( unsigned i2 = 0; i2 < unsigned( left.extent(2) ); ++i2 )
+    for ( unsigned i1 = 0; i1 < unsigned( left.extent(1) ); ++i1 )
+    for ( unsigned i0 = 0; i0 < unsigned( left.extent(0) ); ++i0 )
     {
       const long j = & left( i0, i1, i2, i3, i4, i5, i6, i7 ) -
                      & left(  0,  0,  0,  0,  0,  0,  0,  0 );
@@ -175,14 +175,14 @@ struct TestViewOperator_LeftAndRight< DataType, DeviceType, 8 >
 
     offset = -1;
 
-    for ( unsigned i0 = 0; i0 < unsigned( right.dimension_0() ); ++i0 )
-    for ( unsigned i1 = 0; i1 < unsigned( right.dimension_1() ); ++i1 )
-    for ( unsigned i2 = 0; i2 < unsigned( right.dimension_2() ); ++i2 )
-    for ( unsigned i3 = 0; i3 < unsigned( right.dimension_3() ); ++i3 )
-    for ( unsigned i4 = 0; i4 < unsigned( right.dimension_4() ); ++i4 )
-    for ( unsigned i5 = 0; i5 < unsigned( right.dimension_5() ); ++i5 )
-    for ( unsigned i6 = 0; i6 < unsigned( right.dimension_6() ); ++i6 )
-    for ( unsigned i7 = 0; i7 < unsigned( right.dimension_7() ); ++i7 )
+    for ( unsigned i0 = 0; i0 < unsigned( right.extent(0) ); ++i0 )
+    for ( unsigned i1 = 0; i1 < unsigned( right.extent(1) ); ++i1 )
+    for ( unsigned i2 = 0; i2 < unsigned( right.extent(2) ); ++i2 )
+    for ( unsigned i3 = 0; i3 < unsigned( right.extent(3) ); ++i3 )
+    for ( unsigned i4 = 0; i4 < unsigned( right.extent(4) ); ++i4 )
+    for ( unsigned i5 = 0; i5 < unsigned( right.extent(5) ); ++i5 )
+    for ( unsigned i6 = 0; i6 < unsigned( right.extent(6) ); ++i6 )
+    for ( unsigned i7 = 0; i7 < unsigned( right.extent(7) ); ++i7 )
     {
       const long j = & right( i0, i1, i2, i3, i4, i5, i6, i7 ) -
                      & right(  0,  0,  0,  0,  0,  0,  0,  0 );
@@ -245,13 +245,13 @@ struct TestViewOperator_LeftAndRight< DataType, DeviceType, 7 >
   {
     long offset = -1;
 
-    for ( unsigned i6 = 0; i6 < unsigned( left.dimension_6() ); ++i6 )
-    for ( unsigned i5 = 0; i5 < unsigned( left.dimension_5() ); ++i5 )
-    for ( unsigned i4 = 0; i4 < unsigned( left.dimension_4() ); ++i4 )
-    for ( unsigned i3 = 0; i3 < unsigned( left.dimension_3() ); ++i3 )
-    for ( unsigned i2 = 0; i2 < unsigned( left.dimension_2() ); ++i2 )
-    for ( unsigned i1 = 0; i1 < unsigned( left.dimension_1() ); ++i1 )
-    for ( unsigned i0 = 0; i0 < unsigned( left.dimension_0() ); ++i0 )
+    for ( unsigned i6 = 0; i6 < unsigned( left.extent(6) ); ++i6 )
+    for ( unsigned i5 = 0; i5 < unsigned( left.extent(5) ); ++i5 )
+    for ( unsigned i4 = 0; i4 < unsigned( left.extent(4) ); ++i4 )
+    for ( unsigned i3 = 0; i3 < unsigned( left.extent(3) ); ++i3 )
+    for ( unsigned i2 = 0; i2 < unsigned( left.extent(2) ); ++i2 )
+    for ( unsigned i1 = 0; i1 < unsigned( left.extent(1) ); ++i1 )
+    for ( unsigned i0 = 0; i0 < unsigned( left.extent(0) ); ++i0 )
     {
       const long j = & left( i0, i1, i2, i3, i4, i5, i6 ) -
                      & left(  0,  0,  0,  0,  0,  0,  0 );
@@ -261,13 +261,13 @@ struct TestViewOperator_LeftAndRight< DataType, DeviceType, 7 >
 
     offset = -1;
 
-    for ( unsigned i0 = 0; i0 < unsigned( right.dimension_0() ); ++i0 )
-    for ( unsigned i1 = 0; i1 < unsigned( right.dimension_1() ); ++i1 )
-    for ( unsigned i2 = 0; i2 < unsigned( right.dimension_2() ); ++i2 )
-    for ( unsigned i3 = 0; i3 < unsigned( right.dimension_3() ); ++i3 )
-    for ( unsigned i4 = 0; i4 < unsigned( right.dimension_4() ); ++i4 )
-    for ( unsigned i5 = 0; i5 < unsigned( right.dimension_5() ); ++i5 )
-    for ( unsigned i6 = 0; i6 < unsigned( right.dimension_6() ); ++i6 )
+    for ( unsigned i0 = 0; i0 < unsigned( right.extent(0) ); ++i0 )
+    for ( unsigned i1 = 0; i1 < unsigned( right.extent(1) ); ++i1 )
+    for ( unsigned i2 = 0; i2 < unsigned( right.extent(2) ); ++i2 )
+    for ( unsigned i3 = 0; i3 < unsigned( right.extent(3) ); ++i3 )
+    for ( unsigned i4 = 0; i4 < unsigned( right.extent(4) ); ++i4 )
+    for ( unsigned i5 = 0; i5 < unsigned( right.extent(5) ); ++i5 )
+    for ( unsigned i6 = 0; i6 < unsigned( right.extent(6) ); ++i6 )
     {
       const long j = & right( i0, i1, i2, i3, i4, i5, i6 ) -
                      & right(  0,  0,  0,  0,  0,  0,  0 );
@@ -325,12 +325,12 @@ struct TestViewOperator_LeftAndRight< DataType, DeviceType, 6 >
   {
     long offset = -1;
 
-    for ( unsigned i5 = 0; i5 < unsigned( left.dimension_5() ); ++i5 )
-    for ( unsigned i4 = 0; i4 < unsigned( left.dimension_4() ); ++i4 )
-    for ( unsigned i3 = 0; i3 < unsigned( left.dimension_3() ); ++i3 )
-    for ( unsigned i2 = 0; i2 < unsigned( left.dimension_2() ); ++i2 )
-    for ( unsigned i1 = 0; i1 < unsigned( left.dimension_1() ); ++i1 )
-    for ( unsigned i0 = 0; i0 < unsigned( left.dimension_0() ); ++i0 )
+    for ( unsigned i5 = 0; i5 < unsigned( left.extent(5) ); ++i5 )
+    for ( unsigned i4 = 0; i4 < unsigned( left.extent(4) ); ++i4 )
+    for ( unsigned i3 = 0; i3 < unsigned( left.extent(3) ); ++i3 )
+    for ( unsigned i2 = 0; i2 < unsigned( left.extent(2) ); ++i2 )
+    for ( unsigned i1 = 0; i1 < unsigned( left.extent(1) ); ++i1 )
+    for ( unsigned i0 = 0; i0 < unsigned( left.extent(0) ); ++i0 )
     {
       const long j = & left( i0, i1, i2, i3, i4, i5 ) -
                      & left(  0,  0,  0,  0,  0,  0 );
@@ -340,12 +340,12 @@ struct TestViewOperator_LeftAndRight< DataType, DeviceType, 6 >
 
     offset = -1;
 
-    for ( unsigned i0 = 0; i0 < unsigned( right.dimension_0() ); ++i0 )
-    for ( unsigned i1 = 0; i1 < unsigned( right.dimension_1() ); ++i1 )
-    for ( unsigned i2 = 0; i2 < unsigned( right.dimension_2() ); ++i2 )
-    for ( unsigned i3 = 0; i3 < unsigned( right.dimension_3() ); ++i3 )
-    for ( unsigned i4 = 0; i4 < unsigned( right.dimension_4() ); ++i4 )
-    for ( unsigned i5 = 0; i5 < unsigned( right.dimension_5() ); ++i5 )
+    for ( unsigned i0 = 0; i0 < unsigned( right.extent(0) ); ++i0 )
+    for ( unsigned i1 = 0; i1 < unsigned( right.extent(1) ); ++i1 )
+    for ( unsigned i2 = 0; i2 < unsigned( right.extent(2) ); ++i2 )
+    for ( unsigned i3 = 0; i3 < unsigned( right.extent(3) ); ++i3 )
+    for ( unsigned i4 = 0; i4 < unsigned( right.extent(4) ); ++i4 )
+    for ( unsigned i5 = 0; i5 < unsigned( right.extent(5) ); ++i5 )
     {
       const long j = & right( i0, i1, i2, i3, i4, i5 ) -
                      & right(  0,  0,  0,  0,  0,  0 );
@@ -408,11 +408,11 @@ struct TestViewOperator_LeftAndRight< DataType, DeviceType, 5 >
   {
     long offset = -1;
 
-    for ( unsigned i4 = 0; i4 < unsigned( left.dimension_4() ); ++i4 )
-    for ( unsigned i3 = 0; i3 < unsigned( left.dimension_3() ); ++i3 )
-    for ( unsigned i2 = 0; i2 < unsigned( left.dimension_2() ); ++i2 )
-    for ( unsigned i1 = 0; i1 < unsigned( left.dimension_1() ); ++i1 )
-    for ( unsigned i0 = 0; i0 < unsigned( left.dimension_0() ); ++i0 )
+    for ( unsigned i4 = 0; i4 < unsigned( left.extent(4) ); ++i4 )
+    for ( unsigned i3 = 0; i3 < unsigned( left.extent(3) ); ++i3 )
+    for ( unsigned i2 = 0; i2 < unsigned( left.extent(2) ); ++i2 )
+    for ( unsigned i1 = 0; i1 < unsigned( left.extent(1) ); ++i1 )
+    for ( unsigned i0 = 0; i0 < unsigned( left.extent(0) ); ++i0 )
     {
       const long j = & left( i0, i1, i2, i3, i4 ) -
                      & left(  0,  0,  0,  0,  0 );
@@ -425,11 +425,11 @@ struct TestViewOperator_LeftAndRight< DataType, DeviceType, 5 >
 
     offset = -1;
 
-    for ( unsigned i0 = 0; i0 < unsigned( right.dimension_0() ); ++i0 )
-    for ( unsigned i1 = 0; i1 < unsigned( right.dimension_1() ); ++i1 )
-    for ( unsigned i2 = 0; i2 < unsigned( right.dimension_2() ); ++i2 )
-    for ( unsigned i3 = 0; i3 < unsigned( right.dimension_3() ); ++i3 )
-    for ( unsigned i4 = 0; i4 < unsigned( right.dimension_4() ); ++i4 )
+    for ( unsigned i0 = 0; i0 < unsigned( right.extent(0) ); ++i0 )
+    for ( unsigned i1 = 0; i1 < unsigned( right.extent(1) ); ++i1 )
+    for ( unsigned i2 = 0; i2 < unsigned( right.extent(2) ); ++i2 )
+    for ( unsigned i3 = 0; i3 < unsigned( right.extent(3) ); ++i3 )
+    for ( unsigned i4 = 0; i4 < unsigned( right.extent(4) ); ++i4 )
     {
       const long j = & right( i0, i1, i2, i3, i4 ) -
                      & right(  0,  0,  0,  0,  0 );
@@ -490,10 +490,10 @@ struct TestViewOperator_LeftAndRight< DataType, DeviceType, 4 >
   {
     long offset = -1;
 
-    for ( unsigned i3 = 0; i3 < unsigned( left.dimension_3() ); ++i3 )
-    for ( unsigned i2 = 0; i2 < unsigned( left.dimension_2() ); ++i2 )
-    for ( unsigned i1 = 0; i1 < unsigned( left.dimension_1() ); ++i1 )
-    for ( unsigned i0 = 0; i0 < unsigned( left.dimension_0() ); ++i0 )
+    for ( unsigned i3 = 0; i3 < unsigned( left.extent(3) ); ++i3 )
+    for ( unsigned i2 = 0; i2 < unsigned( left.extent(2) ); ++i2 )
+    for ( unsigned i1 = 0; i1 < unsigned( left.extent(1) ); ++i1 )
+    for ( unsigned i0 = 0; i0 < unsigned( left.extent(0) ); ++i0 )
     {
       const long j = & left( i0, i1, i2, i3 ) -
                      & left(  0,  0,  0,  0 );
@@ -503,10 +503,10 @@ struct TestViewOperator_LeftAndRight< DataType, DeviceType, 4 >
 
     offset = -1;
 
-    for ( unsigned i0 = 0; i0 < unsigned( right.dimension_0() ); ++i0 )
-    for ( unsigned i1 = 0; i1 < unsigned( right.dimension_1() ); ++i1 )
-    for ( unsigned i2 = 0; i2 < unsigned( right.dimension_2() ); ++i2 )
-    for ( unsigned i3 = 0; i3 < unsigned( right.dimension_3() ); ++i3 )
+    for ( unsigned i0 = 0; i0 < unsigned( right.extent(0) ); ++i0 )
+    for ( unsigned i1 = 0; i1 < unsigned( right.extent(1) ); ++i1 )
+    for ( unsigned i2 = 0; i2 < unsigned( right.extent(2) ); ++i2 )
+    for ( unsigned i3 = 0; i3 < unsigned( right.extent(3) ); ++i3 )
     {
       const long j = & right( i0, i1, i2, i3 ) -
                      & right(  0,  0,  0,  0 );
@@ -569,9 +569,9 @@ struct TestViewOperator_LeftAndRight< DataType, DeviceType, 3 >
   {
     long offset = -1;
 
-    for ( unsigned i2 = 0; i2 < unsigned( left.dimension_2() ); ++i2 )
-    for ( unsigned i1 = 0; i1 < unsigned( left.dimension_1() ); ++i1 )
-    for ( unsigned i0 = 0; i0 < unsigned( left.dimension_0() ); ++i0 )
+    for ( unsigned i2 = 0; i2 < unsigned( left.extent(2) ); ++i2 )
+    for ( unsigned i1 = 0; i1 < unsigned( left.extent(1) ); ++i1 )
+    for ( unsigned i0 = 0; i0 < unsigned( left.extent(0) ); ++i0 )
     {
       const long j = & left( i0, i1, i2 ) -
                      & left(  0,  0,  0 );
@@ -583,9 +583,9 @@ struct TestViewOperator_LeftAndRight< DataType, DeviceType, 3 >
 
     offset = -1;
 
-    for ( unsigned i0 = 0; i0 < unsigned( right.dimension_0() ); ++i0 )
-    for ( unsigned i1 = 0; i1 < unsigned( right.dimension_1() ); ++i1 )
-    for ( unsigned i2 = 0; i2 < unsigned( right.dimension_2() ); ++i2 )
+    for ( unsigned i0 = 0; i0 < unsigned( right.extent(0) ); ++i0 )
+    for ( unsigned i1 = 0; i1 < unsigned( right.extent(1) ); ++i1 )
+    for ( unsigned i2 = 0; i2 < unsigned( right.extent(2) ); ++i2 )
     {
       const long j = & right( i0, i1, i2 ) -
                      & right(  0,  0,  0 );
@@ -595,12 +595,17 @@ struct TestViewOperator_LeftAndRight< DataType, DeviceType, 3 >
       if ( & right( i0, i1, i2 ) != & right_stride( i0, i1, i2 ) ) { update |= 8; }
     }
 
-    for ( unsigned i0 = 0; i0 < unsigned( left.dimension_0() ); ++i0 )
-    for ( unsigned i1 = 0; i1 < unsigned( left.dimension_1() ); ++i1 )
-    for ( unsigned i2 = 0; i2 < unsigned( left.dimension_2() ); ++i2 )
+    for ( unsigned i0 = 0; i0 < unsigned( left.extent(0) ); ++i0 )
+    for ( unsigned i1 = 0; i1 < unsigned( left.extent(1) ); ++i1 )
+    for ( unsigned i2 = 0; i2 < unsigned( left.extent(2) ); ++i2 )
     {
-      if ( & left( i0, i1, i2 )  != & left( i0, i1, i2, 0, 0, 0, 0, 0 ) )  { update |= 3; }
-      if ( & right( i0, i1, i2 ) != & right( i0, i1, i2, 0, 0, 0, 0, 0 ) ) { update |= 3; }
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
+        if ( & left( i0, i1, i2 )  != & left( i0, i1, i2, 0, 0, 0, 0, 0 ) )  { update |= 3; }
+        if ( & right( i0, i1, i2 ) != & right( i0, i1, i2, 0, 0, 0, 0, 0 ) ) { update |= 3; }
+#else
+        if ( & left( i0, i1, i2 )  != & left.access( i0, i1, i2, 0, 0, 0, 0, 0 ) )  { update |= 3; }
+        if ( & right( i0, i1, i2 ) != & right.access( i0, i1, i2, 0, 0, 0, 0, 0 ) ) { update |= 3; }
+#endif
     }
   }
 };
@@ -653,8 +658,8 @@ struct TestViewOperator_LeftAndRight< DataType, DeviceType, 2 >
   {
     long offset = -1;
 
-    for ( unsigned i1 = 0; i1 < unsigned( left.dimension_1() ); ++i1 )
-    for ( unsigned i0 = 0; i0 < unsigned( left.dimension_0() ); ++i0 )
+    for ( unsigned i1 = 0; i1 < unsigned( left.extent(1) ); ++i1 )
+    for ( unsigned i0 = 0; i0 < unsigned( left.extent(0) ); ++i0 )
     {
       const long j = & left( i0, i1 ) -
                      & left(  0,  0 );
@@ -664,8 +669,8 @@ struct TestViewOperator_LeftAndRight< DataType, DeviceType, 2 >
 
     offset = -1;
 
-    for ( unsigned i0 = 0; i0 < unsigned( right.dimension_0() ); ++i0 )
-    for ( unsigned i1 = 0; i1 < unsigned( right.dimension_1() ); ++i1 )
+    for ( unsigned i0 = 0; i0 < unsigned( right.extent(0) ); ++i0 )
+    for ( unsigned i1 = 0; i1 < unsigned( right.extent(1) ); ++i1 )
     {
       const long j = & right( i0, i1 ) -
                      & right(  0,  0 );
@@ -673,11 +678,16 @@ struct TestViewOperator_LeftAndRight< DataType, DeviceType, 2 >
       offset = j;
     }
 
-    for ( unsigned i0 = 0; i0 < unsigned( left.dimension_0() ); ++i0 )
-    for ( unsigned i1 = 0; i1 < unsigned( left.dimension_1() ); ++i1 )
+    for ( unsigned i0 = 0; i0 < unsigned( left.extent(0) ); ++i0 )
+    for ( unsigned i1 = 0; i1 < unsigned( left.extent(1) ); ++i1 )
     {
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
       if ( & left( i0, i1 )  != & left( i0, i1, 0, 0, 0, 0, 0, 0 ) )  { update |= 3; }
       if ( & right( i0, i1 ) != & right( i0, i1, 0, 0, 0, 0, 0, 0 ) ) { update |= 3; }
+#else
+      if ( & left( i0, i1 )  != & left.access( i0, i1, 0, 0, 0, 0, 0, 0 ) )  { update |= 3; }
+      if ( & right( i0, i1 ) != & right.access( i0, i1, 0, 0, 0, 0, 0, 0 ) ) { update |= 3; }
+#endif
     }
   }
 };
@@ -734,10 +744,15 @@ struct TestViewOperator_LeftAndRight< DataType, DeviceType, 1 >
   KOKKOS_INLINE_FUNCTION
   void operator()( const size_type, value_type & update ) const
   {
-    for ( unsigned i0 = 0; i0 < unsigned( left.dimension_0() ); ++i0 )
+    for ( unsigned i0 = 0; i0 < unsigned( left.extent(0) ); ++i0 )
     {
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
       if ( & left( i0 )  != & left( i0, 0, 0, 0, 0, 0, 0, 0 ) )  { update |= 3; }
       if ( & right( i0 ) != & right( i0, 0, 0, 0, 0, 0, 0, 0 ) ) { update |= 3; }
+#else
+      if ( & left( i0 )  != & left.access( i0, 0, 0, 0, 0, 0, 0, 0 ) )  { update |= 3; }
+      if ( & right( i0 ) != & right.access( i0, 0, 0, 0, 0, 0, 0, 0 ) ) { update |= 3; }
+#endif
       if ( & left( i0 )  != & left_stride( i0 ) ) { update |= 4; }
       if ( & right( i0 ) != & right_stride( i0 ) ) { update |= 8; }
     }
@@ -762,8 +777,8 @@ struct TestViewMirror
     ASSERT_EQ( equal_ptr_h_d, 0 );
     ASSERT_EQ( equal_ptr_h2_d, 0 );
 
-    ASSERT_EQ( a_h.dimension_0(), a_h2.dimension_0() );
-    ASSERT_EQ( a_h.dimension_0(), a_d .dimension_0() );
+    ASSERT_EQ( a_h.extent(0), a_h2.extent(0) );
+    ASSERT_EQ( a_h.extent(0), a_d .extent(0) );
   }
 
   template< class MemoryTraits >
@@ -782,15 +797,44 @@ struct TestViewMirror
     ASSERT_EQ( equal_ptr_h_d, is_same_memspace );
     ASSERT_EQ( equal_ptr_h2_d, is_same_memspace );
 
-    ASSERT_EQ( a_h.dimension_0(), a_h2.dimension_0() );
-    ASSERT_EQ( a_h.dimension_0(), a_d .dimension_0() );
+    ASSERT_EQ( a_h.extent(0), a_h2.extent(0) );
+    ASSERT_EQ( a_h.extent(0), a_d .extent(0) );
   }
+
+  template< class MemoryTraits >
+  void static test_mirror_copy() {
+    Kokkos::View< double*, Layout, Kokkos::HostSpace > a_org( "A", 10 );
+    a_org(5) = 42.0;
+    Kokkos::View< double*, Layout, Kokkos::HostSpace, MemoryTraits > a_h = a_org;
+    auto a_h2 = Kokkos::create_mirror_view_and_copy( Kokkos::HostSpace(), a_h );
+    auto a_d = Kokkos::create_mirror_view_and_copy( DeviceType(), a_h );
+    auto a_h3 = Kokkos::create_mirror_view_and_copy( Kokkos::HostSpace(), a_d );
+
+    int equal_ptr_h_h2 = a_h.data()  == a_h2.data() ? 1 : 0;
+    int equal_ptr_h_d  = a_h.data()  ==  a_d.data() ? 1 : 0;
+    int equal_ptr_h2_d = a_h2.data() ==  a_d.data() ? 1 : 0;
+    int equal_ptr_h3_d = a_h3.data() ==  a_d.data() ? 1 : 0;
+
+    int is_same_memspace = std::is_same< Kokkos::HostSpace, typename DeviceType::memory_space >::value ? 1 : 0;
+    ASSERT_EQ( equal_ptr_h_h2, 1 );
+    ASSERT_EQ( equal_ptr_h_d, is_same_memspace );
+    ASSERT_EQ( equal_ptr_h2_d, is_same_memspace );
+    ASSERT_EQ( equal_ptr_h3_d, is_same_memspace );
+
+    ASSERT_EQ( a_h.extent(0), a_h3.extent(0) );
+    ASSERT_EQ( a_h.extent(0), a_h2.extent(0) );
+    ASSERT_EQ( a_h.extent(0), a_d .extent(0) );
+    ASSERT_EQ( a_org(5), a_h3(5) );
+  }
+
 
   void static testit() {
     test_mirror< Kokkos::MemoryTraits<0> >();
     test_mirror< Kokkos::MemoryTraits<Kokkos::Unmanaged> >();
     test_mirror_view< Kokkos::MemoryTraits<0> >();
     test_mirror_view< Kokkos::MemoryTraits<Kokkos::Unmanaged> >();
+    test_mirror_copy< Kokkos::MemoryTraits<0> >();
+    test_mirror_copy< Kokkos::MemoryTraits<Kokkos::Unmanaged> >();
   }
 };
 
@@ -916,24 +960,24 @@ public:
     dView4 dx, dy, dz;
     hView4 hx, hy, hz;
 
-    ASSERT_TRUE( dx.ptr_on_device() == 0 );
-    ASSERT_TRUE( dy.ptr_on_device() == 0 );
-    ASSERT_TRUE( dz.ptr_on_device() == 0 );
-    ASSERT_TRUE( hx.ptr_on_device() == 0 );
-    ASSERT_TRUE( hy.ptr_on_device() == 0 );
-    ASSERT_TRUE( hz.ptr_on_device() == 0 );
-    ASSERT_EQ( dx.dimension_0(), 0u );
-    ASSERT_EQ( dy.dimension_0(), 0u );
-    ASSERT_EQ( dz.dimension_0(), 0u );
-    ASSERT_EQ( hx.dimension_0(), 0u );
-    ASSERT_EQ( hy.dimension_0(), 0u );
-    ASSERT_EQ( hz.dimension_0(), 0u );
-    ASSERT_EQ( dx.dimension_1(), unsigned( N1 ) );
-    ASSERT_EQ( dy.dimension_1(), unsigned( N1 ) );
-    ASSERT_EQ( dz.dimension_1(), unsigned( N1 ) );
-    ASSERT_EQ( hx.dimension_1(), unsigned( N1 ) );
-    ASSERT_EQ( hy.dimension_1(), unsigned( N1 ) );
-    ASSERT_EQ( hz.dimension_1(), unsigned( N1 ) );
+    ASSERT_TRUE( dx.data() == 0 );
+    ASSERT_TRUE( dy.data() == 0 );
+    ASSERT_TRUE( dz.data() == 0 );
+    ASSERT_TRUE( hx.data() == 0 );
+    ASSERT_TRUE( hy.data() == 0 );
+    ASSERT_TRUE( hz.data() == 0 );
+    ASSERT_EQ( dx.extent(0), 0u );
+    ASSERT_EQ( dy.extent(0), 0u );
+    ASSERT_EQ( dz.extent(0), 0u );
+    ASSERT_EQ( hx.extent(0), 0u );
+    ASSERT_EQ( hy.extent(0), 0u );
+    ASSERT_EQ( hz.extent(0), 0u );
+    ASSERT_EQ( dx.extent(1), unsigned( N1 ) );
+    ASSERT_EQ( dy.extent(1), unsigned( N1 ) );
+    ASSERT_EQ( dz.extent(1), unsigned( N1 ) );
+    ASSERT_EQ( hx.extent(1), unsigned( N1 ) );
+    ASSERT_EQ( hy.extent(1), unsigned( N1 ) );
+    ASSERT_EQ( hz.extent(1), unsigned( N1 ) );
 
     dx = dView4( "dx", N0 );
     dy = dView4( "dy", N0 );
@@ -943,19 +987,19 @@ public:
     dView4_unmanaged unmanaged_dx = dx;
     ASSERT_EQ( dx.use_count(), size_t( 1 ) );
 
-    dView4_unmanaged unmanaged_from_ptr_dx = dView4_unmanaged( dx.ptr_on_device(),
-                                                               dx.dimension_0(),
-                                                               dx.dimension_1(),
-                                                               dx.dimension_2(),
-                                                               dx.dimension_3() );
+    dView4_unmanaged unmanaged_from_ptr_dx = dView4_unmanaged( dx.data(),
+                                                               dx.extent(0),
+                                                               dx.extent(1),
+                                                               dx.extent(2),
+                                                               dx.extent(3) );
 
     {
       // Destruction of this view should be harmless.
-      const_dView4 unmanaged_from_ptr_const_dx( dx.ptr_on_device(),
-                                                dx.dimension_0(),
-                                                dx.dimension_1(),
-                                                dx.dimension_2(),
-                                                dx.dimension_3() );
+      const_dView4 unmanaged_from_ptr_const_dx( dx.data(),
+                                                dx.extent(0),
+                                                dx.extent(1),
+                                                dx.extent(2),
+                                                dx.extent(3) );
     }
 
     const_dView4 const_dx = dx;
@@ -978,24 +1022,24 @@ public:
 
     ASSERT_EQ( dx.use_count(), size_t( 2 ) );
 
-    ASSERT_FALSE( dx.ptr_on_device() == 0 );
-    ASSERT_FALSE( const_dx.ptr_on_device() == 0 );
-    ASSERT_FALSE( unmanaged_dx.ptr_on_device() == 0 );
-    ASSERT_FALSE( unmanaged_from_ptr_dx.ptr_on_device() == 0 );
-    ASSERT_FALSE( dy.ptr_on_device() == 0 );
+    ASSERT_FALSE( dx.data() == 0 );
+    ASSERT_FALSE( const_dx.data() == 0 );
+    ASSERT_FALSE( unmanaged_dx.data() == 0 );
+    ASSERT_FALSE( unmanaged_from_ptr_dx.data() == 0 );
+    ASSERT_FALSE( dy.data() == 0 );
     ASSERT_NE( dx, dy );
 
-    ASSERT_EQ( dx.dimension_0(), unsigned( N0 ) );
-    ASSERT_EQ( dx.dimension_1(), unsigned( N1 ) );
-    ASSERT_EQ( dx.dimension_2(), unsigned( N2 ) );
-    ASSERT_EQ( dx.dimension_3(), unsigned( N3 ) );
+    ASSERT_EQ( dx.extent(0), unsigned( N0 ) );
+    ASSERT_EQ( dx.extent(1), unsigned( N1 ) );
+    ASSERT_EQ( dx.extent(2), unsigned( N2 ) );
+    ASSERT_EQ( dx.extent(3), unsigned( N3 ) );
 
-    ASSERT_EQ( dy.dimension_0(), unsigned( N0 ) );
-    ASSERT_EQ( dy.dimension_1(), unsigned( N1 ) );
-    ASSERT_EQ( dy.dimension_2(), unsigned( N2 ) );
-    ASSERT_EQ( dy.dimension_3(), unsigned( N3 ) );
+    ASSERT_EQ( dy.extent(0), unsigned( N0 ) );
+    ASSERT_EQ( dy.extent(1), unsigned( N1 ) );
+    ASSERT_EQ( dy.extent(2), unsigned( N2 ) );
+    ASSERT_EQ( dy.extent(3), unsigned( N3 ) );
 
-    ASSERT_EQ( unmanaged_from_ptr_dx.capacity(), unsigned( N0 ) * unsigned( N1 ) * unsigned( N2 ) * unsigned( N3 ) );
+    ASSERT_EQ( unmanaged_from_ptr_dx.span(), unsigned( N0 ) * unsigned( N1 ) * unsigned( N2 ) * unsigned( N3 ) );
 #ifdef KOKKOS_ENABLE_OPENMPTARGET
 return;
 #endif
@@ -1011,9 +1055,9 @@ return;
       size_t count = 0;
 
       for ( size_t ip = 0; ip < N0; ++ip )
-      for ( size_t i1 = 0; i1 < hx.dimension_1(); ++i1 )
-      for ( size_t i2 = 0; i2 < hx.dimension_2(); ++i2 )
-      for ( size_t i3 = 0; i3 < hx.dimension_3(); ++i3 )
+      for ( size_t i1 = 0; i1 < hx.extent(1); ++i1 )
+      for ( size_t i2 = 0; i2 < hx.extent(2); ++i2 )
+      for ( size_t i3 = 0; i3 < hx.extent(3); ++i3 )
       {
         hx( ip, i1, i2, i3 ) = ++count;
       }
@@ -1047,9 +1091,9 @@ return;
       size_t count = 0;
 
       for ( size_t ip = 0; ip < N0; ++ip )
-      for ( size_t i1 = 0; i1 < hx.dimension_1(); ++i1 )
-      for ( size_t i2 = 0; i2 < hx.dimension_2(); ++i2 )
-      for ( size_t i3 = 0; i3 < hx.dimension_3(); ++i3 )
+      for ( size_t i1 = 0; i1 < hx.extent(1); ++i1 )
+      for ( size_t i2 = 0; i2 < hx.extent(2); ++i2 )
+      for ( size_t i3 = 0; i3 < hx.extent(3); ++i3 )
       {
         hx( ip, i1, i2, i3 ) = ++count;
       }
@@ -1083,9 +1127,9 @@ return;
       size_t count = 0;
 
       for ( size_t ip = 0; ip < N0; ++ip )
-      for ( size_t i1 = 0; i1 < hx.dimension_1(); ++i1 )
-      for ( size_t i2 = 0; i2 < hx.dimension_2(); ++i2 )
-      for ( size_t i3 = 0; i3 < hx.dimension_3(); ++i3 )
+      for ( size_t i1 = 0; i1 < hx.extent(1); ++i1 )
+      for ( size_t i2 = 0; i2 < hx.extent(2); ++i2 )
+      for ( size_t i3 = 0; i3 < hx.extent(3); ++i3 )
       {
         hx( ip, i1, i2, i3 ) = ++count;
       }
@@ -1123,19 +1167,44 @@ return;
     ASSERT_NE( dx, dz );
 
     dx = dView4();
-    ASSERT_TRUE( dx.ptr_on_device() == 0 );
-    ASSERT_FALSE( dy.ptr_on_device() == 0 );
-    ASSERT_FALSE( dz.ptr_on_device() == 0 );
+    ASSERT_TRUE( dx.data() == 0 );
+    ASSERT_FALSE( dy.data() == 0 );
+    ASSERT_FALSE( dz.data() == 0 );
 
     dy = dView4();
-    ASSERT_TRUE( dx.ptr_on_device() == 0 );
-    ASSERT_TRUE( dy.ptr_on_device() == 0 );
-    ASSERT_FALSE( dz.ptr_on_device() == 0 );
+    ASSERT_TRUE( dx.data() == 0 );
+    ASSERT_TRUE( dy.data() == 0 );
+    ASSERT_FALSE( dz.data() == 0 );
 
     dz = dView4();
-    ASSERT_TRUE( dx.ptr_on_device() == 0 );
-    ASSERT_TRUE( dy.ptr_on_device() == 0 );
-    ASSERT_TRUE( dz.ptr_on_device() == 0 );
+    ASSERT_TRUE( dx.data() == 0 );
+    ASSERT_TRUE( dy.data() == 0 );
+    ASSERT_TRUE( dz.data() == 0 );
+
+    // Check Deep Copy of LayoutLeft to LayoutRight
+    {
+      Kokkos::View<double*,Kokkos::LayoutLeft> dll("dll",10);
+      Kokkos::View<double*,Kokkos::LayoutRight,Kokkos::HostSpace> hlr("hlr",10);
+      Kokkos::deep_copy(dll,hlr);
+      Kokkos::deep_copy(hlr,dll);
+    }
+
+    // Check Deep Copy of two empty 1D views
+    {
+      Kokkos::View<double*> d;
+      Kokkos::View<double*,Kokkos::HostSpace> h;
+      Kokkos::deep_copy(d,h);
+      Kokkos::deep_copy(h,d);
+    }
+
+    // Check Deep Copy of two empty 2D views
+    {
+      Kokkos::View<double*[3],Kokkos::LayoutRight> d;
+      Kokkos::View<double*[3],Kokkos::LayoutRight,Kokkos::HostSpace> h;
+      Kokkos::deep_copy(d,h);
+      Kokkos::deep_copy(h,d);
+    }
+
   }
 
   typedef T DataType[2];
@@ -1168,7 +1237,7 @@ return;
     if ( !std::is_same< typename device::execution_space, Kokkos::Cuda >::value )
 #endif
     {
-      ASSERT_TRUE( x.ptr_on_device() == xr.ptr_on_device() );
+      ASSERT_TRUE( x.data() == xr.data() );
     }
 
     // typeX xf = xc; // Setting non-const from const must not compile.
@@ -1210,10 +1279,10 @@ return;
     view_stride_1 yr1 = Kokkos::subview( xr2, 0, Kokkos::ALL() );
     view_stride_1 yr2 = Kokkos::subview( xr2, 1, Kokkos::ALL() );
 
-    ASSERT_EQ( yl1.dimension_0(), xl2.dimension_1() );
-    ASSERT_EQ( yl2.dimension_0(), xl2.dimension_1() );
-    ASSERT_EQ( yr1.dimension_0(), xr2.dimension_1() );
-    ASSERT_EQ( yr2.dimension_0(), xr2.dimension_1() );
+    ASSERT_EQ( yl1.extent(0), xl2.extent(1) );
+    ASSERT_EQ( yl2.extent(0), xl2.extent(1) );
+    ASSERT_EQ( yr1.extent(0), xr2.extent(1) );
+    ASSERT_EQ( yr2.extent(0), xr2.extent(1) );
 
     ASSERT_EQ( & yl1( 0 ) - & xl2( 0, 0 ), 0 );
     ASSERT_EQ( & yl2( 0 ) - & xl2( 1, 0 ), 0 );
@@ -1226,10 +1295,10 @@ return;
     view_stride_2 yl4 = Kokkos::subview( xl4, 1, Kokkos::ALL(), 2, Kokkos::ALL() );
     view_stride_2 yr4 = Kokkos::subview( xr4, 1, Kokkos::ALL(), 2, Kokkos::ALL() );
 
-    ASSERT_EQ( yl4.dimension_0(), xl4.dimension_1() );
-    ASSERT_EQ( yl4.dimension_1(), xl4.dimension_3() );
-    ASSERT_EQ( yr4.dimension_0(), xr4.dimension_1() );
-    ASSERT_EQ( yr4.dimension_1(), xr4.dimension_3() );
+    ASSERT_EQ( yl4.extent(0), xl4.extent(1) );
+    ASSERT_EQ( yl4.extent(1), xl4.extent(3) );
+    ASSERT_EQ( yr4.extent(0), xr4.extent(1) );
+    ASSERT_EQ( yr4.extent(1), xr4.extent(3) );
 
     ASSERT_EQ( & yl4( 4, 4 ) - & xl4( 1, 4, 2, 4 ), 0 );
     ASSERT_EQ( & yr4( 4, 4 ) - & xr4( 1, 4, 2, 4 ), 0 );
@@ -1312,10 +1381,12 @@ return;
   }
 };
 
+#if !defined(KOKKOS_ENABLE_ROCM)
 TEST_F( TEST_CATEGORY, view_api )
 {
   TestViewAPI< double, TEST_EXECSPACE >();
 }
+#endif
 
 TEST_F( TEST_CATEGORY, view_remap )
 {
@@ -1387,6 +1458,86 @@ TEST_F( TEST_CATEGORY, view_mirror_nonconst )
   Kokkos::deep_copy(h_view, d_view_const);
   auto h_view2 = Kokkos::create_mirror(Kokkos::HostSpace(), d_view_const);
   Kokkos::deep_copy(h_view2, d_view_const);
+}
+
+template <typename DataType, typename ... Extents>
+void test_left_stride(Extents ... extents) {
+  using view_type = Kokkos::View<DataType, Kokkos::LayoutLeft, Kokkos::HostSpace>;
+  view_type view("view", extents...);
+  size_t expected_stride = 1;
+  size_t all_strides[view_type::rank + 1];
+  view.stride(all_strides);
+  for (int i = 0; i < view_type::rank; ++i) {
+    ASSERT_EQ(view.stride(i), expected_stride);
+    ASSERT_EQ(all_strides[i], expected_stride);
+    expected_stride *= view.extent(i);
+  }
+}
+
+template <typename DataType, typename ... Extents>
+void test_right_stride(Extents ... extents) {
+  using view_type = Kokkos::View<DataType, Kokkos::LayoutRight, Kokkos::HostSpace>;
+  view_type view("view", extents...);
+  size_t expected_stride = 1;
+  size_t all_strides[view_type::rank + 1];
+  view.stride(all_strides);
+  for (int ri = 0; ri < view_type::rank; ++ri) {
+    auto i = view_type::rank - 1 - ri;
+    ASSERT_EQ(view.stride(i), expected_stride);
+    ASSERT_EQ(all_strides[i], expected_stride);
+    expected_stride *= view.extent(i);
+  }
+}
+
+template <typename DataType, typename ... Extents>
+void test_stride(Extents ... extents) {
+  test_right_stride<DataType>(extents...);
+  test_left_stride<DataType>(extents...);
+}
+
+TEST_F( TEST_CATEGORY, view_stride_method )
+{
+  test_stride<double[3]>();
+  test_stride<double*>(3);
+  test_stride<double[3][7][13]>();
+  test_stride<double***>(3, 7, 13);
+  // factorial(8) = 40320
+  test_stride<double[1][2][3][4][5][6][7][8]>();
+  test_stride<double********>(1, 2, 3, 4, 5, 6, 7, 8);
+}
+
+inline void test_anonymous_space() {
+  /* apparently TEST_EXECSPACE is sometimes a memory space. */
+  using ExecSpace = TEST_EXECSPACE::execution_space;
+  int host_array[10];
+  Kokkos::View<int[10], Kokkos::AnonymousSpace> host_anon_stat_view(host_array);
+  Kokkos::View<int*, Kokkos::AnonymousSpace> host_anon_dyn_view(host_array, 10);
+  Kokkos::View<int*, Kokkos::HostSpace> host_view("host_view", 10);
+  Kokkos::View<int*, Kokkos::AnonymousSpace> host_anon_assign_view = host_view;
+  for (int i = 0; i < 10; ++i) {
+    host_anon_stat_view(i) = host_anon_dyn_view(i) = 142;
+    host_anon_assign_view(i) = 142;
+  }
+  Kokkos::View<int**, Kokkos::LayoutRight, ExecSpace> d_view("d_view", 100, 10);
+#ifdef KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA
+  Kokkos::parallel_for(Kokkos::RangePolicy<ExecSpace, int>(0, 100), KOKKOS_LAMBDA(int i) {
+    int* ptr = &(d_view(i, 0));
+    Kokkos::View<int[10], Kokkos::AnonymousSpace> d_anon_stat_view(ptr);
+    Kokkos::View<int*, Kokkos::AnonymousSpace> d_anon_dyn_view(ptr, 10);
+    auto sub = Kokkos::subview(d_view, i, Kokkos::ALL());
+    Kokkos::View<int*, Kokkos::AnonymousSpace> d_anon_assign_view = sub;
+    for (int j = 0; j < 10; ++j) {
+      d_anon_stat_view(j) = 50;
+      d_anon_assign_view(j) += 50;
+      d_anon_dyn_view(j) += 42;
+    }
+  });
+#endif
+}
+
+TEST_F( TEST_CATEGORY, anonymous_space )
+{
+  test_anonymous_space();
 }
 
 } // namespace Test

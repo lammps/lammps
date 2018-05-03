@@ -24,11 +24,11 @@
 #include "domain_kokkos.h"
 #include "output.h"
 #include "thermo.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "error.h"
 #include "modify.h"
 #include "fix.h"
-#include <string.h>
+#include <cstring>
 #include "atom_masks.h"
 #include "domain.h"
 
@@ -80,27 +80,27 @@ void NeighBondKokkos<DeviceType>::init_topology_kk() {
   if (atom->molecular && atom->nbonds && maxbond == 0) {
     if (nprocs == 1) maxbond = atom->nbonds;
     else maxbond = static_cast<int> (LB_FACTOR * atom->nbonds / nprocs);
-    memory->create_kokkos(k_bondlist,neighbor->bondlist,maxbond,3,"neigh:neighbor->bondlist");
+    memoryKK->create_kokkos(k_bondlist,neighbor->bondlist,maxbond,3,"neigh:neighbor->bondlist");
   }
 
   if (atom->molecular && atom->nangles && maxangle == 0) {
     if (nprocs == 1) maxangle = atom->nangles;
     else maxangle = static_cast<int> (LB_FACTOR * atom->nangles / nprocs);
-    memory->create_kokkos(k_anglelist,neighbor->anglelist,maxangle,4,"neigh:neighbor->anglelist");
+    memoryKK->create_kokkos(k_anglelist,neighbor->anglelist,maxangle,4,"neigh:neighbor->anglelist");
   }
 
   if (atom->molecular && atom->ndihedrals && maxdihedral == 0) {
     if (nprocs == 1) maxdihedral = atom->ndihedrals;
     else maxdihedral = static_cast<int>
            (LB_FACTOR * atom->ndihedrals / nprocs);
-    memory->create_kokkos(k_dihedrallist,neighbor->dihedrallist,maxdihedral,5,"neigh:neighbor->dihedrallist");
+    memoryKK->create_kokkos(k_dihedrallist,neighbor->dihedrallist,maxdihedral,5,"neigh:neighbor->dihedrallist");
   }
 
   if (atom->molecular && atom->nimpropers && maximproper == 0) {
     if (nprocs == 1) maximproper = atom->nimpropers;
     else maximproper = static_cast<int>
            (LB_FACTOR * atom->nimpropers / nprocs);
-    memory->create_kokkos(k_improperlist,neighbor->improperlist,maximproper,5,"neigh:neighbor->improperlist");
+    memoryKK->create_kokkos(k_improperlist,neighbor->improperlist,maximproper,5,"neigh:neighbor->improperlist");
   }
 
   // set flags that determine which topology neighboring routines to use
@@ -283,7 +283,7 @@ void NeighBondKokkos<DeviceType>::bond_all()
     k_fail_flag.template sync<LMPHostType>();
     if (h_fail_flag()) {
       maxbond = neighbor->nbondlist + BONDDELTA;
-      memory->grow_kokkos(k_bondlist,neighbor->bondlist,maxbond,3,"neighbor:neighbor->bondlist");
+      memoryKK->grow_kokkos(k_bondlist,neighbor->bondlist,maxbond,3,"neighbor:neighbor->bondlist");
       v_bondlist = k_bondlist.view<DeviceType>();
     }
   } while (h_fail_flag());
@@ -378,7 +378,7 @@ void NeighBondKokkos<DeviceType>::bond_partial()
     k_fail_flag.template sync<LMPHostType>();
     if (h_fail_flag()) {
       maxbond = neighbor->nbondlist + BONDDELTA;
-      memory->grow_kokkos(k_bondlist,neighbor->bondlist,maxbond,3,"neighbor:neighbor->bondlist");
+      memoryKK->grow_kokkos(k_bondlist,neighbor->bondlist,maxbond,3,"neighbor:neighbor->bondlist");
       v_bondlist = k_bondlist.view<DeviceType>();
     }
   } while (h_fail_flag());
@@ -500,7 +500,7 @@ void NeighBondKokkos<DeviceType>::angle_all()
     k_fail_flag.template sync<LMPHostType>();
     if (h_fail_flag()) {
       maxangle = neighbor->nanglelist + BONDDELTA;
-      memory->grow_kokkos(k_anglelist,neighbor->anglelist,maxangle,4,"neighbor:neighbor->anglelist");
+      memoryKK->grow_kokkos(k_anglelist,neighbor->anglelist,maxangle,4,"neighbor:neighbor->anglelist");
       v_anglelist = k_anglelist.view<DeviceType>();
     }
   } while (h_fail_flag());
@@ -602,7 +602,7 @@ void NeighBondKokkos<DeviceType>::angle_partial()
     k_fail_flag.template sync<LMPHostType>();
     if (h_fail_flag()) {
       maxangle = neighbor->nanglelist + BONDDELTA;
-      memory->grow_kokkos(k_anglelist,neighbor->anglelist,maxangle,4,"neighbor:neighbor->anglelist");
+      memoryKK->grow_kokkos(k_anglelist,neighbor->anglelist,maxangle,4,"neighbor:neighbor->anglelist");
       v_anglelist = k_anglelist.view<DeviceType>();
     }
   } while (h_fail_flag());
@@ -744,7 +744,7 @@ void NeighBondKokkos<DeviceType>::dihedral_all()
     k_fail_flag.template sync<LMPHostType>();
     if (h_fail_flag()) {
       maxdihedral = neighbor->ndihedrallist + BONDDELTA;
-      memory->grow_kokkos(k_dihedrallist,neighbor->dihedrallist,maxdihedral,5,"neighbor:neighbor->dihedrallist");
+      memoryKK->grow_kokkos(k_dihedrallist,neighbor->dihedrallist,maxdihedral,5,"neighbor:neighbor->dihedrallist");
       v_dihedrallist = k_dihedrallist.view<DeviceType>();
     }
   } while (h_fail_flag());
@@ -851,7 +851,7 @@ void NeighBondKokkos<DeviceType>::dihedral_partial()
     k_fail_flag.template sync<LMPHostType>();
     if (h_fail_flag()) {
       maxdihedral = neighbor->ndihedrallist + BONDDELTA;
-      memory->grow_kokkos(k_dihedrallist,neighbor->dihedrallist,maxdihedral,5,"neighbor:neighbor->dihedrallist");
+      memoryKK->grow_kokkos(k_dihedrallist,neighbor->dihedrallist,maxdihedral,5,"neighbor:neighbor->dihedrallist");
       v_dihedrallist = k_dihedrallist.view<DeviceType>();
     }
   } while (h_fail_flag());
@@ -1015,7 +1015,7 @@ void NeighBondKokkos<DeviceType>::improper_all()
     k_fail_flag.template sync<LMPHostType>();
     if (h_fail_flag()) {
       maximproper = neighbor->nimproperlist + BONDDELTA;
-      memory->grow_kokkos(k_improperlist,neighbor->improperlist,maximproper,5,"neighbor:neighbor->improperlist");
+      memoryKK->grow_kokkos(k_improperlist,neighbor->improperlist,maximproper,5,"neighbor:neighbor->improperlist");
       v_improperlist = k_improperlist.view<DeviceType>();
     }
   } while (h_fail_flag());
@@ -1122,7 +1122,7 @@ void NeighBondKokkos<DeviceType>::improper_partial()
     k_fail_flag.template sync<LMPHostType>();
     if (h_fail_flag()) {
       maximproper = neighbor->nimproperlist + BONDDELTA;
-      memory->grow_kokkos(k_improperlist,neighbor->improperlist,maximproper,5,"neighbor:neighbor->improperlist");
+      memoryKK->grow_kokkos(k_improperlist,neighbor->improperlist,maximproper,5,"neighbor:neighbor->improperlist");
       v_improperlist = k_improperlist.view<DeviceType>();
     }
   } while (h_fail_flag());

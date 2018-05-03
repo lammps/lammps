@@ -65,6 +65,10 @@ E: Compute group/group group ID does not exist
 
 Self-explanatory.
 
+E: Compute group/group molecule requires molecule IDs
+
+UNDOCUMENTED
+
 E: No pair style defined for compute group/group
 
 Cannot calculate group interactions without a pair style defined.

@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -45,7 +45,11 @@
 #include <typeinfo>
 #include <ROCm/Kokkos_ROCm_Reduce.hpp>
 #include <ROCm/Kokkos_ROCm_Scan.hpp>
+#include <ROCm/Kokkos_ROCm_Exec.hpp>
 #include <ROCm/Kokkos_ROCm_Vectorization.hpp>
+#include <ROCm/KokkosExp_ROCm_IterateTile_Refactor.hpp>
+
+#include <KokkosExp_MDRangePolicy.hpp>
 
 
 namespace Kokkos {
@@ -161,6 +165,33 @@ public:
     return p;
   };
 
+protected:
+  /** \brief set chunk_size to a discrete value*/
+  inline TeamPolicyInternal internal_set_chunk_size(typename traits::index_type chunk_size_) {
+    m_chunk_size = chunk_size_;
+    return *this;
+  }
+
+  /** \brief set per team scratch size for a specific level of the scratch hierarchy */
+  inline TeamPolicyInternal internal_set_scratch_size(const int& level, const PerTeamValue& per_team) {
+    m_team_scratch_size[level] = per_team.value;
+    return *this;
+  };
+
+  /** \brief set per thread scratch size for a specific level of the scratch hierarchy */
+  inline TeamPolicyInternal internal_set_scratch_size(const int& level, const PerThreadValue& per_thread) {
+    m_thread_scratch_size[level] = per_thread.value;
+    return *this;
+  };
+
+  /** \brief set per thread and per team scratch size for a specific level of the scratch hierarchy */
+  inline TeamPolicyInternal internal_set_scratch_size(const int& level, const PerTeamValue& per_team, const PerThreadValue& per_thread) {
+    m_team_scratch_size[level] = per_team.value;
+    m_thread_scratch_size[level] = per_thread.value;
+    return *this;
+  };
+
+public:
 // TODO:  evaluate proper team_size_max requirements
   template< class Functor_Type>
   KOKKOS_INLINE_FUNCTION static
@@ -277,7 +308,7 @@ public:
       this->team_barrier();
       value = local_value;
     }
-// Reduce accross a team of threads.
+// Reduce across a team of threads.
 //
 // Each thread has vector_length elements.
 // This reduction is for TeamThreadRange operations, where the range
@@ -354,6 +385,80 @@ public:
       return buffer[0];
     }
 
+// Reduce across a team of threads, with a reducer data type
+//
+// Each thread has vector_length elements.
+// This reduction is for TeamThreadRange operations, where the range
+// is spread across threads.  Effectively, there are vector_length
+// independent reduction operations.
+// This is different from a reduction across the elements of a thread,
+// which reduces every vector element.
+
+    template< class ReducerType >
+    KOKKOS_INLINE_FUNCTION
+    typename std::enable_if< is_reducer< ReducerType >::value >::type
+    team_reduce( const ReducerType & reducer) const
+    {
+      typedef typename ReducerType::value_type value_type ;
+
+      tile_static value_type buffer[512];
+      const auto local = lindex();
+      const auto team  = team_rank();
+      auto vector_rank = local%m_vector_length;
+      auto thread_base = team*m_vector_length;
+
+      const std::size_t size = next_pow_2(m_team_size+1)/2;
+#if defined(ROCM15)
+      buffer[local] = reducer.reference();
+#else
+        // ROCM 1.5 handles address spaces better, previous version didn't
+      lds_for(buffer[local], [&](ValueType& x)
+      {
+          x = value;
+      });
+#endif
+      m_idx.barrier.wait();
+
+      for(std::size_t s = 1; s < size; s *= 2)
+      {
+          const std::size_t index = 2 * s * team;
+          if (index < size)
+          {
+#if defined(ROCM15)
+                reducer.join(buffer[vector_rank+index*m_vector_length],
+                        buffer[vector_rank+(index+s)*m_vector_length]);
+#else
+              lds_for(buffer[vector_rank+index*m_vector_length], [&](ValueType& x)
+              {
+                  lds_for(buffer[vector_rank+(index+s)*m_vector_length],
+                                [&](ValueType& y)
+                  {
+                      reducer.join(x, y);
+                  });
+              });
+#endif
+          }
+          m_idx.barrier.wait();
+      }
+
+      if (local == 0)
+      {
+          for(int i=size*m_vector_length; i<m_team_size*m_vector_length; i+=m_vector_length)
+#if defined(ROCM15)
+              reducer.join(buffer[vector_rank], buffer[vector_rank+i]);
+#else
+              lds_for(buffer[vector_rank], [&](ValueType& x)
+              {
+                  lds_for(buffer[vector_rank+i],
+                                [&](ValueType& y)
+                  {
+                      reducer.join(x, y);
+                  });
+              });
+#endif
+      }
+      m_idx.barrier.wait();
+    }
 
     /** \brief  Intra-team vector reduce 
      *          with intra-team non-deterministic ordering accumulation.
@@ -405,6 +510,33 @@ public:
       m_idx.barrier.wait();
       return buffer[thread_base];
     }
+
+  template< typename ReducerType >
+  KOKKOS_INLINE_FUNCTION static
+  typename std::enable_if< is_reducer< ReducerType >::value >::type
+  vector_reduce( ReducerType const & reducer )
+    {
+      #ifdef __HCC_ACCELERATOR__
+      if(blockDim_x == 1) return;
+
+      // Intra vector lane shuffle reduction:
+      typename ReducerType::value_type tmp ( reducer.reference() );
+
+      for ( int i = blockDim_x ; ( i >>= 1 ) ; ) {
+        shfl_down( reducer.reference() , i , blockDim_x );
+        if ( (int)threadIdx_x < i ) { reducer.join( tmp , reducer.reference() ); }
+      }
+
+      // Broadcast from root lane to all other lanes.
+      // Cannot use "butterfly" algorithm to avoid the broadcast
+      // because floating point summation is not associative
+      // and thus different threads could have different results.
+
+      shfl( reducer.reference() , 0 , blockDim_x );
+      #endif
+    }
+
+
 
     /** \brief  Intra-team exclusive prefix sum with team_rank() ordering
      *          with intra-team non-deterministic ordering accumulation.
@@ -549,6 +681,102 @@ auto foo = [=](size_t i){rocm_invoke<typename Policy::work_tag>(f, i);};
   KOKKOS_INLINE_FUNCTION
   void execute() const {}
 
+};
+
+// MDRangePolicy impl
+template< class FunctorType , class ... Traits >
+class ParallelFor< FunctorType
+                 , Kokkos::MDRangePolicy< Traits ... >
+                 , Kokkos::Experimental::ROCm
+                 >
+{
+private:
+  typedef Kokkos::MDRangePolicy< Traits ...  > Policy ;
+  using RP = Policy;
+  typedef typename Policy::array_index_type array_index_type;
+  typedef typename Policy::index_type index_type;
+  typedef typename Policy::launch_bounds LaunchBounds;
+
+
+  const FunctorType m_functor ;
+  const Policy      m_rp ;
+
+public:
+
+  KOKKOS_INLINE_FUNCTION 
+  void operator()(void) const
+    {
+       Kokkos::Impl::Refactor::DeviceIterateTile<Policy::rank,Policy,FunctorType,typename Policy::work_tag>(m_rp,m_functor).exec_range();
+    }
+
+
+  inline
+  void execute() const
+  {
+    const array_index_type maxblocks = static_cast<array_index_type>(Kokkos::Impl::ROCmTraits::UpperBoundExtentCount);
+    if ( RP::rank == 2 )
+    {
+      const dim3 block( m_rp.m_tile[0] , m_rp.m_tile[1] , 1);
+      const dim3 grid(
+            std::min( ( m_rp.m_upper[0] - m_rp.m_lower[0] + block.x - 1 ) / block.x , maxblocks )
+          , std::min( ( m_rp.m_upper[1] - m_rp.m_lower[1] + block.y - 1 ) / block.y , maxblocks )
+          , 1 );
+      ROCmParallelLaunch< ParallelFor, LaunchBounds >( *this, grid, block, 0);
+    }
+    else if ( RP::rank == 3 )
+    {
+      const dim3 block( m_rp.m_tile[0] , m_rp.m_tile[1] , m_rp.m_tile[2] );
+      const dim3 grid(
+          std::min( ( m_rp.m_upper[0] - m_rp.m_lower[0] + block.x - 1 ) / block.x , maxblocks )
+        , std::min( ( m_rp.m_upper[1] - m_rp.m_lower[1] + block.y - 1 ) / block.y , maxblocks )
+        , std::min( ( m_rp.m_upper[2] - m_rp.m_lower[2] + block.z - 1 ) / block.z , maxblocks ));
+      ROCmParallelLaunch< ParallelFor, LaunchBounds >( *this, grid, block, 0);
+    }
+    else if ( RP::rank == 4 )
+    {
+      // id0,id1 encoded within threadIdx.x; id2 to threadIdx.y; id3 to threadIdx.z
+      const dim3 block( m_rp.m_tile[0]*m_rp.m_tile[1] , m_rp.m_tile[2] , m_rp.m_tile[3] );
+      const dim3 grid(
+          std::min(  m_rp.m_tile_end[0] * m_rp.m_tile_end[1] , maxblocks )
+        , std::min( ( m_rp.m_upper[2] - m_rp.m_lower[2] + block.y - 1 ) / block.y , maxblocks )
+        , std::min( ( m_rp.m_upper[3] - m_rp.m_lower[3] + block.z - 1 ) / block.z , maxblocks ));
+      ROCmParallelLaunch< ParallelFor, LaunchBounds >( *this, grid, block, 0);
+    }
+    else if ( RP::rank == 5 )
+    {
+      // id0,id1 encoded within threadIdx.x; id2,id3 to threadIdx.y; id4 to threadIdx.z
+      const dim3 block( m_rp.m_tile[0]*m_rp.m_tile[1] , m_rp.m_tile[2]*m_rp.m_tile[3] , m_rp.m_tile[4] );
+      const dim3 grid(
+          std::min( m_rp.m_tile_end[0] * m_rp.m_tile_end[1] , maxblocks )
+        , std::min( m_rp.m_tile_end[2] * m_rp.m_tile_end[3] , maxblocks )
+        , std::min( ( m_rp.m_upper[4] - m_rp.m_lower[4] + block.z - 1 ) / block.z , maxblocks ));
+      ROCmParallelLaunch< ParallelFor, LaunchBounds >( *this, grid, block, 0);
+    }
+    else if ( RP::rank == 6 )
+    {
+      // id0,id1 encoded within threadIdx.x; id2,id3 to threadIdx.y; id4,id5 to threadIdx.z
+      const dim3 block( m_rp.m_tile[0]*m_rp.m_tile[1] , m_rp.m_tile[2]*m_rp.m_tile[3] , m_rp.m_tile[4]*m_rp.m_tile[5] );
+      const dim3 grid(
+          std::min( m_rp.m_tile_end[0] * m_rp.m_tile_end[1] , maxblocks )
+        ,  std::min( m_rp.m_tile_end[2] * m_rp.m_tile_end[3] , maxblocks )
+        , std::min( m_rp.m_tile_end[4] * m_rp.m_tile_end[5] , maxblocks ));
+      ROCmParallelLaunch< ParallelFor, LaunchBounds >( *this, grid, block, 0);
+    }
+    else
+    {
+      printf("Kokkos::MDRange Error: Exceeded rank bounds with ROCm\n");
+      Kokkos::abort("Aborting");
+    }
+
+  } //end execute
+
+//  inline
+  ParallelFor( const FunctorType & arg_functor
+             , Policy arg_policy )
+    : m_functor( arg_functor )
+    , m_rp(  arg_policy )
+    {
+}
 };
 
 //----------------------------------------------------------------------------
@@ -1075,6 +1303,22 @@ void parallel_reduce(const Impl::TeamThreadRangeBoundariesStruct<iType,Impl::ROC
 //               Impl::JoinAdd<ValueType>());
 }
 
+/** \brief  Inter-thread thread range parallel_reduce. Executes lambda(iType i, ValueType & val) for each i=0..N-1.
+ *
+ * The range i=0..N-1 is mapped to all threads of the the calling thread team and a summation of
+ * val is performed and put into result. This functionality requires C++11 support.*/
+template< typename iType, class Lambda, typename ReducerType >
+KOKKOS_INLINE_FUNCTION
+void parallel_reduce(const Impl::TeamThreadRangeBoundariesStruct<iType,Impl::ROCmTeamMember>& loop_boundaries,
+                     const Lambda & lambda, ReducerType const & reducer) {
+  reducer.init( reducer.reference() );
+
+  for( iType i = loop_boundaries.start; i < loop_boundaries.end; i+=loop_boundaries.increment) {
+    lambda(i,reducer.reference());
+  }
+  loop_boundaries.thread.team_reduce(reducer);
+}
+
 /** \brief  Intra-thread thread range parallel_reduce. Executes lambda(iType i, ValueType & val) for each i=0..N-1.
  *
  * The range i=0..N-1 is mapped to all vector lanes of the the calling thread and a reduction of
@@ -1159,6 +1403,41 @@ void parallel_reduce(const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::R
     loop_boundaries.thread.team_barrier();
   }
   result = loop_boundaries.thread.thread_reduce(result,join);
+}
+
+
+/** \brief  Intra-thread vector parallel_reduce. Executes lambda(iType i, ValueType & val) for each i=0..N-1.
+ *
+ * The range i=0..N-1 is mapped to all vector lanes of the the calling thread and a summation of
+ * val is performed and put into result. This functionality requires C++11 support.*/
+template< typename iType, class Lambda, typename ReducerType >
+KOKKOS_INLINE_FUNCTION
+void parallel_reduce(const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::ROCmTeamMember >&
+      loop_boundaries, const Lambda & lambda, ReducerType const & reducer) {
+  reducer.init( reducer.reference() );
+
+  for( iType i = loop_boundaries.start; i < loop_boundaries.end; i+=loop_boundaries.increment) {
+    lambda(i,reducer.reference());
+  }
+  loop_boundaries.thread.vector_reduce(reducer);
+}
+/** \brief  Intra-thread vector parallel_reduce. Executes lambda(iType i, ValueType & val) for each i=0..N-1.
+ *
+ * The range i=0..N-1 is mapped to all vector lanes of the the calling thread and a reduction of
+ * val is performed using JoinType(ValueType& val, const ValueType& update) and put into init_result.
+ * The input value of init_result is used as initializer for temporary variables of ValueType. Therefore
+ * the input value should be the neutral element with respect to the join operation (e.g. '0 for +-' or
+ * '1 for *'). This functionality requires C++11 support.*/
+template< typename iType, class Lambda, typename ReducerType, class JoinType >
+KOKKOS_INLINE_FUNCTION
+void parallel_reduce(const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::ROCmTeamMember >&
+      loop_boundaries, const Lambda & lambda, const JoinType& join, ReducerType const & reducer) {
+
+  for( iType i = loop_boundaries.start; i < loop_boundaries.end; i+=loop_boundaries.increment) {
+    lambda(i,reducer.reference());  
+    loop_boundaries.thread.team_barrier();
+  }
+  reducer.reference() = loop_boundaries.thread.thread_reduce(reducer.reference(),join);
 }
 
 /** \brief  Intra-thread vector parallel exclusive prefix sum. Executes lambda(iType i, ValueType & val, bool final)

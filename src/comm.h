@@ -145,11 +145,6 @@ class Comm : protected Pointers {
 
 /* ERROR/WARNING messages:
 
-W: OMP_NUM_THREADS environment is not set.
-
-This environment variable must be set appropriately to use the
-USER-OMP package.
-
 E: Illegal ... command
 
 Self-explanatory.  Check the input script syntax and compare to the
@@ -219,5 +214,14 @@ match the number of processors LAMMPS is being run on.
 E: Processor count in z must be 1 for 2d simulation
 
 Self-explanatory.
+
+E: Cannot put data on ring from NULL pointer
+
+UNDOCUMENTED
+
+U: OMP_NUM_THREADS environment is not set.
+
+This environment variable must be set appropriately to use the
+USER-OMP package.
 
 */

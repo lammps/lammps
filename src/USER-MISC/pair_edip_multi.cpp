@@ -17,11 +17,11 @@
    Contributing author: Chao Jiang
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <float.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cfloat>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_edip_multi.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -168,12 +168,12 @@ void PairEDIPMulti::compute(int eflag, int vflag)
 
         r_ij = sqrt(r_ij);
 
-	// zeta and its derivative dZ/dr
+        // zeta and its derivative dZ/dr
 
         if (r_ij < params[ijparam].cutoffC) zeta_i += 1.0;
         else {
-	    double f, fdr;
-	    edip_fc(r_ij, &params[ijparam], f, fdr);
+            double f, fdr;
+            edip_fc(r_ij, &params[ijparam], f, fdr);
             zeta_i += f;
             dzetair = -fdr / r_ij;
 
@@ -248,24 +248,24 @@ void PairEDIPMulti::compute(int eflag, int vflag)
 
           r_ik = sqrt(r_ik);
 
-	  costheta=vec3_dot(dr_ij, dr_ik) / r_ij / r_ik;
+          costheta=vec3_dot(dr_ij, dr_ik) / r_ij / r_ik;
 
-	  double v1, v2, v3, v4, v5, v6, v7;
+          double v1, v2, v3, v4, v5, v6, v7;
 
-	  edip_fcut3(r_ij, &params[ijparam], v1, v2);
-	  edip_fcut3(r_ik, &params[ikparam], v3, v4);
-	  edip_h(costheta, zeta_i, &params[ijkparam], v5, v6, v7);
+          edip_fcut3(r_ij, &params[ijparam], v1, v2);
+          edip_fcut3(r_ik, &params[ikparam], v3, v4);
+          edip_h(costheta, zeta_i, &params[ijkparam], v5, v6, v7);
 
-	  // potential energy and forces
-	  evdwl = v1 * v3 * v5;
-	  dtripleZ += v1 * v3 * v7;
+          // potential energy and forces
+          evdwl = v1 * v3 * v5;
+          dtripleZ += v1 * v3 * v7;
 
-	  double dri[3], drj[3], drk[3];
+          double dri[3], drj[3], drk[3];
           double dhl, dfr;
 
           dhl = v1 * v3 * v6;
 
-	  costheta_d(dr_ij, r_ij, dr_ik, r_ik, dri, drj, drk);
+          costheta_d(dr_ij, r_ij, dr_ik, r_ik, dri, drj, drk);
 
           f_ij[0] = -dhl * drj[0];
           f_ij[1] = -dhl * drj[1];
@@ -315,7 +315,7 @@ void PairEDIPMulti::compute(int eflag, int vflag)
         delz = preForceCoord[preForceCoord_counter+3];
         j = static_cast<int> (preForceCoord[preForceCoord_counter+4]);
 
-	dzetair *= (dpairZ + dtripleZ);
+        dzetair *= (dpairZ + dtripleZ);
 
         f[j][0] += dzetair * delx;
         f[j][1] += dzetair * dely;
@@ -364,7 +364,7 @@ void PairEDIPMulti::edip_fc(double r, Param *param, double &f, double &fdr)
   double c = param->cutoffC;
   double alpha = param->alpha;
   double x;
-  double v1, v2, v3;
+  double v1, v2;
 
   if(r < c + 1E-6)
   {
@@ -586,8 +586,8 @@ void PairEDIPMulti::coeff(int narg, char **arg)
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       if (map[i] >= 0 && map[j] >= 0) {
-	setflag[i][j] = 1;
-	count++;
+        setflag[i][j] = 1;
+        count++;
       }
 
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
@@ -661,8 +661,8 @@ void PairEDIPMulti::read_file(char *file)
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
       if (ptr == NULL) {
-	eof = 1;
-	fclose(fp);
+        eof = 1;
+        fclose(fp);
       } else n = strlen(line) + 1;
     }
     MPI_Bcast(&eof,1,MPI_INT,0,world);
@@ -683,8 +683,8 @@ void PairEDIPMulti::read_file(char *file)
       if (comm->me == 0) {
         ptr = fgets(&line[n],MAXLINE-n,fp);
         if (ptr == NULL) {
-	  eof = 1;
-	  fclose(fp);
+          eof = 1;
+          fclose(fp);
         } else n = strlen(line) + 1;
       }
       MPI_Bcast(&eof,1,MPI_INT,0,world);
@@ -723,7 +723,7 @@ void PairEDIPMulti::read_file(char *file)
     if (nparams == maxparam) {
       maxparam += DELTA;
       params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
-					  "pair:params");
+                                          "pair:params");
     }
 
     params[nparams].ielement = ielement;
@@ -748,11 +748,11 @@ void PairEDIPMulti::read_file(char *file)
     params[nparams].u4 = atof(words[19]);
 
     if (params[nparams].A < 0.0 || params[nparams].B < 0.0 ||
-	params[nparams].cutoffA < 0.0 || params[nparams].cutoffC < 0.0 ||
-	params[nparams].alpha < 0.0 || params[nparams].beta < 0.0 ||
-	params[nparams].eta < 0.0 || params[nparams].gamma < 0.0 ||
-	params[nparams].lambda < 0.0 || params[nparams].mu < 0.0 ||
-	params[nparams].rho < 0.0 || params[nparams].sigma < 0.0)
+        params[nparams].cutoffA < 0.0 || params[nparams].cutoffC < 0.0 ||
+        params[nparams].alpha < 0.0 || params[nparams].beta < 0.0 ||
+        params[nparams].eta < 0.0 || params[nparams].gamma < 0.0 ||
+        params[nparams].lambda < 0.0 || params[nparams].mu < 0.0 ||
+        params[nparams].rho < 0.0 || params[nparams].sigma < 0.0)
       error->all(FLERR,"Illegal EDIP parameter");
 
     nparams++;
@@ -778,16 +778,16 @@ void PairEDIPMulti::setup()
   for (i = 0; i < nelements; i++)
     for (j = 0; j < nelements; j++)
       for (k = 0; k < nelements; k++) {
-	n = -1;
-	for (m = 0; m < nparams; m++) {
-	  if (i == params[m].ielement && j == params[m].jelement &&
-	      k == params[m].kelement) {
-	    if (n >= 0) error->all(FLERR,"Potential file has duplicate entry");
-	    n = m;
-	  }
-	}
-	if (n < 0) error->all(FLERR,"Potential file is missing an entry");
-	elem2param[i][j][k] = n;
+        n = -1;
+        for (m = 0; m < nparams; m++) {
+          if (i == params[m].ielement && j == params[m].jelement &&
+              k == params[m].kelement) {
+            if (n >= 0) error->all(FLERR,"Potential file has duplicate entry");
+            n = m;
+          }
+        }
+        if (n < 0) error->all(FLERR,"Potential file is missing an entry");
+        elem2param[i][j][k] = n;
       }
 
   // set cutoff square

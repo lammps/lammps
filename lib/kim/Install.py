@@ -21,7 +21,7 @@ Syntax from lib dir: python Install.py -b -v version  -a kim-name
 specify one or more options, order does not matter
 
   -v = version of KIM API library to use
-       default = kim-api-v1.9.2 (current as of Oct 2017)
+       default = kim-api-v1.9.4 (current as of Apr 2018)
   -b = download and build base KIM API library with example Models
        this will delete any previous installation in the current folder
   -n = do NOT download and build base KIM API library.
@@ -109,7 +109,7 @@ nargs = len(args)
 if nargs == 0: error()
 
 thisdir = os.environ['PWD']
-version = "kim-api-v1.9.2"
+version = "kim-api-v1.9.4"
 
 buildflag = False
 everythingflag = False
@@ -166,9 +166,6 @@ if pathflag:
     mkfile.write("print_dir:\n")
     mkfile.write("	@printf $(KIM_INSTALL_DIR)\n")
 
-  with open("%s/Makefile.KIM_Config" % thisdir, 'w') as cfgfile:
-    cfgfile.write("include %s/lib/kim-api/Makefile.KIM_Config" % kimdir)
-
   print("Created %s/Makefile.KIM_DIR\n  using %s" % (thisdir,kimdir))
 else:
   kimdir = os.path.join(os.path.abspath(thisdir), "installed-" + version)
@@ -190,9 +187,6 @@ if buildflag:
     mkfile.write(".DUMMY: print_dir\n\n")
     mkfile.write("print_dir:\n")
     mkfile.write("	@printf $(KIM_INSTALL_DIR)\n")
-
-  with open("%s/Makefile.KIM_Config" % thisdir, 'w') as cfgfile:
-    cfgfile.write("include %s/lib/kim-api/Makefile.KIM_Config" % kimdir)
 
   print("Created %s/Makefile.KIM_DIR\n  using %s" % (thisdir,kimdir))
 
@@ -247,11 +241,16 @@ if buildflag:
 # add single OpenKIM model
 if addflag:
 
+  makefile_path = os.path.join(thisdir, "Makefile.KIM_DIR")
+  if os.path.isfile(makefile_path):
+    cmd = 'make --no-print-directory -f %s print_dir' % makefile_path
+    kimdir = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+
   if not os.path.isdir(kimdir):
     print("\nkim-api is not installed")
     error()
 
   # download single model
-  cmd = '%s/bin/kim-api-v1-collections-management install system %s' % (kimdir, addmodelname)
+  cmd = '%s/bin/kim-api-v1-collections-management install system %s' % (kimdir.decode("UTF-8"), addmodelname)
   txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   if verboseflag: print (txt.decode("UTF-8"))

@@ -148,7 +148,7 @@ void colvar::distance_vec::apply_force(colvarvalue const &force)
 cvm::real colvar::distance_vec::dist2(colvarvalue const &x1,
                                       colvarvalue const &x2) const
 {
-  return cvm::position_dist2(x1.rvector_value, x2.rvector_value);
+  return (cvm::position_distance(x1.rvector_value, x2.rvector_value)).norm2();
 }
 
 
@@ -192,7 +192,7 @@ colvar::distance_z::distance_z(std::string const &conf)
   // this group is optional
   ref2 = parse_group(conf, "ref2", true);
 
-  if (ref2 && ref2->size()) {
+  if ( ref2 ) {
     cvm::log("Using axis joining the centers of mass of groups \"ref\" and \"ref2\"");
     fixed_axis = false;
     if (key_lookup(conf, "axis"))
@@ -306,7 +306,7 @@ void colvar::distance_z::apply_force(colvarvalue const &force)
   if (!ref1->noforce)
     ref1->apply_colvar_force(force.real_value);
 
-  if (ref2 && ref2->size() && !ref2->noforce)
+  if (ref2 && !ref2->noforce)
     ref2->apply_colvar_force(force.real_value);
 
   if (!main->noforce)
@@ -464,7 +464,7 @@ void colvar::distance_xy::apply_force(colvarvalue const &force)
   if (!ref1->noforce)
     ref1->apply_colvar_force(force.real_value);
 
-  if (ref2 && ref2->size() && !ref2->noforce)
+  if (ref2 && !ref2->noforce)
     ref2->apply_colvar_force(force.real_value);
 
   if (!main->noforce)
@@ -581,6 +581,12 @@ colvar::distance_inv::distance_inv(std::string const &conf)
     }
   }
 
+  if (is_enabled(f_cvc_debug_gradient)) {
+    cvm::log("Warning: debugGradients will not give correct results "
+             "for distanceInv, because its value and gradients are computed "
+             "simultaneously.\n");
+  }
+
   x.type(colvarvalue::type_scalar);
 }
 
@@ -601,11 +607,9 @@ void colvar::distance_inv::calc_value()
       for (cvm::atom_iter ai2 = group2->begin(); ai2 != group2->end(); ai2++) {
         cvm::rvector const dv = ai2->pos - ai1->pos;
         cvm::real const d2 = dv.norm2();
-        cvm::real dinv = 1.0;
-        for (int ne = 0; ne < exponent/2; ne++)
-          dinv *= 1.0/d2;
+        cvm::real const dinv = cvm::integer_power(d2, -1*(exponent/2));
         x.real_value += dinv;
-        cvm::rvector const dsumddv = -(cvm::real(exponent)) * dinv/d2 * dv;
+        cvm::rvector const dsumddv = -1.0*(exponent/2) * dinv/d2 * 2.0 * dv;
         ai1->grad += -1.0 * dsumddv;
         ai2->grad +=        dsumddv;
       }
@@ -615,11 +619,9 @@ void colvar::distance_inv::calc_value()
       for (cvm::atom_iter ai2 = group2->begin(); ai2 != group2->end(); ai2++) {
         cvm::rvector const dv = cvm::position_distance(ai1->pos, ai2->pos);
         cvm::real const d2 = dv.norm2();
-        cvm::real dinv = 1.0;
-        for (int ne = 0; ne < exponent/2; ne++)
-          dinv *= 1.0/d2;
+        cvm::real const dinv = cvm::integer_power(d2, -1*(exponent/2));
         x.real_value += dinv;
-        cvm::rvector const dsumddv = -(cvm::real(exponent)) * dinv/d2 * dv;
+        cvm::rvector const dsumddv = -1.0*(exponent/2) * dinv/d2 * 2.0 * dv;
         ai1->grad += -1.0 * dsumddv;
         ai2->grad +=        dsumddv;
       }
@@ -627,19 +629,22 @@ void colvar::distance_inv::calc_value()
   }
 
   x.real_value *= 1.0 / cvm::real(group1->size() * group2->size());
-  x.real_value = std::pow(x.real_value, -1.0/(cvm::real(exponent)));
-}
+  x.real_value = std::pow(x.real_value, -1.0/cvm::real(exponent));
 
-
-void colvar::distance_inv::calc_gradients()
-{
-  cvm::real const dxdsum = (-1.0/(cvm::real(exponent))) * std::pow(x.real_value, exponent+1) / cvm::real(group1->size() * group2->size());
+  cvm::real const dxdsum = (-1.0/(cvm::real(exponent))) *
+    cvm::integer_power(x.real_value, exponent+1) /
+    cvm::real(group1->size() * group2->size());
   for (cvm::atom_iter ai1 = group1->begin(); ai1 != group1->end(); ai1++) {
     ai1->grad *= dxdsum;
   }
   for (cvm::atom_iter ai2 = group2->begin(); ai2 != group2->end(); ai2++) {
     ai2->grad *= dxdsum;
   }
+}
+
+
+void colvar::distance_inv::calc_gradients()
+{
 }
 
 
@@ -974,14 +979,12 @@ colvar::rmsd::rmsd(std::string const &conf)
                      "if provided, must be non-zero.\n");
           return;
         }
-      } else {
-        // if not, rely on existing atom indices for the group
-        atoms->create_sorted_ids();
-        ref_pos.resize(atoms->size());
       }
 
-      cvm::load_coords(ref_pos_file.c_str(), ref_pos, atoms->sorted_ids,
-                        ref_pos_col, ref_pos_col_value);
+      ref_pos.resize(atoms->size());
+
+      cvm::load_coords(ref_pos_file.c_str(), &ref_pos, atoms,
+                       ref_pos_col, ref_pos_col_value);
     }
   }
 
@@ -1167,13 +1170,11 @@ colvar::eigenvector::eigenvector(std::string const &conf)
                             "if provided, must be non-zero.\n");
           return;
         }
-      } else {
-        // if not, use atom indices
-        atoms->create_sorted_ids();
       }
 
       ref_pos.resize(atoms->size());
-      cvm::load_coords(file_name.c_str(), ref_pos, atoms->sorted_ids, file_col, file_col_value);
+      cvm::load_coords(file_name.c_str(), &ref_pos, atoms,
+                       file_col, file_col_value);
     }
   }
 
@@ -1244,13 +1245,11 @@ colvar::eigenvector::eigenvector(std::string const &conf)
           cvm::error("Error: vectorColValue, if provided, must be non-zero.\n");
           return;
         }
-      } else {
-        // if not, use atom indices
-        atoms->create_sorted_ids();
       }
 
       eigenvec.resize(atoms->size());
-      cvm::load_coords(file_name.c_str(), eigenvec, atoms->sorted_ids, file_col, file_col_value);
+      cvm::load_coords(file_name.c_str(), &eigenvec, atoms,
+                       file_col, file_col_value);
     }
   }
 

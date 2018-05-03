@@ -16,10 +16,10 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstring>
+#include <cstdio>
+#include <cstdlib>
+#include <cmath>
 #include "ewald_disp.h"
 #include "math_vector.h"
 #include "math_const.h"
@@ -193,6 +193,10 @@ void EwaldDisp::init()
 
   if (!gewaldflag) {
     if (function[0]) {
+      if (accuracy <= 0.0)
+        error->all(FLERR,"KSpace accuracy must be > 0");
+      if (q2 == 0.0)
+        error->all(FLERR,"Must use 'kspace_modify gewald' for uncharged system");
       g_ewald = accuracy*sqrt(natoms*(*cutoff)*shape_det(domain->h)) / (2.0*q2);
       if (g_ewald >= 1.0) g_ewald = (1.35 - 0.15*log(accuracy))/(*cutoff);
       else g_ewald = sqrt(-log(g_ewald)) / (*cutoff);
@@ -298,6 +302,7 @@ double EwaldDisp::rms(int km, double prd, bigint natoms,
                       double q2, double b2, double M2)
 {
   double value = 0.0;
+  if (natoms == 0) natoms = 1; // avoid division by zero
 
   // Coulombic
 

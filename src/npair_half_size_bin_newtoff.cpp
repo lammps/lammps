@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
+#include <cstring>
 #include "npair_half_size_bin_newtoff.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -36,14 +36,13 @@ NPairHalfSizeBinNewtoff::NPairHalfSizeBinNewtoff(LAMMPS *lmp) : NPair(lmp) {}
 
 void NPairHalfSizeBinNewtoff::build(NeighList *list)
 {
-  int i,j,k,m,n,nn,ibin;
+  int i,j,k,n,ibin;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   double radi,radsum,cutsq;
   int *neighptr;
 
   double **x = atom->x;
   double *radius = atom->radius;
-  tagint *tag = atom->tag;
   int *type = atom->type;
   int *mask = atom->mask;
   tagint *molecule = atom->molecule;
@@ -80,14 +79,14 @@ void NPairHalfSizeBinNewtoff::build(NeighList *list)
       for (j = binhead[ibin+stencil[k]]; j >= 0; j = bins[j]) {
         if (j <= i) continue;
         if (exclude && exclusion(i,j,type[i],type[j],mask,molecule)) continue;
-        
+
         delx = xtmp - x[j][0];
         dely = ytmp - x[j][1];
         delz = ztmp - x[j][2];
         rsq = delx*delx + dely*dely + delz*delz;
         radsum = radi + radius[j];
         cutsq = (radsum+skin) * (radsum+skin);
-        
+
         if (rsq <= cutsq) {
           if (history && rsq < radsum*radsum)
             neighptr[n++] = j ^ mask_history;

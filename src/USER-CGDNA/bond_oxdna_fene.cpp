@@ -14,8 +14,8 @@
    Contributing author: Oliver Henrich (University of Strathclyde, Glasgow)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 #include "bond_oxdna_fene.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -60,9 +60,9 @@ void BondOxdnaFene::compute_interaction_sites(double e1[3],
 {
   double d_cs=-0.4;
 
-  r[0] = d_cs*e1[0]; 
-  r[1] = d_cs*e1[1]; 
-  r[2] = d_cs*e1[2]; 
+  r[0] = d_cs*e1[0];
+  r[1] = d_cs*e1[1];
+  r[2] = d_cs*e1[2];
 
 }
 

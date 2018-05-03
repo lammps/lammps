@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -183,6 +183,7 @@ void * CudaUVMSpace::allocate( const size_t arg_alloc_size ) const
 
   enum { max_uvm_allocations = 65536 };
 
+  Cuda::fence();
   if ( arg_alloc_size > 0 )
   {
     Kokkos::Impl::num_uvm_allocations++;
@@ -193,6 +194,7 @@ void * CudaUVMSpace::allocate( const size_t arg_alloc_size ) const
 
     CUDA_SAFE_CALL( cudaMallocManaged( &ptr, arg_alloc_size , cudaMemAttachGlobal ) );
   }
+  Cuda::fence();
 
   return ptr ;
 }
@@ -215,12 +217,14 @@ void CudaSpace::deallocate( void * const arg_alloc_ptr , const size_t /* arg_all
 
 void CudaUVMSpace::deallocate( void * const arg_alloc_ptr , const size_t /* arg_alloc_size */ ) const
 {
+  Cuda::fence();
   try {
     if ( arg_alloc_ptr != nullptr ) {
       Kokkos::Impl::num_uvm_allocations--;
       CUDA_SAFE_CALL( cudaFree( arg_alloc_ptr ) );
     }
   } catch(...) {}
+  Cuda::fence();
 }
 
 void CudaHostPinnedSpace::deallocate( void * const arg_alloc_ptr , const size_t /* arg_alloc_size */ ) const
@@ -366,7 +370,7 @@ SharedAllocationRecord< Kokkos::CudaSpace , void >::
   if(Kokkos::Profiling::profileLibraryLoaded()) {
 
     SharedAllocationHeader header ;
-    Kokkos::Impl::DeepCopy<CudaSpace,HostSpace>::DeepCopy( & header , RecordBase::m_alloc_ptr , sizeof(SharedAllocationHeader) );
+    Kokkos::Impl::DeepCopy<CudaSpace,HostSpace>( & header , RecordBase::m_alloc_ptr , sizeof(SharedAllocationHeader) );
 
     Kokkos::Profiling::deallocateData(
       Kokkos::Profiling::SpaceHandle(Kokkos::CudaSpace::name()),header.m_label,
@@ -384,7 +388,7 @@ SharedAllocationRecord< Kokkos::CudaUVMSpace , void >::
 {
   #if defined(KOKKOS_ENABLE_PROFILING)
   if(Kokkos::Profiling::profileLibraryLoaded()) {
-    Kokkos::fence(); //Make sure I can access the label ...
+    Cuda::fence(); //Make sure I can access the label ...
     Kokkos::Profiling::deallocateData(
       Kokkos::Profiling::SpaceHandle(Kokkos::CudaUVMSpace::name()),RecordBase::m_alloc_ptr->m_label,
       data(),size());
@@ -446,7 +450,7 @@ SharedAllocationRecord( const Kokkos::CudaSpace & arg_space
           );
 
   // Copy to device memory
-  Kokkos::Impl::DeepCopy<CudaSpace,HostSpace>::DeepCopy( RecordBase::m_alloc_ptr , & header , sizeof(SharedAllocationHeader) );
+  Kokkos::Impl::DeepCopy<CudaSpace,HostSpace>( RecordBase::m_alloc_ptr , & header , sizeof(SharedAllocationHeader) );
 }
 
 SharedAllocationRecord< Kokkos::CudaUVMSpace , void >::
@@ -655,7 +659,7 @@ SharedAllocationRecord< Kokkos::CudaSpace , void >::get_record( void * alloc_ptr
   Header const * const head_cuda = alloc_ptr ? Header::get_header( alloc_ptr ) : (Header*) 0 ;
 
   if ( alloc_ptr ) {
-    Kokkos::Impl::DeepCopy<HostSpace,CudaSpace>::DeepCopy( & head , head_cuda , sizeof(SharedAllocationHeader) );
+    Kokkos::Impl::DeepCopy<HostSpace,CudaSpace>( & head , head_cuda , sizeof(SharedAllocationHeader) );
   }
 
   RecordCuda * const record = alloc_ptr ? static_cast< RecordCuda * >( head.m_record ) : (RecordCuda *) 0 ;
@@ -713,7 +717,7 @@ SharedAllocationRecord< Kokkos::CudaHostPinnedSpace , void >::get_record( void *
 // Iterate records to print orphaned memory ...
 void
 SharedAllocationRecord< Kokkos::CudaSpace , void >::
-print_records( std::ostream & s , const Kokkos::CudaSpace & space , bool detail )
+print_records( std::ostream & s , const Kokkos::CudaSpace & , bool detail )
 {
   SharedAllocationRecord< void , void > * r = & s_root_record ;
 
@@ -724,7 +728,7 @@ print_records( std::ostream & s , const Kokkos::CudaSpace & space , bool detail 
   if ( detail ) {
     do {
       if ( r->m_alloc_ptr ) {
-        Kokkos::Impl::DeepCopy<HostSpace,CudaSpace>::DeepCopy( & head , r->m_alloc_ptr , sizeof(SharedAllocationHeader) );
+        Kokkos::Impl::DeepCopy<HostSpace,CudaSpace>( & head , r->m_alloc_ptr , sizeof(SharedAllocationHeader) );
       }
       else {
         head.m_label[0] = 0 ;
@@ -751,7 +755,7 @@ print_records( std::ostream & s , const Kokkos::CudaSpace & space , bool detail 
               , reinterpret_cast<uintptr_t>( r->m_dealloc )
               , head.m_label
               );
-      std::cout << buffer ;
+      s << buffer ;
       r = r->m_next ;
     } while ( r != & s_root_record );
   }
@@ -759,7 +763,7 @@ print_records( std::ostream & s , const Kokkos::CudaSpace & space , bool detail 
     do {
       if ( r->m_alloc_ptr ) {
 
-        Kokkos::Impl::DeepCopy<HostSpace,CudaSpace>::DeepCopy( & head , r->m_alloc_ptr , sizeof(SharedAllocationHeader) );
+        Kokkos::Impl::DeepCopy<HostSpace,CudaSpace>( & head , r->m_alloc_ptr , sizeof(SharedAllocationHeader) );
 
         //Formatting dependent on sizeof(uintptr_t)
         const char * format_string;
@@ -781,7 +785,7 @@ print_records( std::ostream & s , const Kokkos::CudaSpace & space , bool detail 
       else {
         snprintf( buffer , 256 , "Cuda [ 0 + 0 ]\n" );
       }
-      std::cout << buffer ;
+      s << buffer ;
       r = r->m_next ;
     } while ( r != & s_root_record );
   }
@@ -789,14 +793,14 @@ print_records( std::ostream & s , const Kokkos::CudaSpace & space , bool detail 
 
 void
 SharedAllocationRecord< Kokkos::CudaUVMSpace , void >::
-print_records( std::ostream & s , const Kokkos::CudaUVMSpace & space , bool detail )
+print_records( std::ostream & s , const Kokkos::CudaUVMSpace & , bool detail )
 {
   SharedAllocationRecord< void , void >::print_host_accessible_records( s , "CudaUVM" , & s_root_record , detail );
 }
 
 void
 SharedAllocationRecord< Kokkos::CudaHostPinnedSpace , void >::
-print_records( std::ostream & s , const Kokkos::CudaHostPinnedSpace & space , bool detail )
+print_records( std::ostream & s , const Kokkos::CudaHostPinnedSpace & , bool detail )
 {
   SharedAllocationRecord< void , void >::print_host_accessible_records( s , "CudaHostPinned" , & s_root_record , detail );
 }

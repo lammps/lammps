@@ -24,7 +24,7 @@ BondStyle(fene/intel,BondFENEIntel)
 #ifndef LMP_BOND_FENE_INTEL_H
 #define LMP_BOND_FENE_INTEL_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "bond_fene.h"
 #include "fix_intel.h"
 

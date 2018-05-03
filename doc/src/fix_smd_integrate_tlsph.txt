@@ -14,14 +14,11 @@ fix ID group-ID smd/integrate_tlsph keyword values :pre
 
 ID, group-ID are documented in "fix"_fix.html command
 smd/integrate_tlsph = style name of this fix command
-zero or more keyword/value pairs may be appended :ul
-
-keyword = {limit_velocity}  :l
+zero or more keyword/value pairs may be appended
+keyword = {limit_velocity}  :ul
 
   {limit_velocity} value = max_vel
     max_vel = maximum allowed velocity :pre
-
-:ule
 
 [Examples:]
 

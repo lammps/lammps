@@ -15,9 +15,10 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_lj_cut_coul_long_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -32,7 +33,6 @@
 #include "universe.h"
 #include "update.h"
 #include "domain.h"
-#include <string.h>
 #include "kspace.h"
 #include "gpu_extra.h"
 
@@ -56,7 +56,7 @@ int ljcl_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                   double **host_cut_ljsq, double host_cut_coulsq,
                   double *host_special_coul, const double qqrd2e,
                   const double g_ewald);
-int ljcl_gpu_reinit(const int ntypes, double **cutsq, double **host_lj1,
+void ljcl_gpu_reinit(const int ntypes, double **cutsq, double **host_lj1,
                     double **host_lj2, double **host_lj3, double **host_lj4,
                     double **offset, double **host_lj_cutsq);
 void ljcl_gpu_clear();

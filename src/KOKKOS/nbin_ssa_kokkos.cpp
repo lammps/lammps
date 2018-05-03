@@ -26,7 +26,7 @@
 #include "error.h"
 #include "atom_masks.h"
 
-// #include "memory.h"
+// #include "memory_kokkos.h"
 
 using namespace LAMMPS_NS;
 
@@ -72,7 +72,7 @@ NBinSSAKokkos<DeviceType>::NBinSSAKokkos(LAMMPS *lmp) : NBinStandard(lmp)
 template<class DeviceType>
 void NBinSSAKokkos<DeviceType>::bin_atoms_setup(int nall)
 {
-  if (mbins > (int) k_bins.h_view.dimension_0()) {
+  if (mbins > (int) k_bins.h_view.extent(0)) {
     k_bins = DAT::tdual_int_2d("NBinSSAKokkos::bins",mbins,atoms_per_bin);
     bins = k_bins.view<DeviceType>();
 
@@ -82,7 +82,7 @@ void NBinSSAKokkos<DeviceType>::bin_atoms_setup(int nall)
 
   ghosts_per_gbin = atom->nghost / 7; // estimate needed size
 
-  if (ghosts_per_gbin > (int) k_gbins.h_view.dimension_1()) {
+  if (ghosts_per_gbin > (int) k_gbins.h_view.extent(1)) {
     k_gbins = DAT::tdual_int_2d("NBinSSAKokkos::gbins",8,ghosts_per_gbin);
     gbins = k_gbins.view<DeviceType>();
   }
@@ -159,7 +159,7 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
 
   // actually bin the ghost atoms
   {
-    if(ghosts_per_gbin > (int) gbins.dimension_1()) {
+    if(ghosts_per_gbin > (int) gbins.extent(1)) {
       k_gbins = DAT::tdual_int_2d("gbins", 8, ghosts_per_gbin);
       gbins = k_gbins.view<DeviceType>();
     }
@@ -188,13 +188,13 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
 
   // actually bin the local atoms
   {
-    if ((mbins > (int) bins.dimension_0()) ||
-        (atoms_per_bin > (int) bins.dimension_1())) {
+    if ((mbins > (int) bins.extent(0)) ||
+        (atoms_per_bin > (int) bins.extent(1))) {
       k_bins = DAT::tdual_int_2d("bins", mbins, atoms_per_bin);
       bins = k_bins.view<DeviceType>();
     }
     MemsetZeroFunctor<DeviceType> f_zero;
-    f_zero.ptr = (void*) k_bincount.view<DeviceType>().ptr_on_device();
+    f_zero.ptr = (void*) k_bincount.view<DeviceType>().data();
     Kokkos::parallel_for(mbins, f_zero);
 
     auto bincount_ = bincount;

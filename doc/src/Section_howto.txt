@@ -6,7 +6,7 @@
 
 :line
 
-6. How-to discussions :h3
+6. How-to discussions :h2
 
 This section describes how to perform common tasks using LAMMPS.
 
@@ -454,7 +454,7 @@ NOTE: By default, for 2d systems, granular particles are still modeled
 as 3d spheres, not 2d discs (circles), meaning their moment of inertia
 will be the same as in 3d.  If you wish to model granular particles in
 2d as 2d discs, see the note on this topic in "Section
-6.2"_Section_howto.html#howto_2, where 2d simulations are disussed.
+6.2"_Section_howto.html#howto_2, where 2d simulations are discussed.
 
 :line
 
@@ -1058,7 +1058,7 @@ Example input scripts for these kinds of models are in the body,
 colloid, dipole, ellipse, line, peri, pour, and tri directories of the
 "examples directory"_Section_example.html in the LAMMPS distribution.
 
-Atom styles :h5
+Atom styles :h4
 
 There are several "atom styles"_atom_style.html that allow for
 definition of finite-size particles: sphere, dipole, ellipsoid, line,
@@ -1140,7 +1140,7 @@ ellipses.  This means they have the same moment of inertia as the 3d
 object.  When temperature is computed, the correct degrees of freedom
 are used for rotation in a 2d versus 3d system.
 
-Pair potentials :h5
+Pair potentials :h4
 
 When a system with finite-size particles is defined, the particles
 will only rotate and experience torque if the force field computes
@@ -1168,7 +1168,7 @@ Brownian and lubrication potentials are used with spherical particles.
 The line, tri, and body potentials are used with line segment,
 triangular, and body particles respectively.
 
-Time integration :h5
+Time integration :h4
 
 There are several fixes that perform time integration on finite-size
 spherical particles, meaning the integrators update the rotational
@@ -1204,7 +1204,7 @@ Note that for mixtures of point and finite-size particles, these
 integration fixes can only be used with "groups"_group.html which
 contain finite-size particles.
 
-Computes, thermodynamics, and dump output :h5
+Computes, thermodynamics, and dump output :h4
 
 There are several computes that calculate the temperature or
 rotational energy of spherical or ellipsoidal particles:
@@ -1236,7 +1236,7 @@ angular momentum, the quaternion, the torque, the end-point and
 corner-point coordinates (for line and tri particles), and
 sub-particle attributes of body particles.
 
-Rigid bodies composed of finite-size particles :h5
+Rigid bodies composed of finite-size particles :h4
 
 The "fix rigid"_fix_rigid.html command treats a collection of
 particles as a rigid body, computes its inertia tensor, sums the total
@@ -1319,7 +1319,7 @@ to output and the kind of data they operate on and produce:
 "Variables that generate values to output"_#variable
 "Summary table of output options and data flow between commands"_#table :ul
 
-Global/per-atom/local data :h5,link(global)
+Global/per-atom/local data :h4,link(global)
 
 Various output-related commands work with three different styles of
 data: global, per-atom, or local.  A global datum is one or more
@@ -1329,7 +1329,7 @@ atom.  Local datums are calculated by each processor based on the
 atoms it owns, but there may be zero or more per atom, e.g. a list of
 bond distances.
 
-Scalar/vector/array data :h5,link(scalar)
+Scalar/vector/array data :h4,link(scalar)
 
 Global, per-atom, and local datums can each come in three kinds: a
 single scalar value, a vector of values, or a 2d array of values.  The
@@ -1352,7 +1352,7 @@ the dimension twice (array -> scalar).  Thus a command that uses
 scalar values as input can typically also process elements of a vector
 or array.
 
-Thermodynamic output :h5,link(thermo)
+Thermodynamic output :h4,link(thermo)
 
 The frequency and format of thermodynamic output is set by the
 "thermo"_thermo.html, "thermo_style"_thermo_style.html, and
@@ -1377,7 +1377,7 @@ intensive values; you can include a division by "natoms" in the
 formula if desired, to make an extensive calculation produce an
 intensive result.
 
-Dump file output :h5,link(dump)
+Dump file output :h4,link(dump)
 
 Dump file output is specified by the "dump"_dump.html and
 "dump_modify"_dump_modify.html commands.  There are several
@@ -1401,7 +1401,7 @@ provides the values to be output.  In each case, the compute or fix
 must generate local values for input to the "dump local"_dump.html
 command.
 
-Fixes that write output files :h5,link(fixoutput)
+Fixes that write output files :h4,link(fixoutput)
 
 Several fixes take various quantities as input and can write output
 files: "fix ave/time"_fix_ave_time.html, "fix
@@ -1455,7 +1455,7 @@ values for a specific atom.  Thus the "fix print"_fix_print.html
 command is a means to output a wide variety of quantities separate
 from normal thermodynamic or dump file output.
 
-Computes that process output quantities :h5,link(computeoutput)
+Computes that process output quantities :h4,link(computeoutput)
 
 The "compute reduce"_compute_reduce.html and "compute
 reduce/region"_compute_reduce.html commands take one or more per-atom
@@ -1481,7 +1481,7 @@ info, etc) and stores the values in a local vector or array.  These
 are produced as output values which can be used as input to other
 output commands.
 
-Fixes that process output quantities :h5,link(fixprocoutput)
+Fixes that process output quantities :h4,link(fixprocoutput)
 
 The "fix vector"_fix_vector.html command can create global vectors as
 output from global scalars as input, accumulating them one element at
@@ -1503,7 +1503,7 @@ including per-atom quantities calculated by a "compute"_compute.html,
 by a "fix"_fix.html, or by an atom-style "variable"_variable.html.
 The output of this fix can be used as input to other output commands.
 
-Computes that generate values to output :h5,link(compute)
+Computes that generate values to output :h4,link(compute)
 
 Every "compute"_compute.html in LAMMPS produces either global or
 per-atom or local values.  The values can be scalars or vectors or
@@ -1513,7 +1513,7 @@ describes what it produces.  Computes that produce per-atom or local
 values have the word "atom" or "local" in their style name.  Computes
 without the word "atom" or "local" produce global values.
 
-Fixes that generate values to output :h5,link(fix)
+Fixes that generate values to output :h4,link(fix)
 
 Some "fixes"_fix.html in LAMMPS produces either global or per-atom or
 local values which can be accessed by other commands.  The values can
@@ -1522,7 +1522,7 @@ using the other commands described in this section.  The doc page for
 each fix command tells whether it produces any output quantities and
 describes them.
 
-Variables that generate values to output :h5,link(variable)
+Variables that generate values to output :h4,link(variable)
 
 "Variables"_variable.html defined in an input script can store one or
 more strings.  But equal-style, vector-style, and atom-style or
@@ -1534,7 +1534,7 @@ computes, fixes, and other variables.  The values generated by
 variables can be used as input to and thus output by the other
 commands described in this section.
 
-Summary table of output options and data flow between commands :h5,link(table)
+Summary table of output options and data flow between commands :h4,link(table)
 
 This table summarizes the various commands that can be used for
 generating output from LAMMPS.  Each command produces output data of
@@ -1856,9 +1856,21 @@ internal LAMMPS operations.  Note that LAMMPS classes are defined
 within a LAMMPS namespace (LAMMPS_NS) if you use them from another C++
 application.
 
-Library.cpp contains these functions for creating and destroying an
-instance of LAMMPS and sending it commands to execute.  See the
-documentation in the src/library.cpp file for details:
+The examples/COUPLE and python/examples directories have example C++
+and C and Python codes which show how a driver code can link to LAMMPS
+as a library, run LAMMPS on a subset of processors, grab data from
+LAMMPS, change it, and put it back into LAMMPS.
+
+The file src/library.cpp contains the following functions for creating
+and destroying an instance of LAMMPS and sending it commands to
+execute.  See the documentation in the src/library.cpp file for
+details.
+
+NOTE: You can write code for additional functions as needed to define
+how your code talks to LAMMPS and add them to src/library.cpp and
+src/library.h, as well as to the "Python
+interface"_Section_python.html.  The added functions can access or
+change any internal LAMMPS data you wish.
 
 void lammps_open(int, char **, MPI_Comm, void **)
 void lammps_open_no_mpi(int, char **, void **)
@@ -1932,11 +1944,12 @@ the library allocated previously via other function calls.  See
 comments in src/library.cpp file for which other functions need this
 clean-up.
 
-Library.cpp also contains these functions for extracting information
-from LAMMPS and setting value within LAMMPS.  Again, see the
-documentation in the src/library.cpp file for details, including
+The file src/library.cpp also contains these functions for extracting
+information from LAMMPS and setting value within LAMMPS.  Again, see
+the documentation in the src/library.cpp file for details, including
 which quantities can be queried by name:
 
+int lammps_extract_setting(void *, char *)
 void *lammps_extract_global(void *, char *)
 void lammps_extract_box(void *, double *, double *,
                         double *, double *, double *, int *, int *)
@@ -1945,55 +1958,77 @@ void *lammps_extract_compute(void *, char *, int, int)
 void *lammps_extract_fix(void *, char *, int, int, int, int)
 void *lammps_extract_variable(void *, char *, char *) :pre
 
-void lammps_reset_box(void *, double *, double *, double, double, double)
-int lammps_set_variable(void *, char *, char *) :pre
+The extract_setting() function returns info on the size
+of data types (e.g. 32-bit or 64-bit atom IDs) used
+by the LAMMPS executable (a compile-time choice).
+
+The other extract functions return a pointer to various global or
+per-atom quantities stored in LAMMPS or to values calculated by a
+compute, fix, or variable.  The pointer returned by the
+extract_global() function can be used as a permanent reference to a
+value which may change.  For the extract_atom() method, see the
+extract() method in the src/atom.cpp file for a list of valid per-atom
+properties.  New names could easily be added if the property you want
+is not listed.  For the other extract functions, the underlying
+storage may be reallocated as LAMMPS runs, so you need to re-call the
+function to assure a current pointer or returned value(s).
 
 double lammps_get_thermo(void *, char *)
-int lammps_get_natoms(void *)
-void lammps_gather_atoms(void *, double *)
-void lammps_scatter_atoms(void *, double *) :pre
-void lammps_create_atoms(void *, int, tagint *, int *, double *, double *,
-                         imageint *, int) :pre
+int lammps_get_natoms(void *) :pre
 
-The extract functions return a pointer to various global or per-atom
-quantities stored in LAMMPS or to values calculated by a compute, fix,
-or variable.  The pointer returned by the extract_global() function
-can be used as a permanent reference to a value which may change.  For
-the extract_atom() method, see the extract() method in the
-src/atom.cpp file for a list of valid per-atom properties.  New names
-could easily be added if the property you want is not listed.  For the
-other extract functions, the underlying storage may be reallocated as
-LAMMPS runs, so you need to re-call the function to assure a current
-pointer or returned value(s).
-
-The lammps_reset_box() function resets the size and shape of the
-simulation box, e.g. as part of restoring a previously extracted and
-saved state of a simulation.
-
-The lammps_set_variable() function can set an existing string-style
-variable to a new string value, so that subsequent LAMMPS commands can
-access the variable.
+int lammps_set_variable(void *, char *, char *)
+void lammps_reset_box(void *, double *, double *, double, double, double) :pre
 
 The lammps_get_thermo() function returns the current value of a thermo
 keyword as a double precision value.
 
 The lammps_get_natoms() function returns the total number of atoms in
-the system and can be used by the caller to allocate space for the
-lammps_gather_atoms() and lammps_scatter_atoms() functions.  The
-gather function collects peratom info of the requested type (atom
-coords, types, forces, etc) from all processors, orders them by atom
-ID, and returns a full list to each calling processor.  The scatter
-function does the inverse.  It distributes the same peratom values,
-passed by the caller, to each atom owned by individual processors.
-Both methods are thus a means to extract or assign (overwrite) any
-peratom quantities within LAMMPS.  See the extract() method in the
-src/atom.cpp file for a list of valid per-atom properties.  New names
-could easily be added if the property you want is not listed.
-A special treatment is applied for accessing image flags via the
-"image" property. Image flags are stored in a packed format with all
-three image flags stored in a single integer. When signaling to access
-the image flags as 3 individual values per atom instead of 1, the data
-is transparently packed or unpacked by the library interface.
+the system and can be used by the caller to allocate memory for the
+lammps_gather_atoms() and lammps_scatter_atoms() functions.
+
+The lammps_set_variable() function can set an existing string-style
+variable to a new string value, so that subsequent LAMMPS commands can
+access the variable.
+
+The lammps_reset_box() function resets the size and shape of the
+simulation box, e.g. as part of restoring a previously extracted and
+saved state of a simulation.
+
+void lammps_gather_atoms(void *, char *, int, int, void *)
+void lammps_gather_atoms_concat(void *, char *, int, int, void *)
+void lammps_gather_atoms_subset(void *, char *, int, int, int, int *, void *)
+void lammps_scatter_atoms(void *, char *, int, int, void *)
+void lammps_scatter_atoms_subset(void *, char *, int, int, int, int *, void *) :pre
+
+void lammps_create_atoms(void *, int, tagint *, int *, double *, double *,
+                         imageint *, int) :pre
+
+The gather functions collect peratom info of the requested type (atom
+coords, atom types, forces, etc) from all processors, and returns the
+same vector of values to each callling processor.  The scatter
+functions do the inverse.  They distribute a vector of peratom values,
+passed by all calling processors, to invididual atoms, which may be
+owned by different processos.
+
+The lammps_gather_atoms() function does this for all N atoms in the
+system, ordered by atom ID, from 1 to N.  The
+lammps_gather_atoms_concat() function does it for all N atoms, but
+simply concatenates the subset of atoms owned by each processor.  The
+resulting vector is not ordered by atom ID.  Atom IDs can be requetsed
+by the same function if the caller needs to know the ordering.  The
+lammps_gather_subset() function allows the caller to request values
+for only a subset of atoms (identified by ID).
+For all 3 gather function, per-atom image flags can be retrieved in 2 ways.
+If the count is specified as 1, they are returned 
+in a packed format with all three image flags stored in a single integer.
+If the count is specified as 3, the values are unpacked into xyz flags
+by the library before returning them.
+
+The lammps_scatter_atoms() function takes a list of values for all N
+atoms in the system, ordered by atom ID, from 1 to N, and assigns
+those values to each atom in the system.  The
+lammps_scatter_atoms_subset() function takes a subset of IDs as an
+argument and only scatters those values to the owning atoms.
 
 The lammps_create_atoms() function takes a list of N atoms as input
 with atom types and coords (required), an optionally atom IDs and
@@ -2004,17 +2039,6 @@ lammps_reset_box()) to restore a previously extracted and saved state
 of a simulation.  Additional properties for the new atoms can then be
 assigned via the lammps_scatter_atoms() or lammps_extract_atom()
 functions.
-
-The examples/COUPLE and python directories have example C++ and C and
-Python codes which show how a driver code can link to LAMMPS as a
-library, run LAMMPS on a subset of processors, grab data from LAMMPS,
-change it, and put it back into LAMMPS.
-
-NOTE: You can write code for additional functions as needed to define
-how your code talks to LAMMPS and add them to src/library.cpp and
-src/library.h, as well as to the "Python
-interface"_Section_python.html.  The added functions can access or
-change any LAMMPS data you wish.
 
 :line
 
@@ -2264,7 +2288,7 @@ Here, each of the 3 kinds of chunk-related commands is briefly
 overviewed.  Then some examples are given of how to compute different
 properties with chunk commands.
 
-Compute chunk/atom command: :h5
+Compute chunk/atom command: :h4
 
 This compute can assign atoms to chunks of various styles.  Only atoms
 in the specified group and optional specified region are assigned to a
@@ -2303,7 +2327,7 @@ do this.  You can also define a "per-atom variable"_variable.html in
 the input script that uses a formula to generate a chunk ID for each
 atom.
 
-Fix ave/chunk command: :h5
+Fix ave/chunk command: :h4
 
 This fix takes the ID of a "compute
 chunk/atom"_compute_chunk_atom.html command as input.  For each chunk,
@@ -2320,7 +2344,7 @@ values to be time-averaged in various ways, and output to a file.  The
 fix produces a global array as output with one row of values per
 chunk.
 
-Compute */chunk commands: :h5
+Compute */chunk commands: :h4
 
 Currently the following computes operate on chunks of atoms to produce
 per-chunk values.
@@ -2365,7 +2389,7 @@ variables"_variable.html, like sum() and max().  E.g. to find the
 largest cluster or fastest diffusing molecule. :l
 :ule
 
-Example calculations with chunks :h5
+Example calculations with chunks :h4
 
 Here are examples using chunk commands to calculate various
 properties:

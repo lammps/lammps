@@ -12,8 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 #include "timer.h"
 #include "comm.h"
 #include "error.h"
@@ -22,13 +22,13 @@
 
 #ifdef _WIN32
 #include <windows.h>
-#include <stdint.h>
+#include <stdint.h> // <cstdint> requires C++-11
 #else
 #include <sys/time.h>
 #include <sys/resource.h>
 #endif
 
-#include <time.h>
+#include <ctime>
 
 using namespace LAMMPS_NS;
 

@@ -50,11 +50,6 @@ class FixGPU : public Fix {
 
 /* ERROR/WARNING messages:
 
-E: Cannot use GPU package with USER-CUDA package enabled
-
-You cannot use both the GPU and USER-CUDA packages
-together.  Use one or the other.
-
 E: Illegal ... command
 
 Self-explanatory.  Check the input script syntax and compare to the

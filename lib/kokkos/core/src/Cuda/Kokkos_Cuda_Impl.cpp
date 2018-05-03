@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -401,7 +401,6 @@ void CudaInternal::initialize( int cuda_device_id , int stream_count )
     m_cudaDev = cuda_device_id ;
 
     CUDA_SAFE_CALL( cudaSetDevice( m_cudaDev ) );
-    CUDA_SAFE_CALL( cudaDeviceReset() );
     Kokkos::Impl::cuda_device_synchronize();
 
     // Query what compute capability architecture a kernel executes:
@@ -421,7 +420,7 @@ void CudaInternal::initialize( int cuda_device_id , int stream_count )
       std::string msg = ss.str();
       Kokkos::abort( msg.c_str() );
     }
-    if ( compiled_major != cudaProp.major || compiled_minor != cudaProp.minor ) {
+    if ( Kokkos::show_warnings() && (compiled_major != cudaProp.major || compiled_minor != cudaProp.minor) ) {
       std::cerr << "Kokkos::Cuda::initialize WARNING: running kernels compiled for compute capability "
                 << compiled_major << "." << compiled_minor
                 << " on device with compute capability "
@@ -438,19 +437,7 @@ void CudaInternal::initialize( int cuda_device_id , int stream_count )
     // Maximum number of warps,
     // at most one warp per thread in a warp for reduction.
 
-    // HCE 2012-February :
-    // Found bug in CUDA 4.1 that sometimes a kernel launch would fail
-    // if the thread count == 1024 and a functor is passed to the kernel.
-    // Copying the kernel to constant memory and then launching with
-    // thread count == 1024 would work fine.
-    //
-    // HCE 2012-October :
-    // All compute capabilities support at least 16 warps (512 threads).
-    // However, we have found that 8 warps typically gives better performance.
-
-    m_maxWarpCount = 8 ;
-
-    // m_maxWarpCount = cudaProp.maxThreadsPerBlock / Impl::CudaTraits::WarpSize ;
+    m_maxWarpCount = cudaProp.maxThreadsPerBlock / Impl::CudaTraits::WarpSize ;
 
     if ( Impl::CudaTraits::WarpSize < m_maxWarpCount ) {
       m_maxWarpCount = Impl::CudaTraits::WarpSize ;
@@ -467,7 +454,7 @@ void CudaInternal::initialize( int cuda_device_id , int stream_count )
 
     m_scratchUnifiedSupported = cudaProp.unifiedAddressing ;
 
-    if ( ! m_scratchUnifiedSupported ) {
+    if ( Kokkos::show_warnings() && ! m_scratchUnifiedSupported ) {
       std::cout << "Kokkos::Cuda device "
                 << cudaProp.name << " capability "
                 << cudaProp.major << "." << cudaProp.minor
@@ -501,7 +488,7 @@ void CudaInternal::initialize( int cuda_device_id , int stream_count )
 
       // Allocate and initialize uint32_t[ buffer_bound ]
 
-      typedef Kokkos::Experimental::Impl::SharedAllocationRecord< Kokkos::CudaSpace , void > Record ;
+      typedef Kokkos::Impl::SharedAllocationRecord< Kokkos::CudaSpace , void > Record ;
 
       Record * const r = Record::allocate( Kokkos::CudaSpace()
                                          , "InternalScratchBitset"
@@ -545,7 +532,7 @@ void CudaInternal::initialize( int cuda_device_id , int stream_count )
   }
 
   #ifdef KOKKOS_ENABLE_CUDA_UVM
-    if(!cuda_launch_blocking()) {
+    if( Kokkos::show_warnings() && !cuda_launch_blocking() ) {
       std::cout << "Kokkos::Cuda::initialize WARNING: Cuda is allocating into UVMSpace by default" << std::endl;
       std::cout << "                                  without setting CUDA_LAUNCH_BLOCKING=1." << std::endl;
       std::cout << "                                  The code must call Cuda::fence() after each kernel" << std::endl;
@@ -561,7 +548,7 @@ void CudaInternal::initialize( int cuda_device_id , int stream_count )
     bool visible_devices_one=true;
     if (env_visible_devices == 0) visible_devices_one=false;
 
-    if(!visible_devices_one && !force_device_alloc) {
+    if( Kokkos::show_warnings() && (!visible_devices_one && !force_device_alloc) ) {
       std::cout << "Kokkos::Cuda::initialize WARNING: Cuda is allocating into UVMSpace by default" << std::endl;
       std::cout << "                                  without setting CUDA_MANAGED_FORCE_DEVICE_ALLOC=1 or " << std::endl;
       std::cout << "                                  setting CUDA_VISIBLE_DEVICES." << std::endl;
@@ -590,7 +577,7 @@ CudaInternal::scratch_flags( const Cuda::size_type size )
 
     m_scratchFlagsCount = ( size + sizeScratchGrain - 1 ) / sizeScratchGrain ;
 
-    typedef Kokkos::Experimental::Impl::SharedAllocationRecord< Kokkos::CudaSpace , void > Record ;
+    typedef Kokkos::Impl::SharedAllocationRecord< Kokkos::CudaSpace , void > Record ;
 
     Record * const r = Record::allocate( Kokkos::CudaSpace()
                                        , "InternalScratchFlags"
@@ -613,7 +600,7 @@ CudaInternal::scratch_space( const Cuda::size_type size )
 
     m_scratchSpaceCount = ( size + sizeScratchGrain - 1 ) / sizeScratchGrain ;
 
-     typedef Kokkos::Experimental::Impl::SharedAllocationRecord< Kokkos::CudaSpace , void > Record ;
+     typedef Kokkos::Impl::SharedAllocationRecord< Kokkos::CudaSpace , void > Record ;
 
      Record * const r = Record::allocate( Kokkos::CudaSpace()
                                         , "InternalScratchSpace"
@@ -635,7 +622,7 @@ CudaInternal::scratch_unified( const Cuda::size_type size )
 
     m_scratchUnifiedCount = ( size + sizeScratchGrain - 1 ) / sizeScratchGrain ;
 
-    typedef Kokkos::Experimental::Impl::SharedAllocationRecord< Kokkos::CudaHostPinnedSpace , void > Record ;
+    typedef Kokkos::Impl::SharedAllocationRecord< Kokkos::CudaHostPinnedSpace , void > Record ;
 
     Record * const r = Record::allocate( Kokkos::CudaHostPinnedSpace()
                                        , "InternalScratchUnified"
@@ -666,8 +653,8 @@ void CudaInternal::finalize()
       ::free( m_stream );
     }
 
-    typedef Kokkos::Experimental::Impl::SharedAllocationRecord< CudaSpace > RecordCuda ;
-    typedef Kokkos::Experimental::Impl::SharedAllocationRecord< CudaHostPinnedSpace > RecordHost ;
+    typedef Kokkos::Impl::SharedAllocationRecord< CudaSpace > RecordCuda ;
+    typedef Kokkos::Impl::SharedAllocationRecord< CudaHostPinnedSpace > RecordHost ;
 
     RecordCuda::decrement( RecordCuda::get_record( m_scratchFlags ) );
     RecordCuda::decrement( RecordCuda::get_record( m_scratchSpace ) );

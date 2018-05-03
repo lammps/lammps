@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
+#include <cctype>
 #include "pair_hybrid_kokkos.h"
 #include "atom_kokkos.h"
 #include "force.h"
@@ -23,10 +23,11 @@
 #include "neigh_request.h"
 #include "update.h"
 #include "comm.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "error.h"
 #include "respa.h"
 #include "atom_masks.h"
+#include "kokkos.h"
 
 using namespace LAMMPS_NS;
 

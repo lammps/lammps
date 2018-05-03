@@ -16,13 +16,13 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <ctype.h>
-#include <float.h>
-#include <limits.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cctype>
+#include <cfloat>
+#include <climits>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -690,6 +690,12 @@ void Pair::compute_dummy(int eflag, int vflag)
 {
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = 0;
+}
+
+/* ---------------------------------------------------------------------- */
+void Pair::read_restart(FILE *)
+{
+  error->all(FLERR,"BUG: restartinfo=1 but no restart support in pair style");
 }
 
 /* -------------------------------------------------------------------

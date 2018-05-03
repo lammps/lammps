@@ -12,16 +12,16 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors, for weighted balancing: 
+   Contributing authors, for weighted balancing:
      Axel Kohlmeyer (Temple U), Iain Bethune (EPCC)
 ------------------------------------------------------------------------- */
 
 //#define BALANCE_DEBUG 1
 
 #include <mpi.h>
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "balance.h"
 #include "atom.h"
 #include "comm.h"
@@ -291,7 +291,7 @@ void Balance::command(int narg, char **arg)
 #endif
 
   int niter = 0;
-  
+
   // perform load-balance
   // style XYZ = explicit setting of cutting planes of logical 3d grid
 
@@ -299,10 +299,10 @@ void Balance::command(int narg, char **arg)
     if (comm->layout == LAYOUT_UNIFORM) {
       if (xflag == USER || yflag == USER || zflag == USER)
         comm->layout = LAYOUT_NONUNIFORM;
-    } else if (comm->style == LAYOUT_NONUNIFORM) {
+    } else if (comm->layout == LAYOUT_NONUNIFORM) {
       if (xflag == UNIFORM && yflag == UNIFORM && zflag == UNIFORM)
         comm->layout = LAYOUT_UNIFORM;
-    } else if (comm->style == LAYOUT_TILED) {
+    } else if (comm->layout == LAYOUT_TILED) {
       if (xflag == UNIFORM && yflag == UNIFORM && zflag == UNIFORM)
         comm->layout = LAYOUT_UNIFORM;
       else comm->layout = LAYOUT_NONUNIFORM;
@@ -661,7 +661,7 @@ int *Balance::bisection(int sortflag)
       rcb->compute(dim,atom->nlocal,atom->x,weight,shrinklo,shrinkhi);
     } else rcb->compute(dim,atom->nlocal,atom->x,NULL,shrinklo,shrinkhi);
   }
-    
+
   rcb->invert(sortflag);
 
   // reset RCB lo/hi bounding box to full simulation box as needed

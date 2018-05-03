@@ -46,7 +46,7 @@ class PairYukawa : public Pair {
   double *rad;
   double **cut,**a,**offset;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }

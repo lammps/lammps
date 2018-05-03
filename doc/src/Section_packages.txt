@@ -8,7 +8,7 @@ Section"_Section_accelerate.html :c
 
 :line
 
-4. Packages :h3
+4. Packages :h2
 
 This section gives an overview of the optional packages that extend
 LAMMPS functionality with instructions on how to build LAMMPS with
@@ -138,6 +138,7 @@ Package, Description, Doc page, Example, Library
 "USER-MESO"_#USER-MESO, mesoscale DPD models, "pair_style edpd"_pair_meso.html, USER/meso, -
 "USER-MGPT"_#USER-MGPT, fast MGPT multi-ion potentials, "pair_style mgpt"_pair_mgpt.html, USER/mgpt, -
 "USER-MISC"_#USER-MISC, single-file contributions, USER-MISC/README, USER/misc, -
+"USER-MOFFF"_#USER-MOFFF, styles for "MOF-FF"_MOFplus force field, "pair_style buck6d/coul/gauss"_pair_buck6d_coul_gauss.html, USER/mofff, -
 "USER-MOLFILE"_#USER-MOLFILE, "VMD"_vmd_home molfile plug-ins,"dump molfile"_dump_molfile.html, -, ext
 "USER-NETCDF"_#USER-NETCDF, dump output via NetCDF,"dump netcdf"_dump_netcdf.html, -, ext
 "USER-OMP"_#USER-OMP, OpenMP-enabled styles,"Section 5.3.4"_accelerate_omp.html, "Benchmarks"_http://lammps.sandia.gov/bench.html, -
@@ -243,7 +244,7 @@ COLLOID package :link(COLLOID),h4
 
 [Contents:]
 
-Coarse-grained finite-size colloidal particles.  Pair stayle and fix
+Coarse-grained finite-size colloidal particles.  Pair styles and fix
 wall styles for colloidal interactions.  Includes the Fast Lubrication
 Dynamics (FLD) method for hydrodynamic interactions, which is a
 simplified approximation to Stokesian dynamics.
@@ -732,9 +733,9 @@ make lib-latte args="-b -m gfortran"    # download and build in lib/latte and
 :pre
 
 Note that 3 symbolic (soft) links, "includelink" and "liblink" and
-"filelink", are created in lib/latte to point into the LATTE home dir.
+"filelink.o", are created in lib/latte to point into the LATTE home dir.
 When LAMMPS builds in src it will use these links.  You should 
-also check that the Makefile.lammps file you create is apporpriate
+also check that the Makefile.lammps file you create is appropriate
 for the compiler you use on your system to build LATTE.
 
 You can then install/un-install the package and build LAMMPS in the
@@ -984,7 +985,7 @@ MSCG package :link(mscg),h4
 [Contents:]
 
 A "fix mscg"_fix_mscg.html command which can parameterize a
-Mulit-Scale Coarse-Graining (MSCG) model using the open-source "MS-CG
+Multi-Scale Coarse-Graining (MSCG) model using the open-source "MS-CG
 library"_mscg_home.
 
 :link(mscg_home,https://github.com/uchicago-voth/MSCG-release)
@@ -1781,7 +1782,7 @@ coarse-grained DPD-based models for energetic, reactive molecular
 crystalline materials.  It includes many pair styles specific to these
 systems, including for reactive DPD, where each particle has internal
 state for multiple species and a coupled set of chemical reaction ODEs
-are integrated each timestep.  Highly accurate time intergrators for
+are integrated each timestep.  Highly accurate time integrators for
 isothermal, isoenergetic, isobaric and isenthalpic conditions are
 included.  These enable long timesteps via the Shardlow splitting
 algorithm.
@@ -2231,7 +2232,7 @@ Several extensions of the the dissipative particle dynamics (DPD)
 method.  Specifically, energy-conserving DPD (eDPD) that can model
 non-isothermal processes, many-body DPD (mDPD) for simulating
 vapor-liquid coexistence, and transport DPD (tDPD) for modeling
-advection-diffuion-reaction systems. The equations of motion of these
+advection-diffusion-reaction systems. The equations of motion of these
 DPD extensions are integrated through a modified velocity-Verlet (MVV)
 algorithm.
 
@@ -2256,6 +2257,44 @@ src/USER-MESO/README
 "fix mvv/dpd"_fix_mvv_dpd.html
 examples/USER/meso
 http://lammps.sandia.gov/movies.html#mesodpd :ul
+
+:line
+
+USER-MOFFF package :link(USER-MOFFF),h4
+
+[Contents:]
+
+Pair, angle and improper styles needed to employ the MOF-FF
+force field by Schmid and coworkers with LAMMPS. 
+MOF-FF is a first principles derived force field with the primary aim
+to simulate MOFs and related porous framework materials, using spherical 
+Gaussian charges. It is described in S. Bureekaew et al., Phys. Stat. Sol. B
+2013, 250, 1128-1141.
+For the usage of MOF-FF see the example in the example directory as 
+well as the "MOF+"_MOFplus website.
+
+:link(MOFplus,https://www.mofplus.org/content/show/MOF-FF)
+
+[Author:] Hendrik Heenen (Technical U of Munich), 
+Rochus Schmid (Ruhr-University Bochum).
+
+[Install or un-install:]
+
+make yes-user-mofff
+make machine :pre
+
+make no-user-mofff
+make machine :pre
+
+[Supporting info:]
+
+src/USER-MOFFF: filenames -> commands
+src/USER-MOFFF/README
+"pair_style buck6d/coul/gauss"_pair_buck6d_coul_gauss.html
+"angle_style class2"_angle_class2.html
+"angle_style cosine/buck6d"_angle_cosine_buck6d.html
+"improper_style inversion/harmonic"_improper_inversion_harmonic.html
+examples/USER/mofff :ul
 
 :line
 
@@ -2495,7 +2534,7 @@ make machine :pre
 
 NOTE: The LAMMPS executable these steps produce is not yet functional
 for a QM/MM simulation.  You must also build Quantum ESPRESSO and
-create a new executable which links LAMMPS and Quanutm ESPRESSO
+create a new executable which links LAMMPS and Quantum ESPRESSO
 together.  These are steps 3 and 4 described in the lib/qmmm/README
 file.
 
@@ -2554,7 +2593,7 @@ developed by the Cambridge University group.
 
 :link(quip,https://github.com/libAtoms/QUIP)
 
-To use this package you must have the QUIP libAatoms library available
+To use this package you must have the QUIP libAtoms library available
 on your system.
 
 [Author:] Albert Bartok (Cambridge University)
@@ -2809,7 +2848,7 @@ USER-VTK package :link(USER-VTK),h4
 
 A "dump vtk"_dump_vtk.html command which outputs snapshot info in the
 "VTK format"_vtk, enabling visualization by "Paraview"_paraview or
-other visuzlization packages.
+other visualization packages.
 
 :link(vtk,http://www.vtk.org)
 :link(paraview,http://www.paraview.org)

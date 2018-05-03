@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -73,16 +73,16 @@ public:
   KOKKOS_INLINE_FUNCTION
   UniqueToken() : m_buffer(0), m_count(0) {}
 
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_FUNCTION_DEFAULTED
   UniqueToken( const UniqueToken & ) = default;
 
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_FUNCTION_DEFAULTED
   UniqueToken( UniqueToken && )      = default;
 
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_FUNCTION_DEFAULTED
   UniqueToken & operator=( const UniqueToken & ) = default ;
 
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_FUNCTION_DEFAULTED
   UniqueToken & operator=( UniqueToken && ) = default ;
 
   /// \brief upper bound for acquired values, i.e. 0 <= value < size()

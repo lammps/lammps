@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <string.h>
-#include <ctype.h>
+#include <cmath>
+#include <cstring>
+#include <cctype>
 #include "dihedral_hybrid.h"
 #include "atom.h"
 #include "neighbor.h"

@@ -145,7 +145,7 @@ int main(int narg, char **arg)
     for (i = 0; i < natoms; i++) type[i] = 1;
 
     lammps_command(lmp,"delete_atoms group all");
-    lammps_create_atoms(lmp,natoms,NULL,type,x,v);
+    lammps_create_atoms(lmp,natoms,NULL,type,x,v,NULL,0);
     lammps_command(lmp,"run 10");
   }
 

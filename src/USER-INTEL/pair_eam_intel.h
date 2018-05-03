@@ -20,7 +20,7 @@ PairStyle(eam/intel,PairEAMIntel)
 #ifndef LMP_PAIR_EAM_INTEL_H
 #define LMP_PAIR_EAM_INTEL_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "pair_eam.h"
 #include "fix_intel.h"
 

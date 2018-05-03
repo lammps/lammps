@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -47,7 +47,7 @@
 #ifdef KOKKOS_ENABLE_CUDA
 
 #include <Kokkos_Cuda.hpp>
-
+#include <Cuda/Kokkos_Cuda_Version_9_8_Compatibility.hpp>
 namespace Kokkos {
 
 
@@ -91,12 +91,12 @@ namespace Impl {
 
     KOKKOS_INLINE_FUNCTION
     int shfl(const int &val, const int& srcLane, const int& width ) {
-      return __shfl(val,srcLane,width);
+      return KOKKOS_IMPL_CUDA_SHFL(val,srcLane,width);
     }
 
     KOKKOS_INLINE_FUNCTION
     float shfl(const float &val, const int& srcLane, const int& width ) {
-      return __shfl(val,srcLane,width);
+      return KOKKOS_IMPL_CUDA_SHFL(val,srcLane,width);
     }
 
     template<typename Scalar>
@@ -105,7 +105,7 @@ namespace Impl {
         ) {
       Scalar tmp1 = val;
       float tmp = *reinterpret_cast<float*>(&tmp1);
-      tmp = __shfl(tmp,srcLane,width);
+      tmp = KOKKOS_IMPL_CUDA_SHFL(tmp,srcLane,width);
       return *reinterpret_cast<Scalar*>(&tmp);
     }
 
@@ -113,8 +113,8 @@ namespace Impl {
     double shfl(const double &val, const int& srcLane, const int& width) {
       int lo = __double2loint(val);
       int hi = __double2hiint(val);
-      lo = __shfl(lo,srcLane,width);
-      hi = __shfl(hi,srcLane,width);
+      lo = KOKKOS_IMPL_CUDA_SHFL(lo,srcLane,width);
+      hi = KOKKOS_IMPL_CUDA_SHFL(hi,srcLane,width);
       return __hiloint2double(hi,lo);
     }
 
@@ -123,8 +123,8 @@ namespace Impl {
     Scalar shfl(const Scalar &val, const int& srcLane, const typename Impl::enable_if< (sizeof(Scalar) == 8) ,int>::type& width) {
       int lo = __double2loint(*reinterpret_cast<const double*>(&val));
       int hi = __double2hiint(*reinterpret_cast<const double*>(&val));
-      lo = __shfl(lo,srcLane,width);
-      hi = __shfl(hi,srcLane,width);
+      lo = KOKKOS_IMPL_CUDA_SHFL(lo,srcLane,width);
+      hi = KOKKOS_IMPL_CUDA_SHFL(hi,srcLane,width);
       const double tmp = __hiloint2double(hi,lo);
       return *(reinterpret_cast<const Scalar*>(&tmp));
     }
@@ -137,18 +137,18 @@ namespace Impl {
       s_val = val;
 
       for(int i = 0; i<s_val.n; i++)
-        r_val.fval[i] = __shfl(s_val.fval[i],srcLane,width);
+        r_val.fval[i] = KOKKOS_IMPL_CUDA_SHFL(s_val.fval[i],srcLane,width);
       return r_val.value();
     }
 
     KOKKOS_INLINE_FUNCTION
     int shfl_down(const int &val, const int& delta, const int& width) {
-      return __shfl_down(val,delta,width);
+      return KOKKOS_IMPL_CUDA_SHFL_DOWN(val,delta,width);
     }
 
     KOKKOS_INLINE_FUNCTION
     float shfl_down(const float &val, const int& delta, const int& width) {
-      return __shfl_down(val,delta,width);
+      return KOKKOS_IMPL_CUDA_SHFL_DOWN(val,delta,width);
     }
 
     template<typename Scalar>
@@ -156,7 +156,7 @@ namespace Impl {
     Scalar shfl_down(const Scalar &val, const int& delta, const typename Impl::enable_if< (sizeof(Scalar) == 4) , int >::type & width) {
       Scalar tmp1 = val;
       float tmp = *reinterpret_cast<float*>(&tmp1);
-      tmp = __shfl_down(tmp,delta,width);
+      tmp = KOKKOS_IMPL_CUDA_SHFL_DOWN(tmp,delta,width);
       return *reinterpret_cast<Scalar*>(&tmp);
     }
 
@@ -164,8 +164,8 @@ namespace Impl {
     double shfl_down(const double &val, const int& delta, const int& width) {
       int lo = __double2loint(val);
       int hi = __double2hiint(val);
-      lo = __shfl_down(lo,delta,width);
-      hi = __shfl_down(hi,delta,width);
+      lo = KOKKOS_IMPL_CUDA_SHFL_DOWN(lo,delta,width);
+      hi = KOKKOS_IMPL_CUDA_SHFL_DOWN(hi,delta,width);
       return __hiloint2double(hi,lo);
     }
 
@@ -174,8 +174,8 @@ namespace Impl {
     Scalar shfl_down(const Scalar &val, const int& delta, const typename Impl::enable_if< (sizeof(Scalar) == 8) , int >::type & width) {
       int lo = __double2loint(*reinterpret_cast<const double*>(&val));
       int hi = __double2hiint(*reinterpret_cast<const double*>(&val));
-      lo = __shfl_down(lo,delta,width);
-      hi = __shfl_down(hi,delta,width);
+      lo = KOKKOS_IMPL_CUDA_SHFL_DOWN(lo,delta,width);
+      hi = KOKKOS_IMPL_CUDA_SHFL_DOWN(hi,delta,width);
       const double tmp = __hiloint2double(hi,lo);
       return *(reinterpret_cast<const Scalar*>(&tmp));
     }
@@ -188,18 +188,18 @@ namespace Impl {
       s_val = val;
 
       for(int i = 0; i<s_val.n; i++)
-        r_val.fval[i] = __shfl_down(s_val.fval[i],delta,width);
+        r_val.fval[i] = KOKKOS_IMPL_CUDA_SHFL_DOWN(s_val.fval[i],delta,width);
       return r_val.value();
     }
 
     KOKKOS_INLINE_FUNCTION
     int shfl_up(const int &val, const int& delta, const int& width ) {
-      return __shfl_up(val,delta,width);
+      return KOKKOS_IMPL_CUDA_SHFL_UP(val,delta,width);
     }
 
     KOKKOS_INLINE_FUNCTION
     float shfl_up(const float &val, const int& delta, const int& width ) {
-      return __shfl_up(val,delta,width);
+      return KOKKOS_IMPL_CUDA_SHFL_UP(val,delta,width);
     }
 
     template<typename Scalar>
@@ -207,7 +207,7 @@ namespace Impl {
     Scalar shfl_up(const Scalar &val, const int& delta, const typename Impl::enable_if< (sizeof(Scalar) == 4) , int >::type & width) {
       Scalar tmp1 = val;
       float tmp = *reinterpret_cast<float*>(&tmp1);
-      tmp = __shfl_up(tmp,delta,width);
+      tmp = KOKKOS_IMPL_CUDA_SHFL_UP(tmp,delta,width);
       return *reinterpret_cast<Scalar*>(&tmp);
     }
 
@@ -215,8 +215,8 @@ namespace Impl {
     double shfl_up(const double &val, const int& delta, const int& width ) {
       int lo = __double2loint(val);
       int hi = __double2hiint(val);
-      lo = __shfl_up(lo,delta,width);
-      hi = __shfl_up(hi,delta,width);
+      lo = KOKKOS_IMPL_CUDA_SHFL_UP(lo,delta,width);
+      hi = KOKKOS_IMPL_CUDA_SHFL_UP(hi,delta,width);
       return __hiloint2double(hi,lo);
     }
 
@@ -225,8 +225,8 @@ namespace Impl {
     Scalar shfl_up(const Scalar &val, const int& delta, const typename Impl::enable_if< (sizeof(Scalar) == 8) , int >::type & width) {
       int lo = __double2loint(*reinterpret_cast<const double*>(&val));
       int hi = __double2hiint(*reinterpret_cast<const double*>(&val));
-      lo = __shfl_up(lo,delta,width);
-      hi = __shfl_up(hi,delta,width);
+      lo = KOKKOS_IMPL_CUDA_SHFL_UP(lo,delta,width);
+      hi = KOKKOS_IMPL_CUDA_SHFL_UP(hi,delta,width);
       const double tmp = __hiloint2double(hi,lo);
       return *(reinterpret_cast<const Scalar*>(&tmp));
     }
@@ -239,7 +239,7 @@ namespace Impl {
       s_val = val;
 
       for(int i = 0; i<s_val.n; i++)
-        r_val.fval[i] = __shfl_up(s_val.fval[i],delta,width);
+        r_val.fval[i] = KOKKOS_IMPL_CUDA_SHFL_UP(s_val.fval[i],delta,width);
       return r_val.value();
     }
 

@@ -20,7 +20,7 @@ AngleStyle(cosine/delta,AngleCosineDelta)
 #ifndef LMP_ANGLE_COSINE_DELTA_H
 #define LMP_ANGLE_COSINE_DELTA_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "angle_cosine_squared.h"
 
 namespace LAMMPS_NS {

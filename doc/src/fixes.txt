@@ -23,6 +23,7 @@ Fixes :h1
    fix_bond_break
    fix_bond_create
    fix_bond_swap
+   fix_bond_react
    fix_box_relax
    fix_cmap
    fix_colvars
@@ -115,7 +116,8 @@ Fixes :h1
    fix_press_berendsen
    fix_print
    fix_property_atom
-   fix_python
+   fix_python_invoke
+   fix_python_move
    fix_qbmsst
    fix_qeq
    fix_qeq_comb
@@ -147,6 +149,7 @@ Fixes :h1
    fix_srd
    fix_store_force
    fix_store_state
+   fix_surface_global
    fix_temp_berendsen
    fix_temp_csvr
    fix_temp_rescale

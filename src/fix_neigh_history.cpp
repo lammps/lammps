@@ -12,8 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <string.h>
-#include <stdio.h>
+#include <cstring>
+#include <cstdio>
 #include "fix_neigh_history.h"
 #include "atom.h"
 #include "comm.h"
@@ -29,13 +29,13 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{DEFAULT,NPARTNER,PERPARTNER};
+enum{DEFAULT,NPARTNER,PERPARTNER}; // also set in fix neigh/history/omp
 
 /* ---------------------------------------------------------------------- */
 
 FixNeighHistory::FixNeighHistory(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  npartner(NULL), partner(NULL), valuepartner(NULL), pair(NULL), 
+  npartner(NULL), partner(NULL), valuepartner(NULL), pair(NULL),
   ipage_atom(NULL), dpage_atom(NULL), ipage_neigh(NULL), dpage_neigh(NULL)
 {
   if (narg != 4) error->all(FLERR,"Illegal fix NEIGH_HISTORY command");
@@ -295,7 +295,7 @@ void FixNeighHistory::pre_exchange_onesided()
 
   // set maxpartner = max # of partners of any owned atom
   // bump up comm->maxexchange_fix if necessary
-  
+
   maxpartner = 0;
   for (i = 0; i < nlocal_neigh; i++) maxpartner = MAX(maxpartner,npartner[i]);
   comm->maxexchange_fix = MAX(comm->maxexchange_fix,(dnum+1)*maxpartner+1);
@@ -318,7 +318,7 @@ void FixNeighHistory::pre_exchange_newton()
   int *allflags;
   double *allvalues,*onevalues,*jvalues;
 
-  // NOTE: all operations until very end are with 
+  // NOTE: all operations until very end are with
   //   nlocal_neigh  <= current nlocal and nall_neigh
   // b/c previous neigh list was built with nlocal_neigh & nghost_neigh
   // nlocal can be larger if other fixes added atoms at this pre_exchange()
@@ -424,7 +424,7 @@ void FixNeighHistory::pre_exchange_newton()
 
   maxpartner = 0;
   for (i = 0; i < nlocal_neigh; i++) maxpartner = MAX(maxpartner,npartner[i]);
-  comm->maxexchange_fix = MAX(comm->maxexchange_fix,4*maxpartner+1);
+  comm->maxexchange_fix = MAX(comm->maxexchange_fix,(dnum+1)*maxpartner+1);
 
   // zero npartner values from previous nlocal_neigh to current nlocal
 
@@ -526,7 +526,7 @@ void FixNeighHistory::pre_exchange_no_newton()
 
   // set maxpartner = max # of partners of any owned atom
   // bump up comm->maxexchange_fix if necessary
-  
+
   maxpartner = 0;
   for (i = 0; i < nlocal_neigh; i++) maxpartner = MAX(maxpartner,npartner[i]);
   comm->maxexchange_fix = MAX(comm->maxexchange_fix,(dnum+1)*maxpartner+1);
@@ -554,8 +554,6 @@ void FixNeighHistory::post_neighbor()
 {
   int i,j,m,ii,jj,nn,np,inum,jnum,rflag;
   tagint jtag;
-  double xtmp,ytmp,ztmp,delx,dely,delz;
-  double radi,rsq,radsum;
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *allflags;
   double *allvalues;
@@ -573,9 +571,9 @@ void FixNeighHistory::post_neighbor()
     memory->sfree(firstflag);
     memory->sfree(firstvalue);
     maxatom = nall;
-    firstflag = (int **) 
+    firstflag = (int **)
       memory->smalloc(maxatom*sizeof(int *),"neighbor_history:firstflag");
-    firstvalue = (double **) 
+    firstvalue = (double **)
       memory->smalloc(maxatom*sizeof(double *),"neighbor_history:firstvalue");
   }
 
@@ -717,12 +715,13 @@ void FixNeighHistory::set_arrays(int i)
 int FixNeighHistory::pack_reverse_comm_size(int n, int first)
 {
   int i,last;
+  int dnump1 = dnum + 1;
 
   int m = 0;
   last = first + n;
 
   for (i = first; i < last; i++)
-    m += 1 + 4*npartner[i];
+    m += 1 + dnump1*npartner[i];
 
   return m;
 }

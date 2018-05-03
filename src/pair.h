@@ -15,7 +15,6 @@
 #define LMP_PAIR_H
 
 #include "pointers.h"
-#include "accelerator_kokkos.h"
 
 namespace LAMMPS_NS {
 
@@ -139,7 +138,7 @@ class Pair : protected Pointers {
 
   virtual double single(int, int, int, int,
                         double, double, double,
-			double& fforce) {
+                        double& fforce) {
     fforce = 0.0;
     return 0.0;
   }
@@ -157,7 +156,7 @@ class Pair : protected Pointers {
   virtual void free_disp_tables();
 
   virtual void write_restart(FILE *) {}
-  virtual void read_restart(FILE *) {}
+  virtual void read_restart(FILE *);
   virtual void write_restart_settings(FILE *) {}
   virtual void read_restart_settings(FILE *) {}
   virtual void write_data(FILE *) {}
@@ -165,10 +164,6 @@ class Pair : protected Pointers {
 
   virtual int pack_forward_comm(int, int *, double *, int, int *) {return 0;}
   virtual void unpack_forward_comm(int, int, double *) {}
-  virtual int pack_forward_comm_kokkos(int, DAT::tdual_int_2d, 
-                                       int, DAT::tdual_xfloat_1d &, 
-                                       int, int *) {return 0;};
-  virtual void unpack_forward_comm_kokkos(int, int, DAT::tdual_xfloat_1d &) {}
   virtual int pack_reverse_comm(int, int, double *) {return 0;}
   virtual void unpack_reverse_comm(int, int *, double *) {}
   virtual double memory_usage();
@@ -305,6 +300,10 @@ New coding for the pair style would need to be done.
 E: Pair style requires a KSpace style
 
 No kspace style is defined.
+
+E: BUG: restartinfo=1 but no restart support in pair style
+
+UNDOCUMENTED
 
 E: Cannot yet use compute tally with Kokkos
 

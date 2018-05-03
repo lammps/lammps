@@ -15,8 +15,8 @@
    Contributing authors: Mike Salerno (NRL) added single methods
 ------------------------------------------------------------------------- */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include "create_bonds.h"
 #include "atom.h"
 #include "domain.h"
@@ -75,6 +75,8 @@ void CreateBonds::command(int narg, char **arg)
     btype = force->inumeric(FLERR,arg[1]);
     batom1 = force->tnumeric(FLERR,arg[2]);
     batom2 = force->tnumeric(FLERR,arg[3]);
+    if (batom1 == batom2)
+      error->all(FLERR,"Illegal create_bonds command");
     iarg = 4;
   } else if (strcmp(arg[0],"single/angle") == 0) {
     style = SANGLE;
@@ -83,6 +85,8 @@ void CreateBonds::command(int narg, char **arg)
     aatom1 = force->tnumeric(FLERR,arg[2]);
     aatom2 = force->tnumeric(FLERR,arg[3]);
     aatom3 = force->tnumeric(FLERR,arg[4]);
+    if ((aatom1 == aatom2) || (aatom1 == aatom3) || (aatom2 == aatom3))
+      error->all(FLERR,"Illegal create_bonds command");
     iarg = 5;
   } else if (strcmp(arg[0],"single/dihedral") == 0) {
     style = SDIHEDRAL;
@@ -92,6 +96,9 @@ void CreateBonds::command(int narg, char **arg)
     datom2 = force->tnumeric(FLERR,arg[3]);
     datom3 = force->tnumeric(FLERR,arg[4]);
     datom4 = force->tnumeric(FLERR,arg[5]);
+    if ((datom1 == datom2) || (datom1 == datom3) || (datom1 == datom4) ||
+        (datom2 == datom3) || (datom2 == datom4) || (datom3 == datom4))
+      error->all(FLERR,"Illegal create_bonds command");
     iarg = 6;
   } else error->all(FLERR,"Illegal create_bonds command");
 
@@ -202,7 +209,7 @@ void CreateBonds::many()
   comm->exchange();
   comm->borders();
   if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
-  neighbor->build();
+  neighbor->build(1);
 
   // build neighbor list this command needs based on earlier request
 
@@ -322,7 +329,7 @@ void CreateBonds::single_bond()
 
   int allcount;
   MPI_Allreduce(&count,&allcount,1,MPI_INT,MPI_SUM,world);
-  if (allcount != 2) 
+  if (allcount != 2)
     error->all(FLERR,"Create_bonds single/bond atoms do not exist");
 
   // create bond once or 2x if newton_bond set
@@ -338,6 +345,7 @@ void CreateBonds::single_bond()
     bond_atom[m][num_bond[m]] = batom2;
     num_bond[m]++;
   }
+  atom->nbonds++;
 
   if (force->newton_bond) return;
 
@@ -365,7 +373,7 @@ void CreateBonds::single_angle()
 
   int allcount;
   MPI_Allreduce(&count,&allcount,1,MPI_INT,MPI_SUM,world);
-  if (allcount != 3) 
+  if (allcount != 3)
     error->all(FLERR,"Create_bonds single/angle atoms do not exist");
 
   // create angle once or 3x if newton_bond set
@@ -385,6 +393,7 @@ void CreateBonds::single_angle()
     angle_atom3[m][num_angle[m]] = aatom3;
     num_angle[m]++;
   }
+  atom->nangles++;
 
   if (force->newton_bond) return;
 
@@ -425,7 +434,7 @@ void CreateBonds::single_dihedral()
 
   int allcount;
   MPI_Allreduce(&count,&allcount,1,MPI_INT,MPI_SUM,world);
-  if (allcount != 4) 
+  if (allcount != 4)
     error->all(FLERR,"Create_bonds single/dihedral atoms do not exist");
 
   // create bond once or 4x if newton_bond set
@@ -448,6 +457,7 @@ void CreateBonds::single_dihedral()
     dihedral_atom4[m][num_dihedral[m]] = datom4;
     num_dihedral[m]++;
   }
+  atom->ndihedrals++;
 
   if (force->newton_bond) return;
 

@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 #include "pair_yukawa.h"
 #include "atom.h"
 #include "force.h"
@@ -139,7 +139,6 @@ void PairYukawa::allocate()
       setflag[i][j] = 0;
 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
-
   memory->create(rad,n+1,"pair:rad");
   memory->create(cut,n+1,n+1,"pair:cut");
   memory->create(a,n+1,n+1,"pair:a");

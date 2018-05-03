@@ -42,7 +42,7 @@ class PairTDPD : public Pair {
  protected:
   double cut_global,temperature;
   int seed,cc_species;
-  double **cut,**cutcc; 
+  double **cut,**cutcc;
   double **a0,**gamma,**sigma;
   double **power;
   double ***kappa,***epsilon;

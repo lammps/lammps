@@ -34,7 +34,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 */
@@ -102,6 +102,27 @@ Perf fenl< Kokkos::Cuda , Kokkos::Example::BoxElemPart::ElemLinear >(
 
 template
 Perf fenl< Kokkos::Cuda , Kokkos::Example::BoxElemPart::ElemQuadratic >(
+  MPI_Comm comm ,
+  const int use_print ,
+  const int use_trials ,
+  const int use_atomic ,
+  const int global_elems[] );
+
+#endif
+
+#if defined( KOKKOS_ENABLE_ROCM )
+
+template
+Perf fenl< Kokkos::Experimental::ROCm , Kokkos::Example::BoxElemPart::ElemLinear >(
+  MPI_Comm comm ,
+  const int use_print ,
+  const int use_trials ,
+  const int use_atomic ,
+  const int global_elems[] );
+
+
+template
+Perf fenl< Kokkos::Experimental::ROCm , Kokkos::Example::BoxElemPart::ElemQuadratic >(
   MPI_Comm comm ,
   const int use_print ,
   const int use_trials ,

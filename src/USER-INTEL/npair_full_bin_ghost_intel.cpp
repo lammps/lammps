@@ -21,6 +21,8 @@
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
+#include "comm.h"
+#include "domain.h"
 #include "molecule.h"
 #include "error.h"
 
@@ -65,8 +67,8 @@ void NPairFullBinGhostIntel::build(NeighList *list)
 /* ---------------------------------------------------------------------- */
 
 template<class flt_t, class acc_t>
-void NPairFullBinGhostIntel::fbi(NeighList * list, 
-				 IntelBuffers<flt_t,acc_t> * buffers) 
+void NPairFullBinGhostIntel::fbi(NeighList * list,
+                                 IntelBuffers<flt_t,acc_t> * buffers)
 {
   const int nlocal = atom->nlocal;
   const int nall = atom->nlocal + atom->nghost;
@@ -85,12 +87,12 @@ void NPairFullBinGhostIntel::fbi(NeighList * list,
   // only uses offload_end_neighbor to check whether we are doing offloading
   // at all, no need to correct this later
   buffers->grow_list(list, nall, comm->nthreads, off_end,
-		     _fix->nbor_pack_width());
+                     _fix->nbor_pack_width());
 
   int need_ic = 0;
   if (atom->molecular)
     dminimum_image_check(need_ic, neighbor->cutneighmax, neighbor->cutneighmax,
-			 neighbor->cutneighmax);
+                         neighbor->cutneighmax);
 
   if (need_ic) {
     fbi<flt_t,acc_t,1>(1, list, buffers, 0, off_end);
@@ -104,9 +106,9 @@ void NPairFullBinGhostIntel::fbi(NeighList * list,
 /* ---------------------------------------------------------------------- */
 
 template<class flt_t, class acc_t, int need_ic>
-void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list, 
-				 IntelBuffers<flt_t,acc_t> * buffers,
-				 const int pstart, const int pend) {
+void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
+                                 IntelBuffers<flt_t,acc_t> * buffers,
+                                 const int pstart, const int pend) {
   if (pend-pstart == 0) return;
 
   const int nall = atom->nlocal + atom->nghost;
@@ -144,7 +146,7 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
   const int nstencil = this->nstencil;
   const int * _noalias const stencil = this->stencil;
   const flt_t * _noalias const cutneighsq = buffers->get_cutneighsq()[0];
-  const flt_t * _noalias const cutneighghostsq = 
+  const flt_t * _noalias const cutneighghostsq =
     buffers->get_cutneighghostsq()[0];
   const int ntypes = atom->ntypes + 1;
   const int nlocal = atom->nlocal;
@@ -160,9 +162,9 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
   int moltemplate;
   if (molecular == 2) moltemplate = 1;
   else moltemplate = 0;
-  if (moltemplate) 
-    error->all(FLERR, 
-	       "Can't use moltemplate with npair style full/bin/ghost/intel.");
+  if (moltemplate)
+    error->all(FLERR,
+               "Can't use moltemplate with npair style full/bin/ghost/intel.");
 
   int tnum;
   int *overflow;
@@ -314,38 +316,38 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
         if (ibin != oldbin) {
           oldbin = ibin;
           ncount = 0;
-	  if (i < nlocal) {
-	    for (int k = 0; k < nstencilp; k++) {
-	      const int bstart = binhead[ibin + binstart[k]];
-	      const int bend = binhead[ibin + binend[k]];
+          if (i < nlocal) {
+            for (int k = 0; k < nstencilp; k++) {
+              const int bstart = binhead[ibin + binstart[k]];
+              const int bend = binhead[ibin + binend[k]];
               #if defined(LMP_SIMD_COMPILER)
               #pragma simd
               #endif
               for (int jj = bstart; jj < bend; jj++)
                 tj[ncount++] = binpacked[jj];
-	    }
-	  } else {
-	    const int zbin = ibin / mbinyx;
-	    const int zrem = ibin % mbinyx;
-	    const int ybin = zrem / mbinx;
-	    const int xbin = zrem % mbinx;
-	    for (int k = 0; k < nstencil; k++) {
-	      const int xbin2 = xbin + stencilxyz[3 * k + 0];
-	      const int ybin2 = ybin + stencilxyz[3 * k + 1];
-	      const int zbin2 = zbin + stencilxyz[3 * k + 2];
-	      if (xbin2 < 0 || xbin2 >= mbinx ||
+            }
+          } else {
+            const int zbin = ibin / mbinyx;
+            const int zrem = ibin % mbinyx;
+            const int ybin = zrem / mbinx;
+            const int xbin = zrem % mbinx;
+            for (int k = 0; k < nstencil; k++) {
+              const int xbin2 = xbin + stencilxyz[3 * k + 0];
+              const int ybin2 = ybin + stencilxyz[3 * k + 1];
+              const int zbin2 = zbin + stencilxyz[3 * k + 2];
+              if (xbin2 < 0 || xbin2 >= mbinx ||
                   ybin2 < 0 || ybin2 >= mbiny ||
                   zbin2 < 0 || zbin2 >= mbinz) continue;
 
-	      const int bstart = binhead[ibin + stencil[k]];
-	      const int bend = binhead[ibin + stencil[k] + 1];
+              const int bstart = binhead[ibin + stencil[k]];
+              const int bend = binhead[ibin + stencil[k] + 1];
               #if defined(LMP_SIMD_COMPILER)
               #pragma simd
               #endif
               for (int jj = bstart; jj < bend; jj++)
                 tj[ncount++] = binpacked[jj];
-	    }
-	  } // if i < nlocal
+            }
+          } // if i < nlocal
           #if defined(LMP_SIMD_COMPILER)
           #pragma vector aligned
           #pragma simd
@@ -356,20 +358,20 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
             ty[u] = x[j].y;
             tz[u] = x[j].z;
             tjtype[u] = x[j].w;
-	    ttag[u] = tag[j];
+            ttag[u] = tag[j];
           }
-	} // if ibin != oldbin
+        } // if ibin != oldbin
 
         // ---------------------- Loop over other bins
 
         int n = maxnbors;
         int n2 = n * 2;
-	int *neighptr2 = neighptr;
-	const flt_t * _noalias cutsq;
-	if (i < nlocal) cutsq = cutneighsq;
-	else cutsq = cutneighghostsq;
+        int *neighptr2 = neighptr;
+        const flt_t * _noalias cutsq;
+        if (i < nlocal) cutsq = cutneighsq;
+        else cutsq = cutneighghostsq;
 
-	const int icp = i;
+        const int icp = i;
 
         #if defined(LMP_SIMD_COMPILER)
         #pragma vector aligned
@@ -379,41 +381,41 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
           int addme = 1;
           int j = tj[u];
 
-	  if (i == j) addme = 0;
+          if (i == j) addme = 0;
 
           // Cutoff Check
           const flt_t delx = xtmp - tx[u];
           const flt_t dely = ytmp - ty[u];
           const flt_t delz = ztmp - tz[u];
           const int jtype = tjtype[u];
-	  const int jtag = ttag[u];
+          const int jtag = ttag[u];
           const flt_t rsq = delx * delx + dely * dely + delz * delz;
           if (rsq > cutsq[ioffset + jtype]) addme = 0;
 
           if (need_ic && icp < nlocal) {
             int no_special;
-	    ominimum_image_check(no_special, delx, dely, delz);
+            ominimum_image_check(no_special, delx, dely, delz);
             if (no_special)
               j = -j - 1;
           }
 
-	  int flist = 0;
-	  if (itag > jtag) {
-	    if (((itag+jtag) & 1) == 0) flist = 1;
-	  } else if (itag < jtag) {
-	    if (((itag+jtag) & 1) == 1) flist = 1;
-	  } else {
-	    if (tz[u] < ztmp) flist = 1;
-	    else if (tz[u] == ztmp && ty[u] < ytmp) flist = 1;
-	    else if (tz[u] == ztmp && ty[u] == ytmp && tx[u] < xtmp)
-	      flist = 1;
-	  }
-	  if (addme) {
-	    if (flist)
-	      neighptr2[n2++] = j;
-	    else
-	      neighptr[n++] = j;
-	  }
+          int flist = 0;
+          if (itag > jtag) {
+            if (((itag+jtag) & 1) == 0) flist = 1;
+          } else if (itag < jtag) {
+            if (((itag+jtag) & 1) == 1) flist = 1;
+          } else {
+            if (tz[u] < ztmp) flist = 1;
+            else if (tz[u] == ztmp && ty[u] < ytmp) flist = 1;
+            else if (tz[u] == ztmp && ty[u] == ytmp && tx[u] < xtmp)
+              flist = 1;
+          }
+          if (addme) {
+            if (flist)
+              neighptr2[n2++] = j;
+            else
+              neighptr[n++] = j;
+          }
         } // for u
 
         #ifndef _LMP_INTEL_OFFLOAD
@@ -429,45 +431,45 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
             if (exclusion(i,pj,itype,jtype,mask,molecule)) continue;
             neighptr[n++] = j;
           }
-	  alln = n2;
-	  n2 = maxnbors * 2;
-	  for (int u = n2; u < alln; u++) {
-	    const int j = neighptr[u];
-	    int pj = j;
-	    if (need_ic)
-	      if (pj < 0) pj = -j - 1;
-	    const int jtype = x[pj].w;
-	    if (exclusion(i,pj,itype,jtype,mask,molecule)) continue;
-	    neighptr[n2++] = j;
-	  }
+          alln = n2;
+          n2 = maxnbors * 2;
+          for (int u = n2; u < alln; u++) {
+            const int j = neighptr[u];
+            int pj = j;
+            if (need_ic)
+              if (pj < 0) pj = -j - 1;
+            const int jtype = x[pj].w;
+            if (exclusion(i,pj,itype,jtype,mask,molecule)) continue;
+            neighptr[n2++] = j;
+          }
         }
         #endif
         int ns = n - maxnbors;
-	int alln = n;
-	atombin[i] = ns;
-	n = 0;
-	for (int u = maxnbors; u < alln; u++)
+        int alln = n;
+        atombin[i] = ns;
+        n = 0;
+        for (int u = maxnbors; u < alln; u++)
           neighptr[n++] = neighptr[u];
-	ns += n2 - maxnbors * 2;
-	for (int u = maxnbors * 2; u < n2; u++)
+        ns += n2 - maxnbors * 2;
+        for (int u = maxnbors * 2; u < n2; u++)
           neighptr[n++] = neighptr[u];
-	if (ns > maxnbors) *overflow = 1;
+        if (ns > maxnbors) *overflow = 1;
 
         ilist[i] = i;
         cnumneigh[i] = ct;
         numneigh[i] = ns;
 
-	ct += ns;
-	const int alignb = (INTEL_DATA_ALIGN / sizeof(int));
-	const int edge = ct & (alignb - 1);
-	if (edge) ct += alignb - edge;
-	neighptr = firstneigh + ct;
-	if (ct + obound > list_size) {
-	  if (i < ito - 1) {
-	    *overflow = 1;
-	    ct = (ifrom + tid * 2) * maxnbors;
-	  }
-	}
+        ct += ns;
+        const int alignb = (INTEL_DATA_ALIGN / sizeof(int));
+        const int edge = ct & (alignb - 1);
+        if (edge) ct += alignb - edge;
+        neighptr = firstneigh + ct;
+        if (ct + obound > list_size) {
+          if (i < ito - 1) {
+            *overflow = 1;
+            ct = (ifrom + tid * 2) * maxnbors;
+          }
+        }
       }
 
       if (*overflow == 1)
@@ -490,10 +492,10 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
           }
         }
 
-	overflow[LMP_LOCAL_MIN] = 0;
-	overflow[LMP_LOCAL_MAX] = nlocal - 1;
-	overflow[LMP_GHOST_MIN] = nlocal;
-	overflow[LMP_GHOST_MAX] = e_nall - 1;
+        overflow[LMP_LOCAL_MIN] = 0;
+        overflow[LMP_LOCAL_MAX] = nlocal - 1;
+        overflow[LMP_GHOST_MIN] = nlocal;
+        overflow[LMP_GHOST_MAX] = e_nall - 1;
 
         int nghost = overflow[LMP_GHOST_MAX] + 1 - overflow[LMP_GHOST_MIN];
         if (nghost < 0) nghost = 0;
@@ -508,8 +510,8 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
       #endif
 
       if (molecular) {
-	int ito_m = ito;
-	if (ito >= nlocal) ito_m = nlocal; 
+        int ito_m = ito;
+        if (ito >= nlocal) ito_m = nlocal;
         for (int i = ifrom; i < ito_m; ++i) {
           int * _noalias jlist = firstneigh + cnumneigh[i];
           const int jnum = numneigh[i];

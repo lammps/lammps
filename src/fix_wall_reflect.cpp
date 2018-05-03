@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include "fix_wall_reflect.h"
 #include "atom.h"
 #include "comm.h"
@@ -38,6 +38,8 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
   nwall(0)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix wall/reflect command");
+
+  dynamic_group_allow = 1;
 
   // parse args
 

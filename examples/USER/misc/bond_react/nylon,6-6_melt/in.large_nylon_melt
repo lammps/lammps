@@ -6,7 +6,7 @@ boundary p p p
 
 atom_style full
 
-kspace_style pppm 1.0e-2 # actually, this appears required to check 1-3 neighbors
+kspace_style pppm 1.0e-4
 
 pair_style lj/class2/coul/long 8.5
 
@@ -46,7 +46,7 @@ thermo_style custom step temp press density f_myrxns[1] f_myrxns[2] # cumulative
 
 # restart 100 restart1 restart2
 
-run 200000
+run 200
 
 # write_restart restart_longrun
 # write_data restart_longrun.data

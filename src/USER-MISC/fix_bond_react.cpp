@@ -16,9 +16,9 @@ Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cmath.h>
+#include <cstring.h>
+#include <cstdlib.h>
 #include "fix_bond_react.h"
 #include "update.h"
 #include "modify.h"
@@ -32,11 +32,12 @@ Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "random_mars.h"
-#include "memory.h"
-#include "citeme.h"
-#include "error.h"
 #include "molecule.h"
 #include "group.h"
+#include "citeme.h"
+#include "memory.h"
+#include "error.h"
+
 #include <algorithm>
 
 using namespace LAMMPS_NS;

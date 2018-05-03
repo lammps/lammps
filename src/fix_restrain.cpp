@@ -108,6 +108,8 @@ FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
       cos_target[nrestrain] = cos(target[nrestrain]);
       sin_target[nrestrain] = sin(target[nrestrain]);
       mult[nrestrain] = force->inumeric(FLERR,arg[iarg+8]);
+      if (mult[nrestrain] < 0)
+        error->all(FLERR,"Incorrect multiplicity arg for dihedral coefficients");
       iarg += 9;
     } else error->all(FLERR,"Illegal fix restrain command");
 

@@ -13,7 +13,7 @@ DEPFLAGS =	-M
 
 LINK =		mpicxx
 LINKFLAGS =	-g -O
-LIB = 
+LIB =           -lgfortran  
 SIZE =		size
 
 ARCHIVE =	ar

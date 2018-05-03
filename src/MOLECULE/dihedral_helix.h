@@ -33,6 +33,7 @@ class DihedralHelix : public Dihedral {
   void coeff(int, char **);
   void write_restart(FILE *);
   void read_restart(FILE *);
+  void write_data(FILE *);
 
  protected:
   double *aphi,*bphi,*cphi;

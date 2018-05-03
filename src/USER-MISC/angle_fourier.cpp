@@ -35,7 +35,13 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-AngleFourier::AngleFourier(LAMMPS *lmp) : Angle(lmp) {}
+AngleFourier::AngleFourier(LAMMPS *lmp) : Angle(lmp)
+{
+  k = NULL;
+  C0 = NULL;
+  C1 = NULL;
+  C2 = NULL;
+}
 
 /* ---------------------------------------------------------------------- */
 

@@ -331,3 +331,13 @@ void DihedralMultiHarmonic::read_restart(FILE *fp)
 
   for (int i = 1; i <= atom->ndihedraltypes; i++) setflag[i] = 1;
 }
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void DihedralMultiHarmonic::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->ndihedraltypes; i++)
+    fprintf(fp,"%d %g %g %g %g %g\n",i,a1[i],a2[i],a3[i],a4[i],a5[i]);
+}

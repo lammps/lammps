@@ -34,7 +34,16 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-AngleCosineShiftExp::AngleCosineShiftExp(LAMMPS *lmp) : Angle(lmp) {}
+AngleCosineShiftExp::AngleCosineShiftExp(LAMMPS *lmp) : Angle(lmp)
+{
+  doExpansion = NULL;
+  umin = NULL;
+  a = NULL;
+  opt1 = NULL;
+  theta0 = NULL;
+  sint = NULL;
+  cost = NULL;
+}
 
 /* ---------------------------------------------------------------------- */
 

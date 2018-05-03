@@ -312,3 +312,13 @@ void ImproperCossq::read_restart(FILE *fp)
 
   for (int i = 1; i <= atom->nimpropertypes; i++) setflag[i] = 1;
 }
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void ImproperCossq::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->nimpropertypes; i++)
+    fprintf(fp,"%d %g %g\n",i,k[i],chi[i]/MY_PI*180.0);
+}

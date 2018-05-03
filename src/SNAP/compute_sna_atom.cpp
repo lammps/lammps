@@ -276,9 +276,13 @@ void ComputeSNAAtom::compute_peratom()
         for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
           double bi = snaptr[tid]->bvec[icoeff];
 
+          // diagonal element of quadratic matrix
+
+          sna[i][ncount++] = 0.5*bi*bi;
+
           // upper-triangular elements of quadratic matrix
 
-          for (int jcoeff = icoeff; jcoeff < ncoeff; jcoeff++)
+          for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++)
             sna[i][ncount++] = bi*snaptr[tid]->bvec[jcoeff];
         }
       }

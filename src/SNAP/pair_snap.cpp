@@ -278,14 +278,15 @@ void PairSNAP::compute_regular(int eflag, int vflag)
           double bveci = snaptr->bvec[icoeff];
           double fack = coeffi[k]*bveci;
           double* dbveci = snaptr->dbvec[icoeff];
-          fij[0] += fack*snaptr->dbvec[icoeff][0];
-          fij[1] += fack*snaptr->dbvec[icoeff][1];
-          fij[2] += fack*snaptr->dbvec[icoeff][2];
+          fij[0] += fack*dbveci[0];
+          fij[1] += fack*dbveci[1];
+          fij[2] += fack*dbveci[2];
           k++;
           for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++) {
             double facki = coeffi[k]*bveci;
             double fackj = coeffi[k]*snaptr->bvec[jcoeff];
             double* dbvecj = snaptr->dbvec[jcoeff];
+
             fij[0] += facki*dbvecj[0]+fackj*dbveci[0];
             fij[1] += facki*dbvecj[1]+fackj*dbveci[1];
             fij[2] += facki*dbvecj[2]+fackj*dbveci[2];
@@ -1529,10 +1530,10 @@ void PairSNAP::coeff(int narg, char **arg)
   }
 
   if (comm->me == 0)
-    printf("ncoeff = %d snancoeff = %d \n",ncoeff,sna[0]->ncoeff);
-  if (ncoeff != sna[0]->ncoeff) {
-    error->all(FLERR,"Incorrect SNAP parameter file");
-  }
+    if (ncoeff != sna[0]->ncoeff) {
+      printf("ncoeff = %d snancoeff = %d \n",ncoeff,sna[0]->ncoeff);
+      error->all(FLERR,"Incorrect SNAP parameter file");
+    }
 
   // Calculate maximum cutoff for all elements
 

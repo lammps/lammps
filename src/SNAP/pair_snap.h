@@ -37,11 +37,8 @@ public:
   virtual double init_one(int, int);
   virtual double memory_usage();
 
-  double rcutfac, quadraticflag; // declared public to workaround gcc 4.9
-  int ncoeff;                    //  compiler bug, manifest in KOKKOS package
-
 protected:
-  int ncoeffq, ncoeffall;
+  int ncoeff, ncoeffq, ncoeffall;
   double **bvec, ***dbvec;
   class SNA** sna;
   int nmax;
@@ -100,8 +97,8 @@ protected:
   double *wjelem;               // elements weights
   double **coeffelem;           // element bispectrum coefficients
   int *map;                     // mapping from atom types to elements
-  int twojmax, diagonalstyle, switchflag, bzeroflag;
-  double rfac0, rmin0, wj1, wj2;
+  int twojmax, diagonalstyle, switchflag, bzeroflag, quadraticflag;
+  double rcutfac, rfac0, rmin0, wj1, wj2;
   int rcutfacflag, twojmaxflag; // flags for required parameters
 };
 

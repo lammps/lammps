@@ -16,9 +16,9 @@ Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <cmath.h>
-#include <cstring.h>
-#include <cstdlib.h>
+#include <cmath>
+#include <cstring>
+#include <cstdlib>
 #include "fix_bond_react.h"
 #include "update.h"
 #include "modify.h"

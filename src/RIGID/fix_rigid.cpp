@@ -174,7 +174,8 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
         MPI_Allreduce(&vmin,&minval,1,MPI_INT,MPI_MIN,world);
         molecule = new tagint[nlocal];
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit) molecule[i] = (tagint)((tagint)value[i] - minval + 1);
+          if (mask[i] & groupbit) 
+            molecule[i] = (tagint)((tagint)value[i] - minval + 1);
         delete[] value;
       } else error->all(FLERR,"Unsupported fix rigid custom property");
     } else {
@@ -624,7 +625,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
   setupflag = 0;
 
-  // compute per body forces and torques inside final_integrate() by default
+  // compute per body forces and torques at final_integrate() by default
 
   earlyflag = 0;
 
@@ -688,29 +689,12 @@ FixRigid::~FixRigid()
 
 /* ---------------------------------------------------------------------- */
 
-int FixRigid::modify_param(int narg, char **arg)
-{
-  if (strcmp(arg[0],"bodyforces") == 0) {
-    if (narg < 2)
-      error->all(FLERR,"Illegal fix_modify command");
-    if (strcmp(arg[1],"early") == 0)
-      earlyflag = 1;
-    else if (strcmp(arg[1],"late") == 0)
-      earlyflag = 0;
-    else
-      error->all(FLERR,"Illegal fix_modify command");
-    return 2;
-  } else return 0;
-}
-
-/* ---------------------------------------------------------------------- */
-
 int FixRigid::setmask()
 {
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
   mask |= FINAL_INTEGRATE;
-  mask |= POST_FORCE;
+  if (langflag || earlyflag) mask |= POST_FORCE;
   mask |= PRE_NEIGHBOR;
   mask |= INITIAL_INTEGRATE_RESPA;
   mask |= FINAL_INTEGRATE_RESPA;
@@ -732,19 +716,25 @@ void FixRigid::init()
   avec_tri = (AtomVecTri *) atom->style_match("tri");
 
   // warn if more than one rigid fix
+  // if earlyflag, warn if any post-force fixes come after POEMS fix
 
   int count = 0;
-  int myindex, myposition;
   for (i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"rigid") == 0) {
-      count++;
-      if (strcmp(modify->fix[i]->id,this->id) == 0) {
-        myindex = i;
-        myposition = count;
+    if (modify->fix[i]->rigid_flag) count++;
+  if (count > 1 && me == 0) error->warning(FLERR,"More than one fix rigid");
+
+  if (earlyflag) {
+    int rflag = 0;
+    for (i = 0; i < modify->nfix; i++) {
+      if (modify->fix[i]->rigid_flag) rflag = 1;
+      if (rflag && (modify->fmask[i] & POST_FORCE) && 
+          !modify->fix[i]->rigid_flag) {
+        char str[128];
+        sprintf(str,"Fix %d alters forces after fix rigid",modify->fix[i]->id);
+        error->warning(FLERR,str);
       }
     }
-  if (count > 1 && myposition == 1 && comm->me == 0)
-    error->warning(FLERR,"More than one fix rigid");
+  }
 
   // error if npt,nph fix comes before rigid fix
 
@@ -756,29 +746,6 @@ void FixRigid::init()
     for (int j = i; j < modify->nfix; j++)
       if (strcmp(modify->fix[j]->style,"rigid") == 0)
         error->all(FLERR,"Rigid fix must come before NPT/NPH fix");
-  }
-
-  // warn if fix rigid preceeds non-rigid fixes with post-force tasks
-  // when computing body forces and torques in post_force() instead of final_integrate()
-
-  if (earlyflag) {
-    int has_post_force[modify->nfix - myindex];
-    count = 0;
-    for (i = myindex + 1; i < modify->nfix; i++)
-      if ( (modify->fmask[i] & POST_FORCE) && (!modify->fix[i]->rigid_flag) )
-        has_post_force[count++] = i;
-    if (count) {
-      FILE *p[2] = {screen, logfile};
-      for (int j = 0; j < 2; j++)
-        if (p[j]) {
-          fprintf(p[j],"WARNING: fix %s %s",id,style);
-          fprintf(p[j]," will add up forces before they are handled by:\n");
-          for (int k = 0; k < count; k++) {
-            Fix *fix = modify->fix[has_post_force[k]];
-            fprintf(p[j],"         => fix %s %s\n",fix->id,fix->style);
-          }
-        }
-    }
   }
 
   // timestep info
@@ -993,7 +960,7 @@ void FixRigid::initial_integrate(int vflag)
    apply Langevin thermostat to all 6 DOF of rigid bodies
    computed by proc 0, broadcast to other procs
    unlike fix langevin, this stores extra force in extra arrays,
-     which are added in when one calculates a new fcm/torque
+     which are added in when final_integrate() calculates a new fcm/torque
 ------------------------------------------------------------------------- */
 
 void FixRigid::apply_langevin_thermostat()
@@ -1063,6 +1030,7 @@ void FixRigid::enforce2d()
 void FixRigid::compute_forces_and_torques()
 {
   int i,ibody;
+  double dtfm;
 
   // sum over atoms to get force and torque on rigid body
 
@@ -1124,6 +1092,7 @@ void FixRigid::compute_forces_and_torques()
     torque[ibody][2] = all[ibody][5] + langextra[ibody][5];
   }
 }
+
 
 /* ---------------------------------------------------------------------- */
 
@@ -2658,6 +2627,21 @@ void FixRigid::zero_rotation()
 
   evflag = 0;
   set_v();
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixRigid::modify_param(int narg, char **arg)
+{
+  if (strcmp(arg[0],"bodyforces") == 0) {
+    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
+    if (strcmp(arg[1],"early") == 0) earlyflag = 1;
+    else if (strcmp(arg[1],"late") == 0) earlyflag = 0;
+    else error->all(FLERR,"Illegal fix_modify command");
+    return 2;
+  }
+
+  return 0;
 }
 
 /* ----------------------------------------------------------------------

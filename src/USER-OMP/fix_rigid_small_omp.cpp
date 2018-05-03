@@ -618,3 +618,4 @@ void FixRigidSmallOMP::set_v_thr()
     }
   }
 }
+

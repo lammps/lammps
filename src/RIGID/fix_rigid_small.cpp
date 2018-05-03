@@ -535,29 +535,12 @@ FixRigidSmall::~FixRigidSmall()
 
 /* ---------------------------------------------------------------------- */
 
-int FixRigidSmall::modify_param(int narg, char **arg)
-{
-  if (strcmp(arg[0],"bodyforces") == 0) {
-    if (narg < 2)
-      error->all(FLERR,"Illegal fix_modify command");
-    if (strcmp(arg[1],"early") == 0)
-      earlyflag = 1;
-    else if (strcmp(arg[1],"late") == 0)
-      earlyflag = 0;
-    else
-      error->all(FLERR,"Illegal fix_modify command");
-    return 2;
-  } else return 0;
-}
-
-/* ---------------------------------------------------------------------- */
-
 int FixRigidSmall::setmask()
 {
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
   mask |= FINAL_INTEGRATE;
-  mask |= POST_FORCE;
+  if (langflag || earlyflag) mask |= POST_FORCE;
   mask |= PRE_NEIGHBOR;
   mask |= INITIAL_INTEGRATE_RESPA;
   mask |= FINAL_INTEGRATE_RESPA;
@@ -575,17 +558,22 @@ void FixRigidSmall::init()
   // warn if more than one rigid fix
 
   int count = 0;
-  int myindex, myposition;
   for (i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"rigid") == 0) {
-      count++;
-      if (strcmp(modify->fix[i]->id,this->id) == 0) {
-        myindex = i;
-        myposition = count;
+    if (modify->fix[i]->rigid_flag) count++;
+  if (count > 1 && me == 0) error->warning(FLERR,"More than one fix rigid");
+
+  if (earlyflag) {
+    int rflag = 0;
+    for (i = 0; i < modify->nfix; i++) {
+      if (modify->fix[i]->rigid_flag) rflag = 1;
+      if (rflag && (modify->fmask[i] & POST_FORCE) && 
+          !modify->fix[i]->rigid_flag) {
+        char str[128];
+        sprintf(str,"Fix %d alters forces after fix rigid",modify->fix[i]->id);
+        error->warning(FLERR,str);
       }
     }
-  if (count > 1 && myposition == 1 && comm->me == 0)
-    error->warning(FLERR,"More than one fix rigid");
+  }
 
   // error if npt,nph fix comes before rigid fix
 
@@ -597,29 +585,6 @@ void FixRigidSmall::init()
     for (int j = i; j < modify->nfix; j++)
       if (strcmp(modify->fix[j]->style,"rigid") == 0)
         error->all(FLERR,"Rigid fix must come before NPT/NPH fix");
-  }
-
-  // warn if fix rigid preceeds non-rigid fixes with post-force tasks
-  // when computing body forces and torques in post_force() instead of final_integrate()
-
-  if (earlyflag) {
-    int has_post_force[modify->nfix - myindex];
-    count = 0;
-    for (i = myindex + 1; i < modify->nfix; i++)
-      if ( (modify->fmask[i] & POST_FORCE) && (!modify->fix[i]->rigid_flag) )
-        has_post_force[count++] = i;
-    if (count) {
-      FILE *p[2] = {screen, logfile};
-      for (int j = 0; j < 2; j++)
-        if (p[j]) {
-          fprintf(p[j],"WARNING: fix %s %s",id,style);
-          fprintf(p[j]," will add up forces before they are handled by:\n");
-          for (int k = 0; k < count; k++) {
-            Fix *fix = modify->fix[has_post_force[k]];
-            fprintf(p[j],"         => fix %s %s\n",fix->id,fix->style);
-          }
-        }
-    }
   }
 
   // timestep info
@@ -822,10 +787,10 @@ void FixRigidSmall::initial_integrate(int vflag)
 /* ----------------------------------------------------------------------
    apply Langevin thermostat to all 6 DOF of rigid bodies I own
    unlike fix langevin, this stores extra force in extra arrays,
-     which are added in when one calculates a new fcm/torque
+     which are added in when a new fcm/torque are calculated
 ------------------------------------------------------------------------- */
 
-void FixRigidSmall::apply_langevin_thermostat()
+void FixRigidSmall::apply_langevin_thermostat(int vflag)
 {
   double gamma1,gamma2;
 
@@ -984,13 +949,6 @@ void FixRigidSmall::compute_forces_and_torques()
   }
 }
 
-/* ---------------------------------------------------------------------- */
-
-void FixRigidSmall::post_force(int vflag)
-{
-  if (langflag) apply_langevin_thermostat();
-  if (earlyflag) compute_forces_and_torques();
-}
 
 /* ---------------------------------------------------------------------- */
 
@@ -3450,6 +3408,21 @@ void FixRigidSmall::zero_rotation()
 
   evflag = 0;
   set_v();
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixRigidSmall::modify_param(int narg, char **arg)
+{
+  if (strcmp(arg[0],"bodyforces") == 0) {
+    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
+    if (strcmp(arg[1],"early") == 0) earlyflag = 1;
+    else if (strcmp(arg[1],"late") == 0) earlyflag = 0;
+    else error->all(FLERR,"Illegal fix_modify command");
+    return 2;
+  }
+
+  return 0;
 }
 
 /* ---------------------------------------------------------------------- */

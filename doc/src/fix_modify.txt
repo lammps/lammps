@@ -23,7 +23,7 @@ keyword = {temp} or {press} or {energy} or {virial} or {respa} or {dynamic/dof} 
   {dynamic/dof} value = {yes} or {no}
     yes/no = do or do not recompute the number of degrees of freedom (DOF) contributing to the temperature
   {bodyforces} value = {early} or {late}
-    early/late = compute per-rigid-body forces and torques at post_force (early) or at final_integrate (late) :pre
+    early/late = compute rigid-body forces/torques early or late in the timestep :pre
 :ule
 
 [Examples:]
@@ -86,9 +86,8 @@ if you want virial contribution of the fix to be part of the
 relaxation criteria, although this seems unlikely.
 
 NOTE: This option is only supported by fixes that explicitly say
-so. For some of these (e.g. the
-"fix shake"_fix_shake.html command) the default setting is
-{virial yes}, for others it is {virial no}.
+so. For some of these (e.g. the "fix shake"_fix_shake.html command)
+the default setting is {virial yes}, for others it is {virial no}.
 
 For fixes that set or modify forces, it may be possible to select at
 which "r-RESPA"_run_style.html level the fix operates via the {respa}
@@ -122,22 +121,27 @@ compute to calculate temperature.  See the "compute_modify
 dynamic/dof"_compute_modify.html command for a similar way to insure
 correct temperature normalization for those thermostats.
 
-The {bodyforces} keyword determines whether the resultant forces and
-torques acting on rigid bodies are computed at the post-force stage of
-a time step (i.e. right after per-atom forces have been computed and
-communicated among processors) or at the final-integrate stage (i.e.
-after all other fixes have finished their post-force tasks). This option
-applies for "fix rigid"_fix_rigid.html and "fix rigid/small"_fix_rigid.html,
-along with their nve, nvt, npt, and nph versions. It also applies for
-"fix poems"_fix_poems.html. Few fix styles actually do post-force
-tasks. Some of them cause modifications in the computed per-atoms forces
-(e.g. "fix addforce"_fix_addforce.html, "fix setforce"_fix_setforce.html,
-"fix spring"_fix_spring.html, "fix shake"_fix_shake.html, and
-"fix rattle"_fix_shake.html). These tasks are executed sequentially for
-each fix, following the order of their definitions in the input script.
-Therefore, once the {bodyforces} keyword is set as {early} for a given
-rigid-style fix, per-atom force modifications done by other fixes defined
-afterwards will have no effect on the per-body forces/torques it computes.
+The {bodyforces} keyword determines whether the forces and torques
+acting on rigid bodies are computed {early} at the post-force stage of
+each timestep (right after per-atom forces have been computed and
+communicated among processors), or {late} at the final-integrate stage
+of each timestep (after any other fixes have finished their post-force
+tasks).  Only the rigid-body integration fixes use this option, which
+includes "fix rigid"_fix_rigid.html and "fix
+rigid/small"_fix_rigid.html, and their variants, and also "fix
+poems"_fix_poems.html.
+
+The default is {late}.  If there are other fixes that add forces to
+individual atoms, then the rigid-body constraints will include these
+forces when time-integrating the rigid bodies.  If {early} is
+specified, then new fixes can be written that use or modify the
+per-body force and torque, before time-integration of the rigid bodies
+occurs.  Note however this has the side effect, that fixes such as
+"fix addforce"_fix_addforce.html, "fix setforce"_fix_setforce.html,
+"fix spring"_fix_spring.html, which add forces to individual atoms
+will have no effect on the motion of the rigid bodies if they are
+specified in the input script after the fix rigid command.  LAMMPS
+will give a warning if that is the case.
 
 [Restrictions:] none
 
@@ -149,4 +153,5 @@ pressure"_compute_pressure.html, "thermo_style"_thermo_style.html
 [Default:]
 
 The option defaults are temp = ID defined by fix, press = ID defined
-by fix, energy = no, virial = varies by fix style, respa = 0, bodyforces = late.
+by fix, energy = no, virial = different for each fix style, respa = 0,
+bodyforce = late.

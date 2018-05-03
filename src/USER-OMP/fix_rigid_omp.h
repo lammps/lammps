@@ -45,4 +45,3 @@ class FixRigidOMP : public FixRigid {
 
 #endif
 #endif
-

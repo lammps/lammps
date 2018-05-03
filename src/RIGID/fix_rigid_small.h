@@ -33,7 +33,6 @@ class FixRigidSmall : public Fix {
  public:
   FixRigidSmall(class LAMMPS *, int, char **);
   virtual ~FixRigidSmall();
-  int modify_param(int, char **);
   virtual int setmask();
   virtual void init();
   virtual void setup(int);
@@ -64,6 +63,7 @@ class FixRigidSmall : public Fix {
   void reset_dt();
   void zero_momentum();
   void zero_rotation();
+  int modify_param(int, char **);
   void *extract(const char*, int &);
   double extract_ke();
   double extract_erotational();
@@ -79,7 +79,7 @@ class FixRigidSmall : public Fix {
 
   char *infile;             // file to read rigid body attributes from
   int setupflag;            // 1 if body properties are setup, else 0
-  int earlyflag;     // 1 if forces and torques are computed at post_force()
+  int earlyflag;            // 1 if forces/torques are computed at post_force()
   int commflag;             // various modes of forward/reverse comm
   int customflag;           // 1 if custom property/variable define bodies
   int nbody;                // total # of rigid bodies
@@ -194,7 +194,7 @@ class FixRigidSmall : public Fix {
   void setup_bodies_static();
   void setup_bodies_dynamic();
   void apply_langevin_thermostat();
-  virtual void compute_forces_and_torques();
+  void compute_forces_and_torques();
   void readfile(int, double **, int *);
   void grow_body();
   void reset_atom2body();

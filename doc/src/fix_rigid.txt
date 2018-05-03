@@ -223,10 +223,10 @@ via several options.
 
 NOTE: With the {rigid/small} styles, which require that {bodystyle} be
 specified as {molecule} or {custom}, you can define a system that has
-no rigid bodies initially.  This is useful when you are using the {mol}
-keyword in conjunction with another fix that is adding rigid bodies
-on-the-fly as molecules, such as "fix deposit"_fix_deposit.html or
-"fix pour"_fix_pour.html.
+no rigid bodies initially.  This is useful when you are using the
+{mol} keyword in conjunction with another fix that is adding rigid
+bodies on-the-fly as molecules, such as "fix deposit"_fix_deposit.html
+or "fix pour"_fix_pour.html.
 
 For bodystyle {single} the entire fix group of atoms is treated as one
 rigid body.  This option is only allowed for the {rigid} styles.
@@ -744,8 +744,8 @@ instantaneous temperature.
 
 The "fix_modify"_fix_modify.html {bodyforces} option is supported by
 all rigid styles to set whether per-body forces and torques are
-computed early or late in a time step, i.e., at the post-force stage
-or at the final-integrate stage, respectively.
+computed early or late in a timestep, i.e. at the post-force stage or
+at the final-integrate stage or the timestep, respectively.
 
 The 2 NVE rigid fixes compute a global scalar which can be accessed by
 various "output commands"_Section_howto.html#howto_15.  The scalar

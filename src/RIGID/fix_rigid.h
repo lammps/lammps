@@ -28,7 +28,6 @@ class FixRigid : public Fix {
  public:
   FixRigid(class LAMMPS *, int, char **);
   virtual ~FixRigid();
-  int modify_param(int, char **);
   virtual int setmask();
   virtual void init();
   virtual void setup(int);
@@ -55,6 +54,7 @@ class FixRigid : public Fix {
   void reset_dt();
   void zero_momentum();
   void zero_rotation();
+  virtual int modify_param(int, char **);
   virtual void *extract(const char*, int &);
   double extract_ke();
   double extract_erotational();
@@ -70,7 +70,7 @@ class FixRigid : public Fix {
   char *infile;             // file to read rigid body attributes from
   int rstyle;               // SINGLE,MOLECULE,GROUP
   int setupflag;            // 1 if body properties are setup, else 0
-  int earlyflag;     // 1 if forces and torques are computed at post_force()
+  int earlyflag;            // 1 if forces/torques computed at post_force()
 
   int dimension;            // # of dimensions
   int nbody;                // # of rigid bodies
@@ -146,7 +146,7 @@ class FixRigid : public Fix {
   void setup_bodies_static();
   void setup_bodies_dynamic();
   void apply_langevin_thermostat();
-  virtual void compute_forces_and_torques();
+  void compute_forces_and_torques();
   void readfile(int, double *, double **, double **, double **,
                 imageint *, int *);
 };

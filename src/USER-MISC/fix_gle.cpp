@@ -44,6 +44,7 @@ using namespace FixConst;
 
 enum{NOBIAS,BIAS};
 enum{CONSTANT,EQUAL,ATOM};
+
 //#define GLE_DEBUG 1
 
 #define MAXLINE 1024
@@ -62,35 +63,37 @@ namespace GLE {
 //"stabilized" cholesky decomposition. does a LDL^t decomposition, then sets to zero the negative diagonal elements and gets MM^t
 void StabCholesky(int n, const double* MMt, double* M)
 {
-    double L[n*n], D[n];
+  double *L = new double[n*n];
+  double *D = new double[n];
 
-    int i,j,k;
-    for(i=0; i<n; ++i) D[i]=0.;
-    for(i=0; i<n*n; ++i) L[i]=0.;
+  int i,j,k;
+  for (i=0; i<n; ++i) D[i]=0.0;
+  for (i=0; i<n*n; ++i) L[i]=0.0;
 
-    for(i=0; i<n; ++i)
-    {
-        L[midx(n,i,i)]=1.;
-        for (j=0; j<i; j++)
-        {
-            L[midx(n,i,j)]=MMt[midx(n,i,j)];
-            for (k=0; k<j; ++k) L[midx(n,i,j)]-=L[midx(n,i,k)]*L[midx(n,j,k)]*D[k];
-            if (D[j]!=0.) L[midx(n,i,j)]/=D[j];
-            else L[midx(n,i,j)]=0.0;
-        }
-        D[i]=MMt[midx(n,i,i)];
-        for (k=0; k<i; ++k) D[i]-=L[midx(n,i,k)]*L[midx(n,i,k)]*D[k];
+  for (i=0; i<n; ++i) {
+    L[midx(n,i,i)]=1.0;
+    for (j=0; j<i; j++) {
+      L[midx(n,i,j)]=MMt[midx(n,i,j)];
+      for (k=0; k<j; ++k) L[midx(n,i,j)]-=L[midx(n,i,k)]*L[midx(n,j,k)]*D[k];
+      if (D[j]!=0.) L[midx(n,i,j)]/=D[j];
+      else L[midx(n,i,j)]=0.0;
     }
+    D[i]=MMt[midx(n,i,i)];
+    for (k=0; k<i; ++k) D[i]-=L[midx(n,i,k)]*L[midx(n,i,k)]*D[k];
+  }
 
-    for(i=0; i<n; ++i)
-    {
+  for (i=0; i<n; ++i) {
 #ifdef GLE_DEBUG
-                if (D[i]<0) fprintf(stderr,"GLE Cholesky: Negative diagonal term %le, has been set to zero.\n", D[i]);
+    if (D[i]<0) fprintf(stderr,"GLE Cholesky: Negative diagonal term %le, has been set to zero.\n", D[i]);
 #endif
-                D[i]=(D[i]>0.?sqrt(D[i]):0.);
-        }
+    D[i]=(D[i]>0.0) ? sqrt(D[i]):0.0;
+  }
 
-    for(i=0; i<n; ++i) for (j=0; j<n; j++) M[midx(n,i,j)]=L[midx(n,i,j)]*D[j];
+  for (i=0; i<n; ++i)
+    for (j=0; j<n; j++) M[midx(n,i,j)]=L[midx(n,i,j)]*D[j];
+
+  delete[] D;
+  delete[] L;
 }
 
 void MyMult(int n, int m, int r, const double* A, const double* B, double* C, double cf=0.0)
@@ -162,26 +165,32 @@ void MyPrint(int n, const double* A)
 //matrix exponential by scaling and squaring.
 void MatrixExp(int n, const double* M, double* EM, int j=8, int k=8)
 {
-   double tc[j+1], SM[n*n], TMP[n*n];
-   double onetotwok=pow(0.5,1.0*k);
+  double *tc = new double[j+1];
+  double *SM = new double[n*n];
+  double *TMP = new double[n*n];
+  double onetotwok=pow(0.5,1.0*k);
 
 
-   tc[0]=1;
-   for (int i=0; i<j; ++i) tc[i+1]=tc[i]/(i+1.0);
+  tc[0]=1;
+  for (int i=0; i<j; ++i) tc[i+1]=tc[i]/(i+1.0);
 
-   for (int i=0; i<n*n; ++i) { SM[i]=M[i]*onetotwok; EM[i]=0.0; TMP[i]=0.0; }
+  for (int i=0; i<n*n; ++i) { SM[i]=M[i]*onetotwok; EM[i]=0.0; TMP[i]=0.0; }
 
-   for (int i=0; i<n; ++i) EM[midx(n,i,i)]=tc[j];
+  for (int i=0; i<n; ++i) EM[midx(n,i,i)]=tc[j];
 
-   //taylor exp of scaled matrix
-   for (int p=j-1; p>=0; p--)
-   {
-      MyMult(n, n, n, SM, EM, TMP); for (int i=0; i<n*n; ++i) EM[i]=TMP[i];
-      for (int i=0; i<n; ++i) EM[midx(n,i,i)]+=tc[p];
-   }
+  //taylor exp of scaled matrix
+  for (int p=j-1; p>=0; p--) {
+    MyMult(n, n, n, SM, EM, TMP); for (int i=0; i<n*n; ++i) EM[i]=TMP[i];
+    for (int i=0; i<n; ++i) EM[midx(n,i,i)]+=tc[p];
+  }
 
-   for (int p=0; p<k; p++)
-   {  MyMult(n, n, n, EM, EM, TMP); for (int i=0; i<n*n; ++i) EM[i]=TMP[i]; }
+  for (int p=0; p<k; p++) {
+     MyMult(n, n, n, EM, EM, TMP);
+     for (int i=0; i<n*n; ++i) EM[i]=TMP[i];
+  }
+  delete[] tc;
+  delete[] SM;
+  delete[] TMP;
 }
 }
 

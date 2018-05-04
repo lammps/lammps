@@ -237,7 +237,7 @@ void FixRigidNHOMP::initial_integrate(int vflag)
 
 void FixRigidNHOMP::compute_forces_and_torques()
 {
-  int ibody
+  int ibody;
 
   double * const * _noalias const x = atom->x;
   const dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];

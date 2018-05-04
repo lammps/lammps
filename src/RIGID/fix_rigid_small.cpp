@@ -790,7 +790,7 @@ void FixRigidSmall::initial_integrate(int vflag)
      which are added in when a new fcm/torque are calculated
 ------------------------------------------------------------------------- */
 
-void FixRigidSmall::apply_langevin_thermostat(int vflag)
+void FixRigidSmall::apply_langevin_thermostat()
 {
   double gamma1,gamma2;
 
@@ -864,6 +864,15 @@ void FixRigidSmall::enforce2d()
     }
   }
 }
+
+/* ---------------------------------------------------------------------- */
+
+void FixRigidSmall::post_force(int vflag)
+{
+  if (langflag) apply_langevin_thermostat();
+  if (earlyflag) compute_forces_and_torques();
+}
+
 
 /* ---------------------------------------------------------------------- */
 

@@ -323,10 +323,11 @@ void CreateBonds::single_bond()
 
   // check that 2 atoms exist
 
-  int count = 0;
   const int nlocal = atom->nlocal;
   const int idx1 = atom->map(batom1);
   const int idx2 = atom->map(batom2);
+
+  int count = 0;
   if ((idx1 >= 0) && (idx1 < nlocal)) count++;
   if ((idx2 >= 0) && (idx2 < nlocal)) count++;
 
@@ -369,10 +370,15 @@ void CreateBonds::single_angle()
 
   // check that 3 atoms exist
 
+  const int nlocal = atom->nlocal;
+  const int idx1 = atom->map(aatom1);
+  const int idx2 = atom->map(aatom2);
+  const int idx3 = atom->map(aatom3);
+
   int count = 0;
-  if (atom->map(aatom1) >= 0) count++;
-  if (atom->map(aatom2) >= 0) count++;
-  if (atom->map(aatom3) >= 0) count++;
+  if ((idx1 >= 0) && (idx1 < nlocal)) count++;
+  if ((idx2 >= 0) && (idx2 < nlocal)) count++;
+  if ((idx3 >= 0) && (idx3 < nlocal)) count++;
 
   int allcount;
   MPI_Allreduce(&count,&allcount,1,MPI_INT,MPI_SUM,world);
@@ -387,7 +393,7 @@ void CreateBonds::single_angle()
   tagint **angle_atom2 = atom->angle_atom2;
   tagint **angle_atom3 = atom->angle_atom3;
 
-  if ((m = atom->map(aatom2)) >= 0) {
+  if ((m = idx2) >= 0) {
     if (num_angle[m] == atom->angle_per_atom)
       error->one(FLERR,"New angle exceeded angles per atom in create_bonds");
     angle_type[m][num_angle[m]] = atype;
@@ -400,7 +406,7 @@ void CreateBonds::single_angle()
 
   if (force->newton_bond) return;
 
-  if ((m = atom->map(aatom1)) >= 0) {
+  if ((m = idx1) >= 0) {
     if (num_angle[m] == atom->angle_per_atom)
       error->one(FLERR,"New angle exceeded angles per atom in create_bonds");
     angle_type[m][num_angle[m]] = atype;
@@ -410,7 +416,7 @@ void CreateBonds::single_angle()
     num_angle[m]++;
   }
 
-  if ((m = atom->map(aatom3)) >= 0) {
+  if ((m = idx3) >= 0) {
     if (num_angle[m] == atom->angle_per_atom)
       error->one(FLERR,"New angle exceeded angles per atom in create_bonds");
     angle_type[m][num_angle[m]] = atype;
@@ -429,11 +435,17 @@ void CreateBonds::single_dihedral()
 
   // check that 4 atoms exist
 
+  const int nlocal = atom->nlocal;
+  const int idx1 = atom->map(datom1);
+  const int idx2 = atom->map(datom2);
+  const int idx3 = atom->map(datom3);
+  const int idx4 = atom->map(datom4);
+
   int count = 0;
-  if (atom->map(datom1) >= 0) count++;
-  if (atom->map(datom2) >= 0) count++;
-  if (atom->map(datom3) >= 0) count++;
-  if (atom->map(datom4) >= 0) count++;
+  if ((idx1 >= 0) && (idx1 < nlocal)) count++;
+  if ((idx2 >= 0) && (idx2 < nlocal)) count++;
+  if ((idx3 >= 0) && (idx3 < nlocal)) count++;
+  if ((idx4 >= 0) && (idx4 < nlocal)) count++;
 
   int allcount;
   MPI_Allreduce(&count,&allcount,1,MPI_INT,MPI_SUM,world);
@@ -449,7 +461,7 @@ void CreateBonds::single_dihedral()
   tagint **dihedral_atom3 = atom->dihedral_atom3;
   tagint **dihedral_atom4 = atom->dihedral_atom4;
 
-  if ((m = atom->map(datom2)) >= 0) {
+  if ((m = idx2) >= 0) {
     if (num_dihedral[m] == atom->dihedral_per_atom)
       error->one(FLERR,
                  "New dihedral exceeded dihedrals per atom in create_bonds");
@@ -464,7 +476,7 @@ void CreateBonds::single_dihedral()
 
   if (force->newton_bond) return;
 
-  if ((m = atom->map(datom1)) >= 0) {
+  if ((m = idx1) >= 0) {
     if (num_dihedral[m] == atom->dihedral_per_atom)
       error->one(FLERR,
                  "New dihedral exceeded dihedrals per atom in create_bonds");
@@ -476,7 +488,7 @@ void CreateBonds::single_dihedral()
     num_dihedral[m]++;
   }
 
-  if ((m = atom->map(datom3)) >= 0) {
+  if ((m = idx3) >= 0) {
     if (num_dihedral[m] == atom->dihedral_per_atom)
       error->one(FLERR,
                  "New dihedral exceeded dihedrals per atom in create_bonds");
@@ -488,7 +500,7 @@ void CreateBonds::single_dihedral()
     num_dihedral[m]++;
   }
 
-  if ((m = atom->map(datom4)) >= 0) {
+  if ((m = idx4) >= 0) {
     if (num_dihedral[m] == atom->dihedral_per_atom)
       error->one(FLERR,
                  "New dihedral exceeded dihedrals per atom in create_bonds");

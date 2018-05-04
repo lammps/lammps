@@ -102,8 +102,8 @@ void FixLbMomentum::end_of_step()
   double masslb,masslbloc;
   double momentumlbloc[3],momentumlb[3];
   double vcmtotal[3];
-  int numvel = fix_lb_fluid->numvel;
-  double etacov[numvel];
+  const int numvel = fix_lb_fluid->numvel;
+  double etacov[19]; // = double etacov[numvel]; i.e. 15 or 19
   double rho;
 
   if (linear) {

@@ -324,8 +324,11 @@ void CreateBonds::single_bond()
   // check that 2 atoms exist
 
   int count = 0;
-  if (atom->map(batom1) >= 0) count++;
-  if (atom->map(batom2) >= 0) count++;
+  const int nlocal = atom->nlocal;
+  const int idx1 = atom->map(batom1);
+  const int idx2 = atom->map(batom2);
+  if ((idx1 >= 0) && (idx1 < nlocal)) count++;
+  if ((idx2 >= 0) && (idx2 < nlocal)) count++;
 
   int allcount;
   MPI_Allreduce(&count,&allcount,1,MPI_INT,MPI_SUM,world);
@@ -338,7 +341,7 @@ void CreateBonds::single_bond()
   int **bond_type = atom->bond_type;
   tagint **bond_atom = atom->bond_atom;
 
-  if ((m = atom->map(batom1)) >= 0) {
+  if ((m = idx1) >= 0) {
     if (num_bond[m] == atom->bond_per_atom)
       error->one(FLERR,"New bond exceeded bonds per atom in create_bonds");
     bond_type[m][num_bond[m]] = btype;
@@ -349,7 +352,7 @@ void CreateBonds::single_bond()
 
   if (force->newton_bond) return;
 
-  if ((m = atom->map(batom2)) >= 0) {
+  if ((m = idx2) >= 0) {
     if (num_bond[m] == atom->bond_per_atom)
       error->one(FLERR,"New bond exceeded bonds per atom in create_bonds");
     bond_type[m][num_bond[m]] = btype;

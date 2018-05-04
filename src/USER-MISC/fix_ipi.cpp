@@ -428,7 +428,7 @@ void FixIPI::final_integrate()
 
   int nat=bsize/3;
   double **f= atom->f;
-  double *lbuf = double[bsize];
+  double *lbuf = new double[bsize];
 
   // reassembles the force vector from the local arrays
   int nlocal = atom->nlocal;

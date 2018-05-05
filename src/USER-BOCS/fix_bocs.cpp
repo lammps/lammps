@@ -1082,7 +1082,7 @@ void FixBocs::couple()
     p_current[2] = tensor[2];
   }
 
-  if (!ISFINITE(p_current[0]) || !ISFINITE(p_current[1]) || !ISFINITE(p_current[2]))
+  if (!std::isfinite(p_current[0]) || !std::isfinite(p_current[1]) || !std::isfinite(p_current[2]))
     error->all(FLERR,"Non-numeric pressure - simulation unstable");
 
   // switch order from xy-xz-yz to Voigt
@@ -1092,7 +1092,7 @@ void FixBocs::couple()
     p_current[4] = tensor[4];
     p_current[5] = tensor[3];
 
-    if (!ISFINITE(p_current[3]) || !ISFINITE(p_current[4]) || !ISFINITE(p_current[5]))
+    if (!std::isfinite(p_current[3]) || !std::isfinite(p_current[4]) || !std::isfinite(p_current[5]))
       error->all(FLERR,"Non-numeric pressure - simulation unstable");
   }
 }

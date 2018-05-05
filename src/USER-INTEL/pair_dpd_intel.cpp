@@ -13,7 +13,7 @@
                         Shun Xu (Computer Network Information Center, CAS)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
+#include <cmath>
 #include "pair_dpd_intel.h"
 #include "atom.h"
 #include "comm.h"

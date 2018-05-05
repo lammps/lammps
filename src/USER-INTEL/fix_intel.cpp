@@ -29,10 +29,10 @@
 #include "update.h"
 #include "fix_intel.h"
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
+#include <cstring>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
 
 #ifdef LAMMPS_BIGBIG
 #error "The USER-INTEL package is not compatible with -DLAMMPS_BIGBIG"

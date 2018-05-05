@@ -39,9 +39,9 @@
 #include "improper_hybrid.h"
 #include "kspace.h"
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include <cstring>
+#include <cstdlib>
+#include <cstdio>
 
 #include "suffix.h"
 

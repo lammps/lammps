@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstring>
+#include <cstdlib>
 #include "compute_temp_deform_eff.h"
 #include "domain.h"
 #include "atom.h"

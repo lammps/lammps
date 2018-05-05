@@ -15,8 +15,8 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <string.h>
-#include <math.h>
+#include <cstring>
+#include <cmath>
 #include "compute_aggregate_atom.h"
 #include "atom.h"
 #include "atom_vec.h"

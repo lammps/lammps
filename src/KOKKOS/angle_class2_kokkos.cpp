@@ -15,8 +15,8 @@
    Contributing author: Ray Shan (Materials Design)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 #include "angle_class2_kokkos.h"
 #include "atom_kokkos.h"
 #include "neighbor_kokkos.h"

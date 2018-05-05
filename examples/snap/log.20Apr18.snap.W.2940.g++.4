@@ -1,4 +1,6 @@
-LAMMPS (13 Feb 2017)
+LAMMPS (20 Apr 2018)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (../comm.cpp:90)
+  using 1 OpenMP thread(s) per MPI task
 # Demonstrate SNAP Ta potential
 
 # Initialize simulation
@@ -31,20 +33,21 @@ Created orthogonal box = (0 0 0) to (12.7212 12.7212 12.7212)
   1 by 2 by 2 MPI processor grid
 create_atoms	1 box
 Created 128 atoms
+  Time spent = 0.000309944 secs
 
 mass 1 183.84
 
 # choose potential
 
-include W_2940_2017_2.pot.snap
-# DATE: 2017-02-20 CONTRIBUTOR: Mitchell Wood mitwood@sandia.gov CITATION: Wood, M. A. and Thompson, A. P. to appear in arxiv Feb2017
+include W_2940_2017_2.snap
+# DATE: 2017-02-20 CONTRIBUTOR: Mitchell Wood mitwood@sandia.gov CITATION: Wood, M. A. and Thompson, A. P. "Quantum-Accurate Molecular Dynamics Potential for Tungsten" arXiv:1702.07042 [physics.comp-ph]
 #
 # Definition of SNAP+ZBL potential.
 variable zblcutinner equal 4
 variable zblcutouter equal 4.8
 variable zblz equal 74
 
-# Specify hybrid with SNAP, ZBL, and long-range Coulomb
+# Specify hybrid with SNAP and ZBL
 
 pair_style hybrid/overlay zbl ${zblcutinner} ${zblcutouter} snap
 pair_style hybrid/overlay zbl 4 ${zblcutouter} snap
@@ -58,10 +61,11 @@ SNAP Element = W, Radius 0.5, Weight 1
 Reading potential file W_2940_2017_2.snapparam with DATE: 2017-02-20
 SNAP keyword rcutfac 4.73442 
 SNAP keyword twojmax 8 
-SNAP keyword gamma 1 
 SNAP keyword rfac0 0.99363 
 SNAP keyword rmin0 0 
 SNAP keyword diagonalstyle 3 
+SNAP keyword bzeroflag 0 
+SNAP keyword quadraticflag 0 
 
 #Nomenclature on the snap files are Element_DakotaID_Year_Month
 
@@ -99,7 +103,7 @@ Neighbor list info ...
       pair build: full/bin/atomonly
       stencil: full/bin/3d
       bin: standard
-Memory usage per processor = 5.12833 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 5.13 | 5.13 | 5.13 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0          300   -11.028325            0    -10.98985     3010.497 
       10    293.22504   -11.027456            0   -10.989849     3258.275 
@@ -112,20 +116,20 @@ Step Temp E_pair E_mol TotEng Press
       80    56.127265   -10.997046            0   -10.989848    11551.687 
       90    38.025013   -10.994724            0   -10.989847    12069.936 
      100    31.768127   -10.993922            0   -10.989847    12145.648 
-Loop time of 3.03545 on 4 procs for 100 steps with 128 atoms
+Loop time of 5.15615 on 4 procs for 100 steps with 128 atoms
 
-Performance: 1.423 ns/day, 16.864 hours/ns, 32.944 timesteps/s
-99.9% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 0.838 ns/day, 28.645 hours/ns, 19.394 timesteps/s
+98.9% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 2.9594     | 2.9866     | 3.0319     |   1.6 | 98.39
+Pair    | 5.0497     | 5.0762     | 5.092      |   0.8 | 98.45
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.0024238  | 0.047825   | 0.075032   |  12.5 |  1.58
-Output  | 0.00021601 | 0.00024045 | 0.00027442 |   0.0 |  0.01
-Modify  | 9.6798e-05 | 0.00011188 | 0.00011802 |   0.0 |  0.00
-Other   |            | 0.000698   |            |       |  0.02
+Comm    | 0.060802   | 0.07661    | 0.10305    |   6.1 |  1.49
+Output  | 0.00040722 | 0.00078458 | 0.0018959  |   0.0 |  0.02
+Modify  | 0.0002389  | 0.00024962 | 0.00027442 |   0.0 |  0.00
+Other   |            | 0.002315   |            |       |  0.04
 
 Nlocal:    32 ave 32 max 32 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -141,4 +145,4 @@ Ave neighs/atom = 58
 Neighbor list builds = 0
 Dangerous builds = 0
 
-Total wall time: 0:00:03
+Total wall time: 0:00:05

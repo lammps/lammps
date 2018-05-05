@@ -24,7 +24,7 @@ AngleStyle(harmonic/intel,AngleHarmonicIntel)
 #ifndef LMP_ANGLE_HARMONIC_INTEL_H
 #define LMP_ANGLE_HARMONIC_INTEL_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "angle_harmonic.h"
 #include "fix_intel.h"
 

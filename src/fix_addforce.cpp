@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 #include "fix_addforce.h"
 #include "atom.h"
 #include "atom_masks.h"

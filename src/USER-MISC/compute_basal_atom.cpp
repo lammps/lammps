@@ -16,7 +16,8 @@
                         Copyright (C) 2013
 ------------------------------------------------------------------------- */
 
-#include <string.h>
+#include <cmath>
+#include <cstring>
 #include "compute_basal_atom.h"
 #include "atom.h"
 #include "update.h"
@@ -29,7 +30,6 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
-#include <math.h>
 
 using namespace LAMMPS_NS;
 

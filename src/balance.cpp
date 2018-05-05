@@ -19,9 +19,9 @@
 //#define BALANCE_DEBUG 1
 
 #include <mpi.h>
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "balance.h"
 #include "atom.h"
 #include "comm.h"

@@ -15,8 +15,8 @@
    Contributing authors: Timothy Sirk (ARL), Pieter in't Veld (BASF)
 ------------------------------------------------------------------------- */
 
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 #include "fix_srp.h"
 #include "atom.h"
 #include "force.h"

@@ -13,9 +13,9 @@
    Contributing author: David Nicholson (MIT)
 ------------------------------------------------------------------------- */
 
-#include <string.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstring>
+#include <cstdlib>
+#include <cmath>
 #include "fix_nh_uef.h"
 #include "atom.h"
 #include "force.h"

@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
+#include <cmath>
 #include "dihedral_harmonic_intel.h"
 #include "atom.h"
 #include "comm.h"

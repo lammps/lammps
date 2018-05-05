@@ -1,4 +1,4 @@
-#include <math.h>
+#include <cmath>
 #include "manifold_torus.h"
 #include "error.h"
 

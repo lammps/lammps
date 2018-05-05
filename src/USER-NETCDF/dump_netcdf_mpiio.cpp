@@ -18,8 +18,8 @@
 #if defined(LMP_HAS_PNETCDF)
 
 #include <unistd.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include <pnetcdf.h>
 #include "dump_netcdf_mpiio.h"
 #include "atom.h"

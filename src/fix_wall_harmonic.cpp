@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
+#include <cmath>
 #include "fix_wall_harmonic.h"
 #include "atom.h"
 #include "error.h"

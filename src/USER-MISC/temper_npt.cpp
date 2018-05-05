@@ -17,9 +17,9 @@
    Contact Email: amulyapervaje@gmail.com
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "temper_npt.h"
 #include "universe.h"
 #include "domain.h"

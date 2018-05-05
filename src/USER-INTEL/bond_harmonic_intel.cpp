@@ -15,8 +15,8 @@
    Contributing author: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 #include "bond_harmonic_intel.h"
 #include "atom.h"
 #include "modify.h"

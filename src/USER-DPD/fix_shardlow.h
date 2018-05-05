@@ -22,7 +22,6 @@ FixStyle(shardlow,FixShardlow)
 
 #include "fix.h"
 #include "random_external_state.h"
-#include <math.h>
 
 namespace LAMMPS_NS {
 

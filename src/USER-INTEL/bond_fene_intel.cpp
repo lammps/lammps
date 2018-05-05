@@ -15,8 +15,8 @@
    Contributing author: Stan Moore (Sandia)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 #include "bond_fene_intel.h"
 #include "atom.h"
 #include "modify.h"

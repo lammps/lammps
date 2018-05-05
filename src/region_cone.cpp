@@ -15,9 +15,9 @@
    Contributing author: Pim Schravendijk
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "region_cone.h"
 #include "domain.h"
 #include "error.h"

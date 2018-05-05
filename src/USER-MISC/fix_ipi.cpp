@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstring>
+#include <cstdlib>
 #include "fix_ipi.h"
 #include "atom.h"
 #include "force.h"
@@ -50,7 +50,7 @@ using namespace FixConst;
 
 // socket interface
 #ifndef _WIN32
-#include <stdlib.h>
+#include <cstdlib>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>

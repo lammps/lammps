@@ -24,7 +24,7 @@
 #include "error.h"
 #include "update.h"
 
-#include <math.h>
+#include <cmath>
 
 #include "suffix.h"
 using namespace LAMMPS_NS;

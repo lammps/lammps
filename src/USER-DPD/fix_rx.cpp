@@ -11,10 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <cmath>
+#include <cfloat> // DBL_EPSILON
 #include "fix_rx.h"
 #include "atom.h"
 #include "error.h"
@@ -31,10 +32,8 @@
 #include "math_special.h"
 #include "pair_dpd_fdt_energy.h"
 
-#include <float.h> // DBL_EPSILON
 #include <vector> // std::vector<>
 #include <algorithm> // std::max
-#include <cmath> // std::fmod
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

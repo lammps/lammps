@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <string.h>
+#include <cstring>
 #include "compute_ke_rigid.h"
 #include "update.h"
 #include "force.h"

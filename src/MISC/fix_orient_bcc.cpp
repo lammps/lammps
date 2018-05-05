@@ -18,9 +18,9 @@
             (https://dx.doi.org/10.6084/m9.figshare.1488628.v1
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstring>
+#include <cstdlib>
 #include <mpi.h>
 #include "fix_orient_bcc.h"
 #include "atom.h"

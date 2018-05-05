@@ -23,6 +23,7 @@ Fixes :h1
    fix_bond_break
    fix_bond_create
    fix_bond_swap
+   fix_bond_react
    fix_box_relax
    fix_cmap
    fix_colvars

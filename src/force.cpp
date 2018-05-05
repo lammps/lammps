@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
+#include <cstdlib>
+#include <cstring>
+#include <cctype>
 #include "force.h"
 #include "style_bond.h"
 #include "style_angle.h"

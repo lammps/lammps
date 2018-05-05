@@ -20,7 +20,7 @@ BondStyle(quartic,BondQuartic)
 #ifndef LMP_BOND_QUARTIC_H
 #define LMP_BOND_QUARTIC_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "bond.h"
 
 namespace LAMMPS_NS {

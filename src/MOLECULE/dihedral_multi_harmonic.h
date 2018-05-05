@@ -20,7 +20,7 @@ DihedralStyle(multi/harmonic,DihedralMultiHarmonic)
 #ifndef LMP_DIHEDRAL_MULTI_HARMONIC_H
 #define LMP_DIHEDRAL_MULTI_HARMONIC_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "dihedral.h"
 
 namespace LAMMPS_NS {
@@ -33,6 +33,7 @@ class DihedralMultiHarmonic : public Dihedral {
   void coeff(int, char **);
   void write_restart(FILE *);
   void read_restart(FILE *);
+  void write_data(FILE *);
 
  protected:
   double *a1,*a2,*a3,*a4,*a5;

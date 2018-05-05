@@ -12,7 +12,8 @@
 ------------------------------------------------------------------------- */
 
 /** Fix Drude Transform ******************************************************/
-#include <math.h>
+#include <cmath>
+#include <cstring>
 #include "fix_drude_transform.h"
 #include "atom.h"
 #include "domain.h"
@@ -20,8 +21,6 @@
 #include "error.h"
 #include "modify.h"
 #include "force.h"
-
-#include <string.h>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

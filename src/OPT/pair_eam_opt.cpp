@@ -19,8 +19,8 @@
      Vincent Natoli, Stone Ridge Technology
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 #include "pair_eam_opt.h"
 #include "atom.h"
 #include "comm.h"

@@ -15,7 +15,7 @@
    OPT version: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
+#include <cmath>
 #include "pair_lj_cut_tip4p_long_opt.h"
 #include "atom.h"
 #include "domain.h"

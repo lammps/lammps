@@ -185,13 +185,6 @@ void DihedralOPLSIntel::eval(const int vflag,
       const flt_t vb3y = x[i4].y - x[i3].y;
       const flt_t vb3z = x[i4].z - x[i3].z;
 
-      // 1-4
-
-      const flt_t delx = x[i1].x - x[i4].x;
-      const flt_t dely = x[i1].y - x[i4].y;
-      const flt_t delz = x[i1].z - x[i4].z;
-
-
       // c0 calculation
       // 1st and 2nd angle
 

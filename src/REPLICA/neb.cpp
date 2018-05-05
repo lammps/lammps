@@ -303,7 +303,7 @@ void NEB::run()
   update->minimize->setup();
 
   if (me_universe == 0) {
-    if (uscreen)
+    if (uscreen) {
       if (verbose) {
         fprintf(uscreen,"Step MaxReplicaForce MaxAtomForce "
                 "GradV0 GradV1 GradVc EBF EBR RDT "
@@ -317,7 +317,8 @@ void NEB::run()
                 "EBF EBR RDT "
                 "RD1 PE1 RD2 PE2 ... RDN PEN\n");
       }
-    if (ulogfile)
+    }
+    if (ulogfile) {
       if (verbose) {
         fprintf(ulogfile,"Step MaxReplicaForce MaxAtomForce "
                 "GradV0 GradV1 GradVc EBF EBR RDT "
@@ -331,6 +332,7 @@ void NEB::run()
                 "EBF EBR RDT "
                 "RD1 PE1 RD2 PE2 ... RDN PEN\n");
       }
+    }
   }
   print_status();
 

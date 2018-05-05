@@ -17,7 +17,7 @@
 
 #include <mpi.h>
 #include "atom.h"
-#include <string.h>
+#include <cstring>
 #include "compute_ti.h"
 #include "update.h"
 #include "modify.h"

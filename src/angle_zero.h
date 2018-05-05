@@ -20,7 +20,7 @@ AngleStyle(zero,AngleZero)
 #ifndef LMP_ANGLE_ZERO_H
 #define LMP_ANGLE_ZERO_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "angle.h"
 
 namespace LAMMPS_NS {

@@ -20,7 +20,7 @@ BondStyle(morse,BondMorse)
 #ifndef LMP_BOND_MORSE_H
 #define LMP_BOND_MORSE_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "bond.h"
 
 namespace LAMMPS_NS {

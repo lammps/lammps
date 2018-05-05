@@ -17,11 +17,11 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_lb_fluid.h"
-#include <math.h>
+#include <cmath>
 #include <mpi.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
 #include "comm.h"
 #include "memory.h"
 #include "error.h"

@@ -20,7 +20,7 @@ DihedralStyle(class2,DihedralClass2)
 #ifndef LMP_DIHEDRAL_CLASS2_H
 #define LMP_DIHEDRAL_CLASS2_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "dihedral.h"
 
 namespace LAMMPS_NS {

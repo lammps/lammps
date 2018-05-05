@@ -17,8 +17,8 @@
    ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 #include "fix_filter_corotate.h"
 #include "atom.h"
 #include "atom_vec.h"

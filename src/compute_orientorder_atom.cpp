@@ -16,9 +16,9 @@
                          Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <string.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstring>
+#include <cstdlib>
+#include <cmath>
 #include "compute_orientorder_atom.h"
 #include "atom.h"
 #include "update.h"

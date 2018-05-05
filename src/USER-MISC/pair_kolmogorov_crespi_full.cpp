@@ -20,10 +20,10 @@
    [Kolmogorov & Crespi, Phys. Rev. B 71, 235415 (2005)]
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <mpi.h>
 #include "pair_kolmogorov_crespi_full.h"
 #include "atom.h"
@@ -640,7 +640,9 @@ void PairKolmogorovCrespiFull::calc_normal()
 void PairKolmogorovCrespiFull::init_style()
 {
   if (force->newton_pair == 0)
-    error->all(FLERR,"Pair style KC requires newton pair on");
+    error->all(FLERR,"Pair style kolmolgorov/crespi/full requires newton pair on");
+  if (!atom->molecule_flag)
+    error->all(FLERR,"Pair style kolmolgorov/crespi/full requires atom attribute molecule");
 
   // need a full neighbor list, including neighbors of ghosts
 

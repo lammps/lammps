@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <ctype.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cctype>
+#include <cstdlib>
+#include <cstring>
 #include "dump_image.h"
 #include "image.h"
 #include "atom.h"

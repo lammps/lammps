@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 
-#include <math.h>
+#include <cmath>
 #include "math_vector.h"
 #include "pair_buck_long_coul_long_omp.h"
 #include "atom.h"

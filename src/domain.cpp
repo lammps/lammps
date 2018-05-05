@@ -16,10 +16,10 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <math.h>
+#include <cstdlib>
+#include <cstring>
+#include <cstdio>
+#include <cmath>
 #include "domain.h"
 #include "style_region.h"
 #include "atom.h"
@@ -518,7 +518,7 @@ void Domain::pbc()
   coord = &x[0][0];  // note: x is always initialized to at least one element.
   int flag = 0;
   for (i = 0; i < n3; i++)
-    if (!ISFINITE(*coord++)) flag = 1;
+    if (!std::isfinite(*coord++)) flag = 1;
   if (flag) error->one(FLERR,"Non-numeric atom coords - simulation unstable");
 
   // setup for PBC checks

@@ -24,7 +24,7 @@
 #include "memory.h"
 #include "math_const.h"
 
-#include <string.h>
+#include <cstring>
 
 #if defined(_OPENMP)
 #include <omp.h>

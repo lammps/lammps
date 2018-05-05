@@ -374,6 +374,8 @@
 /fix_bond_break.h
 /fix_bond_create.cpp
 /fix_bond_create.h
+/fix_bond_react.cpp
+/fix_bond_react.h
 /fix_bond_swap.cpp
 /fix_bond_swap.h
 /fix_cmap.cpp

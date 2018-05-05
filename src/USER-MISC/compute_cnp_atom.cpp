@@ -21,9 +21,9 @@
    branicio@usc.edu
 ------------------------------------------------------------------------- */
 
-#include <string.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstring>
+#include <cstdlib>
+#include <cmath>
 
 #include "compute_cnp_atom.h"
 #include "atom.h"

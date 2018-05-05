@@ -22,7 +22,7 @@ PairStyle(airebo,PairAIREBO)
 
 #include "pair.h"
 #include "my_page.h"
-#include <math.h>
+#include <cmath>
 #include "math_const.h"
 
 namespace LAMMPS_NS {

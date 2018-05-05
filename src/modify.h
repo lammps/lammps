@@ -14,7 +14,7 @@
 #ifndef LMP_MODIFY_H
 #define LMP_MODIFY_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "pointers.h"
 #include <map>
 #include <string>

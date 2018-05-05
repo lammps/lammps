@@ -17,9 +17,9 @@
 
 #include "lmptype.h"
 #include <mpi.h>
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "neb.h"
 #include "universe.h"
 #include "atom.h"

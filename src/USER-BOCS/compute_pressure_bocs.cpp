@@ -52,6 +52,7 @@ ComputePressureBocs::ComputePressureBocs(LAMMPS *lmp, int narg, char **arg) :
   timeflag = 1;
 
   p_match_flag = 0;
+  phi_coeff = NULL;
 
   // store temperature ID used by pressure computation
   // insure it is valid for temperature computation
@@ -119,6 +120,7 @@ ComputePressureBocs::~ComputePressureBocs()
   delete [] id_temp;
   delete [] vector;
   delete [] vptr;
+  if (phi_coeff) free(phi_coeff);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -263,6 +265,7 @@ void ComputePressureBocs::send_cg_info(int basis_type, int sent_N_basis,
   p_match_flag = 1;
 
   N_basis = sent_N_basis;
+  if (phi_coeff) free(phi_coeff);
   phi_coeff = ((double *) calloc(N_basis, sizeof(double)) );
   for (int i=0; i<N_basis; i++) { phi_coeff[i] = sent_phi_coeff[i]; }
 
@@ -327,10 +330,10 @@ double ComputePressureBocs::compute_scalar()
     if (keflag)
       scalar = (temperature->dof * boltz * t +
                 virial[0] + virial[1] + virial[2]) / 3.0 *
-                inv_volume * nktv2p + (correction);  correction
+                inv_volume * nktv2p + (correction);
     else
       scalar = (virial[0] + virial[1] + virial[2]) / 3.0 *
-               inv_volume * nktv2p + (correction);  correction
+               inv_volume * nktv2p + (correction);
   } else {
     if (p_match_flag)
     {

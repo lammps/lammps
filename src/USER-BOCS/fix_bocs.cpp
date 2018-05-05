@@ -107,6 +107,8 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
   id_temp = NULL;
   id_press = NULL;
 
+  p_match_coeffs = NULL;
+
   // turn on tilt factor scaling, whenever applicable
 
   dimension = domain->dimension;
@@ -463,6 +465,7 @@ FixBocs::~FixBocs()
       delete [] etap_mass;
     }
   }
+  if (p_match_coeffs) free(p_match_coeffs);
 }
 
 /* ---------------------------------------------------------------------- */

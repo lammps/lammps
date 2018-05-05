@@ -314,6 +314,6 @@ void FixDrudeTransform<inverse>::unpack_forward_comm(int n, int first, double *b
 }
 
 /* ---------------------------------------------------------------------- */
-template class FixDrudeTransform<false>;
-template class FixDrudeTransform<true>;
+template class LAMMPS_NS::FixDrudeTransform<false>;
+template class LAMMPS_NS::FixDrudeTransform<true>;
 

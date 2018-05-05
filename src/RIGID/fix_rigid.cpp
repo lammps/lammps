@@ -694,7 +694,7 @@ int FixRigid::setmask()
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
   mask |= FINAL_INTEGRATE;
-  if (langflag || earlyflag) mask |= POST_FORCE;
+  if (langflag) mask |= POST_FORCE;
   mask |= PRE_NEIGHBOR;
   mask |= INITIAL_INTEGRATE_RESPA;
   mask |= FINAL_INTEGRATE_RESPA;
@@ -2638,6 +2638,17 @@ int FixRigid::modify_param(int narg, char **arg)
     if (strcmp(arg[1],"early") == 0) earlyflag = 1;
     else if (strcmp(arg[1],"late") == 0) earlyflag = 0;
     else error->all(FLERR,"Illegal fix_modify command");
+
+    // reset fix mask
+    // must do here and not in init, 
+    // since modify.cpp::init() uses fix masks before calling fix::init()
+
+    for (int i = 0; i < modify->nfix; i++)
+      if (strcmp(modify->fix[i]->id,id) == 0) {
+        if (earlyflag) modify->fmask[i] |= POST_FORCE;
+        else if (!langflag) modify->fmask[i] &= ~POST_FORCE;
+        break;
+      }
     return 2;
   }
 

@@ -28,7 +28,6 @@ class FixPOEMS : public Fix  {
  public:
   FixPOEMS(class LAMMPS *, int narg, char **arg);
   ~FixPOEMS();
-  int modify_param(int, char **);
   int setmask();
   void init();
   void setup(int);
@@ -48,6 +47,7 @@ class FixPOEMS : public Fix  {
   void pre_neighbor();
   int dof(int);
   void deform(int);
+  int modify_param(int, char **);
   void reset_dt();
 
  private:
@@ -56,7 +56,6 @@ class FixPOEMS : public Fix  {
   double *step_respa;
   int nlevels_respa;
   double total_ke;
-
   int earlyflag;    // 1 if forces and torques are computed at post_force()
 
   // atom assignment to rigid bodies

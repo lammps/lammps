@@ -9,15 +9,15 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- 
-   USER-BOCS written by: Nicholas J. H. Dunn and Michael R. DeLyser 
+-------------------------------------------------------------------------
+   USER-BOCS written by: Nicholas J. H. Dunn and Michael R. DeLyser
    from The Pennsylvania State University
 ------------------------------------------------------------------------- */
 
-#include <string.h>
-#include <stdlib.h>
-#include <math.h>
-#include "fix_bocs.h" 
+#include <cstring>
+#include <cstdlib>
+#include <cmath>
+#include "fix_bocs.h"
 #include "math_extra.h"
 #include "atom.h"
 #include "force.h"
@@ -64,7 +64,7 @@ enum{ISO,ANISO,TRICLINIC};
    NVT,NPH,NPT integrators for improved Nose-Hoover equations of motion
  ---------------------------------------------------------------------- */
 
-FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) : 
+FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   rfix(NULL), id_dilate(NULL), irregular(NULL), id_temp(NULL), id_press(NULL),
   eta(NULL), eta_dot(NULL), eta_dotdot(NULL),
@@ -155,20 +155,18 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
       iarg += 4;
     } else if (strcmp(arg[iarg],"iso") == 0) {
       error->all(FLERR,"Illegal fix bocs command. Pressure fix must be "
-                       "cgiso . Use regular fix npt/nph for iso"); // MRD NJD
+                       "cgiso . Use regular fix bocs for iso"); // MRD NJD
     } else if (strcmp(arg[iarg],"cgiso") == 0) { // MRD NJD the whole else if
       if (iarg+4 > narg)
-      {
         error->all(FLERR,"Illegal fix bocs command. cgiso must be "
                          "followed by: P_0 P_f P_coupl");
-      }
       p_match_flag = 1;
       pcouple = XYZ;
-      p_start[0] = p_start[1] = p_start[2] = 
+      p_start[0] = p_start[1] = p_start[2] =
                                         force->numeric(FLERR,arg[iarg+1]);
-      p_stop[0] = p_stop[1] = p_stop[2] = 
-                                        force->numeric(FLERR,arg[iarg+2]); 
-      p_period[0] = p_period[1] = p_period[2] = 
+      p_stop[0] = p_stop[1] = p_stop[2] =
+                                        force->numeric(FLERR,arg[iarg+2]);
+      p_period[0] = p_period[1] = p_period[2] =
                                         force->numeric(FLERR,arg[iarg+3]);
 
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
@@ -179,38 +177,29 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
       }
       iarg += 4;
 
-      if ( strcmp(arg[iarg], "analytic") == 0  )
-      {
-        if (iarg + 4 > narg)
-        {
+      if ( strcmp(arg[iarg], "analytic") == 0  ) {
+        if (iarg + 4 > narg) {
           error->all(FLERR,"Illegal fix bocs command. basis type analytic"
                     " must be followed by: avg_vol n_mol n_pmatch_coeff");
         }
         p_basis_type = 0;
-        vavg = atof(arg[iarg+1]);
-        N_mol = atoi(arg[iarg+2]);
-        N_p_match = atoi(arg[iarg+3]);
+        vavg = force->numeric(FLERR,arg[iarg+1]);
+        N_mol = force->inumeric(FLERR,arg[iarg+2]);
+        N_p_match = force->inumeric(FLERR,arg[iarg+3]);
         p_match_coeffs = (double *) (calloc(N_p_match, sizeof(double)) );
         iarg += 4;
         if (iarg + N_p_match > narg)
-        { 
-          error->all(FLERR,"Illegal fix bocs command. Missing coeffs.");   
-        }
+          error->all(FLERR,"Illegal fix bocs command. Missing coeffs.");
         for (int pmatchi = 0; pmatchi < N_p_match; pmatchi++)
-        {
-          p_match_coeffs[pmatchi] = atof(arg[iarg+pmatchi]);
-        }
+          p_match_coeffs[pmatchi] = force->numeric(FLERR,arg[iarg+pmatchi]);
         iarg += (N_p_match);
-      } else if (strcmp(arg[iarg], "linear_spline") == 0  )
-      {
+      } else if (strcmp(arg[iarg], "linear_spline") == 0  ) {
         if (iarg+2 > narg) error->all(FLERR,"Illegal fix bocs command. "
                               "Supply a file name after linear_spline.");
-
         p_basis_type = 1;
         spline_length = read_F_table( arg[iarg+1], p_basis_type );
         iarg += 2;
-      } else if (strcmp(arg[iarg], "cubic_spline") == 0 )
-      {
+      } else if (strcmp(arg[iarg], "cubic_spline") == 0 ) {
         if (iarg+2 > narg) error->all(FLERR,"Illegal fix bocs command. "
                                "Supply a file name after cubic_spline.");
         p_basis_type = 2;
@@ -222,34 +211,34 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
          sprintf(errmsg,"CG basis type %s is not recognized\nSupported "
              "basis types: analytic linear_spline cubic_spline",arg[iarg]);
          error->all(FLERR,errmsg);
-      } // END NJD MRD  
+      } // END NJD MRD
     } else if (strcmp(arg[iarg],"tchain") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix bocs command");
       mtchain = force->inumeric(FLERR,arg[iarg+1]);
       // used by FixNVTSllod to preserve non-default value
       mtchain_default_flag = 0;
-      if (mtchain < 1) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (mtchain < 1) error->all(FLERR,"Illegal fix bocs command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"pchain") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix bocs command");
       mpchain = force->inumeric(FLERR,arg[iarg+1]);
-      if (mpchain < 0) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (mpchain < 0) error->all(FLERR,"Illegal fix bocs command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"mtk") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix bocs command");
       if (strcmp(arg[iarg+1],"yes") == 0) mtk_flag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) mtk_flag = 0;
-      else error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      else error->all(FLERR,"Illegal fix bocs command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"tloop") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix bocs command");
       nc_tchain = force->inumeric(FLERR,arg[iarg+1]);
-      if (nc_tchain < 0) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (nc_tchain < 0) error->all(FLERR,"Illegal fix bocs command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"ploop") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix bocs command");
       nc_pchain = force->inumeric(FLERR,arg[iarg+1]);
-      if (nc_pchain < 0) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (nc_pchain < 0) error->all(FLERR,"Illegal fix bocs command");
       iarg += 2;
     } else {
       char * errmsg = (char *) calloc(80,sizeof(char));
@@ -422,7 +411,7 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
   // create a new compute pressure style
   // id = fix-ID + press, compute group = all
   // pass id_temp as 4th arg to pressure constructor
-     
+
   n = strlen(id) + 7;
   id_press = new char[n];
   strcpy(id_press,id);
@@ -431,7 +420,7 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
   newarg = new char*[4];
   newarg[0] = id_press;
   newarg[1] = (char *) "all";
-  newarg[2] = (char *) "pressureBocs"; 
+  newarg[2] = (char *) "PRESSURE/BOCS";
   newarg[3] = id_temp;
   modify->add_compute(4,newarg);
   delete [] newarg;
@@ -512,9 +501,9 @@ void FixBocs::init()
         if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) ||
             (p_flag[2] && dimflag[2]) || (p_flag[3] && dimflag[3]) ||
             (p_flag[4] && dimflag[4]) || (p_flag[5] && dimflag[5]))
-          error->all(FLERR,"Cannot use fix npt and fix deform on "
+          error->all(FLERR,"Cannot use fix bocs and fix deform on "
                      "same component of stress tensor");
-      } 
+      }
   }
 
   // set temperature and pressure ptrs
@@ -634,7 +623,7 @@ void FixBocs::init()
 int FixBocs::read_F_table( char *filename, int p_basis_type )
 {
   char separator = ',';
-  FILE *fpi; 
+  FILE *fpi;
   int N_columns = 2, n_entries = 0, i;
   float f1, f2;
   double n1, n2;
@@ -647,15 +636,15 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
   {
     while (fgets(line,199,fpi)) { ++n_entries; }
     fclose(fpi);
-    for (i = 0; i < N_columns; ++i) 
-    { 
-      data[i] = (double *) calloc(n_entries,sizeof(double)); 
+    for (i = 0; i < N_columns; ++i)
+    {
+      data[i] = (double *) calloc(n_entries,sizeof(double));
     }
   }
   else
   {
     char * errmsg = (char *) calloc(50,sizeof(char));
-    sprintf(errmsg,"Unable to open file: %s\n",filename);  
+    sprintf(errmsg,"Unable to open file: %s\n",filename);
     error->all(FLERR,errmsg);
   }
 
@@ -679,10 +668,10 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
       }
     }
   }
-  else 
-  { 
+  else
+  {
     char * errmsg = (char *) calloc(50,sizeof(char));
-    sprintf(errmsg,"Unable to open file: %s\n",filename);  
+    sprintf(errmsg,"Unable to open file: %s\n",filename);
     error->all(FLERR,errmsg);
   }
   fclose(fpi);
@@ -693,12 +682,12 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
     splines[0] = (double *) calloc(n_entries,sizeof(double));
     splines[1] = (double *) calloc(n_entries,sizeof(double));
     int idxa, idxb;
-    for (idxa = 0; idxa < 2; ++idxa) 
-    { 
-      for (idxb = 0; idxb < n_entries; ++idxb) 
-      { 
-        splines[idxa][idxb] = data[idxa][idxb]; 
-      } 
+    for (idxa = 0; idxa < 2; ++idxa)
+    {
+      for (idxb = 0; idxb < n_entries; ++idxb)
+      {
+        splines[idxa][idxb] = data[idxa][idxb];
+      }
     }
   }
   else if (p_basis_type == 2)
@@ -720,7 +709,7 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
 void FixBocs::build_cubic_splines( double **data )
 {
   double *a, *b, *d, *h, *alpha, *c, *l, *mu, *z;
-  int n = spline_length; 
+  int n = spline_length;
   double alpha_i;
   a = (double *) calloc(n,sizeof(double));
   b = (double *) calloc(n+1,sizeof(double));
@@ -738,14 +727,14 @@ void FixBocs::build_cubic_splines( double **data )
     b[i] = 0.0;
     d[i] = 0.0;
 
-    if (i<(n-1)) 
-    { 
+    if (i<(n-1))
+    {
       h[i] = (data[0][i+1] - data[0][i]);
     }
 
     if (i>1 && i<(n-1))
     {
-      alpha_i = (3.0 / h[i]) * ( data[1][i+1] - data[1][i]) - (3.0 / h[i-1] ) 
+      alpha_i = (3.0 / h[i]) * ( data[1][i+1] - data[1][i]) - (3.0 / h[i-1] )
                                              * ( data[1][i] - data[1][i-1] );
       alpha[i-1] = alpha_i;
     }
@@ -755,15 +744,15 @@ void FixBocs::build_cubic_splines( double **data )
   z[0] = 0.0;
 
   for (int i=1; i<n-1; i++)
-  {   
+  {
     l[i] = 2*(data[0][i+1] - data[0][i-1]) - h[i-1] * mu[i-1];
     mu[i] = h[i]/l[i];
     z[i] = (alpha[i] - h[i-1] * z[i-1]) / l[i];
   }
   l[n-1] = 1.0;
   mu[n-1] = 0.0;
-  z[n-1] = 0.0;      
-  
+  z[n-1] = 0.0;
+
   c[n] = 0.0;
   b[n] = 0.0;
   d[n] = 0.0;
@@ -777,7 +766,7 @@ void FixBocs::build_cubic_splines( double **data )
     d[j] = (c[j+1]-c[j])/(3.0 * h[j]);
   }
   splines = (double **) calloc(5,sizeof(double *));
-  
+
   for ( idx = 0; idx < 5; ++idx)
   {
     splines[idx] = (double *) calloc(n-1,sizeof(double));
@@ -1488,15 +1477,15 @@ int FixBocs::modify_param(int narg, char **arg)
 
     if (p_match_flag) // NJD MRD
     {
-      if ( p_basis_type == 0 ) 
-      { 
-        ((ComputePressureBocs *)pressure)->send_cg_info(p_basis_type, N_p_match, 
+      if ( p_basis_type == 0 )
+      {
+        ((ComputePressureBocs *)pressure)->send_cg_info(p_basis_type, N_p_match,
                                                    p_match_coeffs, N_mol, vavg);
       }
-      else if ( p_basis_type == 1 || p_basis_type == 2  ) 
-      { 
-        ((ComputePressureBocs *)pressure)->send_cg_info(p_basis_type, splines, 
-                                                                spline_length ); 
+      else if ( p_basis_type == 1 || p_basis_type == 2  )
+      {
+        ((ComputePressureBocs *)pressure)->send_cg_info(p_basis_type, splines,
+                                                                spline_length );
       }
     }
 

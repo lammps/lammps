@@ -9,14 +9,14 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- 
-   USER-BOCS written by: Nicholas J. H. Dunn and Michael R. DeLyser 
+-------------------------------------------------------------------------
+   USER-BOCS written by: Nicholas J. H. Dunn and Michael R. DeLyser
    from The Pennsylvania State University
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 #include "compute_pressure_bocs.h"
 #include "atom.h"
 #include "update.h"
@@ -41,8 +41,8 @@ ComputePressureBocs::ComputePressureBocs(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
   vptr(NULL), id_temp(NULL)
 {
-  if (narg < 4) error->all(FLERR,"Illegal compute pressure command");
-  if (igroup) error->all(FLERR,"Compute pressure must use group all");
+  if (narg < 4) error->all(FLERR,"Illegal compute pressure/bocs command");
+  if (igroup) error->all(FLERR,"Compute pressure/bocs must use group all");
 
   scalar_flag = vector_flag = 1;
   size_vector = 6;
@@ -51,7 +51,7 @@ ComputePressureBocs::ComputePressureBocs(LAMMPS *lmp, int narg, char **arg) :
   pressflag = 1;
   timeflag = 1;
 
-  p_match_flag = 0; // NJD MRD
+  p_match_flag = 0;
 
   // store temperature ID used by pressure computation
   // insure it is valid for temperature computation
@@ -64,9 +64,9 @@ ComputePressureBocs::ComputePressureBocs(LAMMPS *lmp, int narg, char **arg) :
 
     int icompute = modify->find_compute(id_temp);
     if (icompute < 0)
-      error->all(FLERR,"Could not find compute pressure temperature ID");
+      error->all(FLERR,"Could not find compute pressure/bocs temperature ID");
     if (modify->compute[icompute]->tempflag == 0)
-      error->all(FLERR,"Compute pressure temperature ID does not "
+      error->all(FLERR,"Compute pressure/bocs temperature ID does not "
                  "compute temperature");
   }
 
@@ -96,7 +96,7 @@ ComputePressureBocs::ComputePressureBocs(LAMMPS *lmp, int narg, char **arg) :
         pairflag = 1;
         bondflag = angleflag = dihedralflag = improperflag = 1;
         kspaceflag = fixflag = 1;
-      } else error->all(FLERR,"Illegal compute pressure command");
+      } else error->all(FLERR,"Illegal compute pressure/bocs command");
       iarg++;
     }
   }
@@ -104,7 +104,7 @@ ComputePressureBocs::ComputePressureBocs(LAMMPS *lmp, int narg, char **arg) :
   // error check
 
   if (keflag && id_temp == NULL)
-    error->all(FLERR,"Compute pressure requires temperature ID "
+    error->all(FLERR,"Compute pressure/bocs requires temperature ID "
 	       "to include kinetic energy");
 
   vector = new double[6];
@@ -135,7 +135,7 @@ void ComputePressureBocs::init()
   if (keflag) {
     int icompute = modify->find_compute(id_temp);
     if (icompute < 0)
-      error->all(FLERR,"Could not find compute pressure temperature ID");
+      error->all(FLERR,"Could not find compute pressure/bocs temperature ID");
     temperature = modify->compute[icompute];
   }
 
@@ -182,13 +182,13 @@ void ComputePressureBocs::init()
 /* ----------------------------------------------------------------------
    Compute the pressure correction for the analytical basis set
 ------------------------------------------------------------------------- */
-double ComputePressureBocs::get_cg_p_corr(int N_basis, double *phi_coeff, 
+double ComputePressureBocs::get_cg_p_corr(int N_basis, double *phi_coeff,
                                       int N_mol, double vavg, double vCG)
 {
   double correction = 0.0;
-  for (int i = 1; i <= N_basis; ++i) 
-  { 
-    correction -= phi_coeff[i-1] * ( N_mol * i / vavg ) * 
+  for (int i = 1; i <= N_basis; ++i)
+  {
+    correction -= phi_coeff[i-1] * ( N_mol * i / vavg ) *
                                    pow( ( 1 / vavg ) * ( vCG - vavg ),i-1);
   }
   return correction;
@@ -201,7 +201,7 @@ double ComputePressureBocs::find_index(double * grid, double value)
 {
   int i;
   double spacing = fabs(grid[1]-grid[0]);
-  int gridsize = spline_length; 
+  int gridsize = spline_length;
   for (i = 0; i < (gridsize-1); ++i)
   {
     if (value >= grid[i] && value <= grid[i+1]) { return i; }
@@ -209,14 +209,14 @@ double ComputePressureBocs::find_index(double * grid, double value)
 
   if (value >= grid[i] && value <= (grid[i] + spacing)) { return i; }
 
-  for (int i = 0; i < gridsize; ++i) 
-  { 
-    fprintf(stderr, "grid %d: %f\n",i,grid[i]); 
+  for (int i = 0; i < gridsize; ++i)
+  {
+    fprintf(stderr, "grid %d: %f\n",i,grid[i]);
   }
   char * errmsg = (char *) calloc(100,sizeof(char));
   sprintf(errmsg,"Value %f does not fall within spline grid.\n",value);
   error->all(FLERR,errmsg);
-  
+
   exit(1);
 }
 
@@ -224,20 +224,20 @@ double ComputePressureBocs::find_index(double * grid, double value)
    Compute the pressure correction for a spline basis set
 ------------------------------------------------------------------------- */
 
-double ComputePressureBocs::get_cg_p_corr(double ** grid, int basis_type, 
+double ComputePressureBocs::get_cg_p_corr(double ** grid, int basis_type,
                                                                double vCG)
 {
   int i = find_index(grid[0],vCG);
   double correction, deltax = vCG - grid[0][i];
-  
+
   if (basis_type == 1)
   {
-    correction = grid[1][i] + (deltax) * 
+    correction = grid[1][i] + (deltax) *
           ( grid[1][i+1] - grid[1][i] ) / ( grid[0][i+1] - grid[0][i] );
   }
   else if (basis_type == 2)
   {
-    correction = grid[1][i] + (grid[2][i] * deltax) + 
+    correction = grid[1][i] + (grid[2][i] * deltax) +
             (grid[3][i] * pow(deltax,2)) + (grid[4][i] * pow(deltax,3));
   }
   else
@@ -248,21 +248,21 @@ double ComputePressureBocs::get_cg_p_corr(double ** grid, int basis_type,
 }
 
 /* ----------------------------------------------------------------------
-   send cg info from fix_bocs to compute_pressure_bocs for the analytical 
+   send cg info from fix_bocs to compute_pressure_bocs for the analytical
    basis set
 ------------------------------------------------------------------------- */
-void ComputePressureBocs::send_cg_info(int basis_type, int sent_N_basis, 
+void ComputePressureBocs::send_cg_info(int basis_type, int sent_N_basis,
                 double *sent_phi_coeff, int sent_N_mol, double sent_vavg)
 {
-  if (basis_type == 0) { p_basis_type = 0; }  
-  else 
-  { 
-    error->all(FLERR,"Incorrect basis type passed to ComputePressureBocs\n"); 
+  if (basis_type == 0) { p_basis_type = 0; }
+  else
+  {
+    error->all(FLERR,"Incorrect basis type passed to ComputePressureBocs\n");
   }
 
   p_match_flag = 1;
 
-  N_basis = sent_N_basis; 
+  N_basis = sent_N_basis;
   phi_coeff = ((double *) calloc(N_basis, sizeof(double)) );
   for (int i=0; i<N_basis; i++) { phi_coeff[i] = sent_phi_coeff[i]; }
 
@@ -271,16 +271,16 @@ void ComputePressureBocs::send_cg_info(int basis_type, int sent_N_basis,
 }
 
 /* ----------------------------------------------------------------------
-   send cg info from fix_bocs to compute_pressure_bocs for a spline basis 
+   send cg info from fix_bocs to compute_pressure_bocs for a spline basis
    set
 ------------------------------------------------------------------------- */
-void ComputePressureBocs::send_cg_info(int basis_type, 
+void ComputePressureBocs::send_cg_info(int basis_type,
                                          double ** in_splines, int gridsize)
 {
-  if (basis_type == 1) { p_basis_type = 1; }  
-  else if (basis_type == 2) { p_basis_type = 2; }   
-  else 
-  { 
+  if (basis_type == 1) { p_basis_type = 1; }
+  else if (basis_type == 2) { p_basis_type = 2; }
+  else
+  {
     error->all(FLERR,"Incorrect basis type passed to ComputePressureBocs\n");
   }
   splines = in_splines;
@@ -302,7 +302,7 @@ double ComputePressureBocs::compute_scalar()
   // invoke temperature if it hasn't been already
 
   double t;
-  double volume, correction = 0; // NJD MRD
+  double volume, correction = 0;
   if (keflag) {
     if (temperature->invoked_scalar != update->ntimestep)
       t = temperature->compute_scalar();
@@ -311,28 +311,28 @@ double ComputePressureBocs::compute_scalar()
 
   if (dimension == 3) {
     inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
-    volume = (domain->xprd * domain->yprd * domain->zprd); // NJD MRD
+    volume = (domain->xprd * domain->yprd * domain->zprd);
 
     /* MRD NJD if block */
-    if ( p_basis_type == 0 ) 
-    { 
-      correction = get_cg_p_corr(N_basis,phi_coeff,N_mol,vavg,volume); 
-    } 
-    else if ( p_basis_type == 1 || p_basis_type == 2 ) 
-    { 
-      correction = get_cg_p_corr(splines, p_basis_type, volume); 
-    } 
+    if ( p_basis_type == 0 )
+    {
+      correction = get_cg_p_corr(N_basis,phi_coeff,N_mol,vavg,volume);
+    }
+    else if ( p_basis_type == 1 || p_basis_type == 2 )
+    {
+      correction = get_cg_p_corr(splines, p_basis_type, volume);
+    }
 
     virial_compute(3,3);
     if (keflag)
       scalar = (temperature->dof * boltz * t +
-                virial[0] + virial[1] + virial[2]) / 3.0 * 
-                inv_volume * nktv2p + (correction); // NJD MRD correction
+                virial[0] + virial[1] + virial[2]) / 3.0 *
+                inv_volume * nktv2p + (correction);  correction
     else
-      scalar = (virial[0] + virial[1] + virial[2]) / 3.0 * 
-               inv_volume * nktv2p + (correction); // NJD MRD correction
+      scalar = (virial[0] + virial[1] + virial[2]) / 3.0 *
+               inv_volume * nktv2p + (correction);  correction
   } else {
-    if (p_match_flag) // NJD MRD
+    if (p_match_flag)
     {
       error->all(FLERR,"Pressure matching not implemented in 2-d.\n");
       exit(1);

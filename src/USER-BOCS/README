@@ -16,16 +16,4 @@ Dunn, NJH; Lebold, KM; DeLyser, MR; Rudzinski, JF; Noid, WG.
 "BOCS: Bottom-Up Open-Source Coarse-Graining Software."
 J. Phys. Chem. B. 122, 13, 3363-3377 (2018).
 
-Along with the source code files, the following files have been included 
-  (in the /bocs/ directory):
-methanol.lmp
-methanol.data
-lammps_nb_MET-MET.table
-
-methanol.lmp is the input file for LAMMPS.
-methanol.data contains the positions of 968 CG methanol molecules. It is 
-  read in by methanol.lmp
-lammps_nb_MET-MET.table contains the pairwise nonbonded force calculated 
-  via the Multi-Scale Coarse-Graining method.
-
-
+Example inputs are in the examples/USER/bocs folder.

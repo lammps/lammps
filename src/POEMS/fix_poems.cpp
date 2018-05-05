@@ -714,7 +714,8 @@ void FixPOEMS::setup(int vflag)
 
   // use post_force() to compute initial fcm & torque
 
-  post_force(vflag);
+  compute_forces_and_torques();
+  //post_force(vflag);
 
   // setup for POEMS
 
@@ -750,6 +751,16 @@ void FixPOEMS::initial_integrate(int vflag)
 void FixPOEMS::post_force(int vflag)
 {
   if (earlyflag) compute_forces_and_torques();
+
+  /*
+  for (int ibody = 0; ibody < nbody; ibody++) {
+    if (ibody == 0) {
+    printf("PFF %d %g %g %g\n",ibody,fcm[ibody][0],fcm[ibody][1],fcm[ibody][2]);
+    printf("PFT %d %g %g %g\n",ibody,
+           torque[ibody][0],torque[ibody][1],torque[ibody][2]);
+    }
+  }
+  */
 }
 
 /* ----------------------------------------------------------------------
@@ -816,6 +827,16 @@ void FixPOEMS::compute_forces_and_torques()
 void FixPOEMS::final_integrate()
 {
   if (!earlyflag) compute_forces_and_torques();
+
+  /*
+  for (int ibody = 0; ibody < nbody; ibody++) {
+    if (ibody == 0) {
+    printf("FI %d %g %g %g\n",ibody,fcm[ibody][0],fcm[ibody][1],fcm[ibody][2]);
+    printf("TQ %d %g %g %g\n",ibody,
+           torque[ibody][0],torque[ibody][1],torque[ibody][2]);
+    }
+  }
+  */
 
   // perform POEMS integration
 

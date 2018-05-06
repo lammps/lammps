@@ -255,5 +255,5 @@ static inline double fdiv_zero(const double n, const double d) {
   return n / d;
 }
 
-};
+}
 #endif

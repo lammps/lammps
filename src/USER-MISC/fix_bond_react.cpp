@@ -876,10 +876,10 @@ void FixBondReact::close_partner()
 
   double **x = atom->x;
   tagint *tag = atom->tag;
-  tagint *type = atom->type;
+  int *type = atom->type;
   int *mask = atom->mask;
   int **nspecial = atom->nspecial;
-  int **special = atom->special;
+  tagint **special = atom->special;
 
   // per-atom property indicating if in bond/react master group
   int flag;

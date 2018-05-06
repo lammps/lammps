@@ -296,7 +296,7 @@ void ComputeAcklandAtom::compute_peratom()
       } else {
 
         // This is the updated implementation by Brian Barnes
-        
+
         if (chi[7] > 0 || n0 < 11) structure[i] = UNKNOWN;
         else if (chi[0] == 7) structure[i] = BCC;
         else if (chi[0] == 6) structure[i] = FCC;

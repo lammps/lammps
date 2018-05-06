@@ -202,7 +202,12 @@ void CreateAtoms::command(int narg, char **arg)
       if (iarg+3 > narg) error->all(FLERR,"Illegal create_atoms command");
       ninsert = force->inumeric(FLERR,arg[iarg+1]);
       insertseed = force->inumeric(FLERR,arg[iarg+2]);
-      insertflag = 1;
+      if (ninsert > 0) insertflag = 1;
+      else {
+        if (me == 0) error->warning(FLERR,"Specifying an 'insert' value of "
+                                 "'0' is equivalent to no 'insert' keyword");
+        insertflag = 0;
+      }
       iarg += 3;
     } else error->all(FLERR,"Illegal create_atoms command");
   }
@@ -823,97 +828,89 @@ void CreateAtoms::add_lattice()
 
 void CreateAtoms::lattice_mask()
 {
-  if (ninsert == 0 && insertflag && me == 0) {
-    error->warning(FLERR,"Specifying an 'insert' value of '0' is equivalent to no 'insert' keyword");
-    ninsert = nlattpts;
-  }
+  int nboxme;
+  if (nprocs > 1) {
+    int *allnlattpts = new int[nprocs]();
+    int *allnboxmes = new int[nprocs];
+    int *cumsum_lattpts = new int[nprocs];
+    for (size_t i = 0; i < nprocs; i++)
+      allnboxmes[i] = 0;
 
-  if (ninsert > 0) {
-    int nboxme;
-    if (nprocs > 1) {
-      int *allnlattpts = new int[nprocs]();
-      int *allnboxmes = new int[nprocs];
-      int *cumsum_lattpts = new int[nprocs];
-      for (size_t i = 0; i < nprocs; i++)
-        allnboxmes[i] = 0;
+   MPI_Allgather(&nlattpts, 1, MPI_INT, allnlattpts, 1, MPI_INT, world);
 
-      MPI_Allgather(&nlattpts, 1, MPI_INT, allnlattpts, 1, MPI_INT, world);
+   if (me == 0) {
+      int total_lattpts = 0;
+      for (int i = 0; i < nprocs; i++) {
+        total_lattpts += allnlattpts[i];
+        cumsum_lattpts[i] = total_lattpts;
+      }
 
-      if (me == 0) {
-        int total_lattpts = 0;
-        for (int i = 0; i < nprocs; i++) {
-          total_lattpts += allnlattpts[i];
-          cumsum_lattpts[i] = total_lattpts;
-        }
+     if (ninsert > total_lattpts)
+        error->one(FLERR,"Attempting to insert more particles than available lattice points");
 
-
-        if (ninsert > total_lattpts)
-          error->one(FLERR,"Attempting to insert more particles than available lattice points");
-
-        // using proc 0, let's insert N particles onto available lattice points by instead
-        // poking [nlattpts - N] holes into the lattice, randomly
-        int *allNmask = new int[total_lattpts];
-        for (int i = 0; i < total_lattpts; i++)
-          allNmask[i] = 1;
-        int nholes = total_lattpts - ninsert;
-        int noptions = total_lattpts;
-        for (int i = 0; i < nholes; i++) {
-          int hindex = ceil(ranbox->uniform()*noptions);
-          int optcount = 0;
-          for (int j = 0; j < total_lattpts; j++) {
-            if (allNmask[j] == 1) {
-              optcount++;
-              if (optcount == hindex) {
-                allNmask[j] = 0;
-                noptions--;
-                break;
-              }
+     // using proc 0, let's insert N particles onto available lattice points by instead
+      // poking [nlattpts - N] holes into the lattice, randomly
+      int *allNmask = new int[total_lattpts];
+      for (int i = 0; i < total_lattpts; i++)
+        allNmask[i] = 1;
+      int nholes = total_lattpts - ninsert;
+      int noptions = total_lattpts;
+      for (int i = 0; i < nholes; i++) {
+        int hindex = ceil(ranbox->uniform()*noptions);
+        int optcount = 0;
+        for (int j = 0; j < total_lattpts; j++) {
+          if (allNmask[j] == 1) {
+            optcount++;
+            if (optcount == hindex) {
+              allNmask[j] = 0;
+              noptions--;
+              break;
             }
           }
         }
-
-        // tell individual procs their nboxme (personal # to insert)
-        int iproc = 0;
-        while (allnlattpts[iproc] == 0 && iproc < nprocs)
-          iproc++;
-        for (int i = 0; i < total_lattpts; i++) {
-          if (i == cumsum_lattpts[iproc]) {
-            iproc++;
-            while (allnlattpts[iproc] == 0 && iproc < nprocs)
-              iproc++;
-          }
-          allnboxmes[iproc] += allNmask[i];
-        }
-        delete [] allNmask;
       }
 
-      MPI_Scatter(allnboxmes, 1, MPI_INT, &nboxme, 1, MPI_INT, 0, world);
-      delete [] allnlattpts;
-      delete [] allnboxmes;
-      delete [] cumsum_lattpts;
-    } else nboxme = ninsert;
+     // tell individual procs their nboxme (personal # to insert)
+      int iproc = 0;
+      while (allnlattpts[iproc] == 0 && iproc < nprocs)
+        iproc++;
+      for (int i = 0; i < total_lattpts; i++) {
+        if (i == cumsum_lattpts[iproc]) {
+          iproc++;
+          while (allnlattpts[iproc] == 0 && iproc < nprocs)
+            iproc++;
+        }
+        allnboxmes[iproc] += allNmask[i];
+      }
+      delete [] allNmask;
+    }
 
-    // probably faster to have individual processors 're-choose' their random points
-    // Nmask will be used to indicate which lattice points to insert
-    Nmask = new int[nlattpts];
-    for (int i = 0; i < nlattpts; i++)
-      Nmask[i] = 1;
+   MPI_Scatter(allnboxmes, 1, MPI_INT, &nboxme, 1, MPI_INT, 0, world);
+    delete [] allnlattpts;
+    delete [] allnboxmes;
+    delete [] cumsum_lattpts;
+  } else nboxme = ninsert;
 
-    // let's insert N particles onto available lattice points by instead
-    // poking [nlattpts - N] holes into the lattice, randomly
-    int nholes = nlattpts - nboxme;
-    int noptions = nlattpts;
-    for (int i = 0; i < nholes; i++) {
-      int hindex = ceil(ranbox->uniform()*noptions);
-      int optcount = 0;
-      for (int j = 0; j < nlattpts; j++) {
-        if (Nmask[j] == 1) {
-          optcount++;
-          if (optcount == hindex) {
-            Nmask[j] = 0;
-            noptions--;
-            break;
-          }
+ // probably faster to have individual processors 're-choose' their random points
+  // Nmask will be used to indicate which lattice points to insert
+  Nmask = new int[nlattpts];
+  for (int i = 0; i < nlattpts; i++)
+    Nmask[i] = 1;
+
+ // let's insert N particles onto available lattice points by instead
+  // poking [nlattpts - N] holes into the lattice, randomly
+  int nholes = nlattpts - nboxme;
+  int noptions = nlattpts;
+  for (int i = 0; i < nholes; i++) {
+    int hindex = ceil(ranbox->uniform()*noptions);
+    int optcount = 0;
+    for (int j = 0; j < nlattpts; j++) {
+      if (Nmask[j] == 1) {
+        optcount++;
+        if (optcount == hindex) {
+          Nmask[j] = 0;
+          noptions--;
+          break;
         }
       }
     }

@@ -43,6 +43,17 @@ Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
+static const char cite_fix_bond_react[] =
+  "fix bond/react:\n\n"
+  "@Article{Gissinger17,\n"
+  " author = {J. R. Gissinger, B. D. Jensen, K. E. Wise},\n"
+  " title = {Modeling chemical reactions in classical molecular dynamics simulations},\n"
+  " journal = {Polymer},\n"
+  " year =    2017,\n"
+  " volume =  128,\n"
+  " pages =   {211--217}\n"
+  "}\n\n";
+
 #define BIG 1.0e20
 #define DELTA 16
 #define MAXLINE 256
@@ -62,6 +73,8 @@ enum{ACCEPT,REJECT,PROCEED,CONTINUE,GUESSFAIL,RESTORE};
 FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
+  if (lmp->citeme) lmp->citeme->add(cite_fix_bond_react);
+
   fix1 = NULL;
   fix2 = NULL;
 
@@ -71,7 +84,6 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   MPI_Comm_size(world,&nprocs);
 
   attempted_rxn = 0;
-  ghostcheck_flag = 0;
   force_reneighbor = 1;
   next_reneighbor = -1;
   vector_flag = 1;
@@ -127,7 +139,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   // this looks excessive
   // the price of vectorization (all reactions in one command)?
   memory->create(nevery,nreacts,"bond/react:nevery");
-  memory->create(cutsq,nreacts,"bond/react:cutsq");
+  memory->create(cutsq,nreacts,2,"bond/react:cutsq");
   memory->create(unreacted_mol,nreacts,"bond/react:unreacted_mol");
   memory->create(reacted_mol,nreacts,"bond/react:reacted_mol");
   memory->create(fraction,nreacts,"bond/react:fraction");
@@ -138,6 +150,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   memory->create(jatomtype,nreacts,"bond/react:jatomtype");
   memory->create(ibonding,nreacts,"bond/react:ibonding");
   memory->create(jbonding,nreacts,"bond/react:jbonding");
+  memory->create(closeneigh,nreacts,"bond/react:closeneigh");
   memory->create(groupbits,nreacts,"bond/react:groupbits");
   memory->create(reaction_count,nreacts,"bond/react:reaction_count");
   memory->create(local_rxn_count,nreacts,"bond/react:local_rxn_count");
@@ -176,7 +189,11 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
 
     double cutoff = force->numeric(FLERR,arg[iarg++]);
     if (cutoff < 0.0) error->all(FLERR,"Illegal fix bond/react command 0.5");
-    cutsq[rxn] = cutoff*cutoff;
+    cutsq[rxn][0] = cutoff*cutoff;
+
+    cutoff = force->numeric(FLERR,arg[iarg++]);
+    if (cutoff < 0.0) error->all(FLERR,"Illegal fix bond/react command 0.55");
+    cutsq[rxn][1] = cutoff*cutoff;
 
     unreacted_mol[rxn] = atom->find_molecule(arg[iarg++]);
     if (unreacted_mol[rxn] == -1) error->all(FLERR,"Unreacted molecule template ID for "
@@ -241,6 +258,23 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   if (atom->molecular != 1)
     error->all(FLERR,"Cannot use fix bond/react with non-molecular systems");
 
+  // check if bonding atoms are 1-2, 1-3, or 1-4 bonded neighbors
+  // if so, we don't need non-bonded neighbor list
+  for (int myrxn = 0; myrxn < nreacts; myrxn++) {
+    closeneigh[myrxn] = -1; // indicates will search non-bonded neighbors
+    onemol = atom->molecules[unreacted_mol[myrxn]];
+    for (int k = 0; k < onemol->nspecial[ibonding[myrxn]-1][2]; k++) {
+      if (onemol->special[ibonding[myrxn]-1][k] == jbonding[myrxn]) {
+        closeneigh[myrxn] = 2; // index for 1-4 neighbor
+        if (k < onemol->nspecial[ibonding[myrxn]-1][1])
+          closeneigh[myrxn] = 1; // index for 1-3 neighbor
+        if (k < onemol->nspecial[ibonding[myrxn]-1][0])
+          closeneigh[myrxn] = 0; // index for 1-2 neighbor
+        break;
+      }
+    }
+  }
+
   // initialize Marsaglia RNG with processor-unique seed
 
   random = new class RanMars*[nreacts];
@@ -259,6 +293,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   nmax = 0;
   partner = finalpartner = NULL;
   distsq = NULL;
+  probability = NULL;
   maxcreate = 0;
   created = NULL;
   local_ncreate = NULL;
@@ -302,6 +337,7 @@ FixBondReact::~FixBondReact()
   memory->destroy(local_ncreate);
   memory->destroy(ncreate);
   memory->destroy(distsq);
+  memory->destroy(probability);
   memory->destroy(created);
   memory->destroy(edge);
   memory->destroy(equivalences);
@@ -320,6 +356,7 @@ FixBondReact::~FixBondReact()
   memory->destroy(jatomtype);
   memory->destroy(ibonding);
   memory->destroy(jbonding);
+  memory->destroy(closeneigh);
   memory->destroy(groupbits);
   memory->destroy(reaction_count);
   memory->destroy(local_rxn_count);
@@ -372,7 +409,7 @@ it will have the name 'i_limit_tags' and will be intitialized to 0 (not in group
 
 void FixBondReact::post_constructor()
 {
-  //let's add the limit_tags per-atom property fix
+  // let's add the limit_tags per-atom property fix
   int len = strlen("per_atom_props") + 1;
   id_fix2 = new char[len];
   strcpy(id_fix2,"per_atom_props");
@@ -521,7 +558,7 @@ void FixBondReact::init()
 
   // check cutoff for iatomtype,jatomtype
   for (int i = 0; i < nreacts; i++) {
-    if (force->pair == NULL || cutsq[i] > force->pair->cutsq[iatomtype[i]][jatomtype[i]])
+    if (force->pair == NULL || cutsq[i][1] > force->pair->cutsq[iatomtype[i]][jatomtype[i]])
       error->all(FLERR,"Fix bond/react cutoff is longer than pairwise cutoff");
   }
 
@@ -548,10 +585,6 @@ void FixBondReact::init_list(int id, NeighList *ptr)
 
 void FixBondReact::post_integrate()
 {
-  int inum,jnum,itype,jtype,possible;
-  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
-  int *ilist,*jlist,*numneigh,**firstneigh;
-
   // check if any reactions could occur on this timestep
   int nevery_check = 1;
   for (int i = 0; i < nreacts; i++) {
@@ -578,7 +611,6 @@ void FixBondReact::post_integrate()
   comm->forward_comm();
 
   // resize bond partner list and initialize it
-  // probability array overlays distsq array
   // needs to be atom->nmax in length
 
   if (atom->nmax > nmax) {
@@ -587,13 +619,14 @@ void FixBondReact::post_integrate()
     memory->destroy(distsq);
     memory->destroy(local_ncreate);
     memory->destroy(ncreate);
+    memory->destroy(probability);
     nmax = atom->nmax;
     memory->create(partner,nmax,"bond/react:partner");
     memory->create(finalpartner,nmax,"bond/react:finalpartner");
-    memory->create(distsq,nmax,"bond/react:distsq");
+    memory->create(distsq,nmax,2,"bond/react:distsq");
     memory->create(local_ncreate,nreacts,"bond/react:local_ncreate");
     memory->create(ncreate,nreacts,"bond/react:ncreate");
-    probability = distsq;
+    memory->create(probability,nmax,"bond/react:probability");
   }
 
   // reset create counts
@@ -605,129 +638,28 @@ void FixBondReact::post_integrate()
   int nlocal = atom->nlocal;
   int nall = atom->nlocal + atom->nghost;
 
-  // NOTE: this might be faster if we remembered neighbor distances from
-  // previous timestep and used those --JG
-
   // loop over neighbors of my atoms
   // each atom sets one closest eligible partner atom ID to bond with
 
-  double **x = atom->x;
   tagint *tag = atom->tag;
-  int **nspecial = atom->nspecial;
-  tagint **special = atom->special;
-  int *mask = atom->mask;
   int *type = atom->type;
 
   neighbor->build_one(list,1);
-  inum = list->inum;
-  ilist = list->ilist;
-  numneigh = list->numneigh;
-  firstneigh = list->firstneigh;
-
-  // per-atom property indicating if in bond/react master group
-  int flag;
-  int index1 = atom->find_custom("limit_tags",flag);
-  int *i_limit_tags = atom->ivector[index1];
 
   int i,j;
 
-  for (int myrxn = 0; myrxn < nreacts; myrxn++) {
+  for (rxnID = 0; rxnID < nreacts; rxnID++) {
 
     for (int ii = 0; ii < nall; ii++) {
       partner[ii] = 0;
       finalpartner[ii] = 0;
-      distsq[ii] = BIG;
+      distsq[ii][0] = 0.0;
+      distsq[ii][1] = BIG;
     }
 
-    for (int ii = 0; ii < inum; ii++) { // inum vs nlocal
-      i = ilist[ii];
-      if (!(mask[i] & groupbits[myrxn])) continue;
-      if (i_limit_tags[i] != 0) continue;
-      itype = type[i];
-      xtmp = x[i][0];
-      ytmp = x[i][1];
-      ztmp = x[i][2];
-      jlist = firstneigh[i];
-      jnum = numneigh[i];
-
-      for (int jj = 0; jj < jnum; jj++) {
-        j = jlist[jj];
-        j &= NEIGHMASK;
-
-        if (!(mask[j] & groupbits[myrxn])) {
-          continue;
-        }
-
-        if (i_limit_tags[j] != 0) {
-          continue;
-        }
-
-        jtype = type[j];
-        possible = 0;
-
-        if (itype == iatomtype[myrxn] && jtype == jatomtype[myrxn]) {
-          possible = 1;
-        } else if (itype == jatomtype[myrxn] && jtype == iatomtype[myrxn]) {
-          possible = 1;
-        }
-
-        if (possible == 0) continue;
-
-        for (int k = 0; k < nspecial[i][0]; k++)
-        if (special[i][k] == tag[j]) possible = 0;
-        if (!possible) continue;
-
-      // NOTE(for below): certain neighbor list settings prevent 3-cycles anyway!
-      // e.g., in my examples, must use kspace command to include 1-3 neighbors for consideration here
-
-      // do not allow a three-membered ring to be created (by the new bond)
-      // check 1-3 neighbors of atom I
-        for (int k = nspecial[i][0]; k < nspecial[i][1]; k++)
-        if (special[i][k] == tag[j]) possible = 0;
-        if (possible == 0) {
-        continue;
-      }
-
-        // do not allow a four-membered ring to be created (by the new bond)
-        // check 1-4 neighbors of atom I -> probably make an option
-
-        /*
-        for (k = nspecial[i][1]; k < nspecial[i][2]; k++)
-          if (special[i][k] == tag[j]) {
-          possible = 0;
-          }
-        if (possible == 0) continue;
-        */
-
-        // do not allow 5 membered rings -> probably make this an option
-
-        /*
-        for (k = nspecial[i][1]; k < nspecial[i][2]; k++) {
-          for (m = nspecial[atom->map(special[i][k])][1]; m < nspecial[atom->map(special[i][k])][2]; m++) {
-        if (special[atom->map(special[i][k])][m] == tag[j]) possible = 0;
-  /        }
-        }
-        if (possible == 0) continue;
-        */
-
-        delx = xtmp - x[j][0];
-        dely = ytmp - x[j][1];
-        delz = ztmp - x[j][2];
-        rsq = delx*delx + dely*dely + delz*delz;
-
-        if (rsq >= cutsq[myrxn]) {
-          continue;
-        }
-        if (rsq < distsq[i]) {
-          partner[i] = tag[j];
-          distsq[i] = rsq;
-        }
-        if (rsq < distsq[j]) {
-          partner[j] = tag[i];
-          distsq[j] = rsq;
-        }
-      }
-    }
+    // fork between far and close_partner here
+    if (closeneigh[rxnID] < 0) far_partner();
+    else close_partner();
 
     // reverse comm of distsq and partner
     // not needed if newton_pair off since I,J pair was seen by both procs
@@ -739,9 +671,9 @@ void FixBondReact::post_integrate()
     // for prob check, generate random value for each atom with a bond partner
     // forward comm of partner and random value, so ghosts have it
 
-    if (fraction[myrxn] < 1.0) {
+    if (fraction[rxnID] < 1.0) {
       for (int i = 0; i < nlocal; i++)
-      if (partner[i]) probability[i] = random[myrxn]->uniform();
+      if (partner[i]) probability[i] = random[rxnID]->uniform();
     }
 
     commflag = 2;
@@ -764,11 +696,11 @@ void FixBondReact::post_integrate()
 
       // apply probability constraint using RN for atom with smallest ID
 
-      if (fraction[myrxn] < 1.0) {
+      if (fraction[rxnID] < 1.0) {
         if (tag[i] < tag[j]) {
-          if (probability[i] >= fraction[myrxn]) continue;
+          if (probability[i] >= fraction[rxnID]) continue;
         } else {
-          if (probability[j] >= fraction[myrxn]) continue;
+          if (probability[j] >= fraction[rxnID]) continue;
         }
       }
 
@@ -780,30 +712,16 @@ void FixBondReact::post_integrate()
       if (tag[i] < tag[j]) temp_ncreate++;
     }
 
-    local_ncreate[myrxn] = temp_ncreate;
+    local_ncreate[rxnID] = temp_ncreate;
     // break loop if no even eligible bonding atoms were found (on any proc)
     int some_chance;
     MPI_Allreduce(&temp_ncreate,&some_chance,1,MPI_INT,MPI_SUM,world);
-    if (!some_chance) {
-      continue;
-    }
+    if (!some_chance) continue;
 
     // communicate final partner
 
     commflag = 3;
     comm->forward_comm_fix(this);
-
-//obsolete comment block
-/*
-    // I think this also simplifies for bond/react.
-    // but currently unsure how to adapt it - JG
-    // create list of created bonds that influence my owned atoms
-    //   even if between owned-ghost or ghost-ghost atoms
-    // finalpartner is now set for owned and ghost atoms so loop over nall
-    // OK if duplicates in created list due to ghosts duplicating owned atoms
-    // check J < 0 to insure a created bond to unknown atom is included
-    //   i.e. a bond partner outside of skin length
-*/
 
     // add instance to 'created' only if this processor
     // owns the atoms with smaller global ID
@@ -816,21 +734,21 @@ void FixBondReact::post_integrate()
       j = atom->map(finalpartner[i]);
       // if (j < 0 || tag[i] < tag[j]) {
       if (tag[i] < tag[j]) { //atom->map(std::min(tag[i],tag[j])) <= nlocal &&
-        if (ncreate[myrxn] == maxcreate) {
+        if (ncreate[rxnID] == maxcreate) {
           maxcreate += DELTA;
           // third column of 'created': bond/react integer ID
           memory->grow(created,maxcreate,2,nreacts,"bond/react:created");
         }
         // to ensure types remain in same order
         // unnecessary now taken from reaction map file
-        if (iatomtype[myrxn] == type[i]) {
-          created[ncreate[myrxn]][0][myrxn] = tag[i];
-          created[ncreate[myrxn]][1][myrxn] = finalpartner[i];
+        if (iatomtype[rxnID] == type[i]) {
+          created[ncreate[rxnID]][0][rxnID] = tag[i];
+          created[ncreate[rxnID]][1][rxnID] = finalpartner[i];
         } else {
-          created[ncreate[myrxn]][0][myrxn] = finalpartner[i];
-          created[ncreate[myrxn]][1][myrxn] = tag[i];
+          created[ncreate[rxnID]][0][rxnID] = finalpartner[i];
+          created[ncreate[rxnID]][1][rxnID] = tag[i];
         }
-        ncreate[myrxn]++;
+        ncreate[rxnID]++;
       }
     }
     unlimit_bond(); //free atoms that have been relaxed
@@ -854,7 +772,152 @@ void FixBondReact::post_integrate()
   superimpose_algorithm();
   // free atoms that have been limited after reacting
   unlimit_bond();
+}
 
+/* ----------------------------------------------------------------------
+  Search non-bonded neighbor lists if bonding atoms are not in special list
+------------------------------------------------------------------------- */
+
+void FixBondReact::far_partner()
+{
+  int inum,jnum,itype,jtype,possible;
+  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
+  int *ilist,*jlist,*numneigh,**firstneigh;
+
+  // loop over neighbors of my atoms
+  // each atom sets one closest eligible partner atom ID to bond with
+
+  double **x = atom->x;
+  tagint *tag = atom->tag;
+  int **nspecial = atom->nspecial;
+  tagint **special = atom->special;
+  int *mask = atom->mask;
+  int *type = atom->type;
+
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+
+  // per-atom property indicating if in bond/react master group
+  int flag;
+  int index1 = atom->find_custom("limit_tags",flag);
+  int *i_limit_tags = atom->ivector[index1];
+
+  int i,j;
+
+  for (int ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
+    if (!(mask[i] & groupbits[rxnID])) continue;
+    if (i_limit_tags[i] != 0) continue;
+    itype = type[i];
+    xtmp = x[i][0];
+    ytmp = x[i][1];
+    ztmp = x[i][2];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+
+    for (int jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      j &= NEIGHMASK;
+
+      if (!(mask[j] & groupbits[rxnID])) {
+        continue;
+}
+
+      if (i_limit_tags[j] != 0) {
+        continue;
+      }
+
+      jtype = type[j];
+      possible = 0;
+
+      if (itype == iatomtype[rxnID] && jtype == jatomtype[rxnID]) {
+        possible = 1;
+      } else if (itype == jatomtype[rxnID] && jtype == iatomtype[rxnID]) {
+        possible = 1;
+      }
+
+      if (possible == 0) continue;
+
+      // do not allow bonding atoms within special list
+      for (int k = 0; k < nspecial[i][2]; k++)
+        if (special[i][k] == tag[j]) possible = 0;
+      if (!possible) continue;
+
+      delx = xtmp - x[j][0];
+      dely = ytmp - x[j][1];
+      delz = ztmp - x[j][2];
+      rsq = delx*delx + dely*dely + delz*delz;
+
+      if (rsq >= cutsq[rxnID][1] || rsq <= cutsq[rxnID][0]) {
+        continue;
+      }
+      if (rsq < distsq[i][1]) {
+        partner[i] = tag[j];
+        distsq[i][1] = rsq;
+      }
+      if (rsq < distsq[j][1]) {
+        partner[j] = tag[i];
+        distsq[j][1] = rsq;
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+  Slightly simpler to find bonding partner when a close neighbor
+------------------------------------------------------------------------- */
+
+void FixBondReact::close_partner()
+{
+  int n,i1,i2,itype,jtype;
+  double delx,dely,delz,rsq;
+
+  double **x = atom->x;
+  tagint *tag = atom->tag;
+  tagint *type = atom->type;
+  int *mask = atom->mask;
+  int **nspecial = atom->nspecial;
+  int **special = atom->special;
+
+  // per-atom property indicating if in bond/react master group
+  int flag;
+  int index1 = atom->find_custom("limit_tags",flag);
+  int *i_limit_tags = atom->ivector[index1];
+
+  // loop over special list
+  for (int ii = 0; ii < atom->nlocal; ii++) {
+    itype = type[ii];
+    n = 0;
+    if (closeneigh[rxnID] != 0)
+      n = nspecial[ii][closeneigh[rxnID]-1];
+    for (n; n < nspecial[ii][closeneigh[rxnID]]; n++) {
+      i1 = ii;
+      i2 = atom->map(special[ii][n]);
+      jtype = type[i2];
+      if (!(mask[i1] & groupbits[rxnID])) continue;
+      if (!(mask[i2] & groupbits[rxnID])) continue;
+      if (i_limit_tags[i1] != 0) continue;
+      if (i_limit_tags[i2] != 0) continue;
+      if (itype != iatomtype[rxnID] || jtype != jatomtype[rxnID]) continue;
+
+      delx = x[i1][0] - x[i2][0];
+      dely = x[i1][1] - x[i2][1];
+      delz = x[i1][2] - x[i2][2];
+      rsq = delx*delx + dely*dely + delz*delz;
+      if (rsq >= cutsq[rxnID][1] || rsq <= cutsq[rxnID][0]) continue;
+
+      if (rsq > distsq[i1][0]) {
+        partner[i1] = tag[i2];
+        distsq[i1][0] = rsq;
+      }
+      if (rsq > distsq[i2][0]) {
+        partner[i2] = tag[i1];
+        distsq[i2][0] = rsq;
+      }
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1076,8 +1139,8 @@ void FixBondReact::make_a_guess()
   if (assigned_count == nfirst_neighs) status = GUESSFAIL;
 
   // check if all neigh atom types are the same between simulation and unreacted mol
-  int mol_ntypes[atom->ntypes];
-  int lcl_ntypes[atom->ntypes];
+  int *mol_ntypes = new int[atom->ntypes];
+  int *lcl_ntypes = new int[atom->ntypes];
 
   for (int i = 0; i < atom->ntypes; i++) {
     mol_ntypes[i] = 0;
@@ -1095,6 +1158,9 @@ void FixBondReact::make_a_guess()
       return;
     }
   }
+
+  delete [] mol_ntypes;
+  delete [] lcl_ntypes;
 
   // okay everything seems to be in order. let's assign some ID pairs!!!
   neighbor_loop();
@@ -1384,7 +1450,7 @@ void FixBondReact::find_landlocked_atoms(int myrxn)
   // if no edge atoms (small reacting molecule), all atoms are landlocked
   // we can delete all current topology of landlocked atoms and replace
 
-  // alwasy remove edge atoms from landlocked list
+  // always remove edge atoms from landlocked list
   for (int i = 0; i < twomol->natoms; i++) {
     if (edge[equivalences[i][1][myrxn]-1][myrxn] == 1) landlocked_atoms[i][myrxn] = 0;
     else landlocked_atoms[i][myrxn] = 1;
@@ -1394,7 +1460,6 @@ void FixBondReact::find_landlocked_atoms(int myrxn)
 
   if ((force->dihedral && twomol->dihedralflag) ||
       (force->improper && twomol->improperflag)) nspecial_limit = 1;
-
 
   if (nspecial_limit != -1) {
     for (int i = 0; i < twomol->natoms; i++) {
@@ -1410,11 +1475,21 @@ void FixBondReact::find_landlocked_atoms(int myrxn)
 
   // bad molecule templates check
   // if atoms change types, but aren't landlocked, that's bad
-
   for (int i = 0; i < twomol->natoms; i++) {
     if (twomol->type[i] != onemol->type[equivalences[i][1][myrxn]-1] && landlocked_atoms[i][myrxn] == 0)
       error->one(FLERR,"Atom affected by reaction too close to template edge");
   }
+
+  // also, if atoms change number of bonds, but aren't landlocked, that could be bad
+  if (me == 0)
+    for (int i = 0; i < twomol->natoms; i++) {
+      if (twomol->nspecial[i][0] != onemol->nspecial[equivalences[i][1][myrxn]-1][0] && landlocked_atoms[i][myrxn] == 0) {
+        char str[128];
+        sprintf(str,"An atom in 'react #%d' changes bond connectivity but not atom type",myrxn+1);
+        error->warning(FLERR,str);
+        break;
+      }
+    }
 }
 
 /* ----------------------------------------------------------------------
@@ -1438,7 +1513,8 @@ void FixBondReact::dedup_mega_gloves(int dedup_mode)
     dedup_size = global_megasize;
   }
 
-  tagint dedup_glove[max_natoms+1][dedup_size];
+  tagint **dedup_glove;
+  memory->create(dedup_glove,max_natoms+1,dedup_size,"bond/react:dedup_glove");
 
   if (dedup_mode == 0) {
     for (int i = 0; i < dedup_size; i++) {
@@ -1456,8 +1532,8 @@ void FixBondReact::dedup_mega_gloves(int dedup_mode)
 
   // dedup_mask is size dedup_size and filters reactions that have been deleted
   // a value of 1 means this reaction instance has been deleted
-  int dedup_mask[dedup_size];
-  int dup_list[dedup_size];
+  int *dedup_mask = new int[dedup_size];
+  int *dup_list = new int[dedup_size];
 
   for (int i = 0; i < dedup_size; i++) {
     dedup_mask[i] = 0;
@@ -1467,14 +1543,12 @@ void FixBondReact::dedup_mega_gloves(int dedup_mode)
   // let's randomly mix up our reaction instances first
   // then we can feel okay about ignoring ones we've already deleted (or accepted)
   // based off std::shuffle
-  // will produce same 'random' sequences on different processors.
-  // not really an issue, as reaction lists are independent
+  int *temp_rxn = new int[max_natoms+1];
   for (int i = dedup_size-1; i > 0; --i) { //dedup_size
-    //choose random entry to swap current one with
-    int k = rand() % (i+1);
+    // choose random entry to swap current one with
+    int k = floor(random[0]->uniform()*(i+1));
 
     // swap entries
-    int temp_rxn[max_natoms+1];
     for (int j = 0; j < max_natoms+1; j++)
       temp_rxn[j] = dedup_glove[j][i];
 
@@ -1483,6 +1557,7 @@ void FixBondReact::dedup_mega_gloves(int dedup_mode)
       dedup_glove[j][k] = temp_rxn[j];
     }
   }
+  delete [] temp_rxn;
 
   for (int i = 0; i < dedup_size; i++) {
     if (dedup_mask[i] == 0) {
@@ -1557,6 +1632,10 @@ void FixBondReact::dedup_mega_gloves(int dedup_mode)
     }
     global_megasize = new_global_megasize;
   }
+
+  memory->destroy(dedup_glove);
+  delete [] dedup_mask;
+  delete [] dup_list;
 }
 
 /* ----------------------------------------------------------------------
@@ -1743,9 +1822,6 @@ void FixBondReact::ghost_glovecast()
     for (int j = 0; j < global_megasize; j++)
       global_mega_glove[i][j] = 0;
 
-
-  ghostcheck_flag = 1;
-
   if (ghostly_num_mega > 0) {
     for (int i = 0; i < max_natoms+1; i++) {
       for (int j = 0; j < ghostly_num_mega; j++) {
@@ -1806,7 +1882,8 @@ void FixBondReact::update_everything()
   // add check for local atoms as well
 
   int update_num_mega;
-  tagint update_mega_glove[max_natoms+1][MAX(local_num_mega,global_megasize)];
+  tagint **update_mega_glove;
+  memory->create(update_mega_glove,max_natoms+1,MAX(local_num_mega,global_megasize),"bond/react:update_mega_glove");
 
   for (int pass = 0; pass < 2; pass++) {
 
@@ -2217,6 +2294,9 @@ void FixBondReact::update_everything()
     }
 
   }
+
+  memory->destroy(update_mega_glove);
+
   // something to think about: this could done much more concisely if
   // all atom-level info (bond,angles, etc...) were kinda inherited from a common data struct --JG
 
@@ -2522,7 +2602,10 @@ int FixBondReact::pack_reverse_comm(int n, int first, double *buf)
 
   for (i = first; i < last; i++) {
     buf[m++] = ubuf(partner[i]).d;
-    buf[m++] = distsq[i];
+    if (closeneigh[rxnID] < 0)
+      buf[m++] = distsq[i][1];
+    else
+      buf[m++] = distsq[i][0];
   }
   return m;
 }
@@ -2538,10 +2621,16 @@ void FixBondReact::unpack_reverse_comm(int n, int *list, double *buf)
   if (commflag != 1) {
     for (i = 0; i < n; i++) {
       j = list[i];
-      if (buf[m+1] < distsq[j]) {
+      if (closeneigh[rxnID] < 0)
+        if (buf[m+1] < distsq[j][1]) {
         partner[j] = (tagint) ubuf(buf[m++]).i;
-        distsq[j] = buf[m++];
+          distsq[j][1] = buf[m++];
       } else m += 2;
+      else
+        if (buf[m+1] > distsq[j][0]) {
+          partner[j] = (tagint) ubuf(buf[m++]).i;
+          distsq[j][0] = buf[m++];
+        } else m += 2;
     }
   }
 }

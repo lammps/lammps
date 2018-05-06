@@ -9,13 +9,37 @@ lib/kokkos/*          @stanmoore1
 lib/molfile/*         @akohlmey
 lib/qmmm/*            @akohlmey
 lib/vtk/*             @rbberger
+lib/kim/*             @ellio167
 
-# packages
-src/KOKKOS            @stanmoore1
-src/USER-CGSDK        @akohlmey
-src/USER-COLVARS      @giacomofiorin
-src/USER-OMP          @akohlmey
-src/USER-QMMM         @akohlmey
+# whole packages
+src/COMPRESS/*        @akohlmey
+src/GPU/*             @ndtrung81
+src/KOKKOS/*          @stanmoore1
+src/KIM/*             @ellio167
+src/USER-CGDNA/*      @ohenrich
+src/USER-CGSDK/*      @akohlmey
+src/USER-COLVARS/*    @giacomofiorin
+src/USER-DPD/*        @timattox
+src/USER-INTEL/*      @wmbrownintel
+src/USER-MANIFOLD/*   @Pakketeretet2
+src/USER-MEAMC/*      @martok
+src/USER-MOFFF/*      @hheenen
+src/USER-MOLFILE/*    @akohlmey
+src/USER-NETCDF/*     @pastewka
+src/USER-PHONON/*     @lingtikong
+src/USER-OMP/*        @akohlmey
+src/USER-QMMM/*       @akohlmey
+src/USER-REAXC/*      @hasanmetin
+src/USER-TALLY/*      @akohlmey
+src/USER-UEF/*        @danicholson
+src/USER-VTK/*        @rbberger
+
+# individual files in packages
+src/GPU/pair_vashishta_gpu.*        @andeplane
+src/KOKKOS/pair_vashishta_kokkos.*  @andeplane
+src/MANYBODY/pair_vashishta_table.* @andeplane
+src/USER-MISC/fix_bond_react.*      @jrgissing
+src/USER-MISC/*_grem.*              @dstelter92
 
 # tools
 tools/msi2lmp/*       @akohlmey

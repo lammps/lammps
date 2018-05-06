@@ -34,7 +34,7 @@ class ComputeAcklandAtom : public Compute {
   double memory_usage();
 
  private:
-  int nmax,maxneigh;
+  int nmax,maxneigh,legacy;
   double *distsq;
   int *nearest, *nearest_n0, *nearest_n1;
   double *structure;

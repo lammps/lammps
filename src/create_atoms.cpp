@@ -765,10 +765,13 @@ void CreateAtoms::add_lattice()
 
   int i,j,k,m;
 
+  // one pass for default mode, two passes for insert mode:
   // first pass: count how many particles will be inserted
   // second pass: filter to N number of particles (and insert)
   int maskcntr = 0;
-  for (int pass = 0; pass < 2; pass++) {
+  int npass = 1;
+  if (insertflag) npass = 2;
+  for (int pass = 0; pass < npass; pass++) {
     if (pass == 1) lattice_mask();
     for (k = klo; k <= khi; k++)
       for (j = jlo; j <= jhi; j++)
@@ -804,9 +807,9 @@ void CreateAtoms::add_lattice()
                 coord[2] < sublo[2] || coord[2] >= subhi[2]) continue;
 
             // add the atom or entire molecule to my list of atoms
-            if (pass == 0) nlattpts++;
+            if (insertflag && pass == 0) nlattpts++;
             else {
-              if (Nmask[maskcntr++])
+              if (!insertflag || Nmask[maskcntr++] == 1)
                 if (mode == ATOM) atom->avec->create_atom(basistype[m],x);
                 else add_molecule(x);
             }
@@ -820,16 +823,17 @@ void CreateAtoms::add_lattice()
 
 void CreateAtoms::lattice_mask()
 {
-
-  if (ninsert == 0 && insertflag && me == 0)
+  if (ninsert == 0 && insertflag && me == 0) {
     error->warning(FLERR,"Specifying an 'insert' value of '0' is equivalent to no 'insert' keyword");
+    ninsert = nlattpts;
+  }
 
   if (ninsert > 0) {
     int nboxme;
     if (nprocs > 1) {
       int *allnlattpts = new int[nprocs]();
-      int allnboxmes[nprocs];
-      int cumsum_lattpts[nprocs];
+      int *allnboxmes = new int[nprocs];
+      int *cumsum_lattpts = new int[nprocs];
       for (size_t i = 0; i < nprocs; i++)
         allnboxmes[i] = 0;
 
@@ -848,7 +852,7 @@ void CreateAtoms::lattice_mask()
 
         // using proc 0, let's insert N particles onto available lattice points by instead
         // poking [nlattpts - N] holes into the lattice, randomly
-        int allNmask[total_lattpts];
+        int *allNmask = new int[total_lattpts];
         for (int i = 0; i < total_lattpts; i++)
           allNmask[i] = 1;
         int nholes = total_lattpts - ninsert;
@@ -880,9 +884,13 @@ void CreateAtoms::lattice_mask()
           }
           allnboxmes[iproc] += allNmask[i];
         }
+        delete [] allNmask;
       }
-      MPI_Scatter(&allnboxmes, 1, MPI_INT, &nboxme, 1, MPI_INT, 0, world);
+
+      MPI_Scatter(allnboxmes, 1, MPI_INT, &nboxme, 1, MPI_INT, 0, world);
       delete [] allnlattpts;
+      delete [] allnboxmes;
+      delete [] cumsum_lattpts;
     } else nboxme = ninsert;
 
     // probably faster to have individual processors 're-choose' their random points
@@ -910,7 +918,6 @@ void CreateAtoms::lattice_mask()
       }
     }
   }
-
 }
 
 /* ----------------------------------------------------------------------

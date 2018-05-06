@@ -646,7 +646,7 @@ void FixBondReact::post_integrate()
 
   neighbor->build_one(list,1);
 
-  int i,j;
+  int j;
 
   for (rxnID = 0; rxnID < nreacts; rxnID++) {
 
@@ -892,7 +892,7 @@ void FixBondReact::close_partner()
     n = 0;
     if (closeneigh[rxnID] != 0)
       n = nspecial[ii][closeneigh[rxnID]-1];
-    for (n; n < nspecial[ii][closeneigh[rxnID]]; n++) {
+    for (; n < nspecial[ii][closeneigh[rxnID]]; n++) {
       i1 = ii;
       i2 = atom->map(special[ii][n]);
       jtype = type[i2];

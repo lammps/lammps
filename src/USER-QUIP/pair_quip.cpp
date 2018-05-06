@@ -303,7 +303,7 @@ void PairQUIP::init_style()
   if (force->newton_pair != 1)
     error->all(FLERR,"Pair style quip requires newton pair on");
 
-  // Initialise neighbour list
+  // Initialise neighbor list
   int irequest_full = neighbor->request(this);
   neighbor->requests[irequest_full]->id = 1;
   neighbor->requests[irequest_full]->half = 0;

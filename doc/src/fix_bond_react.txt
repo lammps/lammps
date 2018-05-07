@@ -11,9 +11,9 @@ fix bond/react command :h3
 [Syntax:]
 
 fix ID group-ID bond/react common_keyword values ...
-  react react-ID react-group-ID Nevery Rmin template-ID(pre-reacted) template-ID(post-reacted) map_file individual_keyword values ...
-  react react-ID react-group-ID Nevery Rmin template-ID(pre-reacted) template-ID(post-reacted) map_file individual_keyword values ...
-  react react-ID react-group-ID Nevery Rmin template-ID(pre-reacted) template-ID(post-reacted) map_file individual_keyword values ...
+  react react-ID react-group-ID Nevery Rmin Rmax template-ID(pre-reacted) template-ID(post-reacted) map_file individual_keyword values ...
+  react react-ID react-group-ID Nevery Rmin Rmax template-ID(pre-reacted) template-ID(post-reacted) map_file individual_keyword values ...
+  react react-ID react-group-ID Nevery Rmin Rmax template-ID(pre-reacted) template-ID(post-reacted) map_file individual_keyword values ...
   ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command. Group-ID is ignored. :ulb,l
@@ -24,12 +24,13 @@ common_keyword = {stabilization}
   {stabilization} values = group-ID xmax
     group-ID = user-assigned ID of an internally-created dynamic group that excludes reacting atoms, and can be used by a subsequent time integration fix such as nvt, npt, or nve (cannot be 'all')
   {xmax} value = distance
-    distance = xmax value that is used by an internally created "nve/limit"_nve_limit.html integrator
+    distance = xmax value that is used by an internally created "nve/limit"_fix_nve_limit.html integrator
 react = mandatory argument indicating new reaction specification
   react-ID = user-assigned name for the reaction
   react-group-ID = only atoms in this group are available for the reaction
   Nevery = attempt reaction every this many steps :l
-  Rmin = bonding pair atoms separated by less than Rmin can initiate reaction (distance units) :l
+  Rmin = bonding pair atoms must be separated by more than Rmin to initiate reaction (distance units) :l
+  Rmax = bonding pair atoms must be separated by less than Rmax to initiate reaction (distance units) :l
   template-ID(pre-reacted) = ID of a molecule template containing pre-reaction topology :l
   template-ID(post-reacted) = ID of a molecule template containing post-reaction topology :l
   map_file = name of file specifying corresponding atomIDs in the pre- and post-reacted templates :l
@@ -46,15 +47,15 @@ react = mandatory argument indicating new reaction specification
 
 molecule mol1 pre_reacted_topology.txt
 molecule mol2 post_reacted_topology.txt
-fix 5 all bond/react stabilization no react myrxn1 all 1 3.25 mol1 mol2 map_file.txt
+fix 5 all bond/react stabilization no react myrxn1 all 1 0 3.25 mol1 mol2 map_file.txt
 
 molecule mol1 pre_reacted_rxn1.txt
 molecule mol2 post_reacted_rxn1.txt
 molecule mol3 pre_reacted_rxn2.txt
 molecule mol4 post_reacted_rxn2.txt
 fix 5 all bond/react stabilization yes nvt_grp .03 &
-  react myrxn1 all 1 3.25 mol1 mol2 map_file_rxn1.txt prob 0.50 12345 &
-  react myrxn2 all 1 2.75 mol3 mol4 map_file_rxn2.txt prob 0.25 12345
+  react myrxn1 all 1 0 3.25 mol1 mol2 map_file_rxn1.txt prob 0.50 12345 &
+  react myrxn2 all 1 0 2.75 mol3 mol4 map_file_rxn2.txt prob 0.25 12345
 fix 6 nvt_grp nvt temp 300 300 100 # system-wide thermostat must be defined after bond/react :pre
 
 [Description:]
@@ -101,9 +102,14 @@ The group-ID set using the {stabilization} keyword should be a
 previously unused group-ID. The fix bond/react command creates a
 "dynamic group"_group.html of this name that excludes reacting atoms.
 This dynamic group-ID should then be used by a subsequent system-wide
-time integrator, as shown in the second example above. It is necessary
-to place the time integration command after the fix bond/react command
-due to the internal dynamic grouping performed by fix bond/react.
+time integrator, as shown in the second example above. It is currently
+necessary to place the time integration command after the fix
+bond/react command due to the internal dynamic grouping performed by
+fix bond/react.
+
+NOTE: The internally created group currently applies to all atoms in
+the system, i.e. you should generally not have a separate thermostat
+which acts on the 'all' group.
 
 The following comments pertain to each 'react' argument:
 
@@ -118,21 +124,20 @@ modified to match the post-reaction template.
 
 A bonding atom pair will be identified if several conditions are met.
 First, a pair of atoms within the specified react-group-ID of type
-typei and typej must be within a distance Rmin of each other. The atom
-types typei and typej are specified in the pre- and post-reaction
-templates. The distance calculation uses the pair neighbor list,
-therefore bonded neighbor exclusions may prevent a reaction between
-1st, 2nd or 3rd bonded neighbor atoms. If multiple bonding atom pairs
-are identified for an atom, the closest bonding atom partner is set as
-its "nearest" bonding partner. Then, if both an atomi and atomj have
-each other as their nearest bonding partners, these two atoms are
-identified as the bonding atom pair of the reaction site. Once this
-unique bonding atom pair is identified for each reaction, there could
-two or more reactions that involve a given atom on the same timestep.
-If this is the case, only one such reaction is permitted to occur.
-This reaction is chosen randomly from all potential reactions. This
-capability allows e.g. for different reaction pathways to proceed from
-identical reaction sites with user-specified probabilities.
+typei and typej must separated by a distance between Rmin and Rmax. It
+is possible that multiple bonding atom pairs are identified: if the
+bonding atoms in the pre-reacted template are not 1-2, 1-3, or 1-4
+neighbors, the closest bonding atom partner is set as its bonding
+partner; otherwise, the farthest potential partner is chosen. Then, if
+both an atomi and atomj have each other as their nearest bonding
+partners, these two atoms are identified as the bonding atom pair of
+the reaction site. Once this unique bonding atom pair is identified
+for each reaction, there could two or more reactions that involve a
+given atom on the same timestep. If this is the case, only one such
+reaction is permitted to occur. This reaction is chosen randomly from
+all potential reactions. This capability allows e.g. for different
+reaction pathways to proceed from identical reaction sites with
+user-specified probabilities.
 
 The pre-reacted molecule template is specified by a molecule command.
 This molecule template file contains a sample reaction site and its
@@ -262,9 +267,11 @@ angles, dihedrals or impropers are supported.
 A few capabilities to note: 1) You may specify as many 'react'
 arguments as desired. For example, you could break down a complicated
 reaction mechanism into several reaction steps, each defined by its
-own 'react' argument. 2) While typically a bond is formed between the
-bonding atom pairs specified in the pre-reacted molecule template,
-this is not required.
+own 'react' argument. 2) While typically a bond is formed or removed
+between the bonding atom pairs specified in the pre-reacted molecule
+template, this is not required. 3) By reversing the order of the pre-
+and post- reacted molecule templates in another 'react' argument, you
+can allow for the possibility of one or more reverse reactions.
 
 The optional keywords deal with the probability of a given reaction
 occurring as well as the stable equilibration of each reaction site as
@@ -300,14 +307,14 @@ reaction:
 fix 1 bond_react_MASTER_group temp/rescale 1 300 300 10 1
 
 NOTE: This command must be added after the fix bond/react command, and
-will apply to all reaction steps.
+will apply to all reactions.
 
 Computationally, each timestep this fix operates, it loops over
-neighbor lists and computes distances between pairs of atoms in the
-list. It also communicates between neighboring processors to
-coordinate which bonds are created. All of these operations increase
-the cost of a timestep. Thus you should be cautious about invoking
-this fix too frequently.
+neighbor lists (for bond-forming reactions) and computes distances
+between pairs of atoms in the list. It also communicates between
+neighboring processors to coordinate which bonds  are created and/or
+removed. All of these operations increase the cost of a timestep. Thus
+you should be cautious about invoking this fix too frequently.
 
 You can dump out snapshots of the current bond topology via the dump
 local command.

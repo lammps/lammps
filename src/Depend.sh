@@ -134,6 +134,7 @@ fi
 if (test $1 = "USER-MISC") then
   depend GPU
   depend USER-OMP
+  depend USER-INTEL
 fi
 
 if (test $1 = "USER-REAXC") then

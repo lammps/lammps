@@ -24,10 +24,12 @@ keyword = {bond} or {angle} or {dihedral} :l
     atom1,atom2,atom3 = IDs of 3 atoms in angle, atom2 = middle atom
     Kstart,Kstop = restraint coefficients at start/end of run (energy units)
     theta0 = equilibrium angle theta (degrees)
-  {dihedral} args = atom1 atom2 atom3 atom4 Kstart Kstop phi0
+  {dihedral} args = atom1 atom2 atom3 atom4 Kstart Kstop phi0 keyword/value
     atom1,atom2,atom3,atom4 = IDs of 4 atoms in dihedral in linear order
     Kstart,Kstop = restraint coefficients at start/end of run (energy units)
-    phi0 = equilibrium dihedral angle phi (degrees) :pre
+    phi0 = equilibrium dihedral angle phi (degrees)
+    keyword/value = optional keyword value pairs. supported keyword/value pairs:
+      {mult} n = dihedral multiplicity n (integer >= 0, default = 1) :pre
 :ule
 
 [Examples:]
@@ -155,11 +157,13 @@ associated with the restraint is
 with the following coefficients:
 
 K (energy)
-n = 1
+n (multiplicity, >= 0)
 d (degrees) = phi0 + 180 :ul
 
-K and phi0 are specified with the fix.  Note that the value of n is
-hard-wired to 1.  Also note that the energy will be a minimum when the
+K and phi0 are specified with the fix.  Note that the value of the
+dihedral multiplicity {n} is set by default to 1. You can use the
+optional {mult} keyword to set it to a different positive integer.
+Also note that the energy will be a minimum when the
 current dihedral angle phi is equal to phi0.
 
 :line

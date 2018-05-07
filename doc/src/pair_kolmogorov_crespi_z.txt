@@ -38,7 +38,7 @@ This shift is achieved by the last term in the equation for {Vij} above.
 This potential is intended for interactions between two layers of graphene.
 Therefore, to avoid interaction between layers in multi-layered materials,
 each layer should have a separate atom type and interactions should only
-be computed between atom types of neighbouring layers.
+be computed between atom types of neighboring layers.
 
 The parameter file (e.g. CC.KC), is intended for use with metal
 "units"_units.html, with energies in meV. An additional parameter, {S},

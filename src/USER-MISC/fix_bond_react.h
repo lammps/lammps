@@ -53,7 +53,7 @@ class FixBondReact : public Fix {
   FILE *fp;
   int *iatomtype,*jatomtype;
   int *seed;
-  double *cutsq,*fraction;
+  double **cutsq,*fraction;
   tagint lastcheck;
   int stabilization_flag;
   int *stabilize_steps_flag;
@@ -66,7 +66,7 @@ class FixBondReact : public Fix {
   int nmax; // max num local atoms
   int max_natoms; // max natoms in a molecule template
   tagint *partner,*finalpartner;
-  double *distsq,*probability;
+  double **distsq,*probability;
   int *ncreate;
   int maxcreate;
   int allncreate;
@@ -96,10 +96,9 @@ class FixBondReact : public Fix {
   void superimpose_algorithm(); // main function of the superimpose algorithm
 
   int *ibonding,*jbonding;
+  int *closeneigh; // indicates if bonding atoms of a rxn are 1-2, 1-3, or 1-4 neighbors
   int nedge,nequivalent; // number of edge, equivalent atoms in mapping file
   int attempted_rxn; // there was an attempt!
-  int ghostcheck_flag; // idicates whether a reaction instances contains a nonlocal atom
-  int this_rxn_count; // num of local reaction occurrences
   int *local_rxn_count;
   int *ghostly_rxn_count;
   int avail_guesses; // num of restore points available
@@ -143,6 +142,8 @@ class FixBondReact : public Fix {
   void skip_lines(int, char *);
   int parse(char *, char **, int);
 
+  void far_partner();
+  void close_partner();
   void find_landlocked_atoms(int);
   void glove_ghostcheck();
   void ghost_glovecast();

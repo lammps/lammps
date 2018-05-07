@@ -41,6 +41,7 @@ class FixRestrain : public Fix {
   int ilevel_respa;
   int nrestrain,maxrestrain;
   int *rstyle;
+  int *mult;
   int **ids;
   double *kstart,*kstop,*target;
   double *cos_target,*sin_target;

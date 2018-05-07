@@ -242,7 +242,7 @@ void BondOxdnaFene::coeff(int narg, char **arg)
 void BondOxdnaFene::init_style()
 {
   /* special bonds have to be lj = 0 1 1 and coul = 1 1 1 to exclude
-     the ss excluded volume interaction between nearest neighbours   */
+     the ss excluded volume interaction between nearest neighbors   */
 
   force->special_lj[1] = 0.0;
   force->special_lj[2] = 1.0;

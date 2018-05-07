@@ -539,7 +539,7 @@ double PairLJSFDipoleSF::single(int i, int j, int itype, int jtype, double rsq,
                                 double &fforce)
 {
   double r2inv,r6inv;
-  double pdotp,pidotr,pjdotr,pre1,delx,dely,delz;
+  double pdotp,pidotr,pjdotr,delx,dely,delz;
   double rinv, r3inv,r5inv, rcutlj2inv, rcutcoul2inv,rcutlj6inv;
   double qtmp,xtmp,ytmp,ztmp,bfac,pqfac,qpfac, ecoul, evdwl;
 

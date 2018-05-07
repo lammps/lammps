@@ -1527,7 +1527,10 @@ void FixFilterCorotate::general_cluster(int index, int index_in_list)
 
   //derivative:
   //dn1dx:
-  double sum1[3][3*N];
+
+  double **sum1;
+  memory->create(sum1,3,3*N,"filter_corotate:sum1");
+
   for (int i=0; i<3; i++)
     for (int j=0; j<3*N; j++)
       sum1[i][j] = 0;
@@ -1564,10 +1567,12 @@ void FixFilterCorotate::general_cluster(int index, int index_in_list)
       dn1dx[i][j] = norm1*sum;
     }
   }
+  memory->destroy(sum1);
 
   //dn2dx: norm2 * I3mn2n2T * (I3mn1n1T*sum2 - rkn1pn1rk*dn1dx)
 
-  double sum2[3][3*N];
+  double **sum2;
+  memory->create(sum2,3,3*N,"filter_corotate:sum2");
   for (int i=0; i<3; i++)
     for (int j=0; j<3*N; j++)
       sum2[i][j] = 0;
@@ -1618,7 +1623,8 @@ void FixFilterCorotate::general_cluster(int index, int index_in_list)
   //dn2dx: norm2 * I3mn2n2T * (I3mn1n1T*sum2 - rkn1pn1rk*dn1dx)
   //sum3 = (I3mn1n1T*sum2 - rkn1pn1rk*dn1dx)
 
-  double sum3[3][3*N];
+  double **sum3;
+  memory->create(sum3,3,3*N,"filter_corotate:sum3");
   for (int i=0; i<3; i++)
     for (int j=0; j<3*N; j++) {
       double sum = 0;
@@ -1627,6 +1633,7 @@ void FixFilterCorotate::general_cluster(int index, int index_in_list)
       sum3[i][j] = sum;
     }
 
+  memory->destroy(sum2);
   //dn2dx = norm2 * I3mn2n2T * sum3
   for (int i=0; i<3; i++)
     for (int j=0; j<3*N; j++) {
@@ -1636,6 +1643,7 @@ void FixFilterCorotate::general_cluster(int index, int index_in_list)
       dn2dx[i][j] = norm2*sum;
     }
 
+  memory->destroy(sum3);
   //dn3dx = norm3 * I3mn3n3T * cross
   double I3mn3n3T[3][3];   //(I_3 - n3n3T)
   for (int i=0; i<3; i++) {
@@ -1644,7 +1652,8 @@ void FixFilterCorotate::general_cluster(int index, int index_in_list)
     I3mn3n3T[i][i] += 1.0;
   }
 
-  double cross[3][3*N];
+  double **cross;
+  memory->create(cross,3,3*N,"filter_corotate:cross");
 
   for (int j=0; j<3*N; j++) {
     cross[0][j] = dn1dx[1][j]*n2[2] -dn1dx[2][j]*n2[1] +
@@ -1663,6 +1672,7 @@ void FixFilterCorotate::general_cluster(int index, int index_in_list)
       dn3dx[i][j] = norm3*sum;
     }
 
+  memory->destroy(cross);
   for (int l=0; l<N; l++)
     for (int i=0; i<3; i++)
       for (int j=0; j<3*N; j++)

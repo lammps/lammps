@@ -1264,15 +1264,15 @@ void *PairKIM::extract(const char *str, int &dim)
   int ier;
   int dummyint;
   int isIndexed = 0;
-  int maxLine = 1024;
+  const int MAXLINE = 1024;
   int rank;
   int validParam = 0;
   int numParams;
-  int *speciesIndex = new int[maxLine];
-  char *paramStr = new char[maxLine];
+  int *speciesIndex = new int[MAXLINE];
+  char *paramStr = new char[MAXLINE];
   char *paramName;
   char *indexStr;
-  char message[maxLine];
+  char message[MAXLINE];
   int offset;
   double* paramPtr;
 
@@ -1354,7 +1354,7 @@ void *PairKIM::extract(const char *str, int &dim)
   }
   kim_error(__LINE__,"get_rank",kimerror);
 
-  int *shape = new int[maxLine];
+  int *shape = new int[MAXLINE];
   dummyint = (*pkim).get_shape(paramName, shape, &kimerror);
   if (kimerror == KIM_STATUS_FAIL)
   {

@@ -1065,7 +1065,7 @@ void Image::write_PNG(FILE *fp)
   png_set_text(png_ptr,info_ptr,text_ptr,1);
   png_write_info(png_ptr,info_ptr);
 
-  png_bytep row_pointers[height];
+  png_bytep *row_pointers = new png_bytep[height];
   for (int i=0; i < height; ++i)
     row_pointers[i] = (png_bytep) &writeBuffer[(height-i-1)*3*width];
 
@@ -1073,6 +1073,7 @@ void Image::write_PNG(FILE *fp)
   png_write_end(png_ptr, info_ptr);
 
   png_destroy_write_struct(&png_ptr, &info_ptr);
+  delete[] row_pointers;
 #endif
 }
 

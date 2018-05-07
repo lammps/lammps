@@ -84,7 +84,9 @@ thermo 50
 
 # dump 1 all xyz 100 test_vis.xyz
 
-fix myrxns all bond/react stabilization yes statted_grp .03   react rxn1 all 1 2.9 mol1 mol2 rxn1_stp1_map   react rxn2 all 1 5 mol3 mol4 rxn1_stp2_map
+fix myrxns all bond/react stabilization yes statted_grp .03   react rxn1 all 1 0.0 2.9 mol1 mol2 rxn1_stp1_map   react rxn2 all 1 0.0 5.0 mol3 mol4 rxn1_stp2_map
+WARNING: An atom in 'react #1' changes bond connectivity but not atom type (../fix_bond_react.cpp:1489)
+WARNING: An atom in 'react #2' changes bond connectivity but not atom type (../fix_bond_react.cpp:1489)
 dynamic group bond_react_MASTER_group defined
 dynamic group statted_grp defined
 dynamic group bond_react_MASTER_group defined
@@ -132,39 +134,42 @@ Per MPI rank memory allocation (min/avg/max) = 209.1 | 209.1 | 209.1 Mbytes
 Step Temp Press Density f_myrxns[1] f_myrxns[2] 
        0          800    3666.3948   0.80366765            0            0 
       50    673.95238   -9670.9169   0.80366765           31            0 
-     100    693.69241   -4696.4359   0.80366765           57           22 
-     150    715.44689   -14740.892   0.80366765           77           50 
-     200    721.16898     -1411.95   0.80366765           84           66 
-Loop time of 107.389 on 1 procs for 200 steps with 35200 atoms
+     100    697.22819   -4624.0512   0.80366765           57           22 
+     150    723.60507   -17175.571   0.80366765           76           48 
+     200    736.71277   -12961.963   0.80366765           84           64 
+Loop time of 102.825 on 1 procs for 200 steps with 35200 atoms
 
-Performance: 0.161 ns/day, 149.151 hours/ns, 1.862 timesteps/s
+Performance: 0.168 ns/day, 142.812 hours/ns, 1.945 timesteps/s
 99.7% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 27.191     | 27.191     | 27.191     |   0.0 | 25.32
-Bond    | 11.46      | 11.46      | 11.46      |   0.0 | 10.67
-Kspace  | 4.2507     | 4.2507     | 4.2507     |   0.0 |  3.96
-Neigh   | 55.544     | 55.544     | 55.544     |   0.0 | 51.72
-Comm    | 0.41715    | 0.41715    | 0.41715    |   0.0 |  0.39
-Output  | 0.0011044  | 0.0011044  | 0.0011044  |   0.0 |  0.00
-Modify  | 8.4756     | 8.4756     | 8.4756     |   0.0 |  7.89
-Other   |            | 0.04897    |            |       |  0.05
+Pair    | 27.193     | 27.193     | 27.193     |   0.0 | 26.45
+Bond    | 11.324     | 11.324     | 11.324     |   0.0 | 11.01
+Kspace  | 4.1878     | 4.1878     | 4.1878     |   0.0 |  4.07
+Neigh   | 54.724     | 54.724     | 54.724     |   0.0 | 53.22
+Comm    | 0.40662    | 0.40662    | 0.40662    |   0.0 |  0.40
+Output  | 0.0011101  | 0.0011101  | 0.0011101  |   0.0 |  0.00
+Modify  | 4.9422     | 4.9422     | 4.9422     |   0.0 |  4.81
+Other   |            | 0.04545    |            |       |  0.04
 
 Nlocal:    35200 ave 35200 max 35200 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    38406 ave 38406 max 38406 min
+Nghost:    38403 ave 38403 max 38403 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    6.92787e+06 ave 6.92787e+06 max 6.92787e+06 min
+Neighs:    6.9281e+06 ave 6.9281e+06 max 6.9281e+06 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 
-Total # of neighbors = 6927872
-Ave neighs/atom = 196.815
-Ave special neighs/atom = 9.83489
+Total # of neighbors = 6928101
+Ave neighs/atom = 196.821
+Ave special neighs/atom = 9.83727
 Neighbor list builds = 200
 Dangerous builds = 0
 
 # write_restart restart_longrun
 # write_data restart_longrun.data
-Total wall time: 0:01:48
+
+Please see the log.cite file for references relevant to this simulation
+
+Total wall time: 0:01:43

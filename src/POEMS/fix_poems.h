@@ -47,6 +47,7 @@ class FixPOEMS : public Fix  {
   void pre_neighbor();
   int dof(int);
   void deform(int);
+  int modify_param(int, char **);
   void reset_dt();
 
  private:
@@ -55,6 +56,7 @@ class FixPOEMS : public Fix  {
   double *step_respa;
   int nlevels_respa;
   double total_ke;
+  int earlyflag;    // 1 if forces and torques are computed at post_force()
 
   // atom assignment to rigid bodies
   // double count joint atoms as being in multiple bodies
@@ -96,6 +98,7 @@ class FixPOEMS : public Fix  {
 
   // internal class functions
 
+  void compute_forces_and_torques();
   void readfile(char *);
   int readline(FILE *, char **, int *);
   void jointbuild();

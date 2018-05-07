@@ -457,6 +457,10 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   avec_line = (AtomVecLine *) atom->style_match("line");
   avec_tri = (AtomVecTri *) atom->style_match("tri");
 
+  // compute per body forces and torques inside final_integrate() by default
+
+  earlyflag = 0;
+
   // print statistics
 
   int one = 0;
@@ -555,8 +559,21 @@ void FixRigidSmall::init()
 
   int count = 0;
   for (i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"rigid") == 0) count++;
+    if (modify->fix[i]->rigid_flag) count++;
   if (count > 1 && me == 0) error->warning(FLERR,"More than one fix rigid");
+
+  if (earlyflag) {
+    int rflag = 0;
+    for (i = 0; i < modify->nfix; i++) {
+      if (modify->fix[i]->rigid_flag) rflag = 1;
+      if (rflag && (modify->fmask[i] & POST_FORCE) && 
+          !modify->fix[i]->rigid_flag) {
+        char str[128];
+        sprintf(str,"Fix %d alters forces after fix rigid",modify->fix[i]->id);
+        error->warning(FLERR,str);
+      }
+    }
+  }
 
   // error if npt,nph fix comes before rigid fix
 
@@ -770,10 +787,10 @@ void FixRigidSmall::initial_integrate(int vflag)
 /* ----------------------------------------------------------------------
    apply Langevin thermostat to all 6 DOF of rigid bodies I own
    unlike fix langevin, this stores extra force in extra arrays,
-     which are added in when final_integrate() calculates a new fcm/torque
+     which are added in when a new fcm/torque are calculated
 ------------------------------------------------------------------------- */
 
-void FixRigidSmall::post_force(int vflag)
+void FixRigidSmall::apply_langevin_thermostat()
 {
   double gamma1,gamma2;
 
@@ -850,10 +867,18 @@ void FixRigidSmall::enforce2d()
 
 /* ---------------------------------------------------------------------- */
 
-void FixRigidSmall::final_integrate()
+void FixRigidSmall::post_force(int vflag)
+{
+  if (langflag) apply_langevin_thermostat();
+  if (earlyflag) compute_forces_and_torques();
+}
+
+
+/* ---------------------------------------------------------------------- */
+
+void FixRigidSmall::compute_forces_and_torques()
 {
   int i,ibody;
-  double dtfm;
 
   //check(3);
 
@@ -931,6 +956,18 @@ void FixRigidSmall::final_integrate()
       tcm[2] += langextra[ibody][5];
     }
   }
+}
+
+
+/* ---------------------------------------------------------------------- */
+
+void FixRigidSmall::final_integrate()
+{
+  double dtfm;
+
+  //check(3);
+
+  if (!earlyflag) compute_forces_and_torques();
 
   // update vcm and angmom, recompute omega
 
@@ -3380,6 +3417,33 @@ void FixRigidSmall::zero_rotation()
 
   evflag = 0;
   set_v();
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixRigidSmall::modify_param(int narg, char **arg)
+{
+  if (strcmp(arg[0],"bodyforces") == 0) {
+    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
+    if (strcmp(arg[1],"early") == 0) earlyflag = 1;
+    else if (strcmp(arg[1],"late") == 0) earlyflag = 0;
+    else error->all(FLERR,"Illegal fix_modify command");
+
+    // reset fix mask
+    // must do here and not in init, 
+    // since modify.cpp::init() uses fix masks before calling fix::init()
+
+    for (int i = 0; i < modify->nfix; i++)
+      if (strcmp(modify->fix[i]->id,id) == 0) {
+        if (earlyflag) modify->fmask[i] |= POST_FORCE;
+        else if (!langflag) modify->fmask[i] &= ~POST_FORCE;
+        break;
+      }
+
+    return 2;
+  }
+
+  return 0;
 }
 
 /* ---------------------------------------------------------------------- */

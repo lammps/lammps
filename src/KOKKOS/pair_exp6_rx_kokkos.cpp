@@ -813,10 +813,13 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIG
     return;
   }
 
+  int tid = 0;
+#ifndef KOKKOS_HAVE_CUDA
   typedef Kokkos::Experimental::UniqueToken<
     DeviceType, Kokkos::Experimental::UniqueTokenScope::Global> unique_token_type;
   unique_token_type unique_token;
-  int tid = unique_token.acquire();
+  tid = unique_token.acquire();
+#endif
 
   int i,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,evdwlOld,fpair;
@@ -1153,7 +1156,9 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIG
   t_uCG(tid,i) += uCG_i;
   t_uCGnew(tid,i) += uCGnew_i;
 
+#ifndef KOKKOS_HAVE_CUDA
   unique_token.release(tid);
+#endif
 }
 
 // Experimental thread-safe approach using duplicated data instead of atomics and
@@ -1183,10 +1188,13 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
   Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_uCG = uCG;
   Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_uCGnew = uCGnew;
 
+  int tid = 0;
+#ifndef KOKKOS_HAVE_CUDA
   typedef Kokkos::Experimental::UniqueToken<
     DeviceType, Kokkos::Experimental::UniqueTokenScope::Global> unique_token_type;
   unique_token_type unique_token;
-  int tid = unique_token.acquire();
+  tid = unique_token.acquire();
+#endif
 
   const int nRep = 12;
   const double shift = 1.05;
@@ -1615,7 +1623,9 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
     t_uCGnew(tid,i) += uCGnew_i;
   }
 
+#ifndef KOKKOS_HAVE_CUDA
   unique_token.release(tid);
+#endif
 }
 
 template<class DeviceType>

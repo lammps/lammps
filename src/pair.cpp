@@ -16,13 +16,13 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <ctype.h>
-#include <float.h>
-#include <limits.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cctype>
+#include <cfloat>
+#include <climits>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair.h"
 #include "atom.h"
 #include "neighbor.h"

@@ -29,7 +29,7 @@
 #include "modify.h"
 #include "update.h"
 
-#include <string.h>
+#include <cstring>
 
 #if defined(_OPENMP)
 #include <omp.h>

@@ -26,7 +26,7 @@ PairStyle(bop,PairBOP)
 #define LMP_PAIR_BOP_H
 
 #include "pair.h"
-#include <time.h>
+#include <ctime>
 #include "update.h"
 
 namespace LAMMPS_NS {

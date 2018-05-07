@@ -14,8 +14,8 @@
 // NOTE: allow for bin center to be variables for sphere/cylinder
 
 #include <mpi.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 #include "compute_chunk_atom.h"
 #include "atom.h"
 #include "update.h"

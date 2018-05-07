@@ -11,10 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <cmath>
+#include <cfloat> // DBL_EPSILON
 #include "fix_rx.h"
 #include "atom.h"
 #include "error.h"
@@ -31,10 +32,8 @@
 #include "math_special.h"
 #include "pair_dpd_fdt_energy.h"
 
-#include <float.h> // DBL_EPSILON
 #include <vector> // std::vector<>
 #include <algorithm> // std::max
-#include <cmath> // std::fmod
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -261,6 +260,7 @@ void FixRX::post_constructor()
       error->all(FLERR,"fix rx cannot be combined with fix property/atom");
 
   char **tmpspecies = new char*[maxspecies];
+  int tmpmaxstrlen = 0;
   for(int jj=0; jj < maxspecies; jj++)
     tmpspecies[jj] = NULL;
 
@@ -321,6 +321,7 @@ void FixRX::post_constructor()
           error->all(FLERR,"Exceeded the maximum number of species permitted in fix rx.");
         tmpspecies[nUniqueSpecies] = new char[strlen(word)+1];
         strcpy(tmpspecies[nUniqueSpecies],word);
+        tmpmaxstrlen = MAX(tmpmaxstrlen,strlen(word));
         nUniqueSpecies++;
       }
       word = strtok(NULL, " \t\n\r\f");
@@ -355,9 +356,9 @@ void FixRX::post_constructor()
   newarg2[0] = id_fix_species_old;
   newarg2[1] = group->names[igroup];
   newarg2[2] = (char *) "property/atom";
+  char *str1 = new char[tmpmaxstrlen+3];
+  char *str2 = new char[tmpmaxstrlen+6];
   for(int ii=0; ii<nspecies; ii++){
-    char str1[2+strlen(tmpspecies[ii])+1];
-    char str2[2+strlen(tmpspecies[ii])+4];
     strcpy(str1,"d_");
     strcpy(str2,"d_");
     strncat(str1,tmpspecies[ii],strlen(tmpspecies[ii]));
@@ -368,6 +369,8 @@ void FixRX::post_constructor()
     strcpy(newarg[ii+3],str1);
     strcpy(newarg2[ii+3],str2);
   }
+  delete[] str1;
+  delete[] str2;
   newarg[nspecies+3] = (char *) "ghost";
   newarg[nspecies+4] = (char *) "yes";
   newarg2[nspecies+3] = (char *) "ghost";

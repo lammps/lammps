@@ -130,7 +130,7 @@ public:
     }
   }
 
-  inline void operator *= (cvm::real const &a)
+  inline void operator *= (cvm::real a)
   {
     size_t i;
     for (i = 0; i < this->size(); i++) {
@@ -138,7 +138,7 @@ public:
     }
   }
 
-  inline void operator /= (cvm::real const &a)
+  inline void operator /= (cvm::real a)
   {
     size_t i;
     for (i = 0; i < this->size(); i++) {
@@ -146,7 +146,8 @@ public:
     }
   }
 
-  inline friend vector1d<T> operator + (vector1d<T> const &v1, vector1d<T> const &v2)
+  inline friend vector1d<T> operator + (vector1d<T> const &v1,
+                                        vector1d<T> const &v2)
   {
     check_sizes(v1.size(), v2.size());
     vector1d<T> result(v1.size());
@@ -157,7 +158,8 @@ public:
     return result;
   }
 
-  inline friend vector1d<T> operator - (vector1d<T> const &v1, vector1d<T> const &v2)
+  inline friend vector1d<T> operator - (vector1d<T> const &v1,
+                                        vector1d<T> const &v2)
   {
     check_sizes(v1.size(), v2.size());
     vector1d<T> result(v1.size());
@@ -168,7 +170,7 @@ public:
     return result;
   }
 
-  inline friend vector1d<T> operator * (vector1d<T> const &v, cvm::real const &a)
+  inline friend vector1d<T> operator * (vector1d<T> const &v, cvm::real a)
   {
     vector1d<T> result(v.size());
     size_t i;
@@ -178,12 +180,12 @@ public:
     return result;
   }
 
-  inline friend vector1d<T> operator * (cvm::real const &a, vector1d<T> const &v)
+  inline friend vector1d<T> operator * (cvm::real a, vector1d<T> const &v)
   {
     return v * a;
   }
 
-  inline friend vector1d<T> operator / (vector1d<T> const &v, cvm::real const &a)
+  inline friend vector1d<T> operator / (vector1d<T> const &v, cvm::real a)
   {
     vector1d<T> result(v.size());
     size_t i;
@@ -246,7 +248,8 @@ public:
   }
 
   /// Assign a vector to a slice of this vector
-  inline void sliceassign(size_t const i1, size_t const i2, vector1d<T> const &v)
+  inline void sliceassign(size_t const i1, size_t const i2,
+                          vector1d<T> const &v)
   {
     if ((i2 < i1) || (i2 >= this->size())) {
       cvm::error("Error: trying to slice a vector using incorrect boundaries.\n");
@@ -259,12 +262,13 @@ public:
 
   /// Formatted output
 
-  inline size_t output_width(size_t const &real_width) const
+  inline size_t output_width(size_t real_width) const
   {
     return real_width*(this->size()) + 3*(this->size()-1) + 4;
   }
 
-  inline friend std::istream & operator >> (std::istream &is, cvm::vector1d<T> &v)
+  inline friend std::istream & operator >> (std::istream &is,
+                                            cvm::vector1d<T> &v)
   {
     if (v.size() == 0) return is;
     size_t const start_pos = is.tellg();
@@ -288,7 +292,8 @@ public:
     return is;
   }
 
-  inline friend std::ostream & operator << (std::ostream &os, cvm::vector1d<T> const &v)
+  inline friend std::ostream & operator << (std::ostream &os,
+                                            cvm::vector1d<T> const &v)
   {
     std::streamsize const w = os.width();
     std::streamsize const p = os.precision();
@@ -376,6 +381,15 @@ protected:
     inline operator vector1d<T>() const
     {
       return vector1d<T>(length, data);
+    }
+    inline int set(cvm::vector1d<T> const &v) const
+    {
+      if (v.size() != length) {
+        return cvm::error("Error: setting a matrix row from a vector of "
+                          "incompatible size.\n", BUG_ERROR);
+      }
+      for (size_t i = 0; i < length; i++) data[i] = v[i];
+      return COLVARS_OK;
     }
   };
 
@@ -515,9 +529,12 @@ public:
   {
     if ((m1.outer_length != m2.outer_length) ||
         (m1.inner_length != m2.inner_length)) {
-      cvm::error("Error: trying to perform an operation between matrices of different sizes, "+
-                 cvm::to_str(m1.outer_length)+"x"+cvm::to_str(m1.inner_length)+" and "+
-                 cvm::to_str(m2.outer_length)+"x"+cvm::to_str(m2.inner_length)+".\n");
+      cvm::error("Error: trying to perform an operation between "
+                 "matrices of different sizes, "+
+                 cvm::to_str(m1.outer_length)+"x"+
+                 cvm::to_str(m1.inner_length)+" and "+
+                 cvm::to_str(m2.outer_length)+"x"+
+                 cvm::to_str(m2.inner_length)+".\n");
     }
   }
 
@@ -539,7 +556,7 @@ public:
     }
   }
 
-  inline void operator *= (cvm::real const &a)
+  inline void operator *= (cvm::real a)
   {
     size_t i;
     for (i = 0; i < data.size(); i++) {
@@ -547,7 +564,7 @@ public:
     }
   }
 
-  inline void operator /= (cvm::real const &a)
+  inline void operator /= (cvm::real a)
   {
     size_t i;
     for (i = 0; i < data.size(); i++) {
@@ -555,7 +572,8 @@ public:
     }
   }
 
-  inline friend matrix2d<T> operator + (matrix2d<T> const &m1, matrix2d<T> const &m2)
+  inline friend matrix2d<T> operator + (matrix2d<T> const &m1,
+                                        matrix2d<T> const &m2)
   {
     check_sizes(m1, m2);
     matrix2d<T> result(m1.outer_length, m1.inner_length);
@@ -566,7 +584,8 @@ public:
     return result;
   }
 
-  inline friend matrix2d<T> operator - (matrix2d<T> const &m1, matrix2d<T> const &m2)
+  inline friend matrix2d<T> operator - (matrix2d<T> const &m1,
+                                        matrix2d<T> const &m2)
   {
     check_sizes(m1, m2);
     matrix2d<T> result(m1.outer_length, m1.inner_length);
@@ -577,7 +596,7 @@ public:
     return result;
   }
 
-  inline friend matrix2d<T> operator * (matrix2d<T> const &m, cvm::real const &a)
+  inline friend matrix2d<T> operator * (matrix2d<T> const &m, cvm::real a)
   {
     matrix2d<T> result(m.outer_length, m.inner_length);
     size_t i;
@@ -587,12 +606,12 @@ public:
     return result;
   }
 
-  inline friend matrix2d<T> operator * (cvm::real const &a, matrix2d<T> const &m)
+  inline friend matrix2d<T> operator * (cvm::real a, matrix2d<T> const &m)
   {
     return m * a;
   }
 
-  inline friend matrix2d<T> operator / (matrix2d<T> const &m, cvm::real const &a)
+  inline friend matrix2d<T> operator / (matrix2d<T> const &m, cvm::real a)
   {
     matrix2d<T> result(m.outer_length, m.inner_length);
     size_t i;
@@ -602,34 +621,17 @@ public:
     return result;
   }
 
-  /// Matrix multiplication
-//   inline friend matrix2d<T> const & operator * (matrix2d<T> const &m1, matrix2d<T> const &m2)
-//   {
-//     matrix2d<T> result(m1.outer_length, m2.inner_length);
-//     if (m1.inner_length != m2.outer_length) {
-//       cvm::error("Error: trying to multiply two matrices of incompatible sizes, "+
-//                  cvm::to_str(m1.outer_length)+"x"+cvm::to_str(m1.inner_length)+" and "+
-//                  cvm::to_str(m2.outer_length)+"x"+cvm::to_str(m2.inner_length)+".\n");
-//     } else {
-//       size_t i, j, k;
-//       for (i = 0; i < m1.outer_length; i++) {
-//         for (j = 0; j < m2.inner_length; j++) {
-//           for (k = 0; k < m1.inner_length; k++) {
-//             result[i][j] += m1[i][k] * m2[k][j];
-//           }
-//         }
-//       }
-//     }
-//     return result;
-//   }
-
   /// vector-matrix multiplication
-  inline friend vector1d<T> operator * (vector1d<T> const &v, matrix2d<T> const &m)
+  inline friend vector1d<T> operator * (vector1d<T> const &v,
+                                        matrix2d<T> const &m)
   {
     vector1d<T> result(m.inner_length);
     if (m.outer_length != v.size()) {
-      cvm::error("Error: trying to multiply a vector and a matrix of incompatible sizes, "+
-                  cvm::to_str(v.size()) + " and " + cvm::to_str(m.outer_length)+"x"+cvm::to_str(m.inner_length) + ".\n");
+      cvm::error("Error: trying to multiply a vector and a matrix "
+                 "of incompatible sizes, "+
+                  cvm::to_str(v.size()) + " and " +
+                 cvm::to_str(m.outer_length)+"x"+cvm::to_str(m.inner_length) +
+                 ".\n");
     } else {
       size_t i, k;
       for (i = 0; i < m.inner_length; i++) {
@@ -640,25 +642,6 @@ public:
     }
     return result;
   }
-
-//   /// matrix-vector multiplication (unused for now)
-//   inline friend vector1d<T> const & operator * (matrix2d<T> const &m, vector1d<T> const &v)
-//   {
-//     vector1d<T> result(m.outer_length);
-//     if (m.inner_length != v.size()) {
-//       cvm::error("Error: trying to multiply a matrix and a vector of incompatible sizes, "+
-//                   cvm::to_str(m.outer_length)+"x"+cvm::to_str(m.inner_length)
-//                   + " and " + cvm::to_str(v.length) + ".\n");
-//     } else {
-//       size_t i, k;
-//       for (i = 0; i < m.outer_length; i++) {
-//         for (k = 0; k < m.inner_length; k++) {
-//           result[i] += m[i][k] * v[k];
-//         }
-//       }
-//     }
-//     return result;
-//   }
 
   /// Formatted output
   friend std::ostream & operator << (std::ostream &os,
@@ -725,49 +708,52 @@ public:
   cvm::real x, y, z;
 
   inline rvector()
-    : x(0.0), y(0.0), z(0.0)
-  {}
+  {
+    reset();
+  }
 
-  inline rvector(cvm::real const &x_i,
-                 cvm::real const &y_i,
-                 cvm::real const &z_i)
-    : x(x_i), y(y_i), z(z_i)
-  {}
+  /// \brief Set all components to zero
+  inline void reset()
+  {
+    set(0.0);
+  }
+
+  inline rvector(cvm::real x_i, cvm::real y_i, cvm::real z_i)
+  {
+    set(x_i, y_i, z_i);
+  }
 
   inline rvector(cvm::vector1d<cvm::real> const &v)
-    : x(v[0]), y(v[1]), z(v[2])
-  {}
+  {
+    set(v[0], v[1], v[2]);
+  }
 
   inline rvector(cvm::real t)
-    : x(t), y(t), z(t)
-  {}
+  {
+    set(t);
+  }
 
-  /// \brief Set all components to a scalar value
-  inline void set(cvm::real const &value) {
+  /// \brief Set all components to a scalar
+  inline void set(cvm::real value)
+  {
     x = y = z = value;
   }
 
   /// \brief Assign all components
-  inline void set(cvm::real const &x_i,
-                  cvm::real const &y_i,
-                  cvm::real const &z_i) {
+  inline void set(cvm::real x_i, cvm::real y_i, cvm::real z_i)
+  {
     x = x_i;
     y = y_i;
     z = z_i;
   }
 
-  /// \brief Set all components to zero
-  inline void reset() {
-    x = y = z = 0.0;
-  }
-
   /// \brief Access cartesian components by index
-  inline cvm::real & operator [] (int const &i) {
+  inline cvm::real & operator [] (int i) {
     return (i == 0) ? x : (i == 1) ? y : (i == 2) ? z : x;
   }
 
   /// \brief Access cartesian components by index
-  inline cvm::real const & operator [] (int const &i) const {
+  inline cvm::real  operator [] (int i) const {
     return (i == 0) ? x : (i == 1) ? y : (i == 2) ? z : x;
   }
 
@@ -778,14 +764,6 @@ public:
     result[1] = this->y;
     result[2] = this->z;
     return result;
-  }
-
-  inline cvm::rvector & operator = (cvm::real const &v)
-  {
-    x = v;
-    y = v;
-    z = v;
-    return *this;
   }
 
   inline void operator += (cvm::rvector const &v)
@@ -802,7 +780,7 @@ public:
     z -= v.z;
   }
 
-  inline void operator *= (cvm::real const &v)
+  inline void operator *= (cvm::real v)
   {
     x *= v;
     y *= v;
@@ -832,13 +810,14 @@ public:
     return (n > 0. ? cvm::rvector(x, y, z)/n : cvm::rvector(1., 0., 0.));
   }
 
-  static inline size_t output_width(size_t const &real_width)
+  static inline size_t output_width(size_t real_width)
   {
     return 3*real_width + 10;
   }
 
 
-  static inline cvm::rvector outer(cvm::rvector const &v1, cvm::rvector const &v2)
+  static inline cvm::rvector outer(cvm::rvector const &v1,
+                                   cvm::rvector const &v2)
   {
     return cvm::rvector( v1.y*v2.z - v2.y*v1.z,
                          -v1.x*v2.z + v2.x*v1.z,
@@ -850,41 +829,35 @@ public:
     return cvm::rvector(-v.x, -v.y, -v.z);
   }
 
-  friend inline int operator == (cvm::rvector const &v1, cvm::rvector const &v2)
-  {
-    return (v1.x == v2.x) && (v1.y == v2.y) && (v1.z == v2.z);
-  }
-
-  friend inline int operator != (cvm::rvector const &v1, cvm::rvector const &v2)
-  {
-    return (v1.x != v2.x) || (v1.y != v2.y) || (v1.z != v2.z);
-  }
-
-  friend inline cvm::rvector operator + (cvm::rvector const &v1, cvm::rvector const &v2)
+  friend inline cvm::rvector operator + (cvm::rvector const &v1,
+                                         cvm::rvector const &v2)
   {
     return cvm::rvector(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
   }
-  friend inline cvm::rvector operator - (cvm::rvector const &v1, cvm::rvector const &v2)
+  friend inline cvm::rvector operator - (cvm::rvector const &v1,
+                                         cvm::rvector const &v2)
   {
     return cvm::rvector(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
   }
 
-  friend inline cvm::real operator * (cvm::rvector const &v1, cvm::rvector const &v2)
+  /// Inner (dot) product
+  friend inline cvm::real operator * (cvm::rvector const &v1,
+                                      cvm::rvector const &v2)
   {
     return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
   }
 
-  friend inline cvm::rvector operator * (cvm::real const &a, cvm::rvector const &v)
+  friend inline cvm::rvector operator * (cvm::real a, cvm::rvector const &v)
   {
     return cvm::rvector(a*v.x, a*v.y, a*v.z);
   }
 
-  friend inline cvm::rvector operator * (cvm::rvector const &v, cvm::real const &a)
+  friend inline cvm::rvector operator * (cvm::rvector const &v, cvm::real a)
   {
     return cvm::rvector(a*v.x, a*v.y, a*v.z);
   }
 
-  friend inline cvm::rvector operator / (cvm::rvector const &v, cvm::real const &a)
+  friend inline cvm::rvector operator / (cvm::rvector const &v, cvm::real a)
   {
     return cvm::rvector(v.x/a, v.y/a, v.z/a);
   }
@@ -946,15 +919,9 @@ public:
   {}
 
   /// Constructor component by component
-  inline rmatrix(cvm::real const &xxi,
-                 cvm::real const &xyi,
-                 cvm::real const &xzi,
-                 cvm::real const &yxi,
-                 cvm::real const &yyi,
-                 cvm::real const &yzi,
-                 cvm::real const &zxi,
-                 cvm::real const &zyi,
-                 cvm::real const &zzi)
+  inline rmatrix(cvm::real xxi, cvm::real xyi, cvm::real xzi,
+                 cvm::real yxi, cvm::real yyi, cvm::real yzi,
+                 cvm::real zxi, cvm::real zyi, cvm::real zzi)
     : cvm::matrix2d<cvm::real>(3, 3)
   {
     this->xx() = xxi;
@@ -983,30 +950,12 @@ public:
 
   inline cvm::rmatrix transpose() const
   {
-    return cvm::rmatrix(this->xx(),
-                        this->yx(),
-                        this->zx(),
-                        this->xy(),
-                        this->yy(),
-                        this->zy(),
-                        this->xz(),
-                        this->yz(),
-                        this->zz());
+    return cvm::rmatrix(this->xx(), this->yx(), this->zx(),
+                        this->xy(), this->yy(), this->zy(),
+                        this->xz(), this->yz(), this->zz());
   }
 
   friend cvm::rvector operator * (cvm::rmatrix const &m, cvm::rvector const &r);
-
-  //   friend inline cvm::rmatrix const operator * (cvm::rmatrix const &m1, cvm::rmatrix const &m2) {
-  //     return cvm::rmatrix (m1.xx()*m2.xx() + m1.xy()*m2.yx() + m1.xz()*m2.yz(),
-  //                     m1.xx()*m2.xy() + m1.xy()*m2.yy() + m1.xz()*m2.zy(),
-  //                     m1.xx()*m2.xz() + m1.xy()*m2.yz() + m1.xz()*m2.zz(),
-  //                     m1.yx()*m2.xx() + m1.yy()*m2.yx() + m1.yz()*m2.yz(),
-  //                     m1.yx()*m2.xy() + m1.yy()*m2.yy() + m1.yz()*m2.yy(),
-  //                     m1.yx()*m2.xz() + m1.yy()*m2.yz() + m1.yz()*m2.yz(),
-  //                     m1.zx()*m2.xx() + m1.zy()*m2.yx() + m1.zz()*m2.yz(),
-  //                     m1.zx()*m2.xy() + m1.zy()*m2.yy() + m1.zz()*m2.yy(),
-  //                     m1.zx()*m2.xz() + m1.zy()*m2.yz() + m1.zz()*m2.yz());
-  //   }
 
 };
 
@@ -1031,7 +980,7 @@ public:
   cvm::real q0, q1, q2, q3;
 
   /// Constructor from a 3-d vector
-  inline quaternion(cvm::real const &x, cvm::real const &y, cvm::real const &z)
+  inline quaternion(cvm::real x, cvm::real y, cvm::real z)
     : q0(0.0), q1(x), q2(y), q3(z)
   {}
 
@@ -1041,10 +990,10 @@ public:
   {}
 
   /// Constructor component by component
-  inline quaternion(cvm::real const &q0i,
-                    cvm::real const &q1i,
-                    cvm::real const &q2i,
-                    cvm::real const &q3i)
+  inline quaternion(cvm::real q0i,
+                    cvm::real q1i,
+                    cvm::real q2i,
+                    cvm::real q3i)
     : q0(q0i), q1(q1i), q2(q2i), q3(q3i)
   {}
 
@@ -1055,9 +1004,9 @@ public:
   /// "Constructor" after Euler angles (in radians)
   ///
   /// http://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
-  inline void set_from_euler_angles(cvm::real const &phi_in,
-                                    cvm::real const &theta_in,
-                                    cvm::real const &psi_in)
+  inline void set_from_euler_angles(cvm::real phi_in,
+                                    cvm::real theta_in,
+                                    cvm::real psi_in)
   {
     q0 = ( (std::cos(phi_in/2.0)) * (std::cos(theta_in/2.0)) * (std::cos(psi_in/2.0)) +
            (std::sin(phi_in/2.0)) * (std::sin(theta_in/2.0)) * (std::sin(psi_in/2.0)) );
@@ -1079,7 +1028,7 @@ public:
   }
 
   /// \brief Set all components to a scalar
-  inline void set(cvm::real const &value = 0.0)
+  inline void set(cvm::real value)
   {
     q0 = q1 = q2 = q3 = value;
   }
@@ -1087,7 +1036,7 @@ public:
   /// \brief Set all components to zero (null quaternion)
   inline void reset()
   {
-    q0 = q1 = q2 = q3 = 0.0;
+    set(0.0);
   }
 
   /// \brief Set the q0 component to 1 and the others to 0 (quaternion
@@ -1099,7 +1048,7 @@ public:
   }
 
   /// Tell the number of characters required to print a quaternion, given that of a real number
-  static inline size_t output_width(size_t const &real_width)
+  static inline size_t output_width(size_t real_width)
   {
     return 4*real_width + 13;
   }
@@ -1113,7 +1062,7 @@ public:
   friend std::istream & operator >> (std::istream &is, cvm::quaternion &q);
 
   /// Access the quaternion as a 4-d array (return a reference)
-  inline cvm::real & operator [] (int const &i) {
+  inline cvm::real & operator [] (int i) {
     switch (i) {
     case 0:
       return this->q0;
@@ -1130,7 +1079,7 @@ public:
   }
 
   /// Access the quaternion as a 4-d array (return a value)
-  inline cvm::real operator [] (int const &i) const {
+  inline cvm::real operator [] (int i) const {
     switch (i) {
     case 0:
       return this->q0;
@@ -1175,12 +1124,12 @@ public:
     return cvm::quaternion(q0, -q1, -q2, -q3);
   }
 
-  inline void operator *= (cvm::real const &a)
+  inline void operator *= (cvm::real a)
   {
     q0 *= a; q1 *= a; q2 *= a; q3 *= a;
   }
 
-  inline void operator /= (cvm::real const &a)
+  inline void operator /= (cvm::real a)
   {
     q0 /= a; q1 /= a; q2 /= a; q3 /= a;
   }
@@ -1215,19 +1164,22 @@ public:
   }
 
 
-  friend inline cvm::quaternion operator + (cvm::quaternion const &h, cvm::quaternion const &q)
+  friend inline cvm::quaternion operator + (cvm::quaternion const &h,
+                                            cvm::quaternion const &q)
   {
     return cvm::quaternion(h.q0+q.q0, h.q1+q.q1, h.q2+q.q2, h.q3+q.q3);
   }
 
-  friend inline cvm::quaternion operator - (cvm::quaternion const &h, cvm::quaternion const &q)
+  friend inline cvm::quaternion operator - (cvm::quaternion const &h,
+                                            cvm::quaternion const &q)
   {
     return cvm::quaternion(h.q0-q.q0, h.q1-q.q1, h.q2-q.q2, h.q3-q.q3);
   }
 
   /// \brief Provides the quaternion product.  \b NOTE: for the inner
   /// product use: \code h.inner (q); \endcode
-  friend inline cvm::quaternion operator * (cvm::quaternion const &h, cvm::quaternion const &q)
+  friend inline cvm::quaternion operator * (cvm::quaternion const &h,
+                                            cvm::quaternion const &q)
   {
     return cvm::quaternion(h.q0*q.q0 - h.q1*q.q1 - h.q2*q.q2 - h.q3*q.q3,
                            h.q0*q.q1 + h.q1*q.q0 + h.q2*q.q3 - h.q3*q.q2,
@@ -1235,18 +1187,18 @@ public:
                            h.q0*q.q3 + h.q3*q.q0 + h.q1*q.q2 - h.q2*q.q1);
   }
 
-  friend inline cvm::quaternion operator * (cvm::real const &c,
+  friend inline cvm::quaternion operator * (cvm::real c,
                                             cvm::quaternion const &q)
   {
     return cvm::quaternion(c*q.q0, c*q.q1, c*q.q2, c*q.q3);
   }
   friend inline cvm::quaternion operator * (cvm::quaternion const &q,
-                                            cvm::real const &c)
+                                            cvm::real c)
   {
     return cvm::quaternion(q.q0*c, q.q1*c, q.q2*c, q.q3*c);
   }
   friend inline cvm::quaternion operator / (cvm::quaternion const &q,
-                                            cvm::real const &c)
+                                            cvm::real c)
   {
     return cvm::quaternion(q.q0/c, q.q1/c, q.q2/c, q.q3/c);
   }
@@ -1407,7 +1359,7 @@ public:
   std::vector< cvm::vector1d<cvm::rvector> > dQ0_1, dQ0_2;
 
   /// Allocate space for the derivatives of the rotation
-  inline void request_group1_gradients(size_t const &n)
+  inline void request_group1_gradients(size_t n)
   {
     dS_1.resize(n, cvm::matrix2d<cvm::rvector>(4, 4));
     dL0_1.resize(n, cvm::rvector(0.0, 0.0, 0.0));
@@ -1415,7 +1367,7 @@ public:
   }
 
   /// Allocate space for the derivatives of the rotation
-  inline void request_group2_gradients(size_t const &n)
+  inline void request_group2_gradients(size_t n)
   {
     dS_2.resize(n, cvm::matrix2d<cvm::rvector>(4, 4));
     dL0_2.resize(n, cvm::rvector(0.0, 0.0, 0.0));
@@ -1448,7 +1400,7 @@ public:
   }
 
   /// Constructor after an axis of rotation and an angle (in radians)
-  inline rotation(cvm::real const &angle, cvm::rvector const &axis)
+  inline rotation(cvm::real angle, cvm::rvector const &axis)
     : b_debug_gradients(false)
   {
     cvm::rvector const axis_n = axis.unit();
@@ -1500,20 +1452,18 @@ public:
 
     if (q.q0 != 0.0) {
 
-      // cvm::real const x = iprod/q.q0;
+      cvm::real const dspindx =
+        (180.0/PI) * 2.0 * (1.0 / (1.0 + (iprod*iprod)/(q.q0*q.q0)));
 
-      cvm::real const dspindx = (180.0/PI) * 2.0 * (1.0 / (1.0 + (iprod*iprod)/(q.q0*q.q0)));
-
-      return
-        cvm::quaternion( dspindx * (iprod * (-1.0) / (q.q0*q.q0)),
-                         dspindx * ((1.0/q.q0) * axis.x),
-                         dspindx * ((1.0/q.q0) * axis.y),
-                         dspindx * ((1.0/q.q0) * axis.z));
+      return cvm::quaternion( dspindx * (iprod * (-1.0) / (q.q0*q.q0)),
+                              dspindx * ((1.0/q.q0) * axis.x),
+                              dspindx * ((1.0/q.q0) * axis.y),
+                              dspindx * ((1.0/q.q0) * axis.z));
     } else {
       // (1/(1+x^2)) ~ (1/x)^2
-      return
-        cvm::quaternion((180.0/PI) * 2.0 * ((-1.0)/iprod), 0.0, 0.0, 0.0);
-      // XX TODO: What if iprod == 0? XX
+      // The documentation of spinAngle discourages its use when q_vec and
+      // axis are not close
+      return cvm::quaternion((180.0/PI) * 2.0 * ((-1.0)/iprod), 0.0, 0.0, 0.0);
     }
   }
 

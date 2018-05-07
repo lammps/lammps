@@ -26,6 +26,16 @@ action () {
   fi
 }
 
+# USER-PHONON uses the parallel FFT wrapper used in PPPM,
+# so we must require the KSPACE package to be installed.
+
+if (test $1 = 1) then
+  if (test ! -e ../fft3d_wrap.h) then
+    echo "Must install KSPACE package with USER-PHONON"
+    exit 1
+  fi
+fi
+
 # list of files with optional dependcies
 
 action fix_phonon.cpp fft3d_wrap.h

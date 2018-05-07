@@ -15,9 +15,9 @@
    Contributing authors: Christian Trott (SNL), Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "pair_snap_kokkos.h"
 #include "atom_kokkos.h"
 #include "error.h"

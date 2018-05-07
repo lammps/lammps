@@ -16,10 +16,10 @@
    Based on PairTersoffZBL by Aidan Thompson (SNL) and David Farrell (NWU)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_gw_zbl.h"
 #include "atom.h"
 #include "update.h"

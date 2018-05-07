@@ -329,7 +329,6 @@ void integrate_potential::update_div_local(const std::vector<int> &ix0)
   const int linear_index = address(ix0);
   int i, j, k;
   std::vector<int> ix = ix0;
-  const cvm::real * g;
 
   if (nd == 2) {
     // gradients at grid points surrounding the current scalar grid point
@@ -783,7 +782,7 @@ void integrate_potential::atimes(const std::vector<cvm::real> &A, std::vector<cv
 /// Inversion of preconditioner matrix (e.g. diagonal of the Laplacian)
 void integrate_potential::asolve(const std::vector<cvm::real> &b, std::vector<cvm::real> &x)
 {
-  for (size_t i=0; i<nt; i++) {
+  for (size_t i=0; i<int(nt); i++) {
     x[i] = b[i] * inv_lap_diag[i]; // Jacobi preconditioner - little benefit in tests so far
   }
   return;
@@ -803,7 +802,7 @@ void integrate_potential::nr_linbcg_sym(const std::vector<cvm::real> &b, std::ve
 
   iter=0;
   atimes(x,r);
-  for (j=0;j<nt;j++) {
+  for (j=0;j<int(nt);j++) {
     r[j]=b[j]-r[j];
   }
   bnrm=l2norm(b);
@@ -814,26 +813,26 @@ void integrate_potential::nr_linbcg_sym(const std::vector<cvm::real> &b, std::ve
   bkden = 1.0;
   while (iter < itmax) {
     ++iter;
-    for (bknum=0.0,j=0;j<nt;j++) {
+    for (bknum=0.0,j=0;j<int(nt);j++) {
       bknum += r[j]*r[j];  // precon: z[j]*r[j]
     }
     if (iter == 1) {
-      for (j=0;j<nt;j++) {
+      for (j=0;j<int(nt);j++) {
         p[j] = r[j];  // precon: p[j] = z[j]
       }
     } else {
       bk=bknum/bkden;
-      for (j=0;j<nt;j++) {
+      for (j=0;j<int(nt);j++) {
         p[j] = bk*p[j] + r[j];  // precon:  bk*p[j] + z[j]
       }
     }
     bkden = bknum;
     atimes(p,z);
-    for (akden=0.0,j=0;j<nt;j++) {
+    for (akden=0.0,j=0;j<int(nt);j++) {
       akden += z[j]*p[j];
     }
     ak = bknum/akden;
-    for (j=0;j<nt;j++) {
+    for (j=0;j<int(nt);j++) {
       x[j] += ak*p[j];
       r[j] -= ak*z[j];
     }

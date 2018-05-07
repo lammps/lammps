@@ -227,8 +227,15 @@ protected:
   /// \brief Array of atom objects
   std::vector<cvm::atom> atoms;
 
-  /// \brief Array of atom identifiers for the MD program (0-based)
+  /// \brief Internal atom IDs for host code
   std::vector<int> atoms_ids;
+
+  /// Sorted list of internal atom IDs (populated on-demand by
+  /// create_sorted_ids); used to read coordinate files
+  std::vector<int> sorted_atoms_ids;
+
+  /// Map entries of sorted_atoms_ids onto the original positions in the group
+  std::vector<int> sorted_atoms_ids_map;
 
   /// \brief Dummy atom position
   cvm::atom_pos dummy_atom_pos;
@@ -273,19 +280,34 @@ public:
     return atoms.size();
   }
 
-  std::string const print_atom_ids() const;
-
   /// \brief If this option is on, this group merely acts as a wrapper
   /// for a fixed position; any calls to atoms within or to
   /// functions that return disaggregated data will fail
   bool b_dummy;
 
-  /// Sorted list of zero-based (internal) atom ids
-  /// (populated on-demand by create_sorted_ids)
-  std::vector<int> sorted_ids;
+  /// Internal atom IDs (populated during initialization)
+  inline std::vector<int> const &ids() const
+  {
+    return atoms_ids;
+  }
 
-  /// Allocates and populates the sorted list of atom ids
-  int create_sorted_ids(void);
+  std::string const print_atom_ids() const;
+
+  /// Allocates and populates sorted_ids and sorted_ids_map
+  int create_sorted_ids();
+
+  /// Sorted internal atom IDs (populated on-demand by create_sorted_ids);
+  /// used to read coordinate files
+  inline std::vector<int> const &sorted_ids() const
+  {
+    return sorted_atoms_ids;
+  }
+
+  /// Map entries of sorted_atoms_ids onto the original positions in the group
+  inline std::vector<int> const &sorted_ids_map() const
+  {
+    return sorted_atoms_ids_map;
+  }
 
   /// Detect whether two groups share atoms
   /// If yes, returns 1-based number of a common atom; else, returns 0

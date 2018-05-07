@@ -17,10 +17,10 @@
                         Germany Department of Materials Science
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_cdeam.h"
 #include "atom.h"
 #include "force.h"

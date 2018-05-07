@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 #include "angle_harmonic.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -30,7 +30,11 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-AngleHarmonic::AngleHarmonic(LAMMPS *lmp) : Angle(lmp) {}
+AngleHarmonic::AngleHarmonic(LAMMPS *lmp) : Angle(lmp)
+{
+  k = NULL;
+  theta0 = NULL;
+}
 
 /* ---------------------------------------------------------------------- */
 

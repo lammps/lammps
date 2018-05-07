@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "fix_rigid.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -2342,7 +2342,7 @@ void FixRigid::write_restart_file(char *file)
   sprintf(outfile,"%s.rigid",file);
   FILE *fp = fopen(outfile,"w");
   if (fp == NULL) {
-    char str[128];
+    char str[192];
     sprintf(str,"Cannot open fix rigid restart file %s",outfile);
     error->one(FLERR,str);
   }

@@ -17,9 +17,9 @@
 
 #include "fix_tfmc.h"
 #include <mpi.h>
-#include <string.h>
-#include <math.h>
-#include <float.h>
+#include <cstring>
+#include <cmath>
+#include <cfloat>
 #include "atom.h"
 #include "force.h"
 #include "update.h"

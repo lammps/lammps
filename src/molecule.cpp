@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include "molecule.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -1111,7 +1111,7 @@ void Molecule::special_generate()
 {
   int newton_bond = force->newton_bond;
   tagint atom1,atom2;
-  int count[natoms];
+  int *count = new int[natoms];
 
   // temporary array for special atoms
 
@@ -1197,6 +1197,7 @@ void Molecule::special_generate()
       }
     }
   }
+  delete[] count;
 
   maxspecial = 0;
   for (int i = 0; i < natoms; i++)

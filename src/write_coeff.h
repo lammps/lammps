@@ -20,7 +20,7 @@ CommandStyle(write_coeff,WriteCoeff)
 #ifndef LMP_WRITE_COEFF_H
 #define LMP_WRITE_COEFF_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "pointers.h"
 
 namespace LAMMPS_NS {

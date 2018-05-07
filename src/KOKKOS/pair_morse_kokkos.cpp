@@ -15,10 +15,10 @@
    Contributing authors: Stefan Paquay (Eindhoven University of Technology)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_morse_kokkos.h"
 #include "kokkos.h"
 #include "atom_kokkos.h"

@@ -18,10 +18,10 @@
    [Maaravi et al, J. Phys. Chem. C 121, 22826-22835 (2017)]
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_coul_shield.h"
 #include "atom.h"
 #include "comm.h"
@@ -231,6 +231,8 @@ void PairCoulShield::init_style()
 {
   if (!atom->q_flag)
     error->all(FLERR,"Pair style coul/shield requires atom attribute q");
+  if (!atom->molecule_flag)
+    error->all(FLERR,"Pair style coul/shield requires atom attribute molecule");
 
   neighbor->request(this,instance_me);
 }

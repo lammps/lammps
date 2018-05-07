@@ -20,7 +20,7 @@ AngleStyle(quartic,AngleQuartic)
 #ifndef LMP_ANGLE_QUARTIC_H
 #define LMP_ANGLE_QUARTIC_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "angle.h"
 
 namespace LAMMPS_NS {

@@ -20,7 +20,7 @@ CommandStyle(write_restart,WriteRestart)
 #ifndef LMP_WRITE_RESTART_H
 #define LMP_WRITE_RESTART_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "pointers.h"
 
 namespace LAMMPS_NS {

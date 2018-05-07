@@ -16,10 +16,10 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstring>
+#include <cstdio>
+#include <cstdlib>
 #include "comm_brick.h"
 #include "comm_tiled.h"
 #include "universe.h"

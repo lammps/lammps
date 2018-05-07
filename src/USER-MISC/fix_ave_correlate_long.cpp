@@ -21,9 +21,9 @@
    see J. Chem. Phys. 133, 154103 (2010)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include <unistd.h>
 #include "fix_ave_correlate_long.h"
 #include "update.h"

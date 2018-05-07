@@ -16,8 +16,8 @@
                         and Rochus Schmid (Ruhr-Universitaet Bochum)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 #include "angle_cosine_buck6d.h"
 #include "atom.h"
 #include "neighbor.h"

@@ -14,7 +14,7 @@
 #ifndef LMP_VARIABLE_H
 #define LMP_VARIABLE_H
 
-#include <stdlib.h>
+#include <cstdlib>
 #include "pointers.h"
 
 namespace LAMMPS_NS {

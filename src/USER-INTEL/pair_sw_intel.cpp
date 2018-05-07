@@ -25,9 +25,9 @@
 #pragma offload_attribute(pop)
 #endif
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_request.h"

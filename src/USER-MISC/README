@@ -39,6 +39,7 @@ dihedral_style spherical, Andrew Jewett, jewett.aij@gmail.com, 15 Jul 16
 dihedral_style table, Andrew Jewett, jewett.aij@gmail.com, 10 Jan 12
 fix addtorque, Laurent Joly (U Lyon), ljoly.ulyon at gmail.com, 8 Aug 11
 fix ave/correlate/long, Jorge Ramirez (UPM Madrid), jorge.ramirez at upm.es, 21 Oct 2015
+fix bond/react, Jacob Gissinger (CU Boulder), info at disarmmd.org, 24 Feb 2018
 fix filter/corotate, Lukas Fath (KIT), lukas.fath at kit.edu, 15 Mar 2017
 fix flow/gauss, Joel Eaves (CU Boulder), Joel.Eaves@Colorado.edu, 23 Aug 2016
 fix gle, Michele Ceriotti (EPFL Lausanne), michele.ceriotti at gmail.com, 24 Nov 2014

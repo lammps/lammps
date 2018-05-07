@@ -15,7 +15,7 @@
 #define LMP_DUMP_H
 
 #include <mpi.h>
-#include <stdio.h>
+#include <cstdio>
 #include "pointers.h"
 
 namespace LAMMPS_NS {

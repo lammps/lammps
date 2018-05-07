@@ -1,4 +1,6 @@
-LAMMPS (13 Feb 2017)
+LAMMPS (20 Apr 2018)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (../comm.cpp:90)
+  using 1 OpenMP thread(s) per MPI task
 # Demonstrate SNAP Ta potential
 
 # Initialize simulation
@@ -31,6 +33,7 @@ Created orthogonal box = (0 0 0) to (12.7212 12.7212 12.7212)
   1 by 2 by 2 MPI processor grid
 create_atoms	1 box
 Created 128 atoms
+  Time spent = 0.000274658 secs
 mass 1 183.84
 mass 2 4.0026
 
@@ -42,15 +45,15 @@ group	helium	type 2
 5 atoms in group helium
 # choose potential
 
-include W.SNAP_HePair.pot
-# DATE: 2017-02-20 CONTRIBUTOR: Mitchell Wood mitwood@sandia.gov CITATION: Wood, M. A. and Thompson, A. P. to appear in arxiv Feb2017, W-He and He-He from Juslin, N. and Wirth, B. D. Journal of Nuclear Materials, 423, (2013) p61-63
+include W_2940_2017_2_He_JW2013.snap
+# DATE: 2017-02-20 CONTRIBUTOR: Mitchell Wood mitwood@sandia.gov CITATION: Wood, M. A. and Thompson, A. P. "Quantum-Accurate Molecular Dynamics Potential for Tungsten" arXiv:1702.07042 [physics.comp-ph]
 #
 # Definition of SNAP+ZBL+Tabulated potential.
 variable zblcutinner equal 4
 variable zblcutouter equal 4.8
 variable zblz equal 74
 
-# Specify hybrid with SNAP, ZBL, and long-range Coulomb
+# Specify hybrid with SNAP and ZBL
 
 pair_style hybrid/overlay zbl ${zblcutinner} ${zblcutouter} snap table spline 10000 table spline 10000
 pair_style hybrid/overlay zbl 4 ${zblcutouter} snap table spline 10000 table spline 10000
@@ -64,18 +67,19 @@ SNAP Element = W, Radius 0.5, Weight 1
 Reading potential file W_2940_2017_2.snapparam with DATE: 2017-02-20
 SNAP keyword rcutfac 4.73442 
 SNAP keyword twojmax 8 
-SNAP keyword gamma 1 
 SNAP keyword rfac0 0.99363 
 SNAP keyword rmin0 0 
 SNAP keyword diagonalstyle 3 
+SNAP keyword bzeroflag 0 
+SNAP keyword quadraticflag 0 
 pair_coeff      2 2 table 1 He_He_JW2013.table HeHe
 Reading potential file He_He_JW2013.table with DATE: 2017-02-20
 WARNING: 1 of 4999 force values in table are inconsistent with -dE/dr.
-  Should only be flagged at inflection points (../pair_table.cpp:476)
+  Should only be flagged at inflection points (../pair_table.cpp:481)
 pair_coeff      1 2 table 2 W_He_JW2013.table WHe
 Reading potential file W_He_JW2013.table with DATE: 2017-02-20
 WARNING: 3 of 325 force values in table are inconsistent with -dE/dr.
-  Should only be flagged at inflection points (../pair_table.cpp:476)
+  Should only be flagged at inflection points (../pair_table.cpp:481)
 #Hybrid/overlay will take all pair styles and add their contributions equally, order of pair_coeff doesnt matter here
 #This is not the case for pair_style hybrid ... where only one pair_coeff is read for each type combination, order matters here.
 
@@ -134,7 +138,7 @@ Neighbor list info ...
       pair build: full/bin/atomonly
       stencil: full/bin/3d
       bin: standard
-Memory usage per processor = 7.65426 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 7.656 | 7.656 | 7.656 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0          300   -10.438105            0    -10.39963   -5445.2808 
       10    292.13979   -10.437097            0    -10.39963   -5516.3963 
@@ -147,20 +151,20 @@ Step Temp E_pair E_mol TotEng Press
       80    79.985938   -10.409886            0   -10.399628    2392.1106 
       90    62.568933   -10.407652            0   -10.399628    3141.7027 
      100    56.697933   -10.406899            0   -10.399628    3583.9538 
-Loop time of 2.8757 on 4 procs for 100 steps with 128 atoms
+Loop time of 4.82103 on 4 procs for 100 steps with 128 atoms
 
-Performance: 1.502 ns/day, 15.976 hours/ns, 34.774 timesteps/s
-99.9% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 0.896 ns/day, 26.783 hours/ns, 20.742 timesteps/s
+99.0% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 2.7363     | 2.8122     | 2.8636     |   2.9 | 97.79
+Pair    | 4.4837     | 4.6734     | 4.7605     |   5.2 | 96.94
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.011014   | 0.062439   | 0.13842    |  19.3 |  2.17
-Output  | 0.00023842 | 0.00025076 | 0.0002861  |   0.0 |  0.01
-Modify  | 9.2506e-05 | 9.9301e-05 | 0.00010395 |   0.0 |  0.00
-Other   |            | 0.0006654  |            |       |  0.02
+Comm    | 0.057389   | 0.14453    | 0.33421    |  29.4 |  3.00
+Output  | 0.00038719 | 0.00073916 | 0.0017841  |   0.0 |  0.02
+Modify  | 0.00018716 | 0.00022203 | 0.00026417 |   0.0 |  0.00
+Other   |            | 0.002119   |            |       |  0.04
 
 Nlocal:    32 ave 32 max 32 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -176,4 +180,4 @@ Ave neighs/atom = 53.5156
 Neighbor list builds = 0
 Dangerous builds = 0
 
-Total wall time: 0:00:02
+Total wall time: 0:00:04

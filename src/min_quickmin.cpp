@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
+#include <cmath>
 #include "min_quickmin.h"
 #include "universe.h"
 #include "atom.h"

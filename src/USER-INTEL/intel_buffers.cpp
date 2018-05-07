@@ -642,6 +642,6 @@ double IntelBuffers<flt_t, acc_t>::memory_usage(const int nthreads)
 
 /* ---------------------------------------------------------------------- */
 
-template class IntelBuffers<float,float>;
-template class IntelBuffers<float,double>;
-template class IntelBuffers<double,double>;
+template class LAMMPS_NS::IntelBuffers<float,float>;
+template class LAMMPS_NS::IntelBuffers<float,double>;
+template class LAMMPS_NS::IntelBuffers<double,double>;

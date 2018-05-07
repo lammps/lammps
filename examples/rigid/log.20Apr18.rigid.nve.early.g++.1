@@ -39,6 +39,8 @@ group		clump9 id <> 73 81
 fix 1 all rigid/nve group 9 clump1 clump2 clump3 clump4 clump5 	  	      clump6 clump7 clump8 clump9
 9 rigid bodies with 81 atoms
 
+fix_modify 1 bodyforces early
+
 # 1 chain of connected bodies
 
 #group		clump1 id <> 1 9
@@ -306,20 +308,20 @@ Step Temp E_pair E_mol TotEng Press
     9900    16738.487 -0.00030979882            0    5269.5233    10.590538 
     9950    16738.476 -0.00095967357            0    5269.5193    10.590496 
    10000    16738.494 -0.00062714625            0    5269.5253    10.590548 
-Loop time of 0.166547 on 1 procs for 10000 steps with 81 atoms
+Loop time of 0.166298 on 1 procs for 10000 steps with 81 atoms
 
-Performance: 518773.777 tau/day, 60043.261 timesteps/s
-99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 519549.516 tau/day, 60133.046 timesteps/s
+99.4% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.011439   | 0.011439   | 0.011439   |   0.0 |  6.87
-Neigh   | 0.038572   | 0.038572   | 0.038572   |   0.0 | 23.16
-Comm    | 0.0085464  | 0.0085464  | 0.0085464  |   0.0 |  5.13
-Output  | 0.0025046  | 0.0025046  | 0.0025046  |   0.0 |  1.50
-Modify  | 0.099479   | 0.099479   | 0.099479   |   0.0 | 59.73
-Other   |            | 0.006005   |            |       |  3.61
+Pair    | 0.011685   | 0.011685   | 0.011685   |   0.0 |  7.03
+Neigh   | 0.038539   | 0.038539   | 0.038539   |   0.0 | 23.17
+Comm    | 0.0086315  | 0.0086315  | 0.0086315  |   0.0 |  5.19
+Output  | 0.0026531  | 0.0026531  | 0.0026531  |   0.0 |  1.60
+Modify  | 0.098759   | 0.098759   | 0.098759   |   0.0 | 59.39
+Other   |            | 0.00603    |            |       |  3.63
 
 Nlocal:    81 ave 81 max 81 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

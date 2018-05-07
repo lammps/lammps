@@ -315,7 +315,7 @@ class LammpsInterface {
     } 
     else {
       int commSize = comm_size();
-      double recv[commSize];
+      double *recv = new double[commSize];
       MPI_Wrappers::gather(lammps_->world,data,recv);
       if (rank_zero()) {
         full_msg << " ATC:" << tag;
@@ -324,6 +324,7 @@ class LammpsInterface {
         }
         full_msg << "\n";
       }
+      delete[] recv;
     }
     if (rank_zero()) {
       std::string mesg = full_msg.str();
@@ -577,13 +578,13 @@ class LammpsInterface {
   void destroy_2d_int_array(int **i) const;
   int ** grow_2d_int_array(int **array, int n1, int n2, const char *name) const;
   template <typename T>
-    T * grow_array(T *&array, int n, const char *name) const {return lammps_->memory->grow(array,n,name);};
+    T * grow_array(T *&array, int n, const char *name) const {return lammps_->memory->grow(array,n,name);}
   template <typename T>
-    void destroy_array(T * array) {lammps_->memory->destroy(array);};
+    void destroy_array(T * array) {lammps_->memory->destroy(array);}
   template <typename T>
-    T ** grow_array(T **&array, int n1, int n2, const char *name) const {return lammps_->memory->grow(array,n1,n2,name);};
+    T ** grow_array(T **&array, int n1, int n2, const char *name) const {return lammps_->memory->grow(array,n1,n2,name);}
   template <typename T>
-    void destroy_array(T ** array) const {lammps_->memory->destroy(array);};
+    void destroy_array(T ** array) const {lammps_->memory->destroy(array);}
   /*@}*/
 
   /** \name Methods that interface with Update class */

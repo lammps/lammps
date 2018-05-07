@@ -352,8 +352,9 @@ namespace ATC{
     // each segment of the piecewise funcion is length-normalized separately
     else if (strcmp(arg[argIdx],"position-number-density")==0) { 
       argIdx++;
-      double y[nx],w[nx];
-      int n[nx];
+      double *y = new double[nx];
+      double *w = new double[nx];
+      int *n = new int[nx];
       int nn = 0;
       while (argIdx < narg) { 
         if (! is_numeric(arg[argIdx])) break;
@@ -369,7 +370,7 @@ namespace ATC{
         double w0 = w[i-1];
         double dw = w[i]-w0;
         double lx = 0;
-        double l[dn];
+        double *l = new double[dn];
         for (int j = 0; j < dn; ++j) {
           double x = (j+0.5)/dn; 
           double dl = w0+x*dw;
@@ -380,7 +381,11 @@ namespace ATC{
         for (int j = 0; j < dn; ++j) {
           dx(k++) = scale*l[j];
         }
+        delete[] l;
       }
+      delete[] y;
+      delete[] w;
+      delete[] n;
     }
     // construct relative values from a density function
     // evaluate for a domain (0,1)

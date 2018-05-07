@@ -1,0 +1,8 @@
+# Settings that the LAMMPS build will import when this package library is used
+
+# settings for VTK 7.1.1 on Fedora 28. This seems to work with Fedora versions going back to at least 23 and VTK version 6.x.
+# You need to install vtk-devel and all its dependencies using "dnf install vtk-devel"
+vtk_SYSINC = -I/usr/include/vtk
+vtk_SYSLIB = -lvtkCommonCore -lvtkIOCore -lvtkCommonDataModel -lvtkIOXML -lvtkIOLegacy -lvtkIOParallelXML
+vtk_SYSPATH = -L/usr/lib64/vtk
+

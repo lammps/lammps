@@ -77,6 +77,8 @@ int colvar::cvc::init(std::string const &conf)
 
   if (cvm::debug())
     cvm::log("Done initializing cvc base object.\n");
+
+  return error_code;
 }
 
 

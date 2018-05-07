@@ -12,8 +12,9 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: G. Ziegenhain, gerolf@ziegenhain.com
-                        Copyright (C) 2007
+   Contributing author:  G. Ziegenhain, gerolf@ziegenhain.com
+                         Copyright (C) 2007
+   Updated algorithm by: Brian Barnes, brian.c.barnes11.civ@mail.mil
 ------------------------------------------------------------------------- */
 
 #include <cmath>
@@ -40,7 +41,8 @@ enum{UNKNOWN,BCC,FCC,HCP,ICO};
 ComputeAcklandAtom::ComputeAcklandAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all(FLERR,"Illegal compute ackland/atom command");
+  if ((narg < 3) || (narg > 5))
+    error->all(FLERR,"Illegal compute ackland/atom command");
 
   peratom_flag = 1;
   size_peratom_cols = 0;
@@ -48,10 +50,26 @@ ComputeAcklandAtom::ComputeAcklandAtom(LAMMPS *lmp, int narg, char **arg) :
   nmax = 0;
   structure = NULL;
   maxneigh = 0;
+  legacy = 0;
   distsq = NULL;
   nearest = NULL;
   nearest_n0 = NULL;
   nearest_n1 = NULL;
+
+  int iarg = 3;
+  while (narg > iarg) {
+    if (strcmp("legacy",arg[iarg]) == 0) {
+      ++iarg;
+      if (iarg >= narg)
+        error->all(FLERR,"Invalid compute ackland/atom command");
+      if (strcmp("yes",arg[iarg]) == 0)
+        legacy = 1;
+      else if (strcmp("no",arg[iarg]) == 0)
+        legacy = 0;
+      else error->all(FLERR,"Invalid compute ackland/atom command");
+    }
+    ++iarg;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -140,13 +158,13 @@ void ComputeAcklandAtom::compute_peratom()
       // ensure distsq and nearest arrays are long enough
 
       if (jnum > maxneigh) {
-              memory->destroy(distsq);
-              memory->destroy(nearest);
+        memory->destroy(distsq);
+        memory->destroy(nearest);
         memory->destroy(nearest_n0);
         memory->destroy(nearest_n1);
-              maxneigh = jnum;
-              memory->create(distsq,maxneigh,"compute/ackland/atom:distsq");
-              memory->create(nearest,maxneigh,"compute/ackland/atom:nearest");
+        maxneigh = jnum;
+        memory->create(distsq,maxneigh,"compute/ackland/atom:distsq");
+        memory->create(nearest,maxneigh,"compute/ackland/atom:nearest");
         memory->create(nearest_n0,maxneigh,"compute/ackland/atom:nearest_n0");
         memory->create(nearest_n1,maxneigh,"compute/ackland/atom:nearest_n1");
       }
@@ -157,14 +175,14 @@ void ComputeAcklandAtom::compute_peratom()
 
       n = 0;
       for (jj = 0; jj < jnum; jj++) {
-              j = jlist[jj];
+        j = jlist[jj];
         j &= NEIGHMASK;
 
-              delx = xtmp - x[j][0];
-              dely = ytmp - x[j][1];
-              delz = ztmp - x[j][2];
-              rsq = delx*delx + dely*dely + delz*delz;
-              if (rsq < cutsq) {
+        delx = xtmp - x[j][0];
+        dely = ytmp - x[j][1];
+        delz = ztmp - x[j][2];
+        rsq = delx*delx + dely*dely + delz*delz;
+        if (rsq < cutsq) {
           distsq[n] = rsq;
           nearest[n++] = j;
         }
@@ -188,12 +206,12 @@ void ComputeAcklandAtom::compute_peratom()
         n1_dist_sq = 1.55*r0_sq;
       int n0 = 0, n1 = 0;
       for (j = 0; j < n; j++) {
-         if (distsq[j] < n1_dist_sq) {
-            nearest_n1[n1++] = nearest[j];
-            if (distsq[j] < n0_dist_sq) {
-               nearest_n0[n0++] = nearest[j];
-            }
-         }
+        if (distsq[j] < n1_dist_sq) {
+          nearest_n1[n1++] = nearest[j];
+          if (distsq[j] < n0_dist_sq) {
+            nearest_n0[n0++] = nearest[j];
+          }
+        }
       }
 
       // Evaluate all angles <(r_ij,rik) forall n0 particles with:
@@ -231,47 +249,98 @@ void ComputeAcklandAtom::compute_peratom()
           else chi[7]++;
         }
       }
+      if (legacy) {
 
-      if (chi[7] > 0 || n0 < 11) structure[i] = UNKNOWN;
-      else if (chi[0] == 7) structure[i] = BCC;
-      else if (chi[0] == 6) structure[i] = FCC;
-      else if (chi[0] == 3) structure[i] = HCP;
-      else {
+        // This is the original implementation by Gerolf Ziegenhain
         // Deviations from the different lattice structures
 
+        double delta_bcc = 0.35*chi[4]/(double)(chi[5]+chi[6]-chi[4]);
         double delta_cp = fabs(1.-(double)chi[6]/24.);
+        double delta_fcc = 0.61*(fabs((double)(chi[0]+chi[1]-6.))+
+                                 (double)chi[2])/6.0;
+        double delta_hcp = (fabs((double)chi[0]-3.)+
+                            fabs((double)chi[0]+(double)chi[1]+
+                                 (double)chi[2]+(double)chi[3]-9.0))/12.0;
 
-        // ensure we do not get divide by zero
-        // and if we will, make delta_bcc irrelevant
-        double delta_bcc = delta_cp + 1.0;
-        int chi56m4 = chi[5]+chi[6]-chi[4];
+        // Identification of the local structure according to the reference
 
-        // note that chi[7] presumed zero
-        if (chi56m4 != 0) delta_bcc = 0.35*chi[4]/(double)chi56m4;
+        if (chi[0] == 7)       { delta_bcc = 0.; }
+        else if (chi[0] == 6)  { delta_fcc = 0.; }
+        else if (chi[0] <= 3)  { delta_hcp = 0.; }
 
-        double delta_fcc = 0.61*(fabs((double)(chi[0]+chi[1]-6))
-                                 +(double)chi[2])/6.0;
-
-        double delta_hcp = (fabs((double)chi[0]-3.)+fabs((double)chi[0]
-                            +(double)chi[1]+(double)chi[2]+(double)chi[3]
-                            -9.0))/12.0;
-
-         // Identification of the local structure according to the reference
-
-        if (delta_bcc >= 0.1 && delta_cp >= 0.1 && delta_fcc >= 0.1
-            && delta_hcp >= 0.1) structure[i] = UNKNOWN;
-
-        // not part of Ackland-Jones 2006; included for backward compatibility
-        if (chi[4] < 3. && n1 == 12) structure[i] = ICO;
-
-        else {
-          if (delta_bcc <= delta_cp && n1 > 10 && n1 < 13) structure[i] = BCC;
-          else {
-            if (n0 > 12) structure[i] = UNKNOWN;
-            else {
-              if (delta_fcc < delta_hcp) structure[i] = FCC;
+        if (chi[7] > 0.)
+          structure[i] = UNKNOWN;
+        else
+          if (chi[4] < 3.)
+            {
+              if (n1 > 13 || n1 < 11)
+                structure[i] = UNKNOWN;
               else
-              structure[i] = HCP;
+                structure[i] = ICO;
+            } else
+            if (delta_bcc <= delta_cp)
+              {
+                if (n1 < 11)
+                  structure[i] = UNKNOWN;
+                else
+                  structure[i] = BCC;
+              } else
+              if (n1 > 12 || n1 < 11)
+                structure[i] = UNKNOWN;
+              else
+                if (delta_fcc < delta_hcp)
+                  structure[i] = FCC;
+                else
+                  structure[i] = HCP;
+
+      } else {
+
+        // This is the updated implementation by Brian Barnes
+
+        if (chi[7] > 0 || n0 < 11) structure[i] = UNKNOWN;
+        else if (chi[0] == 7) structure[i] = BCC;
+        else if (chi[0] == 6) structure[i] = FCC;
+        else if (chi[0] == 3) structure[i] = HCP;
+        else {
+          // Deviations from the different lattice structures
+
+          double delta_cp = fabs(1.-(double)chi[6]/24.);
+
+          // ensure we do not get divide by zero
+          // and if we will, make delta_bcc irrelevant
+          double delta_bcc = delta_cp + 1.0;
+          int chi56m4 = chi[5]+chi[6]-chi[4];
+
+          // note that chi[7] presumed zero
+          if (chi56m4 != 0) delta_bcc = 0.35*chi[4]/(double)chi56m4;
+
+          double delta_fcc = 0.61*(fabs((double)(chi[0]+chi[1]-6))
+                                   +(double)chi[2])/6.0;
+
+          double delta_hcp = (fabs((double)chi[0]-3.)
+                              +fabs((double)chi[0]
+                                    +(double)chi[1]
+                                    +(double)chi[2]
+                                    +(double)chi[3]
+                                    -9.0))/12.0;
+
+          // Identification of the local structure according to the reference
+
+          if (delta_bcc >= 0.1 && delta_cp >= 0.1 && delta_fcc >= 0.1
+              && delta_hcp >= 0.1) structure[i] = UNKNOWN;
+
+          // not part of Ackland-Jones 2006; included for backward compatibility
+          if (chi[4] < 3. && n1 == 12) structure[i] = ICO;
+
+          else {
+            if (delta_bcc <= delta_cp && n1 > 10 && n1 < 13) structure[i] = BCC;
+            else {
+              if (n0 > 12) structure[i] = UNKNOWN;
+              else {
+                if (delta_fcc < delta_hcp) structure[i] = FCC;
+                else
+                  structure[i] = HCP;
+              }
             }
           }
         }

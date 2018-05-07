@@ -60,7 +60,7 @@ PACKAGE = asphere body class2 colloid compress coreshell dipole gpu \
 PACKUSER = user-atc user-awpmd user-bocs user-cgdna user-cgsdk user-colvars \
 	   user-diffraction user-dpd user-drude user-eff user-fep user-h5md \
 	   user-intel user-lb user-manifold user-meamc user-meso \
-	   user-mgpt user-misc user-molfile \
+	   user-mgpt user-misc user-mofff user-molfile \
 	   user-netcdf user-omp user-phonon user-qmmm user-qtb \
 	   user-quip user-reaxc user-smd user-smtbq user-sph user-tally \
 	   user-uef user-vtk
@@ -267,7 +267,7 @@ package:
 	@echo 'make yes-all                 install all pgks in src dir'
 	@echo 'make no-all                  remove all pkgs from src dir'
 	@echo 'make yes-standard (yes-std)  install all standard pkgs'
-	@echo 'make no-standard (no-srd)    remove all standard pkgs'
+	@echo 'make no-standard (no-std)    remove all standard pkgs'
 	@echo 'make yes-user                install all user pkgs'
 	@echo 'make no-user                 remove all user pkgs'
 	@echo 'make yes-lib       install all pkgs with libs (included or ext)'

@@ -128,10 +128,6 @@ pkg_depends(USER-LB MPI)
 pkg_depends(USER-MISC MANYBODY)
 pkg_depends(USER-PHONON KSPACE)
 
-if(ENABLE_BODY AND ENABLE_POEMS)
-  message(FATAL_ERROR "BODY and POEMS cannot be enabled at the same time")
-endif()
-
 ######################################################
 # packages with special compiler needs or external libs
 ######################################################

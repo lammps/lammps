@@ -187,10 +187,11 @@ added forces to be included in the total potential energy of the
 system (the quantity being minimized), you MUST enable the
 "fix_modify"_fix_modify.html {energy} option for this fix.
 
-This fix computes a global scalar and vector of length 3, which can be 
-accessed by various "output commands"_Section_howto.html#howto_15.  The 
-scalar is the potential energy for all the restraints as discussed above.
-The vector values are the following global quantities:
+This fix computes a global scalar and a global vector of length 3, which
+can be accessed by various "output commands"_Section_howto.html#howto_15.
+The scalar is the total potential energy for {all} the restraints as
+discussed above. The vector values are the sum of contributions to the
+following individual categories:
 
 1 = bond energy
 2 = angle energy

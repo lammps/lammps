@@ -187,10 +187,16 @@ added forces to be included in the total potential energy of the
 system (the quantity being minimized), you MUST enable the
 "fix_modify"_fix_modify.html {energy} option for this fix.
 
-This fix computes a global scalar, which can be accessed by various
-"output commands"_Section_howto.html#howto_15.  The scalar is the
-potential energy for all the restraints as discussed above. The scalar
-value calculated by this fix is "extensive".
+This fix computes a global scalar and vector of length 3, which can be 
+accessed by various "output commands"_Section_howto.html#howto_15.  The 
+scalar is the potential energy for all the restraints as discussed above.
+The vector values are the following global quantities:
+
+1 = bond energy
+2 = angle energy
+3 = dihedral energy :ul
+
+The scalar and vector values calculated by this fix are "extensive".
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.

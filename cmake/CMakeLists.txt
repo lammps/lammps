@@ -53,8 +53,8 @@ include(GNUInstallDirs)
 set(LAMMPS_LINK_LIBS)
 set(LAMMPS_DEPS)
 set(LAMMPS_API_DEFINES)
-option(ENABLE_MPI "Build MPI version" OFF)
-if(ENABLE_MPI)
+option(BUILD_MPI "Build with MPI support enabled" OFF)
+if(BUILD_MPI)
   find_package(MPI REQUIRED)
   include_directories(${MPI_C_INCLUDE_PATH})
   list(APPEND LAMMPS_LINK_LIBS ${MPI_CXX_LIBRARIES})
@@ -67,6 +67,13 @@ else()
   add_library(mpi_stubs STATIC ${MPI_SOURCES})
   include_directories(${LAMMPS_SOURCE_DIR}/STUBS)
   list(APPEND LAMMPS_LINK_LIBS mpi_stubs)
+endif()
+
+option(BUILD_OMP "Build with OpenMP support enabled" OFF)
+if(BUILD_OMP)
+  find_package(OpenMP REQUIRED)
+  set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
 set(LAMMPS_SIZE_LIMIT "LAMMPS_SMALLBIG" CACHE STRING "Lammps size limit")
@@ -83,7 +90,11 @@ if(LAMMPS_EXCEPTIONS)
   set(LAMMPS_API_DEFINES "${LAMMPS_API_DEFINES} -DLAMMPS_EXCEPTIONS")
 endif()
 
-set(LAMMPS_MACHINE "" CACHE STRING "Suffix to append to lmp binary and liblammps (WON'T enable any features automatically")
+if(BUILD_MPI)
+  set(LAMMPS_MACHINE "mpi")
+else()
+  set(LAMMPS_MACHINE "serial")
+endif()
 mark_as_advanced(LAMMPS_MACHINE)
 if(LAMMPS_MACHINE)
   set(LAMMPS_MACHINE "_${LAMMPS_MACHINE}")
@@ -96,23 +107,35 @@ if(ENABLE_TESTING)
   enable_testing()
 endif(ENABLE_TESTING)
 
-option(ENABLE_ALL "Build all default packages" OFF)
-set(DEFAULT_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS CORESHELL DIPOLE GRANULAR
-  KSPACE MANYBODY MC MEAM MISC MOLECULE PERI QEQ
-  REAX REPLICA RIGID SHOCK SNAP SRD)
-set(OTHER_PACKAGES KIM PYTHON MSCG MPIIO VORONOI POEMS LATTE
-  USER-ATC USER-AWPMD USER-BOCS USER-CGDNA USER-MESO
-  USER-CGSDK USER-COLVARS USER-DIFFRACTION USER-DPD USER-DRUDE USER-EFF
-  USER-FEP USER-H5MD USER-LB USER-MANIFOLD USER-MEAMC USER-MGPT USER-MISC
-  USER-MOFFF USER-MOLFILE USER-NETCDF USER-PHONON USER-QTB USER-REAXC USER-SMD
-  USER-SMTBQ USER-SPH USER-TALLY USER-UEF USER-VTK USER-QUIP USER-QMMM)
-set(ACCEL_PACKAGES USER-OMP KOKKOS OPT USER-INTEL GPU)
+# TODO. ENABLE_DEFAULT should not be a selectable option,
+# it should select a set of packages, that are built by default.
+#option(ENABLE_DEFAULT "Build all default packages" OFF)
+set(DEFAULT_PACKAGES ASPHERE BODY CLASS2 COLLOID CORESHELL DIPOLE GRANULAR
+  KSPACE MANYBODY MC MISC MOLECULE OPT PERI POEMS QEQ REPLICA RIGID SHOCK
+  SNAP SRD USER-BOCS USER-CGDNA USER-CGSDK USER-COLVARS USER-DIFFRACTION
+  USER-DPD USER-DRUDE USER-FEP USER-MANIFOLD USER-MEAMC USER-MESO USER-MGPT
+  USER-MISC USER-MOFFF USER-PHONON USER-QTB USER-REAXC USER-SMTBQ USER-SPH
+  USER-TALLY USER-UEF)
+set(OTHER_PACKAGES COMPRESS KIM MEAM MSCG MPIIO PYTHON REAX VORONOI LATTE
+    USER-ATC USER-AWPMD USER-EFF USER-H5MD USER-LB USER-MOLFILE USER-OMP
+    USER-NETCDF USER-QMMM USER-QUIP USER-SMD USER-VTK)
+set(ACCEL_PACKAGES KOKKOS USER-INTEL GPU)
 foreach(PKG ${DEFAULT_PACKAGES})
-  option(ENABLE_${PKG} "Build ${PKG} Package" ${ENABLE_ALL})
+  option(ENABLE_${PKG} "Build ${PKG} Package" ON)
 endforeach()
 foreach(PKG ${ACCEL_PACKAGES} ${OTHER_PACKAGES})
   option(ENABLE_${PKG} "Build ${PKG} Package" OFF)
 endforeach()
+
+# special cases. MPIIO and USER-LB use MPI/IO, so they will not work with MPI STUBS
+if(NOT BUILD_MPI)
+  if(ENABLE_MPIIO)
+    message(FATAL_ERROR "The MPIIO package needs LAMMPS to be build with MPI")
+  endif()
+  if(ENABLE_USER-LB)
+    message(FATAL_ERROR "The USER-LB package needs LAMMPS to be build with MPI")
+  endif()
+endif()
 
 macro(pkg_depends PKG1 PKG2)
   if(ENABLE_${PKG1} AND NOT ENABLE_${PKG2})
@@ -120,11 +143,11 @@ macro(pkg_depends PKG1 PKG2)
   endif()
 endmacro()
 
-pkg_depends(MPIIO MPI)
 pkg_depends(QEQ MANYBODY)
 pkg_depends(USER-ATC MANYBODY)
-pkg_depends(USER-H5MD MPI)
-pkg_depends(USER-LB MPI)
+# TODO there is no MPI support in H5MD (yet), but HDF5 is required
+#pkg_depends(USER-H5MD MPI)
+pkg_depends(USER-INTEL USER-OMP)
 pkg_depends(USER-MISC MANYBODY)
 pkg_depends(USER-PHONON KSPACE)
 
@@ -144,10 +167,17 @@ if(ENABLE_KOKKOS OR ENABLE_MSCG)
   set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
 endif()
 
-if(ENABLE_USER-OMP OR ENABLE_KOKKOS OR ENABLE_USER-INTEL)
-  find_package(OpenMP REQUIRED)
-  set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+# TODO. For Kokkos, there needs to be more complex settings
+#       similar to the legacy makefiles, there should be a
+#       KOKKOS_TARGET  (mpi_only, omp, phi, cuda_mpi) selection
+
+# TODO. For USER-INTEL there are also multiple "targets" with defines
+# and special compiler flags. Also, while it can be compiled with GNU,
+# the performance is very bad, so we should require Intel compilers here
+# unless an advanced user (e.g. for testing) sets an advanced flag to
+# override this.
+if(ENABLE_USER-INTEL AND NOT BUILD_OMP)
+  message(FATAL_ERROR "The USER-INTEL package needs LAMMPS to be build with OpenMP enabled")
 endif()
 
 if(ENABLE_KSPACE)
@@ -700,10 +730,10 @@ if(BUILD_SHARED_LIBS)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/liblammps${LAMMPS_MACHINE}.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 endif()
 
-add_executable(lmp ${LMP_SOURCES})
-target_link_libraries(lmp lammps)
-set_target_properties(lmp PROPERTIES OUTPUT_NAME lmp${LAMMPS_MACHINE})
-install(TARGETS lmp DESTINATION ${CMAKE_INSTALL_BINDIR})
+add_executable(LAMMPS ${LMP_SOURCES})
+target_link_libraries(LAMMPS lammps)
+set_target_properties(LAMMPS PROPERTIES OUTPUT_NAME lmp${LAMMPS_MACHINE})
+install(TARGETS LAMMPS DESTINATION ${CMAKE_INSTALL_BINDIR})
 if(ENABLE_TESTING)
   add_test(ShowHelp lmp${LAMMPS_MACHINE} -help)
 endif()
@@ -719,8 +749,9 @@ endforeach()
 
 string(TOUPPER "${CMAKE_BUILD_TYPE}" BTYPE)
 message(STATUS "<<< Build configuration >>>
-   Build type       ${CMAKE_BUILD_TYPE}
-   Install path     ${CMAKE_INSTALL_PREFIX}
+   Build type:       ${CMAKE_BUILD_TYPE}
+   Install path:     ${CMAKE_INSTALL_PREFIX}
+   Executable name:  lmp${LAMMPS_MACHINE}     
    Compilers and Flags:
    C++ Compiler     ${CMAKE_CXX_COMPILER}
        Type         ${CMAKE_CXX_COMPILER_ID}

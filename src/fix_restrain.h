@@ -47,7 +47,9 @@ class FixRestrain : public Fix {
   double *kstart,*kstop,*target;
   double *cos_target,*sin_target;
   double energy,energy_all;
-  double ebond,eangle,edihed;
+  double ebond,ebond_all;
+  double eangle,eangle_all;
+  double edihed,edihed_all;
 
   void restrain_bond(int);
   void restrain_angle(int);

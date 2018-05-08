@@ -652,8 +652,16 @@ double FixRestrain::compute_scalar()
 
 double FixRestrain::compute_vector(int n)
 {
-  if (n == 0) return ebond;
-  if (n == 1) return eangle;
-  if (n == 2) return edihed;
-  return 0.0;
+  if (n == 0) {
+    MPI_Allreduce(&ebond,&ebond_all,1,MPI_DOUBLE,MPI_SUM,world);
+    return ebond_all;
+  } else if (n == 1) {
+    MPI_Allreduce(&eangle,&eangle_all,1,MPI_DOUBLE,MPI_SUM,world);
+    return eangle_all;
+  } else if (n == 2) { 
+    MPI_Allreduce(&edihed,&edihed_all,1,MPI_DOUBLE,MPI_SUM,world);
+    return edihed_all;
+  } else {
+    return 0.0;
+  }
 }

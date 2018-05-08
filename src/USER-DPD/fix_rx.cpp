@@ -361,9 +361,9 @@ void FixRX::post_constructor()
   for(int ii=0; ii<nspecies; ii++){
     strcpy(str1,"d_");
     strcpy(str2,"d_");
-    strncat(str1,tmpspecies[ii],strlen(tmpspecies[ii]));
-    strncat(str2,tmpspecies[ii],strlen(tmpspecies[ii]));
-    strncat(str2,"Old",3);
+    strcat(str1,tmpspecies[ii]);
+    strcat(str2,tmpspecies[ii]);
+    strcat(str2,"Old");
     newarg[ii+3] = new char[strlen(str1)+1];
     newarg2[ii+3] = new char[strlen(str2)+1];
     strcpy(newarg[ii+3],str1);

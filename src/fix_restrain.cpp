@@ -279,7 +279,7 @@ void FixRestrain::restrain_bond(int m)
   else fbond = 0.0;
 
   ebond += rk*dr;
-  energy += ebond;
+  energy += rk*dr;
 
   // apply force to each of 2 atoms
 
@@ -387,7 +387,7 @@ void FixRestrain::restrain_angle(int m)
   tk = k * dtheta;
 
   eangle += tk*dtheta;
-  energy += eangle;
+  energy += tk*dtheta;
 
   a = -2.0 * tk * s;
   a11 = a*c / rsq1;
@@ -568,7 +568,7 @@ void FixRestrain::restrain_dihedral(int m)
   p += 1.0;
 
   edihed += k * p;
-  energy += edihed;
+  energy += k * p;
 
   fg = vb1x*vb2xm + vb1y*vb2ym + vb1z*vb2zm;
   hg = vb3x*vb2xm + vb3y*vb2ym + vb3z*vb2zm;

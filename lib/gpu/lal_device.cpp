@@ -16,7 +16,7 @@
 #include "lal_device.h"
 #include "lal_precision.h"
 #include <map>
-#include <math.h>
+#include <cmath>
 #ifdef _OPENMP
 #include <omp.h>
 #endif

@@ -43,3 +43,6 @@ src/USER-MISC/*_grem.*              @dstelter92
 
 # tools
 tools/msi2lmp/*       @akohlmey
+
+# infrastructure
+cmake/*               @junghans

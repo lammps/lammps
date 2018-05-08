@@ -734,6 +734,8 @@
 /pair_hbond_dreiding_morse.h
 /pair_ilp_graphene_hbn.cpp
 /pair_ilp_graphene_hbn.h
+/pair_kim.cpp
+/pair_kim.h
 /pair_kolmogorov_crespi_full.cpp
 /pair_kolmogorov_crespi_full.h
 /pair_kolmogorov_crespi_z.cpp

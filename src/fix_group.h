@@ -33,6 +33,7 @@ class FixGroup : public Fix {
   void setup(int);
   void post_integrate();
   void post_integrate_respa(int,int);
+  void *extract(const char *,int &);
 
  private:
   int gbit,gbitinverse;
@@ -69,7 +70,7 @@ Self-explanatory.
 
 E: Per atom property for group dynamic does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Group dynamic parent group cannot be dynamic
 
@@ -78,10 +79,6 @@ Self-explanatory.
 E: Variable for group dynamic is invalid style
 
 The variable must be an atom-style variable.
-
-E: Per-atom property for group dynamic does not exist
-
-UNDOCUMENTED
 
 W: One or more dynamic groups may not be updated at correct point in timestep
 

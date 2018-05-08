@@ -51,9 +51,11 @@ The coefficients in the above example have to be kept fixed and cannot be change
 Example input and data files for DNA duplexes can be found in examples/USER/cgdna/examples/oxDNA/ and /oxDNA2/.
 A simple python setup tool which creates single straight or helical DNA strands,
 DNA duplexes or arrays of DNA duplexes can be found in examples/USER/cgdna/util/.
-A technical report with more information on the model, the structure of the input file,
-the setup tool and the performance of the LAMMPS-implementation of oxDNA
-can be found "here"_PDF/USER-CGDNA-overview.pdf.
+
+Please cite "(Henrich)"_#Henrich2 and the relevant oxDNA articles in any publication that uses this implementation. 
+The article contains more information on the model, the structure of the input file, the setup tool
+and the performance of the LAMMPS-implementation of oxDNA.
+The preprint version of the article can be found "here"_PDF/USER-CGDNA.pdf.
 
 :line
 
@@ -71,6 +73,9 @@ LAMMPS"_Section_start.html#start_3 section for more info on packages.
 [Default:] none
 
 :line
+
+:link(Henrich2)
+[(Henrich)] O. Henrich, Y. A. Gutierrez-Fosado, T. Curk, T. E. Ouldridge, Eur. Phys. J. E 41, 57 (2018).
 
 :link(oxdna_fene)
 [(Ouldridge)] T.E. Ouldridge, A.A. Louis, J.P.K. Doye, J. Chem. Phys. 134, 085101 (2011).

@@ -47,7 +47,7 @@ FixPythonMove::FixPythonMove(LAMMPS *lmp, int narg, char **arg) :
   PyGILState_STATE gstate = PyGILState_Ensure();
 
   // add current directory to PYTHONPATH
-  PyObject * py_path = PySys_GetObject("path");
+  PyObject * py_path = PySys_GetObject((char *)"path");
   PyList_Append(py_path, PY_STRING_FROM_STRING("."));
 
 
@@ -136,7 +136,7 @@ void FixPythonMove::init()
 {
   PyGILState_STATE gstate = PyGILState_Ensure();
   PyObject *py_move_obj = (PyObject *) py_move;
-  PyObject *py_init = PyObject_GetAttrString(py_move_obj,"init");
+  PyObject *py_init = PyObject_GetAttrString(py_move_obj,(char *)"init");
   if (!py_init) {
     PyErr_Print();
     PyErr_Clear();

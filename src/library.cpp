@@ -933,7 +933,7 @@ void lammps_gather_atoms_concat(void *ptr, char *name,
 
   BEGIN_CAPTURE
   {
-    int i,j,offset;
+    int i,offset;
 
     // error if tags are not defined
     // NOTE: test that name = image or ids is not a 64-bit int in code?
@@ -975,7 +975,6 @@ void lammps_gather_atoms_concat(void *ptr, char *name,
       lmp->memory->create(copy,count*natoms,"lib/gather:copy");
       for (i = 0; i < count*natoms; i++) copy[i] = 0;
 
-      tagint *tag = lmp->atom->tag;
       int nlocal = lmp->atom->nlocal;
 
       if (count == 1) {
@@ -1117,7 +1116,6 @@ void lammps_gather_atoms_subset(void *ptr, char *name,
       lmp->memory->create(copy,count*ndata,"lib/gather:copy");
       for (i = 0; i < count*ndata; i++) copy[i] = 0;
 
-      tagint *tag = lmp->atom->tag;
       int nlocal = lmp->atom->nlocal;
 
       if (count == 1) {
@@ -1163,7 +1161,6 @@ void lammps_gather_atoms_subset(void *ptr, char *name,
       lmp->memory->create(copy,count*ndata,"lib/gather:copy");
       for (i = 0; i < count*ndata; i++) copy[i] = 0.0;
 
-      tagint *tag = lmp->atom->tag;
       int nlocal = lmp->atom->nlocal;
 
       if (count == 1) {

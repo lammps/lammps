@@ -428,7 +428,7 @@ void FixIPI::final_integrate()
 
   int nat=bsize/3;
   double **f= atom->f;
-  double lbuf[bsize];
+  double *lbuf = new double[bsize];
 
   // reassembles the force vector from the local arrays
   int nlocal = atom->nlocal;
@@ -440,6 +440,7 @@ void FixIPI::final_integrate()
     lbuf[3*(atom->tag[i]-1)+2]=f[i][2]*forceconv;
   }
   MPI_Allreduce(lbuf,buffer,bsize,MPI_DOUBLE,MPI_SUM,world);
+  delete[] lbuf;
 
   for (int i = 0; i < 9; ++i) vir[i]=0.0;
 

@@ -160,7 +160,7 @@ void PairOxdnaXstk::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  // loop over pair interaction neighbours of my atoms
+  // loop over pair interaction neighbors of my atoms
 
   for (ia = 0; ia < anum; ia++) {
 
@@ -180,7 +180,7 @@ void PairOxdnaXstk::compute(int eflag, int vflag)
     for (ib = 0; ib < bnum; ib++) {
 
       b = blist[ib];
-      factor_lj = special_lj[sbmask(b)]; // = 0 for nearest neighbours
+      factor_lj = special_lj[sbmask(b)]; // = 0 for nearest neighbors
       b &= NEIGHMASK;
 
       btype = type[b];

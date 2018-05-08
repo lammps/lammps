@@ -1,0 +1,69 @@
+units		real
+dimension	3
+boundary	p p p
+atom_style      atomic
+
+newton		on
+timestep	1.0
+
+read_data	methanol.data
+
+velocity	all create 300.0 16802 dist gaussian
+
+pair_style	table spline 15000
+
+pair_coeff	1 1 lammps_nb_MET-MET.table nb_METMET 12.0
+
+neigh_modify	delay 0 every 1 check yes one 10000
+neighbor	12.0 bin
+
+thermo		500
+thermo_style	custom step temp pe etotal press vol
+
+variable STEP equal step
+variable TEMP equal temp
+## volume from cubic angstroms to cubic nm
+variable VOL equal vol/1000.0
+## pressure from atm to bar
+variable PRESS equal press*1.01325
+variable PXX equal pxx*1.01325
+variable PYY equal pyy*1.01325
+variable PZZ equal pzz*1.01325
+variable PXY equal pxy*1.01325
+variable PXZ equal pxz*1.01325
+variable PYZ equal pyz*1.01325
+## energy from kcal/mol to kJ/mol
+variable KE equal ke*4.184
+variable PE equal pe*4.184
+variable UVDW equal evdwl*4.184
+
+
+#####     SPECIAL COMMANDS FOR FIX_BOCS     #####
+#       ID group-ID style_name thermostat T_init T_end T_couple barostat P_start P_end  P_couple pmatch_basis avg_vol     N_sites N_coeffs coeff1      coeff2
+fix 	1  all      bocs       temp       300.0  300.0 100.0    cgiso    0.986   0.986  1000.0   analytic     66476.015   968     2        245030.10   8962.20 
+
+# Report the modified pressure
+thermo_modify 	press 1_press
+
+
+
+## Uncomment to save some data from simulation to files
+#fix             print_temp all print 500 "${STEP} ${TEMP}" file temp.dat screen no
+#fix             print_vol all print 500 "${STEP} ${VOL}" file vol.dat screen no
+#fix             print_press all print 500 "${STEP} ${PRESS}" file press.dat screen no
+#fix             print_ke all print 500 "${STEP} ${KE}" file kinetic_E.dat screen no
+#fix             print_pe all print 500 "${STEP} ${PE}" file potential_E.dat screen no
+#fix             print_ve all print 500 "${STEP} ${UVDW}" file vdw_E.dat screen no
+#fix             print_press_tens all print 500 "${STEP} ${PXX} ${PYY} ${PZZ} ${PXY} ${PXZ} ${PYZ}" file press_tens.dat screen no
+#fix		print_PV_eos all print 500 "${VOL} ${PRESS}" file pv_eos.dat screen no
+
+## Prints a configuration to dump.txt every 500 steps
+#dump		1 all custom 500 dump.txt id type x y z fx fy fz
+
+# Write restart files to continue simulations
+#restart 10000 state1.restart state2.restart
+
+## Run for this many steps
+run_style       verlet
+run 10000
+

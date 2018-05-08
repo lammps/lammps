@@ -7,8 +7,8 @@
 #include "KernelFunction.h"
 #include "Utility.h"
 #include "MPI_Wrappers.h"
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include <map>
 #include <string>
 

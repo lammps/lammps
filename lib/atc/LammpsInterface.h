@@ -2,7 +2,7 @@
 #define LAMMPS_INTERFACE_H
 
 #include <iostream>
-#include <stdlib.h>
+#include <cstdlib>
 #include <map>
 #include <iostream>
 #include <string>

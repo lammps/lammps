@@ -8,7 +8,7 @@
 #include "Utility.h"
 
 // Other headers
-#include "math.h"
+#include <cmath>
 
 using ATC_Utility::dbl_geq;
 using ATC_Utility::det3;

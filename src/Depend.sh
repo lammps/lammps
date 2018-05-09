@@ -87,6 +87,7 @@ if (test $1 = "MANYBODY") then
   depend GPU
   depend KOKKOS
   depend OPT
+  depend QEQ
   depend USER-MISC
   depend USER-OMP
 fi

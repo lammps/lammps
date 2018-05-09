@@ -978,8 +978,10 @@ void print_style(FILE *fp, const char *str, int &pos)
   }
 }
 
+#include "lmpcompiledate.h"
+
 static const char lammps_config_options[]
-= "LAMMPS compile time settings:\n"
+= "LAMMPS compile time settings:\n\n"
   "Integer sizes setting:    "
 #if defined(LAMMPS_SMALLSMALL)
   " -DLAMMPS_SMALLSMALL"
@@ -1037,4 +1039,5 @@ static const char lammps_config_options[]
 void LAMMPS::print_config(FILE *fp)
 {
   fputs(lammps_config_options,fp);
+  fprintf(fp,"LAMMPS compiled on: %s\n",lammps_compile_date); 
 }

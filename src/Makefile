@@ -163,6 +163,7 @@ help:
 	  -f MAKE/MACHINES/Makefile.$@ -o -f MAKE/MINE/Makefile.$@
 	@if [ ! -d $(objdir) ]; then mkdir $(objdir); fi
 	@$(SHELL) Make.sh style
+	@$(SHELL) Make.sh date
 	@if [ -f MAKE/MACHINES/Makefile.$@ ]; \
 	  then cp MAKE/MACHINES/Makefile.$@ $(objdir)/Makefile; fi
 	@if [ -f MAKE/OPTIONS/Makefile.$@ ]; \

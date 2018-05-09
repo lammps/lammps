@@ -31,6 +31,7 @@
 #include "style_region.h"
 #include "universe.h"
 #include "input.h"
+#include "info.h"
 #include "atom.h"
 #include "update.h"
 #include "neighbor.h"
@@ -823,6 +824,8 @@ void LAMMPS::help()
           "-var varname value          : set index style variable (-v)\n\n",
           exename);
 
+
+  print_config(fp);
   fprintf(fp,"List of style options included in this LAMMPS executable\n\n");
 
   int pos = 80;
@@ -973,4 +976,65 @@ void print_style(FILE *fp, const char *str, int &pos)
     fprintf(fp,"%-80s",str);
     pos += 80;
   }
+}
+
+static const char lammps_config_options[]
+= "LAMMPS compile time settings:\n"
+  "Integer sizes setting:    "
+#if defined(LAMMPS_SMALLSMALL)
+  " -DLAMMPS_SMALLSMALL"
+#elif defined(LAMMPS_SMALLBIG)
+  " -DLAMMPS_SMALLBIG"
+#elif defined(LAMMPS_BIGBIG)
+  " -DLAMMPS_BIGBIG"
+#else
+  " (unkown)"
+#endif
+  "\nExternal commands support:"
+#if defined(LAMMPS_GZIP)
+  " -DLAMMPS_GZIP"
+#endif
+#if defined(LAMMPS_FFMPEG)
+  " -DLAMMPS_FFMPEG"
+#endif
+  "\nImage library support:    "
+#if defined(LAMMPS_JPEG)
+  " -DLAMMPS_JPEG"
+#endif
+#if defined(LAMMPS_PNG)
+  " -DLAMMPS_PNG"
+#endif
+  "\nFFT library support:      "
+#if defined(FFT_SINGLE)
+  " -DFFT_SINGLE"
+#endif
+#if defined(FFT_FFTW) || defined(FFT_FFTW3)
+  " -DFFT_FFTW3"
+#elif defined(FFT_FFTW2)
+  " -DFFT_FFTW2"
+#elif defined(FFT_MKL)
+  " -DFFT_MKL"
+#else
+  " -DFFT_KISSFFT"
+#endif
+  "\nMemory alignment:         "
+#if defined(LAMMPS_MEMALIGN)
+#define lmp_str(s) #s
+#define lmp_xstr(s) lmp_str(s)
+  " -DLAMMPS_MEMALIGN=" lmp_xstr(LAMMPS_MEMALIGN)
+#else
+  " (default)"
+#endif
+
+  "\nException support:        "
+#if defined(LAMMPS_EXCEPTIONS)
+  " -DLAMMPS_EXCEPTIONS\n"
+#else
+  " (not enabled)\n"
+#endif
+  "\n";
+
+void LAMMPS::print_config(FILE *fp)
+{
+  fputs(lammps_config_options,fp);
 }

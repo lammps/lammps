@@ -23,11 +23,14 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
 endif(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
 
-# remove any style headers in the src dir
-file(GLOB SRC_STYLE_FILES ${LAMMPS_SOURCE_DIR}/style_*.h)
-if(SRC_STYLE_FILES)
-  file(REMOVE ${SRC_STYLE_FILES})
-endif()
+# check for files installed by make-based buildsystem 
+file(GLOB SRC_STYLE_FILES ${LAMMPS_SOURCE_DIR}/*/*.cpp)
+foreach(_SRC SRC_STYLE_FILES)
+  get_filename_component(FILENAME "${_SRC}" NAME)
+  if(EXISTS ${LAMMPS_SOURCE_DIR}/${FILENAME})
+    message(FATAL_ERROR "Found packages installed by the make-based buildsystem, please run 'make -C ${LAMMPS_SOURCE_DIR} no-all purge'")
+  endif()
+endforeach()
 
 enable_language(CXX)
 

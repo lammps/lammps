@@ -718,13 +718,18 @@ foreach(PKG ${DEFAULT_PACKAGES} ${OTHER_PACKAGES} ${ACCEL_PACKAGES})
 endforeach()
 
 string(TOUPPER "${CMAKE_BUILD_TYPE}" BTYPE)
+get_directory_property(CPPFLAGS DIRECTORY ${CMAKE_SOURCE_DIR} COMPILE_DEFINITIONS)
+include(FeatureSummary)
+feature_summary(INCLUDE_QUIET_PACKAGES WHAT ALL)
 message(STATUS "<<< Build configuration >>>
    Build type       ${CMAKE_BUILD_TYPE}
    Install path     ${CMAKE_INSTALL_PREFIX}
    Compilers and Flags:
    C++ Compiler     ${CMAKE_CXX_COMPILER}
        Type         ${CMAKE_CXX_COMPILER_ID}
-   C++ Flags        ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BTYPE}}")
+       Version      ${CMAKE_CXX_COMPILER_VERSION}
+   C++ Flags        ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BTYPE}}
+   Definesgs        ${CPPFLAGS}")
 get_property(LANGUAGES GLOBAL PROPERTY ENABLED_LANGUAGES)
 if(LANGUAGES MATCHES ".*Fortran.*")
   message(STATUS "Fortran Compiler ${CMAKE_Fortran_COMPILER} 
@@ -734,9 +739,11 @@ endif()
 message(STATUS "Linker flags:
    Executable      ${CMAKE_EXE_LINKER_FLAGS}")
 if(BUILD_SHARED_LIBS)
-  message(STATUS "Shared libries  ${CMAKE_SHARED_LINKER_FLAGS}")
+  message(STATUS "Shared libraries  ${CMAKE_SHARED_LINKER_FLAGS}")
 else()
-  message(STATUS "Static libries  ${CMAKE_STATIC_LINKER_FLAGS}")
+  message(STATUS "Static libraries  ${CMAKE_STATIC_LINKER_FLAGS}")
 endif()
 message(STATUS "Link libraries: ${LAMMPS_LINK_LIBS}")
-
+if(ENABLE_MPI)
+  message(STATUS "Using mpi with headers in ${MPI_C_INCLUDE_PATH} and ${MPI_CXX_LIBRARIES}")
+endif()

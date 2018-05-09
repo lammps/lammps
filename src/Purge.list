@@ -18,6 +18,7 @@ style_neigh_pair.h
 style_neigh_stencil.h
 # other auto-generated files
 lmpcompiledate.h
+lmpinstalledpkgs.h
 # deleted on 4 April 2018
 pair_kim_version.h
 # deleted on 15 December 2017

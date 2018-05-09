@@ -45,7 +45,6 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 
 enum{NO_REMAP,X_REMAP,V_REMAP};    // same as fix_deform.cpp
-enum{IGNORE,WARN,ERROR};           // same as thermo.cpp
 enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 
 #define BIG   1.0e20
@@ -762,7 +761,7 @@ void Domain::image_check()
 
       if (k == -1) {
         nmissing++;
-        if (lostbond == ERROR)
+        if (lostbond == Thermo::ERROR)
           error->one(FLERR,"Bond atom missing in image check");
         continue;
       }
@@ -785,7 +784,7 @@ void Domain::image_check()
   if (flagall && comm->me == 0)
     error->warning(FLERR,"Inconsistent image flags");
 
-  if (lostbond == WARN) {
+  if (lostbond == Thermo::WARN) {
     int all;
     MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
     if (all && comm->me == 0)
@@ -861,7 +860,7 @@ void Domain::box_too_small_check()
 
       if (k == -1) {
         nmissing++;
-        if (lostbond == ERROR)
+        if (lostbond == Thermo::ERROR)
           error->one(FLERR,"Bond atom missing in box size check");
         continue;
       }
@@ -875,7 +874,7 @@ void Domain::box_too_small_check()
     }
   }
 
-  if (lostbond == WARN) {
+  if (lostbond == Thermo::WARN) {
     int all;
     MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
     if (all && comm->me == 0)

@@ -55,7 +55,7 @@ void NTopoBondAll::build()
       atom1 = atom->map(bond_atom[i][m]);
       if (atom1 == -1) {
         nmissing++;
-        if (lostbond == ERROR) {
+        if (lostbond == Thermo::ERROR) {
           char str[128];
           sprintf(str,"Bond atoms " TAGINT_FORMAT " " TAGINT_FORMAT
                   " missing on proc %d at step " BIGINT_FORMAT,
@@ -78,7 +78,7 @@ void NTopoBondAll::build()
     }
 
   if (cluster_check) bond_check();
-  if (lostbond == IGNORE) return;
+  if (lostbond == Thermo::IGNORE) return;
 
   int all;
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);

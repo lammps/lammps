@@ -94,7 +94,8 @@ namespace MPI_Wrappers {
   {
     int myRank;
     MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
-    DOUBLE_RANK in[count],out[count];
+    DOUBLE_RANK *in = new DOUBLE_RANK[count];
+    DOUBLE_RANK *out = new DOUBLE_RANK[count];
     for (int i = 0; i < count; i++) {
       in[i].val = send_buf[i];
       in[i].rank = myRank;
@@ -105,6 +106,8 @@ namespace MPI_Wrappers {
     for (int i = 0; i < count; i++) {
       rec_buf[i] = out[i].val;
     }
+    delete[] in;
+    delete[] out;
     return out[0].rank;
   }
 
@@ -154,14 +157,16 @@ namespace MPI_Wrappers {
   {
     int error;
     int numprocs = size(comm);
-    int sizes[numprocs];
-    int displacements[numprocs];
+    int *sizes = new int[numprocs];
+    int *displacements = new int[numprocs];
     for (int i = 0; i < numprocs; ++i) {
       sizes[i] = 1;
       displacements[i] = i;
     }
     error = MPI_Scatterv(send_buf, sizes, displacements, MPI_INT, rec_buf, count, MPI_INT, 0, comm);
     if (error != MPI_SUCCESS) throw ATC_Error("error in int_scatter "+to_string(error));
+    delete[] sizes;
+    delete[] displacements;
   }
 
   void allgatherv(MPI_Comm comm, double *send_buf, int send_count,

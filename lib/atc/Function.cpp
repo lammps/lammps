@@ -1,3 +1,4 @@
+#include <alloca.h>
 #include "Function.h"
 #include "ATC_Error.h"
 #include "LammpsInterface.h"
@@ -58,7 +59,7 @@ namespace ATC {
   {
     string type = args[0];
     int narg = nargs -1;
-    double dargs[narg];
+    double *dargs = alloca(sizeof(double) * narg);
     for (int i = 0; i < narg; ++i) dargs[i] = atof(args[i+1]);
   
     return function(type, narg, dargs);
@@ -192,7 +193,7 @@ XT_Function_Mgr * XT_Function_Mgr::myInstance_ = NULL;
   {
     string type = args[0];
     int narg = nargs -1;
-    double dargs[narg];
+    double *dargs = alloca(sizeof(double) * narg);
     for (int i = 0; i < narg; ++i) dargs[i] = atof(args[i+1]);
   
     return function(type, narg, dargs);

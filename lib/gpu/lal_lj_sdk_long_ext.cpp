@@ -15,7 +15,7 @@
 
 #include <iostream>
 #include <cassert>
-#include <math.h>
+#include <cmath>
 
 #include "lal_lj_sdk_long.h"
 

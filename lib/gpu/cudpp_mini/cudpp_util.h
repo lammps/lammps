@@ -25,7 +25,7 @@
 #include <cuda.h>
 #include <cudpp.h>
 #include <limits.h>
-#include <float.h>
+#include <cfloat>
 
 #if (CUDA_VERSION >= 3000)
 #define LAUNCH_BOUNDS(x) __launch_bounds__((x))

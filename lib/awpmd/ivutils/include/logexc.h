@@ -1,9 +1,9 @@
 # ifndef LOGEXC_H
 # define LOGEXC_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstdarg>
 #include <stdexcept>
 #include <string>
 

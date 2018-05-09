@@ -96,9 +96,8 @@ if (test $1 = "MOLECULE") then
   depend GPU
   depend KOKKOS
   depend USER-MISC
-  depend USER-OMP
   depend USER-FEP
-  depend USER-CGDNA
+  depend USER-OMP
   depend USER-INTEL
 fi
 

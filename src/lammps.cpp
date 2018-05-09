@@ -1035,9 +1035,11 @@ static const char lammps_config_options[]
   "\n";
 
 #include "lmpcompiledate.h"
+#include "lmpinstalledpkgs.h"
 
 void LAMMPS::print_config(FILE *fp)
 {
   fprintf(fp,"LAMMPS compiled on: %s\n\n",lammps_compile_date);
   fputs(lammps_config_options,fp);
+  fprintf(fp,"Installed packages:%s\n\n",lammps_installed_packages);
 }

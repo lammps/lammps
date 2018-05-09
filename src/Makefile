@@ -164,6 +164,13 @@ help:
 	@if [ ! -d $(objdir) ]; then mkdir $(objdir); fi
 	@$(SHELL) Make.sh style
 	@$(SHELL) Make.sh date
+	@echo 'Gathering installed package information'
+	@echo 'static const char lammps_installed_packages[] = ' > lmpinstalledpkgs.tmp
+	@for p in $(PACKAGEUC) $(PACKUSERUC); do info=$$($(SHELL) Package.sh $$p installed); \
+             [ -n "$$info" ] && echo "\"$$info\"" | sed -e 's/".*package/"/' >> lmpinstalledpkgs.tmp || :; done
+	@echo ';' >> lmpinstalledpkgs.tmp
+	@test "`diff --brief lmpinstalledpkgs.tmp lmpinstalledpkgs.h`" != "" && \
+	       mv lmpinstalledpkgs.tmp lmpinstalledpkgs.h || rm lmpinstalledpkgs.tmp
 	@if [ -f MAKE/MACHINES/Makefile.$@ ]; \
 	  then cp MAKE/MACHINES/Makefile.$@ $(objdir)/Makefile; fi
 	@if [ -f MAKE/OPTIONS/Makefile.$@ ]; \

@@ -166,13 +166,15 @@ help:
 	@$(SHELL) Make.sh date
 	@echo 'Gathering installed package information'
 	@echo 'static const char lammps_installed_packages[] = ' > lmpinstalledpkgs.tmp
-	@for p in $(PACKAGEUC) $(PACKUSERUC); do info=$$($(SHELL) Package.sh $$p installed); \
+	@for p in $(PACKAGEUC) $(PACKUSERUC); do echo -n '.'; info=$$($(SHELL) Package.sh $$p installed); \
              [ -n "$$info" ] && echo "\"$$info\"" | sed -e 's/".*package/"/' >> lmpinstalledpkgs.tmp || :; done
 	@echo ';' >> lmpinstalledpkgs.tmp
+	@echo
 	@if [ -f lmpinstalledpkgs.h ]; \
           then test "`diff --brief lmpinstalledpkgs.tmp lmpinstalledpkgs.h`" != "" && \
 	        mv lmpinstalledpkgs.tmp lmpinstalledpkgs.h || rm lmpinstalledpkgs.tmp ; \
         else mv lmpinstalledpkgs.tmp lmpinstalledpkgs.h ; fi
+	@echo 'Compiling LAMMPS for machine $@'
 	@if [ -f MAKE/MACHINES/Makefile.$@ ]; \
 	  then cp MAKE/MACHINES/Makefile.$@ $(objdir)/Makefile; fi
 	@if [ -f MAKE/OPTIONS/Makefile.$@ ]; \

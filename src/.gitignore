@@ -5,6 +5,7 @@
 /lmp_*
 
 /style_*.h
+/lmpcompiledate.h
 
 /*_gpu.h
 /*_gpu.cpp

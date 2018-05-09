@@ -169,8 +169,10 @@ help:
 	@for p in $(PACKAGEUC) $(PACKUSERUC); do info=$$($(SHELL) Package.sh $$p installed); \
              [ -n "$$info" ] && echo "\"$$info\"" | sed -e 's/".*package/"/' >> lmpinstalledpkgs.tmp || :; done
 	@echo ';' >> lmpinstalledpkgs.tmp
-	@test "`diff --brief lmpinstalledpkgs.tmp lmpinstalledpkgs.h`" != "" && \
-	       mv lmpinstalledpkgs.tmp lmpinstalledpkgs.h || rm lmpinstalledpkgs.tmp
+	@if [ -f lmpinstalledpkgs.h ]; \
+          then test "`diff --brief lmpinstalledpkgs.tmp lmpinstalledpkgs.h`" != "" && \
+	        mv lmpinstalledpkgs.tmp lmpinstalledpkgs.h || rm lmpinstalledpkgs.tmp ; \
+        else mv lmpinstalledpkgs.tmp lmpinstalledpkgs.h ; fi
 	@if [ -f MAKE/MACHINES/Makefile.$@ ]; \
 	  then cp MAKE/MACHINES/Makefile.$@ $(objdir)/Makefile; fi
 	@if [ -f MAKE/OPTIONS/Makefile.$@ ]; \

@@ -167,7 +167,7 @@ endif()
 
 if(ENABLE_KSPACE)
   set(FFT "KISSFFT" CACHE STRING "FFT library for KSPACE package")
-  set_property(CACHE FFT PROPERTY STRINGS KISSFFT FFTW3 MKL FFTW2)
+  set_property(CACHE FFT PROPERTY STRINGS KISSFFT FFTW3 MKL)
   if(NOT FFT STREQUAL "KISSFFT")
     find_package(${FFT} REQUIRED)
     add_definitions(-DFFT_${FFT})

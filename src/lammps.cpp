@@ -983,7 +983,7 @@ void print_style(FILE *fp, const char *str, int &pos)
 
 static const char lammps_config_options[]
 = "LAMMPS compile time settings:\n\n"
-  "MPI library setting:       "
+  "MPI library setting         : "
 #if defined(MPI_STUBS)
   "Serial version using STUBS"
 #elif defined(MPICH_VERSION)
@@ -996,31 +996,31 @@ static const char lammps_config_options[]
 #else
  "Parallel version using unknown MPI library"
 #endif
-  "\nInteger sizes setting:    "
+  "\nInteger sizes setting       : "
 #if defined(LAMMPS_SMALLSMALL)
-  " -DLAMMPS_SMALLSMALL"
+  "-DLAMMPS_SMALLSMALL"
 #elif defined(LAMMPS_SMALLBIG)
-  " -DLAMMPS_SMALLBIG"
+  "-DLAMMPS_SMALLBIG"
 #elif defined(LAMMPS_BIGBIG)
-  " -DLAMMPS_BIGBIG"
+  "-DLAMMPS_BIGBIG"
 #else
-  " (unkown)"
+  "(unkown)"
 #endif
-  "\nExternal commands support:"
+  "\nExternal commands support   :"
 #if defined(LAMMPS_GZIP)
   " -DLAMMPS_GZIP"
 #endif
 #if defined(LAMMPS_FFMPEG)
   " -DLAMMPS_FFMPEG"
 #endif
-  "\nImage library support:    "
+  "\nImage library support       :"
 #if defined(LAMMPS_JPEG)
   " -DLAMMPS_JPEG"
 #endif
 #if defined(LAMMPS_PNG)
   " -DLAMMPS_PNG"
 #endif
-  "\nFFT library support:      "
+  "\nFFT library support         :"
 #if defined(FFT_SINGLE)
   " -DFFT_SINGLE"
 #endif
@@ -1033,14 +1033,14 @@ static const char lammps_config_options[]
 #else
   " -DFFT_KISSFFT"
 #endif
-  "\nMemory alignment:         "
+  "\nMemory alignment            :"
 #if defined(LAMMPS_MEMALIGN)
   " -DLAMMPS_MEMALIGN=" lmp_xstr(LAMMPS_MEMALIGN)
 #else
   " (default)"
 #endif
 
-  "\nException support:        "
+  "\nException support           :"
 #if defined(LAMMPS_EXCEPTIONS)
   " -DLAMMPS_EXCEPTIONS\n"
 #else
@@ -1048,12 +1048,10 @@ static const char lammps_config_options[]
 #endif
   "\n";
 
-#include "lmpcompiledate.h"
 #include "lmpinstalledpkgs.h"
 
 void LAMMPS::print_config(FILE *fp)
 {
-  fprintf(fp,"LAMMPS compiled on: %s\n\n",lammps_compile_date);
   fputs(lammps_config_options,fp);
   fprintf(fp,"Installed packages:%s\n\n",lammps_installed_packages);
 }

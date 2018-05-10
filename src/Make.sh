@@ -1,7 +1,6 @@
 # Make.sh = update Makefile.lib, Makefile.shlib, Makefile.list 
 #           or style_*.h files
 # Syntax: sh Make.sh style
-#         sh Make.sh date
 #         sh Make.sh Makefile.lib
 #         sh Make.sh Makefile.shlib
 #         sh Make.sh Makefile.list
@@ -55,10 +54,6 @@ style () {
     rm -f style_$3.tmp
   fi
 }
-
-if (test $1 = "date") then
-  echo "static const char lammps_compile_date[] = \"`date`\";" > lmpcompiledate.h
-fi
 
 # create individual style files
 # called by "make machine"

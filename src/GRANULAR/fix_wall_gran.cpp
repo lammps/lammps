@@ -879,7 +879,6 @@ void FixWallGran::dmt_rolling(double rsq, double dx, double dy, double dz,
   double tortwist1, tortwist2, tortwist3;
   double shrmag,rsht;
 
-
   r = sqrt(rsq);
   rinv = 1.0/r;
   rsqinv = 1.0/rsq;
@@ -888,9 +887,9 @@ void FixWallGran::dmt_rolling(double rsq, double dx, double dy, double dz,
   if (rwall == 0) R = radius;
   else R = radius*rwall/(radius+rwall);
 
-  nx = delx*rinv;
-  ny = dely*rinv;
-  nz = delz*rinv;
+  nx = dx*rinv;
+  ny = dy*rinv;
+  nz = dz*rinv;
 
   // relative translational velocity
 
@@ -986,9 +985,8 @@ void FixWallGran::dmt_rolling(double rsq, double dx, double dy, double dz,
   Fscrit = xmu * fabs(Fne);
   // For JKR, use eq 43 of Marshall. For DMT, use Fne instead
 
-  //Redundant, should be same as above?
-  shrmag = sqrt(shear[0]*shear[0] + shear[1]*shear[1] +
-      shear[2]*shear[2]);
+  shrmag = sqrt(shear[0]*shear[0] + shear[1]*shear[1] + shear[2]*shear[2]);
+
   fs = sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
   if (fs > Fscrit) {
     if (shrmag != 0.0) {
@@ -1050,6 +1048,7 @@ void FixWallGran::dmt_rolling(double rsq, double dx, double dy, double dz,
 
   // rescale frictional displacements and forces if needed
   Frcrit = muR * fabs(Fne);
+  rollmag = sqrt(shear[3]*shear[3] + shear[4]*shear[4] + shear[5]*shear[5]);
 
   fr = sqrt(fr1*fr1 + fr2*fr2 + fr3*fr3);
   if (fr > Frcrit) {

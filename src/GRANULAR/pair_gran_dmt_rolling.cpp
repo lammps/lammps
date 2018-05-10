@@ -372,6 +372,7 @@ void PairGranDMTRolling::compute(int eflag, int vflag)
         // rescale frictional displacements and forces if needed
         Frcrit = muR[itype][jtype] * fabs(Fne);
 
+        rollmag = sqrt(shear[3]*shear[3] + shear[4]*shear[4] + shear[5]*shear[5]);
         fr = sqrt(fr1*fr1 + fr2*fr2 + fr3*fr3);
         if (fr > Frcrit) {
           if (rollmag != 0.0) {

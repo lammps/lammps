@@ -217,7 +217,6 @@ void FixWallGranRegion::post_force(int vflag)
       }
 
       // process current contacts
-
       for (int ic = 0; ic < nc; ic++) {
 
         // rsq = squared contact distance
@@ -266,9 +265,8 @@ void FixWallGranRegion::post_force(int vflag)
               v[i],f[i],omega[i],torque[i],
               radius[i],meff,shearmany[i][c2r[ic]], contact);
         else if (pairstyle == DMT_ROLLING)
-          dmt_rolling(rsq,dx,dy,dz,vwall,region->contact[ic].radius,
-              v[i],f[i],omega[i],torque[i],
-              radius[i],meff,shearmany[i][c2r[ic]], contact);
+          dmt_rolling(rsq,dx,dy,dz,vwall,region->contact[ic].radius, v[i],f[i],omega[i],torque[i], radius[i],meff,shearmany[i][c2r[ic]], contact);
+
       }
     }
   }

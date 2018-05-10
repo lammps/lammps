@@ -58,6 +58,8 @@ PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp, int _size_history) : Pai
   // set comm size needed by this Pair if used with fix rigid
 
   comm_forward = 1;
+
+  nondefault_history_transfer = 0; //keep default behavior of history[i][j] = -history[j][i]
 }
 
 /* ---------------------------------------------------------------------- */

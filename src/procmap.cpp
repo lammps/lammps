@@ -17,6 +17,7 @@
 
 #include "procmap.h"
 #include "universe.h"
+#include "comm.h"
 #include "domain.h"
 #include "math_extra.h"
 #include "memory.h"

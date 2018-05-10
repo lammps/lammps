@@ -47,8 +47,6 @@ using namespace LAMMPS_NS;
 #define DUMP_BUF_CHUNK_SIZE 16384
 #define DUMP_BUF_INCREMENT_SIZE 4096
 
-enum{INT,DOUBLE,STRING,BIGINT};   // same as in DumpCustom
-
 #define UNWRAPEXPAND 10.0
 #define ONEFIELD 32
 #define DELTA 1048576
@@ -377,13 +375,13 @@ int DumpCFGMPIIO::convert_string_omp(int n, double *mybuf)
             } else if (j == 1) {
               mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),"%s \n",typenames[(int) mybuf[bufOffset[tid]+m]]);
             } else if (j >= 2) {
-            if (vtype[j] == INT)
+            if (vtype[j] == Dump::INT)
               mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),vformat[j],static_cast<int> (mybuf[bufOffset[tid]+m]));
-            else if (vtype[j] == DOUBLE)
+            else if (vtype[j] == Dump::DOUBLE)
               mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),vformat[j],mybuf[bufOffset[tid]+m]);
-            else if (vtype[j] == STRING)
+            else if (vtype[j] == Dump::STRING)
               mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),vformat[j],typenames[(int) mybuf[bufOffset[tid]+m]]);
-            else if (vtype[j] == BIGINT)
+            else if (vtype[j] == Dump::BIGINT)
               mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),vformat[j],static_cast<bigint> (mybuf[bufOffset[tid]+m]));
           }
           m++;
@@ -410,18 +408,18 @@ int DumpCFGMPIIO::convert_string_omp(int n, double *mybuf)
           //offset += sprintf(&sbuf[offset],vformat[j],unwrap_coord);
             mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),vformat[j],unwrap_coord);
           } else if (j >= 5 ) {
-            if (vtype[j] == INT)
+            if (vtype[j] == Dump::INT)
             //offset +=
             //  sprintf(&sbuf[offset],vformat[j],static_cast<int> (mybuf[m]));
               mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),vformat[j],static_cast<int> (mybuf[bufOffset[tid]+m]));
-            else if (vtype[j] == DOUBLE)
+            else if (vtype[j] == Dump::DOUBLE)
             // offset += sprintf(&sbuf[offset],vformat[j],mybuf[m]);
               mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),vformat[j],mybuf[bufOffset[tid]+m]);
-            else if (vtype[j] == STRING)
+            else if (vtype[j] == Dump::STRING)
             // offset +=
             //  sprintf(&sbuf[offset],vformat[j],typenames[(int) mybuf[m]]);
               mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),vformat[j],typenames[(int) mybuf[bufOffset[tid]+m]]);
-            else if (vtype[j] == BIGINT)
+            else if (vtype[j] == Dump::BIGINT)
             // offset +=
             //  sprintf(&sbuf[offset],vformat[j],static_cast<bigint> (mybuf[m]));
               mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),vformat[j],static_cast<bigint> (mybuf[bufOffset[tid]+m]));

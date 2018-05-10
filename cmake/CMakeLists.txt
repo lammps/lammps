@@ -299,6 +299,7 @@ if(ENABLE_USER-QUIP)
 endif()
 
 if(ENABLE_USER-QMMM)
+  message(WARNING "Building QMMM with CMake is still experimental")
   find_package(QE REQUIRED)
   include_directories(${QE_INCLUDE_DIRS})
   list(APPEND LAMMPS_LINK_LIBS ${QE_LIBRARIES} ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})

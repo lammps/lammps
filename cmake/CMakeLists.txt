@@ -155,7 +155,9 @@ if(ENABLE_KOKKOS OR ENABLE_MSCG)
   set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
 endif()
 
-if(ENABLE_USER-OMP OR ENABLE_KOKKOS OR ENABLE_USER-INTEL)
+find_package(OpenMP QUIET)
+option(BUILD_OMP "Build with OpenMP support" ${OpenMP_FOUND})
+if(BUILD_OMP OR ENABLE_USER-OMP OR ENABLE_KOKKOS OR ENABLE_USER-INTEL)
   find_package(OpenMP REQUIRED)
   set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")

@@ -29,8 +29,6 @@ using namespace LAMMPS_NS;
 
 #define MAXLINE 128
 
-enum{MULTIPLE};                   // same as in Comm
-
 /* ---------------------------------------------------------------------- */
 
 ProcMap::ProcMap(LAMMPS *lmp) : Pointers(lmp) {}
@@ -811,7 +809,7 @@ int ProcMap::cull_other(int n, int **factors, int m,
 {
   int i = 0;
   while (i < n) {
-    if (other_style == MULTIPLE) {
+    if (other_style == Comm::MULTIPLE) {
       int flag = 0;
       if ((other_procgrid[0]/other_coregrid[0]) % factors[i][0]) flag = 1;
       if ((other_procgrid[1]/other_coregrid[1]) % factors[i][1]) flag = 1;

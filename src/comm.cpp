@@ -40,8 +40,6 @@ using namespace LAMMPS_NS;
 
 #define BUFMIN 1000             // also in comm styles
 
-enum{SINGLE,MULTI};             // same as in Comm sub-styles
-enum{MULTIPLE};                   // same as in ProcMap
 enum{ONELEVEL,TWOLEVEL,NUMA,CUSTOM};
 enum{CART,CARTREORDER,XYZ};
 enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
@@ -244,14 +242,14 @@ void Comm::modify_params(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal comm_modify command");
       if (strcmp(arg[iarg+1],"single") == 0) {
         // need to reset cutghostuser when switching comm mode
-        if (mode == MULTI) cutghostuser = 0.0;
+        if (mode == Comm::MULTI) cutghostuser = 0.0;
         memory->destroy(cutusermulti);
         cutusermulti = NULL;
-        mode = SINGLE;
+        mode = Comm::SINGLE;
       } else if (strcmp(arg[iarg+1],"multi") == 0) {
         // need to reset cutghostuser when switching comm mode
-        if (mode == SINGLE) cutghostuser = 0.0;
-        mode = MULTI;
+        if (mode == Comm::SINGLE) cutghostuser = 0.0;
+        mode = Comm::MULTI;
       } else error->all(FLERR,"Illegal comm_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"group") == 0) {
@@ -265,7 +263,7 @@ void Comm::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"cutoff") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal comm_modify command");
-      if (mode == MULTI)
+      if (mode == Comm::MULTI)
         error->all(FLERR,
                    "Use cutoff/multi keyword to set cutoff in multi mode");
       cutghostuser = force->numeric(FLERR,arg[iarg+1]);
@@ -275,7 +273,7 @@ void Comm::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"cutoff/multi") == 0) {
       int i,nlo,nhi;
       double cut;
-      if (mode == SINGLE)
+      if (mode == Comm::SINGLE)
         error->all(FLERR,"Use cutoff keyword to set cutoff in single mode");
       if (domain->box_exist == 0)
         error->all(FLERR,
@@ -415,7 +413,7 @@ void Comm::set_processors(int narg, char **arg)
       if (strcmp(arg[iarg+3],"multiple") == 0) {
         if (universe->iworld == irecv-1) {
           otherflag = 1;
-          other_style = MULTIPLE;
+          other_style = Comm::MULTIPLE;
         }
       } else error->all(FLERR,"Illegal processors command");
       iarg += 4;

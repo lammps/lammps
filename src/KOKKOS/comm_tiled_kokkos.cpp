@@ -39,7 +39,6 @@ using namespace LAMMPS_NS;
 
 #define DELTA_PROCS 16
 
-enum{SINGLE,MULTI};               // same as in Comm
 enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 
 /* ---------------------------------------------------------------------- */

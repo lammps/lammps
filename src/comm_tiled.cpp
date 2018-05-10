@@ -38,7 +38,6 @@ using namespace LAMMPS_NS;
 
 #define DELTA_PROCS 16
 
-enum{SINGLE,MULTI};               // same as in Comm
 enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 
 /* ---------------------------------------------------------------------- */
@@ -115,7 +114,7 @@ void CommTiled::init()
 
   if (triclinic)
     error->all(FLERR,"Cannot yet use comm_style tiled with triclinic box");
-  if (mode == MULTI)
+  if (mode == Comm::MULTI)
     error->all(FLERR,"Cannot yet use comm_style tiled with multi-mode comm");
 }
 

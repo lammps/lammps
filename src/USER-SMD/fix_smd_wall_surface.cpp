@@ -40,10 +40,6 @@ using namespace Eigen;
 using namespace std;
 #define DELTA 16384
 #define EPSILON 1.0e-6
-enum {
-        LAYOUT_UNIFORM, LAYOUT_NONUNIFORM, LAYOUT_TILED
-};
-// several files
 
 /* ---------------------------------------------------------------------- */
 
@@ -151,7 +147,7 @@ void FixSMDWallSurface::setup(int vflag) {
                 subhi[2] = domain->subhi_lamda[2];
         }
 
-        if (comm->layout != LAYOUT_TILED) {
+        if (comm->layout != Comm::LAYOUT_TILED) {
                 if (domain->xperiodic) {
                         if (comm->myloc[0] == 0)
                                 sublo[0] -= epsilon[0];

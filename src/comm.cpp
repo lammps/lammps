@@ -42,7 +42,6 @@ using namespace LAMMPS_NS;
 
 enum{ONELEVEL,TWOLEVEL,NUMA,CUSTOM};
 enum{CART,CARTREORDER,XYZ};
-enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 
 /* ---------------------------------------------------------------------- */
 
@@ -605,7 +604,7 @@ int Comm::coord2proc(double *x, int &igx, int &igy, int &igz)
 
   triclinic = domain->triclinic;
 
-  if (layout == LAYOUT_UNIFORM) {
+  if (layout == Comm::LAYOUT_UNIFORM) {
     if (triclinic == 0) {
       igx = static_cast<int> (procgrid[0] * (x[0]-boxlo[0]) / prd[0]);
       igy = static_cast<int> (procgrid[1] * (x[1]-boxlo[1]) / prd[1]);
@@ -616,7 +615,7 @@ int Comm::coord2proc(double *x, int &igx, int &igy, int &igz)
       igz = static_cast<int> (procgrid[2] * x[2]);
     }
 
-  } else if (layout == LAYOUT_NONUNIFORM) {
+  } else if (layout == Comm::LAYOUT_NONUNIFORM) {
     if (triclinic == 0) {
       igx = binary((x[0]-boxlo[0])/prd[0],procgrid[0],xsplit);
       igy = binary((x[1]-boxlo[1])/prd[1],procgrid[1],ysplit);

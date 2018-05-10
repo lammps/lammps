@@ -46,8 +46,6 @@ using namespace LAMMPS_NS;
 #define BUFEXTRA 1000
 #define BIG 1.0e20
 
-enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
-
 /* ---------------------------------------------------------------------- */
 
 CommBrick::CommBrick(LAMMPS *lmp) :
@@ -60,7 +58,7 @@ CommBrick::CommBrick(LAMMPS *lmp) :
   sendlist(NULL), maxsendlist(NULL), buf_send(NULL), buf_recv(NULL)
 {
   style = 0;
-  layout = LAYOUT_UNIFORM;
+  layout = Comm::LAYOUT_UNIFORM;
   pbc_flag = NULL;
   init_buffers();
 }
@@ -92,7 +90,7 @@ CommBrick::~CommBrick()
 
 CommBrick::CommBrick(LAMMPS *lmp, Comm *oldcomm) : Comm(*oldcomm)
 {
-  if (oldcomm->layout == LAYOUT_TILED)
+  if (oldcomm->layout == Comm::LAYOUT_TILED)
     error->all(FLERR,"Cannot change to comm_style brick from tiled layout");
 
   style = 0;
@@ -239,7 +237,7 @@ void CommBrick::setup()
   int *periodicity = domain->periodicity;
   int left,right;
 
-  if (layout == LAYOUT_UNIFORM) {
+  if (layout == Comm::LAYOUT_UNIFORM) {
     maxneed[0] = static_cast<int> (cutghost[0] * procgrid[0] / prd[0]) + 1;
     maxneed[1] = static_cast<int> (cutghost[1] * procgrid[1] / prd[1]) + 1;
     maxneed[2] = static_cast<int> (cutghost[2] * procgrid[2] / prd[2]) + 1;

@@ -355,6 +355,12 @@ if(ENABLE_MSCG)
   target_link_libraries(mscg ${GSL_LIBRARIES} ${LAPACK_LIBRARIES})
 endif()
 
+if(ENABLE_COMPRESS)
+  find_package(ZLIB REQUIRED)
+  include_directories(${ZLIB_INCLUDE_DIRS})
+  list(APPEND LAMMPS_LINK_LIBS ${ZLIB_LIBRARIES})
+endif()
+
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
 ########################################################################
@@ -713,6 +719,7 @@ include_directories(${LAMMPS_STYLE_HEADERS_DIR})
 # Actually add executable and lib to build
 ############################################
 add_library(lammps ${LIB_SOURCES})
+list(REMOVE_DUPLICATES LAMMPS_LINK_LIBS)
 target_link_libraries(lammps ${LAMMPS_LINK_LIBS})
 if(LAMMPS_DEPS)
   add_dependencies(lammps ${LAMMPS_DEPS})

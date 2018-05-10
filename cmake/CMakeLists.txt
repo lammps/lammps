@@ -290,7 +290,26 @@ if(ENABLE_USER-NETCDF)
 endif()
 
 if(ENABLE_USER-SMD)
-  find_package(Eigen3 REQUIRED)
+  option(DOWNLOAD_Eigen3 "Download Eigen3 (instead of using the system's one)" OFF)
+  if(DOWNLOAD_Eigen3)
+    include(ExternalProject)
+    ExternalProject_Add(Eigen3_build
+      URL http://bitbucket.org/eigen/eigen/get/3.3.4.tar.gz 
+      URL_MD5 1a47e78efe365a97de0c022d127607c3
+      CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> -DEIGEN_TEST_NOQT=ON
+        -DCMAKE_DISABLE_FIND_PACKAGE_LAPACK=ON -DCMAKE_DISABLE_FIND_PACKAGE_Cholmod=ON -DCMAKE_DISABLE_FIND_PACKAGE_Umfpack=ON -DCMAKE_DISABLE_FIND_PACKAGE_SuperLU=ON
+        -DCMAKE_DISABLE_FIND_PACKAGE_PASTIX=ON -DCMAKE_DISABLE_FIND_PACKAGE_SPQR=ON -DCMAKE_DISABLE_FIND_PACKAGE_Boost=ON -DCMAKE_DISABLE_FIND_PACKAGE_CUDA=ON
+        -DCMAKE_DISABLE_FIND_PACKAGE_FFTW=ON -DCMAKE_DISABLE_FIND_PACKAGE_MPFR=ON -DCMAKE_DISABLE_FIND_PACKAGE_OpenGL=ON
+        )
+    ExternalProject_get_property(Eigen3_build INSTALL_DIR)
+    set(EIGEN3_INCLUDE_DIR ${INSTALL_DIR}/include/eigen3)
+    list(APPEND LAMMPS_DEPS Eigen3_build)
+  else()
+    find_package(Eigen3 QUIET)
+    if(NOT Eigen3_FOUND)
+      message(FATAL_ERROR "Eigen3 not found, help CMake to find it by setting EIGEN3_INCLUDE_DIR, or set DOWNLOAD_Eigen3=ON to download it")
+    endif()
+  endif()
   include_directories(${EIGEN3_INCLUDE_DIR})
 endif()
 

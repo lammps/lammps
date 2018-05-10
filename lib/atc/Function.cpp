@@ -59,7 +59,7 @@ namespace ATC {
   {
     string type = args[0];
     int narg = nargs -1;
-    double *dargs = alloca(sizeof(double) * narg);
+    double *dargs = (double *) alloca(sizeof(double) * narg);
     for (int i = 0; i < narg; ++i) dargs[i] = atof(args[i+1]);
   
     return function(type, narg, dargs);
@@ -193,7 +193,7 @@ XT_Function_Mgr * XT_Function_Mgr::myInstance_ = NULL;
   {
     string type = args[0];
     int narg = nargs -1;
-    double *dargs = alloca(sizeof(double) * narg);
+    double *dargs = (double *) alloca(sizeof(double) * narg);
     for (int i = 0; i < narg; ++i) dargs[i] = atof(args[i+1]);
   
     return function(type, narg, dargs);

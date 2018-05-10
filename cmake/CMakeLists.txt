@@ -4,7 +4,7 @@
 # Created by Christoph Junghans and Richard Berger
 cmake_minimum_required(VERSION 3.1)
 
-project(lammps)
+project(lammps LANGUAGES CXX)
 set(SOVERSION 0)
 set(LAMMPS_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../src)
 set(LAMMPS_LIB_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../lib)
@@ -39,8 +39,6 @@ if(NOT SRC_FILES STREQUAL SRC_FILES_CACHED)
   set(SRC_FILES_CACHED "${SRC_FILES}" CACHE INTERNAL "List of file in LAMMPS_SOURCE_DIR" FORCE)
 endif()
 
-enable_language(CXX)
-
 ######################################################################
 # compiler tests
 # these need ot be done early (before further tests).
@@ -73,6 +71,7 @@ if(ENABLE_MPI)
     add_definitions(-DLAMMPS_LONGLONG_TO_LONG)
   endif()
 else()
+  enable_language(C)
   file(GLOB MPI_SOURCES ${LAMMPS_SOURCE_DIR}/STUBS/mpi.c)
   add_library(mpi_stubs STATIC ${MPI_SOURCES})
   include_directories(${LAMMPS_SOURCE_DIR}/STUBS)
@@ -359,9 +358,9 @@ endif()
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
 ########################################################################
-include(CheckIncludeFile)
+include(CheckIncludeFileCXX)
 foreach(HEADER math.h)
-  check_include_file(${HEADER} FOUND_${HEADER})
+  check_include_file_cxx(${HEADER} FOUND_${HEADER})
   if(NOT FOUND_${HEADER})
     message(FATAL_ERROR "Could not find needed header - ${HEADER}")
   endif(NOT FOUND_${HEADER})

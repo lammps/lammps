@@ -16,7 +16,7 @@
 //#include "cudpp_spmvmult.h"
 #include "cudpp_radixsort.h"
 
-#include <assert.h>
+#include <cassert>
 
 CUDPPPlanManager* CUDPPPlanManager::m_instance = NULL;
 

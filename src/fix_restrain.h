@@ -36,6 +36,7 @@ class FixRestrain : public Fix {
   void post_force_respa(int, int, int);
   void min_post_force(int);
   double compute_scalar();
+  double compute_vector(int);
 
  private:
   int ilevel_respa;
@@ -46,6 +47,9 @@ class FixRestrain : public Fix {
   double *kstart,*kstop,*target;
   double *cos_target,*sin_target;
   double energy,energy_all;
+  double ebond,ebond_all;
+  double eangle,eangle_all;
+  double edihed,edihed_all;
 
   void restrain_bond(int);
   void restrain_angle(int);

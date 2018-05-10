@@ -53,6 +53,9 @@ FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   global_freq = 1;
   extscalar = 1;
+  vector_flag = 1;
+  size_vector = 3;
+  extvector = 1;
   respa_level_support = 1;
   ilevel_respa = 0;
 
@@ -188,6 +191,10 @@ void FixRestrain::min_setup(int vflag)
 void FixRestrain::post_force(int vflag)
 {
   energy = 0.0;
+  
+  ebond = 0.0;
+  eangle = 0.0;
+  edihed = 0.0;
 
   for (int m = 0; m < nrestrain; m++)
     if (rstyle[m] == BOND) restrain_bond(m);
@@ -271,6 +278,7 @@ void FixRestrain::restrain_bond(int m)
   if (r > 0.0) fbond = -2.0*rk/r;
   else fbond = 0.0;
 
+  ebond += rk*dr;
   energy += rk*dr;
 
   // apply force to each of 2 atoms
@@ -378,6 +386,7 @@ void FixRestrain::restrain_angle(int m)
   dtheta = acos(c) - target[m];
   tk = k * dtheta;
 
+  eangle += tk*dtheta;
   energy += tk*dtheta;
 
   a = -2.0 * tk * s;
@@ -558,6 +567,7 @@ void FixRestrain::restrain_dihedral(int m)
   df1 *= -mult[m];
   p += 1.0;
 
+  edihed += k * p;
   energy += k * p;
 
   fg = vb1x*vb2xm + vb1y*vb2ym + vb1z*vb2zm;
@@ -634,4 +644,24 @@ double FixRestrain::compute_scalar()
 {
   MPI_Allreduce(&energy,&energy_all,1,MPI_DOUBLE,MPI_SUM,world);
   return energy_all;
+}
+
+/* ----------------------------------------------------------------------
+  return individual energy contributions
+------------------------------------------------------------------------- */
+
+double FixRestrain::compute_vector(int n)
+{
+  if (n == 0) {
+    MPI_Allreduce(&ebond,&ebond_all,1,MPI_DOUBLE,MPI_SUM,world);
+    return ebond_all;
+  } else if (n == 1) {
+    MPI_Allreduce(&eangle,&eangle_all,1,MPI_DOUBLE,MPI_SUM,world);
+    return eangle_all;
+  } else if (n == 2) { 
+    MPI_Allreduce(&edihed,&edihed_all,1,MPI_DOUBLE,MPI_SUM,world);
+    return edihed_all;
+  } else {
+    return 0.0;
+  }
 }

@@ -19,7 +19,7 @@
 #include "system.h"
 #include "body.h"
 #include "joint.h"
-#include <math.h>
+#include <cmath>
 
 
 System::System(){

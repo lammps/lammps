@@ -16,7 +16,7 @@
 #ifndef PAIR_GPU_ATOM_H
 #define PAIR_GPU_ATOM_H
 
-#include <math.h>
+#include <cmath>
 #include "mpi.h"
 
 #if defined(USE_OPENCL)

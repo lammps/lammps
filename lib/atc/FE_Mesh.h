@@ -12,7 +12,7 @@
 #include <map>
 #include <set>
 #include <utility>
-#include <float.h>
+#include <cfloat>
 #include <string>
 #include <vector>
 #include "mpi.h"

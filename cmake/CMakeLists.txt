@@ -252,7 +252,24 @@ if(ENABLE_FFMPEG)
 endif()
 
 if(ENABLE_VORONOI)
-  find_package(VORO REQUIRED) #some distros
+  option(DOWNLOAD_VORO "Download voro++ (instead of using the system's one)" OFF)
+  if(DOWNLOAD_VORO)
+    include(ExternalProject)
+    ExternalProject_Add(voro_build
+      URL http://math.lbl.gov/voro++/download/dir/voro++-0.4.6.tar.gz
+      URL_MD5 2338b824c3b7b25590e18e8df5d68af9
+      CONFIGURE_COMMAND "" BUILD_IN_SOURCE 1 INSTALL_COMMAND "" 
+      )
+    ExternalProject_get_property(voro_build SOURCE_DIR)
+    set(VORO_LIBRARIES ${SOURCE_DIR}/src/libvoro++.a)
+    set(VORO_INCLUDE_DIRS ${SOURCE_DIR}/src)
+    list(APPEND LAMMPS_DEPS voro_build)
+  else()
+    find_package(VORO)
+    if(NOT VORO_FOUND)
+      message(FATAL_ERROR "VORO not found, help CMake to find it by setting VORO_LIBRARY and VORO_INCLUDE_DIR, or set DOWNLOAD_VORO=ON to download it")
+    endif()
+  endif()
   include_directories(${VORO_INCLUDE_DIRS})
   list(APPEND LAMMPS_LINK_LIBS ${VORO_LIBRARIES})
 endif()

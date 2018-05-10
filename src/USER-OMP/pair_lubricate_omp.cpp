@@ -32,10 +32,6 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-// same as fix_deform.cpp
-
-enum{NO_REMAP,X_REMAP,V_REMAP};
-
 // same as fix_wall.cpp
 
 enum{EDGE,CONSTANT,VARIABLE};

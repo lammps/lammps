@@ -44,7 +44,6 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-enum{NO_REMAP,X_REMAP,V_REMAP};    // same as fix_deform.cpp
 enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 
 #define BIG   1.0e20
@@ -154,7 +153,7 @@ void Domain::init()
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"deform") == 0) {
       deform_flag = 1;
-      if (((FixDeform *) modify->fix[i])->remapflag == V_REMAP) {
+      if (((FixDeform *) modify->fix[i])->remapflag == Domain::V_REMAP) {
         deform_vremap = 1;
         deform_groupbit = modify->fix[i]->groupbit;
       }

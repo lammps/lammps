@@ -55,8 +55,6 @@ using namespace FixConst;
 #endif
 #endif
 
-enum{NSQ,BIN,MULTI};
-
 /* ---------------------------------------------------------------------- */
 
 FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
@@ -353,7 +351,7 @@ void FixIntel::init()
 
 void FixIntel::setup(int vflag)
 {
-  if (neighbor->style != BIN)
+  if (neighbor->style != Neighbor::BIN)
     error->all(FLERR,
             "Currently, neighbor style BIN must be used with Intel package.");
   if (neighbor->exclude_setting() != 0)

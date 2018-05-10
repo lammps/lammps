@@ -153,7 +153,7 @@ help:
 
 lmpinstalledpkgs.h: $(SRC) $(INC)
 	@echo 'Gathering installed package information (may take a little while)'
-	@echo 'static const char lammps_installed_packages[] = ' > lmpinstalledpkgs.tmp
+	@echo 'static const char lammps_installed_packages[] = " "' > lmpinstalledpkgs.tmp
 	@for p in $(PACKAGEUC) $(PACKUSERUC); do info=$$($(SHELL) Package.sh $$p installed); \
              [ -n "$$info" ] && echo "\"$$info\"" | sed -e 's/".*package/"/' >> lmpinstalledpkgs.tmp || :; done
 	@echo ';' >> lmpinstalledpkgs.tmp

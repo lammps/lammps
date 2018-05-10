@@ -9,7 +9,7 @@
 find_package(PkgConfig)
 
 pkg_check_modules(PC_FFTW3F fftw3f)
-find_path(FFTW3F_INCLUDE_DIR fftw3f.h HINTS ${PC_FFTW3F_INCLUDE_DIRS})
+find_path(FFTW3F_INCLUDE_DIR fftw3.h HINTS ${PC_FFTW3F_INCLUDE_DIRS})
 
 find_library(FFTW3F_LIBRARY NAMES fftw3f HINTS ${PC_FFTW3F_LIBRARY_DIRS})
 

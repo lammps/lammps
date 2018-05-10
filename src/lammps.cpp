@@ -1033,6 +1033,14 @@ static const char lammps_config_options[]
 #else
   " -DFFT_KISSFFT"
 #endif
+  "\n3d-FFT data packing         :"
+#if defined(PACK_POINTER)
+  " -DPACK_POINTER"
+#elif defined(PACK_MEMCPY)
+  " -DPACK_MEMCPY"
+#else
+  " -DPACK_ARRAY"
+#endif
   "\nMemory alignment            :"
 #if defined(LAMMPS_MEMALIGN)
   " -DLAMMPS_MEMALIGN=" lmp_xstr(LAMMPS_MEMALIGN)

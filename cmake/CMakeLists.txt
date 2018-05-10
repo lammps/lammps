@@ -23,14 +23,21 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
 endif(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
 
+file(GLOB SRC_FILES ${LAMMPS_SOURCE_DIR}/*.cpp)
+list(SORT SRC_FILES)
 # check for files installed by make-based buildsystem 
-file(GLOB SRC_STYLE_FILES ${LAMMPS_SOURCE_DIR}/*/*.cpp)
-foreach(_SRC SRC_STYLE_FILES)
-  get_filename_component(FILENAME "${_SRC}" NAME)
-  if(EXISTS ${LAMMPS_SOURCE_DIR}/${FILENAME})
-    message(FATAL_ERROR "Found packages installed by the make-based buildsystem, please run 'make -C ${LAMMPS_SOURCE_DIR} no-all purge'")
-  endif()
-endforeach()
+# only run this time consuming check if there are new files
+if(NOT SRC_FILES STREQUAL SRC_FILES_CACHED)
+  file(GLOB SRC_PKG_FILES ${LAMMPS_SOURCE_DIR}/*/*.cpp)
+  message(STATUS "Running check for installed package (this might take a while)")
+  foreach(_SRC SRC_PKG_FILES)
+    get_filename_component(FILENAME "${_SRC}" NAME)
+    if(EXISTS ${LAMMPS_SOURCE_DIR}/${FILENAME})
+      message(FATAL_ERROR "Found packages installed by the make-based buildsystem, please run 'make -C ${LAMMPS_SOURCE_DIR} no-all purge'")
+    endif()
+  endforeach()
+  set(SRC_FILES_CACHED "${SRC_FILES}" CACHE INTERNAL "List of file in LAMMPS_SOURCE_DIR" FORCE)
+endif()
 
 enable_language(CXX)
 

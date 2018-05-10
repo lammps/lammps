@@ -146,6 +146,10 @@ if(ENABLE_REAX OR ENABLE_MEAM OR ENABLE_USER-QUIP OR ENABLE_USER-QMMM OR ENABLE_
   check_Fortran_compiler_flag("-fno-second-underscore" FC_HAS_NO_SECOND_UNDERSCORE)
 endif()
 
+if(ENABLE_MEAM)
+  enable_language(C)
+endif()
+
 if(ENABLE_KOKKOS OR ENABLE_MSCG)
   # starting with CMake 3.1 this is all you have to do to enforce C++11
   set(CMAKE_CXX_STANDARD 11) # C++11...

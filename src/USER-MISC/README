@@ -37,6 +37,7 @@ dihedral_style nharmonic, Loukas Peristeras, loukas.peristeras at scienomics.com
 dihedral_style quadratic, Loukas Peristeras, loukas.peristeras at scienomics.com, 27 Oct 12
 dihedral_style spherical, Andrew Jewett, jewett.aij@gmail.com, 15 Jul 16
 dihedral_style table, Andrew Jewett, jewett.aij@gmail.com, 10 Jan 12
+dihedral_style table/cut, Mike Salerno, ksalerno@pha.jhu.edu, 11 May 18
 fix addtorque, Laurent Joly (U Lyon), ljoly.ulyon at gmail.com, 8 Aug 11
 fix ave/correlate/long, Jorge Ramirez (UPM Madrid), jorge.ramirez at upm.es, 21 Oct 2015
 fix bond/react, Jacob Gissinger (CU Boulder), info at disarmmd.org, 24 Feb 2018

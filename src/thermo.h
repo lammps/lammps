@@ -33,6 +33,8 @@ class Thermo : protected Pointers {
   int lostflag;          // IGNORE,WARN,ERROR
   int lostbond;          // ditto for atoms in bonds
 
+  enum {IGNORE,WARN,ERROR};
+
   Thermo(class LAMMPS *, int, char **);
   ~Thermo();
   void init();

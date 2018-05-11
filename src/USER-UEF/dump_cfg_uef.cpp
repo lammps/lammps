@@ -30,8 +30,6 @@
 
 using namespace LAMMPS_NS;
 
-enum{INT,DOUBLE,STRING,BIGINT};   // same as in DumpCustom
-
 #define UNWRAPEXPAND 10.0
 #define ONEFIELD 32
 #define DELTA 1048576

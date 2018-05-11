@@ -45,7 +45,6 @@ enum{ID,MOL,PROC,PROCP1,TYPE,ELEMENT,MASS,
      TQX,TQY,TQZ,
      COMPUTE,FIX,VARIABLE,INAME,DNAME};
 enum{LT,LE,GT,GE,EQ,NEQ,XOR};
-enum{INT,DOUBLE,STRING,BIGINT};    // same as in DumpCFG
 
 #define INVOKED_PERATOM 8
 #define ONEFIELD 32
@@ -165,10 +164,10 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   format_default[0] = '\0';
 
   for (int i = 0; i < size_one; i++) {
-    if (vtype[i] == INT) strcat(format_default,"%d ");
-    else if (vtype[i] == DOUBLE) strcat(format_default,"%g ");
-    else if (vtype[i] == STRING) strcat(format_default,"%s ");
-    else if (vtype[i] == BIGINT) strcat(format_default,BIGINT_FORMAT " ");
+    if (vtype[i] == Dump::INT) strcat(format_default,"%d ");
+    else if (vtype[i] == Dump::DOUBLE) strcat(format_default,"%g ");
+    else if (vtype[i] == Dump::STRING) strcat(format_default,"%s ");
+    else if (vtype[i] == Dump::BIGINT) strcat(format_default,BIGINT_FORMAT " ");
     vformat[i] = NULL;
   }
 
@@ -288,13 +287,13 @@ void DumpCustom::init_style()
     if (format_column_user[i]) {
       vformat[i] = new char[strlen(format_column_user[i]) + 2];
       strcpy(vformat[i],format_column_user[i]);
-    } else if (vtype[i] == INT && format_int_user) {
+    } else if (vtype[i] == Dump::INT && format_int_user) {
       vformat[i] = new char[strlen(format_int_user) + 2];
       strcpy(vformat[i],format_int_user);
-    } else if (vtype[i] == DOUBLE && format_float_user) {
+    } else if (vtype[i] == Dump::DOUBLE && format_float_user) {
       vformat[i] = new char[strlen(format_float_user) + 2];
       strcpy(vformat[i],format_float_user);
-    } else if (vtype[i] == BIGINT && format_bigint_user) {
+    } else if (vtype[i] == Dump::BIGINT && format_bigint_user) {
       vformat[i] = new char[strlen(format_bigint_user) + 2];
       strcpy(vformat[i],format_bigint_user);
     } else {
@@ -1088,13 +1087,13 @@ int DumpCustom::convert_string(int n, double *mybuf)
     }
 
     for (j = 0; j < size_one; j++) {
-      if (vtype[j] == INT)
+      if (vtype[j] == Dump::INT)
         offset += sprintf(&sbuf[offset],vformat[j],static_cast<int> (mybuf[m]));
-      else if (vtype[j] == DOUBLE)
+      else if (vtype[j] == Dump::DOUBLE)
         offset += sprintf(&sbuf[offset],vformat[j],mybuf[m]);
-      else if (vtype[j] == STRING)
+      else if (vtype[j] == Dump::STRING)
         offset += sprintf(&sbuf[offset],vformat[j],typenames[(int) mybuf[m]]);
-      else if (vtype[j] == BIGINT)
+      else if (vtype[j] == Dump::BIGINT)
         offset += sprintf(&sbuf[offset],vformat[j],
                           static_cast<bigint> (mybuf[m]));
       m++;
@@ -1137,11 +1136,11 @@ void DumpCustom::write_lines(int n, double *mybuf)
   int m = 0;
   for (i = 0; i < n; i++) {
     for (j = 0; j < size_one; j++) {
-      if (vtype[j] == INT) fprintf(fp,vformat[j],static_cast<int> (mybuf[m]));
-      else if (vtype[j] == DOUBLE) fprintf(fp,vformat[j],mybuf[m]);
-      else if (vtype[j] == STRING)
+      if (vtype[j] == Dump::INT) fprintf(fp,vformat[j],static_cast<int> (mybuf[m]));
+      else if (vtype[j] == Dump::DOUBLE) fprintf(fp,vformat[j],mybuf[m]);
+      else if (vtype[j] == Dump::STRING)
         fprintf(fp,vformat[j],typenames[(int) mybuf[m]]);
-      else if (vtype[j] == BIGINT)
+      else if (vtype[j] == Dump::BIGINT)
         fprintf(fp,vformat[j],static_cast<bigint> (mybuf[m]));
       m++;
     }
@@ -1161,192 +1160,192 @@ int DumpCustom::parse_fields(int narg, char **arg)
 
     if (strcmp(arg[iarg],"id") == 0) {
       pack_choice[i] = &DumpCustom::pack_id;
-      if (sizeof(tagint) == sizeof(smallint)) vtype[i] = INT;
-      else vtype[i] = BIGINT;
+      if (sizeof(tagint) == sizeof(smallint)) vtype[i] = Dump::INT;
+      else vtype[i] = Dump::BIGINT;
     } else if (strcmp(arg[iarg],"mol") == 0) {
       if (!atom->molecule_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_molecule;
-      if (sizeof(tagint) == sizeof(smallint)) vtype[i] = INT;
-      else vtype[i] = BIGINT;
+      if (sizeof(tagint) == sizeof(smallint)) vtype[i] = Dump::INT;
+      else vtype[i] = Dump::BIGINT;
     } else if (strcmp(arg[iarg],"proc") == 0) {
       pack_choice[i] = &DumpCustom::pack_proc;
-      vtype[i] = INT;
+      vtype[i] = Dump::INT;
     } else if (strcmp(arg[iarg],"procp1") == 0) {
       pack_choice[i] = &DumpCustom::pack_procp1;
-      vtype[i] = INT;
+      vtype[i] = Dump::INT;
     } else if (strcmp(arg[iarg],"type") == 0) {
       pack_choice[i] = &DumpCustom::pack_type;
-      vtype[i] = INT;
+      vtype[i] = Dump::INT;
     } else if (strcmp(arg[iarg],"element") == 0) {
       pack_choice[i] = &DumpCustom::pack_type;
-      vtype[i] = STRING;
+      vtype[i] = Dump::STRING;
     } else if (strcmp(arg[iarg],"mass") == 0) {
       pack_choice[i] = &DumpCustom::pack_mass;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
 
     } else if (strcmp(arg[iarg],"x") == 0) {
       pack_choice[i] = &DumpCustom::pack_x;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"y") == 0) {
       pack_choice[i] = &DumpCustom::pack_y;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"z") == 0) {
       pack_choice[i] = &DumpCustom::pack_z;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"xs") == 0) {
       if (domain->triclinic) pack_choice[i] = &DumpCustom::pack_xs_triclinic;
       else pack_choice[i] = &DumpCustom::pack_xs;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"ys") == 0) {
       if (domain->triclinic) pack_choice[i] = &DumpCustom::pack_ys_triclinic;
       else pack_choice[i] = &DumpCustom::pack_ys;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"zs") == 0) {
       if (domain->triclinic) pack_choice[i] = &DumpCustom::pack_zs_triclinic;
       else pack_choice[i] = &DumpCustom::pack_zs;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"xu") == 0) {
       if (domain->triclinic) pack_choice[i] = &DumpCustom::pack_xu_triclinic;
       else pack_choice[i] = &DumpCustom::pack_xu;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"yu") == 0) {
       if (domain->triclinic) pack_choice[i] = &DumpCustom::pack_yu_triclinic;
       else pack_choice[i] = &DumpCustom::pack_yu;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"zu") == 0) {
       if (domain->triclinic) pack_choice[i] = &DumpCustom::pack_zu_triclinic;
       else pack_choice[i] = &DumpCustom::pack_zu;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"xsu") == 0) {
       if (domain->triclinic) pack_choice[i] = &DumpCustom::pack_xsu_triclinic;
       else pack_choice[i] = &DumpCustom::pack_xsu;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"ysu") == 0) {
       if (domain->triclinic) pack_choice[i] = &DumpCustom::pack_ysu_triclinic;
       else pack_choice[i] = &DumpCustom::pack_ysu;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"zsu") == 0) {
       if (domain->triclinic) pack_choice[i] = &DumpCustom::pack_zsu_triclinic;
       else pack_choice[i] = &DumpCustom::pack_zsu;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"ix") == 0) {
       pack_choice[i] = &DumpCustom::pack_ix;
-      vtype[i] = INT;
+      vtype[i] = Dump::INT;
     } else if (strcmp(arg[iarg],"iy") == 0) {
       pack_choice[i] = &DumpCustom::pack_iy;
-      vtype[i] = INT;
+      vtype[i] = Dump::INT;
     } else if (strcmp(arg[iarg],"iz") == 0) {
       pack_choice[i] = &DumpCustom::pack_iz;
-      vtype[i] = INT;
+      vtype[i] = Dump::INT;
 
     } else if (strcmp(arg[iarg],"vx") == 0) {
       pack_choice[i] = &DumpCustom::pack_vx;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"vy") == 0) {
       pack_choice[i] = &DumpCustom::pack_vy;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"vz") == 0) {
       pack_choice[i] = &DumpCustom::pack_vz;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"fx") == 0) {
       pack_choice[i] = &DumpCustom::pack_fx;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"fy") == 0) {
       pack_choice[i] = &DumpCustom::pack_fy;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"fz") == 0) {
       pack_choice[i] = &DumpCustom::pack_fz;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
 
     } else if (strcmp(arg[iarg],"q") == 0) {
       if (!atom->q_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_q;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"mux") == 0) {
       if (!atom->mu_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_mux;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"muy") == 0) {
       if (!atom->mu_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_muy;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"muz") == 0) {
       if (!atom->mu_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_muz;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"mu") == 0) {
       if (!atom->mu_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_mu;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
 
     } else if (strcmp(arg[iarg],"radius") == 0) {
       if (!atom->radius_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_radius;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"diameter") == 0) {
       if (!atom->radius_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_diameter;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"omegax") == 0) {
       if (!atom->omega_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_omegax;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"omegay") == 0) {
       if (!atom->omega_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_omegay;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"omegaz") == 0) {
       if (!atom->omega_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_omegaz;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"angmomx") == 0) {
       if (!atom->angmom_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_angmomx;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"angmomy") == 0) {
       if (!atom->angmom_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_angmomy;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"angmomz") == 0) {
       if (!atom->angmom_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_angmomz;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"tqx") == 0) {
       if (!atom->torque_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_tqx;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"tqy") == 0) {
       if (!atom->torque_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_tqy;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"tqz") == 0) {
       if (!atom->torque_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_tqz;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
 
     // compute value = c_ID
     // if no trailing [], then arg is set to 0, else arg is int between []
 
     } else if (strncmp(arg[iarg],"c_",2) == 0) {
       pack_choice[i] = &DumpCustom::pack_compute;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
 
       int n = strlen(arg[iarg]);
       char *suffix = new char[n];
@@ -1382,7 +1381,7 @@ int DumpCustom::parse_fields(int narg, char **arg)
 
     } else if (strncmp(arg[iarg],"f_",2) == 0) {
       pack_choice[i] = &DumpCustom::pack_fix;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
 
       int n = strlen(arg[iarg]);
       char *suffix = new char[n];
@@ -1415,7 +1414,7 @@ int DumpCustom::parse_fields(int narg, char **arg)
 
     } else if (strncmp(arg[iarg],"v_",2) == 0) {
       pack_choice[i] = &DumpCustom::pack_variable;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
 
       int n = strlen(arg[iarg]);
       char *suffix = new char[n];
@@ -1435,7 +1434,7 @@ int DumpCustom::parse_fields(int narg, char **arg)
 
     } else if (strncmp(arg[iarg],"d_",2) == 0) {
       pack_choice[i] = &DumpCustom::pack_custom;
-      vtype[i] = DOUBLE;
+      vtype[i] = Dump::DOUBLE;
 
       int n = strlen(arg[iarg]);
       char *suffix = new char[n];
@@ -1457,7 +1456,7 @@ int DumpCustom::parse_fields(int narg, char **arg)
 
     } else if (strncmp(arg[iarg],"i_",2) == 0) {
       pack_choice[i] = &DumpCustom::pack_custom;
-      vtype[i] = INT;
+      vtype[i] = Dump::INT;
 
       int n = strlen(arg[iarg]);
       char *suffix = new char[n];

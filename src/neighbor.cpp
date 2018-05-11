@@ -57,7 +57,6 @@ using namespace NeighConst;
 
 #define BIG 1.0e20
 
-enum{NSQ,BIN,MULTI};     // also in NBin, NeighList, NStencil
 enum{NONE,ALL,PARTIAL,TEMPLATE};
 
 static const char cite_neigh_multi[] =
@@ -85,7 +84,7 @@ pairclass(NULL), pairnames(NULL), pairmasks(NULL)
 
   firsttime = 1;
 
-  style = BIN;
+  style = Neighbor::BIN;
   every = 1;
   delay = 10;
   dist_check = 1;
@@ -651,7 +650,7 @@ int Neighbor::init_pair()
   //     at time of binning when neighbor lists are rebuilt,
   //     similar to what vanilla Nbin::coord2atom() does now in atom2bin
 
-  if (style == BIN) {
+  if (style == Neighbor::BIN) {
     for (i = 0; i < nrequest; i++)
       if (requests[i]->occasional && requests[i]->ghost)
         error->all(FLERR,"Cannot request an occasional binned neighbor list "
@@ -1420,7 +1419,7 @@ void Neighbor::print_pairwise_info()
   bbox[1] =  bboxhi[1]-bboxlo[1];
   bbox[2] =  bboxhi[2]-bboxlo[2];
   if (binsizeflag) binsize = binsize_user;
-  else if (style == BIN) binsize = 0.5*cutneighmax;
+  else if (style == Neighbor::BIN) binsize = 0.5*cutneighmax;
   else binsize = 0.5*cutneighmin;
   if (binsize == 0.0) binsize = bbox[0];
 
@@ -1445,7 +1444,7 @@ void Neighbor::print_pairwise_info()
               oneatom, pgsize);
       fprintf(out,"  master list distance cutoff = %g\n",cutneighmax);
       fprintf(out,"  ghost atom cutoff = %g\n",cutghost);
-      if (style != NSQ)
+      if (style != Neighbor::NSQ)
         fprintf(out,"  binsize = %g, bins = %g %g %g\n",binsize,
                 ceil(bbox[0]/binsize), ceil(bbox[1]/binsize),
                 ceil(bbox[2]/binsize));
@@ -1595,7 +1594,7 @@ int Neighbor::choose_bin(NeighRequest *rq)
 {
   // no binning needed
 
-  if (style == NSQ) return 0;
+  if (style == Neighbor::NSQ) return 0;
   if (rq->skip || rq->copy || rq->halffull) return 0;
 
   // use request settings to match exactly one NBin class mask
@@ -1635,7 +1634,7 @@ int Neighbor::choose_stencil(NeighRequest *rq)
 {
   // no stencil creation needed
 
-  if (style == NSQ) return 0;
+  if (style == Neighbor::NSQ) return 0;
   if (rq->skip || rq->copy || rq->halffull) return 0;
 
   // convert newton request to newtflag = on or off
@@ -1686,9 +1685,9 @@ int Neighbor::choose_stencil(NeighRequest *rq)
 
     // neighbor style is BIN or MULTI and must match
 
-    if (style == BIN) {
+    if (style == Neighbor::BIN) {
       if (!(mask & NS_BIN)) continue;
-    } else if (style == MULTI) {
+    } else if (style == Neighbor::MULTI) {
       if (!(mask & NS_MULTI)) continue;
     }
 
@@ -1817,11 +1816,11 @@ int Neighbor::choose_pair(NeighRequest *rq)
 
     // neighbor style is one of NSQ,BIN,MULTI and must match
 
-    if (style == NSQ) {
+    if (style == Neighbor::NSQ) {
       if (!(mask & NP_NSQ)) continue;
-    } else if (style == BIN) {
+    } else if (style == Neighbor::BIN) {
       if (!(mask & NP_BIN)) continue;
-    } else if (style == MULTI) {
+    } else if (style == Neighbor::MULTI) {
       if (!(mask & NP_MULTI)) continue;
     }
 
@@ -2063,7 +2062,7 @@ void Neighbor::build(int topoflag)
   // if bin then, atoms may have moved outside of proc domain & bin extent,
   //   leading to errors or even a crash
 
-  if (style != NSQ) {
+  if (style != Neighbor::NSQ) {
     for (int i = 0; i < nbin; i++) {
       neigh_bin[i]->bin_atoms_setup(nall);
       neigh_bin[i]->bin_atoms();
@@ -2180,12 +2179,12 @@ void Neighbor::set(int narg, char **arg)
   skin = force->numeric(FLERR,arg[0]);
   if (skin < 0.0) error->all(FLERR,"Illegal neighbor command");
 
-  if (strcmp(arg[1],"nsq") == 0) style = NSQ;
-  else if (strcmp(arg[1],"bin") == 0) style = BIN;
-  else if (strcmp(arg[1],"multi") == 0) style = MULTI;
+  if (strcmp(arg[1],"nsq") == 0) style = Neighbor::NSQ;
+  else if (strcmp(arg[1],"bin") == 0) style = Neighbor::BIN;
+  else if (strcmp(arg[1],"multi") == 0) style = Neighbor::MULTI;
   else error->all(FLERR,"Illegal neighbor command");
 
-  if (style == MULTI && lmp->citeme) lmp->citeme->add(cite_neigh_multi);
+  if (style == Neighbor::MULTI && lmp->citeme) lmp->citeme->add(cite_neigh_multi);
 }
 
 /* ----------------------------------------------------------------------

@@ -33,8 +33,6 @@
 
 using namespace LAMMPS_NS;
 
-enum{INT,DOUBLE,STRING,BIGINT};   // same as in DumpCustom
-
 #define UNWRAPEXPAND 10.0
 #define ONEFIELD 32
 #define DELTA 1048576
@@ -181,15 +179,15 @@ int DumpCFG::convert_string(int n, double *mybuf)
         } else if (j == 1) {
           offset += sprintf(&sbuf[offset],"%s \n",typenames[(int) mybuf[m]]);
         } else if (j >= 2) {
-          if (vtype[j] == INT)
+          if (vtype[j] == Dump::INT)
             offset +=
               sprintf(&sbuf[offset],vformat[j],static_cast<int> (mybuf[m]));
-          else if (vtype[j] == DOUBLE)
+          else if (vtype[j] == Dump::DOUBLE)
             offset += sprintf(&sbuf[offset],vformat[j],mybuf[m]);
-          else if (vtype[j] == STRING)
+          else if (vtype[j] == Dump::STRING)
             offset +=
               sprintf(&sbuf[offset],vformat[j],typenames[(int) mybuf[m]]);
-          else if (vtype[j] == BIGINT)
+          else if (vtype[j] == Dump::BIGINT)
             offset +=
               sprintf(&sbuf[offset],vformat[j],static_cast<bigint> (mybuf[m]));
         }
@@ -216,15 +214,15 @@ int DumpCFG::convert_string(int n, double *mybuf)
           unwrap_coord = (mybuf[m] - 0.5)/UNWRAPEXPAND + 0.5;
           offset += sprintf(&sbuf[offset],vformat[j],unwrap_coord);
         } else if (j >= 5 ) {
-          if (vtype[j] == INT)
+          if (vtype[j] == Dump::INT)
             offset +=
               sprintf(&sbuf[offset],vformat[j],static_cast<int> (mybuf[m]));
-          else if (vtype[j] == DOUBLE)
+          else if (vtype[j] == Dump::DOUBLE)
             offset += sprintf(&sbuf[offset],vformat[j],mybuf[m]);
-          else if (vtype[j] == STRING)
+          else if (vtype[j] == Dump::STRING)
             offset +=
               sprintf(&sbuf[offset],vformat[j],typenames[(int) mybuf[m]]);
-          else if (vtype[j] == BIGINT)
+          else if (vtype[j] == Dump::BIGINT)
             offset +=
               sprintf(&sbuf[offset],vformat[j],static_cast<bigint> (mybuf[m]));
         }
@@ -266,13 +264,13 @@ void DumpCFG::write_lines(int n, double *mybuf)
         } else if (j == 1) {
           fprintf(fp,"%s \n",typenames[(int) mybuf[m]]);
         } else if (j >= 2) {
-          if (vtype[j] == INT)
+          if (vtype[j] == Dump::INT)
             fprintf(fp,vformat[j],static_cast<int> (mybuf[m]));
-          else if (vtype[j] == DOUBLE)
+          else if (vtype[j] == Dump::DOUBLE)
             fprintf(fp,vformat[j],mybuf[m]);
-          else if (vtype[j] == STRING)
+          else if (vtype[j] == Dump::STRING)
             fprintf(fp,vformat[j],typenames[(int) mybuf[m]]);
-          else if (vtype[j] == BIGINT)
+          else if (vtype[j] == Dump::BIGINT)
             fprintf(fp,vformat[j],static_cast<bigint> (mybuf[m]));
         }
         m++;
@@ -292,13 +290,13 @@ void DumpCFG::write_lines(int n, double *mybuf)
           unwrap_coord = (mybuf[m] - 0.5)/UNWRAPEXPAND + 0.5;
           fprintf(fp,vformat[j],unwrap_coord);
         } else if (j >= 5 ) {
-          if (vtype[j] == INT)
+          if (vtype[j] == Dump::INT)
             fprintf(fp,vformat[j],static_cast<int> (mybuf[m]));
-          else if (vtype[j] == DOUBLE)
+          else if (vtype[j] == Dump::DOUBLE)
             fprintf(fp,vformat[j],mybuf[m]);
-          else if (vtype[j] == STRING)
+          else if (vtype[j] == Dump::STRING)
             fprintf(fp,vformat[j],typenames[(int) mybuf[m]]);
-          else if (vtype[j] == BIGINT)
+          else if (vtype[j] == Dump::BIGINT)
             fprintf(fp,vformat[j],static_cast<bigint> (mybuf[m]));
         }
         m++;

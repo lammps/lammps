@@ -87,7 +87,6 @@ enum{X,Y,Z, // required for vtk, must come first
      VARIABLE,COMPUTE,FIX,INAME,DNAME,
      ATTRIBUTES}; // must come last
 enum{LT,LE,GT,GE,EQ,NEQ};
-enum{INT,DOUBLE,STRING,BIGINT};    // same as in DumpCFG
 enum{VTK,VTP,VTU,PVTP,PVTU}; // file formats
 
 #define INVOKED_PERATOM 8
@@ -1091,7 +1090,7 @@ void DumpVTK::buf2arrays(int n, double *mybuf)
       vtkAbstractArray *paa = it->second;
       if (it->second->GetNumberOfComponents() == 3) {
         switch (vtype[it->first]) {
-          case INT:
+          case Dump::INT:
             {
               int iv3[3] = { static_cast<int>(mybuf[iatom*size_one+j  ]),
                              static_cast<int>(mybuf[iatom*size_one+j+1]),
@@ -1100,7 +1099,7 @@ void DumpVTK::buf2arrays(int n, double *mybuf)
               pia->InsertNextTupleValue(iv3);
               break;
             }
-          case DOUBLE:
+          case Dump::DOUBLE:
             {
               vtkDoubleArray *pda = static_cast<vtkDoubleArray*>(paa);
               pda->InsertNextTupleValue(&mybuf[iatom*size_one+j]);
@@ -1110,19 +1109,19 @@ void DumpVTK::buf2arrays(int n, double *mybuf)
         j+=3;
       } else {
         switch (vtype[it->first]) {
-          case INT:
+          case Dump::INT:
             {
               vtkIntArray *pia = static_cast<vtkIntArray*>(paa);
               pia->InsertNextValue(mybuf[iatom*size_one+j]);
               break;
             }
-          case DOUBLE:
+          case Dump::DOUBLE:
             {
               vtkDoubleArray *pda = static_cast<vtkDoubleArray*>(paa);
               pda->InsertNextValue(mybuf[iatom*size_one+j]);
               break;
             }
-          case STRING:
+          case Dump::STRING:
             {
               vtkStringArray *psa = static_cast<vtkStringArray*>(paa);
               psa->InsertNextValue(typenames[static_cast<int>(mybuf[iatom*size_one+j])]);
@@ -1482,13 +1481,13 @@ void DumpVTK::reset_vtk_data_containers()
   ++it; ++it; ++it;
   for (; it!=vtype.end(); ++it) {
     switch(vtype[it->first]) {
-      case INT:
+      case Dump::INT:
         myarrays[it->first] = vtkSmartPointer<vtkIntArray>::New();
         break;
-      case DOUBLE:
+      case Dump::DOUBLE:
         myarrays[it->first] = vtkSmartPointer<vtkDoubleArray>::New();
         break;
-      case STRING:
+      case Dump::STRING:
         myarrays[it->first] = vtkSmartPointer<vtkStringArray>::New();
         break;
     }
@@ -1509,13 +1508,13 @@ int DumpVTK::parse_fields(int narg, char **arg)
 {
 
   pack_choice[X] = &DumpVTK::pack_x;
-  vtype[X] = DOUBLE;
+  vtype[X] = Dump::DOUBLE;
   name[X] = "x";
   pack_choice[Y] = &DumpVTK::pack_y;
-  vtype[Y] = DOUBLE;
+  vtype[Y] = Dump::DOUBLE;
   name[Y] = "y";
   pack_choice[Z] = &DumpVTK::pack_z;
-  vtype[Z] = DOUBLE;
+  vtype[Z] = Dump::DOUBLE;
   name[Z] = "z";
 
   // customize by adding to if statement
@@ -1525,33 +1524,33 @@ int DumpVTK::parse_fields(int narg, char **arg)
 
     if (strcmp(arg[iarg],"id") == 0) {
       pack_choice[ID] = &DumpVTK::pack_id;
-      vtype[ID] = INT;
+      vtype[ID] = Dump::INT;
       name[ID] = arg[iarg];
     } else if (strcmp(arg[iarg],"mol") == 0) {
       if (!atom->molecule_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[MOL] = &DumpVTK::pack_molecule;
-      vtype[MOL] = INT;
+      vtype[MOL] = Dump::INT;
       name[MOL] = arg[iarg];
     } else if (strcmp(arg[iarg],"proc") == 0) {
       pack_choice[PROC] = &DumpVTK::pack_proc;
-      vtype[PROC] = INT;
+      vtype[PROC] = Dump::INT;
       name[PROC] = arg[iarg];
     } else if (strcmp(arg[iarg],"procp1") == 0) {
       pack_choice[PROCP1] = &DumpVTK::pack_procp1;
-      vtype[PROCP1] = INT;
+      vtype[PROCP1] = Dump::INT;
       name[PROCP1] = arg[iarg];
     } else if (strcmp(arg[iarg],"type") == 0) {
       pack_choice[TYPE] = &DumpVTK::pack_type;
-      vtype[TYPE] = INT;
+      vtype[TYPE] = Dump::INT;
       name[TYPE] =arg[iarg];
     } else if (strcmp(arg[iarg],"element") == 0) {
       pack_choice[ELEMENT] = &DumpVTK::pack_type;
-      vtype[ELEMENT] = STRING;
+      vtype[ELEMENT] = Dump::STRING;
       name[ELEMENT] = arg[iarg];
     } else if (strcmp(arg[iarg],"mass") == 0) {
       pack_choice[MASS] = &DumpVTK::pack_mass;
-      vtype[MASS] = DOUBLE;
+      vtype[MASS] = Dump::DOUBLE;
       name[MASS] = arg[iarg];
 
     } else if (strcmp(arg[iarg],"x") == 0) {
@@ -1563,181 +1562,181 @@ int DumpVTK::parse_fields(int narg, char **arg)
     } else if (strcmp(arg[iarg],"xs") == 0) {
       if (domain->triclinic) pack_choice[XS] = &DumpVTK::pack_xs_triclinic;
       else pack_choice[XS] = &DumpVTK::pack_xs;
-      vtype[XS] = DOUBLE;
+      vtype[XS] = Dump::DOUBLE;
       name[XS] = arg[iarg];
     } else if (strcmp(arg[iarg],"ys") == 0) {
       if (domain->triclinic) pack_choice[YS] = &DumpVTK::pack_ys_triclinic;
       else pack_choice[YS] = &DumpVTK::pack_ys;
-      vtype[YS] = DOUBLE;
+      vtype[YS] = Dump::DOUBLE;
       name[YS] = arg[iarg];
     } else if (strcmp(arg[iarg],"zs") == 0) {
       if (domain->triclinic) pack_choice[ZS] = &DumpVTK::pack_zs_triclinic;
       else pack_choice[ZS] = &DumpVTK::pack_zs;
-      vtype[ZS] = DOUBLE;
+      vtype[ZS] = Dump::DOUBLE;
       name[ZS] = arg[iarg];
     } else if (strcmp(arg[iarg],"xu") == 0) {
       if (domain->triclinic) pack_choice[XU] = &DumpVTK::pack_xu_triclinic;
       else pack_choice[XU] = &DumpVTK::pack_xu;
-      vtype[XU] = DOUBLE;
+      vtype[XU] = Dump::DOUBLE;
       name[XU] = arg[iarg];
     } else if (strcmp(arg[iarg],"yu") == 0) {
       if (domain->triclinic) pack_choice[YU] = &DumpVTK::pack_yu_triclinic;
       else pack_choice[YU] = &DumpVTK::pack_yu;
-      vtype[YU] = DOUBLE;
+      vtype[YU] = Dump::DOUBLE;
       name[YU] = arg[iarg];
     } else if (strcmp(arg[iarg],"zu") == 0) {
       if (domain->triclinic) pack_choice[ZU] = &DumpVTK::pack_zu_triclinic;
       else pack_choice[ZU] = &DumpVTK::pack_zu;
-      vtype[ZU] = DOUBLE;
+      vtype[ZU] = Dump::DOUBLE;
       name[ZU] = arg[iarg];
     } else if (strcmp(arg[iarg],"xsu") == 0) {
       if (domain->triclinic) pack_choice[XSU] = &DumpVTK::pack_xsu_triclinic;
       else pack_choice[XSU] = &DumpVTK::pack_xsu;
-      vtype[XSU] = DOUBLE;
+      vtype[XSU] = Dump::DOUBLE;
       name[XSU] = arg[iarg];
     } else if (strcmp(arg[iarg],"ysu") == 0) {
       if (domain->triclinic) pack_choice[YSU] = &DumpVTK::pack_ysu_triclinic;
       else pack_choice[YSU] = &DumpVTK::pack_ysu;
-      vtype[YSU] = DOUBLE;
+      vtype[YSU] = Dump::DOUBLE;
       name[YSU] = arg[iarg];
     } else if (strcmp(arg[iarg],"zsu") == 0) {
       if (domain->triclinic) pack_choice[ZSU] = &DumpVTK::pack_zsu_triclinic;
       else pack_choice[ZSU] = &DumpVTK::pack_zsu;
-      vtype[ZSU] = DOUBLE;
+      vtype[ZSU] = Dump::DOUBLE;
       name[ZSU] = arg[iarg];
     } else if (strcmp(arg[iarg],"ix") == 0) {
       pack_choice[IX] = &DumpVTK::pack_ix;
-      vtype[IX] = INT;
+      vtype[IX] = Dump::INT;
       name[IX] = arg[iarg];
     } else if (strcmp(arg[iarg],"iy") == 0) {
       pack_choice[IY] = &DumpVTK::pack_iy;
-      vtype[IY] = INT;
+      vtype[IY] = Dump::INT;
       name[IY] = arg[iarg];
     } else if (strcmp(arg[iarg],"iz") == 0) {
       pack_choice[IZ] = &DumpVTK::pack_iz;
-      vtype[IZ] = INT;
+      vtype[IZ] = Dump::INT;
       name[IZ] = arg[iarg];
 
     } else if (strcmp(arg[iarg],"vx") == 0) {
       pack_choice[VX] = &DumpVTK::pack_vx;
-      vtype[VX] = DOUBLE;
+      vtype[VX] = Dump::DOUBLE;
       name[VX] = arg[iarg];
     } else if (strcmp(arg[iarg],"vy") == 0) {
       pack_choice[VY] = &DumpVTK::pack_vy;
-      vtype[VY] = DOUBLE;
+      vtype[VY] = Dump::DOUBLE;
       name[VY] = arg[iarg];
     } else if (strcmp(arg[iarg],"vz") == 0) {
       pack_choice[VZ] = &DumpVTK::pack_vz;
-      vtype[VZ] = DOUBLE;
+      vtype[VZ] = Dump::DOUBLE;
       name[VZ] = arg[iarg];
     } else if (strcmp(arg[iarg],"fx") == 0) {
       pack_choice[FX] = &DumpVTK::pack_fx;
-      vtype[FX] = DOUBLE;
+      vtype[FX] = Dump::DOUBLE;
       name[FX] = arg[iarg];
     } else if (strcmp(arg[iarg],"fy") == 0) {
       pack_choice[FY] = &DumpVTK::pack_fy;
-      vtype[FY] = DOUBLE;
+      vtype[FY] = Dump::DOUBLE;
       name[FY] = arg[iarg];
     } else if (strcmp(arg[iarg],"fz") == 0) {
       pack_choice[FZ] = &DumpVTK::pack_fz;
-      vtype[FZ] = DOUBLE;
+      vtype[FZ] = Dump::DOUBLE;
       name[FZ] = arg[iarg];
     } else if (strcmp(arg[iarg],"q") == 0) {
       if (!atom->q_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[Q] = &DumpVTK::pack_q;
-      vtype[Q] = DOUBLE;
+      vtype[Q] = Dump::DOUBLE;
       name[Q] = arg[iarg];
     } else if (strcmp(arg[iarg],"mux") == 0) {
       if (!atom->mu_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[MUX] = &DumpVTK::pack_mux;
-      vtype[MUX] = DOUBLE;
+      vtype[MUX] = Dump::DOUBLE;
       name[MUX] = arg[iarg];
     } else if (strcmp(arg[iarg],"muy") == 0) {
       if (!atom->mu_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[MUY] = &DumpVTK::pack_muy;
-      vtype[MUY] = DOUBLE;
+      vtype[MUY] = Dump::DOUBLE;
       name[MUY] = arg[iarg];
     } else if (strcmp(arg[iarg],"muz") == 0) {
       if (!atom->mu_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[MUZ] = &DumpVTK::pack_muz;
-      vtype[MUZ] = DOUBLE;
+      vtype[MUZ] = Dump::DOUBLE;
       name[MUZ] = arg[iarg];
     } else if (strcmp(arg[iarg],"mu") == 0) {
       if (!atom->mu_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[MU] = &DumpVTK::pack_mu;
-      vtype[MU] = DOUBLE;
+      vtype[MU] = Dump::DOUBLE;
       name[MU] = arg[iarg];
 
     } else if (strcmp(arg[iarg],"radius") == 0) {
       if (!atom->radius_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[RADIUS] = &DumpVTK::pack_radius;
-      vtype[RADIUS] = DOUBLE;
+      vtype[RADIUS] = Dump::DOUBLE;
       name[RADIUS] = arg[iarg];
     } else if (strcmp(arg[iarg],"diameter") == 0) {
       if (!atom->radius_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[DIAMETER] = &DumpVTK::pack_diameter;
-      vtype[DIAMETER] = DOUBLE;
+      vtype[DIAMETER] = Dump::DOUBLE;
       name[DIAMETER] = arg[iarg];
     } else if (strcmp(arg[iarg],"omegax") == 0) {
       if (!atom->omega_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[OMEGAX] = &DumpVTK::pack_omegax;
-      vtype[OMEGAX] = DOUBLE;
+      vtype[OMEGAX] = Dump::DOUBLE;
       name[OMEGAX] = arg[iarg];
     } else if (strcmp(arg[iarg],"omegay") == 0) {
       if (!atom->omega_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[OMEGAY] = &DumpVTK::pack_omegay;
-      vtype[OMEGAY] = DOUBLE;
+      vtype[OMEGAY] = Dump::DOUBLE;
       name[OMEGAY] = arg[iarg];
     } else if (strcmp(arg[iarg],"omegaz") == 0) {
       if (!atom->omega_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[OMEGAZ] = &DumpVTK::pack_omegaz;
-      vtype[OMEGAZ] = DOUBLE;
+      vtype[OMEGAZ] = Dump::DOUBLE;
       name[OMEGAZ] = arg[iarg];
     } else if (strcmp(arg[iarg],"angmomx") == 0) {
       if (!atom->angmom_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[ANGMOMX] = &DumpVTK::pack_angmomx;
-      vtype[ANGMOMX] = DOUBLE;
+      vtype[ANGMOMX] = Dump::DOUBLE;
       name[ANGMOMX] = arg[iarg];
     } else if (strcmp(arg[iarg],"angmomy") == 0) {
       if (!atom->angmom_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[ANGMOMY] = &DumpVTK::pack_angmomy;
-      vtype[ANGMOMY] = DOUBLE;
+      vtype[ANGMOMY] = Dump::DOUBLE;
       name[ANGMOMY] = arg[iarg];
     } else if (strcmp(arg[iarg],"angmomz") == 0) {
       if (!atom->angmom_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[ANGMOMZ] = &DumpVTK::pack_angmomz;
-      vtype[ANGMOMZ] = DOUBLE;
+      vtype[ANGMOMZ] = Dump::DOUBLE;
       name[ANGMOMZ] = arg[iarg];
     } else if (strcmp(arg[iarg],"tqx") == 0) {
       if (!atom->torque_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[TQX] = &DumpVTK::pack_tqx;
-      vtype[TQX] = DOUBLE;
+      vtype[TQX] = Dump::DOUBLE;
       name[TQX] = arg[iarg];
     } else if (strcmp(arg[iarg],"tqy") == 0) {
       if (!atom->torque_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[TQY] = &DumpVTK::pack_tqy;
-      vtype[TQY] = DOUBLE;
+      vtype[TQY] = Dump::DOUBLE;
       name[TQY] = arg[iarg];
     } else if (strcmp(arg[iarg],"tqz") == 0) {
       if (!atom->torque_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[TQZ] = &DumpVTK::pack_tqz;
-      vtype[TQZ] = DOUBLE;
+      vtype[TQZ] = Dump::DOUBLE;
       name[TQZ] = arg[iarg];
 
     // compute value = c_ID
@@ -1745,7 +1744,7 @@ int DumpVTK::parse_fields(int narg, char **arg)
 
     } else if (strncmp(arg[iarg],"c_",2) == 0) {
       pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_compute;
-      vtype[ATTRIBUTES+i] = DOUBLE;
+      vtype[ATTRIBUTES+i] = Dump::DOUBLE;
 
       int n = strlen(arg[iarg]);
       char *suffix = new char[n];
@@ -1782,7 +1781,7 @@ int DumpVTK::parse_fields(int narg, char **arg)
 
     } else if (strncmp(arg[iarg],"f_",2) == 0) {
       pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_fix;
-      vtype[ATTRIBUTES+i] = DOUBLE;
+      vtype[ATTRIBUTES+i] = Dump::DOUBLE;
 
       int n = strlen(arg[iarg]);
       char *suffix = new char[n];
@@ -1816,7 +1815,7 @@ int DumpVTK::parse_fields(int narg, char **arg)
 
     } else if (strncmp(arg[iarg],"v_",2) == 0) {
       pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_variable;
-      vtype[ATTRIBUTES+i] = DOUBLE;
+      vtype[ATTRIBUTES+i] = Dump::DOUBLE;
 
       int n = strlen(arg[iarg]);
       char *suffix = new char[n];
@@ -1837,7 +1836,7 @@ int DumpVTK::parse_fields(int narg, char **arg)
 
     } else if (strncmp(arg[iarg],"d_",2) == 0) {
       pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_custom;
-      vtype[ATTRIBUTES+i] = DOUBLE;
+      vtype[ATTRIBUTES+i] = Dump::DOUBLE;
 
       int n = strlen(arg[iarg]);
       char *suffix = new char[n];
@@ -1860,7 +1859,7 @@ int DumpVTK::parse_fields(int narg, char **arg)
 
     } else if (strncmp(arg[iarg],"i_",2) == 0) {
       pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_custom;
-      vtype[ATTRIBUTES+i] = INT;
+      vtype[ATTRIBUTES+i] = Dump::INT;
 
       int n = strlen(arg[iarg]);
       char *suffix = new char[n];

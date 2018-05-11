@@ -34,8 +34,6 @@ static int compare_standalone(const void *, const void *);
 static int compare_standalone(const int, const int, void *);
 #endif
 
-enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
-
 #define BUFFACTOR 1.5
 #define BUFMIN 1000
 #define BUFEXTRA 1000
@@ -222,7 +220,7 @@ int Irregular::migrate_check()
   // migrate required if comm layout is tiled
   // cannot use myloc[] logic below
 
-  if (comm->layout == LAYOUT_TILED) return 1;
+  if (comm->layout == Comm::LAYOUT_TILED) return 1;
 
   // subbox bounds for orthogonal or triclinic box
 

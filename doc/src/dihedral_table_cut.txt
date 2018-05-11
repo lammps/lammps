@@ -60,8 +60,9 @@ filename
 keyword :ul
 
 The cutoff dihedral style uses a tabulated dihedral interaction with a 
-cutoff function (TODO: add image of formula here)
+cutoff function:
 
+:c,image(Eqs/dihedral_table_cut.jpg)
 
 The cutoff specifies an prefactor to the cutoff function.  While this value
 would ordinarily equal 1 there may be situations where the value should change.

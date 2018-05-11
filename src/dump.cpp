@@ -193,6 +193,7 @@ Dump::~Dump()
   if (multiproc) MPI_Comm_free(&clustercomm);
 
   // delete storage for caching file names
+
   if (maxfiles > 0) {
     for (int idx=0; idx < numfiles; ++idx)
       delete[] nameslist[idx];

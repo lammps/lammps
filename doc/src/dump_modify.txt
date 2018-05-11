@@ -37,8 +37,8 @@ keyword = {append} or {at} or {buffer} or {delay} or {element} or {every} or {fi
   {image} arg = {yes} or {no}
   {label} arg = string
     string = character string (e.g. BONDS) to use in header of dump local file
-  {maxfiles} arg = maxf
-    maxf = retain at most {maxf} files when writing one file per timestepq
+  {maxfiles} arg = Fmax
+    Fmax = keep only the most recent {Fmax} snapshots (one snapshot per file)
   {nfile} arg = Nf
     Nf = write this many files, one from each of Nf processors
   {pad} arg = Nchar = # of characters to convert timestep to
@@ -366,12 +366,17 @@ e.g. BONDS or ANGLES.
 
 :line
 
-The {maxfiles} keyword applies only to dumps with a '*' wildcard included
-in the dump file name, i.e. when writing one file per frame. The number
-following the keyword determines the maximum number of files being written.
-If this number is reached, the olders dump file from the current sequence
-is deleted before a new dump file is written. A {maxfiles} value of -1
-or 0 indicates that all files are retained.
+The {maxfiles} keyword can only be used when a '*' wildcard is
+included in the dump file name, i.e. when writing a new file(s) for
+each snapshot.  The specified {Fmax} is how many snapshots will be
+kept.  Once this number is reached, the file(s) containing the oldest
+snapshot is deleted before a new dump file is written.  If the
+specified {Fmax} <= 0, then all files are retained.
+
+This can be useful for debugging, especially if you don't know on what
+timestep something bad will happen, e.g. when LAMMPS will exit with an
+error.  You can dump every timestep, and limit the number of dump
+files produced, even if you run for 1000s of steps.
 
 :line
 

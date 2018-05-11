@@ -369,7 +369,7 @@ void FixPOEMS::init()
       if (pflag && (modify->fmask[i] & POST_FORCE) && 
           !modify->fix[i]->rigid_flag) {
         char str[128];
-        sprintf(str,"Fix %d alters forces after fix poems",modify->fix[i]->id);
+        sprintf(str,"Fix %s alters forces after fix poems",modify->fix[i]->id);
         error->warning(FLERR,str);
       }
     }

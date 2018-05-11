@@ -1155,6 +1155,8 @@ void FixBondReact::make_a_guess()
   for (int i = 0; i < atom->ntypes; i++) {
     if (mol_ntypes[i] != lcl_ntypes[i]) {
       status = GUESSFAIL;
+      delete [] mol_ntypes;
+      delete [] lcl_ntypes;
       return;
     }
   }

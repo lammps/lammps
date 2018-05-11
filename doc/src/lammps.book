@@ -582,6 +582,7 @@ dihedral_opls.html
 dihedral_quadratic.html
 dihedral_spherical.html
 dihedral_table.html
+dihedral_table_cut.html
 dihedral_zero.html
 
 lammps_commands_improper.html

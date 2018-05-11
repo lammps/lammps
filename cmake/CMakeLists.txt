@@ -527,6 +527,18 @@ if(ENABLE_OPT)
 endif()
 
 if(ENABLE_USER-INTEL)
+    if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+      message(FATAL_ERROR "USER-INTEL is only useful together with intel compiler")
+    endif()
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "2016")
+      message(FATAL_ERROR "USER-INTEL is needed at least 2016 intel compiler")
+    endif()
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "2017.3")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -xHost")
+    else()
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -xCOMMON-AVX512")
+    endif()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -qopenmp -qno-offload -fno-alias -ansi-alias -restrict -DLMP_INTEL_USELRT -DLMP_USE_MKL_RNG-O2 -fp-model fast=2 -no-prec-div -qoverride-limits -qopt-zmm-usage=high") 
     set(USER-INTEL_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/USER-INTEL)
     set(USER-INTEL_SOURCES ${USER-INTEL_SOURCES_DIR}/intel_preprocess.h
                            ${USER-INTEL_SOURCES_DIR}/intel_buffers.h

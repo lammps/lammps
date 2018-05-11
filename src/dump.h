@@ -105,6 +105,11 @@ class Dump : protected Pointers {
   double boxzlo,boxzhi;
   double boxxy,boxxz,boxyz;
 
+  int maxfiles;              // max number of files created, -1 == infinite
+  int numfiles;              // number of files in names list
+  int fileidx;               // index of file in names list
+  char **nameslist;          // list of history file names
+
   bigint ntotal;             // total # of per-atom lines in snapshot
   int reorderflag;           // 1 if OK to reorder instead of sort
   int ntotal_reorder;        // # of atoms that must be in snapshot

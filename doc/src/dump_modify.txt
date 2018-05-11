@@ -15,7 +15,7 @@ dump_modify dump-ID keyword values ... :pre
 dump-ID = ID of dump to modify :ulb,l
 one or more keyword/value pairs may be appended :l
 these keywords apply to various dump styles :l
-keyword = {append} or {at} or {buffer} or {delay} or {element} or {every} or {fileper} or {first} or {flush} or {format} or {image} or {label} or {nfile} or {pad} or {precision} or {region} or {scale} or {sort} or {thresh} or {unwrap} :l
+keyword = {append} or {at} or {buffer} or {delay} or {element} or {every} or {fileper} or {first} or {flush} or {format} or {image} or {label} or {maxfiles} or {nfile} or {pad} or {precision} or {region} or {scale} or {sort} or {thresh} or {unwrap} :l
   {append} arg = {yes} or {no}
   {at} arg = N
     N = index of frame written upon first dump
@@ -37,6 +37,8 @@ keyword = {append} or {at} or {buffer} or {delay} or {element} or {every} or {fi
   {image} arg = {yes} or {no}
   {label} arg = string
     string = character string (e.g. BONDS) to use in header of dump local file
+  {maxfiles} arg = maxf
+    maxf = retain at most {maxf} files when writing one file per timestepq
   {nfile} arg = Nf
     Nf = write this many files, one from each of Nf processors
   {pad} arg = Nchar = # of characters to convert timestep to
@@ -361,6 +363,15 @@ ITEM: ENTRIES ... :pre
 
 The word "ENTRIES" will be replaced with the string specified,
 e.g. BONDS or ANGLES.
+
+:line
+
+The {maxfiles} keyword applies only to dumps with a '*' wildcard included
+in the dump file name, i.e. when writing one file per frame. The number
+following the keyword determines the maximum number of files being written.
+If this number is reached, the olders dump file from the current sequence
+is deleted before a new dump file is written. A {maxfiles} value of -1
+or 0 indicates that all files are retained.
 
 :line
 
@@ -901,6 +912,7 @@ flush = yes
 format = %d and %g for each integer or floating point value
 image = no
 label = ENTRIES
+maxifiles = -1
 nfile = 1
 pad = 0
 pbc = no

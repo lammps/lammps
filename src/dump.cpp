@@ -573,7 +573,7 @@ void Dump::openfile()
         strcpy(nameslist[fileidx],filecurrent);
         fileidx = (fileidx + 1) % maxfiles;
       }
-    } 
+    }
   }
 
   // each proc with filewriter = 1 opens a file

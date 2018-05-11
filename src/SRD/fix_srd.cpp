@@ -52,8 +52,6 @@ enum{BIG_MOVE,SRD_MOVE,SRD_ROTATE};
 enum{CUBIC_ERROR,CUBIC_WARN};
 enum{SHIFT_NO,SHIFT_YES,SHIFT_POSSIBLE};
 
-enum{NO_REMAP,X_REMAP,V_REMAP};                   // same as fix_deform.cpp
-
 #define EINERTIA 0.2          // moment of inertia prefactor for ellipsoid
 
 #define ATOMPERBIN 30
@@ -384,7 +382,7 @@ void FixSRD::init()
     if (strcmp(modify->fix[i]->style,"deform") == 0) {
       deformflag = 1;
       FixDeform *deform = (FixDeform *) modify->fix[i];
-      if (deform->box_change_shape && deform->remapflag != V_REMAP)
+      if (deform->box_change_shape && deform->remapflag != Domain::V_REMAP)
         error->all(FLERR,"Using fix srd with inconsistent "
                    "fix deform remap option");
     }

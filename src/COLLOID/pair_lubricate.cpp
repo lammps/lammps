@@ -43,10 +43,6 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-// same as fix_deform.cpp
-
-enum{NO_REMAP,X_REMAP,V_REMAP};
-
 // same as fix_wall.cpp
 
 enum{EDGE,CONSTANT,VARIABLE};
@@ -570,7 +566,7 @@ void PairLubricate::init_style()
   for (int i = 0; i < modify->nfix; i++){
     if (strcmp(modify->fix[i]->style,"deform") == 0) {
       shearing = flagdeform = 1;
-      if (((FixDeform *) modify->fix[i])->remapflag != V_REMAP)
+      if (((FixDeform *) modify->fix[i])->remapflag != Domain::V_REMAP)
         error->all(FLERR,"Using pair lubricate with inconsistent "
                    "fix deform remap option");
     }

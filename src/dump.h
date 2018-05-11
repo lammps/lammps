@@ -94,6 +94,7 @@ class Dump : protected Pointers {
   char *format_int_user;
   char *format_bigint_user;
   char **format_column_user;
+  enum{INT,DOUBLE,STRING,BIGINT};
 
   FILE *fp;                  // file to write dump to
   int size_one;              // # of quantities for one atom

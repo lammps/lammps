@@ -63,8 +63,6 @@ enum{VERSION,SMALLINT,TAGINT,BIGINT,
      ATOM_ID,ATOM_MAP_STYLE,ATOM_MAP_USER,ATOM_SORTFREQ,ATOM_SORTBIN,
      COMM_MODE,COMM_CUTOFF,COMM_VEL,NO_PAIR};
 
-enum{IGNORE,WARN,ERROR};                    // same as thermo.cpp
-
 /* ---------------------------------------------------------------------- */
 
 WriteRestart::WriteRestart(LAMMPS *lmp) : Pointers(lmp)
@@ -252,7 +250,7 @@ void WriteRestart::write(char *file)
 
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
-  if (natoms != atom->natoms && output->thermo->lostflag == ERROR)
+  if (natoms != atom->natoms && output->thermo->lostflag == Thermo::ERROR)
     error->all(FLERR,"Atom count is inconsistent, cannot write restart file");
 
   // open single restart file or base file for multiproc case

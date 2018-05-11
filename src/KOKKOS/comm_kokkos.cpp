@@ -36,8 +36,6 @@ using namespace LAMMPS_NS;
 #define BUFMIN 10000
 #define BUFEXTRA 1000
 
-enum{SINGLE,MULTI};
-
 /* ----------------------------------------------------------------------
    setup MPI and allocate buffer space
 ------------------------------------------------------------------------- */
@@ -709,7 +707,7 @@ void CommKokkos::borders()
   if (!exchange_comm_classic) {
     static int print = 1;
 
-    if (style != SINGLE || bordergroup || ghost_velocity) {
+    if (style != Comm::SINGLE || bordergroup || ghost_velocity) {
       if (print && comm->me==0) {
         error->warning(FLERR,"Required border comm not yet implemented in Kokkos communication, "
                       "switching to classic communication");
@@ -817,7 +815,7 @@ void CommKokkos::borders_device() {
       // store sent atom indices in list for use in future timesteps
 
       x = atom->x;
-      if (style == SINGLE) {
+      if (style == Comm::SINGLE) {
         lo = slablo[iswap];
         hi = slabhi[iswap];
       } else {
@@ -846,7 +844,7 @@ void CommKokkos::borders_device() {
 
       if (sendflag) {
         if (!bordergroup || ineed >= 2) {
-          if (style == SINGLE) {
+          if (style == Comm::SINGLE) {
             k_total_send.h_view() = 0;
             k_total_send.template modify<LMPHostType>();
             k_total_send.template sync<LMPDeviceType>();
@@ -894,7 +892,7 @@ void CommKokkos::borders_device() {
         } else {
           error->all(FLERR,"Required border comm not yet "
                      "implemented with Kokkos");
-          if (style == SINGLE) {
+          if (style == Comm::SINGLE) {
             ngroup = atom->nfirst;
             for (i = 0; i < ngroup; i++)
               if (x[i][dim] >= lo && x[i][dim] <= hi) {
@@ -1099,7 +1097,7 @@ void CommKokkos::grow_swap(int n)
 {
   free_swap();
   allocate_swap(n);
-  if (style == MULTI) {
+  if (style == Comm::MULTI) {
     free_multi();
     allocate_multi(n);
   }

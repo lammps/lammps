@@ -93,6 +93,7 @@ class Domain : protected Pointers {
   class Region **regions;                  // list of defined Regions
 
   int copymode;
+  enum{NO_REMAP,X_REMAP,V_REMAP};
 
   typedef Region *(*RegionCreator)(LAMMPS *,int,char**);
   typedef std::map<std::string,RegionCreator> RegionCreatorMap;

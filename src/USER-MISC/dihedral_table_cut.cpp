@@ -25,9 +25,6 @@
 #include <iostream>
 #include <sstream>
 
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
 #include "dihedral_table_cut.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -459,18 +456,18 @@ void DihedralTableCut::compute(int eflag, int vflag)
 {
   
   int i1,i2,i3,i4,i,j,k,n,type;
-  double edihedral,f1[3],f2[3],f3[3],f4[3];
+  double edihedral;
   double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,vb2xm,vb2ym,vb2zm;
   double fphi,fpphi;
   double r1mag2,r1,r2mag2,r2,r3mag2,r3;
   double sb1,rb1,sb2,rb2,sb3,rb3,c0,r12c1;
   double r12c2,costh12,costh13,costh23,sc1,sc2,s1,s2,c;
-  double cosphi,phi,sinphi,a11,a22,a33,a12,a13,a23,sx1,sx2;
-  double sx12,sy1,sy2,sy12,sz1,sz2,sz12,dphi1,dphi2,dphi3;
-  double de_dihedral,t1,t2,t3,t4,cos2phi,cos3phi,bt1,bt2;
-  double bt3,sumbte,db,sumbtf,at1,at2,at3,da,da1,da2,r1_0;
-  double r3_0,dr1,dr2,tk1,tk2,s12,sin2;
-  double dcosphidr[4][3],dphidr[4][3],dbonddr[3][4][3],dthetadr[2][4][3];
+  double phi,sinphi,a11,a22,a33,a12,a13,a23,sx1,sx2;
+  double sx12,sy1,sy2,sy12,sz1,sz2,sz12;
+  double t1,t2,t3,t4;
+  double da1,da2;
+  double s12,sin2;
+  double dcosphidr[4][3],dphidr[4][3],dthetadr[2][4][3];
   double fabcd[4][3];
 
   edihedral = 0.0;
@@ -582,7 +579,6 @@ void DihedralTableCut::compute(int eflag, int vflag)
 
     if (c > 1.0) c = 1.0;
     if (c < -1.0) c = -1.0;
-    cosphi = c;
     double phil = acos(c);
     phi = acos(c);
 
@@ -825,7 +821,7 @@ void DihedralTableCut::coeff(int narg, char **arg)
   if (narg != 7) error->all(FLERR,"Incorrect args for dihedral coefficients");
   if (!allocated) allocate();
   int ilo,ihi;
-  force->bounds(arg[0],atom->ndihedraltypes,ilo,ihi);
+  force->bounds(FLERR,arg[0],atom->ndihedraltypes,ilo,ihi);
 
   int count = 0;
 

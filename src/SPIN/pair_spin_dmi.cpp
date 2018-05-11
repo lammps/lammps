@@ -283,9 +283,9 @@ void PairSpinDmi::compute(int eflag, int vflag)
       // compute magnetic and mechanical components of soc_dmi
       
       if (rsq <= local_cut2) {
-	compute_dmi(i,j,rsq,eij,fmi,spi,spj);
+	compute_dmi(i,j,eij,fmi,spj);
 	if (lattice_flag) {
-	  compute_dmi_mech(i,j,fi,spi,spj);
+	  compute_dmi_mech(fi);
 	}
       }
 
@@ -321,33 +321,25 @@ void PairSpinDmi::compute(int eflag, int vflag)
 
 void PairSpinDmi::compute_single_pair(int ii, double fmi[3])
 {
-
-  const int nlocal = atom->nlocal;
   int *type = atom->type;
   double **x = atom->x;
   double **sp = atom->sp;
   double local_cut2;
 
   double xi[3], rij[3], eij[3];
-  double spi[3], spj[3];
+  double spj[3];
 
-  int iexchange, idmi, ineel, ime;
-  int i,j,jj,inum,jnum,itype,jtype;
+  int i,j,jnum,itype,jtype;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   double rsq, inorm;
 
-  inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
   i = ilist[ii];
   itype = type[i];
-
-  spi[0] = sp[i][0];
-  spi[1] = sp[i][1];
-  spi[2] = sp[i][2];
  
   xi[0] = x[i][0];
   xi[1] = x[i][1];
@@ -378,7 +370,7 @@ void PairSpinDmi::compute_single_pair(int ii, double fmi[3])
     local_cut2 = cut_spin_dmi[itype][jtype]*cut_spin_dmi[itype][jtype];
 
     if (rsq <= local_cut2) {
-      compute_dmi(i,j,rsq,eij,fmi,spi,spj);
+      compute_dmi(i,j,eij,fmi,spj);
     }
 
   }
@@ -389,7 +381,7 @@ void PairSpinDmi::compute_single_pair(int ii, double fmi[3])
    compute the dmi interaction between spin i and spin j
 ------------------------------------------------------------------------- */
 
-void PairSpinDmi::compute_dmi(int i, int j, double rsq, double eij[3], double fmi[3], double spi[3], double spj[3])
+void PairSpinDmi::compute_dmi(int i, int j, double eij[3], double fmi[3], double spj[3])
 {
   int *type = atom->type;  
   int itype, jtype;
@@ -410,7 +402,7 @@ void PairSpinDmi::compute_dmi(int i, int j, double rsq, double eij[3], double fm
    compute the mechanical force due to the dmi interaction between atom i and atom j
 ------------------------------------------------------------------------- */
 
-void PairSpinDmi::compute_dmi_mech(int i, int j, double fi[3], double spi[3], double spj[3])
+void PairSpinDmi::compute_dmi_mech(double fi[3])
 {
   fi[0] += 0.0;
   fi[1] += 0.0;

@@ -326,7 +326,6 @@ void PairSpinNeel::compute(int eflag, int vflag)
 
 void PairSpinNeel::compute_single_pair(int ii, double fmi[3]) 
 {
-  const int nlocal = atom->nlocal;
   int *type = atom->type;
   double **x = atom->x;
   double **sp = atom->sp;
@@ -335,13 +334,11 @@ void PairSpinNeel::compute_single_pair(int ii, double fmi[3])
   double xi[3], rij[3], eij[3];
   double spi[3], spj[3];
 
-  int iexchange, idmi, ineel, ime;
-  int i,j,jj,inum,jnum,itype,jtype;
+  int i,j,jnum,itype,jtype;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  double rsq, rd, inorm;
+  double rsq, inorm;
 
-  inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
@@ -379,6 +376,9 @@ void PairSpinNeel::compute_single_pair(int ii, double fmi[3])
     rij[2] = x[j][2] - xi[2];
     rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
     inorm = 1.0/sqrt(rsq);
+    eij[0] = inorm*rij[0];
+    eij[1] = inorm*rij[1];
+    eij[2] = inorm*rij[2];
 
     if (rsq <= local_cut2) {
       compute_neel(i,j,rsq,eij,fmi,spi,spj);

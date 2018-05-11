@@ -258,14 +258,11 @@ void FixNVESpin::init()
 
 void FixNVESpin::initial_integrate(int vflag)
 {
-  double dtfm,msq,scale,fm2,fmsq,sp2,spsq,energy;
-  double spi[3], fmi[3];
+  double dtfm;
 	
   double **x = atom->x;	
   double **v = atom->v;
   double **f = atom->f;
-  double **sp = atom->sp;
-  double **fm = atom->fm;
   double *rmass = atom->rmass; 
   double *mass = atom->mass;  
   int nlocal = atom->nlocal;
@@ -422,16 +419,10 @@ void FixNVESpin::pre_neighbor()
 
 void FixNVESpin::ComputeInteractionsSpin(int i)
 {
-  const int nlocal = atom->nlocal;
   double spi[3], fmi[3];
 
   double **sp = atom->sp;
   double **fm = atom->fm;
-
-  int eflag = 1;
-  int vflag = 0;
-
-  int pair_compute_flag = 1;
 
   // force computation for spin i
 
@@ -564,13 +555,12 @@ void FixNVESpin::AdvanceSingleSpin(int i)
   int *sametag = atom->sametag;
   double **sp = atom->sp;
   double **fm = atom->fm;
-  double dtfm,msq,scale,fm2,fmsq,sp2,spsq,energy,dts2;
+  double msq,scale,fm2,energy,dts2;
   double cp[3],g[3]; 
 
   cp[0] = cp[1] = cp[2] = 0.0;
   g[0] = g[1] = g[2] = 0.0;
   fm2 = (fm[i][0]*fm[i][0])+(fm[i][1]*fm[i][1])+(fm[i][2]*fm[i][2]);
-  fmsq = sqrt(fm2);
   energy = (sp[i][0]*fm[i][0])+(sp[i][1]*fm[i][1])+(sp[i][2]*fm[i][2]);
   dts2 = dts*dts;		
 
@@ -622,10 +612,8 @@ void FixNVESpin::AdvanceSingleSpin(int i)
 
 void FixNVESpin::final_integrate()
 {	
-  double dtfm,msq,scale,fm2,fmsq,energy;
-  double cp[3],g[3]; 	
+  double dtfm;
 	
-  double **x = atom->x;	
   double **v = atom->v;
   double **f = atom->f;
   double *rmass = atom->rmass;

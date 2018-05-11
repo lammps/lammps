@@ -140,7 +140,7 @@ void PairSpinExchange::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   init specific to this pair style
+   init specific to this pair style   
 ------------------------------------------------------------------------- */
 
 void PairSpinExchange::init_style()
@@ -273,7 +273,7 @@ void PairSpinExchange::compute(int eflag, int vflag)
       // compute exchange interaction
       
       if (rsq <= local_cut2) {
-	compute_exchange(i,j,rsq,fmi,spi,spj);
+	compute_exchange(i,j,rsq,fmi,spj);
         if (lattice_flag) {
 	  compute_exchange_mech(i,j,rsq,eij,fi,spi,spj);
 	}
@@ -316,22 +316,19 @@ void PairSpinExchange::compute(int eflag, int vflag)
 void PairSpinExchange::compute_single_pair(int ii, double fmi[3]) 
 {
 
-  const int nlocal = atom->nlocal;
   int *type = atom->type;
   double **x = atom->x;
   double **sp = atom->sp;
   double local_cut2;
 
   double xi[3], rij[3];
-  double spi[3], spj[3];
+  double spj[3];
 
-  int iexchange, idmi, ineel, ime;
-  int i,j,jj,inum,jnum,itype,jtype;
+  int i,j,jnum,itype,jtype;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   double rsq;
 
-  inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
@@ -339,10 +336,6 @@ void PairSpinExchange::compute_single_pair(int ii, double fmi[3])
   i = ilist[ii];
   itype = type[i];
 
-  spi[0] = sp[i][0];
-  spi[1] = sp[i][1];
-  spi[2] = sp[i][2];
- 
   xi[0] = x[i][0];
   xi[1] = x[i][1];
   xi[2] = x[i][2];
@@ -367,7 +360,7 @@ void PairSpinExchange::compute_single_pair(int ii, double fmi[3])
     rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
 
     if (rsq <= local_cut2) {
-      compute_exchange(i,j,rsq,fmi,spi,spj);
+      compute_exchange(i,j,rsq,fmi,spj);
     }
 
   }
@@ -378,7 +371,7 @@ void PairSpinExchange::compute_single_pair(int ii, double fmi[3])
    compute exchange interaction between spins i and j
 ------------------------------------------------------------------------- */
 
-void PairSpinExchange::compute_exchange(int i, int j, double rsq, double fmi[3], double spi[3], double spj[3])
+void PairSpinExchange::compute_exchange(int i, int j, double rsq, double fmi[3], double spj[3])
 {
   int *type = atom->type;  
   int itype, jtype;

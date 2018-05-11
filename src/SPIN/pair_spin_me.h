@@ -37,7 +37,7 @@ class PairSpinMe : public PairSpin {
   void compute(int, int);
   void compute_single_pair(int, double *);
 
-  void compute_me(int, int, double, double *, double *, double *, double *);  
+  void compute_me(int, int, double, double *, double *, double *);  
   void compute_me_mech(int, int, double *, double *, double *);  
  
   void write_restart(FILE *);

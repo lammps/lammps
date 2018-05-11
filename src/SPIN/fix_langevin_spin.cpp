@@ -117,7 +117,6 @@ void FixLangevinSpin::init()
 {
   // fix_langevin_spin has to be the last defined fix
   
-  int after = 0;
   int flag_force = 0;
   int flag_lang = 0;
   for (int i = 0; i < modify->nfix; i++) { 

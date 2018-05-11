@@ -13,7 +13,7 @@ lattice 	fcc 3.54
 region 		box block 0.0 5.0 0.0 5.0 0.0 5.0
 create_box 	1 box
 
-read_dump 	../examples/SPIN/Norm_randXY_8x8x32.dump 0 x y z box yes
+read_dump 	../examples/SPIN/read_restart/Norm_randXY_8x8x32.dump 0 x y z box yes
 
 create_atoms 	1 box
 
@@ -27,9 +27,9 @@ velocity 	all create 200 4928459 rot yes dist gaussian
 
 # define magneto-mechanical potentials and forces
 
-pair_style 	hybrid/overlay eam/alloy pair/spin/exchange 4.0
+pair_style 	hybrid/overlay eam/alloy spin/exchange 4.0
 pair_coeff 	* * eam/alloy ../examples/SPIN/Co_PurjaPun_2012.eam.alloy Co
-pair_coeff 	* * pair/spin/exchange exchange 4.0 0.0446928 0.003496 1.4885 
+pair_coeff 	* * spin/exchange exchange 4.0 0.0446928 0.003496 1.4885 
 
 neighbor 	1.0 bin
 neigh_modify 	every 1 check no delay 0 

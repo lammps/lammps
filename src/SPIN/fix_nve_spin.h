@@ -80,10 +80,10 @@ friend class PairSpin;
 
   // stacking variables for sectoring algorithm
   
-  int *stack_head;	// index of first atom in backward_stacks  
-  int *stack_foot;	// index of first atom in forward_stacks
-  int *backward_stacks;	// index of next atom in backward stack
-  int *forward_stacks;	// index of next atom in forward stack
+  int *stack_head;			// index of first atom in backward_stacks  
+  int *stack_foot;			// index of first atom in forward_stacks
+  int *backward_stacks;			// index of next atom in backward stack
+  int *forward_stacks;			// index of next atom in forward stack
 
 };
 

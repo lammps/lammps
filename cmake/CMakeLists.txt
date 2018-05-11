@@ -58,6 +58,7 @@ if(BUILD_SHARED_LIBS) # for all pkg libs, mpi_stubs and linalg
 endif()
 option(DEVELOPER_MODE "Enable developer mode" OFF)
 mark_as_advanced(DEVELOPER_MODE)
+option(CMAKE_VERBOSE_MAKEFILE "Generate verbose Makefiles" OFF)
 include(GNUInstallDirs)
 
 set(LAMMPS_LINK_LIBS)

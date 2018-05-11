@@ -7,7 +7,6 @@
 :line
 
 dihedral_style table/cut command :h3
-dihedral_style table/cut/omp command :h3
 
 [Syntax:]
 
@@ -61,9 +60,8 @@ filename
 keyword :ul
 
 The cutoff dihedral style uses a tabulated dihedral interaction with a 
-cutoff function
+cutoff function (TODO: add image of formula here)
 
-:c,image(Eqs/dihedral_table_cut.jpg)
 
 The cutoff specifies an prefactor to the cutoff function.  While this value
 would ordinarily equal 1 there may be situations where the value should change.
@@ -190,41 +188,17 @@ Note that one file can contain many sections, each with a tabulated
 potential. LAMMPS reads the file section by section until it finds one
 that matches the specified keyword.
 
-:line
-
-Styles with a {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed in "Section_accelerate"_Section_accelerate.html
-of the manual.  The accelerated styles take the same arguments and
-should produce the same results, except for round-off and precision
-issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
-use the "suffix"_suffix.html command in your input script.
-
-See "Section_accelerate"_Section_accelerate.html of the manual for
-more instructions on how to use the accelerated styles effectively.
-
 [Restrictions:]
 
 This dihedral style can only be used if LAMMPS was built with the
-USER-MISC package.  See the "Making LAMMPS"_Section_start.html#2_3
+USER-MISC package.  See the "Making LAMMPS"_Section_start.html#start_3
 section for more info on packages.
 
 [Related commands:]
 
-"dihedral_coeff"_dihedral_coeff.html
+"dihedral_coeff"_dihedral_coeff.html, "dihedral_style table"_dihedral_table.html
 
 [Default:] none
-:line
 
 :link(dihedralcut-Salerno)
 [(Salerno)] Salerno, Bernstein, J Chem Theory Comput, --, ---- (2018).

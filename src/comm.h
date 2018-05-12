@@ -24,7 +24,9 @@ class Comm : protected Pointers {
   int layout;    // LAYOUT_UNIFORM = equal-sized bricks
                  // LAYOUT_NONUNIFORM = logical bricks, but diff sizes via LB
                  // LAYOUT_TILED = general tiling, due to RCB LB
+  enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};
   int mode;      // 0 = single cutoff, 1 = multi-type cutoff
+  enum{SINGLE,MULTI};
 
   int me,nprocs;                    // proc info
   int ghost_velocity;               // 1 if ghost atoms have velocity, 0 if not
@@ -137,6 +139,8 @@ class Comm : protected Pointers {
   int ncores;                       // # of cores per node
   int coregrid[3];                  // 3d grid of cores within a node
   int user_coregrid[3];             // user request for cores in each dim
+ public:
+  enum{MULTIPLE};
 };
 
 }

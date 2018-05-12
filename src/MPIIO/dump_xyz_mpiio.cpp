@@ -53,7 +53,6 @@ enum{ID,MOL,TYPE,ELEMENT,MASS,
      TQX,TQY,TQZ,SPIN,ERADIUS,ERVEL,ERFORCE,
      COMPUTE,FIX,VARIABLE};
 enum{LT,LE,GT,GE,EQ,NEQ};
-enum{INT,DOUBLE,STRING};    // same as in DumpCFG
 
 /* ---------------------------------------------------------------------- */
 
@@ -98,6 +97,19 @@ void DumpXYZMPIIO::openfile()
       sprintf(filecurrent,pad,filestar,update->ntimestep,ptr+1);
     }
     *ptr = '*';
+    if (maxfiles > 0) {
+      if (numfiles < maxfiles) {
+        nameslist[numfiles] = new char[strlen(filecurrent)+1];
+        strcpy(nameslist[numfiles],filecurrent);
+        ++numfiles;
+      } else {
+        remove(nameslist[fileidx]);
+        delete[] nameslist[fileidx];
+        nameslist[fileidx] = new char[strlen(filecurrent)+1];
+        strcpy(nameslist[fileidx],filecurrent);
+        fileidx = (fileidx + 1) % maxfiles;
+      }
+    }
   }
 
   if (append_flag) { // append open

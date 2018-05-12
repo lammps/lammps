@@ -44,10 +44,6 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-enum{NO_REMAP,X_REMAP,V_REMAP};    // same as fix_deform.cpp
-enum{IGNORE,WARN,ERROR};           // same as thermo.cpp
-enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
-
 #define BIG   1.0e20
 #define SMALL 1.0e-4
 #define DELTAREGION 4
@@ -155,7 +151,7 @@ void Domain::init()
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"deform") == 0) {
       deform_flag = 1;
-      if (((FixDeform *) modify->fix[i])->remapflag == V_REMAP) {
+      if (((FixDeform *) modify->fix[i])->remapflag == Domain::V_REMAP) {
         deform_vremap = 1;
         deform_groupbit = modify->fix[i]->groupbit;
       }
@@ -276,7 +272,7 @@ void Domain::set_global_box()
 
 void Domain::set_lamda_box()
 {
-  if (comm->layout != LAYOUT_TILED) {
+  if (comm->layout != Comm::LAYOUT_TILED) {
     int *myloc = comm->myloc;
     double *xsplit = comm->xsplit;
     double *ysplit = comm->ysplit;
@@ -313,7 +309,7 @@ void Domain::set_local_box()
 {
   if (triclinic) return;
 
-  if (comm->layout != LAYOUT_TILED) {
+  if (comm->layout != Comm::LAYOUT_TILED) {
     int *myloc = comm->myloc;
     int *procgrid = comm->procgrid;
     double *xsplit = comm->xsplit;
@@ -762,7 +758,7 @@ void Domain::image_check()
 
       if (k == -1) {
         nmissing++;
-        if (lostbond == ERROR)
+        if (lostbond == Thermo::ERROR)
           error->one(FLERR,"Bond atom missing in image check");
         continue;
       }
@@ -785,7 +781,7 @@ void Domain::image_check()
   if (flagall && comm->me == 0)
     error->warning(FLERR,"Inconsistent image flags");
 
-  if (lostbond == WARN) {
+  if (lostbond == Thermo::WARN) {
     int all;
     MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
     if (all && comm->me == 0)
@@ -861,7 +857,7 @@ void Domain::box_too_small_check()
 
       if (k == -1) {
         nmissing++;
-        if (lostbond == ERROR)
+        if (lostbond == Thermo::ERROR)
           error->one(FLERR,"Bond atom missing in box size check");
         continue;
       }
@@ -875,7 +871,7 @@ void Domain::box_too_small_check()
     }
   }
 
-  if (lostbond == WARN) {
+  if (lostbond == Thermo::WARN) {
     int all;
     MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
     if (all && comm->me == 0)

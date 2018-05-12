@@ -41,10 +41,6 @@ using namespace MathConst;
 enum{NONE,FINAL,DELTA,SCALE,VEL,ERATE,TRATE,VOLUME,WIGGLE,VARIABLE};
 enum{ONE_FROM_ONE,ONE_FROM_TWO,TWO_FROM_ONE};
 
-// same as domain.cpp, fix_nvt_sllod.cpp, compute_temp_deform.cpp
-
-enum{NO_REMAP,X_REMAP,V_REMAP};
-
 /* ---------------------------------------------------------------------- */
 
 FixDeformKokkos::FixDeformKokkos(LAMMPS *lmp, int narg, char **arg) : FixDeform(lmp, narg, arg)
@@ -315,7 +311,7 @@ void FixDeformKokkos::end_of_step()
 
   // convert atoms and rigid bodies to lamda coords
 
-  if (remapflag == X_REMAP) {
+  if (remapflag == Domain::X_REMAP) {
     int nlocal = atom->nlocal;
 
     domainKK->x2lamda(nlocal);
@@ -355,7 +351,7 @@ void FixDeformKokkos::end_of_step()
 
   // convert atoms and rigid bodies back to box coords
 
-  if (remapflag == X_REMAP) {
+  if (remapflag == Domain::X_REMAP) {
     int nlocal = atom->nlocal;
 
     domainKK->lamda2x(nlocal);

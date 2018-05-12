@@ -1212,7 +1212,8 @@ package"_Section_start.html#start_3.
 "nharmonic (o)"_dihedral_nharmonic.html,
 "quadratic (o)"_dihedral_quadratic.html,
 "spherical (o)"_dihedral_spherical.html,
-"table (o)"_dihedral_table.html :tb(c=4,ea=c)
+"table (o)"_dihedral_table.html,
+"table/cut"_dihedral_table_cut.html :tb(c=4,ea=c)
 
 :line
 

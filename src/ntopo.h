@@ -31,8 +31,6 @@ class NTopo : protected Pointers {
   bigint memory_usage();
 
  protected:
-  enum{IGNORE,WARN,ERROR};       // same as thermo.cpp
-
   int me,nprocs;
   int maxbond,maxangle,maxdihedral,maximproper;
   int cluster_check;             // copy from Neighbor

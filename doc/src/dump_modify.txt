@@ -15,7 +15,7 @@ dump_modify dump-ID keyword values ... :pre
 dump-ID = ID of dump to modify :ulb,l
 one or more keyword/value pairs may be appended :l
 these keywords apply to various dump styles :l
-keyword = {append} or {at} or {buffer} or {delay} or {element} or {every} or {fileper} or {first} or {flush} or {format} or {image} or {label} or {nfile} or {pad} or {precision} or {region} or {scale} or {sort} or {thresh} or {unwrap} :l
+keyword = {append} or {at} or {buffer} or {delay} or {element} or {every} or {fileper} or {first} or {flush} or {format} or {image} or {label} or {maxfiles} or {nfile} or {pad} or {precision} or {region} or {scale} or {sort} or {thresh} or {unwrap} :l
   {append} arg = {yes} or {no}
   {at} arg = N
     N = index of frame written upon first dump
@@ -37,6 +37,8 @@ keyword = {append} or {at} or {buffer} or {delay} or {element} or {every} or {fi
   {image} arg = {yes} or {no}
   {label} arg = string
     string = character string (e.g. BONDS) to use in header of dump local file
+  {maxfiles} arg = Fmax
+    Fmax = keep only the most recent {Fmax} snapshots (one snapshot per file)
   {nfile} arg = Nf
     Nf = write this many files, one from each of Nf processors
   {pad} arg = Nchar = # of characters to convert timestep to
@@ -361,6 +363,20 @@ ITEM: ENTRIES ... :pre
 
 The word "ENTRIES" will be replaced with the string specified,
 e.g. BONDS or ANGLES.
+
+:line
+
+The {maxfiles} keyword can only be used when a '*' wildcard is
+included in the dump file name, i.e. when writing a new file(s) for
+each snapshot.  The specified {Fmax} is how many snapshots will be
+kept.  Once this number is reached, the file(s) containing the oldest
+snapshot is deleted before a new dump file is written.  If the
+specified {Fmax} <= 0, then all files are retained.
+
+This can be useful for debugging, especially if you don't know on what
+timestep something bad will happen, e.g. when LAMMPS will exit with an
+error.  You can dump every timestep, and limit the number of dump
+files produced, even if you run for 1000s of steps.
 
 :line
 
@@ -901,6 +917,7 @@ flush = yes
 format = %d and %g for each integer or floating point value
 image = no
 label = ENTRIES
+maxifiles = -1
 nfile = 1
 pad = 0
 pbc = no

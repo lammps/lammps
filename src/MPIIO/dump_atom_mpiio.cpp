@@ -77,6 +77,19 @@ void DumpAtomMPIIO::openfile()
       sprintf(filecurrent,pad,filestar,update->ntimestep,ptr+1);
     }
     *ptr = '*';
+    if (maxfiles > 0) {
+      if (numfiles < maxfiles) {
+        nameslist[numfiles] = new char[strlen(filecurrent)+1];
+        strcpy(nameslist[numfiles],filecurrent);
+        ++numfiles;
+      } else {
+        remove(nameslist[fileidx]);
+        delete[] nameslist[fileidx];
+        nameslist[fileidx] = new char[strlen(filecurrent)+1];
+        strcpy(nameslist[fileidx],filecurrent);
+        fileidx = (fileidx + 1) % maxfiles;
+      }
+    }
   }
 
   if (append_flag) { // append open

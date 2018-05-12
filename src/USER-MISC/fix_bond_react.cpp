@@ -410,14 +410,14 @@ it will have the name 'i_limit_tags' and will be intitialized to 0 (not in group
 void FixBondReact::post_constructor()
 {
   // let's add the limit_tags per-atom property fix
-  int len = strlen("per_atom_props") + 1;
+  int len = strlen("bond_react_props_internal") + 1;
   id_fix2 = new char[len];
-  strcpy(id_fix2,"per_atom_props");
+  strcpy(id_fix2,"bond_react_props_internal");
 
   int ifix = modify->find_fix(id_fix2);
   if (ifix == -1) {
     char **newarg = new char*[8];
-    newarg[0] = (char *) "per_atom_props";
+    newarg[0] = (char *) "bond_react_props_internal";
     newarg[1] = (char *) "all"; // group ID is ignored
     newarg[2] = (char *) "property/atom";
     newarg[3] = (char *) "i_limit_tags";
@@ -1155,6 +1155,8 @@ void FixBondReact::make_a_guess()
   for (int i = 0; i < atom->ntypes; i++) {
     if (mol_ntypes[i] != lcl_ntypes[i]) {
       status = GUESSFAIL;
+      delete [] mol_ntypes;
+      delete [] lcl_ntypes;
       return;
     }
   }
@@ -2022,6 +2024,7 @@ void FixBondReact::update_everything()
                 int nn = equivalences[n][1][rxnID]-1;
                 if (n!=j && bond_atom[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i] && landlocked_atoms[n][rxnID] == 1) {
                   for (int m = p; m < num_bond[atom->map(update_mega_glove[jj+1][i])]-1; m++) {
+                    bond_type[atom->map(update_mega_glove[jj+1][i])][m] = bond_type[atom->map(update_mega_glove[jj+1][i])][m+1];
                     bond_atom[atom->map(update_mega_glove[jj+1][i])][m] = bond_atom[atom->map(update_mega_glove[jj+1][i])][m+1];
                   }
                   num_bond[atom->map(update_mega_glove[jj+1][i])]--;
@@ -2059,6 +2062,7 @@ void FixBondReact::update_everything()
       }
     }
 
+    // Angles! First let's delete all angle info:
     if (force->angle && twomol->angleflag) {
       int *num_angle = atom->num_angle;
       int **angle_type = atom->angle_type;
@@ -2069,7 +2073,6 @@ void FixBondReact::update_everything()
       for (int i = 0; i < update_num_mega; i++) {
         rxnID = update_mega_glove[0][i];
         twomol = atom->molecules[reacted_mol[rxnID]];
-        // Angles! First let's delete all angle info:
         for (int j = 0; j < twomol->natoms; j++) {
           int jj = equivalences[j][1][rxnID]-1;
           if (atom->map(update_mega_glove[jj+1][i]) < nlocal && atom->map(update_mega_glove[jj+1][i]) >= 0) {
@@ -2086,6 +2089,7 @@ void FixBondReact::update_everything()
                        angle_atom2[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i] ||
                        angle_atom3[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i])) {
                     for (int m = p; m < num_angle[atom->map(update_mega_glove[jj+1][i])]-1; m++) {
+                      angle_type[atom->map(update_mega_glove[jj+1][i])][m] = angle_type[atom->map(update_mega_glove[jj+1][i])][m+1];
                       angle_atom1[atom->map(update_mega_glove[jj+1][i])][m] = angle_atom1[atom->map(update_mega_glove[jj+1][i])][m+1];
                       angle_atom2[atom->map(update_mega_glove[jj+1][i])][m] = angle_atom2[atom->map(update_mega_glove[jj+1][i])][m+1];
                       angle_atom3[atom->map(update_mega_glove[jj+1][i])][m] = angle_atom3[atom->map(update_mega_glove[jj+1][i])][m+1];
@@ -2162,6 +2166,7 @@ void FixBondReact::update_everything()
                        dihedral_atom3[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i] ||
                        dihedral_atom4[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i])) {
                     for (int m = p; m < num_dihedral[atom->map(update_mega_glove[jj+1][i])]-1; m++) {
+                      dihedral_type[atom->map(update_mega_glove[jj+1][i])][m] = dihedral_type[atom->map(update_mega_glove[jj+1][i])][m+1];
                       dihedral_atom1[atom->map(update_mega_glove[jj+1][i])][m] = dihedral_atom1[atom->map(update_mega_glove[jj+1][i])][m+1];
                       dihedral_atom2[atom->map(update_mega_glove[jj+1][i])][m] = dihedral_atom2[atom->map(update_mega_glove[jj+1][i])][m+1];
                       dihedral_atom3[atom->map(update_mega_glove[jj+1][i])][m] = dihedral_atom3[atom->map(update_mega_glove[jj+1][i])][m+1];
@@ -2242,6 +2247,7 @@ void FixBondReact::update_everything()
                        improper_atom3[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i] ||
                        improper_atom4[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i])) {
                     for (int m = p; m < num_improper[atom->map(update_mega_glove[jj+1][i])]-1; m++) {
+                      improper_type[atom->map(update_mega_glove[jj+1][i])][m] = improper_type[atom->map(update_mega_glove[jj+1][i])][m+1];
                       improper_atom1[atom->map(update_mega_glove[jj+1][i])][m] = improper_atom1[atom->map(update_mega_glove[jj+1][i])][m+1];
                       improper_atom2[atom->map(update_mega_glove[jj+1][i])][m] = improper_atom2[atom->map(update_mega_glove[jj+1][i])][m+1];
                       improper_atom3[atom->map(update_mega_glove[jj+1][i])][m] = improper_atom3[atom->map(update_mega_glove[jj+1][i])][m+1];

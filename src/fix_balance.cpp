@@ -33,7 +33,6 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 enum{SHIFT,BISECTION};
-enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 
 /* ---------------------------------------------------------------------- */
 
@@ -264,10 +263,10 @@ void FixBalance::rebalance()
   int *sendproc;
   if (lbstyle == SHIFT) {
     itercount = balance->shift();
-    comm->layout = LAYOUT_NONUNIFORM;
+    comm->layout = Comm::LAYOUT_NONUNIFORM;
   } else if (lbstyle == BISECTION) {
     sendproc = balance->bisection();
-    comm->layout = LAYOUT_TILED;
+    comm->layout = Comm::LAYOUT_TILED;
   }
 
   // output of new decomposition

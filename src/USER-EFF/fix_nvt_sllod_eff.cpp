@@ -27,8 +27,6 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{NO_REMAP,X_REMAP,V_REMAP};                   // same as fix_deform.cpp
-
 /* ---------------------------------------------------------------------- */
 
 FixNVTSllodEff::FixNVTSllodEff(LAMMPS *lmp, int narg, char **arg) :
@@ -78,7 +76,7 @@ void FixNVTSllodEff::init()
   int i;
   for (i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"deform") == 0) {
-      if (((FixDeform *) modify->fix[i])->remapflag != V_REMAP)
+      if (((FixDeform *) modify->fix[i])->remapflag != Domain::V_REMAP)
         error->all(FLERR,"Using fix nvt/sllod/eff with inconsistent fix deform "
                    "remap option");
       break;

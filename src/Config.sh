@@ -229,7 +229,7 @@ sed -e "s,@INTSIZES@,${intsizes}," \
     -e "s,@MEMALIGN@,${memalign} ${alignval}," \
     lmpconfig.h.in > lmpconfig.h.tmp
 
-if [ "`diff --brief lmpconfig.h lmpconfig.h.tmp`" != "" ] ;
+if [ "`diff --brief lmpconfig.h lmpconfig.h.tmp 2> /dev/null`" = "" ] ;
 then \
    mv lmpconfig.h.tmp lmpconfig.h
 else

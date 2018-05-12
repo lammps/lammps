@@ -1,0 +1,18 @@
+/* ---------------------------------------------------------------------
+   LAMMPS compile time configuration settings
+--------------------------------------------------------------------- */
+#ifndef LMPCONFIG_H
+#define LMPCONFIG_H
+
+#if defined(LAMMPS_SMALLSMALL) || defined(LAMMPS_BIGBIG) || defined(LAMMPS_SMALLBIG)
+#error "Please use 'cmake' or 'make config' to set integer size. Don't define in makefile"
+#endif
+
+#define @INTSIZES@
+#define @WITH_GZIP@
+#define @WITH_FFMPEG@
+#define @FFT_PRECISION@
+#define @PACK_FFT@
+#define @WITH_EXCEPTIONS@
+#define @MEMALIGN@
+#endif

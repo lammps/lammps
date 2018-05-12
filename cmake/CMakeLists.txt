@@ -375,8 +375,8 @@ if(PKG_KIM)
     message(STATUS "KIM not found - we will build our own")
     include(ExternalProject)
     ExternalProject_Add(kim_build
-      URL https://github.com/openkim/kim-api/archive/v1.9.4.tar.gz
-      URL_MD5 f4d35a1705eed46d64c7c0ab448ff3e0
+      URL https://github.com/openkim/kim-api/archive/v1.9.5.tar.gz
+      URL_MD5 9f66efc128da33039e30659f36fc6d00
       BUILD_IN_SOURCE 1
       CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
       )

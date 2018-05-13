@@ -272,7 +272,7 @@ you can use the internally-created dynamic group named
 would thermostat the group of all atoms currently involved in a
 reaction:
 
-fix 1 bond_react_MASTER_group temp/rescale 1 300 300 10 1
+fix 1 bond_react_MASTER_group temp/rescale 1 300 300 10 1 :pre
 
 NOTE: This command must be added after the fix bond/react command, and
 will apply to all reactions.
@@ -292,8 +292,9 @@ local command.
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
 No information about this fix is written to "binary restart
-files"_restart.html.  None of the "fix_modify"_fix_modify.html options
-are relevant to this fix.
+files"_restart.html, aside from internally-created per-atom
+properties. None of the "fix_modify"_fix_modify.html options are
+relevant to this fix.
 
 This fix computes one statistic for each {react} argument that it
 stores in a global vector, of length 'number of react arguments', that

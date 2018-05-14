@@ -13,6 +13,7 @@
 
 #include "lammps.h"
 #include "input.h"
+#include "mdi_interface.h"
 
 #include <mpi.h>
 #include <cstdlib>
@@ -35,6 +36,21 @@ int main(int argc, char **argv)
 {
   MPI_Init(&argc,&argv);
 
+  // initialize MDI
+  if ( MDI_Init(&argc,&argv) )
+    MPI_Abort(MPI_COMM_WORLD, 1);
+
+  // get the MPI communicator that spans all ranks running LAMMPS
+  // when using MDI, this may be a subset of MPI_COMM_WORLD
+  MPI_Comm lammps_comm = MPI_COMM_WORLD;
+  int mdi_flag;
+  if ( MDI_Initialized(&mdi_flag) )
+    MPI_Abort(MPI_COMM_WORLD, 1);
+  if ( mdi_flag ) {
+    if ( MDI_MPI_get_world_comm( &lammps_comm ) )
+      MPI_Abort(MPI_COMM_WORLD, 1);
+  }
+
 // enable trapping selected floating point exceptions.
 // this uses GNU extensions and is only tested on Linux
 // therefore we make it depend on -D_GNU_SOURCE, too.
@@ -49,13 +65,13 @@ int main(int argc, char **argv)
 
 #ifdef LAMMPS_EXCEPTIONS
   try {
-    LAMMPS *lammps = new LAMMPS(argc,argv,MPI_COMM_WORLD);
+    LAMMPS *lammps = new LAMMPS(argc,argv,lammps_comm);
     lammps->input->file();
     delete lammps;
   } catch(LAMMPSAbortException &ae) {
     MPI_Abort(ae.universe, 1);
   } catch(LAMMPSException &e) {
-    MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Barrier(lammps_comm);
     MPI_Finalize();
     exit(1);
   } catch(fmt::format_error &fe) {
@@ -65,7 +81,7 @@ int main(int argc, char **argv)
   }
 #else
   try {
-    LAMMPS *lammps = new LAMMPS(argc,argv,MPI_COMM_WORLD);
+    LAMMPS *lammps = new LAMMPS(argc,argv,lammps_comm);
     lammps->input->file();
     delete lammps;
   } catch(fmt::format_error &fe) {
@@ -74,6 +90,6 @@ int main(int argc, char **argv)
     exit(1);
   }
 #endif
-  MPI_Barrier(MPI_COMM_WORLD);
+  MPI_Barrier(lammps_comm);
   MPI_Finalize();
 }

@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
+#include "lmpconfig.h"
 
 #ifdef FFT_SINGLE
 typedef float FFT_SCALAR;

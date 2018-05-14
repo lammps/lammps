@@ -19,11 +19,11 @@
            in.lammps = LAMMPS input script
    See README for compilation instructions */
 
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
-#include "mpi.h"
-#include "library.h"        /* this is a LAMMPS include file */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <mpi.h>
+#include <lammps/library.h>        /* this is a LAMMPS include file */
 
 int main(int narg, char **arg)
 {

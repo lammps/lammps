@@ -373,13 +373,12 @@ if(PKG_USER-VTK)
 endif()
 
 if(PKG_KIM)
-  find_package(KIM QUIET)
-  if(NOT KIM_FOUND)
-    message(STATUS "KIM not found - we will build our own")
+  option(DOWNLOAD_KIM "Download kim-api (instead of using the system's one)" OFF)
+  if(DOWNLOAD_KIM)
     include(ExternalProject)
     ExternalProject_Add(kim_build
-      URL https://github.com/openkim/kim-api/archive/v1.9.4.tar.gz
-      URL_MD5 f4d35a1705eed46d64c7c0ab448ff3e0
+      URL https://github.com/openkim/kim-api/archive/v1.9.5.tar.gz
+      URL_MD5 9f66efc128da33039e30659f36fc6d00
       BUILD_IN_SOURCE 1
       CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
       )
@@ -387,6 +386,11 @@ if(PKG_KIM)
     set(KIM_INCLUDE_DIRS ${INSTALL_DIR}/include/kim-api-v1)
     set(KIM_LIBRARIES ${INSTALL_DIR}/lib/libkim-api-v1.so)
     list(APPEND LAMMPS_DEPS kim_build)
+  else()
+    find_package(KIM)
+    if(NOT KIM_FOUND)
+      message(FATAL_ERROR "KIM not found, help CMake to find it by setting KIM_LIBRARY and KIM_INCLUDE_DIR, or set DOWNLOAD_KIM=ON to download it")
+    endif()
   endif()
   list(APPEND LAMMPS_LINK_LIBS ${KIM_LIBRARIES})
   include_directories(${KIM_INCLUDE_DIRS})

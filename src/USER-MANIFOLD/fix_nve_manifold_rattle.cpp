@@ -662,3 +662,4 @@ void FixNVEManifoldRattle::rattle_manifold_v(double *v, double *f,
 
   stats.v_iters += iters;
 }
+

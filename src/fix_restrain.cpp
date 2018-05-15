@@ -16,9 +16,9 @@
      support for bond and angle restraints by Andres Jaramillo-Botero (Caltech)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstring>
+#include <cstdlib>
 #include "fix_restrain.h"
 #include "atom.h"
 #include "force.h"
@@ -45,7 +45,7 @@ enum{BOND,ANGLE,DIHEDRAL};
 
 FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  rstyle(NULL), ids(NULL), kstart(NULL), kstop(NULL), target(NULL),
+  rstyle(NULL), mult(NULL), ids(NULL), kstart(NULL), kstop(NULL), target(NULL),
   cos_target(NULL), sin_target(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix restrain command");
@@ -53,6 +53,9 @@ FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   global_freq = 1;
   extscalar = 1;
+  vector_flag = 1;
+  size_vector = 3;
+  extvector = 1;
   respa_level_support = 1;
   ilevel_respa = 0;
 
@@ -65,6 +68,7 @@ FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
     if (nrestrain == maxrestrain) {
       maxrestrain += DELTA;
       memory->grow(rstyle,maxrestrain,"restrain:rstyle");
+      memory->grow(mult,maxrestrain,"restrain:mult");
       memory->grow(ids,maxrestrain,4,"restrain:ids");
       memory->grow(kstart,maxrestrain,"restrain:kstart");
       memory->grow(kstop,maxrestrain,"restrain:kstop");
@@ -96,6 +100,7 @@ FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"dihedral") == 0) {
       if (iarg+8 > narg) error->all(FLERR,"Illegal fix restrain command");
       rstyle[nrestrain] = DIHEDRAL;
+      mult[nrestrain]   = 1;
       ids[nrestrain][0] = force->inumeric(FLERR,arg[iarg+1]);
       ids[nrestrain][1] = force->inumeric(FLERR,arg[iarg+2]);
       ids[nrestrain][2] = force->inumeric(FLERR,arg[iarg+3]);
@@ -107,6 +112,13 @@ FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
       cos_target[nrestrain] = cos(target[nrestrain]);
       sin_target[nrestrain] = sin(target[nrestrain]);
       iarg += 8;
+      if ((iarg < narg) && (strcmp("mult",arg[iarg]) == 0)) {
+        if (iarg+1 > narg) error->all(FLERR,"Illegal fix restrain command");
+        mult[nrestrain] = force->inumeric(FLERR,arg[iarg+1]);
+        if (mult[nrestrain] < 0)
+          error->all(FLERR,"Illegal fix restrain command");
+        iarg += 2;
+      }
     } else error->all(FLERR,"Illegal fix restrain command");
 
     nrestrain++;
@@ -123,6 +135,7 @@ FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
 FixRestrain::~FixRestrain()
 {
   memory->destroy(rstyle);
+  memory->destroy(mult);
   memory->destroy(ids);
   memory->destroy(kstart);
   memory->destroy(kstop);
@@ -178,6 +191,10 @@ void FixRestrain::min_setup(int vflag)
 void FixRestrain::post_force(int vflag)
 {
   energy = 0.0;
+  
+  ebond = 0.0;
+  eangle = 0.0;
+  edihed = 0.0;
 
   for (int m = 0; m < nrestrain; m++)
     if (rstyle[m] == BOND) restrain_bond(m);
@@ -261,7 +278,8 @@ void FixRestrain::restrain_bond(int m)
   if (r > 0.0) fbond = -2.0*rk/r;
   else fbond = 0.0;
 
-  energy = rk*dr;
+  ebond += rk*dr;
+  energy += rk*dr;
 
   // apply force to each of 2 atoms
 
@@ -368,7 +386,8 @@ void FixRestrain::restrain_angle(int m)
   dtheta = acos(c) - target[m];
   tk = k * dtheta;
 
-  energy = tk*dtheta;
+  eangle += tk*dtheta;
+  energy += tk*dtheta;
 
   a = -2.0 * tk * s;
   a11 = a*c / rsq1;
@@ -410,7 +429,7 @@ void FixRestrain::restrain_angle(int m)
 
 void FixRestrain::restrain_dihedral(int m)
 {
-  int i1,i2,i3,i4,i,mult;
+  int i1,i2,i3,i4,i;
   double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,vb2xm,vb2ym,vb2zm;
   double f1[3],f2[3],f3[3],f4[3];
   double ax,ay,az,bx,by,bz,rasq,rbsq,rgsq,rg,rginv,ra2inv,rb2inv,rabinv;
@@ -534,11 +553,10 @@ void FixRestrain::restrain_dihedral(int m)
   if (c > 1.0) c = 1.0;
   if (c < -1.0) c = -1.0;
 
-  mult = 1;  // multiplicity
   p = 1.0;
   df1 = 0.0;
 
-  for (i = 0; i < mult; i++) {
+  for (i = 0; i < mult[m]; i++) {
     ddf1 = p*c - df1*s;
     df1 = p*s + df1*c;
     p = ddf1;
@@ -546,10 +564,11 @@ void FixRestrain::restrain_dihedral(int m)
 
   p = p*cos_target[m] + df1*sin_target[m];
   df1 = df1*cos_target[m] - ddf1*sin_target[m];
-  df1 *= -mult;
+  df1 *= -mult[m];
   p += 1.0;
 
-  energy = k * p;
+  edihed += k * p;
+  energy += k * p;
 
   fg = vb1x*vb2xm + vb1y*vb2ym + vb1z*vb2zm;
   hg = vb3x*vb2xm + vb3y*vb2ym + vb3z*vb2zm;
@@ -625,4 +644,24 @@ double FixRestrain::compute_scalar()
 {
   MPI_Allreduce(&energy,&energy_all,1,MPI_DOUBLE,MPI_SUM,world);
   return energy_all;
+}
+
+/* ----------------------------------------------------------------------
+  return individual energy contributions
+------------------------------------------------------------------------- */
+
+double FixRestrain::compute_vector(int n)
+{
+  if (n == 0) {
+    MPI_Allreduce(&ebond,&ebond_all,1,MPI_DOUBLE,MPI_SUM,world);
+    return ebond_all;
+  } else if (n == 1) {
+    MPI_Allreduce(&eangle,&eangle_all,1,MPI_DOUBLE,MPI_SUM,world);
+    return eangle_all;
+  } else if (n == 2) { 
+    MPI_Allreduce(&edihed,&edihed_all,1,MPI_DOUBLE,MPI_SUM,world);
+    return edihed_all;
+  } else {
+    return 0.0;
+  }
 }

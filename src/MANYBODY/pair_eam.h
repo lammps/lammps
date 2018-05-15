@@ -20,7 +20,7 @@ PairStyle(eam,PairEAM)
 #ifndef LMP_PAIR_EAM_H
 #define LMP_PAIR_EAM_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "pair.h"
 
 namespace LAMMPS_NS {
@@ -133,5 +133,9 @@ E: Cannot open EAM potential file %s
 
 The specified EAM potential file cannot be opened.  Check that the
 path and name are correct.
+
+E: Invalid EAM potential file
+
+UNDOCUMENTED
 
 */

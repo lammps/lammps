@@ -20,9 +20,11 @@ Fixes :h1
    fix_ave_time
    fix_aveforce
    fix_balance
+   fix_bocs
    fix_bond_break
    fix_bond_create
    fix_bond_swap
+   fix_bond_react
    fix_box_relax
    fix_cmap
    fix_colvars

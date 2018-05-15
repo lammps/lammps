@@ -32,16 +32,16 @@
 ------------------------------------------------------------------------- */
 
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "update.h"
 #include "respa.h"
 #include "error.h"
 #include "group.h"
-#include <math.h>
+#include <cmath>
 #include "input.h"
 #include "variable.h"
 #include "citeme.h"

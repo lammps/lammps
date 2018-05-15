@@ -77,6 +77,10 @@ E: Temperature ID for fix temp/berendsen does not exist
 
 Self-explanatory.
 
+W: Cannot thermostat atoms in rigid bodies
+
+UNDOCUMENTED
+
 E: Computed temperature for fix temp/berendsen cannot be 0.0
 
 Self-explanatory.

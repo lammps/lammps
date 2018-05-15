@@ -1,6 +1,6 @@
 #include "manifold_dumbbell.h"
 
-#include <math.h>
+#include <cmath>
 
 using namespace LAMMPS_NS;
 

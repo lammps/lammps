@@ -1,0 +1,72 @@
+# Initialization
+units           metal
+boundary        p p p
+atom_style      full
+processors      * * 1     # domain decomposition over x and y
+
+# System and atom definition
+# we use 2 atom types so that inter- and intra-layer
+# interactions can be specified separately
+read_data       hBN_AB_stack_2L_noH_equi_300K.data
+mass            1 10.8110   # boron mass (g/mole) | membrane
+mass            2 14.0067   # nitrogen mass (g/mole) | adsorbate
+mass            3 10.8110   # boron mass (g/mole) | membrane
+mass            4 14.0067   # nitrogen mass (g/mole) | adsorbate
+# Separate atom groups
+group membrane  type 1 2
+group adsorbate type 3 4
+
+######################## Potential defition ########################
+pair_style  hybrid/overlay  tersoff  ilp/graphene/hbn 16.0 coul/shield 16.0 1
+####################################################################
+pair_coeff  * * tersoff          BNC.tersoff   NULL NULL B N  # chemical
+pair_coeff  * * ilp/graphene/hbn BNCH-old.ILP  B N B N  # long range
+pair_coeff  1 3 coul/shield 0.70
+pair_coeff  1 4 coul/shield 0.69498201415576216335
+pair_coeff  2 3 coul/shield 0.69498201415576216335
+pair_coeff  2 4 coul/shield 0.69
+####################################################################
+# Neighbor update settings
+neighbor        2.0 bin
+neigh_modify    every 1
+neigh_modify    delay 0
+neigh_modify    check yes
+
+# calculate the COM
+variable        adsxcom equal xcm(adsorbate,x)
+variable        adsycom equal xcm(adsorbate,y)
+variable        adszcom equal xcm(adsorbate,z)
+variable        adsvxcom equal vcm(adsorbate,x)
+variable        adsvycom equal vcm(adsorbate,y)
+variable        adsvzcom equal vcm(adsorbate,z)
+
+#### Simulation settings ####
+timestep  0.001
+#velocity  adsorbate create 300.0 12345
+fix       subf membrane setforce 0.0 0.0 0.0
+fix       thermostat all nve
+
+compute   0 all pair tersoff
+compute   1 all pair coul/shield ecoul
+compute   2 all pair ilp/graphene/hbn
+variable  Tersoff  equal c_0
+variable  Ecoul    equal c_1
+variable  EILP     equal c_2
+
+# Calculate the pair potential between the substrate and slider
+compute         sldsub adsorbate group/group membrane
+variable        Evdw equal c_sldsub
+
+############################
+
+# Output
+thermo          100
+thermo_style    custom step etotal pe ke v_Evdw v_Tersoff v_EILP v_Ecoul temp v_adsxcom v_adsycom v_adszcom v_adsvxcom v_adsvycom v_adsvzcom f_subf[1] f_subf[2] f_subf[3]
+thermo_modify   line one format float %.10f
+thermo_modify   flush yes norm no lost warn #ignore
+
+#dump            1 all custom 1000 traj.lammpstrj id mol type xu yu zu
+#dump_modify     1 format line "%7d %3d %3d %15.10g %15.10g %15.10g" flush yes
+
+###### Run molecular dynamics ######
+run 1000

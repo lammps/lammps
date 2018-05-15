@@ -16,12 +16,12 @@
                          Oleg Sergeev (VNIIA, sergeev@vniia.ru)
 ------------------------------------------------------------------------- */
 
-#include <stdlib.h>
-#include <math.h>
-#include "atom.h"
-#include <string.h>
+#include <cstdlib>
+#include <cmath>
+#include <cstring>
 #include "fix_ave_atom.h"
 #include "fix_reaxc_species.h"
+#include "atom.h"
 #include "domain.h"
 #include "update.h"
 #include "pair_reaxc.h"

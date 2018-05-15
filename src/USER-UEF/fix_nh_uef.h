@@ -23,7 +23,7 @@ namespace LAMMPS_NS {
   // forward declaration
   namespace UEF_utils {
     class UEFBox;
-  };
+  }
 
 class FixNHUef : public FixNH {
  public:

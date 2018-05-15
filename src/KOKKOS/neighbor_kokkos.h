@@ -18,7 +18,7 @@
 #include "neigh_list_kokkos.h"
 #include "neigh_bond_kokkos.h"
 #include "kokkos_type.h"
-#include <math.h>
+#include <cmath>
 
 namespace LAMMPS_NS {
 

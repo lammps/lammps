@@ -67,6 +67,10 @@ E: Invalid keyword in compute pair/local command
 
 Self-explanatory.
 
+E: Compute pair/local requires atom attribute radius
+
+UNDOCUMENTED
+
 E: No pair style is defined for compute pair/local
 
 Self-explanatory.

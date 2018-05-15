@@ -15,7 +15,7 @@
    Contributing author: Rezwanur Rahman, John Foster (UTSA)
 ------------------------------------------------------------------------- */
 
-#include <string.h>
+#include <cstring>
 #include "compute_plasticity_atom.h"
 #include "atom.h"
 #include "update.h"

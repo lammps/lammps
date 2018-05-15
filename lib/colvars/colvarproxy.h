@@ -14,6 +14,7 @@
 #include <list>
 
 #include "colvarmodule.h"
+#include "colvartypes.h"
 #include "colvarvalue.h"
 
 
@@ -29,7 +30,7 @@
 /// To interface to a new MD engine, the simplest solution is to derive a new
 /// class from \link colvarproxy \endlink.  Currently implemented are: \link
 /// colvarproxy_lammps, \endlink, \link colvarproxy_namd, \endlink, \link
-/// colvarproxy_vmd, \endlink.
+/// colvarproxy_vmd \endlink.
 
 
 // forward declarations
@@ -68,14 +69,16 @@ public:
 
   /// \brief Get the PBC-aware distance vector between two positions
   virtual cvm::rvector position_distance(cvm::atom_pos const &pos1,
-                                         cvm::atom_pos const &pos2) = 0;
+                                         cvm::atom_pos const &pos2) const;
 
-  /// \brief Get the PBC-aware square distance between two positions;
-  /// may need to be reimplemented independently from position_distance() for optimization purposes
-  virtual cvm::real position_dist2(cvm::atom_pos const &pos1,
-                                   cvm::atom_pos const &pos2);
+  /// Recompute PBC reciprocal lattice (assumes XYZ periodicity)
+  void update_pbc_lattice();
 
-  /// Tell the proxy whether total forces are needed (may not always be available)
+  /// Set the lattice vectors to zero
+  void reset_pbc_lattice();
+
+  /// \brief Tell the proxy whether total forces are needed (they may not
+  /// always be available)
   virtual void request_total_force(bool yesno);
 
   /// Are total forces being used?
@@ -83,6 +86,29 @@ public:
 
   /// Are total forces from the current step available?
   virtual bool total_forces_same_step() const;
+
+protected:
+
+  /// \brief Type of boundary conditions
+  ///
+  /// Orthogonal and triclinic cells are made available to objects.
+  /// For any other conditions (mixed periodicity, triclinic cells in LAMMPS)
+  /// minimum-image distances are computed by the host engine regardless.
+  enum Boundaries_type {
+    boundaries_non_periodic,
+    boundaries_pbc_ortho,
+    boundaries_pbc_triclinic,
+    boundaries_unsupported
+  };
+
+  /// Type of boundary conditions
+  Boundaries_type boundaries_type;
+
+  /// Bravais lattice vectors
+  cvm::rvector unit_cell_x, unit_cell_y, unit_cell_z;
+
+  /// Reciprocal lattice vectors
+  cvm::rvector reciprocal_cell_x, reciprocal_cell_y, reciprocal_cell_z;
 };
 
 
@@ -121,24 +147,30 @@ public:
   /// (costly) set the corresponding atoms_ncopies to zero
   virtual void clear_atom(int index);
 
-  /// \brief Read atom identifiers from a file \param filename name of
-  /// the file (usually a PDB) \param atoms array to which atoms read
-  /// from "filename" will be appended \param pdb_field (optiona) if
-  /// "filename" is a PDB file, use this field to determine which are
-  /// the atoms to be set
+  /// \brief Select atom IDs from a file (usually PDB) \param filename name of
+  /// the file \param atoms array to which atoms read from "filename" will be
+  /// appended \param pdb_field (optional) if the file is a PDB and this
+  /// string is non-empty, select atoms for which this field is non-zero
+  /// \param pdb_field_value (optional) if non-zero, select only atoms whose
+  /// pdb_field equals this
   virtual int load_atoms(char const *filename,
                          cvm::atom_group &atoms,
                          std::string const &pdb_field,
-                         double const pdb_field_value = 0.0);
+                         double pdb_field_value = 0.0);
 
-  /// \brief Load the coordinates for a group of atoms from a file
-  /// (usually a PDB); if "pos" is already allocated, the number of its
-  /// elements must match the number of atoms in "filename"
+  /// \brief Load a set of coordinates from a file (usually PDB); if "pos" is
+  /// already allocated, the number of its elements must match the number of
+  /// entries in "filename" \param filename name of the file \param pos array
+  /// of coordinates \param sorted_ids array of sorted internal IDs, used to
+  /// loop through the file only once \param pdb_field (optional) if the file
+  /// is a PDB and this string is non-empty, select atoms for which this field
+  /// is non-zero \param pdb_field_value (optional) if non-zero, select only
+  /// atoms whose pdb_field equals this
   virtual int load_coords(char const *filename,
                           std::vector<cvm::atom_pos> &pos,
-                          const std::vector<int> &indices,
+                          std::vector<int> const &sorted_ids,
                           std::string const &pdb_field,
-                          double const pdb_field_value = 0.0);
+                          double pdb_field_value = 0.0);
 
   /// Clear atomic data
   int reset();
@@ -636,6 +668,15 @@ public:
     return b_simulation_running;
   }
 
+  /// Convert a version string "YYYY-MM-DD" into an integer
+  int get_version_from_string(char const *version_string);
+
+  /// Get the version number (higher = more recent)
+  int version_number() const
+  {
+    return version_int;
+  }
+
 protected:
 
   /// Whether a simulation is running (warn against irrecovarable errors)
@@ -643,6 +684,9 @@ protected:
 
   /// Whether the entire module should be deallocated by the host engine
   bool b_delete_requested;
+
+  /// Integer representing the version string (allows comparisons)
+  int version_int;
 
 };
 

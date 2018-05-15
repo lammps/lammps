@@ -33,16 +33,16 @@
    135, 204105.
 ------------------------------------------------------------------------- */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <cmath>
 #include "fix_shardlow.h"
 #include "atom.h"
 #include "force.h"
 #include "update.h"
 #include "respa.h"
 #include "error.h"
-#include <math.h>
 #include "atom_vec.h"
 #include "comm.h"
 #include "neighbor.h"

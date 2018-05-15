@@ -111,6 +111,10 @@ class Timer : protected Pointers {
 
 /* ERROR/WARNING messages:
 
+W: Wall time limit reached
+
+UNDOCUMENTED
+
 E: Illegal ... command
 
 Self-explanatory.  Check the input script syntax and compare to the

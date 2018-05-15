@@ -131,15 +131,15 @@ void LammpsInterface::sparse_allsum(SparseMatrix<double> &toShare) const
   if (error != MPI_SUCCESS) throw ATC_Error("error in sparse_allsum_numrows "+to_string(error));
 
   // adjust row sendcounts because recRowsCRS is off by one
-  int rowCounts[nProcs];
-  int sizeCounts[nProcs];
+  int *rowCounts = new int[nProcs];
+  int *sizeCounts = new int[nProcs];
   // set up total size of receive buffers for Allgatherv calls
   int totalRowsCRS = 0;
   int totalSize = 0;
   // set up array of displacements for Allgatherv calls
-  int rowOffsets[nProcs];
+  int *rowOffsets = new int[nProcs];
   rowOffsets[0] = 0;
-  int sizeOffsets[nProcs];
+  int *sizeOffsets = new int[nProcs];
   sizeOffsets[0] = 0;
   for (int i = 0; i < nProcs; i++) {
     // find the total number of entries to share in the mpi calls below
@@ -156,8 +156,8 @@ void LammpsInterface::sparse_allsum(SparseMatrix<double> &toShare) const
   // get actual rows
   INDEX *rec_ia = new INDEX[totalRowsCRS];
   if (toShare.size() == 0) {
-    double dummy[0];
-    error = MPI_Allgatherv(dummy, 0, MPI_INT,
+    double dummy;
+    error = MPI_Allgatherv(&dummy, 0, MPI_INT,
                            rec_ia, rowCounts, rowOffsets, MPI_INT, lammps_->world);
   }
   else
@@ -211,6 +211,10 @@ void LammpsInterface::sparse_allsum(SparseMatrix<double> &toShare) const
       toShare += tempMat;
     }
   }
+  delete[] rowCounts;
+  delete[] sizeCounts;
+  delete[] rowOffsets;
+  delete[] sizeOffsets;
 
   delete[] recInfo;
   delete[] rec_ia;

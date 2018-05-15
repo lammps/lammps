@@ -15,9 +15,9 @@
    Contributing author:  Abdoreza Ershadinia, a.ershadinia at gmail.com
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "fix_wall_region_ees.h"
 #include "atom.h"
 #include "atom_vec.h"

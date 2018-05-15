@@ -12,7 +12,7 @@
    Contributing author: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
+#include <cmath>
 #include "pair_lj_charmm_coul_charmm_intel.h"
 #include "atom.h"
 #include "comm.h"

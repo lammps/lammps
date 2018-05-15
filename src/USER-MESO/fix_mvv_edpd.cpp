@@ -29,8 +29,8 @@
    Communications, 2015, 51: 11038-11040.
 ------------------------------------------------------------------------- */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 #include "fix_mvv_edpd.h"
 #include "atom.h"
 #include "force.h"

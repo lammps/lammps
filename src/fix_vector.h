@@ -106,6 +106,10 @@ E: Fix vector variable is not equal-style variable
 
 Self-explanatory.
 
+E: Fix vector variable is not vector-style variable
+
+UNDOCUMENTED
+
 E: Fix vector cannot set output array intensive/extensive from these inputs
 
 The inputs to the command have conflicting intensive/extensive attributes.

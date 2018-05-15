@@ -52,7 +52,7 @@ methods:
 #define LAMMPS_MEMALIGN 64
 #endif
 
-#include <stdlib.h>
+#include <cstdlib>
 namespace LAMMPS_NS {
 
 template<class T>

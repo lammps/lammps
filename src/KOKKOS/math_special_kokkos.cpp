@@ -1,6 +1,6 @@
 
-#include <math.h>
-#include <stdint.h>
+#include <cmath>
+#include <cstdint>
 #include "math_special_kokkos.h"
 
 using namespace LAMMPS_NS;

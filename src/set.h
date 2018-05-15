@@ -93,6 +93,10 @@ E: Invalid density in set command
 
 Density must be > 0.0.
 
+E: Density/disc option requires 2d simulation
+
+UNDOCUMENTED
+
 E: Invalid volume in set command
 
 Volume must be > 0.0.
@@ -112,6 +116,18 @@ Self-explanatory.
 E: Cannot set meso/rho for this atom style
 
 Self-explanatory.
+
+E: Cannot set edpd/temp for this atom style
+
+UNDOCUMENTED
+
+E: Cannot set edpd/cv for this atom style
+
+UNDOCUMENTED
+
+E: Cannot set cc for this atom style
+
+UNDOCUMENTED
 
 E: Cannot set smd/mass/density for this atom style
 
@@ -148,6 +164,10 @@ Group ID specified in set command does not exist.
 E: Set region ID does not exist
 
 Region ID specified in set command does not exist.
+
+W: Changing a property of atoms in rigid bodies that has no effect unless rigid bodies are rebuild
+
+UNDOCUMENTED
 
 E: Invalid mass in set command
 

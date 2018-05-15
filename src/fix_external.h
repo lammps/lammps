@@ -82,4 +82,8 @@ E: Fix external callback function not set
 
 This must be done by an external program in order to use this fix.
 
+E: Invalid set_vector index in fix external
+
+UNDOCUMENTED
+
 */

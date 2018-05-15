@@ -18,10 +18,10 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdio>
+#include <cstring>
+#include <cstdlib>
 #include "workspace.h"
 #include "fix_poems.h"
 #include "atom.h"
@@ -267,6 +267,10 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
 
   poems = new Workspace;
 
+  // compute per body forces and torques inside final_integrate() by default
+
+  earlyflag = 0;
+
   // print statistics
 
   int nsum = 0;
@@ -351,11 +355,25 @@ void FixPOEMS::init()
   int i,ibody;
 
   // warn if more than one POEMS fix
+  // if earlyflag, warn if any post-force fixes come after POEMS fix
 
   int count = 0;
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"poems") == 0) count++;
   if (count > 1 && comm->me == 0) error->warning(FLERR,"More than one fix poems");
+
+  if (earlyflag) {
+    int pflag = 0;
+    for (i = 0; i < modify->nfix; i++) {
+      if (strcmp(modify->fix[i]->style,"poems") == 0) pflag = 1;
+      if (pflag && (modify->fmask[i] & POST_FORCE) && 
+          !modify->fix[i]->rigid_flag) {
+        char str[128];
+        sprintf(str,"Fix %s alters forces after fix poems",modify->fix[i]->id);
+        error->warning(FLERR,str);
+      }
+    }
+  }
 
   // error if npt,nph fix comes before rigid fix
 
@@ -696,7 +714,8 @@ void FixPOEMS::setup(int vflag)
 
   // use post_force() to compute initial fcm & torque
 
-  post_force(vflag);
+  compute_forces_and_torques();
+  //post_force(vflag);
 
   // setup for POEMS
 
@@ -727,12 +746,29 @@ void FixPOEMS::initial_integrate(int vflag)
   set_xv();
 }
 
+/* ---------------------------------------------------------------------- */
+
+void FixPOEMS::post_force(int vflag)
+{
+  if (earlyflag) compute_forces_and_torques();
+
+  /*
+  for (int ibody = 0; ibody < nbody; ibody++) {
+    if (ibody == 0) {
+    printf("PFF %d %g %g %g\n",ibody,fcm[ibody][0],fcm[ibody][1],fcm[ibody][2]);
+    printf("PFT %d %g %g %g\n",ibody,
+           torque[ibody][0],torque[ibody][1],torque[ibody][2]);
+    }
+  }
+  */
+}
+
 /* ----------------------------------------------------------------------
    compute fcm,torque on each rigid body
    only count joint atoms in 1st body
 ------------------------------------------------------------------------- */
 
-void FixPOEMS::post_force(int vflag)
+void FixPOEMS::compute_forces_and_torques()
 {
   int i,ibody;
   int xbox,ybox,zbox;
@@ -790,6 +826,18 @@ void FixPOEMS::post_force(int vflag)
 
 void FixPOEMS::final_integrate()
 {
+  if (!earlyflag) compute_forces_and_torques();
+
+  /*
+  for (int ibody = 0; ibody < nbody; ibody++) {
+    if (ibody == 0) {
+    printf("FI %d %g %g %g\n",ibody,fcm[ibody][0],fcm[ibody][1],fcm[ibody][2]);
+    printf("TQ %d %g %g %g\n",ibody,
+           torque[ibody][0],torque[ibody][1],torque[ibody][2]);
+    }
+  }
+  */
+
   // perform POEMS integration
 
   poems->LobattoTwo(vcm,omega,torque,fcm);
@@ -1611,6 +1659,21 @@ int FixPOEMS::unpack_exchange(int nlocal, double *buf)
   displace[nlocal][1] = buf[m++];
   displace[nlocal][2] = buf[m++];
   return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixPOEMS::modify_param(int narg, char **arg)
+{
+  if (strcmp(arg[0],"bodyforces") == 0) {
+    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
+    if (strcmp(arg[1],"early") == 0) earlyflag = 1;
+    else if (strcmp(arg[1],"late") == 0) earlyflag = 0;
+    else error->all(FLERR,"Illegal fix_modify command");
+    return 2;
+  }
+
+  return 0;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -731,6 +731,6 @@ namespace UIestimator {
             }
         }
     };
-};
+}
 
 #endif

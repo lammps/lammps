@@ -407,7 +407,7 @@ inline void _ocl_build(cl_program &program, cl_device_id &device,
   size_t ms;
   CL_SAFE_CALL(clGetProgramBuildInfo(program, device,CL_PROGRAM_BUILD_LOG, 0,
                                      NULL, &ms));
-  char build_log[ms];
+  char *build_log = new char[ms];
   CL_SAFE_CALL(clGetProgramBuildInfo(program,device,CL_PROGRAM_BUILD_LOG,ms,
                                      build_log, NULL));
 
@@ -416,6 +416,7 @@ inline void _ocl_build(cl_program &program, cl_device_id &device,
             << " Error compiling OpenCL Program...\n"
             << "----------------------------------------------------------\n";
   std::cerr << build_log << std::endl;
+  delete[] build_log;
 }
 
 inline void _ocl_kernel_from_source(cl_context &context, cl_device_id &device,

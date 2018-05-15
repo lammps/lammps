@@ -17,10 +17,10 @@
 
 #include "lmptype.h"
 #include <mpi.h>
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
-#include <ctype.h>
+#include <cmath>
+#include <cstring>
+#include <cstdlib>
+#include <cctype>
 #include "read_data.h"
 #include "atom.h"
 #include "atom_vec.h"

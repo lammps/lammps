@@ -14,8 +14,8 @@
 #ifndef LMP_IMAGE_H
 #define LMP_IMAGE_H
 
-#include <math.h>
-#include <stdio.h>
+#include <cmath>
+#include <cstdio>
 #include "pointers.h"
 
 namespace LAMMPS_NS {

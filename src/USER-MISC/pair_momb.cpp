@@ -16,9 +16,9 @@
                          Ya Zhou (Penn State University)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
 #include "pair_momb.h"
 #include "atom.h"
 #include "comm.h"

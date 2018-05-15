@@ -23,7 +23,8 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <string.h>
+#include <cstring>
+#include <Eigen/Eigen>
 #include "compute_smd_tlsph_strain_rate.h"
 #include "atom.h"
 #include "update.h"
@@ -33,7 +34,7 @@
 #include "memory.h"
 #include "error.h"
 #include "pair.h"
-#include <Eigen/Eigen>
+
 using namespace Eigen;
 using namespace LAMMPS_NS;
 

@@ -78,6 +78,14 @@ E: Cannot use delete_atoms unless atoms have IDs
 Your atoms do not have IDs, so the delete_atoms command cannot be
 used.
 
+W: Attempting to delete atoms in rigid bodies
+
+UNDOCUMENTED
+
+W: Ignoring 'compress yes' for molecular system
+
+UNDOCUMENTED
+
 E: Could not find delete_atoms group ID
 
 Group ID used in the delete_atoms command does not exist.

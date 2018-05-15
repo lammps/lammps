@@ -13,7 +13,7 @@
 #include <sstream>
 #include <iomanip>
 #include <algorithm>
-#include "math.h"
+#include <cmath>
 
 #include "ATC_Error.h"
 

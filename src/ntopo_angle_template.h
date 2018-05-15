@@ -38,4 +38,12 @@ class NTopoAngleTemplate : public NTopo {
 
 /* ERROR/WARNING messages:
 
+E: Angle atoms %d %d %d missing on proc %d at step %ld
+
+UNDOCUMENTED
+
+W: Angle atoms missing at step %ld
+
+UNDOCUMENTED
+
 */

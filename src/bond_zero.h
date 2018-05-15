@@ -20,7 +20,7 @@ BondStyle(zero,BondZero)
 #ifndef LMP_BOND_ZERO_H
 #define LMP_BOND_ZERO_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "bond.h"
 
 namespace LAMMPS_NS {
@@ -53,6 +53,10 @@ class BondZero : public Bond {
 #endif
 
 /* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+UNDOCUMENTED
 
 E: Incorrect args for bond coefficients
 

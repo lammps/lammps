@@ -513,9 +513,9 @@ void FixNVEManifoldRattle::rattle_manifold_x(double *x, double *v,
 
   const double c_inv = 1.0 / c;
 
-  if( comm->me == 0 ){
-    fprintf( screen, "Performing RATTLE on atom on proc 0!\n" );
-  }
+  //if( comm->me == 0 ){
+  //  fprintf( screen, "Performing RATTLE on atom on proc 0!\n" );
+  //}
 
   while ( 1 ) {
     v[0] = vt[0] - l*no_dt[0];

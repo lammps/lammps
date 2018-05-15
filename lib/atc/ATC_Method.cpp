@@ -2015,8 +2015,8 @@ pecified
       LammpsInterface::instance()->int_allmax(&send_size,&max_size);
 
       if (comm_rank == 0) {
-        int intbuf[max_size];
-        double buf[max_size];
+        int *intbuf = new int[max_size];
+        double *buf = new double[max_size];
         for (int iproc = 1; iproc < nprocs; iproc++) {
           LammpsInterface::instance()->int_recv(intbuf,max_size,iproc);
           LammpsInterface::instance()->recv(buf,max_size,iproc);
@@ -2024,15 +2024,19 @@ pecified
             out << intbuf[i] << "  " << buf[i] << "\n";
           }  
         }
+        delete[] intbuf;
+        delete[] buf;
       } else {
-        int intbuf[send_size];
-        double buf[send_size];
+        int *intbuf = new int[send_size];
+        double *buf = new double[send_size];
         for (int i = 0; i < send_size; i++) {
           intbuf[i] = id2tag[i];
           buf[i] = atomicVolumeMatrix(i,i);
         }
         LammpsInterface::instance()->int_send(intbuf,send_size);
         LammpsInterface::instance()->send(buf,send_size);
+        delete[] intbuf;
+        delete[] buf;
       }
     }
                 

@@ -1,5 +1,5 @@
 #include "meam.h"
-#include <math.h>
+#include <cmath>
 using namespace LAMMPS_NS;
 
 void

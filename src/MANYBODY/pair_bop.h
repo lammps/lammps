@@ -26,7 +26,7 @@ PairStyle(bop,PairBOP)
 #define LMP_PAIR_BOP_H
 
 #include "pair.h"
-#include <time.h>
+#include <ctime>
 #include "update.h"
 
 namespace LAMMPS_NS {
@@ -285,5 +285,9 @@ path and name are correct.
 E: Incorrect table format check for element types
 
 Self-explanatory.
+
+E: Unsupported BOP potential file format
+
+UNDOCUMENTED
 
 */

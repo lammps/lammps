@@ -32,10 +32,10 @@
    Rules"_http://lammps.sandia.gov/open_source.html
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <mpi.h>
 #include "pair_bop.h"
 #include "atom.h"
@@ -49,7 +49,7 @@
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
-#include <ctype.h>
+#include <cctype>
 
 using namespace LAMMPS_NS;
 
@@ -5031,15 +5031,16 @@ void PairBOP::read_table(char *filename)
         }
       }
     }
-    if(nws==3) {
+    if (nws==3) {
       sscanf(s,"%d %d %d",&nr,&ntheta,&nBOt);
       npower=2;
       if(ntheta<=10) npower=ntheta;
-    }
-    else {
+    } else if (nws==2) {
       sscanf(s,"%d %d",&nr,&nBOt);
       ntheta=0;
       npower=3;
+    } else {
+      error->one(FLERR,"Unsupported BOP potential file format");
     }
     fclose(fp);
     npairs=bop_types*(bop_types+1)/2;

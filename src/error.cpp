@@ -12,14 +12,28 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include "error.h"
 #include "universe.h"
 #include "output.h"
 #include "input.h"
 
 using namespace LAMMPS_NS;
+
+// helper function to truncate a string to a segment starting with "src/";
+
+static const char *truncpath(const char *path)
+{
+   if (path) {
+     int len = strlen(path);
+     for (int i = len-4; i > 0; --i) {
+	if (strncmp("src/",path+i,4) == 0)
+          return path+i;
+     }
+   }
+   return path;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -42,9 +56,9 @@ void Error::universe_all(const char *file, int line, const char *str)
 
   if (universe->me == 0) {
     if (universe->uscreen) fprintf(universe->uscreen,
-                                   "ERROR: %s (%s:%d)\n",str,file,line);
+                                   "ERROR: %s (%s:%d)\n",str,truncpath(file),line);
     if (universe->ulogfile) fprintf(universe->ulogfile,
-                                    "ERROR: %s (%s:%d)\n",str,file,line);
+                                    "ERROR: %s (%s:%d)\n",str,truncpath(file),line);
   }
 
   if (output) delete output;
@@ -73,7 +87,7 @@ void Error::universe_one(const char *file, int line, const char *str)
 {
   if (universe->uscreen)
     fprintf(universe->uscreen,"ERROR on proc %d: %s (%s:%d)\n",
-            universe->me,str,file,line);
+            universe->me,str,truncpath(file),line);
 
 #ifdef LAMMPS_EXCEPTIONS
   char msg[100];
@@ -93,7 +107,7 @@ void Error::universe_warn(const char *file, int line, const char *str)
 {
   if (universe->uscreen)
     fprintf(universe->uscreen,"WARNING on proc %d: %s (%s:%d)\n",
-            universe->me,str,file,line);
+            universe->me,str,truncpath(file),line);
 }
 
 /* ----------------------------------------------------------------------
@@ -116,10 +130,10 @@ void Error::all(const char *file, int line, const char *str)
     if (input && input->line) lastcmd = input->line;
     if (screen) fprintf(screen,"ERROR: %s (%s:%d)\n"
                         "Last command: %s\n",
-                        str,file,line,lastcmd);
+                        str,truncpath(file),line,lastcmd);
     if (logfile) fprintf(logfile,"ERROR: %s (%s:%d)\n"
                          "Last command: %s\n",
-                         str,file,line,lastcmd);
+                         str,truncpath(file),line,lastcmd);
   }
 
 #ifdef LAMMPS_EXCEPTIONS
@@ -158,15 +172,15 @@ void Error::one(const char *file, int line, const char *str)
   if (input && input->line) lastcmd = input->line;
   if (screen) fprintf(screen,"ERROR on proc %d: %s (%s:%d)\n"
                       "Last command: %s\n",
-                      me,str,file,line,lastcmd);
+                      me,str,truncpath(file),line,lastcmd);
   if (logfile) fprintf(logfile,"ERROR on proc %d: %s (%s:%d)\n"
                        "Last command: %s\n",
-                       me,str,file,line,lastcmd);
+                       me,str,truncpath(file),line,lastcmd);
 
   if (universe->nworlds > 1)
     if (universe->uscreen)
       fprintf(universe->uscreen,"ERROR on proc %d: %s (%s:%d)\n",
-              universe->me,str,file,line);
+              universe->me,str,truncpath(file),line);
 
 #ifdef LAMMPS_EXCEPTIONS
   char msg[100];
@@ -184,9 +198,9 @@ void Error::one(const char *file, int line, const char *str)
 
 void Error::warning(const char *file, int line, const char *str, int logflag)
 {
-  if (screen) fprintf(screen,"WARNING: %s (%s:%d)\n",str,file,line);
+  if (screen) fprintf(screen,"WARNING: %s (%s:%d)\n",str,truncpath(file),line);
   if (logflag && logfile) fprintf(logfile,"WARNING: %s (%s:%d)\n",
-                                  str,file,line);
+                                  str,truncpath(file),line);
 }
 
 /* ----------------------------------------------------------------------
@@ -196,8 +210,8 @@ void Error::warning(const char *file, int line, const char *str, int logflag)
 
 void Error::message(const char *file, int line, const char *str, int logflag)
 {
-  if (screen) fprintf(screen,"%s (%s:%d)\n",str,file,line);
-  if (logflag && logfile) fprintf(logfile,"%s (%s:%d)\n",str,file,line);
+  if (screen) fprintf(screen,"%s (%s:%d)\n",str,truncpath(file),line);
+  if (logflag && logfile) fprintf(logfile,"%s (%s:%d)\n",str,truncpath(file),line);
 }
 
 /* ----------------------------------------------------------------------

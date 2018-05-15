@@ -19,10 +19,10 @@
      additional assistance from Robert A. Latour, Clemson University
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_lj_charmmfsw_coul_long.h"
 #include "atom.h"
 #include "update.h"

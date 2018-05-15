@@ -13,7 +13,7 @@
 
 // Park/Miller RNG
 
-#include <math.h>
+#include <cmath>
 #include "random_park.h"
 #include "error.h"
 

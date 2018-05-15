@@ -15,8 +15,8 @@
    Contributing author: Carsten Svaneborg, science@zqex.dk
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 #include "bond_harmonic_shift.h"
 #include "atom.h"
 #include "neighbor.h"

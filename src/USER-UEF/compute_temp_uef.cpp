@@ -13,8 +13,8 @@
    Contributing author: David Nicholson (MIT)
 ------------------------------------------------------------------------- */
 
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 #include "compute_temp_uef.h"
 #include "fix_nh_uef.h"
 #include "update.h"

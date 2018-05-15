@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstring>
+#include <cstdlib>
 #include "compute_temp_deform_eff.h"
 #include "domain.h"
 #include "atom.h"
@@ -34,8 +34,6 @@
 
 
 using namespace LAMMPS_NS;
-
-enum{NO_REMAP,X_REMAP,V_REMAP};                   // same as fix_deform.cpp
 
 /* ---------------------------------------------------------------------- */
 
@@ -76,7 +74,7 @@ void ComputeTempDeformEff::init()
   int i;
   for (i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"deform") == 0) {
-      if (((FixDeform *) modify->fix[i])->remapflag == X_REMAP &&
+      if (((FixDeform *) modify->fix[i])->remapflag == Domain::X_REMAP &&
           comm->me == 0)
         error->warning(FLERR,"Using compute temp/deform/eff with inconsistent "
                        "fix deform remap option");

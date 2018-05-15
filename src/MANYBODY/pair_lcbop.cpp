@@ -16,10 +16,10 @@
      based on pair_airebo by Ase Henry (MIT)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <mpi.h>
 #include "pair_lcbop.h"
 #include "atom.h"

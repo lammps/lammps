@@ -28,6 +28,9 @@ class FixRigidNHOMP : public FixRigidNH {
   virtual void final_integrate();
   virtual void remap();
 
+ protected:
+  virtual void compute_forces_and_torques();
+
  private: // copied from FixRigidOMP
   template <int, int> void set_xv_thr();
   template <int, int> void set_v_thr();

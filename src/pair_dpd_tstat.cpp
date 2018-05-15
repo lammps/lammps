@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
+#include <cmath>
 #include "pair_dpd_tstat.h"
 #include "atom.h"
 #include "update.h"

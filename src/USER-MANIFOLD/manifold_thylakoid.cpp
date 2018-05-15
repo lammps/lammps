@@ -1,5 +1,5 @@
 #include "manifold_thylakoid.h"
-#include <math.h>
+#include <cmath>
 
 #include "comm.h"
 #include "domain.h" // For some checks regarding the simulation box.
@@ -85,7 +85,7 @@ double manifold_thylakoid::g( const double *x )
     error->one(FLERR,msg);
   }
   double con_val = p->g(x);
-  if( ISFINITE(con_val) ){
+  if( std::isfinite(con_val) ){
     return con_val;
   }else{
     char msg[2048];
@@ -107,7 +107,7 @@ void   manifold_thylakoid::n( const double *x, double *n )
     error->one(FLERR,msg);
   }
   p->n(x,n);
-  if( ISFINITE(n[0]) && ISFINITE(n[1]) && ISFINITE(n[2]) ){
+  if( std::isfinite(n[0]) && std::isfinite(n[1]) && std::isfinite(n[2]) ){
     return;
   }else{
     char msg[2048];

@@ -1,7 +1,7 @@
 <!-- HTML_ONLY -->
 <HEAD>
 <TITLE>LAMMPS Users Manual</TITLE>
-<META NAME="docnumber" CONTENT="16 Mar 2018 version">
+<META NAME="docnumber" CONTENT="11 May 2018 version">
 <META NAME="author" CONTENT="http://lammps.sandia.gov - Sandia National Laboratories">
 <META NAME="copyright" CONTENT="Copyright (2003) Sandia Corporation. This software and manual is distributed under the GNU General Public License.">
 </HEAD>
@@ -18,12 +18,10 @@
 
 :line
 
-<H1></H1>
+LAMMPS Documentation :c,h1
+11 May 2018 version :c,h2
 
-LAMMPS Documentation :c,h3
-16 Mar 2018 version :c,h4
-
-Version info: :h4
+Version info: :h3
 
 The LAMMPS "version" is the date when it was released, such as 1 May
 2010. LAMMPS is updated continuously.  Whenever we fix a bug or add a

@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <string.h>
+#include <cmath>
+#include <cstring>
 #include "compute_body_local.h"
 #include "atom.h"
 #include "atom_vec_body.h"

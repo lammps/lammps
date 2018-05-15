@@ -18,10 +18,10 @@
      Hybrid and sub-group capabilities: Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "fix_qeq_reax.h"
 #include "pair_reaxc.h"
 #include "atom.h"

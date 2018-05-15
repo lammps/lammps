@@ -21,11 +21,11 @@
        Phys. Rev. B 58, 2539 (1998)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <float.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cfloat>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_edip.h"
 #include "atom.h"
 #include "neighbor.h"

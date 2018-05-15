@@ -12,10 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
+#include <cstdio>
 #include "finish.h"
 #include "timer.h"
 #include "universe.h"
@@ -150,6 +150,14 @@ void Finish::end(int flag)
           const char perf[] = "Performance: %.3f tau/day, %.3f timesteps/s\n";
           if (screen) fprintf(screen,perf,tau_day,step_t);
           if (logfile) fprintf(logfile,perf,tau_day,step_t);
+        } else if (strcmp(update->unit_style,"electron") == 0) {
+          double hrs_fs = t_step / update->dt * one_fs / 3600.0;
+          double fs_day = 24.0*3600.0 / t_step * update->dt / one_fs;
+          const char perf[] =
+            "Performance: %.3f fs/day, %.3f hours/fs, %.3f timesteps/s\n";
+          if (screen) fprintf(screen,perf,fs_day,hrs_fs,step_t);
+          if (logfile) fprintf(logfile,perf,fs_day,hrs_fs,step_t);
+
         } else {
           double hrs_ns = t_step / update->dt * 1000000.0 * one_fs / 3600.0;
           double ns_day = 24.0*3600.0 / t_step * update->dt / one_fs/1000000.0;

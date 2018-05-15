@@ -17,10 +17,10 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_quip.h"
 #include "atom.h"
 #include "update.h"
@@ -303,7 +303,7 @@ void PairQUIP::init_style()
   if (force->newton_pair != 1)
     error->all(FLERR,"Pair style quip requires newton pair on");
 
-  // Initialise neighbour list
+  // Initialise neighbor list
   int irequest_full = neighbor->request(this);
   neighbor->requests[irequest_full]->id = 1;
   neighbor->requests[irequest_full]->half = 0;

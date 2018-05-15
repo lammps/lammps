@@ -12,8 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 #include <dirent.h>
 #include "read_restart.h"
 #include "atom.h"
@@ -62,7 +62,7 @@ enum{VERSION,SMALLINT,TAGINT,BIGINT,
      MULTIPROC,MPIIO,PROCSPERFILE,PERPROC,
      IMAGEINT,BOUNDMIN,TIMESTEP,
      ATOM_ID,ATOM_MAP_STYLE,ATOM_MAP_USER,ATOM_SORTFREQ,ATOM_SORTBIN,
-     COMM_MODE,COMM_CUTOFF,COMM_VEL};
+     COMM_MODE,COMM_CUTOFF,COMM_VEL,NO_PAIR};
 
 #define LB_FACTOR 1.1
 
@@ -832,6 +832,12 @@ void ReadRestart::header(int incompatible)
       for (int i = 0; i < nargcopy; i++)
         argcopy[i] = read_string();
       atom->create_avec(style,nargcopy,argcopy,1);
+      if (comm->me ==0) {
+        if (screen) fprintf(screen,"  restoring atom style %s from "
+                            "restart\n", style);
+        if (logfile) fprintf(logfile,"  restoring atom style %s from "
+                             "restart\n", style);
+      }
       for (int i = 0; i < nargcopy; i++) delete [] argcopy[i];
       delete [] argcopy;
       delete [] style;
@@ -948,30 +954,71 @@ void ReadRestart::force_fields()
       style = read_string();
       force->create_pair(style,1);
       delete [] style;
+      if (comm->me ==0) {
+        if (screen) fprintf(screen,"  restoring pair style %s from "
+                            "restart\n", force->pair_style);
+        if (logfile) fprintf(logfile,"  restoring pair style %s from "
+                             "restart\n", force->pair_style);
+      }
       force->pair->read_restart(fp);
+
+    } else if (flag == NO_PAIR) {
+      style = read_string();
+      if (comm->me ==0) {
+        if (screen) fprintf(screen,"  pair style %s stores no "
+                            "restart info\n", style);
+        if (logfile) fprintf(logfile,"  pair style %s stores no "
+                             "restart info\n", style);
+      }
+      force->create_pair("none",0);
+      force->pair_restart = style;
 
     } else if (flag == BOND) {
       style = read_string();
       force->create_bond(style,1);
       delete [] style;
+      if (comm->me ==0) {
+        if (screen) fprintf(screen,"  restoring bond style %s from "
+                            "restart\n", force->bond_style);
+        if (logfile) fprintf(logfile,"  restoring bond style %s from "
+                             "restart\n", force->bond_style);
+      }
       force->bond->read_restart(fp);
 
     } else if (flag == ANGLE) {
       style = read_string();
       force->create_angle(style,1);
       delete [] style;
+      if (comm->me ==0) {
+        if (screen) fprintf(screen,"  restoring angle style %s from "
+                            "restart\n", force->angle_style);
+        if (logfile) fprintf(logfile,"  restoring angle style %s from "
+                             "restart\n", force->angle_style);
+      }
       force->angle->read_restart(fp);
 
     } else if (flag == DIHEDRAL) {
       style = read_string();
       force->create_dihedral(style,1);
       delete [] style;
+      if (comm->me ==0) {
+        if (screen) fprintf(screen,"  restoring dihedral style %s from "
+                            "restart\n", force->dihedral_style);
+        if (logfile) fprintf(logfile,"  restoring dihedral style %s from "
+                             "restart\n", force->dihedral_style);
+      }
       force->dihedral->read_restart(fp);
 
     } else if (flag == IMPROPER) {
       style = read_string();
       force->create_improper(style,1);
       delete [] style;
+      if (comm->me ==0) {
+        if (screen) fprintf(screen,"  restoring improper style %s from "
+                            "restart\n", force->improper_style);
+        if (logfile) fprintf(logfile,"  restoring improper style %s from "
+                             "restart\n", force->improper_style);
+      }
       force->improper->read_restart(fp);
 
     } else error->all(FLERR,

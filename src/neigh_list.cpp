@@ -26,8 +26,6 @@ using namespace LAMMPS_NS;
 
 #define PGDELTA 1
 
-enum{NSQ,BIN,MULTI};     // also in Neighbor
-
 /* ---------------------------------------------------------------------- */
 
 NeighList::NeighList(LAMMPS *lmp) : Pointers(lmp)

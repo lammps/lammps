@@ -29,7 +29,7 @@
 #include "modify.h"
 #include "update.h"
 
-#include <string.h>
+#include <cstring>
 
 #if defined(_OPENMP)
 #include <omp.h>
@@ -235,29 +235,9 @@ void FixRigidNHOMP::initial_integrate(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixRigidNHOMP::final_integrate()
+void FixRigidNHOMP::compute_forces_and_torques()
 {
-  double scale_t[3],scale_r;
-
-  // compute scale variables
-
-  scale_t[0] = scale_t[1] = scale_t[2] = 1.0;
-  scale_r = 1.0;
-
-  if (tstat_flag) {
-    double tmp = exp(-1.0 * dtq * eta_dot_t[0]);
-    scale_t[0] = scale_t[1] = scale_t[2] = tmp;
-    scale_r = exp(-1.0 * dtq * eta_dot_r[0]);
-  }
-
-  if (pstat_flag) {
-    scale_t[0] *= exp(-dtq * (epsilon_dot[0] + mtk_term2));
-    scale_t[1] *= exp(-dtq * (epsilon_dot[1] + mtk_term2));
-    scale_t[2] *= exp(-dtq * (epsilon_dot[2] + mtk_term2));
-    scale_r *= exp(-dtq * (pdim * mtk_term2));
-
-    akin_t = akin_r = 0.0;
-  }
+  int ibody;
 
   double * const * _noalias const x = atom->x;
   const dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];
@@ -395,25 +375,59 @@ void FixRigidNHOMP::final_integrate()
 
   MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
 
-  // update vcm and angmom
-  // include Langevin thermostat forces
-  // fflag,tflag = 0 for some dimensions in 2d
-  double akt=0.0,akr=0.0;
-  const double dtf2 = dtf * 2.0;
-  int ibody;
-
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) private(ibody) shared(scale_t,scale_r) schedule(static) reduction(+:akt,akr)
+#pragma omp parallel for default(none) private(ibody) schedule(static)
 #endif
   for (ibody = 0; ibody < nbody; ibody++) {
-    double mbody[3],tbody[3],fquat[4];
-
     fcm[ibody][0] = all[ibody][0] + langextra[ibody][0];
     fcm[ibody][1] = all[ibody][1] + langextra[ibody][1];
     fcm[ibody][2] = all[ibody][2] + langextra[ibody][2];
     torque[ibody][0] = all[ibody][3] + langextra[ibody][3];
     torque[ibody][1] = all[ibody][4] + langextra[ibody][4];
     torque[ibody][2] = all[ibody][5] + langextra[ibody][5];
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixRigidNHOMP::final_integrate()
+{
+  int ibody;
+  double scale_t[3],scale_r;
+
+  // compute scale variables
+
+  scale_t[0] = scale_t[1] = scale_t[2] = 1.0;
+  scale_r = 1.0;
+
+  if (tstat_flag) {
+    double tmp = exp(-1.0 * dtq * eta_dot_t[0]);
+    scale_t[0] = scale_t[1] = scale_t[2] = tmp;
+    scale_r = exp(-1.0 * dtq * eta_dot_r[0]);
+  }
+
+  if (pstat_flag) {
+    scale_t[0] *= exp(-dtq * (epsilon_dot[0] + mtk_term2));
+    scale_t[1] *= exp(-dtq * (epsilon_dot[1] + mtk_term2));
+    scale_t[2] *= exp(-dtq * (epsilon_dot[2] + mtk_term2));
+    scale_r *= exp(-dtq * (pdim * mtk_term2));
+
+    akin_t = akin_r = 0.0;
+  }
+
+  if (!earlyflag) compute_forces_and_torques();
+
+  // update vcm and angmom
+  // include Langevin thermostat forces
+  // fflag,tflag = 0 for some dimensions in 2d
+  double akt=0.0,akr=0.0;
+  const double dtf2 = dtf * 2.0;
+
+#if defined(_OPENMP)
+#pragma omp parallel for default(none) private(ibody) shared(scale_t,scale_r) schedule(static) reduction(+:akt,akr)
+#endif
+  for (ibody = 0; ibody < nbody; ibody++) {
+    double mbody[3],tbody[3],fquat[4];
 
     // update vcm by 1/2 step
 

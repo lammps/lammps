@@ -15,8 +15,9 @@
    Contributing author: Wan Liang (Chinese Academy of Sciences)
 ------------------------------------------------------------------------- */
 
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
+#include <cmath>
 #include "compute_cna_atom.h"
 #include "atom.h"
 #include "update.h"
@@ -29,7 +30,6 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
-#include <math.h>
 
 using namespace LAMMPS_NS;
 

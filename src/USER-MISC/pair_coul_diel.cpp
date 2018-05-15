@@ -14,10 +14,10 @@
    Contributiong authors: Arben Jusufi, Axel Kohlmeyer (Temple U.)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_coul_diel.h"
 #include "atom.h"
 #include "comm.h"

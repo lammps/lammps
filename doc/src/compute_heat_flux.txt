@@ -26,14 +26,16 @@ compute myFlux all heat/flux myKE myPE myStress :pre
 
 Define a computation that calculates the heat flux vector based on
 contributions from atoms in the specified group.  This can be used by
-itself to measure the heat flux into or out of a reservoir of atoms,
-or to calculate a thermal conductivity using the Green-Kubo formalism.
+itself to measure the heat flux through a set of atoms (e.g. a region
+between two thermostatted reservoirs held at different temperatures),
+or to calculate a thermal conductivity using the equilibrium
+Green-Kubo formalism.
 
-See the "fix thermal/conductivity"_fix_thermal_conductivity.html
-command for details on how to compute thermal conductivity in an
-alternate way, via the Muller-Plathe method.  See the "fix
-heat"_fix_heat.html command for a way to control the heat added or
-subtracted to a group of atoms.
+For other non-equilibrium ways to compute a thermal conductivity, see
+"this section"_Section_howto.html#howto_20.  These include use of the
+"fix thermal/conductivity"_fix_thermal_conductivity.html command for
+the Muller-Plathe method.  Or the "fix heat"_fix_heat.html command
+which can add or subtract heat from groups of atoms.
 
 The compute takes three arguments which are IDs of other
 "computes"_compute.html.  One calculates per-atom kinetic energy

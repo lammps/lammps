@@ -15,9 +15,10 @@
    Contributing author: Trung Dac Nguyen (ORNL)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_coul_dsf_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -32,7 +33,6 @@
 #include "universe.h"
 #include "update.h"
 #include "domain.h"
-#include <string.h>
 #include "gpu_extra.h"
 
 #define MY_PIS 1.77245385090551602729

@@ -1,5 +1,5 @@
 #include "KernelFunction.h"
-#include "math.h"
+#include <cmath>
 #include <vector>
 #include "ATC_Error.h"
 #include "Quadrature.h"

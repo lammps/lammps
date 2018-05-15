@@ -20,7 +20,7 @@ DihedralStyle(charmmfsw,DihedralCharmmfsw)
 #ifndef LMP_DIHEDRAL_CHARMMFSW_H
 #define LMP_DIHEDRAL_CHARMMFSW_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "dihedral.h"
 
 namespace LAMMPS_NS {
@@ -72,6 +72,18 @@ Self-explanatory.  Check the input script or data file.
 E: Incorrect weight arg for dihedral coefficients
 
 Self-explanatory.  Check the input script or data file.
+
+E: Dihedral style charmmfsw must be set to same r-RESPA level as 'pair'
+
+UNDOCUMENTED
+
+E: Dihedral style charmmfsw must be set to same r-RESPA level as 'outer'
+
+UNDOCUMENTED
+
+E: Must use 'special_bonds charmm' with dihedral style charmm for use with CHARMM pair styles
+
+UNDOCUMENTED
 
 E: Dihedral charmmfsw is incompatible with Pair style
 

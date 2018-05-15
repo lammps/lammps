@@ -82,6 +82,14 @@ E: Illegal compute voronoi/atom command (occupation and (surface or edges))
 
 Self-explanatory.
 
+E: Compute voronoi/atom occupation requires an atom map, see atom_modify
+
+UNDOCUMENTED
+
+E: Compute voronoi/atom occupation requires atom IDs
+
+UNDOCUMENTED
+
 E: Variable name for voronoi radius does not exist
 
 Self-explanatory.

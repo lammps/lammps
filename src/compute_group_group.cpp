@@ -17,7 +17,8 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <string.h>
+#include <cstring>
+#include <cmath>
 #include "compute_group_group.h"
 #include "atom.h"
 #include "update.h"
@@ -29,7 +30,6 @@
 #include "group.h"
 #include "kspace.h"
 #include "error.h"
-#include <math.h>
 #include "comm.h"
 #include "domain.h"
 #include "math_const.h"

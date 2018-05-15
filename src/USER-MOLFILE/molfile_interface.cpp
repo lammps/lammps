@@ -18,11 +18,11 @@
 #include "molfile_interface.h"
 
 #include <sys/types.h>
-#include <stdio.h>
+#include <cstdio>
 #include <dirent.h>
-#include <string.h>
-#include <stdlib.h>
-#include <ctype.h>
+#include <cstring>
+#include <cstdlib>
+#include <cctype>
 
 #if defined(_WIN32)
 #include <windows.h>

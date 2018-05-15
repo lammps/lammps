@@ -1,6 +1,6 @@
 #include <string>
 #include <fstream>
-#include <stdio.h>
+#include <cstdio>
 #include <sstream>
 #include "OutputManager.h"
 #include "ATC_Error.h"

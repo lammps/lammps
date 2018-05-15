@@ -20,7 +20,7 @@ FixStyle(ave/histo/weight,FixAveHistoWeight)
 #ifndef LMP_FIX_AVE_HISTO_WEIGHT_H
 #define LMP_FIX_AVE_HISTO_WEIGHT_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "fix_ave_histo.h"
 
 namespace LAMMPS_NS {
@@ -58,6 +58,10 @@ E: Invalid timestep reset for fix ave/histo
 
 Resetting the timestep has invalidated the sequence of timesteps this
 fix needs to process.
+
+E: Fix ave/histo/weight option not yet supported
+
+UNDOCUMENTED
 
 E: Error writing out histogram data
 

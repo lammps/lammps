@@ -152,6 +152,10 @@ E: Dump image body yes requires atom style body
 
 Self-explanatory.
 
+E: Fix ID for dump image does not exist
+
+UNDOCUMENTED
+
 E: Dump image requires one snapshot per file
 
 Use a "*" in the filename.

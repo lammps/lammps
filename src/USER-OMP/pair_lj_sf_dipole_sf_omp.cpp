@@ -12,7 +12,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
+#include <cmath>
 #include "pair_lj_sf_dipole_sf_omp.h"
 #include "atom.h"
 #include "comm.h"

@@ -37,8 +37,8 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 #include "improper_ring.h"
 #include "atom.h"
 #include "comm.h"
@@ -336,4 +336,14 @@ void ImproperRing::read_restart(FILE *fp)
   MPI_Bcast(&chi[1],atom->nimpropertypes,MPI_DOUBLE,0,world);
 
   for (int i = 1; i <= atom->nimpropertypes; i++) setflag[i] = 1;
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void ImproperRing::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->nimpropertypes; i++)
+    fprintf(fp,"%d %g %g\n",i,k[i],acos(chi[i])/MY_PI*180.0);
 }

@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
+#include <cstring>
 #include "verlet_kokkos.h"
 #include "neighbor.h"
 #include "domain.h"
@@ -304,7 +304,7 @@ void VerletKokkos::run(int n)
   if (atomKK->sortfreq > 0) sortflag = 1;
   else sortflag = 0;
 
-  f_merge_copy = DAT::t_f_array("VerletKokkos::f_merge_copy",atomKK->k_f.dimension_0());
+  f_merge_copy = DAT::t_f_array("VerletKokkos::f_merge_copy",atomKK->k_f.extent(0));
 
   atomKK->sync(Device,ALL_MASK);
   //static double time = 0.0;
@@ -514,12 +514,12 @@ void VerletKokkos::run(int n)
     }
 
     if(execute_on_host && !std::is_same<LMPHostType,LMPDeviceType>::value) {
-      if(f_merge_copy.dimension_0()<atomKK->k_f.dimension_0()) {
-        f_merge_copy = DAT::t_f_array("VerletKokkos::f_merge_copy",atomKK->k_f.dimension_0());
+      if(f_merge_copy.extent(0)<atomKK->k_f.extent(0)) {
+        f_merge_copy = DAT::t_f_array("VerletKokkos::f_merge_copy",atomKK->k_f.extent(0));
       }
       f = atomKK->k_f.d_view;
       Kokkos::deep_copy(LMPHostType(),f_merge_copy,atomKK->k_f.h_view);
-      Kokkos::parallel_for(atomKK->k_f.dimension_0(),
+      Kokkos::parallel_for(atomKK->k_f.extent(0),
         ForceAdder<DAT::t_f_array,DAT::t_f_array>(atomKK->k_f.d_view,f_merge_copy));
       atomKK->k_f.modified_host() = 0; // special case
       atomKK->k_f.modify<LMPDeviceType>();

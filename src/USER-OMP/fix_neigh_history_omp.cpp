@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
-#include <stdio.h>
+#include <cstring>
+#include <cstdio>
 #include "fix_neigh_history_omp.h"
 #include "atom.h"
 #include "comm.h"

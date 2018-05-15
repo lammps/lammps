@@ -91,9 +91,23 @@ E: No dump local arguments specified
 
 Self-explanatory.
 
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Binary files are not supported with dump local
+
+UNDOCUMENTED
+
 E: Dump local cannot sort by atom ID
 
 This is because dump local does not really dump per-atom info.
+
+E: Dump_modify format line is too short
+
+UNDOCUMENTED
 
 E: Could not find dump local compute ID
 
@@ -107,12 +121,6 @@ E: Dump local and fix not computed at compatible times
 
 The fix must produce per-atom quantities on timesteps that dump local
 needs them.
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
 
 E: Compute used in dump between runs is not current
 

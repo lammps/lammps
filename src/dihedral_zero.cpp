@@ -15,9 +15,9 @@
    Contributing author: Carsten Svaneborg (SDU)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "dihedral_zero.h"
 #include "atom.h"
 #include "force.h"

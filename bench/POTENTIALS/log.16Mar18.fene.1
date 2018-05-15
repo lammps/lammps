@@ -1,0 +1,84 @@
+LAMMPS (16 Mar 2018)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (../comm.cpp:90)
+  using 1 OpenMP thread(s) per MPI task
+# FENE beadspring benchmark
+
+units		lj
+atom_style	bond
+special_bonds   fene
+
+read_data	data.fene
+  orthogonal box = (-16.796 -16.796 -16.796) to (16.796 16.796 16.796)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  32000 atoms
+  reading velocities ...
+  32000 velocities
+  scanning bonds ...
+  1 = max bonds/atom
+  reading bonds ...
+  31680 bonds
+  2 = max # of 1-2 neighbors
+  2 = max # of special neighbors
+
+neighbor	0.4 bin
+neigh_modify    delay 5 every 1
+
+bond_style      fene
+bond_coeff	1 30.0 1.5 1.0 1.0
+
+pair_style	lj/cut 1.12
+pair_modify	shift yes
+pair_coeff	1 1 1.0 1.0 1.12
+
+fix		1 all nve
+fix		2 all langevin 1.0 1.0 10.0 904297
+
+timestep	0.012
+
+run		100
+Neighbor list info ...
+  update every 1 steps, delay 5 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.52
+  ghost atom cutoff = 1.52
+  binsize = 0.76, bins = 45 45 45
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 13.18 | 13.18 | 13.18 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0   0.97029772   0.44484087    20.494523    22.394765    4.6721833 
+     100    0.9729966    0.4361122    20.507698     22.40326    4.6548819 
+Loop time of 0.66285 on 1 procs for 100 steps with 32000 atoms
+
+Performance: 156415.445 tau/day, 150.864 timesteps/s
+99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.13075    | 0.13075    | 0.13075    |   0.0 | 19.73
+Bond    | 0.046363   | 0.046363   | 0.046363   |   0.0 |  6.99
+Neigh   | 0.3172     | 0.3172     | 0.3172     |   0.0 | 47.85
+Comm    | 0.016553   | 0.016553   | 0.016553   |   0.0 |  2.50
+Output  | 0.00010395 | 0.00010395 | 0.00010395 |   0.0 |  0.02
+Modify  | 0.14515    | 0.14515    | 0.14515    |   0.0 | 21.90
+Other   |            | 0.006728   |            |       |  1.02
+
+Nlocal:    32000 ave 32000 max 32000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    9493 ave 9493 max 9493 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    155873 ave 155873 max 155873 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 155873
+Ave neighs/atom = 4.87103
+Ave special neighs/atom = 1.98
+Neighbor list builds = 20
+Dangerous builds = 20
+Total wall time: 0:00:00

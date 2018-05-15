@@ -16,7 +16,7 @@
 #include "lal_device.h"
 #include "lal_precision.h"
 #include <map>
-#include <math.h>
+#include <cmath>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -78,7 +78,7 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int first_gpu,
   // Get the names of all nodes
   int name_length;
   char node_name[MPI_MAX_PROCESSOR_NAME];
-  char node_names[MPI_MAX_PROCESSOR_NAME*_world_size];
+  char *node_names = new char[MPI_MAX_PROCESSOR_NAME*_world_size];
   MPI_Get_processor_name(node_name,&name_length);
   MPI_Allgather(&node_name,MPI_MAX_PROCESSOR_NAME,MPI_CHAR,&node_names,
                 MPI_MAX_PROCESSOR_NAME,MPI_CHAR,_comm_world);
@@ -104,6 +104,7 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int first_gpu,
       split_id=split_num;
     split_num++;
   }
+  delete[] node_names;
 
   // Set up a per node communicator and find rank within
   MPI_Comm node_comm;

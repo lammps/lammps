@@ -17,9 +17,9 @@
                Miller et al., J Chem Phys. 116, 8649-8659 (2002)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstring>
 #include "fix_rigid_nh.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -620,87 +620,14 @@ void FixRigidNH::final_integrate()
     akin_t = akin_r = 0.0;
   }
 
-  // sum over atoms to get force and torque on rigid body
+  // late calculation of forces and torques (if requested)
 
-  double **x = atom->x;
-  double **f = atom->f;
-  int nlocal = atom->nlocal;
-
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
-  if (triclinic) {
-    xy = domain->xy;
-    xz = domain->xz;
-    yz = domain->yz;
-  }
-
-  int xbox,ybox,zbox;
-  double xunwrap,yunwrap,zunwrap,dx,dy,dz;
-  for (ibody = 0; ibody < nbody; ibody++)
-    for (i = 0; i < 6; i++) sum[ibody][i] = 0.0;
-
-  for (i = 0; i < nlocal; i++) {
-    if (body[i] < 0) continue;
-    ibody = body[i];
-
-    sum[ibody][0] += f[i][0];
-    sum[ibody][1] += f[i][1];
-    sum[ibody][2] += f[i][2];
-
-    xbox = (xcmimage[i] & IMGMASK) - IMGMAX;
-    ybox = (xcmimage[i] >> IMGBITS & IMGMASK) - IMGMAX;
-    zbox = (xcmimage[i] >> IMG2BITS) - IMGMAX;
-
-    if (triclinic == 0) {
-      xunwrap = x[i][0] + xbox*xprd;
-      yunwrap = x[i][1] + ybox*yprd;
-      zunwrap = x[i][2] + zbox*zprd;
-    } else {
-      xunwrap = x[i][0] + xbox*xprd + ybox*xy + zbox*xz;
-      yunwrap = x[i][1] + ybox*yprd + zbox*yz;
-      zunwrap = x[i][2] + zbox*zprd;
-    }
-
-    dx = xunwrap - xcm[ibody][0];
-    dy = yunwrap - xcm[ibody][1];
-    dz = zunwrap - xcm[ibody][2];
-
-    sum[ibody][3] += dy*f[i][2] - dz*f[i][1];
-    sum[ibody][4] += dz*f[i][0] - dx*f[i][2];
-    sum[ibody][5] += dx*f[i][1] - dy*f[i][0];
-  }
-
-  // extended particles add their torque to torque of body
-
-  if (extended) {
-    double **torque_one = atom->torque;
-
-    for (i = 0; i < nlocal; i++) {
-      if (body[i] < 0) continue;
-      ibody = body[i];
-
-      if (eflags[i] & TORQUE) {
-        sum[ibody][3] += torque_one[i][0];
-        sum[ibody][4] += torque_one[i][1];
-        sum[ibody][5] += torque_one[i][2];
-      }
-    }
-  }
-
-  MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
+  if (!earlyflag) compute_forces_and_torques();
 
   // update vcm and angmom
-  // include Langevin thermostat forces
   // fflag,tflag = 0 for some dimensions in 2d
 
   for (ibody = 0; ibody < nbody; ibody++) {
-    fcm[ibody][0] = all[ibody][0] + langextra[ibody][0];
-    fcm[ibody][1] = all[ibody][1] + langextra[ibody][1];
-    fcm[ibody][2] = all[ibody][2] + langextra[ibody][2];
-    torque[ibody][0] = all[ibody][3] + langextra[ibody][3];
-    torque[ibody][1] = all[ibody][4] + langextra[ibody][4];
-    torque[ibody][2] = all[ibody][5] + langextra[ibody][5];
 
     // update vcm by 1/2 step
 
@@ -1324,7 +1251,7 @@ int FixRigidNH::modify_param(int narg, char **arg)
     return 2;
   }
 
-  return 0;
+  return FixRigid::modify_param(narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */

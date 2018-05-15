@@ -513,6 +513,9 @@ void FixNVEManifoldRattle::rattle_manifold_x(double *x, double *v,
 
   const double c_inv = 1.0 / c;
 
+  //if( comm->me == 0 ){
+  //  fprintf( screen, "Performing RATTLE on atom on proc 0!\n" );
+  //}
 
   while ( 1 ) {
     v[0] = vt[0] - l*no_dt[0];
@@ -651,11 +654,12 @@ void FixNVEManifoldRattle::rattle_manifold_v(double *v, double *f,
   }while( (res > tolerance) && (iters < max_iter) );
 
   if( iters >= max_iter && res >= tolerance ){
-          char msg[2048];
-          sprintf(msg,"Failed to constrain atom %d (x = (%f, %f, %f)! res = %e, iters = %d\n",
-                  tagi, x[0], x[1], x[2], res, iters);
-          error->all(FLERR,msg);
+    char msg[2048];
+    sprintf(msg,"Failed to constrain atom %d (x = (%f, %f, %f)! res = %e, iters = %d\n",
+            tagi, x[0], x[1], x[2], res, iters);
+    error->all(FLERR,msg);
   }
 
   stats.v_iters += iters;
 }
+

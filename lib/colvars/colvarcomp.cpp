@@ -21,6 +21,9 @@ colvar::cvc::cvc()
     b_try_scalable(true)
 {
   init_cvc_requires();
+  sup_coeff = 1.0;
+  period = 0.0;
+  wrap_center = 0.0;
 }
 
 
@@ -30,43 +33,52 @@ colvar::cvc::cvc(std::string const &conf)
     b_periodic(false),
     b_try_scalable(true)
 {
+  init_cvc_requires();
+  sup_coeff = 1.0;
+  period = 0.0;
+  wrap_center = 0.0;
+  init(conf);
+}
+
+
+int colvar::cvc::init(std::string const &conf)
+{
+  int error_code = COLVARS_OK;
   if (cvm::debug())
     cvm::log("Initializing cvc base object.\n");
 
-  init_cvc_requires();
-
-  if (get_keyval(conf, "name", this->name, std::string(""), parse_silent)) {
+  get_keyval(conf, "name", this->name, this->name);
+  if (name.size() > 0) {
     // Temporary description until child object is initialized
     description = "cvc " + name;
   } else {
     description = "uninitialized cvc";
   }
 
-  get_keyval(conf, "componentCoeff", sup_coeff, 1.0);
-  get_keyval(conf, "componentExp", sup_np, 1);
+  get_keyval(conf, "componentCoeff", sup_coeff, sup_coeff);
+  get_keyval(conf, "componentExp", sup_np, sup_np);
 
-  get_keyval(conf, "period", period, 0.0);
-  get_keyval(conf, "wrapAround", wrap_center, 0.0);
+  get_keyval(conf, "period", period, period);
+  get_keyval(conf, "wrapAround", wrap_center, wrap_center);
 
-  get_keyval_feature((colvarparse *)this, conf, "debugGradients",
+  get_keyval_feature(dynamic_cast<colvarparse *>(this), conf, "debugGradients",
                      f_cvc_debug_gradient, false, parse_silent);
 
-  {
-    bool b_no_PBC = false;
-    get_keyval(conf, "forceNoPBC", b_no_PBC, false);
-    if (b_no_PBC) {
-      disable(f_cvc_pbc_minimum_image);
-    } else {
-      enable(f_cvc_pbc_minimum_image);
-    }
-    // this does not use get_keyval_feature() only for backward compatibility
+  bool b_no_PBC = !is_enabled(f_cvc_pbc_minimum_image); // Enabled by default
+  get_keyval(conf, "forceNoPBC", b_no_PBC, b_no_PBC);
+  if (b_no_PBC) {
+    disable(f_cvc_pbc_minimum_image);
+  } else {
+    enable(f_cvc_pbc_minimum_image);
   }
 
   // Attempt scalable calculations when in parallel? (By default yes, if available)
-  get_keyval(conf, "scalable", b_try_scalable, true);
+  get_keyval(conf, "scalable", b_try_scalable, b_try_scalable);
 
   if (cvm::debug())
     cvm::log("Done initializing cvc base object.\n");
+
+  return error_code;
 }
 
 

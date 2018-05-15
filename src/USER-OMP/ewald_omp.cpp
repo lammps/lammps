@@ -22,7 +22,7 @@
 #include "force.h"
 #include "memory.h"
 
-#include <math.h>
+#include <cmath>
 
 #include "math_const.h"
 

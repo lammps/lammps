@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
+#include <cctype>
 #include "pair_hybrid_kokkos.h"
 #include "atom_kokkos.h"
 #include "force.h"

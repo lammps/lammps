@@ -87,6 +87,7 @@ if (test $1 = "MANYBODY") then
   depend GPU
   depend KOKKOS
   depend OPT
+  depend QEQ
   depend USER-MISC
   depend USER-OMP
 fi
@@ -95,9 +96,8 @@ if (test $1 = "MOLECULE") then
   depend GPU
   depend KOKKOS
   depend USER-MISC
-  depend USER-OMP
   depend USER-FEP
-  depend USER-CGDNA
+  depend USER-OMP
   depend USER-INTEL
 fi
 
@@ -134,6 +134,7 @@ fi
 if (test $1 = "USER-MISC") then
   depend GPU
   depend USER-OMP
+  depend USER-INTEL
 fi
 
 if (test $1 = "USER-REAXC") then

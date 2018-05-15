@@ -1,6 +1,6 @@
 #include "manifold_spine.h"
 
-#include <math.h>
+#include <cmath>
 #include "math_special.h"
 
 using namespace LAMMPS_NS;

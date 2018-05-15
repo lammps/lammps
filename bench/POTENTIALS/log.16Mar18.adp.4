@@ -1,0 +1,75 @@
+LAMMPS (16 Mar 2018)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (../comm.cpp:90)
+  using 1 OpenMP thread(s) per MPI task
+# bulk Ni in ADP
+
+units		metal
+atom_style	atomic
+
+lattice		fcc 3.52
+Lattice spacing in x,y,z = 3.52 3.52 3.52
+region		box block 0 20 0 20 0 20
+create_box	1 box
+Created orthogonal box = (0 0 0) to (70.4 70.4 70.4)
+  1 by 2 by 2 MPI processor grid
+create_atoms	1 box
+Created 32000 atoms
+  Time spent = 0.000586033 secs
+
+pair_style	adp
+pair_coeff	* * Ni.adp Ni
+
+velocity	all create 1600.0 376847 loop geom
+
+neighbor	1.0 bin
+neigh_modify    delay 5 every 1
+
+fix		1 all nve
+
+timestep	0.005
+
+run		100
+Neighbor list info ...
+  update every 1 steps, delay 5 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 6.168
+  ghost atom cutoff = 6.168
+  binsize = 3.084, bins = 23 23 23
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair adp, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 12.45 | 12.45 | 12.45 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0         1600      -142400            0   -135782.09    20259.105 
+     100    793.05485   -139023.13            0    -135742.9    32175.694 
+Loop time of 3.49752 on 4 procs for 100 steps with 32000 atoms
+
+Performance: 12.352 ns/day, 1.943 hours/ns, 28.592 timesteps/s
+99.1% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 3.3203     | 3.3261     | 3.3317     |   0.3 | 95.10
+Neigh   | 0.12544    | 0.12594    | 0.12634    |   0.1 |  3.60
+Comm    | 0.024059   | 0.03001    | 0.035574   |   2.9 |  0.86
+Output  | 4.8161e-05 | 6.8128e-05 | 0.00011802 |   0.0 |  0.00
+Modify  | 0.010666   | 0.010841   | 0.011109   |   0.2 |  0.31
+Other   |            | 0.00457    |            |       |  0.13
+
+Nlocal:    8000 ave 8044 max 7960 min
+Histogram: 1 0 0 1 0 1 0 0 0 1
+Nghost:    9131 ave 9171 max 9087 min
+Histogram: 1 0 0 0 1 0 1 0 0 1
+Neighs:    334259 ave 336108 max 332347 min
+Histogram: 1 0 0 1 0 0 1 0 0 1
+
+Total # of neighbors = 1337035
+Ave neighs/atom = 41.7823
+Neighbor list builds = 13
+Dangerous builds = 0
+
+Total wall time: 0:00:03

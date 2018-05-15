@@ -22,7 +22,7 @@
 #include "lal_pppm.h"
 #include "mpi.h"
 #include <sstream>
-#include "stdio.h"
+#include <cstdio>
 #include <string>
 #include <queue>
 

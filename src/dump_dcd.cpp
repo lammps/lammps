@@ -16,11 +16,11 @@
                         Axel Kohlmeyer (Temple U), support for groups
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <inttypes.h>
-#include <stdio.h>
-#include <time.h>
-#include <string.h>
+#include <cmath>
+#include <inttypes.h> // <cinttypes> requires C++-11
+#include <cstdio>
+#include <ctime>
+#include <cstring>
 #include "dump_dcd.h"
 #include "domain.h"
 #include "atom.h"

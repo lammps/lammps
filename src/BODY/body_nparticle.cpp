@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <stdlib.h>
+#include <cstdlib>
 #include "body_nparticle.h"
 #include "math_extra.h"
 #include "atom_vec_body.h"

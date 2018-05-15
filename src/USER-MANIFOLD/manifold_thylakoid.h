@@ -3,7 +3,7 @@
 
 #include "manifold.h"
 #include <vector>
-#include <stdio.h>
+#include <cstdio>
 
 #include "manifold_thylakoid_shared.h"
 

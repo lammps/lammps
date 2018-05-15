@@ -23,7 +23,7 @@ PairStyle(reax/c/kk/host,PairReaxCKokkos<LMPHostType>)
 #ifndef LMP_PAIR_REAXC_KOKKOS_H
 #define LMP_PAIR_REAXC_KOKKOS_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "pair_kokkos.h"
 #include "pair_reaxc.h"
 #include "neigh_list_kokkos.h"
@@ -42,21 +42,11 @@ namespace LAMMPS_NS {
 template<class DeviceType>
 struct LR_lookup_table_kk
 {
-  typedef Kokkos::DualView<LR_data*,Kokkos::LayoutRight,DeviceType> tdual_LR_data_1d;
-  typedef typename tdual_LR_data_1d::t_dev t_LR_data_1d;
-
   typedef Kokkos::DualView<cubic_spline_coef*,Kokkos::LayoutRight,DeviceType> tdual_cubic_spline_coef_1d;
   typedef typename tdual_cubic_spline_coef_1d::t_dev t_cubic_spline_coef_1d;
 
-  double xmin, xmax;
-  int n;
   double dx, inv_dx;
-  double a;
-  double m;
-  double c;
 
-  t_LR_data_1d d_y;
-  t_cubic_spline_coef_1d d_H;
   t_cubic_spline_coef_1d d_vdW, d_CEvd;
   t_cubic_spline_coef_1d d_ele, d_CEclmb;
 };

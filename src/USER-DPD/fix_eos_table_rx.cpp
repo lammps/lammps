@@ -15,15 +15,15 @@
    Contributing author: James Larentzos (U.S. Army Research Laboratory)
 ------------------------------------------------------------------------- */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
+#include <cmath>
 #include "fix_eos_table_rx.h"
 #include "atom.h"
 #include "error.h"
 #include "force.h"
 #include "memory.h"
 #include "comm.h"
-#include <math.h>
 #include "modify.h"
 
 #define MAXLINE 1024
@@ -774,7 +774,7 @@ void FixEOStableRX::temperature_lookup(int id, double ui, double &thetai)
   // Apply the Secant Method
   for(it=0; it<maxit; it++){
     if(fabs(f2-f1) < MY_EPSILON){
-      if(isnan(f1) || isnan(f2)) error->one(FLERR,"NaN detected in secant solver.");
+      if(std::isnan(f1) || std::isnan(f2)) error->one(FLERR,"NaN detected in secant solver.");
       temp = t1;
       temp = MAX(temp,tb->lo);
       temp = MIN(temp,tb->hi);
@@ -794,7 +794,7 @@ void FixEOStableRX::temperature_lookup(int id, double ui, double &thetai)
   if(it==maxit){
     char str[256];
     sprintf(str,"Maxit exceeded in secant solver:  id=%d ui=%lf thetai=%lf t1=%lf t2=%lf f1=%lf f2=%lf\n",id,ui,thetai,t1,t2,f1,f2);
-    if(isnan(f1) || isnan(f2) || isnan(ui) || isnan(thetai) || isnan(t1) || isnan(t2))
+    if(std::isnan(f1) || std::isnan(f2) || std::isnan(ui) || std::isnan(thetai) || std::isnan(t1) || std::isnan(t2))
       error->one(FLERR,"NaN detected in secant solver.");
     error->one(FLERR,str);
   }

@@ -16,6 +16,8 @@
                          Rolf Isele-Holder (RWTH Aachen University)
 ------------------------------------------------------------------------- */
 
+#include <cstring>
+#include <cmath>
 #include "pppm_disp_omp.h"
 #include "atom.h"
 #include "comm.h"
@@ -23,9 +25,6 @@
 #include "force.h"
 #include "memory.h"
 #include "math_const.h"
-
-#include <string.h>
-#include <math.h>
 
 #include "suffix.h"
 using namespace LAMMPS_NS;
@@ -358,7 +357,7 @@ void PPPMDispOMP::particle_map(double dxinv, double dyinv,
   const int nyhi_out = nyhi_o;
   const int nzhi_out = nzhi_o;
 
-  if (!ISFINITE(boxlo[0]) || !ISFINITE(boxlo[1]) || !ISFINITE(boxlo[2]))
+  if (!std::isfinite(boxlo[0]) || !std::isfinite(boxlo[1]) || !std::isfinite(boxlo[2]))
     error->one(FLERR,"Non-numeric box dimensions. Simulation unstable.");
 
   int i, flag = 0;

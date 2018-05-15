@@ -21,7 +21,7 @@ PairStyle(polymorphic,PairPolymorphic)
 #define LMP_PAIR_POLYMORPHIC_H
 
 #include "pair.h"
-#include <math.h>
+#include <cmath>
 
 namespace LAMMPS_NS {
 
@@ -357,5 +357,13 @@ Self-explanatory.
 E: Element not defined in potential file
 
 The specified element is not in the potential file.
+
+E: Potential file incompatible with this pair style version
+
+UNDOCUMENTED
+
+E: Error reading potential file header
+
+UNDOCUMENTED
 
 */

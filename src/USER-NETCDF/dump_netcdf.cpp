@@ -18,8 +18,8 @@
 #if defined(LMP_HAS_NETCDF)
 
 #include <unistd.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include <netcdf.h>
 #include "dump_netcdf.h"
 #include "atom.h"

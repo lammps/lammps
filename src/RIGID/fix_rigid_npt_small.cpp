@@ -17,7 +17,7 @@
                Miller et al., J Chem Phys. 116, 8649-8659 (2002)
 ------------------------------------------------------------------------- */
 
-#include <string.h>
+#include <cstring>
 #include "fix_rigid_npt_small.h"
 #include "domain.h"
 #include "modify.h"

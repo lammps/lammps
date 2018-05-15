@@ -61,15 +61,27 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Compute bond/local used when bonds are not allowed
+E: Invalid keyword in compute rigid/local command
+
+UNDOCUMENTED
+
+E: FixRigidSmall ID for compute rigid/local does not exist
+
+UNDOCUMENTED
+
+E: Compute rigid/local does not use fix rigid/small fix
+
+UNDOCUMENTED
+
+U: Compute bond/local used when bonds are not allowed
 
 The atom style does not support bonds.
 
-E: Invalid keyword in compute bond/local command
+U: Invalid keyword in compute bond/local command
 
 Self-explanatory.
 
-E: No bond style is defined for compute bond/local
+U: No bond style is defined for compute bond/local
 
 Self-explanatory.
 

@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
+#include <cmath>
 #include "dihedral_charmm_omp.h"
 #include "atom.h"
 #include "comm.h"

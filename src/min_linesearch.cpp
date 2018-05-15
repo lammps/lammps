@@ -21,7 +21,7 @@
             JR Shewchuk, http://www-2.cs.cmu.edu/~jrs/jrspapers.html#cg
 ------------------------------------------------------------------------- */
 
-#include <math.h>
+#include <cmath>
 #include "min_linesearch.h"
 #include "atom.h"
 #include "update.h"

@@ -52,4 +52,4 @@ fastdep.exe: ../../src/DEPEND/fastdep.c
 clean:
 	-rm -f *.o *~ .depend $(LIB) fastdep.exe
 
-sinclude $(DEPENDS)
+sinclude .depend

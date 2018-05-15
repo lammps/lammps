@@ -272,6 +272,8 @@
 /compute_pe_tally.h
 /compute_plasticity_atom.cpp
 /compute_plasticity_atom.h
+/compute_pressure_bocs.cpp
+/compute_pressure_bocs.h
 /compute_pressure_grem.cpp
 /compute_pressure_grem.h
 /compute_rigid_local.cpp
@@ -322,6 +324,8 @@
 /dihedral_spherical.h
 /dihedral_table.cpp
 /dihedral_table.h
+/dihedral_table_cut.cpp
+/dihedral_table_cut.h
 /dump_atom_gz.cpp
 /dump_atom_gz.h
 /dump_xyz_gz.cpp
@@ -370,10 +374,14 @@
 /fix_atc.h
 /fix_ave_correlate_long.cpp
 /fix_ave_correlate_long.h
+/fix_bocs.cpp
+/fix_bocs.h
 /fix_bond_break.cpp
 /fix_bond_break.h
 /fix_bond_create.cpp
 /fix_bond_create.h
+/fix_bond_react.cpp
+/fix_bond_react.h
 /fix_bond_swap.cpp
 /fix_bond_swap.h
 /fix_cmap.cpp
@@ -685,6 +693,8 @@
 /pair_coul_long.h
 /pair_coul_msm.cpp
 /pair_coul_msm.h
+/pair_coul_shield.cpp
+/pair_coul_shield.h
 /pair_dipole_cut.cpp
 /pair_dipole_cut.h
 /pair_dipole_sf.cpp
@@ -728,6 +738,12 @@
 /pair_hbond_dreiding_lj.h
 /pair_hbond_dreiding_morse.cpp
 /pair_hbond_dreiding_morse.h
+/pair_ilp_graphene_hbn.cpp
+/pair_ilp_graphene_hbn.h
+/pair_kim.cpp
+/pair_kim.h
+/pair_kolmogorov_crespi_full.cpp
+/pair_kolmogorov_crespi_full.h
 /pair_kolmogorov_crespi_z.cpp
 /pair_kolmogorov_crespi_z.h
 /pair_lcbop.cpp

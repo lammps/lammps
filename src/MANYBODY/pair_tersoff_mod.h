@@ -21,7 +21,7 @@ PairStyle(tersoff/mod,PairTersoffMOD)
 #define LMP_PAIR_TERSOFF_MOD_H
 
 #include "pair_tersoff.h"
-#include <math.h>
+#include <cmath>
 
 namespace LAMMPS_NS {
 

@@ -41,3 +41,23 @@ class ImbalanceVar : public Imbalance {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+UNDOCUMENTED
+
+E: Variable name for balance weight does not exist
+
+UNDOCUMENTED
+
+E: Variable for balance weight has invalid style
+
+UNDOCUMENTED
+
+E: Balance weight <= 0.0
+
+UNDOCUMENTED
+
+*/

@@ -1,7 +1,7 @@
 #ifndef XT_FUNCTION_H
 #define XT_FUNCTION_H
 
-#include <math.h>
+#include <cmath>
 #include <string>
 #include <set>
 #include <cstdlib>

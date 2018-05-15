@@ -74,4 +74,8 @@ E: Compute omega/chunk does not use chunk/atom compute
 
 The style of the specified compute is not chunk/atom.
 
+E: Insufficient Jacobi rotations for omega/chunk
+
+UNDOCUMENTED
+
 */

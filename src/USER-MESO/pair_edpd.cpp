@@ -16,9 +16,11 @@
    Email: zhen_li@brown.edu
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
+#include <cstring>
 #include "pair_edpd.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -31,8 +33,6 @@
 #include "citeme.h"
 #include "memory.h"
 #include "error.h"
-#include <time.h>
-#include <string.h>
 
 using namespace LAMMPS_NS;
 
@@ -59,7 +59,6 @@ static const char cite_pair_edpd[] =
   " volume =  {51},\n"
   " pages =   {11038--11040}\n"
   "}\n\n";
-;
 
 /* ---------------------------------------------------------------------- */
 

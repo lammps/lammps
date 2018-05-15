@@ -12,8 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include "irregular.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -33,8 +33,6 @@ static int compare_standalone(const void *, const void *);
 // prototype for non-class function
 static int compare_standalone(const int, const int, void *);
 #endif
-
-enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 
 #define BUFFACTOR 1.5
 #define BUFMIN 1000
@@ -222,7 +220,7 @@ int Irregular::migrate_check()
   // migrate required if comm layout is tiled
   // cannot use myloc[] logic below
 
-  if (comm->layout == LAYOUT_TILED) return 1;
+  if (comm->layout == Comm::LAYOUT_TILED) return 1;
 
   // subbox bounds for orthogonal or triclinic box
 

@@ -187,14 +187,6 @@ class PairTableKokkos : public PairTable {
 
 /* ERROR/WARNING messages:
 
-E: Pair distance < table inner cutoff
-
-Two atoms are closer together than the pairwise table allows.
-
-E: Pair distance > table outer cutoff
-
-Two atoms are further apart than the pairwise table allows.
-
 E: Illegal ... command
 
 Self-explanatory.  Check the input script syntax and compare to the
@@ -209,54 +201,62 @@ E: Illegal number of pair table entries
 
 There must be at least 2 table entries.
 
-E: Invalid pair table length
-
-Length of read-in pair table is invalid
-
-E: Invalid pair table cutoff
-
-Cutoffs in pair_coeff command are not valid with read-in pair table.
-
-E: Bitmapped table in file does not match requested table
-
-Setting for bitmapped table in pair_coeff command must match table
-in file exactly.
-
 E: All pair coeffs are not set
 
 All pair coefficients must be set in the data file or by the
 pair_coeff command before running a simulation.
 
-E: Cannot open file %s
+E: Cannot use chosen neighbor list style with lj/cut/kk
+
+That style is not supported by Kokkos.
+
+U: Pair distance < table inner cutoff
+
+Two atoms are closer together than the pairwise table allows.
+
+U: Pair distance > table outer cutoff
+
+Two atoms are further apart than the pairwise table allows.
+
+U: Invalid pair table length
+
+Length of read-in pair table is invalid
+
+U: Invalid pair table cutoff
+
+Cutoffs in pair_coeff command are not valid with read-in pair table.
+
+U: Bitmapped table in file does not match requested table
+
+Setting for bitmapped table in pair_coeff command must match table
+in file exactly.
+
+U: Cannot open file %s
 
 The specified file cannot be opened.  Check that the path and name are
 correct. If the file is a compressed file, also check that the gzip
 executable can be found and run.
 
-E: Did not find keyword in table file
+U: Did not find keyword in table file
 
 Keyword used in pair_coeff command was not found in table file.
 
-E: Bitmapped table is incorrect length in table file
+U: Bitmapped table is incorrect length in table file
 
 Number of table entries is not a correct power of 2.
 
-E: Invalid keyword in pair table parameters
+U: Invalid keyword in pair table parameters
 
 Keyword used in list of table parameters is not recognized.
 
-E: Pair table parameters did not set N
+U: Pair table parameters did not set N
 
 List of pair table parameters must include N setting.
 
-E: Pair table cutoffs must all be equal to use with KSpace
+U: Pair table cutoffs must all be equal to use with KSpace
 
 When using pair style table with a long-range KSpace solver, the
 cutoffs for all atom type pairs must all be the same, since the
 long-range solver starts at that cutoff.
-
-E: Cannot use chosen neighbor list style with lj/cut/kk
-
-That style is not supported by Kokkos.
 
 */

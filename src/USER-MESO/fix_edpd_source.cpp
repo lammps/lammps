@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include "fix_edpd_source.h"
 #include "atom.h"
 #include "comm.h"
@@ -112,7 +112,7 @@ void FixEDPDSource::post_force(int vflag)
         drx = x[i][0] - center[0];
         dry = x[i][1] - center[1];
         drz = x[i][2] - center[2];
-        if(abs(drx) <= 0.5*dLx && abs(dry) <= 0.5*dLy && abs(drz) <= 0.5*dLz)
+        if(fabs(drx) <= 0.5*dLx && fabs(dry) <= 0.5*dLy && fabs(drz) <= 0.5*dLz)
           edpd_flux[i] += value*edpd_cv[i];
       }
     }

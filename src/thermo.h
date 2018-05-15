@@ -33,6 +33,8 @@ class Thermo : protected Pointers {
   int lostflag;          // IGNORE,WARN,ERROR
   int lostbond;          // ditto for atoms in bonds
 
+  enum {IGNORE,WARN,ERROR};
+
   Thermo(class LAMMPS *, int, char **);
   ~Thermo();
   void init();
@@ -357,9 +359,13 @@ E: Thermo custom variable is not equal-style variable
 Only equal-style variables can be output with thermodynamics, not
 atom-style variables.
 
-E: Thermo custom variable cannot be indexed
+E: Thermo custom variable is not vector-style variable
 
-Self-explanatory.
+UNDOCUMENTED
+
+E: Thermo custom variable cannot have two indices
+
+UNDOCUMENTED
 
 E: Unknown keyword in thermo_style custom command
 
@@ -401,5 +407,9 @@ E: Energy was not tallied on needed timestep
 You are using a thermo keyword that requires potentials to
 have tallied energy, but they didn't on this timestep.  See the
 variable doc page for ideas on how to make this work.
+
+U: Thermo custom variable cannot be indexed
+
+Self-explanatory.
 
 */

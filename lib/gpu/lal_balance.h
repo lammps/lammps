@@ -17,7 +17,7 @@
 #define LAL_BALANCE_H
 
 #include "lal_device.h"
-#include <math.h>
+#include <cmath>
 
 #define _HD_BALANCE_EVERY 25
 #define _HD_BALANCE_WEIGHT 0.5

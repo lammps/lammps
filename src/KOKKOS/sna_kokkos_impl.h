@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #include "sna_kokkos.h"
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstring>
+#include <cstdlib>
 
 using namespace LAMMPS_NS;
 

@@ -16,11 +16,12 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 #include "fix_mscg.h"
 #include "mscg.h"
 #include "atom.h"
+#include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
@@ -284,11 +285,9 @@ void FixMSCG::end_of_step()
   if (domain->triclinic == 1)
     error->all(FLERR,"Fix mscg does not yet support triclinic geometries");
 
-  int natoms = atom->natoms;
   int nlocal = atom->nlocal;
   tagint *tag = atom->tag;
   double **x = atom->x;
-  double *prd_half = domain->prd_half;
   int i,ii,j;
 
   // trajectory information

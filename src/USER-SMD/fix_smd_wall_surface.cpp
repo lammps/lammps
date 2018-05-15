@@ -15,7 +15,10 @@
    Contributing authors: Mike Parks (SNL), Ezwanur Rahman, J.T. Foster (UTSA)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
+#include <cmath>
+#include <cstring>
+#include <cstdio>
+#include <Eigen/Eigen>
 #include "fix_smd_wall_surface.h"
 #include "atom.h"
 #include "domain.h"
@@ -29,10 +32,7 @@
 #include "lattice.h"
 #include "memory.h"
 #include "error.h"
-#include <Eigen/Eigen>
-#include <stdio.h>
 #include "atom_vec.h"
-#include <string.h>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -40,10 +40,6 @@ using namespace Eigen;
 using namespace std;
 #define DELTA 16384
 #define EPSILON 1.0e-6
-enum {
-        LAYOUT_UNIFORM, LAYOUT_NONUNIFORM, LAYOUT_TILED
-};
-// several files
 
 /* ---------------------------------------------------------------------- */
 
@@ -151,7 +147,7 @@ void FixSMDWallSurface::setup(int vflag) {
                 subhi[2] = domain->subhi_lamda[2];
         }
 
-        if (comm->layout != LAYOUT_TILED) {
+        if (comm->layout != Comm::LAYOUT_TILED) {
                 if (domain->xperiodic) {
                         if (comm->myloc[0] == 0)
                                 sublo[0] -= epsilon[0];

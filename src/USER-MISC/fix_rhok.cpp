@@ -13,10 +13,10 @@
    Contributing author: Ulf R. Pedersen, ulf@urp.dk
 ------------------------------------------------------------------------- */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <cmath>
 
 #include "fix_rhok.h"
 #include "atom.h"

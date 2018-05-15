@@ -34,6 +34,8 @@ written to {filename} on timesteps that are multiples of {Nevery},
 including timestep 0.  For time-averaged chemical species analysis,
 please see the "fix reaxc/c/species"_fix_reaxc_species.html command.
 
+The specified group-ID is ignored by this fix.
+
 The format of the output file should be reasonably self-explanatory.
 The meaning of the column header abbreviations is as follows:
 

@@ -16,9 +16,10 @@
    Email: zhen_li@brown.edu
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
 #include "pair_tdpd.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -31,7 +32,6 @@
 #include "citeme.h"
 #include "memory.h"
 #include "error.h"
-#include <time.h>
 
 using namespace LAMMPS_NS;
 
@@ -280,7 +280,9 @@ void PairTDPD::coeff(int narg, char **arg)
   double power_one = force->numeric(FLERR,arg[4]);
   double cut_one   = force->numeric(FLERR,arg[5]);
   double cutcc_one = force->numeric(FLERR,arg[6]);
-  double kappa_one[cc_species],epsilon_one[cc_species],powercc_one[cc_species];
+  double *kappa_one = new double[cc_species];
+  double *epsilon_one = new double[cc_species];
+  double *powercc_one = new double[cc_species];
   for(int k=0; k<cc_species; k++) {
     kappa_one[k]   = force->numeric(FLERR,arg[7+3*k]);
     epsilon_one[k] = force->numeric(FLERR,arg[8+3*k]);
@@ -304,6 +306,9 @@ void PairTDPD::coeff(int narg, char **arg)
     setflag[i][j] = 1;
     count++;
   }
+  delete[] kappa_one;
+  delete[] epsilon_one;
+  delete[] powercc_one;
 
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }

@@ -16,10 +16,10 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstring>
+#include <cstdio>
+#include <cstdlib>
+#include <cmath>
 #include "ewald_disp.h"
 #include "math_vector.h"
 #include "math_const.h"
@@ -38,8 +38,6 @@ using namespace MathConst;
 using namespace MathSpecial;
 
 #define SMALL 0.00001
-
-enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};   // same as in pair.h
 
 //#define DEBUG
 
@@ -116,7 +114,7 @@ void EwaldDisp::init()
   if (!(ptr||cutoff))
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   int ewald_order = ptr ? *((int *) ptr) : 1<<1;
-  int ewald_mix = ptr ? *((int *) pair->extract("ewald_mix",tmp)) : GEOMETRIC;
+  int ewald_mix = ptr ? *((int *) pair->extract("ewald_mix",tmp)) : Pair::GEOMETRIC;
   memset(function, 0, EWALD_NFUNCS*sizeof(int));
   for (int i=0; i<=EWALD_NORDER; ++i)                        // transcribe order
     if (ewald_order&(1<<i)) {                                // from pair_style
@@ -127,8 +125,8 @@ void EwaldDisp::init()
         case 3:
           k = 3; break;
         case 6:
-          if (ewald_mix==GEOMETRIC) { k = 1; break; }
-          else if (ewald_mix==ARITHMETIC) { k = 2; break; }
+          if (ewald_mix==Pair::GEOMETRIC) { k = 1; break; }
+          else if (ewald_mix==Pair::ARITHMETIC) { k = 2; break; }
           error->all(FLERR,
                      "Unsupported mixing rule in kspace_style ewald/disp");
         default:

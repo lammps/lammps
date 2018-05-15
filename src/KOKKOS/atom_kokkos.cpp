@@ -119,7 +119,7 @@ void AtomKokkos::allocate_type_arrays()
 {
   if (avec->mass_type) {
     k_mass = DAT::tdual_float_1d("Mass",ntypes+1);
-    mass = k_mass.h_view.ptr_on_device();
+    mass = k_mass.h_view.data();
     mass_setflag = new int[ntypes+1];
     for (int itype = 1; itype <= ntypes; itype++) mass_setflag[itype] = 0;
     k_mass.modify<LMPHostType>();

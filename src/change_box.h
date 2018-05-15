@@ -117,6 +117,10 @@ This is because those fixes store the shape of the box.  You need to
 use unfix to discard the fix, change the box, then redefine a new
 fix.
 
+W: Attempting to remap atoms in rigid bodies
+
+UNDOCUMENTED
+
 W: Lost atoms via change_box: original %ld current %ld
 
 The command options you have used caused atoms to be lost.

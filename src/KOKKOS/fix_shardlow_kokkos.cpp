@@ -33,9 +33,9 @@
    135, 204105.
 ------------------------------------------------------------------------- */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "fix_shardlow_kokkos.h"
 #include "atom.h"
 #include "atom_masks.h"
@@ -44,7 +44,7 @@
 #include "update.h"
 #include "respa.h"
 #include "error.h"
-#include <math.h>
+#include <cmath>
 #include "atom_vec.h"
 #include "comm.h"
 #include "neighbor.h"
@@ -602,9 +602,9 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int vflag)
   auto h_ssa_phaseLen = np_ssa->k_ssa_phaseLen.h_view;
   auto h_ssa_gphaseLen = np_ssa->k_ssa_gphaseLen.h_view;
 
-  int maxWorkItemCt = (int) ssa_itemLoc.dimension_1();
-  if (maxWorkItemCt < (int) ssa_gitemLoc.dimension_1()) {
-    maxWorkItemCt = (int) ssa_gitemLoc.dimension_1();
+  int maxWorkItemCt = (int) ssa_itemLoc.extent(1);
+  if (maxWorkItemCt < (int) ssa_gitemLoc.extent(1)) {
+    maxWorkItemCt = (int) ssa_gitemLoc.extent(1);
   }
   if (maxWorkItemCt > maxRNG) {
     es_RNG_t serial_rand_state;

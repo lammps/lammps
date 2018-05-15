@@ -16,10 +16,10 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstring>
+#include <cstdio>
+#include <cstdlib>
 #include "comm_brick.h"
 #include "comm_tiled.h"
 #include "universe.h"
@@ -46,9 +46,6 @@ using namespace LAMMPS_NS;
 #define BUFEXTRA 1000
 #define BIG 1.0e20
 
-enum{SINGLE,MULTI};               // same as in Comm
-enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
-
 /* ---------------------------------------------------------------------- */
 
 CommBrick::CommBrick(LAMMPS *lmp) :
@@ -61,7 +58,7 @@ CommBrick::CommBrick(LAMMPS *lmp) :
   sendlist(NULL), maxsendlist(NULL), buf_send(NULL), buf_recv(NULL)
 {
   style = 0;
-  layout = LAYOUT_UNIFORM;
+  layout = Comm::LAYOUT_UNIFORM;
   pbc_flag = NULL;
   init_buffers();
 }
@@ -71,7 +68,7 @@ CommBrick::CommBrick(LAMMPS *lmp) :
 CommBrick::~CommBrick()
 {
   free_swap();
-  if (mode == MULTI) {
+  if (mode == Comm::MULTI) {
     free_multi();
     memory->destroy(cutghostmulti);
   }
@@ -93,7 +90,7 @@ CommBrick::~CommBrick()
 
 CommBrick::CommBrick(LAMMPS *lmp, Comm *oldcomm) : Comm(*oldcomm)
 {
-  if (oldcomm->layout == LAYOUT_TILED)
+  if (oldcomm->layout == Comm::LAYOUT_TILED)
     error->all(FLERR,"Cannot change to comm_style brick from tiled layout");
 
   style = 0;
@@ -144,11 +141,11 @@ void CommBrick::init()
 
   // memory for multi-style communication
 
-  if (mode == MULTI && multilo == NULL) {
+  if (mode == Comm::MULTI && multilo == NULL) {
     allocate_multi(maxswap);
     memory->create(cutghostmulti,atom->ntypes+1,3,"comm:cutghostmulti");
   }
-  if (mode == SINGLE && multilo) {
+  if (mode == Comm::SINGLE && multilo) {
     free_multi();
     memory->destroy(cutghostmulti);
   }
@@ -184,7 +181,7 @@ void CommBrick::setup()
     subhi = domain->subhi;
     cutghost[0] = cutghost[1] = cutghost[2] = cut;
 
-    if (mode == MULTI) {
+    if (mode == Comm::MULTI) {
       double *cuttype = neighbor->cuttype;
       for (i = 1; i <= ntypes; i++) {
         cut = 0.0;
@@ -208,7 +205,7 @@ void CommBrick::setup()
     length2 = h_inv[2];
     cutghost[2] = cut * length2;
 
-    if (mode == MULTI) {
+    if (mode == Comm::MULTI) {
       double *cuttype = neighbor->cuttype;
       for (i = 1; i <= ntypes; i++) {
         cut = 0.0;
@@ -240,7 +237,7 @@ void CommBrick::setup()
   int *periodicity = domain->periodicity;
   int left,right;
 
-  if (layout == LAYOUT_UNIFORM) {
+  if (layout == Comm::LAYOUT_UNIFORM) {
     maxneed[0] = static_cast<int> (cutghost[0] * procgrid[0] / prd[0]) + 1;
     maxneed[1] = static_cast<int> (cutghost[1] * procgrid[1] / prd[1]) + 1;
     maxneed[2] = static_cast<int> (cutghost[2] * procgrid[2] / prd[2]) + 1;
@@ -357,7 +354,7 @@ void CommBrick::setup()
       if (ineed % 2 == 0) {
         sendproc[iswap] = procneigh[dim][0];
         recvproc[iswap] = procneigh[dim][1];
-        if (mode == SINGLE) {
+        if (mode == Comm::SINGLE) {
           if (ineed < 2) slablo[iswap] = -BIG;
           else slablo[iswap] = 0.5 * (sublo[dim] + subhi[dim]);
           slabhi[iswap] = sublo[dim] + cutghost[dim];
@@ -380,7 +377,7 @@ void CommBrick::setup()
       } else {
         sendproc[iswap] = procneigh[dim][1];
         recvproc[iswap] = procneigh[dim][0];
-        if (mode == SINGLE) {
+        if (mode == Comm::SINGLE) {
           slablo[iswap] = subhi[dim] - cutghost[dim];
           if (ineed < 2) slabhi[iswap] = BIG;
           else slabhi[iswap] = 0.5 * (sublo[dim] + subhi[dim]);
@@ -737,7 +734,7 @@ void CommBrick::borders()
       // store sent atom indices in sendlist for use in future timesteps
 
       x = atom->x;
-      if (mode == SINGLE) {
+      if (mode == Comm::SINGLE) {
         lo = slablo[iswap];
         hi = slabhi[iswap];
       } else {
@@ -766,7 +763,7 @@ void CommBrick::borders()
 
       if (sendflag) {
         if (!bordergroup || ineed >= 2) {
-          if (mode == SINGLE) {
+          if (mode == Comm::SINGLE) {
             for (i = nfirst; i < nlast; i++)
               if (x[i][dim] >= lo && x[i][dim] <= hi) {
                 if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
@@ -783,7 +780,7 @@ void CommBrick::borders()
           }
 
         } else {
-          if (mode == SINGLE) {
+          if (mode == Comm::SINGLE) {
             ngroup = atom->nfirst;
             for (i = 0; i < ngroup; i++)
               if (x[i][dim] >= lo && x[i][dim] <= hi) {
@@ -1396,7 +1393,7 @@ void CommBrick::grow_swap(int n)
 {
   free_swap();
   allocate_swap(n);
-  if (mode == MULTI) {
+  if (mode == Comm::MULTI) {
     free_multi();
     allocate_multi(n);
   }

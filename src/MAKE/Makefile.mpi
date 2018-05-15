@@ -13,7 +13,7 @@ DEPFLAGS =	-M
 
 LINK =		mpicxx
 LINKFLAGS =	-g -O
-LIB = 
+LIB = 		-L/home/jannes/anaconda2/lib -lblas -llapack
 SIZE =		size
 
 ARCHIVE =	ar

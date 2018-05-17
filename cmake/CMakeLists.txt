@@ -153,7 +153,7 @@ if(PKG_MEAM)
   enable_language(C)
 endif()
 
-if(PKG_KOKKOS OR PKG_MSCG)
+if(PKG_KOKKOS)
   # starting with CMake 3.1 this is all you have to do to enforce C++11
   set(CMAKE_CXX_STANDARD 11) # C++11...
   set(CMAKE_CXX_STANDARD_REQUIRED ON) #...is required...
@@ -397,27 +397,33 @@ if(PKG_KIM)
 endif()
 
 if(PKG_MSCG)
-  find_package(GSL REQUIRED)
-  set(LAMMPS_LIB_MSCG_BIN_DIR ${LAMMPS_LIB_BINARY_DIR}/mscg)
-  set(MSCG_TARBALL ${LAMMPS_LIB_MSCG_BIN_DIR}/MS-CG-master.zip)
-  set(LAMMPS_LIB_MSCG_BIN_DIR ${LAMMPS_LIB_MSCG_BIN_DIR}/MSCG-release-master/src)
-  if(NOT EXISTS ${LAMMPS_LIB_MSCG_BIN_DIR})
-    if(NOT EXISTS ${MSCG_TARBALL})
-      message(STATUS "Downloading ${MSCG_TARBALL}")
-      file(DOWNLOAD
-        https://github.com/uchicago-voth/MSCG-release/archive/master.zip
-        ${MSCG_TARBALL} SHOW_PROGRESS) #EXPECTED_MD5 cannot be due due to master
+  option(DOWNLOAD_MSCG "Download latte (instead of using the system's one)" OFF)
+  if(DOWNLOAD_MSCG)
+    include(ExternalProject)
+    if(NOT LAPACK_FOUND)
+      set(EXTRA_MSCG_OPTS "-DLAPACK_LIBRARIES=${CMAKE_CURRENT_BINARY_DIR}/liblinalg.a")
     endif()
-    message(STATUS "Unpacking ${MSCG_TARBALL}")
-    execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ${MSCG_TARBALL}
-      WORKING_DIRECTORY ${LAMMPS_LIB_BINARY_DIR}/mscg)
+    ExternalProject_Add(mscg_build
+      URL https://github.com//uchicago-voth/MSCG-release/archive/1.7.3.1.tar.gz
+      URL_MD5 8c45e269ee13f60b303edd7823866a91
+      SOURCE_SUBDIR src/CMake
+      CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> -DCMAKE_POSITION_INDEPENDENT_CODE=${CMAKE_POSITION_INDEPENDENT_CODE} ${EXTRA_MSCG_OPTS}
+      )
+    ExternalProject_get_property(mscg_build INSTALL_DIR)
+    set(MSCG_LIBRARIES ${INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/libmxcg.a)
+    set(MSCG_INCLUDE_DIRS ${INSTALL_DIR}/include)
+    list(APPEND LAMMPS_DEPS mscg_build)
+    if(NOT LAPACK_FOUND)
+      add_dependencies(mscg_build linalg)
+    endif()
+  else()
+    find_package(MSCG)
+    if(NOT MSCG_FOUND)
+      message(FATAL_ERROR "MSCG not found, help CMake to find it by setting MSCG_LIBRARY and MSCG_INCLUDE_DIRS, or set DOWNLOAD_MSCG=ON to download it")
+    endif()
   endif()
-  file(GLOB MSCG_SOURCES ${LAMMPS_LIB_MSCG_BIN_DIR}/*.cpp)
-  add_library(mscg STATIC ${MSCG_SOURCES})
-  list(APPEND LAMMPS_LINK_LIBS mscg)
-  target_compile_options(mscg PRIVATE -DDIMENSION=3 -D_exclude_gromacs=1)
-  target_include_directories(mscg PUBLIC ${LAMMPS_LIB_MSCG_BIN_DIR})
-  target_link_libraries(mscg ${GSL_LIBRARIES} ${LAPACK_LIBRARIES})
+  list(APPEND LAMMPS_LINK_LIBS ${MSCG_LIBRARIES})
+  include_directories(${MSCG_INCLUDE_DIRS})
 endif()
 
 if(PKG_COMPRESS)

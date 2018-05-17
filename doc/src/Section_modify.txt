@@ -8,7 +8,7 @@ Section"_Section_python.html :c
 
 :line
 
-10. Modifying & extending LAMMPS :h3
+10. Modifying & extending LAMMPS :h2
 
 This section describes how to customize LAMMPS by modifying
 and extending its source code.

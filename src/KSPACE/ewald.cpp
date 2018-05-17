@@ -19,10 +19,10 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
+#include <cmath>
 #include "ewald.h"
 #include "atom.h"
 #include "comm.h"
@@ -53,7 +53,7 @@ Ewald::Ewald(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg),
 
   ewaldflag = 1;
   group_group_enable = 1;
-  
+
   accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
 
   kmax = 0;

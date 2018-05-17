@@ -16,10 +16,10 @@
                          Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_vashishta.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -65,7 +65,7 @@ PairVashishta::PairVashishta(LAMMPS *lmp) : Pair(lmp)
 PairVashishta::~PairVashishta()
 {
   if (copymode) return;
-  
+
   if (elements)
     for (int i = 0; i < nelements; i++) delete [] elements[i];
   delete [] elements;
@@ -170,7 +170,7 @@ void PairVashishta::compute(int eflag, int vflag)
       f[j][2] -= delz*fpair;
 
       if (evflag) ev_tally(i,j,nlocal,newton_pair,
-      			   evdwl,0.0,fpair,delx,dely,delz);
+                           evdwl,0.0,fpair,delx,dely,delz);
     }
 
     jnumm1 = numshort - 1;
@@ -585,12 +585,12 @@ void PairVashishta::twobody(Param *param, double rsq, double &fforce,
   vc3 = param->mbigd * r4inv*exp(-lam4r);
 
   fforce = (param->dvrc*r
-	    - (4.0*vc3 + lam4r*vc3+param->big6w*r6inv
-	       - param->heta*reta - vc2 - lam1r*vc2)
-	    ) * rinvsq;
+            - (4.0*vc3 + lam4r*vc3+param->big6w*r6inv
+               - param->heta*reta - vc2 - lam1r*vc2)
+            ) * rinvsq;
   if (eflag) eng = param->bigh*reta
-	       + vc2 - vc3 - param->bigw*r6inv
-	       - r*param->dvrc + param->c0;
+               + vc2 - vc3 - param->bigw*r6inv
+               - r*param->dvrc + param->c0;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -14,7 +14,7 @@
 #ifndef LMP_MERGESORT
 #define LMP_MERGESORT
 
-#include <string.h>
+#include <cstring>
 
 // custom hybrid upward merge sort implementation with support to pass
 // an opaque pointer to the comparison function, e.g. for access to

@@ -21,8 +21,8 @@
 
 #include "lmptype.h"
 #include <mpi.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 #include "read_dump.h"
 #include "reader.h"
 #include "style_reader.h"
@@ -50,6 +50,7 @@ using namespace LAMMPS_NS;
 
 enum{ID,TYPE,X,Y,Z,VX,VY,VZ,Q,IX,IY,IZ,FX,FY,FZ};
 enum{UNSET,NOSCALE_NOWRAP,NOSCALE_WRAP,SCALE_NOWRAP,SCALE_WRAP};
+enum{NOADD,YESADD,KEEPADD};
 
 /* ---------------------------------------------------------------------- */
 
@@ -366,7 +367,7 @@ void ReadDump::header(int fieldinfo)
   // triclinic_snap < 0 means no box info in file
 
   if (triclinic_snap < 0 && boxflag > 0)
-    error->all(FLERR,"No box information in dump. You have to use 'box no'");
+    error->all(FLERR,"No box information in dump, must use 'box no'");
   if (triclinic_snap >= 0) {
     if ((triclinic_snap && !triclinic) ||
         (!triclinic_snap && triclinic))
@@ -479,9 +480,9 @@ void ReadDump::atoms()
     nread += nchunk;
   }
 
-  // if addflag set, add tags to new atoms if possible
+  // if addflag = YESADD, assign IDs to new snapshot atoms
 
-  if (addflag) {
+  if (addflag == YESADD) {
     bigint nblocal = atom->nlocal;
     MPI_Allreduce(&nblocal,&atom->natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
     if (atom->natoms < 0 || atom->natoms >= MAXBIGINT)
@@ -576,13 +577,14 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
   fieldlabel = new char*[narg+2];
 
   // add id and type fields as needed
-  // scan ahead to see if "add yes" keyword/value is used
+  // scan ahead to see if "add yes/keep" keyword/value is used
   // requires extra "type" field from from dump file
 
   int iarg;
   for (iarg = 0; iarg < narg; iarg++)
     if (strcmp(arg[iarg],"add") == 0)
-      if (iarg < narg-1 && strcmp(arg[iarg+1],"yes") == 0) break;
+      if (iarg < narg-1 && (strcmp(arg[iarg+1],"yes") == 0 ||
+                            strcmp(arg[iarg+1],"keep") == 0)) break;
 
   nfield = 0;
   fieldtype[nfield++] = ID;
@@ -607,7 +609,7 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
 
   if (dimension == 2) {
     for (int i = 0; i < nfield; i++)
-      if (fieldtype[i] == Z || fieldtype[i] == VZ || 
+      if (fieldtype[i] == Z || fieldtype[i] == VZ ||
           fieldtype[i] == IZ || fieldtype[i] == FZ)
         error->all(FLERR,"Illegal read_dump command");
   }
@@ -623,7 +625,7 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
   replaceflag = 1;
   purgeflag = 0;
   trimflag = 0;
-  addflag = 0;
+  addflag = NOADD;
   for (int i = 0; i < nfield; i++) fieldlabel[i] = NULL;
   scaleflag = 0;
   wrapflag = 1;
@@ -655,8 +657,9 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"add") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
-      if (strcmp(arg[iarg+1],"yes") == 0) addflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) addflag = 0;
+      if (strcmp(arg[iarg+1],"yes") == 0) addflag = YESADD;
+      else if (strcmp(arg[iarg+1],"no") == 0) addflag = NOADD;
+      else if (strcmp(arg[iarg+1],"keep") == 0) addflag = KEEPADD;
       else error->all(FLERR,"Illegal read_dump command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"label") == 0) {
@@ -695,6 +698,8 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
 
   if (purgeflag && (replaceflag || trimflag))
     error->all(FLERR,"If read_dump purges it cannot replace or trim");
+  if (addflag == KEEPADD && atom->tag_enable == 0)
+    error->all(FLERR,"Read_dump cannot use 'add keep' without atom IDs");
 
   return narg-iarg;
 }
@@ -740,12 +745,13 @@ void ReadDump::process_atoms(int n)
 {
   int i,m,ifield,itype;
   int xbox,ybox,zbox;
-  tagint tag;
+  tagint mtag;
 
   double **x = atom->x;
   double **v = atom->v;
   double *q = atom->q;
   double **f = atom->f;
+  tagint *tag = atom->tag;
   imageint *image = atom->image;
   int nlocal = atom->nlocal;
   tagint map_tag_max = atom->map_tag_max;
@@ -758,8 +764,8 @@ void ReadDump::process_atoms(int n)
     // NOTE: atom ID in fields is stored as double, not as ubuf
     //       so can only cast it to tagint, thus cannot be full 64-bit ID
 
-    tag = static_cast<tagint> (fields[i][0]);
-    if (tag <= map_tag_max) m = atom->map(tag);
+    mtag = static_cast<tagint> (fields[i][0]);
+    if (mtag <= map_tag_max) m = atom->map(mtag);
     else m = -1;
     if (m < 0 || m >= nlocal) continue;
 
@@ -835,8 +841,15 @@ void ReadDump::process_atoms(int n)
   // create any atoms in chunk that no processor owned
   // add atoms in round-robin sequence on processors
   // cannot do it geometrically b/c dump coords may not be in simulation box
+  // check that dump file snapshot has atom type field
 
-  if (!addflag) return;
+  if (addflag == NOADD) return;
+
+  int tflag = 0;
+  for (ifield = 0; ifield < nfield; ifield++)
+    if (fieldtype[ifield] == TYPE) tflag = 1;
+  if (!tflag)
+    error->all(FLERR,"Cannot add atoms if dump file does not store atom type");
 
   MPI_Allreduce(ucflag,ucflag_all,n,MPI_INT,MPI_SUM,world);
 
@@ -881,6 +894,7 @@ void ReadDump::process_atoms(int n)
     atom->avec->create_atom(itype,one);
     nadd++;
 
+    tag = atom->tag;
     v = atom->v;
     q = atom->q;
     image = atom->image;
@@ -889,8 +903,12 @@ void ReadDump::process_atoms(int n)
 
     xbox = ybox = zbox = 0;
 
-    for (ifield = 1; ifield < nfield; ifield++) {
+    for (ifield = 0; ifield < nfield; ifield++) {
       switch (fieldtype[ifield]) {
+      case ID:
+        if (addflag == KEEPADD)
+          tag[m] = static_cast<tagint> (fields[i][ifield]);
+        break;
       case VX:
         v[m][0] = fields[i][ifield];
         break;
@@ -923,7 +941,7 @@ void ReadDump::process_atoms(int n)
   }
 
   // init per-atom fix/compute/variable values for created atoms
-  
+
   atom->data_fix_compute_variable(nlocal_previous,atom->nlocal);
 }
 

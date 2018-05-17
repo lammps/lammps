@@ -32,7 +32,7 @@ class FixWallGranRegion : public FixWallGran {
   void write_restart(FILE *);
   void restart(char* );
   void init();
-    
+
   double memory_usage();
   void grow_arrays(int);
   void copy_arrays(int, int, int);
@@ -48,17 +48,17 @@ class FixWallGranRegion : public FixWallGran {
   class Region *region;
   char *region_style;
   int nregion;
-  
+
   // shear history for multiple contacts per particle
 
-  int tmax;              // max # of region walls one particle can touch 
+  int tmax;              // max # of region walls one particle can touch
   int *ncontact;         // # of shear contacts per particle
   int **walls;           // which wall each contact is with
   double ***shearmany;   // shear history per particle per contact
   int *c2r;              // contact to region mapping
                          // c2r[i] = index of Ith contact in
                          //   region-contact[] list of contacts
-  int motion_resetflag;  // used by restart to indicate that region 
+  int motion_resetflag;  // used by restart to indicate that region
                          //    vel info is to be reset
 
   void update_contacts(int, int);
@@ -71,33 +71,49 @@ class FixWallGranRegion : public FixWallGran {
 
 /* ERROR/WARNING messages:
 
-E: Illegal ... command
+E: Region ID for fix wall/gran/region does not exist
+
+UNDOCUMENTED
+
+W: Region properties for region %s changed between runs, resetting its motion
+
+UNDOCUMENTED
+
+W: Region properties for region %s are inconsistent with restart file, resetting its motion
+
+UNDOCUMENTED
+
+E: Too many wall/gran/region contacts for one particle
+
+UNDOCUMENTED
+
+U: Illegal ... command
 
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Fix wall/gran requires atom style sphere
+U: Fix wall/gran requires atom style sphere
 
 Self-explanatory.
 
-E: Cannot use wall in periodic dimension
+U: Cannot use wall in periodic dimension
 
 Self-explanatory.
 
-E: Cannot wiggle and shear fix wall/gran
+U: Cannot wiggle and shear fix wall/gran
 
 Cannot specify both options at the same time.
 
-E: Invalid wiggle direction for fix wall/gran
+U: Invalid wiggle direction for fix wall/gran
 
 Self-explanatory.
 
-E: Invalid shear direction for fix wall/gran
+U: Invalid shear direction for fix wall/gran
 
 Self-explanatory.
 
-E: Fix wall/gran is incompatible with Pair style
+U: Fix wall/gran is incompatible with Pair style
 
 Must use a granular pair style to define the parameters needed for
 this fix.

@@ -375,16 +375,20 @@ MEAM::phi_meam(double r, int a, int b)
   if (this->lattce_meam[a][b] == C11) {
     latta = this->lattce_meam[a][a];
     if (latta == DIA) {
-      rhobar1 = pow(((Z12 / 2) * (rho02 + rho01)), 2) + t11av * pow((rho12 - rho11), 2) +
-                t21av / 6.0 * pow(rho22 + rho21, 2) + 121.0 / 40.0 * t31av * pow((rho32 - rho31), 2);
+      rhobar1 = MathSpecial::square((Z12 / 2) * (rho02 + rho01))
+                + t11av * MathSpecial::square(rho12 - rho11)
+                + t21av / 6.0 * MathSpecial::square(rho22 + rho21)
+                + 121.0 / 40.0 * t31av * MathSpecial::square(rho32 - rho31);
       rhobar1 = sqrt(rhobar1);
-      rhobar2 = pow(Z12 * rho01, 2) + 2.0 / 3.0 * t21av * pow(rho21, 2);
+      rhobar2 = MathSpecial::square(Z12 * rho01) + 2.0 / 3.0 * t21av * MathSpecial::square(rho21);
       rhobar2 = sqrt(rhobar2);
     } else {
-      rhobar2 = pow(((Z12 / 2) * (rho01 + rho02)), 2) + t12av * pow((rho11 - rho12), 2) +
-                t22av / 6.0 * pow(rho21 + rho22, 2) + 121.0 / 40.0 * t32av * pow((rho31 - rho32), 2);
+      rhobar2 = MathSpecial::square((Z12 / 2) * (rho01 + rho02))
+                + t12av * MathSpecial::square(rho11 - rho12)
+                + t22av / 6.0 * MathSpecial::square(rho21 + rho22)
+                + 121.0 / 40.0 * t32av * MathSpecial::square(rho31 - rho32);
       rhobar2 = sqrt(rhobar2);
-      rhobar1 = pow(Z12 * rho02, 2) + 2.0 / 3.0 * t22av * pow(rho22, 2);
+      rhobar1 = MathSpecial::square(Z12 * rho02) + 2.0 / 3.0 * t22av * MathSpecial::square(rho22);
       rhobar1 = sqrt(rhobar1);
     }
   } else {
@@ -560,31 +564,29 @@ MEAM::get_tavref(double* t11av, double* t21av, double* t31av, double* t12av, dou
     *t12av = t12;
     *t22av = t22;
     *t32av = t32;
+  } else if (latt == FCC || latt == BCC || latt == DIA || latt == HCP || latt == B1 || latt == DIM || latt == B2) {
+    //     all neighbors are of the opposite type
+    *t11av = t12;
+    *t21av = t22;
+    *t31av = t32;
+    *t12av = t11;
+    *t22av = t21;
+    *t32av = t31;
   } else {
-    if (latt == FCC || latt == BCC || latt == DIA || latt == HCP || latt == B1 || latt == DIM || latt == B2) {
-      //     all neighbors are of the opposite type
-      *t11av = t12;
-      *t21av = t22;
-      *t31av = t32;
+    a1 = r / this->re_meam[a][a] - 1.0;
+    a2 = r / this->re_meam[b][b] - 1.0;
+    rhoa01 = this->rho0_meam[a] * MathSpecial::fm_exp(-this->beta0_meam[a] * a1);
+    rhoa02 = this->rho0_meam[b] * MathSpecial::fm_exp(-this->beta0_meam[b] * a2);
+    if (latt == L12) {
+      rho01 = 8 * rhoa01 + 4 * rhoa02;
+      *t11av = (8 * t11 * rhoa01 + 4 * t12 * rhoa02) / rho01;
       *t12av = t11;
+      *t21av = (8 * t21 * rhoa01 + 4 * t22 * rhoa02) / rho01;
       *t22av = t21;
+      *t31av = (8 * t31 * rhoa01 + 4 * t32 * rhoa02) / rho01;
       *t32av = t31;
     } else {
-      a1 = r / this->re_meam[a][a] - 1.0;
-      a2 = r / this->re_meam[b][b] - 1.0;
-      rhoa01 = this->rho0_meam[a] * MathSpecial::fm_exp(-this->beta0_meam[a] * a1);
-      rhoa02 = this->rho0_meam[b] * MathSpecial::fm_exp(-this->beta0_meam[b] * a2);
-      if (latt == L12) {
-        rho01 = 8 * rhoa01 + 4 * rhoa02;
-        *t11av = (8 * t11 * rhoa01 + 4 * t12 * rhoa02) / rho01;
-        *t12av = t11;
-        *t21av = (8 * t21 * rhoa01 + 4 * t22 * rhoa02) / rho01;
-        *t22av = t21;
-        *t31av = (8 * t31 * rhoa01 + 4 * t32 * rhoa02) / rho01;
-        *t32av = t31;
-      } else {
-        //      call error('Lattice not defined in get_tavref.')
-      }
+      //      call error('Lattice not defined in get_tavref.')
     }
   }
 }
@@ -677,8 +679,8 @@ MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, double* 
     *rho01 = 8 * rhoa01 + 4 * rhoa02;
     *rho02 = 12 * rhoa01;
     if (this->ialloy == 1) {
-      *rho21 = 8. / 3. * pow(rhoa21 * this->t2_meam[a] - rhoa22 * this->t2_meam[b], 2);
-      denom = 8 * rhoa01 * pow(this->t2_meam[a], 2) + 4 * rhoa02 * pow(this->t2_meam[b], 2);
+      *rho21 = 8. / 3. * MathSpecial::square(rhoa21 * this->t2_meam[a] - rhoa22 * this->t2_meam[b]);
+      denom = 8 * rhoa01 * MathSpecial::square(this->t2_meam[a]) + 4 * rhoa02 * MathSpecial::square(this->t2_meam[b]);
       if (denom > 0.)
         *rho21 = *rho21 / denom * *rho01;
     } else
@@ -767,26 +769,4 @@ MEAM::interpolate_meam(int ind)
     this->phirar5[ind][j] = 2.0 * this->phirar2[ind][j] / drar;
     this->phirar6[ind][j] = 3.0 * this->phirar3[ind][j] / drar;
   }
-}
-
-//---------------------------------------------------------------------
-// Compute Rose energy function, I.16
-//
-double
-MEAM::compute_phi(double rij, int elti, int eltj)
-{
-  double pp;
-  int ind, kk;
-
-  ind = this->eltind[elti][eltj];
-  pp = rij * this->rdrar;
-  kk = (int)pp;
-  kk = std::min(kk, this->nrar - 2);
-  pp = pp - kk;
-  pp = std::min(pp, 1.0);
-  double result =
-    ((this->phirar3[ind][kk] * pp + this->phirar2[ind][kk]) * pp + this->phirar1[ind][kk]) * pp +
-    this->phirar[ind][kk];
-
-  return result;
 }

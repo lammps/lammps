@@ -15,8 +15,8 @@
    Contributing authors: Mark Stevens (SNL), Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include "respa_omp.h"
 #include "neighbor.h"
 #include "domain.h"
@@ -155,11 +155,11 @@ void RespaOMP::setup(int flag)
 #endif
       {
 #if defined(_OPENMP)
-	int tid = omp_get_thread_num();
+        int tid = omp_get_thread_num();
 #else
-	int tid = 0;
+        int tid = 0;
 #endif
-	data_reduce_thr(atom->f[0], nall, nthreads, 3, tid);
+        data_reduce_thr(atom->f[0], nall, nthreads, 3, tid);
       }
       fix->did_reduce();
     }
@@ -250,11 +250,11 @@ void RespaOMP::setup_minimal(int flag)
 #endif
       {
 #if defined(_OPENMP)
-	int tid = omp_get_thread_num();
+        int tid = omp_get_thread_num();
 #else
-	int tid = 0;
+        int tid = 0;
 #endif
-	data_reduce_thr(atom->f[0], nall, nthreads, 3, tid);
+        data_reduce_thr(atom->f[0], nall, nthreads, 3, tid);
       }
       fix->did_reduce();
     }
@@ -403,11 +403,11 @@ void RespaOMP::recurse(int ilevel)
 #endif
       {
 #if defined(_OPENMP)
-	int tid = omp_get_thread_num();
+        int tid = omp_get_thread_num();
 #else
-	int tid = 0;
+        int tid = 0;
 #endif
-	data_reduce_thr(atom->f[0], nall, nthreads, 3, tid);
+        data_reduce_thr(atom->f[0], nall, nthreads, 3, tid);
       }
       fix->did_reduce();
     }

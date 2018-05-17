@@ -14,7 +14,7 @@
 #ifndef LMP_GROUP_H
 #define LMP_GROUP_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "pointers.h"
 #include <map>
 
@@ -173,5 +173,9 @@ Self-explanatory.
 E: Group all cannot be made dynamic
 
 This operation is not allowed.
+
+E: Insufficient Jacobi rotations for group::omega
+
+UNDOCUMENTED
 
 */

@@ -29,7 +29,7 @@
 #include "modify.h"
 #include "update.h"
 
-#include <string.h>
+#include <cstring>
 
 #if defined(_OPENMP)
 #include <omp.h>
@@ -42,8 +42,8 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-enum{SINGLE,MOLECULE,GROUP};	// same as in FixRigid
-enum{ISO,ANISO,TRICLINIC};	// same as in FixRigid
+enum{SINGLE,MOLECULE,GROUP};    // same as in FixRigid
+enum{ISO,ANISO,TRICLINIC};      // same as in FixRigid
 
 #define EINERTIA 0.4            // moment of inertia prefactor for ellipsoid
 
@@ -235,29 +235,9 @@ void FixRigidNHOMP::initial_integrate(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixRigidNHOMP::final_integrate()
+void FixRigidNHOMP::compute_forces_and_torques()
 {
-  double scale_t[3],scale_r;
-
-  // compute scale variables
-
-  scale_t[0] = scale_t[1] = scale_t[2] = 1.0;
-  scale_r = 1.0;
-
-  if (tstat_flag) {
-    double tmp = exp(-1.0 * dtq * eta_dot_t[0]);
-    scale_t[0] = scale_t[1] = scale_t[2] = tmp;
-    scale_r = exp(-1.0 * dtq * eta_dot_r[0]);
-  }
-
-  if (pstat_flag) {
-    scale_t[0] *= exp(-dtq * (epsilon_dot[0] + mtk_term2));
-    scale_t[1] *= exp(-dtq * (epsilon_dot[1] + mtk_term2));
-    scale_t[2] *= exp(-dtq * (epsilon_dot[2] + mtk_term2));
-    scale_r *= exp(-dtq * (pdim * mtk_term2));
-
-    akin_t = akin_r = 0.0;
-  }
+  int ibody;
 
   double * const * _noalias const x = atom->x;
   const dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];
@@ -294,9 +274,9 @@ void FixRigidNHOMP::final_integrate()
        s5 += dx*f[i].y - dy*f[i].x;
 
        if (extended && (eflags[i] & TORQUE)) {
-	 s3 += torque_one[i][0];
-	 s4 += torque_one[i][1];
-	 s5 += torque_one[i][2];
+         s3 += torque_one[i][0];
+         s4 += torque_one[i][1];
+         s5 += torque_one[i][2];
        }
      }
      sum[0][0]=s0; sum[0][1]=s1; sum[0][2]=s2;
@@ -315,28 +295,28 @@ void FixRigidNHOMP::final_integrate()
 #pragma omp parallel for default(none) private(i) shared(ib) reduction(+:s0,s1,s2,s3,s4,s5)
 #endif
        for (i = 0; i < nlocal; i++) {
-	 const int ibody = body[i];
-	 if (ibody != ib) continue;
+         const int ibody = body[i];
+         if (ibody != ib) continue;
 
-	 s0 += f[i].x;
-	 s1 += f[i].y;
-	 s2 += f[i].z;
+         s0 += f[i].x;
+         s1 += f[i].y;
+         s2 += f[i].z;
 
-	 double unwrap[3];
-	 domain->unmap(x[i],xcmimage[i],unwrap);
-	 const double dx = unwrap[0] - xcm[ibody][0];
-	 const double dy = unwrap[1] - xcm[ibody][1];
-	 const double dz = unwrap[2] - xcm[ibody][2];
+         double unwrap[3];
+         domain->unmap(x[i],xcmimage[i],unwrap);
+         const double dx = unwrap[0] - xcm[ibody][0];
+         const double dy = unwrap[1] - xcm[ibody][1];
+         const double dz = unwrap[2] - xcm[ibody][2];
 
-	 s3 += dy*f[i].z - dz*f[i].y;
-	 s4 += dz*f[i].x - dx*f[i].z;
-	 s5 += dx*f[i].y - dy*f[i].x;
+         s3 += dy*f[i].z - dz*f[i].y;
+         s4 += dz*f[i].x - dx*f[i].z;
+         s5 += dx*f[i].y - dy*f[i].x;
 
-	 if (extended && (eflags[i] & TORQUE)) {
-	   s3 += torque_one[i][0];
-	   s4 += torque_one[i][1];
-	   s5 += torque_one[i][2];
-	 }
+         if (extended && (eflags[i] & TORQUE)) {
+           s3 += torque_one[i][0];
+           s4 += torque_one[i][1];
+           s5 += torque_one[i][2];
+         }
        }
 
        sum[ib][0]=s0; sum[ib][1]=s1; sum[ib][2]=s2;
@@ -363,31 +343,31 @@ void FixRigidNHOMP::final_integrate()
 #endif
 
        for (int i = 0; i < nlocal; i++) {
-	 const int ibody = body[i];
-	 if ((ibody < 0) || (ibody % nthreads != tid)) continue;
+         const int ibody = body[i];
+         if ((ibody < 0) || (ibody % nthreads != tid)) continue;
 
-	 double unwrap[3];
-	 domain->unmap(x[i],xcmimage[i],unwrap);
-	 const double dx = unwrap[0] - xcm[ibody][0];
-	 const double dy = unwrap[1] - xcm[ibody][1];
-	 const double dz = unwrap[2] - xcm[ibody][2];
+         double unwrap[3];
+         domain->unmap(x[i],xcmimage[i],unwrap);
+         const double dx = unwrap[0] - xcm[ibody][0];
+         const double dy = unwrap[1] - xcm[ibody][1];
+         const double dz = unwrap[2] - xcm[ibody][2];
 
-	 const double s0 = f[i].x;
-	 const double s1 = f[i].y;
-	 const double s2 = f[i].z;
+         const double s0 = f[i].x;
+         const double s1 = f[i].y;
+         const double s2 = f[i].z;
 
-	 double s3 = dy*s2 - dz*s1;
-	 double s4 = dz*s0 - dx*s2;
-	 double s5 = dx*s1 - dy*s0;
+         double s3 = dy*s2 - dz*s1;
+         double s4 = dz*s0 - dx*s2;
+         double s5 = dx*s1 - dy*s0;
 
-	 if (extended && (eflags[i] & TORQUE)) {
-	   s3 += torque_one[i][0];
-	   s4 += torque_one[i][1];
-	   s5 += torque_one[i][2];
-	 }
+         if (extended && (eflags[i] & TORQUE)) {
+           s3 += torque_one[i][0];
+           s4 += torque_one[i][1];
+           s5 += torque_one[i][2];
+         }
 
-	 sum[ibody][0] += s0; sum[ibody][1] += s1; sum[ibody][2] += s2;
-	 sum[ibody][3] += s3; sum[ibody][4] += s4; sum[ibody][5] += s5;
+         sum[ibody][0] += s0; sum[ibody][1] += s1; sum[ibody][2] += s2;
+         sum[ibody][3] += s3; sum[ibody][4] += s4; sum[ibody][5] += s5;
        }
      }
    } else
@@ -395,25 +375,59 @@ void FixRigidNHOMP::final_integrate()
 
   MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
 
-  // update vcm and angmom
-  // include Langevin thermostat forces
-  // fflag,tflag = 0 for some dimensions in 2d
-  double akt=0.0,akr=0.0;
-  const double dtf2 = dtf * 2.0;
-  int ibody;
-
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) private(ibody) shared(scale_t,scale_r) schedule(static) reduction(+:akt,akr)
+#pragma omp parallel for default(none) private(ibody) schedule(static)
 #endif
   for (ibody = 0; ibody < nbody; ibody++) {
-    double mbody[3],tbody[3],fquat[4];
-
     fcm[ibody][0] = all[ibody][0] + langextra[ibody][0];
     fcm[ibody][1] = all[ibody][1] + langextra[ibody][1];
     fcm[ibody][2] = all[ibody][2] + langextra[ibody][2];
     torque[ibody][0] = all[ibody][3] + langextra[ibody][3];
     torque[ibody][1] = all[ibody][4] + langextra[ibody][4];
     torque[ibody][2] = all[ibody][5] + langextra[ibody][5];
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixRigidNHOMP::final_integrate()
+{
+  int ibody;
+  double scale_t[3],scale_r;
+
+  // compute scale variables
+
+  scale_t[0] = scale_t[1] = scale_t[2] = 1.0;
+  scale_r = 1.0;
+
+  if (tstat_flag) {
+    double tmp = exp(-1.0 * dtq * eta_dot_t[0]);
+    scale_t[0] = scale_t[1] = scale_t[2] = tmp;
+    scale_r = exp(-1.0 * dtq * eta_dot_r[0]);
+  }
+
+  if (pstat_flag) {
+    scale_t[0] *= exp(-dtq * (epsilon_dot[0] + mtk_term2));
+    scale_t[1] *= exp(-dtq * (epsilon_dot[1] + mtk_term2));
+    scale_t[2] *= exp(-dtq * (epsilon_dot[2] + mtk_term2));
+    scale_r *= exp(-dtq * (pdim * mtk_term2));
+
+    akin_t = akin_r = 0.0;
+  }
+
+  if (!earlyflag) compute_forces_and_torques();
+
+  // update vcm and angmom
+  // include Langevin thermostat forces
+  // fflag,tflag = 0 for some dimensions in 2d
+  double akt=0.0,akr=0.0;
+  const double dtf2 = dtf * 2.0;
+
+#if defined(_OPENMP)
+#pragma omp parallel for default(none) private(ibody) shared(scale_t,scale_r) schedule(static) reduction(+:akt,akr)
+#endif
+  for (ibody = 0; ibody < nbody; ibody++) {
+    double mbody[3],tbody[3],fquat[4];
 
     // update vcm by 1/2 step
 
@@ -678,22 +692,22 @@ void FixRigidNHOMP::set_xv_thr()
       // Fix::v_tally() is not thread safe, so we do this manually here
       // accumulate global virial into thread-local variables for reduction
       if (vflag_global) {
-	v0 += vr[0];
-	v1 += vr[1];
-	v2 += vr[2];
-	v3 += vr[3];
-	v4 += vr[4];
-	v5 += vr[5];
+        v0 += vr[0];
+        v1 += vr[1];
+        v2 += vr[2];
+        v3 += vr[3];
+        v4 += vr[4];
+        v5 += vr[5];
       }
 
       // accumulate per atom virial directly since we parallelize over atoms.
       if (vflag_atom) {
-	vatom[i][0] += vr[0];
-	vatom[i][1] += vr[1];
-	vatom[i][2] += vr[2];
-	vatom[i][3] += vr[3];
-	vatom[i][4] += vr[4];
-	vatom[i][5] += vr[5];
+        vatom[i][0] += vr[0];
+        vatom[i][1] += vr[1];
+        vatom[i][2] += vr[2];
+        vatom[i][3] += vr[3];
+        vatom[i][4] += vr[4];
+        vatom[i][5] += vr[5];
       }
     }
   }
@@ -868,22 +882,22 @@ void FixRigidNHOMP::set_v_thr()
       // Fix::v_tally() is not thread safe, so we do this manually here
       // accumulate global virial into thread-local variables and reduce them later
       if (vflag_global) {
-	v0 += vr[0];
-	v1 += vr[1];
-	v2 += vr[2];
-	v3 += vr[3];
-	v4 += vr[4];
-	v5 += vr[5];
+        v0 += vr[0];
+        v1 += vr[1];
+        v2 += vr[2];
+        v3 += vr[3];
+        v4 += vr[4];
+        v5 += vr[5];
       }
 
       // accumulate per atom virial directly since we parallelize over atoms.
       if (vflag_atom) {
-	vatom[i][0] += vr[0];
-	vatom[i][1] += vr[1];
-	vatom[i][2] += vr[2];
-	vatom[i][3] += vr[3];
-	vatom[i][4] += vr[4];
-	vatom[i][5] += vr[5];
+        vatom[i][0] += vr[0];
+        vatom[i][1] += vr[1];
+        vatom[i][2] += vr[2];
+        vatom[i][3] += vr[3];
+        vatom[i][4] += vr[4];
+        vatom[i][5] += vr[5];
       }
     }
   } // end of parallel for

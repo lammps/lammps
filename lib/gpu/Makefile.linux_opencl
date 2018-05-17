@@ -6,10 +6,10 @@
 
 EXTRAMAKE = Makefile.lammps.opencl
 
-OCL_TUNE = -DFERMI_OCL       # -- Uncomment for NVIDIA Fermi
+# OCL_TUNE = -DFERMI_OCL       # -- Uncomment for NVIDIA Fermi
 # OCL_TUNE = -DKEPLER_OCL    # -- Uncomment for NVIDIA Kepler
 # OCL_TUNE = -DCYPRESS_OCL   # -- Uncomment for AMD Cypress
-# OCL_TUNE = -DGENERIC_OCL   # -- Uncomment for generic device
+OCL_TUNE = -DGENERIC_OCL   # -- Uncomment for generic device
 
 # this setting should match LAMMPS Makefile
 # one of LAMMPS_SMALLBIG (default), LAMMPS_BIGBIG and LAMMPS_SMALLSMALL

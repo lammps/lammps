@@ -38,7 +38,7 @@
 #define LMP_MANIFOLD_H
 
 #include "pointers.h"
-#include <math.h>
+#include <cmath>
 
 namespace LAMMPS_NS {
 namespace user_manifold {

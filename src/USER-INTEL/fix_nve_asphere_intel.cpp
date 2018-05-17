@@ -15,9 +15,9 @@
    Contributing author: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstring>
 #include "fix_nve_asphere_intel.h"
 #include "math_extra_intel.h"
 #include "atom.h"

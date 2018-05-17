@@ -11,8 +11,8 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 #include "atom_vec_mdpd.h"
 #include "atom.h"
 #include "comm.h"
@@ -527,7 +527,7 @@ int AtomVecMDPD::pack_border_vel(int n, int *list, double *buf, int pbc_flag,
         } else {
           buf[m++] = v[j][0];
           buf[m++] = v[j][1];
-          buf[m++] = v[j][2]; 
+          buf[m++] = v[j][2];
           buf[m++] = rho[j];
           buf[m++] = vest[j][0];
           buf[m++] = vest[j][1];

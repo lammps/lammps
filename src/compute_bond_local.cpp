@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <string.h>
+#include <cmath>
+#include <cstring>
 #include "compute_bond_local.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -216,14 +216,14 @@ int ComputeBondLocal::compute_bonds(int flag)
       dz = x[atom1][2] - x[atom2][2];
       domain->minimum_image(dx,dy,dz);
       rsq = dx*dx + dy*dy + dz*dz;
-      
+
       if (btype == 0) {
         engpot = fbond = 0.0;
         engvib = engrot = engtrans = omegasq = vvib = 0.0;
       } else {
 
         if (singleflag) engpot = bond->single(btype,rsq,atom1,atom2,fbond);
-        
+
         if (velflag) {
           if (rmass) {
             mass1 = rmass[atom1];
@@ -241,51 +241,51 @@ int ComputeBondLocal::compute_bonds(int flag)
           vcm[0] = (mass1*v[atom1][0] + mass2*v[atom2][0]) * invmasstotal;
           vcm[1] = (mass1*v[atom1][1] + mass2*v[atom2][1]) * invmasstotal;
           vcm[2] = (mass1*v[atom1][2] + mass2*v[atom2][2]) * invmasstotal;
-          
+
           engtrans = 0.5 * masstotal * MathExtra::lensq3(vcm);
-          
+
           // r12 = unit bond vector from atom1 to atom2
-          
+
           MathExtra::sub3(x[atom2],x[atom1],r12);
           MathExtra::norm3(r12);
-          
+
           // delr = vector from COM to each atom
           // delv = velocity of each atom relative to COM
-          
+
           MathExtra::sub3(x[atom1],xcm,delr1);
           MathExtra::sub3(x[atom2],xcm,delr2);
           MathExtra::sub3(v[atom1],vcm,delv1);
           MathExtra::sub3(v[atom2],vcm,delv2);
-          
+
           // vpar = component of delv parallel to bond vector
-          
+
           vpar1 = MathExtra::dot3(delv1,r12);
           vpar2 = MathExtra::dot3(delv2,r12);
           engvib = 0.5 * (mass1*vpar1*vpar1 + mass2*vpar2*vpar2);
-          
+
           // vvib = relative velocity of 2 atoms along bond direction
           // vvib < 0 for 2 atoms moving towards each other
           // vvib > 0 for 2 atoms moving apart
-          
+
           vvib = vpar2 - vpar1;
-          
+
           // vrotsq = tangential speed squared of atom1 only
           // omegasq = omega squared, and is the same for atom1 and atom2
-          
-          inertia = mass1*MathExtra::lensq3(delr1) + 
+
+          inertia = mass1*MathExtra::lensq3(delr1) +
             mass2*MathExtra::lensq3(delr2);
           vrotsq = MathExtra::lensq3(delv1) - vpar1*vpar1;
           omegasq = vrotsq / MathExtra::lensq3(delr1);
-          
+
           engrot = 0.5 * inertia * omegasq;
-          
+
           // sanity check: engtotal = engtrans + engvib + engrot
-          
-          //engtot = 0.5 * (mass1*MathExtra::lensq3(v[atom1]) + 
+
+          //engtot = 0.5 * (mass1*MathExtra::lensq3(v[atom1]) +
           //                mass2*MathExtra::lensq3(v[atom2]));
           //if (fabs(engtot-engtrans-engvib-engrot) > EPSILON)
           //  error->one(FLERR,"Sanity check on 3 energy components failed");
-          
+
           // scale energies by units
 
           mvv2e = force->mvv2e;

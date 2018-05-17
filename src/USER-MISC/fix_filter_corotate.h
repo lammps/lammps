@@ -36,7 +36,7 @@ namespace LAMMPS_NS
 
     FixFilterCorotate(class LAMMPS *, int, char **);
     ~FixFilterCorotate();
-		void setup(int);
+                void setup(int);
     void setup_pre_neighbor();
     void pre_neighbor();
     void setup_pre_force_respa(int,int);

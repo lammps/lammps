@@ -23,7 +23,11 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <iostream>
+#include <Eigen/Eigen>
 #include "compute_smd_triangle_mesh_vertices.h"
 #include "atom.h"
 #include "update.h"
@@ -33,11 +37,7 @@
 #include "memory.h"
 #include "error.h"
 #include "pair.h"
-#include <iostream>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <Eigen/Eigen>
+
 using namespace Eigen;
 using namespace std;
 using namespace LAMMPS_NS;
@@ -78,8 +78,8 @@ void ComputeSMDTriangleVertices::init() {
 
 void ComputeSMDTriangleVertices::compute_peratom() {
 
-	double **smd_data_9 = atom->smd_data_9;
-	tagint *mol = atom->molecule;
+        double **smd_data_9 = atom->smd_data_9;
+        tagint *mol = atom->molecule;
 
     invoked_peratom = update->ntimestep;
 

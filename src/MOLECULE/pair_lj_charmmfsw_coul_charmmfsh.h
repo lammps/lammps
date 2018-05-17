@@ -80,9 +80,12 @@ E: Pair style lj/charmmfsw/coul/charmmfsh requires atom attribute q
 
 The atom style defined does not have these attributes.
 
-E: Pair inner cutoff >= Pair outer cutoff
+E: Pair inner lj cutoff >= Pair outer lj cutoff
+
+UNDOCUMENTED
+
+U: Pair inner cutoff >= Pair outer cutoff
 
 The specified cutoffs for the pair style are inconsistent.
 
 */
-

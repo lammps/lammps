@@ -1,7 +1,3 @@
-# kokkos_generated_settings.cmake includes the kokkos library itself in KOKKOS_LIBS
-# which we do not want to use for the cmake builds so clean this up
-string(REGEX REPLACE "-lkokkos" "" KOKKOS_LIBS ${KOKKOS_LIBS})
-
 ############################ Detect if submodule ###############################
 #
 # With thanks to StackOverflow:  
@@ -73,18 +69,25 @@ IF(KOKKOS_SEPARATE_LIBS)
     PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${KOKKOS_CXX_FLAGS}>
   )
 
+  target_include_directories(
+    kokkoscore
+    PUBLIC
+    ${KOKKOS_TPL_INCLUDE_DIRS}
+  )
+
+  foreach(lib IN LISTS KOKKOS_TPL_LIBRARY_NAMES)
+    find_library(LIB_${lib} ${lib} PATHS ${KOKKOS_TPL_LIBRARY_DIRS})
+    target_link_libraries(kokkoscore PUBLIC ${LIB_${lib}})
+  endforeach()
+
+  target_link_libraries(kokkoscore PUBLIC "${KOKKOS_LINK_FLAGS}")
+
   # Install the kokkoscore library
   INSTALL (TARGETS kokkoscore
            EXPORT KokkosTargets
            ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
            LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
            RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
-  )
-
-  TARGET_LINK_LIBRARIES(
-    kokkoscore
-    ${KOKKOS_LD_FLAGS}
-    ${KOKKOS_EXTRA_LIBS_LIST}
   )
 
   # kokkoscontainers
@@ -144,11 +147,18 @@ ELSE()
     PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${KOKKOS_CXX_FLAGS}>
   )
 
-  TARGET_LINK_LIBRARIES(
+  target_include_directories(
     kokkos
-    ${KOKKOS_LD_FLAGS}
-    ${KOKKOS_EXTRA_LIBS_LIST}
+    PUBLIC
+    ${KOKKOS_TPL_INCLUDE_DIRS}
   )
+
+  foreach(lib IN LISTS KOKKOS_TPL_LIBRARY_NAMES)
+    find_library(LIB_${lib} ${lib} PATHS ${KOKKOS_TPL_LIBRARY_DIRS})
+    target_link_libraries(kokkos PUBLIC ${LIB_${lib}})
+  endforeach()
+
+  target_link_libraries(kokkos PUBLIC "${KOKKOS_LINK_FLAGS}")
 
   # Install the kokkos library
   INSTALL (TARGETS kokkos

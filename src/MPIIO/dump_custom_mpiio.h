@@ -79,10 +79,9 @@ E: Too much per-proc info for dump
 Number of local atoms times number of columns must fit in a 32-bit
 integer for dump.
 
-E: Dump_modify format string is too short
+E: Dump_modify format line is too short
 
-There are more fields to be dumped in a line of output than your
-format string specifies.
+UNDOCUMENTED
 
 E: Could not find dump custom compute ID
 
@@ -104,5 +103,10 @@ Self-explanatory.
 E: Region ID for dump custom does not exist
 
 Self-explanatory.
+
+U: Dump_modify format string is too short
+
+There are more fields to be dumped in a line of output than your
+format string specifies.
 
 */

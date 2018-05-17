@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_line_lj.h"
 #include "atom.h"
 #include "atom_vec_line.h"
@@ -450,7 +450,7 @@ void PairLineLJ::discretize(int i, double size)
   double length = bonus[atom->line[i]].length;
   double theta = bonus[atom->line[i]].theta;
   int n = static_cast<int> (length/size) + 1;
-  
+
   dnum[i] = n;
   dfirst[i] = ndiscrete;
 

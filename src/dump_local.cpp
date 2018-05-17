@@ -12,8 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 #include "dump_local.h"
 #include "atom.h"
 #include "modify.h"
@@ -38,8 +38,8 @@ enum{INT,DOUBLE};
 
 DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
   Dump(lmp, narg, arg),
-  label(NULL), vtype(NULL), vformat(NULL), columns(NULL), field2index(NULL), 
-  argindex(NULL), id_compute(NULL), compute(NULL), id_fix(NULL), fix(NULL), 
+  label(NULL), vtype(NULL), vformat(NULL), columns(NULL), field2index(NULL),
+  argindex(NULL), id_compute(NULL), compute(NULL), id_fix(NULL), fix(NULL),
   pack_choice(NULL)
 {
   if (narg == 5) error->all(FLERR,"No dump local arguments specified");

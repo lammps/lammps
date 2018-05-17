@@ -67,9 +67,9 @@ void SparseMatrix<T>::_create(INDEX size, INDEX nrows)
   // assign memory to hold matrix
   try
   {
-    _val = (_size*nrows) ? new T     [_size]        : NULL;
-    _ia  = (_size*nrows) ? new INDEX [_nRowsCRS+1]  : NULL;
-    _ja  = (_size*nrows) ? new INDEX [_size]        : NULL;
+    _val = (_size && nrows) ? new T     [_size]        : NULL;
+    _ia  = (_size && nrows) ? new INDEX [_nRowsCRS+1]  : NULL;
+    _ja  = (_size && nrows) ? new INDEX [_size]        : NULL;
   }
   catch (std::exception &e)
   {

@@ -50,12 +50,11 @@ colvar::orientation::orientation(std::string const &conf)
                             "if provided, must be non-zero.\n");
           return;
         }
-      } else {
-        // if not, use atom indices
-        atoms->create_sorted_ids();
       }
+
       ref_pos.resize(atoms->size());
-      cvm::load_coords(file_name.c_str(), ref_pos, atoms->sorted_ids, file_col, file_col_value);
+      cvm::load_coords(file_name.c_str(), &ref_pos, atoms,
+                       file_col, file_col_value);
     }
   }
 

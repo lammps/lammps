@@ -60,65 +60,69 @@ private:
 
 /* ERROR/WARNING messages:
 
-E: Invalid python command
+E: Python support missing! Compile with PYTHON package installed!
+
+UNDOCUMENTED
+
+U: Invalid python command
 
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Python invoke of undefined function
+U: Python invoke of undefined function
 
 Cannot invoke a function that has not been previously defined.
 
-E: Python variable does not match Python function
+U: Python variable does not match Python function
 
 This matching is defined by the python-style variable and the python
 command.
 
-E: Cannot embed Python when also extending Python with LAMMPS
+U: Cannot embed Python when also extending Python with LAMMPS
 
 When running LAMMPS via Python through the LAMMPS library interface
 you cannot also user the input script python command.
 
-E: Could not initialize embedded Python
+U: Could not initialize embedded Python
 
 The main module in Python was not accessible.
 
-E: Could not open Python file
+U: Could not open Python file
 
 The specified file of Python code cannot be opened.  Check that the
 path and name are correct.
 
-E: Could not process Python file
+U: Could not process Python file
 
 The Python code in the specified file was not run successfully by
 Python, probably due to errors in the Python code.
 
-E: Could not process Python string
+U: Could not process Python string
 
 The Python code in the here string was not run successfully by Python,
 probably due to errors in the Python code.
 
-E: Could not find Python function
+U: Could not find Python function
 
 The provided Python code was run successfully, but it not
 define a callable function with the required name.
 
-E: Python function is not callable
+U: Python function is not callable
 
 The provided Python code was run successfully, but it not
 define a callable function with the required name.
 
-E: Could not create Python function arguments
+U: Could not create Python function arguments
 
 This is an internal Python error, possibly because the number
 of inputs to the function is too large.
 
-E: Could not evaluate Python function input variable
+U: Could not evaluate Python function input variable
 
 Self-explanatory.
 
-E: Python function evaluation failed
+U: Python function evaluation failed
 
 The Python function did not run successfully and/or did not return a
 value (if it is supposed to return a value).  This is probably due to

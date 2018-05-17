@@ -14,6 +14,13 @@
 #-------------------------------------------------------------------------------
 
 # Ensure that KOKKOS_ARCH is in the ARCH_LIST
+if (KOKKOS_ARCH MATCHES ",")
+  message("-- Detected a comma in: KOKKOS_ARCH=${KOKKOS_ARCH}")
+  message("-- Although we prefer KOKKOS_ARCH to be semicolon-delimited, we do allow")
+  message("-- comma-delimited values for compatibility with scripts (see github.com/trilinos/Trilinos/issues/2330)")
+  string(REPLACE "," ";" KOKKOS_ARCH "${KOKKOS_ARCH}")
+  message("-- Commas were changed to semicolons, now KOKKOS_ARCH=${KOKKOS_ARCH}")
+endif()
 foreach(arch ${KOKKOS_ARCH})
   list(FIND KOKKOS_ARCH_LIST ${arch} indx)
   if (indx EQUAL -1)
@@ -23,14 +30,13 @@ foreach(arch ${KOKKOS_ARCH})
 endforeach()
 
 # KOKKOS_SETTINGS uses KOKKOS_ARCH
-string(REPLACE ";" "," KOKKOS_ARCH "${KOKKOS_ARCH}")
-set(KOKKOS_ARCH ${KOKKOS_ARCH})
+string(REPLACE ";" "," KOKKOS_GMAKE_ARCH "${KOKKOS_ARCH}")
 
 # From Makefile.kokkos: Options: yes,no
 if(${KOKKOS_ENABLE_DEBUG})
-  set(KOKKOS_DEBUG yes)
+  set(KOKKOS_GMAKE_DEBUG yes)
 else()
-  set(KOKKOS_DEBUG no)
+  set(KOKKOS_GMAKE_DEBUG no)
 endif()
 
 #------------------------------- KOKKOS_DEVICES --------------------------------
@@ -43,10 +49,10 @@ foreach(devopt ${KOKKOS_DEVICES_LIST})
   endif ()
 endforeach()
 # List needs to be comma-delmitted
-string(REPLACE ";" "," KOKKOS_DEVICES "${KOKKOS_DEVICESl}")
+string(REPLACE ";" "," KOKKOS_GMAKE_DEVICES "${KOKKOS_DEVICESl}")
 
 #------------------------------- KOKKOS_OPTIONS --------------------------------
-# From Makefile.kokkos: Options: aggressive_vectorization,disable_profiling
+# From Makefile.kokkos: Options: aggressive_vectorization,disable_profiling,disable_deprecated_code
 #compiler_warnings, aggressive_vectorization, disable_profiling, disable_dualview_modify_check, enable_profile_load_print
 
 set(KOKKOS_OPTIONSl)
@@ -57,7 +63,10 @@ if(${KOKKOS_ENABLE_AGGRESSIVE_VECTORIZATION})
       list(APPEND KOKKOS_OPTIONSl aggressive_vectorization)
 endif()
 if(NOT ${KOKKOS_ENABLE_PROFILING})
-      list(APPEND KOKKOS_OPTIONSl disable_vectorization)
+      list(APPEND KOKKOS_OPTIONSl disable_profiling)
+endif()
+if(NOT ${KOKKOS_ENABLE_DEPRECATED_CODE})
+      list(APPEND KOKKOS_OPTIONSl disable_deprecated_code)
 endif()
 if(NOT ${KOKKOS_ENABLE_DEBUG_DUALVIEW_MODIFY_CHECK})
       list(APPEND KOKKOS_OPTIONSl disable_dualview_modify_check)
@@ -66,7 +75,7 @@ if(${KOKKOS_ENABLE_PROFILING_LOAD_PRINT})
       list(APPEND KOKKOS_OPTIONSl enable_profile_load_print)
 endif()
 # List needs to be comma-delimitted
-string(REPLACE ";" "," KOKKOS_OPTIONS "${KOKKOS_OPTIONSl}")
+string(REPLACE ";" "," KOKKOS_GMAKE_OPTIONS "${KOKKOS_OPTIONSl}")
 
 
 #------------------------------- KOKKOS_USE_TPLS -------------------------------
@@ -78,19 +87,19 @@ foreach(tplopt ${KOKKOS_USE_TPLS_LIST})
   endif ()
 endforeach()
 # List needs to be comma-delimitted
-string(REPLACE ";" "," KOKKOS_USE_TPLS "${KOKKOS_USE_TPLSl}")
+string(REPLACE ";" "," KOKKOS_GMAKE_USE_TPLS "${KOKKOS_USE_TPLSl}")
 
 
 #------------------------------- KOKKOS_CUDA_OPTIONS ---------------------------
 # Construct the Makefile options
-set(KOKKOS_CUDA_OPTIONS)
+set(KOKKOS_CUDA_OPTIONSl)
 foreach(cudaopt ${KOKKOS_CUDA_OPTIONS_LIST})
   if (${KOKKOS_ENABLE_CUDA_${cudaopt}})
     list(APPEND KOKKOS_CUDA_OPTIONSl ${KOKKOS_INTERNAL_${cudaopt}})
   endif ()
 endforeach()
 # List needs to be comma-delmitted
-string(REPLACE ";" "," KOKKOS_CUDA_OPTIONS "${KOKKOS_CUDA_OPTIONSl}")
+string(REPLACE ";" "," KOKKOS_GMAKE_CUDA_OPTIONS "${KOKKOS_CUDA_OPTIONSl}")
 
 #------------------------------- PATH VARIABLES --------------------------------
 #  Want makefile to use same executables specified which means modifying
@@ -100,10 +109,10 @@ string(REPLACE ";" "," KOKKOS_CUDA_OPTIONS "${KOKKOS_CUDA_OPTIONSl}")
 
 set(KOKKOS_INTERNAL_PATHS)
 set(addpathl)
-foreach(kvar "CUDA;QTHREADS;${KOKKOS_USE_TPLS_LIST}")
+foreach(kvar IN LISTS KOKKOS_USE_TPLS_LIST ITEMS CUDA QTHREADS)
   if(${KOKKOS_ENABLE_${kvar}})
     if(DEFINED KOKKOS_${kvar}_DIR)
-      set(KOKKOS_INTERNAL_PATHS "${KOKKOS_INTERNAL_PATHS} ${kvar}_PATH=${KOKKOS_${kvar}_DIR}")
+      set(KOKKOS_INTERNAL_PATHS ${KOKKOS_INTERNAL_PATHS} "${kvar}_PATH=${KOKKOS_${kvar}_DIR}")
       if(IS_DIRECTORY ${KOKKOS_${kvar}_DIR}/bin)
         list(APPEND addpathl ${KOKKOS_${kvar}_DIR}/bin)
       endif()
@@ -124,10 +133,9 @@ set(KOKKOS_SETTINGS ${KOKKOS_SETTINGS} KOKKOS_INSTALL_PATH=${CMAKE_INSTALL_PREFI
 
 # Form of KOKKOS_foo=$KOKKOS_foo
 foreach(kvar ARCH;DEVICES;DEBUG;OPTIONS;CUDA_OPTIONS;USE_TPLS)
-  set(KOKKOS_VAR KOKKOS_${kvar})
-  if(DEFINED KOKKOS_${kvar})
-    if (NOT "${${KOKKOS_VAR}}" STREQUAL "")
-      set(KOKKOS_SETTINGS ${KOKKOS_SETTINGS} ${KOKKOS_VAR}=${${KOKKOS_VAR}})
+  if(DEFINED KOKKOS_GMAKE_${kvar})
+    if (NOT "${KOKKOS_GMAKE_${kvar}}" STREQUAL "")
+      set(KOKKOS_SETTINGS ${KOKKOS_SETTINGS} KOKKOS_${kvar}=${KOKKOS_GMAKE_${kvar}})
     endif()
   endif()
 endforeach()
@@ -147,7 +155,7 @@ if (NOT "${KOKKOS_INTERNAL_PATHS}" STREQUAL "")
   set(KOKKOS_SETTINGS ${KOKKOS_SETTINGS} ${KOKKOS_INTERNAL_PATHS})
 endif()
 if (NOT "${KOKKOS_INTERNAL_ADDTOPATH}" STREQUAL "")
-  set(KOKKOS_SETTINGS ${KOKKOS_SETTINGS} PATH=${KOKKOS_INTERNAL_ADDTOPATH}:\${PATH})
+  set(KOKKOS_SETTINGS ${KOKKOS_SETTINGS} "PATH=\"${KOKKOS_INTERNAL_ADDTOPATH}:$ENV{PATH}\"")
 endif()
 
 # Final form that gets passed to make
@@ -185,7 +193,7 @@ if(KOKKOS_CMAKE_VERBOSE)
 
   message(STATUS "")
   message(STATUS "Architectures:")
-  message(STATUS "    ${KOKKOS_ARCH}")
+  message(STATUS "    ${KOKKOS_GMAKE_ARCH}")
 
   message(STATUS "")
   message(STATUS "Enabled options")
@@ -194,43 +202,14 @@ if(KOKKOS_CMAKE_VERBOSE)
     message(STATUS "  KOKKOS_SEPARATE_LIBS")
   endif()
 
-  if(KOKKOS_ENABLE_HWLOC)
-    message(STATUS "  KOKKOS_ENABLE_HWLOC")
-  endif()
-
-  if(KOKKOS_ENABLE_MEMKIND)
-    message(STATUS "  KOKKOS_ENABLE_MEMKIND")
-  endif()
-
-  if(KOKKOS_ENABLE_DEBUG)
-    message(STATUS "  KOKKOS_ENABLE_DEBUG")
-  endif()
-
-  if(KOKKOS_ENABLE_PROFILING)
-    message(STATUS "  KOKKOS_ENABLE_PROFILING")
-  endif()
-
-  if(KOKKOS_ENABLE_AGGRESSIVE_VECTORIZATION)
-    message(STATUS "  KOKKOS_ENABLE_AGGRESSIVE_VECTORIZATION")
-  endif()
+  foreach(opt IN LISTS KOKKOS_INTERNAL_ENABLE_OPTIONS_LIST)
+    string(TOUPPER ${opt} OPT)
+    if (KOKKOS_ENABLE_${OPT})
+      message(STATUS "  KOKKOS_ENABLE_${OPT}")
+    endif()
+  endforeach()
 
   if(KOKKOS_ENABLE_CUDA)
-    if(KOKKOS_ENABLE_CUDA_LDG_INTRINSIC)
-      message(STATUS "  KOKKOS_ENABLE_CUDA_LDG_INTRINSIC")
-    endif()
-
-    if(KOKKOS_ENABLE_CUDA_UVM)
-      message(STATUS "  KOKKOS_ENABLE_CUDA_UVM")
-    endif()
-
-    if(KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE)
-      message(STATUS "  KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE")
-    endif()
-
-    if(KOKKOS_ENABLE_CUDA_LAMBDA)
-      message(STATUS "  KOKKOS_ENABLE_CUDA_LAMBDA")
-    endif()
-
     if(KOKKOS_CUDA_DIR)
       message(STATUS "  KOKKOS_CUDA_DIR: ${KOKKOS_CUDA_DIR}")
     endif()

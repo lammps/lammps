@@ -19,7 +19,7 @@
 
 NPairStyle(full/bin/ghost/intel,
            NPairFullBinGhostIntel,
-           NP_FULL | NP_BIN | NP_GHOST | NP_NEWTON | NP_NEWTOFF | 
+           NP_FULL | NP_BIN | NP_GHOST | NP_NEWTON | NP_NEWTOFF |
            NP_ORTHO | NP_TRI | NP_INTEL)
 
 #else
@@ -40,8 +40,8 @@ class NPairFullBinGhostIntel : public NPairIntel {
   template<class flt_t, class acc_t>
   void fbi(NeighList * list, IntelBuffers<flt_t,acc_t> * buffers);
   template<class flt_t, class acc_t, int need_ic>
-  void fbi(const int offload, NeighList * list, 
-	   IntelBuffers<flt_t,acc_t> * buffers, 
+  void fbi(const int offload, NeighList * list,
+           IntelBuffers<flt_t,acc_t> * buffers,
            const int astart, const int aend);
 };
 

@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-    Contributing authors: 
+    Contributing authors:
              Rodrigo Freitas (UC Berkeley) - rodrigof@berkeley.edu
              Mark Asta (UC Berkeley) - mdasta@berkeley.edu
              Maurice de Koning (Unicamp/Brazil) - dekoning@ifi.unicamp.br
@@ -45,7 +45,7 @@ class FixTISpring : public Fix {
   void   initial_integrate(int);
   double compute_scalar();
   double compute_vector(int);
-  
+
   double memory_usage();
   void   grow_arrays(int);
   void   copy_arrays(int, int, int);

@@ -15,9 +15,9 @@
    Contributing author: Paul Crozier, Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "fix_gcmc.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -197,7 +197,7 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
 
   // setup of array of coordinates for molecule insertion
   // also used by rotation moves for any molecule
-  
+
   if (exchmode == EXCHATOM) natoms_per_molecule = 1;
   else natoms_per_molecule = onemols[imol]->natoms;
   nmaxmolatoms = natoms_per_molecule;
@@ -469,7 +469,7 @@ void FixGCMC::init()
     pmoltrans /= pmctot;
     pmolrotate /= pmctot;
   }
-  
+
   // decide whether to switch to the full_energy option
 
   if (!full_flag) {
@@ -686,10 +686,10 @@ void FixGCMC::init()
 
   // warning if group id is "all"
 
-  if (groupbit & 1)
+  if ((comm->me == 0) && (groupbit & 1))
     error->warning(FLERR, "Fix gcmc is being applied "
                    "to the default group all");
-    
+
   // construct group bitmask for all new atoms
   // aggregated over all group keywords
 
@@ -1168,7 +1168,7 @@ void FixGCMC::attempt_molecule_rotation()
 
   if (nmolcoords > nmaxmolatoms)
     grow_molecule_arrays(nmolcoords);
-  
+
   double com[3];
   com[0] = com[1] = com[2] = 0.0;
   group->xcm(molecule_group,gas_mass,com);
@@ -1252,6 +1252,10 @@ void FixGCMC::attempt_molecule_deletion()
   ndeletion_attempts += 1.0;
 
   if (ngas == 0) return;
+
+  // work-around to avoid n=0 problem with fix rigid/nvt/small
+
+  if (ngas == natoms_per_molecule) return;
 
   tagint deletion_molecule = pick_random_gas_molecule();
   if (deletion_molecule == -1) return;
@@ -1345,7 +1349,7 @@ void FixGCMC::attempt_molecule_insertion()
   MathExtra::quat_to_mat(quat,rotmat);
 
   double insertion_energy = 0.0;
-  bool procflag[natoms_per_molecule];
+  bool *procflag = new bool[natoms_per_molecule];
 
   for (int i = 0; i < natoms_per_molecule; i++) {
     MathExtra::matvec(rotmat,onemols[imol]->x[i],molcoords[i]);
@@ -1468,6 +1472,7 @@ void FixGCMC::attempt_molecule_insertion()
     update_gas_atoms_list();
     ninsertion_successes += 1.0;
   }
+  delete[] procflag;
 }
 
 /* ----------------------------------------------------------------------
@@ -1829,7 +1834,7 @@ void FixGCMC::attempt_molecule_rotation_full()
 
   if (nmolcoords > nmaxmolatoms)
     grow_molecule_arrays(nmolcoords);
-  
+
   double com[3];
   com[0] = com[1] = com[2] = 0.0;
   group->xcm(molecule_group,gas_mass,com);
@@ -1853,7 +1858,7 @@ void FixGCMC::attempt_molecule_rotation_full()
 
   double **x = atom->x;
   imageint *image = atom->image;
-  
+
   int n = 0;
   for (int i = 0; i < atom->nlocal; i++) {
     if (mask[i] & molecule_group_bit) {
@@ -1910,6 +1915,10 @@ void FixGCMC::attempt_molecule_deletion_full()
 
   if (ngas == 0) return;
 
+  // work-around to avoid n=0 problem with fix rigid/nvt/small
+
+  if (ngas == natoms_per_molecule) return;
+
   tagint deletion_molecule = pick_random_gas_molecule();
   if (deletion_molecule == -1) return;
 
@@ -1921,12 +1930,12 @@ void FixGCMC::attempt_molecule_deletion_full()
   for (int i = 0; i < atom->nlocal; i++)
     if (atom->molecule[i] == deletion_molecule)
       if (atom->q_flag) nmolq++;
-  
+
   if (nmolq > nmaxmolatoms)
     grow_molecule_arrays(nmolq);
-  
+
   int m = 0;
-  int tmpmask[atom->nlocal];
+  int *tmpmask = new int[atom->nlocal];
   for (int i = 0; i < atom->nlocal; i++) {
     if (atom->molecule[i] == deletion_molecule) {
       tmpmask[i] = atom->mask[i];
@@ -1974,6 +1983,7 @@ void FixGCMC::attempt_molecule_deletion_full()
     if (force->kspace) force->kspace->qsum_qsq();
   }
   update_gas_atoms_list();
+  delete[] tmpmask;
 }
 
 /* ----------------------------------------------------------------------
@@ -2418,9 +2428,9 @@ void FixGCMC::update_gas_atoms_list()
       for (int i = 0; i < nlocal; i++) maxmol = MAX(maxmol,molecule[i]);
       tagint maxmol_all;
       MPI_Allreduce(&maxmol,&maxmol_all,1,MPI_LMP_TAGINT,MPI_MAX,world);
-      double comx[maxmol_all];
-      double comy[maxmol_all];
-      double comz[maxmol_all];
+      double *comx = new double[maxmol_all];
+      double *comy = new double[maxmol_all];
+      double *comz = new double[maxmol_all];
       for (int imolecule = 0; imolecule < maxmol_all; imolecule++) {
         for (int i = 0; i < nlocal; i++) {
           if (molecule[i] == imolecule) {
@@ -2450,7 +2460,9 @@ void FixGCMC::update_gas_atoms_list()
           }
         }
       }
-
+      delete[] comx;
+      delete[] comy;
+      delete[] comz;
     } else {
       for (int i = 0; i < nlocal; i++) {
         if (mask[i] & groupbit) {

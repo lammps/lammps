@@ -97,9 +97,9 @@ class PairREAX : public Pair {
 
 /* ERROR/WARNING messages:
 
-W: pair style reax is now deprecated and will soon be retired. Users should switch to pair_style reax/c
+W: The pair_style reax command is unsupported. Please switch to pair_style reax/c instead
 
-Self-explanatory.
+UNDOCUMENTED
 
 E: Reax_defs.h setting for NATDEF is too small
 
@@ -146,5 +146,9 @@ E: Invalid REAX atom type
 
 There is a mis-match between LAMMPS atom types and the elements
 listed in the ReaxFF force field file.
+
+U: pair style reax is now deprecated and will soon be retired. Users should switch to pair_style reax/c
+
+Self-explanatory.
 
 */

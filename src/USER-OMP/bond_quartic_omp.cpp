@@ -23,7 +23,7 @@
 #include "domain.h"
 #include "pair.h"
 
-#include <math.h>
+#include <cmath>
 
 #include "suffix.h"
 using namespace LAMMPS_NS;

@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 // 
 // ************************************************************************
 //@HEADER
@@ -56,7 +56,7 @@
 namespace Test {
 
 template< class T , class ... P >
-size_t allocation_count( const Kokkos::Experimental::DynRankView<T,P...> & view )
+size_t allocation_count( const Kokkos::DynRankView<T,P...> & view )
 {
   const size_t card  = view.size();
   const size_t alloc = view.span();
@@ -74,7 +74,7 @@ struct TestViewOperator
   static const unsigned N = 100 ;
   static const unsigned D = 3 ;
 
-  typedef Kokkos::Experimental::DynRankView< T , execution_space > view_type ;
+  typedef Kokkos::DynRankView< T , execution_space > view_type ;
 
   const view_type v1 ;
   const view_type v2 ;
@@ -129,10 +129,10 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 7 >
 
 
   typedef Kokkos::
-    Experimental::DynRankView< DataType, Kokkos::LayoutLeft, execution_space > left_view ;
+    DynRankView< DataType, Kokkos::LayoutLeft, execution_space > left_view ;
 
   typedef Kokkos::
-    Experimental::DynRankView< DataType, Kokkos::LayoutRight, execution_space > right_view ;
+    DynRankView< DataType, Kokkos::LayoutRight, execution_space > right_view ;
 
   left_view    left ;
   right_view   right ;
@@ -163,13 +163,13 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 7 >
     long offset ;
 
     offset = -1 ;
-    for ( unsigned i6 = 0 ; i6 < unsigned(left.dimension_6()) ; ++i6 )
-    for ( unsigned i5 = 0 ; i5 < unsigned(left.dimension_5()) ; ++i5 )
-    for ( unsigned i4 = 0 ; i4 < unsigned(left.dimension_4()) ; ++i4 )
-    for ( unsigned i3 = 0 ; i3 < unsigned(left.dimension_3()) ; ++i3 )
-    for ( unsigned i2 = 0 ; i2 < unsigned(left.dimension_2()) ; ++i2 )
-    for ( unsigned i1 = 0 ; i1 < unsigned(left.dimension_1()) ; ++i1 )
-    for ( unsigned i0 = 0 ; i0 < unsigned(left.dimension_0()) ; ++i0 )
+    for ( unsigned i6 = 0 ; i6 < unsigned(left.extent(6)) ; ++i6 )
+    for ( unsigned i5 = 0 ; i5 < unsigned(left.extent(5)) ; ++i5 )
+    for ( unsigned i4 = 0 ; i4 < unsigned(left.extent(4)) ; ++i4 )
+    for ( unsigned i3 = 0 ; i3 < unsigned(left.extent(3)) ; ++i3 )
+    for ( unsigned i2 = 0 ; i2 < unsigned(left.extent(2)) ; ++i2 )
+    for ( unsigned i1 = 0 ; i1 < unsigned(left.extent(1)) ; ++i1 )
+    for ( unsigned i0 = 0 ; i0 < unsigned(left.extent(0)) ; ++i0 )
     {
       const long j = & left( i0, i1, i2, i3, i4, i5, i6 ) -
                      & left(  0,  0,  0,  0,  0,  0,  0 );
@@ -178,13 +178,13 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 7 >
     }
 
     offset = -1 ;
-    for ( unsigned i0 = 0 ; i0 < unsigned(right.dimension_0()) ; ++i0 )
-    for ( unsigned i1 = 0 ; i1 < unsigned(right.dimension_1()) ; ++i1 )
-    for ( unsigned i2 = 0 ; i2 < unsigned(right.dimension_2()) ; ++i2 )
-    for ( unsigned i3 = 0 ; i3 < unsigned(right.dimension_3()) ; ++i3 )
-    for ( unsigned i4 = 0 ; i4 < unsigned(right.dimension_4()) ; ++i4 )
-    for ( unsigned i5 = 0 ; i5 < unsigned(right.dimension_5()) ; ++i5 )
-    for ( unsigned i6 = 0 ; i6 < unsigned(right.dimension_6()) ; ++i6 )
+    for ( unsigned i0 = 0 ; i0 < unsigned(right.extent(0)) ; ++i0 )
+    for ( unsigned i1 = 0 ; i1 < unsigned(right.extent(1)) ; ++i1 )
+    for ( unsigned i2 = 0 ; i2 < unsigned(right.extent(2)) ; ++i2 )
+    for ( unsigned i3 = 0 ; i3 < unsigned(right.extent(3)) ; ++i3 )
+    for ( unsigned i4 = 0 ; i4 < unsigned(right.extent(4)) ; ++i4 )
+    for ( unsigned i5 = 0 ; i5 < unsigned(right.extent(5)) ; ++i5 )
+    for ( unsigned i6 = 0 ; i6 < unsigned(right.extent(6)) ; ++i6 )
     {
       const long j = & right( i0, i1, i2, i3, i4, i5, i6 ) -
                      & right(  0,  0,  0,  0,  0,  0,  0 );
@@ -214,10 +214,10 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 6 >
 
 
   typedef Kokkos::
-    Experimental::DynRankView< DataType, Kokkos::LayoutLeft, execution_space > left_view ;
+    DynRankView< DataType, Kokkos::LayoutLeft, execution_space > left_view ;
 
   typedef Kokkos::
-    Experimental::DynRankView< DataType, Kokkos::LayoutRight, execution_space > right_view ;
+    DynRankView< DataType, Kokkos::LayoutRight, execution_space > right_view ;
 
   left_view    left ;
   right_view   right ;
@@ -248,12 +248,12 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 6 >
     long offset ;
 
     offset = -1 ;
-    for ( unsigned i5 = 0 ; i5 < unsigned(left.dimension_5()) ; ++i5 )
-    for ( unsigned i4 = 0 ; i4 < unsigned(left.dimension_4()) ; ++i4 )
-    for ( unsigned i3 = 0 ; i3 < unsigned(left.dimension_3()) ; ++i3 )
-    for ( unsigned i2 = 0 ; i2 < unsigned(left.dimension_2()) ; ++i2 )
-    for ( unsigned i1 = 0 ; i1 < unsigned(left.dimension_1()) ; ++i1 )
-    for ( unsigned i0 = 0 ; i0 < unsigned(left.dimension_0()) ; ++i0 )
+    for ( unsigned i5 = 0 ; i5 < unsigned(left.extent(5)) ; ++i5 )
+    for ( unsigned i4 = 0 ; i4 < unsigned(left.extent(4)) ; ++i4 )
+    for ( unsigned i3 = 0 ; i3 < unsigned(left.extent(3)) ; ++i3 )
+    for ( unsigned i2 = 0 ; i2 < unsigned(left.extent(2)) ; ++i2 )
+    for ( unsigned i1 = 0 ; i1 < unsigned(left.extent(1)) ; ++i1 )
+    for ( unsigned i0 = 0 ; i0 < unsigned(left.extent(0)) ; ++i0 )
     {
       const long j = & left( i0, i1, i2, i3, i4, i5 ) -
                      & left(  0,  0,  0,  0,  0,  0 );
@@ -262,12 +262,12 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 6 >
     }
 
     offset = -1 ;
-    for ( unsigned i0 = 0 ; i0 < unsigned(right.dimension_0()) ; ++i0 )
-    for ( unsigned i1 = 0 ; i1 < unsigned(right.dimension_1()) ; ++i1 )
-    for ( unsigned i2 = 0 ; i2 < unsigned(right.dimension_2()) ; ++i2 )
-    for ( unsigned i3 = 0 ; i3 < unsigned(right.dimension_3()) ; ++i3 )
-    for ( unsigned i4 = 0 ; i4 < unsigned(right.dimension_4()) ; ++i4 )
-    for ( unsigned i5 = 0 ; i5 < unsigned(right.dimension_5()) ; ++i5 )
+    for ( unsigned i0 = 0 ; i0 < unsigned(right.extent(0)) ; ++i0 )
+    for ( unsigned i1 = 0 ; i1 < unsigned(right.extent(1)) ; ++i1 )
+    for ( unsigned i2 = 0 ; i2 < unsigned(right.extent(2)) ; ++i2 )
+    for ( unsigned i3 = 0 ; i3 < unsigned(right.extent(3)) ; ++i3 )
+    for ( unsigned i4 = 0 ; i4 < unsigned(right.extent(4)) ; ++i4 )
+    for ( unsigned i5 = 0 ; i5 < unsigned(right.extent(5)) ; ++i5 )
     {
       const long j = & right( i0, i1, i2, i3, i4, i5 ) -
                      & right(  0,  0,  0,  0,  0,  0 );
@@ -297,13 +297,13 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 5 >
 
 
   typedef Kokkos::
-    Experimental::DynRankView< DataType, Kokkos::LayoutLeft, execution_space > left_view ;
+    DynRankView< DataType, Kokkos::LayoutLeft, execution_space > left_view ;
 
   typedef Kokkos::
-    Experimental::DynRankView< DataType, Kokkos::LayoutRight, execution_space > right_view ;
+    DynRankView< DataType, Kokkos::LayoutRight, execution_space > right_view ;
 
   typedef Kokkos::
-    Experimental::DynRankView< DataType, Kokkos::LayoutStride, execution_space > stride_view ;
+    DynRankView< DataType, Kokkos::LayoutStride, execution_space > stride_view ;
 
   left_view    left ;
   right_view   right ;
@@ -338,11 +338,11 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 5 >
     long offset ;
 
     offset = -1 ;
-    for ( unsigned i4 = 0 ; i4 < unsigned(left.dimension_4()) ; ++i4 )
-    for ( unsigned i3 = 0 ; i3 < unsigned(left.dimension_3()) ; ++i3 )
-    for ( unsigned i2 = 0 ; i2 < unsigned(left.dimension_2()) ; ++i2 )
-    for ( unsigned i1 = 0 ; i1 < unsigned(left.dimension_1()) ; ++i1 )
-    for ( unsigned i0 = 0 ; i0 < unsigned(left.dimension_0()) ; ++i0 )
+    for ( unsigned i4 = 0 ; i4 < unsigned(left.extent(4)) ; ++i4 )
+    for ( unsigned i3 = 0 ; i3 < unsigned(left.extent(3)) ; ++i3 )
+    for ( unsigned i2 = 0 ; i2 < unsigned(left.extent(2)) ; ++i2 )
+    for ( unsigned i1 = 0 ; i1 < unsigned(left.extent(1)) ; ++i1 )
+    for ( unsigned i0 = 0 ; i0 < unsigned(left.extent(0)) ; ++i0 )
     {
       const long j = & left( i0, i1, i2, i3, i4 ) -
                      & left(  0,  0,  0,  0,  0 );
@@ -354,11 +354,11 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 5 >
     }
 
     offset = -1 ;
-    for ( unsigned i0 = 0 ; i0 < unsigned(right.dimension_0()) ; ++i0 )
-    for ( unsigned i1 = 0 ; i1 < unsigned(right.dimension_1()) ; ++i1 )
-    for ( unsigned i2 = 0 ; i2 < unsigned(right.dimension_2()) ; ++i2 )
-    for ( unsigned i3 = 0 ; i3 < unsigned(right.dimension_3()) ; ++i3 )
-    for ( unsigned i4 = 0 ; i4 < unsigned(right.dimension_4()) ; ++i4 )
+    for ( unsigned i0 = 0 ; i0 < unsigned(right.extent(0)) ; ++i0 )
+    for ( unsigned i1 = 0 ; i1 < unsigned(right.extent(1)) ; ++i1 )
+    for ( unsigned i2 = 0 ; i2 < unsigned(right.extent(2)) ; ++i2 )
+    for ( unsigned i3 = 0 ; i3 < unsigned(right.extent(3)) ; ++i3 )
+    for ( unsigned i4 = 0 ; i4 < unsigned(right.extent(4)) ; ++i4 )
     {
       const long j = & right( i0, i1, i2, i3, i4 ) -
                      & right(  0,  0,  0,  0,  0 );
@@ -391,10 +391,10 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 4 >
 
 
   typedef Kokkos::
-   Experimental::DynRankView< DataType, Kokkos::LayoutLeft, execution_space > left_view ;
+    DynRankView< DataType, Kokkos::LayoutLeft, execution_space > left_view ;
 
   typedef Kokkos::
-    Experimental::DynRankView< DataType, Kokkos::LayoutRight, execution_space > right_view ;
+    DynRankView< DataType, Kokkos::LayoutRight, execution_space > right_view ;
 
   left_view    left ;
   right_view   right ;
@@ -425,10 +425,10 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 4 >
     long offset ;
 
     offset = -1 ;
-    for ( unsigned i3 = 0 ; i3 < unsigned(left.dimension_3()) ; ++i3 )
-    for ( unsigned i2 = 0 ; i2 < unsigned(left.dimension_2()) ; ++i2 )
-    for ( unsigned i1 = 0 ; i1 < unsigned(left.dimension_1()) ; ++i1 )
-    for ( unsigned i0 = 0 ; i0 < unsigned(left.dimension_0()) ; ++i0 )
+    for ( unsigned i3 = 0 ; i3 < unsigned(left.extent(3)) ; ++i3 )
+    for ( unsigned i2 = 0 ; i2 < unsigned(left.extent(2)) ; ++i2 )
+    for ( unsigned i1 = 0 ; i1 < unsigned(left.extent(1)) ; ++i1 )
+    for ( unsigned i0 = 0 ; i0 < unsigned(left.extent(0)) ; ++i0 )
     {
       const long j = & left( i0, i1, i2, i3 ) -
                      & left(  0,  0,  0,  0 );
@@ -437,10 +437,10 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 4 >
     }
 
     offset = -1 ;
-    for ( unsigned i0 = 0 ; i0 < unsigned(right.dimension_0()) ; ++i0 )
-    for ( unsigned i1 = 0 ; i1 < unsigned(right.dimension_1()) ; ++i1 )
-    for ( unsigned i2 = 0 ; i2 < unsigned(right.dimension_2()) ; ++i2 )
-    for ( unsigned i3 = 0 ; i3 < unsigned(right.dimension_3()) ; ++i3 )
+    for ( unsigned i0 = 0 ; i0 < unsigned(right.extent(0)) ; ++i0 )
+    for ( unsigned i1 = 0 ; i1 < unsigned(right.extent(1)) ; ++i1 )
+    for ( unsigned i2 = 0 ; i2 < unsigned(right.extent(2)) ; ++i2 )
+    for ( unsigned i3 = 0 ; i3 < unsigned(right.extent(3)) ; ++i3 )
     {
       const long j = & right( i0, i1, i2, i3 ) -
                      & right(  0,  0,  0,  0 );
@@ -470,13 +470,13 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 3 >
 
 
   typedef Kokkos::
-    Experimental::DynRankView< DataType, Kokkos::LayoutLeft, execution_space > left_view ;
+    DynRankView< DataType, Kokkos::LayoutLeft, execution_space > left_view ;
 
   typedef Kokkos::
-    Experimental::DynRankView< DataType, Kokkos::LayoutRight, execution_space > right_view ;
+    DynRankView< DataType, Kokkos::LayoutRight, execution_space > right_view ;
 
   typedef Kokkos::
-    Experimental::DynRankView< DataType, Kokkos::LayoutStride, execution_space > stride_view ;
+    DynRankView< DataType, Kokkos::LayoutStride, execution_space > stride_view ;
 
   left_view    left ;
   right_view   right ;
@@ -511,9 +511,9 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 3 >
     long offset ;
 
     offset = -1 ;
-    for ( unsigned i2 = 0 ; i2 < unsigned(left.dimension_2()) ; ++i2 )
-    for ( unsigned i1 = 0 ; i1 < unsigned(left.dimension_1()) ; ++i1 )
-    for ( unsigned i0 = 0 ; i0 < unsigned(left.dimension_0()) ; ++i0 )
+    for ( unsigned i2 = 0 ; i2 < unsigned(left.extent(2)) ; ++i2 )
+    for ( unsigned i1 = 0 ; i1 < unsigned(left.extent(1)) ; ++i1 )
+    for ( unsigned i0 = 0 ; i0 < unsigned(left.extent(0)) ; ++i0 )
     {
       const long j = & left( i0, i1, i2 ) -
                      & left(  0,  0,  0 );
@@ -524,9 +524,9 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 3 >
     }
 
     offset = -1 ;
-    for ( unsigned i0 = 0 ; i0 < unsigned(right.dimension_0()) ; ++i0 )
-    for ( unsigned i1 = 0 ; i1 < unsigned(right.dimension_1()) ; ++i1 )
-    for ( unsigned i2 = 0 ; i2 < unsigned(right.dimension_2()) ; ++i2 )
+    for ( unsigned i0 = 0 ; i0 < unsigned(right.extent(0)) ; ++i0 )
+    for ( unsigned i1 = 0 ; i1 < unsigned(right.extent(1)) ; ++i1 )
+    for ( unsigned i2 = 0 ; i2 < unsigned(right.extent(2)) ; ++i2 )
     {
       const long j = & right( i0, i1, i2 ) -
                      & right(  0,  0,  0 );
@@ -536,9 +536,9 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 3 >
       if ( & right(i0,i1,i2) != & right_stride(i0,i1,i2) ) { update |= 8 ; }
     }
 
-    for ( unsigned i0 = 0 ; i0 < unsigned(left.dimension_0()) ; ++i0 )
-    for ( unsigned i1 = 0 ; i1 < unsigned(left.dimension_1()) ; ++i1 )
-    for ( unsigned i2 = 0 ; i2 < unsigned(left.dimension_2()) ; ++i2 )
+    for ( unsigned i0 = 0 ; i0 < unsigned(left.extent(0)) ; ++i0 )
+    for ( unsigned i1 = 0 ; i1 < unsigned(left.extent(1)) ; ++i1 )
+    for ( unsigned i2 = 0 ; i2 < unsigned(left.extent(2)) ; ++i2 )
     {
       if ( & left(i0,i1,i2)  != & left(i0,i1,i2,0,0,0,0) )  { update |= 3 ; }
       if ( & right(i0,i1,i2) != & right(i0,i1,i2,0,0,0,0) ) { update |= 3 ; }
@@ -566,10 +566,10 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 2 >
 
 
   typedef Kokkos::
-    Experimental::DynRankView< DataType, Kokkos::LayoutLeft, execution_space > left_view ;
+    DynRankView< DataType, Kokkos::LayoutLeft, execution_space > left_view ;
 
   typedef Kokkos::
-    Experimental::DynRankView< DataType, Kokkos::LayoutRight, execution_space > right_view ;
+    DynRankView< DataType, Kokkos::LayoutRight, execution_space > right_view ;
 
   left_view    left ;
   right_view   right ;
@@ -600,8 +600,8 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 2 >
     long offset ;
 
     offset = -1 ;
-    for ( unsigned i1 = 0 ; i1 < unsigned(left.dimension_1()) ; ++i1 )
-    for ( unsigned i0 = 0 ; i0 < unsigned(left.dimension_0()) ; ++i0 )
+    for ( unsigned i1 = 0 ; i1 < unsigned(left.extent(1)) ; ++i1 )
+    for ( unsigned i0 = 0 ; i0 < unsigned(left.extent(0)) ; ++i0 )
     {
       const long j = & left( i0, i1 ) -
                      & left(  0,  0 );
@@ -610,8 +610,8 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 2 >
     }
 
     offset = -1 ;
-    for ( unsigned i0 = 0 ; i0 < unsigned(right.dimension_0()) ; ++i0 )
-    for ( unsigned i1 = 0 ; i1 < unsigned(right.dimension_1()) ; ++i1 )
+    for ( unsigned i0 = 0 ; i0 < unsigned(right.extent(0)) ; ++i0 )
+    for ( unsigned i1 = 0 ; i1 < unsigned(right.extent(1)) ; ++i1 )
     {
       const long j = & right( i0, i1 ) -
                      & right(  0,  0 );
@@ -619,8 +619,8 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 2 >
       offset = j ;
     }
 
-    for ( unsigned i0 = 0 ; i0 < unsigned(left.dimension_0()) ; ++i0 )
-    for ( unsigned i1 = 0 ; i1 < unsigned(left.dimension_1()) ; ++i1 )
+    for ( unsigned i0 = 0 ; i0 < unsigned(left.extent(0)) ; ++i0 )
+    for ( unsigned i1 = 0 ; i1 < unsigned(left.extent(1)) ; ++i1 )
     {
       if ( & left(i0,i1)  != & left(i0,i1,0,0,0,0,0) )  { update |= 3 ; }
       if ( & right(i0,i1) != & right(i0,i1,0,0,0,0,0) ) { update |= 3 ; }
@@ -648,13 +648,13 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 1 >
 
 
   typedef Kokkos::
-    Experimental::DynRankView< DataType, Kokkos::LayoutLeft, execution_space > left_view ;
+    DynRankView< DataType, Kokkos::LayoutLeft, execution_space > left_view ;
 
   typedef Kokkos::
-    Experimental::DynRankView< DataType, Kokkos::LayoutRight, execution_space > right_view ;
+    DynRankView< DataType, Kokkos::LayoutRight, execution_space > right_view ;
 
   typedef Kokkos::
-    Experimental::DynRankView< DataType, Kokkos::LayoutStride, execution_space > stride_view ;
+    DynRankView< DataType, Kokkos::LayoutStride, execution_space > stride_view ;
 
   left_view    left ;
   right_view   right ;
@@ -686,7 +686,7 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 1 >
   KOKKOS_INLINE_FUNCTION
   void operator()( const size_type , value_type & update ) const
   {
-    for ( unsigned i0 = 0 ; i0 < unsigned(left.dimension_0()) ; ++i0 )
+    for ( unsigned i0 = 0 ; i0 < unsigned(left.extent(0)) ; ++i0 )
     {
       if ( & left(i0)  != & left(i0,0,0,0,0,0,0) )  { update |= 3 ; }
       if ( & right(i0) != & right(i0,0,0,0,0,0,0) ) { update |= 3 ; }
@@ -709,10 +709,10 @@ public:
          N2 = 5 ,
          N3 = 7 };
 
-  typedef Kokkos::Experimental::DynRankView< T , device > dView0 ;
-  typedef Kokkos::Experimental::DynRankView< const T , device > const_dView0 ;
+  typedef Kokkos::DynRankView< T , device > dView0 ;
+  typedef Kokkos::DynRankView< const T , device > const_dView0 ;
 
-  typedef Kokkos::Experimental::DynRankView< T, device, Kokkos::MemoryUnmanaged > dView0_unmanaged ;
+  typedef Kokkos::DynRankView< T, device, Kokkos::MemoryUnmanaged > dView0_unmanaged ;
   typedef typename dView0::host_mirror_space host_drv_space ;
 
   typedef Kokkos::View< T , device >        View0 ;
@@ -747,27 +747,27 @@ public:
     dView0 drv0("drv0", 10, 20, 30);
     ASSERT_EQ( drv0.rank(), 3);
 
-    Kokkos::Experimental::resize(drv0, 5, 10);
+    Kokkos::resize(drv0, 5, 10);
     ASSERT_EQ( drv0.rank(), 2);
-    ASSERT_EQ( drv0.dimension_0(), 5);
-    ASSERT_EQ( drv0.dimension_1(), 10);
-    ASSERT_EQ( drv0.dimension_2(), 1);
+    ASSERT_EQ( drv0.extent(0), 5);
+    ASSERT_EQ( drv0.extent(1), 10);
+    ASSERT_EQ( drv0.extent(2), 1);
 
-    Kokkos::Experimental::realloc(drv0, 10, 20);
+    Kokkos::realloc(drv0, 10, 20);
     ASSERT_EQ( drv0.rank(), 2);
-    ASSERT_EQ( drv0.dimension_0(), 10);
-    ASSERT_EQ( drv0.dimension_1(), 20);
-    ASSERT_EQ( drv0.dimension_2(), 1);
+    ASSERT_EQ( drv0.extent(0), 10);
+    ASSERT_EQ( drv0.extent(1), 20);
+    ASSERT_EQ( drv0.extent(2), 1);
 
   }
 
   static void run_test_mirror()
   {
-    typedef Kokkos::Experimental::DynRankView< int , host_drv_space > view_type ;
+    typedef Kokkos::DynRankView< int , host_drv_space > view_type ;
     typedef typename view_type::HostMirror mirror_type ;
     view_type a("a");
-    mirror_type am = Kokkos::Experimental::create_mirror_view(a);
-    mirror_type ax = Kokkos::Experimental::create_mirror(a);
+    mirror_type am = Kokkos::create_mirror_view(a);
+    mirror_type ax = Kokkos::create_mirror(a);
     ASSERT_EQ( & a() , & am() );
     ASSERT_EQ( a.rank() , am.rank() );
     ASSERT_EQ( ax.rank() , am.rank() );
@@ -777,17 +777,17 @@ public:
       Kokkos::DynRankView<double, Kokkos::LayoutLeft, Kokkos::HostSpace> a_h("A",1000);
       auto a_h2 = Kokkos::create_mirror(Kokkos::HostSpace(),a_h);
       auto a_d = Kokkos::create_mirror(typename device::memory_space(),a_h);
-  
+
       int equal_ptr_h_h2  = (a_h.data() ==a_h2.data())?1:0;
       int equal_ptr_h_d   = (a_h.data() ==a_d. data())?1:0;
       int equal_ptr_h2_d  = (a_h2.data()==a_d. data())?1:0;
-  
+
       ASSERT_EQ(equal_ptr_h_h2,0);
       ASSERT_EQ(equal_ptr_h_d ,0);
       ASSERT_EQ(equal_ptr_h2_d,0);
   
-      ASSERT_EQ(a_h.dimension_0(),a_h2.dimension_0());
-      ASSERT_EQ(a_h.dimension_0(),a_d .dimension_0());
+      ASSERT_EQ(a_h.extent(0),a_h2.extent(0));
+      ASSERT_EQ(a_h.extent(0),a_d .extent(0));
 
       ASSERT_EQ(a_h.rank(),a_h2.rank());
       ASSERT_EQ(a_h.rank(),a_d.rank());
@@ -797,17 +797,17 @@ public:
       Kokkos::DynRankView<double, Kokkos::LayoutRight, Kokkos::HostSpace> a_h("A",1000);
       auto a_h2 = Kokkos::create_mirror(Kokkos::HostSpace(),a_h);
       auto a_d = Kokkos::create_mirror(typename device::memory_space(),a_h);
-  
+
       int equal_ptr_h_h2  = (a_h.data() ==a_h2.data())?1:0;
       int equal_ptr_h_d   = (a_h.data() ==a_d. data())?1:0;
       int equal_ptr_h2_d  = (a_h2.data()==a_d. data())?1:0;
-  
+
       ASSERT_EQ(equal_ptr_h_h2,0);
       ASSERT_EQ(equal_ptr_h_d ,0);
       ASSERT_EQ(equal_ptr_h2_d,0);
   
-      ASSERT_EQ(a_h.dimension_0(),a_h2.dimension_0());
-      ASSERT_EQ(a_h.dimension_0(),a_d .dimension_0());
+      ASSERT_EQ(a_h.extent(0),a_h2.extent(0));
+      ASSERT_EQ(a_h.extent(0),a_d .extent(0));
 
       ASSERT_EQ(a_h.rank(),a_h2.rank());
       ASSERT_EQ(a_h.rank(),a_d.rank());
@@ -818,43 +818,44 @@ public:
       Kokkos::DynRankView<double, Kokkos::LayoutLeft, Kokkos::HostSpace> a_h("A",1000);
       auto a_h2 = Kokkos::create_mirror_view(Kokkos::HostSpace(),a_h);
       auto a_d = Kokkos::create_mirror_view(typename device::memory_space(),a_h);
-  
+
       int equal_ptr_h_h2  = a_h.data() ==a_h2.data()?1:0;
       int equal_ptr_h_d   = a_h.data() ==a_d. data()?1:0;
       int equal_ptr_h2_d  = a_h2.data()==a_d. data()?1:0;
-  
-      int is_same_memspace = std::is_same<Kokkos::HostSpace,typename device::memory_space>::value?1:0; 
+
+      int is_same_memspace = std::is_same<Kokkos::HostSpace,typename device::memory_space>::value?1:0;
       ASSERT_EQ(equal_ptr_h_h2,1);
       ASSERT_EQ(equal_ptr_h_d ,is_same_memspace);
       ASSERT_EQ(equal_ptr_h2_d ,is_same_memspace);
-  
-      ASSERT_EQ(a_h.dimension_0(),a_h2.dimension_0());
-      ASSERT_EQ(a_h.dimension_0(),a_d .dimension_0());
+
+      ASSERT_EQ(a_h.extent(0),a_h2.extent(0));
+      ASSERT_EQ(a_h.extent(0),a_d .extent(0));
 
       ASSERT_EQ(a_h.rank(),a_h2.rank());
       ASSERT_EQ(a_h.rank(),a_d.rank());
-    } 
+    }
     if (Kokkos::HostSpace::execution_space::is_initialized() )
     {
       Kokkos::DynRankView<double, Kokkos::LayoutRight, Kokkos::HostSpace> a_h("A",1000);
       auto a_h2 = Kokkos::create_mirror_view(Kokkos::HostSpace(),a_h);
       auto a_d = Kokkos::create_mirror_view(typename device::memory_space(),a_h);
-  
+
       int equal_ptr_h_h2  = a_h.data() ==a_h2.data()?1:0;
       int equal_ptr_h_d   = a_h.data() ==a_d. data()?1:0;
       int equal_ptr_h2_d  = a_h2.data()==a_d. data()?1:0;
-  
-      int is_same_memspace = std::is_same<Kokkos::HostSpace,typename device::memory_space>::value?1:0; 
+
+      int is_same_memspace = std::is_same<Kokkos::HostSpace,typename device::memory_space>::value?1:0;
       ASSERT_EQ(equal_ptr_h_h2,1);
       ASSERT_EQ(equal_ptr_h_d ,is_same_memspace);
       ASSERT_EQ(equal_ptr_h2_d ,is_same_memspace);
+
   
-      ASSERT_EQ(a_h.dimension_0(),a_h2.dimension_0());
-      ASSERT_EQ(a_h.dimension_0(),a_d .dimension_0());
+      ASSERT_EQ(a_h.extent(0),a_h2.extent(0));
+      ASSERT_EQ(a_h.extent(0),a_d .extent(0));
 
       ASSERT_EQ(a_h.rank(),a_h2.rank());
       ASSERT_EQ(a_h.rank(),a_d.rank());
-    } 
+    }
     if (Kokkos::HostSpace::execution_space::is_initialized() )
     {
       typedef Kokkos::DynRankView< int , Kokkos::LayoutStride , Kokkos::HostSpace > view_stride_type ;
@@ -862,18 +863,18 @@ public:
       view_stride_type a_h( "a" , Kokkos::LayoutStride::order_dimensions(7, order, dimen) );
       auto a_h2 = Kokkos::create_mirror_view(Kokkos::HostSpace(),a_h);
       auto a_d = Kokkos::create_mirror_view(typename device::memory_space(),a_h);
-  
+
       int equal_ptr_h_h2  = a_h.data() ==a_h2.data()?1:0;
       int equal_ptr_h_d   = a_h.data() ==a_d. data()?1:0;
       int equal_ptr_h2_d  = a_h2.data()==a_d. data()?1:0;
-  
-      int is_same_memspace = std::is_same<Kokkos::HostSpace,typename device::memory_space>::value?1:0; 
+
+      int is_same_memspace = std::is_same<Kokkos::HostSpace,typename device::memory_space>::value?1:0;
       ASSERT_EQ(equal_ptr_h_h2,1);
       ASSERT_EQ(equal_ptr_h_d ,is_same_memspace);
       ASSERT_EQ(equal_ptr_h2_d ,is_same_memspace);
-  
-      ASSERT_EQ(a_h.dimension_0(),a_h2.dimension_0());
-      ASSERT_EQ(a_h.dimension_0(),a_d .dimension_0());
+
+      ASSERT_EQ(a_h.extent(0),a_h2.extent(0));
+      ASSERT_EQ(a_h.extent(0),a_d .extent(0));
 
       ASSERT_EQ(a_h.rank(),a_h2.rank());
       ASSERT_EQ(a_h.rank(),a_d.rank());
@@ -890,14 +891,14 @@ public:
     dx = dView0( "dx" );
     dy = dView0( "dy" );
 
-    hx = Kokkos::Experimental::create_mirror( dx );
-    hy = Kokkos::Experimental::create_mirror( dy );
+    hx = Kokkos::create_mirror( dx );
+    hy = Kokkos::create_mirror( dy );
 
     hx() = 1 ;
 
-    Kokkos::Experimental::deep_copy( dx , hx );
-    Kokkos::Experimental::deep_copy( dy , dx );
-    Kokkos::Experimental::deep_copy( hy , dy );
+    Kokkos::deep_copy( dx , hx );
+    Kokkos::deep_copy( dy , dx );
+    Kokkos::deep_copy( hy , dy );
 
     ASSERT_EQ( hx(), hy() );
     ASSERT_EQ( dx.rank() , hx.rank() );
@@ -920,18 +921,18 @@ public:
 
 
     View7 vcast = dx.ConstDownCast();
-    ASSERT_EQ( dx.dimension_0() , vcast.dimension_0() );
-    ASSERT_EQ( dx.dimension_1() , vcast.dimension_1() );
-    ASSERT_EQ( dx.dimension_2() , vcast.dimension_2() );
-    ASSERT_EQ( dx.dimension_3() , vcast.dimension_3() );
-    ASSERT_EQ( dx.dimension_4() , vcast.dimension_4() );
+    ASSERT_EQ( dx.extent(0) , vcast.extent(0) );
+    ASSERT_EQ( dx.extent(1) , vcast.extent(1) );
+    ASSERT_EQ( dx.extent(2) , vcast.extent(2) );
+    ASSERT_EQ( dx.extent(3) , vcast.extent(3) );
+    ASSERT_EQ( dx.extent(4) , vcast.extent(4) );
 
     View7 vcast1( dy.ConstDownCast() );
-    ASSERT_EQ( dy.dimension_0() , vcast1.dimension_0() );
-    ASSERT_EQ( dy.dimension_1() , vcast1.dimension_1() );
-    ASSERT_EQ( dy.dimension_2() , vcast1.dimension_2() );
-    ASSERT_EQ( dy.dimension_3() , vcast1.dimension_3() );
-    ASSERT_EQ( dy.dimension_4() , vcast1.dimension_4() );
+    ASSERT_EQ( dy.extent(0) , vcast1.extent(0) );
+    ASSERT_EQ( dy.extent(1) , vcast1.extent(1) );
+    ASSERT_EQ( dy.extent(2) , vcast1.extent(2) );
+    ASSERT_EQ( dy.extent(3) , vcast1.extent(3) );
+    ASSERT_EQ( dy.extent(4) , vcast1.extent(4) );
 
   //View - DynRankView Interoperability tests
   // copy View to DynRankView
@@ -941,8 +942,8 @@ public:
     auto hvx = Kokkos::create_mirror_view(vx) ;
     Kokkos::deep_copy(hvx , vx);
     ASSERT_EQ( rank(hvx) , rank(hmx) );
-    ASSERT_EQ( hvx.dimension_0() , hmx.dimension_0() );
-    ASSERT_EQ( hvx.dimension_1() , hmx.dimension_1() );
+    ASSERT_EQ( hvx.extent(0) , hmx.extent(0) );
+    ASSERT_EQ( hvx.extent(1) , hmx.extent(1) );
 
   // copy-assign View to DynRankView
     dView0 dfromvy = vy ;
@@ -951,27 +952,27 @@ public:
     auto hvy = Kokkos::create_mirror_view(vy) ;
     Kokkos::deep_copy(hvy , vy);
     ASSERT_EQ( rank(hvy) , rank(hmy) );
-    ASSERT_EQ( hvy.dimension_0() , hmy.dimension_0() );
-    ASSERT_EQ( hvy.dimension_1() , hmy.dimension_1() );
+    ASSERT_EQ( hvy.extent(0) , hmy.extent(0) );
+    ASSERT_EQ( hvy.extent(1) , hmy.extent(1) );
 
 
     View7 vtest1("vtest1",2,2,2,2,2,2,2);
     dView0 dfromv1( vtest1 );
     ASSERT_EQ( dfromv1.rank() , vtest1.Rank );
-    ASSERT_EQ( dfromv1.dimension_0() , vtest1.dimension_0() );
-    ASSERT_EQ( dfromv1.dimension_1() , vtest1.dimension_1() );
+    ASSERT_EQ( dfromv1.extent(0) , vtest1.extent(0) );
+    ASSERT_EQ( dfromv1.extent(1) , vtest1.extent(1) );
     ASSERT_EQ( dfromv1.use_count() , vtest1.use_count() );
 
     dView0 dfromv2( vcast );
     ASSERT_EQ( dfromv2.rank() , vcast.Rank );
-    ASSERT_EQ( dfromv2.dimension_0() , vcast.dimension_0() );
-    ASSERT_EQ( dfromv2.dimension_1() , vcast.dimension_1() );
+    ASSERT_EQ( dfromv2.extent(0) , vcast.extent(0) );
+    ASSERT_EQ( dfromv2.extent(1) , vcast.extent(1) );
     ASSERT_EQ( dfromv2.use_count() , vcast.use_count() );
 
     dView0 dfromv3 = vcast1;
     ASSERT_EQ( dfromv3.rank() , vcast1.Rank );
-    ASSERT_EQ( dfromv3.dimension_0() , vcast1.dimension_0() );
-    ASSERT_EQ( dfromv3.dimension_1() , vcast1.dimension_1() );
+    ASSERT_EQ( dfromv3.extent(0) , vcast1.extent(0) );
+    ASSERT_EQ( dfromv3.extent(1) , vcast1.extent(1) );
     ASSERT_EQ( dfromv3.use_count() , vcast1.use_count() );
   }
 
@@ -993,15 +994,15 @@ public:
     dView0 d_uninitialized(Kokkos::ViewAllocateWithoutInitializing("uninit"),10,20);
     ASSERT_TRUE( d_uninitialized.data() != nullptr );
     ASSERT_EQ( d_uninitialized.rank() , 2 );
-    ASSERT_EQ( d_uninitialized.dimension_0() , 10 );
-    ASSERT_EQ( d_uninitialized.dimension_1() , 20 );
-    ASSERT_EQ( d_uninitialized.dimension_2() , 1  );
+    ASSERT_EQ( d_uninitialized.extent(0) , 10 );
+    ASSERT_EQ( d_uninitialized.extent(1) , 20 );
+    ASSERT_EQ( d_uninitialized.extent(2) , 1  );
 
     dView0 dx , dy , dz ;
     hView0 hx , hy , hz ;
 
-    ASSERT_TRUE( Kokkos::Experimental::is_dyn_rank_view<dView0>::value );
-    ASSERT_FALSE( Kokkos::Experimental::is_dyn_rank_view< Kokkos::View<double> >::value );
+    ASSERT_TRUE( Kokkos::is_dyn_rank_view<dView0>::value );
+    ASSERT_FALSE( Kokkos::is_dyn_rank_view< Kokkos::View<double> >::value );
 
     ASSERT_TRUE( dx.ptr_on_device() == 0 ); //Okay with UVM
     ASSERT_TRUE( dy.ptr_on_device() == 0 );  //Okay with UVM
@@ -1009,12 +1010,12 @@ public:
     ASSERT_TRUE( hx.ptr_on_device() == 0 );
     ASSERT_TRUE( hy.ptr_on_device() == 0 );
     ASSERT_TRUE( hz.ptr_on_device() == 0 );
-    ASSERT_EQ( dx.dimension_0() , 0u ); //Okay with UVM
-    ASSERT_EQ( dy.dimension_0() , 0u ); //Okay with UVM
-    ASSERT_EQ( dz.dimension_0() , 0u ); //Okay with UVM
-    ASSERT_EQ( hx.dimension_0() , 0u );
-    ASSERT_EQ( hy.dimension_0() , 0u );
-    ASSERT_EQ( hz.dimension_0() , 0u );
+    ASSERT_EQ( dx.extent(0) , 0u ); //Okay with UVM
+    ASSERT_EQ( dy.extent(0) , 0u ); //Okay with UVM
+    ASSERT_EQ( dz.extent(0) , 0u ); //Okay with UVM
+    ASSERT_EQ( hx.extent(0) , 0u );
+    ASSERT_EQ( hy.extent(0) , 0u );
+    ASSERT_EQ( hz.extent(0) , 0u );
     ASSERT_EQ( dx.rank() , 0u ); //Okay with UVM
     ASSERT_EQ( hx.rank() , 0u );
 
@@ -1024,10 +1025,10 @@ public:
     hx = hView0( "hx" , N1 , N2 , N3 );
     hy = hView0( "hy" , N1 , N2 , N3 );
 
-    ASSERT_EQ( dx.dimension_0() , unsigned(N1) ); //Okay with UVM
-    ASSERT_EQ( dy.dimension_0() , unsigned(N1) ); //Okay with UVM
-    ASSERT_EQ( hx.dimension_0() , unsigned(N1) );
-    ASSERT_EQ( hy.dimension_0() , unsigned(N1) );
+    ASSERT_EQ( dx.extent(0) , unsigned(N1) ); //Okay with UVM
+    ASSERT_EQ( dy.extent(0) , unsigned(N1) ); //Okay with UVM
+    ASSERT_EQ( hx.extent(0) , unsigned(N1) );
+    ASSERT_EQ( hy.extent(0) , unsigned(N1) );
     ASSERT_EQ( dx.rank() , 3 ); //Okay with UVM
     ASSERT_EQ( hx.rank() , 3 );
 
@@ -1036,10 +1037,10 @@ public:
     hx = hView0( "hx" , N0 , N1 , N2 , N3 );
     hy = hView0( "hy" , N0 , N1 , N2 , N3 );
 
-    ASSERT_EQ( dx.dimension_0() , unsigned(N0) );
-    ASSERT_EQ( dy.dimension_0() , unsigned(N0) );
-    ASSERT_EQ( hx.dimension_0() , unsigned(N0) );
-    ASSERT_EQ( hy.dimension_0() , unsigned(N0) );
+    ASSERT_EQ( dx.extent(0) , unsigned(N0) );
+    ASSERT_EQ( dy.extent(0) , unsigned(N0) );
+    ASSERT_EQ( hx.extent(0) , unsigned(N0) );
+    ASSERT_EQ( hy.extent(0) , unsigned(N0) );
     ASSERT_EQ( dx.rank() , 4 );
     ASSERT_EQ( dy.rank() , 4 );
     ASSERT_EQ( hx.rank() , 4 );
@@ -1052,19 +1053,19 @@ public:
 
 
     dView0_unmanaged unmanaged_from_ptr_dx = dView0_unmanaged(dx.ptr_on_device(),
-                                                              dx.dimension_0(),
-                                                              dx.dimension_1(),
-                                                              dx.dimension_2(),
-                                                              dx.dimension_3());
+                                                              dx.extent(0),
+                                                              dx.extent(1),
+                                                              dx.extent(2),
+                                                              dx.extent(3));
 
 
     {
       // Destruction of this view should be harmless
       const_dView0 unmanaged_from_ptr_const_dx( dx.ptr_on_device() ,
-                                                dx.dimension_0() ,
-                                                dx.dimension_1() ,
-                                                dx.dimension_2() ,
-                                                dx.dimension_3() );
+                                                dx.extent(0) ,
+                                                dx.extent(1) ,
+                                                dx.extent(2) ,
+                                                dx.extent(3) );
     }
 
     const_dView0 const_dx = dx ;
@@ -1095,33 +1096,33 @@ public:
     ASSERT_FALSE( dy.ptr_on_device() == 0 );
     ASSERT_NE( dx , dy );
 
-    ASSERT_EQ( dx.dimension_0() , unsigned(N0) );
-    ASSERT_EQ( dx.dimension_1() , unsigned(N1) );
-    ASSERT_EQ( dx.dimension_2() , unsigned(N2) );
-    ASSERT_EQ( dx.dimension_3() , unsigned(N3) );
+    ASSERT_EQ( dx.extent(0) , unsigned(N0) );
+    ASSERT_EQ( dx.extent(1) , unsigned(N1) );
+    ASSERT_EQ( dx.extent(2) , unsigned(N2) );
+    ASSERT_EQ( dx.extent(3) , unsigned(N3) );
 
-    ASSERT_EQ( dy.dimension_0() , unsigned(N0) );
-    ASSERT_EQ( dy.dimension_1() , unsigned(N1) );
-    ASSERT_EQ( dy.dimension_2() , unsigned(N2) );
-    ASSERT_EQ( dy.dimension_3() , unsigned(N3) );
+    ASSERT_EQ( dy.extent(0) , unsigned(N0) );
+    ASSERT_EQ( dy.extent(1) , unsigned(N1) );
+    ASSERT_EQ( dy.extent(2) , unsigned(N2) );
+    ASSERT_EQ( dy.extent(3) , unsigned(N3) );
 
     ASSERT_EQ( unmanaged_from_ptr_dx.capacity(),unsigned(N0)*unsigned(N1)*unsigned(N2)*unsigned(N3) );
 
-    hx = Kokkos::Experimental::create_mirror( dx );
-    hy = Kokkos::Experimental::create_mirror( dy );
+    hx = Kokkos::create_mirror( dx );
+    hy = Kokkos::create_mirror( dy );
 
     ASSERT_EQ( hx.rank() , dx.rank() );
     ASSERT_EQ( hy.rank() , dy.rank() );
 
-    ASSERT_EQ( hx.dimension_0() , unsigned(N0) );
-    ASSERT_EQ( hx.dimension_1() , unsigned(N1) );
-    ASSERT_EQ( hx.dimension_2() , unsigned(N2) );
-    ASSERT_EQ( hx.dimension_3() , unsigned(N3) );
+    ASSERT_EQ( hx.extent(0) , unsigned(N0) );
+    ASSERT_EQ( hx.extent(1) , unsigned(N1) );
+    ASSERT_EQ( hx.extent(2) , unsigned(N2) );
+    ASSERT_EQ( hx.extent(3) , unsigned(N3) );
 
-    ASSERT_EQ( hy.dimension_0() , unsigned(N0) );
-    ASSERT_EQ( hy.dimension_1() , unsigned(N1) );
-    ASSERT_EQ( hy.dimension_2() , unsigned(N2) );
-    ASSERT_EQ( hy.dimension_3() , unsigned(N3) );
+    ASSERT_EQ( hy.extent(0) , unsigned(N0) );
+    ASSERT_EQ( hy.extent(1) , unsigned(N1) );
+    ASSERT_EQ( hy.extent(2) , unsigned(N2) );
+    ASSERT_EQ( hy.extent(3) , unsigned(N3) );
 
     // T v1 = hx() ;    // Generates compile error as intended
     // T v2 = hx(0,0) ; // Generates compile error as intended
@@ -1132,9 +1133,9 @@ public:
     {
       size_t count = 0 ;
       for ( size_t ip = 0 ; ip < N0 ; ++ip ) {
-      for ( size_t i1 = 0 ; i1 < hx.dimension_1() ; ++i1 ) {
-      for ( size_t i2 = 0 ; i2 < hx.dimension_2() ; ++i2 ) {
-      for ( size_t i3 = 0 ; i3 < hx.dimension_3() ; ++i3 ) {
+      for ( size_t i1 = 0 ; i1 < hx.extent(1) ; ++i1 ) {
+      for ( size_t i2 = 0 ; i2 < hx.extent(2) ; ++i2 ) {
+      for ( size_t i3 = 0 ; i3 < hx.extent(3) ; ++i3 ) {
         hx(ip,i1,i2,i3) = ++count ;
       }}}}
 
@@ -1165,9 +1166,9 @@ public:
     {
       size_t count = 0 ;
       for ( size_t ip = 0 ; ip < N0 ; ++ip ) {
-      for ( size_t i1 = 0 ; i1 < hx.dimension_1() ; ++i1 ) {
-      for ( size_t i2 = 0 ; i2 < hx.dimension_2() ; ++i2 ) {
-      for ( size_t i3 = 0 ; i3 < hx.dimension_3() ; ++i3 ) {
+      for ( size_t i1 = 0 ; i1 < hx.extent(1) ; ++i1 ) {
+      for ( size_t i2 = 0 ; i2 < hx.extent(2) ; ++i2 ) {
+      for ( size_t i3 = 0 ; i3 < hx.extent(3) ; ++i3 ) {
         hx(ip,i1,i2,i3) = ++count ;
       }}}}
 
@@ -1198,15 +1199,15 @@ public:
     {
       size_t count = 0 ;
       for ( size_t ip = 0 ; ip < N0 ; ++ip ) {
-      for ( size_t i1 = 0 ; i1 < hx.dimension_1() ; ++i1 ) {
-      for ( size_t i2 = 0 ; i2 < hx.dimension_2() ; ++i2 ) {
-      for ( size_t i3 = 0 ; i3 < hx.dimension_3() ; ++i3 ) {
+      for ( size_t i1 = 0 ; i1 < hx.extent(1) ; ++i1 ) {
+      for ( size_t i2 = 0 ; i2 < hx.extent(2) ; ++i2 ) {
+      for ( size_t i3 = 0 ; i3 < hx.extent(3) ; ++i3 ) {
         hx(ip,i1,i2,i3) = ++count ;
       }}}}
 
-      Kokkos::Experimental::deep_copy( dx , hx );
-      Kokkos::Experimental::deep_copy( dy , dx );
-      Kokkos::Experimental::deep_copy( hy , dy );
+      Kokkos::deep_copy( dx , hx );
+      Kokkos::deep_copy( dy , dx );
+      Kokkos::deep_copy( hy , dy );
 
       for ( size_t ip = 0 ; ip < N0 ; ++ip ) {
       for ( size_t i1 = 0 ; i1 < N1 ; ++i1 ) {
@@ -1215,8 +1216,8 @@ public:
         { ASSERT_EQ( hx(ip,i1,i2,i3) , hy(ip,i1,i2,i3) ); }
       }}}}
 
-      Kokkos::Experimental::deep_copy( dx , T(0) );
-      Kokkos::Experimental::deep_copy( hx , dx );
+      Kokkos::deep_copy( dx , T(0) );
+      Kokkos::deep_copy( hx , dx );
 
       for ( size_t ip = 0 ; ip < N0 ; ++ip ) {
       for ( size_t i1 = 0 ; i1 < N1 ; ++i1 ) {
@@ -1259,16 +1260,16 @@ public:
       { ASSERT_EQ( hvxx(i) , hdxx(i) ); }
 
     ASSERT_EQ( rank(hdxx) , rank(hvxx) );
-    ASSERT_EQ( hdxx.dimension_0() , testdim );
-    ASSERT_EQ( hdxx.dimension_0() , hvxx.dimension_0() );
+    ASSERT_EQ( hdxx.extent(0) , testdim );
+    ASSERT_EQ( hdxx.extent(0) , hvxx.extent(0) );
 
     // deep_copy from dynrankview to view
     View1 vdxx("vdxx",testdim);
     auto hvdxx = Kokkos::create_mirror_view(vdxx);
     Kokkos::deep_copy(hvdxx , hdxx);
     ASSERT_EQ( rank(hdxx) , rank(hvdxx) );
-    ASSERT_EQ( hvdxx.dimension_0() , testdim );
-    ASSERT_EQ( hdxx.dimension_0() , hvdxx.dimension_0() );
+    ASSERT_EQ( hvdxx.extent(0) , testdim );
+    ASSERT_EQ( hdxx.extent(0) , hvdxx.extent(0) );
     for (int i = 0; i < testdim; ++i)
       { ASSERT_EQ( hvxx(i) , hvdxx(i) ); }
   }
@@ -1277,17 +1278,17 @@ public:
 
   static void
   check_auto_conversion_to_const(
-     const Kokkos::Experimental::DynRankView< const DataType , device > & arg_const ,
-     const Kokkos::Experimental::DynRankView< DataType , device > & arg )
+     const Kokkos::DynRankView< const DataType , device > & arg_const ,
+     const Kokkos::DynRankView< DataType , device > & arg )
   {
     ASSERT_TRUE( arg_const == arg );
   }
 
   static void run_test_const()
   {
-    typedef Kokkos::Experimental::DynRankView< DataType , device > typeX ;
-    typedef Kokkos::Experimental::DynRankView< const DataType , device > const_typeX ;
-    typedef Kokkos::Experimental::DynRankView< const DataType , device , Kokkos::MemoryRandomAccess > const_typeR ;
+    typedef Kokkos::DynRankView< DataType , device > typeX ;
+    typedef Kokkos::DynRankView< const DataType , device > const_typeX ;
+    typedef Kokkos::DynRankView< const DataType , device , Kokkos::MemoryRandomAccess > const_typeR ;
     typeX x( "X", 2 );
     const_typeX xc = x ;
     const_typeR xr = x ;
@@ -1313,10 +1314,10 @@ public:
 
   static void run_test_subview()
   {
-    typedef Kokkos::Experimental::DynRankView< const T , device > cdView ;
-    typedef Kokkos::Experimental::DynRankView< T , device > dView ;
+    typedef Kokkos::DynRankView< const T , device > cdView ;
+    typedef Kokkos::DynRankView< T , device > dView ;
   // LayoutStride required for all returned DynRankView subdynrankview's
-    typedef Kokkos::Experimental::DynRankView< T , Kokkos::LayoutStride , device > sdView ; 
+    typedef Kokkos::DynRankView< T , Kokkos::LayoutStride , device > sdView ; 
 
     dView0 d0( "d0" );
     cdView s0 = d0 ;
@@ -1330,25 +1331,25 @@ public:
     ASSERT_EQ( ds0.rank() , 0 );
 
 //Basic test - ALL
-    sdView dsALL = Kokkos::Experimental::subdynrankview( d7 , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() ); 
+    sdView dsALL = Kokkos::subdynrankview( d7 , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() ); 
     ASSERT_EQ( dsALL.rank() , 7 );
 
 //  Send a value to final rank returning rank 6 subview
-    sdView dsm1 = Kokkos::Experimental::subdynrankview( d7 , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , 1 );
+    sdView dsm1 = Kokkos::subdynrankview( d7 , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , 1 );
     ASSERT_EQ( dsm1.rank() , 6 );
 
 //  Send a std::pair as argument to a rank
-    sdView dssp = Kokkos::Experimental::subdynrankview( d7 , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , std::pair<unsigned,unsigned>(1,2) );
+    sdView dssp = Kokkos::subdynrankview( d7 , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , std::pair<unsigned,unsigned>(1,2) );
     ASSERT_EQ( dssp.rank() , 7 );
 
 //  Send a kokkos::pair as argument to a rank; take default layout as input
     dView0 dd0("dd0" , N0 , N1 , N2 , 2 , 2 , 2 , 2 ); //default layout
     ASSERT_EQ( dd0.rank() , 7 );
-    sdView dtkp = Kokkos::Experimental::subdynrankview( dd0 , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::pair<unsigned,unsigned>(0,1) );
+    sdView dtkp = Kokkos::subdynrankview( dd0 , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::pair<unsigned,unsigned>(0,1) );
     ASSERT_EQ( dtkp.rank() , 7 );
 
 // Return rank 7 subview, taking a pair as one argument, layout stride input
-    sdView ds7 = Kokkos::Experimental::subdynrankview( d7 , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::pair<unsigned,unsigned>(0,1) );
+    sdView ds7 = Kokkos::subdynrankview( d7 , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::pair<unsigned,unsigned>(0,1) );
     ASSERT_EQ( ds7.rank() , 7 );
 
 // Default Layout DynRankView
@@ -1356,7 +1357,7 @@ public:
     ASSERT_EQ( dv6.rank() , 6 );
 
 // DynRankView with LayoutRight
-    typedef Kokkos::Experimental::DynRankView< T , Kokkos::LayoutRight , device > drView ;
+    typedef Kokkos::DynRankView< T , Kokkos::LayoutRight , device > drView ;
     drView dr5( "dr5" , N0 , N1 , N2 , 2 , 2 );
     ASSERT_EQ( dr5.rank() , 5 );
 
@@ -1386,27 +1387,27 @@ public:
 //   (i.e. rank 7 rather than 5).
 
 // Check LayoutRight dr5 and LayoutStride d5 dimensions agree (as they should) 
-    ASSERT_EQ( d5.dimension_0() , dr5.dimension_0() );
-    ASSERT_EQ( d5.dimension_1() , dr5.dimension_1() );
-    ASSERT_EQ( d5.dimension_2() , dr5.dimension_2() );
-    ASSERT_EQ( d5.dimension_3() , dr5.dimension_3() );
-    ASSERT_EQ( d5.dimension_4() , dr5.dimension_4() );
-    ASSERT_EQ( d5.dimension_5() , dr5.dimension_5() );
+    ASSERT_EQ( d5.extent(0) , dr5.extent(0) );
+    ASSERT_EQ( d5.extent(1) , dr5.extent(1) );
+    ASSERT_EQ( d5.extent(2) , dr5.extent(2) );
+    ASSERT_EQ( d5.extent(3) , dr5.extent(3) );
+    ASSERT_EQ( d5.extent(4) , dr5.extent(4) );
+    ASSERT_EQ( d5.extent(5) , dr5.extent(5) );
     ASSERT_EQ( d5.rank() , dr5.rank() );
 
 // Rank 5 subview of rank 5 dynamic rank view, layout stride input
-    sdView ds5 = Kokkos::Experimental::subdynrankview( d5 , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::pair<unsigned,unsigned>(0,1) );
+    sdView ds5 = Kokkos::subdynrankview( d5 , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::pair<unsigned,unsigned>(0,1) );
     ASSERT_EQ( ds5.rank() , 5 );
 
 // Pass in extra ALL arguments beyond the rank of the DynRank View.
 // This behavior is allowed - ignore the extra ALL arguments when
 //  the src.rank() < number of arguments, but be careful!
-    sdView ds5plus = Kokkos::Experimental::subdynrankview( d5 , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::pair<unsigned,unsigned>(0,1) , Kokkos::ALL() );
+    sdView ds5plus = Kokkos::subdynrankview( d5 , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::pair<unsigned,unsigned>(0,1) , Kokkos::ALL() );
 
     ASSERT_EQ( ds5.rank() , ds5plus.rank() );
-    ASSERT_EQ( ds5.dimension_0() , ds5plus.dimension_0() );
-    ASSERT_EQ( ds5.dimension_4() , ds5plus.dimension_4() );
-    ASSERT_EQ( ds5.dimension_5() , ds5plus.dimension_5() );
+    ASSERT_EQ( ds5.extent(0) , ds5plus.extent(0) );
+    ASSERT_EQ( ds5.extent(4) , ds5plus.extent(4) );
+    ASSERT_EQ( ds5.extent(5) , ds5plus.extent(5) );
 
 #if ! defined( KOKKOS_ENABLE_CUDA ) || defined ( KOKKOS_ENABLE_CUDA_UVM )
     ASSERT_EQ( & ds5(1,1,1,1,0) - & ds5plus(1,1,1,1,0) , 0 );
@@ -1415,36 +1416,36 @@ public:
 
 // Similar test to rank 5 above, but create rank 4 subview
 // Check that the rank contracts (ds4 and ds4plus) and that subdynrankview can accept extra args (ds4plus)
-    sdView ds4 = Kokkos::Experimental::subdynrankview( d5 , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , 0 );
-    sdView ds4plus = Kokkos::Experimental::subdynrankview( d5 , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , 0 , Kokkos::ALL() );
+    sdView ds4 = Kokkos::subdynrankview( d5 , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , 0 );
+    sdView ds4plus = Kokkos::subdynrankview( d5 , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , Kokkos::ALL() , 0 , Kokkos::ALL() );
 
     ASSERT_EQ( ds4.rank() , ds4plus.rank() );
     ASSERT_EQ( ds4.rank() , 4 );
-    ASSERT_EQ( ds4.dimension_0() , ds4plus.dimension_0() );
-    ASSERT_EQ( ds4.dimension_4() , ds4plus.dimension_4() );
-    ASSERT_EQ( ds4.dimension_5() , ds4plus.dimension_5() );
+    ASSERT_EQ( ds4.extent(0) , ds4plus.extent(0) );
+    ASSERT_EQ( ds4.extent(4) , ds4plus.extent(4) );
+    ASSERT_EQ( ds4.extent(5) , ds4plus.extent(5) );
   }
 
   static void run_test_subview_strided()
   {
-    typedef Kokkos::Experimental::DynRankView < int , Kokkos::LayoutLeft , host_drv_space > drview_left ;
-    typedef Kokkos::Experimental::DynRankView < int , Kokkos::LayoutRight , host_drv_space > drview_right ;
-    typedef Kokkos::Experimental::DynRankView < int , Kokkos::LayoutStride , host_drv_space > drview_stride ;
+    typedef Kokkos::DynRankView < int , Kokkos::LayoutLeft , host_drv_space > drview_left ;
+    typedef Kokkos::DynRankView < int , Kokkos::LayoutRight , host_drv_space > drview_right ;
+    typedef Kokkos::DynRankView < int , Kokkos::LayoutStride , host_drv_space > drview_stride ;
 
     drview_left  xl2( "xl2", 100 , 200 );
     drview_right xr2( "xr2", 100 , 200 );
-    drview_stride yl1 = Kokkos::Experimental::subdynrankview( xl2 , 0 , Kokkos::ALL() );
-    drview_stride yl2 = Kokkos::Experimental::subdynrankview( xl2 , 1 , Kokkos::ALL() );
-    drview_stride ys1 = Kokkos::Experimental::subdynrankview( xr2 , 0 , Kokkos::ALL() );
-    drview_stride ys2 = Kokkos::Experimental::subdynrankview( xr2 , 1 , Kokkos::ALL() );
-    drview_stride yr1 = Kokkos::Experimental::subdynrankview( xr2 , 0 , Kokkos::ALL() );
-    drview_stride yr2 = Kokkos::Experimental::subdynrankview( xr2 , 1 , Kokkos::ALL() );
+    drview_stride yl1 = Kokkos::subdynrankview( xl2 , 0 , Kokkos::ALL() );
+    drview_stride yl2 = Kokkos::subdynrankview( xl2 , 1 , Kokkos::ALL() );
+    drview_stride ys1 = Kokkos::subdynrankview( xr2 , 0 , Kokkos::ALL() );
+    drview_stride ys2 = Kokkos::subdynrankview( xr2 , 1 , Kokkos::ALL() );
+    drview_stride yr1 = Kokkos::subdynrankview( xr2 , 0 , Kokkos::ALL() );
+    drview_stride yr2 = Kokkos::subdynrankview( xr2 , 1 , Kokkos::ALL() );
 
-    ASSERT_EQ( yl1.dimension_0() , xl2.dimension_1() );
-    ASSERT_EQ( yl2.dimension_0() , xl2.dimension_1() );
+    ASSERT_EQ( yl1.extent(0) , xl2.extent(1) );
+    ASSERT_EQ( yl2.extent(0) , xl2.extent(1) );
 
-    ASSERT_EQ( yr1.dimension_0() , xr2.dimension_1() );
-    ASSERT_EQ( yr2.dimension_0() , xr2.dimension_1() );
+    ASSERT_EQ( yr1.extent(0) , xr2.extent(1) );
+    ASSERT_EQ( yr2.extent(0) , xr2.extent(1) );
 
     ASSERT_EQ( & yl1(0) - & xl2(0,0) , 0 );
     ASSERT_EQ( & yl2(0) - & xl2(1,0) , 0 );
@@ -1456,13 +1457,13 @@ public:
     drview_right xr4( "xr4", 10 , 20 , 30 , 40 );
 
     //Replace subdynrankview with subview - test
-    drview_stride yl4 = Kokkos::Experimental::subview( xl4 , 1 , Kokkos::ALL() , 2 , Kokkos::ALL() );
-    drview_stride yr4 = Kokkos::Experimental::subview( xr4 , 1 , Kokkos::ALL() , 2 , Kokkos::ALL() );
+    drview_stride yl4 = Kokkos::subview( xl4 , 1 , Kokkos::ALL() , 2 , Kokkos::ALL() );
+    drview_stride yr4 = Kokkos::subview( xr4 , 1 , Kokkos::ALL() , 2 , Kokkos::ALL() );
 
-    ASSERT_EQ( yl4.dimension_0() , xl4.dimension_1() );
-    ASSERT_EQ( yl4.dimension_1() , xl4.dimension_3() );
-    ASSERT_EQ( yr4.dimension_0() , xr4.dimension_1() );
-    ASSERT_EQ( yr4.dimension_1() , xr4.dimension_3() );
+    ASSERT_EQ( yl4.extent(0) , xl4.extent(1) );
+    ASSERT_EQ( yl4.extent(1) , xl4.extent(3) );
+    ASSERT_EQ( yr4.extent(0) , xr4.extent(1) );
+    ASSERT_EQ( yr4.extent(1) , xr4.extent(3) );
     ASSERT_EQ( yl4.rank() , 2);
     ASSERT_EQ( yr4.rank() , 2);
 
@@ -1474,46 +1475,46 @@ public:
   {
     static const unsigned Length = 1000 , Count = 8 ;
 
-    typedef typename Kokkos::Experimental::DynRankView< T , Kokkos::LayoutLeft , host_drv_space > multivector_type ; 
+    typedef typename Kokkos::DynRankView< T , Kokkos::LayoutLeft , host_drv_space > multivector_type ; 
 
-    typedef typename Kokkos::Experimental::DynRankView< T , Kokkos::LayoutRight , host_drv_space > multivector_right_type ;
+    typedef typename Kokkos::DynRankView< T , Kokkos::LayoutRight , host_drv_space > multivector_right_type ;
 
     multivector_type mv = multivector_type( "mv" , Length , Count );
     multivector_right_type mv_right = multivector_right_type( "mv" , Length , Count );
 
-    typedef typename Kokkos::Experimental::DynRankView< T , Kokkos::LayoutStride , host_drv_space > svector_type ;
-    typedef typename Kokkos::Experimental::DynRankView< T , Kokkos::LayoutStride , host_drv_space > smultivector_type ;
-    typedef typename Kokkos::Experimental::DynRankView< const T , Kokkos::LayoutStride , host_drv_space > const_svector_right_type ; 
-    typedef typename Kokkos::Experimental::DynRankView< const T , Kokkos::LayoutStride , host_drv_space > const_svector_type ;
-    typedef typename Kokkos::Experimental::DynRankView< const T , Kokkos::LayoutStride , host_drv_space > const_smultivector_type ;
+    typedef typename Kokkos::DynRankView< T , Kokkos::LayoutStride , host_drv_space > svector_type ;
+    typedef typename Kokkos::DynRankView< T , Kokkos::LayoutStride , host_drv_space > smultivector_type ;
+    typedef typename Kokkos::DynRankView< const T , Kokkos::LayoutStride , host_drv_space > const_svector_right_type ; 
+    typedef typename Kokkos::DynRankView< const T , Kokkos::LayoutStride , host_drv_space > const_svector_type ;
+    typedef typename Kokkos::DynRankView< const T , Kokkos::LayoutStride , host_drv_space > const_smultivector_type ;
 
-    svector_type v1 = Kokkos::Experimental::subdynrankview( mv , Kokkos::ALL() , 0 );
-    svector_type v2 = Kokkos::Experimental::subdynrankview( mv , Kokkos::ALL() , 1 );
-    svector_type v3 = Kokkos::Experimental::subdynrankview( mv , Kokkos::ALL() , 2 );
+    svector_type v1 = Kokkos::subdynrankview( mv , Kokkos::ALL() , 0 );
+    svector_type v2 = Kokkos::subdynrankview( mv , Kokkos::ALL() , 1 );
+    svector_type v3 = Kokkos::subdynrankview( mv , Kokkos::ALL() , 2 );
 
-    svector_type rv1 = Kokkos::Experimental::subdynrankview( mv_right , 0 , Kokkos::ALL() );
-    svector_type rv2 = Kokkos::Experimental::subdynrankview( mv_right , 1 , Kokkos::ALL() );
-    svector_type rv3 = Kokkos::Experimental::subdynrankview( mv_right , 2 , Kokkos::ALL() );
+    svector_type rv1 = Kokkos::subdynrankview( mv_right , 0 , Kokkos::ALL() );
+    svector_type rv2 = Kokkos::subdynrankview( mv_right , 1 , Kokkos::ALL() );
+    svector_type rv3 = Kokkos::subdynrankview( mv_right , 2 , Kokkos::ALL() );
 
-    smultivector_type mv1 = Kokkos::Experimental::subdynrankview( mv , std::make_pair( 1 , 998 ) ,
+    smultivector_type mv1 = Kokkos::subdynrankview( mv , std::make_pair( 1 , 998 ) ,
                                                  std::make_pair( 2 , 5 ) );
 
     smultivector_type mvr1 =
-      Kokkos::Experimental::subdynrankview( mv_right ,
+      Kokkos::subdynrankview( mv_right ,
                        std::make_pair( 1 , 998 ) ,
                        std::make_pair( 2 , 5 ) );
 
-    const_svector_type cv1 = Kokkos::Experimental::subdynrankview( mv , Kokkos::ALL(), 0 );
-    const_svector_type cv2 = Kokkos::Experimental::subdynrankview( mv , Kokkos::ALL(), 1 );
-    const_svector_type cv3 = Kokkos::Experimental::subdynrankview( mv , Kokkos::ALL(), 2 );
+    const_svector_type cv1 = Kokkos::subdynrankview( mv , Kokkos::ALL(), 0 );
+    const_svector_type cv2 = Kokkos::subdynrankview( mv , Kokkos::ALL(), 1 );
+    const_svector_type cv3 = Kokkos::subdynrankview( mv , Kokkos::ALL(), 2 );
 
-    svector_type vr1 = Kokkos::Experimental::subdynrankview( mv , Kokkos::ALL() , 0 );
-    svector_type vr2 = Kokkos::Experimental::subdynrankview( mv , Kokkos::ALL() , 1 );
-    svector_type vr3 = Kokkos::Experimental::subdynrankview( mv , Kokkos::ALL() , 2 );
+    svector_type vr1 = Kokkos::subdynrankview( mv , Kokkos::ALL() , 0 );
+    svector_type vr2 = Kokkos::subdynrankview( mv , Kokkos::ALL() , 1 );
+    svector_type vr3 = Kokkos::subdynrankview( mv , Kokkos::ALL() , 2 );
 
-    const_svector_right_type cvr1 = Kokkos::Experimental::subdynrankview( mv , Kokkos::ALL() , 0 );
-    const_svector_right_type cvr2 = Kokkos::Experimental::subdynrankview( mv , Kokkos::ALL() , 1 );
-    const_svector_right_type cvr3 = Kokkos::Experimental::subdynrankview( mv , Kokkos::ALL() , 2 );
+    const_svector_right_type cvr1 = Kokkos::subdynrankview( mv , Kokkos::ALL() , 0 );
+    const_svector_right_type cvr2 = Kokkos::subdynrankview( mv , Kokkos::ALL() , 1 );
+    const_svector_right_type cvr3 = Kokkos::subdynrankview( mv , Kokkos::ALL() , 2 );
 
 
     ASSERT_TRUE( & v1[0] == & v1(0) );

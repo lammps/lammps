@@ -20,7 +20,7 @@ FixStyle(gcmc,FixGCMC)
 #ifndef LMP_FIX_GCMC_H
 #define LMP_FIX_GCMC_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "fix.h"
 
 namespace LAMMPS_NS {
@@ -58,7 +58,7 @@ class FixGCMC : public Fix {
   void write_restart(FILE *);
   void restart(char *);
   void grow_molecule_arrays(int);
-  
+
  private:
   int molecule_group,molecule_group_bit;
   int molecule_group_inversebit;
@@ -118,9 +118,9 @@ class FixGCMC : public Fix {
   double *molq;
   imageint *molimage;
   imageint imagezero;
-  double overlap_cutoffsq; // square distance cutoff for overlap 
+  double overlap_cutoffsq; // square distance cutoff for overlap
   int overlap_flag;
-  
+
   double energy_intra;
 
   class Pair *pair;
@@ -197,9 +197,25 @@ E: Fix gcmc atom has charge, but atom style does not
 
 Self-explanatory.
 
+E: Cannot use fix gcmc rigid and not molecule
+
+UNDOCUMENTED
+
 E: Cannot use fix gcmc shake and not molecule
 
 Self-explanatory.
+
+E: Cannot use fix gcmc rigid and shake
+
+UNDOCUMENTED
+
+E: Cannot use fix gcmc rigid with MC moves
+
+UNDOCUMENTED
+
+E: Cannot use fix gcmc shake with MC moves
+
+UNDOCUMENTED
 
 E: Molecule template ID for fix gcmc does not exist
 
@@ -219,19 +235,8 @@ W: Fix gcmc using full_energy option
 Fix gcmc has automatically turned on the full_energy option since it
 is required for systems like the one specified by the user. User input
 included one or more of the following: kspace, a hybrid
-pair style, an eam pair style, tail correction, 
+pair style, an eam pair style, tail correction,
 or no "single" function for the pair style.
-
-W: Energy of old configuration in fix gcmc is > MAXENERGYTEST. 
-
-This probably means that a pair of atoms are closer than the 
-overlap cutoff distance for keyword overlap_cutoff.
-
-W: Fix gcmc is being applied to the default group all
-
-This is allowed, but it will result in Monte Carlo moves
-being performed on all the atoms in the system, which is
-often not what is intended.
 
 E: Invalid atom type in fix gcmc command
 
@@ -256,15 +261,19 @@ Should not choose the gcmc molecule feature if no molecules are being
 simulated. The general molecule flag is off, but gcmc's molecule flag
 is on.
 
+E: Fix gcmc rigid fix does not exist
+
+UNDOCUMENTED
+
+E: Fix gcmc and fix rigid/small not using same molecule template ID
+
+UNDOCUMENTED
+
 E: Fix gcmc shake fix does not exist
 
 Self-explanatory.
 
 E: Fix gcmc and fix shake not using same molecule template ID
-
-Self-explanatory.
-
-E: Fix gcmc can not currently be used with fix rigid or fix rigid/small
 
 Self-explanatory.
 
@@ -291,9 +300,24 @@ E: Cannot do GCMC on atoms in atom_modify first group
 This is a restriction due to the way atoms are organized in a list to
 enable the atom_modify first command.
 
+W: Fix gcmc is being applied to the default group all
+
+This is allowed, but it will result in Monte Carlo moves
+being performed on all the atoms in the system, which is
+often not what is intended.
+
 E: Could not find specified fix gcmc group ID
 
 Self-explanatory.
+
+E: fix gcmc does currently not support full_energy option with molecules on more than 1 MPI process.
+
+UNDOCUMENTED
+
+W: Energy of old configuration in fix gcmc is > MAXENERGYTEST.
+
+This probably means that a pair of atoms are closer than the
+overlap cutoff distance for keyword overlap_cutoff.
 
 E: Fix gcmc put atom outside box
 
@@ -310,5 +334,9 @@ See the setting for tagint in the src/lmptype.h file.
 E: Too many total atoms
 
 See the setting for bigint in the src/lmptype.h file.
+
+U: Fix gcmc can not currently be used with fix rigid or fix rigid/small
+
+Self-explanatory.
 
 */

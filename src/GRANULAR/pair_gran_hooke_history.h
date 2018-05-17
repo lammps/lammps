@@ -90,12 +90,16 @@ E: Pair granular requires ghost atoms store velocity
 
 Use the comm_modify vel yes command to enable this.
 
-E: Pair granular with shear history requires newton pair off
+E: Could not find pair fix neigh history ID
+
+UNDOCUMENTED
+
+U: Pair granular with shear history requires newton pair off
 
 This is a current restriction of the implementation of pair
 granular styles with history.
 
-E: Could not find pair fix ID
+U: Could not find pair fix ID
 
 A fix is created internally by the pair style to store shear
 history information.  You cannot delete it.

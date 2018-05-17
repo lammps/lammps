@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "atom_vec_line.h"
 #include "atom.h"
 #include "comm.h"
@@ -1183,7 +1183,7 @@ void AtomVecLine::pack_data(double **buf)
     buf[i][2] = ubuf(type[i]).d;
     if (line[i] < 0) buf[i][3] = ubuf(0).d;
     else buf[i][3] = ubuf(1).d;
-    if (line[i] < 0) 
+    if (line[i] < 0)
       buf[i][4] = rmass[i] / (4.0*MY_PI/3.0 * radius[i]*radius[i]*radius[i]);
     else buf[i][4] = rmass[i]/bonus[line[i]].length;
     buf[i][5] = x[i][0];

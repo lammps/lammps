@@ -21,7 +21,7 @@ DumpStyle(atom/mpiio,DumpAtomMPIIO)
 #define LMP_DUMP_ATOM_MPIIO_H
 
 #include "dump_atom.h"
-#include <stdlib.h>
+#include <cstdlib>
 
 namespace LAMMPS_NS {
 

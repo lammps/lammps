@@ -20,7 +20,7 @@ FixStyle(reax/c/bonds,FixReaxCBonds)
 #ifndef LMP_FIX_REAXC_BONDS_H
 #define LMP_FIX_REAXC_BONDS_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "fix.h"
 #include "pointers.h"
 

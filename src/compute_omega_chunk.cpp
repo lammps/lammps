@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
+#include <cstring>
 #include "compute_omega_chunk.h"
 #include "atom.h"
 #include "update.h"
@@ -207,8 +207,8 @@ void ComputeOmegaChunk::compute_array()
     // determinant = triple product of rows of inertia matrix
 
     iall = &inertiaall[m][0];
-    determinant = iall[0] * (iall[1]*iall[2] - iall[4]*iall[4]) + 
-      iall[3] * (iall[4]*iall[5] - iall[3]*iall[2]) + 
+    determinant = iall[0] * (iall[1]*iall[2] - iall[4]*iall[4]) +
+      iall[3] * (iall[4]*iall[5] - iall[3]*iall[2]) +
       iall[5] * (iall[3]*iall[4] - iall[1]*iall[5]);
 
     ione[0][0] = iall[0];
@@ -238,7 +238,7 @@ void ComputeOmegaChunk::compute_array()
       for (i = 0; i < 3; i++)
         for (j = 0; j < 3; j++)
           inverse[i][j] *= invdeterminant;
-      
+
       mall = &angmomall[m][0];
       omega[m][0] = inverse[0][0]*mall[0] + inverse[0][1]*mall[1] +
         inverse[0][2]*mall[2];
@@ -268,16 +268,16 @@ void ComputeOmegaChunk::compute_array()
 
       // enforce 3 evectors as a right-handed coordinate system
       // flip 3rd vector if needed
-      
+
       MathExtra::cross3(ex,ey,cross);
       if (MathExtra::dot3(cross,ez) < 0.0) MathExtra::negate3(ez);
 
       // if any principal moment < scaled EPSILON, set to 0.0
-      
+
       double max;
       max = MAX(idiag[0],idiag[1]);
       max = MAX(max,idiag[2]);
-      
+
       if (idiag[0] < EPSILON*max) idiag[0] = 0.0;
       if (idiag[1] < EPSILON*max) idiag[1] = 0.0;
       if (idiag[2] < EPSILON*max) idiag[2] = 0.0;

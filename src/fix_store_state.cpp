@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include "fix_store_state.h"
 #include "atom.h"
 #include "domain.h"
@@ -38,7 +38,7 @@ enum{KEYWORD,COMPUTE,FIX,VARIABLE,DNAME,INAME};
 
 FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  nvalues(0), which(NULL), argindex(NULL), value2index(NULL), 
+  nvalues(0), which(NULL), argindex(NULL), value2index(NULL),
   ids(NULL), values(NULL),
   vbuf(NULL), pack_choice(NULL)
 {
@@ -418,7 +418,7 @@ void FixStoreState::init()
       icustom = atom->find_custom(ids[m],iflag);
       if ((icustom < 0) || (iflag != 0))
         error->all(FLERR,
-		   "Custom integer vector for fix store/state does not exist");
+                   "Custom integer vector for fix store/state does not exist");
       value2index[m] = icustom;
 
     } else if (which[m] == DNAME) {
@@ -426,7 +426,7 @@ void FixStoreState::init()
       icustom = atom->find_custom(ids[m],iflag);
       if ((icustom < 0) || (iflag != 1))
         error->all(FLERR,
-		   "Custom floating point vector for fix store/state does not exist");
+                   "Custom floating point vector for fix store/state does not exist");
       value2index[m] = icustom;
 
     } else if (which[m] == FIX) {
@@ -1026,7 +1026,7 @@ void FixStoreState::pack_xsu(int n)
   double invxprd = 1.0/domain->xprd;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) 
+    if (mask[i] & groupbit)
       vbuf[n] = (x[i][0]-boxxlo)*invxprd + ((image[i] & IMGMASK) - IMGMAX);
     else vbuf[n] = 0.0;
     n += nvalues;
@@ -1046,8 +1046,8 @@ void FixStoreState::pack_ysu(int n)
   double invyprd = 1.0/domain->yprd;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) 
-      vbuf[n] = (x[i][1]-boxylo)*invyprd + 
+    if (mask[i] & groupbit)
+      vbuf[n] = (x[i][1]-boxylo)*invyprd +
         (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
     else vbuf[n] = 0.0;
     n += nvalues;
@@ -1067,7 +1067,7 @@ void FixStoreState::pack_zsu(int n)
   double invzprd = 1.0/domain->zprd;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) 
+    if (mask[i] & groupbit)
       vbuf[n] = (x[i][2]-boxzlo)*invzprd + (image[i] >> IMG2BITS) - IMGMAX;
     else vbuf[n] = 0.0;
     n += nvalues;
@@ -1087,9 +1087,9 @@ void FixStoreState::pack_xsu_triclinic(int n)
   double *h_inv = domain->h_inv;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) 
+    if (mask[i] & groupbit)
       vbuf[n] = h_inv[0]*(x[i][0]-boxlo[0]) + h_inv[5]*(x[i][1]-boxlo[1]) +
-	h_inv[4]*(x[i][2]-boxlo[2]) + (image[i] & IMGMASK) - IMGMAX;
+        h_inv[4]*(x[i][2]-boxlo[2]) + (image[i] & IMGMASK) - IMGMAX;
     else vbuf[n] = 0.0;
     n += nvalues;
   }
@@ -1108,9 +1108,9 @@ void FixStoreState::pack_ysu_triclinic(int n)
   double *h_inv = domain->h_inv;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) 
+    if (mask[i] & groupbit)
       vbuf[n] = h_inv[1]*(x[i][1]-boxlo[1]) + h_inv[3]*(x[i][2]-boxlo[2]) +
-	(image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+        (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
     else vbuf[n] = 0.0;
     n += nvalues;
   }
@@ -1129,7 +1129,7 @@ void FixStoreState::pack_zsu_triclinic(int n)
   double *h_inv = domain->h_inv;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) 
+    if (mask[i] & groupbit)
       vbuf[n] = h_inv[2]*(x[i][2]-boxlo[2]) + (image[i] >> IMG2BITS) - IMGMAX;
     else vbuf[n] = 0.0;
     n += nvalues;
@@ -1160,7 +1160,7 @@ void FixStoreState::pack_iy(int n)
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) 
+    if (mask[i] & groupbit)
       vbuf[n] = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
     else vbuf[n] = 0.0;
     n += nvalues;

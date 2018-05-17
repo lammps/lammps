@@ -15,7 +15,7 @@
    Contributing author: Mike Parks (SNL)
 ------------------------------------------------------------------------- */
 
-#include <string.h>
+#include <cstring>
 #include "compute_damage_atom.h"
 #include "atom.h"
 #include "update.h"

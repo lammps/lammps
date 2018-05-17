@@ -15,10 +15,10 @@
    Contributing author: Ray Shan (SNL)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_lj_cut_coul_dsf_kokkos.h"
 #include "kokkos.h"
 #include "atom_kokkos.h"
@@ -245,7 +245,7 @@ compute_fcoul(const F_FLOAT& rsq, const int& i, const int&j,
   const F_FLOAT erfcc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * erfcd;
 
   return prefactor * (erfcc/r + 2.0*alpha/MY_PIS * erfcd + r*f_shift) *
-	  r2inv;
+          r2inv;
 }
 
 /* ----------------------------------------------------------------------

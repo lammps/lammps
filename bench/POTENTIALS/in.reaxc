@@ -10,7 +10,7 @@ replicate	7 8 10
 velocity	all create 300.0 9999
 
 pair_style	reax/c NULL
-pair_coeff      * * ffield.reax 1 2 3 4
+pair_coeff      * * ffield.reax C H O N
 
 timestep	0.1
 fix		1 all nve 

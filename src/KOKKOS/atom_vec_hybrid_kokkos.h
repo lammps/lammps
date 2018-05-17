@@ -20,7 +20,7 @@ AtomStyle(hybrid/kk,AtomVecHybridKokkos)
 #ifndef LMP_ATOM_VEC_HYBRID_KOKKOS_H
 #define LMP_ATOM_VEC_HYBRID_KOKKOS_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "atom_vec_kokkos.h"
 #include "kokkos_type.h"
 
@@ -154,7 +154,15 @@ E: Per-processor system is too big
 The number of owned atoms plus ghost atoms on a single
 processor must fit in 32-bit integer.
 
-E: Invalid atom type in Atoms section of data file
+E: AtomVecHybridKokkos doesn't yet support threaded comm
+
+UNDOCUMENTED
+
+E: Invalid atom h_type in Atoms section of data file
+
+UNDOCUMENTED
+
+U: Invalid atom type in Atoms section of data file
 
 Atom types must range from 1 to specified # of types.
 

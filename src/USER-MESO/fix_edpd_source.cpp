@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include "fix_edpd_source.h"
 #include "atom.h"
 #include "comm.h"
@@ -33,11 +33,11 @@ using namespace FixConst;
 FixEDPDSource::FixEDPDSource(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (strcmp(style,"edpd/source") != 0 && narg < 4) 
+  if (strcmp(style,"edpd/source") != 0 && narg < 4)
     error->all(FLERR,"Illegal fix edpd/source command");
 
   int iarg = 3;
-  
+
   if (strcmp(arg[iarg],"sphere") == 0) option = 0;
   else if (strcmp(arg[iarg],"cuboid") == 0) option = 1;
   else error->all(FLERR,"Illegal fix edpd/source command");
@@ -55,10 +55,10 @@ FixEDPDSource::FixEDPDSource(LAMMPS *lmp, int narg, char **arg) :
     if (narg != 11 ) error->all(FLERR,"Illegal fix edpd/edpd command (7 args for cuboid)");
     center[0] = force->numeric(FLERR,arg[iarg++]);
     center[1] = force->numeric(FLERR,arg[iarg++]);
-    center[2] = force->numeric(FLERR,arg[iarg++]);    
+    center[2] = force->numeric(FLERR,arg[iarg++]);
     dLx = force->numeric(FLERR,arg[iarg++]);
     dLy = force->numeric(FLERR,arg[iarg++]);
-    dLz = force->numeric(FLERR,arg[iarg++]); 
+    dLz = force->numeric(FLERR,arg[iarg++]);
     value = force->numeric(FLERR,arg[iarg++]);
   }
   else error->all(FLERR,"Illegal fix edpd/source command");
@@ -112,7 +112,7 @@ void FixEDPDSource::post_force(int vflag)
         drx = x[i][0] - center[0];
         dry = x[i][1] - center[1];
         drz = x[i][2] - center[2];
-        if(abs(drx) <= 0.5*dLx && abs(dry) <= 0.5*dLy && abs(drz) <= 0.5*dLz)
+        if(fabs(drx) <= 0.5*dLx && fabs(dry) <= 0.5*dLy && fabs(drz) <= 0.5*dLz)
           edpd_flux[i] += value*edpd_cv[i];
       }
     }

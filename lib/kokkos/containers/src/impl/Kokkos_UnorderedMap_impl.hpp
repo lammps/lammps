@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -102,7 +102,7 @@ struct UnorderedMapErase
 
   void apply() const
   {
-    parallel_for(m_map.m_hash_lists.dimension_0(), *this);
+    parallel_for(m_map.m_hash_lists.extent(0), *this);
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -170,7 +170,7 @@ struct UnorderedMapHistogram
 
   void calculate()
   {
-    parallel_for(m_map.m_hash_lists.dimension_0(), *this);
+    parallel_for(m_map.m_hash_lists.extent(0), *this);
   }
 
   void clear()
@@ -185,7 +185,7 @@ struct UnorderedMapHistogram
     host_histogram_view host_copy = create_mirror_view(m_length);
     Kokkos::deep_copy(host_copy, m_length);
 
-    for (int i=0, size = host_copy.dimension_0(); i<size; ++i)
+    for (int i=0, size = host_copy.extent(0); i<size; ++i)
     {
       out << host_copy[i] << " , ";
     }
@@ -197,7 +197,7 @@ struct UnorderedMapHistogram
     host_histogram_view host_copy = create_mirror_view(m_distance);
     Kokkos::deep_copy(host_copy, m_distance);
 
-    for (int i=0, size = host_copy.dimension_0(); i<size; ++i)
+    for (int i=0, size = host_copy.extent(0); i<size; ++i)
     {
       out << host_copy[i] << " , ";
     }
@@ -209,7 +209,7 @@ struct UnorderedMapHistogram
     host_histogram_view host_copy = create_mirror_view(m_block_distance);
     Kokkos::deep_copy(host_copy, m_block_distance);
 
-    for (int i=0, size = host_copy.dimension_0(); i<size; ++i)
+    for (int i=0, size = host_copy.extent(0); i<size; ++i)
     {
       out << host_copy[i] << " , ";
     }
@@ -261,7 +261,7 @@ struct UnorderedMapPrint
 
   void apply()
   {
-    parallel_for(m_map.m_hash_lists.dimension_0(), *this);
+    parallel_for(m_map.m_hash_lists.extent(0), *this);
   }
 
   KOKKOS_INLINE_FUNCTION

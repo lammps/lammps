@@ -101,7 +101,7 @@ class PairGW : public Pair {
     const double gw_d = param->d * param->d;
     const double hcth = param->h - costheta;
 
-	  //printf("gw_gijk: gw_c=%f gw_d=%f hcth=%f=%f-%f\n", gw_c, gw_d, hcth, param->h, costheta);
+          //printf("gw_gijk: gw_c=%f gw_d=%f hcth=%f=%f-%f\n", gw_c, gw_d, hcth, param->h, costheta);
 
     return param->gamma*(1.0 + gw_c/gw_d - gw_c / (gw_d + hcth*hcth));
   }
@@ -185,12 +185,10 @@ invalid.
 
 E: Potential file has duplicate entry
 
-The potential file for a SW or GW potential has more than
-one entry for the same 3 ordered elements.
+The potential file has more than one entry for the same element.
 
 E: Potential file is missing an entry
 
-The potential file for a SW or GW potential does not have a
-needed entry.
+The potential file does not have a needed entry.
 
 */

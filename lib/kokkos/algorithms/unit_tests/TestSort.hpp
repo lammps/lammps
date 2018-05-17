@@ -34,7 +34,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -171,10 +171,10 @@ void test_3D_sort(unsigned int n) {
   double sum_after = 0.0;
   unsigned int sort_fails = 0;
 
-  Kokkos::parallel_reduce(keys.dimension_0(),sum3D<ExecutionSpace, KeyType>(keys),sum_before);
+  Kokkos::parallel_reduce(keys.extent(0),sum3D<ExecutionSpace, KeyType>(keys),sum_before);
 
   int bin_1d = 1;
-  while( bin_1d*bin_1d*bin_1d*4< (int) keys.dimension_0() ) bin_1d*=2;
+  while( bin_1d*bin_1d*bin_1d*4< (int) keys.extent(0) ) bin_1d*=2;
   int bin_max[3] = {bin_1d,bin_1d,bin_1d};
   typename KeyViewType::value_type min[3] = {0,0,0};
   typename KeyViewType::value_type max[3] = {100,100,100};
@@ -186,8 +186,8 @@ void test_3D_sort(unsigned int n) {
   Sorter.create_permute_vector();
   Sorter.template sort< KeyViewType >(keys);
 
-  Kokkos::parallel_reduce(keys.dimension_0(),sum3D<ExecutionSpace, KeyType>(keys),sum_after);
-  Kokkos::parallel_reduce(keys.dimension_0()-1,bin3d_is_sorted_struct<ExecutionSpace, KeyType>(keys,bin_1d,min[0],max[0]),sort_fails);
+  Kokkos::parallel_reduce(keys.extent(0),sum3D<ExecutionSpace, KeyType>(keys),sum_after);
+  Kokkos::parallel_reduce(keys.extent(0)-1,bin3d_is_sorted_struct<ExecutionSpace, KeyType>(keys,bin_1d,min[0],max[0]),sort_fails);
 
   double ratio = sum_before/sum_after;
   double epsilon = 1e-10;
@@ -205,24 +205,13 @@ void test_3D_sort(unsigned int n) {
 template<class ExecutionSpace, typename KeyType>
 void test_dynamic_view_sort(unsigned int n )
 {
-  typedef typename ExecutionSpace::memory_space memory_space ;
   typedef Kokkos::Experimental::DynamicView<KeyType*,ExecutionSpace> KeyDynamicViewType;
   typedef Kokkos::View<KeyType*,ExecutionSpace> KeyViewType;
 
   const size_t upper_bound = 2 * n ;
+  const size_t min_chunk_size = 1024;
 
-  const size_t total_alloc_size = n * sizeof(KeyType) * 1.2 ;
-  const size_t superblock_size  = std::min(total_alloc_size, size_t(1000000));
-
-  typename KeyDynamicViewType::memory_pool
-    pool( memory_space()
-        , n * sizeof(KeyType) * 1.2
-        ,     500 /* min block size in bytes */
-        ,   30000 /* max block size in bytes */
-        , superblock_size
-        );
-
-  KeyDynamicViewType keys("Keys",pool,upper_bound);
+  KeyDynamicViewType keys("Keys", min_chunk_size, upper_bound);
 
   keys.resize_serial(n);
 
@@ -230,13 +219,15 @@ void test_dynamic_view_sort(unsigned int n )
 
   // Test sorting array with all numbers equal
   Kokkos::deep_copy(keys_view,KeyType(1));
-  Kokkos::Experimental::deep_copy(keys,keys_view);
+  Kokkos::deep_copy(keys,keys_view);
   Kokkos::sort(keys, 0 /* begin */ , n /* end */ );
 
   Kokkos::Random_XorShift64_Pool<ExecutionSpace> g(1931);
   Kokkos::fill_random(keys_view,g,Kokkos::Random_XorShift64_Pool<ExecutionSpace>::generator_type::MAX_URAND);
 
-  Kokkos::Experimental::deep_copy(keys,keys_view);
+  ExecutionSpace::fence();
+  Kokkos::deep_copy(keys,keys_view);
+  //ExecutionSpace::fence();
 
   double sum_before = 0.0;
   double sum_after = 0.0;
@@ -246,7 +237,9 @@ void test_dynamic_view_sort(unsigned int n )
 
   Kokkos::sort(keys, 0 /* begin */ , n /* end */ );
 
-  Kokkos::Experimental::deep_copy( keys_view , keys );
+  ExecutionSpace::fence(); // Need this fence to prevent BusError with Cuda
+  Kokkos::deep_copy( keys_view , keys );
+  //ExecutionSpace::fence();
 
   Kokkos::parallel_reduce(n,sum<ExecutionSpace, KeyType>(keys_view),sum_after);
   Kokkos::parallel_reduce(n-1,is_sorted_struct<ExecutionSpace, KeyType>(keys_view),sort_fails);
@@ -269,6 +262,74 @@ void test_dynamic_view_sort(unsigned int n )
 
 //----------------------------------------------------------------------------
 
+template<class ExecutionSpace>
+void test_issue_1160()
+{
+  Kokkos::View<int*, ExecutionSpace> element_("element", 10);
+  Kokkos::View<double*, ExecutionSpace> x_("x", 10);
+  Kokkos::View<double*, ExecutionSpace> v_("y", 10);
+
+  auto h_element = Kokkos::create_mirror_view(element_);
+  auto h_x = Kokkos::create_mirror_view(x_);
+  auto h_v = Kokkos::create_mirror_view(v_);
+
+  h_element(0) = 9;
+  h_element(1) = 8;
+  h_element(2) = 7;
+  h_element(3) = 6;
+  h_element(4) = 5;
+  h_element(5) = 4;
+  h_element(6) = 3;
+  h_element(7) = 2;
+  h_element(8) = 1;
+  h_element(9) = 0;
+
+  for (int i = 0; i < 10; ++i) {
+    h_v.access(i, 0) = h_x.access(i, 0) = double(h_element(i));
+  }
+  Kokkos::deep_copy(element_, h_element);
+  Kokkos::deep_copy(x_, h_x);
+  Kokkos::deep_copy(v_, h_v);
+
+  typedef decltype(element_) KeyViewType;
+  typedef Kokkos::BinOp1D< KeyViewType > BinOp;
+
+  int begin = 3;
+  int end = 8;
+  auto max = h_element(begin);
+  auto min = h_element(end - 1);
+  BinOp binner(end - begin, min, max);
+
+  Kokkos::BinSort<KeyViewType , BinOp > Sorter(element_,begin,end,binner,false);
+  Sorter.create_permute_vector();
+  Sorter.sort(element_,begin,end);
+
+  Sorter.sort(x_,begin,end);
+  Sorter.sort(v_,begin,end);
+
+  Kokkos::deep_copy(h_element, element_);
+  Kokkos::deep_copy(h_x, x_);
+  Kokkos::deep_copy(h_v, v_);
+
+  ASSERT_EQ(h_element(0), 9);
+  ASSERT_EQ(h_element(1), 8);
+  ASSERT_EQ(h_element(2), 7);
+  ASSERT_EQ(h_element(3), 2);
+  ASSERT_EQ(h_element(4), 3);
+  ASSERT_EQ(h_element(5), 4);
+  ASSERT_EQ(h_element(6), 5);
+  ASSERT_EQ(h_element(7), 6);
+  ASSERT_EQ(h_element(8), 1);
+  ASSERT_EQ(h_element(9), 0);
+
+  for (int i = 0; i < 10; ++i) {
+    ASSERT_EQ(h_element(i), int(h_x.access(i, 0)));
+    ASSERT_EQ(h_element(i), int(h_v.access(i, 0)));
+  }
+}
+
+//----------------------------------------------------------------------------
+
 template<class ExecutionSpace, typename KeyType>
 void test_sort(unsigned int N)
 {
@@ -278,6 +339,7 @@ void test_sort(unsigned int N)
   test_3D_sort<ExecutionSpace,KeyType>(N);
   test_dynamic_view_sort<ExecutionSpace,KeyType>(N*N);
 #endif
+  test_issue_1160<ExecutionSpace>();
 }
 
 }

@@ -62,4 +62,8 @@ E: Incorrect element names in EAM potential file
 
 The element names in the EAM file do not match those requested.
 
+E: Invalid EAM potential file
+
+UNDOCUMENTED
+
 */

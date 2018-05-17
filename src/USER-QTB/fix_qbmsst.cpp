@@ -17,9 +17,9 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstring>
+#include <cstdlib>
 #include "fix_qbmsst.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -174,13 +174,13 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) :
       fprintf(screen,"  Artificial viscosity (units of mass/length/time) = %12.5e\n", mu);
 
       if (p0_set)
-	fprintf(screen,"  Initial pressure specified to be %12.5e\n", p0);
+        fprintf(screen,"  Initial pressure specified to be %12.5e\n", p0);
       else fprintf(screen,"  Initial pressure calculated on first step\n");
       if (v0_set)
-	fprintf(screen,"  Initial volume specified to be %12.5e\n", v0);
+        fprintf(screen,"  Initial volume specified to be %12.5e\n", v0);
       else fprintf(screen,"  Initial volume calculated on first step\n");
       if (e0_set)
-	fprintf(screen,"  Initial energy specified to be %12.5e\n", e0);
+        fprintf(screen,"  Initial energy specified to be %12.5e\n", e0);
       else fprintf(screen,"  Initial energy calculated on first step\n");
     }
     if (logfile) {
@@ -194,13 +194,13 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) :
       fprintf(logfile,"  Artificial viscosity (units of mass/length/time) = %12.5e\n", mu);
 
       if (p0_set)
-	fprintf(logfile,"  Initial pressure specified to be %12.5e\n", p0);
+        fprintf(logfile,"  Initial pressure specified to be %12.5e\n", p0);
       else fprintf(logfile,"  Initial pressure calculated on first step\n");
       if (v0_set)
-	fprintf(logfile,"  Initial volume specified to be %12.5e\n", v0);
+        fprintf(logfile,"  Initial volume specified to be %12.5e\n", v0);
       else fprintf(logfile,"  Initial volume calculated on first step\n");
       if (e0_set)
-	fprintf(logfile,"  Initial energy specified to be %12.5e\n", e0);
+        fprintf(logfile,"  Initial energy specified to be %12.5e\n", e0);
       else fprintf(logfile,"  Initial energy calculated on first step\n");
     }
   }
@@ -361,7 +361,7 @@ void FixQBMSST::init()
 
   // initiate qtb temperature
   if (!qtb_set) {
-  	t_current = t_init; qtb_set=1;
+        t_current = t_init; qtb_set=1;
   }
   old_eavg = e0;
 
@@ -411,13 +411,13 @@ void FixQBMSST::init()
   nrigid = 0;
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"rigid") == 0 ||
-	strcmp(modify->fix[i]->style,"poems") == 0) nrigid++;
+        strcmp(modify->fix[i]->style,"poems") == 0) nrigid++;
   if (nrigid) {
     rfix = new int[nrigid];
     nrigid = 0;
     for (int i = 0; i < modify->nfix; i++)
       if (strcmp(modify->fix[i]->style,"rigid") == 0 ||
-	  strcmp(modify->fix[i]->style,"poems") == 0) rfix[nrigid++] = i;
+          strcmp(modify->fix[i]->style,"poems") == 0) rfix[nrigid++] = i;
   }
 }
 
@@ -482,19 +482,19 @@ void FixQBMSST::setup(int vflag)
 
     if ( comm->me == 0 && tscale != 1.0) {
       if ( screen )
-	fprintf(screen,"Fix QBMSST initial strain rate of %12.5e established "
-		"by reducing temperature by factor of %12.5e\n",
-		fac2,tscale);
+        fprintf(screen,"Fix QBMSST initial strain rate of %12.5e established "
+                "by reducing temperature by factor of %12.5e\n",
+                fac2,tscale);
       if ( logfile )
-	fprintf(logfile,"Fix QBMSST initial strain rate of %12.5e established "
-		"by reducing temperature by factor of %12.5e\n",
-		fac2,tscale);
+        fprintf(logfile,"Fix QBMSST initial strain rate of %12.5e established "
+                "by reducing temperature by factor of %12.5e\n",
+                fac2,tscale);
     }
     for (int i = 0; i < atom->nlocal; i++) {
       if (mask[i] & groupbit) {
         for (int k = 0; k < 3; k++ ) {
           v[i][k]*=sqrt_initial_temperature_scaling;
-	}
+        }
       }
     }
   }
@@ -569,9 +569,9 @@ void FixQBMSST::initial_integrate(int vflag)
 
       //update random array
       for (int m = 0; m < 2*N_f-1; m++) {
-	    random_array_0[j][m] = random_array_0[j][m+1];
-	    random_array_1[j][m] = random_array_1[j][m+1];
-	    random_array_2[j][m] = random_array_2[j][m+1];
+            random_array_0[j][m] = random_array_0[j][m+1];
+            random_array_1[j][m] = random_array_1[j][m+1];
+            random_array_2[j][m] = random_array_2[j][m+1];
       }
       random_array_0[j][2*N_f-1] = random->uniform()-0.5;
       random_array_1[j][2*N_f-1] = random->uniform()-0.5;
@@ -629,20 +629,20 @@ void FixQBMSST::initial_integrate(int vflag)
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       for ( k = 0; k < 3; k++ ) {
-	double C = (f[i][k] + fran[i][k])* force->ftm2v / mass[type[i]];//  this term now has a random force part
-	double D = mu * omega[sd] * omega[sd] /
-	  (velocity_sum * mass[type[i]] * vol ) - fric_coef;
-	old_velocity[i][k] = v[i][k];
-	if ( k == direction ) {
-	  D = D - 2.0 * omega[sd] / vol;
-	}
-	if ( fabs(dthalf * D) > 1.0e-06 ) {
-	  double expd = exp(D * dthalf);
-	  v[i][k] = expd * ( C + D * v[i][k] - C / expd ) / D;
-	} else {
-	  v[i][k] = v[i][k] + ( C + D * v[i][k] ) * dthalf +
-	    0.5 * (D * D * v[i][k] + C * D ) * dthalf * dthalf;
-	}
+        double C = (f[i][k] + fran[i][k])* force->ftm2v / mass[type[i]];//  this term now has a random force part
+        double D = mu * omega[sd] * omega[sd] /
+          (velocity_sum * mass[type[i]] * vol ) - fric_coef;
+        old_velocity[i][k] = v[i][k];
+        if ( k == direction ) {
+          D = D - 2.0 * omega[sd] / vol;
+        }
+        if ( fabs(dthalf * D) > 1.0e-06 ) {
+          double expd = exp(D * dthalf);
+          v[i][k] = expd * ( C + D * v[i][k] - C / expd ) / D;
+        } else {
+          v[i][k] = v[i][k] + ( C + D * v[i][k] ) * dthalf +
+            0.5 * (D * D * v[i][k] + C * D ) * dthalf * dthalf;
+        }
       }
     }
   }
@@ -653,7 +653,7 @@ void FixQBMSST::initial_integrate(int vflag)
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       for ( k = 0; k < 3; k++ ) {
-	v[i][k] = old_velocity[i][k];
+        v[i][k] = old_velocity[i][k];
       }
     }
   }
@@ -662,20 +662,20 @@ void FixQBMSST::initial_integrate(int vflag)
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       for ( k = 0; k < 3; k++ ) {
-	double C = (f[i][k] + fran[i][k])* force->ftm2v / mass[type[i]];//  this term now has a random force part
-	double D = mu * omega[sd] * omega[sd] /
-	  (velocity_sum * mass[type[i]] * vol ) - fric_coef;
+        double C = (f[i][k] + fran[i][k])* force->ftm2v / mass[type[i]];//  this term now has a random force part
+        double D = mu * omega[sd] * omega[sd] /
+          (velocity_sum * mass[type[i]] * vol ) - fric_coef;
 
-	if ( k == direction ) {
-	  D = D - 2.0 * omega[sd] / vol;
-	}
-	if ( fabs(dthalf * D) > 1.0e-06 ) {
-	  double expd = exp(D * dthalf);
-	  v[i][k] = expd * ( C + D * v[i][k] - C / expd ) / D;
-	} else {
-	  v[i][k] = v[i][k] + ( C + D * v[i][k] ) * dthalf +
-	    0.5 * (D * D * v[i][k] + C * D ) * dthalf * dthalf;
-	}
+        if ( k == direction ) {
+          D = D - 2.0 * omega[sd] / vol;
+        }
+        if ( fabs(dthalf * D) > 1.0e-06 ) {
+          double expd = exp(D * dthalf);
+          v[i][k] = expd * ( C + D * v[i][k] - C / expd ) / D;
+        } else {
+          v[i][k] = v[i][k] + ( C + D * v[i][k] ) * dthalf +
+            0.5 * (D * D * v[i][k] + C * D ) * dthalf * dthalf;
+        }
       }
     }
   }
@@ -730,20 +730,20 @@ void FixQBMSST::final_integrate()
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       for ( int k = 0; k < 3; k++ ) {
-	double C = (f[i][k] + fran[i][k]) * force->ftm2v / mass[type[i]];//  this term now has a random force part
-	double D = mu * omega[sd] * omega[sd] /
-	  (velocity_sum * mass[type[i]] * vol ) - fric_coef;
+        double C = (f[i][k] + fran[i][k]) * force->ftm2v / mass[type[i]];//  this term now has a random force part
+        double D = mu * omega[sd] * omega[sd] /
+          (velocity_sum * mass[type[i]] * vol ) - fric_coef;
 
-	if ( k == direction ) {
-	  D = D - 2.0 * omega[sd] / vol;
-	}
-	if ( fabs(dthalf * D) > 1.0e-06 ) {
-	  double expd = exp(D * dthalf);
-	  v[i][k] = expd * ( C + D * v[i][k] - C / expd ) / D;
-	} else {
-	  v[i][k] = v[i][k] + ( C + D * v[i][k] ) * dthalf +
-	    0.5 * (D * D * v[i][k] + C * D ) * dthalf * dthalf;
-	}
+        if ( k == direction ) {
+          D = D - 2.0 * omega[sd] / vol;
+        }
+        if ( fabs(dthalf * D) > 1.0e-06 ) {
+          double expd = exp(D * dthalf);
+          v[i][k] = expd * ( C + D * v[i][k] - C / expd ) / D;
+        } else {
+          v[i][k] = v[i][k] + ( C + D * v[i][k] ) * dthalf +
+            0.5 * (D * D * v[i][k] + C * D ) * dthalf * dthalf;
+        }
       }
     }
   }
@@ -775,7 +775,7 @@ void FixQBMSST::final_integrate()
 
   if ( B * dthalf > 1.0e-06 ) {
     omega[sd] = ( omega[sd] + A *
-		  ( exp(B * dthalf) - 1.0 ) / B ) * exp(-B * dthalf);
+                  ( exp(B * dthalf) - 1.0 ) / B ) * exp(-B * dthalf);
   } else {
     omega[sd] = omega[sd] + (A - B * omega[sd]) * dthalf +
       0.5 * (B * B * omega[sd] - A * B ) * dthalf * dthalf;

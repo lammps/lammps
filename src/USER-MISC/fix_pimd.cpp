@@ -21,9 +21,9 @@
    Version      1.0
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstring>
+#include <cstdlib>
 #include "fix_pimd.h"
 #include "universe.h"
 #include "comm.h"
@@ -397,7 +397,7 @@ void FixPIMD::nhc_update_v()
       expfac = exp(-dt8 * eta_dot[ichain+1]);
       eta_dot[ichain] *= expfac;
       eta_dotdot[ichain] = (nhc_eta_mass[i][ichain-1] * eta_dot[ichain-1] * eta_dot[ichain-1]
-	                   - KT) / nhc_eta_mass[i][ichain];
+                           - KT) / nhc_eta_mass[i][ichain];
       eta_dot[ichain] += eta_dotdot[ichain] * dt4;
       eta_dot[ichain] *= expfac;
     }

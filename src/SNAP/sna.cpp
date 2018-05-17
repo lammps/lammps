@@ -16,11 +16,11 @@
 ------------------------------------------------------------------------- */
 
 #include "sna.h"
-#include <math.h>
+#include <cmath>
 #include "math_const.h"
 #include "math_extra.h"
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 #include "openmp_snap.h"
 
 #include "memory.h"
@@ -118,7 +118,7 @@ SNA::SNA(LAMMPS* lmp, double rfac0_in,
          double rmin0_in, int switch_flag_in, int bzero_flag_in) : Pointers(lmp)
 {
   wself = 1.0;
-  
+
   use_shared_arrays = use_shared_arrays_in;
   rfac0 = rfac0_in;
   rmin0 = rmin0_in;
@@ -148,7 +148,7 @@ SNA::SNA(LAMMPS* lmp, double rfac0_in,
     for(int j = 0; j <= twojmax; j++)
       bzero[j] = www*(j+1);
   }
-  
+
 #ifdef TIMING_INFO
   timers = new double[20];
   for(int i = 0; i < 20; i++) timers[i] = 0;
@@ -158,7 +158,7 @@ SNA::SNA(LAMMPS* lmp, double rfac0_in,
 
   build_indexlist();
 
-  
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -268,12 +268,12 @@ void SNA::build_indexlist()
     for(int j1 = 0; j1 <= twojmax; j1++)
       for(int j2 = 0; j2 <= j1; j2++)
         for(int j = abs(j1 - j2); j <= MIN(twojmax, j1 + j2); j += 2)
-	  if (j >= j1) {
-	    idxj[idxj_count].j1 = j1;
-	    idxj[idxj_count].j2 = j2;
-	    idxj[idxj_count].j = j;
-	    idxj_count++;
-	  }
+          if (j >= j1) {
+            idxj[idxj_count].j1 = j1;
+            idxj[idxj_count].j2 = j2;
+            idxj[idxj_count].j = j;
+            idxj_count++;
+          }
   }
 
 }
@@ -414,38 +414,38 @@ void SNA::compute_zi()
   for(int j1 = 0; j1 <= twojmax; j1++)
     for(int j2 = 0; j2 <= j1; j2++) {
       for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2) {
-	double sumb1_r, sumb1_i;
-	int ma2, mb2;
-	for(int mb = 0; 2*mb <= j; mb++)
-	  for(int ma = 0; ma <= j; ma++) {
-	    zarray_r[j1][j2][j][ma][mb] = 0.0;
-	    zarray_i[j1][j2][j][ma][mb] = 0.0;
+        double sumb1_r, sumb1_i;
+        int ma2, mb2;
+        for(int mb = 0; 2*mb <= j; mb++)
+          for(int ma = 0; ma <= j; ma++) {
+            zarray_r[j1][j2][j][ma][mb] = 0.0;
+            zarray_i[j1][j2][j][ma][mb] = 0.0;
 
-	    for(int ma1 = MAX(0, (2 * ma - j - j2 + j1) / 2);
-		ma1 <= MIN(j1, (2 * ma - j + j2 + j1) / 2); ma1++) {
-	      sumb1_r = 0.0;
-	      sumb1_i = 0.0;
+            for(int ma1 = MAX(0, (2 * ma - j - j2 + j1) / 2);
+                ma1 <= MIN(j1, (2 * ma - j + j2 + j1) / 2); ma1++) {
+              sumb1_r = 0.0;
+              sumb1_i = 0.0;
 
-	      ma2 = (2 * ma - j - (2 * ma1 - j1) + j2) / 2;
+              ma2 = (2 * ma - j - (2 * ma1 - j1) + j2) / 2;
 
-	      for(int mb1 = MAX(0, (2 * mb - j - j2 + j1) / 2);
+              for(int mb1 = MAX(0, (2 * mb - j - j2 + j1) / 2);
               mb1 <= MIN(j1, (2 * mb - j + j2 + j1) / 2); mb1++) {
 
-		mb2 = (2 * mb - j - (2 * mb1 - j1) + j2) / 2;
-		sumb1_r += cgarray[j1][j2][j][mb1][mb2] *
-		  (uarraytot_r[j1][ma1][mb1] * uarraytot_r[j2][ma2][mb2] -
-		   uarraytot_i[j1][ma1][mb1] * uarraytot_i[j2][ma2][mb2]);
-		sumb1_i += cgarray[j1][j2][j][mb1][mb2] *
-		  (uarraytot_r[j1][ma1][mb1] * uarraytot_i[j2][ma2][mb2] +
-		   uarraytot_i[j1][ma1][mb1] * uarraytot_r[j2][ma2][mb2]);
-	      } // end loop over mb1
+                mb2 = (2 * mb - j - (2 * mb1 - j1) + j2) / 2;
+                sumb1_r += cgarray[j1][j2][j][mb1][mb2] *
+                  (uarraytot_r[j1][ma1][mb1] * uarraytot_r[j2][ma2][mb2] -
+                   uarraytot_i[j1][ma1][mb1] * uarraytot_i[j2][ma2][mb2]);
+                sumb1_i += cgarray[j1][j2][j][mb1][mb2] *
+                  (uarraytot_r[j1][ma1][mb1] * uarraytot_i[j2][ma2][mb2] +
+                   uarraytot_i[j1][ma1][mb1] * uarraytot_r[j2][ma2][mb2]);
+              } // end loop over mb1
 
-	      zarray_r[j1][j2][j][ma][mb] +=
-		sumb1_r * cgarray[j1][j2][j][ma1][ma2];
-	      zarray_i[j1][j2][j][ma][mb] +=
-		sumb1_i * cgarray[j1][j2][j][ma1][ma2];
-	    } // end loop over ma1
-	  } // end loop over ma, mb
+              zarray_r[j1][j2][j][ma][mb] +=
+                sumb1_r * cgarray[j1][j2][j][ma1][ma2];
+              zarray_i[j1][j2][j][ma][mb] +=
+                sumb1_i * cgarray[j1][j2][j][ma1][ma2];
+            } // end loop over ma1
+          } // end loop over ma, mb
       } // end loop over j
     } // end loop over j1, j2
 
@@ -506,11 +506,11 @@ void SNA::compute_zi_omp(int sub_threads)
 
             mb2 = (2 * mb - j - (2 * mb1 - j1) + j2) / 2;
             sumb1_r += cgarray[j1][j2][j][mb1][mb2] *
-	      (uarraytot_r[j1][ma1][mb1] * uarraytot_r[j2][ma2][mb2] -
-	       uarraytot_i[j1][ma1][mb1] * uarraytot_i[j2][ma2][mb2]);
+              (uarraytot_r[j1][ma1][mb1] * uarraytot_r[j2][ma2][mb2] -
+               uarraytot_i[j1][ma1][mb1] * uarraytot_i[j2][ma2][mb2]);
             sumb1_i += cgarray[j1][j2][j][mb1][mb2] *
-	      (uarraytot_r[j1][ma1][mb1] * uarraytot_i[j2][ma2][mb2] +
-	       uarraytot_i[j1][ma1][mb1] * uarraytot_r[j2][ma2][mb2]);
+              (uarraytot_r[j1][ma1][mb1] * uarraytot_i[j2][ma2][mb2] +
+               uarraytot_i[j1][ma1][mb1] * uarraytot_r[j2][ma2][mb2]);
           }
 
           zarray_r[j1][j2][j][ma][mb] +=
@@ -547,29 +547,29 @@ void SNA::compute_bi()
           j <= MIN(twojmax, j1 + j2); j += 2) {
         barray[j1][j2][j] = 0.0;
 
-	for(int mb = 0; 2*mb < j; mb++)
-	  for(int ma = 0; ma <= j; ma++)
+        for(int mb = 0; 2*mb < j; mb++)
+          for(int ma = 0; ma <= j; ma++)
             barray[j1][j2][j] +=
               uarraytot_r[j][ma][mb] * zarray_r[j1][j2][j][ma][mb] +
-	      uarraytot_i[j][ma][mb] * zarray_i[j1][j2][j][ma][mb];
+              uarraytot_i[j][ma][mb] * zarray_i[j1][j2][j][ma][mb];
 
-	// For j even, special treatment for middle column
+        // For j even, special treatment for middle column
 
-	if (j%2 == 0) {
-	  int mb = j/2;
-	  for(int ma = 0; ma < mb; ma++)
-	    barray[j1][j2][j] +=
-	      uarraytot_r[j][ma][mb] * zarray_r[j1][j2][j][ma][mb] +
-	      uarraytot_i[j][ma][mb] * zarray_i[j1][j2][j][ma][mb];
-	  int ma = mb;
-	  barray[j1][j2][j] +=
-	    (uarraytot_r[j][ma][mb] * zarray_r[j1][j2][j][ma][mb] +
-	     uarraytot_i[j][ma][mb] * zarray_i[j1][j2][j][ma][mb])*0.5;
-	}
+        if (j%2 == 0) {
+          int mb = j/2;
+          for(int ma = 0; ma < mb; ma++)
+            barray[j1][j2][j] +=
+              uarraytot_r[j][ma][mb] * zarray_r[j1][j2][j][ma][mb] +
+              uarraytot_i[j][ma][mb] * zarray_i[j1][j2][j][ma][mb];
+          int ma = mb;
+          barray[j1][j2][j] +=
+            (uarraytot_r[j][ma][mb] * zarray_r[j1][j2][j][ma][mb] +
+             uarraytot_i[j][ma][mb] * zarray_i[j1][j2][j][ma][mb])*0.5;
+        }
 
         barray[j1][j2][j] *= 2.0;
-	if (bzero_flag)
-	  barray[j1][j2][j] -= bzero[j];
+        if (bzero_flag)
+          barray[j1][j2][j] -= bzero[j];
       }
     }
 
@@ -614,10 +614,10 @@ void SNA::copy_bi2bvec()
       for(j2 = 0; j2 <= j1; j2++)
         for(j = abs(j1 - j2);
             j <= MIN(twojmax, j1 + j2); j += 2)
-	  if (j >= j1) {
-	    bvec[ncount] = barray[j1][j2][j];
-	    ncount++;
-	  }
+          if (j >= j1) {
+            bvec[ncount] = barray[j1][j2][j];
+            ncount++;
+          }
     }
 }
 
@@ -874,12 +874,12 @@ void SNA::compute_dbidrj()
 
         dudr_r = duarray_r[j][ma][mb];
         dudr_i = duarray_i[j][ma][mb];
-	jjjmambzarray_r = jjjzarray_r[ma][mb];
-	jjjmambzarray_i = jjjzarray_i[ma][mb];
+        jjjmambzarray_r = jjjzarray_r[ma][mb];
+        jjjmambzarray_i = jjjzarray_i[ma][mb];
         for(int k = 0; k < 3; k++)
           sumzdu_r[k] +=
             dudr_r[k] * jjjmambzarray_r +
-	    dudr_i[k] * jjjmambzarray_i;
+            dudr_i[k] * jjjmambzarray_i;
 
       } //end loop over ma mb
 
@@ -889,13 +889,13 @@ void SNA::compute_dbidrj()
       int mb = j/2;
       for(int ma = 0; ma < mb; ma++) {
         dudr_r = duarray_r[j][ma][mb];
-	dudr_i = duarray_i[j][ma][mb];
-	jjjmambzarray_r = jjjzarray_r[ma][mb];
-	jjjmambzarray_i = jjjzarray_i[ma][mb];
+        dudr_i = duarray_i[j][ma][mb];
+        jjjmambzarray_r = jjjzarray_r[ma][mb];
+        jjjmambzarray_i = jjjzarray_i[ma][mb];
         for(int k = 0; k < 3; k++)
           sumzdu_r[k] +=
             dudr_r[k] * jjjmambzarray_r +
-	    dudr_i[k] * jjjmambzarray_i;
+            dudr_i[k] * jjjmambzarray_i;
       }
       int ma = mb;
       dudr_r = duarray_r[j][ma][mb];
@@ -903,9 +903,9 @@ void SNA::compute_dbidrj()
       jjjmambzarray_r = jjjzarray_r[ma][mb];
       jjjmambzarray_i = jjjzarray_i[ma][mb];
       for(int k = 0; k < 3; k++)
-	sumzdu_r[k] +=
-	  (dudr_r[k] * jjjmambzarray_r +
-	   dudr_i[k] * jjjmambzarray_i)*0.5;
+        sumzdu_r[k] +=
+          (dudr_r[k] * jjjmambzarray_r +
+           dudr_i[k] * jjjmambzarray_i)*0.5;
     } // end if jeven
 
     for(int k = 0; k < 3; k++)
@@ -933,12 +933,12 @@ void SNA::compute_dbidrj()
 
         dudr_r = duarray_r[j1][ma1][mb1];
         dudr_i = duarray_i[j1][ma1][mb1];
-	jjjmambzarray_r = jjjzarray_r[ma1][mb1];
-	jjjmambzarray_i = jjjzarray_i[ma1][mb1];
+        jjjmambzarray_r = jjjzarray_r[ma1][mb1];
+        jjjmambzarray_i = jjjzarray_i[ma1][mb1];
         for(int k = 0; k < 3; k++)
           sumzdu_r[k] +=
             dudr_r[k] * jjjmambzarray_r +
-	    dudr_i[k] * jjjmambzarray_i;
+            dudr_i[k] * jjjmambzarray_i;
 
       } //end loop over ma1 mb1
 
@@ -948,13 +948,13 @@ void SNA::compute_dbidrj()
       int mb1 = j1/2;
       for(int ma1 = 0; ma1 < mb1; ma1++) {
         dudr_r = duarray_r[j1][ma1][mb1];
-	dudr_i = duarray_i[j1][ma1][mb1];
-	jjjmambzarray_r = jjjzarray_r[ma1][mb1];
-	jjjmambzarray_i = jjjzarray_i[ma1][mb1];
+        dudr_i = duarray_i[j1][ma1][mb1];
+        jjjmambzarray_r = jjjzarray_r[ma1][mb1];
+        jjjmambzarray_i = jjjzarray_i[ma1][mb1];
         for(int k = 0; k < 3; k++)
           sumzdu_r[k] +=
             dudr_r[k] * jjjmambzarray_r +
-	    dudr_i[k] * jjjmambzarray_i;
+            dudr_i[k] * jjjmambzarray_i;
       }
       int ma1 = mb1;
       dudr_r = duarray_r[j1][ma1][mb1];
@@ -962,9 +962,9 @@ void SNA::compute_dbidrj()
       jjjmambzarray_r = jjjzarray_r[ma1][mb1];
       jjjmambzarray_i = jjjzarray_i[ma1][mb1];
       for(int k = 0; k < 3; k++)
-	sumzdu_r[k] +=
-	  (dudr_r[k] * jjjmambzarray_r +
-	   dudr_i[k] * jjjmambzarray_i)*0.5;
+        sumzdu_r[k] +=
+          (dudr_r[k] * jjjmambzarray_r +
+           dudr_i[k] * jjjmambzarray_i)*0.5;
     } // end if j1even
 
     for(int k = 0; k < 3; k++)
@@ -992,12 +992,12 @@ void SNA::compute_dbidrj()
 
         dudr_r = duarray_r[j2][ma2][mb2];
         dudr_i = duarray_i[j2][ma2][mb2];
-	jjjmambzarray_r = jjjzarray_r[ma2][mb2];
-	jjjmambzarray_i = jjjzarray_i[ma2][mb2];
+        jjjmambzarray_r = jjjzarray_r[ma2][mb2];
+        jjjmambzarray_i = jjjzarray_i[ma2][mb2];
         for(int k = 0; k < 3; k++)
           sumzdu_r[k] +=
             dudr_r[k] * jjjmambzarray_r +
-	    dudr_i[k] * jjjmambzarray_i;
+            dudr_i[k] * jjjmambzarray_i;
 
       } //end loop over ma2 mb2
 
@@ -1007,13 +1007,13 @@ void SNA::compute_dbidrj()
       int mb2 = j2/2;
       for(int ma2 = 0; ma2 < mb2; ma2++) {
         dudr_r = duarray_r[j2][ma2][mb2];
-	dudr_i = duarray_i[j2][ma2][mb2];
-	jjjmambzarray_r = jjjzarray_r[ma2][mb2];
-	jjjmambzarray_i = jjjzarray_i[ma2][mb2];
+        dudr_i = duarray_i[j2][ma2][mb2];
+        jjjmambzarray_r = jjjzarray_r[ma2][mb2];
+        jjjmambzarray_i = jjjzarray_i[ma2][mb2];
         for(int k = 0; k < 3; k++)
           sumzdu_r[k] +=
             dudr_r[k] * jjjmambzarray_r +
-	    dudr_i[k] * jjjmambzarray_i;
+            dudr_i[k] * jjjmambzarray_i;
       }
       int ma2 = mb2;
       dudr_r = duarray_r[j2][ma2][mb2];
@@ -1021,9 +1021,9 @@ void SNA::compute_dbidrj()
       jjjmambzarray_r = jjjzarray_r[ma2][mb2];
       jjjmambzarray_i = jjjzarray_i[ma2][mb2];
       for(int k = 0; k < 3; k++)
-	sumzdu_r[k] +=
-	  (dudr_r[k] * jjjmambzarray_r +
-	   dudr_i[k] * jjjmambzarray_i)*0.5;
+        sumzdu_r[k] +=
+          (dudr_r[k] * jjjmambzarray_r +
+           dudr_i[k] * jjjmambzarray_i)*0.5;
     } // end if j2even
 
     for(int k = 0; k < 3; k++)
@@ -1078,12 +1078,12 @@ void SNA::copy_dbi2dbvec()
       for(j2 = 0; j2 <= j1; j2++)
         for(j = abs(j1 - j2);
             j <= MIN(twojmax, j1 + j2); j += 2)
-	  if (j >= j1) {
-	    dbvec[ncount][0] = dbarray[j1][j2][j][0];
-	    dbvec[ncount][1] = dbarray[j1][j2][j][1];
-	    dbvec[ncount][2] = dbarray[j1][j2][j][2];
-	    ncount++;
-	  }
+          if (j >= j1) {
+            dbvec[ncount][0] = dbarray[j1][j2][j][0];
+            dbvec[ncount][1] = dbarray[j1][j2][j][1];
+            dbvec[ncount][2] = dbarray[j1][j2][j][2];
+            ncount++;
+          }
     }
   }
 }
@@ -1187,25 +1187,25 @@ void SNA::compute_uarray(double x, double y, double z,
       uarray_i[j][0][mb] = 0.0;
 
       for (int ma = 0; ma < j; ma++) {
-	rootpq = rootpqarray[j - ma][j - mb];
+        rootpq = rootpqarray[j - ma][j - mb];
         uarray_r[j][ma][mb] +=
           rootpq *
           (a_r * uarray_r[j - 1][ma][mb] +
-	   a_i * uarray_i[j - 1][ma][mb]);
+           a_i * uarray_i[j - 1][ma][mb]);
         uarray_i[j][ma][mb] +=
           rootpq *
           (a_r * uarray_i[j - 1][ma][mb] -
-	   a_i * uarray_r[j - 1][ma][mb]);
+           a_i * uarray_r[j - 1][ma][mb]);
 
-	rootpq = rootpqarray[ma + 1][j - mb];
+        rootpq = rootpqarray[ma + 1][j - mb];
         uarray_r[j][ma + 1][mb] =
           -rootpq *
           (b_r * uarray_r[j - 1][ma][mb] +
-	   b_i * uarray_i[j - 1][ma][mb]);
+           b_i * uarray_i[j - 1][ma][mb]);
         uarray_i[j][ma + 1][mb] =
           -rootpq *
           (b_r * uarray_i[j - 1][ma][mb] -
-	   b_i * uarray_r[j - 1][ma][mb]);
+           b_i * uarray_r[j - 1][ma][mb]);
       }
     }
 
@@ -1217,14 +1217,14 @@ void SNA::compute_uarray(double x, double y, double z,
       mbpar = -mbpar;
       int mapar = -mbpar;
       for (int ma = 0; ma <= j; ma++) {
-    	mapar = -mapar;
-    	if (mapar == 1) {
-    	  uarray_r[j][j-ma][j-mb] = uarray_r[j][ma][mb];
-    	  uarray_i[j][j-ma][j-mb] = -uarray_i[j][ma][mb];
-    	} else {
-    	  uarray_r[j][j-ma][j-mb] = -uarray_r[j][ma][mb];
-    	  uarray_i[j][j-ma][j-mb] = uarray_i[j][ma][mb];
-    	}
+        mapar = -mapar;
+        if (mapar == 1) {
+          uarray_r[j][j-ma][j-mb] = uarray_r[j][ma][mb];
+          uarray_i[j][j-ma][j-mb] = -uarray_i[j][ma][mb];
+        } else {
+          uarray_r[j][j-ma][j-mb] = -uarray_r[j][ma][mb];
+          uarray_i[j][j-ma][j-mb] = uarray_i[j][ma][mb];
+        }
       }
     }
   }
@@ -1259,25 +1259,25 @@ void SNA::compute_uarray_omp(double x, double y, double z,
       uarray_i[j][0][mb] = 0.0;
 
       for (int ma = 0; ma < j; ma++) {
-	rootpq = rootpqarray[j - ma][j - mb];
+        rootpq = rootpqarray[j - ma][j - mb];
         uarray_r[j][ma][mb] +=
-	  rootpq *
+          rootpq *
           (a_r * uarray_r[j - 1][ma][mb] +
-	   a_i * uarray_i[j - 1][ma][mb]);
+           a_i * uarray_i[j - 1][ma][mb]);
         uarray_i[j][ma][mb] +=
-	  rootpq *
+          rootpq *
           (a_r * uarray_i[j - 1][ma][mb] -
-	   a_i * uarray_r[j - 1][ma][mb]);
+           a_i * uarray_r[j - 1][ma][mb]);
 
-	rootpq = rootpqarray[ma + 1][j - mb];
+        rootpq = rootpqarray[ma + 1][j - mb];
         uarray_r[j][ma + 1][mb] =
-	  -rootpq *
+          -rootpq *
           (b_r * uarray_r[j - 1][ma][mb] +
-	   b_i * uarray_i[j - 1][ma][mb]);
+           b_i * uarray_i[j - 1][ma][mb]);
         uarray_i[j][ma + 1][mb] =
-	  -rootpq *
+          -rootpq *
           (b_r * uarray_i[j - 1][ma][mb] -
-	   b_i * uarray_r[j - 1][ma][mb]);
+           b_i * uarray_r[j - 1][ma][mb]);
       }
     }
 
@@ -1291,23 +1291,23 @@ void SNA::compute_uarray_omp(double x, double y, double z,
     for (int ma = 0; ma < j; ma++) {
       rootpq = rootpqarray[j - ma][mb];
       uarray_r[j][ma][mb] +=
-	rootpq *
+        rootpq *
         (b_r * uarray_r[j - 1][ma][mb - 1] -
-	 b_i * uarray_i[j - 1][ma][mb - 1]);
+         b_i * uarray_i[j - 1][ma][mb - 1]);
       uarray_i[j][ma][mb] +=
-	rootpq *
+        rootpq *
         (b_r * uarray_i[j - 1][ma][mb - 1] +
-	 b_i * uarray_r[j - 1][ma][mb - 1]);
+         b_i * uarray_r[j - 1][ma][mb - 1]);
 
       rootpq = rootpqarray[ma + 1][mb];
       uarray_r[j][ma + 1][mb] =
-	rootpq *
+        rootpq *
         (a_r * uarray_r[j - 1][ma][mb - 1] -
-	 a_i * uarray_i[j - 1][ma][mb - 1]);
+         a_i * uarray_i[j - 1][ma][mb - 1]);
       uarray_i[j][ma + 1][mb] =
-	rootpq *
+        rootpq *
         (a_r * uarray_i[j - 1][ma][mb - 1] +
-	 a_i * uarray_r[j - 1][ma][mb - 1]);
+         a_i * uarray_r[j - 1][ma][mb - 1]);
     }
   }
 }
@@ -1319,7 +1319,7 @@ void SNA::compute_uarray_omp(double x, double y, double z,
 
 void SNA::compute_duarray(double x, double y, double z,
                           double z0, double r, double dz0dr,
-			  double wj, double rcut)
+                          double wj, double rcut)
 {
   double r0inv;
   double a_r, a_i, b_r, b_i;
@@ -1405,7 +1405,7 @@ void SNA::compute_duarray(double x, double y, double z,
                       a_i * duarray_r[j - 1][ma][mb][k]);
         }
 
-	rootpq = rootpqarray[ma + 1][j - mb];
+        rootpq = rootpqarray[ma + 1][j - mb];
         uarray_r[j][ma + 1][mb] =
           -rootpq * (b_r *  uarray_r[j - 1][ma][mb] +
                      b_i *  uarray_i[j - 1][ma][mb]);
@@ -1433,22 +1433,22 @@ void SNA::compute_duarray(double x, double y, double z,
       mbpar = -mbpar;
       int mapar = -mbpar;
       for (int ma = 0; ma <= j; ma++) {
-    	mapar = -mapar;
-    	if (mapar == 1) {
-    	  uarray_r[j][j-ma][j-mb] = uarray_r[j][ma][mb];
-    	  uarray_i[j][j-ma][j-mb] = -uarray_i[j][ma][mb];
-    	  for (int k = 0; k < 3; k++) {
-    	    duarray_r[j][j-ma][j-mb][k] = duarray_r[j][ma][mb][k];
-    	    duarray_i[j][j-ma][j-mb][k] = -duarray_i[j][ma][mb][k];
-    	  }
-    	} else {
-    	  uarray_r[j][j-ma][j-mb] = -uarray_r[j][ma][mb];
-    	  uarray_i[j][j-ma][j-mb] = uarray_i[j][ma][mb];
-    	  for (int k = 0; k < 3; k++) {
-    	    duarray_r[j][j-ma][j-mb][k] = -duarray_r[j][ma][mb][k];
-    	    duarray_i[j][j-ma][j-mb][k] = duarray_i[j][ma][mb][k];
-    	  }
-    	}
+        mapar = -mapar;
+        if (mapar == 1) {
+          uarray_r[j][j-ma][j-mb] = uarray_r[j][ma][mb];
+          uarray_i[j][j-ma][j-mb] = -uarray_i[j][ma][mb];
+          for (int k = 0; k < 3; k++) {
+            duarray_r[j][j-ma][j-mb][k] = duarray_r[j][ma][mb][k];
+            duarray_i[j][j-ma][j-mb][k] = -duarray_i[j][ma][mb][k];
+          }
+        } else {
+          uarray_r[j][j-ma][j-mb] = -uarray_r[j][ma][mb];
+          uarray_i[j][j-ma][j-mb] = uarray_i[j][ma][mb];
+          for (int k = 0; k < 3; k++) {
+            duarray_r[j][j-ma][j-mb][k] = -duarray_r[j][ma][mb][k];
+            duarray_i[j][j-ma][j-mb][k] = duarray_i[j][ma][mb][k];
+          }
+        }
       }
     }
   }
@@ -1524,7 +1524,7 @@ void SNA::create_twojmax_arrays()
     memory->create(bzero, jdim,"sna:bzero");
   else
     bzero = NULL;
-  
+
 
   if(!use_shared_arrays) {
     memory->create(uarraytot_r, jdim, jdim, jdim,
@@ -1794,36 +1794,36 @@ void SNA::init_clebsch_gordan()
 
             if(m < 0 || m > j) continue;
 
-	    sum = 0.0;
+            sum = 0.0;
 
-	    for (int z = MAX(0, MAX(-(j - j2 + aa2)
-				   / 2, -(j - j1 - bb2) / 2));
-		z <= MIN((j1 + j2 - j) / 2,
-			 MIN((j1 - aa2) / 2, (j2 + bb2) / 2));
-		z++) {
-	      ifac = z % 2 ? -1 : 1;
-	      sum += ifac /
-		(factorial(z) *
-		 factorial((j1 + j2 - j) / 2 - z) *
-		 factorial((j1 - aa2) / 2 - z) *
-		 factorial((j2 + bb2) / 2 - z) *
-		 factorial((j - j2 + aa2) / 2 + z) *
-		 factorial((j - j1 - bb2) / 2 + z));
-	    }
+            for (int z = MAX(0, MAX(-(j - j2 + aa2)
+                                   / 2, -(j - j1 - bb2) / 2));
+                z <= MIN((j1 + j2 - j) / 2,
+                         MIN((j1 - aa2) / 2, (j2 + bb2) / 2));
+                z++) {
+              ifac = z % 2 ? -1 : 1;
+              sum += ifac /
+                (factorial(z) *
+                 factorial((j1 + j2 - j) / 2 - z) *
+                 factorial((j1 - aa2) / 2 - z) *
+                 factorial((j2 + bb2) / 2 - z) *
+                 factorial((j - j2 + aa2) / 2 + z) *
+                 factorial((j - j1 - bb2) / 2 + z));
+            }
 
-	    cc2 = 2 * m - j;
-	    dcg = deltacg(j1, j2, j);
-	    sfaccg = sqrt(factorial((j1 + aa2) / 2) *
-			factorial((j1 - aa2) / 2) *
-			factorial((j2 + bb2) / 2) *
-			factorial((j2 - bb2) / 2) *
-			factorial((j  + cc2) / 2) *
-			factorial((j  - cc2) / 2) *
-			(j + 1));
+            cc2 = 2 * m - j;
+            dcg = deltacg(j1, j2, j);
+            sfaccg = sqrt(factorial((j1 + aa2) / 2) *
+                        factorial((j1 - aa2) / 2) *
+                        factorial((j2 + bb2) / 2) *
+                        factorial((j2 - bb2) / 2) *
+                        factorial((j  + cc2) / 2) *
+                        factorial((j  - cc2) / 2) *
+                        (j + 1));
 
-	    cgarray[j1][j2][j][m1][m2] = sum * dcg * sfaccg;
-	  }
-	}
+            cgarray[j1][j2][j][m1][m2] = sum * dcg * sfaccg;
+          }
+        }
 }
 
 /* ----------------------------------------------------------------------

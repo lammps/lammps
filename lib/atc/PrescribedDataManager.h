@@ -154,7 +154,7 @@ namespace ATC {
       std::set<int> fluxes;
       //list of nodes to insert. 
       //1 for nodes to insert, 0 for nodes not to insert.
-      int toInsert[nNodes_];
+      int *toInsert = new int[nNodes_];
       for (int i = 0; i < nNodes_; ++i) toInsert[i] = 0;
 
       const std::map < std::pair <int, int>, Array < XT_Function * > > & sources = faceSources_.find(thisField)->second;
@@ -178,6 +178,7 @@ namespace ATC {
       for (int node = 0; node < nNodes_; ++node) {
         if (toInsert[node]) fluxes.insert(node);
       }
+      delete[] toInsert;
       return fluxes;
     }
 
@@ -189,7 +190,7 @@ namespace ATC {
     {
       //list of nodes to insert. 
       //1 for nodes to insert, 0 for nodes not to insert.
-      int toInsert[nNodes_];
+      int *toInsert = new int[nNodes_];
       for (int i = 0; i < nNodes_; ++i) toInsert[i] = 0;
 
       const std::map < std::pair <int, int>, Array < XT_Function * > > & sources = faceSources_.find(thisField)->second;
@@ -213,6 +214,7 @@ namespace ATC {
       for (int node = 0; node < nNodes_; ++node) {
         if (toInsert[node]) fluxes.insert(node);
       }
+      delete[] toInsert;
     }
 
     /** */
@@ -223,7 +225,7 @@ namespace ATC {
       std::set<int> fluxes;
       //list of nodes to insert. 
       //1 for nodes to insert, 0 for nodes not to insert.
-      int toInsert[nNodes_];
+      int *toInsert = new int[nNodes_];
       for (int i = 0; i < nNodes_; ++i) toInsert[i] = 0;
 
       const Array2D < XT_Function *> & sources = elementSources_.find(thisField)->second;
@@ -244,6 +246,7 @@ namespace ATC {
       for (int node = 0; node < nNodes_; ++node) {
         if (toInsert[node]) fluxes.insert(node);
       }
+      delete[] toInsert;
       return fluxes;
     }
 
@@ -255,7 +258,7 @@ namespace ATC {
     {
       //list of nodes to insert. 
       //1 for nodes to insert, 0 for nodes not to insert.
-      int toInsert[nNodes_];
+      int *toInsert = new int[nNodes_];
       for (int i = 0; i < nNodes_; ++i) toInsert[i] = 0;
 
       const Array2D < XT_Function *> & sources = elementSources_.find(thisField)->second;
@@ -276,6 +279,7 @@ namespace ATC {
       for (int node = 0; node < nNodes_; ++node) {
         if (toInsert[node]) fluxes.insert(node);
       }
+      delete[] toInsert;
     }
 
     /** */

@@ -77,13 +77,13 @@ class PairTable : public Pair {
 
 /* ERROR/WARNING messages:
 
-E: Pair distance < table inner cutoff
+E: Pair distance < table inner cutoff: ijtype %d %d dist %g
 
-Two atoms are closer together than the pairwise table allows.
+UNDOCUMENTED
 
-E: Pair distance > table outer cutoff
+E: Pair distance > table outer cutoff: ijtype %d %d dist %g
 
-Two atoms are further apart than the pairwise table allows.
+UNDOCUMENTED
 
 E: Illegal ... command
 
@@ -131,6 +131,22 @@ E: Bitmapped table is incorrect length in table file
 
 Number of table entries is not a correct power of 2.
 
+E: Premature end of file in pair table
+
+UNDOCUMENTED
+
+W: %d of %d force values in table are inconsistent with -dE/dr.\n  Should only be flagged at inflection points
+
+UNDOCUMENTED
+
+W: %d of %d distance values in table with relative error\n  over %g to re-computed values
+
+UNDOCUMENTED
+
+W: %d of %d lines in table were incomplete\n  or could not be parsed completely
+
+UNDOCUMENTED
+
 E: Invalid keyword in pair table parameters
 
 Keyword used in list of table parameters is not recognized.
@@ -138,6 +154,14 @@ Keyword used in list of table parameters is not recognized.
 E: Pair table parameters did not set N
 
 List of pair table parameters must include N setting.
+
+E: Pair distance < table inner cutoff
+
+Two atoms are closer together than the pairwise table allows.
+
+E: Pair distance > table outer cutoff
+
+Two atoms are further apart than the pairwise table allows.
 
 E: Pair table cutoffs must all be equal to use with KSpace
 

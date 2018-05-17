@@ -15,8 +15,8 @@
 #include "lammps.h"
 #include "input.h"
 #include "error.h"
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 #if defined(LAMMPS_TRAP_FPE) && defined(_GNU_SOURCE)
 #include <fenv.h>
@@ -70,6 +70,10 @@ int main(int argc, char **argv)
 #ifdef FFT_FFTW3
   // tell fftw3 to delete its global memory pool
   // and thus avoid bogus valgrind memory leak reports
+#ifdef FFT_SINGLE
+  fftwf_cleanup();
+#else
   fftw_cleanup();
+#endif
 #endif
 }

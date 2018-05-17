@@ -12,8 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 #include "compute_pressure_grem.h"
 #include "atom.h"
 #include "update.h"
@@ -116,7 +116,7 @@ void ComputePressureGrem::compute_vector()
 
   if (force->kspace && kspace_virial && force->kspace->scalar_pressure_flag)
     error->all(FLERR,"Must use 'kspace_modify pressure/scalar no' for "
-	       "tensor components with kspace_style msm");
+               "tensor components with kspace_style msm");
 
   // invoke temperature if it hasn't been already
 

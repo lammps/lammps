@@ -15,7 +15,7 @@
 #define LMP_FORCE_H
 
 #include "pointers.h"
-#include <stdio.h>
+#include <cstdio>
 #include <map>
 #include <string>
 
@@ -50,6 +50,7 @@ class Force : protected Pointers {
 
   class Pair *pair;
   char *pair_style;
+  char *pair_restart;
 
   class Bond *bond;
   char *bond_style;
@@ -156,33 +157,37 @@ class Force : protected Pointers {
 
 /* ERROR/WARNING messages:
 
-E: Unknown pair style
+E: Must re-specify non-restarted pair style (%s) after read_restart
 
-The choice of pair style is unknown.
+UNDOCUMENTED
 
-E: Unknown bond style
+E: Unknown pair style %s
 
-The choice of bond style is unknown.
+UNDOCUMENTED
 
-E: Unknown angle style
+E: Unknown bond style %s
 
-The choice of angle style is unknown.
+UNDOCUMENTED
 
-E: Unknown dihedral style
+E: Unknown angle style %s
 
-The choice of dihedral style is unknown.
+UNDOCUMENTED
 
-E: Unknown improper style
+E: Unknown dihedral style %s
 
-The choice of improper style is unknown.
+UNDOCUMENTED
+
+E: Unknown improper style %s
+
+UNDOCUMENTED
 
 E: Cannot yet use KSpace solver with grid with comm style tiled
 
 This is current restriction in LAMMPS.
 
-E: Unknown kspace style
+E: Unknown kspace style %s
 
-The choice of kspace style is unknown.
+UNDOCUMENTED
 
 E: Illegal ... command
 
@@ -190,7 +195,31 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Numeric index is out of bounds
+U: Unknown pair style
+
+The choice of pair style is unknown.
+
+U: Unknown bond style
+
+The choice of bond style is unknown.
+
+U: Unknown angle style
+
+The choice of angle style is unknown.
+
+U: Unknown dihedral style
+
+The choice of dihedral style is unknown.
+
+U: Unknown improper style
+
+The choice of improper style is unknown.
+
+U: Unknown kspace style
+
+The choice of kspace style is unknown.
+
+U: Numeric index is out of bounds
 
 A command with an argument that specifies an integer or range of
 integers is using a value that is less than 1 or greater than the

@@ -97,9 +97,9 @@ E: Incorrect args for pair coefficients
 
 Self-explanatory.  Check the input script or data file.
 
-E: Invoking coulombic in pair style lj/coul requires atom attribute q
+E: Invoking coulombic in pair style lj/long/coul/long requires atom attribute q
 
-The atom style defined does not have this attribute.
+UNDOCUMENTED
 
 E: Pair style requires a KSpace style
 
@@ -109,5 +109,9 @@ E: Pair cutoff < Respa interior cutoff
 
 One or more pairwise cutoffs are too short to use with the specified
 rRESPA cutoffs.
+
+U: Invoking coulombic in pair style lj/coul requires atom attribute q
+
+The atom style defined does not have this attribute.
 
 */

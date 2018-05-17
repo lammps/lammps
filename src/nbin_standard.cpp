@@ -22,8 +22,6 @@
 
 using namespace LAMMPS_NS;
 
-enum{NSQ,BIN,MULTI};       // also in Neighbor
-
 #define SMALL 1.0e-6
 #define CUT2BIN_RATIO 100
 
@@ -94,7 +92,7 @@ void NBinStandard::setup_bins(int style)
 
   double binsize_optimal;
   if (binsizeflag) binsize_optimal = binsize_user;
-  else if (style == BIN) binsize_optimal = 0.5*cutneighmax;
+  else if (style == Neighbor::BIN) binsize_optimal = 0.5*cutneighmax;
   else binsize_optimal = 0.5*cutneighmin;
   if (binsize_optimal == 0.0) binsize_optimal = bbox[0];
   double binsizeinv = 1.0/binsize_optimal;

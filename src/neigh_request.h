@@ -26,10 +26,10 @@ class NeighRequest : protected Pointers {
   int id;                   // ID of request as stored by requestor
                             // used to track multiple requests from one class
 
-  // -----------------------------  
+  // -----------------------------
   // flags set by requesting class for attributes of neighor list they need
   // all must be set appropriately, all have defaults
-  // -----------------------------  
+  // -----------------------------
 
   // which class style requests the list
   // one flag is 1, others are 0
@@ -56,11 +56,11 @@ class NeighRequest : protected Pointers {
                          // 0 if use force::newton_pair setting
                          // 1 if override with pair newton on
                          // 2 if override with pair newton off
-  
+
   int ghost;             // 1 if includes ghost atom neighbors
   int size;              // 1 if pair cutoff set by particle radius
   int history;           // 1 if there is also neigh history info (FixNeighHist)
-  int granonesided;      // 1 if one-sided granular list for 
+  int granonesided;      // 1 if one-sided granular list for
                          //   sphere/surf interactions
   int respainner;        // 1 if need a rRESPA inner list
   int respamiddle;       // 1 if need a rRESPA middle list
@@ -85,9 +85,9 @@ class NeighRequest : protected Pointers {
 
   const char *command_style;
 
-  // -----------------------------  
+  // -----------------------------
   // flags set by Neighbor class to morph original requests
-  // -----------------------------  
+  // -----------------------------
 
   int skiplist;          // index of list to skip from
   int off2on;            // 1 if this is newton on list, but skips from off list
@@ -101,9 +101,9 @@ class NeighRequest : protected Pointers {
   int unique;            // 1 if this list requires its own
                          // NStencil, Nbin class - because of requestor cutoff
 
-  // -----------------------------  
+  // -----------------------------
   // internal settings made by Neighbor class
-  // -----------------------------  
+  // -----------------------------
 
   int index_bin;         // index of NBin class assigned to this request
   int index_stencil;     // index of NStencil class assigned to this request

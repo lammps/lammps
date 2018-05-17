@@ -18,10 +18,10 @@
    and Aidan Thompson's Tersoff code in LAMMPS
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_comb.h"
 #include "atom.h"
 #include "comm.h"
@@ -1245,8 +1245,8 @@ double PairComb::comb_bij_d(double zeta, Param *param)
   if (tmp > param->c1) return param->beta * -0.5*pow(tmp,-1.5);
   if (tmp > param->c2)
     return param->beta * (-0.5*pow(tmp,-1.5) *
-			  // error in negligible 2nd term fixed 9/30/2015
-			  // (1.0 - 0.5*(1.0 +  1.0/(2.0*param->powern)) *
+                          // error in negligible 2nd term fixed 9/30/2015
+                          // (1.0 - 0.5*(1.0 +  1.0/(2.0*param->powern)) *
                           (1.0 - (1.0 +  1.0/(2.0*param->powern)) *
                            pow(tmp,-param->powern)));
   if (tmp < param->c4) return 0.0;

@@ -15,7 +15,7 @@
 #define LMP_DUMP_H
 
 #include <mpi.h>
-#include <stdio.h>
+#include <cstdio>
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -77,6 +77,12 @@ class Dump : protected Pointers {
   int sortcol;               // 0 to sort on ID, 1-N on columns
   int sortcolm1;             // sortcol - 1
   int sortorder;             // ASCEND or DESCEND
+  int delay_flag;            // 1 if delay output until delaystep
+  bigint delaystep;
+
+  int refreshflag;           // 1 if dump_modify refresh specified
+  char *refresh;             // compute ID to invoke refresh() on
+  int irefresh;              // index of compute
 
   char boundstr[9];          // encoding of boundary flags
 
@@ -88,6 +94,7 @@ class Dump : protected Pointers {
   char *format_int_user;
   char *format_bigint_user;
   char **format_column_user;
+  enum{INT,DOUBLE,STRING,BIGINT};
 
   FILE *fp;                  // file to write dump to
   int size_one;              // # of quantities for one atom
@@ -98,6 +105,11 @@ class Dump : protected Pointers {
   double boxylo,boxyhi;      // lo/hi are bounding box for triclinic
   double boxzlo,boxzhi;
   double boxxy,boxxz,boxyz;
+
+  int maxfiles;              // max number of files created, -1 == infinite
+  int numfiles;              // number of files in names list
+  int fileidx;               // index of file in names list
+  char **nameslist;          // list of history file names
 
   bigint ntotal;             // total # of per-atom lines in snapshot
   int reorderflag;           // 1 if OK to reorder instead of sort
@@ -173,6 +185,10 @@ Self-explanatory.
 E: Too many atoms to dump sort
 
 Cannot sort when running with more than 2^31 atoms.
+
+E: Dump could not find refresh compute ID
+
+UNDOCUMENTED
 
 E: Too much per-proc info for dump
 

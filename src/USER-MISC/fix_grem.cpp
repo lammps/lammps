@@ -22,9 +22,9 @@
                          Tom Keyes (Boston University)
 ------------------------------------------------------------------------- */
 
-#include <string.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstring>
+#include <cstdlib>
+#include <cmath>
 #include "comm.h"
 #include "fix_grem.h"
 #include "atom.h"

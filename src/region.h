@@ -31,8 +31,8 @@ class Region : protected Pointers {
   int varshape;                     // 1 if region shape changes over time
   int dynamic;                      // 1 if position/orient changes over time
   int moveflag,rotateflag;          // 1 if position/orientation changes
-  int openflag;			    // 1 if any face is open
-  int open_faces[6];		    // flags for which faces are open
+  int openflag;             // 1 if any face is open
+  int open_faces[6];            // flags for which faces are open
 
   int copymode;                     // 1 if copy of original class
 
@@ -43,20 +43,20 @@ class Region : protected Pointers {
     double r;                 // distance between particle & surf, r > 0.0
     double delx,dely,delz;    // vector from surface pt to particle
     double radius;            // curvature of region at contact point
-    int iwall;		      // unique id of wall for storing shear history
+    int iwall;            // unique id of wall for storing shear history
     int varflag;              // 1 if wall can be variable-controlled
   };
   Contact *contact;           // list of contacts
   int cmax;                   // max # of contacts possible with region
-  int tmax;		      // max # of touching contacts possible
+  int tmax;           // max # of touching contacts possible
 
   // motion attributes of region
   // public so can be accessed by other classes
 
   double dx,dy,dz,theta;      // current displacement and orientation
-  double v[3];	 	      // translational velocity
-  double rpoint[3];	      // current origin of rotation axis
-  double omega[3];	      // angular velocity
+  double v[3];            // translational velocity
+  double rpoint[3];       // current origin of rotation axis
+  double omega[3];        // angular velocity
   double rprev;               // speed of time-dependent radius, if applicable
   double xcenter[3];          // translated/rotated center of cylinder/sphere (only used if varshape)
   double prev[5];             // stores displacement (X3), angle and if

@@ -20,7 +20,7 @@ FixStyle(ave/time,FixAveTime)
 #ifndef LMP_FIX_AVE_TIME_H
 #define LMP_FIX_AVE_TIME_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "fix.h"
 
 namespace LAMMPS_NS {
@@ -91,15 +91,11 @@ E: No values in fix ave/time command
 
 Self-explanatory.
 
-E: Compute ID for fix ave/time does not exist
-
-Self-explanatory.
-
-E: Fix ID for fix ave/time does not exist
-
-Self-explanatory.
-
 E: Invalid fix ave/time off column
+
+Self-explanatory.
+
+E: Compute ID for fix ave/time does not exist
 
 Self-explanatory.
 
@@ -122,6 +118,10 @@ Self-explanatory.
 E: Fix ave/time compute array is accessed out-of-range
 
 An index for the array is out of bounds.
+
+E: Fix ID for fix ave/time does not exist
+
+Self-explanatory.
 
 E: Fix ave/time fix does not calculate a scalar
 
@@ -164,9 +164,13 @@ E: Fix ave/time variable is not equal-style variable
 
 Self-explanatory.
 
-E: Fix ave/time cannot use variable with vector mode
+E: Fix ave/time variable is not vector-style variable
 
-Variables produce scalar values.
+UNDOCUMENTED
+
+E: Fix ave/time mode vector variable cannot be indexed
+
+UNDOCUMENTED
 
 E: Error writing file header
 
@@ -187,6 +191,10 @@ E: Error writing out time averaged data
 
 Something in the output to the file triggered an error.
 
+E: Fix ave/time vector-style variable changed length
+
+UNDOCUMENTED
+
 E: Fix ave/time columns are inconsistent lengths
 
 Self-explanatory.
@@ -195,5 +203,9 @@ E: Cannot open fix ave/time file %s
 
 The specified file cannot be opened.  Check that the path and name are
 correct.
+
+U: Fix ave/time cannot use variable with vector mode
+
+Variables produce scalar values.
 
 */

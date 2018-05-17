@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "region.h"
 #include "update.h"
 #include "domain.h"
@@ -28,9 +28,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Region::Region(LAMMPS *lmp, int narg, char **arg) : 
+Region::Region(LAMMPS *lmp, int narg, char **arg) :
   Pointers(lmp),
-  id(NULL), style(NULL), contact(NULL), list(NULL), 
+  id(NULL), style(NULL), contact(NULL), list(NULL),
   xstr(NULL), ystr(NULL), zstr(NULL), tstr(NULL)
 {
   int n = strlen(arg[0]) + 1;

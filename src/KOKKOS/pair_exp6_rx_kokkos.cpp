@@ -15,10 +15,10 @@
    Contributing author: Stan Moore (Sandia)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_exp6_rx_kokkos.h"
 #include "atom.h"
 #include "comm.h"
@@ -30,7 +30,7 @@
 #include "error.h"
 #include "modify.h"
 #include "fix.h"
-#include <float.h>
+#include <cfloat>
 #include "atom_masks.h"
 #include "neigh_request.h"
 #include "atom_kokkos.h"
@@ -189,7 +189,7 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   {
      const int np_total = nlocal + atom->nghost;
 
-     if (np_total > PairExp6ParamData.epsilon1.dimension_0()) {
+     if (np_total > PairExp6ParamData.epsilon1.extent(0)) {
        PairExp6ParamData.epsilon1      = typename AT::t_float_1d("PairExp6ParamData.epsilon1"     ,np_total);
        PairExp6ParamData.alpha1        = typename AT::t_float_1d("PairExp6ParamData.alpha1"       ,np_total);
        PairExp6ParamData.rm1           = typename AT::t_float_1d("PairExp6ParamData.rm1"          ,np_total);
@@ -308,8 +308,8 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 #else // No atomics
 
   num_threads = lmp->kokkos->num_threads;
-  int nmax = f.dimension_0();
-  if (nmax > t_f.dimension_1()) {
+  int nmax = f.extent(0);
+  if (nmax > t_f.extent(1)) {
     t_f = t_f_array_thread("pair_exp6_rx:t_f",num_threads,nmax);
     t_uCG = t_efloat_1d_thread("pair_exp6_rx:t_uCG",num_threads,nmax);
     t_uCGnew = t_efloat_1d_thread("pair_exp6_rx:t_UCGnew",num_threads,nmax);
@@ -771,7 +771,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
       evdwl = evdwlOld;
       if (EVFLAG)
         ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR||(j<nlocal)))?1.0:0.5)*evdwl;
-      //if (vflag_either || eflag_atom) 
+      //if (vflag_either || eflag_atom)
       if (EVFLAG) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,evdwl,fpair,delx,dely,delz);
     }
   }
@@ -815,7 +815,10 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIG
 
   int tid = 0;
 #ifndef KOKKOS_HAVE_CUDA
-  tid = DeviceType::hardware_thread_id();
+  typedef Kokkos::Experimental::UniqueToken<
+    DeviceType, Kokkos::Experimental::UniqueTokenScope::Global> unique_token_type;
+  unique_token_type unique_token;
+  tid = unique_token.acquire();
 #endif
 
   int i,jj,jnum,itype,jtype;
@@ -1142,7 +1145,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIG
       evdwl = evdwlOld;
       if (EVFLAG)
         ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR||(j<nlocal)))?1.0:0.5)*evdwl;
-      //if (vflag_either || eflag_atom) 
+      //if (vflag_either || eflag_atom)
       if (EVFLAG) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,evdwl,fpair,delx,dely,delz);
     }
   }
@@ -1152,6 +1155,10 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIG
   t_f(tid,i,2) += fz_i;
   t_uCG(tid,i) += uCG_i;
   t_uCGnew(tid,i) += uCGnew_i;
+
+#ifndef KOKKOS_HAVE_CUDA
+  unique_token.release(tid);
+#endif
 }
 
 // Experimental thread-safe approach using duplicated data instead of atomics and
@@ -1183,7 +1190,10 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
 
   int tid = 0;
 #ifndef KOKKOS_HAVE_CUDA
-  tid = DeviceType::hardware_thread_id();
+  typedef Kokkos::Experimental::UniqueToken<
+    DeviceType, Kokkos::Experimental::UniqueTokenScope::Global> unique_token_type;
+  unique_token_type unique_token;
+  tid = unique_token.acquire();
 #endif
 
   const int nRep = 12;
@@ -1588,7 +1598,7 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
       double evdwl = evdwlOld_j[jlane];
       if (EVFLAG)
         ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR||(j<nlocal)))?1.0:0.5)*evdwl;
-      //if (vflag_either || eflag_atom) 
+      //if (vflag_either || eflag_atom)
       if (EVFLAG) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,evdwl,fpair_j[jlane],delx_j[jlane],dely_j[jlane],delz_j[jlane]);
     }
   }
@@ -1612,6 +1622,10 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
     t_uCG(tid,i) += uCG_i;
     t_uCGnew(tid,i) += uCGnew_i;
   }
+
+#ifndef KOKKOS_HAVE_CUDA
+  unique_token.release(tid);
+#endif
 }
 
 template<class DeviceType>
@@ -1678,7 +1692,7 @@ template<class DeviceType>
 void PairExp6rxKokkos<DeviceType>::coeff(int narg, char **arg)
 {
   PairExp6rx::coeff(narg,arg);
-  
+
   if (scalingFlag == POLYNOMIAL)
     for (int i = 0; i < 6; i++) {
       s_coeffAlpha[i] = coeffAlpha[i];
@@ -2117,7 +2131,7 @@ void partition_range( const int begin, const int end, int &thread_begin, int &th
 #ifndef KOKKOS_HAVE_CUDA
 template<class DeviceType>
   template<class ArrayT>
-void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int errorFlag, 
+void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int errorFlag,
                           ArrayT &epsilon1, ArrayT &alpha1, ArrayT &rm1,  ArrayT &mixWtSite1, ArrayT &epsilon2, ArrayT &alpha2, ArrayT &rm2, ArrayT &mixWtSite2, ArrayT &epsilon1_old, ArrayT &alpha1_old, ArrayT &rm1_old,  ArrayT &mixWtSite1old, ArrayT &epsilon2_old, ArrayT &alpha2_old, ArrayT &rm2_old, ArrayT &mixWtSite2old) const
 {
   ArrayT epsilon          = PairExp6ParamDataVect.epsilon         ;

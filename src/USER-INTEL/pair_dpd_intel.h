@@ -85,7 +85,7 @@ class PairDPDIntel : public PairDPD {
     ForceConst() : _ntypes(0)  {}
     ~ForceConst() { set_ntypes(0, 0, 0, NULL, _cop); }
 
-    void set_ntypes(const int ntypes, const int nthreads, const int max_nbors, 
+    void set_ntypes(const int ntypes, const int nthreads, const int max_nbors,
                     Memory *memory, const int cop);
 
    private:

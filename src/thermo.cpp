@@ -17,9 +17,9 @@
 
 #include "lmptype.h"
 #include <mpi.h>
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "thermo.h"
 #include "atom.h"
 #include "update.h"
@@ -55,7 +55,7 @@ using namespace MathConst;
 
 // customize a new keyword by adding to this list:
 
-// step, elapsed, elaplong, dt, time, cpu, tpcpu, spcpu, cpuremain, 
+// step, elapsed, elaplong, dt, time, cpu, tpcpu, spcpu, cpuremain,
 // part, timeremain
 // atoms, temp, press, pe, ke, etotal, enthalpy
 // evdwl, ecoul, epair, ebond, eangle, edihed, eimp, emol, elong, etail
@@ -72,7 +72,6 @@ using namespace MathConst;
 #define ONE "step temp epair emol etotal press"
 #define MULTI "etotal ke temp pe ebond eangle edihed eimp evdwl ecoul elong press"
 
-enum{IGNORE,WARN,ERROR};           // same as several files
 enum{ONELINE,MULTILINE};
 enum{INT,FLOAT,BIGINT};
 enum{SCALAR,VECTOR,ARRAY};
@@ -98,7 +97,7 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   modified = 0;
   normuserflag = 0;
   lineflag = ONELINE;
-  lostflag = lostbond = ERROR;
+  lostflag = lostbond = Thermo::ERROR;
   lostbefore = 0;
   flushflag = 0;
 
@@ -197,7 +196,7 @@ Thermo::~Thermo()
   deallocate();
 
   // format strings
-  
+
   delete [] format_line_user;
   delete [] format_float_user;
   delete [] format_int_user;
@@ -427,14 +426,14 @@ bigint Thermo::lost_check()
   if (ntotal == atom->natoms) return ntotal;
 
   // if not checking or already warned, just return
-  if (lostflag == IGNORE) return ntotal;
-  if (lostflag == WARN && lostbefore == 1) {
+  if (lostflag == Thermo::IGNORE) return ntotal;
+  if (lostflag == Thermo::WARN && lostbefore == 1) {
     return ntotal;
   }
 
   // error message
 
-  if (lostflag == ERROR) {
+  if (lostflag == Thermo::ERROR) {
     char str[64];
     sprintf(str,
             "Lost atoms: original " BIGINT_FORMAT " current " BIGINT_FORMAT,
@@ -536,17 +535,17 @@ void Thermo::modify_params(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"lost") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal thermo_modify command");
-      if (strcmp(arg[iarg+1],"ignore") == 0) lostflag = IGNORE;
-      else if (strcmp(arg[iarg+1],"warn") == 0) lostflag = WARN;
-      else if (strcmp(arg[iarg+1],"error") == 0) lostflag = ERROR;
+      if (strcmp(arg[iarg+1],"ignore") == 0) lostflag = Thermo::IGNORE;
+      else if (strcmp(arg[iarg+1],"warn") == 0) lostflag = Thermo::WARN;
+      else if (strcmp(arg[iarg+1],"error") == 0) lostflag = Thermo::ERROR;
       else error->all(FLERR,"Illegal thermo_modify command");
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"lost/bond") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal thermo_modify command");
-      if (strcmp(arg[iarg+1],"ignore") == 0) lostbond = IGNORE;
-      else if (strcmp(arg[iarg+1],"warn") == 0) lostbond = WARN;
-      else if (strcmp(arg[iarg+1],"error") == 0) lostbond = ERROR;
+      if (strcmp(arg[iarg+1],"ignore") == 0) lostbond = Thermo::IGNORE;
+      else if (strcmp(arg[iarg+1],"warn") == 0) lostbond = Thermo::WARN;
+      else if (strcmp(arg[iarg+1],"error") == 0) lostbond = Thermo::ERROR;
       else error->all(FLERR,"Illegal thermo_modify command");
       iarg += 2;
 
@@ -1091,7 +1090,7 @@ int Thermo::evaluate_keyword(char *word, double *answer)
   //   this will trigger next timestep for energy tallying via addstep()
   //   this means keywords that use pe (pe, etotal, enthalpy)
   //     need to always invoke it even if invoked_flag is set,
-  //     because evdwl/etc may have set invoked_flag w/out 
+  //     because evdwl/etc may have set invoked_flag w/out
   //       actually invoking pe->compute_scalar()
 
   if (strcmp(word,"step") == 0) {
@@ -1571,7 +1570,7 @@ void Thermo::compute_variable()
     dvalue = input->variable->compute_equal(variables[field2index[ifield]]);
   else {
     double *varvec;
-    int nvec = 
+    int nvec =
       input->variable->compute_vector(variables[field2index[ifield]],&varvec);
     if (nvec < iarg) dvalue = 0.0;
     else dvalue = varvec[iarg-1];

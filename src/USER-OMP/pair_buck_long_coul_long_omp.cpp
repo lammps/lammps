@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 
-#include <math.h>
+#include <cmath>
 #include "math_vector.h"
 #include "pair_buck_long_coul_long_omp.h"
 #include "atom.h"
@@ -788,7 +788,7 @@ void PairBuckLongCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
       }
 
       if (EVFLAG) ev_tally_thr(this,i,j,nlocal,NEWTON_PAIR,
-			       evdwl,ecoul,fpair,d[0],d[1],d[2],thr);
+                               evdwl,ecoul,fpair,d[0],d[1],d[2],thr);
     }
   }
 }
@@ -1116,7 +1116,7 @@ void PairBuckLongCoulLongOMP::eval_outer(int iiform, int iito, ThrData * const t
               force_buck =
                 r*expr*buck1i[typej]-g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq-respa_buck;
               if (EFLAG) evdwl = expr*buckai[typej]-g6*((a2+1.0)*a2+0.5)*x2;
-	    }
+            }
             else {                                        // correct for special
               register double f = special_lj[ni], t = rn*(1.0-f);
               force_buck = f*r*expr*buck1i[typej]-
@@ -1175,7 +1175,7 @@ void PairBuckLongCoulLongOMP::eval_outer(int iiform, int iito, ThrData * const t
       if (EVFLAG) {
         fvirial = (force_coul + force_buck + respa_coul + respa_buck)*r2inv;
         ev_tally_thr(this,i,j,nlocal,NEWTON_PAIR,
-		     evdwl,ecoul,fvirial,d[0],d[1],d[2],thr);
+                     evdwl,ecoul,fvirial,d[0],d[1],d[2],thr);
       }
     }
   }

@@ -24,7 +24,7 @@ ImproperStyle(cvff/intel,ImproperCvffIntel)
 #ifndef LMP_IMPROPER_CVFF_INTEL_H
 #define LMP_IMPROPER_CVFF_INTEL_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "improper_cvff.h"
 #include "fix_intel.h"
 

@@ -1,0 +1,136 @@
+LAMMPS (8 Mar 2018)
+  using 1 OpenMP thread(s) per MPI task
+# Initialization
+units           metal
+boundary        p p p
+atom_style      full
+processors      * * 1     # domain decomposition over x and y
+
+# System and atom definition
+# we use 2 atom types so that inter- and intra-layer
+# interactions can be specified separately
+# read lammps data file
+read_data       Bi_gr_AB_stack_2L_noH_300K.data
+  orthogonal box = (0 0 0) to (42.6 41.8117 100)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  1360 atoms
+  reading velocities ...
+  1360 velocities
+  0 = max # of 1-2 neighbors
+  0 = max # of 1-3 neighbors
+  0 = max # of 1-4 neighbors
+  1 = max # of special neighbors
+mass            1 12.0107   # carbon mass (g/mole) | membrane
+mass            2 12.0107   # carbon mass (g/mole) | adsorbate
+# Separate atom groups
+group membrane  type 1
+680 atoms in group membrane
+group adsorbate type 2
+680 atoms in group adsorbate
+
+######################## Potential defition ########################
+pair_style  hybrid/overlay  rebo  kolmogorov/crespi/full 16.0
+####################################################################
+pair_coeff  * * rebo                     CH.airebo      NULL C  # chemical
+Reading potential file CH.airebo with DATE: 2011-10-25
+pair_coeff  * * kolmogorov/crespi/full   CC.KC-full     C    C  # long range
+####################################################################
+# Neighbor update settings
+neighbor        2.0 bin
+neigh_modify    every 1
+neigh_modify    delay 0
+neigh_modify    check yes
+
+# calculate the COM
+variable        adsxcom equal xcm(adsorbate,x)
+variable        adsycom equal xcm(adsorbate,y)
+variable        adszcom equal xcm(adsorbate,z)
+variable        adsvxcom equal vcm(adsorbate,x)
+variable        adsvycom equal vcm(adsorbate,y)
+variable        adsvzcom equal vcm(adsorbate,z)
+
+#### Simulation settings ####
+timestep  0.001
+fix       subf membrane setforce 0.0 0.0 0.0
+fix       thermostat all nve
+
+compute   0 all pair rebo
+compute   1 all pair kolmogorov/crespi/full
+variable  REBO     equal c_0
+variable  KC       equal c_1
+
+############################
+
+# Output
+thermo          100
+thermo_style    custom step etotal pe ke v_REBO v_KC temp v_adsxcom v_adsycom v_adszcom v_adsvxcom v_adsvycom v_adsvzcom
+thermo_modify   line one format float %.10f
+thermo_modify   flush yes norm no lost warn #ignore
+
+#dump            1 all custom 1000 traj.lammpstrj id mol type xu yu zu
+#dump_modify     1 format line "%7d %3d %3d %15.10g %15.10g %15.10g" flush yes
+
+###### Run molecular dynamics ######
+run 1000
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 18
+  ghost atom cutoff = 18
+  binsize = 9, bins = 5 5 12
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair rebo, perpetual, skip from (2)
+      attributes: full, newton on, ghost
+      pair build: skip/ghost
+      stencil: none
+      bin: none
+  (2) pair kolmogorov/crespi/full, perpetual
+      attributes: full, newton on, ghost
+      pair build: full/bin/ghost
+      stencil: full/ghost/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 16.96 | 16.96 | 16.96 Mbytes
+Step TotEng PotEng KinEng v_REBO v_KC Temp v_adsxcom v_adsycom v_adszcom v_adsvxcom v_adsvycom v_adsvzcom 
+       0 -5025.3867722725 -5040.0767391239 14.6899668514 -5011.2636297759 -28.8131093480 83.6251135127 22.0155657205 20.2812150219 3.4623630945 0.0282287195 0.0535565745 0.2193320108 
+     100 -5025.3962433293 -5041.3829775585 15.9867342292 -5012.5109377234 -28.8720398351 91.0071804888 22.0181858078 20.2867731676 3.4456714402 0.0241525932 0.0573807336 -0.5235069014 
+     200 -5025.3942568861 -5041.9638220670 16.5695651809 -5012.7804299195 -29.1833921475 94.3250439654 22.0203529515 20.2926376511 3.3740502908 0.0186420748 0.0595018114 -0.7867265577 
+     300 -5025.3919463074 -5040.9705419367 15.5785956293 -5012.0510295102 -28.9195124265 88.6837826830 22.0218424095 20.2984380400 3.3199036613 0.0106250874 0.0544668352 -0.1513745908 
+     400 -5025.3965376948 -5041.6929964127 16.2964587179 -5012.6418090677 -29.0511873450 92.7703393702 22.0224243957 20.3034636122 3.3515794172 0.0006844935 0.0458598502 0.6967704496 
+     500 -5025.4050172900 -5042.1712310053 16.7662137153 -5013.1850218645 -28.9862091408 95.4444989087 22.0220673443 20.3074634962 3.4286173278 -0.0078273439 0.0340764532 0.6845095066 
+     600 -5025.3985715734 -5041.2158947893 15.8173232159 -5012.4875319345 -28.7283628548 90.0427797270 22.0209262700 20.3103065099 3.4653840648 -0.0141442608 0.0229602847 0.0009001093 
+     700 -5025.3997561572 -5041.6276721306 16.2279159734 -5012.7093581188 -28.9183140118 92.3801482386 22.0191651506 20.3120184840 3.4291788224 -0.0208485646 0.0104216414 -0.6668311564 
+     800 -5025.3967603736 -5042.3401685987 16.9434082251 -5013.3044877099 -29.0356808888 96.4532085367 22.0167259920 20.3122737443 3.3535033285 -0.0279747378 -0.0060833621 -0.7003492925 
+     900 -5025.3984542801 -5042.2820667481 16.8836124680 -5013.4066841442 -28.8753826039 96.1128111061 22.0136711877 20.3107854823 3.3206430872 -0.0331979094 -0.0237440547 0.1335648638 
+    1000 -5025.3988185618 -5041.9160822433 16.5172636815 -5012.8147737982 -29.1013084450 94.0273088606 22.0102627032 20.3075977018 3.3736867454 -0.0340065996 -0.0390649991 0.7872380119 
+Loop time of 156.142 on 1 procs for 1000 steps with 1360 atoms
+
+Performance: 0.553 ns/day, 43.373 hours/ns, 6.404 timesteps/s
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 155.99     | 155.99     | 155.99     |   0.0 | 99.90
+Bond    | 0.00075769 | 0.00075769 | 0.00075769 |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.084217   | 0.084217   | 0.084217   |   0.0 |  0.05
+Output  | 0.0016122  | 0.0016122  | 0.0016122  |   0.0 |  0.00
+Modify  | 0.034797   | 0.034797   | 0.034797   |   0.0 |  0.02
+Other   |            | 0.02838    |            |       |  0.02
+
+Nlocal:    1360 ave 1360 max 1360 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    7964 ave 7964 max 7964 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  265206 ave 265206 max 265206 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 265206
+Ave neighs/atom = 195.004
+Ave special neighs/atom = 0
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:02:36

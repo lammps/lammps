@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
+#include <cstring>
 #include "npair_half_size_bin_newton.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -91,9 +91,9 @@ void NPairHalfSizeBinNewton::build(NeighList *list)
       cutsq = (radsum+skin) * (radsum+skin);
 
       if (rsq <= cutsq) {
-        if (history && rsq < radsum*radsum) 
+        if (history && rsq < radsum*radsum)
           neighptr[n++] = j ^ mask_history;
-        else 
+        else
           neighptr[n++] = j;
       }
     }
@@ -113,7 +113,7 @@ void NPairHalfSizeBinNewton::build(NeighList *list)
         cutsq = (radsum+skin) * (radsum+skin);
 
         if (rsq <= cutsq) {
-          if (history && rsq < radsum*radsum) 
+          if (history && rsq < radsum*radsum)
             neighptr[n++] = j ^ mask_history;
           else
             neighptr[n++] = j;

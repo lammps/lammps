@@ -15,10 +15,10 @@
    Contributing author: Mike Brown (ORNL)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_sw_gpu.h"
 #include "atom.h"
 #include "neighbor.h"

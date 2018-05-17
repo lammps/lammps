@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include "fix_momentum_kokkos.h"
 #include "atom_kokkos.h"
 #include "atom_masks.h"
@@ -116,7 +116,7 @@ void FixMomentumKokkos<DeviceType>::end_of_step()
 
     // adjust velocities by vcm to zero linear momentum
     // only adjust a component if flag is set
-    
+
     auto xflag2 = xflag;
     auto yflag2 = yflag;
     auto zflag2 = zflag;

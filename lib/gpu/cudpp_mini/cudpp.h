@@ -300,7 +300,7 @@
 #ifndef __CUDPP_H__
 #define __CUDPP_H__
 
-#include <stdlib.h> // for size_t
+#include <cstdlib> // for size_t
 
 #ifdef __cplusplus
 extern "C" {

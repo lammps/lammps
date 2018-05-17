@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include "region_union.h"
 #include "domain.h"
 #include "error.h"
@@ -183,7 +183,7 @@ int RegUnion::surface_interior(double *x, double cutoff)
         contact[n].dely = regions[iregion]->contact[m].dely;
         contact[n].delz = regions[iregion]->contact[m].delz;
         contact[n].iwall = regions[iregion]->contact[m].iwall + walloffset;
-	contact[n].varflag = regions[iregion]->contact[m].varflag;
+        contact[n].varflag = regions[iregion]->contact[m].varflag;
         n++;
       }
     }

@@ -1,24 +1,14 @@
-*> \brief \b DGETRF
+*> \brief \b DGETRF2
 *
 *  =========== DOCUMENTATION ===========
 *
 * Online html documentation available at
 *            http://www.netlib.org/lapack/explore-html/
 *
-*> \htmlonly
-*> Download DGETRF + dependencies
-*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/dgetrf.f">
-*> [TGZ]</a>
-*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/dgetrf.f">
-*> [ZIP]</a>
-*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/dgetrf.f">
-*> [TXT]</a>
-*> \endhtmlonly
-*
 *  Definition:
 *  ===========
 *
-*       SUBROUTINE DGETRF( M, N, A, LDA, IPIV, INFO )
+*       RECURSIVE SUBROUTINE DGETRF2( M, N, A, LDA, IPIV, INFO )
 *
 *       .. Scalar Arguments ..
 *       INTEGER            INFO, LDA, M, N
@@ -34,7 +24,7 @@
 *>
 *> \verbatim
 *>
-*> DGETRF computes an LU factorization of a general M-by-N matrix A
+*> DGETRF2 computes an LU factorization of a general M-by-N matrix A
 *> using partial pivoting with row interchanges.
 *>
 *> The factorization has the form
@@ -43,7 +33,22 @@
 *> diagonal elements (lower trapezoidal if m > n), and U is upper
 *> triangular (upper trapezoidal if m < n).
 *>
-*> This is the right-looking Level 3 BLAS version of the algorithm.
+*> This is the recursive version of the algorithm. It divides
+*> the matrix into four submatrices:
+*>
+*>        [  A11 | A12  ]  where A11 is n1 by n1 and A22 is n2 by n2
+*>    A = [ -----|----- ]  with n1 = min(m,n)/2
+*>        [  A21 | A22  ]       n2 = n-n1
+*>
+*>                                       [ A11 ]
+*> The subroutine calls itself to factor [ --- ],
+*>                                       [ A12 ]
+*>                 [ A12 ]
+*> do the swaps on [ --- ], solve A12, update A22,
+*>                 [ A22 ]
+*>
+*> then calls itself to factor A22 and do the swaps on A21.
+*>
 *> \endverbatim
 *
 *  Arguments:
@@ -101,17 +106,17 @@
 *> \author Univ. of Colorado Denver
 *> \author NAG Ltd.
 *
-*> \date December 2016
+*> \date June 2016
 *
 *> \ingroup doubleGEcomputational
 *
 *  =====================================================================
-      SUBROUTINE DGETRF( M, N, A, LDA, IPIV, INFO )
+      RECURSIVE SUBROUTINE DGETRF2( M, N, A, LDA, IPIV, INFO )
 *
 *  -- LAPACK computational routine (version 3.7.0) --
 *  -- LAPACK is a software package provided by Univ. of Tennessee,    --
 *  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
-*     December 2016
+*     June 2016
 *
 *     .. Scalar Arguments ..
       INTEGER            INFO, LDA, M, N
@@ -124,25 +129,27 @@
 *  =====================================================================
 *
 *     .. Parameters ..
-      DOUBLE PRECISION   ONE
-      PARAMETER          ( ONE = 1.0D+0 )
+      DOUBLE PRECISION   ONE, ZERO
+      PARAMETER          ( ONE = 1.0D+0, ZERO = 0.0D+0 )
 *     ..
 *     .. Local Scalars ..
-      INTEGER            I, IINFO, J, JB, NB
-*     ..
-*     .. External Subroutines ..
-      EXTERNAL           DGEMM, DGETRF2, DLASWP, DTRSM, XERBLA
+      DOUBLE PRECISION   SFMIN, TEMP
+      INTEGER            I, IINFO, N1, N2
 *     ..
 *     .. External Functions ..
-      INTEGER            ILAENV
-      EXTERNAL           ILAENV
+      DOUBLE PRECISION   DLAMCH
+      INTEGER            IDAMAX
+      EXTERNAL           DLAMCH, IDAMAX
+*     ..
+*     .. External Subroutines ..
+      EXTERNAL           DGEMM, DSCAL, DLASWP, DTRSM, XERBLA
 *     ..
 *     .. Intrinsic Functions ..
       INTRINSIC          MAX, MIN
 *     ..
 *     .. Executable Statements ..
 *
-*     Test the input parameters.
+*     Test the input parameters
 *
       INFO = 0
       IF( M.LT.0 ) THEN
@@ -153,7 +160,7 @@
          INFO = -4
       END IF
       IF( INFO.NE.0 ) THEN
-         CALL XERBLA( 'DGETRF', -INFO )
+         CALL XERBLA( 'DGETRF2', -INFO )
          RETURN
       END IF
 *
@@ -161,65 +168,105 @@
 *
       IF( M.EQ.0 .OR. N.EQ.0 )
      $   RETURN
+
+      IF ( M.EQ.1 ) THEN
 *
-*     Determine the block size for this environment.
+*        Use unblocked code for one row case
+*        Just need to handle IPIV and INFO
 *
-      NB = ILAENV( 1, 'DGETRF', ' ', M, N, -1, -1 )
-      IF( NB.LE.1 .OR. NB.GE.MIN( M, N ) ) THEN
+         IPIV( 1 ) = 1
+         IF ( A(1,1).EQ.ZERO )
+     $      INFO = 1
 *
-*        Use unblocked code.
+      ELSE IF( N.EQ.1 ) THEN
 *
-         CALL DGETRF2( M, N, A, LDA, IPIV, INFO )
+*        Use unblocked code for one column case
+*
+*
+*        Compute machine safe minimum
+*
+         SFMIN = DLAMCH('S')
+*
+*        Find pivot and test for singularity
+*
+         I = IDAMAX( M, A( 1, 1 ), 1 )
+         IPIV( 1 ) = I
+         IF( A( I, 1 ).NE.ZERO ) THEN
+*
+*           Apply the interchange
+*
+            IF( I.NE.1 ) THEN
+               TEMP = A( 1, 1 )
+               A( 1, 1 ) = A( I, 1 )
+               A( I, 1 ) = TEMP
+            END IF
+*
+*           Compute elements 2:M of the column
+*
+            IF( ABS(A( 1, 1 )) .GE. SFMIN ) THEN
+               CALL DSCAL( M-1, ONE / A( 1, 1 ), A( 2, 1 ), 1 )
+            ELSE
+               DO 10 I = 1, M-1
+                  A( 1+I, 1 ) = A( 1+I, 1 ) / A( 1, 1 )
+   10          CONTINUE
+            END IF
+*
+         ELSE
+            INFO = 1
+         END IF
+*
       ELSE
 *
-*        Use blocked code.
+*        Use recursive code
 *
-         DO 20 J = 1, MIN( M, N ), NB
-            JB = MIN( MIN( M, N )-J+1, NB )
+         N1 = MIN( M, N ) / 2
+         N2 = N-N1
 *
-*           Factor diagonal and subdiagonal blocks and test for exact
-*           singularity.
+*               [ A11 ]
+*        Factor [ --- ]
+*               [ A21 ]
 *
-            CALL DGETRF2( M-J+1, JB, A( J, J ), LDA, IPIV( J ), IINFO )
+         CALL DGETRF2( M, N1, A, LDA, IPIV, IINFO )
+
+         IF ( INFO.EQ.0 .AND. IINFO.GT.0 )
+     $      INFO = IINFO
 *
-*           Adjust INFO and the pivot indices.
+*                              [ A12 ]
+*        Apply interchanges to [ --- ]
+*                              [ A22 ]
 *
-            IF( INFO.EQ.0 .AND. IINFO.GT.0 )
-     $         INFO = IINFO + J - 1
-            DO 10 I = J, MIN( M, J+JB-1 )
-               IPIV( I ) = J - 1 + IPIV( I )
-   10       CONTINUE
+         CALL DLASWP( N2, A( 1, N1+1 ), LDA, 1, N1, IPIV, 1 )
 *
-*           Apply interchanges to columns 1:J-1.
+*        Solve A12
 *
-            CALL DLASWP( J-1, A, LDA, J, J+JB-1, IPIV, 1 )
+         CALL DTRSM( 'L', 'L', 'N', 'U', N1, N2, ONE, A, LDA,
+     $               A( 1, N1+1 ), LDA )
 *
-            IF( J+JB.LE.N ) THEN
+*        Update A22
 *
-*              Apply interchanges to columns J+JB:N.
+         CALL DGEMM( 'N', 'N', M-N1, N2, N1, -ONE, A( N1+1, 1 ), LDA,
+     $               A( 1, N1+1 ), LDA, ONE, A( N1+1, N1+1 ), LDA )
 *
-               CALL DLASWP( N-J-JB+1, A( 1, J+JB ), LDA, J, J+JB-1,
-     $                      IPIV, 1 )
+*        Factor A22
 *
-*              Compute block row of U.
+         CALL DGETRF2( M-N1, N2, A( N1+1, N1+1 ), LDA, IPIV( N1+1 ),
+     $                 IINFO )
 *
-               CALL DTRSM( 'Left', 'Lower', 'No transpose', 'Unit', JB,
-     $                     N-J-JB+1, ONE, A( J, J ), LDA, A( J, J+JB ),
-     $                     LDA )
-               IF( J+JB.LE.M ) THEN
+*        Adjust INFO and the pivot indices
 *
-*                 Update trailing submatrix.
-*
-                  CALL DGEMM( 'No transpose', 'No transpose', M-J-JB+1,
-     $                        N-J-JB+1, JB, -ONE, A( J+JB, J ), LDA,
-     $                        A( J, J+JB ), LDA, ONE, A( J+JB, J+JB ),
-     $                        LDA )
-               END IF
-            END IF
+         IF ( INFO.EQ.0 .AND. IINFO.GT.0 )
+     $      INFO = IINFO + N1
+         DO 20 I = N1+1, MIN( M, N )
+            IPIV( I ) = IPIV( I ) + N1
    20    CONTINUE
+*
+*        Apply interchanges to A21
+*
+         CALL DLASWP( N1, A( 1, 1 ), LDA, N1+1, MIN( M, N), IPIV, 1 )
+*
       END IF
       RETURN
 *
-*     End of DGETRF
+*     End of DGETRF2
 *
       END

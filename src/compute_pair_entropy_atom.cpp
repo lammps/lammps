@@ -44,7 +44,7 @@ ComputePairEntropyAtom::ComputePairEntropyAtom(LAMMPS *lmp, int narg, char **arg
   Compute(lmp, narg, arg),
   pair_entropy(NULL), pair_entropy_avg(NULL)
 {
-  if (narg < 5 || narg > 8)
+  if (narg < 5 || narg > 10)
     error->all(FLERR,"Illegal compute pentropy/atom command");
 
   // Arguments are: sigma cutoff avg yes/no cutoff2
@@ -59,6 +59,7 @@ ComputePairEntropyAtom::ComputePairEntropyAtom(LAMMPS *lmp, int narg, char **arg
   if (cutoff < 0.0) error->all(FLERR,"Illegal compute pentropy/atom command; negative cutoff");
 
   avg_flag = 0;
+  local_flag = 0;
 
   // optional keywords
   int iarg = 5;
@@ -73,7 +74,12 @@ ComputePairEntropyAtom::ComputePairEntropyAtom(LAMMPS *lmp, int narg, char **arg
       if (cutoff2 < 0.0) error->all(FLERR,"Illegal compute pentropy/atom command; negative cutoff2");
       cutsq2 = cutoff2*cutoff2;
       iarg += 3;
-    } else error->all(FLERR,"Illegal compute pentropy/atom argument after sigma and cutoff should be avg");
+    } else if (strcmp(arg[iarg],"local") == 0) {
+      if (strcmp(arg[iarg+1],"yes") == 0) local_flag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) local_flag = 0;
+      else error->all(FLERR,"Illegal compute pentropy/atom argument after local should be yes or no");
+      iarg += 2;
+    } else error->all(FLERR,"Illegal compute pentropy/atom argument after sigma and cutoff should be avg or local");
   }
 
 
@@ -209,7 +215,13 @@ void ComputePairEntropyAtom::compute_peratom()
       jlist = firstneigh[i];
       jnum = numneigh[i];
 
-      
+      // If local density is used, calculate it
+      if (local_flag) {
+        double neigh_cutoff = force->pair->cutforce  + neighbor->skin;
+        double volume = (4./3.)*MY_PI*neigh_cutoff*neigh_cutoff*neigh_cutoff;
+        density = jnum / volume;
+      }
+
       // calculate kernel normalization
       double normConstantBase = 4*MY_PI*density; // Normalization of g(r)
       normConstantBase *= sqrt(2.*MY_PI)*sigma; // Normalization of gaussian

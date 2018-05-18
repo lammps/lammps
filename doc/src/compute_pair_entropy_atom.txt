@@ -42,7 +42,7 @@ The advantage of this parameter over others is that no a priori
  information about the solid structure is required.
 
 This parameter for atom i is computed using the following formula from
-"(Piaggi)"_#Piaggi
+"(Piaggi)"_#Piaggi and "(Nettleton)"_#Nettleton
 
 :c,image(Eqs/pair_entropy.jpg)
 
@@ -119,3 +119,6 @@ The default value for the optional keyword is avg = no.
 
 :link(Piaggi)
 [(Piaggi)] Piaggi and Parrinello, J Chem Phys, 147, 114112 (2017).
+
+:link(Nettleton}
+[(Nettleton)] Nettleton and Green, J Chem Phys, 29, 6 (1958).

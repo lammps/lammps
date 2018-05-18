@@ -43,6 +43,7 @@ class ComputePairEntropyAtom : public Compute {
   int deltabin;
   double invNormConstantBase;
   int avg_flag;
+  int local_flag;
 };
 
 }

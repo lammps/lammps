@@ -28,6 +28,7 @@
 #include "rcb.h"
 #include "irregular.h"
 #include "domain.h"
+#include "neighbor.h"
 #include "force.h"
 #include "update.h"
 #include "group.h"
@@ -642,6 +643,19 @@ int *Balance::bisection(int sortflag)
 
   double *shrinklo = &shrinkall[0];
   double *shrinkhi = &shrinkall[3];
+
+  // ensure that that the box has at least some extent.
+  const double nproc_rt = domain->dimension == 3 ?
+                          cbrt(static_cast<double>(comm->nprocs)) :
+                          sqrt(static_cast<double>(comm->nprocs));
+  const double min_extent = ceil(nproc_rt)*neighbor->skin;
+  for (int i = 0; i < domain->dimension; i++) {
+    if (shrinkall[3+i]-shrinkall[i] < min_extent) {
+      const double mid = 0.5*(shrinkall[3+i]+shrinkall[i]);
+      shrinkall[3+i] = std::min(mid + min_extent*0.5, boxhi[i]);
+      shrinkall[i]   = std::max(mid - min_extent*0.5, boxlo[i]);
+    }
+  }
 
   // invoke RCB
   // then invert() to create list of proc assignments for my atoms

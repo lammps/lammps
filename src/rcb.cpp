@@ -243,7 +243,7 @@ void RCB::compute(int dimension, int n, double **x, double *wt,
     // dotmark_select = dot markings in that dimension
 
     int dim_select = -1;
-    double largest = 0.0;
+    double largest = -1.0;
 
     for (dim = 0; dim < dimension; dim++) {
 

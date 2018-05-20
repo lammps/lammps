@@ -153,7 +153,7 @@ if(PKG_MEAM OR PKG_USER-H5MD OR PKG_USER-QMMM)
   enable_language(C)
 endif()
 
-if(PKG_KOKKOS OR PKG_MSCG)
+if(PKG_MSCG)
   # starting with CMake 3.1 this is all you have to do to enforce C++11
   set(CMAKE_CXX_STANDARD 11) # C++11...
   set(CMAKE_CXX_STANDARD_REQUIRED ON) #...is required...

@@ -140,6 +140,7 @@ pkg_depends(USER-ATC MANYBODY)
 pkg_depends(USER-LB MPI)
 pkg_depends(USER-MISC MANYBODY)
 pkg_depends(USER-PHONON KSPACE)
+pkg_depends(CORESHELL KSPACE)
 
 ######################################################
 # packages with special compiler needs or external libs

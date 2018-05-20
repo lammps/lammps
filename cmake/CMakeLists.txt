@@ -129,7 +129,7 @@ foreach(PKG ${ACCEL_PACKAGES} ${OTHER_PACKAGES})
 endforeach()
 
 macro(pkg_depends PKG1 PKG2)
-  if(PKG_${PKG1} AND NOT PKG_${PKG2})
+  if(PKG_${PKG1} AND NOT (PKG_${PKG2} OR BUILD_${PKG2}))
     message(FATAL_ERROR "${PKG1} package needs LAMMPS to be build with ${PKG2}")
   endif()
 endmacro()

@@ -16,9 +16,9 @@
    based on FixNHAsphere
 ------------------------------------------------------------------------- */
 
-#include <string.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstring>
+#include <cstdlib>
+#include <cmath>
 #include "math_extra.h"
 #include "fix_nh_body.h"
 #include "atom.h"

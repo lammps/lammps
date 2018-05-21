@@ -16,8 +16,8 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 #include "improper_harmonic_kokkos.h"
 #include "atom_kokkos.h"
 #include "comm.h"

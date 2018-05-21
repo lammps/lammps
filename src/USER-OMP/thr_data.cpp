@@ -16,10 +16,10 @@
    per-thread data management for LAMMPS
 ------------------------------------------------------------------------- */
 
-#include "thr_data.h"
+#include <cstring>
+#include <cstdio>
 
-#include <string.h>
-#include <stdio.h>
+#include "thr_data.h"
 
 #include "memory.h"
 #include "timer.h"

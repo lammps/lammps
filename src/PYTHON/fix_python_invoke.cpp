@@ -16,8 +16,8 @@
 ------------------------------------------------------------------------- */
 
 #include <Python.h>
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 #include "fix_python_invoke.h"
 #include "atom.h"
 #include "force.h"

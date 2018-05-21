@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <stdlib.h>
+#include <cstdlib>
 #include "atom_vec_dpd_kokkos.h"
 #include "atom_kokkos.h"
 #include "comm_kokkos.h"
@@ -158,6 +158,7 @@ void AtomVecDPDKokkos::copy(int i, int j, int delflag)
 {
   sync(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
             MASK_MASK | IMAGE_MASK | DPDTHETA_MASK |
+            UCG_MASK | UCGNEW_MASK |
             UCOND_MASK | UMECH_MASK | UCHEM_MASK | DVECTOR_MASK);
 
   h_tag[j] = h_tag[i];
@@ -183,6 +184,7 @@ void AtomVecDPDKokkos::copy(int i, int j, int delflag)
 
   modified(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
                 MASK_MASK | IMAGE_MASK | DPDTHETA_MASK |
+                UCG_MASK | UCGNEW_MASK |
                 UCOND_MASK | UMECH_MASK | UCHEM_MASK | DVECTOR_MASK);
 }
 
@@ -1029,7 +1031,7 @@ int AtomVecDPDKokkos::pack_comm_hybrid(int n, int *list, double *buf)
   int i,j,m;
 
   sync(Host,DPDTHETA_MASK | UCOND_MASK |
-            UMECH_MASK | UCHEM_MASK | UCG_MASK | UCGNEW_MASK);
+            UMECH_MASK | UCHEM_MASK);
 
   m = 0;
   for (i = 0; i < n; i++) {
@@ -1234,7 +1236,7 @@ int AtomVecDPDKokkos::unpack_comm_hybrid(int n, int first, double *buf)
   }
 
   modified(Host,DPDTHETA_MASK | UCOND_MASK |
-                UMECH_MASK | UCHEM_MASK | UCG_MASK | UCGNEW_MASK);
+                UMECH_MASK | UCHEM_MASK );
 
   return m;
 }
@@ -1645,6 +1647,8 @@ int AtomVecDPDKokkos::unpack_restart(double *buf)
   h_uCond[nlocal] = buf[m++];
   h_uMech[nlocal] = buf[m++];
   h_uChem[nlocal] = buf[m++];
+  h_uCG[nlocal] = 0.0;
+  h_uCGnew[nlocal] = 0.0;
 
   double **extra = atom->extra;
   if (atom->nextra_store) {
@@ -1654,6 +1658,7 @@ int AtomVecDPDKokkos::unpack_restart(double *buf)
 
   modified(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
                 MASK_MASK | IMAGE_MASK | DPDTHETA_MASK |
+                UCG_MASK | UCGNEW_MASK |
                 UCOND_MASK | UMECH_MASK | UCHEM_MASK | DVECTOR_MASK);
 
   atom->nlocal++;

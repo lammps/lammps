@@ -15,9 +15,9 @@
    Contributing author: Paul Coffman (IBM)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "dump_custom_mpiio.h"
 #include "atom.h"
 #include "force.h"
@@ -32,7 +32,6 @@
 #include "fix.h"
 #include "memory.h"
 #include "error.h"
-#include <stdlib.h>
 
 #if defined(_OPENMP)
 #include <omp.h>
@@ -54,7 +53,6 @@ enum{ID,MOL,TYPE,ELEMENT,MASS,
      TQX,TQY,TQZ,SPIN,ERADIUS,ERVEL,ERFORCE,
      COMPUTE,FIX,VARIABLE};
 enum{LT,LE,GT,GE,EQ,NEQ};
-enum{INT,DOUBLE,STRING,BIGINT};    // same as in DumpCustom
 
 /* ---------------------------------------------------------------------- */
 
@@ -99,6 +97,19 @@ void DumpCustomMPIIO::openfile()
       sprintf(filecurrent,pad,filestar,update->ntimestep,ptr+1);
     }
     *ptr = '*';
+    if (maxfiles > 0) {
+      if (numfiles < maxfiles) {
+        nameslist[numfiles] = new char[strlen(filecurrent)+1];
+        strcpy(nameslist[numfiles],filecurrent);
+        ++numfiles;
+      } else {
+        remove(nameslist[fileidx]);
+        delete[] nameslist[fileidx];
+        nameslist[fileidx] = new char[strlen(filecurrent)+1];
+        strcpy(nameslist[fileidx],filecurrent);
+        fileidx = (fileidx + 1) % maxfiles;
+      }
+    }
   }
 
   if (append_flag) { // append open
@@ -247,13 +258,13 @@ void DumpCustomMPIIO::init_style()
     if (format_column_user[i]) {
       vformat[i] = new char[strlen(format_column_user[i]) + 2];
       strcpy(vformat[i],format_column_user[i]);
-    } else if (vtype[i] == INT && format_int_user) {
+    } else if (vtype[i] == Dump::INT && format_int_user) {
       vformat[i] = new char[strlen(format_int_user) + 2];
       strcpy(vformat[i],format_int_user);
-    } else if (vtype[i] == DOUBLE && format_float_user) {
+    } else if (vtype[i] == Dump::DOUBLE && format_float_user) {
       vformat[i] = new char[strlen(format_float_user) + 2];
       strcpy(vformat[i],format_float_user);
-    } else if (vtype[i] == BIGINT && format_bigint_user) {
+    } else if (vtype[i] == Dump::BIGINT && format_bigint_user) {
       vformat[i] = new char[strlen(format_bigint_user) + 2];
       strcpy(vformat[i],format_bigint_user);
     } else {
@@ -619,11 +630,11 @@ int DumpCustomMPIIO::convert_string_omp(int n, double *mybuf)
         }
         for (int j = 0; j < size_one; j++) {
 
-          if (vtype[j] == INT)
+          if (vtype[j] == Dump::INT)
             mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),vformat[j],static_cast<int> (mybuf[bufOffset[tid]+m]));
-          else if (vtype[j] == DOUBLE)
+          else if (vtype[j] == Dump::DOUBLE)
             mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),vformat[j],mybuf[bufOffset[tid]+m]);
-          else if (vtype[j] == STRING)
+          else if (vtype[j] == Dump::STRING)
             mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),vformat[j],typenames[(int) mybuf[bufOffset[tid]+m]]);
           m ++;
         }

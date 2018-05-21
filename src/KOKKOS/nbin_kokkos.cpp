@@ -23,8 +23,6 @@
 
 using namespace LAMMPS_NS;
 
-enum{NSQ,BIN,MULTI};       // also in Neighbor
-
 #define SMALL 1.0e-6
 #define CUT2BIN_RATIO 100
 

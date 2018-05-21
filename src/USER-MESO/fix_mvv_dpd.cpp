@@ -20,8 +20,8 @@
    Email: zhen_li@brown.edu
 ------------------------------------------------------------------------- */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 #include "fix_mvv_dpd.h"
 #include "atom.h"
 #include "force.h"

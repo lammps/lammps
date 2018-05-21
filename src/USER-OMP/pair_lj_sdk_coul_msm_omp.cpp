@@ -13,7 +13,7 @@
    This style is a simplified re-implementation of the CG/CMM pair style
 ------------------------------------------------------------------------- */
 
-#include <math.h>
+#include <cmath>
 #include "pair_lj_sdk_coul_msm_omp.h"
 #include "atom.h"
 #include "comm.h"

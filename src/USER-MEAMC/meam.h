@@ -2,8 +2,8 @@
 #define LMP_MEAM_H
 
 #include "memory.h"
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 
 #define maxelt 5
 
@@ -255,5 +255,5 @@ static inline double fdiv_zero(const double n, const double d) {
   return n / d;
 }
 
-};
+}
 #endif

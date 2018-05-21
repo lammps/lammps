@@ -12,8 +12,8 @@ eoundary p f f
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 #include "modify.h"
 #include "style_compute.h"
 #include "style_fix.h"

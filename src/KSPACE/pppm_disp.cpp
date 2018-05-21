@@ -17,10 +17,10 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstring>
+#include <cstdio>
+#include <cstdlib>
+#include <cmath>
 #include "pppm_disp.h"
 #include "math_const.h"
 #include "atom.h"
@@ -46,7 +46,6 @@ using namespace MathConst;
 #define LARGE 10000.0
 #define EPS_HOC 1.0e-7
 
-enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};
 enum{REVERSE_RHO, REVERSE_RHO_G, REVERSE_RHO_A, REVERSE_RHO_NONE};
 enum{FORWARD_IK, FORWARD_AD, FORWARD_IK_PERATOM, FORWARD_AD_PERATOM,
      FORWARD_IK_G, FORWARD_AD_G, FORWARD_IK_PERATOM_G, FORWARD_AD_PERATOM_G,
@@ -304,7 +303,7 @@ void PPPMDisp::init()
   // check out which types of potentials will have to be calculated
 
   int ewald_order = ptr ? *((int *) ptr) : 1<<1;
-  int ewald_mix = ptr ? *((int *) pair->extract("ewald_mix",tmp)) : GEOMETRIC;
+  int ewald_mix = ptr ? *((int *) pair->extract("ewald_mix",tmp)) : Pair::GEOMETRIC;
   memset(function, 0, EWALD_FUNCS*sizeof(int));
   for (int i=0; i<=EWALD_MAXORDER; ++i)                 // transcribe order
     if (ewald_order&(1<<i)) {                           // from pair_style
@@ -314,9 +313,9 @@ void PPPMDisp::init()
         case 1:
           k = 0; break;
         case 6:
-          if ((ewald_mix==GEOMETRIC || ewald_mix==SIXTHPOWER ||
+          if ((ewald_mix==Pair::GEOMETRIC || ewald_mix==Pair::SIXTHPOWER ||
                mixflag == 1) && mixflag!= 2) { k = 1; break; }
-          else if (ewald_mix==ARITHMETIC && mixflag!=2) { k = 2; break; }
+          else if (ewald_mix==Pair::ARITHMETIC && mixflag!=2) { k = 2; break; }
           else if (mixflag == 2) { k = 3; break; }
         default:
           sprintf(str, "Unsupported order in kspace_style "
@@ -4278,7 +4277,7 @@ void PPPMDisp::particle_map(double delx, double dely, double delz,
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
-  if (!ISFINITE(boxlo[0]) || !ISFINITE(boxlo[1]) || !ISFINITE(boxlo[2]))
+  if (!std::isfinite(boxlo[0]) || !std::isfinite(boxlo[1]) || !std::isfinite(boxlo[2]))
     error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
 
   int flag = 0;

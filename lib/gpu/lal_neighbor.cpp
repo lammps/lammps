@@ -17,7 +17,7 @@
 #include "lal_precision.h"
 #include "lal_neighbor.h"
 #include "lal_device.h"
-#include "math.h"
+#include <cmath>
 using namespace LAMMPS_AL;
 
 int Neighbor::bytes_per_atom(const int max_nbors) const {

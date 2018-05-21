@@ -33,8 +33,6 @@
 
 using namespace LAMMPS_NS;
 
-enum{NSQ,BIN,MULTI};     // also in neigh_list.cpp
-
 /* ---------------------------------------------------------------------- */
 
 NeighborKokkos::NeighborKokkos(LAMMPS *lmp) : Neighbor(lmp),
@@ -98,7 +96,7 @@ void NeighborKokkos::init_cutneighsq_kokkos(int n)
 
 void NeighborKokkos::create_kokkos_list(int i)
 {
-  if (style != BIN)
+  if (style != Neighbor::BIN)
     error->all(FLERR,"KOKKOS package only supports 'bin' neighbor lists");
 
   if (requests[i]->kokkos_device) {
@@ -300,7 +298,7 @@ void NeighborKokkos::build_kokkos(int topoflag)
   // if bin then, atoms may have moved outside of proc domain & bin extent,
   //   leading to errors or even a crash
 
-  if (style != NSQ) {
+  if (style != Neighbor::NSQ) {
     for (int i = 0; i < nbin; i++) {
       neigh_bin[i]->bin_atoms_setup(nall);
       neigh_bin[i]->bin_atoms();

@@ -12,7 +12,7 @@
    Contributing author: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
+#include <cmath>
 #include "intel_buffers.h"
 #include "force.h"
 #include "memory.h"
@@ -642,6 +642,6 @@ double IntelBuffers<flt_t, acc_t>::memory_usage(const int nthreads)
 
 /* ---------------------------------------------------------------------- */
 
-template class IntelBuffers<float,float>;
-template class IntelBuffers<float,double>;
-template class IntelBuffers<double,double>;
+template class LAMMPS_NS::IntelBuffers<float,float>;
+template class LAMMPS_NS::IntelBuffers<float,double>;
+template class LAMMPS_NS::IntelBuffers<double,double>;

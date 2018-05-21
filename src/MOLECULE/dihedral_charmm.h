@@ -20,7 +20,7 @@ DihedralStyle(charmm,DihedralCharmm)
 #ifndef LMP_DIHEDRAL_CHARMM_H
 #define LMP_DIHEDRAL_CHARMM_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "dihedral.h"
 
 namespace LAMMPS_NS {

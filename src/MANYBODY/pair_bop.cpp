@@ -32,10 +32,10 @@
    Rules"_http://lammps.sandia.gov/open_source.html
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <mpi.h>
 #include "pair_bop.h"
 #include "atom.h"
@@ -49,7 +49,7 @@
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
-#include <ctype.h>
+#include <cctype>
 
 using namespace LAMMPS_NS;
 

@@ -12,8 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 #include <dirent.h>
 #include "read_restart.h"
 #include "atom.h"

@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <errno.h>
-#include <ctype.h>
+#include <cctype>
 #include <unistd.h>
 #include <sys/stat.h>
 #include "input.h"

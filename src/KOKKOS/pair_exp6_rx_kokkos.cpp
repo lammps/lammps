@@ -15,10 +15,10 @@
    Contributing author: Stan Moore (Sandia)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_exp6_rx_kokkos.h"
 #include "atom.h"
 #include "comm.h"
@@ -30,7 +30,7 @@
 #include "error.h"
 #include "modify.h"
 #include "fix.h"
-#include <float.h>
+#include <cfloat>
 #include "atom_masks.h"
 #include "neigh_request.h"
 #include "atom_kokkos.h"
@@ -815,7 +815,10 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIG
 
   int tid = 0;
 #ifndef KOKKOS_HAVE_CUDA
-  tid = DeviceType::hardware_thread_id();
+  typedef Kokkos::Experimental::UniqueToken<
+    DeviceType, Kokkos::Experimental::UniqueTokenScope::Global> unique_token_type;
+  unique_token_type unique_token;
+  tid = unique_token.acquire();
 #endif
 
   int i,jj,jnum,itype,jtype;
@@ -1152,6 +1155,10 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIG
   t_f(tid,i,2) += fz_i;
   t_uCG(tid,i) += uCG_i;
   t_uCGnew(tid,i) += uCGnew_i;
+
+#ifndef KOKKOS_HAVE_CUDA
+  unique_token.release(tid);
+#endif
 }
 
 // Experimental thread-safe approach using duplicated data instead of atomics and
@@ -1183,7 +1190,10 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
 
   int tid = 0;
 #ifndef KOKKOS_HAVE_CUDA
-  tid = DeviceType::hardware_thread_id();
+  typedef Kokkos::Experimental::UniqueToken<
+    DeviceType, Kokkos::Experimental::UniqueTokenScope::Global> unique_token_type;
+  unique_token_type unique_token;
+  tid = unique_token.acquire();
 #endif
 
   const int nRep = 12;
@@ -1612,6 +1622,10 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
     t_uCG(tid,i) += uCG_i;
     t_uCGnew(tid,i) += uCGnew_i;
   }
+
+#ifndef KOKKOS_HAVE_CUDA
+  unique_token.release(tid);
+#endif
 }
 
 template<class DeviceType>

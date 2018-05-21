@@ -20,7 +20,7 @@ PairStyle(hybrid/kk,PairHybridKokkos)
 #ifndef LMP_PAIR_HYBRID_KOKKOS_H
 #define LMP_PAIR_HYBRID_KOKKOS_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "pair_hybrid.h"
 #include "pair_kokkos.h"
 #include "kokkos_type.h"

@@ -25,8 +25,8 @@
    -reaction problems". The Journal of Chemical Physics, 2015, 143: 014101.
 ------------------------------------------------------------------------- */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 #include "fix_mvv_tdpd.h"
 #include "atom.h"
 #include "force.h"

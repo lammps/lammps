@@ -96,6 +96,8 @@ class Pair : protected Pointers {
                                  //       public so external driver can check
   int compute_flag;              // 0 if skip compute()
 
+  enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};   // mixing options
+
   // KOKKOS host/device flag and data masks
 
   ExecutionSpace execution_space;
@@ -190,8 +192,6 @@ class Pair : protected Pointers {
 
  protected:
   int instance_me;        // which Pair class instantiation I am
-
-  enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};   // mixing options
 
   int special_lj[4];           // copied from force->special_lj for Kokkos
 

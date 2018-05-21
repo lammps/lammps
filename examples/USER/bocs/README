@@ -1,0 +1,6 @@
+This folder contains the files to run a NPT simulation of 1 site CG methanol
+while employing a correction to the barostat.
+The pair force was computed via the Multi-Scale Coarse-Graining method.
+The resulting model was then iteratively pressure matched.
+The model accurately reproduces both structural (RDF) and thermodynamic 
+(Pressure-Volume EoS) properties of the underlying OPLS-AA model of methanol.

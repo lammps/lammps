@@ -15,9 +15,9 @@
    Contributing author: Mike Parks (SNL)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "pair_peri_lps.h"
 #include "atom.h"
 #include "domain.h"

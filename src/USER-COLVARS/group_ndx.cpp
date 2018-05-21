@@ -23,8 +23,8 @@
 #include "memory.h"
 #include "error.h"
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 using namespace LAMMPS_NS;
 

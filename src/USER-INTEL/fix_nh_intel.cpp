@@ -28,8 +28,8 @@
 #include "update.h"
 
 #include <cstring>
-#include <math.h>
-#include <stdio.h>
+#include <cmath>
+#include <cstdio>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

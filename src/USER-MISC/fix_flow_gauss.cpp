@@ -16,8 +16,8 @@
    Joel.Eaves@Colorado.edu
 ------------------------------------------------------------------------- */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include "fix_flow_gauss.h"
 #include "atom.h"
 #include "force.h"

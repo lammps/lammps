@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <string.h>
+#include <cstring>
 #include "compute_angle.h"
 #include "update.h"
 #include "force.h"

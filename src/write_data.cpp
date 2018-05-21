@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <string.h>
+#include <cstring>
 #include "write_data.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -36,7 +36,6 @@
 
 using namespace LAMMPS_NS;
 
-enum{IGNORE,WARN,ERROR};                    // same as thermo.cpp
 enum{II,IJ};
 
 /* ---------------------------------------------------------------------- */
@@ -153,7 +152,7 @@ void WriteData::write(char *file)
   bigint nblocal = atom->nlocal;
   bigint natoms;
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
-  if (natoms != atom->natoms && output->thermo->lostflag == ERROR)
+  if (natoms != atom->natoms && output->thermo->lostflag == Thermo::ERROR)
     error->all(FLERR,"Atom count is inconsistent, cannot write data file");
 
   // sum up bond,angle,dihedral,improper counts

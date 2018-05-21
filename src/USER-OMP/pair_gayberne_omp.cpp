@@ -12,7 +12,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
+#include <cmath>
 #include "pair_gayberne_omp.h"
 #include "math_extra.h"
 #include "atom.h"

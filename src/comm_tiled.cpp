@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
+#include <cstring>
 #include "comm_tiled.h"
 #include "comm_brick.h"
 #include "atom.h"
@@ -38,15 +38,12 @@ using namespace LAMMPS_NS;
 
 #define DELTA_PROCS 16
 
-enum{SINGLE,MULTI};               // same as in Comm
-enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
-
 /* ---------------------------------------------------------------------- */
 
 CommTiled::CommTiled(LAMMPS *lmp) : Comm(lmp)
 {
   style = 1;
-  layout = LAYOUT_UNIFORM;
+  layout = Comm::LAYOUT_UNIFORM;
   pbc_flag = NULL;
   init_buffers();
 }
@@ -115,7 +112,7 @@ void CommTiled::init()
 
   if (triclinic)
     error->all(FLERR,"Cannot yet use comm_style tiled with triclinic box");
-  if (mode == MULTI)
+  if (mode == Comm::MULTI)
     error->all(FLERR,"Cannot yet use comm_style tiled with multi-mode comm");
 }
 
@@ -141,7 +138,7 @@ void CommTiled::setup()
 
   // set function pointers
 
-  if (layout != LAYOUT_TILED) {
+  if (layout != Comm::LAYOUT_TILED) {
     box_drop = &CommTiled::box_drop_brick;
     box_other = &CommTiled::box_other_brick;
     box_touch = &CommTiled::box_touch_brick;
@@ -155,7 +152,7 @@ void CommTiled::setup()
 
   // if RCB decomp exists and just changed, gather needed global RCB info
 
-  if (layout == LAYOUT_TILED) coord2proc_setup();
+  if (layout == Comm::LAYOUT_TILED) coord2proc_setup();
 
   // set cutoff for comm forward and comm reverse
   // check that cutoff < any periodic box length
@@ -1807,7 +1804,7 @@ void CommTiled::coord2proc_setup()
 
 int CommTiled::coord2proc(double *x, int &igx, int &igy, int &igz)
 {
-  if (layout != LAYOUT_TILED) return Comm::coord2proc(x,igx,igy,igz);
+  if (layout != Comm::LAYOUT_TILED) return Comm::coord2proc(x,igx,igy,igz);
   return point_drop_tiled_recurse(x,0,nprocs-1);
 }
 

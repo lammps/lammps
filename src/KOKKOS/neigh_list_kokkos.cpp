@@ -17,8 +17,6 @@
 
 using namespace LAMMPS_NS;
 
-enum{NSQ,BIN,MULTI};
-
 /* ---------------------------------------------------------------------- */
 
 template<class Device>

@@ -15,8 +15,8 @@
    Contributing author: Christian Negre (LANL)
 ------------------------------------------------------------------------- */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 #include "fix_latte.h"
 #include "atom.h"
 #include "comm.h"

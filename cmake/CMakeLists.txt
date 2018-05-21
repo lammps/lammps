@@ -4,7 +4,7 @@
 # Created by Christoph Junghans and Richard Berger
 cmake_minimum_required(VERSION 3.1)
 
-project(lammps)
+project(lammps LANGUAGES CXX)
 set(SOVERSION 0)
 set(LAMMPS_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../src)
 set(LAMMPS_LIB_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../lib)
@@ -23,13 +23,21 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
 endif(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
 
-# remove any style headers in the src dir
-file(GLOB SRC_STYLE_FILES ${LAMMPS_SOURCE_DIR}/style_*.h)
-if(SRC_STYLE_FILES)
-  file(REMOVE ${SRC_STYLE_FILES})
+file(GLOB SRC_FILES ${LAMMPS_SOURCE_DIR}/*.cpp)
+list(SORT SRC_FILES)
+# check for files installed by make-based buildsystem 
+# only run this time consuming check if there are new files
+if(NOT SRC_FILES STREQUAL SRC_FILES_CACHED)
+  file(GLOB SRC_PKG_FILES ${LAMMPS_SOURCE_DIR}/*/*.cpp)
+  message(STATUS "Running check for installed package (this might take a while)")
+  foreach(_SRC SRC_PKG_FILES)
+    get_filename_component(FILENAME "${_SRC}" NAME)
+    if(EXISTS ${LAMMPS_SOURCE_DIR}/${FILENAME})
+      message(FATAL_ERROR "Found packages installed by the make-based buildsystem, please run 'make -C ${LAMMPS_SOURCE_DIR} no-all purge'")
+    endif()
+  endforeach()
+  set(SRC_FILES_CACHED "${SRC_FILES}" CACHE INTERNAL "List of file in LAMMPS_SOURCE_DIR" FORCE)
 endif()
-
-enable_language(CXX)
 
 ######################################################################
 # compiler tests
@@ -48,21 +56,27 @@ option(BUILD_SHARED_LIBS "Build shared libs" OFF)
 if(BUILD_SHARED_LIBS) # for all pkg libs, mpi_stubs and linalg
   set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 endif()
+option(DEVELOPER_MODE "Enable developer mode" OFF)
+mark_as_advanced(DEVELOPER_MODE)
+option(CMAKE_VERBOSE_MAKEFILE "Generate verbose Makefiles" OFF)
 include(GNUInstallDirs)
 
 set(LAMMPS_LINK_LIBS)
 set(LAMMPS_DEPS)
 set(LAMMPS_API_DEFINES)
-option(ENABLE_MPI "Build MPI version" OFF)
-if(ENABLE_MPI)
+
+find_package(MPI QUIET)
+option(BUILD_MPI "Build MPI version" ${MPI_FOUND})
+if(BUILD_MPI)
   find_package(MPI REQUIRED)
-  include_directories(${MPI_C_INCLUDE_PATH})
+  include_directories(${MPI_CXX_INCLUDE_PATH})
   list(APPEND LAMMPS_LINK_LIBS ${MPI_CXX_LIBRARIES})
   option(LAMMPS_LONGLONG_TO_LONG "Workaround if your system or MPI version does not recognize 'long long' data types" OFF)
   if(LAMMPS_LONGLONG_TO_LONG)
     add_definitions(-DLAMMPS_LONGLONG_TO_LONG)
   endif()
 else()
+  enable_language(C)
   file(GLOB MPI_SOURCES ${LAMMPS_SOURCE_DIR}/STUBS/mpi.c)
   add_library(mpi_stubs STATIC ${MPI_SOURCES})
   include_directories(${LAMMPS_SOURCE_DIR}/STUBS)
@@ -101,21 +115,21 @@ set(DEFAULT_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS CORESHELL DIPOLE GRANU
   KSPACE MANYBODY MC MEAM MISC MOLECULE PERI QEQ
   REAX REPLICA RIGID SHOCK SNAP SRD)
 set(OTHER_PACKAGES KIM PYTHON MSCG MPIIO VORONOI POEMS LATTE
-  USER-ATC USER-AWPMD USER-CGDNA USER-MESO
+  USER-ATC USER-AWPMD USER-BOCS USER-CGDNA USER-MESO
   USER-CGSDK USER-COLVARS USER-DIFFRACTION USER-DPD USER-DRUDE USER-EFF
   USER-FEP USER-H5MD USER-LB USER-MANIFOLD USER-MEAMC USER-MGPT USER-MISC
   USER-MOFFF USER-MOLFILE USER-NETCDF USER-PHONON USER-QTB USER-REAXC USER-SMD
   USER-SMTBQ USER-SPH USER-TALLY USER-UEF USER-VTK USER-QUIP USER-QMMM)
 set(ACCEL_PACKAGES USER-OMP KOKKOS OPT USER-INTEL GPU)
 foreach(PKG ${DEFAULT_PACKAGES})
-  option(ENABLE_${PKG} "Build ${PKG} Package" ${ENABLE_ALL})
+  option(PKG_${PKG} "Build ${PKG} Package" ${ENABLE_ALL})
 endforeach()
 foreach(PKG ${ACCEL_PACKAGES} ${OTHER_PACKAGES})
-  option(ENABLE_${PKG} "Build ${PKG} Package" OFF)
+  option(PKG_${PKG} "Build ${PKG} Package" OFF)
 endforeach()
 
 macro(pkg_depends PKG1 PKG2)
-  if(ENABLE_${PKG1} AND NOT ENABLE_${PKG2})
+  if(PKG_${PKG1} AND NOT PKG_${PKG2})
     message(FATAL_ERROR "${PKG1} package needs LAMMPS to be build with ${PKG2}")
   endif()
 endmacro()
@@ -128,38 +142,53 @@ pkg_depends(USER-LB MPI)
 pkg_depends(USER-MISC MANYBODY)
 pkg_depends(USER-PHONON KSPACE)
 
-if(ENABLE_BODY AND ENABLE_POEMS)
-  message(FATAL_ERROR "BODY and POEMS cannot be enabled at the same time")
-endif()
-
 ######################################################
 # packages with special compiler needs or external libs
 ######################################################
-if(ENABLE_REAX OR ENABLE_MEAM OR ENABLE_USER-QUIP OR ENABLE_USER-QMMM OR ENABLE_LATTE)
+if(PKG_REAX OR PKG_MEAM OR PKG_USER-QUIP OR PKG_USER-QMMM OR PKG_LATTE)
   enable_language(Fortran)
-  include(CheckFortranCompilerFlag)
-  check_Fortran_compiler_flag("-fno-second-underscore" FC_HAS_NO_SECOND_UNDERSCORE)
 endif()
 
-if(ENABLE_KOKKOS OR ENABLE_MSCG)
+if(PKG_MEAM)
+  enable_language(C)
+endif()
+
+if(PKG_KOKKOS OR PKG_MSCG)
   # starting with CMake 3.1 this is all you have to do to enforce C++11
   set(CMAKE_CXX_STANDARD 11) # C++11...
   set(CMAKE_CXX_STANDARD_REQUIRED ON) #...is required...
   set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
 endif()
 
-if(ENABLE_USER-OMP OR ENABLE_KOKKOS OR ENABLE_USER-INTEL)
+find_package(OpenMP QUIET)
+option(BUILD_OMP "Build with OpenMP support" ${OpenMP_FOUND})
+if(BUILD_OMP OR PKG_USER-OMP OR PKG_KOKKOS OR PKG_USER-INTEL)
   find_package(OpenMP REQUIRED)
   set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
-if(ENABLE_KSPACE)
-  set(FFT "KISSFFT" CACHE STRING "FFT library for KSPACE package")
-  set_property(CACHE FFT PROPERTY STRINGS KISSFFT FFTW3 MKL FFTW2)
+if(PKG_KSPACE)
+  option(FFT_SINGLE "Use single precision FFT instead of double" OFF)
+  set(FFTW "FFTW3")
+  if(FFT_SINGLE)
+    set(FFTW "FFTW3F")
+    add_definitions(-DFFT_SINGLE)
+  endif()
+  find_package(${FFTW} QUIET)
+  if(${FFTW}_FOUND)
+    set(FFT "${FFTW}" CACHE STRING "FFT library for KSPACE package")
+  else()
+    set(FFT "KISSFFT" CACHE STRING "FFT library for KSPACE package")
+  endif()
+  set_property(CACHE FFT PROPERTY STRINGS KISSFFT ${FFTW} MKL)
   if(NOT FFT STREQUAL "KISSFFT")
     find_package(${FFT} REQUIRED)
-    add_definitions(-DFFT_${FFT})
+    if(NOT FFT STREQUAL "FFTW3F")
+      add_definitions(-DFFT_FFTW)
+    else()
+      add_definitions(-DFFT_${FFT})
+    endif()
     include_directories(${${FFT}_INCLUDE_DIRS})
     list(APPEND LAMMPS_LINK_LIBS ${${FFT}_LIBRARIES})
   endif()
@@ -170,22 +199,17 @@ if(ENABLE_KSPACE)
   endif()
 endif()
 
-if(ENABLE_MSCG OR ENABLE_USER-ATC OR ENABLE_USER-AWPMD OR ENABLE_USER-QUIP OR ENABLE_LATTE)
+if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-QUIP OR PKG_LATTE)
   find_package(LAPACK)
   if(NOT LAPACK_FOUND)
     enable_language(Fortran)
     file(GLOB LAPACK_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/linalg/*.f)
     add_library(linalg STATIC ${LAPACK_SOURCES})
-    include(CheckFortranCompilerFlag)
-    check_Fortran_compiler_flag("-fno-second-underscore" FC_HAS_NO_SECOND_UNDERSCORE)
-    if(FC_HAS_NO_SECOND_UNDERSCORE)
-      target_compile_options(linalg PRIVATE -fno-second-underscore)
-    endif()
     set(LAPACK_LIBRARIES linalg)
   endif()
 endif()
 
-if(ENABLE_PYTHON)
+if(PKG_PYTHON)
   find_package(PythonInterp REQUIRED)
   find_package(PythonLibs REQUIRED)
   add_definitions(-DLMP_PYTHON)
@@ -201,16 +225,25 @@ if(ENABLE_PYTHON)
   endif()
 endif()
 
-find_package(JPEG)
-if(JPEG_FOUND)
+find_package(JPEG QUIET)
+option(WITH_JPEG "Enable JPEG support" ${JPEG_FOUND})
+if(WITH_JPEG)
+  find_package(JPEG REQUIRED)
   add_definitions(-DLAMMPS_JPEG)
   include_directories(${JPEG_INCLUDE_DIR})
   list(APPEND LAMMPS_LINK_LIBS ${JPEG_LIBRARIES})
 endif()
 
-find_package(PNG)
-find_package(ZLIB)
+find_package(PNG QUIET)
+find_package(ZLIB QUIET)
 if(PNG_FOUND AND ZLIB_FOUND)
+  option(WITH_PNG "Enable PNG support" ON)
+else()
+  option(WITH_PNG "Enable PNG support" OFF)
+endif()
+if(WITH_PNG)
+  find_package(PNG REQUIRED)
+  find_package(ZLIB REQUIRED)
   include_directories(${PNG_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS})
   list(APPEND LAMMPS_LINK_LIBS ${PNG_LIBRARIES} ${ZLIB_LIBRARIES})
   add_definitions(-DLAMMPS_PNG)
@@ -218,25 +251,50 @@ endif()
 
 find_program(GZIP_EXECUTABLE gzip)
 find_package_handle_standard_args(GZIP REQUIRED_VARS GZIP_EXECUTABLE)
-if(GZIP_FOUND)
+option(WITH_GZIP "Enable GZIP support" ${GZIP_FOUND})
+if(WITH_GZIP)
+  if(NOT GZIP_FOUND)
+    message(FATAL_ERROR "gzip executable not found")
+  endif()
   add_definitions(-DLAMMPS_GZIP)
 endif()
 
 find_program(FFMPEG_EXECUTABLE ffmpeg)
 find_package_handle_standard_args(FFMPEG REQUIRED_VARS FFMPEG_EXECUTABLE)
-if(FFMPEG_FOUND)
+option(WITH_FFMPEG "Enable FFMPEG support" ${FFMPEG_FOUND})
+if(WITH_FFMPEG)
+  if(NOT FFMPEG_FOUND)
+    message(FATAL_ERROR "ffmpeg executable not found")
+  endif()
   add_definitions(-DLAMMPS_FFMPEG)
 endif()
 
-if(ENABLE_VORONOI)
-  find_package(VORO REQUIRED) #some distros
+if(PKG_VORONOI)
+  option(DOWNLOAD_VORO "Download voro++ (instead of using the system's one)" OFF)
+  if(DOWNLOAD_VORO)
+    include(ExternalProject)
+    ExternalProject_Add(voro_build
+      URL http://math.lbl.gov/voro++/download/dir/voro++-0.4.6.tar.gz
+      URL_MD5 2338b824c3b7b25590e18e8df5d68af9
+      CONFIGURE_COMMAND "" BUILD_IN_SOURCE 1 INSTALL_COMMAND "" 
+      )
+    ExternalProject_get_property(voro_build SOURCE_DIR)
+    set(VORO_LIBRARIES ${SOURCE_DIR}/src/libvoro++.a)
+    set(VORO_INCLUDE_DIRS ${SOURCE_DIR}/src)
+    list(APPEND LAMMPS_DEPS voro_build)
+  else()
+    find_package(VORO)
+    if(NOT VORO_FOUND)
+      message(FATAL_ERROR "VORO not found, help CMake to find it by setting VORO_LIBRARY and VORO_INCLUDE_DIR, or set DOWNLOAD_VORO=ON to download it")
+    endif()
+  endif()
   include_directories(${VORO_INCLUDE_DIRS})
   list(APPEND LAMMPS_LINK_LIBS ${VORO_LIBRARIES})
 endif()
 
-if(ENABLE_LATTE)
-  find_package(LATTE QUIET)
-  if(NOT LATTE_FOUND)
+if(PKG_LATTE)
+  option(DOWNLOAD_LATTE "Download latte (instead of using the system's one)" OFF)
+  if(DOWNLOAD_LATTE)
     message(STATUS "LATTE not found - we will build our own")
     include(ExternalProject)
     ExternalProject_Add(latte_build
@@ -248,55 +306,79 @@ if(ENABLE_LATTE)
     ExternalProject_get_property(latte_build INSTALL_DIR)
     set(LATTE_LIBRARIES ${INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/liblatte.a)
     list(APPEND LAMMPS_DEPS latte_build)
+  else()
+    find_package(LATTE)
+    if(NOT LATTE_FOUND)
+      message(FATAL_ERROR "LATTE not found, help CMake to find it by setting LATTE_LIBRARY, or set DOWNLOAD_LATTE=ON to download it")
+    endif()
   endif()
   list(APPEND LAMMPS_LINK_LIBS ${LATTE_LIBRARIES} ${LAPACK_LIBRARIES} ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
 endif()
 
-if(ENABLE_USER-MOLFILE)
+if(PKG_USER-MOLFILE)
   add_library(molfile INTERFACE)
   target_include_directories(molfile INTERFACE ${LAMMPS_LIB_SOURCE_DIR}/molfile)
   target_link_libraries(molfile INTERFACE ${CMAKE_DL_LIBS})
   list(APPEND LAMMPS_LINK_LIBS molfile)
 endif()
 
-if(ENABLE_USER-NETCDF)
+if(PKG_USER-NETCDF)
   find_package(NetCDF REQUIRED)
   include_directories(NETCDF_INCLUDE_DIR)
   list(APPEND LAMMPS_LINK_LIBS ${NETCDF_LIBRARY})
   add_definitions(-DLMP_HAS_NETCDF -DNC_64BIT_DATA=0x0020)
 endif()
 
-if(ENABLE_USER-SMD)
-  find_package(Eigen3 REQUIRED)
+if(PKG_USER-SMD)
+  option(DOWNLOAD_Eigen3 "Download Eigen3 (instead of using the system's one)" OFF)
+  if(DOWNLOAD_Eigen3)
+    include(ExternalProject)
+    ExternalProject_Add(Eigen3_build
+      URL http://bitbucket.org/eigen/eigen/get/3.3.4.tar.gz 
+      URL_MD5 1a47e78efe365a97de0c022d127607c3
+      CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> -DEIGEN_TEST_NOQT=ON
+        -DCMAKE_DISABLE_FIND_PACKAGE_LAPACK=ON -DCMAKE_DISABLE_FIND_PACKAGE_Cholmod=ON -DCMAKE_DISABLE_FIND_PACKAGE_Umfpack=ON -DCMAKE_DISABLE_FIND_PACKAGE_SuperLU=ON
+        -DCMAKE_DISABLE_FIND_PACKAGE_PASTIX=ON -DCMAKE_DISABLE_FIND_PACKAGE_SPQR=ON -DCMAKE_DISABLE_FIND_PACKAGE_Boost=ON -DCMAKE_DISABLE_FIND_PACKAGE_CUDA=ON
+        -DCMAKE_DISABLE_FIND_PACKAGE_FFTW=ON -DCMAKE_DISABLE_FIND_PACKAGE_MPFR=ON -DCMAKE_DISABLE_FIND_PACKAGE_OpenGL=ON
+        )
+    ExternalProject_get_property(Eigen3_build INSTALL_DIR)
+    set(EIGEN3_INCLUDE_DIR ${INSTALL_DIR}/include/eigen3)
+    list(APPEND LAMMPS_DEPS Eigen3_build)
+  else()
+    find_package(Eigen3)
+    if(NOT Eigen3_FOUND)
+      message(FATAL_ERROR "Eigen3 not found, help CMake to find it by setting EIGEN3_INCLUDE_DIR, or set DOWNLOAD_Eigen3=ON to download it")
+    endif()
+  endif()
   include_directories(${EIGEN3_INCLUDE_DIR})
 endif()
 
-if(ENABLE_USER-QUIP)
+if(PKG_USER-QUIP)
   find_package(QUIP REQUIRED)
   list(APPEND LAMMPS_LINK_LIBS ${QUIP_LIBRARIES} ${LAPACK_LIBRARIES} ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
 endif()
 
-if(ENABLE_USER-QMMM)
+if(PKG_USER-QMMM)
+  message(WARNING "Building QMMM with CMake is still experimental")
   find_package(QE REQUIRED)
   include_directories(${QE_INCLUDE_DIRS})
   list(APPEND LAMMPS_LINK_LIBS ${QE_LIBRARIES} ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
 endif()
 
-if(ENABLE_USER-VTK)
+if(PKG_USER-VTK)
   find_package(VTK REQUIRED NO_MODULE)
   include(${VTK_USE_FILE})
   add_definitions(-DLAMMPS_VTK)
   list(APPEND LAMMPS_LINK_LIBS ${VTK_LIBRARIES})
 endif()
 
-if(ENABLE_KIM)
-  find_package(KIM QUIET)
-  if(NOT KIM_FOUND)
-    message(STATUS "KIM not found - we will build our own")
+if(PKG_KIM)
+  option(DOWNLOAD_KIM "Download kim-api (instead of using the system's one)" OFF)
+  if(DOWNLOAD_KIM)
     include(ExternalProject)
     ExternalProject_Add(kim_build
-      URL https://github.com/openkim/kim-api/archive/v1.9.4.tar.gz
-      URL_MD5 f4d35a1705eed46d64c7c0ab448ff3e0
+      URL https://github.com/openkim/kim-api/archive/v1.9.5.tar.gz
+      URL_MD5 9f66efc128da33039e30659f36fc6d00
       BUILD_IN_SOURCE 1
       CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
       )
@@ -304,12 +386,17 @@ if(ENABLE_KIM)
     set(KIM_INCLUDE_DIRS ${INSTALL_DIR}/include/kim-api-v1)
     set(KIM_LIBRARIES ${INSTALL_DIR}/lib/libkim-api-v1.so)
     list(APPEND LAMMPS_DEPS kim_build)
+  else()
+    find_package(KIM)
+    if(NOT KIM_FOUND)
+      message(FATAL_ERROR "KIM not found, help CMake to find it by setting KIM_LIBRARY and KIM_INCLUDE_DIR, or set DOWNLOAD_KIM=ON to download it")
+    endif()
   endif()
   list(APPEND LAMMPS_LINK_LIBS ${KIM_LIBRARIES})
   include_directories(${KIM_INCLUDE_DIRS})
 endif()
 
-if(ENABLE_MSCG)
+if(PKG_MSCG)
   find_package(GSL REQUIRED)
   set(LAMMPS_LIB_MSCG_BIN_DIR ${LAMMPS_LIB_BINARY_DIR}/mscg)
   set(MSCG_TARBALL ${LAMMPS_LIB_MSCG_BIN_DIR}/MS-CG-master.zip)
@@ -333,12 +420,18 @@ if(ENABLE_MSCG)
   target_link_libraries(mscg ${GSL_LIBRARIES} ${LAPACK_LIBRARIES})
 endif()
 
+if(PKG_COMPRESS)
+  find_package(ZLIB REQUIRED)
+  include_directories(${ZLIB_INCLUDE_DIRS})
+  list(APPEND LAMMPS_LINK_LIBS ${ZLIB_LIBRARIES})
+endif()
+
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
 ########################################################################
-include(CheckIncludeFile)
+include(CheckIncludeFileCXX)
 foreach(HEADER math.h)
-  check_include_file(${HEADER} FOUND_${HEADER})
+  check_include_file_cxx(${HEADER} FOUND_${HEADER})
   if(NOT FOUND_${HEADER})
     message(FATAL_ERROR "Could not find needed header - ${HEADER}")
   endif(NOT FOUND_${HEADER})
@@ -382,7 +475,7 @@ foreach(PKG ${DEFAULT_PACKAGES} ${OTHER_PACKAGES})
       DetectAndRemovePackageHeader(${LAMMPS_SOURCE_DIR}/${FNAME})
   endforeach()
 
-  if(ENABLE_${PKG})
+  if(PKG_${PKG})
     # detects styles in package and adds them to global list
     RegisterStyles(${${PKG}_SOURCES_DIR})
 
@@ -396,7 +489,7 @@ endforeach()
 ############################################
 foreach(SIMPLE_LIB REAX MEAM POEMS USER-ATC USER-AWPMD USER-COLVARS USER-H5MD
   USER-QMMM)
-  if(ENABLE_${SIMPLE_LIB})
+  if(PKG_${SIMPLE_LIB})
     string(REGEX REPLACE "^USER-" "" PKG_LIB "${SIMPLE_LIB}")
     string(TOLOWER "${PKG_LIB}" PKG_LIB)
     file(GLOB_RECURSE ${PKG_LIB}_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/*.F
@@ -417,32 +510,18 @@ foreach(SIMPLE_LIB REAX MEAM POEMS USER-ATC USER-AWPMD USER-COLVARS USER-H5MD
   endif()
 endforeach()
 
-if(ENABLE_USER-AWPMD)
+if(PKG_USER-AWPMD)
   target_link_libraries(awpmd ${LAPACK_LIBRARIES})
 endif()
 
-if(ENABLE_USER-ATC)
+if(PKG_USER-ATC)
   target_link_libraries(atc ${LAPACK_LIBRARIES})
 endif()
 
-if(ENABLE_USER-H5MD)
+if(PKG_USER-H5MD)
   find_package(HDF5 REQUIRED)
   target_link_libraries(h5md ${HDF5_LIBRARIES})
   target_include_directories(h5md PRIVATE ${HDF5_INCLUDE_DIRS})
-endif()
-
-if(ENABLE_MEAM AND FC_HAS_NO_SECOND_UNDERSCORE)
-  foreach(FSRC ${meam_SOURCES})
-    string(REGEX REPLACE "^.*\\." "" FEXT "${FSRC}")
-    list(FIND CMAKE_Fortran_SOURCE_FILE_EXTENSIONS "${FEXT}" FINDEX)
-    if(FINDEX GREATER -1)
-      set_property(SOURCE ${FSRC} APPEND PROPERTY COMPILE_FLAGS "-fno-second-underscore")
-    endif()
-  endforeach()
-endif()
-
-if(ENABLE_REAX AND FC_HAS_NO_SECOND_UNDERSCORE)
-  target_compile_options(reax PRIVATE -fno-second-underscore)
 endif()
 
 
@@ -450,7 +529,7 @@ endif()
 # packages which selectively include variants based on enabled styles
 # e.g. accelerator packages
 ######################################################################
-if(ENABLE_USER-OMP)
+if(PKG_USER-OMP)
     set(USER-OMP_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/USER-OMP)
     set(USER-OMP_SOURCES ${USER-OMP_SOURCES_DIR}/thr_data.cpp
                          ${USER-OMP_SOURCES_DIR}/thr_omp.cpp
@@ -467,7 +546,7 @@ if(ENABLE_USER-OMP)
     include_directories(${USER-OMP_SOURCES_DIR})
 endif()
 
-if(ENABLE_KOKKOS)
+if(PKG_KOKKOS)
   set(LAMMPS_LIB_KOKKOS_SRC_DIR ${LAMMPS_LIB_SOURCE_DIR}/kokkos)
   set(LAMMPS_LIB_KOKKOS_BIN_DIR ${LAMMPS_LIB_BINARY_DIR}/kokkos)
   add_definitions(-DLMP_KOKKOS)
@@ -503,7 +582,7 @@ if(ENABLE_KOKKOS)
   RegisterNBinStyle(${KOKKOS_PKG_SOURCES_DIR}/nbin_kokkos.h)
   RegisterNPairStyle(${KOKKOS_PKG_SOURCES_DIR}/npair_kokkos.h)
 
-  if(ENABLE_USER-DPD)
+  if(PKG_USER-DPD)
     get_property(KOKKOS_PKG_SOURCES GLOBAL PROPERTY KOKKOS_PKG_SOURCES)
     list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/npair_ssa_kokkos.cpp)
     RegisterNPairStyle(${KOKKOS_PKG_SOURCES_DIR}/npair_ssa_kokkos.h)
@@ -516,7 +595,7 @@ if(ENABLE_KOKKOS)
   include_directories(${KOKKOS_PKG_SOURCES_DIR})
 endif()
 
-if(ENABLE_OPT)
+if(PKG_OPT)
     set(OPT_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/OPT)
     set(OPT_SOURCES)
     set_property(GLOBAL PROPERTY "OPT_SOURCES" "${OPT_SOURCES}")
@@ -530,7 +609,30 @@ if(ENABLE_OPT)
     include_directories(${OPT_SOURCES_DIR})
 endif()
 
-if(ENABLE_USER-INTEL)
+if(PKG_USER-INTEL)
+    if(NOT DEVELOPER_MODE)
+      if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+        message(FATAL_ERROR "USER-INTEL is only useful together with intel compiler")
+      endif()
+      if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 16)
+        message(FATAL_ERROR "USER-INTEL is needed at least 2016 intel compiler, found ${CMAKE_CXX_COMPILER_VERSION}")
+      endif()
+    endif()
+    option(INJECT_INTEL_FLAG "Inject OMG fast flags for USER-INTEL" ON)
+    if(INJECT_INTEL_FLAG AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+      if(CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.3 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.4)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -xCOMMON-AVX512")
+      else()
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -xHost")
+      endif()
+      include(CheckCXXCompilerFlag)
+      foreach(_FLAG -qopenmp -qno-offload -fno-alias -ansi-alias -restrict -DLMP_INTEL_USELRT -DLMP_USE_MKL_RNG -O2 "-fp-model fast=2" -no-prec-div -qoverride-limits -qopt-zmm-usage=high)
+        check_cxx_compiler_flag("${__FLAG}" COMPILER_SUPPORTS${_FLAG})
+        if(COMPILER_SUPPORTS${_FLAG})
+          set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${_FLAG}")
+        endif()
+      endforeach()
+    endif()
     set(USER-INTEL_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/USER-INTEL)
     set(USER-INTEL_SOURCES ${USER-INTEL_SOURCES_DIR}/intel_preprocess.h
                            ${USER-INTEL_SOURCES_DIR}/intel_buffers.h
@@ -554,7 +656,7 @@ if(ENABLE_USER-INTEL)
     include_directories(${USER-INTEL_SOURCES_DIR})
 endif()
 
-if(ENABLE_GPU)
+if(PKG_GPU)
     set(GPU_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/GPU)
     set(GPU_SOURCES ${GPU_SOURCES_DIR}/gpu_extra.h
                     ${GPU_SOURCES_DIR}/fix_gpu.h
@@ -691,6 +793,7 @@ include_directories(${LAMMPS_STYLE_HEADERS_DIR})
 # Actually add executable and lib to build
 ############################################
 add_library(lammps ${LIB_SOURCES})
+list(REMOVE_DUPLICATES LAMMPS_LINK_LIBS)
 target_link_libraries(lammps ${LAMMPS_LINK_LIBS})
 if(LAMMPS_DEPS)
   add_dependencies(lammps ${LAMMPS_DEPS})
@@ -716,31 +819,60 @@ endif()
 # Print package summary
 ##################################
 foreach(PKG ${DEFAULT_PACKAGES} ${OTHER_PACKAGES} ${ACCEL_PACKAGES})
-  if(ENABLE_${PKG})
+  if(PKG_${PKG})
     message(STATUS "Building package: ${PKG}")
   endif()
 endforeach()
 
 string(TOUPPER "${CMAKE_BUILD_TYPE}" BTYPE)
+get_directory_property(CPPFLAGS DIRECTORY ${CMAKE_SOURCE_DIR} COMPILE_DEFINITIONS)
+include(FeatureSummary)
+feature_summary(INCLUDE_QUIET_PACKAGES WHAT ALL)
 message(STATUS "<<< Build configuration >>>
    Build type       ${CMAKE_BUILD_TYPE}
    Install path     ${CMAKE_INSTALL_PREFIX}
    Compilers and Flags:
    C++ Compiler     ${CMAKE_CXX_COMPILER}
        Type         ${CMAKE_CXX_COMPILER_ID}
-   C++ Flags        ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BTYPE}}")
+       Version      ${CMAKE_CXX_COMPILER_VERSION}
+   C++ Flags        ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BTYPE}}
+   Defines          ${CPPFLAGS}")
 get_property(LANGUAGES GLOBAL PROPERTY ENABLED_LANGUAGES)
-if(LANGUAGES MATCHES ".*Fortran.*")
+list (FIND LANGUAGES "Fortran" _index)
+if (${_index} GREATER -1)
   message(STATUS "Fortran Compiler ${CMAKE_Fortran_COMPILER} 
            Type     ${CMAKE_Fortran_COMPILER_ID}
+           Version  ${CMAKE_Fortran_COMPILER_VERSION}
    Fortran Flags    ${CMAKE_Fortran_FLAGS} ${CMAKE_Fortran_FLAGS_${BTYPE}}")
 endif()
-message(STATUS "Linker flags:
+list (FIND LANGUAGES "C" _index)
+if (${_index} GREATER -1)
+  message(STATUS "C Compiler ${CMAKE_C_COMPILER} 
+     Type     ${CMAKE_C_COMPILER_ID}
+     Version  ${CMAKE_C_COMPILER_VERSION}
+     C Flags  ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${BTYPE}}")
+endif()
+if(CMAKE_EXE_LINKER_FLAGS)
+  message(STATUS "Linker flags:
    Executable      ${CMAKE_EXE_LINKER_FLAGS}")
+  endif()
 if(BUILD_SHARED_LIBS)
-  message(STATUS "Shared libries  ${CMAKE_SHARED_LINKER_FLAGS}")
+  message(STATUS "Shared libraries  ${CMAKE_SHARED_LINKER_FLAGS}")
 else()
-  message(STATUS "Static libries  ${CMAKE_STATIC_LINKER_FLAGS}")
+  message(STATUS "Static libraries  ${CMAKE_STATIC_LINKER_FLAGS}")
 endif()
 message(STATUS "Link libraries: ${LAMMPS_LINK_LIBS}")
-
+if(BUILD_MPI)
+  message(STATUS "Using mpi with headers in ${MPI_CXX_INCLUDE_PATH} and ${MPI_CXX_LIBRARIES}")
+endif()
+if(ENABLED_GPU)
+  message(STATUS "GPU Api: ${GPU_API}")
+  if(GPU_API STREQUAL "CUDA")
+    message(STATUS "GPU Arch: ${GPU_ARCH}")
+  elseif(GPU_API STREQUAL "OpenCL")
+    message(STATUS "OCL Tune: ${OCL_TUNE}")
+  endif()
+endif()
+if(PKG_KSPACE)
+  message(STATUS "Using ${FFT} as FFT")
+endif()

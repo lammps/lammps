@@ -15,9 +15,9 @@
    Contributing author: Chuanfu Luo (luochuanfu@gmail.com)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "angle_table.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -609,7 +609,7 @@ double AngleTable::splint(double *xa, double *ya, double *y2a, int n, double x)
 
 void AngleTable::uf_lookup(int type, double x, double &u, double &f)
 {
-  if (!ISFINITE(x)) {
+  if (!std::isfinite(x)) {
     error->one(FLERR,"Illegal angle in angle style table");
   }
 
@@ -644,7 +644,7 @@ void AngleTable::uf_lookup(int type, double x, double &u, double &f)
 
 void AngleTable::u_lookup(int type, double x, double &u)
 {
-  if (!ISFINITE(x)) {
+  if (!std::isfinite(x)) {
     error->one(FLERR,"Illegal angle in angle style table");
   }
 

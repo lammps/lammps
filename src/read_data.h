@@ -20,7 +20,7 @@ CommandStyle(read_data,ReadData)
 #ifndef LMP_READ_DATA_H
 #define LMP_READ_DATA_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "pointers.h"
 
 namespace LAMMPS_NS {

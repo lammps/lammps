@@ -19,9 +19,9 @@
 //#define BALANCE_DEBUG 1
 
 #include <mpi.h>
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "balance.h"
 #include "atom.h"
 #include "comm.h"
@@ -48,8 +48,6 @@ using namespace LAMMPS_NS;
 enum{XYZ,SHIFT,BISECTION};
 enum{NONE,UNIFORM,USER};
 enum{X,Y,Z};
-enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
-
 /* ---------------------------------------------------------------------- */
 
 Balance::Balance(LAMMPS *lmp) : Pointers(lmp)
@@ -281,7 +279,7 @@ void Balance::command(int narg, char **arg)
   // no load-balance if imbalance doesn't exceed threshold
   // unless switching from tiled to non tiled layout, then force rebalance
 
-  if (comm->layout == LAYOUT_TILED && style != BISECTION) {
+  if (comm->layout == Comm::LAYOUT_TILED && style != BISECTION) {
   } else if (imbinit < thresh) return;
 
   // debug output of initial state
@@ -296,16 +294,16 @@ void Balance::command(int narg, char **arg)
   // style XYZ = explicit setting of cutting planes of logical 3d grid
 
   if (style == XYZ) {
-    if (comm->layout == LAYOUT_UNIFORM) {
+    if (comm->layout == Comm::LAYOUT_UNIFORM) {
       if (xflag == USER || yflag == USER || zflag == USER)
-        comm->layout = LAYOUT_NONUNIFORM;
-    } else if (comm->layout == LAYOUT_NONUNIFORM) {
+        comm->layout = Comm::LAYOUT_NONUNIFORM;
+    } else if (comm->layout == Comm::LAYOUT_NONUNIFORM) {
       if (xflag == UNIFORM && yflag == UNIFORM && zflag == UNIFORM)
-        comm->layout = LAYOUT_UNIFORM;
-    } else if (comm->layout == LAYOUT_TILED) {
+        comm->layout = Comm::LAYOUT_UNIFORM;
+    } else if (comm->layout == Comm::LAYOUT_TILED) {
       if (xflag == UNIFORM && yflag == UNIFORM && zflag == UNIFORM)
-        comm->layout = LAYOUT_UNIFORM;
-      else comm->layout = LAYOUT_NONUNIFORM;
+        comm->layout = Comm::LAYOUT_UNIFORM;
+      else comm->layout = Comm::LAYOUT_NONUNIFORM;
     }
 
     if (xflag == UNIFORM) {
@@ -333,7 +331,7 @@ void Balance::command(int narg, char **arg)
   // style SHIFT = adjust cutting planes of logical 3d grid
 
   if (style == SHIFT) {
-    comm->layout = LAYOUT_NONUNIFORM;
+    comm->layout = Comm::LAYOUT_NONUNIFORM;
     shift_setup_static(bstr);
     niter = shift();
   }
@@ -341,7 +339,7 @@ void Balance::command(int narg, char **arg)
   // style BISECTION = recursive coordinate bisectioning
 
   if (style == BISECTION) {
-    comm->layout = LAYOUT_TILED;
+    comm->layout = Comm::LAYOUT_TILED;
     bisection(1);
   }
 
@@ -745,7 +743,7 @@ void Balance::shift_setup_static(char *str)
   // if current layout is TILED, set initial uniform splits in Comm
   // this gives starting point to subsequent shift balancing
 
-  if (comm->layout == LAYOUT_TILED) {
+  if (comm->layout == Comm::LAYOUT_TILED) {
     int *procgrid = comm->procgrid;
     double *xsplit = comm->xsplit;
     double *ysplit = comm->ysplit;

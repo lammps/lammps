@@ -15,10 +15,10 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "fix_gravity_omp.h"
 #include "atom.h"
 #include "update.h"

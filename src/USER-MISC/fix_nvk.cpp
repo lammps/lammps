@@ -15,9 +15,9 @@
      Contributing author: Efrem Braun (UC Berkeley)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstring>
 #include "fix_nvk.h"
 #include "atom.h"
 #include "force.h"

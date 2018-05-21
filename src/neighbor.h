@@ -21,6 +21,7 @@ namespace LAMMPS_NS {
 
 class Neighbor : protected Pointers {
  public:
+  enum{NSQ,BIN,MULTI};
   int style;                       // 0,1,2 = nsq, bin, multi
   int every;                       // build every this many steps
   int delay;                       // delay build for this many steps

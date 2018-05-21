@@ -14,7 +14,7 @@
 #ifndef LMP_DOMAIN_H
 #define LMP_DOMAIN_H
 
-#include <math.h>
+#include <cmath>
 #include "pointers.h"
 #include <map>
 #include <string>
@@ -93,6 +93,7 @@ class Domain : protected Pointers {
   class Region **regions;                  // list of defined Regions
 
   int copymode;
+  enum{NO_REMAP,X_REMAP,V_REMAP};
 
   typedef Region *(*RegionCreator)(LAMMPS *,int,char**);
   typedef std::map<std::string,RegionCreator> RegionCreatorMap;

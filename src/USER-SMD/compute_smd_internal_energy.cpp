@@ -23,7 +23,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
+#include <cstring>
 #include "compute_smd_internal_energy.h"
 #include "atom.h"
 #include "update.h"

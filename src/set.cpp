@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "set.h"
 #include "atom.h"
 #include "atom_vec.h"

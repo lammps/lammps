@@ -63,11 +63,11 @@ namespace ATC {
     int narg = nargs -1;
 #ifdef _WIN32
     double *dargs = (double *) _alloca(sizeof(double) * narg);
-#endif
+#else
     double *dargs = (double *) alloca(sizeof(double) * narg);
 #endif
     for (int i = 0; i < narg; ++i) dargs[i] = atof(args[i+1]);
-  
+
     return function(type, narg, dargs);
   }
 

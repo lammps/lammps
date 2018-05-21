@@ -24,10 +24,8 @@ PairStyle(tersoffHG,PairTERSOFFHG)
 #include "my_page.h"
 #include "HGvector.h"
 #include <vector>
-#include <map>
-
-#define X1_NGRIDPOINTS  11
-#define X2_NGRIDPOINTS  11
+#define X1_NGRIDPOINTS  5
+#define X2_NGRIDPOINTS  5
 #define X1_NGRIDSQUARES (X1_NGRIDPOINTS-1)
 #define X2_NGRIDSQUARES (X2_NGRIDPOINTS-1)
 
@@ -36,16 +34,22 @@ PairStyle(tersoffHG,PairTERSOFFHG)
 namespace LAMMPS_NS {
 
 class PairTERSOFFHG : public PairTersoff {
+
+
 private:
-  static const int mp = (X1_NGRIDPOINTS);
-  static const int np = (X2_NGRIDPOINTS);
-  static const int ms = (X1_NGRIDSQUARES);
-  static const int ns = (X2_NGRIDSQUARES);
-  //static  double (***cSiF)[4][4];
-/* A ptr to...__|||    |____|
- *               ||       |_______________________ 
- *               ||                               |
- *               \|__ an "m"x"n" 2D array of...   |___ 4x4 2D arrays.
+  HGvector Fij;
+  double bbar_ij, iNconj, jNconj;
+  double bsp_ij, bsp_ji, Nconj_ij;
+  int cnt, scrcount;
+  double VA_ij, VR_ij, dVA_ij, dVR_ij;
+  double iFv_ij, jFv_ij, force_ik, force_jk;
+  std::vector<double> iFv_ik, iFv_jk, iFv_ik2;
+  std::vector<double> jFv_ik, jFv_jk, jFv_jk2;
+ // double (***cSiHal)[4][4];
+/* ptr to_|||       |____|
+ *         ||          |____________________ 
+ *         ||                               |
+ *         \|__ an "m"x"n" 2D array of...   |___ 4x4 2D arrays.
  *
  *  Here, we state that the 2D grid of points ("knots") which define the
  *  function we are interpolating is "m+1"x"n+1" and has, therefore, 
@@ -60,33 +64,16 @@ private:
  *  matrix of matrices",  or (*)(**c)[4][4], and dynamically allocate
  *  the "m" rows of "n" columns each using the xmalloc function
  *  given in Numerical Recipes.
- *
  */
-
-private:
-  HGvector Fij;
-  double bbar_ij, iNconj, jNconj;
-  double bsp_ij, bsp_ji, Nconj_ij;
-  int cnt, scrcount;
-//  double S, Sprime;
-  double VA_ij, VR_ij, dVA_ij, dVR_ij;
-  double iFv_ij, jFv_ij, force_ik, force_jk;
-  std::vector<double> iFv_ik, iFv_jk, iFv_ik2;
-  std::vector<double> jFv_ik, jFv_jk, jFv_jk2;
-  std::vector<HGvector> scr_Rhat;
-  //void * this_cell;
-  std::map<int, std::vector<int> > REBO_nbrlist;
 
 public:
   PairTERSOFFHG(class LAMMPS *);
   virtual ~PairTERSOFFHG() {}
   void compute(int, int);
-  void * xmalloc(size_t n);
-  static double cSiF[4];
+  //static double cSiF[4];
   void init_style();
 
 protected:
-
   int maxlocal;                    // size of numneigh, firstneigh arrays
   int pgsize;                      // size of neighbor page
   int oneatom;                     // max # of neighbors for one atom
@@ -96,75 +83,16 @@ protected:
 //  double *nC,*nH;                  // sum of weighting fns with REBO neighs
 
   // Library file containing the spline coefficient
-  void read_lib();
-
-  // Moliere repulsive, Eq. A7-8
-  double moliere_aB; 
-  double moliere_c[3];
-  double moliere_d[3];
-  double firsov_const;
-
+  void read_lib(Param *);
   void read_file(char *);
 
-  // Repulsive term, Eq. A3
-  void repulsive(Param *, double, double &, int, double &);
-
-  // Cutoff function, Eq. A6
-  virtual double ters_fc(double, Param *);
-  virtual double ters_fc_d(double, Param *);
-//  virtual void PolySwitch(double , double* , double*);
   inline double SpExp(double arg){
     if (arg > 69.0776) return 1.e30;
     else if (arg < -69.0776) return 0.0;
     else return exp(arg);
   }
 
-  // Attraction term, Eq. A4
-  double ters_fa(double, Param *);
-  double ters_fa_d(double, Param *);
-
-  // Zeta term, Eq. A13
-  virtual double zeta(Param *, Param *, double, double, double *, double *);
-  virtual void force_zeta(Param *, double, double, double &,
-                          double &, int, double &, int, int);
-  virtual void ters_zetaterm_d(Param *, Param *, double, double *, double, double *, double,
-                               double *, double *, double *);
-
-  // Bij term, Eq. A12
-  virtual double ters_bij(double, Param *, int, int);
-  virtual double ters_bij_d(double, Param *, int, int);
-
-  // Angular term; Eq. A13; inlined functions for efficiency
-
-  inline double ters_gijk(const double cos_theta,
-                          const Param * const param) const {
-    const double ters_c = param->c;
-    const double ters_d = param->d;
-    const double hcth = param->h - cos_theta;
-
-    return ters_c + ters_d * hcth * hcth;
-  }
-
-  // replace the inline double with void below, since derivative of 
-  // cos_theta is not -sin_theta
-
-  /*
-  inline double ters_gijk_d(const double cos_theta,
-                            const Param * const param) const {
-    const double ters_c = param->c;
-    const double ters_d = param->d;
-    const double hcth = param->h - cos_theta;
-    const double sin_theta = sqrt(1.0 - cos_theta*cos_theta);
-    return 2.0 * ters_d * hcth * sin_theta;
-  }
-  */
-
-  void ters_gijk_d(Param*, double *, double, double *, double,
-                  double *, double *, double *);
-
-  // Attractive term, Eq. A4
-  void attractive(Param *, Param *, double, double, double, double *, double *,
-                  double *, double *, double *);
+  void * xmalloc(size_t);
 
   // Coordination terms, Hij of Eq. A12
   void count_neigh();
@@ -178,15 +106,14 @@ protected:
   void unpack_reverse_comm(int, int *, double *);
   int pack_forward_comm(int , int *, double *, int, int *);
   void unpack_forward_comm(int , int , double *);
-
-//void bicubic_genCoef (double y[X1_NGRIDPOINTS][X2_NGRIDPOINTS],
-//          double y1[X1_NGRIDPOINTS][X2_NGRIDPOINTS], 
-//          double y2[X1_NGRIDPOINTS][X2_NGRIDPOINTS],
-//          double y12[X1_NGRIDPOINTS][X2_NGRIDPOINTS]);//,double (****c)[4][4]);
-  void bicubic_genCoef ();
-  //void HGForce(int, int);
+  void bicubic_genCoef (double y[X1_NGRIDPOINTS][X2_NGRIDPOINTS], Param*);
+  void bcucof(double y[], double y1[], double y2[], double y12[],
+            double d1, double d2, double c[4][4]);
   double BondOrder(int, int, double, int, int);
-
+  void bicubicint (double x1, double x2, double *y, double *y1, double *y2, Param *);
+  void bcuint(double x1l, double x1u, double x2l, double x2u, 
+      double x1, double x2, double *ansy, double *ansy1, double *ansy2,
+      double c[4][4]);
   inline double Sp(double Xij, double Xmin, double Xmax, double &Sprime) const 
   {
     double S;
@@ -216,7 +143,7 @@ protected:
       S=Sprime=0;
     }
     return S;
-  };
+  }
 
 };
 

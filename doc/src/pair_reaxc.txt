@@ -47,13 +47,14 @@ the "(Aktulga)"_#Aktulga paper. The {reax/c} style was initially
 implemented as a stand-alone C code and is now integrated into LAMMPS
 as a package.
 
-The {reax/c/kk} style is a Kokkos version of the ReaxFF potential that is
-derived from the {reax/c} style. The Kokkos version can run on GPUs and
-can also use OpenMP multithreading. For more information about the Kokkos package,
-see "Section 4"_Section_packages.html#kokkos and "Section 5.3.3"_accelerate_kokkos.html.
-One important consideration when using the {reax/c/kk} style is the choice of either
-half or full neighbor lists. This setting can be changed using the Kokkos "package"_package.html
-command.
+The {reax/c/kk} style is a Kokkos version of the ReaxFF potential that
+is derived from the {reax/c} style. The Kokkos version can run on GPUs
+and can also use OpenMP multithreading. For more information about the
+Kokkos package, see "Section 4"_Section_packages.html#kokkos and
+"Section 5.3.3"_accelerate_kokkos.html.  One important consideration
+when using the {reax/c/kk} style is the choice of either half or full
+neighbor lists. This setting can be changed using the Kokkos
+"package"_package.html command.
 
 The {reax/c} style differs from the "pair_style reax"_pair_reax.html
 command in the lo-level implementation details.  The {reax} style is a
@@ -80,9 +81,8 @@ parameterizations for different classes of materials.  You can submit
 a contact request at the Materials Computation Center (MCC) website
 "https://www.mri.psu.edu/materials-computation-center/connect-mcc"_https://www.mri.psu.edu/materials-computation-center/connect-mcc,
 describing the material(s) you are interested in modeling with ReaxFF.
-They can tell
-you what is currently available or what it would take to create a
-suitable ReaxFF parameterization.
+They can tell you what is currently available or what it would take to
+create a suitable ReaxFF parameterization.
 
 The {cfile} setting can be specified as NULL, in which case default
 settings are used. A control file can be specified which defines
@@ -120,28 +120,31 @@ assign to each atom will be used for computing the electrostatic
 interactions in the system.
 See the "fix qeq/reax"_fix_qeq_reax.html command for details.
 
-Using the optional keyword {lgvdw} with the value {yes} turns on
-the low-gradient correction of the ReaxFF/C for long-range
-London Dispersion, as described in the "(Liu)"_#Liu_2011 paper. Force field
+Using the optional keyword {lgvdw} with the value {yes} turns on the
+low-gradient correction of the ReaxFF/C for long-range London
+Dispersion, as described in the "(Liu)"_#Liu_2011 paper. Force field
 file {ffield.reax.lg} is designed for this correction, and is trained
 for several energetic materials (see "Liu"). When using lg-correction,
 recommended value for parameter {thb} is 0.01, which can be set in the
 control file.  Note: Force field files are different for the original
-or lg corrected pair styles, using wrong ffield file generates an error message.
+or lg corrected pair styles, using wrong ffield file generates an
+error message.
 
 Using the optional keyword {enobonds} with the value {yes}, the energy
 of atoms with no bonds (i.e. isolated atoms) is included in the total
 potential energy and the per-atom energy of that atom.  If the value
-{no} is specified then the energy of atoms with no bonds is set to zero.
-The latter behavior is usual not desired, as it causes discontinuities
-in the potential energy when the bonding of an atom drops to zero.
+{no} is specified then the energy of atoms with no bonds is set to
+zero.  The latter behavior is usual not desired, as it causes
+discontinuities in the potential energy when the bonding of an atom
+drops to zero.
 
 Optional keywords {safezone} and {mincap} are used for allocating
-reax/c arrays.  Increasing these values can avoid memory problems, such
-as segmentation faults and bondchk failed errors, that could occur under
-certain conditions. These keywords aren't used by the Kokkos version, which
-instead uses a more robust memory allocation scheme that checks if the sizes of
-the arrays have been exceeded and automatically allocates more memory.
+reax/c arrays.  Increasing these values can avoid memory problems,
+such as segmentation faults and bondchk failed errors, that could
+occur under certain conditions. These keywords aren't used by the
+Kokkos version, which instead uses a more robust memory allocation
+scheme that checks if the sizes of the arrays have been exceeded and
+automatically allocates more memory.
 
 The thermo variable {evdwl} stores the sum of all the ReaxFF potential
 energy contributions, with the exception of the Coulombic and charge
@@ -153,7 +156,8 @@ This pair style tallies a breakdown of the total ReaxFF potential
 energy into sub-categories, which can be accessed via the "compute
 pair"_compute_pair.html command as a vector of values of length 14.
 The 14 values correspond to the following sub-categories (the variable
-names in italics match those used in the original FORTRAN ReaxFF code):
+names in italics match those used in the original FORTRAN ReaxFF
+code):
 
 {eb} = bond energy
 {ea} = atom energy
@@ -340,8 +344,8 @@ reax"_pair_reax.html
 
 [Default:]
 
-The keyword defaults are checkqeq = yes, enobonds = yes, lgvdw = no, safezone = 1.2,
-mincap = 50.
+The keyword defaults are checkqeq = yes, enobonds = yes, lgvdw = no,
+safezone = 1.2, mincap = 50.
 
 :line
 

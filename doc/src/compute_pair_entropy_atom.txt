@@ -10,25 +10,26 @@ compute pentropy/atom command :h3
 
 [Syntax:]
 
-compute ID group-ID pentropy/atom sigma cutoff  :l
-compute ID group-ID pentropy/atom sigma cutoff avg yes/no cutoff2 ... :pre
+compute ID group-ID pentropy/atom sigma cutoff keyword value ... :pre
 
 ID, group-ID are documented in "compute"_compute.html command :l
 pentropy/atom = style name of this compute command :l
 sigma = width of gaussians used in the g(r) smoothening :l
 cutoff = cutoff for the g(r) calculation :l
 one or more keyword/value pairs may be appended :l
-{avg} yes/no cutoff2
-  avg = {no} or {yes}
-    {no} = do not average the pair entropy over neighbors
+keyword = {avg} or {local}
+  {avg} values = {yes} or {no} cutoff2
     {yes} = average the pair entropy over neighbors
-  cutoff2 = cutoff for the averaging over neighbors :pre
+    {no} = do not average the pair entropy over neighbors
+    cutoff2 = cutoff for the averaging over neighbors
+  {local} values = {yes} or {no} = use the local density around each atom to normalize the g(r) :pre
 :ule
 
 [Examples:]
 
-compute 1 all pentropy/atom 0.25 5. :pre
-compute 1 all pentropy/atom 0.25 5. avg yes 5. :pre
+compute 1 all pentropy/atom 0.25 5.
+compute 1 all pentropy/atom 0.25 5. avg yes 5.
+compute 1 all pentropy/atom 0.125 7.3 avg yes 5.1 local yes :pre
 
 [Description:]
 
@@ -77,11 +78,21 @@ neighbor skin bin :pre
 
 See "neighbor"_neighbor.html for details.
 
-The neighbor list needed to compute this quantity is constructed each
-time the calculation is performed (e.g. each time a snapshot of atoms
-is dumped).  Thus it can be inefficient to compute/dump this quantity
-too frequently or to have multiple compute/dump commands, each with a
-{centro/atom} style.
+If the {local yes} option is used, the g(r) is normalized by the 
+local density around each atom, that is to say the density around each 
+atom  is the number of neighbors within the neighbor list cutoff divided 
+by the corresponding volume. This option can be useful when dealing with 
+inhomogeneus systems such as those that have surfaces.
+
+Here are typical input parameters for fcc aluminum (lattice 
+ constant 4.05 Angstroms),
+
+compute 1 all pentropy/atom 0.25 5.7 avg yes 3.7 :pre
+
+and for bcc sodium (lattice constant 4.23 Angstroms),
+
+compute 1 all pentropy/atom 0.25 7.3 avg yes 5.1 :pre
+
 
 [Output info:]
 
@@ -95,15 +106,6 @@ The pair entropy values have units of the Boltzmann constant. They are
  always negative, and lower values (lower entropy) correspond to more
  ordered environments.
 
-Here are typical input parameters for fcc aluminum (lattice 
- constant 4.05 Angstroms),
-
-compute 1 all pentropy/atom 0.25 5.7 avg yes 3.7 :pre
-
-and for bcc sodium (lattice constant 4.23 Angstroms),
-
-compute 1 all pentropy/atom 0.25 7.3 avg yes 5.1 :pre
-
 [Restrictions:] none
 
 [Related commands:]
@@ -113,12 +115,12 @@ compute 1 all pentropy/atom 0.25 7.3 avg yes 5.1 :pre
 
 [Default:]
 
-The default value for the optional keyword is avg = no.
+The default values for the optional keywords are avg = no and local = no.
 
 :line
 
 :link(Piaggi)
 [(Piaggi)] Piaggi and Parrinello, J Chem Phys, 147, 114112 (2017).
 
-:link(Nettleton}
+:link(Nettleton)
 [(Nettleton)] Nettleton and Green, J Chem Phys, 29, 6 (1958).

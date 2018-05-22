@@ -119,7 +119,7 @@ it gives quick access to documentation for all LAMMPS commands.
    Section_tools
    Section_modify
    Section_python
-   Section_errors
+   Errors
    Section_history
 
 .. toctree::

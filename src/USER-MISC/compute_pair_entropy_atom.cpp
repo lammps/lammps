@@ -160,8 +160,8 @@ void ComputePairEntropyAtom::init_list(int id, NeighList *ptr)
 
 void ComputePairEntropyAtom::compute_peratom()
 {
-  int i,j,k,ii,jj,kk,n,inum,jnum;
-  double xtmp,ytmp,ztmp,delx,dely,delz,rsq,value;
+  int i,j,ii,jj,inum,jnum;
+  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double rbin[nbin], rbinsq[nbin];
 
@@ -198,7 +198,6 @@ void ComputePairEntropyAtom::compute_peratom()
   firstneigh = list->firstneigh;
 
   // Compute some constants
-  double nlist_cutoff = force->pair->cutforce;
   double sigmasq2=2*sigma*sigma;
   double volume = domain->xprd * domain->yprd * domain->zprd;
   double density = atom->natoms / volume;

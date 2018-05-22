@@ -40,23 +40,30 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-ComputePairEntropyAtom::ComputePairEntropyAtom(LAMMPS *lmp, int narg, char **arg) :
+ComputePairEntropyAtom::
+ComputePairEntropyAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
   pair_entropy(NULL), pair_entropy_avg(NULL)
 {
   if (narg < 5 || narg > 10)
-    error->all(FLERR,"Illegal compute pentropy/atom command");
+    error->all(FLERR,"Illegal compute pentropy/atom command; wrong number"
+               " of arguments");
 
-  // Arguments are: sigma cutoff avg yes/no cutoff2
+  // Arguments are: sigma cutoff avg yes/no cutoff2 local yes/no
   //   sigma is the gaussian width 
   //   cutoff is the cutoff for the calculation of g(r) 
-  //   avg is optional and it means averaginf the pair entropy over the neighbors
+  //   avg is optional and allows averaging the pair entropy over neighbors
   //   the next argument should be yes or no 
   //   cutoff2 is the cutoff for the averaging
+  //   local is optional and allows using the local density to normalize
+  //     the g(r)
 
   sigma = force->numeric(FLERR,arg[3]);
+  if (sigma < 0.0) error->all(FLERR,"Illegal compute pentropy/atom"
+                              " command; negative sigma");
   cutoff = force->numeric(FLERR,arg[4]);
-  if (cutoff < 0.0) error->all(FLERR,"Illegal compute pentropy/atom command; negative cutoff");
+  if (cutoff < 0.0) error->all(FLERR,"Illegal compute pentropy/atom"
+                               " command; negative cutoff");
 
   avg_flag = 0;
   local_flag = 0;
@@ -66,20 +73,25 @@ ComputePairEntropyAtom::ComputePairEntropyAtom(LAMMPS *lmp, int narg, char **arg
   while (iarg < narg) {
     if (strcmp(arg[iarg],"avg") == 0) {
       if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute pentropy/atom missing arguments after avg");
+        error->all(FLERR,"Illegal compute pentropy/atom;"
+                   " missing arguments after avg");
       if (strcmp(arg[iarg+1],"yes") == 0) avg_flag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) avg_flag = 0;
-      else error->all(FLERR,"Illegal compute pentropy/atom argument after avg should be yes or no");
+      else error->all(FLERR,"Illegal compute pentropy/atom;"
+                      " argument after avg should be yes or no");
       cutoff2 = force->numeric(FLERR,arg[iarg+2]);
-      if (cutoff2 < 0.0) error->all(FLERR,"Illegal compute pentropy/atom command; negative cutoff2");
+      if (cutoff2 < 0.0) error->all(FLERR,"Illegal compute pentropy/atom"
+                                    " command; negative cutoff2");
       cutsq2 = cutoff2*cutoff2;
       iarg += 3;
     } else if (strcmp(arg[iarg],"local") == 0) {
       if (strcmp(arg[iarg+1],"yes") == 0) local_flag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) local_flag = 0;
-      else error->all(FLERR,"Illegal compute pentropy/atom argument after local should be yes or no");
+      else error->all(FLERR,"Illegal compute pentropy/atom;"
+                      " argument after local should be yes or no");
       iarg += 2;
-    } else error->all(FLERR,"Illegal compute pentropy/atom argument after sigma and cutoff should be avg or local");
+    } else error->all(FLERR,"Illegal compute pentropy/atom; argument after"
+                      " sigma and cutoff should be avg or local");
   }
 
 
@@ -87,7 +99,10 @@ ComputePairEntropyAtom::ComputePairEntropyAtom(LAMMPS *lmp, int narg, char **arg
   nbin = static_cast<int>(cutoff / sigma) + 1;
   nmax = 0;
   maxneigh = 0;
-  deltabin = 2; // 2 seems a good compromise between speed and good mollification
+  // Number of bins above and below the central one that will be
+  // considered as affected by the gaussian kernel
+  // 2 seems a good compromise between speed and good mollification
+  deltabin = 2; 
   deltar = sigma; 
   peratom_flag = 1;
   size_peratom_cols = 0;
@@ -106,24 +121,15 @@ ComputePairEntropyAtom::~ComputePairEntropyAtom()
 void ComputePairEntropyAtom::init()
 {
   if (force->pair == NULL)
-    error->all(FLERR,"Compute centro/atom requires a pair style be defined");
-
-  //double largest_cutsq;
-  //largest_cutsq = cutsq;
-  //if (cutsq2 > cutsq) largest_cutsq = cutsq2;
+    error->all(FLERR,"Compute centro/atom requires a pair style be"
+               " defined");
 
   if ( (cutoff+cutoff2) > (force->pair->cutforce  + neighbor->skin) ) 
     {
-	//fprintf(screen, "%f %f %f %f \n", cutoff, cutoff2, (cutoff+cutoff2) , force->pair->cutforce  + neighbor->skin );
-    	error->all(FLERR,"Compute pentropy/atom cutoff is longer than pairwise cutoff. Increase the neighbor list skin distance.");
+    	error->all(FLERR,"Compute pentropy/atom cutoff is longer than the"
+                   " pairwise cutoff. Increase the neighbor list skin"
+                   " distance.");
     }
-
-  /*
-  if (2.0*sqrt(largest_cutsq) > force->pair->cutforce + neighbor->skin &&
-      comm->me == 0)
-    error->warning(FLERR,"Compute pentropy/atom cutoff may be too large to find "
-                   "ghost atom neighbors");
-  */
 
   int count = 0;
   for (int i = 0; i < modify->ncompute; i++)
@@ -180,14 +186,11 @@ void ComputePairEntropyAtom::compute_peratom()
       memory->destroy(pair_entropy_avg);
       nmax = atom->nmax;
       memory->create(pair_entropy,nmax,"pentropy/atom:pair_entropy");
-      memory->create(pair_entropy_avg,nmax,"pentropy/atom:pair_entropy_avg");
+      memory->create(pair_entropy_avg,nmax,
+                     "pentropy/atom:pair_entropy_avg");
       vector_atom = pair_entropy_avg;
     }
   }
-
-  // invoke full neighbor list (will copy or build if necessary)
-
-  //neighbor->build_one(list);
 
   inum = list->inum +  list->gnum;
   ilist = list->ilist;
@@ -218,13 +221,16 @@ void ComputePairEntropyAtom::compute_peratom()
       // If local density is used, calculate it
       if (local_flag) {
         double neigh_cutoff = force->pair->cutforce  + neighbor->skin;
-        double volume = (4./3.)*MY_PI*neigh_cutoff*neigh_cutoff*neigh_cutoff;
+        double volume = 
+               (4./3.)*MY_PI*neigh_cutoff*neigh_cutoff*neigh_cutoff;
         density = jnum / volume;
       }
 
       // calculate kernel normalization
-      double normConstantBase = 4*MY_PI*density; // Normalization of g(r)
-      normConstantBase *= sqrt(2.*MY_PI)*sigma; // Normalization of gaussian
+      // Normalization of g(r)
+      double normConstantBase = 4*MY_PI*density; 
+      // Normalization of gaussian
+      normConstantBase *= sqrt(2.*MY_PI)*sigma; 
       double invNormConstantBase = 1./normConstantBase;
 
       // loop over list of all neighbors within force cutoff
@@ -245,8 +251,7 @@ void ComputePairEntropyAtom::compute_peratom()
           // contribute to gofr
           double r=sqrt(rsq);
           int bin=floor(r/deltar);
-          int minbin, maxbin; // These cannot be unsigned
-          // Only consider contributions to g(r) of atoms less than n*sigma bins apart from the actual distance
+          int minbin, maxbin;
           minbin=bin - deltabin;
           if (minbin < 0) minbin=0;
           if (minbin > (nbin-1)) minbin=nbin-1;
@@ -255,18 +260,10 @@ void ComputePairEntropyAtom::compute_peratom()
           for(int k=minbin;k<maxbin+1;k++) {
             double invNormKernel=invNormConstantBase/rbinsq[k];
             double distance = r - rbin[k];
-            gofr[k] += invNormKernel*exp(-distance*distance/sigmasq2) ; 
+            gofr[k] += invNormKernel*exp(-distance*distance/sigmasq2); 
           }
         }
       }
-
-      /*
-      if (ii==500) {
-        for(int k=0;k<nbin;++k) {
-          fprintf(screen,"%f %f \n",rbin[k], gofr[k]);
-        }
-      }
-      */
 
       // Calculate integrand
       double integrand[nbin];
@@ -305,8 +302,8 @@ void ComputePairEntropyAtom::compute_peratom()
  
         pair_entropy_avg[i] = pair_entropy[i];
         double counter = 1;
+
         // loop over list of all neighbors within force cutoff
- 
         for (jj = 0; jj < jnum; jj++) {
           j = jlist[jj];
           j &= NEIGHMASK;

@@ -156,7 +156,7 @@ void DipoleLongLJT::loop(const bool _eflag, const bool _vflag) {
                           &this->ans->force, &this->ans->engv, &eflag, &vflag,
                           &ainum, &nbor_pitch, &this->atom->q,
                           &this->atom->quat, &cutsq, &_cut_coulsq,
-                          &_qqrd2e, &this->_threads_per_atom);
+                          &_qqrd2e, &_g_ewald, &this->_threads_per_atom);
   } else {
     this->k_pair.set_size(GX,BX);
     this->k_pair.run(&this->atom->x, &lj1, &lj3,
@@ -165,7 +165,7 @@ void DipoleLongLJT::loop(const bool _eflag, const bool _vflag) {
                      &this->ans->engv, &eflag, &vflag, &ainum,
                      &nbor_pitch, &this->atom->q,
                      &this->atom->quat, &cutsq, &_cut_coulsq,
-                     &_qqrd2e, &this->_threads_per_atom);
+                     &_qqrd2e, &_g_ewald, &this->_threads_per_atom);
   }
   this->time_pair.stop();
 }

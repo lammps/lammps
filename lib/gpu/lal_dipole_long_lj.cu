@@ -354,7 +354,7 @@ __kernel void k_dipole_long_lj(const __global numtyp4 *restrict x_,
 
         if (eflag>0) {
           acctyp e = (acctyp)0.0;
-          if (rsq < lj1[mtype].w && factor_coul > (numtyp)0.0) {
+          if (rsq < cut_coulsq && factor_coul > (numtyp)0.0) {
             e = qqrd2e*(b0*g0 + b1*g1 + b2*g2);
             if (factor_coul < (numtyp)1.0) {
               e_coul *= factor_coul;
@@ -608,7 +608,7 @@ __kernel void k_dipole_long_lj_fast(const __global numtyp4 *restrict x_,
 
         if (eflag>0) {
           acctyp e = (acctyp)0.0;
-          if (rsq < lj1[mtype].w && factor_coul > (numtyp)0.0) {
+          if (rsq < cut_coulsq && factor_coul > (numtyp)0.0) {
             e = qqrd2e*(b0*g0 + b1*g1 + b2*g2);
             if (factor_coul < (numtyp)1.0) {
               e_coul *= factor_coul;

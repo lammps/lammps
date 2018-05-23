@@ -164,6 +164,7 @@ void FixNVESpin::init()
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
   dts = 0.25 * update->dt;
+  npairs = npairspin = 0;
 
   // set ptrs on Pair/Spin styles
 

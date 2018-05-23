@@ -173,6 +173,8 @@ void PairSpinExchange::init_style()
     }
   }
 
+  printf("test lattice flag: %d \n",lattice_flag);
+
 }
 
 /* ----------------------------------------------------------------------

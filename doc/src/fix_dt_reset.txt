@@ -19,7 +19,9 @@ Tmin = minimum dt allowed which can be NULL (time units)
 Tmax = maximum dt allowed which can be NULL (time units)
 Xmax = maximum distance for an atom to move in one timestep (distance units)
 zero or more keyword/value pairs may be appended
-keyword = {units} :ul
+keyword = {emax} or {units} :ul
+  {emax} value = Emax
+    Emax = maximum energy change for an atom in one timestep (energy units)
   {units} value = {lattice} or {box}
     lattice = Xmax is defined in lattice units
     box = Xmax is defined in simulation box units :pre
@@ -27,12 +29,14 @@ keyword = {units} :ul
 [Examples:]
 
 fix 5 all dt/reset 10 1.0e-5 0.01 0.1
-fix 5 all dt/reset 10 0.01 2.0 0.2 units box :pre
+fix 5 all dt/reset 10 0.01 2.0 0.2 units box
+fix 5 all dt/reset 5 NULL 0.001 0.5 emax 30 units box :pre
 
 [Description:]
 
 Reset the timestep size every N steps during a run, so that no atom
-moves further than Xmax, based on current atom velocities and forces.
+moves further than Xmax, based on current atom velocities and forces,
+and (optionally) no atom's energy changes more than Emax.
 This can be useful when starting from a configuration with overlapping
 atoms, where forces will be large.  Or it can be useful when running
 an impact simulation where one or more high-energy atoms collide with
@@ -48,7 +52,9 @@ current velocity and force.  Since performing this calculation exactly
 would require the solution to a quartic equation, a cheaper estimate
 is generated.  The estimate is conservative in that the atom's
 displacement is guaranteed not to exceed {Xmax}, though it may be
-smaller.
+smaller. Also, if the {Emax} value is given, for each atom, the
+timestep is limited to a value that allows the atom's energy to change
+by at most {Emax}.
 
 Given this putative timestep for each atom, the minimum timestep value
 across all atoms is computed.  Then the {Tmin} and {Tmax} bounds are
@@ -87,4 +93,4 @@ minimization"_minimize.html.
 
 [Default:]
 
-The option defaults is units = lattice.
+The option defaults is units = lattice, and no energy change limit.

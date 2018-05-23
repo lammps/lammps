@@ -609,7 +609,7 @@ $(OBJ_DIR)/lal_lj_expand_coul_long.o: $(ALL_H) lal_lj_expand_coul_long.h lal_lj_
 $(OBJ_DIR)/lal_lj_expand_coul_long_ext.o: $(ALL_H) lal_lj_expand_coul_long.h lal_lj_expand_coul_long_ext.cpp lal_base_charge.h
 	$(OCL) -o $@ -c lal_lj_expand_coul_long_ext.cpp -I$(OBJ_DIR)
 
-$(BIN_DIR)/ocl_get_devices: ./geryon/ucl_get_devices.cpp
+$(BIN_DIR)/ocl_get_devices: ./geryon/ucl_get_devices.cpp $(OCL_H)
 	$(OCL) -o $@ ./geryon/ucl_get_devices.cpp -DUCL_OPENCL $(OCL_LINK) 
 
 $(OCL_LIB): $(OBJS) $(PTXS)

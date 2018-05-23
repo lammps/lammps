@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstring>
+#include <cstdlib>
 #include "fix_planeforce.h"
 #include "atom.h"
 #include "update.h"
@@ -29,6 +29,8 @@ using namespace FixConst;
 FixPlaneForce::FixPlaneForce(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
+  dynamic_group_allow = 1;
+
   if (narg != 6) error->all(FLERR,"Illegal fix planeforce command");
   xdir = force->numeric(FLERR,arg[3]);
   ydir = force->numeric(FLERR,arg[4]);

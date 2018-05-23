@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "change_box.h"
 #include "atom.h"
 #include "modify.h"
@@ -315,6 +315,9 @@ void ChangeBox::command(int narg, char **arg)
       save_box_state();
 
     } else if (ops[m].style == REMAP) {
+
+      if (modify->check_rigid_group_overlap(groupbit))
+        error->warning(FLERR,"Attempting to remap atoms in rigid bodies");
 
       // convert atoms to lamda coords, using last box state
       // convert atoms back to box coords, using current box state

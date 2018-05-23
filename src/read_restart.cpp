@@ -12,8 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 #include <dirent.h>
 #include "read_restart.h"
 #include "atom.h"
@@ -62,7 +62,7 @@ enum{VERSION,SMALLINT,TAGINT,BIGINT,
      MULTIPROC,MPIIO,PROCSPERFILE,PERPROC,
      IMAGEINT,BOUNDMIN,TIMESTEP,
      ATOM_ID,ATOM_MAP_STYLE,ATOM_MAP_USER,ATOM_SORTFREQ,ATOM_SORTBIN,
-     COMM_MODE,COMM_CUTOFF,COMM_VEL};
+     COMM_MODE,COMM_CUTOFF,COMM_VEL,NO_PAIR};
 
 #define LB_FACTOR 1.1
 
@@ -207,7 +207,13 @@ void ReadRestart::command(int narg, char **arg)
     memory->create(buf,assignedChunkSize,"read_restart:buf");
     mpiio->read((headerOffset+assignedChunkOffset),assignedChunkSize,buf);
     mpiio->close();
-
+    if (!nextra) { // We can actually calculate number of atoms from assignedChunkSize
+      atom->nlocal = 1; // temporarily claim there is one atom...
+      int perAtomSize = avec->size_restart(); // ...so we can get its size
+      atom->nlocal = 0; // restore nlocal to zero atoms
+      int atomCt = (int) (assignedChunkSize / perAtomSize);
+      if (atomCt > atom->nmax) avec->grow(atomCt);
+    }
     m = 0;
     while (m < assignedChunkSize) m += avec->unpack_restart(&buf[m]);
   }
@@ -826,6 +832,12 @@ void ReadRestart::header(int incompatible)
       for (int i = 0; i < nargcopy; i++)
         argcopy[i] = read_string();
       atom->create_avec(style,nargcopy,argcopy,1);
+      if (comm->me ==0) {
+        if (screen) fprintf(screen,"  restoring atom style %s from "
+                            "restart\n", style);
+        if (logfile) fprintf(logfile,"  restoring atom style %s from "
+                             "restart\n", style);
+      }
       for (int i = 0; i < nargcopy; i++) delete [] argcopy[i];
       delete [] argcopy;
       delete [] style;
@@ -942,30 +954,71 @@ void ReadRestart::force_fields()
       style = read_string();
       force->create_pair(style,1);
       delete [] style;
+      if (comm->me ==0) {
+        if (screen) fprintf(screen,"  restoring pair style %s from "
+                            "restart\n", force->pair_style);
+        if (logfile) fprintf(logfile,"  restoring pair style %s from "
+                             "restart\n", force->pair_style);
+      }
       force->pair->read_restart(fp);
+
+    } else if (flag == NO_PAIR) {
+      style = read_string();
+      if (comm->me ==0) {
+        if (screen) fprintf(screen,"  pair style %s stores no "
+                            "restart info\n", style);
+        if (logfile) fprintf(logfile,"  pair style %s stores no "
+                             "restart info\n", style);
+      }
+      force->create_pair("none",0);
+      force->pair_restart = style;
 
     } else if (flag == BOND) {
       style = read_string();
       force->create_bond(style,1);
       delete [] style;
+      if (comm->me ==0) {
+        if (screen) fprintf(screen,"  restoring bond style %s from "
+                            "restart\n", force->bond_style);
+        if (logfile) fprintf(logfile,"  restoring bond style %s from "
+                             "restart\n", force->bond_style);
+      }
       force->bond->read_restart(fp);
 
     } else if (flag == ANGLE) {
       style = read_string();
       force->create_angle(style,1);
       delete [] style;
+      if (comm->me ==0) {
+        if (screen) fprintf(screen,"  restoring angle style %s from "
+                            "restart\n", force->angle_style);
+        if (logfile) fprintf(logfile,"  restoring angle style %s from "
+                             "restart\n", force->angle_style);
+      }
       force->angle->read_restart(fp);
 
     } else if (flag == DIHEDRAL) {
       style = read_string();
       force->create_dihedral(style,1);
       delete [] style;
+      if (comm->me ==0) {
+        if (screen) fprintf(screen,"  restoring dihedral style %s from "
+                            "restart\n", force->dihedral_style);
+        if (logfile) fprintf(logfile,"  restoring dihedral style %s from "
+                             "restart\n", force->dihedral_style);
+      }
       force->dihedral->read_restart(fp);
 
     } else if (flag == IMPROPER) {
       style = read_string();
       force->create_improper(style,1);
       delete [] style;
+      if (comm->me ==0) {
+        if (screen) fprintf(screen,"  restoring improper style %s from "
+                            "restart\n", force->improper_style);
+        if (logfile) fprintf(logfile,"  restoring improper style %s from "
+                             "restart\n", force->improper_style);
+      }
       force->improper->read_restart(fp);
 
     } else error->all(FLERR,
@@ -1010,6 +1063,7 @@ void ReadRestart::file_layout()
         // if the number of ranks that did the writing is different
 
         if (me == 0) {
+          int ndx;
           int *all_written_send_sizes;
           memory->create(all_written_send_sizes,nprocs_file,
                          "write_restart:all_written_send_sizes");
@@ -1019,30 +1073,61 @@ void ReadRestart::file_layout()
 
           fread(all_written_send_sizes,sizeof(int),nprocs_file,fp);
 
-          int init_chunk_number = nprocs_file/nprocs;
-          int num_extra_chunks = nprocs_file - (nprocs*init_chunk_number);
+          if ((nprocs != nprocs_file) && !(atom->nextra_store)) {
+            // nprocs differ, but atom sizes are fixed length, yeah!
+            atom->nlocal = 1; // temporarily claim there is one atom...
+            int perAtomSize = atom->avec->size_restart(); // ...so we can get its size
+            atom->nlocal = 0; // restore nlocal to zero atoms
 
-          for (int i = 0; i < nprocs; i++) {
-            if (i < num_extra_chunks)
-              nproc_chunk_number[i] = init_chunk_number+1;
-            else
-              nproc_chunk_number[i] = init_chunk_number;
-          }
+            bigint total_size = 0;
+            for (int i = 0; i < nprocs_file; ++i) {
+              total_size += all_written_send_sizes[i];
+            }
+            bigint total_ct = total_size / perAtomSize;
 
-          int all_written_send_sizes_index = 0;
-          bigint current_offset = 0;
-          for (int i=0;i<nprocs;i++) {
-            nproc_chunk_offsets[i] = current_offset;
-            nproc_chunk_sizes[i] = 0;
-            for (int j=0;j<nproc_chunk_number[i];j++) {
-              nproc_chunk_sizes[i] +=
-                all_written_send_sizes[all_written_send_sizes_index];
-              current_offset +=
-                (all_written_send_sizes[all_written_send_sizes_index] *
-                 sizeof(double));
-              all_written_send_sizes_index++;
+            bigint base_ct = total_ct / nprocs;
+            bigint leftover_ct = total_ct  - (base_ct * nprocs);
+            bigint current_ByteOffset = 0;
+            base_ct += 1;
+            bigint base_ByteOffset = base_ct * (perAtomSize * sizeof(double));
+            for (ndx = 0; ndx < leftover_ct; ++ndx) {
+              nproc_chunk_offsets[ndx] = current_ByteOffset;
+              nproc_chunk_sizes[ndx] = base_ct * perAtomSize;
+              current_ByteOffset += base_ByteOffset;
+            }
+            base_ct -= 1;
+            base_ByteOffset -= (perAtomSize * sizeof(double));
+            for (; ndx < nprocs; ++ndx) {
+              nproc_chunk_offsets[ndx] = current_ByteOffset;
+              nproc_chunk_sizes[ndx] = base_ct * perAtomSize;
+              current_ByteOffset += base_ByteOffset;
+            }
+          } else { // we have to read in based on how it was written
+            int init_chunk_number = nprocs_file/nprocs;
+            int num_extra_chunks = nprocs_file - (nprocs*init_chunk_number);
+
+            for (int i = 0; i < nprocs; i++) {
+              if (i < num_extra_chunks)
+                nproc_chunk_number[i] = init_chunk_number+1;
+              else
+                nproc_chunk_number[i] = init_chunk_number;
             }
 
+            int all_written_send_sizes_index = 0;
+            bigint current_offset = 0;
+            for (int i=0;i<nprocs;i++) {
+              nproc_chunk_offsets[i] = current_offset;
+              nproc_chunk_sizes[i] = 0;
+              for (int j=0;j<nproc_chunk_number[i];j++) {
+                nproc_chunk_sizes[i] +=
+                  all_written_send_sizes[all_written_send_sizes_index];
+                current_offset +=
+                  (all_written_send_sizes[all_written_send_sizes_index] *
+                   sizeof(double));
+                all_written_send_sizes_index++;
+              }
+
+            }
           }
           memory->destroy(all_written_send_sizes);
           memory->destroy(nproc_chunk_number);

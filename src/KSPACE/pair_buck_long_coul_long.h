@@ -35,7 +35,6 @@ class PairBuckLongCoulLong : public Pair {
   virtual void settings(int, char **);
   void coeff(int, char **);
   void init_style();
-  void init_list(int, class NeighList *);
   double init_one(int, int);
   void write_restart(FILE *);
   void read_restart(FILE *);
@@ -102,9 +101,9 @@ E: Incorrect args for pair coefficients
 
 Self-explanatory.  Check the input script or data file.
 
-E: Pair style buck/long/coul/long requires atom attribute q
+E: Invoking coulombic in pair style buck/long/coul/long requires atom attribute q
 
-The atom style defined does not have this attribute.
+UNDOCUMENTED
 
 E: Pair style requires a KSpace style
 
@@ -119,5 +118,9 @@ E: Pair cutoff < Respa interior cutoff
 
 One or more pairwise cutoffs are too short to use with the specified
 rRESPA cutoffs.
+
+U: Pair style buck/long/coul/long requires atom attribute q
+
+The atom style defined does not have this attribute.
 
 */

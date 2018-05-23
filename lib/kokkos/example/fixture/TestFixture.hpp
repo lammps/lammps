@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 // 
 // ************************************************************************
 //@HEADER
@@ -132,7 +132,7 @@ void test_fixture()
     
     typename FixtureVerifyElemNodeCoord<Device>::value_type result = { 0 , 0 };
 
-    Kokkos::parallel_reduce( fixture.elem_node().dimension_0() , FixtureVerifyElemNodeCoord<Device>( fixture ) , result );
+    Kokkos::parallel_reduce( fixture.elem_node().extent(0) , FixtureVerifyElemNodeCoord<Device>( fixture ) , result );
 
     if ( result.error ) {
       std::cout << "P[" << my_rank << ":" << global_size

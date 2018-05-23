@@ -23,7 +23,7 @@
 #include "force.h"
 #include "math_const.h"
 
-#include <math.h>
+#include <cmath>
 
 #include "lj_sdk_common.h"
 

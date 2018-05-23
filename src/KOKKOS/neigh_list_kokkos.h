@@ -48,7 +48,7 @@ class AtomNeighborsConst
   const int num_neighs;
 
   KOKKOS_INLINE_FUNCTION
-  AtomNeighborsConst(int* const & firstneigh, const int & _num_neighs,
+  AtomNeighborsConst(const int* const & firstneigh, const int & _num_neighs,
                      const int & stride):
   _firstneigh(firstneigh), num_neighs(_num_neighs), _stride(stride) {};
   KOKKOS_INLINE_FUNCTION
@@ -68,23 +68,26 @@ class NeighListKokkos: public NeighList {
 public:
   int maxneighs;
 
-  void clean_copy();
   void grow(int nmax);
   typename ArrayTypes<Device>::t_neighbors_2d d_neighbors;
   typename DAT::tdual_int_1d k_ilist;   // local indices of I atoms
   typename ArrayTypes<Device>::t_int_1d d_ilist;
   typename ArrayTypes<Device>::t_int_1d d_numneigh; // # of J neighs for each I
 
-  NeighListKokkos(class LAMMPS *lmp):
-  NeighList(lmp) {_stride = 1; maxneighs = 16; kokkos = 1; maxatoms = 0;
-                  execution_space = ExecutionSpaceFromDevice<Device>::space;
-  };
-  ~NeighListKokkos() {numneigh = NULL; ilist = NULL;};
+  NeighListKokkos(class LAMMPS *lmp);
 
   KOKKOS_INLINE_FUNCTION
   AtomNeighbors get_neighbors(const int &i) const {
     return AtomNeighbors(&d_neighbors(i,0),d_numneigh(i),
                          &d_neighbors(i,1)-&d_neighbors(i,0));
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  static AtomNeighborsConst static_neighbors_const(int i,
+           typename ArrayTypes<Device>::t_neighbors_2d_const const& d_neighbors,
+           typename ArrayTypes<Device>::t_int_1d_const const& d_numneigh) {
+    return AtomNeighborsConst(&d_neighbors(i,0),d_numneigh(i),
+                              &d_neighbors(i,1)-&d_neighbors(i,0));
   }
 
   KOKKOS_INLINE_FUNCTION

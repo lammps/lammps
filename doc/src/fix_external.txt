@@ -131,6 +131,11 @@ forces added by this fix in a consistent manner.  I.e. there is a
 decrease in potential energy when atoms move in the direction of the
 added force.
 
+The "fix_modify"_fix_modify.html {virial} option is supported by this
+fix to add the contribution due to the interactions computed by the
+external program to the system's virial as part of "thermodynamic
+output"_thermo_style.html. The default is {virial yes}
+
 This fix computes a global scalar which can be accessed by various
 "output commands"_Section_howto.html#howto_15.  The scalar is the
 potential energy discussed above.  The scalar stored by this fix

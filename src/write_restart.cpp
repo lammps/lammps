@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <string.h>
+#include <cstring>
 #include "write_restart.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -61,9 +61,7 @@ enum{VERSION,SMALLINT,TAGINT,BIGINT,
      MULTIPROC,MPIIO,PROCSPERFILE,PERPROC,
      IMAGEINT,BOUNDMIN,TIMESTEP,
      ATOM_ID,ATOM_MAP_STYLE,ATOM_MAP_USER,ATOM_SORTFREQ,ATOM_SORTBIN,
-     COMM_MODE,COMM_CUTOFF,COMM_VEL};
-
-enum{IGNORE,WARN,ERROR};                    // same as thermo.cpp
+     COMM_MODE,COMM_CUTOFF,COMM_VEL,NO_PAIR};
 
 /* ---------------------------------------------------------------------- */
 
@@ -95,6 +93,7 @@ void WriteRestart::command(int narg, char **arg)
   if ((ptr = strchr(arg[0],'*'))) {
     *ptr = '\0';
     sprintf(file,"%s" BIGINT_FORMAT "%s",arg[0],update->ntimestep,ptr+1);
+    *ptr = '*'; // must restore arg[0] so it can be correctly parsed below
   } else strcpy(file,arg[0]);
 
   // check for multiproc output and an MPI-IO filename
@@ -185,7 +184,7 @@ void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller,
     if (strcmp(arg[iarg],"fileper") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal write_restart command");
       if (!multiproc)
-	error->all(FLERR,"Cannot use write_restart fileper "
+        error->all(FLERR,"Cannot use write_restart fileper "
                    "without % in restart file name");
       int nper = force->inumeric(FLERR,arg[iarg+1]);
       if (nper <= 0) error->all(FLERR,"Illegal write_restart command");
@@ -203,7 +202,7 @@ void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller,
     } else if (strcmp(arg[iarg],"nfile") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal write_restart command");
       if (!multiproc)
-	error->all(FLERR,"Cannot use write_restart nfile "
+        error->all(FLERR,"Cannot use write_restart nfile "
                    "without % in restart file name");
       int nfile = force->inumeric(FLERR,arg[iarg+1]);
       if (nfile <= 0) error->all(FLERR,"Illegal write_restart command");
@@ -251,7 +250,7 @@ void WriteRestart::write(char *file)
 
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
-  if (natoms != atom->natoms && output->thermo->lostflag == ERROR)
+  if (natoms != atom->natoms && output->thermo->lostflag == Thermo::ERROR)
     error->all(FLERR,"Atom count is inconsistent, cannot write restart file");
 
   // open single restart file or base file for multiproc case
@@ -554,9 +553,13 @@ void WriteRestart::type_arrays()
 
 void WriteRestart::force_fields()
 {
-  if (force->pair && force->pair->restartinfo) {
-    write_string(PAIR,force->pair_style);
-    force->pair->write_restart(fp);
+  if (force->pair) {
+    if (force->pair->restartinfo) {
+      write_string(PAIR,force->pair_style);
+      force->pair->write_restart(fp);
+    } else {
+      write_string(NO_PAIR,force->pair_style);
+    }
   }
   if (atom->avec->bonds_allow && force->bond) {
     write_string(BOND,force->bond_style);

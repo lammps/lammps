@@ -117,7 +117,6 @@ void FixLangevinSpin::init()
 {
   // fix_langevin_spin has to be the last defined fix
   
-  int after = 0;
   int flag_force = 0;
   int flag_lang = 0;
   for (int i = 0; i < modify->nfix; i++) { 
@@ -172,9 +171,9 @@ void FixLangevinSpin::add_tdamping(double spi[3], double fmi[3])
 void FixLangevinSpin::add_temperature(double fmi[3]) 
 {
 
-  double rx = sigma*(-1.0+2.0*random->uniform());
-  double ry = sigma*(-1.0+2.0*random->uniform());
-  double rz = sigma*(-1.0+2.0*random->uniform());
+  double rx = sigma*(2.0*random->uniform() - 1.0);
+  double ry = sigma*(2.0*random->uniform() - 1.0);
+  double rz = sigma*(2.0*random->uniform() - 1.0);
 
   // adding the random field 
 

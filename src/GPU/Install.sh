@@ -113,6 +113,8 @@ action pair_soft_gpu.cpp
 action pair_soft_gpu.h
 action pair_sw_gpu.cpp pair_sw.cpp
 action pair_sw_gpu.h pair_sw.h
+action pair_vashishta_gpu.cpp pair_vashishta.cpp
+action pair_vashishta_gpu.h pair_vashishta.h
 action pair_table_gpu.cpp pair_table.cpp
 action pair_table_gpu.h pair_table.cpp
 action pair_tersoff_gpu.cpp pair_tersoff.cpp
@@ -129,6 +131,8 @@ action pair_zbl_gpu.cpp
 action pair_zbl_gpu.h
 action pppm_gpu.cpp pppm.cpp
 action pppm_gpu.h pppm.cpp
+action pair_ufm_gpu.cpp
+action pair_ufm_gpu.h
 
 # edit 2 Makefile.package files to include/exclude package info
 

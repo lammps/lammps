@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_morse_smooth_linear.h"
 #include "atom.h"
 #include "comm.h"
@@ -104,7 +104,7 @@ void PairMorseSmoothLinear::compute(int eflag, int vflag)
         dexp = exp(-alpha[itype][jtype] * dr);
 
         fpartial = morse1[itype][jtype] * (dexp*dexp - dexp) / r;
-        fpair = factor_lj * ( fpartial - der_at_cutoff[itype][jtype] / r);
+        fpair = factor_lj * ( fpartial + der_at_cutoff[itype][jtype] / r);
 
         f[i][0] += delx*fpair;
         f[i][1] += dely*fpair;
@@ -118,7 +118,7 @@ void PairMorseSmoothLinear::compute(int eflag, int vflag)
         if (eflag) {
           evdwl = d0[itype][jtype] * (dexp*dexp - 2.0*dexp) -
             offset[itype][jtype];
-          evdwl += ( r - cut[itype][jtype] ) * der_at_cutoff[itype][jtype];
+          evdwl -= ( r - cut[itype][jtype] ) * der_at_cutoff[itype][jtype];
           evdwl *= factor_lj;
         }
 
@@ -171,7 +171,7 @@ void PairMorseSmoothLinear::settings(int narg, char **arg)
   if (allocated) {
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
-      for (j = i+1; j <= atom->ntypes; j++)
+      for (j = i; j <= atom->ntypes; j++)
         if (setflag[i][j]) cut[i][j] = cut_global;
   }
 }
@@ -223,7 +223,7 @@ double PairMorseSmoothLinear::init_one(int i, int j)
   morse1[i][j] = 2.0*d0[i][j]*alpha[i][j];
 
   double alpha_dr = -alpha[i][j] * (cut[i][j] - r0[i][j]);
-    
+
   offset[i][j]        = d0[i][j] * (exp(2.0*alpha_dr) - 2.0*exp(alpha_dr));
   der_at_cutoff[i][j] = -2.0*alpha[i][j]*d0[i][j] * (exp(2.0*alpha_dr) - exp(alpha_dr));
 
@@ -296,7 +296,6 @@ void PairMorseSmoothLinear::read_restart(FILE *fp)
 void PairMorseSmoothLinear::write_restart_settings(FILE *fp)
 {
   fwrite(&cut_global,sizeof(double),1,fp);
-  // fwrite(&offset_flag,sizeof(int),1,fp);
   fwrite(&mix_flag,sizeof(int),1,fp);
 }
 
@@ -308,11 +307,9 @@ void PairMorseSmoothLinear::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
     fread(&cut_global,sizeof(double),1,fp);
-    // fread(&offset_flag,sizeof(int),1,fp);
     fread(&mix_flag,sizeof(int),1,fp);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
-  // MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
 }
 
@@ -349,10 +346,11 @@ double PairMorseSmoothLinear::single(int i, int j, int itype, int jtype, double 
   r = sqrt(rsq);
   dr = r - r0[itype][jtype];
   dexp = exp(-alpha[itype][jtype] * dr);
-  fforce = factor_lj * morse1[itype][jtype] * (dexp*dexp - dexp) / r;
+  fforce = factor_lj * (morse1[itype][jtype] * (dexp*dexp - dexp)
+                        + der_at_cutoff[itype][jtype]) / r;
 
   phi = d0[itype][jtype] * (dexp*dexp - 2.0*dexp) - offset[itype][jtype];
-  dr = cut[itype][jtype] - r0[itype][jtype];
+  dr = cut[itype][jtype] - r;
   phi += dr * der_at_cutoff[itype][jtype];
 
   return factor_lj*phi;

@@ -12,8 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include "compute_temp_profile.h"
 #include "atom.h"
 #include "update.h"
@@ -360,6 +360,15 @@ void ComputeTempProfile::remove_bias(int i, double *v)
 }
 
 /* ----------------------------------------------------------------------
+   remove velocity bias from atom I to leave thermal velocity
+------------------------------------------------------------------------- */
+
+void ComputeTempProfile::remove_bias_thr(int i, double *v, double *)
+{
+  remove_bias(i,v);
+}
+
+/* ----------------------------------------------------------------------
    remove velocity bias from all atoms to leave thermal velocity
 ------------------------------------------------------------------------- */
 
@@ -390,6 +399,16 @@ void ComputeTempProfile::restore_bias(int i, double *v)
   if (xflag) v[0] += binave[ibin][ivx];
   if (yflag) v[1] += binave[ibin][ivy];
   if (zflag) v[2] += binave[ibin][ivz];
+}
+
+/* ----------------------------------------------------------------------
+   add back in velocity bias to atom I removed by remove_bias_thr()
+   assume remove_bias_thr() was previously called
+------------------------------------------------------------------------- */
+
+void ComputeTempProfile::restore_bias_thr(int i, double *v, double *)
+{
+  restore_bias(i,v);
 }
 
 /* ----------------------------------------------------------------------

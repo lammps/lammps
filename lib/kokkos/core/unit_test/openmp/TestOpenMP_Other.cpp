@@ -1,3 +1,4 @@
+
 /*
 //@HEADER
 // ************************************************************************
@@ -35,178 +36,105 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
 */
 
-#include <openmp/TestOpenMP.hpp>
+#include<openmp/TestOpenMP_Category.hpp>
+#include<TestTemplateMetaFunctions.hpp>
+#include<TestAggregate.hpp>
+#include<TestMemoryPool.hpp>
+#include<TestCXX11.hpp>
+#include<TestTile.hpp>
+
+#include<TestViewCtorPropEmbeddedDim.hpp>
+
+#include <mutex>
 
 namespace Test {
 
-TEST_F( openmp, init )
+TEST_F( openmp, partition_master )
 {
-  ;
-}
+  using Mutex = Kokkos::Experimental::MasterLock<Kokkos::OpenMP>;
 
-TEST_F( openmp, mdrange_for )
-{
-  Kokkos::Timer timer;
-  TestMDRange_2D< Kokkos::OpenMP >::test_for2( 10000, 1000 );
-  std::cout << " 2D: " << timer.seconds() << std::endl;
+  Mutex mtx;
+  int errors = 0;
 
-  timer.reset();
-  TestMDRange_3D< Kokkos::OpenMP >::test_for3( 100, 100, 1000 );
-  std::cout << " 3D: " << timer.seconds() << std::endl;
+  auto master = [&errors, &mtx](int partition_id, int num_partitions) {
 
-  timer.reset();
-  TestMDRange_4D< Kokkos::OpenMP >::test_for4( 100, 10, 100, 100 );
-  std::cout << " 4D: " << timer.seconds() << std::endl;
+    const int pool_size = Kokkos::OpenMP::thread_pool_size();
 
-  timer.reset();
-  TestMDRange_5D< Kokkos::OpenMP >::test_for5( 100, 10, 10, 100, 50 );
-  std::cout << " 5D: " << timer.seconds() << std::endl;
-
-  timer.reset();
-  TestMDRange_6D< Kokkos::OpenMP >::test_for6( 10, 10, 10, 10, 50, 50 );
-  std::cout << " 6D: " << timer.seconds() << std::endl;
-}
-
-TEST_F( openmp, mdrange_reduce )
-{
-  TestMDRange_2D< Kokkos::OpenMP >::test_reduce2( 100, 100 );
-  TestMDRange_3D< Kokkos::OpenMP >::test_reduce3( 100, 10, 100 );
-}
-
-TEST_F( openmp, policy_construction )
-{
-  TestRangePolicyConstruction< Kokkos::OpenMP >();
-  TestTeamPolicyConstruction< Kokkos::OpenMP >();
-}
-
-TEST_F( openmp, range_tag )
-{
-  TestRange< Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Static> >::test_for( 0 );
-  TestRange< Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Static> >::test_reduce( 0 );
-  TestRange< Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Static> >::test_scan( 0 );
-  TestRange< Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Dynamic> >::test_for( 0 );
-  TestRange< Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Dynamic> >::test_reduce( 0 );
-  TestRange< Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Dynamic> >::test_scan( 0 );
-  TestRange< Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Dynamic> >::test_dynamic_policy( 0 );
-
-  TestRange< Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Static> >::test_for( 2 );
-  TestRange< Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Static> >::test_reduce( 2 );
-  TestRange< Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Static> >::test_scan( 2 );
-
-  TestRange< Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Dynamic> >::test_for( 3 );
-  TestRange< Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Dynamic> >::test_reduce( 3 );
-  TestRange< Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Dynamic> >::test_scan( 3 );
-  TestRange< Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Dynamic> >::test_dynamic_policy( 3 );
-
-  TestRange< Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Static> >::test_for( 1000 );
-  TestRange< Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Static> >::test_reduce( 1000 );
-  TestRange< Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Static> >::test_scan( 1000 );
-
-  TestRange< Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Dynamic> >::test_for( 1001 );
-  TestRange< Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Dynamic> >::test_reduce( 1001 );
-  TestRange< Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Dynamic> >::test_scan( 1001 );
-  TestRange< Kokkos::OpenMP, Kokkos::Schedule<Kokkos::Dynamic> >::test_dynamic_policy( 1000 );
-}
-
-//----------------------------------------------------------------------------
-
-TEST_F( openmp, compiler_macros )
-{
-  ASSERT_TRUE( ( TestCompilerMacros::Test< Kokkos::OpenMP >() ) );
-}
-
-//----------------------------------------------------------------------------
-
-TEST_F( openmp, memory_pool )
-{
-  bool val = TestMemoryPool::test_mempool< Kokkos::OpenMP >( 128, 128000000 );
-  ASSERT_TRUE( val );
-
-  TestMemoryPool::test_mempool2< Kokkos::OpenMP >( 64, 4, 1000000, 2000000 );
-
-  TestMemoryPool::test_memory_exhaustion< Kokkos::OpenMP >();
-}
-
-//----------------------------------------------------------------------------
-
-#if defined( KOKKOS_ENABLE_TASKDAG )
-
-TEST_F( openmp, task_fib )
-{
-  for ( int i = 0; i < 25; ++i ) {
-    TestTaskScheduler::TestFib< Kokkos::OpenMP >::run( i, ( i + 1 ) * ( i + 1 ) * 10000 );
-  }
-}
-
-TEST_F( openmp, task_depend )
-{
-  for ( int i = 0; i < 25; ++i ) {
-    TestTaskScheduler::TestTaskDependence< Kokkos::OpenMP >::run( i );
-  }
-}
-
-TEST_F( openmp, task_team )
-{
-  TestTaskScheduler::TestTaskTeam< Kokkos::OpenMP >::run( 1000 );
-  //TestTaskScheduler::TestTaskTeamValue< Kokkos::OpenMP >::run( 1000 ); // Put back after testing.
-}
-
-#endif /* #if defined( KOKKOS_ENABLE_TASKDAG ) */
-
-//----------------------------------------------------------------------------
-
-#if defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMP )
-TEST_F( openmp, cxx11 )
-{
-  if ( std::is_same< Kokkos::DefaultExecutionSpace, Kokkos::OpenMP >::value ) {
-    ASSERT_TRUE( ( TestCXX11::Test< Kokkos::OpenMP >( 1 ) ) );
-    ASSERT_TRUE( ( TestCXX11::Test< Kokkos::OpenMP >( 2 ) ) );
-    ASSERT_TRUE( ( TestCXX11::Test< Kokkos::OpenMP >( 3 ) ) );
-    ASSERT_TRUE( ( TestCXX11::Test< Kokkos::OpenMP >( 4 ) ) );
-  }
-}
-#endif
-
-TEST_F( openmp, tile_layout )
-{
-  TestTile::test< Kokkos::OpenMP, 1, 1 >( 1, 1 );
-  TestTile::test< Kokkos::OpenMP, 1, 1 >( 2, 3 );
-  TestTile::test< Kokkos::OpenMP, 1, 1 >( 9, 10 );
-
-  TestTile::test< Kokkos::OpenMP, 2, 2 >( 1, 1 );
-  TestTile::test< Kokkos::OpenMP, 2, 2 >( 2, 3 );
-  TestTile::test< Kokkos::OpenMP, 2, 2 >( 4, 4 );
-  TestTile::test< Kokkos::OpenMP, 2, 2 >( 9, 9 );
-
-  TestTile::test< Kokkos::OpenMP, 2, 4 >( 9, 9 );
-  TestTile::test< Kokkos::OpenMP, 4, 2 >( 9, 9 );
-
-  TestTile::test< Kokkos::OpenMP, 4, 4 >( 1, 1 );
-  TestTile::test< Kokkos::OpenMP, 4, 4 >( 4, 4 );
-  TestTile::test< Kokkos::OpenMP, 4, 4 >( 9, 9 );
-  TestTile::test< Kokkos::OpenMP, 4, 4 >( 9, 11 );
-
-  TestTile::test< Kokkos::OpenMP, 8, 8 >( 1, 1 );
-  TestTile::test< Kokkos::OpenMP, 8, 8 >( 4, 4 );
-  TestTile::test< Kokkos::OpenMP, 8, 8 >( 9, 9 );
-  TestTile::test< Kokkos::OpenMP, 8, 8 >( 9, 11 );
-}
-
-TEST_F( openmp, dispatch )
-{
-  const int repeat = 100;
-  for ( int i = 0; i < repeat; ++i ) {
-    for ( int j = 0; j < repeat; ++j ) {
-      Kokkos::parallel_for( Kokkos::RangePolicy< Kokkos::OpenMP >( 0, j )
-                          , KOKKOS_LAMBDA( int ) {} );
+    {
+      std::unique_lock<Mutex> lock(mtx);
+      if ( Kokkos::OpenMP::in_parallel() ) {
+        ++errors;
+      }
+      if ( Kokkos::OpenMP::thread_pool_rank() != 0 ) {
+        ++errors;
+      }
     }
-  }
+
+    {
+      int local_errors = 0;
+      Kokkos::parallel_reduce( Kokkos::RangePolicy<Kokkos::OpenMP>(0,1000)
+                           , [pool_size]( const int , int & errs ) {
+          if ( Kokkos::OpenMP::thread_pool_size() != pool_size ) {
+            ++errs;
+          }
+        }
+        , local_errors
+      );
+      Kokkos::atomic_add( &errors, local_errors );
+    }
+
+    Kokkos::Experimental::UniqueToken< Kokkos::OpenMP > token;
+
+    Kokkos::View<int*, Kokkos::OpenMP> count( "",  token.size() );
+
+    Kokkos::parallel_for( Kokkos::RangePolicy<Kokkos::OpenMP>(0,1000),
+        [=] ( const int ) {
+      int i = token.acquire();
+      ++count[i];
+      token.release(i);
+    });
+
+    Kokkos::View<int,Kokkos::OpenMP> sum ("");
+    Kokkos::parallel_for( Kokkos::RangePolicy<Kokkos::OpenMP>(0,token.size()),
+        [=] ( const int i ) {
+      Kokkos::atomic_add( sum.data(), count[i] );
+    });
+
+    if (sum() != 1000) {
+      Kokkos::atomic_add( &errors, 1 );
+    }
+  };
+
+  master(0,1);
+
+  ASSERT_EQ( errors, 0 );
+
+  Kokkos::OpenMP::partition_master( master );
+  ASSERT_EQ( errors, 0 );
+
+  Kokkos::OpenMP::partition_master( master, 4, 0 );
+  ASSERT_EQ( errors, 0 );
+
+  Kokkos::OpenMP::partition_master( master, 0, 4 );
+  ASSERT_EQ( errors, 0 );
+
+  Kokkos::OpenMP::partition_master( master, 2, 2 );
+  ASSERT_EQ( errors, 0 );
+
+  Kokkos::OpenMP::partition_master( master, 8, 0 );
+  ASSERT_EQ( errors, 0 );
+
+  Kokkos::OpenMP::partition_master( master, 0, 8 );
+  ASSERT_EQ( errors, 0 );
+
+  Kokkos::OpenMP::partition_master( master, 8, 8 );
+  ASSERT_EQ( errors, 0 );
 }
 
 } // namespace Test

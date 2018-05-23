@@ -11,11 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include <signal.h>
+#include <cstdio>
+#include <cstring>
+#include <cstdlib>
+#include <cctype>
+#include <csignal>
 #include <unistd.h>
 #include "kokkos.h"
 #include "lammps.h"
@@ -23,6 +23,7 @@
 #include "neighbor_kokkos.h"
 #include "neigh_list_kokkos.h"
 #include "error.h"
+#include "memory_kokkos.h"
 
 using namespace LAMMPS_NS;
 
@@ -32,6 +33,10 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 {
   kokkos_exists = 1;
   lmp->kokkos = this;
+
+  delete memory;
+  memory = new MemoryKokkos(lmp);
+  memoryKK = (MemoryKokkos*) memory;
 
   auto_sync = 1;
 
@@ -108,13 +113,14 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 #ifdef KOKKOS_HAVE_CUDA
   if (ngpu <= 0)
     error->all(FLERR,"Kokkos has been compiled for CUDA but no GPUs are requested");
-
-  Kokkos::HostSpace::execution_space::initialize(num_threads,numa);
-  Kokkos::Cuda::SelectDevice select_device(device);
-  Kokkos::Cuda::initialize(select_device);
-#else
-  LMPHostType::initialize(num_threads,numa);
 #endif
+
+  Kokkos::InitArguments args;
+  args.num_threads = num_threads;
+  args.num_numa = numa;
+  args.device_id = device;
+
+  Kokkos::initialize(args);
 
   // default settings for package kokkos command
 
@@ -123,8 +129,10 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   neighflag_qeq_set = 0;
   exchange_comm_classic = 0;
   forward_comm_classic = 0;
+  reverse_comm_classic = 0;
   exchange_comm_on_host = 0;
   forward_comm_on_host = 0;
+  reverse_comm_on_host = 0;
 
 #ifdef KILL_KOKKOS_ON_SIGSEGV
   signal(SIGSEGV, my_signal_handler);
@@ -137,12 +145,7 @@ KokkosLMP::~KokkosLMP()
 {
   // finalize Kokkos
 
-#ifdef KOKKOS_HAVE_CUDA
-  Kokkos::Cuda::finalize();
-  Kokkos::HostSpace::execution_space::finalize();
-#else
-  LMPHostType::finalize();
-#endif
+  Kokkos::finalize();
 }
 
 /* ----------------------------------------------------------------------
@@ -158,8 +161,8 @@ void KokkosLMP::accelerator(int narg, char **arg)
   neighflag_qeq_set = 0;
   int newtonflag = 0;
   double binsize = 0.0;
-  exchange_comm_classic = forward_comm_classic = 0;
-  exchange_comm_on_host = forward_comm_on_host = 0;
+  exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 0;
+  exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 0;
 
   int iarg = 0;
   while (iarg < narg) {
@@ -169,7 +172,7 @@ void KokkosLMP::accelerator(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"half") == 0) {
         if (num_threads > 1 || ngpu > 0)
           neighflag = HALFTHREAD;
-        else 
+        else
           neighflag = HALF;
       } else if (strcmp(arg[iarg+1],"n2") == 0) neighflag = N2;
       else error->all(FLERR,"Illegal package kokkos command");
@@ -181,7 +184,7 @@ void KokkosLMP::accelerator(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"half") == 0) {
         if (num_threads > 1 || ngpu > 0)
           neighflag_qeq = HALFTHREAD;
-        else 
+        else
           neighflag_qeq = HALF;
       } else if (strcmp(arg[iarg+1],"n2") == 0) neighflag_qeq = N2;
       else error->all(FLERR,"Illegal package kokkos command");
@@ -200,13 +203,13 @@ void KokkosLMP::accelerator(int narg, char **arg)
     } else if (strcmp(arg[iarg],"comm") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
       if (strcmp(arg[iarg+1],"no") == 0) {
-        exchange_comm_classic = forward_comm_classic = 1;
+        exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 1;
       } else if (strcmp(arg[iarg+1],"host") == 0) {
-        exchange_comm_classic = forward_comm_classic = 0;
-        exchange_comm_on_host = forward_comm_on_host = 1;
+        exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 0;
+        exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 1;
       } else if (strcmp(arg[iarg+1],"device") == 0) {
-        exchange_comm_classic = forward_comm_classic = 0;
-        exchange_comm_on_host = forward_comm_on_host = 0;
+        exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 0;
+        exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 0;
       } else error->all(FLERR,"Illegal package kokkos command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"comm/exchange") == 0) {
@@ -229,6 +232,17 @@ void KokkosLMP::accelerator(int narg, char **arg)
       } else if (strcmp(arg[iarg+1],"device") == 0) {
         forward_comm_classic = 0;
         forward_comm_on_host = 0;
+      } else error->all(FLERR,"Illegal package kokkos command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"comm/reverse") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
+      if (strcmp(arg[iarg+1],"no") == 0) reverse_comm_classic = 1;
+      else if (strcmp(arg[iarg+1],"host") == 0) {
+        reverse_comm_classic = 0;
+        reverse_comm_on_host = 1;
+      } else if (strcmp(arg[iarg+1],"device") == 0) {
+        reverse_comm_classic = 0;
+        reverse_comm_on_host = 0;
       } else error->all(FLERR,"Illegal package kokkos command");
       iarg += 2;
     } else error->all(FLERR,"Illegal package kokkos command");

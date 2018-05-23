@@ -21,10 +21,10 @@
    The simplification is that all normals are taken along the z-direction
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_kolmogorov_crespi_z.h"
 #include "atom.h"
 #include "comm.h"
@@ -43,6 +43,7 @@ using namespace LAMMPS_NS;
 PairKolmogorovCrespiZ::PairKolmogorovCrespiZ(LAMMPS *lmp) : Pair(lmp)
 {
   writedata = 1;
+  restartinfo = 0;
 
   // initialize element to parameter maps
   nelements = 0;
@@ -53,7 +54,7 @@ PairKolmogorovCrespiZ::PairKolmogorovCrespiZ(LAMMPS *lmp) : Pair(lmp)
   map = NULL;
 
   // always compute energy offset
-  offset_flag = true;
+  offset_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -209,7 +210,7 @@ void PairKolmogorovCrespiZ::settings(int narg, char **arg)
   if (allocated) {
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
-      for (j = i+1; j <= atom->ntypes; j++)
+      for (j = i; j <= atom->ntypes; j++)
         if (setflag[i][j]) cut[i][j] = cut_global;
   }
 }
@@ -285,7 +286,7 @@ double PairKolmogorovCrespiZ::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
-  if (offset_flag) {
+  if (offset_flag && (cut[i][j] > 0.0)) {
     int iparam_ij = elem2param[map[i]][map[j]];
     Param& p = params[iparam_ij];
     offset[i][j] = -p.A*pow(p.z0/cut[i][j],6);

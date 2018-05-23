@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -35,11 +35,14 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
+//
 // ************************************************************************
 //@HEADER
 */
+
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_THREADS
 
 #include <gtest/gtest.h>
 
@@ -55,31 +58,15 @@
 
 namespace Test {
 
-#ifdef KOKKOS_ENABLE_PTHREAD
 class threads : public ::testing::Test {
 protected:
   static void SetUpTestCase()
   {
     std::cout << std::setprecision(5) << std::scientific;
-
-    unsigned num_threads = 4;
-
-    if (Kokkos::hwloc::available()) {
-      num_threads = Kokkos::hwloc::get_available_numa_count()
-                    * Kokkos::hwloc::get_available_cores_per_numa()
-                 // * Kokkos::hwloc::get_available_threads_per_core()
-                    ;
-
-    }
-
-    std::cout << "Threads: " << num_threads << std::endl;
-
-    Kokkos::Threads::initialize( num_threads );
   }
 
   static void TearDownTestCase()
   {
-    Kokkos::Threads::finalize();
   }
 };
 
@@ -107,7 +94,9 @@ THREADS_SORT_UNSIGNED(171)
 #undef THREADS_RANDOM_XORSHIFT1024
 #undef THREADS_SORT_UNSIGNED
 
-#endif
 } // namespace Test
+#else
+void KOKKOS_ALGORITHMS_UNITTESTS_TESTTHREADS_PREVENT_LINK_ERROR() {}
+#endif
 
 

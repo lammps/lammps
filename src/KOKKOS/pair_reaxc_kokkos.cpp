@@ -15,10 +15,10 @@
    Contributing author: Ray Shan (SNL), Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_reaxc_kokkos.h"
 #include "kokkos.h"
 #include "atom_kokkos.h"
@@ -32,12 +32,13 @@
 #include "respa.h"
 #include "math_const.h"
 #include "math_special.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
 #include "reaxc_defs.h"
 #include "reaxc_lookup.h"
 #include "reaxc_tool_box.h"
+#include "modify.h"
 
 
 #define TEAMSIZE 128
@@ -81,13 +82,24 @@ PairReaxCKokkos<DeviceType>::~PairReaxCKokkos()
 {
   if (copymode) return;
 
-  memory->destroy_kokkos(k_eatom,eatom);
-  memory->destroy_kokkos(k_vatom,vatom);
+  memoryKK->destroy_kokkos(k_eatom,eatom);
+  memoryKK->destroy_kokkos(k_vatom,vatom);
 
-  memory->destroy_kokkos(k_tmpid,tmpid);
+  memoryKK->destroy_kokkos(k_tmpid,tmpid);
   tmpid = NULL;
-  memory->destroy_kokkos(k_tmpbo,tmpbo);
+  memoryKK->destroy_kokkos(k_tmpbo,tmpbo);
   tmpbo = NULL;
+
+  // deallocate views of views in serial to prevent race condition in profiling tools
+
+  for (int i = 0; i < k_LR.extent(0); i++) {
+    for (int j = 0; j < k_LR.extent(1); j++) {
+      k_LR.h_view(i,j).d_vdW    = decltype(k_LR.h_view(i,j).d_vdW   )();
+      k_LR.h_view(i,j).d_CEvd   = decltype(k_LR.h_view(i,j).d_CEvd  )();
+      k_LR.h_view(i,j).d_ele    = decltype(k_LR.h_view(i,j).d_ele   )();
+      k_LR.h_view(i,j).d_CEclmb = decltype(k_LR.h_view(i,j).d_CEclmb)();
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -99,26 +111,26 @@ void PairReaxCKokkos<DeviceType>::allocate()
 
   k_params_sing = Kokkos::DualView<params_sing*,typename DeviceType::array_layout,DeviceType>
     ("PairReaxC::params_sing",n+1);
-  paramssing = k_params_sing.d_view;
+  paramssing = k_params_sing.template view<DeviceType>();
 
   k_params_twbp = Kokkos::DualView<params_twbp**,typename DeviceType::array_layout,DeviceType>
     ("PairReaxC::params_twbp",n+1,n+1);
-  paramstwbp = k_params_twbp.d_view;
+  paramstwbp = k_params_twbp.template view<DeviceType>();
 
   k_params_thbp = Kokkos::DualView<params_thbp***,typename DeviceType::array_layout,DeviceType>
     ("PairReaxC::params_thbp",n+1,n+1,n+1);
-  paramsthbp = k_params_thbp.d_view;
+  paramsthbp = k_params_thbp.template view<DeviceType>();
 
   k_params_fbp = Kokkos::DualView<params_fbp****,typename DeviceType::array_layout,DeviceType>
     ("PairReaxC::params_fbp",n+1,n+1,n+1,n+1);
-  paramsfbp = k_params_fbp.d_view;
+  paramsfbp = k_params_fbp.template view<DeviceType>();
 
   k_params_hbp = Kokkos::DualView<params_hbp***,typename DeviceType::array_layout,DeviceType>
     ("PairReaxC::params_hbp",n+1,n+1,n+1);
-  paramshbp = k_params_hbp.d_view;
+  paramshbp = k_params_hbp.template view<DeviceType>();
 
   k_tap = DAT::tdual_ffloat_1d("pair:tap",8);
-  d_tap = k_tap.d_view;
+  d_tap = k_tap.template view<DeviceType>();
   h_tap = k_tap.h_view;
 
 }
@@ -131,6 +143,8 @@ template<class DeviceType>
 void PairReaxCKokkos<DeviceType>::init_style()
 {
   PairReaxC::init_style();
+  if (fix_reax) modify->delete_fix("REAXC"); // not needed in the Kokkos version
+  fix_reax = NULL;
 
   // irequest = neigh request made by parent class
 
@@ -355,7 +369,7 @@ void PairReaxCKokkos<DeviceType>::init_md()
   k_tap.h_view(3) = 140.0 * (swa3*swb + 3.0*swa2*swb2 + swa*swb3 ) / d7;
   k_tap.h_view(2) =-210.0 * (swa3*swb2 + swa2*swb3) / d7;
   k_tap.h_view(1) = 140.0 * swa3 * swb3 / d7;
-  k_tap.h_view(0) = (-35.0*swa3*swb2*swb2 + 21.0*swa2*swb3*swb2 +
+  k_tap.h_view(0) = (-35.0*swa3*swb2*swb2 + 21.0*swa2*swb3*swb2 -
                      7.0*swa*swb3*swb3 + swb3*swb3*swb ) / d7;
 
   k_tap.template modify<LMPHostType>();
@@ -367,53 +381,37 @@ void PairReaxCKokkos<DeviceType>::init_md()
 
     Init_Lookup_Tables();
     k_LR = tdual_LR_lookup_table_kk_2d("lookup:LR",ntypes+1,ntypes+1);
-    d_LR = k_LR.d_view;
+    d_LR = k_LR.template view<DeviceType>();
 
     for (int i = 1; i <= ntypes; ++i) {
       for (int j = i; j <= ntypes; ++j) {
         int n = LR[i][j].n;
         if (n == 0) continue;
-        k_LR.h_view(i,j).xmin   = LR[i][j].xmin;
-        k_LR.h_view(i,j).xmax   = LR[i][j].xmax;
-        k_LR.h_view(i,j).n      = LR[i][j].n;
         k_LR.h_view(i,j).dx     = LR[i][j].dx;
         k_LR.h_view(i,j).inv_dx = LR[i][j].inv_dx;
-        k_LR.h_view(i,j).a      = LR[i][j].a;
-        k_LR.h_view(i,j).m      = LR[i][j].m;
-        k_LR.h_view(i,j).c      = LR[i][j].c;
 
-        tdual_LR_data_1d           k_y      = tdual_LR_data_1d("lookup:LR[i,j].y",n);
-        tdual_cubic_spline_coef_1d k_H      = tdual_cubic_spline_coef_1d("lookup:LR[i,j].H",n);
-        tdual_cubic_spline_coef_1d k_vdW    = tdual_cubic_spline_coef_1d("lookup:LR[i,j].vdW",n);
-        tdual_cubic_spline_coef_1d k_CEvd   = tdual_cubic_spline_coef_1d("lookup:LR[i,j].CEvd",n);
-        tdual_cubic_spline_coef_1d k_ele    = tdual_cubic_spline_coef_1d("lookup:LR[i,j].ele",n);
-        tdual_cubic_spline_coef_1d k_CEclmb = tdual_cubic_spline_coef_1d("lookup:LR[i,j].CEclmb",n);
-    
-        k_LR.h_view(i,j).d_y      = k_y.d_view;
-        k_LR.h_view(i,j).d_H      = k_H.d_view;
-        k_LR.h_view(i,j).d_vdW    = k_vdW.d_view;
-        k_LR.h_view(i,j).d_CEvd   = k_CEvd.d_view;
-        k_LR.h_view(i,j).d_ele    = k_ele.d_view;
-        k_LR.h_view(i,j).d_CEclmb = k_CEclmb.d_view;
-    
+        typename LR_lookup_table_kk<DeviceType>::tdual_cubic_spline_coef_1d k_vdW    = typename LR_lookup_table_kk<DeviceType>::tdual_cubic_spline_coef_1d("lookup:LR[i,j].vdW",n);
+        typename LR_lookup_table_kk<DeviceType>::tdual_cubic_spline_coef_1d k_CEvd   = typename LR_lookup_table_kk<DeviceType>::tdual_cubic_spline_coef_1d("lookup:LR[i,j].CEvd",n);
+        typename LR_lookup_table_kk<DeviceType>::tdual_cubic_spline_coef_1d k_ele    = typename LR_lookup_table_kk<DeviceType>::tdual_cubic_spline_coef_1d("lookup:LR[i,j].ele",n);
+        typename LR_lookup_table_kk<DeviceType>::tdual_cubic_spline_coef_1d k_CEclmb = typename LR_lookup_table_kk<DeviceType>::tdual_cubic_spline_coef_1d("lookup:LR[i,j].CEclmb",n);
+
+        k_LR.h_view(i,j).d_vdW    = k_vdW.template view<DeviceType>();
+        k_LR.h_view(i,j).d_CEvd   = k_CEvd.template view<DeviceType>();
+        k_LR.h_view(i,j).d_ele    = k_ele.template view<DeviceType>();
+        k_LR.h_view(i,j).d_CEclmb = k_CEclmb.template view<DeviceType>();
+
         for (int k = 0; k < n; k++) {
-          k_y.h_view(k)      = LR[i][j].y[k];
-          k_H.h_view(k)      = LR[i][j].H[k];
           k_vdW.h_view(k)    = LR[i][j].vdW[k];
           k_CEvd.h_view(k)   = LR[i][j].CEvd[k];
           k_ele.h_view(k)    = LR[i][j].ele[k];
           k_CEclmb.h_view(k) = LR[i][j].CEclmb[k];
         }
-    
-        k_y.template modify<LMPHostType>();
-        k_H.template modify<LMPHostType>();
+
         k_vdW.template modify<LMPHostType>();
         k_CEvd.template modify<LMPHostType>();
         k_ele.template modify<LMPHostType>();
         k_CEclmb.template modify<LMPHostType>();
-    
-        k_y.template sync<DeviceType>();
-        k_H.template sync<DeviceType>();
+
         k_vdW.template sync<DeviceType>();
         k_CEvd.template sync<DeviceType>();
         k_ele.template sync<DeviceType>();
@@ -555,8 +553,8 @@ void PairReaxCKokkos<DeviceType>::Deallocate_Lookup_Tables()
 
   ntypes = atom->ntypes;
 
-  for( i = 0; i < ntypes; ++i ) {
-    for( j = i; j < ntypes; ++j )
+  for( i = 0; i <= ntypes; ++i ) {
+    for( j = i; j <= ntypes; ++j )
       if( LR[i][j].n ) {
         sfree( LR[i][j].y, "LR[i,j].y" );
         sfree( LR[i][j].H, "LR[i,j].H" );
@@ -709,8 +707,6 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   d_neighbors = k_list->d_neighbors;
   d_ilist = k_list->d_ilist;
 
-  k_list->clean_copy();
-
   if (eflag_global) {
     for (int i = 0; i < 14; i++)
       pvector[i] = 0.0;
@@ -731,7 +727,6 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputePolar<HALFTHREAD,0> >(0,inum),*this);
   }
-  DeviceType::fence();
   ev_all += ev;
   pvector[13] = ev.ecoul;
 
@@ -771,7 +766,6 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
         Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeLJCoulomb<FULL,0> >(0,inum),*this);
     }
   }
-  DeviceType::fence();
   ev_all += ev;
   pvector[10] = ev.evdwl;
   pvector[11] = ev.ecoul;
@@ -800,7 +794,6 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
     // zero
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxZero>(0,nmax),*this);
-    DeviceType::fence();
 
     if (neighflag == HALF)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBuildListsHalf<HALF> >(0,ignum),*this);
@@ -808,7 +801,6 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBuildListsHalf_LessAtomics<HALFTHREAD> >(0,ignum),*this);
     else //(neighflag == FULL)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBuildListsFull>(0,ignum),*this);
-    DeviceType::fence();
 
     k_resize_bo.modify<DeviceType>();
     k_resize_bo.sync<LMPHostType>();
@@ -827,15 +819,11 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // Bond order
   if (neighflag == HALF) {
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBondOrder1>(0,ignum),*this);
-    DeviceType::fence();
   } else if (neighflag == HALFTHREAD) {
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBondOrder1_LessAtomics>(0,ignum),*this);
-    DeviceType::fence();
   }
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBondOrder2>(0,ignum),*this);
-  DeviceType::fence();
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBondOrder3>(0,ignum),*this);
-  DeviceType::fence();
 
   // Bond energy
   if (neighflag == HALF) {
@@ -843,7 +831,6 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeBond1<HALF,1> >(0,inum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeBond1<HALF,0> >(0,inum),*this);
-    DeviceType::fence();
     ev_all += ev;
     pvector[0] = ev.evdwl;
   } else { //if (neighflag == HALFTHREAD) {
@@ -851,7 +838,6 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeBond1<HALFTHREAD,1> >(0,inum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeBond1<HALFTHREAD,0> >(0,inum),*this);
-    DeviceType::fence();
     ev_all += ev;
     pvector[0] = ev.evdwl;
   }
@@ -859,21 +845,17 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // Multi-body corrections
   if (neighflag == HALF) {
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeMulti1<HALF,0> >(0,inum),*this);
-    DeviceType::fence();
     if (evflag)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeMulti2<HALF,1> >(0,inum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeMulti2<HALF,0> >(0,inum),*this);
-    DeviceType::fence();
     ev_all += ev;
   } else { //if (neighflag == HALFTHREAD) {
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeMulti1<HALFTHREAD,0> >(0,inum),*this);
-    DeviceType::fence();
     if (evflag)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeMulti2<HALFTHREAD,1> >(0,inum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeMulti2<HALFTHREAD,0> >(0,inum),*this);
-    DeviceType::fence();
     ev_all += ev;
   }
   pvector[2] = ev.ereax[0];
@@ -887,14 +869,12 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeAngular<HALF,1> >(0,inum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeAngular<HALF,0> >(0,inum),*this);
-    DeviceType::fence();
     ev_all += ev;
   } else { //if (neighflag == HALFTHREAD) {
     if (evflag)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeAngular<HALFTHREAD,1> >(0,inum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeAngular<HALFTHREAD,0> >(0,inum),*this);
-    DeviceType::fence();
     ev_all += ev;
   }
   pvector[4] = ev.ereax[3];
@@ -908,14 +888,12 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeTorsion<HALF,1> >(0,inum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeTorsion<HALF,0> >(0,inum),*this);
-    DeviceType::fence();
     ev_all += ev;
   } else { //if (neighflag == HALFTHREAD) {
     if (evflag)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeTorsion<HALFTHREAD,1> >(0,inum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeTorsion<HALFTHREAD,0> >(0,inum),*this);
-    DeviceType::fence();
     ev_all += ev;
   }
   pvector[8] = ev.ereax[6];
@@ -929,14 +907,12 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
         Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeHydrogen<HALF,1> >(0,inum),*this,ev);
       else
         Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeHydrogen<HALF,0> >(0,inum),*this);
-      DeviceType::fence();
       ev_all += ev;
     } else { //if (neighflag == HALFTHREAD) {
       if (evflag)
         Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeHydrogen<HALFTHREAD,1> >(0,inum),*this,ev);
       else
         Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeHydrogen<HALFTHREAD,0> >(0,inum),*this);
-      DeviceType::fence();
       ev_all += ev;
     }
   }
@@ -946,22 +922,18 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // Bond force
   if (neighflag == HALF) {
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxUpdateBond<HALF> >(0,ignum),*this);
-    DeviceType::fence();
     if (evflag)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeBond2<HALF,1> >(0,ignum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeBond2<HALF,0> >(0,ignum),*this);
-    DeviceType::fence();
     ev_all += ev;
     pvector[0] += ev.evdwl;
   } else { //if (neighflag == HALFTHREAD) {
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxUpdateBond<HALFTHREAD> >(0,ignum),*this);
-    DeviceType::fence();
     if (evflag)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeBond2<HALFTHREAD,1> >(0,ignum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeBond2<HALFTHREAD,0> >(0,ignum),*this);
-    DeviceType::fence();
     ev_all += ev;
     pvector[0] += ev.evdwl;
   }
@@ -1239,7 +1211,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTabulatedLJCoulomb<N
 
     const int tmin  = MIN( itype, jtype );
     const int tmax  = MAX( itype, jtype );
-    const LR_lookup_table_kk t = d_LR(tmin,tmax);
+    const LR_lookup_table_kk<DeviceType>& t = d_LR(tmin,tmax);
 
 
     /* Cubic Spline Interpolation */
@@ -1363,10 +1335,10 @@ void PairReaxCKokkos<DeviceType>::allocate_array()
 
   // FixReaxCSpecies
   if (fixspecies_flag) {
-    memory->destroy_kokkos(k_tmpid,tmpid);
-    memory->destroy_kokkos(k_tmpbo,tmpbo);
-    memory->create_kokkos(k_tmpid,tmpid,nmax,MAXSPECBOND,"pair:tmpid");
-    memory->create_kokkos(k_tmpbo,tmpbo,nmax,MAXSPECBOND,"pair:tmpbo");
+    memoryKK->destroy_kokkos(k_tmpid,tmpid);
+    memoryKK->destroy_kokkos(k_tmpbo,tmpbo);
+    memoryKK->create_kokkos(k_tmpid,tmpid,nmax,MAXSPECBOND,"pair:tmpid");
+    memoryKK->create_kokkos(k_tmpbo,tmpbo,nmax,MAXSPECBOND,"pair:tmpbo");
   }
 
   // FixReaxCBonds
@@ -1471,6 +1443,8 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBuildListsFull, const int &
         hb_index++;
       }
     }
+
+    if (rsq > cut_bosq) continue;
 
     // bond_list
     const F_FLOAT rij = sqrt(rsq);
@@ -1658,6 +1632,8 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBuildListsHalf<NEIGHFLAG>, 
         d_hb_list[i_index] = i;
       }
     }
+
+    if (rsq > cut_bosq) continue;
 
     // bond_list
     const F_FLOAT rij = sqrt(rsq);
@@ -1880,6 +1856,8 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBuildListsHalf_LessAtomics<
       }
     }
 
+    if (rsq > cut_bosq) continue;
+
     // bond_list
     const F_FLOAT rij = sqrt(rsq);
     const F_FLOAT p_bo1 = paramstwbp(itype,jtype).p_bo1;
@@ -2090,11 +2068,11 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBondOrder2, const int &ii) 
       d_C1dbo(i,j_index) = 1.0;
       d_C2dbo(i,j_index) = 0.0;
       d_C3dbo(i,j_index) = 0.0;
-      d_C1dbopi(i,j_index) = d_BO_pi(i,j_index);
+      d_C1dbopi(i,j_index) = 1.0;
       d_C2dbopi(i,j_index) = 0.0;
       d_C3dbopi(i,j_index) = 0.0;
       d_C4dbopi(i,j_index) = 0.0;
-      d_C1dbopi2(i,j_index) = d_BO_pi(i,j_index);
+      d_C1dbopi2(i,j_index) = 1.0;
       d_C2dbopi2(i,j_index) = 0.0;
       d_C3dbopi2(i,j_index) = 0.0;
       d_C4dbopi2(i,j_index) = 0.0;
@@ -3208,15 +3186,15 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeHydrogen<NEIGHFLAG,E
       for (int d = 0; d < 3; d++) fi_tmp[d] = CEhb2 * dcos_theta_di[d];
       for (int d = 0; d < 3; d++) fj_tmp[d] = CEhb2 * dcos_theta_dj[d];
       for (int d = 0; d < 3; d++) fk_tmp[d] = CEhb2 * dcos_theta_dk[d];
-      
+
       // dr terms
       for (int d = 0; d < 3; d++) fi_tmp[d] -= CEhb3/rik * delik[d];
       for (int d = 0; d < 3; d++) fk_tmp[d] += CEhb3/rik * delik[d];
-      
+
       for (int d = 0; d < 3; d++) fitmp[d] -= fi_tmp[d];
       for (int d = 0; d < 3; d++) a_f(j,d) -= fj_tmp[d];
       for (int d = 0; d < 3; d++) a_f(k,d) -= fk_tmp[d];
-      
+
       for (int d = 0; d < 3; d++) delki[d] = -1.0 * delik[d];
       for (int d = 0; d < 3; d++) delji[d] = -1.0 * delij[d];
       if (eflag_atom) this->template e_tally<NEIGHFLAG>(ev,i,j,e_hb);
@@ -3361,7 +3339,8 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeBond1<NEIGHFLAG,EVFL
     const F_FLOAT BO_pi_i = d_BO_pi(i,j_index);
     const F_FLOAT BO_pi2_i = d_BO_pi2(i,j_index);
 
-    pow_BOs_be2 = pow(BO_s_i,p_be2);
+    if (BO_s_i == 0.0) pow_BOs_be2 = 0.0;
+    else pow_BOs_be2 = pow(BO_s_i,p_be2);
     exp_be12 = exp(p_be1*(1.0-pow_BOs_be2));
     CEbo = -De_s*exp_be12*(1.0-p_be1*p_be2*pow_BOs_be2);
     ebond = -De_s*BO_s_i*exp_be12
@@ -3910,7 +3889,7 @@ void *PairReaxCKokkos<DeviceType>::extract(const char *str, int &dim)
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairReaxCKokkos<DeviceType>::ev_setup(int eflag, int vflag)
+void PairReaxCKokkos<DeviceType>::ev_setup(int eflag, int vflag, int)
 {
   int i;
 
@@ -3928,14 +3907,14 @@ void PairReaxCKokkos<DeviceType>::ev_setup(int eflag, int vflag)
 
   if (eflag_atom && atom->nmax > maxeatom) {
     maxeatom = atom->nmax;
-    memory->destroy_kokkos(k_eatom,eatom);
-    memory->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
+    memoryKK->destroy_kokkos(k_eatom,eatom);
+    memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
     v_eatom = k_eatom.view<DeviceType>();
   }
   if (vflag_atom && atom->nmax > maxvatom) {
     maxvatom = atom->nmax;
-    memory->destroy_kokkos(k_vatom,vatom);
-    memory->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
+    memoryKK->destroy_kokkos(k_vatom,vatom);
+    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
     v_vatom = k_vatom.view<DeviceType>();
   }
 
@@ -3945,11 +3924,9 @@ void PairReaxCKokkos<DeviceType>::ev_setup(int eflag, int vflag)
   if (vflag_global) for (i = 0; i < 6; i++) virial[i] = 0.0;
   if (eflag_atom) {
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxZeroEAtom>(0,maxeatom),*this);
-    DeviceType::fence();
   }
   if (vflag_atom) {
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxZeroVAtom>(0,maxvatom),*this);
-    DeviceType::fence();
   }
 
   // if vflag_global = 2 and pair::compute() calls virial_fdotr_compute()
@@ -4002,7 +3979,6 @@ void PairReaxCKokkos<DeviceType>::FindBond(int &numbonds)
 {
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFindBondZero>(0,nmax),*this);
-  DeviceType::fence();
 
   bo_cut_bond = control->bg_cut;
 
@@ -4012,12 +3988,10 @@ void PairReaxCKokkos<DeviceType>::FindBond(int &numbonds)
   const int inum = list->inum;
   NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
   d_ilist = k_list->d_ilist;
-  k_list->clean_copy();
 
   numbonds = 0;
   PairReaxCKokkosFindBondFunctor<DeviceType> find_bond_functor(this);
   Kokkos::parallel_reduce(inum,find_bond_functor,numbonds);
-  DeviceType::fence();
   copymode = 0;
 }
 
@@ -4076,7 +4050,6 @@ void PairReaxCKokkos<DeviceType>::PackBondBuffer(DAT::tdual_ffloat_1d k_buf, int
   nlocal = atomKK->nlocal;
   PairReaxCKokkosPackBondBufferFunctor<DeviceType> pack_bond_buffer_functor(this);
   Kokkos::parallel_scan(nlocal,pack_bond_buffer_functor);
-  DeviceType::fence();
   copymode = 0;
 
   k_buf.modify<DeviceType>();
@@ -4135,11 +4108,9 @@ void PairReaxCKokkos<DeviceType>::FindBondSpecies()
 {
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFindBondSpeciesZero>(0,nmax),*this);
-  DeviceType::fence();
 
   nlocal = atomKK->nlocal;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFindBondSpecies>(0,nlocal),*this);
-  DeviceType::fence();
   copymode = 0;
 
   // NOTE: Could improve performance if a Kokkos version of ComputeSpecAtom is added
@@ -4177,9 +4148,9 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxFindBondSpecies, const int 
     j &= NEIGHMASK;
     if (j < i) continue;
     const int j_index = jj - j_start;
-  
+
     double bo_tmp = d_BO(i,j_index);
-  
+
     if (bo_tmp >= 0.10 ) { // Why is this a hardcoded value?
       k_tmpid.view<DeviceType>()(i,nj) = j;
       k_tmpbo.view<DeviceType>()(i,nj) = bo_tmp;

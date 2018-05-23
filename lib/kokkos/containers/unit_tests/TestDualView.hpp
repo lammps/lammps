@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -35,8 +35,8 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
+//
 // ************************************************************************
 //@HEADER
 */
@@ -88,10 +88,10 @@ namespace Impl {
 
       a.template sync<typename ViewType::host_mirror_space>();
       Scalar count = 0;
-      for(unsigned int i = 0; i<a.d_view.dimension_0(); i++)
-        for(unsigned int j = 0; j<a.d_view.dimension_1(); j++)
+      for(unsigned int i = 0; i<a.d_view.extent(0); i++)
+        for(unsigned int j = 0; j<a.d_view.extent(1); j++)
           count += a.h_view(i,j);
-      return count -  a.d_view.dimension_0()*a.d_view.dimension_1()-2-4-3*2;
+      return count -  a.d_view.extent(0)*a.d_view.extent(1)-2-4-3*2;
     }
 
 
@@ -119,3 +119,4 @@ void test_dualview_combinations(unsigned int size)
 } // namespace Test
 
 #endif //KOKKOS_TEST_UNORDERED_MAP_HPP
+

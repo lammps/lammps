@@ -12,8 +12,10 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
+#include <cmath>
+#include <cstring>
 #include "pair_gran_hooke_history_omp.h"
+#include "fix_neigh_history.h"
 #include "atom.h"
 #include "comm.h"
 #include "fix.h"
@@ -22,8 +24,6 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "update.h"
-
-#include <string.h>
 
 #include "suffix.h"
 using namespace LAMMPS_NS;
@@ -137,8 +137,8 @@ void PairGranHookeHistoryOMP::eval(int iifrom, int iito, ThrData * const thr)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  firsttouch = listhistory->firstneigh;
-  firstshear = listhistory->firstdouble;
+  firsttouch = fix_history->firstflag;
+  firstshear = fix_history->firstvalue;
 
   // loop over neighbors of my atoms
 

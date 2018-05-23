@@ -67,7 +67,7 @@ class FixShake : public Fix {
   int max_iter;                          // max # of SHAKE iterations
   int output_every;                      // SHAKE stat output every so often
   bigint next_output;                    // timestep for next output
-  
+
                                          // settings from input command
   int *bond_flag,*angle_flag;            // bond/angle types to constrain
   int *type_flag;                        // constrain bonds to these types
@@ -134,10 +134,9 @@ class FixShake : public Fix {
   // static variable for ring communication callback to access class data
   // callback functions for ring communication
 
-  static FixShake *fsptr;
-  static void ring_bonds(int, char *);
-  static void ring_nshake(int, char *);
-  static void ring_shake(int, char *);
+  static void ring_bonds(int, char *, void *);
+  static void ring_nshake(int, char *, void *);
+  static void ring_shake(int, char *, void *);
 };
 
 }

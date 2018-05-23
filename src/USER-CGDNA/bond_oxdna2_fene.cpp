@@ -14,8 +14,8 @@
    Contributing author: Oliver Henrich (University of Strathclyde, Glasgow)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 #include "bond_oxdna2_fene.h"
 
 using namespace LAMMPS_NS;
@@ -42,8 +42,8 @@ void BondOxdna2Fene::compute_interaction_sites(double e1[3],
 {
   double d_cs_x=-0.34, d_cs_y=+0.3408;
 
-  r[0] = d_cs_x*e1[0] + d_cs_y*e2[0]; 
-  r[1] = d_cs_x*e1[1] + d_cs_y*e2[1]; 
-  r[2] = d_cs_x*e1[2] + d_cs_y*e2[2]; 
+  r[0] = d_cs_x*e1[0] + d_cs_y*e2[0];
+  r[1] = d_cs_x*e1[1] + d_cs_y*e2[1];
+  r[2] = d_cs_x*e1[2] + d_cs_y*e2[2];
 
 }

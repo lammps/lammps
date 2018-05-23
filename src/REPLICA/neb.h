@@ -20,7 +20,7 @@ CommandStyle(neb,NEB)
 #ifndef LMP_NEB_H
 #define LMP_NEB_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -38,6 +38,7 @@ class NEB : protected Pointers {
  private:
   int me,me_universe;          // my proc ID in world and universe
   int ireplica,nreplica;
+  bool verbose;
   MPI_Comm uworld;
   MPI_Comm roots;              // MPI comm with 1 root proc from each world
   FILE *fp;
@@ -49,9 +50,11 @@ class NEB : protected Pointers {
   char *infile;                // name of file containing final state
 
   class FixNEB *fneb;
-  int nall;                    // per-replica dimension of array all
+  int numall;                  // per-replica dimension of array all
   double **all;                // PE,plen,nlen,gradvnorm from each replica
   double *rdist;               // normalize reaction distance, 0 to 1
+  double *freplica;            // force on an image
+  double *fmaxatomInRepl;      // force on an image
 
   void readfile(char *, int);
   void open(char *);
@@ -78,14 +81,6 @@ command-line option when running LAMMPS to see the offending line.
 E: Cannot use NEB with a single replica
 
 Self-explanatory.
-
-E: Can only use NEB with 1-processor replicas
-
-This is current restriction for NEB as implemented in LAMMPS.
-
-E: Cannot use NEB with atom_modify sort enabled
-
-This is current restriction for NEB implemented in LAMMPS.
 
 E: Cannot use NEB unless atom map exists
 
@@ -130,5 +125,13 @@ E: Cannot open file %s
 The specified file cannot be opened.  Check that the path and name are
 correct. If the file is a compressed file, also check that the gzip
 executable can be found and run.
+
+U: Can only use NEB with 1-processor replicas
+
+This is current restriction for NEB as implemented in LAMMPS.
+
+U: Cannot use NEB with atom_modify sort enabled
+
+This is current restriction for NEB implemented in LAMMPS.
 
 */

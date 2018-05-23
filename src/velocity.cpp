@@ -12,10 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "velocity.h"
 #include "atom.h"
 #include "update.h"
@@ -67,6 +67,12 @@ void Velocity::command(int narg, char **arg)
   igroup = group->find(arg[0]);
   if (igroup == -1) error->all(FLERR,"Could not find velocity group ID");
   groupbit = group->bitmask[igroup];
+
+  // check if velocities of atoms in rigid bodies are updated
+
+  if (modify->check_rigid_group_overlap(groupbit))
+    error->warning(FLERR,"Changing velocities of atoms in rigid bodies. "
+                     "This has no effect unless rigid bodies are rebuild");
 
   // identify style
 

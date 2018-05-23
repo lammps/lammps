@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include <unistd.h>
 #include "fix_ave_chunk.h"
 #include "atom.h"
@@ -63,6 +63,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
   strcpy(idchunk,arg[6]);
 
   global_freq = nfreq;
+  peratom_freq = nfreq;
   no_change_box = 1;
 
   // expand args if any have wildcard character "*"
@@ -175,14 +176,14 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg],"norm") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/chunk command");
       if (strcmp(arg[iarg+1],"all") == 0) {
-	normflag = ALL;
-	scaleflag = ATOM;
+        normflag = ALL;
+        scaleflag = ATOM;
       } else if (strcmp(arg[iarg+1],"sample") == 0) {
-	normflag = SAMPLE;
-	scaleflag = ATOM;
+        normflag = SAMPLE;
+        scaleflag = ATOM;
       } else if (strcmp(arg[iarg+1],"none") == 0) {
-	normflag = SAMPLE;
-	scaleflag = NOSCALE;
+        normflag = SAMPLE;
+        scaleflag = NOSCALE;
       } else error->all(FLERR,"Illegal fix ave/chunk command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"ave") == 0) {
@@ -685,16 +686,16 @@ void FixAveChunk::end_of_step()
       double *rmass = atom->rmass;
 
       if (rmass) {
-	for (i = 0; i < nlocal; i++)
-	  if (mask[i] & groupbit && ichunk[i] > 0) {
-	    index = ichunk[i]-1;
-	    values_one[index][m] += rmass[i];
+        for (i = 0; i < nlocal; i++)
+          if (mask[i] & groupbit && ichunk[i] > 0) {
+            index = ichunk[i]-1;
+            values_one[index][m] += rmass[i];
           }
       } else {
         for (i = 0; i < nlocal; i++)
-	  if (mask[i] & groupbit && ichunk[i] > 0) {
-	    index = ichunk[i]-1;
-	    values_one[index][m] += mass[type[i]];
+          if (mask[i] & groupbit && ichunk[i] > 0) {
+            index = ichunk[i]-1;
+            values_one[index][m] += mass[type[i]];
           }
       }
 
@@ -792,7 +793,7 @@ void FixAveChunk::end_of_step()
   // if normflag = SAMPLE, one = value/count, accumulate one to many
   //   count is MPI summed here, value is MPI summed below across samples
   //   exception is TEMPERATURE: normalize by DOF
-  //   exception is DENSITY_NUMBER: 
+  //   exception is DENSITY_NUMBER:
   //     normalize by bin volume, not by atom count
   //   exception is DENSITY_MASS:
   //     scale by mv2d, normalize by bin volume, not by atom count
@@ -867,11 +868,11 @@ void FixAveChunk::end_of_step()
   // time average across samples
   // if normflag = ALL, final is total value / total count
   //   exception is TEMPERATURE: normalize by DOF for total count
-  //   exception is DENSITY_NUMBER: 
+  //   exception is DENSITY_NUMBER:
   //     normalize by final bin_volume and repeat, not by total count
   //   exception is DENSITY_MASS:
   //     scale by mv2d, normalize by bin volume and repeat, not by total count
-  //   exception is scaleflag == NOSCALE: 
+  //   exception is scaleflag == NOSCALE:
   //     normalize by repeat, not by total count
   //     check last so other options can take precedence
   // if normflag = SAMPLE, final is sum of ave / repeat

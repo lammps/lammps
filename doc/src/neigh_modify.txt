@@ -109,7 +109,8 @@ atoms in the specified group.  This can be useful for models where a
 large portion of the simulation is particles that do not interact with
 other particles or with each other via pairwise interactions.  The
 group specified with this option must also be specified via the
-"atom_modify first"_atom_modify.html command.
+"atom_modify first"_atom_modify.html command.  Note that specifying
+"all" as the group-ID effectively turns off the {include} option.
 
 The {exclude} option turns off pairwise interactions between certain
 pairs of atoms, by not including them in the neighbor list.  These are
@@ -213,5 +214,5 @@ space.
 [Default:]
 
 The option defaults are delay = 10, every = 1, check = yes, once = no,
-cluster = no, include = all, exclude = none, page = 100000, one =
-2000, and binsize = 0.0.
+cluster = no, include = all (same as no include option defined),
+exclude = none, page = 100000, one = 2000, and binsize = 0.0.

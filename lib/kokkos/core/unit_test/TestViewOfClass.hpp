@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -62,14 +62,14 @@ public:
   NestedView & operator=( const Kokkos::View< int*, Space > & lhs )
   {
     member = lhs;
-    if ( member.dimension_0() ) Kokkos::atomic_add( & member( 0 ), 1 );
+    if ( member.extent(0) ) Kokkos::atomic_add( & member( 0 ), 1 );
     return *this;
   }
 
   KOKKOS_INLINE_FUNCTION
   ~NestedView()
   {
-    if ( member.dimension_0() ) {
+    if ( member.extent(0) ) {
       Kokkos::atomic_add( & member( 0 ), -1 );
     }
   }
@@ -116,6 +116,11 @@ void view_nested_view()
   Kokkos::deep_copy( host_tracking, tracking );
 
   ASSERT_EQ( 0, host_tracking( 0 ) );
+}
+
+TEST_F( TEST_CATEGORY, view_nested_view )
+{
+  view_nested_view< TEST_EXECSPACE >();
 }
 
 } // namespace Test

@@ -183,7 +183,6 @@ void FixPrecessionSpin::post_force(int vflag)
   double **fm = atom->fm;
   double spi[3], fmi[3]; 
   const int nlocal = atom->nlocal;  
-  double scalar;
 
   eflag = 0;
   emag = 0.0;

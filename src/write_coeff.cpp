@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
+#include <cstring>
 #include <unistd.h>
 #include "write_coeff.h"
 #include "pair.h"
@@ -23,6 +23,7 @@
 #include "force.h"
 #include "universe.h"
 #include "error.h"
+#include "domain.h"
 
 using namespace LAMMPS_NS;
 

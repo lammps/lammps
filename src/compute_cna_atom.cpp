@@ -15,8 +15,9 @@
    Contributing author: Wan Liang (Chinese Academy of Sciences)
 ------------------------------------------------------------------------- */
 
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
+#include <cmath>
 #include "compute_cna_atom.h"
 #include "atom.h"
 #include "update.h"
@@ -29,7 +30,6 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
-#include <math.h>
 
 using namespace LAMMPS_NS;
 
@@ -43,7 +43,7 @@ enum{NCOMMON,NBOND,MAXBOND,MINBOND};
 
 ComputeCNAAtom::ComputeCNAAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  nearest(NULL), nnearest(NULL), pattern(NULL)
+  list(NULL), nearest(NULL), nnearest(NULL), pattern(NULL)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute cna/atom command");
 

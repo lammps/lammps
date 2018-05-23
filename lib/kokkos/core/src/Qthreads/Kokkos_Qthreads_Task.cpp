@@ -35,16 +35,16 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
 */
 
-#include <Kokkos_Core.hpp>
-
+#include <Kokkos_Macros.hpp>
 #if defined( KOKKOS_ENABLE_QTHREADS ) && defined( KOKKOS_ENABLE_TASKPOLICY )
 
+#include <Kokkos_Core.hpp>
 #include <impl/Kokkos_TaskQueue_impl.hpp>
 
 //----------------------------------------------------------------------------
@@ -314,7 +314,7 @@ void TaskQueueSpecialization< Kokkos::Qthreads >::
 }} /* namespace Kokkos::Impl */
 
 //----------------------------------------------------------------------------
-
+#else
+void KOKKOS_SRC_QTHREADS_TASK_PREVENT_LINK_ERROR() {}
 #endif /* #if defined( KOKKOS_ENABLE_QTHREADS ) && defined( KOKKOS_ENABLE_TASKPOLICY ) */
-
 

@@ -19,9 +19,9 @@
             JR Shewchuk, http://www-2.cs.cmu.edu/~jrs/jrspapers.html#cg
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "min.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -165,8 +165,8 @@ void Min::init()
 
   if (neigh_every != 1 || neigh_delay != 0 || neigh_dist_check != 1) {
     if (comm->me == 0)
-      error->warning(FLERR,
-                     "Resetting reneighboring criteria during minimization");
+      error->warning(FLERR, "Using 'neigh_modify every 1 delay 0 check"
+                     " yes' setting during minimization");
   }
 
   neighbor->every = 1;
@@ -245,7 +245,8 @@ void Min::setup(int flag)
   domain->image_check();
   domain->box_too_small_check();
   modify->setup_pre_neighbor();
-  neighbor->build();
+  neighbor->build(1);
+  modify->setup_post_neighbor();
   neighbor->ncalls = 0;
 
   // remove these restriction eventually
@@ -344,7 +345,8 @@ void Min::setup_minimal(int flag)
     domain->image_check();
     domain->box_too_small_check();
     modify->setup_pre_neighbor();
-    neighbor->build();
+    neighbor->build(1);
+    modify->setup_post_neighbor();
     neighbor->ncalls = 0;
   }
 
@@ -503,12 +505,15 @@ double Min::energy_force(int resetflag)
     if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
     timer->stamp(Timer::COMM);
     if (modify->n_min_pre_neighbor) {
-      timer->stamp();
       modify->min_pre_neighbor();
       timer->stamp(Timer::MODIFY);
     }
-    neighbor->build();
+    neighbor->build(1);
     timer->stamp(Timer::NEIGH);
+    if (modify->n_min_post_neighbor) {
+      modify->min_post_neighbor();
+      timer->stamp(Timer::MODIFY);
+    }
   }
 
   ev_set(update->ntimestep);

@@ -22,7 +22,7 @@ PairStyle(airebo,PairAIREBO)
 
 #include "pair.h"
 #include "my_page.h"
-#include <math.h>
+#include <cmath>
 #include "math_const.h"
 
 namespace LAMMPS_NS {
@@ -46,6 +46,7 @@ class PairAIREBO : public Pair {
   int morseflag;                   // 1 if Morse instead of LJ for non-bonded
 
   double cutlj;                    // user-specified LJ cutoff
+  double sigcut,sigwid,sigmin;     // corresponding cutoff function
   double cutljrebosq;              // cut for when to compute
                                    // REBO neighs of ghost atoms
 
@@ -113,6 +114,12 @@ class PairAIREBO : public Pair {
   double Sp5th(double, double *, double *);
   double Spbicubic(double, double, double *, double *);
   double Sptricubic(double, double, double, double *, double *);
+  void Sptricubic_patch_adjust(double *, double, double, char);
+  void Sptricubic_patch_coeffs(double, double, double, double, double, double,
+                               double*, double*, double*, double*, double*);
+  void Spbicubic_patch_adjust(double *, double, double, char);
+  void Spbicubic_patch_coeffs(double, double, double, double, double *,
+                              double *, double *, double *);
   void spline_init();
 
   void allocate();

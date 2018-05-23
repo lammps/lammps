@@ -15,8 +15,8 @@
    Contributing author: Ray Shan (Materials Design)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 #include "angle_class2_kokkos.h"
 #include "atom_kokkos.h"
 #include "neighbor_kokkos.h"
@@ -24,7 +24,7 @@
 #include "comm.h"
 #include "force.h"
 #include "math_const.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
 
@@ -51,8 +51,8 @@ template<class DeviceType>
 AngleClass2Kokkos<DeviceType>::~AngleClass2Kokkos()
 {
   if (!copymode) {
-    memory->destroy_kokkos(k_eatom,eatom);
-    memory->destroy_kokkos(k_vatom,vatom);
+    memoryKK->destroy_kokkos(k_eatom,eatom);
+    memoryKK->destroy_kokkos(k_vatom,vatom);
   }
 }
 
@@ -70,20 +70,20 @@ void AngleClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // reallocate per-atom arrays if necessary
 
   if (eflag_atom) {
-    memory->destroy_kokkos(k_eatom,eatom);
-    memory->create_kokkos(k_eatom,eatom,maxeatom,"angle:eatom");
+    memoryKK->destroy_kokkos(k_eatom,eatom);
+    memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"angle:eatom");
     d_eatom = k_eatom.template view<DeviceType>();
   }
   if (vflag_atom) {
-    memory->destroy_kokkos(k_vatom,vatom);
-    memory->create_kokkos(k_vatom,vatom,maxvatom,6,"angle:vatom");
+    memoryKK->destroy_kokkos(k_vatom,vatom);
+    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"angle:vatom");
     d_vatom = k_vatom.template view<DeviceType>();
   }
 
   //atomKK->sync(execution_space,datamask_read);
   //if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
   //else atomKK->modified(execution_space,F_MASK);
-  
+
   k_theta0.template sync<DeviceType>();
   k_k2.template sync<DeviceType>();
   k_k3.template sync<DeviceType>();
@@ -222,7 +222,7 @@ void AngleClass2Kokkos<DeviceType>::operator()(TagAngleClass2Compute<NEWTON_BOND
   if (eflag) eangle = d_k2[type]*dtheta2 + d_k3[type]*dtheta3 + d_k4[type]*dtheta4;
 
   // force & energy for bond-bond term
- 
+
   const F_FLOAT dr1 = r1 - d_bb_r1[type];
   const F_FLOAT dr2 = r2 - d_bb_r2[type];
   const F_FLOAT tk1 = d_bb_k[type] * dr1;

@@ -11,10 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <cfloat>
 #include "pair_exp6_rx.h"
 #include "atom.h"
 #include "comm.h"
@@ -26,7 +27,6 @@
 #include "error.h"
 #include "modify.h"
 #include "fix.h"
-#include <float.h>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -84,11 +84,15 @@ PairExp6rx::PairExp6rx(LAMMPS *lmp) : Pair(lmp)
 
 PairExp6rx::~PairExp6rx()
 {
-  for (int i=0; i < nparams; ++i) {
-    delete[] params[i].name;
-    delete[] params[i].potential;
+  if (copymode) return;
+
+  if (params != NULL) {
+    for (int i=0; i < nparams; ++i) {
+      delete[] params[i].name;
+      delete[] params[i].potential;
+    }
+    memory->destroy(params);
   }
-  memory->destroy(params);
   memory->destroy(mol2param);
 
   if (allocated) {
@@ -562,7 +566,7 @@ void PairExp6rx::settings(int narg, char **arg)
   if (allocated) {
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
-      for (j = i+1; j <= atom->ntypes; j++)
+      for (j = i; j <= atom->ntypes; j++)
         if (setflag[i][j]) cut[i][j] = cut_global;
   }
 

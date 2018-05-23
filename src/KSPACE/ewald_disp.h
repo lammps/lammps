@@ -146,6 +146,14 @@ W: System is not charge neutral, net charge = %g
 The total charge on all atoms on the system is not 0.0.
 For some KSpace solvers this is only a warning.
 
+E: KSpace accuracy must be > 0
+
+UNDOCUMENTED
+
+E: Must use 'kspace_modify gewald' for uncharged system
+
+UNDOCUMENTED
+
 W: Ewald/disp Newton solver failed, using old method to estimate g_ewald
 
 Self-explanatory. Choosing a different cutoff value may help.

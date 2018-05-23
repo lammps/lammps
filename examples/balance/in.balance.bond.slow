@@ -32,7 +32,7 @@ pair_coeff	1 1 10.0 1.0 2.5
 bond_style      harmonic
 bond_coeff      1 10.0 1.2
 
-create_bonds    all all 1 1.0 1.5
+create_bonds    many all all 1 1.0 1.5
 
 neighbor	0.3 bin
 neigh_modify	delay 0 every 1 check yes

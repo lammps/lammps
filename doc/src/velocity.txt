@@ -61,7 +61,7 @@ keyword/value parameters.  Not all options are used by each style.
 Each option has a default as listed below.
 
 The {create} style generates an ensemble of velocities using a random
-number generator with the specified seed as the specified temperature.
+number generator with the specified seed at the specified temperature.
 
 The {set} style sets the velocities of all atoms in the group to the
 specified values.  If any component is specified as NULL, then it is

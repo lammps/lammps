@@ -34,6 +34,7 @@ class AtomKokkos : public Atom {
   DAT::tdual_float_1d k_radius;
   DAT::tdual_float_1d k_rmass;
   DAT::tdual_v_array k_omega;
+  DAT::tdual_v_array k_angmom;
   DAT::tdual_f_array k_torque;
   DAT::tdual_tagint_1d k_molecule;
   DAT::tdual_int_2d k_nspecial;
@@ -51,6 +52,14 @@ class AtomKokkos : public Atom {
   DAT::tdual_int_2d k_improper_type;
   DAT::tdual_tagint_2d k_improper_atom1, k_improper_atom2, k_improper_atom3, k_improper_atom4;
 
+  DAT::tdual_float_2d k_dvector;
+
+
+// USER-DPD package
+  DAT::tdual_efloat_1d k_uCond, k_uMech, k_uChem, k_uCG, k_uCGnew,
+                       k_rho,k_dpdTheta,k_duChem;
+
+
   AtomKokkos(class LAMMPS *);
   ~AtomKokkos();
 
@@ -60,6 +69,8 @@ class AtomKokkos : public Atom {
   void sync_overlapping_device(const ExecutionSpace space, unsigned int mask);
   virtual void sort();
   virtual void grow(unsigned int mask);
+  int add_custom(const char *, int);
+  void remove_custom(int, int);
   virtual void deallocate_topology();
   void sync_modify(ExecutionSpace, unsigned int, unsigned int);
  private:
@@ -73,34 +84,34 @@ class SortFunctor {
   Kokkos::View<typename ViewType::non_const_data_type,typename ViewType::array_type,device_type> dest;
   IndexView index;
   SortFunctor(ViewType src, typename Kokkos::Impl::enable_if<ViewType::dynamic_rank==1,IndexView>::type ind):source(src),index(ind){
-    dest = Kokkos::View<typename ViewType::non_const_data_type,typename ViewType::array_type,device_type>("",src.dimension_0());
+    dest = Kokkos::View<typename ViewType::non_const_data_type,typename ViewType::array_type,device_type>("",src.extent(0));
   }
   SortFunctor(ViewType src, typename Kokkos::Impl::enable_if<ViewType::dynamic_rank==2,IndexView>::type ind):source(src),index(ind){
-    dest = Kokkos::View<typename ViewType::non_const_data_type,typename ViewType::array_type,device_type>("",src.dimension_0(),src.dimension_1());
+    dest = Kokkos::View<typename ViewType::non_const_data_type,typename ViewType::array_type,device_type>("",src.extent(0),src.extent(1));
   }
   SortFunctor(ViewType src, typename Kokkos::Impl::enable_if<ViewType::dynamic_rank==3,IndexView>::type ind):source(src),index(ind){
-    dest = Kokkos::View<typename ViewType::non_const_data_type,typename ViewType::array_type,device_type>("",src.dimension_0(),src.dimension_1(),src.dimension_2());
+    dest = Kokkos::View<typename ViewType::non_const_data_type,typename ViewType::array_type,device_type>("",src.extent(0),src.extent(1),src.extent(2));
   }
   SortFunctor(ViewType src, typename Kokkos::Impl::enable_if<ViewType::dynamic_rank==4,IndexView>::type ind):source(src),index(ind){
-    dest = Kokkos::View<typename ViewType::non_const_data_type,typename ViewType::array_type,device_type>("",src.dimension_0(),src.dimension_1(),src.dimension_2(),src.dimension_3());
+    dest = Kokkos::View<typename ViewType::non_const_data_type,typename ViewType::array_type,device_type>("",src.extent(0),src.extent(1),src.extent(2),src.extent(3));
   }
   KOKKOS_INLINE_FUNCTION
   void operator()(const typename Kokkos::Impl::enable_if<ViewType::rank==1, int>::type& i) {
     dest(i) = source(index(i));
   }
   void operator()(const typename Kokkos::Impl::enable_if<ViewType::rank==2, int>::type& i) {
-    for(int j=0;j<source.dimension_1();j++)
+    for(int j=0;j<source.extent(1);j++)
       dest(i,j) = source(index(i),j);
   }
   void operator()(const typename Kokkos::Impl::enable_if<ViewType::rank==3, int>::type& i) {
-    for(int j=0;j<source.dimension_1();j++)
-    for(int k=0;k<source.dimension_2();k++)
+    for(int j=0;j<source.extent(1);j++)
+    for(int k=0;k<source.extent(2);k++)
       dest(i,j,k) = source(index(i),j,k);
   }
   void operator()(const typename Kokkos::Impl::enable_if<ViewType::rank==4, int>::type& i) {
-    for(int j=0;j<source.dimension_1();j++)
-    for(int k=0;k<source.dimension_2();k++)
-    for(int l=0;l<source.dimension_3();l++)
+    for(int j=0;j<source.extent(1);j++)
+    for(int k=0;k<source.extent(2);k++)
+    for(int l=0;l<source.extent(3);l++)
       dest(i,j,k,l) = source(index(i),j,k,l);
   }
 };

@@ -65,6 +65,26 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
+E: Could not find compute coord/atom compute ID
+
+UNDOCUMENTED
+
+E: Compute coord/atom compute ID is not orientorder/atom
+
+UNDOCUMENTED
+
+E: Compute coord/atom threshold not between -1 and 1
+
+UNDOCUMENTED
+
+E: Invalid cstyle in compute coord/atom
+
+UNDOCUMENTED
+
+E: Compute coord/atom requires components option in compute orientorder/atom
+
+UNDOCUMENTED
+
 E: Compute coord/atom requires a pair style be defined
 
 Self-explanatory.

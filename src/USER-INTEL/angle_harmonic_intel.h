@@ -24,7 +24,7 @@ AngleStyle(harmonic/intel,AngleHarmonicIntel)
 #ifndef LMP_ANGLE_HARMONIC_INTEL_H
 #define LMP_ANGLE_HARMONIC_INTEL_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "angle_harmonic.h"
 #include "fix_intel.h"
 
@@ -45,8 +45,8 @@ class AngleHarmonicIntel : public AngleHarmonic {
   void compute(int eflag, int vflag, IntelBuffers<flt_t,acc_t> *buffers,
                const ForceConst<flt_t> &fc);
   template <int EVFLAG, int EFLAG, int NEWTON_BOND, class flt_t, class acc_t>
-  void eval(const int vflag, IntelBuffers<flt_t,acc_t> * buffers, 
-	    const ForceConst<flt_t> &fc);
+  void eval(const int vflag, IntelBuffers<flt_t,acc_t> * buffers,
+            const ForceConst<flt_t> &fc);
   template <class flt_t, class acc_t>
   void pack_force_const(ForceConst<flt_t> &fc,
                         IntelBuffers<flt_t, acc_t> *buffers);

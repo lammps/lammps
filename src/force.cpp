@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
+#include <cstdlib>
+#include <cstring>
+#include <cctype>
 #include "force.h"
 #include "style_bond.h"
 #include "style_angle.h"
@@ -53,6 +53,8 @@ Force::Force(LAMMPS *lmp) : Pointers(lmp)
   special_extra = 0;
 
   dielectric = 1.0;
+  qqr2e_lammps_real = 332.06371;          // these constants are toggled
+  qqr2e_charmm_real = 332.0716;           // by new CHARMM pair styles
 
   pair = NULL;
   bond = NULL;
@@ -75,6 +77,8 @@ Force::Force(LAMMPS *lmp) : Pointers(lmp)
   strcpy(improper_style,str);
   kspace_style = new char[n];
   strcpy(kspace_style,str);
+
+  pair_restart = NULL;
 
   // fill pair map with pair styles listed in style_pair.h
 
@@ -144,6 +148,8 @@ Force::~Force()
   delete [] improper_style;
   delete [] kspace_style;
 
+  delete [] pair_restart;
+
   if (pair) delete pair;
   if (bond) delete bond;
   if (angle) delete angle;
@@ -172,6 +178,16 @@ void Force::init()
 {
   qqrd2e = qqr2e/dielectric;
 
+  // check if pair style must be specified after restart
+  if (pair_restart) {
+    if (!pair) {
+      char msg[128];
+      sprintf(msg,"Must re-specify non-restarted pair style (%s) "
+              "after read_restart", pair_restart);
+      error->all(FLERR,msg);
+    }
+  }
+
   if (kspace) kspace->init();         // kspace must come before pair
   if (pair) pair->init();             // so g_ewald is defined
   if (bond) bond->init();
@@ -195,8 +211,10 @@ void Force::create_pair(const char *style, int trysuffix)
 {
   delete [] pair_style;
   if (pair) delete pair;
+  if (pair_restart) delete [] pair_restart;
   pair_style = NULL;
   pair = NULL;
+  pair_restart = NULL;
 
   int sflag;
   pair = new_pair(style,trysuffix,sflag);
@@ -831,10 +849,6 @@ void Force::set_special(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"yes") == 0) special_dihedral = 1;
       else error->all(FLERR,"Illegal special_bonds command");
       iarg += 2;
-    } else if (strcmp(arg[iarg],"extra") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal special_bonds command");
-      special_extra = atoi(arg[iarg+1]);
-      iarg += 2;
     } else error->all(FLERR,"Illegal special_bonds command");
   }
 
@@ -842,8 +856,6 @@ void Force::set_special(int narg, char **arg)
     if (special_lj[i] < 0.0 || special_lj[i] > 1.0 ||
         special_coul[i] < 0.0 || special_coul[i] > 1.0)
       error->all(FLERR,"Illegal special_bonds command");
-
-  if (special_extra < 0) error->all(FLERR,"Illegal special_bonds command");
 }
 
 /* ----------------------------------------------------------------------

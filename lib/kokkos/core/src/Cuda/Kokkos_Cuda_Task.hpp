@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -44,6 +44,7 @@
 #ifndef KOKKOS_IMPL_CUDA_TASK_HPP
 #define KOKKOS_IMPL_CUDA_TASK_HPP
 
+#include <Kokkos_Macros.hpp>
 #if defined( KOKKOS_ENABLE_TASKDAG )
 
 //----------------------------------------------------------------------------
@@ -56,7 +57,7 @@ namespace {
 template< typename TaskType >
 __global__
 void set_cuda_task_base_apply_function_pointer
-  ( TaskBase<Kokkos::Cuda,void,void>::function_type * ptr )
+  ( TaskBase<void,void,void>::function_type * ptr )
 { *ptr = TaskType::apply ; }
 
 }
@@ -77,7 +78,7 @@ public:
   void iff_single_thread_recursive_execute( queue_type * const ) {}
 
   __device__
-  static void driver( queue_type * const );
+  static void driver( queue_type * const , int32_t );
 
   static
   void execute( queue_type * const );
@@ -105,7 +106,14 @@ public:
 
 extern template class TaskQueue< Kokkos::Cuda > ;
 
+}} /* namespace Kokkos::Impl */
+
 //----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
+
+namespace Kokkos {
+namespace Impl {
+
 /**\brief  Impl::TaskExec<Cuda> is the TaskScheduler<Cuda>::member_type
  *         passed to tasks running in a Cuda space.
  *
@@ -116,14 +124,24 @@ extern template class TaskQueue< Kokkos::Cuda > ;
  *  where
  *    blockDim.x * blockDim.y == WarpSize
  *
+ *  Current implementation requires blockDim.x == 1.
+ *  Vector level parallelism with blockDim.y > 1 on Volta will
+ *  require a vector-level synchronization mask for vector-level
+ *  collective operaitons.
+ *
  *  Both single thread and thread team tasks are run by a full Cuda warp.
  *  A single thread task is called by warp lane #0 and the remaining
  *  lanes of the warp are idle.
+ *
+ *  When executing a single thread task the syncwarp or other
+ *  warp synchronizing functions must not be called.
  */
 template<>
 class TaskExec< Kokkos::Cuda >
 {
 private:
+
+  enum : int { WarpSize = Kokkos::Impl::CudaTraits::WarpSize };
 
   TaskExec( TaskExec && ) = delete ;
   TaskExec( TaskExec const & ) = delete ;
@@ -133,27 +151,57 @@ private:
   friend class Kokkos::Impl::TaskQueue< Kokkos::Cuda > ;
   friend class Kokkos::Impl::TaskQueueSpecialization< Kokkos::Cuda > ;
 
+  int32_t * m_team_shmem ;
   const int m_team_size ;
 
+  // If constructed with arg_team_size == 1 the object
+  // can only be used by 0 == threadIdx.y.
   __device__
-  TaskExec( int arg_team_size = blockDim.y )
-    : m_team_size( arg_team_size ) {}
+  TaskExec( int32_t * arg_team_shmem , int arg_team_size = blockDim.y )
+    : m_team_shmem( arg_team_shmem )
+    , m_team_size( arg_team_size ) {}
 
 public:
 
 #if defined( __CUDA_ARCH__ )
-  __device__ void team_barrier() { /* __threadfence_block(); */ }
   __device__ int  team_rank() const { return threadIdx.y ; }
   __device__ int  team_size() const { return m_team_size ; }
+
+  __device__ void team_barrier() const
+    {
+      if ( 1 < m_team_size ) {
+        KOKKOS_IMPL_CUDA_SYNCWARP ;
+      }
+    }
+
+  template< class ValueType >
+  __device__ void team_broadcast( ValueType & val , const int thread_id ) const
+    {
+      if ( 1 < m_team_size ) {
+        // WarpSize = blockDim.X * blockDim.y
+        // thread_id < blockDim.y
+        ValueType tmp( val ); // input might not be register variable
+        cuda_shfl( val, tmp, blockDim.x * thread_id, WarpSize );
+      }
+    }
+
 #else
-  __host__ void team_barrier() {}
   __host__ int  team_rank() const { return 0 ; }
   __host__ int  team_size() const { return 0 ; }
+  __host__ void team_barrier() const {}
+  template< class ValueType >
+  __host__ void team_broadcast( ValueType & , const int ) const {}
 #endif
 
 };
 
+}} /* namespace Kokkos::Impl */
+
 //----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
+
+namespace Kokkos {
+namespace Impl {
 
 template<typename iType>
 struct TeamThreadRangeBoundariesStruct<iType, TaskExec< Kokkos::Cuda > >
@@ -269,6 +317,20 @@ ThreadVectorRange( const Impl::TaskExec< Kokkos::Cuda > & thread
   return Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::TaskExec< Kokkos::Cuda > >(thread,count);
 }
 
+KOKKOS_INLINE_FUNCTION
+Impl::ThreadSingleStruct<Impl::TaskExec< Kokkos::Cuda > >
+PerTeam(const Impl::TaskExec< Kokkos::Cuda >& thread)
+{
+  return Impl::ThreadSingleStruct<Impl::TaskExec< Kokkos::Cuda > >(thread);
+}
+
+KOKKOS_INLINE_FUNCTION
+Impl::VectorSingleStruct<Impl::TaskExec< Kokkos::Cuda > >
+PerThread(const Impl::TaskExec< Kokkos::Cuda >& thread)
+{
+  return Impl::VectorSingleStruct<Impl::TaskExec< Kokkos::Cuda > >(thread);
+}
+
 /** \brief  Inter-thread parallel_for. Executes lambda(iType i) for each i=0..N-1.
  *
  * The range i=0..N-1 is mapped to all threads of the the calling thread team.
@@ -281,6 +343,16 @@ void parallel_for
   , const Lambda& lambda
   )
 {
+  for( iType i = loop_boundaries.start; i < loop_boundaries.end; i+=loop_boundaries.increment) {
+    lambda(i);
+  }
+}
+
+template< typename iType, class Lambda >
+KOKKOS_INLINE_FUNCTION
+void parallel_for
+  (const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::TaskExec< Kokkos::Cuda > >& loop_boundaries,
+   const Lambda & lambda) {
   for( iType i = loop_boundaries.start; i < loop_boundaries.end; i+=loop_boundaries.increment) {
     lambda(i);
   }
@@ -322,10 +394,15 @@ ValueType shfl_warp_broadcast
    int src_lane,
    int width)
 {
-  return Kokkos::shfl(val, src_lane, width);
+  if ( 1 < width ) {
+    return Kokkos::shfl(val, src_lane, width);
+  }
+  else {
+    return val ;
+  }
 }
 
-// all-reduce across corresponding vector lanes between team members within warp
+/*// all-reduce across corresponding vector lanes between team members within warp
 // assume vec_length*team_size == warp_size
 // blockDim.x == vec_length == stride
 // blockDim.y == team_size
@@ -351,7 +428,7 @@ void parallel_reduce
                           loop_boundaries.thread.team_size(),
                           blockDim.x);
   initialized_result = shfl_warp_broadcast<ValueType>( initialized_result, threadIdx.x, Impl::CudaTraits::WarpSize );
-}
+}*/
 
 // all-reduce across corresponding vector lanes between team members within warp
 // if no join() provided, use sum
@@ -374,21 +451,58 @@ void parallel_reduce
   }
   initialized_result = result;
 
-  strided_shfl_warp_reduction(
-                          [&] (ValueType& val1, const ValueType& val2) { val1 += val2; },
-                          initialized_result,
-                          loop_boundaries.thread.team_size(),
-                          blockDim.x);
-  initialized_result = shfl_warp_broadcast<ValueType>( initialized_result, threadIdx.x, Impl::CudaTraits::WarpSize );
+  if ( 1 < loop_boundaries.thread.team_size() ) {
+
+    strided_shfl_warp_reduction(
+      [&] (ValueType& val1, const ValueType& val2) { val1 += val2; },
+      initialized_result,
+      loop_boundaries.thread.team_size(),
+      blockDim.x);
+
+    initialized_result =
+      shfl_warp_broadcast<ValueType>(
+        initialized_result, threadIdx.x, Impl::CudaTraits::WarpSize );
+  }
 }
 
+template< typename iType, class Lambda, typename ReducerType >
+KOKKOS_INLINE_FUNCTION
+void parallel_reduce
+  (const Impl::TeamThreadRangeBoundariesStruct<iType,Impl::TaskExec< Kokkos::Cuda > >& loop_boundaries,
+   const Lambda & lambda,
+   const ReducerType& reducer) {
+
+  typedef typename ReducerType::value_type ValueType;
+  //TODO what is the point of creating this temporary?
+  ValueType result = ValueType();
+  reducer.init(result);
+
+  for( iType i = loop_boundaries.start; i < loop_boundaries.end; i+=loop_boundaries.increment) {
+    lambda(i,result);
+  }
+
+  if ( 1 < loop_boundaries.thread.team_size() ) {
+    strided_shfl_warp_reduction(
+      [&] (ValueType& val1, const ValueType& val2) { reducer.join(val1,val2); },
+      result,
+      loop_boundaries.thread.team_size(),
+      blockDim.x);
+
+    reducer.reference() =
+      shfl_warp_broadcast<ValueType>(
+        result, threadIdx.x, Impl::CudaTraits::WarpSize );
+  }
+  else {
+    reducer.reference() = result ;
+  }
+}
 // all-reduce within team members within warp
 // assume vec_length*team_size == warp_size
 // blockDim.x == vec_length == stride
 // blockDim.y == team_size
 // threadIdx.x == position in vec
 // threadIdx.y == member number
-template< typename iType, class Lambda, typename ValueType, class JoinType >
+/*template< typename iType, class Lambda, typename ValueType, class JoinType >
 KOKKOS_INLINE_FUNCTION
 void parallel_reduce
   (const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::TaskExec< Kokkos::Cuda > >& loop_boundaries,
@@ -404,7 +518,7 @@ void parallel_reduce
 
   multi_shfl_warp_reduction<ValueType, JoinType>(join, initialized_result, blockDim.x);
   initialized_result = shfl_warp_broadcast<ValueType>( initialized_result, 0, blockDim.x );
-}
+}*/
 
 // all-reduce within team members within warp
 // if no join() provided, use sum
@@ -428,14 +542,47 @@ void parallel_reduce
 
   initialized_result = result;
 
-  //initialized_result = multi_shfl_warp_reduction(
-  multi_shfl_warp_reduction(
-                          [&] (ValueType& val1, const ValueType& val2) { val1 += val2; },
-                          initialized_result,
-                          blockDim.x);
-  initialized_result = shfl_warp_broadcast<ValueType>( initialized_result, 0, blockDim.x );
+  if ( 1 < loop_boundaries.thread.team_size() ) {
+    //initialized_result = multi_shfl_warp_reduction(
+    multi_shfl_warp_reduction(
+      [&] (ValueType& val1, const ValueType& val2) { val1 += val2; },
+      initialized_result,
+      blockDim.x);
+
+    initialized_result =
+      shfl_warp_broadcast<ValueType>( initialized_result, 0, blockDim.x );
+  }
 }
 
+template< typename iType, class Lambda, typename ReducerType >
+KOKKOS_INLINE_FUNCTION
+void parallel_reduce
+  (const Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::TaskExec< Kokkos::Cuda > >& loop_boundaries,
+   const Lambda & lambda,
+   const ReducerType& reducer) {
+
+  typedef typename ReducerType::value_type ValueType;
+
+  ValueType result = ValueType();
+  reducer.init(result);
+
+  for( iType i = loop_boundaries.start; i < loop_boundaries.end; i+=loop_boundaries.increment) {
+    lambda(i,result);
+  }
+
+  if ( 1 < loop_boundaries.thread.team_size() ) {
+    multi_shfl_warp_reduction(
+      [&] (ValueType& val1, const ValueType& val2) { reducer.join(val1,val2); },
+      result,
+      blockDim.x);
+
+    reducer.reference() =
+      shfl_warp_broadcast<ValueType>( result, 0, blockDim.x );
+  }
+  else {
+    reducer.reference() = result ;
+  }
+}
 // scan across corresponding vector lanes between team members within warp
 // assume vec_length*team_size == warp_size
 // blockDim.x == vec_length == stride
@@ -456,34 +603,48 @@ void parallel_scan
       , void
       , Closure >::value_type ;
 
-  value_type accum = 0 ;
-  value_type val, y, local_total;
+  if ( 1 < loop_boundaries.thread.team_size() ) {
 
-  for( iType i = loop_boundaries.start; i < loop_boundaries.end; i+=loop_boundaries.increment) {
-    val = 0;
-    closure(i,val,false);
+    // make sure all threads perform all loop iterations
+    const iType bound = loop_boundaries.end + loop_boundaries.start ;
+    const int lane = threadIdx.y * blockDim.x ;
 
-    // intra-blockDim.y exclusive scan on 'val'
-    // accum = accumulated, sum in total for this iteration
+    value_type accum = 0 ;
+    value_type val, y, local_total;
 
-    // INCLUSIVE scan
-    for( int offset = blockDim.x ; offset < Impl::CudaTraits::WarpSize ; offset <<= 1 ) {
-      y = Kokkos::shfl_up(val, offset, Impl::CudaTraits::WarpSize);
-      if(threadIdx.y*blockDim.x >= offset) { val += y; }
+    for( iType i = loop_boundaries.start; i < bound; i+=loop_boundaries.increment) {
+      val = 0;
+      if ( i < loop_boundaries.end ) closure(i,val,false);
+
+      // intra-blockDim.y exclusive scan on 'val'
+      // accum = accumulated, sum in total for this iteration
+
+      // INCLUSIVE scan
+      for( int offset = blockDim.x ; offset < Impl::CudaTraits::WarpSize ; offset <<= 1 ) {
+        y = Kokkos::shfl_up(val, offset, Impl::CudaTraits::WarpSize);
+        if(lane >= offset) { val += y; }
+      }
+
+      // pass accum to all threads
+      local_total = shfl_warp_broadcast<value_type>(
+         val,
+         threadIdx.x+Impl::CudaTraits::WarpSize-blockDim.x,
+         Impl::CudaTraits::WarpSize);
+
+      // make EXCLUSIVE scan by shifting values over one
+      val = Kokkos::shfl_up(val, blockDim.x, Impl::CudaTraits::WarpSize);
+      if ( threadIdx.y == 0 ) { val = 0 ; }
+
+      val += accum;
+      if ( i < loop_boundaries.end ) closure(i,val,true);
+      accum += local_total;
     }
-
-    // pass accum to all threads
-    local_total = shfl_warp_broadcast<value_type>(val,
-                                            threadIdx.x+Impl::CudaTraits::WarpSize-blockDim.x,
-                                            Impl::CudaTraits::WarpSize);
-
-    // make EXCLUSIVE scan by shifting values over one
-    val = Kokkos::shfl_up(val, blockDim.x, Impl::CudaTraits::WarpSize);
-    if ( threadIdx.y == 0 ) { val = 0 ; }
-
-    val += accum;
-    closure(i,val,true);
-    accum += local_total;
+  }
+  else {
+    value_type accum = 0 ;
+    for( iType i = loop_boundaries.start; i < loop_boundaries.end; i+=loop_boundaries.increment) {
+      closure(i,accum,true);
+    }
   }
 }
 
@@ -507,36 +668,90 @@ void parallel_scan
       , void
       , Closure >::value_type ;
 
-  value_type accum = 0 ;
-  value_type val, y, local_total;
+  if ( 1 < loop_boundaries.thread.team_size() ) {
 
-  for( iType i = loop_boundaries.start; i < loop_boundaries.end; i+=loop_boundaries.increment) {
-    val = 0;
-    closure(i,val,false);
+    // make sure all threads perform all loop iterations
+    const iType bound = loop_boundaries.end + loop_boundaries.start ;
 
-    // intra-blockDim.x exclusive scan on 'val'
-    // accum = accumulated, sum in total for this iteration
+    value_type accum = 0 ;
+    value_type val, y, local_total;
 
-    // INCLUSIVE scan
-    for( int offset = 1 ; offset < blockDim.x ; offset <<= 1 ) {
-      y = Kokkos::shfl_up(val, offset, blockDim.x);
-      if(threadIdx.x >= offset) { val += y; }
+    for( iType i = loop_boundaries.start; i < bound; i+=loop_boundaries.increment) {
+      val = 0;
+      if ( i < loop_boundaries.end ) closure(i,val,false);
+
+      // intra-blockDim.x exclusive scan on 'val'
+      // accum = accumulated, sum in total for this iteration
+
+      // INCLUSIVE scan
+      for( int offset = 1 ; offset < blockDim.x ; offset <<= 1 ) {
+        y = Kokkos::shfl_up(val, offset, blockDim.x);
+        if(threadIdx.x >= offset) { val += y; }
+      }
+
+      // pass accum to all threads
+      local_total = shfl_warp_broadcast<value_type>(val, blockDim.x-1, blockDim.x);
+
+      // make EXCLUSIVE scan by shifting values over one
+      val = Kokkos::shfl_up(val, 1, blockDim.x);
+      if ( threadIdx.x == 0 ) { val = 0 ; }
+
+      val += accum;
+      if ( i < loop_boundaries.end ) closure(i,val,true);
+      accum += local_total;
     }
-
-    // pass accum to all threads
-    local_total = shfl_warp_broadcast<value_type>(val, blockDim.x-1, blockDim.x);
-
-    // make EXCLUSIVE scan by shifting values over one
-    val = Kokkos::shfl_up(val, 1, blockDim.x);
-    if ( threadIdx.x == 0 ) { val = 0 ; }
-
-    val += accum;
-    closure(i,val,true);
-    accum += local_total;
+  }
+  else {
+    value_type accum = 0 ;
+    for( iType i = loop_boundaries.start; i < loop_boundaries.end; i+=loop_boundaries.increment) {
+      closure(i,accum,true);
+    }
   }
 }
 
 } /* namespace Kokkos */
+
+namespace Kokkos {
+
+  template<class FunctorType>
+  KOKKOS_INLINE_FUNCTION
+  void single(const Impl::VectorSingleStruct<Impl::TaskExec< Kokkos::Cuda > >& , const FunctorType& lambda) {
+#ifdef __CUDA_ARCH__
+    if(threadIdx.x == 0) lambda();
+#endif
+  }
+  
+  template<class FunctorType>
+  KOKKOS_INLINE_FUNCTION
+  void single(const Impl::ThreadSingleStruct<Impl::TaskExec< Kokkos::Cuda > >& , const FunctorType& lambda) {
+#ifdef __CUDA_ARCH__
+    if(threadIdx.x == 0 && threadIdx.y == 0) lambda();
+#endif
+  }
+  
+  template<class FunctorType, class ValueType>
+  KOKKOS_INLINE_FUNCTION
+  void single(const Impl::VectorSingleStruct<Impl::TaskExec< Kokkos::Cuda > >& s , const FunctorType& lambda, ValueType& val) {
+#ifdef __CUDA_ARCH__
+    if(threadIdx.x == 0) lambda(val);
+    if ( 1 < s.team_member.team_size() ) {
+      val = shfl(val,0,blockDim.x);
+    }
+#endif
+  }
+  
+  template<class FunctorType, class ValueType>
+  KOKKOS_INLINE_FUNCTION
+  void single(const Impl::ThreadSingleStruct<Impl::TaskExec< Kokkos::Cuda > >& single_struct, const FunctorType& lambda, ValueType& val) {
+#ifdef __CUDA_ARCH__
+    if(threadIdx.x == 0 && threadIdx.y == 0) {
+      lambda(val);
+    }
+    single_struct.team_member.team_broadcast(val,0);
+#endif
+  }
+
+} // namespace Kokkos
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------

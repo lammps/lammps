@@ -140,8 +140,13 @@ class UCL_Device {
   inline void push_command_queue() {
     cl_int errorv;
     _cq.push_back(cl_command_queue());
-    _cq.back()=clCreateCommandQueue(_context,_cl_device,
-                                    CL_QUEUE_PROFILING_ENABLE,&errorv);
+
+#ifdef CL_VERSION_2_0
+    cl_queue_properties props[] = {CL_QUEUE_PROPERTIES, CL_QUEUE_PROFILING_ENABLE, 0};
+    _cq.back()=clCreateCommandQueueWithProperties(_context, _cl_device, props, &errorv);
+#else
+    _cq.back()=clCreateCommandQueue(_context, _cl_device, CL_QUEUE_PROFILING_ENABLE, &errorv);
+#endif
     if (errorv!=CL_SUCCESS) {
       std::cerr << "Could not create command queue on device: " << name()
                 << std::endl;
@@ -348,7 +353,7 @@ int UCL_Device::set_platform(int pid) {
     _num_devices=0;
     return UCL_ERROR;
   }
-  cl_device_id device_list[_num_devices];
+  cl_device_id *device_list = new cl_device_id[_num_devices];
   CL_SAFE_CALL(clGetDeviceIDs(_cl_platform,CL_DEVICE_TYPE_ALL,n,device_list,
                               &n));
 
@@ -357,7 +362,7 @@ int UCL_Device::set_platform(int pid) {
     _cl_devices.push_back(device_list[i]);
     add_properties(device_list[i]);
   }
-
+  delete[] device_list;
   return UCL_SUCCESS;
 }
 
@@ -513,13 +518,14 @@ int UCL_Device::device_type(const int i) {
 int UCL_Device::set(int num) {
   clear();
 
-  cl_device_id device_list[_num_devices];
+  cl_device_id *device_list = new cl_device_id[_num_devices];
   cl_uint n;
   CL_SAFE_CALL(clGetDeviceIDs(_cl_platform,CL_DEVICE_TYPE_ALL,_num_devices,
                                device_list,&n));
 
   _device=num;
   _cl_device=device_list[_device];
+  delete[] device_list;
   return create_context();
 }
 

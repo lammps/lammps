@@ -1,0 +1,53 @@
+# PREREQUISITES:
+#
+#     You must use moltemplate.sh to create 3 files:
+#        system.data  system.in.init  system.in.settings
+#     (See README_setup.sh for details)
+
+# -- Init Section --
+
+include system.in.init
+
+# -- Atom Definition Section --
+
+read_data system.data
+
+# -- Settings Section --
+
+include system.in.settings
+
+# Use "neigh_modify" to turn off calculation of interactions between immobilized
+# atoms. (Note: The "groupW" group was defined in the file "system.in.settings")
+neigh_modify exclude group groupW groupW
+
+# -- Run Section --
+
+
+timestep        1.0
+dump            1 all custom 500 traj_nvt.lammpstrj id mol type x y z ix iy iz
+
+thermo_style    custom step temp pe etotal vol epair ebond eangle edihed
+thermo          500  # time interval for printing out "thermo" data
+
+
+# Optional: Improve efficiency by omitting the calcuation of interactions 
+# between immobile atoms. (Note: This is not optional under NPT conditions.)
+neigh_modify exclude group groupW groupW
+
+# Only the groupW atoms are immobile.
+group mobile subtract all groupW
+
+# The next two lines recalculate the temperature 
+# using only the mobile degrees of freedom:
+
+compute tempMobile mobile temp
+
+# Integrate the equations of motion:
+fix fMoveStuff mobile nvt temp 300.0 300.0 100.0
+fix_modify fMoveStuff temp tempMobile
+
+
+run		100000
+
+write_data  system_after_nvt.data
+

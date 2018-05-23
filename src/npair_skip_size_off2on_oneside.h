@@ -15,8 +15,8 @@
 
 NPairStyle(skip/size/off2on/oneside,
            NPairSkipSizeOff2onOneside,
-           NP_SKIP | NP_SIZE | NP_OFF2ON | NP_ONESIDE | NP_HALF | 
-           NP_NSQ | NP_BIN | NP_MULTI | NP_NEWTON | NP_NEWTOFF | 
+           NP_SKIP | NP_SIZE | NP_OFF2ON | NP_ONESIDE | NP_HALF |
+           NP_NSQ | NP_BIN | NP_MULTI | NP_NEWTON | NP_NEWTOFF |
            NP_ORTHO | NP_TRI)
 
 #else
@@ -41,5 +41,9 @@ class NPairSkipSizeOff2onOneside : public NPair {
 #endif
 
 /* ERROR/WARNING messages:
+
+E: Neighbor list overflow, boost neigh_modify one
+
+UNDOCUMENTED
 
 */

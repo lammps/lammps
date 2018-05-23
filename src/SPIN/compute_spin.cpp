@@ -74,7 +74,11 @@ void ComputeSpin::init()
 
 void ComputeSpin::compute_vector()
 {
+<<<<<<< HEAD
   int i, index;
+=======
+  int i;
+>>>>>>> spin_origin
   int countsp, countsptot;
   double mag[4], magtot[4];
   double magenergy, magenergytot;
@@ -92,10 +96,14 @@ void ComputeSpin::compute_vector()
   tempdenom = tempdenomtot = 0.0; 
   spintemperature = 0.0;  
 
+<<<<<<< HEAD
   double **x = atom->x;
   int *mask = atom->mask;
   int *type = atom->type;
   imageint *image = atom->image;
+=======
+  int *mask = atom->mask;
+>>>>>>> spin_origin
   double **sp = atom->sp;  
   double **fm = atom->fm;
   double tx,ty,tz;

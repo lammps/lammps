@@ -34,7 +34,6 @@ class PairLJLongDipoleLong : public Pair {
   virtual void settings(int, char **);
   void coeff(int, char **);
   void init_style();
-  void init_list(int, class NeighList *);
   double init_one(int, int);
   void write_restart(FILE *);
   void read_restart(FILE *);
@@ -114,13 +113,13 @@ E: Pair style requires use of kspace_style ewald/disp
 
 Self-explanatory.
 
-E: Pair style lj/long/dipole/long does not currently support respa
-
-This feature is not yet supported.
-
 E: Pair cutoff < Respa interior cutoff
 
 One or more pairwise cutoffs are too short to use with the specified
 rRESPA cutoffs.
+
+U: Pair style lj/long/dipole/long does not currently support respa
+
+This feature is not yet supported.
 
 */

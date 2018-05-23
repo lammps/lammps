@@ -38,6 +38,7 @@
 #include "neigh_request.h"
 #include "math_const.h"
 #include "memory.h"
+#include "modify.h"
 #include "pair_spin_neel.h"
 #include "update.h"
 
@@ -284,7 +285,7 @@ void PairSpinNeel::compute(int eflag, int vflag)
 
       local_cut2 = cut_spin_neel[itype][jtype]*cut_spin_neel[itype][jtype];
 
-      // compute magnetic and mechanical components of soc_neel
+      // compute magnetic and mechanical components of neel
 
       if (rsq <= local_cut2) {
 	compute_neel(i,j,rsq,eij,fmi,spi,spj);
@@ -325,7 +326,6 @@ void PairSpinNeel::compute(int eflag, int vflag)
 
 void PairSpinNeel::compute_single_pair(int ii, double fmi[3]) 
 {
-  const int nlocal = atom->nlocal;
   int *type = atom->type;
   double **x = atom->x;
   double **sp = atom->sp;
@@ -334,13 +334,11 @@ void PairSpinNeel::compute_single_pair(int ii, double fmi[3])
   double xi[3], rij[3], eij[3];
   double spi[3], spj[3];
 
-  int iexchange, idmi, ineel, ime;
-  int i,j,jj,inum,jnum,itype,jtype;
+  int i,j,jnum,itype,jtype;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  double rsq, rd, inorm;
+  double rsq, inorm;
 
-  inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
@@ -378,6 +376,9 @@ void PairSpinNeel::compute_single_pair(int ii, double fmi[3])
     rij[2] = x[j][2] - xi[2];
     rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
     inorm = 1.0/sqrt(rsq);
+    eij[0] = inorm*rij[0];
+    eij[1] = inorm*rij[1];
+    eij[2] = inorm*rij[2];
 
     if (rsq <= local_cut2) {
       compute_neel(i,j,rsq,eij,fmi,spi,spj);
@@ -464,55 +465,55 @@ void PairSpinNeel::compute_neel_mech(int i, int j, double rsq, double eij[3], do
   itype = type[i];
   jtype = type[j];
   
-    double g_mech, gij, dgij;
-    double q_mech, q1ij, dq1ij;
-    double q2ij, dq2ij;
-    double pdx, pdy, pdz;
-    double pq1x, pq1y, pq1z;
-    double pq2x, pq2y, pq2z;
-    double ra, rr, drij, ig3, iq3;
+  double g_mech, gij, dgij;
+  double q_mech, q1ij, dq1ij;
+  double q2ij, dq2ij;
+  double pdx, pdy, pdz;
+  double pq1x, pq1y, pq1z;
+  double pq2x, pq2y, pq2z;
+  double ra, rr, drij, ig3, iq3;
 
-    drij = sqrt(rsq);
+  drij = sqrt(rsq);
+
+  double scalar_si_sj = spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2];
+  double scalar_eij_si = eij[0]*spi[0]+eij[1]*spi[1]+eij[2]*spi[2];
+  double scalar_eij_sj = eij[0]*spj[0]+eij[1]*spj[1]+eij[2]*spj[2];
+
+  // pseudo-dipolar component
   
-    double scalar_si_sj = spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2];
-    double scalar_eij_si = eij[0]*spi[0]+eij[1]*spi[1]+eij[2]*spi[2];
-    double scalar_eij_sj = eij[0]*spj[0]+eij[1]*spj[1]+eij[2]*spj[2];
+  g_mech = g1_mech[itype][jtype];        
+  ig3 = 1.0/(g3[itype][jtype]*g3[itype][jtype]);
+
+  ra = rsq*ig3; 
+  rr = drij*ig3;
+
+  gij = 4.0*g_mech*ra;
+  gij *= (1.0-g2[itype][jtype]*ra);
+  gij *= exp(-ra);
+
+  dgij = 1.0-ra-g2[itype][jtype]*ra*(2.0-ra);
+  dgij *= 8.0*g_mech*rr*exp(-ra);
+
+  double pdt1 = (dgij-2.0*gij/drij)*scalar_eij_si*scalar_eij_sj;
+  pdt1 -= scalar_si_sj*dgij/3.0;
+  double pdt2 = scalar_eij_sj*gij/drij;
+  double pdt3 = scalar_eij_si*gij/drij;
+  pdx = -(pdt1*eij[0] + pdt2*spi[0] + pdt3*spj[0]);
+  pdy = -(pdt1*eij[1] + pdt2*spi[1] + pdt3*spj[1]);
+  pdz = -(pdt1*eij[2] + pdt2*spi[2] + pdt3*spj[2]);
+
+  // pseudo-quadrupolar component
   
-    // pseudo-dipolar component
-    
-    g_mech = g1_mech[itype][jtype];        
-    ig3 = 1.0/(g3[itype][jtype]*g3[itype][jtype]);
-  
-    ra = rsq*ig3; 
-    rr = drij*ig3;
-  
-    gij = 4.0*g_mech*ra;
-    gij *= (1.0-g2[itype][jtype]*ra);
-    gij *= exp(-ra);
-  
-    dgij = 1.0-ra-g2[itype][jtype]*ra*(2.0-ra);
-    dgij *= 8.0*g_mech*rr*exp(-ra);
-  
-    double pdt1 = (dgij-2.0*gij/drij)*scalar_eij_si*scalar_eij_sj;
-    pdt1 -= scalar_si_sj*dgij/3.0;
-    double pdt2 = scalar_eij_sj*gij/drij;
-    double pdt3 = scalar_eij_si*gij/drij;
-    pdx = -(pdt1*eij[0] + pdt2*spi[0] + pdt3*spj[0]);
-    pdy = -(pdt1*eij[1] + pdt2*spi[1] + pdt3*spj[1]);
-    pdz = -(pdt1*eij[2] + pdt2*spi[2] + pdt3*spj[2]);
-  
-    // pseudo-quadrupolar component
-    
-    q_mech = q1_mech[itype][jtype];        
-    iq3 = 1.0/(q3[itype][jtype]*q3[itype][jtype]);
-  
-    ra = rsq*iq3; 
-    rr = drij*iq3;
-  
-    q1ij = 4.0*q_mech*ra;
-    q1ij *= (1.0-q2[itype][jtype]*ra);
-    q1ij *= exp(-ra);
-    q2ij = -2.0*q1ij/9.0;
+  q_mech = q1_mech[itype][jtype];        
+  iq3 = 1.0/(q3[itype][jtype]*q3[itype][jtype]);
+
+  ra = rsq*iq3; 
+  rr = drij*iq3;
+
+  q1ij = 4.0*q_mech*ra;
+  q1ij *= (1.0-q2[itype][jtype]*ra);
+  q1ij *= exp(-ra);
+  q2ij = -2.0*q1ij/9.0;
   
   dq1ij = 1.0-ra-q2[itype][jtype]*ra*(2.0-ra);
   dq1ij *= 8.0*q_mech*rr*exp(-ra);

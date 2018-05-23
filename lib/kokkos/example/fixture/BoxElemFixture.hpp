@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -35,8 +35,8 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
+//
 // ************************************************************************
 //@HEADER
 */
@@ -44,7 +44,7 @@
 #ifndef KOKKOS_EXAMPLE_BOXELEMFIXTURE_HPP
 #define KOKKOS_EXAMPLE_BOXELEMFIXTURE_HPP
 
-#include <stdio.h>
+#include <cstdio>
 #include <utility>
 
 #include <Kokkos_Core.hpp>
@@ -97,7 +97,7 @@ struct MapGridUnitCube {
       const double x = double(grid_x) / double(m_max_x);
       const double y = double(grid_y) / double(m_max_y);
       const double z = double(grid_z) / double(m_max_z);
-    
+
       coord_x = x + x * x * ( x - 1 ) * ( x - 1 ) * m_a ;
       coord_y = y + y * y * ( y - 1 ) * ( y - 1 ) * m_b ;
       coord_z = z + z * z * ( z - 1 ) * ( z - 1 ) * m_c ;
@@ -157,7 +157,7 @@ public:
   inline bool ok() const { return m_box_part.ok(); }
 
   KOKKOS_INLINE_FUNCTION
-  size_t node_count() const { return m_node_grid.dimension_0(); }
+  size_t node_count() const { return m_node_grid.extent(0); }
 
   KOKKOS_INLINE_FUNCTION
   size_t node_count_owned() const { return m_box_part.owns_node_count(); }
@@ -166,7 +166,7 @@ public:
   size_t node_count_global() const { return m_box_part.global_node_count(); }
 
   KOKKOS_INLINE_FUNCTION
-  size_t elem_count() const { return m_elem_node.dimension_0(); }
+  size_t elem_count() const { return m_elem_node.extent(0); }
 
   KOKKOS_INLINE_FUNCTION
   size_t elem_count_global() const { return m_box_part.global_elem_count(); }
@@ -235,7 +235,7 @@ public:
       m_recv_node     = rhs.m_recv_node ;
       m_send_node     = rhs.m_send_node ;
       m_send_node_id  = rhs.m_send_node_id ;
-     
+
       for ( int i = 0 ; i < ElemNode ; ++i ) {
         m_elem_node_local[i][0] = rhs.m_elem_node_local[i][0] ;
         m_elem_node_local[i][1] = rhs.m_elem_node_local[i][1] ;
@@ -279,12 +279,12 @@ public:
       }
     }
 
-    const size_t nwork = 
-      std::max( m_recv_node.dimension_0() ,
-      std::max( m_send_node.dimension_0() ,
-      std::max( m_send_node_id.dimension_0() ,
-      std::max( m_node_grid.dimension_0() ,
-                m_elem_node.dimension_0() * m_elem_node.dimension_1() ))));
+    const size_t nwork =
+      std::max( m_recv_node.extent(0) ,
+      std::max( m_send_node.extent(0) ,
+      std::max( m_send_node_id.extent(0) ,
+      std::max( m_node_grid.extent(0) ,
+                m_elem_node.extent(0) * m_elem_node.extent(1) ))));
 
     Kokkos::parallel_for( nwork , *this );
   }
@@ -295,7 +295,7 @@ public:
   KOKKOS_INLINE_FUNCTION
   void operator()( size_t i ) const
   {
-    if ( i < m_elem_node.dimension_0() * m_elem_node.dimension_1() ) {
+    if ( i < m_elem_node.extent(0) * m_elem_node.extent(1) ) {
 
       const size_t ielem = i / ElemNode ;
       const size_t inode = i % ElemNode ;
@@ -315,7 +315,7 @@ public:
       m_elem_node(ielem,inode) = m_box_part.local_node_id( tmp_node_grid );
     }
 
-    if ( i < m_node_grid.dimension_0() ) {
+    if ( i < m_node_grid.extent(0) ) {
       size_t tmp_node_grid[SpaceDim] ;
       m_box_part.local_node_coord( i , tmp_node_grid );
       m_node_grid(i,0) = tmp_node_grid[0] ;
@@ -330,17 +330,17 @@ public:
                    m_node_coord(i,2) );
     }
 
-    if ( i < m_recv_node.dimension_0() ) {
+    if ( i < m_recv_node.extent(0) ) {
       m_recv_node(i,0) = m_box_part.recv_node_rank(i);
       m_recv_node(i,1) = m_box_part.recv_node_count(i);
     }
 
-    if ( i < m_send_node.dimension_0() ) {
+    if ( i < m_send_node.extent(0) ) {
       m_send_node(i,0) = m_box_part.send_node_rank(i);
       m_send_node(i,1) = m_box_part.send_node_count(i);
     }
 
-    if ( i < m_send_node_id.dimension_0() ) {
+    if ( i < m_send_node_id.extent(0) ) {
       m_send_node_id(i) = m_box_part.send_node_id(i);
     }
   }

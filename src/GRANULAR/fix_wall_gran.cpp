@@ -16,9 +16,9 @@
                          Dan Bolintineanu (SNL)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "fix_wall_gran.h"
 #include "atom.h"
 #include "domain.h"
@@ -30,6 +30,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "neighbor.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

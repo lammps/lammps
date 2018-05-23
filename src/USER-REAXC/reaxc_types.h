@@ -27,16 +27,51 @@
 #ifndef __REAX_TYPES_H_
 #define __REAX_TYPES_H_
 
+#include <mpi.h>
 #include "lmptype.h"
 
-#include <ctype.h>
-#include <math.h>
-#include <mpi.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "sys/time.h"
-#include <time.h>
+#include <cctype>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
+#include <sys/time.h>
+#include "accelerator_kokkos.h"
+
+#if defined LMP_USER_OMP
+#define OMP_TIMING 0
+
+#ifdef OMP_TIMING
+// pkcoff timing fields
+enum {
+        COMPUTEINDEX=0,
+        COMPUTEWLINDEX,
+        COMPUTEBFINDEX,
+        COMPUTEQEQINDEX,
+        COMPUTENBFINDEX,
+        COMPUTEIFINDEX,
+        COMPUTETFINDEX,
+        COMPUTEBOINDEX,
+        COMPUTEBONDSINDEX,
+        COMPUTEATOMENERGYINDEX,
+        COMPUTEVALENCEANGLESBOINDEX,
+        COMPUTETORSIONANGLESBOINDEX,
+        COMPUTEHBONDSINDEX,
+        COMPUTECG1INDEX,
+        COMPUTECG2INDEX,
+        COMPUTECGCOMPUTEINDEX,
+        COMPUTECALCQINDEX,
+        COMPUTEINITMVINDEX,
+        COMPUTEMVCOMPINDEX,
+        LASTTIMINGINDEX
+};
+
+extern double ompTimingData[LASTTIMINGINDEX];
+extern int ompTimingCount[LASTTIMINGINDEX];
+extern int ompTimingCGCount[LASTTIMINGINDEX];
+#endif
+#endif
 
 /************* SOME DEFS - crucial for reax_types.h *********/
 
@@ -381,6 +416,7 @@ struct _reax_system
   int mincap;
   double safezone, saferzone;
 
+  int omp_active;
 };
 typedef _reax_system reax_system;
 
@@ -391,6 +427,7 @@ typedef struct
 {
   char sim_name[REAX_MAX_STR];
   int  nprocs;
+  int  nthreads;
   ivec procs_by_dim;
   /* ensemble values:
      0 : NVE
@@ -451,7 +488,7 @@ typedef struct
 
   int lgflag;
   int enobondsflag;
-  
+
 } control_params;
 
 
@@ -616,6 +653,7 @@ typedef struct{
   double C1dbopi, C2dbopi, C3dbopi, C4dbopi;
   double C1dbopi2, C2dbopi2, C3dbopi2, C4dbopi2;
   rvec dBOp, dln_BOp_s, dln_BOp_pi, dln_BOp_pi2;
+  double *CdboReduction;
 } bond_order_data;
 
 typedef struct {
@@ -702,6 +740,12 @@ typedef struct
   double *CdDelta;  // coefficient of dDelta
   rvec *f;
 
+  /* omp */
+  rvec *forceReduction;
+  rvec *my_ext_pressReduction;
+  double *CdDeltaReduction;
+  int *valence_angle_atom_myoffset;
+
   reallocate_data realloc;
 } storage;
 
@@ -787,6 +831,10 @@ struct LR_data
   double e_vdW, CEvd;
   double e_ele, CEclmb;
 
+  LAMMPS_INLINE
+  LR_data() {}
+
+  LAMMPS_INLINE
   void operator = (const LR_data& rhs) {
     H      = rhs.H;
     e_vdW  = rhs.e_vdW;
@@ -794,6 +842,7 @@ struct LR_data
     e_ele  = rhs.e_ele;
     CEclmb = rhs.CEclmb;
   }
+  LAMMPS_INLINE
   void operator = (const LR_data& rhs) volatile {
     H      = rhs.H;
     e_vdW  = rhs.e_vdW;
@@ -807,12 +856,18 @@ struct LR_data
 struct cubic_spline_coef
 {
   double a, b, c, d;
+
+  LAMMPS_INLINE
+  cubic_spline_coef() {}
+
+  LAMMPS_INLINE
   void operator = (const cubic_spline_coef& rhs) {
     a = rhs.a;
     b = rhs.b;
     c = rhs.c;
     d = rhs.d;
   }
+  LAMMPS_INLINE
   void operator = (const cubic_spline_coef& rhs) volatile {
     a = rhs.a;
     b = rhs.b;

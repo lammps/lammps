@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -45,7 +45,7 @@
 #define KOKKOS_CORE_IMPL_UTILITIES_HPP
 
 #include <Kokkos_Macros.hpp>
-#include <stdint.h>
+#include <cstdint>
 #include <type_traits>
 
 //----------------------------------------------------------------------------
@@ -413,3 +413,4 @@ struct inclusive_scan_integer_sequence
 
 
 #endif //KOKKOS_CORE_IMPL_UTILITIES_HPP
+

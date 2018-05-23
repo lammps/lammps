@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "pair_table.h"
 #include "atom.h"
 #include "force.h"
@@ -113,7 +113,7 @@ void PairTable::compute(int eflag, int vflag)
       if (rsq < cutsq[itype][jtype]) {
         tb = &tables[tabindex[itype][jtype]];
         if (rsq < tb->innersq) {
-          sprintf(estr,"Pair distance < table inner cutoff: " 
+          sprintf(estr,"Pair distance < table inner cutoff: "
                   "ijtype %d %d dist %g",itype,jtype,sqrt(rsq));
           error->one(FLERR,estr);
         }
@@ -121,7 +121,7 @@ void PairTable::compute(int eflag, int vflag)
         if (tabstyle == LOOKUP) {
           itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
           if (itable >= tlm1) {
-            sprintf(estr,"Pair distance > table outer cutoff: " 
+            sprintf(estr,"Pair distance > table outer cutoff: "
                     "ijtype %d %d dist %g",itype,jtype,sqrt(rsq));
             error->one(FLERR,estr);
           }
@@ -129,7 +129,7 @@ void PairTable::compute(int eflag, int vflag)
         } else if (tabstyle == LINEAR) {
           itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
           if (itable >= tlm1) {
-            sprintf(estr,"Pair distance > table outer cutoff: " 
+            sprintf(estr,"Pair distance > table outer cutoff: "
                     "ijtype %d %d dist %g",itype,jtype,sqrt(rsq));
             error->one(FLERR,estr);
           }
@@ -139,7 +139,7 @@ void PairTable::compute(int eflag, int vflag)
         } else if (tabstyle == SPLINE) {
           itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
           if (itable >= tlm1) {
-            sprintf(estr,"Pair distance > table outer cutoff: " 
+            sprintf(estr,"Pair distance > table outer cutoff: "
                     "ijtype %d %d dist %g",itype,jtype,sqrt(rsq));
             error->one(FLERR,estr);
           }
@@ -453,20 +453,25 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
   double r,e,f,rprev,rnext,eprev,enext,fleft,fright;
 
   int ferror = 0;
-  for (int i = 1; i < tb->ninput-1; i++) {
-    r = tb->rfile[i];
-    rprev = tb->rfile[i-1];
-    rnext = tb->rfile[i+1];
-    e = tb->efile[i];
-    eprev = tb->efile[i-1];
-    enext = tb->efile[i+1];
-    f = tb->ffile[i];
-    fleft = - (e-eprev) / (r-rprev);
-    fright = - (enext-e) / (rnext-r);
-    if (f < fleft && f < fright) ferror++;
-    if (f > fleft && f > fright) ferror++;
-    //printf("Values %d: %g %g %g\n",i,r,e,f);
-    //printf("  secant %d %d %g: %g %g %g\n",i,ferror,r,fleft,fright,f);
+
+  // bitmapped tables do not follow regular ordering, so we cannot check them here
+
+  if (tb->rflag != BMP) {
+    for (int i = 1; i < tb->ninput-1; i++) {
+      r = tb->rfile[i];
+      rprev = tb->rfile[i-1];
+      rnext = tb->rfile[i+1];
+      e = tb->efile[i];
+      eprev = tb->efile[i-1];
+      enext = tb->efile[i+1];
+      f = tb->ffile[i];
+      fleft = - (e-eprev) / (r-rprev);
+      fright = - (enext-e) / (rnext-r);
+      if (f < fleft && f < fright) ferror++;
+      if (f > fleft && f > fright) ferror++;
+      //printf("Values %d: %g %g %g\n",i,r,e,f);
+      //printf("  secant %d %d %g: %g %g %g\n",i,ferror,r,fleft,fright,f);
+    }
   }
 
   if (ferror) {

@@ -3,44 +3,57 @@
 # Install.py tool to build the GPU library
 # used to automate the steps described in the README file in this dir
 
-import sys,os,re,commands
+from __future__ import print_function
+import sys,os,subprocess
 
 # help message
 
 help = """
-Syntax: python Install.py -i isuffix -h hdir -a arch -p precision -e esuffix -m -o osuffix
-  specify one or more options, order does not matter
-  copies an existing Makefile.isuffix in lib/gpu to Makefile.auto 
-  optionally edits these variables in Makefile.auto:
-    CUDA_HOME, CUDA_ARCH, CUDA_PRECISION, EXTRAMAKE
-  optionally uses Makefile.auto to build the GPU library -> libgpu.a
-    and to copy a Makefile.lammps.esuffix -> Makefile.lammps
-  optionally copies Makefile.auto to a new Makefile.osuffix
+Syntax from src dir: make lib-gpu args="-m machine -h hdir -a arch -p precision -e esuffix -b -o osuffix"
+Syntax from lib dir: python Install.py -m machine -h hdir -a arch -p precision -e esuffix -b -o osuffix
 
-  -i = use Makefile.isuffix as starting point, copy to Makefile.auto
-       default isuffix = linux
+specify one or more options, order does not matter
+
+copies an existing Makefile.machine in lib/gpu to Makefile.auto
+optionally edits these variables in Makefile.auto:
+  CUDA_HOME, CUDA_ARCH, CUDA_PRECISION, EXTRAMAKE
+optionally uses Makefile.auto to build the GPU library -> libgpu.a
+  and to copy a Makefile.lammps.esuffix -> Makefile.lammps
+optionally copies Makefile.auto to a new Makefile.osuffix
+
+  -m = use Makefile.machine as starting point, copy to Makefile.auto
+       default machine = linux
   -h = set CUDA_HOME variable in Makefile.auto to hdir
        hdir = path to NVIDIA Cuda software, e.g. /usr/local/cuda
   -a = set CUDA_ARCH variable in Makefile.auto to arch
-       use arch = ?? for K40 (Tesla)
-       use arch = 37 for dual K80 (Tesla)
-       use arch = 60 for P100 (Pascal)
+       use arch = 20 for Tesla C2050/C2070 (Fermi) (deprecated as of CUDA 8.0)
+                     or GeForce GTX 580 or similar
+       use arch = 30 for Tesla K10 (Kepler)
+       use arch = 35 for Tesla K40 (Kepler) or GeForce GTX Titan or similar
+       use arch = 37 for Tesla dual K80 (Kepler)
+       use arch = 60 for Tesla P100 (Pascal)
   -p = set CUDA_PRECISION variable in Makefile.auto to precision
        use precision = double or mixed or single
   -e = set EXTRAMAKE variable in Makefile.auto to Makefile.lammps.esuffix
-  -m = make the GPU library using Makefile.auto
+  -b = make the GPU library using Makefile.auto
        first performs a "make clean"
-       produces libgpu.a if successful
+       then produces libgpu.a if successful
        also copies EXTRAMAKE file -> Makefile.lammps
          -e can set which Makefile.lammps.esuffix file is copied
   -o = copy final Makefile.auto to Makefile.osuffix
+
+Examples:
+
+make lib-gpu args="-b"      # build GPU lib with default Makefile.linux
+make lib-gpu args="-m xk7 -p single -o xk7.single"      # create new Makefile.xk7.single, altered for single-precision
+make lib-gpu args="-m mpi -a 35 -p single -o mpi.mixed -b" # create new Makefile.mpi.mixed, also build GPU lib with these settings
 """
 
 # print error message or help
 
 def error(str=None):
-  if not str: print help
-  else: print "ERROR",str
+  if not str: print(help)
+  else: print("ERROR",str)
   sys.exit()
 
 # parse args
@@ -56,7 +69,7 @@ outflag = 0
 
 iarg = 0
 while iarg < nargs:
-  if args[iarg] == "-i":
+  if args[iarg] == "-m":
     if iarg+2 > nargs: error()
     isuffix = args[iarg+1]
     iarg += 2
@@ -80,7 +93,7 @@ while iarg < nargs:
     eflag = 1
     lmpsuffix = args[iarg+1]
     iarg += 2
-  elif args[iarg] == "-m":
+  elif args[iarg] == "-b":
     makeflag = 1
     iarg += 1
   elif args[iarg] == "-o":
@@ -95,10 +108,10 @@ if pflag:
   elif precision == "mixed": precstr = "-D_SINGLE_DOUBLE"
   elif precision == "single": precstr = "-D_SINGLE_SINGLE"
   else: error("Invalid precision setting")
-  
+
 # create Makefile.auto
 # reset EXTRAMAKE, CUDA_HOME, CUDA_ARCH, CUDA_PRECISION if requested
-  
+
 if not os.path.exists("Makefile.%s" % isuffix):
   error("lib/gpu/Makefile.%s does not exist" % isuffix)
 
@@ -108,9 +121,9 @@ fp = open("Makefile.auto",'w')
 for line in lines:
   words = line.split()
   if len(words) != 3:
-    print >>fp,line,
+    fp.write(line)
     continue
-  
+
   if hflag and words[0] == "CUDA_HOME" and words[1] == '=':
     line = line.replace(words[2],hdir)
   if aflag and words[0] == "CUDA_ARCH" and words[1] == '=':
@@ -119,20 +132,20 @@ for line in lines:
     line = line.replace(words[2],precstr)
   if eflag and words[0] == "EXTRAMAKE" and words[1] == '=':
     line = line.replace(words[2],"Makefile.lammps.%s" % lmpsuffix)
-    
-  print >>fp,line,
 
+  fp.write(line)
 fp.close()
 
 # perform make
 # make operations copies EXTRAMAKE file to Makefile.lammps
 
 if makeflag:
-  print "Building libgpu.a ..."
+  print("Building libgpu.a ...")
   cmd = "rm -f libgpu.a"
-  commands.getoutput(cmd)
+  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   cmd = "make -f Makefile.auto clean; make -f Makefile.auto"
-  commands.getoutput(cmd)
+  txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+  print(txt.decode('UTF-8'))
   if not os.path.exists("libgpu.a"):
     error("Build of lib/gpu/libgpu.a was NOT successful")
   if not os.path.exists("Makefile.lammps"):
@@ -141,6 +154,6 @@ if makeflag:
 # copy new Makefile.auto to Makefile.osuffix
 
 if outflag:
-  print "Creating new Makefile.%s" % osuffix
+  print("Creating new Makefile.%s" % osuffix)
   cmd = "cp Makefile.auto Makefile.%s" % osuffix
-  commands.getoutput(cmd)
+  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)

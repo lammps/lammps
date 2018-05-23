@@ -35,13 +35,17 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
 */
 
-#if defined( KOKKOS_ENABLE_TASKPOLICY )
+#ifndef KOKKOS_QTHREADS_TASKQUEUE_HPP
+#define KOKKOS_QTHREADS_TASKQUEUE_HPP
+
+#include <Kokkos_Macros.hpp>
+#if defined( KOKKOS_ENABLE_QTHREADS ) && defined( KOKKOS_ENABLE_TASKPOLICY )
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -60,7 +64,7 @@ private:
   using execution_space = Kokkos::Qthread ;
   using memory_space    = Kokkos::HostSpace
   using device_type     = Kokkos::Device< execution_space, memory_space > ;
-  using memory_pool     = Kokkos::Experimental::MemoryPool< device_type > ;
+  using memory_pool     = Kokkos::MemoryPool< device_type > ;
   using task_root_type  = Kokkos::Impl::TaskBase< execution_space, void, void > ;
 
   friend class Kokkos::TaskScheduler< execution_space > ;
@@ -317,3 +321,5 @@ public:
 //----------------------------------------------------------------------------
 
 #endif /* #if defined( KOKKOS_ENABLE_TASKPOLICY ) */
+#endif // KOKKOS_QTHREADS_TASKQUEUE_HPP
+

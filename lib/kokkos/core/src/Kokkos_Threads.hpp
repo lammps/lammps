@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -44,9 +44,10 @@
 #ifndef KOKKOS_THREADS_HPP
 #define KOKKOS_THREADS_HPP
 
-#include <Kokkos_Core_fwd.hpp>
+#include <Kokkos_Macros.hpp>
+#if defined( KOKKOS_ENABLE_THREADS )
 
-#if defined( KOKKOS_ENABLE_PTHREAD )
+#include <Kokkos_Core_fwd.hpp>
 
 #include <cstddef>
 #include <iosfwd>
@@ -178,6 +179,7 @@ public:
   inline static unsigned max_hardware_threads() { return thread_pool_size(0); }
   KOKKOS_INLINE_FUNCTION static unsigned hardware_thread_id() { return thread_pool_rank(); }
 
+  static const char* name();
   //@}
   //----------------------------------------
 };
@@ -190,7 +192,7 @@ namespace Kokkos {
 namespace Impl {
 
 template<>
-struct MemorySpaceAccess 
+struct MemorySpaceAccess
   < Kokkos::Threads::memory_space
   , Kokkos::Threads::scratch_memory_space
   >
@@ -227,6 +229,6 @@ struct VerifyExecutionCanAccessMemorySpace
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
-#endif /* #if defined( KOKKOS_ENABLE_PTHREAD ) */
+#endif /* #if defined( KOKKOS_ENABLE_THREADS ) */
 #endif /* #define KOKKOS_THREADS_HPP */
 

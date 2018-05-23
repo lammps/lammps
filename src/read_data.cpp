@@ -17,10 +17,10 @@
 
 #include "lmptype.h"
 #include <mpi.h>
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
-#include <ctype.h>
+#include <cmath>
+#include <cstring>
+#include <cstdlib>
+#include <cctype>
 #include "read_data.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -124,7 +124,7 @@ void ReadData::command(int narg, char **arg)
 
   addflag = NONE;
   coeffflag = 1;
-  id_offset = 0;
+  id_offset = mol_offset = 0;
   offsetflag = shiftflag = 0;
   toffset = boffset = aoffset = doffset = ioffset = 0;
   shift[0] = shift[1] = shift[2] = 0.0;
@@ -145,11 +145,21 @@ void ReadData::command(int narg, char **arg)
       if (strcmp(arg[iarg+1],"append") == 0) addflag = APPEND;
       else if (strcmp(arg[iarg+1],"merge") == 0) addflag = MERGE;
       else {
+        if (atom->molecule_flag && (iarg+3 > narg))
+          error->all(FLERR,"Illegal read_data command");
         addflag = VALUE;
         bigint offset = force->bnumeric(FLERR,arg[iarg+1]);
         if (offset > MAXTAGINT)
-          error->all(FLERR,"Read data add offset is too big");
+          error->all(FLERR,"Read data add atomID offset is too big");
         id_offset = offset;
+
+        if (atom->molecule_flag) {
+          offset = force->bnumeric(FLERR,arg[iarg+2]);
+          if (offset > MAXTAGINT)
+            error->all(FLERR,"Read data add molID offset is too big");
+          mol_offset = offset;
+          iarg++;
+        }
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"offset") == 0) {
@@ -211,13 +221,51 @@ void ReadData::command(int narg, char **arg)
       if (extra_improper_types < 0)
         error->all(FLERR,"Illegal read_data command");
       iarg += 2;
-
+    } else if (strcmp(arg[iarg],"extra/bond/per/atom") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
+      if (! atom->molecular)
+        error->all(FLERR,"No bonds allowed with this atom style");
+      atom->extra_bond_per_atom = force->inumeric(FLERR,arg[iarg+1]);
+      if (atom->extra_bond_per_atom < 0)
+        error->all(FLERR,"Illegal read_data command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"extra/angle/per/atom") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
+      if (! atom->molecular)
+        error->all(FLERR,"No angles allowed with this atom style");
+      atom->extra_angle_per_atom = force->inumeric(FLERR,arg[iarg+1]);
+      if (atom->extra_angle_per_atom < 0)
+        error->all(FLERR,"Illegal read_data command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"extra/dihedral/per/atom") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
+      if (! atom->molecular)
+        error->all(FLERR,"No dihedrals allowed with this atom style");
+      atom->extra_dihedral_per_atom = force->inumeric(FLERR,arg[iarg+1]);
+      if (atom->extra_dihedral_per_atom < 0)
+        error->all(FLERR,"Illegal read_data command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"extra/improper/per/atom") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
+      if (! atom->molecular)
+        error->all(FLERR,"No impropers allowed with this atom style");
+      atom->extra_improper_per_atom = force->inumeric(FLERR,arg[iarg+1]);
+      if (atom->extra_improper_per_atom < 0)
+        error->all(FLERR,"Illegal read_data command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"extra/special/per/atom") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
+      if (! atom->molecular)
+        error->all(FLERR,"No bonded interactions allowed with this atom style");
+      force->special_extra = force->inumeric(FLERR,arg[iarg+1]);
+      if (force->special_extra < 0)
+        error->all(FLERR,"Illegal read_data command");
+      iarg += 2;
     } else if (strcmp(arg[iarg],"group") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
       int igroup = group->find_or_create(arg[iarg+1]);
       groupbit = group->bitmask[igroup];
       iarg += 2;
-
     } else if (strcmp(arg[iarg],"fix") == 0) {
       if (iarg+4 > narg)
         error->all(FLERR,"Illegal read_data command");
@@ -272,14 +320,18 @@ void ReadData::command(int narg, char **arg)
     update->ntimestep = 0;
   }
 
-  // compute atomID offset for addflag = MERGE
+  // compute atomID and optionally moleculeID offset for addflag = APPEND
 
   if (addflag == APPEND) {
     tagint *tag = atom->tag;
+    tagint *molecule = atom->molecule;
     int nlocal = atom->nlocal;
-    tagint max = 0;
-    for (int i = 0; i < nlocal; i++) max = MAX(max,tag[i]);
-    MPI_Allreduce(&max,&id_offset,1,MPI_LMP_TAGINT,MPI_MAX,world);
+    tagint maxid = 0, maxmol = 0;
+    for (int i = 0; i < nlocal; i++) maxid = MAX(maxid,tag[i]);
+    if (atom->molecule_flag)
+      for (int i = 0; i < nlocal; i++) maxmol = MAX(maxmol,molecule[i]);
+    MPI_Allreduce(&maxid,&id_offset,1,MPI_LMP_TAGINT,MPI_MAX,world);
+    MPI_Allreduce(&maxmol,&mol_offset,1,MPI_LMP_TAGINT,MPI_MAX,world);
   }
 
   // set up pointer to hold original styles while we replace them with "zero"
@@ -705,7 +757,7 @@ void ReadData::command(int narg, char **arg)
   }
 
   // init per-atom fix/compute/variable values for created atoms
-  
+
   atom->data_fix_compute_variable(nlocal_previous,atom->nlocal);
 
   // assign atoms added by this data file to specified group
@@ -834,7 +886,7 @@ void ReadData::command(int narg, char **arg)
   }
 
   // restore old styles, when reading with nocoeff flag given
-  
+
   if (coeffflag == 0) {
     if (force->pair) delete force->pair;
     force->pair = saved_pair;
@@ -930,6 +982,7 @@ void ReadData::header(int firstpass)
     // search line for header keyword and set corresponding variable
     // customize for new header lines
     // check for triangles before angles so "triangles" not matched as "angles"
+    int extra_flag_value = 0;
 
     if (strstr(line,"atoms")) {
       sscanf(line,BIGINT_FORMAT,&natoms);
@@ -991,17 +1044,26 @@ void ReadData::header(int firstpass)
         atom->nimpropertypes = nimpropertypes + extra_improper_types;
 
     // these settings only used by first data file
+    // also, these are obsolescent. we parse them to maintain backward
+    // compatibility, but the recommended way is to set them via keywords
+    // in the LAMMPS input file. In case these flags are set in both,
+    // the input and the data file, we use the larger of the two.
 
     } else if (strstr(line,"extra bond per atom")) {
-      if (addflag == NONE) sscanf(line,"%d",&atom->extra_bond_per_atom);
+      if (addflag == NONE) sscanf(line,"%d",&extra_flag_value);
+      atom->extra_bond_per_atom = MAX(atom->extra_bond_per_atom,extra_flag_value);
     } else if (strstr(line,"extra angle per atom")) {
-      if (addflag == NONE) sscanf(line,"%d",&atom->extra_angle_per_atom);
+      if (addflag == NONE) sscanf(line,"%d",&extra_flag_value);
+      atom->extra_angle_per_atom = MAX(atom->extra_angle_per_atom,extra_flag_value);
     } else if (strstr(line,"extra dihedral per atom")) {
-      if (addflag == NONE) sscanf(line,"%d",&atom->extra_dihedral_per_atom);
+      if (addflag == NONE) sscanf(line,"%d",&extra_flag_value);
+      atom->extra_dihedral_per_atom = MAX(atom->extra_dihedral_per_atom,extra_flag_value);
     } else if (strstr(line,"extra improper per atom")) {
-      if (addflag == NONE) sscanf(line,"%d",&atom->extra_improper_per_atom);
+      if (addflag == NONE) sscanf(line,"%d",&extra_flag_value);
+      atom->extra_improper_per_atom = MAX(atom->extra_improper_per_atom,extra_flag_value);
     } else if (strstr(line,"extra special per atom")) {
-      if (addflag == NONE) sscanf(line,"%d",&force->special_extra);
+      if (addflag == NONE) sscanf(line,"%d",&extra_flag_value);
+      force->special_extra = MAX(force->special_extra,extra_flag_value);
 
     // local copy of box info
     // so can treat differently for first vs subsequent data files
@@ -1089,7 +1151,7 @@ void ReadData::atoms()
     nchunk = MIN(natoms-nread,CHUNK);
     eof = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
     if (eof) error->all(FLERR,"Unexpected end of data file");
-    atom->data_atoms(nchunk,buffer,id_offset,toffset,shiftflag,shift);
+    atom->data_atoms(nchunk,buffer,id_offset,mol_offset,toffset,shiftflag,shift);
     nread += nchunk;
   }
 
@@ -1582,13 +1644,13 @@ void ReadData::bodies(int firstpass)
           eof = fgets(&buffer[m],MAXLINE,fp);
           if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
           ncount = atom->count_words(&buffer[m],copy);
-	  if (ncount == 0)
-	    error->one(FLERR,"Too few values in body lines in data file");
-	  nword += ncount;
+          if (ncount == 0)
+            error->one(FLERR,"Too few values in body lines in data file");
+          nword += ncount;
           m += strlen(&buffer[m]);
           onebody++;
         }
-        if (nword > ninteger) 
+        if (nword > ninteger)
           error->one(FLERR,"Too many values in body lines in data file");
 
         nword = 0;
@@ -1596,13 +1658,13 @@ void ReadData::bodies(int firstpass)
           eof = fgets(&buffer[m],MAXLINE,fp);
           if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
           ncount = atom->count_words(&buffer[m],copy);
-	  if (ncount == 0)
-	    error->one(FLERR,"Too few values in body lines in data file");
-	  nword += ncount;
+          if (ncount == 0)
+            error->one(FLERR,"Too few values in body lines in data file");
+          nword += ncount;
           m += strlen(&buffer[m]);
           onebody++;
         }
-        if (nword > ndouble) 
+        if (nword > ndouble)
           error->one(FLERR,"Too many values in body lines in data file");
 
         if (onebody+1 > MAXBODY)

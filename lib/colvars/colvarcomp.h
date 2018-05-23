@@ -20,52 +20,48 @@
 // simple_scalar_dist_functions (derived_class)
 
 
-#include <fstream>
-#include <cmath>
-
-
 #include "colvarmodule.h"
 #include "colvar.h"
 #include "colvaratoms.h"
 
 
-/// \brief Colvar component (base class); most implementations of
-/// \link cvc \endlink utilize one or more \link
-/// colvarmodule::atom \endlink or \link colvarmodule::atom_group
-/// \endlink objects to access atoms.
+/// \brief Colvar component (base class for collective variables)
 ///
 /// A \link cvc \endlink object (or an object of a
-/// cvc-derived class) specifies how to calculate a collective
-/// variable, its gradients and other related physical quantities
-/// which do not depend only on the numeric value (the \link colvar
-/// \endlink class already serves this purpose).
+/// cvc-derived class) implements the calculation of a collective
+/// variable, its gradients and any other related physical quantities
+/// that depend on microscopic degrees of freedom.
 ///
-/// No restriction is set to what kind of calculation a \link
-/// cvc \endlink object performs (usually calculate an
-/// analytical function of atomic coordinates).  The only constraint
-/// is that the value calculated is implemented as a \link colvarvalue
-/// \endlink object.  This serves to provide a unique way to calculate
-/// scalar and non-scalar collective variables, and specify if and how
-/// they can be combined together by the parent \link colvar \endlink
-/// object.
+/// No restriction is set to what kind of calculation a \link cvc \endlink
+/// object performs (usually an analytical function of atomic coordinates).
+/// The only constraints are that: \par
+///
+/// - The value is calculated by the \link calc_value() \endlink
+///   method, and is an object of \link colvarvalue \endlink class.  This
+///   provides a transparent way to treat scalar and non-scalar variables
+///   alike, and allows an automatic selection of the applicable algorithms.
+///
+/// - The object provides an implementation \link apply_force() \endlink to
+///   apply forces to atoms.  Typically, one or more \link cvm::atom_group
+///   \endlink objects are used, but this is not a requirement for as long as
+///   the \link cvc \endlink object communicates with the simulation program.
 ///
 /// <b> If you wish to implement a new collective variable component, you
 /// should write your own class by inheriting directly from \link
-/// cvc \endlink, or one of its derived classes (for instance,
-/// \link distance \endlink is frequently used, because it provides
+/// colvar::cvc \endlink, or one of its derived classes (for instance,
+/// \link colvar::distance \endlink is frequently used, because it provides
 /// useful data and function members for any colvar based on two
-/// atom groups).  The steps are: \par
-/// 1. add the name of this class under colvar.h \par
-/// 2. add a call to the parser in colvar.C, within the function colvar::colvar() \par
-/// 3. declare the class in colvarcomp.h \par
-/// 4. implement the class in one of the files colvarcomp_*.C
+/// atom groups).</b>
 ///
-/// </b>
-/// The cvm::atom and cvm::atom_group classes are available to
-/// transparently communicate with the simulation program.  However,
-/// they are not strictly needed, as long as all the degrees of
-/// freedom associated to the cvc are properly evolved by a simple
-/// call to e.g. apply_force().
+/// The steps are: \par
+/// 1. Declare the new class as a derivative of \link colvar::cvc \endlink
+///    in the file \link colvarcomp.h \endlink
+/// 2. Implement the new class in a file named colvarcomp_<something>.cpp
+/// 3. Declare the name of the new class inside the \link colvar \endlink class
+///    in \link colvar.h \endlink (see "list of available components")
+/// 4. Add a call for the new class in colvar::init_components()
+////   (file: colvar.cpp)
+///
 
 class colvar::cvc
   : public colvarparse, public colvardeps
@@ -102,11 +98,13 @@ public:
 
   /// \brief Constructor
   ///
-  /// At least one constructor which reads a string should be defined
-  /// for every class inheriting from cvc \param conf Contents
-  /// of the configuration file pertaining to this \link cvc
-  /// \endlink
+  /// Calls the init() function of the class
   cvc(std::string const &conf);
+
+  /// An init function should be defined for every class inheriting from cvc
+  /// \param conf Contents of the configuration file pertaining to this \link
+  /// cvc \endlink
+  virtual int init(std::string const &conf);
 
   /// \brief Within the constructor, make a group parse its own
   /// options from the provided configuration string
@@ -132,8 +130,19 @@ public:
   static std::vector<feature *> cvc_features;
 
   /// \brief Implementation of the feature list accessor for colvar
-  virtual std::vector<feature *> &features() {
+  virtual const std::vector<feature *> &features()
+  {
     return cvc_features;
+  }
+  virtual std::vector<feature *> &modify_features()
+  {
+    return cvc_features;
+  }
+  static void delete_features() {
+    for (size_t i=0; i < cvc_features.size(); i++) {
+      delete cvc_features[i];
+    }
+    cvc_features.clear();
   }
 
   /// \brief Obtain data needed for the calculation for the backend
@@ -144,10 +153,13 @@ public:
 
   /// \brief Calculate the atomic gradients, to be reused later in
   /// order to apply forces
-  virtual void calc_gradients() = 0;
+  virtual void calc_gradients() {}
+
+  /// \brief Calculate the atomic fit gradients
+  void calc_fit_gradients();
 
   /// \brief Calculate finite-difference gradients alongside the analytical ones, for each Cartesian component
-  virtual void debug_gradients(cvm::atom_group *group);
+  virtual void debug_gradients();
 
   /// \brief Calculate the total force from the system using the
   /// inverse atomic gradients
@@ -221,12 +233,18 @@ public:
   virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
                                   colvarvalue const &x2) const;
 
-  /// \brief Wrapp value (for periodic/symmetric cvcs)
+  /// \brief Wrap value (for periodic/symmetric cvcs)
   virtual void wrap(colvarvalue &x) const;
 
   /// \brief Pointers to all atom groups, to let colvars collect info
   /// e.g. atomic gradients
   std::vector<cvm::atom_group *> atom_groups;
+
+  /// \brief Store a pointer to new atom group, and list as child for dependencies
+  inline void register_atom_group(cvm::atom_group *ag) {
+    atom_groups.push_back(ag);
+    add_child((colvardeps *) ag);
+  }
 
   /// \brief Whether or not this CVC will be computed in parallel whenever possible
   bool b_try_scalable;
@@ -427,15 +445,77 @@ public:
 };
 
 
+/// \brief Colvar component: polar coordinate phi of a group
+/// (colvarvalue::type_scalar type, range [-180:180])
+class colvar::polar_phi
+  : public colvar::cvc
+{
+public:
+  polar_phi(std::string const &conf);
+  polar_phi();
+  virtual ~polar_phi() {}
+protected:
+  cvm::atom_group  *atoms;
+  cvm::real r, theta, phi;
+public:
+  virtual void calc_value();
+  virtual void calc_gradients();
+  virtual void apply_force(colvarvalue const &force);
+  /// Redefined to handle the 2*PI periodicity
+  virtual cvm::real dist2(colvarvalue const &x1,
+                          colvarvalue const &x2) const;
+  /// Redefined to handle the 2*PI periodicity
+  virtual colvarvalue dist2_lgrad(colvarvalue const &x1,
+                                  colvarvalue const &x2) const;
+  /// Redefined to handle the 2*PI periodicity
+  virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
+                                  colvarvalue const &x2) const;
+  /// Redefined to handle the 2*PI periodicity
+  virtual void wrap(colvarvalue &x) const;
+};
+
+
+/// \brief Colvar component: polar coordinate theta of a group
+/// (colvarvalue::type_scalar type, range [0:180])
+class colvar::polar_theta
+  : public colvar::cvc
+{
+public:
+  polar_theta(std::string const &conf);
+  polar_theta();
+  virtual ~polar_theta() {}
+protected:
+  cvm::atom_group  *atoms;
+  cvm::real r, theta, phi;
+public:
+  virtual void calc_value();
+  virtual void calc_gradients();
+  virtual void apply_force(colvarvalue const &force);
+  /// Redefined to override the distance ones
+  virtual cvm::real dist2(colvarvalue const &x1,
+                          colvarvalue const &x2) const;
+  /// Redefined to override the distance ones
+  virtual colvarvalue dist2_lgrad(colvarvalue const &x1,
+                                  colvarvalue const &x2) const;
+  /// Redefined to override the distance ones
+  virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
+                                  colvarvalue const &x2) const;
+};
 
 /// \brief Colvar component: average distance between two groups of atoms, weighted as the sixth power,
 /// as in NMR refinements(colvarvalue::type_scalar type, range (0:*))
 class colvar::distance_inv
-  : public colvar::distance
+  : public colvar::cvc
 {
 protected:
+  /// First atom group
+  cvm::atom_group  *group1;
+  /// Second atom group
+  cvm::atom_group  *group2;
   /// Components of the distance vector orthogonal to the axis
   int exponent;
+  /// Use absolute positions, ignoring PBCs when present
+  bool b_no_PBC;
 public:
   distance_inv(std::string const &conf);
   distance_inv();

@@ -16,13 +16,13 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <ctype.h>
-#include <float.h>
-#include <limits.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cctype>
+#include <cfloat>
+#include <climits>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -75,7 +75,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = dipoleflag = 0;
   reinitflag = 1;
 
-  // pair_modify settingsx
+  // pair_modify settings
 
   compute_flag = 1;
   manybody_flag = 0;
@@ -196,10 +196,10 @@ void Pair::init()
     error->all(FLERR,"Cannot use pair tail corrections with 2d simulations");
   if (tail_flag && domain->nonperiodic && comm->me == 0)
     error->warning(FLERR,"Using pair tail corrections with nonperiodic system");
-  if (!compute_flag && tail_flag)
+  if (!compute_flag && tail_flag && comm->me == 0)
     error->warning(FLERR,"Using pair tail corrections with "
                    "pair_modify compute no");
-  if (!compute_flag && offset_flag)
+  if (!compute_flag && offset_flag && comm->me == 0)
     error->warning(FLERR,"Using pair potential shift with "
                    "pair_modify compute no");
 
@@ -692,6 +692,12 @@ void Pair::compute_dummy(int eflag, int vflag)
   else evflag = 0;
 }
 
+/* ---------------------------------------------------------------------- */
+void Pair::read_restart(FILE *)
+{
+  error->all(FLERR,"BUG: restartinfo=1 but no restart support in pair style");
+}
+
 /* -------------------------------------------------------------------
    register a callback to a compute, so it can compute and accumulate
    additional properties during the pair computation from within
@@ -814,6 +820,16 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
     if (vflag_atom == 0) vflag_either = 0;
     if (vflag_either == 0 && eflag_either == 0) evflag = 0;
   } else vflag_fdotr = 0;
+
+
+  // run ev_setup option for USER-TALLY computes
+
+  if (num_tally_compute > 0) {
+    for (int k=0; k < num_tally_compute; ++k) {
+      Compute *c = list_tally_compute[k];
+      c->pair_setup_callback(eflag,vflag);
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------

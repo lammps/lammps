@@ -28,11 +28,10 @@ namespace LAMMPS_NS {
   class PPPMDispTIP4POMP : public PPPMDispTIP4P, public ThrOMP {
  public:
   PPPMDispTIP4POMP(class LAMMPS *, int, char **);
-  virtual ~PPPMDispTIP4POMP () {};
+  virtual ~PPPMDispTIP4POMP ();
 
  protected:
   virtual void allocate();
-  virtual void deallocate();
 
   virtual void compute_gf();
   virtual void compute_gf_6();
@@ -64,7 +63,7 @@ namespace LAMMPS_NS {
                          const FFT_SCALAR &, const FFT_SCALAR &,
                          const int, FFT_SCALAR * const * const);
   void compute_drho1d_thr(FFT_SCALAR * const * const, const FFT_SCALAR &,
-			  const FFT_SCALAR &, const FFT_SCALAR &,
+                          const FFT_SCALAR &, const FFT_SCALAR &,
                           const int, FFT_SCALAR * const * const);
   virtual void find_M_thr(int, int &, int &, dbl3_t &);
 

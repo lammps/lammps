@@ -22,11 +22,11 @@
                            support for groups
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <limits.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <climits>
 #include "dump_xtc.h"
 #include "domain.h"
 #include "atom.h"
@@ -53,7 +53,7 @@ int xdr3dfcoord(XDR *, float *, int *, float *);
 
 /* ---------------------------------------------------------------------- */
 
-DumpXTC::DumpXTC(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg), 
+DumpXTC::DumpXTC(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
   coords(NULL)
 {
   if (narg != 5) error->all(FLERR,"Illegal dump xtc command");

@@ -35,7 +35,7 @@
  // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  //
- // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+ // Questions? Contact Christian R. Trott (crtrott@sandia.gov)
  //
  // ************************************************************************
  //@HEADER
@@ -44,12 +44,14 @@
 #ifndef KOKKOSP_DEVICE_INFO_HPP
 #define KOKKOSP_DEVICE_INFO_HPP
 
+#include <cstdint>
+
 namespace Kokkos {
 namespace Profiling {
 
-    struct KokkosPDeviceInfo {
-        uint32_t deviceID;
-    };
+struct KokkosPDeviceInfo {
+  uint32_t deviceID;
+};
 
 }
 }

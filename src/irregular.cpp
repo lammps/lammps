@@ -12,8 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include "irregular.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -23,13 +23,16 @@
 
 using namespace LAMMPS_NS;
 
+#if defined(LMP_QSORT)
 // allocate space for static class variable
 // prototype for non-class function
-
 int *Irregular::proc_recv_copy;
-int compare_standalone(const void *, const void *);
-
-enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
+static int compare_standalone(const void *, const void *);
+#else
+#include "mergesort.h"
+// prototype for non-class function
+static int compare_standalone(const int, const int, void *);
+#endif
 
 #define BUFFACTOR 1.5
 #define BUFMIN 1000
@@ -217,7 +220,7 @@ int Irregular::migrate_check()
   // migrate required if comm layout is tiled
   // cannot use myloc[] logic below
 
-  if (comm->layout == LAYOUT_TILED) return 1;
+  if (comm->layout == Comm::LAYOUT_TILED) return 1;
 
   // subbox bounds for orthogonal or triclinic box
 
@@ -423,8 +426,13 @@ int Irregular::create_atom(int n, int *sizes, int *proclist, int sortflag)
     int *length_recv_ordered = new int[nrecv_proc];
 
     for (i = 0; i < nrecv_proc; i++) order[i] = i;
+
+#if defined(LMP_QSORT)
     proc_recv_copy = proc_recv;
     qsort(order,nrecv_proc,sizeof(int),compare_standalone);
+#else
+    merge_sort(order,nrecv_proc,(void *)proc_recv,compare_standalone);
+#endif
 
     int j;
     for (i = 0; i < nrecv_proc; i++) {
@@ -450,6 +458,8 @@ int Irregular::create_atom(int n, int *sizes, int *proclist, int sortflag)
   return nrecvsize;
 }
 
+#if defined(LMP_QSORT)
+
 /* ----------------------------------------------------------------------
    comparison function invoked by qsort()
    accesses static class member proc_recv_copy, set before call to qsort()
@@ -464,6 +474,23 @@ int compare_standalone(const void *iptr, const void *jptr)
   if (proc_recv[i] > proc_recv[j]) return 1;
   return 0;
 }
+
+#else
+
+/* ----------------------------------------------------------------------
+   comparison function invoked by merge_sort()
+   void pointer contains proc_recv list;
+------------------------------------------------------------------------- */
+
+int compare_standalone(const int i, const int j, void *ptr)
+{
+  int *proc_recv = (int *) ptr;
+  if (proc_recv[i] < proc_recv[j]) return -1;
+  if (proc_recv[i] > proc_recv[j]) return 1;
+  return 0;
+}
+
+#endif
 
 /* ----------------------------------------------------------------------
    communicate atoms via PlanAtom
@@ -671,8 +698,13 @@ int Irregular::create_data(int n, int *proclist, int sortflag)
     int *num_recv_ordered = new int[nrecv_proc];
 
     for (i = 0; i < nrecv_proc; i++) order[i] = i;
+
+#if defined(LMP_QSORT)
     proc_recv_copy = proc_recv;
     qsort(order,nrecv_proc,sizeof(int),compare_standalone);
+#else
+    merge_sort(order,nrecv_proc,(void *)proc_recv,compare_standalone);
+#endif
 
     int j;
     for (i = 0; i < nrecv_proc; i++) {

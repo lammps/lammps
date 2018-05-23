@@ -11,6 +11,18 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#ifndef LMP_MEMORY_KOKKOS_H
+#define LMP_MEMORY_KOKKOS_H
+
+#include "memory.h"
+#include "kokkos_type.h"
+
+namespace LAMMPS_NS {
+
+class MemoryKokkos : public Memory {
+ public:
+  MemoryKokkos(class LAMMPS *lmp) : Memory(lmp) {}
+
 /* ----------------------------------------------------------------------
    Kokkos versions of create/grow/destroy multi-dimensional arrays
 ------------------------------------------------------------------------- */
@@ -24,7 +36,7 @@ TYPE create_kokkos(TYPE &data, typename TYPE::value_type *&array,
                    int n1, const char *name)
 {
   data = TYPE(name,n1);
-  array = data.h_view.ptr_on_device();
+  array = data.h_view.data();
   return data;
 }
 
@@ -39,7 +51,7 @@ template <typename TYPE, typename HTYPE>
 #else
   h_data = data;
 #endif
-  array = h_data.ptr_on_device();
+  array = h_data.data();
   return data;
 }
 
@@ -69,7 +81,7 @@ TYPE grow_kokkos(TYPE &data, typename TYPE::value_type *&array,
   if (array == NULL) return create_kokkos(data,array,n1,name);
 
   data.resize(n1);
-  array = data.h_view.ptr_on_device();
+  array = data.h_view.data();
   return data;
 }
 
@@ -88,8 +100,8 @@ void destroy_kokkos(TYPE data, typename TYPE::value_type* &array)
 template <typename TYPE>
 TYPE destroy_kokkos(TYPE &data)
 {
-  /*if(data.ptr_on_device()!=NULL)
-    free(data.ptr_on_device());*/
+  /*if(data.data()!=NULL)
+    free(data.data());*/
   data = TYPE();
   return data;
 }
@@ -239,7 +251,7 @@ TYPE create_kokkos(TYPE &data, typename TYPE::value_type **&array,
   array = (typename TYPE::value_type **) smalloc(nbytes,name);
 
   for (int i = 0; i < n1; i++)
-    if(data.h_view.dimension_1()==0)
+    if(data.h_view.extent(1)==0)
       array[i] = NULL;
     else
       array[i] = &data.h_view(i,0);
@@ -259,7 +271,7 @@ TYPE grow_kokkos(TYPE &data, typename TYPE::value_type **&array,
   array = (typename TYPE::value_type **) smalloc(nbytes,name);
 
   for (int i = 0; i < n1; i++)
-    if(data.h_view.dimension_1()==0)
+    if(data.h_view.extent(1)==0)
       array[i] = NULL;
     else
       array[i] = &data.h_view(i,0);
@@ -279,3 +291,10 @@ void destroy_kokkos(TYPE data, typename TYPE::value_type** &array)
   sfree(array);
   array = NULL;
 }
+
+};
+
+}
+
+#endif
+

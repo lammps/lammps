@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -58,7 +58,7 @@ template< class DeviceType >
 void TestViewAggregate()
 {
   typedef Kokkos::Array< double, 32 >  value_type;
-  typedef Kokkos::Experimental::Impl::ViewDataAnalysis< value_type *, Kokkos::LayoutLeft, value_type > analysis_1d;
+  typedef Kokkos::Impl::ViewDataAnalysis< value_type *, Kokkos::LayoutLeft, value_type > analysis_1d;
 
   static_assert( std::is_same< typename analysis_1d::specialize, Kokkos::Array<> >::value, "" );
 
@@ -117,6 +117,11 @@ void TestViewAggregate()
   }
   // But the following line would not compile
 //  Kokkos::Array< double, 3 > initialized_with_too_many{ { 1, 2, 3, 4 } };
+}
+
+TEST_F( TEST_CATEGORY, view_aggregate )
+{
+  TestViewAggregate< TEST_EXECSPACE >();
 }
 
 } // namespace Test

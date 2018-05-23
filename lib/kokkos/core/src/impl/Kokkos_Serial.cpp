@@ -35,19 +35,22 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
 */
 
-#include <stdlib.h>
+#include <Kokkos_Macros.hpp>
+#if defined( KOKKOS_ENABLE_SERIAL )
+
+#include <cstdlib>
 #include <sstream>
 #include <Kokkos_Serial.hpp>
 #include <impl/Kokkos_Traits.hpp>
 #include <impl/Kokkos_Error.hpp>
 
-#if defined( KOKKOS_ENABLE_SERIAL )
+#include <impl/Kokkos_SharedAlloc.hpp>
 
 /*--------------------------------------------------------------------------*/
 
@@ -56,6 +59,8 @@ namespace Impl {
 namespace {
 
 HostThreadTeamData g_serial_thread_team_data ;
+
+bool g_serial_is_initialized = false;
 
 }
 
@@ -121,7 +126,6 @@ void serial_resize_thread_team_data( size_t pool_reduce_bytes
   }
 }
 
-// Get thread team data structure for omp_get_thread_num()
 HostThreadTeamData * serial_get_thread_team_data()
 {
   return & g_serial_thread_team_data ;
@@ -134,9 +138,9 @@ HostThreadTeamData * serial_get_thread_team_data()
 
 namespace Kokkos {
 
-int Serial::is_initialized()
+bool Serial::is_initialized()
 {
-  return 1 ;
+  return Impl::g_serial_is_initialized ;
 }
 
 void Serial::initialize( unsigned threads_count
@@ -149,11 +153,15 @@ void Serial::initialize( unsigned threads_count
   (void) use_cores_per_numa;
   (void) allow_asynchronous_threadpool;
 
+  Impl::SharedAllocationRecord< void, void >::tracking_enable();
+
   // Init the array of locks used for arbitrarily sized atomics
   Impl::init_lock_array_host_space();
   #if defined(KOKKOS_ENABLE_PROFILING)
     Kokkos::Profiling::initialize();
   #endif
+
+  Impl::g_serial_is_initialized = true;
 }
 
 void Serial::finalize()
@@ -173,10 +181,15 @@ void Serial::finalize()
   #if defined(KOKKOS_ENABLE_PROFILING)
     Kokkos::Profiling::finalize();
   #endif
+
+  Impl::g_serial_is_initialized = false;
 }
+
+const char* Serial::name() { return "Serial"; }
 
 } // namespace Kokkos
 
+#else
+void KOKKOS_CORE_SRC_IMPL_SERIAL_PREVENT_LINK_ERROR() {}
 #endif // defined( KOKKOS_ENABLE_SERIAL )
-
 

@@ -24,7 +24,7 @@
 /// need to parse input inherit from this
 class colvarparse {
 
-protected:
+private:
 
   /// \brief List of legal keywords for this object: this is updated
   /// by each call to colvarparse::get_keyval() or
@@ -41,14 +41,6 @@ protected:
   /// values before the keyword check is performed
   std::list<size_t>      data_end_pos;
 
-  /// \brief Whether or not to accumulate data_begin_pos and
-  /// data_end_pos in key_lookup(); it may be useful to disable
-  /// this after the constructor is called, because other files may be
-  /// read (e.g. restart) that would mess up the registry; in any
-  /// case, nothing serious happens until check_keywords() is invoked
-  /// (which should happen only right after construction)
-  bool save_delimiters;
-
   /// \brief Add a new valid keyword to the list
   void add_keyword(char const *key);
 
@@ -62,14 +54,12 @@ public:
 
 
   inline colvarparse()
-    : save_delimiters(true)
   {
     init();
   }
 
   /// Constructor that stores the object's config string
   inline colvarparse(const std::string& conf)
-    : save_delimiters(true)
   {
     init(conf);
   }
@@ -114,8 +104,6 @@ public:
 
   /// \brief Use this after parsing a config string (note that check_keywords() calls it already)
   void clear_keyword_registry();
-
-public:
 
   /// \fn get_keyval bool const get_keyval (std::string const &conf,
   /// char const *key, _type_ &value, _type_ const &def_value,
@@ -282,7 +270,7 @@ public:
 
 
   /// Accepted white space delimiters, used in key_lookup()
-  static std::string const white_space;
+  static const char * const white_space;
 
   /// \brief Low-level function for parsing configuration strings;
   /// automatically adds the requested keyword to the list of valid
@@ -293,13 +281,8 @@ public:
   /// within "conf", useful when doing multiple calls
   bool key_lookup(std::string const &conf,
                   char const *key,
-                  std::string &data = dummy_string,
-                  size_t &save_pos = dummy_pos);
-
-  /// Used as a default argument by key_lookup
-  static std::string dummy_string;
-  /// Used as a default argument by key_lookup
-  static size_t dummy_pos;
+                  std::string *data = NULL,
+                  size_t *save_pos = NULL);
 
   /// \brief Works as std::getline() but also removes everything
   /// between a comment character and the following newline

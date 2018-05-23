@@ -21,8 +21,8 @@ Instructions:
     tarball either in this /lib/voronoi directory
     or somewhere else on your system.
 
-2.  compile Voro++ from within its home directory
-    % make 
+2.  Compile Voro++ from within its home directory
+    % make
 
 3.  There is no need to install Voro++ if you only wish
     to use it from LAMMPS.  You can install it if you

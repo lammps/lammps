@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstring>
+#include <cstdlib>
+#include <cmath>
 #include "fix_move.h"
 #include "atom.h"
 #include "group.h"
@@ -48,9 +48,9 @@ enum{EQUAL,ATOM};
 
 FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  xvarstr(NULL), yvarstr(NULL), zvarstr(NULL), vxvarstr(NULL), 
+  xvarstr(NULL), yvarstr(NULL), zvarstr(NULL), vxvarstr(NULL),
   vyvarstr(NULL), vzvarstr(NULL),
-  xoriginal(NULL), toriginal(NULL), qoriginal(NULL), 
+  xoriginal(NULL), toriginal(NULL), qoriginal(NULL),
   displace(NULL), velocity(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix move command");
@@ -69,7 +69,7 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
   // parse args
 
   int iarg;
-  
+
   if (strcmp(arg[3],"linear") == 0) {
     if (narg < 7) error->all(FLERR,"Illegal fix move command");
     iarg = 7;
@@ -237,7 +237,7 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
 
   // set flags for extra attributes particles may store
   // relevant extra attributes = omega, angmom, theta, quat
-  
+
   omega_flag = atom->omega_flag;
   angmom_flag = atom->angmom_flag;
 
@@ -253,7 +253,7 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
 
   extra_flag = 0;
   if (omega_flag || angmom_flag || theta_flag || quat_flag) extra_flag = 1;
-    
+
   // perform initial allocation of atom-based array
   // register with Atom class
 
@@ -313,7 +313,7 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
         qoriginal[i][1] = quat[1];
         qoriginal[i][2] = quat[2];
         qoriginal[i][3] = quat[3];
-      } else qoriginal[i][0] = qoriginal[i][1] = 
+      } else qoriginal[i][0] = qoriginal[i][1] =
                qoriginal[i][2] = qoriginal[i][3] = 0.0;
     }
   }
@@ -664,17 +664,17 @@ void FixMove::initial_integrate(int vflag)
           }
 
           // angmom for ellipsoids, tris, and bodies
-          
+
           if (angmom_flag) {
             quat = inertia = NULL;
             if (ellipsoid_flag && ellipsoid[i] >= 0) {
               quat = avec_ellipsoid->bonus[ellipsoid[i]].quat;
               shape = avec_ellipsoid->bonus[ellipsoid[i]].shape;
-              inertia_ellipsoid[0] = 
+              inertia_ellipsoid[0] =
                 INERTIA*rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]);
-              inertia_ellipsoid[1] = 
+              inertia_ellipsoid[1] =
                 INERTIA*rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]);
-              inertia_ellipsoid[2] = 
+              inertia_ellipsoid[2] =
                 INERTIA*rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]);
               inertia = inertia_ellipsoid;
             } else if (tri_flag && tri[i] >= 0) {
@@ -694,14 +694,14 @@ void FixMove::initial_integrate(int vflag)
           }
 
           // theta for lines
-          
+
           if (theta_flag && line[i] >= 0.0) {
             theta_new = fmod(toriginal[i]+arg,MY_2PI);
             avec_line->bonus[atom->line[i]].theta = theta_new;
           }
-          
+
           // quats for ellipsoids, tris, and bodies
-          
+
           if (quat_flag) {
             quat = NULL;
             if (ellipsoid_flag && ellipsoid[i] >= 0)
@@ -1108,20 +1108,20 @@ void FixMove::set_arrays(int i)
     xoriginal[i][0] = point[0] + c[0] + disp[0];
     xoriginal[i][1] = point[1] + c[1] + disp[1];
     xoriginal[i][2] = point[2] + c[2] + disp[2];
-    
+
     // set theta and quat extra attributes affected by rotation
 
     if (extra_flag) {
 
       // theta for lines
-      
+
       if (theta_flag && line[i] >= 0.0) {
         theta = avec_line->bonus[atom->line[i]].theta;
         toriginal[i] = theta - 0.0;  // NOTE: edit this line
       }
-      
+
       // quats for ellipsoids, tris, and bodies
-      
+
       if (quat_flag) {
         quat = NULL;
         if (ellipsoid_flag && ellipsoid[i] >= 0)

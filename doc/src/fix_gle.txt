@@ -68,7 +68,7 @@ matrix that gives canonical sampling for a given A is computed automatically.
 However, the GLE framework also allow for non-equilibrium sampling, that
 can be used for instance to model inexpensively zero-point energy
 effects "(Ceriotti2)"_#Ceriotti2. This is achieved specifying the {noneq}
- keyword followed by the name of the file that contains the static covariance
+keyword followed by the name of the file that contains the static covariance
 matrix for the non-equilibrium dynamics.  Please note, that the covariance
 matrix is expected to be given in [temperature units].
 

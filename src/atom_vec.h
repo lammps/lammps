@@ -14,7 +14,7 @@
 #ifndef LMP_ATOM_VEC_H
 #define LMP_ATOM_VEC_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -107,9 +107,9 @@ class AtomVec : protected Pointers {
   void write_bond(FILE *, int, tagint **, int);
   int pack_angle(tagint **);
   void write_angle(FILE *, int, tagint **, int);
-  void pack_dihedral(tagint **);
+  int pack_dihedral(tagint **);
   void write_dihedral(FILE *, int, tagint **, int);
-  void pack_improper(tagint **);
+  int pack_improper(tagint **);
   void write_improper(FILE *, int, tagint **, int);
 
   virtual int property_atom(char *) {return -1;}

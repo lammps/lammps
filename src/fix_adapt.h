@@ -111,6 +111,18 @@ E: Fix adapt type pair range is not valid for pair hybrid sub-style
 
 Self-explanatory.
 
+E: Fix adapt bond style does not exist
+
+UNDOCUMENTED
+
+E: Fix adapt bond style param not supported
+
+UNDOCUMENTED
+
+E: Fix adapt does not support bond_style hybrid
+
+UNDOCUMENTED
+
 E: Fix adapt kspace style does not exist
 
 Self-explanatory.

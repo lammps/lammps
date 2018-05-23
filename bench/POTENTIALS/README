@@ -5,7 +5,7 @@ the Benchmark page of the LAMMPS WWW site (lammps.sandia.gov/bench).
 
 Examples are shown below of how to run these scripts.  Log files for
 running them on 1 and 4 processors of a Linux box are included in the
-directory.  This assumes that the executable lmp_linux has been built
+directory.  This assumes that the executable lmp_mpi has been built
 with the appropriate packages installed in order to run with a
 particular potential.  For the ReaxFF potential invoked by the in.reax
 script, you should build the Fortran ReaxFF library in lib/reax, using
@@ -15,18 +15,10 @@ the in.reax file.
 Any potential parameter file(s) used by the input scripts are also
 included in this directory.
 
-Note that some of the input scripts read data files of atomic
-coordinates via the "read_data" command.  Those data files are NOT
-included in this directory, to make the LAMMPS download tarball
-smaller.  They are available on the Benchmark page of the LAMMPS WWW
-site (lammps.sandia.gov/bench), via the tarball link in the table
-under the Potentials section.  If you download and unpack the tarball
-for a particular potential, the data file is included.
-
 ------------------------------------------------------------------------
 
-lmp_linux < in.fene
-lmp_linux < in.tersoff
+lmp_mpi -in in.fene
+lmp_mpi -in in.tersoff
 
-mpirun -np 4 lmp_linux < in.fene
-mpirun -np 4 lmp_linux < in.protein
+mpirun -np 4 lmp_mpi -in in.fene
+mpirun -np 4 lmp_mpi -in in.protein

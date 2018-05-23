@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <limits.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <climits>
 #include "atom.h"
 #include "style_atom.h"
 #include "atom_vec.h"
@@ -40,14 +40,16 @@
 #include "memory.h"
 #include "error.h"
 
+#ifdef LMP_USER_INTEL
+#include "neigh_request.h"
+#endif
+
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
 #define DELTA 1
 #define DELTA_MEMSTR 1024
 #define EPSILON 1.0e-6
-
-enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 
 /* ---------------------------------------------------------------------- */
 
@@ -103,7 +105,11 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   uCond = uMech = uChem = uCG = uCGnew = NULL;
   duChem = NULL;
   dpdTheta = NULL;
-  ssaAIR = NULL;
+
+  // USER-MESO
+
+  cc = cc_flux = NULL;
+  edpd_temp = edpd_flux = edpd_cv = NULL;
 
   // USER-SMD
 
@@ -173,7 +179,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   cs_flag = csforce_flag = vforce_flag = etag_flag = 0;
 
   rho_flag = e_flag = cv_flag = vest_flag = 0;
-  dpd_flag = 0;
+  dpd_flag = edpd_flag = tdpd_flag = 0;
 
   // USER-SMD
 
@@ -307,7 +313,12 @@ Atom::~Atom()
   memory->destroy(uCG);
   memory->destroy(uCGnew);
   memory->destroy(duChem);
-  memory->destroy(ssaAIR);
+
+  memory->destroy(cc);
+  memory->destroy(cc_flux);
+  memory->destroy(edpd_temp);
+  memory->destroy(edpd_flux);
+  memory->destroy(edpd_cv);
 
   memory->destroy(nspecial);
   memory->destroy(special);
@@ -342,9 +353,11 @@ Atom::~Atom()
     delete [] iname[i];
     memory->destroy(ivector[i]);
   }
-  for (int i = 0; i < ndvector; i++) {
-    delete [] dname[i];
-    memory->destroy(dvector[i]);
+  if (dvector != NULL) {
+    for (int i = 0; i < ndvector; i++) {
+      delete [] dname[i];
+      memory->destroy(dvector[i]);
+    }
   }
 
   memory->sfree(iname);
@@ -453,12 +466,12 @@ void Atom::create_avec(const char *style, int narg, char **arg, int trysuffix)
   // if molecular system:
   // atom IDs must be defined
   // force atom map to be created
-  // map style may be reset by map_init() and its call to map_style_set()
+  // map style will be reset to array vs hash to by map_init()
 
   molecular = avec->molecular;
   if (molecular && tag_enable == 0)
     error->all(FLERR,"Atom IDs must be used for molecular systems");
-  if (molecular) map_style = 1;
+  if (molecular) map_style = 3;
 }
 
 /* ----------------------------------------------------------------------
@@ -593,6 +606,7 @@ void Atom::modify_params(int narg, char **arg)
                    "Atom_modify map command after simulation box is defined");
       if (strcmp(arg[iarg+1],"array") == 0) map_user = 1;
       else if (strcmp(arg[iarg+1],"hash") == 0) map_user = 2;
+      else if (strcmp(arg[iarg+1],"yes") == 0) map_user = 3;
       else error->all(FLERR,"Illegal atom_modify command");
       map_style = map_user;
       iarg += 2;
@@ -821,8 +835,8 @@ void Atom::deallocate_topology()
    call style-specific routine to parse line
 ------------------------------------------------------------------------- */
 
-void Atom::data_atoms(int n, char *buf, tagint id_offset, int type_offset,
-                      int shiftflag, double *shift)
+void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
+                      int type_offset, int shiftflag, double *shift)
 {
   int m,xptr,iptr;
   imageint imagedata;
@@ -865,7 +879,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, int type_offset,
     sublo[2] = domain->sublo_lamda[2]; subhi[2] = domain->subhi_lamda[2];
   }
 
-  if (comm->layout != LAYOUT_TILED) {
+  if (comm->layout != Comm::LAYOUT_TILED) {
     if (domain->xperiodic) {
       if (comm->myloc[0] == 0) sublo[0] -= epsilon[0];
       if (comm->myloc[0] == comm->procgrid[0]-1) subhi[0] += epsilon[0];
@@ -947,6 +961,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, int type_offset,
         coord[2] >= sublo[2] && coord[2] < subhi[2]) {
       avec->data_atom(xdata,imagedata,values);
       if (id_offset) tag[nlocal-1] += id_offset;
+      if (mol_offset) molecule[nlocal-1] += mol_offset;
       if (type_offset) {
         type[nlocal-1] += type_offset;
         if (type[nlocal-1] > ntypes)
@@ -1030,8 +1045,8 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
     }
     itype += type_offset;
 
-    if (atom1 <= 0 || atom1 > map_tag_max ||
-        atom2 <= 0 || atom2 > map_tag_max)
+    if ((atom1 <= 0) || (atom1 > map_tag_max) ||
+        (atom2 <= 0) || (atom2 > map_tag_max) || (atom1 == atom2))
       error->one(FLERR,"Invalid atom ID in Bonds section of data file");
     if (itype <= 0 || itype > nbondtypes)
       error->one(FLERR,"Invalid bond type in Bonds section of data file");
@@ -1084,9 +1099,10 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
     }
     itype += type_offset;
 
-    if (atom1 <= 0 || atom1 > map_tag_max ||
-        atom2 <= 0 || atom2 > map_tag_max ||
-        atom3 <= 0 || atom3 > map_tag_max)
+    if ((atom1 <= 0) || (atom1 > map_tag_max) ||
+        (atom2 <= 0) || (atom2 > map_tag_max) ||
+        (atom3 <= 0) || (atom3 > map_tag_max) ||
+        (atom1 == atom2) || (atom1 == atom3) || (atom2 == atom3))
       error->one(FLERR,"Invalid atom ID in Angles section of data file");
     if (itype <= 0 || itype > nangletypes)
       error->one(FLERR,"Invalid angle type in Angles section of data file");
@@ -1155,10 +1171,12 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
     }
     itype += type_offset;
 
-    if (atom1 <= 0 || atom1 > map_tag_max ||
-        atom2 <= 0 || atom2 > map_tag_max ||
-        atom3 <= 0 || atom3 > map_tag_max ||
-        atom4 <= 0 || atom4 > map_tag_max)
+    if ((atom1 <= 0) || (atom1 > map_tag_max) ||
+        (atom2 <= 0) || (atom2 > map_tag_max) ||
+        (atom3 <= 0) || (atom3 > map_tag_max) ||
+        (atom4 <= 0) || (atom4 > map_tag_max) ||
+        (atom1 == atom2) || (atom1 == atom3) || (atom1 == atom4) ||
+        (atom2 == atom3) || (atom2 == atom4) || (atom3 == atom4))
       error->one(FLERR,"Invalid atom ID in Dihedrals section of data file");
     if (itype <= 0 || itype > ndihedraltypes)
       error->one(FLERR,
@@ -1242,10 +1260,12 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
     }
     itype += type_offset;
 
-    if (atom1 <= 0 || atom1 > map_tag_max ||
-        atom2 <= 0 || atom2 > map_tag_max ||
-        atom3 <= 0 || atom3 > map_tag_max ||
-        atom4 <= 0 || atom4 > map_tag_max)
+    if ((atom1 <= 0) || (atom1 > map_tag_max) ||
+        (atom2 <= 0) || (atom2 > map_tag_max) ||
+        (atom3 <= 0) || (atom3 > map_tag_max) ||
+        (atom4 <= 0) || (atom4 > map_tag_max) ||
+        (atom1 == atom2) || (atom1 == atom3) || (atom1 == atom4) ||
+        (atom2 == atom3) || (atom2 == atom4) || (atom3 == atom4))
       error->one(FLERR,"Invalid atom ID in Impropers section of data file");
     if (itype <= 0 || itype > nimpropertypes)
       error->one(FLERR,
@@ -1377,30 +1397,30 @@ void Atom::data_bodies(int n, char *buf, AtomVecBody *avec_body,
 
     ninteger = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
     ndouble = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
-    
+
     if ((m = map(tagdata)) >= 0) {
       if (ninteger > maxint) {
-	delete [] ivalues;
-	maxint = ninteger;
-	ivalues = new int[maxint];
+        delete [] ivalues;
+        maxint = ninteger;
+        ivalues = new int[maxint];
       }
       if (ndouble > maxdouble) {
-	delete [] dvalues;
-	maxdouble = ndouble;
-	dvalues = new double[maxdouble];
+        delete [] dvalues;
+        maxdouble = ndouble;
+        dvalues = new double[maxdouble];
       }
-      
+
       for (j = 0; j < ninteger; j++)
-	ivalues[j] = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
+        ivalues[j] = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
       for (j = 0; j < ndouble; j++)
-	dvalues[j] = force->numeric(FLERR,strtok(NULL," \t\n\r\f"));
-      
+        dvalues[j] = force->numeric(FLERR,strtok(NULL," \t\n\r\f"));
+
       avec_body->data_body(m,ninteger,ndouble,ivalues,dvalues);
-      
+
     } else {
       nvalues = ninteger + ndouble;    // number of values to skip
       for (j = 0; j < nvalues; j++)
-	strtok(NULL," \t\n\r\f");
+        strtok(NULL," \t\n\r\f");
     }
   }
 
@@ -1525,14 +1545,15 @@ void Atom::set_mass(double *values)
 }
 
 /* ----------------------------------------------------------------------
-   check that all masses have been set
+   check that all per-atom-type masses have been set
 ------------------------------------------------------------------------- */
 
 void Atom::check_mass(const char *file, int line)
 {
   if (mass == NULL) return;
+  if (rmass_flag) return;
   for (int itype = 1; itype <= ntypes; itype++)
-    if (mass_setflag[itype] == 0) 
+    if (mass_setflag[itype] == 0)
       error->all(file,line,"Not all per-type masses are set");
 }
 
@@ -1665,10 +1686,10 @@ void Atom::add_molecule_atom(Molecule *onemol, int iatom,
   if (onemol->bodyflag) {
     body[ilocal] = 0;     // as if a body read from data file
     onemol->avec_body->data_body(ilocal,onemol->nibody,onemol->ndbody,
-				 onemol->ibodyparams,onemol->dbodyparams);
+                                 onemol->ibodyparams,onemol->dbodyparams);
     onemol->avec_body->set_quat(ilocal,onemol->quat_external);
   }
-  
+
   if (molecular != 1) return;
 
   // add bond topology info
@@ -1896,6 +1917,53 @@ void Atom::setup_sort_bins()
   bininvx = nbinx / (bboxhi[0]-bboxlo[0]);
   bininvy = nbiny / (bboxhi[1]-bboxlo[1]);
   bininvz = nbinz / (bboxhi[2]-bboxlo[2]);
+
+  #ifdef LMP_USER_INTEL
+  int intel_neigh = 0;
+  if (neighbor->nrequest) {
+    if (neighbor->requests[0]->intel) intel_neigh = 1;
+  } else if (neighbor->old_nrequest)
+    if (neighbor->old_requests[0]->intel) intel_neigh = 1;
+  if (intel_neigh && userbinsize == 0.0) {
+    if (neighbor->binsizeflag) bininv = 1.0/neighbor->binsize_user;
+
+    double nx_low = neighbor->bboxlo[0];
+    double ny_low = neighbor->bboxlo[1];
+    double nz_low = neighbor->bboxlo[2];
+    double nxbbox = neighbor->bboxhi[0] - nx_low;
+    double nybbox = neighbor->bboxhi[1] - ny_low;
+    double nzbbox = neighbor->bboxhi[2] - nz_low;
+    int nnbinx = static_cast<int> (nxbbox * bininv);
+    int nnbiny = static_cast<int> (nybbox * bininv);
+    int nnbinz = static_cast<int> (nzbbox * bininv);
+    if (domain->dimension == 2) nnbinz = 1;
+
+    if (nnbinx == 0) nnbinx = 1;
+    if (nnbiny == 0) nnbiny = 1;
+    if (nnbinz == 0) nnbinz = 1;
+
+    double binsizex = nxbbox/nnbinx;
+    double binsizey = nybbox/nnbiny;
+    double binsizez = nzbbox/nnbinz;
+
+    bininvx = 1.0 / binsizex;
+    bininvy = 1.0 / binsizey;
+    bininvz = 1.0 / binsizez;
+
+    int lxo = (bboxlo[0] - nx_low) * bininvx;
+    int lyo = (bboxlo[1] - ny_low) * bininvy;
+    int lzo = (bboxlo[2] - nz_low) * bininvz;
+    bboxlo[0] = nx_low + static_cast<double>(lxo) / bininvx;
+    bboxlo[1] = ny_low + static_cast<double>(lyo) / bininvy;
+    bboxlo[2] = nz_low + static_cast<double>(lzo) / bininvz;
+    nbinx = static_cast<int>((bboxhi[0] - bboxlo[0]) * bininvx) + 1;
+    nbiny = static_cast<int>((bboxhi[1] - bboxlo[1]) * bininvy) + 1;
+    nbinz = static_cast<int>((bboxhi[2] - bboxlo[2]) * bininvz) + 1;
+    bboxhi[0] = bboxlo[0] + static_cast<double>(nbinx) / bininvx;
+    bboxhi[1] = bboxlo[1] + static_cast<double>(nbiny) / bininvy;
+    bboxhi[2] = bboxlo[2] + static_cast<double>(nbinz) / bininvz;
+  }
+  #endif
 
   if (1.0*nbinx*nbiny*nbinz > INT_MAX)
     error->one(FLERR,"Too many atom sorting bins");
@@ -2157,6 +2225,7 @@ void *Atom::extract(char *name)
   if (strcmp(name, "damage") == 0) return (void *) damage;
 
   if (strcmp(name,"dpdTheta") == 0) return (void *) dpdTheta;
+  if (strcmp(name,"edpd_temp") == 0) return (void *) edpd_temp;
 
   return NULL;
 }

@@ -5,7 +5,7 @@
 #include "FE_Quadrature.h"
 
 // Other headers
-#include "math.h"
+#include <cmath>
 
 using std::map;
 using std::vector;

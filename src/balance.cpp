@@ -12,16 +12,16 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors, for weighted balancing: 
+   Contributing authors, for weighted balancing:
      Axel Kohlmeyer (Temple U), Iain Bethune (EPCC)
 ------------------------------------------------------------------------- */
 
 //#define BALANCE_DEBUG 1
 
 #include <mpi.h>
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "balance.h"
 #include "atom.h"
 #include "comm.h"
@@ -48,8 +48,6 @@ using namespace LAMMPS_NS;
 enum{XYZ,SHIFT,BISECTION};
 enum{NONE,UNIFORM,USER};
 enum{X,Y,Z};
-enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
-
 /* ---------------------------------------------------------------------- */
 
 Balance::Balance(LAMMPS *lmp) : Pointers(lmp)
@@ -281,7 +279,7 @@ void Balance::command(int narg, char **arg)
   // no load-balance if imbalance doesn't exceed threshold
   // unless switching from tiled to non tiled layout, then force rebalance
 
-  if (comm->layout == LAYOUT_TILED && style != BISECTION) {
+  if (comm->layout == Comm::LAYOUT_TILED && style != BISECTION) {
   } else if (imbinit < thresh) return;
 
   // debug output of initial state
@@ -291,21 +289,21 @@ void Balance::command(int narg, char **arg)
 #endif
 
   int niter = 0;
-  
+
   // perform load-balance
   // style XYZ = explicit setting of cutting planes of logical 3d grid
 
   if (style == XYZ) {
-    if (comm->layout == LAYOUT_UNIFORM) {
+    if (comm->layout == Comm::LAYOUT_UNIFORM) {
       if (xflag == USER || yflag == USER || zflag == USER)
-        comm->layout = LAYOUT_NONUNIFORM;
-    } else if (comm->style == LAYOUT_NONUNIFORM) {
+        comm->layout = Comm::LAYOUT_NONUNIFORM;
+    } else if (comm->layout == Comm::LAYOUT_NONUNIFORM) {
       if (xflag == UNIFORM && yflag == UNIFORM && zflag == UNIFORM)
-        comm->layout = LAYOUT_UNIFORM;
-    } else if (comm->style == LAYOUT_TILED) {
+        comm->layout = Comm::LAYOUT_UNIFORM;
+    } else if (comm->layout == Comm::LAYOUT_TILED) {
       if (xflag == UNIFORM && yflag == UNIFORM && zflag == UNIFORM)
-        comm->layout = LAYOUT_UNIFORM;
-      else comm->layout = LAYOUT_NONUNIFORM;
+        comm->layout = Comm::LAYOUT_UNIFORM;
+      else comm->layout = Comm::LAYOUT_NONUNIFORM;
     }
 
     if (xflag == UNIFORM) {
@@ -333,7 +331,7 @@ void Balance::command(int narg, char **arg)
   // style SHIFT = adjust cutting planes of logical 3d grid
 
   if (style == SHIFT) {
-    comm->layout = LAYOUT_NONUNIFORM;
+    comm->layout = Comm::LAYOUT_NONUNIFORM;
     shift_setup_static(bstr);
     niter = shift();
   }
@@ -341,7 +339,7 @@ void Balance::command(int narg, char **arg)
   // style BISECTION = recursive coordinate bisectioning
 
   if (style == BISECTION) {
-    comm->layout = LAYOUT_TILED;
+    comm->layout = Comm::LAYOUT_TILED;
     bisection(1);
   }
 
@@ -661,7 +659,7 @@ int *Balance::bisection(int sortflag)
       rcb->compute(dim,atom->nlocal,atom->x,weight,shrinklo,shrinkhi);
     } else rcb->compute(dim,atom->nlocal,atom->x,NULL,shrinklo,shrinkhi);
   }
-    
+
   rcb->invert(sortflag);
 
   // reset RCB lo/hi bounding box to full simulation box as needed
@@ -745,7 +743,7 @@ void Balance::shift_setup_static(char *str)
   // if current layout is TILED, set initial uniform splits in Comm
   // this gives starting point to subsequent shift balancing
 
-  if (comm->layout == LAYOUT_TILED) {
+  if (comm->layout == Comm::LAYOUT_TILED) {
     int *procgrid = comm->procgrid;
     double *xsplit = comm->xsplit;
     double *ysplit = comm->ysplit;
@@ -782,7 +780,7 @@ void Balance::shift_setup(char *str, int nitermax_in, double thresh_in)
 
 int Balance::shift()
 {
-  int i,j,k,m,np,max;
+  int i,j,k,m,np;
   double mycost,totalcost;
   double *split;
 
@@ -936,7 +934,7 @@ int Balance::shift()
     // stop at this point in bstr if imbalance factor < threshold
     // this is a true 3d test of particle count per processor
 
-    double imbfactor = imbalance_splits(max);
+    double imbfactor = imbalance_splits();
     if (imbfactor <= stopthresh) break;
   }
 
@@ -1047,11 +1045,10 @@ int Balance::adjust(int n, double *split)
    calculate imbalance based on processor splits in 3 dims
    atoms must be in lamda coords (0-1) before called
    map particles to 3d grid of procs
-   return maxcost = max load per proc
    return imbalance factor = max load per proc / ave load per proc
 ------------------------------------------------------------------------- */
 
-double Balance::imbalance_splits(int &maxcost)
+double Balance::imbalance_splits()
 {
   double *xsplit = comm->xsplit;
   double *ysplit = comm->ysplit;
@@ -1088,7 +1085,7 @@ double Balance::imbalance_splits(int &maxcost)
 
   MPI_Allreduce(proccost,allproccost,nprocs,MPI_DOUBLE,MPI_SUM,world);
 
-  maxcost = 0.0;
+  double maxcost = 0.0;
   double totalcost = 0.0;
   for (int i = 0; i < nprocs; i++) {
     maxcost = MAX(maxcost,allproccost[i]);

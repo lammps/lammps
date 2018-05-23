@@ -33,7 +33,7 @@ atoms J, I, and K centered on atom I. The five functions Phi, U, rho,
 f, and g are represented by cubic splines.
 
 The {meam/spline} style also supports a new style multicomponent
-modified embedded-atom method (MEAM) potential "(Zhang)"_#Zhang2, where
+modified embedded-atom method (MEAM) potential "(Zhang)"_#Zhang4, where
 the total energy E is given by
 
 :c,image(Eqs/pair_meam_spline_multicomponent.jpg)
@@ -118,7 +118,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
 See "Section 5"_Section_accelerate.html of the manual for
@@ -164,5 +164,5 @@ for more info.
 Kress, Modelling Simulation Materials Science Engineering, 8, 825
 (2000).
 
-:link(Zhang2)
+:link(Zhang4)
 [(Zhang)] Zhang and Trinkle, Computational Materials Science, 124, 204-210 (2016).

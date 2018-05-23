@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 #include "fix_dpd_energy.h"
 #include "atom.h"
 #include "force.h"
@@ -34,6 +34,8 @@ FixDPDenergy::FixDPDenergy(LAMMPS *lmp, int narg, char **arg) :
 
   pairDPDE = NULL;
   pairDPDE = (PairDPDfdtEnergy *) force->pair_match("dpd/fdt/energy",1);
+  if (pairDPDE == NULL)
+    pairDPDE = (PairDPDfdtEnergy *) force->pair_match("dpd/fdt/energy/kk",1);
 
   if (pairDPDE == NULL)
     error->all(FLERR,"Must use pair_style dpd/fdt/energy with fix dpd/energy");

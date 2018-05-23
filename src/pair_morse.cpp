@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_morse.h"
 #include "atom.h"
 #include "comm.h"
@@ -165,7 +165,7 @@ void PairMorse::settings(int narg, char **arg)
   if (allocated) {
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
-      for (j = i+1; j <= atom->ntypes; j++)
+      for (j = i; j <= atom->ntypes; j++)
         if (setflag[i][j]) cut[i][j] = cut_global;
   }
 }
@@ -176,7 +176,7 @@ void PairMorse::settings(int narg, char **arg)
 
 void PairMorse::coeff(int narg, char **arg)
 {
-  if (narg < 5 || narg > 6) 
+  if (narg < 5 || narg > 6)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 

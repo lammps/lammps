@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 #include "update.h"
 #include "integrate.h"
 #include "min.h"
@@ -154,7 +154,7 @@ void Update::set_units(const char *style)
     force->ftm2v = 1.0 / 48.88821291 / 48.88821291;
     force->mv2d = 1.0 / 0.602214129;
     force->nktv2p = 68568.415;
-    force->qqr2e = 332.06371;
+    force->qqr2e = 332.06371;     // see also force->qqr2d_lammps_real
     force->qe2f = 23.060549;
     force->vxmu2f = 1.4393264316e4;
     force->xxt2kmu = 0.1;
@@ -246,7 +246,7 @@ void Update::set_units(const char *style)
     force->hhmrr2e = 0.0;
     force->mvh2r = 0.0;
     force->angstrom = 1.88972612;
-    force->femtosecond = 41.34137413;
+    force->femtosecond = 1.0;
     force->qelectron = 1.0;
 
     dt = 0.001;

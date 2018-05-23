@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "create_atoms.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -44,7 +44,6 @@ using namespace MathConst;
 
 enum{BOX,REGION,SINGLE,RANDOM};
 enum{ATOM,MOLECULE};
-enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 
 /* ---------------------------------------------------------------------- */
 
@@ -314,7 +313,7 @@ void CreateAtoms::command(int narg, char **arg)
   }
 
   if (style == BOX || style == REGION) {
-    if (comm->layout != LAYOUT_TILED) {
+    if (comm->layout != Comm::LAYOUT_TILED) {
       if (domain->xperiodic) {
         if (comm->myloc[0] == 0) sublo[0] -= epsilon[0];
         if (comm->myloc[0] == comm->procgrid[0]-1) subhi[0] -= 2.0*epsilon[0];
@@ -343,6 +342,11 @@ void CreateAtoms::command(int narg, char **arg)
     }
   }
 
+  // Record wall time for atom creation
+
+  MPI_Barrier(world);
+  double time1 = MPI_Wtime();
+
   // clear ghost count and any ghost bonus data internal to AtomVec
   // same logic as beginning of Comm::exchange()
   // do it now b/c creating atoms will overwrite ghost atoms
@@ -360,7 +364,7 @@ void CreateAtoms::command(int narg, char **arg)
   else add_lattice();
 
   // init per-atom fix/compute/variable values for created atoms
-  
+
   atom->data_fix_compute_variable(nlocal_previous,atom->nlocal);
 
   // set new total # of atoms and error check
@@ -509,6 +513,9 @@ void CreateAtoms::command(int narg, char **arg)
     if (domain->triclinic) domain->lamda2x(atom->nlocal);
   }
 
+  MPI_Barrier(world);
+  double time2 = MPI_Wtime();
+
   // clean up
 
   delete ranmol;
@@ -521,12 +528,16 @@ void CreateAtoms::command(int narg, char **arg)
   // print status
 
   if (comm->me == 0) {
-    if (screen)
+    if (screen) {
       fprintf(screen,"Created " BIGINT_FORMAT " atoms\n",
               atom->natoms-natoms_previous);
-    if (logfile)
+      fprintf(screen,"  Time spent = %g secs\n",time2-time1);
+    }
+    if (logfile) {
       fprintf(logfile,"Created " BIGINT_FORMAT " atoms\n",
               atom->natoms-natoms_previous);
+      fprintf(logfile,"  Time spent = %g secs\n",time2-time1);
+    }
   }
 
   // for MOLECULE mode:

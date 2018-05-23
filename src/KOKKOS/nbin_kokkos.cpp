@@ -23,8 +23,6 @@
 
 using namespace LAMMPS_NS;
 
-enum{NSQ,BIN,MULTI};       // also in Neighbor
-
 #define SMALL 1.0e-6
 #define CUT2BIN_RATIO 100
 
@@ -68,12 +66,16 @@ NBinKokkos<DeviceType>::NBinKokkos(LAMMPS *lmp) : NBinStandard(lmp) {
 template<class DeviceType>
 void NBinKokkos<DeviceType>::bin_atoms_setup(int nall)
 {
-  if (mbins > k_bins.d_view.dimension_0()) {
+  if (mbins > k_bins.d_view.extent(0)) {
     k_bins = DAT::tdual_int_2d("Neighbor::d_bins",mbins,atoms_per_bin);
     bins = k_bins.view<DeviceType>();
 
     k_bincount = DAT::tdual_int_1d("Neighbor::d_bincount",mbins);
     bincount = k_bincount.view<DeviceType>();
+  }
+  if (nall > k_atom2bin.d_view.extent(0)) {
+    k_atom2bin = DAT::tdual_int_1d("Neighbor::d_atom2bin",nall);
+    atom2bin = k_atom2bin.view<DeviceType>();
   }
 }
 
@@ -86,6 +88,10 @@ void NBinKokkos<DeviceType>::bin_atoms()
 {
   last_bin = update->ntimestep;
 
+  k_bins.template sync<DeviceType>();
+  k_bincount.template sync<DeviceType>();
+  k_atom2bin.template sync<DeviceType>();
+
   h_resize() = 1;
 
   while(h_resize() > 0) {
@@ -93,9 +99,8 @@ void NBinKokkos<DeviceType>::bin_atoms()
     deep_copy(d_resize, h_resize);
 
     MemsetZeroFunctor<DeviceType> f_zero;
-    f_zero.ptr = (void*) k_bincount.view<DeviceType>().ptr_on_device();
+    f_zero.ptr = (void*) k_bincount.view<DeviceType>().data();
     Kokkos::parallel_for(mbins, f_zero);
-    DeviceType::fence();
 
     atomKK->sync(ExecutionSpaceFromDevice<DeviceType>::space,X_MASK);
     x = atomKK->k_x.view<DeviceType>();
@@ -106,7 +111,6 @@ void NBinKokkos<DeviceType>::bin_atoms()
     NPairKokkosBinAtomsFunctor<DeviceType> f(*this);
 
     Kokkos::parallel_for(atom->nlocal+atom->nghost, f);
-    DeviceType::fence();
 
     deep_copy(h_resize, d_resize);
     if(h_resize()) {
@@ -117,6 +121,10 @@ void NBinKokkos<DeviceType>::bin_atoms()
       c_bins = bins;
     }
   }
+
+  k_bins.template modify<DeviceType>();
+  k_bincount.template modify<DeviceType>();
+  k_atom2bin.template modify<DeviceType>();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -127,8 +135,9 @@ void NBinKokkos<DeviceType>::binatomsItem(const int &i) const
 {
   const int ibin = coord2bin(x(i, 0), x(i, 1), x(i, 2));
 
+  atom2bin(i) = ibin;
   const int ac = Kokkos::atomic_fetch_add(&bincount[ibin], (int)1);
-  if(ac < bins.dimension_1()) {
+  if(ac < bins.extent(1)) {
     bins(ibin, ac) = i;
   } else {
     d_resize() = 1;

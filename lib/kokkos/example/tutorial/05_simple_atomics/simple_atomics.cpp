@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 // 
 // ************************************************************************
 //@HEADER
@@ -82,7 +82,7 @@ struct findprimes {
     // Test all numbers from 3 to ceiling(sqrt(data(i))), to see if
     // they are factors of data(i).  It's not the most efficient prime
     // test, but it works.
-    const int upper_bound = sqrt(1.0*number)+1;
+    const int upper_bound = std::sqrt(1.0*number)+1;
     bool is_prime = !(number%2 == 0);
     int k = 3;
     while (k < upper_bound && is_prime) {
@@ -123,12 +123,12 @@ int main () {
   // Fill the 'data' array on the host with random numbers.  We assume
   // that they come from some process which is only implemented on the
   // host, via some library.  (That's true in this case.)
-  for (size_type i = 0; i < data.dimension_0 (); ++i) {
+  for (size_type i = 0; i < data.extent(0); ++i) {
     h_data(i) = rand () % nnumbers;
   }
   Kokkos::deep_copy (data, h_data); // copy from host to device
 
-  Kokkos::parallel_for (data.dimension_0 (), findprimes (data, result, count));
+  Kokkos::parallel_for (data.extent(0), findprimes (data, result, count));
   Kokkos::deep_copy (h_count, count); // copy from device to host
 
   printf ("Found %i prime numbers in %i random numbers\n", h_count(), nnumbers);

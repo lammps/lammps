@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -35,11 +35,14 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
+//
 // ************************************************************************
 //@HEADER
 */
+
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_OPENMP
 
 #include <gtest/gtest.h>
 
@@ -56,48 +59,39 @@
 #include <TestVector.hpp>
 #include <TestDualView.hpp>
 #include <TestDynamicView.hpp>
-#include <TestComplex.hpp>
 
 #include <Kokkos_DynRankView.hpp>
 #include <TestDynViewAPI.hpp>
 
+#include <TestScatterView.hpp>
+
 #include <Kokkos_ErrorReporter.hpp>
 #include <TestErrorReporter.hpp>
+
+#include <TestViewCtorPropEmbeddedDim.hpp>
 
 #include <iomanip>
 
 namespace Test {
 
-#ifdef KOKKOS_ENABLE_OPENMP
 class openmp : public ::testing::Test {
 protected:
   static void SetUpTestCase()
   {
     std::cout << std::setprecision(5) << std::scientific;
-
-    unsigned threads_count = 4 ;
-
-    if ( Kokkos::hwloc::available() ) {
-      threads_count = Kokkos::hwloc::get_available_numa_count() *
-                      Kokkos::hwloc::get_available_cores_per_numa();
-    }
-
-    Kokkos::OpenMP::initialize( threads_count );
   }
 
   static void TearDownTestCase()
   {
-    Kokkos::OpenMP::finalize();
   }
 };
 
-TEST_F( openmp, complex )
-{
-  testComplex<Kokkos::OpenMP> ();
-}
-
 TEST_F( openmp, dyn_view_api) {
   TestDynViewAPI< double , Kokkos::OpenMP >();
+}
+
+TEST_F( openmp, viewctorprop_embedded_dim ) {
+  TestViewCtorProp_EmbeddedDim< Kokkos::OpenMP >::test_vcpt( 2, 3 );
 }
 
 TEST_F( openmp, bitset )
@@ -157,6 +151,11 @@ TEST_F( openmp , staticcrsgraph )
       test_dualview_combinations<int,Kokkos::OpenMP>(size);                     \
   }
 
+#define OPENMP_SCATTERVIEW_TEST( size )             \
+  TEST_F( openmp, scatterview_##size##x) {                      \
+    test_scatter_view<Kokkos::OpenMP>(size);               \
+  }
+
 OPENMP_INSERT_TEST(close, 100000, 90000, 100, 500, true)
 OPENMP_INSERT_TEST(far, 100000, 90000, 100, 500, false)
 OPENMP_FAILED_INSERT_TEST( 10000, 1000 )
@@ -166,13 +165,16 @@ OPENMP_VECTOR_COMBINE_TEST( 10 )
 OPENMP_VECTOR_COMBINE_TEST( 3057 )
 OPENMP_DUALVIEW_COMBINE_TEST( 10 )
 
+OPENMP_SCATTERVIEW_TEST( 10 )
+
+OPENMP_SCATTERVIEW_TEST( 1000000 )
+
 #undef OPENMP_INSERT_TEST
 #undef OPENMP_FAILED_INSERT_TEST
 #undef OPENMP_ASSIGNEMENT_TEST
 #undef OPENMP_DEEP_COPY
 #undef OPENMP_VECTOR_COMBINE_TEST
 #undef OPENMP_DUALVIEW_COMBINE_TEST
-#endif
 
 
 TEST_F( openmp , dynamic_view )
@@ -203,4 +205,8 @@ TEST_F(openmp, ErrorReporterNativeOpenMP)
 }
 
 } // namespace test
+
+#else
+void KOKKOS_CONTAINERS_UNIT_TESTS_TESTOPENMP_PREVENT_EMPTY_LINK_ERROR() {}
+#endif
 

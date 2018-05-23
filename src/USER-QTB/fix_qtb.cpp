@@ -17,9 +17,9 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstring>
+#include <cstdlib>
 #include "fix_qtb.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -257,9 +257,9 @@ void FixQTB::post_force(int vflag)
 
       //update random array
       for (int m = 0; m < 2*N_f-1; m++) {
-	    random_array_0[j][m] = random_array_0[j][m+1];
-	    random_array_1[j][m] = random_array_1[j][m+1];
-	    random_array_2[j][m] = random_array_2[j][m+1];
+            random_array_0[j][m] = random_array_0[j][m+1];
+            random_array_1[j][m] = random_array_1[j][m+1];
+            random_array_2[j][m] = random_array_2[j][m+1];
       }
       random_array_0[j][2*N_f-1] = random->uniform()-0.5;
       random_array_1[j][2*N_f-1] = random->uniform()-0.5;

@@ -35,19 +35,20 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
 */
 
-#include <serial/TestSerial.hpp>
+#include <serial/TestSerial_Category.hpp>
+#include <TestViewSubview.hpp>
 
 namespace Test {
 
-TEST_F( serial, view_subview_3d_from_5d_right_atomic )
+TEST_F( TEST_CATEGORY, view_subview_3d_from_5d_right_atomic )
 {
-  TestViewSubview::test_3d_subview_5d_right< Kokkos::Serial, Kokkos::MemoryTraits<Kokkos::Atomic> >();
+  TestViewSubview::test_3d_subview_5d_right< TEST_EXECSPACE, Kokkos::MemoryTraits<Kokkos::Atomic> >();
 }
 
 } // namespace Test

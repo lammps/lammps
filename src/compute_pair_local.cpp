@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstring>
+#include <cstdlib>
 #include "compute_pair_local.h"
 #include "atom.h"
 #include "update.h"
@@ -76,7 +76,7 @@ ComputePairLocal::ComputePairLocal(LAMMPS *lmp, int narg, char **arg) :
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"cutoff") == 0) {
-      if (iarg+2 > narg) 
+      if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute pair/local command");
       if (strcmp(arg[iarg+1],"type") == 0) cutstyle = TYPE;
       else if (strcmp(arg[iarg+1],"radius") == 0) cutstyle = RADIUS;
@@ -126,11 +126,15 @@ void ComputePairLocal::init()
                  " requested by compute pair/local");
 
   // need an occasional half neighbor list
+  // set size to same value as request made by force->pair
+  // this should enable it to always be a copy list (e.g. for granular pstyle)
 
   int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->pair = 0;
   neighbor->requests[irequest]->compute = 1;
   neighbor->requests[irequest]->occasional = 1;
+  NeighRequest *pairrequest = neighbor->find_request((void *) force->pair);
+  if (pairrequest) neighbor->requests[irequest]->size = pairrequest->size;
 }
 
 /* ---------------------------------------------------------------------- */

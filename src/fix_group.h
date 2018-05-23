@@ -33,12 +33,13 @@ class FixGroup : public Fix {
   void setup(int);
   void post_integrate();
   void post_integrate_respa(int,int);
+  void *extract(const char *,int &);
 
  private:
   int gbit,gbitinverse;
-  int regionflag,varflag;
-  int iregion,ivar;
-  char *idregion,*idvar;
+  int regionflag,varflag,propflag,typeflag;
+  int iregion,ivar,iprop;
+  char *idregion,*idvar,*idprop;
   class Region *region;
 
   int nlevels_respa;
@@ -64,6 +65,10 @@ E: Region ID for group dynamic does not exist
 Self-explanatory.
 
 E: Variable name for group dynamic does not exist
+
+Self-explanatory.
+
+E: Per atom property for group dynamic does not exist
 
 Self-explanatory.
 

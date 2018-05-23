@@ -1,0 +1,55 @@
+# library build -*- makefile -*-
+SHELL = /bin/sh
+
+# which file will be copied to Makefile.lammps
+EXTRAMAKE = Makefile.lammps.linalg
+
+# ------ FILES ------
+
+SRC = $(wildcard *.cpp)
+INC = $(wildcard *.h)
+
+# ------ DEFINITIONS ------
+
+LIB = libatc.a
+OBJ =   $(SRC:.cpp=.o)
+
+default: lib
+
+# ------ SETTINGS ------
+
+.PHONY: clean lib depend
+
+# include any MPI settings needed for the ATC library to build with
+# must be the same MPI library that LAMMPS is built with
+
+CC =	        mpicxx
+CCFLAGS =       -O3 -Wall -g -fPIC
+CPPFLAGS = -I../../src -DMPICH_IGNORE_CXX_SEEK -DOMPI_SKIP_MPICXX=1
+ARCHIVE =	ar
+ARCHFLAG =	-rc
+# ------ MAKE PROCEDURE ------
+
+lib: 	$(OBJ)
+	$(ARCHIVE) $(ARFLAGS) $(LIB) $(OBJ)
+	@cp $(EXTRAMAKE) Makefile.lammps
+
+# ------ COMPILE RULES ------
+
+%.o:%.cpp
+	$(CC) $(CPPFLAGS) $(CCFLAGS) -c $<
+
+# ------ DEPENDENCIES ------
+
+depend .depend : fastdep.exe $(SRC)
+	@./fastdep.exe $(INCFLAGS) -- $^ > .depend || exit 1
+
+fastdep.exe: ../../src/DEPEND/fastdep.c
+	@cc -O -o $@ $<
+
+# ------ CLEAN ------
+
+clean:
+	-rm -f *.o *~ .depend $(LIB) fastdep.exe
+
+sinclude .depend

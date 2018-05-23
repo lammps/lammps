@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_thole.h"
 #include "atom.h"
 #include "comm.h"
@@ -25,6 +25,8 @@
 #include "error.h"
 #include "fix.h"
 #include "fix_store.h"
+#include "domain.h"
+#include "modify.h"
 
 using namespace LAMMPS_NS;
 
@@ -199,11 +201,11 @@ void PairThole::settings(int narg, char **arg)
   if (allocated) {
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
-      for (j = i+1; j <= atom->ntypes; j++)
-          if (setflag[i][j]) {
-              thole[i][j] = thole_global;
-              cut[i][j] = cut_global;
-          }
+      for (j = i; j <= atom->ntypes; j++)
+        if (setflag[i][j]) {
+          thole[i][j] = thole_global;
+          cut[i][j] = cut_global;
+        }
   }
 }
 

@@ -16,7 +16,8 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
+#include <cmath>
+#include <cstring>
 #include "fix_qeq_comb_omp.h"
 #include "fix_omp.h"
 #include "atom.h"
@@ -32,8 +33,6 @@
 #include "respa.h"
 #include "update.h"
 #include "pair_comb_omp.h"
-
-#include <string.h>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -70,17 +69,6 @@ void FixQEQCombOMP::init()
 
   ngroup = group->count(igroup);
   if (ngroup == 0) error->all(FLERR,"Fix qeq/comb group has no atoms");
-
-  // determine status of neighbor flag of the omp package command
-  int ifix = modify->find_fix("package_omp");
-  int use_omp = 0;
-  if (ifix >=0) {
-     FixOMP * fix = static_cast<FixOMP *>(lmp->modify->fix[ifix]);
-     if (fix->get_neighbor()) use_omp = 1;
-  }
-
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->omp = use_omp;
 }
 
 /* ---------------------------------------------------------------------- */

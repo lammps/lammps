@@ -15,9 +15,9 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <string.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstring>
+#include <cstdlib>
+#include <cmath>
 #include "fix_temp_csld.h"
 #include "atom.h"
 #include "force.h"
@@ -154,6 +154,9 @@ void FixTempCSLD::init()
   if (icompute < 0)
     error->all(FLERR,"Temperature ID for fix temp/csld does not exist");
   temperature = modify->compute[icompute];
+
+  if (modify->check_rigid_group_overlap(groupbit))
+    error->warning(FLERR,"Cannot thermostat atoms in rigid bodies");
 
   if (temperature->tempbias) which = BIAS;
   else which = NOBIAS;

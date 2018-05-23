@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
+#include <cstring>
 #include "compute_property_local.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -222,7 +222,7 @@ ComputePropertyLocal::ComputePropertyLocal(LAMMPS *lmp, int narg, char **arg) :
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"cutoff") == 0) {
-      if (iarg+2 > narg) 
+      if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute property/local command");
       if (strcmp(arg[iarg+1],"type") == 0) cutstyle = TYPE;
       else if (strcmp(arg[iarg+1],"radius") == 0) cutstyle = RADIUS;
@@ -280,12 +280,16 @@ void ComputePropertyLocal::init()
   }
 
   // for NEIGH/PAIR need an occasional half neighbor list
+  // set size to same value as request made by force->pair
+  // this should enable it to always be a copy list  (e.g. for granular pstyle)
 
   if (kindflag == NEIGH || kindflag == PAIR) {
     int irequest = neighbor->request(this,instance_me);
     neighbor->requests[irequest]->pair = 0;
     neighbor->requests[irequest]->compute = 1;
     neighbor->requests[irequest]->occasional = 1;
+    NeighRequest *pairrequest = neighbor->find_request((void *) force->pair);
+    if (pairrequest) neighbor->requests[irequest]->size = pairrequest->size;
   }
 
   // do initial memory allocation so that memory_usage() is correct

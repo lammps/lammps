@@ -16,10 +16,10 @@
    Soft-core version: Agilio Padua (Univ Blaise Pascal & CNRS)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_lj_cut_soft.h"
 #include "atom.h"
 #include "comm.h"
@@ -164,10 +164,10 @@ void PairLJCutSoft::compute_inner()
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
 
-  inum = listinner->inum;
-  ilist = listinner->ilist;
-  numneigh = listinner->numneigh;
-  firstneigh = listinner->firstneigh;
+  inum = list->inum_inner;
+  ilist = list->ilist_inner;
+  numneigh = list->numneigh_inner;
+  firstneigh = list->firstneigh_inner;
 
   double cut_out_on = cut_respa[0];
   double cut_out_off = cut_respa[1];
@@ -242,10 +242,10 @@ void PairLJCutSoft::compute_middle()
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
 
-  inum = listmiddle->inum;
-  ilist = listmiddle->ilist;
-  numneigh = listmiddle->numneigh;
-  firstneigh = listmiddle->firstneigh;
+  inum = list->inum_middle;
+  ilist = list->ilist_middle;
+  numneigh = list->numneigh_middle;
+  firstneigh = list->firstneigh_middle;
 
   double cut_in_off = cut_respa[0];
   double cut_in_on = cut_respa[1];
@@ -333,10 +333,10 @@ void PairLJCutSoft::compute_outer(int eflag, int vflag)
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
 
-  inum = listouter->inum;
-  ilist = listouter->ilist;
-  numneigh = listouter->numneigh;
-  firstneigh = listouter->firstneigh;
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
 
   double cut_in_off = cut_respa[2];
   double cut_in_on = cut_respa[3];
@@ -462,7 +462,7 @@ void PairLJCutSoft::settings(int narg, char **arg)
   if (allocated) {
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
-      for (j = i+1; j <= atom->ntypes; j++)
+      for (j = i; j <= atom->ntypes; j++)
         if (setflag[i][j]) cut[i][j] = cut_global;
   }
 }
@@ -484,6 +484,8 @@ void PairLJCutSoft::coeff(int narg, char **arg)
   double epsilon_one = force->numeric(FLERR,arg[2]);
   double sigma_one = force->numeric(FLERR,arg[3]);
   double lambda_one = force->numeric(FLERR,arg[4]);
+  if (sigma_one <= 0.0)
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   double cut_one = cut_global;
   if (narg == 6) cut_one = force->numeric(FLERR,arg[5]);
@@ -555,19 +557,6 @@ void PairLJCutSoft::init_style()
 }
 
 /* ----------------------------------------------------------------------
-   neighbor callback to inform pair style of neighbor list to use
-   regular or rRESPA
-------------------------------------------------------------------------- */
-
-void PairLJCutSoft::init_list(int id, NeighList *ptr)
-{
-  if (id == 0) list = ptr;
-  else if (id == 1) listinner = ptr;
-  else if (id == 2) listmiddle = ptr;
-  else if (id == 3) listouter = ptr;
-}
-
-/* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
@@ -584,7 +573,7 @@ double PairLJCutSoft::init_one(int i, int j)
   lj2[i][j] = pow(sigma[i][j], 6.0);
   lj3[i][j] = alphalj * (1.0 - lambda[i][j])*(1.0 - lambda[i][j]);
 
-  if (offset_flag) {
+  if (offset_flag && (cut[i][j] > 0.0)) {
     double denlj = lj3[i][j] + pow(cut[i][j] / sigma[i][j], 6.0);
     offset[i][j] = lj1[i][j] * 4.0 * epsilon[i][j] * (1.0/(denlj*denlj) - 1.0/denlj);
   } else offset[i][j] = 0.0;

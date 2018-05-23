@@ -73,7 +73,6 @@ void ReadCarFile(void)
   int skip;                    /* lines to skip at beginning of file */
   double lowest, highest;      /* temp coordinate finding variables */
   double total_q;
-  double sq_c;
   double cos_alpha;  /* Added by SLTM Sept 13, 2010 */
   double cos_gamma;
   double sin_gamma;
@@ -261,7 +260,7 @@ void ReadCarFile(void)
         box[2][k] =  0.0;
       }
     } else {
-      sq_c = pbc[2]*pbc[2];
+      double ly,lz;
       cos_alpha = cos(pbc[3]*PI_180);
       cos_gamma = cos(pbc[5]*PI_180);
       sin_gamma = sin(pbc[5]*PI_180);
@@ -275,16 +274,23 @@ void ReadCarFile(void)
       B = pbc[1];
       C = pbc[2];
 
+      /* compute xy, xz, and yz */
+      box[2][0] =  B * cos_gamma;
+      box[2][1] =  C * cos_beta;
+      if (fabs(sin_gamma) > 0.0001)
+        box[2][2] =  C*(cos_alpha-cos_gamma*cos_beta)/sin_gamma;
+      else box[2][2] = 0.0;
 
       box[0][0] = -0.5*A + center[0] + shift[0];
       box[1][0] =  0.5*A + center[0] + shift[0];
-      box[0][1] = -0.5*B*sin_gamma + center[1] + shift[1];
-      box[1][1] =  0.5*B*sin_gamma + center[1] + shift[1];
-      box[0][2] = -0.5*sqrt(sq_c * sin_beta*sin_beta - C*(cos_alpha-cos_gamma*cos_beta)/sin_gamma) + center[2] + shift[2];
-      box[1][2] =  0.5*sqrt(sq_c * sin_beta*sin_beta - C*(cos_alpha-cos_gamma*cos_beta)/sin_gamma) + center[2] + shift[2];
-      box[2][0] =  B * cos_gamma; /* This is xy SLTM */
-      box[2][1] =  C * cos_beta;  /* This is xz SLTM */
-      box[2][2] =  C*(cos_alpha-cos_gamma*cos_beta)/sin_gamma; /* This is yz SLTM */
+
+      /* compute adjusted box length for y and z and apply */
+      ly = sqrt(B*B - box[2][0]*box[2][0]);
+      lz = sqrt(C*C - box[2][1]*box[2][1] - box[2][2]*box[2][2]);
+      box[0][1] = -0.5*ly + center[1] + shift[1];
+      box[1][1] =  0.5*ly + center[1] + shift[1];
+      box[0][2] = -0.5*lz + center[2] + shift[2];
+      box[1][2] =  0.5*lz + center[2] + shift[2];
     }
   }
 

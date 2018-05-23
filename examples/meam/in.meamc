@@ -1,0 +1,30 @@
+# Test of MEAM potential for SiC system
+
+units		metal
+boundary	p p p
+
+atom_style	atomic
+
+read_data	data.meam
+
+pair_style	meam/c
+pair_coeff	* * library.meam Si C SiC.meam Si C
+
+neighbor	0.3 bin
+neigh_modify	delay 10
+
+fix		1 all nve
+thermo		10
+timestep	0.001
+
+#dump		1 all atom 50 dump.meam
+
+#dump		2 all image 10 image.*.jpg element element &
+#		axes yes 0.8 0.02 view 60 -30
+#dump_modify	2 pad 3 element Si C
+
+#dump		3 all movie 10 movie.mpg element element &
+#		axes yes 0.8 0.02 view 60 -30
+#dump_modify	3 pad 3 element Si C
+
+run		100

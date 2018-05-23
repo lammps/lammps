@@ -8,17 +8,19 @@
 
 fix qeq/reax command :h3
 fix qeq/reax/kk command :h3
+fix qeq/reax/omp command :h3
 
 [Syntax:]
 
-fix ID group-ID qeq/reax Nevery cutlo cuthi tolerance params :pre
+fix ID group-ID qeq/reax Nevery cutlo cuthi tolerance params args :pre
 
 ID, group-ID are documented in "fix"_fix.html command
 qeq/reax = style name of this fix command
 Nevery = perform QEq every this many steps
 cutlo,cuthi = lo and hi cutoff for Taper radius
 tolerance = precision to which charges will be equilibrated
-params = reax/c or a filename :ul
+params = reax/c or a filename
+args   = {dual} (optional) :ul
 
 [Examples:]
 
@@ -59,6 +61,10 @@ potential file, except that eta is defined here as twice the eta value
 in the ReaxFF file. Note that unlike the rest of LAMMPS, the units
 of this fix are hard-coded to be A, eV, and electronic charge.
 
+The optional {dual} keyword allows to perform the optimization
+of the S and T matrices in parallel. This is only supported for
+the {qeq/reax/omp} style. Otherwise they are processed separately.
+
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
 No information about this fix is written to "binary restart
@@ -86,7 +92,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
 See "Section 5"_Section_accelerate.html of the manual for

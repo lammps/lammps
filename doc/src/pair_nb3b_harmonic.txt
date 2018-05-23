@@ -80,10 +80,12 @@ For a given entry, if the first three arguments are all different,
 then the entry is for the {K} and {theta_0} parameters (the cutoff in
 this case is irrelevant).
 
-It is {not} required that the potential file contain entries for all
-of the elements listed in the pair_coeff command.  It can also contain
-entries for additional elements not being used in a particular
-simulation; LAMMPS ignores those entries.
+It is required that the potential file contains entries for {all}
+permutations of the elements listed in the pair_coeff command.
+If certain combinations are not parameterized the corresponding
+parameters should be set to zero. The potential file can also
+contain entries for additional elements which are not used in
+a particular simulation; LAMMPS ignores those entries.
 
 :line
 
@@ -102,7 +104,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
 See "Section 5"_Section_accelerate.html of the manual for

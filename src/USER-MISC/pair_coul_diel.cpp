@@ -14,10 +14,10 @@
    Contributiong authors: Arben Jusufi, Axel Kohlmeyer (Temple U.)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_coul_diel.h"
 #include "atom.h"
 #include "comm.h"
@@ -168,7 +168,7 @@ void PairCoulDiel::settings(int narg, char **arg)
   if (allocated) {
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
-      for (j = i+1; j <= atom->ntypes; j++)
+      for (j = i; j <= atom->ntypes; j++)
         if (setflag[i][j]) cut[i][j] = cut_global;
   }
 }
@@ -235,7 +235,7 @@ double PairCoulDiel::init_one(int i, int j)
   double *q = atom->q;
   double qqrd2e = force->qqrd2e;
 
-  if (offset_flag) {
+  if (offset_flag && (cut[i][j] > 0.0)) {
     double rarg = (cut[i][j]-rme[i][j])/sigmae[i][j];
     double epsr=a_eps+b_eps*tanh(rarg);
     offset[i][j] = qqrd2e*q[i]*q[j]*((eps_s/epsr) -1.)/cut[i][j];

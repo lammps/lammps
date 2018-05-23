@@ -31,10 +31,6 @@ class FixRigidSmall : public Fix {
   friend class ComputeRigidLocal;
 
  public:
-  // static variable for ring communication callback to access class data
-
-  static FixRigidSmall *frsptr;
-
   FixRigidSmall(class LAMMPS *, int, char **);
   virtual ~FixRigidSmall();
   virtual int setmask();
@@ -67,6 +63,7 @@ class FixRigidSmall : public Fix {
   void reset_dt();
   void zero_momentum();
   void zero_rotation();
+  int modify_param(int, char **);
   void *extract(const char*, int &);
   double extract_ke();
   double extract_erotational();
@@ -82,7 +79,9 @@ class FixRigidSmall : public Fix {
 
   char *infile;             // file to read rigid body attributes from
   int setupflag;            // 1 if body properties are setup, else 0
+  int earlyflag;            // 1 if forces/torques are computed at post_force()
   int commflag;             // various modes of forward/reverse comm
+  int customflag;           // 1 if custom property/variable define bodies
   int nbody;                // total # of rigid bodies
   int nlinear;              // total # of linear rigid bodies
   tagint maxmol;            // max mol-ID
@@ -131,6 +130,7 @@ class FixRigidSmall : public Fix {
   int extended;         // 1 if any particles have extended attributes
   int orientflag;       // 1 if particles store spatial orientation
   int dorientflag;      // 1 if particles store dipole orientation
+  int reinitflag;       // 1 if re-initialize rigid bodies between runs
 
   int POINT,SPHERE,ELLIPSOID,LINE,TRIANGLE,DIPOLE;   // bitmasks for eflags
   int OMEGA,ANGMOM,TORQUE;
@@ -190,18 +190,20 @@ class FixRigidSmall : public Fix {
   void image_shift();
   void set_xv();
   void set_v();
-  void create_bodies();
+  void create_bodies(tagint *);
   void setup_bodies_static();
   void setup_bodies_dynamic();
+  void apply_langevin_thermostat();
+  void compute_forces_and_torques();
   void readfile(int, double **, int *);
   void grow_body();
   void reset_atom2body();
 
   // callback functions for ring communication
 
-  static void ring_bbox(int, char *);
-  static void ring_nearest(int, char *);
-  static void ring_farthest(int, char *);
+  static void ring_bbox(int, char *, void *);
+  static void ring_nearest(int, char *, void *);
+  static void ring_farthest(int, char *, void *);
 
   // debug
 
@@ -224,6 +226,26 @@ command-line option when running LAMMPS to see the offending line.
 E: Fix rigid/small requires atom attribute molecule
 
 Self-explanatory.
+
+E: Fix rigid/small custom requires previously defined property/atom
+
+UNDOCUMENTED
+
+E: Fix rigid/small custom requires integer-valued property/atom
+
+UNDOCUMENTED
+
+E: Variable name for fix rigid/small custom does not exist
+
+UNDOCUMENTED
+
+E: Fix rigid/small custom variable is no atom-style variable
+
+UNDOCUMENTED
+
+E: Unsupported fix rigid custom property
+
+UNDOCUMENTED
 
 E: Fix rigid/small requires an atom map, see atom_modify
 

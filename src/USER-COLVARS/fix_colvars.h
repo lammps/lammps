@@ -56,6 +56,7 @@ class FixColvars : public Fix {
   virtual void post_force(int);
   virtual void post_force_respa(int, int, int);
   virtual void end_of_step();
+  virtual void post_run();
   virtual double compute_scalar();
   virtual double memory_usage();
 

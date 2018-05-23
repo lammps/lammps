@@ -15,8 +15,8 @@
    Contributing author: Shawn Coleman (ARL)
 ------------------------------------------------------------------------- */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include <unistd.h>
 #include "fix_ave_histo_weight.h"
 #include "atom.h"

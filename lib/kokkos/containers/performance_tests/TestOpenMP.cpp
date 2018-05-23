@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -35,11 +35,14 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
+//
 // ************************************************************************
 //@HEADER
 */
+
+#include <Kokkos_Macros.hpp>
+#if defined( KOKKOS_ENABLE_OPENMP )
 
 #include <gtest/gtest.h>
 
@@ -51,6 +54,7 @@
 #include <TestUnorderedMapPerformance.hpp>
 
 #include <TestDynRankView.hpp>
+#include <TestScatterView.hpp>
 
 #include <iomanip>
 #include <sstream>
@@ -66,34 +70,17 @@ protected:
   {
     std::cout << std::setprecision(5) << std::scientific;
 
-    unsigned num_threads = 4;
-
-    if (Kokkos::hwloc::available()) {
-      num_threads = Kokkos::hwloc::get_available_numa_count()
-                    * Kokkos::hwloc::get_available_cores_per_numa()
-                    * Kokkos::hwloc::get_available_threads_per_core()
-                    ;
-
-    }
-
-    std::cout << "OpenMP: " << num_threads << std::endl;
-
-    Kokkos::OpenMP::initialize( num_threads );
-
-    std::cout << "available threads: " << omp_get_max_threads() << std::endl;
+    Kokkos::OpenMP::initialize();
+    Kokkos::OpenMP::print_configuration( std::cout );
   }
 
   static void TearDownTestCase()
   {
     Kokkos::OpenMP::finalize();
-
-    omp_set_num_threads(1);
-
-    ASSERT_EQ( 1 , omp_get_max_threads() );
   }
 };
 
-TEST_F( openmp, dynrankview_perf ) 
+TEST_F( openmp, dynrankview_perf )
 {
   std::cout << "OpenMP" << std::endl;
   std::cout << " DynRankView vs View: Initialization Only " << std::endl;
@@ -136,5 +123,20 @@ TEST_F( openmp, unordered_map_performance_far)
   Perf::run_performance_tests<Kokkos::OpenMP,false>(base_file_name.str());
 }
 
+TEST_F( openmp, scatter_view)
+{
+  std::cout << "ScatterView data-duplicated test:\n";
+  Perf::test_scatter_view<Kokkos::OpenMP, Kokkos::LayoutRight,
+    Kokkos::Experimental::ScatterDuplicated,
+    Kokkos::Experimental::ScatterNonAtomic>(10, 1000 * 1000);
+//std::cout << "ScatterView atomics test:\n";
+//Perf::test_scatter_view<Kokkos::OpenMP, Kokkos::LayoutRight,
+//  Kokkos::Experimental::ScatterNonDuplicated,
+//  Kokkos::Experimental::ScatterAtomic>(10, 1000 * 1000);
+}
+
 } // namespace test
+#else
+void KOKKOS_CONTAINERS_PERFORMANCE_TESTS_TESTOPENMP_PREVENT_EMPTY_LINK_ERROR() {}
+#endif
 

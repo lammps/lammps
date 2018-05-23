@@ -17,6 +17,7 @@
 
 #include "colvarbias.h"
 #include "colvargrid.h"
+#include "colvar_UIestimator.h"
 
 typedef cvm::real* gradient_t;
 
@@ -39,21 +40,43 @@ private:
   /// Base filename(s) for reading previous gradient data (replaces data from restart file)
   std::vector<std::string> input_prefix;
 
-  bool		update_bias;
-  bool		hide_Jacobian;
-  size_t	full_samples;
-  size_t	min_samples;
-  /// frequency for updating output files
-  int		output_freq;
-  /// Write combined files with a history of all output data?
-  bool      b_history_files;
-  /// Write CZAR output file for stratified eABF (.zgrad)
-  bool      b_czar_window_file;
-  size_t    history_freq;
+  bool    update_bias;
+  bool    hide_Jacobian;
+  bool    b_integrate;
 
-  /// Cap applied biasing force?
+  size_t  full_samples;
+  size_t  min_samples;
+  /// frequency for updating output files
+  int     output_freq;
+  /// Write combined files with a history of all output data?
+  bool    b_history_files;
+  /// Write CZAR output file for stratified eABF (.zgrad)
+  bool    b_czar_window_file;
+  size_t  history_freq;
+  /// Umbrella Integration estimator of free energy from eABF
+  UIestimator::UIestimator eabf_UI;
+  /// Run UI estimator?
+  bool  b_UI_estimator;
+  /// Run CZAR estimator?
+  bool  b_CZAR_estimator;
+
+  /// Frequency for updating pABF PMF (if zero, pABF is not used)
+  int   pabf_freq;
+  /// Max number of CG iterations for integrating PMF at startup and for file output
+  int       integrate_initial_steps;
+  /// Tolerance for integrating PMF at startup and for file output
+  cvm::real integrate_initial_tol;
+  /// Max number of CG iterations for integrating PMF at on-the-fly pABF updates
+  int       integrate_steps;
+  /// Tolerance for integrating PMF at on-the-fly pABF updates
+  cvm::real integrate_tol;
+
+  /// Cap the biasing force to be applied?
   bool                    cap_force;
   std::vector<cvm::real>  max_force;
+
+  // Frequency for updating 2D gradients
+  int integrate_freq;
 
   // Internal data and methods
 
@@ -64,12 +87,16 @@ private:
   colvar_grid_gradient  *gradients;
   /// n-dim grid of number of samples
   colvar_grid_count     *samples;
+  /// n-dim grid of pmf (dimension 1 to 3)
+  integrate_potential   *pmf;
   /// n-dim grid: average force on "real" coordinate for eABF z-based estimator
   colvar_grid_gradient  *z_gradients;
   /// n-dim grid of number of samples on "real" coordinate for eABF z-based estimator
   colvar_grid_count     *z_samples;
   /// n-dim grid contining CZAR estimator of "real" free energy gradients
   colvar_grid_gradient  *czar_gradients;
+  /// n-dim grid of CZAR pmf (dimension 1 to 3)
+  integrate_potential   *czar_pmf;
 
   inline int update_system_force(size_t i)
   {
@@ -89,9 +116,9 @@ private:
   }
 
   // shared ABF
-  bool     shared_on;
-  size_t   shared_freq;
-  int   shared_last_step;
+  bool    shared_on;
+  size_t  shared_freq;
+  int     shared_last_step;
   // Share between replicas -- may be called independently of update
   virtual int replica_share();
 
@@ -107,12 +134,12 @@ private:
   //// Give the count at a given bin index.
   virtual int bin_count(int bin_index);
 
-  /// Write human-readable FE gradients and sample count
-  void		  write_gradients_samples(const std::string &prefix, bool append = false);
-  void		  write_last_gradients_samples(const std::string &prefix, bool append = false);
+  /// Write human-readable FE gradients and sample count, and DX file in dim > 2
+  void write_gradients_samples(const std::string &prefix, bool append = false);
+  void write_last_gradients_samples(const std::string &prefix, bool append = false);
 
   /// Read human-readable FE gradients and sample count (if not using restart)
-  void		  read_gradients_samples();
+  void read_gradients_samples();
 
   std::istream& read_state_data(std::istream&);
   std::ostream& write_state_data(std::ostream&);

@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairHalfBinAtomonlyNewton::NPairHalfBinAtomonlyNewton(LAMMPS *lmp) : 
+NPairHalfBinAtomonlyNewton::NPairHalfBinAtomonlyNewton(LAMMPS *lmp) :
   NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
@@ -90,7 +90,8 @@ void NPairHalfBinAtomonlyNewton::build(NeighList *list)
 
     // loop over all atoms in other bins in stencil, store every pair
 
-    ibin = coord2bin(x[i]);
+    ibin = atom2bin[i];
+
     for (k = 0; k < nstencil; k++) {
       for (j = binhead[ibin+stencil[k]]; j >= 0; j = bins[j]) {
         jtype = type[j];

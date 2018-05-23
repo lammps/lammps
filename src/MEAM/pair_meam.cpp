@@ -15,10 +15,10 @@
    Contributing author: Greg Wagner (SNL)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_meam.h"
 #include "atom.h"
 #include "force.h"
@@ -47,6 +47,10 @@ static const char *keywords[] = {
 
 PairMEAM::PairMEAM(LAMMPS *lmp) : Pair(lmp)
 {
+  if (comm->me == 0)
+    error->warning(FLERR,"The pair_style meam command is unsupported. "
+                   "Please use pair_style meam/c instead");
+
   single_enable = 0;
   restartinfo = 0;
   one_coeff = 1;

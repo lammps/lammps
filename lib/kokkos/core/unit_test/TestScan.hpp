@@ -35,13 +35,14 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
 */
 
-#include <stdio.h>
+#include <Kokkos_Core.hpp>
+#include <cstdio>
 
 namespace Test {
 
@@ -91,7 +92,7 @@ struct TestScan {
     Kokkos::deep_copy( errors_a, 0 );
     errors = errors_a;
 
-    parallel_scan( N , *this );
+    Kokkos::parallel_scan( N , *this );
   }
 
   TestScan( const WorkSpec & Start , const WorkSpec & N )
@@ -102,7 +103,7 @@ struct TestScan {
     Kokkos::deep_copy( errors_a, 0 );
     errors = errors_a;
 
-    parallel_scan( exec_policy( Start , N ) , *this );
+    Kokkos::parallel_scan( exec_policy( Start , N ) , *this );
   }
 
   static void test_range( const WorkSpec & begin, const WorkSpec & end )
@@ -112,5 +113,30 @@ struct TestScan {
     }
   }
 };
+
+TEST_F( TEST_CATEGORY, scan )
+{
+  TestScan< TEST_EXECSPACE >::test_range( 1, 1000 );
+  TestScan< TEST_EXECSPACE >( 0 );
+  TestScan< TEST_EXECSPACE >( 100000 );
+  TestScan< TEST_EXECSPACE >( 10000000 );
+  TEST_EXECSPACE::fence();
+}
+
+
+/*TEST_F( TEST_CATEGORY, scan_small )
+{
+  typedef TestScan< TEST_EXECSPACE, Kokkos::Impl::ThreadsExecUseScanSmall > TestScanFunctor;
+
+  for ( int i = 0; i < 1000; ++i ) {
+    TestScanFunctor( 10 );
+    TestScanFunctor( 10000 );
+  }
+  TestScanFunctor( 1000000 );
+  TestScanFunctor( 10000000 );
+
+  TEST_EXECSPACE::fence();
+}*/
+
 
 } // namespace Test

@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "output.h"
 #include "style_dump.h"
 #include "atom.h"
@@ -49,18 +49,18 @@ Output::Output(LAMMPS *lmp) : Pointers(lmp)
   newarg[0] = (char *) "thermo_temp";
   newarg[1] = (char *) "all";
   newarg[2] = (char *) "temp";
-  modify->add_compute(3,newarg,1);
+  modify->add_compute(3,newarg);
 
   newarg[0] = (char *) "thermo_press";
   newarg[1] = (char *) "all";
   newarg[2] = (char *) "pressure";
   newarg[3] = (char *) "thermo_temp";
-  modify->add_compute(4,newarg,1);
+  modify->add_compute(4,newarg);
 
   newarg[0] = (char *) "thermo_pe";
   newarg[1] = (char *) "all";
   newarg[2] = (char *) "pe";
-  modify->add_compute(3,newarg,1);
+  modify->add_compute(3,newarg);
 
   delete [] newarg;
 
@@ -827,9 +827,9 @@ void Output::create_restart(int narg, char **arg)
    sum and print memory usage
    result is only memory on proc 0, not averaged across procs
 ------------------------------------------------------------------------- */
+
 void Output::memory_usage()
 {
-
   bigint bytes = 0;
   bytes += atom->memory_usage();
   bytes += neighbor->memory_usage();
@@ -844,9 +844,9 @@ void Output::memory_usage()
   MPI_Reduce(&mbytes,&mbavg,1,MPI_DOUBLE,MPI_SUM,0,world);
   MPI_Reduce(&mbytes,&mbmin,1,MPI_DOUBLE,MPI_MIN,0,world);
   MPI_Reduce(&mbytes,&mbmax,1,MPI_DOUBLE,MPI_MAX,0,world);
-  mbavg /= comm->nprocs;
 
   if (comm->me == 0) {
+    mbavg /= comm->nprocs;
     if (screen)
       fprintf(screen,"Per MPI rank memory allocation (min/avg/max) = "
               "%.4g | %.4g | %.4g Mbytes\n",mbmin,mbavg,mbmax);

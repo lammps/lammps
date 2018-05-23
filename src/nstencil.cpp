@@ -22,8 +22,6 @@
 
 using namespace LAMMPS_NS;
 
-enum{NSQ,BIN,MULTI};     // also in Neighbor
-
 /* ----------------------------------------------------------------------
    NStencil classes
    each has method to create a stencil = list of bin offsets
@@ -161,7 +159,7 @@ void NStencil::create_setup()
   // reallocate stencil structs if necessary
   // for BIN and MULTI styles
 
-  if (neighstyle == BIN) {
+  if (neighstyle == Neighbor::BIN) {
     if (smax > maxstencil) {
       maxstencil = smax;
       memory->destroy(stencil);
@@ -227,10 +225,10 @@ double NStencil::bin_distance(int i, int j, int k)
 bigint NStencil::memory_usage()
 {
   bigint bytes = 0;
-  if (neighstyle == BIN) {
+  if (neighstyle == Neighbor::BIN) {
     bytes += memory->usage(stencil,maxstencil);
     bytes += memory->usage(stencilxyz,maxstencil,3);
-  } else if (neighstyle == MULTI) {
+  } else if (neighstyle == Neighbor::MULTI) {
     bytes += atom->ntypes*maxstencil_multi * sizeof(int);
     bytes += atom->ntypes*maxstencil_multi * sizeof(double);
   }

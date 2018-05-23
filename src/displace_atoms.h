@@ -67,6 +67,10 @@ E: Could not find displace_atoms group ID
 
 Group ID used in the displace_atoms command does not exist.
 
+W: Attempting to displace atoms in rigid bodies
+
+UNDOCUMENTED
+
 E: Invalid displace_atoms rotate axis for 2d
 
 Axis must be in z direction.

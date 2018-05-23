@@ -22,21 +22,21 @@
   offset=tid & (t_per_atom-1);                                               \
   ii=fast_mul((int)BLOCK_ID_X,(int)(BLOCK_SIZE_X)/t_per_atom)+tid/t_per_atom;
 
-#define nbor_info(nbor_mem, packed_mem, nbor_stride, t_per_atom, ii, offset, \
-                  i, numj, stride, nbor_end, nbor_begin)                     \
-  i=nbor_mem[ii];                                                            \
-  nbor_begin=ii+nbor_stride;                                                 \
-  numj=nbor_mem[nbor_begin];                                                 \
-  if (nbor_mem==packed_mem) {                                                \
-    nbor_begin+=nbor_stride+fast_mul(ii,t_per_atom-1);                       \
-    stride=fast_mul(t_per_atom,nbor_stride);                                 \
-    nbor_end=nbor_begin+fast_mul(numj/t_per_atom,stride)+(numj & (t_per_atom-1)); \
+#define nbor_info(dev_nbor, dev_packed, nbor_pitch, t_per_atom, ii, offset,  \
+                  i, numj, n_stride, nbor_end, nbor_begin)                   \
+  i=dev_nbor[ii];                                                            \
+  nbor_begin=ii+nbor_pitch;                                                  \
+  numj=dev_nbor[nbor_begin];                                                 \
+  if (dev_nbor==dev_packed) {                                                \
+    nbor_begin+=nbor_pitch+fast_mul(ii,t_per_atom-1);                        \
+    n_stride=fast_mul(t_per_atom,nbor_pitch);                                \
+    nbor_end=nbor_begin+fast_mul(numj/t_per_atom,n_stride)+(numj & (t_per_atom-1)); \
     nbor_begin+=offset;                                                      \
   } else {                                                                   \
-    nbor_begin+=nbor_stride;                                                 \
-    nbor_begin=nbor_mem[nbor_begin];                                         \
+    nbor_begin+=nbor_pitch;                                                  \
+    nbor_begin=dev_nbor[nbor_begin];                                         \
     nbor_end=nbor_begin+numj;                                                \
-    stride=t_per_atom;                                                       \
+    n_stride=t_per_atom;                                                     \
     nbor_begin+=offset;                                                      \
   }
 

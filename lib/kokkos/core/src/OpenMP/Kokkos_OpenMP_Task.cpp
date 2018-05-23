@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -35,15 +35,16 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
+//
 // ************************************************************************
 //@HEADER
 */
 
-#include <Kokkos_Core.hpp>
-
+#include <Kokkos_Macros.hpp>
 #if defined( KOKKOS_ENABLE_OPENMP ) && defined( KOKKOS_ENABLE_TASKDAG )
+
+#include <Kokkos_Core.hpp>
 
 #include <impl/Kokkos_TaskQueue_impl.hpp>
 #include <impl/Kokkos_HostThreadTeam.hpp>
@@ -104,27 +105,29 @@ void TaskQueueSpecialization< Kokkos::OpenMP >::execute
 {
   using execution_space = Kokkos::OpenMP ;
   using queue_type      = TaskQueue< execution_space > ;
-  using task_root_type  = TaskBase< execution_space , void , void > ;
+  using task_root_type  = TaskBase< void , void , void > ;
   using Member          = Impl::HostThreadTeamMember< execution_space > ;
 
   static task_root_type * const end =
     (task_root_type *) task_root_type::EndTag ;
 
+
   HostThreadTeamData & team_data_single =
     HostThreadTeamDataSingleton::singleton();
 
-  const int team_size = Impl::OpenMPexec::pool_size(2); // Threads per core
-  // const int team_size = Impl::OpenMPexec::pool_size(1); // Threads per NUMA
+  Impl::OpenMPExec * instance = t_openmp_instance;
+  const int pool_size = OpenMP::thread_pool_size();
 
-#if 0
-fprintf(stdout,"TaskQueue<OpenMP> execute %d\n", team_size );
-fflush(stdout);
-#endif
+  const int team_size = 1;  // Threads per core
+  instance->resize_thread_data( 0 /* global reduce buffer */
+                              , 512 * team_size /* team reduce buffer */
+                              , 0 /* team shared buffer */
+                              , 0 /* thread local buffer */
+                              );
 
-
-#pragma omp parallel
+  #pragma omp parallel num_threads(pool_size)
   {
-    Impl::HostThreadTeamData & self = *Impl::OpenMPexec::get_thread_data();
+    Impl::HostThreadTeamData & self = *(instance->get_thread_data());
 
     // Organizing threads into a team performs a barrier across the
     // entire pool to insure proper initialization of the team
@@ -134,18 +137,6 @@ fflush(stdout);
 
       Member single_exec( team_data_single );
       Member team_exec( self );
-
-#if 0
-fprintf(stdout,"TaskQueue<OpenMP> pool(%d of %d) team(%d of %d) league(%d of %d) running\n"
-       , self.pool_rank()
-       , self.pool_size()
-       , team_exec.team_rank()
-       , team_exec.team_size()
-       , team_exec.league_rank()
-       , team_exec.league_size()
-       );
-fflush(stdout);
-#endif
 
       // Loop until all queues are empty and no tasks in flight
 
@@ -164,7 +155,7 @@ fflush(stdout);
             if ( 0 != task && end != task ) {
               // team member #0 completes the previously executed task,
               // completion may delete the task
-              queue->complete( task ); 
+              queue->complete( task );
             }
 
             // If 0 == m_ready_count then set task = 0
@@ -190,15 +181,6 @@ fflush(stdout);
 
               // if a single thread task then execute now
 
-#if 0
-fprintf(stdout,"TaskQueue<OpenMP> pool(%d of %d) executing single task 0x%lx\n"
-       , self.pool_rank()
-       , self.pool_size()
-       , int64_t(task)
-       );
-fflush(stdout);
-#endif
-
               (*task->m_apply)( task , & single_exec );
 
               leader_loop = true ;
@@ -213,57 +195,14 @@ fflush(stdout);
 
         if ( 0 != task ) { // Thread Team Task
 
-#if 0
-fprintf(stdout,"TaskQueue<OpenMP> pool(%d of %d) team((%d of %d) league(%d of %d) executing team task 0x%lx\n"
-       , self.pool_rank()
-       , self.pool_size()
-       , team_exec.team_rank()
-       , team_exec.team_size()
-       , team_exec.league_rank()
-       , team_exec.league_size()
-       , int64_t(task)
-       );
-fflush(stdout);
-#endif
-
           (*task->m_apply)( task , & team_exec );
 
           // The m_apply function performs a barrier
         }
       } while( 0 != task );
-
-#if 0
-fprintf(stdout,"TaskQueue<OpenMP> pool(%d of %d) team(%d of %d) league(%d of %d) ending\n"
-       , self.pool_rank()
-       , self.pool_size()
-       , team_exec.team_rank()
-       , team_exec.team_size()
-       , team_exec.league_rank()
-       , team_exec.league_size()
-       );
-fflush(stdout);
-#endif
-
     }
-
     self.disband_team();
-
-#if 0
-fprintf(stdout,"TaskQueue<OpenMP> pool(%d of %d) disbanded\n"
-       , self.pool_rank()
-       , self.pool_size()
-       );
-fflush(stdout);
-#endif
-
   }
-// END #pragma omp parallel
-
-#if 0
-fprintf(stdout,"TaskQueue<OpenMP> execute %d end\n", team_size );
-fflush(stdout);
-#endif
-
 }
 
 void TaskQueueSpecialization< Kokkos::OpenMP >::
@@ -272,10 +211,10 @@ void TaskQueueSpecialization< Kokkos::OpenMP >::
 {
   using execution_space = Kokkos::OpenMP ;
   using queue_type      = TaskQueue< execution_space > ;
-  using task_root_type  = TaskBase< execution_space , void , void > ;
+  using task_root_type  = TaskBase< void , void , void > ;
   using Member          = Impl::HostThreadTeamMember< execution_space > ;
 
-  if ( 1 == omp_get_num_threads() ) {
+  if ( 1 == OpenMP::thread_pool_size() ) {
 
     task_root_type * const end = (task_root_type *) task_root_type::EndTag ;
 
@@ -301,7 +240,7 @@ void TaskQueueSpecialization< Kokkos::OpenMP >::
 
       (*task->m_apply)( task , & single_exec );
 
-      queue->complete( task ); 
+      queue->complete( task );
 
     } while(1);
   }
@@ -310,7 +249,7 @@ void TaskQueueSpecialization< Kokkos::OpenMP >::
 }} /* namespace Kokkos::Impl */
 
 //----------------------------------------------------------------------------
-
+#else
+void KOKKOS_CORE_SRC_OPENMP_KOKKOS_OPENMP_TASK_PREVENT_LINK_ERROR() {}
 #endif /* #if defined( KOKKOS_ENABLE_OPENMP ) && defined( KOKKOS_ENABLE_TASKDAG ) */
-
 

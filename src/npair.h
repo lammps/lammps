@@ -47,7 +47,6 @@ class NPair : protected Pointers {
   double cut_inner_sq;
   double cut_middle_sq;
   double cut_middle_inside_sq;
-  double *zeroes;
   double *bboxlo,*bboxhi;
 
   // exclusion data from Neighbor class
@@ -77,9 +76,9 @@ class NPair : protected Pointers {
   int mbinx,mbiny,mbinz;
   int mbinxlo,mbinylo,mbinzlo;
   double bininvx,bininvy,bininvz;
-  int *bins;
+  int *atom2bin,*bins;
   int *binhead;
-  
+
   // data from NStencil class
 
   int nstencil;
@@ -135,6 +134,9 @@ class NPair : protected Pointers {
     }
     return 0;
   };
+
+  int copymode;
+  ExecutionSpace execution_space;
 };
 
 }
@@ -142,5 +144,9 @@ class NPair : protected Pointers {
 #endif
 
 /* ERROR/WARNING messages:
+
+E: Non-numeric positions - simulation unstable
+
+UNDOCUMENTED
 
 */

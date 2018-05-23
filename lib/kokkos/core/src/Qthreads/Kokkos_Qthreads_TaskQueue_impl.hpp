@@ -35,13 +35,17 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
 */
 
-#if defined( KOKKOS_ENABLE_TASKPOLICY )
+#ifndef KOKKOS_QTHREADS_TASKQUEUE_IMPL_HPP
+#define KOKKOS_QTHREADS_TASKQUEUE_IMPL_HPP
+
+#include <Kokkos_Macros.hpp>
+#if defined( KOKKOS_ENABLE_QTHREADS ) && defined( KOKKOS_ENABLE_TASKPOLICY )
 
 namespace Kokkos {
 namespace Impl {
@@ -433,4 +437,5 @@ fflush(stdout);
 
 
 #endif /* #if defined( KOKKOS_ENABLE_TASKPOLICY ) */
+#endif // KOKKOS_QTHREADS_TASKQUEUE_IMPL_HPP
 

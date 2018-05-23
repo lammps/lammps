@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_lj_expand.h"
 #include "atom.h"
 #include "comm.h"
@@ -179,7 +179,7 @@ void PairLJExpand::settings(int narg, char **arg)
   if (allocated) {
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
-      for (j = i+1; j <= atom->ntypes; j++)
+      for (j = i; j <= atom->ntypes; j++)
         if (setflag[i][j]) cut[i][j] = cut_global;
   }
 }
@@ -240,7 +240,7 @@ double PairLJExpand::init_one(int i, int j)
   lj3[i][j] = 4.0 * epsilon[i][j] * pow(sigma[i][j],12.0);
   lj4[i][j] = 4.0 * epsilon[i][j] * pow(sigma[i][j],6.0);
 
-  if (offset_flag) {
+  if (offset_flag && (cut[i][j] > 0.0)) {
     double ratio = sigma[i][j] / cut[i][j];
     offset[i][j] = 4.0 * epsilon[i][j] * (pow(ratio,12.0) - pow(ratio,6.0));
   } else offset[i][j] = 0.0;
@@ -282,9 +282,9 @@ double PairLJExpand::init_one(int i, int j)
        (1.0/3.0 + 2.0*shift1/(4.0*rc1) + shift2/(5.0*rc2))/rc3);
     ptail_ij = 16.0*MY_PI*all[0]*all[1]*epsilon[i][j] * sig6 *
       ((1.0/9.0 + 3.0*shift1/(10.0*rc1) +
-	3.0*shift2/(11.0*rc2) + shift3/(12.0*rc3))*2.0*sig6/rc9 -
+        3.0*shift2/(11.0*rc2) + shift3/(12.0*rc3))*2.0*sig6/rc9 -
        (1.0/3.0 + 3.0*shift1/(4.0*rc1) +
-	3.0*shift2/(5.0*rc2) + shift3/(6.0*rc3))/rc3);
+        3.0*shift2/(5.0*rc2) + shift3/(6.0*rc3))/rc3);
   }
 
   return cut[i][j] + shift[i][j];

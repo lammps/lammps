@@ -1,0 +1,100 @@
+# fix gcmc example with fix shake
+
+# variables available on command line
+
+variable        mu index -8.1
+variable	disp index 0.5
+variable        temp index 338.0
+variable        lbox index 10.0
+variable        spacing index 5.0
+
+# global model settings
+
+units           real
+atom_style      full
+boundary        p p p
+pair_style      lj/cut/coul/long  14 
+pair_modify     mix arithmetic tail yes
+kspace_style    ewald 0.0001
+bond_style      harmonic
+angle_style     harmonic
+
+# box, start molecules on simple cubic lattice
+
+lattice 	sc ${spacing}
+region          box block 0 ${lbox} 0 ${lbox} 0 ${lbox} units box
+create_box      2 box                       &
+                bond/types 1                &
+                angle/types 1               &
+                extra/bond/per/atom 2       &
+                extra/angle/per/atom 1      &
+                extra/special/per/atom 2
+
+molecule        h2omol H2O.txt
+create_atoms   	0 box mol h2omol 464563 units box
+                        
+# rigid SPC/E water model
+
+pair_coeff      1 1 0.15535 3.166
+pair_coeff      * 2 0.0000 0.0000       
+
+bond_coeff      1     1000       1.0   
+angle_coeff     1      100       109.47
+
+# masses
+
+mass 1 15.9994 
+mass 2 1.0
+
+# MD settings
+
+group           h2o type 1 2
+neighbor        2.0 bin
+neigh_modify    every 1 delay 1 check yes
+velocity       	all create ${temp} 54654
+timestep        1.0
+
+minimize 0.0 0.0 100 1000
+reset_timestep 0
+
+# rigid constraints with thermostat 
+
+fix             mynvt h2o nvt temp ${temp} ${temp} 100
+fix             wshake h2o shake 0.0001 50 0 b 1 a 1 mol h2omol
+
+# important to make temperature dofs dynamic
+
+compute_modify  thermo_temp dynamic/dof yes
+compute_modify  mynvt_temp dynamic/dof yes
+
+run 1000
+reset_timestep 0
+
+# gcmc
+
+variable        tfac equal 5.0/3.0 # (3 trans + 2 rot)/(3 trans)
+fix             mygcmc h2o gcmc 100 100 0 0 54341 ${temp} ${mu} ${disp} mol &
+                h2omol tfac_insert ${tfac} group h2o shake wshake
+
+# atom counts
+
+variable 	oxygen atom "type==1"
+variable 	hydrogen atom "type==2"
+group 	        oxygen dynamic all var oxygen
+group 		hydrogen dynamic all var hydrogen
+variable        nO equal count(oxygen)
+variable        nH equal count(hydrogen)
+
+# output
+
+variable	tacc equal f_mygcmc[2]/(f_mygcmc[1]+0.1)
+variable	iacc equal f_mygcmc[4]/(f_mygcmc[3]+0.1)
+variable	dacc equal f_mygcmc[6]/(f_mygcmc[5]+0.1)
+variable	racc equal f_mygcmc[8]/(f_mygcmc[7]+0.1)
+thermo_style    custom step temp press pe ke density atoms v_iacc v_dacc v_tacc v_racc v_nO v_nH
+thermo          1000
+
+# run
+
+run             20000
+

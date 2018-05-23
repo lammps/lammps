@@ -35,19 +35,20 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
 */
 
-#include <cuda/TestCuda.hpp>
+#include <cuda/TestCudaUVM_Category.hpp>
+#include <TestViewSubview.hpp>
 
 namespace Test {
 
-TEST_F( cuda, view_subview_3d_from_5d_left )
+TEST_F( TEST_CATEGORY, view_subview_3d_from_5d_left )
 {
-  TestViewSubview::test_3d_subview_5d_left< Kokkos::CudaUVMSpace >();
+  TestViewSubview::test_3d_subview_5d_left< TEST_EXECSPACE >();
 }
 
 } // namespace Test

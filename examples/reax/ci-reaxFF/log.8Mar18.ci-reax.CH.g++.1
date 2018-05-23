@@ -1,0 +1,86 @@
+LAMMPS (8 Mar 2018)
+  using 1 OpenMP thread(s) per MPI task
+#ci-reax potential for CH systems with tabulated ZBL correction
+atom_style      charge
+units           real
+
+read_data       CH4.dat
+  orthogonal box = (0 0 0) to (20 20 20)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  315 atoms
+  reading velocities ...
+  315 velocities
+
+pair_style      hybrid/overlay reax/c control checkqeq no table linear 11000
+pair_coeff      * * reax/c ffield.ci-reax.CH C H
+Reading potential file ffield.ci-reax.CH with DATE: 2017-11-20
+pair_coeff      1 1 table ci-reaxFF_ZBL.dat CC_cireaxFF
+WARNING: 2 of 10000 force values in table are inconsistent with -dE/dr.
+  Should only be flagged at inflection points (../pair_table.cpp:481)
+pair_coeff      1 2 table ci-reaxFF_ZBL.dat CH_cireaxFF
+WARNING: 2 of 11000 force values in table are inconsistent with -dE/dr.
+  Should only be flagged at inflection points (../pair_table.cpp:481)
+pair_coeff      2 2 table ci-reaxFF_ZBL.dat HH_cireaxFF
+WARNING: 2 of 6000 force values in table are inconsistent with -dE/dr.
+  Should only be flagged at inflection points (../pair_table.cpp:481)
+
+timestep        0.25
+fix             1 all nve
+fix             2 all temp/berendsen 500.0 500.0 100.0
+
+#dump           1 all atom 30 dump.ci-reax.lammpstrj
+
+run             3000
+WARNING: Total cutoff < 2*bond cutoff. May need to use an increased neighbor list skin. (../pair_reaxc.cpp:392)
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 9.5
+  ghost atom cutoff = 9.5
+  binsize = 4.75, bins = 5 5 5
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair reax/c, perpetual
+      attributes: half, newton off, ghost
+      pair build: half/bin/newtoff/ghost
+      stencil: half/ghost/bin/3d/newtoff
+      bin: standard
+  (2) pair table, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 43.46 | 43.46 | 43.46 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0    508.42043   -28736.654            0   -28260.785    1678.3276 
+    3000    480.41333   -28707.835            0   -28258.181   -3150.0762 
+Loop time of 45.3959 on 1 procs for 3000 steps with 315 atoms
+
+Performance: 1.427 ns/day, 16.813 hours/ns, 66.085 timesteps/s
+96.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 44.955     | 44.955     | 44.955     |   0.0 | 99.03
+Neigh   | 0.29903    | 0.29903    | 0.29903    |   0.0 |  0.66
+Comm    | 0.056547   | 0.056547   | 0.056547   |   0.0 |  0.12
+Output  | 4.8399e-05 | 4.8399e-05 | 4.8399e-05 |   0.0 |  0.00
+Modify  | 0.058722   | 0.058722   | 0.058722   |   0.0 |  0.13
+Other   |            | 0.02632    |            |       |  0.06
+
+Nlocal:    315 ave 315 max 315 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    2056 ave 2056 max 2056 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    32754 ave 32754 max 32754 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 32754
+Ave neighs/atom = 103.981
+Neighbor list builds = 37
+Dangerous builds = 0
+
+Please see the log.cite file for references relevant to this simulation
+
+Total wall time: 0:00:45

@@ -71,7 +71,7 @@ next value (for each variable) is assigned to whichever processor
 partition executes the command first.  All processors in the partition
 are assigned the same value(s).  Running LAMMPS on multiple partitions
 of processors via the "-partition" command-line switch is described in
-"this section"_Section_start.html#start_7 of the manual.  {Universe}-
+"this section"_Section_start.html#start_6 of the manual.  {Universe}-
 and {uloop}-style variables are incremented using the files
 "tmp.lammps.variable" and "tmp.lammps.variable.lock" which you will
 see in your directory during and after such a LAMMPS run.

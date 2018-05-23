@@ -70,8 +70,8 @@ minimization"_minimize.html.
 
 [Restrictions:]
 
-This fix is part of the USER-MISC package. It is only enabled if 
-LAMMPS was built with that package. See the "Making 
+This fix is part of the USER-MISC package. It is only enabled if
+LAMMPS was built with that package. See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 
 Currently, it does not support "molecule templates"_molecule.html.

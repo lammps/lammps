@@ -20,7 +20,7 @@ CommandStyle(read_data,ReadData)
 #ifndef LMP_READ_DATA_H
 #define LMP_READ_DATA_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -39,7 +39,7 @@ class ReadData : protected Pointers {
   int narg,maxarg;
   char argoffset1[8],argoffset2[8];
 
-  bigint id_offset;
+  bigint id_offset, mol_offset;
 
   int nlocal_previous;
   bigint natoms;
@@ -124,10 +124,13 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Read data add offset is too big
+E: Read data add atomID offset is too big
 
-It cannot be larger than the size of atom IDs, e.g. the maximum 32-bit
-integer.
+UNDOCUMENTED
+
+E: Read data add molID offset is too big
+
+UNDOCUMENTED
 
 E: Non-zero read_data shift z value for 2d simulation
 
@@ -148,6 +151,10 @@ Self-explanatory.
 E: No impropers allowed with this atom style
 
 Self-explanatory.
+
+E: No bonded interactions allowed with this atom style
+
+UNDOCUMENTED
 
 E: Fix ID for read_data does not exist
 
@@ -472,8 +479,8 @@ outside a non-periodic simulation box.
 
 E: Subsequent read data induced too many bonds per atom
 
-See the create_box extra/bond/per/atom or read_data "extra bond per
-atom" header value to set this limit larger.
+See the extra/bond/per/atom keyword for the create_box
+or the read_data command to set this limit larger.
 
 E: Bonds assigned incorrectly
 
@@ -482,8 +489,8 @@ This means there is something invalid about the topology definitions.
 
 E: Subsequent read data induced too many angles per atom
 
-See the create_box extra/angle/per/atom or read_data "extra angle per
-atom" header value to set this limit larger.
+See the extra/angle/per/atom keyword for the create_box
+or the read_data command to set this limit larger.
 
 E: Angles assigned incorrectly
 
@@ -493,8 +500,8 @@ definitions.
 
 E: Subsequent read data induced too many dihedrals per atom
 
-See the create_box extra/dihedral/per/atom or read_data "extra
-dihedral per atom" header value to set this limit larger.
+See the extra/dihedral/per/atom keyword for the create_box
+or the read_data command to set this limit larger.
 
 E: Dihedrals assigned incorrectly
 
@@ -504,8 +511,8 @@ definitions.
 
 E: Subsequent read data induced too many impropers per atom
 
-See the create_box extra/improper/per/atom or read_data "extra
-improper per atom" header value to set this limit larger.
+See the extra/improper/per/atom keyword for the create_box
+or the read_data command to set this limit larger.
 
 E: Impropers assigned incorrectly
 
@@ -556,5 +563,10 @@ E: Cannot open file %s
 The specified file cannot be opened.  Check that the path and name are
 correct. If the file is a compressed file, also check that the gzip
 executable can be found and run.
+
+U: Read data add offset is too big
+
+It cannot be larger than the size of atom IDs, e.g. the maximum 32-bit
+integer.
 
 */

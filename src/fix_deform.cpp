@@ -15,9 +15,9 @@
    Contributing author: Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
-#include <string.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstring>
+#include <cstdlib>
+#include <cmath>
 #include "fix_deform.h"
 #include "atom.h"
 #include "update.h"
@@ -37,12 +37,8 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-enum{NONE,FINAL,DELTA,SCALE,VEL,ERATE,TRATE,VOLUME,WIGGLE,VARIABLE};
+enum{NONE=0,FINAL,DELTA,SCALE,VEL,ERATE,TRATE,VOLUME,WIGGLE,VARIABLE};
 enum{ONE_FROM_ONE,ONE_FROM_TWO,TWO_FROM_ONE};
-
-// same as domain.cpp, fix_nvt_sllod.cpp, compute_temp_deform.cpp
-
-enum{NO_REMAP,X_REMAP,V_REMAP};
 
 /* ---------------------------------------------------------------------- */
 
@@ -52,6 +48,7 @@ rfix(NULL), irregular(NULL), set(NULL)
   if (narg < 4) error->all(FLERR,"Illegal fix deform command");
 
   no_change_box = 1;
+  restart_global = 1;
 
   nevery = force->inumeric(FLERR,arg[3]);
   if (nevery <= 0) error->all(FLERR,"Illegal fix deform command");
@@ -59,12 +56,7 @@ rfix(NULL), irregular(NULL), set(NULL)
   // set defaults
 
   set = new Set[6];
-  set[0].style = set[1].style = set[2].style =
-    set[3].style = set[4].style = set[5].style = NONE;
-  set[0].hstr = set[1].hstr = set[2].hstr =
-    set[3].hstr = set[4].hstr = set[5].hstr = NULL;
-  set[0].hratestr = set[1].hratestr = set[2].hratestr =
-    set[3].hratestr = set[4].hratestr = set[5].hratestr = NULL;
+  memset(set,0,6*sizeof(Set));
 
   // parse arguments
 
@@ -212,7 +204,7 @@ rfix(NULL), irregular(NULL), set(NULL)
   // no x remap effectively moves atoms within box, so set restart_pbc
 
   options(narg-iarg,&arg[iarg]);
-  if (remapflag != X_REMAP) restart_pbc = 1;
+  if (remapflag != Domain::X_REMAP) restart_pbc = 1;
 
   // setup dimflags used by other classes to check for volume-change conflicts
 
@@ -343,11 +335,9 @@ rfix(NULL), irregular(NULL), set(NULL)
     set[i].hi_initial = domain->boxhi[i];
     set[i].vol_initial = domain->xprd * domain->yprd * domain->zprd;
   }
-  for (int i = 3; i < 6; i++) {
-    if (i == 5) set[i].tilt_initial = domain->xy;
-    else if (i == 4) set[i].tilt_initial = domain->xz;
-    else if (i == 3) set[i].tilt_initial = domain->yz;
-  }
+  set[3].tilt_initial = domain->yz;
+  set[4].tilt_initial = domain->xz;
+  set[5].tilt_initial = domain->xy;
 
   // reneighboring only forced if flips can occur due to shape changes
 
@@ -896,7 +886,7 @@ void FixDeform::end_of_step()
 
   // convert atoms and rigid bodies to lamda coords
 
-  if (remapflag == X_REMAP) {
+  if (remapflag == Domain::X_REMAP) {
     double **x = atom->x;
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
@@ -936,7 +926,7 @@ void FixDeform::end_of_step()
 
   // convert atoms and rigid bodies back to box coords
 
-  if (remapflag == X_REMAP) {
+  if (remapflag == Domain::X_REMAP) {
     double **x = atom->x;
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
@@ -955,13 +945,50 @@ void FixDeform::end_of_step()
   if (kspace_flag) force->kspace->setup();
 }
 
+/* ----------------------------------------------------------------------
+   write Set data to restart file
+------------------------------------------------------------------------- */
+
+void FixDeform::write_restart(FILE *fp)
+{
+  if (comm->me == 0) {
+    int size = 6*sizeof(Set);
+    fwrite(&size,sizeof(int),1,fp);
+    fwrite(set,sizeof(Set),6,fp);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   use selected state info from restart file to restart the Fix
+------------------------------------------------------------------------- */
+
+void FixDeform::restart(char *buf)
+{
+  int samestyle = 1;
+  Set *set_restart = (Set *) buf;
+  for (int i=0; i<6; ++i) {
+    // restore data from initial state
+    set[i].lo_initial = set_restart[i].lo_initial;
+    set[i].hi_initial = set_restart[i].hi_initial;
+    set[i].vol_initial = set_restart[i].vol_initial;
+    set[i].tilt_initial = set_restart[i].tilt_initial;
+    // check if style settings are consitent (should do the whole set?)
+    if (set[i].style != set_restart[i].style)
+      samestyle = 0;
+    if (set[i].substyle != set_restart[i].substyle)
+      samestyle = 0;
+  }
+  if (!samestyle)
+    error->all(FLERR,"Fix deform settings not consistent with restart");
+}
+
 /* ---------------------------------------------------------------------- */
 
 void FixDeform::options(int narg, char **arg)
 {
   if (narg < 0) error->all(FLERR,"Illegal fix deform command");
 
-  remapflag = X_REMAP;
+  remapflag = Domain::X_REMAP;
   scaleflag = 1;
   flipflag = 1;
 
@@ -969,9 +996,9 @@ void FixDeform::options(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"remap") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix deform command");
-      if (strcmp(arg[iarg+1],"x") == 0) remapflag = X_REMAP;
-      else if (strcmp(arg[iarg+1],"v") == 0) remapflag = V_REMAP;
-      else if (strcmp(arg[iarg+1],"none") == 0) remapflag = NO_REMAP;
+      if (strcmp(arg[iarg+1],"x") == 0) remapflag = Domain::X_REMAP;
+      else if (strcmp(arg[iarg+1],"v") == 0) remapflag = Domain::V_REMAP;
+      else if (strcmp(arg[iarg+1],"none") == 0) remapflag = Domain::NO_REMAP;
       else error->all(FLERR,"Illegal fix deform command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"units") == 0) {

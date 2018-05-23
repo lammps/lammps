@@ -32,16 +32,16 @@
 ------------------------------------------------------------------------- */
 
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "update.h"
 #include "respa.h"
 #include "error.h"
 #include "group.h"
-#include <math.h>
+#include <cmath>
 #include "input.h"
 #include "variable.h"
 #include "citeme.h"
@@ -115,6 +115,13 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
     error->all(FLERR, "Error creating manifold arg arrays");
   }
 
+  // Check if you have enough args:
+  if( 6 + nvars > narg ){
+    char msg[2048];
+    sprintf(msg, "Not enough args for manifold %s, %d expected but got %d\n",
+            ptr_m->id(), nvars, narg - 6);
+    error->all(FLERR, msg);
+  }
   // Loop over manifold args:
   for( int i = 0; i < nvars; ++i ){
     int len = 0, offset = 0;
@@ -149,7 +156,7 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
       next_output = update->ntimestep + nevery;
       if( comm->me == 0 ){
         fprintf(screen,"Outputing every %d steps, next is %d\n",
-			nevery, next_output);
+                        nevery, next_output);
       }
       argi += 2;
     }else if( error_on_unknown_keyword ){
@@ -273,9 +280,9 @@ void FixNVEManifoldRattle::init()
 
 void FixNVEManifoldRattle::update_var_params()
 {
- 
+
   double *ptr_params = ptr_m->params;
-  
+
   for( int i = 0; i < nvars; ++i ){
     if( is_var[i] ){
       tvars[i] = input->variable->find(tstrs[i]);
@@ -286,7 +293,7 @@ void FixNVEManifoldRattle::update_var_params()
       if( input->variable->equalstyle(tvars[i]) ){
         tstyle[i] = EQUAL;
         double new_val = input->variable->compute_equal(tvars[i]);
-        
+
         ptr_params[i] = new_val;
       }else{
         error->all(FLERR,

@@ -176,12 +176,13 @@ By recognizing the fix {drude}, LAMMPS will find and store matching
 DC-DP pairs and will treat DP as equivalent to their DC in the
 {special bonds} relations.  It may be necessary to extend the space
 for storing such special relations.  In this case extra space should
-be reserved by using the {extra} keyword of the {special_bonds}
+be reserved by using the {extra/special/per/atom} keyword of either
+the "read_data"_read_data.html or "create_box"_create_box.html
 command.  With our phenol, there is 1 more special neighbor for which
 space is required.  Otherwise LAMMPS crashes and gives the required
 value.
 
-special_bonds lj/coul 0.0 0.0 0.5 extra 1 :pre
+read_data data-p.lmp extra/special/per/atom 1 :pre
 
 Let us assume we want to run a simple NVT simulation at 300 K.  Note
 that Drude oscillators need to be thermalized at a low temperature in

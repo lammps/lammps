@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 // 
 // ************************************************************************
 //@HEADER
@@ -76,7 +76,7 @@ void axpby( const ConstScalarType & alpha ,
 {
   typedef AXPBY< ConstScalarType , ConstVectorType , VectorType > functor ;
 
-  parallel_for( Y.dimension_0() , functor( alpha , X , beta , Y ) );
+  parallel_for( Y.extent(0) , functor( alpha , X , beta , Y ) );
 }
 
 /** \brief  Y *= alpha */
@@ -86,7 +86,7 @@ void scale( const ConstScalarType & alpha , const VectorType & Y )
 {
   typedef Scale< ConstScalarType , VectorType > functor ;
 
-  parallel_for( Y.dimension_0() , functor( alpha , Y ) );
+  parallel_for( Y.extent(0) , functor( alpha , Y ) );
 }
 
 template< class ConstVectorType ,
@@ -97,7 +97,7 @@ void dot( const ConstVectorType & X ,
 {
   typedef Dot< ConstVectorType >  functor ;
 
-  parallel_reduce( X.dimension_0() , functor( X , Y ) , finalize );
+  parallel_reduce( X.extent(0) , functor( X , Y ) , finalize );
 }
 
 template< class ConstVectorType ,
@@ -107,7 +107,7 @@ void dot( const ConstVectorType & X ,
 {
   typedef DotSingle< ConstVectorType >  functor ;
 
-  parallel_reduce( X.dimension_0() , functor( X ) , finalize );
+  parallel_reduce( X.extent(0) , functor( X ) , finalize );
 }
 
 } /* namespace Kokkos */

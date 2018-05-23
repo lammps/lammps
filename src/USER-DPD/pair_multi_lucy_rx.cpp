@@ -22,10 +22,10 @@
 ------------------------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
+#include <cmath>
 #include "math_const.h"
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include "pair_multi_lucy_rx.h"
 #include "atom.h"
 #include "force.h"
@@ -85,6 +85,8 @@ PairMultiLucyRX::PairMultiLucyRX(LAMMPS *lmp) : Pair(lmp),
 
 PairMultiLucyRX::~PairMultiLucyRX()
 {
+  if (copymode) return;
+
   for (int m = 0; m < ntables; m++) free_table(&tables[m]);
   memory->sfree(tables);
 

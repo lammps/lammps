@@ -15,10 +15,10 @@
    Contributing authors: Amit Kumar and Michael Bybee (UIUC)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_brownian.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -403,7 +403,7 @@ void PairBrownian::settings(int narg, char **arg)
 
   if (allocated) {
     for (int i = 1; i <= atom->ntypes; i++)
-      for (int j = i+1; j <= atom->ntypes; j++)
+      for (int j = i; j <= atom->ntypes; j++)
         if (setflag[i][j]) {
           cut_inner[i][j] = cut_inner_global;
           cut[i][j] = cut_global;

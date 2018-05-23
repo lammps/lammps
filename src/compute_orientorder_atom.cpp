@@ -16,8 +16,9 @@
                          Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
+#include <cmath>
 #include "compute_orientorder_atom.h"
 #include "atom.h"
 #include "update.h"
@@ -73,7 +74,7 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
   int iarg = 3;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"nnn") == 0) {
-      if (iarg+2 > narg) 
+      if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute orientorder/atom command");
       if (strcmp(arg[iarg+1],"NULL") == 0) {
         nnn = 0;
@@ -92,7 +93,7 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
       memory->destroy(qlist);
       memory->create(qlist,nqlist,"orientorder/atom:qlist");
       iarg += 2;
-      if (iarg+nqlist > narg) 
+      if (iarg+nqlist > narg)
         error->all(FLERR,"Illegal compute orientorder/atom command");
       qmax = 0;
       for (int iw = 0; iw < nqlist; iw++) {
@@ -102,23 +103,22 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
         if (qlist[iw] > qmax) qmax = qlist[iw];
       }
       iarg += nqlist;
-      if (strcmp(arg[iarg],"components") == 0) {
-        qlcompflag = 1;
-        if (iarg+2 > narg)
-          error->all(FLERR,"Illegal compute orientorder/atom command");
-        qlcomp = force->numeric(FLERR,arg[iarg+1]);
-        if (qlcomp <= 0)
-          error->all(FLERR,"Illegal compute orientorder/atom command");
-        iqlcomp = -1;
-        for (int iw = 0; iw < nqlist; iw++)
-          if (qlcomp == qlist[iw]) {
-            iqlcomp = iw;
-            break;
-          }
-        if (iqlcomp < 0)
-          error->all(FLERR,"Illegal compute orientorder/atom command");
-        iarg += 2;
-      }
+    } else if (strcmp(arg[iarg],"components") == 0) {
+      qlcompflag = 1;
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal compute orientorder/atom command");
+      qlcomp = force->numeric(FLERR,arg[iarg+1]);
+      if (qlcomp <= 0)
+        error->all(FLERR,"Illegal compute orientorder/atom command");
+      iqlcomp = -1;
+      for (int iw = 0; iw < nqlist; iw++)
+        if (qlcomp == qlist[iw]) {
+          iqlcomp = iw;
+          break;
+        }
+      if (iqlcomp < 0)
+        error->all(FLERR,"Illegal compute orientorder/atom command");
+      iarg += 2;
     } else if (strcmp(arg[iarg],"cutoff") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute orientorder/atom command");
@@ -501,7 +501,7 @@ double ComputeOrientOrderAtom::dist(const double r[])
    Y_l^m (theta, phi) = prefactor(l, m, cos(theta)) * exp(i*m*phi)
 ------------------------------------------------------------------------- */
 
-double ComputeOrientOrderAtom::polar_prefactor(int l, int m, double costheta) 
+double ComputeOrientOrderAtom::polar_prefactor(int l, int m, double costheta)
 {
   const int mabs = abs(m);
 
@@ -521,7 +521,7 @@ double ComputeOrientOrderAtom::polar_prefactor(int l, int m, double costheta)
    associated legendre polynomial
 ------------------------------------------------------------------------- */
 
-double ComputeOrientOrderAtom::associated_legendre(int l, int m, double x) 
+double ComputeOrientOrderAtom::associated_legendre(int l, int m, double x)
 {
   if (l < m) return 0.0;
 

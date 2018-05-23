@@ -12,8 +12,9 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
+#include <cmath>
 #include "pair_gran_hertz_history_omp.h"
+#include "fix_neigh_history.h"
 #include "atom.h"
 #include "comm.h"
 #include "fix.h"
@@ -134,8 +135,8 @@ void PairGranHertzHistoryOMP::eval(int iifrom, int iito, ThrData * const thr)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  firsttouch = list->listhistory->firstneigh;
-  firstshear = list->listhistory->firstdouble;
+  firsttouch = fix_history->firstflag;
+  firstshear = fix_history->firstvalue;
 
   // loop over neighbors of my atoms
 

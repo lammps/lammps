@@ -35,13 +35,16 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
 */
 
+#include <Kokkos_Macros.hpp>
 #if defined( KOKKOS_ENABLE_TASKDAG )
+
+#define KOKKOS_IMPL_DEBUG_TASKDAG_SCHEDULING 0
 
 namespace Kokkos {
 namespace Impl {
@@ -58,13 +61,8 @@ void TaskQueue< ExecSpace >::Destroy::destroy_shared_allocation()
 
 template< typename ExecSpace >
 TaskQueue< ExecSpace >::TaskQueue
-  ( const TaskQueue< ExecSpace >::memory_space & arg_space
-  , unsigned const arg_memory_pool_capacity
-  , unsigned const arg_memory_pool_superblock_capacity_log2
-  )
-  : m_memory( arg_space
-            , arg_memory_pool_capacity
-            , arg_memory_pool_superblock_capacity_log2 )
+  ( typename TaskQueue< ExecSpace >::memory_pool const & arg_memory_pool )
+  : m_memory( arg_memory_pool )
   , m_ready()
   , m_accum_alloc(0)
   , m_count_alloc(0)
@@ -104,9 +102,11 @@ KOKKOS_FUNCTION
 void TaskQueue< ExecSpace >::decrement
   ( TaskQueue< ExecSpace >::task_root_type * task )
 {
-  const int count = Kokkos::atomic_fetch_add(&(task->m_ref_count),-1);
+  task_root_type volatile & t = *task ;
 
-#if 0
+  const int count = Kokkos::atomic_fetch_add(&(t.m_ref_count),-1);
+
+#if KOKKOS_IMPL_DEBUG_TASKDAG_SCHEDULING
   if ( 1 == count ) {
     printf( "decrement-destroy( 0x%lx { 0x%lx %d %d } )\n"
           , uintptr_t( task )
@@ -118,9 +118,13 @@ void TaskQueue< ExecSpace >::decrement
 #endif
 
   if ( ( 1 == count ) &&
-       ( task->m_next == (task_root_type *) task_root_type::LockTag ) ) {
+       ( t.m_next == (task_root_type *) task_root_type::LockTag ) ) {
     // Reference count is zero and task is complete, deallocate.
-    task->m_queue->deallocate( task , task->m_alloc_size );
+
+    TaskQueue< ExecSpace > * const queue =
+      static_cast< TaskQueue< ExecSpace > * >( t.m_queue );
+
+    queue->deallocate( task , t.m_alloc_size );
   }
   else if ( count <= 1 ) {
     Kokkos::abort("TaskScheduler task has negative reference count or is incomplete" );
@@ -175,7 +179,7 @@ bool TaskQueue< ExecSpace >::push_task
   // Fail the push attempt if the queue is locked;
   // otherwise retry until the push succeeds.
 
-#if 0
+#if KOKKOS_IMPL_DEBUG_TASKDAG_SCHEDULING
   printf( "push_task( 0x%lx { 0x%lx } 0x%lx { 0x%lx 0x%lx %d %d %d } )\n"
         , uintptr_t(queue)
         , uintptr_t(*queue)
@@ -190,9 +194,9 @@ bool TaskQueue< ExecSpace >::push_task
   task_root_type * const zero = (task_root_type *) 0 ;
   task_root_type * const lock = (task_root_type *) task_root_type::LockTag ;
 
-  task_root_type * volatile * const next = & task->m_next ;
+  task_root_type * volatile & next = task->m_next ;
 
-  if ( zero != *next ) {
+  if ( zero != next ) {
     Kokkos::abort("TaskQueue::push_task ERROR: already a member of another queue" );
   }
 
@@ -200,9 +204,9 @@ bool TaskQueue< ExecSpace >::push_task
 
   while ( lock != y ) {
 
-    *next = y ;
+    next = y ;
 
-    // Do not proceed until '*next' has been stored.
+    // Do not proceed until 'next' has been stored.
     Kokkos::memory_fence();
 
     task_root_type * const x = y ;
@@ -215,9 +219,9 @@ bool TaskQueue< ExecSpace >::push_task
   // Failed, replace 'task->m_next' value since 'task' remains
   // not a member of a queue.
 
-  *next = zero ;
+  next = zero ;
 
-  // Do not proceed until '*next' has been stored.
+  // Do not proceed until 'next' has been stored.
   Kokkos::memory_fence();
 
   return false ;
@@ -274,11 +278,13 @@ TaskQueue< ExecSpace >::pop_ready_task
       // This thread has exclusive access to
       // the queue and the popped task's m_next.
 
-      *queue = task->m_next ; task->m_next = lock ;
+      task_root_type * volatile & next = task->m_next ;
+
+      *queue = next ; next = lock ;
 
       Kokkos::memory_fence();
 
-#if 0
+#if KOKKOS_IMPL_DEBUG_TASKDAG_SCHEDULING
       printf( "pop_ready_task( 0x%lx 0x%lx { 0x%lx 0x%lx %d %d %d } )\n"
             , uintptr_t(queue)
             , uintptr_t(task)
@@ -327,7 +333,7 @@ void TaskQueue< ExecSpace >::schedule_runnable
   //     task->m_wait == head of linked list (queue)
   //     task->m_next == member of linked list (queue)
 
-#if 0
+#if KOKKOS_IMPL_DEBUG_TASKDAG_SCHEDULING
   printf( "schedule_runnable( 0x%lx { 0x%lx 0x%lx %d %d %d }\n"
         , uintptr_t(task)
         , uintptr_t(task->m_wait)
@@ -341,20 +347,22 @@ void TaskQueue< ExecSpace >::schedule_runnable
   task_root_type * const lock = (task_root_type *) task_root_type::LockTag ;
   task_root_type * const end  = (task_root_type *) task_root_type::EndTag ;
 
+  task_root_type volatile & t = *task ;
+
   bool respawn = false ;
 
   //----------------------------------------
 
-  if ( zero == task->m_wait ) {
+  if ( zero == t.m_wait ) {
     // Task in Constructing state
     // - Transition to Waiting state
     // Preconditions:
     // - call occurs exclusively within a single thread
 
-    task->m_wait = end ;
+    t.m_wait = end ;
     // Task in Waiting state
   }
-  else if ( lock != task->m_wait ) {
+  else if ( lock != t.m_wait ) {
     // Task in Executing state with Respawn request
     // - Update dependence
     // - Transition to Waiting state
@@ -377,9 +385,11 @@ void TaskQueue< ExecSpace >::schedule_runnable
 
   // Exclusive access so don't need an atomic exchange
   // task_root_type * dep = Kokkos::atomic_exchange( & task->m_next , zero );
-  task_root_type * dep = task->m_next ; task->m_next = zero ;
+  task_root_type * dep = t.m_next ; t.m_next = zero ;
 
-  const bool is_ready = 
+  Kokkos::memory_fence();
+
+  const bool is_ready =
     ( 0 == dep ) || ( ! push_task( & dep->m_wait , task ) );
 
   if ( ( 0 != dep ) && respawn ) {
@@ -402,7 +412,7 @@ void TaskQueue< ExecSpace >::schedule_runnable
     Kokkos::atomic_increment( & m_ready_count );
 
     task_root_type * volatile * const ready_queue =
-      & m_ready[ task->m_priority ][ task->m_task_type ];
+      & m_ready[ t.m_priority ][ t.m_task_type ];
 
     // A push_task fails if the ready queue is locked.
     // A ready queue is only locked during a push or pop;
@@ -445,11 +455,12 @@ void TaskQueue< ExecSpace >::schedule_aggregate
   //     task->m_wait == head of linked list (queue)
   //     task->m_next == member of linked list (queue)
 
-#if 0
-  printf( "schedule_aggregate( 0x%lx { 0x%lx 0x%lx %d %d %d }\n"
+#if KOKKOS_IMPL_DEBUG_TASKDAG_SCHEDULING
+  printf( "schedule_aggregate( 0x%lx { 0x%lx 0x%lx %d %d %d %d }\n"
         , uintptr_t(task)
         , uintptr_t(task->m_wait)
         , uintptr_t(task->m_next)
+        , task->m_dep_count
         , task->m_task_type
         , task->m_priority
         , task->m_ref_count );
@@ -459,18 +470,20 @@ void TaskQueue< ExecSpace >::schedule_aggregate
   task_root_type * const lock = (task_root_type *) task_root_type::LockTag ;
   task_root_type * const end  = (task_root_type *) task_root_type::EndTag ;
 
+  task_root_type volatile & t = *task ;
+
   //----------------------------------------
 
-  if ( zero == task->m_wait ) {
+  if ( zero == t.m_wait ) {
     // Task in Constructing state
     // - Transition to Waiting state
     // Preconditions:
     // - call occurs exclusively within a single thread
 
-    task->m_wait = end ;
+    t.m_wait = end ;
     // Task in Waiting state
   }
-  else if ( lock == task->m_wait ) {
+  else if ( lock == t.m_wait ) {
     // Task in Complete state
     Kokkos::abort("TaskQueue::schedule_aggregate ERROR: task is complete");
   }
@@ -481,14 +494,14 @@ void TaskQueue< ExecSpace >::schedule_aggregate
   // (1) created or
   // (2) being removed from a completed task's wait list.
 
-  task_root_type ** const aggr = task->aggregate_dependences();
+  task_root_type * volatile * const aggr = t.aggregate_dependences();
 
   // Assume the 'when_all' is complete until a dependence is
   // found that is not complete.
 
   bool is_complete = true ;
 
-  for ( int i = task->m_dep_count ; 0 < i && is_complete ; ) {
+  for ( int i = t.m_dep_count ; 0 < i && is_complete ; ) {
 
     --i ;
 
@@ -527,7 +540,7 @@ void TaskQueue< ExecSpace >::schedule_aggregate
     // Complete the when_all 'task' to schedule other tasks
     // that are waiting for the when_all 'task' to complete.
 
-    task->m_next = lock ;
+    t.m_next = lock ;
 
     complete( task );
 
@@ -577,7 +590,7 @@ void TaskQueue< ExecSpace >::complete
   task_root_type * const lock = (task_root_type *) task_root_type::LockTag ;
   task_root_type * const end  = (task_root_type *) task_root_type::EndTag ;
 
-#if 0
+#if KOKKOS_IMPL_DEBUG_TASKDAG_SCHEDULING
   printf( "complete( 0x%lx { 0x%lx 0x%lx %d %d %d }\n"
         , uintptr_t(task)
         , uintptr_t(task->m_wait)
@@ -585,14 +598,15 @@ void TaskQueue< ExecSpace >::complete
         , task->m_task_type
         , task->m_priority
         , task->m_ref_count );
-  fflush( stdout );
 #endif
 
-  const bool runnable = task_root_type::Aggregate != task->m_task_type ;
+  task_root_type volatile & t = *task ;
+
+  const bool runnable = task_root_type::Aggregate != t.m_task_type ;
 
   //----------------------------------------
 
-  if ( runnable && lock != task->m_next ) {
+  if ( runnable && lock != t.m_next ) {
     // Is a runnable task has finished executing and requested respawn.
     // Schedule the task for subsequent execution.
 
@@ -611,7 +625,7 @@ void TaskQueue< ExecSpace >::complete
     // Stop other tasks from adding themselves to this task's wait queue
     // by locking the head of this task's wait queue.
 
-    task_root_type * x = Kokkos::atomic_exchange( & task->m_wait , lock );
+    task_root_type * x = Kokkos::atomic_exchange( & t.m_wait , lock );
 
     if ( x != (task_root_type *) lock ) {
 
@@ -631,13 +645,19 @@ void TaskQueue< ExecSpace >::complete
         // Have exclusive access to 'x' until it is scheduled
         // Set x->m_next = zero  <=  no dependence, not a respawn
 
-        task_root_type * const next = x->m_next ; x->m_next = 0 ;
+        task_root_type volatile & vx = *x ;
 
-        if ( task_root_type::Aggregate != x->m_task_type ) {
+        task_root_type * const next = vx.m_next ; vx.m_next = 0 ;
+
+        Kokkos::memory_fence();
+
+        if ( task_root_type::Aggregate != vx.m_task_type ) {
           schedule_runnable( x );
         }
         else {
+#if !defined( __HCC_ACCELERATOR__ )
           schedule_aggregate( x );
+#endif
         }
 
         x = next ;
@@ -659,3 +679,4 @@ void TaskQueue< ExecSpace >::complete
 } /* namespace Kokkos */
 
 #endif /* #if defined( KOKKOS_ENABLE_TASKDAG ) */
+

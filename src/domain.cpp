@@ -16,10 +16,10 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <math.h>
+#include <cstdlib>
+#include <cstring>
+#include <cstdio>
+#include <cmath>
 #include "domain.h"
 #include "style_region.h"
 #include "atom.h"
@@ -44,10 +44,6 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-enum{NO_REMAP,X_REMAP,V_REMAP};    // same as fix_deform.cpp
-enum{IGNORE,WARN,ERROR};           // same as thermo.cpp
-enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
-
 #define BIG   1.0e20
 #define SMALL 1.0e-4
 #define DELTAREGION 4
@@ -60,6 +56,7 @@ enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
 {
   box_exist = 0;
+  box_change = 0;
 
   dimension = 3;
   nonperiodic = 0;
@@ -154,7 +151,7 @@ void Domain::init()
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"deform") == 0) {
       deform_flag = 1;
-      if (((FixDeform *) modify->fix[i])->remapflag == V_REMAP) {
+      if (((FixDeform *) modify->fix[i])->remapflag == Domain::V_REMAP) {
         deform_vremap = 1;
         deform_groupbit = modify->fix[i]->groupbit;
       }
@@ -275,7 +272,7 @@ void Domain::set_global_box()
 
 void Domain::set_lamda_box()
 {
-  if (comm->layout != LAYOUT_TILED) {
+  if (comm->layout != Comm::LAYOUT_TILED) {
     int *myloc = comm->myloc;
     double *xsplit = comm->xsplit;
     double *ysplit = comm->ysplit;
@@ -312,7 +309,7 @@ void Domain::set_local_box()
 {
   if (triclinic) return;
 
-  if (comm->layout != LAYOUT_TILED) {
+  if (comm->layout != Comm::LAYOUT_TILED) {
     int *myloc = comm->myloc;
     int *procgrid = comm->procgrid;
     double *xsplit = comm->xsplit;
@@ -517,7 +514,7 @@ void Domain::pbc()
   coord = &x[0][0];  // note: x is always initialized to at least one element.
   int flag = 0;
   for (i = 0; i < n3; i++)
-    if (!ISFINITE(*coord++)) flag = 1;
+    if (!std::isfinite(*coord++)) flag = 1;
   if (flag) error->one(FLERR,"Non-numeric atom coords - simulation unstable");
 
   // setup for PBC checks
@@ -632,10 +629,10 @@ int Domain::inside(double* x)
     hi = boxhi;
 
     if (x[0] < lo[0] || x[0] >= hi[0] ||
-	x[1] < lo[1] || x[1] >= hi[1] ||
-	x[2] < lo[2] || x[2] >= hi[2]) return 0;
+        x[1] < lo[1] || x[1] >= hi[1] ||
+        x[2] < lo[2] || x[2] >= hi[2]) return 0;
     else return 1;
-    
+
   } else {
     lo = boxlo_lamda;
     hi = boxhi_lamda;
@@ -643,10 +640,10 @@ int Domain::inside(double* x)
     x2lamda(x,lamda);
 
     if (lamda[0] < lo[0] || lamda[0] >= hi[0] ||
-	lamda[1] < lo[1] || lamda[1] >= hi[1] ||
-	lamda[2] < lo[2] || lamda[2] >= hi[2]) return 0;
+        lamda[1] < lo[1] || lamda[1] >= hi[1] ||
+        lamda[2] < lo[2] || lamda[2] >= hi[2]) return 0;
     else return 1;
-    
+
   }
 
 }
@@ -761,7 +758,7 @@ void Domain::image_check()
 
       if (k == -1) {
         nmissing++;
-        if (lostbond == ERROR)
+        if (lostbond == Thermo::ERROR)
           error->one(FLERR,"Bond atom missing in image check");
         continue;
       }
@@ -771,7 +768,7 @@ void Domain::image_check()
       delz = unwrap[i][2] - unwrap[k][2];
 
       if (xperiodic && delx > xprd_half) flag = 1;
-      if (xperiodic && dely > yprd_half) flag = 1;
+      if (yperiodic && dely > yprd_half) flag = 1;
       if (dimension == 3 && zperiodic && delz > zprd_half) flag = 1;
       if (!xperiodic && delx > xprd) flag = 1;
       if (!yperiodic && dely > yprd) flag = 1;
@@ -784,7 +781,7 @@ void Domain::image_check()
   if (flagall && comm->me == 0)
     error->warning(FLERR,"Inconsistent image flags");
 
-  if (lostbond == WARN) {
+  if (lostbond == Thermo::WARN) {
     int all;
     MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
     if (all && comm->me == 0)
@@ -860,7 +857,7 @@ void Domain::box_too_small_check()
 
       if (k == -1) {
         nmissing++;
-        if (lostbond == ERROR)
+        if (lostbond == Thermo::ERROR)
           error->one(FLERR,"Bond atom missing in box size check");
         continue;
       }
@@ -874,7 +871,7 @@ void Domain::box_too_small_check()
     }
   }
 
-  if (lostbond == WARN) {
+  if (lostbond == Thermo::WARN) {
     int all;
     MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
     if (all && comm->me == 0)
@@ -1616,7 +1613,7 @@ void Domain::image_flip(int m, int n, int p)
    return 1 if this proc owns atom with coords x, else return 0
    x is returned remapped into periodic box
    if image flag is passed, flag is updated via remap(x,image)
-   if image = NULL is passed, no update with remap(x) 
+   if image = NULL is passed, no update with remap(x)
    if shrinkexceed, atom can be outside shrinkwrap boundaries
    called from create_atoms() in library.cpp
 ------------------------------------------------------------------------- */
@@ -1625,7 +1622,7 @@ int Domain::ownatom(int id, double *x, imageint *image, int shrinkexceed)
 {
   double lamda[3];
   double *coord,*blo,*bhi,*slo,*shi;
-  
+
   if (image) remap(x,*image);
   else remap(x);
 
@@ -1652,7 +1649,7 @@ int Domain::ownatom(int id, double *x, imageint *image, int shrinkexceed)
       coord[1] >= slo[1] && coord[1] < shi[1] &&
       coord[2] >= slo[2] && coord[2] < shi[2]) return 1;
 
-  // check if atom did not return 1 only b/c it was 
+  // check if atom did not return 1 only b/c it was
   //   outside a shrink-wrapped boundary
 
   if (shrinkexceed) {
@@ -1697,6 +1694,7 @@ int Domain::ownatom(int id, double *x, imageint *image, int shrinkexceed)
 void Domain::set_lattice(int narg, char **arg)
 {
   if (lattice) delete lattice;
+  lattice = NULL;
   lattice = new Lattice(lmp,narg,arg);
 }
 

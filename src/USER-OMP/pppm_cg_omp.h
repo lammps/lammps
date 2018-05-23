@@ -28,12 +28,11 @@ namespace LAMMPS_NS {
 class PPPMCGOMP : public PPPMCG, public ThrOMP {
  public:
   PPPMCGOMP(class LAMMPS *, int, char **);
-  virtual ~PPPMCGOMP () {};
+  virtual ~PPPMCGOMP ();
   virtual void compute(int, int);
 
  protected:
   virtual void allocate();
-  virtual void deallocate();
 
   virtual void compute_gf_ik();
   virtual void compute_gf_ad();
@@ -47,7 +46,7 @@ class PPPMCGOMP : public PPPMCG, public ThrOMP {
   void compute_rho1d_thr(FFT_SCALAR * const * const, const FFT_SCALAR &,
                          const FFT_SCALAR &, const FFT_SCALAR &);
   void compute_drho1d_thr(FFT_SCALAR * const * const, const FFT_SCALAR &,
-			  const FFT_SCALAR &, const FFT_SCALAR &);
+                          const FFT_SCALAR &, const FFT_SCALAR &);
 };
 
 }

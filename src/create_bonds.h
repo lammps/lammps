@@ -30,9 +30,15 @@ class CreateBonds : protected Pointers {
   void command(int, char **);
 
  private:
-  inline int sbmask(int j) {
-    return j >> SBBITS & 3;
-  }
+  int igroup,group1bit,group2bit;
+  int btype,atype,dtype;
+  tagint batom1,batom2,aatom1,aatom2,aatom3,datom1,datom2,datom3,datom4;
+  double rmin,rmax;
+
+  void many();
+  void single_bond();
+  void single_angle();
+  void single_dihedral();
 };
 
 }
@@ -69,6 +75,18 @@ E: Invalid bond type in create_bonds command
 
 Self-explanatory.
 
+E: Cannot use special no with create_bonds many
+
+UNDOCUMENTED
+
+E: Invalid angle type in create_bonds command
+
+UNDOCUMENTED
+
+E: Invalid dihedral type in create_bonds command
+
+UNDOCUMENTED
+
 E: Create_bonds requires a pair style be defined
 
 Self-explanatory.
@@ -96,5 +114,25 @@ E: New bond exceeded bonds per atom in create_bonds
 
 See the read_data command for info on setting the "extra bond per
 atom" header value to allow for additional bonds to be formed.
+
+E: Create_bonds single/bond atoms do not exist
+
+UNDOCUMENTED
+
+E: Create_bonds single/angle atoms do not exist
+
+UNDOCUMENTED
+
+E: New angle exceeded angles per atom in create_bonds
+
+UNDOCUMENTED
+
+E: Create_bonds single/dihedral atoms do not exist
+
+UNDOCUMENTED
+
+E: New dihedral exceeded dihedrals per atom in create_bonds
+
+UNDOCUMENTED
 
 */

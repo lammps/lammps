@@ -11,17 +11,20 @@ Pair Styles :h1
    pair_awpmd
    pair_beck
    pair_body
+   pair_body_rounded_polygon
    pair_bop
    pair_born
    pair_brownian
    pair_buck
    pair_buck_long
+   pair_buck6d_coul_gauss
    pair_charmm
    pair_class2
    pair_colloid
    pair_comb
    pair_coul
    pair_coul_diel
+   pair_coul_shield
    pair_cs
    pair_dipole
    pair_dpd
@@ -32,13 +35,17 @@ Pair Styles :h1
    pair_eff
    pair_eim
    pair_exp6_rx
+   pair_extep
    pair_gauss
    pair_gayberne
    pair_gran
    pair_gromacs
+   pair_gw
    pair_hbond_dreiding
    pair_hybrid
+   pair_ilp_graphene_hbn
    pair_kim
+   pair_kolmogorov_crespi_full
    pair_kolmogorov_crespi_z
    pair_lcbop
    pair_line_lj
@@ -48,7 +55,6 @@ Pair Styles :h1
    pair_lj_cubic
    pair_lj_expand
    pair_lj_long
-   pair_lj_sf
    pair_lj_smooth
    pair_lj_smooth_linear
    pair_lj_soft
@@ -58,6 +64,7 @@ Pair Styles :h1
    pair_meam
    pair_meam_spline
    pair_meam_sw_spline
+   pair_meso
    pair_mgpt
    pair_mie
    pair_momb
@@ -71,6 +78,7 @@ Pair Styles :h1
    pair_oxdna2
    pair_peri
    pair_polymorphic
+   pair_python
    pair_quip
    pair_reax
    pair_reaxc
@@ -98,6 +106,7 @@ Pair Styles :h1
    pair_tersoff_zbl
    pair_thole
    pair_tri_lj
+   pair_ufm
    pair_vashishta
    pair_yukawa
    pair_yukawa_colloid

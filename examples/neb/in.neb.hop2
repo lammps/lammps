@@ -53,7 +53,7 @@ set		group nebatoms type 3
 group		nonneb subtract all nebatoms
 
 fix		1 lower setforce 0.0 0.0 0.0
-fix		2 nebatoms neb 1.0
+fix		2 nebatoms neb 1.0 
 fix		3 all enforce2d
 
 thermo		100
@@ -65,4 +65,4 @@ thermo		100
 
 min_style	fire
 
-neb		0.0 0.01 1000 1000 100 final final.hop2
+neb		0.0 0.05 1000 1000 100 final final.hop2

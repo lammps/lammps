@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -50,6 +50,9 @@
 
 #include <Kokkos_Macros.hpp>
 #include <impl/Kokkos_Utilities.hpp>
+
+#include <Kokkos_UniqueToken.hpp>
+#include <Kokkos_MasterLock.hpp>
 
 //----------------------------------------------------------------------------
 // Have assumed a 64bit build (8byte pointers) throughout the code base.
@@ -96,7 +99,7 @@ class Serial;    ///< Execution space main process on CPU.
 class Qthreads;  ///< Execution space with Qthreads back-end.
 #endif
 
-#if defined( KOKKOS_ENABLE_PTHREAD )
+#if defined( KOKKOS_ENABLE_THREADS )
 class Threads;   ///< Execution space with pthreads back-end.
 #endif
 
@@ -104,11 +107,26 @@ class Threads;   ///< Execution space with pthreads back-end.
 class OpenMP;    ///< OpenMP execution space.
 #endif
 
+#if defined( KOKKOS_ENABLE_OPENMPTARGET )
+namespace Experimental {
+class OpenMPTarget;    ///< OpenMPTarget execution space.
+class OpenMPTargetSpace;
+}
+#endif
+
+
 #if defined( KOKKOS_ENABLE_CUDA )
 class CudaSpace;            ///< Memory space on Cuda GPU
 class CudaUVMSpace;         ///< Memory space on Cuda GPU with UVM
 class CudaHostPinnedSpace;  ///< Memory space on Host accessible to Cuda GPU
 class Cuda;                 ///< Execution space for Cuda GPU
+#endif
+
+#if defined( KOKKOS_ENABLE_ROCM )
+namespace Experimental {
+class ROCmSpace ;            ///< Memory space on ROCm GPU
+class ROCm ;                 ///< Execution space for ROCm GPU
+}
 #endif
 
 template<class ExecutionSpace, class MemorySpace>
@@ -121,12 +139,16 @@ struct Device;
 
 /// Define Kokkos::DefaultExecutionSpace as per configuration option
 /// or chosen from the enabled execution spaces in the following order:
-/// Kokkos::Cuda, Kokkos::OpenMP, Kokkos::Threads, Kokkos::Serial
+/// Kokkos::Cuda, Kokkos::Experimental::OpenMPTarget, Kokkos::OpenMP, Kokkos::Threads, Kokkos::Serial
 
 namespace Kokkos {
 
 #if   defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_CUDA )
   typedef Cuda DefaultExecutionSpace;
+#elif defined ( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMPTARGET )
+  typedef Experimental::OpenMPTarget DefaultExecutionSpace ;
+#elif defined ( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_ROCM )
+  typedef Experimental::ROCm DefaultExecutionSpace ;
 #elif defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMP )
   typedef OpenMP DefaultExecutionSpace;
 #elif defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_THREADS )
@@ -136,7 +158,7 @@ namespace Kokkos {
 #elif defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_SERIAL )
   typedef Serial DefaultExecutionSpace;
 #else
-#  error "At least one of the following execution spaces must be defined in order to use Kokkos: Kokkos::Cuda, Kokkos::OpenMP, Kokkos::Threads, Kokkos::Qthreads, or Kokkos::Serial."
+#  error "At least one of the following execution spaces must be defined in order to use Kokkos: Kokkos::Cuda, Kokkos::Experimental::OpenMPTarget, Kokkos::OpenMP, Kokkos::Threads, Kokkos::Qthreads, or Kokkos::Serial."
 #endif
 
 #if defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMP )
@@ -149,7 +171,7 @@ namespace Kokkos {
   typedef Serial DefaultHostExecutionSpace;
 #elif defined( KOKKOS_ENABLE_OPENMP )
   typedef OpenMP DefaultHostExecutionSpace;
-#elif defined( KOKKOS_ENABLE_PTHREAD )
+#elif defined( KOKKOS_ENABLE_THREADS )
   typedef Threads DefaultHostExecutionSpace;
 //#elif defined( KOKKOS_ENABLE_QTHREADS )
 //  typedef Qthreads DefaultHostExecutionSpace;
@@ -172,6 +194,8 @@ namespace Impl {
 
 #if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA ) && defined( KOKKOS_ENABLE_CUDA )
 typedef Kokkos::CudaSpace  ActiveExecutionMemorySpace;
+#elif defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_ROCM_GPU )
+typedef Kokkos::HostSpace  ActiveExecutionMemorySpace ;
 #elif defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
 typedef Kokkos::HostSpace  ActiveExecutionMemorySpace;
 #else
@@ -215,6 +239,13 @@ namespace Kokkos {
 
 namespace Impl {
 
+template<class ViewType, class Layout = typename ViewType::array_layout,
+         class ExecSpace = typename ViewType::execution_space, int Rank = ViewType::Rank, typename iType = int64_t>
+struct ViewFill;
+
+template<class ViewTypeA,class ViewTypeB, class Layout, class ExecSpace, int Rank, typename iType>
+struct ViewCopy;
+
 template< class Functor
         , class Policy
         , class EnableFunctor = void
@@ -254,6 +285,21 @@ template< class FunctorType, class ExecPolicy, class ExecutionSapce =
 
 } // namespace Impl
 
+namespace Experimental {
+template<class ScalarType , class Space = HostSpace> struct Sum;
+template<class ScalarType , class Space = HostSpace> struct Prod;
+template<class ScalarType , class Space = HostSpace> struct Min;
+template<class ScalarType , class Space = HostSpace> struct Max;
+template<class ScalarType , class Space = HostSpace> struct MinMax;
+template<class ScalarType , class Index, class Space = HostSpace> struct MinLoc;
+template<class ScalarType , class Index, class Space = HostSpace> struct MaxLoc;
+template<class ScalarType , class Index, class Space = HostSpace> struct MinMaxLoc;
+template<class ScalarType , class Space = HostSpace> struct BAnd;
+template<class ScalarType , class Space = HostSpace> struct BOr;
+template<class ScalarType , class Space = HostSpace> struct LAnd;
+template<class ScalarType , class Space = HostSpace> struct LOr;
+}
 } // namespace Kokkos
 
 #endif /* #ifndef KOKKOS_CORE_FWD_HPP */
+

@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
+#include <cmath>
 #include "npair.h"
 #include "neighbor.h"
 #include "neigh_request.h"
@@ -32,12 +32,16 @@ NPair::NPair(LAMMPS *lmp)
   last_build = -1;
   mycutneighsq = NULL;
   molecular = atom->molecular;
+  copymode = 0;
+  execution_space = Host;
 }
 
 /* ---------------------------------------------------------------------- */
 
 NPair::~NPair()
 {
+  if (copymode) return;
+
   memory->destroy(mycutneighsq);
 }
 
@@ -66,7 +70,6 @@ void NPair::copy_neighbor_info()
   cut_inner_sq = neighbor->cut_inner_sq;
   cut_middle_sq = neighbor->cut_middle_sq;
   cut_middle_inside_sq = neighbor->cut_middle_inside_sq;
-  zeroes = neighbor->zeroes;
   bboxlo = neighbor->bboxlo;
   bboxhi = neighbor->bboxhi;
 
@@ -123,11 +126,12 @@ void NPair::copy_bin_info()
   mbinxlo = nb->mbinxlo;
   mbinylo = nb->mbinylo;
   mbinzlo = nb->mbinzlo;
- 
+
   bininvx = nb->bininvx;
   bininvy = nb->bininvy;
   bininvz = nb->bininvz;
 
+  atom2bin = nb->atom2bin;
   bins = nb->bins;
   binhead = nb->binhead;
 }
@@ -182,15 +186,15 @@ int NPair::exclusion(int i, int j, int itype, int jtype,
   if (nex_mol) {
     for (m = 0; m < nex_mol; m++)
 
-      // intra-chain: exclude i-j pair if in same molecule 
-      // inter-chain: exclude i-j pair if in different molecules 
+      // intra-chain: exclude i-j pair if in same molecule
+      // inter-chain: exclude i-j pair if in different molecules
 
       if (ex_mol_intra[m]) {
         if (mask[i] & ex_mol_bit[m] && mask[j] & ex_mol_bit[m] &&
-	    molecule[i] == molecule[j]) return 1;
+            molecule[i] == molecule[j]) return 1;
       } else {
-	if (mask[i] & ex_mol_bit[m] && mask[j] & ex_mol_bit[m] &&
-	    molecule[i] != molecule[j]) return 1;
+        if (mask[i] & ex_mol_bit[m] && mask[j] & ex_mol_bit[m] &&
+            molecule[i] != molecule[j]) return 1;
       }
   }
 
@@ -198,58 +202,13 @@ int NPair::exclusion(int i, int j, int itype, int jtype,
 }
 
 /* ----------------------------------------------------------------------
-   convert atom coords into local bin #
-   for orthogonal, only ghost atoms will have coord >= bboxhi or coord < bboxlo
-     take special care to insure ghosts are in correct bins even w/ roundoff
-     hi ghost atoms = nbin,nbin+1,etc
-     owned atoms = 0 to nbin-1
-     lo ghost atoms = -1,-2,etc
-     this is necessary so that both procs on either side of PBC
-       treat a pair of atoms straddling the PBC in a consistent way
-   for triclinic, doesn't matter since stencil & neigh list built differently
-------------------------------------------------------------------------- */
-
-int NPair::coord2bin(double *x)
-{
-  int ix,iy,iz;
-
-  if (!ISFINITE(x[0]) || !ISFINITE(x[1]) || !ISFINITE(x[2]))
-    error->one(FLERR,"Non-numeric positions - simulation unstable");
-
-  if (x[0] >= bboxhi[0])
-    ix = static_cast<int> ((x[0]-bboxhi[0])*bininvx) + nbinx;
-  else if (x[0] >= bboxlo[0]) {
-    ix = static_cast<int> ((x[0]-bboxlo[0])*bininvx);
-    ix = MIN(ix,nbinx-1);
-  } else
-    ix = static_cast<int> ((x[0]-bboxlo[0])*bininvx) - 1;
-
-  if (x[1] >= bboxhi[1])
-    iy = static_cast<int> ((x[1]-bboxhi[1])*bininvy) + nbiny;
-  else if (x[1] >= bboxlo[1]) {
-    iy = static_cast<int> ((x[1]-bboxlo[1])*bininvy);
-    iy = MIN(iy,nbiny-1);
-  } else
-    iy = static_cast<int> ((x[1]-bboxlo[1])*bininvy) - 1;
-
-  if (x[2] >= bboxhi[2])
-    iz = static_cast<int> ((x[2]-bboxhi[2])*bininvz) + nbinz;
-  else if (x[2] >= bboxlo[2]) {
-    iz = static_cast<int> ((x[2]-bboxlo[2])*bininvz);
-    iz = MIN(iz,nbinz-1);
-  } else
-    iz = static_cast<int> ((x[2]-bboxlo[2])*bininvz) - 1;
-
-  return (iz-mbinzlo)*mbiny*mbinx + (iy-mbinylo)*mbinx + (ix-mbinxlo);
-}
-
-/* ----------------------------------------------------------------------
-   same as coord2bin, but also return ix,iy,iz offsets in each dim
+   same as coord2bin in Nbin, but also return ix,iy,iz offsets in each dim
+   used by some of the ghost neighbor lists
 ------------------------------------------------------------------------- */
 
 int NPair::coord2bin(double *x, int &ix, int &iy, int &iz)
 {
-  if (!ISFINITE(x[0]) || !ISFINITE(x[1]) || !ISFINITE(x[2]))
+  if (!std::isfinite(x[0]) || !std::isfinite(x[1]) || !std::isfinite(x[2]))
     error->one(FLERR,"Non-numeric positions - simulation unstable");
 
   if (x[0] >= bboxhi[0])

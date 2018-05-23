@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstring>
+#include <cstdlib>
+#include <cmath>
 #include "fix_langevin_drude.h"
 #include "atom.h"
 #include "force.h"
@@ -46,7 +46,7 @@ FixLangevinDrude::FixLangevinDrude(LAMMPS *lmp, int narg, char **arg) :
   nevery = 1;
   global_freq = nevery;
   comm_reverse = 3;
-  
+
   // core temperature
   tstr_core = NULL;
   if (strstr(arg[3],"v_") == arg[3]) {

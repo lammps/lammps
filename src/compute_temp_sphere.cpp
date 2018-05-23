@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <string.h>
+#include <cstring>
 #include "compute_temp_sphere.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -332,6 +332,15 @@ void ComputeTempSphere::remove_bias(int i, double *v)
 }
 
 /* ----------------------------------------------------------------------
+   remove velocity bias from atom I to leave thermal velocity
+------------------------------------------------------------------------- */
+
+void ComputeTempSphere::remove_bias_thr(int i, double *v, double *b)
+{
+  tbias->remove_bias_thr(i,v,b);
+}
+
+/* ----------------------------------------------------------------------
    add back in velocity bias to atom I removed by remove_bias()
    assume remove_bias() was previously called
 ------------------------------------------------------------------------- */
@@ -339,4 +348,14 @@ void ComputeTempSphere::remove_bias(int i, double *v)
 void ComputeTempSphere::restore_bias(int i, double *v)
 {
   tbias->restore_bias(i,v);
+}
+
+/* ----------------------------------------------------------------------
+   add back in velocity bias to atom I removed by remove_bias_thr()
+   assume remove_bias_thr() was previously called with the same buffer b
+------------------------------------------------------------------------- */
+
+void ComputeTempSphere::restore_bias_thr(int i, double *v, double *b)
+{
+  tbias->restore_bias_thr(i,v,b);
 }

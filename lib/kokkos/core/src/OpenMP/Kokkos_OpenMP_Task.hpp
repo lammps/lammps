@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -35,8 +35,8 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
+//
 // ************************************************************************
 //@HEADER
 */
@@ -44,7 +44,8 @@
 #ifndef KOKKOS_IMPL_OPENMP_TASK_HPP
 #define KOKKOS_IMPL_OPENMP_TASK_HPP
 
-#if defined( KOKKOS_ENABLE_TASKDAG )
+#include <Kokkos_Macros.hpp>
+#if defined( KOKKOS_ENABLE_OPENMP ) && defined( KOKKOS_ENABLE_TASKDAG )
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -59,7 +60,7 @@ public:
 
   using execution_space = Kokkos::OpenMP ;
   using queue_type      = Kokkos::Impl::TaskQueue< execution_space > ;
-  using task_base_type  = Kokkos::Impl::TaskBase< execution_space , void , void > ;
+  using task_base_type  = Kokkos::Impl::TaskBase< void , void , void > ;
   using member_type     = Kokkos::Impl::HostThreadTeamMember< execution_space > ;
 
   // Must specify memory space

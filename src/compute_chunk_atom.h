@@ -107,11 +107,9 @@ class ComputeChunkAtom : public Compute {
   int *exclude;              // 1 if atom is not assigned to any chunk
   std::map<tagint,int> *hash;   // store original chunks IDs before compression
 
-  // static variable for ring communication callback to access class data
-  // callback functions for ring communication
+  // callback function for ring communication
 
-  static ComputeChunkAtom *cptr;
-  static void idring(int, char *);
+  static void idring(int, char *, void *);
 
   void assign_chunk_ids();
   void compress_chunk_ids();
@@ -227,11 +225,9 @@ E: Compute chunk/atom ids once but nchunk is not once
 You cannot assign chunks IDs to atom permanently if the number of
 chunks may change.
 
-E: Two fix ave commands using same compute chunk/atom command in incompatible ways
+E: Two fix commands using same compute chunk/atom command in incompatible ways
 
-They are both attempting to "lock" the chunk/atom command so that the
-chunk assignments persist for some number of timesteps, but are doing
-it in different ways.
+UNDOCUMENTED
 
 E: Fix used in compute chunk/atom not computed at compatible time
 
@@ -257,5 +253,11 @@ Radius cannot be bigger than 1/2 of a non-axis  periodic dimension.
 E: Cannot use compute chunk/atom bin z for 2d model
 
 Self-explanatory.
+
+U: Two fix ave commands using same compute chunk/atom command in incompatible ways
+
+They are both attempting to "lock" the chunk/atom command so that the
+chunk assignments persist for some number of timesteps, but are doing
+it in different ways.
 
 */

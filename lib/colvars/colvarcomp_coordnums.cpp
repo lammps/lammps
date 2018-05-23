@@ -18,6 +18,7 @@
 
 
 
+
 template<bool calculate_gradients>
 cvm::real colvar::coordnum::switching_function(cvm::real const &r0,
                                                int const &en,
@@ -32,8 +33,8 @@ cvm::real colvar::coordnum::switching_function(cvm::real const &r0,
   int const en2 = en/2;
   int const ed2 = ed/2;
 
-  cvm::real const xn = std::pow(l2, en2);
-  cvm::real const xd = std::pow(l2, ed2);
+  cvm::real const xn = cvm::integer_power(l2, en2);
+  cvm::real const xd = cvm::integer_power(l2, ed2);
   cvm::real const func = (1.0-xn)/(1.0-xd);
 
   if (calculate_gradients) {
@@ -62,8 +63,8 @@ cvm::real colvar::coordnum::switching_function(cvm::rvector const &r0_vec,
   int const en2 = en/2;
   int const ed2 = ed/2;
 
-  cvm::real const xn = std::pow(l2, en2);
-  cvm::real const xd = std::pow(l2, ed2);
+  cvm::real const xn = cvm::integer_power(l2, en2);
+  cvm::real const xd = cvm::integer_power(l2, ed2);
   cvm::real const func = (1.0-xn)/(1.0-xd);
 
   if (calculate_gradients) {
@@ -87,8 +88,16 @@ colvar::coordnum::coordnum(std::string const &conf)
   group1 = parse_group(conf, "group1");
   group2 = parse_group(conf, "group2");
 
-  if (group1->b_dummy)
-    cvm::fatal_error("Error: only group2 is allowed to be a dummy atom\n");
+  if (int atom_number = cvm::atom_group::overlap(*group1, *group2)) {
+    cvm::error("Error: group1 and group2 share a common atom (number: " +
+      cvm::to_str(atom_number) + ")\n");
+    return;
+  }
+
+  if (group1->b_dummy) {
+    cvm::error("Error: only group2 is allowed to be a dummy atom\n");
+    return;
+  }
 
   bool const b_isotropic = get_keyval(conf, "cutoff", r0,
                                       cvm::real(4.0 * cvm::unit_angstrom()));
@@ -99,6 +108,7 @@ colvar::coordnum::coordnum(std::string const &conf)
     if (b_isotropic) {
       cvm::error("Error: cannot specify \"cutoff\" and \"cutoff3\" at the same time.\n",
                  INPUT_ERROR);
+      return;
     }
 
     b_anisotropic = true;
@@ -108,11 +118,21 @@ colvar::coordnum::coordnum(std::string const &conf)
     if (r0_vec.z < 0.0) r0_vec.z *= -1.0;
   }
 
-  get_keyval(conf, "expNumer", en, int(6) );
-  get_keyval(conf, "expDenom", ed, int(12));
+  get_keyval(conf, "expNumer", en, 6);
+  get_keyval(conf, "expDenom", ed, 12);
 
   if ( (en%2) || (ed%2) ) {
-    cvm::error("Error: odd exponents provided, can only use even ones.\n", INPUT_ERROR);
+    cvm::error("Error: odd exponent(s) provided, can only use even ones.\n",
+               INPUT_ERROR);
+  }
+
+  if ( (en <= 0) || (ed <= 0) ) {
+    cvm::error("Error: negative exponent(s) provided.\n",
+               INPUT_ERROR);
+  }
+
+  if (!is_enabled(f_cvc_pbc_minimum_image)) {
+    cvm::log("Warning: only minimum-image distances are used by this variable.\n");
   }
 
   get_keyval(conf, "group2CenterOnly", b_group2_center_only, group2->b_dummy);
@@ -228,12 +248,13 @@ colvar::h_bond::h_bond(std::string const &conf)
   get_keyval(conf, "donor",    d_num, -1);
 
   if ( (a_num == -1) || (d_num == -1) ) {
-    cvm::fatal_error("Error: either acceptor or donor undefined.\n");
+    cvm::error("Error: either acceptor or donor undefined.\n");
+    return;
   }
 
   cvm::atom acceptor = cvm::atom(a_num);
   cvm::atom donor    = cvm::atom(d_num);
-  atom_groups.push_back(new cvm::atom_group);
+  register_atom_group(new cvm::atom_group);
   atom_groups[0]->add_atom(acceptor);
   atom_groups[0]->add_atom(donor);
 
@@ -242,7 +263,13 @@ colvar::h_bond::h_bond(std::string const &conf)
   get_keyval(conf, "expDenom", ed, 8);
 
   if ( (en%2) || (ed%2) ) {
-    cvm::fatal_error("Error: odd exponents provided, can only use even ones.\n");
+    cvm::error("Error: odd exponent(s) provided, can only use even ones.\n",
+               INPUT_ERROR);
+  }
+
+  if ( (en <= 0) || (ed <= 0) ) {
+    cvm::error("Error: negative exponent(s) provided.\n",
+               INPUT_ERROR);
   }
 
   if (cvm::debug())
@@ -258,7 +285,7 @@ colvar::h_bond::h_bond(cvm::atom const &acceptor,
   function_type = "h_bond";
   x.type(colvarvalue::type_scalar);
 
-  atom_groups.push_back(new cvm::atom_group);
+  register_atom_group(new cvm::atom_group);
   atom_groups[0]->add_atom(acceptor);
   atom_groups[0]->add_atom(donor);
 }
@@ -309,11 +336,22 @@ colvar::selfcoordnum::selfcoordnum(std::string const &conf)
   group1 = parse_group(conf, "group1");
 
   get_keyval(conf, "cutoff", r0, cvm::real(4.0 * cvm::unit_angstrom()));
-  get_keyval(conf, "expNumer", en, int(6) );
-  get_keyval(conf, "expDenom", ed, int(12));
+  get_keyval(conf, "expNumer", en, 6);
+  get_keyval(conf, "expDenom", ed, 12);
+
 
   if ( (en%2) || (ed%2) ) {
-    cvm::fatal_error("Error: odd exponents provided, can only use even ones.\n");
+    cvm::error("Error: odd exponent(s) provided, can only use even ones.\n",
+               INPUT_ERROR);
+  }
+
+  if ( (en <= 0) || (ed <= 0) ) {
+    cvm::error("Error: negative exponent(s) provided.\n",
+               INPUT_ERROR);
+  }
+
+  if (!is_enabled(f_cvc_pbc_minimum_image)) {
+    cvm::log("Warning: only minimum-image distances are used by this variable.\n");
   }
 }
 
@@ -364,8 +402,10 @@ colvar::groupcoordnum::groupcoordnum(std::string const &conf)
   x.type(colvarvalue::type_scalar);
 
   // group1 and group2 are already initialized by distance()
-  if (group1->b_dummy || group2->b_dummy)
-    cvm::fatal_error("Error: neither group can be a dummy atom\n");
+  if (group1->b_dummy || group2->b_dummy) {
+    cvm::error("Error: neither group can be a dummy atom\n");
+    return;
+  }
 
   bool const b_scale = get_keyval(conf, "cutoff", r0,
                                   cvm::real(4.0 * cvm::unit_angstrom()));
@@ -373,9 +413,11 @@ colvar::groupcoordnum::groupcoordnum(std::string const &conf)
   if (get_keyval(conf, "cutoff3", r0_vec,
                  cvm::rvector(4.0, 4.0, 4.0), parse_silent)) {
 
-    if (b_scale)
-      cvm::fatal_error("Error: cannot specify \"scale\" and "
+    if (b_scale) {
+      cvm::error("Error: cannot specify \"scale\" and "
                        "\"scale3\" at the same time.\n");
+      return;
+    }
     b_anisotropic = true;
     // remove meaningless negative signs
     if (r0_vec.x < 0.0) r0_vec.x *= -1.0;
@@ -383,11 +425,21 @@ colvar::groupcoordnum::groupcoordnum(std::string const &conf)
     if (r0_vec.z < 0.0) r0_vec.z *= -1.0;
   }
 
-  get_keyval(conf, "expNumer", en, int(6) );
-  get_keyval(conf, "expDenom", ed, int(12));
+  get_keyval(conf, "expNumer", en, 6);
+  get_keyval(conf, "expDenom", ed, 12);
 
   if ( (en%2) || (ed%2) ) {
-    cvm::fatal_error("Error: odd exponents provided, can only use even ones.\n");
+    cvm::error("Error: odd exponent(s) provided, can only use even ones.\n",
+               INPUT_ERROR);
+  }
+
+  if ( (en <= 0) || (ed <= 0) ) {
+    cvm::error("Error: negative exponent(s) provided.\n",
+               INPUT_ERROR);
+  }
+
+  if (!is_enabled(f_cvc_pbc_minimum_image)) {
+    cvm::log("Warning: only minimum-image distances are used by this variable.\n");
   }
 
 }
@@ -415,8 +467,8 @@ cvm::real colvar::groupcoordnum::switching_function(cvm::real const &r0,
   int const en2 = en/2;
   int const ed2 = ed/2;
 
-  cvm::real const xn = std::pow(l2, en2);
-  cvm::real const xd = std::pow(l2, ed2);
+  cvm::real const xn = cvm::integer_power(l2, en2);
+  cvm::real const xd = cvm::integer_power(l2, ed2);
   cvm::real const func = (1.0-xn)/(1.0-xd);
 
   if (calculate_gradients) {
@@ -448,8 +500,8 @@ cvm::real colvar::groupcoordnum::switching_function(cvm::rvector const &r0_vec,
   int const en2 = en/2;
   int const ed2 = ed/2;
 
-  cvm::real const xn = std::pow(l2, en2);
-  cvm::real const xd = std::pow(l2, ed2);
+  cvm::real const xn = cvm::integer_power(l2, en2);
+  cvm::real const xd = cvm::integer_power(l2, ed2);
   cvm::real const func = (1.0-xn)/(1.0-xd);
 
   if (calculate_gradients) {

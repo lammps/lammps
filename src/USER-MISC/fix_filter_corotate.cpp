@@ -17,8 +17,8 @@
    ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 #include "fix_filter_corotate.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -45,10 +45,6 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace FixConst;
-
-// allocate space for static class variable
-
-FixFilterCorotate *FixFilterCorotate::fsptr = NULL;
 
 #define BIG 1.0e20
 #define MASSDELTA 0.1
@@ -950,8 +946,7 @@ void FixFilterCorotate::find_clusters()
 
   // cycle buffer around ring of procs back to self
 
-  fsptr = this;
-  comm->ring(size,sizeof(tagint),buf,1,ring_bonds,buf);
+  comm->ring(size,sizeof(tagint),buf,1,ring_bonds,buf,(void *)this);
 
   // store partner info returned to me
 
@@ -1079,8 +1074,7 @@ void FixFilterCorotate::find_clusters()
 
   // cycle buffer around ring of procs back to self
 
-  fsptr = this;
-  comm->ring(size,sizeof(tagint),buf,2,ring_nshake,buf);
+  comm->ring(size,sizeof(tagint),buf,2,ring_nshake,buf,(void *)this);
 
   // store partner info returned to me
 
@@ -1240,8 +1234,7 @@ void FixFilterCorotate::find_clusters()
 
   // cycle buffer around ring of procs back to self
 
-  fsptr = this;
-  comm->ring(size,sizeof(tagint),buf,3,ring_shake,NULL);
+  comm->ring(size,sizeof(tagint),buf,3,ring_shake,NULL,(void *)this);
 
   memory->destroy(buf);
 
@@ -1310,15 +1303,16 @@ void FixFilterCorotate::find_clusters()
  *    search for bond with 1st atom and fill in bondtype
  * ------------------------------------------------------------------------- */
 
-void FixFilterCorotate::ring_bonds(int ndatum, char *cbuf)
+void FixFilterCorotate::ring_bonds(int ndatum, char *cbuf, void *ptr)
 {
-  Atom *atom = fsptr->atom;
+  FixFilterCorotate *ffptr = (FixFilterCorotate *) ptr;
+  Atom *atom = ffptr->atom;
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *mask = atom->mask;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nmass = fsptr->nmass;
+  int nmass = ffptr->nmass;
 
   tagint *buf = (tagint *) cbuf;
   int m,n;
@@ -1332,10 +1326,10 @@ void FixFilterCorotate::ring_bonds(int ndatum, char *cbuf)
       if (nmass) {
         if (rmass) massone = rmass[m];
         else massone = mass[type[m]];
-        buf[i+4] = fsptr->masscheck(massone);
+        buf[i+4] = ffptr->masscheck(massone);
       }
       if (buf[i+5] == 0) {
-        n = fsptr->bondtype_findset(m,buf[i],buf[i+1],0);
+        n = ffptr->bondtype_findset(m,buf[i],buf[i+1],0);
         if (n) buf[i+5] = n;
       }
     }
@@ -1347,12 +1341,13 @@ void FixFilterCorotate::ring_bonds(int ndatum, char *cbuf)
  *  if I own partner, fill in nshake value
  * ------------------------------------------------------------------------- */
 
-void FixFilterCorotate::ring_nshake(int ndatum, char *cbuf)
+void FixFilterCorotate::ring_nshake(int ndatum, char *cbuf, void *ptr)
 {
-  Atom *atom = fsptr->atom;
+  FixFilterCorotate *ffptr = (FixFilterCorotate *) ptr;
+  Atom *atom = ffptr->atom;
   int nlocal = atom->nlocal;
 
-  int *nshake = fsptr->nshake;
+  int *nshake = ffptr->nshake;
 
   tagint *buf = (tagint *) cbuf;
   int m;
@@ -1368,14 +1363,15 @@ void FixFilterCorotate::ring_nshake(int ndatum, char *cbuf)
  *  if I own partner, fill in nshake value
  * ------------------------------------------------------------------------- */
 
-void FixFilterCorotate::ring_shake(int ndatum, char *cbuf)
+void FixFilterCorotate::ring_shake(int ndatum, char *cbuf, void *ptr)
 {
-  Atom *atom = fsptr->atom;
+  FixFilterCorotate *ffptr = (FixFilterCorotate *) ptr;
+  Atom *atom = ffptr->atom;
   int nlocal = atom->nlocal;
 
-  int *shake_flag = fsptr->shake_flag;
-  tagint **shake_atom = fsptr->shake_atom;
-  int **shake_type = fsptr->shake_type;
+  int *shake_flag = ffptr->shake_flag;
+  tagint **shake_atom = ffptr->shake_atom;
+  int **shake_type = ffptr->shake_type;
 
   tagint *buf = (tagint *) cbuf;
   int m;
@@ -1531,7 +1527,10 @@ void FixFilterCorotate::general_cluster(int index, int index_in_list)
 
   //derivative:
   //dn1dx:
-  double sum1[3][3*N];
+
+  double **sum1;
+  memory->create(sum1,3,3*N,"filter_corotate:sum1");
+
   for (int i=0; i<3; i++)
     for (int j=0; j<3*N; j++)
       sum1[i][j] = 0;
@@ -1568,10 +1567,12 @@ void FixFilterCorotate::general_cluster(int index, int index_in_list)
       dn1dx[i][j] = norm1*sum;
     }
   }
+  memory->destroy(sum1);
 
   //dn2dx: norm2 * I3mn2n2T * (I3mn1n1T*sum2 - rkn1pn1rk*dn1dx)
 
-  double sum2[3][3*N];
+  double **sum2;
+  memory->create(sum2,3,3*N,"filter_corotate:sum2");
   for (int i=0; i<3; i++)
     for (int j=0; j<3*N; j++)
       sum2[i][j] = 0;
@@ -1622,7 +1623,8 @@ void FixFilterCorotate::general_cluster(int index, int index_in_list)
   //dn2dx: norm2 * I3mn2n2T * (I3mn1n1T*sum2 - rkn1pn1rk*dn1dx)
   //sum3 = (I3mn1n1T*sum2 - rkn1pn1rk*dn1dx)
 
-  double sum3[3][3*N];
+  double **sum3;
+  memory->create(sum3,3,3*N,"filter_corotate:sum3");
   for (int i=0; i<3; i++)
     for (int j=0; j<3*N; j++) {
       double sum = 0;
@@ -1631,6 +1633,7 @@ void FixFilterCorotate::general_cluster(int index, int index_in_list)
       sum3[i][j] = sum;
     }
 
+  memory->destroy(sum2);
   //dn2dx = norm2 * I3mn2n2T * sum3
   for (int i=0; i<3; i++)
     for (int j=0; j<3*N; j++) {
@@ -1640,6 +1643,7 @@ void FixFilterCorotate::general_cluster(int index, int index_in_list)
       dn2dx[i][j] = norm2*sum;
     }
 
+  memory->destroy(sum3);
   //dn3dx = norm3 * I3mn3n3T * cross
   double I3mn3n3T[3][3];   //(I_3 - n3n3T)
   for (int i=0; i<3; i++) {
@@ -1648,7 +1652,8 @@ void FixFilterCorotate::general_cluster(int index, int index_in_list)
     I3mn3n3T[i][i] += 1.0;
   }
 
-  double cross[3][3*N];
+  double **cross;
+  memory->create(cross,3,3*N,"filter_corotate:cross");
 
   for (int j=0; j<3*N; j++) {
     cross[0][j] = dn1dx[1][j]*n2[2] -dn1dx[2][j]*n2[1] +
@@ -1667,6 +1672,7 @@ void FixFilterCorotate::general_cluster(int index, int index_in_list)
       dn3dx[i][j] = norm3*sum;
     }
 
+  memory->destroy(cross);
   for (int l=0; l<N; l++)
     for (int i=0; i<3; i++)
       for (int j=0; j<3*N; j++)

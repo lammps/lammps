@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 #include "fix_balance.h"
 #include "balance.h"
 #include "update.h"
@@ -33,7 +33,6 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 enum{SHIFT,BISECTION};
-enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 
 /* ---------------------------------------------------------------------- */
 
@@ -115,7 +114,7 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
 
   if (nevery) force_reneighbor = 1;
   lastbalance = -1;
-  
+
   // compute initial outputs
 
   itercount = 0;
@@ -264,10 +263,10 @@ void FixBalance::rebalance()
   int *sendproc;
   if (lbstyle == SHIFT) {
     itercount = balance->shift();
-    comm->layout = LAYOUT_NONUNIFORM;
+    comm->layout = Comm::LAYOUT_NONUNIFORM;
   } else if (lbstyle == BISECTION) {
     sendproc = balance->bisection();
-    comm->layout = LAYOUT_TILED;
+    comm->layout = Comm::LAYOUT_TILED;
   }
 
   // output of new decomposition

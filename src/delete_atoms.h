@@ -45,16 +45,14 @@ class DeleteAtoms : protected Pointers {
   void recount_topology();
   void options(int, char **);
 
-  inline int sbmask(int j) {
+  inline int sbmask(int j) const {
     return j >> SBBITS & 3;
   }
 
-  // static variable for ring communication callback to access class data
   // callback functions for ring communication
 
-  static DeleteAtoms *cptr;
-  static void bondring(int, char *);
-  static void molring(int, char *);
+  static void bondring(int, char *, void *);
+  static void molring(int, char *, void *);
 };
 
 }
@@ -79,6 +77,14 @@ E: Cannot use delete_atoms unless atoms have IDs
 
 Your atoms do not have IDs, so the delete_atoms command cannot be
 used.
+
+W: Attempting to delete atoms in rigid bodies
+
+UNDOCUMENTED
+
+W: Ignoring 'compress yes' for molecular system
+
+UNDOCUMENTED
 
 E: Could not find delete_atoms group ID
 

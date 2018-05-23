@@ -15,10 +15,10 @@
    Contributing authors: Arben Jusufi, Axel Kohlmeyer (Temple U.)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_gauss_cut.h"
 #include "atom.h"
 #include "comm.h"
@@ -175,7 +175,7 @@ void PairGaussCut::settings(int narg, char **arg)
   if (allocated) {
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
-      for (j = i+1; j <= atom->ntypes; j++)
+      for (j = i; j <= atom->ntypes; j++)
         if (setflag[i][j]) cut[i][j] = cut_global;
   }
 }
@@ -196,6 +196,9 @@ void PairGaussCut::coeff(int narg, char **arg)
   double hgauss_one = force->numeric(FLERR,arg[2]);
   double rmh_one = force->numeric(FLERR,arg[3]);
   double sigmah_one = force->numeric(FLERR,arg[4]);
+  if (sigmah_one <= 0.0)
+    error->all(FLERR,"Incorrect args for pair coefficients");
+
 
   double cut_one = cut_global;
   if (narg == 6) cut_one = force->numeric(FLERR,arg[5]);
@@ -223,7 +226,7 @@ double PairGaussCut::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) {
     hgauss[i][j] = mix_energy(fabs(hgauss[i][i]), fabs(hgauss[j][j]),
-			      fabs(sigmah[i][i]), fabs(sigmah[j][j]));
+                              fabs(sigmah[i][i]), fabs(sigmah[j][j]));
 
     // If either of the particles is repulsive (ie, if hgauss > 0),
     // then the interaction between both is repulsive.

@@ -7,15 +7,16 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =		mpicxx -cxx=icc
-OPTFLAGS =      -xAVX -O2 -fp-model fast=2 -no-prec-div -qoverride-limits
-CCFLAGS =	-g -qopenmp -DLAMMPS_MEMALIGN=64 -no-offload \
-                -fno-alias -ansi-alias -restrict $(OPTFLAGS)
+OPTFLAGS =      -xHost -O2 -fp-model fast=2 -no-prec-div -qoverride-limits \
+                -qopt-zmm-usage=high
+CCFLAGS =	-qopenmp -qno-offload -fno-alias -ansi-alias -restrict \
+                -DLMP_INTEL_USELRT -DLMP_USE_MKL_RNG $(OPTFLAGS)
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
 LINK =		mpicxx -cxx=icc
-LINKFLAGS =	-g -qopenmp $(OPTFLAGS)
-LIB =           
+LINKFLAGS =	-qopenmp $(OPTFLAGS)
+LIB =           -ltbbmalloc
 SIZE =		size
 
 ARCHIVE =	ar

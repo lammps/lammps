@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -44,10 +44,10 @@
 #include<Kokkos_Core.hpp>
 #include<impl/Kokkos_Timer.hpp>
 #include<gather.hpp>
+#include<cstdlib>
 
 int main(int argc, char* argv[]) {
   Kokkos::initialize(argc,argv);
-
 
   if(argc<8) {
     printf("Arguments: S N K D\n");

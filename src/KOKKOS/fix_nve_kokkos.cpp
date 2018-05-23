@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 #include "fix_nve_kokkos.h"
 #include "atom_masks.h"
 #include "atom_kokkos.h"
@@ -46,7 +46,7 @@ void FixNVEKokkos<DeviceType>::init()
   FixNVE::init();
 
   atomKK->k_mass.modify<LMPHostType>();
-  atomKK->k_mass.sync<LMPDeviceType>();
+  atomKK->k_mass.sync<DeviceType>();
 }
 
 /* ----------------------------------------------------------------------
@@ -76,7 +76,6 @@ void FixNVEKokkos<DeviceType>::initial_integrate(int vflag)
     FixNVEKokkosInitialIntegrateFunctor<DeviceType,0> functor(this);
     Kokkos::parallel_for(nlocal,functor);
   }
-  DeviceType::fence();
 }
 
 template<class DeviceType>
@@ -133,7 +132,6 @@ void FixNVEKokkos<DeviceType>::final_integrate()
     FixNVEKokkosFinalIntegrateFunctor<DeviceType,0> functor(this);
     Kokkos::parallel_for(nlocal,functor);
   }
-  DeviceType::fence();
 
   // debug
   //atomKK->sync(Host,datamask_read);

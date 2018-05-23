@@ -15,7 +15,7 @@
 
 NPairStyle(full/multi/omp,
            NPairFullMultiOmp,
-           NP_FULL | NP_MULTI | NP_OMP | 
+           NP_FULL | NP_MULTI | NP_OMP |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI)
 
 #else

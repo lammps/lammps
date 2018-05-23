@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include "fix_wall_reflect_kokkos.h"
 #include "atom_kokkos.h"
 #include "comm.h"
@@ -79,7 +79,6 @@ void FixWallReflectKokkos<DeviceType>::post_integrate()
 
     copymode = 1;
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixWallReflectPostIntegrate>(0,nlocal),*this);
-    DeviceType::fence();
     copymode = 0;
   }
 

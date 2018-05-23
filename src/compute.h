@@ -114,9 +114,11 @@ class Compute : protected Pointers {
   virtual void dof_remove_pre() {}
   virtual int dof_remove(int) {return 0;}
   virtual void remove_bias(int, double *) {}
+  virtual void remove_bias_thr(int, double *, double *) {}
   virtual void remove_bias_all() {}
   virtual void reapply_bias_all() {}
   virtual void restore_bias(int, double *) {}
+  virtual void restore_bias_thr(int, double *, double *) {}
   virtual void restore_bias_all() {}
 
   virtual void reset_extra_compute_fix(const char *);
@@ -127,12 +129,15 @@ class Compute : protected Pointers {
   virtual void lock(class Fix *, bigint, bigint) {}
   virtual void unlock(class Fix *) {}
 
+  virtual void refresh() {}
+
   void addstep(bigint);
   int matchstep(bigint);
   void clearstep();
 
   virtual double memory_usage() {return 0.0;}
 
+  virtual void pair_setup_callback(int, int) {}
   virtual void pair_tally_callback(int, int, int, int,
                                    double, double, double,
                                    double, double, double) {}
@@ -150,7 +155,7 @@ class Compute : protected Pointers {
   double **vbiasall;           // stored velocity bias for all atoms
   int maxbias;                 // size of vbiasall array
 
-  inline int sbmask(int j) {
+  inline int sbmask(int j) const {
     return j >> SBBITS & 3;
   }
 

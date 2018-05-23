@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -35,12 +35,17 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
+//
 // ************************************************************************
 //@HEADER
 */
 
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+#include <xmmintrin.h>
+#endif
+
+#include <Kokkos_Macros.hpp>
 #if defined( KOKKOS_ATOMIC_HPP ) && ! defined( KOKKOS_ATOMIC_FETCH_AND_HPP )
 #define KOKKOS_ATOMIC_FETCH_AND_HPP
 
@@ -75,21 +80,41 @@ unsigned long long int atomic_fetch_and( volatile unsigned long long int * const
 
 inline
 int atomic_fetch_and( volatile int * const dest , const int val )
-{ return __sync_fetch_and_and(dest,val); }
+{
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+  _mm_prefetch( (const char*) dest, _MM_HINT_ET0 );
+#endif
+  return __sync_fetch_and_and(dest,val);
+}
 
 inline
 long int atomic_fetch_and( volatile long int * const dest , const long int val )
-{ return __sync_fetch_and_and(dest,val); }
+{
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+  _mm_prefetch( (const char*) dest, _MM_HINT_ET0 );
+#endif
+  return __sync_fetch_and_and(dest,val);
+}
 
 #if defined( KOKKOS_ENABLE_GNU_ATOMICS )
 
 inline
 unsigned int atomic_fetch_and( volatile unsigned int * const dest , const unsigned int val )
-{ return __sync_fetch_and_and(dest,val); }
+{ 
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+  _mm_prefetch( (const char*) dest, _MM_HINT_ET0 );
+#endif
+  return __sync_fetch_and_and(dest,val);
+}
 
 inline
 unsigned long int atomic_fetch_and( volatile unsigned long int * const dest , const unsigned long int val )
-{ return __sync_fetch_and_and(dest,val); }
+{
+#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+  _mm_prefetch( (const char*) dest, _MM_HINT_ET0 );
+#endif
+  return __sync_fetch_and_and(dest,val);
+}
 
 #endif
 
@@ -109,6 +134,17 @@ T atomic_fetch_and( volatile T * const dest , const T val )
   return retval;
 }
 
+#elif defined( KOKKOS_ENABLE_SERIAL_ATOMICS )
+
+template< typename T >
+T atomic_fetch_and( volatile T * const dest_v , const T val )
+{
+  T* dest = const_cast<T*>(dest_v);
+  T retval = *dest;
+  *dest &= val;
+  return retval;
+}
+
 #endif
 #endif
 //----------------------------------------------------------------------------
@@ -123,5 +159,4 @@ void atomic_and(volatile T * const dest, const T src) {
 }
 
 #endif
-
 

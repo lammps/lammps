@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
+#include <cstring>
 #include "compute_msd_chunk.h"
 #include "atom.h"
 #include "group.h"
@@ -126,7 +126,7 @@ void ComputeMSDChunk::setup()
 
   if (fix->nrow == nchunk && fix->ncol == 3) return;
   fix->reset_global(nchunk,3);
-    
+
   double **cominit = fix->astore;
   for (int i = 0; i < nchunk; i++) {
     cominit[i][0] = comall[i][0];

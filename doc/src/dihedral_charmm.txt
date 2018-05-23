@@ -128,7 +128,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
 See "Section 5"_Section_accelerate.html of the manual for
@@ -138,7 +138,15 @@ more instructions on how to use the accelerated styles effectively.
 
 [Restrictions:]
 
-This dihedral style can only be used if LAMMPS was built with the
+When using run_style "respa"_run_style.html, these dihedral styles
+must be assigned to the same r-RESPA level as {pair} or {outer}.
+
+When used in combination with CHARMM pair styles, the 1-4
+"special_bonds"_special_bonds.html scaling factors must be set to 0.0.
+Otherwise non-bonded contributions for these 1-4 pairs will be
+computed multiple times.
+
+These dihedral styles can only be used if LAMMPS was built with the
 MOLECULE package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info on packages.
 

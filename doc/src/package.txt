@@ -62,7 +62,7 @@ args = arguments specific to the style :l
       {no_affinity} values = none
   {kokkos} args = keyword value ...
     zero or more keyword/value pairs may be appended
-    keywords = {neigh} or {neigh/qeq} or {newton} or {binsize} or {comm} or {comm/exchange} or {comm/forward}
+    keywords = {neigh} or {neigh/qeq} or {newton} or {binsize} or {comm} or {comm/exchange} or {comm/forward} or {comm/reverse}
       {neigh} value = {full} or {half}
         full = full neighbor list
         half = half neighbor list built in thread-safe manner
@@ -75,9 +75,10 @@ args = arguments specific to the style :l
       {binsize} value = size
         size = bin size for neighbor list construction (distance units)
       {comm} value = {no} or {host} or {device}
-        use value for both comm/exchange and comm/forward
+        use value for comm/exchange and comm/forward and comm/reverse
       {comm/exchange} value = {no} or {host} or {device}
       {comm/forward} value = {no} or {host} or {device}
+      {comm/reverse} value = {no} or {host} or {device}
         no = perform communication pack/unpack in non-KOKKOS mode
         host = perform pack/unpack on host (e.g. with OpenMP threading)
         device = perform pack/unpack on device (e.g. on GPU)
@@ -115,7 +116,7 @@ their initialization, before a simulation is defined.
 
 This command can also be specified from the command-line when
 launching LAMMPS, using the "-pk" "command-line
-switch"_Section_start.html#start_7.  The syntax is exactly the same as
+switch"_Section_start.html#start_6.  The syntax is exactly the same as
 when used in an input script.
 
 Note that all of the accelerator packages require the package command
@@ -126,18 +127,18 @@ a default version of the command is typically invoked by other
 accelerator settings.
 
 The KOKKOS package requires a "-k on" "command-line
-switch"_Section_start.html#start_7 respectively, which invokes a
+switch"_Section_start.html#start_6 respectively, which invokes a
 "package kokkos" command with default settings.
 
 For the GPU, USER-INTEL, and USER-OMP packages, if a "-sf gpu" or "-sf
-intel" or "-sf omp" "command-line switch"_Section_start.html#start_7
+intel" or "-sf omp" "command-line switch"_Section_start.html#start_6
 is used to auto-append accelerator suffixes to various styles in the
 input script, then those switches also invoke a "package gpu",
 "package intel", or "package omp" command with default settings.
 
 NOTE: A package command for a particular style can be invoked multiple
 times when a simulation is setup, e.g. by the "-c on", "-k on", "-sf",
-and "-pk" "command-line switches"_Section_start.html#start_7, and by
+and "-pk" "command-line switches"_Section_start.html#start_6, and by
 using this command in an input script.  Each time it is used all of
 the style options are set, either to default values or to specified
 settings.  I.e. settings from previous invocations do not persist
@@ -305,7 +306,7 @@ value via their package commands, but there is only a single global
 invoked, you should insure the two values are consistent.  If they are
 not, the last one invoked will take precedence, for both packages.
 Also note that if the "-sf hybrid intel omp" "command-line
-switch"_"_Section_start.html#start_7 is used, it invokes a "package
+switch"_"_Section_start.html#start_6 is used, it invokes a "package
 intel" command, followed by a "package omp" command, both with a
 setting of {Nthreads} = 0.
 
@@ -335,7 +336,8 @@ from the USER-INTEL package is not used, then the LRT setting is
 ignored and no extra threads are generated. Enabling LRT will replace
 the "run_style"_run_style.html with the {verlet/lrt/intel} style that
 is identical to the default {verlet} style aside from supporting the
-LRT feature.
+LRT feature. This feature requires setting the preprocessor flag
+-DLMP_INTEL_USELRT in the makefile when compiling LAMMPS.
 
 The {balance} keyword sets the fraction of "pair
 style"_pair_style.html work offloaded to the coprocessor for split
@@ -428,17 +430,18 @@ Coulombic solver"_kspace_style.html because the GPU is faster at
 performing pairwise interactions, then this rule of thumb may give too
 large a binsize.
 
-The {comm} and {comm/exchange} and {comm/forward} keywords determine
+The {comm} and {comm/exchange} and {comm/forward} and {comm/reverse} keywords determine
 whether the host or device performs the packing and unpacking of data
 when communicating per-atom data between processors.  "Exchange"
 communication happens only on timesteps that neighbor lists are
 rebuilt.  The data is only for atoms that migrate to new processors.
-"Forward" communication happens every timestep.  The data is for atom
+"Forward" communication happens every timestep. "Reverse" communication
+happens every timestep if the {newton} option is on.  The data is for atom
 coordinates and any other atom properties that needs to be updated for
 ghost atoms owned by each processor.
 
 The {comm} keyword is simply a short-cut to set the same value
-for both the {comm/exchange} and {comm/forward} keywords.
+for both the {comm/exchange} and {comm/forward} and {comm/reverse} keywords.
 
 The value options for all 3 keywords are {no} or {host} or {device}.
 A value of {no} means to use the standard non-KOKKOS method of
@@ -550,7 +553,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 [Related commands:]
 
 "suffix"_suffix.html, "-pk" "command-line
-setting"_Section_start.html#start_7
+setting"_Section_start.html#start_6
 
 [Default:]
 
@@ -558,9 +561,9 @@ For the GPU package, the default is Ngpu = 1 and the option defaults
 are neigh = yes, newton = off, binsize = 0.0, split = 1.0, gpuID = 0
 to Ngpu-1, tpa = 1, and device = not used.  These settings are made
 automatically if the "-sf gpu" "command-line
-switch"_Section_start.html#start_7 is used.  If it is not used, you
+switch"_Section_start.html#start_6 is used.  If it is not used, you
 must invoke the package gpu command in your input script or via the
-"-pk gpu" "command-line switch"_Section_start.html#start_7.
+"-pk gpu" "command-line switch"_Section_start.html#start_6.
 
 For the USER-INTEL package, the default is Nphi = 1 and the option
 defaults are omp = 0, mode = mixed, lrt = no, balance = -1, tpc = 4,
@@ -569,21 +572,21 @@ style being used.  This value is output to the screen in the offload
 report at the end of each run.  Note that all of these settings,
 except "omp" and "mode", are ignored if LAMMPS was not built with
 Xeon Phi coprocessor support.  These settings are made automatically
-if the "-sf intel" "command-line switch"_Section_start.html#start_7
+if the "-sf intel" "command-line switch"_Section_start.html#start_6
 is used.  If it is not used, you must invoke the package intel
 command in your input script or or via the "-pk intel" "command-line
-switch"_Section_start.html#start_7.
+switch"_Section_start.html#start_6.
 
-For the KOKKOS package, the option defaults neigh = full, neigh/qeq
- = full, newton = off, binsize = 0.0, and comm = device.  These settings
- are made automatically by the required "-k on" "command-line
-switch"_Section_start.html#start_7.  You can change them bu using the
+For the KOKKOS package, the option defaults neigh = full,
+neigh/qeq = full, newton = off, binsize = 0.0, and comm = device.
+These settings are made automatically by the required "-k on" "command-line
+switch"_Section_start.html#start_6.  You can change them bu using the
 package kokkos command in your input script or via the "-pk kokkos"
-"command-line switch"_Section_start.html#start_7.
+"command-line switch"_Section_start.html#start_6.
 
 For the OMP package, the default is Nthreads = 0 and the option
 defaults are neigh = yes.  These settings are made automatically if
-the "-sf omp" "command-line switch"_Section_start.html#start_7 is
+the "-sf omp" "command-line switch"_Section_start.html#start_6 is
 used.  If it is not used, you must invoke the package omp command in
 your input script or via the "-pk omp" "command-line
-switch"_Section_start.html#start_7.
+switch"_Section_start.html#start_6.

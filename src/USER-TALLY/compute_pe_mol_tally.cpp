@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
+#include <cstring>
 #include "compute_pe_mol_tally.h"
 #include "atom.h"
 #include "group.h"
@@ -20,6 +20,7 @@
 #include "memory.h"
 #include "error.h"
 #include "force.h"
+#include "comm.h"
 
 using namespace LAMMPS_NS;
 
@@ -42,7 +43,7 @@ ComputePEMolTally::ComputePEMolTally(LAMMPS *lmp, int narg, char **arg) :
   extvector = 1;
   peflag = 1;                   // we need Pair::ev_tally() to be run
 
-  did_compute = invoked_vector = -1;
+  did_setup = invoked_vector = -1;
   vector = new double[size_vector];
 }
 
@@ -66,16 +67,24 @@ void ComputePEMolTally::init()
   if (atom->molecule_flag == 0)
     error->all(FLERR,"Compute pe/mol/tally requires molecule IDs");
 
-  if (force->pair->single_enable == 0 || force->pair->manybody_flag)
-    error->warning(FLERR,"Compute pe/mol/tally used with incompatible pair style");
+  if (comm->me == 0) {
+    if (force->pair->single_enable == 0 || force->pair->manybody_flag)
+      error->warning(FLERR,"Compute pe/mol/tally used with incompatible pair style");
 
-  if ((comm->me == 0) && (force->bond || force->angle || force->dihedral
-                          || force->improper || force->kspace))
-    error->warning(FLERR,"Compute pe/mol/tally only called from pair style");
-
-  did_compute = -1;
+    if (force->bond || force->angle || force->dihedral
+                    || force->improper || force->kspace)
+      error->warning(FLERR,"Compute pe/mol/tally only called from pair style");
+  }
+  did_setup = -1;
 }
 
+/* ---------------------------------------------------------------------- */
+
+void ComputePEMolTally::pair_setup_callback(int, int)
+{
+  etotal[0] = etotal[1] = etotal[2] = etotal[3] = 0.0;
+  did_setup = update->ntimestep;
+}
 
 /* ---------------------------------------------------------------------- */
 void ComputePEMolTally::pair_tally_callback(int i, int j, int nlocal, int newton,
@@ -84,14 +93,6 @@ void ComputePEMolTally::pair_tally_callback(int i, int j, int nlocal, int newton
 {
   const int * const mask = atom->mask;
   const tagint * const molid = atom->molecule;
-
-  // do setup work that needs to be done only once per timestep
-
-  if (did_compute != update->ntimestep) {
-    did_compute = update->ntimestep;
-
-    etotal[0] = etotal[1] = etotal[2] = etotal[3] = 0.0;
-  }
 
   if ( ((mask[i] & groupbit) && (mask[j] & groupbit2))
      || ((mask[i] & groupbit2) && (mask[j] & groupbit)) ){
@@ -119,7 +120,7 @@ void ComputePEMolTally::pair_tally_callback(int i, int j, int nlocal, int newton
 void ComputePEMolTally::compute_vector()
 {
   invoked_vector = update->ntimestep;
-  if ((did_compute != invoked_vector) || (update->eflag_global != invoked_vector))
+  if ((did_setup != invoked_vector) || (update->eflag_global != invoked_vector))
     error->all(FLERR,"Energy was not tallied on needed timestep");
 
   // sum accumulated energies across procs

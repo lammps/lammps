@@ -17,8 +17,10 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
 #include "math_const.h"
 #include "compute_xrd.h"
 #include "compute_xrd_consts.h"
@@ -30,8 +32,6 @@
 #include "citeme.h"
 #include "memory.h"
 #include "error.h"
-#include <stdio.h>
-#include <string.h>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -216,10 +216,10 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
         K[2] = k * dK[2];
         dinv2 = (K[0] * K[0] + K[1] * K[1] + K[2] * K[2]);
         if  (4 >= dinv2 * lambda * lambda ) {
-       	  ang = asin(lambda * sqrt(dinv2) * 0.5);
+          ang = asin(lambda * sqrt(dinv2) * 0.5);
           if ((ang <= Max2Theta) && (ang >= Min2Theta)) {
           nRows++;
-	        }
+                }
         }
       }
     }

@@ -87,6 +87,7 @@ if (test $1 = "MANYBODY") then
   depend GPU
   depend KOKKOS
   depend OPT
+  depend QEQ
   depend USER-MISC
   depend USER-OMP
 fi
@@ -95,9 +96,8 @@ if (test $1 = "MOLECULE") then
   depend GPU
   depend KOKKOS
   depend USER-MISC
-  depend USER-OMP
   depend USER-FEP
-  depend USER-CGDNA
+  depend USER-OMP
   depend USER-INTEL
 fi
 
@@ -109,9 +109,21 @@ if (test $1 = "RIGID") then
   depend USER-OMP
 fi
 
+if (test $1 = "SNAP") then
+  depend KOKKOS
+fi
+
 if (test $1 = "USER-CGSDK") then
   depend GPU
   depend KOKKOS
+  depend USER-OMP
+fi
+
+if (test $1 = "USER-DPD") then
+  depend KOKKOS
+fi
+
+if (test $1 = "USER-DRUDE") then
   depend USER-OMP
 fi
 
@@ -122,8 +134,10 @@ fi
 if (test $1 = "USER-MISC") then
   depend GPU
   depend USER-OMP
+  depend USER-INTEL
 fi
 
 if (test $1 = "USER-REAXC") then
   depend KOKKOS
+  depend USER-OMP
 fi

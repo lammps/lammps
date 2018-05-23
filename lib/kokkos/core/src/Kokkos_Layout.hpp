@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -35,8 +35,8 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
+//
 // ************************************************************************
 //@HEADER
 */
@@ -47,7 +47,7 @@
 #ifndef KOKKOS_LAYOUT_HPP
 #define KOKKOS_LAYOUT_HPP
 
-#include <stddef.h>
+#include <cstddef>
 #include <impl/Kokkos_Traits.hpp>
 #include <impl/Kokkos_Tags.hpp>
 
@@ -62,7 +62,7 @@ enum { ARRAY_LAYOUT_MAX_RANK = 8 };
 ///
 /// This is an example of a \c MemoryLayout template parameter of
 /// View.  The memory layout describes how View maps from a
-/// multi-index (i0, i1, ..., ik) to a memory location.  
+/// multi-index (i0, i1, ..., ik) to a memory location.
 ///
 /// "Layout left" indicates a mapping where the leftmost index i0
 /// refers to contiguous access, and strides increase for dimensions
@@ -95,7 +95,7 @@ struct LayoutLeft {
 ///
 /// This is an example of a \c MemoryLayout template parameter of
 /// View.  The memory layout describes how View maps from a
-/// multi-index (i0, i1, ..., ik) to a memory location.  
+/// multi-index (i0, i1, ..., ik) to a memory location.
 ///
 /// "Right layout" indicates a mapping where the rightmost index ik
 /// refers to contiguous access, and strides increase for dimensions
@@ -130,7 +130,7 @@ struct LayoutStride {
   typedef LayoutStride array_layout ;
 
   size_t dimension[ ARRAY_LAYOUT_MAX_RANK ] ;
-  size_t stride[ ARRAY_LAYOUT_MAX_RANK ] ; 
+  size_t stride[ ARRAY_LAYOUT_MAX_RANK ] ;
 
   LayoutStride( LayoutStride const & ) = default ;
   LayoutStride( LayoutStride && ) = default ;
@@ -156,6 +156,8 @@ struct LayoutStride {
       for ( int r = 0 ; r < ARRAY_LAYOUT_MAX_RANK ; ++r ) {
         tmp.dimension[r] = 0 ;
         tmp.stride[r]    = 0 ;
+      }
+      for ( int r = 0 ; r < rank ; ++r ) {
         check_input &= ~int( 1 << order[r] );
       }
       if ( 0 == check_input ) {
@@ -192,7 +194,7 @@ struct LayoutStride {
 ///
 /// This is an example of a \c MemoryLayout template parameter of
 /// View.  The memory layout describes how View maps from a
-/// multi-index (i0, i1, ..., ik) to a memory location.  
+/// multi-index (i0, i1, ..., ik) to a memory location.
 ///
 /// "Tiled layout" indicates a mapping to contiguously stored
 /// <tt>ArgN0</tt> by <tt>ArgN1</tt> tiles for the rightmost two

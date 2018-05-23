@@ -15,10 +15,10 @@
    Contributing Author: Julien Devemy (ICCF)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_nm_cut.h"
 #include "atom.h"
 #include "comm.h"
@@ -187,7 +187,7 @@ void PairNMCut::settings(int narg, char **arg)
   if (allocated) {
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
-      for (j = i+1; j <= atom->ntypes; j++)
+      for (j = i; j <= atom->ntypes; j++)
         if (setflag[i][j]) cut[i][j] = cut_global;
   }
 }
@@ -243,7 +243,7 @@ double PairNMCut::init_one(int i, int j)
   r0n[i][j] = pow(r0[i][j],nn[i][j]);
   r0m[i][j] = pow(r0[i][j],mm[i][j]);
 
-  if (offset_flag) {
+  if (offset_flag && (cut[i][j] > 0.0)) {
     offset[i][j] = e0nm[i][j] *
       ((mm[i][j]*r0n[i][j] / pow(cut[i][j],nn[i][j])) -
        (nn[i][j]*r0m[i][j] / pow(cut[i][j],mm[i][j])));

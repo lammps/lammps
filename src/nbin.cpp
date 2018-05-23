@@ -29,6 +29,7 @@ NBin::NBin(LAMMPS *lmp) : Pointers(lmp)
   maxbin = maxatom = 0;
   binhead = NULL;
   bins = NULL;
+  atom2bin = NULL;
 
   // geometry settings
 
@@ -42,6 +43,7 @@ NBin::~NBin()
 {
   memory->destroy(binhead);
   memory->destroy(bins);
+  memory->destroy(atom2bin);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -87,12 +89,15 @@ void NBin::bin_atoms_setup(int nall)
     memory->create(binhead,maxbin,"neigh:binhead");
   }
 
-  // bins = per-atom vector
+  // bins and atom2bin = per-atom vectors
+  // for both local and ghost atoms
 
   if (nall > maxatom) {
     maxatom = nall;
     memory->destroy(bins);
     memory->create(bins,maxatom,"neigh:bins");
+    memory->destroy(atom2bin);
+    memory->create(atom2bin,maxatom,"neigh:atom2bin");
   }
 }
 
@@ -112,7 +117,7 @@ int NBin::coord2bin(double *x)
 {
   int ix,iy,iz;
 
-  if (!ISFINITE(x[0]) || !ISFINITE(x[1]) || !ISFINITE(x[2]))
+  if (!std::isfinite(x[0]) || !std::isfinite(x[1]) || !std::isfinite(x[2]))
     error->one(FLERR,"Non-numeric positions - simulation unstable");
 
   if (x[0] >= bboxhi[0])
@@ -148,6 +153,6 @@ bigint NBin::memory_usage()
 {
   bigint bytes = 0;
   bytes += maxbin*sizeof(int);
-  bytes += maxatom*sizeof(int);
+  bytes += 2*maxatom*sizeof(int);
   return bytes;
 }

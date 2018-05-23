@@ -26,9 +26,9 @@ cube_at_001 = new MengerCubeLvl3.move(0.0000, 0.0000, 109.35)
 
 
 ################################################################
-# The next command is not necessary:
+# The next command is not necessary.  Commenting out:
 #
- create_var { $mol } # <-This forces all of the Al atoms in the crystal
+# create_var { $mol } # <-This forces all of the Al atoms in the crystal
 #                     #   to share the same molecule ID number.
-#                     #   Molecule ID numbers are not necessary.  Ignore this.
+#                     #   (Molecule ID numbers are not necessary.)
 #

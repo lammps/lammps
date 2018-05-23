@@ -16,7 +16,7 @@
    (now at Lawrence Berkeley National Laboratory, hmaktulga@lbl.gov)
    Per-atom energy/virial added by Ray Shan (Sandia)
    Fix reax/c/bonds and fix reax/c/species for pair_style reax/c added by
-   	Ray Shan (Sandia)
+        Ray Shan (Sandia)
    Hybrid and hybrid/overlay compatibility added by Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
@@ -84,6 +84,7 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
     memory->smalloc(sizeof(storage),"reax:storage");
   lists = (reax_list *)
     memory->smalloc(LIST_N * sizeof(reax_list),"reax:lists");
+  memset(lists,0,LIST_N * sizeof(reax_list));
   out_control = (output_controls *)
     memory->smalloc(sizeof(output_controls),"reax:out_control");
   mpi_data = (mpi_datatypes *)
@@ -107,6 +108,8 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
   system->bndry_cuts.ghost_cutoff = 0;
   system->my_atoms = NULL;
   system->pair_ptr = this;
+
+  system->omp_active = 0;
 
   fix_reax = NULL;
   tmpid = NULL;
@@ -211,6 +214,9 @@ void PairReaxC::settings(int narg, char **arg)
     control->thb_cutsq = 0.00001;
     control->bg_cut = 0.3;
 
+    // Initialize for when omp style included
+    control->nthreads = 1;
+
     out_control->write_steps = 0;
     out_control->traj_method = 0;
     strcpy( out_control->traj_title, "default_title" );
@@ -227,7 +233,7 @@ void PairReaxC::settings(int narg, char **arg)
   system->mincap = MIN_CAP;
   system->safezone = SAFE_ZONE;
   system->saferzone = SAFER_ZONE;
-  
+
   // process optional keywords
 
   int iarg = 1;
@@ -255,14 +261,14 @@ void PairReaxC::settings(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reax/c command");
       system->safezone = force->numeric(FLERR,arg[iarg+1]);
       if (system->safezone < 0.0)
-	error->all(FLERR,"Illegal pair_style reax/c safezone command");
-      system->saferzone = system->safezone*1.2;
+        error->all(FLERR,"Illegal pair_style reax/c safezone command");
+      system->saferzone = system->safezone*1.2 + 0.2;
       iarg += 2;
     } else if (strcmp(arg[iarg],"mincap") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reax/c command");
       system->mincap = force->inumeric(FLERR,arg[iarg+1]);
       if (system->mincap < 0)
-	error->all(FLERR,"Illegal pair_style reax/c mincap command");
+        error->all(FLERR,"Illegal pair_style reax/c mincap command");
       iarg += 2;
     } else error->all(FLERR,"Illegal pair_style reax/c command");
   }
@@ -319,7 +325,7 @@ void PairReaxC::coeff( int nargs, char **args )
     for (int j = 0; j < nreax_types; j++)
       if (strcasecmp(args[i],system->reax_param.sbp[j].name) == 0) {
         map[i-2] = j;
-	itmp ++;
+        itmp ++;
       }
 
   // error check
@@ -381,7 +387,10 @@ void PairReaxC::init_style( )
   neighbor->requests[irequest]->newton = 2;
   neighbor->requests[irequest]->ghost = 1;
 
-  cutmax = MAX3(control->nonb_cut, control->hbond_cut, 2*control->bond_cut);
+  cutmax = MAX3(control->nonb_cut, control->hbond_cut, control->bond_cut);
+  if ((cutmax < 2.0*control->bond_cut) && (comm->me == 0))
+    error->warning(FLERR,"Total cutoff < 2*bond cutoff. May need to use an "
+                   "increased neighbor list skin.");
 
   for( int i = 0; i < LIST_N; ++i )
     lists[i].allocated = 0;
@@ -457,6 +466,9 @@ void PairReaxC::setup( )
 
     ReAllocate( system, control, data, workspace, &lists, mpi_data );
   }
+
+  bigint local_ngroup = list->inum;
+  MPI_Allreduce( &local_ngroup, &ngroup, 1, MPI_LMP_BIGINT, MPI_SUM, world );
 }
 
 /* ---------------------------------------------------------------------- */
@@ -585,7 +597,7 @@ void PairReaxC::compute(int eflag, int vflag)
     for (i = 0; i < system->N; i ++)
       for (j = 0; j < MAXSPECBOND; j ++) {
         tmpbo[i][j] = 0.0;
-	tmpid[i][j] = 0;
+        tmpid[i][j] = 0;
       }
     FindBond();
   }
@@ -688,7 +700,7 @@ int PairReaxC::write_reax_lists()
   int itr_i, itr_j, i, j;
   int num_nbrs;
   int *ilist, *jlist, *numneigh, **firstneigh;
-  double d_sqr;
+  double d_sqr, cutoff_sqr;
   rvec dvec;
   double *dist, **x;
   reax_list *far_nbrs;
@@ -703,6 +715,7 @@ int PairReaxC::write_reax_lists()
   far_list = far_nbrs->select.far_nbr_list;
 
   num_nbrs = 0;
+  int inum = list->inum;
   dist = (double*) calloc( system->N, sizeof(double) );
 
   int numall = list->inum + list->gnum;
@@ -712,12 +725,17 @@ int PairReaxC::write_reax_lists()
     jlist = firstneigh[i];
     Set_Start_Index( i, num_nbrs, far_nbrs );
 
+    if (i < inum)
+      cutoff_sqr = control->nonb_cut*control->nonb_cut;
+    else
+      cutoff_sqr = control->bond_cut*control->bond_cut;
+
     for( itr_j = 0; itr_j < numneigh[i]; ++itr_j ){
       j = jlist[itr_j];
       j &= NEIGHMASK;
       get_distance( x[j], x[i], &d_sqr, &dvec );
 
-      if( d_sqr <= (control->nonb_cut*control->nonb_cut) ){
+      if( d_sqr <= (cutoff_sqr) ){
         dist[j] = sqrt( d_sqr );
         set_far_nbr( &far_list[num_nbrs], j, dist[j], dvec );
         ++num_nbrs;
@@ -823,10 +841,10 @@ void PairReaxC::FindBond()
       bo_tmp = bo_ij->bo_data.BO;
 
       if (bo_tmp >= bo_cut ) {
-	tmpid[i][nj] = j;
-	tmpbo[i][nj] = bo_tmp;
-	nj ++;
-	if (nj > MAXSPECBOND) error->all(FLERR,"Increase MAXSPECBOND in reaxc_defs.h");
+        tmpid[i][nj] = j;
+        tmpbo[i][nj] = bo_tmp;
+        nj ++;
+        if (nj > MAXSPECBOND) error->all(FLERR,"Increase MAXSPECBOND in reaxc_defs.h");
       }
     }
   }

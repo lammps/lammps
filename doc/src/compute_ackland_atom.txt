@@ -10,19 +10,29 @@ compute ackland/atom command :h3
 
 [Syntax:]
 
-compute ID group-ID ackland/atom :pre
+compute ID group-ID ackland/atom keyword/value :pre
 
-ID, group-ID are documented in "compute"_compute.html command
-ackland/atom = style name of this compute command :ul
+ID, group-ID are documented in "compute"_compute.html command :ulb,l
+ackland/atom = style name of this compute command :l
+
+zero or more keyword/value pairs may be appended :l
+keyword = {legacy} :l
+  {legacy} yes/no = use ({yes}) or do not use ({no}) legacy ackland algorithm implementation :pre
+:ule
 
 [Examples:]
 
-compute 1 all ackland/atom :pre
+compute 1 all ackland/atom
+compute 1 all ackland/atom legacy yes :pre
 
 [Description:]
 
 Defines a computation that calculates the local lattice structure
 according to the formulation given in "(Ackland)"_#Ackland.
+Historically, LAMMPS had two, slightly different implementations of
+the algorithm from the paper. With the {legacy} keyword, it is
+possible to switch between the pre-2015 ({legacy yes}) and post-2015
+implemention ({legacy no}). The post-2015 variant is the default.
 
 In contrast to the "centro-symmetry
 parameter"_compute_centro_atom.html this method is stable against
@@ -66,7 +76,8 @@ integers defined above.
 
 "compute centro/atom"_compute_centro_atom.html
 
-[Default:] none
+[Default:]
+The keyword {legacy} defaults to {no}.
 
 :line
 

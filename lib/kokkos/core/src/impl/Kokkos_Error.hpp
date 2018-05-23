@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 // 
 // ************************************************************************
 //@HEADER
@@ -75,7 +75,9 @@ void abort( const char * const message ) {
 #ifdef __CUDA_ARCH__
   Kokkos::Impl::cuda_abort(message);
 #else
-  Kokkos::Impl::host_abort(message);
+  #if !defined(KOKKOS_ENABLE_OPENMPTARGET) && !defined(__HCC_ACCELERATOR__)
+    Kokkos::Impl::host_abort(message);
+  #endif
 #endif
 }
 

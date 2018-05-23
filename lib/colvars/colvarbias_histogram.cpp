@@ -8,10 +8,10 @@
 // Colvars repository at GitHub.
 
 #include "colvarmodule.h"
+#include "colvarproxy.h"
 #include "colvar.h"
 #include "colvarbias_histogram.h"
 
-/// Histogram "bias" constructor
 
 colvarbias_histogram::colvarbias_histogram(char const *key)
   : colvarbias(key),
@@ -44,7 +44,7 @@ int colvarbias_histogram::init(std::string const &conf)
     get_keyval(conf, "gatherVectorColvars", colvar_array, colvar_array);
 
     if (colvar_array) {
-      for (i = 0; i < colvars.size(); i++) { // should be all vector
+      for (i = 0; i < num_variables(); i++) { // should be all vector
         if (colvars[i]->value().type() != colvarvalue::type_vector) {
           cvm::error("Error: used gatherVectorColvars with non-vector colvar.\n", INPUT_ERROR);
           return INPUT_ERROR;
@@ -63,7 +63,7 @@ int colvarbias_histogram::init(std::string const &conf)
         }
       }
     } else {
-      for (i = 0; i < colvars.size(); i++) { // should be all scalar
+      for (i = 0; i < num_variables(); i++) { // should be all scalar
         if (colvars[i]->value().type() != colvarvalue::type_scalar) {
           cvm::error("Error: only scalar colvars are supported when gatherVectorColvars is off.\n", INPUT_ERROR);
           return INPUT_ERROR;
@@ -77,7 +77,7 @@ int colvarbias_histogram::init(std::string const &conf)
     get_keyval(conf, "weights", weights, weights);
   }
 
-  for (i = 0; i < colvars.size(); i++) {
+  for (i = 0; i < num_variables(); i++) {
     colvars[i]->enable(f_cv_grid);
   }
 
@@ -86,8 +86,9 @@ int colvarbias_histogram::init(std::string const &conf)
 
   {
     std::string grid_conf;
-    if (key_lookup(conf, "histogramGrid", grid_conf)) {
+    if (key_lookup(conf, "histogramGrid", &grid_conf)) {
       grid->parse_params(grid_conf);
+      grid->check_keywords(grid_conf, "histogramGrid");
     }
   }
 
@@ -115,7 +116,7 @@ int colvarbias_histogram::update()
   }
 
   // assign a valid bin size
-  bin.assign(colvars.size(), 0);
+  bin.assign(num_variables(), 0);
 
   if (out_name.size() == 0) {
     // At the first timestep, we need to assign out_name since
@@ -136,7 +137,7 @@ int colvarbias_histogram::update()
   if (colvar_array_size == 0) {
     // update indices for scalar values
     size_t i;
-    for (i = 0; i < colvars.size(); i++) {
+    for (i = 0; i < num_variables(); i++) {
       bin[i] = grid->current_bin_scalar(i);
     }
 
@@ -147,7 +148,7 @@ int colvarbias_histogram::update()
     // update indices for vector/array values
     size_t iv, i;
     for (iv = 0; iv < colvar_array_size; iv++) {
-      for (i = 0; i < colvars.size(); i++) {
+      for (i = 0; i < num_variables(); i++) {
         bin[i] = grid->current_bin_scalar(i, iv);
       }
 
@@ -176,26 +177,27 @@ int colvarbias_histogram::write_output_files()
   if (out_name.size()) {
     cvm::log("Writing the histogram file \""+out_name+"\".\n");
     cvm::backup_file(out_name.c_str());
-    cvm::ofstream grid_os(out_name.c_str());
-    if (!grid_os.is_open()) {
-      cvm::error("Error opening histogram file " + out_name + " for writing.\n", FILE_ERROR);
+    std::ostream *grid_os = cvm::proxy->output_stream(out_name);
+    if (!grid_os) {
+      return cvm::error("Error opening histogram file "+out_name+
+                        " for writing.\n", FILE_ERROR);
     }
-    // TODO add return code here
-    grid->write_multicol(grid_os);
-    grid_os.close();
+    grid->write_multicol(*grid_os);
+    cvm::proxy->close_output_stream(out_name);
   }
 
   if (out_name_dx.size()) {
     cvm::log("Writing the histogram file \""+out_name_dx+"\".\n");
     cvm::backup_file(out_name_dx.c_str());
-    cvm::ofstream grid_os(out_name_dx.c_str());
-    if (!grid_os.is_open()) {
-      cvm::error("Error opening histogram file " + out_name_dx + " for writing.\n", FILE_ERROR);
+    std::ostream *grid_os = cvm::proxy->output_stream(out_name_dx);
+    if (!grid_os) {
+      return cvm::error("Error opening histogram file "+out_name_dx+
+                        " for writing.\n", FILE_ERROR);
     }
-    // TODO add return code here
-    grid->write_opendx(grid_os);
-    grid_os.close();
+    grid->write_opendx(*grid_os);
+    cvm::proxy->close_output_stream(out_name_dx);
   }
+
   return COLVARS_OK;
 }
 

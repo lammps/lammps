@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    Lammps - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -37,7 +37,7 @@
 
 
 #include "manifold.h"
-#include <string.h>
+#include <cstring>
 
 /*
  * Defining USE_PHONY_LAMMPS makes sure that none of the LAMMPS classes are

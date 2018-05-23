@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -28,7 +28,7 @@ class PairOxdna2Excv : public PairOxdnaExcv {
  public:
   PairOxdna2Excv(class LAMMPS *);
   virtual ~PairOxdna2Excv();
-  virtual void compute_interaction_sites(double *, 
+  virtual void compute_interaction_sites(double *,
     double *, double *, double *);
 };
 

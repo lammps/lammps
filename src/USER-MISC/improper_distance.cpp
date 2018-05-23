@@ -16,8 +16,8 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 #include "improper_distance.h"
 #include "atom.h"
 #include "comm.h"
@@ -223,7 +223,6 @@ void ImproperDistance::coeff(int narg, char **arg)
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     k[i] = k_one;
-    //chi[i] = chi_one/180.0 * PI;
     chi[i] = chi_one;
     setflag[i] = 1;
     count++;
@@ -258,4 +257,14 @@ void ImproperDistance::read_restart(FILE *fp)
   MPI_Bcast(&chi[1],atom->nimpropertypes,MPI_DOUBLE,0,world);
 
   for (int i = 1; i <= atom->nimpropertypes; i++) setflag[i] = 1;
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void ImproperDistance::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->nimpropertypes; i++)
+    fprintf(fp,"%d %g %g\n",i,k[i],chi[i]);
 }

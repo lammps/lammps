@@ -67,11 +67,11 @@ The Langevin forces are computed as
 \(F_r'\) is a random force proportional to
 \(\sqrt \{ \frac \{2\, k_B \mathtt\{Tcom\}\, m'\}
                  \{\mathrm dt\, \mathtt\{damp\_com\} \}
-        \} \). :b
+        \} \).
 \(f_r'\) is a random force proportional to
 \(\sqrt \{ \frac \{2\, k_B \mathtt\{Tdrude\}\, m'\}
                  \{\mathrm dt\, \mathtt\{damp\_drude\} \}
-        \} \). :b
+        \} \).
 Then the real forces acting on the particles are computed from the inverse
 transform:
 \begin\{equation\} F = \frac M \{M'\}\, F' - f' \end\{equation\}
@@ -154,7 +154,7 @@ Note: The temperature thermostating the core-Drude particle pairs
 should be chosen low enough, so as to mimic as closely as possible the
 self-consistent minimization. It must however be high enough, so that
 the dipoles can follow the local electric field exerted by the
-neighbouring atoms. The optimal value probably depends on the
+neighboring atoms. The optimal value probably depends on the
 temperature of the centers of mass and on the mass of the Drude
 particles.
 

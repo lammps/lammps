@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -35,8 +35,8 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
+//
 // ************************************************************************
 //@HEADER
 */
@@ -86,24 +86,24 @@ public:
 
   KOKKOS_INLINE_FUNCTION
   const_value_type operator ++ () const {
-    const_value_type tmp = Kokkos::atomic_fetch_add(ptr,1);
+    const_value_type tmp = Kokkos::atomic_fetch_add(ptr,non_const_value_type(1));
     return tmp+1;
   }
 
   KOKKOS_INLINE_FUNCTION
   const_value_type operator -- () const {
-    const_value_type tmp = Kokkos::atomic_fetch_add(ptr,-1);
+    const_value_type tmp = Kokkos::atomic_fetch_sub(ptr,non_const_value_type(1));
     return tmp-1;
   }
 
   KOKKOS_INLINE_FUNCTION
   const_value_type operator ++ (int) const {
-    return Kokkos::atomic_fetch_add(ptr,1);
+    return Kokkos::atomic_fetch_add(ptr,non_const_value_type(1));
   }
 
   KOKKOS_INLINE_FUNCTION
   const_value_type operator -- (int) const {
-    return Kokkos::atomic_fetch_add(ptr,-1);
+    return Kokkos::atomic_fetch_sub(ptr,non_const_value_type(1));
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -119,12 +119,12 @@ public:
 
   KOKKOS_INLINE_FUNCTION
   const_value_type operator -= (const_value_type& val) const {
-    const_value_type tmp = Kokkos::atomic_fetch_add(ptr,-val);
+    const_value_type tmp = Kokkos::atomic_fetch_sub(ptr,val);
     return tmp-val;
   }
   KOKKOS_INLINE_FUNCTION
   const_value_type operator -= (volatile const_value_type& val) const {
-    const_value_type tmp = Kokkos::atomic_fetch_add(ptr,-val);
+    const_value_type tmp = Kokkos::atomic_fetch_sub(ptr,val);
     return tmp-val;
   }
 
@@ -428,3 +428,4 @@ struct Kokkos_Atomic_is_only_allowed_with_32bit_and_64bit_scalars<8> {
 }} // namespace Kokkos::Impl
 
 #endif
+

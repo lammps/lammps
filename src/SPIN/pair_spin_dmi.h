@@ -37,8 +37,8 @@ class PairSpinDmi : public PairSpin {
   void compute(int, int);
   void compute_single_pair(int, double *);
 
-  void compute_dmi(int, int, double, double *, double *, double *, double *);
-  void compute_dmi_mech(int, int, double *, double *, double *);
+  void compute_dmi(int, int, double *, double *, double *);
+  void compute_dmi_mech(double *);
   
   void write_restart(FILE *);
   void read_restart(FILE *);

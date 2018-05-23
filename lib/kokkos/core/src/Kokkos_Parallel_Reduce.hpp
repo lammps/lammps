@@ -35,15 +35,18 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
 */
 
+#ifndef KOKKOS_PARALLEL_REDUCE_HPP
+#define KOKKOS_PARALLEL_REDUCE_HPP
+
+#include <Kokkos_NumericTraits.hpp>
 
 namespace Kokkos {
-
 
 template<class T, class Enable = void>
 struct is_reducer_type {
@@ -54,7 +57,7 @@ struct is_reducer_type {
 template<class T>
 struct is_reducer_type<T,typename std::enable_if<
                        std::is_same<typename std::remove_cv<T>::type,
-                                    typename std::remove_cv<typename T::reducer_type>::type>::value
+                                    typename std::remove_cv<typename T::reducer>::type>::value
                       >::type> {
   enum { value = 1 };
 };
@@ -62,47 +65,25 @@ struct is_reducer_type<T,typename std::enable_if<
 namespace Experimental {
 
 
-template<class Scalar,class Space = HostSpace>
+template<class Scalar, class Space>
 struct Sum {
 public:
   //Required
-  typedef Sum reducer_type;
-  typedef Scalar value_type;
+  typedef Sum reducer;
+  typedef typename std::remove_cv<Scalar>::type value_type;
 
   typedef Kokkos::View<value_type, Space, Kokkos::MemoryTraits<Kokkos::Unmanaged> > result_view_type;
 
-  value_type init_value;
-
 private:
-  result_view_type result;
-
-  template<class ValueType, bool is_arithmetic = std::is_arithmetic<ValueType>::value >
-  struct InitWrapper;
-
-  template<class ValueType >
-  struct InitWrapper<ValueType,true> {
-    static ValueType value() {
-      return static_cast<value_type>(0);
-    }
-  };
-
-  template<class ValueType >
-  struct InitWrapper<ValueType,false> {
-    static ValueType value() {
-      return value_type();
-    }
-  };
+  value_type* value;
 
 public:
 
-  Sum(value_type& result_):
-    init_value(InitWrapper<value_type>::value()),result(&result_) {}
-  Sum(const result_view_type& result_):
-    init_value(InitWrapper<value_type>::value()),result(result_) {}
-  Sum(value_type& result_, const value_type& init_value_):
-    init_value(init_value_),result(&result_) {}
-  Sum(const result_view_type& result_, const value_type& init_value_):
-    init_value(init_value_),result(result_) {}
+  KOKKOS_INLINE_FUNCTION
+  Sum(value_type& value_): value(&value_) {}
+
+  KOKKOS_INLINE_FUNCTION
+  Sum(const result_view_type& value_): value(value_.data()) {}
 
   //Required
   KOKKOS_INLINE_FUNCTION
@@ -115,58 +96,41 @@ public:
     dest += src;
   }
 
-  //Optional
   KOKKOS_INLINE_FUNCTION
   void init( value_type& val)  const {
-    val = init_value;
+    val = reduction_identity<value_type>::sum();
   }
 
-  result_view_type result_view() const {
-    return result;
+  KOKKOS_INLINE_FUNCTION
+  value_type& reference() const {
+    return *value;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  result_view_type view() const {
+    return result_view_type(value);
   }
 };
 
-template<class Scalar,class Space = HostSpace>
+template<class Scalar, class Space>
 struct Prod {
 public:
   //Required
-  typedef Prod reducer_type;
-  typedef Scalar value_type;
+  typedef Prod reducer;
+  typedef typename std::remove_cv<Scalar>::type value_type;
 
   typedef Kokkos::View<value_type, Space, Kokkos::MemoryTraits<Kokkos::Unmanaged> > result_view_type;
 
-  value_type init_value;
-
 private:
-  result_view_type result;
-
-  template<class ValueType, bool is_arithmetic = std::is_arithmetic<ValueType>::value >
-  struct InitWrapper;
-
-  template<class ValueType >
-  struct InitWrapper<ValueType,true> {
-    static ValueType value() {
-      return static_cast<value_type>(1);
-    }
-  };
-
-  template<class ValueType >
-  struct InitWrapper<ValueType,false> {
-    static ValueType value() {
-      return value_type();
-    }
-  };
+  value_type* value;
 
 public:
 
-  Prod(value_type& result_):
-    init_value(InitWrapper<value_type>::value()),result(&result_) {}
-  Prod(const result_view_type& result_):
-    init_value(InitWrapper<value_type>::value()),result(result_) {}
-  Prod(value_type& result_, const value_type& init_value_):
-    init_value(init_value_),result(&result_) {}
-  Prod(const result_view_type& result_, const value_type& init_value_):
-    init_value(init_value_),result(result_) {}
+  KOKKOS_INLINE_FUNCTION
+  Prod(value_type& value_): value(&value_) {}
+
+  KOKKOS_INLINE_FUNCTION
+  Prod(const result_view_type& value_): value(value_.data()) {}
 
   //Required
   KOKKOS_INLINE_FUNCTION
@@ -179,58 +143,41 @@ public:
     dest *= src;
   }
 
-  //Optional
   KOKKOS_INLINE_FUNCTION
   void init( value_type& val)  const {
-    val = init_value;
+    val = reduction_identity<value_type>::prod();
   }
 
-  result_view_type result_view() const {
-    return result;
+  KOKKOS_INLINE_FUNCTION
+  value_type& reference() const {
+    return *value;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  result_view_type view() const {
+    return result_view_type(value);
   }
 };
 
-template<class Scalar, class Space = HostSpace>
+template<class Scalar, class Space>
 struct Min {
 public:
   //Required
-  typedef Min reducer_type;
+  typedef Min reducer;
   typedef typename std::remove_cv<Scalar>::type value_type;
 
   typedef Kokkos::View<value_type, Space, Kokkos::MemoryTraits<Kokkos::Unmanaged> > result_view_type;
 
-  value_type init_value;
-
 private:
-  result_view_type result;
-
-  template<class ValueType, bool is_arithmetic = std::is_arithmetic<ValueType>::value >
-  struct InitWrapper;
-
-  template<class ValueType >
-  struct InitWrapper<ValueType,true> {
-    static ValueType value() {
-      return std::numeric_limits<value_type>::max();
-    }
-  };
-
-  template<class ValueType >
-  struct InitWrapper<ValueType,false> {
-    static ValueType value() {
-      return value_type();
-    }
-  };
+  value_type* value;
 
 public:
 
-  Min(value_type& result_):
-    init_value(InitWrapper<value_type>::value()),result(&result_) {}
-  Min(const result_view_type& result_):
-    init_value(InitWrapper<value_type>::value()),result(result_) {}
-  Min(value_type& result_, const value_type& init_value_):
-    init_value(init_value_),result(&result_) {}
-  Min(const result_view_type& result_, const value_type& init_value_):
-    init_value(init_value_),result(result_) {}
+  KOKKOS_INLINE_FUNCTION
+  Min(value_type& value_): value(&value_) {}
+
+  KOKKOS_INLINE_FUNCTION
+  Min(const result_view_type& value_): value(value_.data()) {}
 
   //Required
   KOKKOS_INLINE_FUNCTION
@@ -245,58 +192,41 @@ public:
       dest = src;
   }
 
-  //Optional
   KOKKOS_INLINE_FUNCTION
   void init( value_type& val)  const {
-    val = init_value;
+    val = reduction_identity<value_type>::min();
   }
 
-  result_view_type result_view() const {
-    return result;
+  KOKKOS_INLINE_FUNCTION
+  value_type& reference() const {
+    return *value;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  result_view_type view() const {
+    return result_view_type(value);
   }
 };
 
-template<class Scalar, class Space = HostSpace>
+template<class Scalar, class Space>
 struct Max {
 public:
   //Required
-  typedef Max reducer_type;
+  typedef Max reducer;
   typedef typename std::remove_cv<Scalar>::type value_type;
 
   typedef Kokkos::View<value_type, Space, Kokkos::MemoryTraits<Kokkos::Unmanaged> > result_view_type;
 
-  value_type init_value;
-
 private:
-  result_view_type result;
-
-  template<class ValueType, bool is_arithmetic = std::is_arithmetic<ValueType>::value >
-  struct InitWrapper;
-
-  template<class ValueType >
-  struct InitWrapper<ValueType,true> {
-    static ValueType value() {
-      return std::numeric_limits<value_type>::min();
-    }
-  };
-
-  template<class ValueType >
-  struct InitWrapper<ValueType,false> {
-    static ValueType value() {
-      return value_type();
-    }
-  };
+  value_type* value;
 
 public:
 
-  Max(value_type& result_):
-    init_value(InitWrapper<value_type>::value()),result(&result_) {}
-  Max(const result_view_type& result_):
-    init_value(InitWrapper<value_type>::value()),result(result_) {}
-  Max(value_type& result_, const value_type& init_value_):
-    init_value(init_value_),result(&result_) {}
-  Max(const result_view_type& result_, const value_type& init_value_):
-    init_value(init_value_),result(result_) {}
+  KOKKOS_INLINE_FUNCTION
+  Max(value_type& value_): value(&value_) {}
+
+  KOKKOS_INLINE_FUNCTION
+  Max(const result_view_type& value_): value(value_.data()) {}
 
   //Required
   KOKKOS_INLINE_FUNCTION
@@ -311,154 +241,135 @@ public:
       dest = src;
   }
 
-  //Optional
+  //Required
   KOKKOS_INLINE_FUNCTION
   void init( value_type& val)  const {
-    val = init_value;
+    val = reduction_identity<value_type>::max();
   }
 
-  result_view_type result_view() const {
-    return result;
+  KOKKOS_INLINE_FUNCTION
+  value_type& reference() const {
+    return *value;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  result_view_type view() const {
+    return result_view_type(value);
   }
 };
 
-template<class Scalar, class Space = HostSpace>
+template<class Scalar, class Space>
 struct LAnd {
 public:
   //Required
-  typedef LAnd reducer_type;
-  typedef Scalar value_type;
-
-  typedef Kokkos::View<value_type, Space, Kokkos::MemoryTraits<Kokkos::Unmanaged> > result_view_type;
-
-private:
-  result_view_type result;
-
-public:
-
-  LAnd(value_type& result_):result(&result_) {}
-  LAnd(const result_view_type& result_):result(result_) {}
-
-  //Required
-  KOKKOS_INLINE_FUNCTION
-  void join(value_type& dest, const value_type& src)  const {
-    dest = dest && src;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& dest, const volatile value_type& src) const {
-    dest = dest && src;
-  }
-
-  //Optional
-  KOKKOS_INLINE_FUNCTION
-  void init( value_type& val)  const {
-    val = 1;
-  }
-
-  result_view_type result_view() const {
-    return result;
-  }
-};
-
-template<class Scalar, class Space = HostSpace>
-struct LOr {
-public:
-  //Required
-  typedef LOr reducer_type;
-  typedef Scalar value_type;
-
-  typedef Kokkos::View<value_type, Space, Kokkos::MemoryTraits<Kokkos::Unmanaged> > result_view_type;
-
-private:
-  result_view_type result;
-
-public:
-
-  LOr(value_type& result_):result(&result_) {}
-  LOr(const result_view_type& result_):result(result_) {}
-
-  //Required
-  KOKKOS_INLINE_FUNCTION
-  void join(value_type& dest, const value_type& src)  const {
-    dest = dest || src;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& dest, const volatile value_type& src) const {
-    dest = dest || src;
-  }
-
-  //Optional
-  KOKKOS_INLINE_FUNCTION
-  void init( value_type& val)  const {
-    val = 0;
-  }
-
-  result_view_type result_view() const {
-    return result;
-  }
-};
-
-template<class Scalar, class Space = HostSpace>
-struct LXor {
-public:
-  //Required
-  typedef LXor reducer_type;
-  typedef Scalar value_type;
-
-  typedef Kokkos::View<value_type, Space, Kokkos::MemoryTraits<Kokkos::Unmanaged> > result_view_type;
-
-private:
-  result_view_type result;
-
-public:
-
-  LXor(value_type& result_):result(&result_) {}
-  LXor(const result_view_type& result_):result(result_) {}
-
-  //Required
-  KOKKOS_INLINE_FUNCTION
-  void join(value_type& dest, const value_type& src)  const {
-    dest = dest? (!src) : src;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& dest, const volatile value_type& src) const {
-    dest = dest? (!src) : src;
-  }
-
-  //Optional
-  KOKKOS_INLINE_FUNCTION
-  void init( value_type& val)  const {
-    val = 0;
-  }
-
-  result_view_type result_view() const {
-    return result;
-  }
-};
-
-template<class Scalar, class Space = HostSpace>
-struct BAnd {
-public:
-  //Required
-  typedef BAnd reducer_type;
+  typedef LAnd reducer;
   typedef typename std::remove_cv<Scalar>::type value_type;
 
   typedef Kokkos::View<value_type, Space, Kokkos::MemoryTraits<Kokkos::Unmanaged> > result_view_type;
 
-  value_type init_value;
-
 private:
-  result_view_type result;
+  value_type* value;
 
 public:
 
-  BAnd(value_type& result_):
-    init_value(value_type() | (~value_type())),result(&result_) {}
-  BAnd(const result_view_type& result_):
-    init_value(value_type() | (~value_type())),result(result_) {}
+  KOKKOS_INLINE_FUNCTION
+  LAnd(value_type& value_): value(&value_) {}
+
+  KOKKOS_INLINE_FUNCTION
+  LAnd(const result_view_type& value_): value(value_.data()) {}
+
+  KOKKOS_INLINE_FUNCTION
+  void join(value_type& dest, const value_type& src)  const {
+    dest = dest && src;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void join(volatile value_type& dest, const volatile value_type& src) const {
+    dest = dest && src;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void init( value_type& val)  const {
+    val = reduction_identity<value_type>::land();
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  value_type& reference() const {
+    return *value;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  result_view_type view() const {
+    return result_view_type(value);
+  }
+};
+
+template<class Scalar, class Space>
+struct LOr {
+public:
+  //Required
+  typedef LOr reducer;
+  typedef typename std::remove_cv<Scalar>::type value_type;
+
+  typedef Kokkos::View<value_type, Space, Kokkos::MemoryTraits<Kokkos::Unmanaged> > result_view_type;
+
+private:
+  value_type* value;
+
+public:
+
+  KOKKOS_INLINE_FUNCTION
+  LOr(value_type& value_): value(&value_) {}
+
+  KOKKOS_INLINE_FUNCTION
+  LOr(const result_view_type& value_): value(value_.data()) {}
+
+  //Required
+  KOKKOS_INLINE_FUNCTION
+  void join(value_type& dest, const value_type& src)  const {
+    dest = dest || src;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void join(volatile value_type& dest, const volatile value_type& src) const {
+    dest = dest || src;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void init( value_type& val)  const {
+    val = reduction_identity<value_type>::lor();
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  value_type& reference() const {
+    return *value;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  result_view_type view() const {
+    return result_view_type(value);
+  }
+};
+
+template<class Scalar, class Space>
+struct BAnd {
+public:
+  //Required
+  typedef BAnd reducer;
+  typedef typename std::remove_cv<Scalar>::type value_type;
+
+  typedef Kokkos::View<value_type, Space, Kokkos::MemoryTraits<Kokkos::Unmanaged> > result_view_type;
+
+private:
+  value_type* value;
+
+public:
+
+  KOKKOS_INLINE_FUNCTION
+  BAnd(value_type& value_): value(&value_) {}
+
+  KOKKOS_INLINE_FUNCTION
+  BAnd(const result_view_type& value_): value(value_.data()) {}
 
   //Required
   KOKKOS_INLINE_FUNCTION
@@ -471,37 +382,41 @@ public:
     dest = dest & src;
   }
 
-  //Optional
   KOKKOS_INLINE_FUNCTION
   void init( value_type& val)  const {
-    val = init_value;
+    val = reduction_identity<value_type>::band();
   }
 
-  result_view_type result_view() const {
-    return result;
+  KOKKOS_INLINE_FUNCTION
+  value_type& reference() const {
+    return *value;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  result_view_type view() const {
+    return result_view_type(value);
   }
 };
 
-template<class Scalar, class Space = HostSpace>
+template<class Scalar, class Space>
 struct BOr {
 public:
   //Required
-  typedef BOr reducer_type;
+  typedef BOr reducer;
   typedef typename std::remove_cv<Scalar>::type value_type;
 
   typedef Kokkos::View<value_type, Space, Kokkos::MemoryTraits<Kokkos::Unmanaged> > result_view_type;
 
-  value_type init_value;
-
 private:
-  result_view_type result;
+  value_type* value;
 
 public:
 
-  BOr(value_type& result_):
-    init_value(value_type() & (~value_type())),result(&result_) {}
-  BOr(const result_view_type& result_):
-    init_value(value_type() & (~value_type())),result(result_) {}
+  KOKKOS_INLINE_FUNCTION
+  BOr(value_type& value_): value(&value_) {}
+
+  KOKKOS_INLINE_FUNCTION
+  BOr(const result_view_type& value_): value(value_.data()) {}
 
   //Required
   KOKKOS_INLINE_FUNCTION
@@ -514,57 +429,19 @@ public:
     dest = dest | src;
   }
 
-  //Optional
   KOKKOS_INLINE_FUNCTION
   void init( value_type& val)  const {
-    val = init_value;
-  }
-
-  result_view_type result_view() const {
-    return result;
-  }
-};
-
-template<class Scalar, class Space = HostSpace>
-struct BXor {
-public:
-  //Required
-  typedef BXor reducer_type;
-  typedef typename std::remove_cv<Scalar>::type value_type;
-
-  typedef Kokkos::View<value_type, Space, Kokkos::MemoryTraits<Kokkos::Unmanaged> > result_view_type;
-
-  value_type init_value;
-
-private:
-  result_view_type result;
-
-public:
-
-  BXor(value_type& result_):
-    init_value(value_type() & (~value_type())),result(&result_) {}
-  BXor(const result_view_type& result_):
-    init_value(value_type() & (~value_type())),result(result_) {}
-
-  //Required
-  KOKKOS_INLINE_FUNCTION
-  void join(value_type& dest, const value_type& src)  const {
-      dest = dest ^ src;
+    val = reduction_identity<value_type>::bor();
   }
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& dest, const volatile value_type& src) const {
-    dest = dest ^ src;
+  value_type& reference() const {
+    return *value;
   }
 
-  //Optional
   KOKKOS_INLINE_FUNCTION
-  void init( value_type& val)  const {
-    val = init_value;
-  }
-
-  result_view_type result_view() const {
-    return result;
+  result_view_type view() const {
+    return result_view_type(value);
   }
 };
 
@@ -586,7 +463,7 @@ struct ValLocScalar {
   }
 };
 
-template<class Scalar, class Index, class Space = HostSpace>
+template<class Scalar, class Index, class Space>
 struct MinLoc {
 private:
   typedef typename std::remove_cv<Scalar>::type scalar_type;
@@ -594,43 +471,21 @@ private:
 
 public:
   //Required
-  typedef MinLoc reducer_type;
+  typedef MinLoc reducer;
   typedef ValLocScalar<scalar_type,index_type> value_type;
 
   typedef Kokkos::View<value_type, Space, Kokkos::MemoryTraits<Kokkos::Unmanaged> > result_view_type;
 
-  scalar_type init_value;
-
 private:
-  result_view_type result;
-
-  template<class ValueType, bool is_arithmetic = std::is_arithmetic<ValueType>::value >
-  struct InitWrapper;
-
-  template<class ValueType >
-  struct InitWrapper<ValueType,true> {
-    static ValueType value() {
-      return std::numeric_limits<scalar_type>::max();
-    }
-  };
-
-  template<class ValueType >
-  struct InitWrapper<ValueType,false> {
-    static ValueType value() {
-      return scalar_type();
-    }
-  };
+  value_type* value;
 
 public:
 
-  MinLoc(value_type& result_):
-    init_value(InitWrapper<scalar_type>::value()),result(&result_) {}
-  MinLoc(const result_view_type& result_):
-    init_value(InitWrapper<scalar_type>::value()),result(result_) {}
-  MinLoc(value_type& result_, const scalar_type& init_value_):
-    init_value(init_value_),result(&result_) {}
-  MinLoc(const result_view_type& result_, const scalar_type& init_value_):
-    init_value(init_value_),result(result_) {}
+  KOKKOS_INLINE_FUNCTION
+  MinLoc(value_type& value_): value(&value_) {}
+
+  KOKKOS_INLINE_FUNCTION
+  MinLoc(const result_view_type& value_): value(value_.data()) {}
 
 
   //Required
@@ -646,18 +501,24 @@ public:
       dest = src;
   }
 
-  //Optional
   KOKKOS_INLINE_FUNCTION
   void init( value_type& val)  const {
-    val.val = init_value;
+    val.val = reduction_identity<scalar_type>::min();
+    val.loc = reduction_identity<index_type>::min();
   }
 
-  result_view_type result_view() const {
-    return result;
+  KOKKOS_INLINE_FUNCTION
+  value_type& reference() {
+    return *value;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  result_view_type view() const {
+    return result_view_type(value);
   }
 };
 
-template<class Scalar, class Index, class Space = HostSpace>
+template<class Scalar, class Index, class Space>
 struct MaxLoc {
 private:
   typedef typename std::remove_cv<Scalar>::type scalar_type;
@@ -665,43 +526,21 @@ private:
 
 public:
   //Required
-  typedef MaxLoc reducer_type;
+  typedef MaxLoc reducer;
   typedef ValLocScalar<scalar_type,index_type> value_type;
 
   typedef Kokkos::View<value_type, Space, Kokkos::MemoryTraits<Kokkos::Unmanaged> > result_view_type;
 
-  scalar_type init_value;
-
 private:
-  result_view_type result;
-
-  template<class ValueType, bool is_arithmetic = std::is_arithmetic<ValueType>::value >
-  struct InitWrapper;
-
-  template<class ValueType >
-  struct InitWrapper<ValueType,true> {
-    static ValueType value() {
-      return std::numeric_limits<scalar_type>::min();
-    }
-  };
-
-  template<class ValueType >
-  struct InitWrapper<ValueType,false> {
-    static ValueType value() {
-      return scalar_type();
-    }
-  };
+  value_type* value;
 
 public:
 
-  MaxLoc(value_type& result_):
-    init_value(InitWrapper<scalar_type>::value()),result(&result_) {}
-  MaxLoc(const result_view_type& result_):
-    init_value(InitWrapper<scalar_type>::value()),result(result_) {}
-  MaxLoc(value_type& result_, const scalar_type& init_value_):
-    init_value(init_value_),result(&result_) {}
-  MaxLoc(const result_view_type& result_, const scalar_type& init_value_):
-    init_value(init_value_),result(result_) {}
+  KOKKOS_INLINE_FUNCTION
+  MaxLoc(value_type& value_): value(&value_) {}
+
+  KOKKOS_INLINE_FUNCTION
+  MaxLoc(const result_view_type& value_): value(value_.data()) {}
 
   //Required
   KOKKOS_INLINE_FUNCTION
@@ -716,14 +555,20 @@ public:
       dest = src;
   }
 
-  //Optional
   KOKKOS_INLINE_FUNCTION
   void init( value_type& val)  const {
-    val.val = init_value;
+    val.val = reduction_identity<scalar_type>::max();;
+    val.loc = reduction_identity<index_type>::min();
   }
 
-  result_view_type result_view() const {
-    return result;
+  KOKKOS_INLINE_FUNCTION
+  value_type& reference() {
+    return *value;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  result_view_type view() const {
+    return result_view_type(value);
   }
 };
 
@@ -744,68 +589,28 @@ struct MinMaxScalar {
   }
 };
 
-template<class Scalar, class Space = HostSpace>
+template<class Scalar, class Space>
 struct MinMax {
 private:
   typedef typename std::remove_cv<Scalar>::type scalar_type;
 
 public:
   //Required
-  typedef MinMax reducer_type;
+  typedef MinMax reducer;
   typedef MinMaxScalar<scalar_type> value_type;
 
   typedef Kokkos::View<value_type, Space, Kokkos::MemoryTraits<Kokkos::Unmanaged> > result_view_type;
 
-  scalar_type min_init_value;
-  scalar_type max_init_value;
-
 private:
-  result_view_type result;
-
-  template<class ValueType, bool is_arithmetic = std::is_arithmetic<ValueType>::value >
-  struct MinInitWrapper;
-
-  template<class ValueType >
-  struct MinInitWrapper<ValueType,true> {
-    static ValueType value() {
-      return std::numeric_limits<scalar_type>::max();
-    }
-  };
-
-  template<class ValueType >
-  struct MinInitWrapper<ValueType,false> {
-    static ValueType value() {
-      return scalar_type();
-    }
-  };
-
-  template<class ValueType, bool is_arithmetic = std::is_arithmetic<ValueType>::value >
-  struct MaxInitWrapper;
-
-  template<class ValueType >
-  struct MaxInitWrapper<ValueType,true> {
-    static ValueType value() {
-      return std::numeric_limits<scalar_type>::min();
-    }
-  };
-
-  template<class ValueType >
-  struct MaxInitWrapper<ValueType,false> {
-    static ValueType value() {
-      return scalar_type();
-    }
-  };
+  value_type* value;
 
 public:
 
-  MinMax(value_type& result_):
-    min_init_value(MinInitWrapper<scalar_type>::value()),max_init_value(MaxInitWrapper<scalar_type>::value()),result(&result_) {}
-  MinMax(const result_view_type& result_):
-    min_init_value(MinInitWrapper<scalar_type>::value()),max_init_value(MaxInitWrapper<scalar_type>::value()),result(result_) {}
-  MinMax(value_type& result_, const scalar_type& min_init_value_, const scalar_type& max_init_value_):
-    min_init_value(min_init_value_),max_init_value(max_init_value_),result(&result_) {}
-  MinMax(const result_view_type& result_, const scalar_type& min_init_value_, const scalar_type& max_init_value_):
-    min_init_value(min_init_value_),max_init_value(max_init_value_),result(result_) {}
+  KOKKOS_INLINE_FUNCTION
+  MinMax(value_type& value_): value(&value_) {}
+
+  KOKKOS_INLINE_FUNCTION
+  MinMax(const result_view_type& value_): value(value_.data()) {}
 
   //Required
   KOKKOS_INLINE_FUNCTION
@@ -828,15 +633,20 @@ public:
     }
   }
 
-  //Optional
   KOKKOS_INLINE_FUNCTION
   void init( value_type& val)  const {
-    val.min_val = min_init_value;
-    val.max_val = max_init_value;
+    val.max_val = reduction_identity<scalar_type>::max();;
+    val.min_val = reduction_identity<scalar_type>::min();
   }
 
-  result_view_type result_view() const {
-    return result;
+  KOKKOS_INLINE_FUNCTION
+  value_type& reference() {
+    return *value;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  result_view_type view() const {
+    return result_view_type(value);
   }
 };
 
@@ -862,7 +672,7 @@ struct MinMaxLocScalar {
   }
 };
 
-template<class Scalar, class Index, class Space = HostSpace>
+template<class Scalar, class Index, class Space>
 struct MinMaxLoc {
 private:
   typedef typename std::remove_cv<Scalar>::type scalar_type;
@@ -870,61 +680,21 @@ private:
 
 public:
   //Required
-  typedef MinMaxLoc reducer_type;
+  typedef MinMaxLoc reducer;
   typedef MinMaxLocScalar<scalar_type,index_type> value_type;
 
   typedef Kokkos::View<value_type, Space, Kokkos::MemoryTraits<Kokkos::Unmanaged> > result_view_type;
 
-  scalar_type min_init_value;
-  scalar_type max_init_value;
-
 private:
-  result_view_type result;
-
-  template<class ValueType, bool is_arithmetic = std::is_arithmetic<ValueType>::value >
-  struct MinInitWrapper;
-
-  template<class ValueType >
-  struct MinInitWrapper<ValueType,true> {
-    static ValueType value() {
-      return std::numeric_limits<scalar_type>::max();
-    }
-  };
-
-  template<class ValueType >
-  struct MinInitWrapper<ValueType,false> {
-    static ValueType value() {
-      return scalar_type();
-    }
-  };
-
-  template<class ValueType, bool is_arithmetic = std::is_arithmetic<ValueType>::value >
-  struct MaxInitWrapper;
-
-  template<class ValueType >
-  struct MaxInitWrapper<ValueType,true> {
-    static ValueType value() {
-      return std::numeric_limits<scalar_type>::min();
-    }
-  };
-
-  template<class ValueType >
-  struct MaxInitWrapper<ValueType,false> {
-    static ValueType value() {
-      return scalar_type();
-    }
-  };
+  value_type* value;
 
 public:
 
-  MinMaxLoc(value_type& result_):
-    min_init_value(MinInitWrapper<scalar_type>::value()),max_init_value(MaxInitWrapper<scalar_type>::value()),result(&result_) {}
-  MinMaxLoc(const result_view_type& result_):
-    min_init_value(MinInitWrapper<scalar_type>::value()),max_init_value(MaxInitWrapper<scalar_type>::value()),result(result_) {}
-  MinMaxLoc(value_type& result_, const scalar_type& min_init_value_, const scalar_type& max_init_value_):
-    min_init_value(min_init_value_),max_init_value(max_init_value_),result(&result_) {}
-  MinMaxLoc(const result_view_type& result_, const scalar_type& min_init_value_, const scalar_type& max_init_value_):
-    min_init_value(min_init_value_),max_init_value(max_init_value_),result(result_) {}
+  KOKKOS_INLINE_FUNCTION
+  MinMaxLoc(value_type& value_): value(&value_) {}
+
+  KOKKOS_INLINE_FUNCTION
+  MinMaxLoc(const result_view_type& value_): value(value_.data()) {}
 
   //Required
   KOKKOS_INLINE_FUNCTION
@@ -951,15 +721,22 @@ public:
     }
   }
 
-  //Optional
   KOKKOS_INLINE_FUNCTION
   void init( value_type& val)  const {
-    val.min_val = min_init_value;
-    val.max_val = max_init_value;
+    val.max_val = reduction_identity<scalar_type>::max();;
+    val.min_val = reduction_identity<scalar_type>::min();
+    val.max_loc = reduction_identity<index_type>::min();
+    val.min_loc = reduction_identity<index_type>::min();
   }
 
-  result_view_type result_view() const {
-    return result;
+  KOKKOS_INLINE_FUNCTION
+  value_type& reference() {
+    return *value;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  result_view_type view() const {
+    return result_view_type(value);
   }
 };
 }
@@ -1095,13 +872,14 @@ namespace Impl {
         const FunctorType& functor,
         ReturnType& return_value) {
           #if defined(KOKKOS_ENABLE_PROFILING)
-            uint64_t kpID = 0;
-            if(Kokkos::Profiling::profileLibraryLoaded()) {
-              Kokkos::Profiling::beginParallelReduce("" == label ? typeid(FunctorType).name() : label, 0, &kpID);
-            }
+          uint64_t kpID = 0;
+          if(Kokkos::Profiling::profileLibraryLoaded()) {
+            Kokkos::Impl::ParallelConstructName<FunctorType, typename PolicyType::work_tag> name(label);
+            Kokkos::Profiling::beginParallelReduce(name.get(), 0, &kpID);
+          }
           #endif
 
-          Kokkos::Impl::shared_allocation_tracking_claim_and_disable();
+          Kokkos::Impl::shared_allocation_tracking_disable();
           #ifdef KOKKOS_IMPL_NEED_FUNCTOR_WRAPPER
           Impl::ParallelReduce<typename functor_adaptor::functor_type, PolicyType, typename return_value_adapter::reducer_type >
              closure(functor_adaptor::functor(functor),
@@ -1113,18 +891,21 @@ namespace Impl {
                      policy,
                      return_value_adapter::return_value(return_value,functor));
           #endif
-          Kokkos::Impl::shared_allocation_tracking_release_and_enable();
+          Kokkos::Impl::shared_allocation_tracking_enable();
           closure.execute();
 
           #if defined(KOKKOS_ENABLE_PROFILING)
-            if(Kokkos::Profiling::profileLibraryLoaded()) {
-              Kokkos::Profiling::endParallelReduce(kpID);
-            }
+          if(Kokkos::Profiling::profileLibraryLoaded()) {
+            Kokkos::Profiling::endParallelReduce(kpID);
+          }
           #endif
         }
 
   };
 }
+
+//----------------------------------------------------------------------------
+
 /*! \fn void parallel_reduce(label,policy,functor,return_argument)
     \brief Perform a parallel reduction.
     \param label An optional Label giving the call name. Must be able to construct a std::string from the argument.
@@ -1351,6 +1132,7 @@ void parallel_reduce(const std::string& label,
   Impl::ParallelReduceAdaptor<policy_type,FunctorType,result_view_type>::execute(label,policy_type(0,policy),functor,result_view);
 }
 
-
-
 } //namespace Kokkos
+
+#endif // KOKKOS_PARALLEL_REDUCE_HPP
+

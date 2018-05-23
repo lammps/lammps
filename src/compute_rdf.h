@@ -20,7 +20,7 @@ ComputeStyle(rdf,ComputeRDF)
 #ifndef LMP_COMPUTE_RDF_H
 #define LMP_COMPUTE_RDF_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "compute.h"
 
 namespace LAMMPS_NS {
@@ -51,6 +51,8 @@ class ComputeRDF : public Compute {
   int *duplicates;
 
   class NeighList *list; // half neighbor list
+  void init_norm();
+  bigint natoms_old;
 };
 
 }
@@ -66,7 +68,19 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Compute rdf requires a pair style be defined
+E: Compute rdf requires a pair style be defined or cutoff specified
+
+UNDOCUMENTED
+
+E: Compure rdf cutoff exceeds ghost atom range - use comm_modify cutoff command
+
+UNDOCUMENTED
+
+W: Compute rdf cutoff less than neighbor cutoff - forcing a needless neighbor list build
+
+UNDOCUMENTED
+
+U: Compute rdf requires a pair style be defined
 
 Self-explanatory.
 

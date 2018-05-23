@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -117,7 +117,7 @@ public:
 //  typedef Kokkos::Qthreads  execution_space;
 #elif defined( KOKKOS_ENABLE_OPENMP )
   typedef Kokkos::OpenMP    execution_space;
-#elif defined( KOKKOS_ENABLE_PTHREAD )
+#elif defined( KOKKOS_ENABLE_THREADS )
   typedef Kokkos::Threads   execution_space;
 //#elif defined( KOKKOS_ENABLE_QTHREADS )
 //  typedef Kokkos::Qthreads  execution_space;
@@ -129,14 +129,6 @@ public:
 
   //! This memory space preferred device_type
   typedef Kokkos::Device< execution_space, memory_space > device_type;
-
-  /*--------------------------------*/
-  /* Functions unique to the HostSpace */
-  static int in_parallel();
-
-  static void register_in_parallel( int (*)() );
-
-  /*--------------------------------*/
 
   /**\brief  Default memory space instance */
   HostSpace();
@@ -161,7 +153,7 @@ public:
                  , const size_t arg_alloc_size ) const;
 
   /**\brief Return Name of the MemorySpace */
-  static constexpr const char* name();
+  static constexpr const char* name() { return m_name; }
 
 private:
   AllocationMechanism  m_alloc_mech;
@@ -265,7 +257,7 @@ public:
     return (SharedAllocationRecord *) 0;
 #endif
   }
-   
+
 
   /**\brief  Allocate tracked memory in the space */
   static
@@ -316,3 +308,4 @@ struct DeepCopy< HostSpace, HostSpace, ExecutionSpace > {
 } // namespace Kokkos
 
 #endif // #define KOKKOS_HOSTSPACE_HPP
+

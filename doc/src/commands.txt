@@ -32,6 +32,7 @@ Commands :h1
    dimension
    displace_atoms
    dump
+   dump_cfg_uef
    dump_h5md
    dump_image
    dump_modify
@@ -81,6 +82,7 @@ Commands :h1
    region
    replicate
    rerun
+   reset_ids
    reset_timestep
    restart
    run
@@ -92,6 +94,7 @@ Commands :h1
    tad
    temper
    temper_grem
+   temper_npt
    thermo
    thermo_modify
    thermo_style

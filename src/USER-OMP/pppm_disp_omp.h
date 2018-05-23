@@ -33,7 +33,6 @@ namespace LAMMPS_NS {
 
  protected:
   virtual void allocate();
-  virtual void deallocate();
 
   virtual void compute_gf();
   virtual void compute_gf_6();
@@ -61,7 +60,7 @@ namespace LAMMPS_NS {
                          const FFT_SCALAR &, const FFT_SCALAR &,
                          const int, FFT_SCALAR * const * const);
   void compute_drho1d_thr(FFT_SCALAR * const * const, const FFT_SCALAR &,
-			  const FFT_SCALAR &, const FFT_SCALAR &,
+                          const FFT_SCALAR &, const FFT_SCALAR &,
                           const int, FFT_SCALAR * const * const);
 //  void compute_rho_coeff();
 //  void slabcorr(int);

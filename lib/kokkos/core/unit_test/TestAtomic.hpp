@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -431,3 +431,54 @@ bool Loop( int loop, int test )
 }
 
 } // namespace TestAtomic
+
+namespace Test {
+
+TEST_F( TEST_CATEGORY, atomics )
+{
+  const int loop_count = 1e4;
+
+  ASSERT_TRUE( ( TestAtomic::Loop< int, TEST_EXECSPACE >( loop_count, 1 ) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< int, TEST_EXECSPACE >( loop_count, 2 ) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< int, TEST_EXECSPACE >( loop_count, 3 ) ) );
+
+  ASSERT_TRUE( ( TestAtomic::Loop< unsigned int, TEST_EXECSPACE >( loop_count, 1 ) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< unsigned int, TEST_EXECSPACE >( loop_count, 2 ) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< unsigned int, TEST_EXECSPACE >( loop_count, 3 ) ) );
+
+  ASSERT_TRUE( ( TestAtomic::Loop< long int, TEST_EXECSPACE >( loop_count, 1 ) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< long int, TEST_EXECSPACE >( loop_count, 2 ) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< long int, TEST_EXECSPACE >( loop_count, 3 ) ) );
+
+  ASSERT_TRUE( ( TestAtomic::Loop< unsigned long int, TEST_EXECSPACE >( loop_count, 1 ) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< unsigned long int, TEST_EXECSPACE >( loop_count, 2 ) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< unsigned long int, TEST_EXECSPACE >( loop_count, 3 ) ) );
+
+  ASSERT_TRUE( ( TestAtomic::Loop< long long int, TEST_EXECSPACE >( loop_count, 1 ) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< long long int, TEST_EXECSPACE >( loop_count, 2 ) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< long long int, TEST_EXECSPACE >( loop_count, 3 ) ) );
+
+  ASSERT_TRUE( ( TestAtomic::Loop< double, TEST_EXECSPACE >( loop_count, 1 ) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< double, TEST_EXECSPACE >( loop_count, 2 ) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< double, TEST_EXECSPACE >( loop_count, 3 ) ) );
+
+  ASSERT_TRUE( ( TestAtomic::Loop< float, TEST_EXECSPACE >( 100, 1 ) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< float, TEST_EXECSPACE >( 100, 2 ) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< float, TEST_EXECSPACE >( 100, 3 ) ) );
+
+#ifndef KOKKOS_ENABLE_OPENMPTARGET
+#ifndef KOKKOS_ENABLE_ROCM
+  ASSERT_TRUE( ( TestAtomic::Loop< Kokkos::complex<double>, TEST_EXECSPACE >( 100, 1 ) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< Kokkos::complex<double>, TEST_EXECSPACE >( 100, 2 ) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< Kokkos::complex<double>, TEST_EXECSPACE >( 100, 3 ) ) );
+
+  ASSERT_TRUE( ( TestAtomic::Loop< TestAtomic::SuperScalar<4>, TEST_EXECSPACE >( 100, 1 ) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< TestAtomic::SuperScalar<4>, TEST_EXECSPACE >( 100, 2 ) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< TestAtomic::SuperScalar<4>, TEST_EXECSPACE >( 100, 3 ) ) );
+#endif
+#endif
+}
+
+
+} // namespace Test
+

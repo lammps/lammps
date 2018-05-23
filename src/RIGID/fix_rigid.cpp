@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "fix_rigid.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -29,6 +29,8 @@
 #include "comm.h"
 #include "random_mars.h"
 #include "force.h"
+#include "input.h"
+#include "variable.h"
 #include "output.h"
 #include "math_const.h"
 #include "memory.h"
@@ -50,21 +52,21 @@ enum{ISO,ANISO,TRICLINIC};
 #define EPSILON 1.0e-7
 
 #define SINERTIA 0.4            // moment of inertia prefactor for sphere
-#define EINERTIA 0.4            // moment of inertia prefactor for ellipsoid
+#define EINERTIA 0.2            // moment of inertia prefactor for ellipsoid
 #define LINERTIA (1.0/12.0)     // moment of inertia prefactor for line segment
 
 /* ---------------------------------------------------------------------- */
 
 FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), step_respa(NULL), 
-  infile(NULL), nrigid(NULL), mol2body(NULL), body2mol(NULL), 
-  body(NULL), displace(NULL), masstotal(NULL), xcm(NULL), 
-  vcm(NULL), fcm(NULL), inertia(NULL), ex_space(NULL), 
-  ey_space(NULL), ez_space(NULL), angmom(NULL), omega(NULL), 
-  torque(NULL), quat(NULL), imagebody(NULL), fflag(NULL), 
-  tflag(NULL), langextra(NULL), sum(NULL), all(NULL), 
-  remapflag(NULL), xcmimage(NULL), eflags(NULL), orient(NULL), 
-  dorient(NULL), id_dilate(NULL), random(NULL), avec_ellipsoid(NULL), 
+  Fix(lmp, narg, arg), step_respa(NULL),
+  infile(NULL), nrigid(NULL), mol2body(NULL), body2mol(NULL),
+  body(NULL), displace(NULL), masstotal(NULL), xcm(NULL),
+  vcm(NULL), fcm(NULL), inertia(NULL), ex_space(NULL),
+  ey_space(NULL), ez_space(NULL), angmom(NULL), omega(NULL),
+  torque(NULL), quat(NULL), imagebody(NULL), fflag(NULL),
+  tflag(NULL), langextra(NULL), sum(NULL), all(NULL),
+  remapflag(NULL), xcmimage(NULL), eflags(NULL), orient(NULL),
+  dorient(NULL), id_dilate(NULL), random(NULL), avec_ellipsoid(NULL),
   avec_line(NULL), avec_tri(NULL)
 {
   int i,ibody;
@@ -74,6 +76,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   time_integrate = 1;
   rigid_flag = 1;
   virial_flag = 1;
+  thermo_virial = 1;
   create_attribute = 1;
   dof_flag = 1;
   enforce2d_flag = 1;
@@ -126,15 +129,61 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   // nbody = # of non-zero ncount values
   // use nall as incremented ptr to set body[] values for each atom
 
-  } else if (strcmp(arg[3],"molecule") == 0) {
+  } else if (strcmp(arg[3],"molecule") == 0 || strcmp(arg[3],"custom") == 0) {
     rstyle = MOLECULE;
-    iarg = 4;
-    if (atom->molecule_flag == 0)
-      error->all(FLERR,"Fix rigid molecule requires atom attribute molecule");
-
+    tagint *molecule;
     int *mask = atom->mask;
-    tagint *molecule = atom->molecule;
     int nlocal = atom->nlocal;
+    int custom_flag = strcmp(arg[3],"custom") == 0;
+    if (custom_flag) {
+      if (narg < 5) error->all(FLERR,"Illegal fix rigid command");
+
+      // determine whether atom-style variable or atom property is used.
+      if (strstr(arg[4],"i_") == arg[4]) {
+        int is_double=0;
+        int custom_index = atom->find_custom(arg[4]+2,is_double);
+        if (custom_index == -1)
+          error->all(FLERR,"Fix rigid custom requires previously defined property/atom");
+        else if (is_double)
+          error->all(FLERR,"Fix rigid custom requires integer-valued property/atom");
+        int minval = INT_MAX;
+        int *value = atom->ivector[custom_index];
+        for (i = 0; i < nlocal; i++)
+          if (mask[i] & groupbit) minval = MIN(minval,value[i]);
+        int vmin = minval;
+        MPI_Allreduce(&vmin,&minval,1,MPI_INT,MPI_MIN,world);
+        molecule = new tagint[nlocal];
+        for (i = 0; i < nlocal; i++)
+          if (mask[i] & groupbit)
+            molecule[i] = (tagint)(value[i] - minval + 1);
+          else
+            molecule[i] = 0;
+
+      } else if (strstr(arg[4],"v_") == arg[4]) {
+        int ivariable = input->variable->find(arg[4]+2);
+        if (ivariable < 0)
+          error->all(FLERR,"Variable name for fix rigid custom does not exist");
+        if (input->variable->atomstyle(ivariable) == 0)
+          error->all(FLERR,"Fix rigid custom variable is no atom-style variable");
+        double *value = new double[nlocal];
+        input->variable->compute_atom(ivariable,0,value,1,0);
+        int minval = INT_MAX;
+        for (i = 0; i < nlocal; i++)
+          if (mask[i] & groupbit) minval = MIN(minval,(int)value[i]);
+        int vmin = minval;
+        MPI_Allreduce(&vmin,&minval,1,MPI_INT,MPI_MIN,world);
+        molecule = new tagint[nlocal];
+        for (i = 0; i < nlocal; i++)
+          if (mask[i] & groupbit) 
+            molecule[i] = (tagint)((tagint)value[i] - minval + 1);
+        delete[] value;
+      } else error->all(FLERR,"Unsupported fix rigid custom property");
+    } else {
+      if (atom->molecule_flag == 0)
+        error->all(FLERR,"Fix rigid molecule requires atom attribute molecule");
+      molecule = atom->molecule;
+    }
+    iarg = 4 + custom_flag;
 
     tagint maxmol_tag = -1;
     for (i = 0; i < nlocal; i++)
@@ -173,6 +222,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
     }
 
     memory->destroy(ncount);
+    if (custom_flag) delete [] molecule;
 
   // each listed group is a rigid body
   // check if all listed groups exist
@@ -267,6 +317,8 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
   int seed;
   langflag = 0;
+  reinitflag = 1;
+
   tstat_flag = 0;
   pstat_flag = 0;
   allremap = 1;
@@ -389,8 +441,8 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
         force->numeric(FLERR,arg[iarg+3]);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (dimension == 2) {
-	      p_start[2] = p_stop[2] = p_period[2] = 0.0;
-      	p_flag[2] = 0;
+              p_start[2] = p_stop[2] = p_period[2] = 0.0;
+        p_flag[2] = 0;
       }
       iarg += 4;
 
@@ -406,8 +458,8 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
         force->numeric(FLERR,arg[iarg+3]);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (dimension == 2) {
-      	p_start[2] = p_stop[2] = p_period[2] = 0.0;
-	      p_flag[2] = 0;
+        p_start[2] = p_stop[2] = p_period[2] = 0.0;
+              p_flag[2] = 0;
       }
       iarg += 4;
 
@@ -501,6 +553,14 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       infile = new char[n];
       strcpy(infile,arg[iarg+1]);
       restart_file = 1;
+      reinitflag = 0;
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"reinit") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid/small command");
+      if (strcmp("yes",arg[iarg+1]) == 0) reinitflag = 1;
+      else if  (strcmp("no",arg[iarg+1]) == 0) reinitflag = 0;
+      else error->all(FLERR,"Illegal fix rigid command");
       iarg += 2;
 
     } else error->all(FLERR,"Illegal fix rigid command");
@@ -564,6 +624,10 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   // wait to setup bodies until first init() using current atom properties
 
   setupflag = 0;
+
+  // compute per body forces and torques at final_integrate() by default
+
+  earlyflag = 0;
 
   // print statistics
 
@@ -652,11 +716,25 @@ void FixRigid::init()
   avec_tri = (AtomVecTri *) atom->style_match("tri");
 
   // warn if more than one rigid fix
+  // if earlyflag, warn if any post-force fixes come after POEMS fix
 
   int count = 0;
   for (i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"rigid") == 0) count++;
+    if (modify->fix[i]->rigid_flag) count++;
   if (count > 1 && me == 0) error->warning(FLERR,"More than one fix rigid");
+
+  if (earlyflag) {
+    int rflag = 0;
+    for (i = 0; i < modify->nfix; i++) {
+      if (modify->fix[i]->rigid_flag) rflag = 1;
+      if (rflag && (modify->fmask[i] & POST_FORCE) && 
+          !modify->fix[i]->rigid_flag) {
+        char str[128];
+        sprintf(str,"Fix %s alters forces after fix rigid",modify->fix[i]->id);
+        error->warning(FLERR,str);
+      }
+    }
+  }
 
   // error if npt,nph fix comes before rigid fix
 
@@ -679,15 +757,15 @@ void FixRigid::init()
   if (strstr(update->integrate_style,"respa"))
     step_respa = ((Respa *) update->integrate)->step;
 
-  // setup rigid bodies, using current atom info
-  // only do initialization once, b/c properties may not be re-computable
-  //   especially if overlapping particles
-  // do not do dynamic init if read body properties from infile
-  //   this is b/c the infile defines the static and dynamic properties
-  //   and may not be computable if contain overlapping particles
+  // setup rigid bodies, using current atom info. if reinitflag is not set,
+  // do the initialization only once, b/c properties may not be re-computable
+  // especially if overlapping particles.
+  //   do not do dynamic init if read body properties from infile.
+  // this is b/c the infile defines the static and dynamic properties and may
+  // not be computable if contain overlapping particles.
   //   setup_bodies_static() reads infile itself
 
-  if (!setupflag) {
+  if (reinitflag || !setupflag) {
     setup_bodies_static();
     if (!infile) setup_bodies_dynamic();
     setupflag = 1;
@@ -885,7 +963,7 @@ void FixRigid::initial_integrate(int vflag)
      which are added in when final_integrate() calculates a new fcm/torque
 ------------------------------------------------------------------------- */
 
-void FixRigid::post_force(int vflag)
+void FixRigid::apply_langevin_thermostat()
 {
   if (me == 0) {
     double gamma1,gamma2;
@@ -907,7 +985,7 @@ void FixRigid::post_force(int vflag)
       langextra[i][0] = gamma1*vcm[i][0] + gamma2*(random->uniform()-0.5);
       langextra[i][1] = gamma1*vcm[i][1] + gamma2*(random->uniform()-0.5);
       langextra[i][2] = gamma1*vcm[i][2] + gamma2*(random->uniform()-0.5);
-      
+
       gamma1 = -1.0 / t_period / ftm2v;
       gamma2 = tsqrt * sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
       langextra[i][3] = inertia[i][0]*gamma1*omega[i][0] +
@@ -939,7 +1017,7 @@ void FixRigid::enforce2d()
     angmom[ibody][1] = 0.0;
     omega[ibody][0] = 0.0;
     omega[ibody][1] = 0.0;
-    if (langflag) {
+    if (langflag && langextra) {
       langextra[ibody][2] = 0.0;
       langextra[ibody][3] = 0.0;
       langextra[ibody][4] = 0.0;
@@ -949,7 +1027,7 @@ void FixRigid::enforce2d()
 
 /* ---------------------------------------------------------------------- */
 
-void FixRigid::final_integrate()
+void FixRigid::compute_forces_and_torques()
 {
   int i,ibody;
   double dtfm;
@@ -1003,9 +1081,7 @@ void FixRigid::final_integrate()
 
   MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
 
-  // update vcm and angmom
   // include Langevin thermostat forces
-  // fflag,tflag = 0 for some dimensions in 2d
 
   for (ibody = 0; ibody < nbody; ibody++) {
     fcm[ibody][0] = all[ibody][0] + langextra[ibody][0];
@@ -1014,6 +1090,31 @@ void FixRigid::final_integrate()
     torque[ibody][0] = all[ibody][3] + langextra[ibody][3];
     torque[ibody][1] = all[ibody][4] + langextra[ibody][4];
     torque[ibody][2] = all[ibody][5] + langextra[ibody][5];
+  }
+}
+
+
+/* ---------------------------------------------------------------------- */
+
+void FixRigid::post_force(int vflag)
+{
+  if (langflag) apply_langevin_thermostat();
+  if (earlyflag) compute_forces_and_torques();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixRigid::final_integrate()
+{
+  int ibody;
+  double dtfm;
+
+  if (!earlyflag) compute_forces_and_torques();
+
+  // update vcm and angmom
+  // fflag,tflag = 0 for some dimensions in 2d
+
+  for (ibody = 0; ibody < nbody; ibody++) {
 
     // update vcm by 1/2 step
 
@@ -2283,7 +2384,7 @@ void FixRigid::write_restart_file(char *file)
   sprintf(outfile,"%s.rigid",file);
   FILE *fp = fopen(outfile,"w");
   if (fp == NULL) {
-    char str[128];
+    char str[192];
     sprintf(str,"Cannot open fix rigid restart file %s",outfile);
     error->one(FLERR,str);
   }
@@ -2526,6 +2627,32 @@ void FixRigid::zero_rotation()
 
   evflag = 0;
   set_v();
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixRigid::modify_param(int narg, char **arg)
+{
+  if (strcmp(arg[0],"bodyforces") == 0) {
+    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
+    if (strcmp(arg[1],"early") == 0) earlyflag = 1;
+    else if (strcmp(arg[1],"late") == 0) earlyflag = 0;
+    else error->all(FLERR,"Illegal fix_modify command");
+
+    // reset fix mask
+    // must do here and not in init, 
+    // since modify.cpp::init() uses fix masks before calling fix::init()
+
+    for (int i = 0; i < modify->nfix; i++)
+      if (strcmp(modify->fix[i]->id,id) == 0) {
+        if (earlyflag) modify->fmask[i] |= POST_FORCE;
+        else if (!langflag) modify->fmask[i] &= ~POST_FORCE;
+        break;
+      }
+    return 2;
+  }
+
+  return 0;
 }
 
 /* ----------------------------------------------------------------------

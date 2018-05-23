@@ -14,7 +14,7 @@
 #ifndef LMP_MATH_SPECIAL_H
 #define LMP_MATH_SPECIAL_H
 
-#include <math.h>
+#include <cmath>
 
 namespace LAMMPS_NS {
 
@@ -26,6 +26,9 @@ namespace MathSpecial {
 
   // fast 2**x function without argument checks for little endian CPUs
   extern double exp2_x86(double x);
+
+// fast e**x function for little endian CPUs, falls back to libc on other platforms
+  extern double fm_exp(double x);
 
   // scaled error function complement exp(x*x)*erfc(x) for coul/long styles
 

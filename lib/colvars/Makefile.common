@@ -1,0 +1,77 @@
+# Shared -*- makefile -*- for multiple architectures
+
+# # Detect settings from PYTHON package (if defined)
+# sinclude ../../src/Makefile.package.settings
+# ifeq ($(python_SYSINC),)
+# COLVARS_PYTHON_INCFLAGS =
+# else
+# COLVARS_PYTHON_INCFLAGS = -DCOLVARS_PYTHON $(python_SYSINC)
+# endif
+
+# Detect debug settings
+ifeq ($(COLVARS_DEBUG),)
+COLVARS_DEBUG_INCFLAGS =
+else
+COLVARS_DEBUG_INCFLAGS = -DCOLVARS_DEBUG
+endif
+
+COLVARS_INCFLAGS = $(COLVARS_DEBUG_INCFLAGS) $(COLVARS_PYTHON_INCFLAGS)
+
+
+.SUFFIXES:
+.SUFFIXES: .cpp .o
+
+
+COLVARS_SRCS = \
+        colvaratoms.cpp \
+        colvarbias_abf.cpp \
+        colvarbias_alb.cpp \
+        colvarbias.cpp \
+        colvarbias_histogram.cpp \
+        colvarbias_meta.cpp \
+        colvarbias_restraint.cpp \
+        colvarcomp_angles.cpp \
+        colvarcomp_coordnums.cpp \
+        colvarcomp.cpp \
+        colvarcomp_distances.cpp \
+        colvarcomp_protein.cpp \
+        colvarcomp_rotations.cpp \
+        colvar.cpp \
+        colvardeps.cpp \
+        colvargrid.cpp \
+        colvarmodule.cpp \
+        colvarparse.cpp \
+        colvarproxy.cpp \
+        colvarscript.cpp \
+        colvartypes.cpp \
+        colvarvalue.cpp
+
+LEPTON_SRCS = \
+	lepton/src/CompiledExpression.cpp lepton/src/ExpressionTreeNode.cpp \
+	lepton/src/ParsedExpression.cpp lepton/src/ExpressionProgram.cpp    \
+	lepton/src/Operation.cpp lepton/src/Parser.cpp
+
+LEPTON_OBJS = \
+	lepton/src/CompiledExpression.o lepton/src/ExpressionTreeNode.o \
+	lepton/src/ParsedExpression.o lepton/src/ExpressionProgram.o    \
+	lepton/src/Operation.o lepton/src/Parser.o
+
+COLVARS_OBJS = $(COLVARS_SRCS:.cpp=.o) $(LEPTON_OBJS)
+
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) $(COLVARS_INCFLAGS) -Ilepton/include -DLEPTON -c -o $@ $<
+
+$(COLVARS_LIB):	Makefile.deps $(COLVARS_OBJS)
+	$(AR) $(ARFLAGS) $(COLVARS_LIB) $(COLVARS_OBJS) $(LEPTON_OBJS)
+
+
+Makefile.deps: $(COLVARS_SRCS)
+	@echo > $@
+	@for src in $^ ; do \
+	  obj=`basename $$src .cpp`.o ; \
+	  $(CXX) -MM $(COLVARS_INCFLAGS)  -Ilepton/include -DLEPTON \
+	    -MT '$$(COLVARS_OBJ_DIR)'$$obj $$src >> $@ ; \
+	  done
+
+include Makefile.deps
+include Makefile.lepton.deps # Hand-generated

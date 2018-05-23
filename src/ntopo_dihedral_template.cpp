@@ -30,7 +30,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NTopoDihedralTemplate::NTopoDihedralTemplate(LAMMPS *lmp) : 
+NTopoDihedralTemplate::NTopoDihedralTemplate(LAMMPS *lmp) :
   NTopo(lmp)
 {
   allocate_dihedral();
@@ -78,7 +78,7 @@ void NTopoDihedralTemplate::build()
       atom4 = atom->map(dihedral_atom4[iatom][m]+tagprev);
       if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1) {
         nmissing++;
-        if (lostbond == ERROR) {
+        if (lostbond == Thermo::ERROR) {
           char str[128];
           sprintf(str,"Dihedral atoms "
                   TAGINT_FORMAT " " TAGINT_FORMAT " "
@@ -114,7 +114,7 @@ void NTopoDihedralTemplate::build()
   }
 
   if (cluster_check) dihedral_check(ndihedrallist,dihedrallist);
-  if (lostbond == IGNORE) return;
+  if (lostbond == Thermo::IGNORE) return;
 
   int all;
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);

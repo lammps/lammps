@@ -40,8 +40,10 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
   int errorflag = 1;
   double     val;
   MPI_Comm comm;
+  int me;
 
   comm = MPI_COMM_WORLD;
+  MPI_Comm_rank(comm, &me);
 
   s = (char*) malloc(sizeof(char)*MAX_LINE);
   tmp = (char**) malloc(sizeof(char*)*MAX_TOKENS);
@@ -58,7 +60,8 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
   /* reading the number of global parameters */
   n = atoi(tmp[0]);
   if (n < 1) {
-    fprintf( stderr, "WARNING: number of globals in ffield file is 0!\n" );
+    if (me == 0)
+      fprintf( stderr, "WARNING: number of globals in ffield file is 0!\n" );
     fclose(fp);
     free(s);
     free(tmp);
@@ -199,7 +202,8 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
 
     /* Sanity check */
     if (c < 3) {
-      fprintf(stderr, "Inconsistent ffield file (reaxc_ffield.cpp) \n");
+      if (me == 0)
+        fprintf(stderr, "Inconsistent ffield file (reaxc_ffield.cpp) \n");
       MPI_Abort( comm, FILE_NOT_FOUND );
     }
 
@@ -219,7 +223,8 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
 
       /* Sanity check */
       if (c > 3) {
-        fprintf(stderr, "Inconsistent ffield file (reaxc_ffield.cpp) \n");
+        if (me == 0)
+          fprintf(stderr, "Inconsistent ffield file (reaxc_ffield.cpp) \n");
         MPI_Abort( comm, FILE_NOT_FOUND );
       }
 
@@ -230,50 +235,51 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
     if( reax->sbp[i].rcore2>0.01 && reax->sbp[i].acore2>0.01 ){ // Inner-wall
       if( reax->sbp[i].gamma_w>0.5 ){ // Shielding vdWaals
         if( reax->gp.vdw_type != 0 && reax->gp.vdw_type != 3 ) {
-          if (errorflag)
-            fprintf( stderr, "Warning: inconsistent vdWaals-parameters\n"        \
-                   "Force field parameters for element %s\n"                \
-                   "indicate inner wall+shielding, but earlier\n"        \
-                   "atoms indicate different vdWaals-method.\n"                \
-                   "This may cause division-by-zero errors.\n"                \
+          if (errorflag && (me == 0))
+            fprintf( stderr, "Warning: inconsistent vdWaals-parameters\n" \
+                   "Force field parameters for element %s\n"              \
+                   "indicate inner wall+shielding, but earlier\n"         \
+                   "atoms indicate different vdWaals-method.\n"           \
+                   "This may cause division-by-zero errors.\n"            \
                    "Keeping vdWaals-setting for earlier atoms.\n",
                    reax->sbp[i].name );
           errorflag = 0;
-        }
-        else{
+        } else{
           reax->gp.vdw_type = 3;
         }
       }
       else {  // No shielding vdWaals parameters present
-        if( reax->gp.vdw_type != 0 && reax->gp.vdw_type != 2 )
-          fprintf( stderr, "Warning: inconsistent vdWaals-parameters\n"        \
-                   "Force field parameters for element %s\n"                \
+        if( reax->gp.vdw_type != 0 && reax->gp.vdw_type != 2 ) {
+          if (me == 0)
+            fprintf( stderr, "Warning: inconsistent vdWaals-parameters\n" \
+                   "Force field parameters for element %s\n"              \
                    "indicate inner wall without shielding, but earlier\n" \
-                   "atoms indicate different vdWaals-method.\n"                \
-                   "This may cause division-by-zero errors.\n"                \
+                   "atoms indicate different vdWaals-method.\n"           \
+                   "This may cause division-by-zero errors.\n"            \
                    "Keeping vdWaals-setting for earlier atoms.\n",
                    reax->sbp[i].name );
-        else{
+        } else {
           reax->gp.vdw_type = 2;
         }
       }
     }
     else{ // No Inner wall parameters present
       if( reax->sbp[i].gamma_w>0.5 ){ // Shielding vdWaals
-        if( reax->gp.vdw_type != 0 && reax->gp.vdw_type != 1 )
-          fprintf( stderr, "Warning: inconsistent vdWaals-parameters\n"        \
-                   "Force field parameters for element %s\n"                \
+        if( reax->gp.vdw_type != 0 && reax->gp.vdw_type != 1 ) {
+          if (me == 0)
+            fprintf( stderr, "Warning: inconsistent vdWaals-parameters\n"  \
+                   "Force field parameters for element %s\n"               \
                    "indicate  shielding without inner wall, but earlier\n" \
-                   "atoms indicate different vdWaals-method.\n"                \
-                   "This may cause division-by-zero errors.\n"                \
+                   "atoms indicate different vdWaals-method.\n"            \
+                   "This may cause division-by-zero errors.\n"             \
                    "Keeping vdWaals-setting for earlier atoms.\n",
                    reax->sbp[i].name );
-        else{
+        } else {
           reax->gp.vdw_type = 1;
         }
-      }
-      else{
-        fprintf( stderr, "Error: inconsistent vdWaals-parameters\n"\
+      } else {
+        if (me == 0)
+          fprintf( stderr, "Error: inconsistent vdWaals-parameters\n"  \
                  "No shielding or inner-wall set for element %s\n",
                  reax->sbp[i].name );
         MPI_Abort( comm, INVALID_INPUT );
@@ -284,8 +290,9 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
   /* Equate vval3 to valf for first-row elements (25/10/2004) */
   for( i = 0; i < reax->num_atom_types; i++ )
     if( reax->sbp[i].mass < 21 &&
-        reax->sbp[i].valency_val != reax->sbp[i].valency_boc ){
-      fprintf( stderr, "Warning: changed valency_val to valency_boc for %s\n",
+        reax->sbp[i].valency_val != reax->sbp[i].valency_boc ) {
+      if (me == 0)
+        fprintf(stderr,"Warning: changed valency_val to valency_boc for %s\n",
                reax->sbp[i].name );
       reax->sbp[i].valency_val = reax->sbp[i].valency_boc;
     }

@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -343,3 +343,17 @@ bool Test( int test ) {
 }
 
 } // namespace TestCXX11
+
+namespace Test {
+TEST_F( TEST_CATEGORY, cxx11 )
+{
+  if ( std::is_same< Kokkos::DefaultExecutionSpace, TEST_EXECSPACE >::value ) {
+    ASSERT_TRUE( ( TestCXX11::Test< TEST_EXECSPACE >( 1 ) ) );
+    ASSERT_TRUE( ( TestCXX11::Test< TEST_EXECSPACE >( 2 ) ) );
+    ASSERT_TRUE( ( TestCXX11::Test< TEST_EXECSPACE >( 3 ) ) );
+    ASSERT_TRUE( ( TestCXX11::Test< TEST_EXECSPACE >( 4 ) ) );
+  }
+}
+
+}
+

@@ -16,10 +16,10 @@
    Soft-core version: Agilio Padua (Univ Blaise Pascal & CNRS)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_lj_charmm_coul_long_soft.h"
 #include "atom.h"
 #include "comm.h"
@@ -226,10 +226,10 @@ void PairLJCharmmCoulLongSoft::compute_inner()
   int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
 
-  inum = listinner->inum;
-  ilist = listinner->ilist;
-  numneigh = listinner->numneigh;
-  firstneigh = listinner->firstneigh;
+  inum = list->inum_inner;
+  ilist = list->ilist_inner;
+  numneigh = list->numneigh_inner;
+  firstneigh = list->firstneigh_inner;
 
   double cut_out_on = cut_respa[0];
   double cut_out_off = cut_respa[1];
@@ -315,10 +315,10 @@ void PairLJCharmmCoulLongSoft::compute_middle()
   int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
 
-  inum = listmiddle->inum;
-  ilist = listmiddle->ilist;
-  numneigh = listmiddle->numneigh;
-  firstneigh = listmiddle->firstneigh;
+  inum = list->inum_middle;
+  ilist = list->ilist_middle;
+  numneigh = list->numneigh_middle;
+  firstneigh = list->firstneigh_middle;
 
   double cut_in_off = cut_respa[0];
   double cut_in_on = cut_respa[1];
@@ -428,10 +428,10 @@ void PairLJCharmmCoulLongSoft::compute_outer(int eflag, int vflag)
   int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
 
-  inum = listouter->inum;
-  ilist = listouter->ilist;
-  numneigh = listouter->numneigh;
-  firstneigh = listouter->firstneigh;
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
 
   double cut_in_off = cut_respa[2];
   double cut_in_on = cut_respa[3];
@@ -759,19 +759,6 @@ void PairLJCharmmCoulLongSoft::init_style()
 }
 
 /* ----------------------------------------------------------------------
-   neighbor callback to inform pair style of neighbor list to use
-   regular or rRESPA
-------------------------------------------------------------------------- */
-
-void PairLJCharmmCoulLongSoft::init_list(int id, NeighList *ptr)
-{
-  if (id == 0) list = ptr;
-  else if (id == 1) listinner = ptr;
-  else if (id == 2) listmiddle = ptr;
-  else if (id == 3) listouter = ptr;
-}
-
-/* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
@@ -994,7 +981,7 @@ double PairLJCharmmCoulLongSoft::single(int i, int j, int itype, int jtype,
 
   if (rsq < cut_ljsq) {
     philj = lj1[itype][jtype] * 4.0 * epsilon[itype][jtype] *
-      (1.0/(denlj*denlj) - 1.0/denlj) - offset[itype][jtype];
+      (1.0/(denlj*denlj) - 1.0/denlj);
     if (rsq > cut_lj_innersq) {
       switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
         (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;

@@ -1,0 +1,52 @@
+# -*- makefile -*-
+# *_________________________________________________________________________*
+# *      Minimal BLAS/LAPACK Library for use by other LAMMPS packages
+
+SHELL = /bin/sh
+
+# ------ FILES ------
+
+SRC =	$(wildcard *.f)
+
+FILES = $(SRC) Makefile.* README
+
+# ------ DEFINITIONS ------
+
+LIB = liblinalg.a
+OBJ =   $(SRC:.f=.o)
+
+# ------ SETTINGS ------
+
+FC =          mpifort
+FFLAGS =      -O3 -fPIC
+FFLAGS0 =     -O0 -fPIC
+ARCHIVE =	ar
+AR =	ar
+ARCHFLAG =	-rcs
+USRLIB =
+SYSLIB =
+
+# ------ MAKE PROCEDURE ------
+
+lib: 	$(OBJ)
+	$(ARCHIVE) $(ARFLAGS) $(LIB) $(OBJ)
+
+# ------ COMPILE RULES ------
+
+%.o:%.F
+	$(F90) $(F90FLAGS) -c $<
+
+%.o:%.f
+	$(FC) $(FFLAGS) -c $<
+
+dlamch.o: dlamch.f
+	$(FC) $(FFLAGS0) -c $<
+
+# ------ CLEAN ------
+
+clean:
+	-rm -f *.o *.mod *~ $(LIB)
+
+tar:
+	-tar -czvf ../linalg.tar.gz $(FILES)
+

@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -35,8 +35,8 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
+//
 // ************************************************************************
 //@HEADER
 */
@@ -46,26 +46,7 @@
 namespace Kokkos {
 namespace Impl {
 
-int SharedAllocationRecord< void , void >::s_tracking_enabled = 1 ;
-
-void SharedAllocationRecord< void , void >::tracking_claim_and_disable()
-{
-  // A host thread claim and disable tracking flag
-
-  while ( ! Kokkos::atomic_compare_exchange_strong( & s_tracking_enabled, 1, 0 ) );
-}
-
-void SharedAllocationRecord< void , void >::tracking_release_and_enable()
-{
-  // The host thread that claimed and disabled the tracking flag
-  // now release and enable tracking.
-
-  if ( ! Kokkos::atomic_compare_exchange_strong( & s_tracking_enabled, 0, 1 ) ){
-    Kokkos::Impl::throw_runtime_exception("Kokkos::Impl::SharedAllocationRecord<>::tracking_release_and_enable FAILED, this host process thread did not hold the lock" );
-  }
-}
-
-//----------------------------------------------------------------------------
+__thread int SharedAllocationRecord<void, void>::t_tracking_enabled = 1;
 
 bool
 SharedAllocationRecord< void , void >::
@@ -93,9 +74,9 @@ is_sane( SharedAllocationRecord< void , void > * arg_record )
       ok = ok_root && ok_prev_next && ok_next_prev && ok_count ;
 
 if ( ! ok ) {
-  //Formatting dependent on sizeof(uintptr_t) 
+  //Formatting dependent on sizeof(uintptr_t)
   const char * format_string;
-  
+
   if (sizeof(uintptr_t) == sizeof(unsigned long)) {
      format_string = "Kokkos::Impl::SharedAllocationRecord failed is_sane: rec(0x%.12lx){ m_count(%d) m_root(0x%.12lx) m_next(0x%.12lx) m_prev(0x%.12lx) m_next->m_prev(0x%.12lx) m_prev->m_next(0x%.12lx) }\n";
   }
@@ -104,7 +85,7 @@ if ( ! ok ) {
   }
 
   fprintf(stderr
-        , format_string 
+        , format_string
         , reinterpret_cast< uintptr_t >( rec )
         , rec->use_count()
         , reinterpret_cast< uintptr_t >( rec->m_root )
@@ -122,7 +103,7 @@ if ( ! ok ) {
     }
   }
 
-  return ok ; 
+  return ok ;
 }
 
 SharedAllocationRecord<void,void> *
@@ -245,8 +226,10 @@ decrement( SharedAllocationRecord< void , void > * arg_record )
     else {
       // before:  arg_record->m_root == arg_record->m_prev
       // after:   arg_record->m_root == arg_record->m_next
-      root_next = arg_record->m_next ; 
+      root_next = arg_record->m_next ;
     }
+
+    Kokkos::memory_fence();
 
     // Unlock the list:
     if ( zero != Kokkos::atomic_exchange( & arg_record->m_root->m_next , root_next ) ) {
@@ -282,7 +265,7 @@ print_host_accessible_records( std::ostream & s
 
   if ( detail ) {
     do {
-      //Formatting dependent on sizeof(uintptr_t) 
+      //Formatting dependent on sizeof(uintptr_t)
       const char * format_string;
 
       if (sizeof(uintptr_t) == sizeof(unsigned long)) {
@@ -304,20 +287,20 @@ print_host_accessible_records( std::ostream & s
               , reinterpret_cast<uintptr_t>( r->m_dealloc )
               , r->m_alloc_ptr->m_label
               );
-      std::cout << buffer ;
+      s << buffer ;
       r = r->m_next ;
     } while ( r != root );
   }
   else {
     do {
       if ( r->m_alloc_ptr ) {
-        //Formatting dependent on sizeof(uintptr_t) 
+        //Formatting dependent on sizeof(uintptr_t)
         const char * format_string;
 
-        if (sizeof(uintptr_t) == sizeof(unsigned long)) { 
+        if (sizeof(uintptr_t) == sizeof(unsigned long)) {
           format_string = "%s [ 0x%.12lx + %ld ] %s\n";
         }
-        else if (sizeof(uintptr_t) == sizeof(unsigned long long)) { 
+        else if (sizeof(uintptr_t) == sizeof(unsigned long long)) {
           format_string = "%s [ 0x%.12llx + %ld ] %s\n";
         }
 
@@ -332,7 +315,7 @@ print_host_accessible_records( std::ostream & s
       else {
         snprintf( buffer , 256 , "%s [ 0 + 0 ]\n" , space_name );
       }
-      std::cout << buffer ;
+      s << buffer ;
       r = r->m_next ;
     } while ( r != root );
   }
@@ -340,5 +323,4 @@ print_host_accessible_records( std::ostream & s
 
 } /* namespace Impl */
 } /* namespace Kokkos */
-
 

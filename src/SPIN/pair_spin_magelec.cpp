@@ -38,7 +38,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "modify.h"
-#include "pair_spin_me.h"
+#include "pair_spin_magelec.h"
 #include "update.h"
 
 using namespace LAMMPS_NS;
@@ -46,8 +46,9 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairSpinMe::PairSpinMe(LAMMPS *lmp) : PairSpin(lmp)
+PairSpinMagelec::PairSpinMagelec(LAMMPS *lmp) : PairSpin(lmp)
 {
+  hbar = force->hplanck/MY_2PI;
   single_enable = 0;
   no_virial_fdotr_compute = 1;
   lattice_flag = 0;
@@ -55,11 +56,11 @@ PairSpinMe::PairSpinMe(LAMMPS *lmp) : PairSpin(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-PairSpinMe::~PairSpinMe()
+PairSpinMagelec::~PairSpinMagelec()
 {
   if (allocated) {
     memory->destroy(setflag);
-    memory->destroy(cut_spin_me);
+    memory->destroy(cut_spin_magelec);
     memory->destroy(ME);
     memory->destroy(ME_mech);
     memory->destroy(v_mex);
@@ -73,7 +74,7 @@ PairSpinMe::~PairSpinMe()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairSpinMe::settings(int narg, char **arg)
+void PairSpinMagelec::settings(int narg, char **arg)
 {
   if (narg < 1 || narg > 2)
     error->all(FLERR,"Incorrect number of args in pair_style pair/spin command");
@@ -81,7 +82,7 @@ void PairSpinMe::settings(int narg, char **arg)
   if (strcmp(update->unit_style,"metal") != 0)
     error->all(FLERR,"Spin simulations require metal unit style");
     
-  cut_spin_me_global = force->numeric(FLERR,arg[0]);
+  cut_spin_magelec_global = force->numeric(FLERR,arg[0]);
     
   // reset cutoffs that have been explicitly set
 
@@ -90,7 +91,7 @@ void PairSpinMe::settings(int narg, char **arg)
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i+1; j <= atom->ntypes; j++)
         if (setflag[i][j]) {
-          cut_spin_me[i][j] = cut_spin_me_global;
+          cut_spin_magelec[i][j] = cut_spin_magelec_global;
         }
   }
    
@@ -100,20 +101,20 @@ void PairSpinMe::settings(int narg, char **arg)
    set coeffs for one or more type spin pairs (only one for now)
 ------------------------------------------------------------------------- */
 
-void PairSpinMe::coeff(int narg, char **arg)
+void PairSpinMagelec::coeff(int narg, char **arg)
 {
   const double hbar = force->hplanck/MY_2PI;
 
   if (!allocated) allocate();
 
-  if (strcmp(arg[2],"me")==0) {
+  if (strcmp(arg[2],"magelec")==0) {
     if (narg != 8) error->all(FLERR,"Incorrect args in pair_style command");
     int ilo,ihi,jlo,jhi;
     force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
     force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
     
     const double rij = force->numeric(FLERR,arg[3]);
-    const double me = (force->numeric(FLERR,arg[4]));
+    const double magelec = (force->numeric(FLERR,arg[4]));
     double mex = force->numeric(FLERR,arg[5]);  
     double mey = force->numeric(FLERR,arg[6]); 
     double mez = force->numeric(FLERR,arg[7]); 
@@ -126,9 +127,9 @@ void PairSpinMe::coeff(int narg, char **arg)
     int count = 0;
     for (int i = ilo; i <= ihi; i++) {
       for (int j = MAX(jlo,i); j <= jhi; j++) {
-        cut_spin_me[i][j] = rij;
-        ME[i][j] = me/hbar;
-        ME_mech[i][j] = me;
+        cut_spin_magelec[i][j] = rij;
+        ME[i][j] = magelec/hbar;
+        ME_mech[i][j] = magelec;
         v_mex[i][j] = mex;
         v_mey[i][j] = mey;
         v_mez[i][j] = mez;
@@ -145,7 +146,7 @@ void PairSpinMe::coeff(int narg, char **arg)
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-void PairSpinMe::init_style()
+void PairSpinMagelec::init_style()
 {
   if (!atom->sp_flag)
     error->all(FLERR,"Pair spin requires atom/spin style");
@@ -181,29 +182,29 @@ void PairSpinMe::init_style()
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairSpinMe::init_one(int i, int j)
+double PairSpinMagelec::init_one(int i, int j)
 {
    
    if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
-  return cut_spin_me_global;
+  return cut_spin_magelec_global;
 }
 
 /* ----------------------------------------------------------------------
    extract the larger cutoff
 ------------------------------------------------------------------------- */
 
-void *PairSpinMe::extract(const char *str, int &dim)
+void *PairSpinMagelec::extract(const char *str, int &dim)
 {
   dim = 0;
-  if (strcmp(str,"cut") == 0) return (void *) &cut_spin_me_global;
+  if (strcmp(str,"cut") == 0) return (void *) &cut_spin_magelec_global;
   return NULL;
 }
 
 
 /* ---------------------------------------------------------------------- */
 
-void PairSpinMe::compute(int eflag, int vflag)
+void PairSpinMagelec::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;  
   double evdwl, ecoul;
@@ -277,14 +278,14 @@ void PairSpinMe::compute(int eflag, int vflag)
 
       jtype = type[j];
 
-      local_cut2 = cut_spin_me[itype][jtype]*cut_spin_me[itype][jtype];
+      local_cut2 = cut_spin_magelec[itype][jtype]*cut_spin_magelec[itype][jtype];
 
       // compute me interaction
 
       if (rsq <= local_cut2) {
-	compute_me(i,j,rsq,eij,fmi,spj);
+	compute_magelec(i,j,rsq,eij,fmi,spj);
 	if (lattice_flag) {
-	  compute_me_mech(i,j,fi,spi,spj);
+	  compute_magelec_mech(i,j,fi,spi,spj);
 	}
       }
 
@@ -318,7 +319,7 @@ void PairSpinMe::compute(int eflag, int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void PairSpinMe::compute_single_pair(int ii, double fmi[3]) 
+void PairSpinMagelec::compute_single_pair(int ii, double fmi[3]) 
 {
   int *type = atom->type;
   double **x = atom->x;
@@ -354,7 +355,7 @@ void PairSpinMe::compute_single_pair(int ii, double fmi[3])
     j = jlist[jj];
     j &= NEIGHMASK;
     jtype = type[j];
-    local_cut2 = cut_spin_me[itype][jtype]*cut_spin_me[itype][jtype];
+    local_cut2 = cut_spin_magelec[itype][jtype]*cut_spin_magelec[itype][jtype];
 
     spj[0] = sp[j][0];
     spj[1] = sp[j][1];
@@ -370,7 +371,7 @@ void PairSpinMe::compute_single_pair(int ii, double fmi[3])
     eij[2] = inorm*rij[2];
 
     if (rsq <= local_cut2) {
-      compute_me(i,j,rsq,eij,fmi,spj);
+      compute_magelec(i,j,rsq,eij,fmi,spj);
     }
   }
 
@@ -378,14 +379,14 @@ void PairSpinMe::compute_single_pair(int ii, double fmi[3])
 
 /* ---------------------------------------------------------------------- */
 
-void PairSpinMe::compute_me(int i, int j, double rsq, double eij[3], double fmi[3], double spj[3]) 
+void PairSpinMagelec::compute_magelec(int i, int j, double rsq, double eij[3], double fmi[3], double spj[3]) 
 {
   int *type = atom->type;  
   int itype, jtype;
   itype = type[i];
   jtype = type[j];
   
-  double local_cut2 = cut_spin_me[itype][jtype]*cut_spin_me[itype][jtype]; 
+  double local_cut2 = cut_spin_magelec[itype][jtype]*cut_spin_magelec[itype][jtype]; 
  
   if (rsq <= local_cut2) {
     double meix,meiy,meiz;
@@ -416,7 +417,7 @@ void PairSpinMe::compute_me(int i, int j, double rsq, double eij[3], double fmi[
 
 /* ---------------------------------------------------------------------- */
 
-void PairSpinMe::compute_me_mech(int i, int j, double fi[3], double spi[3], double spj[3])
+void PairSpinMagelec::compute_magelec_mech(int i, int j, double fi[3], double spi[3], double spj[3])
 {
   int *type = atom->type;  
   int itype, jtype;
@@ -448,7 +449,7 @@ void PairSpinMe::compute_me_mech(int i, int j, double fi[3], double spi[3], doub
    allocate all arrays
 ------------------------------------------------------------------------- */
 
-void PairSpinMe::allocate()
+void PairSpinMagelec::allocate()
 {
   allocated = 1;
   int n = atom->ntypes;
@@ -458,7 +459,7 @@ void PairSpinMe::allocate()
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
  
-  memory->create(cut_spin_me,n+1,n+1,"pair/spin/me:cut_spin_me");
+  memory->create(cut_spin_magelec,n+1,n+1,"pair/spin/me:cut_spin_magelec");
   memory->create(ME,n+1,n+1,"pair/spin/me:ME");
   memory->create(ME_mech,n+1,n+1,"pair/spin/me:ME_mech");
   memory->create(v_mex,n+1,n+1,"pair/spin/me:ME_vector_x");
@@ -471,7 +472,7 @@ void PairSpinMe::allocate()
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairSpinMe::write_restart(FILE *fp)
+void PairSpinMagelec::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
   
@@ -484,7 +485,7 @@ void PairSpinMe::write_restart(FILE *fp)
         fwrite(&v_mex[i][j],sizeof(double),1,fp);
         fwrite(&v_mey[i][j],sizeof(double),1,fp);
         fwrite(&v_mez[i][j],sizeof(double),1,fp);
-        fwrite(&cut_spin_me[i][j],sizeof(double),1,fp);
+        fwrite(&cut_spin_magelec[i][j],sizeof(double),1,fp);
       }
     }
 }
@@ -493,7 +494,7 @@ void PairSpinMe::write_restart(FILE *fp)
    proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairSpinMe::read_restart(FILE *fp)
+void PairSpinMagelec::read_restart(FILE *fp)
 {
   read_restart_settings(fp);
 
@@ -511,13 +512,13 @@ void PairSpinMe::read_restart(FILE *fp)
           fread(&v_mex[i][j],sizeof(double),1,fp);
           fread(&v_mey[i][j],sizeof(double),1,fp);
           fread(&v_mez[i][j],sizeof(double),1,fp);
-          fread(&cut_spin_me[i][j],sizeof(double),1,fp);
+          fread(&cut_spin_magelec[i][j],sizeof(double),1,fp);
         }
         MPI_Bcast(&ME[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&v_mex[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&v_mey[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&v_mez[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&cut_spin_me[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cut_spin_magelec[i][j],1,MPI_DOUBLE,0,world);
       }
     }
   }
@@ -527,9 +528,9 @@ void PairSpinMe::read_restart(FILE *fp)
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairSpinMe::write_restart_settings(FILE *fp)
+void PairSpinMagelec::write_restart_settings(FILE *fp)
 {
-  fwrite(&cut_spin_me_global,sizeof(double),1,fp);
+  fwrite(&cut_spin_magelec_global,sizeof(double),1,fp);
   fwrite(&offset_flag,sizeof(int),1,fp);
   fwrite(&mix_flag,sizeof(int),1,fp);
 }
@@ -538,14 +539,14 @@ void PairSpinMe::write_restart_settings(FILE *fp)
    proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairSpinMe::read_restart_settings(FILE *fp)
+void PairSpinMagelec::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&cut_spin_me_global,sizeof(double),1,fp);
+    fread(&cut_spin_magelec_global,sizeof(double),1,fp);
     fread(&offset_flag,sizeof(int),1,fp);
     fread(&mix_flag,sizeof(int),1,fp);
   }
-  MPI_Bcast(&cut_spin_me_global,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&cut_spin_magelec_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world); 
 }

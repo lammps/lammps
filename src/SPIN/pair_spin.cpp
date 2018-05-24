@@ -41,10 +41,6 @@
 #include "pair_hybrid.h"
 #include "pair_hybrid_overlay.h"
 #include "pair_spin.h"
-#include "pair_spin_dmi.h"
-#include "pair_spin_exchange.h"
-#include "pair_spin_neel.h"
-#include "pair_spin_me.h"
 #include "update.h"
 
 using namespace LAMMPS_NS;

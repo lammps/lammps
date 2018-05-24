@@ -134,10 +134,8 @@ void FixLangevinSpin::init()
   double hbar = force->hplanck/MY_2PI;	// eV/(rad.THz)
   double kb = force->boltz;		// eV/K
   D = (MY_2PI*alpha_t*gil_factor*kb*temp);
-  //D = (alpha_t*gil_factor*kb*temp);
   D /= (hbar*dts);
   sigma = sqrt(2.0*D);
-  //sigma = sqrt(D);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -176,11 +174,6 @@ void FixLangevinSpin::add_temperature(double fmi[3])
   double rx = sigma*(2.0*random->uniform() - 1.0);
   double ry = sigma*(2.0*random->uniform() - 1.0);
   double rz = sigma*(2.0*random->uniform() - 1.0);
-  //printf("test rd : %g \n",2.0*random->uniform() - 1.0);
-  //printf("test gaussian : %g \n", random->gaussian());
-  //double rx = sigma*(random->gaussian());
-  //double ry = sigma*(random->gaussian());
-  //double rz = sigma*(random->gaussian());
 
   // adding the random field 
 

@@ -35,12 +35,13 @@ class PairBodyRoundedPolyhedron : public Pair {
   double init_one(int, int);
 
   struct Contact {
-    int ibody, jbody; // body (i.e. atom) indices (not tags)
-    int type;         // 0 = VERTEX-FACE; 1 = EDGE-EDGE
-    double fx,fy,fz;  // unscaled cohesive forces at contact
-    double xi[3];     // coordinates of the contact point on ibody
-    double xj[3];     // coordinates of the contact point on jbody
+    int ibody, jbody;  // body (i.e. atom) indices (not tags)
+    int type;          // 0 = VERTEX-FACE; 1 = EDGE-EDGE
+    double fx,fy,fz;   // unscaled cohesive forces at contact
+    double xi[3];      // coordinates of the contact point on ibody
+    double xj[3];      // coordinates of the contact point on jbody
     double separation; // contact surface separation
+    int unique;
   };
 
  protected:
@@ -124,7 +125,11 @@ class PairBodyRoundedPolyhedron : public Pair {
                              int jflag, double& energy, double* facc);
   void rescale_cohesive_forces(double** x, double** f, double** torque,
                                Contact* contact_list, int &num_contacts,
-                               double contact_area, double k_n, double k_na, double* facc);
+                               double k_n, double k_na, double* facc);
+
+  double contact_separation(const Contact& c1, const Contact& c2);
+
+  void find_unique_contacts(Contact* contact_list, int& num_contacts);
 
   void sum_torque(double* xm, double *x, double fx, double fy, double fz, double* torque);
   int opposite_sides(double* n, double* x0, double* a, double* b);

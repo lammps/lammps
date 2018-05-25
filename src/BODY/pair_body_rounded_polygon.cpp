@@ -848,6 +848,7 @@ int PairBodyRoundedPolygon::vertex_against_edge(int i, int j,
 
         // done with the edges from body j,
         // given that vertex ni interacts with only one vertex from one edge of body j
+        // comment out this break to take into account concave shapes
 
 //        break;
 
@@ -955,6 +956,7 @@ int PairBodyRoundedPolygon::vertex_against_edge(int i, int j,
 
         // done with the edges from body j,
         // given that vertex ni interacts with only one edge from body j
+        // comment out this break to take into account concave shapes
 
 //        break;
 
@@ -1080,12 +1082,12 @@ int PairBodyRoundedPolygon::compute_distance_to_vertex(int ibody,
     // check if x0 (the queried vertex) and xmi (the body's center of mass)
     // are on the different sides of the edge
 
-    int m = 1;//opposite_sides(xi1, xi2, x0, xmi);
+    int m = opposite_sides(xi1, xi2, x0, xmi);
 
     if (m == 0) {
 
       // x0 and xmi are on not the opposite sides of the edge
-      // leave xpi for another edge to detect --  for convex shapes only
+      // leave xpi for another edge to detect
 
       mode = NONE;
 

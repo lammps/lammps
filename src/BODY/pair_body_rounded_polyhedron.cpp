@@ -82,6 +82,9 @@ PairBodyRoundedPolyhedron::PairBodyRoundedPolyhedron(LAMMPS *lmp) : Pair(lmp)
   c_t = 0.2;
   mu = 0.0;
   A_ua = 1.0;
+
+  k_n = NULL;
+  k_na = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

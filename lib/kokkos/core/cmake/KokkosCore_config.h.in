@@ -11,18 +11,18 @@
 #define KOKKOS_CORE_CONFIG_H
 #endif
 
-#cmakedefine KOKKOS_HAVE_CUDA
-#cmakedefine KOKKOS_HAVE_OPENMP
-#cmakedefine KOKKOS_HAVE_PTHREAD
-#cmakedefine KOKKOS_HAVE_QTHREADS
-#cmakedefine KOKKOS_HAVE_SERIAL
-#cmakedefine KOKKOS_HAVE_Winthread
+#cmakedefine KOKKOS_ENABLE_CUDA
+#cmakedefine KOKKOS_ENABLE_OPENMP
+#cmakedefine KOKKOS_ENABLE_PTHREAD
+#cmakedefine KOKKOS_ENABLE_QTHREADS
+#cmakedefine KOKKOS_ENABLE_SERIAL
+#cmakedefine KOKKOS_ENABLE_Winthread
 
-#cmakedefine KOKKOS_HAVE_HWLOC
+#cmakedefine KOKKOS_ENABLE_HWLOC
 #cmakedefine KOKKOS_ENABLE_HBWSPACE
 #cmakedefine KOKKOS_ENABLE_LIBRT
 
-#cmakedefine KOKKOS_HAVE_DEBUG
+#cmakedefine KOKKOS_ENABLE_DEBUG
 #cmakedefine KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK
 #cmakedefine KOKKOS_ENABLE_DEBUG_DUALVIEW_MODIFY_CHECK
 #cmakedefine KOKKOS_ENABLE_PROFILING
@@ -30,7 +30,7 @@
 
 #cmakedefine KOKKOS_ENABLE_AGGRESSIVE_VECTORIZATION
 
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 
 #cmakedefine KOKKOS_ENABLE_CUDA_LDG_INTRINSIC
 
@@ -50,19 +50,13 @@
 #cmakedefine KOKKOS_USE_CUDA_UVM
 #endif
 
-#cmakedefine KOKKOS_HAVE_CUDA_RDC
-#ifdef KOKKOS_HAVE_CUDA_RDC
-#define KOKKOS_CUDA_USE_RELOCATABLE_DEVICE_CODE 1
-#endif
+#cmakedefine KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE
 
-#cmakedefine KOKKOS_HAVE_CUDA_LAMBDA
-#ifdef KOKKOS_HAVE_CUDA_LAMBDA
-#define KOKKOS_CUDA_USE_LAMBDA 1
-#endif
+#cmakedefine KOKKOS_ENABLE_CUDA_LAMBDA
 
 #endif
 
-#cmakedefine KOKKOS_CUDA_CLANG_WORKAROUND
+#cmakedefine KOKKOS_IMPL_CUDA_CLANG_WORKAROUND
 
 #ifndef __CUDA_ARCH__
 #cmakedefine KOKKOS_ENABLE_ISA_X86_64
@@ -92,13 +86,14 @@
 #cmakedefine KOKKOS_ARCH_PASCAL 1
 #cmakedefine KOKKOS_ARCH_PASCAL60 1
 #cmakedefine KOKKOS_ARCH_PASCAL61 1
+#cmakedefine KOKKOS_ARCH_VOLTA70 1
 
 // TODO: These are currently not used in Kokkos.  Should they be removed?
-#cmakedefine KOKKOS_HAVE_MPI
-#cmakedefine KOKKOS_HAVE_CUSPARSE
+#cmakedefine KOKKOS_ENABLE_MPI
+#cmakedefine KOKKOS_ENABLE_CUSPARSE
 
 // TODO: No longer options in Kokkos.  Need to be removed.
 #cmakedefine KOKKOS_USING_DEPRECATED_VIEW
-#cmakedefine KOKKOS_HAVE_CXX11
+#cmakedefine KOKKOS_ENABLE_CXX11
 
 #endif // !defined(KOKKOS_FOR_SIERRA)

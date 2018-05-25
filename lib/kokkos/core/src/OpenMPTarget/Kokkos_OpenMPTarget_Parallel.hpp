@@ -351,7 +351,7 @@ private:
             , reference_type update , const bool final )
     {
       #ifdef KOKKOS_OPT_RANGE_AGGRESSIVE_VECTORIZATION
-      #ifdef KOKKOS_HAVE_PRAGMA_IVDEP
+      #ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
       #pragma ivdep
       #endif
       #endif
@@ -369,7 +369,7 @@ private:
     {
       const TagType t{} ;
       #ifdef KOKKOS_OPT_RANGE_AGGRESSIVE_VECTORIZATION
-      #ifdef KOKKOS_HAVE_PRAGMA_IVDEP
+      #ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
       #pragma ivdep
       #endif
       #endif
@@ -713,18 +713,18 @@ namespace Impl {
   template<typename iType>
   struct ThreadVectorRangeBoundariesStruct<iType,OpenMPTargetExecTeamMember> {
     typedef iType index_type;
-    const iType start;
-    const iType end;
-    const iType increment;
+    const index_type start;
+    const index_type end;
+    const index_type increment;
 
     inline
-    ThreadVectorRangeBoundariesStruct (const OpenMPTargetExecTeamMember& thread_, const iType& count):
+    ThreadVectorRangeBoundariesStruct (const OpenMPTargetExecTeamMember& thread_, const index_type& count):
       start( thread_.m_vector_lane ),
       end( count ),
       increment( thread_.m_vector_length )
     {}
     inline
-    ThreadVectorRangeBoundariesStruct (const OpenMPTargetExecTeamMember& thread_, const iType& begin_, const iType& end_):
+    ThreadVectorRangeBoundariesStruct (const OpenMPTargetExecTeamMember& thread_, const index_type& begin_, const index_type& end_):
       start( begin_+thread_.m_vector_lane ),
       end( end_ ),
       increment( thread_.m_vector_length )

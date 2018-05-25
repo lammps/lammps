@@ -130,30 +130,32 @@ struct SomeCorrelation {
 int main(int narg, char* args[]) {
   Kokkos::initialize(narg,args);
 
-  // Produce some 3D random data (see Algorithms/01_random_numbers for more info)
-  Kokkos::View<int***,Kokkos::LayoutRight> data("Data",512,512,32);
-  Kokkos::Random_XorShift64_Pool<> rand_pool64(5374857);
-  Kokkos::fill_random(data,rand_pool64,100);
+  {
+    // Produce some 3D random data (see Algorithms/01_random_numbers for more info)
+    Kokkos::View<int***,Kokkos::LayoutRight> data("Data",512,512,32);
+    Kokkos::Random_XorShift64_Pool<> rand_pool64(5374857);
+    Kokkos::fill_random(data,rand_pool64,100);
 
-  // A global value to put the result in
-  Kokkos::View<int> gsum("Sum");
+    // A global value to put the result in
+    Kokkos::View<int> gsum("Sum");
 
-  // Each team handles a slice of the data
-  // Set up TeamPolicy with 512 teams with maximum number of threads per team and 16 vector lanes.
-  // Kokkos::AUTO will determine the number of threads
-  // The maximum vector length is hardware dependent but can always be smaller than the hardware allows.
-  // The vector length must be a power of 2.
+    // Each team handles a slice of the data
+    // Set up TeamPolicy with 512 teams with maximum number of threads per team and 16 vector lanes.
+    // Kokkos::AUTO will determine the number of threads
+    // The maximum vector length is hardware dependent but can always be smaller than the hardware allows.
+    // The vector length must be a power of 2.
 
-  const Kokkos::TeamPolicy<> policy( 512 , Kokkos::AUTO , 16);
+    const Kokkos::TeamPolicy<> policy( 512 , Kokkos::AUTO , 16);
 
-  Kokkos::parallel_for( policy , SomeCorrelation(data,gsum) );
+    Kokkos::parallel_for( policy , SomeCorrelation(data,gsum) );
 
-  Kokkos::fence();
+    Kokkos::fence();
 
-  // Copy result value back
-  int sum = 0;
-  Kokkos::deep_copy(sum,gsum);
-  printf("Result %i\n",sum);
+    // Copy result value back
+    int sum = 0;
+    Kokkos::deep_copy(sum,gsum);
+    printf("Result %i\n",sum);
+  }
 
   Kokkos::finalize();
 }

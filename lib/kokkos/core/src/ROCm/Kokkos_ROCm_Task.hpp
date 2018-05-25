@@ -202,6 +202,17 @@ ThreadVectorRange
   return Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::TaskExec< Kokkos::Experimental::ROCm > >(thread,count);
 }
 
+template<typename iType>
+KOKKOS_INLINE_FUNCTION
+Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::TaskExec< Kokkos::Experimental::ROCm > >
+ThreadVectorRange
+  ( Impl::TaskExec< Kokkos::Experimental::ROCm > & thread
+  , const iType & arg_begin
+  , const iType & arg_end)
+{
+  return Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::TaskExec< Kokkos::Experimental::ROCm > >(thread,arg_begin,arg_end);
+}
+
 /** \brief  Inter-thread parallel_for. Executes lambda(iType i) for each i=0..N-1.
  *
  * The range i=0..N-1 is mapped to all threads of the the calling thread team.

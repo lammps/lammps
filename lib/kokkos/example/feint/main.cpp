@@ -46,79 +46,15 @@
 
 #include <feint_fwd.hpp>
 
-int main()
+int main(int argc, char* argv[])
 {
-#if defined( KOKKOS_ENABLE_THREADS )
+  Kokkos::initialize(argc,argv);
   {
-    // Use 4 cores per NUMA region, unless fewer available
-
-    const unsigned use_numa_count     = Kokkos::hwloc::get_available_numa_count();
-    const unsigned use_cores_per_numa = std::min( 4u , Kokkos::hwloc::get_available_cores_per_numa() );
-
-    Kokkos::Threads::initialize( use_numa_count * use_cores_per_numa );
-
-    std::cout << "feint< Threads , NotUsingAtomic >" << std::endl ;
-    Kokkos::Example::feint< Kokkos::Threads , false >();
-
-    std::cout << "feint< Threads , Usingtomic >" << std::endl ;
-    Kokkos::Example::feint< Kokkos::Threads , true  >();
-
-    Kokkos::Threads::finalize();
+    std::cout << "feint< " << Kokkos::DefaultExecutionSpace::name() << " , NotUsingAtomic >" << std::endl ;
+    Kokkos::Example::feint< Kokkos::DefaultExecutionSpace , false >();
+    std::cout << "feint< " << Kokkos::DefaultExecutionSpace::name() << " , UsingAtomic >" << std::endl ;
+    Kokkos::Example::feint< Kokkos::DefaultExecutionSpace , true >();
   }
-#endif
-
-#if defined( KOKKOS_ENABLE_OPENMP )
-  {
-
-    int num_threads  = 0;
-    if ( Kokkos::hwloc::available() ) {
-      // Use 4 cores per NUMA region, unless fewer available
-      const unsigned use_numa_count     = Kokkos::hwloc::get_available_numa_count();
-      const unsigned use_cores_per_numa = std::min( 4u , Kokkos::hwloc::get_available_cores_per_numa() );
-      num_threads = use_numa_count * use_cores_per_numa;
-
-    }
-    else {
-      #pragma omp parallel
-      {
-        #pragma omp atomic
-        ++num_threads;
-      }
-      num_threads = std::max(4, num_threads/4);
-    }
-
-
-    Kokkos::OpenMP::initialize( num_threads );
-
-    std::cout << "feint< OpenMP , NotUsingAtomic >" << std::endl ;
-    Kokkos::Example::feint< Kokkos::OpenMP , false >();
-
-    std::cout << "feint< OpenMP , Usingtomic >" << std::endl ;
-    Kokkos::Example::feint< Kokkos::OpenMP , true  >();
-
-    Kokkos::OpenMP::finalize();
-  }
-#endif
-
-#if defined( KOKKOS_ENABLE_CUDA )
-  {
-    // Initialize Host mirror device
-    Kokkos::HostSpace::execution_space::initialize(1);
-    const unsigned device_count = Kokkos::Cuda::detect_device_count();
-
-    // Use the last device:
-    Kokkos::Cuda::initialize( Kokkos::Cuda::SelectDevice(device_count-1) );
-
-    std::cout << "feint< Cuda , NotUsingAtomic >" << std::endl ;
-    Kokkos::Example::feint< Kokkos::Cuda , false >();
-
-    std::cout << "feint< Cuda , UsingAtomic >" << std::endl ;
-    Kokkos::Example::feint< Kokkos::Cuda , true  >();
-
-    Kokkos::Cuda::finalize();
-    Kokkos::HostSpace::execution_space::finalize();
-
-  }
-#endif
+  Kokkos::finalize();
 }
 

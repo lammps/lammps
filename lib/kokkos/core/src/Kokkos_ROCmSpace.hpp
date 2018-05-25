@@ -513,7 +513,9 @@ private:
 
   static void deallocate( RecordBase * );
 
+#ifdef KOKKOS_DEBUG
   static RecordBase s_root_record ;
+#endif
 
   const Kokkos::Experimental::ROCmSpace m_space ;
 
@@ -568,7 +570,9 @@ private:
 
   static void deallocate( RecordBase * );
 
+#ifdef KOKKOS_DEBUG
   static RecordBase s_root_record ;
+#endif
 
   const Kokkos::Experimental::ROCmHostPinnedSpace m_space ;
 

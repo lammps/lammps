@@ -42,4 +42,4 @@
 */
 
 #include <serial/TestSerial_Category.hpp>
-#include <TestViewAPI.hpp>
+#include <TestViewAPI_b.hpp>

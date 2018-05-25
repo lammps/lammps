@@ -72,7 +72,7 @@ std::string human_memory_size(size_t arg_bytes);
 namespace Kokkos {
 KOKKOS_INLINE_FUNCTION
 void abort( const char * const message ) {
-#ifdef __CUDA_ARCH__
+#if defined(KOKKOS_ENABLE_CUDA) && defined(__CUDA_ARCH__)
   Kokkos::Impl::cuda_abort(message);
 #else
   #if !defined(KOKKOS_ENABLE_OPENMPTARGET) && !defined(__HCC_ACCELERATOR__)

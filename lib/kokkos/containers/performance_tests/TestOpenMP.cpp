@@ -70,13 +70,13 @@ protected:
   {
     std::cout << std::setprecision(5) << std::scientific;
 
-    Kokkos::OpenMP::initialize();
+    Kokkos::initialize();
     Kokkos::OpenMP::print_configuration( std::cout );
   }
 
   static void TearDownTestCase()
   {
-    Kokkos::OpenMP::finalize();
+    Kokkos::finalize();
   }
 };
 

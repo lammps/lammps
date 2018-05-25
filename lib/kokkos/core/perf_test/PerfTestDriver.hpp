@@ -109,7 +109,7 @@ void run_test_mdrange( int exp_beg , int exp_end, const char deviceTypeName[], i
     {
     int t0 = 1, t1 = 1, t2 = 1;
     int counter = 1;
-#if !defined(KOKKOS_HAVE_CUDA)
+#if !defined(KOKKOS_ENABLE_CUDA)
     int min_bnd = 8;
     int tfast = range_length;
 #else
@@ -126,7 +126,7 @@ void run_test_mdrange( int exp_beg , int exp_end, const char deviceTypeName[], i
         int t1_rev = tmid;
         int t0_rev = tfast;
 
-#if defined(KOKKOS_HAVE_CUDA)
+#if defined(KOKKOS_ENABLE_CUDA)
         //Note: Product of tile sizes must be < 1024 for Cuda
         if ( t0*t1*t2 >= 1024 ) {
           printf("  Exceeded Cuda tile limits; onto next range set\n\n");
@@ -197,7 +197,7 @@ void run_test_mdrange( int exp_beg , int exp_end, const char deviceTypeName[], i
       << std::endl ;
     } //end scope
 
-#if !defined(KOKKOS_HAVE_CUDA)
+#if !defined(KOKKOS_ENABLE_CUDA)
   double seconds_min_c = 0.0;
   int t0c_min = 0, t1c_min = 0, t2c_min = 0;
   int counter = 1;
@@ -310,7 +310,7 @@ void run_test_mdrange( int exp_beg , int exp_end, const char deviceTypeName[], i
     // seconds_2 = collapse<2>-style RangePolicy
     // seconds_3 = collapse<3>-style RangePolicy
 
-#if !defined(KOKKOS_HAVE_CUDA)
+#if !defined(KOKKOS_ENABLE_CUDA)
     if ( seconds_min < seconds_min_c ) {
       if ( seconds_min < seconds_2 ) {
         std::cout << "--------------------------------------------------------------\n"

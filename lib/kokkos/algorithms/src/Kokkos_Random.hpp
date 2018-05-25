@@ -702,7 +702,11 @@ namespace Kokkos {
     }
     Random_XorShift64_Pool(uint64_t seed) {
       num_states_ = 0;
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
       init(seed,DeviceType::max_hardware_threads());
+#else
+      init(seed,DeviceType::impl_max_hardware_threads());
+#endif
     }
 
     Random_XorShift64_Pool(const Random_XorShift64_Pool& src):
@@ -751,7 +755,11 @@ namespace Kokkos {
 
     KOKKOS_INLINE_FUNCTION
     Random_XorShift64<DeviceType> get_state() const {
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
       const int i = DeviceType::hardware_thread_id();;
+#else
+      const int i = DeviceType::impl_hardware_thread_id();;
+#endif
       return Random_XorShift64<DeviceType>(state_(i),i);
     }
 
@@ -957,7 +965,11 @@ namespace Kokkos {
     inline
     Random_XorShift1024_Pool(uint64_t seed){
       num_states_ = 0;
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
       init(seed,DeviceType::max_hardware_threads());
+#else
+      init(seed,DeviceType::impl_max_hardware_threads());
+#endif
     }
 
     Random_XorShift1024_Pool(const Random_XorShift1024_Pool& src):
@@ -1012,7 +1024,11 @@ namespace Kokkos {
 
     KOKKOS_INLINE_FUNCTION
     Random_XorShift1024<DeviceType> get_state() const {
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
       const int i = DeviceType::hardware_thread_id();
+#else
+      const int i = DeviceType::impl_hardware_thread_id();
+#endif
       return Random_XorShift1024<DeviceType>(state_,p_(i),i);
     };
 

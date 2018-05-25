@@ -44,7 +44,8 @@
 
 #include <gtest/gtest.h>
 #include <iostream>
-
+#include <Kokkos_Core.hpp>
+#include <Kokkos_Bitset.hpp>
 
 namespace Test {
 
@@ -277,6 +278,11 @@ void test_bitset()
 
   }
 
+}
+
+TEST_F( TEST_CATEGORY, bitset )
+{
+  test_bitset<TEST_EXECSPACE>();
 }
 
 } // namespace Test

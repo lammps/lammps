@@ -59,7 +59,11 @@ struct CrsMatrix {
   typedef Device      execution_space ;
   typedef ScalarType  value_type ;
 
-  typedef StaticCrsGraph< int , execution_space , void , int >  graph_type ;
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
+  typedef StaticCrsGraph< int , execution_space , void , int , void >  graph_type ;
+#else
+  typedef StaticCrsGraph< int , execution_space , void , void , int >  graph_type ;
+#endif
   typedef View< value_type* , execution_space >   coefficients_type ;
 
   graph_type         graph ;

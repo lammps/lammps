@@ -45,7 +45,7 @@
 #define KOKKOS_HOST_EXP_ITERATE_TILE_HPP
 
 #include <Kokkos_Macros.hpp>
-#if defined(KOKKOS_ENABLE_AGGRESSIVE_VECTORIZATION) && defined(KOKKOS_HAVE_PRAGMA_IVDEP) && !defined(__CUDA_ARCH__)
+#if defined(KOKKOS_ENABLE_AGGRESSIVE_VECTORIZATION) && defined(KOKKOS_ENABLE_PRAGMA_IVDEP) && !defined(__CUDA_ARCH__)
 #define KOKKOS_MDRANGE_IVDEP
 #endif
 
@@ -2745,6 +2745,7 @@ struct HostIterateTile < RP , Functor , Tag , ValueType , typename std::enable_i
 
 // ------------------------------------------------------------------ //
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
 // MDFunctor - wraps the range_policy and functor to pass to IterateTile
 // Used for md_parallel_{for,reduce} with Serial, Threads, OpenMP
 // Cuda uses DeviceIterateTile directly within md_parallel_for
@@ -2890,6 +2891,7 @@ struct MDFunctor< MDRange, Functor, void >
 };
 
 } // end namespace Experimental
+#endif
 #undef KOKKOS_ENABLE_NEW_LOOP_MACROS
 
 } } //end namespace Kokkos::Impl

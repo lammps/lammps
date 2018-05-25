@@ -76,25 +76,27 @@ struct ReduceFunctor {
 int main() {
   Kokkos::initialize();
 
-  view_type a ("A", 10);
-  // If view_type and host_mirror_type live in the same memory space,
-  // a "mirror view" is just an alias, and deep_copy does nothing.
-  // Otherwise, a mirror view of a device View lives in host memory,
-  // and deep_copy does a deep copy.
-  host_view_type h_a = Kokkos::create_mirror_view (a);
+  {
+    view_type a ("A", 10);
+    // If view_type and host_mirror_type live in the same memory space,
+    // a "mirror view" is just an alias, and deep_copy does nothing.
+    // Otherwise, a mirror view of a device View lives in host memory,
+    // and deep_copy does a deep copy.
+    host_view_type h_a = Kokkos::create_mirror_view (a);
 
-  // The View h_a lives in host (CPU) memory, so it's legal to fill
-  // the view sequentially using ordinary code, like this.
-  for (int i = 0; i < 10; i++) {
-    for (int j = 0; j < 3; j++) {
-      h_a(i,j) = i*10 + j;
+    // The View h_a lives in host (CPU) memory, so it's legal to fill
+    // the view sequentially using ordinary code, like this.
+    for (int i = 0; i < 10; i++) {
+      for (int j = 0; j < 3; j++) {
+        h_a(i,j) = i*10 + j;
+      }
     }
-  }
-  Kokkos::deep_copy (a, h_a); // Copy from host to device.
+    Kokkos::deep_copy (a, h_a); // Copy from host to device.
 
-  int sum = 0;
-  Kokkos::parallel_reduce (10, ReduceFunctor (a), sum);
-  printf ("Result is %i\n",sum);
+    int sum = 0;
+    Kokkos::parallel_reduce (10, ReduceFunctor (a), sum);
+    printf ("Result is %i\n",sum);
+  }
 
   Kokkos::finalize ();
 }

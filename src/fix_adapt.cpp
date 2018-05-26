@@ -118,7 +118,7 @@ nadapt(0), id_fix_diam(NULL), id_fix_chg(NULL), adapt(NULL)
       adapt[nadapt].bparam = new char[n];
       adapt[nadapt].bond = NULL;
       strcpy(adapt[nadapt].bparam,arg[iarg+2]);
-      force->bounds(FLERR,arg[iarg+3],atom->ntypes,
+      force->bounds(FLERR,arg[iarg+3],atom->nbondtypes,
                     adapt[nadapt].ilo,adapt[nadapt].ihi);
       if (strstr(arg[iarg+4],"v_") == arg[iarg+4]) {
         n = strlen(&arg[iarg+4][2]) + 1;

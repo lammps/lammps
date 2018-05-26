@@ -46,8 +46,8 @@ using namespace MathConst;
 
 #define DELTA 10000
 #define EPSILON 1e-3
-#define MAX_FACE_SIZE 4 // maximum number of vertices per face (same as BodyRoundedPolyhedron)
-#define MAX_CONTACTS 32  // for 3D models
+#define MAX_FACE_SIZE 4  // maximum number of vertices per face (same as BodyRoundedPolyhedron)
+#define MAX_CONTACTS 32  // for 3D models (including duplicated counts)
 
 //#define _POLYHEDRON_DEBUG
 

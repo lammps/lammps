@@ -38,11 +38,13 @@
 
 using namespace LAMMPS_NS;
 
-//#define _POLYGON_DEBUG
 #define DELTA 10000
 #define EPSILON 1e-3
 #define MAX_CONTACTS 4  // maximum number of contacts for 2D models
 #define EFF_CONTACTS 2  // effective contacts for 2D models
+
+//#define _CONVEX_POLYGON
+//#define _POLYGON_DEBUG
 
 enum {INVALID=0,NONE=1,VERTEXI=2,VERTEXJ=3,EDGE=4};
 
@@ -846,11 +848,11 @@ int PairBodyRoundedPolygon::vertex_against_edge(int i, int j,
         #endif
         }
 
+        #ifdef _CONVEX_POLYGON
         // done with the edges from body j,
         // given that vertex ni interacts with only one vertex from one edge of body j
-        // comment out this break to take into account concave shapes
-
-//        break;
+        break;
+        #endif
 
       } else if (mode == EDGE) {
 
@@ -954,12 +956,11 @@ int PairBodyRoundedPolygon::vertex_against_edge(int i, int j,
           #endif
         } // end if contact
 
+        #ifdef _CONVEX_POLYGON
         // done with the edges from body j,
         // given that vertex ni interacts with only one edge from body j
-        // comment out this break to take into account concave shapes
-
-//        break;
-
+        break;
+        #endif
       } // end if mode
 
     } // end for looping through the edges of body j
@@ -1082,7 +1083,11 @@ int PairBodyRoundedPolygon::compute_distance_to_vertex(int ibody,
     // check if x0 (the queried vertex) and xmi (the body's center of mass)
     // are on the different sides of the edge
 
+    #ifdef _CONVEX_POLYGON
     int m = opposite_sides(xi1, xi2, x0, xmi);
+    #else
+    int m = 1;
+    #endif
 
     if (m == 0) {
 

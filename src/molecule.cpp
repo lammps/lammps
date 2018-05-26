@@ -771,8 +771,8 @@ void Molecule::bonds(int flag, char *line)
       error->all(FLERR,"Invalid Bonds section in molecule file");
     itype += boffset;
 
-    if (atom1 <= 0 || atom1 > natoms ||
-        atom2 <= 0 || atom2 > natoms)
+    if ((atom1 <= 0) || (atom1 > natoms) ||
+        (atom2 <= 0) || (atom2 > natoms) || (atom1 == atom2))
       error->one(FLERR,"Invalid atom ID in Bonds section of molecule file");
     if (itype <= 0)
       error->one(FLERR,"Invalid bond type in Bonds section of molecule file");
@@ -829,9 +829,10 @@ void Molecule::angles(int flag, char *line)
       error->all(FLERR,"Invalid Angles section in molecule file");
     itype += aoffset;
 
-    if (atom1 <= 0 || atom1 > natoms ||
-        atom2 <= 0 || atom2 > natoms ||
-        atom3 <= 0 || atom3 > natoms)
+    if ((atom1 <= 0) || (atom1 > natoms) ||
+        (atom2 <= 0) || (atom2 > natoms) ||
+        (atom3 <= 0) || (atom3 > natoms) ||
+        (atom1 == atom2) || (atom1 == atom3) || (atom2 == atom3))
       error->one(FLERR,"Invalid atom ID in Angles section of molecule file");
     if (itype <= 0)
       error->one(FLERR,"Invalid angle type in Angles section of molecule file");
@@ -902,10 +903,12 @@ void Molecule::dihedrals(int flag, char *line)
       error->all(FLERR,"Invalid Dihedrals section in molecule file");
     itype += doffset;
 
-    if (atom1 <= 0 || atom1 > natoms ||
-        atom2 <= 0 || atom2 > natoms ||
-        atom3 <= 0 || atom3 > natoms ||
-        atom4 <= 0 || atom4 > natoms)
+    if ((atom1 <= 0) || (atom1 > natoms) ||
+        (atom2 <= 0) || (atom2 > natoms) ||
+        (atom3 <= 0) || (atom3 > natoms) ||
+        (atom4 <= 0) || (atom4 > natoms) ||
+        (atom1 == atom2) || (atom1 == atom3) || (atom1 == atom4) ||
+        (atom2 == atom3) || (atom2 == atom4) || (atom3 == atom4))
       error->one(FLERR,
                  "Invalid atom ID in dihedrals section of molecule file");
     if (itype <= 0)
@@ -989,10 +992,12 @@ void Molecule::impropers(int flag, char *line)
       error->all(FLERR,"Invalid Impropers section in molecule file");
     itype += ioffset;
 
-    if (atom1 <= 0 || atom1 > natoms ||
-        atom2 <= 0 || atom2 > natoms ||
-        atom3 <= 0 || atom3 > natoms ||
-        atom4 <= 0 || atom4 > natoms)
+    if ((atom1 <= 0) || (atom1 > natoms) ||
+        (atom2 <= 0) || (atom2 > natoms) ||
+        (atom3 <= 0) || (atom3 > natoms) ||
+        (atom4 <= 0) || (atom4 > natoms) ||
+        (atom1 == atom2) || (atom1 == atom3) || (atom1 == atom4) ||
+        (atom2 == atom3) || (atom2 == atom4) || (atom3 == atom4))
       error->one(FLERR,
                  "Invalid atom ID in impropers section of molecule file");
     if (itype <= 0)

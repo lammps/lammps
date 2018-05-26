@@ -53,8 +53,8 @@ the examples above, or in the data file or restart files read by the
 "read_data"_read_data.html or "read_restart"_read_restart.html
 commands:
 
-k_n (energy/distance^2)
-k_na (energy/distance^2) :ul
+k_n (energy/distance^2 units)
+k_na (energy/distance^2 units) :ul
 
 [Related commands:]
 

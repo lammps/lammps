@@ -45,7 +45,9 @@ class FixWallBodyPolygon : public Fix {
 
  protected:
   int wallstyle,pairstyle,wiggle,axis;
-  double kn,c_n,c_t;
+  double kn;          // normal repulsion strength
+  double c_n;         // normal damping coefficient
+  double c_t;         // tangential damping coefficient
   double lo,hi,cylradius;
   double amplitude,period,omega;
   double dt;

@@ -28,15 +28,13 @@ column is used as the {bstyle} argument for the "atom_style
 body"_atom_style.html command.
 
 {nparticle} | rigid body with N sub-particles |
-{rounded/polygon} | 2d convex polygon with N vertices :tb(c=2,s=|)
+{rounded/polygon} | 2d polygons with N vertices :tb(c=2,s=|)
+{rounded/polyhedron} | 3d polyhedra with N vertices, E edges and F faces  :tb(c=2,s=|)
 
 The body style determines what attributes are stored for each body and
 thus how they can be used to compute pairwise body/body or
 bond/non-body (point particle) interactions.  More details of each
 style are described below.
-
-NOTE: The rounded/polygon style listed in the table above and
-described below has not yet been relesed in LAMMPS.  It will be soon.
 
 We hope to add more styles in the future.  See "Section
 10.12"_Section_modify.html#mod_12 for details on how to add a new body
@@ -175,13 +173,11 @@ The {bflag2} argument is ignored.
 
 [Specifics of body style rounded/polygon:]
 
-NOTE: Aug 2016 - This body style has not yet been added to LAMMPS.
-The info below is a placeholder.
-
-The {rounded/polygon} body style represents body particles as a convex
-polygon with a variable number N > 2 of vertices, which can only be
-used for 2d models.  One example use of this body style is for 2d
-discrete element models, as described in "Fraige"_#Fraige.  Similar to
+The {rounded/polygon} body style represents body particles as
+a polygon with a variable number N of vertices, which can only be
+used for 2d models. Special cases for N = 1 (spheres) and N = 2
+(rods) are also included. One example use of this body style is for 2d
+discrete element models, as described in "Fraige"_#Fraige. Similar to
 body style {nparticle}, the atom_style body command for this body
 style takes two additional arguments:
 
@@ -203,15 +199,14 @@ x1 y1 z1
 ...
 xN yN zN
 i j j k k ...
-radius :pre
+diameter :pre
 
 N is the number of vertices in the body particle.  M = 6 + 3*N + 2*N +
 1.  The integer line has a single value N.  The floating point line(s)
 list 6 moments of inertia followed by the coordinates of the N
 vertices (x1 to zN) as 3N values, followed by 2N vertex indices
 corresponding to the end points of the N edges, followed by a single
-radius value = the smallest circle encompassing the polygon.  That
-last value is used to facilitate the body/body contact detection.
+diameter value = the rounded diameter of the vertices.
 These floating-point values can be listed on as many lines as you
 wish; see the "read_data"_read_data.html command for more details.
 
@@ -235,7 +230,10 @@ particles whose edge length is sqrt(2):
 -0.7071 0.7071 0
 0.7071 0.7071 0
 0.7071 -0.7071 0
-0 1 1 2 2 3 3 0
+0 1
+1 2
+2 3
+3 0
 1.0 :pre
 
 The "pair_style body/rounded/polygon"_pair_body_rounded_polygon.html
@@ -257,8 +255,8 @@ the body particle itself.  These values are calculated using the
 current COM and orientation of the body particle.
 
 For images created by the "dump image"_dump_image.html command, if the
-{body} keyword is set, then each body particle is drawn as a convex
-polygon consisting of N line segments.  Note that the line segments
+{body} keyword is set, then each body particle is drawn as a polygon
+consisting of N line segments.  Note that the line segments
 are drawn between the N vertices, which does not correspond exactly to
 the physical extent of the body (because the "pair_style
 rounded/polygon"_pair_body_rounded_polygon.html defines finite-size
@@ -266,6 +264,52 @@ spheres at those point and the line segments between the spheres are
 tangent to the spheres).  The drawn diameter of each line segment is
 determined by the {bflag1} parameter for the {body} keyword.  The
 {bflag2} argument is ignored.
+
+The {rounded/polyhedon} body style represents body particles as
+a polyhedron with N vertices, E edges and F faces.
+Special cases for N = 1 (spheres) and N = 2 (rods) are also valid.
+Similar to body style {rounded/polygon}, the atom_style body command for this body
+style takes two additional arguments:
+
+atom_style body rounded/polyhedron Nmin Nmax
+Nmin = minimum # of vertices in any body in the system
+Nmax = maximum # of vertices in any body in the system :pre
+
+The Nmin and Nmax arguments are used to bound the size of data
+structures used internally by each particle.
+
+When the "read_data"_read_data.html command reads a data file for this
+body style, the following information must be provided for each entry
+in the {Bodies} section of the data file:
+
+atom-ID 3 M
+N E F
+ixx iyy izz ixy ixz iyz
+x1 y1 z1
+...
+xN yN zN
+0 1
+1 2 
+2 3
+...
+0 1 2 -1
+0 2 3 -1
+...
+1 2 3 4
+diameter :pre
+
+N is the number of vertices in the body particle. M = 6 + 3*N + 2*E
++ 4*F + 1.  The integer line has three values: number of vertices (N),
+number of edges (E) and number of faces (F). The floating point line(s)
+list 6 moments of inertia followed by the coordinates of the N
+vertices (x1 to zN) as 3N values, followed by 2N vertex indices
+corresponding to the end points of the E edges, 4*F vertex indices defining F faces.
+The last value is the radius value = the rounded diameter of the vertices.
+These floating-point values can be listed on as many lines as you
+wish; see the "read_data"_read_data.html command for more details.
+Because the maxmimum vertices per face is hard-coded to be 4 (i.e. quadrilaterals),
+faces with more than 4 vertices need to be split into triangles or quadrilaterals.
+For triangular faces, the last index should be set to -1.
 
 :line
 

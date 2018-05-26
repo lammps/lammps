@@ -76,24 +76,31 @@ class PairBodyRoundedPolygon : public Pair {
   void allocate();
   void body2space(int);
 
+  // sphere-sphere interaction
+  void sphere_against_sphere(int i, int j, double delx, double dely, double delz,
+                             double rsq, double k_n, double k_na,
+                             double** x, double** v, double** f, int evflag);
+  // vertex-edge interaction
   int vertex_against_edge(int i, int j, double k_n, double k_na,
                           double** x, double** f, double** torque,
                           tagint* tag, Contact* contact_list,
                           int &num_contacts, double &evdwl, double* facc);
-  void sphere_against_sphere(int i, int j, double delx, double dely, double delz,
-                             double rsq, double k_n, double k_na,
-                             double** x, double** v, double** f, int evflag);
+  // compute distance between a point and an edge from another body
   int compute_distance_to_vertex(int ibody, int edge_index, double* xmi,
                                  double rounded_radius, double* x0,
                                  double x0_rounded_radius, double cut_inner,
                                  double &d, double hi[3], double &t,
                                  int &contact);
-  double contact_separation(const Contact& c1, const Contact& c2);
+  // compute contact forces if contact points are detected
   void contact_forces(Contact& contact, double j_a, double** x, 
-                      double** v, double** f, double** angmom, 
+                      double** v, double** f, double** angmom,
+  // compute the separation between two contacts
+  double contact_separation(const Contact& c1, const Contact& c2);
                       double** torque, double &evdwl, double* facc);
+  // accumulate torque to a body given a force at a given point
   void sum_torque(double* xm, double *x, double fx,
                   double fy, double fz, double* torque);
+  // helper functions
   int opposite_sides(double* x1, double* x2, double* a, double* b);
   void total_velocity(double* p, double *xcm, double* vcm, double *angmom,
                       double *inertia, double *quat, double* vi);

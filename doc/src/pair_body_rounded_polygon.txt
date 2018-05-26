@@ -8,12 +8,58 @@
 
 pair_style body/rounded/polygon command :h3
 
+[Syntax:]
+
+pair_style body/rounded/polygon c_n c_t mu delta_ua cutoff :pre
+c_n = normal damping coefficient
+c_t = tangential damping coefficient
+mu = normal friction coefficient during gross sliding
+delta_ua = multiple contact scaling factor
+cutoff = global sepration cutoff for interactions (distance units), see below for definition
+
+[Examples:]
+
+pair_style body/rounded/polygon ${c_n} ${c_t} ${mu} ${delta_ua} ${cutoff}
+pair_coeff * * 100.0 1.0
+pair_coeff 1 1 100.0 1.0 :pre
+
 [Description:]
 
-Note: This feature is not yet implemented.
+Style {body/rounded/polygon} is for use with body particles and calculates pairwise
+body/body interactions as well as interactions between body and
+point-particles.  See "Section 6.14"_Section_howto.html#howto_14
+of the manual and the "body"_body.html doc page for more details on
+using body particles.
+
+This pair style is designed for use with the "body/rounded/polygon" body style,
+which is specified as an argument to the "atom-style body" command.
+See the "body/rounded/polygon"_body.html doc page for more details about the body
+styles LAMMPS supports. The pairwise interaction between the rounded polygons is described
+in "Fraige"_#Fraige, where the polygons are rounded at the vertices and edges
+by circles of diameter a.
+
+Because the polygons can have different rounded diameters, the cutoff specified in
+the pair style command is for the surface separation between two interacting entities
+(e.g. vertex-vertex, vertex-edge or edge-edge) excluding their rounded diameters,
+i.e. separation = center-center distance - (rounded diameter of i + rounded diameter of j)/2.
+The interaction forces and energies are also defined with respect to the rounded surface separation,
+instead of center-center distance.
+
+For style {body/rounded/polygon}, the following coefficients must be defined for each
+pair of atoms types via the "pair_coeff"_pair_coeff.html command as in
+the examples above, or in the data file or restart files read by the
+"read_data"_read_data.html or "read_restart"_read_restart.html
+commands:
+
+k_n (energy/distance^2)
+k_na (energy/distance^2) :ul
 
 [Related commands:]
 
 "pair_style body"_pair_body.html
 
 [Default:] none
+
+:link(Fraige)
+[(Fraige)] F. Y. Fraige, P. A. Langston, A. J. Matchett, J. Dodds,
+Particuology, 6, 455 (2008).

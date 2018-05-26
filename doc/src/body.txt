@@ -240,34 +240,14 @@ The "pair_style body/rounded/polygon"_pair_body_rounded_polygon.html
 command can be used with this body style to compute body/body
 interactions.
 
-For output purposes via the "compute
-body/local"_compute_body_local.html and "dump local"_dump.html
-commands, this body style produces one datum for each of the N
-sub-particles in a body particle.  The datum has 3 values:
+:line
 
-1 = x position of vertex
-2 = y position of vertex
-3 = z position of vertex :pre
+[Specifics of body style rounded/polyhedron:]
 
-These values are the current position of the vertex within the
-simulation domain, not a displacement from the center-of-mass (COM) of
-the body particle itself.  These values are calculated using the
-current COM and orientation of the body particle.
-
-For images created by the "dump image"_dump_image.html command, if the
-{body} keyword is set, then each body particle is drawn as a polygon
-consisting of N line segments.  Note that the line segments
-are drawn between the N vertices, which does not correspond exactly to
-the physical extent of the body (because the "pair_style
-rounded/polygon"_pair_body_rounded_polygon.html defines finite-size
-spheres at those point and the line segments between the spheres are
-tangent to the spheres).  The drawn diameter of each line segment is
-determined by the {bflag1} parameter for the {body} keyword.  The
-{bflag2} argument is ignored.
-
-The {rounded/polyhedon} body style represents body particles as
+The {rounded/polyhedron} body style represents body particles as
 a polyhedron with N vertices, E edges and F faces.
 Special cases for N = 1 (spheres) and N = 2 (rods) are also valid.
+This body style is for 3d discrete element models, as described in "Wang"_#Wang. 
 Similar to body style {rounded/polygon}, the atom_style body command for this body
 style takes two additional arguments:
 
@@ -313,6 +293,36 @@ For triangular faces, the last index should be set to -1.
 
 :line
 
+For output purposes via the "compute
+body/local"_compute_body_local.html and "dump local"_dump.html
+commands, this body style produces one datum for each of the N
+sub-particles in a body particle.  The datum has 3 values:
+
+1 = x position of vertex
+2 = y position of vertex
+3 = z position of vertex :pre
+
+These values are the current position of the vertex within the
+simulation domain, not a displacement from the center-of-mass (COM) of
+the body particle itself.  These values are calculated using the
+current COM and orientation of the body particle.
+
+For images created by the "dump image"_dump_image.html command, if the
+{body} keyword is set, then each body particle is drawn as a polygon
+consisting of N line segments.  Note that the line segments
+are drawn between the N vertices, which does not correspond exactly to
+the physical extent of the body (because the "pair_style
+rounded/polygon"_pair_body_rounded_polygon.html defines finite-size
+spheres at those point and the line segments between the spheres are
+tangent to the spheres).  The drawn diameter of each line segment is
+determined by the {bflag1} parameter for the {body} keyword.  The
+{bflag2} argument is ignored.
+
+:line
+
 :link(Fraige)
 [(Fraige)] F. Y. Fraige, P. A. Langston, A. J. Matchett, J. Dodds,
 Particuology, 6, 455 (2008).
+
+:link(Wang)
+[(Wang)] J. Wang, H. S. Yu, P. A. Langston, F. Y. Fraige, Granular Matter, 13, 1 (2011).

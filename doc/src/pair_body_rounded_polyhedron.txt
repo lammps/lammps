@@ -6,11 +6,11 @@
 
 :line
 
-pair_style body/rounded/polygon command :h3
+pair_style body/rounded/polyhedron command :h3
 
 [Syntax:]
 
-pair_style body/rounded/polygon c_n c_t mu delta_ua cutoff :pre
+pair_style body/rounded/polyhedron c_n c_t mu delta_ua cutoff :pre
 
 c_n = normal damping coefficient
 c_t = tangential damping coefficient
@@ -20,34 +20,34 @@ cutoff = global sepration cutoff for interactions (distance units), see below fo
 
 [Examples:]
 
-pair_style body/rounded/polygon 20.0 5.0 0.0 1.0 0.5
+pair_style body/rounded/polyhedron 20.0 5.0 0.0 1.0 0.5
 pair_coeff * * 100.0 1.0
 pair_coeff 1 1 100.0 1.0 :pre
 
 [Description:]
 
-Style {body/rounded/polygon} is for use with body particles and calculates pairwise
+Style {body/rounded/polyhedron} is for use with body particles and calculates pairwise
 body/body interactions as well as interactions between body and
 point-particles.  See "Section 6.14"_Section_howto.html#howto_14
 of the manual and the "body"_body.html doc page for more details on
 using body particles.
 
-This pair style is designed for use with the "body/rounded/polygon" body style,
+This pair style is designed for use with the "body/rounded/polyhedron" body style,
 which is specified as an argument to the "atom-style body" command.
-See the "body/rounded/polygon"_body.html doc page for more details about the body
+See the "body/rounded/polyhedron"_body.html doc page for more details about the body
 styles LAMMPS supports. The pairwise interaction between the rounded polygons is described
-in "Fraige"_#Fraige, where the polygons are rounded at the vertices and edges
+in "Wang"_#Wang, where the polygons are rounded at the vertices and edges
 by circles of diameter a. This is a version of discrete element models (DEM)
 with multiple contact points.
 
 Because the polygons can have different rounded diameters, the cutoff specified in
 the pair style command is for the surface separation between two interacting entities
-(e.g. vertex-vertex, vertex-edge or edge-edge) excluding their rounded diameters,
+(e.g. vertex-vertex, vertex-edge, vertex-face and edge-edge) excluding their rounded diameters,
 i.e. separation = center-center distance - (rounded diameter of entity i + rounded diameter of entity j)/2.
 The interaction forces and energies are also defined with respect to the rounded surface separation,
 instead of center-center distance.
 
-For style {body/rounded/polygon}, the following coefficients must be defined for each
+For style {body/rounded/polyhedron}, the following coefficients must be defined for each
 pair of atoms types via the "pair_coeff"_pair_coeff.html command as in
 the examples above, or in the data file or restart files read by the
 "read_data"_read_data.html or "read_restart"_read_restart.html
@@ -62,8 +62,6 @@ k_na (energy/distance^2) :ul
 
 [Default:] none
 
-:link(Fraige)
-[(Fraige)] F. Y. Fraige, P. A. Langston, A. J. Matchett, J. Dodds,
-Particuology, 6, 455 (2008).
-
+:link(Wang)
+[(Wang)] J. Wang, H. S. Yu, P. A. Langston, F. Y. Fraige, Granular Matter, 13, 1 (2011).
 

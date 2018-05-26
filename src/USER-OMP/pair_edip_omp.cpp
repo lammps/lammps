@@ -84,7 +84,7 @@ void PairEDIPOMP::eval(int iifrom, int iito, ThrData * const thr)
   int itype,jtype,ktype,ijparam,ikparam;
   double xtmp,ytmp,ztmp,evdwl;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  register int preForceCoord_counter;
+  int preForceCoord_counter;
 
   double invR_ij;
   double invR_ik;

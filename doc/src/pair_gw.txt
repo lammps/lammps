@@ -95,9 +95,9 @@ This pair style can only be used via the {pair} keyword of the
 
 [Restrictions:]
 
-This pair style is part of the USER-MISC package. It is only enabled
-if LAMMPS was built with that package.  See
-the "Making LAMMPS"_Section_start.html#start_3 section for more info.
+This pair style is part of the MANYBODY package. It is only enabled if
+LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 This pair style requires the "newton"_newton.html setting to be "on"
 for pair interactions.
@@ -117,4 +117,5 @@ appropriate units if your simulation doesn't use "metal" units.
 :line
 
 :link(Gao)
-[(Gao)] Gao and Weber, Nuclear Instruments and Methods in Physics Research B 191 (2012) 504.
+[(Gao)] Gao and Weber, Nuclear Instruments and Methods in Physics
+Research B 191 (2012) 504.

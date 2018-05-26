@@ -430,16 +430,6 @@ void FixBondReact::post_constructor()
     delete [] newarg;
   }
 
-  // limit_tags: these are recently reacted atoms being relaxed
-  // per-atom properties already initialized to zero (not in group)
-  // let's do it anyway for clarity
-  int flag;
-  int index = atom->find_custom("limit_tags",flag); //here's where error would happen
-  int *i_limit_tags = atom->ivector[index];
-
-  for (int i = 0; i < atom->nlocal; i++)
-    i_limit_tags[i] = 0;
-
   // create master_group if not already existing
   if (group->find(master_group) == -1) {
     group->find_or_create(master_group);
@@ -456,11 +446,16 @@ void FixBondReact::post_constructor()
 
   // on to statted_tags (system-wide thermostat)
   // intialize per-atom statted_flags to 1
-  index = atom->find_custom("statted_tags",flag);
-  int *i_statted_tags = atom->ivector[index];
+  // (only if not already initialized by restart)
+  // NOTE: limit_tags and react_tags automaticaly intitialized to zero (unless read from restart)
+  if (fix2->restart_reset != 1) {
+    int flag;
+    int index = atom->find_custom("statted_tags",flag);
+    int *i_statted_tags = atom->ivector[index];
 
-  for (int i = 0; i < atom->nlocal; i++)
-    i_statted_tags[i] = 1;
+    for (int i = 0; i < atom->nlocal; i++)
+      i_statted_tags[i] = 1;
+  }
 
   if (stabilization_flag == 1) {
     // create exclude_group if not already existing
@@ -496,16 +491,6 @@ void FixBondReact::post_constructor()
     }
 
   }
-
-  //react_tags: this per-atom property is the ID of the 'react' argument which recently caused atom to react
-  //so that atoms which wander between processors may be released to global thermostat at the proper time
-
-  //per-atom values initalized to 0
-  index = atom->find_custom("react_tags",flag);
-  int *i_react_tags = atom->ivector[index];
-
-  for (int i = 0; i < atom->nlocal; i++)
-    i_react_tags[i] = 0;
 
   // currently must redefine dynamic groups so they are updated at proper time
   // -> should double check as to why
@@ -552,6 +537,10 @@ void FixBondReact::init()
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"bond/react") == 0) count++;
   if (count > 1 && comm->me == 0) error->warning(FLERR,"More than one fix bond/react");
+
+  if (force->newton_bond == 0 && comm->me == 0) error->warning(FLERR,"Fewer reactions may occur in some cases "
+                                                           "when 'newton off' is set for bonded interactions. "
+                                                           "The reccomended setting is 'newton on'.");
 
   if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;

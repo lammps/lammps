@@ -140,7 +140,7 @@ void CreateAtoms::command(int narg, char **arg)
       int imol = atom->find_molecule(arg[iarg+1]);
       if (imol == -1) error->all(FLERR,"Molecule template ID for "
                                  "create_atoms does not exist");
-      if (atom->molecules[imol]->nset > 1 && comm->me == 0)
+      if (atom->molecules[imol]->nset > 1 && me == 0)
         error->warning(FLERR,"Molecule template for "
                        "create_atoms has multiple molecules");
       mode = MOLECULE;
@@ -242,11 +242,11 @@ void CreateAtoms::command(int narg, char **arg)
 
     // molecule random number generator, different for each proc
 
-    ranmol = new RanMars(lmp,molseed+comm->me);
+    ranmol = new RanMars(lmp,molseed+me);
   }
 
   if (insertflag) {
-    ranbox = new RanMars(lmp,insertseed+comm->me);
+    ranbox = new RanMars(lmp,insertseed+me);
   }
 
   // error check and further setup for variable test
@@ -549,7 +549,7 @@ void CreateAtoms::command(int narg, char **arg)
 
   // print status
 
-  if (comm->me == 0) {
+  if (me == 0) {
     if (screen) {
       fprintf(screen,"Created " BIGINT_FORMAT " atoms\n",
               atom->natoms-natoms_previous);

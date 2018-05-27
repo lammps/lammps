@@ -889,7 +889,13 @@ void CreateAtoms::lattice_mask()
     delete [] allnlattpts;
     delete [] allnboxmes;
     delete [] cumsum_lattpts;
-  } else nboxme = ninsert;
+  } else {
+    if (ninsert > nlattpts)
+       error->one(FLERR,"Attempting to insert more particles than available lattice points");
+    nboxme = ninsert;
+  }
+
+
 
  // probably faster to have individual processors 're-choose' their random points
   // Nmask will be used to indicate which lattice points to insert

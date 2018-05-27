@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -78,6 +78,7 @@
 #include <Kokkos_ROCm.hpp>
 #endif
 
+#include <Kokkos_AnonymousSpace.hpp>
 #include <Kokkos_Pair.hpp>
 #include <Kokkos_MemoryPool.hpp>
 #include <Kokkos_Array.hpp>
@@ -89,6 +90,8 @@
 
 #include <Kokkos_Complex.hpp>
 
+#include <Kokkos_CopyViews.hpp>
+#include <functional>
 #include <iosfwd>
 
 //----------------------------------------------------------------------------
@@ -123,6 +126,28 @@ bool show_warnings() noexcept;
 
 /** \brief  Finalize the spaces that were initialized via Kokkos::initialize */
 void finalize();
+
+/**
+ * \brief Push a user-defined function to be called in
+ *   Kokkos::finalize, before any Kokkos state is finalized.
+ *
+ * \warning Only call this after Kokkos::initialize, but before
+ *   Kokkos::finalize.
+ *
+ * This function is the Kokkos analog to std::atexit.  If you call
+ * this with a function f, then your function will get called when
+ * Kokkos::finalize is called.  Specifically, it will be called BEFORE
+ * Kokkos does any finalization.  This means that all execution
+ * spaces, memory spaces, etc. that were initialized will still be
+ * initialized when your function is called.
+ *
+ * Just like std::atexit, if you call push_finalize_hook in sequence
+ * with multiple functions (f, g, h), Kokkos::finalize will call them
+ * in reverse order (h, g, f), as if popping a stack.  Furthermore,
+ * just like std::atexit, if any of your functions throws but does not
+ * catch an exception, Kokkos::finalize will call std::terminate.
+ */
+void push_finalize_hook(std::function<void()> f);
 
 /** \brief  Finalize all known execution spaces */
 void finalize_all();

@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -104,8 +104,9 @@ namespace Impl {
 /// variable based on the Host global variable prior to running any kernels
 /// that will use it.
 /// That is the purpose of the KOKKOS_ENSURE_CUDA_LOCK_ARRAYS_ON_DEVICE macro.
-__device__ __constant__
+__device__
 #ifdef KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE
+__constant__
 extern
 #endif
 Kokkos::Impl::CudaLockArrays g_device_cuda_lock_arrays ;
@@ -142,15 +143,27 @@ void unlock_address_cuda_space(void* ptr) {
 } // namespace Impl
 } // namespace Kokkos
 
+// Make lock_array_copied an explicit translation unit scope thingy
+namespace Kokkos {
+namespace Impl {
+namespace {
+  static int lock_array_copied = 0;
+}
+}
+}
 /* Dan Ibanez: it is critical that this code be a macro, so that it will
    capture the right address for Kokkos::Impl::g_device_cuda_lock_arrays!
    putting this in an inline function will NOT do the right thing! */
 #define KOKKOS_COPY_CUDA_LOCK_ARRAYS_TO_DEVICE() \
 { \
-  CUDA_SAFE_CALL(cudaMemcpyToSymbol( \
+  if(::Kokkos::Impl::lock_array_copied == 0) { \
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol( \
         Kokkos::Impl::g_device_cuda_lock_arrays , \
         & Kokkos::Impl::g_host_cuda_lock_arrays , \
         sizeof(Kokkos::Impl::CudaLockArrays) ) ); \
+  } \
+  lock_array_copied = 1; \
+  \
 }
 
 #ifdef KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE

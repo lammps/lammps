@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
-#include <math.h>
+#include <cstring>
+#include <cmath>
 #include "compute_force_tally.h"
 #include "atom.h"
 #include "group.h"

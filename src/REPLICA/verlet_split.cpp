@@ -15,7 +15,7 @@
    Contributing authors: Yuxing Peng and Chris Knight (U Chicago)
 ------------------------------------------------------------------------- */
 
-#include <string.h>
+#include <cstring>
 #include "verlet_split.h"
 #include "universe.h"
 #include "neighbor.h"

@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
+#include <cstring>
 #include "compute_temp_chunk.h"
 #include "atom.h"
 #include "update.h"
@@ -30,7 +30,7 @@ enum{TEMP,KECOM,INTERNAL};
 
 ComputeTempChunk::ComputeTempChunk(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  which(NULL), idchunk(NULL), id_bias(NULL), sum(NULL), sumall(NULL), count(NULL), 
+  which(NULL), idchunk(NULL), id_bias(NULL), sum(NULL), sumall(NULL), count(NULL),
   countall(NULL), massproc(NULL), masstotal(NULL), vcm(NULL), vcmall(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute temp/chunk command");
@@ -131,7 +131,7 @@ ComputeTempChunk::ComputeTempChunk(LAMMPS *lmp, int narg, char **arg) :
 
   nchunk = 1;
   maxchunk = 0;
-  
+
   if (nvalues)  {
     array_flag = 1;
     size_array_cols = nvalues;
@@ -342,34 +342,34 @@ void ComputeTempChunk::compute_vector()
   if (!comflag) {
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	index = ichunk[i]-1;
-	if (index < 0) continue;
-	if (rmass) massone = rmass[i];
-	else massone = mass[type[i]];
-	t[0] += massone * v[i][0]*v[i][0];
-	t[1] += massone * v[i][1]*v[i][1];
-	t[2] += massone * v[i][2]*v[i][2];
-	t[3] += massone * v[i][0]*v[i][1];
-	t[4] += massone * v[i][0]*v[i][2];
-	t[5] += massone * v[i][1]*v[i][2];
+        index = ichunk[i]-1;
+        if (index < 0) continue;
+        if (rmass) massone = rmass[i];
+        else massone = mass[type[i]];
+        t[0] += massone * v[i][0]*v[i][0];
+        t[1] += massone * v[i][1]*v[i][1];
+        t[2] += massone * v[i][2]*v[i][2];
+        t[3] += massone * v[i][0]*v[i][1];
+        t[4] += massone * v[i][0]*v[i][2];
+        t[5] += massone * v[i][1]*v[i][2];
       }
   } else {
     double vx,vy,vz;
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	index = ichunk[i]-1;
-	if (index < 0) continue;
-	if (rmass) massone = rmass[i];
-	else massone = mass[type[i]];
-	vx = v[i][0] - vcmall[index][0];
-	vy = v[i][1] - vcmall[index][1];
-	vz = v[i][2] - vcmall[index][2];
-	t[0] += massone * vx*vx;
-	t[1] += massone * vy*vy;
-	t[2] += massone * vz*vz;
-	t[3] += massone * vx*vy;
-	t[4] += massone * vx*vz;
-	t[5] += massone * vy*vz;
+        index = ichunk[i]-1;
+        if (index < 0) continue;
+        if (rmass) massone = rmass[i];
+        else massone = mass[type[i]];
+        vx = v[i][0] - vcmall[index][0];
+        vy = v[i][1] - vcmall[index][1];
+        vz = v[i][2] - vcmall[index][2];
+        t[0] += massone * vx*vx;
+        t[1] += massone * vy*vy;
+        t[2] += massone * vz*vz;
+        t[3] += massone * vx*vy;
+        t[4] += massone * vx*vz;
+        t[5] += massone * vy*vz;
       }
   }
 

@@ -15,7 +15,7 @@
 
 #include <iostream>
 #include <cassert>
-#include <math.h>
+#include <cmath>
 
 #include "lal_vashishta.h"
 using namespace LAMMPS_AL;

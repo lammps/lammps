@@ -270,11 +270,15 @@ spacings.
 Atom IDs are assigned to created atoms in the following way.  The
 collection of created atoms are assigned consecutive IDs that start
 immediately following the largest atom ID existing before the
-create_atoms command was invoked.  When a simulation is performed on
-different numbers of processors, there is no guarantee a particular
-created atom will be assigned the same ID.  If molecules are being
-created, molecule IDs are assigned to created molecules in a similar
-fashion.
+create_atoms command was invoked.  This is done by the processor's
+communicating the number of atoms they each own, the first processor
+numbering its atoms from 1 to N1, the second processor from N1+1 to
+N2, etc.  Where N1 = number of atoms owned by the first processor, N2
+= number owned by the second processor, etc.  Thus when the same
+simulation is performed on different numbers of processors, there is
+no guarantee a particular created atom will be assigned the same ID in
+both simulations.  If molecules are being created, molecule IDs are
+assigned to created molecules in a similar fashion.
 
 Aside from their ID, atom type, and xyz position, other properties of
 created atoms are set to default values, depending on which quantities

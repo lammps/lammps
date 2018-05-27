@@ -15,10 +15,10 @@
    Contributing author: Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_sw_kokkos.h"
 #include "kokkos.h"
 #include "pair_kokkos.h"
@@ -122,13 +122,13 @@ void PairSWKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // build short neighbor list
 
-  int max_neighs = d_neighbors.dimension_1();
+  int max_neighs = d_neighbors.extent(1);
 
-  if ((d_neighbors_short.dimension_1() != max_neighs) ||
-     (d_neighbors_short.dimension_0() != ignum)) {
+  if ((d_neighbors_short.extent(1) != max_neighs) ||
+     (d_neighbors_short.extent(0) != ignum)) {
     d_neighbors_short = Kokkos::View<int**,DeviceType>("SW::neighbors_short",ignum,max_neighs);
   }
-  if (d_numneigh_short.dimension_0()!=ignum)
+  if (d_numneigh_short.extent(0)!=ignum)
     d_numneigh_short = Kokkos::View<int*,DeviceType>("SW::numneighs_short",ignum);
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagPairSWComputeShortNeigh>(0,neighflag==FULL?ignum:inum), *this);
 
@@ -472,7 +472,6 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeFullB<NEIGHFLAG,EVFLAG
 
   F_FLOAT delr1[3],delr2[3],fj[3],fk[3];
   F_FLOAT evdwl = 0.0;
-  F_FLOAT fpair = 0.0;
 
   const int i = d_ilist[ii];
 

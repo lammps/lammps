@@ -117,7 +117,7 @@ int NBin::coord2bin(double *x)
 {
   int ix,iy,iz;
 
-  if (!ISFINITE(x[0]) || !ISFINITE(x[1]) || !ISFINITE(x[2]))
+  if (!std::isfinite(x[0]) || !std::isfinite(x[1]) || !std::isfinite(x[2]))
     error->one(FLERR,"Non-numeric positions - simulation unstable");
 
   if (x[0] >= bboxhi[0])

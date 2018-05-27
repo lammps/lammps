@@ -1,5 +1,5 @@
 #include <mpi.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include "one2many.h"
 #include "memory.h"
 

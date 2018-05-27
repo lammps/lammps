@@ -111,7 +111,7 @@ class Molecule : protected Pointers {
 
   double *quat_external;   // orientation imposed by external class
                            // e.g. FixPour or CreateAtoms
-  
+
   Molecule(class LAMMPS *, int, char **, int &);
   ~Molecule();
   void compute_center();
@@ -127,7 +127,7 @@ class Molecule : protected Pointers {
   int toffset,boffset,aoffset,doffset,ioffset;
   int autospecial;
   double sizescale;
-  
+
   void read(int);
   void coords(char *);
   void types(char *);
@@ -190,6 +190,10 @@ Self-explanatory.
 E: Molecule file requires atom style body
 
 Self-explanatory.
+
+E: Invalid header in molecule file
+
+UNDOCUMENTED
 
 E: No count or invalid atom count in molecule file
 
@@ -262,6 +266,10 @@ Self-explanatory.
 E: Molecule file has no Body Doubles section
 
 Self-explanatory.
+
+E: Cannot auto-generate special bonds before simulation box is defined
+
+UNDOCUMENTED
 
 E: Molecule natoms must be 1 for body particle
 
@@ -371,6 +379,10 @@ E: Molecule auto special bond generation overflow
 
 Counts exceed maxspecial setting for other atoms in system.
 
+E: Invalid Shake Flags section in molecule file
+
+UNDOCUMENTED
+
 E: Invalid shake flag in molecule file
 
 Self-explanatory.
@@ -378,6 +390,10 @@ Self-explanatory.
 E: Invalid shake atom in molecule file
 
 Self-explanatory.
+
+E: Invalid shake type data in molecule file
+
+UNDOCUMENTED
 
 E: Invalid shake bond type in molecule file
 

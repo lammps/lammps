@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -567,18 +567,17 @@ private:
   typedef typename ReducerConditional::type ReducerTypeFwd;
   typedef typename Kokkos::Impl::if_c< std::is_same<InvalidType,ReducerType>::value, WorkTag, void>::type WorkTagFwd;
 
-  typedef typename ReducerTypeFwd::value_type ValueType; 
-
   typedef Kokkos::Impl::FunctorValueTraits< ReducerTypeFwd , WorkTagFwd > ValueTraits ;
   typedef Kokkos::Impl::FunctorValueInit<   ReducerTypeFwd , WorkTagFwd > ValueInit ;
 
   typedef typename ValueTraits::pointer_type    pointer_type ;
+  typedef typename ValueTraits::value_type      value_type ;
   typedef typename ValueTraits::reference_type  reference_type ;
 
   using iterate_type = typename Kokkos::Impl::HostIterateTile< MDRangePolicy
                                                                            , FunctorType
                                                                            , WorkTag
-                                                                           , ValueType
+                                                                           , reference_type
                                                                            >;
 
   const FunctorType   m_functor ;

@@ -15,8 +15,8 @@
    Contributing author: Ray Shan (Materials Design)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 #include "dihedral_class2_kokkos.h"
 #include "atom_kokkos.h"
 #include "comm.h"
@@ -87,7 +87,7 @@ void DihedralClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   //atomKK->sync(execution_space,datamask_read);
   k_k1.template sync<DeviceType>();
-  k_k2.template sync<DeviceType>(); 
+  k_k2.template sync<DeviceType>();
   k_k3.template sync<DeviceType>();
   k_phi1.template sync<DeviceType>();
   k_phi2.template sync<DeviceType>();
@@ -95,7 +95,7 @@ void DihedralClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   k_mbt_f1.template sync<DeviceType>();
   k_mbt_f2.template sync<DeviceType>();
   k_mbt_f3.template sync<DeviceType>();
-  k_mbt_r0.template sync<DeviceType>(); 
+  k_mbt_r0.template sync<DeviceType>();
   k_ebt_f1_1.template sync<DeviceType>();
   k_ebt_f2_1.template sync<DeviceType>();
   k_ebt_f3_1.template sync<DeviceType>();
@@ -108,21 +108,21 @@ void DihedralClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   k_at_f2_1.template sync<DeviceType>();
   k_at_f3_1.template sync<DeviceType>();
   k_at_f1_2.template sync<DeviceType>();
-  k_at_f2_2.template sync<DeviceType>(); 
-  k_at_f3_2.template sync<DeviceType>(); 
+  k_at_f2_2.template sync<DeviceType>();
+  k_at_f3_2.template sync<DeviceType>();
   k_at_theta0_1.template sync<DeviceType>();
   k_at_theta0_2.template sync<DeviceType>();
   k_aat_k.template sync<DeviceType>();
   k_aat_theta0_1.template sync<DeviceType>();
   k_aat_theta0_2.template sync<DeviceType>();
-  k_bb13t_k.template sync<DeviceType>(); 
+  k_bb13t_k.template sync<DeviceType>();
   k_bb13t_r10.template sync<DeviceType>();
-  k_bb13t_r30.template sync<DeviceType>(); 
-  k_setflag_d.template sync<DeviceType>(); 
+  k_bb13t_r30.template sync<DeviceType>();
+  k_setflag_d.template sync<DeviceType>();
   k_setflag_mbt.template sync<DeviceType>();
   k_setflag_ebt.template sync<DeviceType>();
-  k_setflag_at.template sync<DeviceType>(); 
-  k_setflag_aat.template sync<DeviceType>(); 
+  k_setflag_at.template sync<DeviceType>();
+  k_setflag_aat.template sync<DeviceType>();
   k_setflag_bb13t.template sync<DeviceType>();
 
   //if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
@@ -229,7 +229,7 @@ void DihedralClass2Kokkos<DeviceType>::operator()(TagDihedralClass2Compute<NEWTO
   const F_FLOAT vb3z = x(i4,2) - x(i3,2);
 
   // distance: c0 calculation
- 
+
   const F_FLOAT r1mag2 = vb1x*vb1x + vb1y*vb1y + vb1z*vb1z;
   const F_FLOAT r1 = sqrt(r1mag2);
   const F_FLOAT r2mag2 = vb2x*vb2x + vb2y*vb2y + vb2z*vb2z;
@@ -247,7 +247,7 @@ void DihedralClass2Kokkos<DeviceType>::operator()(TagDihedralClass2Compute<NEWTO
   const F_FLOAT c0 = (vb1x*vb3x + vb1y*vb3y + vb1z*vb3z) * rb1*rb3;
 
   // 1st and 2nd angle
- 
+
   const F_FLOAT r12c1 = rb1*rb2;
   const F_FLOAT r12c2 = rb2*rb3;
   const F_FLOAT costh12 = (vb1x*vb2x + vb1y*vb2y + vb1z*vb2z) * r12c1;
@@ -342,8 +342,8 @@ void DihedralClass2Kokkos<DeviceType>::operator()(TagDihedralClass2Compute<NEWTO
   const F_FLOAT dphi3 = 3.0*phi - d_phi3[type];
 
   if (eflag) edihedral = d_k1[type]*(1.0 - cos(dphi1)) +
-                 	 d_k2[type]*(1.0 - cos(dphi2)) +
-                 	 d_k3[type]*(1.0 - cos(dphi3));
+                     d_k2[type]*(1.0 - cos(dphi2)) +
+                     d_k3[type]*(1.0 - cos(dphi3));
 
   const F_FLOAT de_dihedral = d_k1[type]*sin(dphi1) + 2.0*d_k2[type]*sin(dphi2) +
       3.0*d_k3[type]*sin(dphi3);
@@ -393,7 +393,7 @@ void DihedralClass2Kokkos<DeviceType>::operator()(TagDihedralClass2Compute<NEWTO
 
   // set up d(theta)/d(r) array
   // dthetadr(i,j,k) = angle i, atom j, coordinate k
-  
+
   F_FLOAT dthetadr[2][4][3];
 
   for (int i = 0; i < 2; i++)
@@ -430,11 +430,11 @@ void DihedralClass2Kokkos<DeviceType>::operator()(TagDihedralClass2Compute<NEWTO
   dthetadr[1][1][2] = sc2 * ((t2 * vb2z) + (vb3z * r12c2));
 
   dthetadr[1][2][0] = sc2 * ((-t2 * vb2x) - (vb3x * r12c2) +
-                 	      (t4 * vb3x) + (vb2x * r12c2));
+                          (t4 * vb3x) + (vb2x * r12c2));
   dthetadr[1][2][1] = sc2 * ((-t2 * vb2y) - (vb3y * r12c2) +
-                 	      (t4 * vb3y) + (vb2y * r12c2));
+                          (t4 * vb3y) + (vb2y * r12c2));
   dthetadr[1][2][2] = sc2 * ((-t2 * vb2z) - (vb3z * r12c2) +
-                 	      (t4 * vb3z) + (vb2z * r12c2));
+                          (t4 * vb3z) + (vb2z * r12c2));
 
   dthetadr[1][3][0] = -sc2 * ((t4 * vb3x) + (vb2x * r12c2));
   dthetadr[1][3][1] = -sc2 * ((t4 * vb3y) + (vb2y * r12c2));
@@ -593,9 +593,9 @@ void DihedralClass2Kokkos<DeviceType>::operator()(TagDihedralClass2Compute<NEWTO
     fabcd[3][1] += tk1 * vb3y;
     fabcd[3][2] += tk1 * vb3z;
   }
- 
+
   F_FLOAT f1[3],f2[3],f3[3],f4[3];
-  
+
   for (int i = 0; i < 3; i++) {
     f1[i] = fabcd[0][i];
     f2[i] = fabcd[1][i];
@@ -781,8 +781,8 @@ void DihedralClass2Kokkos<DeviceType>::coeff(int narg, char **arg)
     k_setflag_bb13t.h_view[i] = setflag_bb13t[i];
   }
 
-  k_k1.template modify<LMPHostType>(); 
-  k_k2.template modify<LMPHostType>(); 
+  k_k1.template modify<LMPHostType>();
+  k_k2.template modify<LMPHostType>();
   k_k3.template modify<LMPHostType>();
   k_phi1.template modify<LMPHostType>();
   k_phi2.template modify<LMPHostType>();
@@ -790,7 +790,7 @@ void DihedralClass2Kokkos<DeviceType>::coeff(int narg, char **arg)
   k_mbt_f1.template modify<LMPHostType>();
   k_mbt_f2.template modify<LMPHostType>();
   k_mbt_f3.template modify<LMPHostType>();
-  k_mbt_r0.template modify<LMPHostType>(); 
+  k_mbt_r0.template modify<LMPHostType>();
   k_ebt_f1_1.template modify<LMPHostType>();
   k_ebt_f2_1.template modify<LMPHostType>();
   k_ebt_f3_1.template modify<LMPHostType>();
@@ -803,21 +803,21 @@ void DihedralClass2Kokkos<DeviceType>::coeff(int narg, char **arg)
   k_at_f2_1.template modify<LMPHostType>();
   k_at_f3_1.template modify<LMPHostType>();
   k_at_f1_2.template modify<LMPHostType>();
-  k_at_f2_2.template modify<LMPHostType>(); 
-  k_at_f3_2.template modify<LMPHostType>(); 
+  k_at_f2_2.template modify<LMPHostType>();
+  k_at_f3_2.template modify<LMPHostType>();
   k_at_theta0_1.template modify<LMPHostType>();
   k_at_theta0_2.template modify<LMPHostType>();
   k_aat_k.template modify<LMPHostType>();
   k_aat_theta0_1.template modify<LMPHostType>();
   k_aat_theta0_2.template modify<LMPHostType>();
-  k_bb13t_k.template modify<LMPHostType>(); 
+  k_bb13t_k.template modify<LMPHostType>();
   k_bb13t_r10.template modify<LMPHostType>();
-  k_bb13t_r30.template modify<LMPHostType>(); 
-  k_setflag_d.template modify<LMPHostType>(); 
+  k_bb13t_r30.template modify<LMPHostType>();
+  k_setflag_d.template modify<LMPHostType>();
   k_setflag_mbt.template modify<LMPHostType>();
   k_setflag_ebt.template modify<LMPHostType>();
-  k_setflag_at.template modify<LMPHostType>(); 
-  k_setflag_aat.template modify<LMPHostType>(); 
+  k_setflag_at.template modify<LMPHostType>();
+  k_setflag_aat.template modify<LMPHostType>();
   k_setflag_bb13t.template modify<LMPHostType>();
 }
 
@@ -961,4 +961,3 @@ template class DihedralClass2Kokkos<LMPDeviceType>;
 template class DihedralClass2Kokkos<LMPHostType>;
 #endif
 }
-

@@ -20,7 +20,7 @@ CommandStyle(read_restart,ReadRestart)
 #ifndef LMP_READ_RESTART_H
 #define LMP_READ_RESTART_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "pointers.h"
 
 namespace LAMMPS_NS {

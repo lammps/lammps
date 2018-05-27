@@ -15,9 +15,9 @@
    Contributing authors: Jeremy Lechman (SNL), Pieter in 't Veld (BASF)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstring>
+#include <cstdlib>
 #include "fix_srd.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -52,8 +52,6 @@ enum{BIG_MOVE,SRD_MOVE,SRD_ROTATE};
 enum{CUBIC_ERROR,CUBIC_WARN};
 enum{SHIFT_NO,SHIFT_YES,SHIFT_POSSIBLE};
 
-enum{NO_REMAP,X_REMAP,V_REMAP};                   // same as fix_deform.cpp
-
 #define EINERTIA 0.2          // moment of inertia prefactor for ellipsoid
 
 #define ATOMPERBIN 30
@@ -80,11 +78,11 @@ static const char cite_fix_srd[] =
 /* ---------------------------------------------------------------------- */
 
 FixSRD::FixSRD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
-  wallfix(NULL), wallwhich(NULL), xwall(NULL), xwallhold(NULL), 
-  vwall(NULL), fwall(NULL), avec_ellipsoid(NULL), avec_line(NULL), 
-  avec_tri(NULL), random(NULL), randomshift(NULL), flocal(NULL), 
-  tlocal(NULL), biglist(NULL), binhead(NULL), binnext(NULL), sbuf1(NULL), 
-  sbuf2(NULL), rbuf1(NULL), rbuf2(NULL), nbinbig(NULL), binbig(NULL), 
+  wallfix(NULL), wallwhich(NULL), xwall(NULL), xwallhold(NULL),
+  vwall(NULL), fwall(NULL), avec_ellipsoid(NULL), avec_line(NULL),
+  avec_tri(NULL), random(NULL), randomshift(NULL), flocal(NULL),
+  tlocal(NULL), biglist(NULL), binhead(NULL), binnext(NULL), sbuf1(NULL),
+  sbuf2(NULL), rbuf1(NULL), rbuf2(NULL), nbinbig(NULL), binbig(NULL),
   binsrd(NULL), stencil(NULL)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_srd);
@@ -384,7 +382,7 @@ void FixSRD::init()
     if (strcmp(modify->fix[i]->style,"deform") == 0) {
       deformflag = 1;
       FixDeform *deform = (FixDeform *) modify->fix[i];
-      if (deform->box_change_shape && deform->remapflag != V_REMAP)
+      if (deform->box_change_shape && deform->remapflag != Domain::V_REMAP)
         error->all(FLERR,"Using fix srd with inconsistent "
                    "fix deform remap option");
     }
@@ -1037,8 +1035,8 @@ void FixSRD::reset_velocities()
   for (i = 0; i < nbins; i++){
     if (vbin[i].owner) {
       if (vbin[i].n > 1) {
-	srd_bin_temp += vbin[i].value[0]/(vbin[i].n-dof_temp);
-	srd_bin_count++;
+        srd_bin_temp += vbin[i].value[0]/(vbin[i].n-dof_temp);
+        srd_bin_count++;
       }
     }
   }
@@ -1348,16 +1346,16 @@ void FixSRD::collisions_single()
                         "inside big particle " TAGINT_FORMAT
                         " on step " BIGINT_FORMAT " bounce %d",
                         atom->tag[i],atom->tag[j],update->ntimestep,ibounce+1);
-		if (insideflag == INSIDE_ERROR) error->one(FLERR,str);
-		error->warning(FLERR,str);
-	      } else{
+                if (insideflag == INSIDE_ERROR) error->one(FLERR,str);
+                error->warning(FLERR,str);
+              } else{
                 sprintf(str,
                         "SRD particle " TAGINT_FORMAT " started "
                         "inside wall %d on step " BIGINT_FORMAT " bounce %d",
                         atom->tag[i],j,update->ntimestep,ibounce+1);
-		if (insideflag == INSIDE_ERROR) error->one(FLERR,str);
-		error->warning(FLERR,str);
-	      }
+                if (insideflag == INSIDE_ERROR) error->one(FLERR,str);
+                error->warning(FLERR,str);
+              }
             }
             break;
           }
@@ -1507,16 +1505,16 @@ void FixSRD::collisions_multi()
                         "inside big particle " TAGINT_FORMAT
                         " on step " BIGINT_FORMAT " bounce %d",
                         atom->tag[i],atom->tag[j],update->ntimestep,ibounce+1);
-		if (insideflag == INSIDE_ERROR) error->one(FLERR,str);
-		error->warning(FLERR,str);
-	      } else{
+                if (insideflag == INSIDE_ERROR) error->one(FLERR,str);
+                error->warning(FLERR,str);
+              } else{
                 sprintf(str,
                         "SRD particle " TAGINT_FORMAT " started "
                         "inside wall %d on step " BIGINT_FORMAT " bounce %d",
                         atom->tag[i],j,update->ntimestep,ibounce+1);
-		if (insideflag == INSIDE_ERROR) error->one(FLERR,str);
-		error->warning(FLERR,str);
-	      }
+                if (insideflag == INSIDE_ERROR) error->one(FLERR,str);
+                error->warning(FLERR,str);
+              }
             }
             t_first = 0.0;
             break;

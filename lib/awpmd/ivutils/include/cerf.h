@@ -42,11 +42,6 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //
 
 
-//#include <math.h>
-//#include <octave/oct.h>
-
-//#include "f77-fcn.h"
-
 //
 // Abramowitz and Stegun: (eqn: 7.1.14) gives this continued
 // fraction for erfc(z)

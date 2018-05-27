@@ -17,10 +17,10 @@
    References: Bureekaew and Schmid, Phys. Status Solidi B 250, 1128 (2013)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_buck6d_coul_gauss_long.h"
 #include "atom.h"
 #include "comm.h"
@@ -433,7 +433,7 @@ void PairBuck6dCoulGaussLong::write_restart(FILE *fp)
         fwrite(&buck6d4[i][j],sizeof(double),1,fp);
         fwrite(&alpha_ij[i][j],sizeof(double),1,fp);
         fwrite(&cut_lj[i][j],sizeof(double),1,fp);
-	    }
+            }
     }
 }
 

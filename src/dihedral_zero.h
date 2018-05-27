@@ -24,7 +24,7 @@ DihedralStyle(zero,DihedralZero)
 #ifndef LMP_DIHEDRAL_ZERO_H
 #define LMP_DIHEDRAL_ZERO_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "dihedral.h"
 
 namespace LAMMPS_NS {
@@ -52,3 +52,14 @@ class DihedralZero : public Dihedral {
 #endif
 #endif
 
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+UNDOCUMENTED
+
+E: Incorrect args for dihedral coefficients
+
+UNDOCUMENTED
+
+*/

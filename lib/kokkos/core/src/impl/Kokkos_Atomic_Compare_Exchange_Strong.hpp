@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -280,6 +280,18 @@ T atomic_compare_exchange( volatile T * const dest, const T compare, const T val
     if ( retval == compare )
         dest[0] = val;
   }
+  return retval;
+}
+
+#elif defined( KOKKOS_ENABLE_SERIAL_ATOMICS )
+
+template< typename T >
+KOKKOS_INLINE_FUNCTION
+T atomic_compare_exchange( volatile T * const dest_v, const T compare, const T val )
+{
+  T* dest = const_cast<T*>(dest_v);
+  T retval = *dest;
+  if (retval == compare) *dest = val;
   return retval;
 }
 

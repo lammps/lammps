@@ -38,7 +38,6 @@ class FixRigid : public Fix {
   void final_integrate_respa(int, int);
   void write_restart_file(char *);
   virtual double compute_scalar();
-  virtual int modify_param(int, char **) {return 0;}
 
   double memory_usage();
   void grow_arrays(int);
@@ -55,6 +54,7 @@ class FixRigid : public Fix {
   void reset_dt();
   void zero_momentum();
   void zero_rotation();
+  virtual int modify_param(int, char **);
   virtual void *extract(const char*, int &);
   double extract_ke();
   double extract_erotational();
@@ -70,6 +70,7 @@ class FixRigid : public Fix {
   char *infile;             // file to read rigid body attributes from
   int rstyle;               // SINGLE,MOLECULE,GROUP
   int setupflag;            // 1 if body properties are setup, else 0
+  int earlyflag;            // 1 if forces/torques computed at post_force()
 
   int dimension;            // # of dimensions
   int nbody;                // # of rigid bodies
@@ -144,6 +145,8 @@ class FixRigid : public Fix {
   void set_v();
   void setup_bodies_static();
   void setup_bodies_dynamic();
+  void apply_langevin_thermostat();
+  void compute_forces_and_torques();
   void readfile(int, double *, double **, double **, double **,
                 imageint *, int *);
 };
@@ -160,6 +163,26 @@ E: Illegal ... command
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
+
+E: Fix rigid custom requires previously defined property/atom
+
+UNDOCUMENTED
+
+E: Fix rigid custom requires integer-valued property/atom
+
+UNDOCUMENTED
+
+E: Variable name for fix rigid custom does not exist
+
+UNDOCUMENTED
+
+E: Fix rigid custom variable is no atom-style variable
+
+UNDOCUMENTED
+
+E: Unsupported fix rigid custom property
+
+UNDOCUMENTED
 
 E: Fix rigid molecule requires atom attribute molecule
 

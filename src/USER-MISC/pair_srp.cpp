@@ -25,7 +25,8 @@ There is an example script for this package in examples/USER/srp.
 Please contact Timothy Sirk for questions (tim.sirk@us.army.mil).
 ------------------------------------------------------------------------- */
 
-#include <stdlib.h>
+#include <cstdlib>
+#include <cstring>
 #include "pair_srp.h"
 #include "atom.h"
 #include "comm.h"
@@ -40,7 +41,6 @@ Please contact Timothy Sirk for questions (tim.sirk@us.army.mil).
 #include "fix_srp.h"
 #include "thermo.h"
 #include "output.h"
-#include <string.h>
 #include "citeme.h"
 
 using namespace LAMMPS_NS;
@@ -290,7 +290,7 @@ void PairSRP::compute(int eflag, int vflag)
         dij = sqrt(dijsq);
 
         if (dij < SMALL)
- 	  continue;     // dij can be 0.0 with soft potentials
+      continue;     // dij can be 0.0 with soft potentials
 
         wd = 1.0 - dij / cut[bptype][bptype];
         fpair = a0[bptype][bptype] * wd / dij;

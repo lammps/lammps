@@ -15,8 +15,8 @@
    Contributing author: Ray Shan (Materials Design)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 #include "angle_class2_kokkos.h"
 #include "atom_kokkos.h"
 #include "neighbor_kokkos.h"
@@ -83,7 +83,7 @@ void AngleClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   //atomKK->sync(execution_space,datamask_read);
   //if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
   //else atomKK->modified(execution_space,F_MASK);
-  
+
   k_theta0.template sync<DeviceType>();
   k_k2.template sync<DeviceType>();
   k_k3.template sync<DeviceType>();
@@ -222,7 +222,7 @@ void AngleClass2Kokkos<DeviceType>::operator()(TagAngleClass2Compute<NEWTON_BOND
   if (eflag) eangle = d_k2[type]*dtheta2 + d_k3[type]*dtheta3 + d_k4[type]*dtheta4;
 
   // force & energy for bond-bond term
- 
+
   const F_FLOAT dr1 = r1 - d_bb_r1[type];
   const F_FLOAT dr2 = r2 - d_bb_r2[type];
   const F_FLOAT tk1 = d_bb_k[type] * dr1;

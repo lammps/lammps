@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <limits.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <climits>
 #include "atom.h"
 #include "style_atom.h"
 #include "atom_vec.h"
@@ -50,8 +50,6 @@ using namespace MathConst;
 #define DELTA 1
 #define DELTA_MEMSTR 1024
 #define EPSILON 1.0e-6
-
-enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 
 /* ---------------------------------------------------------------------- */
 
@@ -866,7 +864,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
     sublo[2] = domain->sublo_lamda[2]; subhi[2] = domain->subhi_lamda[2];
   }
 
-  if (comm->layout != LAYOUT_TILED) {
+  if (comm->layout != Comm::LAYOUT_TILED) {
     if (domain->xperiodic) {
       if (comm->myloc[0] == 0) sublo[0] -= epsilon[0];
       if (comm->myloc[0] == comm->procgrid[0]-1) subhi[0] += epsilon[0];
@@ -1384,30 +1382,30 @@ void Atom::data_bodies(int n, char *buf, AtomVecBody *avec_body,
 
     ninteger = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
     ndouble = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
-    
+
     if ((m = map(tagdata)) >= 0) {
       if (ninteger > maxint) {
-	delete [] ivalues;
-	maxint = ninteger;
-	ivalues = new int[maxint];
+        delete [] ivalues;
+        maxint = ninteger;
+        ivalues = new int[maxint];
       }
       if (ndouble > maxdouble) {
-	delete [] dvalues;
-	maxdouble = ndouble;
-	dvalues = new double[maxdouble];
+        delete [] dvalues;
+        maxdouble = ndouble;
+        dvalues = new double[maxdouble];
       }
-      
+
       for (j = 0; j < ninteger; j++)
-	ivalues[j] = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
+        ivalues[j] = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
       for (j = 0; j < ndouble; j++)
-	dvalues[j] = force->numeric(FLERR,strtok(NULL," \t\n\r\f"));
-      
+        dvalues[j] = force->numeric(FLERR,strtok(NULL," \t\n\r\f"));
+
       avec_body->data_body(m,ninteger,ndouble,ivalues,dvalues);
-      
+
     } else {
       nvalues = ninteger + ndouble;    // number of values to skip
       for (j = 0; j < nvalues; j++)
-	strtok(NULL," \t\n\r\f");
+        strtok(NULL," \t\n\r\f");
     }
   }
 
@@ -1540,7 +1538,7 @@ void Atom::check_mass(const char *file, int line)
   if (mass == NULL) return;
   if (rmass_flag) return;
   for (int itype = 1; itype <= ntypes; itype++)
-    if (mass_setflag[itype] == 0) 
+    if (mass_setflag[itype] == 0)
       error->all(file,line,"Not all per-type masses are set");
 }
 
@@ -1673,10 +1671,10 @@ void Atom::add_molecule_atom(Molecule *onemol, int iatom,
   if (onemol->bodyflag) {
     body[ilocal] = 0;     // as if a body read from data file
     onemol->avec_body->data_body(ilocal,onemol->nibody,onemol->ndbody,
-				 onemol->ibodyparams,onemol->dbodyparams);
+                                 onemol->ibodyparams,onemol->dbodyparams);
     onemol->avec_body->set_quat(ilocal,onemol->quat_external);
   }
-  
+
   if (molecular != 1) return;
 
   // add bond topology info

@@ -41,10 +41,10 @@ class ImproperFourierOMP : public ImproperFourier, public ThrOMP {
 
   template <int EVFLAG, int EFLAG, int NEWTON_BOND>
   void add1_thr(const int,const int,const int,const int,const int,
-		const double &, const double &, const double &,
-		const double &, const double &, const double &,
-		const double &, const double &, const double &,
-		ThrData * const thr);
+                const double &, const double &, const double &,
+                const double &, const double &, const double &,
+                const double &, const double &, const double &,
+                ThrData * const thr);
 };
 
 }

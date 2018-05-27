@@ -15,10 +15,10 @@
    Contributing author: Vishal Boddu (FAU)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_lj_cut_coul_wolf.h"
 #include "atom.h"
 #include "comm.h"
@@ -275,8 +275,7 @@ void PairLJCutCoulWolf::init_style()
 
   // request regular or rRESPA neighbor list
 
-  int irequest;
-  irequest = neighbor->request(this,instance_me);
+  neighbor->request(this,instance_me);
 }
 
 /* ----------------------------------------------------------------------

@@ -14,7 +14,7 @@
             Maurice de Koning (Unicamp/Brazil) - dekoning@ifi.unicamp.br
  ------------------------------------------------------------------------- */
 
-#include <math.h>
+#include <cmath>
 #include "pair_ufm_omp.h"
 #include "atom.h"
 #include "comm.h"

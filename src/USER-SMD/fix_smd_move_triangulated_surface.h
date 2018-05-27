@@ -38,23 +38,23 @@ namespace LAMMPS_NS {
 
 class FixSMDMoveTriSurf: public Fix {
 public:
-	FixSMDMoveTriSurf(class LAMMPS *, int, char **);
-	~FixSMDMoveTriSurf();
-	int setmask();
-	virtual void init();
-	virtual void initial_integrate(int);
-	void reset_dt();
-	int pack_forward_comm(int, int *, double *, int, int *);
-	void unpack_forward_comm(int, int, double *);
+        FixSMDMoveTriSurf(class LAMMPS *, int, char **);
+        ~FixSMDMoveTriSurf();
+        int setmask();
+        virtual void init();
+        virtual void initial_integrate(int);
+        void reset_dt();
+        int pack_forward_comm(int, int *, double *, int, int *);
+        void unpack_forward_comm(int, int, double *);
 
 protected:
-	double dtv;
-	bool linearFlag, wiggleFlag, rotateFlag;
-	double vx, vy, vz;
-	Eigen::Vector3d rotation_axis, origin;
-	double rotation_period;
-	Eigen::Matrix3d u_cross, uxu;
-	double wiggle_travel, wiggle_max_travel, wiggle_direction;
+        double dtv;
+        bool linearFlag, wiggleFlag, rotateFlag;
+        double vx, vy, vz;
+        Eigen::Vector3d rotation_axis, origin;
+        double rotation_period;
+        Eigen::Matrix3d u_cross, uxu;
+        double wiggle_travel, wiggle_max_travel, wiggle_direction;
 };
 
 }

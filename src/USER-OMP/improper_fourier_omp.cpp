@@ -15,7 +15,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
+#include <cmath>
 #include "improper_fourier_omp.h"
 #include "atom.h"
 #include "comm.h"
@@ -117,36 +117,36 @@ void ImproperFourierOMP::eval(int nfrom, int nto, ThrData * const thr)
     vb3z = x[i4][2] - x[i1][2];
 
     add1_thr<EVFLAG,EFLAG,NEWTON_BOND>(i1,i2,i3,i4,type,
-				       vb1x,vb1y,vb1z,
-				       vb2x,vb2y,vb2z,
-				       vb3x,vb3y,vb3z,thr);
+                                       vb1x,vb1y,vb1z,
+                                       vb2x,vb2y,vb2z,
+                                       vb3x,vb3y,vb3z,thr);
     if ( all[type] ) {
       add1_thr<EVFLAG,EFLAG,NEWTON_BOND>(i1,i4,i2,i3,type,
-					 vb3x,vb3y,vb3z,
-					 vb1x,vb1y,vb1z,
-					 vb2x,vb2y,vb2z,thr);
+                                         vb3x,vb3y,vb3z,
+                                         vb1x,vb1y,vb1z,
+                                         vb2x,vb2y,vb2z,thr);
       add1_thr<EVFLAG,EFLAG,NEWTON_BOND>(i1,i3,i4,i2,type,
-					 vb2x,vb2y,vb2z,
-					 vb3x,vb3y,vb3z,
-					 vb1x,vb1y,vb1z,thr);
+                                         vb2x,vb2y,vb2z,
+                                         vb3x,vb3y,vb3z,
+                                         vb1x,vb1y,vb1z,thr);
     }
   }
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_BOND>
 void ImproperFourierOMP::add1_thr(const int i1,const int i2,
-			       const int i3,const int i4,
-			       const int type,
-			       const double &vb1x,
-			       const double &vb1y,
-			       const double &vb1z,
-			       const double &vb2x,
-			       const double &vb2y,
-			       const double &vb2z,
-			       const double &vb3x,
-			       const double &vb3y,
-			       const double &vb3z,
-			       ThrData * const thr)
+                               const int i3,const int i4,
+                               const int type,
+                               const double &vb1x,
+                               const double &vb1y,
+                               const double &vb1z,
+                               const double &vb2x,
+                               const double &vb2y,
+                               const double &vb2z,
+                               const double &vb3x,
+                               const double &vb3y,
+                               const double &vb3z,
+                               ThrData * const thr)
 {
   double eimproper,f1[3],f2[3],f3[3],f4[3];
   double c,c2,a,s,projhfg,dhax,dhay,dhaz,dahx,dahy,dahz,cotphi;
@@ -283,5 +283,5 @@ void ImproperFourierOMP::add1_thr(const int i1,const int i2,
 
   if (EVFLAG)
     ev_tally_thr(this,i1,i2,i3,i4,nlocal,NEWTON_BOND,eimproper,f1,f3,f4,
-		 vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,thr);
+                 vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,thr);
 }

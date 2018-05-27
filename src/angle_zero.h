@@ -20,7 +20,7 @@ AngleStyle(zero,AngleZero)
 #ifndef LMP_ANGLE_ZERO_H
 #define LMP_ANGLE_ZERO_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "angle.h"
 
 namespace LAMMPS_NS {
@@ -53,6 +53,10 @@ class AngleZero : public Angle {
 #endif
 
 /* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+UNDOCUMENTED
 
 E: Incorrect args for angle coefficients
 

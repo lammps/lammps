@@ -15,10 +15,10 @@
    Contributing Author: Sai Jayaraman (Sandia)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_born.h"
 #include "atom.h"
 #include "comm.h"

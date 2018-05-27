@@ -63,7 +63,7 @@ class FixCMAP : public Fix {
   int unpack_exchange(int, double *);
 
   double memory_usage();
- 
+
  private:
   int nprocs,me;
   int newton_bond,eflag_caller;
@@ -111,7 +111,7 @@ class FixCMAP : public Fix {
   void spl_interpolate(double, double *, double *, double &, double &);
 
   // calculate dihedral angles
-     
+
   double dihedral_angle_atan2(double, double, double, double, double, double,
                               double, double, double, double);
 
@@ -128,3 +128,39 @@ class FixCMAP : public Fix {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+UNDOCUMENTED
+
+E: CMAP atoms %d %d %d %d %d missing on proc %d at step %ld
+
+UNDOCUMENTED
+
+E: Invalid CMAP crossterm_type
+
+UNDOCUMENTED
+
+E: Cannot open fix cmap file %s
+
+UNDOCUMENTED
+
+E: CMAP: atan2 function cannot take 2 zero arguments
+
+UNDOCUMENTED
+
+E: Invalid read data header line for fix cmap
+
+UNDOCUMENTED
+
+E: Incorrect %s format in data file
+
+UNDOCUMENTED
+
+E: Too many CMAP crossterms for one atom
+
+UNDOCUMENTED
+
+*/

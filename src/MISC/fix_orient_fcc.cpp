@@ -15,9 +15,9 @@
    Contributing authors: Koenraad Janssens and David Olmsted (SNL)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstring>
+#include <cstdlib>
 #include <mpi.h>
 #include "fix_orient_fcc.h"
 #include "atom.h"
@@ -55,7 +55,7 @@ static const char cite_fix_orient_fcc[] =
 
 FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  xifilename(NULL), chifilename(NULL), order(NULL), nbr(NULL), 
+  xifilename(NULL), chifilename(NULL), order(NULL), nbr(NULL),
   sort(NULL), list(NULL)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_orient_fcc);

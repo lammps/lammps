@@ -14,7 +14,7 @@
 #ifndef LMP_MATH_SPECIAL_KOKKOS_H
 #define LMP_MATH_SPECIAL_KOKKOS_H
 
-#include <math.h>
+#include <cmath>
 #include "kokkos_type.h"
 
 namespace LAMMPS_NS {
@@ -37,7 +37,7 @@ namespace MathSpecialKokkos {
   }
 
   // exp(-x*x) for coul/long styles
-  
+
   static inline double expmsq(double x)
   {
     x *= x;

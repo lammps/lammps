@@ -1,7 +1,7 @@
 #ifndef OCL_MACROS_H
 #define OCL_MACROS_H
 
-#include <stdio.h>
+#include <cstdio>
 #include <cassert>
 
 #ifdef __APPLE__

@@ -14,15 +14,15 @@
 /* ----------------------------------------------------------------------
    Contributing author: Paul Crozier (SNL)
      The lj-fsw/coul-fsh (force-switched and force-shifted) sections
-     were provided by Robert Meissner 
+     were provided by Robert Meissner
      and Lucio Colombi Ciacchi of Bremen University, Bremen, Germany,
-     with additional assistance from Robert A. Latour, Clemson University 
+     with additional assistance from Robert A. Latour, Clemson University
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_lj_charmmfsw_coul_charmmfsh.h"
 #include "atom.h"
 #include "update.h"
@@ -37,7 +37,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCharmmfswCoulCharmmfsh::PairLJCharmmfswCoulCharmmfsh(LAMMPS *lmp) : 
+PairLJCharmmfswCoulCharmmfsh::PairLJCharmmfswCoulCharmmfsh(LAMMPS *lmp) :
   Pair(lmp)
 {
   implicit = 0;
@@ -145,64 +145,64 @@ void PairLJCharmmfswCoulCharmmfsh::compute(int eflag, int vflag)
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq < cut_bothsq) {
-	r2inv = 1.0/rsq;
-	r = sqrt(rsq);
+        r2inv = 1.0/rsq;
+        r = sqrt(rsq);
 
-	if (rsq < cut_coulsq) {
-	  forcecoul = qqrd2e * qtmp*q[j]*
+        if (rsq < cut_coulsq) {
+          forcecoul = qqrd2e * qtmp*q[j]*
             (sqrt(r2inv) - r*cut_coulinv*cut_coulinv);
-	} else forcecoul = 0.0;
+        } else forcecoul = 0.0;
 
-	if (rsq < cut_ljsq) {
-	  r6inv = r2inv*r2inv*r2inv;
-	  jtype = type[j];
-	  forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-	  if (rsq > cut_lj_innersq) {
-	    switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
-	      (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
-	    forcelj = forcelj*switch1;
-	  }
-	} else forcelj = 0.0;
+        if (rsq < cut_ljsq) {
+          r6inv = r2inv*r2inv*r2inv;
+          jtype = type[j];
+          forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
+          if (rsq > cut_lj_innersq) {
+            switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
+              (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
+            forcelj = forcelj*switch1;
+          }
+        } else forcelj = 0.0;
 
-	fpair = (factor_coul*forcecoul + factor_lj*forcelj) * r2inv;
+        fpair = (factor_coul*forcecoul + factor_lj*forcelj) * r2inv;
 
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
 
-	if (eflag) {
-	  if (rsq < cut_coulsq) {
-	    ecoul = qqrd2e * qtmp*q[j]*
+        if (eflag) {
+          if (rsq < cut_coulsq) {
+            ecoul = qqrd2e * qtmp*q[j]*
               (sqrt(r2inv) + cut_coulinv*cut_coulinv*r - 2.0*cut_coulinv);
-	    ecoul *= factor_coul;
-	  } else ecoul = 0.0;
-	  if (rsq < cut_ljsq) {
+            ecoul *= factor_coul;
+          } else ecoul = 0.0;
+          if (rsq < cut_ljsq) {
             if (rsq > cut_lj_innersq) {
               rinv = 1.0/r;
               r3inv = rinv*rinv*rinv;
-              evdwl12 = lj3[itype][jtype]*cut_lj6*denom_lj12 * 
+              evdwl12 = lj3[itype][jtype]*cut_lj6*denom_lj12 *
                 (r6inv - cut_lj6inv)*(r6inv - cut_lj6inv);
-              evdwl6 = -lj4[itype][jtype]*cut_lj3*denom_lj6 * 
+              evdwl6 = -lj4[itype][jtype]*cut_lj3*denom_lj6 *
                 (r3inv - cut_lj3inv)*(r3inv - cut_lj3inv);;
               evdwl = evdwl12 + evdwl6;
             } else {
-              evdwl12 = r6inv*lj3[itype][jtype]*r6inv - 
+              evdwl12 = r6inv*lj3[itype][jtype]*r6inv -
                 lj3[itype][jtype]*cut_lj_inner6inv*cut_lj6inv;
-              evdwl6 = -lj4[itype][jtype]*r6inv + 
+              evdwl6 = -lj4[itype][jtype]*r6inv +
                 lj4[itype][jtype]*cut_lj_inner3inv*cut_lj3inv;
               evdwl = evdwl12 + evdwl6;
             }
-	    evdwl *= factor_lj;
-	  } else evdwl = 0.0;
-	}
+            evdwl *= factor_lj;
+          } else evdwl = 0.0;
+        }
 
-	if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			     evdwl,ecoul,fpair,delx,dely,delz);
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,
+                             evdwl,ecoul,fpair,delx,dely,delz);
       }
     }
   }
@@ -248,7 +248,7 @@ void PairLJCharmmfswCoulCharmmfsh::allocate()
 
 void PairLJCharmmfswCoulCharmmfsh::settings(int narg, char **arg)
 {
-  if (narg != 2 && narg != 3) 
+  if (narg != 2 && narg != 3)
     error->all(FLERR,"Illegal pair_style command");
 
   cut_lj_inner = force->numeric(FLERR,arg[0]);
@@ -266,7 +266,7 @@ void PairLJCharmmfswCoulCharmmfsh::settings(int narg, char **arg)
 
 void PairLJCharmmfswCoulCharmmfsh::coeff(int narg, char **arg)
 {
-  if (narg != 4 && narg != 6) 
+  if (narg != 4 && narg != 6)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
@@ -331,7 +331,7 @@ void PairLJCharmmfswCoulCharmmfsh::init_style()
   cut_coulinv = 1.0/cut_coul;
   cut_bothsq = MAX(cut_ljsq,cut_coulsq);
 
-  denom_lj = (cut_ljsq-cut_lj_innersq) * (cut_ljsq-cut_lj_innersq) * 
+  denom_lj = (cut_ljsq-cut_lj_innersq) * (cut_ljsq-cut_lj_innersq) *
     (cut_ljsq-cut_lj_innersq);
   denom_lj12 = 1.0/(cut_lj6 - cut_lj_inner6);
   denom_lj6 = 1.0/(cut_lj3 - cut_lj_inner3);
@@ -345,10 +345,10 @@ double PairLJCharmmfswCoulCharmmfsh::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) {
     epsilon[i][j] = mix_energy(epsilon[i][i],epsilon[j][j],
-			       sigma[i][i],sigma[j][j]);
+                               sigma[i][i],sigma[j][j]);
     sigma[i][j] = mix_distance(sigma[i][i],sigma[j][j]);
     eps14[i][j] = mix_energy(eps14[i][i],eps14[j][j],
-			       sigma14[i][i],sigma14[j][j]);
+                               sigma14[i][i],sigma14[j][j]);
     sigma14[i][j] = mix_distance(sigma14[i][i],sigma14[j][j]);
   }
 
@@ -362,7 +362,7 @@ double PairLJCharmmfswCoulCharmmfsh::init_one(int i, int j)
   lj14_2[i][j] = 24.0 * eps14[i][j] * pow(sigma14[i][j],6.0);
   lj14_3[i][j] = 4.0 * eps14[i][j] * pow(sigma14[i][j],12.0);
   lj14_4[i][j] = 4.0 * eps14[i][j] * pow(sigma14[i][j],6.0);
-     
+
   lj1[j][i] = lj1[i][j];
   lj2[j][i] = lj2[i][j];
   lj3[j][i] = lj3[i][j];
@@ -437,16 +437,16 @@ void PairLJCharmmfswCoulCharmmfsh::read_restart(FILE *fp)
       if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-	if (me == 0) {
-	  fread(&epsilon[i][j],sizeof(double),1,fp);
-	  fread(&sigma[i][j],sizeof(double),1,fp);
-	  fread(&eps14[i][j],sizeof(double),1,fp);
-	  fread(&sigma14[i][j],sizeof(double),1,fp);
-	}
-	MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&eps14[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&sigma14[i][j],1,MPI_DOUBLE,0,world);
+        if (me == 0) {
+          fread(&epsilon[i][j],sizeof(double),1,fp);
+          fread(&sigma[i][j],sizeof(double),1,fp);
+          fread(&eps14[i][j],sizeof(double),1,fp);
+          fread(&sigma14[i][j],sizeof(double),1,fp);
+        }
+        MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&eps14[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&sigma14[i][j],1,MPI_DOUBLE,0,world);
       }
     }
 }
@@ -498,7 +498,7 @@ single(int i, int j, int itype, int jtype,
   r = sqrt(rsq);
   rinv = 1.0/r;
   if (rsq < cut_coulsq) {
-    forcecoul = force->qqrd2e * atom->q[i]*atom->q[j] * 
+    forcecoul = force->qqrd2e * atom->q[i]*atom->q[j] *
       (sqrt(r2inv) - r*cut_coulinv*cut_coulinv);
   } else forcecoul = 0.0;
 
@@ -508,7 +508,7 @@ single(int i, int j, int itype, int jtype,
     forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
     if (rsq > cut_lj_innersq) {
       switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
-	(cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
+        (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
       forcelj = forcelj*switch1;
     }
   } else forcelj = 0.0;
@@ -517,21 +517,21 @@ single(int i, int j, int itype, int jtype,
 
   double eng = 0.0;
   if (rsq < cut_coulsq) {
-    phicoul = force->qqrd2e * atom->q[i]*atom->q[j] * 
+    phicoul = force->qqrd2e * atom->q[i]*atom->q[j] *
       (sqrt(r2inv) + cut_coulinv*cut_coulinv*r - 2.0*cut_coulinv);
     eng += factor_coul*phicoul;
   }
   if (rsq < cut_ljsq) {
     if (rsq > cut_lj_innersq) {
-      philj12 = lj3[itype][jtype]*cut_lj6*denom_lj12 * 
+      philj12 = lj3[itype][jtype]*cut_lj6*denom_lj12 *
         (r6inv - cut_lj6inv)*(r6inv - cut_lj6inv);
-      philj6 = -lj4[itype][jtype]*cut_lj3*denom_lj6 * 
+      philj6 = -lj4[itype][jtype]*cut_lj3*denom_lj6 *
         (r3inv - cut_lj3inv)*(r3inv - cut_lj3inv);;
       philj = philj12 + philj6;
     } else {
-      philj12 = r6inv*lj3[itype][jtype]*r6inv - 
+      philj12 = r6inv*lj3[itype][jtype]*r6inv -
         lj3[itype][jtype]*cut_lj_inner6inv*cut_lj6inv;
-      philj6 = -lj4[itype][jtype]*r6inv + 
+      philj6 = -lj4[itype][jtype]*r6inv +
         lj4[itype][jtype]*cut_lj_inner3inv*cut_lj3inv;
       philj = philj12 + philj6;
     }

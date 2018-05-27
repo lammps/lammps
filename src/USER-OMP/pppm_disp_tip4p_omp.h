@@ -63,7 +63,7 @@ namespace LAMMPS_NS {
                          const FFT_SCALAR &, const FFT_SCALAR &,
                          const int, FFT_SCALAR * const * const);
   void compute_drho1d_thr(FFT_SCALAR * const * const, const FFT_SCALAR &,
-			  const FFT_SCALAR &, const FFT_SCALAR &,
+                          const FFT_SCALAR &, const FFT_SCALAR &,
                           const int, FFT_SCALAR * const * const);
   virtual void find_M_thr(int, int &, int &, dbl3_t &);
 

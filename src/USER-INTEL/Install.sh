@@ -38,6 +38,8 @@ for file in *_intel.h; do
   action $file $dep
 done
 
+# step 2: handle cases and tasks not handled in step 1.
+
 action intel_preprocess.h
 action intel_buffers.h
 action intel_buffers.cpp
@@ -49,8 +51,6 @@ action npair_intel.cpp
 action intel_simd.h
 action intel_intrinsics.h pair_tersoff_intel.cpp
 action intel_intrinsics_airebo.h pair_airebo_intel.cpp
-
-# step 2: handle cases and tasks not handled in step 1.
 
 if (test $mode = 1) then
 

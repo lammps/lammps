@@ -16,7 +16,7 @@
  *_________________________________________________________________________*/
 
 #include "matrixfun.h"
-#include <math.h>
+#include <cmath>
 #include "fastmatrixops.h"
 #include <cstdlib>
 

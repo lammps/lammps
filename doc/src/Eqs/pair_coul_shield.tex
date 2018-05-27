@@ -1,0 +1,33 @@
+\documentclass[aps,pr,onecolumn,superscriptaddress,noshowpacs,a4paper,15pt]{revtex4}
+\pdfoutput=1
+\bibliographystyle{apsrev4}
+\usepackage{color}
+\usepackage{dcolumn} %Align table columns on decimal point
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{graphicx}
+\usepackage[pdftex]{hyperref}
+\hypersetup{colorlinks=true,citecolor=blue,linkcolor=red,urlcolor=blue}
+\usepackage[all]{hypcap}
+\newcommand{\red}{\color{red}}
+\newcommand{\blue}{\color{blue}}
+\definecolor{green}{rgb}{0,0.5,0}
+\newcommand{\green}{\color{green}}
+\newcommand{\white}{\color{white}}
+%\newcommand{\cite}[1]{\hspace{-1 ex} % \nocite{#1}\citenum{#1}}
+\thickmuskip=0.5\thickmuskip %shorter spaces in math
+
+\begin{document}
+\begingroup
+\Large
+\begin{eqnarray*}
+  E & = & \frac{1}{2} \sum_i \sum_{j \neq i} V_{ij} \\[15pt]
+  V_{ij} & = & {\rm Tap}(r_{ij})\frac{\kappa q_i q_j}{\sqrt[3]{r_{ij}^3+(1/\lambda_{ij})^3}}\\[15pt]
+  {\rm Tap}(r_{ij}) & = & 20\left ( \frac{r_{ij}}{R_{cut}} \right )^7 -
+                          70\left ( \frac{r_{ij}}{R_{cut}} \right )^6 +
+                          84\left ( \frac{r_{ij}}{R_{cut}} \right )^5 -
+                          35\left ( \frac{r_{ij}}{R_{cut}} \right )^4 + 1
+\end{eqnarray*}
+\endgroup
+\end{document}

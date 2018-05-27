@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_morse_smooth_linear.h"
 #include "atom.h"
 #include "comm.h"
@@ -223,7 +223,7 @@ double PairMorseSmoothLinear::init_one(int i, int j)
   morse1[i][j] = 2.0*d0[i][j]*alpha[i][j];
 
   double alpha_dr = -alpha[i][j] * (cut[i][j] - r0[i][j]);
-    
+
   offset[i][j]        = d0[i][j] * (exp(2.0*alpha_dr) - 2.0*exp(alpha_dr));
   der_at_cutoff[i][j] = -2.0*alpha[i][j]*d0[i][j] * (exp(2.0*alpha_dr) - exp(alpha_dr));
 

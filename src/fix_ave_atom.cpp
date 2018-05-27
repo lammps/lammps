@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include "fix_ave_atom.h"
 #include "atom.h"
 #include "domain.h"
@@ -36,7 +36,7 @@ enum{X,V,F,COMPUTE,FIX,VARIABLE};
 
 FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  nvalues(0), which(NULL), argindex(NULL), value2index(NULL), 
+  nvalues(0), which(NULL), argindex(NULL), value2index(NULL),
   ids(NULL), array(NULL)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix ave/atom command");

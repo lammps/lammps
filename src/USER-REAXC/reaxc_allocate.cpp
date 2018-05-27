@@ -300,10 +300,10 @@ int Allocate_Workspace( reax_system *system, control_params *control,
   // storage for reductions with multiple threads
 #ifdef LMP_USER_OMP
   workspace->CdDeltaReduction = (double *) scalloc(sizeof(double), total_cap*control->nthreads,
-						 "cddelta_reduce", comm);
+                                                 "cddelta_reduce", comm);
 
   workspace->forceReduction = (rvec *) scalloc(sizeof(rvec), total_cap*control->nthreads,
-					       "forceReduction", comm);
+                                               "forceReduction", comm);
 
   workspace->valence_angle_atom_myoffset = (int *) scalloc(sizeof(int), total_cap, "valence_angle_atom_myoffset", comm);
   workspace->my_ext_pressReduction = (rvec *) calloc(sizeof(rvec), control->nthreads);
@@ -327,14 +327,14 @@ static void Reallocate_Neighbor_List( reax_list *far_nbrs, int n,
 static int Reallocate_HBonds_List( reax_system *system, reax_list *hbonds,
                                    MPI_Comm comm )
 {
-  int i, id, total_hbonds;
+  int i, total_hbonds;
 
   int mincap = system->mincap;
   double saferzone = system->saferzone;
 
   total_hbonds = 0;
   for( i = 0; i < system->n; ++i )
-    if( (id = system->my_atoms[i].Hindex) >= 0 ) {
+    if( (system->my_atoms[i].Hindex) >= 0 ) {
       total_hbonds += system->my_atoms[i].num_hbonds;
     }
   total_hbonds = (int)(MAX( total_hbonds*saferzone, mincap*MIN_HBONDS ));

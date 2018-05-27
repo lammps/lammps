@@ -16,10 +16,10 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstring>
+#include <cstdio>
+#include <cstdlib>
+#include <cmath>
 #include "msm.h"
 #include "atom.h"
 #include "comm.h"
@@ -1442,7 +1442,7 @@ void MSM::particle_map()
 
   int flag = 0;
 
-  if (!ISFINITE(boxlo[0]) || !ISFINITE(boxlo[1]) || !ISFINITE(boxlo[2]))
+  if (!std::isfinite(boxlo[0]) || !std::isfinite(boxlo[1]) || !std::isfinite(boxlo[2]))
     error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
 
   for (int i = 0; i < nlocal; i++) {
@@ -2261,7 +2261,7 @@ void MSM::restriction(int n)
   double ***qgrid2 = qgrid[n+1];
 
   int k = 0;
-  int index[p+2];
+  int *index = new int[p+2];
   for (int nu=-p; nu<=p; nu++) {
     if (nu%2 == 0 && nu != 0) continue;
     phi1d[0][k] = compute_phi(nu*delxinv[n+1]/delxinv[n]);
@@ -2317,7 +2317,7 @@ void MSM::restriction(int n)
         }
         qgrid2[kp][jp][ip] += q2sum;
       }
-
+  delete[] index;
 }
 
 /* ----------------------------------------------------------------------
@@ -2348,7 +2348,7 @@ void MSM::prolongation(int n)
   double ***v5grid2 = v5grid[n+1];
 
   int k = 0;
-  int index[p+2];
+  int *index = new int[p+2];
   for (int nu=-p; nu<=p; nu++) {
     if (nu%2 == 0 && nu != 0) continue;
     phi1d[0][k] = compute_phi(nu*delxinv[n+1]/delxinv[n]);
@@ -2420,7 +2420,7 @@ void MSM::prolongation(int n)
         }
 
       }
-
+  delete[] index;
 }
 
 /* ----------------------------------------------------------------------

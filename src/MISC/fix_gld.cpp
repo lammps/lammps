@@ -16,9 +16,9 @@
                          Andrew Baczewski (Michigan State/SNL)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstring>
 #include "fix_gld.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -43,7 +43,7 @@ using namespace FixConst;
 ------------------------------------------------------------------------- */
 
 FixGLD::FixGLD(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), 
+  Fix(lmp, narg, arg),
   step_respa(NULL), prony_c(NULL), prony_tau(NULL), s_gld(NULL), random(NULL)
 {
   int narg_min = 8;
@@ -71,7 +71,7 @@ FixGLD::FixGLD(LAMMPS *lmp, int narg, char **arg) :
 
   // 7 = series type
   if(strcmp(arg[7],"pprony") == 0) {
-     series_type = 1;	// series type 1 is 'positive Prony series'
+     series_type = 1;   // series type 1 is 'positive Prony series'
   } else {
      error->all(FLERR,"Fix gld series type must be pprony for now");
   }
@@ -131,13 +131,13 @@ FixGLD::FixGLD(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"zero") == 0) {
       if (iarg+2 > narg) {
-	error->all(FLERR, "Illegal fix gld command");
+        error->all(FLERR, "Illegal fix gld command");
       }
       if (strcmp(arg[iarg+1],"no") == 0) {
       } else if (strcmp(arg[iarg+1],"yes") == 0) {
-	zeroflag = 1;
+        zeroflag = 1;
       } else {
-	error->all(FLERR,"Illegal fix gld command");
+        error->all(FLERR,"Illegal fix gld command");
       }
       iarg += 2;
     }
@@ -248,28 +248,28 @@ void FixGLD::initial_integrate(int vflag)
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
         dtfm = dtf / rmass[i];
-	// Advance V by dt/2
+        // Advance V by dt/2
         v[i][0] += dtfm * f[i][0];
         v[i][1] += dtfm * f[i][1];
         v[i][2] += dtfm * f[i][2];
         for (int k = 0; k < 3*prony_terms; k=k+3) {
-	  v[i][0] += dtfm * s_gld[i][k];
-	  v[i][1] += dtfm * s_gld[i][k+1];
-	  v[i][2] += dtfm * s_gld[i][k+2];
-	}
+          v[i][0] += dtfm * s_gld[i][k];
+          v[i][1] += dtfm * s_gld[i][k+1];
+          v[i][2] += dtfm * s_gld[i][k+2];
+        }
 
-	// Advance X by dt
+        // Advance X by dt
         x[i][0] += dtv * v[i][0];
         x[i][1] += dtv * v[i][1];
         x[i][2] += dtv * v[i][2];
 
-	// Advance S by dt
-	icoeff = 0;
-	for (int k = 0; k < 3*prony_terms; k=k+3) {
-	  double theta = exp(-dtv/prony_tau[icoeff]);
+        // Advance S by dt
+        icoeff = 0;
+        for (int k = 0; k < 3*prony_terms; k=k+3) {
+          double theta = exp(-dtv/prony_tau[icoeff]);
           double ck = prony_c[icoeff];
           double vmult = (theta-1.)*ck/ftm2v;
-	  double rmult = sqrt(2.0*kT*ck/dtv)*(1.-theta)/ftm2v;
+          double rmult = sqrt(2.0*kT*ck/dtv)*(1.-theta)/ftm2v;
 
           // random force
 #ifdef GLD_GAUSSIAN_DISTRO
@@ -286,9 +286,9 @@ void FixGLD::initial_integrate(int vflag)
 #endif
 
           // sum of random forces
-	  fsum[0] += fran[0];
-	  fsum[1] += fran[1];
-	  fsum[2] += fran[2];
+          fsum[0] += fran[0];
+          fsum[1] += fran[1];
+          fsum[2] += fran[2];
 
           s_gld[i][k]   *= theta;
           s_gld[i][k+1] *= theta;
@@ -300,36 +300,36 @@ void FixGLD::initial_integrate(int vflag)
           s_gld[i][k+1] += fran[1];
           s_gld[i][k+2] += fran[2];
 
-	  icoeff += 1;
-	}
+          icoeff += 1;
+        }
       }
 
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
         dtfm = dtf / mass[type[i]];
-	// Advance V by dt/2
+        // Advance V by dt/2
         v[i][0] += dtfm * f[i][0];
         v[i][1] += dtfm * f[i][1];
         v[i][2] += dtfm * f[i][2];
         for (int k = 0; k < 3*prony_terms; k=k+3) {
-	  v[i][0] += dtfm * s_gld[i][k];
-	  v[i][1] += dtfm * s_gld[i][k+1];
-	  v[i][2] += dtfm * s_gld[i][k+2];
-	}
+          v[i][0] += dtfm * s_gld[i][k];
+          v[i][1] += dtfm * s_gld[i][k+1];
+          v[i][2] += dtfm * s_gld[i][k+2];
+        }
 
-	// Advance X by dt
+        // Advance X by dt
         x[i][0] += dtv * v[i][0];
         x[i][1] += dtv * v[i][1];
         x[i][2] += dtv * v[i][2];
 
-	// Advance S by dt
-	icoeff = 0;
-	for (int k = 0; k < 3*prony_terms; k=k+3) {
-	  double theta = exp(-dtv/prony_tau[icoeff]);
+        // Advance S by dt
+        icoeff = 0;
+        for (int k = 0; k < 3*prony_terms; k=k+3) {
+          double theta = exp(-dtv/prony_tau[icoeff]);
           double ck = prony_c[icoeff];
           double vmult = (theta-1.)*ck/ftm2v;
-	  double rmult = sqrt(2.0*kT*ck/dtv)*(1.-theta)/ftm2v;
+          double rmult = sqrt(2.0*kT*ck/dtv)*(1.-theta)/ftm2v;
 
           // random force
 #ifdef GLD_GAUSSIAN_DISTRO
@@ -339,16 +339,16 @@ void FixGLD::initial_integrate(int vflag)
 #endif
 
 #ifdef GLD_UNIFORM_DISTRO
- 	  rmult *= sqrt(12.0); // correct variance of uniform distribution
+          rmult *= sqrt(12.0); // correct variance of uniform distribution
           fran[0] = rmult*(random->uniform() - 0.5);
           fran[1] = rmult*(random->uniform() - 0.5);
           fran[2] = rmult*(random->uniform() - 0.5);
 #endif
 
           // sum of random forces
-	  fsum[0] += fran[0];
-	  fsum[1] += fran[1];
-	  fsum[2] += fran[2];
+          fsum[0] += fran[0];
+          fsum[1] += fran[1];
+          fsum[2] += fran[2];
 
           s_gld[i][k]   *= theta;
           s_gld[i][k+1] *= theta;
@@ -360,9 +360,9 @@ void FixGLD::initial_integrate(int vflag)
           s_gld[i][k+1] += fran[1];
           s_gld[i][k+2] += fran[2];
 
-	  icoeff += 1;
+          icoeff += 1;
 
-	}
+        }
       }
   }
 
@@ -377,11 +377,11 @@ void FixGLD::initial_integrate(int vflag)
     fsumall[2] /= (count*prony_terms);
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	for (int k = 0; k < 3*prony_terms; k=k+3) {
+        for (int k = 0; k < 3*prony_terms; k=k+3) {
           s_gld[i][k]   -= fsumall[0];
           s_gld[i][k+1] -= fsumall[1];
           s_gld[i][k+2] -= fsumall[2];
-	}
+        }
       }
     }
   }
@@ -415,10 +415,10 @@ void FixGLD::final_integrate()
         v[i][1] += dtfm * f[i][1];
         v[i][2] += dtfm * f[i][2];
         for (int k = 0; k < 3*prony_terms; k=k+3) {
-	  v[i][0] += dtfm * s_gld[i][k];
-	  v[i][1] += dtfm * s_gld[i][k+1];
-	  v[i][2] += dtfm * s_gld[i][k+2];
-	}
+          v[i][0] += dtfm * s_gld[i][k];
+          v[i][1] += dtfm * s_gld[i][k+1];
+          v[i][2] += dtfm * s_gld[i][k+2];
+        }
       }
 
   } else {
@@ -429,10 +429,10 @@ void FixGLD::final_integrate()
         v[i][1] += dtfm * f[i][1];
         v[i][2] += dtfm * f[i][2];
         for (int k = 0; k < 3*prony_terms; k=k+3) {
-	  v[i][0] += dtfm * s_gld[i][k];
-	  v[i][1] += dtfm * s_gld[i][k+1];
-	  v[i][2] += dtfm * s_gld[i][k+2];
-	}
+          v[i][0] += dtfm * s_gld[i][k];
+          v[i][1] += dtfm * s_gld[i][k+1];
+          v[i][2] += dtfm * s_gld[i][k+2];
+        }
       }
   }
 

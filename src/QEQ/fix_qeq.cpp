@@ -16,10 +16,10 @@
      Based on fix qeq/reax by H. Metin Aktulga
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "fix_qeq.h"
 #include "atom.h"
 #include "comm.h"
@@ -46,10 +46,10 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), list(NULL), chi(NULL), eta(NULL), 
-  gamma(NULL), zeta(NULL), zcore(NULL), chizj(NULL), shld(NULL), 
-  s(NULL), t(NULL), s_hist(NULL), t_hist(NULL), Hdia_inv(NULL), b_s(NULL), 
-  b_t(NULL), p(NULL), q(NULL), r(NULL), d(NULL), 
+  Fix(lmp, narg, arg), list(NULL), chi(NULL), eta(NULL),
+  gamma(NULL), zeta(NULL), zcore(NULL), chizj(NULL), shld(NULL),
+  s(NULL), t(NULL), s_hist(NULL), t_hist(NULL), Hdia_inv(NULL), b_s(NULL),
+  b_t(NULL), p(NULL), q(NULL), r(NULL), d(NULL),
   qf(NULL), q1(NULL), q2(NULL), qv(NULL)
 {
   if (narg < 8) error->all(FLERR,"Illegal fix qeq command");
@@ -700,7 +700,7 @@ void FixQEq::read_file(char *file)
 
   int ntypes = atom->ntypes;
   int *setflag = new int[ntypes+1];
-  for (i=0; i < params_per_line; ++i) setflag[i] = 0;
+  for (i=0; i <= ntypes; ++i) setflag[i] = 0;
 
   memory->create(chi,ntypes+1,"qeq:chi");
   memory->create(eta,ntypes+1,"qeq:eta");

@@ -20,7 +20,7 @@ AngleStyle(sdk,AngleSDK)
 #ifndef LMP_ANGLE_SDK_H
 #define LMP_ANGLE_SDK_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "angle.h"
 
 namespace LAMMPS_NS {

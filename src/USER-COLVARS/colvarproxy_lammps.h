@@ -120,14 +120,9 @@ class colvarproxy_lammps : public colvarproxy {
   void log(std::string const &message);
   void error(std::string const &message);
   void fatal_error(std::string const &message);
-  void exit(std::string const &message);
 
   cvm::rvector position_distance(cvm::atom_pos const &pos1,
-                                 cvm::atom_pos const &pos2);
-  cvm::real position_dist2(cvm::atom_pos const &pos1,
-                           cvm::atom_pos const &pos2);
-  void select_closest_image(cvm::atom_pos &pos,
-                            cvm::atom_pos const &ref_pos);
+                                 cvm::atom_pos const &pos2) const;
 
   int backup_file(char const *filename);
 

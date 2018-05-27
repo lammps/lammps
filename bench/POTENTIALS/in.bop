@@ -13,11 +13,11 @@ create_box	2 box
 create_atoms	1 box basis 2 2 basis 4 2 basis 6 2 basis 8 2
 
 pair_style	bop
-pair_coeff	* * CdTe.bop Cd Te
+pair_coeff	* * CdTe.bop.table Cd Te
 mass		1 112.4
 mass		2 127.6
 
-communicate	single cutoff 14.7
+comm_modify	cutoff 14.7
 
 velocity	all create 1000.0 376847 loop geom
 

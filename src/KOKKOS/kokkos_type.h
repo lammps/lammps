@@ -956,7 +956,7 @@ void buffer_view(BufferView &buf, DualView &view,
                  const size_t n7 = 0) {
 
   buf = BufferView(
-          view.template view<DeviceType>().ptr_on_device(),
+          view.template view<DeviceType>().data(),
           n0,n1,n2,n3,n4,n5,n6,n7);
 
 }
@@ -973,7 +973,7 @@ struct MemsetZeroFunctor {
 template<class ViewType>
 void memset_kokkos (ViewType &view) {
   static MemsetZeroFunctor<typename ViewType::execution_space> f;
-  f.ptr = view.ptr_on_device();
+  f.ptr = view.data();
   #ifndef KOKKOS_USING_DEPRECATED_VIEW
   Kokkos::parallel_for(view.span()*sizeof(typename ViewType::value_type)/4, f);
   #else
@@ -984,7 +984,7 @@ void memset_kokkos (ViewType &view) {
 
 struct params_lj_coul {
   KOKKOS_INLINE_FUNCTION
-  params_lj_coul(){cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};   
+  params_lj_coul(){cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
   KOKKOS_INLINE_FUNCTION
   params_lj_coul(int i){cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
   F_FLOAT cut_ljsq,cut_coulsq,lj1,lj2,lj3,lj4,offset;

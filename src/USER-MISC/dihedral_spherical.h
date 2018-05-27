@@ -20,7 +20,7 @@ DihedralStyle(spherical,DihedralSpherical)
 #ifndef LMP_DIHEDRAL_SPHERICAL_H
 #define LMP_DIHEDRAL_SPHERICAL_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "dihedral.h"
 
 namespace LAMMPS_NS {
@@ -31,12 +31,12 @@ class DihedralSpherical : public Dihedral {
   virtual ~DihedralSpherical();
   virtual void compute(int, int);
   double CalcGeneralizedForces(int, double, double, double,
-			       double*, double*, double*);
+                               double*, double*, double*);
   void coeff(int, char **);
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_data(FILE *);
-  
+
  protected:
   int    *nterms;
   double **Ccoeff;

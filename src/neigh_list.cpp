@@ -26,8 +26,6 @@ using namespace LAMMPS_NS;
 
 #define PGDELTA 1
 
-enum{NSQ,BIN,MULTI};     // also in Neighbor
-
 /* ---------------------------------------------------------------------- */
 
 NeighList::NeighList(LAMMPS *lmp) : Pointers(lmp)
@@ -134,7 +132,7 @@ NeighList::~NeighList()
 void NeighList::post_constructor(NeighRequest *nq)
 {
   // copy request settings used by list itself
-  
+
   occasional = nq->occasional;
   ghost = nq->ghost;
   ssa = nq->ssa;

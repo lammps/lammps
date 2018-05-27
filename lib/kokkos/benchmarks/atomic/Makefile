@@ -10,7 +10,7 @@ default: build
 
 
 ifneq (,$(findstring Cuda,$(KOKKOS_DEVICES)))
-CXX = ${KOKKOS_PATH}/config/nvcc_wrapper
+CXX = ${KOKKOS_PATH}/bin/nvcc_wrapper
 EXE = ${EXE_NAME}.cuda
 KOKKOS_CUDA_OPTIONS = "enable_lambda"
 else

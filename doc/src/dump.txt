@@ -120,9 +120,10 @@ which dump output is written can also be controlled by a variable.
 See the "dump_modify every"_dump_modify.html command.
 
 Only information for atoms in the specified group is dumped.  The
-"dump_modify thresh and region"_dump_modify.html commands can also
-alter what atoms are included.  Not all styles support all these
-options; see details below.
+"dump_modify thresh and region and refresh"_dump_modify.html commands
+can also alter what atoms are included.  Not all styles support
+these options; see details on the "dump_modify"_dump_modify.html doc
+page.
 
 As described below, the filename determines the kind of output (text
 or binary or gzipped, one big file or one per timestep, one big file

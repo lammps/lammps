@@ -15,10 +15,10 @@
    Contributing author: Hendrik Heenen (hendrik.heenen@mytum.de)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_buck_coul_long_cs.h"
 #include "atom.h"
 #include "comm.h"

@@ -42,7 +42,7 @@ class PairEDPD : public Pair {
  protected:
   double cut_global;
   int seed;
-  double **cut,**cutT; 
+  double **cut,**cutT;
   double **a0,**gamma;
   double **power;
   double **slope;

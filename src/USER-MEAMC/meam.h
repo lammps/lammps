@@ -2,8 +2,8 @@
 #define LMP_MEAM_H
 
 #include "memory.h"
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 
 #define maxelt 5
 
@@ -144,7 +144,7 @@ protected:
       a3 = a * a * a;
       a4 = a * a3;
       a1m4 = 1.0-a4;
-      
+
       dfc = 8 * a1m4 * a3;
       return a1m4*a1m4;
     }
@@ -208,7 +208,6 @@ protected:
   void get_sijk(double, int, int, int, double*);
   void get_densref(double, int, int, double*, double*, double*, double*, double*, double*, double*, double*);
   void interpolate_meam(int);
-  double compute_phi(double, int, int);
 
 public:
   void meam_setup_global(int nelt, lattice_t* lat, double* z, int* ielement, double* atwt, double* alpha,
@@ -248,5 +247,13 @@ static inline void setall3d(TYPE (&arr)[maxi][maxj][maxk], const TYPE v) {
         arr[i][j][k] = v;
 }
 
-};
+// Helper functions
+
+static inline double fdiv_zero(const double n, const double d) {
+  if (iszero(d))
+    return 0.0;
+  return n / d;
+}
+
+}
 #endif

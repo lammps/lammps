@@ -16,9 +16,9 @@
                         and Rochus Schmid (Ruhr-Universitaet Bochum)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstring>
+#include <cstdlib>
 #include "angle_class2_p6.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -135,7 +135,7 @@ void AngleClass2P6::compute(int eflag, int vflag)
     dtheta6 = dtheta5*dtheta;
 
     de_angle = 2.0*k2[type]*dtheta + 3.0*k3[type]*dtheta2 +
-      4.0*k4[type]*dtheta3 + 5.0*k5[type]*dtheta4 + 
+      4.0*k4[type]*dtheta3 + 5.0*k5[type]*dtheta4 +
       6.0*k6[type]*dtheta5;
 
     a = -de_angle*s;

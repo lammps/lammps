@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -81,7 +81,7 @@ void test_scatter_view_config(int n)
   }
 #if defined( KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA )
   auto host_view = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), original_view);
-  for (typename decltype(host_view)::size_type i = 0; i < host_view.dimension_0(); ++i) {
+  for (typename decltype(host_view)::size_type i = 0; i < host_view.extent(0); ++i) {
     auto val0 = host_view(i, 0);
     auto val1 = host_view(i, 1);
     auto val2 = host_view(i, 2);

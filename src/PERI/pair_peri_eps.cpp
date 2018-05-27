@@ -15,9 +15,9 @@
    Contributing author: Rezwanur Rahman, John Foster (UTSA)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "pair_peri_eps.h"
 #include "atom.h"
 #include "domain.h"

@@ -40,7 +40,7 @@ class ComputeCentroAtom : public Compute {
   class NeighList *list;
   double *centro;
   int axes_flag;
-  
+
   void select(int, int, double *);
   void select2(int, int, double *, int *);
 };
@@ -57,6 +57,18 @@ E: Illegal ... command
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
+
+E: Illegal compute centro/atom command3
+
+UNDOCUMENTED
+
+E: Illegal compute centro/atom command2
+
+UNDOCUMENTED
+
+E: Illegal compute centro/atom command1
+
+UNDOCUMENTED
 
 E: Compute centro/atom requires a pair style be defined
 

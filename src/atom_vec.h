@@ -14,7 +14,7 @@
 #ifndef LMP_ATOM_VEC_H
 #define LMP_ATOM_VEC_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "pointers.h"
 
 namespace LAMMPS_NS {

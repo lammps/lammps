@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
+#include <cstring>
 #include "fix_group.h"
 #include "group.h"
 #include "update.h"
@@ -75,8 +75,8 @@ idregion(NULL), idvar(NULL), idprop(NULL)
       strcpy(idvar,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"property") == 0) {
-	  if (iarg+2 > narg) error->all(FLERR,"Illegal group command");
-	  if (atom->find_custom(arg[iarg+1],typeflag) < 0)
+          if (iarg+2 > narg) error->all(FLERR,"Illegal group command");
+          if (atom->find_custom(arg[iarg+1],typeflag) < 0)
         error->all(FLERR,"Per atom property for group dynamic does not exist");
       propflag = 1;
       delete [] idprop;
@@ -84,7 +84,7 @@ idregion(NULL), idvar(NULL), idprop(NULL)
       idprop = new char[n];
       strcpy(idprop,arg[iarg+1]);
       iarg += 2;
-	} else if (strcmp(arg[iarg],"every") == 0) {
+        } else if (strcmp(arg[iarg],"every") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal group command");
       nevery = force->inumeric(FLERR,arg[iarg+1]);
       if (nevery <= 0) error->all(FLERR,"Illegal group command");
@@ -250,4 +250,14 @@ void FixGroup::set_group()
   }
 
   if (varflag) memory->destroy(var);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void *FixGroup::extract(const char *str, int &unused)
+{
+  if (strcmp(str,"property") == 0 && propflag) return (void *) idprop;
+  if (strcmp(str,"variable") == 0 && varflag) return (void *) idvar;
+  if (strcmp(str,"region") == 0 && regionflag) return (void *) idregion;
+  return NULL;
 }

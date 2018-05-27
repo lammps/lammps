@@ -12,10 +12,10 @@
 ------------------------------------------------------------------------- */
 
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_born_coul_wolf_cs.h"
 #include "atom.h"
 #include "comm.h"
@@ -106,9 +106,9 @@ void PairBornCoulWolfCS::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-		rsq += EPSILON;
-		// Add EPISLON for case: r = 0; Interaction must be removed
-		// by special bond
+                rsq += EPSILON;
+                // Add EPISLON for case: r = 0; Interaction must be removed
+                // by special bond
         r2inv = 1.0/rsq;
 
         if (rsq < cut_coulsq) {

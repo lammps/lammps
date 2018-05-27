@@ -15,10 +15,10 @@
    Contributing authors: Arben Jusufi, Axel Kohlmeyer (Temple U.)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_gauss_cut.h"
 #include "atom.h"
 #include "comm.h"
@@ -226,7 +226,7 @@ double PairGaussCut::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) {
     hgauss[i][j] = mix_energy(fabs(hgauss[i][i]), fabs(hgauss[j][j]),
-			      fabs(sigmah[i][i]), fabs(sigmah[j][j]));
+                              fabs(sigmah[i][i]), fabs(sigmah[j][j]));
 
     // If either of the particles is repulsive (ie, if hgauss > 0),
     // then the interaction between both is repulsive.

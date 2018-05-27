@@ -16,6 +16,8 @@
    OpenMP based threading support for LAMMPS
 ------------------------------------------------------------------------- */
 
+#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
@@ -36,8 +38,6 @@
 #include "compute.h"
 
 #include "math_const.h"
-
-#include <string.h>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

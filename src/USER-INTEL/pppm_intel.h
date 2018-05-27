@@ -105,7 +105,7 @@ class PPPMIntel : public PPPM {
     }
   }
   FFT_SCALAR ***create3d_offset(FFT_SCALAR ***&, int, int, int,
-				int, int, int, const char *name);
+                                int, int, int, const char *name);
 };
 
 }

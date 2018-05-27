@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include "region_intersect.h"
 #include "domain.h"
 #include "error.h"
@@ -26,7 +26,7 @@ RegIntersect::RegIntersect(LAMMPS *lmp, int narg, char **arg) :
   Region(lmp, narg, arg), idsub(NULL)
 {
   nregion = 0;
-  
+
   if (narg < 5) error->all(FLERR,"Illegal region command");
   int n = force->inumeric(FLERR,arg[2]);
   if (n < 2) error->all(FLERR,"Illegal region command");

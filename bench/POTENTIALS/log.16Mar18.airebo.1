@@ -1,0 +1,87 @@
+LAMMPS (16 Mar 2018)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (../comm.cpp:90)
+  using 1 OpenMP thread(s) per MPI task
+# AIREBO polyethelene benchmark
+
+units		    metal
+atom_style	    atomic
+
+read_data	    data.airebo
+  orthogonal box = (-2.1 -2.1 0) to (2.1 2.1 25.579)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  60 atoms
+
+replicate	    17 16 2
+  orthogonal box = (-2.1 -2.1 0) to (69.3 65.1 51.158)
+  1 by 1 by 1 MPI processor grid
+  32640 atoms
+  Time spent = 0.00154901 secs
+
+neighbor	    0.5 bin
+neigh_modify	    delay 5 every 1
+
+pair_style	    airebo 3.0 1 1
+pair_coeff	    * * CH.airebo C H
+
+velocity	    all create 300.0 761341
+
+fix		    1 all nve
+timestep	    0.0005
+
+thermo		    10
+run		    100
+Neighbor list info ...
+  update every 1 steps, delay 5 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 10.7
+  ghost atom cutoff = 10.7
+  binsize = 5.35, bins = 14 13 10
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair airebo, perpetual
+      attributes: full, newton on, ghost
+      pair build: full/bin/ghost
+      stencil: full/ghost/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 106.4 | 106.4 | 106.4 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0          300    -139299.7            0   -138034.03    7998.7287 
+      10    161.33916   -138711.85            0   -138031.17    33242.273 
+      20    208.59505   -138911.77            0   -138031.73   -3199.2371 
+      30    139.73485   -138617.76            0   -138028.23    10890.529 
+      40    142.15332   -138628.03            0    -138028.3    14614.022 
+      50    114.21945   -138509.87            0   -138027.98    24700.885 
+      60     164.9432   -138725.08            0   -138029.19    35135.722 
+      70    162.14928   -138714.86            0   -138030.77    5666.4609 
+      80    157.17575   -138694.81            0    -138031.7    19838.161 
+      90    196.16354   -138859.65            0   -138032.05   -7942.9718 
+     100    178.30378    -138783.8            0   -138031.55     31012.15 
+Loop time of 60.9424 on 1 procs for 100 steps with 32640 atoms
+
+Performance: 0.071 ns/day, 338.569 hours/ns, 1.641 timesteps/s
+99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 55.299     | 55.299     | 55.299     |   0.0 | 90.74
+Neigh   | 5.5777     | 5.5777     | 5.5777     |   0.0 |  9.15
+Comm    | 0.027658   | 0.027658   | 0.027658   |   0.0 |  0.05
+Output  | 0.0011463  | 0.0011463  | 0.0011463  |   0.0 |  0.00
+Modify  | 0.024684   | 0.024684   | 0.024684   |   0.0 |  0.04
+Other   |            | 0.012      |            |       |  0.02
+
+Nlocal:    32640 ave 32640 max 32640 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    48190 ave 48190 max 48190 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  2.22179e+07 ave 2.22179e+07 max 2.22179e+07 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 22217870
+Ave neighs/atom = 680.695
+Neighbor list builds = 8
+Dangerous builds = 0
+Total wall time: 0:01:02

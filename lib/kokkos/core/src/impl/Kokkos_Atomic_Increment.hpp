@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -65,8 +65,11 @@ void atomic_increment<char>(volatile char* a) {
       : "m" (a[0])
       : "memory"
     );
+#elif defined( KOKKOS_ENABLE_SERIAL_ATOMICS )
+  char* a_nv = const_cast<char*>(a);
+  ++(*a_nv);
 #else
-  Kokkos::atomic_fetch_add(a,1);
+  Kokkos::atomic_fetch_add(a, char(1));
 #endif
 }
 
@@ -83,8 +86,11 @@ void atomic_increment<short>(volatile short* a) {
       : "m" (a[0])
       : "memory"
     );
+#elif defined( KOKKOS_ENABLE_SERIAL_ATOMICS )
+  short* a_nv = const_cast<short*>(a);
+  ++(*a_nv);
 #else
-  Kokkos::atomic_fetch_add(a,1);
+  Kokkos::atomic_fetch_add(a, short(1));
 #endif
 }
 
@@ -101,8 +107,11 @@ void atomic_increment<int>(volatile int* a) {
       : "m" (a[0])
       : "memory"
     );
+#elif defined( KOKKOS_ENABLE_SERIAL_ATOMICS )
+  int* a_nv = const_cast<int*>(a);
+  ++(*a_nv);
 #else
-  Kokkos::atomic_fetch_add(a,1);
+  Kokkos::atomic_fetch_add(a,int(1));
 #endif
 }
 
@@ -119,15 +128,24 @@ void atomic_increment<long long int>(volatile long long int* a) {
       : "m" (a[0])
       : "memory"
     );
+#elif defined( KOKKOS_ENABLE_SERIAL_ATOMICS )
+  long long int* a_nv = const_cast<long long int*>(a);
+  ++(*a_nv);
 #else
-  Kokkos::atomic_fetch_add(a,1);
+  using T = long long int;
+  Kokkos::atomic_fetch_add(a,T(1));
 #endif
 }
 
 template<typename T>
 KOKKOS_INLINE_FUNCTION
 void atomic_increment(volatile T* a) {
-  Kokkos::atomic_fetch_add(a,1);
+#if defined( KOKKOS_ENABLE_SERIAL_ATOMICS )
+  T* a_nv = const_cast<T*>(a);
+  ++(*a_nv);
+#else
+  Kokkos::atomic_fetch_add(a,T(1));
+#endif
 }
 
 } // End of namespace Kokkos

@@ -22,10 +22,10 @@
 ------------------------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
+#include <cmath>
 #include "math_const.h"
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include "pair_multi_lucy.h"
 #include "atom.h"
 #include "force.h"

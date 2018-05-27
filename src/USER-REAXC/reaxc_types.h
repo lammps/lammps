@@ -27,19 +27,20 @@
 #ifndef __REAX_TYPES_H_
 #define __REAX_TYPES_H_
 
+#include <mpi.h>
 #include "lmptype.h"
 
-#include <ctype.h>
-#include <math.h>
-#include <mpi.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "sys/time.h"
-#include <time.h>
+#include <cctype>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
+#include <sys/time.h>
+#include "accelerator_kokkos.h"
 
 #if defined LMP_USER_OMP
-#define OMP_TIMING 1
+#define OMP_TIMING 0
 
 #ifdef OMP_TIMING
 // pkcoff timing fields
@@ -830,6 +831,10 @@ struct LR_data
   double e_vdW, CEvd;
   double e_ele, CEclmb;
 
+  LAMMPS_INLINE
+  LR_data() {}
+
+  LAMMPS_INLINE
   void operator = (const LR_data& rhs) {
     H      = rhs.H;
     e_vdW  = rhs.e_vdW;
@@ -837,6 +842,7 @@ struct LR_data
     e_ele  = rhs.e_ele;
     CEclmb = rhs.CEclmb;
   }
+  LAMMPS_INLINE
   void operator = (const LR_data& rhs) volatile {
     H      = rhs.H;
     e_vdW  = rhs.e_vdW;
@@ -850,12 +856,18 @@ struct LR_data
 struct cubic_spline_coef
 {
   double a, b, c, d;
+
+  LAMMPS_INLINE
+  cubic_spline_coef() {}
+
+  LAMMPS_INLINE
   void operator = (const cubic_spline_coef& rhs) {
     a = rhs.a;
     b = rhs.b;
     c = rhs.c;
     d = rhs.d;
   }
+  LAMMPS_INLINE
   void operator = (const cubic_spline_coef& rhs) volatile {
     a = rhs.a;
     b = rhs.b;

@@ -15,10 +15,10 @@
    Contributing author: Anders Hafreager (UiO), andershaf@gmail.com
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_vashishta_table.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -141,7 +141,7 @@ void PairVashishtaTable::compute(int eflag, int vflag)
       f[j][2] -= delz*fpair;
 
       if (evflag) ev_tally(i,j,nlocal,newton_pair,
-      			   evdwl,0.0,fpair,delx,dely,delz);
+                   evdwl,0.0,fpair,delx,dely,delz);
     }
 
     jnumm1 = numshort - 1;
@@ -200,7 +200,7 @@ void PairVashishtaTable::compute(int eflag, int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void PairVashishtaTable::twobody_table(const Param &param, double rsq, 
+void PairVashishtaTable::twobody_table(const Param &param, double rsq,
                                        double &fforce, int eflag, double &eng)
 {
   // use analytic form if rsq is inside inner cutoff
@@ -212,15 +212,15 @@ void PairVashishtaTable::twobody_table(const Param &param, double rsq,
   }
 
   // double -> int will only keep the 0.xxxx part
-  
+
   const int tableIndex = (rsq - tabinnersq)*oneOverDeltaR2;
   const double fraction = (rsq - tabinnersq)*oneOverDeltaR2 - tableIndex;
-  
+
   // force/energy are linearly interpolated between two adjacent values
 
   double force0 = forceTable[param.ielement][param.jelement][tableIndex];
   double force1 = forceTable[param.ielement][param.jelement][tableIndex+1];
-  fforce = (1.0 - fraction)*force0 + fraction*force1; 
+  fforce = (1.0 - fraction)*force0 + fraction*force1;
 
   if (evflag) {
     double energy0 = potentialTable[param.ielement][param.jelement][tableIndex];

@@ -292,7 +292,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
             ty[u] = x[j].y;
             tz[u] = x[j].z;
             tjtype[u] = x[j].w;
-	    if (THREE) ttag[u] = tag[j];
+            if (THREE) ttag[u] = tag[j];
           }
 
           if (FULL == 0 || TRI == 1) {
@@ -440,9 +440,9 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
             const int jtag = ttag[u];
             int flist = 0;
             if (itag > jtag) {
-	      if (((itag+jtag) & 1) == 0) flist = 1;
+              if (((itag+jtag) & 1) == 0) flist = 1;
             } else if (itag < jtag) {
-	      if (((itag+jtag) & 1) == 1) flist = 1;
+              if (((itag+jtag) & 1) == 1) flist = 1;
             } else {
               if (tz[u] < ztmp) flist = 1;
               else if (tz[u] == ztmp && ty[u] < ytmp) flist = 1;

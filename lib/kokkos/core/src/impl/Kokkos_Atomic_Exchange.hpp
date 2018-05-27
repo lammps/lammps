@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -385,6 +385,26 @@ void atomic_assign( volatile T * const dest , const T val )
   {
     dest[0] = val;
   }
+}
+
+#elif defined( KOKKOS_ENABLE_SERIAL_ATOMICS )
+
+template < typename T >
+inline
+T atomic_exchange( volatile T * const dest_v , const T val )
+{
+  T* dest = const_cast<T*>(dest_v);
+  T retval = *dest;
+  *dest = val;
+  return retval;
+}
+
+template < typename T >
+inline
+void atomic_assign( volatile T * const dest_v , const T val )
+{
+  T* dest = const_cast<T*>(dest_v);
+  *dest = val;
 }
 
 #endif

@@ -8,7 +8,7 @@ Section"_Section_howto.html :c
 
 :line
 
-5. Accelerating LAMMPS performance :h3
+5. Accelerating LAMMPS performance :h2
 
 This section describes various methods for improving LAMMPS
 performance for different classes of problems running on different
@@ -41,7 +41,7 @@ compute nodes, on different hardware platforms.
 :line
 :line
 
-5.1 Measuring performance :h4,link(acc_1)
+5.1 Measuring performance :h3,link(acc_1)
 
 Before trying to make your simulation run faster, you should
 understand how it currently performs and where the bottlenecks are.
@@ -89,7 +89,7 @@ LAMMPS, to obtain synchronized timings.
 
 :line
 
-5.2 General strategies :h4,link(acc_2)
+5.2 General strategies :h3,link(acc_2)
 
 NOTE: this section 5.2 is still a work in progress
 
@@ -141,7 +141,7 @@ when using a barostat.
 
 :line
 
-5.3 Packages with optimized styles :h4,link(acc_3)
+5.3 Packages with optimized styles :h3,link(acc_3)
 
 Accelerated versions of various "pair_style"_pair_style.html,
 "fixes"_fix.html, "computes"_compute.html, and other commands have
@@ -325,7 +325,7 @@ restrictions :ul
 
 :line
 
-5.4 Comparison of various accelerator packages :h4,link(acc_4)
+5.4 Comparison of various accelerator packages :h3,link(acc_4)
 
 NOTE: this section still needs to be re-worked with additional KOKKOS
 and USER-INTEL information.

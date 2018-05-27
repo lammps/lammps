@@ -15,8 +15,8 @@
    Contributing authors: Jeremy Lechman (SNL)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <string.h>
+#include <cmath>
+#include <cstring>
 #include "fix_wall_colloid.h"
 #include "atom.h"
 #include "atom_vec.h"

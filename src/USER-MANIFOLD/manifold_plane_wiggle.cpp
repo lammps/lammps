@@ -1,6 +1,6 @@
 #include "manifold_plane_wiggle.h"
 
-#include <math.h>
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace user_manifold;

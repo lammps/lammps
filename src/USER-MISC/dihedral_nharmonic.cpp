@@ -16,8 +16,8 @@
    [ based on dihedral_multi_harmonic.cpp Mathias Puetz (SNL) and friends ]
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 #include "dihedral_nharmonic.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -277,7 +277,7 @@ void DihedralNHarmonic::coeff(int narg, char **arg)
   if (narg < 4 ) error->all(FLERR,"Incorrect args for dihedral coefficients");
 
   int n = force->inumeric(FLERR,arg[1]);
-  if (narg != n + 2) 
+  if (narg != n + 2)
     error->all(FLERR,"Incorrect args for dihedral coefficients");
 
   if (!allocated) allocate();

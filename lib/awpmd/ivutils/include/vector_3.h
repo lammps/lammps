@@ -84,7 +84,7 @@
 # include <iostream>
 # include <cmath>
 # include <limits>
-# include <stdlib.h>
+# include <cstdlib>
 
 // some compilers don't define PI!
 # ifndef M_PI

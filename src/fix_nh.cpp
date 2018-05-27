@@ -15,9 +15,9 @@
    Contributing authors: Mark Stevens (SNL), Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
-#include <string.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstring>
+#include <cstdlib>
+#include <cmath>
 #include "fix_nh.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -50,7 +50,7 @@ enum{ISO,ANISO,TRICLINIC};
    NVT,NPH,NPT integrators for improved Nose-Hoover equations of motion
  ---------------------------------------------------------------------- */
 
-FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : 
+FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   rfix(NULL), id_dilate(NULL), irregular(NULL), id_temp(NULL), id_press(NULL),
   eta(NULL), eta_dot(NULL), eta_dotdot(NULL),
@@ -348,7 +348,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
       fixedpoint[2] = force->numeric(FLERR,arg[iarg+3]);
       iarg += 4;
 
-    // disc keyword is also parsed in fix/nh/sphere  
+    // disc keyword is also parsed in fix/nh/sphere
 
     } else if (strcmp(arg[iarg],"disc") == 0) {
       iarg++;
@@ -1034,7 +1034,7 @@ void FixNH::couple()
     p_current[2] = tensor[2];
   }
 
-  if (!ISFINITE(p_current[0]) || !ISFINITE(p_current[1]) || !ISFINITE(p_current[2]))
+  if (!std::isfinite(p_current[0]) || !std::isfinite(p_current[1]) || !std::isfinite(p_current[2]))
     error->all(FLERR,"Non-numeric pressure - simulation unstable");
 
   // switch order from xy-xz-yz to Voigt
@@ -1044,7 +1044,7 @@ void FixNH::couple()
     p_current[4] = tensor[4];
     p_current[5] = tensor[3];
 
-    if (!ISFINITE(p_current[3]) || !ISFINITE(p_current[4]) || !ISFINITE(p_current[5]))
+    if (!std::isfinite(p_current[3]) || !std::isfinite(p_current[4]) || !std::isfinite(p_current[5]))
       error->all(FLERR,"Non-numeric pressure - simulation unstable");
   }
 }

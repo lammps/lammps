@@ -22,7 +22,6 @@ FixStyle(shardlow/kk/host,FixShardlowKokkos<LMPHostType>)
 #ifndef LMP_FIX_SHARDLOW_KOKKOS_H
 #define LMP_FIX_SHARDLOW_KOKKOS_H
 
-#include "float.h"
 #include "fix_shardlow.h"
 #include "kokkos_type.h"
 #include "neigh_list_kokkos.h"

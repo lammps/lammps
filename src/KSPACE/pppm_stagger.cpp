@@ -16,10 +16,10 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstring>
+#include <cstdio>
+#include <cstdlib>
+#include <cmath>
 #include "pppm_stagger.h"
 #include "atom.h"
 #include "gridcomm.h"
@@ -52,7 +52,7 @@ enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
 /* ---------------------------------------------------------------------- */
 
 PPPMStagger::PPPMStagger(LAMMPS *lmp, int narg, char **arg) :
-  PPPM(lmp, narg, arg), 
+  PPPM(lmp, narg, arg),
   gf_b2(NULL)
 {
   if (narg < 1) error->all(FLERR,"Illegal kspace_style pppm/stagger command");
@@ -680,7 +680,7 @@ void PPPMStagger::particle_map()
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
-  if (!ISFINITE(boxlo[0]) || !ISFINITE(boxlo[1]) || !ISFINITE(boxlo[2]))
+  if (!std::isfinite(boxlo[0]) || !std::isfinite(boxlo[1]) || !std::isfinite(boxlo[2]))
     error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
 
   int flag = 0;

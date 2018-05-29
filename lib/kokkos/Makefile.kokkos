@@ -1,7 +1,9 @@
 # Default settings common options.
 
 #LAMMPS specific settings:
-KOKKOS_PATH=../../lib/kokkos
+ifndef KOKKOS_PATH
+  KOKKOS_PATH=../../lib/kokkos
+endif
 CXXFLAGS=$(CCFLAGS)
 
 # Options: Cuda,ROCm,OpenMP,Pthreads,Qthreads,Serial

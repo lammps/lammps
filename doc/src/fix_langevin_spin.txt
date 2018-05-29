@@ -44,15 +44,16 @@ in metal units).
 
 More details about this implementation are reported in "(Tranchida)"_#Tranchida2.
 
-Note: due to the form of the sLLG equation, this fix has to be the last defined 
-magnetic fix before the integration/spin fix. As an example:
+Note: due to the form of the sLLG equation, this fix has to be defined just
+before the nve/spin fix (and after all other magnetic fixes). 
+As an example:
 
 fix 1 all force/spin zeeman 0.01 0.0 0.0 1.0
 fix 2 all langevin/spin 300.0 0.01 21 
 fix 3 all integration/spin lattice yes :pre
 
 is correct, but defining a force/spin command after the langevin/spin command
-would send an error message. 
+would give an error message. 
 
 Note: The random # {seed} must be a positive integer.  A Marsaglia random
 number generator is used.  Each processor uses the input seed to
@@ -79,7 +80,7 @@ The {langevin/spin} fix is part of the SPIN package.
 This style is only enabled if LAMMPS was built with this package.
 See the "Making LAMMPS"_Section_start.html#start_3 section for more info.
 
-The numerical integration has to be performed with {fix/integration/spin} 
+The numerical integration has to be performed with {fix/nve/spin} 
 when {langevin/spin} is enabled. 
 
 This fix has to be the last defined magnetic fix before the integration fix 

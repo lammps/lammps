@@ -30,31 +30,15 @@ between pairs of magnetic spins:
 :c,image(Eqs/pair_spin_dmi_interaction.jpg)
 
 where si and sj are two neighboring magnetic spins of two particles, 
-rij = ri - rj is the inter-atomic distance between the two particles,
-and D(rij) is the DM vector defining the intensity and the 
-sign of the exchange interaction.
+eij = (ri - rj)/|ri-rj| is the normalized separation vector between the 
+two particles, and D is the DM vector defining the intensity and the 
+sign of the interaction.
 
-This function is defined as:
-
-:c,image(Eqs/pair_spin_exchange_function.jpg)
-
-where a, b and d are the three constant coefficients defined in the associated 
-"pair_coeff" command.   
-
-The coefficients a, b, and d need to be fitted so that the function above matches with 
-the value of the DM interaction for the N neighbor shells taken 
-into account.
-
-Examples and more explanations about this function and its parametrization are reported 
-in "(Tranchida)"_#Tranchida5.
+Examples and more explanations about this interaction and its parametrization are 
+reported in "(Tranchida)"_#Tranchida5.
 
 From this DM interaction, each spin i will be submitted to a magnetic torque
-omega and its associated atom to a force F (for spin-lattice calculations only), 
-such as: 
-
-:c,image(Eqs/pair_spin_soc_dmi_forces.jpg)
-
-with h the Planck constant (in metal units).
+omega and its associated atom to a force F (for spin-lattice calculations only). 
 
 More details about the derivation of these torques/forces are reported in
 "(Tranchida)"_#Tranchida5.

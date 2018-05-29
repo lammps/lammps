@@ -30,7 +30,7 @@ pairs of magnetic spins. According to the derivation reported in
 :c,image(Eqs/pair_spin_me_interaction.jpg)
 
 where si and sj are neighboring magnetic spins of two particles, 
-rij = ri - rj is the normalized separation vector between the 
+eij = (ri - rj)/|ri-rj| is the normalized separation vector between the 
 two particles, and E is an electric polarization vector.
 The norm and direction of E are giving the intensity and the 
 direction of a screened dielectric atomic polarization (in eV).

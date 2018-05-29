@@ -39,7 +39,7 @@ the equations of motion of the spin lattice system, following the scheme:
 
 according to the implementation reported in "(Omelyan)"_#Omelyan1.
 
-A sectoring enables this scheme for parallel calculations. 
+A sectoring method enables this scheme for parallel calculations. 
 The implementation of this sectoring algorithm is reported 
 in "(Tranchida)"_#Tranchida1.
 

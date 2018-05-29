@@ -92,11 +92,13 @@ class PairBodyRoundedPolygon : public Pair {
                                  double &d, double hi[3], double &t,
                                  int &contact);
   // compute contact forces if contact points are detected
-  void contact_forces(Contact& contact, double j_a, double** x, 
-                      double** v, double** f, double** angmom,
+  void contact_forces(Contact& contact, double j_a,
+                      double** x, double** v, double** angmom, double** f,
+                      double** torque, double &evdwl, double* facc);
+
   // compute the separation between two contacts
   double contact_separation(const Contact& c1, const Contact& c2);
-                      double** torque, double &evdwl, double* facc);
+
   // accumulate torque to a body given a force at a given point
   void sum_torque(double* xm, double *x, double fx,
                   double fy, double fz, double* torque);

@@ -19,7 +19,8 @@ create_atoms 	1 box
 
 mass		1 58.93
 
-set 		group all spin/random 31 1.72
+#set 		group all spin/random 31 1.72
+set 		group all spin 1.72 0.0 0.0 1.0 
 velocity 	all create 100 4928459 rot yes dist gaussian
 
 #pair_style 	hybrid/overlay eam/alloy spin/exchange 4.0 spin/neel 4.0

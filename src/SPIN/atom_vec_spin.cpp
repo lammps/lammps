@@ -889,12 +889,10 @@ void AtomVecSpin::pack_data(double **buf)
 
 int AtomVecSpin::pack_data_hybrid(int i, double *buf)
 { 
-  
   buf[0] = sp[i][0];
   buf[1] = sp[i][1];
   buf[2] = sp[i][2];
   buf[3] = sp[i][3];
-  
   return 4;
 }
 
@@ -910,7 +908,7 @@ void AtomVecSpin::write_data(FILE *fp, int n, double **buf)
             "%-1.16e %d %d %d\n",
             (tagint) ubuf(buf[i][0]).i,(int) ubuf(buf[i][1]).i,
             buf[i][2],buf[i][3],buf[i][4],
-            buf[i][5],buf[i][6],buf[i][7],buf[i][8],buf[i][9],
+            buf[i][5],buf[i][6],buf[i][7],buf[i][8],
             (int) ubuf(buf[i][10]).i,(int) ubuf(buf[i][11]).i,
             (int) ubuf(buf[i][12]).i); 
 }

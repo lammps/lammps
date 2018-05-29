@@ -46,9 +46,9 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairSpinMagelec::PairSpinMagelec(LAMMPS *lmp) : PairSpin(lmp)
+PairSpinMagelec::PairSpinMagelec(LAMMPS *lmp) : PairSpin(lmp),
+lockfixnvespin(NULL) 
 {
-  hbar = force->hplanck/MY_2PI;
   single_enable = 0;
   no_virial_fdotr_compute = 1;
   lattice_flag = 0;
@@ -103,42 +103,45 @@ void PairSpinMagelec::settings(int narg, char **arg)
 
 void PairSpinMagelec::coeff(int narg, char **arg)
 {
-  const double hbar = force->hplanck/MY_2PI;
-
   if (!allocated) allocate();
 
-  if (strcmp(arg[2],"magelec")==0) {
-    if (narg != 8) error->all(FLERR,"Incorrect args in pair_style command");
-    int ilo,ihi,jlo,jhi;
-    force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-    force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
-    
-    const double rij = force->numeric(FLERR,arg[3]);
-    const double magelec = (force->numeric(FLERR,arg[4]));
-    double mex = force->numeric(FLERR,arg[5]);  
-    double mey = force->numeric(FLERR,arg[6]); 
-    double mez = force->numeric(FLERR,arg[7]); 
+  // check if args correct 
+  
+  if (strcmp(arg[2],"magelec") != 0)
+    error->all(FLERR,"Incorrect args in pair_style command");
+  if (narg != 8)
+    error->all(FLERR,"Incorrect args in pair_style command");
+  
+  int ilo,ihi,jlo,jhi;
+  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  
+  const double rij = force->numeric(FLERR,arg[3]);
+  const double magelec = (force->numeric(FLERR,arg[4]));
+  double mex = force->numeric(FLERR,arg[5]);  
+  double mey = force->numeric(FLERR,arg[6]); 
+  double mez = force->numeric(FLERR,arg[7]); 
 
-    double inorm = 1.0/(mex*mex+mey*mey+mez*mez);
-    mex *= inorm; 
-    mey *= inorm; 
-    mez *= inorm; 
- 
-    int count = 0;
-    for (int i = ilo; i <= ihi; i++) {
-      for (int j = MAX(jlo,i); j <= jhi; j++) {
-        cut_spin_magelec[i][j] = rij;
-        ME[i][j] = magelec/hbar;
-        ME_mech[i][j] = magelec;
-        v_mex[i][j] = mex;
-        v_mey[i][j] = mey;
-        v_mez[i][j] = mez;
-        setflag[i][j] = 1;
-        count++;
-      }
+  double inorm = 1.0/(mex*mex+mey*mey+mez*mez);
+  mex *= inorm; 
+  mey *= inorm; 
+  mez *= inorm; 
+
+  int count = 0;
+  for (int i = ilo; i <= ihi; i++) {
+    for (int j = MAX(jlo,i); j <= jhi; j++) {
+      cut_spin_magelec[i][j] = rij;
+      ME[i][j] = magelec/hbar;
+      ME_mech[i][j] = magelec;
+      v_mex[i][j] = mex;
+      v_mey[i][j] = mey;
+      v_mez[i][j] = mez;
+      setflag[i][j] = 1;
+      count++;
     }
-    if (count == 0) error->all(FLERR,"Incorrect args in pair_style command"); 
-  } else error->all(FLERR,"Incorrect args in pair_style command");
+  }
+  if (count == 0) 
+    error->all(FLERR,"Incorrect args in pair_style command");
 
 }
 
@@ -210,8 +213,7 @@ void PairSpinMagelec::compute(int eflag, int vflag)
   double evdwl, ecoul;
   double xi[3], rij[3], eij[3];
   double spi[3], spj[3];
-  double fi[3], fj[3];
-  double fmi[3], fmj[3];
+  double fi[3], fmi[3];
   double local_cut2;
   double rsq, inorm;
   int *ilist,*jlist,*numneigh,**firstneigh;  
@@ -240,11 +242,11 @@ void PairSpinMagelec::compute(int eflag, int vflag)
     i = ilist[ii];
     itype = type[i];
 
+    jlist = firstneigh[i];
+    jnum = numneigh[i]; 
     xi[0] = x[i][0];
     xi[1] = x[i][1];
     xi[2] = x[i][2];
-    jlist = firstneigh[i];
-    jnum = numneigh[i]; 
     spi[0] = sp[i][0]; 
     spi[1] = sp[i][1]; 
     spi[2] = sp[i][2];
@@ -254,6 +256,7 @@ void PairSpinMagelec::compute(int eflag, int vflag)
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
+      jtype = type[j];
 
       spj[0] = sp[j][0]; 
       spj[1] = sp[j][1]; 
@@ -262,21 +265,16 @@ void PairSpinMagelec::compute(int eflag, int vflag)
       evdwl = 0.0;
 
       fi[0] = fi[1] = fi[2] = 0.0;
-      fj[0] = fj[1] = fj[2] = 0.0;
       fmi[0] = fmi[1] = fmi[2] = 0.0;
-      fmj[0] = fmj[1] = fmj[2] = 0.0;
-      rij[0] = rij[1] = rij[2] = 0.0;
      
       rij[0] = x[j][0] - xi[0];
       rij[1] = x[j][1] - xi[1];
       rij[2] = x[j][2] - xi[2];
       rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2]; 
       inorm = 1.0/sqrt(rsq);
-      eij[0] *= inorm;
-      eij[1] *= inorm;
-      eij[2] *= inorm;
-
-      jtype = type[j];
+      eij[0] = inorm*rij[0];
+      eij[1] = inorm*rij[1];
+      eij[2] = inorm*rij[2];
 
       local_cut2 = cut_spin_magelec[itype][jtype]*cut_spin_magelec[itype][jtype];
 
@@ -296,11 +294,10 @@ void PairSpinMagelec::compute(int eflag, int vflag)
       fm[i][1] += fmi[1];	  	  
       fm[i][2] += fmi[2];
 
-      // check newton pair  =>  see if needs correction
       if (newton_pair || j < nlocal) {
-	f[j][0] -= fj[0];	 
-        f[j][1] -= fj[1];	  	  
-        f[j][2] -= fj[2];
+	f[j][0] -= fi[0];	 
+        f[j][1] -= fi[1];	  	  
+        f[j][2] -= fi[2];
       }
  
       if (eflag) {

@@ -46,7 +46,8 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairSpinDmi::PairSpinDmi(LAMMPS *lmp) : PairSpin(lmp)
+PairSpinDmi::PairSpinDmi(LAMMPS *lmp) : PairSpin(lmp),
+lockfixnvespin(NULL)
 {
   single_enable = 0;
   no_virial_fdotr_compute = 1;
@@ -103,9 +104,10 @@ void PairSpinDmi::settings(int narg, char **arg)
 
 void PairSpinDmi::coeff(int narg, char **arg)
 {
-
   if (!allocated) allocate();
 
+  // check if args correct 
+  
   if (strcmp(arg[2],"dmi") != 0)
     error->all(FLERR,"Incorrect args in pair_style command");
   if (narg != 8)
@@ -239,16 +241,15 @@ void PairSpinDmi::compute(int eflag, int vflag)
     i = ilist[ii];
     itype = type[i];
     
+    jlist = firstneigh[i];
+    jnum = numneigh[i]; 
     xi[0] = x[i][0];
     xi[1] = x[i][1];
     xi[2] = x[i][2];
-    
     spi[0] = sp[i][0]; 
     spi[1] = sp[i][1]; 
     spi[2] = sp[i][2];
     
-    jlist = firstneigh[i];
-    jnum = numneigh[i]; 
   
     // loop on neighbors
 
@@ -280,7 +281,7 @@ void PairSpinDmi::compute(int eflag, int vflag)
 
       local_cut2 = cut_spin_dmi[itype][jtype]*cut_spin_dmi[itype][jtype];
 
-      // compute magnetic and mechanical components of soc_dmi
+      // compute dmi interaction
       
       if (rsq <= local_cut2) {
 	compute_dmi(i,j,eij,fmi,spj);
@@ -296,7 +297,6 @@ void PairSpinDmi::compute(int eflag, int vflag)
       fm[i][1] += fmi[1];	  	  
       fm[i][2] += fmi[2];
 
-      // check newton pair  =>  see if needs correction
       if (newton_pair || j < nlocal) {
 	f[j][0] -= fi[0];	 
         f[j][1] -= fi[1];	  	  

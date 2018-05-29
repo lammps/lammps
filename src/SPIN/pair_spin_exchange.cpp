@@ -49,7 +49,6 @@ using namespace MathConst;
 PairSpinExchange::PairSpinExchange(LAMMPS *lmp) : PairSpin(lmp),
 lockfixnvespin(NULL)
 {
-  hbar = force->hplanck/MY_2PI;
   single_enable = 0;
   no_virial_fdotr_compute = 1;
   lattice_flag = 0;
@@ -203,7 +202,7 @@ void *PairSpinExchange::extract(const char *str, int &dim)
 void PairSpinExchange::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;  
-  double evdwl,ecoul;
+  double evdwl, ecoul;
   double xi[3], rij[3], eij[3];
   double spi[3], spj[3];
   double fi[3], fmi[3];
@@ -233,15 +232,16 @@ void PairSpinExchange::compute(int eflag, int vflag)
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
+    itype = type[i];
+    
+    jlist = firstneigh[i];
+    jnum = numneigh[i]; 
     xi[0] = x[i][0];
     xi[1] = x[i][1];
     xi[2] = x[i][2];
-    jlist = firstneigh[i];
-    jnum = numneigh[i]; 
     spi[0] = sp[i][0]; 
     spi[1] = sp[i][1]; 
     spi[2] = sp[i][2];
-    itype = type[i];
   
     // loop on neighbors
 
@@ -293,12 +293,9 @@ void PairSpinExchange::compute(int eflag, int vflag)
       }
 
       if (eflag) {
-	if (rsq <= local_cut2) {
-	  evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
-	  evdwl *= hbar;
-	}
+	evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
+	evdwl *= hbar;
       } else evdwl = 0.0;
-
 
       if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
 	  evdwl,ecoul,fi[0],fi[1],fi[2],rij[0],rij[1],rij[2]);

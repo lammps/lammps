@@ -47,7 +47,8 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairSpinNeel::PairSpinNeel(LAMMPS *lmp) : PairSpin(lmp)
+PairSpinNeel::PairSpinNeel(LAMMPS *lmp) : PairSpin(lmp),
+lockfixnvespin(NULL)
 {
   single_enable = 0;
   no_virial_fdotr_compute = 1;
@@ -108,8 +109,6 @@ void PairSpinNeel::settings(int narg, char **arg)
 
 void PairSpinNeel::coeff(int narg, char **arg)
 {
-  const double hbar = force->hplanck/MY_2PI;
-
   if (!allocated) allocate();
  
   // check if args correct 
@@ -246,11 +245,13 @@ void PairSpinNeel::compute(int eflag, int vflag)
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
+    itype = type[i];
+
+    jlist = firstneigh[i];
+    jnum = numneigh[i]; 
     xi[0] = x[i][0];
     xi[1] = x[i][1];
     xi[2] = x[i][2];
-    jlist = firstneigh[i];
-    jnum = numneigh[i]; 
     spi[0] = sp[i][0]; 
     spi[1] = sp[i][1]; 
     spi[2] = sp[i][2];
@@ -285,7 +286,7 @@ void PairSpinNeel::compute(int eflag, int vflag)
 
       local_cut2 = cut_spin_neel[itype][jtype]*cut_spin_neel[itype][jtype];
 
-      // compute magnetic and mechanical components of neel
+      // compute neel interaction
 
       if (rsq <= local_cut2) {
 	compute_neel(i,j,rsq,eij,fmi,spi,spj);
@@ -301,7 +302,6 @@ void PairSpinNeel::compute(int eflag, int vflag)
       fm[i][1] += fmi[1];	  	  
       fm[i][2] += fmi[2];
 
-      // check newton pair  =>  see if needs correction
       if (newton_pair || j < nlocal) {
 	f[j][0] -= fi[0];	 
         f[j][1] -= fi[1];	  	  

@@ -69,9 +69,9 @@ enum{NONE};
 
 FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), 
+  pair(NULL), spin_pairs(NULL),
   rsec(NULL), stack_head(NULL), stack_foot(NULL), 
-  backward_stacks(NULL), forward_stacks(NULL),
-  pair(NULL), spin_pairs(NULL)
+  backward_stacks(NULL), forward_stacks(NULL)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_nve_spin);
 
@@ -248,8 +248,8 @@ void FixNVESpin::init()
   nlocal_max = atom->nlocal;
   stack_head = memory->grow(stack_head,nsectors,"NVE/spin:stack_head");
   stack_foot = memory->grow(stack_foot,nsectors,"NVE/spin:stack_foot");
-  forward_stacks = memory->grow(forward_stacks,nlocal_max,"NVE/spin:forward_stacks");
   backward_stacks = memory->grow(backward_stacks,nlocal_max,"NVE/spin:backward_stacks");
+  forward_stacks = memory->grow(forward_stacks,nlocal_max,"NVE/spin:forward_stacks");
   if (nlocal_max == 0)
     error->all(FLERR,"Incorrect value of nlocal_max");
 
@@ -385,8 +385,8 @@ void FixNVESpin::pre_neighbor()
 
   if (nlocal_max < nlocal) {			// grow linked lists if necessary
     nlocal_max = nlocal;
-    forward_stacks = memory->grow(forward_stacks,nlocal_max,"NVE/spin:forward_stacks");
     backward_stacks = memory->grow(backward_stacks,nlocal_max,"NVE/spin:backward_stacks");
+    forward_stacks = memory->grow(forward_stacks,nlocal_max,"NVE/spin:forward_stacks");
   }
 
   for (int j = 0; j < nsectors; j++) {

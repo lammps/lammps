@@ -200,7 +200,7 @@ void FixPrecessionSpin::post_force(int vflag)
     }  
     
     if (aniso_flag) {		// compute magnetic anisotropy
-      compute_anisotropy(i,spi,fmi);
+      compute_anisotropy(spi,fmi);
       emag -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
       emag *= hbar;
     }
@@ -219,7 +219,7 @@ void FixPrecessionSpin::compute_single_precession(int i, double spi[3], double f
     compute_zeeman(i,fmi);
   }
   if (aniso_flag) {
-    compute_anisotropy(i,spi,fmi);
+    compute_anisotropy(spi,fmi);
   }
 }
 
@@ -236,7 +236,7 @@ void FixPrecessionSpin::compute_zeeman(int i, double fmi[3])
 
 /* ---------------------------------------------------------------------- */
 
-void FixPrecessionSpin::compute_anisotropy(int i, double spi[3], double fmi[3])
+void FixPrecessionSpin::compute_anisotropy(double spi[3], double fmi[3])
 {
   double scalar = nax*spi[0] + nay*spi[1] + naz*spi[2];
   fmi[0] += scalar*Kax;

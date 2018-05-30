@@ -24,6 +24,8 @@ PairStyle(tersoffHG,PairTERSOFFHG)
 #include "my_page.h"
 #include "HGvector.h"
 #include <vector>
+#include <map>
+
 #define X1_NGRIDPOINTS  5
 #define X2_NGRIDPOINTS  5
 #define X1_NGRIDSQUARES (X1_NGRIDPOINTS-1)
@@ -38,33 +40,14 @@ class PairTERSOFFHG : public PairTersoff {
 
 private:
   HGvector Fij;
-  double bbar_ij, iNconj, jNconj;
+  double bbar_ij;//, iNconj, jNconj;
   double bsp_ij, bsp_ji, Nconj_ij;
   int cnt, scrcount;
   double VA_ij, VR_ij, dVA_ij, dVR_ij;
   double iFv_ij, jFv_ij, force_ik, force_jk;
-  std::vector<double> iFv_ik, iFv_jk, iFv_ik2;
-  std::vector<double> jFv_ik, jFv_jk, jFv_jk2;
- // double (***cSiHal)[4][4];
-/* ptr to_|||       |____|
- *         ||          |____________________ 
- *         ||                               |
- *         \|__ an "m"x"n" 2D array of...   |___ 4x4 2D arrays.
- *
- *  Here, we state that the 2D grid of points ("knots") which define the
- *  function we are interpolating is "m+1"x"n+1" and has, therefore, 
- *  m x n 4-membered grid squares.  Each one of these grid squares 
- *  has associated with it a 4x4 matrix of coefficients, c_(ij), 
- *  which are functions of the function values and its derivatives
- *  at the four gridpoints in that square.  This coefficient matrix
- *  c_(ij) is used in the bicubic interpolation routine.  We wish to
- *  initially compute *all* 4x4 matrices (c_(ij))_(mn) initially, and
- *  store them for use by the interpolation routine.  In order to store
- *  the m x n 4x4 arrays, we declare "c" as a "(pointer to a) 
- *  matrix of matrices",  or (*)(**c)[4][4], and dynamically allocate
- *  the "m" rows of "n" columns each using the xmalloc function
- *  given in Numerical Recipes.
- */
+  std::vector<double> iFv_ik, iFv_jk;//, iFv_ik2;
+  std::vector<double> jFv_ik, jFv_jk;//, jFv_jk2;
+  std::map<int, std::map<int, double> > Nmap; 
 
 public:
   PairTERSOFFHG(class LAMMPS *);
@@ -80,7 +63,6 @@ protected:
   MyPage<int> *ipage;              // neighbor list pages
   int *REBO_numneigh;              // # of pair neighbors for each atom
   int **REBO_firstneigh;           // ptr to 1st neighbor of each atom
-//  double *nC,*nH;                  // sum of weighting fns with REBO neighs
 
   // Library file containing the spline coefficient
   void read_lib(Param *);
@@ -109,7 +91,7 @@ protected:
   void bicubic_genCoef (double y[X1_NGRIDPOINTS][X2_NGRIDPOINTS], Param*);
   void bcucof(double y[], double y1[], double y2[], double y12[],
             double d1, double d2, double c[4][4]);
-  double BondOrder(int, int, double, int, int);
+  double BondOrder(int, int, double, double, int, int);
   void bicubicint (double x1, double x2, double *y, double *y1, double *y2, Param *);
   void bcuint(double x1l, double x1u, double x2l, double x2u, 
       double x1, double x2, double *ansy, double *ansy1, double *ansy2,

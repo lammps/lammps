@@ -38,7 +38,7 @@ timestep     0.001
 #fix         1 all nve/body
 #fix         1 all nvt/body temp $T $T 1.0
 fix          1 all npt/body temp $T $T 1.0 x 0.001 $P 1.0 &
-             y 0.001 $P 1.0 couple xy
+             y 0.001 $P 1.0 couple xy fixedpoint 0 0 0
 
 fix          2 all enforce2d
 

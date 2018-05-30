@@ -609,15 +609,6 @@ void PairBodyRoundedPolyhedron::sphere_against_sphere(int ibody, int jbody,
 
   energy = 0;
   kernel_force(R, itype, jtype, energy, fpair);
-/*
-  if (R <= 0) {           // deformation occurs
-    fpair = -k_n * R - shift;
-    energy = (0.5 * k_n * R + shift) * R;
-  } else if (R <= cut_inner) {   // not deforming but cohesive ranges overlap
-    fpair = k_na * R - shift;
-    energy = (-0.5 * k_na * R + shift) * R;
-  } else fpair = 0.0;
-*/
 
   fx = delx*fpair/rij;
   fy = dely*fpair/rij;
@@ -756,16 +747,6 @@ void PairBodyRoundedPolyhedron::sphere_against_edge(int ibody, int jbody,
 
     energy = 0;
     kernel_force(R, itype, jtype, energy, fpair);
-/*
-    if (R <= 0) {           // deformation occurs
-      fpair = -k_n * R - shift;
-      energy = (0.5 * k_n * R + shift) * R;
-    } else if (R <= cut_inner) {   // not deforming but cohesive ranges overlap
-      fpair = k_na * R - shift;
-      energy = (-0.5 * k_na * R + shift) * R;
-    } else fpair = 0.0;
-*/
-
 
     fx = delx*fpair/rij;
     fy = dely*fpair/rij;
@@ -908,15 +889,6 @@ void PairBodyRoundedPolyhedron::sphere_against_face(int ibody, int jbody,
 
     energy = 0;
     kernel_force(R, itype, jtype, energy, fpair);
-/*
-    if (R <= 0) { // deformation occurs
-      fpair = -k_n * R - shift;
-      energy = (0.5 * k_n * R + shift) * R;
-    } else if (R <= cut_inner) { // not deforming but cohesive ranges overlap
-      fpair = k_na * R - shift;
-      energy = (-0.5 * k_na * R + shift) * R;
-    } else fpair = 0.0;
-*/
 
     fx = delx*fpair/rij;
     fy = dely*fpair/rij;
@@ -1506,15 +1478,6 @@ void PairBodyRoundedPolyhedron::pair_force_and_torque(int ibody, int jbody,
   R = r - contact_dist;
 
   kernel_force(R, itype, jtype, energy, fpair);
-/*
-  if (R <= 0) {                // deformation occurs
-    fpair = -k_n * R - shift;
-    energy += (0.5 * k_n * R + shift) * R;
-  } else if (R <= cut_inner) { // not deforming but cohesive ranges overlap
-    fpair = k_na * R - shift;
-    energy += (-0.5 * k_na * R + shift) * R;
-  } else fpair = 0.0;
-*/
 
   fx = delx*fpair/r;
   fy = dely*fpair/r;
@@ -1743,13 +1706,6 @@ void PairBodyRoundedPolyhedron::rescale_cohesive_forces(double** x,
 
     double energy = 0;
     kernel_force(R, itype, jtype, energy, fpair);
-/*
-    if (R <= 0) {                // deformation occurs
-      fpair = -k_n * R - shift;
-    } else if (R <= cut_inner) { // not deforming but cohesive ranges overlap
-      fpair = k_na * R - shift;
-    } else fpair = 0.0;
-*/
 
     fpair *= j_a;
     fx = delx*fpair/r;

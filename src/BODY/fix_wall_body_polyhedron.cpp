@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Trung Dac Nguyen (ndactrung@gmail.com)
+   Contributing author: Trung Dac Nguyen (ndactrung@gmail.com)
 ------------------------------------------------------------------------- */
 
 #include <cmath>

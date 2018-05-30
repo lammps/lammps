@@ -220,7 +220,33 @@ void BondHarmonicKokkos<DeviceType>::coeff(int narg, char **arg)
   k_r0.template modify<LMPHostType>();
   k_k.template sync<DeviceType>();
   k_r0.template sync<DeviceType>();
+}
 
+/* ----------------------------------------------------------------------
+   proc 0 reads coeffs from restart file, bcasts them
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void BondHarmonicKokkos<DeviceType>::read_restart(FILE *fp)
+{
+  BondHarmonic::read_restart(fp);
+
+  int n = atom->nbondtypes;
+  Kokkos::DualView<F_FLOAT*,DeviceType> k_k("BondHarmonic::k",n+1);
+  Kokkos::DualView<F_FLOAT*,DeviceType> k_r0("BondHarmonic::r0",n+1);
+
+  d_k = k_k.template view<DeviceType>();
+  d_r0 = k_r0.template view<DeviceType>();
+
+  for (int i = 1; i <= n; i++) {
+    k_k.h_view[i] = k[i];
+    k_r0.h_view[i] = r0[i];
+  }
+
+  k_k.template modify<LMPHostType>();
+  k_r0.template modify<LMPHostType>();
+  k_k.template sync<DeviceType>();
+  k_r0.template sync<DeviceType>();
 }
 
 /* ----------------------------------------------------------------------

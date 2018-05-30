@@ -17,11 +17,13 @@ replicate   $r $r 1
 
 velocity    all create $T ${seed} dist gaussian mom yes rot yes
 
+change_box  all boundary p f p
+
 variable cut_inner  equal 0.5
 variable k_n        equal 100
 variable k_na       equal 2
-variable c_n        equal 1
-variable c_t        equal 1
+variable c_n        equal 0.1
+variable c_t        equal 0.1
 variable mu         equal 0.1
 variable delta_ua   equal 0.5
 
@@ -37,10 +39,10 @@ timestep     0.001
 
 #fix         1 all nve/body
 #fix         1 all nvt/body temp $T $T 1.0
-fix          1 all npt/body temp $T $T 1.0 x 0.001 $P 1.0 &
-             y 0.001 $P 1.0 couple xy fixedpoint 0 0 0
+fix          1 all npt/body temp $T $T 1.0 x 0.001 $P 1.0 fixedpoint 0 0 0
 
 fix          2 all enforce2d
+fix          3 all wall/body/polygon 2000 50 50 yplane 0.0 48.0
 
 compute      1 all body/local id 1 2 3
 dump         1 all local 100000 dump.polygon.* index c_1[1] c_1[2] c_1[3] c_1[4]

@@ -34,7 +34,7 @@ class PairBodyRoundedPolyhedron : public Pair {
   void init_style();
   double init_one(int, int);
 
-  virtual void kernel_force(double R, double k_n, double k_na,
+  virtual void kernel_force(double R, int itype, int jtype,
     double& energy, double& fpair);
 
   struct Contact {
@@ -88,23 +88,23 @@ class PairBodyRoundedPolyhedron : public Pair {
   void body2space(int);
 
   // sphere-sphere interaction
-  void sphere_against_sphere(int ibody, int jbody, double delx, double dely, double delz,
-                             double rsq, double k_n, double k_na,
+  void sphere_against_sphere(int ibody, int jbody, int itype, int jtype,
+                             double delx, double dely, double delz, double rsq,
                              double** v, double** f, int evflag);
   // sphere-edge interaction
-  void sphere_against_edge(int ibody, int jbody,
-                       double k_n, double k_na, double** x, double** v,
-                       double** f, double** torque, double** angmom, int evflag);
+  void sphere_against_edge(int ibody, int jbody, int itype, int jtype,
+                           double** x, double** v, double** f, double** torque,
+                           double** angmom, int evflag);
   // sphere-face interaction
-  void sphere_against_face(int ibody, int jbody,
-                       double k_n, double k_na, double** x, double** v,
-                       double** f, double** torque, double** angmom, int evflag);
+  void sphere_against_face(int ibody, int jbody, int itype, int jtype,
+                           double** x, double** v, double** f, double** torque,
+                           double** angmom, int evflag);
   // edge-edge interactions
-  int edge_against_edge(int ibody, int jbody, double k_n, double k_na,
+  int edge_against_edge(int ibody, int jbody, int itype, int jtype,
                         double** x,Contact* contact_list, int &num_contacts,
                         double &evdwl, double* facc);
   // edge-face interactions
-  int edge_against_face(int ibody, int jbody, double k_n, double k_na,
+  int edge_against_face(int ibody, int jbody, int itype, int jtype,
                         double** x, Contact* contact_list, int &num_contacts,
                         double &evdwl, double* facc);
 
@@ -112,14 +112,14 @@ class PairBodyRoundedPolyhedron : public Pair {
   int interaction_face_to_edge(int ibody, int face_index, double* xmi,
                                double rounded_radius_i, int jbody, int edge_index,
                                double* xmj, double rounded_radius_j,
-                               double k_n, double k_na, double cut_inner,
+                               int itype, int jtype, double cut_inner,
                                Contact* contact_list, int &num_contacts,
                                double& energy, double* facc);
   // an edge vs. an edge from another body
   int interaction_edge_to_edge(int ibody, int edge_index_i, double* xmi,
                                double rounded_radius_i, int jbody, int edge_index_j,
                                double* xmj, double rounded_radius_j,
-                               double k_n, double k_na, double cut_inner,
+                               int itype, int jtype, double cut_inner,
                                Contact* contact_list, int &num_contacts,
                                double& energy, double* facc);
 
@@ -131,14 +131,14 @@ class PairBodyRoundedPolyhedron : public Pair {
 
   // compute force and torque between two bodies given a pair of interacting points
   void pair_force_and_torque(int ibody, int jbody, double* pi, double* pj,
-                             double r, double contact_dist, double k_n, 
-                             double k_na, double** x, double** v,
-                             double** f, double** torque, double** angmom,
-                             int jflag, double& energy, double* facc);
+                             double r, double contact_dist, int itype, int jtype,
+                             double** x, double** v, double** f, double** torque,
+                             double** angmom, int jflag, double& energy, double* facc);
+
   // rescale the cohesive forces if a contact area is detected
   void rescale_cohesive_forces(double** x, double** f, double** torque,
                                Contact* contact_list, int &num_contacts,
-                               double k_n, double k_na, double* facc);
+                               int itype, int jtype, double* facc);
 
   // compute the separation between two contacts
   double contact_separation(const Contact& c1, const Contact& c2);

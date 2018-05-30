@@ -1,9 +1,9 @@
 # 2d rounded polygon bodies
 
-variable    r     index 3
+variable    r     index 4
 variable    steps index 100000
 variable    T     index 0.5
-variable    P     index 0.2
+variable    P     index 0.1
 variable    seed  index 980411
 
 units       lj
@@ -48,9 +48,7 @@ dump         1 all local 100000 dump.polygon.* index c_1[1] c_1[2] c_1[3] c_1[4]
 thermo_style custom step ke pe etotal press
 thermo       1000
 
-restart      100000 restart1.bin restart2.bin
-
 #dump	     2 all image 10000 image.*.jpg type type zoom 2.0 adiam 1.5 body yes 0 0
 #dump_modify  2 pad 6
 
-run   	     ${steps}
+run          ${steps}

@@ -33,11 +33,11 @@ FixEnforce2DKokkos<DeviceType>::FixEnforce2DKokkos(LAMMPS *lmp, int narg, char *
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
-  datamask_read   = X_MASK | V_MASK | F_MASK | OMEGA_MASK | MASK_MASK;
-  /* TORQUE_MASK | ANGMOM_MASK | */ // MASK_MASK;
+  datamask_read   = X_MASK | V_MASK | F_MASK | OMEGA_MASK | MASK_MASK
+	  | TORQUE_MASK | ANGMOM_MASK; // | */ // MASK_MASK;
 
-  datamask_modify = X_MASK | V_MASK | F_MASK | OMEGA_MASK; // |
-	  /* TORQUE_MASK | ANGMOM_MASK */ ;
+  datamask_modify = X_MASK | V_MASK | F_MASK | OMEGA_MASK
+	  | TORQUE_MASK | ANGMOM_MASK;
 }
 
 

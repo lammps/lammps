@@ -7,6 +7,7 @@
 :line
 
 fix enforce2d command :h3
+fix enforce2d/kk command :h3
 
 [Syntax:]
 

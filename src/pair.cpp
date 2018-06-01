@@ -695,13 +695,15 @@ void Pair::compute_dummy(int eflag, int vflag)
 /* ---------------------------------------------------------------------- */
 void Pair::read_restart(FILE *)
 {
-  error->all(FLERR,"BUG: restartinfo=1 but no restart support in pair style");
+  if (comm->me == 0)
+    error->warning(FLERR,"BUG: restartinfo=1 but no restart support in pair style");
 }
 
 /* ---------------------------------------------------------------------- */
 void Pair::write_restart(FILE *)
 {
-  error->all(FLERR,"BUG: restartinfo=1 but no restart support in pair style");
+  if (comm->me == 0)
+    error->warning(FLERR,"BUG: restartinfo=1 but no restart support in pair style");
 }
 
 /* -------------------------------------------------------------------

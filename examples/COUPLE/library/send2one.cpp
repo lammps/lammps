@@ -1,6 +1,6 @@
-#include "mpi.h"
-#include "stdlib.h"
-#include "stdio.h"
+#include <mpi.h>
+#include <cstdlib>
+#include <cstdio>
 #include "send2one.h"
 #include "memory.h"
 #include "error.h"

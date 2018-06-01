@@ -23,10 +23,10 @@
 //         Tdelta = incremental temperature for each of N runs
 // See README for compilation instructions
 
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
-#include "mpi.h"
+#include <mpi.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "lammps.h"         // these are LAMMPS include files
 #include "input.h"

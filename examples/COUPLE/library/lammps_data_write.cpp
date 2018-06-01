@@ -1,6 +1,6 @@
 #include <mpi.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include "lammps_data_write.h"
 #include "memory.h"
 #include "error.h"

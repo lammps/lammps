@@ -507,7 +507,6 @@ AtomVec *Atom::new_avec(const char *style, int trysuffix, int &sflag)
     AtomVecCreator avec_creator = (*avec_map)[style];
     return avec_creator(lmp);
   }
-  //printf("test entries function: %s, %d, %d \n ",style, trysuffix, &sflag);
   error->all(FLERR,"Unknown atom style");
   return NULL;
 }

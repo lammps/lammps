@@ -387,8 +387,6 @@ void Verlet::force_clear()
 
     if (nbytes) {
       memset(&atom->f[0][0],0,3*nbytes);
-      //test memset for fm
-      //memset(&atom->fm[0][0],0,3*nbytes);
       if (torqueflag) memset(&atom->torque[0][0],0,3*nbytes);
       if (extraflag) atom->avec->force_clear(0,nbytes);
     }

@@ -37,8 +37,9 @@ class FixEnforce2DKokkos : public FixEnforce2D {
   void setup(int);
   void post_force(int);
 
+  template <int omega_flag, int angmom_flag, int torque_flag>
   KOKKOS_INLINE_FUNCTION
-  void post_force_item(int) const;
+  void post_force_item(const int i) const;
 
   // void min_setup(int);       Kokkos does not support minimization (yet)
   // void min_post_force(int);  Kokkos does not support minimization (yet)
@@ -50,20 +51,26 @@ class FixEnforce2DKokkos : public FixEnforce2D {
   typename ArrayTypes<DeviceType>::t_v_array v;
   typename ArrayTypes<DeviceType>::t_f_array f;
 
+  typename ArrayTypes<DeviceType>::t_v_array omega;
+  typename ArrayTypes<DeviceType>::t_v_array angmom;
+  typename ArrayTypes<DeviceType>::t_f_array torque;
+
   typename ArrayTypes<DeviceType>::t_int_1d mask;
 };
 
 
-template <class DeviceType>
-struct FixEnforce2DKokkosPostForceFunctor  {
+template <class DeviceType, int omega_flag, int angmom_flag, int torque_flag>
+struct FixEnforce2DKokkosPostForceFunctor {
   typedef DeviceType device_type;
   FixEnforce2DKokkos<DeviceType> c;
 
   FixEnforce2DKokkosPostForceFunctor(FixEnforce2DKokkos<DeviceType>* c_ptr):
     c(*c_ptr) {c.cleanup_copy();};
+
   KOKKOS_INLINE_FUNCTION
   void operator()(const int i) const {
-    c.post_force_item(i);
+    // c.template? Really C++?
+    c.template post_force_item <omega_flag, angmom_flag, torque_flag>(i);
   }
 };
 

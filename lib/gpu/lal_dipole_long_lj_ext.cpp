@@ -15,7 +15,7 @@
 
 #include <iostream>
 #include <cassert>
-#include <math.h>
+#include <cmath>
 
 #include "lal_dipole_long_lj.h"
 

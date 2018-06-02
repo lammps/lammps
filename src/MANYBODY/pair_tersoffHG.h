@@ -53,7 +53,6 @@ public:
   PairTERSOFFHG(class LAMMPS *);
   virtual ~PairTERSOFFHG() {}
   void compute(int, int);
-  //static double cSiF[4];
   void init_style();
 
 protected:

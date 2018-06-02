@@ -46,11 +46,6 @@ using namespace MathConst;
 #define TOL 1.0e-9
 #define PGDELTA 1
 
-
-//int BICUBIC_DIAG_=0;
-//short hcc_opt_=0;
-//short hcf_opt_=0;
-
 /* ---------------------------------------------------------------------- */
 
 PairTERSOFFHG::PairTERSOFFHG(LAMMPS *lmp) : PairTersoff(lmp)
@@ -221,291 +216,42 @@ void PairTERSOFFHG::read_file(char *file)
   delete [] words;
 }
 
-/* ---------------------------------------------------------------------- */
+//******************************************************
+void PairTERSOFFHG::init_style()
+{
+  if (atom->tag_enable == 0)
+    error->all(FLERR,"Pair style AIREBO requires atom IDs");
+  if (force->newton_pair == 0)
+    error->all(FLERR,"Pair style AIREBO requires newton pair on");
 
-// void PairTERSOFFHG::count_neigh()
-// {
-//   int i, j, ii, jj, itype, jtype, n;
-//   int inum, jnum, param, *ilist, *jlist, *numneigh, **firstneigh;
-//   double r, rsq, delrij[3];
-//   const double cutshortsq = cutmax*cutmax;
+  // need a full neighbor list, including neighbors of ghosts
 
-//   double **x = atom->x;
-//   int *type = atom->type;
+  int irequest = neighbor->request(this,instance_me);
+  neighbor->requests[irequest]->half = 0;
+  neighbor->requests[irequest]->full = 1;
+  neighbor->requests[irequest]->ghost = 1;
 
-//   if (atom->nmax > nmax) {
-//     nmax = atom->nmax;
-//     memory->grow(NCl,nmax,"pair:NCl");
-//     memory->grow(NSi,nmax,"pair:NSi");
-//   }
+  // local REBO neighbor list
+  // create pages if first time or if neighbor pgsize/oneatom has changed
 
-//   inum  = list->inum;
-//   ilist = list->ilist;
-//   numneigh = list->numneigh;
-//   firstneigh = list->firstneigh;
-//   for (ii = 0; ii < inum; ii++) {
-//     i = ilist[ii];
-//     itype = map[type[i]];
-//     jlist = firstneigh[i];
-//     jnum = numneigh[i];
+  int create = 0;
+  if (ipage == NULL) create = 1;
+  if (pgsize != neighbor->pgsize) create = 1;
+  if (oneatom != neighbor->oneatom) create = 1;
 
-//     // skip immediately if center atom is not Si
-//     if (strcmp(elements[map[itype+1]],"Si") != 0) continue;
+  if (create) {
+    delete [] ipage;
+    pgsize = neighbor->pgsize;
+    oneatom = neighbor->oneatom;
 
-//     NCl[i] = NSi[i] = 0.0;
+    int nmypage= comm->nthreads;
+    ipage = new MyPage<int>[nmypage];
+    for (int i = 0; i < nmypage; i++)
+      ipage[i].init(oneatom,pgsize,PGDELTA);
+  }
+}
 
-//     for (jj = 0; jj < jnum; jj++) {
-//       j = jlist[jj] & NEIGHMASK;
-//       jtype = map[type[j]];
-
-
-//       delrij[0] = x[i][0] - x[j][0];
-//       delrij[1] = x[i][1] - x[j][1];
-//       delrij[2] = x[i][2] - x[j][2];
-//       rsq = vec3_dot(delrij,delrij);
-//       param = elem2param[itype][jtype][jtype];
-
-//       if (rsq > cutshortsq) continue;
-
-//       r = sqrt(rsq);
-//       //if (strcmp(elements[map[jtype+1]],"Cl") == 0) NCl[i] += ters_fc(r,&params[param]);
-//       //if (strcmp(elements[map[jtype+1]],"Si") == 0) NSi[i] += ters_fc(r,&params[param]);
-//     }
-//   }
-
-//   // communicating coordination number to all nodes
-//   pack_flag = 1;
-//   comm->forward_comm_pair(this);
-//   pack_flag = 2;
-//   comm->forward_comm_pair(this);
-
-// }
-
-/* ---------------------------------------------------------------------- */
-
-// void PairTERSOFFHG::compute(int eflag, int vflag)
-// {
-//   int i,j,k,ii,jj,kk,inum,jnum;
-//   int itype,jtype,ktype,iparam_ij,iparam_ijk,iparam_ik;
-//   tagint itag,jtag;
-//   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-//   double rsq,rsq1,rsq2;
-//   double delr1[3],delr2[3],fi[3],fj[3],fk[3];
-//   double zeta_ij,prefactor;
-//   int nncl, nnsi;
-//   int *ilist,*jlist,*numneigh,**firstneigh;
-
-//   evdwl = 0.0;
-//   if (eflag || vflag) ev_setup(eflag,vflag);
-//   else evflag = vflag_fdotr = vflag_atom = 0;
-
-//   double **x = atom->x;
-//   double **f = atom->f;
-//   tagint *tag = atom->tag;
-//   int *type = atom->type;
-//   int nlocal = atom->nlocal;
-//   int newton_pair = force->newton_pair;
-//   const double cutshortsq = cutmax*cutmax;
-
-//   inum = list->inum;
-//   ilist = list->ilist;
-//   numneigh = list->numneigh;
-//   firstneigh = list->firstneigh;
-
-//   // count number of nearest neighbors; needs communications
-//   count_neigh();
-
-//   double fxtmp,fytmp,fztmp;
-
-//   // loop over full neighbor list of my atoms
-
-//   for (ii = 0; ii < inum; ii++) 
-//   {
-//     i = ilist[ii];
-//     itag = tag[i];
-//     itype = map[type[i]];
-//     xtmp = x[i][0];
-//     ytmp = x[i][1];
-//     ztmp = x[i][2];
-//     fxtmp = fytmp = fztmp = 0.0;
-
-//     // two-body interactions, skip half of them
-
-//     jlist = firstneigh[i];
-//     jnum = numneigh[i];
-//     int numshort = 0; 
-
-//     nncl = int((NCl[i]-1.0)*100.0);
-//     nnsi = int(NSi[i]);
-
-//     for (jj = 0; jj < jnum; jj++) 
-//     {
-//       j = jlist[jj];
-//       j &= NEIGHMASK;
-
-//       delx = xtmp - x[j][0];
-//       dely = ytmp - x[j][1];
-//       delz = ztmp - x[j][2];
-//       rsq = delx*delx + dely*dely + delz*delz;
-
-//       if (rsq < cutshortsq) 
-//       {
-//         neighshort[numshort++] = j;
-//         if (numshort >= maxshort) 
-//         {
-//           maxshort += maxshort/2;
-//           memory->grow(neighshort,maxshort,"pair:neighshort");
-//         }
-//       }
-
-//       jtag = tag[j];
-//       if (itag > jtag) 
-//       {
-//         if ((itag+jtag) % 2 == 0) continue;
-//       } 
-//       else if (itag < jtag) 
-//       {
-//         if ((itag+jtag) % 2 == 1) continue;
-//       } 
-//       else 
-//       {
-//         if (x[j][2] < x[i][2]) continue;
-//         if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
-//         if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
-//       }
-
-//       jtype = map[type[j]];
-//       iparam_ij = elem2param[itype][jtype][jtype];
-//       if (rsq >= params[iparam_ij].cutsq) continue;
-
-//       repulsive(&params[iparam_ij],rsq,fpair,eflag,evdwl);
-//       //if (tag[j] > tag[i])
-//       //  std::cerr<<tag[i]<<" "<<tag[j]<<" "<<evdwl<<std::endl;
-
-//       fxtmp += delx*fpair;
-//       fytmp += dely*fpair;
-//       fztmp += delz*fpair;
-//       f[j][0] -= delx*fpair;
-//       f[j][1] -= dely*fpair;
-//       f[j][2] -= delz*fpair;
-
-//       if (evflag) ev_tally(i,j,nlocal,newton_pair,
-//                            evdwl,0.0,fpair,delx,dely,delz);
-
-
-//     //std::cerr<<tag[i]<<" "<<tag[j]<<" "<<fpair<<std::endl;
-//     //" "<<delx*fpair<<" "<<dely*fpair<<" "<<dely*fpair<<" "
-//     //<<forces<<std::endl;
-//     }
-
-//     // three-body interactions
-//     // skip immediately if I-J is not within cutoff
-//     double fjxtmp,fjytmp,fjztmp;
-
-//     for (jj = 0; jj < numshort; jj++) 
-//     {
-//       j = neighshort[jj];
-//       jtype = map[type[j]];
-//       iparam_ij = elem2param[itype][jtype][jtype];
-  
-//       delr1[0] = x[j][0] - xtmp;
-//       delr1[1] = x[j][1] - ytmp;
-//       delr1[2] = x[j][2] - ztmp;
-//       rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
-//       if (rsq1 >= params[iparam_ij].cutsq) continue;
-
-//       // accumulate bondorder zeta for each i-j interaction via loop over k
-
-//       fjxtmp = fjytmp = fjztmp = 0.0;
-//       zeta_ij = 0.0;
-
-//       for (kk = 0; kk < numshort; kk++) 
-//       {
-//         if (jj == kk) continue;
-//         k = neighshort[kk];
-//         ktype = map[type[k]];
-//         iparam_ijk = elem2param[itype][jtype][ktype];
-//       	iparam_ik  = elem2param[itype][ktype][ktype];
-
-//         delr2[0] = x[k][0] - xtmp;
-//         delr2[1] = x[k][1] - ytmp;
-//         delr2[2] = x[k][2] - ztmp;
-//         rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
-//         if (rsq2 >= params[iparam_ijk].cutsq) continue;
-
-//         zeta_ij += zeta(&params[iparam_ijk],&params[iparam_ik],rsq1,rsq2,delr1,delr2);
-//       }
-
-//       // pairwise force due to zeta
-
-//       force_zeta(&params[iparam_ij],rsq1,zeta_ij,fpair,prefactor,eflag,evdwl,nncl,nnsi);
-
-//       fxtmp += delr1[0]*fpair;
-//       fytmp += delr1[1]*fpair;
-//       fztmp += delr1[2]*fpair;
-//       fjxtmp -= delr1[0]*fpair;
-//       fjytmp -= delr1[1]*fpair;
-//       fjztmp -= delr1[2]*fpair;
-
-//       if (evflag) ev_tally(i,j,nlocal,newton_pair,
-//                            evdwl,0.0,-fpair,-delr1[0],-delr1[1],-delr1[2]);
-
-//       // attractive term via loop over k
-
-//       for (kk = 0; kk < numshort; kk++) {
-//         if (jj == kk) continue;
-//         k = neighshort[kk];
-//         ktype = map[type[k]];
-//         iparam_ijk = elem2param[itype][jtype][ktype];
-//       	iparam_ik  = elem2param[itype][ktype][ktype];
-
-//         delr2[0] = x[k][0] - xtmp;
-//         delr2[1] = x[k][1] - ytmp;
-//         delr2[2] = x[k][2] - ztmp;
-//         rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
-//         if (rsq2 >= params[iparam_ijk].cutsq) continue;
-
-//         attractive(&params[iparam_ijk],&params[iparam_ik],prefactor,
-//                    rsq1,rsq2,delr1,delr2,fi,fj,fk);
-
-//         fxtmp += fi[0];
-//         fytmp += fi[1];
-//         fztmp += fi[2];
-//         fjxtmp += fj[0];
-//         fjytmp += fj[1];
-//         fjztmp += fj[2];
-//         f[k][0] += fk[0];
-//         f[k][1] += fk[1];
-//         f[k][2] += fk[2];
-
-//         if (vflag_atom) v_tally3(i,j,k,fj,fk,delr1,delr2);
-
-//       }
-//       f[j][0] += fjxtmp;
-//       f[j][1] += fjytmp;
-//       f[j][2] += fjztmp;
-//     }
-//     f[i][0] += fxtmp;
-//     f[i][1] += fytmp;
-//     f[i][2] += fztmp;
-
-//   }
-
-//   if (vflag_fdotr) virial_fdotr_compute();
-
-  
-//   // for (ii = 0; ii < inum; ii++) 
-//   // {
-//   //   i = ilist[ii];
-//   //   std::cerr<<tag[i]<<" "<<f[i][0]<<" "<<f[i][1]<<" "<<f[i][2]<<std::endl;
-//   // }
-// }
-
-//*****************************************************************************
-//*****************************************************************************
-//*****************************************************************************
-//*****************************************************************************
-//*****************************************************************************
+//******************************************************
 void PairTERSOFFHG::compute(int eflag, int vflag)
 {
   int i,j,k,ii,jj,kk,inum,jnum;
@@ -536,6 +282,9 @@ void PairTERSOFFHG::compute(int eflag, int vflag)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
+  double rcmaxsq;
+  double rcmin, rcmax;
+
 
   // count number of nearest neighbors; needs communications
 //  count_neigh();
@@ -543,7 +292,6 @@ void PairTERSOFFHG::compute(int eflag, int vflag)
   double dS;
   int *neighptr;
   
-
   if (atom->nmax > maxlocal) {
     maxlocal = atom->nmax;
     memory->destroy(REBO_numneigh);
@@ -559,7 +307,6 @@ void PairTERSOFFHG::compute(int eflag, int vflag)
   firstneigh = list->firstneigh;
 
   // From pair_AIREBO: store all REBO neighs of owned and ghost atoms
- 
   ipage->reset();
   Nmap.clear();
   
@@ -576,22 +323,22 @@ void PairTERSOFFHG::compute(int eflag, int vflag)
     itype = map[type[i]];
     jlist = firstneigh[i];
     jnum = numneigh[i];
-    double rcmaxsq = 9.0;
-    double rcmin, rcmax;
 
     for (jj = 0; jj < jnum; jj++) 
     {
       j = jlist[jj];
       j &= NEIGHMASK;
       jtype = map[type[j]];
+      iparam_ij = elem2param[itype][jtype][jtype];
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
 
+      rcmin = params[iparam_ij].bigr;
+      rcmax = rcmin + params[iparam_ij].bigd;
+      rcmaxsq = rcmax*rcmax;
       if (rsq < rcmaxsq){//[itype][jtype]) {
-        rcmin = params[iparam_ij].bigr;
-        rcmax = rcmin + params[iparam_ij].bigd;
         neighptr[n++] = j;
         Nmap[i][jtype]+=Sp(sqrt(rsq),rcmin,rcmax,dS);
       }
@@ -638,6 +385,8 @@ void PairTERSOFFHG::compute(int eflag, int vflag)
       Rij.set(x[i][0]-x[j][0], x[i][1]-x[j][1], x[i][2]-x[j][2]);
       rij=Rij.mag();
       rsq = Rij.sqmag();
+        //std::cerr<<tag[i]<<" "<<tag[j]<<" "<<rij<<" "<<std::endl;
+
       Rij1 = Rij/rij;
       jtype = map[type[j]];
       iparam_ij = elem2param[itype][jtype][jtype];
@@ -676,6 +425,8 @@ void PairTERSOFFHG::compute(int eflag, int vflag)
         VR_ij = ij_f * aa;
         dVR_ij = aa * (ij_fprime - ij_f*MORSE_LAM);
       }
+      //std::cerr<<tag[i]<<" "<<tag[j]<<" "<<VR_ij<<"\n";
+
       double b_ij=BondOrder(i, j, ij_f, VA_ij, eflag, vflag);
 
       evdwl = VR_ij - b_ij*VA_ij;
@@ -696,40 +447,6 @@ void PairTERSOFFHG::compute(int eflag, int vflag)
   }
 }
 
-//******************************************************
-void PairTERSOFFHG::init_style()
-{
-  if (atom->tag_enable == 0)
-    error->all(FLERR,"Pair style AIREBO requires atom IDs");
-  if (force->newton_pair == 0)
-    error->all(FLERR,"Pair style AIREBO requires newton pair on");
-
-  // need a full neighbor list, including neighbors of ghosts
-
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->ghost = 1;
-
-  // local REBO neighbor list
-  // create pages if first time or if neighbor pgsize/oneatom has changed
-
-  int create = 0;
-  if (ipage == NULL) create = 1;
-  if (pgsize != neighbor->pgsize) create = 1;
-  if (oneatom != neighbor->oneatom) create = 1;
-
-  if (create) {
-    delete [] ipage;
-    pgsize = neighbor->pgsize;
-    oneatom = neighbor->oneatom;
-
-    int nmypage= comm->nthreads;
-    ipage = new MyPage<int>[nmypage];
-    for (int i = 0; i < nmypage; i++)
-      ipage[i].init(oneatom,pgsize,PGDELTA);
-  }
-}
 
 //******************************************************
 double PairTERSOFFHG::BondOrder(int i, int j, double ij_f, double Pre, int eflag, int vflag){
@@ -739,7 +456,6 @@ double PairTERSOFFHG::BondOrder(int i, int j, double ij_f, double Pre, int eflag
   iFv_ij=0; iFv_ik.clear(); iFv_jk.clear(); //iFv_ik2.clear();
   jFv_ij=0; jFv_ik.clear(); jFv_jk.clear(); //jFv_jk2.clear();
   double cos_theta, bigr, bigd;
-//  iNconj=jNconj=0;
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *klist;
   int k,ii,jj,kk,inum,jnum,knum;
@@ -785,8 +501,10 @@ double PairTERSOFFHG::BondOrder(int i, int j, double ij_f, double Pre, int eflag
   P_ij=P_ji=dFP_ij=dFP_ji=dCP_ij=dCP_ji=0;
 
   //these only work if 0 is Si, 1 is F/Cl. Later, find a way to virtualize
+  //std::cerr<<"  "<<Nmap[i][1]<<" "<<(jtype==1)*ij_f<<" "<<Nmap[i][0]<<" "<<(jtype==0)*ij_f<<std::endl;
   bicubicint (Nmap[i][1]-(jtype==1)*ij_f, Nmap[i][0]-(jtype==0)*ij_f, 
               &P_ij, &dFP_ij, &dCP_ij, &params[iparam_ij]);
+
   bicubicint (Nmap[j][1]-(itype==1)*ij_f, Nmap[j][0]-(itype==0)*ij_f,
               &P_ji, &dFP_ji, &dCP_ji, &params[iparam_ji]);
   
@@ -1345,3 +1063,283 @@ void PairTERSOFFHG::bcuint(double x1l, double x1u, double x2l, double x2u,
   *ansy1 /= d1;
   *ansy2 /= d2;
 }
+
+/* ---------------------------------------------------------------------- */
+
+// void PairTERSOFFHG::count_neigh()
+// {
+//   int i, j, ii, jj, itype, jtype, n;
+//   int inum, jnum, param, *ilist, *jlist, *numneigh, **firstneigh;
+//   double r, rsq, delrij[3];
+//   const double cutshortsq = cutmax*cutmax;
+
+//   double **x = atom->x;
+//   int *type = atom->type;
+
+//   if (atom->nmax > nmax) {
+//     nmax = atom->nmax;
+//     memory->grow(NCl,nmax,"pair:NCl");
+//     memory->grow(NSi,nmax,"pair:NSi");
+//   }
+
+//   inum  = list->inum;
+//   ilist = list->ilist;
+//   numneigh = list->numneigh;
+//   firstneigh = list->firstneigh;
+//   for (ii = 0; ii < inum; ii++) {
+//     i = ilist[ii];
+//     itype = map[type[i]];
+//     jlist = firstneigh[i];
+//     jnum = numneigh[i];
+
+//     // skip immediately if center atom is not Si
+//     if (strcmp(elements[map[itype+1]],"Si") != 0) continue;
+
+//     NCl[i] = NSi[i] = 0.0;
+
+//     for (jj = 0; jj < jnum; jj++) {
+//       j = jlist[jj] & NEIGHMASK;
+//       jtype = map[type[j]];
+
+
+//       delrij[0] = x[i][0] - x[j][0];
+//       delrij[1] = x[i][1] - x[j][1];
+//       delrij[2] = x[i][2] - x[j][2];
+//       rsq = vec3_dot(delrij,delrij);
+//       param = elem2param[itype][jtype][jtype];
+
+//       if (rsq > cutshortsq) continue;
+
+//       r = sqrt(rsq);
+//       //if (strcmp(elements[map[jtype+1]],"Cl") == 0) NCl[i] += ters_fc(r,&params[param]);
+//       //if (strcmp(elements[map[jtype+1]],"Si") == 0) NSi[i] += ters_fc(r,&params[param]);
+//     }
+//   }
+
+//   // communicating coordination number to all nodes
+//   pack_flag = 1;
+//   comm->forward_comm_pair(this);
+//   pack_flag = 2;
+//   comm->forward_comm_pair(this);
+
+// }
+
+/* ---------------------------------------------------------------------- */
+
+// void PairTERSOFFHG::compute(int eflag, int vflag)
+// {
+//   int i,j,k,ii,jj,kk,inum,jnum;
+//   int itype,jtype,ktype,iparam_ij,iparam_ijk,iparam_ik;
+//   tagint itag,jtag;
+//   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
+//   double rsq,rsq1,rsq2;
+//   double delr1[3],delr2[3],fi[3],fj[3],fk[3];
+//   double zeta_ij,prefactor;
+//   int nncl, nnsi;
+//   int *ilist,*jlist,*numneigh,**firstneigh;
+
+//   evdwl = 0.0;
+//   if (eflag || vflag) ev_setup(eflag,vflag);
+//   else evflag = vflag_fdotr = vflag_atom = 0;
+
+//   double **x = atom->x;
+//   double **f = atom->f;
+//   tagint *tag = atom->tag;
+//   int *type = atom->type;
+//   int nlocal = atom->nlocal;
+//   int newton_pair = force->newton_pair;
+//   const double cutshortsq = cutmax*cutmax;
+
+//   inum = list->inum;
+//   ilist = list->ilist;
+//   numneigh = list->numneigh;
+//   firstneigh = list->firstneigh;
+
+//   // count number of nearest neighbors; needs communications
+//   count_neigh();
+
+//   double fxtmp,fytmp,fztmp;
+
+//   // loop over full neighbor list of my atoms
+
+//   for (ii = 0; ii < inum; ii++) 
+//   {
+//     i = ilist[ii];
+//     itag = tag[i];
+//     itype = map[type[i]];
+//     xtmp = x[i][0];
+//     ytmp = x[i][1];
+//     ztmp = x[i][2];
+//     fxtmp = fytmp = fztmp = 0.0;
+
+//     // two-body interactions, skip half of them
+
+//     jlist = firstneigh[i];
+//     jnum = numneigh[i];
+//     int numshort = 0; 
+
+//     nncl = int((NCl[i]-1.0)*100.0);
+//     nnsi = int(NSi[i]);
+
+//     for (jj = 0; jj < jnum; jj++) 
+//     {
+//       j = jlist[jj];
+//       j &= NEIGHMASK;
+
+//       delx = xtmp - x[j][0];
+//       dely = ytmp - x[j][1];
+//       delz = ztmp - x[j][2];
+//       rsq = delx*delx + dely*dely + delz*delz;
+
+//       if (rsq < cutshortsq) 
+//       {
+//         neighshort[numshort++] = j;
+//         if (numshort >= maxshort) 
+//         {
+//           maxshort += maxshort/2;
+//           memory->grow(neighshort,maxshort,"pair:neighshort");
+//         }
+//       }
+
+//       jtag = tag[j];
+//       if (itag > jtag) 
+//       {
+//         if ((itag+jtag) % 2 == 0) continue;
+//       } 
+//       else if (itag < jtag) 
+//       {
+//         if ((itag+jtag) % 2 == 1) continue;
+//       } 
+//       else 
+//       {
+//         if (x[j][2] < x[i][2]) continue;
+//         if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
+//         if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
+//       }
+
+//       jtype = map[type[j]];
+//       iparam_ij = elem2param[itype][jtype][jtype];
+//       if (rsq >= params[iparam_ij].cutsq) continue;
+
+//       repulsive(&params[iparam_ij],rsq,fpair,eflag,evdwl);
+//       //if (tag[j] > tag[i])
+//       //  std::cerr<<tag[i]<<" "<<tag[j]<<" "<<evdwl<<std::endl;
+
+//       fxtmp += delx*fpair;
+//       fytmp += dely*fpair;
+//       fztmp += delz*fpair;
+//       f[j][0] -= delx*fpair;
+//       f[j][1] -= dely*fpair;
+//       f[j][2] -= delz*fpair;
+
+//       if (evflag) ev_tally(i,j,nlocal,newton_pair,
+//                            evdwl,0.0,fpair,delx,dely,delz);
+
+
+//     //std::cerr<<tag[i]<<" "<<tag[j]<<" "<<fpair<<std::endl;
+//     //" "<<delx*fpair<<" "<<dely*fpair<<" "<<dely*fpair<<" "
+//     //<<forces<<std::endl;
+//     }
+
+//     // three-body interactions
+//     // skip immediately if I-J is not within cutoff
+//     double fjxtmp,fjytmp,fjztmp;
+
+//     for (jj = 0; jj < numshort; jj++) 
+//     {
+//       j = neighshort[jj];
+//       jtype = map[type[j]];
+//       iparam_ij = elem2param[itype][jtype][jtype];
+  
+//       delr1[0] = x[j][0] - xtmp;
+//       delr1[1] = x[j][1] - ytmp;
+//       delr1[2] = x[j][2] - ztmp;
+//       rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
+//       if (rsq1 >= params[iparam_ij].cutsq) continue;
+
+//       // accumulate bondorder zeta for each i-j interaction via loop over k
+
+//       fjxtmp = fjytmp = fjztmp = 0.0;
+//       zeta_ij = 0.0;
+
+//       for (kk = 0; kk < numshort; kk++) 
+//       {
+//         if (jj == kk) continue;
+//         k = neighshort[kk];
+//         ktype = map[type[k]];
+//         iparam_ijk = elem2param[itype][jtype][ktype];
+//        iparam_ik  = elem2param[itype][ktype][ktype];
+
+//         delr2[0] = x[k][0] - xtmp;
+//         delr2[1] = x[k][1] - ytmp;
+//         delr2[2] = x[k][2] - ztmp;
+//         rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
+//         if (rsq2 >= params[iparam_ijk].cutsq) continue;
+
+//         zeta_ij += zeta(&params[iparam_ijk],&params[iparam_ik],rsq1,rsq2,delr1,delr2);
+//       }
+
+//       // pairwise force due to zeta
+
+//       force_zeta(&params[iparam_ij],rsq1,zeta_ij,fpair,prefactor,eflag,evdwl,nncl,nnsi);
+
+//       fxtmp += delr1[0]*fpair;
+//       fytmp += delr1[1]*fpair;
+//       fztmp += delr1[2]*fpair;
+//       fjxtmp -= delr1[0]*fpair;
+//       fjytmp -= delr1[1]*fpair;
+//       fjztmp -= delr1[2]*fpair;
+
+//       if (evflag) ev_tally(i,j,nlocal,newton_pair,
+//                            evdwl,0.0,-fpair,-delr1[0],-delr1[1],-delr1[2]);
+
+//       // attractive term via loop over k
+
+//       for (kk = 0; kk < numshort; kk++) {
+//         if (jj == kk) continue;
+//         k = neighshort[kk];
+//         ktype = map[type[k]];
+//         iparam_ijk = elem2param[itype][jtype][ktype];
+//        iparam_ik  = elem2param[itype][ktype][ktype];
+
+//         delr2[0] = x[k][0] - xtmp;
+//         delr2[1] = x[k][1] - ytmp;
+//         delr2[2] = x[k][2] - ztmp;
+//         rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
+//         if (rsq2 >= params[iparam_ijk].cutsq) continue;
+
+//         attractive(&params[iparam_ijk],&params[iparam_ik],prefactor,
+//                    rsq1,rsq2,delr1,delr2,fi,fj,fk);
+
+//         fxtmp += fi[0];
+//         fytmp += fi[1];
+//         fztmp += fi[2];
+//         fjxtmp += fj[0];
+//         fjytmp += fj[1];
+//         fjztmp += fj[2];
+//         f[k][0] += fk[0];
+//         f[k][1] += fk[1];
+//         f[k][2] += fk[2];
+
+//         if (vflag_atom) v_tally3(i,j,k,fj,fk,delr1,delr2);
+
+//       }
+//       f[j][0] += fjxtmp;
+//       f[j][1] += fjytmp;
+//       f[j][2] += fjztmp;
+//     }
+//     f[i][0] += fxtmp;
+//     f[i][1] += fytmp;
+//     f[i][2] += fztmp;
+
+//   }
+
+//   if (vflag_fdotr) virial_fdotr_compute();
+
+  
+//   // for (ii = 0; ii < inum; ii++) 
+//   // {
+//   //   i = ilist[ii];
+//   //   std::cerr<<tag[i]<<" "<<f[i][0]<<" "<<f[i][1]<<" "<<f[i][2]<<std::endl;
+//   // }
+// }

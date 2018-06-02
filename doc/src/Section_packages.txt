@@ -8,7 +8,7 @@ Section"_Section_accelerate.html :c
 
 :line
 
-4. Packages :h3
+4. Packages :h2
 
 This section gives an overview of the optional packages that extend
 LAMMPS functionality with instructions on how to build LAMMPS with
@@ -122,6 +122,7 @@ Package, Description, Doc page, Example, Library
 Package, Description, Doc page, Example, Library
 "USER-ATC"_#USER-ATC, atom-to-continuum coupling, "fix atc"_fix_atc.html, USER/atc, int
 "USER-AWPMD"_#USER-AWPMD, wave-packet MD, "pair_style awpmd/cut"_pair_awpmd.html, USER/awpmd, int
+"USER-BOCS"_#USER-BOCS, BOCS bottom up coarse graining, "fix bocs"_fix_bocs.html, USER/bocs, -
 "USER-CGDNA"_#USER-CGDNA, coarse-grained DNA force fields, src/USER-CGDNA/README, USER/cgdna, -
 "USER-CGSDK"_#USER-CGSDK, SDK coarse-graining model, "pair_style lj/sdk"_pair_sdk.html, USER/cgsdk, -
 "USER-COLVARS"_#USER-COLVARS, collective variables library, "fix colvars"_fix_colvars.html, USER/colvars, int
@@ -138,6 +139,7 @@ Package, Description, Doc page, Example, Library
 "USER-MESO"_#USER-MESO, mesoscale DPD models, "pair_style edpd"_pair_meso.html, USER/meso, -
 "USER-MGPT"_#USER-MGPT, fast MGPT multi-ion potentials, "pair_style mgpt"_pair_mgpt.html, USER/mgpt, -
 "USER-MISC"_#USER-MISC, single-file contributions, USER-MISC/README, USER/misc, -
+"USER-MOFFF"_#USER-MOFFF, styles for "MOF-FF"_MOFplus force field, "pair_style buck6d/coul/gauss"_pair_buck6d_coul_gauss.html, USER/mofff, -
 "USER-MOLFILE"_#USER-MOLFILE, "VMD"_vmd_home molfile plug-ins,"dump molfile"_dump_molfile.html, -, ext
 "USER-NETCDF"_#USER-NETCDF, dump output via NetCDF,"dump netcdf"_dump_netcdf.html, -, ext
 "USER-OMP"_#USER-OMP, OpenMP-enabled styles,"Section 5.3.4"_accelerate_omp.html, "Benchmarks"_http://lammps.sandia.gov/bench.html, -
@@ -1624,6 +1626,43 @@ examples/USER/awpmd :ul
 
 :line
 
+USER-BOCS package :link(USER-BOCS),h4
+
+[Contents:]
+
+This package provides "fix bocs"_fix_bocs.html, a modified version
+of "fix npt"_fix_nh.html which includes the pressure correction to
+the barostat as outlined in:
+
+N. J. H. Dunn and W. G. Noid, "Bottom-up coarse-grained models that 
+accurately describe the structure, pressure, and compressibility of
+molecular liquids," J. Chem. Phys. 143, 243148 (2015).
+
+[Authors:] Nicholas J. H. Dunn and Michael R. DeLyser (The Pennsylvania State University)
+
+[Install or un-install:]
+
+make yes-user-bocs
+make machine :pre
+
+make no-user-bocs
+make machine :pre
+
+[Supporting info:]
+
+The USER-BOCS user package for LAMMPS is part of the BOCS software package:
+"https://github.com/noid-group/BOCS"_https://github.com/noid-group/BOCS
+
+See the following reference for information about the entire package:
+
+Dunn, NJH; Lebold, KM; DeLyser, MR; Rudzinski, JF; Noid, WG.
+"BOCS: Bottom-Up Open-Source Coarse-Graining Software."
+J. Phys. Chem. B. 122, 13, 3363-3377 (2018).
+
+Example inputs are in the examples/USER/bocs folder.
+
+:line
+
 USER-CGDNA package :link(USER-CGDNA),h4
 
 [Contents:]
@@ -2256,6 +2295,44 @@ src/USER-MESO/README
 "fix mvv/dpd"_fix_mvv_dpd.html
 examples/USER/meso
 http://lammps.sandia.gov/movies.html#mesodpd :ul
+
+:line
+
+USER-MOFFF package :link(USER-MOFFF),h4
+
+[Contents:]
+
+Pair, angle and improper styles needed to employ the MOF-FF
+force field by Schmid and coworkers with LAMMPS. 
+MOF-FF is a first principles derived force field with the primary aim
+to simulate MOFs and related porous framework materials, using spherical 
+Gaussian charges. It is described in S. Bureekaew et al., Phys. Stat. Sol. B
+2013, 250, 1128-1141.
+For the usage of MOF-FF see the example in the example directory as 
+well as the "MOF+"_MOFplus website.
+
+:link(MOFplus,https://www.mofplus.org/content/show/MOF-FF)
+
+[Author:] Hendrik Heenen (Technical U of Munich), 
+Rochus Schmid (Ruhr-University Bochum).
+
+[Install or un-install:]
+
+make yes-user-mofff
+make machine :pre
+
+make no-user-mofff
+make machine :pre
+
+[Supporting info:]
+
+src/USER-MOFFF: filenames -> commands
+src/USER-MOFFF/README
+"pair_style buck6d/coul/gauss"_pair_buck6d_coul_gauss.html
+"angle_style class2"_angle_class2.html
+"angle_style cosine/buck6d"_angle_cosine_buck6d.html
+"improper_style inversion/harmonic"_improper_inversion_harmonic.html
+examples/USER/mofff :ul
 
 :line
 

@@ -8,7 +8,7 @@ Section"_Manual.html :c
 
 :line
 
-13. Future and history :h3
+13. Future and history :h2
 
 This section lists features we plan to add to LAMMPS, features of
 previous versions of LAMMPS, and features of other parallel molecular
@@ -20,7 +20,7 @@ dynamics codes our group has distributed.
 :line
 :line
 
-13.1 Coming attractions :h4,link(hist_1)
+13.1 Coming attractions :h3,link(hist_1)
 
 As of summer 2016 we are using the "LAMMPS project issue tracker
 on GitHub"_https://github.com/lammps/lammps/issues for keeping
@@ -46,7 +46,7 @@ if you want to have your suggestion added to the list.
 
 :line
 
-13.2 Past versions :h4,link(hist_2)
+13.2 Past versions :h3,link(hist_2)
 
 LAMMPS development began in the mid 1990s under a cooperative research
 & development agreement (CRADA) between two DOE labs (Sandia and LLNL)

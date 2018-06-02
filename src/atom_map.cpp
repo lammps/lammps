@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
+#include <cmath>
 #include "atom.h"
 #include "comm.h"
 #include "memory.h"
@@ -57,7 +57,7 @@ void Atom::map_init(int check)
       map_nused = 0;
       map_free = 0;
       for (int i = 0; i < map_nhash; i++) map_hash[i].next = i+1;
-      map_hash[map_nhash-1].next = -1;
+      if (map_nhash > 0) map_hash[map_nhash-1].next = -1;
     }
 
   // recreating: delete old map and create new one for array or hash

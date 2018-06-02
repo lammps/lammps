@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstring>
+#include <cstdlib>
 #include "compute_pair_local.h"
 #include "atom.h"
 #include "update.h"
@@ -76,7 +76,7 @@ ComputePairLocal::ComputePairLocal(LAMMPS *lmp, int narg, char **arg) :
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"cutoff") == 0) {
-      if (iarg+2 > narg) 
+      if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute pair/local command");
       if (strcmp(arg[iarg+1],"type") == 0) cutstyle = TYPE;
       else if (strcmp(arg[iarg+1],"radius") == 0) cutstyle = RADIUS;

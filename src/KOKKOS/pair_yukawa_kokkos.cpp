@@ -14,8 +14,8 @@
 /* ----------------------------------------------------------------------
    Contributing authors: Stefan Paquay (Brandeis University)
 ------------------------------------------------------------------------- */
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 #include "pair_yukawa_kokkos.h"
 #include "kokkos.h"
 #include "atom_kokkos.h"

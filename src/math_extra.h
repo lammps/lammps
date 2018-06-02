@@ -18,9 +18,9 @@
 #ifndef LMP_MATH_EXTRA_H
 #define LMP_MATH_EXTRA_H
 
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstring>
 #include "error.h"
 
 namespace MathExtra {
@@ -35,7 +35,7 @@ namespace MathExtra {
   inline void negate3(double *v);
   inline void scale3(double s, double *v);
   inline void add3(const double *v1, const double *v2, double *ans);
-  inline void scaleadd3(double s, const double *v1, const double *v2, 
+  inline void scaleadd3(double s, const double *v1, const double *v2,
                         double *ans);
   inline void sub3(const double *v1, const double *v2, double *ans);
   inline double len3(const double *v);
@@ -81,7 +81,7 @@ namespace MathExtra {
   void rotate(double matrix[3][3], int i, int j, int k, int l,
               double s, double tau);
   void richardson(double *q, double *m, double *w, double *moments, double dtq);
-  void no_squish_rotate(int k, double *p, double *q, double *inertia, 
+  void no_squish_rotate(int k, double *p, double *q, double *inertia,
                         double dt);
 
   // shape matrix operations
@@ -116,7 +116,7 @@ namespace MathExtra {
   inline void rotation_generator_x(const double m[3][3], double ans[3][3]);
   inline void rotation_generator_y(const double m[3][3], double ans[3][3]);
   inline void rotation_generator_z(const double m[3][3], double ans[3][3]);
-  
+
   void BuildRxMatrix(double R[3][3], const double angle);
   void BuildRyMatrix(double R[3][3], const double angle);
   void BuildRzMatrix(double R[3][3], const double angle);
@@ -183,7 +183,7 @@ inline void MathExtra::normalize3(const double *v, double *ans)
    scale a vector to length
 ------------------------------------------------------------------------- */
 
-inline void MathExtra::snormalize3(const double length, const double *v, 
+inline void MathExtra::snormalize3(const double length, const double *v,
                                    double *ans)
 {
   double scale = length/sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
@@ -229,7 +229,7 @@ inline void MathExtra::add3(const double *v1, const double *v2, double *ans)
    ans = s*v1 + v2
 ------------------------------------------------------------------------- */
 
-inline void MathExtra::scaleadd3(double s, const double *v1, 
+inline void MathExtra::scaleadd3(double s, const double *v1,
                                  const double *v2, double *ans)
 {
   ans[0] = s*v1[0] + v2[0];
@@ -404,7 +404,7 @@ inline void MathExtra::times3(const double m[3][3], const double m2[3][3],
    multiply the transpose of mat1 times mat2
 ------------------------------------------------------------------------- */
 
-inline void MathExtra::transpose_times3(const double m[3][3], 
+inline void MathExtra::transpose_times3(const double m[3][3],
                                         const double m2[3][3],double ans[3][3])
 {
   ans[0][0] = m[0][0]*m2[0][0] + m[1][0]*m2[1][0] + m[2][0]*m2[2][0];
@@ -422,7 +422,7 @@ inline void MathExtra::transpose_times3(const double m[3][3],
    multiply mat1 times transpose of mat2
 ------------------------------------------------------------------------- */
 
-inline void MathExtra::times3_transpose(const double m[3][3], 
+inline void MathExtra::times3_transpose(const double m[3][3],
                                         const double m2[3][3],double ans[3][3])
 {
   ans[0][0] = m[0][0]*m2[0][0] + m[0][1]*m2[0][1] + m[0][2]*m2[0][2];
@@ -462,7 +462,7 @@ inline void MathExtra::invert3(const double m[3][3], double ans[3][3])
    matrix times vector
 ------------------------------------------------------------------------- */
 
-inline void MathExtra::matvec(const double m[3][3], const double *v, 
+inline void MathExtra::matvec(const double m[3][3], const double *v,
                               double *ans)
 {
   ans[0] = m[0][0]*v[0] + m[0][1]*v[1] + m[0][2]*v[2];
@@ -474,7 +474,7 @@ inline void MathExtra::matvec(const double m[3][3], const double *v,
    matrix times vector
 ------------------------------------------------------------------------- */
 
-inline void MathExtra::matvec(const double *ex, const double *ey, 
+inline void MathExtra::matvec(const double *ex, const double *ey,
                               const double *ez, const double *v, double *ans)
 {
   ans[0] = ex[0]*v[0] + ey[0]*v[1] + ez[0]*v[2];
@@ -529,7 +529,7 @@ inline void MathExtra::transpose_diag3(const double m[3][3], const double *d,
    row vector times matrix
 ------------------------------------------------------------------------- */
 
-inline void MathExtra::vecmat(const double *v, const double m[3][3], 
+inline void MathExtra::vecmat(const double *v, const double m[3][3],
                               double *ans)
 {
   ans[0] = v[0]*m[0][0] + v[1]*m[1][0] + v[2]*m[2][0];
@@ -553,7 +553,7 @@ inline void MathExtra::scalar_times3(const double f, double m[3][3])
    upper-triangular 3x3, stored as 6-vector in Voigt notation
 ------------------------------------------------------------------------- */
 
-inline void MathExtra::multiply_shape_shape(const double *one, 
+inline void MathExtra::multiply_shape_shape(const double *one,
                                             const double *two, double *ans)
 {
   ans[0] = one[0]*two[0];
@@ -660,7 +660,7 @@ inline void MathExtra::axisangle_to_quat(const double *v, const double angle,
    Apply principal rotation generator about x to rotation matrix m
 ------------------------------------------------------------------------- */
 
-inline void MathExtra::rotation_generator_x(const double m[3][3], 
+inline void MathExtra::rotation_generator_x(const double m[3][3],
                                             double ans[3][3])
 {
   ans[0][0] = 0;
@@ -678,7 +678,7 @@ inline void MathExtra::rotation_generator_x(const double m[3][3],
    Apply principal rotation generator about y to rotation matrix m
 ------------------------------------------------------------------------- */
 
-inline void MathExtra::rotation_generator_y(const double m[3][3], 
+inline void MathExtra::rotation_generator_y(const double m[3][3],
                                             double ans[3][3])
 {
   ans[0][0] = m[0][2];
@@ -696,7 +696,7 @@ inline void MathExtra::rotation_generator_y(const double m[3][3],
    Apply principal rotation generator about z to rotation matrix m
 ------------------------------------------------------------------------- */
 
-inline void MathExtra::rotation_generator_z(const double m[3][3], 
+inline void MathExtra::rotation_generator_z(const double m[3][3],
                                             double ans[3][3])
 {
   ans[0][0] = -m[0][1];

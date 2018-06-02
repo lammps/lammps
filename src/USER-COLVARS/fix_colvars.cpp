@@ -24,10 +24,10 @@
    Contributing author:  Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <errno.h>
 
 #include "fix_colvars.h"
@@ -549,9 +549,9 @@ void FixColvars::setup(int vflag)
         } else {
           m[i] = atom->mass[type[k]];
         }
-	if (atom->q_flag) {
-	  q[i] = atom->q[k];
-	}
+        if (atom->q_flag) {
+          q[i] = atom->q[k];
+        }
       }
     }
 
@@ -616,7 +616,7 @@ void FixColvars::setup(int vflag)
           comm_buf[nme].m = atom->mass[type[k]];
         }
 
-	if (atom->q_flag) {
+        if (atom->q_flag) {
           comm_buf[nme].q = atom->q[k];
         }
 

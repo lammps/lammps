@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstring>
+#include <cstdlib>
+#include <cmath>
 #include "fix_temp_rescale.h"
 #include "atom.h"
 #include "force.h"
@@ -48,6 +48,7 @@ FixTempRescale::FixTempRescale(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   global_freq = nevery;
   extscalar = 1;
+  dynamic_group_allow = 1;
 
   tstr = NULL;
   if (strstr(arg[4],"v_") == arg[4]) {

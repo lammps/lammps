@@ -1,9 +1,9 @@
 <!-- HTML_ONLY -->
 <HEAD>
 <TITLE>LAMMPS Users Manual</TITLE>
-<META NAME="docnumber" CONTENT="17 Jan 2018 version">
+<META NAME="docnumber" CONTENT="11 May 2018 version">
 <META NAME="author" CONTENT="http://lammps.sandia.gov - Sandia National Laboratories">
-<META NAME="copyright" CONTENT="Copyright (2003) Sandia Corporation.  This software and manual is distributed under the GNU General Public License.">
+<META NAME="copyright" CONTENT="Copyright (2003) Sandia Corporation. This software and manual is distributed under the GNU General Public License.">
 </HEAD>
 
 <BODY>
@@ -18,12 +18,10 @@
 
 :line
 
-<H1></H1>
+LAMMPS Documentation :c,h1
+11 May 2018 version :c,h2
 
-LAMMPS Documentation :c,h3
-17 Jan 2018 version :c,h4
-
-Version info: :h4
+Version info: :h3
 
 The LAMMPS "version" is the date when it was released, such as 1 May
 2010. LAMMPS is updated continuously.  Whenever we fix a bug or add a
@@ -176,11 +174,11 @@ END_RST -->
   5.1 "Measuring performance"_acc_1 :ulb,b
   5.2 "Algorithms and code options to boost performace"_acc_2 :b
   5.3 "Accelerator packages with optimized styles"_acc_3 :b
-    5.3.1 "GPU package"_accelerate_gpu.html :ulb,b
+    5.3.1 "GPU package"_accelerate_gpu.html :b
     5.3.2 "USER-INTEL package"_accelerate_intel.html :b
     5.3.3 "KOKKOS package"_accelerate_kokkos.html :b
     5.3.4 "USER-OMP package"_accelerate_omp.html :b
-    5.3.5 "OPT package"_accelerate_opt.html :ule,b
+    5.3.5 "OPT package"_accelerate_opt.html :b
   5.4 "Comparison of various accelerator packages"_acc_4 :ule,b
 "How-to discussions"_Section_howto.html :l
   6.1 "Restarting a simulation"_howto_1 :ulb,b

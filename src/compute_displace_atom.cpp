@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <string.h>
+#include <cmath>
+#include <cstring>
 #include "compute_displace_atom.h"
 #include "atom.h"
 #include "update.h"
@@ -21,6 +21,8 @@
 #include "modify.h"
 #include "fix.h"
 #include "fix_store.h"
+#include "input.h"
+#include "variable.h"
 #include "memory.h"
 #include "error.h"
 
@@ -32,11 +34,41 @@ ComputeDisplaceAtom::ComputeDisplaceAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
   displace(NULL), id_fix(NULL)
 {
-  if (narg != 3) error->all(FLERR,"Illegal compute displace/atom command");
+  if (narg < 3) error->all(FLERR,"Illegal compute displace/atom command");
 
   peratom_flag = 1;
   size_peratom_cols = 4;
   create_attribute = 1;
+
+  // optional args
+
+  refreshflag = 0;
+  rvar = NULL;
+
+  int iarg = 3;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"refresh") == 0) {
+      if (iarg+2 > narg) 
+        error->all(FLERR,"Illegal compute displace/atom command");
+      refreshflag = 1;
+      delete [] rvar;
+      int n = strlen(arg[iarg+1]) + 1;
+      rvar = new char[n];
+      strcpy(rvar,arg[iarg+1]);
+      iarg += 2;
+    } else error->all(FLERR,"Illegal compute displace/atom command");
+  }
+
+  // error check
+
+  if (refreshflag) {
+    ivar = input->variable->find(rvar);
+    if (ivar < 0) 
+      error->all(FLERR,"Variable name for compute displace/atom does not exist");
+    if (input->variable->atomstyle(ivar) == 0)
+      error->all(FLERR,"Compute displace/atom variable "
+                 "is not atom-style variable");
+  }
 
   // create a new fix STORE style
   // id = compute-ID + COMPUTE_STORE, fix group = compute group
@@ -76,7 +108,8 @@ ComputeDisplaceAtom::ComputeDisplaceAtom(LAMMPS *lmp, int narg, char **arg) :
 
   // per-atom displacement array
 
-  nmax = 0;
+  nmax = nvmax = 0;
+  varatom = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -89,6 +122,8 @@ ComputeDisplaceAtom::~ComputeDisplaceAtom()
 
   delete [] id_fix;
   memory->destroy(displace);
+  delete [] rvar;
+  memory->destroy(varatom);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -100,6 +135,12 @@ void ComputeDisplaceAtom::init()
   int ifix = modify->find_fix(id_fix);
   if (ifix < 0) error->all(FLERR,"Could not find compute displace/atom fix ID");
   fix = (FixStore *) modify->fix[ifix];
+
+  if (refreshflag) {
+    ivar = input->variable->find(rvar);
+    if (ivar < 0)
+      error->all(FLERR,"Variable name for compute displace/atom does not exist");
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -184,11 +225,36 @@ void ComputeDisplaceAtom::set_arrays(int i)
 }
 
 /* ----------------------------------------------------------------------
+   reset per-atom storage values, based on atom-style variable evaluation
+   called by dump when dump_modify refresh is set
+------------------------------------------------------------------------- */
+
+void ComputeDisplaceAtom::refresh()
+{
+  if (atom->nmax > nvmax) {
+    nvmax = atom->nmax;
+    memory->destroy(varatom);
+    memory->create(varatom,nvmax,"displace/atom:varatom");
+  }
+
+  input->variable->compute_atom(ivar,igroup,varatom,1,0);
+
+  double **xoriginal = fix->astore;
+  double **x = atom->x;
+  imageint *image = atom->image;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    if (varatom[i]) domain->unmap(x[i],image[i],xoriginal[i]);
+}
+
+/* ----------------------------------------------------------------------
    memory usage of local atom-based array
 ------------------------------------------------------------------------- */
 
 double ComputeDisplaceAtom::memory_usage()
 {
   double bytes = nmax*4 * sizeof(double);
+  bytes += nvmax * sizeof(double);
   return bytes;
 }

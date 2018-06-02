@@ -16,7 +16,7 @@
  *_________________________________________________________________________*/
 
 #include "eulerparameters.h"
-#include "math.h"
+#include <cmath>
 
 using namespace std;
 

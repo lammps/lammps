@@ -15,7 +15,7 @@
    Contributing author: Rodrigo Canales (RWTH Aachen University)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
+#include <cmath>
 #include "pair_buck_intel.h"
 #include "atom.h"
 #include "comm.h"

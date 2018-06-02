@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -391,10 +391,11 @@ void OpenMP::finalize()
   }
 
   if ( Impl::t_openmp_instance ) {
-
+    // Silence Cuda Warning
     const int nthreads = Impl::t_openmp_instance->m_pool_size <= Impl::g_openmp_hardware_max_threads
                        ? Impl::g_openmp_hardware_max_threads
                        : Impl::t_openmp_instance->m_pool_size;
+    (void) nthreads;
 
     using Exec = Impl::OpenMPExec;
     Exec * instance = Impl::t_openmp_instance;
@@ -453,7 +454,7 @@ std::vector<OpenMP> OpenMP::partition(...)
 OpenMP OpenMP::create_instance(...) { return OpenMP(); }
 
 
-#if !defined( KOKKOS_DISABLE_DEPRECATED )
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
 
 int OpenMP::concurrency() {
   return Impl::g_openmp_hardware_max_threads;

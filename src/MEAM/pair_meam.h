@@ -106,6 +106,10 @@ class PairMEAM : public Pair {
 
 /* ERROR/WARNING messages:
 
+W: The pair_style meam command is unsupported. Please use pair_style meam/c instead
+
+UNDOCUMENTED
+
 E: MEAM library error %d
 
 A call to the MEAM Fortran library returned an error.

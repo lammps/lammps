@@ -8,10 +8,15 @@
 // Colvars repository at GitHub.
 
 #include <sstream>
-#include <string.h>
+#include <cstring>
 
 #if defined(_OPENMP)
 #include <omp.h>
+#endif
+
+#if defined(NAMD_TCL) || defined(VMDTCL)
+#define COLVARS_TCL
+#include <tcl.h>
 #endif
 
 #include "colvarmodule.h"
@@ -21,7 +26,10 @@
 
 
 
-colvarproxy_system::colvarproxy_system() {}
+colvarproxy_system::colvarproxy_system()
+{
+  reset_pbc_lattice();
+}
 
 
 colvarproxy_system::~colvarproxy_system() {}
@@ -50,10 +58,73 @@ bool colvarproxy_system::total_forces_same_step() const
 }
 
 
-cvm::real colvarproxy_system::position_dist2(cvm::atom_pos const &pos1,
-                                             cvm::atom_pos const &pos2)
+inline int round_to_integer(cvm::real x)
 {
-  return (position_distance(pos1, pos2)).norm2();
+  return std::floor(x+0.5);
+}
+
+
+void colvarproxy_system::update_pbc_lattice()
+{
+  // Periodicity is assumed in all directions
+
+  if (boundaries_type == boundaries_unsupported ||
+      boundaries_type == boundaries_non_periodic) {
+    cvm::error("Error: setting PBC lattice with unsupported boundaries.\n",
+               BUG_ERROR);
+    return;
+  }
+
+  {
+    cvm::rvector const v = cvm::rvector::outer(unit_cell_y, unit_cell_z);
+    reciprocal_cell_x = v/(v*unit_cell_x);
+  }
+  {
+    cvm::rvector const v = cvm::rvector::outer(unit_cell_z, unit_cell_x);
+    reciprocal_cell_y = v/(v*unit_cell_y);
+  }
+  {
+    cvm::rvector const v = cvm::rvector::outer(unit_cell_x, unit_cell_y);
+    reciprocal_cell_z = v/(v*unit_cell_z);
+  }
+}
+
+
+void colvarproxy_system::reset_pbc_lattice()
+{
+  unit_cell_x.reset();
+  unit_cell_y.reset();
+  unit_cell_z.reset();
+  reciprocal_cell_x.reset();
+  reciprocal_cell_y.reset();
+  reciprocal_cell_z.reset();
+}
+
+
+cvm::rvector colvarproxy_system::position_distance(cvm::atom_pos const &pos1,
+                                                   cvm::atom_pos const &pos2)
+  const
+{
+  if (boundaries_type == boundaries_unsupported) {
+    cvm::error("Error: unsupported boundary conditions.\n", INPUT_ERROR);
+  }
+
+  cvm::rvector diff = (pos2 - pos1);
+
+  if (boundaries_type == boundaries_non_periodic) return diff;
+
+  cvm::real const x_shift = round_to_integer(reciprocal_cell_x*diff);
+  cvm::real const y_shift = round_to_integer(reciprocal_cell_y*diff);
+  cvm::real const z_shift = round_to_integer(reciprocal_cell_z*diff);
+
+  diff.x -= x_shift*unit_cell_x.x + y_shift*unit_cell_y.x +
+    z_shift*unit_cell_z.x;
+  diff.y -= x_shift*unit_cell_x.y + y_shift*unit_cell_y.y +
+    z_shift*unit_cell_z.y;
+  diff.z -= x_shift*unit_cell_x.z + y_shift*unit_cell_y.z +
+    z_shift*unit_cell_z.z;
+
+  return diff;
 }
 
 
@@ -127,7 +198,7 @@ void colvarproxy_atoms::clear_atom(int index)
 int colvarproxy_atoms::load_atoms(char const *filename,
                                   cvm::atom_group &atoms,
                                   std::string const &pdb_field,
-                                  double const)
+                                  double)
 {
   return cvm::error("Error: loading atom identifiers from a file "
                     "is currently not implemented.\n",
@@ -137,9 +208,9 @@ int colvarproxy_atoms::load_atoms(char const *filename,
 
 int colvarproxy_atoms::load_coords(char const *filename,
                                    std::vector<cvm::atom_pos> &pos,
-                                   const std::vector<int> &indices,
+                                   std::vector<int> const &sorted_ids,
                                    std::string const &pdb_field,
-                                   double const)
+                                   double)
 {
   return cvm::error("Error: loading atomic coordinates from a file "
                     "is currently not implemented.\n",
@@ -420,8 +491,10 @@ colvarproxy_script::colvarproxy_script()
 colvarproxy_script::~colvarproxy_script() {}
 
 
-char *colvarproxy_script::script_obj_to_str(unsigned char *obj)
+char const *colvarproxy_script::script_obj_to_str(unsigned char *obj)
 {
+  cvm::error("Error: trying to print a script object without a scripting "
+             "language interface.\n", BUG_ERROR);
   return reinterpret_cast<char *>(obj);
 }
 
@@ -449,6 +522,140 @@ int colvarproxy_script::run_colvar_gradient_callback(
   return COLVARS_NOT_IMPLEMENTED;
 }
 
+
+
+colvarproxy_tcl::colvarproxy_tcl()
+{
+  _tcl_interp = NULL;
+}
+
+
+colvarproxy_tcl::~colvarproxy_tcl()
+{
+}
+
+
+void colvarproxy_tcl::init_tcl_pointers()
+{
+  cvm::error("Error: Tcl support is currently unavailable "
+             "outside NAMD or VMD.\n", COLVARS_NOT_IMPLEMENTED);
+}
+
+
+char const *colvarproxy_tcl::tcl_obj_to_str(unsigned char *obj)
+{
+#if defined(COLVARS_TCL)
+  return Tcl_GetString(reinterpret_cast<Tcl_Obj *>(obj));
+#else
+  return NULL;
+#endif
+}
+
+
+int colvarproxy_tcl::tcl_run_force_callback()
+{
+#if defined(COLVARS_TCL)
+  Tcl_Interp *const tcl_interp = reinterpret_cast<Tcl_Interp *>(_tcl_interp);
+  std::string cmd = std::string("calc_colvar_forces ")
+    + cvm::to_str(cvm::step_absolute());
+  int err = Tcl_Eval(tcl_interp, cmd.c_str());
+  if (err != TCL_OK) {
+    cvm::log(std::string("Error while executing calc_colvar_forces:\n"));
+    cvm::error(Tcl_GetStringResult(tcl_interp));
+    return COLVARS_ERROR;
+  }
+  return cvm::get_error();
+#else
+  return COLVARS_NOT_IMPLEMENTED;
+#endif
+}
+
+
+int colvarproxy_tcl::tcl_run_colvar_callback(
+                         std::string const &name,
+                         std::vector<const colvarvalue *> const &cvc_values,
+                         colvarvalue &value)
+{
+#if defined(COLVARS_TCL)
+
+  Tcl_Interp *const tcl_interp = reinterpret_cast<Tcl_Interp *>(_tcl_interp);
+  size_t i;
+  std::string cmd = std::string("calc_") + name;
+  for (i = 0; i < cvc_values.size(); i++) {
+    cmd += std::string(" {") + (*(cvc_values[i])).to_simple_string() +
+      std::string("}");
+  }
+  int err = Tcl_Eval(tcl_interp, cmd.c_str());
+  const char *result = Tcl_GetStringResult(tcl_interp);
+  if (err != TCL_OK) {
+    return cvm::error(std::string("Error while executing ")
+                      + cmd + std::string(":\n") +
+                      std::string(Tcl_GetStringResult(tcl_interp)), COLVARS_ERROR);
+  }
+  std::istringstream is(result);
+  if (value.from_simple_string(is.str()) != COLVARS_OK) {
+    cvm::log("Error parsing colvar value from script:");
+    cvm::error(result);
+    return COLVARS_ERROR;
+  }
+  return cvm::get_error();
+
+#else
+
+  return COLVARS_NOT_IMPLEMENTED;
+
+#endif
+}
+
+
+int colvarproxy_tcl::tcl_run_colvar_gradient_callback(
+                         std::string const &name,
+                         std::vector<const colvarvalue *> const &cvc_values,
+                         std::vector<cvm::matrix2d<cvm::real> > &gradient)
+{
+#if defined(COLVARS_TCL)
+
+  Tcl_Interp *const tcl_interp = reinterpret_cast<Tcl_Interp *>(_tcl_interp);
+  size_t i;
+  std::string cmd = std::string("calc_") + name + "_gradient";
+  for (i = 0; i < cvc_values.size(); i++) {
+    cmd += std::string(" {") + (*(cvc_values[i])).to_simple_string() +
+      std::string("}");
+  }
+  int err = Tcl_Eval(tcl_interp, cmd.c_str());
+  if (err != TCL_OK) {
+    return cvm::error(std::string("Error while executing ")
+                      + cmd + std::string(":\n") +
+                      std::string(Tcl_GetStringResult(tcl_interp)), COLVARS_ERROR);
+  }
+  Tcl_Obj **list;
+  int n;
+  Tcl_ListObjGetElements(tcl_interp, Tcl_GetObjResult(tcl_interp),
+                         &n, &list);
+  if (n != int(gradient.size())) {
+    cvm::error("Error parsing list of gradient values from script: found "
+               + cvm::to_str(n) + " values instead of " +
+               cvm::to_str(gradient.size()));
+    return COLVARS_ERROR;
+  }
+  for (i = 0; i < gradient.size(); i++) {
+    std::istringstream is(Tcl_GetString(list[i]));
+    if (gradient[i].from_simple_string(is.str()) != COLVARS_OK) {
+      cvm::log("Gradient matrix size: " + cvm::to_str(gradient[i].size()));
+      cvm::log("Gradient string: " + cvm::to_str(Tcl_GetString(list[i])));
+      cvm::error("Error parsing gradient value from script", COLVARS_ERROR);
+      return COLVARS_ERROR;
+    }
+  }
+
+  return cvm::get_error();
+
+#else
+
+  return COLVARS_NOT_IMPLEMENTED;
+
+#endif
+}
 
 
 
@@ -520,6 +727,7 @@ int colvarproxy_io::close_output_stream(std::string const &output_name)
   for ( ; osi != output_files.end(); osi++, osni++) {
     if (*osni == output_name) {
       ((std::ofstream *) (*osi))->close();
+      delete *osi;
       output_files.erase(osi);
       output_stream_names.erase(osni);
       return COLVARS_OK;
@@ -541,6 +749,7 @@ colvarproxy::colvarproxy()
 {
   colvars = NULL;
   b_simulation_running = true;
+  b_delete_requested = false;
 }
 
 
@@ -553,6 +762,14 @@ int colvarproxy::reset()
   error_code |= colvarproxy_atoms::reset();
   error_code |= colvarproxy_atom_groups::reset();
   return error_code;
+}
+
+
+int colvarproxy::request_deletion()
+{
+  return cvm::error("Error: \"delete\" command is only available in VMD; "
+                    "please use \"reset\" instead.\n",
+                    COLVARS_NOT_IMPLEMENTED);
 }
 
 
@@ -580,12 +797,12 @@ size_t colvarproxy::restart_frequency()
 }
 
 
-
-
-
-
-
-
-
-
+int colvarproxy::get_version_from_string(char const *version_string)
+{
+  std::string const v(version_string);
+  std::istringstream is(v.substr(0, 4) + v.substr(5, 2) + v.substr(8, 2));
+  int newint;
+  is >> newint;
+  return newint;
+}
 

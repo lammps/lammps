@@ -20,7 +20,7 @@ FixStyle(reax/bonds,FixReaxBonds)
 #ifndef LMP_FIX_REAX_BONDS_H
 #define LMP_FIX_REAX_BONDS_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "fix.h"
 
 namespace LAMMPS_NS {
@@ -55,6 +55,10 @@ E: Illegal ... command
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
+
+E: Cannot open gzipped file
+
+UNDOCUMENTED
 
 E: Cannot open fix reax/bonds file %s
 

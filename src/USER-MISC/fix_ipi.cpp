@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstring>
+#include <cstdlib>
 #include "fix_ipi.h"
 #include "atom.h"
 #include "force.h"
@@ -50,7 +50,7 @@ using namespace FixConst;
 
 // socket interface
 #ifndef _WIN32
-#include <stdlib.h>
+#include <cstdlib>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -219,7 +219,7 @@ FixIPI::FixIPI(LAMMPS *lmp, int narg, char **arg) :
 
   // create instance of Irregular class
   irregular = new Irregular(lmp);
-  
+
   // yet, we have not assigned a socket
   socketflag = 0;
 }
@@ -252,7 +252,7 @@ void FixIPI::init()
 {
   //only opens socket on master process
   if (master) {
-	if (!socketflag) open_socket(ipisock, inet, port, host, error);
+        if (!socketflag) open_socket(ipisock, inet, port, host, error);
   } else ipisock=0;
   //! should check for success in socket opening -- but the current open_socket routine dies brutally if unsuccessful
   // tell lammps we have assigned a socket
@@ -428,7 +428,7 @@ void FixIPI::final_integrate()
 
   int nat=bsize/3;
   double **f= atom->f;
-  double lbuf[bsize];
+  double *lbuf = new double[bsize];
 
   // reassembles the force vector from the local arrays
   int nlocal = atom->nlocal;
@@ -440,6 +440,7 @@ void FixIPI::final_integrate()
     lbuf[3*(atom->tag[i]-1)+2]=f[i][2]*forceconv;
   }
   MPI_Allreduce(lbuf,buffer,bsize,MPI_DOUBLE,MPI_SUM,world);
+  delete[] lbuf;
 
   for (int i = 0; i < 9; ++i) vir[i]=0.0;
 

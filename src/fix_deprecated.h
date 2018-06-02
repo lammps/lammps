@@ -42,7 +42,11 @@ class FixDeprecated : public Fix {
 
 /* ERROR/WARNING messages:
 
-E: The fix ave/spatial command has been removed from LAMMPS
+E: This fix command has been removed from LAMMPS
+
+UNDOCUMENTED
+
+U: The fix ave/spatial command has been removed from LAMMPS
 
 It has been replaced by the more flexible fix ave/chunk and compute
 chunk/atom commands.  All the fix ave/spatial keywords and options are

@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
+#include <cstring>
 #include "npair_skip_size.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -33,14 +33,10 @@ NPairSkipSize::NPairSkipSize(LAMMPS *lmp) : NPair(lmp) {}
 
 void NPairSkipSize::build(NeighList *list)
 {
-  int i,j,ii,jj,m,n,nn,itype,jnum,joriginal,dnum,dnumbytes;
-  tagint jtag;
+  int i,j,ii,jj,n,itype,jnum,joriginal;
   int *neighptr,*jlist;
 
-  tagint *tag = atom->tag;
   int *type = atom->type;
-  int nlocal = atom->nlocal;
-
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;

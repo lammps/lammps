@@ -18,8 +18,8 @@
 #if defined(LMP_HAS_NETCDF)
 
 #include <unistd.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include <netcdf.h>
 #include "dump_netcdf.h"
 #include "atom.h"
@@ -343,7 +343,7 @@ void DumpNetCDF::openfile()
       if (framei <= 0) framei = nframes+framei+1;
       if (framei < 1)  framei = 1;
     } else {
-      if (framei != 0)
+      if (framei != 0 && !multifile)
         error->all(FLERR,"at keyword requires use of 'append yes'");
 
       int dims[NC_MAX_VAR_DIMS];

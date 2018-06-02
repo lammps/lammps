@@ -57,10 +57,10 @@ PACKAGE = asphere body class2 colloid compress coreshell dipole gpu \
 	  molecule mpiio mscg opt peri poems \
 	  python qeq reax replica rigid shock snap srd voronoi
 
-PACKUSER = user-atc user-awpmd user-cgdna user-cgsdk user-colvars \
+PACKUSER = user-atc user-awpmd user-bocs user-cgdna user-cgsdk user-colvars \
 	   user-diffraction user-dpd user-drude user-eff user-fep user-h5md \
 	   user-intel user-lb user-manifold user-meamc user-meso \
-	   user-mgpt user-misc user-molfile \
+	   user-mgpt user-misc user-mofff user-molfile \
 	   user-netcdf user-omp user-phonon user-qmmm user-qtb \
 	   user-quip user-reaxc user-smd user-smtbq user-sph user-tally \
 	   user-uef user-vtk
@@ -100,6 +100,7 @@ help:
 	@echo ''
 	@echo 'make package                 list available packages and their dependencies'
 	@echo 'make package-status (ps)     status of all packages'
+	@echo 'make package-installed (pi)  list of installed packages'
 	@echo 'make yes-package             install a single pgk in src dir'
 	@echo 'make no-package              remove a single pkg from src dir'
 	@echo 'make yes-all                 install all pgks in src dir'
@@ -260,12 +261,13 @@ package:
 	@echo 'make package                 list available packages'
 	@echo 'make package                 list available packages'
 	@echo 'make package-status (ps)     status of all packages'
+	@echo 'make package-installed (pi)  list of installed packages'
 	@echo 'make yes-package             install a single pgk in src dir'
 	@echo 'make no-package              remove a single pkg from src dir'
 	@echo 'make yes-all                 install all pgks in src dir'
 	@echo 'make no-all                  remove all pkgs from src dir'
 	@echo 'make yes-standard (yes-std)  install all standard pkgs'
-	@echo 'make no-standard (no-srd)    remove all standard pkgs'
+	@echo 'make no-standard (no-std)    remove all standard pkgs'
 	@echo 'make yes-user                install all user pkgs'
 	@echo 'make no-user                 remove all user pkgs'
 	@echo 'make yes-lib       install all pkgs with libs (included or ext)'
@@ -354,6 +356,7 @@ lib-%:
 	fi; touch main.cpp
 
 # status = list src files that differ from package files
+# installed = list of installed packages
 # update = replace src files with newer package files
 # overwrite = overwrite package files with newer src files
 # diff = show differences between src and package files
@@ -363,6 +366,10 @@ package-status ps:
 	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p status; done
 	@echo ''
 	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p status; done
+
+package-installed pi:
+	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p installed; done
+	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p installed; done
 
 package-update pu: purge
 	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p update; done

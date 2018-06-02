@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 // 
 // ************************************************************************
 //@HEADER
@@ -127,9 +127,9 @@ struct localsum {
   KOKKOS_INLINE_FUNCTION
   void operator() (const int i) const {
     double tmp = 0.0;
-    for (int j = 0; j < (int) idx.dimension_1(); ++j) {
+    for (int j = 0; j < (int) idx.extent(1); ++j) {
       const double val = src(idx(i,j));
-      tmp += val*val + 0.5*(idx.dimension_0()*val -idx.dimension_1()*val);
+      tmp += val*val + 0.5*(idx.extent(0)*val -idx.extent(1)*val);
     }
     dest(i) += tmp;
   }
@@ -173,7 +173,7 @@ int main (int narg, char* arg[]) {
   // idx.view<idx_type::host_mirror_space>() )
   idx_type::t_host h_idx = idx.h_view;
   for (int i = 0; i < size; ++i) {
-    for (view_type::size_type j = 0; j < h_idx.dimension_1 (); ++j) {
+    for (view_type::size_type j = 0; j < h_idx.extent(1); ++j) {
       h_idx(i,j) = (size + i + (rand () % 500 - 250)) % size;
     }
   }

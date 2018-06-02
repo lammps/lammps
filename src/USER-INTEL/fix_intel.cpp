@@ -29,10 +29,10 @@
 #include "update.h"
 #include "fix_intel.h"
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
+#include <cstring>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
 
 #ifdef LAMMPS_BIGBIG
 #error "The USER-INTEL package is not compatible with -DLAMMPS_BIGBIG"
@@ -54,8 +54,6 @@ using namespace FixConst;
 #warning "Not building Intel package with Xeon Phi offload support."
 #endif
 #endif
-
-enum{NSQ,BIN,MULTI};
 
 /* ---------------------------------------------------------------------- */
 
@@ -353,7 +351,7 @@ void FixIntel::init()
 
 void FixIntel::setup(int vflag)
 {
-  if (neighbor->style != BIN)
+  if (neighbor->style != Neighbor::BIN)
     error->all(FLERR,
             "Currently, neighbor style BIN must be used with Intel package.");
   if (neighbor->exclude_setting() != 0)
@@ -755,7 +753,7 @@ void FixIntel::add_oresults(const ft * _noalias const f_in,
         double * _noalias const lmp_eatom = force->pair->eatom + out_offset;
         #if defined(LMP_SIMD_COMPILER)
         #pragma vector aligned
-	#pragma ivdep
+        #pragma ivdep
         #endif
         for (int i = ifrom; i < ito; i++) {
           f[i].x += f_in[ii].x;
@@ -770,7 +768,7 @@ void FixIntel::add_oresults(const ft * _noalias const f_in,
       } else {
         #if defined(LMP_SIMD_COMPILER)
         #pragma vector aligned
-	#pragma ivdep
+        #pragma ivdep
         #endif
         for (int i = ifrom; i < ito; i++) {
           f[i].x += f_in[ii].x;
@@ -787,7 +785,7 @@ void FixIntel::add_oresults(const ft * _noalias const f_in,
         double * _noalias const lmp_eatom = force->pair->eatom + out_offset;
         #if defined(LMP_SIMD_COMPILER)
         #pragma vector aligned
-	#pragma ivdep
+        #pragma ivdep
         #endif
         for (int i = ifrom; i < ito; i++) {
           f[i].x += f_in[i].x;
@@ -798,7 +796,7 @@ void FixIntel::add_oresults(const ft * _noalias const f_in,
       } else {
         #if defined(LMP_SIMD_COMPILER)
         #pragma vector aligned
-	#pragma ivdep
+        #pragma ivdep
         #endif
         for (int i = ifrom; i < ito; i++) {
           f[i].x += f_in[i].x;

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -16,10 +16,10 @@
    This modifies from pair_tersoff.cpp by Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_polymorphic.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -43,6 +43,7 @@ using namespace MathConst;
 PairPolymorphic::PairPolymorphic(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
+  restartinfo = 0;
   one_coeff = 1;
 
   nelements = 0;
@@ -85,17 +86,17 @@ PairPolymorphic::~PairPolymorphic()
     memory->destroy(setflag);
     memory->destroy(cutsq);
     delete [] map;
-    delete [] firstneighV; 
-    delete [] firstneighW; 
+    delete [] firstneighV;
+    delete [] firstneighW;
     delete [] firstneighW1;
-    delete [] delxV; 
-    delete [] delyV; 
-    delete [] delzV; 
-    delete [] drV; 
-    delete [] delxW; 
-    delete [] delyW; 
-    delete [] delzW; 
-    delete [] drW; 
+    delete [] delxV;
+    delete [] delyV;
+    delete [] delzV;
+    delete [] drV;
+    delete [] delxW;
+    delete [] delyW;
+    delete [] delzW;
+    delete [] drW;
   }
 }
 
@@ -233,13 +234,13 @@ void PairPolymorphic::compute(int eflag, int vflag)
 
       jtag = tag[j];
       if (itag > jtag) {
-	if ((itag+jtag) % 2 == 0) continue;
+        if ((itag+jtag) % 2 == 0) continue;
       } else if (itag < jtag) {
-	if ((itag+jtag) % 2 == 1) continue;
+        if ((itag+jtag) % 2 == 1) continue;
       } else {
-	if (x[j][2] < x[i][2]) continue;
-	if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
-	if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
+        if (x[j][2] < x[i][2]) continue;
+        if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
+        if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
       }
 
       if (rsq >= (p.U)->get_xmaxsq() || (p.U)->get_vmax() <= epsilon) continue;
@@ -254,7 +255,7 @@ void PairPolymorphic::compute(int eflag, int vflag)
       f[j][2] -= delz*fpair;
 
       if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			   evdwl,0.0,fpair,delx,dely,delz);
+                           evdwl,0.0,fpair,delx,dely,delz);
     }
 
     if (eta) {
@@ -271,7 +272,7 @@ void PairPolymorphic::compute(int eflag, int vflag)
         for (kk = 0; kk <= numneighW; kk++) {
           k = firstneighW[kk];
           ktype = map[type[k]];
- 
+
           iparam_kk = elem2param[ktype][ktype];
           PairParameters & q = pairParameters[iparam_kk];
 
@@ -311,7 +312,7 @@ void PairPolymorphic::compute(int eflag, int vflag)
           f[k][0] -= delr2[0]*fpair;
           f[k][1] -= delr2[1]*fpair;
           f[k][2] -= delr2[2]*fpair;
- 
+
           if (vflag_atom) v_tally2(i, k, -fpair, delr2);
         }
       }
@@ -339,7 +340,7 @@ void PairPolymorphic::compute(int eflag, int vflag)
           k = firstneighW[kk];
           if (j == k) continue;
           ktype = map[type[k]];
-          iparam_ijk = elem3param[jtype][itype][ktype]; 
+          iparam_ijk = elem3param[jtype][itype][ktype];
           TripletParameters & trip = tripletParameters[iparam_ijk];
           if ((trip.G)->get_vmax() <= epsilon) continue;
 
@@ -360,7 +361,7 @@ void PairPolymorphic::compute(int eflag, int vflag)
           (q.W)->value(r2,wfac,1,fpair,0);
           (q.P)->value(r1-(p.xi)*r2,pfac,1,fpair,0);
           (trip.G)->value(costheta,gfac,1,fpair,0);
- 
+
           zeta_ij += wfac*pfac*gfac;
         }
 
@@ -371,14 +372,14 @@ void PairPolymorphic::compute(int eflag, int vflag)
         fpair = -0.5*bij*fa_d / r1;
         prefactor = 0.5* fa * bij_d;
         if (eflag) evdwl = -0.5*bij*fa;
- 
+
         f[i][0] += delr1[0]*fpair;
         f[i][1] += delr1[1]*fpair;
         f[i][2] += delr1[2]*fpair;
         f[j][0] -= delr1[0]*fpair;
         f[j][1] -= delr1[1]*fpair;
         f[j][2] -= delr1[2]*fpair;
- 
+
         if (evflag) ev_tally(i,j,nlocal,newton_pair,
                              evdwl,0.0,-fpair,-delr1[0],-delr1[1],-delr1[2]);
 
@@ -398,9 +399,9 @@ void PairPolymorphic::compute(int eflag, int vflag)
 
           iparam_ik = elem2param[itype][ktype];
           PairParameters & q = pairParameters[iparam_ik];
- 
+
           attractive(&q,&trip,prefactor,r1,r2,delr1,delr2,fi,fj,fk);
- 
+
           f[i][0] += fi[0];
           f[i][1] += fi[1];
           f[i][2] += fi[2];
@@ -410,7 +411,7 @@ void PairPolymorphic::compute(int eflag, int vflag)
           f[k][0] += fk[0];
           f[k][1] += fk[1];
           f[k][2] += fk[2];
- 
+
           if (vflag_atom) v_tally3(i,j,k,fj,fk,delr1,delr2);
         }
       }
@@ -446,7 +447,7 @@ void PairPolymorphic::allocate()
 }
 
 /* ----------------------------------------------------------------------
-   global settings 
+   global settings
 ------------------------------------------------------------------------- */
 
 void PairPolymorphic::settings(int narg, char **arg)
@@ -506,7 +507,7 @@ void PairPolymorphic::coeff(int narg, char **arg)
   }
 
   // read potential file and initialize potential parameters
-  
+
   read_file(arg[2]);
   setup_params();
 
@@ -523,8 +524,8 @@ void PairPolymorphic::coeff(int narg, char **arg)
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       if (map[i] >= 0 && map[j] >= 0) {
-	setflag[i][j] = 1;
-	count++;
+        setflag[i][j] = 1;
+        count++;
       }
 
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
@@ -605,7 +606,7 @@ void PairPolymorphic::read_file(char *file)
     for (j = 0; j < nelements; j++) {
       if (strcmp(ptr,elements[j]) == 0) break;
     }
-    if (j == nelements) 
+    if (j == nelements)
       error->all(FLERR,"Element not defined in potential file");
     match[i] = j;
   }
@@ -761,7 +762,7 @@ void PairPolymorphic::setup_params()
   }
 
   // map atom triplet to parameter index
-  
+
   n = 0;
   for (i = 0; i < nelements; i++)
   for (j = 0; j < nelements; j++)
@@ -770,12 +771,12 @@ void PairPolymorphic::setup_params()
     n++;
   }
 
-//   for debugging, call write_tables() to check the tabular functions 
+//   for debugging, call write_tables() to check the tabular functions
 //   if (comm->me == 0) {
 //     write_tables(51);
 //     errorX->all(FLERR,"Test potential tables");
 //   }
-}  
+}
 
 /* ----------------------------------------------------------------------
    attractive term
@@ -791,7 +792,7 @@ void PairPolymorphic::attractive(PairParameters *p, TripletParameters *trip,
 
   rijinv = 1.0/rij;
   vec3_scale(rijinv,delrij,rij_hat);
-  
+
   rikinv = 1.0/rik;
   vec3_scale(rikinv,delrik,rik_hat);
 
@@ -850,8 +851,8 @@ void PairPolymorphic::ters_zetaterm_d(double prefactor,
 /* ---------------------------------------------------------------------- */
 
 void PairPolymorphic::costheta_d(double *rij_hat, double rij,
-			     double *rik_hat, double rik,
-			     double *dri, double *drj, double *drk)
+                             double *rik_hat, double rik,
+                             double *dri, double *drj, double *drk)
 {
   // first element is devative wrt Ri, second wrt Rj, third wrt Rk
 
@@ -870,12 +871,12 @@ void PairPolymorphic::costheta_d(double *rij_hat, double rij,
  *       values can be several to a line
  *          only called by proc 0
  *          ------------------------------------------------------------------------- */
- 
+
 void PairPolymorphic::grab(FILE *fp, int n, double *list)
 {
   char *ptr;
   char line[MAXLINE];
- 
+
   int i = 0;
   while (i < n) {
     fgets(line,MAXLINE,fp);
@@ -885,7 +886,7 @@ void PairPolymorphic::grab(FILE *fp, int n, double *list)
       list[i++] = atof(ptr);
   }
 }
- 
+
 /* ---------------------------------------------------------------------- */
 
 void PairPolymorphic::write_tables(int npts)

@@ -154,7 +154,7 @@ Note: The temperature thermostating the core-Drude particle pairs
 should be chosen low enough, so as to mimic as closely as possible the
 self-consistent minimization. It must however be high enough, so that
 the dipoles can follow the local electric field exerted by the
-neighbouring atoms. The optimal value probably depends on the
+neighboring atoms. The optimal value probably depends on the
 temperature of the centers of mass and on the mass of the Drude
 particles.
 

@@ -16,10 +16,10 @@
                         David Farrell (NWU) - ZBL addition
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_tersoff_zbl_omp.h"
 #include "atom.h"
 #include "update.h"
@@ -205,18 +205,24 @@ void PairTersoffZBLOMP::read_file(char *file)
     params[nparams].powermint = int(params[nparams].powerm);
 
     if (
-        params[nparams].lam3 < 0.0 || params[nparams].c < 0.0 ||
-        params[nparams].d < 0.0 || params[nparams].powern < 0.0 ||
-        params[nparams].beta < 0.0 || params[nparams].lam2 < 0.0 ||
-        params[nparams].bigb < 0.0 || params[nparams].bigr < 0.0 ||
+        params[nparams].c < 0.0 ||
+        params[nparams].d < 0.0 ||
+        params[nparams].powern < 0.0 ||
+        params[nparams].beta < 0.0 ||
+        params[nparams].lam2 < 0.0 ||
+        params[nparams].bigb < 0.0 ||
+        params[nparams].bigr < 0.0 ||
         params[nparams].bigd < 0.0 ||
         params[nparams].bigd > params[nparams].bigr ||
-        params[nparams].lam3 < 0.0 || params[nparams].biga < 0.0 ||
+        params[nparams].biga < 0.0 ||
         params[nparams].powerm - params[nparams].powermint != 0.0 ||
-        (params[nparams].powermint != 3 && params[nparams].powermint != 1) ||
+        (params[nparams].powermint != 3 &&
+         params[nparams].powermint != 1) ||
         params[nparams].gamma < 0.0 ||
-        params[nparams].Z_i < 1.0 || params[nparams].Z_j < 1.0 ||
-        params[nparams].ZBLcut < 0.0 || params[nparams].ZBLexpscale < 0.0)
+        params[nparams].Z_i < 1.0 ||
+        params[nparams].Z_j < 1.0 ||
+        params[nparams].ZBLcut < 0.0 ||
+        params[nparams].ZBLexpscale < 0.0)
       error->all(FLERR,"Illegal Tersoff parameter");
 
     nparams++;

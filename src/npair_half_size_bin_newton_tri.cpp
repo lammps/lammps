@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
+#include <cstring>
 #include "npair_half_size_bin_newton_tri.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -36,14 +36,13 @@ NPairHalfSizeBinNewtonTri::NPairHalfSizeBinNewtonTri(LAMMPS *lmp) :
 
 void NPairHalfSizeBinNewtonTri::build(NeighList *list)
 {
-  int i,j,k,m,n,nn,ibin;
+  int i,j,k,n,ibin;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   double radi,radsum,cutsq;
   int *neighptr;
 
   double **x = atom->x;
   double *radius = atom->radius;
-  tagint *tag = atom->tag;
   int *type = atom->type;
   int *mask = atom->mask;
   tagint *molecule = atom->molecule;

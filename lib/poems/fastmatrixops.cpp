@@ -262,7 +262,7 @@ void FastLU(Matrix& A, Matrix& LU, int *indx){ // LU is the LU decomposition of 
     for (j=0;j<n;j++){
       temp=fabs(LU.rows[i][j]);
       if (temp > big) big=temp;
-      }
+    }
     vv[i]=1.0/big;
   }
   for (j=0;j<n;j++){
@@ -276,8 +276,8 @@ void FastLU(Matrix& A, Matrix& LU, int *indx){ // LU is the LU decomposition of 
       sum=LU.rows[i][j];
       for (k=0;k<j;k++)
         sum -= LU.rows[i][k]*LU.rows[k][j];
-        LU.rows[i][j]=sum;
-        if ((dum=vv[i]*fabs(sum)) >= big) {
+      LU.rows[i][j]=sum;
+      if ((dum=vv[i]*fabs(sum)) >= big) {
         big=dum;
         imax=i;
       }
@@ -311,7 +311,7 @@ void FastLU(Mat3x3& A, Mat3x3& LU, int *indx){ // LU is the LU decomposition of 
     for (j=0;j<3;j++){
       temp=fabs(LU.BasicGet(i,j));
       if (temp > big) big=temp;
-      }
+    }
     vv[i]=1.0/big;
   }
   for (j=0;j<3;j++){
@@ -325,8 +325,8 @@ void FastLU(Mat3x3& A, Mat3x3& LU, int *indx){ // LU is the LU decomposition of 
       sum=LU.BasicGet(i,j);
       for (k=0;k<j;k++)
         sum -= LU.BasicGet(i,k)*LU.BasicGet(k,j);
-        LU.BasicSet(i,j,sum);
-        if ((dum=vv[i]*fabs(sum)) >= big) {
+      LU.BasicSet(i,j,sum);
+      if ((dum=vv[i]*fabs(sum)) >= big) {
         big=dum;
         imax=i;
       }
@@ -373,8 +373,8 @@ void FastLU(Mat4x4& A, Mat4x4& LU, int *indx){ // LU is the LU decomposition of 
       sum=LU.BasicGet(i,j);
       for (k=0;k<j;k++)
         sum -= LU.BasicGet(i,k)*LU.BasicGet(k,j);
-        LU.BasicSet(i,j,sum);
-        if ((dum=vv[i]*fabs(sum)) >= big) {
+      LU.BasicSet(i,j,sum);
+      if ((dum=vv[i]*fabs(sum)) >= big) {
         big=dum;
         imax=i;
       }
@@ -421,8 +421,8 @@ void FastLU(Mat6x6& A, Mat6x6& LU, int *indx){ // LU is the LU decomposition of 
       sum=LU.BasicGet(i,j);
       for (k=0;k<j;k++)
         sum -= LU.BasicGet(i,k)*LU.BasicGet(k,j);
-        LU.BasicSet(i,j,sum);
-        if ((dum=vv[i]*fabs(sum)) >= big) {
+      LU.BasicSet(i,j,sum);
+      if ((dum=vv[i]*fabs(sum)) >= big) {
         big=dum;
         imax=i;
       }
@@ -1030,4 +1030,3 @@ void FastAssignT(Mat4x4& A, Mat4x4& C){
   C.elements[2][3] = A.elements[3][2];
   C.elements[3][2] = A.elements[2][3];
 }
-

@@ -6,10 +6,10 @@
 //         in.lammps = LAMMPS input script
 //         in.quest = Quest input script
 
-#include "mpi.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <mpi.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "stdint.h"
 
 #include "many2one.h"

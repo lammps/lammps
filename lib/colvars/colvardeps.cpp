@@ -8,10 +8,16 @@
 // Colvars repository at GitHub.
 
 
+#include "colvarmodule.h"
+#include "colvarproxy.h"
 #include "colvardeps.h"
 
+
 colvardeps::colvardeps()
-  : time_step_factor (1) {}
+{
+  time_step_factor = 1;
+}
+
 
 colvardeps::~colvardeps() {
   size_t i;
@@ -416,6 +422,9 @@ void colvardeps::init_cvb_requires() {
     init_feature(f_cvb_get_total_force, "obtain total force", f_type_dynamic);
     f_req_children(f_cvb_get_total_force, f_cv_total_force);
 
+    init_feature(f_cvb_output_acc_work, "output accumulated work", f_type_user);
+    f_req_self(f_cvb_output_acc_work, f_cvb_apply_force);
+
     init_feature(f_cvb_history_dependent, "history-dependent", f_type_static);
 
     init_feature(f_cvb_time_dependent, "time-dependent", f_type_static);
@@ -540,7 +549,7 @@ void colvardeps::init_cv_requires() {
     f_req_exclude(f_cv_custom_function, f_cv_scripted);
 
     init_feature(f_cv_periodic, "periodic", f_type_static);
-    f_req_self(f_cv_periodic, f_cv_homogeneous);
+    f_req_self(f_cv_periodic, f_cv_scalar);
     init_feature(f_cv_scalar, "scalar", f_type_static);
     init_feature(f_cv_linear, "linear", f_type_static);
     init_feature(f_cv_homogeneous, "homogeneous", f_type_static);

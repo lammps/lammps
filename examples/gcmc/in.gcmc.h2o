@@ -30,8 +30,6 @@ create_box      2 box                       &
                 extra/angle/per/atom 1      &
                 extra/special/per/atom 2
 
-# we can load multiple molecule templates, but don't have to use them all
-molecule        co2mol CO2.txt
 molecule        h2omol H2O.txt
 create_atoms   	0 box mol h2omol 464563 units box
                         
@@ -58,18 +56,24 @@ timestep        1.0
 
 minimize 0.0 0.0 100 1000
 reset_timestep 0
+
 # rigid constraints with thermostat 
 
-fix             mynvt all nvt temp ${temp} ${temp} 100
-fix             wshake  all shake 0.0001 50 0 b 1 a 1 mol h2omol
-# gcmc
+fix             mynvt h2o nvt temp ${temp} ${temp} 100
+fix             wshake h2o shake 0.0001 50 0 b 1 a 1 mol h2omol
 
+# important to make temperature dofs dynamic
 
+compute_modify  thermo_temp dynamic/dof yes
+compute_modify  mynvt_temp dynamic/dof yes
 
 run 1000
+reset_timestep 0
+
+# gcmc
 
 variable        tfac equal 5.0/3.0 # (3 trans + 2 rot)/(3 trans)
-fix             mygcmc all gcmc 100 100 0 0 54341 ${temp} ${mu} ${disp} mol &
+fix             mygcmc h2o gcmc 100 100 0 0 54341 ${temp} ${mu} ${disp} mol &
                 h2omol tfac_insert ${tfac} group h2o shake wshake
 
 # atom counts
@@ -87,7 +91,6 @@ variable	tacc equal f_mygcmc[2]/(f_mygcmc[1]+0.1)
 variable	iacc equal f_mygcmc[4]/(f_mygcmc[3]+0.1)
 variable	dacc equal f_mygcmc[6]/(f_mygcmc[5]+0.1)
 variable	racc equal f_mygcmc[8]/(f_mygcmc[7]+0.1)
-compute_modify  thermo_temp dynamic/dof yes
 thermo_style    custom step temp press pe ke density atoms v_iacc v_dacc v_tacc v_racc v_nO v_nH
 thermo          1000
 

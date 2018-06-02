@@ -1,9 +1,9 @@
 #ifndef LMP_XDR_COMPAT_H
 #define LMP_XDR_COMPAT_H
 
-#include <limits.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <climits>
+#include <cstdio>
+#include <cstdlib>
 
 #ifdef __cplusplus
 extern "C" {
@@ -60,7 +60,7 @@ extern "C" {
 
 typedef int bool_t;
 
-#if defined(__MINGW32__)
+#if defined(__MINGW32__) || defined(__APPLE__)
 typedef char * caddr_t;
 typedef unsigned int u_int;
 #endif

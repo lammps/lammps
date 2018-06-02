@@ -32,16 +32,16 @@
 ------------------------------------------------------------------------- */
 
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "update.h"
 #include "respa.h"
 #include "error.h"
 #include "group.h"
-#include <math.h>
+#include <cmath>
 #include "input.h"
 #include "variable.h"
 #include "citeme.h"
@@ -156,7 +156,7 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
       next_output = update->ntimestep + nevery;
       if( comm->me == 0 ){
         fprintf(screen,"Outputing every %d steps, next is %d\n",
-			nevery, next_output);
+                        nevery, next_output);
       }
       argi += 2;
     }else if( error_on_unknown_keyword ){
@@ -280,9 +280,9 @@ void FixNVEManifoldRattle::init()
 
 void FixNVEManifoldRattle::update_var_params()
 {
- 
+
   double *ptr_params = ptr_m->params;
-  
+
   for( int i = 0; i < nvars; ++i ){
     if( is_var[i] ){
       tvars[i] = input->variable->find(tstrs[i]);
@@ -293,7 +293,7 @@ void FixNVEManifoldRattle::update_var_params()
       if( input->variable->equalstyle(tvars[i]) ){
         tstyle[i] = EQUAL;
         double new_val = input->variable->compute_equal(tvars[i]);
-        
+
         ptr_params[i] = new_val;
       }else{
         error->all(FLERR,
@@ -513,7 +513,6 @@ void FixNVEManifoldRattle::rattle_manifold_x(double *x, double *v,
 
   const double c_inv = 1.0 / c;
 
-
   while ( 1 ) {
     v[0] = vt[0] - l*no_dt[0];
     v[1] = vt[1] - l*no_dt[1];
@@ -651,10 +650,10 @@ void FixNVEManifoldRattle::rattle_manifold_v(double *v, double *f,
   }while( (res > tolerance) && (iters < max_iter) );
 
   if( iters >= max_iter && res >= tolerance ){
-          char msg[2048];
-          sprintf(msg,"Failed to constrain atom %d (x = (%f, %f, %f)! res = %e, iters = %d\n",
-                  tagi, x[0], x[1], x[2], res, iters);
-          error->all(FLERR,msg);
+    char msg[2048];
+    sprintf(msg,"Failed to constrain atom %d (x = (%f, %f, %f)! res = %e, iters = %d\n",
+            tagi, x[0], x[1], x[2], res, iters);
+    error->all(FLERR,msg);
   }
 
   stats.v_iters += iters;

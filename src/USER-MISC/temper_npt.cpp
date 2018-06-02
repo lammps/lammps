@@ -17,9 +17,9 @@
    Contact Email: amulyapervaje@gmail.com
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "temper_npt.h"
 #include "universe.h"
 #include "domain.h"
@@ -101,9 +101,9 @@ void TemperNPT::command(int narg, char **arg)
   // change the volume. This currently only applies to fix npt and
   // fix rigid/npt variants
 
-  if ((strncmp(modify->fix[whichfix]->style,"npt",3) == 0)
-      || (strncmp(modify->fix[whichfix]->style,"rigid/npt",9) == 0))
-    error->universe_all(FLERR,"Tempering temperature fix is not supported");
+  if ((strncmp(modify->fix[whichfix]->style,"npt",3) != 0)
+      && (strncmp(modify->fix[whichfix]->style,"rigid/npt",9) != 0))
+    error->universe_all(FLERR,"Tempering temperature and pressure fix is not supported");
 
   // setup for long tempering run
 
@@ -190,7 +190,7 @@ void TemperNPT::command(int narg, char **arg)
   if (me_universe == 0 && universe->uscreen)
     fprintf(universe->uscreen,"Setting up tempering ...\n");
 
-  update->integrate->setup();
+  update->integrate->setup(1);
 
   if (me_universe == 0) {
     if (universe->uscreen) {
@@ -264,16 +264,16 @@ void TemperNPT::command(int narg, char **arg)
     if (partner != -1) {
       if (me_universe > partner) {
         MPI_Send(&pe,1,MPI_DOUBLE,partner,0,universe->uworld);
-	}
+        }
       else {
-	MPI_Recv(&pe_partner,1,MPI_DOUBLE,partner,0,universe->uworld,MPI_STATUS_IGNORE);
-	}
+        MPI_Recv(&pe_partner,1,MPI_DOUBLE,partner,0,universe->uworld,MPI_STATUS_IGNORE);
+        }
       if (me_universe > partner) {
-	MPI_Send(&vol,1, MPI_DOUBLE,partner,0,universe->uworld);
-	}
+        MPI_Send(&vol,1, MPI_DOUBLE,partner,0,universe->uworld);
+        }
       else {
-	MPI_Recv(&vol_partner,1,MPI_DOUBLE,partner,0,universe->uworld,MPI_STATUS_IGNORE);
-	}
+        MPI_Recv(&vol_partner,1,MPI_DOUBLE,partner,0,universe->uworld,MPI_STATUS_IGNORE);
+        }
     // Acceptance criteria changed for NPT ensemble
       if (me_universe < partner) {
         press_units = press_set/nktv2p;

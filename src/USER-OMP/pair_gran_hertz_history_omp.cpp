@@ -12,7 +12,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
+#include <cmath>
 #include "pair_gran_hertz_history_omp.h"
 #include "fix_neigh_history.h"
 #include "atom.h"

@@ -20,7 +20,7 @@ AngleStyle(table,AngleTable)
 #ifndef LMP_ANGLE_TABLE_H
 #define LMP_ANGLE_TABLE_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "angle.h"
 
 namespace LAMMPS_NS {
@@ -116,5 +116,9 @@ Self-explanatory.
 E: Angle table parameters did not set N
 
 List of angle table parameters must include N setting.
+
+E: Illegal angle in angle style table
+
+UNDOCUMENTED
 
 */

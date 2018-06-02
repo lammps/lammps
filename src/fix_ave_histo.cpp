@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include <unistd.h>
 #include "fix_ave_histo.h"
 #include "atom.h"
@@ -46,7 +46,7 @@ enum{IGNORE,END,EXTRA};
 
 FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  nvalues(0), which(NULL), argindex(NULL), value2index(NULL), ids(NULL), fp(NULL), stats_list(NULL), 
+  nvalues(0), which(NULL), argindex(NULL), value2index(NULL), ids(NULL), fp(NULL), stats_list(NULL),
   bin(NULL), bin_total(NULL), bin_all(NULL), bin_list(NULL), coord(NULL), vector(NULL)
 {
   if (narg < 10) error->all(FLERR,"Illegal fix ave/histo command");
@@ -396,7 +396,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Variable name for fix ave/histo does not exist");
       if (argindex[i] == 0 && input->variable->vectorstyle(ivariable) == 0)
         error->all(FLERR,"Fix ave/histo variable is not vector-style variable");
-      if (argindex[i]) 
+      if (argindex[i])
         error->all(FLERR,"Fix ave/histo variable cannot be indexed");
 
     } else if (which[i] == VARIABLE && kind == PERATOM) {
@@ -405,7 +405,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Variable name for fix ave/histo does not exist");
       if (argindex[i] == 0 && input->variable->atomstyle(ivariable) == 0)
         error->all(FLERR,"Fix ave/histo variable is not atom-style variable");
-      if (argindex[i]) 
+      if (argindex[i])
         error->all(FLERR,"Fix ave/histo variable cannot be indexed");
     }
   }

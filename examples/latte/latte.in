@@ -12,7 +12,7 @@ CONTROL{
   xControl= 1
   BASISTYPE= NONORTHO
   COORDSFILE= "./coords.dat"
-  PARAMPATH= "/home/user/LATTE/TBparam"
+  PARAMPATH= "./TBparam"
   KBT= 0.0
   ENTROPYKIND= 1
   PPOTON= 1 

@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstring>
+#include <cstdlib>
 #include "fix_append_atoms.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -29,15 +29,13 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
-
 #define BIG      1.0e30
 #define EPSILON  1.0e-6
 
 /* ---------------------------------------------------------------------- */
 
 FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), randomx(NULL), randomt(NULL), basistype(NULL), 
+  Fix(lmp, narg, arg), randomx(NULL), randomt(NULL), basistype(NULL),
   spatialid(NULL), gfactor1(NULL), gfactor2(NULL)
 {
   force_reneighbor = 1;
@@ -417,7 +415,7 @@ void FixAppendAtoms::pre_exchange()
     if (spatflag==1) if (get_spatial()==0) return;
 
     int addflag = 0;
-    if (comm->layout != LAYOUT_TILED) {
+    if (comm->layout != Comm::LAYOUT_TILED) {
       if (comm->myloc[2] == comm->procgrid[2]-1) addflag = 1;
     } else {
       if (comm->mysplit[2][1] == 1.0) addflag = 1;

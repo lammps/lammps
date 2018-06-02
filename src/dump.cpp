@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
+#include <cstdlib>
+#include <cstring>
+#include <cstdio>
 #include "dump.h"
 #include "atom.h"
 #include "irregular.h"
@@ -22,11 +22,12 @@
 #include "domain.h"
 #include "group.h"
 #include "output.h"
-#include "memory.h"
-#include "error.h"
 #include "force.h"
 #include "modify.h"
 #include "fix.h"
+#include "compute.h"
+#include "memory.h"
+#include "error.h"
 
 using namespace LAMMPS_NS;
 
@@ -78,6 +79,9 @@ Dump::Dump(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   format_bigint_user = NULL;
   format_column_user = NULL;
 
+  refreshflag = 0;
+  refresh = NULL;
+
   clearstep = 0;
   sort_flag = 0;
   append_flag = 0;
@@ -85,6 +89,12 @@ Dump::Dump(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   buffer_flag = 0;
   padflag = 0;
   pbcflag = 0;
+  delay_flag = 0;
+
+  maxfiles = -1;
+  numfiles = 0;
+  fileidx = 0;
+  nameslist = NULL;
 
   maxbuf = maxids = maxsort = maxproc = 0;
   buf = bufsort = NULL;
@@ -160,6 +170,8 @@ Dump::~Dump()
   delete [] format_int_user;
   delete [] format_bigint_user;
 
+  delete [] refresh;
+
   // format_column_user is deallocated by child classes that use it
 
   memory->destroy(buf);
@@ -179,6 +191,14 @@ Dump::~Dump()
   }
 
   if (multiproc) MPI_Comm_free(&clustercomm);
+
+  // delete storage for caching file names
+
+  if (maxfiles > 0) {
+    for (int idx=0; idx < numfiles; ++idx)
+      delete[] nameslist[idx];
+    delete[] nameslist;
+  }
 
   // XTC style sets fp to NULL since it closes file in its destructor
 
@@ -277,6 +297,16 @@ void Dump::init()
     }
   }
 
+  // search for refresh compute specified by dump_modify refresh
+
+  if (refreshflag) {
+    int icompute;
+    for (icompute = 0; icompute < modify->ncompute; icompute++)
+      if (strcmp(refresh,modify->compute[icompute]->id) == 0) break;
+    if (icompute < modify->ncompute) irefresh = icompute;
+    else error->all(FLERR,"Dump could not find refresh compute ID");
+  }
+
   // preallocation for PBC copies if requested
 
   if (pbcflag && atom->nlocal > maxpbc) pbc_allocate();
@@ -303,6 +333,10 @@ void Dump::write()
 {
   imageint *imagehold;
   double **xhold,**vhold;
+
+  // if timestep < delaystep, just return
+
+  if (delay_flag && update->ntimestep < delaystep) return;
 
   // if file per timestep, open new file
 
@@ -478,6 +512,11 @@ void Dump::write()
     atom->image = imagehold;
   }
 
+  // trigger post-dump refresh by specified compute
+  // currently used for incremental dump files
+
+  if (refreshflag) modify->compute[irefresh]->refresh();
+
   // if file per timestep, close file if I am filewriter
 
   if (multifile) {
@@ -523,6 +562,19 @@ void Dump::openfile()
       sprintf(filecurrent,pad,filestar,update->ntimestep,ptr+1);
     }
     *ptr = '*';
+    if (maxfiles > 0) {
+      if (numfiles < maxfiles) {
+        nameslist[numfiles] = new char[strlen(filecurrent)+1];
+        strcpy(nameslist[numfiles],filecurrent);
+        ++numfiles;
+      } else {
+        remove(nameslist[fileidx]);
+        delete[] nameslist[fileidx];
+        nameslist[fileidx] = new char[strlen(filecurrent)+1];
+        strcpy(nameslist[fileidx],filecurrent);
+        fileidx = (fileidx + 1) % maxfiles;
+      }
+    }
   }
 
   // each proc with filewriter = 1 opens a file
@@ -876,6 +928,13 @@ void Dump::modify_params(int narg, char **arg)
         error->all(FLERR,"Dump_modify buffer yes not allowed for this style");
       iarg += 2;
 
+    } else if (strcmp(arg[iarg],"delay") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      delaystep = force->bnumeric(FLERR,arg[iarg+1]);
+      if (delaystep >= 0) delay_flag = 1;
+      else delay_flag = 0;
+      iarg += 2;
+
     } else if (strcmp(arg[iarg],"every") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
       int idump;
@@ -970,6 +1029,27 @@ void Dump::modify_params(int narg, char **arg)
         iarg += n;
       }
 
+    } else if (strcmp(arg[iarg],"maxfiles") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      if (!multifile)
+        error->all(FLERR,"Cannot use dump_modify maxfiles "
+                   "without * in dump file name");
+      // wipe out existing storage
+      if (maxfiles > 0) {
+        for (int idx=0; idx < numfiles; ++idx)
+          delete[] nameslist[idx];
+        delete[] nameslist;
+      }
+      maxfiles = force->inumeric(FLERR,arg[iarg+1]);
+      if (maxfiles == 0) error->all(FLERR,"Illegal dump_modify command");
+      if (maxfiles > 0) {
+        nameslist = new char*[maxfiles];
+        numfiles = 0;
+        for (int idx=0; idx < maxfiles; ++idx)
+          nameslist[idx] = NULL;
+        fileidx = 0;
+      }
+      iarg += 2;
     } else if (strcmp(arg[iarg],"nfile") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
       if (!multiproc)

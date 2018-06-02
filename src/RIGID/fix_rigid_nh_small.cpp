@@ -17,9 +17,9 @@
                Miller et al., J Chem Phys. 116, 8649-8659 (2002)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstring>
 #include "fix_rigid_nh_small.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -50,11 +50,11 @@ enum{FULL_BODY,INITIAL,FINAL,FORCE_TORQUE,VCM_ANGMOM,XCM_MASS,ITENSOR,DOF};
 /* ---------------------------------------------------------------------- */
 
 FixRigidNHSmall::FixRigidNHSmall(LAMMPS *lmp, int narg, char **arg) :
-  FixRigidSmall(lmp, narg, arg), w(NULL), wdti1(NULL), 
-  wdti2(NULL), wdti4(NULL), q_t(NULL), q_r(NULL), eta_t(NULL), 
-  eta_r(NULL), eta_dot_t(NULL), eta_dot_r(NULL), f_eta_t(NULL), 
-  f_eta_r(NULL), q_b(NULL), eta_b(NULL), eta_dot_b(NULL), 
-  f_eta_b(NULL), rfix(NULL), id_temp(NULL), id_press(NULL), 
+  FixRigidSmall(lmp, narg, arg), w(NULL), wdti1(NULL),
+  wdti2(NULL), wdti4(NULL), q_t(NULL), q_r(NULL), eta_t(NULL),
+  eta_r(NULL), eta_dot_t(NULL), eta_dot_r(NULL), f_eta_t(NULL),
+  f_eta_r(NULL), q_b(NULL), eta_b(NULL), eta_dot_b(NULL),
+  f_eta_b(NULL), rfix(NULL), id_temp(NULL), id_press(NULL),
   temperature(NULL), pressure(NULL)
 {
   // error checks
@@ -268,9 +268,9 @@ void FixRigidNHSmall::init()
 
     for (int i = 0; i < modify->nfix; i++)
       if (strcmp(modify->fix[i]->style,"deform") == 0) {
-      	int *dimflag = ((FixDeform *) modify->fix[i])->dimflag;
-      	if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) ||
-      	    (p_flag[2] && dimflag[2]))
+        int *dimflag = ((FixDeform *) modify->fix[i])->dimflag;
+        if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) ||
+            (p_flag[2] && dimflag[2]))
           error->all(FLERR,"Cannot use fix rigid npt/nph and fix deform on "
                      "same component of stress tensor");
       }
@@ -322,7 +322,7 @@ void FixRigidNHSmall::setup(int vflag)
 {
   FixRigidSmall::setup(vflag);
   compute_dof();
-  
+
   double mbody[3];
   akin_t = akin_r = 0.0;
   for (int ibody = 0; ibody < nlocal_body; ibody++) {
@@ -643,80 +643,9 @@ void FixRigidNHSmall::final_integrate()
     scale_r *= exp(-dtq * (pdim * mtk_term2));
   }
 
-  // sum over atoms to get force and torque on rigid body
+  // late calculation of forces and torques (if requested)
 
-  double **x = atom->x;
-  double **f = atom->f;
-  int nlocal = atom->nlocal;
-
-  double dx,dy,dz;
-  double unwrap[3];
-  double *xcm,*fcm,*tcm;
-
-  for (ibody = 0; ibody < nlocal_body+nghost_body; ibody++) {
-    fcm = body[ibody].fcm;
-    fcm[0] = fcm[1] = fcm[2] = 0.0;
-    tcm = body[ibody].torque;
-    tcm[0] = tcm[1] = tcm[2] = 0.0;
-  }
-
-  for (i = 0; i < nlocal; i++) {
-    if (atom2body[i] < 0) continue;
-    Body *b = &body[atom2body[i]];
-
-    fcm = b->fcm;
-    fcm[0] += f[i][0];
-    fcm[1] += f[i][1];
-    fcm[2] += f[i][2];
-
-    domain->unmap(x[i],xcmimage[i],unwrap);
-    xcm = b->xcm;
-    dx = unwrap[0] - xcm[0];
-    dy = unwrap[1] - xcm[1];
-    dz = unwrap[2] - xcm[2];
-
-    tcm = b->torque;
-    tcm[0] += dy*f[i][2] - dz*f[i][1];
-    tcm[1] += dz*f[i][0] - dx*f[i][2];
-    tcm[2] += dx*f[i][1] - dy*f[i][0];
-  }
-
-  // extended particles add their torque to torque of body
-
-  if (extended) {
-    double **torque = atom->torque;
-
-    for (i = 0; i < nlocal; i++) {
-      if (atom2body[i] < 0) continue;
-
-      if (eflags[i] & TORQUE) {
-        tcm = body[atom2body[i]].torque;
-        tcm[0] += torque[i][0];
-        tcm[1] += torque[i][1];
-        tcm[2] += torque[i][2];
-      }
-    }
-  }
-
-  // reverse communicate fcm, torque of all bodies
-
-  commflag = FORCE_TORQUE;
-  comm->reverse_comm_fix(this,6);
-
-  // include Langevin thermostat forces and torques
-
-  if (langflag) {
-    for (int ibody = 0; ibody < nlocal_body; ibody++) {
-      fcm = body[ibody].fcm;
-      fcm[0] += langextra[ibody][0];
-      fcm[1] += langextra[ibody][1];
-      fcm[2] += langextra[ibody][2];
-      tcm = body[ibody].torque;
-      tcm[0] += langextra[ibody][3];
-      tcm[1] += langextra[ibody][4];
-      tcm[2] += langextra[ibody][5];
-    }
-  }
+  if (!earlyflag) compute_forces_and_torques();
 
   // update vcm and angmom
   // include Langevin thermostat forces
@@ -1440,7 +1369,7 @@ int FixRigidNHSmall::modify_param(int narg, char **arg)
     return 2;
   }
 
-  return 0;
+  return FixRigidSmall::modify_param(narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */

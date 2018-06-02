@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include "fix_store.h"
 #include "atom.h"
 #include "comm.h"
@@ -42,7 +42,7 @@ vstore(NULL), astore(NULL), rbuf(NULL)
 
   disable = 0;
   nvalues = vecflag = 0;
-  flavor = UNKNOWN; 
+  flavor = UNKNOWN;
 
   if (strcmp(arg[3],"global") == 0) flavor = GLOBAL;
   else if (strcmp(arg[3],"peratom") == 0) flavor = PERATOM;

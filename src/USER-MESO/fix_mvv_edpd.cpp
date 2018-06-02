@@ -12,8 +12,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   This is a time integrator for position, velocity and temperature (x, 
-   v and edpd_T) using the modified velocity-Verlet (MVV) algorithm. 
+   This is a time integrator for position, velocity and temperature (x,
+   v and edpd_T) using the modified velocity-Verlet (MVV) algorithm.
    Setting verlet = 0.5 recovers the standard velocity-Verlet algorithm.
 
    Contributing author: Zhen Li (Brown University)
@@ -21,16 +21,16 @@
 
    Please cite the related publication:
    Z. Li, Y.-H. Tang, H. Lei, B. Caswell and G.E. Karniadakis. "Energy-
-   conserving dissipative particle dynamics with temperature-dependent 
+   conserving dissipative particle dynamics with temperature-dependent
    properties". Journal of Computational Physics, 2014, 265: 113-127.
-   
+
    Z. Li, Y.-H. Tang , X. Li and G.E. Karniadakis. "Mesoscale modeling of
-   phase transition dynamics of thermoresponsive polymers". Chemical 
+   phase transition dynamics of thermoresponsive polymers". Chemical
    Communications, 2015, 51: 11038-11040.
 ------------------------------------------------------------------------- */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 #include "fix_mvv_edpd.h"
 #include "atom.h"
 #include "force.h"
@@ -101,7 +101,7 @@ void FixMvvEDPD::initial_integrate(int vflag)
   if (mask[i] & groupbit) {
      if (rmass) dtfm = dtf / rmass[i];
      else dtfm = dtf / mass[type[i]];
-        
+
      dtT = 0.5 * dtv / edpd_cv[i];
 
      vest[i][0] = v[i][0] + dtfm * f[i][0];

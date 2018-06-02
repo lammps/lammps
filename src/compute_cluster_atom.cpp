@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstring>
+#include <cstdlib>
 #include "compute_cluster_atom.h"
 #include "atom.h"
 #include "update.h"
@@ -112,8 +112,10 @@ void ComputeClusterAtom::compute_peratom()
   }
 
   // invoke full neighbor list (will copy or build if necessary)
+  // on the first step of a run, set preflag to one in neighbor->build_one(...)
 
-  neighbor->build_one(list);
+  if (update->firststep == update->ntimestep) neighbor->build_one(list,1);
+  else neighbor->build_one(list);
 
   inum = list->inum;
   ilist = list->ilist;

@@ -7,9 +7,15 @@
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
 
+#include <list>
+#include <vector>
+#include <algorithm>
+
 #include "colvarmodule.h"
+#include "colvarproxy.h"
 #include "colvarparse.h"
 #include "colvaratoms.h"
+
 
 cvm::atom::atom()
 {
@@ -434,7 +440,7 @@ int cvm::atom_group::parse(std::string const &group_conf)
   }
 
   bool b_print_atom_ids = false;
-  get_keyval(group_conf, "printAtomIDs", b_print_atom_ids, false, colvarparse::parse_silent);
+  get_keyval(group_conf, "printAtomIDs", b_print_atom_ids, false);
 
   // Calculate all required properties (such as total mass)
   setup();
@@ -713,13 +719,10 @@ int cvm::atom_group::parse_fitting_options(std::string const &group_conf)
                      "if provided, must be non-zero.\n", INPUT_ERROR);
           return COLVARS_ERROR;
         }
-      } else {
-        // if not, rely on existing atom indices for the group
-        group_for_fit->create_sorted_ids();
-        ref_pos.resize(group_for_fit->size());
       }
 
-      cvm::load_coords(ref_pos_file.c_str(), ref_pos, group_for_fit->sorted_ids,
+      ref_pos.resize(group_for_fit->size());
+      cvm::load_coords(ref_pos_file.c_str(), &ref_pos, group_for_fit,
                        ref_pos_col, ref_pos_col_value);
     }
 
@@ -787,33 +790,39 @@ void cvm::atom_group::do_feature_side_effects(int id)
 }
 
 
-int cvm::atom_group::create_sorted_ids(void)
+int cvm::atom_group::create_sorted_ids()
 {
   // Only do the work if the vector is not yet populated
-  if (sorted_ids.size())
+  if (sorted_atoms_ids.size())
     return COLVARS_OK;
 
-  std::list<int> temp_id_list;
-  for (cvm::atom_iter ai = this->begin(); ai != this->end(); ai++) {
-    temp_id_list.push_back(ai->id);
+  // Sort the internal IDs
+  std::list<int> sorted_atoms_ids_list;
+  for (size_t i = 0; i < this->size(); i++) {
+    sorted_atoms_ids_list.push_back(atoms_ids[i]);
   }
-  temp_id_list.sort();
-  temp_id_list.unique();
-  if (temp_id_list.size() != this->size()) {
-    cvm::error("Error: duplicate atom IDs in atom group? (found " +
-               cvm::to_str(temp_id_list.size()) +
-               " unique atom IDs instead of" +
-               cvm::to_str(this->size()) + ").\n");
-    return COLVARS_ERROR;
+  sorted_atoms_ids_list.sort();
+  sorted_atoms_ids_list.unique();
+  if (sorted_atoms_ids_list.size() != this->size()) {
+    return cvm::error("Error: duplicate atom IDs in atom group? (found " +
+                      cvm::to_str(sorted_atoms_ids_list.size()) +
+                      " unique atom IDs instead of " +
+                      cvm::to_str(this->size()) + ").\n", BUG_ERROR);
   }
-  sorted_ids = std::vector<int> (temp_id_list.size());
-  unsigned int id_i = 0;
-  std::list<int>::iterator li;
-  for (li = temp_id_list.begin(); li != temp_id_list.end(); ++li) {
-    sorted_ids[id_i] = *li;
-    id_i++;
+
+  // Compute map between sorted and unsorted elements
+  sorted_atoms_ids.resize(this->size());
+  sorted_atoms_ids_map.resize(this->size());
+  std::list<int>::iterator lsii = sorted_atoms_ids_list.begin();
+  size_t ii = 0;
+  for ( ; ii < this->size(); lsii++, ii++) {
+    sorted_atoms_ids[ii] = *lsii;
+    size_t const pos = std::find(atoms_ids.begin(), atoms_ids.end(), *lsii) -
+      atoms_ids.begin();
+    sorted_atoms_ids_map[ii] = pos;
   }
-  return (cvm::get_error() ? COLVARS_ERROR : COLVARS_OK);
+
+  return COLVARS_OK;
 }
 
 

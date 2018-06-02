@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include "molecule.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -144,17 +144,17 @@ Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int &index) :
   if (me == 0) {
     if (screen)
       fprintf(screen,"Read molecule %s:\n"
-              "  %d atoms with %d types\n  %d bonds with %d types\n"
-              "  %d angles with %d types\n  %d dihedrals with %d types\n"
-              "  %d impropers with %d types\n",
+              "  %d atoms with max type %d\n  %d bonds with max type %d\n"
+              "  %d angles with max type %d\n  %d dihedrals with max type %d\n"
+              "  %d impropers with max type %d\n",
               id,natoms,ntypes,
               nbonds,nbondtypes,nangles,nangletypes,
               ndihedrals,ndihedraltypes,nimpropers,nimpropertypes);
     if (logfile)
       fprintf(logfile,"Read molecule %s:\n"
-              "  %d atoms with %d types\n  %d bonds with %d types\n"
-              "  %d angles with %d types\n  %d dihedrals with %d types\n"
-              "  %d impropers with %d types\n",
+              "  %d atoms with max type %d\n  %d bonds with max type %d\n"
+              "  %d angles with max type %d\n  %d dihedrals with max type %d\n"
+              "  %d impropers with max type %d\n",
               id,natoms,ntypes,
               nbonds,nbondtypes,nangles,nangletypes,
               ndihedrals,ndihedraltypes,nimpropers,nimpropertypes);
@@ -1111,7 +1111,7 @@ void Molecule::special_generate()
 {
   int newton_bond = force->newton_bond;
   tagint atom1,atom2;
-  int count[natoms];
+  int *count = new int[natoms];
 
   // temporary array for special atoms
 
@@ -1197,6 +1197,7 @@ void Molecule::special_generate()
       }
     }
   }
+  delete[] count;
 
   maxspecial = 0;
   for (int i = 0; i < natoms; i++)

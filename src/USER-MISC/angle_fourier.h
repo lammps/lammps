@@ -20,7 +20,7 @@ AngleStyle(fourier,AngleFourier)
 #ifndef ANGLE_FOURIER_H
 #define ANGLE_FOURIER_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "angle.h"
 
 namespace LAMMPS_NS {

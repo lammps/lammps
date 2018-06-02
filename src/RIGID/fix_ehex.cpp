@@ -22,9 +22,9 @@
    which implements the heat exchange (HEX) algorithm.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "fix_ehex.h"
 #include "atom.h"
 #include "domain.h"
@@ -50,11 +50,11 @@ enum{CONSTANT,EQUAL,ATOM};
 /* ---------------------------------------------------------------------- */
 
 FixEHEX::FixEHEX(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
-  idregion(NULL), x(NULL), f(NULL), v(NULL), 
+  idregion(NULL), x(NULL), f(NULL), v(NULL),
   mass(NULL), rmass(NULL), type(NULL), scalingmask(NULL)
 {
   MPI_Comm_rank(world, &me);
- 
+
   // check
   if (narg < 4) error->all(FLERR,"Illegal fix ehex command: wrong number of parameters ");
 
@@ -75,7 +75,7 @@ FixEHEX::FixEHEX(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
   // optional args
 
   iregion = -1;
-  
+
   // NOTE: constraints are deactivated by default
 
   constraints = 0;
@@ -85,7 +85,7 @@ FixEHEX::FixEHEX(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
   cluster = 0;
 
   // NOTE: hex = 1 means that no coordinate correction is applied in which case eHEX reduces to HEX
- 
+
   hex = 0;
 
   int iarg = 5;
@@ -100,7 +100,7 @@ FixEHEX::FixEHEX(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
       idregion = new char[n];
       strcpy(idregion,arg[iarg+1]);
       iarg += 2;
-    } 
+    }
 
     // apply constraints (shake/rattle) at the end of the timestep
 
@@ -115,7 +115,7 @@ FixEHEX::FixEHEX(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
       cluster = 1;
       iarg += 1;
     }
-    
+
     // don't apply a coordinate correction if this keyword is specified
 
     else if (strcmp(arg[iarg], "hex") == 0) {
@@ -124,11 +124,11 @@ FixEHEX::FixEHEX(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
     }
     else
       error->all(FLERR, "Illegal fix ehex keyword ");
-  } 
+  }
 
   // check options
 
-  if (cluster && !constraints) 
+  if (cluster && !constraints)
     error->all(FLERR, "You can only use the keyword 'com' together with the keyword 'constrain' ");
 
   scale = 1.0;
@@ -183,26 +183,26 @@ void FixEHEX::init()
     error->all(FLERR,"Fix ehex group has no atoms");
 
   fshake = NULL;
-  if (constraints) { 
+  if (constraints) {
 
     // check if constraining algorithm is used (FixRattle inherits from FixShake)
 
     int cnt_shake = 0;
     int id_shake;
-    for (int i = 0; i < modify->nfix; i++) { 
+    for (int i = 0; i < modify->nfix; i++) {
       if (strcmp("rattle", modify->fix[i]->style) == 0 ||
           strcmp("shake", modify->fix[i]->style) == 0) {
         cnt_shake++;
         id_shake = i;
       }
-    } 
- 
-    if (cnt_shake > 1)         
+    }
+
+    if (cnt_shake > 1)
       error->all(FLERR,"Multiple instances of fix shake/rattle detected (not supported yet)");
     else if (cnt_shake == 1)   {
      fshake = ((FixShake*) modify->fix[id_shake]);
     }
-    else if (cnt_shake == 0)                  
+    else if (cnt_shake == 0)
       error->all(FLERR, "Fix ehex was configured with keyword constrain, but shake/rattle was not defined");
   }
 }
@@ -227,20 +227,20 @@ void FixEHEX::end_of_step() {
 
   update_scalingmask();
 
-  // rescale velocities 
+  // rescale velocities
 
   rescale();
 
   // if required use shake/rattle to correct coordinates and velocities
 
-  if (constraints && fshake) 
+  if (constraints && fshake)
     fshake->shake_end_of_step(0);
 }
 
 
 
 /* ----------------------------------------------------------------------
-   Iterate over all atoms, rescale the velocities and apply coordinate 
+   Iterate over all atoms, rescale the velocities and apply coordinate
    corrections.
 ------------------------------------------------------------------------- */
 
@@ -254,17 +254,17 @@ void FixEHEX::rescale() {
   dt = update->dt;
 
   // calculate centre of mass properties
-   
-  com_properties(vcm, sfr, &sfvr, &Ke, &Kr, &masstotal); 
+
+  com_properties(vcm, sfr, &sfvr, &Ke, &Kr, &masstotal);
 
   // heat flux into the reservoir
 
   F     = heat_input * force->ftm2v * nevery;
-  
+
   // total mass
 
   mr    = masstotal;
-  
+
   // energy scaling factor
 
   escale = 1. + (F*dt)/Kr;
@@ -292,7 +292,7 @@ void FixEHEX::rescale() {
 
             // epsr_ik implements Eq. (20) in the paper
 
-            eta_ik    = mi * F/(2.*Kr) * (v[i][k] - vcm[k]);          
+            eta_ik    = mi * F/(2.*Kr) * (v[i][k] - vcm[k]);
             epsr_ik   = eta_ik / (mi*Kr) * (F/48. + sfvr/6.*force->ftm2v) - F/(12.*Kr) * (f[i][k]/mi - sfr[k]/mr)*force->ftm2v;
 
             x[i][k]  -= dt*dt*dt * epsr_ik;
@@ -328,8 +328,8 @@ double FixEHEX::memory_usage()
 
 
 /* ----------------------------------------------------------------------
-   Update the array scalingmask depending on which individual atoms 
-   will be rescaled or not. 
+   Update the array scalingmask depending on which individual atoms
+   will be rescaled or not.
 ------------------------------------------------------------------------- */
 
 void FixEHEX::update_scalingmask() {
@@ -349,14 +349,14 @@ void FixEHEX::update_scalingmask() {
   // only rescale molecules whose center of mass if fully contained in the region
 
   if (cluster) {
- 
+
     // loop over all clusters
 
     for (int i=0; i < fshake->nlist; i++) {
 
-      // cluster id 
+      // cluster id
 
-      m    = fshake->list[i]; 
+      m    = fshake->list[i];
 
       // check if the centre of mass of the cluster is inside the region
       // if region == NULL, just check the group information of all sites
@@ -368,7 +368,7 @@ void FixEHEX::update_scalingmask() {
       else                                      nsites = 0;
 
       if (nsites == 0) {
-        error->all(FLERR,"Internal error: shake_flag[m] has to be between 1 and 4 for m in nlist");  
+        error->all(FLERR,"Internal error: shake_flag[m] has to be between 1 and 4 for m in nlist");
       }
 
       stat = check_cluster(fshake->shake_atom[m], nsites, region);
@@ -376,22 +376,22 @@ void FixEHEX::update_scalingmask() {
       for (int l=0; l < nsites; l++)  {
         lid = atom->map(fshake->shake_atom[m][l]);
         scalingmask[lid] = stat;
-      }      
+      }
     }
 
     // check atoms that do not belong to any cluster
 
     for (int i=0; i<atom->nlocal; i++)  {
-      if (fshake->shake_flag[i] == 0) 
+      if (fshake->shake_flag[i] == 0)
         scalingmask[i] = rescale_atom(i,region);
     }
 
-  } 
+  }
 
   // no clusters, just individual sites (e.g. monatomic system or flexible molecules)
 
   else {
-    for (int i=0; i<atom->nlocal; i++) 
+    for (int i=0; i<atom->nlocal; i++)
       scalingmask[i] =  rescale_atom(i,region);
   }
 
@@ -411,7 +411,7 @@ bool FixEHEX::check_cluster(tagint *shake_atom, int n, Region * region) {
 
   double **x     = atom->x;
   double * rmass = atom->rmass;
-  double * mass  = atom->mass; 
+  double * mass  = atom->mass;
   int    * type  = atom->type;
   int    * mask  = atom->mask;
   double   xcom[3], xtemp[3];
@@ -432,7 +432,7 @@ bool FixEHEX::check_cluster(tagint *shake_atom, int n, Region * region) {
     // get local id
 
     lid[i] = atom->map(shake_atom[i]);
-    
+
     // check if all sites of the cluster belong to the correct group
 
     stat = stat && (mask[lid[i]] & groupbit);
@@ -444,21 +444,21 @@ bool FixEHEX::check_cluster(tagint *shake_atom, int n, Region * region) {
       mi        = (rmass) ? rmass[lid[i]] : mass[type[lid[i]]];
       mcluster += mi;
 
-      // accumulate centre of mass 
+      // accumulate centre of mass
       // NOTE: you can either use unwrapped coordinates or take site x[lid[0]] as reference,
       //       i.e. reconstruct the molecule around this site and calculate the com.
 
-      for (int k=0; k<3; k++) 
+      for (int k=0; k<3; k++)
         xtemp[k] = x[lid[i]][k] - x[lid[0]][k];
- 
+
       // take into account pbc
-      
+
       domain->minimum_image(xtemp);
 
       for (int k=0; k<3; k++)
         xcom[k] += mi * (x[lid[0]][k] + xtemp[k]) ;
-    }   
-  } 
+    }
+  }
 
   // check if centre of mass is inside the region (if specified)
 
@@ -472,17 +472,17 @@ bool FixEHEX::check_cluster(tagint *shake_atom, int n, Region * region) {
 
     // divide by total mass
 
-    for (int k=0; k<3; k++) 
-      xcom[k] = xcom[k]/mcluster;      
- 
+    for (int k=0; k<3; k++)
+      xcom[k] = xcom[k]/mcluster;
+
     // apply periodic boundary conditions (centre of mass could be outside the box)
     // and check if molecule is inside the region
 
     domain->remap(xcom);
     stat = stat && region->match(xcom[0], xcom[1], xcom[2]);
   }
-  
-  return stat; 
+
+  return stat;
 }
 
 
@@ -536,7 +536,7 @@ void FixEHEX::com_properties(double * vr, double * sfr, double *sfvr, double *K,
    double mi;
    double l_buf[9];
    double buf[9];
- 
+
    // calculate partial sums
 
    l_vr[0]  = l_vr[1]  = l_vr[2] = 0;
@@ -546,8 +546,8 @@ void FixEHEX::com_properties(double * vr, double * sfr, double *sfvr, double *K,
    l_K      = 0;
 
    for (int i = 0; i < nlocal; i++) {
-     if (scalingmask[i]) {        
-       
+     if (scalingmask[i]) {
+
         // check if reduced mass is used
 
         mi    = (rmass) ? rmass[i] : mass[type[i]];
@@ -555,7 +555,7 @@ void FixEHEX::com_properties(double * vr, double * sfr, double *sfvr, double *K,
         // accumulate total mass
 
         l_mr += mi;
-  
+
         // accumulate kinetic energy
 
         l_K  += mi/2. * (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
@@ -595,7 +595,7 @@ void FixEHEX::com_properties(double * vr, double * sfr, double *sfvr, double *K,
       error->all(FLERR, "Fix ehex error mass of region is close to zero");
    }
 
-   // total kinetic energy of region 
+   // total kinetic energy of region
 
    *K  = buf[3];
 
@@ -616,7 +616,7 @@ void FixEHEX::com_properties(double * vr, double * sfr, double *sfvr, double *K,
    *Kr = *K - 0.5* (*mr) * (vr[0]*vr[0]+vr[1]*vr[1]+vr[2]*vr[2]);
 
    // calculate sum_j f_j * (v_j - v_r) = sum_j f_j * v_j  - v_r * sum_j f_j
- 
+
    *sfvr =  buf[8] - (vr[0]*sfr[0] + vr[1]*sfr[1] + vr[2]*sfr[2]);
 }
 

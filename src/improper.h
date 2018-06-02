@@ -14,7 +14,7 @@
 #ifndef LMP_IMPROPER_H
 #define LMP_IMPROPER_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "pointers.h"
 
 namespace LAMMPS_NS {

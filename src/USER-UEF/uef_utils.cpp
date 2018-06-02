@@ -22,7 +22,7 @@
    http://link.springer.com/chapter/10.1007%2F3-540-44670-2_13
 */
 
-#include <math.h>
+#include <cmath>
 #include "uef_utils.h"
 
 namespace LAMMPS_NS {

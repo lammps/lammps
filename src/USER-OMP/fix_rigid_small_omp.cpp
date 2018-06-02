@@ -24,7 +24,7 @@
 #include "comm.h"
 #include "domain.h"
 
-#include <string.h>
+#include <cstring>
 
 #if defined(_OPENMP)
 #include <omp.h>
@@ -112,7 +112,7 @@ void FixRigidSmallOMP::initial_integrate(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixRigidSmallOMP::final_integrate()
+void FixRigidSmallOMP::compute_forces_and_torques()
 {
   double * const * _noalias const x = atom->x;
   const dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];
@@ -201,6 +201,15 @@ void FixRigidSmallOMP::final_integrate()
       tcm[2] += langextra[ibody][5];
     }
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixRigidSmallOMP::final_integrate()
+{
+  int ibody;
+
+  if (!earlyflag) compute_forces_and_torques();
 
   // update vcm and angmom, recompute omega
 
@@ -343,22 +352,22 @@ void FixRigidSmallOMP::set_xv_thr()
       // Fix::v_tally() is not thread safe, so we do this manually here
       // accumulate global virial into thread-local variables for reduction
       if (vflag_global) {
-	v0 += vr[0];
-	v1 += vr[1];
-	v2 += vr[2];
-	v3 += vr[3];
-	v4 += vr[4];
-	v5 += vr[5];
+        v0 += vr[0];
+        v1 += vr[1];
+        v2 += vr[2];
+        v3 += vr[3];
+        v4 += vr[4];
+        v5 += vr[5];
       }
 
       // accumulate per atom virial directly since we parallelize over atoms.
       if (vflag_atom) {
-	vatom[i][0] += vr[0];
-	vatom[i][1] += vr[1];
-	vatom[i][2] += vr[2];
-	vatom[i][3] += vr[3];
-	vatom[i][4] += vr[4];
-	vatom[i][5] += vr[5];
+        vatom[i][0] += vr[0];
+        vatom[i][1] += vr[1];
+        vatom[i][2] += vr[2];
+        vatom[i][3] += vr[3];
+        vatom[i][4] += vr[4];
+        vatom[i][5] += vr[5];
       }
     }
   }
@@ -529,22 +538,22 @@ void FixRigidSmallOMP::set_v_thr()
       // Fix::v_tally() is not thread safe, so we do this manually here
       // accumulate global virial into thread-local variables and reduce them later
       if (vflag_global) {
-	v0 += vr[0];
-	v1 += vr[1];
-	v2 += vr[2];
-	v3 += vr[3];
-	v4 += vr[4];
-	v5 += vr[5];
+        v0 += vr[0];
+        v1 += vr[1];
+        v2 += vr[2];
+        v3 += vr[3];
+        v4 += vr[4];
+        v5 += vr[5];
       }
 
       // accumulate per atom virial directly since we parallelize over atoms.
       if (vflag_atom) {
-	vatom[i][0] += vr[0];
-	vatom[i][1] += vr[1];
-	vatom[i][2] += vr[2];
-	vatom[i][3] += vr[3];
-	vatom[i][4] += vr[4];
-	vatom[i][5] += vr[5];
+        vatom[i][0] += vr[0];
+        vatom[i][1] += vr[1];
+        vatom[i][2] += vr[2];
+        vatom[i][3] += vr[3];
+        vatom[i][4] += vr[4];
+        vatom[i][5] += vr[5];
       }
     }
   } // end of parallel for

@@ -129,6 +129,8 @@ class Compute : protected Pointers {
   virtual void lock(class Fix *, bigint, bigint) {}
   virtual void unlock(class Fix *) {}
 
+  virtual void refresh() {}
+
   void addstep(bigint);
   int matchstep(bigint);
   void clearstep();

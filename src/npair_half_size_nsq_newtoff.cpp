@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
+#include <cstring>
 #include "npair_half_size_nsq_newtoff.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -36,14 +36,13 @@ NPairHalfSizeNsqNewtoff::NPairHalfSizeNsqNewtoff(LAMMPS *lmp) : NPair(lmp) {}
 
 void NPairHalfSizeNsqNewtoff::build(NeighList *list)
 {
-  int i,j,m,n,nn,bitmask;
+  int i,j,n,bitmask;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   double radi,radsum,cutsq;
   int *neighptr;
 
   double **x = atom->x;
   double *radius = atom->radius;
-  tagint *tag = atom->tag;
   int *type = atom->type;
   int *mask = atom->mask;
   tagint *molecule = atom->molecule;

@@ -17,8 +17,8 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 #include "dihedral_fourier.h"
 #include "atom.h"
 #include "comm.h"
@@ -38,7 +38,7 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralFourier::DihedralFourier(LAMMPS *lmp) : Dihedral(lmp) 
+DihedralFourier::DihedralFourier(LAMMPS *lmp) : Dihedral(lmp)
 {
    writedata = 1;
 }

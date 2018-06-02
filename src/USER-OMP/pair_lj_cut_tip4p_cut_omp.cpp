@@ -12,7 +12,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
+#include <cmath>
 #include "pair_lj_cut_tip4p_cut_omp.h"
 #include "atom.h"
 #include "domain.h"
@@ -424,7 +424,7 @@ void PairLJCutTIP4PCutOMP::eval(int iifrom, int iito, ThrData * const thr)
           }
 
           if (EFLAG) {
-        	ecoul = qqrd2e * qtmp * q[j] / r;
+            ecoul = qqrd2e * qtmp * q[j] / r;
             ecoul *= factor_coul;
           } else ecoul = 0.0;
 

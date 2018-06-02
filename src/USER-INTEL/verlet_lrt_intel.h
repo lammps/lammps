@@ -41,7 +41,7 @@ class VerletLRTIntel : public Verlet {
   VerletLRTIntel(class LAMMPS *, int, char **);
   virtual ~VerletLRTIntel();
   virtual void init();
-  virtual void setup(int flag = 1);
+  virtual void setup(int flag);
   virtual void run(int);
 
  protected:

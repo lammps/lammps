@@ -16,10 +16,10 @@
    References: Fennell and Gezelter, JCP 124, 234104 (2006)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_born_coul_dsf_cs.h"
 #include "atom.h"
 #include "comm.h"
@@ -112,7 +112,7 @@ void PairBornCoulDSFCS::compute(int eflag, int vflag)
         if (rsq < cut_coulsq) {
           r = sqrt(rsq);
           prefactor = qqrd2e*qtmp*q[j] / r;
-	  arg = alpha * r ;
+          arg = alpha * r ;
           erfcd = MathSpecial::expmsq(arg);
           erfcc = MathSpecial::my_erfcx(arg) * erfcd;
           forcecoul = prefactor * (erfcc/r + 2.0*alpha/MY_PIS * erfcd +

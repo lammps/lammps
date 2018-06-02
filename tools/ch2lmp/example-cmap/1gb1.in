@@ -1,5 +1,5 @@
-# Created by charmm2lammps v1.9.1 on Wed Oct  5 18:08:55 EDT 2016
-# Command: charmm2lammps.pl -water -ions -border=2.0 all36_prot 1gb1
+# Created by charmm2lammps v1.9.1 on Sun Jan 28 05:50:21 EST 2018
+# Command: charmm2lammps.pl -border=2.0 -cmap=36 -ions -water all36_prot 1gb1
 
 units           real
 neigh_modify    delay 2 every 1
@@ -14,7 +14,10 @@ pair_style      lj/charmm/coul/long 8 12
 pair_modify     mix arithmetic
 kspace_style    pppm 1e-6
 
-read_data       1gb1.data
+# Modify following line to point to the desired CMAP file
+fix             cmap all cmap charmm36.cmap
+fix_modify      cmap energy yes
+read_data       1gb1.data fix cmap crossterm CMAP
 
 special_bonds   charmm
 thermo          10

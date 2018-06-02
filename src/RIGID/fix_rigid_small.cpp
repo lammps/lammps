@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "fix_rigid_small.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -65,7 +65,7 @@ enum{FULL_BODY,INITIAL,FINAL,FORCE_TORQUE,VCM_ANGMOM,XCM_MASS,ITENSOR,DOF};
 /* ---------------------------------------------------------------------- */
 
 FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), step_respa(NULL), 
+  Fix(lmp, narg, arg), step_respa(NULL),
   infile(NULL), body(NULL), bodyown(NULL), bodytag(NULL), atom2body(NULL),
   xcmimage(NULL), displace(NULL), eflags(NULL), orient(NULL), dorient(NULL),
   avec_ellipsoid(NULL), avec_line(NULL), avec_tri(NULL), counts(NULL),
@@ -138,7 +138,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
         MPI_Allreduce(&vmin,&minval,1,MPI_INT,MPI_MIN,world);
 
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit) 
+          if (mask[i] & groupbit)
             bodyid[i] = (tagint)(value[i] - minval + 1);
           else bodyid[i] = 0;
 
@@ -267,7 +267,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid/small command");
       if (strcmp(style,"rigid/npt/small") != 0 &&
           strcmp(style,"rigid/nph/small") != 0)
-	      error->all(FLERR,"Illegal fix rigid/small command");
+              error->all(FLERR,"Illegal fix rigid/small command");
       pcouple = XYZ;
       p_start[0] = p_start[1] = p_start[2] = force->numeric(FLERR,arg[iarg+1]);
       p_stop[0] = p_stop[1] = p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
@@ -275,8 +275,8 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
         force->numeric(FLERR,arg[iarg+3]);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (domain->dimension == 2) {
-	      p_start[2] = p_stop[2] = p_period[2] = 0.0;
-      	p_flag[2] = 0;
+              p_start[2] = p_stop[2] = p_period[2] = 0.0;
+        p_flag[2] = 0;
       }
       iarg += 4;
 
@@ -284,15 +284,15 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid/small command");
       if (strcmp(style,"rigid/npt/small") != 0 &&
           strcmp(style,"rigid/nph/small") != 0)
-	      error->all(FLERR,"Illegal fix rigid/small command");
+              error->all(FLERR,"Illegal fix rigid/small command");
       p_start[0] = p_start[1] = p_start[2] = force->numeric(FLERR,arg[iarg+1]);
       p_stop[0] = p_stop[1] = p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
       p_period[0] = p_period[1] = p_period[2] =
         force->numeric(FLERR,arg[iarg+3]);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (domain->dimension == 2) {
-      	p_start[2] = p_stop[2] = p_period[2] = 0.0;
-	      p_flag[2] = 0;
+        p_start[2] = p_stop[2] = p_period[2] = 0.0;
+              p_flag[2] = 0;
       }
       iarg += 4;
 
@@ -457,6 +457,10 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   avec_line = (AtomVecLine *) atom->style_match("line");
   avec_tri = (AtomVecTri *) atom->style_match("tri");
 
+  // compute per body forces and torques inside final_integrate() by default
+
+  earlyflag = 0;
+
   // print statistics
 
   int one = 0;
@@ -555,8 +559,21 @@ void FixRigidSmall::init()
 
   int count = 0;
   for (i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"rigid") == 0) count++;
+    if (modify->fix[i]->rigid_flag) count++;
   if (count > 1 && me == 0) error->warning(FLERR,"More than one fix rigid");
+
+  if (earlyflag) {
+    int rflag = 0;
+    for (i = 0; i < modify->nfix; i++) {
+      if (modify->fix[i]->rigid_flag) rflag = 1;
+      if (rflag && (modify->fmask[i] & POST_FORCE) && 
+          !modify->fix[i]->rigid_flag) {
+        char str[128];
+        sprintf(str,"Fix %s alters forces after fix rigid",modify->fix[i]->id);
+        error->warning(FLERR,str);
+      }
+    }
+  }
 
   // error if npt,nph fix comes before rigid fix
 
@@ -770,10 +787,10 @@ void FixRigidSmall::initial_integrate(int vflag)
 /* ----------------------------------------------------------------------
    apply Langevin thermostat to all 6 DOF of rigid bodies I own
    unlike fix langevin, this stores extra force in extra arrays,
-     which are added in when final_integrate() calculates a new fcm/torque
+     which are added in when a new fcm/torque are calculated
 ------------------------------------------------------------------------- */
 
-void FixRigidSmall::post_force(int vflag)
+void FixRigidSmall::apply_langevin_thermostat()
 {
   double gamma1,gamma2;
 
@@ -801,14 +818,14 @@ void FixRigidSmall::post_force(int vflag)
     vcm = body[ibody].vcm;
     omega = body[ibody].omega;
     inertia = body[ibody].inertia;
-    
+
     gamma1 = -body[ibody].mass / t_period / ftm2v;
     gamma2 = sqrt(body[ibody].mass) * tsqrt *
       sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
     langextra[ibody][0] = gamma1*vcm[0] + gamma2*(random->uniform()-0.5);
     langextra[ibody][1] = gamma1*vcm[1] + gamma2*(random->uniform()-0.5);
     langextra[ibody][2] = gamma1*vcm[2] + gamma2*(random->uniform()-0.5);
-    
+
     gamma1 = -1.0 / t_period / ftm2v;
     gamma2 = tsqrt * sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
     langextra[ibody][3] = inertia[0]*gamma1*omega[0] +
@@ -850,10 +867,18 @@ void FixRigidSmall::enforce2d()
 
 /* ---------------------------------------------------------------------- */
 
-void FixRigidSmall::final_integrate()
+void FixRigidSmall::post_force(int vflag)
+{
+  if (langflag) apply_langevin_thermostat();
+  if (earlyflag) compute_forces_and_torques();
+}
+
+
+/* ---------------------------------------------------------------------- */
+
+void FixRigidSmall::compute_forces_and_torques()
 {
   int i,ibody;
-  double dtfm;
 
   //check(3);
 
@@ -931,6 +956,18 @@ void FixRigidSmall::final_integrate()
       tcm[2] += langextra[ibody][5];
     }
   }
+}
+
+
+/* ---------------------------------------------------------------------- */
+
+void FixRigidSmall::final_integrate()
+{
+  double dtfm;
+
+  //check(3);
+
+  if (!earlyflag) compute_forces_and_torques();
 
   // update vcm and angmom, recompute omega
 
@@ -3380,6 +3417,33 @@ void FixRigidSmall::zero_rotation()
 
   evflag = 0;
   set_v();
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixRigidSmall::modify_param(int narg, char **arg)
+{
+  if (strcmp(arg[0],"bodyforces") == 0) {
+    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
+    if (strcmp(arg[1],"early") == 0) earlyflag = 1;
+    else if (strcmp(arg[1],"late") == 0) earlyflag = 0;
+    else error->all(FLERR,"Illegal fix_modify command");
+
+    // reset fix mask
+    // must do here and not in init, 
+    // since modify.cpp::init() uses fix masks before calling fix::init()
+
+    for (int i = 0; i < modify->nfix; i++)
+      if (strcmp(modify->fix[i]->id,id) == 0) {
+        if (earlyflag) modify->fmask[i] |= POST_FORCE;
+        else if (!langflag) modify->fmask[i] &= ~POST_FORCE;
+        break;
+      }
+
+    return 2;
+  }
+
+  return 0;
 }
 
 /* ---------------------------------------------------------------------- */

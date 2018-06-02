@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -338,6 +338,8 @@ T atomic_fetch_mod(volatile T * const dest, const T val) {
   return Impl::atomic_fetch_oper(Impl::ModOper<T,const T>(),dest,val);
 }
 
+#if !defined( KOKKOS_ENABLE_SERIAL_ATOMICS )
+
 template < typename T >
 KOKKOS_INLINE_FUNCTION
 T atomic_fetch_and(volatile T * const dest, const T val) {
@@ -349,6 +351,8 @@ KOKKOS_INLINE_FUNCTION
 T atomic_fetch_or(volatile T * const dest, const T val) {
   return Impl::atomic_fetch_oper(Impl::OrOper<T,const T>(),dest,val);
 }
+
+#endif
 
 template < typename T >
 KOKKOS_INLINE_FUNCTION

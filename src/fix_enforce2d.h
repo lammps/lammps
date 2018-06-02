@@ -58,4 +58,8 @@ E: Cannot use fix enforce2d with 3d simulation
 
 Self-explanatory.
 
+E: Fix enforce2d must be defined after fix %s
+
+UNDOCUMENTED
+
 */

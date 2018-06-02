@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include "run.h"
 #include "domain.h"
 #include "update.h"
@@ -175,7 +175,7 @@ void Run::command(int narg, char **arg)
 
     if (preflag || update->first_update == 0) {
       lmp->init();
-      update->integrate->setup();
+      update->integrate->setup(1);
     } else output->setup(0);
 
     timer->init();
@@ -216,7 +216,7 @@ void Run::command(int narg, char **arg)
 
       if (preflag || iter == 0) {
         lmp->init();
-        update->integrate->setup();
+        update->integrate->setup(1);
       } else output->setup(0);
 
       timer->init();

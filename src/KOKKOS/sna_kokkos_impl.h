@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #include "sna_kokkos.h"
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstring>
+#include <cstdlib>
 
 using namespace LAMMPS_NS;
 
@@ -28,10 +28,10 @@ template<class DeviceType>
 inline
 SNAKokkos<DeviceType>::SNAKokkos(double rfac0_in,
          int twojmax_in, int diagonalstyle_in, int use_shared_arrays_in,
-         double rmin0_in, int switch_flag_in, int bzero_flag_in) 
+         double rmin0_in, int switch_flag_in, int bzero_flag_in)
 {
   wself = 1.0;
-  
+
   use_shared_arrays = use_shared_arrays_in;
   rfac0 = rfac0_in;
   rmin0 = rmin0_in;
@@ -46,7 +46,7 @@ SNAKokkos<DeviceType>::SNAKokkos(double rfac0_in,
   //create_twojmax_arrays();
 
   nmax = 0;
-  
+
   build_indexlist();
 
   int jdim = twojmax + 1;
@@ -249,27 +249,27 @@ void SNAKokkos<DeviceType>::compute_zi(const typename Kokkos::TeamPolicy<DeviceT
     const int bound = (j+2)/2;
     Kokkos::parallel_for(Kokkos::ThreadVectorRange(team,(j+1)*bound),
         [&] (const int mbma ) {
-	//for(int mb = 0; 2*mb <= j; mb++)
-	  //for(int ma = 0; ma <= j; ma++) {
+        //for(int mb = 0; 2*mb <= j; mb++)
+          //for(int ma = 0; ma <= j; ma++) {
       const int ma = mbma%(j+1);
       const int mb = mbma/(j+1);
 
-	    //zarray_r(j1,j2,j,ma,mb) = 0.0;
-	    //zarray_i(j1,j2,j,ma,mb) = 0.0;
+            //zarray_r(j1,j2,j,ma,mb) = 0.0;
+            //zarray_i(j1,j2,j,ma,mb) = 0.0;
       double z_r = 0.0;
       double z_i = 0.0;
 
-	    for(int ma1 = MAX(0, (2 * ma - j - j2 + j1) / 2);
-		ma1 <= MIN(j1, (2 * ma - j + j2 + j1) / 2); ma1++) {
-	      double sumb1_r = 0.0;
-	      double sumb1_i = 0.0;
+            for(int ma1 = MAX(0, (2 * ma - j - j2 + j1) / 2);
+                ma1 <= MIN(j1, (2 * ma - j + j2 + j1) / 2); ma1++) {
+              double sumb1_r = 0.0;
+              double sumb1_i = 0.0;
 
-	      const int ma2 = (2 * ma - j - (2 * ma1 - j1) + j2) / 2;
+              const int ma2 = (2 * ma - j - (2 * ma1 - j1) + j2) / 2;
 
-	      for(int mb1  = MAX( 0, (2 * mb - j - j2 + j1) / 2);
+              for(int mb1  = MAX( 0, (2 * mb - j - j2 + j1) / 2);
                 mb1 <= MIN(j1, (2 * mb - j + j2 + j1) / 2); mb1++) {
 
-		const int mb2 = (2 * mb - j - (2 * mb1 - j1) + j2) / 2;
+                const int mb2 = (2 * mb - j - (2 * mb1 - j1) + j2) / 2;
     const double cga = cgarray(j1,j2,j,mb1,mb2);
     const double uat1_r = uarraytot_r(j1,ma1,mb1);
     const double uat1_i = uarraytot_i(j1,ma1,mb1);
@@ -277,21 +277,21 @@ void SNAKokkos<DeviceType>::compute_zi(const typename Kokkos::TeamPolicy<DeviceT
     const double uat2_i = uarraytot_i(j2,ma2,mb2);
     sumb1_r += cga * (uat1_r * uat2_r - uat1_i * uat2_i);
     sumb1_i += cga * (uat1_r * uat2_i + uat1_i * uat2_r);
-		/*sumb1_r += cgarray(j1,j2,j,mb1,mb2) *
-		  (uarraytot_r(j1,ma1,mb1) * uarraytot_r(j2,ma2,mb2) -
-		   uarraytot_i(j1,ma1,mb1) * uarraytot_i(j2,ma2,mb2));
-		sumb1_i += cgarray(j1,j2,j,mb1,mb2) *
-		  (uarraytot_r(j1,ma1,mb1) * uarraytot_i(j2,ma2,mb2) +
-		   uarraytot_i(j1,ma1,mb1) * uarraytot_r(j2,ma2,mb2));*/
-	      } // end loop over mb1
+                /*sumb1_r += cgarray(j1,j2,j,mb1,mb2) *
+                  (uarraytot_r(j1,ma1,mb1) * uarraytot_r(j2,ma2,mb2) -
+                   uarraytot_i(j1,ma1,mb1) * uarraytot_i(j2,ma2,mb2));
+                sumb1_i += cgarray(j1,j2,j,mb1,mb2) *
+                  (uarraytot_r(j1,ma1,mb1) * uarraytot_i(j2,ma2,mb2) +
+                   uarraytot_i(j1,ma1,mb1) * uarraytot_r(j2,ma2,mb2));*/
+              } // end loop over mb1
 
         const double cga = cgarray(j1,j2,j,ma1,ma2);
-	      z_r += sumb1_r * cga;//rray(j1,j2,j,ma1,ma2);
-	      z_i += sumb1_i * cga;//rray(j1,j2,j,ma1,ma2);
-	    } // end loop over ma1
+              z_r += sumb1_r * cga;//rray(j1,j2,j,ma1,ma2);
+              z_i += sumb1_i * cga;//rray(j1,j2,j,ma1,ma2);
+            } // end loop over ma1
       zarray_r(j1,j2,j,mb,ma) = z_r;
-	    zarray_i(j1,j2,j,mb,ma) = z_i;
-	  }); // end loop over ma, mb
+            zarray_i(j1,j2,j,mb,ma) = z_i;
+          }); // end loop over ma, mb
     //  }
     //}
   });
@@ -675,7 +675,7 @@ void SNAKokkos<DeviceType>::copy_dbi2dbvec(const typename Kokkos::TeamPolicy<Dev
       for(j2 = 0; j2 <= j1; j2++)
         for(j = abs(j1 - j2);
             j <= MIN(twojmax, j1 + j2); j += 2)
-	  if (j >= j1) {*/
+          if (j >= j1) {*/
   Kokkos::parallel_for(Kokkos::ThreadVectorRange(team,idxj_max),
           [&] (const int& JJ) {
   //for(int JJ = 0; JJ < idxj_max; JJ++) {
@@ -796,25 +796,25 @@ void SNAKokkos<DeviceType>::compute_uarray(const typename Kokkos::TeamPolicy<Dev
       uarray_i(j,0,mb) = 0.0;
 
       for (int ma = 0; ma < j; ma++) {
-	rootpq = rootpqarray(j - ma,j - mb);
+        rootpq = rootpqarray(j - ma,j - mb);
         uarray_r(j,ma,mb) +=
           rootpq *
           (a_r * uarray_r(j - 1,ma,mb) +
-	   a_i * uarray_i(j - 1,ma,mb));
+           a_i * uarray_i(j - 1,ma,mb));
         uarray_i(j,ma,mb) +=
           rootpq *
           (a_r * uarray_i(j - 1,ma,mb) -
-	   a_i * uarray_r(j - 1,ma,mb));
+           a_i * uarray_r(j - 1,ma,mb));
 
-	rootpq = rootpqarray(ma + 1,j - mb);
+        rootpq = rootpqarray(ma + 1,j - mb);
         uarray_r(j,ma + 1,mb) =
           -rootpq *
           (b_r * uarray_r(j - 1,ma,mb) +
-	   b_i * uarray_i(j - 1,ma,mb));
+           b_i * uarray_i(j - 1,ma,mb));
         uarray_i(j,ma + 1,mb) =
           -rootpq *
           (b_r * uarray_i(j - 1,ma,mb) -
-	   b_i * uarray_r(j - 1,ma,mb));
+           b_i * uarray_r(j - 1,ma,mb));
       }
     });
 
@@ -828,16 +828,16 @@ void SNAKokkos<DeviceType>::compute_uarray(const typename Kokkos::TeamPolicy<Dev
       int mbpar = (mb)%2==0?1:-1;
       int mapar = -mbpar;
       for (int ma = 0; ma <= j; ma++) {
-    	mapar = -mapar;
-    	if (mapar == 1) {
-    	  uarray_r(j,j-ma,j-mb) = uarray_r(j,ma,mb);
-    	  uarray_i(j,j-ma,j-mb) = -uarray_i(j,ma,mb);
-    	} else {
-    	  uarray_r(j,j-ma,j-mb) = -uarray_r(j,ma,mb);
-    	  uarray_i(j,j-ma,j-mb) = uarray_i(j,ma,mb);
-    	}
-    	//OK
-    	//printf("%lf %lf %lf %lf %lf %lf %lf SNAP-COMPARE: UARRAY\n",x,y,z,z0,r,uarray_r(j,ma,mb),uarray_i(j,ma,mb));
+        mapar = -mapar;
+        if (mapar == 1) {
+          uarray_r(j,j-ma,j-mb) = uarray_r(j,ma,mb);
+          uarray_i(j,j-ma,j-mb) = -uarray_i(j,ma,mb);
+        } else {
+          uarray_r(j,j-ma,j-mb) = -uarray_r(j,ma,mb);
+          uarray_i(j,j-ma,j-mb) = uarray_i(j,ma,mb);
+        }
+        //OK
+        //printf("%lf %lf %lf %lf %lf %lf %lf SNAP-COMPARE: UARRAY\n",x,y,z,z0,r,uarray_r(j,ma,mb),uarray_i(j,ma,mb));
       }
     });
   }
@@ -854,7 +854,7 @@ KOKKOS_INLINE_FUNCTION
 void SNAKokkos<DeviceType>::compute_duarray(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team,
                           double x, double y, double z,
                           double z0, double r, double dz0dr,
-			  double wj, double rcut)
+                          double wj, double rcut)
 {
   double r0inv;
   double a_r, a_i, b_r, b_i;
@@ -943,7 +943,7 @@ void SNAKokkos<DeviceType>::compute_duarray(const typename Kokkos::TeamPolicy<De
                       a_i * duarray_r(j - 1,mb,ma,k));
         }
 
-	rootpq = rootpqarray(ma + 1,j - mb);
+        rootpq = rootpqarray(ma + 1,j - mb);
         uarray_r(j,ma + 1,mb) =
           -rootpq * (b_r *  uarray_r(j - 1,ma,mb) +
                      b_i *  uarray_i(j - 1,ma,mb));
@@ -973,22 +973,22 @@ void SNAKokkos<DeviceType>::compute_duarray(const typename Kokkos::TeamPolicy<De
       int mbpar = (mb)%2==0?1:-1;
       int mapar = -mbpar;
       for (int ma = 0; ma <= j; ma++) {
-    	mapar = -mapar;
-    	if (mapar == 1) {
-    	  uarray_r(j,j-ma,j-mb) = uarray_r(j,ma,mb);
-    	  uarray_i(j,j-ma,j-mb) = -uarray_i(j,ma,mb);
-    	  for (int k = 0; k < 3; k++) {
-    	    duarray_r(j,j-mb,j-ma,k) = duarray_r(j,mb,ma,k);
-    	    duarray_i(j,j-mb,j-ma,k) = -duarray_i(j,mb,ma,k);
-    	  }
-    	} else {
-    	  uarray_r(j,j-ma,j-mb) = -uarray_r(j,ma,mb);
-    	  uarray_i(j,j-ma,j-mb) = uarray_i(j,ma,mb);
-    	  for (int k = 0; k < 3; k++) {
-    	    duarray_r(j,j-mb,j-ma,k) = -duarray_r(j,mb,ma,k);
-    	    duarray_i(j,j-mb,j-ma,k) = duarray_i(j,mb,ma,k);
-    	  }
-    	}
+        mapar = -mapar;
+        if (mapar == 1) {
+          uarray_r(j,j-ma,j-mb) = uarray_r(j,ma,mb);
+          uarray_i(j,j-ma,j-mb) = -uarray_i(j,ma,mb);
+          for (int k = 0; k < 3; k++) {
+            duarray_r(j,j-mb,j-ma,k) = duarray_r(j,mb,ma,k);
+            duarray_i(j,j-mb,j-ma,k) = -duarray_i(j,mb,ma,k);
+          }
+        } else {
+          uarray_r(j,j-ma,j-mb) = -uarray_r(j,ma,mb);
+          uarray_i(j,j-ma,j-mb) = uarray_i(j,ma,mb);
+          for (int k = 0; k < 3; k++) {
+            duarray_r(j,j-mb,j-ma,k) = -duarray_r(j,mb,ma,k);
+            duarray_i(j,j-mb,j-ma,k) = duarray_i(j,mb,ma,k);
+          }
+        }
       }
     });
   }
@@ -1000,7 +1000,7 @@ void SNAKokkos<DeviceType>::compute_duarray(const typename Kokkos::TeamPolicy<De
   dsfac *= wj;
 
   for (int j = 0; j <= twojmax; j++)
-    for (int mb = 0; mb <= j; mb++) 
+    for (int mb = 0; mb <= j; mb++)
       for (int ma = 0; ma <= j; ma++) {
         duarray_r(j,mb,ma,0) = dsfac * uarray_r(j,ma,mb) * ux +
                                   sfac * duarray_r(j,mb,ma,0);
@@ -1149,37 +1149,37 @@ void SNAKokkos<DeviceType>::init_clebsch_gordan()
 
             if(m < 0 || m > j) continue;
 
-	    sum = 0.0;
+            sum = 0.0;
 
-	    for (int z = MAX(0, MAX(-(j - j2 + aa2)
-				   / 2, -(j - j1 - bb2) / 2));
-		z <= MIN((j1 + j2 - j) / 2,
-			 MIN((j1 - aa2) / 2, (j2 + bb2) / 2));
-		z++) {
-	      ifac = z % 2 ? -1 : 1;
-	      sum += ifac /
-		(factorial(z) *
-		 factorial((j1 + j2 - j) / 2 - z) *
-		 factorial((j1 - aa2) / 2 - z) *
-		 factorial((j2 + bb2) / 2 - z) *
-		 factorial((j - j2 + aa2) / 2 + z) *
-		 factorial((j - j1 - bb2) / 2 + z));
-	    }
+            for (int z = MAX(0, MAX(-(j - j2 + aa2)
+                                   / 2, -(j - j1 - bb2) / 2));
+                z <= MIN((j1 + j2 - j) / 2,
+                         MIN((j1 - aa2) / 2, (j2 + bb2) / 2));
+                z++) {
+              ifac = z % 2 ? -1 : 1;
+              sum += ifac /
+                (factorial(z) *
+                 factorial((j1 + j2 - j) / 2 - z) *
+                 factorial((j1 - aa2) / 2 - z) *
+                 factorial((j2 + bb2) / 2 - z) *
+                 factorial((j - j2 + aa2) / 2 + z) *
+                 factorial((j - j1 - bb2) / 2 + z));
+            }
 
-	    cc2 = 2 * m - j;
-	    dcg = deltacg(j1, j2, j);
-	    sfaccg = sqrt(factorial((j1 + aa2) / 2) *
-			factorial((j1 - aa2) / 2) *
-			factorial((j2 + bb2) / 2) *
-			factorial((j2 - bb2) / 2) *
-			factorial((j  + cc2) / 2) *
-			factorial((j  - cc2) / 2) *
-			(j + 1));
+            cc2 = 2 * m - j;
+            dcg = deltacg(j1, j2, j);
+            sfaccg = sqrt(factorial((j1 + aa2) / 2) *
+                        factorial((j1 - aa2) / 2) *
+                        factorial((j2 + bb2) / 2) *
+                        factorial((j2 - bb2) / 2) *
+                        factorial((j  + cc2) / 2) *
+                        factorial((j  - cc2) / 2) *
+                        (j + 1));
 
-	    h_cgarray(j1,j2,j,m1,m2) = sum * dcg * sfaccg;
-	    //printf("SNAP-COMPARE: CG: %i %i %i %i %i %e\n",j1,j2,j,m1,m2,cgarray(j1,j2,j,m1,m2));
-	  }
-	}
+            h_cgarray(j1,j2,j,m1,m2) = sum * dcg * sfaccg;
+            //printf("SNAP-COMPARE: CG: %i %i %i %i %i %e\n",j1,j2,j,m1,m2,cgarray(j1,j2,j,m1,m2));
+          }
+        }
   Kokkos::deep_copy(cgarray,h_cgarray);
 }
 

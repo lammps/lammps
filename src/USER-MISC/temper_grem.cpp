@@ -15,9 +15,9 @@
    Contributing author: David Stelter (BU)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "temper_grem.h"
 #include "fix_grem.h"
 #include "universe.h"
@@ -214,7 +214,7 @@ void TemperGrem::command(int narg, char **arg)
   if (me_universe == 0 && universe->uscreen)
     fprintf(universe->uscreen,"Setting up tempering ...\n");
 
-  update->integrate->setup();
+  update->integrate->setup(1);
 
   if (me_universe == 0) {
     if (universe->uscreen) {

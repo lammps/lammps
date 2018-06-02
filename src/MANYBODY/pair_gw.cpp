@@ -16,10 +16,10 @@
    based on PairTersoff by Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_gw.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -521,7 +521,8 @@ void PairGW::setup_params()
         for (m = 0; m < nparams; m++) {
           if (i == params[m].ielement && j == params[m].jelement &&
               k == params[m].kelement) {
-            if (n >= 0) error->all(FLERR,"Potential file has duplicate entry");
+            if (n >= 0) 
+              error->all(FLERR,"Potential file has duplicate entry");
             n = m;
           }
         }

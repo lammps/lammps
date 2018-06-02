@@ -76,11 +76,11 @@ class FixLangevin : public Fix {
 #define TEMPLATED_FIX_LANGEVIN
 #ifdef TEMPLATED_FIX_LANGEVIN
   template < int Tp_TSTYLEATOM, int Tp_GJF, int Tp_TALLY,
-	     int Tp_BIAS, int Tp_RMASS, int Tp_ZERO >
+             int Tp_BIAS, int Tp_RMASS, int Tp_ZERO >
   void post_force_templated();
 #else
   void post_force_untemplated(int, int, int,
-			      int, int, int);
+                              int, int, int);
 #endif
   void omega_thermostat();
   void angmom_thermostat();

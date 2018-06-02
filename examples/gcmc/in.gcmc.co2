@@ -58,21 +58,23 @@ timestep        1.0
 
 # rigid constraints with thermostat 
 
-fix             myrigidnvt all rigid/nvt/small molecule temp ${temp} ${temp} 100 mol co2mol
-fix_modify	myrigidnvt dynamic/dof no
+fix             myrigidnvt co2 rigid/nvt/small molecule temp ${temp} ${temp} 100 mol co2mol
+
+# dynamically update  fix rigid/nvt/small temperature ndof
+fix_modify	myrigidnvt dynamic/dof yes
 
 # gcmc
 
 variable        tfac equal 5.0/3.0 # (3 trans + 2 rot)/(3 trans)
-fix             mygcmc all gcmc 100 100 0 0 54341 ${temp} ${mu} ${disp} mol &
+fix             mygcmc co2 gcmc 100 100 0 0 54341 ${temp} ${mu} ${disp} mol &
                 co2mol tfac_insert ${tfac} group co2 rigid myrigidnvt
 
 # atom counts
 
 variable 	carbon atom "type==1"
 variable        oxygen atom "type==2"
-group 		carbon dynamic all var carbon
-group 	        oxygen dynamic all var oxygen
+group 		carbon dynamic co2 var carbon
+group 	        oxygen dynamic co2 var oxygen
 variable        nC equal count(carbon)
 variable        nO equal count(oxygen)
 
@@ -82,7 +84,10 @@ variable	tacc equal f_mygcmc[2]/(f_mygcmc[1]+0.1)
 variable	iacc equal f_mygcmc[4]/(f_mygcmc[3]+0.1)
 variable	dacc equal f_mygcmc[6]/(f_mygcmc[5]+0.1)
 variable	racc equal f_mygcmc[8]/(f_mygcmc[7]+0.1)
+
+# dynamically update default temperature ndof
 compute_modify  thermo_temp dynamic/dof yes
+
 thermo_style    custom step temp press pe ke density atoms v_iacc v_dacc v_tacc v_racc v_nC v_nO
 thermo          1000
 

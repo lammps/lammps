@@ -12,9 +12,9 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <string.h>
-#include <stdint.h>
+#include <cmath>
+#include <cstring>
+#include <stdint.h> // <cstdint> requires C++-11
 #include "pair_agni_omp.h"
 #include "atom.h"
 #include "comm.h"

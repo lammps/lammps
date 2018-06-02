@@ -6,7 +6,7 @@
 
 :line
 
-3. Commands :h3
+3. Commands :h2
 
 This section describes how a LAMMPS input script is formatted and the
 input script commands used to define a LAMMPS simulation.
@@ -190,7 +190,7 @@ allowed, but that should be sufficient for most use cases.
 
 :line
 
-3.3 Input script structure :h4,link(cmd_3)
+3.3 Input script structure :h3,link(cmd_3)
 
 This section describes the structure of a typical LAMMPS input script.
 The "examples" directory in the LAMMPS distribution contains many
@@ -414,7 +414,7 @@ Input script control:
 
 :line
 
-3.5 Individual commands :h4,link(cmd_5),link(comm)
+3.5 Individual commands :h3,link(cmd_5),link(comm)
 
 This section lists all LAMMPS commands alphabetically, with a separate
 listing below of styles within certain commands.  The "previous
@@ -497,6 +497,7 @@ in the command's documentation.
 "region"_region.html,
 "replicate"_replicate.html,
 "rerun"_rerun.html,
+"reset_ids"_reset_ids.html,
 "reset_timestep"_reset_timestep.html,
 "restart"_restart.html,
 "run"_run.html,
@@ -537,7 +538,7 @@ package"_Section_start.html#start_3.
 
 :line
 
-Fix styles :h4
+Fix styles :h3
 
 See the "fix"_fix.html command for one-line descriptions of each style
 or click on the style itself for a full description.  Some of the
@@ -683,6 +684,7 @@ package"_Section_start.html#start_3.
 "addtorque"_fix_addtorque.html,
 "atc"_fix_atc.html,
 "ave/correlate/long"_fix_ave_correlate_long.html,
+"bond/react"_fix_bond_react.html,
 "colvars"_fix_colvars.html,
 "dpd/energy (k)"_fix_dpd_energy.html,
 "drude"_fix_drude.html,
@@ -711,17 +713,17 @@ package"_Section_start.html#start_3.
 "mvv/dpd"_fix_mvv_dpd.html,
 "mvv/edpd"_fix_mvv_dpd.html,
 "mvv/tdpd"_fix_mvv_dpd.html,
-"nve/dot"_fix_nve_dot.html,
-"nve/dotc/langevin"_fix_nve_dotc_langevin.html,
-"nve/manifold/rattle"_fix_nve_manifold_rattle.html,
-"nvk"_fix_nvk.html,
-"nvt/manifold/rattle"_fix_nvt_manifold_rattle.html,
 "nph/eff"_fix_nh_eff.html,
 "npt/eff"_fix_nh_eff.html,
-"nve/eff"_fix_nve_eff.html,
-"nvt/eff"_fix_nh_eff.html,
-"nvt/sllod/eff"_fix_nvt_sllod_eff.html,
 "npt/uef"_fix_nh_uef.html,
+"nve/dot"_fix_nve_dot.html,
+"nve/dotc/langevin"_fix_nve_dotc_langevin.html,
+"nve/eff"_fix_nve_eff.html,
+"nve/manifold/rattle"_fix_nve_manifold_rattle.html,
+"nvk"_fix_nvk.html,
+"nvt/eff"_fix_nh_eff.html,
+"nvt/manifold/rattle"_fix_nvt_manifold_rattle.html,
+"nvt/sllod/eff"_fix_nvt_sllod_eff.html,
 "nvt/uef"_fix_nh_uef.html,
 "phonon"_fix_phonon.html,
 "pimd"_fix_pimd.html,
@@ -751,7 +753,7 @@ package"_Section_start.html#start_3.
 
 :line
 
-Compute styles :h4
+Compute styles :h3
 
 See the "compute"_compute.html command for one-line descriptions of
 each style or click on the style itself for a full description.  Some
@@ -894,7 +896,7 @@ package"_Section_start.html#start_3.
 
 :line
 
-Pair_style potentials :h4
+Pair_style potentials :h3
 
 See the "pair_style"_pair_style.html command for an overview of pair
 potentials.  Click on the style itself for a full description.  Many
@@ -978,6 +980,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "lj/cut/coul/long (gikot)"_pair_lj.html,
 "lj/cut/coul/long/cs"_pair_lj.html,
 "lj/cut/coul/msm (go)"_pair_lj.html,
+"lj/cut/coul/wolf (o)"_pair_lj.html,
 "lj/cut/dipole/cut (go)"_pair_dipole.html,
 "lj/cut/dipole/long"_pair_dipole.html,
 "lj/cut/tip4p/cut (o)"_pair_lj.html,
@@ -1011,7 +1014,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "reax"_pair_reax.html,
 "rebo (oi)"_pair_airebo.html,
 "resquared (go)"_pair_resquared.html,
-"snap"_pair_snap.html,
+"snap (k)"_pair_snap.html,
 "soft (go)"_pair_soft.html,
 "sw (giko)"_pair_sw.html,
 "table (gko)"_pair_table.html,
@@ -1022,6 +1025,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "tip4p/cut (o)"_pair_coul.html,
 "tip4p/long (o)"_pair_coul.html,
 "tri/lj"_pair_tri_lj.html,
+"ufm (got)"_pair_ufm.html,
 "vashishta (ko)"_pair_vashishta.html,
 "vashishta/table (o)"_pair_vashishta.html,
 "yukawa (gok)"_pair_yukawa.html,
@@ -1038,6 +1042,7 @@ package"_Section_start.html#start_3.
 "coul/cut/soft (o)"_pair_lj_soft.html,
 "coul/diel (o)"_pair_coul_diel.html,
 "coul/long/soft (o)"_pair_lj_soft.html,
+"coul/shield"_pair_coul_shield.html,
 "dpd/fdt"_pair_dpd_fdt.html,
 "dpd/fdt/energy (k)"_pair_dpd_fdt.html,
 "eam/cd (o)"_pair_eam.html,
@@ -1048,6 +1053,8 @@ package"_Section_start.html#start_3.
 "exp6/rx (k)"_pair_exp6_rx.html,
 "extep"_pair_extep.html,
 "gauss/cut"_pair_gauss.html,
+"ilp/graphene/hbn"_pair_ilp_graphene_hbn.html,
+"kolmogorov/crespi/full"_pair_kolmogorov_crespi_full.html,
 "kolmogorov/crespi/z"_pair_kolmogorov_crespi_z.html,
 "lennard/mdf"_pair_mdf.html,
 "list"_pair_list.html,
@@ -1105,7 +1112,7 @@ package"_Section_start.html#start_3.
 
 :line
 
-Bond_style potentials :h4
+Bond_style potentials :h3
 
 See the "bond_style"_bond_style.html command for an overview of bond
 potentials.  Click on the style itself for a full description.  Some
@@ -1139,7 +1146,7 @@ package"_Section_start.html#start_3.
 
 :line
 
-Angle_style potentials :h4
+Angle_style potentials :h3
 
 See the "angle_style"_angle_style.html command for an overview of
 angle potentials.  Click on the style itself for a full description.
@@ -1175,7 +1182,7 @@ package"_Section_start.html#start_3.
 
 :line
 
-Dihedral_style potentials :h4
+Dihedral_style potentials :h3
 
 See the "dihedral_style"_dihedral_style.html command for an overview
 of dihedral potentials.  Click on the style itself for a full
@@ -1205,11 +1212,12 @@ package"_Section_start.html#start_3.
 "nharmonic (o)"_dihedral_nharmonic.html,
 "quadratic (o)"_dihedral_quadratic.html,
 "spherical (o)"_dihedral_spherical.html,
-"table (o)"_dihedral_table.html :tb(c=4,ea=c)
+"table (o)"_dihedral_table.html,
+"table/cut"_dihedral_table_cut.html :tb(c=4,ea=c)
 
 :line
 
-Improper_style potentials :h4
+Improper_style potentials :h3
 
 See the "improper_style"_improper_style.html command for an overview
 of improper potentials.  Click on the style itself for a full
@@ -1238,7 +1246,7 @@ package"_Section_start.html#start_3.
 
 :line
 
-Kspace solvers :h4
+Kspace solvers :h3
 
 See the "kspace_style"_kspace_style.html command for an overview of
 Kspace solvers.  Click on the style itself for a full description.

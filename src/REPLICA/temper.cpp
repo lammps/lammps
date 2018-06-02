@@ -15,9 +15,9 @@
    Contributing author: Mark Sears (SNL)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "temper.h"
 #include "universe.h"
 #include "domain.h"
@@ -212,7 +212,7 @@ void Temper::command(int narg, char **arg)
   if (me_universe == 0 && universe->uscreen)
     fprintf(universe->uscreen,"Setting up tempering ...\n");
 
-  update->integrate->setup();
+  update->integrate->setup(1);
 
   if (me_universe == 0) {
     if (universe->uscreen) {

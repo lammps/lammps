@@ -583,8 +583,8 @@ void PairSpinNeel::compute_neel_mech(int i, int j, double rsq, double eij[3], do
   // adding three contributions
 
   fi[0] = pdx + pq1x + pq2x;
-  fi[2] = pdy + pq1y + pq2y;
-  fi[3] = pdz + pq1z + pq2z;
+  fi[1] = pdy + pq1y + pq2y;
+  fi[2] = pdz + pq1z + pq2z;
 }
 
 /* ----------------------------------------------------------------------

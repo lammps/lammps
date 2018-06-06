@@ -798,7 +798,7 @@ void FixNH::setup(int vflag)
 
   if (pstat_flag) {
     double kt = boltz * t_target;
-    double nkt = atom->natoms * kt;
+    double nkt = (atom->natoms + 1) * kt;
 
     for (int i = 0; i < 3; i++)
       if (p_flag[i])
@@ -1826,7 +1826,7 @@ void FixNH::nhc_press_integrate()
   // Update masses, to preserve initial freq, if flag set
 
   if (omega_mass_flag) {
-    double nkt = atom->natoms * kt;
+    double nkt = (atom->natoms + 1) * kt;
     for (int i = 0; i < 3; i++)
       if (p_flag[i])
         omega_mass[i] = nkt/(p_freq[i]*p_freq[i]);

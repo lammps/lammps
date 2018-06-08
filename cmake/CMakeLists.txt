@@ -2,9 +2,9 @@
 # CMake build system
 # This file is part of LAMMPS
 # Created by Christoph Junghans and Richard Berger
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 2.8.12)
 
-project(lammps LANGUAGES CXX)
+project(lammps CXX)
 set(SOVERSION 0)
 set(LAMMPS_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../src)
 set(LAMMPS_LIB_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../lib)
@@ -155,6 +155,9 @@ if(PKG_MEAM OR PKG_USER-H5MD OR PKG_USER-QMMM)
 endif()
 
 if(PKG_MSCG)
+  if (CMAKE_VERSION VERSION_LESS "3.1") 
+    message(FATAL_ERROR "For the MSCG package you need at least cmake-3.1")
+  endif()
   # starting with CMake 3.1 this is all you have to do to enforce C++11
   set(CMAKE_CXX_STANDARD 11) # C++11...
   set(CMAKE_CXX_STANDARD_REQUIRED ON) #...is required...
@@ -658,6 +661,9 @@ if(PKG_USER-INTEL)
 endif()
 
 if(PKG_GPU)
+    if (CMAKE_VERSION VERSION_LESS "3.1") 
+      message(FATAL_ERROR "For the GPU package you need at least cmake-3.1")
+    endif()
     set(GPU_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/GPU)
     set(GPU_SOURCES ${GPU_SOURCES_DIR}/gpu_extra.h
                     ${GPU_SOURCES_DIR}/fix_gpu.h

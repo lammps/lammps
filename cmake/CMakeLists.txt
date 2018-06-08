@@ -147,6 +147,7 @@ pkg_depends(CORESHELL KSPACE)
 ######################################################
 if(PKG_REAX OR PKG_MEAM OR PKG_USER-QUIP OR PKG_USER-QMMM OR PKG_LATTE)
   enable_language(Fortran)
+  list(APPEND LAMMPS_LINK_LIBS ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
 endif()
 
 if(PKG_MEAM OR PKG_USER-H5MD OR PKG_USER-QMMM)
@@ -312,7 +313,7 @@ if(PKG_LATTE)
       message(FATAL_ERROR "LATTE not found, help CMake to find it by setting LATTE_LIBRARY, or set DOWNLOAD_LATTE=ON to download it")
     endif()
   endif()
-  list(APPEND LAMMPS_LINK_LIBS ${LATTE_LIBRARIES} ${LAPACK_LIBRARIES} ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
+  list(APPEND LAMMPS_LINK_LIBS ${LATTE_LIBRARIES} ${LAPACK_LIBRARIES})
 endif()
 
 if(PKG_USER-MOLFILE)
@@ -355,14 +356,14 @@ endif()
 
 if(PKG_USER-QUIP)
   find_package(QUIP REQUIRED)
-  list(APPEND LAMMPS_LINK_LIBS ${QUIP_LIBRARIES} ${LAPACK_LIBRARIES} ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
+  list(APPEND LAMMPS_LINK_LIBS ${QUIP_LIBRARIES} ${LAPACK_LIBRARIES})
 endif()
 
 if(PKG_USER-QMMM)
   message(WARNING "Building QMMM with CMake is still experimental")
   find_package(QE REQUIRED)
   include_directories(${QE_INCLUDE_DIRS})
-  list(APPEND LAMMPS_LINK_LIBS ${QE_LIBRARIES} ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
+  list(APPEND LAMMPS_LINK_LIBS ${QE_LIBRARIES})
 endif()
 
 if(PKG_USER-VTK)

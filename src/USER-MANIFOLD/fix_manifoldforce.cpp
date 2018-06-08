@@ -54,7 +54,8 @@ FixManifoldForce::FixManifoldForce(LAMMPS *lmp, int narg, char **arg) :
   int good_minner = str_eq(update->minimize_style,"hftn") |
                     str_eq(update->minimize_style,"quickmin");
   if( !good_minner){
-    error->warning(FLERR,"Minimizing with fix manifoldforce without hftn or quickmin is fishy");
+    error->warning(FLERR,"Make sure min_style is set to hftn "
+                   "or quickmin before minimizing");
   }
 
 

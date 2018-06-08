@@ -393,7 +393,24 @@ namespace Kokkos {
   template<class T>
   KOKKOS_INLINE_FUNCTION
   T atomic_fetch_add(volatile T* dest, typename std::enable_if<sizeof(T) != sizeof(int) && sizeof(T) != sizeof(int64_t), const T&>::type val) {
-    return val ;
+    T return_val;
+    // Do we need to (like in CUDA) handle potential wavefront branching?
+    int done = 0;
+    //unsigned int active = KOKKOS_IMPL_CUDA_BALLOT(1);
+    //unsigned int done_active = 0;
+    //while (active!=done_active) {
+    if(!done) {
+      bool locked = ::Kokkos::Impl::lock_address_rocm_space( (void*) dest );
+      if( locked ) {
+        return_val = *dest;
+        *dest = return_val + val;
+        ::Kokkos::Impl::unlock_address_rocm_space( (void*) dest );
+        done = 1;
+      }
+    }
+    //done_active = KOKKOS_IMPL_CUDA_BALLOT(done);
+  //}
+    return return_val;
   }
 
   template<class T>

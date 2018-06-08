@@ -64,7 +64,7 @@ namespace Impl {
 template <typename Specialize>
 struct DynRankDimTraits {
 
-  enum : size_t{unspecified = ~size_t(0)};
+  enum : size_t{unspecified =KOKKOS_INVALID_INDEX};
 
   // Compute the rank of the view from the nonzero dimension arguments.
   KOKKOS_INLINE_FUNCTION
@@ -192,14 +192,14 @@ struct DynRankDimTraits {
   static typename std::enable_if< (std::is_same<Layout , Kokkos::LayoutRight>::value || std::is_same<Layout , Kokkos::LayoutLeft>::value) && std::is_integral<iType>::value , Layout >::type
   reconstructLayout( const Layout& layout , iType dynrank )
   {
-    return Layout( dynrank > 0 ? layout.dimension[0] : ~size_t(0)
-                 , dynrank > 1 ? layout.dimension[1] : ~size_t(0)
-                 , dynrank > 2 ? layout.dimension[2] : ~size_t(0)
-                 , dynrank > 3 ? layout.dimension[3] : ~size_t(0)
-                 , dynrank > 4 ? layout.dimension[4] : ~size_t(0)
-                 , dynrank > 5 ? layout.dimension[5] : ~size_t(0)
-                 , dynrank > 6 ? layout.dimension[6] : ~size_t(0)
-                 , dynrank > 7 ? layout.dimension[7] : ~size_t(0)
+    return Layout( dynrank > 0 ? layout.dimension[0] :KOKKOS_INVALID_INDEX
+                 , dynrank > 1 ? layout.dimension[1] :KOKKOS_INVALID_INDEX
+                 , dynrank > 2 ? layout.dimension[2] :KOKKOS_INVALID_INDEX
+                 , dynrank > 3 ? layout.dimension[3] :KOKKOS_INVALID_INDEX
+                 , dynrank > 4 ? layout.dimension[4] :KOKKOS_INVALID_INDEX
+                 , dynrank > 5 ? layout.dimension[5] :KOKKOS_INVALID_INDEX
+                 , dynrank > 6 ? layout.dimension[6] :KOKKOS_INVALID_INDEX
+                 , dynrank > 7 ? layout.dimension[7] :KOKKOS_INVALID_INDEX
                  );
   }
 
@@ -209,21 +209,21 @@ struct DynRankDimTraits {
   static typename std::enable_if< (std::is_same<Layout , Kokkos::LayoutStride>::value) && std::is_integral<iType>::value , Layout >::type
   reconstructLayout( const Layout& layout , iType dynrank )
   {
-    return Layout( dynrank > 0 ? layout.dimension[0] : ~size_t(0)
+    return Layout( dynrank > 0 ? layout.dimension[0] :KOKKOS_INVALID_INDEX
                  , dynrank > 0 ? layout.stride[0] : (0)
-                 , dynrank > 1 ? layout.dimension[1] : ~size_t(0)
+                 , dynrank > 1 ? layout.dimension[1] :KOKKOS_INVALID_INDEX
                  , dynrank > 1 ? layout.stride[1] : (0)
-                 , dynrank > 2 ? layout.dimension[2] : ~size_t(0)
+                 , dynrank > 2 ? layout.dimension[2] :KOKKOS_INVALID_INDEX
                  , dynrank > 2 ? layout.stride[2] : (0)
-                 , dynrank > 3 ? layout.dimension[3] : ~size_t(0)
+                 , dynrank > 3 ? layout.dimension[3] :KOKKOS_INVALID_INDEX
                  , dynrank > 3 ? layout.stride[3] : (0)
-                 , dynrank > 4 ? layout.dimension[4] : ~size_t(0)
+                 , dynrank > 4 ? layout.dimension[4] :KOKKOS_INVALID_INDEX
                  , dynrank > 4 ? layout.stride[4] : (0)
-                 , dynrank > 5 ? layout.dimension[5] : ~size_t(0)
+                 , dynrank > 5 ? layout.dimension[5] :KOKKOS_INVALID_INDEX
                  , dynrank > 5 ? layout.stride[5] : (0)
-                 , dynrank > 6 ? layout.dimension[6] : ~size_t(0)
+                 , dynrank > 6 ? layout.dimension[6] :KOKKOS_INVALID_INDEX
                  , dynrank > 6 ? layout.stride[6] : (0)
-                 , dynrank > 7 ? layout.dimension[7] : ~size_t(0)
+                 , dynrank > 7 ? layout.dimension[7] :KOKKOS_INVALID_INDEX
                  , dynrank > 7 ? layout.stride[7] : (0)
                  );
   }
@@ -501,6 +501,7 @@ public:
    *  ISO/C++ vocabulary 'extent'.
    */
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
   template< typename iType >
   KOKKOS_INLINE_FUNCTION constexpr
   typename std::enable_if< std::is_integral<iType>::value , size_t >::type
@@ -514,17 +515,18 @@ public:
   KOKKOS_INLINE_FUNCTION constexpr size_t dimension_5() const { return m_map.dimension_5(); }
   KOKKOS_INLINE_FUNCTION constexpr size_t dimension_6() const { return m_map.dimension_6(); }
   KOKKOS_INLINE_FUNCTION constexpr size_t dimension_7() const { return m_map.dimension_7(); }
+#endif
 
   //----------------------------------------
 
-  KOKKOS_INLINE_FUNCTION constexpr size_t size() const { return m_map.dimension_0() *
-                                                                m_map.dimension_1() *
-                                                                m_map.dimension_2() *
-                                                                m_map.dimension_3() *
-                                                                m_map.dimension_4() *
-                                                                m_map.dimension_5() *
-                                                                m_map.dimension_6() *
-                                                                m_map.dimension_7(); }
+  KOKKOS_INLINE_FUNCTION constexpr size_t size() const { return m_map.extent(0) *
+                                                                m_map.extent(1) *
+                                                                m_map.extent(2) *
+                                                                m_map.extent(3) *
+                                                                m_map.extent(4) *
+                                                                m_map.extent(5) *
+                                                                m_map.extent(6) *
+                                                                m_map.extent(7); }
 
   KOKKOS_INLINE_FUNCTION constexpr size_t stride_0() const { return m_map.stride_0(); }
   KOKKOS_INLINE_FUNCTION constexpr size_t stride_1() const { return m_map.stride_1(); }
@@ -547,15 +549,19 @@ public:
   enum { reference_type_is_lvalue_reference = std::is_lvalue_reference< reference_type >::value };
 
   KOKKOS_INLINE_FUNCTION constexpr size_t span() const { return m_map.span(); }
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
   // Deprecated, use 'span()' instead
   KOKKOS_INLINE_FUNCTION constexpr size_t capacity() const { return m_map.span(); }
+#endif
   KOKKOS_INLINE_FUNCTION constexpr bool   span_is_contiguous() const { return m_map.span_is_contiguous(); }
   KOKKOS_INLINE_FUNCTION constexpr pointer_type data() const { return m_map.data(); }
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
   // Deprecated, use 'span_is_contigous()' instead
   KOKKOS_INLINE_FUNCTION constexpr bool   is_contiguous() const { return m_map.span_is_contiguous(); }
   // Deprecated, use 'data()' instead
   KOKKOS_INLINE_FUNCTION constexpr pointer_type ptr_on_device() const { return m_map.data(); }
+#endif
 
   //----------------------------------------
   // Allow specializations to query their specialized map
@@ -998,7 +1004,7 @@ public:
 
   //----------------------------------------
   // Allocation according to allocation properties and array layout
-  // unused arg_layout dimensions must be set to ~size_t(0) so that rank deduction can properly take place
+  // unused arg_layout dimensions must be set toKOKKOS_INVALID_INDEX so that rank deduction can properly take place
   template< class ... P >
   explicit inline
   DynRankView( const Kokkos::Impl::ViewCtorProp< P ... > & arg_prop
@@ -1038,7 +1044,12 @@ public:
                    , "View allocation constructor requires managed memory" );
 
       if ( alloc_prop::initialize &&
-           ! alloc_prop::execution_space::is_initialized() ) {
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
+           ! alloc_prop::execution_space::is_initialized()
+#else
+           ! alloc_prop::execution_space::impl_is_initialized()
+#endif
+           ) {
         // If initializing view data then
         // the execution space must be initialized.
         Kokkos::Impl::throw_runtime_exception("Constructing DynRankView and initializing data with uninitialized execution space");
@@ -1104,14 +1115,14 @@ public:
   DynRankView( const Kokkos::Impl::ViewCtorProp< P ... > & arg_prop
       , typename std::enable_if< ! Kokkos::Impl::ViewCtorProp< P... >::has_pointer
                                , size_t
-                               >::type const arg_N0 = ~size_t(0)
-      , const size_t arg_N1 = ~size_t(0)
-      , const size_t arg_N2 = ~size_t(0)
-      , const size_t arg_N3 = ~size_t(0)
-      , const size_t arg_N4 = ~size_t(0)
-      , const size_t arg_N5 = ~size_t(0)
-      , const size_t arg_N6 = ~size_t(0)
-      , const size_t arg_N7 = ~size_t(0)
+                               >::type const arg_N0 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N1 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N2 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N3 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N4 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N5 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N6 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N7 =KOKKOS_INVALID_INDEX
       )
     : DynRankView( arg_prop
     , typename traits::array_layout
@@ -1124,14 +1135,14 @@ public:
   DynRankView( const Kokkos::Impl::ViewCtorProp< P ... > & arg_prop
       , typename std::enable_if< Kokkos::Impl::ViewCtorProp< P... >::has_pointer
                                , size_t
-                               >::type const arg_N0 = ~size_t(0)
-      , const size_t arg_N1 = ~size_t(0)
-      , const size_t arg_N2 = ~size_t(0)
-      , const size_t arg_N3 = ~size_t(0)
-      , const size_t arg_N4 = ~size_t(0)
-      , const size_t arg_N5 = ~size_t(0)
-      , const size_t arg_N6 = ~size_t(0)
-      , const size_t arg_N7 = ~size_t(0)
+                               >::type const arg_N0 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N1 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N2 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N3 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N4 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N5 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N6 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N7 =KOKKOS_INVALID_INDEX
       )
     : DynRankView( arg_prop
     , typename traits::array_layout
@@ -1156,14 +1167,14 @@ public:
   DynRankView( const Label & arg_label
       , typename std::enable_if<
           Kokkos::Impl::is_view_label<Label>::value ,
-        const size_t >::type arg_N0 = ~size_t(0)
-      , const size_t arg_N1 = ~size_t(0)
-      , const size_t arg_N2 = ~size_t(0)
-      , const size_t arg_N3 = ~size_t(0)
-      , const size_t arg_N4 = ~size_t(0)
-      , const size_t arg_N5 = ~size_t(0)
-      , const size_t arg_N6 = ~size_t(0)
-      , const size_t arg_N7 = ~size_t(0)
+        const size_t >::type arg_N0 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N1 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N2 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N3 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N4 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N5 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N6 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N7 =KOKKOS_INVALID_INDEX
       )
     : DynRankView( Kokkos::Impl::ViewCtorProp< std::string >( arg_label )
     , typename traits::array_layout
@@ -1185,14 +1196,14 @@ public:
 
   explicit inline
   DynRankView( const ViewAllocateWithoutInitializing & arg_prop
-      , const size_t arg_N0 = ~size_t(0)
-      , const size_t arg_N1 = ~size_t(0)
-      , const size_t arg_N2 = ~size_t(0)
-      , const size_t arg_N3 = ~size_t(0)
-      , const size_t arg_N4 = ~size_t(0)
-      , const size_t arg_N5 = ~size_t(0)
-      , const size_t arg_N6 = ~size_t(0)
-      , const size_t arg_N7 = ~size_t(0)
+      , const size_t arg_N0 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N1 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N2 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N3 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N4 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N5 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N6 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N7 =KOKKOS_INVALID_INDEX
       )
     : DynRankView(Kokkos::Impl::ViewCtorProp< std::string , Kokkos::Impl::WithoutInitializing_t >( arg_prop.label , Kokkos::WithoutInitializing ), arg_N0, arg_N1, arg_N2, arg_N3, arg_N4, arg_N5, arg_N6, arg_N7 )
     {}
@@ -1218,14 +1229,14 @@ public:
 
   explicit KOKKOS_INLINE_FUNCTION
   DynRankView( pointer_type arg_ptr
-      , const size_t arg_N0 = ~size_t(0)
-      , const size_t arg_N1 = ~size_t(0)
-      , const size_t arg_N2 = ~size_t(0)
-      , const size_t arg_N3 = ~size_t(0)
-      , const size_t arg_N4 = ~size_t(0)
-      , const size_t arg_N5 = ~size_t(0)
-      , const size_t arg_N6 = ~size_t(0)
-      , const size_t arg_N7 = ~size_t(0)
+      , const size_t arg_N0 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N1 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N2 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N3 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N4 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N5 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N6 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N7 =KOKKOS_INVALID_INDEX
       )
     : DynRankView( Kokkos::Impl::ViewCtorProp<pointer_type>(arg_ptr) , arg_N0, arg_N1, arg_N2, arg_N3, arg_N4, arg_N5, arg_N6, arg_N7 )
     {}
@@ -1242,19 +1253,19 @@ public:
   // Shared scratch memory constructor
 
   static inline
-  size_t shmem_size( const size_t arg_N0 = ~size_t(0) ,
-                     const size_t arg_N1 = ~size_t(0) ,
-                     const size_t arg_N2 = ~size_t(0) ,
-                     const size_t arg_N3 = ~size_t(0) ,
-                     const size_t arg_N4 = ~size_t(0) ,
-                     const size_t arg_N5 = ~size_t(0) ,
-                     const size_t arg_N6 = ~size_t(0) ,
-                     const size_t arg_N7 = ~size_t(0) )
+  size_t shmem_size( const size_t arg_N0 =KOKKOS_INVALID_INDEX ,
+                     const size_t arg_N1 =KOKKOS_INVALID_INDEX ,
+                     const size_t arg_N2 =KOKKOS_INVALID_INDEX ,
+                     const size_t arg_N3 =KOKKOS_INVALID_INDEX ,
+                     const size_t arg_N4 =KOKKOS_INVALID_INDEX ,
+                     const size_t arg_N5 =KOKKOS_INVALID_INDEX ,
+                     const size_t arg_N6 =KOKKOS_INVALID_INDEX ,
+                     const size_t arg_N7 =KOKKOS_INVALID_INDEX )
   {
     const size_t num_passed_args =
-      ( arg_N0 != ~size_t(0) ) + ( arg_N1 != ~size_t(0) ) + ( arg_N2 != ~size_t(0) ) +
-      ( arg_N3 != ~size_t(0) ) + ( arg_N4 != ~size_t(0) ) + ( arg_N5 != ~size_t(0) ) +
-      ( arg_N6 != ~size_t(0) ) + ( arg_N7 != ~size_t(0) );
+      ( arg_N0 !=KOKKOS_INVALID_INDEX ) + ( arg_N1 !=KOKKOS_INVALID_INDEX ) + ( arg_N2 !=KOKKOS_INVALID_INDEX ) +
+      ( arg_N3 !=KOKKOS_INVALID_INDEX ) + ( arg_N4 !=KOKKOS_INVALID_INDEX ) + ( arg_N5 !=KOKKOS_INVALID_INDEX ) +
+      ( arg_N6 !=KOKKOS_INVALID_INDEX ) + ( arg_N7 !=KOKKOS_INVALID_INDEX );
 
     if ( std::is_same<typename traits::specialize , void>::value && num_passed_args != traits::rank_dynamic ) {
       Kokkos::abort( "Kokkos::View::shmem_size() rank_dynamic != number of arguments.\n" );
@@ -1280,14 +1291,14 @@ public:
 
   explicit KOKKOS_INLINE_FUNCTION
   DynRankView( const typename traits::execution_space::scratch_memory_space & arg_space
-      , const size_t arg_N0 = ~size_t(0)
-      , const size_t arg_N1 = ~size_t(0)
-      , const size_t arg_N2 = ~size_t(0)
-      , const size_t arg_N3 = ~size_t(0)
-      , const size_t arg_N4 = ~size_t(0)
-      , const size_t arg_N5 = ~size_t(0)
-      , const size_t arg_N6 = ~size_t(0)
-      , const size_t arg_N7 = ~size_t(0) )
+      , const size_t arg_N0 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N1 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N2 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N3 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N4 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N5 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N6 =KOKKOS_INVALID_INDEX
+      , const size_t arg_N7 =KOKKOS_INVALID_INDEX )
 
     : DynRankView( Kokkos::Impl::ViewCtorProp<pointer_type>(
                    reinterpret_cast<pointer_type>(
@@ -1530,14 +1541,14 @@ bool operator == ( const DynRankView<LT,LP...> & lhs ,
     lhs.rank()       ==  rhs.rank() &&
     lhs.data()       == rhs.data() &&
     lhs.span()       == rhs.span() &&
-    lhs.dimension(0) == rhs.dimension(0) &&
-    lhs.dimension(1) == rhs.dimension(1) &&
-    lhs.dimension(2) == rhs.dimension(2) &&
-    lhs.dimension(3) == rhs.dimension(3) &&
-    lhs.dimension(4) == rhs.dimension(4) &&
-    lhs.dimension(5) == rhs.dimension(5) &&
-    lhs.dimension(6) == rhs.dimension(6) &&
-    lhs.dimension(7) == rhs.dimension(7);
+    lhs.extent(0) == rhs.extent(0) &&
+    lhs.extent(1) == rhs.extent(1) &&
+    lhs.extent(2) == rhs.extent(2) &&
+    lhs.extent(3) == rhs.extent(3) &&
+    lhs.extent(4) == rhs.extent(4) &&
+    lhs.extent(5) == rhs.extent(5) &&
+    lhs.extent(6) == rhs.extent(6) &&
+    lhs.extent(7) == rhs.extent(7);
 }
 
 template< class LT , class ... LP , class RT , class ... RP >
@@ -1566,12 +1577,12 @@ struct DynRankViewFill {
   KOKKOS_INLINE_FUNCTION
   void operator()( const size_t i0 ) const
   {
-    const size_t n1 = output.dimension_1();
-    const size_t n2 = output.dimension_2();
-    const size_t n3 = output.dimension_3();
-    const size_t n4 = output.dimension_4();
-    const size_t n5 = output.dimension_5();
-    const size_t n6 = output.dimension_6();
+    const size_t n1 = output.extent(1);
+    const size_t n2 = output.extent(2);
+    const size_t n3 = output.extent(3);
+    const size_t n4 = output.extent(4);
+    const size_t n5 = output.extent(5);
+    const size_t n6 = output.extent(6);
 
     for ( size_t i1 = 0 ; i1 < n1 ; ++i1 ) {
     for ( size_t i2 = 0 ; i2 < n2 ; ++i2 ) {
@@ -1589,7 +1600,7 @@ struct DynRankViewFill {
       typedef typename OutputView::execution_space  execution_space ;
       typedef Kokkos::RangePolicy< execution_space > Policy ;
 
-      const Kokkos::Impl::ParallelFor< DynRankViewFill , Policy > closure( *this , Policy( 0 , output.dimension_0() ) );
+      const Kokkos::Impl::ParallelFor< DynRankViewFill , Policy > closure( *this , Policy( 0 , output.extent(0) ) );
 
       closure.execute();
 
@@ -1985,14 +1996,14 @@ namespace Kokkos {
 template< class T , class ... P >
 inline
 void resize( DynRankView<T,P...> & v ,
-             const size_t n0 = ~size_t(0) ,
-             const size_t n1 = ~size_t(0) ,
-             const size_t n2 = ~size_t(0) ,
-             const size_t n3 = ~size_t(0) ,
-             const size_t n4 = ~size_t(0) ,
-             const size_t n5 = ~size_t(0) ,
-             const size_t n6 = ~size_t(0) ,
-             const size_t n7 = ~size_t(0) )
+             const size_t n0 =KOKKOS_INVALID_INDEX ,
+             const size_t n1 =KOKKOS_INVALID_INDEX ,
+             const size_t n2 =KOKKOS_INVALID_INDEX ,
+             const size_t n3 =KOKKOS_INVALID_INDEX ,
+             const size_t n4 =KOKKOS_INVALID_INDEX ,
+             const size_t n5 =KOKKOS_INVALID_INDEX ,
+             const size_t n6 =KOKKOS_INVALID_INDEX ,
+             const size_t n7 =KOKKOS_INVALID_INDEX )
 {
   typedef DynRankView<T,P...> drview_type ;
 
@@ -2009,14 +2020,14 @@ void resize( DynRankView<T,P...> & v ,
 template< class T , class ... P >
 inline
 void realloc( DynRankView<T,P...> & v ,
-              const size_t n0 = ~size_t(0) ,
-              const size_t n1 = ~size_t(0) ,
-              const size_t n2 = ~size_t(0) ,
-              const size_t n3 = ~size_t(0) ,
-              const size_t n4 = ~size_t(0) ,
-              const size_t n5 = ~size_t(0) ,
-              const size_t n6 = ~size_t(0) ,
-              const size_t n7 = ~size_t(0) )
+              const size_t n0 =KOKKOS_INVALID_INDEX ,
+              const size_t n1 =KOKKOS_INVALID_INDEX ,
+              const size_t n2 =KOKKOS_INVALID_INDEX ,
+              const size_t n3 =KOKKOS_INVALID_INDEX ,
+              const size_t n4 =KOKKOS_INVALID_INDEX ,
+              const size_t n5 =KOKKOS_INVALID_INDEX ,
+              const size_t n6 =KOKKOS_INVALID_INDEX ,
+              const size_t n7 =KOKKOS_INVALID_INDEX )
 {
   typedef DynRankView<T,P...>  drview_type ;
 

@@ -41,8 +41,8 @@
 //@HEADER
 */
 
-#ifndef KOKKOS_TEST_THREADS_HPP
-#define KOKKOS_TEST_THREADS_HPP
+#ifndef KOKKOS_TEST_CUDAHOSTPINNED_HPP
+#define KOKKOS_TEST_CUDAHOSTPINNED_HPP
 
 #include <gtest/gtest.h>
 
@@ -60,6 +60,7 @@ protected:
 } // namespace Test
 
 #define TEST_CATEGORY cuda_hostpinned
+//#define TEST_EXECSPACE Kokkos::Device<Kokkos::Cuda,Kokkos::CudaHostPinnedSpace>
 #define TEST_EXECSPACE Kokkos::CudaHostPinnedSpace
 
 #endif

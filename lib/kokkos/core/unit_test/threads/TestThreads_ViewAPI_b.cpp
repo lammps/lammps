@@ -42,4 +42,4 @@
 */
 
 #include <threads/TestThreads_Category.hpp>
-#include <TestViewAPI.hpp>
+#include <TestViewAPI_b.hpp>

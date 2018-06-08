@@ -42,3 +42,17 @@ TRIBITS_ADD_TEST(
   CATEGORIES PERFORMANCE
   FAIL_REGULAR_EXPRESSION "  FAILED  "
   )
+
+TRIBITS_ADD_EXECUTABLE(
+  PerformanceTest_TaskDAG
+  SOURCES test_taskdag.cpp
+  COMM serial mpi
+  )
+
+TRIBITS_ADD_TEST(
+  PerformanceTest_TaskDAG
+  NAME PerformanceTest_TaskDAG
+  COMM serial mpi
+  NUM_MPI_PROCS 1
+  CATEGORIES PERFORMANCE
+  )

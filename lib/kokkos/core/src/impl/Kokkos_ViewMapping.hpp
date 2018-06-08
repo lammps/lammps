@@ -66,7 +66,7 @@ namespace Impl {
 
 template< unsigned I , size_t ... Args >
 struct variadic_size_t
-  { enum { value = ~size_t(0) }; };
+  { enum { value =KOKKOS_INVALID_INDEX }; };
 
 template< size_t Val , size_t ... Args >
 struct variadic_size_t< 0 , Val , Args ... >
@@ -91,8 +91,8 @@ struct rank_dynamic< Val , Args... >
 #define KOKKOS_IMPL_VIEW_DIMENSION( R ) \
   template< size_t V , unsigned > struct ViewDimension ## R \
     { \
-      enum { ArgN ## R = ( V != ~size_t(0) ? V : 1 ) }; \
-      enum { N ## R = ( V != ~size_t(0) ? V : 1 ) }; \
+      enum { ArgN ## R = ( V !=KOKKOS_INVALID_INDEX ? V : 1 ) }; \
+      enum { N ## R = ( V !=KOKKOS_INVALID_INDEX ? V : 1 ) }; \
       KOKKOS_INLINE_FUNCTION explicit ViewDimension ## R ( size_t ) {} \
       ViewDimension ## R () = default ; \
       ViewDimension ## R ( const ViewDimension ## R  & ) = default ; \

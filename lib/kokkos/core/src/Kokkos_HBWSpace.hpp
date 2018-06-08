@@ -180,8 +180,10 @@ private:
 
   static void deallocate( RecordBase * );
 
+#ifdef KOKKOS_DEBUG
   /**\brief  Root record for tracked allocations from this HBWSpace instance */
   static RecordBase s_root_record;
+#endif
 
   const Kokkos::Experimental::HBWSpace m_space;
 

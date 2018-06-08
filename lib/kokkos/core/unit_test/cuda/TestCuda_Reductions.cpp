@@ -42,7 +42,5 @@
 */
 
 #include <cuda/TestCuda_Category.hpp>
-#include <TestFunctorAnalysis.hpp>
 #include <TestReduce.hpp>
 #include <TestCXX11Deduction.hpp>
-

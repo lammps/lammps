@@ -43,7 +43,7 @@
 
 
 #include <Kokkos_Macros.hpp>
-#if defined( KOKKOS_ENABLE_PTHREAD )
+#if defined( KOKKOS_ENABLE_THREADS )
 
 #include <Kokkos_Core_fwd.hpp>
 /* Standard 'C' Linux libraries */
@@ -146,7 +146,7 @@ void ThreadsExec::wait_yield( volatile int & flag , const int value )
 } // namespace Impl
 } // namespace Kokkos
 
-/* end #if defined( KOKKOS_ENABLE_PTHREAD ) */
+/* end #if defined( KOKKOS_ENABLE_THREADS ) */
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 

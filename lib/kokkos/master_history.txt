@@ -13,3 +13,4 @@ tag:  2.04.04    date: 09:11:2017    master: 2b7e9c20    develop: 51e7b25a
 tag:  2.04.11    date: 10:28:2017    master: 54a1330a    develop: ed36c017
 tag:  2.5.00     date: 12:15:2017    master: dfe685f4    develop: ec7ad6d8
 tag:  2.6.00     date: 03:07:2018    master: 62e760fa    develop: d1ba7d71
+tag:  2.7.00     date: 05:24:2018    master: e01945d0    develop: 2d13f608

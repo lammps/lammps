@@ -41,7 +41,7 @@
 //@HEADER
 */
 
-#include <rocm/TestROCmUVM_Category.hpp>
+#include <rocm/TestROCmHostPinned_Category.hpp>
 #include <TestViewSubview.hpp>
 
 namespace Test {

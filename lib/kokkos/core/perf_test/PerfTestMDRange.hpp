@@ -51,7 +51,7 @@ struct MultiDimRangePerf3D
   typedef DeviceType execution_space;
   typedef typename execution_space::size_type  size_type;
 
-  using iterate_type = Kokkos::Experimental::Iterate;
+  using iterate_type = Kokkos::Iterate;
 
   typedef Kokkos::View<ScalarType***, TestLayout, DeviceType> view_type;
   typedef typename view_type::HostMirror host_view_type;
@@ -115,24 +115,24 @@ struct MultiDimRangePerf3D
 
     // LayoutRight
     if ( std::is_same<TestLayout, Kokkos::LayoutRight>::value ) {
-      Kokkos::Experimental::MDRangePolicy<Kokkos::Experimental::Rank<3, iterate_type::Right, iterate_type::Right>, execution_space > policy_initA({{0,0,0}},{{icount,jcount,kcount}},{{Ti,Tj,Tk}}); 
-      Kokkos::Experimental::MDRangePolicy<Kokkos::Experimental::Rank<3, iterate_type::Right, iterate_type::Right>, execution_space > policy_initB({{0,0,0}},{{icount+2,jcount+2,kcount+2}},{{Ti,Tj,Tk}}); 
+      Kokkos::MDRangePolicy<Kokkos::Rank<3, iterate_type::Right, iterate_type::Right>, execution_space > policy_initA({{0,0,0}},{{icount,jcount,kcount}},{{Ti,Tj,Tk}}); 
+      Kokkos::MDRangePolicy<Kokkos::Rank<3, iterate_type::Right, iterate_type::Right>, execution_space > policy_initB({{0,0,0}},{{icount+2,jcount+2,kcount+2}},{{Ti,Tj,Tk}}); 
 
-      typedef typename Kokkos::Experimental::MDRangePolicy<Kokkos::Experimental::Rank<3, iterate_type::Right, iterate_type::Right>, execution_space > MDRangeType;
+      typedef typename Kokkos::MDRangePolicy<Kokkos::Rank<3, iterate_type::Right, iterate_type::Right>, execution_space > MDRangeType;
       using tile_type = typename MDRangeType::tile_type;
       using point_type = typename MDRangeType::point_type;
 
-      Kokkos::Experimental::MDRangePolicy<Kokkos::Experimental::Rank<3, iterate_type::Right, iterate_type::Right>, execution_space > policy(point_type{{0,0,0}},point_type{{icount,jcount,kcount}},tile_type{{Ti,Tj,Tk}} );
+      Kokkos::MDRangePolicy<Kokkos::Rank<3, iterate_type::Right, iterate_type::Right>, execution_space > policy(point_type{{0,0,0}},point_type{{icount,jcount,kcount}},tile_type{{Ti,Tj,Tk}} );
 
-      Kokkos::Experimental::md_parallel_for( policy_initA, Init(Atest, icount, jcount, kcount) );
+      Kokkos::parallel_for( policy_initA, Init(Atest, icount, jcount, kcount) );
       execution_space::fence();
-      Kokkos::Experimental::md_parallel_for( policy_initB, Init(Btest, icount+2, jcount+2, kcount+2) );
+      Kokkos::parallel_for( policy_initB, Init(Btest, icount+2, jcount+2, kcount+2) );
       execution_space::fence();
 
     for (int i = 0; i < iter; ++i)
     {
       Kokkos::Timer timer;
-      Kokkos::Experimental::md_parallel_for( policy, FunctorType(Atest, Btest, icount, jcount, kcount) );
+      Kokkos::parallel_for( policy, FunctorType(Atest, Btest, icount, jcount, kcount) );
       execution_space::fence();
       const double dt = timer.seconds();
       if ( 0 == i ) dt_min = dt ;
@@ -179,24 +179,24 @@ struct MultiDimRangePerf3D
     } 
     // LayoutLeft
     else {
-      Kokkos::Experimental::MDRangePolicy<Kokkos::Experimental::Rank<3,iterate_type::Left,iterate_type::Left>, execution_space > policy_initA({{0,0,0}},{{icount,jcount,kcount}},{{Ti,Tj,Tk}}); 
-      Kokkos::Experimental::MDRangePolicy<Kokkos::Experimental::Rank<3,iterate_type::Left,iterate_type::Left>, execution_space > policy_initB({{0,0,0}},{{icount+2,jcount+2,kcount+2}},{{Ti,Tj,Tk}}); 
+      Kokkos::MDRangePolicy<Kokkos::Rank<3,iterate_type::Left,iterate_type::Left>, execution_space > policy_initA({{0,0,0}},{{icount,jcount,kcount}},{{Ti,Tj,Tk}}); 
+      Kokkos::MDRangePolicy<Kokkos::Rank<3,iterate_type::Left,iterate_type::Left>, execution_space > policy_initB({{0,0,0}},{{icount+2,jcount+2,kcount+2}},{{Ti,Tj,Tk}}); 
 
-      //typedef typename Kokkos::Experimental::MDRangePolicy<Kokkos::Experimental::Rank<3, iterate_type::Left, iterate_type::Left>, execution_space > MDRangeType;
+      //typedef typename Kokkos::MDRangePolicy<Kokkos::Rank<3, iterate_type::Left, iterate_type::Left>, execution_space > MDRangeType;
       //using tile_type = typename MDRangeType::tile_type;
       //using point_type = typename MDRangeType::point_type;
-      //Kokkos::Experimental::MDRangePolicy<Kokkos::Experimental::Rank<3, iterate_type::Left, iterate_type::Left>, execution_space > policy(point_type{{0,0,0}},point_type{{icount,jcount,kcount}},tile_type{{Ti,Tj,Tk}} );
-      Kokkos::Experimental::MDRangePolicy<Kokkos::Experimental::Rank<3, iterate_type::Left, iterate_type::Left>, execution_space > policy({{0,0,0}},{{icount,jcount,kcount}},{{Ti,Tj,Tk}} ); 
+      //Kokkos::MDRangePolicy<Kokkos::Rank<3, iterate_type::Left, iterate_type::Left>, execution_space > policy(point_type{{0,0,0}},point_type{{icount,jcount,kcount}},tile_type{{Ti,Tj,Tk}} );
+      Kokkos::MDRangePolicy<Kokkos::Rank<3, iterate_type::Left, iterate_type::Left>, execution_space > policy({{0,0,0}},{{icount,jcount,kcount}},{{Ti,Tj,Tk}} ); 
 
-      Kokkos::Experimental::md_parallel_for( policy_initA, Init(Atest, icount, jcount, kcount) );
+      Kokkos::parallel_for( policy_initA, Init(Atest, icount, jcount, kcount) );
       execution_space::fence();
-      Kokkos::Experimental::md_parallel_for( policy_initB, Init(Btest, icount+2, jcount+2, kcount+2) );
+      Kokkos::parallel_for( policy_initB, Init(Btest, icount+2, jcount+2, kcount+2) );
       execution_space::fence();
 
     for (int i = 0; i < iter; ++i)
     {
       Kokkos::Timer timer;
-      Kokkos::Experimental::md_parallel_for( policy, FunctorType(Atest, Btest, icount, jcount, kcount) );
+      Kokkos::parallel_for( policy, FunctorType(Atest, Btest, icount, jcount, kcount) );
       execution_space::fence();
       const double dt = timer.seconds();
       if ( 0 == i ) dt_min = dt ;
@@ -260,7 +260,7 @@ struct RangePolicyCollapseTwo
   typedef typename execution_space::size_type  size_type;
   typedef TestLayout layout;
 
-  using iterate_type = Kokkos::Experimental::Iterate;
+  using iterate_type = Kokkos::Iterate;
 
   typedef Kokkos::View<ScalarType***, TestLayout, DeviceType> view_type;
   typedef typename view_type::HostMirror host_view_type;

@@ -169,7 +169,6 @@ const char * atomic_query_version()
 } // namespace Kokkos
 
 #if defined( KOKKOS_ENABLE_ROCM )
-#include <ROCm/Kokkos_ROCm_Atomic.hpp>
 namespace Kokkos {
 namespace Impl {
 extern KOKKOS_INLINE_FUNCTION
@@ -179,6 +178,7 @@ extern KOKKOS_INLINE_FUNCTION
 void unlock_address_rocm_space(void* ptr);
 }
 }
+#include <ROCm/Kokkos_ROCm_Atomic.hpp>
 #endif
 
 #ifdef _WIN32

@@ -45,7 +45,7 @@
 #define KOKKOS_CUDA_EXP_ITERATE_TILE_HPP
 
 #include <Kokkos_Macros.hpp>
-#if defined( __CUDACC__ ) && defined( KOKKOS_HAVE_CUDA )
+#if defined( __CUDACC__ ) && defined( KOKKOS_ENABLE_CUDA )
 
 #include <iostream>
 #include <algorithm>

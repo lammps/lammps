@@ -33,7 +33,7 @@ class DihedralCharmm : public Dihedral {
   virtual void coeff(int, char **);
   virtual void init_style();
   void write_restart(FILE *);
-  void read_restart(FILE *);
+  virtual void read_restart(FILE *);
   void write_data(FILE *);
 
  protected:

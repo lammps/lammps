@@ -375,7 +375,11 @@ void CudaInternal::initialize( int cuda_device_id , int stream_count )
 
   enum { WordSize = sizeof(size_type) };
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
   if ( ! HostSpace::execution_space::is_initialized() ) {
+#else
+  if ( ! HostSpace::execution_space::impl_is_initialized() ) {
+#endif
     const std::string msg("Cuda::initialize ERROR : HostSpace::execution_space is not initialized");
     throw_runtime_exception( msg );
   }
@@ -455,7 +459,7 @@ void CudaInternal::initialize( int cuda_device_id , int stream_count )
     m_scratchUnifiedSupported = cudaProp.unifiedAddressing ;
 
     if ( Kokkos::show_warnings() && ! m_scratchUnifiedSupported ) {
-      std::cout << "Kokkos::Cuda device "
+      std::cerr << "Kokkos::Cuda device "
                 << cudaProp.name << " capability "
                 << cudaProp.major << "." << cudaProp.minor
                 << " does not support unified virtual address space"
@@ -533,10 +537,10 @@ void CudaInternal::initialize( int cuda_device_id , int stream_count )
 
   #ifdef KOKKOS_ENABLE_CUDA_UVM
     if( Kokkos::show_warnings() && !cuda_launch_blocking() ) {
-      std::cout << "Kokkos::Cuda::initialize WARNING: Cuda is allocating into UVMSpace by default" << std::endl;
-      std::cout << "                                  without setting CUDA_LAUNCH_BLOCKING=1." << std::endl;
-      std::cout << "                                  The code must call Cuda::fence() after each kernel" << std::endl;
-      std::cout << "                                  or will likely crash when accessing data on the host." << std::endl;
+      std::cerr << "Kokkos::Cuda::initialize WARNING: Cuda is allocating into UVMSpace by default" << std::endl;
+      std::cerr << "                                  without setting CUDA_LAUNCH_BLOCKING=1." << std::endl;
+      std::cerr << "                                  The code must call Cuda::fence() after each kernel" << std::endl;
+      std::cerr << "                                  or will likely crash when accessing data on the host." << std::endl;
     }
 
     const char * env_force_device_alloc = getenv("CUDA_MANAGED_FORCE_DEVICE_ALLOC");
@@ -549,11 +553,11 @@ void CudaInternal::initialize( int cuda_device_id , int stream_count )
     if (env_visible_devices == 0) visible_devices_one=false;
 
     if( Kokkos::show_warnings() && (!visible_devices_one && !force_device_alloc) ) {
-      std::cout << "Kokkos::Cuda::initialize WARNING: Cuda is allocating into UVMSpace by default" << std::endl;
-      std::cout << "                                  without setting CUDA_MANAGED_FORCE_DEVICE_ALLOC=1 or " << std::endl;
-      std::cout << "                                  setting CUDA_VISIBLE_DEVICES." << std::endl;
-      std::cout << "                                  This could on multi GPU systems lead to severe performance" << std::endl;
-      std::cout << "                                  penalties." << std::endl;
+      std::cerr << "Kokkos::Cuda::initialize WARNING: Cuda is allocating into UVMSpace by default" << std::endl;
+      std::cerr << "                                  without setting CUDA_MANAGED_FORCE_DEVICE_ALLOC=1 or " << std::endl;
+      std::cerr << "                                  setting CUDA_VISIBLE_DEVICES." << std::endl;
+      std::cerr << "                                  This could on multi GPU systems lead to severe performance" << std::endl;
+      std::cerr << "                                  penalties." << std::endl;
     }
   #endif
 
@@ -724,10 +728,18 @@ Cuda::size_type Cuda::detect_device_count()
 int Cuda::concurrency()
 { return Impl::CudaInternal::singleton().m_maxConcurrency ; }
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
 int Cuda::is_initialized()
+#else
+int Cuda::impl_is_initialized()
+#endif
 { return Impl::CudaInternal::singleton().is_initialized(); }
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
 void Cuda::initialize( const Cuda::SelectDevice config , size_t num_instances )
+#else
+void Cuda::impl_initialize( const Cuda::SelectDevice config , size_t num_instances )
+#endif
 {
   Impl::CudaInternal::singleton().initialize( config.cuda_device_id , num_instances );
 
@@ -766,7 +778,11 @@ Cuda::size_type Cuda::device_arch()
   return dev_arch ;
 }
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
 void Cuda::finalize()
+#else
+void Cuda::impl_finalize()
+#endif
 {
   Impl::CudaInternal::singleton().finalize();
 
@@ -793,9 +809,11 @@ Cuda::Cuda( const int instance_id )
 void Cuda::print_configuration( std::ostream & s , const bool )
 { Impl::CudaInternal::singleton().print_configuration( s ); }
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
 bool Cuda::sleep() { return false ; }
 
 bool Cuda::wake() { return true ; }
+#endif
 
 void Cuda::fence()
 {

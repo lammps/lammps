@@ -42,4 +42,4 @@
 */
 
 #include <openmptarget/TestOpenMPTarget_Category.hpp>
-#include <TestViewAPI.hpp>
+#include <TestViewAPI_b.hpp>

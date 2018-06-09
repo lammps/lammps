@@ -234,12 +234,13 @@ void Experimental::ROCmHostPinnedSpace::deallocate( void * const arg_alloc_ptr ,
 namespace Kokkos {
 namespace Impl {
 
+#ifdef KOKKOS_DEBUG
 SharedAllocationRecord< void , void >
 SharedAllocationRecord< Kokkos::Experimental::ROCmSpace , void >::s_root_record ;
 
 SharedAllocationRecord< void , void >
 SharedAllocationRecord< Kokkos::Experimental::ROCmHostPinnedSpace , void >::s_root_record ;
-
+#endif
 
 std::string
 SharedAllocationRecord< Kokkos::Experimental::ROCmSpace , void >::get_label() const
@@ -336,8 +337,11 @@ SharedAllocationRecord( const Kokkos::Experimental::ROCmSpace & arg_space
   // Pass through allocated [ SharedAllocationHeader , user_memory ]
   // Pass through deallocation function
   : SharedAllocationRecord< void , void >
-      ( & SharedAllocationRecord< Kokkos::Experimental::ROCmSpace , void >::s_root_record
-      , reinterpret_cast<SharedAllocationHeader*>( arg_space.allocate( sizeof(SharedAllocationHeader) + arg_alloc_size ) )
+      (
+#ifdef KOKKOS_DEBUG
+        & SharedAllocationRecord< Kokkos::Experimental::ROCmSpace , void >::s_root_record,
+#endif
+        reinterpret_cast<SharedAllocationHeader*>( arg_space.allocate( sizeof(SharedAllocationHeader) + arg_alloc_size ) )
       , sizeof(SharedAllocationHeader) + arg_alloc_size
       , arg_dealloc
       )
@@ -372,8 +376,11 @@ SharedAllocationRecord( const Kokkos::Experimental::ROCmHostPinnedSpace & arg_sp
   // Pass through allocated [ SharedAllocationHeader , user_memory ]
   // Pass through deallocation function
   : SharedAllocationRecord< void , void >
-      ( & SharedAllocationRecord< Kokkos::Experimental::ROCmHostPinnedSpace , void >::s_root_record
-      , reinterpret_cast<SharedAllocationHeader*>( arg_space.allocate( sizeof(SharedAllocationHeader) + arg_alloc_size ) )
+      (
+#ifdef KOKKOS_DEBUG
+        & SharedAllocationRecord< Kokkos::Experimental::ROCmHostPinnedSpace , void >::s_root_record,
+#endif
+        reinterpret_cast<SharedAllocationHeader*>( arg_space.allocate( sizeof(SharedAllocationHeader) + arg_alloc_size ) )
       , sizeof(SharedAllocationHeader) + arg_alloc_size
       , arg_dealloc
       )
@@ -489,14 +496,13 @@ SharedAllocationRecord< Kokkos::Experimental::ROCmSpace , void >::get_record( vo
   using RecordBase = SharedAllocationRecord< void , void > ;
   using RecordROCm = SharedAllocationRecord< Kokkos::Experimental::ROCmSpace , void > ;
 
-#if 0
   // Copy the header from the allocation
   Header head ;
 
   Header const * const head_rocm = alloc_ptr ? Header::get_header( alloc_ptr ) : (Header*) 0 ;
 
   if ( alloc_ptr ) {
-    Kokkos::Impl::DeepCopy<HostSpace,Experimental::ROCmSpace>( & head , head_rocm , sizeof(SharedAllocationHeader) );
+    Kokkos::Impl::DeepCopy<HostSpace,Kokkos::Experimental::ROCmSpace>( & head , head_rocm , sizeof(SharedAllocationHeader) );
   }
 
   RecordROCm * const record = alloc_ptr ? static_cast< RecordROCm * >( head.m_record ) : (RecordROCm *) 0 ;
@@ -504,19 +510,6 @@ SharedAllocationRecord< Kokkos::Experimental::ROCmSpace , void >::get_record( vo
   if ( ! alloc_ptr || record->m_alloc_ptr != head_rocm ) {
     Kokkos::Impl::throw_runtime_exception( std::string("Kokkos::Impl::SharedAllocationRecord< Kokkos::Experimental::ROCmSpace , void >::get_record ERROR" ) );
   }
-
-#else
-
-  // Iterate the list to search for the record among all allocations
-  // requires obtaining the root of the list and then locking the list.
-
-  RecordROCm * const record = static_cast< RecordROCm * >( RecordBase::find( & s_root_record , alloc_ptr ) );
-
-  if ( record == 0 ) {
-    Kokkos::Impl::throw_runtime_exception( std::string("Kokkos::Impl::SharedAllocationRecord< Kokkos::Experimental::ROCmSpace , void >::get_record ERROR" ) );
-  }
-
-#endif
 
   return record ;
 }
@@ -543,6 +536,7 @@ void
 SharedAllocationRecord< Kokkos::Experimental::ROCmSpace , void >::
 print_records( std::ostream & s , const Kokkos::Experimental::ROCmSpace & space , bool detail )
 {
+#ifdef KOKKOS_DEBUG
   SharedAllocationRecord< void , void > * r = & s_root_record ;
 
   char buffer[256] ;
@@ -613,15 +607,11 @@ print_records( std::ostream & s , const Kokkos::Experimental::ROCmSpace & space 
       r = r->m_next ;
     } while ( r != & s_root_record );
   }
+#else
+  throw_runtime_exception("Kokkos::Impl::SharedAllocationRecord<ROCmSpace>::print_records"
+      " only works with KOKKOS_DEBUG enabled");
+#endif
 }
-#if 0
-void
-SharedAllocationRecord< Kokkos::Experimental::ROCmHostPinnedSpace , void >::
-print_records( std::ostream & s , const Kokkos::Experimental::ROCmHostPinnedSpace & space , bool detail )
-{
-  SharedAllocationRecord< void , void >::print_host_accessible_records( s , "ROCmHostPinned" , & s_root_record , detail );
-}
-#endif 
 
 } // namespace Impl
 } // namespace Kokkos
@@ -630,75 +620,6 @@ print_records( std::ostream & s , const Kokkos::Experimental::ROCmHostPinnedSpac
 /*--------------------------------------------------------------------------*/
 namespace Kokkos {
 namespace {
-#if 0
-  KOKKOS_INLINE_FUNCTION void init_lock_array_kernel_atomic() {
-    unsigned i = tindex()*team_size() + lindex();
-
-    if(i<ROCM_SPACE_ATOMIC_MASK+1)
-      kokkos_impl_rocm_lock_arrays.atomic[i] = 0;
-  }
-
-  KOKKOS_INLINE_FUNCTION void init_lock_array_kernel_scratch_threadid(int N) {
-    unsigned i = tindex()*team_size() + lindex();
-
-    if(i<N) {
-      kokkos_impl_rocm_lock_arrays.scratch[i] = 0;
-      kokkos_impl_rocm_lock_arrays.threadid[i] = 0;
-    }
-  }
-}
-
-
-namespace Impl {
-int* atomic_lock_array_rocm_space_ptr(bool deallocate) {
-  static int* ptr = NULL;
-  if(deallocate) {
-    rocmFree(ptr);
-    ptr = NULL;
-  }
-
-  if(ptr==NULL && !deallocate)
-    rocmMalloc(&ptr,sizeof(int)*(ROCM_SPACE_ATOMIC_MASK+1));
-  return ptr;
-}
-
-int* scratch_lock_array_rocm_space_ptr(bool deallocate) {
-  static int* ptr = NULL;
-  if(deallocate) {
-    rocmFree(ptr);
-    ptr = NULL;
-  }
-
-  if(ptr==NULL && !deallocate)
-    rocmMalloc(&ptr,sizeof(int)*(ROCm::concurrency()));
-  return ptr;
-}
-
-int* threadid_lock_array_rocm_space_ptr(bool deallocate) {
-  static int* ptr = NULL;
-  if(deallocate) {
-    rocmFree(ptr);
-    ptr = NULL;
-  }
-
-  if(ptr==NULL && !deallocate)
-    rocmMalloc(&ptr,sizeof(int)*(ROCm::concurrency()));
-  return ptr;
-}
-
-void init_lock_arrays_rocm_space() {
-  static int is_initialized = 0;
-  if(! is_initialized) {
-    Kokkos::Impl::ROCmLockArraysStruct locks;
-    locks.atomic = atomic_lock_array_rocm_space_ptr(false);
-    locks.scratch = scratch_lock_array_rocm_space_ptr(false);
-    locks.threadid = threadid_lock_array_rocm_space_ptr(false);
-    am_copyToSymbol( kokkos_impl_rocm_lock_arrays , & locks , sizeof(ROCmLockArraysStruct) );
-    init_lock_array_kernel_atomic<<<(ROCM_SPACE_ATOMIC_MASK+255)/256,256>>>();
-    init_lock_array_kernel_scratch_threadid<<<(Kokkos::Experimental::ROCm::concurrency()+255)/256,256>>>(Kokkos::Experimental::ROCm::concurrency());
-  }
-}
-#endif 
 
 void* rocm_resize_scratch_space(size_t bytes, bool force_shrink) {
   static void* ptr = NULL;

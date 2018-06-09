@@ -112,26 +112,6 @@ public:
   /// always execute sequentially.
   inline static int in_parallel() { return false ; }
 
-  /** \brief  Set the device in a "sleep" state.
-   *
-   * This function sets the device in a "sleep" state in which it is
-   * not ready for work.  This may consume less resources than if the
-   * device were in an "awake" state, but it may also take time to
-   * bring the device from a sleep state to be ready for work.
-   *
-   * \return True if the device is in the "sleep" state, else false if
-   *   the device is actively working and could not enter the "sleep"
-   *   state.
-   */
-  static bool sleep();
-
-  /// \brief Wake the device from the 'sleep' state so it is ready for work.
-  ///
-  /// \return True if the device is in the "ready" state, else "false"
-  ///  if the device is actively working (which also means that it's
-  ///  awake).
-  static bool wake();
-
   /// \brief Wait until all dispatched functors complete.
   ///
   /// The parallel_for or parallel_reduce dispatch of a functor may
@@ -140,6 +120,16 @@ public:
   /// device have completed.
   static void fence() {}
 
+  /** \brief  Return the maximum amount of concurrency.  */
+  static int concurrency() {return 1;};
+
+  //! Print configuration information to the given output stream.
+  static void print_configuration( std::ostream & , const bool /* detail */ = false ) {}
+
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
+  static bool sleep();
+  static bool wake();
+
   static void initialize( unsigned threads_count = 1 ,
                           unsigned use_numa_count = 0 ,
                           unsigned use_cores_per_numa = 0 ,
@@ -147,14 +137,8 @@ public:
 
   static bool is_initialized();
 
-  /** \brief  Return the maximum amount of concurrency.  */
-  static int concurrency() {return 1;};
-
   //! Free any resources being consumed by the device.
   static void finalize();
-
-  //! Print configuration information to the given output stream.
-  static void print_configuration( std::ostream & , const bool /* detail */ = false ) {}
 
   //--------------------------------------------------------------------------
 
@@ -165,6 +149,24 @@ public:
 
   KOKKOS_INLINE_FUNCTION static unsigned hardware_thread_id() { return thread_pool_rank(); }
   inline static unsigned max_hardware_threads() { return thread_pool_size(0); }
+#else
+  static void impl_initialize();
+
+  static bool impl_is_initialized();
+
+  //! Free any resources being consumed by the device.
+  static void impl_finalize();
+
+  //--------------------------------------------------------------------------
+
+  inline static int impl_thread_pool_size( int = 0 ) { return 1 ; }
+  KOKKOS_INLINE_FUNCTION static int impl_thread_pool_rank() { return 0 ; }
+
+  //--------------------------------------------------------------------------
+
+  KOKKOS_INLINE_FUNCTION static unsigned impl_hardware_thread_id() { return impl_thread_pool_rank(); }
+  inline static unsigned impl_max_hardware_threads() { return impl_thread_pool_size(0); }
+#endif
 
   static const char* name();
   //--------------------------------------------------------------------------
@@ -282,13 +284,21 @@ public:
   /** \brief  Specify league size, request team size */
   TeamPolicyInternal( execution_space &
             , int league_size_request
+#ifndef KOKKOS_ENABLE_DEPRECATED_CODE
+            , int team_size_request
+#else
             , int /* team_size_request */
+#endif
             , int /* vector_length_request */ = 1 )
     : m_team_scratch_size { 0 , 0 }
     , m_thread_scratch_size { 0 , 0 }
     , m_league_size( league_size_request )
     , m_chunk_size ( 32 )
-    {}
+    {
+      #ifndef KOKKOS_ENABLE_DEPRECATED_CODE
+      if(team_size_request > 1) Kokkos::abort("Kokkos::abort: Requested Team Size is too large!");
+      #endif
+    }
 
   TeamPolicyInternal( execution_space &
             , int league_size_request
@@ -301,13 +311,21 @@ public:
     {}
 
   TeamPolicyInternal( int league_size_request
+#ifndef KOKKOS_ENABLE_DEPRECATED_CODE
+            , int team_size_request
+#else
             , int /* team_size_request */
+#endif
             , int /* vector_length_request */ = 1 )
     : m_team_scratch_size { 0 , 0 }
     , m_thread_scratch_size { 0 , 0 }
     , m_league_size( league_size_request )
     , m_chunk_size ( 32 )
-    {}
+    {
+      #ifndef KOKKOS_ENABLE_DEPRECATED_CODE
+      if(team_size_request > 1) Kokkos::abort("Kokkos::abort: Requested Team Size is too large!");
+      #endif
+    }
 
   TeamPolicyInternal( int league_size_request
             , const Kokkos::AUTO_t & /* team_size_request */
@@ -320,6 +338,7 @@ public:
 
   inline int chunk_size() const { return m_chunk_size ; }
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
   /** \brief set chunk_size to a discrete value*/
   inline TeamPolicyInternal set_chunk_size(typename traits::index_type chunk_size_) const {
     TeamPolicyInternal p = *this;
@@ -332,14 +351,14 @@ public:
     TeamPolicyInternal p = *this;
     p.m_team_scratch_size[level] = per_team.value;
     return p;
-  };
+  }
 
   /** \brief set per thread scratch size for a specific level of the scratch hierarchy */
   inline TeamPolicyInternal set_scratch_size(const int& level, const PerThreadValue& per_thread) const {
     TeamPolicyInternal p = *this;
     p.m_thread_scratch_size[level] = per_thread.value;
     return p;
-  };
+  }
 
   /** \brief set per thread and per team scratch size for a specific level of the scratch hierarchy */
   inline TeamPolicyInternal set_scratch_size(const int& level, const PerTeamValue& per_team, const PerThreadValue& per_thread) const {
@@ -347,11 +366,38 @@ public:
     p.m_team_scratch_size[level] = per_team.value;
     p.m_thread_scratch_size[level] = per_thread.value;
     return p;
-  };
+  }
+#else
+  /** \brief set chunk_size to a discrete value*/
+  inline TeamPolicyInternal& set_chunk_size(typename traits::index_type chunk_size_) {
+    m_chunk_size = chunk_size_;
+    return *this;
+  }
+
+  /** \brief set per team scratch size for a specific level of the scratch hierarchy */
+  inline TeamPolicyInternal& set_scratch_size(const int& level, const PerTeamValue& per_team) {
+    m_team_scratch_size[level] = per_team.value;
+    return *this;
+  }
+
+  /** \brief set per thread scratch size for a specific level of the scratch hierarchy */
+  inline TeamPolicyInternal& set_scratch_size(const int& level, const PerThreadValue& per_thread) {
+    m_thread_scratch_size[level] = per_thread.value;
+    return *this;
+  }
+
+  /** \brief set per thread and per team scratch size for a specific level of the scratch hierarchy */
+  inline TeamPolicyInternal& set_scratch_size(const int& level, const PerTeamValue& per_team, const PerThreadValue& per_thread) {
+    m_team_scratch_size[level] = per_team.value;
+    m_thread_scratch_size[level] = per_thread.value;
+    return *this;
+  }
+#endif
 
   typedef Impl::HostThreadTeamMember< Kokkos::Serial >  member_type ;
 
 protected:
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
   /** \brief set chunk_size to a discrete value*/
   inline TeamPolicyInternal internal_set_chunk_size(typename traits::index_type chunk_size_) {
     m_chunk_size = chunk_size_;
@@ -362,20 +408,21 @@ protected:
   inline TeamPolicyInternal internal_set_scratch_size(const int& level, const PerTeamValue& per_team) {
     m_team_scratch_size[level] = per_team.value;
     return *this;
-  };
+  }
 
   /** \brief set per thread scratch size for a specific level of the scratch hierarchy */
   inline TeamPolicyInternal internal_set_scratch_size(const int& level, const PerThreadValue& per_thread) {
     m_thread_scratch_size[level] = per_thread.value;
     return *this;
-  };
+  }
 
   /** \brief set per thread and per team scratch size for a specific level of the scratch hierarchy */
   inline TeamPolicyInternal internal_set_scratch_size(const int& level, const PerTeamValue& per_team, const PerThreadValue& per_thread) {
     m_team_scratch_size[level] = per_team.value;
     m_thread_scratch_size[level] = per_thread.value;
     return *this;
-  };
+  }
+#endif
 };
 } /* namespace Impl */
 } /* namespace Kokkos */
@@ -631,6 +678,89 @@ public:
               )
     : m_functor( arg_functor )
     , m_policy(  arg_policy )
+    {}
+};
+
+/*--------------------------------------------------------------------------*/
+template< class FunctorType , class ReturnType, class ... Traits >
+class ParallelScanWithTotal< FunctorType
+                           , Kokkos::RangePolicy< Traits ... >
+                           , ReturnType
+                           , Kokkos::Serial
+                           >
+{
+private:
+
+  typedef Kokkos::RangePolicy< Traits ... > Policy ;
+  typedef typename Policy::work_tag                                  WorkTag ;
+
+  typedef FunctorAnalysis< FunctorPatternInterface::SCAN , Policy , FunctorType > Analysis ;
+
+  typedef Kokkos::Impl::FunctorValueInit<   FunctorType , WorkTag >  ValueInit ;
+
+  typedef typename Analysis::pointer_type    pointer_type ;
+  typedef typename Analysis::reference_type  reference_type ;
+
+  const FunctorType   m_functor ;
+  const Policy        m_policy ;
+  ReturnType & m_returnvalue;
+
+  template< class TagType >
+  inline
+  typename std::enable_if< std::is_same< TagType , void >::value >::type
+  exec( reference_type update ) const
+    {
+      const typename Policy::member_type e = m_policy.end();
+      for ( typename Policy::member_type i = m_policy.begin() ; i < e ; ++i ) {
+        m_functor( i , update , true );
+      }
+    }
+
+  template< class TagType >
+  inline
+  typename std::enable_if< ! std::is_same< TagType , void >::value >::type
+  exec( reference_type update ) const
+    {
+      const TagType t{} ;
+      const typename Policy::member_type e = m_policy.end();
+      for ( typename Policy::member_type i = m_policy.begin() ; i < e ; ++i ) {
+        m_functor( t , i , update , true );
+      }
+    }
+
+public:
+
+  inline
+  void execute()
+    {
+      const size_t pool_reduce_size = Analysis::value_size( m_functor );
+      const size_t team_reduce_size  = 0 ; // Never shrinks
+      const size_t team_shared_size  = 0 ; // Never shrinks
+      const size_t thread_local_size = 0 ; // Never shrinks
+
+     serial_resize_thread_team_data( pool_reduce_size
+                                    , team_reduce_size
+                                    , team_shared_size
+                                    , thread_local_size );
+
+      HostThreadTeamData & data = *serial_get_thread_team_data();
+
+      reference_type update =
+        ValueInit::init( m_functor , pointer_type(data.pool_reduce_local()) );
+
+      this-> template exec< WorkTag >( update );
+
+      m_returnvalue = update;
+    }
+
+  inline
+  ParallelScanWithTotal( const FunctorType & arg_functor
+                       , const Policy      & arg_policy
+                       , ReturnType        & arg_returnvalue
+                       )
+    : m_functor( arg_functor )
+    , m_policy(  arg_policy )
+    , m_returnvalue(  arg_returnvalue )
     {}
 };
 
@@ -1037,15 +1167,15 @@ public:
   UniqueToken( execution_space const& = execution_space() ) noexcept {}
 
   /// \brief upper bound for acquired values, i.e. 0 <= value < size()
-  inline
+  KOKKOS_INLINE_FUNCTION
   int size() const noexcept { return 1; }
 
   /// \brief acquire value such that 0 <= value < size()
-  inline
+  KOKKOS_INLINE_FUNCTION
   int acquire() const  noexcept { return 0; }
 
   /// \brief release a value acquired by generate
-  inline
+  KOKKOS_INLINE_FUNCTION
   void release( int ) const noexcept {}
 };
 
@@ -1062,15 +1192,15 @@ public:
   UniqueToken( execution_space const& = execution_space() ) noexcept {}
 
   /// \brief upper bound for acquired values, i.e. 0 <= value < size()
-  inline
+  KOKKOS_INLINE_FUNCTION
   int size() const noexcept { return 1; }
 
   /// \brief acquire value such that 0 <= value < size()
-  inline
+  KOKKOS_INLINE_FUNCTION
   int acquire() const  noexcept { return 0; }
 
   /// \brief release a value acquired by generate
-  inline
+  KOKKOS_INLINE_FUNCTION
   void release( int ) const noexcept {}
 };
 

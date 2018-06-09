@@ -15,10 +15,10 @@
    Contributing author: Trung Nguyen (Northwestern)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_lj_expand_coul_long.h"
 #include "atom.h"
 #include "comm.h"

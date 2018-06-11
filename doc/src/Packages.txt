@@ -1,0 +1,80 @@
+"Previous Section"_Commands.html - "LAMMPS WWW Site"_lws -
+"LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next
+Section"_Examples.html :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands.html#comm)
+
+:line
+
+Optional packages :h3
+
+This section gives an overview of the optional packages that extend
+LAMMPS functionality with instructions on how to build LAMMPS with
+each of them.  Packages are groups of files that enable a specific set
+of features.  For example, force fields for molecular systems or
+granular systems are in packages.  You can see the list of all
+packages and "make" commands to manage them by typing "make package"
+from within the src directory of the LAMMPS distribution.  "Section
+2.3"_Section_start.html#start_3 gives general info on how to install
+and un-install packages as part of the LAMMPS build process.
+
+<!-- RST
+
+.. toctree::
+
+   Packages_standard
+   Packages_user
+   Packages_details
+
+END_RST -->
+
+<!-- HTML_ONLY -->
+
+"Standard packages"_Packages_standard.html
+"User packages"_Packages_user.html
+"Details on each package"_Packages_details.html :ul
+
+<!-- END_HTML_ONLY -->
+
+Either of these kinds of packages may work as is, may require some
+additional code compiled located in the lib folder, or may require
+an external library to be downloaded, compiled, installed, and LAMMPS
+configured to know about its location and additional compiler flags.
+You can often do the build of the internal or external libraries
+in one step by typing "make lib-name args='...'" from the src dir,
+with appropriate arguments included in args='...'. If you just type
+"make lib-name" you should see a help message about supported flags
+and some examples. For more details about this, please study the
+tables below and the sections about the individual packages.
+
+Standard packages are supported by the LAMMPS developers and are
+written in a syntax and style consistent with the rest of LAMMPS.
+This means the developers will answer questions about them, debug and
+fix them if necessary, and keep them compatible with future changes to
+LAMMPS.
+
+User packages have been contributed by users, and begin with the
+"user" prefix.  If they are a single command (single file), they are
+typically in the user-misc package.  User packages don't necessarily
+meet the requirements of the standard packages. This means the
+developers will try to keep things working and usually can answer
+technical questions about compiling the package. If you have problems
+using a feature provided in a user package, you may need to contact
+the contributor directly to get help.  Information on how to submit
+additions you make to LAMMPS as single files or as a standard or user
+package are given in "this section"_Section_modify.html#mod_15 of the
+manual.
+
+Following the next two tables is a sub-section for each package.  It
+lists authors (if applicable) and summarizes the package contents.  It
+has specific instructions on how to install the package, including (if
+necessary) downloading or building any extra library it requires. It
+also gives links to documentation, example scripts, and
+pictures/movies (if available) that illustrate use of the package.
+
+NOTE: To see the complete list of commands a package adds to LAMMPS,
+just look at the files in its src directory, e.g. "ls src/GRANULAR".
+Files with names that start with fix, compute, atom, pair, bond,
+angle, etc correspond to commands with the same style names.

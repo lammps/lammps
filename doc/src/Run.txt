@@ -1,0 +1,32 @@
+"Previous Section"_Build.html - "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next Section"_Commands.html :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+Run LAMMPS :h3
+
+explain 
+
+<!-- RST
+
+.. toctree::
+
+   Run_basics
+   Run_options
+   Run_output
+   Run_windows
+
+END_RST -->
+
+<!-- HTML_ONLY -->
+
+"Basics"_Run_basics.html
+"Command-line options"_Run_options.html
+"Screen and logfile output"_Run_output.html
+"Run on Windows"_Run_windows.html
+
+<!-- END_HTML_ONLY -->
+

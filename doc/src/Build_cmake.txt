@@ -1,0 +1,39 @@
+"Higher level section"_Build.html - "LAMMPS WWW Site"_lws - "LAMMPS
+Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+Build LAMMPS with CMake :h3
+
+quick try:
+mkdir foo; cd foo
+cmake ~/lammps/cmake .
+make
+
+how to run:
+  to do a new build, run cmake in a new directory
+  does not have to be in lammps dir
+  use an arg that points to lammps/cmake
+  will create an exe (after make) in this dir
+  also creates many auxiliary files, including all Obj file
+  must have no packages installed in src dir (use make no-all if
+  necessary)
+   this is different than traditional make
+how to rerun:
+  if edit any source files, can rerun just make, will work in incremental fashion
+  if want to change settings for build itself, then rerun CMake
+  when should you start fresh (just delete everything in dir)
+  do not try to use env varaibles again, will conflict with Cache
+two step build:
+  cmake ...  # creates a Makefile
+  make       # creates the executable
+3 ways to run cmake: command-line, text menu, GUI
+need version 3
+when cmake runs:
+  prints info to screen on what it found, what it will use (see section at end)
+  puts command line in file for future reference
+special env variables for package management

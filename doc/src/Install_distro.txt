@@ -1,0 +1,31 @@
+"Higher level section"_Install.html - "LAMMPS WWW Site"_lws - "LAMMPS
+Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+What's in the LAMMPS distribution :h3
+
+When you download a LAMMPS tarball you will need to unzip and untar
+the downloaded file with the following commands, after placing the
+tarball in an appropriate directory.
+
+tar -xzvf lammps*.tar.gz :pre
+
+This will create a LAMMPS directory containing two files and several sub-directories.  The name of the untarred directory will contain the "LAMMPS version date"_Manual_version.html.
+
+README: text file
+LICENSE: the GNU General Public License (GPL)
+bench: benchmark problems
+cmake: CMake build files
+doc: documentation
+examples: simple test problems
+potentials: interatomic potential files
+src: source files
+tools: pre- and post-processing tools :tb(s=:)
+
+If you download LAMMPS via "Git"_Install_git.html or "SVN"_Install_svn.html, you will have the same files and sub-directories.
+

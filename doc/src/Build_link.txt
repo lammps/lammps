@@ -1,0 +1,51 @@
+"Higher level section"_Build.html - "LAMMPS WWW Site"_lws - "LAMMPS
+Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+Linking LAMMPS as a library with another code :h3
+
+[Additional requirement for using a shared library:]
+
+The operating system finds shared libraries to load at run-time using
+the environment variable LD_LIBRARY_PATH.  So you may wish to copy the
+file src/liblammps.so or src/liblammps_g++.so (for example) to a place
+the system can find it by default, such as /usr/local/lib, or you may
+wish to add the LAMMPS src directory to LD_LIBRARY_PATH, so that the
+current version of the shared library is always available to programs
+that use it.
+
+For the csh or tcsh shells, you would add something like this to your
+~/.cshrc file:
+
+setenv LD_LIBRARY_PATH $\{LD_LIBRARY_PATH\}:/home/sjplimp/lammps/src :pre
+
+Calling the LAMMPS library :h5
+
+Either flavor of library (static or shared) allows one or more LAMMPS
+objects to be instantiated from the calling program.
+
+When used from a C++ program, all of LAMMPS is wrapped in a LAMMPS_NS
+namespace; you can safely use any of its classes and methods from
+within the calling code, as needed.
+
+When used from a C or Fortran program or a scripting language like
+Python, the library has a simple function-style interface, provided in
+src/library.cpp and src/library.h.
+
+See the sample codes in examples/COUPLE/simple for examples of C++ and
+C and Fortran codes that invoke LAMMPS thru its library interface.
+There are other examples as well in the COUPLE directory which are
+discussed in "Section 6.10"_Section_howto.html#howto_10 of the
+manual.  See "Section 11"_Section_python.html of the manual for a
+description of the Python wrapper provided with LAMMPS that operates
+through the LAMMPS library interface.
+
+The files src/library.cpp and library.h define the C-style API for
+using LAMMPS as a library.  See "Section
+6.19"_Section_howto.html#howto_19 of the manual for a description of the
+interface and how to extend it for your needs.

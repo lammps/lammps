@@ -1,0 +1,45 @@
+"Previous Section"_Intro.html - "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next Section"_Build.html :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+Install LAMMPS :h3
+
+You can download LAMMPS as an executable or as source code.
+
+If you go with source code (either as a tarball or via Git/SVN), you
+also have to "build LAMMPS"_Build.html.  You then have more
+flexibility as to what features to include or exclude in the build.
+If you plan to "modify or extend LAMMPS"_Modify.html, then you need
+the source code.
+
+<!-- RST
+
+.. toctree::
+
+   Install_linux
+   Install_mac
+   Install_windows
+   Install_exe
+
+   Install_tarball
+   Install_git
+   Install_svn
+   Install_distro
+
+END_RST -->
+
+<!-- HTML_ONLY -->
+"Download an executable for Linux"_Install_linux.html
+"Download an executable for Mac"_Install_mac.html
+"Download an executable for Windows"_Install_windows.html
+"Install an executable"_Install_exe.html :all(b)
+
+"Download source as a tarball"_Install_tarball.html
+"Donwload source via Git"_Install_git.html
+"Donwload source via SVN"_Install_svn.html
+"What's in the LAMMPS distribution"_Install_distro.html :all(b)
+<!-- END_HTML_ONLY -->

@@ -1,0 +1,131 @@
+"Higher level section"_Build.html - "LAMMPS WWW Site"_lws - "LAMMPS
+Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+Build LAMMPS with traditional make :h3
+
+quick try:
+cd lammps/src
+make mpi
+make serial :pre
+
+what are make commands you can use
+just type make to see all the options
+also Makefiles and Makefile.lammps in lib dirs
+Install.py for external libs
+
+there is a Makefile.mac and Makefile.mac_mpi
+
+It may be the case that one of the other Makefile.machine files in the
+src/MAKE sub-directories is a better match to your system (type "make"
+to see a list), you can use it as-is by typing (for example):
+
+make stampede :pre
+
+If any of these builds (with an existing Makefile.machine) works on
+your system, then you're done!
+
+If you need to install an optional package with a LAMMPS command you
+want to use, and the package does not depend on an extra library, you
+can simply type
+
+make name :pre
+
+before invoking (or re-invoking) the above steps.  "Name" is the
+lower-case name of the package, e.g. replica or user-misc.
+
+If you want to do one of the following:
+
+use a LAMMPS command that requires an extra library (e.g. "dump image"_dump_image.html)
+build with a package that requires an extra library
+build with an accelerator package that requires special compiler/linker settings
+run on a machine that has its own compilers, settings, or libraries :ul
+
+then building LAMMPS is more complicated.  You may need to find where
+extra libraries exist on your machine or install them if they don't.
+You may need to build extra libraries that are included in the LAMMPS
+distribution, before building LAMMPS itself.  You may need to edit a
+Makefile.machine file to make it compatible with your system.
+
+
+
+
+
+Step 9 :h6
+
+That's it.  Once you have a correct Makefile.foo, and you have
+pre-built any other needed libraries (e.g. MPI, FFT, etc) all you need
+to do from the src directory is type something like this:
+
+make foo
+make -j N foo
+gmake foo
+gmake -j N foo :pre
+
+The -j or -j N switches perform a parallel build which can be much
+faster, depending on how many cores your compilation machine has.  N
+is the number of cores the build runs on.
+
+You should get the executable lmp_foo when the build is complete.
+
+OS X is a derivative of BSD Unix, so it should just work.  See the
+src/MAKE/MACHINES/Makefile.mac and Makefile.mac_mpi files.
+
+
+Old content
+
+The src directory contains the C++ source and header files for LAMMPS.
+It also contains a top-level Makefile and a MAKE sub-directory with
+low-level Makefile.* files for many systems and machines.  See the
+src/MAKE/README file for a quick overview of what files are available
+and what sub-directories they are in.
+
+The src/MAKE dir has a few files that should work as-is on many
+platforms.  The src/MAKE/OPTIONS dir has more that invoke additional
+compiler, MPI, and other setting options commonly used by LAMMPS, to
+illustrate their syntax.  The src/MAKE/MACHINES dir has many more that
+have been tweaked or optimized for specific machines.  These files are
+all good starting points if you find you need to change them for your
+machine.  Put any file you edit into the src/MAKE/MINE directory and
+it will be never be touched by any LAMMPS updates.
+
+Note that the corresponding Makefile.machine can exist in src/MAKE or
+any of its sub-directories.  If a file with the same name appears in
+multiple places (not a good idea), the order they are used is as
+follows: src/MAKE/MINE, src/MAKE, src/MAKE/OPTIONS, src/MAKE/MACHINES.
+This gives preference to a file you have created/edited and put in
+src/MAKE/MINE.
+
+Note that on a multi-processor or multi-core platform you can launch a
+parallel make, by using the "-j" switch with the make command, which
+will build LAMMPS more quickly.
+
+If you get no errors and an executable like [lmp_mpi] or [lmp_serial]
+or [lmp_mac] is produced, then you're done; it's your lucky day.
+
+Note that by default only a few of LAMMPS optional packages are
+installed.  To build LAMMPS with optional packages, see "this
+section"_#start_3 below.
+
+Step 1 :h6
+
+If Step 0 did not work, you will need to create a low-level Makefile
+for your machine, like Makefile.foo.  You should make a copy of an
+existing Makefile.* in src/MAKE or one of its sub-directories as a
+starting point.  The only portions of the file you need to edit are
+the first line, the "compiler/linker settings" section, and the
+"LAMMPS-specific settings" section.  When it works, put the edited
+file in src/MAKE/MINE and it will not be altered by any future LAMMPS
+updates.
+
+Step 2 :h6
+
+Change the first line of Makefile.foo to list the word "foo" after the
+"#", and whatever other options it will set.  This is the line you
+will see if you just type "make".
+

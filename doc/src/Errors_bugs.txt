@@ -1,6 +1,5 @@
 "Higher level section"_Errors.html - "LAMMPS WWW Site"_lws - "LAMMPS
-Documentation"_ld - "LAMMPS Commands"_lc - "Next
-Section"_Section_history.html :c
+Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
@@ -10,7 +9,7 @@ Section"_Section_history.html :c
 
 Reporting bugs :h3
 
-NOTE: this needs to be reworked with GitHub info
+NOTE: this needs to be reworked with GitHub issues info
 
 If you are confident that you have found a bug in LAMMPS, follow these
 steps.
@@ -34,6 +33,3 @@ the problem.  Run it on the smallest number of atoms and fewest number
 of processors and with the simplest input script that reproduces the
 bug and try to identify what command or combination of commands is
 causing the problem.
-
-As a last resort, you can send an email directly to the
-"developers"_http://lammps.sandia.gov/authors.html.

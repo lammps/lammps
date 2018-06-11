@@ -1,6 +1,5 @@
 "Higher level section"_Errors.html - "LAMMPS WWW Site"_lws - "LAMMPS
-Documentation"_ld - "LAMMPS Commands"_lc - "Next
-Section"_Section_history.html :c
+Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
@@ -8,7 +7,7 @@ Section"_Section_history.html :c
 
 :line
 
-Warning messages :h3,link(err_3)
+Warning messages :h3
 
 This is an alphabetic list of the WARNING messages LAMMPS prints out
 and the reason why.  If the explanation here is not sufficient, the

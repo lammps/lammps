@@ -1,0 +1,54 @@
+"Higher level section"_Build.html - "LAMMPS WWW Site"_lws - "LAMMPS
+Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+Build LAMMPS with big/small support :h3
+
+The default is -DLAMMPS_SMALLBIG which allows for systems with up to
+2^63 atoms and 2^63 timesteps (about 9e18). The atom limit is for
+atomic systems which do not store bond topology info and thus do not
+require atom IDs.  If you use atom IDs for atomic systems (which is
+the default) or if you use a molecular model, which stores bond
+topology info and thus requires atom IDs, the limit is 2^31 atoms
+(about 2 billion).  This is because the IDs are stored in 32-bit
+integers.
+
+Likewise, with this setting, the 3 image flags for each atom (see the
+"dump"_dump.html doc page for a discussion) are stored in a 32-bit
+integer, which means the atoms can only wrap around a periodic box (in
+each dimension) at most 512 times.  If atoms move through the periodic
+box more than this many times, the image flags will "roll over",
+e.g. from 511 to -512, which can cause diagnostics like the
+mean-squared displacement, as calculated by the "compute
+msd"_compute_msd.html command, to be faulty.
+
+To allow for larger atomic systems with atom IDs or larger molecular
+systems or larger image flags, compile with -DLAMMPS_BIGBIG.  This
+stores atom IDs and image flags in 64-bit integers.  This enables
+atomic or molecular systems with atom IDS of up to 2^63 atoms (about
+9e18).  And image flags will not "roll over" until they reach 2^20 =
+1048576.
+
+If your system does not support 8-byte integers, you will need to
+compile with the -DLAMMPS_SMALLSMALL setting.  This will restrict the
+total number of atoms (for atomic or molecular systems) and timesteps
+to 2^31 (about 2 billion).  Image flags will roll over at 2^9 = 512.
+
+Note that in src/lmptype.h there are definitions of all these data
+types as well as the MPI data types associated with them.  The MPI
+types need to be consistent with the associated C data types, or else
+LAMMPS will generate a run-time error.  As far as we know, the
+settings defined in src/lmptype.h are portable and work on every
+current system.
+
+In all cases, the size of problem that can be run on a per-processor
+basis is limited by 4-byte integer storage to 2^31 atoms per processor
+(about 2 billion). This should not normally be a limitation since such
+a problem would have a huge per-processor memory footprint due to
+neighbor lists and would run very slowly in terms of CPU secs/timestep.
+

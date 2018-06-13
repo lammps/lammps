@@ -9,7 +9,7 @@ cmake /path/to/lammps/source/cmake
 
 To enable package, e.g. GPU do
 ```
-cmake /path/to/lammps/source/cmake -DENABLE_GPU=ON
+cmake /path/to/lammps/source/cmake -DPKG_GPU=ON
 ```
 
 cmake has many many options, do get an overview use the curses-based cmake interface, ccmake:

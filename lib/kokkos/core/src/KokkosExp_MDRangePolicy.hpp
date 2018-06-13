@@ -75,7 +75,7 @@ template <typename ExecSpace>
 struct default_outer_direction
 {
   using type = Iterate;
-  #if defined( KOKKOS_ENABLE_CUDA)
+  #if defined( KOKKOS_ENABLE_CUDA)||defined( KOKKOS_ENABLE_ROCM)
   static constexpr Iterate value = Iterate::Left;
   #else
   static constexpr Iterate value = Iterate::Right;
@@ -86,7 +86,7 @@ template <typename ExecSpace>
 struct default_inner_direction
 {
   using type = Iterate;
-  #if defined( KOKKOS_ENABLE_CUDA)
+  #if defined( KOKKOS_ENABLE_CUDA)||defined( KOKKOS_ENABLE_ROCM)
   static constexpr Iterate value = Iterate::Left;
   #else
   static constexpr Iterate value = Iterate::Right;
@@ -264,6 +264,47 @@ struct MDRangePolicy
       }
     }
     #endif
+    #if defined(KOKKOS_ENABLE_ROCM)
+    else // ROCm
+    {
+      index_type span;
+      int increment = 1;
+      int rank_start = 0;
+      int rank_end = rank;
+      if((int)inner_direction == (int)Right) {
+        increment = -1;
+        rank_start = rank-1;
+        rank_end = -1;
+      }
+      for (int i=rank_start; i!=rank_end; i+=increment) {
+        span = m_upper[i] - m_lower[i];
+        if ( m_tile[i] <= 0 ) {
+          // TODO: determine what is a good default tile size for rocm
+          // may be rank dependent
+          if (  ((int)inner_direction == (int)Right && (i < rank-1))
+              || ((int)inner_direction == (int)Left && (i > 0)) )
+          {
+            if ( m_prod_tile_dims < 256 ) {
+              m_tile[i] = 4;
+            } else {
+              m_tile[i] = 1;
+            }
+          }
+          else {
+            m_tile[i] = 16;
+          }
+        }
+        m_tile_end[i] = static_cast<index_type>((span + m_tile[i] - 1) / m_tile[i]);
+        m_num_tiles *= m_tile_end[i];
+        m_prod_tile_dims *= m_tile[i];
+      }
+      if ( m_prod_tile_dims > 1024 ) { //but product num_threads < 1024
+        printf(" Tile dimensions exceed ROCm limits\n");
+        Kokkos::abort(" ROCm ExecSpace Error: MDRange tile dims exceed maximum number of threads per block - choose smaller tile dims");
+        //Kokkos::Impl::throw_runtime_exception( " Cuda ExecSpace Error: MDRange tile dims exceed maximum number of threads per block - choose smaller tile dims");
+      }
+    }
+    #endif
   }
 
 
@@ -410,6 +451,7 @@ namespace Kokkos { namespace Experimental {
 } } // end Kokkos::Experimental
 // ------------------------------------------------------------------ //
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
 // ------------------------------------------------------------------ //
 //md_parallel_for - deprecated use parallel_for
 // ------------------------------------------------------------------ //
@@ -541,6 +583,7 @@ void md_parallel_reduce( const std::string& str
 // Cuda - md_parallel_reduce not implemented - use parallel_reduce
 
 } } // namespace Kokkos::Experimental
+#endif
 
 #endif //KOKKOS_CORE_EXP_MD_RANGE_POLICY_HPP
 

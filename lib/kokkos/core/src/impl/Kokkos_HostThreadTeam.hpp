@@ -72,8 +72,8 @@ public:
 
   enum : int { max_pool_members  = 1024 };
   enum : int { max_team_members  = 64 };
-  enum : int { max_pool_rendezvous = rendezvous_buffer_size( max_pool_members ) };
-  enum : int { max_team_rendezvous = rendezvous_buffer_size( max_team_members ) };
+  enum : int { max_pool_rendezvous = HostBarrier::required_buffer_size };
+  enum : int { max_team_rendezvous = HostBarrier::required_buffer_size };
 
 private:
 
@@ -92,7 +92,7 @@ private:
   enum : int { m_team_rendezvous = m_pool_rendezvous + max_pool_rendezvous };
   enum : int { m_pool_reduce     = m_team_rendezvous + max_team_rendezvous };
 
-  using pair_int_t = Kokkos::pair<int,int> ;
+  using pair_int_t = Kokkos::pair<int64_t,int64_t> ;
 
   pair_int_t  m_work_range ;
   int64_t     m_work_end ;
@@ -113,8 +113,8 @@ private:
   int         m_league_size ;
   int         m_work_chunk ;
   int         m_steal_rank ; // work stealing rank
-  uint64_t mutable m_pool_rendezvous_step ;
-  uint64_t mutable m_team_rendezvous_step ;
+  int mutable m_pool_rendezvous_step ;
+  int mutable m_team_rendezvous_step ;
 
   HostThreadTeamData * team_member( int r ) const noexcept
     { return ((HostThreadTeamData**)(m_pool_scratch+m_pool_members))[m_team_base+r]; }
@@ -122,63 +122,82 @@ private:
 public:
 
   inline
-  int team_rendezvous( int const root ) const noexcept
-    {
-      return 1 == m_team_size ? 1 :
-             rendezvous( m_team_scratch + m_team_rendezvous
-                       , m_team_rendezvous_step
+  bool team_rendezvous() const noexcept
+  {
+    int * ptr = (int *)(m_team_scratch + m_team_rendezvous);
+    HostBarrier::split_arrive( ptr
+                             , m_team_size
+                             , m_team_rendezvous_step
+                             );
+    if (m_team_rank != 0) {
+      HostBarrier::wait( ptr
                        , m_team_size
-                       , ( m_team_rank + m_team_size - root ) % m_team_size
+                       , m_team_rendezvous_step
                        );
     }
-
-  inline
-  int team_rendezvous() const noexcept
-    {
-      return 1 == m_team_size ? 1 :
-             rendezvous( m_team_scratch + m_team_rendezvous
-                       , m_team_rendezvous_step
-                       , m_team_size
-                       , m_team_rank );
+    else {
+      HostBarrier::split_master_wait( ptr
+                                    , m_team_size
+                                    , m_team_rendezvous_step
+                                    );
     }
+
+    return m_team_rank == 0;
+  }
 
   inline
   void team_rendezvous_release() const noexcept
     {
-      if ( 1 < m_team_size ) {
-        rendezvous_release( m_team_scratch + m_team_rendezvous
-                          , m_team_rendezvous_step );
-      }
+      HostBarrier::split_release( (int *)(m_team_scratch + m_team_rendezvous)
+                                , m_team_size
+                                , m_team_rendezvous_step
+                                );
     }
 
   inline
   int pool_rendezvous() const noexcept
-    {
-      static constexpr bool active_wait =
-        #if defined( KOKKOS_COMPILER_IBM )
-            // If running on IBM POWER architecture the global
-            // level rendzvous should immediately yield when
-            // waiting for other threads in the pool to arrive.
-          false
-        #else
-          true
-        #endif
-          ;
-      return 1 == m_pool_size ? 1 :
-             rendezvous( m_pool_scratch + m_pool_rendezvous
-                       , m_pool_rendezvous_step
-                       , m_pool_size
-                       , m_pool_rank
-                       , active_wait
-                       );
+  {
+    // not sure if the follow hack is still needed with the new barrier
+    #if 0
+    static constexpr bool active_wait =
+    #if defined( KOKKOS_COMPILER_IBM )
+      // If running on IBM POWER architecture the global
+      // level rendzvous should immediately yield when
+      // waiting for other threads in the pool to arrive.
+      false;
+    #else
+      true;
+    #endif
+    #endif
+
+    int * ptr = (int *)(m_pool_scratch + m_pool_rendezvous);
+    HostBarrier::split_arrive( ptr
+        , m_pool_size
+        , m_pool_rendezvous_step
+        );
+    if (m_pool_rank != 0) {
+      HostBarrier::wait( ptr
+          , m_pool_size
+          , m_pool_rendezvous_step
+          );
     }
+    else {
+      HostBarrier::split_master_wait( ptr
+          , m_pool_size
+          , m_pool_rendezvous_step
+          );
+    }
+
+    return m_pool_rank == 0;
+  }
 
   inline
   void pool_rendezvous_release() const noexcept
     {
-      if ( 1 < m_pool_size ) {
-        rendezvous_release( m_pool_scratch + m_pool_rendezvous, m_pool_rendezvous_step );
-      }
+      HostBarrier::split_release( (int *)(m_pool_scratch + m_pool_rendezvous)
+                                , m_pool_size
+                                , m_pool_rendezvous_step
+                                );
     }
 
   //----------------------------------------
@@ -506,7 +525,7 @@ public:
   KOKKOS_INLINE_FUNCTION void team_barrier() const noexcept
 #if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
     {
-      if ( m_data.team_rendezvous() ) m_data.team_rendezvous_release();
+      if ( m_data.team_rendezvous() ) { m_data.team_rendezvous_release(); };
     }
 #else
     {}
@@ -524,7 +543,7 @@ public:
 
         // Don't overwrite shared memory until all threads arrive
 
-        if ( m_data.team_rendezvous( source_team_rank ) ) {
+        if ( m_data.team_rendezvous() ) {
           // All threads have entered 'team_rendezvous'
           // only this thread returned from 'team_rendezvous'
           // with a return value of 'true'
@@ -555,7 +574,7 @@ public:
 
       // Don't overwrite shared memory until all threads arrive
 
-      if ( m_data.team_rendezvous(source_team_rank) ) {
+      if ( m_data.team_rendezvous() ) {
 
         // All threads have entered 'team_rendezvous'
         // only this thread returned from 'team_rendezvous'
@@ -786,6 +805,17 @@ ThreadVectorRange
   return Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::HostThreadTeamMember<Space> >(member,count);
 }
 
+template<class Space, typename iType>
+KOKKOS_INLINE_FUNCTION
+Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::HostThreadTeamMember<Space> >
+ThreadVectorRange
+  ( Impl::HostThreadTeamMember<Space> const & member
+  , const iType & arg_begin
+  , const iType & arg_end )
+{
+  return Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::HostThreadTeamMember<Space> >(member,arg_begin,arg_end);
+}
+
 //----------------------------------------------------------------------------
 /** \brief  Inter-thread parallel_for.
  *
@@ -857,7 +887,7 @@ parallel_reduce
   , ValueType      & result
   )
 {
-  Kokkos::Experimental::Sum<ValueType> reducer( result );
+  Sum<ValueType> reducer( result );
 
   reducer.init( result );
 

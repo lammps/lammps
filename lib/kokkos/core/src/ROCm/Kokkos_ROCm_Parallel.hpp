@@ -136,6 +136,7 @@ public:
 
   inline int chunk_size() const { return m_chunk_size ; }
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
   /** \brief set chunk_size to a discrete value*/
   KOKKOS_INLINE_FUNCTION TeamPolicyInternal set_chunk_size(typename traits::index_type chunk_size_) const {
     TeamPolicyInternal p = *this;
@@ -148,14 +149,14 @@ public:
     TeamPolicyInternal p = *this;
     p.m_team_scratch_size[level] = per_team.value;
     return p;
-  };
+  }
 
   /** \brief set per thread scratch size for a specific level of the scratch hierarchy */
   inline TeamPolicyInternal set_scratch_size(const int& level, const PerThreadValue& per_thread) const {
     TeamPolicyInternal p = *this;
     p.m_thread_scratch_size[level] = per_thread.value;
     return p;
-  };
+  }
 
   /** \brief set per thread and per team scratch size for a specific level of the scratch hierarchy */
   inline TeamPolicyInternal set_scratch_size(const int& level, const PerTeamValue& per_team, const PerThreadValue& per_thread) const {
@@ -163,9 +164,36 @@ public:
     p.m_team_scratch_size[level] = per_team.value;
     p.m_thread_scratch_size[level] = per_thread.value;
     return p;
-  };
+  }
+#else
+  /** \brief set chunk_size to a discrete value*/
+  inline TeamPolicyInternal& set_chunk_size(typename traits::index_type chunk_size_) {
+    m_chunk_size = chunk_size_;
+    return *this;
+  }
+
+  /** \brief set per team scratch size for a specific level of the scratch hierarchy */
+  inline TeamPolicyInternal& set_scratch_size(const int& level, const PerTeamValue& per_team) {
+    m_team_scratch_size[level] = per_team.value;
+    return *this;
+  }
+
+  /** \brief set per thread scratch size for a specific level of the scratch hierarchy */
+  inline TeamPolicyInternal& set_scratch_size(const int& level, const PerThreadValue& per_thread) {
+    m_thread_scratch_size[level] = per_thread.value;
+    return *this;
+  }
+
+  /** \brief set per thread and per team scratch size for a specific level of the scratch hierarchy */
+  inline TeamPolicyInternal& set_scratch_size(const int& level, const PerTeamValue& per_team, const PerThreadValue& per_thread) {
+    m_team_scratch_size[level] = per_team.value;
+    m_thread_scratch_size[level] = per_thread.value;
+    return *this;
+  }
+#endif
 
 protected:
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
   /** \brief set chunk_size to a discrete value*/
   inline TeamPolicyInternal internal_set_chunk_size(typename traits::index_type chunk_size_) {
     m_chunk_size = chunk_size_;
@@ -176,20 +204,21 @@ protected:
   inline TeamPolicyInternal internal_set_scratch_size(const int& level, const PerTeamValue& per_team) {
     m_team_scratch_size[level] = per_team.value;
     return *this;
-  };
+  }
 
   /** \brief set per thread scratch size for a specific level of the scratch hierarchy */
   inline TeamPolicyInternal internal_set_scratch_size(const int& level, const PerThreadValue& per_thread) {
     m_thread_scratch_size[level] = per_thread.value;
     return *this;
-  };
+  }
 
   /** \brief set per thread and per team scratch size for a specific level of the scratch hierarchy */
   inline TeamPolicyInternal internal_set_scratch_size(const int& level, const PerTeamValue& per_team, const PerThreadValue& per_thread) {
     m_team_scratch_size[level] = per_team.value;
     m_thread_scratch_size[level] = per_thread.value;
     return *this;
-  };
+  }
+#endif
 
 public:
 // TODO:  evaluate proper team_size_max requirements
@@ -197,14 +226,14 @@ public:
   KOKKOS_INLINE_FUNCTION static
   int team_size_max( const Functor_Type & functor)
   {
-    typedef typename Kokkos::Impl::FunctorValueTraits<Functor_Type, void>::value_type value_type;
+    typedef typename Kokkos::Impl::FunctorValueTraits<Functor_Type, typename traits::work_tag>::value_type value_type;
     return team_size_recommended(functor);
     // return std::min(Kokkos::Impl::get_max_tile_size() / sizeof(value_type), Kokkos::Impl::get_max_tile_thread());
   }
 
   template< class Functor_Type>
   KOKKOS_INLINE_FUNCTION static int team_size_recommended(const Functor_Type & functor)
-  { return Kokkos::Impl::get_tile_size<typename Kokkos::Impl::FunctorValueTraits<Functor_Type, void>::value_type>(); }
+  { return Kokkos::Impl::get_tile_size<typename Kokkos::Impl::FunctorValueTraits<Functor_Type, typename traits::work_tag>::value_type>(); }
 
   template< class Functor_Type >
   KOKKOS_INLINE_FUNCTION static int team_size_recommended(const Functor_Type &functor, const int vector_length)
@@ -718,8 +747,8 @@ public:
     {
       const dim3 block( m_rp.m_tile[0] , m_rp.m_tile[1] , 1);
       const dim3 grid(
-            std::min( ( m_rp.m_upper[0] - m_rp.m_lower[0] + block.x - 1 ) / block.x , maxblocks )
-          , std::min( ( m_rp.m_upper[1] - m_rp.m_lower[1] + block.y - 1 ) / block.y , maxblocks )
+            std::min( m_rp.m_upper[0] - m_rp.m_lower[0] , maxblocks )
+          , std::min( m_rp.m_upper[1] - m_rp.m_lower[1] , maxblocks )
           , 1 );
       ROCmParallelLaunch< ParallelFor, LaunchBounds >( *this, grid, block, 0);
     }
@@ -727,9 +756,9 @@ public:
     {
       const dim3 block( m_rp.m_tile[0] , m_rp.m_tile[1] , m_rp.m_tile[2] );
       const dim3 grid(
-          std::min( ( m_rp.m_upper[0] - m_rp.m_lower[0] + block.x - 1 ) / block.x , maxblocks )
-        , std::min( ( m_rp.m_upper[1] - m_rp.m_lower[1] + block.y - 1 ) / block.y , maxblocks )
-        , std::min( ( m_rp.m_upper[2] - m_rp.m_lower[2] + block.z - 1 ) / block.z , maxblocks ));
+            std::min( m_rp.m_upper[0] - m_rp.m_lower[0] , maxblocks )
+          , std::min( m_rp.m_upper[1] - m_rp.m_lower[1] , maxblocks )
+          , std::min( m_rp.m_upper[2] - m_rp.m_lower[2] , maxblocks ));
       ROCmParallelLaunch< ParallelFor, LaunchBounds >( *this, grid, block, 0);
     }
     else if ( RP::rank == 4 )
@@ -737,9 +766,10 @@ public:
       // id0,id1 encoded within threadIdx.x; id2 to threadIdx.y; id3 to threadIdx.z
       const dim3 block( m_rp.m_tile[0]*m_rp.m_tile[1] , m_rp.m_tile[2] , m_rp.m_tile[3] );
       const dim3 grid(
-          std::min(  m_rp.m_tile_end[0] * m_rp.m_tile_end[1] , maxblocks )
-        , std::min( ( m_rp.m_upper[2] - m_rp.m_lower[2] + block.y - 1 ) / block.y , maxblocks )
-        , std::min( ( m_rp.m_upper[3] - m_rp.m_lower[3] + block.z - 1 ) / block.z , maxblocks ));
+          std::min(  m_rp.m_tile_end[0] * m_rp.m_tile_end[1] *
+              m_rp.m_tile[0] * m_rp.m_tile[1] , maxblocks )
+        , std::min( m_rp.m_upper[2] - m_rp.m_lower[2] , maxblocks )
+        , std::min( m_rp.m_upper[3] - m_rp.m_lower[3] , maxblocks ));
       ROCmParallelLaunch< ParallelFor, LaunchBounds >( *this, grid, block, 0);
     }
     else if ( RP::rank == 5 )
@@ -747,9 +777,11 @@ public:
       // id0,id1 encoded within threadIdx.x; id2,id3 to threadIdx.y; id4 to threadIdx.z
       const dim3 block( m_rp.m_tile[0]*m_rp.m_tile[1] , m_rp.m_tile[2]*m_rp.m_tile[3] , m_rp.m_tile[4] );
       const dim3 grid(
-          std::min( m_rp.m_tile_end[0] * m_rp.m_tile_end[1] , maxblocks )
-        , std::min( m_rp.m_tile_end[2] * m_rp.m_tile_end[3] , maxblocks )
-        , std::min( ( m_rp.m_upper[4] - m_rp.m_lower[4] + block.z - 1 ) / block.z , maxblocks ));
+          std::min(  m_rp.m_tile_end[0] * m_rp.m_tile_end[1] *
+              m_rp.m_tile[0] * m_rp.m_tile[1] , maxblocks )
+        , std::min(  m_rp.m_tile_end[2] * m_rp.m_tile_end[3] *
+              m_rp.m_tile[2] * m_rp.m_tile[3] , maxblocks )
+        , std::min(  m_rp.m_upper[4] - m_rp.m_lower[4] , maxblocks ));
       ROCmParallelLaunch< ParallelFor, LaunchBounds >( *this, grid, block, 0);
     }
     else if ( RP::rank == 6 )
@@ -757,9 +789,12 @@ public:
       // id0,id1 encoded within threadIdx.x; id2,id3 to threadIdx.y; id4,id5 to threadIdx.z
       const dim3 block( m_rp.m_tile[0]*m_rp.m_tile[1] , m_rp.m_tile[2]*m_rp.m_tile[3] , m_rp.m_tile[4]*m_rp.m_tile[5] );
       const dim3 grid(
-          std::min( m_rp.m_tile_end[0] * m_rp.m_tile_end[1] , maxblocks )
-        ,  std::min( m_rp.m_tile_end[2] * m_rp.m_tile_end[3] , maxblocks )
-        , std::min( m_rp.m_tile_end[4] * m_rp.m_tile_end[5] , maxblocks ));
+          std::min(  m_rp.m_tile_end[0] * m_rp.m_tile_end[1] *
+              m_rp.m_tile[0] * m_rp.m_tile[1] , maxblocks )
+        , std::min(  m_rp.m_tile_end[2] * m_rp.m_tile_end[3] *
+              m_rp.m_tile[2] * m_rp.m_tile[3] , maxblocks )
+        , std::min(  m_rp.m_tile_end[4] * m_rp.m_tile_end[5] *
+              m_rp.m_tile[4] * m_rp.m_tile[5] , maxblocks ));
       ROCmParallelLaunch< ParallelFor, LaunchBounds >( *this, grid, block, 0);
     }
     else
@@ -1155,42 +1190,65 @@ namespace Impl {
     {}
 #endif
   };
+
   template<typename iType>
   struct ThreadVectorRangeBoundariesStruct<iType,ROCmTeamMember> {
     typedef iType index_type;
-    const iType start;
-    const iType end;
-    const iType increment;
+    const index_type start;
+    const index_type end;
+    const index_type increment;
     const ROCmTeamMember& thread;
 
 #if defined( __HCC_ACCELERATOR__ )
     KOKKOS_INLINE_FUNCTION
-    ThreadVectorRangeBoundariesStruct (const ROCmTeamMember& thread_, const iType& count):
+    ThreadVectorRangeBoundariesStruct (const ROCmTeamMember& thread_, const index_type& count):
       start( thread_.lindex()%thread_.vector_length() ),
       end( count ),
       increment( thread_.vector_length() ),
       thread(thread_)
     {}
 
+    KOKKOS_INLINE_FUNCTION
+    ThreadVectorRangeBoundariesStruct (const ROCmTeamMember& thread_, const index_type& arg_begin, const index_type& arg_end):
+      start( arg_begin + thread_.lindex()%thread_.vector_length() ),
+      end( arg_end ),
+      increment( thread_.vector_length() ),
+      thread(thread_)
+    {}
+
 //    KOKKOS_INLINE_FUNCTION
-//    ThreadVectorRangeBoundariesStruct (const iType& count):
+//    ThreadVectorRangeBoundariesStruct (const index_type& count):
 //      start( 0 ),
 //      end( count ),
 //      increment( 1 )
 //    {}
 #else
     KOKKOS_INLINE_FUNCTION
-    ThreadVectorRangeBoundariesStruct (const ROCmTeamMember& thread_, const iType& count):
-      start( 0 ),
+    ThreadVectorRangeBoundariesStruct (const ROCmTeamMember& thread_, const index_type& count):
+      start( static_cast<index_type>(0) ),
       end( count ),
-      increment( 1 ),
+      increment( static_cast<index_type>(1) ),
       thread(thread_)
     {}
     KOKKOS_INLINE_FUNCTION
-    ThreadVectorRangeBoundariesStruct (const iType& count):
-      start( 0 ),
+    ThreadVectorRangeBoundariesStruct (const index_type& count):
+      start( static_cast<index_type>(0) ),
       end( count ),
-      increment( 1 )
+      increment( static_cast<index_type>(1) )
+    {}
+
+    KOKKOS_INLINE_FUNCTION
+    ThreadVectorRangeBoundariesStruct (const ROCmTeamMember& thread_, const index_type& arg_begin, const index_type& arg_end):
+      start( arg_begin ),
+      end( arg_end ),
+      increment( static_cast<index_type>(1) ),
+      thread(thread_)
+    {}
+    KOKKOS_INLINE_FUNCTION
+    ThreadVectorRangeBoundariesStruct (const index_type& arg_begin, const index_type& arg_end):
+      start( arg_begin ),
+      end( arg_end ),
+      increment( static_cast<index_type>(1) )
     {}
 #endif
   };
@@ -1220,6 +1278,13 @@ KOKKOS_INLINE_FUNCTION
 Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::ROCmTeamMember >
   ThreadVectorRange(const Impl::ROCmTeamMember& thread, const iType& count) {
   return Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::ROCmTeamMember >(thread,count);
+}
+
+template<typename iType>
+KOKKOS_INLINE_FUNCTION
+Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::ROCmTeamMember >
+  ThreadVectorRange(const Impl::ROCmTeamMember& thread, const iType& arg_begin, const iType& arg_end) {
+  return Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::ROCmTeamMember >(thread,arg_begin,arg_end);
 }
 
 KOKKOS_INLINE_FUNCTION

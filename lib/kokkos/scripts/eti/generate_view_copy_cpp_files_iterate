@@ -1,0 +1,21 @@
+SCRIPT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+EXECUTION_SPACE=$1
+EXECUTION_SPACE_DIR=$2
+
+rm common/*
+mkdir -p ${EXECUTION_SPACE_DIR}
+rm ${EXECUTION_SPACE_DIR}/*
+
+SCALAR_TYPES="int int64_t float double"
+INDEX_TYPES="int int64_t"
+LAYOUT_TYPES="LayoutLeft LayoutRight LayoutStride"
+
+for scalar in ${SCALAR_TYPES}; do
+for index in ${INDEX_TYPES}; do
+for layout in ${LAYOUT_TYPES}; do
+  echo "Generate: " ${scalar} ${index} ${layout}
+  ${SCRIPT_PATH}/generate_view_copy_cpp_files_rank ${EXECUTION_SPACE} ${EXECUTION_SPACE_DIR} ${scalar} ${index} ${layout}
+done
+done
+done
+

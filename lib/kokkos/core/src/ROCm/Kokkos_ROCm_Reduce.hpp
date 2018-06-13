@@ -133,15 +133,10 @@ void reduce_enqueue(
       });
       t_idx.barrier.wait();
 
-      // Reduce within a tile using multiple threads.
-// even though buffer.size is always 64, the value 64 must be hard coded below
-// due to a compiler bug
-//      for(std::size_t s = 1; s < buffer.size(); s *= 2)
-      for(std::size_t s = 1; s < 64; s *= 2)
+      for(std::size_t s = 1; s < buffer.size(); s *= 2)
       {
           const std::size_t index = 2 * s * local;
-//          if (index < buffer.size())
-          if (index < 64)
+          if (index < buffer.size())
           {
               buffer.action_at(index, index + s, [&](T* x, T* y)
               {

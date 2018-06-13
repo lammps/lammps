@@ -177,53 +177,6 @@ struct TestFib
 namespace TestTaskScheduler {
 
 template< class Space >
-struct TestTaskSpawn {
-  typedef Kokkos::TaskScheduler< Space >  sched_type;
-  typedef Kokkos::Future< Space >         future_type;
-  typedef void                            value_type;
-
-  sched_type   m_sched ;
-  future_type  m_future ;
-
-  KOKKOS_INLINE_FUNCTION
-  TestTaskSpawn( const sched_type & arg_sched
-               , const future_type & arg_future
-               )
-    : m_sched( arg_sched )
-    , m_future( arg_future )
-    {}
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()( typename sched_type::member_type & )
-  {
-    if ( ! m_future.is_null() ) {
-      Kokkos::task_spawn( Kokkos::TaskSingle( m_sched ) , TestTaskSpawn( m_sched , future_type() ) );
-    }
-  }
-
-  static void run()
-  {
-    typedef typename sched_type::memory_space memory_space;
-
-    enum { MemoryCapacity = 16000 };
-    enum { MinBlockSize   =   64 };
-    enum { MaxBlockSize   = 1024 };
-    enum { SuperBlockSize = 4096 };
-
-    sched_type sched( memory_space()
-                    , MemoryCapacity
-                    , MinBlockSize
-                    , MaxBlockSize
-                    , SuperBlockSize );
-
-    auto f = Kokkos::host_spawn( Kokkos::TaskSingle( sched ), TestTaskSpawn( sched, future_type() ) );
-    Kokkos::host_spawn( Kokkos::TaskSingle( f ), TestTaskSpawn( sched, f ) );
-
-    Kokkos::wait( sched );
-  }
-};
-
-template< class Space >
 struct TestTaskDependence {
   typedef Kokkos::TaskScheduler< Space >  sched_type;
   typedef Kokkos::Future< Space >         future_type;
@@ -392,7 +345,7 @@ struct TestTaskTeam {
     tot = 0;
     Kokkos::parallel_reduce( Kokkos::TeamThreadRange( member, begin, end )
                            , [&] ( int i, long & res ) { res += parfor_result[i]; }
-                           , Kokkos::Experimental::Sum<long>( tot )
+                           , Kokkos::Sum<long>( tot )
                            );
 
     Kokkos::parallel_for( Kokkos::TeamThreadRange( member, begin, end )
@@ -637,6 +590,63 @@ struct TestTaskTeamValue {
 
 } // namespace TestTaskScheduler
 
+//----------------------------------------------------------------------------
+
+namespace TestTaskScheduler {
+
+template< class Space >
+struct TestTaskSpawnWithPool {
+  typedef Kokkos::TaskScheduler< Space >  sched_type;
+  typedef Kokkos::Future< Space >         future_type;
+  typedef void                            value_type;
+
+  sched_type   m_sched ;
+  int  m_count ;
+  Kokkos::MemoryPool<Space> m_pool ;
+
+  KOKKOS_INLINE_FUNCTION
+  TestTaskSpawnWithPool( const sched_type & arg_sched
+               , const int & arg_count
+               , const Kokkos::MemoryPool<Space> & arg_pool
+               )
+    : m_sched( arg_sched )
+    , m_count( arg_count )
+    , m_pool( arg_pool )
+    {}
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()( typename sched_type::member_type & )
+  {
+    if ( m_count ) {
+      Kokkos::task_spawn( Kokkos::TaskSingle( m_sched ) , TestTaskSpawnWithPool( m_sched , m_count - 1, m_pool ) );
+    }
+  }
+
+  static void run()
+  {
+    typedef typename sched_type::memory_space memory_space;
+
+    enum { MemoryCapacity = 16000 };
+    enum { MinBlockSize   =   64 };
+    enum { MaxBlockSize   = 1024 };
+    enum { SuperBlockSize = 4096 };
+
+    sched_type sched( memory_space()
+                    , MemoryCapacity
+                    , MinBlockSize
+                    , MaxBlockSize
+                    , SuperBlockSize );
+
+    using other_memory_space = typename Space::memory_space;
+    Kokkos::MemoryPool<Space> pool(other_memory_space(), 10000, 100, 200, 1000);
+    auto f = Kokkos::host_spawn( Kokkos::TaskSingle( sched ), TestTaskSpawnWithPool( sched, 3, pool ) );
+
+    Kokkos::wait( sched );
+  }
+};
+
+}
+
 namespace Test {
 
 TEST_F( TEST_CATEGORY, task_fib )
@@ -658,6 +668,11 @@ TEST_F( TEST_CATEGORY, task_team )
 {
   TestTaskScheduler::TestTaskTeam< TEST_EXECSPACE >::run( 1000 );
   //TestTaskScheduler::TestTaskTeamValue< TEST_EXECSPACE >::run( 1000 ); // Put back after testing.
+}
+
+TEST_F( TEST_CATEGORY, task_with_mempool )
+{
+  TestTaskScheduler::TestTaskSpawnWithPool< TEST_EXECSPACE >::run();
 }
 
 }

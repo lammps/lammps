@@ -56,8 +56,11 @@ void custom_reduction_test(int N, int R, int num_trials) {
 
   Scalar max;
 
+  int team_size = 32;
+  if ( team_size > Kokkos::DefaultExecutionSpace::concurrency() )
+    team_size = Kokkos::DefaultExecutionSpace::concurrency();
   // Warm up
-  Kokkos::parallel_reduce(Kokkos::TeamPolicy<>(N/1024,32), KOKKOS_LAMBDA( const Kokkos::TeamPolicy<>::member_type& team, Scalar& lmax) {
+  Kokkos::parallel_reduce(Kokkos::TeamPolicy<>(N/1024,team_size), KOKKOS_LAMBDA( const Kokkos::TeamPolicy<>::member_type& team, Scalar& lmax) {
     Scalar team_max = Scalar(0);
     for(int rr = 0; rr<R; rr++) {
     int i = team.league_rank();
@@ -67,17 +70,17 @@ void custom_reduction_test(int N, int R, int num_trials) {
         const Scalar val =  a((i*32 + j)*32 + k);
         if(val>lmax) lmax = val;
         if((k == 11) && (j==17) && (i==2)) lmax = 11.5;
-      },Kokkos::Experimental::Max<Scalar>(t_max));
+      },Kokkos::Max<Scalar>(t_max));
       if(t_max>thread_max) thread_max = t_max;
-    },Kokkos::Experimental::Max<Scalar>(team_max));
+    },Kokkos::Max<Scalar>(team_max));
     }
     if(team_max>lmax) lmax = team_max;
-  },Kokkos::Experimental::Max<Scalar>(max));
+  },Kokkos::Max<Scalar>(max));
 
   // Timing
   Kokkos::Timer timer;
   for(int r = 0; r<num_trials; r++) {
-    Kokkos::parallel_reduce(Kokkos::TeamPolicy<>(N/1024,32), KOKKOS_LAMBDA( const Kokkos::TeamPolicy<>::member_type& team, Scalar& lmax) {
+    Kokkos::parallel_reduce(Kokkos::TeamPolicy<>(N/1024,team_size), KOKKOS_LAMBDA( const Kokkos::TeamPolicy<>::member_type& team, Scalar& lmax) {
       Scalar team_max = Scalar(0);
       for(int rr = 0; rr<R; rr++) {
       int i = team.league_rank();
@@ -87,12 +90,12 @@ void custom_reduction_test(int N, int R, int num_trials) {
           const Scalar val =  a((i*32 + j)*32 + k);
           if(val>lmax) lmax = val;
           if((k == 11) && (j==17) && (i==2)) lmax = 11.5;
-        },Kokkos::Experimental::Max<Scalar>(t_max));
+        },Kokkos::Max<Scalar>(t_max));
         if(t_max>thread_max) thread_max = t_max;
-      },Kokkos::Experimental::Max<Scalar>(team_max));
+      },Kokkos::Max<Scalar>(team_max));
       }
       if(team_max>lmax) lmax = team_max;
-    },Kokkos::Experimental::Max<Scalar>(max));
+    },Kokkos::Max<Scalar>(max));
   }
   double time = timer.seconds();
   printf("%e %e %e\n",time,1.0*N*R*num_trials*sizeof(Scalar)/time/1024/1024/1024,max);

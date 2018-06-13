@@ -231,10 +231,12 @@ struct TestComplexSpecialFunctions {
     double c = 9.3;
 
     std::complex<double> r;
-    r = a;             ASSERT_FLOAT_EQ(h_results(0).real(),  r.real()); ASSERT_FLOAT_EQ(h_results(0).imag(),  r.imag());
-    r = std::sqrt(a);  ASSERT_FLOAT_EQ(h_results(1).real(),  r.real()); ASSERT_FLOAT_EQ(h_results(1).imag(),  r.imag());
-    r = std::pow(a,c); ASSERT_FLOAT_EQ(h_results(2).real(),  r.real()); ASSERT_FLOAT_EQ(h_results(2).imag(),  r.imag());
-    r = std::abs(a);   ASSERT_FLOAT_EQ(h_results(3).real(),  r.real()); ASSERT_FLOAT_EQ(h_results(3).imag(),  r.imag());
+    r = a;               ASSERT_FLOAT_EQ(h_results(0).real(),  r.real()); ASSERT_FLOAT_EQ(h_results(0).imag(),  r.imag());
+    r = std::sqrt(a);    ASSERT_FLOAT_EQ(h_results(1).real(),  r.real()); ASSERT_FLOAT_EQ(h_results(1).imag(),  r.imag());
+    r = std::pow(a,c);   ASSERT_FLOAT_EQ(h_results(2).real(),  r.real()); ASSERT_FLOAT_EQ(h_results(2).imag(),  r.imag());
+    r = std::abs(a);     ASSERT_FLOAT_EQ(h_results(3).real(),  r.real()); ASSERT_FLOAT_EQ(h_results(3).imag(),  r.imag());
+    r = std::exp(a);     ASSERT_FLOAT_EQ(h_results(4).real(),  r.real()); ASSERT_FLOAT_EQ(h_results(4).imag(),  r.imag());
+    r = Kokkos::exp(a);  ASSERT_FLOAT_EQ(h_results(4).real(),  r.real()); ASSERT_FLOAT_EQ(h_results(4).imag(),  r.imag());
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -247,6 +249,7 @@ struct TestComplexSpecialFunctions {
     d_results(1) = Kokkos::sqrt(a);
     d_results(2) = Kokkos::pow(a,c);
     d_results(3) = Kokkos::abs(a);
+    d_results(4) = Kokkos::exp(a);
 
   }
 };

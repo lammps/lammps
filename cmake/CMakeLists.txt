@@ -2,9 +2,9 @@
 # CMake build system
 # This file is part of LAMMPS
 # Created by Christoph Junghans and Richard Berger
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 2.8.12)
 
-project(lammps LANGUAGES CXX)
+project(lammps CXX)
 set(SOVERSION 0)
 set(LAMMPS_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../src)
 set(LAMMPS_LIB_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../lib)
@@ -129,7 +129,7 @@ foreach(PKG ${ACCEL_PACKAGES} ${OTHER_PACKAGES})
 endforeach()
 
 macro(pkg_depends PKG1 PKG2)
-  if(PKG_${PKG1} AND NOT PKG_${PKG2})
+  if(PKG_${PKG1} AND NOT (PKG_${PKG2} OR BUILD_${PKG2}))
     message(FATAL_ERROR "${PKG1} package needs LAMMPS to be build with ${PKG2}")
   endif()
 endmacro()
@@ -137,23 +137,27 @@ endmacro()
 pkg_depends(MPIIO MPI)
 pkg_depends(QEQ MANYBODY)
 pkg_depends(USER-ATC MANYBODY)
-pkg_depends(USER-H5MD MPI)
 pkg_depends(USER-LB MPI)
 pkg_depends(USER-MISC MANYBODY)
 pkg_depends(USER-PHONON KSPACE)
+pkg_depends(CORESHELL KSPACE)
 
 ######################################################
 # packages with special compiler needs or external libs
 ######################################################
 if(PKG_REAX OR PKG_MEAM OR PKG_USER-QUIP OR PKG_USER-QMMM OR PKG_LATTE)
   enable_language(Fortran)
+  list(APPEND LAMMPS_LINK_LIBS ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
 endif()
 
-if(PKG_MEAM)
+if(PKG_MEAM OR PKG_USER-H5MD OR PKG_USER-QMMM)
   enable_language(C)
 endif()
 
-if(PKG_KOKKOS OR PKG_MSCG)
+if(PKG_MSCG)
+  if (CMAKE_VERSION VERSION_LESS "3.1") 
+    message(FATAL_ERROR "For the MSCG package you need at least cmake-3.1")
+  endif()
   # starting with CMake 3.1 this is all you have to do to enforce C++11
   set(CMAKE_CXX_STANDARD 11) # C++11...
   set(CMAKE_CXX_STANDARD_REQUIRED ON) #...is required...
@@ -312,7 +316,7 @@ if(PKG_LATTE)
       message(FATAL_ERROR "LATTE not found, help CMake to find it by setting LATTE_LIBRARY, or set DOWNLOAD_LATTE=ON to download it")
     endif()
   endif()
-  list(APPEND LAMMPS_LINK_LIBS ${LATTE_LIBRARIES} ${LAPACK_LIBRARIES} ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
+  list(APPEND LAMMPS_LINK_LIBS ${LATTE_LIBRARIES} ${LAPACK_LIBRARIES})
 endif()
 
 if(PKG_USER-MOLFILE)
@@ -355,14 +359,14 @@ endif()
 
 if(PKG_USER-QUIP)
   find_package(QUIP REQUIRED)
-  list(APPEND LAMMPS_LINK_LIBS ${QUIP_LIBRARIES} ${LAPACK_LIBRARIES} ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
+  list(APPEND LAMMPS_LINK_LIBS ${QUIP_LIBRARIES} ${LAPACK_LIBRARIES})
 endif()
 
 if(PKG_USER-QMMM)
   message(WARNING "Building QMMM with CMake is still experimental")
   find_package(QE REQUIRED)
   include_directories(${QE_INCLUDE_DIRS})
-  list(APPEND LAMMPS_LINK_LIBS ${QE_LIBRARIES} ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
+  list(APPEND LAMMPS_LINK_LIBS ${QE_LIBRARIES})
 endif()
 
 if(PKG_USER-VTK)
@@ -657,6 +661,9 @@ if(PKG_USER-INTEL)
 endif()
 
 if(PKG_GPU)
+    if (CMAKE_VERSION VERSION_LESS "3.1") 
+      message(FATAL_ERROR "For the GPU package you need at least cmake-3.1")
+    endif()
     set(GPU_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/GPU)
     set(GPU_SOURCES ${GPU_SOURCES_DIR}/gpu_extra.h
                     ${GPU_SOURCES_DIR}/fix_gpu.h
@@ -753,7 +760,7 @@ if(PKG_GPU)
       add_library(gpu STATIC ${GPU_LIB_SOURCES})
       target_link_libraries(gpu ${OpenCL_LIBRARIES})
       target_include_directories(gpu PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/gpu ${OpenCL_INCLUDE_DIRS})
-      target_compile_definitions(gpu PRIVATE -D_${GPU_PREC} -DMPI_GERYON -DUCL_NO_EXIT)
+      target_compile_definitions(gpu PRIVATE -D_${GPU_PREC} -D${OCL_TUNE}_OCL -DMPI_GERYON -DUCL_NO_EXIT)
       target_compile_definitions(gpu PRIVATE -DUSE_OPENCL)
 
       list(APPEND LAMMPS_LINK_LIBS gpu)

@@ -31,6 +31,7 @@ list(APPEND KOKKOS_INTERNAL_ENABLE_OPTIONS_LIST
      Profiling_Load_Print
      Aggressive_Vectorization
      Deprecated_Code
+     Explicit_Instantiation
      )
 
 #-------------------------------------------------------------------------------
@@ -40,6 +41,7 @@ list(APPEND KOKKOS_INTERNAL_ENABLE_OPTIONS_LIST
 foreach(opt ${KOKKOS_INTERNAL_ENABLE_OPTIONS_LIST})
   string(TOUPPER ${opt} OPT )
   IF(DEFINED Kokkos_ENABLE_${opt})
+    MESSAGE("Kokkos_ENABLE_${opt} is defined!")
     IF(DEFINED KOKKOS_ENABLE_${OPT})
       IF(NOT ("${KOKKOS_ENABLE_${OPT}}" STREQUAL "${Kokkos_ENABLE_${opt}}"))
         IF(DEFINED KOKKOS_ENABLE_${OPT}_INTERNAL)
@@ -57,18 +59,16 @@ foreach(opt ${KOKKOS_INTERNAL_ENABLE_OPTIONS_LIST})
       ENDIF()
     ELSE()
       SET(KOKKOS_INTERNAL_ENABLE_${OPT}_DEFAULT ${Kokkos_ENABLE_${opt}})
+      MESSAGE("set KOKKOS_INTERNAL_ENABLE_${OPT}_DEFAULT!")
     ENDIF()
   ENDIF()
 endforeach()
 
+IF(DEFINED Kokkos_ARCH)
+  MESSAGE(FATAL_ERROR "Defined Kokkos_ARCH, use KOKKOS_ARCH instead!")
+ENDIF()
 IF(DEFINED Kokkos_Arch)
-  IF(DEFINED KOKKOS_ARCH)
-    IF(NOT (${KOKKOS_ARCH} STREQUAL "${Kokkos_Arch}"))
-      MESSAGE(FATAL_ERROR "Defined both Kokkos_Arch and KOKKOS_ARCH and they differ!")
-    ENDIF()
-  ELSE()
-    SET(KOKKOS_ARCH ${Kokkos_Arch})
-  ENDIF()
+  MESSAGE(FATAL_ERROR "Defined Kokkos_Arch, use KOKKOS_ARCH instead!")
 ENDIF()
   
 #-------------------------------------------------------------------------------
@@ -103,6 +103,8 @@ list(APPEND KOKKOS_ARCH_LIST
      Maxwell53       # (GPU) NVIDIA Maxwell generation CC 5.3
      Pascal60        # (GPU) NVIDIA Pascal generation CC 6.0
      Pascal61        # (GPU) NVIDIA Pascal generation CC 6.1
+     Volta70         # (GPU) NVIDIA Volta generation CC 7.0
+     Volta72         # (GPU) NVIDIA Volta generation CC 7.2
     )
 
 # List of possible device architectures.
@@ -267,6 +269,8 @@ set(KOKKOS_ENABLE_PROFILING_LOAD_PRINT ${KOKKOS_INTERNAL_ENABLE_PROFILING_LOAD_P
 set_kokkos_default_default(DEPRECATED_CODE ON)
 set(KOKKOS_ENABLE_DEPRECATED_CODE ${KOKKOS_INTERNAL_ENABLE_DEPRECATED_CODE_DEFAULT} CACHE BOOL "Enable deprecated code.")
 
+set_kokkos_default_default(EXPLICIT_INSTANTIATION ON)
+set(KOKKOS_ENABLE_EXPLICIT_INSTANTIATION ${KOKKOS_INTERNAL_ENABLE_EXPLICIT_INSTANTIATION_DEFAULT} CACHE BOOL "Enable explicit template instantiation.")
 
 #-------------------------------------------------------------------------------
 #------------------------------- KOKKOS_USE_TPLS -------------------------------

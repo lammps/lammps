@@ -44,4 +44,3 @@
 #include <openmp/TestOpenMP_Category.hpp>
 #include <TestReduce.hpp>
 #include <TestCXX11Deduction.hpp>
-

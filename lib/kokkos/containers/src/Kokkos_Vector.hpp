@@ -100,7 +100,7 @@ public:
 
 
   void resize(size_t n) {
-    if(n>=capacity())
+    if(n>=span())
       DV::resize(size_t (n*_extra_storage));
     _size = n;
   }
@@ -113,7 +113,7 @@ public:
 
     /* Resize if necessary (behavour of std:vector) */
 
-    if(n>capacity())
+    if(n>span())
       DV::resize(size_t (n*_extra_storage));
     _size = n;
 
@@ -138,7 +138,7 @@ public:
 
   void push_back(Scalar val) {
     DV::modified_host()++;
-    if(_size == capacity()) {
+    if(_size == span()) {
       size_t new_size = _size*_extra_storage;
       if(new_size == _size) new_size++;
       DV::resize(new_size);
@@ -159,7 +159,10 @@ public:
 
   size_type size() const {return _size;}
   size_type max_size() const {return 2000000000;}
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
   size_type capacity() const {return DV::capacity();}
+#endif
+  size_type span() const {return DV::span();}
   bool empty() const {return _size==0;}
 
   iterator begin() const {return &DV::h_view(0);}

@@ -93,6 +93,10 @@ struct TestScan {
     errors = errors_a;
 
     Kokkos::parallel_scan( N , *this );
+
+    long long int total = 0;
+    Kokkos::parallel_scan( N, *this, total );
+    run_check( size_t( ( N+1 )*N/2 ), size_t( total ) );
   }
 
   TestScan( const WorkSpec & Start , const WorkSpec & N )
@@ -102,7 +106,7 @@ struct TestScan {
     Kokkos::View< int, Device > errors_a( "Errors" );
     Kokkos::deep_copy( errors_a, 0 );
     errors = errors_a;
-
+    
     Kokkos::parallel_scan( exec_policy( Start , N ) , *this );
   }
 
@@ -112,6 +116,12 @@ struct TestScan {
       (void) TestScan( i );
     }
   }
+
+  void run_check( const size_t & expected, const size_t & actual )
+  { 
+    ASSERT_EQ( expected, actual ); 
+  }
+
 };
 
 TEST_F( TEST_CATEGORY, scan )

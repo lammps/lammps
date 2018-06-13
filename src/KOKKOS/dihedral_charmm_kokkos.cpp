@@ -506,7 +506,55 @@ void DihedralCharmmKokkos<DeviceType>::init_style()
   k_lj14_2.template sync<DeviceType>();
   k_lj14_3.template sync<DeviceType>();
   k_lj14_4.template sync<DeviceType>();
+}
 
+/* ----------------------------------------------------------------------
+   proc 0 reads coeffs from restart file, bcasts them
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void DihedralCharmmKokkos<DeviceType>::read_restart(FILE *fp)
+{
+  DihedralCharmm::read_restart(fp);
+
+  int nd = atom->ndihedraltypes;
+  Kokkos::DualView<F_FLOAT*,DeviceType> k_k("DihedralCharmm::k",nd+1);
+  Kokkos::DualView<F_FLOAT*,DeviceType> k_multiplicity("DihedralCharmm::multiplicity",nd+1);
+  Kokkos::DualView<F_FLOAT*,DeviceType> k_shift("DihedralCharmm::shift",nd+1);
+  Kokkos::DualView<F_FLOAT*,DeviceType> k_cos_shift("DihedralCharmm::cos_shift",nd+1);
+  Kokkos::DualView<F_FLOAT*,DeviceType> k_sin_shift("DihedralCharmm::sin_shift",nd+1);
+  Kokkos::DualView<F_FLOAT*,DeviceType> k_weight("DihedralCharmm::weight",nd+1);
+
+  d_k = k_k.template view<DeviceType>();
+  d_multiplicity = k_multiplicity.template view<DeviceType>();
+  d_shift = k_shift.template view<DeviceType>();
+  d_cos_shift = k_cos_shift.template view<DeviceType>();
+  d_sin_shift = k_sin_shift.template view<DeviceType>();
+  d_weight = k_weight.template view<DeviceType>();
+
+  int n = atom->ndihedraltypes;
+  for (int i = 1; i <= n; i++) {
+    k_k.h_view[i] = k[i];
+    k_multiplicity.h_view[i] = multiplicity[i];
+    k_shift.h_view[i] = shift[i];
+    k_cos_shift.h_view[i] = cos_shift[i];
+    k_sin_shift.h_view[i] = sin_shift[i];
+    k_weight.h_view[i] = weight[i];
+  }
+
+  k_k.template modify<LMPHostType>();
+  k_multiplicity.template modify<LMPHostType>();
+  k_shift.template modify<LMPHostType>();
+  k_cos_shift.template modify<LMPHostType>();
+  k_sin_shift.template modify<LMPHostType>();
+  k_weight.template modify<LMPHostType>();
+
+  k_k.template sync<DeviceType>();
+  k_multiplicity.template sync<DeviceType>();
+  k_shift.template sync<DeviceType>();
+  k_cos_shift.template sync<DeviceType>();
+  k_sin_shift.template sync<DeviceType>();
+  k_weight.template sync<DeviceType>();
 }
 
 /* ----------------------------------------------------------------------

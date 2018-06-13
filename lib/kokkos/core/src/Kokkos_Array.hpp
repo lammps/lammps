@@ -44,6 +44,8 @@
 #ifndef KOKKOS_ARRAY_HPP
 #define KOKKOS_ARRAY_HPP
 
+#include <Kokkos_Macros.hpp>
+
 #include <type_traits>
 #include <algorithm>
 #include <limits>
@@ -51,11 +53,62 @@
 
 namespace Kokkos {
 
+#ifdef KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK
+namespace Impl {
+template <typename Integral, bool Signed = std::is_signed<Integral>::value>
+struct ArrayBoundsCheck;
+
+template <typename Integral>
+struct ArrayBoundsCheck<Integral, true> {
+  KOKKOS_INLINE_FUNCTION
+  ArrayBoundsCheck(Integral i, size_t N) {
+    if (i < 0) {
+#ifdef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
+      std::string s = "Kokkos::Array: index ";
+      s += std::to_string(i);
+      s += " < 0";
+      Kokkos::Impl::throw_runtime_exception(s);
+#else
+      Kokkos::abort("Kokkos::Array: negative index in device code");
+#endif
+    }
+    ArrayBoundsCheck<Integral, false>(i, N);
+  }
+};
+
+template <typename Integral>
+struct ArrayBoundsCheck<Integral, false> {
+  KOKKOS_INLINE_FUNCTION
+  ArrayBoundsCheck(Integral i, size_t N) {
+    if ( size_t(i) >= N) {
+#ifdef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
+      std::string s = "Kokkos::Array: index ";
+      s += std::to_string(i);
+      s += " >= ";
+      s += std::to_string(N);
+      Kokkos::Impl::throw_runtime_exception(s);
+#else
+      Kokkos::abort("Kokkos::Array: index >= size");
+#endif
+    }
+  }
+};
+} // end namespace Impl
+
+#define KOKKOS_ARRAY_BOUNDS_CHECK(i, N) \
+  Kokkos::Impl::ArrayBoundsCheck<decltype(i)>(i, N)
+
+#else  // !defined( KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK )
+
+#define KOKKOS_ARRAY_BOUNDS_CHECK(i, N) (void)0
+
+#endif // !defined( KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK )
+
 /**\brief  Derived from the C++17 'std::array'.
  *         Dropping the iterator interface.
  */
 template< class T      = void
-        , size_t N     = ~size_t(0)
+        , size_t N     =KOKKOS_INVALID_INDEX
         , class Proxy  = void
         >
 struct Array {
@@ -85,6 +138,7 @@ public:
   reference operator[]( const iType & i )
     {
       static_assert( ( std::is_integral<iType>::value || std::is_enum<iType>::value ) , "Must be integral argument" );
+      KOKKOS_ARRAY_BOUNDS_CHECK(i, N);
       return m_internal_implementation_private_member_data[i];
     }
 
@@ -93,6 +147,7 @@ public:
   const_reference operator[]( const iType & i ) const
     {
       static_assert( ( std::is_integral<iType>::value || std::is_enum<iType>::value ) , "Must be integral argument" );
+      KOKKOS_ARRAY_BOUNDS_CHECK(i, N);
       return m_internal_implementation_private_member_data[i];
     }
 
@@ -105,16 +160,26 @@ public:
       return & m_internal_implementation_private_member_data[0];
     }
 
+  #ifdef KOKKOS_ROCM_CLANG_WORKAROUND
   // Do not default unless move and move-assignment are also defined
-  // ~Array() = default ;
-  // Array() = default ;
-  // Array( const Array & ) = default ;
-  // Array & operator = ( const Array & ) = default ;
+  KOKKOS_INLINE_FUNCTION
+  ~Array() = default ;
+  Array() = default ;
+  Array( const Array & ) = default ;
+  Array & operator = ( const Array & ) = default ;
 
   // Some supported compilers are not sufficiently C++11 compliant
   // for default move constructor and move assignment operator.
-  // Array( Array && ) = default ;
-  // Array & operator = ( Array && ) = default ;
+  Array( Array && ) = default ;
+  Array & operator = ( Array && ) = default ;
+ 
+  KOKKOS_INLINE_FUNCTION
+  Array(const std::initializer_list<T>& vals) {
+    for(int i=0; i<N; i++) {
+      m_internal_implementation_private_member_data[i] = vals.begin()[i];
+    }
+  }
+  #endif
 };
 
 
@@ -152,10 +217,17 @@ public:
   KOKKOS_INLINE_FUNCTION pointer       data()       { return pointer(0) ; }
   KOKKOS_INLINE_FUNCTION const_pointer data() const { return const_pointer(0); }
 
-  KOKKOS_FUNCTION_DEFAULTED ~Array() = default ;
-  KOKKOS_FUNCTION_DEFAULTED Array() = default ;
-  KOKKOS_FUNCTION_DEFAULTED Array( const Array & ) = default ;
-  KOKKOS_FUNCTION_DEFAULTED Array & operator = ( const Array & ) = default ;
+#ifdef KOKKOS_CUDA_9_DEFAULTED_BUG_WORKAROUND
+  KOKKOS_INLINE_FUNCTION ~Array() {}
+  KOKKOS_INLINE_FUNCTION Array() {}
+  KOKKOS_INLINE_FUNCTION Array( const Array & ) {}
+  KOKKOS_INLINE_FUNCTION Array & operator = ( const Array & ) {}
+#else
+  KOKKOS_INLINE_FUNCTION ~Array() = default;
+  KOKKOS_INLINE_FUNCTION Array() = default;
+  KOKKOS_INLINE_FUNCTION Array( const Array & ) = default;
+  KOKKOS_INLINE_FUNCTION Array & operator = ( const Array & ) = default;
+#endif
 
   // Some supported compilers are not sufficiently C++11 compliant
   // for default move constructor and move assignment operator.
@@ -165,14 +237,14 @@ public:
 
 
 template<>
-struct Array<void,~size_t(0),void>
+struct Array<void,KOKKOS_INVALID_INDEX,void>
 {
   struct contiguous {};
   struct strided {};
 };
 
 template< class T >
-struct Array< T , ~size_t(0) , Array<>::contiguous >
+struct Array< T ,KOKKOS_INVALID_INDEX , Array<>::contiguous >
 {
 private:
   T *    m_elem ;
@@ -195,6 +267,7 @@ public:
   reference operator[]( const iType & i )
     {
       static_assert( ( std::is_integral<iType>::value || std::is_enum<iType>::value ) , "Must be integral argument" );
+      KOKKOS_ARRAY_BOUNDS_CHECK(i, m_size);
       return m_elem[i];
     }
 
@@ -203,13 +276,18 @@ public:
   const_reference operator[]( const iType & i ) const
     {
       static_assert( ( std::is_integral<iType>::value || std::is_enum<iType>::value ) , "Must be integral argument" );
+      KOKKOS_ARRAY_BOUNDS_CHECK(i, m_size);
       return m_elem[i];
     }
 
   KOKKOS_INLINE_FUNCTION pointer       data()       { return m_elem ; }
   KOKKOS_INLINE_FUNCTION const_pointer data() const { return m_elem ; }
 
-  KOKKOS_FUNCTION_DEFAULTED ~Array() = default ;
+#ifdef KOKKOS_CUDA_9_DEFAULTED_BUG_WORKAROUND
+  KOKKOS_INLINE_FUNCTION ~Array() {}
+#else
+  KOKKOS_INLINE_FUNCTION ~Array() = default;
+#endif
   Array() = delete ;
   Array( const Array & rhs ) = delete ;
 
@@ -240,7 +318,7 @@ public:
 };
 
 template< class T >
-struct Array< T , ~size_t(0) , Array<>::strided >
+struct Array< T ,KOKKOS_INVALID_INDEX , Array<>::strided >
 {
 private:
   T *    m_elem ;
@@ -264,6 +342,7 @@ public:
   reference operator[]( const iType & i )
     {
       static_assert( ( std::is_integral<iType>::value || std::is_enum<iType>::value ) , "Must be integral argument" );
+      KOKKOS_ARRAY_BOUNDS_CHECK(i, m_size);
       return m_elem[i*m_stride];
     }
 
@@ -272,13 +351,18 @@ public:
   const_reference operator[]( const iType & i ) const
     {
       static_assert( ( std::is_integral<iType>::value || std::is_enum<iType>::value ) , "Must be integral argument" );
+      KOKKOS_ARRAY_BOUNDS_CHECK(i, m_size);
       return m_elem[i*m_stride];
     }
 
   KOKKOS_INLINE_FUNCTION pointer       data()       { return m_elem ; }
   KOKKOS_INLINE_FUNCTION const_pointer data() const { return m_elem ; }
 
-  KOKKOS_FUNCTION_DEFAULTED ~Array() = default ;
+#ifdef KOKKOS_CUDA_9_DEFAULTED_BUG_WORKAROUND
+  KOKKOS_INLINE_FUNCTION ~Array() {}
+#else
+  KOKKOS_INLINE_FUNCTION ~Array() = default;
+#endif
   Array()  = delete ;
   Array( const Array & ) = delete ;
 

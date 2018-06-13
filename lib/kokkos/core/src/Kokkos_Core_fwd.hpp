@@ -84,6 +84,7 @@ struct InvalidType {};
 namespace Kokkos {
 
 class HostSpace; ///< Memory space for main process and CPU execution spaces
+class AnonymousSpace;
 
 #ifdef KOKKOS_ENABLE_HBWSPACE
 namespace Experimental {
@@ -214,7 +215,6 @@ struct VerifyExecutionCanAccessMemorySpace< Space, Space >
   KOKKOS_INLINE_FUNCTION static void verify(void) {}
   KOKKOS_INLINE_FUNCTION static void verify(const void *) {}
 };
-
 } // namespace Impl
 
 } // namespace Kokkos
@@ -239,11 +239,22 @@ namespace Kokkos {
 
 namespace Impl {
 
+template< class DstSpace, class SrcSpace, class ExecutionSpace = typename DstSpace::execution_space >
+struct DeepCopy;
+
+template<class ViewType, class Layout, class ExecSpace, int Rank, typename iType>
+struct ViewFillETIAvail;
+
 template<class ViewType, class Layout = typename ViewType::array_layout,
-         class ExecSpace = typename ViewType::execution_space, int Rank = ViewType::Rank, typename iType = int64_t>
+         class ExecSpace = typename ViewType::execution_space, int Rank = ViewType::Rank, typename iType = int64_t,
+         bool EtiAvail = ViewFillETIAvail<ViewType,Layout,ExecSpace,Rank,iType>::value>
 struct ViewFill;
 
 template<class ViewTypeA,class ViewTypeB, class Layout, class ExecSpace, int Rank, typename iType>
+struct ViewCopyETIAvail;
+
+template<class ViewTypeA,class ViewTypeB, class Layout, class ExecSpace, int Rank, typename iType,
+         bool EtiAvail = ViewCopyETIAvail<ViewTypeA,ViewTypeB,Layout,ExecSpace,Rank,iType>::value>
 struct ViewCopy;
 
 template< class Functor
@@ -283,9 +294,12 @@ template< class FunctorType, class ExecPolicy, class ExecutionSapce =
           typename Impl::FunctorPolicyExecutionSpace< FunctorType, ExecPolicy >::execution_space
         > class ParallelScan;
 
+template< class FunctorType, class ExecPolicy, class ReturnType = InvalidType, class ExecutionSapce =
+          typename Impl::FunctorPolicyExecutionSpace< FunctorType, ExecPolicy >::execution_space
+        > class ParallelScanWithTotal;
+
 } // namespace Impl
 
-namespace Experimental {
 template<class ScalarType , class Space = HostSpace> struct Sum;
 template<class ScalarType , class Space = HostSpace> struct Prod;
 template<class ScalarType , class Space = HostSpace> struct Min;
@@ -298,8 +312,34 @@ template<class ScalarType , class Space = HostSpace> struct BAnd;
 template<class ScalarType , class Space = HostSpace> struct BOr;
 template<class ScalarType , class Space = HostSpace> struct LAnd;
 template<class ScalarType , class Space = HostSpace> struct LOr;
-}
+
+
 } // namespace Kokkos
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
+namespace Kokkos{
+  template<class ScalarType> struct MinMaxScalar;
+  template<class ScalarType, class Index> struct MinMaxLocScalar;
+  template<class ScalarType, class Index> struct ValLocScalar;
+
+  namespace Experimental {
+    using Kokkos::Sum;
+    using Kokkos::Prod;
+    using Kokkos::Min;
+    using Kokkos::Max;
+    using Kokkos::MinMax;
+    using Kokkos::MinLoc;
+    using Kokkos::MaxLoc;
+    using Kokkos::MinMaxLoc;
+    using Kokkos::BAnd;
+    using Kokkos::BOr;
+    using Kokkos::LAnd;
+    using Kokkos::LOr;
+    using Kokkos::MinMaxScalar;
+    using Kokkos::MinMaxLocScalar;
+    using Kokkos::ValLocScalar;
+  }
+}
+#endif
 
 #endif /* #ifndef KOKKOS_CORE_FWD_HPP */
 

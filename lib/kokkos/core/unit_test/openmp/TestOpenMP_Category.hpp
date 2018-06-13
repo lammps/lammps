@@ -41,8 +41,8 @@
 //@HEADER
 */
 
-#ifndef KOKKOS_TEST_THREADS_HPP
-#define KOKKOS_TEST_THREADS_HPP
+#ifndef KOKKOS_TEST_OMP_HPP
+#define KOKKOS_TEST_OMP_HPP
 
 #include <gtest/gtest.h>
 

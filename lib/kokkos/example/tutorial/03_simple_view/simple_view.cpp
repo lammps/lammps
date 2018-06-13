@@ -114,29 +114,31 @@ struct ReduceFunctor {
 
 int main (int argc, char* argv[]) {
   Kokkos::initialize (argc, argv);
-  const int N = 10;
+  {
+    const int N = 10;
 
-  // Allocate the View.  The first dimension is a run-time parameter
-  // N.  We set N = 10 here.  The second dimension is a compile-time
-  // parameter, 3.  We don't specify it here because we already set it
-  // by declaring the type of the View.
-  //
-  // Views get initialized to zero by default.  This happens in
-  // parallel, using the View's memory space's default execution
-  // space.  Parallel initialization ensures first-touch allocation.
-  // There is a way to shut off default initialization.
-  //
-  // You may NOT allocate a View inside of a parallel_{for, reduce,
-  // scan}.  Treat View allocation as a "thread collective."
-  //
-  // The string "A" is just the label; it only matters for debugging.
-  // Different Views may have the same label.
-  view_type a ("A", N);
+    // Allocate the View.  The first dimension is a run-time parameter
+    // N.  We set N = 10 here.  The second dimension is a compile-time
+    // parameter, 3.  We don't specify it here because we already set it
+    // by declaring the type of the View.
+    //
+    // Views get initialized to zero by default.  This happens in
+    // parallel, using the View's memory space's default execution
+    // space.  Parallel initialization ensures first-touch allocation.
+    // There is a way to shut off default initialization.
+    //
+    // You may NOT allocate a View inside of a parallel_{for, reduce,
+    // scan}.  Treat View allocation as a "thread collective."
+    //
+    // The string "A" is just the label; it only matters for debugging.
+    // Different Views may have the same label.
+    view_type a ("A", N);
 
-  Kokkos::parallel_for (N, InitView (a));
-  double sum = 0;
-  Kokkos::parallel_reduce (N, ReduceFunctor (a), sum);
-  printf ("Result: %f\n", sum);
+    Kokkos::parallel_for (N, InitView (a));
+    double sum = 0;
+    Kokkos::parallel_reduce (N, ReduceFunctor (a), sum);
+    printf ("Result: %f\n", sum);
+  } // use this scope to ensure the lifetime of "A" ends before finalize
   Kokkos::finalize ();
 }
 

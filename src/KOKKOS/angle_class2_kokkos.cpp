@@ -401,6 +401,85 @@ void AngleClass2Kokkos<DeviceType>::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+   proc 0 reads coeffs from restart file, bcasts them
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void AngleClass2Kokkos<DeviceType>::read_restart(FILE *fp)
+{
+  AngleClass2::read_restart(fp);
+
+  int n = atom->nangletypes;
+  k_k2 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::k2",n+1);
+  k_k3 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::k3",n+1);
+  k_k4 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::k4",n+1);
+  k_bb_k = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::bb_k",n+1);
+  k_bb_r1 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::bb_r1",n+1);
+  k_bb_r2 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::bb_r2",n+1);
+  k_ba_k1 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::ba_k1",n+1);
+  k_ba_k2 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::ba_k2",n+1);
+  k_ba_r1 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::ba_r1",n+1);
+  k_ba_r2 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::ba_r2",n+1);
+  k_setflag = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::setflag",n+1);
+  k_setflag_a = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::setflag_a",n+1);
+  k_setflag_bb = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::setflag_bb",n+1);
+  k_setflag_ba = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::setflag_ba",n+1);
+  k_theta0 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::theta0",n+1);
+
+  d_k2 = k_k2.template view<DeviceType>();
+  d_k3 = k_k3.template view<DeviceType>();
+  d_k4 = k_k4.template view<DeviceType>();
+  d_bb_k = k_bb_k.template view<DeviceType>();
+  d_bb_r1 = k_bb_r1.template view<DeviceType>();
+  d_bb_r2 = k_bb_r2.template view<DeviceType>();
+  d_ba_k1 = k_ba_k1.template view<DeviceType>();
+  d_ba_k2 = k_ba_k2.template view<DeviceType>();
+  d_ba_r1 = k_ba_r1.template view<DeviceType>();
+  d_ba_r2 = k_ba_r2.template view<DeviceType>();
+  d_ba_r2 = k_ba_r2.template view<DeviceType>();
+  d_setflag = k_setflag.template view<DeviceType>();
+  d_setflag_a = k_setflag_a.template view<DeviceType>();
+  d_setflag_bb = k_setflag_bb.template view<DeviceType>();
+  d_setflag_ba = k_setflag_ba.template view<DeviceType>();
+  d_theta0 = k_theta0.template view<DeviceType>();
+
+  //int n = atom->nangletypes;
+  for (int i = 1; i <= n; i++) {
+    k_k2.h_view[i] = k2[i];
+    k_k3.h_view[i] = k3[i];
+    k_k4.h_view[i] = k4[i];
+    k_bb_k.h_view[i] = bb_k[i];
+    k_bb_r1.h_view[i] = bb_r1[i];
+    k_bb_r2.h_view[i] = bb_r2[i];
+    k_ba_k1.h_view[i] = ba_k1[i];
+    k_ba_k2.h_view[i] = ba_k2[i];
+    k_ba_r1.h_view[i] = ba_r1[i];
+    k_ba_r2.h_view[i] = ba_r2[i];
+    k_setflag.h_view[i] = setflag[i];
+    k_setflag_a.h_view[i] = setflag_a[i];
+    k_setflag_bb.h_view[i] = setflag_bb[i];
+    k_setflag_ba.h_view[i] = setflag_ba[i];
+    k_theta0.h_view[i] = theta0[i];
+  }
+
+  k_k2.template modify<LMPHostType>();
+  k_k3.template modify<LMPHostType>();
+  k_k4.template modify<LMPHostType>();
+  k_bb_k.template modify<LMPHostType>();
+  k_bb_r1.template modify<LMPHostType>();
+  k_bb_r2.template modify<LMPHostType>();
+  k_ba_k1.template modify<LMPHostType>();
+  k_ba_k2.template modify<LMPHostType>();
+  k_ba_r1.template modify<LMPHostType>();
+  k_ba_r2.template modify<LMPHostType>();
+  k_setflag.template modify<LMPHostType>();
+  k_setflag_a.template modify<LMPHostType>();
+  k_setflag_bb.template modify<LMPHostType>();
+  k_setflag_ba.template modify<LMPHostType>();
+  k_theta0.template modify<LMPHostType>();
+}
+
+/* ----------------------------------------------------------------------
    tally energy and virial into global and per-atom accumulators
    virial = r1F1 + r2F2 + r3F3 = (r1-r2) F1 + (r3-r2) F3 = del1*f1 + del2*f3
 ------------------------------------------------------------------------- */

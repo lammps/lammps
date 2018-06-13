@@ -42,162 +42,68 @@
 */
 
 #include <Kokkos_Macros.hpp>
-#include <Kokkos_Atomic.hpp>
 
 #include <impl/Kokkos_HostBarrier.hpp>
-#include <impl/Kokkos_Spinwait.hpp>
+#include <impl/Kokkos_BitOps.hpp>
 
-#include <chrono>
+#include <impl/Kokkos_HostBarrier.hpp>
+
+#if !defined( _WIN32 )
+  #include <sched.h>
+  #include <time.h>
+#else
+  #include <process.h>
+  #include <winsock2.h>
+  #include <windows.h>
+#endif
 
 namespace Kokkos { namespace Impl {
 
-namespace {
-
-inline constexpr int length64( const int nthreads ) noexcept
+void HostBarrier::impl_backoff_wait_until_equal( int * ptr
+                                               , const int v
+                                               , const bool active_wait
+                                               ) noexcept
 {
-  return (nthreads-1 + sizeof(uint64_t)-1) / sizeof(uint64_t);
-}
+  #if !defined( _WIN32 )
+  timespec req ;
+  req.tv_sec  = 0 ;
+  unsigned count = 0u;
 
-} // namespace
-
-void rendezvous_initialize( volatile void * buffer
-                          , const int size
-                          , const int rank
-                          ) noexcept
-{
-  Kokkos::store_fence();
-
-  // ensure that the buffer has been zero'd out
-  constexpr uint8_t  zero8  = static_cast<uint8_t>(0);
-  constexpr uint64_t zero64 = static_cast<uint64_t>(0);
-
-  volatile uint64_t * header = reinterpret_cast<volatile uint64_t *>(buffer);
-
-  if (rank > 0) {
-    volatile uint8_t * bytes = reinterpret_cast<volatile uint8_t *>(buffer) + RENDEZVOUS_HEADER;
-
-    bytes[rank-1] = zero8;
-
-    // last thread is responsible for zeroing out the final bytes of the last uint64_t
-    if (rank == size-1) {
-      const int tmp  = (size-1) % sizeof(uint64_t);
-      const int rem = tmp ? sizeof(uint64_t) - tmp : 0;
-      for (int i=0; i<rem; ++i) {
-        bytes[rank+i] = zero8;
-      }
+  while (!test_equal( ptr, v )) {
+    const int c = ::Kokkos::log2(++count);
+    if ( !active_wait || c > log2_iterations_till_sleep) {
+      req.tv_nsec = c < 16 ? 256*c : 4096;
+      nanosleep( &req, nullptr );
     }
-
-    spinwait_until_equal( *header, zero64 );
+    else if (c > log2_iterations_till_yield) {
+      sched_yield();
+    }
+    #if defined( KOKKOS_ENABLE_ASM )
+    #if   defined( __PPC64__ )
+    for (int j=0; j<num_nops; ++j) {
+      asm volatile( "nop\n" );
+    }
+    asm volatile( "or 27, 27, 27" ::: "memory" );
+    #elif defined( __amd64 )  || defined( __amd64__ ) || \
+          defined( __x86_64 ) || defined( __x86_64__ )
+    for (int j=0; j<num_nops; ++j) {
+      asm volatile( "nop\n" );
+    }
+    asm volatile( "pause\n":::"memory" );
+    #endif
+    #endif
   }
-  else {
-
-    const int n = length64(size);
-    volatile uint64_t * buff = reinterpret_cast<volatile uint64_t *>(buffer) + RENDEZVOUS_HEADER/sizeof(uint64_t);
-
-    // wait for other threads to finish initializing
-    for (int i=0; i<n; ++i) {
-      root_spinwait_until_equal( buff[i], zero64 );
+  #else // _WIN32
+  while (!try_wait()) {
+    #if defined( KOKKOS_ENABLE_ASM )
+    for (int j=0; j<num_nops; ++j) {
+      __asm__ __volatile__( "nop\n" );
     }
-
-    // release the waiting threads
-    *header = zero64;
-    Kokkos::store_fence();
+    __asm__ __volatile__( "pause\n":::"memory" );
+    #endif
   }
-  Kokkos::load_fence();
-}
-
-bool rendezvous( volatile void * buffer
-               , uint64_t &      step
-               , const int       size
-               , const int       rank
-               , bool            active_wait
-               ) noexcept
-{
-  // Force all outstanding stores from this thread to retire before continuing
-  Kokkos::store_fence();
-
-  // guarantees that will never spinwait on a spin_value of 0
-  step = static_cast<uint8_t>(step + 1u)
-         ? step + 1u
-         : step + 2u
-         ;
-
-  // if size == 1, it is incorrect for rank 0 to check the tail value of the buffer
-  // this optimization prevents a potential read of uninitialized memory
-  if ( size == 1 ) { return true; }
-
-  const uint8_t byte_value  = static_cast<uint8_t>(step);
-
-  // byte that is set in the spin_value rotates every time
-  // this prevents threads from overtaking the master thread
-  const uint64_t spin_value = static_cast<uint64_t>(byte_value) << (byte_value&7);
-
-  if ( rank > 0 ) {
-    volatile uint64_t * header = reinterpret_cast<volatile uint64_t *>(buffer);
-    volatile uint8_t *  bytes  = reinterpret_cast<volatile uint8_t *>(buffer) + RENDEZVOUS_HEADER;
-
-    bytes[ rank-1 ] = byte_value;
-
-    if ( active_wait ) {
-      spinwait_until_equal( *header, spin_value );
-    }
-    else {
-      yield_until_equal( *header, spin_value );
-    }
-  }
-  else { // rank 0
-    volatile uint64_t * buff = reinterpret_cast<volatile uint64_t *>(buffer) + RENDEZVOUS_HEADER/sizeof(uint64_t);
-    const int n = length64(size);
-
-    uint64_t comp = byte_value;
-    comp = comp | (comp << 8);
-    comp = comp | (comp << 16);
-    comp = comp | (comp << 32);
-
-    const int rem  = (size-1) % sizeof(uint64_t);
-
-    union {
-      volatile uint64_t value;
-      volatile uint8_t  array[sizeof(uint64_t)];
-    } tmp{};
-
-    for (int i=0; i<rem; ++i) {
-      tmp.array[i] = byte_value;
-    }
-
-    const uint64_t tail = rem ? tmp.value : comp;
-
-    for (int i=0; i<n-1; ++i) {
-      root_spinwait_until_equal( buff[i], comp );
-    }
-    root_spinwait_until_equal( buff[n-1], tail );
-
-  }
-
-  // Force all outstanding stores from other threads to retire before allowing
-  // this thread to continue.  This forces correctness on systems with out-of-order
-  // memory (Power and ARM)
-  Kokkos::load_fence();
-
-  return rank == 0;
-}
-
-void rendezvous_release( volatile void * buffer
-                       , const uint64_t  step
-                       ) noexcept
-{
-  const uint8_t       byte_value = static_cast<uint8_t>(step);
-  const uint64_t      spin_value = static_cast<uint64_t>(byte_value) << (byte_value&7);
-  volatile uint64_t * header     = reinterpret_cast<volatile uint64_t *>(buffer);
-
-  // Force all outstanding stores from this thread to retire before releasing
-  // the other threads.  This forces correctness on systems with out-of-order
-  // memory (Power and ARM)
-  Kokkos::store_fence();
-
-  *header = spin_value;
-
-  Kokkos::memory_fence();
+  #endif
+  //printf("W: %d\n", count);
 }
 
 }} // namespace Kokkos::Impl

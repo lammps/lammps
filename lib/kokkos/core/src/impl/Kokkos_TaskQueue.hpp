@@ -180,7 +180,11 @@ public:
   TaskBase & operator = ( TaskBase && ) = delete ;
   TaskBase & operator = ( const TaskBase & ) = delete ;
 
-  KOKKOS_INLINE_FUNCTION_DEFAULTED ~TaskBase() = default ;
+#ifdef KOKKOS_CUDA_9_DEFAULTED_BUG_WORKAROUND
+  KOKKOS_INLINE_FUNCTION ~TaskBase() {};
+#else
+  KOKKOS_INLINE_FUNCTION ~TaskBase() = default;
+#endif
 
   KOKKOS_INLINE_FUNCTION constexpr
   TaskBase()

@@ -80,7 +80,7 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int first_gpu,
   char node_name[MPI_MAX_PROCESSOR_NAME];
   char *node_names = new char[MPI_MAX_PROCESSOR_NAME*_world_size];
   MPI_Get_processor_name(node_name,&name_length);
-  MPI_Allgather(&node_name,MPI_MAX_PROCESSOR_NAME,MPI_CHAR,&node_names,
+  MPI_Allgather(&node_name,MPI_MAX_PROCESSOR_NAME,MPI_CHAR,&node_names[0],
                 MPI_MAX_PROCESSOR_NAME,MPI_CHAR,_comm_world);
   std::string node_string=std::string(node_name);
 

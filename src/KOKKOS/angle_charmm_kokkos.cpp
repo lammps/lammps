@@ -292,7 +292,44 @@ void AngleCharmmKokkos<DeviceType>::coeff(int narg, char **arg)
   k_theta0.template sync<DeviceType>();
   k_k_ub.template sync<DeviceType>();
   k_r_ub.template sync<DeviceType>();
+}
 
+/* ----------------------------------------------------------------------
+   proc 0 reads coeffs from restart file, bcasts them
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void AngleCharmmKokkos<DeviceType>::read_restart(FILE *fp)
+{
+  AngleCharmm::read_restart(fp);
+
+  int n = atom->nangletypes;
+  Kokkos::DualView<F_FLOAT*,DeviceType> k_k("AngleCharmm::k",n+1);
+  Kokkos::DualView<F_FLOAT*,DeviceType> k_theta0("AngleCharmm::theta0",n+1);
+  Kokkos::DualView<F_FLOAT*,DeviceType> k_k_ub("AngleCharmm::k_ub",n+1);
+  Kokkos::DualView<F_FLOAT*,DeviceType> k_r_ub("AngleCharmm::r_ub",n+1);
+
+  d_k = k_k.template view<DeviceType>();
+  d_theta0 = k_theta0.template view<DeviceType>();
+  d_k_ub = k_k_ub.template view<DeviceType>();
+  d_r_ub = k_r_ub.template view<DeviceType>();
+
+  for (int i = 1; i <= n; i++) {
+    k_k.h_view[i] = k[i];
+    k_theta0.h_view[i] = theta0[i];
+    k_k_ub.h_view[i] = k_ub[i];
+    k_r_ub.h_view[i] = r_ub[i];
+  }
+
+  k_k.template modify<LMPHostType>();
+  k_theta0.template modify<LMPHostType>();
+  k_k_ub.template modify<LMPHostType>();
+  k_r_ub.template modify<LMPHostType>();
+
+  k_k.template sync<DeviceType>();
+  k_theta0.template sync<DeviceType>();
+  k_k_ub.template sync<DeviceType>();
+  k_r_ub.template sync<DeviceType>();
 }
 
 /* ----------------------------------------------------------------------

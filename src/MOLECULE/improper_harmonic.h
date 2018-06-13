@@ -32,7 +32,7 @@ class ImproperHarmonic : public Improper {
   virtual void compute(int, int);
   virtual void coeff(int, char **);
   void write_restart(FILE *);
-  void read_restart(FILE *);
+  virtual void read_restart(FILE *);
   void write_data(FILE *);
 
  protected:

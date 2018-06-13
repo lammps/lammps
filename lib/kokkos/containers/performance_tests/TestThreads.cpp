@@ -81,12 +81,12 @@ protected:
 
     std::cout << "Threads: " << num_threads << std::endl;
 
-    Kokkos::Threads::initialize( num_threads );
+    Kokkos::initialize( Kokkos::InitArguments(num_threads) );
   }
 
   static void TearDownTestCase()
   {
-    Kokkos::Threads::finalize();
+    Kokkos::finalize();
   }
 };
 

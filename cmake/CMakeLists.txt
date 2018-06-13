@@ -760,7 +760,7 @@ if(PKG_GPU)
       add_library(gpu STATIC ${GPU_LIB_SOURCES})
       target_link_libraries(gpu ${OpenCL_LIBRARIES})
       target_include_directories(gpu PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/gpu ${OpenCL_INCLUDE_DIRS})
-      target_compile_definitions(gpu PRIVATE -D_${GPU_PREC} -DMPI_GERYON -DUCL_NO_EXIT)
+      target_compile_definitions(gpu PRIVATE -D_${GPU_PREC} -D${OCL_TUNE}_OCL -DMPI_GERYON -DUCL_NO_EXIT)
       target_compile_definitions(gpu PRIVATE -DUSE_OPENCL)
 
       list(APPEND LAMMPS_LINK_LIBS gpu)

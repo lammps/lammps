@@ -48,7 +48,7 @@ Lists of both kinds of directories are given below.
 
 :line
 
-Lowercase directories :h3
+Lowercase directories :h4
 
 accelerate: run with various acceleration options (OpenMP, GPU, Phi)
 airebo:   polyethylene with AIREBO potential
@@ -124,7 +124,7 @@ browser.
 
 :line
 
-Uppercase directories :h3
+Uppercase directories :h4
 
 ASPHERE: various aspherical particle models, using ellipsoids, rigid bodies, line/triangle particles, etc
 COUPLE: examples of how to use LAMMPS as a library

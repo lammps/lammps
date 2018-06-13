@@ -7,7 +7,7 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :line
 
-Basics of running LAMMPS :hx
+Basics of running LAMMPS :h3
 
 LAMMPS is run from the command line, reading commands from standard
 input:

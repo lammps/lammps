@@ -7,7 +7,7 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :line
 
-General tips :he
+General tips :h3
 
 NOTE: this section 5.2 is still a work in progress
 

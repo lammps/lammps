@@ -1663,6 +1663,8 @@ void Input::min_style()
 
 void Input::molecule()
 {
+  if (domain->box_exist == 0)
+    error->all(FLERR,"Molecule command before simulation box is defined");
   atom->add_molecule(narg,arg);
 }
 

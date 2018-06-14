@@ -1,0 +1,41 @@
+"Higher level section"_Build.html - "LAMMPS WWW Site"_lws - "LAMMPS
+Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+Packages that require additional settings :h3
+
+Several packages contain code that is optimized for specific hardware,
+e.g. CPU, KNL, or GPU.  These are the OPT, GPU, KOKKOS, USER-INTEL,
+and USER-OMP packages.  Compiling and linking the source files in
+these accelerator packages for optimal performance requires specific
+settings in the Makefile.machine file you use.
+
+A summary of the Makefile.machine settings needed for each of these
+packages is given in "Section 4"_Section_packages.html.  More info is
+given on the doc pages that describe each package in detail:
+
+5.3.1 "USER-INTEL package"_accelerate_intel.html
+5.3.2 "GPU package"_accelerate_intel.html
+5.3.3 "KOKKOS package"_accelerate_kokkos.html
+5.3.4 "USER-OMP package"_accelerate_omp.html
+5.3.5 "OPT package"_accelerate_opt.html :all(b)
+
+You can also use or examine the following machine Makefiles in
+src/MAKE/OPTIONS, which include the settings.  Note that the
+USER-INTEL and KOKKOS packages can use settings that build LAMMPS for
+different hardware.  The USER-INTEL package can be compiled for Intel
+CPUs and KNLs; the KOKKOS package builds for CPUs (OpenMP), GPUs
+(CUDA), and Intel KNLs.
+
+Makefile.intel_cpu
+Makefile.intel_phi
+Makefile.kokkos_omp
+Makefile.kokkos_cuda_mpi
+Makefile.kokkos_phi
+Makefile.omp
+Makefile.opt :ul

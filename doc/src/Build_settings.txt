@@ -1,0 +1,110 @@
+"Higher level section"_Build.html - "LAMMPS WWW Site"_lws - "LAMMPS
+Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+Other settings for a LAMMPS build :h3
+
+The "system-specific settings" section has several parts.  Note that
+if you change any -D setting in this section, you should do a full
+re-compile, after typing "make clean" (which will describe different
+clean options).
+
+The LMP_INC variable is used to include options that turn on ifdefs
+within the LAMMPS code.  The options that are currently recognized are:
+
+-DLAMMPS_GZIP
+-DLAMMPS_JPEG
+-DLAMMPS_PNG
+-DLAMMPS_FFMPEG
+-DLAMMPS_MEMALIGN
+-DLAMMPS_SMALLBIG
+-DLAMMPS_BIGBIG
+-DLAMMPS_SMALLSMALL
+-DLAMMPS_LONGLONG_TO_LONG
+-DLAMMPS_EXCEPTIONS
+-DPACK_ARRAY
+-DPACK_POINTER
+-DPACK_MEMCPY :ul
+
+The read_data and dump commands will read/write gzipped files if you
+compile with -DLAMMPS_GZIP.  It requires that your machine supports
+the "popen()" function in the standard runtime library and that a gzip
+executable can be found by LAMMPS during a run.
+
+NOTE: on some clusters with high-speed networks, using the fork()
+library calls (required by popen()) can interfere with the fast
+communication library and lead to simulations using compressed output
+or input to hang or crash. For selected operations, compressed file
+I/O is also available using a compression library instead, which are
+provided in the COMPRESS package. From more details about compiling
+LAMMPS with packages, please see below.
+
+If you use -DLAMMPS_JPEG, the "dump image"_dump_image.html command
+will be able to write out JPEG image files. For JPEG files, you must
+also link LAMMPS with a JPEG library, as described below. If you use
+-DLAMMPS_PNG, the "dump image"_dump.html command will be able to write
+out PNG image files.  For PNG files, you must also link LAMMPS with a
+PNG library, as described below.  If neither of those two defines are
+used, LAMMPS will only be able to write out uncompressed PPM image
+files.
+
+If you use -DLAMMPS_FFMPEG, the "dump movie"_dump_image.html command
+will be available to support on-the-fly generation of rendered movies
+the need to store intermediate image files. It requires that your
+machines supports the "popen" function in the standard runtime library
+and that an FFmpeg executable can be found by LAMMPS during the run.
+
+NOTE: Similar to the note above, this option can conflict with
+high-speed networks, because it uses popen().
+
+Using -DLAMMPS_MEMALIGN=<bytes> enables the use of the
+posix_memalign() call instead of malloc() when large chunks or memory
+are allocated by LAMMPS.  This can help to make more efficient use of
+vector instructions of modern CPUS, since dynamically allocated memory
+has to be aligned on larger than default byte boundaries (e.g. 16
+bytes instead of 8 bytes on x86 type platforms) for optimal
+performance.
+
+Use at most one of the -DLAMMPS_SMALLBIG, -DLAMMPS_BIGBIG,
+-DLAMMPS_SMALLSMALL settings.  The default is -DLAMMPS_SMALLBIG. These
+settings refer to use of 4-byte (small) vs 8-byte (big) integers
+within LAMMPS, as specified in src/lmptype.h.  The only reason to use
+the BIGBIG setting is to enable simulation of huge molecular systems
+(which store bond topology info) with more than 2 billion atoms, or to
+track the image flags of moving atoms that wrap around a periodic box
+more than 512 times.  Normally, the only reason to use SMALLSMALL is
+if your machine does not support 64-bit integers, though you can use
+SMALLSMALL setting if you are running in serial or on a desktop
+machine or small cluster where you will never run large systems or for
+long time (more than 2 billion atoms, more than 2 billion timesteps).
+See the "Additional build tips"_#start_2_4 section below for more
+details on these settings.
+
+Note that the USER-ATC package is not currently compatible with
+-DLAMMPS_BIGBIG.  Also the GPU package requires the lib/gpu library to
+be compiled with the same setting, or the link will fail.
+
+The -DLAMMPS_LONGLONG_TO_LONG setting may be needed if your system or
+MPI version does not recognize "long long" data types.  In this case a
+"long" data type is likely already 64-bits, in which case this setting
+will convert to that data type.
+
+The -DLAMMPS_EXCEPTIONS setting can be used to activate alternative
+versions of error handling inside of LAMMPS.  This is useful when
+external codes drive LAMMPS as a library.  Using this option, LAMMPS
+errors do not kill the caller.  Instead, the call stack is unwound and
+control returns to the caller.  The library interface provides the
+lammps_has_error() and lammps_get_last_error_message() functions to
+detect and find out more about a LAMMPS error.
+
+Using one of the -DPACK_ARRAY, -DPACK_POINTER, and -DPACK_MEMCPY
+options can make for faster parallel FFTs (in the PPPM solver) on some
+platforms.  The -DPACK_ARRAY setting is the default.  See the
+"kspace_style"_kspace_style.html command for info about PPPM.  See
+Step 6 below for info about building LAMMPS with an FFT library.
+

@@ -1,0 +1,77 @@
+"Higher level section"_Run.html - "LAMMPS WWW Site"_lws - "LAMMPS
+Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+Running LAMMPS on Windows :h3
+
+For running the non-MPI executable, follow these steps:
+
+Get a command prompt by going to Start->Run... ,
+then typing "cmd". :ulb,l
+
+Move to the directory where you have your input, e.g. a copy of
+the [in.lj] input from the bench folder. (e.g. by typing: cd "Documents"). :l
+
+At the command prompt, type "lmp_serial -in in.lj", replacing [in.lj]
+with the name of your LAMMPS input script. :l
+
+The serial executable includes support for multi-threading
+parallelization from the styles in the USER-OMP packages.
+
+To run with, e.g. 4 threads, type "lmp_serial -in in.lj -pk omp 4 -sf omp"
+:ule
+
+For the MPI version, which allows you to run LAMMPS under Windows with
+the more general message passing parallel library (LAMMPS has been
+designed from ground up to use MPI efficiently), follow these steps:
+
+Download and install a compatible MPI library binary package:
+for 32-bit Windows
+"mpich2-1.4.1p1-win-ia32.msi"_download.lammps.org/thirdparty/mpich2-1.4.1p1-win-ia32.msi
+and for 64-bit Windows
+"mpich2-1.4.1p1-win-x86-64.msi"_download.lammps.org/thirdparty/mpich2-1.4.1p1-win-x86-64.msi
+:ulb,l
+
+The LAMMPS Windows installer packages will automatically adjust your
+path for the default location of this MPI package. After the installation
+of the MPICH2 software, it needs to be integrated into the system.
+For this you need to start a Command Prompt in {Administrator Mode}
+(right click on the icon and select it). Change into the MPICH2
+installation directory, then into the subdirectory [bin] and execute
+[smpd.exe -install]. Exit the command window.
+
+Get a new, regular command prompt by going to Start->Run... ,
+then typing "cmd". :l
+
+Move to the directory where you have your input file
+(e.g. by typing: cd "Documents"). :l
+
+Then type something like this:
+
+mpiexec -localonly 4 lmp_mpi -in in.lj :pre
+or
+
+mpiexec -np 4 lmp_mpi -in in.lj :pre
+
+replacing [in.lj] with the name of your LAMMPS input script. For the latter
+case, you may be prompted to enter your password. :l
+
+In this mode, output may not immediately show up on the screen, so if
+your input script takes a long time to execute, you may need to be
+patient before the output shows up. :l
+
+The parallel executable can also run on a single processor by typing
+something like:
+
+lmp_mpi -in in.lj :pre
+
+And the parallel executable also includes OpenMP multi-threading, which
+can be combined with MPI using something like:
+
+mpiexec -localonly 2 lmp_mpi -in in.lj -pk omp 2 -sf omp :pre
+

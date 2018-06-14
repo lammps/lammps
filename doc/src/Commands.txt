@@ -1,0 +1,49 @@
+"Previous Section"_Run.html - "LAMMPS WWW Site"_lws -
+"LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next
+Section"_Packages.html :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands.html#comm)
+
+:line
+
+Commands :h3
+
+This section describes how a LAMMPS input script is formatted and the
+input script commands used to define a LAMMPS simulation.
+
+<!-- RST
+
+.. toctree::
+
+   Commands_input
+   Commands_parse
+   Commands_structure
+   Commands_category
+
+   Commands_all
+   Commands_fix
+   Commands_compute
+   Commands_pair
+   Commands_bond
+   Commands_kspace
+
+END_RST -->
+
+<!-- HTML_ONLY -->
+
+"LAMMPS input scripts"_Commands_input.html
+"Parsing rules"_Commands_parse.html
+"Input script structure"_Commands_structure.html
+"Commands by category"_Commands_category.html :all(b)
+
+"All commands"_Commands_all.html 
+"Fix commands"_Commands_fix.html 
+"Compute commands"_Commands_compute.html 
+"Pair commands"_Commands_pair.html 
+"Bond, angle, dihedral, improper commands"_Commands_bond.html
+"KSpace solvers"_Commands_kspace.html  :all(b)
+
+<!-- END_HTML_ONLY -->
+

@@ -1,0 +1,66 @@
+"Higher level section"_Runx.html - "LAMMPS WWW Site"_lws - "LAMMPS
+Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+Basics of running LAMMPS :h3
+
+LAMMPS is run from the command line, reading commands from standard
+input:
+
+lmp_linux < in.file
+lmp_linux -in in.file
+~/lammps/src/lmp_linux < in.file
+mpirun -np 4 lmp_linux -in in.lj :pre
+mpirun -np 4 /usr/local/bin/lmp_linux -in in.lj :pre
+
+Run from the directory your input script is in, is where output
+is produced.  The executable can be someplace else
+
+serial vs parallel
+
+The redirection operator can often be used with mpirun, but
+some systems require the -in form.
+
+it will simply wait, expecting commands from the keyboard.  Typically
+you should put commands in an input script and use I/O redirection,
+
+For parallel environments this should also work.  If it does not, use
+the '-in' command-line switch, e.g.
+
+The "Commands section"_Commands.html describes how input scripts are
+structured and commands they can contain.
+
+MPI options, like bind to core
+threads via env variables
+see accelarator packages
+
+You can run LAMMPS any of the sample inputs provided in the examples
+or bench directory.  Input scripts are named in.* and sample outputs
+are named log.*.name.P where name is a machine and P is the number of
+processors it was run on.
+
+Some require LAMMPS to be built with optional pacakges.
+
+As LAMMPS runs it prints info to the screen and a logfile named
+log.lammps.
+
+If LAMMPS encounters errors in the input script or while running a
+simulation it will print an ERROR message and stop or a WARNING
+message and continue.  See "Section 12"_Section_errors.html for a
+discussion of the various kinds of errors LAMMPS can or can't detect,
+a list of all ERROR and WARNING messages, and what to do about them.
+
+LAMMPS can run a problem on any number of processors, including a
+single processor.  In theory you should get identical answers on any
+number of processors and on any machine.  In practice, numerical
+round-off can cause slight differences and eventual divergence of
+molecular dynamics phase space trajectories.  See errors section.
+
+LAMMPS can run as large a problem as will fit in the physical memory
+of one or more processors.  If you run out of memory, you must run on
+more processors or setup a smaller problem.

@@ -1,0 +1,67 @@
+"Previous Section"_Install.html - "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next Section"_Run.html :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+Build LAMMPS :h3
+
+LAMMPS can be built from source code with either CMake or traditional
+make.  As an alternative you can download a pre-built executable file
+as described on "this page"_Install.html.
+
+When building LAMMPS there are many options for what to
+include/exclude.  If you have problems building, it is often due to
+software issues on your local machine.  If you can, find a local
+expert to help.  If you are still stuck, send an email to the LAMMPS
+mail list.
+
+<!-- RST
+
+.. toctree::
+
+   Build_cmake
+   Build_make
+   Build_link
+
+   Build_parallel
+   Build_compiler
+   Build_lib
+   Build_jpg
+   Build_size
+   Build_fft
+   Build_settings
+
+   Build_package
+   Build_package_settings
+   Build_package_libs
+   Build_package_external
+
+END_RST -->
+
+<!-- HTML_ONLY -->
+
+"Build LAMMPS with CMake"_Build_cmake.html
+"Build LAMMPS with make"_Build_make.html
+"Linking LAMMPS as a library with another code"_Build_link.html :ul
+
+Build options:
+
+"Serial or parallel"_Build_parallel.html
+"Compiler and compiler flags"_Build_compiler.html
+"Build as a library"_Build_lib.html
+"JPG, PNG, FFMPEG"_Build_jpg.html
+"BIG, SMALL"_Build_size.html
+"FFT library"_Build_fft.html
+"Other settings"_Build_settings.html :ul
+
+Package options:
+
+"Package overview"_Build_package.html
+"Packages with extra settings"_Build_package_settings.html
+"Packages with provided libraries"_Build_package_libs.html
+"Packages with external libraries"_Build_package_external.html :ul
+
+<!-- END_HTML_ONLY -->

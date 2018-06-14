@@ -1,0 +1,26 @@
+"Higher level section"_Commands.html - "LAMMPS WWW Site"_lws - "LAMMPS
+Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+KSpace solvers :h3
+
+All LAMMPS "kspace_style"_kspace_style.html solvers.  Some styles have
+accelerated versions.  This is indicated by additional letters in
+parenthesis: g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t =
+OPT.
+
+"ewald (o)"_kspace_style.html,
+"ewald/disp"_kspace_style.html,
+"msm (o)"_kspace_style.html,
+"msm/cg (o)"_kspace_style.html,
+"pppm (gok)"_kspace_style.html,
+"pppm/cg (o)"_kspace_style.html,
+"pppm/disp (i)"_kspace_style.html,
+"pppm/disp/tip4p"_kspace_style.html,
+"pppm/stagger"_kspace_style.html,
+"pppm/tip4p (o)"_kspace_style.html :tb(c=4,ea=c)

@@ -1,0 +1,90 @@
+"Higher level section"_Build.html - "LAMMPS WWW Site"_lws - "LAMMPS
+Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+FFT support :h3
+
+The 3 FFT variables allow you to specify an FFT library which LAMMPS
+uses (for performing 1d FFTs) when running the particle-particle
+particle-mesh (PPPM) option for long-range Coulombics via the
+"kspace_style"_kspace_style.html command.
+
+LAMMPS supports common open-source or vendor-supplied FFT libraries
+for this purpose.  If you leave these 3 variables blank, LAMMPS will
+use the open-source "KISS FFT library"_http://kissfft.sf.net, which is
+included in the LAMMPS distribution.  This library is portable to all
+platforms and for typical LAMMPS simulations is almost as fast as FFTW
+or vendor optimized libraries.  If you are not including the KSPACE
+package in your build, you can also leave the 3 variables blank.
+
+Otherwise, select which kinds of FFTs to use as part of the FFT_INC
+setting by a switch of the form -DFFT_XXX.  Recommended values for XXX
+are: MKL or FFTW3.  FFTW2 and NONE are supported as legacy options.
+Selecting -DFFT_FFTW will use the FFTW3 library and -DFFT_NONE will
+use the KISS library described above.
+
+You may also need to set the FFT_INC, FFT_PATH, and FFT_LIB variables,
+so the compiler and linker can find the needed FFT header and library
+files.  Note that on some large parallel machines which use "modules"
+for their compile/link environments, you may simply need to include
+the correct module in your build environment.  Or the parallel machine
+may have a vendor-provided FFT library which the compiler has no
+trouble finding.  See the src/MAKE/OPTIONS/Makefile.fftw file for an
+example of how to specify these variables to use the FFTW3 library.
+
+FFTW is fast, portable library that should also work on any platform
+and typically be faster than KISS FFT.  You can download it from
+"www.fftw.org"_http://www.fftw.org.  Both the legacy version 2.1.X and
+the newer 3.X versions are supported as -DFFT_FFTW2 or -DFFT_FFTW3.
+Building FFTW for your box should be as simple as ./configure; make;
+make install.  The install command typically requires root privileges
+(e.g. invoke it via sudo), unless you specify a local directory with
+the "--prefix" option of configure.  Type "./configure --help" to see
+various options.
+
+If you wish to have FFTW support for single-precision FFTs (see below
+about -DFFT_SINGLE) in addition to the default double-precision FFTs,
+you will need to build FFTW a second time for single-precision.  For
+FFTW3, do this via:
+
+make clean
+./configure --enable-single; make; make install :pre
+
+which should produce the additional library libfftw3f.a.
+
+For FFTW2, do this:
+
+make clean
+./configure --enable-float --enable-type-prefix; make; make install :pre
+
+which should produce the additional library libsfftw.a and additional
+include file sfttw.a.  Note that on some platforms FFTW2 has been
+pre-installed for both single- and double-precision, and may already
+have these files as well as libdfftw.a and dfftw.h for double
+precision.
+
+The FFT_INC variable also allows for a -DFFT_SINGLE setting that will
+use single-precision FFTs with PPPM, which can speed-up long-range
+calculations, particularly in parallel or on GPUs.  Fourier transform
+and related PPPM operations are somewhat insensitive to floating point
+truncation errors and thus do not always need to be performed in
+double precision.  Using the -DFFT_SINGLE setting trades off a little
+accuracy for reduced memory use and parallel communication costs for
+transposing 3d FFT data.  Note that single precision FFTs have only
+been tested with the FFTW3, FFTW2, MKL, and KISS FFT options.
+
+When using -DFFT_SINGLE with FFTW3 or FFTW2, you need to build FFTW
+with support for single-precision, as explained above.  For FFTW3 you
+also need to include -lfftw3f with the FFT_LIB setting, in addition to
+-lfftw3.  For FFTW2, you also need to specify -DFFT_SIZE with the
+FFT_INC setting and -lsfftw with the FFT_LIB setting (in place of
+-lfftw).  Similarly, if FFTW2 has been pre-installed with an explicit
+double-precision library (libdfftw.a and not the default libfftw.a),
+then you can specify -DFFT_SIZE (and not -DFFT_SINGLE), and specify
+-ldfftw to use double-precision FFTs.
+

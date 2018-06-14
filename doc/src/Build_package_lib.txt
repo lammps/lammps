@@ -1,0 +1,39 @@
+"Higher level section"_Build.html - "LAMMPS WWW Site"_lws - "LAMMPS
+Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+Packages that require provdied libraries :h3
+
+A few of the standard and user packages require extra libraries.  See
+"Section 4"_Section_packages.html for two tables of packages which
+indicate which ones require libraries.  For each such package, the
+Section 4 doc page gives details on how to build the extra library,
+including how to download it if necessary.  The basic ideas are
+summarized here.
+
+[System libraries:]
+
+Packages in the tables "Section 4"_Section_packages.html with a "sys"
+in the last column link to system libraries that typically already
+exist on your machine.  E.g. the python package links to a system
+Python library.  If your machine does not have the required library,
+you will have to download and install it on your machine, in either
+the system or user space.
+
+[Internal libraries:]
+
+Packages in the tables "Section 4"_Section_packages.html with an "int"
+in the last column link to internal libraries whose source code is
+included with LAMMPS, in the lib/name directory where name is the
+package name.  You must first build the library in that directory
+before building LAMMPS with that package installed.  E.g. the gpu
+package links to a library you build in the lib/gpu dir.  You can
+often do the build in one step by typing "make lib-name args=..."
+from the src dir, with appropriate arguments.  You can leave off the
+args to see a help message.  See "Section 4"_Section_packages.html for
+details for each package.

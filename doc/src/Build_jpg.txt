@@ -1,0 +1,32 @@
+"Higher level section"_Build.html - "LAMMPS WWW Site"_lws - "LAMMPS
+Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+Build LAMMPS with JPG, PNG, FFMPEG support :h3
+
+The 3 JPG variables allow you to specify a JPEG and/or PNG library
+which LAMMPS uses when writing out JPEG or PNG files via the "dump
+image"_dump_image.html command.  These can be left blank if you do not
+use the -DLAMMPS_JPEG or -DLAMMPS_PNG switches discussed above in Step
+4, since in that case JPEG/PNG output will be disabled.
+
+A standard JPEG library usually goes by the name libjpeg.a or
+libjpeg.so and has an associated header file jpeglib.h.  Whichever
+JPEG library you have on your platform, you'll need to set the
+appropriate JPG_INC, JPG_PATH, and JPG_LIB variables, so that the
+compiler and linker can find it.
+
+A standard PNG library usually goes by the name libpng.a or libpng.so
+and has an associated header file png.h.  Whichever PNG library you
+have on your platform, you'll need to set the appropriate JPG_INC,
+JPG_PATH, and JPG_LIB variables, so that the compiler and linker can
+find it.
+
+As before, if these header and library files are in the usual place on
+your machine, you may not need to set these variables.
+

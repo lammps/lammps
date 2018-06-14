@@ -1,0 +1,76 @@
+"Higher level section"_Build.html - "LAMMPS WWW Site"_lws - "LAMMPS
+Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+Build LAMMPS in serial or parallel :h3
+
+From within the src directory, type "make" or "gmake".  You should see
+a list of available choices from src/MAKE and all of its
+sub-directories.  If one of those has the options you want or is the
+machine you want, you can type either:
+
+make mpi
+make serial :pre
+make foo
+
+Step 5 :h6
+
+The 3 MPI variables are used to specify an MPI library to build LAMMPS
+with.  Note that you do not need to set these if you use the MPI
+compiler mpicxx for your CC and LINK setting in the section above.
+The MPI wrapper knows where to find the needed files.
+
+If you want LAMMPS to run in parallel, you must have an MPI library
+installed on your platform.  If MPI is installed on your system in the
+usual place (under /usr/local), you also may not need to specify these
+3 variables, assuming /usr/local is in your path.  On some large
+parallel machines which use "modules" for their compile/link
+environments, you may simply need to include the correct module in
+your build environment, before building LAMMPS.  Or the parallel
+machine may have a vendor-provided MPI which the compiler has no
+trouble finding.
+
+Failing this, these 3 variables can be used to specify where the mpi.h
+file (MPI_INC) and the MPI library file (MPI_PATH) are found and the
+name of the library file (MPI_LIB).
+
+If you are installing MPI yourself, we recommend Argonne's MPICH2
+or OpenMPI.  MPICH can be downloaded from the "Argonne MPI
+site"_http://www.mcs.anl.gov/research/projects/mpich2/.  OpenMPI can
+be downloaded from the "OpenMPI site"_http://www.open-mpi.org.
+Other MPI packages should also work. If you are running on a big
+parallel platform, your system people or the vendor should have
+already installed a version of MPI, which is likely to be faster
+than a self-installed MPICH or OpenMPI, so find out how to build
+and link with it.  If you use MPICH or OpenMPI, you will have to
+configure and build it for your platform.  The MPI configure script
+should have compiler options to enable you to use the same compiler
+you are using for the LAMMPS build, which can avoid problems that can
+arise when linking LAMMPS to the MPI library.
+
+If you just want to run LAMMPS on a single processor, you can use the
+dummy MPI library provided in src/STUBS, since you don't need a true
+MPI library installed on your system.  See src/MAKE/Makefile.serial
+for how to specify the 3 MPI variables in this case.  You will also
+need to build the STUBS library for your platform before making LAMMPS
+itself.  Note that if you are building with src/MAKE/Makefile.serial,
+e.g. by typing "make serial", then the STUBS library is built for you.
+
+To build the STUBS library from the src directory, type "make
+mpi-stubs", or from the src/STUBS dir, type "make".  This should
+create a libmpi_stubs.a file suitable for linking to LAMMPS.  If the
+build fails, you will need to edit the STUBS/Makefile for your
+platform.
+
+The file STUBS/mpi.c provides a CPU timer function called MPI_Wtime()
+that calls gettimeofday() .  If your system doesn't support
+gettimeofday() , you'll need to insert code to call another timer.
+Note that the ANSI-standard function clock() rolls over after an hour
+or so, and is therefore insufficient for timing long LAMMPS
+simulations.
+

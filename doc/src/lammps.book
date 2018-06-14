@@ -17,7 +17,11 @@ Section_perf.html
 Section_tools.html
 Section_modify.html
 Section_python.html
-Section_errors.html
+Errors.html
+Errors_common.html
+Errors_bugs.html
+Errors_messages.html
+Errors_warnings.html
 Section_history.html
 
 lammps_tutorials.html

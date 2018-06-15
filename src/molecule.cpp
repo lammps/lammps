@@ -52,6 +52,9 @@ Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int &index) :
 
   if (index >= narg) error->all(FLERR,"Illegal molecule command");
 
+  if (domain->box_exist == 0)
+    error->all(FLERR,"Molecule command before simulation box is defined");
+
   int n = strlen(arg[0]) + 1;
   id = new char[n];
   strcpy(id,arg[0]);

@@ -30,9 +30,10 @@ make lib-mscg args="-p /usr/local/mscg-release " # use existing MS-CG installati
 
 # settings
 
-url = "http://github.com/uchicago-voth/MSCG-release/archive/master.tar.gz"
-tarfile = "MS-CG-master.tar.gz"
-tardir = "MSCG-release-master"
+mscgver = "1.7.3.1"
+url = "https://github.com/uchicago-voth/MSCG-release/archive/%s.tar.gz" % mscgver
+tarfile = "MS-CG-%s.tar.gz" % mscgver
+tardir = "MSCG-release-%s" % mscgver
 
 # print error message or help
 

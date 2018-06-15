@@ -456,7 +456,11 @@ of SHAKE clusters.
 
 :line
 
-[Restrictions:] none
+[Restrictions:]
+
+This command must come after the simulation box is define by a
+"read_data"_read_data.html, "read_restart"_read_restart.html, or
+"create_box"_create_box.html command.
 
 [Related commands:]
 

@@ -347,6 +347,7 @@ compute_pair.html
 compute_pair_local.html
 compute_pe.html
 compute_pe_atom.html
+compute_pentropy_atom.html
 compute_plasticity_atom.html
 compute_pressure.html
 compute_pressure_uef.html

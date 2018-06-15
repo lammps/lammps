@@ -861,6 +861,7 @@ package"_Section_start.html#start_3.
 "meso/t/atom"_compute_meso_t_atom.html,
 "pe/tally"_compute_tally.html,
 "pe/mol/tally"_compute_tally.html,
+"pentropy/atom"_compute_pentropy_atom.html,
 "pressure/uef"_compute_pressure_uef.html,
 "saed"_compute_saed.html,
 "smd/contact/radius"_compute_smd_contact_radius.html,

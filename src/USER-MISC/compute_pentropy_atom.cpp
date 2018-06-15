@@ -15,10 +15,10 @@
    Contributing author: Pablo Piaggi (EPFL Lausanne)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
-#include "compute_pair_entropy_atom.h"
+#include <cmath>
+#include <cstring>
+#include <cstdlib>
+#include "compute_pentropy_atom.h"
 #include "atom.h"
 #include "update.h"
 #include "modify.h"

@@ -50,10 +50,10 @@ ComputePairEntropyAtom(LAMMPS *lmp, int narg, char **arg) :
                " of arguments");
 
   // Arguments are: sigma cutoff avg yes/no cutoff2 local yes/no
-  //   sigma is the gaussian width 
-  //   cutoff is the cutoff for the calculation of g(r) 
+  //   sigma is the gaussian width
+  //   cutoff is the cutoff for the calculation of g(r)
   //   avg is optional and allows averaging the pair entropy over neighbors
-  //   the next argument should be yes or no 
+  //   the next argument should be yes or no
   //   cutoff2 is the cutoff for the averaging
   //   local is optional and allows using the local density to normalize
   //     the g(r)
@@ -102,8 +102,8 @@ ComputePairEntropyAtom(LAMMPS *lmp, int narg, char **arg) :
   // Number of bins above and below the central one that will be
   // considered as affected by the gaussian kernel
   // 2 seems a good compromise between speed and good mollification
-  deltabin = 2; 
-  deltar = sigma; 
+  deltabin = 2;
+  deltar = sigma;
   peratom_flag = 1;
   size_peratom_cols = 0;
 }
@@ -124,9 +124,9 @@ void ComputePairEntropyAtom::init()
     error->all(FLERR,"Compute centro/atom requires a pair style be"
                " defined");
 
-  if ( (cutoff+cutoff2) > (force->pair->cutforce  + neighbor->skin) ) 
+  if ( (cutoff+cutoff2) > (force->pair->cutforce  + neighbor->skin) )
     {
-    	error->all(FLERR,"Compute pentropy/atom cutoff is longer than the"
+        error->all(FLERR,"Compute pentropy/atom cutoff is longer than the"
                    " pairwise cutoff. Increase the neighbor list skin"
                    " distance.");
     }
@@ -220,16 +220,16 @@ void ComputePairEntropyAtom::compute_peratom()
       // If local density is used, calculate it
       if (local_flag) {
         double neigh_cutoff = force->pair->cutforce  + neighbor->skin;
-        double volume = 
+        double volume =
                (4./3.)*MY_PI*neigh_cutoff*neigh_cutoff*neigh_cutoff;
         density = jnum / volume;
       }
 
       // calculate kernel normalization
       // Normalization of g(r)
-      double normConstantBase = 4*MY_PI*density; 
+      double normConstantBase = 4*MY_PI*density;
       // Normalization of gaussian
-      normConstantBase *= sqrt(2.*MY_PI)*sigma; 
+      normConstantBase *= sqrt(2.*MY_PI)*sigma;
       double invNormConstantBase = 1./normConstantBase;
 
       // loop over list of all neighbors within force cutoff
@@ -259,7 +259,7 @@ void ComputePairEntropyAtom::compute_peratom()
           for(int k=minbin;k<maxbin+1;k++) {
             double invNormKernel=invNormConstantBase/rbinsq[k];
             double distance = r - rbin[k];
-            gofr[k] += invNormKernel*exp(-distance*distance/sigmasq2); 
+            gofr[k] += invNormKernel*exp(-distance*distance/sigmasq2);
           }
         }
       }
@@ -298,7 +298,7 @@ void ComputePairEntropyAtom::compute_peratom()
         ztmp = x[i][2];
         jlist = firstneigh[i];
         jnum = numneigh[i];
- 
+
         pair_entropy_avg[i] = pair_entropy[i];
         double counter = 1;
 
@@ -306,7 +306,7 @@ void ComputePairEntropyAtom::compute_peratom()
         for (jj = 0; jj < jnum; jj++) {
           j = jlist[jj];
           j &= NEIGHMASK;
- 
+
           delx = xtmp - x[j][0];
           dely = ytmp - x[j][1];
           delz = ztmp - x[j][2];

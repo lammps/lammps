@@ -66,7 +66,9 @@ OBJS = $(OBJ_DIR)/lal_atom.o $(OBJ_DIR)/lal_answer.o \
        $(OBJ_DIR)/lal_coul_debye.o $(OBJ_DIR)/lal_coul_debye_ext.o \
        $(OBJ_DIR)/lal_zbl.o $(OBJ_DIR)/lal_zbl_ext.o \
        $(OBJ_DIR)/lal_lj_cubic.o $(OBJ_DIR)/lal_lj_cubic_ext.o \
-       $(OBJ_DIR)/lal_ufm.o $(OBJ_DIR)/lal_ufm_ext.o
+       $(OBJ_DIR)/lal_ufm.o $(OBJ_DIR)/lal_ufm_ext.o \
+       $(OBJ_DIR)/lal_dipole_long_lj.o $(OBJ_DIR)/lal_dipole_long_lj_ext.o \
+       $(OBJ_DIR)/lal_lj_expand_coul_long.o $(OBJ_DIR)/lal_lj_expand_coul_long_ext.o
 
 KERS = $(OBJ_DIR)/device_cl.h $(OBJ_DIR)/atom_cl.h \
        $(OBJ_DIR)/neighbor_cpu_cl.h $(OBJ_DIR)/pppm_cl.h \
@@ -95,7 +97,8 @@ KERS = $(OBJ_DIR)/device_cl.h $(OBJ_DIR)/atom_cl.h \
        $(OBJ_DIR)/tersoff_mod_cl.h $(OBJ_DIR)/coul_cl.h \
        $(OBJ_DIR)/coul_debye_cl.h $(OBJ_DIR)/zbl_cl.h \
        $(OBJ_DIR)/lj_cubic_cl.h $(OBJ_DIR)/vashishta_cl.h \
-       $(OBJ_DIR)/ufm_cl.h
+       $(OBJ_DIR)/ufm_cl.h  $(OBJ_DIR)/dipole_long_lj_cl.h \
+       $(OBJ_DIR)/lj_expand_coul_long_cl.h
 
 
 OCL_EXECS = $(BIN_DIR)/ocl_get_devices
@@ -588,7 +591,25 @@ $(OBJ_DIR)/lal_ufm.o: $(ALL_H) lal_ufm.h lal_ufm.cpp  $(OBJ_DIR)/ufm_cl.h $(OBJ_
 $(OBJ_DIR)/lal_ufm_ext.o: $(ALL_H) lal_ufm.h lal_ufm_ext.cpp lal_base_atomic.h
 	$(OCL) -o $@ -c lal_ufm_ext.cpp -I$(OBJ_DIR)
 
-$(BIN_DIR)/ocl_get_devices: ./geryon/ucl_get_devices.cpp
+$(OBJ_DIR)/dipole_long_lj_cl.h: lal_dipole_long_lj.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh dipole_long_lj $(PRE1_H) lal_dipole_long_lj.cu $(OBJ_DIR)/dipole_long_lj_cl.h;
+
+$(OBJ_DIR)/lal_dipole_long_lj.o: $(ALL_H) lal_dipole_long_lj.h lal_dipole_long_lj.cpp  $(OBJ_DIR)/dipole_long_lj_cl.h $(OBJ_DIR)/lj_expand_coul_long_cl.h $(OBJ_DIR)/lal_base_charge.o
+	$(OCL) -o $@ -c lal_dipole_long_lj.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_dipole_long_lj_ext.o: $(ALL_H) lal_dipole_long_lj.h lal_dipole_long_lj_ext.cpp lal_base_dipole.h
+	$(OCL) -o $@ -c lal_dipole_long_lj_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lj_expand_coul_long_cl.h: lal_lj_expand_coul_long.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh lj_expand_coul_long $(PRE1_H) lal_lj_expand_coul_long.cu $(OBJ_DIR)/lj_expand_coul_long_cl.h;
+
+$(OBJ_DIR)/lal_lj_expand_coul_long.o: $(ALL_H) lal_lj_expand_coul_long.h lal_lj_expand_coul_long.cpp  $(OBJ_DIR)/lj_expand_coul_long_cl.h $(OBJ_DIR)/lj_expand_coul_long_cl.h $(OBJ_DIR)/lal_base_charge.o
+	$(OCL) -o $@ -c lal_lj_expand_coul_long.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_lj_expand_coul_long_ext.o: $(ALL_H) lal_lj_expand_coul_long.h lal_lj_expand_coul_long_ext.cpp lal_base_charge.h
+	$(OCL) -o $@ -c lal_lj_expand_coul_long_ext.cpp -I$(OBJ_DIR)
+
+$(BIN_DIR)/ocl_get_devices: ./geryon/ucl_get_devices.cpp $(OCL_H)
 	$(OCL) -o $@ ./geryon/ucl_get_devices.cpp -DUCL_OPENCL $(OCL_LINK) 
 
 $(OCL_LIB): $(OBJS) $(PTXS)

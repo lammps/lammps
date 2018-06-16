@@ -280,6 +280,9 @@ class UCL_Device {
   /// Return the OpenCL type for the device
   inline cl_device_id & cl_device() { return _cl_device; }
 
+  /// Select the platform that has accelerators
+  inline void set_platform_accelerator(int pid=-1);
+
  private:
   int _num_platforms;          // Number of platforms
   int _platform;               // UCL_Device ID for current platform
@@ -311,8 +314,8 @@ UCL_Device::UCL_Device() {
     return;
   } else
     _num_platforms=static_cast<int>(nplatforms);
-
-  set_platform(0);
+  // note that platform 0 may not necessarily be associated with accelerators
+  set_platform_accelerator();
 }
 
 UCL_Device::~UCL_Device() {
@@ -320,6 +323,7 @@ UCL_Device::~UCL_Device() {
 }
 
 void UCL_Device::clear() {
+  _properties.clear();
   if (_device>-1) {
     for (size_t i=0; i<_cq.size(); i++) {
       CL_DESTRUCT_CALL(clReleaseCommandQueue(_cq.back()));
@@ -529,75 +533,105 @@ int UCL_Device::set(int num) {
   return create_context();
 }
 
-// List all devices along with all properties
+// List all devices from all platforms along with all properties
 void UCL_Device::print_all(std::ostream &out) {
-  if (num_devices() == 0)
-    out << "There is no device supporting OpenCL\n";
-  for (int i=0; i<num_devices(); ++i) {
-    out << "\nDevice " << i << ": \"" << name(i).c_str() << "\"\n";
-    out << "  Type of device:                                "
-        << device_type_name(i).c_str() << std::endl;
-    out << "  Double precision support:                      ";
-    if (double_precision(i))
-      out << "Yes\n";
-    else
-      out << "No\n";
-    out << "  Total amount of global memory:                 "
-        << gigabytes(i) << " GB\n";
-    out << "  Number of compute units/multiprocessors:       "
-        << _properties[i].compute_units << std::endl;
-    //out << "  Number of cores:                               "
-    //    << cores(i) << std::endl;
-    out << "  Total amount of constant memory:               "
-        << _properties[i].const_mem << " bytes\n";
-    out << "  Total amount of local/shared memory per block: "
-        << _properties[i].shared_mem << " bytes\n";
-    //out << "  Total number of registers available per block: "
-    //    << _properties[i].regsPerBlock << std::endl;
-    //out << "  Warp size:                                     "
-    //    << _properties[i].warpSize << std::endl;
-    out << "  Maximum group size (# of threads per block)    "
-        << _properties[i].work_group_size << std::endl;
-    out << "  Maximum item sizes (# threads for each dim)    "
-        << _properties[i].work_item_size[0] << " x "
-        << _properties[i].work_item_size[1] << " x "
-        << _properties[i].work_item_size[2] << std::endl;
-    //out << "  Maximum sizes of each dimension of a grid:     "
-    //    << _properties[i].maxGridSize[0] << " x "
-    //    << _properties[i].maxGridSize[1] << " x "
-    //    << _properties[i].maxGridSize[2] << std::endl;
-    //out << "  Maximum memory pitch:                          "
-    //    << _properties[i].memPitch) << " bytes\n";
-    //out << "  Texture alignment:                             "
-    //    << _properties[i].textureAlignment << " bytes\n";
-    out << "  Clock rate:                                    "
-        << clock_rate(i) << " GHz\n";
-    //out << "  Concurrent copy and execution:                 ";
-    out << "  ECC support:                                   ";
-    if (_properties[i].ecc_support)
-      out << "Yes\n";
-    else
-      out << "No\n";
-    out << "  Device fission into equal partitions:          ";
-    if (fission_equal(i))
-      out << "Yes\n";
-    else
-      out << "No\n";
-    out << "  Device fission by counts:                      ";
-    if (fission_by_counts(i))
-      out << "Yes\n";
-    else
-      out << "No\n";
-    out << "  Device fission by affinity:                    ";
-    if (fission_by_affinity(i))
-      out << "Yes\n";
-    else
-      out << "No\n";
-    out << "  Maximum subdevices from fission:               "
-        << max_sub_devices(i) << std::endl;
+  // --- loop through the platforms
+  for (int n=0; n<_num_platforms; n++) {
+
+    set_platform(n);
+
+    out << "\nPlatform " << n << ":\n";
+
+    if (num_devices() == 0)
+      out << "There is no device supporting OpenCL\n";
+    for (int i=0; i<num_devices(); ++i) {
+      out << "\nDevice " << i << ": \"" << name(i).c_str() << "\"\n";
+      out << "  Type of device:                                "
+          << device_type_name(i).c_str() << std::endl;
+      out << "  Double precision support:                      ";
+      if (double_precision(i))
+        out << "Yes\n";
+      else
+        out << "No\n";
+      out << "  Total amount of global memory:                 "
+          << gigabytes(i) << " GB\n";
+      out << "  Number of compute units/multiprocessors:       "
+          << _properties[i].compute_units << std::endl;
+      //out << "  Number of cores:                               "
+      //    << cores(i) << std::endl;
+      out << "  Total amount of constant memory:               "
+          << _properties[i].const_mem << " bytes\n";
+      out << "  Total amount of local/shared memory per block: "
+          << _properties[i].shared_mem << " bytes\n";
+      //out << "  Total number of registers available per block: "
+      //    << _properties[i].regsPerBlock << std::endl;
+      //out << "  Warp size:                                     "
+      //    << _properties[i].warpSize << std::endl;
+      out << "  Maximum group size (# of threads per block)    "
+          << _properties[i].work_group_size << std::endl;
+      out << "  Maximum item sizes (# threads for each dim)    "
+          << _properties[i].work_item_size[0] << " x "
+          << _properties[i].work_item_size[1] << " x "
+          << _properties[i].work_item_size[2] << std::endl;
+      //out << "  Maximum sizes of each dimension of a grid:     "
+      //    << _properties[i].maxGridSize[0] << " x "
+      //    << _properties[i].maxGridSize[1] << " x "
+      //    << _properties[i].maxGridSize[2] << std::endl;
+      //out << "  Maximum memory pitch:                          "
+      //    << _properties[i].memPitch) << " bytes\n";
+      //out << "  Texture alignment:                             "
+      //    << _properties[i].textureAlignment << " bytes\n";
+      out << "  Clock rate:                                    "
+          << clock_rate(i) << " GHz\n";
+      //out << "  Concurrent copy and execution:                 ";
+      out << "  ECC support:                                   ";
+      if (_properties[i].ecc_support)
+        out << "Yes\n";
+      else
+        out << "No\n";
+      out << "  Device fission into equal partitions:          ";
+      if (fission_equal(i))
+        out << "Yes\n";
+      else
+        out << "No\n";
+      out << "  Device fission by counts:                      ";
+      if (fission_by_counts(i))
+        out << "Yes\n";
+      else
+        out << "No\n";
+      out << "  Device fission by affinity:                    ";
+      if (fission_by_affinity(i))
+        out << "Yes\n";
+      else
+        out << "No\n";
+      out << "  Maximum subdevices from fission:               "
+          << max_sub_devices(i) << std::endl;
+    }
   }
 }
 
+// Select the platform that is associated with accelerators
+// if pid < 0, select the first platform
+void UCL_Device::set_platform_accelerator(int pid) {
+  if (pid < 0) {
+    int found = 0;
+    for (int n=0; n<_num_platforms; n++) {
+      set_platform(n);
+      for (int i=0; i<num_devices(); i++) {
+        if (_properties[i].device_type==CL_DEVICE_TYPE_CPU ||
+            _properties[i].device_type==CL_DEVICE_TYPE_GPU ||
+            _properties[i].device_type==CL_DEVICE_TYPE_ACCELERATOR) {
+          found = 1;
+          break;
+        }
+      }
+      if (found) break;
+    }
+  } else {
+    set_platform(pid);
+  }
 }
+
+} // namespace ucl_opencl 
 
 #endif

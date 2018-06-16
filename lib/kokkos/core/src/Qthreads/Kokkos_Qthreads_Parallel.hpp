@@ -549,6 +549,13 @@ Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::QthreadsTeamPolicyMember >
   return Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::QthreadsTeamPolicyMember >(thread,count);
 }
 
+template<typename iType>
+KOKKOS_INLINE_FUNCTION
+Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::QthreadsTeamPolicyMember >
+  ThreadVectorRange(const Impl::QthreadsTeamPolicyMember& thread, const iType& arg_begin, const iType& arg_end) {
+  return Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::QthreadsTeamPolicyMember >(thread,arg_begin,arg_end);
+}
+
 KOKKOS_INLINE_FUNCTION
 Impl::ThreadSingleStruct<Impl::QthreadsTeamPolicyMember> PerTeam(const Impl::QthreadsTeamPolicyMember& thread) {
   return Impl::ThreadSingleStruct<Impl::QthreadsTeamPolicyMember>(thread);

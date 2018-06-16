@@ -536,7 +536,7 @@ bool DivAtomicTest( T i0, T i1 )
 
   bool passed = true;
 
-  if ( resSerial != res ) {
+  if ( (resSerial-res)*(resSerial-res) > 1e-10 ) {
     passed = false;
 
     std::cout << "Loop<"
@@ -1058,83 +1058,3 @@ bool AtomicOperationsTestNonIntegralType( int i0, int i1, int test )
 
 }
 
-namespace Test {
-
-TEST_F( TEST_CATEGORY , atomic_operations )
-{
-  const int start = 1; // Avoid zero for division.
-  const int end = 11;
-  for ( int i = start; i < end; ++i )
-  {
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< int, TEST_EXECSPACE >( start, end - i, 1 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< int, TEST_EXECSPACE >( start, end - i, 2 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< int, TEST_EXECSPACE >( start, end - i, 3 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< int, TEST_EXECSPACE >( start, end - i, 4 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< int, TEST_EXECSPACE >( start, end - i, 5 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< int, TEST_EXECSPACE >( start, end - i, 6 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< int, TEST_EXECSPACE >( start, end - i, 7 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< int, TEST_EXECSPACE >( start, end - i, 8 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< int, TEST_EXECSPACE >( start, end - i, 9 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< int, TEST_EXECSPACE >( start, end - i, 11 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< int, TEST_EXECSPACE >( start, end - i, 12 ) ) );
-
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned int, TEST_EXECSPACE >( start, end - i, 1 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned int, TEST_EXECSPACE >( start, end - i, 2 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned int, TEST_EXECSPACE >( start, end - i, 3 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned int, TEST_EXECSPACE >( start, end - i, 4 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned int, TEST_EXECSPACE >( start, end - i, 5 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned int, TEST_EXECSPACE >( start, end - i, 6 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned int, TEST_EXECSPACE >( start, end - i, 7 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned int, TEST_EXECSPACE >( start, end - i, 8 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned int, TEST_EXECSPACE >( start, end - i, 9 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned int, TEST_EXECSPACE >( start, end - i, 11 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned int, TEST_EXECSPACE >( start, end - i, 12 ) ) );
-
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long int, TEST_EXECSPACE >( start, end - i, 1 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long int, TEST_EXECSPACE >( start, end - i, 2 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long int, TEST_EXECSPACE >( start, end - i, 3 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long int, TEST_EXECSPACE >( start, end - i, 4 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long int, TEST_EXECSPACE >( start, end - i, 5 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long int, TEST_EXECSPACE >( start, end - i, 6 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long int, TEST_EXECSPACE >( start, end - i, 7 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long int, TEST_EXECSPACE >( start, end - i, 8 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long int, TEST_EXECSPACE >( start, end - i, 9 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long int, TEST_EXECSPACE >( start, end - i, 11 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long int, TEST_EXECSPACE >( start, end - i, 12 ) ) );
-
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned long int, TEST_EXECSPACE >( start, end - i, 1 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned long int, TEST_EXECSPACE >( start, end - i, 2 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned long int, TEST_EXECSPACE >( start, end - i, 3 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned long int, TEST_EXECSPACE >( start, end - i, 4 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned long int, TEST_EXECSPACE >( start, end - i, 5 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned long int, TEST_EXECSPACE >( start, end - i, 6 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned long int, TEST_EXECSPACE >( start, end - i, 7 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned long int, TEST_EXECSPACE >( start, end - i, 8 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned long int, TEST_EXECSPACE >( start, end - i, 9 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned long int, TEST_EXECSPACE >( start, end - i, 11 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned long int, TEST_EXECSPACE >( start, end - i, 12 ) ) );
-
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long long int, TEST_EXECSPACE >( start, end - i, 1 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long long int, TEST_EXECSPACE >( start, end - i, 2 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long long int, TEST_EXECSPACE >( start, end - i, 3 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long long int, TEST_EXECSPACE >( start, end - i, 4 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long long int, TEST_EXECSPACE >( start, end - i, 5 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long long int, TEST_EXECSPACE >( start, end - i, 6 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long long int, TEST_EXECSPACE >( start, end - i, 7 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long long int, TEST_EXECSPACE >( start, end - i, 8 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long long int, TEST_EXECSPACE >( start, end - i, 9 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long long int, TEST_EXECSPACE >( start, end - i, 11 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< long long int, TEST_EXECSPACE >( start, end - i, 12 ) ) );
-
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestNonIntegralType< double, TEST_EXECSPACE >( start, end - i, 1 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestNonIntegralType< double, TEST_EXECSPACE >( start, end - i, 2 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestNonIntegralType< double, TEST_EXECSPACE >( start, end - i, 3 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestNonIntegralType< double, TEST_EXECSPACE >( start, end - i, 4 ) ) );
-
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestNonIntegralType< float, TEST_EXECSPACE >( start, end - i, 1 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestNonIntegralType< float, TEST_EXECSPACE >( start, end - i, 2 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestNonIntegralType< float, TEST_EXECSPACE >( start, end - i, 3 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestNonIntegralType< float, TEST_EXECSPACE >( start, end - i, 4 ) ) );
-  }
-}
-} // namespace Test

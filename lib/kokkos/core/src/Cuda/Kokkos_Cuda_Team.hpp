@@ -622,16 +622,24 @@ struct TeamThreadRangeBoundariesStruct<iType,CudaTeamMember> {
 template<typename iType>
 struct ThreadVectorRangeBoundariesStruct<iType,CudaTeamMember> {
   typedef iType index_type;
-  const iType start;
-  const iType end;
+  const index_type start;
+  const index_type end;
 
   KOKKOS_INLINE_FUNCTION
-  ThreadVectorRangeBoundariesStruct (const CudaTeamMember, const iType& count)
-    : start( 0 ), end( count ) {}
+  ThreadVectorRangeBoundariesStruct (const CudaTeamMember, const index_type& count)
+    : start( static_cast<index_type>(0) ), end( count ) {}
 
   KOKKOS_INLINE_FUNCTION
-  ThreadVectorRangeBoundariesStruct (const iType& count)
-    : start( 0 ), end( count ) {}
+  ThreadVectorRangeBoundariesStruct (const index_type& count)
+    : start( static_cast<index_type>(0) ), end( count ) {}
+
+  KOKKOS_INLINE_FUNCTION
+  ThreadVectorRangeBoundariesStruct (const CudaTeamMember, const index_type& arg_begin, const index_type& arg_end)
+    : start( arg_begin ), end( arg_end ) {}
+
+  KOKKOS_INLINE_FUNCTION
+  ThreadVectorRangeBoundariesStruct (const index_type& arg_begin, const index_type& arg_end)
+    : start( arg_begin ), end( arg_end ) {}
 };
 
 } // namespace Impl
@@ -657,6 +665,13 @@ KOKKOS_INLINE_FUNCTION
 Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::CudaTeamMember >
 ThreadVectorRange(const Impl::CudaTeamMember& thread, const iType& count) {
   return Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::CudaTeamMember >(thread,count);
+}
+
+template<typename iType>
+KOKKOS_INLINE_FUNCTION
+Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::CudaTeamMember >
+ThreadVectorRange(const Impl::CudaTeamMember& thread, const iType& arg_begin, const iType& arg_end) {
+  return Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::CudaTeamMember >(thread,arg_begin,arg_end);
 }
 
 KOKKOS_INLINE_FUNCTION
@@ -749,7 +764,7 @@ parallel_reduce
 {
 #ifdef __CUDA_ARCH__
 
-  Kokkos::Experimental::Sum<ValueType> reducer(result);
+  Kokkos::Sum<ValueType> reducer(result);
 
   reducer.init( reducer.reference() );
 
@@ -786,6 +801,7 @@ void parallel_for
       ; i += blockDim.x ) {
     closure(i);
   }
+  KOKKOS_IMPL_CUDA_SYNCWARP_MASK(blockDim.x==32?0xffffffff:((1<<blockDim.x)-1)<<(threadIdx.y%(32/blockDim.x))*blockDim.x);
 #endif
 }
 
@@ -856,7 +872,7 @@ parallel_reduce
   }
 
   Impl::CudaTeamMember::vector_reduce(
-    Kokkos::Experimental::Sum<ValueType>(result ) );
+    Kokkos::Sum<ValueType>(result ) );
 
 #endif
 }

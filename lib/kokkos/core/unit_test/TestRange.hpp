@@ -179,6 +179,10 @@ struct TestRange {
     Kokkos::parallel_for( Kokkos::RangePolicy< ExecSpace, ScheduleType >( 0, N ), *this );
 
     Kokkos::parallel_scan( "TestKernelScan", Kokkos::RangePolicy< ExecSpace, ScheduleType, OffsetTag>( 0, N ), *this );
+
+    int total = 0;
+    Kokkos::parallel_scan( "TestKernelScanWithTotal", Kokkos::RangePolicy< ExecSpace, ScheduleType, OffsetTag>( 0, N ), *this, total );
+    ASSERT_EQ( size_t( ( N - 1 ) * ( N ) / 2 ), size_t( total ) );// sum( 0 .. N-1 )
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -207,7 +211,11 @@ struct TestRange {
         for ( int k = 0; k < ( i < N / 2 ? 1 : 10000 ); k++ ) {
           a( i )++;
         }
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
         count( ExecSpace::hardware_thread_id() )++;
+#else
+        count( ExecSpace::impl_hardware_thread_id() )++;
+#endif
       });
 
       int error = 0;
@@ -240,7 +248,11 @@ struct TestRange {
         for ( int k = 0; k < ( i < N / 2 ? 1 : 10000 ); k++ ) {
           a( i )++;
         }
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
         count( ExecSpace::hardware_thread_id() )++;
+#else
+        count( ExecSpace::impl_hardware_thread_id() )++;
+#endif
         lsum++;
       }, sum );
       ASSERT_EQ( sum, N );

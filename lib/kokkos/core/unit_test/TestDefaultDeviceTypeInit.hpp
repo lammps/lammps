@@ -180,8 +180,13 @@ Kokkos::InitArguments init_initstruct( bool do_threads, bool do_numa, bool do_de
 }
 
 void check_correct_initialization( const Kokkos::InitArguments & argstruct ) {
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
   ASSERT_EQ( Kokkos::DefaultExecutionSpace::is_initialized(), 1 );
   ASSERT_EQ( Kokkos::HostSpace::execution_space::is_initialized(), 1 );
+#else
+  ASSERT_EQ( Kokkos::DefaultExecutionSpace::impl_is_initialized(), 1 );
+  ASSERT_EQ( Kokkos::HostSpace::execution_space::impl_is_initialized(), 1 );
+#endif
 
   // Figure out the number of threads the HostSpace ExecutionSpace should have initialized to.
   int expected_nthreads = argstruct.num_threads;
@@ -236,8 +241,11 @@ void check_correct_initialization( const Kokkos::InitArguments & argstruct ) {
 #endif
   }
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
   ASSERT_EQ( Kokkos::HostSpace::execution_space::thread_pool_size(), expected_nthreads );
-
+#else
+  ASSERT_EQ( Kokkos::HostSpace::execution_space::impl_thread_pool_size(), expected_nthreads );
+#endif
 
 #ifdef KOKKOS_ENABLE_CUDA
   if ( std::is_same< Kokkos::DefaultExecutionSpace, Kokkos::Cuda >::value ) {

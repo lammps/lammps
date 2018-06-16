@@ -44,18 +44,7 @@
 #ifndef KOKKOS_TIMER_HPP
 #define KOKKOS_TIMER_HPP
 
-#include <cstddef>
-
-#ifdef _MSC_VER
-#undef KOKKOS_ENABLE_LIBRT
-#include <gettimeofday.c>
-#else
-#ifdef KOKKOS_ENABLE_LIBRT
-#include <ctime>
-#else
-#include <sys/time.h>
-#endif
-#endif
+#include <chrono>
 
 namespace Kokkos {
 
@@ -63,22 +52,14 @@ namespace Kokkos {
 
 class Timer {
 private:
-  #ifdef KOKKOS_ENABLE_LIBRT
-	struct timespec m_old;
-  #else
-	struct timeval m_old ;
-  #endif
+  std::chrono::high_resolution_clock::time_point m_old;
   Timer( const Timer & );
   Timer & operator = ( const Timer & );
 public:
 
   inline
   void reset() {
-    #ifdef KOKKOS_ENABLE_LIBRT
-	  clock_gettime(CLOCK_REALTIME, &m_old);
-    #else
-	  gettimeofday( & m_old , ((struct timezone *) NULL ) );
-    #endif
+    m_old = std::chrono::high_resolution_clock::now();
   }
 
   inline
@@ -90,20 +71,9 @@ public:
   inline
   double seconds() const
   {
-    #ifdef KOKKOS_ENABLE_LIBRT
-      struct timespec m_new;
-      clock_gettime(CLOCK_REALTIME, &m_new);
-
-      return ( (double) ( m_new.tv_sec  - m_old.tv_sec ) ) +
-             ( (double) ( m_new.tv_nsec - m_old.tv_nsec ) * 1.0e-9 );
-    #else
-      struct timeval m_new ;
-
-      gettimeofday( & m_new , ((struct timezone *) NULL ) );
-
-      return ( (double) ( m_new.tv_sec  - m_old.tv_sec ) ) +
-             ( (double) ( m_new.tv_usec - m_old.tv_usec ) * 1.0e-6 );
-    #endif
+    std::chrono::high_resolution_clock::time_point m_new =
+        std::chrono::high_resolution_clock::now();
+    return std::chrono::duration_cast<std::chrono::duration<double>>(m_new - m_old).count();
   }
 };
 

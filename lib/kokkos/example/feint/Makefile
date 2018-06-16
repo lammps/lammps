@@ -27,6 +27,10 @@ KOKKOS_CXXFLAGS +=	\
 EXE_EXAMPLE_FEINT = KokkosExample_Feint
 OBJ_EXAMPLE_FEINT = BoxElemPart.o main.o
 
+ifeq ($(KOKKOS_INTERNAL_USE_SERIAL), 1)
+  OBJ_EXAMPLE_FEINT += feint_serial.o
+endif
+
 ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
   OBJ_EXAMPLE_FEINT += feint_cuda.o
 endif

@@ -271,8 +271,9 @@ void test_elem()
             ;
 }
 
-int main()
+int main(int argc, char* argv[])
 {
+  Kokkos::initialize(argc,argv);
   for ( int i = 1 ; i <= 32 ; ++i ) {
     const size_t global_size = 16 * i ;
     const size_t global_box[3][2] = { { 0 , 65 } , { 0 , 65 } , { 0 , 65 } };
@@ -285,31 +286,22 @@ int main()
 
   {
     std::cout << "test_fixture< Host >" << std::endl ;
-    Kokkos::HostSpace::execution_space::initialize( 1 );
-    Kokkos::Example::test_fixture< Kokkos::HostSpace::execution_space >();
-    Kokkos::HostSpace::execution_space::finalize();
+    Kokkos::Example::test_fixture< Kokkos::DefaultHostExecutionSpace >();
   }
 
 #if defined( KOKKOS_ENABLE_CUDA )
   {
     std::cout << "test_fixture< Cuda >" << std::endl ;
-    Kokkos::HostSpace::execution_space::initialize();
-    Kokkos::Cuda::initialize( Kokkos::Cuda::SelectDevice(0) );
     Kokkos::Example::test_fixture< Kokkos::Cuda >();
-    Kokkos::Cuda::finalize();
-    Kokkos::HostSpace::execution_space::finalize();
   }
 #endif
 
 #if defined( KOKKOS_ENABLE_ROCM )
   {
     std::cout << "test_fixture< ROCm >" << std::endl ;
-    Kokkos::HostSpace::execution_space::initialize();
-    Kokkos::Experimental::ROCm::initialize( Kokkos::Experimental::ROCm::SelectDevice(0) );
     Kokkos::Example::test_fixture< Kokkos::Experimental::ROCm >();
-    Kokkos::Experimental::ROCm::finalize();
-    Kokkos::HostSpace::execution_space::finalize();
   }
 #endif
+  Kokkos::finalize();
 }
 

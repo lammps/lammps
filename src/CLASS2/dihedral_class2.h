@@ -30,9 +30,9 @@ class DihedralClass2 : public Dihedral {
   DihedralClass2(class LAMMPS *);
   virtual ~DihedralClass2();
   virtual void compute(int, int);
-  void coeff(int, char **);
+  virtual void coeff(int, char **);
   void write_restart(FILE *);
-  void read_restart(FILE *);
+  virtual void read_restart(FILE *);
   void write_data(FILE *);
 
  protected:

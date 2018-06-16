@@ -92,7 +92,7 @@ struct Sentinel {
          s_current_function ||
          s_current_function_arg ||
          s_threads_exec[0] ) {
-      std::cerr << "ERROR : Process exiting without calling Kokkos::Threads::terminate()" << std::endl ;
+      std::cerr << "ERROR : Process exiting while Kokkos::Threads is still initialized" << std::endl ;
     }
   }
 };
@@ -570,10 +570,11 @@ void ThreadsExec::print_configuration( std::ostream & s , const bool detail )
 int ThreadsExec::is_initialized()
 { return 0 != s_threads_exec[0] ; }
 
-void ThreadsExec::initialize( unsigned thread_count ,
-                              unsigned use_numa_count ,
-                              unsigned use_cores_per_numa ,
-                              bool allow_asynchronous_threadpool )
+void ThreadsExec::initialize
+( unsigned thread_count ,
+  unsigned use_numa_count ,
+  unsigned use_cores_per_numa ,
+  bool allow_asynchronous_threadpool )
 {
   static const Sentinel sentinel ;
 
@@ -717,10 +718,10 @@ void ThreadsExec::initialize( unsigned thread_count ,
 
   // Check for over-subscription
   if( Kokkos::show_warnings() && (Impl::mpi_ranks_per_node() * long(thread_count) > Impl::processors_per_node()) ) {
-    std::cout << "Kokkos::Threads::initialize WARNING: You are likely oversubscribing your CPU cores." << std::endl;
-    std::cout << "                                    Detected: " << Impl::processors_per_node() << " cores per node." << std::endl;
-    std::cout << "                                    Detected: " << Impl::mpi_ranks_per_node() << " MPI_ranks per node." << std::endl;
-    std::cout << "                                    Requested: " << thread_count << " threads per process." << std::endl;
+    std::cerr << "Kokkos::Threads::initialize WARNING: You are likely oversubscribing your CPU cores." << std::endl;
+    std::cerr << "                                    Detected: " << Impl::processors_per_node() << " cores per node." << std::endl;
+    std::cerr << "                                    Detected: " << Impl::mpi_ranks_per_node() << " MPI_ranks per node." << std::endl;
+    std::cerr << "                                    Requested: " << thread_count << " threads per process." << std::endl;
   }
 
   // Init the array for used for arbitrarily sized atomics
@@ -728,7 +729,7 @@ void ThreadsExec::initialize( unsigned thread_count ,
 
   Impl::SharedAllocationRecord< void, void >::tracking_enable();
 
-  #if defined(KOKKOS_ENABLE_PROFILING)
+  #if defined(KOKKOS_ENABLE_DEPRECATED_CODE) && defined(KOKKOS_ENABLE_PROFILING)
     Kokkos::Profiling::initialize();
   #endif
 }
@@ -797,22 +798,38 @@ void ThreadsExec::finalize()
 namespace Kokkos {
 
 int Threads::concurrency() {
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
   return thread_pool_size(0);
+#else
+  return impl_thread_pool_size(0);
+#endif
 }
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
 Threads & Threads::instance(int)
+#else
+Threads & Threads::impl_instance(int)
+#endif
 {
   static Threads t ;
   return t ;
 }
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
 int Threads::thread_pool_size( int depth )
+#else
+int Threads::impl_thread_pool_size( int depth )
+#endif
 {
   return Impl::s_thread_pool_size[depth];
 }
 
 #if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
 int Threads::thread_pool_rank()
+#else
+int Threads::impl_thread_pool_rank()
+#endif
 {
   const pthread_t pid = pthread_self();
   int i = 0;

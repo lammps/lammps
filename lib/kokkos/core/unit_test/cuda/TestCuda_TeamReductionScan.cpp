@@ -46,7 +46,7 @@
 
 namespace Test {
 
-#if !defined(KOKKOS_CUDA_CLANG_WORKAROUND)
+#if !defined(KOKKOS_IMPL_CUDA_CLANG_WORKAROUND)
 TEST_F( TEST_CATEGORY, team_scan )
 {
   TestScanTeam< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> >( 0 );

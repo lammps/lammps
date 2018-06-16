@@ -163,7 +163,6 @@ struct TestViewMappingSubview
 
   void run()
   {
-    typedef typename Space::execution_space ExecSpace;
 
     TestViewMappingSubview< ExecSpace > self;
 

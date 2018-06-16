@@ -834,7 +834,8 @@ endif()
 # pip install git+https://github.com/gcovr/gcovr.git
 ###############################################################################
 if(ENABLE_COVERAGE)
-    find_package(GCOVR)
+    find_program(GCOVR_BINARY gcovr)
+    find_package_handle_standard_args(GCOVR DEFAULT_MSG GCOVR_BINARY)
 
     if(GCOVR_FOUND)
         get_filename_component(ABSOLUTE_LAMMPS_SOURCE_DIR ${LAMMPS_SOURCE_DIR} ABSOLUTE)

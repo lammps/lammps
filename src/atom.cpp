@@ -169,7 +169,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   omega_flag = torque_flag = angmom_flag = 0;
   radius_flag = rmass_flag = 0;
   ellipsoid_flag = line_flag = tri_flag = body_flag = 0;
- 
+
   // magnetic flags
 
   sp_flag = 0;

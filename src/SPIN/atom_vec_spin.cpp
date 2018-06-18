@@ -42,7 +42,9 @@ using namespace LAMMPS_NS;
 AtomVecSpin::AtomVecSpin(LAMMPS *lmp) : AtomVec(lmp)
 {
   molecular = 0;
-  mass_type = 1; // check why
+  mass_type = 1;
+  forceclearflag = 1;
+  atom->sp_flag = 1;
 
   comm_x_only = 0;
   comm_f_only = 0;
@@ -54,10 +56,6 @@ AtomVecSpin::AtomVecSpin(LAMMPS *lmp) : AtomVec(lmp)
   size_data_atom = 9;
   size_data_vel = 4;
   xcol_data = 4;
- 
-  forceclearflag = 1;
-  atom->sp_flag = 1;
-
 }
 
 

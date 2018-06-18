@@ -14,10 +14,10 @@
 /* ------------------------------------------------------------------------
    Contributing authors: Julien Tranchida (SNL)
                          Aidan Thompson (SNL)
-   
+
    Please cite the related publication:
-   Tranchida, J., Plimpton, S. J., Thibaudeau, P., & Thompson, A. P. (2018). 
-   Massively parallel symplectic algorithm for coupled magnetic spin dynamics 
+   Tranchida, J., Plimpton, S. J., Thibaudeau, P., & Thompson, A. P. (2018).
+   Massively parallel symplectic algorithm for coupled magnetic spin dynamics
    and molecular dynamics. arXiv preprint arXiv:1801.10233.
 ------------------------------------------------------------------------- */
 
@@ -85,7 +85,7 @@ FixLangevinSpin::FixLangevinSpin(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // initialize Marsaglia RNG with processor-unique seed
-  
+
   random = new RanPark(lmp,seed + comm->me);
 
 }
@@ -116,21 +116,21 @@ int FixLangevinSpin::setmask()
 void FixLangevinSpin::init()
 {
   // fix_langevin_spin has to be the last defined fix
-  
+
   int flag_force = 0;
   int flag_lang = 0;
-  for (int i = 0; i < modify->nfix; i++) { 
+  for (int i = 0; i < modify->nfix; i++) {
      if (strcmp("precession/spin",modify->fix[i]->style)==0) flag_force = MAX(flag_force,i);
      if (strcmp("langevin/spin",modify->fix[i]->style)==0) flag_lang = i;
   }
-  if (flag_force >= flag_lang) error->all(FLERR,"Fix langevin/spin has to come after all other spin fixes");  
+  if (flag_force >= flag_lang) error->all(FLERR,"Fix langevin/spin has to come after all other spin fixes");
 
   memory->create(spi,3,"langevin:spi");
   memory->create(fmi,3,"langevin:fmi");
 
   gil_factor = 1.0/(1.0+(alpha_t)*(alpha_t));
-  dts = update->dt; 
-  
+  dts = update->dt;
+
   double hbar = force->hplanck/MY_2PI;	// eV/(rad.THz)
   double kb = force->boltz;		// eV/K
   D = (MY_2PI*alpha_t*gil_factor*kb*temp);
@@ -168,24 +168,24 @@ void FixLangevinSpin::add_tdamping(double spi[3], double fmi[3])
 
 /* ---------------------------------------------------------------------- */
 
-void FixLangevinSpin::add_temperature(double fmi[3]) 
+void FixLangevinSpin::add_temperature(double fmi[3])
 {
 
   double rx = sigma*(2.0*random->uniform() - 1.0);
   double ry = sigma*(2.0*random->uniform() - 1.0);
   double rz = sigma*(2.0*random->uniform() - 1.0);
 
-  // adding the random field 
+  // adding the random field
 
-  fmi[0] += rx; 
+  fmi[0] += rx;
   fmi[1] += ry;
   fmi[2] += rz;
-               
-  // adding gilbert's prefactor 
 
-  fmi[0] *= gil_factor; 
-  fmi[1] *= gil_factor; 
-  fmi[2] *= gil_factor; 
+  // adding gilbert's prefactor
+
+  fmi[0] *= gil_factor;
+  fmi[1] *= gil_factor;
+  fmi[2] *= gil_factor;
 
 }
 

@@ -55,12 +55,12 @@ class AtomVecSpin : public AtomVec {
   void pack_data(double **);
   int pack_data_hybrid(int, double *);
   void write_data(FILE *, int, double **);
-  int write_data_hybrid(FILE *, double *); 
+  int write_data_hybrid(FILE *, double *);
   bigint memory_usage();
 
   // clear magnetic and mechanic forces
 
-  void force_clear(int, size_t); 
+  void force_clear(int, size_t);
 
 
  private:

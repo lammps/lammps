@@ -36,17 +36,17 @@ friend class PairSpin;
   virtual void initial_integrate(int);
   virtual void final_integrate();
 
-  void ComputeInteractionsSpin(int);	// compute and advance single spin functions 
+  void ComputeInteractionsSpin(int);	// compute and advance single spin functions
   void AdvanceSingleSpin(int);
 
-  void sectoring();			// sectoring operation functions 
+  void sectoring();			// sectoring operation functions
   int coords2sector(double *);
 
   void setup_pre_neighbor();
   void pre_neighbor();
 
   int lattice_flag; 			// lattice_flag = 0 if spins only
-  					// lattice_flag = 1 if spin-lattice calc. 
+  					// lattice_flag = 1 if spin-lattice calc.
 
 
  protected:
@@ -54,7 +54,7 @@ friend class PairSpin;
   					// sector_flag = 1  if parallel algorithm
 
   double dtv, dtf, dts;			// velocity, force, and spin timesteps
-  
+
   int nlocal_max;			// max value of nlocal (for lists size)
 
   int pair_spin_flag;			// magnetic pair flags
@@ -63,24 +63,24 @@ friend class PairSpin;
   int tdamp_flag, temp_flag;
 
   // pointers to magnetic fixes
-  
+
   class FixPrecessionSpin *lockprecessionspin;
-  class FixLangevinSpin *locklangevinspin; 
+  class FixLangevinSpin *locklangevinspin;
 
   // pointers to magnetic pair styles
- 
+
   int npairs, npairspin;		// # of pairs, and # of spin pairs
   class Pair *pair;
   class PairSpin **spin_pairs;		// vector of spin pairs
-  
+
   // sectoring variables
- 
+
   int nsectors;
   double *rsec;
 
   // stacking variables for sectoring algorithm
-  
-  int *stack_head;			// index of first atom in backward_stacks  
+
+  int *stack_head;			// index of first atom in backward_stacks
   int *stack_foot;			// index of first atom in forward_stacks
   int *backward_stacks;			// index of next atom in backward stack
   int *forward_stacks;			// index of next atom in forward stack
@@ -96,7 +96,7 @@ friend class PairSpin;
 
 E: Illegal fix NVE/spin command
 
-Self-explanatory.  Check the input script syntax and compare to the 
+Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
@@ -106,7 +106,7 @@ An atom/spin style with this attribute is needed.
 
 E: Illegal sectoring operation
 
-The number of processes does not match the size of the system. 
+The number of processes does not match the size of the system.
 See the documentation of the sectoring method.
 
 */

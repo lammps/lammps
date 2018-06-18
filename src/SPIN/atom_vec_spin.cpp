@@ -16,10 +16,10 @@
 /* ------------------------------------------------------------------------
    Contributing authors: Julien Tranchida (SNL)
                          Aidan Thompson (SNL)
-   
+
    Please cite the related publication:
-   Tranchida, J., Plimpton, S. J., Thibaudeau, P., & Thompson, A. P. (2018). 
-   Massively parallel symplectic algorithm for coupled magnetic spin dynamics 
+   Tranchida, J., Plimpton, S. J., Thibaudeau, P., & Thompson, A. P. (2018).
+   Massively parallel symplectic algorithm for coupled magnetic spin dynamics
    and molecular dynamics. arXiv preprint arXiv:1801.10233.
 ------------------------------------------------------------------------- */
 
@@ -102,7 +102,7 @@ void AtomVecSpin::grow_reset()
 {
   tag = atom->tag; type = atom->type;
   mask = atom->mask; image = atom->image;
-  x = atom->x; v = atom->v; f = atom->f; 
+  x = atom->x; v = atom->v; f = atom->f;
   sp = atom->sp; fm = atom->fm;
 }
 
@@ -361,7 +361,7 @@ void AtomVecSpin::unpack_reverse(int n, int *list, double *buf)
     fm[j][0] += buf[m++];
     fm[j][1] += buf[m++];
     fm[j][2] += buf[m++];
-  } 
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -522,7 +522,7 @@ int AtomVecSpin::pack_border_hybrid(int n, int *list, double *buf)
     buf[m++] = sp[j][2];
     buf[m++] = sp[j][3];
   }
-   
+
   return m;
 }
 
@@ -552,7 +552,7 @@ void AtomVecSpin::unpack_border(int n, int first, double *buf)
     for (int iextra = 0; iextra < atom->nextra_border; iextra++)
       m += modify->fix[atom->extra_border[iextra]]->
         unpack_border(n,first,&buf[m]);
-        
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -584,7 +584,7 @@ void AtomVecSpin::unpack_border_vel(int n, int first, double *buf)
     for (int iextra = 0; iextra < atom->nextra_border; iextra++)
       m += modify->fix[atom->extra_border[iextra]]->
         unpack_border(n,first,&buf[m]);
-   
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -601,7 +601,7 @@ int AtomVecSpin::unpack_border_hybrid(int n, int first, double *buf)
     sp[i][2] = buf[m++];
     sp[i][3] = buf[m++];
   }
-  
+
   return m;
 }
 
@@ -667,7 +667,7 @@ int AtomVecSpin::unpack_exchange(double *buf)
         unpack_exchange(nlocal,&buf[m]);
 
   atom->nlocal++;
-  
+
   return m;
 }
 
@@ -784,7 +784,7 @@ void AtomVecSpin::create_atom(int itype, double *coord)
   mask[nlocal] = 1;
   image[nlocal] = ((imageint) IMGMAX << IMG2BITS) |
     ((imageint) IMGMAX << IMGBITS) | IMGMAX;
-  v[nlocal][0] = 0.0; 
+  v[nlocal][0] = 0.0;
   v[nlocal][1] = 0.0;
   v[nlocal][2] = 0.0;
 
@@ -843,7 +843,7 @@ void AtomVecSpin::data_atom(double *coord, imageint imagetmp, char **values)
 
 int AtomVecSpin::data_atom_hybrid(int nlocal, char **values)
 {
-  
+
   sp[nlocal][0] = atof(values[0]);
   sp[nlocal][1] = atof(values[1]);
   sp[nlocal][2] = atof(values[2]);
@@ -854,7 +854,7 @@ int AtomVecSpin::data_atom_hybrid(int nlocal, char **values)
   sp[nlocal][1] *= inorm;
   sp[nlocal][2] *= inorm;
   sp[nlocal][3] = atof(values[3]);
-  
+
   return 4;
 }
 
@@ -878,7 +878,7 @@ void AtomVecSpin::pack_data(double **buf)
     buf[i][9] = ubuf((image[i] & IMGMASK) - IMGMAX).d;
     buf[i][10] = ubuf((image[i] >> IMGBITS & IMGMASK) - IMGMAX).d;
     buf[i][11] = ubuf((image[i] >> IMG2BITS) - IMGMAX).d;
-  } 
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -886,7 +886,7 @@ void AtomVecSpin::pack_data(double **buf)
 ------------------------------------------------------------------------- */
 
 int AtomVecSpin::pack_data_hybrid(int i, double *buf)
-{ 
+{
   buf[0] = sp[i][0];
   buf[1] = sp[i][1];
   buf[2] = sp[i][2];
@@ -899,7 +899,7 @@ int AtomVecSpin::pack_data_hybrid(int i, double *buf)
 ------------------------------------------------------------------------- */
 
 void AtomVecSpin::write_data(FILE *fp, int n, double **buf)
-{ 
+{
   for (int i = 0; i < n; i++)
     fprintf(fp,TAGINT_FORMAT \
             " %d %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e "
@@ -908,7 +908,7 @@ void AtomVecSpin::write_data(FILE *fp, int n, double **buf)
             buf[i][2],buf[i][3],buf[i][4],
             buf[i][5],buf[i][6],buf[i][7],buf[i][8],
             (int) ubuf(buf[i][10]).i,(int) ubuf(buf[i][11]).i,
-            (int) ubuf(buf[i][12]).i); 
+            (int) ubuf(buf[i][12]).i);
 }
 
 /* ----------------------------------------------------------------------
@@ -936,7 +936,7 @@ bigint AtomVecSpin::memory_usage()
   if (atom->memcheck("x")) bytes += memory->usage(x,nmax,3);
   if (atom->memcheck("v")) bytes += memory->usage(v,nmax,3);
   if (atom->memcheck("f")) bytes += memory->usage(f,nmax*comm->nthreads,3);
-  
+
   if (atom->memcheck("sp")) bytes += memory->usage(sp,nmax,4);
   if (atom->memcheck("fm")) bytes += memory->usage(fm,nmax*comm->nthreads,3);
 
@@ -945,8 +945,8 @@ bigint AtomVecSpin::memory_usage()
 
 void AtomVecSpin::force_clear(int n, size_t nbytes)
 {
-  memset(&atom->f[0][0],0,3*nbytes);  
-  memset(&atom->fm[0][0],0,3*nbytes);  
+  memset(&atom->f[0][0],0,3*nbytes);
+  memset(&atom->fm[0][0],0,3*nbytes);
 }
 
 

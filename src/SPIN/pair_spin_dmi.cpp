@@ -14,10 +14,10 @@
 /* ------------------------------------------------------------------------
    Contributing authors: Julien Tranchida (SNL)
                          Aidan Thompson (SNL)
-   
+
    Please cite the related publication:
-   Tranchida, J., Plimpton, S. J., Thibaudeau, P., & Thompson, A. P. (2018). 
-   Massively parallel symplectic algorithm for coupled magnetic spin dynamics 
+   Tranchida, J., Plimpton, S. J., Thibaudeau, P., & Thompson, A. P. (2018).
+   Massively parallel symplectic algorithm for coupled magnetic spin dynamics
    and molecular dynamics. arXiv preprint arXiv:1801.10233.
 ------------------------------------------------------------------------- */
 
@@ -80,9 +80,9 @@ void PairSpinDmi::settings(int narg, char **arg)
 
   if (strcmp(update->unit_style,"metal") != 0)
     error->all(FLERR,"Spin simulations require metal unit style");
-    
+
   cut_spin_dmi_global = force->numeric(FLERR,arg[0]);
-    
+
   // reset cutoffs that have been explicitly set
 
   if (allocated) {
@@ -95,7 +95,7 @@ void PairSpinDmi::settings(int narg, char **arg)
       }
     }
   }
-   
+
 }
 
 /* ----------------------------------------------------------------------
@@ -106,28 +106,28 @@ void PairSpinDmi::coeff(int narg, char **arg)
 {
   if (!allocated) allocate();
 
-  // check if args correct 
-  
+  // check if args correct
+
   if (strcmp(arg[2],"dmi") != 0)
     error->all(FLERR,"Incorrect args in pair_style command");
   if (narg != 8)
     error->all(FLERR,"Incorrect args in pair_style command");
-  
+
   int ilo,ihi,jlo,jhi;
   force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
   force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
-    
+
   const double rij = force->numeric(FLERR,arg[3]);
   const double dm = (force->numeric(FLERR,arg[4]))/hbar;
-  double dmx = force->numeric(FLERR,arg[5]);  
-  double dmy = force->numeric(FLERR,arg[6]); 
-  double dmz = force->numeric(FLERR,arg[7]); 
+  double dmx = force->numeric(FLERR,arg[5]);
+  double dmy = force->numeric(FLERR,arg[6]);
+  double dmz = force->numeric(FLERR,arg[7]);
 
   double inorm = 1.0/(dmx*dmx+dmy*dmy+dmz*dmz);
-  dmx *= inorm; 
-  dmy *= inorm; 
-  dmz *= inorm; 
- 
+  dmx *= inorm;
+  dmy *= inorm;
+  dmz *= inorm;
+
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
@@ -140,8 +140,8 @@ void PairSpinDmi::coeff(int narg, char **arg)
       count++;
     }
   }
-  if (count == 0) 
-    error->all(FLERR,"Incorrect args in pair_style command"); 
+  if (count == 0)
+    error->all(FLERR,"Incorrect args in pair_style command");
 
 }
 
@@ -169,7 +169,7 @@ void PairSpinDmi::init_style()
   }
   if (ifix == modify->nfix)
     error->all(FLERR,"pair/spin style requires nve/spin");
-  
+
   // get the lattice_flag from nve/spin
 
   for (int i = 0; i < modify->nfix; i++) {
@@ -187,7 +187,7 @@ void PairSpinDmi::init_style()
 
 double PairSpinDmi::init_one(int i, int j)
 {
-   
+
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   return cut_spin_dmi_global;
@@ -215,20 +215,20 @@ void PairSpinDmi::compute(int eflag, int vflag)
   double fi[3], fmi[3];
   double local_cut2;
   double rsq, inorm;
-  int *ilist,*jlist,*numneigh,**firstneigh;  
+  int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
-  
+
   double **x = atom->x;
   double **f = atom->f;
   double **fm = atom->fm;
   double **sp = atom->sp;	
-  int *type = atom->type;  
-  int nlocal = atom->nlocal;  
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
-  
+
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
@@ -240,28 +240,28 @@ void PairSpinDmi::compute(int eflag, int vflag)
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     itype = type[i];
-    
+
     jlist = firstneigh[i];
-    jnum = numneigh[i]; 
+    jnum = numneigh[i];
     xi[0] = x[i][0];
     xi[1] = x[i][1];
     xi[2] = x[i][2];
-    spi[0] = sp[i][0]; 
-    spi[1] = sp[i][1]; 
+    spi[0] = sp[i][0];
+    spi[1] = sp[i][1];
     spi[2] = sp[i][2];
-    
-  
+
+
     // loop on neighbors
 
     for (jj = 0; jj < jnum; jj++) {
-   
+
       j = jlist[jj];
       j &= NEIGHMASK;
       jtype = type[j];
 
-      spj[0] = sp[j][0]; 
-      spj[1] = sp[j][1]; 
-      spj[2] = sp[j][2]; 
+      spj[0] = sp[j][0];
+      spj[1] = sp[j][1];
+      spj[2] = sp[j][2];
 
       evdwl = 0.0;
 
@@ -269,11 +269,11 @@ void PairSpinDmi::compute(int eflag, int vflag)
       fmi[0] = fmi[1] = fmi[2] = 0.0;
       rij[0] = rij[1] = rij[2] = 0.0;
       eij[0] = eij[1] = eij[2] = 0.0;
-     
+
       rij[0] = x[j][0] - xi[0];
       rij[1] = x[j][1] - xi[1];
       rij[2] = x[j][2] - xi[2];
-      rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2]; 
+      rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
       inorm = 1.0/sqrt(rsq);
       eij[0] = rij[0]*inorm;
       eij[1] = rij[1]*inorm;
@@ -282,7 +282,7 @@ void PairSpinDmi::compute(int eflag, int vflag)
       local_cut2 = cut_spin_dmi[itype][jtype]*cut_spin_dmi[itype][jtype];
 
       // compute dmi interaction
-      
+
       if (rsq <= local_cut2) {
 	compute_dmi(i,j,eij,fmi,spj);
 	if (lattice_flag) {
@@ -290,16 +290,16 @@ void PairSpinDmi::compute(int eflag, int vflag)
 	}
       }
 
-      f[i][0] += fi[0];	 
-      f[i][1] += fi[1];	  	  
+      f[i][0] += fi[0];	
+      f[i][1] += fi[1];	  	
       f[i][2] += fi[2];
-      fm[i][0] += fmi[0];	 
-      fm[i][1] += fmi[1];	  	  
+      fm[i][0] += fmi[0];	
+      fm[i][1] += fmi[1];	  	
       fm[i][2] += fmi[2];
 
       if (newton_pair || j < nlocal) {
-	f[j][0] -= fi[0];	 
-        f[j][1] -= fi[1];	  	  
+	f[j][0] -= fi[0];	
+        f[j][1] -= fi[1];	  	
         f[j][2] -= fi[2];
       }
 
@@ -311,7 +311,7 @@ void PairSpinDmi::compute(int eflag, int vflag)
       if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
 	  evdwl,ecoul,fi[0],fi[1],fi[2],rij[0],rij[1],rij[2]);
     }
-  }  
+  }
 
   if (vflag_fdotr) virial_fdotr_compute();
 
@@ -340,11 +340,11 @@ void PairSpinDmi::compute_single_pair(int ii, double fmi[3])
 
   i = ilist[ii];
   itype = type[i];
- 
+
   xi[0] = x[i][0];
   xi[1] = x[i][1];
   xi[2] = x[i][2];
- 
+
   jlist = firstneigh[i];
   jnum = numneigh[i];
 
@@ -383,7 +383,7 @@ void PairSpinDmi::compute_single_pair(int ii, double fmi[3])
 
 void PairSpinDmi::compute_dmi(int i, int j, double eij[3], double fmi[3], double spj[3])
 {
-  int *type = atom->type;  
+  int *type = atom->type;
   int itype, jtype;
   double dmix, dmiy, dmiz;	
   itype = type[i];
@@ -422,15 +422,15 @@ void PairSpinDmi::allocate()
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
-      
+
   memory->create(cut_spin_dmi,n+1,n+1,"pair:cut_spin_dmi");
   memory->create(DM,n+1,n+1,"pair:DM");
   memory->create(v_dmx,n+1,n+1,"pair:DM_vector_x");
   memory->create(v_dmy,n+1,n+1,"pair:DM_vector_y");
   memory->create(v_dmz,n+1,n+1,"pair:DM_vector_z");
- 
-  memory->create(cutsq,n+1,n+1,"pair:cutsq");  
-  
+
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
+
 }
 
 
@@ -441,7 +441,7 @@ void PairSpinDmi::allocate()
 void PairSpinDmi::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
-  
+
   int i,j;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
@@ -490,7 +490,7 @@ void PairSpinDmi::read_restart(FILE *fp)
   }
 }
 
- 
+
 /* ----------------------------------------------------------------------
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
@@ -515,5 +515,5 @@ void PairSpinDmi::read_restart_settings(FILE *fp)
   }
   MPI_Bcast(&cut_spin_dmi_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
-  MPI_Bcast(&mix_flag,1,MPI_INT,0,world); 
+  MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
 }

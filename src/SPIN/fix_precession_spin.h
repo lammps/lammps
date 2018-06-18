@@ -38,13 +38,13 @@ class FixPrecessionSpin : public Fix {
   double compute_scalar();
 
   int zeeman_flag, aniso_flag;
-  void compute_single_precession(int, double *, double *);  
+  void compute_single_precession(int, double *, double *);
   void compute_zeeman(int, double *);
   void compute_anisotropy(double *, double *);
 
  protected:
   int style; 			// style of the magnetic precession
-  
+
   double degree2rad;
   double hbar;
   int ilevel_respa;
@@ -56,21 +56,21 @@ class FixPrecessionSpin : public Fix {
   int magfieldstyle;
   int magvar;
   char *magstr;
-   
+
   // zeeman field intensity and direction
 
-  double H_field; 
+  double H_field;
   double nhx, nhy, nhz;
   double hx, hy, hz; 		// temp. force variables
-  
+
   // magnetic anisotropy intensity and direction
-  
-  double Ka; 
+
+  double Ka;
   double nax, nay, naz;
   double Kax, Kay, Kaz; 	// temp. force variables
 
   void set_magneticprecession();
- 
+
 };
 
 }
@@ -86,7 +86,7 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-precession/spin fix command has 7 arguments: 
-fix  ID  group  precession/spin  magnitude (T or eV)  style (zeeman or anisotropy)  
-direction (3 cartesian coordinates) 
+precession/spin fix command has 7 arguments:
+fix  ID  group  precession/spin  magnitude (T or eV)  style (zeeman or anisotropy)
+direction (3 cartesian coordinates)
 */

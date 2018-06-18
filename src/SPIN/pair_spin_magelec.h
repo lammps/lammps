@@ -37,20 +37,20 @@ class PairSpinMagelec : public PairSpin {
   void compute(int, int);
   void compute_single_pair(int, double *);
 
-  void compute_magelec(int, int, double, double *, double *, double *);  
-  void compute_magelec_mech(int, int, double *, double *, double *);  
- 
+  void compute_magelec(int, int, double, double *, double *, double *);
+  void compute_magelec_mech(int, int, double *, double *, double *);
+
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
-  
+
   double cut_spin_magelec_global;	// global me cutoff
 
  protected:
   double **ME, **ME_mech;		// magelec coeff in eV
   double **v_mex, **v_mey, **v_mez;	// magelec direction
-  double **cut_spin_magelec;		// magelec cutoff distance 
+  double **cut_spin_magelec;		// magelec cutoff distance
 
   int lattice_flag;                     // flag for mech force computation
   class FixNVESpin *lockfixnvespin;     // ptr to FixNVESpin for setups

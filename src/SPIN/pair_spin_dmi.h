@@ -39,16 +39,16 @@ class PairSpinDmi : public PairSpin {
 
   void compute_dmi(int, int, double *, double *, double *);
   void compute_dmi_mech(double *);
-  
+
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
-  
+
   double cut_spin_dmi_global;		// short range pair cutoff
 
  protected:
-  double **DM;                     	// dmi coeff in eV 
+  double **DM;                     	// dmi coeff in eV
   double **v_dmx, **v_dmy, **v_dmz;	// dmi direction
   double **cut_spin_dmi;      		// cutoff distance dmi
 

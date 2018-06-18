@@ -14,10 +14,10 @@
 /* ------------------------------------------------------------------------
    Contributing authors: Julien Tranchida (SNL)
                          Aidan Thompson (SNL)
-   
+
    Please cite the related publication:
-   Tranchida, J., Plimpton, S. J., Thibaudeau, P., & Thompson, A. P. (2018). 
-   Massively parallel symplectic algorithm for coupled magnetic spin dynamics 
+   Tranchida, J., Plimpton, S. J., Thibaudeau, P., & Thompson, A. P. (2018).
+   Massively parallel symplectic algorithm for coupled magnetic spin dynamics
    and molecular dynamics. arXiv preprint arXiv:1801.10233.
 ------------------------------------------------------------------------- */
 
@@ -40,7 +40,7 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-ComputeSpin::ComputeSpin(LAMMPS *lmp, int narg, char **arg) : 
+ComputeSpin::ComputeSpin(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
   if ((narg != 3) && (narg != 4)) error->all(FLERR,"Illegal compute compute/spin command");
@@ -52,7 +52,7 @@ ComputeSpin::ComputeSpin(LAMMPS *lmp, int narg, char **arg) :
   init();
 
   allocate();
-  
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -79,27 +79,27 @@ void ComputeSpin::compute_vector()
   double mag[4], magtot[4];
   double magenergy, magenergytot;
   double tempnum, tempnumtot;
-  double tempdenom, tempdenomtot; 
+  double tempdenom, tempdenomtot;
   double spintemperature;
- 
+
   invoked_vector = update->ntimestep;
-  
+
   countsp = countsptot = 0.0;	
-  mag[0] = mag[1] = mag[2] = mag[3] = 0.0; 
-  magtot[0] = magtot[1] = magtot[2] = magtot[3] = 0.0; 
-  magenergy = magenergytot = 0.0; 
+  mag[0] = mag[1] = mag[2] = mag[3] = 0.0;
+  magtot[0] = magtot[1] = magtot[2] = magtot[3] = 0.0;
+  magenergy = magenergytot = 0.0;
   tempnum = tempnumtot = 0.0;
-  tempdenom = tempdenomtot = 0.0; 
-  spintemperature = 0.0;  
+  tempdenom = tempdenomtot = 0.0;
+  spintemperature = 0.0;
 
   int *mask = atom->mask;
-  double **sp = atom->sp;  
+  double **sp = atom->sp;
   double **fm = atom->fm;
   double tx,ty,tz;
 	
   int nlocal = atom->nlocal;
 
-  // compute total magnetization and magnetic energy 
+  // compute total magnetization and magnetic energy
   // compute spin temperature (Nurdin et al., Phys. Rev. E 61, 2000)
 
   for (i = 0; i < nlocal; i++) {
@@ -108,7 +108,7 @@ void ComputeSpin::compute_vector()
 		mag[0] += sp[i][0];
 		mag[1] += sp[i][1];
 		mag[2] += sp[i][2];
-		magenergy -= (sp[i][0]*fm[i][0] + sp[i][1]*fm[i][1] + sp[i][2]*fm[i][2]);  
+		magenergy -= (sp[i][0]*fm[i][0] + sp[i][1]*fm[i][1] + sp[i][2]*fm[i][2]);
                 tx = sp[i][1]*fm[i][2]-sp[i][2]*fm[i][1];
                 ty = sp[i][2]*fm[i][0]-sp[i][0]*fm[i][2];
                 tz = sp[i][0]*fm[i][1]-sp[i][1]*fm[i][0];
@@ -125,22 +125,22 @@ void ComputeSpin::compute_vector()
   MPI_Allreduce(&tempnum,&tempnumtot,1,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(&tempdenom,&tempdenomtot,1,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(&countsp,&countsptot,1,MPI_INT,MPI_SUM,world);
-  
+
   double scale = 1.0/countsptot;
   magtot[0] *= scale;
   magtot[1] *= scale;
   magtot[2] *= scale;
   magtot[3] = sqrt((magtot[0]*magtot[0])+(magtot[1]*magtot[1])+(magtot[2]*magtot[2]));
-  spintemperature = hbar*tempnumtot;    
+  spintemperature = hbar*tempnumtot;
   spintemperature /= (kb*tempdenomtot);
- 
+
   vector[0] = magtot[0];
   vector[1] = magtot[1];
   vector[2] = magtot[2];
   vector[3] = magtot[3];
-  vector[4] = magenergytot*hbar; 
+  vector[4] = magenergytot*hbar;
   vector[5] = spintemperature;
- 
+
 }
 
 /* ----------------------------------------------------------------------

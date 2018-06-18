@@ -14,10 +14,10 @@
 /* ------------------------------------------------------------------------
    Contributing authors: Julien Tranchida (SNL)
                          Aidan Thompson (SNL)
-   
+
    Please cite the related publication:
-   Tranchida, J., Plimpton, S. J., Thibaudeau, P., & Thompson, A. P. (2018). 
-   Massively parallel symplectic algorithm for coupled magnetic spin dynamics 
+   Tranchida, J., Plimpton, S. J., Thibaudeau, P., & Thompson, A. P. (2018).
+   Massively parallel symplectic algorithm for coupled magnetic spin dynamics
    and molecular dynamics. arXiv preprint arXiv:1801.10233.
 ------------------------------------------------------------------------- */
 
@@ -39,7 +39,7 @@
 #include "math_extra.h"
 #include "math_const.h"
 #include "memory.h"
-#include "modify.h" 
+#include "modify.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "pair.h"
@@ -68,15 +68,15 @@ enum{NONE};
 /* ---------------------------------------------------------------------- */
 
 FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), 
+  Fix(lmp, narg, arg),
   pair(NULL), spin_pairs(NULL),
-  rsec(NULL), stack_head(NULL), stack_foot(NULL), 
+  rsec(NULL), stack_head(NULL), stack_foot(NULL),
   backward_stacks(NULL), forward_stacks(NULL)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_nve_spin);
 
-  if (narg < 4) error->all(FLERR,"Illegal fix/NVE/spin command");  
-  
+  if (narg < 4) error->all(FLERR,"Illegal fix/NVE/spin command");
+
   time_integrate = 1;
   sector_flag = NONE;
   lattice_flag = 1;
@@ -90,7 +90,7 @@ FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
   if (atom->map_style == 0)
     error->all(FLERR,"Fix NVE/spin requires an atom map, see atom_modify");
 
-  // defining sector_flag 
+  // defining sector_flag
 
   int nprocs_tmp = comm->nprocs;
   if (nprocs_tmp == 1) {
@@ -99,10 +99,10 @@ FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
     sector_flag = 1;
   } else error->all(FLERR,"Illegal fix/NVE/spin command");
 
-  // defining lattice_flag 
+  // defining lattice_flag
 
   int iarg = 3;
-  while (iarg < narg) { 
+  while (iarg < narg) {
     if (strcmp(arg[iarg],"lattice") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix/NVE/spin command");
       if (strcmp(arg[iarg+1],"no") == 0) lattice_flag = 0;
@@ -151,7 +151,7 @@ int FixNVESpin::setmask()
   mask |= INITIAL_INTEGRATE;
   mask |= PRE_NEIGHBOR;
   mask |= FINAL_INTEGRATE;
-  return mask;  
+  return mask;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -182,7 +182,7 @@ void FixNVESpin::init()
 	npairspin ++;
       }
     }
-  } 
+  }
 
   // init length of vector of ptrs to Pair/Spin styles
 
@@ -208,7 +208,7 @@ void FixNVESpin::init()
   if (count != npairspin)
     error->all(FLERR,"Incorrect number of spin pairs");
 
-  if (npairspin >= 1) pair_spin_flag = 1; 
+  if (npairspin >= 1) pair_spin_flag = 1;
 
   // ptrs FixPrecessionSpin classes
 
@@ -216,29 +216,29 @@ void FixNVESpin::init()
   for (iforce = 0; iforce < modify->nfix; iforce++) {
     if (strstr(modify->fix[iforce]->style,"precession/spin")) {
       precession_spin_flag = 1;
-      lockprecessionspin = (FixPrecessionSpin *) modify->fix[iforce]; 
+      lockprecessionspin = (FixPrecessionSpin *) modify->fix[iforce];
     }
   }
 
   // ptrs on the FixLangevinSpin class
-  
+
   for (iforce = 0; iforce < modify->nfix; iforce++) {
     if (strstr(modify->fix[iforce]->style,"langevin/spin")) {
       maglangevin_flag = 1;
-      locklangevinspin = (FixLangevinSpin *) modify->fix[iforce]; 
-    } 
+      locklangevinspin = (FixLangevinSpin *) modify->fix[iforce];
+    }
   }
 
   if (maglangevin_flag) {
    if (locklangevinspin->tdamp_flag == 1) tdamp_flag = 1;
    if (locklangevinspin->temp_flag == 1) temp_flag = 1;
   }
- 
+
   // setting the sector variables/lists
 
   nsectors = 0;
   memory->create(rsec,3,"NVE/spin:rsec");
-  
+
   // perform the sectoring operation
 
   if (sector_flag) sectoring();
@@ -264,20 +264,20 @@ void FixNVESpin::initial_integrate(int vflag)
   double **x = atom->x;	
   double **v = atom->v;
   double **f = atom->f;
-  double *rmass = atom->rmass; 
-  double *mass = atom->mass;  
+  double *rmass = atom->rmass;
+  double *mass = atom->mass;
   int nlocal = atom->nlocal;
-  if (igroup == atom->firstgroup) nlocal = atom->nfirst;  
+  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
   int *type = atom->type;
-  int *mask = atom->mask;  
+  int *mask = atom->mask;
 
   // update half v for all atoms
-  
+
   if (lattice_flag) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         if (rmass) dtfm = dtf / rmass[i];
-        else dtfm = dtf / mass[type[i]]; 
+        else dtfm = dtf / mass[type[i]];
         v[i][0] += dtfm * f[i][0];
         v[i][1] += dtfm * f[i][1];
         v[i][2] += dtfm * f[i][2];
@@ -297,7 +297,7 @@ void FixNVESpin::initial_integrate(int vflag)
 	i = forward_stacks[i];
       }
     }
-    for (int j = nsectors-1; j >= 0; j--) {	// advance quarter s for nlocal 
+    for (int j = nsectors-1; j >= 0; j--) {	// advance quarter s for nlocal
       comm->forward_comm();
       int i = stack_head[j];
       while (i >= 0) {
@@ -342,7 +342,7 @@ void FixNVESpin::initial_integrate(int vflag)
 	i = forward_stacks[i];
       }
     }
-    for (int j = nsectors-1; j >= 0; j--) {	// advance quarter s for nlocal 
+    for (int j = nsectors-1; j >= 0; j--) {	// advance quarter s for nlocal
       comm->forward_comm();
       int i = stack_head[j];
       while (i >= 0) {
@@ -365,7 +365,7 @@ void FixNVESpin::initial_integrate(int vflag)
 
 }
 
-/* ---------------------------------------------------------------------- 
+/* ----------------------------------------------------------------------
    setup pre_neighbor()
 ---------------------------------------------------------------------- */
 
@@ -374,7 +374,7 @@ void FixNVESpin::setup_pre_neighbor()
   pre_neighbor();
 }
 
-/* ---------------------------------------------------------------------- 
+/* ----------------------------------------------------------------------
    store in two linked lists the advance order of the spins (sectoring)
 ---------------------------------------------------------------------- */
 
@@ -414,7 +414,7 @@ void FixNVESpin::pre_neighbor()
 
 }
 
-/* ---------------------------------------------------------------------- 
+/* ----------------------------------------------------------------------
    compute the magnetic torque for the spin ii
 ---------------------------------------------------------------------- */
 
@@ -430,7 +430,7 @@ void FixNVESpin::ComputeInteractionsSpin(int i)
   spi[0] = sp[i][0];
   spi[1] = sp[i][1];
   spi[2] = sp[i][2];
-  
+
   fmi[0] = fmi[1] = fmi[2] = 0.0;
 
   // update magnetic pair interactions
@@ -440,10 +440,10 @@ void FixNVESpin::ComputeInteractionsSpin(int i)
       spin_pairs[k]->compute_single_pair(i,fmi);
     }
   }
- 
+
   // update magnetic precession interactions
 
-  if (precession_spin_flag) { 
+  if (precession_spin_flag) {
     lockprecessionspin->compute_single_precession(i,spi,fmi);
   }
 
@@ -451,11 +451,11 @@ void FixNVESpin::ComputeInteractionsSpin(int i)
 
   if (maglangevin_flag) {		// mag. langevin
     if (tdamp_flag) {			// transverse damping
-      locklangevinspin->add_tdamping(spi,fmi);   
+      locklangevinspin->add_tdamping(spi,fmi);
     }
     if (temp_flag) { 			// spin temperature
       locklangevinspin->add_temperature(fmi);
-    } 
+    }
   }
 
   // replace the magnetic force fm[i] by its new value fmi
@@ -466,7 +466,7 @@ void FixNVESpin::ComputeInteractionsSpin(int i)
 
 }
 
-/* ---------------------------------------------------------------------- 
+/* ----------------------------------------------------------------------
    divide each domain into 8 sectors
 ---------------------------------------------------------------------- */
 
@@ -481,9 +481,9 @@ void FixNVESpin::sectoring()
     subhi[dim]=subhitmp[dim];
   }
 
-  const double rsx = subhi[0] - sublo[0];  
-  const double rsy = subhi[1] - sublo[1];  
-  const double rsz = subhi[2] - sublo[2];  
+  const double rsx = subhi[0] - sublo[0];
+  const double rsy = subhi[1] - sublo[1];
+  const double rsz = subhi[2] - sublo[2];
 
   // extract larger cutoff from PairSpin styles
 
@@ -498,10 +498,10 @@ void FixNVESpin::sectoring()
   if (rv == 0.0)
    error->all(FLERR,"Illegal sectoring operation");
 
-  double rax = rsx/rv;  
-  double ray = rsy/rv;  
-  double raz = rsz/rv;  
- 
+  double rax = rsx/rv;
+  double ray = rsy/rv;
+  double raz = rsz/rv;
+
   sec[0] = 1;
   sec[1] = 1;
   sec[2] = 1;
@@ -511,7 +511,7 @@ void FixNVESpin::sectoring()
 
   nsectors = sec[0]*sec[1]*sec[2];
 
-  if (sector_flag == 1 && nsectors != 8) 
+  if (sector_flag == 1 && nsectors != 8)
     error->all(FLERR,"Illegal sectoring operation");
 
   rsec[0] = rsx;
@@ -523,7 +523,7 @@ void FixNVESpin::sectoring()
 
 }
 
-/* ---------------------------------------------------------------------- 
+/* ----------------------------------------------------------------------
    define sector for an atom at a position x[i]
 ---------------------------------------------------------------------- */
 
@@ -541,12 +541,12 @@ int FixNVESpin::coords2sector(double *x)
   seci[1] = x[1] > (sublo[1] + rsec[1]);
   seci[2] = x[2] > (sublo[2] + rsec[2]);
 
-  nseci = (seci[0] + 2*seci[1] + 4*seci[2]); 
+  nseci = (seci[0] + 2*seci[1] + 4*seci[2]);
 
   return nseci;
 }
 
-/* ---------------------------------------------------------------------- 
+/* ----------------------------------------------------------------------
    advance the spin i of a timestep dts
 ---------------------------------------------------------------------- */
 
@@ -557,7 +557,7 @@ void FixNVESpin::AdvanceSingleSpin(int i)
   double **sp = atom->sp;
   double **fm = atom->fm;
   double msq,scale,fm2,energy,dts2;
-  double cp[3],g[3]; 
+  double cp[3],g[3];
 
   cp[0] = cp[1] = cp[2] = 0.0;
   g[0] = g[1] = g[2] = 0.0;
@@ -572,18 +572,18 @@ void FixNVESpin::AdvanceSingleSpin(int i)
   g[0] = sp[i][0]+cp[0]*dts;
   g[1] = sp[i][1]+cp[1]*dts;
   g[2] = sp[i][2]+cp[2]*dts;
-			  
+			
   g[0] += (fm[i][0]*energy-0.5*sp[i][0]*fm2)*0.5*dts2;
   g[1] += (fm[i][1]*energy-0.5*sp[i][1]*fm2)*0.5*dts2;
   g[2] += (fm[i][2]*energy-0.5*sp[i][2]*fm2)*0.5*dts2;
-			  
+			
   g[0] /= (1+0.25*fm2*dts2);
   g[1] /= (1+0.25*fm2*dts2);
   g[2] /= (1+0.25*fm2*dts2);
-			  
+			
   sp[i][0] = g[0];
   sp[i][1] = g[1];
-  sp[i][2] = g[2];			  
+  sp[i][2] = g[2];			
 
   // renormalization (check if necessary)
 
@@ -618,11 +618,11 @@ void FixNVESpin::final_integrate()
   double **v = atom->v;
   double **f = atom->f;
   double *rmass = atom->rmass;
-  double *mass = atom->mass;  
+  double *mass = atom->mass;
   int nlocal = atom->nlocal;
-  if (igroup == atom->firstgroup) nlocal = atom->nfirst;  
+  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
   int *type = atom->type;
-  int *mask = atom->mask; 
+  int *mask = atom->mask;
 
   // update half v for all particles
 
@@ -630,10 +630,10 @@ void FixNVESpin::final_integrate()
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         if (rmass) dtfm = dtf / rmass[i];
-        else dtfm = dtf / mass[type[i]]; 
+        else dtfm = dtf / mass[type[i]];
         v[i][0] += dtfm * f[i][0];
         v[i][1] += dtfm * f[i][1];
-        v[i][2] += dtfm * f[i][2];  
+        v[i][2] += dtfm * f[i][2];
       }
     }
   }

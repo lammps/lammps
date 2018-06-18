@@ -39,7 +39,7 @@ friend class FixNVESpin;
   virtual void compute_single_pair(int, double *) {}
 
  protected:
-  double hbar;				// Planck constant (eV.ps.rad-1) 
+  double hbar;				// Planck constant (eV.ps.rad-1)
 
   virtual void allocate() {}
 };

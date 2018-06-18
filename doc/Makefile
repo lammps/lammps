@@ -9,6 +9,7 @@ TXT2RST       = $(VENV)/bin/txt2rst
 ANCHORCHECK   = $(VENV)/bin/doc_anchor_check
 
 PYTHON        = $(shell which python3)
+VIRTUALENV     = virtualenv
 HAS_PYTHON3    = NO
 HAS_VIRTUALENV = NO
 
@@ -16,7 +17,13 @@ ifeq ($(shell which python3 >/dev/null 2>&1; echo $$?), 0)
 HAS_PYTHON3 = YES
 endif
 
+ifeq ($(shell which virtualenv-3 >/dev/null 2>&1; echo $$?), 0)
+VIRTUALENV     = virtualenv-3
+HAS_VIRTUALENV = YES
+endif
+
 ifeq ($(shell which virtualenv >/dev/null 2>&1; echo $$?), 0)
+VIRTUALENV     = virtualenv
 HAS_VIRTUALENV = YES
 endif
 
@@ -158,7 +165,7 @@ $(VENV):
 	@if [ "$(HAS_PYTHON3)" == "NO" ] ; then echo "Python3 was not found! Please check README.md for further instructions" 1>&2; exit 1; fi
 	@if [ "$(HAS_VIRTUALENV)" == "NO" ] ; then echo "virtualenv was not found! Please check README.md for further instructions" 1>&2; exit 1; fi
 	@( \
-		virtualenv -p $(PYTHON) $(VENV); \
+		$(VIRTUALENV) -p $(PYTHON) $(VENV); \
 		. $(VENV)/bin/activate; \
 		pip install Sphinx; \
 		pip install sphinxcontrib-images; \

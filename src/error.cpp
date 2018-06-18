@@ -28,7 +28,7 @@ static const char *truncpath(const char *path)
    if (path) {
      int len = strlen(path);
      for (int i = len-4; i > 0; --i) {
-	if (strncmp("src/",path+i,4) == 0)
+        if (strncmp("src/",path+i,4) == 0)
           return path+i;
      }
    }

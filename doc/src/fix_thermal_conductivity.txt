@@ -136,7 +136,7 @@ kinetic energy of atoms that are in constrained molecules, e.g. via
 "fix shake"_fix_shake.html or "fix rigid"_fix_rigid.html.  This is
 because application of the constraints will alter the amount of
 transferred momentum.  You should, however, be able to use flexible
-molecules.  See the "Zhang paper"_#Zhang1 for a discussion and results
+molecules.  See the "Zhang paper"_#Zhang2 for a discussion and results
 of this idea.
 
 When running a simulation with large, massive particles or molecules
@@ -158,6 +158,6 @@ The option defaults are swap = 1.
 :link(Muller-Plathe1)
 [(Muller-Plathe)] Muller-Plathe, J Chem Phys, 106, 6082 (1997).
 
-:link(Zhang1)
+:link(Zhang2)
 [(Zhang)] Zhang, Lussetti, de Souza, Muller-Plathe, J Phys Chem B,
 109, 15060-15067 (2005).

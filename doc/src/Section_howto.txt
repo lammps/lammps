@@ -2838,7 +2838,6 @@ CS-Info         # header of additional section :pre
 4   2
 5   3
 6   3
-The interactions between the 
 7   4
 8   4
 (...) :pre

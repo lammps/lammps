@@ -296,10 +296,11 @@ list of runs (e.g. 1000) without having to list N strings in the input
 script.
 
 For the {string} style, a single string is assigned to the variable.
-The only difference between this and using the {index} style with a
-single string is that a variable with {string} style can be redefined.
-E.g. by another command later in the input script, or if the script is
-read again in a loop.
+Two differences between this this and using the {index} style exist:
+a variable with {string} style can be redefined, e.g. by another command later
+in the input script, or if the script is read again in a loop. The other
+difference is that {string} performs variable substitution even if the
+string parameter is quoted.
 
 For the {format} style, an equal-style variable is specified along
 with a C-style format string, e.g. "%f" or "%.10g", which must be

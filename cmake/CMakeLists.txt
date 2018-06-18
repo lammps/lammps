@@ -154,16 +154,6 @@ if(PKG_MEAM OR PKG_USER-H5MD OR PKG_USER-QMMM)
   enable_language(C)
 endif()
 
-if(PKG_MSCG)
-  if (CMAKE_VERSION VERSION_LESS "3.1") 
-    message(FATAL_ERROR "For the MSCG package you need at least cmake-3.1")
-  endif()
-  # starting with CMake 3.1 this is all you have to do to enforce C++11
-  set(CMAKE_CXX_STANDARD 11) # C++11...
-  set(CMAKE_CXX_STANDARD_REQUIRED ON) #...is required...
-  set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
-endif()
-
 find_package(OpenMP QUIET)
 option(BUILD_OMP "Build with OpenMP support" ${OpenMP_FOUND})
 if(BUILD_OMP OR PKG_USER-OMP OR PKG_KOKKOS OR PKG_USER-INTEL)
@@ -207,7 +197,7 @@ if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-QUIP OR PKG_LATTE)
   find_package(LAPACK)
   if(NOT LAPACK_FOUND)
     enable_language(Fortran)
-    file(GLOB LAPACK_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/linalg/*.f)
+    file(GLOB LAPACK_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/linalg/*.[fF])
     add_library(linalg STATIC ${LAPACK_SOURCES})
     set(LAPACK_LIBRARIES linalg)
   endif()
@@ -340,13 +330,10 @@ if(PKG_USER-SMD)
     ExternalProject_Add(Eigen3_build
       URL http://bitbucket.org/eigen/eigen/get/3.3.4.tar.gz 
       URL_MD5 1a47e78efe365a97de0c022d127607c3
-      CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> -DEIGEN_TEST_NOQT=ON
-        -DCMAKE_DISABLE_FIND_PACKAGE_LAPACK=ON -DCMAKE_DISABLE_FIND_PACKAGE_Cholmod=ON -DCMAKE_DISABLE_FIND_PACKAGE_Umfpack=ON -DCMAKE_DISABLE_FIND_PACKAGE_SuperLU=ON
-        -DCMAKE_DISABLE_FIND_PACKAGE_PASTIX=ON -DCMAKE_DISABLE_FIND_PACKAGE_SPQR=ON -DCMAKE_DISABLE_FIND_PACKAGE_Boost=ON -DCMAKE_DISABLE_FIND_PACKAGE_CUDA=ON
-        -DCMAKE_DISABLE_FIND_PACKAGE_FFTW=ON -DCMAKE_DISABLE_FIND_PACKAGE_MPFR=ON -DCMAKE_DISABLE_FIND_PACKAGE_OpenGL=ON
-        )
-    ExternalProject_get_property(Eigen3_build INSTALL_DIR)
-    set(EIGEN3_INCLUDE_DIR ${INSTALL_DIR}/include/eigen3)
+      CONFIGURE_COMMAND "" BUILD_COMMAND "" INSTALL_COMMAND ""
+    )
+    ExternalProject_get_property(Eigen3_build SOURCE_DIR)
+    set(EIGEN3_INCLUDE_DIR ${SOURCE_DIR})
     list(APPEND LAMMPS_DEPS Eigen3_build)
   else()
     find_package(Eigen3)
@@ -402,26 +389,36 @@ endif()
 
 if(PKG_MSCG)
   find_package(GSL REQUIRED)
-  set(LAMMPS_LIB_MSCG_BIN_DIR ${LAMMPS_LIB_BINARY_DIR}/mscg)
-  set(MSCG_TARBALL ${LAMMPS_LIB_MSCG_BIN_DIR}/MS-CG-master.zip)
-  set(LAMMPS_LIB_MSCG_BIN_DIR ${LAMMPS_LIB_MSCG_BIN_DIR}/MSCG-release-master/src)
-  if(NOT EXISTS ${LAMMPS_LIB_MSCG_BIN_DIR})
-    if(NOT EXISTS ${MSCG_TARBALL})
-      message(STATUS "Downloading ${MSCG_TARBALL}")
-      file(DOWNLOAD
-        https://github.com/uchicago-voth/MSCG-release/archive/master.zip
-        ${MSCG_TARBALL} SHOW_PROGRESS) #EXPECTED_MD5 cannot be due due to master
+  option(DOWNLOAD_MSCG "Download latte (instead of using the system's one)" OFF)
+  if(DOWNLOAD_MSCG)
+    include(ExternalProject)
+    if(NOT LAPACK_FOUND)
+      set(EXTRA_MSCG_OPTS "-DLAPACK_LIBRARIES=${CMAKE_CURRENT_BINARY_DIR}/liblinalg.a")
     endif()
-    message(STATUS "Unpacking ${MSCG_TARBALL}")
-    execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ${MSCG_TARBALL}
-      WORKING_DIRECTORY ${LAMMPS_LIB_BINARY_DIR}/mscg)
+    ExternalProject_Add(mscg_build
+      URL https://github.com/uchicago-voth/MSCG-release/archive/1.7.3.1.tar.gz
+      URL_MD5 8c45e269ee13f60b303edd7823866a91
+      SOURCE_SUBDIR src/CMake
+      CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> -DCMAKE_POSITION_INDEPENDENT_CODE=${CMAKE_POSITION_INDEPENDENT_CODE} ${EXTRA_MSCG_OPTS}
+      BUILD_COMMAND make mscg INSTALL_COMMAND ""
+      )
+    ExternalProject_get_property(mscg_build BINARY_DIR)
+    set(MSCG_LIBRARIES ${BINARY_DIR}/libmscg.a)
+    ExternalProject_get_property(mscg_build SOURCE_DIR)
+    set(MSCG_INCLUDE_DIRS ${SOURCE_DIR}/src)
+    list(APPEND LAMMPS_DEPS mscg_build)
+    if(NOT LAPACK_FOUND)
+      file(MAKE_DIRECTORY ${MSCG_INCLUDE_DIRS})
+      add_dependencies(mscg_build linalg)
+    endif()
+  else()
+    find_package(MSCG)
+    if(NOT MSCG_FOUND)
+      message(FATAL_ERROR "MSCG not found, help CMake to find it by setting MSCG_LIBRARY and MSCG_INCLUDE_DIRS, or set DOWNLOAD_MSCG=ON to download it")
+    endif()
   endif()
-  file(GLOB MSCG_SOURCES ${LAMMPS_LIB_MSCG_BIN_DIR}/*.cpp)
-  add_library(mscg STATIC ${MSCG_SOURCES})
-  list(APPEND LAMMPS_LINK_LIBS mscg)
-  target_compile_options(mscg PRIVATE -DDIMENSION=3 -D_exclude_gromacs=1)
-  target_include_directories(mscg PUBLIC ${LAMMPS_LIB_MSCG_BIN_DIR})
-  target_link_libraries(mscg ${GSL_LIBRARIES} ${LAPACK_LIBRARIES})
+  list(APPEND LAMMPS_LINK_LIBS ${MSCG_LIBRARIES} ${GSL_LIBRARIES} ${LAPACK_LIBRARIES})
+  include_directories(${MSCG_INCLUDE_DIRS})
 endif()
 
 if(PKG_COMPRESS)

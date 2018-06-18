@@ -2,14 +2,14 @@
 *
 *  =========== DOCUMENTATION ===========
 *
-* Online html documentation available at 
-*            http://www.netlib.org/lapack/explore-html/ 
+* Online html documentation available at
+*            http://www.netlib.org/lapack/explore-html/
 *
 *  Definition:
 *  ===========
 *
 *       SUBROUTINE DTRMM(SIDE,UPLO,TRANSA,DIAG,M,N,ALPHA,A,LDA,B,LDB)
-* 
+*
 *       .. Scalar Arguments ..
 *       DOUBLE PRECISION ALPHA
 *       INTEGER LDA,LDB,M,N
@@ -18,7 +18,7 @@
 *       .. Array Arguments ..
 *       DOUBLE PRECISION A(LDA,*),B(LDB,*)
 *       ..
-*  
+*
 *
 *> \par Purpose:
 *  =============
@@ -109,7 +109,7 @@
 *>
 *> \param[in] A
 *> \verbatim
-*>           A is DOUBLE PRECISION array of DIMENSION ( LDA, k ), where k is m
+*>           A is DOUBLE PRECISION array, dimension ( LDA, k ), where k is m
 *>           when  SIDE = 'L' or 'l'  and is  n  when  SIDE = 'R' or 'r'.
 *>           Before entry  with  UPLO = 'U' or 'u',  the  leading  k by k
 *>           upper triangular part of the array  A must contain the upper
@@ -134,7 +134,7 @@
 *>
 *> \param[in,out] B
 *> \verbatim
-*>          B is DOUBLE PRECISION array of DIMENSION ( LDB, n ).
+*>          B is DOUBLE PRECISION array, dimension ( LDB, N )
 *>           Before entry,  the leading  m by n part of the array  B must
 *>           contain the matrix  B,  and  on exit  is overwritten  by the
 *>           transformed matrix.
@@ -151,12 +151,12 @@
 *  Authors:
 *  ========
 *
-*> \author Univ. of Tennessee 
-*> \author Univ. of California Berkeley 
-*> \author Univ. of Colorado Denver 
-*> \author NAG Ltd. 
+*> \author Univ. of Tennessee
+*> \author Univ. of California Berkeley
+*> \author Univ. of Colorado Denver
+*> \author NAG Ltd.
 *
-*> \date November 2011
+*> \date December 2016
 *
 *> \ingroup double_blas_level3
 *
@@ -177,10 +177,10 @@
 *  =====================================================================
       SUBROUTINE DTRMM(SIDE,UPLO,TRANSA,DIAG,M,N,ALPHA,A,LDA,B,LDB)
 *
-*  -- Reference BLAS level3 routine (version 3.4.0) --
+*  -- Reference BLAS level3 routine (version 3.7.0) --
 *  -- Reference BLAS is a software package provided by Univ. of Tennessee,    --
 *  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
-*     November 2011
+*     December 2016
 *
 *     .. Scalar Arguments ..
       DOUBLE PRECISION ALPHA

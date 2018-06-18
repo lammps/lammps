@@ -69,6 +69,7 @@ FixDtReset::FixDtReset(LAMMPS *lmp, int narg, char **arg) :
 
   int scaleflag = 1;
 
+  emax = -1.0;
   int iarg = 7;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"units") == 0) {
@@ -76,6 +77,11 @@ FixDtReset::FixDtReset(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
       else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
       else error->all(FLERR,"Illegal fix dt/reset command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"emax") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix dt/reset command");
+      emax = force->numeric(FLERR,arg[iarg+1]);
+      if (emax <= 0.0) error->all(FLERR,"Illegal fix dt/reset command");
       iarg += 2;
     } else error->all(FLERR,"Illegal fix dt/reset command");
   }
@@ -117,6 +123,7 @@ void FixDtReset::init()
                      "Dump dcd/xtc timestamp may be wrong with fix dt/reset");
 
   ftm2v = force->ftm2v;
+  mvv2e = force->mvv2e;
   dt = update->dt;
 }
 
@@ -131,11 +138,9 @@ void FixDtReset::setup(int vflag)
 
 void FixDtReset::end_of_step()
 {
-  double dtv,dtf,dtsq;
+  double dtv,dtf,dte,dtsq;
   double vsq,fsq,massinv;
   double delx,dely,delz,delr;
-
-  // compute vmax and amax of any atom in group
 
   double **v = atom->v;
   double **f = atom->f;
@@ -153,10 +158,14 @@ void FixDtReset::end_of_step()
       else massinv = 1.0/mass[type[i]];
       vsq = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
       fsq = f[i][0]*f[i][0] + f[i][1]*f[i][1] + f[i][2]*f[i][2];
-      dtv = dtf = BIG;
+      dtv = dtf = dte = BIG;
       if (vsq > 0.0) dtv = xmax/sqrt(vsq);
       if (fsq > 0.0) dtf = sqrt(2.0*xmax/(ftm2v*sqrt(fsq)*massinv));
       dt = MIN(dtv,dtf);
+      if (emax > 0.0 && vsq > 0.0 && fsq > 0.0) {
+        dte = emax/sqrt(fsq*vsq)/sqrt(ftm2v*mvv2e);
+        dt = MIN(dt, dte);
+      }
       dtsq = dt*dt;
       delx = dt*v[i][0] + 0.5*dtsq*massinv*f[i][0] * ftm2v;
       dely = dt*v[i][1] + 0.5*dtsq*massinv*f[i][1] * ftm2v;

@@ -176,6 +176,7 @@ fix_ipi.html
 fix_langevin.html
 fix_langevin_drude.html
 fix_langevin_eff.html
+fix_langevin_spin.html
 fix_latte.html
 fix_lb_fluid.html
 fix_lb_momentum.html
@@ -213,6 +214,7 @@ fix_nve_line.html
 fix_nve_manifold_rattle.html
 fix_nve_noforce.html
 fix_nve_sphere.html
+fix_nve_spin.html
 fix_nve_tri.html
 fix_nvk.html
 fix_nvt_asphere.html
@@ -229,6 +231,7 @@ fix_pimd.html
 fix_planeforce.html
 fix_poems.html
 fix_pour.html
+fix_precession_spin.html
 fix_press_berendsen.html
 fix_print.html
 fix_property_atom.html
@@ -381,6 +384,7 @@ compute_smd_ulsph_strain_rate.html
 compute_smd_ulsph_stress.html
 compute_smd_vol.html
 compute_sna_atom.html
+compute_spin.html
 compute_stress_atom.html
 compute_tally.html
 compute_tdpd_cc_atom.html
@@ -506,6 +510,10 @@ pair_sph_lj.html
 pair_sph_rhosum.html
 pair_sph_taitwater.html
 pair_sph_taitwater_morris.html
+pair_spin_dmi.html
+pair_spin_exchange.html
+pair_spin_magelec.html
+pair_spin_neel.html
 pair_srp.html
 pair_sw.html
 pair_table.html

@@ -15,42 +15,42 @@ pair_style spin/exchange cutoff :pre
 cutoff = global cutoff pair (distance in metal units) :ulb,l
 
 :ule
-	
+
 [Examples:]
 
-pair_style spin/exchange 4.0	
+pair_style spin/exchange 4.0
 pair_coeff * * exchange 4.0 0.0446928 0.003496 1.4885
 pair_coeff 1 2 exchange 6.0 -0.01575 0.0 1.965 :pre
 
 [Description:]
 
 Style {spin/exchange} computes the exchange interaction between 
-pairs of magnetic spins: 
+pairs of magnetic spins:
 
 :c,image(Eqs/pair_spin_exchange_interaction.jpg)
 
 where si and sj are two neighboring magnetic spins of two particles, 
 rij = ri - rj is the inter-atomic distance between the two particles,
 and J(rij) is a function defining the intensity and the sign of the exchange 
-interaction.  
+interaction.
 
 This function is defined as:
 
 :c,image(Eqs/pair_spin_exchange_function.jpg)
 
-where a, b and d are the three constant coefficients defined in the associated 
-"pair_coeff" command.   
+where a, b and d are the three constant coefficients defined in the associated
+"pair_coeff" command.
 
-The coefficients a, b, and d need to be fitted so that the function above matches with 
+The coefficients a, b, and d need to be fitted so that the function above matches with
 the value of the exchange interaction for the N neighbor shells taken into account.
 
-Examples and more explanations about this function and its parametrization are reported 
+Examples and more explanations about this function and its parametrization are reported
 in "(Tranchida)"_#Tranchida3.
 
 From this exchange interaction, each spin i will be submitted 
 to a magnetic torque omega, and its associated atom can be submitted to a
-force F for spin-lattice calculations (see 
-"fix_integration_spin"_fix_integration_spin.html), such as: 
+force F for spin-lattice calculations (see "fix_nve_spin"_fix_nve_spin.html),
+such as:
 
 :c,image(Eqs/pair_spin_exchange_forces.jpg)
 

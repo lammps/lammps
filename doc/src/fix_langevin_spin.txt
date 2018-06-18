@@ -27,7 +27,7 @@ fix 2 all langevin/spin 300.0 0.01 21 :pre
 
 Apply a Langevin thermostat as described in "(Mayergoyz)"_#Mayergoyz1 to the 
 magnetic spins associated to the atoms. 
-Used with "fix integration spin"_fix_integration_spin.html, this command performs 
+Used with "fix nve/spin"_fix_nve_spin.html, this command performs 
 Brownian dynamics (BD). 
 A random torque and a transverse dissipation are applied to each spin i according to
 the following stochastic differential equation:
@@ -48,9 +48,9 @@ Note: due to the form of the sLLG equation, this fix has to be defined just
 before the nve/spin fix (and after all other magnetic fixes). 
 As an example:
 
-fix 1 all force/spin zeeman 0.01 0.0 0.0 1.0
+fix 1 all precession/spin zeeman 0.01 0.0 0.0 1.0
 fix 2 all langevin/spin 300.0 0.01 21 
-fix 3 all integration/spin lattice yes :pre
+fix 3 all nve/spin lattice yes :pre
 
 is correct, but defining a force/spin command after the langevin/spin command
 would give an error message. 
@@ -80,16 +80,15 @@ The {langevin/spin} fix is part of the SPIN package.
 This style is only enabled if LAMMPS was built with this package.
 See the "Making LAMMPS"_Section_start.html#start_3 section for more info.
 
-The numerical integration has to be performed with {fix/nve/spin} 
-when {langevin/spin} is enabled. 
+The numerical integration has to be performed with {fix nve/spin}
+when {fix langevin/spin} is enabled. 
 
-This fix has to be the last defined magnetic fix before the integration fix 
-("fix integration spin"_fix_integration_spin.html). 
+This fix has to be the last defined magnetic fix before the time
+integration fix (e.g. {fix nve/spin}). 
 
 [Related commands:]
 
-"fix integration spin"_fix_integration_spin.html, 
-"pair spin"_pair_spin.html
+"fix nve/spin"_fix_nve_spin.html, "fix precession/spin"_fix_precession_spin.html
 
 [Default:] none
 

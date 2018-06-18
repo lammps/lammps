@@ -152,7 +152,6 @@ pkg_depends(CORESHELL KSPACE)
 ######################################################
 if(PKG_REAX OR PKG_MEAM OR PKG_USER-QUIP OR PKG_USER-QMMM OR PKG_LATTE)
   enable_language(Fortran)
-  list(APPEND LAMMPS_LINK_LIBS ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
 endif()
 
 if(PKG_MEAM OR PKG_USER-H5MD OR PKG_USER-QMMM)
@@ -802,6 +801,11 @@ include_directories(${LAMMPS_STYLE_HEADERS_DIR})
 # Actually add executable and lib to build
 ############################################
 add_library(lammps ${LIB_SOURCES})
+get_property(LANGUAGES GLOBAL PROPERTY ENABLED_LANGUAGES)
+list (FIND LANGUAGES "Fortran" _index)
+if (${_index} GREATER -1)
+  list(APPEND LAMMPS_LINK_LIBS ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
+endif()
 list(REMOVE_DUPLICATES LAMMPS_LINK_LIBS)
 target_link_libraries(lammps ${LAMMPS_LINK_LIBS})
 if(LAMMPS_DEPS)

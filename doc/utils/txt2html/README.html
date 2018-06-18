@@ -1,0 +1,237 @@
+<HTML>
+<H3>txt2html - a text to HTML conversion tool 
+</H3>
+<P><B>txt2html</B> is a simple tool for converting text files into HTML files.
+Text files can contain simple formatting and mark-up commands that
+<B>txt2html</B> converts into HTML.
+</P>
+<P><B>txt2html</B> was written by <A HREF = "http://www.cs.sandia.gov/~sjplimp">Steve Plimpton</A>.  I use it for
+<A HREF = "http://www.cs.sandia.gov/~sjplimp/lammps.html">documentation</A> and <A HREF = "http://www.cs.sandia.gov/~sjplimp">WWW pages</A>.  Anna Reese added the table
+formatting options.
+</P>
+<P>See the <A HREF = "example.txt">example.txt</A> and <A HREF = "example.html">example.html</A>
+files in the <B>txt2html</B> directory for examples of what all the
+formatting commands and mark-up syntax end up looking like in HTML.
+</P>
+
+
+
+
+
+
+<HR>
+
+<P><B>Syntax:</B>
+</P>
+<DL><DT>txt2html file
+<DD>  read from text file, write HTML to standard output
+<DT>txt2html file1 file2 file3 ...
+<DD>  read each argument as text file, write one HTML file per argument 
+</DL>
+<P>Input files are first opened with the specified name.  If that fails,
+a ".txt" suffix is added.  Output files are created with an ".html"
+suffix, which is either added or replaces the ".txt" suffix.
+</P>
+<HR>
+
+<P><B>Compiling:</B>
+</P>
+<P>The source for <B>txt2html</B> is a single C++ file.  Compile it by typing:
+</P>
+<PRE>g++ -o txt2html txt2html.cpp 
+</PRE>
+<HR>
+
+<P><B>How the tool works:</B>
+</P>
+<P><B>txt2html</B> reads a text file, one <I>paragraph</I> at a time.  A paragraph
+ends with:
+</P>
+<UL><LI>  a blank line
+<LI>  a line whose final word starts with ":" (a format string)
+<LI>  the end of the file 
+</UL>
+<P>Any line in the paragraph which ends with "\" is concatenated to the
+following line by removing the "\" character and following newline.
+This can be useful for some of the formatting commands described below
+that operate on individual lines in the paragraph.
+</P>
+<P>If a paragraph starts with a "&lt;" character and ends with a "&gt;"
+character, it is treated as raw HTML and is written directly into the
+output file.
+</P>
+<P>If a paragraph does not end with a format string, then it is
+surrounded with HTML paragraph markers (&lt;P&gt; and &lt;/P&gt;),
+<A HREF = "#markup">mark-up</A> is performed, and the paragraph is written to the
+output file.
+</P>
+<P>If the paragraph ends with a format string, then <A HREF = "#format">formatting</A>
+is performed, <A HREF = "#markup">mark-up</A> is performed, and the paragraph is
+written to the output file.
+</P>
+<HR>
+
+<A NAME = "format"></A><B>Formatting:</B> 
+
+<P>A format string is the last word of a paragraph if it starts with a
+":" character.  A format string contains one or more comma-separated
+commands, like ":ulb,l" or ":c,h3".  Note that a format string cannot
+contain spaces, else it would not be the last word.  An individual
+command can have 0 or more arguments:
+</P>
+<UL><LI>  <I>b</I> or <I>line()</I> = 0 arguments
+<LI>  <I>image(file)</I> = 1 argument
+<LI>  <I>link(alias,value)</I> = 2 or more comma-separated arguments 
+</UL>
+<P>Format commands add HTML markers at the beginning or end of the
+paragraph and individual lines.  Commands are processed in the order
+they appear in the format string.  Thus if two commands add HTML
+markers to the beginning of the paragraph, the 2nd command's marker
+will appear 2nd.  The reverse is true at the end of the paragraph; the
+2nd command's marker will appear 1st.  Some comands, like <I>line</I> or
+<I>image</I> make most sense if used as stand-alone commands without an
+accompanying paragraph.
+</P>
+<P>Commands that format the entire paragraph:
+</P>
+<UL><LI>  p --&gt; surround the paragraph with &lt;P&gt; &lt;/P&gt;
+<LI>  b --&gt; put &lt;BR&gt; at the end of the paragraph
+<LI>  pre --&gt; surround the paragraph with &lt;PRE&gt; &lt;/PRE&gt;
+<LI>  c --&gt; surround the paragraph with &lt;CENTER&gt; &lt;/CENTER&gt;
+<LI>  h1,h2,h3,h4,h5,h6 --&gt; surround the paragraph with                            &lt;H1&gt; &lt;/H1&gt;, etc 
+</UL>
+<P>Commands that format the lines of the paragraph as a list:
+</P>
+<UL><LI>  ul --&gt; surround the paragraph with &lt;UL&gt; &lt;/UL&gt;,     put &lt;LI&gt; at start of every line
+<LI>  ol --&gt; surround the paragraph with &lt;OL&gt; &lt;/OL&gt;,     put &lt;LI&gt; at start of every line
+<LI>  dl --&gt; surround the paragraph with &lt;DL&gt; &lt;/DL&gt;,     alternate &lt;DT&gt; and &lt;DD&gt; at start of every line 
+</UL>
+<P>Commands that treat the paragraph as one entry in a list:
+</P>
+<UL><LI>  l --&gt; put &lt;LI&gt; at the beginning of the paragraph
+<LI>  dt --&gt; put &lt;DT&gt; at the beginning of the paragraph
+<LI>  dd --&gt; put &lt;DD&gt; at the beginning of the paragraph
+<LI>  ulb --&gt; put &lt;UL&gt; at the beginning of the paragraph
+<LI>  ule --&gt; put &lt;/UL&gt; at the end of the paragraph
+<LI>  olb --&gt; put &lt;OL&gt; at the beginning of the paragraph
+<LI>  ole --&gt; put &lt;/OL&gt; at the end of the paragraph
+<LI>  dlb --&gt; put &lt;DL&gt; at the beginning of the paragraph
+<LI>  dle --&gt; put &lt;/DL&gt; at the end of the paragraph 
+</UL>
+<P>Commands applied to each line of the paragraph:
+</P>
+<UL><LI>  all(p) --&gt; surround each line with &lt;P&gt; &lt;/P&gt;
+<LI>  all(c) --&gt; surround each line with &lt;CENTER&gt; &lt;/CENTER&gt;
+<LI>  all(b) --&gt; append a &lt;BR&gt; to each line
+<LI>  all(l) --&gt; prepend a &lt;LI&gt; to each line 
+</UL>
+<P>Special commands (all HTML is inserted at beginning of paragraph):
+</P>
+<UL><LI>  line --&gt; insert a horizontal line = &lt;HR&gt;
+<LI>  image(file) --&gt; insert an image = &lt;IMG SRC = "file"&gt;
+<LI>  image(file,link) --&gt; insert an image that when clicked on goes to link
+<LI>  link(name) --&gt; insert a named link that can be referred to     elsewhere (see <A HREF = "#markup">mark-up</A>) = &lt;A NAME = "name"&gt;&lt;/A&gt;
+<LI>  link(alias,value) --&gt; define a link alias that can be used     elsewhere in this file (see <A HREF = "#markup">mark-up</A>) 
+</UL>
+<P>Table command:
+</P>
+<UL><LI>  tb(c=3,b=5,w=100%,a=c) --&gt; format the paragraph as a table 
+</UL>
+<P>Arguments within tb() can appear in any order and are all optional,
+since they each have default values.
+</P>
+<UL><LI>  c=N --&gt; Make an N-column table.  Treat the paragraph as one
+  long list of entries (separated by the separator character) and put
+  them into N columns one after the other.  If N = 0, treat each line
+  of the paragraph as one row of the table with as many columns as
+  there are maximum entries in any line.  Default is c=0. 
+
+<LI>  s=: --&gt; Use the character string following the equal sign as
+  the separator between entries.  Default separator is a comma "," which
+  you cannot specify directly since the comma delimits the tb() arguments 
+
+<LI>  b=N --&gt; Create a border N pixels wide.  If N is 0, there is no
+  border between or outside the cells.  If N is 1, there is a minimal
+  border between and outside all cells.  For N > 1, the border between
+  cells does not change but the outside border gets wider.  Default is
+  b=1. 
+
+<LI>  w=N or w=N% --&gt The first form makes each cell of the table at
+  least N pixels wide.  The second form makes the entire table take up
+  N% of the width of the browser window.  Default is w=0 which means
+  each cell will be just as wide as the text it contains.  
+
+<LI>  a=X --&gt Align the entire table at the left, center, or right of the
+  browser window, for X = "l", "c", or "r".  Default is a=c. 
+
+<LI>  ea=X --&gt Align the text in each entry at the left, center, or
+  right of its cell, for X = "l", "c", or "r".  Default is browser's 
+  default (typically left). 
+
+<LI>  eva=X --&gt Vertically align the text in each entry at the
+  top, middle, baseline, or bottom of its cell, for X = "t", "m", "ba", 
+  or "bo".  Default is browser's default (typically middle). 
+
+<LI>  cwM=N or cwM=N% --&gt The first form makes column M be at least
+  N pixels wide.  The second form makes column M take up N% of the
+  width of the browser window.  This setting overrides the "w"
+  argument for column M.  Only one column per table can be tweaked
+  with this argument.  Default is no settings for any column. 
+
+<LI>  caM=X --&gt Align the text in each entry of column M at the left,
+  center, or right of its cell, for X = "l", "c", or "r".  This
+  setting overrides the "ea" argument for column M.  Only one column
+  per table can be tweaked with this argument.  Default is no settings
+  for any column. 
+
+<LI>  cvaM=X --&gt Vertically align the text in each entry of column m
+  at the top, middle, baseline, or bottom of its cell, for X = "t",
+  "m", "ba", or "bo".  This setting overrides the "eva" argument for
+  column M.  Only one column per table can be tweaked with this
+  argument.  Default is no settings for any column. 
+</UL>
+<HR>
+
+<A NAME = "markup"></A><B>Mark-up:</B> 
+
+<P>The text of the paragraph is scanned for special mark-up characters
+which are converted into HTML.
+</P>
+<P>Bold and italic characters:
+</P>
+  <UL> <LI> "[" (left brace) --&gt; turn-on bold by inserting a &lt;B&gt;
+  <LI> "]" (right brace) --&gt; turn-off bold by inserting a &lt;/B&gt;
+  <LI> "{" (left bracket) --&gt; turn-on italics by inserting a &lt;I&gt;
+  <LI> "}" (right bracket) --&gt; turn-off italics by 
+    inserting a &lt;/I&gt; </UL>
+
+<P>If a backspace '\' precedes any of the bold/italic mark-up characters,
+then mark-up is not performed; the mark-up character is simply left in
+the text.
+</P>
+<P>Links are inserted by enclosing a section of text in double quotes,
+and appending an underscore to the ending quote, followed by the link.
+The link ends when whitespace is found, except that trailing
+punctuation characters (comma, period, semi-colon, colon, question
+mark, exclamation point, parenthesis) are not considered part of the
+link.
+</P>
+<P> A link of the form "text"_link becomes &lt;A HREF =
+"link"&gt;text&lt;/A&gt; in the HTML output.  The only exception is if
+"link" is defined elsewhere in the file as an alias (see the link
+command above).  In that case, the value is used instead of the alias
+name. </P>
+
+<P>With these rules, links can take several forms.
+</P>
+<UL> <LI> "This links"_#abc to another part of this file which is
+labeled with a :link(abc) command. <BR>
+<LI> "This links"_other.html to another file named other.html. <BR>
+<LI> "This links"_other.html#abc to another file which has an "abc"
+location defined internally. <BR>
+<LI> "This links"_http://www.google.com to a WWW site. <BR>
+<LI> "This"_M12 could be used in place of any of the above forms.  It
+requires an alias like :link(M12,http://www.google.com) to be defined
+elsewhere in the file. </UL>
+
+</HTML>

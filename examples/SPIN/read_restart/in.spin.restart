@@ -1,5 +1,4 @@
 # start a spin-lattice simulation from a data file
-clear 
 units 		metal
 atom_style 	spin
 
@@ -9,33 +8,24 @@ boundary 	p p p
 # necessary for the serial algorithm (sametag)
 atom_modify 	map array 
 
-lattice 	fcc 3.54
-region 		box block 0.0 5.0 0.0 5.0 0.0 5.0
-create_box 	1 box
+read_restart	restart_fcc_cobalt.equil
 
-read_dump 	../examples/SPIN/read_restart/Norm_randXY_8x8x32.dump 0 x y z box yes
-
-create_atoms 	1 box
 
 # setting mass, mag. moments, and interactions
 
 mass		1 58.93
 
-set 		group all spin 1.72 0.0 0.0 1.0 
-set 		group single_spin spin/random 11 1.72
-velocity 	all create 200 4928459 rot yes dist gaussian
-
 # define magneto-mechanical potentials and forces
 
 pair_style 	hybrid/overlay eam/alloy spin/exchange 4.0
-pair_coeff 	* * eam/alloy ../examples/SPIN/Co_PurjaPun_2012.eam.alloy Co
+pair_coeff 	* * eam/alloy Co_PurjaPun_2012.eam.alloy Co
 pair_coeff 	* * spin/exchange exchange 4.0 0.0446928 0.003496 1.4885 
 
 neighbor 	1.0 bin
-neigh_modify 	every 1 check no delay 0 
+neigh_modify 	every 1 check no delay 0
 
 fix 		1 all precession/spin zeeman 0.0 0.0 0.0 1.0
-fix 		2 all langevin/spin 0.0 0.0 0.0 21
+fix 		2 all langevin/spin 0.0 0.0 21
 
 fix 		3 all nve/spin lattice yes
 timestep	0.0001
@@ -47,10 +37,10 @@ compute 	out_pe     all pe
 compute 	out_ke     all ke
 compute 	out_temp   all temp
 
-variable 	magz      equal c_out_mag[4]
-variable 	magnorm   equal c_out_mag[5]
-variable 	emag      equal c_out_mag[6]
-variable 	tmag      equal c_out_mag[7]
+variable 	magz      equal c_out_mag[3]
+variable 	magnorm   equal c_out_mag[4]
+variable 	emag      equal c_out_mag[5]
+variable 	tmag      equal c_out_mag[6]
 
 thermo          10
 thermo_style    custom step time v_magnorm v_emag v_tmag temp etotal
@@ -59,5 +49,4 @@ thermo_modify   format float %20.15g
 compute 	outsp all property/atom spx spy spz sp fmx fmy fmz
 dump 		100 all custom 1 dump.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3] c_outsp[4] c_outsp[5] c_outsp[6] c_outsp[7]
 
-run 		1000
-
+run 		100

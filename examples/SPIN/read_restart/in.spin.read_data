@@ -1,4 +1,3 @@
-clear 
 units 		metal
 dimension 	3
 boundary 	p p p 
@@ -6,17 +5,17 @@ boundary 	p p p
 atom_style 	spin
 
 # necessary for the serial algorithm (sametag)
-atom_modify 	map array 
-read_data 	../examples/SPIN/read_restart/Norm_randXY_8x8x32.data
+atom_modify 	map array
+read_data 	Norm_randXY_8x8x32.data
 
 mass		1 58.93
 
 pair_style 	hybrid/overlay eam/alloy spin/exchange 4.0
-pair_coeff 	* * eam/alloy ../examples/SPIN/read_restart/Co_PurjaPun_2012.eam.alloy Co
+pair_coeff 	* * eam/alloy Co_PurjaPun_2012.eam.alloy Co
 pair_coeff 	* * spin/exchange exchange 4.0 0.0446928 0.003496 1.4885 
 
 neighbor 	1.0 bin
-neigh_modify 	every 1 check no delay 0 
+neigh_modify 	every 1 check no delay 0
 
 fix 		1 all precession/spin zeeman 0.0 0.0 0.0 1.0
 fix 		2 all langevin/spin 0.0 0.0 21

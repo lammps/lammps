@@ -1,16 +1,16 @@
 // **************************************************************************
-//                              buck_coul_long.cu
+//                            born_coul_long_cs.cu
 //                             -------------------
-//                           Trung Dac Nguyen (ORNL)
+//                           Trung Dac Nguyen (Northwestern)
 //
-//  Device code for acceleration of the buck/coul/long pair style
+//  Device code for acceleration of the born/coul/long/cs pair style
 //
 // __________________________________________________________________________
 //    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
 // __________________________________________________________________________
 //
 //    begin                :
-//    email                : nguyentd@ornl.gov
+//    email                : trung.nguyen@northwestern.edu
 // ***************************************************************************/
 
 #ifdef NV_KERNEL
@@ -29,7 +29,17 @@ texture<int2> q_tex;
 #define q_tex q_
 #endif
 
-__kernel void k_born_coul_long(const __global numtyp4 *restrict x_,
+#define B0 (numtyp)-0.1335096380159268
+#define B1 (numtyp)-2.57839507e-1
+#define B2 (numtyp)-1.37203639e-1
+#define B3 (numtyp)-8.88822059e-3
+#define B4 (numtyp)-5.80844129e-3
+#define B5 (numtyp)1.14652755e-1
+#define EPSILON (numtyp)1.0e-20
+#define EPS_EWALD (numtyp)1.0e-6
+#define EPS_EWALD_SQR (numtyp)1.0e-12
+
+__kernel void k_born_coul_long_cs(const __global numtyp4 *restrict x_,
                           const __global numtyp4 *restrict coeff1,
                           const __global numtyp4 *restrict coeff2,
                           const int lj_types,
@@ -81,7 +91,7 @@ __kernel void k_born_coul_long(const __global numtyp4 *restrict x_,
 
       numtyp factor_lj, factor_coul;
       factor_lj = sp_lj[sbmask(j)];
-      factor_coul = (numtyp)1.0-sp_lj[sbmask(j)+4];
+      factor_coul = sp_lj[sbmask(j)+4];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -95,21 +105,39 @@ __kernel void k_born_coul_long(const __global numtyp4 *restrict x_,
 
       int mtype=itype*lj_types+jtype;
       if (rsq<cutsq_sigma[mtype].x) { // cutsq
-        numtyp r2inv = ucl_recip(rsq);
         numtyp forcecoul, forceborn, force, r6inv, prefactor, _erfc;
         numtyp rexp = (numtyp)0.0;
 
         if (rsq < cut_coulsq) {
+          rsq += EPSILON;
+
+          numtyp r2inv = ucl_recip(rsq);
           numtyp r = ucl_rsqrt(r2inv);
-          numtyp grij = g_ewald * r;
-          numtyp expm2 = ucl_exp(-grij*grij);
-          numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*grij);
-          _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
           fetch(prefactor,j,q_tex);
-          prefactor *= qqrd2e * qtmp/r;
-          forcecoul = prefactor * (_erfc + EWALD_F*grij*expm2-factor_coul);
+          prefactor *= qqrd2e * qtmp;
+          if (factor_coul<(numtyp)1.0) {
+            numtyp grij = g_ewald * (r+EPS_EWALD);
+            numtyp expm2 = ucl_exp(-grij*grij);
+            numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*grij);
+            numtyp u = (numtyp)1.0 - t;
+            _erfc = t * ((numtyp)1.0 + u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
+            prefactor /= (r+EPS_EWALD);
+            forcecoul = prefactor * (_erfc + EWALD_F*grij*expm2 - ((numtyp)1.0-factor_coul));
+            r2inv = ucl_recip(rsq + EPS_EWALD_SQR);
+            forcecoul *= r2inv;
+          } else {
+            numtyp grij = g_ewald * r;
+            numtyp expm2 = ucl_exp(-grij*grij);
+            numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*grij);
+            numtyp u = (numtyp)1.0 - t;
+            _erfc = t * ((numtyp)1.0 + u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
+            prefactor /= r;
+            forcecoul = prefactor*(_erfc + EWALD_F*grij*expm2);
+            forcecoul *= r2inv;
+          }
         } else forcecoul = (numtyp)0.0;
 
+        numtyp r2inv = ucl_recip(rsq);
         if (rsq < cutsq_sigma[mtype].y) { // cut_ljsq
           numtyp r = ucl_sqrt(rsq);
           rexp = ucl_exp((cutsq_sigma[mtype].z-r)*coeff1[mtype].x);
@@ -118,15 +146,18 @@ __kernel void k_born_coul_long(const __global numtyp4 *restrict x_,
             + coeff1[mtype].w*r2inv*r6inv)*factor_lj;
         } else forceborn = (numtyp)0.0;
 
-        force = (forceborn + forcecoul) * r2inv;
+        force = forceborn*r2inv + forcecoul;
 
         f.x+=delx*force;
         f.y+=dely*force;
         f.z+=delz*force;
 
         if (eflag>0) {
-          if (rsq < cut_coulsq)
-            e_coul += prefactor*(_erfc-factor_coul);
+          if (rsq < cut_coulsq) {
+            e_coul += prefactor*_erfc;
+            if (factor_coul<(numtyp)1.0)
+              e_coul -= ((numtyp)1.0-factor_coul)*prefactor;
+          }
           if (rsq < cutsq_sigma[mtype].y) {
             numtyp e=coeff2[mtype].x*rexp - coeff2[mtype].y*r6inv
               + coeff2[mtype].z*r2inv*r6inv;
@@ -149,7 +180,7 @@ __kernel void k_born_coul_long(const __global numtyp4 *restrict x_,
   } // if ii
 }
 
-__kernel void k_born_coul_long_fast(const __global numtyp4 *restrict x_,
+__kernel void k_born_coul_long_cs_fast(const __global numtyp4 *restrict x_,
                                const __global numtyp4 *restrict coeff1_in,
                                const __global numtyp4 *restrict coeff2_in,
                                const __global numtyp *restrict sp_lj_in,
@@ -204,7 +235,7 @@ __kernel void k_born_coul_long_fast(const __global numtyp4 *restrict x_,
 
       numtyp factor_lj, factor_coul;
       factor_lj = sp_lj[sbmask(j)];
-      factor_coul = (numtyp)1.0-sp_lj[sbmask(j)+4];
+      factor_coul = sp_lj[sbmask(j)+4];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -216,22 +247,40 @@ __kernel void k_born_coul_long_fast(const __global numtyp4 *restrict x_,
       numtyp delz = ix.z-jx.z;
       numtyp rsq = delx*delx+dely*dely+delz*delz;
 
-      if (rsq<cutsq_sigma[mtype].x) {
-        numtyp r2inv=ucl_recip(rsq);
+      if (rsq<cutsq_sigma[mtype].x) { // cutsq 
         numtyp forcecoul, forceborn, force, r6inv, prefactor, _erfc;
         numtyp rexp = (numtyp)0.0;
 
         if (rsq < cut_coulsq) {
-          numtyp r=ucl_rsqrt(r2inv);
-          numtyp grij = g_ewald * r;
-          numtyp expm2 = ucl_exp(-grij*grij);
-          numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*grij);
-          _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+          rsq += EPSILON;
+
+          numtyp r2inv = ucl_recip(rsq);
+          numtyp r = ucl_rsqrt(r2inv);
           fetch(prefactor,j,q_tex);
-          prefactor *= qqrd2e * qtmp/r;
-          forcecoul = prefactor * (_erfc + EWALD_F*grij*expm2-factor_coul);
+          prefactor *= qqrd2e * qtmp;
+          if (factor_coul<(numtyp)1.0) {
+            numtyp grij = g_ewald * (r+EPS_EWALD);
+            numtyp expm2 = ucl_exp(-grij*grij);
+            numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*grij);
+            numtyp u = (numtyp)1.0 - t;
+            _erfc = t * ((numtyp)1.0 + u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
+            prefactor /= (r+EPS_EWALD);
+            forcecoul = prefactor * (_erfc + EWALD_F*grij*expm2 - ((numtyp)1.0-factor_coul));
+            r2inv = ucl_recip(rsq + EPS_EWALD_SQR);
+            forcecoul *= r2inv;
+          } else {
+            numtyp grij = g_ewald * r;
+            numtyp expm2 = ucl_exp(-grij*grij);
+            numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*grij);
+            numtyp u = (numtyp)1.0 - t;
+            _erfc = t * ((numtyp)1.0 + u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
+            prefactor /= r;
+            forcecoul = prefactor*(_erfc + EWALD_F*grij*expm2);
+            forcecoul *= r2inv;
+          }
         } else forcecoul = (numtyp)0.0;
 
+        numtyp r2inv = ucl_recip(rsq);
         if (rsq < cutsq_sigma[mtype].y) { // cut_ljsq
           numtyp r = ucl_sqrt(rsq);
           rexp = ucl_exp((cutsq_sigma[mtype].z-r)*coeff1[mtype].x);
@@ -240,15 +289,18 @@ __kernel void k_born_coul_long_fast(const __global numtyp4 *restrict x_,
             + coeff1[mtype].w*r2inv*r6inv)*factor_lj;
         } else forceborn = (numtyp)0.0;
 
-        force = (forceborn + forcecoul) * r2inv;
+        force = forceborn*r2inv + forcecoul;
 
         f.x+=delx*force;
         f.y+=dely*force;
         f.z+=delz*force;
 
         if (eflag>0) {
-          if (rsq < cut_coulsq)
-            e_coul += prefactor*(_erfc-factor_coul);
+          if (rsq < cut_coulsq) {
+            e_coul += prefactor*_erfc;
+            if (factor_coul<(numtyp)1.0)
+              e_coul -= ((numtyp)1.0-factor_coul)*prefactor;
+          }
           if (rsq < cutsq_sigma[mtype].y) {
             numtyp e=coeff2[mtype].x*rexp - coeff2[mtype].y*r6inv
               + coeff2[mtype].z*r2inv*r6inv;

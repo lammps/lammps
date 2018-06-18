@@ -217,7 +217,7 @@ void PairLJExpandCoulLong::compute_inner()
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,fpair;
   double rsq,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
-  double rsw,rsq,rshift,rshiftsq,rshift2inv;
+  double rsw,r,rshift,rshiftsq,rshift2inv;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   double **x = atom->x;
@@ -306,8 +306,8 @@ void PairLJExpandCoulLong::compute_middle()
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,fpair;
-  double rsq,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
-  double rsw,rsq,rshift,rshiftsq,rshift2inv;
+  double rsq,r,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
+  double rsw,rshift,rshiftsq,rshift2inv;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   double **x = atom->x;

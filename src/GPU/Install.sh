@@ -35,6 +35,8 @@ action pair_beck_gpu.cpp
 action pair_beck_gpu.h 
 action pair_born_coul_long_gpu.cpp pair_born_coul_long.cpp
 action pair_born_coul_long_gpu.h pair_born_coul_long.cpp
+action pair_born_coul_long_cs_gpu.cpp pair_born_coul_long_cs.cpp
+action pair_born_coul_long_cs_gpu.h pair_born_coul_long_cs.cpp
 action pair_born_coul_wolf_gpu.cpp
 action pair_born_coul_wolf_gpu.h
 action pair_born_gpu.cpp
@@ -55,6 +57,8 @@ action pair_coul_dsf_gpu.cpp
 action pair_coul_dsf_gpu.h
 action pair_coul_long_gpu.cpp pair_coul_long.cpp
 action pair_coul_long_gpu.h pair_coul_long.cpp
+action pair_coul_long_cs_gpu.cpp pair_coul_long_cs.cpp
+action pair_coul_long_cs_gpu.h pair_coul_long_cs.cpp
 action pair_dpd_gpu.cpp
 action pair_dpd_gpu.h
 action pair_dpd_tstat_gpu.cpp

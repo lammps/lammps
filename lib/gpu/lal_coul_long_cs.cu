@@ -205,7 +205,7 @@ __kernel void k_coul_long_cs(const __global numtyp4 *restrict x_,
         if (factor_coul<(numtyp)1.0) {
           numtyp grij = g_ewald * (r+EPS_EWALD);
           numtyp expm2 = ucl_exp(-grij*grij);
-          numtyp t = ucl_recip((numtyp)1.0 + CS_EWALD_P*grij);
+          acctyp t = ucl_recip((numtyp)1.0 + CS_EWALD_P*grij);
           numtyp u = (numtyp)1.0 - t;
           _erfc = t * ((numtyp)1.0 + u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
           prefactor /= (r+EPS_EWALD);
@@ -217,7 +217,7 @@ __kernel void k_coul_long_cs(const __global numtyp4 *restrict x_,
         } else {
           numtyp grij = g_ewald * r;
           numtyp expm2 = ucl_exp(-grij*grij);
-          numtyp t = ucl_recip((numtyp)1.0 + CS_EWALD_P*grij);
+          acctyp t = ucl_recip((numtyp)1.0 + CS_EWALD_P*grij);
           numtyp u = (numtyp)1.0 - t;
           _erfc = t * ((numtyp)1.0 + u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
           prefactor /= r;
@@ -320,7 +320,7 @@ __kernel void k_coul_long_cs_fast(const __global numtyp4 *restrict x_,
         if (factor_coul<(numtyp)1.0) {
           numtyp grij = g_ewald * (r+EPS_EWALD);
           numtyp expm2 = ucl_exp(-grij*grij);
-          numtyp t = ucl_recip((numtyp)1.0 + CS_EWALD_P*grij);
+          acctyp t = ucl_recip((numtyp)1.0 + CS_EWALD_P*grij);
           numtyp u = (numtyp)1.0 - t;
           _erfc = t * ((numtyp)1.0 + u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
           prefactor /= (r+EPS_EWALD);
@@ -331,7 +331,7 @@ __kernel void k_coul_long_cs_fast(const __global numtyp4 *restrict x_,
         } else {
           numtyp grij = g_ewald * r;
           numtyp expm2 = ucl_exp(-grij*grij);
-          numtyp t = ucl_recip((numtyp)1.0 + CS_EWALD_P*grij);
+          acctyp t = ucl_recip((numtyp)1.0 + CS_EWALD_P*grij);
           numtyp u = (numtyp)1.0 - t;
           _erfc = t * ((numtyp)1.0 + u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
           prefactor /= r;

@@ -29,6 +29,20 @@ texture<int2> q_tex;
 #define q_tex q_
 #endif
 
+// Note: EWALD_P is different from that in lal_preprocessor.h
+//       acctyp is needed for these parameters
+#define CS_EWALD_P (acctyp)9.95473818e-1
+#define B0        (acctyp)-0.1335096380159268
+#define B1        (acctyp)-2.57839507e-1
+#define B2        (acctyp)-1.37203639e-1
+#define B3        (acctyp)-8.88822059e-3
+#define B4        (acctyp)-5.80844129e-3
+#define B5        (acctyp)1.14652755e-1
+
+#define EPSILON (acctyp)(1.0e-20)
+#define EPS_EWALD (acctyp)(1.0e-6)
+#define EPS_EWALD_SQR (acctyp)(1.0e-12)
+
 #if (ARCH < 300)
 
 #define store_answers_lq(f, e_coul, virial, ii, inum, tid,                  \
@@ -123,16 +137,6 @@ texture<int2> q_tex;
 
 #endif
 
-#define B0 (numtyp)-0.1335096380159268
-#define B1 (numtyp)-2.57839507e-1
-#define B2 (numtyp)-1.37203639e-1
-#define B3 (numtyp)-8.88822059e-3
-#define B4 (numtyp)-5.80844129e-3
-#define B5 (numtyp)1.14652755e-1
-#define EPSILON (numtyp)1.0e-20
-#define EPS_EWALD (numtyp)1.0e-6
-#define EPS_EWALD_SQR (numtyp)1.0e-12
-
 __kernel void k_coul_long_cs(const __global numtyp4 *restrict x_,
                           const __global numtyp *restrict scale,
                           const int lj_types,
@@ -191,7 +195,7 @@ __kernel void k_coul_long_cs(const __global numtyp4 *restrict x_,
 
       int mtype=itype*lj_types+jtype;
       if (rsq < cut_coulsq) {
-        rsq += EPSILON;
+        rsq += EPSILON; // Add Epsilon for case: r = 0; Interaction must be removed by special bond;
 
         numtyp force,prefactor,_erfc;
         numtyp r2inv = ucl_recip(rsq);
@@ -201,17 +205,19 @@ __kernel void k_coul_long_cs(const __global numtyp4 *restrict x_,
         if (factor_coul<(numtyp)1.0) {
           numtyp grij = g_ewald * (r+EPS_EWALD);
           numtyp expm2 = ucl_exp(-grij*grij);
-          numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*grij);
+          numtyp t = ucl_recip((numtyp)1.0 + CS_EWALD_P*grij);
           numtyp u = (numtyp)1.0 - t;
           _erfc = t * ((numtyp)1.0 + u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
           prefactor /= (r+EPS_EWALD);
           force = prefactor * (_erfc + EWALD_F*grij*expm2 - ((numtyp)1.0-factor_coul));
+          // Additionally r2inv needs to be accordingly modified since the later
+          // scaling of the overall force shall be consistent
           r2inv = ucl_recip(rsq + EPS_EWALD_SQR);
           force *= r2inv;
         } else {
           numtyp grij = g_ewald * r;
           numtyp expm2 = ucl_exp(-grij*grij);
-          numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*grij);
+          numtyp t = ucl_recip((numtyp)1.0 + CS_EWALD_P*grij);
           numtyp u = (numtyp)1.0 - t;
           _erfc = t * ((numtyp)1.0 + u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
           prefactor /= r;
@@ -224,9 +230,9 @@ __kernel void k_coul_long_cs(const __global numtyp4 *restrict x_,
         f.z+=delz*force;
 
         if (eflag>0) {
-          e_coul += prefactor*_erfc;
-          if (factor_coul<(numtyp)1.0)
-            e_coul -= ((numtyp)1.0-factor_coul)*prefactor;
+          numtyp e = prefactor*_erfc;
+          if (factor_coul<(numtyp)1.0) e -= ((numtyp)1.0-factor_coul)*prefactor;
+          e_coul += e;
         }
         if (vflag>0) {
           virial[0] += delx*delx*force;
@@ -304,7 +310,7 @@ __kernel void k_coul_long_cs_fast(const __global numtyp4 *restrict x_,
       numtyp rsq = delx*delx+dely*dely+delz*delz;
 
       if (rsq < cut_coulsq) {
-        rsq += EPSILON;
+        rsq += EPSILON; // Add Epsilon for case: r = 0; Interaction must be removed by special bond;
 
         numtyp force,prefactor,_erfc;
         numtyp r2inv = ucl_recip(rsq);
@@ -314,32 +320,34 @@ __kernel void k_coul_long_cs_fast(const __global numtyp4 *restrict x_,
         if (factor_coul<(numtyp)1.0) {
           numtyp grij = g_ewald * (r+EPS_EWALD);
           numtyp expm2 = ucl_exp(-grij*grij);
-          numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*grij);
+          numtyp t = ucl_recip((numtyp)1.0 + CS_EWALD_P*grij);
           numtyp u = (numtyp)1.0 - t;
           _erfc = t * ((numtyp)1.0 + u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
           prefactor /= (r+EPS_EWALD);
           force = prefactor * (_erfc + EWALD_F*grij*expm2 - ((numtyp)1.0-factor_coul));
+          // Additionally r2inv needs to be accordingly modified since the later
+          // scaling of the overall force shall be consistent
           r2inv = ucl_recip(rsq + EPS_EWALD_SQR);
-          force *= r2inv;
         } else {
           numtyp grij = g_ewald * r;
           numtyp expm2 = ucl_exp(-grij*grij);
-          numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*grij);
+          numtyp t = ucl_recip((numtyp)1.0 + CS_EWALD_P*grij);
           numtyp u = (numtyp)1.0 - t;
           _erfc = t * ((numtyp)1.0 + u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
           prefactor /= r;
           force = prefactor * (_erfc + EWALD_F*grij*expm2);
-          force *= r2inv;
         }
+
+        force *= r2inv;
 
         f.x+=delx*force;
         f.y+=dely*force;
         f.z+=delz*force;
 
         if (eflag>0) {
-          e_coul += prefactor*_erfc;
-          if (factor_coul<(numtyp)1.0)
-            e_coul -= ((numtyp)1.0-factor_coul)*prefactor;
+          numtyp e = prefactor*_erfc;
+          if (factor_coul<(numtyp)1.0) e -= ((numtyp)1.0-factor_coul)*prefactor;
+          e_coul += e;
         }
         if (vflag>0) {
           virial[0] += delx*delx*force;

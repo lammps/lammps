@@ -12,12 +12,14 @@ pair_style born/omp command :h3
 pair_style born/gpu command :h3
 pair_style born/coul/long command :h3
 pair_style born/coul/long/cs command :h3
+pair_style born/coul/long/cs/gpu command :h3
 pair_style born/coul/long/gpu command :h3
 pair_style born/coul/long/omp command :h3
 pair_style born/coul/msm command :h3
 pair_style born/coul/msm/omp command :h3
 pair_style born/coul/wolf command :h3
 pair_style born/coul/wolf/cs command :h3
+pair_style born/coul/wolf/cs/gpu command :h3
 pair_style born/coul/wolf/gpu command :h3
 pair_style born/coul/wolf/omp command :h3
 pair_style born/coul/dsf command :h3

@@ -31,7 +31,7 @@ texture<int2> q_tex;
 
 #define MY_PIS (acctyp)1.77245385090551602729
 
-__kernel void k_born_wolf(const __global numtyp4 *restrict x_,
+__kernel void k_born_coul_wolf(const __global numtyp4 *restrict x_,
                           const __global numtyp4 *restrict coeff1,
                           const __global numtyp4 *restrict coeff2,
                           const int lj_types,
@@ -165,7 +165,7 @@ __kernel void k_born_wolf(const __global numtyp4 *restrict x_,
   } // if ii
 }
 
-__kernel void k_born_wolf_fast(const __global numtyp4 *restrict x_,
+__kernel void k_born_coul_wolf_fast(const __global numtyp4 *restrict x_,
                                const __global numtyp4 *restrict coeff1_in,
                                const __global numtyp4 *restrict coeff2_in,
                                const __global numtyp *restrict sp_lj_in,

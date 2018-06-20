@@ -10,7 +10,7 @@
  __________________________________________________________________________
 
     begin                :
-    email                : trung.nguyen@northwestern.edu
+    email                : ndactrung@gmail.com
  ***************************************************************************/
 
 #ifdef USE_OPENCL
@@ -27,21 +27,6 @@ using namespace LAMMPS_AL;
 #define BornCoulLongCST BornCoulLongCS<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
-
-template <class numtyp, class acctyp>
-BornCoulLongCST::BornCoulLongCS() : BaseCharge<numtyp,acctyp>(),
-                                    _allocated(false) {
-}
-
-template <class numtyp, class acctyp>
-BornCoulLongCST::~BornCoulLongCS() {
-  clear();
-}
-
-template <class numtyp, class acctyp>
-int BornCoulLongCST::bytes_per_atom(const int max_nbors) const {
-  return this->bytes_per_atom_atomic(max_nbors);
-}
 
 template <class numtyp, class acctyp>
 int BornCoulLongCST::init(const int ntypes, double **host_cutsq, double **host_rhoinv,
@@ -63,13 +48,13 @@ int BornCoulLongCST::init(const int ntypes, double **host_cutsq, double **host_r
 
   // If atom type constants fit in shared memory use fast kernel
   int lj_types=ntypes;
-  shared_types=false;
+  this->shared_types=false;
   int max_shared_types=this->device->max_shared_types();
   if (lj_types<=max_shared_types && this->_block_size>=max_shared_types) {
     lj_types=max_shared_types;
-    shared_types=true;
+    this->shared_types=true;
   }
-  _lj_types=lj_types;
+  this->_lj_types=lj_types;
 
   // Allocate a host write buffer for data initialization
   UCL_H_Vec<numtyp> host_write(lj_types*lj_types*32,*(this->ucl_device),
@@ -78,98 +63,33 @@ int BornCoulLongCST::init(const int ntypes, double **host_cutsq, double **host_r
   for (int i=0; i<lj_types*lj_types; i++)
     host_write[i]=0.0;
 
-  coeff1.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
-  this->atom->type_pack4(ntypes,lj_types,coeff1,host_write,host_rhoinv,
+  this->coeff1.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
+  this->atom->type_pack4(ntypes,lj_types,this->coeff1,host_write,host_rhoinv,
                          host_born1,host_born2,host_born3);
 
-  coeff2.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
-  this->atom->type_pack4(ntypes,lj_types,coeff2,host_write,host_a,host_c,
+  this->coeff2.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
+  this->atom->type_pack4(ntypes,lj_types,this->coeff2,host_write,host_a,host_c,
                          host_d,host_offset);
 
-  cutsq_sigma.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
-  this->atom->type_pack4(ntypes,lj_types,cutsq_sigma,host_write,host_cutsq,
+  this->cutsq_sigma.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
+  this->atom->type_pack4(ntypes,lj_types,this->cutsq_sigma,host_write,host_cutsq,
              host_cut_ljsq,host_sigma);
 
-  sp_lj.alloc(8,*(this->ucl_device),UCL_READ_ONLY);
+  this->sp_lj.alloc(8,*(this->ucl_device),UCL_READ_ONLY);
   for (int i=0; i<4; i++) {
     host_write[i]=host_special_lj[i];
     host_write[i+4]=host_special_coul[i];
   }
-  ucl_copy(sp_lj,host_write,8,false);
+  ucl_copy(this->sp_lj,host_write,8,false);
 
-  _cut_coulsq=host_cut_coulsq;
-  _qqrd2e=qqrd2e;
-  _g_ewald=g_ewald;
+  this->_cut_coulsq=host_cut_coulsq;
+  this->_qqrd2e=qqrd2e;
+  this->_g_ewald=g_ewald;
 
-  _allocated=true;
-  this->_max_bytes=coeff1.row_bytes()+coeff2.row_bytes()
-      +cutsq_sigma.row_bytes()+sp_lj.row_bytes();
+  this->_allocated=true;
+  this->_max_bytes=this->coeff1.row_bytes()+this->coeff2.row_bytes()
+      +this->cutsq_sigma.row_bytes()+this->sp_lj.row_bytes();
   return 0;
-}
-
-template <class numtyp, class acctyp>
-void BornCoulLongCST::clear() {
-  if (!_allocated)
-    return;
-  _allocated=false;
-
-  coeff1.clear();
-  coeff2.clear();
-  cutsq_sigma.clear();
-  sp_lj.clear();
-  this->clear_atomic();
-}
-
-template <class numtyp, class acctyp>
-double BornCoulLongCST::host_memory_usage() const {
-  return this->host_memory_usage_atomic()+sizeof(BornCoulLongCS<numtyp,acctyp>);
-}
-
-// ---------------------------------------------------------------------------
-// Calculate energies, forces, and torques
-// ---------------------------------------------------------------------------
-template <class numtyp, class acctyp>
-void BornCoulLongCST::loop(const bool _eflag, const bool _vflag) {
-  // Compute the block size and grid size to keep all cores busy
-  const int BX=this->block_size();
-  int eflag, vflag;
-  if (_eflag)
-    eflag=1;
-  else
-    eflag=0;
-
-  if (_vflag)
-    vflag=1;
-  else
-    vflag=0;
-
-  int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
-                               (BX/this->_threads_per_atom)));
-
-  int ainum=this->ans->inum();
-  int nbor_pitch=this->nbor->nbor_pitch();
-  this->time_pair.start();
-  if (shared_types) {
-    this->k_pair_fast.set_size(GX,BX);
-    this->k_pair_fast.run(&this->atom->x, &coeff1, &coeff2, &sp_lj,
-                          &this->nbor->dev_nbor,
-                          &this->_nbor_data->begin(),
-                          &this->ans->force,
-                          &this->ans->engv, &eflag, &vflag,
-                          &ainum, &nbor_pitch, &this->atom->q,
-                          &cutsq_sigma, &_cut_coulsq, &_qqrd2e,
-                          &_g_ewald, &this->_threads_per_atom);
-  } else {
-    this->k_pair.set_size(GX,BX);
-    this->k_pair.run(&this->atom->x, &coeff1, &coeff2, &_lj_types, &sp_lj,
-                   &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                   &this->ans->force, &this->ans->engv,
-                   &eflag, &vflag, &ainum,
-                   &nbor_pitch, &this->atom->q,
-                   &cutsq_sigma, &_cut_coulsq,
-                   &_qqrd2e, &_g_ewald, &this->_threads_per_atom);
-  }
-  this->time_pair.stop();
 }
 
 template class BornCoulLongCS<PRECISION,ACC_PRECISION>;

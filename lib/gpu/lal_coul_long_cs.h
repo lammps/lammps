@@ -10,21 +10,21 @@
  __________________________________________________________________________
 
     begin                : June 2018
-    email                : trung.nguyen@northwestern.edu
+    email                : ndactrung@gmail.com
  ***************************************************************************/
 
 #ifndef LAL_COUL_LONG_CS_H
 #define LAL_COUL_LONG_CS_H
 
-#include "lal_base_charge.h"
+#include "lal_coul_long.h"
 
 namespace LAMMPS_AL {
 
 template <class numtyp, class acctyp>
-class CoulLongCS : public BaseCharge<numtyp, acctyp> {
+class CoulLongCS : public CoulLong<numtyp, acctyp> {
  public:
-  CoulLongCS();
-  ~CoulLongCS();
+  CoulLongCS() {}
+  ~CoulLongCS() {}
 
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param max_nbors initial number of rows in the neighbor matrix
@@ -43,38 +43,6 @@ class CoulLongCS : public BaseCharge<numtyp, acctyp> {
            const double gpu_split, FILE *screen,
            const double host_cut_coulsq, double *host_special_coul,
            const double qqrd2e, const double g_ewald);
-
-  /// Send updated coeffs from host to device (to be compatible with fix adapt)
-  void reinit(const int ntypes, double **scale);
-
-  /// Clear all host and device data
-  /** \note This is called at the beginning of the init() routine **/
-  void clear();
-
-  /// Returns memory usage on device per atom
-  int bytes_per_atom(const int max_nbors) const;
-
-  /// Total host memory used by library for pair style
-  double host_memory_usage() const;
-
-  // --------------------------- TYPE DATA --------------------------
-
-  /// scale
-  UCL_D_Vec<numtyp> scale;
-  /// Special Coul values [0-3]
-  UCL_D_Vec<numtyp> sp_cl;
-
-  /// If atom type constants fit in shared memory, use fast kernels
-  bool shared_types;
-
-  /// Number of atom types
-  int _lj_types;
-
-  numtyp _cut_coulsq, _qqrd2e, _g_ewald;
-
- private:
-  bool _allocated;
-  void loop(const bool _eflag, const bool _vflag);
 };
 
 }

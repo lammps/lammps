@@ -81,7 +81,8 @@ OBJS = $(OBJ_DIR)/lal_atom.o $(OBJ_DIR)/lal_ans.o \
        $(OBJ_DIR)/lal_dipole_long_lj.o $(OBJ_DIR)/lal_dipole_long_lj_ext.o \
        $(OBJ_DIR)/lal_lj_expand_coul_long.o $(OBJ_DIR)/lal_lj_expand_coul_long_ext.o \
        $(OBJ_DIR)/lal_coul_long_cs.o $(OBJ_DIR)/lal_coul_long_cs_ext.o \
-       $(OBJ_DIR)/lal_born_coul_long_cs.o $(OBJ_DIR)/lal_born_coul_long_cs_ext.o
+       $(OBJ_DIR)/lal_born_coul_long_cs.o $(OBJ_DIR)/lal_born_coul_long_cs_ext.o \
+       $(OBJ_DIR)/lal_born_coul_wolf_cs.o $(OBJ_DIR)/lal_born_coul_wolf_cs_ext.o
 
 CBNS = $(OBJ_DIR)/device.cubin $(OBJ_DIR)/device_cubin.h \
        $(OBJ_DIR)/atom.cubin $(OBJ_DIR)/atom_cubin.h \
@@ -141,7 +142,8 @@ CBNS = $(OBJ_DIR)/device.cubin $(OBJ_DIR)/device_cubin.h \
        $(OBJ_DIR)/dipole_long_lj.cubin $(OBJ_DIR)/dipole_long_lj_cubin.h \
        $(OBJ_DIR)/lj_expand_coul_long.cubin $(OBJ_DIR)/lj_expand_coul_long_cubin.h \
        $(OBJ_DIR)/coul_long_cs.cubin $(OBJ_DIR)/coul_long_cs_cubin.h \
-       $(OBJ_DIR)/born_coul_long_cs.cubin $(OBJ_DIR)/born_coul_long_cs_cubin.h
+       $(OBJ_DIR)/born_coul_long_cs.cubin $(OBJ_DIR)/born_coul_long_cs_cubin.h \
+       $(OBJ_DIR)/born_coul_wolf_cs.cubin $(OBJ_DIR)/born_coul_wolf_cs_cubin.h
 
 all: $(OBJ_DIR) $(GPU_LIB) $(EXECS)
 
@@ -847,10 +849,10 @@ $(OBJ_DIR)/coul_long_cs.cubin: lal_coul_long_cs.cu lal_precision.h lal_preproces
 $(OBJ_DIR)/coul_long_cs_cubin.h: $(OBJ_DIR)/coul_long_cs.cubin $(OBJ_DIR)/coul_long_cs.cubin
 	$(BIN2C) -c -n coul_long_cs $(OBJ_DIR)/coul_long_cs.cubin > $(OBJ_DIR)/coul_long_cs_cubin.h
 
-$(OBJ_DIR)/lal_coul_long_cs.o: $(ALL_H) lal_coul_long_cs.h lal_coul_long_cs.cpp $(OBJ_DIR)/coul_long_cs_cubin.h $(OBJ_DIR)/lal_base_charge.o
+$(OBJ_DIR)/lal_coul_long_cs.o: $(ALL_H) lal_coul_long_cs.h lal_coul_long_cs.cpp $(OBJ_DIR)/coul_long_cs_cubin.h $(OBJ_DIR)/lal_base_charge.o $(OBJ_DIR)/lal_coul_long.o
 	$(CUDR) -o $@ -c lal_coul_long_cs.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/lal_coul_long_cs_ext.o: $(ALL_H) lal_coul_long_cs.h lal_coul_long_cs_ext.cpp lal_base_charge.h
+$(OBJ_DIR)/lal_coul_long_cs_ext.o: $(ALL_H) lal_coul_long_cs.h lal_coul_long_cs_ext.cpp lal_coul_long.h
 	$(CUDR) -o $@ -c lal_coul_long_cs_ext.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/born_coul_long_cs.cubin: lal_born_coul_long_cs.cu lal_precision.h lal_preprocessor.h
@@ -859,11 +861,23 @@ $(OBJ_DIR)/born_coul_long_cs.cubin: lal_born_coul_long_cs.cu lal_precision.h lal
 $(OBJ_DIR)/born_coul_long_cs_cubin.h: $(OBJ_DIR)/born_coul_long_cs.cubin $(OBJ_DIR)/born_coul_long_cs.cubin
 	$(BIN2C) -c -n born_coul_long_cs $(OBJ_DIR)/born_coul_long_cs.cubin > $(OBJ_DIR)/born_coul_long_cs_cubin.h
 
-$(OBJ_DIR)/lal_born_coul_long_cs.o: $(ALL_H) lal_born_coul_long_cs.h lal_born_coul_long_cs.cpp $(OBJ_DIR)/born_coul_long_cs_cubin.h $(OBJ_DIR)/lal_base_charge.o
+$(OBJ_DIR)/lal_born_coul_long_cs.o: $(ALL_H) lal_born_coul_long_cs.h lal_born_coul_long_cs.cpp $(OBJ_DIR)/born_coul_long_cs_cubin.h $(OBJ_DIR)/lal_base_charge.o $(OBJ_DIR)/lal_born_coul_long.o
 	$(CUDR) -o $@ -c lal_born_coul_long_cs.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/lal_born_coul_long_cs_ext.o: $(ALL_H) lal_born_coul_long_cs.h lal_born_coul_long_cs_ext.cpp lal_base_charge.h
+$(OBJ_DIR)/lal_born_coul_long_cs_ext.o: $(ALL_H) lal_born_coul_long_cs.h lal_born_coul_long_cs_ext.cpp lal_born_coul_long.h
 	$(CUDR) -o $@ -c lal_born_coul_long_cs_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/born_coul_wolf_cs.cubin: lal_born_coul_wolf_cs.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --cubin -DNV_KERNEL -o $@ lal_born_coul_wolf_cs.cu
+
+$(OBJ_DIR)/born_coul_wolf_cs_cubin.h: $(OBJ_DIR)/born_coul_wolf_cs.cubin $(OBJ_DIR)/born_coul_wolf_cs.cubin
+	$(BIN2C) -c -n born_coul_wolf_cs $(OBJ_DIR)/born_coul_wolf_cs.cubin > $(OBJ_DIR)/born_coul_wolf_cs_cubin.h
+
+$(OBJ_DIR)/lal_born_coul_wolf_cs.o: $(ALL_H) lal_born_coul_wolf_cs.h lal_born_coul_wolf_cs.cpp $(OBJ_DIR)/born_coul_wolf_cs_cubin.h $(OBJ_DIR)/lal_base_charge.o $(OBJ_DIR)/lal_born_coul_wolf.o
+	$(CUDR) -o $@ -c lal_born_coul_wolf_cs.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_born_coul_wolf_cs_ext.o: $(ALL_H) lal_born_coul_wolf_cs.h lal_born_coul_wolf_cs_ext.cpp lal_born_coul_wolf.h
+	$(CUDR) -o $@ -c lal_born_coul_wolf_cs_ext.cpp -I$(OBJ_DIR)
 
 $(BIN_DIR)/nvc_get_devices: ./geryon/ucl_get_devices.cpp $(NVD_H)
 	$(CUDR) -o $@ ./geryon/ucl_get_devices.cpp -DUCL_CUDADR $(CUDA_LIB) -lcuda 

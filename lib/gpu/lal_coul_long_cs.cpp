@@ -10,7 +10,7 @@
  __________________________________________________________________________
 
     begin                : June 2018
-    email                : trung.nguyen@northwestern.edu
+    email                : ndactrung@gmail.com
  ***************************************************************************/
 
 #if defined(USE_OPENCL)
@@ -29,20 +29,6 @@ using namespace LAMMPS_AL;
 extern Device<PRECISION,ACC_PRECISION> pair_gpu_device;
 
 template <class numtyp, class acctyp>
-CoulLongCST::CoulLongCS() : BaseCharge<numtyp,acctyp>(), _allocated(false) {
-}
-
-template <class numtyp, class acctyp>
-CoulLongCST::~CoulLongCS() {
-  clear();
-}
-
-template <class numtyp, class acctyp>
-int CoulLongCST::bytes_per_atom(const int max_nbors) const {
-  return this->bytes_per_atom_atomic(max_nbors);
-}
-
-template <class numtyp, class acctyp>
 int CoulLongCST::init(const int ntypes, double **host_scale,
                     const int nlocal, const int nall, const int max_nbors,
                     const int maxspecial, const double cell_size,
@@ -56,13 +42,13 @@ int CoulLongCST::init(const int ntypes, double **host_scale,
     return success;
 
   int lj_types=ntypes;
-  shared_types=false;
+  this->shared_types=false;
   int max_shared_types=this->device->max_shared_types();
   if (lj_types<=max_shared_types && this->_block_size>=max_shared_types) {
     lj_types=max_shared_types;
-    shared_types=true;
+    this->shared_types=true;
   }
-  _lj_types=lj_types;
+  this->_lj_types=lj_types;
 
   // Allocate a host write buffer for data initialization
   UCL_H_Vec<numtyp> host_write(lj_types*lj_types*32,*(this->ucl_device),
@@ -71,88 +57,22 @@ int CoulLongCST::init(const int ntypes, double **host_scale,
   for (int i=0; i<lj_types*lj_types; i++)
     host_write[i]=0.0;
 
-  scale.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
-  this->atom->type_pack1(ntypes,lj_types,scale,host_write,host_scale);
+  this->scale.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
+  this->atom->type_pack1(ntypes,lj_types,this->scale,host_write,host_scale);
 
-  sp_cl.alloc(4,*(this->ucl_device),UCL_READ_ONLY);
+  this->sp_cl.alloc(4,*(this->ucl_device),UCL_READ_ONLY);
   for (int i=0; i<4; i++) {
     host_write[i]=host_special_coul[i];
   }
-  ucl_copy(sp_cl,host_write,4,false);
+  ucl_copy(this->sp_cl,host_write,4,false);
 
-  _cut_coulsq=host_cut_coulsq;
-  _qqrd2e=qqrd2e;
-  _g_ewald=g_ewald;
+  this->_cut_coulsq=host_cut_coulsq;
+  this->_qqrd2e=qqrd2e;
+  this->_g_ewald=g_ewald;
 
-  _allocated=true;
-  this->_max_bytes=scale.row_bytes()+sp_cl.row_bytes();
+  this->_allocated=true;
+  this->_max_bytes=this->scale.row_bytes()+this->sp_cl.row_bytes();
   return 0;
-}
-
-template <class numtyp, class acctyp>
-void CoulLongCST::reinit(const int ntypes, double **host_scale) {
-  UCL_H_Vec<numtyp> hscale(_lj_types*_lj_types,*(this->ucl_device),
-                           UCL_WRITE_ONLY);
-  this->atom->type_pack1(ntypes,_lj_types,scale,hscale,host_scale);
-}
-
-template <class numtyp, class acctyp>
-void CoulLongCST::clear() {
-  if (!_allocated)
-    return;
-  _allocated=false;
-
-  scale.clear();
-  sp_cl.clear();
-  this->clear_atomic();
-}
-
-template <class numtyp, class acctyp>
-double CoulLongCST::host_memory_usage() const {
-  return this->host_memory_usage_atomic()+sizeof(CoulLongCS<numtyp,acctyp>);
-}
-
-// ---------------------------------------------------------------------------
-// Calculate energies, forces, and torques
-// ---------------------------------------------------------------------------
-template <class numtyp, class acctyp>
-void CoulLongCST::loop(const bool _eflag, const bool _vflag) {
-  // Compute the block size and grid size to keep all cores busy
-  const int BX=this->block_size();
-  int eflag, vflag;
-  if (_eflag)
-    eflag=1;
-  else
-    eflag=0;
-
-  if (_vflag)
-    vflag=1;
-  else
-    vflag=0;
-
-  int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
-                               (BX/this->_threads_per_atom)));
-
-  int ainum=this->ans->inum();
-  int nbor_pitch=this->nbor->nbor_pitch();
-  this->time_pair.start();
-  if (shared_types) {
-    this->k_pair_fast.set_size(GX,BX);
-    this->k_pair_fast.run(&this->atom->x, &scale, &sp_cl,
-                          &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                          &this->ans->force, &this->ans->engv,
-                          &eflag, &vflag, &ainum, &nbor_pitch,
-                          &this->atom->q, &_cut_coulsq, &_qqrd2e, &_g_ewald,
-                          &this->_threads_per_atom);
-  } else {
-    this->k_pair.set_size(GX,BX);
-    this->k_pair.run(&this->atom->x, &scale, &_lj_types, &sp_cl,
-                     &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                     &this->ans->force, &this->ans->engv, &eflag, &vflag,
-                     &ainum, &nbor_pitch, &this->atom->q, &_cut_coulsq,
-                     &_qqrd2e, &_g_ewald, &this->_threads_per_atom);
-  }
-  this->time_pair.stop();
 }
 
 template class CoulLongCS<PRECISION,ACC_PRECISION>;

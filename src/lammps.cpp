@@ -826,7 +826,7 @@ void LAMMPS::help()
 
 
   print_config(fp);
-  fprintf(fp,"List of style options included in this LAMMPS executable\n\n");
+  fprintf(fp,"List of individual style options included in this LAMMPS executable\n\n");
 
   int pos = 80;
   fprintf(fp,"* Atom styles:\n");
@@ -1060,6 +1060,19 @@ static const char lammps_config_options[]
 
 void LAMMPS::print_config(FILE *fp)
 {
+  const char *pkg;
+  int ncword, ncline = 0;
+
   fputs(lammps_config_options,fp);
-  fprintf(fp,"Installed packages:%s\n\n",lammps_installed_packages);
+  fputs("Installed packages:\n\n",fp);
+  for (int i = 0; NULL != (pkg = lammps_installed_packages[i]); ++i) {
+    ncword = strlen(pkg);
+    if (ncline + ncword > 78) {
+      ncline = 0;
+      fputs("\n",fp);
+    }
+    fprintf(fp,"%s ",pkg);
+    ncline += ncword + 1;
+  }
+  fputs("\n\n",fp);
 }

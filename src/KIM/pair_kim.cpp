@@ -18,8 +18,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Designed for use with the openkim-api-v1.5.0 package and for use with
-   the kim-api-v1.6.0 (and newer) package
+   Designed for use with the kim-api-v1.6.0 (and newer) package
 ------------------------------------------------------------------------- */
 
 #include <cstring>
@@ -41,13 +40,6 @@
 // includes from KIM
 #include "KIM_API.h"
 #include "KIM_API_status.h"
-
-#ifndef KIM_API_VERSION_MAJOR
-// support v1.5.0
-#define KIM_API_VERSION_MAJOR 1
-#define KIM_API_VERSION_MINOR 5
-#define KIM_API_VERSION_PATCH 0
-#endif
 
 using namespace LAMMPS_NS;
 
@@ -81,10 +73,7 @@ PairKIM::PairKIM(LAMMPS *lmp) :
    kim_global_cutoff(0.0),
    lmps_maxalloc(0),
    kim_particleSpecies(0),
-   lmps_force_tmp(0),
-   lmps_stripped_neigh_list(0),
-   kim_iterator_position(0),
-   Rij(0)
+   lmps_stripped_neigh_list(0)
 {
    // Initialize Pair data members to appropriate values
    single_enable = 0;  // We do not provide the Single() function
@@ -115,7 +104,6 @@ PairKIM::~PairKIM()
 
    // clean up local memory used to support KIM interface
    memory->destroy(kim_particleSpecies);
-   memory->destroy(lmps_force_tmp);
    memory->destroy(lmps_stripped_neigh_list);
 
    // clean up allocated memory for standard Pair class usage
@@ -125,9 +113,6 @@ PairKIM::~PairKIM()
       memory->destroy(cutsq);
       delete [] lmps_map_species_to_unique;
    }
-
-   // clean up Rij array
-   memory->destroy(Rij);
 
    // clean up KIM interface (if necessary)
    kim_free();
@@ -150,11 +135,9 @@ void PairKIM::compute(int eflag , int vflag)
    // needs to be atom->nmax in length
    if (atom->nmax > lmps_maxalloc) {
       memory->destroy(kim_particleSpecies);
-      memory->destroy(lmps_force_tmp);
 
       lmps_maxalloc = atom->nmax;
       memory->create(kim_particleSpecies,lmps_maxalloc,"pair:kim_particleSpecies");
-      memory->create(lmps_force_tmp,lmps_maxalloc,3,"pair:lmps_force_tmp");
    }
 
    // kim_particleSpecies = KIM atom species for each LAMMPS atom
@@ -167,11 +150,6 @@ void PairKIM::compute(int eflag , int vflag)
    for (int i = 0; i < nall; i++) {
       ielement = lmps_map_species_to_unique[species[i]];
       ielement = MAX(ielement,0);
-      // @@ this (above line) provides bogus info
-      // @@ (when lmps_map_species_to_unique[species[i]]==-1) to KIM, but
-      // @@ I guess this only happens when lmps_hybrid==true,
-      // @@ and we are sure that iterator mode will
-      // @@ not use these atoms.... (?)
       kim_particleSpecies[i] = kim_particle_codes[ielement];
    }
 
@@ -192,16 +170,6 @@ void PairKIM::compute(int eflag , int vflag)
    kim_error(__LINE__,"PairKIM::pkim->model_compute() error",kimerror);
    // assemble force and particleVirial if needed
    if (!lmps_using_newton) comm->reverse_comm_pair(this);
-
-   // sum lmps_force_tmp to f if running in hybrid mode
-   if (lmps_hybrid) {
-      double **f = atom->f;
-      for (int i = 0; i < nall; i++) {
-         f[i][0] += lmps_force_tmp[i][0];
-         f[i][1] += lmps_force_tmp[i][1];
-         f[i][2] += lmps_force_tmp[i][2];
-      }
-   }
 
    if ((no_virial_fdotr_compute == 1) && (vflag_global))
    {  // flip sign and order of virial if KIM is computing it
@@ -313,6 +281,7 @@ void PairKIM::settings(int narg, char **arg)
    strcpy(kim_modelname, arg[1]);
 
    // set print_kim_file
+   // @@@ should be removed for v2; update docs
    if ((2 == narg) || ('0' == *(arg[2])))
    {
      print_kim_file = false;
@@ -341,13 +310,19 @@ void PairKIM::coeff(int narg, char **arg)
    if (narg != 2 + atom->ntypes)
       error->all(FLERR,"Incorrect args for pair coefficients");
 
+   // insure I,J args are * *
+
+   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
+     error->all(FLERR,"Incorrect args for pair coefficients");
+
+
    int ilo,ihi,jlo,jhi;
    force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
    force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
    // read args that map atom species to KIM elements
    // lmps_map_species_to_unique[i] =
-   // which element the Ith atom type is, -1 if NULL
+   // which element the Ith atom type is
    // lmps_num_unique_elements = # of unique elements
    // lmps_unique_elements = list of element names
 
@@ -360,23 +335,20 @@ void PairKIM::coeff(int narg, char **arg)
    lmps_unique_elements = new char*[atom->ntypes];
    for (i = 0; i < atom->ntypes; i++) lmps_unique_elements[i] = 0;
 
+
+   // Assume all species arguments are valid
+   // errors will be detected by kim_api_init() matching
    lmps_num_unique_elements = 0;
    for (i = 2; i < narg; i++) {
-      if (strcmp(arg[i],"NULL") == 0) {
-         if (!lmps_hybrid)
-           error->all(FLERR,"Invalid args for non-hybrid pair coefficients");
-         lmps_map_species_to_unique[i-1] = -1;
-         continue;
-      }
-      for (j = 0; j < lmps_num_unique_elements; j++)
-         if (strcmp(arg[i],lmps_unique_elements[j]) == 0) break;
-      lmps_map_species_to_unique[i-1] = j;
-      if (j == lmps_num_unique_elements) {
-         n = strlen(arg[i]) + 1;
-         lmps_unique_elements[j] = new char[n];
-         strcpy(lmps_unique_elements[j],arg[i]);
-         lmps_num_unique_elements++;
-      }
+     for (j = 0; j < lmps_num_unique_elements; j++)
+       if (strcmp(arg[i],lmps_unique_elements[j]) == 0) break;
+     lmps_map_species_to_unique[i-1] = j;
+     if (j == lmps_num_unique_elements) {
+       n = strlen(arg[i]) + 1;
+       lmps_unique_elements[j] = new char[n];
+       strcpy(lmps_unique_elements[j],arg[i]);
+       lmps_num_unique_elements++;
+     }
    }
 
    int count = 0;
@@ -419,43 +391,18 @@ void PairKIM::init_style()
       else
       {
          kim_model_init_ok = true;
-
-         // allocate enough memory to ensure we are safe
-         // (by using neighbor->oneatom)
-         if (kim_model_using_Rij)
-           memory->create(Rij,3*(neighbor->oneatom),"pair:Rij");
       }
    }
 
-   // request none, half, or full neighbor list
-   // depending on KIM model requirement
+   // make sure comm_reverse expects (at most) 9 values when newton is off
+   if (!lmps_using_newton) comm_reverse_off = 9;
 
+   // request full neighbor list
    int irequest = neighbor->request(this,instance_me);
-   if (kim_model_using_cluster)
-   {
-      neighbor->requests[irequest]->half = 0;
-      neighbor->requests[irequest]->full = 0;
-   }
-   else
-   {
-      // make sure comm_reverse expects (at most) 9 values when newton is off
-      if (!lmps_using_newton) comm_reverse_off = 9;
-
-      if (kim_model_using_half)
-      {
-         neighbor->requests[irequest]->half = 1;
-         neighbor->requests[irequest]->full = 0;
-         // make sure half lists also include local-ghost pairs
-         if (lmps_using_newton) neighbor->requests[irequest]->newton = 2;
-      }
-      else
-      {
-         neighbor->requests[irequest]->half = 0;
-         neighbor->requests[irequest]->full = 1;
-         // make sure full lists also include local-ghost pairs
-         if (lmps_using_newton) neighbor->requests[irequest]->newton = 0;
-      }
-   }
+   neighbor->requests[irequest]->half = 0;
+   neighbor->requests[irequest]->full = 1;
+   // make sure full lists also include local-ghost pairs
+   if (lmps_using_newton) neighbor->requests[irequest]->newton = 0;
 
    return;
 }
@@ -476,27 +423,11 @@ double PairKIM::init_one(int i, int j)
 
 /* ---------------------------------------------------------------------- */
 
-void PairKIM::reinit()
-{
-  // This is called by fix-adapt
-
-  // Call parent class implementation
-  Pair::reinit();
-
-  // Then reinit KIM model
-  int kimerror;
-  kimerror = pkim->model_reinit();
-  kim_error(__LINE__,"model_reinit unsuccessful", kimerror);
-}
-
-/* ---------------------------------------------------------------------- */
-
 int PairKIM::pack_reverse_comm(int n, int first, double *buf)
 {
    int i,m,last;
    double *fp;
-   if (lmps_hybrid) fp = &(lmps_force_tmp[0][0]);
-   else fp = &(atom->f[0][0]);
+   fp = &(atom->f[0][0]);
 
    m = 0;
    last = first + n;
@@ -555,8 +486,7 @@ void PairKIM::unpack_reverse_comm(int n, int *list, double *buf)
 {
    int i,j,m;
    double *fp;
-   if (lmps_hybrid) fp = &(lmps_force_tmp[0][0]);
-   else fp = &(atom->f[0][0]);
+   fp = &(atom->f[0][0]);
 
    m = 0;
    if ((kim_model_has_forces) && ((vflag_atom == 0) ||
@@ -643,13 +573,6 @@ int PairKIM::get_neigh(void **kimmdl,int *mode,int *request,
    int kimerror;
    PairKIM *self = (PairKIM *) pkim->get_sim_buffer(&kimerror);
 
-   if (self->kim_model_using_Rij) {
-      *pRij = &(self->Rij[0]);
-   } else {
-      *pRij = 0;
-   }
-
-
    // subvert KIM api by using direct access to self->list
    //
    // get neighObj from KIM API obj
@@ -671,53 +594,7 @@ int PairKIM::get_neigh(void **kimmdl,int *mode,int *request,
    firstneigh = neiobj->firstneigh; // ptr to 1st J int value of each I atom
 
    if (*mode==0){ //iterator mode
-      if (*request==1) { //increment iterator
-         if (self->kim_iterator_position < inum) {
-            *atom = ilist[self->kim_iterator_position];
-            *numnei = numneigh[*atom];
-
-            // strip off neighbor mask for molecular systems
-            if (!self->lmps_using_molecular)
-               *nei1atom = firstneigh[*atom];
-            else
-            {
-               int n = *numnei;
-               int *ptr = firstneigh[*atom];
-               int *lmps_stripped_neigh_list = self->lmps_stripped_neigh_list;
-               for (int i = 0; i < n; i++)
-                  lmps_stripped_neigh_list[i] = *(ptr++) & NEIGHMASK;
-               *nei1atom = lmps_stripped_neigh_list;
-            }
-
-            // set Rij if needed
-            if (self->kim_model_using_Rij) {
-               double* x = (double *)
-                 (*pkim).get_data_by_index(self->kim_ind_coordinates,
-                                           &kimerror);
-               for (jj=0; jj < *numnei; jj++) {
-                  int i = *atom;
-                  j = (*nei1atom)[jj];
-                  self->Rij[jj*3 +0] = -x[i*3+0] + x[j*3+0];
-                  self->Rij[jj*3 +1] = -x[i*3+1] + x[j*3+1];
-                  self->Rij[jj*3 +2] = -x[i*3+2] + x[j*3+2];
-               }
-            }
-
-            // increment iterator
-            self->kim_iterator_position++;
-
-            return KIM_STATUS_OK; //successful increment
-         } else if (self->kim_iterator_position == inum) {
-            *numnei = 0;
-            return KIM_STATUS_NEIGH_ITER_PAST_END; //reached end by iterator
-         } else if (self->kim_iterator_position > inum || inum < 0){
-            self->error->one(FLERR, "KIM neighbor iterator exceeded range");
-         }
-      } else if (*request == 0){ //restart iterator
-         self->kim_iterator_position = 0;
-         *numnei = 0;
-         return KIM_STATUS_NEIGH_ITER_INIT_OK; //succsesful restart
-      }
+     return KIM_STATUS_NEIGH_INVALID_MODE; //unsupported mode
    } else if (*mode == 1){//locator mode
       //...
       if (*request < inum) {
@@ -737,18 +614,7 @@ int PairKIM::get_neigh(void **kimmdl,int *mode,int *request,
             *nei1atom = lmps_stripped_neigh_list;
          }
 
-         // set Rij if needed
-         if (self->kim_model_using_Rij){
-            double* x = (double *)
-              (*pkim).get_data_by_index(self->kim_ind_coordinates, &kimerror);
-            for(int jj=0; jj < *numnei; jj++){
-               int i = *atom;
-               int j = (*nei1atom)[jj];
-               self->Rij[jj*3 +0] = -x[i*3+0] + x[j*3+0];
-               self->Rij[jj*3 +1] = -x[i*3+1] + x[j*3+1];
-               self->Rij[jj*3 +2] = -x[i*3+2] + x[j*3+2];
-            }
-         }
+         *pRij = NULL;
          return KIM_STATUS_OK; //successful end
       }
       else if (*request >= nAtoms || inum < 0)
@@ -800,8 +666,6 @@ void PairKIM::kim_init()
 {
    int kimerror;
 
-   //
-
    // determine KIM Model capabilities (used in this function below)
    set_kim_model_has_flags();
 
@@ -827,40 +691,19 @@ void PairKIM::kim_init()
       test_descriptor_string = 0;
    }
 
-   // determine kim_model_using_* true/false values
-   //
-   // check for half or full list
-   kim_model_using_half = (pkim->is_half_neighbors(&kimerror));
-   //
-   const char* NBC_method;
-   kimerror = pkim->get_NBC_method(&NBC_method);
-   kim_error(__LINE__,"NBC method not set",kimerror);
-   // check for CLUSTER mode
-   kim_model_using_cluster = (strcmp(NBC_method,"CLUSTER")==0);
-   // check if Rij needed for get_neigh
-   kim_model_using_Rij = ((strcmp(NBC_method,"NEIGH_RVEC_H")==0) ||
-                          (strcmp(NBC_method,"NEIGH_RVEC_F")==0));
-
    // get correct index of each variable in kim_api object
-   pkim->getm_index(&kimerror, 3*13,
+   pkim->getm_index(&kimerror, 3*12,
     "coordinates", &kim_ind_coordinates, 1,
     "cutoff", &kim_ind_cutoff, 1,
     "numberOfParticles", &kim_ind_numberOfParticles, 1,
-#if KIM_API_VERSION_MAJOR == 1 && KIM_API_VERSON_MINOR == 5
-    "numberParticleTypes", &kim_ind_numberOfSpecies, 1,
-    "particleTypes", &kim_ind_particleSpecies, 1,
-#else
     "numberOfSpecies", &kim_ind_numberOfSpecies, 1,
     "particleSpecies", &kim_ind_particleSpecies, 1,
-#endif
-    "numberContributingParticles", &kim_ind_numberContributingParticles,
-                                   kim_model_using_half,
     "particleEnergy", &kim_ind_particleEnergy,
                       (int) kim_model_has_particleEnergy,
     "energy", &kim_ind_energy, (int) kim_model_has_energy,
     "forces", &kim_ind_forces, (int) kim_model_has_forces,
-    "neighObject", &kim_ind_neighObject, (int) !kim_model_using_cluster,
-    "get_neigh", &kim_ind_get_neigh, (int) !kim_model_using_cluster,
+    "neighObject", &kim_ind_neighObject, 1,
+    "get_neigh", &kim_ind_get_neigh, 1,
     "particleVirial", &kim_ind_particleVirial,
                       (int) kim_model_has_particleVirial,
     "virial", &kim_ind_virial, no_virial_fdotr_compute);
@@ -891,21 +734,17 @@ void PairKIM::set_statics()
    lmps_local_tot_num_atoms = (int) (atom->nghost + atom->nlocal);
 
    int kimerror;
-   pkim->setm_data_by_index(&kimerror, 4*6,
+   pkim->setm_data_by_index(&kimerror, 4*5,
     kim_ind_numberOfSpecies, 1, (void *) &(atom->ntypes), 1,
     kim_ind_cutoff, 1, (void *) &(kim_global_cutoff), 1,
     kim_ind_numberOfParticles, 1, (void *) &lmps_local_tot_num_atoms,  1,
-    kim_ind_numberContributingParticles, 1, (void *) &(atom->nlocal),
-                                         (int) kim_model_using_half,
     kim_ind_energy, 1, (void *) &(eng_vdwl), (int) kim_model_has_energy,
     kim_ind_virial, 1, (void *) &(virial[0]), no_virial_fdotr_compute);
    kim_error(__LINE__, "setm_data_by_index", kimerror);
-   if (!kim_model_using_cluster)
-   {
-      kimerror = pkim->set_method_by_index(kim_ind_get_neigh, 1,
-                                           (func_ptr) &get_neigh);
-      kim_error(__LINE__, "set_method_by_index", kimerror);
-   }
+
+   kimerror = pkim->set_method_by_index(kim_ind_get_neigh, 1,
+                                        (func_ptr) &get_neigh);
+   kim_error(__LINE__, "set_method_by_index", kimerror);
 
    pkim->set_sim_buffer((void *)this, &kimerror);
    kim_error(__LINE__, "set_sim_buffer", kimerror);
@@ -942,13 +781,9 @@ void PairKIM::set_volatiles()
 
    if (kim_model_has_forces)
    {
-      if (lmps_hybrid)
-         kimerror = pkim->set_data_by_index(kim_ind_forces, nall*3,
-                                            (void*) &(lmps_force_tmp[0][0]));
-      else
-         kimerror = pkim->set_data_by_index(kim_ind_forces, nall*3,
-                                            (void*) &(atom->f[0][0]));
-      kim_error(__LINE__, "setm_data_by_index", kimerror);
+     kimerror = pkim->set_data_by_index(kim_ind_forces, nall*3,
+                                        (void*) &(atom->f[0][0]));
+     kim_error(__LINE__, "set_data_by_index", kimerror);
    }
 
    // subvert the KIM api by direct access to this->list in get_neigh
@@ -994,16 +829,10 @@ void PairKIM::set_lmps_flags()
    }
 
    // determine if running with pair hybrid
-   lmps_hybrid = (force->pair_match("hybrid",0));
-
-   // support cluster mode if everything is just right
-   lmps_support_cluster = ((domain->xperiodic == 0 &&
-                            domain->yperiodic == 0 &&
-                            domain->zperiodic == 0
-                           )
-                           &&
-                           (comm->nprocs == 1)
-                          );
+   if (force->pair_match("hybrid",0))
+   {
+     error->all(FLERR,"pair_kim does not support hybrid.");
+   }
 
    // determine unit system and set lmps_units flag
    if ((strcmp(update->unit_style,"real")==0))
@@ -1177,30 +1006,9 @@ void PairKIM::write_descriptor(char** test_descriptor_string)
       "\n"
       "CONVENTIONS:\n"
       "# Name                  Type\n"
-      "ZeroBasedLists          flag\n");
-   // can use iterator or locator neighbor mode, unless in hybrid mode
-   if (lmps_hybrid)
-      strcat(*test_descriptor_string,
-      "Neigh_IterAccess        flag\n");
-   else
-      strcat(*test_descriptor_string,
-      "Neigh_BothAccess        flag\n\n");
-
-   strcat(*test_descriptor_string,
-      "NEIGH_PURE_H            flag\n"
-      "NEIGH_PURE_F            flag\n"
-      "NEIGH_RVEC_H            flag\n"
-      "NEIGH_RVEC_F            flag\n");
-   // @@ add code for MI_OPBC_? support ????
-   if (lmps_support_cluster)
-   {
-      strcat(*test_descriptor_string,
-      "CLUSTER                 flag\n\n");
-   }
-   else
-   {
-      strcat(*test_descriptor_string, "\n");
-   }
+      "ZeroBasedLists          flag\n"
+      "Neigh_LocaAccess        flag\n"
+      "NEIGH_PURE_F            flag\n\n");
 
    // Write input section
    strcat(*test_descriptor_string,
@@ -1208,14 +1016,8 @@ void PairKIM::write_descriptor(char** test_descriptor_string)
       "MODEL_INPUT:\n"
       "# Name                         Type         Unit    Shape\n"
       "numberOfParticles              integer      none    []\n"
-      "numberContributingParticles    integer      none    []\n"
-#if KIM_API_VERSION_MAJOR == 1 && KIM_API_VERSON_MINOR == 5
-      "numberParticleTypes            integer      none    []\n"
-      "particleTypes                  integer      none    "
-#else
       "numberOfSpecies                integer      none    []\n"
       "particleSpecies                integer      none    "
-#endif
       "[numberOfParticles]\n"
       "coordinates                    double       length  "
       "[numberOfParticles,3]\n"
@@ -1255,162 +1057,4 @@ void PairKIM::write_descriptor(char** test_descriptor_string)
       "#\n");
 
    return;
-}
-
-void *PairKIM::extract(const char *str, int &dim)
-{
-  void *paramData;
-  int kimerror=0;
-  int ier;
-  int dummyint;
-  int isIndexed = 0;
-  const int MAXLINE = 1024;
-  int rank;
-  int validParam = 0;
-  int numParams;
-  int *speciesIndex = new int[MAXLINE];
-  char *paramStr = new char[MAXLINE];
-  char *paramName;
-  char *indexStr;
-  char message[MAXLINE];
-  int offset;
-  double* paramPtr;
-
-  // set dim to 0, we will always deal with scalars to circumvent lammps species
-  // indexing
-  dim = 0;
-
-  // copy the input str into paramStr for parsing
-  strcpy(paramStr, str);
-  // get the name of the parameter (whatever is before ":")
-  paramName = strtok(paramStr, ":");
-  if (0 == strcmp(paramName, str))
-    paramName = (char*) str;
-  else
-    isIndexed = 1;
-
-  // parse the rest of the string into tokens deliminated by "," and convert
-  // them to integers, saving them into speciesIndex
-  int count = -1;
-  if (isIndexed == 1)
-  {
-    while((indexStr = strtok(NULL, ",")) != NULL)
-    {
-      count++;
-      ier = sscanf(indexStr, "%d", &speciesIndex[count]);
-      if (ier != 1)
-      {
-        ier = -1;
-        break;
-      }
-    }
-  }
-  if (ier == -1)
-  {
-    delete [] speciesIndex, speciesIndex = 0;
-    delete [] paramStr, paramStr = 0;
-    kim_error(__LINE__,"error in PairKIM::extract(), invalid parameter-indicie format", KIM_STATUS_FAIL);
-  }
-
-  // check to make sure that the requested parameter is a valid free parameter
-
-  kimerror = pkim->get_num_params(&numParams, &dummyint);
-  kim_error(__LINE__, "get_num_free_params", kimerror);
-  char **freeParamNames = new char*[numParams];
-  for (int k = 0; k < numParams; k++)
-  {
-    kimerror = pkim->get_free_parameter(k, (const char**) &freeParamNames[k]);
-    kim_error(__LINE__, "get_free_parameter", kimerror);
-    if (0 == strcmp(paramName, freeParamNames[k]))
-    {
-      validParam = 1;
-      break;
-    }
-  }
-  delete [] freeParamNames, freeParamNames = 0;
-  if (validParam == 0)
-  {
-    sprintf(message, "Invalid parameter to adapt: \"%s\" is not a FREE_PARAM", paramName);
-    delete [] speciesIndex, speciesIndex = 0;
-    delete [] paramStr, paramStr = 0;
-    kim_error(__LINE__, message, KIM_STATUS_FAIL);
-  }
-
-  // get the parameter arry from pkim object
-  paramData = pkim->get_data(paramName, &kimerror);
-  if (kimerror == KIM_STATUS_FAIL)
-  {
-    delete [] speciesIndex, speciesIndex = 0;
-    delete [] paramStr, paramStr = 0;
-  }
-  kim_error(__LINE__,"get_data",kimerror);
-
-  // get rank and shape of parameter
-  rank = (*pkim).get_rank(paramName, &kimerror);
-  if (kimerror == KIM_STATUS_FAIL)
-  {
-    delete [] speciesIndex, speciesIndex = 0;
-    delete [] paramStr, paramStr = 0;
-  }
-  kim_error(__LINE__,"get_rank",kimerror);
-
-  int *shape = new int[MAXLINE];
-  dummyint = (*pkim).get_shape(paramName, shape, &kimerror);
-  if (kimerror == KIM_STATUS_FAIL)
-  {
-    delete [] speciesIndex, speciesIndex = 0;
-    delete [] paramStr, paramStr = 0;
-    delete [] shape, shape = 0;
-  }
-  kim_error(__LINE__,"get_shape",kimerror);
-
-  delete [] paramStr, paramStr = 0;
-  // check that number of inputs is rank, and that input indicies are less than
-  // their respective dimensions in shape
-  if ((count+1) != rank)
-  {
-    sprintf(message, "Number of input indicies not equal to rank of specified parameter (%d)", rank);
-    kimerror = KIM_STATUS_FAIL;
-    delete [] speciesIndex, speciesIndex = 0;
-    delete [] shape, shape = 0;
-    kim_error(__LINE__,message, kimerror);
-  }
-  if (isIndexed == 1)
-  {
-    for (int i=0; i <= count; i++)
-    {
-      if (shape[i] <= speciesIndex[i] || speciesIndex[i] < 0)
-      {
-        kimerror = KIM_STATUS_FAIL;
-        break;
-      }
-    }
-  }
-  delete [] shape, shape = 0;
-  if (kimerror == KIM_STATUS_FAIL)
-  {
-    sprintf(message, "One or more parameter indicies out of bounds");
-    delete [] speciesIndex, speciesIndex = 0;
-    kim_error(__LINE__, message, kimerror);
-  }
-
-  // Cast it to a double
-  paramPtr = static_cast<double*>(paramData);
-
-  // If it is indexed (not just a scalar for the whole model), then get pointer
-  // corresponding to specified indicies by calculating the adress offset using
-  // specified indicies and the shape
-  if (isIndexed == 1)
-  {
-     offset = 0;
-     for (int i = 0; i < (rank-1); i++)
-     {
-       offset = (offset + speciesIndex[i]) * shape[i+1];
-     }
-     offset = offset + speciesIndex[(rank - 1)];
-     paramPtr = (paramPtr + offset);
-  }
-  delete [] speciesIndex, speciesIndex = 0;
-
-  return ((void*) paramPtr);
 }

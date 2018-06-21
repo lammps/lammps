@@ -18,8 +18,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Designed for use with the openkim-api-v1.5.0 package and for use with
-   the kim-api-v1.6.0 (and newer) package
+   Designed for use with the kim-api-v1.6.0 (and newer) package
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
@@ -49,11 +48,9 @@ namespace LAMMPS_NS {
       virtual void coeff(int, char**);
       virtual void init_style();
       virtual double init_one(int, int);
-      virtual void reinit();
       virtual int pack_reverse_comm(int, int, double*);
       virtual void unpack_reverse_comm(int, int*, double*);
       virtual double memory_usage();
-      void *extract(const char *, int &);
 
    private:
       // (nearly) all bool flags are not initialized in constructor, but set
@@ -80,9 +77,6 @@ namespace LAMMPS_NS {
       // values set in set_lmps_flags(), called from init_style()
       bool lmps_using_newton;
       bool lmps_using_molecular;
-      bool lmps_hybrid;             // true if running with pair hybrid
-      bool lmps_support_cluster;    // true if running in mode compat.
-                                    // with CLUSTER
       enum unit_sys {REAL, METAL, SI, CGS, ELECTRON};
       unit_sys lmps_units;
 
@@ -95,9 +89,6 @@ namespace LAMMPS_NS {
 
       // values set in kim_init(), after call to string_init(_)
       bool kim_init_ok;
-      bool kim_model_using_half;
-      bool kim_model_using_cluster;
-      bool kim_model_using_Rij;
       int kim_ind_coordinates;
       int kim_ind_numberOfParticles;
       int kim_ind_numberContributingParticles;
@@ -125,15 +116,8 @@ namespace LAMMPS_NS {
       // values set in compute()
       int lmps_maxalloc;              // max allocated memory value
       int* kim_particleSpecies;       // array of KIM particle species
-      double** lmps_force_tmp;        // temp storage for f, when running in
-                                      // hybrid mode needed to avoid resetting
-                                      // f to zero in each object
       int* lmps_stripped_neigh_list;  // neighbors of one atom, used when LAMMPS
                                       // is in molecular mode
-
-      // values used in get_neigh()
-      int kim_iterator_position;      //get_neigh iterator current position
-      double *Rij;
 
       // KIM specific helper functions
       void kim_error(int, const char *, int);
@@ -199,19 +183,19 @@ Self-explanatory. Check the input script or data file.
 
 W: KIM Model does not provide `energy'; Potential energy will be zero
 
-UNDOCUMENTED
+Self-explanatory.
 
 W: KIM Model does not provide `forces'; Forces will be zero
 
-UNDOCUMENTED
+Self-explanatory.
 
 W: KIM Model does not provide `particleEnergy'; energy per atom will be zero
 
-UNDOCUMENTED
+Self-explanatory.
 
 W: KIM Model does not provide `particleVirial'; virial per atom will be zero
 
-UNDOCUMENTED
+
 
 E: Test_descriptor_string already allocated
 

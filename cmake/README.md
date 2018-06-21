@@ -274,9 +274,19 @@ make
 </thead>
 <tbody>
 <tr>
-  <td><code>PKG_MPI</code></td>
+  <td><code>BUILD_MPI</code></td>
   <td>control whether to build LAMMPS with MPI support. This will look for
   `mpicxx` in your path and use this MPI implementation.</td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
+  <td><code>BUILD_OMP</code></td>
+  <td>control whether to build LAMMPS with OpenMP support.</td>
   <td>
   <dl>
     <dt><code>off</code> (default)</dt>

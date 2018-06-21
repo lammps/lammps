@@ -59,6 +59,8 @@ class LAMMPS {
 
   class CiteMe *citeme;          // citation info
 
+  static const char * installed_packages[];
+
   LAMMPS(int, char **, MPI_Comm);
   ~LAMMPS();
   void create();

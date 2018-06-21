@@ -259,14 +259,27 @@ void Info::command(int narg, char **arg)
   fprintf(out,"Printed on %s\n",ctime(&now));
 
   if (flags & CONFIG) {
-
-    fprintf(out,"\nLAMMPS version: %s / %s\n",
+    fprintf(out,"\nLAMMPS version: %s / %s\n\n",
             universe->version, universe->num_ver);
-    lmp->print_config(out);
     fprintf(out,"sizeof(smallint): %3d-bit\n",(int)sizeof(smallint)*8);
     fprintf(out,"sizeof(imageint): %3d-bit\n",(int)sizeof(imageint)*8);
     fprintf(out,"sizeof(tagint):   %3d-bit\n",(int)sizeof(tagint)*8);
     fprintf(out,"sizeof(bigint):   %3d-bit\n",(int)sizeof(bigint)*8);
+
+    const char *pkg;
+    int ncword, ncline = 0;
+
+    fputs("\nInstalled packages:\n\n",out);
+    for (int i = 0; NULL != (pkg = lmp->installed_packages[i]); ++i) {
+      ncword = strlen(pkg);
+      if (ncline + ncword > 78) {
+        ncline = 0;
+        fputs("\n",out);
+      }
+      fprintf(out,"%s ",pkg);
+      ncline += ncword + 1;
+    }
+    fputs("\n",out);
 
 #if defined(_WIN32)
     DWORD fullversion,majorv,minorv,buildv=0;

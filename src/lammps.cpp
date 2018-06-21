@@ -978,84 +978,6 @@ void print_style(FILE *fp, const char *str, int &pos)
   }
 }
 
-#define lmp_str(s) #s
-#define lmp_xstr(s) lmp_str(s)
-
-static const char lammps_config_options[]
-= "LAMMPS compile time settings:\n\n"
-  "MPI library setting         : "
-#if defined(MPI_STUBS)
-  "Serial version using STUBS"
-#elif defined(MPICH_VERSION)
-  "Parallel version using MPICH " MPICH_VERSION
-#elif defined(OPEN_MPI)
-  "Parallel version using OpenMPI "
-  lmp_xstr(OMPI_MAJOR_VERSION) "."
-  lmp_xstr(OMPI_MINOR_VERSION) "."
-  lmp_xstr(OMPI_RELEASE_VERSION)
-#else
- "Parallel version using unknown MPI library"
-#endif
-  "\nInteger sizes setting       : "
-#if defined(LAMMPS_SMALLSMALL)
-  "-DLAMMPS_SMALLSMALL"
-#elif defined(LAMMPS_SMALLBIG)
-  "-DLAMMPS_SMALLBIG"
-#elif defined(LAMMPS_BIGBIG)
-  "-DLAMMPS_BIGBIG"
-#else
-  "(unkown)"
-#endif
-  "\nExternal commands support   :"
-#if defined(LAMMPS_GZIP)
-  " -DLAMMPS_GZIP"
-#endif
-#if defined(LAMMPS_FFMPEG)
-  " -DLAMMPS_FFMPEG"
-#endif
-  "\nImage library support       :"
-#if defined(LAMMPS_JPEG)
-  " -DLAMMPS_JPEG"
-#endif
-#if defined(LAMMPS_PNG)
-  " -DLAMMPS_PNG"
-#endif
-  "\nFFT library support         :"
-#if defined(FFT_SINGLE)
-  " -DFFT_SINGLE"
-#endif
-#if defined(FFT_FFTW) || defined(FFT_FFTW3)
-  " -DFFT_FFTW3"
-#elif defined(FFT_FFTW2)
-  " -DFFT_FFTW2"
-#elif defined(FFT_MKL)
-  " -DFFT_MKL"
-#else
-  " -DFFT_KISSFFT"
-#endif
-  "\n3d-FFT data packing         :"
-#if defined(PACK_POINTER)
-  " -DPACK_POINTER"
-#elif defined(PACK_MEMCPY)
-  " -DPACK_MEMCPY"
-#else
-  " -DPACK_ARRAY"
-#endif
-  "\nMemory alignment            :"
-#if defined(LAMMPS_MEMALIGN)
-  " -DLAMMPS_MEMALIGN=" lmp_xstr(LAMMPS_MEMALIGN)
-#else
-  " (default)"
-#endif
-
-  "\nException support           :"
-#if defined(LAMMPS_EXCEPTIONS)
-  " -DLAMMPS_EXCEPTIONS\n"
-#else
-  " (not enabled)\n"
-#endif
-  "\n";
-
 #include "lmpinstalledpkgs.h"
 
 void LAMMPS::print_config(FILE *fp)
@@ -1063,9 +985,8 @@ void LAMMPS::print_config(FILE *fp)
   const char *pkg;
   int ncword, ncline = 0;
 
-  fputs(lammps_config_options,fp);
   fputs("Installed packages:\n\n",fp);
-  for (int i = 0; NULL != (pkg = lammps_installed_packages[i]); ++i) {
+  for (int i = 0; NULL != (pkg = installed_packages[i]); ++i) {
     ncword = strlen(pkg);
     if (ncline + ncword > 78) {
       ncline = 0;

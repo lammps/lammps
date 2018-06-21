@@ -798,6 +798,20 @@ GenerateStyleHeaders(${LAMMPS_STYLE_HEADERS_DIR})
 include_directories(${LAMMPS_SOURCE_DIR})
 include_directories(${LAMMPS_STYLE_HEADERS_DIR})
 
+######################################
+# Generate lmpinstalledpkgs.h
+######################################
+set(temp "const char * LAMMPS_NS::LAMMPS::installed_packages[] =  {\n")
+foreach(PKG ${DEFAULT_PACKAGES} ${ACCEL_PACKAGES} ${OTHER_PACKAGES})
+    if(PKG_${PKG})
+        set(temp "${temp}  \"${PKG}\",\n")
+    endif()
+endforeach()
+set(temp "${temp}  NULL\n};\n\n")
+message(STATUS "Generating lmpinstalledpkgs.h...")
+file(WRITE "${LAMMPS_STYLE_HEADERS_DIR}/lmpinstalledpkgs.h.tmp" "${temp}" )
+execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different "${LAMMPS_STYLE_HEADERS_DIR}/lmpinstalledpkgs.h.tmp" "${LAMMPS_STYLE_HEADERS_DIR}/lmpinstalledpkgs.h")
+
 ###########################################
 # Actually add executable and lib to build
 ############################################

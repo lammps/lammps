@@ -1,10 +1,10 @@
-# Simple water model with LATTE
+# simple water model with LATTE
 
 units		metal
 atom_style	full
 atom_modify     sort 0 0.0    # turn off sorting of the coordinates
 
-read_data       data.graphene
+read_data       data.water
 
 # replicate system if requested
 
@@ -27,18 +27,14 @@ neigh_modify    every 1 delay 0 check yes
 
 timestep        0.00025
 
-fix 1 all box/relax iso 0.0 vmax 0.001
+fix		1 all nve
 
 fix             2 all latte NULL
 fix_modify      2 energy yes
 
-thermo_style    custom   etotal
+thermo_style    custom step temp pe etotal press
 
-# minimization
+# dynamics
 
-thermo          1
-fix 3 all print 1 "Total Energy ="
-min_style cg
-min_modify dmax 0.1
-min_modify line quadratic
-minimize        1.0e-4 1.0e-4 10000 10000
+thermo          10
+run		100

@@ -274,7 +274,7 @@ make
 </thead>
 <tbody>
 <tr>
-  <td><code>ENABLE_MPI</code></td>
+  <td><code>PKG_MPI</code></td>
   <td>control whether to build LAMMPS with MPI support. This will look for
   `mpicxx` in your path and use this MPI implementation.</td>
   <td>
@@ -285,7 +285,7 @@ make
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_OPT</code></td>
+  <td><code>PKG_OPT</code></td>
   <td>
   A handful of pair styles which are optimized for improved CPU performance on
   single or multiple cores. These include EAM, LJ, CHARMM, and Morse potentials.
@@ -298,7 +298,7 @@ make
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_USER-OMP</code></td>
+  <td><code>PKG_USER-OMP</code></td>
   <td>
   Hundreds of pair, fix, compute, bond, angle, dihedral, improper, and kspace
   styles which are altered to enable threading on many-core CPUs via OpenMP
@@ -312,7 +312,7 @@ make
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_USER-INTEL</code></td>
+  <td><code>PKG_USER-INTEL</code></td>
   <td>
   Dozens of pair, fix, bond, angle, dihedral, improper, and kspace styles which
   are optimized for Intel CPUs and KNLs (Knights Landing).
@@ -325,7 +325,7 @@ make
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_GPU</code></td>
+  <td><code>PKG_GPU</code></td>
   <td>
   Dozens of pair styles and a version of the PPPM long-range Coulombic solver
   optimized for GPUs. All such styles have a “gpu” as a suffix in their style
@@ -341,7 +341,7 @@ make
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_KOKKOS</code></td>
+  <td><code>PKG_KOKKOS</code></td>
   <td>Dozens of atom, pair, bond, angle, dihedral, improper, fix, compute styles adapted to compile using the Kokkos library which can convert them to OpenMP or CUDA code so that they run efficiently on multicore CPUs, KNLs, or GPUs.</td>
   <td>
   <dl>
@@ -375,7 +375,7 @@ make
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_ASPHERE</code></td>
+  <td><code>PKG_ASPHERE</code></td>
   <td>Computes, time-integration fixes, and pair styles for aspherical particle models including ellipsoids, 2d lines, and 3d triangles.</td>
   <td>
   <dl>
@@ -385,7 +385,7 @@ make
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_BODY</code></td>
+  <td><code>PKG_BODY</code></td>
   <td>Body-style particles with internal structure. Computes, time-integration fixes, pair styles, as well as the body styles themselves.</td>
   <td>
   <dl>
@@ -395,7 +395,7 @@ make
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_CLASS2</code></td>
+  <td><code>PKG_CLASS2</code></td>
   <td>Bond, angle, dihedral, improper, and pair styles for the COMPASS CLASS2 molecular force field.</td>
   <td>
   <dl>
@@ -405,7 +405,7 @@ make
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_COLLOID</code></td>
+  <td><code>PKG_COLLOID</code></td>
   <td>Coarse-grained finite-size colloidal particles. Pair styles and fix wall styles for colloidal interactions. Includes the Fast Lubrication Dynamics (FLD) method for hydrodynamic interactions, which is a simplified approximation to Stokesian dynamics.</td>
   <td>
   <dl>
@@ -415,7 +415,7 @@ make
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_COMPRESS</code></td>
+  <td><code>PKG_COMPRESS</code></td>
   <td>Compressed output of dump files via the zlib compression library, using dump styles with a “gz” in their style name.</td>
   <td>
   <dl>
@@ -425,7 +425,7 @@ make
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_CORESHELL</code></td>
+  <td><code>PKG_CORESHELL</code></td>
   <td>Compute and pair styles that implement the adiabatic core/shell model for polarizability. The pair styles augment Born, Buckingham, and Lennard-Jones styles with core/shell capabilities. The compute temp/cs command calculates the temperature of a system with core/shell particles.</td>
   <td>
   <dl>
@@ -435,7 +435,7 @@ make
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_DIPOLE</code></td>
+  <td><code>PKG_DIPOLE</code></td>
   <td>An atom style and several pair styles for point dipole models with short-range or long-range interactions.</td>
   <td>
   <dl>
@@ -445,7 +445,7 @@ make
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_GRANULAR</code></td>
+  <td><code>PKG_GRANULAR</code></td>
   <td>Pair styles and fixes for finite-size granular particles, which interact with each other and boundaries via frictional and dissipative potentials.</td>
   <td>
   <dl>
@@ -455,7 +455,7 @@ make
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_KSPACE</code></td>
+  <td><code>PKG_KSPACE</code></td>
   <td>A variety of long-range Coulombic solvers, as well as pair styles which compute the corresponding short-range pairwise Coulombic interactions. These include Ewald, particle-particle particle-mesh (PPPM), and multilevel summation method (MSM) solvers.</td>
   <td>
   <dl>
@@ -465,7 +465,7 @@ make
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_MANYBODY</code></td>
+  <td><code>PKG_MANYBODY</code></td>
   <td>
   A variety of manybody and bond-order potentials. These include (AI)REBO, BOP,
   EAM, EIM, Stillinger-Weber, and Tersoff potentials.
@@ -478,7 +478,7 @@ make
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_MC</code></td>
+  <td><code>PKG_MC</code></td>
   <td>
   Several fixes and a pair style that have Monte Carlo (MC) or MC-like
   attributes. These include fixes for creating, breaking, and swapping bonds,
@@ -493,7 +493,7 @@ make
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_MEAM</code></td>
+  <td><code>PKG_MEAM</code></td>
   <td>
 <p>A pair style for the modified embedded atom (MEAM) potential.</p>
 
@@ -510,7 +510,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_MISC</code></td>
+  <td><code>PKG_MISC</code></td>
   <td>
   A variety of compute, fix, pair, dump styles with specialized capabilities that
   don’t align with other packages.
@@ -523,7 +523,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_MOLECULE</code></td>
+  <td><code>PKG_MOLECULE</code></td>
   <td>
   A large number of atom, pair, bond, angle, dihedral, improper styles that are
   used to model molecular systems with fixed covalent bonds. The pair styles
@@ -538,7 +538,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_PERI</code></td>
+  <td><code>PKG_PERI</code></td>
   <td>
   An atom style, several pair styles which implement different Peridynamics
   materials models, and several computes which calculate diagnostics.
@@ -552,7 +552,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_QEQ</code></td>
+  <td><code>PKG_QEQ</code></td>
   <td>
   Several fixes for performing charge equilibration (QEq) via different
   algorithms. These can be used with pair styles that perform QEq as part of
@@ -566,7 +566,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_REAX</code></td>
+  <td><code>PKG_REAX</code></td>
   <td>
   A pair style which wraps a Fortran library which implements the ReaxFF
   potential, which is a universal reactive force field. See the USER-REAXC
@@ -581,7 +581,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_REPLICA</code></td>
+  <td><code>PKG_REPLICA</code></td>
   <td>
   A collection of multi-replica methods which can be used when running multiple
   LAMMPS simulations (replicas). See Section 6.5 for an overview of how to run
@@ -599,7 +599,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_RIGID</code></td>
+  <td><code>PKG_RIGID</code></td>
   <td>
   Fixes which enforce rigid constraints on collections of atoms or particles.
   This includes SHAKE and RATTLE, as well as varous rigid-body integrators for a
@@ -614,7 +614,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_SHOCK</code></td>
+  <td><code>PKG_SHOCK</code></td>
   <td>
   Fixes for running impact simulations where a shock-wave passes through a
   material.
@@ -627,7 +627,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_SNAP</code></td>
+  <td><code>PKG_SNAP</code></td>
   <td>
   A pair style for the spectral neighbor analysis potential (SNAP). SNAP is
   methodology for deriving a highly accurate classical potential fit to a large
@@ -642,7 +642,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_SRD</code></td>
+  <td><code>PKG_SRD</code></td>
   <td>
   A pair of fixes which implement the Stochastic Rotation Dynamics (SRD) method
   for coarse-graining of a solvent, typically around large colloidal particles.
@@ -669,7 +669,7 @@ providing the identical features and USER interface.</strong></p>
 </thead>
 <tbody>
 <tr>
-  <td><code>ENABLE_KIM</code></td>
+  <td><code>PKG_KIM</code></td>
   <td>A <code>pair_style kim</code> command which is a wrapper on the Knowledge Base for Interatomic Models (KIM) repository of interatomic potentials, enabling any of them to be used in LAMMPS simulations.</td>
   <td>
   <dl>
@@ -679,7 +679,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_PYTHON</code></td>
+  <td><code>PKG_PYTHON</code></td>
   <td>Enable support for Python scripting inside of LAMMPS.</td>
   <td>
   <dl>
@@ -689,7 +689,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_MSCG</code></td>
+  <td><code>PKG_MSCG</code></td>
   <td>
   A fix mscg command which can parameterize a Multi-Scale Coarse-Graining (MSCG)
   model using the open-source MS-CG library.
@@ -702,7 +702,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_MPIIO</code></td>
+  <td><code>PKG_MPIIO</code></td>
   <td>
   Support for parallel output/input of dump and restart files via the MPIIO library.
   </td>
@@ -714,7 +714,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_POEMS</code></td>
+  <td><code>PKG_POEMS</code></td>
   <td>
   A fix that wraps the Parallelizable Open source Efficient Multibody Software
   (POEMS) library, which is able to simulate the dynamics of articulated body
@@ -729,7 +729,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_LATTE</code></td>
+  <td><code>PKG_LATTE</code></td>
   <td>
   A fix command which wraps the LATTE DFTB code, so that molecular dynamics can
   be run with LAMMPS using density-functional tight-binding quantum forces
@@ -757,7 +757,7 @@ providing the identical features and USER interface.</strong></p>
 </thead>
 <tbody>
 <tr>
-  <td><code>ENABLE_USER-ATC</code></td>
+  <td><code>PKG_USER-ATC</code></td>
   <td>
   ATC stands for atoms-to-continuum. This package implements a fix atc command
   to either couple molecular dynamics with continuum finite element equations or
@@ -771,7 +771,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_USER-AWPMD</code></td>
+  <td><code>PKG_USER-AWPMD</code></td>
   <td>
   AWPMD stands for Antisymmetrized Wave Packet Molecular Dynamics. This package
   implements an atom, pair, and fix style which allows electrons to be treated
@@ -785,7 +785,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_USER-CGDNA</code></td>
+  <td><code>PKG_USER-CGDNA</code></td>
   <td>
   Several pair styles, a bond style, and integration fixes for coarse-grained
   models of single- and double-stranded DNA based on the oxDNA model of Doye,
@@ -800,7 +800,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_USER-CGSDK</code></td>
+  <td><code>PKG_USER-CGSDK</code></td>
   <td>
   Several pair styles and an angle style which implement the coarse-grained SDK
   model of Shinoda, DeVane, and Klein which enables simulation of ionic liquids,
@@ -814,7 +814,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_USER-COLVARS</code></td>
+  <td><code>PKG_USER-COLVARS</code></td>
   <td>
   COLVARS stands for collective variables, which can be used to implement
   various enhanced sampling methods, including Adaptive Biasing Force,
@@ -830,7 +830,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_USER-DIFFRACTION</code></td>
+  <td><code>PKG_USER-DIFFRACTION</code></td>
   <td>
   Two computes and a fix for calculating x-ray and electron diffraction
   intensities based on kinematic diffraction theory.
@@ -843,7 +843,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_USER-DPD</code></td>
+  <td><code>PKG_USER-DPD</code></td>
   <td>
   DPD stands for dissipative particle dynamics. This package implements
   coarse-grained DPD-based models for energetic, reactive molecular crystalline
@@ -862,7 +862,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_USER-DRUDE</code></td>
+  <td><code>PKG_USER-DRUDE</code></td>
   <td>
   Fixes, pair styles, and a compute to simulate thermalized Drude oscillators as
   a model of polarization.
@@ -875,7 +875,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_USER-EFF</code></td>
+  <td><code>PKG_USER-EFF</code></td>
   <td>
   EFF stands for electron force field which allows a classical MD code to model
   electrons as particles of variable radius. This package contains atom, pair,
@@ -891,7 +891,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_USER-FEP</code></td>
+  <td><code>PKG_USER-FEP</code></td>
   <td>
   FEP stands for free energy perturbation. This package provides methods for
   performing FEP simulations by using a fix adapt/fep command with soft-core
@@ -905,7 +905,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_USER-H5MD</code></td>
+  <td><code>PKG_USER-H5MD</code></td>
   <td>
   H5MD stands for HDF5 for MD. HDF5 is a portable, binary, self-describing file
   format, used by many scientific simulations. H5MD is a format for molecular
@@ -920,7 +920,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_USER-LB</code></td>
+  <td><code>PKG_USER-LB</code></td>
   <td>
   Fixes which implement a background Lattice-Boltzmann (LB) fluid, which can be
   used to model MD particles influenced by hydrodynamic forces.
@@ -933,7 +933,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_USER-MANIFOLD</code></td>
+  <td><code>PKG_USER-MANIFOLD</code></td>
   <td>
   Several fixes and a “manifold” class which enable simulations of particles
   constrained to a manifold (a 2D surface within the 3D simulation box). This is
@@ -949,7 +949,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_USER-MEAMC</code></td>
+  <td><code>PKG_USER-MEAMC</code></td>
   <td>
   A pair style for the modified embedded atom (MEAM) potential translated from
   the Fortran version in the MEAM package to plain C++. In contrast to the MEAM
@@ -964,7 +964,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_USER-MESO</code></td>
+  <td><code>PKG_USER-MESO</code></td>
   <td>
   Several extensions of the the dissipative particle dynamics (DPD) method.
   Specifically, energy-conserving DPD (eDPD) that can model non-isothermal
@@ -981,7 +981,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_USER-MGPT</code></td>
+  <td><code>PKG_USER-MGPT</code></td>
   <td>
   A pair style which provides a fast implementation of the quantum-based MGPT
   multi-ion potentials. The MGPT or model GPT method derives from
@@ -1000,7 +1000,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_USER-MISC</code></td>
+  <td><code>PKG_USER-MISC</code></td>
   <td>
   A potpourri of (mostly) unrelated features contributed to LAMMPS by users.
   Each feature is a single fix, compute, pair, bond, angle, dihedral, improper,
@@ -1014,7 +1014,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_USER-MOFFF</code></td>
+  <td><code>PKG_USER-MOFFF</code></td>
   <td>
   Pair, angle and improper styles needed to employ the MOF-FF force field by
   Schmid and coworkers with LAMMPS. MOF-FF is a first principles derived force
@@ -1031,7 +1031,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_USER-MOLFILE</code></td>
+  <td><code>PKG_USER-MOLFILE</code></td>
   <td>
   A dump molfile command which uses molfile plugins that are bundled with the
   VMD molecular visualization and analysis program, to enable LAMMPS to dump
@@ -1045,7 +1045,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_USER-NETCDF</code></td>
+  <td><code>PKG_USER-NETCDF</code></td>
   <td>
   Dump styles for writing NetCDF formatted dump files. NetCDF is a portable,
   binary, self-describing file format developed on top of HDF5. The file
@@ -1060,7 +1060,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_USER-PHONON</code></td>
+  <td><code>PKG_USER-PHONON</code></td>
   <td>
   A fix phonon command that calculates dynamical matrices, which can then be
   used to compute phonon dispersion relations, directly from molecular dynamics
@@ -1074,7 +1074,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_USER-QTB</code></td>
+  <td><code>PKG_USER-QTB</code></td>
   <td>
   Two fixes which provide a self-consistent quantum treatment of vibrational modes in a classical molecular dynamics simulation. By coupling the MD simulation to a colored thermostat, it introduces zero point energy into the system, altering the energy power spectrum and the heat capacity to account for their quantum nature. This is useful when modeling systems at temperatures lower than their classical limits or when temperatures ramp across the classical limits in a simulation.
   </td>
@@ -1086,7 +1086,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_USER-QUIP</code></td>
+  <td><code>PKG_USER-QUIP</code></td>
   <td>
   A pair_style quip command which wraps the QUIP libAtoms library, which
   includes a variety of interatomic potentials, including Gaussian Approximation
@@ -1100,7 +1100,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_USER-QMMM</code></td>
+  <td><code>PKG_USER-QMMM</code></td>
   <td>
   A fix qmmm command which allows LAMMPS to be used in a QM/MM simulation,
   currently only in combination with the Quantum ESPRESSO package.
@@ -1113,7 +1113,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_USER-REAXC</code></td>
+  <td><code>PKG_USER-REAXC</code></td>
   <td>
   A pair style which implements the ReaxFF potential in C/C++ (in contrast to
   the REAX package and its Fortran library). ReaxFF is universal reactive force
@@ -1129,7 +1129,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_USER-SMD</code></td>
+  <td><code>PKG_USER-SMD</code></td>
   <td>
   An atom style, fixes, computes, and several pair styles which implements
   smoothed Mach dynamics (SMD) for solids, which is a model related to smoothed
@@ -1143,7 +1143,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_USER-SMTBQ</code></td>
+  <td><code>PKG_USER-SMTBQ</code></td>
   <td>
   A pair style which implements a Second Moment Tight Binding model with QEq
   charge equilibration (SMTBQ) potential for the description of ionocovalent
@@ -1157,7 +1157,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_USER-SPH</code></td>
+  <td><code>PKG_USER-SPH</code></td>
   <td>
   An atom style, fixes, computes, and several pair styles which implements
   smoothed particle hydrodynamics (SPH) for liquids. See the related USER-SMD
@@ -1171,7 +1171,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_USER-TALLY</code></td>
+  <td><code>PKG_USER-TALLY</code></td>
   <td>
   Several compute styles that can be called when pairwise interactions are
   calculated to tally information (forces, heat flux, energy, stress, etc) about
@@ -1185,7 +1185,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_USER-UEF</code></td>
+  <td><code>PKG_USER-UEF</code></td>
   <td>
   A fix style for the integration of the equations of motion under extensional
   flow with proper boundary conditions, as well as several supporting compute
@@ -1199,7 +1199,7 @@ providing the identical features and USER interface.</strong></p>
   </td>
 </tr>
 <tr>
-  <td><code>ENABLE_USER-VTK</code></td>
+  <td><code>PKG_USER-VTK</code></td>
   <td>
   A dump vtk command which outputs snapshot info in the VTK format, enabling
   visualization by Paraview or other visualization packages.

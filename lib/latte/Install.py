@@ -12,12 +12,12 @@ help = """
 Syntax from src dir: make lib-latte args="-b"
                  or: make lib-latte args="-p /usr/local/latte"
                  or: make lib-latte args="-m gfortran"
-                 or: make lib-latte args="-b -v 1.1.1"
+                 or: make lib-latte args="-b -v 1.2.0"
 
 Syntax from lib dir: python Install.py -b
                  or: python Install.py -p /usr/local/latte
                  or: python Install.py -m gfortran
-                 or: python Install.py -v 1.1.1 -b
+                 or: python Install.py -v 1.2.0 -b
 
 specify one or more options, order does not matter
 
@@ -34,7 +34,7 @@ make lib-latte args="-p $HOME/latte"   # use existing LATTE installation
 
 # settings
 
-version = '1.1.1'
+version = '1.2.0'
 
 # print error message or help
 

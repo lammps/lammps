@@ -985,7 +985,13 @@ void LAMMPS::print_config(FILE *fp)
   const char *pkg;
   int ncword, ncline = 0;
 
-  fputs("Installed packages:\n\n",fp);
+  fputs("Active compile time flags:\n\n",fp);
+  if (Info::has_gzip_support()) fputs("-DLAMMPS_GZIP\n",fp);
+  if (Info::has_png_support()) fputs("-DLAMMPS_PNG\n",fp);
+  if (Info::has_jpeg_support()) fputs("-DLAMMPS_JPEG\n",fp);
+  if (Info::has_ffmpeg_support()) fputs("-DLAMMPS_FFMPEG\n",fp);
+
+  fputs("\nInstalled packages:\n\n",fp);
   for (int i = 0; NULL != (pkg = installed_packages[i]); ++i) {
     ncword = strlen(pkg);
     if (ncline + ncword > 78) {

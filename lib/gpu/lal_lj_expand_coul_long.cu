@@ -10,7 +10,7 @@
 // __________________________________________________________________________
 //
 //    begin                :
-//    email                : trung.nguyen@northwestern.edu
+//    email                : ndactrung@gmail.com
 // ***************************************************************************/
 
 #ifdef NV_KERNEL
@@ -94,17 +94,21 @@ __kernel void k_lj_expand_coul_long(const __global numtyp4 *restrict x_,
 
       int mtype=itype*lj_types+jtype;
       if (rsq<lj1[mtype].z) {
-        numtyp r2inv=ucl_recip(rsq);
         numtyp forcecoul, force_lj, force, r6inv, prefactor, _erfc;
+        numtyp r2inv=ucl_recip(rsq);
+        numtyp r = ucl_sqrt(rsq);
 
         if (rsq < lj1[mtype].w) {
-          r6inv = r2inv*r2inv*r2inv;
-          force_lj = factor_lj*r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y);
+          numtyp rshift = r - lj3[mtype].w;
+          numtyp rshiftsq = rshift*rshift;
+          numtyp rshift2inv = ucl_recip(rshiftsq);
+          r6inv = rshift2inv*rshift2inv*rshift2inv;
+          force_lj = r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y);
+          force_lj *= factor_lj/rshift/r;
         } else
           force_lj = (numtyp)0.0;
 
         if (rsq < cut_coulsq) {
-          numtyp r = ucl_rsqrt(r2inv);
           numtyp grij = g_ewald * r;
           numtyp expm2 = ucl_exp(-grij*grij);
           numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*grij);
@@ -115,7 +119,7 @@ __kernel void k_lj_expand_coul_long(const __global numtyp4 *restrict x_,
         } else
           forcecoul = (numtyp)0.0;
 
-        force = (force_lj + forcecoul) * r2inv;
+        force = force_lj + forcecoul*r2inv;
 
         f.x+=delx*force;
         f.y+=dely*force;
@@ -168,8 +172,7 @@ __kernel void k_lj_expand_coul_long_fast(const __global numtyp4 *restrict x_,
     sp_lj[tid]=sp_lj_in[tid];
   if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
     lj1[tid]=lj1_in[tid];
-    if (eflag>0)
-      lj3[tid]=lj3_in[tid];
+    lj3[tid]=lj3_in[tid];
   }
 
   acctyp energy=(acctyp)0;
@@ -212,17 +215,21 @@ __kernel void k_lj_expand_coul_long_fast(const __global numtyp4 *restrict x_,
       numtyp rsq = delx*delx+dely*dely+delz*delz;
 
       if (rsq<lj1[mtype].z) {
-        numtyp r2inv=ucl_recip(rsq);
         numtyp forcecoul, force_lj, force, r6inv, prefactor, _erfc;
+        numtyp r2inv=ucl_recip(rsq);
+        numtyp r = ucl_sqrt(rsq);
 
         if (rsq < lj1[mtype].w) {
-          r6inv = r2inv*r2inv*r2inv;
-          force_lj = factor_lj*r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y);
+          numtyp rshift = r - lj3[mtype].w;
+          numtyp rshiftsq = rshift*rshift;
+          numtyp rshift2inv = ucl_recip(rshiftsq);
+          r6inv = rshift2inv*rshift2inv*rshift2inv;
+          force_lj = r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y);
+          force_lj *= factor_lj/rshift/r;
         } else
           force_lj = (numtyp)0.0;
 
         if (rsq < cut_coulsq) {
-          numtyp r = ucl_rsqrt(r2inv);
           numtyp grij = g_ewald * r;
           numtyp expm2 = ucl_exp(-grij*grij);
           numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*grij);
@@ -233,7 +240,7 @@ __kernel void k_lj_expand_coul_long_fast(const __global numtyp4 *restrict x_,
         } else
           forcecoul = (numtyp)0.0;
 
-        force = (force_lj + forcecoul) * r2inv;
+        force = force_lj + forcecoul*r2inv;
 
         f.x+=delx*force;
         f.y+=dely*force;

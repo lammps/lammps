@@ -1,30 +1,30 @@
 /***************************************************************************
-                              born_coul_wolf.h
+                              born_coul_wolf_cs.h
                              -------------------
-                           Trung Dac Nguyen (ORNL)
+                           Trung Dac Nguyen (Northwestern)
 
-  Class for acceleration of the born/coul/wolf pair style.
+  Class for acceleration of the born/coul/wolf/cs pair style.
 
  __________________________________________________________________________
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
     begin                :
-    email                : nguyentd@ornl.gov
+    email                : ndactrung@gmail.com
  ***************************************************************************/
 
-#ifndef LAL_BORN_COUL_WOLF_H
-#define LAL_BORN_COUL_WOLF_H
+#ifndef LAL_BORN_COUL_WOLF_CS_H
+#define LAL_BORN_COUL_WOLF_CS_H
 
-#include "lal_base_charge.h"
+#include "lal_born_coul_wolf.h"
 
 namespace LAMMPS_AL {
 
 template <class numtyp, class acctyp>
-class BornCoulWolf : public BaseCharge<numtyp, acctyp> {
+class BornCoulWolfCS : public BornCoulWolf<numtyp, acctyp> {
  public:
-  BornCoulWolf();
-  ~BornCoulWolf();
+  BornCoulWolfCS() {}
+  ~BornCoulWolfCS() {}
 
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param max_nbors initial number of rows in the neighbor matrix
@@ -47,41 +47,6 @@ class BornCoulWolf : public BaseCharge<numtyp, acctyp> {
            const double host_cut_coulsq, double *host_special_coul,
            const double qqrd2e, const double alf, const double e_shift,
            const double f_shift);
-
-  /// Clear all host and device data
-  /** \note This is called at the beginning of the init() routine **/
-  void clear();
-
-  /// Returns memory usage on device per atom
-  int bytes_per_atom(const int max_nbors) const;
-
-  /// Total host memory used by library for pair style
-  double host_memory_usage() const;
-
-  // --------------------------- TYPE DATA --------------------------
-
-  /// coeff1.x = rhoinv, coeff1.y = born1, coeff1.z = born2,
-  /// coeff1.w = born3
-  UCL_D_Vec<numtyp4> coeff1;
-  /// coeff2.x = a, coeff2.y = c, coeff2.z = d, coeff2.w = offset
-  UCL_D_Vec<numtyp4> coeff2;
-  /// cutsq_sigma.x = cutsq, cutsq_sigma.y = cutsq_lj,
-  /// cutsq_sigma.z = sigma
-  UCL_D_Vec<numtyp4> cutsq_sigma;
-  /// Special LJ values [0-3] and Special Coul values [4-7]
-  UCL_D_Vec<numtyp> sp_lj;
-
-  /// If atom type constants fit in shared memory, use fast kernels
-  bool shared_types;
-
-  /// Number of atom types
-  int _lj_types;
-
-  numtyp _cut_coulsq,_qqrd2e,_alf,_e_shift,_f_shift;
-
- protected:
-  bool _allocated;
-  void loop(const bool _eflag, const bool _vflag);
 };
 
 }

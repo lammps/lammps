@@ -1,16 +1,16 @@
 // **************************************************************************
-//                              born_coul_wolf.cu
+//                            born_coul_wolf_cs.cu
 //                             -------------------
-//                           Trung Dac Nguyen (ORNL)
+//                         Trung Dac Nguyen (Northwestern)
 //
-//  Device code for acceleration of the born/coul/wolf pair style
+//  Device code for acceleration of the born/coul/wolf/cs pair style
 //
 // __________________________________________________________________________
 //    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
 // __________________________________________________________________________
 //
 //    begin                :
-//    email                : nguyentd@ornl.gov
+//    email                : ndactrung@gmail.com
 // ***************************************************************************/
 
 #ifdef NV_KERNEL
@@ -29,9 +29,10 @@ texture<int2> q_tex;
 #define q_tex q_
 #endif
 
+#define EPSILON (acctyp)(1.0e-20)
 #define MY_PIS (acctyp)1.77245385090551602729
 
-__kernel void k_born_coul_wolf(const __global numtyp4 *restrict x_,
+__kernel void k_born_coul_wolf_cs(const __global numtyp4 *restrict x_,
                           const __global numtyp4 *restrict coeff1,
                           const __global numtyp4 *restrict coeff2,
                           const int lj_types,
@@ -104,10 +105,11 @@ __kernel void k_born_coul_wolf(const __global numtyp4 *restrict x_,
 
       int mtype=itype*lj_types+jtype;
       if (rsq<cutsq_sigma[mtype].x) { // cutsq
-        numtyp r2inv = ucl_recip(rsq);
-        numtyp forcecoul, forceborn, force, r6inv, prefactor;
-        numtyp v_sh = (numtyp)0.0;
-        numtyp rexp = (numtyp)0.0;
+        rsq += EPSILON; // Add Epsilon for case: r = 0; Interaction must be removed by special bond;
+        acctyp r2inv = ucl_recip(rsq);
+
+        numtyp forcecoul,forceborn,force,prefactor,rexp;
+        acctyp v_sh,r6inv;
 
         if (rsq < cutsq_sigma[mtype].y) { // cut_ljsq
           numtyp r = ucl_sqrt(rsq);
@@ -118,15 +120,15 @@ __kernel void k_born_coul_wolf(const __global numtyp4 *restrict x_,
         } else forceborn = (numtyp)0.0;
 
         if (rsq < cut_coulsq) {
-          numtyp r=ucl_rsqrt(r2inv);
-          numtyp arij = alf * r;
-          numtyp erfcd = ucl_exp(-arij*arij);
+          numtyp r = ucl_rsqrt(r2inv);
+          acctyp arij = alf * r;
+          acctyp erfcd = ucl_exp(-arij*arij);
           fetch(prefactor,j,q_tex);
           prefactor *= qqrd2e * qtmp/r;
 
-          const numtyp erfcc = erfc(arij);
+          const acctyp erfcc = erfc(arij);
           v_sh = (erfcc - e_shift*r)*prefactor;
-          numtyp dvdrr = (erfcc/rsq + (numtyp)2.0*alf/MY_PIS * erfcd/r) + f_shift;
+          acctyp dvdrr = (erfcc/rsq + (numtyp)2.0*alf/MY_PIS * erfcd/r) + f_shift;
           forcecoul = prefactor * dvdrr*rsq;
           if (factor_coul < (numtyp)1.0) forcecoul -= ((numtyp)1.0-factor_coul)*prefactor;
         } else forcecoul = (numtyp)0.0;
@@ -139,7 +141,7 @@ __kernel void k_born_coul_wolf(const __global numtyp4 *restrict x_,
 
         if (eflag>0) {
           if (rsq < cut_coulsq) {
-            numtyp e=v_sh;
+            acctyp e=v_sh;
             if (factor_coul < (numtyp)1.0) e -= ((numtyp)1.0-factor_coul)*prefactor;
             e_coul += e;
           }
@@ -165,7 +167,7 @@ __kernel void k_born_coul_wolf(const __global numtyp4 *restrict x_,
   } // if ii
 }
 
-__kernel void k_born_coul_wolf_fast(const __global numtyp4 *restrict x_,
+__kernel void k_born_coul_wolf_cs_fast(const __global numtyp4 *restrict x_,
                                const __global numtyp4 *restrict coeff1_in,
                                const __global numtyp4 *restrict coeff2_in,
                                const __global numtyp *restrict sp_lj_in,
@@ -237,32 +239,33 @@ __kernel void k_born_coul_wolf_fast(const __global numtyp4 *restrict x_,
       numtyp delx = ix.x-jx.x;
       numtyp dely = ix.y-jx.y;
       numtyp delz = ix.z-jx.z;
-      numtyp rsq = delx*delx+dely*dely+delz*delz;
+      acctyp rsq = delx*delx+dely*dely+delz*delz;
 
       if (rsq<cutsq_sigma[mtype].x) {
-        numtyp r2inv=ucl_recip(rsq);
-        numtyp forcecoul, forceborn, force, r6inv, prefactor;
-        numtyp v_sh = (numtyp)0.0;
-        numtyp rexp = (numtyp)0.0;
+        rsq += EPSILON; // Add Epsilon for case: r = 0; Interaction must be removed by special bond;
+        acctyp r2inv = ucl_recip(rsq);
+
+        numtyp forcecoul,forceborn,force,prefactor,rexp;
+        acctyp v_sh,r6inv;
 
         if (rsq < cutsq_sigma[mtype].y) {
+          r6inv = r2inv*r2inv*r2inv;
           numtyp r = ucl_sqrt(rsq);
           rexp = ucl_exp((cutsq_sigma[mtype].z-r)*coeff1[mtype].x);
-          r6inv = r2inv*r2inv*r2inv;
           forceborn = (coeff1[mtype].y*r*rexp - coeff1[mtype].z*r6inv
             + coeff1[mtype].w*r2inv*r6inv)*factor_lj;
         } else forceborn = (numtyp)0.0;
 
-        if (rsq < cut_coulsq) {
-          numtyp r=ucl_sqrt(rsq);
-          numtyp arij = alf * r;
-          numtyp erfcd = ucl_exp(-arij*arij);
+       if (rsq < cut_coulsq) {
+          numtyp r = ucl_sqrt(rsq);
+          acctyp arij = alf * r;
+          acctyp erfcd = ucl_exp(-arij*arij);
           fetch(prefactor,j,q_tex);
           prefactor *= qqrd2e * qtmp/r;
 
-          const numtyp erfcc = erfc(arij);
+          const acctyp erfcc = erfc(arij);
           v_sh = (erfcc - e_shift*r)*prefactor;
-          numtyp dvdrr = (erfcc/rsq + (numtyp)2.0*alf/MY_PIS * erfcd/r) + f_shift;
+          acctyp dvdrr = (erfcc/rsq + (numtyp)2.0*alf/MY_PIS * erfcd/r) + f_shift;
           forcecoul = prefactor * dvdrr*rsq;
           if (factor_coul < (numtyp)1.0) forcecoul -= ((numtyp)1.0-factor_coul)*prefactor;
         } else forcecoul = (numtyp)0.0;
@@ -275,7 +278,7 @@ __kernel void k_born_coul_wolf_fast(const __global numtyp4 *restrict x_,
 
         if (eflag>0) {
           if (rsq < cut_coulsq) {
-            numtyp e=v_sh;
+            acctyp e=v_sh;
             if (factor_coul < (numtyp)1.0) e -= ((numtyp)1.0-factor_coul)*prefactor;
             e_coul += e;
           }

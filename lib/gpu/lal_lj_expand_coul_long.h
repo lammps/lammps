@@ -10,7 +10,7 @@
  __________________________________________________________________________
 
     begin                :
-    email                : trung.nguyen@northwestern.edu
+    email                : ndactrung@gmail.com
  ***************************************************************************/
 
 #ifndef LAL_LJ_EXPAND_COUL_LONG_H

@@ -35,8 +35,11 @@ fix 5 all dt/reset 5 NULL 0.001 0.5 emax 30 units box :pre
 [Description:]
 
 Reset the timestep size every N steps during a run, so that no atom
-moves further than Xmax, based on current atom velocities and forces,
-and (optionally) no atom's kinetic energy changes by more than Emax.
+moves further than the specified {Xmax} distance, based on current
+atom velocities and forces.  Optionally an additional criterion is
+imposed by the {emax} keyword, so that no atom's kinetic energy
+changes by more than the specified {Emax}.
+
 This can be useful when starting from a configuration with overlapping
 atoms, where forces will be large.  Or it can be useful when running
 an impact simulation where one or more high-energy atoms collide with
@@ -52,9 +55,12 @@ current velocity and force.  Since performing this calculation exactly
 would require the solution to a quartic equation, a cheaper estimate
 is generated.  The estimate is conservative in that the atom's
 displacement is guaranteed not to exceed {Xmax}, though it may be
-smaller. Also, if the {Emax} value is given, for each atom, the
-timestep is limited to a value that allows the atom's kinetic energy
-to change by at most {Emax}.
+smaller. 
+
+In addition if the {emax} keyword is used, the specified {Emax} value
+is enforced as a limit on how much an atom's kinetic energy can
+change.  If the timestep required is even smaller than for the {Xmax}
+displacement, then the smaller timestep is used.
 
 Given this putative timestep for each atom, the minimum timestep value
 across all atoms is computed.  Then the {Tmin} and {Tmax} bounds are
@@ -93,4 +99,5 @@ minimization"_minimize.html.
 
 [Default:]
 
-The option defaults is units = lattice, and no kinetic energy change limit.
+The option defaults are units = lattice, and no emax kinetic energy
+limit.

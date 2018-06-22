@@ -37,5 +37,6 @@ thermo_style    custom step temp pe etotal press
 # minimization
 
 thermo          10
-min_style fire
-minimize        1.0e-9 1.0e-9 500 500
+
+min_style       fire
+minimize        1.0e-4 1.0e-4 500 500

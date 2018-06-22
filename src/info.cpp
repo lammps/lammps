@@ -1143,7 +1143,7 @@ static void print_columns(FILE* fp, vector<string> & styles)
   }
 }
 
-bool Info::has_gzip_support() const {
+bool Info::has_gzip_support() {
 #ifdef LAMMPS_GZIP
   return true;
 #else
@@ -1151,7 +1151,7 @@ bool Info::has_gzip_support() const {
 #endif
 }
 
-bool Info::has_png_support() const {
+bool Info::has_png_support() {
 #ifdef LAMMPS_PNG
   return true;
 #else
@@ -1159,7 +1159,7 @@ bool Info::has_png_support() const {
 #endif
 }
 
-bool Info::has_jpeg_support() const {
+bool Info::has_jpeg_support() {
 #ifdef LAMMPS_JPEG
   return true;
 #else
@@ -1167,7 +1167,7 @@ bool Info::has_jpeg_support() const {
 #endif
 }
 
-bool Info::has_ffmpeg_support() const {
+bool Info::has_ffmpeg_support() {
 #ifdef LAMMPS_FFMPEG
   return true;
 #else
@@ -1175,7 +1175,7 @@ bool Info::has_ffmpeg_support() const {
 #endif
 }
 
-bool Info::has_exceptions() const {
+bool Info::has_exceptions() {
 #ifdef LAMMPS_EXCEPTIONS
   return true;
 #else

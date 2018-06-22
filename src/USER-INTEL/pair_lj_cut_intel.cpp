@@ -148,6 +148,7 @@ void PairLJCutIntel::eval(const int offload, const int vflag,
 
   ATOM_T * _noalias const x = buffers->get_x(offload);
 
+  const int * _noalias const ilist = list->ilist;
   const int * _noalias const numneigh = list->numneigh;
   const int * _noalias const cnumneigh = buffers->cnumneigh(list);
   const int * _noalias const firstneigh = buffers->firstneigh(list);
@@ -207,7 +208,8 @@ void PairLJCutIntel::eval(const int offload, const int vflag,
         lj4 = lj34[3].lj4;
         offset = ljc12o[3].offset;
       }
-      for (int i = iifrom; i < iito; i += iip) {
+      for (int ii = iifrom; ii < iito; ii += iip) {
+        const int i = ilist[ii];
         int itype, ptr_off;
         const FC_PACKED1_T * _noalias ljc12oi;
         const FC_PACKED2_T * _noalias lj34i;
@@ -217,9 +219,9 @@ void PairLJCutIntel::eval(const int offload, const int vflag,
           ljc12oi = ljc12o + ptr_off;
           lj34i = lj34 + ptr_off;
         }
-
-        const int * _noalias const jlist = firstneigh + cnumneigh[i];
-        const int jnum = numneigh[i];
+        const int * _noalias const jlist = firstneigh + cnumneigh[ii];
+        int jnum = numneigh[ii];
+        IP_PRE_neighbor_pad(jnum, offload);
 
         acc_t fxtmp, fytmp, fztmp, fwtmp;
         acc_t sevdwl, sv0, sv1, sv2, sv3, sv4, sv5;

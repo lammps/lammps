@@ -990,6 +990,7 @@ void LAMMPS::print_config(FILE *fp)
   if (Info::has_png_support()) fputs("-DLAMMPS_PNG\n",fp);
   if (Info::has_jpeg_support()) fputs("-DLAMMPS_JPEG\n",fp);
   if (Info::has_ffmpeg_support()) fputs("-DLAMMPS_FFMPEG\n",fp);
+  if (Info::has_exceptions()) fputs("-DLAMMPS_EXCEPTIONS\n",fp);
 
   fputs("\nInstalled packages:\n\n",fp);
   for (int i = 0; NULL != (pkg = installed_packages[i]); ++i) {

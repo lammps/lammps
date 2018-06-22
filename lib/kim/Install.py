@@ -21,7 +21,7 @@ Syntax from lib dir: python Install.py -b -v version  -a kim-name
 specify one or more options, order does not matter
 
   -v = version of KIM API library to use
-       default = kim-api-v1.9.5 (current as of May 2018)
+       default = kim-api-v2.0.0-beta.0 (current as of June 2018)
   -b = download and build base KIM API library with example Models
        this will delete any previous installation in the current folder
   -n = do NOT download and build base KIM API library.
@@ -109,7 +109,7 @@ nargs = len(args)
 if nargs == 0: error()
 
 thisdir = os.environ['PWD']
-version = "kim-api-v1.9.5"
+version = "kim-api-v2.0.0-beta.0"
 
 buildflag = False
 everythingflag = False
@@ -234,7 +234,7 @@ if buildflag:
   # add all OpenKIM models, if desired
   if everythingflag:
     print("Adding all OpenKIM models, this will take a while ...")
-    cmd = '%s/bin/kim-api-v1-collections-management install system OpenKIM' % (kimdir)
+    cmd = '%s/bin/kim-api-v2-collections-management install system OpenKIM' % (kimdir)
     txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
     if verboseflag: print(txt.decode("UTF-8"))
 
@@ -251,6 +251,6 @@ if addflag:
     error()
 
   # download single model
-  cmd = '%s/bin/kim-api-v1-collections-management install system %s' % (kimdir.decode("UTF-8"), addmodelname)
+  cmd = '%s/bin/kim-api-v2-collections-management install system %s' % (kimdir.decode("UTF-8"), addmodelname)
   txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   if verboseflag: print (txt.decode("UTF-8"))

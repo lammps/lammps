@@ -33,6 +33,7 @@ PairStyle(kim,PairKIM)
 // includes from KIM & LAMMPS
 class KIM_API_model;
 #include "pair.h"
+#include "KIM_SimulatorHeaders.hpp"
 
 
 namespace LAMMPS_NS {
@@ -61,7 +62,6 @@ namespace LAMMPS_NS {
 
       // values set in settings()
       char* kim_modelname;
-      bool print_kim_file;
 
       // values set in coeff()
 
@@ -79,29 +79,23 @@ namespace LAMMPS_NS {
       bool lmps_using_molecular;
       enum unit_sys {REAL, METAL, SI, CGS, ELECTRON};
       unit_sys lmps_units;
+      KIM::LengthUnit lengthUnit;
+      KIM::EnergyUnit energyUnit;
+      KIM::ChargeUnit chargeUnit;
+      KIM::TemperatureUnit temperatureUnit;
+      KIM::TimeUnit timeUnit;
 
       // values set in set_kim_model_has_flags(), called by kim_init()
-      KIM_API_model* pkim;
+      KIM::Model * pkim;
+      KIM::ComputeArguments * pargs;
       bool kim_model_has_energy;
       bool kim_model_has_forces;
+      bool kim_model_has_virial;
       bool kim_model_has_particleEnergy;
       bool kim_model_has_particleVirial;
 
       // values set in kim_init(), after call to string_init(_)
       bool kim_init_ok;
-      int kim_ind_coordinates;
-      int kim_ind_numberOfParticles;
-      int kim_ind_numberContributingParticles;
-      int kim_ind_numberOfSpecies;
-      int kim_ind_particleSpecies;
-      int kim_ind_get_neigh;
-      int kim_ind_neighObject;
-      int kim_ind_cutoff;
-      int kim_ind_energy;
-      int kim_ind_particleEnergy;
-      int kim_ind_forces;
-      int kim_ind_virial;
-      int kim_ind_particleVirial;
 
       // values set in init_style(), after calling pkim->model_init()
       bool kim_model_init_ok;
@@ -111,27 +105,31 @@ namespace LAMMPS_NS {
       // values set in set_statics(), called at end of kim_init(),
       //   then again in set_volatiles(), called in compute()
       int lmps_local_tot_num_atoms;
-      double kim_global_cutoff;       // KIM Model cutoff value
+      double kim_global_influence_distance;  // KIM Model cutoff value
+      int kim_number_of_cutoffs;
+      double const * kim_cutoff_values;
 
       // values set in compute()
       int lmps_maxalloc;              // max allocated memory value
       int* kim_particleSpecies;       // array of KIM particle species
+      int* kim_particleContributing;  // array of KIM particle contributing
       int* lmps_stripped_neigh_list;  // neighbors of one atom, used when LAMMPS
                                       // is in molecular mode
 
       // KIM specific helper functions
-      void kim_error(int, const char *, int);
       void kim_init();
       void kim_free();
       void set_statics();
       void set_volatiles();
       void set_lmps_flags();
       void set_kim_model_has_flags();
-      void write_descriptor(char** test_descriptor_string);
       // static methods used as callbacks from KIM
-      static int get_neigh(void** kimmdl, int* mode, int* request,
-                           int* atom, int* numnei, int** nei1atom,
-                           double** pRij);
+     static int get_neigh(
+         void const * const dataObject,
+         int const numberOfCutoffs, double const * const cutoffs,
+         int const neighborListIndex, int const particleNumber,
+         int * const numberOfNeighbors,
+         int const ** const neighborsOfParticle);
    };
 }
 

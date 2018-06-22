@@ -266,6 +266,13 @@ void Info::command(int narg, char **arg)
     fprintf(out,"sizeof(tagint):   %3d-bit\n",(int)sizeof(tagint)*8);
     fprintf(out,"sizeof(bigint):   %3d-bit\n",(int)sizeof(bigint)*8);
 
+    fputs("\nActive compile time flags:\n\n",out);
+    if (has_gzip_support()) fputs("-DLAMMPS_GZIP\n",out);
+    if (has_png_support()) fputs("-DLAMMPS_PNG\n",out);
+    if (has_jpeg_support()) fputs("-DLAMMPS_JPEG\n",out);
+    if (has_ffmpeg_support()) fputs("-DLAMMPS_FFMPEG\n",out);
+    if (has_exceptions()) fputs("-DLAMMPS_EXCEPTIONS\n",out);
+
     const char *pkg;
     int ncword, ncline = 0;
 

@@ -51,6 +51,8 @@
 #include "version.h"
 #include "error.h"
 
+#include "lmpinstalledpkgs.h"
+
 using namespace LAMMPS_NS;
 
 static void print_style(FILE *fp, const char *str, int &pos);
@@ -977,8 +979,6 @@ void print_style(FILE *fp, const char *str, int &pos)
     pos += 80;
   }
 }
-
-#include "lmpinstalledpkgs.h"
 
 void LAMMPS::print_config(FILE *fp)
 {

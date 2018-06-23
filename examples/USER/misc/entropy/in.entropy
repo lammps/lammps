@@ -30,5 +30,5 @@ dump            myDump all custom 500 dump.interface id type x y z c_1 c_2 c_3 c
 fix             1 all nph x 1. 1. 10.
 fix             2 all temp/csvr 350. 350. 0.1 64582
 
-run             100000
+run             1000
 

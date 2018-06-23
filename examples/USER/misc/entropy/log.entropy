@@ -28,13 +28,13 @@ neighbor 	4. bin
 
 # Define computes
 # Global density, no average
-compute         1 all pentropy/atom 0.25 7.75
+compute         1 all entropy/atom 0.25 7.75
 # Local density, no average
-compute         2 all pentropy/atom 0.25 7.75 local yes
+compute         2 all entropy/atom 0.25 7.75 local yes
 # Global density, average over neighbors
-compute         3 all pentropy/atom 0.25 7.75 avg yes 5.
+compute         3 all entropy/atom 0.25 7.75 avg yes 5.
 # Local density, average over neighbors
-compute         4 all pentropy/atom 0.25 7.75 avg yes 5. local yes
+compute         4 all entropy/atom 0.25 7.75 avg yes 5. local yes
 
 dump            myDump all custom 500 dump.interface id type x y z c_1 c_2 c_3 c_4
 
@@ -43,10 +43,10 @@ fix             1 all nph x 1. 1. 10.
 fix             2 all temp/csvr 350. 350. 0.1 64582
 
 run             100000
-WARNING: More than one compute pentropy/atom (../compute_pentropy_atom.cpp:138)
-WARNING: More than one compute pentropy/atom (../compute_pentropy_atom.cpp:138)
-WARNING: More than one compute pentropy/atom (../compute_pentropy_atom.cpp:138)
-WARNING: More than one compute pentropy/atom (../compute_pentropy_atom.cpp:138)
+WARNING: More than one compute entropy/atom (../compute_entropy_atom.cpp:138)
+WARNING: More than one compute entropy/atom (../compute_entropy_atom.cpp:138)
+WARNING: More than one compute entropy/atom (../compute_entropy_atom.cpp:138)
+WARNING: More than one compute entropy/atom (../compute_entropy_atom.cpp:138)
 Neighbor list info ...
   update every 1 steps, delay 10 steps, check yes
   max neighbors/atom: 2000, page size: 100000
@@ -59,22 +59,22 @@ Neighbor list info ...
       pair build: half/bin/newton/tri
       stencil: half/bin/3d/newton/tri
       bin: standard
-  (2) compute pentropy/atom, perpetual
+  (2) compute entropy/atom, perpetual
       attributes: full, newton on, ghost
       pair build: full/bin/ghost
       stencil: full/ghost/bin/3d
       bin: standard
-  (3) compute pentropy/atom, perpetual, copy from (2)
+  (3) compute entropy/atom, perpetual, copy from (2)
       attributes: full, newton on, ghost
       pair build: copy
       stencil: none
       bin: none
-  (4) compute pentropy/atom, perpetual, copy from (2)
+  (4) compute entropy/atom, perpetual, copy from (2)
       attributes: full, newton on, ghost
       pair build: copy
       stencil: none
       bin: none
-  (5) compute pentropy/atom, perpetual, copy from (2)
+  (5) compute entropy/atom, perpetual, copy from (2)
       attributes: full, newton on, ghost
       pair build: copy
       stencil: none

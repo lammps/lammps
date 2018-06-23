@@ -18,7 +18,7 @@
 #include <cmath>
 #include <cstring>
 #include <cstdlib>
-#include "compute_pentropy_atom.h"
+#include "compute_entropy_atom.h"
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
@@ -40,13 +40,13 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-ComputePairEntropyAtom::
-ComputePairEntropyAtom(LAMMPS *lmp, int narg, char **arg) :
+ComputeEntropyAtom::
+ComputeEntropyAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
   pair_entropy(NULL), pair_entropy_avg(NULL)
 {
   if (narg < 5 || narg > 10)
-    error->all(FLERR,"Illegal compute pentropy/atom command; wrong number"
+    error->all(FLERR,"Illegal compute entropy/atom command; wrong number"
                " of arguments");
 
   // Arguments are: sigma cutoff avg yes/no cutoff2 local yes/no
@@ -59,10 +59,10 @@ ComputePairEntropyAtom(LAMMPS *lmp, int narg, char **arg) :
   //     the g(r)
 
   sigma = force->numeric(FLERR,arg[3]);
-  if (sigma < 0.0) error->all(FLERR,"Illegal compute pentropy/atom"
+  if (sigma < 0.0) error->all(FLERR,"Illegal compute entropy/atom"
                               " command; negative sigma");
   cutoff = force->numeric(FLERR,arg[4]);
-  if (cutoff < 0.0) error->all(FLERR,"Illegal compute pentropy/atom"
+  if (cutoff < 0.0) error->all(FLERR,"Illegal compute entropy/atom"
                                " command; negative cutoff");
 
   avg_flag = 0;
@@ -73,24 +73,24 @@ ComputePairEntropyAtom(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"avg") == 0) {
       if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute pentropy/atom;"
+        error->all(FLERR,"Illegal compute entropy/atom;"
                    " missing arguments after avg");
       if (strcmp(arg[iarg+1],"yes") == 0) avg_flag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) avg_flag = 0;
-      else error->all(FLERR,"Illegal compute pentropy/atom;"
+      else error->all(FLERR,"Illegal compute entropy/atom;"
                       " argument after avg should be yes or no");
       cutoff2 = force->numeric(FLERR,arg[iarg+2]);
-      if (cutoff2 < 0.0) error->all(FLERR,"Illegal compute pentropy/atom"
+      if (cutoff2 < 0.0) error->all(FLERR,"Illegal compute entropy/atom"
                                     " command; negative cutoff2");
       cutsq2 = cutoff2*cutoff2;
       iarg += 3;
     } else if (strcmp(arg[iarg],"local") == 0) {
       if (strcmp(arg[iarg+1],"yes") == 0) local_flag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) local_flag = 0;
-      else error->all(FLERR,"Illegal compute pentropy/atom;"
+      else error->all(FLERR,"Illegal compute entropy/atom;"
                       " argument after local should be yes or no");
       iarg += 2;
-    } else error->all(FLERR,"Illegal compute pentropy/atom; argument after"
+    } else error->all(FLERR,"Illegal compute entropy/atom; argument after"
                       " sigma and cutoff should be avg or local");
   }
 
@@ -110,7 +110,7 @@ ComputePairEntropyAtom(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-ComputePairEntropyAtom::~ComputePairEntropyAtom()
+ComputeEntropyAtom::~ComputeEntropyAtom()
 {
   memory->destroy(pair_entropy);
   if (avg_flag) memory->destroy(pair_entropy_avg);
@@ -118,7 +118,7 @@ ComputePairEntropyAtom::~ComputePairEntropyAtom()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePairEntropyAtom::init()
+void ComputeEntropyAtom::init()
 {
   if (force->pair == NULL)
     error->all(FLERR,"Compute centro/atom requires a pair style be"
@@ -126,16 +126,16 @@ void ComputePairEntropyAtom::init()
 
   if ( (cutoff+cutoff2) > (force->pair->cutforce  + neighbor->skin) )
     {
-        error->all(FLERR,"Compute pentropy/atom cutoff is longer than the"
+        error->all(FLERR,"Compute entropy/atom cutoff is longer than the"
                    " pairwise cutoff. Increase the neighbor list skin"
                    " distance.");
     }
 
   int count = 0;
   for (int i = 0; i < modify->ncompute; i++)
-    if (strcmp(modify->compute[i]->style,"pentropy/atom") == 0) count++;
+    if (strcmp(modify->compute[i]->style,"entropy/atom") == 0) count++;
   if (count > 1 && comm->me == 0)
-    error->warning(FLERR,"More than one compute pentropy/atom");
+    error->warning(FLERR,"More than one compute entropy/atom");
 
   // need a full neighbor list with neighbors of the ghost atoms
 
@@ -151,14 +151,14 @@ void ComputePairEntropyAtom::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePairEntropyAtom::init_list(int id, NeighList *ptr)
+void ComputeEntropyAtom::init_list(int id, NeighList *ptr)
 {
   list = ptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePairEntropyAtom::compute_peratom()
+void ComputeEntropyAtom::compute_peratom()
 {
   int i,j,ii,jj,inum,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
@@ -179,15 +179,15 @@ void ComputePairEntropyAtom::compute_peratom()
     if (!avg_flag) {
       memory->destroy(pair_entropy);
       nmax = atom->nmax;
-      memory->create(pair_entropy,nmax,"pentropy/atom:pair_entropy");
+      memory->create(pair_entropy,nmax,"entropy/atom:pair_entropy");
       vector_atom = pair_entropy;
     } else {
       memory->destroy(pair_entropy);
       memory->destroy(pair_entropy_avg);
       nmax = atom->nmax;
-      memory->create(pair_entropy,nmax,"pentropy/atom:pair_entropy");
+      memory->create(pair_entropy,nmax,"entropy/atom:pair_entropy");
       memory->create(pair_entropy_avg,nmax,
-                     "pentropy/atom:pair_entropy_avg");
+                     "entropy/atom:pair_entropy_avg");
       vector_atom = pair_entropy_avg;
     }
   }
@@ -328,7 +328,7 @@ void ComputePairEntropyAtom::compute_peratom()
    memory usage of local atom-based array
 ------------------------------------------------------------------------- */
 
-double ComputePairEntropyAtom::memory_usage()
+double ComputeEntropyAtom::memory_usage()
 {
   double bytes;
   if (!avg_flag) {

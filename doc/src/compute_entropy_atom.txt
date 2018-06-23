@@ -6,14 +6,14 @@
 
 :line
 
-compute pentropy/atom command :h3
+compute entropy/atom command :h3
 
 [Syntax:]
 
-compute ID group-ID pentropy/atom sigma cutoff keyword value ... :pre
+compute ID group-ID entropy/atom sigma cutoff keyword value ... :pre
 
 ID, group-ID are documented in "compute"_compute.html command :l
-pentropy/atom = style name of this compute command :l
+entropy/atom = style name of this compute command :l
 sigma = width of gaussians used in the g(r) smoothening :l
 cutoff = cutoff for the g(r) calculation :l
 one or more keyword/value pairs may be appended :l
@@ -27,9 +27,9 @@ keyword = {avg} or {local}
 
 [Examples:]
 
-compute 1 all pentropy/atom 0.25 5.
-compute 1 all pentropy/atom 0.25 5. avg yes 5.
-compute 1 all pentropy/atom 0.125 7.3 avg yes 5.1 local yes :pre
+compute 1 all entropy/atom 0.25 5.
+compute 1 all entropy/atom 0.25 5. avg yes 5.
+compute 1 all entropy/atom 0.125 7.3 avg yes 5.1 local yes :pre
 
 [Description:]
 
@@ -87,11 +87,11 @@ inhomogeneus systems such as those that have surfaces.
 Here are typical input parameters for fcc aluminum (lattice 
 constant 4.05 Angstroms),
 
-compute 1 all pentropy/atom 0.25 5.7 avg yes 3.7 :pre
+compute 1 all entropy/atom 0.25 5.7 avg yes 3.7 :pre
 
 and for bcc sodium (lattice constant 4.23 Angstroms),
 
-compute 1 all pentropy/atom 0.25 7.3 avg yes 5.1 :pre
+compute 1 all entropy/atom 0.25 7.3 avg yes 5.1 :pre
 
 
 [Output info:]
@@ -106,7 +106,11 @@ The pair entropy values have units of the Boltzmann constant. They are
 always negative, and lower values (lower entropy) correspond to more
 ordered environments.
 
-[Restrictions:] none
+[Restrictions:]
+
+This compute is part of the USER-MISC package.  It is only enabled if
+LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
 

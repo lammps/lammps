@@ -16,13 +16,13 @@ neighbor 	4. bin
 
 # Define computes
 # Global density, no average
-compute         1 all pentropy/atom 0.25 7.75
+compute         1 all entropy/atom 0.25 7.75
 # Local density, no average
-compute         2 all pentropy/atom 0.25 7.75 local yes
+compute         2 all entropy/atom 0.25 7.75 local yes
 # Global density, average over neighbors
-compute         3 all pentropy/atom 0.25 7.75 avg yes 5.
+compute         3 all entropy/atom 0.25 7.75 avg yes 5.
 # Local density, average over neighbors
-compute         4 all pentropy/atom 0.25 7.75 avg yes 5. local yes
+compute         4 all entropy/atom 0.25 7.75 avg yes 5. local yes
 
 dump            myDump all custom 500 dump.interface id type x y z c_1 c_2 c_3 c_4
 

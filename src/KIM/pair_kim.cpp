@@ -723,11 +723,11 @@ void PairKIM::set_volatiles()
      if(vflag_atom != 1) {
        kimerror = kimerror || pargs->SetArgumentPointer(
            KIM::COMPUTE_ARGUMENT_NAME::partialParticleVirial,
-           &(vatom[0][0]));
+           reinterpret_cast<double const * const>(NULL));
      } else {
        kimerror = kimerror || pargs->SetArgumentPointer(
            KIM::COMPUTE_ARGUMENT_NAME::partialParticleVirial,
-           reinterpret_cast<double const * const>(NULL));
+           &(vatom[0][0]));
      }
    }
 

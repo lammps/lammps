@@ -379,8 +379,7 @@ void PairKIM::init_style()
    int irequest = neighbor->request(this,instance_me);
    neighbor->requests[irequest]->half = 0;
    neighbor->requests[irequest]->full = 1;
-   // make sure full lists also include local-ghost pairs
-   if (lmps_using_newton) neighbor->requests[irequest]->newton = 0;
+   neighbor->requests[irequest]->ghost = 1;
 
    return;
 }

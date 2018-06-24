@@ -735,14 +735,18 @@ void PairKIM::set_volatiles()
    {
      if (kim_model_has_virial)
      {
-       if (vflag_global == 1)
-         kimerror = kimerror || pargs->SetArgumentPointer(
-             KIM::COMPUTE_ARGUMENT_NAME::partialVirial,
-             &(virial[0]));
-       else
+       if (vflag_global == 0)
+       {
          kimerror = kimerror || pargs->SetArgumentPointer(
              KIM::COMPUTE_ARGUMENT_NAME::partialVirial,
              reinterpret_cast<double const * const>(NULL));
+       }
+       else
+       {
+         kimerror = kimerror || pargs->SetArgumentPointer(
+             KIM::COMPUTE_ARGUMENT_NAME::partialVirial,
+             &(virial[0]));
+       }
      }
    }
 

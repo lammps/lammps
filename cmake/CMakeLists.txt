@@ -296,8 +296,8 @@ if(PKG_LATTE)
     message(STATUS "LATTE not found - we will build our own")
     include(ExternalProject)
     ExternalProject_Add(latte_build
-      URL https://github.com/lanl/LATTE/archive/v1.2.0.tar.gz
-      URL_MD5 68bf0db879da5e068a71281020239ae7
+      URL https://github.com/lanl/LATTE/archive/v1.2.1.tar.gz
+      URL_MD5 bed76e7e76c545c36dd848a8f1fd35eb
       SOURCE_SUBDIR cmake
       CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> -DCMAKE_POSITION_INDEPENDENT_CODE=${CMAKE_POSITION_INDEPENDENT_CODE}
       )

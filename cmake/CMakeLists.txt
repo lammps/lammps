@@ -462,7 +462,7 @@ set(MATH_LIBRARIES "m" CACHE STRING "math library")
 mark_as_advanced( MATH_LIBRARIES )
 include(CheckLibraryExists)
 if (CMAKE_VERSION VERSION_LESS "3.4")
-  enable_language(C) # check_library_exists isn't support with a c compiler before v3.4
+  enable_language(C) # check_library_exists isn't supported without a c compiler before v3.4
 endif()
 foreach(FUNC sin cos)
   check_library_exists(${MATH_LIBRARIES} ${FUNC} "" FOUND_${FUNC}_${MATH_LIBRARIES})

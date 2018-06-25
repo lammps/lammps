@@ -34,6 +34,11 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
+// this constant must remain consistent with the
+// LATTE library and the ABI prototype below
+
+#define LATTE_ABIVERSION 20180622
+
 extern "C" {
   void latte(int *, int *, double *, int *, int *,
              double *, double *, double *, double *,
@@ -55,7 +60,7 @@ FixLatte::FixLatte(LAMMPS *lmp, int narg, char **arg) :
   if (comm->nprocs != 1)
     error->all(FLERR,"Fix latte currently runs only in serial");
 
-  if (20180622 != latte_abiversion())
+  if (LATTE_ABIVERSION != latte_abiversion())
     error->all(FLERR,"LAMMPS is linked against incompatible LATTE library");
 
   if (narg != 4) error->all(FLERR,"Illegal fix latte command");

@@ -107,35 +107,6 @@ function(RegisterStyles search_path)
     FindStyleHeaders(${search_path} REGION_CLASS    region_    REGION    ) # region    ) # domain
 endfunction(RegisterStyles)
 
-function(RemovePackageHeader headers pkg_header)
-    get_property(hlist GLOBAL PROPERTY ${headers})
-    list(REMOVE_ITEM hlist ${pkg_header})
-    set_property(GLOBAL PROPERTY ${headers} "${hlist}")
-endfunction(RemovePackageHeader)
-
-function(DetectAndRemovePackageHeader fname)
-    RemovePackageHeader(ANGLE     ${fname})
-    RemovePackageHeader(ATOM_VEC  ${fname})
-    RemovePackageHeader(BODY      ${fname})
-    RemovePackageHeader(BOND      ${fname})
-    RemovePackageHeader(COMMAND   ${fname})
-    RemovePackageHeader(COMPUTE   ${fname})
-    RemovePackageHeader(DIHEDRAL  ${fname})
-    RemovePackageHeader(DUMP      ${fname})
-    RemovePackageHeader(FIX       ${fname})
-    RemovePackageHeader(IMPROPER  ${fname})
-    RemovePackageHeader(INTEGRATE ${fname})
-    RemovePackageHeader(KSPACE    ${fname})
-    RemovePackageHeader(MINIMIZE  ${fname})
-    RemovePackageHeader(NBIN      ${fname})
-    RemovePackageHeader(NPAIR     ${fname})
-    RemovePackageHeader(NSTENCIL  ${fname})
-    RemovePackageHeader(NTOPO     ${fname})
-    RemovePackageHeader(PAIR      ${fname})
-    RemovePackageHeader(READER    ${fname})
-    RemovePackageHeader(REGION    ${fname})
-endfunction(DetectAndRemovePackageHeader)
-
 function(RegisterStylesExt search_path extension sources)
     FindStyleHeadersExt(${search_path} ANGLE_CLASS     ${extension}  ANGLE     ${sources})
     FindStyleHeadersExt(${search_path} ATOM_CLASS      ${extension}  ATOM_VEC  ${sources})
@@ -181,3 +152,25 @@ function(GenerateStyleHeaders output_path)
     GenerateStyleHeader(${output_path} READER     reader    ) # read_dump
     GenerateStyleHeader(${output_path} REGION     region    ) # domain
 endfunction(GenerateStyleHeaders)
+
+function(DetectBuildSystemConflict lammps_src_dir)
+  math(EXPR N "${ARGC}-1")
+
+  if(N GREATER 0)
+    math(EXPR ARG_END   "${ARGC}-1")
+
+    foreach(IDX RANGE 1 ${ARG_END})
+        list(GET ARGV ${IDX} SRC_FILE)
+        get_filename_component(FILENAME ${SRC_FILE} NAME)
+        if(EXISTS ${lammps_src_dir}/${FILENAME})
+            message(FATAL_ERROR "\n########################################################################\n"
+                                  "Found package(s) installed by the make-based build system\n"
+                                  "\n"
+                                  "Please run\n"
+                                  "make -C ${lammps_src_dir} no-all purge\n"
+                                  "to uninstall\n"
+                                  "########################################################################")
+        endif()
+    endforeach()
+  endif()
+endfunction(DetectBuildSystemConflict)

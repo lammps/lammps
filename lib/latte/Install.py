@@ -144,7 +144,7 @@ if buildflag:
   print("Downloading LATTE ...")
   geturl(url,"LATTE.tar.gz")
 
-  print("Unpacking LATTE zipfile ...")
+  print("Unpacking LATTE ...")
   if os.path.exists(lattedir):
     cmd = 'rm -rf "%s"' % lattedir
     subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)

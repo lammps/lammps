@@ -42,6 +42,7 @@ extern "C" {
   int latte_abiversion();
 }
 
+#define ABIVERSION 20180622
 #define INVOKED_PERATOM 8
 
 /* ---------------------------------------------------------------------- */
@@ -55,7 +56,7 @@ FixLatte::FixLatte(LAMMPS *lmp, int narg, char **arg) :
   if (comm->nprocs != 1)
     error->all(FLERR,"Fix latte currently runs only in serial");
 
-  if (20180622 != latte_abiversion())
+  if (latte_abiversion() != ABIVERSION)
     error->all(FLERR,"LAMMPS is linked against incompatible LATTE library");
 
   if (narg != 4) error->all(FLERR,"Illegal fix latte command");

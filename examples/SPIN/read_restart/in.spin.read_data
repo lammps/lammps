@@ -6,12 +6,12 @@ atom_style 	spin
 
 # necessary for the serial algorithm (sametag)
 atom_modify 	map array
-read_data 	Norm_randXY_8x8x32.data
+read_data 	../examples/SPIN/read_restart/Norm_randXY_8x8x32.data
 
 mass		1 58.93
 
 pair_style 	hybrid/overlay eam/alloy spin/exchange 4.0
-pair_coeff 	* * eam/alloy Co_PurjaPun_2012.eam.alloy Co
+pair_coeff 	* * eam/alloy ../examples/SPIN/read_restart/Co_PurjaPun_2012.eam.alloy Co
 pair_coeff 	* * spin/exchange exchange 4.0 0.0446928 0.003496 1.4885 
 
 neighbor 	1.0 bin
@@ -40,6 +40,6 @@ thermo_style    custom step time v_magnorm v_emag v_tmag temp etotal
 thermo_modify   format float %20.15g
 
 compute 	outsp all property/atom spx spy spz sp fmx fmy fmz
-dump 		100 all custom 1 dump.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3] c_outsp[4] c_outsp[5] c_outsp[6] c_outsp[7]
+dump 		10 all custom 1 dump.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3] c_outsp[4] c_outsp[5] c_outsp[6] c_outsp[7]
 
 run 		100

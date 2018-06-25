@@ -8,18 +8,15 @@ boundary 	p p p
 # necessary for the serial algorithm (sametag)
 atom_modify 	map array 
 
-read_restart	restart_fcc_cobalt.equil
-
+read_restart	restart_hcp_cobalt.equil
 
 # setting mass, mag. moments, and interactions
 
 mass		1 58.93
 
-# define magneto-mechanical potentials and forces
-
 pair_style 	hybrid/overlay eam/alloy spin/exchange 4.0
-pair_coeff 	* * eam/alloy Co_PurjaPun_2012.eam.alloy Co
-pair_coeff 	* * spin/exchange exchange 4.0 0.0446928 0.003496 1.4885 
+pair_coeff 	* * eam/alloy ../examples/SPIN/read_restart/Co_PurjaPun_2012.eam.alloy Co
+pair_coeff 	* * spin/exchange exchange 4.0 0.3593 1.135028015e-05 1.064568567
 
 neighbor 	1.0 bin
 neigh_modify 	every 1 check no delay 0

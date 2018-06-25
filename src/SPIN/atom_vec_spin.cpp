@@ -44,11 +44,9 @@ AtomVecSpin::AtomVecSpin(LAMMPS *lmp) : AtomVec(lmp)
   molecular = 0;
   mass_type = 1;
   forceclearflag = 1;
-  atom->sp_flag = 1;
 
   comm_x_only = 0;
   comm_f_only = 0;
-
   size_forward = 7;
   size_reverse = 6;
   size_border = 10;
@@ -56,6 +54,8 @@ AtomVecSpin::AtomVecSpin(LAMMPS *lmp) : AtomVec(lmp)
   size_data_atom = 9;
   size_data_vel = 4;
   xcol_data = 4;
+  
+  atom->sp_flag = 1;
 }
 
 
@@ -681,7 +681,7 @@ int AtomVecSpin::size_restart()
   int i;
 
   int nlocal = atom->nlocal;
-  int n = 16 * nlocal;
+  int n = 15 * nlocal;
 
   if (atom->nextra_restart)
     for (int iextra = 0; iextra < atom->nextra_restart; iextra++)
@@ -907,8 +907,8 @@ void AtomVecSpin::write_data(FILE *fp, int n, double **buf)
             (tagint) ubuf(buf[i][0]).i,(int) ubuf(buf[i][1]).i,
             buf[i][2],buf[i][3],buf[i][4],
             buf[i][5],buf[i][6],buf[i][7],buf[i][8],
-            (int) ubuf(buf[i][10]).i,(int) ubuf(buf[i][11]).i,
-            (int) ubuf(buf[i][12]).i);
+            (int) ubuf(buf[i][9]).i,(int) ubuf(buf[i][10]).i,
+            (int) ubuf(buf[i][11]).i);
 }
 
 /* ----------------------------------------------------------------------

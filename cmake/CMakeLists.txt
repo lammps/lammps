@@ -229,7 +229,7 @@ if(PKG_PYTHON)
   add_definitions(-DLMP_PYTHON)
   include_directories(${PYTHON_INCLUDE_DIR})
   list(APPEND LAMMPS_LINK_LIBS ${PYTHON_LIBRARY})
-  if(BUILDLIB AND BUILD_SHARED_LIBS)
+  if(BUILD_LIB AND BUILD_SHARED_LIBS)
     if(NOT PYTHON_INSTDIR)
       execute_process(COMMAND ${PYTHON_EXECUTABLE}
         -c "import distutils.sysconfig as cg; print(cg.get_python_lib(1,0,prefix='${CMAKE_INSTALL_PREFIX}'))"

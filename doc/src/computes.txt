@@ -31,6 +31,7 @@ Computes :h1
    compute_dpd
    compute_dpd_atom
    compute_edpd_temp_atom
+   compute_entropy_atom
    compute_erotate_asphere
    compute_erotate_rigid
    compute_erotate_sphere

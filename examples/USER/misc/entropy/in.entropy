@@ -1,0 +1,34 @@
+echo both
+
+units		metal
+atom_style	full
+
+read_data	data.interface
+mass            1 22.98977
+
+neigh_modify    delay 10 every 1
+pair_style 	eam/fs
+pair_coeff 	* * Na_MendelevM_2014.eam.fs Na
+timestep	0.002
+thermo          500
+
+neighbor 	4. bin
+
+# Define computes
+# Global density, no average
+compute         1 all entropy/atom 0.25 7.75
+# Local density, no average
+compute         2 all entropy/atom 0.25 7.75 local yes
+# Global density, average over neighbors
+compute         3 all entropy/atom 0.25 7.75 avg yes 5.
+# Local density, average over neighbors
+compute         4 all entropy/atom 0.25 7.75 avg yes 5. local yes
+
+dump            myDump all custom 500 dump.interface id type x y z c_1 c_2 c_3 c_4
+
+
+fix             1 all nph x 1. 1. 10.
+fix             2 all temp/csvr 350. 350. 0.1 64582
+
+run             1000
+

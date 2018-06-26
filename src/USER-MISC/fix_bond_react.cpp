@@ -264,6 +264,9 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   memory->create(edge,max_natoms,nreacts,"bond/react:edge");
   memory->create(landlocked_atoms,max_natoms,nreacts,"bond/react:landlocked_atoms");
 
+  for (int j = 0; j < nreacts; j++)
+    for (int i = 0; i < onemol->natoms; i++) edge[i][j] = 0;
+
   // read all superimpose files afterward
   for (int i = 0; i < nreacts; i++) {
     open(files[i]);
@@ -2445,7 +2448,6 @@ void FixBondReact::read(int myrxn)
       sscanf(line,"%d",&jbonding[myrxn]);
     } else if (strcmp(keyword,"EdgeIDs") == 0) {
       edgeflag = 1;
-      for (int i = 0; i < onemol->natoms; i++) edge[i][myrxn] = 0;
       EdgeIDs(line, myrxn);
     } else if (strcmp(keyword,"Equivalences") == 0) {
       equivflag = 1;
@@ -2457,8 +2459,8 @@ void FixBondReact::read(int myrxn)
   }
 
   // error check
-  if (bondflag == 0 || equivflag == 0 || edgeflag == 0)
-    error->all(FLERR,"Superimpose file missing BondingIDs, EdgeIDs, or Equivalences section\n");
+  if (bondflag == 0 || equivflag == 0)
+    error->all(FLERR,"Superimpose file missing BondingIDs or Equivalences section\n");
 }
 
 void FixBondReact::EdgeIDs(char *line, int myrxn)

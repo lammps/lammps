@@ -61,10 +61,12 @@ NOTE: The parameters presented in the parameter file (e.g. BNCH.ILP),
 are fitted with taper function by setting the cutoff equal to 16.0
 Angstrom.  Using different cutoff or taper function should be careful.
 
-NOTE: Two new sets of parameters of ILP for two-dimensional hexagonal Materials are presented in "(Ouyang)"_#Ouyang1.
-These parameters provide a good description in both short- and long-range interaction regime. 
-While the old ILP parameters published in "(Leven)"_#Leven and "(Maaravi)"_#Maaravi2 are only suitable for long-range interaction regime.
-This feature is essential for simulations in high-pressure regime (i.e., interlayer distance smaller than the equilibrium distance).
+NOTE: Two new sets of parameters of ILP for two-dimensional hexagonal Materials
+are presented in "(Ouyang)"_#Ouyang1. These parameters provide a good description
+in both short- and long-range interaction regime, while the old ILP parameters
+published in "(Leven)"_#Leven and "(Maaravi)"_#Maaravi2 are only suitable for
+long-range interaction regime. This feature is essential for simulations in
+high-pressure regime (i.e., the interlayer distance smaller than the equilibrium distance).
 The benchmark tests and comparison of these parameters can be found in "(Ouyang)"_#Ouyang1.
 
 This potential must be used in combination with hybrid/overlay.

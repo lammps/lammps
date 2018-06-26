@@ -1190,6 +1190,15 @@ bool Info::has_exceptions() {
 #endif
 }
 
+bool Info::has_package(const char * package_name) {
+  for(int i = 0; LAMMPS::installed_packages[i] != NULL; ++i) {
+    if(strcmp(package_name, LAMMPS::installed_packages[i]) == 0) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /* ---------------------------------------------------------------------- */
 
 char **Info::get_variable_names(int &num) {

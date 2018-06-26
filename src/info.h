@@ -38,6 +38,7 @@ class Info : protected Pointers {
   static bool has_jpeg_support();
   static bool has_ffmpeg_support();
   static bool has_exceptions();
+  static bool has_package(const char * package_name);
 
   char **get_variable_names(int &num);
 

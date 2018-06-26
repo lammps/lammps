@@ -101,8 +101,8 @@ ComputeEntropyAtom(LAMMPS *lmp, int narg, char **arg) :
   maxneigh = 0;
   // Number of bins above and below the central one that will be
   // considered as affected by the gaussian kernel
-  // 2 seems a good compromise between speed and good mollification
-  deltabin = 2;
+  // 3 seems a good compromise between speed and good mollification
+  deltabin = 3;
   deltar = sigma;
   peratom_flag = 1;
   size_peratom_cols = 0;

@@ -51,11 +51,11 @@ and {rcut} are included in the parameter file. {S} is designed to
 facilitate scaling of energies. {rcut} is designed to build the neighbor
 list for calculating the normals for each atom pair.
 
-NOTE: A new set of parameters of KC potential for hydrocarbons (CH.KC) is presented in "(Ouyang)"_#Ouyang.
+NOTE: A new set of parameters of KC potential for hydrocarbons (CH.KC) is presented in "(Ouyang)"_#Ouyang2.
 The parameters in CH.KC provides a good description in both short- and long-range interaction regime.
 While the original parameters (CC.KC) published in "(Kolmogorov)"_#Kolmogorov1 are only suitable for long-range interaction regime. 
-This feature is essential for simulations in high pressure regime (i.e., interlayer distance smaller than the equilibrium distance).
-The benchmark tests and comparison of these parameters can be found in "(Ouyang)"_#Ouyang.
+This feature is essential for simulations in high-pressure regime (i.e., interlayer distance smaller than the equilibrium distance).
+The benchmark tests and comparison of these parameters can be found in "(Ouyang)"_#Ouyang2.
 
 This potential must be used in combination with hybrid/overlay.
 Other interactions can be set to zero using pair_style {none}.
@@ -102,5 +102,5 @@ units.
 :link(Kolmogorov1)
 [(Kolmogorov)] A. N. Kolmogorov, V. H. Crespi, Phys. Rev. B 71, 235415 (2005)
 
-:link(Ouyang)
+:link(Ouyang2)
 [(Ouyang)] W. Ouyang, D. Mandelli,  M. Urbakh, O. Hod, arXiv:1806.09555 (2018).

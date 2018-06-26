@@ -20,6 +20,7 @@ pair_style coul/dsf/kk command :h3
 pair_style coul/dsf/omp command :h3
 pair_style coul/long command :h3
 pair_style coul/long/cs command :h3
+pair_style coul/long/cs/gpu command :h3
 pair_style coul/long/omp command :h3
 pair_style coul/long/gpu command :h3
 pair_style coul/long/kk command :h3

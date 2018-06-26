@@ -16,6 +16,7 @@
 
 #include <cstdlib>
 #include "pointers.h"
+#include "input.h"
 
 namespace LAMMPS_NS {
 

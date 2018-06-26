@@ -13,8 +13,8 @@
     email                : nguyentd@ornl.gov
  ***************************************************************************/
 
-#ifndef LAL_BORN_COUL_LONG_H
-#define LAL_BORN_COUL_LONG_H
+#ifndef LAL_BORN_COUL_WOLF_H
+#define LAL_BORN_COUL_WOLF_H
 
 #include "lal_base_charge.h"
 
@@ -79,7 +79,7 @@ class BornCoulWolf : public BaseCharge<numtyp, acctyp> {
 
   numtyp _cut_coulsq,_qqrd2e,_alf,_e_shift,_f_shift;
 
- private:
+ protected:
   bool _allocated;
   void loop(const bool _eflag, const bool _vflag);
 };

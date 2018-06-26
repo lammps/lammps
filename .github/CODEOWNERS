@@ -43,3 +43,14 @@ src/USER-MISC/*_grem.*              @dstelter92
 
 # tools
 tools/msi2lmp/*       @akohlmey
+
+# cmake
+cmake/*               @junghans @rbberger
+
+# python
+python/*              @rbberger
+
+# docs
+doc/utils/*/*         @rbberger
+doc/Makefile          @rbberger
+doc/README            @rbberger

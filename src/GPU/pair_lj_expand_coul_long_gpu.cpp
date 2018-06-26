@@ -223,8 +223,9 @@ void PairLJExpandCoulLongGPU::cpu_compute(int start, int inum, int eflag,
   double fraction,table;
   double r,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
   double grij,expm2,prefactor,t,erfc;
+  double rsq,rshift,rshiftsq,rshift2inv;
+
   int *jlist;
-  double rsq;
 
   evdwl = ecoul = 0.0;
 
@@ -290,11 +291,16 @@ void PairLJExpandCoulLongGPU::cpu_compute(int start, int inum, int eflag,
         } else forcecoul = 0.0;
 
         if (rsq < cut_ljsq[itype][jtype]) {
-          r6inv = r2inv*r2inv*r2inv;
+          r = sqrt(rsq);
+          rshift = r - shift[itype][jtype];
+          rshiftsq = rshift*rshift;
+          rshift2inv = 1.0/rshiftsq;
+          r6inv = rshift2inv*rshift2inv*rshift2inv;
           forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
+          forcelj = factor_lj*forcelj/rshift/r;
         } else forcelj = 0.0;
 
-        fpair = (forcecoul + factor_lj*forcelj) * r2inv;
+        fpair = forcecoul*r2inv + forcelj;
 
         f[i][0] += delx*fpair;
         f[i][1] += dely*fpair;

@@ -225,7 +225,7 @@ void PairSpinMagelec::compute(int eflag, int vflag)
   double **x = atom->x;
   double **f = atom->f;
   double **fm = atom->fm;
-  double **sp = atom->sp;	
+  double **sp = atom->sp;
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
@@ -281,32 +281,32 @@ void PairSpinMagelec::compute(int eflag, int vflag)
       // compute me interaction
 
       if (rsq <= local_cut2) {
-	compute_magelec(i,j,rsq,eij,fmi,spj);
-	if (lattice_flag) {
-	  compute_magelec_mech(i,j,fi,spi,spj);
-	}
+        compute_magelec(i,j,rsq,eij,fmi,spj);
+        if (lattice_flag) {
+          compute_magelec_mech(i,j,fi,spi,spj);
+        }
       }
 
-      f[i][0] += fi[0];	
-      f[i][1] += fi[1];	  	
+      f[i][0] += fi[0];
+      f[i][1] += fi[1];
       f[i][2] += fi[2];
-      fm[i][0] += fmi[0];	
-      fm[i][1] += fmi[1];	  	
+      fm[i][0] += fmi[0];
+      fm[i][1] += fmi[1];
       fm[i][2] += fmi[2];
 
       if (newton_pair || j < nlocal) {
-	f[j][0] -= fi[0];	
-        f[j][1] -= fi[1];	  	
+        f[j][0] -= fi[0];
+        f[j][1] -= fi[1];
         f[j][2] -= fi[2];
       }
 
       if (eflag) {
-	evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
-	evdwl *= hbar;
+        evdwl = (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
+        evdwl *= hbar;
       } else evdwl = 0.0;
 
       if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
-	  evdwl,ecoul,fi[0],fi[1],fi[2],rij[0],rij[1],rij[2]);
+          evdwl,ecoul,fi[0],fi[1],fi[2],rij[0],rij[1],rij[2]);
     }
   }
 

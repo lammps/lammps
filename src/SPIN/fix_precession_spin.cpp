@@ -193,22 +193,21 @@ void FixPrecessionSpin::post_force(int vflag)
     spi[2] = sp[i][2];
     fmi[0] = fmi[1] = fmi[2] = 0.0;
 
-    if (zeeman_flag) {		// compute Zeeman interaction
+    if (zeeman_flag) {          // compute Zeeman interaction
       compute_zeeman(i,fmi);
       emag -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
-      emag *= hbar;
     }
 
-    if (aniso_flag) {		// compute magnetic anisotropy
+    if (aniso_flag) {           // compute magnetic anisotropy
       compute_anisotropy(spi,fmi);
       emag -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
-      emag *= hbar;
     }
 
     fm[i][0] += fmi[0];
     fm[i][1] += fmi[1];
     fm[i][2] += fmi[2];
   }
+  emag *= hbar;
 }
 
 /* ---------------------------------------------------------------------- */

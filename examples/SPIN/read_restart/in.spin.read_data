@@ -6,12 +6,12 @@ atom_style 	spin
 
 # necessary for the serial algorithm (sametag)
 atom_modify 	map array
-read_data 	../examples/SPIN/read_restart/Norm_randXY_8x8x32.data
+read_data 	Norm_randXY_8x8x32.data
 
 mass		1 58.93
 
 pair_style 	hybrid/overlay eam/alloy spin/exchange 4.0
-pair_coeff 	* * eam/alloy ../examples/SPIN/read_restart/Co_PurjaPun_2012.eam.alloy Co
+pair_coeff 	* * eam/alloy Co_PurjaPun_2012.eam.alloy Co
 pair_coeff 	* * spin/exchange exchange 4.0 0.0446928 0.003496 1.4885 
 
 neighbor 	1.0 bin

@@ -15,7 +15,7 @@ read_restart	restart_hcp_cobalt.equil
 mass		1 58.93
 
 pair_style 	hybrid/overlay eam/alloy spin/exchange 4.0
-pair_coeff 	* * eam/alloy ../examples/SPIN/read_restart/Co_PurjaPun_2012.eam.alloy Co
+pair_coeff 	* * eam/alloy Co_PurjaPun_2012.eam.alloy Co
 pair_coeff 	* * spin/exchange exchange 4.0 0.3593 1.135028015e-05 1.064568567
 
 neighbor 	1.0 bin

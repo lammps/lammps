@@ -96,6 +96,7 @@ Computes :h1
    compute_smd_ulsph_stress
    compute_smd_vol
    compute_sna_atom
+   compute_spin
    compute_stress_atom
    compute_tally
    compute_tdpd_cc_atom

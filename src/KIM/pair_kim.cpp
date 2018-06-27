@@ -56,6 +56,7 @@ PairKIM::PairKIM(LAMMPS *lmp) :
    kim_global_influence_distance(0.0),
    kim_number_of_cutoffs(0),
    kim_cutoff_values(0),
+   neighborLists(0),
    kim_particle_codes(0),
    lmps_maxalloc(0),
    kim_particleSpecies(0),
@@ -100,6 +101,13 @@ PairKIM::~PairKIM()
       memory->destroy(setflag);
       memory->destroy(cutsq);
       delete [] lmps_map_species_to_unique;
+   }
+
+   // clean up neighborlist pointers
+   if (neighborLists)
+   {
+     delete [] neighborLists;
+     neighborLists = 0;
    }
 
    // clean up KIM interface (if necessary)
@@ -378,12 +386,28 @@ void PairKIM::init_style()
    if (!lmps_using_newton) comm_reverse_off = 9;
 
    // request full neighbor list
-   int irequest = neighbor->request(this,instance_me);
-   neighbor->requests[irequest]->half = 0;
-   neighbor->requests[irequest]->full = 1;
-   neighbor->requests[irequest]->ghost = 1;
+   for (int i = 0; i < kim_number_of_cutoffs; ++i)
+   {
+     int irequest = neighbor->request(this,instance_me);
+     neighbor->requests[irequest]->id = i;
+     neighbor->requests[irequest]->half = 0;
+     neighbor->requests[irequest]->full = 1;
+     neighbor->requests[irequest]->ghost = 1;
+     neighbor->requests[irequest]->cut = 1;
+     neighbor->requests[irequest]->cutoff = kim_cutoff_values[i];
+   }
 
    return;
+}
+
+/* ----------------------------------------------------------------------
+   neighbor callback to inform pair style of neighbor list to use
+   half or full
+------------------------------------------------------------------------- */
+
+void PairKIM::init_list(int id, NeighList *ptr)
+{
+  neighborLists[id] = ptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -525,7 +549,7 @@ void PairKIM::unpack_reverse_comm(int n, int *list, double *buf)
 
 double PairKIM::memory_usage()
 {
-   double bytes = lmps_maxalloc * sizeof(int);
+   double bytes = 2 * lmps_maxalloc * sizeof(int);
    return bytes;
 }
 
@@ -542,21 +566,18 @@ int PairKIM::get_neigh(void const * const dataObject,
    PairKIM const * const Model
        = reinterpret_cast<PairKIM const * const>(dataObject);
 
-   if ((numberOfCutoffs != 1) || (cutoffs[0] > Model->kim_cutoff_values[0]))
-     return true;
+   if (numberOfCutoffs != Model->kim_number_of_cutoffs) return true;
+   for (int i = 0; i < numberOfCutoffs; ++i)
+   {
+     if (Model->kim_cutoff_values[i] < cutoffs[i]) return true;
+   }
 
-   if (neighborListIndex != 0) return true;
+   // neighborListIndex and particleNumber are validated by KIM API
 
    // initialize numNeigh
    *numberOfNeighbors = 0;
 
-   if ((particleNumber >= Model->lmps_local_tot_num_atoms) ||
-       (particleNumber < 0)) /* invalid id */
-   {
-     return true;
-   }
-
-   NeighList * neiobj = Model->list;
+   NeighList * neiobj = Model->neighborLists[neighborListIndex];
    int nAtoms = Model->lmps_local_tot_num_atoms;
 
    int j, jj, inum, *ilist, *numneigh, **firstneigh;
@@ -664,6 +685,12 @@ void PairKIM::kim_init()
    pkim->GetInfluenceDistance(&kim_global_influence_distance);
    pkim->GetNeighborListCutoffsPointer(&kim_number_of_cutoffs,
                                        &kim_cutoff_values);
+   if (neighborLists)
+   {
+     delete [] neighborLists;
+     neighborLists = 0;
+   }
+   neighborLists = new NeighList*[kim_number_of_cutoffs];
 
    kimerror = pargs->SetArgumentPointer(
        KIM::COMPUTE_ARGUMENT_NAME::numberOfParticles,

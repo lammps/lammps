@@ -48,7 +48,7 @@ namespace LAMMPS_NS {
       virtual void settings(int, char**);
       virtual void coeff(int, char**);
       virtual void init_style();
-     //virtual void init_list(int id, NeighList *ptr);
+      virtual void init_list(int id, NeighList *ptr);
       virtual double init_one(int, int);
       virtual int pack_reverse_comm(int, int, double*);
       virtual void unpack_reverse_comm(int, int*, double*);
@@ -103,6 +103,7 @@ namespace LAMMPS_NS {
       double kim_global_influence_distance;  // KIM Model cutoff value
       int kim_number_of_cutoffs;
       double const * kim_cutoff_values;
+      class NeighList ** neighborLists;
 
       // values set in init_style()
       bool kim_model_init_ok;

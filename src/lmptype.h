@@ -193,7 +193,7 @@ typedef int bigint;
 // declaration to lift aliasing restrictions
 
 #if defined(__INTEL_COMPILER)
-#define _noalias restrict
+#define _noalias __restrict
 #elif defined(__GNUC__)
 #define _noalias __restrict
 #else

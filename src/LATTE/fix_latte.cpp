@@ -42,6 +42,12 @@ extern "C" {
   int latte_abiversion();
 }
 
+// the ABIVERSION number here must be kept consistent
+// with its counterpart in the LATTE library and the
+// prototype above. We want to catch mismatches with
+// a meaningful error messages, as they can cause
+// difficult to debug crashes or memory corruption.
+
 #define ABIVERSION 20180622
 #define INVOKED_PERATOM 8
 

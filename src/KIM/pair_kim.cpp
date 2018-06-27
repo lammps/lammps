@@ -61,6 +61,7 @@ PairKIM::PairKIM(LAMMPS *lmp) :
    lmps_maxalloc(0),
    kim_particleSpecies(0),
    kim_particleContributing(0),
+   lmps_stripped_neigh_ptr(0),
    lmps_stripped_neigh_list(0)
 {
    // Initialize Pair data members to appropriate values
@@ -94,6 +95,12 @@ PairKIM::~PairKIM()
    memory->destroy(kim_particleSpecies);
    memory->destroy(kim_particleContributing);
    memory->destroy(lmps_stripped_neigh_list);
+   // clean up lmps_stripped_neigh_ptr
+   if (lmps_stripped_neigh_ptr)
+   {
+     delete [] lmps_stripped_neigh_ptr;
+     lmps_stripped_neigh_ptr = 0;
+   }
 
    // clean up allocated memory for standard Pair class usage
    // also, we allocate lmps_map_species_to_uniuqe in the allocate() function
@@ -241,10 +248,11 @@ void PairKIM::settings(int narg, char **arg)
    ++settings_call_count;
    init_style_call_count = 0;
 
-   if (narg < 2) error->all(FLERR,"Illegal pair_style command");
+   if (narg != 2) error->all(FLERR,"Illegal pair_style command");
    // arg[0] is the virial handling option: "LAMMPSvirial" or "KIMvirial"
    // arg[1] is the KIM Model name
-   // arg[2] is the print-kim-file flag: 0/1 do-not/do print (default 0)
+
+   lmps_using_molecular = (atom->molecular > 0);
 
    // ensure we are in a clean state for KIM (needed on repeated call)
    // first time called will do nothing...
@@ -380,6 +388,22 @@ void PairKIM::init_style()
    if (!kim_init_ok)
    {
       kim_init();
+   }
+
+   // setup lmps_stripped_neigh_list for neighbors of one atom, if needed
+   if (lmps_using_molecular) {
+      memory->destroy(lmps_stripped_neigh_list);
+      memory->create(lmps_stripped_neigh_list,
+                     kim_number_of_cutoffs*neighbor->oneatom,
+                     "pair:lmps_stripped_neigh_list");
+      delete [] lmps_stripped_neigh_ptr;
+      lmps_stripped_neigh_ptr = new int*[kim_number_of_cutoffs];
+      for (int i = 0; i < kim_number_of_cutoffs; ++i)
+      {
+        lmps_stripped_neigh_ptr[0]
+            = &(lmps_stripped_neigh_list[(i-1)*(neighbor->oneatom)]);
+      }
+
    }
 
    // make sure comm_reverse expects (at most) 9 values when newton is off
@@ -595,7 +619,8 @@ int PairKIM::get_neigh(void const * const dataObject,
    {
      int n = *numberOfNeighbors;
      int *ptr = firstneigh[particleNumber];
-     int *lmps_stripped_neigh_list = Model->lmps_stripped_neigh_list;
+     int *lmps_stripped_neigh_list
+         = Model->lmps_stripped_neigh_ptr[neighborListIndex];
      for (int i = 0; i < n; i++)
        lmps_stripped_neigh_list[i] = *(ptr++) & NEIGHMASK;
      *neighborsOfParticle = lmps_stripped_neigh_list;
@@ -780,14 +805,6 @@ void PairKIM::set_lmps_flags()
 {
    // determint if newton is on or off
    lmps_using_newton = (force->newton_pair == 1);
-
-   // setup lmps_stripped_neigh_list for neighbors of one atom, if needed
-   lmps_using_molecular = (atom->molecular > 0);
-   if (lmps_using_molecular) {
-      memory->destroy(lmps_stripped_neigh_list);
-      memory->create(lmps_stripped_neigh_list,neighbor->oneatom,
-                     "pair:lmps_stripped_neigh_list");
-   }
 
    // determine if running with pair hybrid
    if (force->pair_match("hybrid",0))

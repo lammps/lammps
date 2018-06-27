@@ -116,6 +116,7 @@ namespace LAMMPS_NS {
       int* kim_particleContributing;  // array of KIM particle contributing
       int* lmps_stripped_neigh_list;  // neighbors of one atom, used when LAMMPS
                                       // is in molecular mode
+      int** lmps_stripped_neigh_ptr;  // pointer into lists
 
       // KIM specific helper functions
       void kim_init();

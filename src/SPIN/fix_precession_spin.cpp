@@ -125,12 +125,12 @@ int FixPrecessionSpin::setmask()
 
 void FixPrecessionSpin::init()
 {
-  const double hbar = force->hplanck/MY_2PI; 	// eV/(rad.THz)
-  const double mub = 5.78901e-5; 		// in eV/T
-  const double gyro = mub/hbar; 		// in rad.THz/T
+  const double hbar = force->hplanck/MY_2PI;    // eV/(rad.THz)
+  const double mub = 5.78901e-5;                // in eV/T
+  const double gyro = mub/hbar;                 // in rad.THz/T
 
-  H_field *= gyro; 				// in rad.THz
-  Ka /= hbar; 					// in rad.THz
+  H_field *= gyro;                              // in rad.THz
+  Ka /= hbar;                                   // in rad.THz
 
   if (strstr(update->integrate_style,"respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
@@ -176,7 +176,7 @@ void FixPrecessionSpin::post_force(int vflag)
   if (varflag != CONSTANT) {
     modify->clearstep_compute();
     modify->addstep_compute(update->ntimestep + 1);
-    set_magneticprecession();	 		// update mag. field if time-dep.
+    set_magneticprecession();                   // update mag. field if time-dep.
   }
 
   double **sp = atom->sp;
@@ -255,14 +255,14 @@ void FixPrecessionSpin::post_force_respa(int vflag, int ilevel, int iloop)
 void FixPrecessionSpin::set_magneticprecession()
 {
   if (zeeman_flag) {
-	  hx = H_field*nhx;
-	  hy = H_field*nhy;
-	  hz = H_field*nhz;	
+          hx = H_field*nhx;
+          hy = H_field*nhy;
+          hz = H_field*nhz;
   }
   if (aniso_flag) {
-	  Kax = 2.0*Ka*nax;
-	  Kay = 2.0*Ka*nay;
-	  Kaz = 2.0*Ka*naz;	
+          Kax = 2.0*Ka*nax;
+          Kay = 2.0*Ka*nay;
+          Kaz = 2.0*Ka*naz;
   }
 }
 

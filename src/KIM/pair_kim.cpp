@@ -679,9 +679,6 @@ void PairKIM::kim_init()
         error->all(FLERR,"create_kim_particle_codes: symbol not found ");
    }
 
-   // set total number of atoms
-   lmps_local_tot_num_atoms = (int) (atom->nghost + atom->nlocal);
-
    pkim->GetInfluenceDistance(&kim_global_influence_distance);
    pkim->GetNeighborListCutoffsPointer(&kim_number_of_cutoffs,
                                        &kim_cutoff_values);

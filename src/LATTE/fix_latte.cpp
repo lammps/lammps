@@ -42,6 +42,13 @@ extern "C" {
   int latte_abiversion();
 }
 
+// the ABIVERSION number here must be kept consistent
+// with its counterpart in the LATTE library and the
+// prototype above. We want to catch mismatches with
+// a meaningful error messages, as they can cause
+// difficult to debug crashes or memory corruption.
+
+#define ABIVERSION 20180622
 #define INVOKED_PERATOM 8
 
 /* ---------------------------------------------------------------------- */
@@ -55,7 +62,7 @@ FixLatte::FixLatte(LAMMPS *lmp, int narg, char **arg) :
   if (comm->nprocs != 1)
     error->all(FLERR,"Fix latte currently runs only in serial");
 
-  if (20180622 != latte_abiversion())
+  if (latte_abiversion() != ABIVERSION)
     error->all(FLERR,"LAMMPS is linked against incompatible LATTE library");
 
   if (narg != 4) error->all(FLERR,"Illegal fix latte command");

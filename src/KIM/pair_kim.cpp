@@ -52,11 +52,11 @@ PairKIM::PairKIM(LAMMPS *lmp) :
    lmps_units(METAL),
    pkim(0),
    pargs(0),
-   kim_particle_codes(0),
    lmps_local_tot_num_atoms(0),
    kim_global_influence_distance(0.0),
    kim_number_of_cutoffs(0),
    kim_cutoff_values(0),
+   kim_particle_codes(0),
    lmps_maxalloc(0),
    kim_particleSpecies(0),
    kim_particleContributing(0),
@@ -119,6 +119,8 @@ void PairKIM::compute(int eflag , int vflag)
    else
       ev_unset();
 
+   // @@@@ can we strip the neighbor list here (like pair_meamc does)?
+
    // grow kim_particleSpecies and kim_particleContributing array if necessary
    // needs to be atom->nmax in length
    if (atom->nmax > lmps_maxalloc) {
@@ -158,7 +160,7 @@ void PairKIM::compute(int eflag , int vflag)
    }
 
    // pass current atom pointers to KIM
-   set_volatiles();
+   set_argument_pointers();
 
    // compute via KIM model
    kimerror = pkim->Compute(pargs);
@@ -656,16 +658,6 @@ void PairKIM::kim_init()
         error->all(FLERR,"create_kim_particle_codes: symbol not found ");
    }
 
-   // set pointer values in KIM API object that will not change during run
-   set_statics();
-
-   return;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void PairKIM::set_statics()
-{
    // set total number of atoms
    lmps_local_tot_num_atoms = (int) (atom->nghost + atom->nlocal);
 
@@ -673,7 +665,7 @@ void PairKIM::set_statics()
    pkim->GetNeighborListCutoffsPointer(&kim_number_of_cutoffs,
                                        &kim_cutoff_values);
 
-   int kimerror = pargs->SetArgumentPointer(
+   kimerror = pargs->SetArgumentPointer(
        KIM::COMPUTE_ARGUMENT_NAME::numberOfParticles,
        &lmps_local_tot_num_atoms);
    if (kim_model_has_energy)
@@ -688,14 +680,14 @@ void PairKIM::set_statics()
        reinterpret_cast<void *>(this));
 
    if (kimerror)
-     error->all(FLERR,"Unable to register KIM static pointers");
+     error->all(FLERR,"Unable to register KIM pointers");
 
    return;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairKIM::set_volatiles()
+void PairKIM::set_argument_pointers()
 {
    int kimerror;
    lmps_local_tot_num_atoms = (int) (atom->nghost + atom->nlocal);
@@ -752,7 +744,7 @@ void PairKIM::set_volatiles()
 
    if (kimerror)
    {
-     error->all(FLERR,"Unable to set KIM volatile pointers");
+     error->all(FLERR,"Unable to set KIM argument pointers");
    }
 
    return;

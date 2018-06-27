@@ -48,6 +48,7 @@ namespace LAMMPS_NS {
       virtual void settings(int, char**);
       virtual void coeff(int, char**);
       virtual void init_style();
+     //virtual void init_list(int id, NeighList *ptr);
       virtual double init_one(int, int);
       virtual int pack_reverse_comm(int, int, double*);
       virtual void unpack_reverse_comm(int, int*, double*);
@@ -85,29 +86,28 @@ namespace LAMMPS_NS {
       KIM::TemperatureUnit temperatureUnit;
       KIM::TimeUnit timeUnit;
 
-      // values set in set_kim_model_has_flags(), called by kim_init()
+
       KIM::Model * pkim;
       KIM::ComputeArguments * pargs;
+
+      // values set in set_kim_model_has_flags(), called by kim_init()
       bool kim_model_has_energy;
       bool kim_model_has_forces;
       bool kim_model_has_virial;
       bool kim_model_has_particleEnergy;
       bool kim_model_has_particleVirial;
 
-      // values set in kim_init(), after call to string_init(_)
+      // values set in kim_init()
       bool kim_init_ok;
-
-      // values set in init_style(), after calling pkim->model_init()
-      bool kim_model_init_ok;
-      bool kim_particle_codes_ok;
-      int *kim_particle_codes;
-
-      // values set in set_statics(), called at end of kim_init(),
-      //   then again in set_volatiles(), called in compute()
       int lmps_local_tot_num_atoms;
       double kim_global_influence_distance;  // KIM Model cutoff value
       int kim_number_of_cutoffs;
       double const * kim_cutoff_values;
+
+      // values set in init_style()
+      bool kim_model_init_ok;
+      bool kim_particle_codes_ok;
+      int *kim_particle_codes;
 
       // values set in compute()
       int lmps_maxalloc;              // max allocated memory value
@@ -119,8 +119,7 @@ namespace LAMMPS_NS {
       // KIM specific helper functions
       void kim_init();
       void kim_free();
-      void set_statics();
-      void set_volatiles();
+      void set_argument_pointers();
       void set_lmps_flags();
       void set_kim_model_has_flags();
       // static methods used as callbacks from KIM

@@ -171,6 +171,7 @@ void PairDPDIntel::eval(const int offload, const int vflag,
   lmp_vt *v = (lmp_vt *)atom->v[0];
   const flt_t dtinvsqrt = 1.0/sqrt(update->dt);
 
+  const int * _noalias const ilist = list->ilist;
   const int * _noalias const numneigh = list->numneigh;
   const int * _noalias const cnumneigh = buffers->cnumneigh(list);
   const int * _noalias const firstneigh = buffers->firstneigh(list);
@@ -237,7 +238,8 @@ void PairDPDIntel::eval(const int offload, const int vflag,
         gamma = param[3].gamma;
         sigma = param[3].sigma;
       }
-      for (int i = iifrom; i < iito; i += iip) {
+      for (int ii = iifrom; ii < iito; ii += iip) {
+        const int i = ilist[ii];
         int itype, ptr_off;
         const FC_PACKED1_T * _noalias parami;
         if (!ONETYPE) {
@@ -246,8 +248,9 @@ void PairDPDIntel::eval(const int offload, const int vflag,
           parami = param + ptr_off;
         }
 
-        const int * _noalias const jlist = firstneigh + cnumneigh[i];
-        const int jnum = numneigh[i];
+        const int * _noalias const jlist = firstneigh + cnumneigh[ii];
+        int jnum = numneigh[ii];
+        IP_PRE_neighbor_pad(jnum, offload);
 
         acc_t fxtmp, fytmp, fztmp, fwtmp;
         acc_t sevdwl, sv0, sv1, sv2, sv3, sv4, sv5;

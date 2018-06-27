@@ -265,7 +265,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   memory->create(landlocked_atoms,max_natoms,nreacts,"bond/react:landlocked_atoms");
 
   for (int j = 0; j < nreacts; j++)
-    for (int i = 0; i < onemol->natoms; i++) edge[i][j] = 0;
+    for (int i = 0; i < max_natoms; i++) edge[i][j] = 0;
 
   // read all superimpose files afterward
   for (int i = 0; i < nreacts; i++) {

@@ -256,7 +256,7 @@ class GPSettings(object):
                 if i + 1 >= len(argv):
                     raise InputError('Error: ' + argv[i] + ' flag should be followed ' +
                                      'by 3 numbers separated by commas (no spaces)\n')
-                self.direction_orig = map(float, argv[i + 1].split(','))
+                self.direction_orig = list(map(float, argv[i + 1].split(',')))
                 del(argv[i:i + 2])
             elif argv[i].lower() == '-circular':
                 if i + 1 >= len(argv):
@@ -294,7 +294,7 @@ class GPSettings(object):
                 if i + 1 >= len(argv):
                     raise InputError('Error: ' + argv[i] + ' flag should be followed ' +
                                      'by 3 numbers separated by commas (no spaces)\n')
-                self.box_padding = map(float, argv[i + 1].split(','))
+                self.box_padding = list(map(float, argv[i + 1].split(',')))
                 if len(self.box_padding) == 1:
                     self.box_padding = self.box_padding * 3
                 del(argv[i:i + 2])
@@ -340,7 +340,7 @@ class WrapPeriodic(object):
 
     @classmethod
     def Wrap(obj, i, N):
-        if i / N != 0:
+        if i // N != 0:
             obj.bounds_err = True
         return i % N
 
@@ -384,7 +384,7 @@ class GenPoly(object):
         for i in range(0, len(lines)):
             tokens = lines[i].strip().split()
             if (len(tokens) == 3):
-                coords.append(map(float, tokens))
+                coords.append(list(map(float, tokens)))
 
         self.N = len(coords)
         if self.N < 2:

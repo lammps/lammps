@@ -1,0 +1,24 @@
+import "butane.lt"  # <- defines the "Butane" molecule type.
+
+# Periodic boundary conditions:
+write_once("Data Boundary") {
+   0.0  62.4  xlo xhi
+   0.0  62.4  ylo yhi
+   0.0  62.4  zlo zhi
+}
+
+
+
+# Generate an array of 864 = 12 x 12 x 6 Butane molecules
+# which (more or less) uniformly fills the simulation box:
+
+molecules = new Butane [12].move(0, 0, 5.2)
+                       [12].move(0, 5.2, 0)
+                       [6].move(10.4, 0, 0)
+
+
+
+# NOTE: The spacing between molecules is large.  There should be extra room to
+# move during the initial stages of equilibration.  However, you will have to
+# run the simulation at NPT conditions later to compress the system to a 
+# more realistic density.

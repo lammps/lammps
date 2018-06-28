@@ -1,0 +1,37 @@
+# PREREQUISITES:
+#
+#      You must use moltemplate.sh (& packmol?) to create 3 files:
+#        system.data  system.in.init  system.in.settings
+#
+# See "README_setup.sh" for instructions how to use moltemplate.sh
+# Note: This input script file only covers equilibration of the system.
+#
+# ------------------------------- Initialization Section --------------------
+
+include    "system.in.init"
+boundary        p p p
+
+# ------------------------------- Atom Definition Section -------------------
+
+read_data  "system.data"
+
+# ------------------------------- Settings Section --------------------------
+
+include    "system.in.settings"
+
+# ------------------------------- Run Section -------------------------------
+
+# Output:
+thermo          100
+thermo_style custom step etotal evdwl ke pe temp press vol density &
+                c_myMSD[1] c_myMSD[2] c_myMSD[3] c_myMSD[4] cpu
+dump 1 all custom 100 traj.lammpstrj &
+id type x y z c_q[1] c_q[2] c_q[3] c_q[4] &
+c_shape[1] c_shape[2] c_shape[3] &
+angmomx angmomy angmomz
+
+# Dynamics:
+timestep        10.0
+fix             2 all npt/asphere temp 300. 300. 1000. iso 1. 1. 10000.
+fix_modify      2 press press_trasl
+run             20000

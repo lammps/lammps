@@ -154,13 +154,9 @@ function(GenerateStyleHeaders output_path)
 endfunction(GenerateStyleHeaders)
 
 function(DetectBuildSystemConflict lammps_src_dir)
-  math(EXPR N "${ARGC}-1")
-
-  if(N GREATER 0)
-    math(EXPR ARG_END   "${ARGC}-1")
-
-    foreach(IDX RANGE 1 ${ARG_END})
-        list(GET ARGV ${IDX} SRC_FILE)
+  if(ARGC GREATER 1)
+    list(REMOVE_AT ARGV 0)
+    foreach(SRC_FILE ${ARGV})
         get_filename_component(FILENAME ${SRC_FILE} NAME)
         if(EXISTS ${lammps_src_dir}/${FILENAME})
             message(FATAL_ERROR "\n########################################################################\n"

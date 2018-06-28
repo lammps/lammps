@@ -50,6 +50,11 @@ PairKIM::PairKIM(LAMMPS *lmp) :
    lmps_unique_elements(0),
    lmps_num_unique_elements(0),
    lmps_units(METAL),
+   lengthUnit(KIM::LENGTH_UNIT::unused),
+   energyUnit(KIM::ENERGY_UNIT::unused),
+   chargeUnit(KIM::CHARGE_UNIT::unused),
+   temperatureUnit(KIM::TEMPERATURE_UNIT::unused),
+   timeUnit(KIM::TIME_UNIT::unused),
    pkim(0),
    pargs(0),
    lmps_local_tot_num_atoms(0),
@@ -61,8 +66,8 @@ PairKIM::PairKIM(LAMMPS *lmp) :
    lmps_maxalloc(0),
    kim_particleSpecies(0),
    kim_particleContributing(0),
-   lmps_stripped_neigh_ptr(0),
-   lmps_stripped_neigh_list(0)
+   lmps_stripped_neigh_list(0),
+   lmps_stripped_neigh_ptr(0)
 {
    // Initialize Pair data members to appropriate values
    single_enable = 0;  // We do not provide the Single() function
@@ -134,8 +139,6 @@ void PairKIM::compute(int eflag , int vflag)
    else
       ev_unset();
 
-   // @@@@ can we strip the neighbor list here (like pair_meamc does)?
-
    // grow kim_particleSpecies and kim_particleContributing array if necessary
    // needs to be atom->nmax in length
    if (atom->nmax > lmps_maxalloc) {
@@ -160,7 +163,6 @@ void PairKIM::compute(int eflag , int vflag)
    }
 
    // kim_particleSpecies = KIM atom species for each LAMMPS atom
-   // set ielement to valid 0 if lmps_map_species_to_unique[] stores an un-used -1
 
    int *species = atom->type;
    int nall = atom->nlocal + atom->nghost;
@@ -168,7 +170,6 @@ void PairKIM::compute(int eflag , int vflag)
 
    for (int i = 0; i < nall; i++) {
       ielement = lmps_map_species_to_unique[species[i]];
-      ielement = MAX(ielement,0);
       kim_particleSpecies[i] = kim_particle_codes[ielement];
 
       kim_particleContributing[i] = ( (i<atom->nlocal) ? 1 : 0 );
@@ -176,6 +177,9 @@ void PairKIM::compute(int eflag , int vflag)
 
    // pass current atom pointers to KIM
    set_argument_pointers();
+
+   // set number of particles
+   lmps_local_tot_num_atoms = (int) (atom->nghost + atom->nlocal);
 
    // compute via KIM model
    kimerror = pkim->Compute(pargs);
@@ -409,7 +413,7 @@ void PairKIM::init_style()
    // make sure comm_reverse expects (at most) 9 values when newton is off
    if (!lmps_using_newton) comm_reverse_off = 9;
 
-   // request full neighbor list
+   // request full neighbor lists
    for (int i = 0; i < kim_number_of_cutoffs; ++i)
    {
      int irequest = neighbor->request(this,instance_me);
@@ -739,8 +743,6 @@ void PairKIM::kim_init()
 void PairKIM::set_argument_pointers()
 {
    int kimerror;
-   lmps_local_tot_num_atoms = (int) (atom->nghost + atom->nlocal);
-
    kimerror = pargs->SetArgumentPointer(
        KIM::COMPUTE_ARGUMENT_NAME::coordinates,
        &(atom->x[0][0]));

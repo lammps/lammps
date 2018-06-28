@@ -86,7 +86,6 @@ namespace LAMMPS_NS {
       KIM::TemperatureUnit temperatureUnit;
       KIM::TimeUnit timeUnit;
 
-
       KIM::Model * pkim;
       KIM::ComputeArguments * pargs;
 

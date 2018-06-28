@@ -162,12 +162,13 @@ file, there is another way of defining "presets" to compile LAMMPS in a certain
 way.
 
 A preset is a regular CMake script file that can use constructs such as
-variables, lists and for-loops to manipulate configuration options. Options
-must be set with the `CACHE` and `FORCE` flag to ensure they are considered.
+variables, lists and for-loops to manipulate configuration options and create
+an [*initial cache*](https://cmake.org/cmake/help/v3.12/manual/cmake.1.html).
+Options must be set with the `CACHE` and `FORCE` flag to ensure they are
+considered even during a second cmake run.
 
-Such a file can then be passed to cmake via the `-C` flag to initialize the
-cache. Several examples of such presets can be found in the `cmake/presets`
-folder.
+Such a file can then be passed to cmake via the `-C` flag. Several examples of
+presets can be found in the `cmake/presets` folder.
 
 ```bash
 # build LAMMPS with all "standard" packages which don't use libraries and enable GPU package

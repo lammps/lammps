@@ -31,6 +31,7 @@
 #include "style_region.h"
 #include "universe.h"
 #include "input.h"
+#include "info.h"
 #include "atom.h"
 #include "update.h"
 #include "neighbor.h"
@@ -49,6 +50,8 @@
 #include "memory.h"
 #include "version.h"
 #include "error.h"
+
+#include "lmpinstalledpkgs.h"
 
 using namespace LAMMPS_NS;
 
@@ -823,7 +826,9 @@ void LAMMPS::help()
           "-var varname value          : set index style variable (-v)\n\n",
           exename);
 
-  fprintf(fp,"List of style options included in this LAMMPS executable\n\n");
+
+  print_config(fp);
+  fprintf(fp,"List of individual style options included in this LAMMPS executable\n\n");
 
   int pos = 80;
   fprintf(fp,"* Atom styles:\n");
@@ -973,4 +978,29 @@ void print_style(FILE *fp, const char *str, int &pos)
     fprintf(fp,"%-80s",str);
     pos += 80;
   }
+}
+
+void LAMMPS::print_config(FILE *fp)
+{
+  const char *pkg;
+  int ncword, ncline = 0;
+
+  fputs("Active compile time flags:\n\n",fp);
+  if (Info::has_gzip_support()) fputs("-DLAMMPS_GZIP\n",fp);
+  if (Info::has_png_support()) fputs("-DLAMMPS_PNG\n",fp);
+  if (Info::has_jpeg_support()) fputs("-DLAMMPS_JPEG\n",fp);
+  if (Info::has_ffmpeg_support()) fputs("-DLAMMPS_FFMPEG\n",fp);
+  if (Info::has_exceptions()) fputs("-DLAMMPS_EXCEPTIONS\n",fp);
+
+  fputs("\nInstalled packages:\n\n",fp);
+  for (int i = 0; NULL != (pkg = installed_packages[i]); ++i) {
+    ncword = strlen(pkg);
+    if (ncline + ncword > 78) {
+      ncline = 0;
+      fputs("\n",fp);
+    }
+    fprintf(fp,"%s ",pkg);
+    ncline += ncword + 1;
+  }
+  fputs("\n\n",fp);
 }

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 # Author: Andrew Jewett (jewett.aij at g mail)
+#         http://www.moltemplate.org
 #         http://www.chem.ucsb.edu/~sheagroup
 # License: 3-clause BSD License  (See LICENSE.TXT)
 # Copyright (c) 2011, Regents of the University of California
@@ -28,8 +29,8 @@ Additional LAMMPS-specific features may be added in the future.
 """
 
 g_program_name = __file__.split('/')[-1]  # ='lttree.py'
-g_date_str = '2017-4-11'
-g_version_str = '0.76.0'
+g_date_str = '2018-3-15'
+g_version_str = '0.77.0'
 
 
 import sys
@@ -45,10 +46,22 @@ try:
     from .ttree_lex import InputError, TextBlock, DeleteLinesWithBadVars, \
         TemplateLexer
     from .lttree_styles import AtomStyle2ColNames, ColNames2AidAtypeMolid, \
-        ColNames2Coords, ColNames2Vects, data_atoms, data_masses
+        ColNames2Coords, ColNames2Vects, \
+        data_atoms, data_prefix, data_masses, \
+        data_velocities, data_ellipsoids, data_triangles, data_lines, \
+        data_pair_coeffs, data_bond_coeffs, data_angle_coeffs, \
+        data_dihedral_coeffs, data_improper_coeffs, data_bondbond_coeffs, \
+        data_bondangle_coeffs, data_middlebondtorsion_coeffs, \
+        data_endbondtorsion_coeffs, data_angletorsion_coeffs, \
+        data_angleangletorsion_coeffs, data_bondbond13_coeffs, \
+        data_angleangle_coeffs, data_bonds_by_type, data_angles_by_type, \
+        data_dihedrals_by_type, data_impropers_by_type, \
+        data_bonds, data_bond_list, data_angles, data_dihedrals, data_impropers, \
+        data_boundary, data_pbc, data_prefix_no_space, in_init, in_settings, \
+        in_prefix
     from .ttree_matrix_stack import AffineTransform, MultiAffineStack, \
         LinTransform
-except (SystemError, ValueError):
+except (ImportError, SystemError, ValueError):
     # not installed as a package
     from ttree import *
     from ttree_lex import *
@@ -332,6 +345,60 @@ def TransformAtomText(text, matrix, settings):
     return '\n'.join(lines)
 
 
+
+def TransformEllipsoidText(text, matrix, settings):
+    """ Apply the transformation matrix to the quaternions represented
+    by the last four numbers on each line.
+    The \"matrix\" stores the aggregate sum of combined transformations
+    to be applied and the rotational part of this matrix 
+    must be converted to a quaternion.
+
+    """
+
+    #sys.stderr.write('matrix_stack.M = \n'+ MatToStr(matrix) + '\n')
+
+    lines = text.split('\n')
+
+    for i in range(0, len(lines)):
+        line_orig = lines[i]
+        ic = line_orig.find('#')
+        if ic != -1:
+            line = line_orig[:ic]
+            comment = ' ' + line_orig[ic:].rstrip('\n')
+        else:
+            line = line_orig.rstrip('\n')
+            comment = ''
+
+        columns = line.split()
+
+        if len(columns) != 0:
+            if len(columns) != 8:
+                raise InputError('Error (lttree.py): Expected 7 numbers'
+                                 + ' instead of '
+                                 + str(len(columns))
+                                 + '\nline:\n'
+                                 + line
+                                 + ' in each line of the ellipsoids\" section.\n"')
+            q_orig = [float(columns[-4]),
+                      float(columns[-3]),
+                      float(columns[-2]),
+                      float(columns[-1])]
+
+            qRot = [0.0, 0.0, 0.0, 0.0]
+            Matrix2Quaternion(matrix, qRot)
+
+            q_new = [0.0, 0.0, 0.0, 0.0]
+            MultQuat(q_new, qRot, q_orig)
+
+            columns[-4] = str(q_new[0])
+            columns[-3] = str(q_new[1])
+            columns[-2] = str(q_new[2])
+            columns[-1] = str(q_new[3])
+            lines[i] = ' '.join(columns) + comment
+    return '\n'.join(lines)
+
+
+
 def CalcCM(text_Atoms,
            text_Masses=None,
            settings=None):
@@ -487,8 +554,8 @@ def _ExecCommands(command_list,
                         transform_block += '.' + transform
                         transform = transform.split('(')[0]
                         if ((transform == 'movecm') or
-                                (transform == 'rotcm') or
-                                (transform == 'scalecm')):
+                            (transform == 'rotcm') or
+                            (transform == 'scalecm')):
                             break
                 transform_blocks.append(transform_block)
 
@@ -553,6 +620,8 @@ def _ExecCommands(command_list,
             # before passing them on to the caller.
             if command.filename == data_atoms:
                 text = TransformAtomText(text, matrix_stack.M, settings)
+            if command.filename == data_ellipsoids:
+                text = TransformEllipsoidText(text, matrix_stack.M, settings)
 
             files_content[command.filename].append(text)
 
@@ -599,6 +668,9 @@ def _ExecCommands(command_list,
                     files_content[data_atoms] = \
                         TransformAtomText(files_content[data_atoms],
                                           matrix_stack.M, settings)
+                    files_content[data_ellipsoids] = \
+                        TransformEllipsoidText(files_content[data_ellipsoids],
+                                               matrix_stack.M, settings)
 
                 for ppcommand in postprocessing_commands:
                     matrix_stack.Pop(which_stack=command.context_node)

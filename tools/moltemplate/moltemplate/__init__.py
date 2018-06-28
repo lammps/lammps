@@ -1,11 +1,11 @@
 from .ttree import BasicUISettings, BasicUIParseArgs, EraseTemplateFiles, \
     StackableCommand, PopCommand, PopRightCommand, PopLeftCommand, \
     PushCommand, PushLeftCommand, PushRightCommand, ScopeCommand, \
-    WriteVarBindingsFile, StaticObj, InstanceObj, \
+    WriteVarBindingsFile, StaticObj, InstanceObj, ExtractFormattingCommands, \
     BasicUI, ScopeBegin, ScopeEnd, WriteFileCommand, Render
 from .ttree_lex import TtreeShlex, split, LineLex, SplitQuotedString, \
     EscCharStrToChar, SafelyEncodeString, RemoveOuterQuotes, MaxLenStr, \
-    HasWildCard, InputError, ErrorLeader, SrcLoc, OSrcLoc, TextBlock, VarRef, \
+    HasWildcard, InputError, ErrorLeader, SrcLoc, OSrcLoc, TextBlock, VarRef, \
     VarNPtr, VarBinding, SplitTemplate, SplitTemplateMulti, TableFromTemplate, \
     ExtractCatName, DeleteLinesWithBadVars, TemplateLexer
 from .lttree_styles import AtomStyle2ColNames, ColNames2AidAtypeMolid, \

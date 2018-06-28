@@ -1,0 +1,84 @@
+# This version of the methanol molecule uses the GAFF force
+# field.  (BCC) Charges were assigned using AmberTools
+
+Methanol {
+
+  write_once("In Settings") {
+    pair_coeff @atom:type1 @atom:type1 lj/charmm/coul/long 0.2104000002486992 3.066473387458142 0.2104000002486992 3.066473387458142
+    pair_coeff @atom:type2 @atom:type2 lj/charmm/coul/long 0.10939999991572773 3.399669508450741 0.10939999991572773 3.399669508450741
+    pair_coeff @atom:type3 @atom:type3 lj/charmm/coul/long 0.01570000009846142 2.4713530426421655 0.01570000009846142 2.4713530426421655
+    pair_coeff @atom:type4 @atom:type4 lj/charmm/coul/long 0.0 0.0 0.0 0.0                                
+  }
+
+  write_once("In Settings") {
+    bond_coeff @bond:type1 harmonic 316.7 1.4233
+    bond_coeff @bond:type2 harmonic 371.4 0.973
+    bond_coeff @bond:type3 harmonic 330.6 1.0969
+  }
+
+  write_once("In Settings") {
+    angle_coeff @angle:type1 harmonic 50.93 110.260047369346
+    angle_coeff @angle:type2 harmonic 47.38 107.26004608361897
+    angle_coeff @angle:type3 harmonic 39.24 108.46004659790978
+  }
+
+  write_once("In Settings") {
+    dihedral_coeff @dihedral:type1 harmonic 0.166666667 1 3
+  }
+
+
+  ### DATA sections
+
+
+  write_once("Data Masses") {
+    @atom:type1 16.0
+    @atom:type2 12.01
+    @atom:type3 1.008
+    @atom:type4 1.008
+  }
+
+
+  # NOTE: This molecule uses atom_style hybrid sphere dipole molecular
+  #       (This is the same atom_style used by ELBA.)  Hence the extra
+  #       columns for "diam", "mux", "muy", "muz" are not relevant
+  #       for this molecule and can be ignored.
+
+  write("Data Atoms") {
+    # atom-ID    atom-Type   x      y       z      diam  dens       q      mux  muy  muz  molecule-ID
+    $atom:id1  @atom:type1  0.708   0.0     0.0     0.0  16.0   -0.598800  0.0  0.0  0.0  $mol:id0
+    $atom:id2  @atom:type2  -0.708  0.0     0.0     0.0  12.01  0.116700   0.0  0.0  0.0  $mol:id0
+    $atom:id3  @atom:type3  -1.073  -0.769  0.685   0.0  1.008  0.028700   0.0  0.0  0.0  $mol:id0
+    $atom:id4  @atom:type3  -1.073  -0.195  -1.011  0.0  1.008  0.028700   0.0  0.0  0.0  $mol:id0
+    $atom:id5  @atom:type3  -1.063  0.979   0.331   0.0  1.008  0.028700   0.0  0.0  0.0  $mol:id0
+    $atom:id6  @atom:type4  0.994   -0.88   -0.298  0.0  1.008  0.396000   0.0  0.0  0.0  $mol:id0
+  }
+
+  write("Data Bonds") {
+    $bond:id1 @bond:type2 $atom:id1 $atom:id6
+    $bond:id2 @bond:type3 $atom:id2 $atom:id3
+    $bond:id3 @bond:type3 $atom:id2 $atom:id4
+    $bond:id4 @bond:type3 $atom:id2 $atom:id5
+    $bond:id5 @bond:type1 $atom:id1 $atom:id2
+  }
+
+  write("Data Angles") {
+    $angle:id1 @angle:type1 $atom:id1 $atom:id2 $atom:id3
+    $angle:id2 @angle:type1 $atom:id1 $atom:id2 $atom:id4
+    $angle:id3 @angle:type1 $atom:id1 $atom:id2 $atom:id5
+    $angle:id4 @angle:type2 $atom:id2 $atom:id1 $atom:id6
+    $angle:id5 @angle:type3 $atom:id3 $atom:id2 $atom:id4
+    $angle:id6 @angle:type3 $atom:id3 $atom:id2 $atom:id5
+    $angle:id7 @angle:type3 $atom:id4 $atom:id2 $atom:id5
+  }
+
+  write("Data Dihedrals") {
+    $dihedral:id1 @dihedral:type1 $atom:id6 $atom:id1 $atom:id2 $atom:id3
+    $dihedral:id2 @dihedral:type1 $atom:id6 $atom:id1 $atom:id2 $atom:id4
+    $dihedral:id3 @dihedral:type1 $atom:id6 $atom:id1 $atom:id2 $atom:id5
+  }
+
+  write_once("In Settings") {
+    group gMethanol type @atom:type1 @atom:type2 @atom:type3 @atom:type4
+  }
+
+} # end of "Methanol" type definition

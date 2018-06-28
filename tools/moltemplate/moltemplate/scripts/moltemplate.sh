@@ -3,15 +3,14 @@
 #
 # Author: Andrew Jewett (jewett.aij at g mail)
 #         http://www.moltemplate.org
-#         http://jensenlab.caltech.edu
 #         http://www.chem.ucsb.edu/~sheagroup
 # License: 3-clause BSD License  (See LICENSE.txt)
 # Copyright (c) 2012, Regents of the University of California
 # All rights reserved.
 
 G_PROGRAM_NAME="moltemplate.sh"
-G_VERSION="2.3.7"
-G_DATE="2017-8-22"
+G_VERSION="2.8.6"
+G_DATE="2018-6-27"
 
 echo "${G_PROGRAM_NAME} v${G_VERSION} ${G_DATE}" >&2
 echo "" >&2
@@ -223,6 +222,7 @@ $data_bonds_by_type*
 ${data_angles_by_type}*
 ${data_dihedrals_by_type}*
 ${data_impropers_by_type}*
+$data_charge_by_bond
 $in_init
 $in_settings
 EOF
@@ -395,6 +395,20 @@ while [ "$i" -lt "$ARGC" ]; do
         # Disable syntax checking by undefining LTTREE_CHECK_COMMAND
         unset LTTREE_CHECK_COMMAND
         unset LTTREE_POSTPROCESS_COMMAND
+    elif [ "$A" = "-allow-wildcards" ]; then
+        # Disable syntax checking by undefining LTTREE_CHECK_COMMAND
+	if [ -z "$LTTREE_CHECK_ARGS" ]; then
+            LTTREE_CHECK_ARGS="\"$A\""
+        else
+            LTTREE_CHECK_ARGS="${LTTREE_CHECK_ARGS} \"$A\""
+        fi
+    elif [ "$A" = "-forbid-wildcards" ]; then
+        # Disable syntax checking by undefining LTTREE_CHECK_COMMAND
+	if [ -z "$LTTREE_CHECK_ARGS" ]; then
+            LTTREE_CHECK_ARGS="\"$A\""
+        else
+            LTTREE_CHECK_ARGS="${LTTREE_CHECK_ARGS} \"$A\""
+        fi
     elif [ "$A" = "-checkff" ]; then
         # Disable syntax checking by undefining LTTREE_CHECK_COMMAND
         CHECKFF="$A"
@@ -529,11 +543,23 @@ while [ "$i" -lt "$ARGC" ]; do
         fi
         #echo "  (extracting coordinates from \"$PDB_FILE\")" >&2
         if grep -q '^ATOM  \|^HETATM' "$PDB_FILE"; then
+	    # Extract the coordinates from the PDB file:
+
+	    # COMMENTING OUT ("pdbsort.py")
+            # I used to sort the PDB file by (ChainID,SeqNum,InsertCode)
+	    # and then extract the coordinates from the file.
+	    # This turned out to be inconvenient for users.  Instead
+	    # just read the coordinates in the order they appear in the file.
+	    # OLD CODE:
             # Extract the coords from the "ATOM" records in the PDB file
-            if ! $PYTHON_COMMAND "${PY_SCR_DIR}/pdbsort.py" < "$PDB_FILE" \
-                | awk '/^ATOM  |^HETATM/{print substr($0,31,8)" "substr($0,39,8)" "substr($0,47,8)}' > "$tmp_atom_coords"; then
-                ERR_INTERNAL
-            fi
+            #if ! $PYTHON_COMMAND "${PY_SCR_DIR}/pdbsort.py" < "$PDB_FILE" \
+            #    | awk '/^ATOM  |^HETATM/{print substr($0,31,8)" "substr($0,39,8)" "substr($0,47,8)}' > "$tmp_atom_coords"; then
+            #    ERR_INTERNAL
+            #fi
+	    # NEW CODE (USE THIS INSTEAD):
+            awk '/^ATOM  |^HETATM/{print substr($0,31,8)" "substr($0,39,8)" "substr($0,47,8)}' \
+		< "$PDB_FILE" \
+		> "$tmp_atom_coords"
         else
             echo "$SYNTAX_MSG" >&2
             echo "-----------------------" >&2
@@ -681,6 +707,7 @@ fi
 
 
 
+
 OUT_FILE_INPUT_SCRIPT="${OUT_FILE_BASE}.in"
 OUT_FILE_INIT="${OUT_FILE_BASE}.in.init"
 OUT_FILE_SETTINGS="${OUT_FILE_BASE}.in.settings"
@@ -701,15 +728,13 @@ rm -f "$OUT_FILE_INPUT_SCRIPT" "$OUT_FILE_INIT" "$OUT_FILE_SETTINGS" "$OUT_FILE_
 
 
 
-
 # If checking is not disabled, then first check for common spelling errors.
 
 if [ -n "$LTTREE_CHECK_COMMAND" ]; then
-    if ! eval $LTTREE_CHECK_COMMAND $TTREE_ARGS; then
+    if ! eval $LTTREE_CHECK_COMMAND $TTREE_ARGS $LTTREE_CHECK_ARGS; then
         exit 1
     fi
 fi
-
 
 #   --- Run ttree. ---
 #
@@ -926,11 +951,12 @@ fi
 
 
 
-
+FILE_angles_by_type1=""
+FILE_angles_by_type2=""
 #for FILE in "$data_angles_by_type"*.template; do
 IFS_BACKUP="$IFS"
 IFS=$(echo -en "\n\b")
-for FILE in `ls -v "$data_angles_by_type"*.template`; do
+for FILE in `ls -v "$data_angles_by_type"*.template 2> /dev/null`; do
 
     if [ ! -s "$FILE" ] || [ ! -s "$data_bonds" ]; then
         break;  # This handles with the special cases that occur when
@@ -963,6 +989,9 @@ for FILE in `ls -v "$data_angles_by_type"*.template`; do
         #     exit 4
         # fi
     fi
+
+    FILE_angles_by_type2="$FILE_angles_by_type1"
+    FILE_angles_by_type1="$FILE"
 
     #-- Generate a file containing the list of interactions on separate lines --
     if ! $PYTHON_COMMAND "${PY_SCR_DIR}/nbody_by_type.py" \
@@ -1033,7 +1062,7 @@ FILE_dihedrals_by_type2=""
 #for FILE in "$data_dihedrals_by_type"*.template; do
 IFS_BACKUP="$IFS"
 IFS=$(echo -en "\n\b")
-for FILE in `ls -v "$data_dihedrals_by_type"*.template`; do
+for FILE in `ls -v "$data_dihedrals_by_type"*.template 2> /dev/null`; do
 
     if [ ! -s "$FILE" ] || [ ! -s "$data_bonds" ]; then
         break;  # This handles with the special cases that occur when
@@ -1067,7 +1096,7 @@ for FILE in `ls -v "$data_dihedrals_by_type"*.template`; do
         # fi
     fi
 
-    FILE_dihedrals_by_type2="$FILE_impropers_by_type1"
+    FILE_dihedrals_by_type2="$FILE_dihedrals_by_type1"
     FILE_dihedrals_by_type1="$FILE"
 
     #-- Generate a file containing the list of interactions on separate lines --
@@ -1138,7 +1167,7 @@ FILE_impropers_by_type2=""
 #for FILE in "$data_impropers_by_type"*.template; do
 IFS_BACKUP="$IFS"
 IFS=$(echo -en "\n\b")
-for FILE in `ls -v "$data_impropers_by_type"*.template`; do
+for FILE in `ls -v "$data_impropers_by_type"*.template 2> /dev/null`; do
 
     if [ ! -s "$FILE" ] || [ ! -s "$data_bonds" ]; then
         break;  # This handles with the special cases that occur when
@@ -1234,6 +1263,39 @@ done
 IFS="$IFS_BACKUP"
 
 
+
+
+
+
+# Deal with wildcard characters ('*', '?') in "_coeff" commands
+# appearing in any LAMMPS input scripts generated by moltemplate.
+# Replace them with explicit variable names.  Do this before rendering
+#if [ -s "${in_settings}.template" ]; then
+echo "expanding wildcards in \"_coeff\" commands" >&2
+#ls "${in_prefix}"*.template 2> /dev/null | while read file_name; do
+for file_name in "${in_prefix}"*.template; do
+
+    # invoking "postprocess_coeffs.py" can be very slow, so only do it if the
+    # file contains both _coeff commands and wildcards *,? on the same line:
+    if ! awk '{if (match($1,/'_coeff/') && match($0,/'[*,?]/')) exit 1}' < "$file_name"; then
+
+	echo "expanding wildcards in \"_coeff\" commands in \"$file_name\"" >&2
+	if ! eval $PYTHON_COMMAND "${PY_SCR_DIR}/postprocess_coeffs.py" ttree_assignments.txt < "$file_name" > "${file_name}.tmp"; then
+            ERR_INTERNAL
+	fi
+
+        mv -f "${file_name}.tmp" "$file_name"
+	# Now reassign integers to these variables
+	bn=`basename "$file_name" .template`
+	if ! $PYTHON_COMMAND "${PY_SCR_DIR}/ttree_render.py" \
+	     ttree_assignments.txt \
+	     < "$file_name" \
+	     > "$bn"; then
+	    exit 6
+	fi
+    fi
+done
+#fi
 
 
 
@@ -1335,7 +1397,32 @@ if [ -s "${data_angles}" ]; then
         ERR_INTERNAL
     fi
     mv -f "${data_angles}.tmp" "${data_angles}"
+
+    if  [ ! -z $FILE_angles_by_type2 ]; then
+	MSG_MULTIPLE_ANGLE_RULES=$(cat <<EOF
+#############################################################################
+WARNING:
+  It appears as though multiple conflicting rules were used to generate
+ANGLE interactions.  (This can occur when combining molecules built with
+different force-field rules).  In your case, you are using rules defined here:
+   "$FILE_angles_by_type2"
+   "$FILE_angles_by_type1"
+   (Files ending in .py are located here:
+    $PY_SCR_DIR/nbody_alt_symmetry/)
+If the molecules built using these two different force-field settings are not
+connected, AND if you do NOT override force-field angles with explicitly
+defined angles, then you can probably ignore this warning message.  Otherwise
+please check the list of angle interactions to make sure they are correct!
+(It might help to build a much smaller system using the same molecule types.)
+#############################################################################
+
+EOF
+)
+	echo "$MSG_MULTIPLE_ANGLE_RULES" >&2
+    fi
 fi
+
+
 
 
 if [ -s "${data_dihedrals}" ]; then
@@ -1460,7 +1547,6 @@ fi
 
 
 
-
 # ------------------ Charge By Bond ----------------------
 # Assign atom partial charges according to who they are bonded to
 
@@ -1508,7 +1594,6 @@ fi
 
 
 
-
 # -------------------------------------------------------
 
 rm -f "$OUT_FILE_DATA"
@@ -1528,6 +1613,9 @@ NIMPROPERS="0"
 if [ -s "${data_atoms}" ]; then
   NATOMS=`awk 'END{print NR}' < "${data_atoms}"`
 fi
+if [ -s "${data_ellipsoids}" ]; then
+  NELLIPSOIDS=`awk 'END{print NR}' < "${data_ellipsoids}"`
+fi
 if [ -s "${data_bonds}" ]; then
   NBONDS=`awk 'END{print NR}' < "${data_bonds}"`
 fi
@@ -1545,6 +1633,9 @@ fi
 echo "LAMMPS Description" > "$OUT_FILE_DATA"
 echo "" >> "$OUT_FILE_DATA"
 echo "     $NATOMS  atoms" >> "$OUT_FILE_DATA"
+if [ -n "$NELLIPSOIDS" ]; then
+    echo "     $NATOMS  ellipsoids" >> "$OUT_FILE_DATA"
+fi
 if [ -n "$NBONDS" ]; then
     echo "     $NBONDS  bonds" >> "$OUT_FILE_DATA"
 fi
@@ -1716,6 +1807,9 @@ fi
 echo "" >> "$OUT_FILE_DATA"
 
 
+
+
+
 if [ -s "$data_masses" ]; then
     echo "Masses" >> "$OUT_FILE_DATA"
     echo "" >> "$OUT_FILE_DATA"
@@ -1744,6 +1838,7 @@ if [ -n "$PAIR_COEFFS_IN_DATA" ]; then
         echo "WARNING: no pair coeffs have been set!" >&2
     fi
 fi
+
 
 
 if [ -s "$data_bond_coeffs" ]; then
@@ -1992,7 +2087,7 @@ if [ -s "$tmp_atom_coords" ]; then
 
     # Copy the coordinates in $tmp_atom_coords into $OUT_FILE_DATA
     rm -f "$OUT_FILE_COORDS"
-    if ! eval $PYTHON_COMMAND "${PY_SCR_DIR}/raw2data.py" $ATOM_STYLE_ARG "$OUT_FILE_DATA" < "$tmp_atom_coords" > "$OUT_FILE_COORDS"; then
+    if ! eval $PYTHON_COMMAND "${PY_SCR_DIR}/raw2data.py -ignore-atom-id " $ATOM_STYLE_ARG "$OUT_FILE_DATA" < "$tmp_atom_coords" > "$OUT_FILE_COORDS"; then
         ERR_INTERNAL
     fi
     mv -f "$OUT_FILE_COORDS" "$OUT_FILE_DATA"
@@ -2019,6 +2114,7 @@ else
 #    echo "         Hopefully you used rot(), trans() lttree commands to move" >&2
 #    echo "         molecules to non-overlapping positions." >&2
 fi
+
 
 
 
@@ -2058,11 +2154,13 @@ IFS=$OIFS
 
 
 
+
 # ############## DEAL WITH CUSTOM NON-STANDARD SECTIONS ################
 
 
 # N_data_prefix=`expr length "$data_prefix"` <-- not posix compliant. AVOID
 N_data_prefix=${#data_prefix}  #<-- works even if $data_prefix contains spaces
+#for file_name in "${data_prefix}"*; do
 ls "${data_prefix}"* 2> /dev/null | while read file_name; do
     #If using bash:
     #SECTION_NAME="${file_name:$N_data_prefix}"
@@ -2080,6 +2178,7 @@ ls "${data_prefix}"* 2> /dev/null | while read file_name; do
     mv -f "$file_name" output_ttree/
 done
 
+					  
 
 if [ -e "$data_prefix_no_space" ]; then
     echo "" >> "$OUT_FILE_DATA"
@@ -2098,33 +2197,37 @@ if [ -e "$OUT_FILE_DATA" ]; then
 fi
 
 
+
+
+
 #N_in_prefix=`expr length "$in_prefix"` <-- not posix compliant. AVOID.
 N_in_prefix=${#in_prefix}  #<-- works even if $in_prefix contains spaces
+#for file_name in "${in_prefix}"*; do
 ls "${in_prefix}"* 2> /dev/null | while read file_name; do
     #If using bash:
     #SECTION_NAME="${file_name:$N_in_prefix}"
     #If using sh:
     #SECTION_NAME=`expr substr "$file_name" $(($N_in_prefix+1)) 1000000` <-- not posix compliant. AVOID
     SECTION_NAME=`echo "" | awk "END{print substr(\"$file_name\",$((N_in_prefix+1)),1000000)}"`
-    FILE_SUFFIX=`echo "$SECTION_NAME" | awk '{print tolower($0)}'`
+    #FILE_SUFFIX=`echo "$SECTION_NAME" | awk '{print tolower($0)}'`
+    FILE_SUFFIX=`echo "$SECTION_NAME" | awk '{print tolower($0)}'|sed 's/ /./g'`
     # Create a new section in the lammps input script
     # matching the portion of the name of
     # the file after the in_prefix.
-    echo "" >> $OUT_FILE_INPUT_SCRIPT
+    echo "" >> "$OUT_FILE_INPUT_SCRIPT"
     echo "# ----------------- $SECTION_NAME Section -----------------" >> $OUT_FILE_INPUT_SCRIPT
-    cp -f "$file_name" ${OUT_FILE_INPUT_SCRIPT}.${FILE_SUFFIX}
+    cp -f "$file_name" "${OUT_FILE_INPUT_SCRIPT}.${FILE_SUFFIX}"
 
-    echo "" >> $OUT_FILE_INPUT_SCRIPT
+    echo "" >> "$OUT_FILE_INPUT_SCRIPT"
     echo "include \"${OUT_FILE_INPUT_SCRIPT}.${FILE_SUFFIX}\"" >> $OUT_FILE_INPUT_SCRIPT
-    echo "" >> $OUT_FILE_INPUT_SCRIPT
-
+    echo "" >> "$OUT_FILE_INPUT_SCRIPT"
     mv -f "$file_name" output_ttree/
 done
 
 if [ -e "$in_prefix_no_space" ]; then
-    echo "" >> $OUT_FILE_INPUT_SCRIPT
-    cat "$in_prefix_no_space" >> $OUT_FILE_INPUT_SCRIPT
-    echo "" >> $OUT_FILE_INPUT_SCRIPT
+    echo "" >> "$OUT_FILE_INPUT_SCRIPT"
+    cat "$in_prefix_no_space" >> "$OUT_FILE_INPUT_SCRIPT"
+    echo "" >> "$OUT_FILE_INPUT_SCRIPT"
     mv -f "$in_prefix_no_space" output_ttree/
 fi
 
@@ -2145,6 +2248,7 @@ for file_name in "$OUT_FILE_INIT" "$OUT_FILE_INPUT_SCRIPT" "$OUT_FILE_SETTINGS";
             ERR_INTERNAL
         fi
         echo "" >&2
+
         mv -f "$file_name.tmp" "$file_name"
         #cat "$file_name" >> input_scripts_so_far.tmp
         #dos2unix < "$file_name" >> input_scripts_so_far.tmp
@@ -2174,17 +2278,29 @@ for file_name in "$OUT_FILE_INIT" "$OUT_FILE_INPUT_SCRIPT" "$OUT_FILE_SETTINGS";
 done
 
 
-ls "${in_prefix}"* 2> /dev/null | while read file_name; do
+# Process any custom input script files created by the user afterwards
+#ls "${OUT_FILE_INPUT_SCRIPT}"* 2> /dev/null | while read file_name; do
+for file_name in "${OUT_FILE_INPUT_SCRIPT}."*; do
+    if [ "$file_name" = "$OUT_FILE_INIT" ] || [ $file_name = "$OUT_FILE_INPUT_SCRIPT" ] || [ $file_name = "$OUT_FILE_SETTINGS" ]; then
+        continue
+    fi
+    if [[ "$file_name" == *.tmp ]]; then
+	continue
+    fi
+    if [[ "$file_name" == *.template ]]; then
+	continue
+    fi
     echo "postprocessing file \"$file_name\"" >&2
-    if ! $PYTHON_COMMAND "${PY_SCR_DIR}/postprocess_input_script.py" input_scripts_so_far.tmp < "$file_name" > "$file_name".tmp; then
+    if ! $PYTHON_COMMAND "${PY_SCR_DIR}/postprocess_input_script.py" input_scripts_so_far.tmp < "$file_name" > "$file_name.tmp"; then
         ERR_INTERNAL
     fi
     echo "" >&2
-    mv "$file_name".tmp "$file_name"
+    mv "$file_name.tmp" "$file_name"
     cat "$file_name" >> input_scripts_so_far.tmp
 done
 
 rm -f input_scripts_so_far.tmp
+
 
 
 

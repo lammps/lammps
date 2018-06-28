@@ -1,5 +1,5 @@
 This example is a simple simulation of many long alkane chains (hexadecane) in a
-box at room temperature and atmospheric pressure.  Please read "WARNING.TXT".
+box near the boiling point atmospheric pressure.  Please read "WARNING.TXT".
 
 NOTE: This particular example uses the OPLSAA force-field
       However, moltemplate is not limited to OPLSAA.
@@ -12,7 +12,6 @@ moltemplate.sh system.lt
 
 2) Run LAMMPS in this order:
 
-lmp_mpi -i run.in.min   # minimize the energy (to avoid atom overlap) before...
 lmp_mpi -i run.in.npt   # running the simulation at constant pressure
 lmp_mpi -i run.in.nvt   # running the simulation at constant temperature
 

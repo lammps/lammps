@@ -704,8 +704,7 @@ if(PKG_GPU)
       endif()
       option(CUDPP_OPT "Enable CUDPP_OPT" ON)
 
-      set(GPU_ARCH "sm_30" CACHE STRING "LAMMPS GPU CUDA SM architecture")
-      set_property(CACHE GPU_ARCH PROPERTY STRINGS sm_10 sm_20 sm_30 sm_60)
+      set(GPU_ARCH "sm_30" CACHE STRING "LAMMPS GPU CUDA SM architecture (e.g.  sm_60)")
 
       file(GLOB GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cu ${CMAKE_CURRENT_SOURCE_DIR}/gpu/*.cu)
       list(REMOVE_ITEM GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_pppm.cu)

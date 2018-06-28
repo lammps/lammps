@@ -45,14 +45,10 @@ function(FindStyleHeadersExt path style_class extension headers sources)
 endfunction(FindStyleHeadersExt)
 
 function(CreateStyleHeader path filename)
-    math(EXPR N "${ARGC}-2")
-
     set(temp "")
-    if(N GREATER 0)
-        math(EXPR ARG_END   "${ARGC}-1")
- 
-        foreach(IDX RANGE 2 ${ARG_END})
-            list(GET ARGV ${IDX} FNAME)
+    if(ARGC GREATER 2)
+        list(REMOVE_AT ARGV 0 1)
+        foreach(FNAME ${ARGV})
             get_filename_component(FNAME ${FNAME} NAME)
             set(temp "${temp}#include \"${FNAME}\"\n")
         endforeach()

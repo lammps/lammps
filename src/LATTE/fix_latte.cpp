@@ -37,11 +37,18 @@ using namespace FixConst;
 extern "C" {
   void latte(int *, int *, double *, int *, int *,
              double *, double *, double *, double *,
-             double *, double *, double *, int*,
-             double *, double *, double *, double *, bool *);
+             double *, double *, double *, int *,
+             double *, double *, double *, double *, int * , bool *);
   int latte_abiversion();
 }
 
+// the ABIVERSION number here must be kept consistent
+// with its counterpart in the LATTE library and the
+// prototype above. We want to catch mismatches with
+// a meaningful error messages, as they can cause
+// difficult to debug crashes or memory corruption.
+
+#define ABIVERSION 20180622
 #define INVOKED_PERATOM 8
 
 /* ---------------------------------------------------------------------- */
@@ -55,7 +62,7 @@ FixLatte::FixLatte(LAMMPS *lmp, int narg, char **arg) :
   if (comm->nprocs != 1)
     error->all(FLERR,"Fix latte currently runs only in serial");
 
-  if (20180207 != latte_abiversion())
+  if (latte_abiversion() != ABIVERSION)
     error->all(FLERR,"LAMMPS is linked against incompatible LATTE library");
 
   if (narg != 4) error->all(FLERR,"Illegal fix latte command");
@@ -191,14 +198,18 @@ void FixLatte::init_list(int id, NeighList *ptr)
 
 void FixLatte::setup(int vflag)
 {
+  newsystem = 1;
   post_force(vflag);
+  newsystem = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixLatte::min_setup(int vflag)
 {
+  newsystem = 1;
   post_force(vflag);
+  newsystem = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -288,10 +299,10 @@ void FixLatte::post_force(int vflag)
   if (coulomb) forces = &flatte[0][0];
   else forces = &atom->f[0][0];
   int maxiter = -1;
-
+  
   latte(flags,&natoms,coords,type,&ntypes,mass,boxlo,boxhi,&domain->xy,
         &domain->xz,&domain->yz,forces,&maxiter,&latte_energy,
-        &atom->v[0][0],&update->dt,virial,&latteerror);
+        &atom->v[0][0],&update->dt,virial,&newsystem,&latteerror);
 
   if (latteerror) error->all(FLERR,"Internal LATTE problem");
 

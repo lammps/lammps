@@ -55,7 +55,7 @@ endif
 PACKAGE = asphere body class2 colloid compress coreshell dipole gpu \
 	  granular kim kokkos kspace latte manybody mc meam misc \
 	  molecule mpiio mscg opt peri poems \
-	  python qeq reax replica rigid shock snap srd voronoi
+	  python qeq reax replica rigid shock snap spin srd voronoi
 
 PACKUSER = user-atc user-awpmd user-bocs user-cgdna user-cgsdk user-colvars \
 	   user-diffraction user-dpd user-drude user-eff user-fep user-h5md \

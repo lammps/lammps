@@ -15,7 +15,7 @@ atom_style style args :pre
 style = {angle} or {atomic} or {body} or {bond} or {charge} or {dipole} or \
         {dpd} or {edpd} or {mdpd} or {tdpd} or {electron} or {ellipsoid} or \
         {full} or {line} or {meso} or {molecular} or {peri} or {smd} or \
-        {sphere} or {tri} or {template} or {hybrid} :ulb,l
+        {sphere} or {tri} or {template} or {hybrid} or {spin} :ulb,l
   args = none for any style except the following
     {body} args = bstyle bstyle-args
       bstyle = style of body particles
@@ -38,6 +38,7 @@ atom_style full
 atom_style body nparticle 2 10
 atom_style hybrid charge bond
 atom_style hybrid charge body nparticle 2 5
+atom_style spin
 atom_style template myMols 
 atom_style tdpd 2 :pre
 
@@ -89,6 +90,7 @@ quantities.
 {peri} | mass, volume | mesocopic Peridynamic models |
 {smd} | volume, kernel diameter, contact radius, mass | solid and fluid SPH particles |
 {sphere} | diameter, mass, angular velocity | granular models |
+{spin} | magnetic moment | system with magnetic particles |
 {template} | template index, template atom | small molecules with fixed topology |
 {tri} | corner points, angular momentum | rigid bodies |
 {wavepacket} | charge, spin, eradius, etag, cs_re, cs_im | AWPMD :tb(c=3,s=|)
@@ -174,6 +176,9 @@ store the mass and volume of an integration point, a kernel diameter
 used for calculating the field variables (e.g. stress and deformation)
 and a contact radius for calculating repulsive forces which prevent
 individual physical bodies from penetrating each other.
+
+For the {spin} style, a magnetic spin is associated to each atom.
+Those spins have a norm (their magnetic moment) and a direction.
 
 The {wavepacket} style is similar to {electron}, but the electrons may
 consist of several Gaussian wave packets, summed up with coefficients
@@ -311,6 +316,8 @@ dynamics (tDPD), respectively.
 The {meso} style is part of the USER-SPH package for smoothed particle
 hydrodynamics (SPH).  See "this PDF
 guide"_USER/sph/SPH_LAMMPS_userguide.pdf to using SPH in LAMMPS.
+
+The {spin} style is part of the SPIN package.
 
 The {wavepacket} style is part of the USER-AWPMD package for the
 "antisymmetrized wave packet MD method"_pair_awpmd.html.

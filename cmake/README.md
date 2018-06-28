@@ -22,6 +22,7 @@ tasks, act as a reference and provide examples of typical use cases.
    * [Building LAMMPS using cmake](#building-lammps-using-cmake-1)
       * [Prerequisites](#prerequisites)
       * [Build directory vs. Source Directory](#build-directory-vs-source-directory)
+   * [Defining and using presets](#defining-and-using-presets)
    * [Reference](#reference)
       * [Common CMAKE Configuration Options](#common-cmake-configuration-options)
       * [LAMMPS Configuration Options](#lammps-configuration-options)
@@ -149,6 +150,30 @@ build directory.
 
 ```
 make
+```
+# Defining and using presets
+
+The CMake build exposes a lot of different options. In the old build system
+some of the package selections were possible by using special make target like
+`make yes-std` or `make no-lib`. Achieving the same result with cmake requires
+specifying all options manually. This can quickly become a very long command
+line that is hard to handle.  While these could be stored in a simple script
+file, there is another way of defining "presets" to compile LAMMPS in a certain
+way.
+
+A preset is a regular CMake script file that can use constructs such as
+variables, lists and for-loops to manipulate configuration options. Options
+must be set with the `CACHE` and `FORCE` flag to ensure they are considered.
+
+Such a file can then be passed to cmake via the `-C` flag to initialize the
+cache. Several examples of such presets can be found in the `cmake/presets`
+folder.
+
+```bash
+# build LAMMPS with all "standard" packages which don't use libraries and enable GPU package
+mkdir build
+cd build
+cmake -C ../cmake/presets/std_nolib.cmake ../cmake -DPKG_GPU=on
 ```
 
 # Reference
@@ -374,16 +399,6 @@ make
 </tr>
 </thead>
 <tbody>
-<tr>
-  <td><code>ENABLE_ALL</code></td>
-  <td>Enable all default packages</td>
-  <td>
-  <dl>
-    <dt><code>off</code> (default)</dt>
-    <dt><code>on</code></dt>
-  </dl>
-  </td>
-</tr>
 <tr>
   <td><code>PKG_ASPHERE</code></td>
   <td>Computes, time-integration fixes, and pair styles for aspherical particle models including ellipsoids, 2d lines, and 3d triangles.</td>

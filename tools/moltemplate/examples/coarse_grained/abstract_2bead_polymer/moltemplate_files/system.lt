@@ -1,0 +1,29 @@
+import "polymer.lt"
+
+
+# Specify the periodic boundary conditions:
+write_once("Data Boundary") {
+  0 90.0 xlo xhi
+  0 90.0 ylo yhi
+  0 90.0 zlo zhi
+}
+
+# Create 27 polymers in a rectangular grid
+
+polymers = new Polymer [3].move(0, 0, 30.0)
+                       [3].move(0, 30.0, 0)
+                       [3].move(30.0, 0, 0)
+
+
+
+# ------------ Optional: ------------
+# Now (for fun) shift some of the polymers 
+# in the x direction by a distance of 20.0
+# Suppose we want to move the middle slice
+# (which has constant Z).  We do that this way:
+# polymers[1][*][*].move(20,0,0)
+# more examples:
+# polymers[*][1][*].move(0,0,20)
+# polymers[*][*][1].move(0,20,0)
+
+

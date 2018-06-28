@@ -27,7 +27,7 @@ include         system.in.settings
 # Note: The minimization step is not necessary in this example.  However
 #       in general, it's always a good idea to minimize the system beforehand.
 # fSHAKE was defined in system.in.settings. It is incompatible with "minimize".
-unfix         fSHAKE
+unfix         fShakeSPCE
 minimize 1.0e-5 1.0e-7 100000 400000
 # Now read "system.in.settings" in order to redefine fSHAKE again:
 include       system.in.settings

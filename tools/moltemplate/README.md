@@ -1,9 +1,11 @@
+[![Build Status](https://travis-ci.org/jewettaij/moltemplate.svg?branch=master)](https://travis-ci.org/jewettaij/moltemplate.svg?branch=master)
+
 Moltemplate
 ===========
 
 ##  Description
 
-Moltemplate is a cross-platform text-based molecule builder for LAMMPS.
+Moltemplate is a *general* cross-platform text-based molecule builder for **LAMMPS** and **ESPResSo**.  Moltemplate was intended for building custom coarse-grained molecular models, but it can be used to prepare realistic all-atom simulations as well.  It currently supports the **OPLS**, **COMPASS**, **AMBER**(GAFF,GAFF2), **MARTINI**, **SDK**, **LOPLS**(2015), and **TraPPE**(1998) force fields, and includes approximately 40 examples.  (New force fields and examples are added continually by users.)
 
 ## Typical usage
 
@@ -45,7 +47,7 @@ Make sure that your default pip install bin directory is in your PATH.  (This is
 
     pip uninstall moltemplate
 
-If you continue to run into difficulty, try installing moltemplate into a temporary virtual environment by installing "virtualenv", downloading moltemplate (to "~/moltemplate" in the example below), and running these commands:
+If you continue to run into difficulty, try installing moltemplate into a temporary virtual environment by installing "*virtualenv*", downloading moltemplate (to "~/moltemplate" in the example below), and running these commands:
 
     cd ~/moltemplate
     virtualenv venv
@@ -53,7 +55,9 @@ If you continue to run into difficulty, try installing moltemplate into a tempor
     pip install .
     #(now do something useful with moltemplate...)
 
-(You will have to "run source ~/moltemplate/venv/bin/activate" beforehand every time you want to run moltemplate.)  If all this fails, then try installing moltemplate by manually updating your \$PATH environment variable.  Instructions for doing that are included below.
+(You will have to "run source ~/moltemplate/venv/bin/activate" beforehand every time you want to run moltemplate.
+The *virtualenv* tool is
+[explained in detail here](http://docs.python-guide.org/en/latest/dev/virtualenvs/))  If all this fails, then try installing moltemplate by manually updating your \$PATH environment variable.  Instructions for doing that are included below.
 
 ## Manual installation:
 

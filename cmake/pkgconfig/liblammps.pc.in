@@ -13,6 +13,6 @@ Description: Large-scale Atomic/Molecular Massively Parallel Simulator Library
 URL: http://lammps.sandia.gov
 Version:
 Requires:
-Libs: -L${libdir} -llammps@LAMMPS_MACHINE@
+Libs: -L${libdir} -llammps@LIB_SUFFIX@@
 Libs.private: -lm
 Cflags: -I${includedir} @LAMMPS_API_DEFINES@

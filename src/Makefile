@@ -18,7 +18,7 @@ OBJDIR =   Obj_$@
 OBJSHDIR = Obj_shared_$@
 
 SRC =	$(wildcard *.cpp)
-INC =	$(wildcard *.h)
+INC =	$(filter-out lmpinstalledpkgs.h,$(wildcard *.h))
 OBJ = 	$(SRC:.cpp=.o)
 
 SRCLIB = $(filter-out main.cpp,$(SRC))
@@ -150,6 +150,21 @@ help:
 	  for file in $$files; do head -1 $$file; done
 	@echo ''
 
+
+lmpinstalledpkgs.h: $(SRC) $(INC)
+	@echo 'Gathering installed package information (may take a little while)'
+	@echo '#ifndef LMP_INSTALLED_PKGS_H' >  lmpinstalledpkgs.tmp
+	@echo '#define LMP_INSTALLED_PKGS_H' >> lmpinstalledpkgs.tmp
+	@echo 'const char * LAMMPS_NS::LAMMPS::installed_packages[] = {' >> lmpinstalledpkgs.tmp
+	@for p in $(PACKAGEUC) $(PACKUSERUC); do info=$$($(SHELL) Package.sh $$p installed); \
+             [ -n "$$info" ] && echo "\"$$info\"" | sed -e 's/".*package \(.*\)"/"\1",/' >> lmpinstalledpkgs.tmp || :; done
+	@echo ' NULL };' >> lmpinstalledpkgs.tmp
+	@echo '#endif' >> lmpinstalledpkgs.tmp
+	@if [ -f lmpinstalledpkgs.h ]; \
+          then test "`diff --brief lmpinstalledpkgs.tmp lmpinstalledpkgs.h`" != "" && \
+	        mv lmpinstalledpkgs.tmp lmpinstalledpkgs.h || rm lmpinstalledpkgs.tmp ; \
+        else mv lmpinstalledpkgs.tmp lmpinstalledpkgs.h ; fi
+
 # Build LAMMPS in one of 4 modes
 # exe =   exe with static compile in Obj_machine (default)
 # shexe = exe with shared compile in Obj_shared_machine
@@ -163,6 +178,8 @@ help:
 	  -f MAKE/MACHINES/Makefile.$@ -o -f MAKE/MINE/Makefile.$@
 	@if [ ! -d $(objdir) ]; then mkdir $(objdir); fi
 	@$(SHELL) Make.sh style
+	@$(MAKE) $(MFLAGS) lmpinstalledpkgs.h
+	@echo 'Compiling LAMMPS for machine $@'
 	@if [ -f MAKE/MACHINES/Makefile.$@ ]; \
 	  then cp MAKE/MACHINES/Makefile.$@ $(objdir)/Makefile; fi
 	@if [ -f MAKE/OPTIONS/Makefile.$@ ]; \

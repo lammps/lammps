@@ -941,7 +941,7 @@ endforeach()
 string(TOUPPER "${CMAKE_BUILD_TYPE}" BTYPE)
 get_directory_property(CPPFLAGS DIRECTORY ${CMAKE_SOURCE_DIR} COMPILE_DEFINITIONS)
 include(FeatureSummary)
-feature_summary(DEFAULT_DESCRIPTION WHAT PACKAGES_FOUND)
+feature_summary(DESCRIPTION "The following packages have been found:" WHAT PACKAGES_FOUND)
 message(STATUS "<<< Build configuration >>>
    Build type       ${CMAKE_BUILD_TYPE}
    Install path     ${CMAKE_INSTALL_PREFIX}

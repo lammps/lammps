@@ -60,10 +60,32 @@ endif()
 ########################################################################
 # User input options                                                   #
 ########################################################################
-option(BUILD_SHARED_LIBS "Build shared libs" OFF)
-if(BUILD_SHARED_LIBS) # for all pkg libs, mpi_stubs and linalg
-  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+option(BUILD_EXE "Build lmp binary" ON)
+if(BUILD_EXE)
+  set(LAMMPS_MACHINE "" CACHE STRING "Suffix to append to lmp binary (WON'T enable any features automatically")
+  mark_as_advanced(LAMMPS_MACHINE)
+  if(LAMMPS_MACHINE)
+    set(LAMMPS_MACHINE "_${LAMMPS_MACHINE}")
+  endif()
 endif()
+
+option(BUILD_LIB "Build LAMMPS library" OFF)
+if(BUILD_LIB)
+  option(BUILD_SHARED_LIBS "Build shared library" OFF)
+  if(BUILD_SHARED_LIBS) # for all pkg libs, mpi_stubs and linalg
+    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+  endif()
+  set(LIB_SUFFIX "" CACHE STRING "Suffix to append to liblammps and pkg-config file")
+  mark_as_advanced(LIB_SUFFIX)
+  if(LIB_SUFFIX)
+    set(LIB_SUFFIX "_${LIB_SUFFIX}")
+  endif()
+endif()
+
+if(NOT BUILD_EXE AND NOT BUILD_LIB)
+  message(FATAL_ERROR "You need to at least enable one of two following options: BUILD_LIB or BUILD_EXE")
+endif()
+
 option(DEVELOPER_MODE "Enable developer mode" OFF)
 mark_as_advanced(DEVELOPER_MODE)
 option(CMAKE_VERBOSE_MAKEFILE "Generate verbose Makefiles" OFF)
@@ -105,12 +127,6 @@ if(LAMMPS_EXCEPTIONS)
   set(LAMMPS_API_DEFINES "${LAMMPS_API_DEFINES} -DLAMMPS_EXCEPTIONS")
 endif()
 
-set(LAMMPS_MACHINE "" CACHE STRING "Suffix to append to lmp binary and liblammps (WON'T enable any features automatically")
-mark_as_advanced(LAMMPS_MACHINE)
-if(LAMMPS_MACHINE)
-  set(LAMMPS_MACHINE "_${LAMMPS_MACHINE}")
-endif()
-
 option(CMAKE_VERBOSE_MAKEFILE "Verbose makefile" OFF)
 
 option(ENABLE_TESTING "Enable testing" OFF)
@@ -118,21 +134,15 @@ if(ENABLE_TESTING)
   enable_testing()
 endif(ENABLE_TESTING)
 
-option(ENABLE_ALL "Build all default packages" OFF)
 set(DEFAULT_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS CORESHELL DIPOLE GRANULAR
-  KSPACE MANYBODY MC MEAM MISC MOLECULE PERI QEQ
-  REAX REPLICA RIGID SHOCK SNAP SPIN SRD)
-set(OTHER_PACKAGES KIM PYTHON MSCG MPIIO VORONOI POEMS LATTE
-  USER-ATC USER-AWPMD USER-BOCS USER-CGDNA USER-MESO
-  USER-CGSDK USER-COLVARS USER-DIFFRACTION USER-DPD USER-DRUDE USER-EFF
-  USER-FEP USER-H5MD USER-LB USER-MANIFOLD USER-MEAMC USER-MGPT USER-MISC
+  KSPACE MANYBODY MC MEAM MISC MOLECULE PERI QEQ REAX REPLICA RIGID SHOCK SPIN SNAP
+  SRD KIM PYTHON MSCG MPIIO VORONOI POEMS LATTE USER-ATC USER-AWPMD USER-BOCS
+  USER-CGDNA USER-MESO USER-CGSDK USER-COLVARS USER-DIFFRACTION USER-DPD USER-DRUDE
+  USER-EFF USER-FEP USER-H5MD USER-LB USER-MANIFOLD USER-MEAMC USER-MGPT USER-MISC
   USER-MOFFF USER-MOLFILE USER-NETCDF USER-PHONON USER-QTB USER-REAXC USER-SMD
   USER-SMTBQ USER-SPH USER-TALLY USER-UEF USER-VTK USER-QUIP USER-QMMM)
 set(ACCEL_PACKAGES USER-OMP KOKKOS OPT USER-INTEL GPU)
-foreach(PKG ${DEFAULT_PACKAGES})
-  option(PKG_${PKG} "Build ${PKG} Package" ${ENABLE_ALL})
-endforeach()
-foreach(PKG ${ACCEL_PACKAGES} ${OTHER_PACKAGES})
+foreach(PKG ${DEFAULT_PACKAGES} ${ACCEL_PACKAGES})
   option(PKG_${PKG} "Build ${PKG} Package" OFF)
 endforeach()
 
@@ -216,7 +226,7 @@ if(PKG_PYTHON)
   add_definitions(-DLMP_PYTHON)
   include_directories(${PYTHON_INCLUDE_DIR})
   list(APPEND LAMMPS_LINK_LIBS ${PYTHON_LIBRARY})
-  if(BUILD_SHARED_LIBS)
+  if(BUILD_LIB AND BUILD_SHARED_LIBS)
     if(NOT PYTHON_INSTDIR)
       execute_process(COMMAND ${PYTHON_EXECUTABLE}
         -c "import distutils.sysconfig as cg; print(cg.get_python_lib(1,0,prefix='${CMAKE_INSTALL_PREFIX}'))"
@@ -448,6 +458,9 @@ endforeach(HEADER)
 set(MATH_LIBRARIES "m" CACHE STRING "math library")
 mark_as_advanced( MATH_LIBRARIES )
 include(CheckLibraryExists)
+if (CMAKE_VERSION VERSION_LESS "3.4")
+  enable_language(C) # check_library_exists isn't supported without a c compiler before v3.4
+endif()
 foreach(FUNC sin cos)
   check_library_exists(${MATH_LIBRARIES} ${FUNC} "" FOUND_${FUNC}_${MATH_LIBRARIES})
   if(NOT FOUND_${FUNC}_${MATH_LIBRARIES})
@@ -465,7 +478,7 @@ RegisterStyles(${LAMMPS_SOURCE_DIR})
 ##############################################
 # add sources of enabled packages
 ############################################
-foreach(PKG ${DEFAULT_PACKAGES} ${OTHER_PACKAGES})
+foreach(PKG ${DEFAULT_PACKAGES})
   set(${PKG}_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/${PKG})
 
   file(GLOB ${PKG}_SOURCES ${${PKG}_SOURCES_DIR}/*.cpp)
@@ -628,6 +641,10 @@ if(PKG_USER-INTEL)
         message(FATAL_ERROR "USER-INTEL is needed at least 2016 intel compiler, found ${CMAKE_CXX_COMPILER_VERSION}")
       endif()
     endif()
+    option(INJECT_KNL_FLAG "Inject flags for KNL build" OFF)
+    if(INJECT_KNL_FLAG)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -xMIC-AVX512")
+    endif()
     option(INJECT_INTEL_FLAG "Inject OMG fast flags for USER-INTEL" ON)
     if(INJECT_INTEL_FLAG AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
       if(CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.3 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.4)
@@ -692,8 +709,7 @@ if(PKG_GPU)
       endif()
       option(CUDPP_OPT "Enable CUDPP_OPT" ON)
 
-      set(GPU_ARCH "sm_30" CACHE STRING "LAMMPS GPU CUDA SM architecture")
-      set_property(CACHE GPU_ARCH PROPERTY STRINGS sm_10 sm_20 sm_30 sm_60)
+      set(GPU_ARCH "sm_30" CACHE STRING "LAMMPS GPU CUDA SM architecture (e.g.  sm_60)")
 
       file(GLOB GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cu ${CMAKE_CURRENT_SOURCE_DIR}/gpu/*.cu)
       list(REMOVE_ITEM GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_pppm.cu)
@@ -820,32 +836,46 @@ execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different "${LAMMPS_STYLE_HE
 ###########################################
 # Actually add executable and lib to build
 ############################################
-add_library(lammps ${LIB_SOURCES})
 get_property(LANGUAGES GLOBAL PROPERTY ENABLED_LANGUAGES)
 list (FIND LANGUAGES "Fortran" _index)
 if (${_index} GREATER -1)
   list(APPEND LAMMPS_LINK_LIBS ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
 endif()
 list(REMOVE_DUPLICATES LAMMPS_LINK_LIBS)
-target_link_libraries(lammps ${LAMMPS_LINK_LIBS})
-if(LAMMPS_DEPS)
-  add_dependencies(lammps ${LAMMPS_DEPS})
-endif()
-set_target_properties(lammps PROPERTIES OUTPUT_NAME lammps${LAMMPS_MACHINE})
-if(BUILD_SHARED_LIBS)
-  set_target_properties(lammps PROPERTIES SOVERSION ${SOVERSION})
-  install(TARGETS lammps LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
-  install(FILES ${LAMMPS_SOURCE_DIR}/library.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/lammps)
-  configure_file(pkgconfig/liblammps.pc.in ${CMAKE_CURRENT_BINARY_DIR}/liblammps${LAMMPS_MACHINE}.pc @ONLY)
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/liblammps${LAMMPS_MACHINE}.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+if(BUILD_LIB)
+  add_library(lammps ${LIB_SOURCES})
+  target_link_libraries(lammps ${LAMMPS_LINK_LIBS})
+  if(LAMMPS_DEPS)
+    add_dependencies(lammps ${LAMMPS_DEPS})
+  endif()
+  set_target_properties(lammps PROPERTIES OUTPUT_NAME lammps${LIB_SUFFIX})
+  if(BUILD_SHARED_LIBS)
+    set_target_properties(lammps PROPERTIES SOVERSION ${SOVERSION})
+    install(TARGETS lammps LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    install(FILES ${LAMMPS_SOURCE_DIR}/library.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/lammps)
+    configure_file(pkgconfig/liblammps.pc.in ${CMAKE_CURRENT_BINARY_DIR}/liblammps${LIB_SUFFIX}.pc @ONLY)
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/liblammps${LIB_SUFFIX}.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+  endif()
+else()
+  list(APPEND LMP_SOURCES ${LIB_SOURCES})
 endif()
 
-add_executable(lmp ${LMP_SOURCES})
-target_link_libraries(lmp lammps)
-set_target_properties(lmp PROPERTIES OUTPUT_NAME lmp${LAMMPS_MACHINE})
-install(TARGETS lmp DESTINATION ${CMAKE_INSTALL_BINDIR})
-if(ENABLE_TESTING)
-  add_test(ShowHelp lmp${LAMMPS_MACHINE} -help)
+if(BUILD_EXE)
+  add_executable(lmp ${LMP_SOURCES})
+  if(BUILD_LIB)
+    target_link_libraries(lmp lammps)
+  else()
+    target_link_libraries(lmp ${LAMMPS_LINK_LIBS})
+    if(LAMMPS_DEPS)
+      add_dependencies(lmp ${LAMMPS_DEPS})
+    endif()
+  endif()
+  
+  set_target_properties(lmp PROPERTIES OUTPUT_NAME lmp${LAMMPS_MACHINE})
+  install(TARGETS lmp DESTINATION ${CMAKE_INSTALL_BINDIR})
+  if(ENABLE_TESTING)
+    add_test(ShowHelp lmp${LAMMPS_MACHINE} -help)
+  endif()
 endif()
 
 ###############################################################################
@@ -880,7 +910,7 @@ endif()
 ###############################################################################
 # Print package summary
 ###############################################################################
-foreach(PKG ${DEFAULT_PACKAGES} ${OTHER_PACKAGES} ${ACCEL_PACKAGES})
+foreach(PKG ${DEFAULT_PACKAGES} ${ACCEL_PACKAGES})
   if(PKG_${PKG})
     message(STATUS "Building package: ${PKG}")
   endif()
@@ -889,7 +919,7 @@ endforeach()
 string(TOUPPER "${CMAKE_BUILD_TYPE}" BTYPE)
 get_directory_property(CPPFLAGS DIRECTORY ${CMAKE_SOURCE_DIR} COMPILE_DEFINITIONS)
 include(FeatureSummary)
-feature_summary(INCLUDE_QUIET_PACKAGES WHAT ALL)
+feature_summary(DEFAULT_DESCRIPTION WHAT PACKAGES_FOUND)
 message(STATUS "<<< Build configuration >>>
    Build type       ${CMAKE_BUILD_TYPE}
    Install path     ${CMAKE_INSTALL_PREFIX}
@@ -927,13 +957,17 @@ message(STATUS "Link libraries: ${LAMMPS_LINK_LIBS}")
 if(BUILD_MPI)
   message(STATUS "Using mpi with headers in ${MPI_CXX_INCLUDE_PATH} and ${MPI_CXX_LIBRARIES}")
 endif()
-if(ENABLED_GPU)
+if(PKG_GPU)
   message(STATUS "GPU Api: ${GPU_API}")
   if(GPU_API STREQUAL "CUDA")
     message(STATUS "GPU Arch: ${GPU_ARCH}")
   elseif(GPU_API STREQUAL "OpenCL")
     message(STATUS "OCL Tune: ${OCL_TUNE}")
   endif()
+  message(STATUS "GPU Precision: ${GPU_PREC}")
+endif()
+if(PKG_KOKKOS)
+  message(STATUS "Kokkos Arch: ${KOKKOS_ARCH}")
 endif()
 if(PKG_KSPACE)
   message(STATUS "Using ${FFT} as FFT")

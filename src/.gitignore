@@ -53,6 +53,11 @@
 /colvarproxy_lammps_version.h
 /fix_colvars.cpp
 /fix_colvars.h
+/fix_plumed.cpp
+/fix_plumed.h
+/Plumed.cpp
+/Plumed.h
+/Plumed.inc
 /dump_molfile.cpp
 /dump_molfile.h
 /molfile_interface.cpp

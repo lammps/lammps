@@ -13,22 +13,22 @@ Explanation:
 
 Usage:
 
-   genpoly_lt.py  \\
-      [-bond btype a1 a2] \\
-      [-helix deltaphi] \\
-      [-axis x,y,z] \\
-      [-circular yes/no/connected] \\
+   genpoly_lt.py  \
+      [-bond btype a1 a2] \
+      [-helix deltaphi] \
+      [-axis x,y,z] \
+      [-circular yes/no/connected] \
       [-dir-indices ia ib] \
-      [-angle    atype a1 a2 a3 i1 i2 i3] \\
-      [-dihedral dtype a1 a2 a3 a4 i1 i2 i3 i4] \\
-      [-improper itype a1 a2 a3 a4 i1 i2 i3 i4] \\
-      [-monomer-name mname] \\
-      [-sequence sequence.txt] \\
-      [-polymer-name pname] \\
-      [-inherits ForceFieldObject] \\
-      [-header "import \"monomer.lt\""] \\
-      [-cuts cuts.txt] \\
-      [-box paddingX,paddingY,paddingZ] \\
+      [-angle    atype a1 a2 a3 i1 i2 i3] \
+      [-dihedral dtype a1 a2 a3 a4 i1 i2 i3 i4] \
+      [-improper itype a1 a2 a3 a4 i1 i2 i3 i4] \
+      [-monomer-name mname] \
+      [-sequence sequence.txt] \
+      [-polymer-name pname] \
+      [-inherits ForceFieldObject] \
+      [-header "import monomer.lt"] \
+      [-cuts cuts.txt] \
+      [-box paddingX,paddingY,paddingZ] \
       < coords.raw > polymer.lt
 
 Arguments (optional):

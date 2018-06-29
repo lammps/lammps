@@ -142,6 +142,7 @@ void PairBuckCoulLongIntel::eval(const int offload, const int vflag,
   ATOM_T * _noalias const x = buffers->get_x(offload);
   flt_t * _noalias const q = buffers->get_q(offload);
 
+  const int * _noalias const ilist = list->ilist;
   const int * _noalias const numneigh = list->numneigh;
   const int * _noalias const cnumneigh = buffers->cnumneigh(list);
   const int * _noalias const firstneigh = buffers->firstneigh(list);
@@ -209,6 +210,7 @@ void PairBuckCoulLongIntel::eval(const int offload, const int vflag,
     in(numneigh:length(0) alloc_if(0) free_if(0)) \
     in(x:length(x_size) alloc_if(0) free_if(0)) \
     in(q:length(q_size) alloc_if(0) free_if(0)) \
+    in(ilist:length(0) alloc_if(0) free_if(0)) \
     in(overflow:length(0) alloc_if(0) free_if(0)) \
     in(ccachex,ccachey,ccachez,ccachew:length(0) alloc_if(0) free_if(0)) \
     in(ccachei,ccachej:length(0) alloc_if(0) free_if(0)) \
@@ -255,15 +257,17 @@ void PairBuckCoulLongIntel::eval(const int offload, const int vflag,
       int * _noalias const tj = ccachei + toffs;
       int * _noalias const tjtype = ccachej + toffs;
 
-      for (int i = iifrom; i < iito; i += iip) {
+      for (int ii = iifrom; ii < iito; ii += iip) {
+        const int i = ilist[ii];
         const int itype = x[i].w;
         const int ptr_off = itype * ntypes;
         const C_FORCE_T * _noalias const c_forcei = c_force + ptr_off;
         const C_ENERGY_T * _noalias const c_energyi = c_energy + ptr_off;
         const flt_t * _noalias const rho_invi = rho_inv + ptr_off;
 
-        const int   * _noalias const jlist = firstneigh + cnumneigh[i];
-        const int jnum = numneigh[i];
+        const int   * _noalias const jlist = firstneigh + cnumneigh[ii];
+        int jnum = numneigh[ii];
+        IP_PRE_neighbor_pad(jnum, offload);
 
         acc_t fxtmp,fytmp,fztmp,fwtmp;
         acc_t sevdwl, secoul, sv0, sv1, sv2, sv3, sv4, sv5;

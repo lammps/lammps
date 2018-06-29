@@ -1,6 +1,7 @@
 # -*- coding: iso-8859-1 -*-
-
+### -*- coding: utf-8 -*-
 # Author: Andrew Jewett (jewett.aij at g mail)
+#         http://www.moltemplate.org
 #         http://www.chem.ucsb.edu/~sheagroup
 # License: 3-clause BSD License  (See LICENSE.TXT)
 # Copyright (c) 2012, Regents of the University of California
@@ -43,7 +44,8 @@ __all__ = ["TtreeShlex",
            "SafelyEncodeString",
            "RemoveOuterQuotes",
            "MaxLenStr",
-           "HasWildCard",
+           "HasWildcard",
+           "MatchesPattern",
            #"IsRegex",
            "InputError",
            "ErrorLeader",
@@ -93,6 +95,10 @@ class TtreeShlex(object):
         self.commenters = '#'
         self.wordchars = ('abcdfeghijklmnopqrstuvwxyz'
                           'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_')
+        #if self.posix:
+        #    self.wordchars += ('ßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ'
+        #                       'ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞ')
+
         if self.posix:
             self.wordchars += ('ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½'
                                'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½')
@@ -650,7 +656,7 @@ def MaxLenStr(s1, s2):
 #    """
 #    return (len(pat)>=2) and (pat[0]=='/') and (pat[-1] == '/')
 
-def HasWildCard(pat):
+def HasWildcard(pat):
     """
     Returns true if a string (pat) contains a '*' or '?' character.
 
@@ -658,7 +664,7 @@ def HasWildCard(pat):
     return (pat.find('*') != -1) or (pat.find('?') != -1)
 
 
-# def HasWildCard(pat):
+# def HasWildcard(pat):
 #    """
 #    Returns true if a string (pat) contains a non-backslash-protected
 #    * or ? character.
@@ -693,7 +699,7 @@ def MatchesPattern(s, pattern):
         #        return False
         # new code:
         #    uses precompiled regular expressions (See "pattern.search" below)
-        if HasWildCard(pattern):
+        if HasWildcard(pattern):
             if not fnmatch.fnmatchcase(s, pattern):
                 return False
         elif s != pattern:
@@ -1194,7 +1200,10 @@ def SplitTemplate(ltmpl, delim, delete_blanks=False):
     token_ltmpl = []
     i = 0
     while i < len(ltmpl):
+
         entry = ltmpl[i]
+        #sys.stderr.write('ltmpl['+str(i)+'] = '+str(entry)+'\n')
+
         if isinstance(entry, TextBlock):
             # if hasattr(entry, 'text'):
             prev_src_loc = entry.srcloc

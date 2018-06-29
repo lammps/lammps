@@ -42,7 +42,6 @@
 #include "suffix.h"
 
 #ifdef LMP_USE_AVXCD
-#define OUTER_CHUNK 1
 #include "intel_simd.h"
 using namespace ip_simd;
 #endif
@@ -185,6 +184,7 @@ void PairSWIntel::eval(const int offload, const int vflag,
   IP_PRE_pack_separate_buffers(fix, buffers, ago, offload, nlocal, nall);
 
   ATOM_T * _noalias const x = buffers->get_x(offload);
+  const int * _noalias const ilist = list->ilist;
   const int * _noalias const numneighhalf = buffers->get_atombin();
   const int * _noalias const numneigh = list->numneigh;
   const int * _noalias const cnumneigh = buffers->cnumneigh(list);
@@ -230,6 +230,7 @@ void PairSWIntel::eval(const int offload, const int vflag,
     in(cnumneigh:length(0) alloc_if(0) free_if(0)) \
     in(numneigh:length(0) alloc_if(0) free_if(0)) \
     in(x:length(x_size) alloc_if(0) free_if(0)) \
+    in(ilist:length(0) alloc_if(0) free_if(0)) \
     in(numneighhalf:length(0) alloc_if(0) free_if(0)) \
     in(overflow:length(0) alloc_if(0) free_if(0)) \
     in(ccachex,ccachey,ccachez,ccachew:length(0) alloc_if(0) free_if(0)) \
@@ -298,7 +299,8 @@ void PairSWIntel::eval(const int offload, const int vflag,
         }
       }
 
-      for (int i = iifrom; i < iito; i += iip) {
+      for (int ii = iifrom; ii < iito; ii += iip) {
+        const int i = ilist[ii];
         int itype, itype_offset;
         const flt_t xtmp = x[i].x;
         const flt_t ytmp = x[i].y;
@@ -309,9 +311,9 @@ void PairSWIntel::eval(const int offload, const int vflag,
           itype_offset = itype * ntypes;
         }
 
-        const int * _noalias const jlist = firstneigh + cnumneigh[i];
-        const int jnum = numneigh[i];
-        const int jnumhalf = numneighhalf[i];
+        const int * _noalias const jlist = firstneigh + cnumneigh[ii];
+        const int jnum = numneigh[ii];
+        const int jnumhalf = numneighhalf[ii];
 
         acc_t fxtmp, fytmp, fztmp, fwtmp;
         acc_t sevdwl;
@@ -346,9 +348,13 @@ void PairSWIntel::eval(const int offload, const int vflag,
           }
         }
 
-        int ejrem = ejnum & (pad_width - 1);
-        if (ejrem) ejrem = pad_width - ejrem;
-        const int ejnum_pad = ejnum + ejrem;
+        int ejnum_pad = ejnum;
+        IP_PRE_neighbor_pad(ejnum_pad, offload);
+        #if defined(LMP_SIMD_COMPILER)
+        #pragma vector aligned
+        #pragma loop_count min=1, max=INTEL_COMPILE_WIDTH-1, \
+                avg=INTEL_COMPILE_WIDTH/2
+        #endif
         for (int jj = ejnum; jj < ejnum_pad; jj++) {
           tdelx[jj] = (flt_t)0.0;
           tdely[jj] = (flt_t)0.0;
@@ -594,6 +600,7 @@ void PairSWIntel::eval(const int offload, const int vflag,
   IP_PRE_pack_separate_buffers(fix, buffers, ago, offload, nlocal, nall);
 
   ATOM_T * _noalias const x = buffers->get_x(offload);
+  const int * _noalias const ilist = list->ilist;
   const int * _noalias const numneighhalf = buffers->get_atombin();
   const int * _noalias const numneigh = list->numneigh;
   const int * _noalias const cnumneigh = buffers->cnumneigh(list);
@@ -641,6 +648,7 @@ void PairSWIntel::eval(const int offload, const int vflag,
     in(cnumneigh:length(0) alloc_if(0) free_if(0)) \
     in(numneigh:length(0) alloc_if(0) free_if(0)) \
     in(x:length(x_size) alloc_if(0) free_if(0)) \
+    in(ilist:length(0) alloc_if(0) free_if(0)) \
     in(numneighhalf:length(0) alloc_if(0) free_if(0)) \
     in(overflow:length(0) alloc_if(0) free_if(0)) \
     in(ccachex,ccachey,ccachez,ccachew:length(0) alloc_if(0) free_if(0)) \
@@ -714,24 +722,24 @@ void PairSWIntel::eval(const int offload, const int vflag,
         }
       }
 
-      SIMD_int ilist = SIMD_set(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15);
       const SIMD_int goffset = SIMD_set(0,16,32,48,64,80,96,112,128,
                                         144,160,176,192,208,224,240);
-      ilist = ilist + iifrom;
       acc_t * const dforce = &(f[0].x);
       for (int i = iifrom; i < iito; i += iip) {
-        SIMD_mask imask = ilist < iito;
+        SIMD_int ilistv = SIMD_load(ilist + i);
+        SIMD_int goffset = ilistv * 16;
+        SIMD_mask imask = ilistv < iito;
         SIMD_flt_t xtmp, ytmp, ztmp;
         SIMD_int itype, itype_offset;
 
         if (ONETYPE)
-          SIMD_atom_gather(imask, &(x[i].x), goffset, xtmp, ytmp, ztmp);
+          SIMD_atom_gather(imask, &(x[0].x), goffset, xtmp, ytmp, ztmp);
         else {
-          SIMD_atom_gather(imask, &(x[i].x), goffset, xtmp, ytmp, ztmp, itype);
+          SIMD_atom_gather(imask, &(x[0].x), goffset, xtmp, ytmp, ztmp, itype);
           itype_offset = itype * ntypes;
         }
 
-        #ifdef OUTER_CHUNK
+        #ifdef LMP_INTEL_3BODY_FAST
         const int* ng = firstneigh + cnumneigh[i] - swidth;
         #else
         SIMD_int ng = SIMD_load(cnumneigh + i);
@@ -765,7 +773,7 @@ void PairSWIntel::eval(const int offload, const int vflag,
         for (int jj = 0; jj < jnum_max; jj++) {
           SIMD_mask jmask = jj < jnum;
 
-          #ifdef OUTER_CHUNK
+          #ifdef LMP_INTEL_3BODY_FAST
           ng += swidth;
           SIMD_int j = SIMD_load(ng);
           #else
@@ -1025,15 +1033,15 @@ void PairSWIntel::eval(const int offload, const int vflag,
           }
         } // for jj second loop
 
-        SIMD_iforce_update(imask, &(f[i].x), goffset, fxtmp, fytmp, fztmp,
+        SIMD_iforce_update(imask, &(f[0].x), goffset, fxtmp, fytmp, fztmp,
                            EFLAG, eatom, fwtmp);
         if (is_same<flt_t,acc_t>::value == 0) {
           imask = imask >> 8;
-          SIMD_iforce_update(imask, &(f[i+8].x), goffset, fxtmp2, fytmp2,
+          SIMD_int goffset2 = _mm512_shuffle_i32x4(goffset, goffset, 238);
+          SIMD_iforce_update(imask, &(f[0].x), goffset2, fxtmp2, fytmp2,
                              fztmp2, EFLAG, eatom, fwtmp2);
         }
         if (EFLAG) oevdwl += SIMD_sum(sevdwl);
-        ilist = ilist + iip;
       } // for ii
 
       IP_PRE_fdotr_reduce_omp(1, nall, minlocal, nthreads, f_start, f_stride,

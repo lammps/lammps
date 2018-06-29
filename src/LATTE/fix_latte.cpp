@@ -34,11 +34,6 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-// this constant must remain consistent with the
-// LATTE library and the ABI prototype below
-
-#define LATTE_ABIVERSION 20180622
-
 extern "C" {
   void latte(int *, int *, double *, int *, int *,
              double *, double *, double *, double *,
@@ -47,6 +42,13 @@ extern "C" {
   int latte_abiversion();
 }
 
+// the ABIVERSION number here must be kept consistent
+// with its counterpart in the LATTE library and the
+// prototype above. We want to catch mismatches with
+// a meaningful error messages, as they can cause
+// difficult to debug crashes or memory corruption.
+
+#define ABIVERSION 20180622
 #define INVOKED_PERATOM 8
 
 /* ---------------------------------------------------------------------- */

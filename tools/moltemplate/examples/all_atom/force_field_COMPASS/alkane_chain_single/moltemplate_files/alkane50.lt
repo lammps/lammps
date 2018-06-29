@@ -1,0 +1,137 @@
+# This is a simple example showing how to build a long polymer
+# (in this case, an alkane chain).  I split the
+# hexadecane molecule into individual CH2 and CH3 monomers.
+# I defined it this way so that you can easily modify 
+# it to change the length of the alkane chain.
+
+
+import "ch2group.lt"  # load the definition of the "CH2" object
+import "ch3group.lt"  # load the definition of the "CH3" object
+
+
+
+Alkane50 inherits COMPASS {
+
+
+  create_var {$mol}  # optional:force all monomers to share the same molecule-ID
+
+  # This is a long polymer consisting of 48 CH2 groups and 2 CH3 end-caps.
+  # Rather than create them one-by-one, I decided to create them all
+  # using a single "new" command.  Later, I can modify this array.
+
+  # Create an array of 50 "CH2" objects distributed along the X axis
+
+  monomers = new CH2 [50].rot(180,1,0,0).move(1.2533223,0,0)
+
+  # NOTE: the ".rot(180,1,0,0).move(1.2533223,0,0)" means that each
+  # successive monomer is rotated 180 degrees (with respect to the previous
+  # monomer), and then moved 1.2533223 Angstroms down the X axis.
+  # Alternately, if you are reading the coordinates from a file, you don't have
+  # to indicate the position & orientation of each monomer.  In that case, use:
+  # monomers = new CH2 [50]
+
+
+  # ---- Now, modify the ends: ---
+  # Delete the CH2 groups at the beginning and end, and replace them with CH3.
+
+  delete monomers[0]
+  delete monomers[49]
+
+  monomers[0] = new CH3
+  monomers[49] = new CH3
+
+  # Move the CH3 groups to the correct location at either end of the chain:
+
+  #monomers[0].move(0,0,0)   # <--(this monomer is already in the correct place)
+  monomers[49].rot(180.0,0,0,1).move(61.4127927,0,0)    #61.4127927=49*1.2533223
+
+
+  ## NOTE: Alternately, you can define the polymer without deleting the ends:
+  # monomers[0] = new CH3
+  # monomers[1-48] = new CH2[48].rot(180,1,0,0).move(1.2533223,0,0)
+  ##  Note: monomers[0] and monomers[1] overlap, so we move 1-48 to make room:
+  # monomers[1-48].rot(180,1,0,0).move(1.2533223,0,0)  # move many monomers
+  ##  Now add the final monomer at the end:
+  # monomers[49] = new CH3.rot(180.0,0,0,1).move(61.4127927,0,0)
+  #
+  ## NOTE: Alternately, you can read the coordinates from a file.
+  ##       In that case, you can use simpler commands:
+  # monomers[0] = new CH3
+  # monomers[1-48] = new CH2[48]
+  # monomers[49] = new CH3
+
+
+
+  # Now add a list of bonds connecting the carbon atoms together:
+  # (Angles, dihedrals, impropers will be automatically added later.)
+
+  write('Data Bond List') {
+    $bond:b1  $atom:monomers[0]/C $atom:monomers[1]/C
+    $bond:b2  $atom:monomers[1]/C $atom:monomers[2]/C
+    $bond:b3  $atom:monomers[2]/C $atom:monomers[3]/C
+    $bond:b4  $atom:monomers[3]/C $atom:monomers[4]/C
+    $bond:b5  $atom:monomers[4]/C $atom:monomers[5]/C
+    $bond:b6  $atom:monomers[5]/C $atom:monomers[6]/C
+    $bond:b7  $atom:monomers[6]/C $atom:monomers[7]/C
+    $bond:b8  $atom:monomers[7]/C $atom:monomers[8]/C
+    $bond:b9   $atom:monomers[8]/C $atom:monomers[9]/C
+    $bond:b10  $atom:monomers[9]/C $atom:monomers[10]/C
+    $bond:b11  $atom:monomers[10]/C $atom:monomers[11]/C
+    $bond:b12  $atom:monomers[11]/C $atom:monomers[12]/C
+    $bond:b13  $atom:monomers[12]/C $atom:monomers[13]/C
+    $bond:b14  $atom:monomers[13]/C $atom:monomers[14]/C
+    $bond:b15  $atom:monomers[14]/C $atom:monomers[15]/C
+    $bond:b16  $atom:monomers[15]/C $atom:monomers[16]/C
+    $bond:b17  $atom:monomers[16]/C $atom:monomers[17]/C
+    $bond:b18  $atom:monomers[17]/C $atom:monomers[18]/C
+    $bond:b19  $atom:monomers[18]/C $atom:monomers[19]/C
+    $bond:b20  $atom:monomers[19]/C $atom:monomers[20]/C
+    $bond:b21  $atom:monomers[20]/C $atom:monomers[21]/C
+    $bond:b22  $atom:monomers[21]/C $atom:monomers[22]/C
+    $bond:b23  $atom:monomers[22]/C $atom:monomers[23]/C
+    $bond:b24  $atom:monomers[23]/C $atom:monomers[24]/C
+    $bond:b25  $atom:monomers[24]/C $atom:monomers[25]/C
+    $bond:b26  $atom:monomers[25]/C $atom:monomers[26]/C
+    $bond:b27  $atom:monomers[26]/C $atom:monomers[27]/C
+    $bond:b28  $atom:monomers[27]/C $atom:monomers[28]/C
+    $bond:b29  $atom:monomers[28]/C $atom:monomers[29]/C
+    $bond:b30  $atom:monomers[29]/C $atom:monomers[30]/C
+    $bond:b31  $atom:monomers[30]/C $atom:monomers[31]/C
+    $bond:b32  $atom:monomers[31]/C $atom:monomers[32]/C
+    $bond:b33  $atom:monomers[32]/C $atom:monomers[33]/C
+    $bond:b34  $atom:monomers[33]/C $atom:monomers[34]/C
+    $bond:b35  $atom:monomers[34]/C $atom:monomers[35]/C
+    $bond:b36  $atom:monomers[35]/C $atom:monomers[36]/C
+    $bond:b37  $atom:monomers[36]/C $atom:monomers[37]/C
+    $bond:b38  $atom:monomers[37]/C $atom:monomers[38]/C
+    $bond:b39  $atom:monomers[38]/C $atom:monomers[39]/C
+    $bond:b40  $atom:monomers[39]/C $atom:monomers[40]/C
+    $bond:b41  $atom:monomers[40]/C $atom:monomers[41]/C
+    $bond:b42  $atom:monomers[41]/C $atom:monomers[42]/C
+    $bond:b43  $atom:monomers[42]/C $atom:monomers[43]/C
+    $bond:b44  $atom:monomers[43]/C $atom:monomers[44]/C
+    $bond:b45  $atom:monomers[44]/C $atom:monomers[45]/C
+    $bond:b46  $atom:monomers[45]/C $atom:monomers[46]/C
+    $bond:b47  $atom:monomers[46]/C $atom:monomers[47]/C
+    $bond:b48  $atom:monomers[47]/C $atom:monomers[48]/C
+    $bond:b49  $atom:monomers[48]/C $atom:monomers[49]/C
+  }
+
+} # Alkane50
+
+
+
+
+
+
+
+
+######### (scratchwork calculations for the atomic coordinates) #########
+# Lcc = 1.5350 # length of the C-C bond (Sp3)
+# Lch = 1.0930 # length of the C-H bond
+# theta=2*atan(sqrt(2)) # ~= 109.5 degrees = tetrahedronal angle (C-C-C angle)
+# DeltaXc = Lcc*sin(theta/2)  # = 1.2533222517240594
+# DeltaYc = Lcc*cos(theta/2)  # = 0.8862326632060754
+#                             # 0.5*DeltaYc = 0.4431163316030377
+# DeltaZh = Lch*sin(theta/2)  # = 0.8924307629540046
+# DeltaYh = Lch*cos(theta/2)  # = 0.6310438442242609

@@ -208,6 +208,7 @@ struct IntelKernelTersoff : public lmp_intel::vector_routines<flt_t, acc_t, mic>
       const int * _noalias const cnumneigh,
       const int * _noalias const firstneigh, int ntypes,
       typename IntelBuffers<flt_t,acc_t>::atom_t * _noalias const x,
+      const int * _noalias const ilist,
       const c_inner_t * _noalias const c_inner,
       const c_outer_t * _noalias const c_outer,
       typename IntelBuffers<flt_t,acc_t>::vec3_acc_t * _noalias const f,
@@ -271,6 +272,7 @@ void PairTersoffIntel::eval(const int offload, const int vflag,
   tagint * _noalias tag = this->atom->tag;
   flt_t * _noalias const q = buffers->get_q(offload);
 
+  const int * _noalias const ilist = list->ilist;
   const int * _noalias const numneigh = list->numneigh;
   const int * _noalias const cnumneigh = buffers->cnumneigh(list);
   const int * _noalias const numneighhalf = buffers->get_atombin();
@@ -311,6 +313,7 @@ void PairTersoffIntel::eval(const int offload, const int vflag,
     in(numneigh:length(0) alloc_if(0) free_if(0)) \
     in(numneighhalf:length(0) alloc_if(0) free_if(0)) \
     in(x:length(x_size) alloc_if(0) free_if(0)) \
+    in(ilist:length(0) alloc_if(0) free_if(0)) \
     in(overflow:length(0) alloc_if(0) free_if(0)) \
     in(astart,nthreads,inum,nall,ntypes,vflag,eatom) \
     in(f_stride,nlocal,minlocal,separate_flag,offload) \
@@ -349,8 +352,9 @@ void PairTersoffIntel::eval(const int offload, const int vflag,
       {
         acc_t sevdwl;
         sevdwl = 0.;
-        #define ARGS iito, iifrom, eatom, vflag, numneigh, numneighhalf, cnumneigh, \
-          firstneigh, ntypes, x, c_inner, c_outer, f, &sevdwl
+        #define ARGS iito, iifrom, eatom, vflag, numneigh, numneighhalf, \
+                     cnumneigh, firstneigh, ntypes, x, ilist, c_inner, \
+                     c_outer, f, &sevdwl
         // Pick the variable i algorithm under specific conditions
         // do use scalar algorithm with very short vectors
         int VL = lmp_intel::vector_routines<flt_t,acc_t,lmp_intel::mode>::VL;
@@ -1135,6 +1139,7 @@ void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::kernel(
     const int * _noalias const cnumneigh,
     const int * _noalias const firstneigh, int ntypes,
     typename IntelBuffers<flt_t,acc_t>::atom_t * _noalias const x,
+    const int * _noalias const ilist,
     const c_inner_t * _noalias const c_inner,
     const c_outer_t * _noalias const c_outer,
     typename IntelBuffers<flt_t,acc_t>::vec3_acc_t * _noalias const f,
@@ -1155,12 +1160,12 @@ void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::kernel(
   for (ii = iifrom; ii < iito; ii++) {
     // Right now this loop is scalar, to allow for the compiler to do
     //  its prefetching magic.
-    int i = ii;
+    int i = ilist[ii];
     int w_i = x[i].w;
     flt_t x_i = x[i].x;
     flt_t y_i = x[i].y;
     flt_t z_i = x[i].z;
-    int jlist_off_i = cnumneigh[i];
+    int jlist_off_i = cnumneigh[ii];
     int jnum = numneigh[ii];
     for (jj = 0; jj < jnum; jj++) {
       int j = firstneigh[jlist_off_i + jj] & NEIGHMASK;
@@ -1173,7 +1178,7 @@ void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::kernel(
       if (rsq < cutsq) {
         is[compress_idx] = ii;
         js[compress_idx] = j;
-        if (jj < numneighhalf[i])
+        if (jj < numneighhalf[ii])
           repulsive_flag[compress_idx] = 1;
         compress_idx += 1;
       }

@@ -10,8 +10,8 @@
 # All rights reserved.
 
 G_PROGRAM_NAME="emoltemplate.sh"
-G_VERSION="1.0.5"
-G_DATE="2017-2-01"
+G_VERSION="1.1.0"
+G_DATE="2018-6-26"
 
 echo "${G_PROGRAM_NAME} v${G_VERSION} ${G_DATE}" >&2
 echo "" >&2
@@ -37,7 +37,6 @@ PY_SCR_DIR=`dirname "$0"`
 if [ ! -s "${PY_SCR_DIR}/ttree.py" ]; then
     PY_SCR_DIR="$PY_SCR_DIR/.."
 fi
-MOLTEMPLATE_SCRIPT_DIR="$SCRIPT_DIR/../moltemplate/src"
 
 
 MSG_BAD_INSTALL=$(cat <<EOF
@@ -91,13 +90,13 @@ IFS="
 "
 
 # command that invokes ettree.py
-TTREE_COMMAND="$PYTHON_COMMAND \"${SCRIPT_DIR}/ettree.py\""
+TTREE_COMMAND="$PYTHON_COMMAND \"${PY_SCR_DIR}/ettree.py\""
 
 # command that invokes ettree_check.py
-TTREE_CHECK_COMMAND="$PYTHON_COMMAND \"${SCRIPT_DIR}/ettree_check.py\""
+TTREE_CHECK_COMMAND="$PYTHON_COMMAND \"${PY_SCR_DIR}/ettree_check.py\""
 
 # command that invokes ettree_postprocess.py
-TTREE_POSTPROCESS_COMMAND="$PYTHON_COMMAND \"${SCRIPT_DIR}/ettree_postprocess.py\""
+TTREE_POSTPROCESS_COMMAND="$PYTHON_COMMAND \"${PY_SCR_DIR}/ettree_postprocess.py\""
 
 
 
@@ -583,7 +582,7 @@ if [ -s "${data_bond_list}.template" ]; then
     fi
 
 
-    if ! $PYTHON_COMMAND "${SCRIPT_DIR}/extract_espresso_atom_types.py" \
+    if ! $PYTHON_COMMAND "${PY_SCR_DIR}/extract_espresso_atom_types.py" \
         < "${data_atoms}.template" \
         > "${data_atoms}.template.minimal"; then
 	exit 4
@@ -599,7 +598,7 @@ if [ -s "${data_bond_list}.template" ]; then
 
     echo "Looking up bond types according to atom type" >&2
     #-- Generate a file containing bondid bondtype atomid1 atomid2 --
-    if ! $PYTHON_COMMAND "${MOLTEMPLATE_SCRIPT_DIR}/bonds_by_type.py" \
+    if ! $PYTHON_COMMAND "${PY_SCR_DIR}/bonds_by_type.py" \
             -atom-style "id type" \
             -atoms "${data_atoms}.template.minimal" \
             -bond-list "${data_bond_list}.template.minimal" \
@@ -641,7 +640,7 @@ if [ -s "${data_bond_list}.template" ]; then
     ## The next 2 lines extract the variable names from data_new.template.tmp
     ## and instert them into the appropriate place in ttree_assignments.txt 
     ## (renumbering the relevant variable-assignments to avoid clashes).
-    #if ! $PYTHON_COMMAND "${MOLTEMPLATE_SCRIPT_DIR}/nbody_fix_ttree_assignments.py" \
+    #if ! $PYTHON_COMMAND "${PY_SCR_DIR}/nbody_fix_ttree_assignments.py" \
     #      '/bond' gen_bonds.template.tmp \
     #      < ttree_assignments.txt \
     #      > ttree_assignments.tmp; then
@@ -659,7 +658,7 @@ if [ -s "${data_bond_list}.template" ]; then
     # names present in the .template file.  (We want to convert the file from 
     # a .template format into an ordinary (numeric) LAMMPS data-section format.)
 
-    if ! $PYTHON_COMMAND "${MOLTEMPLATE_SCRIPT_DIR}/ttree_render.py" \
+    if ! $PYTHON_COMMAND "${PY_SCR_DIR}/ttree_render.py" \
            ttree_assignments.txt \
            < "${data_bonds}.template" \
            > "$data_bonds"; then
@@ -695,10 +694,10 @@ for FILE in "$data_angles_by_type"*.template; do
         SUBGRAPH_SCRIPT="nbody_Angles.py"
     else
         echo "(using the rules in \"$SUBGRAPH_SCRIPT\")" >&2
-        #if [ ! -s "${MOLTEMPLATE_SCRIPT_DIR}/nbody_alt_symmetry/$SUBGRAPH_SCRIPT" ]; then
+        #if [ ! -s "${PY_SCR_DIR}/nbody_alt_symmetry/$SUBGRAPH_SCRIPT" ]; then
         #    echo "Error: File \"$SUBGRAPH_SCRIPT\" not found.\n" >&2
 	#    echo "       It should be located in this directory:\n" >&2
-        #    echo "       ${MOLTEMPLATE_SCRIPT_DIR}/nbody_alt_symmetry/\n" >&2
+        #    echo "       ${PY_SCR_DIR}/nbody_alt_symmetry/\n" >&2
         #    exit 4
         #fi
     fi
@@ -708,7 +707,7 @@ for FILE in "$data_angles_by_type"*.template; do
     # The first step is to strip out the espresso-specific junk from each
     # section so we end up with a simple multi-column file containing only 
     # the symbols we care about (which identify atom ids, atom and bond types)
-    if ! $PYTHON_COMMAND "${SCRIPT_DIR}/extract_espresso_atom_types.py" \
+    if ! $PYTHON_COMMAND "${PY_SCR_DIR}/extract_espresso_atom_types.py" \
         < "${data_atoms}.template" \
         > "${data_atoms}.template.minimal"; then
 	exit 4
@@ -721,7 +720,7 @@ for FILE in "$data_angles_by_type"*.template; do
         < "${data_bonds}.template" \
         > "${data_bonds}.template.minimal"
 
-    if ! $PYTHON_COMMAND "${MOLTEMPLATE_SCRIPT_DIR}/nbody_by_type.py" \
+    if ! $PYTHON_COMMAND "${PY_SCR_DIR}/nbody_by_type.py" \
             -subgraph "${SUBGRAPH_SCRIPT}" \
             -section "Angles" \
             -sectionbytype "Angles By Type" \
@@ -767,7 +766,7 @@ for FILE in "$data_angles_by_type"*.template; do
     ## The next 2 lines extract the variable names from data_new.template.tmp
     ## and instert them into the appropriate place in ttree_assignments.txt 
     ## (renumbering the relevant variable-assignments to avoid clashes).
-    #if ! $PYTHON_COMMAND "${MOLTEMPLATE_SCRIPT_DIR}/nbody_fix_ttree_assignments.py" \
+    #if ! $PYTHON_COMMAND "${PY_SCR_DIR}/nbody_fix_ttree_assignments.py" \
     #      '/angle' gen_angles.template.tmp \
     #      < ttree_assignments.txt \
     #      > ttree_assignments.tmp; then
@@ -781,7 +780,7 @@ for FILE in "$data_angles_by_type"*.template; do
     # names present in the .template file.  (We want to convert the file from 
     # a .template format into an ordinary (numeric) LAMMPS data-section format)
     
-    if ! $PYTHON_COMMAND "${MOLTEMPLATE_SCRIPT_DIR}/ttree_render.py" \
+    if ! $PYTHON_COMMAND "${PY_SCR_DIR}/ttree_render.py" \
            ttree_assignments.txt \
            < "$data_angles.template" \
            > "$data_angles"; then
@@ -815,10 +814,10 @@ for FILE in "$data_dihedrals_by_type"*.template; do
         SUBGRAPH_SCRIPT="nbody_Dihedrals.py"
     else
         echo "(using the rules in \"$SUBGRAPH_SCRIPT\")" >&2
-        #if [ ! -s "${MOLTEMPLATE_SCRIPT_DIR}/nbody_alt_symmetry/$SUBGRAPH_SCRIPT" ]; then
+        #if [ ! -s "${PY_SCR_DIR}/nbody_alt_symmetry/$SUBGRAPH_SCRIPT" ]; then
         #    echo "Error: File \"$SUBGRAPH_SCRIPT\" not found.\n" >&2
 	#    echo "       It should be located in this directory:\n" >&2
-        #    echo "       ${MOLTEMPLATE_SCRIPT_DIR}/nbody_alt_symmetry/\n" >&2
+        #    echo "       ${PY_SCR_DIR}/nbody_alt_symmetry/\n" >&2
         #    exit 4
         #fi
     fi
@@ -828,7 +827,7 @@ for FILE in "$data_dihedrals_by_type"*.template; do
     # The first step is to strip out the espresso-specific junk from each
     # section so we end up with a simple multi-column file containing only 
     # the symbols we care about (which identify atom ids, atom and bond types)
-    if ! $PYTHON_COMMAND "${SCRIPT_DIR}/extract_espresso_atom_types.py" \
+    if ! $PYTHON_COMMAND "${PY_SCR_DIR}/extract_espresso_atom_types.py" \
         < "${data_atoms}.template" \
         > "${data_atoms}.template.minimal"; then
 	exit 4
@@ -841,7 +840,7 @@ for FILE in "$data_dihedrals_by_type"*.template; do
         < "${data_bonds}.template" \
         > "${data_bonds}.template.minimal"
 
-    if ! $PYTHON_COMMAND "${MOLTEMPLATE_SCRIPT_DIR}/nbody_by_type.py" \
+    if ! $PYTHON_COMMAND "${PY_SCR_DIR}/nbody_by_type.py" \
             -subgraph "${SUBGRAPH_SCRIPT}" \
             -section "Dihedrals" \
             -sectionbytype "Dihedrals By Type" \
@@ -887,7 +886,7 @@ for FILE in "$data_dihedrals_by_type"*.template; do
     ## The next 2 lines extract the variable names from data_new.template.tmp
     ## and instert them into the appropriate place in ttree_assignments.txt 
     ## (renumbering the relevant variable-assignments to avoid clashes).
-    #if ! $PYTHON_COMMAND "${MOLTEMPLATE_SCRIPT_DIR}/nbody_fix_ttree_assignments.py" \
+    #if ! $PYTHON_COMMAND "${PY_SCR_DIR}/nbody_fix_ttree_assignments.py" \
     #      '/dihedral' gen_dihedrals.template.tmp \
     #      < ttree_assignments.txt \
     #      > ttree_assignments.tmp; then
@@ -901,7 +900,7 @@ for FILE in "$data_dihedrals_by_type"*.template; do
     # names present in the .template file.  (We want to convert the file from 
     # a .template format into an ordinary (numeric) LAMMPS data-section format)
     
-    if ! $PYTHON_COMMAND "${MOLTEMPLATE_SCRIPT_DIR}/ttree_render.py" \
+    if ! $PYTHON_COMMAND "${PY_SCR_DIR}/ttree_render.py" \
            ttree_assignments.txt \
            < "$data_dihedrals.template" \
            > "$data_dihedrals"; then
@@ -938,10 +937,10 @@ for FILE in "$data_impropers_by_type"*.template; do
         SUBGRAPH_SCRIPT="nbody_Impropers.py"
     else
         echo "(using the rules in \"$SUBGRAPH_SCRIPT\")" >&2
-        #if [ ! -s "${MOLTEMPLATE_SCRIPT_DIR}/nbody_alt_symmetry/$SUBGRAPH_SCRIPT" ]; then
+        #if [ ! -s "${PY_SCR_DIR}/nbody_alt_symmetry/$SUBGRAPH_SCRIPT" ]; then
         #    echo "Error: File \"$SUBGRAPH_SCRIPT\" not found.\n" >&2
 	#    echo "       It should be located in this directory:\n" >&2
-        #    echo "       ${MOLTEMPLATE_SCRIPT_DIR}/nbody_alt_symmetry/\n" >&2
+        #    echo "       ${PY_SCR_DIR}/nbody_alt_symmetry/\n" >&2
         #    exit 4
         #fi
     fi
@@ -951,7 +950,7 @@ for FILE in "$data_impropers_by_type"*.template; do
     # The first step is to strip out the espresso-specific junk from each
     # section so we end up with a simple multi-column file containing only 
     # the symbols we care about (which identify atom ids, atom and bond types)
-    if ! $PYTHON_COMMAND "${SCRIPT_DIR}/extract_espresso_atom_types.py" \
+    if ! $PYTHON_COMMAND "${PY_SCR_DIR}/extract_espresso_atom_types.py" \
         < "${data_atoms}.template" \
         > "${data_atoms}.template.minimal"; then
 	exit 4
@@ -964,7 +963,7 @@ for FILE in "$data_impropers_by_type"*.template; do
         < "${data_bonds}.template" \
         > "${data_bonds}.template.minimal"
 
-    if ! $PYTHON_COMMAND "${MOLTEMPLATE_SCRIPT_DIR}/nbody_by_type.py" \
+    if ! $PYTHON_COMMAND "${PY_SCR_DIR}/nbody_by_type.py" \
             -subgraph "${SUBGRAPH_SCRIPT}" \
             -section "Impropers" \
             -sectionbytype "Impropers By Type" \
@@ -1012,7 +1011,7 @@ for FILE in "$data_impropers_by_type"*.template; do
     ## The next 2 lines extract the variable names from data_new.template.tmp
     ## and instert them into the appropriate place in ttree_assignments.txt 
     ## (renumbering the relevant variable-assignments to avoid clashes).
-    #if ! $PYTHON_COMMAND "${MOLTEMPLATE_SCRIPT_DIR}/nbody_fix_ttree_assignments.py" \
+    #if ! $PYTHON_COMMAND "${PY_SCR_DIR}/nbody_fix_ttree_assignments.py" \
     #      '/improper' gen_impropers.template.tmp \
     #      < ttree_assignments.txt \
     #      > ttree_assignments.tmp; then
@@ -1026,7 +1025,7 @@ for FILE in "$data_impropers_by_type"*.template; do
     # names present in the .template file.  (We want to convert the file from 
     # a .template format into an ordinary (numeric) LAMMPS data-section format)
     
-    if ! $PYTHON_COMMAND "${MOLTEMPLATE_SCRIPT_DIR}/ttree_render.py" \
+    if ! $PYTHON_COMMAND "${PY_SCR_DIR}/ttree_render.py" \
            ttree_assignments.txt \
            < "$data_impropers.template" \
            > "$data_impropers"; then
@@ -1215,7 +1214,6 @@ if [ -s "$data_atoms" ]; then
     echo "# atom list:" >> "$OUT_FILE_TCL"
     cat "$data_atoms" >> "$OUT_FILE_TCL"
 fi
-
 
 if [ -s "$tmp_atom_coords" ]; then
     rm -f "$OUT_FILE_COORDS"

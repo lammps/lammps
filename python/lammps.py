@@ -236,7 +236,7 @@ class lammps(object):
     if cmd: cmd = cmd.encode()
     self.lib.lammps_command(self.lmp,cmd)
 
-    if self.uses_exceptions and self.lib.lammps_has_error(self.lmp):
+    if self.has_exceptions and self.lib.lammps_has_error(self.lmp):
       sb = create_string_buffer(100)
       error_type = self.lib.lammps_get_last_error_message(self.lmp, sb, 100)
       error_msg = sb.value.decode().strip()

@@ -41,7 +41,6 @@ class ComputeEntropyAtom : public Compute {
   double cutsq, cutsq2;
   double deltar;
   int deltabin;
-  double invNormConstantBase;
   int avg_flag;
   int local_flag;
 };

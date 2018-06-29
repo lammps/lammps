@@ -62,7 +62,7 @@ FixLatte::FixLatte(LAMMPS *lmp, int narg, char **arg) :
   if (comm->nprocs != 1)
     error->all(FLERR,"Fix latte currently runs only in serial");
 
-  if (latte_abiversion() != ABIVERSION)
+  if (LATTE_ABIVERSION != latte_abiversion())
     error->all(FLERR,"LAMMPS is linked against incompatible LATTE library");
 
   if (narg != 4) error->all(FLERR,"Illegal fix latte command");

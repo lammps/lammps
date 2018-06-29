@@ -11,7 +11,7 @@ get_filename_component(LAMMPS_LIB_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../lib 
 get_filename_component(LAMMPS_LIB_BINARY_DIR ${CMAKE_BINARY_DIR}/lib ABSOLUTE)
 
 
-#To not conflict with old Makefile build system, we build everything here
+# To avoid conflicts with the conventional Makefile build system, we build everything here
 file(GLOB LIB_SOURCES ${LAMMPS_SOURCE_DIR}/*.cpp)
 file(GLOB LMP_SOURCES ${LAMMPS_SOURCE_DIR}/main.cpp)
 list(REMOVE_ITEM LIB_SOURCES ${LMP_SOURCES})
@@ -52,9 +52,24 @@ if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
 endif()
 
-option(ENABLE_COVERAGE "Enable code coverage" OFF)
-if(ENABLE_COVERAGE)
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
+# GNU compiler features
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+  option(ENABLE_COVERAGE "Enable code coverage" OFF)
+  if(ENABLE_COVERAGE)
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
+  endif()
+  option(ENABLE_SANITIZE_ADDRESS "Enable address sanitizer" OFF)
+  if(ENABLE_SANITIZE_ADDRESS)
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
+  endif()
+  option(ENABLE_SANITIZE_UNDEFINED "Enable undefined behavior sanitizer" OFF)
+  if(ENABLE_SANITIZE_UNDEFINED)
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=undefined")
+  endif()
+  option(ENABLE_SANITIZE_THREAD "Enable thread sanitizer" OFF)
+  if(ENABLE_SANITIZE_THREAD)
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=thread")
+  endif()
 endif()
 
 ########################################################################

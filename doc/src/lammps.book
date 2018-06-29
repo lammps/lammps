@@ -317,6 +317,7 @@ compute_displace_atom.html
 compute_dpd.html
 compute_dpd_atom.html
 compute_edpd_temp_atom.html
+compute_entropy_atom.html
 compute_erotate_asphere.html
 compute_erotate_rigid.html
 compute_erotate_sphere.html

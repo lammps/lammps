@@ -863,6 +863,7 @@ package"_Section_start.html#start_3.
 "dpd"_compute_dpd.html,
 "dpd/atom"_compute_dpd_atom.html,
 "edpd/temp/atom"_compute_edpd_temp_atom.html,
+"entropy/atom"_compute_entropy_atom.html,
 "fep"_compute_fep.html,
 "force/tally"_compute_tally.html,
 "heat/flux/tally"_compute_tally.html,

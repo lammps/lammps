@@ -486,7 +486,7 @@ to respond to the call from the dump command, and update the
 appropriate reference positions.  This is done be defining an
 "atom-style variable"_variable.html, {check} in this example, which
 calculates a Boolean value (0 or 1) for each atom, based on the same
-criterion used by dump_modify thresh.  
+criterion used by dump_modify thresh.
 
 See the "compute displace/atom"_compute_displace_atom.html command for
 more details, including an example of how to produce output that
@@ -600,13 +600,13 @@ included.)
 
 region foo sphere 10 20 10 15
 variable inregion atom rmask(foo)
-dump_modify ... thresh v_inregion |^ LAST
+dump_modify ... thresh v_inregion |^ LAST :pre
 
 This will dump atoms which crossed the boundary of the spherical
 region since the last dump.
 
 variable charge atom "(q > 0.5) || (q < -0.5)"
-dump_modify ... thresh v_charge |^ LAST
+dump_modify ... thresh v_charge |^ LAST :pre
 
 This will dump atoms whose charge has changed from an absolute value
 less than 1/2 to greater than 1/2 (or vice versa) since the last dump.

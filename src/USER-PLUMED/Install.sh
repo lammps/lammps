@@ -10,7 +10,7 @@ if (test $1 = 1) then
   if (test -e ../Makefile.package.settings) then
     # multiline form needed for BSD sed on Macs
     sed -i -e '4 i \
-include ..\/Plumed.inc
+PLUMED_LOAD=Plumed.o -ldl
 ' ../Makefile.package.settings
   fi
 
@@ -18,7 +18,6 @@ include ..\/Plumed.inc
   cp fix_plumed.h ..
   cp Plumed.h ..
   cp Plumed.cpp ..
-  cp Plumed.inc ..
 
 elif (test $1 = 0) then
 
@@ -27,13 +26,12 @@ elif (test $1 = 0) then
   fi
 
   if (test -e ../Makefile.package.settings) then
-    sed -i -e '/^include.*Plumed\.inc.*$/d' ../Makefile.package.settings
+    sed -i -e '/PLUMED_LOAD=Plumed.o -ldl/d' ../Makefile.package.settings
   fi
 
   rm -f ../fix_plumed.cpp
   rm -f ../fix_plumed.h
   rm -f ../Plumed.h
   rm -f ../Plumed.cpp
-  rm -f ../Plumed.inc
 
 fi

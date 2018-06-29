@@ -244,7 +244,7 @@ DumpCustom::~DumpCustom()
   for (int i = 1; i <= ntypes; i++) delete [] typenames[i];
   delete [] typenames;
 
-  if(vformat) {
+  if (vformat) {
     for (int i = 0; i < size_one; i++) delete [] vformat[i];
     delete [] vformat;
   }

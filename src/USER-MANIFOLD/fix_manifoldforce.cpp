@@ -31,12 +31,12 @@ using namespace user_manifold;
 
 
 // Helper functions for parameters/equal style variables in input script
-inline bool was_var( const char *arg )
+static bool was_var( const char *arg )
 {
   return strstr( arg, "v_" ) == arg;
 }
 
-inline bool str_eq( const char *str1, const char *str2 )
+static bool str_eq( const char *str1, const char *str2 )
 {
   return strcmp(str1,str2) == 0;
 }
@@ -49,13 +49,6 @@ FixManifoldForce::FixManifoldForce(LAMMPS *lmp, int narg, char **arg) :
   int me = -1;
   MPI_Comm_rank(world,&me);
 
-
-  // Check the min-style:
-  int good_minner = str_eq(update->minimize_style,"hftn") |
-                    str_eq(update->minimize_style,"quickmin");
-  if( !good_minner){
-    error->warning(FLERR,"Minimizing with fix manifoldforce without hftn or quickmin is fishy");
-  }
 
 
   // Command is given as
@@ -117,6 +110,18 @@ int FixManifoldForce::setmask()
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;
   return mask;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixManifoldForce::init()
+{
+  // Check the min-style:
+  const bool is_good_min_style = str_eq(update->minimize_style,"hftn")
+                                || str_eq(update->minimize_style,"quickmin");
+  if (!is_good_min_style) {
+    error->all(FLERR,"Fix manifoldforce requires min_style hftn or quickmin");
+  }
 }
 
 /* ---------------------------------------------------------------------- */

@@ -1,0 +1,30 @@
+import "alkane50.lt"  # Defines the "Alkane50" molecule
+
+
+polymer = new Alkane50
+
+
+# Specify the size of the world the polymer lives in:
+write_once("Data Boundary") {
+   0.0  72.0  xlo xhi
+   0.0  72.0  ylo yhi
+   0.0  72.0  zlo zhi
+}
+
+
+
+
+
+###############################################################################
+# Note: If you want to create multiple polymers, and/or mix them with other 
+#       molecules, just add more "new" commands, for example:
+# polymer1 = new Alkane50.move(0,0,10)
+# polymer2 = new Alkane50.move(0,0,20)
+#    :   
+#       ...or use array notation, for example:
+# polymers = new Alkane50[20].move(0,0,10)
+#
+# Note: Multidimensional arrays can be used to fill a planar region or a volume
+# polymers = new Alkane50 [4].move(0, 0, 30.0)
+#                         [4].move(0, 30.0, 0)
+#                         [2].move(70.0, 0, 0)

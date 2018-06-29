@@ -42,7 +42,5 @@
 */
 
 #include <rocm/TestROCm_Category.hpp>
-#include <TestFunctorAnalysis.hpp>
 #include <TestReduce.hpp>
 #include <TestCXX11Deduction.hpp>
-

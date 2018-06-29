@@ -149,6 +149,11 @@ void test_scatter_view(int n)
   TestDuplicatedScatterView<ExecSpace> duptest(n);
 }
 
+TEST_F( TEST_CATEGORY, scatterview) {
+  test_scatter_view<TEST_EXECSPACE>(10);
+  test_scatter_view<TEST_EXECSPACE>(10000000);
+}
+
 } // namespace Test
 
 #endif //KOKKOS_TEST_UNORDERED_MAP_HPP

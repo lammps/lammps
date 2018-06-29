@@ -97,11 +97,10 @@ private:
   static_assert( traits::rank == 1 && traits::rank_dynamic == 1
                , "DynamicView must be rank-one" );
 
-  static_assert( std::is_trivial< typename traits::value_type >::value &&
-                 std::is_same< typename traits::specialize , void >::value &&
-                 Kokkos::Impl::is_power_of_two
-                   <sizeof(typename traits::value_type)>::value
-               , "DynamicView must have trivial value_type and sizeof(value_type) is a power-of-two");
+  // It is assumed that the value_type is trivially copyable; 
+  // when this is not the case, potential problems can occur.
+  static_assert( std::is_same< typename traits::specialize , void >::value
+               , "DynamicView only implemented for non-specialized View type");
 
 
   template< class Space , bool = Kokkos::Impl::MemorySpaceAccess< Space , typename traits::memory_space >::accessible > struct verify_space
@@ -142,6 +141,17 @@ public:
 
   /** \brief  Must be accessible everywhere */
   typedef DynamicView  HostMirror ;
+
+  /** \brief Unified types */
+  typedef Kokkos::Device<typename traits::device_type::execution_space, Kokkos::AnonymousSpace> uniform_device;
+  typedef array_type uniform_type;
+  typedef const_type uniform_const_type;
+  typedef array_type uniform_runtime_type;
+  typedef const_type uniform_runtime_const_type;
+  typedef DynamicView<typename traits::data_type, uniform_device> uniform_nomemspace_type;
+  typedef DynamicView<typename traits::const_data_type, uniform_device> uniform_const_nomemspace_type;
+  typedef DynamicView<typename traits::data_type, uniform_device> uniform_runtime_nomemspace_type;
+  typedef DynamicView<typename traits::const_data_type, uniform_device> uniform_runtime_const_nomemspace_type;
 
   //----------------------------------------------------------------------
 
@@ -279,7 +289,7 @@ public:
   resize_serial( IntType const & n )
     {
       typedef typename traits::value_type value_type ;
-      typedef value_type * pointer_type ;
+      typedef value_type * value_pointer_type ;
 
       const uintptr_t NC = ( n + m_chunk_mask ) >> m_chunk_shift ; // New total number of chunks needed for resize
 
@@ -293,7 +303,7 @@ public:
 
       if ( *pc < NC ) {
         while ( *pc < NC ) {
-          m_chunks[*pc] = reinterpret_cast<pointer_type>
+          m_chunks[*pc] = reinterpret_cast<value_pointer_type>
             ( 
              typename traits::memory_space().allocate( sizeof(value_type) << m_chunk_shift ) 
             );
@@ -533,14 +543,14 @@ struct CommonSubview<DstType,Kokkos::Experimental::DynamicView<SP...>,1,Arg0> {
 };
 
 template<class ...DP,class ViewTypeB, class Layout, class ExecSpace,typename iType>
-struct ViewCopy<Kokkos::Experimental::DynamicView<DP...>,ViewTypeB,Layout,ExecSpace,1,iType> {
+struct ViewCopy<Kokkos::Experimental::DynamicView<DP...>,ViewTypeB,Layout,ExecSpace,1,iType,false> {
   Kokkos::Experimental::DynamicView<DP...> a;
   ViewTypeB b;
 
   typedef Kokkos::RangePolicy<ExecSpace,Kokkos::IndexType<iType>> policy_type;
 
   ViewCopy(const Kokkos::Experimental::DynamicView<DP...>& a_, const ViewTypeB& b_):a(a_),b(b_) {
-    Kokkos::parallel_for("Kokkos::ViewCopy-2D",
+    Kokkos::parallel_for("Kokkos::ViewCopy-1D",
        policy_type(0,b.extent(0)),*this);
   }
 
@@ -552,7 +562,7 @@ struct ViewCopy<Kokkos::Experimental::DynamicView<DP...>,ViewTypeB,Layout,ExecSp
 
 template<class ...DP,class ...SP, class Layout, class ExecSpace,typename iType>
 struct ViewCopy<Kokkos::Experimental::DynamicView<DP...>,
-                Kokkos::Experimental::DynamicView<SP...>,Layout,ExecSpace,1,iType> {
+                Kokkos::Experimental::DynamicView<SP...>,Layout,ExecSpace,1,iType,false> {
   Kokkos::Experimental::DynamicView<DP...> a;
   Kokkos::Experimental::DynamicView<SP...> b;
 
@@ -561,7 +571,7 @@ struct ViewCopy<Kokkos::Experimental::DynamicView<DP...>,
   ViewCopy(const Kokkos::Experimental::DynamicView<DP...>& a_,
            const Kokkos::Experimental::DynamicView<SP...>& b_):a(a_),b(b_) {
     const iType n = std::min(a.extent(0),b.extent(0));
-    Kokkos::parallel_for("Kokkos::ViewCopy-2D",
+    Kokkos::parallel_for("Kokkos::ViewCopy-1D",
        policy_type(0,n),*this);
   }
 

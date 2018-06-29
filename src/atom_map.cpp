@@ -304,7 +304,7 @@ int Atom::map_style_set()
 
   int map_style_old = map_style;
   if (map_user == 1 || map_user == 2) map_style = map_user;
-  else if (map_tag_max > 1000000) map_style = 2;
+  else if (map_tag_max > 1000000 && !lmp->kokkos) map_style = 2;
   else map_style = 1;
 
   // recreate = 1 if must create new map b/c map_style changed

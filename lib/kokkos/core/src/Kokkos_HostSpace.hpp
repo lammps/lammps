@@ -222,8 +222,10 @@ private:
 
   static void deallocate( RecordBase * );
 
+#ifdef KOKKOS_DEBUG
   /**\brief  Root record for tracked allocations from this HostSpace instance */
   static RecordBase s_root_record;
+#endif
 
   const Kokkos::HostSpace m_space;
 
@@ -288,8 +290,6 @@ public:
 namespace Kokkos {
 
 namespace Impl {
-
-template< class DstSpace, class SrcSpace, class ExecutionSpace = typename DstSpace::execution_space > struct DeepCopy;
 
 template< class ExecutionSpace >
 struct DeepCopy< HostSpace, HostSpace, ExecutionSpace > {

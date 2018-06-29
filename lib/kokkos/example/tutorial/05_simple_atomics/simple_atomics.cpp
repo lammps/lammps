@@ -108,30 +108,32 @@ struct findprimes {
 int main () {
   Kokkos::initialize ();
 
-  srand (61391); // Set the random seed
+  {
+    srand (61391); // Set the random seed
 
-  int nnumbers = 100000;
-  view_type data ("RND", nnumbers);
-  view_type result ("Prime", nnumbers);
-  count_type count ("Count");
+    int nnumbers = 100000;
+    view_type data ("RND", nnumbers);
+    view_type result ("Prime", nnumbers);
+    count_type count ("Count");
 
-  host_view_type h_data = Kokkos::create_mirror_view (data);
-  host_view_type h_result = Kokkos::create_mirror_view (result);
-  host_count_type h_count = Kokkos::create_mirror_view (count);
+    host_view_type h_data = Kokkos::create_mirror_view (data);
+    host_view_type h_result = Kokkos::create_mirror_view (result);
+    host_count_type h_count = Kokkos::create_mirror_view (count);
 
-  typedef view_type::size_type size_type;
-  // Fill the 'data' array on the host with random numbers.  We assume
-  // that they come from some process which is only implemented on the
-  // host, via some library.  (That's true in this case.)
-  for (size_type i = 0; i < data.extent(0); ++i) {
-    h_data(i) = rand () % nnumbers;
+    typedef view_type::size_type size_type;
+    // Fill the 'data' array on the host with random numbers.  We assume
+    // that they come from some process which is only implemented on the
+    // host, via some library.  (That's true in this case.)
+    for (size_type i = 0; i < data.extent(0); ++i) {
+      h_data(i) = rand () % nnumbers;
+    }
+    Kokkos::deep_copy (data, h_data); // copy from host to device
+
+    Kokkos::parallel_for (data.extent(0), findprimes (data, result, count));
+    Kokkos::deep_copy (h_count, count); // copy from device to host
+
+    printf ("Found %i prime numbers in %i random numbers\n", h_count(), nnumbers);
   }
-  Kokkos::deep_copy (data, h_data); // copy from host to device
-
-  Kokkos::parallel_for (data.extent(0), findprimes (data, result, count));
-  Kokkos::deep_copy (h_count, count); // copy from device to host
-
-  printf ("Found %i prime numbers in %i random numbers\n", h_count(), nnumbers);
   Kokkos::finalize ();
 }
 

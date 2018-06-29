@@ -52,6 +52,9 @@ Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int &index) :
 
   if (index >= narg) error->all(FLERR,"Illegal molecule command");
 
+  if (domain->box_exist == 0)
+    error->all(FLERR,"Molecule command before simulation box is defined");
+
   int n = strlen(arg[0]) + 1;
   id = new char[n];
   strcpy(id,arg[0]);
@@ -684,7 +687,7 @@ void Molecule::types(char *line)
   }
 
   for (int i = 0; i < natoms; i++)
-    if (type[i] <= 0)
+    if (type[i] <= 0 || type[i] > atom->ntypes)
       error->all(FLERR,"Invalid atom type in molecule file");
 
   for (int i = 0; i < natoms; i++)
@@ -771,10 +774,10 @@ void Molecule::bonds(int flag, char *line)
       error->all(FLERR,"Invalid Bonds section in molecule file");
     itype += boffset;
 
-    if (atom1 <= 0 || atom1 > natoms ||
-        atom2 <= 0 || atom2 > natoms)
+    if ((atom1 <= 0) || (atom1 > natoms) ||
+        (atom2 <= 0) || (atom2 > natoms) || (atom1 == atom2))
       error->one(FLERR,"Invalid atom ID in Bonds section of molecule file");
-    if (itype <= 0)
+    if (itype <= 0 || itype > atom->nbondtypes)
       error->one(FLERR,"Invalid bond type in Bonds section of molecule file");
 
     if (flag) {
@@ -829,11 +832,12 @@ void Molecule::angles(int flag, char *line)
       error->all(FLERR,"Invalid Angles section in molecule file");
     itype += aoffset;
 
-    if (atom1 <= 0 || atom1 > natoms ||
-        atom2 <= 0 || atom2 > natoms ||
-        atom3 <= 0 || atom3 > natoms)
+    if ((atom1 <= 0) || (atom1 > natoms) ||
+        (atom2 <= 0) || (atom2 > natoms) ||
+        (atom3 <= 0) || (atom3 > natoms) ||
+        (atom1 == atom2) || (atom1 == atom3) || (atom2 == atom3))
       error->one(FLERR,"Invalid atom ID in Angles section of molecule file");
-    if (itype <= 0)
+    if (itype <= 0 || itype > atom->nangletypes)
       error->one(FLERR,"Invalid angle type in Angles section of molecule file");
 
     if (flag) {
@@ -902,13 +906,15 @@ void Molecule::dihedrals(int flag, char *line)
       error->all(FLERR,"Invalid Dihedrals section in molecule file");
     itype += doffset;
 
-    if (atom1 <= 0 || atom1 > natoms ||
-        atom2 <= 0 || atom2 > natoms ||
-        atom3 <= 0 || atom3 > natoms ||
-        atom4 <= 0 || atom4 > natoms)
+    if ((atom1 <= 0) || (atom1 > natoms) ||
+        (atom2 <= 0) || (atom2 > natoms) ||
+        (atom3 <= 0) || (atom3 > natoms) ||
+        (atom4 <= 0) || (atom4 > natoms) ||
+        (atom1 == atom2) || (atom1 == atom3) || (atom1 == atom4) ||
+        (atom2 == atom3) || (atom2 == atom4) || (atom3 == atom4))
       error->one(FLERR,
                  "Invalid atom ID in dihedrals section of molecule file");
-    if (itype <= 0)
+    if (itype <= 0 || itype > atom->ndihedraltypes)
       error->one(FLERR,
                  "Invalid dihedral type in dihedrals section of molecule file");
 
@@ -989,13 +995,15 @@ void Molecule::impropers(int flag, char *line)
       error->all(FLERR,"Invalid Impropers section in molecule file");
     itype += ioffset;
 
-    if (atom1 <= 0 || atom1 > natoms ||
-        atom2 <= 0 || atom2 > natoms ||
-        atom3 <= 0 || atom3 > natoms ||
-        atom4 <= 0 || atom4 > natoms)
+    if ((atom1 <= 0) || (atom1 > natoms) ||
+        (atom2 <= 0) || (atom2 > natoms) ||
+        (atom3 <= 0) || (atom3 > natoms) ||
+        (atom4 <= 0) || (atom4 > natoms) ||
+        (atom1 == atom2) || (atom1 == atom3) || (atom1 == atom4) ||
+        (atom2 == atom3) || (atom2 == atom4) || (atom3 == atom4))
       error->one(FLERR,
                  "Invalid atom ID in impropers section of molecule file");
-    if (itype <= 0)
+    if (itype <= 0 || itype > atom->nimpropertypes)
       error->one(FLERR,
                  "Invalid improper type in impropers section of molecule file");
 

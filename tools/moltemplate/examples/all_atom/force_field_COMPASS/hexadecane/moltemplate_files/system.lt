@@ -1,0 +1,20 @@
+import "hexadecane.lt"  # <- defines the "Hexadecane" molecule type.
+
+# Periodic boundary conditions:
+write_once("Data Boundary") {
+   0.0  62.4  xlo xhi
+   0.0  62.4  ylo yhi
+   0.0  62.4  zlo zhi
+}
+
+molecules = new Hexadecane [12].move(0, 0, 5.2)
+                           [12].move(0, 5.2, 0)
+                           [2].move(31.2, 0, 0)
+                          
+                          
+
+
+# NOTE: The spacing between molecules is large.  There should be extra room to
+# move during the initial stages of equilibration.  However, you will have to
+# run the simulation at NPT conditions later to compress the system to a 
+# more realistic density.

@@ -211,7 +211,7 @@ void OpenMPTarget::print_configuration( std::ostream & s , const bool detail )
 #if defined( KOKKOS_ENABLE_OPENMPTARGET )
   s << " KOKKOS_ENABLE_OPENMPTARGET" ;
 #endif
-#if defined( KOKKOS_HAVE_HWLOC )
+#if defined( KOKKOS_ENABLE_HWLOC )
 
   const unsigned numa_count_       = Kokkos::hwloc::get_available_numa_count();
   const unsigned cores_per_numa   = Kokkos::hwloc::get_available_cores_per_numa();

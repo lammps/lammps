@@ -98,19 +98,20 @@ molecule (header keyword = inertia).
 NOTE: The molecule command can be used to define molecules with bonds,
 angles, dihedrals, imporopers, or special bond lists of neighbors
 within a molecular topology, so that you can later add the molecules
-to your simulation, via one or more of the commands listed above.  If
-such molecules do not already exist when LAMMPS creates the simulation
-box, via the "create_box"_create_box.html or
-"read_data"_read_data.html command, when you later add them you may
-overflow the pre-allocated data structures which store molecular
-topology information with each atom, and an error will be generated.
-Both the "create_box"_create_box.html command and the data files read
-by the "read_data"_read_data.html command have "extra" options which
+to your simulation, via one or more of the commands listed above.
+Since this topology-related information requires that suitable storage
+is reserved when LAMMPS creates the simulation box (e.g. when using
+the "create_box"_create_box.html command or the
+"read_data"_read_data.html command) suitable space has to be reserved
+so you do not overflow those pre-allocated data structures when adding
+molecules later.  Both the "create_box"_create_box.html command and
+the "read_data"_read_data.html command have "extra" options which
 insure space is allocated for storing topology info for molecules that
 are added later.
 
-The format of an individual molecule file is similar to the data file
-read by the "read_data"_read_data.html commands, and is as follows.
+The format of an individual molecule file is similar but
+(not identical) to the data file read by the "read_data"_read_data.html
+commands, and is as follows.
 
 A molecule file has a header and a body.  The header appears first.
 The first line of the header is always skipped; it typically contains
@@ -455,7 +456,11 @@ of SHAKE clusters.
 
 :line
 
-[Restrictions:] none
+[Restrictions:]
+
+This command must come after the simulation box is define by a
+"read_data"_read_data.html, "read_restart"_read_restart.html, or
+"create_box"_create_box.html command.
 
 [Related commands:]
 

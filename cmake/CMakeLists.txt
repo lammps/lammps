@@ -2,9 +2,9 @@
 # CMake build system
 # This file is part of LAMMPS
 # Created by Christoph Junghans and Richard Berger
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 2.8.12)
 
-project(lammps LANGUAGES CXX)
+project(lammps CXX)
 set(SOVERSION 0)
 set(LAMMPS_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../src)
 set(LAMMPS_LIB_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../lib)
@@ -47,6 +47,11 @@ include(CheckCCompilerFlag)
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
+endif()
+
+option(ENABLE_COVERAGE "Enable code coverage" OFF)
+if(ENABLE_COVERAGE)
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
 endif()
 
 ########################################################################
@@ -113,7 +118,7 @@ endif(ENABLE_TESTING)
 option(ENABLE_ALL "Build all default packages" OFF)
 set(DEFAULT_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS CORESHELL DIPOLE GRANULAR
   KSPACE MANYBODY MC MEAM MISC MOLECULE PERI QEQ
-  REAX REPLICA RIGID SHOCK SNAP SRD)
+  REAX REPLICA RIGID SHOCK SNAP SPIN SRD)
 set(OTHER_PACKAGES KIM PYTHON MSCG MPIIO VORONOI POEMS LATTE
   USER-ATC USER-AWPMD USER-BOCS USER-CGDNA USER-MESO
   USER-CGSDK USER-COLVARS USER-DIFFRACTION USER-DPD USER-DRUDE USER-EFF
@@ -129,7 +134,7 @@ foreach(PKG ${ACCEL_PACKAGES} ${OTHER_PACKAGES})
 endforeach()
 
 macro(pkg_depends PKG1 PKG2)
-  if(PKG_${PKG1} AND NOT PKG_${PKG2})
+  if(PKG_${PKG1} AND NOT (PKG_${PKG2} OR BUILD_${PKG2}))
     message(FATAL_ERROR "${PKG1} package needs LAMMPS to be build with ${PKG2}")
   endif()
 endmacro()
@@ -137,10 +142,10 @@ endmacro()
 pkg_depends(MPIIO MPI)
 pkg_depends(QEQ MANYBODY)
 pkg_depends(USER-ATC MANYBODY)
-pkg_depends(USER-H5MD MPI)
 pkg_depends(USER-LB MPI)
 pkg_depends(USER-MISC MANYBODY)
 pkg_depends(USER-PHONON KSPACE)
+pkg_depends(CORESHELL KSPACE)
 
 ######################################################
 # packages with special compiler needs or external libs
@@ -149,15 +154,8 @@ if(PKG_REAX OR PKG_MEAM OR PKG_USER-QUIP OR PKG_USER-QMMM OR PKG_LATTE)
   enable_language(Fortran)
 endif()
 
-if(PKG_MEAM)
+if(PKG_MEAM OR PKG_USER-H5MD OR PKG_USER-QMMM)
   enable_language(C)
-endif()
-
-if(PKG_KOKKOS OR PKG_MSCG)
-  # starting with CMake 3.1 this is all you have to do to enforce C++11
-  set(CMAKE_CXX_STANDARD 11) # C++11...
-  set(CMAKE_CXX_STANDARD_REQUIRED ON) #...is required...
-  set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
 endif()
 
 find_package(OpenMP QUIET)
@@ -203,7 +201,7 @@ if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-QUIP OR PKG_LATTE)
   find_package(LAPACK)
   if(NOT LAPACK_FOUND)
     enable_language(Fortran)
-    file(GLOB LAPACK_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/linalg/*.f)
+    file(GLOB LAPACK_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/linalg/*.[fF])
     add_library(linalg STATIC ${LAPACK_SOURCES})
     set(LAPACK_LIBRARIES linalg)
   endif()
@@ -298,8 +296,8 @@ if(PKG_LATTE)
     message(STATUS "LATTE not found - we will build our own")
     include(ExternalProject)
     ExternalProject_Add(latte_build
-      URL https://github.com/lanl/LATTE/archive/v1.1.1.tar.gz
-      URL_MD5 cb86f1d2473ce00aa61ff6a023154b03
+      URL https://github.com/lanl/LATTE/archive/v1.2.1.tar.gz
+      URL_MD5 bed76e7e76c545c36dd848a8f1fd35eb
       SOURCE_SUBDIR cmake
       CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> -DCMAKE_POSITION_INDEPENDENT_CODE=${CMAKE_POSITION_INDEPENDENT_CODE}
       )
@@ -312,7 +310,7 @@ if(PKG_LATTE)
       message(FATAL_ERROR "LATTE not found, help CMake to find it by setting LATTE_LIBRARY, or set DOWNLOAD_LATTE=ON to download it")
     endif()
   endif()
-  list(APPEND LAMMPS_LINK_LIBS ${LATTE_LIBRARIES} ${LAPACK_LIBRARIES} ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
+  list(APPEND LAMMPS_LINK_LIBS ${LATTE_LIBRARIES} ${LAPACK_LIBRARIES})
 endif()
 
 if(PKG_USER-MOLFILE)
@@ -336,13 +334,10 @@ if(PKG_USER-SMD)
     ExternalProject_Add(Eigen3_build
       URL http://bitbucket.org/eigen/eigen/get/3.3.4.tar.gz 
       URL_MD5 1a47e78efe365a97de0c022d127607c3
-      CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> -DEIGEN_TEST_NOQT=ON
-        -DCMAKE_DISABLE_FIND_PACKAGE_LAPACK=ON -DCMAKE_DISABLE_FIND_PACKAGE_Cholmod=ON -DCMAKE_DISABLE_FIND_PACKAGE_Umfpack=ON -DCMAKE_DISABLE_FIND_PACKAGE_SuperLU=ON
-        -DCMAKE_DISABLE_FIND_PACKAGE_PASTIX=ON -DCMAKE_DISABLE_FIND_PACKAGE_SPQR=ON -DCMAKE_DISABLE_FIND_PACKAGE_Boost=ON -DCMAKE_DISABLE_FIND_PACKAGE_CUDA=ON
-        -DCMAKE_DISABLE_FIND_PACKAGE_FFTW=ON -DCMAKE_DISABLE_FIND_PACKAGE_MPFR=ON -DCMAKE_DISABLE_FIND_PACKAGE_OpenGL=ON
-        )
-    ExternalProject_get_property(Eigen3_build INSTALL_DIR)
-    set(EIGEN3_INCLUDE_DIR ${INSTALL_DIR}/include/eigen3)
+      CONFIGURE_COMMAND "" BUILD_COMMAND "" INSTALL_COMMAND ""
+    )
+    ExternalProject_get_property(Eigen3_build SOURCE_DIR)
+    set(EIGEN3_INCLUDE_DIR ${SOURCE_DIR})
     list(APPEND LAMMPS_DEPS Eigen3_build)
   else()
     find_package(Eigen3)
@@ -355,14 +350,14 @@ endif()
 
 if(PKG_USER-QUIP)
   find_package(QUIP REQUIRED)
-  list(APPEND LAMMPS_LINK_LIBS ${QUIP_LIBRARIES} ${LAPACK_LIBRARIES} ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
+  list(APPEND LAMMPS_LINK_LIBS ${QUIP_LIBRARIES} ${LAPACK_LIBRARIES})
 endif()
 
 if(PKG_USER-QMMM)
   message(WARNING "Building QMMM with CMake is still experimental")
   find_package(QE REQUIRED)
   include_directories(${QE_INCLUDE_DIRS})
-  list(APPEND LAMMPS_LINK_LIBS ${QE_LIBRARIES} ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
+  list(APPEND LAMMPS_LINK_LIBS ${QE_LIBRARIES})
 endif()
 
 if(PKG_USER-VTK)
@@ -398,26 +393,36 @@ endif()
 
 if(PKG_MSCG)
   find_package(GSL REQUIRED)
-  set(LAMMPS_LIB_MSCG_BIN_DIR ${LAMMPS_LIB_BINARY_DIR}/mscg)
-  set(MSCG_TARBALL ${LAMMPS_LIB_MSCG_BIN_DIR}/MS-CG-master.zip)
-  set(LAMMPS_LIB_MSCG_BIN_DIR ${LAMMPS_LIB_MSCG_BIN_DIR}/MSCG-release-master/src)
-  if(NOT EXISTS ${LAMMPS_LIB_MSCG_BIN_DIR})
-    if(NOT EXISTS ${MSCG_TARBALL})
-      message(STATUS "Downloading ${MSCG_TARBALL}")
-      file(DOWNLOAD
-        https://github.com/uchicago-voth/MSCG-release/archive/master.zip
-        ${MSCG_TARBALL} SHOW_PROGRESS) #EXPECTED_MD5 cannot be due due to master
+  option(DOWNLOAD_MSCG "Download latte (instead of using the system's one)" OFF)
+  if(DOWNLOAD_MSCG)
+    include(ExternalProject)
+    if(NOT LAPACK_FOUND)
+      set(EXTRA_MSCG_OPTS "-DLAPACK_LIBRARIES=${CMAKE_CURRENT_BINARY_DIR}/liblinalg.a")
     endif()
-    message(STATUS "Unpacking ${MSCG_TARBALL}")
-    execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ${MSCG_TARBALL}
-      WORKING_DIRECTORY ${LAMMPS_LIB_BINARY_DIR}/mscg)
+    ExternalProject_Add(mscg_build
+      URL https://github.com/uchicago-voth/MSCG-release/archive/1.7.3.1.tar.gz
+      URL_MD5 8c45e269ee13f60b303edd7823866a91
+      SOURCE_SUBDIR src/CMake
+      CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> -DCMAKE_POSITION_INDEPENDENT_CODE=${CMAKE_POSITION_INDEPENDENT_CODE} ${EXTRA_MSCG_OPTS}
+      BUILD_COMMAND make mscg INSTALL_COMMAND ""
+      )
+    ExternalProject_get_property(mscg_build BINARY_DIR)
+    set(MSCG_LIBRARIES ${BINARY_DIR}/libmscg.a)
+    ExternalProject_get_property(mscg_build SOURCE_DIR)
+    set(MSCG_INCLUDE_DIRS ${SOURCE_DIR}/src)
+    list(APPEND LAMMPS_DEPS mscg_build)
+    if(NOT LAPACK_FOUND)
+      file(MAKE_DIRECTORY ${MSCG_INCLUDE_DIRS})
+      add_dependencies(mscg_build linalg)
+    endif()
+  else()
+    find_package(MSCG)
+    if(NOT MSCG_FOUND)
+      message(FATAL_ERROR "MSCG not found, help CMake to find it by setting MSCG_LIBRARY and MSCG_INCLUDE_DIRS, or set DOWNLOAD_MSCG=ON to download it")
+    endif()
   endif()
-  file(GLOB MSCG_SOURCES ${LAMMPS_LIB_MSCG_BIN_DIR}/*.cpp)
-  add_library(mscg STATIC ${MSCG_SOURCES})
-  list(APPEND LAMMPS_LINK_LIBS mscg)
-  target_compile_options(mscg PRIVATE -DDIMENSION=3 -D_exclude_gromacs=1)
-  target_include_directories(mscg PUBLIC ${LAMMPS_LIB_MSCG_BIN_DIR})
-  target_link_libraries(mscg ${GSL_LIBRARIES} ${LAPACK_LIBRARIES})
+  list(APPEND LAMMPS_LINK_LIBS ${MSCG_LIBRARIES} ${GSL_LIBRARIES} ${LAPACK_LIBRARIES})
+  include_directories(${MSCG_INCLUDE_DIRS})
 endif()
 
 if(PKG_COMPRESS)
@@ -657,6 +662,9 @@ if(PKG_USER-INTEL)
 endif()
 
 if(PKG_GPU)
+    if (CMAKE_VERSION VERSION_LESS "3.1") 
+      message(FATAL_ERROR "For the GPU package you need at least cmake-3.1")
+    endif()
     set(GPU_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/GPU)
     set(GPU_SOURCES ${GPU_SOURCES_DIR}/gpu_extra.h
                     ${GPU_SOURCES_DIR}/fix_gpu.h
@@ -753,7 +761,7 @@ if(PKG_GPU)
       add_library(gpu STATIC ${GPU_LIB_SOURCES})
       target_link_libraries(gpu ${OpenCL_LIBRARIES})
       target_include_directories(gpu PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/gpu ${OpenCL_INCLUDE_DIRS})
-      target_compile_definitions(gpu PRIVATE -D_${GPU_PREC} -DMPI_GERYON -DUCL_NO_EXIT)
+      target_compile_definitions(gpu PRIVATE -D_${GPU_PREC} -D${OCL_TUNE}_OCL -DMPI_GERYON -DUCL_NO_EXIT)
       target_compile_definitions(gpu PRIVATE -DUSE_OPENCL)
 
       list(APPEND LAMMPS_LINK_LIBS gpu)
@@ -793,6 +801,11 @@ include_directories(${LAMMPS_STYLE_HEADERS_DIR})
 # Actually add executable and lib to build
 ############################################
 add_library(lammps ${LIB_SOURCES})
+get_property(LANGUAGES GLOBAL PROPERTY ENABLED_LANGUAGES)
+list (FIND LANGUAGES "Fortran" _index)
+if (${_index} GREATER -1)
+  list(APPEND LAMMPS_LINK_LIBS ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
+endif()
 list(REMOVE_DUPLICATES LAMMPS_LINK_LIBS)
 target_link_libraries(lammps ${LAMMPS_LINK_LIBS})
 if(LAMMPS_DEPS)
@@ -815,9 +828,38 @@ if(ENABLE_TESTING)
   add_test(ShowHelp lmp${LAMMPS_MACHINE} -help)
 endif()
 
-##################################
+###############################################################################
+# Testing
+#
+# Requires latest gcovr (for GCC 8.1 support):#
+# pip install git+https://github.com/gcovr/gcovr.git
+###############################################################################
+if(ENABLE_COVERAGE)
+    find_program(GCOVR_BINARY gcovr)
+    find_package_handle_standard_args(GCOVR DEFAULT_MSG GCOVR_BINARY)
+
+    if(GCOVR_FOUND)
+        get_filename_component(ABSOLUTE_LAMMPS_SOURCE_DIR ${LAMMPS_SOURCE_DIR} ABSOLUTE)
+
+        add_custom_target(
+            gen_coverage_xml
+            COMMAND ${GCOVR_BINARY} -s -x -r ${ABSOLUTE_LAMMPS_SOURCE_DIR} --object-directory=${CMAKE_BINARY_DIR} -o coverage.xml
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+            COMMENT "Generating XML Coverage Report..."
+        )
+
+        add_custom_target(
+            gen_coverage_html
+            COMMAND ${GCOVR_BINARY} -s  --html --html-details -r ${ABSOLUTE_LAMMPS_SOURCE_DIR} --object-directory=${CMAKE_BINARY_DIR} -o coverage.html
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+            COMMENT "Generating HTML Coverage Report..."
+        )
+    endif()
+endif()
+
+###############################################################################
 # Print package summary
-##################################
+###############################################################################
 foreach(PKG ${DEFAULT_PACKAGES} ${OTHER_PACKAGES} ${ACCEL_PACKAGES})
   if(PKG_${PKG})
     message(STATUS "Building package: ${PKG}")

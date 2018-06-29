@@ -29,7 +29,7 @@ texture<int2> q_tex;
 #define q_tex q_
 #endif
 
-__kernel void k_born_long(const __global numtyp4 *restrict x_,
+__kernel void k_born_coul_long(const __global numtyp4 *restrict x_,
                           const __global numtyp4 *restrict coeff1,
                           const __global numtyp4 *restrict coeff2,
                           const int lj_types,
@@ -110,7 +110,7 @@ __kernel void k_born_long(const __global numtyp4 *restrict x_,
           forcecoul = prefactor * (_erfc + EWALD_F*grij*expm2-factor_coul);
         } else forcecoul = (numtyp)0.0;
 
-        if (rsq < cutsq_sigma[mtype].y) {
+        if (rsq < cutsq_sigma[mtype].y) { // cut_ljsq
           numtyp r = ucl_sqrt(rsq);
           rexp = ucl_exp((cutsq_sigma[mtype].z-r)*coeff1[mtype].x);
           r6inv = r2inv*r2inv*r2inv;
@@ -127,7 +127,7 @@ __kernel void k_born_long(const __global numtyp4 *restrict x_,
         if (eflag>0) {
           if (rsq < cut_coulsq)
             e_coul += prefactor*(_erfc-factor_coul);
-          if (rsq < coeff1[mtype].w) {
+          if (rsq < cutsq_sigma[mtype].y) {
             numtyp e=coeff2[mtype].x*rexp - coeff2[mtype].y*r6inv
               + coeff2[mtype].z*r2inv*r6inv;
             energy+=factor_lj*(e-coeff2[mtype].w);
@@ -149,7 +149,7 @@ __kernel void k_born_long(const __global numtyp4 *restrict x_,
   } // if ii
 }
 
-__kernel void k_born_long_fast(const __global numtyp4 *restrict x_,
+__kernel void k_born_coul_long_fast(const __global numtyp4 *restrict x_,
                                const __global numtyp4 *restrict coeff1_in,
                                const __global numtyp4 *restrict coeff2_in,
                                const __global numtyp *restrict sp_lj_in,
@@ -232,7 +232,7 @@ __kernel void k_born_long_fast(const __global numtyp4 *restrict x_,
           forcecoul = prefactor * (_erfc + EWALD_F*grij*expm2-factor_coul);
         } else forcecoul = (numtyp)0.0;
 
-        if (rsq < cutsq_sigma[mtype].y) {
+        if (rsq < cutsq_sigma[mtype].y) { // cut_ljsq
           numtyp r = ucl_sqrt(rsq);
           rexp = ucl_exp((cutsq_sigma[mtype].z-r)*coeff1[mtype].x);
           r6inv = r2inv*r2inv*r2inv;
@@ -249,7 +249,7 @@ __kernel void k_born_long_fast(const __global numtyp4 *restrict x_,
         if (eflag>0) {
           if (rsq < cut_coulsq)
             e_coul += prefactor*(_erfc-factor_coul);
-          if (rsq < coeff1[mtype].w) {
+          if (rsq < cutsq_sigma[mtype].y) {
             numtyp e=coeff2[mtype].x*rexp - coeff2[mtype].y*r6inv
               + coeff2[mtype].z*r2inv*r6inv;
             energy+=factor_lj*(e-coeff2[mtype].w);

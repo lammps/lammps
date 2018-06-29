@@ -232,7 +232,8 @@ c     pairs, but need to include NN2 contributions to those pairs as
 c     well.
               if (lattce_meam(a,b).eq.'b1'.or.
      $             lattce_meam(a,b).eq.'b2'.or.
-     $             lattce_meam(a,b).eq.'l12') then
+     $             lattce_meam(a,b).eq.'l12'.or.
+     $             lattce_meam(a,b).eq.'dia') then
                 rarat = r*arat
 
 c               phi_aa
@@ -262,7 +263,8 @@ c               phi_bb
                 endif
 
                 if (lattce_meam(a,b).eq.'b1'.
-     $               or.lattce_meam(a,b).eq.'b2') then
+     $               or.lattce_meam(a,b).eq.'b2'.
+     $               or.lattce_meam(a,b).eq.'dia') then
 c     Add contributions to the B1 or B2 potential
                   call get_Zij(Z1,lattce_meam(a,b))
                   call get_Zij2(Z2,arat,scrn,lattce_meam(a,b),
@@ -720,9 +722,9 @@ c neighbor screening function for lattice type "latt"
         a = sqrt(2.d0)
         numscr = 4
       else if (latt.eq.'dia') then
-        Zij2 = 0
+        Zij2 = 12
         a = sqrt(8.d0/3.d0)
-        numscr = 4
+        numscr = 1
         if (cmin.lt.0.500001) then
 c          call error('can not do 2NN MEAM for dia')
         endif

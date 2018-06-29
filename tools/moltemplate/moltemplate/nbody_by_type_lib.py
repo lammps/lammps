@@ -30,7 +30,7 @@ from collections import defaultdict
 try:
     from .nbody_graph_search import Ugraph, GraphMatcher
     from .ttree_lex import MatchesPattern, MatchesAll, InputError
-except (SystemError, ValueError):
+except (ImportError, SystemError, ValueError):
     # not installed as a package
     from nbody_graph_search import Ugraph, GraphMatcher
     from ttree_lex import MatchesPattern, MatchesAll, InputError

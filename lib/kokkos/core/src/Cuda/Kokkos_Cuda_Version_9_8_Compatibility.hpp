@@ -1,4 +1,5 @@
 #include<Kokkos_Macros.hpp>
+
 #if defined( __CUDA_ARCH__ )
 #if ( CUDA_VERSION < 9000 )
 #define KOKKOS_IMPL_CUDA_SYNCWARP __threadfence_block()
@@ -13,7 +14,7 @@
 #else
 #define KOKKOS_IMPL_CUDA_SYNCWARP __syncwarp(0xffffffff)
 #define KOKKOS_IMPL_CUDA_SYNCWARP_MASK(m) __syncwarp(m)
-#define KOKKOS_IMPL_CUDA_BALLOT(x) __ballot_sync(0xffffffff,x)
+#define KOKKOS_IMPL_CUDA_BALLOT(x) __ballot_sync(__activemask(),x)
 #define KOKKOS_IMPL_CUDA_SHFL(x,y,z) __shfl_sync(0xffffffff,x,y,z)
 #define KOKKOS_IMPL_CUDA_SHFL_MASK(m,x,y,z) __shfl_sync(m,x,y,z)
 #define KOKKOS_IMPL_CUDA_SHFL_UP(x,y,z) __shfl_up_sync(0xffffffff,x,y,z)
@@ -28,6 +29,12 @@
 #define KOKKOS_IMPL_CUDA_SHFL_UP(x,y,z) 0
 #define KOKKOS_IMPL_CUDA_SHFL_DOWN(x,y,z) 0
 #endif 
+
+#if ( CUDA_VERSION >= 9000 ) && (!defined(KOKKOS_COMPILER_CLANG))
+#define KOKKOS_IMPL_CUDA_MAX_SHFL_SIZEOF sizeof(long long)
+#else
+#define KOKKOS_IMPL_CUDA_MAX_SHFL_SIZEOF sizeof(int)
+#endif
 
 #if defined( __CUDA_ARCH__ )
 #if ( CUDA_VERSION < 9000 )

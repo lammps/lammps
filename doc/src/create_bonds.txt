@@ -37,8 +37,8 @@ keyword = {special} :l
 
 create_bonds many all all 1 1.0 1.2
 create_bonds many surf solvent 3 2.0 2.4
-create_bond single/bond 1 1 2
-create_bond single/angle 5 52 98 107 special no :pre
+create_bonds single/bond 1 1 2
+create_bonds single/angle 5 52 98 107 special no :pre
 
 [Description:]
 

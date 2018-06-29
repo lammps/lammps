@@ -130,6 +130,27 @@
 /pair_lj_charmmfsw_coul_long.cpp
 /pair_lj_charmmfsw_coul_long.h
 
+/atom_vec_spin.cpp
+/atom_vec_spin.h
+/compute_spin.cpp
+/compute_spin.h
+/fix_langevin_spin.cpp
+/fix_langevin_spin.h
+/fix_nve_spin.cpp
+/fix_nve_spin.h
+/fix_precession_spin.cpp
+/fix_precession_spin.h
+/pair_spin.cpp
+/pair_spin.h
+/pair_spin_dmi.cpp
+/pair_spin_dmi.h
+/pair_spin_exchange.cpp
+/pair_spin_exchange.h
+/pair_spin_magelec.cpp
+/pair_spin_magelec.h
+/pair_spin_neel.cpp
+/pair_spin_neel.h
+
 /angle_cg_cmm.cpp
 /angle_cg_cmm.h
 /angle_charmm.cpp

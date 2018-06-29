@@ -74,11 +74,24 @@ unfix fxnvt
 # I did this to enable the molecules to move freely and reorient themselves.
 # After doing that, we should run the simulation under NPT conditions to 
 # allow the simulation box to contract to it's natural size.  We do that here:
-# We begin the simulation at 100 barr (a relatively low pressure), and
-# slowly decrease it to 1 barr, maintianing the temperature at 300K.
+# To help it collapse, we begin the simulation at a relatively high pressure
+# Later on, we will slowly decrease it to 1 bar.
+
+# First cool the system. (Do this at high pressure to avoid bubble formation.)
 
 dump dumpeq3 all custom 200 traj_eq3_npt.lammpstrj id mol type x y z ix iy iz
-fix fxnpt all npt temp 900.0 300.0 100.0 iso 100.0 1.0 1000.0 drag 2.0
+fix fxnpt all npt temp 900.0 260.0 100.0 iso 500.0 500.0 1000.0 drag 2.0
+
+timestep        1.0
+run             20000
+
+# At the very end of the previous simulation, the temperature dropped below
+# the boiling point.  Run the simulation for longer at these conditions to
+# give it a chance for the vapor -> liquid transition to complete.
+# We will also slowly decrease the pressure to 1 bar.
+
+unfix fxnpt
+fix fxnpt all npt temp 260.0 260.0 100.0 iso 500.0 1.0 1000.0 drag 2.0
 
 timestep        1.0
 run             100000

@@ -241,19 +241,17 @@ molecule ID = 0) surrounding rigid bodies, this may not be what you
 want.  Thus you should be careful to use a fix group that only
 includes atoms you want to be part of rigid bodies.
 
-Bodystyle {custom} is similar to bodystyle {molecule}, however some
-custom properties are used to group atoms into rigid bodies. The
-special case for molecule/body ID = 0 is not available. Possible
-custom properties are an integer property associated with atoms through
-"fix property/atom"_fix_property_atom.html or an atom style variable
-or an atomfile style variable. For the latter two, the variable value
-will be rounded to an integer and then rigid bodies defined from
-those values.
-
-For bodystyle {group}, each of the listed groups is treated as a
-separate rigid body.  Only atoms that are also in the fix group are
-included in each rigid body.  This option is only allowed for the
-{rigid} styles.
+Bodystyle {custom} is similar to bodystyle {molecule} except that it
+is more flexible in using other per-atom properties to define the sets
+of atoms that form rigid bodies.  An integer vector defined by the
+"fix property/atom"_fix_property_atom.txt command can be used.  Or an
+"atom-style or atomfile-style variable"_variable.html can be used; the
+floating-point value produced by the variable is rounded to an
+integer.  As with bondstyle {molecule}, each set of atoms in the fix
+groups with the same integer value is treated as a different rigid
+body.  Since fix property/atom vectors and atom-style variables
+produce values for all atoms, you should be careful to use a fix group
+that only includes atoms you want to be part of rigid bodies.
 
 NOTE: To compute the initial center-of-mass position and other
 properties of each rigid body, the image flags for each atom in the

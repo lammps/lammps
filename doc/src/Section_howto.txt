@@ -2954,7 +2954,6 @@ property/atom"_compute_property_atom.html. It enables to output all the
 per atom magnetic quantities. Typically, the orientation of a given 
 magnetic spin, or the magnetic force acting on this spin.
 
-
 :line
 :line
 

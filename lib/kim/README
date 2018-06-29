@@ -46,8 +46,8 @@ $ rm -rf kim-api-vX.Y.Z.txz
 5. To add items do the following (replace the kim item name with your
    desired value)
 
-$ source ${PWD}/kim-api-vX.Y.Z/bin/kim-api-v1-activate
-$ kim-api-v1-collections-management install system Pair_Johnson_Fe__MO_857282754307_002
+$ source ${PWD}/kim-api-vX.Y.Z/bin/kim-api-vX-activate
+$ kim-api-vX-collections-management install system Pair_Johnson_Fe__MO_857282754307_002
 
 
 -----------------

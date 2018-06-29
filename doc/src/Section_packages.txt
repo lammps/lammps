@@ -516,8 +516,7 @@ Elliott (U Minnesota) and James Sethna (Cornell U).
 
 [Authors:] Ryan Elliott (U Minnesota) is the main developer for the KIM
 API which the "pair_style kim"_pair_kim.html command uses.  He
-developed the pair style in collaboration with Valeriu Smirichinski (U
-Minnesota).
+developed the pair style.
 
 [Install or un-install:]
 
@@ -530,11 +529,11 @@ lib/kim/Install.py script with the specified args.
 
 make lib-kim              # print help message
 make lib-kim args="-b "   # (re-)install KIM API lib with only example models
-make lib-kim args="-b -a Glue_Ercolessi_Adams_Al__MO_324507536345_001"  # ditto plus one model
+make lib-kim args="-b -a Glue_Ercolessi_Adams_Al__MO_324507536345_002"  # ditto plus one model
 make lib-kim args="-b -a everything"     # install KIM API lib with all models
-make lib-kim args="-n -a EAM_Dynamo_Ackland_W__MO_141627196590_002"       # add one model or model driver
-make lib-kim args="-p /usr/local/kim-api" # use an existing KIM API installation at the provided location
-make lib-kim args="-p /usr/local/kim-api -a EAM_Dynamo_Ackland_W__MO_141627196590_002" # ditto but add one model or driver :pre
+make lib-kim args="-n -a EAM_Dynamo_Ackland_W__MO_141627196590_003"       # add one model or model driver
+make lib-kim args="-p /usr/local/lib/kim-api-v2" # use an existing KIM API installation at the provided location
+make lib-kim args="-p /usr/local/lib/kim-api-v2 -a EAM_Dynamo_Ackland_W__MO_141627196590_003" # ditto but add one model or driver :pre
 
 Note that in LAMMPS lingo, a KIM model driver is a pair style
 (e.g. EAM or Tersoff).  A KIM model is a pair style for a particular
@@ -730,13 +729,13 @@ args:
 make lib-latte                          # print help message
 make lib-latte args="-b"                # download and build in lib/latte/LATTE-master
 make lib-latte args="-p $HOME/latte"    # use existing LATTE installation in $HOME/latte
-make lib-latte args="-b -m gfortran"    # download and build in lib/latte and 
+make lib-latte args="-b -m gfortran"    # download and build in lib/latte and
                                         #   copy Makefile.lammps.gfortran to Makefile.lammps
 :pre
 
 Note that 3 symbolic (soft) links, "includelink" and "liblink" and
 "filelink.o", are created in lib/latte to point into the LATTE home dir.
-When LAMMPS builds in src it will use these links.  You should 
+When LAMMPS builds in src it will use these links.  You should
 also check that the Makefile.lammps file you create is appropriate
 for the compiler you use on your system to build LATTE.
 
@@ -1667,7 +1666,7 @@ This package provides "fix bocs"_fix_bocs.html, a modified version
 of "fix npt"_fix_nh.html which includes the pressure correction to
 the barostat as outlined in:
 
-N. J. H. Dunn and W. G. Noid, "Bottom-up coarse-grained models that 
+N. J. H. Dunn and W. G. Noid, "Bottom-up coarse-grained models that
 accurately describe the structure, pressure, and compressibility of
 molecular liquids," J. Chem. Phys. 143, 243148 (2015).
 
@@ -2279,13 +2278,13 @@ based on the Fortran version of Greg Wagner (Northwestern U) while at
 Sandia.
 
 [Install or un-install:]
-  
+
 make yes-user-meamc
 make machine :pre
- 
+
 make no-user-meamc
 make machine :pre
- 
+
 [Supporting info:]
 
 src/USER-MEAMC: filenames -> commands
@@ -2310,13 +2309,13 @@ algorithm.
 [Author:] Zhen Li (Division of Applied Mathematics, Brown University)
 
 [Install or un-install:]
-  
+
 make yes-user-meso
 make machine :pre
- 
+
 make no-user-meso
 make machine :pre
- 
+
 [Supporting info:]
 
 src/USER-MESO: filenames -> commands
@@ -2336,17 +2335,17 @@ USER-MOFFF package :link(USER-MOFFF),h4
 [Contents:]
 
 Pair, angle and improper styles needed to employ the MOF-FF
-force field by Schmid and coworkers with LAMMPS. 
+force field by Schmid and coworkers with LAMMPS.
 MOF-FF is a first principles derived force field with the primary aim
-to simulate MOFs and related porous framework materials, using spherical 
+to simulate MOFs and related porous framework materials, using spherical
 Gaussian charges. It is described in S. Bureekaew et al., Phys. Stat. Sol. B
 2013, 250, 1128-1141.
-For the usage of MOF-FF see the example in the example directory as 
+For the usage of MOF-FF see the example in the example directory as
 well as the "MOF+"_MOFplus website.
 
 :link(MOFplus,https://www.mofplus.org/content/show/MOF-FF)
 
-[Author:] Hendrik Heenen (Technical U of Munich), 
+[Author:] Hendrik Heenen (Technical U of Munich),
 Rochus Schmid (Ruhr-University Bochum).
 
 [Install or un-install:]

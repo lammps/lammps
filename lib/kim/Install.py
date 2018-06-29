@@ -12,11 +12,11 @@ help = """
 Syntax from src dir: make lib-kim args="-b -v version  -a kim-name"
                  or: make lib-kim args="-b -a everything"
                  or: make lib-kim args="-n -a kim-name"
-                 or: make lib-kim args="-p /usr/local/open-kim -a kim-name"
+                 or: make lib-kim args="-p /usr/local/lib/kim-api-v2 -a kim-name"
 Syntax from lib dir: python Install.py -b -v version  -a kim-name
                  or: python Install.py -b -a everything
                  or: python Install.py -n -a kim-name
-                 or: python Install.py -p /usr/local/open-kim -a kim-name
+                 or: python Install.py -p /usr/local/lib/kim-api-v2 -a kim-name
 
 specify one or more options, order does not matter
 
@@ -36,9 +36,9 @@ specify one or more options, order does not matter
 Examples:
 
 make lib-kim args="-b" # install KIM API lib with only example models
-make lib-kim args="-a Glue_Ercolessi_Adams_Al__MO_324507536345_001"  # Ditto plus one model
+make lib-kim args="-a Glue_Ercolessi_Adams_Al__MO_324507536345_002"  # Ditto plus one model
 make lib-kim args="-b -a everything"   # install KIM API lib with all models
-make lib-kim args="-n -a EAM_Dynamo_Ackland_W__MO_141627196590_002"   # only add one model or model driver
+make lib-kim args="-n -a EAM_Dynamo_Ackland_W__MO_141627196590_003"   # only add one model or model driver
 
 See the list of KIM model drivers here:
 https://openkim.org/kim-items/model-drivers/alphabetical

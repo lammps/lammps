@@ -309,7 +309,7 @@ if(PKG_VORONOI)
     ExternalProject_Add(voro_build
       URL http://math.lbl.gov/voro++/download/dir/voro++-0.4.6.tar.gz
       URL_MD5 2338b824c3b7b25590e18e8df5d68af9
-      CONFIGURE_COMMAND "" BUILD_IN_SOURCE 1 INSTALL_COMMAND "" 
+      CONFIGURE_COMMAND "" BUILD_IN_SOURCE 1 INSTALL_COMMAND ""
       )
     ExternalProject_get_property(voro_build SOURCE_DIR)
     set(VORO_LIBRARIES ${SOURCE_DIR}/src/libvoro++.a)
@@ -367,7 +367,7 @@ if(PKG_USER-SMD)
   if(DOWNLOAD_Eigen3)
     include(ExternalProject)
     ExternalProject_Add(Eigen3_build
-      URL http://bitbucket.org/eigen/eigen/get/3.3.4.tar.gz 
+      URL http://bitbucket.org/eigen/eigen/get/3.3.4.tar.gz
       URL_MD5 1a47e78efe365a97de0c022d127607c3
       CONFIGURE_COMMAND "" BUILD_COMMAND "" INSTALL_COMMAND ""
     )
@@ -407,14 +407,14 @@ if(PKG_KIM)
   if(DOWNLOAD_KIM)
     include(ExternalProject)
     ExternalProject_Add(kim_build
-      URL https://github.com/openkim/kim-api/archive/v1.9.5.tar.gz
-      URL_MD5 9f66efc128da33039e30659f36fc6d00
+      URL https://github.com/openkim/kim-api/archive/v2.0.0-beta.0.tar.gz
+      URL_MD5 2c099fe2603fda9a6904fc50d626f71b
       BUILD_IN_SOURCE 1
       CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
       )
     ExternalProject_get_property(kim_build INSTALL_DIR)
-    set(KIM_INCLUDE_DIRS ${INSTALL_DIR}/include/kim-api-v1)
-    set(KIM_LIBRARIES ${INSTALL_DIR}/lib/libkim-api-v1.so)
+    set(KIM_INCLUDE_DIRS ${INSTALL_DIR}/include/kim-api-v2)
+    set(KIM_LIBRARIES ${INSTALL_DIR}/lib/libkim-api-v2.so)
     list(APPEND LAMMPS_DEPS kim_build)
   else()
     find_package(KIM)
@@ -706,7 +706,7 @@ if(PKG_USER-INTEL)
 endif()
 
 if(PKG_GPU)
-    if (CMAKE_VERSION VERSION_LESS "3.1") 
+    if (CMAKE_VERSION VERSION_LESS "3.1")
       message(FATAL_ERROR "For the GPU package you need at least cmake-3.1")
     endif()
     set(GPU_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/GPU)
@@ -892,7 +892,7 @@ if(BUILD_EXE)
       add_dependencies(lmp ${LAMMPS_DEPS})
     endif()
   endif()
-  
+
   set_target_properties(lmp PROPERTIES OUTPUT_NAME lmp${LAMMPS_MACHINE})
   install(TARGETS lmp DESTINATION ${CMAKE_INSTALL_BINDIR})
   if(ENABLE_TESTING)
@@ -954,14 +954,14 @@ message(STATUS "<<< Build configuration >>>
 get_property(LANGUAGES GLOBAL PROPERTY ENABLED_LANGUAGES)
 list (FIND LANGUAGES "Fortran" _index)
 if (${_index} GREATER -1)
-  message(STATUS "Fortran Compiler ${CMAKE_Fortran_COMPILER} 
+  message(STATUS "Fortran Compiler ${CMAKE_Fortran_COMPILER}
            Type     ${CMAKE_Fortran_COMPILER_ID}
            Version  ${CMAKE_Fortran_COMPILER_VERSION}
    Fortran Flags    ${CMAKE_Fortran_FLAGS} ${CMAKE_Fortran_FLAGS_${BTYPE}}")
 endif()
 list (FIND LANGUAGES "C" _index)
 if (${_index} GREATER -1)
-  message(STATUS "C Compiler ${CMAKE_C_COMPILER} 
+  message(STATUS "C Compiler ${CMAKE_C_COMPILER}
      Type     ${CMAKE_C_COMPILER_ID}
      Version  ${CMAKE_C_COMPILER_VERSION}
      C Flags  ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${BTYPE}}")

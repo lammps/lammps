@@ -6,9 +6,9 @@
 #  KIM_FOUND        - True if kim found.
 #
 
-find_path(KIM_INCLUDE_DIR KIM_API.h PATH_SUFFIXES kim-api-v1)
+find_path(KIM_INCLUDE_DIR KIM_SimulatorHeaders.hpp PATH_SUFFIXES kim-api-v2)
 
-find_library(KIM_LIBRARY NAMES kim-api-v1)
+find_library(KIM_LIBRARY NAMES kim-api-v2)
 
 set(KIM_LIBRARIES ${KIM_LIBRARY})
 set(KIM_INCLUDE_DIRS ${KIM_INCLUDE_DIR})

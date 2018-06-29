@@ -163,7 +163,8 @@ void ComputeEntropyAtom::compute_peratom()
   int i,j,ii,jj,inum,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  double rbin[nbin], rbinsq[nbin];
+  double *rbin = new double[nbin];
+  double *rbinsq = new double[nbin];
 
   invoked_peratom = update->ntimestep;
 
@@ -235,7 +236,7 @@ void ComputeEntropyAtom::compute_peratom()
       // loop over list of all neighbors within force cutoff
 
       // initialize gofr
-      double gofr[nbin];
+      double *gofr = new double[nbin];
       for(int k=0;k<nbin;++k) gofr[k]=0.;
 
       for (jj = 0; jj < jnum; jj++) {
@@ -265,7 +266,7 @@ void ComputeEntropyAtom::compute_peratom()
       }
 
       // Calculate integrand
-      double integrand[nbin];
+      double *integrand = new double[nbin];
       for(int k=0;k<nbin;++k){
         if (gofr[k]<1.e-10) {
           integrand[k] = rbinsq[k];
@@ -273,6 +274,7 @@ void ComputeEntropyAtom::compute_peratom()
           integrand[k] = (gofr[k]*log(gofr[k])-gofr[k]+1)*rbinsq[k];
         }
       }
+      delete [] gofr;
 
       // Integrate with trapezoid rule
       double value = 0.;
@@ -282,9 +284,9 @@ void ComputeEntropyAtom::compute_peratom()
       value += 0.5*integrand[0];
       value += 0.5*integrand[nbin-1];
       value *= deltar;
+      delete [] integrand;
 
       pair_entropy[i] = -2*MY_PI*density*value;
-
     }
   }
 
@@ -320,7 +322,8 @@ void ComputeEntropyAtom::compute_peratom()
       }
     }
   }
-
+  delete [] rbin;
+  delete [] rbinsq;
 }
 
 

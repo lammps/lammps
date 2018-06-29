@@ -59,11 +59,11 @@ ComputeEntropyAtom(LAMMPS *lmp, int narg, char **arg) :
   //     the g(r)
 
   sigma = force->numeric(FLERR,arg[3]);
-  if (sigma < 0.0) error->all(FLERR,"Illegal compute entropy/atom"
-                              " command; negative sigma");
+  if (sigma <= 0.0) error->all(FLERR,"Illegal compute entropy/atom"
+                              " command; sigma must be positive");
   cutoff = force->numeric(FLERR,arg[4]);
-  if (cutoff < 0.0) error->all(FLERR,"Illegal compute entropy/atom"
-                               " command; negative cutoff");
+  if (cutoff <= 0.0) error->all(FLERR,"Illegal compute entropy/atom"
+                               " command; cutoff must be positive");
 
   avg_flag = 0;
   local_flag = 0;
@@ -121,7 +121,7 @@ ComputeEntropyAtom::~ComputeEntropyAtom()
 void ComputeEntropyAtom::init()
 {
   if (force->pair == NULL)
-    error->all(FLERR,"Compute centro/atom requires a pair style be"
+    error->all(FLERR,"Compute entropy/atom requires a pair style be"
                " defined");
 
   if ( (cutoff+cutoff2) > (force->pair->cutforce  + neighbor->skin) )
@@ -208,6 +208,8 @@ void ComputeEntropyAtom::compute_peratom()
 
   double **x = atom->x;
   int *mask = atom->mask;
+  double *gofr = new double[nbin];
+  double *integrand = new double[nbin];
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -236,7 +238,6 @@ void ComputeEntropyAtom::compute_peratom()
       // loop over list of all neighbors within force cutoff
 
       // initialize gofr
-      double *gofr = new double[nbin];
       for(int k=0;k<nbin;++k) gofr[k]=0.;
 
       for (jj = 0; jj < jnum; jj++) {
@@ -266,7 +267,6 @@ void ComputeEntropyAtom::compute_peratom()
       }
 
       // Calculate integrand
-      double *integrand = new double[nbin];
       for(int k=0;k<nbin;++k){
         if (gofr[k]<1.e-10) {
           integrand[k] = rbinsq[k];
@@ -274,7 +274,6 @@ void ComputeEntropyAtom::compute_peratom()
           integrand[k] = (gofr[k]*log(gofr[k])-gofr[k]+1)*rbinsq[k];
         }
       }
-      delete [] gofr;
 
       // Integrate with trapezoid rule
       double value = 0.;
@@ -284,12 +283,12 @@ void ComputeEntropyAtom::compute_peratom()
       value += 0.5*integrand[0];
       value += 0.5*integrand[nbin-1];
       value *= deltar;
-      delete [] integrand;
 
       pair_entropy[i] = -2*MY_PI*density*value;
     }
   }
-
+  delete [] gofr;
+  delete [] integrand;
 
   if (avg_flag) {
     for (ii = 0; ii < inum; ii++) {

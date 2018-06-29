@@ -1,0 +1,66 @@
+--------------------------------------------------------------------------
+[[30970,1],0]: A high-performance Open MPI point-to-point messaging module
+was unable to find any relevant network interfaces:
+
+Module: OpenFabrics (openib)
+  Host: ubuntu-artful
+
+Another transport will be used instead, although this may result in
+lower performance.
+
+NOTE: You can disable this warning by setting the MCA parameter
+btl_base_warn_component_unused to 0.
+--------------------------------------------------------------------------
+LAMMPS (22 Jun 2018)
+Lattice spacing in x,y,z = 4.43 4.43 4.43
+Created orthogonal box = (0 0 0) to (88.6 88.6 88.6)
+  1 by 1 by 1 MPI processor grid
+Created 32000 atoms
+  Time spent = 0.0031676 secs
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 7.85482
+  ghost atom cutoff = 7.85482
+  binsize = 3.92741, bins = 23 23 23
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 0
+  Time step     : 0.001
+Per MPI rank memory allocation (min/avg/max) = 16.58 | 16.58 | 16.58 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0          200   -495.29247            0    331.94661   -978.84224 
+     100    212.66365   -547.67175            0    331.94665   -1054.2086 
+Loop time of 1.40245 on 1 procs for 100 steps with 32000 atoms
+
+Performance: 6.161 ns/day, 3.896 hours/ns, 71.304 timesteps/s
+100.0% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.2556     | 1.2556     | 1.2556     |   0.0 | 89.53
+Neigh   | 0.098976   | 0.098976   | 0.098976   |   0.0 |  7.06
+Comm    | 0.011525   | 0.011525   | 0.011525   |   0.0 |  0.82
+Output  | 0.00021903 | 0.00021903 | 0.00021903 |   0.0 |  0.02
+Modify  | 0.023739   | 0.023739   | 0.023739   |   0.0 |  1.69
+Other   |            | 0.01244    |            |       |  0.89
+
+Nlocal:    32000 ave 32000 max 32000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    19911 ave 19911 max 19911 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    1.36493e+06 ave 1.36493e+06 max 1.36493e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1364931
+Ave neighs/atom = 42.6541
+Neighbor list builds = 3
+Dangerous builds = 0
+Total wall time: 0:00:01

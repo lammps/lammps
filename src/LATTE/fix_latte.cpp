@@ -48,7 +48,7 @@ extern "C" {
 // a meaningful error messages, as they can cause
 // difficult to debug crashes or memory corruption.
 
-#define ABIVERSION 20180622
+#define LATTE_ABIVERSION 20180622
 #define INVOKED_PERATOM 8
 
 /* ---------------------------------------------------------------------- */

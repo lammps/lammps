@@ -90,11 +90,11 @@ namespace LAMMPS_NS {
       KIM::ComputeArguments * pargs;
 
       // values set in set_kim_model_has_flags(), called by kim_init()
-      bool kim_model_has_energy;
-      bool kim_model_has_forces;
-      bool kim_model_has_virial;
-      bool kim_model_has_particleEnergy;
-      bool kim_model_has_particleVirial;
+      KIM::SupportStatus kim_model_support_for_energy;
+      KIM::SupportStatus kim_model_support_for_forces;
+      KIM::SupportStatus kim_model_support_for_virial;
+      KIM::SupportStatus kim_model_support_for_particleEnergy;
+      KIM::SupportStatus kim_model_support_for_particleVirial;
 
       // values set in kim_init()
       bool kim_init_ok;
@@ -105,7 +105,6 @@ namespace LAMMPS_NS {
       class NeighList ** neighborLists;
 
       // values set in init_style()
-      bool kim_model_init_ok;
       bool kim_particle_codes_ok;
       int *kim_particle_codes;
 

@@ -1416,7 +1416,7 @@ examples/snap :ul
 
 :line
 
-SPIN package :link(SNAP),h4
+SPIN package :link(SPIN),h4
 
 [Contents:]
 

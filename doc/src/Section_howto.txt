@@ -2911,14 +2911,15 @@ too close, which can cause numerical issues.
 
 6.28 Magnetic spins :link(howto_28),h4
 
-The magnetic spin simualtions are enabled by the SPIN package, whose
-implementation is detailed in "Tranchida"_#Tranchida7.
+Classical magnetic spin simualtions can be performed via the SPIN
+package.  The algrorithmic and implementation details are described in
+"Tranchida"_#Tranchida7.
 
-The model representents the simulation of atomic magnetic spins coupled 
-to lattice vibrations. The dynamics of those magnetic spins can be used 
-to simulate a broad range a phenomena related to magneto-elasticity, or 
-or to study the influence of defects on the magnetic properties of 
-materials. 
+The model representents the simulation of atomic magnetic spins
+coupled to lattice vibrations. The dynamics of those magnetic spins
+can be used to simulate a broad range a phenomena related to
+magneto-elasticity, or or to study the influence of defects on the
+magnetic properties of materials.
 
 The magnetic spins are interacting with each others and with the 
 lattice via pair interactions. Typically, the magnetic exchange 

@@ -1,4 +1,10 @@
 # 3d Lennard-Jones melt
+#
+# This example requires that the example models provided with
+# the kim-api package are installed.  see the ./lib/kim/README or
+# ./lib/kim/Install.py files for details on how to install these
+# example models.
+#
 
 variable	x index 1
 variable	y index 1

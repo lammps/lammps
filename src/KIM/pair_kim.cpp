@@ -429,7 +429,8 @@ void PairKIM::init_style()
      neighbor->requests[irequest]->full = 1;
      neighbor->requests[irequest]->ghost = 1;
      neighbor->requests[irequest]->cut = 1;
-     neighbor->requests[irequest]->cutoff = kim_cutoff_values[i];
+     neighbor->requests[irequest]->cutoff
+         = kim_cutoff_values[i] + neighbor->skin;
    }
 
    return;

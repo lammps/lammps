@@ -15,7 +15,7 @@ read_data	data.peptide
 neighbor	2.0 bin
 neigh_modify	delay 5
 
-timestep	2.0
+timestep	1.8181818181818181
 
 group		peptide type <= 12
 group		one id 2 4 5 6
@@ -23,12 +23,9 @@ group		two id 80 82 83 84
 group		ref id 37
 group		colvar union one two ref
 
-fix		1 all nvt temp  275.0 275.0 100.0 tchain 1
+fix		1 all nvt temp  363.0 363.0 90.90909090909091 tchain 1
 
-fix		2 all plumed plumedfile plumed.dat outfile p.log
-fix		2a ref setforce 0.0 0.0 0.0
-
-fix		4 all shake 0.0001 10 100 b 4 6 8 10 12 14 18 a 31
+fix		2 all plumed plumedfile plumed-engforce.dat outfile p.log
 
 #dump		1 colvar custom 1 dump.colvar.lammpstrj id xu yu zu fx fy fz
 #dump_modify 1 sort id

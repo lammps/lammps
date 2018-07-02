@@ -23,12 +23,9 @@ group		two id 80 82 83 84
 group		ref id 37
 group		colvar union one two ref
 
-fix		1 all nvt temp  275.0 275.0 100.0 tchain 1
+fix		1 all npt temp  275.0 275.0 100.0 iso 0.987 0.987 400.0 tchain 1
 
-fix		2 all plumed plumedfile plumed.dat outfile p.log
-fix		2a ref setforce 0.0 0.0 0.0
-
-fix		4 all shake 0.0001 10 100 b 4 6 8 10 12 14 18 a 31
+fix		2 all plumed plumedfile plumed-expand.dat outfile p.log
 
 #dump		1 colvar custom 1 dump.colvar.lammpstrj id xu yu zu fx fy fz
 #dump_modify 1 sort id
@@ -38,7 +35,6 @@ thermo		10
 dump            dd all xyz 10 lammps.xyz
 variable        step equal step
 variable        pe equal pe
-fix             5 all print 10 "$(v_step) $(v_pe)" file lammps_energy
 dump            mq all custom 200 mq_lammps id mass q 
 
 run		101

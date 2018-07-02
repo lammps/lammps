@@ -25,7 +25,7 @@ group		colvar union one two ref
 
 fix		1 all nvt temp  275.0 275.0 100.0 tchain 1
 
-fix		2 all plumed plumedfile plumed.dat outfile p.log
+fix		2 all plumed plumedfile plumed-restraint.dat outfile p.log
 fix		2a ref setforce 0.0 0.0 0.0
 
 fix		4 all shake 0.0001 10 100 b 4 6 8 10 12 14 18 a 31

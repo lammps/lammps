@@ -1,0 +1,3 @@
+UNITS LENGTH=A
+dd: DISTANCE ATOMS=45,48 
+PRINT ARG=dd FILE=lammps_restraint FMT=%8.4f

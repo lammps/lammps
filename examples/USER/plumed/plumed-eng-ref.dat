@@ -1,0 +1,2 @@
+e: ENERGY
+PRINT ARG=e FILE=energy_ref FMT=%8.4f

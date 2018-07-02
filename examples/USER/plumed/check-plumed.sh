@@ -1,5 +1,10 @@
 #!/bin/bash
 
+LAMMPS=../../../src/lmp_mpi
+
+# Run first LAMMPS calculation
+$LAMMPS < in.peptide-plumed
+
 # Check PLUMED positions
 nlines=`paste plumed.xyz lammps.xyz | awk '{if( $2<$6-0.0001 || $2>$6+0.0001 || $3<$7-0.0001 || $3>$7+0.0001 || $4<$8-0.0002 || $4>$8+0.0002 ) if( $5!="Timestep:" && $1!=2004 ) print $0}' | wc -l` 
 if [ "$nlines" -gt 0 ] ; then
@@ -30,3 +35,47 @@ if [ "$nlines" -gt 0 ] ; then
 fi
 rm -f plmd_energy2
 
+# Check PLMD mass and charge
+nlines=`wc -l mq_lammps | awk '{print $1}'`
+sline=`grep -n "mass q" mq_lammps | awk '{print $1}' | sed -e s/:ITEM://`
+for ((i=$sline+1;i<$nlines;i++)); do
+    # Mass and charge from LAMMPS
+    index=`head -n $i mq_lammps | tail -n 1 | awk '{print $1}'`
+    l_mass=`head -n $i mq_lammps | tail -n 1 | awk '{print $2}'`
+    l_charge=`head -n $i mq_lammps | tail -n 1 | awk '{print $3}'`
+    # Mass and charge from PLUMED
+    p_mass=`head -n $(($index+1)) mq_plumed | tail -n 1 | awk '{print $2}'`
+    p_charge=`head -n $(($index+1)) mq_plumed | tail -n 1 | awk '{print $3}'`
+    # Check PLUMED mass is same as lammps mass
+    mdiff=`echo \( $l_mass - $p_mass \) \> 0 | bc -l` 
+    if [ "$mdiff" -gt 0 ] ; then
+         echo ERROR passing masses from LAMMPS to PLUMED
+    fi 
+    # Check PLUMED charge is same as lammps charge
+    qdiff=`echo \( $l_charge - $p_charge \) \> 0 | bc -l` 
+    if [ "$qdiff" -gt 0 ] ; then
+         echo ERROR passing charges from LAMMPS to PLUMED
+    fi 
+done
+
+# Run calculations to test adding restraint on bond
+$LAMMPS < in.peptide-plumed-plumed-restraint
+$LAMMPS < in.peptide-plumed-lammps-restraint
+# Now compare value of distance when lammps and plumed restraint the distance
+nlines=`paste lammps_restraint plumed_restraint | tail -n +2 | awk '{if( $2<$4-0.0001 || $2>$4+0.0001 ) print $0}' | wc -l`
+if [ "$nlines" -gt 0 ] ; then
+      echo ERROR passing forces from PLUMED back to LAMMPS
+fi
+
+# Nothing from here works
+
+# Now try to simply increase the size of the box by applying a moving restraint on the volume
+$LAMMPS < in.peptide-plumed-expand
+
+# Now run calculations to test virial
+$LAMMPS < in.peptide-plumed-npt
+$LAMMPS < in.peptide-plumed-npt2	
+
+# Now run calculations to check forces on energy
+$LAMMPS < in.peptide-plumed-engforce-ref
+$LAMMPS < in.peptide-plumed-eng-force-plumed

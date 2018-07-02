@@ -32,6 +32,9 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
   if (!atom->tag_enable) error->all(FLERR,"fix plumed requires atom tags");
 // Initialize plumed:
   p=new PLMD::Plumed;
+// Check API version
+  int api_version; p->cmd("getApiVersion",&api_version);
+  if( api_version!=6 ) error->all(FLERR,"invalid api version for PLUMED");
 
 // If the -partition option is activated then enable inter-partition communication
   if (universe->existflag == 1) {

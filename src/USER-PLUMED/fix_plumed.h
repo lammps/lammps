@@ -11,7 +11,7 @@ FixStyle(plumed,FixPlumed)
 #include "fix.h"
 #include "compute.h"
 // the plumed header that defines the class//
-#include "../Plumed.h"
+#include "Plumed.h"
 
 namespace LAMMPS_NS {
 

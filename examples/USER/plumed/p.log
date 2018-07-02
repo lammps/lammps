@@ -1,0 +1,64 @@
+PLUMED: PLUMED is starting
+PLUMED: Version: 2.5.0-dev (git: a10584333) compiled on Jul  2 2018 at 09:29:02
+PLUMED: Please cite this paper when using PLUMED [1]
+PLUMED: For further information see the PLUMED web page at http://www.plumed.org
+PLUMED: Root: /data/gt/mycodes/plumed2/
+PLUMED: For installed feature, see /data/gt/mycodes/plumed2//src/config/config.txt
+PLUMED: Molecular dynamics engine: LAMMPS
+PLUMED: Precision of reals: 8
+PLUMED: Running over 1 node
+PLUMED: Number of threads: 1
+PLUMED: Cache line size: 512
+PLUMED: Number of atoms: 2004
+PLUMED: File suffix: 
+PLUMED: FILE: plumed.dat
+PLUMED: Action COM
+PLUMED:   with label c1
+PLUMED:   serial associated to this virtual atom is 2005
+PLUMED:   of atoms
+PLUMED:  2 4 5 6
+PLUMED:   broken molecules will be rebuilt assuming atoms are in the proper order
+PLUMED: Action COM
+PLUMED:   with label c2
+PLUMED:   serial associated to this virtual atom is 2006
+PLUMED:   of atoms
+PLUMED:  80 82 83 84
+PLUMED:   broken molecules will be rebuilt assuming atoms are in the proper order
+PLUMED: Action DISTANCE
+PLUMED:   with label d1
+PLUMED:   between atoms 2005 37
+PLUMED:   using periodic boundary conditions
+PLUMED: Action DISTANCE
+PLUMED:   with label d2
+PLUMED:   between atoms 2006 37
+PLUMED:   using periodic boundary conditions
+PLUMED: Action RESTRAINT
+PLUMED:   with label h_pot
+PLUMED:   with arguments d1 d2
+PLUMED:   added component to this action:  h_pot.bias 
+PLUMED:   at 1.000000 1.000000
+PLUMED:   with harmonic force constant 10.000000 10.000000
+PLUMED:   and linear force constant 0.000000 0.000000
+PLUMED:   added component to this action:  h_pot.force2 
+PLUMED: Action PRINT
+PLUMED:   with label @5
+PLUMED:   with stride 1
+PLUMED:   with arguments d1 d2 h_pot.bias h_pot.force2
+PLUMED:   on file colvar
+PLUMED:   with format  %f
+PLUMED: END FILE: plumed.dat
+PLUMED: Timestep: 0.002000
+PLUMED: KbT has not been set by the MD engine
+PLUMED: It should be set by hand where needed
+PLUMED: Relevant bibliography:
+PLUMED:   [1] Tribello, Bonomi, Branduardi, Camilloni, and Bussi, Comput. Phys. Commun. 185, 604 (2014)
+PLUMED: Please read and cite where appropriate!
+PLUMED: Finished setup
+PLUMED:                                               Cycles        Total      Average      Minumum      Maximum
+PLUMED:                                                    1     0.015035     0.015035     0.015035     0.015035
+PLUMED: 1 Prepare dependencies                           101     0.000123     0.000001     0.000001     0.000004
+PLUMED: 2 Sharing data                                   101     0.006837     0.000068     0.000047     0.000891
+PLUMED: 3 Waiting for data                               101     0.000967     0.000010     0.000007     0.000041
+PLUMED: 4 Calculating (forward loop)                     101     0.001616     0.000016     0.000011     0.000043
+PLUMED: 5 Applying (backward loop)                       101     0.002159     0.000021     0.000018     0.000057
+PLUMED: 6 Update                                         101     0.001059     0.000010     0.000006     0.000086

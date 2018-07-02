@@ -223,8 +223,8 @@ void FixPlumed::post_force(int vflag)
 
 
 // set up local virial/box. plumed uses full 3x3 matrices
-  double virial[3][3];
-  for(int i=0;i<3;i++) for(int j=0;j<3;j++) virial[i][j]=0.0;
+  double plmd_virial[3][3];
+  for(int i=0;i<3;i++) for(int j=0;j<3;j++) plmd_virial[i][j]=0.0;
   double box[3][3];
   for(int i=0;i<3;i++) for(int j=0;j<3;j++) box[i][j]=0.0;
   box[0][0]=domain->h[0];
@@ -244,7 +244,7 @@ void FixPlumed::post_force(int vflag)
   p->cmd("setForces",&atom->f[0][0]);
   p->cmd("setMasses",&masses[0]);
   if(atom->q) p->cmd("setCharges",&charges[0]);
-  p->cmd("setVirial",&virial[0][0]);
+  p->cmd("setVirial",&plmd_virial[0][0]);
   p->cmd("getBias",&bias);
 
 // pass the energy
@@ -265,12 +265,12 @@ void FixPlumed::post_force(int vflag)
   p->cmd("calc");
 
 // retransform virial to lammps representation:
-  Fix::virial[0]=-virial[0][0];
-  Fix::virial[1]=-virial[1][1];
-  Fix::virial[2]=-virial[2][2];
-  Fix::virial[3]=-virial[0][1];
-  Fix::virial[4]=-virial[0][2];
-  Fix::virial[5]=-virial[1][2];
+  Fix::virial[0]=-plmd_virial[0][0];
+  Fix::virial[1]=-plmd_virial[1][1];
+  Fix::virial[2]=-plmd_virial[2][2];
+  Fix::virial[3]=-plmd_virial[0][1];
+  Fix::virial[4]=-plmd_virial[0][2];
+  Fix::virial[5]=-plmd_virial[1][2];
 }
 
 void FixPlumed::post_force_respa(int vflag, int ilevel, int iloop)

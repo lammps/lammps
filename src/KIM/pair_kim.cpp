@@ -958,9 +958,13 @@ void PairKIM::set_kim_model_has_flags()
     error->warning(FLERR,"KIM Model does not provide `partialForce'; "
                    "Forces will be zero");
 
-  if (kim_model_support_for_virial == notSupported)
+  if ((no_virial_fdotr_compute == 1) &&
+      (kim_model_support_for_virial == notSupported))
+  {
     error->warning(FLERR,"KIM Model does not provide `partialVirial'. "
                    "pair_kim now using `LAMMPSvirial' option.");
+    no_virial_fdotr_compute = 0;
+  }
 
   if (kim_model_support_for_particleEnergy == notSupported)
     error->warning(FLERR,"KIM Model does not provide `partialParticleEnergy'; "

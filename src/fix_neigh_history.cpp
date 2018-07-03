@@ -95,6 +95,8 @@ FixNeighHistory::FixNeighHistory(LAMMPS *lmp, int narg, char **arg) :
 
 FixNeighHistory::~FixNeighHistory()
 {
+  if (copymode) return;
+
   // unregister this fix so atom class doesn't invoke it any more
 
   atom->delete_callback(id,0);

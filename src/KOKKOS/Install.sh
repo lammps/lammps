@@ -97,6 +97,8 @@ action fix_deform_kokkos.cpp
 action fix_deform_kokkos.h
 action fix_eos_table_rx_kokkos.cpp fix_eos_table_rx.cpp
 action fix_eos_table_rx_kokkos.h fix_eos_table_rx.h  
+action fix_freeze_kokkos.cpp
+action fix_freeze_kokkos.h
 action fix_gravity_kokkos.cpp
 action fix_gravity_kokkos.h
 action fix_langevin_kokkos.cpp

@@ -16,11 +16,11 @@ region		box block 0 ${xx} 0 ${yy} 0 ${zz}
 create_box	1 box
 create_atoms	1 box
 
-pair_style	lj/cut 7.5548200
-pair_coeff	1 1 0.0123529 1.8887100
-pair_modify     shift yes
+pair_style	lj/cut 8.1500
+pair_coeff	1 1 0.0104 3.4000
+pair_modify     shift no
 
-#pair_style      kim KIMvirial LennardJones612_Ar
+#pair_style      kim KIMvirial LennardJones_Ar
 #pair_coeff      * * Ar
 
 mass		1 39.95

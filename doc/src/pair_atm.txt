@@ -1,0 +1,85 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+pair_style atm command :h3
+
+[Syntax:]
+
+pair_style atm args = cutoff :pre
+
+[Examples:]
+
+pair_style 2.5
+pair_coeff * * * 0.072 :pre
+
+pair_style	hybrid/overlay lj/cut 6.5 atm 2.5
+pair_coeff	* * lj/cut 1.0 1.0
+pair_coeff	* * atm * 0.072 :pre
+
+[Description:]
+
+The {atm} style computes a 3-body "Axilrod-Teller-Muto"_#Axilrod
+potential for the energy E of a system of atoms as
+
+:c,image(Eqs/pair_atm.jpg)
+
+where r12, r23 and r31 are the distances between the atoms,
+gamma1 is included by the sides r12 and r31
+with similar definitions for gamma2 and gamma3,
+nu is the three-body interaction strength (energy times distance^9 units).
+
+The {atm} is typically used in compination with some two-body potential
+using "hybrid/overlay"_pair_hybrid.html style as in an example above.
+
+The calculations are not undertaken if the distances between atoms satisfy
+r12 r23 r31 > curoff^3. Virtual cutoff distance based on a user defined
+tolerance tol is not used.
+
+The Axilrod-Teller-Muto potential file must contain entries for all the
+elements listed in the pair_coeff command.  It can also contain
+entries for additional elements not being used in a particular
+simulation; LAMMPS ignores those entries.
+
+For a single-element simulation, only a single entry is required
+(e.g. 1 1 1).  For a two-element simulation, the file must contain 4
+entries (eg. 1 1 1, 1 1 2, 1 2 2, 2 2 2), that
+specify ATM parameters for all combinations of the two elements
+interacting in three-body configurations.  Thus for 3 elements, 10
+entries would be required, etc.
+
+:line
+
+[Shift, table, tail correction, rRESPA info]:
+
+This pair style does not support the "pair_modify"_pair_modify.html
+shift, table, and tail options.
+
+This pair style can only be used via the {pair} keyword of the
+"run_style respa"_run_style.html command.  It does not support the
+{inner}, {middle}, {outer} keywords.
+
+:line
+
+[Restrictions:]
+
+This pair style is part of the MANYBODY package.  It is only enabled
+if LAMMPS was built with that package.  See
+the "Making LAMMPS"_Section_start.html#start_3 section for more info.
+
+[Related commands:]
+
+"pair_coeff"_pair_coeff.html
+
+[Default:] none
+
+:line
+
+:link(Axilrod)
+[(Axilrod)]
+Axilrod and Teller, J Chem Phys, 11, 299 (1943);
+Muto, Nippon Sugaku Butsuri Gakkwaishi 17, 629 (1943).

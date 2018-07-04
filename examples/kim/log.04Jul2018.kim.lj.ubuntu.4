@@ -1,0 +1,78 @@
+--------------------------------------------------------------------------
+[[19135,1],1]: A high-performance Open MPI point-to-point messaging module
+was unable to find any relevant network interfaces:
+
+Module: OpenFabrics (openib)
+  Host: ubuntu-artful
+
+Another transport will be used instead, although this may result in
+lower performance.
+
+NOTE: You can disable this warning by setting the MCA parameter
+btl_base_warn_component_unused to 0.
+--------------------------------------------------------------------------
+LAMMPS (22 Jun 2018)
+Lattice spacing in x,y,z = 4.43 4.43 4.43
+Created orthogonal box = (0 0 0) to (88.6 88.6 88.6)
+  1 by 2 by 2 MPI processor grid
+Created 32000 atoms
+  Time spent = 0.00154417 secs
+WARNING: KIM Model does not provide `partialVirial'. pair_kim will always use `LAMMPSvirial' option. (../pair_kim.cpp:987)
+WARNING: KIM Model does not provide `partialParticleEnergy'; energy per atom will be zero (../pair_kim.cpp:992)
+WARNING: KIM Model does not provide `partialParticleVirial'; virial per atom will be zero (../pair_kim.cpp:996)
+WARNING: KIM Model does not provide `partialVirial'. pair_kim will always use `LAMMPSvirial' option. (../pair_kim.cpp:987)
+WARNING: KIM Model does not provide `partialParticleEnergy'; energy per atom will be zero (../pair_kim.cpp:992)
+WARNING: KIM Model does not provide `partialParticleVirial'; virial per atom will be zero (../pair_kim.cpp:996)
+WARNING: KIM Model does not provide `partialVirial'. pair_kim will always use `LAMMPSvirial' option. (../pair_kim.cpp:987)
+WARNING: KIM Model does not provide `partialParticleEnergy'; energy per atom will be zero (../pair_kim.cpp:992)
+WARNING: KIM Model does not provide `partialParticleVirial'; virial per atom will be zero (../pair_kim.cpp:996)
+WARNING: KIM Model does not provide `partialVirial'. pair_kim will always use `LAMMPSvirial' option. (../pair_kim.cpp:987)
+WARNING: KIM Model does not provide `partialParticleEnergy'; energy per atom will be zero (../pair_kim.cpp:992)
+WARNING: KIM Model does not provide `partialParticleVirial'; virial per atom will be zero (../pair_kim.cpp:996)
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 8.45
+  ghost atom cutoff = 8.45
+  binsize = 4.225, bins = 21 21 21
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair kim, perpetual
+      attributes: half, newton off, cut 8.45
+      pair build: half/bin/newtoff
+      stencil: half/bin/3d/newtoff
+      bin: standard
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 0
+  Time step     : 0.001
+Per MPI rank memory allocation (min/avg/max) = 8.528 | 8.528 | 8.528 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0          200    6290.8194            0    7118.0584    1270.4248 
+     100    95.179725     6718.814            0     7112.496    604.59343 
+Loop time of 3.17877 on 4 procs for 100 steps with 32000 atoms
+
+Performance: 2.718 ns/day, 8.830 hours/ns, 31.459 timesteps/s
+24.3% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 2.0514     | 2.1009     | 2.1859     |   3.6 | 66.09
+Neigh   | 0.29304    | 0.31706    | 0.33568    |   2.7 |  9.97
+Comm    | 0.61926    | 0.72709    | 0.77083    |   7.3 | 22.87
+Output  | 0.00035457 | 0.00043741 | 0.000547   |   0.0 |  0.01
+Modify  | 0.0066107  | 0.0067653  | 0.0069097  |   0.1 |  0.21
+Other   |            | 0.02653    |            |       |  0.83
+
+Nlocal:    8000 ave 8018 max 7967 min
+Histogram: 1 0 0 0 0 0 1 0 0 2
+Nghost:    9131 ave 9164 max 9113 min
+Histogram: 2 0 0 1 0 0 0 0 0 1
+Neighs:    630904 ave 632094 max 628209 min
+Histogram: 1 0 0 0 0 0 0 1 0 2
+
+Total # of neighbors = 2523614
+Ave neighs/atom = 78.8629
+Neighbor list builds = 3
+Dangerous builds = 0
+Total wall time: 0:00:03

@@ -12,13 +12,11 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Ryan S. Elliott,
-                         Valeriu Smirichinski,
-                         Ellad Tadmor
+   Contributing authors: Ryan S. Elliott (UMinn)
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Designed for use with the kim-api-v1.6.0 (and newer) package
+   Designed for use with the kim-api-v2.0.0-beta.1 (and newer) package
 ------------------------------------------------------------------------- */
 
 #include <cstring>
@@ -45,9 +43,9 @@ PairKIM::PairKIM(LAMMPS *lmp) :
    Pair(lmp),
    settings_call_count(0),
    init_style_call_count(0),
-   kim_modelname(0),
-   lmps_map_species_to_unique(0),
-   lmps_unique_elements(0),
+   kim_modelname(NULL),
+   lmps_map_species_to_unique(NULL),
+   lmps_unique_elements(NULL),
    lmps_num_unique_elements(0),
    lmps_units(METAL),
    lengthUnit(KIM::LENGTH_UNIT::unused),
@@ -55,8 +53,8 @@ PairKIM::PairKIM(LAMMPS *lmp) :
    chargeUnit(KIM::CHARGE_UNIT::unused),
    temperatureUnit(KIM::TEMPERATURE_UNIT::unused),
    timeUnit(KIM::TIME_UNIT::unused),
-   pkim(0),
-   pargs(0),
+   pkim(NULL),
+   pargs(NULL),
    kim_model_support_for_energy(KIM::SUPPORT_STATUS::notSupported),
    kim_model_support_for_forces(KIM::SUPPORT_STATUS::notSupported),
    kim_model_support_for_virial(KIM::SUPPORT_STATUS::notSupported),
@@ -64,15 +62,17 @@ PairKIM::PairKIM(LAMMPS *lmp) :
    kim_model_support_for_particleVirial(KIM::SUPPORT_STATUS::notSupported),
    lmps_local_tot_num_atoms(0),
    kim_global_influence_distance(0.0),
-   kim_number_of_cutoffs(0),
-   kim_cutoff_values(0),
-   neighborLists(0),
-   kim_particle_codes(0),
+   kim_number_of_neighbor_lists(0),
+   kim_cutoff_values(NULL),
+   padding_neighbor_hints(NULL),
+   half_list_hints(NULL),
+   neighborLists(NULL),
+   kim_particle_codes(NULL),
    lmps_maxalloc(0),
-   kim_particleSpecies(0),
-   kim_particleContributing(0),
-   lmps_stripped_neigh_list(0),
-   lmps_stripped_neigh_ptr(0)
+   kim_particleSpecies(NULL),
+   kim_particleContributing(NULL),
+   lmps_stripped_neigh_list(NULL),
+   lmps_stripped_neigh_ptr(NULL)
 {
    // Initialize Pair data members to appropriate values
    single_enable = 0;  // We do not provide the Single() function
@@ -100,6 +100,13 @@ PairKIM::~PairKIM()
       for (int i = 0; i < lmps_num_unique_elements; i++)
         delete [] lmps_unique_elements[i];
    delete [] lmps_unique_elements;
+
+   if (kim_particle_codes_ok)
+   {
+      delete [] kim_particle_codes;
+      kim_particle_codes = NULL;
+      kim_particle_codes_ok = false;
+   }
 
    // clean up local memory used to support KIM interface
    memory->destroy(kim_particleSpecies);
@@ -281,20 +288,6 @@ void PairKIM::settings(int narg, char **arg)
     // set lmps_* bool flags
    set_lmps_flags();
 
-   // set virial handling
-   if (strcmp(arg[0],"LAMMPSvirial") == 0)
-   {
-      no_virial_fdotr_compute = 0;
-   }
-   else if (strcmp(arg[0],"KIMvirial") == 0)
-   {
-      no_virial_fdotr_compute = 1;
-   }
-   else
-   {
-      error->all(FLERR,"Unrecognized virial argument in pair_style command");
-   }
-
    // set KIM Model name
    int nmlen = strlen(arg[1]);
    if (kim_modelname != 0)
@@ -304,6 +297,26 @@ void PairKIM::settings(int narg, char **arg)
    }
    kim_modelname = new char[nmlen+1];
    strcpy(kim_modelname, arg[1]);
+
+   // initialize KIM Model
+   kim_init();
+
+   // set virial handling
+   if (strcmp(arg[0],"KIMvirial") == 0)
+   {
+     if (kim_model_support_for_virial == KIM::SUPPORT_STATUS::notSupported)
+       no_virial_fdotr_compute = 0;
+     else
+       no_virial_fdotr_compute = 1;
+   }
+   else if (strcmp(arg[0],"LAMMPSvirial") == 0)
+   {
+      no_virial_fdotr_compute = 0;
+   }
+   else
+   {
+      error->all(FLERR,"Unrecognized virial argument in pair_style command");
+   }
 
    return;
 }
@@ -351,7 +364,7 @@ void PairKIM::coeff(int narg, char **arg)
 
 
    // Assume all species arguments are valid
-   // errors will be detected by kim_api_init() matching
+   // errors will be detected by below
    lmps_num_unique_elements = 0;
    for (i = 2; i < narg; i++) {
      for (j = 0; j < lmps_num_unique_elements; j++)
@@ -378,6 +391,29 @@ void PairKIM::coeff(int narg, char **arg)
 
    if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 
+   // setup mapping between LAMMPS unique elements and KIM species codes
+   if (kim_particle_codes_ok)
+   {
+     delete [] kim_particle_codes;
+     kim_particle_codes = NULL;
+     kim_particle_codes_ok = false;
+   }
+   kim_particle_codes = new int[lmps_num_unique_elements];
+   kim_particle_codes_ok = true;
+   for(int i = 0; i < lmps_num_unique_elements; i++){
+      int kimerror;
+      int supported;
+      int code;
+      kimerror = pkim->GetSpeciesSupportAndCode(
+          KIM::SpeciesName(lmps_unique_elements[i]),
+          &supported,
+          &code);
+      if (supported)
+        kim_particle_codes[i] = code;
+      else
+        error->all(FLERR,"create_kim_particle_codes: symbol not found ");
+   }
+
    return;
 }
 
@@ -394,22 +430,16 @@ void PairKIM::init_style()
       error->all(FLERR,"PairKIM only works with 3D problems");
 
    int kimerror;
-   // KIM and Model initialization (only once)
-   // also sets kim_ind_* and kim_* bool flags
-   if (!kim_init_ok)
-   {
-      kim_init();
-   }
 
    // setup lmps_stripped_neigh_list for neighbors of one atom, if needed
    if (lmps_using_molecular) {
       memory->destroy(lmps_stripped_neigh_list);
       memory->create(lmps_stripped_neigh_list,
-                     kim_number_of_cutoffs*neighbor->oneatom,
+                     kim_number_of_neighbor_lists*neighbor->oneatom,
                      "pair:lmps_stripped_neigh_list");
       delete [] lmps_stripped_neigh_ptr;
-      lmps_stripped_neigh_ptr = new int*[kim_number_of_cutoffs];
-      for (int i = 0; i < kim_number_of_cutoffs; ++i)
+      lmps_stripped_neigh_ptr = new int*[kim_number_of_neighbor_lists];
+      for (int i = 0; i < kim_number_of_neighbor_lists; ++i)
       {
         lmps_stripped_neigh_ptr[0]
             = &(lmps_stripped_neigh_list[(i-1)*(neighbor->oneatom)]);
@@ -420,14 +450,32 @@ void PairKIM::init_style()
    // make sure comm_reverse expects (at most) 9 values when newton is off
    if (!lmps_using_newton) comm_reverse_off = 9;
 
-   // request full neighbor lists
-   for (int i = 0; i < kim_number_of_cutoffs; ++i)
+   // request full neighbor lists (unless hints allow for better alternatives)
+   for (int i = 0; i < kim_number_of_neighbor_lists; ++i)
    {
      int irequest = neighbor->request(this,instance_me);
      neighbor->requests[irequest]->id = i;
-     neighbor->requests[irequest]->half = 0;
-     neighbor->requests[irequest]->full = 1;
-     neighbor->requests[irequest]->ghost = 1;
+     if (half_list_hints[i])
+     {
+       neighbor->requests[irequest]->half = 1;
+       if (! lmps_using_newton) neighbor->requests[irequest]->newton = 2;
+       neighbor->requests[irequest]->full = 0;
+     }
+     else
+     {
+       neighbor->requests[irequest]->half = 0;
+       if (! lmps_using_newton) neighbor->requests[irequest]->newton = 0;
+       neighbor->requests[irequest]->full = 1;
+     }
+     if (padding_neighbor_hints[i])
+     {
+       neighbor->requests[irequest]->ghost = 0;
+     }
+     else
+     {
+       neighbor->requests[irequest]->ghost = 1;
+
+     }
      neighbor->requests[irequest]->cut = 1;
      neighbor->requests[irequest]->cutoff
          = kim_cutoff_values[i] + neighbor->skin;
@@ -604,7 +652,8 @@ double PairKIM::memory_usage()
 ------------------------------------------------------------------------- */
 
 int PairKIM::get_neigh(void const * const dataObject,
-                       int const numberOfCutoffs, double const * const cutoffs,
+                       int const numberOfNeighborLists,
+                       double const * const cutoffs,
                        int const neighborListIndex, int const particleNumber,
                        int * const numberOfNeighbors,
                        int const ** const neighborsOfParticle)
@@ -612,8 +661,9 @@ int PairKIM::get_neigh(void const * const dataObject,
    PairKIM const * const Model
        = reinterpret_cast<PairKIM const * const>(dataObject);
 
-   if (numberOfCutoffs != Model->kim_number_of_cutoffs) return true;
-   for (int i = 0; i < numberOfCutoffs; ++i)
+   if (numberOfNeighborLists != Model->kim_number_of_neighbor_lists)
+     return true;
+   for (int i = 0; i < numberOfNeighborLists; ++i)
    {
      if (Model->kim_cutoff_values[i] < cutoffs[i]) return true;
    }
@@ -666,13 +716,6 @@ void PairKIM::kim_free()
    }
    kim_init_ok = false;
 
-   if (kim_particle_codes_ok)
-   {
-      delete [] kim_particle_codes;
-      kim_particle_codes = 0;
-      kim_particle_codes_ok = false;
-   }
-
    return;
 }
 
@@ -713,32 +756,17 @@ void PairKIM::kim_init()
    // determine KIM Model capabilities (used in this function below)
    set_kim_model_has_flags();
 
-   // setup mapping between LAMMPS unique elements and KIM species codes
-   kim_particle_codes = new int[lmps_num_unique_elements];
-   kim_particle_codes_ok = true;
-   for(int i = 0; i < lmps_num_unique_elements; i++){
-      int kimerror;
-      int supported;
-      int code;
-      kimerror = pkim->GetSpeciesSupportAndCode(
-          KIM::SpeciesName(lmps_unique_elements[i]),
-          &supported,
-          &code);
-      if (supported)
-        kim_particle_codes[i] = code;
-      else
-        error->all(FLERR,"create_kim_particle_codes: symbol not found ");
-   }
-
    pkim->GetInfluenceDistance(&kim_global_influence_distance);
-   pkim->GetNeighborListCutoffsPointer(&kim_number_of_cutoffs,
-                                       &kim_cutoff_values);
+   pkim->GetNeighborListPointers(&kim_number_of_neighbor_lists,
+                                 &kim_cutoff_values,
+                                 &padding_neighbor_hints,
+                                 &half_list_hints);
    if (neighborLists)
    {
      delete [] neighborLists;
      neighborLists = 0;
    }
-   neighborLists = new NeighList*[kim_number_of_cutoffs];
+   neighborLists = new NeighList*[kim_number_of_neighbor_lists];
 
    kimerror = pargs->SetArgumentPointer(
        KIM::COMPUTE_ARGUMENT_NAME::numberOfParticles,
@@ -932,7 +960,7 @@ void PairKIM::set_kim_model_has_flags()
     int kimerror = GetComputeArgumentName(i, &computeArgumentName);
     KIM::SupportStatus supportStatus;
     kimerror = pargs->GetArgumentSupportStatus(computeArgumentName,
-                                            &supportStatus);
+                                               &supportStatus);
 
     if (computeArgumentName == partialEnergy)
       kim_model_support_for_energy = supportStatus;
@@ -958,12 +986,10 @@ void PairKIM::set_kim_model_has_flags()
     error->warning(FLERR,"KIM Model does not provide `partialForce'; "
                    "Forces will be zero");
 
-  if ((no_virial_fdotr_compute == 1) &&
-      (kim_model_support_for_virial == notSupported))
+  if (kim_model_support_for_virial == notSupported)
   {
     error->warning(FLERR,"KIM Model does not provide `partialVirial'. "
-                   "pair_kim now using `LAMMPSvirial' option.");
-    no_virial_fdotr_compute = 0;
+                   "pair_kim will always use `LAMMPSvirial' option.");
   }
 
   if (kim_model_support_for_particleEnergy == notSupported)

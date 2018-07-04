@@ -12,13 +12,11 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Ryan S. Elliott,
-                         Valeriu Smirichinski,
-                         Ellad Tadmor (U Minn)
+   Contributing authors: Ryan S. Elliott (UMinn)
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Designed for use with the kim-api-v1.6.0 (and newer) package
+   Designed for use with the kim-api-v2.0.0-beta.1 (and newer) package
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
@@ -100,8 +98,10 @@ namespace LAMMPS_NS {
       bool kim_init_ok;
       int lmps_local_tot_num_atoms;
       double kim_global_influence_distance;  // KIM Model cutoff value
-      int kim_number_of_cutoffs;
+      int kim_number_of_neighbor_lists;
       double const * kim_cutoff_values;
+      int const * padding_neighbor_hints;
+      int const * half_list_hints;
       class NeighList ** neighborLists;
 
       // values set in init_style()

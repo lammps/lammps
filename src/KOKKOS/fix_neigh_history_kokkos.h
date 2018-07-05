@@ -54,7 +54,7 @@ class FixNeighHistoryKokkos : public FixNeighHistory {
 
  private:
   typename ArrayTypes<DeviceType>::tdual_int_1d k_npartner;
-  typename ArrayTypes<DeviceType>::tdual_int_2d k_partner;
+  typename ArrayTypes<DeviceType>::tdual_tagint_2d k_partner;
   typename ArrayTypes<DeviceType>::tdual_float_2d k_valuepartner;
 
   // for neighbor list lookup
@@ -64,7 +64,7 @@ class FixNeighHistoryKokkos : public FixNeighHistory {
   
   typename ArrayTypes<DeviceType>::t_tagint_1d tag;
   typename ArrayTypes<DeviceType>::t_int_1d d_npartner;
-  typename ArrayTypes<DeviceType>::t_int_2d d_partner;
+  typename ArrayTypes<DeviceType>::t_tagint_2d d_partner;
   typename ArrayTypes<DeviceType>::t_float_2d d_valuepartner; 
 
   typename ArrayTypes<DeviceType>::t_int_scalar d_resize;

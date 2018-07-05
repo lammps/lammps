@@ -181,20 +181,6 @@ void FixNeighHistoryKokkos<DeviceType>::post_neighbor()
   Kokkos::parallel_for(inum,f);
 
   copymode = 0;
-
-#ifdef LMP_KOKKOS_DEBUG
-  typename ArrayTypes<LMPHostType>::t_neighbors_2d h_neighbors("neighbor_history:h_neighbor",k_list->d_neighbors.extent(0), k_list->d_neighbors.extent(1));
-  deep_copy(h_neighbors, d_neighbors);
-
-  typename ArrayTypes<LMPHostType>::t_int_1d h_numneigh("neighbor_history:h_numneigh",k_list->d_numneigh.extent(0));
-  deep_copy(h_numneigh, d_numneigh);
-  
-  typename ArrayTypes<LMPHostType>::t_int_2d h_firstflag("neighbor_history:h_firstflag",maxatom,k_list->maxneighs);
-  deep_copy(h_firstflag, d_firstflag);
-
-  typename ArrayTypes<LMPHostType>::t_float_2d h_firstvalue("neighbor_history:h_firstvalue",maxatom,k_list->maxneighs*dnum);
-  deep_copy(h_firstvalue, d_firstvalue);
-#endif
 }
 
 /* ---------------------------------------------------------------------- */

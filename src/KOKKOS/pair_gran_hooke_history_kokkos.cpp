@@ -166,11 +166,17 @@ void PairGranHookeHistoryKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (lmp->kokkos->neighflag == HALF) {
     if (force->newton_pair) {
-      if (evflag) {
+      if (vflag_atom) {
 	if (shearupdate) {
-	  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALF,1,1,1>>(0,inum),*this);
+	  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALF,1,2,1>>(0,inum),*this);
 	} else {
-	  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALF,1,1,0>>(0,inum),*this);
+	  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALF,1,2,0>>(0,inum),*this);
+	}
+      } else if (vflag_global) {
+	if (shearupdate) {
+	  Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALF,1,1,1>>(0,inum),*this, ev);
+	} else {
+	  Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALF,1,1,0>>(0,inum),*this, ev);
 	}
       } else {
 	if (shearupdate) {
@@ -180,11 +186,17 @@ void PairGranHookeHistoryKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 	}
       }
     } else {
-      if (evflag) {
+      if (vflag_atom) {
 	if (shearupdate) {
-	  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALF,0,1,1>>(0,inum),*this);
+	  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALF,0,2,1>>(0,inum),*this);
 	} else {
-	  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALF,0,1,0>>(0,inum),*this);
+	  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALF,0,2,0>>(0,inum),*this);
+	}
+      } else if (vflag_global) {
+	if (shearupdate) {
+	  Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALF,0,1,1>>(0,inum),*this, ev);
+	} else {
+	  Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALF,0,1,0>>(0,inum),*this, ev);
 	}
       } else {
 	if (shearupdate) {
@@ -196,11 +208,17 @@ void PairGranHookeHistoryKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     }
   } else { // HALFTHREAD
     if (force->newton_pair) {
-      if (evflag) {
+      if (vflag_atom) {
 	if (shearupdate) {
-	  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALFTHREAD,1,1,1>>(0,inum),*this);
+	  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALFTHREAD,1,2,1>>(0,inum),*this);
 	} else {
-	  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALFTHREAD,1,1,0>>(0,inum),*this);
+	  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALFTHREAD,1,2,0>>(0,inum),*this);
+	}
+      } else if (vflag_global) {
+	if (shearupdate) {
+	  Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALFTHREAD,1,1,1>>(0,inum),*this, ev);
+	} else {
+	  Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALFTHREAD,1,1,0>>(0,inum),*this, ev);
 	}
       } else {
 	if (shearupdate) {
@@ -210,11 +228,17 @@ void PairGranHookeHistoryKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 	}
       }
     } else {
-      if (evflag) {
+      if (vflag_atom) {
 	if (shearupdate) {
-	  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALFTHREAD,0,1,1>>(0,inum),*this);
+	  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALFTHREAD,0,2,1>>(0,inum),*this);
 	} else {
-	  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALFTHREAD,0,1,0>>(0,inum),*this);
+	  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALFTHREAD,0,2,0>>(0,inum),*this);
+	}
+      } else if (vflag_global) {
+	if (shearupdate) {
+	  Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALFTHREAD,0,1,1>>(0,inum),*this, ev);
+	} else {
+	  Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALFTHREAD,0,1,0>>(0,inum),*this, ev);
 	}
       } else {
 	if (shearupdate) {
@@ -226,7 +250,6 @@ void PairGranHookeHistoryKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     }
   }
 
-  if (eflag_global) eng_vdwl += ev.evdwl;
   if (vflag_global) {
     virial[0] += ev.v[0];
     virial[1] += ev.v[1];
@@ -234,11 +257,6 @@ void PairGranHookeHistoryKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     virial[3] += ev.v[3];
     virial[4] += ev.v[4];
     virial[5] += ev.v[5];
-  }
-
-  if (eflag_atom) {
-    k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
   }
 
   if (vflag_atom) {
@@ -254,41 +272,41 @@ void PairGranHookeHistoryKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int SHEARUPDATE>
 KOKKOS_INLINE_FUNCTION
-void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG,SHEARUPDATE>, const int &ii) const {
+void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG,SHEARUPDATE>, const int ii, EV_FLOAT &ev) const {
 
   // The f and torque arrays are atomic for Half/Thread neighbor style
   Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
   Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_torque = torque;
 
   int i = d_ilist[ii];
-  double xtmp = x(i,0);
-  double ytmp = x(i,1);
-  double ztmp = x(i,2);
+  X_FLOAT xtmp = x(i,0);
+  X_FLOAT ytmp = x(i,1);
+  X_FLOAT ztmp = x(i,2);
   int itype = type[i];
-  double imass = rmass[i];
-  double irad = radius[i];
+  LMP_FLOAT imass = rmass[i];
+  LMP_FLOAT irad = radius[i];
   int jnum = d_numneigh[i];
   
-  double fx_i = 0.0;
-  double fy_i = 0.0;
-  double fz_i = 0.0;
+  F_FLOAT fx_i = 0.0;
+  F_FLOAT fy_i = 0.0;
+  F_FLOAT fz_i = 0.0;
 
-  double torquex_i = 0.0;
-  double torquey_i = 0.0;
-  double torquez_i = 0.0;
+  F_FLOAT torquex_i = 0.0;
+  F_FLOAT torquey_i = 0.0;
+  F_FLOAT torquez_i = 0.0;
   
   for (int jj = 0; jj < jnum; jj++) {
     int j = d_neighbors(i,jj);
     j &= NEIGHMASK;
 
-    double delx = xtmp - x(j,0);
-    double dely = ytmp - x(j,1);
-    double delz = ztmp - x(j,2);
-    double rsq = delx*delx + dely*dely + delz*delz;
+    X_FLOAT delx = xtmp - x(j,0);
+    X_FLOAT dely = ytmp - x(j,1);
+    X_FLOAT delz = ztmp - x(j,2);
+    X_FLOAT rsq = delx*delx + dely*dely + delz*delz;
     int jtype = type[j];
-    double jmass = rmass[j];
-    double jrad = radius[j];
-    double radsum = irad + jrad;
+    LMP_FLOAT jmass = rmass[j];
+    LMP_FLOAT jrad = radius[j];
+    LMP_FLOAT radsum = irad + jrad;
 
     // check for touching neighbors
 
@@ -298,67 +316,67 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
       d_firstshear(i,3*jj+1) = 0;
       d_firstshear(i,3*jj+2) = 0;
     } else {
-      double r = sqrt(rsq);
-      double rinv = 1.0/r;
-      double rsqinv = 1/rsq;
+      LMP_FLOAT r = sqrt(rsq);
+      LMP_FLOAT rinv = 1.0/r;
+      LMP_FLOAT rsqinv = 1/rsq;
 
       // relative translational velocity
 
-      double vr1 = v(i,0) - v(j,0);
-      double vr2 = v(i,1) - v(j,1);
-      double vr3 = v(i,2) - v(j,2);
+      V_FLOAT vr1 = v(i,0) - v(j,0);
+      V_FLOAT vr2 = v(i,1) - v(j,1);
+      V_FLOAT vr3 = v(i,2) - v(j,2);
       
       // normal component
 
-      double vnnr = vr1*delx + vr2*dely + vr3*delz;
-      double vn1 = delx*vnnr * rsqinv;
-      double vn2 = dely*vnnr * rsqinv;
-      double vn3 = delz*vnnr * rsqinv;
+      V_FLOAT vnnr = vr1*delx + vr2*dely + vr3*delz;
+      V_FLOAT vn1 = delx*vnnr * rsqinv;
+      V_FLOAT vn2 = dely*vnnr * rsqinv;
+      V_FLOAT vn3 = delz*vnnr * rsqinv;
       
       // tangential component
       
-      double vt1 = vr1 - vn1;
-      double vt2 = vr2 - vn2;
-      double vt3 = vr3 - vn3;
+      V_FLOAT vt1 = vr1 - vn1;
+      V_FLOAT vt2 = vr2 - vn2;
+      V_FLOAT vt3 = vr3 - vn3;
 
       // relative rotational velocity
 
-      double wr1 = (irad*omega(i,0) + jrad*omega(j,0)) * rinv;
-      double wr2 = (irad*omega(i,1) + jrad*omega(j,1)) * rinv;
-      double wr3 = (irad*omega(i,2) + jrad*omega(j,2)) * rinv;
+      V_FLOAT wr1 = (irad*omega(i,0) + jrad*omega(j,0)) * rinv;
+      V_FLOAT wr2 = (irad*omega(i,1) + jrad*omega(j,1)) * rinv;
+      V_FLOAT wr3 = (irad*omega(i,2) + jrad*omega(j,2)) * rinv;
 
-      double meff = imass*jmass / (imass+jmass);
+      LMP_FLOAT meff = imass*jmass / (imass+jmass);
       if (mask[i] & freeze_group_bit) meff = jmass;
       if (mask[j] & freeze_group_bit) meff = imass;
 
-      double damp = meff*gamman*vnnr*rsqinv;
-      double ccel = kn*(radsum-r)*rinv - damp;
+      F_FLOAT damp = meff*gamman*vnnr*rsqinv;
+      F_FLOAT ccel = kn*(radsum-r)*rinv - damp;
 
       // relative velocities
 
-      double vtr1 = vt1 - (delz*wr2-dely*wr3);
-      double vtr2 = vt2 - (delx*wr3-delz*wr1);
-      double vtr3 = vt3 - (dely*wr1-delx*wr2);
-      double vrel = vtr1*vtr1 + vtr2*vtr2 + vtr3*vtr3;
+      V_FLOAT vtr1 = vt1 - (delz*wr2-dely*wr3);
+      V_FLOAT vtr2 = vt2 - (delx*wr3-delz*wr1);
+      V_FLOAT vtr3 = vt3 - (dely*wr1-delx*wr2);
+      V_FLOAT vrel = vtr1*vtr1 + vtr2*vtr2 + vtr3*vtr3;
       vrel = sqrt(vrel);
 
       // shear history effects
 
       d_firsttouch(i,jj) = 1;
-      double shear1 = d_firstshear(i,3*jj);
-      double shear2 = d_firstshear(i,3*jj+1);
-      double shear3 = d_firstshear(i,3*jj+2);
+      X_FLOAT shear1 = d_firstshear(i,3*jj);
+      X_FLOAT shear2 = d_firstshear(i,3*jj+1);
+      X_FLOAT shear3 = d_firstshear(i,3*jj+2);
       if (SHEARUPDATE) {
   	shear1 += vtr1*dt;
   	shear2 += vtr2*dt;
   	shear3 += vtr3*dt;
       }
-      double shrmag = sqrt(shear1*shear1 + shear2*shear2 +
+      X_FLOAT shrmag = sqrt(shear1*shear1 + shear2*shear2 +
   			   shear3*shear3);
 
       // rotate shear displacements
 
-      double rsht = shear1*delx + shear2*dely + shear3*delz;
+      X_FLOAT rsht = shear1*delx + shear2*dely + shear3*delz;
       rsht *= rsqinv;
       if (SHEARUPDATE) {
   	shear1 -= rsht*delx;
@@ -368,14 +386,14 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
 
       // tangential forces = shear + tangential velocity damping
 
-      double fs1 = - (kt*shear1 + meff*gammat*vtr1);
-      double fs2 = - (kt*shear2 + meff*gammat*vtr2);
-      double fs3 = - (kt*shear3 + meff*gammat*vtr3);
+      F_FLOAT fs1 = - (kt*shear1 + meff*gammat*vtr1);
+      F_FLOAT fs2 = - (kt*shear2 + meff*gammat*vtr2);
+      F_FLOAT fs3 = - (kt*shear3 + meff*gammat*vtr3);
 
       // rescale frictional displacements and forces if needed
 
-      double fs = sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
-      double fn = xmu * fabs(ccel*r);
+      F_FLOAT fs = sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
+      F_FLOAT fn = xmu * fabs(ccel*r);
 
       if (fs > fn) {
   	if (shrmag != 0.0) {
@@ -399,16 +417,16 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
 
       // forces & torques
 
-      double fx = delx*ccel + fs1;
-      double fy = dely*ccel + fs2;
-      double fz = delz*ccel + fs3;
+      F_FLOAT fx = delx*ccel + fs1;
+      F_FLOAT fy = dely*ccel + fs2;
+      F_FLOAT fz = delz*ccel + fs3;
       fx_i += fx;
       fy_i += fy;
       fz_i += fz;
 
-      double tor1 = rinv * (dely*fs3 - delz*fs2);
-      double tor2 = rinv * (delz*fs1 - delx*fs3);
-      double tor3 = rinv * (delx*fs2 - dely*fs1);
+      F_FLOAT tor1 = rinv * (dely*fs3 - delz*fs2);
+      F_FLOAT tor2 = rinv * (delz*fs1 - delx*fs3);
+      F_FLOAT tor3 = rinv * (delx*fs2 - dely*fs1);
       torquex_i -= irad*tor1;
       torquey_i -= irad*tor2;
       torquez_i -= irad*tor3;
@@ -421,6 +439,11 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
   	a_torque(j,1) -= jrad*tor2;
   	a_torque(j,2) -= jrad*tor3;
       }
+
+      if (EVFLAG == 2)
+	ev_tally_xyz_atom<NEIGHFLAG, NEWTON_PAIR>(ev, i, j, fx_i, fy_i, fz_i, delx, dely, delz);
+      if (EVFLAG == 1)
+	ev_tally_xyz<NEWTON_PAIR>(ev, i, j, fx_i, fy_i, fz_i, delx, dely, delz);
     }
   }
 
@@ -430,6 +453,94 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
   a_torque(i,0) += torquex_i;
   a_torque(i,1) += torquey_i;
   a_torque(i,2) += torquez_i;
+}
+
+
+template<class DeviceType>
+template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int SHEARUPDATE>
+KOKKOS_INLINE_FUNCTION
+void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG,SHEARUPDATE>, const int ii) const {
+  EV_FLOAT ev;
+  this->template operator()<NEIGHFLAG,NEWTON_PAIR,EVFLAG,SHEARUPDATE>(TagPairGranHookeHistoryCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG,SHEARUPDATE>(), ii, ev);
+}
+
+template<class DeviceType>
+template<int NEWTON_PAIR>
+KOKKOS_INLINE_FUNCTION
+void PairGranHookeHistoryKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT &ev, int i, int j,
+							  F_FLOAT fx, F_FLOAT fy, F_FLOAT fz,
+							  X_FLOAT delx, X_FLOAT dely, X_FLOAT delz) const
+{
+  F_FLOAT v[6];
+
+  v[0] = delx*fx;
+  v[1] = dely*fy;
+  v[2] = delz*fz;
+  v[3] = delx*fy;
+  v[4] = delx*fz;
+  v[5] = dely*fz;
+
+  if (NEWTON_PAIR) {
+    ev.v[0] += v[0];
+    ev.v[1] += v[1];
+    ev.v[2] += v[2];
+    ev.v[3] += v[3];
+    ev.v[4] += v[4];
+    ev.v[5] += v[5];
+  } else {
+    if (i < nlocal) {
+      ev.v[0] += 0.5*v[0];
+      ev.v[1] += 0.5*v[1];
+      ev.v[2] += 0.5*v[2];
+      ev.v[3] += 0.5*v[3];
+      ev.v[4] += 0.5*v[4];
+      ev.v[5] += 0.5*v[5];
+    }
+    if (j < nlocal) {
+      ev.v[0] += 0.5*v[0];
+      ev.v[1] += 0.5*v[1];
+      ev.v[2] += 0.5*v[2];
+      ev.v[3] += 0.5*v[3];
+      ev.v[4] += 0.5*v[4];
+      ev.v[5] += 0.5*v[5];
+    }
+  }
+}
+
+template<class DeviceType>
+template<int NEIGHFLAG, int NEWTON_PAIR>
+KOKKOS_INLINE_FUNCTION
+void PairGranHookeHistoryKokkos<DeviceType>::ev_tally_xyz_atom(EV_FLOAT &ev, int i, int j,
+							       F_FLOAT fx, F_FLOAT fy, F_FLOAT fz,
+							       X_FLOAT delx, X_FLOAT dely, X_FLOAT delz) const
+{
+  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_vatom = k_vatom.view<DeviceType>();  
+
+  F_FLOAT v[6];
+
+  v[0] = delx*fx;
+  v[1] = dely*fy;
+  v[2] = delz*fz;
+  v[3] = delx*fy;
+  v[4] = delx*fz;
+  v[5] = dely*fz;
+
+  if (NEWTON_PAIR || i < nlocal) {
+    v_vatom(i,0) += 0.5*v[0];
+    v_vatom(i,1) += 0.5*v[1];
+    v_vatom(i,2) += 0.5*v[2];
+    v_vatom(i,3) += 0.5*v[3];
+    v_vatom(i,4) += 0.5*v[4];
+    v_vatom(i,5) += 0.5*v[5];
+  }
+  if (NEWTON_PAIR || j < nlocal) {
+    v_vatom(j,0) += 0.5*v[0];
+    v_vatom(j,1) += 0.5*v[1];
+    v_vatom(j,2) += 0.5*v[2];
+    v_vatom(j,3) += 0.5*v[3];
+    v_vatom(j,4) += 0.5*v[4];
+    v_vatom(j,5) += 0.5*v[5];
+  }
 }
 
 namespace LAMMPS_NS {

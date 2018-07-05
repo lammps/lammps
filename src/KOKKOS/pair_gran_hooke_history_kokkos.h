@@ -39,6 +39,7 @@ class PairGranHookeHistoryKokkos : public PairGranHookeHistory {
  public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
+  typedef EV_FLOAT value_type;
 
   PairGranHookeHistoryKokkos(class LAMMPS *);
   virtual ~PairGranHookeHistoryKokkos();
@@ -47,8 +48,22 @@ class PairGranHookeHistoryKokkos : public PairGranHookeHistory {
 
   template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int SHEARUPDATE>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairGranHookeHistoryCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG,SHEARUPDATE>, const int&) const;
+  void operator()(TagPairGranHookeHistoryCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG,SHEARUPDATE>, const int, EV_FLOAT &ev) const;
+  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int SHEARUPDATE>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairGranHookeHistoryCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG,SHEARUPDATE>, const int) const;
 
+  template<int NEWTON_PAIR>
+  KOKKOS_INLINE_FUNCTION
+  void ev_tally_xyz(EV_FLOAT &ev, int i, int j,
+		    F_FLOAT fx, F_FLOAT fy, F_FLOAT fz,
+		    X_FLOAT delx, X_FLOAT dely, X_FLOAT delz) const;
+  template<int NEIGHFLAG, int NEWTON_PAIR>
+  KOKKOS_INLINE_FUNCTION
+  void ev_tally_xyz_atom(EV_FLOAT &ev, int i, int j,
+			 F_FLOAT fx, F_FLOAT fy, F_FLOAT fz,
+			 X_FLOAT delx, X_FLOAT dely, X_FLOAT delz) const;
+    
  protected:
   typename AT::t_x_array_randomread x;
   typename AT::t_x_array c_x;

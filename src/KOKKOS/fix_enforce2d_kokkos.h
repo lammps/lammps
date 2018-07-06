@@ -33,7 +33,6 @@ class FixEnforce2DKokkos : public FixEnforce2D {
   FixEnforce2DKokkos(class LAMMPS *, int, char **);
   // ~FixEnforce2DKokkos() {}
   // void init();
-  void cleanup_copy();
   void setup(int);
   void post_force(int);
 
@@ -63,7 +62,7 @@ struct FixEnforce2DKokkosPostForceFunctor {
   FixEnforce2DKokkos<DeviceType> c;
 
   FixEnforce2DKokkosPostForceFunctor(FixEnforce2DKokkos<DeviceType>* c_ptr):
-    c(*c_ptr) {c.cleanup_copy();};
+    c(*c_ptr) {};
 
   KOKKOS_INLINE_FUNCTION
   void operator()(const int i) const {

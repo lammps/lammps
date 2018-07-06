@@ -77,6 +77,7 @@ void FixEnforce2DKokkos<DeviceType>::post_force(int vflag)
   if( atomKK->angmom_flag ) flag_mask |= 2;
   if( atomKK->torque_flag ) flag_mask |= 4;
 
+  copymode = 1;
   switch( flag_mask ){
     case 0:{
       FixEnforce2DKokkosPostForceFunctor<DeviceType,0,0,0> functor(this);
@@ -121,7 +122,7 @@ void FixEnforce2DKokkos<DeviceType>::post_force(int vflag)
     default:
       error->all(FLERR, "flag_mask outside of what it should be");
   }
-
+  copymode = 0;
 
   // Probably sync here again?
   atomKK->sync(execution_space,datamask_read);
@@ -156,14 +157,6 @@ void FixEnforce2DKokkos<DeviceType>::post_force_item( int i ) const
       torque(i,1) = 0.0;
     }
   }
-}
-
-
-template<class DeviceType>
-void FixEnforce2DKokkos<DeviceType>::cleanup_copy()
-{
-  id = style = NULL;
-  vatom = NULL;
 }
 
 

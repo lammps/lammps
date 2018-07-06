@@ -44,10 +44,6 @@ FixEnforce2DKokkos<DeviceType>::FixEnforce2DKokkos(LAMMPS *lmp, int narg, char *
 template <class DeviceType>
 void FixEnforce2DKokkos<DeviceType>::setup(int vflag)
 {
-  if( comm->me == 0 ){
-    fprintf(screen, "omega, angmom and torque flags are %d, %d, %d\n",
-            atomKK->omega_flag, atomKK->angmom_flag, atomKK->torque_flag );
-  }
   post_force(vflag);
 }
 

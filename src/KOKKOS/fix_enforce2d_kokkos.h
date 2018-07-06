@@ -67,7 +67,6 @@ struct FixEnforce2DKokkosPostForceFunctor {
 
   KOKKOS_INLINE_FUNCTION
   void operator()(const int i) const {
-    // c.template? Really C++?
     c.template post_force_item <omega_flag, angmom_flag, torque_flag>(i);
   }
 };

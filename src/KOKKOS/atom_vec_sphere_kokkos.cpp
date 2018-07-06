@@ -1562,6 +1562,9 @@ struct AtomVecSphereKokkos_UnpackExchangeFunctor {
     _type(atom->k_type.view<DeviceType>()),
     _mask(atom->k_mask.view<DeviceType>()),
     _image(atom->k_image.view<DeviceType>()),
+    _radius(atom->k_radius.view<DeviceType>()),
+    _rmass(atom->k_rmass.view<DeviceType>()),
+    _omega(atom->k_omega.view<DeviceType>()),
     _nlocal(nlocal.template view<DeviceType>()),_dim(dim),
     _lo(lo),_hi(hi){
     const size_t elements = 16;
@@ -1613,7 +1616,7 @@ int AtomVecSphereKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,int 
 
   modified(space,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
                  MASK_MASK | IMAGE_MASK| RADIUS_MASK | RMASS_MASK |
-	         OMEGA_MASK);
+                 OMEGA_MASK);
 
   return k_count.h_view(0);
 }

@@ -182,7 +182,7 @@ class NeighborKokkosExecute
   // data from Atom class
 
   const typename AT::t_x_array_randomread x;
-  const typename AT::t_float_1d_randomread radius;
+  const typename AT::t_float_1d radius;
   const typename AT::t_int_1d_const type,mask;
   const typename AT::t_tagint_1d_const molecule;
   const typename AT::t_tagint_1d_const tag;
@@ -223,7 +223,7 @@ class NeighborKokkosExecute
                         const typename AT::t_int_1d_3 &_d_stencilxyz,
                         const int _nlocal,
                         const typename AT::t_x_array_randomread &_x,
-			const typename AT::t_float_1d_randomread &_radius,
+                        const typename AT::t_float_1d &_radius,
                         const typename AT::t_int_1d_const &_type,
                         const typename AT::t_int_1d_const &_mask,
                         const typename AT::t_tagint_1d_const &_molecule,
@@ -251,7 +251,7 @@ class NeighborKokkosExecute
                         const X_FLOAT *_bboxhi, const X_FLOAT* _bboxlo,
                         const int & _xperiodic, const int & _yperiodic, const int & _zperiodic,
                         const int & _xprd_half, const int & _yprd_half, const int & _zprd_half,
-			const X_FLOAT _skin):
+                        const X_FLOAT _skin):
     neigh_list(_neigh_list), cutneighsq(_cutneighsq),
     bincount(_bincount),c_bincount(_bincount),bins(_bins),c_bins(_bins),
     atom2bin(_atom2bin),c_atom2bin(_atom2bin),

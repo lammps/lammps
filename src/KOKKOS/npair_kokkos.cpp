@@ -686,7 +686,6 @@ void NeighborKokkosExecute<DeviceType>::
 {
   /* if necessary, goto next page and add pages */
   int n = 0;
-  int which = 0;
   int moltemplate;
   if (molecular == 2) moltemplate = 1;
   else moltemplate = 0;

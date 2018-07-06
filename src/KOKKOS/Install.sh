@@ -97,8 +97,8 @@ action fix_deform_kokkos.cpp
 action fix_deform_kokkos.h
 action fix_eos_table_rx_kokkos.cpp fix_eos_table_rx.cpp
 action fix_eos_table_rx_kokkos.h fix_eos_table_rx.h  
-action fix_freeze_kokkos.cpp
-action fix_freeze_kokkos.h
+action fix_freeze_kokkos.cpp fix_freeze.cpp
+action fix_freeze_kokkos.h fix_freeze.h
 action fix_gravity_kokkos.cpp
 action fix_gravity_kokkos.h
 action fix_langevin_kokkos.cpp
@@ -201,8 +201,8 @@ action pair_eam_fs_kokkos.cpp pair_eam_fs.cpp
 action pair_eam_fs_kokkos.h pair_eam_fs.h
 action pair_exp6_rx_kokkos.cpp pair_exp6_rx.cpp
 action pair_exp6_rx_kokkos.h pair_exp6_rx.h
-action pair_gran_hooke_history_kokkos.h
-action pair_gran_hooke_history_kokkos.cpp
+action pair_gran_hooke_history_kokkos.h pair_gran_hooke_history.h
+action pair_gran_hooke_history_kokkos.cpp pair_gran_hooke_history.cpp
 action pair_hybrid_kokkos.cpp
 action pair_hybrid_kokkos.h
 action pair_hybrid_overlay_kokkos.cpp

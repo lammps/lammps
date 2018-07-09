@@ -1,0 +1,22 @@
+# Point dipoles in a 2d box
+
+units		lj
+atom_style  full	
+
+read_data data.NaCl
+
+# need both mass settings due to hybrid atom style
+
+velocity	all set 0.0 0.0 0.0 mom no
+
+pair_style	zero 1.0
+pair_coeff	* * 
+
+neighbor	1.0 bin
+neigh_modify	delay 0
+
+fix		1 all scafacos fmm
+
+timestep	0.005
+
+run		100

@@ -5,12 +5,13 @@ if (test $1 = 1) then
 
   if (test -e ../Makefile.package) then
     sed -i -e 's|^PKG_LIB =[ \t]*|& $(PLUMED_LOAD) |' ../Makefile.package
+    sed -i -e 's|^PKG_SYSINC =[ \t]*|& -D__PLUMED_HAS_DLOPEN |' ../Makefile.package
   fi
 
   if (test -e ../Makefile.package.settings) then
     # multiline form needed for BSD sed on Macs
     sed -i -e '4 i \
-PLUMED_LOAD=Plumed.o -ldl
+PLUMED_LOAD=-ldl
 ' ../Makefile.package.settings
   fi
 
@@ -23,10 +24,11 @@ elif (test $1 = 0) then
 
   if (test -e ../Makefile.package) then
     sed -i -e 's/[^ \t]* \$(PLUMED_LOAD)[^ \t]* //' ../Makefile.package
+    sed -i -e 's/[^ \t]* -D__PLUMED_HAS_DLOPEN[^ \t]* //' ../Makefile.package
   fi
 
   if (test -e ../Makefile.package.settings) then
-    sed -i -e '/PLUMED_LOAD=Plumed.o -ldl/d' ../Makefile.package.settings
+    sed -i -e '/PLUMED_LOAD=-ldl/d' ../Makefile.package.settings
   fi
 
   rm -f ../fix_plumed.cpp

@@ -59,12 +59,15 @@ class LAMMPS {
 
   class CiteMe *citeme;          // citation info
 
+  static const char * installed_packages[];
+
   LAMMPS(int, char **, MPI_Comm);
   ~LAMMPS();
   void create();
   void post_create();
   void init();
   void destroy();
+  void print_config(FILE *);    // print compile time settings
 
  private:
   void help();

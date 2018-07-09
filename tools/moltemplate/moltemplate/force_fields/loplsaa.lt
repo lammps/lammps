@@ -1,17 +1,17 @@
-###########################################################################
-## Extra OPLSAA parameters and atom types for long hydrocarbon chains    ##
-## SOURCE: Sui, Pluhackova, Böckmann, J.Chem.Theory.Comp (2012), 8, 1459 ##
-## CREDIT: Sebastian Echeverri (file format conversion)                  ##
-###########################################################################
+############################################################################
+## Extra OPLSAA parameters and atom types for long hydrocarbon chains     ##
+## SOURCES: Sui, Pluhackova, Böckmann, J.Chem.Theory.Comp (2012), 8(4), 1459
+##          Pluhackova,...,Böckmann, J.Phys.Chem.B (2015), 119(49), 15287 ##
+## CREDIT: Sebastian Echeverri (file format conversion)                   ##
+############################################################################
 # This file was generated using:
-# tinkerparm2lt.py -name LOPLSAA -file loplsaa_ext.prm -dihedral-style opls 
-# (and then edited manually to make sure the 
-#  bond, angle, and improper interactions for these atoms
-#  remain unchanged)
+# tinkerparm2lt.py -name OPLSAA -file loplsaa_ext.prm -dihedral-style opls -zeropad 3
+# (...and then EDITED manually to make sure the default bond, angle, 
+#  and improper interactions for these atoms remain unchanged)
 
 
-import "oplsaa.lt"   # <-- Load the ordinary OPLS parameters
-                     #     We will extend and override them below
+import "oplsaa.lt"   # <-- Load the ordinary OPLS parameters first
+                     #     We will augment and override them below
 
 
 
@@ -22,12 +22,20 @@ OPLSAA {
   write_once("In Charges") {
     set type @atom:80L charge -0.222  # "Alkane CH3- (LOPLS CT_CH3)"
     set type @atom:81L charge -0.148  # "Alkane -CH2- (LOPLS CT_CH2)"
+    set type @atom:81LL charge 0.19  # "Alkane -CH2- (LOPLS ALT)"
     set type @atom:85LCH3 charge 0.074  # "Alkane H-C CH3 (LOPLS HC_CH3)"
     set type @atom:85LCH2 charge 0.074  # "Alkane H-C CH2 (LOPLS HC_CH2)"
     set type @atom:87L charge -0.16  # "Alkene RH-C= (LOPLS CM_CH)"
     set type @atom:89L charge 0.16  # "Alkene H-C= (LOPLS HC_CH)"
     set type @atom:86L charge 0.0  # "Alkene R2-C= (LOPLS)"
     set type @atom:88L charge -0.23  # "Alkene H2-C= (LOPLS)"
+    set type @atom:96L charge -0.683  # "Alcohol -OH (LOPLS)"
+    set type @atom:97L charge 0.418  # "Alcohol -OH (LOPLS)"
+    set type @atom:111L charge -0.7  # "Diol -OH (LOPLS)"
+    set type @atom:112L charge 0.435  # "Diol -OH (LOPLS)"
+    set type @atom:113L charge -0.73  # "Triol -OH (LOPLS)"
+    set type @atom:114L charge 0.465  # "Triol -OH (LOPLS)"
+    set type @atom:118L charge 0.06  # "Diol & Triol H-COH (LOPLS)"
     set type @atom:169L charge 0.005  # "Chloroalkene Cl-CH= (LOPLS)"
     set type @atom:266L charge -0.07  # "Uracil & Thymine C5 (LOPLS)"
     set type @atom:267L charge 0.08  # "Uracil & Thymine C6 (LOPLS)"
@@ -37,9 +45,14 @@ OPLSAA {
     set type @atom:325L charge 0.1  # "CytosineH+ C6 (LOPLS)"
     set type @atom:340L charge 0.18  # "Trifluorothymine CF3- (LOPLS)"
     set type @atom:342L charge 0.12  # "Chloroalkene Cl2-C= (LOPLS)"
+    set type @atom:406L charge 0.75  # "Ester -COOR (LOPLS)"
+    set type @atom:407L charge -0.55  # "Ester C=O (LOPLS)"
+    set type @atom:408L charge -0.45  # "Ester CO-O-R (LOPLS)"
     set type @atom:458L charge -0.03  # "Vinyl Ether =CH-OR (LOPLS)"
     set type @atom:459L charge 0.085  # "Vinyl Ether =CR-OR (LOPLS)"
     set type @atom:649L charge -0.344  # "Cl..CH3..Cl- Sn2 TS (LOPLS)"
+    set type @atom:718L charge 0.06  # "Propylene Carbonate CH2 (LOPLS)"
+    set type @atom:718LL charge 0.03  # "Propylene Carbonate CH2 (LOPLS ALT)"
     set type @atom:900L charge -0.25  # "Allene/Ketene H2C=C=X (LOPLS)"
     set type @atom:901L charge -0.1  # "Allene/Ketene HRC=C=X (LOPLS)"
     set type @atom:902L charge 0.05  # "Allene/Ketene R2C=C=X (LOPLS)"
@@ -49,12 +62,20 @@ OPLSAA {
   write_once("Data Masses") {
     @atom:80L 12.011
     @atom:81L 12.011
+    @atom:81LL 12.011
     @atom:85LCH3 1.008
     @atom:85LCH2 1.008
     @atom:87L 12.011
     @atom:89L 1.008
     @atom:86L 12.011
     @atom:88L 12.011
+    @atom:96L 15.999
+    @atom:97L 1.008
+    @atom:111L 15.999
+    @atom:112L 1.008
+    @atom:113L 15.999
+    @atom:114L 1.008
+    @atom:118L 1.008
     @atom:169L 12.011
     @atom:266L 12.011
     @atom:267L 12.011
@@ -64,66 +85,113 @@ OPLSAA {
     @atom:325L 12.011
     @atom:340L 12.011
     @atom:342L 12.011
+    @atom:406L 12.011
+    @atom:407L 15.999
+    @atom:408L 15.999
     @atom:458L 12.011
     @atom:459L 12.011
     @atom:649L 12.011
+    @atom:718L 1.008
+    @atom:718LL 1.008
     @atom:900L 12.011
     @atom:901L 12.011
     @atom:902L 12.011
   } #(end of atom masses)
 
-  # ------- force-field-IDs for bonded interaction lookup -------
-  #    (First append the "force-field-ID" to the atom type name.
-  #     Later use these expanded names for force-field lookup.)
-  replace{ @atom:80L @atom:80L_b13_a13_d13L_i13 }
-  replace{ @atom:81L @atom:81L_b13_a13_d13L_i13 }
-  replace{ @atom:85LCH3 @atom:85LCH3_b46_a46_d46_i46 }
-  replace{ @atom:85LCH2 @atom:85LCH2_b46_a46_d46_i46 }
-  replace{ @atom:87L @atom:87L_b47_a47_d47L_i47 }
-  replace{ @atom:89L @atom:89L_b46_a46_d46_i46 }
-  replace{ @atom:86L @atom:86L_b47_a47_d47L_i47 }
-  replace{ @atom:88L @atom:88L_b47_a47_d47L_i47 }
-  replace{ @atom:169L @atom:169L_b47_a47_d47L_i47 }
-  replace{ @atom:266L @atom:266L_b47_a47_d47L_i47 }
-  replace{ @atom:267L @atom:267L_b47_a47_d47L_i47 }
-  replace{ @atom:280L @atom:280L_b47_a47_d47L_i47 }
-  replace{ @atom:281L @atom:281L_b47_a47_d47L_i47 }
-  replace{ @atom:324L @atom:324L_b47_a47_d47L_i47 }
-  replace{ @atom:325L @atom:325L_b47_a47_d47L_i47 }
-  replace{ @atom:340L @atom:340L_b47_a47_d47L_i47 }
-  replace{ @atom:342L @atom:342L_b47_a47_d47L_i47 }
-  replace{ @atom:458L @atom:458L_b47_a47_d47L_i47 }
-  replace{ @atom:459L @atom:459L_b47_a47_d47L_i47 }
-  replace{ @atom:649L @atom:649L_b47_a47_d47L_i47 }
-  replace{ @atom:900L @atom:900L_b47_a47_d47L_i47 }
-  replace{ @atom:901L @atom:901L_b47_a47_d47L_i47 }
-  replace{ @atom:902L @atom:902L_b47_a47_d47L_i47 }
-  #(end of force-field-IDs)
+
+  # ---------- EQUIVALENCE CATEGORIES for bonded interaction lookup ----------
+  #   Each type of atom has a separate ID used for looking up bond parameters
+  #   and a separate ID for looking up 3-body angle interaction parameters
+  #   and a separate ID for looking up 4-body dihedral interaction parameters
+  #   and a separate ID for looking up 4-body improper interaction parameters
+  #   The complete @atom type name includes ALL of these ID numbers.  There's
+  #   no need to force the end-user to type the complete name of each atom.
+  #   The "replace" command used below informs moltemplate that the short
+  #   @atom names we have been using abovee are equivalent to the complete
+  #   @atom names used below:
+
+  replace{ @atom:80L @atom:80L_b013_a013_d013L_i013 }
+  replace{ @atom:81L @atom:81L_b013_a013_d013L_i013 }
+  replace{ @atom:81LL @atom:81LL_b013_a013_d013LL_i013 }
+  replace{ @atom:85LCH3 @atom:85LCH3_b046_a046_d046_i046 }
+  replace{ @atom:85LCH2 @atom:85LCH2_b046_a046_d046_i046 }
+  replace{ @atom:87L @atom:87L_b047_a047_d047L_i047 }
+  replace{ @atom:89L @atom:89L_b046_a046_d046_i046 }
+  replace{ @atom:86L @atom:86L_b047_a047_d047L_i047 }
+  replace{ @atom:88L @atom:88L_b047_a047_d047L_i047 }
+  replace{ @atom:96L @atom:96L_b005_a005_d005L_i005 }
+  replace{ @atom:97L @atom:97L_b007_a007_d007L_i007 }
+  replace{ @atom:111L @atom:111L_b005_a005_d005L_i005 }
+  replace{ @atom:112L @atom:112L_b007_a007_d007L_i007 }
+  replace{ @atom:113L @atom:113L_b005_a005_d005L_i005 }
+  replace{ @atom:114L @atom:114L_b007_a007_d007L_i007 }
+  replace{ @atom:118L @atom:118L_b046_a046_d046L_i046 }
+  replace{ @atom:169L @atom:169L_b047_a047_d047L_i047 }
+  replace{ @atom:266L @atom:266L_b047_a047_d047L_i047 }
+  replace{ @atom:267L @atom:267L_b047_a047_d047L_i047 }
+  replace{ @atom:280L @atom:280L_b047_a047_d047L_i047 }
+  replace{ @atom:281L @atom:281L_b047_a047_d047L_i047 }
+  replace{ @atom:324L @atom:324L_b047_a047_d047L_i047 }
+  replace{ @atom:325L @atom:325L_b047_a047_d047L_i047 }
+  replace{ @atom:340L @atom:340L_b047_a047_d047L_i047 }
+  replace{ @atom:342L @atom:342L_b047_a047_d047L_i047 }
+  replace{ @atom:406L @atom:406L_b003_a003_d003L_i003 }
+  replace{ @atom:407L @atom:407L_b004_a004_d004L_i004 }
+  replace{ @atom:408L @atom:408L_b020_a020_d020L_i020 }
+  replace{ @atom:458L @atom:458L_b047_a047_d047L_i047 }
+  replace{ @atom:459L @atom:459L_b047_a047_d047L_i047 }
+  replace{ @atom:649L @atom:649L_b047_a047_d047L_i047 }
+  replace{ @atom:718L @atom:718L_b046_a046_d046L_i046 }
+  replace{ @atom:718LL @atom:718LL_b046_a046_d046L_i046 }
+  replace{ @atom:900L @atom:900L_b047_a047_d047L_i047 }
+  replace{ @atom:901L @atom:901L_b047_a047_d047L_i047 }
+  replace{ @atom:902L @atom:902L_b047_a047_d047L_i047 }
+
+
+
+
+  # --------------- Non-Bonded interactions: ---------------------
+  # http://lammps.sandia.gov/doc/pair_lj.html
+  # Syntax:
+  # pair_coeff    AtomType1    AtomType2   parameters...
 
   write_once("In Settings") {
-    pair_coeff @atom:80L_b13_a13_d13L_i13 @atom:80L_b13_a13_d13L_i13 lj/cut/coul/long 0.066 3.5
-    pair_coeff @atom:81L_b13_a13_d13L_i13 @atom:81L_b13_a13_d13L_i13 lj/cut/coul/long 0.066 3.5
-    pair_coeff @atom:85LCH3_b46_a46_d46_i46 @atom:85LCH3_b46_a46_d46_i46 lj/cut/coul/long 0.03 2.5
-    pair_coeff @atom:85LCH2_b46_a46_d46_i46 @atom:85LCH2_b46_a46_d46_i46 lj/cut/coul/long 0.026290630975 2.5
-    pair_coeff @atom:87L_b47_a47_d47L_i47 @atom:87L_b47_a47_d47L_i47 lj/cut/coul/long 0.076 3.55
-    pair_coeff @atom:89L_b46_a46_d46_i46 @atom:89L_b46_a46_d46_i46 lj/cut/coul/long 0.03 2.42
-    pair_coeff @atom:86L_b47_a47_d47L_i47 @atom:86L_b47_a47_d47L_i47 lj/cut/coul/long 0.076 3.55
-    pair_coeff @atom:88L_b47_a47_d47L_i47 @atom:88L_b47_a47_d47L_i47 lj/cut/coul/long 0.076 3.55
-    pair_coeff @atom:169L_b47_a47_d47L_i47 @atom:169L_b47_a47_d47L_i47 lj/cut/coul/long 0.076 3.55
-    pair_coeff @atom:266L_b47_a47_d47L_i47 @atom:266L_b47_a47_d47L_i47 lj/cut/coul/long 0.08 3.5
-    pair_coeff @atom:267L_b47_a47_d47L_i47 @atom:267L_b47_a47_d47L_i47 lj/cut/coul/long 0.08 3.5
-    pair_coeff @atom:280L_b47_a47_d47L_i47 @atom:280L_b47_a47_d47L_i47 lj/cut/coul/long 0.08 3.5
-    pair_coeff @atom:281L_b47_a47_d47L_i47 @atom:281L_b47_a47_d47L_i47 lj/cut/coul/long 0.08 3.5
-    pair_coeff @atom:324L_b47_a47_d47L_i47 @atom:324L_b47_a47_d47L_i47 lj/cut/coul/long 0.08 3.5
-    pair_coeff @atom:325L_b47_a47_d47L_i47 @atom:325L_b47_a47_d47L_i47 lj/cut/coul/long 0.08 3.5
-    pair_coeff @atom:340L_b47_a47_d47L_i47 @atom:340L_b47_a47_d47L_i47 lj/cut/coul/long 0.08 3.5
-    pair_coeff @atom:342L_b47_a47_d47L_i47 @atom:342L_b47_a47_d47L_i47 lj/cut/coul/long 0.076 3.55
-    pair_coeff @atom:458L_b47_a47_d47L_i47 @atom:458L_b47_a47_d47L_i47 lj/cut/coul/long 0.076 3.55
-    pair_coeff @atom:459L_b47_a47_d47L_i47 @atom:459L_b47_a47_d47L_i47 lj/cut/coul/long 0.076 3.55
-    pair_coeff @atom:649L_b47_a47_d47L_i47 @atom:649L_b47_a47_d47L_i47 lj/cut/coul/long 0.076 3.55
-    pair_coeff @atom:900L_b47_a47_d47L_i47 @atom:900L_b47_a47_d47L_i47 lj/cut/coul/long 0.086 3.3
-    pair_coeff @atom:901L_b47_a47_d47L_i47 @atom:901L_b47_a47_d47L_i47 lj/cut/coul/long 0.086 3.3
-    pair_coeff @atom:902L_b47_a47_d47L_i47 @atom:902L_b47_a47_d47L_i47 lj/cut/coul/long 0.086 3.3
+    pair_coeff @atom:80L_b013_a013_d013L_i013 @atom:80L_b013_a013_d013L_i013  0.066 3.5
+    pair_coeff @atom:81L_b013_a013_d013L_i013 @atom:81L_b013_a013_d013L_i013  0.066 3.5
+    pair_coeff @atom:81LL_b013_a013_d013LL_i013 @atom:81LL_b013_a013_d013LL_i013  0.066 0.35
+    pair_coeff @atom:85LCH3_b046_a046_d046_i046 @atom:85LCH3_b046_a046_d046_i046  0.03 2.5
+    pair_coeff @atom:85LCH2_b046_a046_d046_i046 @atom:85LCH2_b046_a046_d046_i046  0.026290630975 2.5
+    pair_coeff @atom:87L_b047_a047_d047L_i047 @atom:87L_b047_a047_d047L_i047  0.076 3.55
+    pair_coeff @atom:89L_b046_a046_d046_i046 @atom:89L_b046_a046_d046_i046  0.03 2.42
+    pair_coeff @atom:86L_b047_a047_d047L_i047 @atom:86L_b047_a047_d047L_i047  0.076 3.55
+    pair_coeff @atom:88L_b047_a047_d047L_i047 @atom:88L_b047_a047_d047L_i047  0.076 3.55
+    pair_coeff @atom:96L_b005_a005_d005L_i005 @atom:96L_b005_a005_d005L_i005  0.17 0.312
+    pair_coeff @atom:97L_b007_a007_d007L_i007 @atom:97L_b007_a007_d007L_i007  0.0 0.0
+    pair_coeff @atom:111L_b005_a005_d005L_i005 @atom:111L_b005_a005_d005L_i005  0.17 0.307
+    pair_coeff @atom:112L_b007_a007_d007L_i007 @atom:112L_b007_a007_d007L_i007  0.0 0.0
+    pair_coeff @atom:113L_b005_a005_d005L_i005 @atom:113L_b005_a005_d005L_i005  0.17 0.307
+    pair_coeff @atom:114L_b007_a007_d007L_i007 @atom:114L_b007_a007_d007L_i007  0.0 0.0
+    pair_coeff @atom:118L_b046_a046_d046L_i046 @atom:118L_b046_a046_d046L_i046  0.03 0.25
+    pair_coeff @atom:169L_b047_a047_d047L_i047 @atom:169L_b047_a047_d047L_i047  0.076 3.55
+    pair_coeff @atom:266L_b047_a047_d047L_i047 @atom:266L_b047_a047_d047L_i047  0.08 3.5
+    pair_coeff @atom:267L_b047_a047_d047L_i047 @atom:267L_b047_a047_d047L_i047  0.08 3.5
+    pair_coeff @atom:280L_b047_a047_d047L_i047 @atom:280L_b047_a047_d047L_i047  0.08 3.5
+    pair_coeff @atom:281L_b047_a047_d047L_i047 @atom:281L_b047_a047_d047L_i047  0.08 3.5
+    pair_coeff @atom:324L_b047_a047_d047L_i047 @atom:324L_b047_a047_d047L_i047  0.08 3.5
+    pair_coeff @atom:325L_b047_a047_d047L_i047 @atom:325L_b047_a047_d047L_i047  0.08 3.5
+    pair_coeff @atom:340L_b047_a047_d047L_i047 @atom:340L_b047_a047_d047L_i047  0.08 3.5
+    pair_coeff @atom:342L_b047_a047_d047L_i047 @atom:342L_b047_a047_d047L_i047  0.076 3.55
+    pair_coeff @atom:406L_b003_a003_d003L_i003 @atom:406L_b003_a003_d003L_i003  0.105 0.31875
+    pair_coeff @atom:407L_b004_a004_d004L_i004 @atom:407L_b004_a004_d004L_i004  0.168 0.3108
+    pair_coeff @atom:408L_b020_a020_d020L_i020 @atom:408L_b020_a020_d020L_i020  0.17 0.255
+    pair_coeff @atom:458L_b047_a047_d047L_i047 @atom:458L_b047_a047_d047L_i047  0.076 3.55
+    pair_coeff @atom:459L_b047_a047_d047L_i047 @atom:459L_b047_a047_d047L_i047  0.076 3.55
+    pair_coeff @atom:649L_b047_a047_d047L_i047 @atom:649L_b047_a047_d047L_i047  0.076 3.55
+    pair_coeff @atom:718L_b046_a046_d046L_i046 @atom:718L_b046_a046_d046L_i046  0.15 0.242
+    pair_coeff @atom:718LL_b046_a046_d046L_i046 @atom:718LL_b046_a046_d046L_i046  0.15 0.242
+    pair_coeff @atom:900L_b047_a047_d047L_i047 @atom:900L_b047_a047_d047L_i047  0.086 3.3
+    pair_coeff @atom:901L_b047_a047_d047L_i047 @atom:901L_b047_a047_d047L_i047  0.086 3.3
+    pair_coeff @atom:902L_b047_a047_d047L_i047 @atom:902L_b047_a047_d047L_i047  0.086 3.3
   } #(end of pair_coeffs)
 
 
@@ -135,499 +203,69 @@ OPLSAA {
 
   # Dihedral parameters for some of these atoms are modified:
 
+  # ----------- Dihedral Interactions: ------------
+  # http://lammps.sandia.gov/doc/dihedral_opls.html
+  # Syntax:
+  # dihedral_coeff DihedralTypeName  parameters...
+
   write_once("In Settings") {
-    dihedral_coeff @dihedral:13L-13L-13L-13L opls 0.6446926386 -0.2143420172 0.1782194073 0.0
-    dihedral_coeff @dihedral:X-47L-47L-X opls 0.0 12.2502629063 0.0 0.0
-    dihedral_coeff @dihedral:47L-47L-13L-13L opls -0.8050121893 0.3218905354 -0.1032768881 0.0
-    dihedral_coeff @dihedral:13L-13L-13L-47L opls 0.4821902486 0.1343683078 0.1777461759 0.0
+    dihedral_coeff @dihedral:013L_013L_013L_013L  0.6446926386 -0.2143420172 0.1782194073 0.0
+    dihedral_coeff @dihedral:X_047L_047L_X  0.0 12.2502629063 0.0 0.0
+    dihedral_coeff @dihedral:047L_047L_013L_013L  -0.8050121893 0.3218905354 -0.1032768881 0.0
+    dihedral_coeff @dihedral:013L_013L_013L_047L  0.4821902486 0.1343683078 0.1777461759 0.0
+    dihedral_coeff @dihedral:046L_013LL_005L_007L  0.00962596 -0.0145554 0.381091 0.0
+    dihedral_coeff @dihedral:046L_013LL_013LL_005L  0.0143774 0.033021 0.26687 0.0
+    dihedral_coeff @dihedral:013LL_013LL_005L_007L  -0.675785 -0.0160421 0.373199 0.0
+    dihedral_coeff @dihedral:013LL_013LL_013LL_005L  1.31261 -0.266307 0.637867 0.0
+    dihedral_coeff @dihedral:005L_013LL_013LL_005L  2.69106 -0.849706 0.725731 0.0
+    dihedral_coeff @dihedral:013LL_003L_020L_013LL  3.11923 5.73771 0.0 0.0
+    dihedral_coeff @dihedral:013LL_020L_003L_004L  0.0 5.73772 0.0 0.0
+    dihedral_coeff @dihedral:046L_013LL_003L_020L  -0.00742471 0.00217734 0.111803 0.0
+    dihedral_coeff @dihedral:003L_020L_013LL_013LL  -1.7354 -1.24844 0.623897 0.0
+    dihedral_coeff @dihedral:046L_013LL_013LL_020L  0.0113337 0.0236209 0.429747 0.0
+    dihedral_coeff @dihedral:013LL_013LL_003L_020L  0.884988 -0.626905 -0.493344 0.0
+    dihedral_coeff @dihedral:013LL_013LL_003L_004L  -0.276019 1.23685 -0.670745 0.0
+    dihedral_coeff @dihedral:003L_013LL_013LL_046L  -0.0021152 0.0173542 -0.295208 0.0
+    dihedral_coeff @dihedral:003L_013LL_013LL_013LL  -2.30738 -0.627326 0.621951 0.0
+    dihedral_coeff @dihedral:013LL_013LL_013LL_020L  2.25871 -1.02408 1.0071 0.0
+    dihedral_coeff @dihedral:020L_013LL_013LL_020L  4.66787 -2.62698 1.3248 0.0
+    dihedral_coeff @dihedral:005L_013LL_013LL_020L  5.03208 -2.37742 1.23809 0.0
   } #(end of dihedral_coeffs)
 
-
-  # First we must slightly loosen the requirements to generate dihedrals
-  # involving atom types d13 or d47.  We want the same rules to apply
-  # for atoms of type d13L and d47L.  To cover both of these cases,
-  # I replaced "d13_" with "d13*_" in the lines below:
-  # (Later I will add the custom dihedrals for these atom types.)
+  # Rules for creating dihedral interactions according to atom type:
+  #   DihedralTypeName     AtomType1     AtomType2     AtomType3     AtomType4
+  #   (* = wildcard)
 
   write_once("Data Dihedrals By Type") {
-    @dihedral:2-2-2-13 @atom:*_b*_a*_d2_i* @atom:*_b*_a*_d2_i* @atom:*_b*_a*_d2_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:2-2-13-2 @atom:*_b*_a*_d2_i* @atom:*_b*_a*_d2_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d2_i*
-    @dihedral:4-3-3-13 @atom:*_b*_a*_d4_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-3-3-13 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-3-3-24 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d24_i*
-    @dihedral:13-3-3-46 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d46_i*
-    @dihedral:13-3-5-7 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d5_i* @atom:*_b*_a*_d7_i*
-    @dihedral:1-3-13-13 @atom:*_b*_a*_d1_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:1-3-13-46 @atom:*_b*_a*_d1_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:3-3-13-46 @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:4-3-13-X @atom:*_b*_a*_d4_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*
-    @dihedral:4-3-13-13 @atom:*_b*_a*_d4_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:4-3-13-21 @atom:*_b*_a*_d4_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d21_i*
-    @dihedral:4-3-13-44 @atom:*_b*_a*_d4_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d44_i*
-    @dihedral:4-3-13-24 @atom:*_b*_a*_d4_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d24_i*
-    @dihedral:4-3-13-46 @atom:*_b*_a*_d4_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:4-3-13-48 @atom:*_b*_a*_d4_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d48_i*
-    @dihedral:5-3-13-13 @atom:*_b*_a*_d5_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:5-3-13-44 @atom:*_b*_a*_d5_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d44_i*
-    @dihedral:5-3-13-46 @atom:*_b*_a*_d5_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:13-3-13-13 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-3-13-46 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:20-3-13-13 @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:20-3-13-46 @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:21-3-13-13 @atom:*_b*_a*_d21_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:21-3-13-46 @atom:*_b*_a*_d21_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:24-3-13-13 @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:24-3-13-21 @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d21_i*
-    @dihedral:24-3-13-24 @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d24_i*
-    @dihedral:24-3-13-46 @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:46-3-13-13 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:46-3-13-46 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:48-3-13-46 @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:52-3-13-13 @atom:*_b*_a*_d52_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:52-3-13-44 @atom:*_b*_a*_d52_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d44_i*
-    @dihedral:52-3-13-46 @atom:*_b*_a*_d52_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:65-3-13-13 @atom:*_b*_a*_d65_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:65-3-13-46 @atom:*_b*_a*_d65_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:107-3-13-46 @atom:*_b*_a*_d107_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:4-3-20-13 @atom:*_b*_a*_d4_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-3-20-13 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-3-20-48 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d48_i*
-    @dihedral:24-3-20-13 @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:46-3-20-13 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:48-3-20-13 @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:3-3-24-13 @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:4-3-24-13 @atom:*_b*_a*_d4_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:4-3-24-47 @atom:*_b*_a*_d4_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d47*_i*
-    @dihedral:5-3-24-13 @atom:*_b*_a*_d5_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-3-24-5 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d5_i*
-    @dihedral:13-3-24-13 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-3-24-45 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d45_i*
-    @dihedral:13-3-24-48 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d48_i*
-    @dihedral:20-3-24-13 @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:24-3-24-13 @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:46-3-24-13 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:47-3-24-45 @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d45_i*
-    @dihedral:X-3-47-13 @atom:* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:4-3-47-46 @atom:*_b*_a*_d4_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:4-3-47-47 @atom:*_b*_a*_d4_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d47*_i*
-    @dihedral:5-3-47-47 @atom:*_b*_a*_d5_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d47*_i*
-    @dihedral:24-3-47-46 @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:24-3-47-47 @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d47*_i*
-    @dihedral:107-3-47-46 @atom:*_b*_a*_d107_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:107-3-47-47 @atom:*_b*_a*_d107_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d47*_i*
-    @dihedral:13-3-48-48 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d48_i*
-    @dihedral:X-3-50-13 @atom:* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d50_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:4-3-50-47 @atom:*_b*_a*_d4_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d50_i* @atom:*_b*_a*_d47*_i*
-    @dihedral:5-3-50-47 @atom:*_b*_a*_d5_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d50_i* @atom:*_b*_a*_d47*_i*
-    @dihedral:13-3-50-47 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d50_i* @atom:*_b*_a*_d47*_i*
-    @dihedral:13-3-56-X @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d56_i* @atom:*
-    @dihedral:13-3-56-13 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d56_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:4-3-107-13 @atom:*_b*_a*_d4_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d107_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-3-107-13 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d107_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:7-5-13-2 @atom:*_b*_a*_d7_i* @atom:*_b*_a*_d5_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d2_i*
-    @dihedral:7-5-13-6 @atom:*_b*_a*_d7_i* @atom:*_b*_a*_d5_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d6_i*
-    @dihedral:7-5-13-13 @atom:*_b*_a*_d7_i* @atom:*_b*_a*_d5_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:7-5-13-46 @atom:*_b*_a*_d7_i* @atom:*_b*_a*_d5_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:7-5-13-47 @atom:*_b*_a*_d7_i* @atom:*_b*_a*_d5_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d47*_i*
-    @dihedral:7-5-13-48 @atom:*_b*_a*_d7_i* @atom:*_b*_a*_d5_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d48_i*
-    @dihedral:7-5-13-50 @atom:*_b*_a*_d7_i* @atom:*_b*_a*_d5_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d50_i*
-    @dihedral:7-5-44-13 @atom:*_b*_a*_d7_i* @atom:*_b*_a*_d5_i* @atom:*_b*_a*_d44_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:7-5-47-47 @atom:*_b*_a*_d7_i* @atom:*_b*_a*_d5_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d47*_i*
-    @dihedral:7-5-79-13 @atom:*_b*_a*_d7_i* @atom:*_b*_a*_d5_i* @atom:*_b*_a*_d79_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:X-13-13-3 @atom:* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d3_i*
-    @dihedral:X-13-13-13 @atom:* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:X-13-13-24 @atom:* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d24_i*
-    @dihedral:1-13-13-1 @atom:*_b*_a*_d1_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d1_i*
-    @dihedral:1-13-13-5 @atom:*_b*_a*_d1_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d5_i*
-    @dihedral:1-13-13-13 @atom:*_b*_a*_d1_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:1-13-13-46 @atom:*_b*_a*_d1_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:3-13-13-3 @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d3_i*
-    @dihedral:3-13-13-5 @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d5_i*
-    @dihedral:3-13-13-13 @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:3-13-13-15 @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d15_i*
-    @dihedral:3-13-13-16 @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d16_i*
-    @dihedral:3-13-13-24 @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d24_i*
-    @dihedral:3-13-13-46 @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:3-13-13-48 @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d48_i*
-    @dihedral:3-13-13-80 @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d80_i*
-    @dihedral:5-13-13-5 @atom:*_b*_a*_d5_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d5_i*
-    @dihedral:5-13-13-13 @atom:*_b*_a*_d5_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:5-13-13-20 @atom:*_b*_a*_d5_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d20_i*
-    @dihedral:5-13-13-44 @atom:*_b*_a*_d5_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d44_i*
-    @dihedral:5-13-13-24 @atom:*_b*_a*_d5_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d24_i*
-    @dihedral:5-13-13-46 @atom:*_b*_a*_d5_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:13-13-13-13 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-13-13-15 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d15_i*
-    @dihedral:13-13-13-16 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d16_i*
-    @dihedral:13-13-13-19 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d19_i*
-    @dihedral:13-13-13-21 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d21_i*
-    @dihedral:13-13-13-44 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d44_i*
-    @dihedral:13-13-13-24 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d24_i*
-    @dihedral:13-13-13-46 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:13-13-13-51 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d51_i*
-    @dihedral:13-13-13-53 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d53_i*
-    @dihedral:13-13-13-65 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d65_i*
-    @dihedral:13-13-13-66 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d66_i*
-    @dihedral:13-13-13-79 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d79_i*
-    @dihedral:13-13-13-107 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d107_i*
-    @dihedral:13-13-13-108 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d108_i*
-    @dihedral:15-13-13-46 @atom:*_b*_a*_d15_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:16-13-13-46 @atom:*_b*_a*_d16_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:19-13-13-46 @atom:*_b*_a*_d19_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:20-13-13-20 @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d20_i*
-    @dihedral:20-13-13-46 @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:21-13-13-21 @atom:*_b*_a*_d21_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d21_i*
-    @dihedral:21-13-13-44 @atom:*_b*_a*_d21_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d44_i*
-    @dihedral:21-13-13-46 @atom:*_b*_a*_d21_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:44-13-13-44 @atom:*_b*_a*_d44_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d44_i*
-    @dihedral:44-13-13-46 @atom:*_b*_a*_d44_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:44-13-13-48 @atom:*_b*_a*_d44_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d48_i*
-    @dihedral:24-13-13-46 @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:24-13-13-48 @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d48_i*
-    @dihedral:24-13-13-80 @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d80_i*
-    @dihedral:46-13-13-46 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:46-13-13-47 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d47*_i*
-    @dihedral:46-13-13-48 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d48_i*
-    @dihedral:46-13-13-51 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d51_i*
-    @dihedral:46-13-13-53 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d53_i*
-    @dihedral:46-13-13-55 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d55_i*
-    @dihedral:46-13-13-59 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d59_i*
-    @dihedral:46-13-13-62 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d62_i*
-    @dihedral:46-13-13-65 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d65_i*
-    @dihedral:46-13-13-66 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d66_i*
-    @dihedral:46-13-13-79 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d79_i*
-    @dihedral:46-13-13-80 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d80_i*
-    @dihedral:46-13-13-82 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d82_i*
-    @dihedral:46-13-13-83 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d83_i*
-    @dihedral:46-13-13-84 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d84_i*
-    @dihedral:46-13-13-87 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d87_i*
-    @dihedral:46-13-13-88 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d88_i*
-    @dihedral:46-13-13-102 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d102_i*
-    @dihedral:46-13-13-104 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d104_i*
-    @dihedral:46-13-13-107 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d107_i*
-    @dihedral:46-13-13-108 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d108_i*
-    @dihedral:46-13-13-109 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d109_i*
-    @dihedral:48-13-13-53 @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d53_i*
-    @dihedral:108-13-13-108 @atom:*_b*_a*_d108_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d108_i*
-    @dihedral:13-13-15-17 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d15_i* @atom:*_b*_a*_d17_i*
-    @dihedral:46-13-15-17 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d15_i* @atom:*_b*_a*_d17_i*
-    @dihedral:13-13-16-13 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d16_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-13-16-16 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d16_i* @atom:*_b*_a*_d16_i*
-    @dihedral:46-13-16-13 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d16_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:46-13-16-16 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d16_i* @atom:*_b*_a*_d16_i*
-    @dihedral:46-13-16-48 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d16_i* @atom:*_b*_a*_d48_i*
-    @dihedral:X-13-18-19 @atom:* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d18_i* @atom:*_b*_a*_d19_i*
-    @dihedral:46-13-18-19 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d18_i* @atom:*_b*_a*_d19_i*
-    @dihedral:X-13-19-18 @atom:* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d19_i* @atom:*_b*_a*_d18_i*
-    @dihedral:X-13-19-19 @atom:* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d19_i* @atom:*_b*_a*_d19_i*
-    @dihedral:13-13-19-19 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d19_i* @atom:*_b*_a*_d19_i*
-    @dihedral:46-13-19-19 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d19_i* @atom:*_b*_a*_d19_i*
-    @dihedral:X-13-20-13 @atom:* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:56-13-20-13 @atom:*_b*_a*_d56_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:57-13-20-13 @atom:*_b*_a*_d57_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-13-20-3 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d3_i*
-    @dihedral:13-13-20-13 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-13-20-64 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d64_i*
-    @dihedral:46-13-20-X @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d20_i* @atom:*
-    @dihedral:46-13-20-3 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d3_i*
-    @dihedral:46-13-20-47 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d47*_i*
-    @dihedral:46-13-20-48 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d48_i*
-    @dihedral:46-13-20-51 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d51_i*
-    @dihedral:46-13-20-64 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d64_i*
-    @dihedral:13-13-44-13 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d44_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-13-44-45 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d44_i* @atom:*_b*_a*_d45_i*
-    @dihedral:46-13-44-13 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d44_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:46-13-44-45 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d44_i* @atom:*_b*_a*_d45_i*
-    @dihedral:46-13-44-48 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d44_i* @atom:*_b*_a*_d48_i*
-    @dihedral:X-13-24-45 @atom:* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d45_i*
-    @dihedral:3-13-24-3 @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d3_i*
-    @dihedral:3-13-24-13 @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:3-13-24-45 @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d45_i*
-    @dihedral:13-13-24-3 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d3_i*
-    @dihedral:13-13-24-13 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-13-24-45 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d45_i*
-    @dihedral:13-13-24-59 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d59_i*
-    @dihedral:13-13-24-79 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d79_i*
-    @dihedral:13-13-24-91 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d91_i*
-    @dihedral:46-13-24-3 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d3_i*
-    @dihedral:46-13-24-13 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:46-13-24-45 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d45_i*
-    @dihedral:46-13-24-48 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d48_i*
-    @dihedral:46-13-24-79 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d79_i*
-    @dihedral:48-13-24-59 @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d59_i*
-    @dihedral:X-13-47-13 @atom:* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:X-13-47-46 @atom:* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:X-13-47-47 @atom:* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d47*_i*
-    @dihedral:X-13-47-50 @atom:* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d50_i*
-    @dihedral:1-13-47-47 @atom:*_b*_a*_d1_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d47*_i*
-    @dihedral:13-13-47-13 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-13-47-47 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d47*_i*
-    @dihedral:13-13-47-50 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d50_i*
-    @dihedral:46-13-47-13 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:46-13-47-46 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:46-13-47-47 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d47*_i*
-    @dihedral:46-13-47-50 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d50_i*
-    @dihedral:46-13-47-110 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d110_i*
-    @dihedral:47-13-47-13 @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:47-13-47-46 @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:X-13-48-48 @atom:* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d48_i*
-    @dihedral:1-13-48-48 @atom:*_b*_a*_d1_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d48_i*
-    @dihedral:13-13-48-48 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d48_i*
-    @dihedral:13-13-48-56 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d56_i*
-    @dihedral:21-13-48-48 @atom:*_b*_a*_d21_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d48_i*
-    @dihedral:46-13-48-48 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d48_i*
-    @dihedral:64-13-48-48 @atom:*_b*_a*_d64_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d48_i*
-    @dihedral:65-13-48-48 @atom:*_b*_a*_d65_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d48_i*
-    @dihedral:X-13-50-47 @atom:* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d50_i* @atom:*_b*_a*_d47*_i*
-    @dihedral:13-13-50-50 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d50_i* @atom:*_b*_a*_d50_i*
-    @dihedral:46-13-50-47 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d50_i* @atom:*_b*_a*_d47*_i*
-    @dihedral:46-13-50-50 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d50_i* @atom:*_b*_a*_d50_i*
-    @dihedral:46-13-50-109 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d50_i* @atom:*_b*_a*_d109_i*
-    @dihedral:13-13-51-X @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d51_i* @atom:*
-    @dihedral:13-13-51-46 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d51_i* @atom:*_b*_a*_d46_i*
-    @dihedral:46-13-51-20 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d51_i* @atom:*_b*_a*_d20_i*
-    @dihedral:13-13-53-13 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d53_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-13-53-45 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d53_i* @atom:*_b*_a*_d45_i*
-    @dihedral:46-13-53-13 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d53_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:46-13-53-45 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d53_i* @atom:*_b*_a*_d45_i*
-    @dihedral:46-13-53-48 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d53_i* @atom:*_b*_a*_d48_i*
-    @dihedral:46-13-53-54 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d53_i* @atom:*_b*_a*_d54_i*
-    @dihedral:13-13-55-45 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d55_i* @atom:*_b*_a*_d45_i*
-    @dihedral:13-13-55-48 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d55_i* @atom:*_b*_a*_d48_i*
-    @dihedral:13-13-55-54 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d55_i* @atom:*_b*_a*_d54_i*
-    @dihedral:46-13-55-13 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d55_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:46-13-55-45 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d55_i* @atom:*_b*_a*_d45_i*
-    @dihedral:46-13-55-48 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d55_i* @atom:*_b*_a*_d48_i*
-    @dihedral:13-13-56-18 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d56_i* @atom:*_b*_a*_d18_i*
-    @dihedral:X-13-57-X @atom:* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d57_i* @atom:*
-    @dihedral:13-13-57-X @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d57_i* @atom:*
-    @dihedral:13-13-57-62 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d57_i* @atom:*_b*_a*_d62_i*
-    @dihedral:13-13-57-82 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d57_i* @atom:*_b*_a*_d82_i*
-    @dihedral:20-13-57-X @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d57_i* @atom:*
-    @dihedral:20-13-57-62 @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d57_i* @atom:*_b*_a*_d62_i*
-    @dihedral:20-13-57-82 @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d57_i* @atom:*_b*_a*_d82_i*
-    @dihedral:13-13-59-X @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d59_i* @atom:*
-    @dihedral:13-13-59-56 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d59_i* @atom:*_b*_a*_d56_i*
-    @dihedral:46-13-59-X @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d59_i* @atom:*
-    @dihedral:13-13-62-X @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d62_i* @atom:*
-    @dihedral:46-13-62-X @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d62_i* @atom:*
-    @dihedral:46-13-64-20 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d64_i* @atom:*_b*_a*_d20_i*
-    @dihedral:46-13-64-52 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d64_i* @atom:*_b*_a*_d52_i*
-    @dihedral:48-13-64-20 @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d64_i* @atom:*_b*_a*_d20_i*
-    @dihedral:48-13-64-52 @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d64_i* @atom:*_b*_a*_d52_i*
-    @dihedral:X-13-79-23 @atom:* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d79_i* @atom:*_b*_a*_d23_i*
-    @dihedral:X-13-79-24 @atom:* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d79_i* @atom:*_b*_a*_d24_i*
-    @dihedral:13-13-79-13 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d79_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-13-79-23 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d79_i* @atom:*_b*_a*_d23_i*
-    @dihedral:46-13-79-5 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d79_i* @atom:*_b*_a*_d5_i*
-    @dihedral:46-13-79-13 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d79_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:46-13-79-23 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d79_i* @atom:*_b*_a*_d23_i*
-    @dihedral:46-13-79-48 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d79_i* @atom:*_b*_a*_d48_i*
-    @dihedral:13-13-80-X @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d80_i* @atom:*
-    @dihedral:13-13-80-60 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d80_i* @atom:*_b*_a*_d60_i*
-    @dihedral:13-13-80-84 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d80_i* @atom:*_b*_a*_d84_i*
-    @dihedral:46-13-80-X @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d80_i* @atom:*
-    @dihedral:46-13-80-60 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d80_i* @atom:*_b*_a*_d60_i*
-    @dihedral:46-13-80-84 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d80_i* @atom:*_b*_a*_d84_i*
-    @dihedral:13-13-82-X @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d82_i* @atom:*
-    @dihedral:46-13-82-X @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d82_i* @atom:*
-    @dihedral:13-13-83-X @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d83_i* @atom:*
-    @dihedral:46-13-83-X @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d83_i* @atom:*
-    @dihedral:1-13-84-X @atom:*_b*_a*_d1_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d84_i* @atom:*
-    @dihedral:13-13-84-X @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d84_i* @atom:*
-    @dihedral:13-13-84-57 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d84_i* @atom:*_b*_a*_d57_i*
-    @dihedral:21-13-84-X @atom:*_b*_a*_d21_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d84_i* @atom:*
-    @dihedral:46-13-84-X @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d84_i* @atom:*
-    @dihedral:1-13-87-X @atom:*_b*_a*_d1_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d87_i* @atom:*
-    @dihedral:13-13-87-X @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d87_i* @atom:*
-    @dihedral:21-13-87-X @atom:*_b*_a*_d21_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d87_i* @atom:*
-    @dihedral:46-13-87-X @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d87_i* @atom:*
-    @dihedral:13-13-88-X @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d88_i* @atom:*
-    @dihedral:46-13-88-X @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d88_i* @atom:*
-    @dihedral:X-13-90-X @atom:* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d90_i* @atom:*
-    @dihedral:46-13-90-X @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d90_i* @atom:*
-    @dihedral:46-13-91-91 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d91_i* @atom:*_b*_a*_d91_i*
-    @dihedral:13-13-95-13 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d95_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-13-95-46 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d95_i* @atom:*_b*_a*_d46_i*
-    @dihedral:13-13-102-103 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d102_i* @atom:*_b*_a*_d103_i*
-    @dihedral:46-13-102-103 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d102_i* @atom:*_b*_a*_d103_i*
-    @dihedral:13-13-104-13 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d104_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:46-13-104-13 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d104_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:X-13-105-X @atom:* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d105_i* @atom:*
-    @dihedral:13-13-105-X @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d105_i* @atom:*
-    @dihedral:13-13-105-62 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d105_i* @atom:*_b*_a*_d62_i*
-    @dihedral:13-13-105-82 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d105_i* @atom:*_b*_a*_d82_i*
-    @dihedral:20-13-105-X @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d105_i* @atom:*
-    @dihedral:20-13-105-62 @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d105_i* @atom:*_b*_a*_d62_i*
-    @dihedral:20-13-105-82 @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d105_i* @atom:*_b*_a*_d82_i*
-    @dihedral:3-13-107-13 @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d107_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-13-107-3 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d107_i* @atom:*_b*_a*_d3_i*
-    @dihedral:13-13-107-13 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d107_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:46-13-107-3 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d107_i* @atom:*_b*_a*_d3_i*
-    @dihedral:46-13-107-13 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d107_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:46-13-107-48 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d107_i* @atom:*_b*_a*_d48_i*
-    @dihedral:13-13-108-13 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d108_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-13-108-45 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d108_i* @atom:*_b*_a*_d45_i*
-    @dihedral:46-13-108-13 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d108_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:46-13-108-20 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d108_i* @atom:*_b*_a*_d20_i*
-    @dihedral:46-13-108-45 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d108_i* @atom:*_b*_a*_d45_i*
-    @dihedral:13-13-109-109 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d109_i* @atom:*_b*_a*_d109_i*
-    @dihedral:46-13-109-13 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d109_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:46-13-109-46 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d109_i* @atom:*_b*_a*_d46_i*
-    @dihedral:46-13-109-109 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d109_i* @atom:*_b*_a*_d109_i*
-    @dihedral:13-16-16-13 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d16_i* @atom:*_b*_a*_d16_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-16-48-48 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d16_i* @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d48_i*
-    @dihedral:13-16-48-56 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d16_i* @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d56_i*
-    @dihedral:13-16-59-56 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d16_i* @atom:*_b*_a*_d59_i* @atom:*_b*_a*_d56_i*
-    @dihedral:18-18-56-13 @atom:*_b*_a*_d18_i* @atom:*_b*_a*_d18_i* @atom:*_b*_a*_d56_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-19-19-13 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d19_i* @atom:*_b*_a*_d19_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-19-19-46 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d19_i* @atom:*_b*_a*_d19_i* @atom:*_b*_a*_d46_i*
-    @dihedral:13-19-19-47 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d19_i* @atom:*_b*_a*_d19_i* @atom:*_b*_a*_d47*_i*
-    @dihedral:13-19-19-109 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d19_i* @atom:*_b*_a*_d19_i* @atom:*_b*_a*_d109_i*
-    @dihedral:46-19-19-47 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d19_i* @atom:*_b*_a*_d19_i* @atom:*_b*_a*_d47*_i*
-    @dihedral:19-19-47-13 @atom:*_b*_a*_d19_i* @atom:*_b*_a*_d19_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:19-19-47-46 @atom:*_b*_a*_d19_i* @atom:*_b*_a*_d19_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:19-19-47-47 @atom:*_b*_a*_d19_i* @atom:*_b*_a*_d19_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d47*_i*
-    @dihedral:13-20-44-13 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d44_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-20-44-45 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d44_i* @atom:*_b*_a*_d45_i*
-    @dihedral:13-20-47-13 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-20-47-46 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:13-20-47-47 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d47*_i*
-    @dihedral:13-20-47-50 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d50_i*
-    @dihedral:13-20-48-48 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d48_i*
-    @dihedral:13-20-48-56 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d56_i*
-    @dihedral:13-20-51-5 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d51_i* @atom:*_b*_a*_d5_i*
-    @dihedral:13-20-51-13 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d51_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-20-51-20 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d51_i* @atom:*_b*_a*_d20_i*
-    @dihedral:13-20-51-46 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d51_i* @atom:*_b*_a*_d46_i*
-    @dihedral:13-20-56-3 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d56_i* @atom:*_b*_a*_d3_i*
-    @dihedral:13-20-59-56 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d59_i* @atom:*_b*_a*_d56_i*
-    @dihedral:13-20-64-13 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d64_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-20-64-52 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d64_i* @atom:*_b*_a*_d52_i*
-    @dihedral:108-20-108-13 @atom:*_b*_a*_d108_i* @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d108_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-44-44-13 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d44_i* @atom:*_b*_a*_d44_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-44-44-45 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d44_i* @atom:*_b*_a*_d44_i* @atom:*_b*_a*_d45_i*
-    @dihedral:13-44-48-48 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d44_i* @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d48_i*
-    @dihedral:13-24-48-48 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d48_i*
-    @dihedral:13-24-79-48 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d79_i* @atom:*_b*_a*_d48_i*
-    @dihedral:13-24-82-61 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d82_i* @atom:*_b*_a*_d61_i*
-    @dihedral:47-24-86-48 @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d86_i* @atom:*_b*_a*_d48_i*
-    @dihedral:47-24-86-56 @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d86_i* @atom:*_b*_a*_d56_i*
-    @dihedral:47-46-47-13 @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:47-46-47-46 @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:X-47-47-X @atom:* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d47*_i* @atom:*
-    @dihedral:X-47-47-19 @atom:* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d19_i*
-    @dihedral:3-47-47-24 @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d24_i*
-    @dihedral:3-47-47-46 @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:5-47-47-13 @atom:*_b*_a*_d5_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:5-47-47-46 @atom:*_b*_a*_d5_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:13-47-47-13 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-47-47-19 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d19_i*
-    @dihedral:13-47-47-20 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d20_i*
-    @dihedral:13-47-47-46 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:19-47-47-46 @atom:*_b*_a*_d19_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:20-47-47-46 @atom:*_b*_a*_d20_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:21-47-47-21 @atom:*_b*_a*_d21_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d21_i*
-    @dihedral:21-47-47-46 @atom:*_b*_a*_d21_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:46-47-47-46 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d46_i*
-    @dihedral:46-47-47-48 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d48_i*
-    @dihedral:13-47-48-48 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d48_i*
-    @dihedral:46-47-48-48 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d48_i*
-    @dihedral:46-47-48-56 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d56_i*
-    @dihedral:47-47-48-48 @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d48_i*
-    @dihedral:13-47-50-13 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d50_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-47-50-46 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d50_i* @atom:*_b*_a*_d46_i*
-    @dihedral:13-47-50-48 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d50_i* @atom:*_b*_a*_d48_i*
-    @dihedral:13-47-50-50 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d50_i* @atom:*_b*_a*_d50_i*
-    @dihedral:13-47-50-109 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d50_i* @atom:*_b*_a*_d109_i*
-    @dihedral:24-47-50-3 @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d50_i* @atom:*_b*_a*_d3_i*
-    @dihedral:46-47-50-13 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d50_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:46-47-50-46 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d50_i* @atom:*_b*_a*_d46_i*
-    @dihedral:46-47-50-48 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d50_i* @atom:*_b*_a*_d48_i*
-    @dihedral:46-47-50-50 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d50_i* @atom:*_b*_a*_d50_i*
-    @dihedral:46-47-50-109 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d50_i* @atom:*_b*_a*_d109_i*
-    @dihedral:X-47-84-X @atom:* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d84_i* @atom:*
-    @dihedral:X-47-86-48 @atom:* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d86_i* @atom:*_b*_a*_d48_i*
-    @dihedral:3-47-86-86 @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d86_i* @atom:*_b*_a*_d86_i*
-    @dihedral:49-47-86-X @atom:*_b*_a*_d49_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d86_i* @atom:*
-    @dihedral:49-47-86-24 @atom:*_b*_a*_d49_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d86_i* @atom:*_b*_a*_d24_i*
-    @dihedral:X-47-87-X @atom:* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d87_i* @atom:*
-    @dihedral:X-47-88-X @atom:* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d88_i* @atom:*
-    @dihedral:13-47-110-47 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d110_i* @atom:*_b*_a*_d47*_i*
-    @dihedral:46-47-110-47 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d110_i* @atom:*_b*_a*_d47*_i*
-    @dihedral:X-48-48-13 @atom:* @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-48-48-13 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-48-48-48 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d48_i*
-    @dihedral:13-48-48-49 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d49_i*
-    @dihedral:13-48-48-50 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d50_i*
-    @dihedral:47-48-48-49 @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d49_i*
-    @dihedral:48-48-50-47 @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d50_i* @atom:*_b*_a*_d47*_i*
-    @dihedral:56-48-50-47 @atom:*_b*_a*_d56_i* @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d50_i* @atom:*_b*_a*_d47*_i*
-    @dihedral:48-48-53-13 @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d53_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:55-48-55-13 @atom:*_b*_a*_d55_i* @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d55_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:48-48-79-13 @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d79_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:56-48-101-13 @atom:*_b*_a*_d56_i* @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d101_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:48-48-109-13 @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d48_i* @atom:*_b*_a*_d109_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-50-50-13 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d50_i* @atom:*_b*_a*_d50_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-50-50-46 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d50_i* @atom:*_b*_a*_d50_i* @atom:*_b*_a*_d46_i*
-    @dihedral:13-50-50-47 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d50_i* @atom:*_b*_a*_d50_i* @atom:*_b*_a*_d47*_i*
-    @dihedral:46-50-50-47 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d50_i* @atom:*_b*_a*_d50_i* @atom:*_b*_a*_d47*_i*
-    @dihedral:47-50-50-47 @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d50_i* @atom:*_b*_a*_d50_i* @atom:*_b*_a*_d47*_i*
-    @dihedral:13-50-109-13 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d50_i* @atom:*_b*_a*_d109_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-50-109-109 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d50_i* @atom:*_b*_a*_d109_i* @atom:*_b*_a*_d109_i*
-    @dihedral:46-50-109-13 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d50_i* @atom:*_b*_a*_d109_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:47-50-109-13 @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d50_i* @atom:*_b*_a*_d109_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:47-50-109-46 @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d50_i* @atom:*_b*_a*_d109_i* @atom:*_b*_a*_d46_i*
-    @dihedral:47-50-109-109 @atom:*_b*_a*_d47*_i* @atom:*_b*_a*_d50_i* @atom:*_b*_a*_d109_i* @atom:*_b*_a*_d109_i*
-    @dihedral:13-53-82-61 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d53_i* @atom:*_b*_a*_d82_i* @atom:*_b*_a*_d61_i*
-    @dihedral:13-56-56-13 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d56_i* @atom:*_b*_a*_d56_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-56-56-48 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d56_i* @atom:*_b*_a*_d56_i* @atom:*_b*_a*_d48_i*
-    @dihedral:4-89-90-13 @atom:*_b*_a*_d4_i* @atom:*_b*_a*_d89_i* @atom:*_b*_a*_d90_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:91-89-90-13 @atom:*_b*_a*_d91_i* @atom:*_b*_a*_d89_i* @atom:*_b*_a*_d90_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-91-91-13 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d91_i* @atom:*_b*_a*_d91_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-91-91-46 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d91_i* @atom:*_b*_a*_d91_i* @atom:*_b*_a*_d46_i*
-    @dihedral:13-109-109-13 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d109_i* @atom:*_b*_a*_d109_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:13-109-109-46 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d109_i* @atom:*_b*_a*_d109_i* @atom:*_b*_a*_d46_i*
-    @dihedral:13-109-109-48 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d109_i* @atom:*_b*_a*_d109_i* @atom:*_b*_a*_d48_i*
-    @dihedral:13-109-109-50 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d109_i* @atom:*_b*_a*_d109_i* @atom:*_b*_a*_d50_i*
-    @dihedral:13-109-109-109 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d109_i* @atom:*_b*_a*_d109_i* @atom:*_b*_a*_d109_i*
-    @dihedral:24-3-13-53 @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d53_i*
-    @dihedral:52-3-13-24 @atom:*_b*_a*_d52_i* @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d24_i*
-    @dihedral:3-13-13-53 @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d53_i*
-    @dihedral:3-13-13-83 @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d83_i*
-    @dihedral:3-13-13-84 @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d84_i*
-    @dihedral:3-13-13-85 @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d85_i*
-    @dihedral:5-13-13-53 @atom:*_b*_a*_d5_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d53_i*
-    @dihedral:15-13-13-53 @atom:*_b*_a*_d15_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d53_i*
-    @dihedral:16-13-13-53 @atom:*_b*_a*_d16_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d53_i*
-    @dihedral:13-13-13-55 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d55_i*
-    @dihedral:24-13-13-83 @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d83_i*
-    @dihedral:53-13-13-83 @atom:*_b*_a*_d53_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d83_i*
-    @dihedral:24-13-13-84 @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d84_i*
-    @dihedral:53-13-13-84 @atom:*_b*_a*_d53_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d84_i*
-    @dihedral:24-13-13-85 @atom:*_b*_a*_d24_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d85_i*
-    @dihedral:46-13-13-85 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d85_i*
-    @dihedral:53-13-13-85 @atom:*_b*_a*_d53_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d85_i*
-    @dihedral:3-13-53-13 @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d53_i* @atom:*_b*_a*_d13*_i*
-    @dihedral:3-13-53-54 @atom:*_b*_a*_d3_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d53_i* @atom:*_b*_a*_d54_i*
-    @dihedral:13-13-53-54 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d53_i* @atom:*_b*_a*_d54_i*
-    @dihedral:46-13-55-54 @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d55_i* @atom:*_b*_a*_d54_i*
-    @dihedral:13-13-85-X @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d85_i* @atom:*
-    @dihedral:13-13-85-57 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d85_i* @atom:*_b*_a*_d57_i*
-    @dihedral:46-13-85-X @atom:*_b*_a*_d46_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d85_i* @atom:*
-    @dihedral:13-13-13-20 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d20_i*
-    @dihedral:13-13-13-47 @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d13*_i* @atom:*_b*_a*_d47*_i*
+    @dihedral:013L_013L_013L_013L @atom:*_b*_a*_d013L_i* @atom:*_b*_a*_d013L_i* @atom:*_b*_a*_d013L_i* @atom:*_b*_a*_d013L_i*
+    @dihedral:X_047L_047L_X @atom:* @atom:*_b*_a*_d047L_i* @atom:*_b*_a*_d047L_i* @atom:*
+    @dihedral:047L_047L_013L_013L @atom:*_b*_a*_d047L_i* @atom:*_b*_a*_d047L_i* @atom:*_b*_a*_d013L_i* @atom:*_b*_a*_d013L_i*
+    @dihedral:013L_013L_013L_047L @atom:*_b*_a*_d013L_i* @atom:*_b*_a*_d013L_i* @atom:*_b*_a*_d013L_i* @atom:*_b*_a*_d047L_i*
+    @dihedral:046L_013LL_005L_007L @atom:*_b*_a*_d046L_i* @atom:*_b*_a*_d013LL_i* @atom:*_b*_a*_d005L_i* @atom:*_b*_a*_d007L_i*
+    @dihedral:046L_013LL_013LL_005L @atom:*_b*_a*_d046L_i* @atom:*_b*_a*_d013LL_i* @atom:*_b*_a*_d013LL_i* @atom:*_b*_a*_d005L_i*
+    @dihedral:013LL_013LL_005L_007L @atom:*_b*_a*_d013LL_i* @atom:*_b*_a*_d013LL_i* @atom:*_b*_a*_d005L_i* @atom:*_b*_a*_d007L_i*
+    @dihedral:013LL_013LL_013LL_005L @atom:*_b*_a*_d013LL_i* @atom:*_b*_a*_d013LL_i* @atom:*_b*_a*_d013LL_i* @atom:*_b*_a*_d005L_i*
+    @dihedral:005L_013LL_013LL_005L @atom:*_b*_a*_d005L_i* @atom:*_b*_a*_d013LL_i* @atom:*_b*_a*_d013LL_i* @atom:*_b*_a*_d005L_i*
+    @dihedral:013LL_003L_020L_013LL @atom:*_b*_a*_d013LL_i* @atom:*_b*_a*_d003L_i* @atom:*_b*_a*_d020L_i* @atom:*_b*_a*_d013LL_i*
+    @dihedral:013LL_020L_003L_004L @atom:*_b*_a*_d013LL_i* @atom:*_b*_a*_d020L_i* @atom:*_b*_a*_d003L_i* @atom:*_b*_a*_d004L_i*
+    @dihedral:046L_013LL_003L_020L @atom:*_b*_a*_d046L_i* @atom:*_b*_a*_d013LL_i* @atom:*_b*_a*_d003L_i* @atom:*_b*_a*_d020L_i*
+    @dihedral:003L_020L_013LL_013LL @atom:*_b*_a*_d003L_i* @atom:*_b*_a*_d020L_i* @atom:*_b*_a*_d013LL_i* @atom:*_b*_a*_d013LL_i*
+    @dihedral:046L_013LL_013LL_020L @atom:*_b*_a*_d046L_i* @atom:*_b*_a*_d013LL_i* @atom:*_b*_a*_d013LL_i* @atom:*_b*_a*_d020L_i*
+    @dihedral:013LL_013LL_003L_020L @atom:*_b*_a*_d013LL_i* @atom:*_b*_a*_d013LL_i* @atom:*_b*_a*_d003L_i* @atom:*_b*_a*_d020L_i*
+    @dihedral:013LL_013LL_003L_004L @atom:*_b*_a*_d013LL_i* @atom:*_b*_a*_d013LL_i* @atom:*_b*_a*_d003L_i* @atom:*_b*_a*_d004L_i*
+    @dihedral:003L_013LL_013LL_046L @atom:*_b*_a*_d003L_i* @atom:*_b*_a*_d013LL_i* @atom:*_b*_a*_d013LL_i* @atom:*_b*_a*_d046L_i*
+    @dihedral:003L_013LL_013LL_013LL @atom:*_b*_a*_d003L_i* @atom:*_b*_a*_d013LL_i* @atom:*_b*_a*_d013LL_i* @atom:*_b*_a*_d013LL_i*
+    @dihedral:013LL_013LL_013LL_020L @atom:*_b*_a*_d013LL_i* @atom:*_b*_a*_d013LL_i* @atom:*_b*_a*_d013LL_i* @atom:*_b*_a*_d020L_i*
+    @dihedral:020L_013LL_013LL_020L @atom:*_b*_a*_d020L_i* @atom:*_b*_a*_d013LL_i* @atom:*_b*_a*_d013LL_i* @atom:*_b*_a*_d020L_i*
+    @dihedral:005L_013LL_013LL_020L @atom:*_b*_a*_d005L_i* @atom:*_b*_a*_d013LL_i* @atom:*_b*_a*_d013LL_i* @atom:*_b*_a*_d020L_i*
   } #(end of dihedrals by type)
 
 
-  # New dihedrals which have been customized:
-  # (These will override the rules above)
+  # ----------- New Dihedral Interactions: ------------
+  # http://lammps.sandia.gov/doc/dihedral_opls.html
+  # Syntax:
+  # dihedral_coeff DihedralTypeName  parameters...
 
-  write_once("Data Dihedrals By Type") {
-    @dihedral:13L-13L-13L-13L @atom:*_b*_a*_d13L_i* @atom:*_b*_a*_d13L_i* @atom:*_b*_a*_d13L_i* @atom:*_b*_a*_d13L_i*
-    @dihedral:X-47L-47L-X @atom:* @atom:*_b*_a*_d47L_i* @atom:*_b*_a*_d47L_i* @atom:*
-    @dihedral:47L-47L-13L-13L @atom:*_b*_a*_d47L_i* @atom:*_b*_a*_d47L_i* @atom:*_b*_a*_d13L_i* @atom:*_b*_a*_d13L_i*
-    @dihedral:13L-13L-13L-47L @atom:*_b*_a*_d13L_i* @atom:*_b*_a*_d13L_i* @atom:*_b*_a*_d13L_i* @atom:*_b*_a*_d47L_i*
-  } #(end of dihedrals by type)
 
-}  # end of additional parameters appended to the "OPLSAA" object
+}  # OPLSAA
+

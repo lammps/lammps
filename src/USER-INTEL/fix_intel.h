@@ -82,7 +82,8 @@ class FixIntel : public Fix {
   }
   inline void set_reduce_flag() { if (_nthreads > 1) _need_reduce = 1; }
   inline int lrt() {
-    if (force->kspace_match("pppm/intel", 0)) return _lrt;
+    if (force->kspace_match("pppm/intel", 0) && update->whichflag == 1) 
+      return _lrt;
     else return 0;
   }
   inline int pppm_table() {

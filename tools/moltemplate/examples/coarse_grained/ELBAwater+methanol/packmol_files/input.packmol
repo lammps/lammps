@@ -1,0 +1,17 @@
+tolerance 2.5
+filetype xyz
+output system.xyz
+
+# Methanol
+structure methanol.xyz
+  number 1
+  center
+  fixed 0. 0. 0. 0. 0. 0.
+end structure
+
+# ELBA Solvent
+structure elba_water.xyz
+  number 1000
+  inside box -14.0 -14.0 -14.0 14.0 14.0 14.0
+end structure
+

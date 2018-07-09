@@ -21,7 +21,7 @@ import gc
 try:
     from .ttree import ExtractFormattingCommands
     from .ttree_lex import SplitQuotedString, InputError, TemplateLexer
-except (SystemError, ValueError):
+except (ImportError, SystemError, ValueError):
     # not installed as a package
     from ttree import ExtractFormattingCommands
     from ttree_lex import SplitQuotedString, InputError, TemplateLexer
@@ -31,10 +31,13 @@ g_filename = __file__.split('/')[-1]
 g_module_name = g_filename
 if g_filename.rfind('.py') != -1:
     g_module_name = g_filename[:g_filename.rfind('.py')]
-g_date_str = '2016-12-21'
-g_version_str = '0.2.0'
+g_date_str = '2017-11-04'
+g_version_str = '0.2.2'
 g_program_name = g_filename
 #sys.stderr.write(g_program_name+' v'+g_version_str+' '+g_date_str+' ')
+
+
+
 
 def main():
     try:
@@ -79,21 +82,43 @@ def main():
             assert(isinstance(entry, str))
 
             if ((len(entry) > 1) and (entry[0] in lex.var_delim)):
+
+                if ((len(entry) >= 3) and
+                    (entry[1] == '{') and
+                    (entry[-1] == '}')):
+                    entry = entry[0] + entry[2:-1]
+
                 if '.' in entry:
                     ic = entry.find('.')
                     var_name = entry[:ic]
                     var_suffix = entry[ic:]
+                    if not var_suffix[0:7] in ('.ljust(', '.rjust('):
+                        var_name = entry
+                        var_suffix = ''
                 else:
                     var_name = entry
                     var_suffix = ''
 
-                var_name = entry
                 if var_name not in assignments:
-                    raise(InputError('Error(' + g_program_name + ')'
-                                     #' at '+ErrorLeader(var_ref.src_loc.infile,
-                                     #                  var_ref.src_loc.lineno)+
-                                     ' unknown variable:\n'
-                                     '         \"' + var_name + '\"\n'))
+                    #COMMENTING OUT:
+                    #raise(InputError('Error(' + g_program_name + ')'
+                    #                 #' at '+ErrorLeader(var_ref.src_loc.infile,
+                    #                 #                   var_ref.src_loc.lineno)+
+                    #                 ' unknown variable:\n'
+                    #                 '         \"' + var_name + '\"\n'))
+                    # ...actually don't raise an error message:
+                    # Actually there are some legitimate reaons this could occur.
+                    # Some users want to put LAMMPS-style variables in the 
+                    # write_once() {...} text blocks in their moltemplate files.
+                    # Variables in both LAMMPS and moltemplate contain $ characters, 
+                    # and this script gets confused.  Better to just ignore it
+                    # when this happens instead of printing an error message.
+                    # Just leave the text alone and print the variable name.
+                    #
+                    # Do this by substituting the variable's name as it's value:
+
+                    var_value = var_name
+
                 else:
                     var_value = assignments[var_name]
 

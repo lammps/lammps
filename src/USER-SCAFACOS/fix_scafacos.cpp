@@ -54,8 +54,6 @@ FixScafacos::FixScafacos(LAMMPS *lmp, int narg, char **arg) :
 
   // read method from fix input
   method = arg[3];
-  // check if fmm method was chosen
-  fmm_chosen = !strcmp(method.c_str(),"fmm");
 
   int arg_index = 4;
 
@@ -149,23 +147,18 @@ void FixScafacos::init()
   // print out parameters within handle
   if (rank == 0) fcs_print_parameters(fcs);
 
-  // call the tuning routine (needs to be redone, if critical system parameters should change)
+  // call the tuning routine (needs to be redone, if critical system 
+  // parameters should change)
   result = fcs_tune(fcs,nlocal,x,q);
   if (!check_result(result, rank)) return;
 
-  // allocate arrays larger in order to avoid fast reallocation due to fluctuations
+  // allocate arrays larger in order to avoid fast 
+  // reallocation due to fluctuations
   local_array_size = (int)(1.25 * (double)nlocal);
 
   // allocate new result arrays
   memory->create(pot,local_array_size,"scafacos:potential");
   memory->create(field,local_array_size*3,"scafacos:field");
- 
-  // set result vectors to zero 
-  for ( int i = 0; i < local_array_size; ++i)
-  {
-    pot[i] = 0.0;
-    field[3*i] = field[3*i+1] = field[3*i+2] = 0.0;
-  } 
 }
 
 /* ---------------------------------------------------------------------- */
@@ -221,10 +214,12 @@ void FixScafacos::post_force(int vflag)
   x = &atom->x[0][0];
   q = atom->q;
 
-  // check if box has changed since the last call of fcs_tune, if yes, call fcs_tune
+  // check if box has changed since the last call of fcs_tune, 
+  // if it has, call fcs_tune
   if (box_has_changed())
   {
     setup_handle();
+
     // print out parameters within handle TODO: should be done in C style
     /*
     if (rank == 0)
@@ -233,23 +228,19 @@ void FixScafacos::post_force(int vflag)
       fcs_print_parameters(fcs);
     }
     */
-    // call the tuning routine (needs to be redone, if critical system parameters should change)
+
+    // call the tuning routine (needs to be redone, if critical 
+    // system parameters should change)
     result = fcs_tune(fcs,nlocal,x,q);
     if (!check_result(result, rank)) return;
   }
   
-  /*
-  if (fmm_chosen && phantom_particle)
-      for (int i = 0; i < nlocal; ++i)
-      {
-        std::cout << rank << " " << i << " " << x[3*i] << " " << x[3*i+1] << " " << x[3*i+2] << " " << q[i] << std::endl;
-      }
-  */
-
-  // check if arrays for potentials and field are still large enough for the number of particles on process
+  // check if arrays for potentials and field are still large enough 
+  // for the number of particles on process
   if (nlocal > local_array_size)
   {
-    // allocate arrays larger in order to avoid fast reallocation due to fluctuations
+    // allocate arrays larger in order to avoid fast 
+    // reallocation due to fluctuations
     local_array_size = (int)(1.25 * (double)nlocal);
 
     // destroy old result arrays
@@ -274,8 +265,6 @@ void FixScafacos::post_force(int vflag)
   if(!check_result(result,rank)) return;
 
   double E_coul_loc = 0.0;
-  // no reduction required (?)
-  //double E_coul = 0.0;
 
   for (int i = 0; i < atom->nlocal; ++i)
   {
@@ -286,9 +275,6 @@ void FixScafacos::post_force(int vflag)
     E_coul_loc += 0.5 * q[i] * pot[i];
   } 
 
-  // not required (?)
-  // MPI_ALLREDUCE(&E_coul_loc, &E_coul, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
- 
   force->pair->eng_coul += E_coul_loc;
 
 }
@@ -392,39 +378,39 @@ void FixScafacos::setup_handle()
 ------------------------------------------------------------------------- */
 bool FixScafacos::box_has_changed()
 {
-    bool changed = false;
+  bool changed = false;
 
-    double n_periodicity[3];
-    double n_offset[3];
-    double n_box_x[3];
-    double n_box_y[3];
-    double n_box_z[3];
+  double n_periodicity[3];
+  double n_offset[3];
+  double n_box_x[3];
+  double n_box_y[3];
+  double n_box_z[3];
 
-    int n_total_particles;
+  int n_total_particles;
 
-    // store periodicity
-    n_periodicity[0] = domain->xperiodic;
-    n_periodicity[1] = domain->yperiodic;
-    n_periodicity[2] = domain->zperiodic;
+  // store periodicity
+  n_periodicity[0] = domain->xperiodic;
+  n_periodicity[1] = domain->yperiodic;
+  n_periodicity[2] = domain->zperiodic;
 
-    // store offset of the system
-    n_offset[0] = domain->boundary[0][0];
-    n_offset[1] = domain->boundary[1][0];
-    n_offset[2] = domain->boundary[2][0];
+  // store offset of the system
+  n_offset[0] = domain->boundary[0][0];
+  n_offset[1] = domain->boundary[1][0];
+  n_offset[2] = domain->boundary[2][0];
 
-    // calculate box vectors
-    n_box_x[0] = domain->prd[0];
-    n_box_x[1] = n_box_x[2] = 0.0;
+  // calculate box vectors
+  n_box_x[0] = domain->prd[0];
+  n_box_x[1] = n_box_x[2] = 0.0;
 
-    n_box_y[1] = domain->prd[1];
-    n_box_y[0] = n_box_y[2] = 0.0;
+  n_box_y[1] = domain->prd[1];
+  n_box_y[0] = n_box_y[2] = 0.0;
 
-    n_box_z[2] = domain->prd[2];
-    n_box_z[1] = n_box_z[0] = 0.0;
+  n_box_z[2] = domain->prd[2];
+  n_box_z[1] = n_box_z[0] = 0.0;
 
-    n_total_particles = atom->natoms;
+  n_total_particles = atom->natoms;
 
-    changed = changed ||
+  changed = changed ||
               ( n_periodicity[0] != periodicity[0] ) ||
               ( n_periodicity[1] != periodicity[1] ) ||
               ( n_periodicity[2] != periodicity[2] ) ||
@@ -441,28 +427,7 @@ bool FixScafacos::box_has_changed()
               ( n_box_z[1] != box_z[1] ) ||
               ( n_box_z[2] != box_z[2] ) ||
               ( n_total_particles != total_particles );
-/*
-    if (changed)
-    {
-        std::cout << rank << " " << "n_per_x : per_x" << n_periodicity[0] << " " << periodicity[0] << std::endl;
-        std::cout << rank << " " << "n_per_y : per_y" << n_periodicity[1] << " " << periodicity[1] << std::endl;
-        std::cout << rank << " " << "n_per_z : per_z" << n_periodicity[2] << " " << periodicity[2] << std::endl;
-        std::cout << rank << " " << "n_off_x : off_x" << n_offset[0] << " " << offset[0] << std::endl;
-        std::cout << rank << " " << "n_off_y : off_y" << n_offset[1] << " " << offset[1] << std::endl;
-        std::cout << rank << " " << "n_off_z : off_z" << n_offset[2] << " " << offset[2] << std::endl;
-        std::cout << rank << " " << "n_bx_x : bx_x" << n_box_x[0] << " " << box_x[0] << std::endl;
-        std::cout << rank << " " << "n_bx_y : bx_y" << n_box_x[1] << " " << box_x[1] << std::endl;
-        std::cout << rank << " " << "n_bx_z : bx_z" << n_box_x[2] << " " << box_x[2] << std::endl;
-        std::cout << rank << " " << "n_by_x : by_x" << n_box_y[0] << " " << box_y[0] << std::endl;
-        std::cout << rank << " " << "n_by_y : by_y" << n_box_y[1] << " " << box_y[1] << std::endl;
-        std::cout << rank << " " << "n_by_z : by_z" << n_box_y[2] << " " << box_y[2] << std::endl;
-        std::cout << rank << " " << "n_bz_x : bz_x" << n_box_z[0] << " " << box_z[0] << std::endl;
-        std::cout << rank << " " << "n_bz_y : bz_y" << n_box_z[1] << " " << box_z[1] << std::endl;
-        std::cout << rank << " " << "n_bz_z : bz_z" << n_box_z[2] << " " << box_z[2] << std::endl;
-        std::cout << rank << " " << "n_total : total" << n_total_particles << " " << total_particles << std::endl;
-    }
-*/
-    return changed;
+  return changed;
 }
 
 
@@ -475,11 +440,11 @@ bool FixScafacos::check_result(FCSResult result, int comm_rank)
   if (result) 
   {
     printf("ScaFaCoS Error: Caught error on task %d.\n", comm_rank);
-    //std::cout << "ScaFaCoS ERROR: Caught error on task " << comm_rank << "!" << std::endl;
     std::string err_msg;
     std::stringstream ss;
 
-    ss << fcs_result_get_function(result) << "\n" << fcs_result_get_message(result) << "\n";
+    ss << fcs_result_get_function(result) << "\n" 
+       << fcs_result_get_message(result) << "\n";
     err_msg = ss.str();
 
     error -> all(FLERR, err_msg.c_str());
@@ -487,4 +452,3 @@ bool FixScafacos::check_result(FCSResult result, int comm_rank)
   }
   return true;
 }
-

@@ -34,7 +34,7 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
   p=new PLMD::Plumed;
 // Check API version
   int api_version; p->cmd("getApiVersion",&api_version);
-  if( api_version!=6 ) error->all(FLERR,"invalid api version for PLUMED");
+  if( api_version>6 ) error->all(FLERR,"invalid api version for PLUMED");
 
 // If the -partition option is activated then enable inter-partition communication
   if (universe->existflag == 1) {
@@ -218,7 +218,7 @@ void FixPlumed::post_force(int vflag)
     for(int i=0;i<nlocal;i++){
       gatindex[i]=atom->tag[i]-1;
       masses[i]=atom->mass[atom->type[i]];
-      if(atom->q) charges[i]=atom->q[atom->type[i]];
+      if(atom->q) charges[i]=atom->q[i];
     }
     p->cmd("setAtomsNlocal",&nlocal);
     p->cmd("setAtomsGatindex",gatindex);

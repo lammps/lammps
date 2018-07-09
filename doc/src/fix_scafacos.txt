@@ -1,0 +1,44 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix scafacos command :h3
+
+[Syntax:]
+
+fix ID group-ID scafacos solver tol_type tolerance :pre
+
+ID, group-ID are documented in "fix"_fix.html command
+scafacos = style name of this fix command
+solver = NULL or name of solver for electro-statics computation :ul
+tol_type = NULL or one of (energy, energy_rel, field, field_rel, potential, potential_rel)
+tolerance = only of tol_type is given, value of tolerance
+
+[Examples:]
+
+fix 1 all scafacos fmm
+fix 1 all scafacos p3m field 0.001
+
+[Description:]
+
+This fix style is a wrapper for the Coulomb solver library ScaFaCoS,
+which provides a selection of different solvers for the compuation
+of electro-static interaction. If you download and build ScaFaCoS,
+it can be called as libray by LAMMPS via this fix, which allows the
+selection of a solver as well as setting the tolerance of a chosen
+parameter (if compatible with the chosen solver). 
+
+ScaFaCoS was developed by a consortium of German research facilities
+with a BMBF (German Ministry of Science and Education) funded project
+in 2009-2012. Participants of the consortium were the Universities of
+Bonn, Chemnitz, Stuttgart, and Wuppertal as well as the
+Forschungszentrum Juelich.
+
+The library is available at "http://scafacos.de" or can be cloned
+from the git-repository "git://github.com/scafacos/scafacos.git".
+
+:line

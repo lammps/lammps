@@ -31,7 +31,6 @@
 #include "error.h"
 
 // ScaFaCoS library
-#include <iostream>
 #include <sstream>
 #include <string>
 #include "fcs.h"
@@ -67,28 +66,28 @@ FixScafacos::FixScafacos(LAMMPS *lmp, int narg, char **arg) :
     // check if tolerance option is set
     if (strcmp(arg[arg_index],"tolerance") == 0)
     {
-        tolerance_set = true;
-        ++arg_index; 
-        if (strcmp(arg[arg_index],"energy") == 0)
-          tolerance_type = FCS_TOLERANCE_TYPE_ENERGY;     
-        else if (strcmp(arg[arg_index],"energy_rel") == 0)
-          tolerance_type = FCS_TOLERANCE_TYPE_ENERGY_REL;     
-        else if (strcmp(arg[arg_index],"field") == 0)
-          tolerance_type = FCS_TOLERANCE_TYPE_FIELD;     
-        else if (strcmp(arg[arg_index],"field_rel") == 0)
-          tolerance_type = FCS_TOLERANCE_TYPE_FIELD_REL;     
-        else if (strcmp(arg[arg_index],"potential") == 0)
-          tolerance_type = FCS_TOLERANCE_TYPE_POTENTIAL;     
-        else if (strcmp(arg[arg_index],"potential_rel") == 0)
-          tolerance_type = FCS_TOLERANCE_TYPE_POTENTIAL_REL;     
-        else
-          error->all(FLERR,"Illegal fix scafacos command");
-        ++arg_index;
-          tolerance_value = atof(arg[arg_index]);
-        ++arg_index; 
+      tolerance_set = true;
+      ++arg_index; 
+      if (strcmp(arg[arg_index],"energy") == 0)
+        tolerance_type = FCS_TOLERANCE_TYPE_ENERGY;     
+      else if (strcmp(arg[arg_index],"energy_rel") == 0)
+        tolerance_type = FCS_TOLERANCE_TYPE_ENERGY_REL;     
+      else if (strcmp(arg[arg_index],"field") == 0)
+        tolerance_type = FCS_TOLERANCE_TYPE_FIELD;     
+      else if (strcmp(arg[arg_index],"field_rel") == 0)
+        tolerance_type = FCS_TOLERANCE_TYPE_FIELD_REL;     
+      else if (strcmp(arg[arg_index],"potential") == 0)
+        tolerance_type = FCS_TOLERANCE_TYPE_POTENTIAL;     
+      else if (strcmp(arg[arg_index],"potential_rel") == 0)
+        tolerance_type = FCS_TOLERANCE_TYPE_POTENTIAL_REL;     
+      else
+        error->all(FLERR,"Illegal fix scafacos command");
+      ++arg_index;
+        tolerance_value = atof(arg[arg_index]);
+      ++arg_index; 
     }
     else
-        error->all(FLERR,"Illegal fix scafacos command");
+      error->all(FLERR,"Illegal fix scafacos command");
   }
 }
 
@@ -226,12 +225,14 @@ void FixScafacos::post_force(int vflag)
   if (box_has_changed())
   {
     setup_handle();
-    // print out parameters within handle
+    // print out parameters within handle TODO: should be done in C style
+    /*
     if (rank == 0)
     {
-        std::cout << " updated ScaFaCoS handle: " << std::endl;
-        fcs_print_parameters(fcs);
+      std::cout << " updated ScaFaCoS handle: " << std::endl;
+      fcs_print_parameters(fcs);
     }
+    */
     // call the tuning routine (needs to be redone, if critical system parameters should change)
     result = fcs_tune(fcs,nlocal,x,q);
     if (!check_result(result, rank)) return;
@@ -473,7 +474,8 @@ bool FixScafacos::check_result(FCSResult result, int comm_rank)
 {
   if (result) 
   {
-    std::cout << "ScaFaCoS ERROR: Caught error on task " << comm_rank << "!" << std::endl;
+    printf("ScaFaCoS Error: Caught error on task %d.\n", comm_rank);
+    //std::cout << "ScaFaCoS ERROR: Caught error on task " << comm_rank << "!" << std::endl;
     std::string err_msg;
     std::stringstream ss;
 

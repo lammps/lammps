@@ -10,16 +10,18 @@ pair_style atm command :h3
 
 [Syntax:]
 
-pair_style atm args = cutoff :pre
+pair_style atm cutoff :pre
+
+cutoff = global cutoff for 3-body interactions (distance units) :ul
 
 [Examples:]
 
 pair_style 2.5
 pair_coeff * * * 0.072 :pre
 
-pair_style	hybrid/overlay lj/cut 6.5 atm 2.5
-pair_coeff	* * lj/cut 1.0 1.0
-pair_coeff	* * atm * 0.072 :pre
+pair_style hybrid/overlay lj/cut 6.5 atm 2.5
+pair_coeff * * lj/cut 1.0 1.0
+pair_coeff * * atm * 0.072 :pre
 
 [Description:]
 
@@ -28,18 +30,60 @@ potential for the energy E of a system of atoms as
 
 :c,image(Eqs/pair_atm.jpg)
 
-where r12, r23 and r31 are the distances between the atoms,
-gamma1 is included by the sides r12 and r31
-with similar definitions for gamma2 and gamma3,
-nu is the three-body interaction strength (energy times distance^9 units).
+where r12, r23 and r31 are the distances between pairs of atoms,
+gamma1 is the angle ???, gamma2 is the angle ???, gamma3 is the angle
+???, and nu is the three-body interaction strength.
+A diagram of the 3 atoms might help here.
 
-The {atm} is typically used in compination with some two-body potential
-using "hybrid/overlay"_pair_hybrid.html style as in an example above.
+The {atm} potential is typically used in combination with a two-body
+potential using the "pair_style hybrid/overlay"_pair_hybrid.html
+command as in the example above.
 
+--------------------
+
+The rest of this section needs some work to make things more clear.
+
+You need to explain exactly how the cutoff is used.
+
+I don't think this is true:
 The calculations are not undertaken if the distances between atoms satisfy
-r12 r23 r31 > curoff^3. Virtual cutoff distance based on a user defined
+r12 r23 r31 > cutoff^3. 
+
+If r12 > cutoff+skin, then that pair of atoms is not in
+the neighbor list, regardless of what r23 and r31 are,
+so how can it be computed?
+
+What does this line mean?
+Virtual cutoff distance based on a user defined
 tolerance tol is not used.
 
+You must explain exactly what the user needs to put
+in the input script to model single element and multi-element
+systems.
+
+You refer to an ATM potential file, but I don't think there is
+such a thing.  There is no code in pair_atm.cpp that reads
+a file.  Isn't it all pair_coeff commands?  In LAMMPS lingo,
+potential files are the files in the potentials dir.
+There is no such thing for ATM, right?
+
+What is the geometry of i,j,k interactions - you don't explain it.
+Which one is the central atom?
+
+You say all the K values for a particular I,J must be specified.
+I don't see where the code checks for this.
+
+This is the way to word the explation of the per-pair values required:
+
+The following coefficients must be defined for each pair of atoms
+types via the "pair_coeff"_pair_coeff.html command as in the examples
+above, or in the restart files read by the
+"read_restart"_read_restart.html commands:
+
+?? explain what K is and what are the allowed values
+nu (energy/distance^9 units) :ul
+
+Again: what file are you talking about?
 The Axilrod-Teller-Muto potential file must contain entries for all the
 elements listed in the pair_coeff command.  It can also contain
 entries for additional elements not being used in a particular
@@ -52,12 +96,29 @@ specify ATM parameters for all combinations of the two elements
 interacting in three-body configurations.  Thus for 3 elements, 10
 entries would be required, etc.
 
+I think a better syntax for the pair coeff command might be this:
+
+pair_coeff I J v1 v2 ... vN
+
+when 1,2,...N are the number of atom types defined.
+Then there be one pair_coeff command for each type pair,
+the same syntax as all other potentials in LAMMPS use.
+
+Note that you refer to "elements", but the pair coeff command
+knows nothing about elements.  Only atom types.  There
+could be 10 atom types that all map to the same chemical
+element.
+
 :line
 
-[Shift, table, tail correction, rRESPA info]:
+[Mixing, shift, table, tail correction, restart, rRESPA info]:
 
-This pair style does not support the "pair_modify"_pair_modify.html
-shift, table, and tail options.
+This pair styles do not support the "pair_modify"_pair_modify.html
+mix, shift, table, and tail options.
+
+This pair style writes its information to "binary restart
+files"_restart.html, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the {pair} keyword of the
 "run_style respa"_run_style.html command.  It does not support the
@@ -68,8 +129,8 @@ This pair style can only be used via the {pair} keyword of the
 [Restrictions:]
 
 This pair style is part of the MANYBODY package.  It is only enabled
-if LAMMPS was built with that package.  See
-the "Making LAMMPS"_Section_start.html#start_3 section for more info.
+if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
 
@@ -82,4 +143,4 @@ the "Making LAMMPS"_Section_start.html#start_3 section for more info.
 :link(Axilrod)
 [(Axilrod)]
 Axilrod and Teller, J Chem Phys, 11, 299 (1943);
-Muto, Nippon Sugaku Butsuri Gakkwaishi 17, 629 (1943).
+Muto, Nippon, Sugaku, Butsuri, Gakkwaishi 17, 629 (1943).

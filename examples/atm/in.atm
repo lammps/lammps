@@ -1,3 +1,5 @@
+# Axilrod-Teller-Muto potential example
+
 variable	x index 1
 variable	y index 1
 variable	z index 1
@@ -24,6 +26,6 @@ velocity	all create 1.033 12345678 loop geom
 fix		1 all nvt temp 1.033 1.033 0.05
 
 timestep        0.002
-thermo		1
+thermo		5
 
-run 		50
+run 		25

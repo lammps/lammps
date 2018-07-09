@@ -11,10 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   Contributing author: Sergey Lishchuk
-------------------------------------------------------------------------- */
-
 #ifdef PAIR_CLASS
 
 PairStyle(atm,PairATM)
@@ -46,9 +42,9 @@ class PairATM : public Pair {
   double cut_global, cut_sixth;
   double ***nu;
 
- protected:
-  virtual void allocate();
-  void interaction_ddd(double, double, double, double, double, double *, double *, double *, double *, double *, int, double &);
+  void allocate();
+  void interaction_ddd(double, double, double, double, double, double *, 
+                       double *, double *, double *, double *, int, double &);
 };
 
 }

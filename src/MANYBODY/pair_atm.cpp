@@ -49,8 +49,8 @@ PairATM::PairATM(LAMMPS *lmp) : Pair(lmp)
   if (lmp->citeme) lmp->citeme->add(cite_atm_package);
 
   single_enable = 0;
-  restartinfo = 0;
-  one_coeff = 1;
+  //restartinfo = 1;                   // it does save restart info, correct?
+  //one_coeff = 0;                   // it does not only use * *, correct?
   manybody_flag = 1;
 }
 
@@ -129,7 +129,7 @@ void PairATM::compute(int eflag, int vflag)
         if (r6 > cut_sixth) continue;
 
         interaction_ddd(nu[type[i]][type[j]][type[k]],
-                  r6,rij2,rik2,rjk2,rij,rik,rjk,fj,fk,eflag,evdwl);
+                        r6,rij2,rik2,rjk2,rij,rik,rjk,fj,fk,eflag,evdwl);
 
         f[i][0] -= fj[0] + fk[0];
         f[i][1] -= fj[1] + fk[1];
@@ -229,7 +229,9 @@ void PairATM::write_restart(FILE *fp)
   for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
-      if (setflag[i][j]) for (k = i; k <= atom->ntypes; k++) fwrite(&nu[i][j][k],sizeof(double),1,fp);
+      if (setflag[i][j]) 
+        for (k = i; k <= atom->ntypes; k++) 
+          fwrite(&nu[i][j][k],sizeof(double),1,fp);
     }
   }
 }

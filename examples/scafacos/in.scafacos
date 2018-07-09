@@ -5,8 +5,6 @@ atom_style  full
 
 read_data data.NaCl
 
-# need both mass settings due to hybrid atom style
-
 velocity	all set 0.0 0.0 0.0 mom no
 
 pair_style	zero 1.0
@@ -15,7 +13,8 @@ pair_coeff	* *
 neighbor	1.0 bin
 neigh_modify	delay 0
 
-fix		1 all scafacos fmm
+# using the fmm solver with a tolerance in energy of 10^-3
+fix		1 all scafacos fmm energy 0.001
 
 timestep	0.005
 

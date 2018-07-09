@@ -58,7 +58,8 @@ FixWallBodyPolygon::FixWallBodyPolygon(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 7) error->all(FLERR,"Illegal fix wall/body/polygon command");
 
   if (!atom->body_flag)
-    error->all(FLERR,"Fix wall/body/polygon requires atom style body/rounded/polygon");
+    error->all(FLERR,"Fix wall/body/polygon requires "
+               "atom style body/rounded/polygon");
 
   restart_peratom = 1;
   create_attribute = 1;
@@ -182,7 +183,8 @@ void FixWallBodyPolygon::init()
   if (!avec)
     error->all(FLERR,"Pair body/rounded/polygon requires atom style body");
   if (strcmp(avec->bptr->style,"rounded/polygon") != 0)
-    error->all(FLERR,"Pair body/rounded/polygon requires body style rounded/polygon");
+    error->all(FLERR,"Pair body/rounded/polygon requires "
+               "body style rounded/polygon");
   bptr = (BodyRoundedPolygon *) avec->bptr;
 
   // set pairstyle from body/polygonular pair style
@@ -828,4 +830,3 @@ void FixWallBodyPolygon::distance(const double* x2, const double* x1,
     + (x2[1] - x1[1]) * (x2[1] - x1[1])
     + (x2[2] - x1[2]) * (x2[2] - x1[2]));
 }
-

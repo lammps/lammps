@@ -37,16 +37,18 @@ fix 1 all wall/body/polyhedron 1000.0 20.0 5.0 xplane -10.0 10.0
 
 [Description:]
 
-Bound the simulation domain of systems of body particles of style
-body/rounded/polyhedron with wall(s). All particles in the group interact
-with the wall when they are close enough to touch it.
-The nature of the interaction between the wall and the polygons is
-the same as that between the polygons themselves, which is similar to the Hookean potential.
+This fix is for use with 3d models of body particles of style
+{rounded/polyhedron}.  It bounds the simulation domain with wall(s).
+All particles in the group interact with the wall when they are close
+enough to touch it.  The nature of the interaction between the wall
+and the polygon particles is the same as that between the polygon
+particles themselves, which is similar to a Hookean potential.  See
+"Section 6.14"_Section_howto.html#howto_14 of the manual and the
+"body"_body.html doc page for more details on using body particles.
 
-This fix is designed for use with the "body/rounded/polyhedron" body style,
-which is specified as an argument to the "atom-style body" command.
-The parameters {k_n}, {c_n}, {c_t} have the same meaning and units as those specified with the
-"pair_style body/rounded/polyhedron"_pair_body_rounded_polygon.html commands.
+The parameters {k_n}, {c_n}, {c_t} have the same meaning and units as
+those specified with the "pair_style
+body/rounded/polyhedron"_pair_body_rounded_polyhedron.html command.
 
 The {wallstyle} can be planar or cylindrical.  The 3 planar options
 specify a pair of walls in a dimension.  Wall positions are given by
@@ -57,14 +59,14 @@ axis is at x = y = 0.0, and the radius of the cylinder is specified.
 Optionally, the wall can be moving, if the {wiggle} keyword is appended.
 
 For the {wiggle} keyword, the wall oscillates sinusoidally, similar to
-the oscillations of particles which can be specified by the
-"fix move"_fix_move.html command.  This is useful in packing
-simulations of particles.  The arguments to the {wiggle}
-keyword specify a dimension for the motion, as well as it's
-{amplitude} and {period}.  Note that if the dimension is in the plane
-of the wall, this is effectively a shearing motion.  If the dimension
-is perpendicular to the wall, it is more of a shaking motion.  A
-{zcylinder} wall can only be wiggled in the z dimension.
+the oscillations of particles which can be specified by the "fix
+move"_fix_move.html command.  This is useful in packing simulations of
+particles.  The arguments to the {wiggle} keyword specify a dimension
+for the motion, as well as it's {amplitude} and {period}.  Note that
+if the dimension is in the plane of the wall, this is effectively a
+shearing motion.  If the dimension is perpendicular to the wall, it is
+more of a shaking motion.  A {zcylinder} wall can only be wiggled in
+the z dimension.
 
 Each timestep, the position of a wiggled wall in the appropriate {dim}
 is set according to this equation:
@@ -95,6 +97,7 @@ Any dimension (xyz) that has a wall must be non-periodic.
 
 [Related commands:]
 
-"pair_style body/rounded/polyhedron"_pair_body_rounded_polygon.html
+"atom_style body"_atom_style.html, "pair_style
+body/rounded/polyhedron"_pair_body_rounded_polyhedron.html
 
 [Default:] none

@@ -393,13 +393,16 @@ void PairBodyRoundedPolyhedron::coeff(int narg, char **arg)
 void PairBodyRoundedPolyhedron::init_style()
 {
   avec = (AtomVecBody *) atom->style_match("body");
-  if (!avec) error->all(FLERR,"Pair body/rounded/polyhedron requires atom style body");
+  if (!avec) error->all(FLERR,"Pair body/rounded/polyhedron requires "
+                        "atom style body");
   if (strcmp(avec->bptr->style,"rounded/polyhedron") != 0)
-    error->all(FLERR,"Pair body/rounded/polyhedron requires body style rounded/polyhedron");
+    error->all(FLERR,"Pair body/rounded/polyhedron requires "
+               "body style rounded/polyhedron");
   bptr = (BodyRoundedPolyhedron *) avec->bptr;
 
   if (comm->ghost_velocity == 0)
-    error->all(FLERR,"Pair body/rounded/polyhedron requires ghost atoms store velocity");
+    error->all(FLERR,"Pair body/rounded/polyhedron requires "
+               "ghost atoms store velocity");
 
   neighbor->request(this);
 
@@ -788,7 +791,8 @@ void PairBodyRoundedPolyhedron::sphere_against_edge(int ibody, int jbody,
       fn[1] = -c_n * vn2;
       fn[2] = -c_n * vn3;
 
-      // tangential friction term at contact, excluding the tangential deformation term
+      // tangential friction term at contact, 
+      // excluding the tangential deformation term
 
       ft[0] = -c_t * vt1;
       ft[1] = -c_t * vt2;
@@ -997,7 +1001,8 @@ int PairBodyRoundedPolyhedron::edge_against_edge(int ibody, int jbody,
 
       // compute the distance between the edge nj to the edge ni
       #ifdef _POLYHEDRON_DEBUG
-      printf("Compute interaction between edge %d of body %d with edge %d of body %d:\n",
+      printf("Compute interaction between edge %d of body %d "
+             "with edge %d of body %d:\n",
              nj, jbody, ni, ibody);
       #endif
 
@@ -1055,7 +1060,8 @@ int PairBodyRoundedPolyhedron::edge_against_face(int ibody, int jbody,
 
       // compute the distance between the face nj to the edge ni
       #ifdef _POLYHEDRON_DEBUG
-      printf("Compute interaction between face %d of body %d with edge %d of body %d:\n",
+      printf("Compute interaction between face %d of body %d with "
+             "edge %d of body %d:\n",
              nj, jbody, ni, ibody);
       #endif
 
@@ -1293,7 +1299,8 @@ int PairBodyRoundedPolyhedron::interaction_face_to_edge(int ibody,
   xpj2[1] = xmj[1] + discrete[jfirst+npj2][1];
   xpj2[2] = xmj[2] + discrete[jfirst+npj2][2];
 
-  // no interaction if two ends of the edge are on the same side with the COM wrt the face
+  // no interaction if two ends of the edge 
+  // are on the same side with the COM wrt the face
 
   if (opposite_sides(n, xi1, xmi, xpj1) == 0 &&
       opposite_sides(n, xi1, xmi, xpj2) == 0)
@@ -1305,7 +1312,9 @@ int PairBodyRoundedPolyhedron::interaction_face_to_edge(int ibody,
   int inside1 = 0;
   int inside2 = 0;
 
-  // enum {EF_PARALLEL=0,EF_SAME_SIDE_OF_FACE,EF_INTERSECT_INSIDE,EF_INTERSECT_OUTSIDE};
+  // enum {EF_PARALLEL=0,EF_SAME_SIDE_OF_FACE,
+  //       EF_INTERSECT_INSIDE,EF_INTERSECT_OUTSIDE};
+
   int interact = edge_face_intersect(xi1, xi2, xi3, xpj1, xpj2,
                                      hi1, hi2, d1, d2, inside1, inside2);
 
@@ -2310,7 +2319,8 @@ double PairBodyRoundedPolyhedron::contact_separation(const Contact& c1,
    find the number of unique contacts
 ------------------------------------------------------------------------- */
 
-void PairBodyRoundedPolyhedron::find_unique_contacts(Contact* contact_list, int& num_contacts)
+void PairBodyRoundedPolyhedron::find_unique_contacts(Contact* contact_list, 
+                                                     int& num_contacts)
 {
   int n = num_contacts;
   for (int i = 0; i < n - 1; i++) {

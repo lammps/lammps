@@ -16,7 +16,9 @@ c_n = normal damping coefficient
 c_t = tangential damping coefficient
 mu = normal friction coefficient during gross sliding
 delta_ua = multiple contact scaling factor
-cutoff = global sepration cutoff for interactions (distance units), see below for definition :pre
+cutoff = global separation cutoff for interactions (distance units), see below for definition :pre
+
+NOTE: what does gross sliding mean?
 
 [Examples:]
 
@@ -26,35 +28,76 @@ pair_coeff 1 1 100.0 1.0 :pre
 
 [Description:]
 
-Style {body/rounded/polygon} is for use with body particles and calculates pairwise
+Style {body/rounded/polygon} is for use with 2d models of body
+particles of style {rounded/polygon}.  It calculates pairwise
 body/body interactions as well as interactions between body and
-point-particles.  See "Section 6.14"_Section_howto.html#howto_14
-of the manual and the "body"_body.html doc page for more details on
-using body particles.
+point-particles.  See "Section 6.14"_Section_howto.html#howto_14 of
+the manual and the "body"_body.html doc page for more details on using
+body particles.
 
-This pair style is designed for use with the "body/rounded/polygon" body style,
-which is specified as an argument to the "atom-style body" command.
-See the "body/rounded/polygon"_body.html doc page for more details about the body
-styles LAMMPS supports. The pairwise interaction between the rounded polygons is described
-in "Fraige"_#Fraige, where the polygons are rounded at the vertices and edges
-by circles of diameter a. This is a version of discrete element models (DEM)
-with multiple contact points.
+This pairwise interaction between rounded polygons is described in
+"Fraige"_#Fraige, where a polygon does not have sharp corners, but is
+rounded at its vertices by circles centered on each vertex with a
+specified diameter.  The edges of the polygon are defined bewteen
+pairs of adjacent vertices.  The circle diameter for each polygon is
+specified in the data file read by the "read data"_read_data.html
+command.  This is a 2d discrete element model (DEM) which allows for
+multiple contact points.
 
-Because the polygons can have different rounded diameters, the cutoff specified in
-the pair style command is for the surface separation between two interacting entities
-(e.g. vertex-vertex, vertex-edge or edge-edge) excluding their rounded diameters,
-i.e. separation = center-center distance - (rounded diameter of entity i + rounded diameter of entity j)/2.
-The interaction forces and energies are also defined with respect to the rounded surface separation,
-instead of center-center distance.
+Note that when two particles interact, the effective surface of each
+polygon particle is displaced outward from each of its vertices and
+edges by half its circle diameter.  The interaction forces and
+energies bewteen two particles are defined with respect to the
+separation of their respective rounded surfaces, not by the separation
+of the vertices and edges themselves.
 
-For style {body/rounded/polygon}, the following coefficients must be defined for each
-pair of atoms types via the "pair_coeff"_pair_coeff.html command as in
-the examples above, or in the data file or restart files read by the
-"read_data"_read_data.html or "read_restart"_read_restart.html
-commands:
+This means that the specified cutoff in the pair_style command should
+be large enough to encompass the center-to-center distance between two
+particles (at any orientation) which would produce a surface-surface
+overlap.  For example, consider two square particles with edge length
+= 1.0 and circle diameter 0.2.  The maximum distance of one polygon's
+surface from its center is not sqrt(2)/2, but (sqrt(2)+0.1)/2.  Thus
+the cutoff distance should be sqrt(2) + 0.1, since the surfaces of two
+particles that far apart could be touching.
+
+NOTE: Do we need a diagram of 2 overlapping polygon particles that
+explains how contact is defined?  Do we need an equation(s) that
+explain what the params in pair style and coeff mean, for damping and
+spring constants?  Or do we just want to reference the paper for that?
+
+NOTE: say something about no frictional history ?
+
+The following coefficients must be defined for each pair of atom types
+via the "pair_coeff"_pair_coeff.html command as in the examples above,
+or in the data file read by the "read_data"_read_data.html command:
 
 k_n (energy/distance^2 units)
 k_na (energy/distance^2 units) :ul
+
+[Mixing, shift, table, tail correction, restart, rRESPA info]:
+
+This pair style does not support the "pair_modify"_pair_modify.html
+mix, shift, table, and tail options.
+
+This pair style does not write its information to "binary restart
+files"_restart.html.  Thus, you need to re-specify the pair_style and
+pair_coeff commands in an input script that reads a restart file.
+
+This pair style can only be used via the {pair} keyword of the
+"run_style respa"_run_style.html command.  It does not support the
+{inner}, {middle}, {outer} keywords.
+
+[Restrictions:]
+
+These pair styles are part of the BODY package.  They are only enabled
+if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
+
+NOTE: is there a newton on or off requirement for using this pair style?
+If so, say something like this:
+
+This pair style requires the "newton"_newton.html setting to be "on"
+for pair interactions.
 
 [Related commands:]
 
@@ -65,5 +108,3 @@ k_na (energy/distance^2 units) :ul
 :link(Fraige)
 [(Fraige)] F. Y. Fraige, P. A. Langston, A. J. Matchett, J. Dodds,
 Particuology, 6, 455 (2008).
-
-

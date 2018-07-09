@@ -58,7 +58,8 @@ FixWallBodyPolyhedron::FixWallBodyPolyhedron(LAMMPS *lmp, int narg, char **arg) 
   if (narg < 7) error->all(FLERR,"Illegal fix wall/body/polyhedron command");
 
   if (!atom->body_flag)
-    error->all(FLERR,"Fix wall/body/polyhedron requires atom style body/rounded/polyhedron");
+    error->all(FLERR,"Fix wall/body/polyhedron requires "
+               "atom style body/rounded/polyhedron");
 
   restart_peratom = 1;
   create_attribute = 1;
@@ -189,7 +190,8 @@ void FixWallBodyPolyhedron::init()
   if (!avec)
     error->all(FLERR,"Pair body/rounded/polyhedron requires atom style body");
   if (strcmp(avec->bptr->style,"rounded/polyhedron") != 0)
-    error->all(FLERR,"Pair body/rounded/polyhedron requires body style rounded/polyhedron");
+    error->all(FLERR,"Pair body/rounded/polyhedron requires "
+               "body style rounded/polyhedron");
   bptr = (BodyRoundedPolyhedron *) avec->bptr;
 
   // set pairstyle from body/polyhedronular pair style
@@ -941,4 +943,3 @@ void FixWallBodyPolyhedron::distance(const double* x2, const double* x1,
     + (x2[1] - x1[1]) * (x2[1] - x1[1])
     + (x2[2] - x1[2]) * (x2[2] - x1[2]));
 }
-

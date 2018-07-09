@@ -132,7 +132,8 @@ double BodyRoundedPolyhedron::enclosing_radius(struct AtomVecBody::Bonus *bonus)
   int nvertices = bonus->ivalue[0];
   if (nvertices == 1 || nvertices == 2)
   	return *(bonus->dvalue+3*nsub(bonus)+2);
-  return *(bonus->dvalue+3*nsub(bonus)+2*nedges(bonus)+MAX_FACE_SIZE*nfaces(bonus));
+  return *(bonus->dvalue+3*nsub(bonus) + 2*nedges(bonus) + 
+           MAX_FACE_SIZE*nfaces(bonus));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -142,7 +143,8 @@ double BodyRoundedPolyhedron::rounded_radius(struct AtomVecBody::Bonus *bonus)
   int nvertices = bonus->ivalue[0];
   if (nvertices == 1 || nvertices == 2)
     return *(bonus->dvalue+3*nsub(bonus)+2+1);
-  return *(bonus->dvalue+3*nsub(bonus)+2*nedges(bonus)+MAX_FACE_SIZE*nfaces(bonus)+1);
+  return *(bonus->dvalue+3*nsub(bonus) + 2*nedges(bonus) + 
+           MAX_FACE_SIZE*nfaces(bonus)+1);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -205,7 +207,8 @@ void BodyRoundedPolyhedron::data_body(int ibonus, int ninteger, int ndouble,
   // nsub == 1 || nsub == 2 || nsub == 3:
   //   6 for inertia + 3*nsub for vertex coords + 1 for rounded radius
   // nsub > 3:
-  //   6 for inertia + 3*nsub for vertex coords + 2*nsub for edges + 3*nfaces + 1 for rounded radius
+  //   6 for inertia + 3*nsub for vertex coords + 2*nsub for edges + 
+  //   3*nfaces + 1 for rounded radius
 
   int nedges,nentries;
   if (nsub == 1 || nsub == 2) {

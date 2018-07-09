@@ -42,13 +42,14 @@ fix          1 all npt/body temp $T $T 1.0 x 0.001 $P 1.0 &
 
 fix          2 all enforce2d
 
-compute      1 all body/local id 1 2 3
-dump         1 all local 100000 dump.polygon.* index c_1[1] c_1[2] c_1[3] c_1[4]
+#compute      1 all body/local id 1 2 3
+#dump         1 all local 100000 dump.polygon.* index c_1[1] c_1[2] c_1[3] c_1[4]
 
 thermo_style custom step ke pe etotal press
 thermo       1000
 
-#dump	     2 all image 10000 image.*.jpg type type zoom 2.0 adiam 1.5 body yes 0 0
+#dump	     2 all image 10000 image.*.jpg type type zoom 2.0 &
+#             adiam 1.5 body type 0 0
 #dump_modify  2 pad 6
 
 run          ${steps}

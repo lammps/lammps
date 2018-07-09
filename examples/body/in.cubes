@@ -38,11 +38,11 @@ fix          1 all nvt/body temp 1.2 1.2 0.1
 
 compute      p2 all pressure 1_temp
 
-compute      1 all body/local id 1 2 3
-dump         1 all local 1000 dump.* index c_1[1] c_1[2] c_1[3] c_1[4]
+#compute      1 all body/local id 1 2 3
+#dump         1 all local 1000 dump.* index c_1[1] c_1[2] c_1[3] c_1[4]
 
 #dump         2 all image 1000 image.*.jpg type type &
-#             zoom 1.5 adiam 1.5 body yes 0 0 view 60 15
+#             zoom 1.5 adiam 1.5 body type 0 0 view 60 15
 #dump_modify  2 pad 6
 
 thermo_style custom step ke pe etotal c_p2 c_1_temp

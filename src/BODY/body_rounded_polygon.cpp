@@ -114,7 +114,7 @@ double BodyRoundedPolygon::enclosing_radius(struct AtomVecBody::Bonus *bonus)
   int nvertices = bonus->ivalue[0];
   if (nvertices == 1 || nvertices == 2)
 	return *(bonus->dvalue+3*nsub(bonus)+2);
-  return *(bonus->dvalue+3*nsub(bonus)+2*nsub(bonus));
+  return *(bonus->dvalue + 3*nsub(bonus) + 2*nsub(bonus));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -124,7 +124,7 @@ double BodyRoundedPolygon::rounded_radius(struct AtomVecBody::Bonus *bonus)
   int nvertices = bonus->ivalue[0];
   if (nvertices == 1 || nvertices == 2)
 	return *(bonus->dvalue+3*nsub(bonus)+2+1);
-  return *(bonus->dvalue+3*nsub(bonus)+2*nsub(bonus)+1);
+  return *(bonus->dvalue + 3*nsub(bonus) + 2*nsub(bonus)+1);
 }
 
 /* ---------------------------------------------------------------------- */

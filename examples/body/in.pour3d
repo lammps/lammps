@@ -49,7 +49,7 @@ thermo_style custom step atoms ke pe etotal press
 thermo       1000
 
 #dump	     2 all image 500 image.*.jpg type type &
-#	     zoom 1.5 adiam 1.5 body yes 0 0 view 75 15
+#	     zoom 1.5 adiam 1.5 body type 0 0 view 75 15
 #dump_modify  2 pad 6
 
 run	     ${steps}

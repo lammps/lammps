@@ -276,8 +276,10 @@ void PairBodyRoundedPolygon::compute(int eflag, int vflag)
 
               // scale the force at both contacts
 
-              contact_forces(contact_list[m], j_a, x, v, angmom, f, torque, evdwl, facc);
-              contact_forces(contact_list[n], j_a, x, v, angmom, f, torque, evdwl, facc);
+              contact_forces(contact_list[m], j_a, x, v, angmom, f, torque, 
+                             evdwl, facc);
+              contact_forces(contact_list[n], j_a, x, v, angmom, f, torque, 
+                             evdwl, facc);
               done = 1;
 
               #ifdef _POLYGON_DEBUG
@@ -285,16 +287,18 @@ void PairBodyRoundedPolygon::compute(int eflag, int vflag)
                 m, n, delta_a, j_a);
               printf("    %d: vertex %d of body %d and edge %d of body %d; "
                      "xv = %f %f %f; xe = %f %f %f\n",
-                m, contact_list[m].vertex, contact_list[m].ibody,
-                contact_list[m].edge, contact_list[m].jbody,
-                contact_list[m].xv[0], contact_list[m].xv[1], contact_list[m].xv[2],
-                contact_list[m].xe[0], contact_list[m].xe[1], contact_list[m].xe[2]);
+                     m, contact_list[m].vertex, contact_list[m].ibody,
+                     contact_list[m].edge, contact_list[m].jbody,
+                     contact_list[m].xv[0], contact_list[m].xv[1], 
+                     contact_list[m].xv[2], contact_list[m].xe[0], 
+                     contact_list[m].xe[1], contact_list[m].xe[2]);
               printf("    %d: vertex %d of body %d and edge %d of body %d; "
                      "xv = %f %f %f; xe = %f %f %f\n",
-                n, contact_list[n].vertex, contact_list[n].ibody,
-                contact_list[n].edge, contact_list[n].jbody,
-                contact_list[n].xv[0], contact_list[n].xv[1], contact_list[n].xv[2],
-                contact_list[n].xe[0], contact_list[n].xe[1], contact_list[n].xe[2]);
+                     n, contact_list[n].vertex, contact_list[n].ibody,
+                     contact_list[n].edge, contact_list[n].jbody,
+                     contact_list[n].xv[0], contact_list[n].xv[1], 
+                     contact_list[n].xv[2], contact_list[n].xe[0], 
+                     contact_list[n].xe[1], contact_list[n].xe[2]);
               #endif
 
               break;
@@ -417,13 +421,16 @@ void PairBodyRoundedPolygon::coeff(int narg, char **arg)
 void PairBodyRoundedPolygon::init_style()
 {
   avec = (AtomVecBody *) atom->style_match("body");
-  if (!avec) error->all(FLERR,"Pair body/rounded/polygon requires atom style body");
+  if (!avec) 
+    error->all(FLERR,"Pair body/rounded/polygon requires atom style body");
   if (strcmp(avec->bptr->style,"rounded/polygon") != 0)
-    error->all(FLERR,"Pair body/rounded/polygon requires body style rounded/polygon");
+    error->all(FLERR,"Pair body/rounded/polygon requires "
+               "body style rounded/polygon");
   bptr = (BodyRoundedPolygon *) avec->bptr;
 
   if (comm->ghost_velocity == 0)
-    error->all(FLERR,"Pair body/rounded/polygon requires ghost atoms store velocity");
+    error->all(FLERR,"Pair body/rounded/polygon requires "
+               "ghost atoms store velocity");
 
   neighbor->request(this);
 
@@ -850,7 +857,8 @@ int PairBodyRoundedPolygon::vertex_against_edge(int i, int j,
 
         #ifdef _CONVEX_POLYGON
         // done with the edges from body j,
-        // given that vertex ni interacts with only one vertex from one edge of body j
+        // given that vertex ni interacts with only one vertex 
+        //   from one edge of body j
         break;
         #endif
 

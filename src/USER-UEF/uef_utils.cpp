@@ -55,6 +55,7 @@ UEFBox::UEFBox()
     {
       l[k][j] = l0[k][j];
       r[j][k]=(j==k);
+      ri[j][k]=(j==k);
     }
 
   // get the initial rotation and upper triangular matrix
@@ -119,6 +120,14 @@ void UEFBox::get_rot(double x[3][3])
       x[k][j]=rot[k][j];
 }
 
+// get inverse change of basis matrix
+void UEFBox::get_inverse_cob(double x[3][3])
+{
+  for (int k=0;k<3;k++)
+    for (int j=0;j<3;j++)
+      x[k][j]=ri[k][j];
+}
+
 // diagonal, incompressible deformation
 void UEFBox::step_deform(const double ex, const double ey)
 {
@@ -167,26 +176,37 @@ bool UEFBox::reduce()
   if (f2 < 0) for (int k=0;k<-f2;k++) mul_m2 (a2i,r0);
 
   // robust reduction to the box defined by Dobson
+  double lc[3][3];
   for (int k=0;k<3;k++)
   {
     double eps = exp(theta[0]*w1[k]+theta[1]*w2[k]);
     l[k][0] = eps*l0[k][0];
     l[k][1] = eps*l0[k][1];
     l[k][2] = eps*l0[k][2];
+    lc[k][0] = eps*l0[k][0];
+    lc[k][1] = eps*l0[k][1];
+    lc[k][2] = eps*l0[k][2];
   }
+
   // further reduce the box using greedy reduction and check
   // if it changed from the last step using the change of basis
   // matrices r and r0
-  int ri[3][3];
+
   greedy(l,r,ri);
-  mul_m2(r,ri);
+
+  // multiplying the inverse by the old change of basis matrix gives
+  // the inverse of the transformation itself (should be identity if
+  // no reduction takes place). This is used for image flags only.
+
+  mul_m1(ri,r0);
+
   rotation_matrix(rot,lrot, l);
   return !mat_same(r,r0);
 }
 void UEFBox::set_strain(const double ex, const double ey)
 {
-  theta[0]  =winv[0][0]*ex + winv[0][1]*ey;
-  theta[1]  =winv[1][0]*ex + winv[1][1]*ey;
+  theta[0]  = winv[0][0]*ex + winv[0][1]*ey;
+  theta[1]  = winv[1][0]*ex + winv[1][1]*ey;
   theta[0] -= round(theta[0]);
   theta[1] -= round(theta[1]);
 
@@ -197,7 +217,6 @@ void UEFBox::set_strain(const double ex, const double ey)
     l[k][1] = eps*l0[k][1];
     l[k][2] = eps*l0[k][2];
   }
-  int ri[3][3];
   greedy(l,r,ri);
   rotation_matrix(rot,lrot, l);
 }

@@ -27,12 +27,13 @@ class UEFBox
     bool reduce();
     void get_box(double[3][3], double);
     void get_rot(double[3][3]);
+    void get_inverse_cob(double[3][3]);
   private:
     double l0[3][3]; // initial basis
-    double w1[3],w2[3], winv[3][3]; // omega1 and omega2 (spectra of automorphisms)
+    double w1[3],w2[3],winv[3][3];//omega1 and omega2 (spectra of automorphisms)
     double theta[2];
     double l[3][3], rot[3][3], lrot[3][3];
-    int r[3][3],a1[3][3],a2[3][3],a1i[3][3],a2i[3][3];
+    int r[3][3],ri[3][3],a1[3][3],a2[3][3],a1i[3][3],a2i[3][3];
 };
 
 
@@ -112,10 +113,10 @@ void transpose(T m[3][3])
     }
 }
 
-template<typename T>
-void mul_m1(T m1[3][3], const T m2[3][3])
+template<typename T1,typename T2>
+void mul_m1(T1 m1[3][3], const T2 m2[3][3])
 {
-  T t[3][3];
+  T1 t[3][3];
   for (int k=0;k<3;k++)
     for (int j=0;j<3;j++)
       t[k][j]=m1[k][j];
@@ -125,10 +126,10 @@ void mul_m1(T m1[3][3], const T m2[3][3])
       m1[k][j] = t[k][0]*m2[0][j] + t[k][1]*m2[1][j] + t[k][2]*m2[2][j];
 }
 
-template<typename T>
-void mul_m2(const T m1[3][3], T m2[3][3])
+template<typename T1, typename T2>
+void mul_m2(const T1 m1[3][3], T2 m2[3][3])
 {
-  T t[3][3];
+  T2 t[3][3];
   for (int k=0;k<3;k++)
     for (int j=0;j<3;j++)
       t[k][j]=m2[k][j];

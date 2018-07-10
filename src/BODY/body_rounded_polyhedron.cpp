@@ -48,13 +48,13 @@ BodyRoundedPolyhedron::BodyRoundedPolyhedron(LAMMPS *lmp, int narg, char **arg) 
 
   size_forward = 0;
 
-  // 1 integer for number of vertices,
+  // 3 integers: 1 for no. of vertices, 1 for no. of edges, 1 for no. of faces
   // 3*nmax doubles for vertex coordinates + 2*nmax doubles for edge ends +
   // (MAX_FACE_SIZE+1)*nmax for faces
   // 1 double for the enclosing radius
   // 1 double for the rounded radius
 
-  size_border = 1 + 3*nmax + 2*nmax + MAX_FACE_SIZE*nmax + 1 + 1;
+  size_border = 3 + 3*nmax + 2*nmax + MAX_FACE_SIZE*nmax + 1 + 1;
 
   // NOTE: need to set appropriate nnbin param for dcp
 
@@ -159,7 +159,7 @@ int BodyRoundedPolyhedron::pack_border_body(AtomVecBody::Bonus *bonus, double *b
   buf[2] = nfac;
   int ndouble;
   if (nsub == 1 || nsub == 2) ndouble = 3*nsub+2+MAX_FACE_SIZE*nfac+1+1;
-  else ndouble = 3*nsub+2*nedges(bonus)+MAX_FACE_SIZE*nfac+1+1;
+  else ndouble = 3*nsub+2*ned+MAX_FACE_SIZE*nfac+1+1;
   memcpy(&buf[3],bonus->dvalue,ndouble*sizeof(double));
   return 3+ndouble;
 }
@@ -177,7 +177,7 @@ int BodyRoundedPolyhedron::unpack_border_body(AtomVecBody::Bonus *bonus,
   bonus->ivalue[2] = nfac;
   int ndouble;
   if (nsub == 1 || nsub == 2) ndouble = 3*nsub+2+MAX_FACE_SIZE*nfac+1+1;
-  else ndouble = 3*nsub+2*nedges(bonus)+MAX_FACE_SIZE*nfac+1+1;
+  else ndouble = 3*nsub+2*ned+MAX_FACE_SIZE*nfac+1+1;
   memcpy(bonus->dvalue,&buf[3],ndouble*sizeof(double));
   return 3+ndouble;
 }

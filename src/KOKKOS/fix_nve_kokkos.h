@@ -60,7 +60,7 @@ class FixNVEKokkos : public FixNVE {
   typename ArrayTypes<DeviceType>::t_x_array x;
   typename ArrayTypes<DeviceType>::t_v_array v;
   typename ArrayTypes<DeviceType>::t_f_array_const f;
-  double *rmass;
+  typename ArrayTypes<DeviceType>::t_float_1d_randomread rmass;
   typename ArrayTypes<DeviceType>::t_float_1d_randomread mass;
   typename ArrayTypes<DeviceType>::t_int_1d type;
   typename ArrayTypes<DeviceType>::t_int_1d mask;

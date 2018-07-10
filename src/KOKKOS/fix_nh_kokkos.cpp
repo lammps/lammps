@@ -537,7 +537,7 @@ void FixNHKokkos<DeviceType>::nve_v()
 
   v = atomKK->k_v.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
-  rmass = atomKK->rmass;
+  rmass = atomKK->k_rmass.view<DeviceType>();
   mass = atomKK->k_mass.view<DeviceType>();
   type = atomKK->k_type.view<DeviceType>();
   mask = atomKK->k_mask.view<DeviceType>();
@@ -545,7 +545,7 @@ void FixNHKokkos<DeviceType>::nve_v()
   if (igroup == atomKK->firstgroup) nlocal = atomKK->nfirst;
 
   copymode = 1;
-  if (rmass)
+  if (rmass.data())
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixNH_nve_v<1> >(0,nlocal),*this);
   else
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixNH_nve_v<0> >(0,nlocal),*this);

@@ -1839,6 +1839,8 @@ void AtomVecSphereKokkos::data_atom(double *coord, imageint imagetmp, char **val
   omega[nlocal][1] = 0.0;
   omega[nlocal][2] = 0.0;
 
+  atomKK->modified(Host,ALL_MASK);
+
   atom->nlocal++;
 }
 
@@ -1861,6 +1863,9 @@ int AtomVecSphereKokkos::data_atom_hybrid(int nlocal, char **values)
   else
     rmass[nlocal] = 4.0*MY_PI/3.0 *
       radius[nlocal]*radius[nlocal]*radius[nlocal] * density;
+
+
+  atomKK->modified(Host,RADIUS_MASK|RMASS_MASK);
 
   return 2;
 }

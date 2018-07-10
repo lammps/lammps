@@ -30,7 +30,6 @@ class UEFBox
   private:
     double l0[3][3]; // initial basis
     double w1[3],w2[3], winv[3][3]; // omega1 and omega2 (spectra of automorphisms)
-    //double edot[3], delta[2];
     double theta[2];
     double l[3][3], rot[3][3], lrot[3][3];
     int r[3][3],a1[3][3],a2[3][3],a1i[3][3],a2i[3][3];
@@ -38,12 +37,12 @@ class UEFBox
 
 
 // lattice reduction routines
-void greedy(double[3][3],int[3][3]);
-void col_sort(double[3][3],int[3][3]);
-void red12(double[3][3],int[3][3]);
-void greedy_recurse(double[3][3],int[3][3]);
-void red3(double [3][3],int r[3][3]);
-void make_unique(double[3][3],int[3][3]);
+void greedy(double[3][3],int[3][3],int[3][3]);
+void col_sort(double[3][3],int[3][3],int[3][3]);
+void red12(double[3][3],int[3][3],int[3][3]);
+void greedy_recurse(double[3][3],int[3][3],int[3][3]);
+void red3(double [3][3],int r[3][3],int[3][3]);
+void make_unique(double[3][3],int[3][3],int[3][3]);
 void rotation_matrix(double[3][3],double[3][3],const double [3][3]);
 
 // A few utility functions for 3x3 arrays
@@ -98,6 +97,19 @@ bool mat_same(T x1[3][3], T x2[3][3])
     for (int j=0;j<3;j++)
       v &= (x1[k][j]==x2[k][j]);
   return v;
+}
+
+template<typename T>
+void transpose(T m[3][3])
+{
+  T t[3][3];
+  for (int k=0;k<3;k++)
+    for (int j=k+1;j<3;j++)
+    {
+      T x = m[k][j];
+      m[k][j] = m[j][k];
+      m[j][k] = x;
+    }
 }
 
 template<typename T>

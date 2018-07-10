@@ -177,7 +177,9 @@ bool UEFBox::reduce()
   // further reduce the box using greedy reduction and check
   // if it changed from the last step using the change of basis
   // matrices r and r0
-  greedy(l,r);
+  int ri[3][3];
+  greedy(l,r,ri);
+  mul_m2(r,ri);
   rotation_matrix(rot,lrot, l);
   return !mat_same(r,r0);
 }
@@ -195,7 +197,8 @@ void UEFBox::set_strain(const double ex, const double ey)
     l[k][1] = eps*l0[k][1];
     l[k][2] = eps*l0[k][2];
   }
-  greedy(l,r);
+  int ri[3][3];
+  greedy(l,r,ri);
   rotation_matrix(rot,lrot, l);
 }
 
@@ -245,28 +248,31 @@ void rotation_matrix(double q[3][3], double r[3][3], const double m[3][3])
 
 
 //sort columns in order of increasing length
-void col_sort(double b[3][3],int r[3][3])
+void col_sort(double b[3][3],int r[3][3],int ri[3][3])
 {
   if (col_prod(b,0,0)>col_prod(b,1,1))
   {
     col_swap(b,0,1);
     col_swap(r,0,1);
+    col_swap(ri,0,1);
   }
   if (col_prod(b,0,0)>col_prod(b,2,2))
   {
     col_swap(b,0,2);
     col_swap(r,0,2);
+    col_swap(ri,0,2);
   }
   if (col_prod(b,1,1)>col_prod(b,2,2))
   {
     col_swap(b,1,2);
     col_swap(r,1,2);
+    col_swap(ri,1,2);
   }
 }
 
 
 // 1-2 reduction (Graham-Schmidt)
-void red12(double b[3][3],int r[3][3])
+void red12(double b[3][3],int r[3][3],int ri[3][3])
 {
   int y = round(col_prod(b,0,1)/col_prod(b,0,0));
   b[0][1] -= y*b[0][0];
@@ -276,16 +282,21 @@ void red12(double b[3][3],int r[3][3])
   r[0][1] -= y*r[0][0];
   r[1][1] -= y*r[1][0];
   r[2][1] -= y*r[2][0];
+
+  ri[0][0] += y*ri[0][1];
+  ri[1][0] += y*ri[1][1];
+  ri[2][0] += y*ri[2][1];
   if (col_prod(b,1,1) < col_prod(b,0,0))
   {
     col_swap(b,0,1);
     col_swap(r,0,1);
-    red12(b,r);
+    col_swap(ri,0,1);
+    red12(b,r,ri);
   }
 }
 
 // The Semaev condition for a 3-reduced basis
-void red3(double b[3][3], int r[3][3])
+void red3(double b[3][3], int r[3][3], int ri[3][3])
 {
   double b11 = col_prod(b,0,0);
   double b22 = col_prod(b,1,1);
@@ -326,41 +337,51 @@ void red3(double b[3][3], int r[3][3])
     r[0][2] += x1*r[0][0] + x2*r[0][1];
     r[1][2] += x1*r[1][0] + x2*r[1][1];
     r[2][2] += x1*r[2][0] + x2*r[2][1];
-    greedy_recurse(b,r); // note the recursion step is here
+
+    ri[0][0] += -x1*ri[0][2];
+    ri[1][0] += -x1*ri[1][2];
+    ri[2][0] += -x1*ri[2][2];
+    ri[0][1] += -x2*ri[0][2];
+    ri[1][1] += -x2*ri[1][2];
+    ri[2][1] += -x2*ri[2][2];
+    greedy_recurse(b,r,ri); // note the recursion step is here
   }
 }
 
 // the meat of the greedy reduction algorithm
-void greedy_recurse(double b[3][3], int r[3][3])
+void greedy_recurse(double b[3][3], int r[3][3], int ri[3][3])
 {
-  col_sort(b,r);
-  red12(b,r);
-  red3(b,r); // recursive caller
+  col_sort(b,r,ri);
+  red12(b,r,ri);
+  red3(b,r,ri); // recursive caller
 }
 
 // set r (change of basis) to be identity then reduce basis and make it unique
-void greedy(double b[3][3],int r[3][3])
+void greedy(double b[3][3],int r[3][3],int ri[3][3])
 {
   r[0][1]=r[0][2]=r[1][0]=r[1][2]=r[2][0]=r[2][1]=0;
   r[0][0]=r[1][1]=r[2][2]=1;
-  greedy_recurse(b,r);
-  make_unique(b,r);
+  ri[0][1]=ri[0][2]=ri[1][0]=ri[1][2]=ri[2][0]=ri[2][1]=0;
+  ri[0][0]=ri[1][1]=ri[2][2]=1;
+  greedy_recurse(b,r,ri);
+  make_unique(b,r,ri);
+  transpose(ri);
 }
 
 // A reduced basis isn't unique. This procedure will make it
 // "more" unique. Degenerate cases are possible, but unlikely
 // with floating point math.
-void make_unique(double b[3][3], int r[3][3])
+void make_unique(double b[3][3], int r[3][3], int ri[3][3])
 {
   if (fabs(b[0][0]) < fabs(b[0][1]))
-  { col_swap(b,0,1); col_swap(r,0,1); }
+  { col_swap(b,0,1); col_swap(r,0,1); col_swap(ri,0,1); }
   if (fabs(b[0][0]) < fabs(b[0][2]))
-  { col_swap(b,0,2); col_swap(r,0,2); }
+  { col_swap(b,0,2); col_swap(r,0,2); col_swap(ri,0,2); }
   if (fabs(b[1][1]) < fabs(b[1][2]))
-  { col_swap(b,1,2); col_swap(r,1,2); }
+  { col_swap(b,1,2); col_swap(r,1,2); col_swap(ri,1,2); }
 
-  if (b[0][0] < 0){ neg_col(b,0); neg_col(r,0); }
-  if (b[1][1] < 0){ neg_col(b,1); neg_col(r,1); }
-  if (det(b) < 0){ neg_col(b,2); neg_col(r,2); }
+  if (b[0][0] < 0){ neg_col(b,0); neg_col(r,0); neg_col(ri,0); }
+  if (b[1][1] < 0){ neg_col(b,1); neg_col(r,1); neg_col(ri,1); }
+  if (det(b) < 0){ neg_col(b,2); neg_col(r,2); neg_col(ri,2); }
 }
 }}

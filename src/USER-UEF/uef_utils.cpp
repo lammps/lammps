@@ -121,7 +121,7 @@ void UEFBox::get_rot(double x[3][3])
 }
 
 // get inverse change of basis matrix
-void UEFBox::get_inverse_cob(double x[3][3])
+void UEFBox::get_inverse_cob(int x[3][3])
 {
   for (int k=0;k<3;k++)
     for (int j=0;j<3;j++)

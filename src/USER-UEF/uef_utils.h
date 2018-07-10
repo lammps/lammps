@@ -27,7 +27,7 @@ class UEFBox
     bool reduce();
     void get_box(double[3][3], double);
     void get_rot(double[3][3]);
-    void get_inverse_cob(double[3][3]);
+    void get_inverse_cob(int[3][3]);
   private:
     double l0[3][3]; // initial basis
     double w1[3],w2[3],winv[3][3];//omega1 and omega2 (spectra of automorphisms)

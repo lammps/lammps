@@ -22,7 +22,7 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <string.h>
+#include <cstring>
 #include "atom.h"
 #include "compute_spin.h"
 #include "domain.h"

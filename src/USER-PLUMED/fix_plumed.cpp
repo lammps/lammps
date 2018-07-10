@@ -138,6 +138,7 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
   p->cmd("setTimestep",&dt);
 
   virial_flag=1;
+  thermo_virial=1;
   scalar_flag = 1;
 
 // This is the real initialization:

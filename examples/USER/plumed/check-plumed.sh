@@ -67,14 +67,16 @@ if [ "$nlines" -gt 0 ] ; then
       echo ERROR passing forces from PLUMED back to LAMMPS
 fi
 
-# Nothing from here works
-
-# Now try to simply increase the size of the box by applying a moving restraint on the volume
-$LAMMPS < in.peptide-plumed-expand
-
 # Now run calculations to test virial
 $LAMMPS < in.peptide-plumed-npt
 $LAMMPS < in.peptide-plumed-npt2	
+
+nlines=`paste plmd_volume_with_restraint plmd_volume_without_restraint | tail -n +2 | awk '{if( $2<$4-0.0001 || $2>$4+0.0001 ) print $0}' | wc -l`
+if [ "$nlines" -gt 0 ] ; then
+      echo ERROR passing virial from PLUMED back to LAMMPS
+fi
+
+# Nothing from here works
 
 # Now run calculations to check forces on energy
 $LAMMPS < in.peptide-plumed-engforce-ref

@@ -1005,9 +1005,9 @@ struct AtomVecSphereKokkos_PackBorder {
       _buf(i,1) = _x(j,1) + _dy;
       _buf(i,2) = _x(j,2) + _dz;
     }
-    _buf(i,3) = _tag(j);
-    _buf(i,4) = _type(j);
-    _buf(i,5) = _mask(j);
+    _buf(i,3) = d_ubuf(_tag(j)).d;
+    _buf(i,4) = d_ubuf(_type(j)).d;
+    _buf(i,5) = d_ubuf(_mask(j)).d;
     _buf(i,6) = _radius(j);
     _buf(i,7) = _rmass(j);
   }
@@ -1066,7 +1066,7 @@ int AtomVecSphereKokkos::pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist,
       Kokkos::parallel_for(n,f);
     }
   }
-  return n*6;
+  return n*8;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1264,9 +1264,9 @@ struct AtomVecSphereKokkos_UnpackBorder {
     _x(i+_first,0) = _buf(i,0);
     _x(i+_first,1) = _buf(i,1);
     _x(i+_first,2) = _buf(i,2);
-    _tag(i+_first) = static_cast<int> (_buf(i,3));
-    _type(i+_first) = static_cast<int>  (_buf(i,4));
-    _mask(i+_first) = static_cast<int>  (_buf(i,5));
+    _tag(i+_first) = static_cast<tagint> (d_ubuf(_buf(i,3)).i);
+    _type(i+_first) = static_cast<int>  (d_ubuf(_buf(i,4)).i);
+    _mask(i+_first) = static_cast<int>  (d_ubuf(_buf(i,5)).i);
     _radius(i+_first) = _buf(i,6);
     _rmass(i+_first) = _buf(i,7);
   }
@@ -1440,10 +1440,10 @@ struct AtomVecSphereKokkos_PackExchangeFunctor {
     _buf(mysend,4) = _v(i,0);
     _buf(mysend,5) = _v(i,1);
     _buf(mysend,6) = _v(i,2);
-    _buf(mysend,7) = _tag[i];
-    _buf(mysend,8) = _type[i];
-    _buf(mysend,9) = _mask[i];
-    _buf(mysend,10) = _image[i];
+    _buf(mysend,7) = d_ubuf(_tag[i]).d;
+    _buf(mysend,8) = d_ubuf(_type[i]).d;
+    _buf(mysend,9) = d_ubuf(_mask[i]).d;
+    _buf(mysend,10) = d_ubuf(_image[i]).d;
     _buf(mysend,11) = _radius[i];
     _buf(mysend,12) = _rmass[i];
     _buf(mysend,13) = _omega(i,0);
@@ -1584,10 +1584,10 @@ struct AtomVecSphereKokkos_UnpackExchangeFunctor {
       _v(i,0) = _buf(myrecv,4);
       _v(i,1) = _buf(myrecv,5);
       _v(i,2) = _buf(myrecv,6);
-      _tag[i] = _buf(myrecv,7);
-      _type[i] = _buf(myrecv,8);
-      _mask[i] = _buf(myrecv,9);
-      _image[i] = _buf(myrecv,10);
+      _tag[i] = (tagint) d_ubuf(_buf(myrecv,7)).i;
+      _type[i] = (int) d_ubuf(_buf(myrecv,8)).i;
+      _mask[i] = (int) d_ubuf(_buf(myrecv,9)).i;
+      _image[i] = (imageint) d_ubuf(_buf(myrecv,10)).i;
       _radius[i] = _buf(myrecv,11);
       _rmass[i] = _buf(myrecv,12);
       _omega(i,0) = _buf(myrecv,13);

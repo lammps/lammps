@@ -1,5 +1,5 @@
 --------------------------------------------------------------------------
-[[19074,1],0]: A high-performance Open MPI point-to-point messaging module
+[[5690,1],0]: A high-performance Open MPI point-to-point messaging module
 was unable to find any relevant network interfaces:
 
 Module: OpenFabrics (openib)
@@ -16,7 +16,9 @@ Lattice spacing in x,y,z = 4.43 4.43 4.43
 Created orthogonal box = (0 0 0) to (88.6 88.6 88.6)
   1 by 1 by 1 MPI processor grid
 Created 32000 atoms
-  Time spent = 0.00251478 secs
+  Time spent = 0.00258302 secs
+WARNING: KIM Model does not provide `partialParticleEnergy'; energy per atom will be zero (../pair_kim.cpp:955)
+WARNING: KIM Model does not provide `partialParticleVirial'; virial per atom will be zero (../pair_kim.cpp:959)
 Neighbor list info ...
   update every 1 steps, delay 0 steps, check yes
   max neighbors/atom: 2000, page size: 100000
@@ -24,8 +26,8 @@ Neighbor list info ...
   ghost atom cutoff = 8.45
   binsize = 4.225, bins = 21 21 21
   1 neighbor lists, perpetual/occasional/extra = 1 0 0
-  (1) pair lj/cut, perpetual
-      attributes: half, newton off
+  (1) pair kim, perpetual
+      attributes: half, newton off, cut 8.45
       pair build: half/bin/newtoff
       stencil: half/bin/3d/newtoff
       bin: standard
@@ -33,24 +35,24 @@ Setting up Verlet run ...
   Unit style    : metal
   Current step  : 0
   Time step     : 0.001
-Per MPI rank memory allocation (min/avg/max) = 20.37 | 20.37 | 20.37 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 20.87 | 20.87 | 20.87 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0          200    6290.8194            0    7118.0584    129712.25 
      100    95.179725     6718.814            0     7112.496    133346.59 
-Loop time of 2.6218 on 1 procs for 100 steps with 32000 atoms
+Loop time of 2.7052 on 1 procs for 100 steps with 32000 atoms
 
-Performance: 3.295 ns/day, 7.283 hours/ns, 38.142 timesteps/s
-99.9% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 3.194 ns/day, 7.514 hours/ns, 36.966 timesteps/s
+99.6% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 2.2623     | 2.2623     | 2.2623     |   0.0 | 86.29
-Neigh   | 0.31859    | 0.31859    | 0.31859    |   0.0 | 12.15
-Comm    | 0.005914   | 0.005914   | 0.005914   |   0.0 |  0.23
-Output  | 0.00033105 | 0.00033105 | 0.00033105 |   0.0 |  0.01
-Modify  | 0.023461   | 0.023461   | 0.023461   |   0.0 |  0.89
-Other   |            | 0.01123    |            |       |  0.43
+Pair    | 2.3715     | 2.3715     | 2.3715     |   0.0 | 87.67
+Neigh   | 0.28386    | 0.28386    | 0.28386    |   0.0 | 10.49
+Comm    | 0.012808   | 0.012808   | 0.012808   |   0.0 |  0.47
+Output  | 0.00033716 | 0.00033716 | 0.00033716 |   0.0 |  0.01
+Modify  | 0.02349    | 0.02349    | 0.02349    |   0.0 |  0.87
+Other   |            | 0.01317    |            |       |  0.49
 
 Nlocal:    32000 ave 32000 max 32000 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

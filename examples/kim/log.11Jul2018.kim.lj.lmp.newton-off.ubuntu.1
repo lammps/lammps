@@ -1,5 +1,5 @@
 --------------------------------------------------------------------------
-[[19111,1],0]: A high-performance Open MPI point-to-point messaging module
+[[6124,1],0]: A high-performance Open MPI point-to-point messaging module
 was unable to find any relevant network interfaces:
 
 Module: OpenFabrics (openib)
@@ -16,10 +16,7 @@ Lattice spacing in x,y,z = 4.43 4.43 4.43
 Created orthogonal box = (0 0 0) to (88.6 88.6 88.6)
   1 by 1 by 1 MPI processor grid
 Created 32000 atoms
-  Time spent = 0.00257231 secs
-WARNING: KIM Model does not provide `partialVirial'. pair_kim will always use `LAMMPSvirial' option. (../pair_kim.cpp:987)
-WARNING: KIM Model does not provide `partialParticleEnergy'; energy per atom will be zero (../pair_kim.cpp:992)
-WARNING: KIM Model does not provide `partialParticleVirial'; virial per atom will be zero (../pair_kim.cpp:996)
+  Time spent = 0.00263722 secs
 Neighbor list info ...
   update every 1 steps, delay 0 steps, check yes
   max neighbors/atom: 2000, page size: 100000
@@ -27,8 +24,8 @@ Neighbor list info ...
   ghost atom cutoff = 8.45
   binsize = 4.225, bins = 21 21 21
   1 neighbor lists, perpetual/occasional/extra = 1 0 0
-  (1) pair kim, perpetual
-      attributes: half, newton off, cut 8.45
+  (1) pair lj/cut, perpetual
+      attributes: half, newton off
       pair build: half/bin/newtoff
       stencil: half/bin/3d/newtoff
       bin: standard
@@ -36,24 +33,24 @@ Setting up Verlet run ...
   Unit style    : metal
   Current step  : 0
   Time step     : 0.001
-Per MPI rank memory allocation (min/avg/max) = 21.26 | 21.26 | 21.26 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 20.37 | 20.37 | 20.37 Mbytes
 Step Temp E_pair E_mol TotEng Press 
-       0          200    6290.8194            0    7118.0584    1270.4248 
-     100    95.179725     6718.814            0     7112.496    604.59343 
-Loop time of 3.22934 on 1 procs for 100 steps with 32000 atoms
+       0          200    6290.8194            0    7118.0584    129712.25 
+     100    95.179725     6718.814            0     7112.496    133346.59 
+Loop time of 2.59913 on 1 procs for 100 steps with 32000 atoms
 
-Performance: 2.675 ns/day, 8.970 hours/ns, 30.966 timesteps/s
-99.9% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 3.324 ns/day, 7.220 hours/ns, 38.474 timesteps/s
+99.4% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 2.821      | 2.821      | 2.821      |   0.0 | 87.36
-Neigh   | 0.35198    | 0.35198    | 0.35198    |   0.0 | 10.90
-Comm    | 0.0081757  | 0.0081757  | 0.0081757  |   0.0 |  0.25
-Output  | 0.00030922 | 0.00030922 | 0.00030922 |   0.0 |  0.01
-Modify  | 0.032856   | 0.032856   | 0.032856   |   0.0 |  1.02
-Other   |            | 0.01501    |            |       |  0.46
+Pair    | 2.2753     | 2.2753     | 2.2753     |   0.0 | 87.54
+Neigh   | 0.28456    | 0.28456    | 0.28456    |   0.0 | 10.95
+Comm    | 0.0055908  | 0.0055908  | 0.0055908  |   0.0 |  0.22
+Output  | 0.00034594 | 0.00034594 | 0.00034594 |   0.0 |  0.01
+Modify  | 0.023011   | 0.023011   | 0.023011   |   0.0 |  0.89
+Other   |            | 0.01037    |            |       |  0.40
 
 Nlocal:    32000 ave 32000 max 32000 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -66,4 +63,4 @@ Total # of neighbors = 2370499
 Ave neighs/atom = 74.0781
 Neighbor list builds = 3
 Dangerous builds = 0
-Total wall time: 0:00:03
+Total wall time: 0:00:02

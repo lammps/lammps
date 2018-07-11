@@ -32,6 +32,7 @@ PairStyle(kim,PairKIM)
 class KIM_API_model;
 #include "pair.h"
 #include "KIM_SimulatorHeaders.hpp"
+#include <sstream>
 
 
 namespace LAMMPS_NS {
@@ -90,7 +91,6 @@ namespace LAMMPS_NS {
       // values set in set_kim_model_has_flags(), called by kim_init()
       KIM::SupportStatus kim_model_support_for_energy;
       KIM::SupportStatus kim_model_support_for_forces;
-      KIM::SupportStatus kim_model_support_for_virial;
       KIM::SupportStatus kim_model_support_for_particleEnergy;
       KIM::SupportStatus kim_model_support_for_particleVirial;
 

@@ -32,7 +32,6 @@ class FixEnforce2DKokkos : public FixEnforce2D {
  public:
   FixEnforce2DKokkos(class LAMMPS *, int, char **);
   // ~FixEnforce2DKokkos() {}
-  // void init();
   void setup(int);
   void post_force(int);
 
@@ -78,18 +77,8 @@ struct FixEnforce2DKokkosPostForceFunctor {
 
 /* ERROR/WARNING messages:
 
-E: Illegal ... command
+E: Flag in fix_enforce2d_kokkos outside of what it should be
 
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Cannot use fix enforce2d with 3d simulation
-
-Self-explanatory.
-
-E: Fix enforce2d must be defined after fix %s
-
-UNDOCUMENTED
+LAMMPS developer-only error.
 
 */

@@ -34,7 +34,7 @@ FixEnforce2DKokkos<DeviceType>::FixEnforce2DKokkos(LAMMPS *lmp, int narg, char *
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
   datamask_read   = V_MASK | F_MASK | OMEGA_MASK | MASK_MASK
-	  | TORQUE_MASK | ANGMOM_MASK; // | */ // MASK_MASK;
+	  | TORQUE_MASK | ANGMOM_MASK;
 
   datamask_modify = V_MASK | F_MASK | OMEGA_MASK
 	  | TORQUE_MASK | ANGMOM_MASK;
@@ -52,7 +52,6 @@ template <class DeviceType>
 void FixEnforce2DKokkos<DeviceType>::post_force(int vflag)
 {
   atomKK->sync(execution_space,datamask_read);
-  atomKK->modified(execution_space,datamask_modify);
 
   v = atomKK->k_v.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
@@ -120,16 +119,18 @@ void FixEnforce2DKokkos<DeviceType>::post_force(int vflag)
       break;
     }
     default:
-      error->all(FLERR, "flag_mask outside of what it should be");
+      error->all(FLERR, "Flag in fix_enforce2d_kokkos outside of what it should be");
   }
   copymode = 0;
 
-  // Probably sync here again?
-  atomKK->sync(execution_space,datamask_read);
   atomKK->modified(execution_space,datamask_modify);
 
-  for (int m = 0; m < nfixlist; m++)
+  for (int m = 0; m < nfixlist; m++) {
+    atomKK->sync(flist[m]->execution_space,flist[m]->datamask_read);
     flist[m]->enforce2d();
+    atomKK->modified(flist[m]->execution_space,flist[m]->datamask_modify);
+  }
+
 }
 
 
@@ -138,7 +139,6 @@ template <int omega_flag, int angmom_flag, int torque_flag>
 void FixEnforce2DKokkos<DeviceType>::post_force_item( int i ) const
 {
   if (mask[i] & groupbit){
-    // x(i,2) = 0; // Enforce2d does not set x[2] to zero either... :/
     v(i,2) = 0.0;
     f(i,2) = 0.0;
 

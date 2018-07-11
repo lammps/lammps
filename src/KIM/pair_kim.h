@@ -137,81 +137,88 @@ namespace LAMMPS_NS {
 
 /* ERROR/WARNING messages:
 
-E: Illegal ... command
+E: Unable to set KIM particle species codes and/or contributing
 
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
+A low-level kim-api error has occurred.
 
-E: Unrecognized virial argument in pair_style command
+E: KIM Compute returned error
 
-Only two options are supported: LAMMPSvirial and KIMvirial
+The KIM model was unable, for some reason, to complete the computation.
+
+E: Illegal pair_style command
+
+Self-explanatory.
 
 E: Incorrect args for pair coefficients
 
-Self-explanatory.  Check the input script or data file.
+Self-explanatory.
 
-E: Invalid args for non-hybrid pair coefficients
+E: create_kim_particle_codes: symbol not found: XX
 
-"NULL" is only supported in pair_coeff calls when using pair hybrid
+The KIM model specified does not support the atomic species symbol
 
 E: PairKIM only works with 3D problems
 
-This is a current limitation.
+Self-explanatory.
 
 E: All pair coeffs are not set
 
-All pair coefficients must be set in the data file or by the
-pair_coeff command before running a simulation.
+Self-explanatory.
 
-E: KIM neighbor iterator exceeded range
+E: Unable to destroy Compute Arguments Object
 
-This should not happen.  It likely indicates a bug
-in the KIM implementation of the interatomic potential
-where it is requesting neighbors incorrectly.
+A low-level kim-api error has occurred.
 
-E: LAMMPS unit_style lj not supported by KIM models
+E: KIM ModelCreate failed
 
-Self-explanatory. Check the input script or data file.
+The kim-api was not able to create a model object for the specified model.
 
-E: Unknown unit_style
+E: KIM Model did not accept the requested unit system
 
-Self-explanatory. Check the input script or data file.
+The KIM Model does not support the specified LAMMPS unit system
 
-W: KIM Model does not provide `energy'; Potential energy will be zero
+E: KIM ComputeArgumentsCreate failed
+
+A low-level kim-api error has occurred.
+
+E: Unable to register KIM pointers
+
+A low-level kim-api error has occurred.
+
+E: Unable to set KIM argument pointers
+
+A low-level kim-api error has occurred.
+
+E: pair_kim does not support hybrid
 
 Self-explanatory.
 
-W: KIM Model does not provide `forces'; Forces will be zero
+E: LAMMPS unit_style lj not suppored by KIM models
 
 Self-explanatory.
 
-W: KIM Model does not provide `particleEnergy'; energy per atom will be zero
+E: KIM Model requires unsupported compute argument: XXX
+
+A low-level kim-api error has occurred.
+
+W: KIM Model does not provide `partialEnergy'; Potential energy will be zero
 
 Self-explanatory.
 
-W: KIM Model does not provide `particleVirial'; virial per atom will be zero
-
-
-
-E: Test_descriptor_string already allocated
-
-This is an internal error.  Contact the developers.
-
-U: KIM Model does not provide 'energy'; Potential energy will be zero
+W: KIM Model does not provide `partialForce'; Forces will be zero
 
 Self-explanatory.
 
-U: KIM Model does not provide 'forces'; Forces will be zero
+W: KIM Model does not provide `partialParticleEnergy'; energy per atom will be zero
 
 Self-explanatory.
 
-U: KIM Model does not provide 'particleEnergy'; energy per atom will be zero
+W: KIM Model does not provide `partialParticleVirial'; virial per atom will be zero
 
 Self-explanatory.
 
-U: KIM Model does not provide 'particleVirial'; virial per atom will be zero
+E: KIM Model requires unsupported compute callback
 
-Self-explanatory.
+A low-level kim-api error has occurred.
 
 */

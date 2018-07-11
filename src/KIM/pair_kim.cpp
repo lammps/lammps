@@ -193,7 +193,7 @@ void PairKIM::compute(int eflag , int vflag)
    set_argument_pointers();
 
    // set number of particles
-   lmps_local_tot_num_atoms = (int) (atom->nghost + atom->nlocal);
+   lmps_local_tot_num_atoms = (int) nall;
 
    // compute via KIM model
    kimerror = pkim->Compute(pargs);
@@ -391,7 +391,12 @@ void PairKIM::coeff(int narg, char **arg)
       if (supported)
         kim_particle_codes[i] = code;
       else
-        error->all(FLERR,"create_kim_particle_codes: symbol not found ");
+      {
+        std::stringstream msg;
+        msg << "create_kim_particle_codes: symbol not found: "
+            << lmps_unique_elements[i];
+        error->all(FLERR, msg.str().c_str());
+      }
    }
 
    return;
@@ -421,7 +426,7 @@ void PairKIM::init_style()
       lmps_stripped_neigh_ptr = new int*[kim_number_of_neighbor_lists];
       for (int i = 0; i < kim_number_of_neighbor_lists; ++i)
       {
-        lmps_stripped_neigh_ptr[0]
+        lmps_stripped_neigh_ptr[i]
             = &(lmps_stripped_neigh_list[(i-1)*(neighbor->oneatom)]);
       }
 
@@ -855,7 +860,7 @@ void PairKIM::set_lmps_flags()
    // determine if running with pair hybrid
    if (force->pair_match("hybrid",0))
    {
-     error->all(FLERR,"pair_kim does not support hybrid.");
+     error->all(FLERR,"pair_kim does not support hybrid");
    }
 
    // determine unit system and set lmps_units flag

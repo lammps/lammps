@@ -407,8 +407,8 @@ if(PKG_KIM)
   if(DOWNLOAD_KIM)
     include(ExternalProject)
     ExternalProject_Add(kim_build
-      URL https://github.com/openkim/kim-api/archive/v2.0.0-beta.0.tar.gz
-      URL_MD5 2c099fe2603fda9a6904fc50d626f71b
+      URL https://github.com/openkim/kim-api/archive/v2.0.0-beta.1.tar.gz
+      URL_MD5 633e331cc7942c1f0462da71f41f94be
       BUILD_IN_SOURCE 1
       CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
       )

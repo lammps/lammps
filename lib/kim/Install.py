@@ -21,7 +21,7 @@ Syntax from lib dir: python Install.py -b -v version  -a kim-name
 specify one or more options, order does not matter
 
   -v = version of KIM API library to use
-       default = kim-api-v2.0.0-beta.0 (current as of June 2018)
+       default = kim-api-v2.0.0-beta.1 (current as of July 2018)
   -b = download and build base KIM API library with example Models
        this will delete any previous installation in the current folder
   -n = do NOT download and build base KIM API library.
@@ -109,7 +109,7 @@ nargs = len(args)
 if nargs == 0: error()
 
 thisdir = os.environ['PWD']
-version = "kim-api-v2.0.0-beta.0"
+version = "kim-api-v2.0.0-beta.1"
 
 buildflag = False
 everythingflag = False

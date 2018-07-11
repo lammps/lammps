@@ -36,8 +36,8 @@ class UEFBox
     int r[3][3],ri[3][3],a1[3][3],a2[3][3],a1i[3][3],a2i[3][3];
 };
 
-
 // lattice reduction routines
+
 void greedy(double[3][3],int[3][3],int[3][3]);
 void col_sort(double[3][3],int[3][3],int[3][3]);
 void red12(double[3][3],int[3][3],int[3][3]);
@@ -47,6 +47,7 @@ void make_unique(double[3][3],int[3][3],int[3][3]);
 void rotation_matrix(double[3][3],double[3][3],const double [3][3]);
 
 // A few utility functions for 3x3 arrays
+
 template<typename T>
 T col_prod(T x[3][3], int c1, int c2)
 {
@@ -56,8 +57,7 @@ T col_prod(T x[3][3], int c1, int c2)
 template<typename T>
 void col_swap(T x[3][3], int c1, int c2)
 {
-  for (int k=0;k<3;k++)
-  {
+  for (int k=0;k<3;k++) {
     T t = x[k][c2];
     x[k][c2]=x[k][c1];
     x[k][c1]=t;
@@ -105,8 +105,7 @@ void transpose(T m[3][3])
 {
   T t[3][3];
   for (int k=0;k<3;k++)
-    for (int j=k+1;j<3;j++)
-    {
+    for (int j=k+1;j<3;j++) {
       T x = m[k][j];
       m[k][j] = m[j][k];
       m[j][k] = x;

@@ -11,18 +11,33 @@ folder implement an interface between LAMMPS and PLUMED, that are written
 and maintained by Gareth Tribello (gareth.tribello@gmail.com).
 
 PLUMED must instead be downloaded and compiled separately to LAMMPS.  This building 
-and compiling of PLUEMD can be done before or after the building of LAMMPS as LAMMPS 
-calls PLUMED as a dynamic library.  If you wish to use PLUMED with LAMMPS, however, 
-you must run the command:
+and compiling of PLUMED can be done before or after the building of LAMMPS as LAMMPS 
+can call PLUMED as a dynamic library.  There is also the possibility to link PLUEMD 
+statically.  In this case a copy of PLUMED must be downloaded into the lib/plumed 
+directory.  This copy of PLUMED will then always be linked into the code at compile 
+time. 
+
+However you decide to link PLUMED (statically or dynamically) you must run the command:
 
 make yes-user-plumed
 
-before compiling LAMMPS.  Furthermore, you must ensure that PLUMED is in your 
+before compiling LAMMPS in order to enable the module.   In addition, if you have chosen to 
+link PLUMED dynamically you must ensure that PLUMED is in your 
 PATH when running a LAMMPS calculation that takes advantage of PLUMED.  If 
-PLUMED is not in the PATH an error will be returned whenever LAMMPS encounters 
-the fix plumed command in its input.  To be clear, however, LAMMPS will run if 
-it is compiled with fix-plumed enabled on inputs that do not contain a fix 
-plumed command when PLUMED is not in the PATH.
+PLUMED is linked as a runtime library and if PLUMED is not in the PATH an error will be returned whenever LAMMPS encounters 
+the fix plumed command in its input.  To be clear, however, a LAMMPS executable that was dynamically linked with PLUMED will run 
+even if PLUMED is not in the path if as long as the input does not contain a fix 
+plumed command.
+
+If you wish to statically link PLUMED you must download PLUMED to the /lib/plumed directory before compiling LAMMPS.  You can 
+download a tar ball into that directory or you can clone the plumed2 repository from github there.  Once you have created a 
+directory containing a distribution of PLUMED within /lib/plumed you then must build PLUMED within that directory by issuing 
+the usual commands.  It is worth noting that we have provided a script that will download and build PLUMED for you with 
+a minimal set of options.  To run this script you need to issue the following command:
+
+make lib-plumed args="-b"
+
+in the src directory. 
 
 More info about the PLUMED library can be found at:
 
@@ -45,7 +60,7 @@ numerous example scripts for PLUMED as well as citations to articles that dcomen
 implemented within PLUMED.
 
 There are also example scripts for using this package in the folder
-examples/USER/colvars, as well as on the GitHub page for PLUMED.
+examples/USER/plumed, as well as on the GitHub page for PLUMED.
 
 Please contact Gareth Tribello (gareth.tribello@gmail.com) for questions
 regarding this package.

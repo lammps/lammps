@@ -14,9 +14,9 @@ if (test $1 = 1) then
     # This is for statically linking plumed2
     if ( test -e ../../lib/plumed/plumed2*/src/lib/Plumed.inc.static ) then  
        fname=`ls ../../lib/plumed/plumed2*/src/lib/Plumed.inc.static` 
-       sed -i -e "4 i \
-include $fname
-" ../Makefile.package.settings
+       sed -i -e '4 i \
+include '$fname'
+' ../Makefile.package.settings
        dname=`ls ../../lib/plumed/plumed2*/src/wrapper/Plumed.h`
        ln -s USER-PLUMED/$dname ../Plumed.h
     # This is for linking plumed2 as a runtime library  -- this is the default behavior

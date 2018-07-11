@@ -20,12 +20,12 @@
    Please cite the related publication:
    Tranchida, J., Plimpton, S. J., Thibaudeau, P., & Thompson, A. P. (2018).
    Massively parallel symplectic algorithm for coupled magnetic spin dynamics
-   and molecular dynamics. arXiv preprint arXiv:1801.10233.
+   and molecular dynamics. Journal of Computational Physics.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "atom.h"
 #include "atom_vec_spin.h"
 #include "comm.h"
@@ -54,7 +54,7 @@ AtomVecSpin::AtomVecSpin(LAMMPS *lmp) : AtomVec(lmp)
   size_data_atom = 9;
   size_data_vel = 4;
   xcol_data = 4;
-  
+
   atom->sp_flag = 1;
 }
 

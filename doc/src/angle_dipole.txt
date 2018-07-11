@@ -96,16 +96,17 @@ USER-MISC package.  See the "Making LAMMPS"_Section_start.html#start_2_3
 section for more info on packages.
 
 NOTE: In the "Angles" section of the data file, the atom ID 'j'
-corresponding to the dipole to restrain must come before the atom ID
-of the reference atom 'i'. A third atom ID 'k' must also be provided,
-although 'k' is just a 'dummy' atom which can be any atom; it may be
-useful to choose a convention (e.g., 'k'='i') and adhere to it.  For
-example, if ID=1 for the dipolar atom to restrain, and ID=2 for the
-reference atom, the corresponding line in the "Angles" section of the
-data file would read: X X 1 2 2
+defining the direction of the dipole vector to restrain must come
+before the atom ID of the reference atom 'i'. A third atom ID 'k' must
+also be provided to comply with the requirement of a valid angle
+definition. This atom ID k should be chosen to be that of an atom
+bonded to atom 'i' to avoid errors with "lost angle atoms" when running
+in parallel. Since the LAMMPS code checks for valid angle definitions,
+cannot use the same atom ID of either 'i' or 'j' (this was allowed
+and recommended with older LAMMPS versions).
 
 The "newton" command for intramolecular interactions must be "on"
-(which is the default).
+(which is the default except when using some accelerator packages).
 
 This angle style should not be used with SHAKE.
 

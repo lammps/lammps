@@ -70,4 +70,4 @@ See the "Making LAMMPS"_Section_start.html#start_3 section for more info.
 
 :link(Tranchida4)
 [(Tranchida)] Tranchida, Plimpton, Thibaudeau, and Thompson, 
-arXiv preprint arXiv:1801.10233, (2018).
+Journal of Computational Physics, (2018).

@@ -585,6 +585,9 @@ void VerletKokkos::force_clear()
 {
   if (external_force_clear) return;
 
+  atomKK->k_f.modified_host() = 0; // ignore host forces/torques since device views
+  atomKK->k_torque.modified_host() = 0; //   will be cleared below
+
   // clear force on all particles
   // if either newton flag is set, also include ghosts
   // when using threads always clear all forces.

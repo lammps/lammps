@@ -20,7 +20,7 @@ create_atoms	1 box
 pair_style	lj/cut 8.1500
 pair_coeff	1 1 0.0104 3.4000
 
-#pair_style      kim KIMvirial LennardJones_Ar
+#pair_style      kim LennardJones_Ar
 #pair_coeff      * * Ar
 
 mass		1 39.95

@@ -192,6 +192,9 @@ void FixPlumed::min_setup(int vflag)
 
 void FixPlumed::post_force(int vflag)
 {
+// Check tag is enabled
+  if( !atom->tag_enable ) error->all(FLERR,"to run PLUMED you must have tag_enable==1");
+
   int update_gatindex=0;
 // Try to find out if the domain decomposition has been updated:
   if(nlocal!=atom->nlocal){
@@ -216,10 +219,18 @@ void FixPlumed::post_force(int vflag)
 // In case it has been updated, rebuild the local mass/charges array
 // and tell plumed about the change:
   if(update_gatindex){
-    for(int i=0;i<nlocal;i++){
-      gatindex[i]=atom->tag[i]-1;
-      masses[i]=atom->mass[atom->type[i]];
-      if(atom->q) charges[i]=atom->q[i];
+    for(int i=0;i<nlocal;i++) gatindex[i]=atom->tag[i]-1;
+    // Get masses 
+    if(atom->rmass_flag) {
+       for(int i=0;i<nlocal;i++) masses[i]=atom->rmass[i];
+    } else {
+       for(int i=0;i<nlocal;i++) masses[i]=atom->mass[atom->type[i]];
+    }
+    // Get charges
+    if(atom->q_flag) {
+       for(int i=0;i<nlocal;i++) charges[i]=atom->q[i];
+    } else {
+       for(int i=0;i<nlocal;i++) charges[i]=0.0;
     }
     p->cmd("setAtomsNlocal",&nlocal);
     p->cmd("setAtomsGatindex",gatindex);

@@ -10,14 +10,13 @@ pair_style kim command :h3
 
 [Syntax:]
 
-pair_style kim virialmode model :pre
+pair_style kim model :pre
 
-virialmode = KIMvirial or LAMMPSvirial
 model = name of KIM model (potential)
 
 [Examples:]
 
-pair_style kim KIMvirial ex_model_Ar_P_LJ
+pair_style kim ex_model_Ar_P_LJ
 pair_coeff * * Ar Ar :pre
 
 [Description:]
@@ -54,11 +53,6 @@ LAMMPS"_Section_start.html#start_3 section and the ./lib/kim/README for details
 on how to build LAMMSPS with the kim-api and how to install the example models.
 
 :line
-
-The argument {virialmode} determines how the global virial is
-calculated.  If {KIMvirial} is specified, the KIM model performs the
-global virial calculation (if it knows how).  If {LAMMPSvirial} is
-specified, LAMMPS computes the global virial using its fdotr mechanism.
 
 The argument {model} is the name of the KIM model for a specific
 potential as KIM defines it.  In principle, LAMMPS can invoke any KIM
@@ -121,7 +115,7 @@ LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 
 This current version of pair_style kim is compatible with the
-kim-api package version 2.0.0-beta.0 and higher.
+kim-api package version 2.0.0-beta.1 and higher.
 
 [Related commands:]
 

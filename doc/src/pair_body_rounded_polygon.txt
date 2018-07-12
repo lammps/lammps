@@ -93,9 +93,6 @@ These pair styles are part of the BODY package.  They are only enabled
 if LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 
-NOTE: is there a newton on or off requirement for using this pair style?
-If so, say something like this:
-
 This pair style requires the "newton"_newton.html setting to be "on"
 for pair interactions.
 

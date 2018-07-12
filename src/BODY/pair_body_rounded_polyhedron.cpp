@@ -400,6 +400,10 @@ void PairBodyRoundedPolyhedron::init_style()
                "body style rounded/polyhedron");
   bptr = (BodyRoundedPolyhedron *) avec->bptr;
 
+  if (force->newton_pair == 0)
+    error->all(FLERR,"Pair style body/rounded/polyhedron requires "
+               "newton pair on");
+
   if (comm->ghost_velocity == 0)
     error->all(FLERR,"Pair body/rounded/polyhedron requires "
                "ghost atoms store velocity");

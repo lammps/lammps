@@ -1,3 +1,9 @@
+#  Needs make yes-molecule
+#        make yes-rigid
+#        make yes-kspace
+#        make yes-user-plumed    ( obviously )
+
+
 #!/bin/bash
 
 LAMMPS=../../../src/lmp_mpi

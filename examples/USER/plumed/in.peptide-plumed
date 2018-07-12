@@ -35,10 +35,7 @@ fix		4 all shake 0.0001 10 100 b 4 6 8 10 12 14 18 a 31
 
 thermo_style	custom step temp etotal pe ke epair ebond f_2
 thermo		10
-dump            dd all xyz 10 lammps.xyz
 variable        step equal step
 variable        pe equal pe
-fix             5 all print 10 "$(v_step) $(v_pe)" file lammps_energy
-dump            mq all custom 200 mq_lammps id mass q 
 
 run		101

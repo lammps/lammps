@@ -49,8 +49,8 @@ PairATM::PairATM(LAMMPS *lmp) : Pair(lmp)
   if (lmp->citeme) lmp->citeme->add(cite_atm_package);
 
   single_enable = 0;
-  restartinfo = 0;
-  one_coeff = 1;
+  restartinfo = 1;
+  one_coeff = 0;
   manybody_flag = 1;
 }
 
@@ -78,6 +78,7 @@ void PairATM::compute(int eflag, int vflag)
   double xi,yi,zi,evdwl;
   double rij2,rik2,rjk2,r6;
   double rij[3],rik[3],rjk[3],fj[3],fk[3];
+  double nu_local;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
@@ -128,8 +129,10 @@ void PairATM::compute(int eflag, int vflag)
         r6 = rij2*rik2*rjk2;
         if (r6 > cut_sixth) continue;
 
-        interaction_ddd(nu[type[i]][type[j]][type[k]],
-                  r6,rij2,rik2,rjk2,rij,rik,rjk,fj,fk,eflag,evdwl);
+        nu_local = nu[type[i]][type[j]][type[k]];
+        if (nu_local == 0.0) continue;
+        interaction_ddd(nu_local,
+                        r6,rij2,rik2,rjk2,rij,rik,rjk,fj,fk,eflag,evdwl);
 
         f[i][0] -= fj[0] + fk[0];
         f[i][1] -= fj[1] + fk[1];
@@ -168,6 +171,12 @@ void PairATM::coeff(int narg, char **arg)
   if (narg != 4)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
+
+  int n = atom->ntypes;
+  for (int i = 0; i <= n; i++)
+    for (int j = 0; j <= n; j++)
+      for (int k = 0; k <= n; k++)
+        nu[i][j][k] = 0.0;
 
   int ilo,ihi,jlo,jhi,klo,khi;
   force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
@@ -229,7 +238,9 @@ void PairATM::write_restart(FILE *fp)
   for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
-      if (setflag[i][j]) for (k = i; k <= atom->ntypes; k++) fwrite(&nu[i][j][k],sizeof(double),1,fp);
+      if (setflag[i][j]) 
+        for (k = i; k <= atom->ntypes; k++) 
+          fwrite(&nu[i][j][k],sizeof(double),1,fp);
     }
   }
 }

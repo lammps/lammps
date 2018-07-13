@@ -10,16 +10,21 @@ pair_style atm command :h3
 
 [Syntax:]
 
-pair_style atm args = cutoff :pre
+pair_style atm cutoff :pre
+
+cutoff = global cutoff for 3-body interactions (distance units) :ul
 
 [Examples:]
 
 pair_style 2.5
 pair_coeff * * * 0.072 :pre
 
-pair_style	hybrid/overlay lj/cut 6.5 atm 2.5
-pair_coeff	* * lj/cut 1.0 1.0
-pair_coeff	* * atm * 0.072 :pre
+pair_style hybrid/overlay lj/cut 6.5 atm 2.5
+pair_coeff * * lj/cut 1.0 1.0
+pair_coeff 1 1 atm 1 0.064
+pair_coeff 1 1 atm 2 0.080
+pair_coeff 1 2 atm 2 0.100
+pair_coeff 2 2 atm 2 0.125 :pre
 
 [Description:]
 
@@ -28,36 +33,104 @@ potential for the energy E of a system of atoms as
 
 :c,image(Eqs/pair_atm.jpg)
 
-where r12, r23 and r31 are the distances between the atoms,
-gamma1 is included by the sides r12 and r31
-with similar definitions for gamma2 and gamma3,
-nu is the three-body interaction strength (energy times distance^9 units).
+where nu is the three-body interaction strength,
+and the distances between pairs of atoms r12, r23 and r31
+and the angles gamma1, gamma2 and gamma3
+are shown at the diagram:
 
-The {atm} is typically used in compination with some two-body potential
-using "hybrid/overlay"_pair_hybrid.html style as in an example above.
+:c,image(JPG/pair_atm_dia.jpg)
 
-The calculations are not undertaken if the distances between atoms satisfy
-r12 r23 r31 > curoff^3. Virtual cutoff distance based on a user defined
-tolerance tol is not used.
+There is no \"central\" atom, the interaction is symmetric with respect
+to permutation of atom types.
 
-The Axilrod-Teller-Muto potential file must contain entries for all the
-elements listed in the pair_coeff command.  It can also contain
-entries for additional elements not being used in a particular
-simulation; LAMMPS ignores those entries.
+The {atm} potential is typically used in combination with a two-body
+potential using the "pair_style hybrid/overlay"_pair_hybrid.html
+command as in the example above.
 
-For a single-element simulation, only a single entry is required
-(e.g. 1 1 1).  For a two-element simulation, the file must contain 4
-entries (eg. 1 1 1, 1 1 2, 1 2 2, 2 2 2), that
-specify ATM parameters for all combinations of the two elements
-interacting in three-body configurations.  Thus for 3 elements, 10
-entries would be required, etc.
+The potential is calculated if all three atoms are in the
+"neighbor list"_neighbor.html
+and the distances between atoms satisfy r12 r23 r31 > cutoff^3.
+
+The following coefficients must be defined for each pair of atoms
+types via the "pair_coeff"_pair_coeff.html command as in the examples
+above, or in the restart files read by the
+"read_restart"_read_restart.html commands:
+
+K - the type of the third atom
+nu (energy/distance^9 units) :ul
+
+For a single-atom type simulation, only a single entry is required, eg
+
+pair_coeff 1 1 1 nu :pre
+
+where all three atoms are of type 1.
+For a two-atom type simulation, more pair_coeff commands can be used.
+ATM interaction is symmetric with respect to permutation of atoms,
+it is necessary to provide pair_coeff command for one permutation.
+For example, the command
+
+pair_coeff 1 1 2 nu :pre
+
+also implies
+
+pair_coeff 1 2 1 nu
+pair_coeff 2 1 1 nu :pre
+
+Thus, to specify all ATM interactions between two atom types (eg 1 and 2)
+it is sufficient to provide four pair_coeff commands, eg:
+
+pair_coeff 1 1 1 nu1
+pair_coeff 1 1 2 nu2
+pair_coeff 1 2 2 nu3
+pair_coeff 2 2 2 nu4 :pre
+
+For 3 atom types, 10 pair_coeff commands
+(eg 111, 112, 113, 122, 123, 133, 222, 223, 233, 333)
+will describe all possible ATM interactions, etc.
+It is not necessary to provide the pair_coeff commands for interactions
+of all combinations of atom types: if some combination is not defined then
+there is no ATM interaction for this combination and all its permutations.
+
+--------------------
+
+[Steve:]
+
+I think a better syntax for the pair coeff command might be this:
+
+pair_coeff I J v1 v2 ... vN
+
+when 1,2,...N are the number of atom types defined.
+Then there be one pair_coeff command for each type pair,
+the same syntax as all other potentials in LAMMPS use.
+
+[Sergey:]
+
+The reason for my original pair_coeff command syntax is that
+I would like to reserve further arguments for possible extension of
+ATM potential in LAMMPS to further terms in the multipole expansion of
+many-body dispersion interaction.
+For example, the next term would be dipole-dipole-quadrupole, it may be
+activated if the next argument of pair_coeff is present
+without breaking backward compatibility.
+
+Also, the command you propose
+(i) will not account that the value of nu for different permutations
+of atom types is the same, and
+(ii) will make the numbering of atom types messy since there is
+no requirement to supply the values of nu for all triplets.
+
+--------------------
 
 :line
 
-[Shift, table, tail correction, rRESPA info]:
+[Mixing, shift, table, tail correction, restart, rRESPA info]:
 
-This pair style does not support the "pair_modify"_pair_modify.html
-shift, table, and tail options.
+This pair styles do not support the "pair_modify"_pair_modify.html
+mix, shift, table, and tail options.
+
+This pair style writes its information to "binary restart
+files"_restart.html, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the {pair} keyword of the
 "run_style respa"_run_style.html command.  It does not support the
@@ -68,8 +141,8 @@ This pair style can only be used via the {pair} keyword of the
 [Restrictions:]
 
 This pair style is part of the MANYBODY package.  It is only enabled
-if LAMMPS was built with that package.  See
-the "Making LAMMPS"_Section_start.html#start_3 section for more info.
+if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
 
@@ -82,4 +155,4 @@ the "Making LAMMPS"_Section_start.html#start_3 section for more info.
 :link(Axilrod)
 [(Axilrod)]
 Axilrod and Teller, J Chem Phys, 11, 299 (1943);
-Muto, Nippon Sugaku Butsuri Gakkwaishi 17, 629 (1943).
+Muto, Nippon Sugaku-Buturigakkwaishi 17, 629 (1943).

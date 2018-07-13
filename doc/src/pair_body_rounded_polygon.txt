@@ -18,8 +18,6 @@ mu = normal friction coefficient during gross sliding
 delta_ua = multiple contact scaling factor
 cutoff = global separation cutoff for interactions (distance units), see below for definition :pre
 
-NOTE: what does gross sliding mean?
-
 [Examples:]
 
 pair_style body/rounded/polygon 20.0 5.0 0.0 1.0 0.5
@@ -38,7 +36,7 @@ body particles.
 This pairwise interaction between rounded polygons is described in
 "Fraige"_#Fraige, where a polygon does not have sharp corners, but is
 rounded at its vertices by circles centered on each vertex with a
-specified diameter.  The edges of the polygon are defined bewteen
+specified diameter.  The edges of the polygon are defined between
 pairs of adjacent vertices.  The circle diameter for each polygon is
 specified in the data file read by the "read data"_read_data.html
 command.  This is a 2d discrete element model (DEM) which allows for
@@ -47,7 +45,7 @@ multiple contact points.
 Note that when two particles interact, the effective surface of each
 polygon particle is displaced outward from each of its vertices and
 edges by half its circle diameter.  The interaction forces and
-energies bewteen two particles are defined with respect to the
+energies between two particles are defined with respect to the
 separation of their respective rounded surfaces, not by the separation
 of the vertices and edges themselves.
 
@@ -65,7 +63,15 @@ explains how contact is defined?  Do we need an equation(s) that
 explain what the params in pair style and coeff mean, for damping and
 spring constants?  Or do we just want to reference the paper for that?
 
-NOTE: say something about no frictional history ?
+In "Fraige"_#Fraige, the tangential friction force between two particles
+that are in contact is modeled differently prior to gross sliding
+(i.e. static friction) and during gross-sliding (kinetic friction).
+The latter takes place when the tangential deformation exceeds
+the Coulomb frictional limit.  In the current implementation, however,
+we do not take into account frictional history, i.e. we do not keep track
+of how many time steps the two particles have been in contact
+nor calculate the tangential deformation. We assume that gross sliding
+takes place right when two particles are in contact.
 
 The following coefficients must be defined for each pair of atom types
 via the "pair_coeff"_pair_coeff.html command as in the examples above,

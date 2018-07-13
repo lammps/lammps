@@ -16,9 +16,7 @@ c_n = normal damping coefficient
 c_t = tangential damping coefficient
 mu = normal friction coefficient during gross sliding
 delta_ua = multiple contact scaling factor
-cutoff = global sepration cutoff for interactions (distance units), see below for definition :pre
-
-NOTE: what does gross sliding mean?
+cutoff = global separation cutoff for interactions (distance units), see below for definition :pre
 
 [Examples:]
 
@@ -39,16 +37,16 @@ This pairwise interaction between rounded polyhedra is described in
 "Wang"_#Wang, where a polyhedron does not have sharp corners and
 edges, but is rounded at its vertices and edges by spheres centered on
 each vertex with a specified diameter.  The edges if the polyhedron
-are defined bewteen pairs of adjacent vertices.  Its faces are defined
+are defined between pairs of adjacent vertices.  Its faces are defined
 by a loop of edges.  The sphere diameter for each polygon is specified
 in the data file read by the "read data"_read_data.html command.  This
 is a discrete element model (DEM) which allows for multiple contact
 points.
 
-Note that when two particles interaact, the effective surface of each
+Note that when two particles interact, the effective surface of each
 polyhedron particle is displaced outward from each of its vertices,
 edges, and faces by half its sphere diameter.  The interaction forces
-and energies bewteen two particles are defined with respect to the
+and energies between two particles are defined with respect to the
 separation of their respective rounded surfaces, not by the separation
 of the vertices, edges, and faces themselves.
 
@@ -66,7 +64,15 @@ explains how contact is defined?  Do we need an equation(s) that
 explain what the params in pair style and coeff mean, for damping and
 spring constants?  Or do we just want to reference the paper for that?
 
-NOTE: say something about no frictional history ?
+In "Wang"_#Wang, the tangential friction force between two particles
+that are in contact is modeled differently prior to gross sliding
+(i.e. static friction) and during gross-sliding (kinetic friction).
+The latter takes place when the tangential deformation exceeds
+the Coulomb frictional limit.  In the current implementation, however,
+we do not take into account frictional history, i.e. we do not keep track
+of how many time steps the two particles have been in contact
+nor calculate the tangential deformation. We assume that gross sliding
+takes place right when two particles are in contact.
 
 The following coefficients must be defined for each pair of atom types
 via the "pair_coeff"_pair_coeff.html command as in the examples above,

@@ -37,31 +37,18 @@ done
 if (test $1 = 1) then
 
   if (test -e ../Makefile.package) then
+    sed -i -e 's/`.*scafacos.*` //' ../Makefile.package
     sed -i -e 's/[^ \t]*scafacos[^ \t]* //' ../Makefile.package
     sed -i -e 's|^PKG_INC =[ \t]*|&-I../../lib/scafacos/includelink |' ../Makefile.package
     sed -i -e 's|^PKG_PATH =[ \t]*|&-L../../lib/scafacos/liblink |' ../Makefile.package
-    #sed -i -e 's|^PKG_LIB =[ \t]*|&-lscafacos |' ../Makefile.package
-    sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(scafacos_SYSINC) |' ../Makefile.package
-    sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(scafacos_SYSLIB) |' ../Makefile.package
-    sed -i -e 's|^PKG_SYSPATH =[ \t]*|&$(scafacos_SYSPATH) |' ../Makefile.package
-  fi
-
-  if (test -e ../Makefile.package.settings) then
-    sed -i -e '/^include.*scafacos.*$/d' ../Makefile.package.settings
-    # multiline form needed for BSD sed on Macs
-    sed -i -e '4 i \
-include ..\/..\/lib\/scafacos\/Makefile.lammps
-' ../Makefile.package.settings
+    sed -i -e 's%^PKG_LIB =[ \t]*%&`grep Libs: ../../lib/scafacos/liblink/pkgconfig/scafacos.pc | cut -d " " -f 2-` %' ../Makefile.package
   fi
 
 elif (test $1 = 0) then
 
-  if (test -e ../Makefile.package) then
+  if (test -e ../Makefile.package) then 
+    sed -i -e 's/`.*scafacos.*` //' ../Makefile.package
     sed -i -e 's/[^ \t]*scafacos[^ \t]* //' ../Makefile.package
-  fi
-
-  if (test -e ../Makefile.package.settings) then
-    sed -i -e '/^include.*scafacos.*$/d' ../Makefile.package.settings
   fi
 
 fi

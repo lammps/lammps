@@ -17,6 +17,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <cstdlib>
 #include "fix_scafacos.h"
 #include "atom.h"
 #include "comm.h"
@@ -81,7 +82,7 @@ FixScafacos::FixScafacos(LAMMPS *lmp, int narg, char **arg) :
       else
         error->all(FLERR,"Illegal fix scafacos command");
       ++arg_index;
-        tolerance_value = atof(arg[arg_index]);
+      tolerance_value = atof(arg[arg_index]);
       ++arg_index; 
     }
     else
@@ -439,6 +440,7 @@ bool FixScafacos::check_result(FCSResult result, int comm_rank)
 {
   if (result) 
   {
+    printf("ScaFaCoS Error: Caught error on task %d.\n", comm_rank);
     std::string err_msg;
     std::stringstream ss;
 
@@ -446,8 +448,9 @@ bool FixScafacos::check_result(FCSResult result, int comm_rank)
        << fcs_result_get_message(result) << "\n";
     err_msg = ss.str();
 
-    error->one(FLERR, err_msg.c_str());
+    error -> all(FLERR, err_msg.c_str());
     fcs_result_destroy(result);
   }
   return true;
 }
+ 

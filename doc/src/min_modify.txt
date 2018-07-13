@@ -13,39 +13,43 @@ min_modify command :h3
 min_modify keyword values ... :pre
 
 one or more keyword/value pairs may be listed :ulb,l
-keyword = {dmax} or {line} 
-          or {integrator} or {tmax} or {tmin} 
-          or {delaystep} or {dt_grow} or {dt_shrink} or {alpha0} or {alpha_shrink}
-          or {relaxbox} or {relaxbox_mod} or {relaxbox_rate} or {ptol}
-          or {halfstepback}
-  {dmax} value = max
+these keywords apply to various min styles :l
+keyword = {dmax} or {line} :l
+  {dmax} arg = max
     max = maximum distance for line search to move (distance units)
-  {line} value = {backtrack} or {quadratic} or {forcezero}
-    backtrack,quadratic,forcezero = style of linesearch to use
-  {integrator} value = {eulerimplicit} or {eulerexplicit} or {verlet} or {leapfrog}
-    eulerimplicit,eulerexplicit,verlet,leapfrog = integration scheme (adaptglok)
-  {tmax} value = coef
-    coef = factor defining the maximum timestep (adaptglok)
-  {tmin} value = coef
-    coef = factor defining the minimum timestep (adaptglok)
-  {delaystep} value = steps
-    steps = number of steps for dynamics temporization (adaptglok)
-  {dtgrow} value = grow
-    grow = factor increasing the timestep (adaptglok)
-  {dtshrink} value = shrink
-    shrink = factor decreasing the timestep (adaptglok)
-  {alpha0} value = alpha
-    alpha = coefficient mixing velocities and forces (adaptglok)
-  {alphashrink} value = shrink
-    shrink = factor decreasing alpha (adaptglok)
-  {relaxbox} value = {no} or {iso} or {axial} or {x} or {y} or {z}
+  {line} arg = {backtrack} or {quadratic} or {forcezero}
+    backtrack,quadratic,forcezero = style of linesearch to use :pre
+these keywords apply only to the {adaptglok} "min_style"_min_style.html :l
+keyword = {integrator} or {tmax} or {tmin} or {delaystep} or {dtgrow} or {dtshrink} or {alpha0} or {alphashrink} or {relaxbox} or {relaxbox_mod} or {relaxbox_rate} or {ptol} or {halfstepback} or {initialdelay} or {vdfmax} :l
+  {integrator} arg = {eulerimplicit} or {eulerexplicit} or {verlet} or {leapfrog}
+    eulerimplicit,eulerexplicit,verlet,leapfrog = integration scheme
+  {tmax} arg = coef
+    coef = factor defining the maximum timestep
+  {tmin} arg = coef
+    coef = factor defining the minimum timestep
+  {delaystep} arg = delay
+    delay = number of steps for dynamics temporization
+  {dtgrow} arg = grow
+    grow = factor increasing the timestep
+  {dtshrink} arg = shrink
+    shrink = factor decreasing the timestep
+  {alpha0} arg = alpha
+    alpha = coefficient mixing velocities and forces
+  {alphashrink} arg = shrink
+    shrink = factor decreasing alpha
+  {relaxbox} arg = {no} or {iso} or {axial} or {x} or {y} or {z}
     no = no changes in box dimension (default)
-    iso,aniso,x,y,z = type of box relaxation  (adaptglok)
-  {relaxbox_mod} value = modulus
-    modulus = bulk modulus of the system, order of magnitude (adaptglok)
-  {relaxbox_rate} value = rate
-    rate = scaling factor to relax the box dimensions (adaptglok) 
-  {halfstepback} value = {yes} or {no} (adaptglok) :pre
+    iso, aniso, x, y, z = type of box relaxation
+  {relaxbox_mod} arg = modulus
+    modulus = bulk modulus of the system, order of magnitude (pressure units)
+  {relaxbox_rate} arg = rate
+    rate = scaling factor to relax the box dimensions
+  {ptol} arg = pressure
+    pressure = threshold below which the box pressure is considered as null (pressure units)
+  {vdfmax} arg = max 
+    max = maximum number of consecutive iterations with P(t) < 0 before forced interruption 
+  {halfstepback} arg = {yes} or {no}
+  {initialdelay} arg = {yes} or {no} :pre
 :ule
 
 [Examples:]
@@ -108,15 +112,22 @@ the timestep can reached during the relaxation is 2 ps (with the default
 Note that even with the default parameters being chosen to be reliable in most
 cases, adjusting "timestep"_timestep.html, {tmax} and {tmin} should be consider
 to optimize the minimization, in particular for large/complex system.
-For debugging purposes, it is possible to switch off the back step when 
-downhill with {halfstepback} = 0.
+An additionnal stopping criteria {vdfmax} is added in order to avoid unnecessary looping
+when it is reasonable to think the system will not be relaxed further.
+Note that in this case the system will NOT be relaxed. This could
+happen when the system comes to be stuck in a local basin of the phase space. 
+{vdfmax} is the maximum number of consecutive iterations with P(t) < 0. 
+For debugging purposes, it is possible to switch off the intertia correction 
+({halfstepback} = {no}) and the initial temporization ({initialdelay} = {no}).
 
 The style {adaptglok} performing a damped dynamics, it is not possible to use
 "fix box/relax"_fix_box_relax.html to relax the simulation box.
 Thus {adaptglok} implements a rudimentary box relaxation procedure that can be
 controlled by the keywords {relaxbox}, {relaxbox_mod}, {relaxbox_rate} 
 and {ptol}.
-Note that {relaxbox_mod} doesn't requires the exact value for the bulk modulus,
+The argument {relaxbox} controle in which directions the pressure is relaxe.
+Note that the corresponding directions have to be periodic.
+Note also that {relaxbox_mod} doesn't requires the exact value for the bulk modulus,
 but rather the order of magnitude (in pressure "units"_units.html).
 Ultimately, {relaxbox_mod} and {relaxbox_rate} 
 control how fast the relaxation of the box is performed: lower values will slow
@@ -133,6 +144,6 @@ down the box relaxation but improve the stability of the procedure.
 
 The option defaults are dmax = 0.1, line = quadratic, 
 integrator = eulerimplicit, tmax = 2.0, tmin = 0.02,
-delaystep = 20, dt_grow = 1.1, dt_shrink = 0.5, alpha0 = 0.25, alpha_shrink = 0.99,
+delaystep = 20, dtgrow = 1.1, dtshrink = 0.5, alpha0 = 0.25, alphashrink = 0.99,
 relaxbox = no, relaxbox_mod = 1e6 and relaxbox_rate = 0.33, ptol = 0.1
-and halfstepback = yes.
+vdfmax = 2000, halfstepback = yes and initialdelay = yes.

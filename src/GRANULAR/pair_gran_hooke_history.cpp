@@ -39,7 +39,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
+PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp, int _size_history) : Pair(lmp),
+  size_history(_size_history)
 {
   single_enable = 1;
   no_virial_fdotr_compute = 1;
@@ -57,6 +58,8 @@ PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
   // set comm size needed by this Pair if used with fix rigid
 
   comm_forward = 1;
+
+  nondefault_history_transfer = 0; //keep default behavior of history[i][j] = -history[j][i]
 }
 
 /* ---------------------------------------------------------------------- */
@@ -412,7 +415,7 @@ void PairGranHookeHistory::init_style()
 
   if (history && fix_history == NULL) {
     char dnumstr[16];
-    sprintf(dnumstr,"%d",3);
+    sprintf(dnumstr,"%d",size_history);
     char **fixarg = new char*[4];
     fixarg[0] = (char *) "NEIGH_HISTORY";
     fixarg[1] = (char *) "all";

@@ -439,7 +439,6 @@ bool FixScafacos::check_result(FCSResult result, int comm_rank)
 {
   if (result) 
   {
-    fprintf(stdout,"ScaFaCoS Error: Caught error on task %d.\n", comm_rank);
     std::string err_msg;
     std::stringstream ss;
 
@@ -447,7 +446,7 @@ bool FixScafacos::check_result(FCSResult result, int comm_rank)
        << fcs_result_get_message(result) << "\n";
     err_msg = ss.str();
 
-    error -> one(FLERR, err_msg.c_str());
+    error->one(FLERR, err_msg.c_str());
     fcs_result_destroy(result);
   }
   return true;

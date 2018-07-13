@@ -14,7 +14,7 @@ neighbor	1.0 bin
 neigh_modify	delay 0
 
 # using the fmm solver with a tolerance in energy of 10^-3
-fix		1 all scafacos fmm energy 0.001
+fix		1 all scafacos fmm tolerance energy 0.001
 
 timestep	0.005
 

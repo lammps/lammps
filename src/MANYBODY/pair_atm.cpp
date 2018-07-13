@@ -49,13 +49,8 @@ PairATM::PairATM(LAMMPS *lmp) : Pair(lmp)
   if (lmp->citeme) lmp->citeme->add(cite_atm_package);
 
   single_enable = 0;
-<<<<<<< HEAD
   restartinfo = 1;
   one_coeff = 0;
-=======
-  //restartinfo = 1;                   // it does save restart info, correct?
-  //one_coeff = 0;                   // it does not only use * *, correct?
->>>>>>> 75ec0a6a990ae6eec59ca7fa80c8cff14d561495
   manybody_flag = 1;
 }
 
@@ -134,13 +129,9 @@ void PairATM::compute(int eflag, int vflag)
         r6 = rij2*rik2*rjk2;
         if (r6 > cut_sixth) continue;
 
-<<<<<<< HEAD
         nu_local = nu[type[i]][type[j]][type[k]];
         if (nu_local == 0.0) continue;
         interaction_ddd(nu_local,
-=======
-        interaction_ddd(nu[type[i]][type[j]][type[k]],
->>>>>>> 75ec0a6a990ae6eec59ca7fa80c8cff14d561495
                         r6,rij2,rik2,rjk2,rij,rik,rjk,fj,fk,eflag,evdwl);
 
         f[i][0] -= fj[0] + fk[0];

@@ -21,14 +21,10 @@ pair_coeff * * * 0.072 :pre
 
 pair_style hybrid/overlay lj/cut 6.5 atm 2.5
 pair_coeff * * lj/cut 1.0 1.0
-<<<<<<< HEAD
 pair_coeff 1 1 atm 1 0.064
 pair_coeff 1 1 atm 2 0.080
 pair_coeff 1 2 atm 2 0.100
 pair_coeff 2 2 atm 2 0.125 :pre
-=======
-pair_coeff * * atm * 0.072 :pre
->>>>>>> 75ec0a6a990ae6eec59ca7fa80c8cff14d561495
 
 [Description:]
 
@@ -37,7 +33,6 @@ potential for the energy E of a system of atoms as
 
 :c,image(Eqs/pair_atm.jpg)
 
-<<<<<<< HEAD
 where nu is the three-body interaction strength,
 and the distances between pairs of atoms r12, r23 and r31
 and the angles gamma1, gamma2 and gamma3
@@ -47,18 +42,11 @@ are shown at the diagram:
 
 There is no \"central\" atom, the interaction is symmetric with respect
 to permutation of atom types.
-=======
-where r12, r23 and r31 are the distances between pairs of atoms,
-gamma1 is the angle ???, gamma2 is the angle ???, gamma3 is the angle
-???, and nu is the three-body interaction strength.
-A diagram of the 3 atoms might help here.
->>>>>>> 75ec0a6a990ae6eec59ca7fa80c8cff14d561495
 
 The {atm} potential is typically used in combination with a two-body
 potential using the "pair_style hybrid/overlay"_pair_hybrid.html
 command as in the example above.
 
-<<<<<<< HEAD
 The potential is calculated if all three atoms are in the
 "neighbor list"_neighbor.html
 and the distances between atoms satisfy r12 r23 r31 > cutoff^3.
@@ -90,57 +78,6 @@ pair_coeff 2 1 1 nu :pre
 
 Thus, to specify all ATM interactions between two atom types (eg 1 and 2)
 it is sufficient to provide four pair_coeff commands, eg:
-=======
---------------------
-
-The rest of this section needs some work to make things more clear.
-
-You need to explain exactly how the cutoff is used.
-
-I don't think this is true:
-The calculations are not undertaken if the distances between atoms satisfy
-r12 r23 r31 > cutoff^3. 
-
-If r12 > cutoff+skin, then that pair of atoms is not in
-the neighbor list, regardless of what r23 and r31 are,
-so how can it be computed?
-
-What does this line mean?
-Virtual cutoff distance based on a user defined
-tolerance tol is not used.
-
-You must explain exactly what the user needs to put
-in the input script to model single element and multi-element
-systems.
-
-You refer to an ATM potential file, but I don't think there is
-such a thing.  There is no code in pair_atm.cpp that reads
-a file.  Isn't it all pair_coeff commands?  In LAMMPS lingo,
-potential files are the files in the potentials dir.
-There is no such thing for ATM, right?
-
-What is the geometry of i,j,k interactions - you don't explain it.
-Which one is the central atom?
-
-You say all the K values for a particular I,J must be specified.
-I don't see where the code checks for this.
-
-This is the way to word the explation of the per-pair values required:
-
-The following coefficients must be defined for each pair of atoms
-types via the "pair_coeff"_pair_coeff.html command as in the examples
-above, or in the restart files read by the
-"read_restart"_read_restart.html commands:
-
-?? explain what K is and what are the allowed values
-nu (energy/distance^9 units) :ul
-
-Again: what file are you talking about?
-The Axilrod-Teller-Muto potential file must contain entries for all the
-elements listed in the pair_coeff command.  It can also contain
-entries for additional elements not being used in a particular
-simulation; LAMMPS ignores those entries.
->>>>>>> 75ec0a6a990ae6eec59ca7fa80c8cff14d561495
 
 pair_coeff 1 1 1 nu1
 pair_coeff 1 1 2 nu2
@@ -231,8 +168,4 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 :link(Axilrod)
 [(Axilrod)]
 Axilrod and Teller, J Chem Phys, 11, 299 (1943);
-<<<<<<< HEAD
 Muto, Nippon Sugaku-Buturigakkwaishi 17, 629 (1943).
-=======
-Muto, Nippon, Sugaku, Butsuri, Gakkwaishi 17, 629 (1943).
->>>>>>> 75ec0a6a990ae6eec59ca7fa80c8cff14d561495

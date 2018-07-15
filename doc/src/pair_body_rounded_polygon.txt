@@ -63,6 +63,8 @@ explains how contact is defined?  Do we need an equation(s) that
 explain what the params in pair style and coeff mean, for damping and
 spring constants?  Or do we just want to reference the paper for that?
 
+:c,image(JPG/pair_body_rounded.jpg)
+
 In "Fraige"_#Fraige, the tangential friction force between two particles
 that are in contact is modeled differently prior to gross sliding
 (i.e. static friction) and during gross-sliding (kinetic friction).

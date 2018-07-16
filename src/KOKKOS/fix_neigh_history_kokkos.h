@@ -49,8 +49,8 @@ class FixNeighHistoryKokkos : public FixNeighHistory {
   KOKKOS_INLINE_FUNCTION
   void post_neighbor_item(const int &ii) const;
 
-  typename ArrayTypes<DeviceType>::t_int_2d d_firstflag;
-  typename ArrayTypes<DeviceType>::t_float_2d d_firstvalue;
+  typename Kokkos::View<int**> d_firstflag;
+  typename Kokkos::View<LMP_FLOAT**> d_firstvalue;
 
  private:
   typename ArrayTypes<DeviceType>::tdual_int_1d k_npartner;

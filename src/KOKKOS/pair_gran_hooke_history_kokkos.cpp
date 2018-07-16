@@ -278,14 +278,14 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
   Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
   Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_torque = torque;
 
-  int i = d_ilist[ii];
-  X_FLOAT xtmp = x(i,0);
-  X_FLOAT ytmp = x(i,1);
-  X_FLOAT ztmp = x(i,2);
-  int itype = type[i];
-  LMP_FLOAT imass = rmass[i];
-  LMP_FLOAT irad = radius[i];
-  int jnum = d_numneigh[i];
+  const int i = d_ilist[ii];
+  const X_FLOAT xtmp = x(i,0);
+  const X_FLOAT ytmp = x(i,1);
+  const X_FLOAT ztmp = x(i,2);
+  const int itype = type[i];
+  const LMP_FLOAT imass = rmass[i];
+  const LMP_FLOAT irad = radius[i];
+  const int jnum = d_numneigh[i];
   
   F_FLOAT fx_i = 0.0;
   F_FLOAT fy_i = 0.0;
@@ -299,14 +299,14 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
     int j = d_neighbors(i,jj);
     j &= NEIGHMASK;
 
-    X_FLOAT delx = xtmp - x(j,0);
-    X_FLOAT dely = ytmp - x(j,1);
-    X_FLOAT delz = ztmp - x(j,2);
-    X_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-    int jtype = type[j];
-    LMP_FLOAT jmass = rmass[j];
-    LMP_FLOAT jrad = radius[j];
-    LMP_FLOAT radsum = irad + jrad;
+    const X_FLOAT delx = xtmp - x(j,0);
+    const X_FLOAT dely = ytmp - x(j,1);
+    const X_FLOAT delz = ztmp - x(j,2);
+    const X_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+    const int jtype = type[j];
+    const LMP_FLOAT jmass = rmass[j];
+    const LMP_FLOAT jrad = radius[j];
+    const LMP_FLOAT radsum = irad + jrad;
 
     // check for touching neighbors
 
@@ -316,9 +316,9 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
       d_firstshear(i,3*jj+1) = 0;
       d_firstshear(i,3*jj+2) = 0;
     } else {
-      LMP_FLOAT r = sqrt(rsq);
-      LMP_FLOAT rinv = 1.0/r;
-      LMP_FLOAT rsqinv = 1/rsq;
+      const LMP_FLOAT r = sqrt(rsq);
+      const LMP_FLOAT rinv = 1.0/r;
+      const LMP_FLOAT rsqinv = 1/rsq;
 
       // relative translational velocity
 

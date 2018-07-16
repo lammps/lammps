@@ -59,10 +59,10 @@ surface from its center is not sqrt(3)/2, but (sqrt(3)+0.1)/2.  Thus
 the cutoff distance should be sqrt(3) + 0.1, since the surfaces of two
 particles that far apart could be touching.
 
-NOTE: Do we need a diagram of 2 overlapping polyhedron particles that
-explains how contact is defined?  Do we need an equation(s) that
-explain what the params in pair style and coeff mean, for damping and
-spring constants?  Or do we just want to reference the paper for that?
+The forces between vertex-vertex, vertex-edge, vertex-face, edge-edge
+and edge-face are given by:
+
+:c,image(Eqs/pair_body_rounded.jpg)
 
 :c,image(JPG/pair_body_rounded.jpg)
 

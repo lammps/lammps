@@ -27,9 +27,9 @@ styles supported by LAMMPS are as follows.  The name in the first
 column is used as the {bstyle} argument for the "atom_style
 body"_atom_style.html command.
 
-{nparticle} | rigid body with N sub-particles |
-{rounded/polygon} | 2d polygons with N vertices :tb(c=2,s=|)
-{rounded/polyhedron} | 3d polyhedra with N vertices, E edges and F faces  :tb(c=2,s=|)
+{nparticle} : rigid body with N sub-particles
+{rounded/polygon} : 2d polygons with N vertices
+{rounded/polyhedron} : 3d polyhedra with N vertices, E edges and F faces :tb(s=:)
 
 The body style determines what attributes are stored for each body and
 thus how they can be used to compute pairwise body/body or
@@ -180,11 +180,11 @@ The {bflag2} argument is ignored.
 
 The {rounded/polygon} body style represents body particles as a 2d
 polygon with a variable number of N vertices.  This style can only be
-used for 2d models; see the "boundary"_boundary.html command.
+used for 2d models; see the "boundary"_boundary.html command.  See the
+"pair_style body/rounded/polygon" doc page for a diagram of two
+squares with rounded circles at the vertices.  Special cases for N = 1
+(circle) and N = 2 (rod with rounded ends) can also be specified.
 
-NOTE: include a diagram of a rounded polygon body particle
-
-Special cases for N = 1 (spheres) and N = 2 (rods) are also included.
 One use of this body style is for 2d discrete element models, as
 described in "Fraige"_#Fraige.
 
@@ -220,9 +220,9 @@ vertices (x1 to zN) as 3N values (with z = 0.0 for each), followed by
 2N vertex indices corresponding to the end points of the N edges,
 followed by a single diameter value = the rounded diameter of the
 circle that surrounds each vertex. The diameter value can be different
-for each body particle. These floating-point values can be
-listed on as many lines as you wish; see the
-"read_data"_read_data.html command for more details.
+for each body particle. These floating-point values can be listed on
+as many lines as you wish; see the "read_data"_read_data.html command
+for more details.
 
 The 6 moments of inertia (ixx,iyy,izz,ixy,ixz,iyz) should be the
 values consistent with the current orientation of the rigid body
@@ -235,9 +235,10 @@ position of the particle is specified by the x,y,z values in the
 {Atoms} section of the data file.
 
 For example, the following information would specify a square particle
-whose edge length is sqrt(2) and rounded diameter is 1.0 in length unit
-and initial orientation is determined from the 6 moments of inertia
-(ixx iyy izz ixy ixz iyz):
+whose edge length is sqrt(2) and rounded diameter is 1.0.  The
+orientation of the square is aligned with the xy coordinate axes which
+is consistent with the 6 moments of inertia: ixx iyy izz ixy ixz iyz =
+1 1 4 0 0 0.
 
 3 1 27
 4
@@ -265,14 +266,14 @@ body particles with a wall.
 The {rounded/polyhedron} body style represents body particles as a 3d
 polyhedron with a variable number of N vertices, E edges and F faces.
 This style can only be used for 3d models; see the
-"boundary"_boundary.html command.
+"boundary"_boundary.html command.  See the "pair_style
+body/rounded/polygon" doc page for a diagram of a two 2d squares with
+rounded circles at the vertices.  A 3d cube with rounded spheres
+at the 8 vertices and 12 rounded edges would be similar.
 
-NOTE: include a diagram of a rounded polyhedron body particle
-
-NOTE: 2d objects can also be specified as a special case, e.g.
-for a triangle, N = 3, E = 3 and F = 1.
-
-Special cases for N = 1 (spheres) and N = 2 (rods) are also valid.
+TRUNG: What are the special cases allowed for 3d, if any?  Similar to
+the N=1 (sphere) and N=2 (rod) special cases for 2d, descibed in
+previous section.
 
 This body style is for 3d discrete element models, as described in
 "Wang"_#Wang.
@@ -316,9 +317,9 @@ moments of inertia followed by the coordinates of the N vertices (x1
 to zN) as 3N values, followed by 2N vertex indices corresponding to
 the end points of the E edges, then 4*F vertex indices defining F
 faces.  The last value is the diameter value = the rounded diameter of
-the sphere that surrounds each vertex. The diameter value can be different
-for each body particle. These floating-point values
-can be listed on as many lines as you wish; see the
+the sphere that surrounds each vertex. The diameter value can be
+different for each body particle. These floating-point values can be
+listed on as many lines as you wish; see the
 "read_data"_read_data.html command for more details.  Because the
 maxmimum vertices per face is hard-coded to be 4
 (i.e. quadrilaterals), faces with more than 4 vertices need to be
@@ -340,9 +341,10 @@ position of the particle is specified by the x,y,z values in the
 {Atoms} section of the data file.
 
 For example, the following information would specify a cubic particle
-whose edge length is 2.0 and rounded diameter is 0.5 in length unit
-and initial orientation is determined from the 6 moments of inertia
-(ixx iyy izz ixy ixz iyz):
+whose edge length is 2.0 and rounded diameter is 0.5.
+The orientation of the cube is aligned with the xyz coordinate axes
+which is consistent with the 6 moments of inertia: ixx iyy izz ixy ixz
+iyz = 0.667 0.667 0.667 0 0 0.
 
 1 3 79
 8 12 6
@@ -374,6 +376,13 @@ and initial orientation is determined from the 6 moments of inertia
 2 3 7 6
 3 0 4 7
 0.5 :pre
+
+The "pair_style
+body/rounded/polhedron"_pair_body_rounded_polyhedron.html command can
+be used with this body style to compute body/body interactions.  The
+"fix wall/body/polyhedron"_fix_wall_body_polygon.html command can be
+used with this body style to compute the interaction of body particles
+with a wall.
 
 :line
 

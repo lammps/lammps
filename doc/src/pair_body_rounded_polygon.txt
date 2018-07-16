@@ -28,9 +28,9 @@ pair_coeff 1 1 100.0 1.0 :pre
 
 Style {body/rounded/polygon} is for use with 2d models of body
 particles of style {rounded/polygon}.  It calculates pairwise
-body/body interactions as well as interactions between body and
-point-particles.  See "Section 6.14"_Section_howto.html#howto_14 of
-the manual and the "body"_body.html doc page for more details on using
+body/body interactions as well as interactions between body and point
+particles.  See "Section 6.14"_Section_howto.html#howto_14 of the
+manual and the "body"_body.html doc page for more details on using
 body particles.
 
 This pairwise interaction between rounded polygons is described in
@@ -44,36 +44,50 @@ multiple contact points.
 
 Note that when two particles interact, the effective surface of each
 polygon particle is displaced outward from each of its vertices and
-edges by half its circle diameter.  The interaction forces and
-energies between two particles are defined with respect to the
-separation of their respective rounded surfaces, not by the separation
-of the vertices and edges themselves.
+edges by half its circle diameter (as in the diagram below of a gray
+and yellow square particle).  The interaction forces and energies
+between two particles are defined with respect to the separation of
+their respective rounded surfaces, not by the separation of the
+vertices and edges themselves.
 
 This means that the specified cutoff in the pair_style command should
 be large enough to encompass the center-to-center distance between two
-particles (at any orientation) which would produce a surface-surface
-overlap.  For example, consider two square particles with edge length
-= 1.0 and circle diameter 0.2.  The maximum distance of one polygon's
-surface from its center is not sqrt(2)/2, but (sqrt(2)+0.1)/2.  Thus
-the cutoff distance should be sqrt(2) + 0.1, since the surfaces of two
-particles that far apart could be touching.
+particles (at any orientation) which would produce an overlap of the
+two surfaces.  For example, consider two square particles with edge
+length = 1.0 and circle diameter 0.2.  The maximum distance of one
+polygon's surface from its center is not sqrt(2)/2, but
+(sqrt(2)+0.1)/2.  Thus the cutoff distance should be sqrt(2) + 0.1,
+since the surfaces of two particles that far apart could be touching.
 
-The forces between vertex-vertex, vertex-edge, vertex-face and edge-edge
+The forces between vertex-vertex, vertex-edge, and edge-edge overlaps
 are given by:
 
 :c,image(Eqs/pair_body_rounded.jpg)
 
 :c,image(JPG/pair_body_rounded.jpg)
 
-In "Fraige"_#Fraige, the tangential friction force between two particles
-that are in contact is modeled differently prior to gross sliding
-(i.e. static friction) and during gross-sliding (kinetic friction).
-The latter takes place when the tangential deformation exceeds
-the Coulomb frictional limit.  In the current implementation, however,
-we do not take into account frictional history, i.e. we do not keep track
-of how many time steps the two particles have been in contact
-nor calculate the tangential deformation. We assume that gross sliding
-takes place right when two particles are in contact.
+In "Fraige"_#Fraige, the tangential friction force between two
+particles that are in contact is modeled differently prior to gross
+sliding (i.e. static friction) and during gross-sliding (kinetic
+friction).  The latter takes place when the tangential deformation
+exceeds the Coulomb frictional limit.  In the current implementation,
+however, we do not take into account frictional history, i.e. we do
+not keep track of how many time steps the two particles have been in
+contact nor calculate the tangential deformation.  Instead, we assume
+that gross sliding takes place as soon as two particles are in
+contact.
+
+TRUNG: The diagram label "cohesive regions" confuses me.  Are you
+saying there is some distance d for which the force is attractive,
+i.e. the particles are cohesive?  I think when d > Ri + Rj, since Ri +
+Rj is the surface/surface overlap discussed above?  If so, then the
+discussion above about the specified cutoff is wrong?  I.e. you can
+specify a large cutoff than the surface/surface overlap to get
+cohesive interactions?  If so, this should be explained up above.
+But an additional confusion is that the specied cutoff (Rc in diagram?)
+is a single number, but depedning on the orientiation of the 2
+particles they might have a suface/surface overlap at a much
+smaller value of Ri + Rj.  So what is Rc then?
 
 The following coefficients must be defined for each pair of atom types
 via the "pair_coeff"_pair_coeff.html command as in the examples above,
@@ -81,6 +95,13 @@ or in the data file read by the "read_data"_read_data.html command:
 
 k_n (energy/distance^2 units)
 k_na (energy/distance^2 units) :ul
+
+Effectively, k_n and k_na are the slopes of the red lines in the plot
+above for force versus distance, for r < 0 and 0 < r < rc
+respectively.  TRUNG: is this sentence correct?
+
+TRUNG: reminder to copy any change in this file
+to the pair polyhedron file as well (and vice versa)
 
 [Mixing, shift, table, tail correction, restart, rRESPA info]:
 

@@ -33,6 +33,20 @@ point-particles.  See "Section 6.14"_Section_howto.html#howto_14 of
 the manual and the "body"_body.html doc page for more details on using
 body particles.
 
+TRUNG: I think we need a paragraph here about how body/sphere
+interactions are handled.  Does this pair style only do body/body but
+allow for a body = sphere or rod or some other degenerate case?  Or
+does this pair style allow you to model a simulation of mixed body and
+point particles, where point particles are spheroids.  If so, does
+this pair style do body/body and body/point, and you use one of the
+other granular pair styles to do point/point?  I.e. a pair hybrid
+model?  Or does everything have to be defined as bodies.  Actually
+this paragraph would make more sense in the body.txt file about how to
+create a model that includes non-body particles (spheres).  And in
+this pair style file just a couple lines about which part of the
+interactions this pair style computes.  Ditto in the pair body polygon
+file.
+
 This pairwise interaction between rounded polyhedra is described in
 "Wang"_#Wang, where a polyhedron does not have sharp corners and
 edges, but is rounded at its vertices and edges by spheres centered on
@@ -59,8 +73,8 @@ surface from its center is not sqrt(3)/2, but (sqrt(3)+0.1)/2.  Thus
 the cutoff distance should be sqrt(3) + 0.1, since the surfaces of two
 particles that far apart could be touching.
 
-The forces between vertex-vertex, vertex-edge, vertex-face, edge-edge
-and edge-face are given by:
+The forces between vertex-vertex, vertex-edge, vertex-face, edge-edge,
+and edge-face overlaps are given by:
 
 :c,image(Eqs/pair_body_rounded.jpg)
 
@@ -69,12 +83,12 @@ and edge-face are given by:
 In "Wang"_#Wang, the tangential friction force between two particles
 that are in contact is modeled differently prior to gross sliding
 (i.e. static friction) and during gross-sliding (kinetic friction).
-The latter takes place when the tangential deformation exceeds
-the Coulomb frictional limit.  In the current implementation, however,
-we do not take into account frictional history, i.e. we do not keep track
-of how many time steps the two particles have been in contact
-nor calculate the tangential deformation. We assume that gross sliding
-takes place right when two particles are in contact.
+The latter takes place when the tangential deformation exceeds the
+Coulomb frictional limit.  In the current implementation, however, we
+do not take into account frictional history, i.e. we do not keep track
+of how many time steps the two particles have been in contact nor
+calculate the tangential deformation.  Instead, we assume that gross
+sliding takes place as soon as two particles are in contact.
 
 The following coefficients must be defined for each pair of atom types
 via the "pair_coeff"_pair_coeff.html command as in the examples above,
@@ -82,6 +96,10 @@ or in the data file read by the "read_data"_read_data.html command:
 
 k_n (energy/distance^2 units)
 k_na (energy/distance^2 units) :ul
+
+Effectively, k_n and k_na are the slopes of the red lines in the plot
+above for force versus distance, for r < 0 and 0 < r < rc
+respectively.  TRUNG: is this sentence correct?
 
 [Mixing, shift, table, tail correction, restart, rRESPA info]:
 

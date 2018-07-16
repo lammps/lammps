@@ -16,7 +16,7 @@ cutoff = global cutoff for 3-body interactions (distance units) :ul
 
 [Examples:]
 
-pair_style 2.5
+pair_style atm 2.5
 pair_coeff * * * 0.072 :pre
 
 pair_style hybrid/overlay lj/cut 6.5 atm 2.5
@@ -33,106 +33,92 @@ potential for the energy E of a system of atoms as
 
 :c,image(Eqs/pair_atm.jpg)
 
-where nu is the three-body interaction strength,
-and the distances between pairs of atoms r12, r23 and r31
-and the angles gamma1, gamma2 and gamma3
-are shown at the diagram:
+where nu is the three-body interaction strength.  The distances
+between pairs of atoms r12, r23, r31 and the angles gamma1, gamma2,
+gamma3 are as shown in this diagram:
 
 :c,image(JPG/pair_atm_dia.jpg)
 
-There is no \"central\" atom, the interaction is symmetric with respect
-to permutation of atom types.
+Note that for the interaction between a triplet of atoms I,J,K, there
+is no "central" atom.  The interaction is symmetric with respect to
+permutation of the three atoms.  In fact, it is computed 3 times by
+the code with each of I,J,K being atom 1.  Thus the nu value must be
+the same for all those permutations of the atom types of I,J,K as
+discussed below.
 
 The {atm} potential is typically used in combination with a two-body
 potential using the "pair_style hybrid/overlay"_pair_hybrid.html
 command as in the example above.
 
-The potential is calculated if all three atoms are in the
-"neighbor list"_neighbor.html
-and the distances between atoms satisfy r12 r23 r31 > cutoff^3.
+The potential for a triplet of atom is calculated only if all 3
+distances r12, r23, r31 between the 3 atoms satisfy rIJ < cutoff.
 
 The following coefficients must be defined for each pair of atoms
 types via the "pair_coeff"_pair_coeff.html command as in the examples
 above, or in the restart files read by the
 "read_restart"_read_restart.html commands:
 
-K - the type of the third atom
-nu (energy/distance^9 units) :ul
+K = atom type of the third atom (1 to Ntypes)
+nu = prefactor (energy/distance^9 units) :ul
 
-For a single-atom type simulation, only a single entry is required, eg
+K can be specified in one of two ways.  An explicit numeric value can
+be used, as in the 2nd example above.  J <= K is required.  LAMMPS
+sets the coefficients for the other 5 symmetric interactions to the
+same values.  E.g. if I = 1, J = 2, K = 3, then these 6 values are set
+to the specified nu: nu123, nu132, nu213, nu231, nu312, nu321.  This
+enforces the symmetry discussed above.
 
-pair_coeff 1 1 1 nu :pre
+A wildcard asterisk can be used for K to set the coefficients for
+multiple triplets of atom types.  This takes the form "*" or "*n" or
+"n*" or "m*n".  If N = the number of atom types, then an asterisk with
+no numeric values means all types from 1 to N.  A leading asterisk
+means all types from 1 to n (inclusive).  A trailing asterisk means
+all types from n to N (inclusive).  A middle asterisk means all types
+from m to n (inclusive).  Note that only type triplets with J <= K are
+considered; if asterisks imply type triplets where K < J, they are
+ignored.
 
-where all three atoms are of type 1.
-For a two-atom type simulation, more pair_coeff commands can be used.
-ATM interaction is symmetric with respect to permutation of atoms,
-it is necessary to provide pair_coeff command for one permutation.
-For example, the command
+Note that a pair_coeff command can override a previous setting for the
+same I,J,K triplet.  For example, these commands set nu for all I,J.K
+triplets, then overwrite nu for just the I,J,K = 2,3,4 triplet:
 
-pair_coeff 1 1 2 nu :pre
+pair_coeff * * * 0.25
+pair_coeff 2 3 4 0.1 :pre
 
-also implies
+Note that for a simulation with a single atom type, only a single
+entry is required, e.g.
 
-pair_coeff 1 2 1 nu
-pair_coeff 2 1 1 nu :pre
+pair_coeff 1 1 1 0.25 :per
 
-Thus, to specify all ATM interactions between two atom types (eg 1 and 2)
-it is sufficient to provide four pair_coeff commands, eg:
+For a simulation with two atom types, four pair_coeff commands will
+specify all possible nu values:
 
 pair_coeff 1 1 1 nu1
 pair_coeff 1 1 2 nu2
 pair_coeff 1 2 2 nu3
 pair_coeff 2 2 2 nu4 :pre
 
-For 3 atom types, 10 pair_coeff commands
-(eg 111, 112, 113, 122, 123, 133, 222, 223, 233, 333)
-will describe all possible ATM interactions, etc.
-It is not necessary to provide the pair_coeff commands for interactions
-of all combinations of atom types: if some combination is not defined then
-there is no ATM interaction for this combination and all its permutations.
+For a simulation with three atom types, ten pair_coeff commands will
+specify all possible nu values:
 
---------------------
+pair_coeff 1 1 1 nu1
+pair_coeff 1 1 2 nu2
+pair_coeff 1 1 3 nu3
+pair_coeff 1 2 2 nu4
+pair_coeff 1 2 3 nu5
+pair_coeff 1 3 3 nu6
+pair_coeff 2 2 2 nu7
+pair_coeff 2 2 3 nu8
+pair_coeff 2 3 3 nu9
+pair_coeff 3 3 3 nu10 :pre
 
-[Steve:]
-
-I think a better syntax for the pair coeff command might be this:
-
-pair_coeff I J v1 v2 ... vN
-
-when 1,2,...N are the number of atom types defined.
-Then there be one pair_coeff command for each type pair,
-the same syntax as all other potentials in LAMMPS use.
-
-[Sergey:]
-
-The reason for my original pair_coeff command syntax is that
-I would like to reserve further arguments for possible extension of
-ATM potential in LAMMPS to further terms in the multipole expansion of
-many-body dispersion interaction.
-For example, the next term would be dipole-dipole-quadrupole, it may be
-activated if the next argument of pair_coeff is present
-without breaking backward compatibility.
-
-Also, the command you propose
-(i) will not account that the value of nu for different permutations
-of atom types is the same, and
-(ii) will make the numbering of atom types messy since there is
-no requirement to supply the values of nu for all triplets.
-
---------------------
-
-I think a better syntax for the pair coeff command might be this:
-
-pair_coeff I J v1 v2 ... vN
-
-when 1,2,...N are the number of atom types defined.
-Then there be one pair_coeff command for each type pair,
-the same syntax as all other potentials in LAMMPS use.
-
-Note that you refer to "elements", but the pair coeff command
-knows nothing about elements.  Only atom types.  There
-could be 10 atom types that all map to the same chemical
-element.
+By default the nu value for all triplets is set to 0.0.  Thus it is
+not required to provide pair_coeff commands that enumerate triplet
+interactions for all K types.  If some I,J,K combination is not
+speficied, then there will be no 3-body ATM interactions for that
+combination and all its permutations.  However, as with all pair
+styles, it is required to specify a pair_coeff command for all I,J
+combinations, else an error will result.
 
 :line
 

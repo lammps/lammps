@@ -61,10 +61,12 @@ PairATM::PairATM(LAMMPS *lmp) : Pair(lmp)
 PairATM::~PairATM()
 {
   if (copymode) return;
+
   if (allocated) {
-    memory->destroy(nu);
     memory->destroy(setflag);
     memory->destroy(cutsq);
+
+    memory->destroy(nu);
   }
 }
 
@@ -88,6 +90,8 @@ void PairATM::compute(int eflag, int vflag)
   double **x = atom->x;
   double **f = atom->f;
   int *type = atom->type;
+
+  double cutoffsq = cut_global*cut_global;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -127,10 +131,11 @@ void PairATM::compute(int eflag, int vflag)
         rjk2 = rjk[0]*rjk[0] + rjk[1]*rjk[1] + rjk[2]*rjk[2];
 
         r6 = rij2*rik2*rjk2;
-        if (r6 > cut_sixth) continue;
+        if (r6 > cutoffsq) continue;
 
         nu_local = nu[type[i]][type[j]][type[k]];
         if (nu_local == 0.0) continue;
+
         interaction_ddd(nu_local,
                         r6,rij2,rik2,rjk2,rij,rik,rjk,fj,fk,eflag,evdwl);
 
@@ -152,31 +157,49 @@ void PairATM::compute(int eflag, int vflag)
   if (vflag_fdotr) virial_fdotr_compute();
 }
 
+/* ---------------------------------------------------------------------- */
+
+void PairATM::allocate()
+{
+  allocated = 1;
+  int n = atom->ntypes;
+
+  memory->create(setflag,n+1,n+1,"pair:setflag");
+  for (int i = 1; i <= n; i++)
+    for (int j = i; j <= n; j++)
+      setflag[i][j] = 0;
+
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
+
+  memory->create(nu,n+1,n+1,n+1,"pair:nu");
+
+  // initialize all nu values to 0.0
+
+  for (int i = 1; i <= n; i++)
+    for (int j = 1; j <= n; j++)
+      for (int k = 1; k <= n; k++)
+        nu[i][j][k] = 0.0;
+}
+
 /* ----------------------------------------------------------------------
-   reads the input script line with arguments you define
+   global settings
 ------------------------------------------------------------------------- */
 
 void PairATM::settings(int narg, char **arg)
 {
   if (narg != 1) error->all(FLERR,"Illegal pair_style command");
+
   cut_global = force->numeric(FLERR,arg[0]);
 }
 
 /* ----------------------------------------------------------------------
-   set coefficients for one i,j,k type triplet
+   set coefficients for one I,J,K type triplet
 ------------------------------------------------------------------------- */
 
 void PairATM::coeff(int narg, char **arg)
 {
-  if (narg != 4)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg != 4) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
-
-  int n = atom->ntypes;
-  for (int i = 0; i <= n; i++)
-    for (int j = 0; j <= n; j++)
-      for (int k = 0; k <= n; k++)
-        nu[i][j][k] = 0.0;
 
   int ilo,ihi,jlo,jhi,klo,khi;
   force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
@@ -185,16 +208,11 @@ void PairATM::coeff(int narg, char **arg)
 
   double nu_one = force->numeric(FLERR,arg[3]);
 
-  cut_sixth = cut_global*cut_global;
-  cut_sixth = cut_sixth*cut_sixth*cut_sixth;
-
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j<=jhi; j++) {
       for (int k = MAX(klo,j); k<=khi; k++) {
-        nu[i][j][k] = nu[i][k][j] = 
-        nu[j][i][k] = nu[j][k][i] = 
-        nu[k][i][j] = nu[k][j][i] = nu_one;
+        nu[i][j][k] = nu_one;
         count++;
       }
       setflag[i][j] = 1;
@@ -211,18 +229,28 @@ void PairATM::coeff(int narg, char **arg)
 void PairATM::init_style()
 {
   // need a full neighbor list
+
   int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->full = 1;
 }
 
 /* ----------------------------------------------------------------------
-   perform initialization for one i,j type pair
+   init for one i,j type pair and corresponding j,i
+   also for all k type permutations
 ------------------------------------------------------------------------- */
 
 double PairATM::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+
+  // set all 6 symmetric permutations of I,J,K types to same nu value
+
+  int ntypes = atom->ntypes;
+  for (int k = j; k <= ntypes; k++)
+    nu[i][k][j] = nu[j][i][k] = nu[j][k][i] = nu[k][i][j] = nu[k][j][i] = 
+      nu[i][j][k];
+
   return cut_global;
 }
 
@@ -239,7 +267,7 @@ void PairATM::write_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) 
-        for (k = i; k <= atom->ntypes; k++) 
+        for (k = j; k <= atom->ntypes; k++) 
           fwrite(&nu[i][j][k],sizeof(double),1,fp);
     }
   }
@@ -260,7 +288,7 @@ void PairATM::read_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++) {
       if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
-      if (setflag[i][j]) for (k = i; k <= atom->ntypes; k++) {
+      if (setflag[i][j]) for (k = j; k <= atom->ntypes; k++) {
         if (me == 0) fread(&nu[i][j][k],sizeof(double),1,fp);
         MPI_Bcast(&nu[i][j][k],1,MPI_DOUBLE,0,world);
       }
@@ -288,25 +316,14 @@ void PairATM::read_restart_settings(FILE *fp)
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
 }
 
-/* ---------------------------------------------------------------------- */
-
-void PairATM::allocate()
-{
-  allocated = 1;
-  int n = atom->ntypes;
-  memory->create(nu,n+1,n+1,n+1,"pair:a");
-  memory->create(setflag,n+1,n+1,"pair:setflag");
-  memory->create(cutsq,n+1,n+1,"pair:cutsq");
-}
-
 /* ----------------------------------------------------------------------
    Axilrod-Teller-Muto (dipole-dipole-dipole) potential
 ------------------------------------------------------------------------- */
 
 void PairATM::interaction_ddd(double nu,
-                       double r6, double rij2, double rik2, double rjk2,
-                       double *rij, double *rik, double *rjk,
-                       double *fj, double *fk, int eflag, double &eng)
+                              double r6, double rij2, double rik2, double rjk2,
+                              double *rij, double *rik, double *rjk,
+                              double *fj, double *fk, int eflag, double &eng)
 {
   double r5inv,rri,rrj,rrk,rrr;
   r5inv = nu / (r6*r6*sqrt(r6));
@@ -314,14 +331,14 @@ void PairATM::interaction_ddd(double nu,
   rrj = rij[0]*rjk[0] + rij[1]*rjk[1] + rij[2]*rjk[2];
   rrk = rjk[0]*rik[0] + rjk[1]*rik[1] + rjk[2]*rik[2];
   rrr = 5.0*rri*rrj*rrk;
-  for (int i=0; i<3; i++) {
-    fj[i] = rrj*(rrk - rri)*rik[i]
-      - (rrk*rri - rjk2*rik2 + rrr/rij2)*rij[i]
-      + (rrk*rri - rik2*rij2 + rrr/rjk2)*rjk[i];
+  for (int i = 0; i < 3; i++) {
+    fj[i] = rrj*(rrk - rri)*rik[i] - 
+      (rrk*rri - rjk2*rik2 + rrr/rij2) * rij[i] + 
+      (rrk*rri - rik2*rij2 + rrr/rjk2) * rjk[i];
     fj[i] *= 3.0*r5inv;
-    fk[i] = rrk*(rri + rrj)*rij[i]
-      + (rri*rrj + rik2*rij2 - rrr/rjk2)*rjk[i]
-      + (rri*rrj + rij2*rjk2 - rrr/rik2)*rik[i];
+    fk[i] = rrk*(rri + rrj)*rij[i] + 
+      (rri*rrj + rik2*rij2 - rrr/rjk2) * rjk[i] + 
+      (rri*rrj + rij2*rjk2 - rrr/rik2) * rik[i];
     fk[i] *= 3.0*r5inv;
   }
   if (eflag) eng = (r6 - 0.6*rrr)*r5inv;

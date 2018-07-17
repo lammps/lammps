@@ -53,7 +53,7 @@ namespace LAMMPS_NS {
       virtual void unpack_reverse_comm(int, int*, double*);
       virtual double memory_usage();
 
-   private:
+   protected:
       // (nearly) all bool flags are not initialized in constructor, but set
       // explicitly in the indicated function.  All other data members are
       // initialized in constructor
@@ -66,7 +66,7 @@ namespace LAMMPS_NS {
       // values set in coeff()
 
       // values set in allocate(), called by coeff()
-      void allocate();
+      virtual void allocate();
       int* lmps_map_species_to_unique;
 
       // values set in coeff(), after calling allocate()
@@ -118,13 +118,13 @@ namespace LAMMPS_NS {
 
       // KIM specific helper functions
       virtual void set_contributing();
-      void kim_init();
-      void kim_free();
-      void set_argument_pointers();
-      void set_lmps_flags();
-      void set_kim_model_has_flags();
+      virtual void kim_init();
+      virtual void kim_free();
+      virtual void set_argument_pointers();
+      virtual void set_lmps_flags();
+      virtual void set_kim_model_has_flags();
       // static methods used as callbacks from KIM
-     static int get_neigh(
+      static int get_neigh(
          void const * const dataObject,
          int const numberOfCutoffs, double const * const cutoffs,
          int const neighborListIndex, int const particleNumber,

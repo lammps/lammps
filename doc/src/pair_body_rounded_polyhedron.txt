@@ -29,9 +29,10 @@ pair_coeff 1 1 100.0 1.0 :pre
 Style {body/rounded/polygon} is for use with 3d models of body
 particles of style {rounded/polyhedron}.  It calculates pairwise
 body/body interactions as well as interactions between body and
-point-particles.  See "Section 6.14"_Section_howto.html#howto_14 of
+point-particles (modeled as spheres with a specified diameter).
+See "Section 6.14"_Section_howto.html#howto_14 of
 the manual and the "body"_body.html doc page for more details on using
-body particles.
+body rounded/polyhedron particles.
 
 TRUNG: I think we need a paragraph here about how body/sphere
 interactions are handled.  Does this pair style only do body/body but
@@ -47,7 +48,7 @@ this pair style file just a couple lines about which part of the
 interactions this pair style computes.  Ditto in the pair body polygon
 file.
 
-This pairwise interaction between rounded polyhedra is described in
+This pairwise interaction between the rounded polyhedra is described in
 "Wang"_#Wang, where a polyhedron does not have sharp corners and
 edges, but is rounded at its vertices and edges by spheres centered on
 each vertex with a specified diameter.  The edges if the polyhedron
@@ -57,6 +58,7 @@ in the data file read by the "read data"_read_data.html command.  This
 is a discrete element model (DEM) which allows for multiple contact
 points.
 
+
 Note that when two particles interact, the effective surface of each
 polyhedron particle is displaced outward from each of its vertices,
 edges, and faces by half its sphere diameter.  The interaction forces
@@ -64,14 +66,8 @@ and energies between two particles are defined with respect to the
 separation of their respective rounded surfaces, not by the separation
 of the vertices, edges, and faces themselves.
 
-This means that the specified cutoff in the pair_style command should
-be large enough to encompass the center-to-center distance between two
-particles (at any orientation) which would produce a surface-surface
-overlap.  For example, consider two cubic particles with edge length =
-1.0 and sphere diameter 0.2.  The maximum distance of one polygon's
-surface from its center is not sqrt(3)/2, but (sqrt(3)+0.1)/2.  Thus
-the cutoff distance should be sqrt(3) + 0.1, since the surfaces of two
-particles that far apart could be touching.
+This means that the specified cutoff in the pair_style command is
+the cutoff distance, r_c, for the surface separation, \delta_n (see figure below).
 
 The forces between vertex-vertex, vertex-edge, vertex-face, edge-edge,
 and edge-face overlaps are given by:

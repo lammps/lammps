@@ -238,7 +238,7 @@ For example, the following information would specify a square particle
 whose edge length is sqrt(2) and rounded diameter is 1.0.  The
 orientation of the square is aligned with the xy coordinate axes which
 is consistent with the 6 moments of inertia: ixx iyy izz ixy ixz iyz =
-1 1 4 0 0 0.
+1 1 4 0 0 0. Note that only Izz matters in 2D simulations.
 
 3 1 27
 4
@@ -252,6 +252,24 @@ is consistent with the 6 moments of inertia: ixx iyy izz ixy ixz iyz =
 2 3
 3 0
 1.0 :pre
+
+A rod in 2D, whose length is 4.0, mass 1.0, rounded at two ends
+by circles of diameter 0.5, is specified as follows:
+
+1 1 13
+2
+1 1 1.33333 0 0 0
+-2 0 0
+2 0 0
+0.5 :pre
+
+A disk, whose diameter is 3.0, mass 1.0, is specified as follows:
+
+1 1 10
+1
+1 1 4.5 0 0 0
+0 0 0
+3.0 :pre
 
 The "pair_style body/rounded/polygon"_pair_body_rounded_polygon.html
 command can be used with this body style to compute body/body
@@ -376,6 +394,24 @@ iyz = 0.667 0.667 0.667 0 0 0.
 2 3 7 6
 3 0 4 7
 0.5 :pre
+
+A rod in 3D, whose length is 4.0, mass 1.0 and rounded at two ends
+by circles of diameter 0.5, is specified as follows:
+
+1 1 13
+2
+0 1.33333 1.33333 0 0 0
+-2 0 0
+2 0 0
+0.5 :pre
+
+A sphere whose diameter is 3.0 and mass 1.0, is specified as follows:
+
+1 1 10
+1
+0.9 0.9 0.9 0 0 0
+0 0 0
+3.0 :pre
 
 The "pair_style
 body/rounded/polhedron"_pair_body_rounded_polyhedron.html command can

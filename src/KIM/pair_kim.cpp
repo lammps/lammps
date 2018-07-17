@@ -143,6 +143,16 @@ PairKIM::~PairKIM()
 }
 
 /* ---------------------------------------------------------------------- */
+void PairKIM::set_contributing()
+{
+  int const nall = atom->nlocal + atom->nghost;
+  for (int i = 0; i < nall; ++i)
+  {
+    kim_particleContributing[i] = ( (i < atom->nlocal) ? 1 : 0 );
+  }
+}
+
+/* ---------------------------------------------------------------------- */
 
 void PairKIM::compute(int eflag , int vflag)
 {
@@ -185,9 +195,10 @@ void PairKIM::compute(int eflag , int vflag)
    for (int i = 0; i < nall; i++) {
       ielement = lmps_map_species_to_unique[species[i]];
       kim_particleSpecies[i] = kim_particle_codes[ielement];
-
-      kim_particleContributing[i] = ( (i<atom->nlocal) ? 1 : 0 );
    }
+
+   // Set kim contributing flags
+   set_contributing();
 
    // pass current atom pointers to KIM
    set_argument_pointers();

@@ -117,6 +117,7 @@ namespace LAMMPS_NS {
       int** lmps_stripped_neigh_ptr;  // pointer into lists
 
       // KIM specific helper functions
+      virtual void set_contributing();
       void kim_init();
       void kim_free();
       void set_argument_pointers();

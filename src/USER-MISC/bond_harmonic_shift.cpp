@@ -193,11 +193,11 @@ void BondHarmonicShift::read_restart(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void BondHarmonicShift::write_data(FILE *fp)
+void BondHarmonicShift::write_data(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->nbondtypes; i++) {
     double d2 = (r0[i]-r1[i])*(r0[i]-r1[i]);
-    fprintf(fp,"%d %g %g %g\n",i,k[i]*d2,r0[i],r1[i]);
+    fprintf(fp,"%s %g %g %g\n",type[i-1],k[i]*d2,r0[i],r1[i]);
   }
 }
 

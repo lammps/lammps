@@ -245,10 +245,10 @@ void BondFENEExpand::read_restart(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void BondFENEExpand::write_data(FILE *fp)
+void BondFENEExpand::write_data(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->nbondtypes; i++)
-    fprintf(fp,"%d %g %g %g %g %g\n",i,k[i],r0[i],epsilon[i],sigma[i],shift[i]);
+    fprintf(fp,"%s %g %g %g %g %g\n",type[i-1],k[i],r0[i],epsilon[i],sigma[i],shift[i]);
 }
 
 /* ---------------------------------------------------------------------- */

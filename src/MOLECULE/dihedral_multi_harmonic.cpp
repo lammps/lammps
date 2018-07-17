@@ -336,8 +336,8 @@ void DihedralMultiHarmonic::read_restart(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void DihedralMultiHarmonic::write_data(FILE *fp)
+void DihedralMultiHarmonic::write_data(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->ndihedraltypes; i++)
-    fprintf(fp,"%d %g %g %g %g %g\n",i,a1[i],a2[i],a3[i],a4[i],a5[i]);
+    fprintf(fp,"%s %g %g %g %g %g\n",type[i-1],a1[i],a2[i],a3[i],a4[i],a5[i]);
 }

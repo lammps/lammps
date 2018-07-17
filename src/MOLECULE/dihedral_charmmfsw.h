@@ -34,7 +34,7 @@ class DihedralCharmmfsw : public Dihedral {
   virtual void init_style();
   void write_restart(FILE *);
   void read_restart(FILE *);
-  void write_data(FILE *);
+  void write_data(FILE *, char **);
 
  protected:
   int implicit,weightflag,dihedflag;

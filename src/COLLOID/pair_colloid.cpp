@@ -449,21 +449,21 @@ void PairColloid::read_restart_settings(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void PairColloid::write_data(FILE *fp)
+void PairColloid::write_data(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    fprintf(fp,"%d %g %g %g %g\n",i,a12[i][i],sigma[i][i],d1[i][i],d2[i][i]);
+    fprintf(fp,"%s %g %g %g %g\n",type[i-1],a12[i][i],sigma[i][i],d1[i][i],d2[i][i]);
 }
 
 /* ----------------------------------------------------------------------
    proc 0 writes all pairs to data file
 ------------------------------------------------------------------------- */
 
-void PairColloid::write_data_all(FILE *fp)
+void PairColloid::write_data_all(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp,"%d %g %g %g %g %g\n",i,
+      fprintf(fp,"%s %g %g %g %g %g\n",type[i-1],
               a12[i][j],sigma[i][j],d1[i][j],d2[i][j],cut[i][j]);
 }
 

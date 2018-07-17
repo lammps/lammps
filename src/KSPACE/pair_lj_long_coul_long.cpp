@@ -415,21 +415,21 @@ void PairLJLongCoulLong::read_restart_settings(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void PairLJLongCoulLong::write_data(FILE *fp)
+void PairLJLongCoulLong::write_data(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    fprintf(fp,"%d %g %g\n",i,epsilon_read[i][i],sigma_read[i][i]);
+    fprintf(fp,"%s %g %g\n",type[i-1],epsilon_read[i][i],sigma_read[i][i]);
 }
 
 /* ----------------------------------------------------------------------
    proc 0 writes all pairs to data file
 ------------------------------------------------------------------------- */
 
-void PairLJLongCoulLong::write_data_all(FILE *fp)
+void PairLJLongCoulLong::write_data_all(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp,"%d %d %g %g %g\n",i,j,
+      fprintf(fp,"%s %s %g %g %g\n",type[i-1],type[j-1],
               epsilon_read[i][j],sigma_read[i][j],cut_lj_read[i][j]);
 }
 

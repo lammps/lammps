@@ -34,7 +34,7 @@ class BondHarmonic : public Bond {
   double equilibrium_distance(int);
   void write_restart(FILE *);
   virtual void read_restart(FILE *);
-  void write_data(FILE *);
+  void write_data(FILE *, char **);
   double single(int, double, int, int, double &);
   virtual void *extract(char *, int &);
 

@@ -328,21 +328,21 @@ void PairGauss::read_restart_settings(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void PairGauss::write_data(FILE *fp)
+void PairGauss::write_data(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    fprintf(fp,"%d %g %g\n",i,a[i][i],b[i][i]);
+    fprintf(fp,"%s %g %g\n",type[i-1],a[i][i],b[i][i]);
 }
 
 /* ----------------------------------------------------------------------
    proc 0 writes all pairs to data file
 ------------------------------------------------------------------------- */
 
-void PairGauss::write_data_all(FILE *fp)
+void PairGauss::write_data_all(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp,"%d %d %g %g %g\n",i,j,a[i][j],b[i][j],cut[i][j]);
+      fprintf(fp,"%s %s %g %g %g\n",type[i-1],type[j-1],a[i][j],b[i][j],cut[i][j]);
 }
 
 /* ---------------------------------------------------------------------- */

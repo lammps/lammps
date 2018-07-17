@@ -263,8 +263,8 @@ void ImproperDistance::read_restart(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void ImproperDistance::write_data(FILE *fp)
+void ImproperDistance::write_data(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->nimpropertypes; i++)
-    fprintf(fp,"%d %g %g\n",i,k[i],chi[i]);
+    fprintf(fp,"%s %g %g\n",type[i-1],k[i],chi[i]);
 }

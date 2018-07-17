@@ -183,10 +183,10 @@ void BondNonlinear::read_restart(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void BondNonlinear::write_data(FILE *fp)
+void BondNonlinear::write_data(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->nbondtypes; i++)
-    fprintf(fp,"%d %g %g %g\n",i,epsilon[i],r0[i],lamda[i]);
+    fprintf(fp,"%s %g %g %g\n",type[i-1],epsilon[i],r0[i],lamda[i]);
 }
 
 /* ---------------------------------------------------------------------- */

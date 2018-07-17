@@ -1484,17 +1484,17 @@ void DihedralTableCut::bcast_table(Table *tb)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void DihedralTableCut::write_data(FILE *fp)
+void DihedralTableCut::write_data(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->ndihedraltypes; i++)
-    fprintf(fp,"%d %g %g %g %g %g %g\n",i,
+    fprintf(fp,"%s %g %g %g %g %g %g\n",type[i-1],
             k1[i],phi1[i]*180.0/MY_PI,
             k2[i],phi2[i]*180.0/MY_PI,
             k3[i],phi3[i]*180.0/MY_PI);
 
   fprintf(fp,"\nAngleAngleTorsion Coeffs\n\n");
   for (int i = 1; i <= atom->ndihedraltypes; i++)
-    fprintf(fp,"%d %g %g %g\n",i,aat_k[i],
+    fprintf(fp,"%s %g %g %g\n",type[i-1],aat_k[i],
             aat_theta0_1[i]*180.0/MY_PI,aat_theta0_2[i]*180.0/MY_PI);
 
 }

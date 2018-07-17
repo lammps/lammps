@@ -33,7 +33,7 @@ class DihedralCosineShiftExp : public Dihedral {
   void coeff(int, char **);
   void write_restart(FILE *);
   void read_restart(FILE *);
-  void write_data(FILE *);
+  void write_data(FILE *, char **);
 
  protected:
   bool *doExpansion;

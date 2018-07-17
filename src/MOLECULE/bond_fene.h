@@ -35,7 +35,7 @@ class BondFENE : public Bond {
   double equilibrium_distance(int);
   virtual void write_restart(FILE *);
   void read_restart(FILE *);
-  void write_data(FILE *);
+  void write_data(FILE *, char **);
   double single(int, double, int, int, double &);
 
  protected:

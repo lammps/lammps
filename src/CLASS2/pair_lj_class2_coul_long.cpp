@@ -260,6 +260,7 @@ void PairLJClass2CoulLong::coeff(int narg, char **arg)
   force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
   force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
+//printf("check7 %d %s %s %s\n",narg,arg[0],arg[1],arg[2]);
   double epsilon_one = force->numeric(FLERR,arg[2]);
   double sigma_one = force->numeric(FLERR,arg[3]);
 
@@ -461,21 +462,21 @@ void PairLJClass2CoulLong::read_restart_settings(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void PairLJClass2CoulLong::write_data(FILE *fp)
+void PairLJClass2CoulLong::write_data(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    fprintf(fp,"%d %g %g\n",i,epsilon[i][i],sigma[i][i]);
+    fprintf(fp,"%s %g %g\n",type[i-1],epsilon[i][i],sigma[i][i]);
 }
 
 /* ----------------------------------------------------------------------
    proc 0 writes all pairs to data file
 ------------------------------------------------------------------------- */
 
-void PairLJClass2CoulLong::write_data_all(FILE *fp)
+void PairLJClass2CoulLong::write_data_all(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp,"%d %d %g %g %g\n",i,j,epsilon[i][j],sigma[i][j],cut_lj[i][j]);
+      fprintf(fp,"%s %s %g %g %g\n",type[i-1],type[j-1],epsilon[i][j],sigma[i][j],cut_lj[i][j]);
 }
 
 /* ---------------------------------------------------------------------- */

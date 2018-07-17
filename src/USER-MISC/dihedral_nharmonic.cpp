@@ -342,10 +342,10 @@ void DihedralNHarmonic::read_restart(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void DihedralNHarmonic::write_data(FILE *fp)
+void DihedralNHarmonic::write_data(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->ndihedraltypes; i++) {
-    fprintf(fp, "%d %d", i, nterms[i]);
+    fprintf(fp, "%s %d", type[i-1], nterms[i]);
     for (int j = 0; j < nterms[i]; j++ )
       fprintf(fp, " %g", a[i][j]);
 

@@ -351,8 +351,8 @@ void ImproperCvff::read_restart(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void ImproperCvff::write_data(FILE *fp)
+void ImproperCvff::write_data(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->nimpropertypes; i++)
-    fprintf(fp,"%d %g %d %d\n",i,k[i],sign[i],multiplicity[i]);
+    fprintf(fp,"%s %g %d %d\n",type[i-1],k[i],sign[i],multiplicity[i]);
 }

@@ -344,9 +344,9 @@ void DihedralCosineShiftExp::read_restart(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void DihedralCosineShiftExp::write_data(FILE *fp)
+void DihedralCosineShiftExp::write_data(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->ndihedraltypes; i++)
-    fprintf(fp,"%d %g %g %g\n",i,umin[i],
+    fprintf(fp,"%s %g %g %g\n",type[i-1],umin[i],
             theta[i]*180.0/MathConst::MY_PI,a[i]);
 }

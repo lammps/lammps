@@ -99,7 +99,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   // SPIN package
 
   sp = fm = NULL;
-  
+
   // USER-DPD
 
   uCond = uMech = uChem = uCG = uCGnew = NULL;
@@ -157,6 +157,10 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   ivector = NULL;
   dvector = NULL;
   iname = dname = NULL;
+
+  // character-based types flags
+  char_types_flag = 0;
+  char_atomtype = char_bondtype = char_angletype = char_dihedraltype = char_impropertype = NULL;
 
   // initialize atom style and array existence flags
   // customize by adding new flag
@@ -843,6 +847,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
   double xdata[3],lamda[3];
   double *coord;
   char *next;
+  char *mychartype = new char[256];
 
   next = strchr(buf,'\n');
   *next = '\0';
@@ -959,6 +964,13 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
     if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
         coord[1] >= sublo[1] && coord[1] < subhi[1] &&
         coord[2] >= sublo[2] && coord[2] < subhi[2]) {
+      if (char_types_flag) {
+        int type_index;
+        if (!molecule_flag) type_index = 1;
+        else type_index = 2;
+        sprintf(mychartype,"%d",find_type(values[type_index],char_atomtype,ntypes));
+        values[type_index] = mychartype;
+      }
       avec->data_atom(xdata,imagedata,values);
       if (id_offset) tag[nlocal-1] += id_offset;
       if (mol_offset) molecule[nlocal-1] += mol_offset;
@@ -973,6 +985,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
   }
 
   delete [] values;
+  delete [] mychartype;
 }
 
 /* ----------------------------------------------------------------------
@@ -1033,12 +1046,21 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
   tagint atom1,atom2;
   char *next;
   int newton_bond = force->newton_bond;
+  char *mychartype = new char[256];
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    sscanf(buf,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT,
-           &tmp,&itype,&atom1,&atom2);
+    if (!char_types_flag) {
+      sscanf(buf,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT,
+             &tmp,&itype,&atom1,&atom2);
+    } else {
+      sscanf(buf,"%d %s " TAGINT_FORMAT " " TAGINT_FORMAT,
+             &tmp,mychartype,&atom1,&atom2);
+      itype = find_type(mychartype,char_bondtype,nbondtypes);
+      if (itype <= 0)
+        error->one(FLERR,"Invalid bond type in Bonds section of data file");
+    }
     if (id_offset) {
       atom1 += id_offset;
       atom2 += id_offset;
@@ -1070,6 +1092,7 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
     }
     buf = next + 1;
   }
+  delete [] mychartype;
 }
 
 /* ----------------------------------------------------------------------
@@ -1086,12 +1109,20 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
   tagint atom1,atom2,atom3;
   char *next;
   int newton_bond = force->newton_bond;
+  char *mychartype = new char[256];
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    sscanf(buf,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
-           &tmp,&itype,&atom1,&atom2,&atom3);
+    if (!char_types_flag) {
+      sscanf(buf,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
+             &tmp,&itype,&atom1,&atom2,&atom3);
+    } else {
+      sscanf(buf,"%d %s " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
+             &tmp,mychartype,&atom1,&atom2,&atom3);
+      itype = find_type(mychartype,char_angletype,nangletypes);
+      if (itype < 0) error->one(FLERR,"Invalid angle type in Angles section of data file");
+    }
     if (id_offset) {
       atom1 += id_offset;
       atom2 += id_offset;
@@ -1104,6 +1135,7 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
         (atom3 <= 0) || (atom3 > map_tag_max) ||
         (atom1 == atom2) || (atom1 == atom3) || (atom2 == atom3))
       error->one(FLERR,"Invalid atom ID in Angles section of data file");
+
     if (itype <= 0 || itype > nangletypes)
       error->one(FLERR,"Invalid angle type in Angles section of data file");
     if ((m = map(atom2)) >= 0) {
@@ -1140,6 +1172,7 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
     }
     buf = next + 1;
   }
+  delete [] mychartype;
 }
 
 /* ----------------------------------------------------------------------
@@ -1156,13 +1189,22 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
   tagint atom1,atom2,atom3,atom4;
   char *next;
   int newton_bond = force->newton_bond;
+  char *mychartype = new char[256];
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    sscanf(buf,"%d %d "
-           TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
-           &tmp,&itype,&atom1,&atom2,&atom3,&atom4);
+    if (!char_types_flag) {
+      sscanf(buf,"%d %d "
+             TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
+             &tmp,&itype,&atom1,&atom2,&atom3,&atom4);
+    } else {
+      sscanf(buf,"%d %s "
+             TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
+             &tmp,mychartype,&atom1,&atom2,&atom3,&atom4);
+      itype = find_type(mychartype,char_dihedraltype,ndihedraltypes);
+      if (itype < 0) error->one(FLERR,"Invalid dihedral type in Dihedrals section of data file");
+    }
     if (id_offset) {
       atom1 += id_offset;
       atom2 += id_offset;
@@ -1229,6 +1271,7 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
     }
     buf = next + 1;
   }
+  delete [] mychartype;
 }
 
 /* ----------------------------------------------------------------------
@@ -1245,13 +1288,22 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
   tagint atom1,atom2,atom3,atom4;
   char *next;
   int newton_bond = force->newton_bond;
+  char *mychartype = new char[256];
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    sscanf(buf,"%d %d "
-           TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
-           &tmp,&itype,&atom1,&atom2,&atom3,&atom4);
+    if (!char_types_flag) {
+      sscanf(buf,"%d %d "
+             TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
+             &tmp,&itype,&atom1,&atom2,&atom3,&atom4);
+    } else {
+      sscanf(buf,"%d %s "
+             TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
+             &tmp,mychartype,&atom1,&atom2,&atom3,&atom4);
+      itype = find_type(mychartype,char_impropertype,nimpropertypes);
+      if (itype < 0) error->one(FLERR,"Invalid improper type in Impropers section of data file");
+    }
     if (id_offset) {
       atom1 += id_offset;
       atom2 += id_offset;
@@ -1318,6 +1370,7 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
     }
     buf = next + 1;
   }
+  delete [] mychartype;
 }
 
 /* ----------------------------------------------------------------------
@@ -1456,6 +1509,80 @@ void Atom::data_fix_compute_variable(int nprev, int nnew)
 }
 
 /* ----------------------------------------------------------------------
+   allocate character-based type arrays of length ntypes
+   a character-based type is assumed to start with a letter
+   always allocated (for both numeric and character-based type modes)
+------------------------------------------------------------------------- */
+
+void Atom::allocate_char_type_arrays()
+{
+  char *char_type = new char[256];
+
+  char_atomtype = (char **) memory->srealloc(char_atomtype,
+                 ntypes*sizeof(char *),"atom:char_atomtype");
+  for (int i = 0; i < ntypes; i++) {
+    sprintf(char_type,"%d",i+1);
+    int n = strlen(char_type) + 1;
+    atom->char_atomtype[i] = new char[n];
+    strcpy(atom->char_atomtype[i],char_type);
+  }
+  if (force->bond) {
+    char_bondtype = (char **) memory->srealloc(char_bondtype,
+                              nbondtypes*sizeof(char *),"atom:char_bondtype");
+    for (int i = 0; i < nbondtypes; i++) {
+      sprintf(char_type,"%d",i+1);
+      int n = strlen(char_type) + 1;
+      atom->char_bondtype[i] = new char[n];
+      strcpy(atom->char_bondtype[i],char_type);
+    }
+  }
+  if (force->angle) {
+    char_angletype = (char **) memory->srealloc(char_angletype,
+                              nangletypes*sizeof(char *),"atom:char_angletype");
+    for (int i = 0; i < nangletypes; i++) {
+      sprintf(char_type,"%d",i+1);
+      int n = strlen(char_type) + 1;
+      atom->char_angletype[i] = new char[n];
+      strcpy(atom->char_angletype[i],char_type);
+    }
+  }
+  if (force->dihedral) {
+    char_dihedraltype = (char **) memory->srealloc(char_dihedraltype,
+                              ndihedraltypes*sizeof(char *),"atom:char_dihedraltype");
+    for (int i = 0; i < ndihedraltypes; i++) {
+      sprintf(char_type,"%d",i+1);
+      int n = strlen(char_type) + 1;
+      atom->char_dihedraltype[i] = new char[n];
+      strcpy(atom->char_dihedraltype[i],char_type);
+    }
+  }
+  if (force->improper) {
+    char_impropertype = (char **) memory->srealloc(char_impropertype,
+                              nimpropertypes*sizeof(char *),"atom:char_impropertype");
+    for (int i = 0; i < nimpropertypes; i++) {
+      sprintf(char_type,"%d",i+1);
+      int n = strlen(char_type) + 1;
+      atom->char_impropertype[i] = new char[n];
+      strcpy(atom->char_impropertype[i],char_type);
+    }
+  }
+  delete [] char_type;
+}
+
+/* ----------------------------------------------------------------------
+   find integer type given a character-based type
+   return -1 if type not yet defined
+------------------------------------------------------------------------- */
+
+int Atom::find_type(char *char_type, char **char_type_array, int num_types)
+{
+  for (int i = 0; i < num_types; i++) {
+    if (char_type_array[i] && strcmp(char_type,char_type_array[i]) == 0) return i+1;
+  }
+  return -1;
+}
+
+/* ----------------------------------------------------------------------
    allocate arrays of length ntypes
    only done after ntypes is set
 ------------------------------------------------------------------------- */
@@ -1481,9 +1608,18 @@ void Atom::set_mass(const char *file, int line, const char *str, int type_offset
 
   int itype;
   double mass_one;
-  int n = sscanf(str,"%d %lg",&itype,&mass_one);
-  if (n != 2) error->all(file,line,"Invalid mass line in data file");
-  itype += type_offset;
+  if (!char_types_flag) {
+    int n = sscanf(str,"%d %lg",&itype,&mass_one);
+    if (n != 2) error->all(file,line,"Invalid mass line in data file");
+    itype += type_offset;
+  } else {
+    char *char_type = new char[256];
+    int n = sscanf(str,"%s %lg",char_type,&mass_one);
+    if (n != 2) error->all(file,line,"Invalid mass line in data file");
+    itype = find_type(char_type,char_atomtype,ntypes);
+    if (itype < 0) error->all(file,line,"Invalid type for mass set");
+    delete [] char_type;
+  }
 
   if (itype < 1 || itype > ntypes)
     error->all(file,line,"Invalid type for mass set");

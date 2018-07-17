@@ -337,8 +337,8 @@ void DihedralQuadratic::read_restart(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void DihedralQuadratic::write_data(FILE *fp)
+void DihedralQuadratic::write_data(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->ndihedraltypes; i++)
-    fprintf(fp,"%d %g %g \n",i,k[i],phi0[i]*180.0/MY_PI);
+    fprintf(fp,"%s %g %g \n",type[i-1],k[i],phi0[i]*180.0/MY_PI);
 }

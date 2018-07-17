@@ -1744,4 +1744,3 @@ double Pair::memory_usage()
   bytes += comm->nthreads*maxvatom*6 * sizeof(double);
   return bytes;
 }
-

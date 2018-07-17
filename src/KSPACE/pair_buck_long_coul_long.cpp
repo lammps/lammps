@@ -417,10 +417,10 @@ void PairBuckLongCoulLong::read_restart_settings(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void PairBuckLongCoulLong::write_data(FILE *fp)
+void PairBuckLongCoulLong::write_data(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    fprintf(fp,"%d %g %g %g\n",i,
+    fprintf(fp,"%s %g %g %g\n",type[i-1],
             buck_a_read[i][i],buck_rho_read[i][i],buck_c_read[i][i]);
 }
 
@@ -428,11 +428,11 @@ void PairBuckLongCoulLong::write_data(FILE *fp)
    proc 0 writes all pairs to data file
 ------------------------------------------------------------------------- */
 
-void PairBuckLongCoulLong::write_data_all(FILE *fp)
+void PairBuckLongCoulLong::write_data_all(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp,"%d %d %g %g %g\n",i,j,
+      fprintf(fp,"%s %s %g %g %g\n",type[i-1],type[j-1],
               buck_a_read[i][j],buck_rho_read[i][j],buck_c_read[i][j]);
 }
 

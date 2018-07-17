@@ -250,10 +250,10 @@ void AngleQuartic::read_restart(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void AngleQuartic::write_data(FILE *fp)
+void AngleQuartic::write_data(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->nangletypes; i++)
-    fprintf(fp,"%d %g %g %g %g\n",i,theta0[i]/MY_PI*180.0,k2[i],k3[i],k4[i]);
+    fprintf(fp,"%s %g %g %g %g\n",type[i-1],theta0[i]/MY_PI*180.0,k2[i],k3[i],k4[i]);
 }
 
 /* ---------------------------------------------------------------------- */

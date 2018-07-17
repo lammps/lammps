@@ -33,7 +33,7 @@ class ImproperClass2 : public Improper {
   virtual void coeff(int, char **);
   void write_restart(FILE *);
   virtual void read_restart(FILE *);
-  void write_data(FILE *);
+  void write_data(FILE *, char **);
 
  protected:
   double *k0,*chi0;

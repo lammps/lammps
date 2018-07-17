@@ -14,6 +14,7 @@
 #include <cstring>
 #include <unistd.h>
 #include "write_coeff.h"
+#include "atom.h"
 #include "pair.h"
 #include "bond.h"
 #include "angle.h"
@@ -57,29 +58,29 @@ void WriteCoeff::command(int narg, char **arg)
 
     if (force->pair && force->pair->writedata) {
       fprintf(one,"# pair_style %s\npair_coeff\n",force->pair_style);
-      force->pair->write_data_all(one);
+      force->pair->write_data_all(one,atom->char_atomtype);
       fprintf(one,"end\n");
     }
     if (force->bond && force->bond->writedata) {
       fprintf(one,"# bond_style %s\nbond_coeff\n",force->bond_style);
-      force->bond->write_data(one);
+      force->bond->write_data(one,atom->char_bondtype);
       fprintf(one,"end\n");
     }
     if (force->angle && force->angle->writedata) {
       fprintf(one,"# angle_style %s\nangle_coeff\n",force->angle_style);
-      force->angle->write_data(one);
+      force->angle->write_data(one,atom->char_angletype);
       fprintf(one,"end\n");
     }
     if (force->dihedral && force->dihedral->writedata) {
       fprintf(one,"# dihedral_style %s\ndihedral_coeff\n",
               force->dihedral_style);
-      force->dihedral->write_data(one);
+      force->dihedral->write_data(one,atom->char_dihedraltype);
       fprintf(one,"end\n");
     }
     if (force->improper && force->improper->writedata) {
       fprintf(one,"# improper_style %s\nimproper_coeff\n",
               force->improper_style);
-      force->improper->write_data(one);
+      force->improper->write_data(one,atom->char_impropertype);
       fprintf(one,"end\n");
     }
     rewind(one);

@@ -200,8 +200,8 @@ int AtomVec::pack_bond(tagint **buf)
 void AtomVec::write_bond(FILE *fp, int n, tagint **buf, int index)
 {
   for (int i = 0; i < n; i++) {
-    fprintf(fp,"%d " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT "\n",
-            index,buf[i][0],buf[i][1],buf[i][2]);
+    fprintf(fp,"%d %s " TAGINT_FORMAT " " TAGINT_FORMAT "\n",
+            index,atom->char_bondtype[(int) buf[i][0]-1],buf[i][1],buf[i][2]);
     index++;
   }
 }
@@ -263,9 +263,10 @@ int AtomVec::pack_angle(tagint **buf)
 void AtomVec::write_angle(FILE *fp, int n, tagint **buf, int index)
 {
   for (int i = 0; i < n; i++) {
-    fprintf(fp,"%d " TAGINT_FORMAT " " TAGINT_FORMAT " "
+    fprintf(fp,"%d %s " TAGINT_FORMAT " "
             TAGINT_FORMAT " " TAGINT_FORMAT "\n",
-            index,buf[i][0],buf[i][1],buf[i][2],buf[i][3]);
+            index,atom->char_angletype[(int) buf[i][0]-1],
+            buf[i][1],buf[i][2],buf[i][3]);
     index++;
   }
 }
@@ -325,9 +326,10 @@ int AtomVec::pack_dihedral(tagint **buf)
 void AtomVec::write_dihedral(FILE *fp, int n, tagint **buf, int index)
 {
   for (int i = 0; i < n; i++) {
-    fprintf(fp,"%d " TAGINT_FORMAT " " TAGINT_FORMAT " "
+    fprintf(fp,"%d %s " TAGINT_FORMAT " "
             TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT "\n",
-            index,buf[i][0],buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
+            index,atom->char_dihedraltype[(int) buf[i][0]-1],
+            buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
     index++;
   }
 }
@@ -387,9 +389,10 @@ int AtomVec::pack_improper(tagint **buf)
 void AtomVec::write_improper(FILE *fp, int n, tagint **buf, int index)
 {
   for (int i = 0; i < n; i++) {
-    fprintf(fp,"%d " TAGINT_FORMAT " " TAGINT_FORMAT " "
+    fprintf(fp,"%d %s " TAGINT_FORMAT " "
             TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT "\n",
-            index,buf[i][0],buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
+            index,atom->char_impropertype[(int) buf[i][0]-1],
+            buf[i][0],buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
     index++;
   }
 }

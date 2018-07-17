@@ -449,9 +449,9 @@ void DihedralCharmm::read_restart(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void DihedralCharmm::write_data(FILE *fp)
+void DihedralCharmm::write_data(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->ndihedraltypes; i++)
-    fprintf(fp,"%d %g %d %d %g\n",i,k[i],multiplicity[i],shift[i],weight[i]);
+    fprintf(fp,"%s %g %d %d %g\n",type[i-1],k[i],multiplicity[i],shift[i],weight[i]);
 }
 

@@ -348,8 +348,8 @@ void ImproperFourier::read_restart(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void ImproperFourier::write_data(FILE *fp)
+void ImproperFourier::write_data(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->nimpropertypes; i++)
-    fprintf(fp,"%d %g %g %g %g %d\n",i,k[i],C0[i],C1[i],C2[i],all[i]);
+    fprintf(fp,"%s %g %g %g %g %d\n",type[i-1],k[i],C0[i],C1[i],C2[i],all[i]);
 }

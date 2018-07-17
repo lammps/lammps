@@ -201,10 +201,10 @@ void BondClass2::read_restart(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void BondClass2::write_data(FILE *fp)
+void BondClass2::write_data(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->nbondtypes; i++)
-    fprintf(fp,"%d %g %g %g %g\n",i,r0[i],k2[i],k3[i],k4[i]);
+    fprintf(fp,"%s %g %g %g %g\n",type[i-1],r0[i],k2[i],k3[i],k4[i]);
 }
 
 /* ---------------------------------------------------------------------- */

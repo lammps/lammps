@@ -297,10 +297,10 @@ void BondQuartic::read_restart(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void BondQuartic::write_data(FILE *fp)
+void BondQuartic::write_data(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->nbondtypes; i++)
-    fprintf(fp,"%d %g %g %g %g %g\n",i,k[i],b1[i],b2[i],rc[i],u0[i]);
+    fprintf(fp,"%s %g %g %g %g %g\n",type[i-1],k[i],b1[i],b2[i],rc[i],u0[i]);
 }
 
 /* ---------------------------------------------------------------------- */

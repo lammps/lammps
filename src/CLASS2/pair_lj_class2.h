@@ -36,8 +36,8 @@ class PairLJClass2 : public Pair {
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
-  void write_data(FILE *);
-  void write_data_all(FILE *);
+  void write_data(FILE *, char **);
+  void write_data_all(FILE *, char **);
   double single(int, int, int, int, double, double, double, double &);
 
  protected:

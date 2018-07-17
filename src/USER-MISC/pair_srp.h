@@ -33,8 +33,8 @@ class PairSRP : public Pair {
   virtual void coeff(int, char **);
   void init_style();
   double init_one(int, int);
-  virtual void write_data(FILE *);
-  virtual void write_data_all(FILE *);
+  virtual void write_data(FILE *, char **);
+  virtual void write_data_all(FILE *, char **);
   virtual void write_restart(FILE *);
   virtual void read_restart(FILE *);
   virtual void write_restart_settings(FILE *);

@@ -34,7 +34,7 @@ class AngleFourier : public Angle {
   double equilibrium_angle(int);
   void write_restart(FILE *);
   void read_restart(FILE *);
-  void write_data(FILE *);
+  void write_data(FILE *, char **);
   virtual double single(int, int, int, int);
 
  protected:

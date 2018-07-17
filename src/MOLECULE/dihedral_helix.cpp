@@ -337,8 +337,8 @@ void DihedralHelix::read_restart(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void DihedralHelix::write_data(FILE *fp)
+void DihedralHelix::write_data(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->ndihedraltypes; i++)
-    fprintf(fp,"%d %g %g %g\n",i,aphi[i],bphi[i],cphi[i]);
+    fprintf(fp,"%s %g %g %g\n",type[i-1],aphi[i],bphi[i],cphi[i]);
 }

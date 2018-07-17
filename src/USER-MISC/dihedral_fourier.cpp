@@ -408,11 +408,11 @@ void DihedralFourier::read_restart(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void DihedralFourier::write_data(FILE *fp)
+void DihedralFourier::write_data(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->ndihedraltypes; i++)
   {
-    fprintf(fp,"%d %d",i,nterms[i]);
+    fprintf(fp,"%s %d",type[i-1],nterms[i]);
     for(int j = 0; j < nterms[i]; j++)
        fprintf(fp," %g %d %g",k[i][j],multiplicity[i][j],shift[i][j]);
     fprintf(fp,"\n");

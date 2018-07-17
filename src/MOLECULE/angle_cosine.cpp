@@ -204,10 +204,10 @@ void AngleCosine::read_restart(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void AngleCosine::write_data(FILE *fp)
+void AngleCosine::write_data(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->nangletypes; i++)
-    fprintf(fp,"%d %g\n",i,k[i]);
+    fprintf(fp,"%s %g\n",type[i-1],k[i]);
 }
 
 /* ---------------------------------------------------------------------- */

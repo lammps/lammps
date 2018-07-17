@@ -33,7 +33,7 @@ class ImproperUmbrella : public Improper {
   void coeff(int, char **);
   void write_restart(FILE *);
   void read_restart(FILE *);
-  void write_data(FILE *);
+  void write_data(FILE *, char **);
 
  protected:
   double *kw, *w0, *C;

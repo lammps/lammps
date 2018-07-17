@@ -34,7 +34,7 @@ class DihedralTableCut : public Dihedral {
   void coeff(int, char **);
   void write_restart(FILE *);
   void read_restart(FILE *);
-  void write_data(FILE *);
+  void write_data(FILE *, char **);
   double single(int type, int i1, int i2, int i3, int i4);
 
  protected:

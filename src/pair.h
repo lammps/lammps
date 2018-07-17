@@ -161,8 +161,8 @@ class Pair : protected Pointers {
   virtual void read_restart(FILE *);
   virtual void write_restart_settings(FILE *) {}
   virtual void read_restart_settings(FILE *) {}
-  virtual void write_data(FILE *) {}
-  virtual void write_data_all(FILE *) {}
+  virtual void write_data(FILE *, char **) {}
+  virtual void write_data_all(FILE *, char **) {}
 
   virtual int pack_forward_comm(int, int *, double *, int, int *) {return 0;}
   virtual void unpack_forward_comm(int, int, double *) {}

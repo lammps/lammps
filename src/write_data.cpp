@@ -255,7 +255,7 @@ void WriteData::header()
     }
   }
 
-  if (fixflag) 
+  if (fixflag)
     for (int i = 0; i < modify->nfix; i++)
       if (modify->fix[i]->wd_header)
         for (int m = 0; m < modify->fix[i]->wd_header; m++)
@@ -281,7 +281,13 @@ void WriteData::type_arrays()
   if (atom->mass) {
     double *mass = atom->mass;
     fprintf(fp,"\nMasses\n\n");
-    for (int i = 1; i <= atom->ntypes; i++) fprintf(fp,"%d %g\n",i,mass[i]);
+    if (!atom->char_types_flag) {
+      for (int i = 1; i <= atom->ntypes; i++) fprintf(fp,"%d %g\n",i,mass[i]);
+    } else {
+      for (int i = 1; i <= atom->ntypes; i++) {
+        fprintf(fp,"%s %g\n",atom->char_atomtype[i-1],mass[i]);
+      }
+    }
   }
 }
 
@@ -294,27 +300,27 @@ void WriteData::force_fields()
   if (force->pair && force->pair->writedata) {
     if (pairflag == II) {
       fprintf(fp,"\nPair Coeffs # %s\n\n", force->pair_style);
-      force->pair->write_data(fp);
+      force->pair->write_data(fp,atom->char_atomtype);
     } else if (pairflag == IJ) {
       fprintf(fp,"\nPairIJ Coeffs # %s\n\n", force->pair_style);
-      force->pair->write_data_all(fp);
+      force->pair->write_data_all(fp,atom->char_atomtype);
     }
   }
   if (force->bond && force->bond->writedata && atom->nbondtypes) {
     fprintf(fp,"\nBond Coeffs # %s\n\n", force->bond_style);
-    force->bond->write_data(fp);
+    force->bond->write_data(fp,atom->char_bondtype);
   }
   if (force->angle && force->angle->writedata && atom->nangletypes) {
     fprintf(fp,"\nAngle Coeffs # %s\n\n", force->angle_style);
-    force->angle->write_data(fp);
+    force->angle->write_data(fp,atom->char_angletype);
   }
   if (force->dihedral && force->dihedral->writedata && atom->ndihedraltypes) {
     fprintf(fp,"\nDihedral Coeffs # %s\n\n", force->dihedral_style);
-    force->dihedral->write_data(fp);
+    force->dihedral->write_data(fp,atom->char_dihedraltype);
   }
   if (force->improper && force->improper->writedata && atom->nimpropertypes) {
     fprintf(fp,"\nImproper Coeffs # %s\n\n", force->improper_style);
-    force->improper->write_data(fp);
+    force->improper->write_data(fp,atom->char_impropertype);
   }
 }
 

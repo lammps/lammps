@@ -438,6 +438,7 @@ void ReadData::command(int narg, char **arg)
       else n = static_cast<int> (LB_FACTOR * atom->natoms / comm->nprocs);
 
       atom->allocate_type_arrays();
+      atom->allocate_char_type_arrays();
       atom->deallocate_topology();
       atom->avec->grow(n);
 
@@ -1704,18 +1705,34 @@ void ReadData::mass()
 {
   char *next;
   char *buf = new char[ntypes*MAXLINE];
+  char *char_test = new char[256];
 
   int eof = comm->read_lines_from_file(fp,ntypes,MAXLINE,buf);
   if (eof) error->all(FLERR,"Unexpected end of data file");
 
   char *original = buf;
   for (int i = 0; i < ntypes; i++) {
+    sscanf(buf,"%s",char_test);
+    if (!atom->char_types_flag && isalpha(char_test[0])) {
+      atom->char_types_flag = 1;
+      if (me == 0) error->warning(FLERR,"Using character-based atom, bond, etc. types");
+    }
+    if (atom->char_types_flag) {
+      int mytype = atom->find_type(char_test,atom->char_atomtype,atom->ntypes);
+      if (mytype < 0) {
+        int n = strlen(char_test) + 1;
+        delete [] atom->char_atomtype[i];
+        atom->char_atomtype[i] = new char[n];
+        strcpy(atom->char_atomtype[i],char_test);
+      }
+    }
     next = strchr(buf,'\n');
     *next = '\0';
     atom->set_mass(FLERR,buf,toffset);
     buf = next + 1;
   }
   delete [] original;
+  delete [] char_test;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1724,6 +1741,7 @@ void ReadData::paircoeffs()
 {
   char *next;
   char *buf = new char[ntypes*MAXLINE];
+  char *mychartype = new char[256];
 
   int eof = comm->read_lines_from_file(fp,ntypes,MAXLINE,buf);
   if (eof) error->all(FLERR,"Unexpected end of data file");
@@ -1733,11 +1751,26 @@ void ReadData::paircoeffs()
     next = strchr(buf,'\n');
     *next = '\0';
     parse_coeffs(buf,NULL,1,2,toffset);
+    if (atom->char_types_flag) {
+      // char_atomtype is initilized as numeric
+      // character-based type is assumed to start with a letter
+      if (isdigit(atom->char_atomtype[i][0])) {
+        int n = strlen(arg[0]) + 1;
+        delete [] atom->char_atomtype[i];
+        atom->char_atomtype[i] = new char[n];
+        strcpy(atom->char_atomtype[i],arg[0]);
+      }
+      int mytype = atom->find_type(arg[0],atom->char_atomtype,atom->ntypes);
+      sprintf(mychartype,"%d",mytype);
+      arg[0] = mychartype;
+      arg[1] = mychartype;
+    }
     if (narg == 0) error->all(FLERR,"Unexpected end of PairCoeffs section");
     force->pair->coeff(narg,arg);
     buf = next + 1;
   }
   delete [] original;
+  delete [] mychartype;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1774,6 +1807,7 @@ void ReadData::bondcoeffs()
 
   char *next;
   char *buf = new char[nbondtypes*MAXLINE];
+  char *mychartype = new char[256];
 
   int eof = comm->read_lines_from_file(fp,nbondtypes,MAXLINE,buf);
   if (eof) error->all(FLERR,"Unexpected end of data file");
@@ -1783,11 +1817,22 @@ void ReadData::bondcoeffs()
     next = strchr(buf,'\n');
     *next = '\0';
     parse_coeffs(buf,NULL,0,1,boffset);
+    if (atom->char_types_flag) {
+      if (isdigit(atom->char_bondtype[i][0])) {
+        int n = strlen(arg[0]) + 1;
+        delete [] atom->char_bondtype[i];
+        atom->char_bondtype[i] = new char[n];
+        strcpy(atom->char_bondtype[i],arg[0]);
+      }
+      sprintf(mychartype,"%d",i+1);
+      arg[0] = mychartype;
+    }
     if (narg == 0) error->all(FLERR,"Unexpected end of BondCoeffs section");
     force->bond->coeff(narg,arg);
     buf = next + 1;
   }
   delete [] original;
+  delete [] mychartype;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1798,6 +1843,7 @@ void ReadData::anglecoeffs(int which)
 
   char *next;
   char *buf = new char[nangletypes*MAXLINE];
+  char *mychartype = new char[256];
 
   int eof = comm->read_lines_from_file(fp,nangletypes,MAXLINE,buf);
   if (eof) error->all(FLERR,"Unexpected end of data file");
@@ -1809,11 +1855,22 @@ void ReadData::anglecoeffs(int which)
     if (which == 0) parse_coeffs(buf,NULL,0,1,aoffset);
     else if (which == 1) parse_coeffs(buf,"bb",0,1,aoffset);
     else if (which == 2) parse_coeffs(buf,"ba",0,1,aoffset);
+    if (atom->char_types_flag) {
+      if (isdigit(atom->char_angletype[i][0])) {
+        int n = strlen(arg[0]) + 1;
+        delete [] atom->char_angletype[i];
+        atom->char_angletype[i] = new char[n];
+        strcpy(atom->char_angletype[i],arg[0]);
+      }
+      sprintf(mychartype,"%d",i+1);
+      arg[0] = mychartype;
+    }
     if (narg == 0) error->all(FLERR,"Unexpected end of AngleCoeffs section");
     force->angle->coeff(narg,arg);
     buf = next + 1;
   }
   delete [] original;
+  delete [] mychartype;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1824,6 +1881,7 @@ void ReadData::dihedralcoeffs(int which)
 
   char *next;
   char *buf = new char[ndihedraltypes*MAXLINE];
+  char *mychartype = new char[256];
 
   int eof = comm->read_lines_from_file(fp,ndihedraltypes,MAXLINE,buf);
   if (eof) error->all(FLERR,"Unexpected end of data file");
@@ -1838,11 +1896,22 @@ void ReadData::dihedralcoeffs(int which)
     else if (which == 3) parse_coeffs(buf,"at",0,1,doffset);
     else if (which == 4) parse_coeffs(buf,"aat",0,1,doffset);
     else if (which == 5) parse_coeffs(buf,"bb13",0,1,doffset);
+    if (atom->char_types_flag) {
+      if (isdigit(atom->char_dihedraltype[i][0])) {
+        int n = strlen(arg[0]) + 1;
+        delete [] atom->char_dihedraltype[i];
+        atom->char_dihedraltype[i] = new char[n];
+        strcpy(atom->char_dihedraltype[i],arg[0]);
+      }
+      sprintf(mychartype,"%d",i+1);
+      arg[0] = mychartype;
+    }
     if (narg == 0) error->all(FLERR,"Unexpected end of DihedralCoeffs section");
     force->dihedral->coeff(narg,arg);
     buf = next + 1;
   }
   delete [] original;
+  delete [] mychartype;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1853,6 +1922,7 @@ void ReadData::impropercoeffs(int which)
 
   char *next;
   char *buf = new char[nimpropertypes*MAXLINE];
+  char *mychartype = new char[256];
 
   int eof = comm->read_lines_from_file(fp,nimpropertypes,MAXLINE,buf);
   if (eof) error->all(FLERR,"Unexpected end of data file");
@@ -1863,11 +1933,22 @@ void ReadData::impropercoeffs(int which)
     *next = '\0';
     if (which == 0) parse_coeffs(buf,NULL,0,1,ioffset);
     else if (which == 1) parse_coeffs(buf,"aa",0,1,ioffset);
+    if (atom->char_types_flag) {
+      if (isdigit(atom->char_impropertype[i][0])) {
+        int n = strlen(arg[0]) + 1;
+        delete [] atom->char_impropertype[i];
+        atom->char_impropertype[i] = new char[n];
+        strcpy(atom->char_impropertype[i],arg[0]);
+      }
+      sprintf(mychartype,"%d",i+1);
+      arg[0] = mychartype;
+    }
     if (narg == 0) error->all(FLERR,"Unexpected end of ImproperCoeffs section");
     force->improper->coeff(narg,arg);
     buf = next + 1;
   }
   delete [] original;
+  delete [] mychartype;
 }
 
 /* ----------------------------------------------------------------------
@@ -2029,6 +2110,7 @@ void ReadData::skip_lines(bigint n)
    parse a line of coeffs into words, storing them in narg,arg
    trim anything from '#' onward
    word strings remain in line, are not copied
+   if 1st word starts with a character, we are in char-based types mode
    if addstr != NULL, add addstr as extra arg for class2 angle/dihedral/improper
      if 2nd word starts with letter, then is hybrid style, add addstr after it
      else add addstr before 2nd word
@@ -2050,6 +2132,13 @@ void ReadData::parse_coeffs(char *line, const char *addstr,
       arg = (char **)
         memory->srealloc(arg,maxarg*sizeof(char *),"read_data:arg");
     }
+    if (!atom->char_types_flag && narg == 0 && isalpha(word[0])) {
+      atom->char_types_flag = 1;
+      printf("should be here either\n");
+      if (me == 0) error->warning(FLERR,"Using character-based atom, bond, etc. types");
+    }
+    if (atom->char_types_flag && narg == 0 && !isalpha(word[0]))
+      error->all(FLERR,"Mixing numeric types with character-based types is not permitted");
     if (addstr && narg == 1 && !islower(word[0])) arg[narg++] = (char *) addstr;
     arg[narg++] = word;
     if (addstr && narg == 2 && islower(word[0])) arg[narg++] = (char *) addstr;
@@ -2057,7 +2146,7 @@ void ReadData::parse_coeffs(char *line, const char *addstr,
     word = strtok(NULL," \t\n\r\f");
   }
 
-  if (noffset) {
+  if (noffset && !atom->char_types_flag) {
     int value = force->inumeric(FLERR,arg[0]);
     sprintf(argoffset1,"%d",value+offset);
     arg[0] = argoffset1;

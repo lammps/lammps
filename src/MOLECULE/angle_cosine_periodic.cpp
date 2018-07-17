@@ -263,11 +263,11 @@ void AngleCosinePeriodic::read_restart(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void AngleCosinePeriodic::write_data(FILE *fp)
+void AngleCosinePeriodic::write_data(FILE *fp, char ** type)
 {
   for (int i = 1; i <= atom->nangletypes; i++) {
     int m = multiplicity[i];
-    fprintf(fp,"%d %g %d %d\n",i,k[i]*m*m,b[i],m);
+    fprintf(fp,"%s %g %d %d\n",type[i-1],k[i]*m*m,b[i],m);
   }
 }
 

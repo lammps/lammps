@@ -139,10 +139,10 @@ void BondZero::read_restart(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void BondZero::write_data(FILE *fp)
+void BondZero::write_data(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->nbondtypes; i++)
-    fprintf(fp,"%d %g\n",i,r0[i]);
+    fprintf(fp,"%s %g\n",type[i-1],r0[i]);
 }
 
 

@@ -253,10 +253,10 @@ void AngleFourierSimple::read_restart(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void AngleFourierSimple::write_data(FILE *fp)
+void AngleFourierSimple::write_data(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->nangletypes; i++)
-    fprintf(fp,"%d %g %g %g\n",i,k[i],C[i],N[i]);
+    fprintf(fp,"%s %g %g %g\n",type[i-1],k[i],C[i],N[i]);
 }
 
 /* ---------------------------------------------------------------------- */

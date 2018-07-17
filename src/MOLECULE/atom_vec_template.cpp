@@ -827,10 +827,10 @@ void AtomVecTemplate::write_data(FILE *fp, int n, double **buf)
 {
   for (int i = 0; i < n; i++)
     fprintf(fp,TAGINT_FORMAT " " TAGINT_FORMAT
-            " %d %d %d %-1.16e %-1.16e %-1.16e %d %d %d\n",
+            " %d %d %s %-1.16e %-1.16e %-1.16e %d %d %d\n",
             (tagint) ubuf(buf[i][0]).i,(tagint) ubuf(buf[i][1]).i,
             (int) ubuf(buf[i][2]).i,(int) ubuf(buf[i][3]).i,
-            (int) ubuf(buf[i][4]).i,
+            atom->char_atomtype[(int) ubuf(buf[i][4]).i-1],
             buf[i][5],buf[i][6],buf[i][7],
             (int) ubuf(buf[i][8]).i,(int) ubuf(buf[i][9]).i,
             (int) ubuf(buf[i][10]).i);

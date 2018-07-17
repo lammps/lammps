@@ -679,10 +679,18 @@ void Molecule::coords(char *line)
 void Molecule::types(char *line)
 {
   int tmp;
+  char *mychartype = new char[256];
   for (int i = 0; i < natoms; i++) {
     readline(line);
-    if (2 != sscanf(line,"%d %d",&tmp,&type[i]))
-      error->all(FLERR,"Invalid Types section in molecule file");
+    if (!atom->char_types_flag) {
+      if (2 != sscanf(line,"%d %d",&tmp,&type[i]))
+        error->all(FLERR,"Invalid Types section in molecule file");
+    } else {
+      if (2 != sscanf(line,"%d %s",&tmp,mychartype))
+        error->all(FLERR,"Invalid Types section in molecule file");
+      type[i] = atom->find_type(mychartype,atom->char_atomtype,atom->ntypes);
+      if (type[i] < 0) error->all(FLERR,"Invalid atom type in molecule file");
+    }
     type[i] += toffset;
   }
 
@@ -692,6 +700,8 @@ void Molecule::types(char *line)
 
   for (int i = 0; i < natoms; i++)
     ntypes = MAX(ntypes,type[i]);
+
+  delete [] mychartype;
 }
 
 /* ----------------------------------------------------------------------
@@ -761,6 +771,7 @@ void Molecule::bonds(int flag, char *line)
   int tmp,itype;
   tagint m,atom1,atom2;
   int newton_bond = force->newton_bond;
+  char *mychartype = new char[256];
 
   if (flag == 0)
     for (int i = 0; i < natoms; i++) count[i] = 0;
@@ -769,9 +780,17 @@ void Molecule::bonds(int flag, char *line)
 
   for (int i = 0; i < nbonds; i++) {
     readline(line);
-    if (4 != sscanf(line,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT,
-           &tmp,&itype,&atom1,&atom2))
-      error->all(FLERR,"Invalid Bonds section in molecule file");
+    if (!atom->char_types_flag) {
+      if (4 != sscanf(line,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT,
+             &tmp,&itype,&atom1,&atom2))
+        error->all(FLERR,"Invalid Bonds section in molecule file");
+    } else {
+      if (4 != sscanf(line,"%d %s " TAGINT_FORMAT " " TAGINT_FORMAT,
+             &tmp,mychartype,&atom1,&atom2))
+        error->all(FLERR,"Invalid Bonds section in molecule file");
+      itype = atom->find_type(mychartype,atom->char_bondtype,atom->nbondtypes);
+      if (itype < 0) error->all(FLERR,"Invalid bond type in Bonds section of molecule file");
+    }
     itype += boffset;
 
     if ((atom1 <= 0) || (atom1 > natoms) ||
@@ -805,6 +824,7 @@ void Molecule::bonds(int flag, char *line)
     for (int i = 0; i < natoms; i++)
       bond_per_atom = MAX(bond_per_atom,count[i]);
   }
+  delete [] mychartype;
 }
 
 /* ----------------------------------------------------------------------
@@ -819,6 +839,7 @@ void Molecule::angles(int flag, char *line)
   int tmp,itype;
   tagint m,atom1,atom2,atom3;
   int newton_bond = force->newton_bond;
+  char *mychartype = new char[256];
 
   if (flag == 0)
     for (int i = 0; i < natoms; i++) count[i] = 0;
@@ -827,9 +848,17 @@ void Molecule::angles(int flag, char *line)
 
   for (int i = 0; i < nangles; i++) {
     readline(line);
-    if (5 != sscanf(line,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
-           &tmp,&itype,&atom1,&atom2,&atom3))
-      error->all(FLERR,"Invalid Angles section in molecule file");
+    if (!atom->char_types_flag) {
+      if (5 != sscanf(line,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
+             &tmp,&itype,&atom1,&atom2,&atom3))
+        error->all(FLERR,"Invalid Angles section in molecule file");
+    } else {
+      if (5 != sscanf(line,"%d %s " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
+             &tmp,mychartype,&atom1,&atom2,&atom3))
+        error->all(FLERR,"Invalid Angles section in molecule file");
+      itype = atom->find_type(mychartype,atom->char_angletype,atom->nangletypes);
+      if (itype < 0) error->all(FLERR,"Invalid angle type in Angles section of molecule file");
+    }
     itype += aoffset;
 
     if ((atom1 <= 0) || (atom1 > natoms) ||
@@ -878,6 +907,7 @@ void Molecule::angles(int flag, char *line)
     for (int i = 0; i < natoms; i++)
       angle_per_atom = MAX(angle_per_atom,count[i]);
   }
+  delete [] mychartype;
 }
 
 /* ----------------------------------------------------------------------
@@ -892,6 +922,7 @@ void Molecule::dihedrals(int flag, char *line)
   int tmp,itype;
   tagint m,atom1,atom2,atom3,atom4;
   int newton_bond = force->newton_bond;
+  char *mychartype = new char[256];
 
   if (flag == 0)
     for (int i = 0; i < natoms; i++) count[i] = 0;
@@ -900,10 +931,19 @@ void Molecule::dihedrals(int flag, char *line)
 
   for (int i = 0; i < ndihedrals; i++) {
     readline(line);
-    if (6 != sscanf(line,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT " "
-           TAGINT_FORMAT " " TAGINT_FORMAT " ",
-           &tmp,&itype,&atom1,&atom2,&atom3,&atom4))
-      error->all(FLERR,"Invalid Dihedrals section in molecule file");
+    if (!atom->char_types_flag) {
+      if (6 != sscanf(line,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT " "
+             TAGINT_FORMAT " " TAGINT_FORMAT " ",
+             &tmp,&itype,&atom1,&atom2,&atom3,&atom4))
+        error->all(FLERR,"Invalid Dihedrals section in molecule file");
+    } else {
+      if (6 != sscanf(line,"%d %s " TAGINT_FORMAT " " TAGINT_FORMAT " "
+             TAGINT_FORMAT " " TAGINT_FORMAT " ",
+             &tmp,mychartype,&atom1,&atom2,&atom3,&atom4))
+        error->all(FLERR,"Invalid Dihedrals section in molecule file");
+      itype = atom->find_type(mychartype,atom->char_dihedraltype,atom->ndihedraltypes);
+      if (itype < 0) error->all(FLERR,"Invalid dihedral type in dihedrals section of molecule file");
+    }
     itype += doffset;
 
     if ((atom1 <= 0) || (atom1 > natoms) ||
@@ -967,6 +1007,7 @@ void Molecule::dihedrals(int flag, char *line)
     for (int i = 0; i < natoms; i++)
       dihedral_per_atom = MAX(dihedral_per_atom,count[i]);
   }
+  delete [] mychartype;
 }
 
 /* ----------------------------------------------------------------------
@@ -981,6 +1022,7 @@ void Molecule::impropers(int flag, char *line)
   int tmp,itype;
   tagint m,atom1,atom2,atom3,atom4;
   int newton_bond = force->newton_bond;
+  char *mychartype = new char[256];
 
   if (flag == 0)
     for (int i = 0; i < natoms; i++) count[i] = 0;
@@ -989,10 +1031,19 @@ void Molecule::impropers(int flag, char *line)
 
   for (int i = 0; i < nimpropers; i++) {
     readline(line);
-    if (6 != sscanf(line,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT " "
-           TAGINT_FORMAT " " TAGINT_FORMAT " ",
-           &tmp,&itype,&atom1,&atom2,&atom3,&atom4))
-      error->all(FLERR,"Invalid Impropers section in molecule file");
+    if (!atom->char_types_flag) {
+      if (6 != sscanf(line,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT " "
+             TAGINT_FORMAT " " TAGINT_FORMAT " ",
+             &tmp,&itype,&atom1,&atom2,&atom3,&atom4))
+        error->all(FLERR,"Invalid Impropers section in molecule file");
+    } else {
+      if (6 != sscanf(line,"%d %s " TAGINT_FORMAT " " TAGINT_FORMAT " "
+             TAGINT_FORMAT " " TAGINT_FORMAT " ",
+             &tmp,mychartype,&atom1,&atom2,&atom3,&atom4))
+        error->all(FLERR,"Invalid Impropers section in molecule file");
+      itype = atom->find_type(mychartype,atom->char_impropertype,atom->nimpropertypes);
+      if (itype < 0) error->all(FLERR,"Invalid improper type in impropers section of molecule file");
+    }
     itype += ioffset;
 
     if ((atom1 <= 0) || (atom1 > natoms) ||
@@ -1056,6 +1107,7 @@ void Molecule::impropers(int flag, char *line)
     for (int i = 0; i < natoms; i++)
       improper_per_atom = MAX(improper_per_atom,count[i]);
   }
+  delete [] mychartype;
 }
 
 /* ----------------------------------------------------------------------

@@ -925,37 +925,37 @@ void DihedralClass2::read_restart(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void DihedralClass2::write_data(FILE *fp)
+void DihedralClass2::write_data(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->ndihedraltypes; i++)
-    fprintf(fp,"%d %g %g %g %g %g %g\n",i,
+    fprintf(fp,"%s %g %g %g %g %g %g\n",type[i-1],
             k1[i],phi1[i]*180.0/MY_PI,
             k2[i],phi2[i]*180.0/MY_PI,
             k3[i],phi3[i]*180.0/MY_PI);
 
   fprintf(fp,"\nAngleAngleTorsion Coeffs\n\n");
   for (int i = 1; i <= atom->ndihedraltypes; i++)
-    fprintf(fp,"%d %g %g %g\n",i,aat_k[i],
+    fprintf(fp,"%s %g %g %g\n",type[i-1],aat_k[i],
             aat_theta0_1[i]*180.0/MY_PI,aat_theta0_2[i]*180.0/MY_PI);
 
   fprintf(fp,"\nEndBondTorsion Coeffs\n\n");
   for (int i = 1; i <= atom->ndihedraltypes; i++)
-    fprintf(fp,"%d %g %g %g %g %g %g %g %g\n",i,
+    fprintf(fp,"%s %g %g %g %g %g %g %g %g\n",type[i-1],
             ebt_f1_1[i],ebt_f2_1[i],ebt_f3_1[i],
             ebt_f1_2[i],ebt_f2_2[i],ebt_f3_2[i],
             ebt_r0_1[i],ebt_r0_2[i]);
 
   fprintf(fp,"\nMiddleBondTorsion Coeffs\n\n");
   for (int i = 1; i <= atom->ndihedraltypes; i++)
-    fprintf(fp,"%d %g %g %g %g\n",i,mbt_f1[i],mbt_f2[i],mbt_f3[i],mbt_r0[i]);
+    fprintf(fp,"%s %g %g %g %g\n",type[i-1],mbt_f1[i],mbt_f2[i],mbt_f3[i],mbt_r0[i]);
 
   fprintf(fp,"\nBondBond13 Coeffs\n\n");
   for (int i = 1; i <= atom->ndihedraltypes; i++)
-    fprintf(fp,"%d %g %g %g\n",i,bb13t_k[i],bb13t_r10[i],bb13t_r30[i]);
+    fprintf(fp,"%s %g %g %g\n",type[i-1],bb13t_k[i],bb13t_r10[i],bb13t_r30[i]);
 
   fprintf(fp,"\nAngleTorsion Coeffs\n\n");
   for (int i = 1; i <= atom->ndihedraltypes; i++)
-    fprintf(fp,"%d %g %g %g %g %g %g %g %g\n",i,
+    fprintf(fp,"%s %g %g %g %g %g %g %g %g\n",type[i-1],
             at_f1_1[i],at_f2_1[i],at_f3_1[i],
             at_f1_2[i],at_f2_2[i],at_f3_2[i],
             at_theta0_1[i]*180.0/MY_PI,at_theta0_2[i]*180.0/MY_PI);

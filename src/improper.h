@@ -45,7 +45,7 @@ class Improper : protected Pointers {
   virtual void coeff(int, char **) = 0;
   virtual void write_restart(FILE *) = 0;
   virtual void read_restart(FILE *) = 0;
-  virtual void write_data(FILE *) {}
+  virtual void write_data(FILE *, char **) {}
   virtual double memory_usage();
 
  protected:

@@ -461,21 +461,21 @@ void PairBuckCoulLong::read_restart_settings(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void PairBuckCoulLong::write_data(FILE *fp)
+void PairBuckCoulLong::write_data(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    fprintf(fp,"%d %g %g %g\n",i,a[i][i],rho[i][i],c[i][i]);
+    fprintf(fp,"%s %g %g %g\n",type[i-1],a[i][i],rho[i][i],c[i][i]);
 }
 
 /* ----------------------------------------------------------------------
    proc 0 writes all pairs to data file
 ------------------------------------------------------------------------- */
 
-void PairBuckCoulLong::write_data_all(FILE *fp)
+void PairBuckCoulLong::write_data_all(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp,"%d %d %g %g %g %g\n",i,j,
+      fprintf(fp,"%s %s %g %g %g %g\n",type[i-1],type[j-1],
               a[i][j],rho[i][j],c[i][j],cut_lj[i][j]);
 }
 

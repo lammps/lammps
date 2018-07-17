@@ -386,10 +386,10 @@ void PairBorn::read_restart_settings(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void PairBorn::write_data(FILE *fp)
+void PairBorn::write_data(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    fprintf(fp,"%d %g %g %g %g %g\n",i,
+    fprintf(fp,"%s %g %g %g %g %g\n",type[i-1],
             a[i][i],rho[i][i],sigma[i][i],c[i][i],d[i][i]);
 }
 
@@ -397,11 +397,11 @@ void PairBorn::write_data(FILE *fp)
    proc 0 writes all pairs to data file
 ------------------------------------------------------------------------- */
 
-void PairBorn::write_data_all(FILE *fp)
+void PairBorn::write_data_all(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp,"%d %d %g %g %g %g %g %g\n",i,j,
+      fprintf(fp,"%s %s %g %g %g %g %g %g\n",type[i-1],type[j-1],
               a[i][j],rho[i][j],sigma[i][j],c[i][j],d[i][j],cut[i][j]);
 }
 

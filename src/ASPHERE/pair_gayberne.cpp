@@ -528,10 +528,10 @@ void PairGayBerne::read_restart_settings(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void PairGayBerne::write_data(FILE *fp)
+void PairGayBerne::write_data(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    fprintf(fp,"%d %g %g %g %g %g %g %g %g\n",i,
+    fprintf(fp,"%s %g %g %g %g %g %g %g %g\n",type[i-1],
             epsilon[i][i],sigma[i][i],
             pow(well[i][0],-mu),pow(well[i][1],-mu),pow(well[i][2],-mu),
             pow(well[i][0],-mu),pow(well[i][1],-mu),pow(well[i][2],-mu));
@@ -541,11 +541,11 @@ void PairGayBerne::write_data(FILE *fp)
    proc 0 writes all pairs to data file
 ------------------------------------------------------------------------- */
 
-void PairGayBerne::write_data_all(FILE *fp)
+void PairGayBerne::write_data_all(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp,"%d %d %g %g %g %g %g %g %g %g %g\n",i,j,
+      fprintf(fp,"%s %s %g %g %g %g %g %g %g %g %g\n",type[i-1],type[j-1],
               epsilon[i][i],sigma[i][i],
               pow(well[i][0],-mu),pow(well[i][1],-mu),pow(well[i][2],-mu),
               pow(well[j][0],-mu),pow(well[j][1],-mu),pow(well[j][2],-mu),

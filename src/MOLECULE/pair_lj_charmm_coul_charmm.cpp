@@ -397,22 +397,22 @@ void PairLJCharmmCoulCharmm::read_restart(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void PairLJCharmmCoulCharmm::write_data(FILE *fp)
+void PairLJCharmmCoulCharmm::write_data(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    fprintf(fp,"%d %g %g %g %g\n",
-            i,epsilon[i][i],sigma[i][i],eps14[i][i],sigma14[i][i]);
+    fprintf(fp,"%s %g %g %g %g\n",type[i-1],
+            epsilon[i][i],sigma[i][i],eps14[i][i],sigma14[i][i]);
 }
 
 /* ----------------------------------------------------------------------
    proc 0 writes all pairs to data file
 ------------------------------------------------------------------------- */
 
-void PairLJCharmmCoulCharmm::write_data_all(FILE *fp)
+void PairLJCharmmCoulCharmm::write_data_all(FILE *fp, char **type)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp,"%d %d %g %g %g %g\n",i,j,
+      fprintf(fp,"%s %s %g %g %g %g\n",type[i-1],type[j-1],
               epsilon[i][j],sigma[i][j],eps14[i][j],sigma14[i][j]);
 }
 

@@ -656,8 +656,9 @@ void AtomVecAtomic::pack_data(double **buf)
 void AtomVecAtomic::write_data(FILE *fp, int n, double **buf)
 {
   for (int i = 0; i < n; i++)
-    fprintf(fp,TAGINT_FORMAT " %d %-1.16e %-1.16e %-1.16e %d %d %d\n",
-            (tagint) ubuf(buf[i][0]).i,(int) ubuf(buf[i][1]).i,
+    fprintf(fp,TAGINT_FORMAT " %s %-1.16e %-1.16e %-1.16e %d %d %d\n",
+            (tagint) ubuf(buf[i][0]).i,
+            atom->char_atomtype[(int) ubuf(buf[i][1]).i-1],
             buf[i][2],buf[i][3],buf[i][4],
             (int) ubuf(buf[i][5]).i,(int) ubuf(buf[i][6]).i,
             (int) ubuf(buf[i][7]).i);

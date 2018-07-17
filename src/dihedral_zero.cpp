@@ -115,8 +115,8 @@ void DihedralZero::read_restart(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void DihedralZero::write_data(FILE *fp) {
+void DihedralZero::write_data(FILE *fp, char **type) {
   for (int i = 1; i <= atom->ndihedraltypes; i++)
-    fprintf(fp,"%d\n",i);
+    fprintf(fp,"%s\n",type[i-1]);
 }
 

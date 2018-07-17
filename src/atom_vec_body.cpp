@@ -1407,8 +1407,9 @@ int AtomVecBody::pack_data_hybrid(int i, double *buf)
 void AtomVecBody::write_data(FILE *fp, int n, double **buf)
 {
   for (int i = 0; i < n; i++)
-    fprintf(fp,TAGINT_FORMAT " %d %d %g %g %g %g %d %d %d\n",
-            (tagint) ubuf(buf[i][0]).i,(int) ubuf(buf[i][1]).i,
+    fprintf(fp,TAGINT_FORMAT " %d %s %g %g %g %g %d %d %d\n",
+            (tagint) ubuf(buf[i][0]).i,
+            atom->char_atomtype[(int) ubuf(buf[i][1]).i-1],
             (int) ubuf(buf[i][2]).i,
             buf[i][3],buf[i][4],buf[i][5],buf[i][6],
             (int) ubuf(buf[i][7]).i,(int) ubuf(buf[i][8]).i,

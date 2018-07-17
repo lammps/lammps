@@ -29,6 +29,7 @@ bond_style harmonic/shift/cut, Carsten Svaneborg, science at zqex.dk, 8 Aug 11
 compute ackland/atom, Gerolf Ziegenhain, gerolf at ziegenhain.com, 4 Oct 2007
 compute basal/atom, Christopher Barrett, cdb333 at cavs.msstate.edu, 3 Mar 2013
 compute cnp/atom, Paulo Branicio (USC), branicio at usc.edu, 31 May 2017
+compute entropy/atom, Pablo Piaggi (EPFL), pablo.piaggi at epfl.ch, 15 June 2018
 compute temp/rotate, Laurent Joly (U Lyon), ljoly.ulyon at gmail.com, 8 Aug 11
 compute PRESSURE/GREM, David Stelter, dstelter@bu.edu, 22 Nov 16
 dihedral_style cosine/shift/exp, Carsten Svaneborg, science at zqex.dk, 8 Aug 11

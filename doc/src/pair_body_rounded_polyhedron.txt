@@ -46,7 +46,10 @@ this paragraph would make more sense in the body.txt file about how to
 create a model that includes non-body particles (spheres).  And in
 this pair style file just a couple lines about which part of the
 interactions this pair style computes.  Ditto in the pair body polygon
-file.
+file. - The pair style supports body/sphere and sphere/sphere
+given that all the atoms should be of body rounded/polyhedron.
+I updated the above paragraph and added examples in body.txt for
+specifying the special objects (i.e. spheres and rods).
 
 This pairwise interaction between the rounded polyhedra is described in
 "Wang"_#Wang, where a polyhedron does not have sharp corners and
@@ -94,8 +97,9 @@ k_n (energy/distance^2 units)
 k_na (energy/distance^2 units) :ul
 
 Effectively, k_n and k_na are the slopes of the red lines in the plot
-above for force versus distance, for r < 0 and 0 < r < rc
-respectively.  TRUNG: is this sentence correct?
+above for force versus surface separation, for \delta_n < 0 and 0 < \delta_n < r_c
+respectively.  (TRUNG: is this sentence correct? - it should read delta_n,
+instead of r)
 
 [Mixing, shift, table, tail correction, restart, rRESPA info]:
 

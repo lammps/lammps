@@ -71,7 +71,8 @@ cohesive interactions?  If so, this should be explained up above.
 But an additional confusion is that the specied cutoff (Rc in diagram?)
 is a single number, but depedning on the orientiation of the 2
 particles they might have a suface/surface overlap at a much
-smaller value of Ri + Rj.  So what is Rc then?
+smaller value of Ri + Rj.  So what is Rc then? - I added
+the following paragraph to address this.
 
 Note that F_n and F_t are functions of the surface separation
 \delta_n = d - (R_i + R_j).
@@ -100,8 +101,9 @@ k_n (energy/distance^2 units)
 k_na (energy/distance^2 units) :ul
 
 Effectively, k_n and k_na are the slopes of the red lines in the plot
-above for force versus distance, for r < 0 and 0 < r < rc
-respectively.  TRUNG: is this sentence correct?
+above for force versus surface separation, for \delta_n < 0 and 0 < \delta_n < r_c
+respectively.  (TRUNG: is this sentence correct? - it should read delta_n,
+instead of r)
 
 TRUNG: reminder to copy any change in this file
 to the pair polyhedron file as well (and vice versa)

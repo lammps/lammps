@@ -1421,11 +1421,11 @@ target API.
   <td>CUDA SM architecture targeted by GPU package</td>
   <td>
   <dl>
-    <dt><code>sm20</code> (Fermi)</dt>
-    <dt><code>sm30</code> (Kepler)</dt>
-    <dt><code>sm50</code> (Maxwell)</dt>
-    <dt><code>sm60</code> (Pascal)</dt>
-    <dt><code>sm70</code> (Volta)</dt>
+    <dt><code>sm_20</code> (Fermi)</dt>
+    <dt><code>sm_30</code> (Kepler)</dt>
+    <dt><code>sm_50</code> (Maxwell)</dt>
+    <dt><code>sm_60</code> (Pascal)</dt>
+    <dt><code>sm_70</code> (Volta)</dt>
   </dl>
   </td>
 </tr>

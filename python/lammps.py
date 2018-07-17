@@ -708,6 +708,12 @@ class Atom(object):
             self.lmp.eval("vy[%d]" % self.index),
             self.lmp.eval("vz[%d]" % self.index))
 
+  @velocity.setter
+  def velocity(self, value):
+     self.lmp.set("atom", self.index, "vx", value[0])
+     self.lmp.set("atom", self.index, "vy", value[1])
+     self.lmp.set("atom", self.index, "vz", value[2])
+
   @property
   def force(self):
     return (self.lmp.eval("fx[%d]" % self.index),
@@ -737,6 +743,11 @@ class Atom2D(Atom):
   def velocity(self):
     return (self.lmp.eval("vx[%d]" % self.index),
             self.lmp.eval("vy[%d]" % self.index))
+
+  @velocity.setter
+  def velocity(self, value):
+     self.lmp.set("atom", self.index, "vx", value[0])
+     self.lmp.set("atom", self.index, "vy", value[1])
 
   @property
   def force(self):

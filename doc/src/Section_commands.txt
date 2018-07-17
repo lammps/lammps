@@ -929,6 +929,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "adp (o)"_pair_adp.html,
 "airebo (oi)"_pair_airebo.html,
 "airebo/morse (oi)"_pair_airebo.html,
+"atm"_pair_atm.html,
 "beck (go)"_pair_beck.html,
 "body"_pair_body.html,
 "bop"_pair_bop.html,

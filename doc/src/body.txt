@@ -286,12 +286,10 @@ polyhedron with a variable number of N vertices, E edges and F faces.
 This style can only be used for 3d models; see the
 "boundary"_boundary.html command.  See the "pair_style
 body/rounded/polygon" doc page for a diagram of a two 2d squares with
-rounded circles at the vertices.  A 3d cube with rounded spheres
-at the 8 vertices and 12 rounded edges would be similar.
-
-TRUNG: What are the special cases allowed for 3d, if any?  Similar to
-the N=1 (sphere) and N=2 (rod) special cases for 2d, descibed in
-previous section.
+rounded circles at the vertices.  A 3d cube with rounded spheres at
+the 8 vertices and 12 rounded edges would be similar.  Special cases
+for N = 1 (sphere) and N = 2 (rod with rounded ends) can also be
+specified.
 
 This body style is for 3d discrete element models, as described in
 "Wang"_#Wang.

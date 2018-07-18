@@ -28,11 +28,11 @@ pair_coeff 1 1 100.0 1.0 :pre
 
 Style {body/rounded/polygon} is for use with 2d models of body
 particles of style {rounded/polygon}.  It calculates pairwise
-body/body interactions as well as interactions between body and point
-particles (modeled as disks with a specified diameter).
-See "Section 6.14"_Section_howto.html#howto_14 of the
-manual and the "body"_body.html doc page for more details on using
-body rounded/polygon particles.
+body/body interactions which can include body particles modeled as
+1-vertex circular disks with a specified diameter.  See "Section
+6.14"_Section_howto.html#howto_14 of the manual and the
+"body"_body.html doc page for more details on using body
+rounded/polygon particles.
 
 This pairwise interaction between rounded polygons is described in
 "Fraige"_#Fraige, where a polygon does not have sharp corners, but is
@@ -51,8 +51,21 @@ between two particles are defined with respect to the separation of
 their respective rounded surfaces, not by the separation of the
 vertices and edges themselves.
 
-This means that the specified cutoff in the pair_style command is
-the cutoff distance, r_c, for the surface separation, \delta_n (see figure below).
+This means that the specified cutoff in the pair_style command is the
+cutoff distance, r_c, for the surface separation, \delta_n (see figure
+below).  This is the distance at which two particles no longer
+interact.  If r_c is specified as 0.0, then it is a contact-only
+interaction.  I.e. the two particles must overlap in order to exert a
+repulsive force on each other.  If r_c > 0.0, then the force between
+two particles will be attractive for surface separations from 0 to
+r_c, and repulsive once the particles overlap.
+
+Note that unlike for other pair styles, the specified cutoff is not
+the distance between the centers of two particles at which they stop
+interacting.  This center-to-center distance depends on the shape and
+size of the two particles and their relative orientation.  LAMMPS
+takes that into account when computing the surface separation distance
+and applying the r_c cutoff.
 
 The forces between vertex-vertex, vertex-edge, and edge-edge overlaps
 are given by:
@@ -61,25 +74,10 @@ are given by:
 
 :c,image(JPG/pair_body_rounded.jpg)
 
-TRUNG: The diagram label "cohesive regions" confuses me.  Are you
-saying there is some distance d for which the force is attractive,
-i.e. the particles are cohesive?  I think when d > Ri + Rj, since Ri +
-Rj is the surface/surface overlap discussed above?  If so, then the
-discussion above about the specified cutoff is wrong?  I.e. you can
-specify a large cutoff than the surface/surface overlap to get
-cohesive interactions?  If so, this should be explained up above.
-But an additional confusion is that the specied cutoff (Rc in diagram?)
-is a single number, but depedning on the orientiation of the 2
-particles they might have a suface/surface overlap at a much
-smaller value of Ri + Rj.  So what is Rc then? - I added
-the following paragraph to address this.
-
-Note that F_n and F_t are functions of the surface separation
-\delta_n = d - (R_i + R_j).
-In this model, when (R_i + R_j) < d < (R_i + R_j) + r_c, that is,
-0 < \delta_n < r_c, the cohesive region of the two surfaces overlap
-and the two surfaces are attractive to each other.
-
+Note that F_n and F_t are functions of the surface separation \delta_n
+= d - (R_i + R_j).  In this model, when (R_i + R_j) < d < (R_i + R_j)
++ r_c, that is, 0 < \delta_n < r_c, the cohesive region of the two
+surfaces overlap and the two surfaces are attractive to each other.
 
 In "Fraige"_#Fraige, the tangential friction force between two
 particles that are in contact is modeled differently prior to gross
@@ -92,7 +90,6 @@ contact nor calculate the tangential deformation.  Instead, we assume
 that gross sliding takes place as soon as two particles are in
 contact.
 
-
 The following coefficients must be defined for each pair of atom types
 via the "pair_coeff"_pair_coeff.html command as in the examples above,
 or in the data file read by the "read_data"_read_data.html command:
@@ -101,12 +98,8 @@ k_n (energy/distance^2 units)
 k_na (energy/distance^2 units) :ul
 
 Effectively, k_n and k_na are the slopes of the red lines in the plot
-above for force versus surface separation, for \delta_n < 0 and 0 < \delta_n < r_c
-respectively.  (TRUNG: is this sentence correct? - it should read delta_n,
-instead of r)
-
-TRUNG: reminder to copy any change in this file
-to the pair polyhedron file as well (and vice versa)
+above for force versus surface separation, for \delta_n < 0 and 0 <
+\delta_n < r_c respectively.
 
 [Mixing, shift, table, tail correction, restart, rRESPA info]:
 

@@ -282,6 +282,7 @@ fix_viscous.html
 fix_wall.html
 fix_wall_body_polygon.html
 fix_wall_body_polyhedron.html
+fix_wall_ees.html
 fix_wall_gran.html
 fix_wall_gran_region.html
 fix_wall_piston.html

@@ -77,6 +77,8 @@ void Scafacos::init()
 {
   // error checks
 
+  if (!atom->q_flag) error->all(FLERR,"Kspace style requires atom attribute q");
+
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot use ScaFaCoS with 2d simulation");
 
@@ -85,6 +87,9 @@ void Scafacos::init()
 
   if (atom->natoms > INT_MAX && sizeof(fcs_int) != 8)
     error->all(FLERR,"Scafacos atom count exceeds 2B");
+
+  if (atom->molecular > 0) 
+    error->all(FLERR,"Cannot use Scafacos with molecular charged systems yet");
 
   // one-time initialization of ScaFaCoS
 

@@ -1,0 +1,7 @@
+RENE - there needs to be a README like the one
+for lib/voronoi/README, explaining how
+to grab the correct version of Scafacos.
+
+And how to build, either via traditional make
+and the Install.py script, or via CMake
+

@@ -149,6 +149,7 @@ Package, Description, Doc page, Example, Library
 "USER-QTB"_#USER-QTB, quantum nuclear effects,"fix qtb"_fix_qtb.html "fix qbmsst"_fix_qbmsst.html, qtb, -
 "USER-QUIP"_#USER-QUIP, QUIP/libatoms interface,"pair_style quip"_pair_quip.html, USER/quip, ext
 "USER-REAXC"_#USER-REAXC, ReaxFF potential (C/C++) ,"pair_style reaxc"_pair_reaxc.html, reax, -
+"USER-SCAFACOS"_#USER-SCAFACOS, ScaFaCoS long-range Coulombics,"kspace_style scafacos"_kspace_style.html, USER/scafacos, ext
 "USER-SMD"_#USER-SMD, smoothed Mach dynamics,"SMD User Guide"_PDF/SMD_LAMMPS_userguide.pdf, USER/smd, ext
 "USER-SMTBQ"_#USER-SMTBQ, second moment tight binding QEq potential,"pair_style smtbq"_pair_smtbq.html, USER/smtbq, -
 "USER-SPH"_#USER-SPH, smoothed particle hydrodynamics,"SPH User Guide"_PDF/SPH_LAMMPS_userguide.pdf, USER/sph, -
@@ -2727,6 +2728,60 @@ src/USER-REAXC/README
 "fix reax/c/bonds"_fix_reax_bonds.html
 "fix reax/c/species"_fix_reaxc_species.html
 examples/reax :ul
+
+:line
+
+RENE: check this section
+
+USER-SCAFACOS package :link(USER-SCAFACOS),h4
+
+[Contents:]
+
+A KSpace style which wraps the "ScaFaCoS Coulomb solver
+library"_http://www.scafacos.de.
+
+To use this package you must have the ScaFaCoS library available on
+your system.  It is available for download at "http://scafacos.de" or
+can be cloned from the git-repository
+"git://github.com/scafacos/scafacos.git".
+
+[Author:] Rene Halver (JSC) wrote the scafacos LAMMPS command.
+
+ScaFaCoS was developed by a consortium of German research facilities
+with a BMBF (German Ministry of Science and Education) funded project
+in 2009-2012. Participants of the consortium were the Universities of
+Bonn, Chemnitz, Stuttgart, and Wuppertal as well as the
+Forschungszentrum Juelich.
+
+[Install or un-install:]
+
+Before building LAMMPS with this package, you must first download and
+build the ScaFaCoS library.  You can do this manually if you prefer;
+follow the instructions in lib/scafacos/README.  You can also do it in
+one step from the lammps/src dir, using a command like these, which
+simply invoke the lib/scafacos/Install.py script with the specified
+args:
+
+make lib-scafacos                         # print help message
+make lib-scafacos args="-b"               # download and build in lib/scafacos/scafacos-<version>
+make lib-voronoi args="-p $HOME/scafacos  # use existing ScaFaCoS installation in $HOME/scafacos
+
+You can then install/un-install the package and build LAMMPS in the
+usual manner:
+
+make yes-user-scafacos
+make machine :pre
+
+make no-user-scafacos
+make machine :pre
+
+[Supporting info:]
+
+src/USER-SCAFACOS: filenames -> commands
+src/USER-SCAFACOS/README
+"kspace_style scafacos"_kspace_style.html
+"kspace_modify"_kspace_modify.html
+examples/USER/scafacos :ul
 
 :line
 

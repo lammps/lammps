@@ -1,0 +1,10 @@
+RENE: this dir needs a few short-running examples,
+for both 1 and 4 procs, of using different Scafacos methods.
+with sample log file outputs - so users can verify
+they are running it correctly
+
+For each input script, there should be files like
+
+in.scafacos.fmm
+log.20Jul18.scafacos.fmm.g++.1
+log.20Jul18.scafacos.fmm.g++.4

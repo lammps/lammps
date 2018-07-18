@@ -38,40 +38,16 @@ using namespace LAMMPS_NS;
 
 Scafacos::Scafacos(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 {
-  if (narg < 2) error->all(FLERR,"Illegal scafacos command");
+  if (narg != 2) error->all(FLERR,"Illegal scafacos command");
 
   int n = strlen(arg[0]) + 1;
   method = new char[n];
   strcpy(method,arg[0]);
+  tolerance = force->numeric(FLERR,arg[1]);
 
-  // additional args
+  // optional ScaFaCoS library setting defaults
 
-  int tflag = 0;
-
-  int iarg = 1;
-  while (iarg < narg) {
-    if (strcmp(arg[iarg],"tolerance") == 0) {
-      if (iarg+3 > narg) error->all(FLERR,"Illegal scafacos command");
-      tflag = 1;
-      if (strcmp(arg[iarg+1],"energy") == 0)
-        tolerance_type = FCS_TOLERANCE_TYPE_ENERGY;     
-      else if (strcmp(arg[iarg+1],"energy_rel") == 0)
-        tolerance_type = FCS_TOLERANCE_TYPE_ENERGY_REL;     
-      else if (strcmp(arg[iarg+1],"field") == 0)
-        tolerance_type = FCS_TOLERANCE_TYPE_FIELD;     
-      else if (strcmp(arg[iarg+1],"field_rel") == 0)
-        tolerance_type = FCS_TOLERANCE_TYPE_FIELD_REL;     
-      else if (strcmp(arg[iarg+1],"potential") == 0)
-        tolerance_type = FCS_TOLERANCE_TYPE_POTENTIAL;     
-      else if (strcmp(arg[iarg+1],"potential_rel") == 0)
-        tolerance_type = FCS_TOLERANCE_TYPE_POTENTIAL_REL;     
-      else error->all(FLERR,"Illegal scafacos command");
-      tolerance = force->numeric(FLERR,arg[iarg+2]);
-      iarg += 3;
-    } else error->all(FLERR,"Illegal scafacos command");
-  }
-
-  if (!tflag) error->all(FLERR,"Must set tolerance in scafacos command");
+  tolerance_type = FCS_TOLERANCE_TYPE_FIELD;     
 
   // initializations
 
@@ -92,7 +68,7 @@ Scafacos::~Scafacos()
   memory->destroy(epot);
   memory->destroy(efield);
 
-  // NOTE: any clean-up call to ScaFaCoS needed?
+  // RENE: any clean-up/shut-down call to ScaFaCoS needed?
 }
 
 /* ---------------------------------------------------------------------- */
@@ -100,7 +76,6 @@ Scafacos::~Scafacos()
 void Scafacos::init()
 {
   // error checks
-  // NOTE: allow triclinic at some point
 
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot use ScaFaCoS with 2d simulation");
@@ -108,11 +83,13 @@ void Scafacos::init()
   if (domain->triclinic)
     error->all(FLERR,"Cannot use ScaFaCoS with triclinic domain yet");
 
+  if (atom->natoms > INT_MAX && sizeof(fcs_int) != 8)
+    error->all(FLERR,"Scafacos atom count exceeds 2B");
+
   // one-time initialization of ScaFaCoS
 
   scale = 1.0;
   qqrd2e = force->qqrd2e;
-  //qsum_qsq();
 
   if (!initialized) {
     result = fcs_init(&fcs,method,world);
@@ -147,13 +124,14 @@ void Scafacos::compute(int eflag, int vflag)
   double *q = atom->q;
   int nlocal = atom->nlocal;
 
+  // RENE: why is scale needed?
+  
   const double qscale = qqrd2e * scale;
 
-  // if simluation box has changed, call fcs_tune()
-
   if (eflag || vflag) ev_setup(eflag,vflag);
-  else
-    eflag_atom = 0;
+  else eflag_atom = 0;
+
+  // if simulation box has changed, call fcs_tune()
 
   if (box_has_changed()) {
     setup_handle();
@@ -173,7 +151,7 @@ void Scafacos::compute(int eflag, int vflag)
   }
 
   // initialize epot & efield
-  // NOTE: is this necessary?
+  // RENE: is this necessary?  or does Scafacos just set them
 
   for (int i = 0; i < nlocal; i++) {
     epot[i] = 0.0;
@@ -201,15 +179,45 @@ void Scafacos::compute(int eflag, int vflag)
     myeng += 0.5 * qone * epot[i];
   } 
 
-  if (eflag_atom)
-  {
+  if (eflag_atom) {
     for (int i = 0; i < nlocal; i++)
-    {
       eatom[i] = qscale * epot[i];
-    }
   }
 
   MPI_Allreduce(&myeng,&energy,1,MPI_DOUBLE,MPI_SUM,world);
+}
+
+/* ---------------------------------------------------------------------- */
+
+int Scafacos::modify_param(int narg, char **arg)
+{
+  // RENE: add any Scafacos options here you want to expose to LAMMPS
+  // syntax: kspace_modify scafacos keyword value1 value2 ...
+  //   keyword = tolerance
+  //     value1 = energy, energy_rel, etc
+  // everyone of these should have a default, so user doesn't need to set
+
+  if (strcmp(arg[0],"scafacos") != 0) return 0;
+
+  if (strcmp(arg[1],"tolerance") == 0) {
+    if (narg < 2) error->all(FLERR,"Illegal kspace_modify command");
+    if (strcmp(arg[2],"energy") == 0)
+      tolerance_type = FCS_TOLERANCE_TYPE_ENERGY;     
+    else if (strcmp(arg[2],"energy_rel") == 0)
+      tolerance_type = FCS_TOLERANCE_TYPE_ENERGY_REL;     
+    else if (strcmp(arg[2],"field") == 0)
+      tolerance_type = FCS_TOLERANCE_TYPE_FIELD;     
+    else if (strcmp(arg[2],"field_rel") == 0)
+      tolerance_type = FCS_TOLERANCE_TYPE_FIELD_REL;     
+    else if (strcmp(arg[2],"potential") == 0)
+      tolerance_type = FCS_TOLERANCE_TYPE_POTENTIAL;     
+    else if (strcmp(arg[2],"potential_rel") == 0)
+      tolerance_type = FCS_TOLERANCE_TYPE_POTENTIAL_REL;     
+    else error->all(FLERR,"Illegal kspace_modify command");
+    return 3;
+  }
+
+  return 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -231,14 +239,13 @@ double Scafacos::memory_usage()
 void Scafacos::setup_handle()
 {
   // store simulation box params
-  // NOTE: this assumes orthogonal box
-  // NOTE: total particles may not be a 4-byte int
-  // NOTE: what does SCFCS mean by offset?
-  //       it's an integer flag in LAMMPS
 
   old_periodicity[0] = domain->xperiodic;
   old_periodicity[1] = domain->yperiodic;
   old_periodicity[2] = domain->zperiodic;
+
+  // RENE: what does SCFCS mean by offset?
+  //       it's an integer flag in LAMMPS, but being stored in a float?
 
   old_offset[0] = domain->boundary[0][0];
   old_offset[1] = domain->boundary[1][0];
@@ -273,7 +280,9 @@ void Scafacos::setup_handle()
   result = fcs_set_total_particles(fcs,old_natoms);
   check_result(result);
 
-  // NOTE: for now disable short-range calculations within LAMMPS
+  // RENE: disable short-range calculations within LAMMPS
+  //       not sure what this is doing
+  //       is this the correct thing to do for now?
 
   int near_field_flag = 0;
   result = fcs_set_near_field_flag(fcs,near_field_flag);
@@ -306,7 +315,6 @@ bool Scafacos::box_has_changed()
 
 /* ----------------------------------------------------------------------
    check ScaFaCoS result for error condition
-   NOTE: will all procs have same error?
 ------------------------------------------------------------------------- */
 
 void Scafacos::check_result(FCSResult result) 
@@ -319,6 +327,9 @@ void Scafacos::check_result(FCSResult result)
   fcs_result_destroy(result);
   std::string err_msg = ss.str();
   const char *str = err_msg.c_str();
+
+  // RENE: will all procs have same error?
+  //       if so, then should call error->all(FLERR,str)
 
   error->one(FLERR,str);
 }

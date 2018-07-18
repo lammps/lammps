@@ -32,6 +32,7 @@ class Scafacos : public KSpace {
   void init();
   void setup();
   void compute(int, int);
+  int modify_param(int, char **);
   double memory_usage();
 
  private: 

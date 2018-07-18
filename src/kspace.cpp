@@ -580,7 +580,11 @@ void KSpace::modify_params(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"no") == 0) auto_disp_flag = 0;
       else error->all(FLERR,"Illegal kspace_modify command");
       iarg += 2;
-    } else error->all(FLERR,"Illegal kspace_modify command");
+    } else {
+      int n = modify_param(narg-iarg,&arg[iarg]);
+      if (n == 0) error->all(FLERR,"Illegal kspace_modify command");
+      iarg += n;
+    }
   }
 }
 

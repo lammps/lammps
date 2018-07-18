@@ -29,7 +29,7 @@ make lib-scafacos args="-p $HOME/scafacos" # use existing Scafacos installation 
 
 # settings
 
-#version = "voro++-0.4.6"
+version = "scafacos-1.0"
 #url = "http://math.lbl.gov/voro++/download/dir/%s.tar.gz" % version
 
 # print error message or help
@@ -89,7 +89,6 @@ def geturl(url,fname):
 
 args = sys.argv[1:]
 nargs = len(args)
-#if nargs == 0: error()
 
 homepath = "."
 
@@ -114,8 +113,7 @@ while iarg < nargs:
   else: error()
 
 homepath = fullpath(homepath)
-#homedir = "%s/%s" % (homepath,version)
-homedir = homepath
+homedir = "%s/%s" % (homepath,version)
 
 if (pathflag):
     if not os.path.isdir(scafacospath): error("Scafacos path does not exist")
@@ -124,16 +122,13 @@ if (pathflag):
 if (buildflag and pathflag):
     error("Cannot use -b and -p flag at the same time")
 
-#if (not buildflag and not pathflag):
-#    error("Have to use either -b or -p flag")
-
 # download and unpack Scafacos tarball
 
 if buildflag:
   print("Downloading Scafacos ...")
   geturl(url,"%s/%s.tar.gz" % (homepath,version))
 
-  print("Unpacking Voro++ tarball ...")
+  print("Unpacking Scafacos tarball ...")
   if os.path.exists("%s/%s" % (homepath,version)):
     cmd = 'rm -rf "%s/%s"' % (homepath,version)
     subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
@@ -162,7 +157,7 @@ if linkflag:
     os.remove("includelink")
   if os.path.isfile("liblink") or os.path.islink("liblink"):
     os.remove("liblink")
-  cmd = 'ln -s "scafacos/include" includelink'
+  cmd = 'ln -s "%s/include" includelink' % homedir
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  cmd = 'ln -s "scafacos/lib" liblink'
+  cmd = 'ln -s "%s/lib" liblink' % homedir
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)

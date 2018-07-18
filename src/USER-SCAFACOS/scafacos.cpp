@@ -110,6 +110,10 @@ void Scafacos::init()
 
   // one-time initialization of ScaFaCoS
 
+  scale = 1.0;
+  qqrd2e = force->qqrd2e;
+  //qsum_qsq();
+
   if (!initialized) {
     result = fcs_init(&fcs,method,world);
     check_result(result);
@@ -143,10 +147,15 @@ void Scafacos::compute(int eflag, int vflag)
   double *q = atom->q;
   int nlocal = atom->nlocal;
 
+  const double qscale = qqrd2e * scale;
+
   // if simluation box has changed, call fcs_tune()
 
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else
+    eflag_atom = 0;
+
   if (box_has_changed()) {
-    printf("AAA\n");
     setup_handle();
     result = fcs_tune(fcs,nlocal,&x[0][0],q);
     check_result(result);
@@ -185,12 +194,20 @@ void Scafacos::compute(int eflag, int vflag)
   double myeng = 0.0;
 
   for (int i = 0; i < nlocal; i++) {
-    qone = q[i];
+    qone = q[i] * qscale;
     f[i][0] += qone * efield[i][0];
     f[i][1] += qone * efield[i][1];
     f[i][2] += qone * efield[i][2];
     myeng += 0.5 * qone * epot[i];
   } 
+
+  if (eflag_atom)
+  {
+    for (int i = 0; i < nlocal; i++)
+    {
+      eatom[i] = qscale * epot[i];
+    }
+  }
 
   MPI_Allreduce(&myeng,&energy,1,MPI_DOUBLE,MPI_SUM,world);
 }

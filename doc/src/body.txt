@@ -186,7 +186,7 @@ squares with rounded circles at the vertices.  Special cases for N = 1
 (circle) and N = 2 (rod with rounded ends) can also be specified.
 
 One use of this body style is for 2d discrete element models, as
-described in "Fraige"_#Fraige.
+described in "Fraige"_#body-Fraige.
 
 Similar to body style {nparticle}, the atom_style body command for
 this body style takes two additional arguments:
@@ -292,7 +292,7 @@ for N = 1 (sphere) and N = 2 (rod with rounded ends) can also be
 specified.
 
 This body style is for 3d discrete element models, as described in
-"Wang"_#Wang.
+"Wang"_#body-Wang.
 
 Similar to body style {rounded/polygon}, the atom_style body command
 for this body style takes two additional arguments:
@@ -447,10 +447,10 @@ determined by the {bflag1} parameter for the {body} keyword.  The
 
 :line
 
-:link(Fraige)
+:link(body-Fraige)
 [(Fraige)] F. Y. Fraige, P. A. Langston, A. J. Matchett, J. Dodds,
 Particuology, 6, 455 (2008).
 
-:link(Wang)
+:link(body-Wang)
 [(Wang)] J. Wang, H. S. Yu, P. A. Langston, F. Y. Fraige, Granular
 Matter, 13, 1 (2011).

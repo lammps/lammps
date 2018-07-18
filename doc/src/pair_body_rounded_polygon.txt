@@ -35,9 +35,9 @@ body/body interactions which can include body particles modeled as
 rounded/polygon particles.
 
 This pairwise interaction between rounded polygons is described in
-"Fraige"_#Fraige, where a polygon does not have sharp corners, but is
-rounded at its vertices by circles centered on each vertex with a
-specified diameter.  The edges of the polygon are defined between
+"Fraige"_#pair-Fraige, where a polygon does not have sharp corners,
+but is rounded at its vertices by circles centered on each vertex with
+a specified diameter.  The edges of the polygon are defined between
 pairs of adjacent vertices.  The circle diameter for each polygon is
 specified in the data file read by the "read data"_read_data.html
 command.  This is a 2d discrete element model (DEM) which allows for
@@ -79,7 +79,7 @@ Note that F_n and F_t are functions of the surface separation \delta_n
 + r_c, that is, 0 < \delta_n < r_c, the cohesive region of the two
 surfaces overlap and the two surfaces are attractive to each other.
 
-In "Fraige"_#Fraige, the tangential friction force between two
+In "Fraige"_#pair-Fraige, the tangential friction force between two
 particles that are in contact is modeled differently prior to gross
 sliding (i.e. static friction) and during gross-sliding (kinetic
 friction).  The latter takes place when the tangential deformation
@@ -129,6 +129,6 @@ for pair interactions.
 
 [Default:] none
 
-:link(Fraige)
+:link(pair-Fraige)
 [(Fraige)] F. Y. Fraige, P. A. Langston, A. J. Matchett, J. Dodds,
 Particuology, 6, 455 (2008).

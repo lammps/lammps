@@ -34,15 +34,15 @@ body/body interactions which can include body particles modeled as
 "body"_body.html doc page for more details on using body
 rounded/polyhedron particles.
 
-This pairwise interaction between the rounded polyhedra is described in
-"Wang"_#Wang, where a polyhedron does not have sharp corners and
-edges, but is rounded at its vertices and edges by spheres centered on
-each vertex with a specified diameter.  The edges if the polyhedron
-are defined between pairs of adjacent vertices.  Its faces are defined
-by a loop of edges.  The sphere diameter for each polygon is specified
-in the data file read by the "read data"_read_data.html command.  This
-is a discrete element model (DEM) which allows for multiple contact
-points.
+This pairwise interaction between the rounded polyhedra is described
+in "Wang"_#pair-Wang, where a polyhedron does not have sharp corners
+and edges, but is rounded at its vertices and edges by spheres
+centered on each vertex with a specified diameter.  The edges if the
+polyhedron are defined between pairs of adjacent vertices.  Its faces
+are defined by a loop of edges.  The sphere diameter for each polygon
+is specified in the data file read by the "read data"_read_data.html
+command.  This is a discrete element model (DEM) which allows for
+multiple contact points.
 
 Note that when two particles interact, the effective surface of each
 polyhedron particle is displaced outward from each of its vertices,
@@ -74,15 +74,16 @@ and edge-face overlaps are given by:
 
 :c,image(JPG/pair_body_rounded.jpg)
 
-In "Wang"_#Wang, the tangential friction force between two particles
-that are in contact is modeled differently prior to gross sliding
-(i.e. static friction) and during gross-sliding (kinetic friction).
-The latter takes place when the tangential deformation exceeds the
-Coulomb frictional limit.  In the current implementation, however, we
-do not take into account frictional history, i.e. we do not keep track
-of how many time steps the two particles have been in contact nor
-calculate the tangential deformation.  Instead, we assume that gross
-sliding takes place as soon as two particles are in contact.
+In "Wang"_#pair-Wang, the tangential friction force between two
+particles that are in contact is modeled differently prior to gross
+sliding (i.e. static friction) and during gross-sliding (kinetic
+friction).  The latter takes place when the tangential deformation
+exceeds the Coulomb frictional limit.  In the current implementation,
+however, we do not take into account frictional history, i.e. we do
+not keep track of how many time steps the two particles have been in
+contact nor calculate the tangential deformation.  Instead, we assume
+that gross sliding takes place as soon as two particles are in
+contact.
 
 The following coefficients must be defined for each pair of atom types
 via the "pair_coeff"_pair_coeff.html command as in the examples above,
@@ -123,7 +124,7 @@ for pair interactions.
 
 [Default:] none
 
-:link(Wang)
+:link(pair-Wang)
 [(Wang)] J. Wang, H. S. Yu, P. A. Langston, F. Y. Fraige, Granular
 Matter, 13, 1 (2011).
 

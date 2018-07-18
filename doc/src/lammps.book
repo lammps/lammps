@@ -280,7 +280,8 @@ fix_vector.html
 fix_viscosity.html
 fix_viscous.html
 fix_wall.html
-fix_wall_ees.html
+fix_wall_body_polygon.html
+fix_wall_body_polyhedron.html
 fix_wall_gran.html
 fix_wall_gran_region.html
 fix_wall_piston.html
@@ -419,8 +420,9 @@ pair_agni.html
 pair_airebo.html
 pair_awpmd.html
 pair_beck.html
-pair_body.html
+pair_body_nparticle.html
 pair_body_rounded_polygon.html
+pair_body_rounded_polyhedron.html
 pair_bop.html
 pair_born.html
 pair_brownian.html

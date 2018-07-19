@@ -159,9 +159,17 @@ void PairGranHookeHistoryKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   d_neighbors = k_list->d_neighbors;
   d_ilist = k_list->d_ilist;
 
+  if (d_numneigh.extent(0) != d_numneigh_touch.extent(0))
+    d_numneigh_touch = typename AT::t_int_1d("pair:numneigh_touch",d_numneigh.extent(0));
+  if (d_neighbors.extent(0) != d_neighbors_touch.extent(0) ||
+      d_neighbors.extent(1) != d_neighbors_touch.extent(1))
+    d_neighbors_touch = typename AT::t_neighbors_2d("pair:neighbors_touch",d_neighbors.extent(0),d_neighbors.extent(1));
+
   d_firsttouch = fix_historyKK->d_firstflag;
   d_firstshear = fix_historyKK->d_firstvalue;
-  
+
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryReduce>(0,inum),*this);
+
   EV_FLOAT ev;
 
   if (lmp->kokkos->neighflag == HALF) {
@@ -270,40 +278,24 @@ void PairGranHookeHistoryKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 }
 
 template<class DeviceType>
-template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int SHEARUPDATE>
 KOKKOS_INLINE_FUNCTION
-void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG,SHEARUPDATE>, const int ii, EV_FLOAT &ev) const {
-
-  // The f and torque arrays are atomic for Half/Thread neighbor style
-  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
-  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_torque = torque;
-
+void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryReduce, const int ii) const {
   const int i = d_ilist[ii];
   const X_FLOAT xtmp = x(i,0);
   const X_FLOAT ytmp = x(i,1);
   const X_FLOAT ztmp = x(i,2);
-  const int itype = type[i];
   const LMP_FLOAT imass = rmass[i];
   const LMP_FLOAT irad = radius[i];
   const int jnum = d_numneigh[i];
-  
-  F_FLOAT fx_i = 0.0;
-  F_FLOAT fy_i = 0.0;
-  F_FLOAT fz_i = 0.0;
+  int count = 0;
 
-  F_FLOAT torquex_i = 0.0;
-  F_FLOAT torquey_i = 0.0;
-  F_FLOAT torquez_i = 0.0;
-  
   for (int jj = 0; jj < jnum; jj++) {
-    int j = d_neighbors(i,jj);
-    j &= NEIGHMASK;
+    const int j = d_neighbors(i,jj) & NEIGHMASK;
 
     const X_FLOAT delx = xtmp - x(j,0);
     const X_FLOAT dely = ytmp - x(j,1);
     const X_FLOAT delz = ztmp - x(j,2);
     const X_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-    const int jtype = type[j];
     const LMP_FLOAT jmass = rmass[j];
     const LMP_FLOAT jrad = radius[j];
     const LMP_FLOAT radsum = irad + jrad;
@@ -316,135 +308,179 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
       d_firstshear(i,3*jj+1) = 0;
       d_firstshear(i,3*jj+2) = 0;
     } else {
-      const LMP_FLOAT r = sqrt(rsq);
-      const LMP_FLOAT rinv = 1.0/r;
-      const LMP_FLOAT rsqinv = 1/rsq;
-
-      // relative translational velocity
-
-      V_FLOAT vr1 = v(i,0) - v(j,0);
-      V_FLOAT vr2 = v(i,1) - v(j,1);
-      V_FLOAT vr3 = v(i,2) - v(j,2);
-      
-      // normal component
-
-      V_FLOAT vnnr = vr1*delx + vr2*dely + vr3*delz;
-      V_FLOAT vn1 = delx*vnnr * rsqinv;
-      V_FLOAT vn2 = dely*vnnr * rsqinv;
-      V_FLOAT vn3 = delz*vnnr * rsqinv;
-      
-      // tangential component
-      
-      V_FLOAT vt1 = vr1 - vn1;
-      V_FLOAT vt2 = vr2 - vn2;
-      V_FLOAT vt3 = vr3 - vn3;
-
-      // relative rotational velocity
-
-      V_FLOAT wr1 = (irad*omega(i,0) + jrad*omega(j,0)) * rinv;
-      V_FLOAT wr2 = (irad*omega(i,1) + jrad*omega(j,1)) * rinv;
-      V_FLOAT wr3 = (irad*omega(i,2) + jrad*omega(j,2)) * rinv;
-
-      LMP_FLOAT meff = imass*jmass / (imass+jmass);
-      if (mask[i] & freeze_group_bit) meff = jmass;
-      if (mask[j] & freeze_group_bit) meff = imass;
-
-      F_FLOAT damp = meff*gamman*vnnr*rsqinv;
-      F_FLOAT ccel = kn*(radsum-r)*rinv - damp;
-
-      // relative velocities
-
-      V_FLOAT vtr1 = vt1 - (delz*wr2-dely*wr3);
-      V_FLOAT vtr2 = vt2 - (delx*wr3-delz*wr1);
-      V_FLOAT vtr3 = vt3 - (dely*wr1-delx*wr2);
-      V_FLOAT vrel = vtr1*vtr1 + vtr2*vtr2 + vtr3*vtr3;
-      vrel = sqrt(vrel);
-
-      // shear history effects
-
       d_firsttouch(i,jj) = 1;
-      X_FLOAT shear1 = d_firstshear(i,3*jj);
-      X_FLOAT shear2 = d_firstshear(i,3*jj+1);
-      X_FLOAT shear3 = d_firstshear(i,3*jj+2);
-      if (SHEARUPDATE) {
-  	shear1 += vtr1*dt;
-  	shear2 += vtr2*dt;
-  	shear3 += vtr3*dt;
-      }
-      X_FLOAT shrmag = sqrt(shear1*shear1 + shear2*shear2 +
-  			   shear3*shear3);
-
-      // rotate shear displacements
-
-      X_FLOAT rsht = shear1*delx + shear2*dely + shear3*delz;
-      rsht *= rsqinv;
-      if (SHEARUPDATE) {
-  	shear1 -= rsht*delx;
-  	shear2 -= rsht*dely;
-  	shear3 -= rsht*delz;
-      }
-
-      // tangential forces = shear + tangential velocity damping
-
-      F_FLOAT fs1 = - (kt*shear1 + meff*gammat*vtr1);
-      F_FLOAT fs2 = - (kt*shear2 + meff*gammat*vtr2);
-      F_FLOAT fs3 = - (kt*shear3 + meff*gammat*vtr3);
-
-      // rescale frictional displacements and forces if needed
-
-      F_FLOAT fs = sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
-      F_FLOAT fn = xmu * fabs(ccel*r);
-
-      if (fs > fn) {
-  	if (shrmag != 0.0) {
-  	  shear1 = (fn/fs) * (shear1 + meff*gammat*vtr1/kt) -
-  	    meff*gammat*vtr1/kt;
-  	  shear2 = (fn/fs) * (shear2 + meff*gammat*vtr2/kt) -
-  	    meff*gammat*vtr2/kt;
-  	  shear3 = (fn/fs) * (shear3 + meff*gammat*vtr3/kt) -
-  	    meff*gammat*vtr3/kt;
-  	  fs1 *= fn/fs;
-  	  fs2 *= fn/fs;
-  	  fs3 *= fn/fs;
-  	} else fs1 = fs2 = fs3 = 0.0;
-      }
-
-      if (SHEARUPDATE) {
-  	d_firstshear(i,3*jj) = shear1;
-  	d_firstshear(i,3*jj+1) = shear2;
-  	d_firstshear(i,3*jj+2) = shear3;
-      }
-
-      // forces & torques
-
-      F_FLOAT fx = delx*ccel + fs1;
-      F_FLOAT fy = dely*ccel + fs2;
-      F_FLOAT fz = delz*ccel + fs3;
-      fx_i += fx;
-      fy_i += fy;
-      fz_i += fz;
-
-      F_FLOAT tor1 = rinv * (dely*fs3 - delz*fs2);
-      F_FLOAT tor2 = rinv * (delz*fs1 - delx*fs3);
-      F_FLOAT tor3 = rinv * (delx*fs2 - dely*fs1);
-      torquex_i -= irad*tor1;
-      torquey_i -= irad*tor2;
-      torquez_i -= irad*tor3;
-      
-      if (NEWTON_PAIR || j < nlocal) {
-        a_f(j,0) -= fx;
-        a_f(j,1) -= fy;
-        a_f(j,2) -= fz;
-  	a_torque(j,0) -= jrad*tor1;
-  	a_torque(j,1) -= jrad*tor2;
-  	a_torque(j,2) -= jrad*tor3;
-      }
-
-      if (EVFLAG == 2)
-	ev_tally_xyz_atom<NEIGHFLAG, NEWTON_PAIR>(ev, i, j, fx_i, fy_i, fz_i, delx, dely, delz);
-      if (EVFLAG == 1)
-	ev_tally_xyz<NEWTON_PAIR>(ev, i, j, fx_i, fy_i, fz_i, delx, dely, delz);
+      d_neighbors_touch(i,count++) = jj;
     }
+  }
+  d_numneigh_touch[i] = count;
+}
+
+template<class DeviceType>
+template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int SHEARUPDATE>
+KOKKOS_INLINE_FUNCTION
+void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG,SHEARUPDATE>, const int ii, EV_FLOAT &ev) const {
+
+  // The f and torque arrays are atomic for Half/Thread neighbor style
+  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
+  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_torque = torque;
+
+  const int i = d_ilist[ii];
+  const X_FLOAT xtmp = x(i,0);
+  const X_FLOAT ytmp = x(i,1);
+  const X_FLOAT ztmp = x(i,2);
+  const LMP_FLOAT imass = rmass[i];
+  const LMP_FLOAT irad = radius[i];
+  const int jnum = d_numneigh_touch[i];
+  
+  F_FLOAT fx_i = 0.0;
+  F_FLOAT fy_i = 0.0;
+  F_FLOAT fz_i = 0.0;
+
+  F_FLOAT torquex_i = 0.0;
+  F_FLOAT torquey_i = 0.0;
+  F_FLOAT torquez_i = 0.0;
+
+  for (int jj = 0; jj < jnum; jj++) {
+    const int m = d_neighbors_touch(i, jj);
+    const int j = d_neighbors(i, m) & NEIGHMASK;
+    
+    const X_FLOAT delx = xtmp - x(j,0);
+    const X_FLOAT dely = ytmp - x(j,1);
+    const X_FLOAT delz = ztmp - x(j,2);
+    const X_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+    const LMP_FLOAT jmass = rmass[j];
+    const LMP_FLOAT jrad = radius[j];
+    const LMP_FLOAT radsum = irad + jrad;
+
+    // check for touching neighbors
+
+    const LMP_FLOAT r = sqrt(rsq);
+    const LMP_FLOAT rinv = 1.0/r;
+    const LMP_FLOAT rsqinv = 1/rsq;
+
+    // relative translational velocity
+
+    V_FLOAT vr1 = v(i,0) - v(j,0);
+    V_FLOAT vr2 = v(i,1) - v(j,1);
+    V_FLOAT vr3 = v(i,2) - v(j,2);
+      
+    // normal component
+
+    V_FLOAT vnnr = vr1*delx + vr2*dely + vr3*delz;
+    V_FLOAT vn1 = delx*vnnr * rsqinv;
+    V_FLOAT vn2 = dely*vnnr * rsqinv;
+    V_FLOAT vn3 = delz*vnnr * rsqinv;
+      
+    // tangential component
+      
+    V_FLOAT vt1 = vr1 - vn1;
+    V_FLOAT vt2 = vr2 - vn2;
+    V_FLOAT vt3 = vr3 - vn3;
+
+    // relative rotational velocity
+
+    V_FLOAT wr1 = (irad*omega(i,0) + jrad*omega(j,0)) * rinv;
+    V_FLOAT wr2 = (irad*omega(i,1) + jrad*omega(j,1)) * rinv;
+    V_FLOAT wr3 = (irad*omega(i,2) + jrad*omega(j,2)) * rinv;
+
+    LMP_FLOAT meff = imass*jmass / (imass+jmass);
+    if (mask[i] & freeze_group_bit) meff = jmass;
+    if (mask[j] & freeze_group_bit) meff = imass;
+
+    F_FLOAT damp = meff*gamman*vnnr*rsqinv;
+    F_FLOAT ccel = kn*(radsum-r)*rinv - damp;
+
+    // relative velocities
+
+    V_FLOAT vtr1 = vt1 - (delz*wr2-dely*wr3);
+    V_FLOAT vtr2 = vt2 - (delx*wr3-delz*wr1);
+    V_FLOAT vtr3 = vt3 - (dely*wr1-delx*wr2);
+    V_FLOAT vrel = vtr1*vtr1 + vtr2*vtr2 + vtr3*vtr3;
+    vrel = sqrt(vrel);
+
+    // shear history effects
+
+    X_FLOAT shear1 = d_firstshear(i,3*m);
+    X_FLOAT shear2 = d_firstshear(i,3*m+1);
+    X_FLOAT shear3 = d_firstshear(i,3*m+2);
+    if (SHEARUPDATE) {
+      shear1 += vtr1*dt;
+      shear2 += vtr2*dt;
+      shear3 += vtr3*dt;
+    }
+    X_FLOAT shrmag = sqrt(shear1*shear1 + shear2*shear2 +
+			  shear3*shear3);
+
+    // rotate shear displacements
+
+    X_FLOAT rsht = shear1*delx + shear2*dely + shear3*delz;
+    rsht *= rsqinv;
+    if (SHEARUPDATE) {
+      shear1 -= rsht*delx;
+      shear2 -= rsht*dely;
+      shear3 -= rsht*delz;
+    }
+
+    // tangential forces = shear + tangential velocity damping
+
+    F_FLOAT fs1 = - (kt*shear1 + meff*gammat*vtr1);
+    F_FLOAT fs2 = - (kt*shear2 + meff*gammat*vtr2);
+    F_FLOAT fs3 = - (kt*shear3 + meff*gammat*vtr3);
+
+    // rescale frictional displacements and forces if needed
+
+    F_FLOAT fs = sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
+    F_FLOAT fn = xmu * fabs(ccel*r);
+
+    if (fs > fn) {
+      if (shrmag != 0.0) {
+	shear1 = (fn/fs) * (shear1 + meff*gammat*vtr1/kt) -
+	  meff*gammat*vtr1/kt;
+	shear2 = (fn/fs) * (shear2 + meff*gammat*vtr2/kt) -
+	  meff*gammat*vtr2/kt;
+	shear3 = (fn/fs) * (shear3 + meff*gammat*vtr3/kt) -
+	  meff*gammat*vtr3/kt;
+	fs1 *= fn/fs;
+	fs2 *= fn/fs;
+	fs3 *= fn/fs;
+      } else fs1 = fs2 = fs3 = 0.0;
+    }
+
+    if (SHEARUPDATE) {
+      d_firstshear(i,3*m) = shear1;
+      d_firstshear(i,3*m+1) = shear2;
+      d_firstshear(i,3*m+2) = shear3;
+    }
+
+    // forces & torques
+
+    F_FLOAT fx = delx*ccel + fs1;
+    F_FLOAT fy = dely*ccel + fs2;
+    F_FLOAT fz = delz*ccel + fs3;
+    fx_i += fx;
+    fy_i += fy;
+    fz_i += fz;
+
+    F_FLOAT tor1 = rinv * (dely*fs3 - delz*fs2);
+    F_FLOAT tor2 = rinv * (delz*fs1 - delx*fs3);
+    F_FLOAT tor3 = rinv * (delx*fs2 - dely*fs1);
+    torquex_i -= irad*tor1;
+    torquey_i -= irad*tor2;
+    torquez_i -= irad*tor3;
+      
+    if (NEWTON_PAIR || j < nlocal) {
+      a_f(j,0) -= fx;
+      a_f(j,1) -= fy;
+      a_f(j,2) -= fz;
+      a_torque(j,0) -= jrad*tor1;
+      a_torque(j,1) -= jrad*tor2;
+      a_torque(j,2) -= jrad*tor3;
+    }
+
+    if (EVFLAG == 2)
+      ev_tally_xyz_atom<NEIGHFLAG, NEWTON_PAIR>(ev, i, j, fx_i, fy_i, fz_i, delx, dely, delz);
+    if (EVFLAG == 1)
+      ev_tally_xyz<NEWTON_PAIR>(ev, i, j, fx_i, fy_i, fz_i, delx, dely, delz);
   }
 
   a_f(i,0) += fx_i;

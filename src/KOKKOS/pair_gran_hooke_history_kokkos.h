@@ -32,7 +32,9 @@ template <class DeviceType>
 class FixNeighHistoryKokkos;
   
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int SHEARUPDATE>
-struct TagPairGranHookeHistoryCompute{};
+struct TagPairGranHookeHistoryCompute {};
+
+struct TagPairGranHookeHistoryReduce {};
 
 template <class DeviceType>
 class PairGranHookeHistoryKokkos : public PairGranHookeHistory {
@@ -45,6 +47,9 @@ class PairGranHookeHistoryKokkos : public PairGranHookeHistory {
   virtual ~PairGranHookeHistoryKokkos();
   virtual void compute(int, int);
   void init_style();
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairGranHookeHistoryReduce, const int ii) const;
 
   template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int SHEARUPDATE>
   KOKKOS_INLINE_FUNCTION
@@ -88,6 +93,9 @@ class PairGranHookeHistoryKokkos : public PairGranHookeHistory {
 
   typename Kokkos::View<int**> d_firsttouch;
   typename Kokkos::View<LMP_FLOAT**> d_firstshear;
+
+  typename AT::t_neighbors_2d d_neighbors_touch;
+  typename AT::t_int_1d d_numneigh_touch;
   
   int newton_pair;
   double special_lj[4];

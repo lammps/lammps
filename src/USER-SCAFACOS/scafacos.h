@@ -51,7 +51,7 @@ class Scafacos : public KSpace {
   // so ScaFaCoS can detect if changes, e.g. for NPT
 
   fcs_float old_box_x[3],old_box_y[3],old_box_z[3];
-  fcs_float old_offset[3];
+  fcs_float old_origin[3];
   fcs_int old_periodicity[3];
   fcs_int old_natoms;
 

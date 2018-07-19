@@ -38,16 +38,24 @@ using namespace LAMMPS_NS;
 
 Scafacos::Scafacos(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 {
-  if (narg != 2) error->all(FLERR,"Illegal scafacos command");
+  if (narg > 2) error->all(FLERR,"Illegal scafacos command");
 
   int n = strlen(arg[0]) + 1;
   method = new char[n];
   strcpy(method,arg[0]);
-  tolerance = force->numeric(FLERR,arg[1]);
+  // to allow 'kspace scafacos <method>' with default values
+  if (narg == 2)
+    tolerance = force->numeric(FLERR,arg[1]);
+  else
+    tolerance = 0.001;
 
   // optional ScaFaCoS library setting defaults
-
-  tolerance_type = FCS_TOLERANCE_TYPE_FIELD;     
+  // choose the correct default tolerance type for chosen method
+  // TODO: needs to be expanded for all solvers, currently mainly used ones
+  if (strcmp(method,"fmm") == 0)
+    tolerance_type = FCS_TOLERANCE_TYPE_ENERGY;
+  else if (strcmp(method,"p3m") == 0 || strcmp(method,"p2nfft") == 0) 
+    tolerance_type = FCS_TOLERANCE_TYPE_FIELD;    
 
   // initializations
 
@@ -68,7 +76,8 @@ Scafacos::~Scafacos()
   memory->destroy(epot);
   memory->destroy(efield);
 
-  // RENE: any clean-up/shut-down call to ScaFaCoS needed?
+  // clean up of the ScaFaCoS handle and internal arrays
+  fcs_destroy(fcs);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -93,7 +102,6 @@ void Scafacos::init()
 
   // one-time initialization of ScaFaCoS
 
-  scale = 1.0;
   qqrd2e = force->qqrd2e;
 
   if (!initialized) {
@@ -129,9 +137,7 @@ void Scafacos::compute(int eflag, int vflag)
   double *q = atom->q;
   int nlocal = atom->nlocal;
 
-  // RENE: why is scale needed?
-  
-  const double qscale = qqrd2e * scale;
+  const double qscale = qqrd2e;
 
   if (eflag || vflag) ev_setup(eflag,vflag);
   else eflag_atom = 0;
@@ -154,16 +160,6 @@ void Scafacos::compute(int eflag, int vflag)
     memory->create(efield,maxatom,3,"scafacos:efield");
      
   }
-
-  // initialize epot & efield
-  // RENE: is this necessary?  or does Scafacos just set them
-
-  for (int i = 0; i < nlocal; i++) {
-    epot[i] = 0.0;
-    efield[i][0] = efield[i][1] = efield[i][2] = 0.0;
-  }
- 
-  // ScaFaCoS calculation of full Coulombics
 
   result = fcs_run(fcs,nlocal,&x[0][0],q,&efield[0][0],epot);
   check_result(result);
@@ -196,7 +192,7 @@ void Scafacos::compute(int eflag, int vflag)
 
 int Scafacos::modify_param(int narg, char **arg)
 {
-  // RENE: add any Scafacos options here you want to expose to LAMMPS
+  // add any Scafacos options here you want to expose to LAMMPS
   // syntax: kspace_modify scafacos keyword value1 value2 ...
   //   keyword = tolerance
   //     value1 = energy, energy_rel, etc
@@ -245,17 +241,17 @@ void Scafacos::setup_handle()
 {
   // store simulation box params
 
+  // setup periodicity
   old_periodicity[0] = domain->xperiodic;
   old_periodicity[1] = domain->yperiodic;
   old_periodicity[2] = domain->zperiodic;
 
-  // RENE: what does SCFCS mean by offset?
-  //       it's an integer flag in LAMMPS, but being stored in a float?
+  // setup box origin (lower left front corner of the system)
+  old_origin[0] = domain->boundary[0][0];
+  old_origin[1] = domain->boundary[1][0];
+  old_origin[2] = domain->boundary[2][0];
 
-  old_offset[0] = domain->boundary[0][0];
-  old_offset[1] = domain->boundary[1][0];
-  old_offset[2] = domain->boundary[2][0];
-
+  // setup box vectors (base vectors of the system box)
   old_box_x[0] = domain->prd[0];
   old_box_x[1] = old_box_x[2] = 0.0;
   old_box_y[1] = domain->prd[1];
@@ -263,10 +259,10 @@ void Scafacos::setup_handle()
   old_box_z[2] = domain->prd[2];
   old_box_z[1] = old_box_z[0] = 0.0;
 
+  // setup number of atoms in the system
   old_natoms = atom->natoms;
 
-  // set all required ScaFaCoS params
-
+  // store parameters to ScaFaCoS handle
   result = fcs_set_box_a(fcs,old_box_x);
   check_result(result);
 
@@ -276,7 +272,7 @@ void Scafacos::setup_handle()
   result = fcs_set_box_c(fcs,old_box_z);
   check_result(result);
 
-  result = fcs_set_box_origin(fcs,old_offset);
+  result = fcs_set_box_origin(fcs,old_origin);
   check_result(result);
 
   result = fcs_set_periodicity(fcs,old_periodicity);
@@ -285,11 +281,12 @@ void Scafacos::setup_handle()
   result = fcs_set_total_particles(fcs,old_natoms);
   check_result(result);
 
-  // RENE: disable short-range calculations within LAMMPS
-  //       not sure what this is doing
-  //       is this the correct thing to do for now?
-
-  int near_field_flag = 0;
+  // allow ScaFaCoS to calculate the near field computations for now
+  // TODO: allow the delegation of the near field computations
+  //       within LAMMPS
+  //       (near_field_flag = 1 -> enables the internal near field calcs
+  //                          0 -> disables the internal near field calcs
+  int near_field_flag = 1;
   result = fcs_set_near_field_flag(fcs,near_field_flag);
   check_result(result);
 }
@@ -307,9 +304,9 @@ bool Scafacos::box_has_changed()
     (periodicity[0] != old_periodicity[0]) ||
     (periodicity[1] != old_periodicity[1]) ||
     (periodicity[2] != old_periodicity[2]) ||
-    (domain->boundary[0][0] != old_offset[0]) ||
-    (domain->boundary[1][0] != old_offset[1]) ||
-    (domain->boundary[2][0] != old_offset[2]) ||
+    (domain->boundary[0][0] != old_origin[0]) ||
+    (domain->boundary[1][0] != old_origin[1]) ||
+    (domain->boundary[2][0] != old_origin[2]) ||
     (prd[0] != old_box_x[0]) ||
     (prd[1] != old_box_y[1]) ||
     (prd[2] != old_box_z[2]) ||
@@ -332,9 +329,6 @@ void Scafacos::check_result(FCSResult result)
   fcs_result_destroy(result);
   std::string err_msg = ss.str();
   const char *str = err_msg.c_str();
-
-  // RENE: will all procs have same error?
-  //       if so, then should call error->all(FLERR,str)
 
   error->one(FLERR,str);
 }

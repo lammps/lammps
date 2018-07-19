@@ -591,7 +591,7 @@ void PairDPDfdtEnergyKokkos<DeviceType>::operator()(TagPairDPDfdtEnergyComputeNo
       // Compute uCond
       randnum = rand_gen.normal();
       kappa_ij = STACKPARAMS?m_params[itype][jtype].kappa:params(itype,jtype).kappa;
-      alpha_ij = sqrt(2.0*boltz*kappa_ij);
+      alpha_ij = STACKPARAMS?m_params[itype][jtype].alpha:params(itype,jtype).alpha;
       randPair = alpha_ij*wr*randnum*dtinvsqrt;
 
       uTmp = kappa_ij*(1.0/dpdTheta[i] - 1.0/dpdTheta[j])*wd;
@@ -676,6 +676,7 @@ double PairDPDfdtEnergyKokkos<DeviceType>::init_one(int i, int j)
   k_params.h_view(i,j).a0 = a0[i][j];
   k_params.h_view(i,j).sigma = sigma[i][j];
   k_params.h_view(i,j).kappa = kappa[i][j];
+  k_params.h_view(i,j).alpha = alpha[i][j];
   k_params.h_view(j,i) = k_params.h_view(i,j);
   if(i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
     m_params[i][j] = m_params[j][i] = k_params.h_view(i,j);

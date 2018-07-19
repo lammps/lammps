@@ -501,13 +501,16 @@ double PairTERSOFFHG::BondOrder(int i, int j, double ij_f, double Pre, int eflag
   P_ij=P_ji=dFP_ij=dFP_ji=dCP_ij=dCP_ji=0;
 
   //these only work if 0 is Si, 1 is F/Cl. Later, find a way to virtualize
-  //std::cerr<<"  "<<Nmap[i][1]<<" "<<(jtype==1)*ij_f<<" "<<Nmap[i][0]<<" "<<(jtype==0)*ij_f<<std::endl;
   bicubicint (Nmap[i][1]-(jtype==1)*ij_f, Nmap[i][0]-(jtype==0)*ij_f, 
               &P_ij, &dFP_ij, &dCP_ij, &params[iparam_ij]);
 
   bicubicint (Nmap[j][1]-(itype==1)*ij_f, Nmap[j][0]-(itype==0)*ij_f,
               &P_ji, &dFP_ji, &dCP_ji, &params[iparam_ji]);
   
+//  std::cerr<<" "<<Nmap[i][1]-(jtype==1)*ij_f<<" "<<Nmap[i][0]-(jtype==0)*ij_f<<" "<<
+//              P_ij<<" "<<dFP_ij<<" "<<dCP_ij<<std::endl;
+//  std::cerr<<" "<<Nmap[j][1]-(itype==1)*ij_f<<" "<<Nmap[j][0]-(itype==0)*ij_f<<" "<<
+//              P_ji<<" "<<dFP_ij<<" "<<dCP_ij<<std::endl;  
   // if (bond_ij->type==12)
   // {
   //   Pcc_bicubicint(NF_ij, NC_ij+NSi_ij, &P_ij, &dFP_ij,&dCP_ij);
@@ -645,6 +648,7 @@ double PairTERSOFFHG::BondOrder(int i, int j, double ij_f, double Pre, int eflag
 
   bbar_ij = 0.5*(pow(1 + pow(bsp_ij, eta_i), -delta_i)
      + pow(1 + pow(bsp_ji, eta_j), -delta_j)); // +F_ij);
+
 
   if (eta_i!=1)
   {

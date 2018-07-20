@@ -33,8 +33,10 @@ args = arguments specific to the style :l
         last = ID of last GPU to be used on each node
       {tpa} value = Nthreads
         Nthreads = # of GPU threads used per atom
-      {device} value = device_type
-        device_type = {kepler} or {fermi} or {cypress} or {generic}
+      {device} value = device_type or platform_id:device_type or platform_id:custom,val1,val2,val3,..,val13
+        platform_id = numerical OpenCL platform id (default: -1)
+        device_type = {kepler} or {fermi} or {cypress} or {intel} or {phi} or {generic} or {custom}
+        val1,val2,... = custom OpenCL tune parameters (see below for details)
       {blocksize} value = size
         size = thread block size for pair force computation
   {intel} args = NPhi keyword value ...
@@ -96,6 +98,9 @@ args = arguments specific to the style :l
 package gpu 1
 package gpu 1 split 0.75
 package gpu 2 split -1.0
+package gpu 1 device kepler
+package gpu 1 device 2:generic
+package gpu 1 device custom,32,4,8,256,11,128,256,128,32,64,8,128,128
 package kokkos neigh half comm device
 package omp 0 neigh no
 package omp 4
@@ -244,12 +249,40 @@ the value can improve performance. The number of threads per atom must
 be a power of 2 and currently cannot be greater than 32.
 
 The {device} keyword can be used to tune parameters optimized for a
-specific accelerator, when using OpenCL.  For CUDA, the {device}
-keyword is ignored.  Currently, the device type is limited to NVIDIA
-Kepler, NVIDIA Fermi, AMD Cypress, or a generic device.  More devices
-may be added later.  The default device type can be specified when
-building LAMMPS with the GPU library, via settings in the
-lib/gpu/Makefile that is used.
+specific accelerator and platform when using OpenCL. OpenCL supports
+the concept of a [platform], which represents one or more devices that
+share the same driver (e.g. there would be a different platform for
+GPUs from different vendors or for CPU based accelerator support).
+In LAMMPS only one platform can be active at a time and by default
+the first platform with an accelerator is selected. This is equivalent
+to using a platform ID of -1. The platform ID is a number corresponding
+to the output of the ocl_get_devices tool. The platform ID is passed
+to the GPU library, by prefixing the {device} keyword with that number
+separated by a colon. For CUDA, the {device} keyword is ignored.
+Currently, the device tuning support is limited to NVIDIA Kepler, NVIDIA
+Fermi, AMD Cypress, Intel x86_64 CPU, Intel Xeon Phi, or a generic device.
+More devices may be added later.  The default device type can be
+specified when building LAMMPS with the GPU library, via setting a
+variable in the lib/gpu/Makefile that is used.
+
+In addition, a device type {custom} is available, which is followed by
+13 comma separated numbers, which allows to set those tweakable parameters
+from the package command. It can be combined with the (colon separated)
+platform id. The individual settings are:
+
+MEM_THREADS
+THREADS_PER_ATOM
+THREADS_PER_CHARGE
+BLOCK_PAIR
+MAX_SHARED_TYPES
+BLOCK_NBOR_BUILD
+BLOCK_BIO_PAIR
+BLOCK_ELLIPSE
+WARP_SIZE
+PPPM_BLOCK_1D
+BLOCK_CELL_2D
+BLOCK_CELL_ID
+MAX_BIO_SHARED_TYPES :ul
 
 The {blocksize} keyword allows you to tweak the number of threads used
 per thread block. This number should be a multiple of 32 (for GPUs)

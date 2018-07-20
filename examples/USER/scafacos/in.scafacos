@@ -28,7 +28,8 @@ pair_coeff	* *
 
 #fix		2 all scafacos p3m tolerance field 0.001
 
-kspace_style    scafacos p3m tolerance field 0.001
+kspace_style    scafacos p3m 0.001
+kspace_style    scafacos tolerance field 
 
 timestep	0.005
 thermo          10

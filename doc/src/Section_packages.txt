@@ -2731,8 +2731,6 @@ examples/reax :ul
 
 :line
 
-RENE: check this section
-
 USER-SCAFACOS package :link(USER-SCAFACOS),h4
 
 [Contents:]
@@ -2764,7 +2762,7 @@ args:
 
 make lib-scafacos                         # print help message
 make lib-scafacos args="-b"               # download and build in lib/scafacos/scafacos-<version>
-make lib-voronoi args="-p $HOME/scafacos  # use existing ScaFaCoS installation in $HOME/scafacos
+make lib-scafacos args="-p $HOME/scafacos  # use existing ScaFaCoS installation in $HOME/scafacos
 
 You can then install/un-install the package and build LAMMPS in the
 usual manner:

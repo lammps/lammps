@@ -38,16 +38,12 @@ using namespace LAMMPS_NS;
 
 Scafacos::Scafacos(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 {
-  if (narg > 2) error->all(FLERR,"Illegal scafacos command");
+  if (narg != 2) error->all(FLERR,"Illegal scafacos command");
 
   int n = strlen(arg[0]) + 1;
   method = new char[n];
   strcpy(method,arg[0]);
-  // to allow 'kspace scafacos <method>' with default values
-  if (narg == 2)
-    tolerance = force->numeric(FLERR,arg[1]);
-  else
-    tolerance = 0.001;
+  tolerance = force->numeric(FLERR,arg[1]);
 
   // optional ScaFaCoS library setting defaults
   // choose the correct default tolerance type for chosen method
@@ -247,9 +243,9 @@ void Scafacos::setup_handle()
   old_periodicity[2] = domain->zperiodic;
 
   // setup box origin (lower left front corner of the system)
-  old_origin[0] = domain->boundary[0][0];
-  old_origin[1] = domain->boundary[1][0];
-  old_origin[2] = domain->boundary[2][0];
+  old_origin[0] = domain->boxlo[0];
+  old_origin[1] = domain->boxlo[1];
+  old_origin[2] = domain->boxlo[2];
 
   // setup box vectors (base vectors of the system box)
   old_box_x[0] = domain->prd[0];

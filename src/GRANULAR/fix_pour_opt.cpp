@@ -15,9 +15,9 @@
    Contributing author: Richard Berger (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "fix_pour_opt.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -44,7 +44,6 @@ using namespace MathConst;
 
 enum{ATOM,MOLECULE};
 enum{ONE,RANGE,POLY};
-enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 
 #define EPSILON 0.001
 #define SMALL 1.0e-10
@@ -116,7 +115,6 @@ FixPourOpt::FixPourOpt(LAMMPS *lmp, int narg, char **arg) :
         zlo < domain->boxlo[2] || zhi > domain->boxhi[2])
       error->all(FLERR,"Insertion region extends outside simulation box");
   } else error->all(FLERR,"Must use a block or cylinder region with fix pour");
-
 
   if (region_style == 2 && domain->dimension == 2)
     error->all(FLERR,
@@ -586,7 +584,7 @@ void FixPourOpt::pre_exchange()
           newcoord[1] >= sublo[1] && newcoord[1] < subhi[1] &&
           newcoord[2] >= sublo[2] && newcoord[2] < subhi[2]) flag = 1;
       else if (dimension == 3 && newcoord[2] >= domain->boxhi[2]) {
-        if (comm->layout != LAYOUT_TILED) {
+        if (comm->layout != Comm::LAYOUT_TILED) {
           if (comm->myloc[2] == comm->procgrid[2]-1 &&
               newcoord[0] >= sublo[0] && newcoord[0] < subhi[0] &&
               newcoord[1] >= sublo[1] && newcoord[1] < subhi[1]) flag = 1;
@@ -596,7 +594,7 @@ void FixPourOpt::pre_exchange()
               newcoord[1] >= sublo[1] && newcoord[1] < subhi[1]) flag = 1;
         }
       } else if (dimension == 2 && newcoord[1] >= domain->boxhi[1]) {
-        if (comm->layout != LAYOUT_TILED) {
+        if (comm->layout != Comm::LAYOUT_TILED) {
           if (comm->myloc[1] == comm->procgrid[1]-1 &&
               newcoord[0] >= sublo[0] && newcoord[0] < subhi[0]) flag = 1;
         } else {

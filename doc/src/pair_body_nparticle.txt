@@ -10,21 +10,21 @@ pair_style body command :h3
 
 [Syntax:]
 
-pair_style body cutoff :pre
+pair_style body/nparticle cutoff :pre
 
 cutoff = global cutoff for interactions (distance units)
 
 [Examples:]
 
-pair_style body 3.0
+pair_style body/nparticle 3.0
 pair_coeff * * 1.0 1.0
 pair_coeff 1 1 1.0 1.5 2.5 :pre
 
 [Description:]
 
-Style {body} is for use with body particles and calculates pairwise
-body/body interactions as well as interactions between body and
-point-particles.  See "Section 6.14"_Section_howto.html#howto_14
+Style {body/nparticle} is for use with body particles and calculates
+pairwise body/body interactions as well as interactions between body
+and point-particles.  See "Section 6.14"_Section_howto.html#howto_14
 of the manual and the "body"_body.html doc page for more details on
 using body particles.
 

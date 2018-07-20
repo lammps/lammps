@@ -13,21 +13,21 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(body,PairBody)
+PairStyle(body/nparticle,PairBodyNparticle)
 
 #else
 
-#ifndef LMP_PAIR_BODY_H
-#define LMP_PAIR_BODY_H
+#ifndef LMP_PAIR_BODY_NPARTICLE_H
+#define LMP_PAIR_BODY_NPARTICLE_H
 
 #include "pair.h"
 
 namespace LAMMPS_NS {
 
-class PairBody : public Pair {
+class PairBodyNparticle : public Pair {
  public:
-  PairBody(class LAMMPS *);
-  ~PairBody();
+  PairBodyNparticle(class LAMMPS *);
+  ~PairBodyNparticle();
   void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);

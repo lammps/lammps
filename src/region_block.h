@@ -35,8 +35,6 @@ class RegBlock : public Region {
   int surface_interior(double *, double);
   int surface_exterior(double *, double);
 
-  void get_bounding_box(double * x_lo, double * x_hi) const;
-
  protected:
   double xlo,xhi,ylo,yhi,zlo,zhi;
   double corners[6][4][3];

@@ -38,7 +38,6 @@ class RegCylinder : public Region {
   void shape_update();
   void set_velocity_shape();
   void velocity_contact_shape(double *, double *);
-  void get_bounding_box(double * x_lo, double * x_hi) const;
 
  private:
   char axis;

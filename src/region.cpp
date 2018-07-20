@@ -50,6 +50,13 @@ Region::Region(LAMMPS *lmp, int narg, char **arg) :
   copymode = 0;
   list = NULL;
   nregion = 1;
+
+  extent_xlo = 0.0;
+  extent_ylo = 0.0;
+  extent_zlo = 0.0;
+  extent_xhi = 0.0;
+  extent_yhi = 0.0;
+  extent_zhi = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -597,11 +604,21 @@ void Region::reset_vel()
   for (int i = 0; i < size_restart; i++) prev[i] = 0;
 }
 
-void Region::get_bounding_box(double * xlo, double * xhi) const {
-    xlo[0] = 0.0;
-    xlo[1] = 0.0;
-    xlo[2] = 0.0;
-    xhi[0] = 0.0;
-    xhi[1] = 0.0;
-    xhi[2] = 0.0;
+void Region::get_bounding_box(double * xlo, double * xhi) const
+{
+  if(bboxflag) {
+    xlo[0] = extent_xlo;
+    xlo[1] = extent_ylo;
+    xlo[2] = extent_zlo;
+    xhi[0] = extent_xhi;
+    xhi[1] = extent_yhi;
+    xhi[2] = extent_zhi;
+  } else {
+    xlo[0] = domain->boxlo[0];
+    xlo[1] = domain->boxlo[1];
+    xlo[2] = domain->boxlo[2];
+    xhi[0] = domain->boxhi[0];
+    xhi[1] = domain->boxhi[1];
+    xhi[2] = domain->boxhi[2];
+  }
 }

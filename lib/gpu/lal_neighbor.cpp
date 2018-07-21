@@ -281,7 +281,7 @@ void Neighbor::get_host(const int inum, int *ilist, int *numj,
   }
   UCL_D_Vec<int> acc_view;
   acc_view.view_offset(inum,dev_nbor,inum*2);
-  ucl_copy(acc_view,host_acc,true);
+  ucl_copy(acc_view,host_acc,inum*2,true);
 
   UCL_H_Vec<int> host_view;
   host_view.alloc(_max_atoms,*dev,UCL_READ_WRITE);
@@ -364,7 +364,7 @@ void Neighbor::get_host3(const int inum, const int nlist, int *ilist, int *numj,
   }
   UCL_D_Vec<int> acc_view;
   acc_view.view_offset(inum,dev_nbor,inum*2);
-  ucl_copy(acc_view,host_acc,true);
+  ucl_copy(acc_view,host_acc,inum*2,true);
   time_nbor.stop();
 
   if (_use_packing==false) {

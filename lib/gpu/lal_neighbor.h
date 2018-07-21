@@ -110,7 +110,7 @@ class Neighbor {
       }
       if (_time_device) {
         time_nbor.add_to_total();
-        time_kernel.add_to_total();
+        if (_use_packing==false) time_kernel.add_to_total();
         if (_gpu_nbor==2) {
           time_hybrid1.add_to_total();
           time_hybrid2.add_to_total();

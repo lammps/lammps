@@ -272,7 +272,7 @@ void TersoffT::loop(const bool _eflag, const bool _vflag, const int evatom) {
                    &map, &elem2param, &_nelements, &_nparams, &_zetaij,
                    &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                    &this->dev_short_nbor,
-                   &_eflag, &this->_ainum, &nbor_pitch, &this->_threads_per_atom);
+                   &eflag, &this->_ainum, &nbor_pitch, &this->_threads_per_atom);
 
   ainum=this->ans->inum();
   nbor_pitch=this->nbor->nbor_pitch();

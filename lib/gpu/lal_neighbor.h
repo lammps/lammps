@@ -200,7 +200,7 @@ class Neighbor {
   /// Host storage for nbor counts (row 1) & accumulated neighbor counts (row2)
   UCL_H_Vec<int> host_acc;
   /// Device storage for accessing atom indices from the neighbor list (3-body)
-  UCL_D_Vec<int> dev_acc;
+  UCL_D_Vec<int> dev_ilist;
 
   // ----------------- Data for GPU Neighbor Calculation ---------------
 

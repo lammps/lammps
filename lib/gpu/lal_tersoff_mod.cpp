@@ -311,7 +311,7 @@ void TersoffMT::loop(const bool _eflag, const bool _vflag, const int evatom) {
     this->k_three_end_vatom.run(&this->atom->x, &ts1, &ts2, &ts4, &ts5, &cutsq,
                           &map, &elem2param, &_nelements, &_nparams, &_zetaij,
                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                          &this->nbor->dev_acc, &this->dev_short_nbor,
+                          &this->nbor->dev_ilist, &this->dev_short_nbor,
                           &end_ans->force, &end_ans->engv, &eflag, &vflag, &ainum,
                           &nbor_pitch, &this->_threads_per_atom, &this->_gpu_nbor);
 
@@ -320,7 +320,7 @@ void TersoffMT::loop(const bool _eflag, const bool _vflag, const int evatom) {
     this->k_three_end.run(&this->atom->x, &ts1, &ts2, &ts4, &ts5, &cutsq,
                           &map, &elem2param, &_nelements, &_nparams, &_zetaij,
                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                          &this->nbor->dev_acc, &this->dev_short_nbor,
+                          &this->nbor->dev_ilist, &this->dev_short_nbor,
                           &end_ans->force, &end_ans->engv, &eflag, &vflag, &ainum,
                           &nbor_pitch, &this->_threads_per_atom, &this->_gpu_nbor);
   }

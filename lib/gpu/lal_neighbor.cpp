@@ -127,10 +127,11 @@ void Neighbor::alloc(bool &success) {
     dev_packed.clear();
     success=success && (dev_packed.alloc((_max_nbors+2)*_max_atoms,*dev,
                                          _packed_permissions)==UCL_SUCCESS);
-    dev_acc.clear();
-    success=success && (dev_acc.alloc(_max_atoms,*dev,
+    dev_ilist.clear();
+    success=success && (dev_ilist.alloc(_max_atoms,*dev,
                                       UCL_READ_WRITE)==UCL_SUCCESS);
-    _c_bytes+=dev_packed.row_bytes()+dev_acc.row_bytes();
+                                      dev_ilist.clear();
+    _c_bytes+=dev_packed.row_bytes()+dev_ilist.row_bytes();
   }
   if (_max_host>0) {
     nbor_host.clear();
@@ -197,7 +198,7 @@ void Neighbor::clear() {
 
     host_packed.clear();
     host_acc.clear();
-    dev_acc.clear();
+    dev_ilist.clear();
     dev_nbor.clear();
     nbor_host.clear();
     dev_packed.clear();
@@ -289,7 +290,7 @@ void Neighbor::get_host(const int inum, int *ilist, int *numj,
     int i=ilist[ii];
     host_view[i] = ii;
   }
-  ucl_copy(dev_acc,host_view,true);
+  ucl_copy(dev_ilist,host_view,true);
 
   time_nbor.stop();
 

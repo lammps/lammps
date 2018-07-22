@@ -130,7 +130,6 @@ void Neighbor::alloc(bool &success) {
     dev_ilist.clear();
     success=success && (dev_ilist.alloc(_max_atoms,*dev,
                                       UCL_READ_WRITE)==UCL_SUCCESS);
-                                      dev_ilist.clear();
     _c_bytes+=dev_packed.row_bytes()+dev_ilist.row_bytes();
   }
   if (_max_host>0) {

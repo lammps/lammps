@@ -44,6 +44,8 @@ class Scafacos : public KSpace {
   int tolerance_type;
   int initialized,maxatom;
 
+  int fmm_tuning_flag;
+
   FCS fcs;                // ScaFaCoS handle
   FCSResult result;       // result for each ScaFaCoS call
 

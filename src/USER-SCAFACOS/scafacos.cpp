@@ -49,7 +49,10 @@ Scafacos::Scafacos(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   // choose the correct default tolerance type for chosen method
   // TODO: needs to be expanded for all solvers, currently mainly used ones
   if (strcmp(method,"fmm") == 0)
+  {
     tolerance_type = FCS_TOLERANCE_TYPE_ENERGY;
+    fmm_tuning_flag = 0;
+  }
   else if (strcmp(method,"p3m") == 0 || strcmp(method,"p2nfft") == 0) 
     tolerance_type = FCS_TOLERANCE_TYPE_FIELD;    
 
@@ -81,6 +84,8 @@ Scafacos::~Scafacos()
 void Scafacos::init()
 {
   // error checks
+  if (screen && me == 0) fprintf(screen,"Setting up ScaFaCoS with solver %s ...\n",method);
+  if (logfile && me == 0) fprintf(logfile,"Setting up ScaFaCoS with solver %s ...\n",method);
 
   if (!atom->q_flag) error->all(FLERR,"Kspace style requires atom attribute q");
 
@@ -106,18 +111,31 @@ void Scafacos::init()
 
     setup_handle();
 
-    result = fcs_set_tolerance(fcs,tolerance_type,tolerance);
-    check_result(result);
-
+    // using other methods lead to termination of the program,
+    // since they have no tolerance tuning methods
+    if ( strcmp(method,"fmm") == 0 ||
+         strcmp(method,"p3m") == 0 ||
+         strcmp(method,"p2nfft") == 0 ||
+         strcmp(method,"ewald") == 0)
+    {
+      result = fcs_set_tolerance(fcs,tolerance_type,tolerance);
+      check_result(result);
+    }
     if (me == 0) fcs_print_parameters(fcs);
 
     double **x = atom->x;
     double *q = atom->q; 
     int nlocal = atom->nlocal;
 
-    result = fcs_tune(fcs,nlocal,&x[0][0],q);
-  }
+    if (strcmp(method,"fmm") == 0)
+    {
+      if (fmm_tuning_flag == 1)
+        fcs_fmm_set_internal_tuning(fcs,fmm_tuning_flag);
+    }
 
+    result = fcs_tune(fcs,nlocal,&x[0][0],q);
+    check_result(result);
+  }
   initialized = 1;
 }
 
@@ -197,7 +215,7 @@ int Scafacos::modify_param(int narg, char **arg)
   if (strcmp(arg[0],"scafacos") != 0) return 0;
 
   if (strcmp(arg[1],"tolerance") == 0) {
-    if (narg < 2) error->all(FLERR,"Illegal kspace_modify command");
+    if (narg < 3) error->all(FLERR,"Illegal kspace_modify command (tolerance)");
     if (strcmp(arg[2],"energy") == 0)
       tolerance_type = FCS_TOLERANCE_TYPE_ENERGY;     
     else if (strcmp(arg[2],"energy_rel") == 0)
@@ -210,7 +228,20 @@ int Scafacos::modify_param(int narg, char **arg)
       tolerance_type = FCS_TOLERANCE_TYPE_POTENTIAL;     
     else if (strcmp(arg[2],"potential_rel") == 0)
       tolerance_type = FCS_TOLERANCE_TYPE_POTENTIAL_REL;     
-    else error->all(FLERR,"Illegal kspace_modify command");
+    else error->all(FLERR,"Illegal kspace_modify command (tolerance argument)");
+    return 3;
+  }
+
+  //   keyword = fmm_inhomogen_tuning
+  //     value1 = 0, 1
+  //       0 -> homogenous system (default)
+  //       1 -> inhomogenous system (more internal tuning is provided (sequential!))
+  if (strcmp(arg[1],"fmm_tuning") == 0)
+  {
+    if (screen && me == 0) fprintf(screen,"ScaFaCoS setting fmm inhomogen tuning ...%d\n", narg);
+    if (logfile && me == 0) fprintf(logfile,"ScaFaCoS setting fmm inhomogen tuning ...%d\n", narg);
+    if (narg < 3) error->all(FLERR,"Illegal kspace_modify command (fmm_tuning)");
+    fmm_tuning_flag = atoi(arg[2]);
     return 3;
   }
 

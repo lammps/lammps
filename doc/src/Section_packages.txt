@@ -100,6 +100,7 @@ Package, Description, Doc page, Example, Library
 "MANYBODY"_#MANYBODY, many-body potentials, "pair_style tersoff"_pair_tersoff.html, shear, -
 "MC"_#MC, Monte Carlo options, "fix gcmc"_fix_gcmc.html, -, -
 "MEAM"_#MEAM, modified EAM potential, "pair_style meam"_pair_meam.html, meam, int
+"MESSAGE"_#MESSAGE, client/server messaging, "message"_message.html, message, int
 "MISC"_#MISC, miscellanous single-file commands, -, -, -
 "MOLECULE"_#MOLECULE, molecular system force fields, "Section 6.6.3"_Section_howto.html#howto_3, peptide, -
 "MPIIO"_#MPIIO, MPI parallel I/O dump and restart, "dump"_dump.html, -, -
@@ -876,6 +877,52 @@ src/meam/README
 lib/meam/README
 "pair_style meam"_pair_meam.html
 examples/meam :ul
+
+:line
+
+MESSAGE package :link(MESSAGE),h4
+
+[Contents:]
+
+Commands to use LAMMPS as either a client or server
+and couple it to another application.
+
+[Install or un-install:]
+
+Before building LAMMPS with this package, you must first build the
+CSlib library in lib/message.  You can do this manually if you prefer;
+follow the instructions in lib/message/README.  You can also do it in
+one step from the lammps/src dir, using a command like these, which
+simply invoke the lib/message/Install.py script with the specified
+args:
+
+make lib-message               # print help message
+make lib-message args="-m -z"  # build with MPI and socket (ZMQ) support
+make lib-message args="-s"     # build as serial lib with no ZMQ support
+
+The build should produce two files: lib/message/cslib/src/libmessage.a
+and lib/message/Makefile.lammps.  The latter is copied from an
+existing Makefile.lammps.* and has settings to link with the
+open-source ZMQ library if requested in the build.
+
+You can then install/un-install the package and build LAMMPS in the
+usual manner:
+
+make yes-message
+make machine :pre
+
+make no-message
+make machine :pre
+
+[Supporting info:]
+
+src/MESSAGE: filenames -> commands
+lib/message/README
+"message"_message.html
+"fix client/md"_fix_client_md.html
+"server md"_server_md.html
+"server mc"_server_mc.html
+examples/message :ul
 
 :line
 

@@ -1,0 +1,90 @@
+Sample LAMMPS MD wrapper on VASP quantum DFT via client/server
+coupling
+
+See the MESSAGE package (doc/Section_messages.html#MESSAGE) and
+Section_howto.html#howto10 for more details on how client/server
+coupling works in LAMMPS.
+
+In this dir, the vasp_warp.py is a wrapper on the VASP quantum DFT
+code so it can work as a "server" code which LAMMPS drives as a
+"client" code to perform ab initio MD.  LAMMPS performs the MD
+timestepping, sends VASP a current set of coordinates each timestep,
+VASP computes forces and energy and virial and returns that info to
+LAMMPS.
+
+Messages are exchanged between MC and LAMMPS via a client/server
+library (CSlib), which is included in the LAMMPS distribution in
+lib/message.  As explained below you can choose to exchange data
+between the two programs either via files or sockets (ZMQ).  If the
+vasp_wrap.py program became parallel, or the CSlib library calls were
+integrated into VASP directly, then data could also be exchanged via
+MPI.
+
+----------------
+
+Build LAMMPS with its MESSAGE package installed:
+
+cd lammps/lib/message
+python Install.py -m -z       # build CSlib with MPI and ZMQ support
+cd lammps/src
+make yes-message
+make mpi
+
+You can leave off the -z if you do not have ZMQ on your system.
+
+----------------
+
+To run in client/server mode:
+
+Both the client (LAMMPS) and server (vasp_wrap.py) must use the same
+messaging mode, namely file or zmq.  This is an argument to the
+vasp_wrap.py code; it can be selected by setting the "mode" variable
+when you run LAMMPS.  The default mode = file.
+
+Here we assume LAMMPS was built to run in parallel, and the MESSAGE
+package was installed with socket (ZMQ) support.  This means either of
+the messaging modes can be used and LAMMPS can be run in serial or
+parallel.  The vasp_wrap.py code is always run in serial, but it
+launches VASP from Python via an mpirun command which can run VASP
+itself in parallel.
+
+When you run, the server should print out thermodynamic info every
+timestep which corresponds to the forces and virial computed by VASP.
+VASP will also generate output files each timestep.  The vasp_wrapper.py
+script could be generalized to archive these.
+
+The examples below are commands you should use in two different
+terminal windows.  The order of the two commands (client or server
+launch) does not matter.  You can run them both in the same window if
+you append a "&" character to the first one to run it in the
+background.
+
+--------------
+
+File mode of messaging:
+
+% mpirun -np 1 lmp_mpi -v mode file < in.client.W
+% python vasp_wrap.py file POSCAR_W
+
+% mpirun -np 2 lmp_mpi -v mode file < in.client.W
+% python vasp_wrap.py file POSCAR_W
+
+ZMQ mode of messaging:
+
+% mpirun -np 1 lmp_mpi -v mode zmq < in.client.W
+% python vasp_wrap.py zmq POSCAR_W
+
+% mpirun -np 2 lmp_mpi -v mode zmq < in.client.W
+% python vasp_wrap.py zmq POSCAR_W
+
+--------------
+
+The provided data.W file (for LAMMPS) and POSCAR_W file (for VASP) are
+for a simple 2-atom unit cell of bcc tungsten (W).  You could
+replicate this with LAMMPS to create a larger system.  The
+vasp_wrap.py script needs to be generalized to create an appropriate
+POSCAR_W file for a larger box.
+
+VASP input file include the sample INCAR and KPOINTS files provided.
+A POTCAR file is also needed, which should come from your VASP package
+installation.

@@ -1208,13 +1208,9 @@ int Domain::closest_image(double *pos, int j)
 /* ----------------------------------------------------------------------
    find and return Xj image = periodic image of Xj that is closest to Xi
    for triclinic, add/subtract tilt factors in other dims as needed
-   not currently used (Jan 2017):
-     used to be called by pair TIP4P styles but no longer,
-       due to use of other closest_image() method
 ------------------------------------------------------------------------- */
 
-void Domain::closest_image(const double * const xi, const double * const xj,
-                           double * const xjimage)
+void Domain::closest_image(double *xi, double *xj, double *xjimage)
 {
   double dx = xj[0] - xi[0];
   double dy = xj[1] - xi[1];

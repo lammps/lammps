@@ -1204,6 +1204,7 @@ letter abbreviation can be used:
 -i or -in
 -k or -kokkos
 -l or -log
+-m or -mpi
 -nc or -nocite
 -pk or -package
 -p or -partition
@@ -1350,6 +1351,24 @@ file.N.  For both one-partition and multi-partition mode, if the
 specified file is "none", then no log files are created.  Using a
 "log"_log.html command in the input script will override this setting.
 Option -plog will override the name of the partition log files file.N.
+
+-mpi P :pre
+
+If used, this must be the first command-line argument after the LAMMPS
+executable name.  It is only used when running LAMMPS in client/server
+mode with the "mpi/one" mode of messaging provided by the
+"message"_message.html command and the CSlib library LAMMPS links with
+from the lib/message directory.  See the "message"_message.html
+command for more details
+
+In the mpi/one mode of messaging, both executables (the client and the
+server) are launched by one mpirun command.  P should be specified as
+the number of processors (MPI tasks) the first executable is running
+on (could be the client or the server code).
+
+This information is required so that both codes can shrink the
+MPI_COMM_WORLD communicator they are part of to the subset of
+processors they are actually running on.
 
 -nocite :pre
 

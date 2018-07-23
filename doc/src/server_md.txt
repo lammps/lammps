@@ -1,0 +1,122 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+server md command :h3
+
+[Syntax:]
+
+server md :pre
+
+md = the protocol argument to the "server"_server.html command
+
+[Examples:]
+  
+server md :pre
+
+[Description:]
+
+This command starts LAMMPS running in "server" mode, where it will
+expect messages from a separate "client" code that match the {md}
+protocol for format and content explained below.  For each message
+LAMMPS receives it will send a message back to the client.
+
+"This section"_Section_howto.html#howto_29 gives an overview of
+client/server coupling of LAMMPS with another code where one code is
+the "client" and sends request messages to a "server" code.  The
+server responds to each request with a reply message.  This enables
+the two codes to work in tandem to perform a simulation.
+
+When this command is invoked, LAMMPS will run in server mode in an
+endless loop, waiting for messages from the client code.  The client
+signals when it is done sending messages to LAMMPS, at which point the
+loop will exit, and the remainder of the LAMMPS script will be
+processed.
+
+See an example of how this command is used in
+examples/message/in.message.server.
+
+:line
+
+When using this command, LAMMPS (as the server code) receives the
+current coordinates of all particles from the client code each
+timestep, computes their interaction, and returns the energy, forces,
+and virial for the interacting particles to the client code, so it can
+complete the timestep.  This command could also be used with a client
+code that performs energy minimization, using the server to compute
+forces and energy each iteration of its minimizer.
+
+When using the "fix client/md" command, LAMMPS (as the client code)
+does the timestepping and receives needed energy, forces, and virial
+values from the server code.
+
+The format and content of the exchanged messages are explained here in
+a conceptual sense.  Python-style pseudo code for the library calls to
+the CSlib is shown, which performs the actual message exchange between
+the two codes.  See the "CSlib website"_http://cslib.sandia.gov doc
+pages for more details on the actual library syntax (as of Aug 2018).
+The "cs" object in this pseudo code is an instance of the CSlib that
+both the client and server codes store.  
+
+See the src/MESSAGE/server_md.cpp and src/MESSAGE/fix_client_md.cpp
+files for details on how LAMMPS uses these messages.  See the
+examples/COUPLE/lammps_vasp/vasp_wrapper.py file for an example of how
+a quantum code (VASP) can use use these messages.
+
+The following code uses these values, defined as enums in LAMMPS:
+
+enum{SETUP=1,STEP};
+enum{UNITS=1,DIM,NATOMS,NTYPES,BOXLO,BOXHI,BOXTILT,TYPES,COORDS,CHARGE};
+enum{FORCES=1,ENERGY,VIRIAL}; :pre
+
+[Client sends 2 kinds of messages]:
+
+# required fields: NATOMS, NTYPES, BOXLO, BOXHI, TYPES, COORDS
+# optional fields: others in 2nd enum above :pre
+
+cs.send(SETUP,nfields)        # msgID with nfields :pre
+
+cs.pack_string(UNITS,units)   # units = "lj", "real", "metal", etc
+cs.pack_int(NATOMS,natoms)    # total numer of atoms
+cs.pack_int(NTYPES,ntypes)    # number of atom types
+cs.pack(BOXLO,3,boxlo)        # 3-vector of lower box bounds
+cs.pack(BOXHI,3,boxhi)        # 3-vector of upper box bounds
+cs.pack(BOXTILT,3,boxtilt)    # 3-vector of tilt factors for triclinic boxes
+cs.pack(TYPES,natoms,type)    # vector of per-atom types
+cs.pack(COORDS,3*natoms,x)    # vector of 3N atom coords
+cs.pack(CHARGE,natoms,q)      # vector of per-atom charge :pre
+
+# required fields: COORDS
+# optional fields: BOXLO, BOXHI, BOXTILT :pre
+
+cs.send(STEP,nfields)         # msgID with nfields :pre
+
+cs.pack_int(NATOMS,natoms)    # total numer of atoms
+cs.pack_int(NTYPES,ntypes)    # number of atom types
+cs.pack(BOXLO,3,boxlo)        # 3-vector of lower box bounds
+cs.pack(BOXTILT,3,boxtilt)    # 3-vector of tilt factors for triclinic boxes :pre
+
+[Server replies to either kind of message]:
+
+cs.send(msgID,3)            # msgID = 1 with 3 fields
+cs.pack(FORCES,3*Natoms,f)  # vector of 3N forces on atoms
+cs.pack(ENERGY,1,poteng)    # total potential energy of system
+cs.pack(VIRIAL,6,virial)    # global virial tensor (6-vector) :pre
+
+:line
+
+[Restrictions:]
+
+This command is part of the MESSAGE package.  It is only enabled if
+LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
+
+[Related commands:]
+
+"message"_message.html, "fix client/md"_fix_client_md.html
+
+[Default:] none

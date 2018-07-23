@@ -24,6 +24,9 @@ style_nstencil.h
 style_ntopo.h
 # other auto-generated files
 lmpinstalledpkgs.h
+# renamed on 20 July 2018
+pair_body.h
+pair_body.cpp
 # deleted on 4 April 2018
 pair_kim_version.h
 # deleted on 15 December 2017

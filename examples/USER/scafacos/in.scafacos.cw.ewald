@@ -18,7 +18,7 @@ kspace_modify scafacos tolerance field
 
 timestep	0.005
 
-thermo_style custom step atoms cpu temp pe ke etotal ecoul
+thermo_style custom step atoms cpu temp pe ke etotal ecoul press
 
 run_style verlet
 

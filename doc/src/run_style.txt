@@ -173,11 +173,17 @@ have their force go ramped to 0.0 so the overlap with the next regime
 compute forces for all pairs from 5.0 outward, with those from 5.0 to
 6.0 having their value ramped in an inverse manner.
 
-Only some pair potentials support the use of the {inner} and {middle}
-and {outer} keywords.  If not, only the {pair} keyword can be used
-with that pair style, meaning all pairwise forces are computed at the
-same rRESPA level.  See the doc pages for individual pair styles for
-details.i
+Note that you can use {inner} and {outer} without using {middle} to
+split the pairwise computations into two portions instead of three.
+Unless you are using a very long pairwise cutoff, a 2-way split is
+often faster than a 3-way split, since it avoids too much duplicate
+computation of pairwise interactions near the intermediate cutoffs.
+
+Also note that only a few pair potentials support the use of the
+{inner} and {middle} and {outer} keywords.  If not, only the {pair}
+keyword can be used with that pair style, meaning all pairwise forces
+are computed at the same rRESPA level.  See the doc pages for
+individual pair styles for details.
 
 Another option for using pair potentials with rRESPA is with the
 {hybrid} keyword, which requires the use of the "pair_style hybrid or

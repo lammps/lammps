@@ -154,7 +154,11 @@ void Scafacos::compute(int eflag, int vflag)
   const double qscale = qqrd2e;
 
   if (eflag || vflag) ev_setup(eflag,vflag);
-  else eflag_atom = 0;
+  else 
+  {
+    eflag_atom = 0;
+    vflag_global = 0;
+  }
 
   // if simulation box has changed, call fcs_tune()
 
@@ -175,8 +179,18 @@ void Scafacos::compute(int eflag, int vflag)
      
   }
 
+  if (vflag_global)
+  {
+    fcs_set_compute_virial(fcs,1);
+  }
+
   result = fcs_run(fcs,nlocal,&x[0][0],q,&efield[0][0],epot);
   check_result(result);
+
+  if (vflag_global)
+  {
+    fcs_get_virial(fcs,virial); 
+  }
 
   // apply Efield to each particle
   // accumulate total energy

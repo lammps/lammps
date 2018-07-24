@@ -88,7 +88,7 @@ pair_coeff 2 3 4 0.1 :pre
 Note that for a simulation with a single atom type, only a single
 entry is required, e.g.
 
-pair_coeff 1 1 1 0.25 :per
+pair_coeff 1 1 1 0.25 :pre
 
 For a simulation with two atom types, four pair_coeff commands will
 specify all possible nu values:

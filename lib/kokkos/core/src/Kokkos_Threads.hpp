@@ -96,25 +96,8 @@ public:
   ///   thread-parallel function.
   static int in_parallel();
 
-  /** \brief  Set the device in a "sleep" state.
-   *
-   * This function sets the device in a "sleep" state in which it is
-   * not ready for work.  This may consume less resources than if the
-   * device were in an "awake" state, but it may also take time to
-   * bring the device from a sleep state to be ready for work.
-   *
-   * \return True if the device is in the "sleep" state, else false if
-   *   the device is actively working and could not enter the "sleep"
-   *   state.
-   */
-  static bool sleep();
-
-  /// \brief Wake the device from the 'sleep' state so it is ready for work.
-  ///
-  /// \return True if the device is in the "ready" state, else "false"
-  ///  if the device is actively working (which also means that it's
-  ///  awake).
-  static bool wake();
+  /// \brief Print configuration information to the given output stream.
+  static void print_configuration( std::ostream & , const bool detail = false );
 
   /// \brief Wait until all dispatched functors complete.
   ///
@@ -124,13 +107,41 @@ public:
   /// device have completed.
   static void fence();
 
+  /** \brief  Return the maximum amount of concurrency.  */
+  static int concurrency();
+
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
+  static bool sleep();
+
+  static bool wake();
+
+  static void finalize();
+
+  static void initialize( unsigned threads_count = 0 ,
+                          unsigned use_numa_count = 0 ,
+                          unsigned use_cores_per_numa = 0 ,
+                          bool allow_asynchronous_threadpool = false );
+
+  static int is_initialized();
+
+  static Threads & instance( int = 0 );
+
+  //----------------------------------------
+
+  static int thread_pool_size( int depth = 0 );
+#if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
+  static int thread_pool_rank();
+#else
+  KOKKOS_INLINE_FUNCTION static int thread_pool_rank() { return 0 ; }
+#endif
+
+  inline static unsigned max_hardware_threads() { return thread_pool_size(0); }
+  KOKKOS_INLINE_FUNCTION static unsigned hardware_thread_id() { return thread_pool_rank(); }
+#else
   /// \brief Free any resources being consumed by the device.
   ///
   /// For the Threads device, this terminates spawned worker threads.
-  static void finalize();
-
-  /// \brief Print configuration information to the given output stream.
-  static void print_configuration( std::ostream & , const bool detail = false );
+  static void impl_finalize();
 
   //@}
   /*------------------------------------------------------------------------*/
@@ -155,29 +166,27 @@ public:
    *  If the 'use_' arguments are not supplied the hwloc is queried
    *  to use all available cores.
    */
-  static void initialize( unsigned threads_count = 0 ,
+  static void impl_initialize( unsigned threads_count = 0 ,
                           unsigned use_numa_count = 0 ,
                           unsigned use_cores_per_numa = 0 ,
                           bool allow_asynchronous_threadpool = false );
 
-  static int is_initialized();
+  static int impl_is_initialized();
 
-  /** \brief  Return the maximum amount of concurrency.  */
-  static int concurrency();
-
-  static Threads & instance( int = 0 );
+  static Threads & impl_instance( int = 0 );
 
   //----------------------------------------
 
-  static int thread_pool_size( int depth = 0 );
+  static int impl_thread_pool_size( int depth = 0 );
 #if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
-  static int thread_pool_rank();
+  static int impl_thread_pool_rank();
 #else
-  KOKKOS_INLINE_FUNCTION static int thread_pool_rank() { return 0 ; }
+  KOKKOS_INLINE_FUNCTION static int impl_thread_pool_rank() { return 0 ; }
 #endif
 
-  inline static unsigned max_hardware_threads() { return thread_pool_size(0); }
-  KOKKOS_INLINE_FUNCTION static unsigned hardware_thread_id() { return thread_pool_rank(); }
+  inline static unsigned impl_max_hardware_threads() { return impl_thread_pool_size(0); }
+  KOKKOS_INLINE_FUNCTION static unsigned impl_hardware_thread_id() { return impl_thread_pool_rank(); }
+#endif
 
   static const char* name();
   //@}

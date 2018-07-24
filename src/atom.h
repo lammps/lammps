@@ -155,10 +155,6 @@ class Atom : protected Pointers {
 
   int sp_flag;
 
-  //USER-SPIN package
-
-  int sp_flag;
-
   // USER-SMD package
 
   int smd_flag;

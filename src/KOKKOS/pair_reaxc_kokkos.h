@@ -427,7 +427,7 @@ class PairReaxCKokkos : public PairReaxC {
 
   friend void pair_virial_fdotr_compute<PairReaxCKokkos>(PairReaxCKokkos*);
 
-  int bocnt,hbcnt;
+  int bocnt,hbcnt,enobondsflag;
 
   typedef LR_lookup_table_kk<DeviceType> LR_lookup_table_kk_DT;
 

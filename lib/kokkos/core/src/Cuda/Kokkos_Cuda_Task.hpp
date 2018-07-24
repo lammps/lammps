@@ -256,17 +256,26 @@ template<typename iType>
 struct ThreadVectorRangeBoundariesStruct<iType, TaskExec< Kokkos::Cuda > >
 {
   typedef iType index_type;
-  const iType start ;
-  const iType end ;
-  const iType increment ;
+  const index_type start ;
+  const index_type end ;
+  const index_type increment ;
   const TaskExec< Kokkos::Cuda > & thread;
 
 #if defined( __CUDA_ARCH__ )
 
   __device__ inline
   ThreadVectorRangeBoundariesStruct
-    ( const TaskExec< Kokkos::Cuda > & arg_thread, const iType& arg_count)
+    ( const TaskExec< Kokkos::Cuda > & arg_thread, const index_type& arg_count )
     : start( threadIdx.x )
+    , end(arg_count)
+    , increment( blockDim.x )
+    , thread(arg_thread)
+    {}
+
+  __device__ inline
+  ThreadVectorRangeBoundariesStruct
+    ( const TaskExec< Kokkos::Cuda > & arg_thread, const index_type& arg_begin, const index_type& arg_end )
+    : start( arg_begin + threadIdx.x )
     , end(arg_count)
     , increment( blockDim.x )
     , thread(arg_thread)
@@ -275,7 +284,10 @@ struct ThreadVectorRangeBoundariesStruct<iType, TaskExec< Kokkos::Cuda > >
 #else
 
   ThreadVectorRangeBoundariesStruct
-    ( const TaskExec< Kokkos::Cuda > & arg_thread, const iType& arg_count);
+    ( const TaskExec< Kokkos::Cuda > & arg_thread, const index_type& arg_count );
+
+  ThreadVectorRangeBoundariesStruct
+    ( const TaskExec< Kokkos::Cuda > & arg_thread, const index_type& arg_begin, const index_type& arg_end);
 
 #endif
 
@@ -312,9 +324,19 @@ template<typename iType>
 KOKKOS_INLINE_FUNCTION
 Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::TaskExec< Kokkos::Cuda > >
 ThreadVectorRange( const Impl::TaskExec< Kokkos::Cuda > & thread
-               , const iType & count )
+                 , const iType & count )
 {
   return Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::TaskExec< Kokkos::Cuda > >(thread,count);
+}
+
+template<typename iType>
+KOKKOS_INLINE_FUNCTION
+Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::TaskExec< Kokkos::Cuda > >
+ThreadVectorRange( const Impl::TaskExec< Kokkos::Cuda > & thread
+                 , const iType & arg_begin
+                 , const iType & arg_end )
+{
+  return Impl::ThreadVectorRangeBoundariesStruct<iType,Impl::TaskExec< Kokkos::Cuda > >(thread,arg_begin,arg_end);
 }
 
 KOKKOS_INLINE_FUNCTION

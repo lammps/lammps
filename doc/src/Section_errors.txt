@@ -803,6 +803,13 @@ lo value must be less than the hi value for all 3 dimensions. :dd
 The box command cannot be used after a read_data, read_restart, or
 create_box command. :dd
 
+{BUG: restartinfo=1 but no restart support in pair style} :dt
+
+The pair style has a bug, where it does not support reading
+and writing information to a restart file, but does not set
+the member variable restartinfo to 0 as required in that case. :dd
+
+
 {CPU neighbor lists must be used for ellipsoid/sphere mix.} :dt
 
 When using Gay-Berne or RE-squared pair styles with both ellipsoidal and

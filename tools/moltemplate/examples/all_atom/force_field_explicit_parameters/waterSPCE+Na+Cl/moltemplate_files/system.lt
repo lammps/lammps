@@ -1,6 +1,4 @@
-import "spce.lt"  # <- This defines the SPCE water molecule.  This file is
-                  #    located in the "force_fields" subdirectory
-                  #    distributed with moltemplate
+import "spce.lt"  # <- This defines the SPCE water molecule.
 
 import "ions.lt"  # <- This defines the ions "NaIon" and "ClIon".
 
@@ -16,8 +14,8 @@ write_once("Data Boundary") {
 # spacing 3.45 Angstroms. (The pressure must be equilibrated later.)
 
 wat  = new SPCE [10].move(0.00, 0.00, 3.45) 
-                [10].move(0.00, 3.45, 0.00) 
-                [10].move(3.45, 0.00, 0.00)
+                [10].move(0.00, 3.45, 0.01) 
+                [10].move(3.45, 0.01, 0.01)
 
 # We now create a 2x2x2 lattice of Na+ and Cl- ions:
 
@@ -30,12 +28,14 @@ cl = new ClIon [2].move(0,0,17.25)
                [2].move(0,17.25,0)
                [2].move(17.25,0,0)
 
-na[*][*][*].move(5.175,5.175,5.6)
-cl[*][*][*].move(12.075,12.075,12.5)
+na[*][*][*].move(5,5,5)
+cl[*][*][*].move(12,12,12)
 
-# (The (5.175,5.175,5.175) and (12.075,12.075,12.075) translational shifts
+# (The (5,5,5) and (12,12,12) translational shifts
 #  prevent the Na and Cl ions from overlapping
 #  with the water molecules or each other.)
+
+
 
 
 # Comment:  Fortunately the ions and the water in this example share the 

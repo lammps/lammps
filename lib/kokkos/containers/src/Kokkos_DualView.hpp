@@ -209,14 +209,14 @@ public:
   /// the first three integer arguments will be nonzero, and you may
   /// omit the integer arguments that follow.
   DualView (const std::string& label,
-            const size_t n0 = 0,
-            const size_t n1 = 0,
-            const size_t n2 = 0,
-            const size_t n3 = 0,
-            const size_t n4 = 0,
-            const size_t n5 = 0,
-            const size_t n6 = 0,
-            const size_t n7 = 0)
+            const size_t n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+            const size_t n1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+            const size_t n2 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+            const size_t n3 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+            const size_t n4 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+            const size_t n5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+            const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+            const size_t n7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG)
     : d_view (label, n0, n1, n2, n3, n4, n5, n6, n7)
     , h_view (create_mirror_view (d_view)) // without UVM, host View mirrors
     , modified_device (View<unsigned int,LayoutLeft,typename t_host::execution_space> ("DualView::modified_device"))
@@ -464,14 +464,14 @@ public:
   /// This discards any existing contents of the objects, and resets
   /// their modified flags.  It does <i>not</i> copy the old contents
   /// of either View into the new View objects.
-  void realloc( const size_t n0 = 0 ,
-           const size_t n1 = 0 ,
-           const size_t n2 = 0 ,
-           const size_t n3 = 0 ,
-           const size_t n4 = 0 ,
-           const size_t n5 = 0 ,
-           const size_t n6 = 0 ,
-           const size_t n7 = 0 ) {
+  void realloc( const size_t n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG ,
+           const size_t n1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG ,
+           const size_t n2 = KOKKOS_IMPL_CTOR_DEFAULT_ARG ,
+           const size_t n3 = KOKKOS_IMPL_CTOR_DEFAULT_ARG ,
+           const size_t n4 = KOKKOS_IMPL_CTOR_DEFAULT_ARG ,
+           const size_t n5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG ,
+           const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG ,
+           const size_t n7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG ) {
     ::Kokkos::realloc(d_view,n0,n1,n2,n3,n4,n5,n6,n7);
      h_view = create_mirror_view( d_view );
 
@@ -483,14 +483,14 @@ public:
   ///
   /// This method only copies the old contents into the new View
   /// objects for the device which was last marked as modified.
-  void resize( const size_t n0 = 0 ,
-           const size_t n1 = 0 ,
-           const size_t n2 = 0 ,
-           const size_t n3 = 0 ,
-           const size_t n4 = 0 ,
-           const size_t n5 = 0 ,
-           const size_t n6 = 0 ,
-           const size_t n7 = 0 ) {
+  void resize( const size_t n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG ,
+           const size_t n1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG ,
+           const size_t n2 = KOKKOS_IMPL_CTOR_DEFAULT_ARG ,
+           const size_t n3 = KOKKOS_IMPL_CTOR_DEFAULT_ARG ,
+           const size_t n4 = KOKKOS_IMPL_CTOR_DEFAULT_ARG ,
+           const size_t n5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG ,
+           const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG ,
+           const size_t n7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG ) {
    if(modified_device() >= modified_host()) {
      /* Resize on Device */
      ::Kokkos::resize(d_view,n0,n1,n2,n3,n4,n5,n6,n7);
@@ -533,9 +533,20 @@ public:
   //! \name Methods for getting capacity, stride, or dimension(s).
   //@{
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
   //! The allocation size (same as Kokkos::View::capacity).
   size_t capacity() const {
     return d_view.span();
+  }
+#endif
+
+  //! The allocation size (same as Kokkos::View::span).
+  KOKKOS_INLINE_FUNCTION constexpr size_t span() const {
+    return d_view.span();
+  }
+
+  KOKKOS_INLINE_FUNCTION bool span_is_contiguous() const { 
+    return d_view.span_is_contiguous(); 
   }
 
   //! Get stride(s) for each dimension.
@@ -556,6 +567,11 @@ public:
    extent_int( const iType & r ) const
      { return static_cast<int>(d_view.extent(r)); }
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
+  /*  Deprecate all 'dimension' functions in favor of
+   *  ISO/C++ vocabulary 'extent'.
+   */
+
   /* \brief return size of dimension 0 */
   size_t dimension_0() const {return d_view.extent(0);}
   /* \brief return size of dimension 1 */
@@ -572,6 +588,7 @@ public:
   size_t dimension_6() const {return d_view.extent(6);}
   /* \brief return size of dimension 7 */
   size_t dimension_7() const {return d_view.extent(7);}
+#endif
 
   //@}
 };

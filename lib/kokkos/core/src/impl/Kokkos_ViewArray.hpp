@@ -129,8 +129,8 @@ private:
 
   typedef typename Traits::value_type::value_type scalar_type ;
 
-  typedef Kokkos::Array< scalar_type , ~size_t(0) , Kokkos::Array<>::contiguous >  contiguous_reference ;
-  typedef Kokkos::Array< scalar_type , ~size_t(0) , Kokkos::Array<>::strided >     strided_reference ;
+  typedef Kokkos::Array< scalar_type ,KOKKOS_INVALID_INDEX , Kokkos::Array<>::contiguous >  contiguous_reference ;
+  typedef Kokkos::Array< scalar_type ,KOKKOS_INVALID_INDEX , Kokkos::Array<>::strided >     strided_reference ;
 
   enum { is_contiguous_reference =
     ( Traits::rank == 0 ) || ( std::is_same< typename Traits::array_layout , Kokkos::LayoutRight >::value ) };

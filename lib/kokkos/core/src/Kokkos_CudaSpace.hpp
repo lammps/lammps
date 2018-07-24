@@ -720,7 +720,9 @@ private:
                        , void * const   alloc_ptr
                        , const size_t   alloc_size );
 
+#ifdef KOKKOS_DEBUG
   static RecordBase s_root_record ;
+#endif
 
   ::cudaTextureObject_t   m_tex_obj ;
   const Kokkos::CudaSpace m_space ;

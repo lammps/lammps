@@ -34,12 +34,12 @@ class PairSpinNeel : public PairSpin {
   double init_one(int, int);
   void *extract(const char *, int &);
 
-  void compute(int, int); 
+  void compute(int, int);
   void compute_single_pair(int, double *);
 
   void compute_neel(int, int, double, double *, double *, double *, double *);
   void compute_neel_mech(int, int, double, double *, double *, double *, double *);
-  
+
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
@@ -50,7 +50,7 @@ class PairSpinNeel : public PairSpin {
  protected:
 
   // pseudo-dipolar and pseudo-quadrupolar coeff.
-  
+
   double **g1, **g1_mech; 		// exchange coeffs gij
   double **g2, **g3; 			// g1 in eV, g2 adim, g3 in Ang
   double **q1, **q1_mech; 		// exchange coeffs qij

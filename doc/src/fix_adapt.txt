@@ -205,6 +205,14 @@ a bond coefficient over time, very similar to how the {pair} keyword
 operates. The only difference is that now a bond coefficient for a
 given bond type is adapted.
 
+A wild-card asterisk can be used in place of or in conjunction with
+the bond type argument to set the coefficients for multiple bond types.
+This takes the form "*" or "*n" or "n*" or "m*n".  If N = the number of
+atom types, then an asterisk with no numeric values means all types
+from 1 to N.  A leading asterisk means all types from 1 to n (inclusive).
+A trailing asterisk means all types from n to N (inclusive).  A middle
+asterisk means all types from m to n (inclusive).
+
 Currently {bond} does not support bond_style hybrid nor bond_style
 hybrid/overlay as bond styles. The only bonds that currently are
 working with fix_adapt are

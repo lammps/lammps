@@ -169,7 +169,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   omega_flag = torque_flag = angmom_flag = 0;
   radius_flag = rmass_flag = 0;
   ellipsoid_flag = line_flag = tri_flag = body_flag = 0;
- 
+
   // magnetic flags
 
   sp_flag = 0;
@@ -507,7 +507,7 @@ AtomVec *Atom::new_avec(const char *style, int trysuffix, int &sflag)
     AtomVecCreator avec_creator = (*avec_map)[style];
     return avec_creator(lmp);
   }
-  //printf("test entries function: %s, %d, %d \n ",style, trysuffix, &sflag);
+
   error->all(FLERR,"Unknown atom style");
   return NULL;
 }

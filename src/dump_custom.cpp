@@ -41,7 +41,6 @@ enum{ID,MOL,PROC,PROCP1,TYPE,ELEMENT,MASS,
      IX,IY,IZ,
      VX,VY,VZ,FX,FY,FZ,
      Q,MUX,MUY,MUZ,MU,RADIUS,DIAMETER,
-     MUMAG,SPX,SPY,SPZ,SP,
      OMEGAX,OMEGAY,OMEGAZ,ANGMOMX,ANGMOMY,ANGMOMZ,
      TQX,TQY,TQZ,
      COMPUTE,FIX,VARIABLE,INAME,DNAME};
@@ -83,8 +82,8 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
 
   pack_choice = new FnPtrPack[nfield];
   vtype = new int[nfield];
-  field2index = new int[nfield];
-  argindex = new int[nfield];
+  memory->create(field2index,nfield,"dump:field2index");
+  memory->create(argindex,nfield,"dump:argindex");
 
   buffer_allow = 1;
   buffer_flag = 1;
@@ -201,8 +200,8 @@ DumpCustom::~DumpCustom()
 
   delete [] pack_choice;
   delete [] vtype;
-  delete [] field2index;
-  delete [] argindex;
+  memory->destroy(field2index);
+  memory->destroy(argindex);
 
   delete [] idregion;
   memory->destroy(thresh_array);
@@ -245,8 +244,10 @@ DumpCustom::~DumpCustom()
   for (int i = 1; i <= ntypes; i++) delete [] typenames[i];
   delete [] typenames;
 
-  for (int i = 0; i < size_one; i++) delete [] vformat[i];
-  delete [] vformat;
+  if (vformat) {
+    for (int i = 0; i < size_one; i++) delete [] vformat[i];
+    delete [] vformat;
+  }
 
   for (int i = 0; i < size_one; i++) delete [] format_column_user[i];
   delete [] format_column_user;
@@ -1279,12 +1280,8 @@ int DumpCustom::parse_fields(int narg, char **arg)
       if (!atom->mu_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_mu;
-<<<<<<< HEAD
-      vtype[i] = DOUBLE;
-=======
       vtype[i] = Dump::DOUBLE;
-
->>>>>>> spin_origin
+    
     } else if (strcmp(arg[iarg],"radius") == 0) {
       if (!atom->radius_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");

@@ -23,15 +23,15 @@ pair_coeff * * ilp/graphene/hbn  BNCH.ILP B N C :pre
 pair_style  hybrid/overlay rebo tersoff ilp/graphene/hbn 16.0 coul/shield 16.0
 pair_coeff  * * rebo                 CH.airebo   NULL NULL C
 pair_coeff  * * tersoff              BNC.tersoff B    N    NULL
-pair_coeff  * * ilp/graphene/hbn     BNCH.ILP    B    N    C :pre
+pair_coeff  * * ilp/graphene/hbn     BNCH.ILP    B    N    C
 pair_coeff  1 1 coul/shield 0.70
 pair_coeff  1 2 coul/shield 0.69498201415576216335
-pair_coeff  2 2 coul/shield 0.69
+pair_coeff  2 2 coul/shield 0.69 :pre
 
 [Description:]
 
 The {ilp/graphene/hbn} style computes the registry-dependent interlayer
-potential (RDILP) potential as described in "(Leven)"_#Leven and
+potential (ILP) potential as described in "(Leven)"_#Leven and
 "(Maaravi)"_#Maaravi2. The normals are calculated in the way as described
 in "(Kolmogorov)"_#Kolmogorov2.
 
@@ -61,13 +61,13 @@ NOTE: The parameters presented in the parameter file (e.g. BNCH.ILP),
 are fitted with taper function by setting the cutoff equal to 16.0
 Angstrom.  Using different cutoff or taper function should be careful.
 
-NOTE: Two parameter files (BNCH.ILP and BNCH-old.ILP) are presented,
-BNCH-old.ILP contains the parameters published in "(Leven)"_#Leven and
-"(Maaravi)"_#Maaravi2, which is only suitable for long-range
-interaction. The parameters in BNCH.ILP provides a good description both
-for short- and long-range interaction. This is useful for simulations in
-the high pressure (small interlayer distances) regime. The comparison of
-two sets of parameters can be found in "(Ouyang)"_#Ouyang.
+NOTE: Two new sets of parameters of ILP for two-dimensional hexagonal Materials
+are presented in "(Ouyang)"_#Ouyang1. These parameters provide a good description
+in both short- and long-range interaction regime, while the old ILP parameters
+published in "(Leven)"_#Leven and "(Maaravi)"_#Maaravi2 are only suitable for
+long-range interaction regime. This feature is essential for simulations in
+high-pressure regime (i.e., the interlayer distance smaller than the equilibrium distance).
+The benchmark tests and comparison of these parameters can be found in "(Ouyang)"_#Ouyang1.
 
 This potential must be used in combination with hybrid/overlay.
 Other interactions can be set to zero using pair_style {none}.
@@ -101,12 +101,12 @@ units, if your simulation does not use {metal} units.
 
 [Related commands:]
 
-"pair_coeff"_pair_coeff.html
-"pair_none"_pair_none.html
-"pair_style hybrid/overlay"_pair_hybrid.html
-"pair_style pair_kolmogorov_crespi_z"_pair_kolmogorov_crespi_z.html
-"pair_style pair_kolmogorov_crespi_full"_pair_kolmogorov_crespi_full.html
-"pair_style pair_coul_shield"_pair_coul_shield.html
+"pair_coeff"_pair_coeff.html,
+"pair_none"_pair_none.html,
+"pair_style hybrid/overlay"_pair_hybrid.html,
+"pair_style pair_kolmogorov_crespi_z"_pair_kolmogorov_crespi_z.html,
+"pair_style pair_kolmogorov_crespi_full"_pair_kolmogorov_crespi_full.html,
+"pair_style pair_coul_shield"_pair_coul_shield.html.
 
 [Default:] tap_flag = 1
 
@@ -121,5 +121,5 @@ units, if your simulation does not use {metal} units.
 :link(Kolmogorov2)
 [(Kolmogorov)] A. N. Kolmogorov, V. H. Crespi, Phys. Rev. B 71, 235415 (2005)
 
-:link(Ouyang)
-[(Ouyang)] W. Ouyang, D. Mandelli, O. Hod, M. Urbakh, In preparation.
+:link(Ouyang1)
+[(Ouyang)] W. Ouyang, D. Mandelli,  M. Urbakh, O. Hod, arXiv:1806.09555 (2018).

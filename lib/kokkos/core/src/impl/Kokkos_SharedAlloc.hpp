@@ -89,9 +89,11 @@ protected:
   SharedAllocationHeader * const m_alloc_ptr ;
   size_t                   const m_alloc_size ;
   function_type            const m_dealloc ;
+#ifdef KOKKOS_DEBUG
   SharedAllocationRecord * const m_root ;
   SharedAllocationRecord *       m_prev ;
   SharedAllocationRecord *       m_next ;
+#endif
   int                            m_count ;
 
   SharedAllocationRecord( SharedAllocationRecord && ) = delete ;
@@ -102,8 +104,11 @@ protected:
   /**\brief  Construct and insert into 'arg_root' tracking set.
    *         use_count is zero.
    */
-  SharedAllocationRecord( SharedAllocationRecord * arg_root
-                        , SharedAllocationHeader * arg_alloc_ptr
+  SharedAllocationRecord(
+#ifdef KOKKOS_DEBUG
+                          SharedAllocationRecord * arg_root,
+#endif
+                          SharedAllocationHeader * arg_alloc_ptr
                         , size_t                   arg_alloc_size
                         , function_type            arg_dealloc
                         );
@@ -112,7 +117,7 @@ private:
   static __thread int t_tracking_enabled;
 
 public:
-  inline std::string get_label() const { return std::string("Unmanaged"); }
+  virtual std::string get_label() const { return std::string("Unmanaged"); }
 
   static int tracking_enabled() { return t_tracking_enabled; }
 
@@ -126,15 +131,17 @@ public:
    */
   static void tracking_enable() { t_tracking_enabled = 1; }
 
-  ~SharedAllocationRecord() = default ;
+  virtual ~SharedAllocationRecord() {}
 
   SharedAllocationRecord()
     : m_alloc_ptr( 0 )
     , m_alloc_size( 0 )
     , m_dealloc( 0 )
+#ifdef KOKKOS_DEBUG
     , m_root( this )
     , m_prev( this )
     , m_next( this )
+#endif
     , m_count( 0 )
     {}
 

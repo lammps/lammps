@@ -242,6 +242,7 @@ void CudaHostPinnedSpace::deallocate( void * const arg_alloc_ptr , const size_t 
 namespace Kokkos {
 namespace Impl {
 
+#ifdef KOKKOS_DEBUG
 SharedAllocationRecord< void , void >
 SharedAllocationRecord< Kokkos::CudaSpace , void >::s_root_record ;
 
@@ -250,6 +251,7 @@ SharedAllocationRecord< Kokkos::CudaUVMSpace , void >::s_root_record ;
 
 SharedAllocationRecord< void , void >
 SharedAllocationRecord< Kokkos::CudaHostPinnedSpace , void >::s_root_record ;
+#endif
 
 ::cudaTextureObject_t
 SharedAllocationRecord< Kokkos::CudaSpace , void >::
@@ -425,8 +427,11 @@ SharedAllocationRecord( const Kokkos::CudaSpace & arg_space
   // Pass through allocated [ SharedAllocationHeader , user_memory ]
   // Pass through deallocation function
   : SharedAllocationRecord< void , void >
-      ( & SharedAllocationRecord< Kokkos::CudaSpace , void >::s_root_record
-      , reinterpret_cast<SharedAllocationHeader*>( arg_space.allocate( sizeof(SharedAllocationHeader) + arg_alloc_size ) )
+      (
+#ifdef KOKKOS_DEBUG
+        & SharedAllocationRecord< Kokkos::CudaSpace , void >::s_root_record,
+#endif
+        reinterpret_cast<SharedAllocationHeader*>( arg_space.allocate( sizeof(SharedAllocationHeader) + arg_alloc_size ) )
       , sizeof(SharedAllocationHeader) + arg_alloc_size
       , arg_dealloc
       )
@@ -462,8 +467,11 @@ SharedAllocationRecord( const Kokkos::CudaUVMSpace & arg_space
   // Pass through allocated [ SharedAllocationHeader , user_memory ]
   // Pass through deallocation function
   : SharedAllocationRecord< void , void >
-      ( & SharedAllocationRecord< Kokkos::CudaUVMSpace , void >::s_root_record
-      , reinterpret_cast<SharedAllocationHeader*>( arg_space.allocate( sizeof(SharedAllocationHeader) + arg_alloc_size ) )
+      (
+#ifdef KOKKOS_DEBUG
+        & SharedAllocationRecord< Kokkos::CudaUVMSpace , void >::s_root_record,
+#endif
+        reinterpret_cast<SharedAllocationHeader*>( arg_space.allocate( sizeof(SharedAllocationHeader) + arg_alloc_size ) )
       , sizeof(SharedAllocationHeader) + arg_alloc_size
       , arg_dealloc
       )
@@ -494,8 +502,11 @@ SharedAllocationRecord( const Kokkos::CudaHostPinnedSpace & arg_space
   // Pass through allocated [ SharedAllocationHeader , user_memory ]
   // Pass through deallocation function
   : SharedAllocationRecord< void , void >
-      ( & SharedAllocationRecord< Kokkos::CudaHostPinnedSpace , void >::s_root_record
-      , reinterpret_cast<SharedAllocationHeader*>( arg_space.allocate( sizeof(SharedAllocationHeader) + arg_alloc_size ) )
+      (
+#ifdef KOKKOS_DEBUG
+        & SharedAllocationRecord< Kokkos::CudaHostPinnedSpace , void >::s_root_record,
+#endif
+        reinterpret_cast<SharedAllocationHeader*>( arg_space.allocate( sizeof(SharedAllocationHeader) + arg_alloc_size ) )
       , sizeof(SharedAllocationHeader) + arg_alloc_size
       , arg_dealloc
       )
@@ -647,10 +658,8 @@ reallocate_tracked( void * const arg_alloc_ptr
 SharedAllocationRecord< Kokkos::CudaSpace , void > *
 SharedAllocationRecord< Kokkos::CudaSpace , void >::get_record( void * alloc_ptr )
 {
-  using RecordBase = SharedAllocationRecord< void , void > ;
   using RecordCuda = SharedAllocationRecord< Kokkos::CudaSpace , void > ;
 
-#if 0
   using Header     = SharedAllocationHeader ;
 
   // Copy the header from the allocation
@@ -667,19 +676,6 @@ SharedAllocationRecord< Kokkos::CudaSpace , void >::get_record( void * alloc_ptr
   if ( ! alloc_ptr || record->m_alloc_ptr != head_cuda ) {
     Kokkos::Impl::throw_runtime_exception( std::string("Kokkos::Impl::SharedAllocationRecord< Kokkos::CudaSpace , void >::get_record ERROR" ) );
   }
-
-#else
-
-  // Iterate the list to search for the record among all allocations
-  // requires obtaining the root of the list and then locking the list.
-
-  RecordCuda * const record = static_cast< RecordCuda * >( RecordBase::find( & s_root_record , alloc_ptr ) );
-
-  if ( record == 0 ) {
-    Kokkos::Impl::throw_runtime_exception( std::string("Kokkos::Impl::SharedAllocationRecord< Kokkos::CudaSpace , void >::get_record ERROR" ) );
-  }
-
-#endif
 
   return record ;
 }
@@ -719,6 +715,7 @@ void
 SharedAllocationRecord< Kokkos::CudaSpace , void >::
 print_records( std::ostream & s , const Kokkos::CudaSpace & , bool detail )
 {
+#ifdef KOKKOS_DEBUG
   SharedAllocationRecord< void , void > * r = & s_root_record ;
 
   char buffer[256] ;
@@ -789,20 +786,31 @@ print_records( std::ostream & s , const Kokkos::CudaSpace & , bool detail )
       r = r->m_next ;
     } while ( r != & s_root_record );
   }
+#else
+  Kokkos::Impl::throw_runtime_exception("SharedAllocationHeader<CudaSpace>::print_records only works with KOKKOS_DEBUG enabled");
+#endif
 }
 
 void
 SharedAllocationRecord< Kokkos::CudaUVMSpace , void >::
 print_records( std::ostream & s , const Kokkos::CudaUVMSpace & , bool detail )
 {
+#ifdef KOKKOS_DEBUG
   SharedAllocationRecord< void , void >::print_host_accessible_records( s , "CudaUVM" , & s_root_record , detail );
+#else
+  Kokkos::Impl::throw_runtime_exception("SharedAllocationHeader<CudaSpace>::print_records only works with KOKKOS_DEBUG enabled");
+#endif
 }
 
 void
 SharedAllocationRecord< Kokkos::CudaHostPinnedSpace , void >::
 print_records( std::ostream & s , const Kokkos::CudaHostPinnedSpace & , bool detail )
 {
+#ifdef KOKKOS_DEBUG
   SharedAllocationRecord< void , void >::print_host_accessible_records( s , "CudaHostPinned" , & s_root_record , detail );
+#else
+  Kokkos::Impl::throw_runtime_exception("SharedAllocationHeader<CudaSpace>::print_records only works with KOKKOS_DEBUG enabled");
+#endif
 }
 
 void* cuda_resize_scratch_space(std::int64_t bytes, bool force_shrink) {

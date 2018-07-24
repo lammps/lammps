@@ -14,17 +14,17 @@
 /* ------------------------------------------------------------------------
    Contributing authors: Julien Tranchida (SNL)
                          Aidan Thompson (SNL)
-   
+
    Please cite the related publication:
-   Tranchida, J., Plimpton, S. J., Thibaudeau, P., & Thompson, A. P. (2018). 
-   Massively parallel symplectic algorithm for coupled magnetic spin dynamics 
-   and molecular dynamics. arXiv preprint arXiv:1801.10233.
+   Tranchida, J., Plimpton, S. J., Thibaudeau, P., & Thompson, A. P. (2018).
+   Massively parallel symplectic algorithm for coupled magnetic spin dynamics
+   and molecular dynamics. Journal of Computational Physics.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "atom.h"
 #include "domain.h"
@@ -50,7 +50,7 @@ enum{CONSTANT,EQUAL};
 FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
   if (narg < 7) error->all(FLERR,"Illegal precession/spin command");
-  
+
   // magnetic interactions coded for cartesian coordinates
 
   hbar = force->hplanck/MY_2PI;
@@ -61,10 +61,10 @@ FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lm
   extscalar = 1;
   respa_level_support = 1;
   ilevel_respa = 0;
-  
+
   magstr = NULL;
   magfieldstyle = CONSTANT;
-  
+
   H_field = 0.0;
   nhx = nhy = nhz = 0.0;
   hx = hy = hz = 0.0;
@@ -99,7 +99,7 @@ FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lm
   time_origin = update->ntimestep;
 
   eflag = 0;
-  emag = 0.0; 
+  emag = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -125,12 +125,12 @@ int FixPrecessionSpin::setmask()
 
 void FixPrecessionSpin::init()
 {
-  const double hbar = force->hplanck/MY_2PI; 	// eV/(rad.THz)
-  const double mub = 5.78901e-5; 		// in eV/T 
-  const double gyro = mub/hbar; 		// in rad.THz/T  
+  const double hbar = force->hplanck/MY_2PI;    // eV/(rad.THz)
+  const double mub = 5.78901e-5;                // in eV/T
+  const double gyro = mub/hbar;                 // in rad.THz/T
 
-  H_field *= gyro; 				// in rad.THz
-  Ka /= hbar; 					// in rad.THz
+  H_field *= gyro;                              // in rad.THz
+  Ka /= hbar;                                   // in rad.THz
 
   if (strstr(update->integrate_style,"respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
@@ -139,19 +139,19 @@ void FixPrecessionSpin::init()
 
   if (magstr) {
   magvar = input->variable->find(magstr);
-  if (magvar < 0) 
+  if (magvar < 0)
         error->all(FLERR,"Illegal precession/spin command");
   if (!input->variable->equalstyle(magvar))
         error->all(FLERR,"Illegal precession/spin command");
   }
-  
+
   varflag = CONSTANT;
   if (magfieldstyle != CONSTANT) varflag = EQUAL;
- 
+
   // set magnetic field components
 
   if (varflag == CONSTANT) set_magneticprecession();
-  
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -176,13 +176,13 @@ void FixPrecessionSpin::post_force(int vflag)
   if (varflag != CONSTANT) {
     modify->clearstep_compute();
     modify->addstep_compute(update->ntimestep + 1);
-    set_magneticprecession();	 		// update mag. field if time-dep.
+    set_magneticprecession();                   // update mag. field if time-dep.
   }
 
-  double **sp = atom->sp; 
+  double **sp = atom->sp;
   double **fm = atom->fm;
-  double spi[3], fmi[3]; 
-  const int nlocal = atom->nlocal;  
+  double spi[3], fmi[3];
+  const int nlocal = atom->nlocal;
 
   eflag = 0;
   emag = 0.0;
@@ -192,23 +192,22 @@ void FixPrecessionSpin::post_force(int vflag)
     spi[1] = sp[i][1];
     spi[2] = sp[i][2];
     fmi[0] = fmi[1] = fmi[2] = 0.0;
-    
-    if (zeeman_flag) {		// compute Zeeman interaction
+
+    if (zeeman_flag) {          // compute Zeeman interaction
       compute_zeeman(i,fmi);
       emag -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
-      emag *= hbar;
-    }  
-    
-    if (aniso_flag) {		// compute magnetic anisotropy
-      compute_anisotropy(i,spi,fmi);
+    }
+
+    if (aniso_flag) {           // compute magnetic anisotropy
+      compute_anisotropy(spi,fmi);
       emag -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
-      emag *= hbar;
     }
 
     fm[i][0] += fmi[0];
     fm[i][1] += fmi[1];
     fm[i][2] += fmi[2];
   }
+  emag *= hbar;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -219,7 +218,7 @@ void FixPrecessionSpin::compute_single_precession(int i, double spi[3], double f
     compute_zeeman(i,fmi);
   }
   if (aniso_flag) {
-    compute_anisotropy(i,spi,fmi);
+    compute_anisotropy(spi,fmi);
   }
 }
 
@@ -228,7 +227,7 @@ void FixPrecessionSpin::compute_single_precession(int i, double spi[3], double f
 
 void FixPrecessionSpin::compute_zeeman(int i, double fmi[3])
 {
-  double **sp = atom->sp; 
+  double **sp = atom->sp;
   fmi[0] -= sp[i][3]*hx;
   fmi[1] -= sp[i][3]*hy;
   fmi[2] -= sp[i][3]*hz;
@@ -236,7 +235,7 @@ void FixPrecessionSpin::compute_zeeman(int i, double fmi[3])
 
 /* ---------------------------------------------------------------------- */
 
-void FixPrecessionSpin::compute_anisotropy(int i, double spi[3], double fmi[3])
+void FixPrecessionSpin::compute_anisotropy(double spi[3], double fmi[3])
 {
   double scalar = nax*spi[0] + nay*spi[1] + naz*spi[2];
   fmi[0] += scalar*Kax;
@@ -256,14 +255,14 @@ void FixPrecessionSpin::post_force_respa(int vflag, int ilevel, int iloop)
 void FixPrecessionSpin::set_magneticprecession()
 {
   if (zeeman_flag) {
-	  hx = H_field*nhx;
-	  hy = H_field*nhy;
-	  hz = H_field*nhz;	  
+          hx = H_field*nhx;
+          hy = H_field*nhy;
+          hz = H_field*nhz;
   }
   if (aniso_flag) {
-	  Kax = 2.0*Ka*nax;
-	  Kay = 2.0*Ka*nay;
-	  Kaz = 2.0*Ka*naz;	  
+          Kax = 2.0*Ka*nax;
+          Kay = 2.0*Ka*nay;
+          Kaz = 2.0*Ka*naz;
   }
 }
 
@@ -274,7 +273,7 @@ void FixPrecessionSpin::set_magneticprecession()
 double FixPrecessionSpin::compute_scalar()
 {
   // only sum across procs one time
-  
+
   if (eflag == 0) {
     MPI_Allreduce(&emag,&emag_all,1,MPI_DOUBLE,MPI_SUM,world);
     eflag = 1;

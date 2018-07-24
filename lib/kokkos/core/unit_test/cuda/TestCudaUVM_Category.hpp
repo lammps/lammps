@@ -41,8 +41,8 @@
 //@HEADER
 */
 
-#ifndef KOKKOS_TEST_THREADS_HPP
-#define KOKKOS_TEST_THREADS_HPP
+#ifndef KOKKOS_TEST_CUDAUVM_HPP
+#define KOKKOS_TEST_CUDAUVM_HPP
 
 #include <gtest/gtest.h>
 

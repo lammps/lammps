@@ -40,8 +40,9 @@ class AngleClass2Kokkos : public AngleClass2 {
 
   AngleClass2Kokkos(class LAMMPS *);
   virtual ~AngleClass2Kokkos();
-  virtual void compute(int, int);
-  virtual void coeff(int, char **);
+  void compute(int, int);
+  void coeff(int, char **);
+  void read_restart(FILE *);
 
   template<int NEWTON_BOND, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -86,7 +87,7 @@ class AngleClass2Kokkos : public AngleClass2 {
   typename AT::t_ffloat_1d d_ba_k1, d_ba_k2, d_ba_r1, d_ba_r2;
   typename AT::t_ffloat_1d d_setflag, d_setflag_a, d_setflag_bb, d_setflag_ba;
 
-  virtual void allocate();
+  void allocate();
 };
 
 }

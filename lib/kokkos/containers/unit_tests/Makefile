@@ -3,6 +3,11 @@ KOKKOS_PATH = ../..
 GTEST_PATH = ../../TPL/gtest
 
 vpath %.cpp ${KOKKOS_PATH}/containers/unit_tests
+vpath %.cpp ${KOKKOS_PATH}/containers/unit_tests/openmp
+vpath %.cpp ${KOKKOS_PATH}/containers/unit_tests/serial
+vpath %.cpp ${KOKKOS_PATH}/containers/unit_tests/threads
+vpath %.cpp ${KOKKOS_PATH}/containers/unit_tests/rocm
+vpath %.cpp ${KOKKOS_PATH}/containers/unit_tests/cuda
 
 default: build_all
 	echo "End Build"
@@ -26,31 +31,91 @@ TEST_TARGETS =
 TARGETS =
 
 ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
-	OBJ_CUDA = TestCuda.o UnitTestMain.o gtest-all.o
+	OBJ_CUDA = UnitTestMain.o gtest-all.o
+	OBJ_CUDA += TestCuda_BitSet.o
+	OBJ_CUDA += TestCuda_DualView.o
+	OBJ_CUDA += TestCuda_DynamicView.o
+	OBJ_CUDA += TestCuda_DynRankViewAPI_generic.o
+	OBJ_CUDA += TestCuda_DynRankViewAPI_rank12345.o
+	OBJ_CUDA += TestCuda_DynRankViewAPI_rank67.o
+	OBJ_CUDA += TestCuda_ErrorReporter.o
+	OBJ_CUDA += TestCuda_ScatterView.o
+	OBJ_CUDA += TestCuda_StaticCrsGraph.o
+	OBJ_CUDA += TestCuda_UnorderedMap.o
+	OBJ_CUDA += TestCuda_Vector.o
+	OBJ_CUDA += TestCuda_ViewCtorPropEmbeddedDim.o
 	TARGETS += KokkosContainers_UnitTest_Cuda
 	TEST_TARGETS += test-cuda
 endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_ROCM), 1)
-	OBJ_ROCM = TestROCm.o UnitTestMain.o gtest-all.o
+	OBJ_ROCM = UnitTestMain.o gtest-all.o
+	OBJ_ROCM += TestROCm_BitSet.o
+	OBJ_ROCM += TestROCm_DualView.o
+	OBJ_ROCM += TestROCm_DynamicView.o
+	OBJ_ROCM += TestROCm_DynRankViewAPI_generic.o
+	OBJ_ROCM += TestROCm_DynRankViewAPI_rank12345.o
+	OBJ_ROCM += TestROCm_DynRankViewAPI_rank67.o
+	OBJ_ROCM += TestROCm_ErrorReporter.o
+	OBJ_ROCM += TestROCm_ScatterView.o
+	OBJ_ROCM += TestROCm_StaticCrsGraph.o
+	OBJ_ROCM += TestROCm_UnorderedMap.o
+	OBJ_ROCM += TestROCm_Vector.o
+	OBJ_ROCM += TestROCm_ViewCtorPropEmbeddedDim.o
 	TARGETS += KokkosContainers_UnitTest_ROCm
 	TEST_TARGETS += test-rocm
 endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_PTHREADS), 1)
-	OBJ_THREADS = TestThreads.o UnitTestMain.o gtest-all.o
+	OBJ_THREADS = UnitTestMain.o gtest-all.o
+	OBJ_THREADS += TestThreads_BitSet.o
+	OBJ_THREADS += TestThreads_DualView.o
+	OBJ_THREADS += TestThreads_DynamicView.o
+	OBJ_THREADS += TestThreads_DynRankViewAPI_generic.o
+	OBJ_THREADS += TestThreads_DynRankViewAPI_rank12345.o
+	OBJ_THREADS += TestThreads_DynRankViewAPI_rank67.o
+	OBJ_THREADS += TestThreads_ErrorReporter.o
+	OBJ_THREADS += TestThreads_ScatterView.o
+	OBJ_THREADS += TestThreads_StaticCrsGraph.o
+	OBJ_THREADS += TestThreads_UnorderedMap.o
+	OBJ_THREADS += TestThreads_Vector.o
+	OBJ_THREADS += TestThreads_ViewCtorPropEmbeddedDim.o
 	TARGETS += KokkosContainers_UnitTest_Threads
 	TEST_TARGETS += test-threads
 endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_OPENMP), 1)
-	OBJ_OPENMP = TestOpenMP.o UnitTestMain.o gtest-all.o
+	OBJ_OPENMP = UnitTestMain.o gtest-all.o
+	OBJ_OPENMP += TestOpenMP_BitSet.o
+	OBJ_OPENMP += TestOpenMP_DualView.o
+	OBJ_OPENMP += TestOpenMP_DynamicView.o
+	OBJ_OPENMP += TestOpenMP_DynRankViewAPI_generic.o
+	OBJ_OPENMP += TestOpenMP_DynRankViewAPI_rank12345.o
+	OBJ_OPENMP += TestOpenMP_DynRankViewAPI_rank67.o
+	OBJ_OPENMP += TestOpenMP_ErrorReporter.o
+	OBJ_OPENMP += TestOpenMP_ScatterView.o
+	OBJ_OPENMP += TestOpenMP_StaticCrsGraph.o
+	OBJ_OPENMP += TestOpenMP_UnorderedMap.o
+	OBJ_OPENMP += TestOpenMP_Vector.o
+	OBJ_OPENMP += TestOpenMP_ViewCtorPropEmbeddedDim.o
 	TARGETS += KokkosContainers_UnitTest_OpenMP
 	TEST_TARGETS += test-openmp
 endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_SERIAL), 1)
-	OBJ_SERIAL = TestSerial.o UnitTestMain.o gtest-all.o
+	OBJ_SERIAL = UnitTestMain.o gtest-all.o
+	OBJ_SERIAL += TestSerial_BitSet.o
+	OBJ_SERIAL += TestSerial_DualView.o
+	OBJ_SERIAL += TestSerial_DynamicView.o
+	OBJ_SERIAL += TestSerial_DynRankViewAPI_generic.o
+	OBJ_SERIAL += TestSerial_DynRankViewAPI_rank12345.o
+	OBJ_SERIAL += TestSerial_DynRankViewAPI_rank67.o
+	OBJ_SERIAL += TestSerial_ErrorReporter.o
+	OBJ_SERIAL += TestSerial_ScatterView.o
+	OBJ_SERIAL += TestSerial_StaticCrsGraph.o
+	OBJ_SERIAL += TestSerial_UnorderedMap.o
+	OBJ_SERIAL += TestSerial_Vector.o
+	OBJ_SERIAL += TestSerial_ViewCtorPropEmbeddedDim.o
 	TARGETS += KokkosContainers_UnitTest_Serial
 	TEST_TARGETS += test-serial
 endif

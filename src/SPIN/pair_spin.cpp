@@ -14,16 +14,16 @@
 /* ------------------------------------------------------------------------
    Contributing authors: Julien Tranchida (SNL)
                          Aidan Thompson (SNL)
-   
+
    Please cite the related publication:
-   Tranchida, J., Plimpton, S. J., Thibaudeau, P., & Thompson, A. P. (2018). 
-   Massively parallel symplectic algorithm for coupled magnetic spin dynamics 
-   and molecular dynamics. arXiv preprint arXiv:1801.10233.
+   Tranchida, J., Plimpton, S. J., Thibaudeau, P., & Thompson, A. P. (2018).
+   Massively parallel symplectic algorithm for coupled magnetic spin dynamics
+   and molecular dynamics. Journal of Computational Physics.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 
 #include "atom.h"
 #include "comm.h"
@@ -41,10 +41,6 @@
 #include "pair_hybrid.h"
 #include "pair_hybrid_overlay.h"
 #include "pair_spin.h"
-#include "pair_spin_dmi.h"
-#include "pair_spin_exchange.h"
-#include "pair_spin_neel.h"
-#include "pair_spin_me.h"
 #include "update.h"
 
 using namespace LAMMPS_NS;

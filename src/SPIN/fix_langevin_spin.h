@@ -43,7 +43,7 @@ class FixLangevinSpin : public Fix {
   double temp;       		// spin bath temperature
   double D,sigma;    		// bath intensity var.
   double gil_factor; 		// gilbert's prefactor
- 
+
   char *id_temp;
   class Compute *temperature;
 

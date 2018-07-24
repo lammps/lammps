@@ -75,7 +75,6 @@ void Verlet::init()
   torqueflag = extraflag = 0;
   if (atom->torque_flag) torqueflag = 1;
   if (atom->avec->forceclearflag) extraflag = 1;
-  if (atom->sp_flag) extraflag = 1;
 
   // orthogonal vs triclinic simulation box
 
@@ -312,7 +311,6 @@ void Verlet::run(int n)
       timer->stamp(Timer::PAIR);
     }
 
-
     if (atom->molecular) {
       if (force->bond) force->bond->compute(eflag,vflag);
       if (force->angle) force->angle->compute(eflag,vflag);
@@ -387,8 +385,6 @@ void Verlet::force_clear()
 
     if (nbytes) {
       memset(&atom->f[0][0],0,3*nbytes);
-      //test memset for fm
-      //memset(&atom->fm[0][0],0,3*nbytes);
       if (torqueflag) memset(&atom->torque[0][0],0,3*nbytes);
       if (extraflag) atom->avec->force_clear(0,nbytes);
     }

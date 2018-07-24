@@ -125,6 +125,8 @@ inline std::size_t get_tile_size(std::size_t n = 1,
                                  std::size_t vector = 1) 
                                  KOKKOS_ROCM_TILE_RESTRIC_CPU
 {
+  return team*vector;
+  /*
     const auto size = sizeof(T) * n;
     const auto group_size = get_max_tile_size();
     if (size == 0 || size > group_size) return 0;
@@ -133,9 +135,9 @@ inline std::size_t get_tile_size(std::size_t n = 1,
     // ensure that we have enough tile static memory to keep
     // threadsize * size elements for reductions
     while(size > (group_size / thread_size) && thread_size > 2)
-{ thread_size /= 2;
-}
+    { thread_size /= 2;}
     return thread_size;
+  */
 }
 
 template<class T>

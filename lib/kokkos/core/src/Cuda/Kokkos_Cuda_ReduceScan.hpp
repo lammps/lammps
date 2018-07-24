@@ -63,6 +63,8 @@ namespace Impl {
 //----------------------------------------------------------------------------
 // Shuffle operations require input to be a register (stack) variable
 
+// TODO: reconcile these implementations with those in Kokkos_Cuda_Vectorization.hpp
+
 template< typename T >
 __device__ inline
 void cuda_shfl( T & out , T const & in , int lane ,
@@ -73,11 +75,26 @@ void cuda_shfl( T & out , T const & in , int lane ,
     KOKKOS_IMPL_CUDA_SHFL_MASK( mask , *reinterpret_cast<int const *>(&in) , lane , width );
 }
 
+// TODO: figure out why 64-bit shfl fails in Clang
+#if ( CUDA_VERSION >= 9000 ) && (!defined(KOKKOS_COMPILER_CLANG))
+
+template< typename T >
+__device__ inline
+void cuda_shfl( T & out , T const & in , int lane ,
+  typename std::enable_if< sizeof(long long) == sizeof(T) , int >::type width
+  , unsigned mask = 0xffffffff )
+{
+  *reinterpret_cast<long long*>(&out) =
+    KOKKOS_IMPL_CUDA_SHFL_MASK( mask , *reinterpret_cast<long long const *>(&in) , lane , width );
+}
+
+#endif
+
 template< typename T >
 __device__ inline
 void cuda_shfl( T & out , T const & in , int lane ,
   typename std::enable_if
-    < ( sizeof(int) < sizeof(T) ) && ( 0 == ( sizeof(T) % sizeof(int) ) )
+    < ( KOKKOS_IMPL_CUDA_MAX_SHFL_SIZEOF < sizeof(T) ) && ( 0 == ( sizeof(T) % sizeof(int) ) )
     , int >::type width, unsigned mask = 0xffffffff )
 {
   enum : int { N = sizeof(T) / sizeof(int) };
@@ -99,11 +116,25 @@ void cuda_shfl_down( T & out , T const & in , int delta ,
     KOKKOS_IMPL_CUDA_SHFL_DOWN_MASK( mask , *reinterpret_cast<int const *>(&in) , delta , width );
 }
 
+// TODO: figure out why 64-bit shfl fails in Clang
+#if ( CUDA_VERSION >= 9000 ) && (!defined(KOKKOS_COMPILER_CLANG))
+
+template< typename T >
+__device__ inline
+void cuda_shfl_down( T & out , T const & in , int delta ,
+  typename std::enable_if< sizeof(long long) == sizeof(T) , int >::type width , unsigned mask = 0xffffffff )
+{
+  *reinterpret_cast<long long*>(&out) =
+    KOKKOS_IMPL_CUDA_SHFL_DOWN_MASK( mask , *reinterpret_cast<long long const *>(&in) , delta , width );
+}
+
+#endif
+
 template< typename T >
 __device__ inline
 void cuda_shfl_down( T & out , T const & in , int delta ,
   typename std::enable_if
-    < ( sizeof(int) < sizeof(T) ) && ( 0 == ( sizeof(T) % sizeof(int) ) )
+    < ( KOKKOS_IMPL_CUDA_MAX_SHFL_SIZEOF < sizeof(T) ) && ( 0 == ( sizeof(T) % sizeof(int) ) )
     , int >::type width , unsigned mask = 0xffffffff )
 {
   enum : int { N = sizeof(T) / sizeof(int) };
@@ -125,11 +156,25 @@ void cuda_shfl_up( T & out , T const & in , int delta ,
     KOKKOS_IMPL_CUDA_SHFL_UP_MASK( mask , *reinterpret_cast<int const *>(&in) , delta , width );
 }
 
+// TODO: figure out why 64-bit shfl fails in Clang
+#if ( CUDA_VERSION >= 9000 ) && (!defined(KOKKOS_COMPILER_CLANG))
+
+template< typename T >
+__device__ inline
+void cuda_shfl_up( T & out , T const & in , int delta ,
+  typename std::enable_if< sizeof(long long) == sizeof(T) , int >::type width , unsigned mask = 0xffffffff )
+{
+  *reinterpret_cast<long long*>(&out) =
+    KOKKOS_IMPL_CUDA_SHFL_UP_MASK( mask , *reinterpret_cast<long long const *>(&in) , delta , width );
+}
+
+#endif
+
 template< typename T >
 __device__ inline
 void cuda_shfl_up( T & out , T const & in , int delta ,
   typename std::enable_if
-    < ( sizeof(int) < sizeof(T) ) && ( 0 == ( sizeof(T) % sizeof(int) ) )
+    < ( KOKKOS_IMPL_CUDA_MAX_SHFL_SIZEOF < sizeof(T) ) && ( 0 == ( sizeof(T) % sizeof(int) ) )
     , int >::type width , unsigned mask = 0xffffffff )
 {
   enum : int { N = sizeof(T) / sizeof(int) };

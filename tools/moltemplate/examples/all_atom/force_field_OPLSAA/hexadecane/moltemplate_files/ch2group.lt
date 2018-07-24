@@ -2,7 +2,7 @@
 
 # First, load the OPLS force field parameters we will need.
 # These 2 files are located in the "force_fields" subdirectory
-# of the moltemplate distribution.
+# distributed with moltemplate.
 
 import "oplsaa.lt"    # <-- defines the standard "OPLSAA" force field
 import "loplsaa.lt"   # <-- custom parameters for long alkane chains taken from

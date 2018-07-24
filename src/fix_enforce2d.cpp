@@ -38,6 +38,8 @@ FixEnforce2D::FixEnforce2D(LAMMPS *lmp, int narg, char **arg) :
 
 FixEnforce2D::~FixEnforce2D()
 {
+  if (copymode) return;
+
   delete [] flist;
 }
 

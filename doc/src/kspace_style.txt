@@ -236,41 +236,34 @@ See details on "this page"_Section_packages.html#USER-SCAFACOS.
 
 NOTE: Unlike other KSpace solvers in LAMMPS, ScaFaCoS computes all
 Coulombic interactions, both short- and long-range.  Thus you should
-NOT use a Coulmbic pair style when using kspace_style scafacos.  Thus
-the total Coulombic energy (short- and long-range) will be tallied for
-"thermodynamic output"_thermo_style.html command as part of the
-{elong} keyword; the {ecoul} keyword will be zero.
+NOT use a Coulmbic pair style when using kspace_style scafacos.  This
+also means the total Coulombic energy (short- and long-range) will be
+tallied for "thermodynamic output"_thermo_style.html command as part
+of the {elong} keyword; the {ecoul} keyword will be zero.
 
-NOTE: See the restriction below about use of ScaFaCoS in LAMMPS with
-molecular charged systems or the TIP4P water model.
-
-Unlike other KSpace solvers in LAMMPS, ScaFaCoS computes all
-Coulombic interactions, both short- and long-range.  Thus you should
-NOT use a Coulmbic pair style when using kspace_style scafacos.  Thus
-the total Coulombic energy (short- and long-range) will be tallied for
-"thermodynamic output"_thermo_style.html command as part of the
-{elong} keyword; the {ecoul} keyword will be zero.
+NOTE: See the current restriction below about use of ScaFaCoS in
+LAMMPS with molecular charged systems or the TIP4P water model.
 
 The specified {method} determines which ScaFaCoS algorithm is used.
-The list of methods shown above are the ScaFaCoS methods currently
-available from LAMMPS. Currently the following solvers are
-supported for use with LAMMPS: {fmm} (Fast Multi-Pole method),
-{p2nfft} (FFT-based Coulomb solver), {ewald} (Ewald-Summation)
-and {direct} (direct summation). The other ScaFaCoS solvers
-will be supported later on, but for the time being are
-experimental in connection with LAMMPS, e.g. {p3m} (PPPM-method).
-Use unsupported methods at your own discretion. To get an overview
-about the included solvers, refer to "(Sutmann)"_#Sutmann2013
+These are the ScaFaCoS methods currently available from LAMMPS:
+
+{fmm} = Fast Multi-Pole method
+{p2nfft} = FFT-based Coulomb solver
+{ewald} = Ewald summation
+{direct} = direct O(N^2) summation
+
+We plan to support additional ScaFaCoS solvers from LAMMPS in the
+future.  For an overview of the included solvers, refer to
+"(Sutmann)"_#Sutmann2013
 
 The specified {accuracy} is similar to the accuracy setting for other
 LAMMPS KSpace styles, but is passed to ScaFaCoS, which can interpret
-it in different ways for different methods it supports.
-Within the ScaFaCoS library the {accuracy} is treated as a tolerance
-level (either absolute or relative) for the chosen quantity, where
-the quantity can be either the Columic field values, the per-atom
-Columic energy or the total Columic energy. Different solver support
-different tolerance types, for more information on that, please
-refer to "kspace_modify scafacos accuracy"_kspace_modify.html. 
+it in different ways for different methods it supports.  Within the
+ScaFaCoS library the {accuracy} is treated as a tolerance level
+(either absolute or relative) for the chosen quantity, where the
+quantity can be either the Columic field values, the per-atom Columic
+energy or the total Columic energy.  To select from these options, see
+the "kspace_modify scafacos accuracy"_kspace_modify.html doc page.
 
 The "kspace_modify scafacos"_kspace_modify.html command also explains
 all the ScaFaCoS options currently exposed to LAMMPS.

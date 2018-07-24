@@ -1,7 +1,8 @@
-This is the July 2018 version of the Client/Server messaging library
-(CSlib).  Only the source directory and license file are included here
-as part of the LAMMPS distribution.  The full CSlib distribution,
-including documentation and test codes, can be found at the website:
+This is the the Client/Server messaging library (CSlib).
+
+Only the source directory and license file are included here as part
+of the LAMMPS distribution.  The full CSlib distribution, including
+documentation and test codes, can be found at the website:
 http://cslib.sandia.gov (as of Aug 2018).
 
 The contact author is
@@ -11,8 +12,9 @@ Sandia National Laboratories
 sjplimp@sandia.gov
 http://www.sandia.gov/~sjplimp
 
-The CSlib is distributed as open-source code under the GNU LGPL
-license.  See the accompanying LICENSE file.
+The CSlib is distributed as open-source code under the modified
+Berkeley Software Distribution (BSD) License.  See the accompanying
+LICENSE file.
 
 This directory contains the following:
 

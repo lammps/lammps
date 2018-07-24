@@ -14,14 +14,15 @@
 #include <cstdio>
 #include <cstring>
 #include "fix_client_md.h"
-#include "cslib.h"
 #include "atom.h"
+#include "comm.h"
 #include "domain.h"
 #include "memory.h"
 #include "error.h"
 
-#include "comm.h"
-#include "update.h"
+// CSlib interface
+
+#include "cslib.h"
 
 using namespace LAMMPS_NS;
 using namespace CSLIB_NS;

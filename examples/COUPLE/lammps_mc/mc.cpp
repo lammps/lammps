@@ -11,16 +11,15 @@
 //         mode = file, zmq
 //         modearg = filename for file, localhost:5555 for zmq
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include "mc.h"
+#include "random_park.h"
 
 #include "cslib.h"
 using namespace CSLIB_NS;
-
-#include "mc.h"
-#include "random_park.h"
 
 void error(const char *);
 CSlib *cs_create(char *, char *);

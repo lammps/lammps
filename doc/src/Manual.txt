@@ -116,7 +116,7 @@ it gives quick access to documentation for all LAMMPS commands.
    Section_howto
    Section_example
    Section_perf
-   Section_tools
+   Tools
    Section_modify
    Section_python
    Section_errors
@@ -210,7 +210,7 @@ END_RST -->
   6.27 "Drude induced dipoles"_howto_27 :ule,b
 "Example problems"_Section_example.html :l
 "Performance & scalability"_Section_perf.html :l
-"Additional tools"_Section_tools.html :l
+"Auxiliary tools"_Tools.html :l
 "Modifying & extending LAMMPS"_Section_modify.html :l
   10.1 "Atom styles"_mod_1 :ulb,b
   10.2 "Bond, angle, dihedral, improper potentials"_mod_2 :b

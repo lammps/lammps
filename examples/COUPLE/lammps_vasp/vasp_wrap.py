@@ -23,13 +23,15 @@
 # could make syntax for launching VASP more flexible
 #   e.g. command-line arg for # of procs
 
-import sys
-import commands
+import sys,subprocess
 import xml.etree.ElementTree as ET  
 from cslib import CSlib
 
+# comment out 2nd line once 1st line is correct for your system
+
 vaspcmd = "srun -N 1 --ntasks-per-node=4 " + \
           "-n 4 /projects/vasp/2017-build/cts1/vasp5.4.4/vasp_tfermi/bin/vasp_std"
+vaspcmd = "touch tmp"
 
 # enums matching FixClientMD class in LAMMPS
 
@@ -84,18 +86,18 @@ def poscar_write(poscar,natoms,ntypes,types,coords,box):
 
   # header, including box size
   
-  print >>psnew,psold[0],
-  print >>psnew,psold[1],
-  print >>psnew,"%g 0.0 0.0" % box[0]
-  print >>psnew,"0.0 %g 0.0" % box[1]
-  print >>psnew,"0.0 0.0 %g" % box[2]
-  print >>psnew,psold[5],
-  print >>psnew,psold[6],
+  psnew.write(psold[0])
+  psnew.write(psold[1])
+  psnew.write("%g 0.0 0.0\n" % box[0])
+  psnew.write("0.0 %g 0.0\n" % box[1])
+  psnew.write("0.0 0.0 %g\n" % box[2])
+  psnew.write(psold[5])
+  psnew.write(psold[6])
 
   # per-atom coords
   # grouped by types
-  
-  print >>psnew,"Cartesian"
+
+  psnew.write("Cartesian\n")
 
   for itype in range(1,ntypes+1):
     for i in range(natoms):
@@ -103,8 +105,8 @@ def poscar_write(poscar,natoms,ntypes,types,coords,box):
       x = coords[3*i+0]
       y = coords[3*i+1]
       z = coords[3*i+2]
-      aline = "  %g %g %g" % (x,y,z)
-      print >>psnew,aline
+      aline = "  %g %g %g\n" % (x,y,z)
+      psnew.write(aline)
 
   psnew.close()
 
@@ -209,10 +211,9 @@ while 1:
 
   # invoke VASP
   
-  print "Launching VASP ..."
+  print "\nLaunching VASP ..."
   print vaspcmd
-  out = commands.getoutput(vaspcmd)
-  print out
+  subprocess.check_output(vaspcmd,stderr=subprocess.STDOUT,shell=True)
   
   # process VASP output
     

@@ -154,7 +154,7 @@ if(ENABLE_TESTING)
 endif(ENABLE_TESTING)
 
 set(DEFAULT_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS CORESHELL DIPOLE GRANULAR
-  KSPACE MANYBODY MC MEAM MISC MOLECULE PERI QEQ REAX REPLICA RIGID SHOCK SPIN SNAP
+  KSPACE MANYBODY MC MEAM MISC MOLECULE MESSAGE PERI QEQ REAX REPLICA RIGID SHOCK SPIN SNAP
   SRD KIM PYTHON MSCG MPIIO VORONOI POEMS LATTE USER-ATC USER-AWPMD USER-BOCS
   USER-CGDNA USER-MESO USER-CGSDK USER-COLVARS USER-DIFFRACTION USER-DPD USER-DRUDE
   USER-EFF USER-FEP USER-H5MD USER-LB USER-MANIFOLD USER-MEAMC USER-MGPT USER-MISC
@@ -424,6 +424,32 @@ if(PKG_KIM)
   endif()
   list(APPEND LAMMPS_LINK_LIBS ${KIM_LIBRARIES})
   include_directories(${KIM_INCLUDE_DIRS})
+endif()
+
+if(PKG_MESSAGE)
+  option(MESSAGE_ZMQ "Use ZeroMQ in MESSAGE package" OFF)
+  file(GLOB_RECURSE cslib_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/message/cslib/*.F
+      ${LAMMPS_LIB_SOURCE_DIR}/message/cslib/*.c ${LAMMPS_LIB_SOURCE_DIR}/message/cslib/*.cpp)
+  add_library(cslib STATIC ${cslib_SOURCES})
+
+  if(BUILD_MPI)
+    target_compile_definitions(cslib PRIVATE -DMPI_YES)
+  else()
+    target_compile_definitions(cslib PRIVATE -DMPI_NO)
+  endif()
+
+  if(MESSAGE_ZMQ)
+    target_compile_definitions(cslib PRIVATE -DZMQ_YES)
+    find_package(ZMQ REQUIRED)
+    target_include_directories(cslib PRIVATE ${ZMQ_INCLUDE_DIRS})
+    target_link_libraries(cslib PUBLIC ${ZMQ_LIBRARIES})
+  else()
+    target_compile_definitions(cslib PRIVATE -DZMQ_NO)
+    target_include_directories(cslib PRIVATE ${LAMMPS_SOURCE_DIR}/message/cslib/src/STUBS_ZMQ)
+  endif()
+
+  list(APPEND LAMMPS_LINK_LIBS cslib)
+  include_directories(${LAMMPS_LIB_SOURCE_DIR}/message/cslib/src)
 endif()
 
 if(PKG_MSCG)

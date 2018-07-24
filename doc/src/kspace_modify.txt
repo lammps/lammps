@@ -45,6 +45,8 @@ keyword = {collective} or {compute} or {cutoff/adjust} or {diff} or {disp/auto} 
   {scafacos} values = option value1 value2 ...
     option = {tolerance}
       value = {energy} or {energy_rel} or {field} or {field_rel} or {potential} or {potential_rel}
+    option = {fmm_tuning}
+      value = {0} or {1}
   {slab} value = volfactor or {nozforce}
     volfactor = ratio of the total extended volume used in the
       2d approximation compared with the volume of the simulation domain
@@ -308,8 +310,6 @@ or with suffix kspace/pair styles of MSM, like OMP or GPU.
 
 :line
 
-RENE: check this section
-
 The {scafacos} keyword is used for settings that are passed to the
 ScaFaCoS library when using "kspace_style scafacos"_kspace_style.html.
 
@@ -324,10 +324,32 @@ field_rel = relative accuracy in electric field
 potential = absolute accuracy in total Coulomic potential
 potential_rel = relative accuracy in total Coulomic potential
 
-RENE: which one is closest to what LAMMPS used (see kspace_style
-command) - is it "field"?  That's why I set it as the default.
+Potential and potential_rel impose a tolerance on a per-atom basis,
+in comparison to the energy and energy_rel tolerance types, where
+the tolerance is computed with regard to the total Coulomic energy
+in the system. In comparison to that, the field and field_rel
+tolerance types set a tolerance for the field values calculated
+within ScaFaCoS. Since the forces are derived from the field
+values, it indirectly sets a tolerance for the forces, comparable
+to other LAMMPS KSpace styles, see "kspace_style"_kspace_modify.html.
+The suffix '_rel' indicates that the tolerance is a relative tolerance,
+whereas the other case imposes an absolute tolerance on the given
+quantity.
 
-RENE: How is potential different than energy for this ??
+What needs to be taken into account is that not all solvers within
+the ScaFaCoS library support all kinds of tolerance types.
+
+fmm = energy and energy_rel
+p2nfft = field (1d-,2d-,3d-periodic systems) or potential (0d-periodic)
+ewald = field
+direct = has no tolerance tuning
+
+The {fmm_tuning} option (de-)activates the internal tuning mechanism
+for the fmm solver. Since the internal tuning mechanism is sequential,
+it can be very time-consuming and usually it is not required for
+systems with a homogenous charge distribution. The default of the
+setting there for is {0}, disabling the internal tuning. {1}
+activates the internal tuning.
 
 :line
 

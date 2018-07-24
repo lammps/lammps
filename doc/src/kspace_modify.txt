@@ -324,7 +324,7 @@ potential_rel = relative accuracy in total Coulomic potential
 field = absolute accuracy in electric field
 field_rel = relative accuracy in electric field :ul
 
-The values with suffix "_rel" indicate the tolerance is a relative
+The values with suffix _rel indicate the tolerance is a relative
 tolerance; the other values impose an absolute tolerance on the given
 quantity. Absoulte tolerance in this case means, that for a given
 quantity q and a given absolute tolerance of t_a the result should

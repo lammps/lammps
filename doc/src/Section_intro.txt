@@ -54,8 +54,8 @@ brief discussion of the open-source philosophy.
 
 LAMMPS is designed to be easy to modify or extend with new
 capabilities, such as new force fields, atom types, boundary
-conditions, or diagnostics.  See "Section 10"_Section_modify.html
-for more details.
+conditions, or diagnostics.  See the "Modify"_Modify.html doc page for
+more details.
 
 The current version of LAMMPS is written in C++.  Earlier versions
 were written in F77 and F90.  See
@@ -94,8 +94,8 @@ LAMMPS are listed in "this section"_#intro_5.
 This section highlights LAMMPS features, with pointers to specific
 commands which give more details.  If LAMMPS doesn't have your
 favorite interatomic potential, boundary condition, or atom type, see
-"Section 10"_Section_modify.html, which describes how you can add
-it to LAMMPS.
+the "Modify"_Modify.html doc page, which describes how you can add it
+to LAMMPS.
 
 General features :h4
 
@@ -334,8 +334,8 @@ Similarly, LAMMPS creates output files in a simple format.  Most users
 post-process these files with their own analysis tools or re-format
 them for input into other programs, including visualization packages.
 If you are convinced you need to compute something on-the-fly as
-LAMMPS runs, see "Section 10"_Section_modify.html for a discussion
-of how you can use the "dump"_dump.html and "compute"_compute.html and
+LAMMPS runs, see the "Modify"_Modify.html doc page for a discussion of
+how you can use the "dump"_dump.html and "compute"_compute.html and
 "fix"_fix.html commands to print out data of your choosing.  Keep in
 mind that complicated computations can slow down the molecular
 dynamics timestepping, particularly if the computations are not
@@ -448,9 +448,8 @@ distribution. :l
 
 LAMMPS is designed to be easy to extend with new code for features
 like potentials, boundary conditions, diagnostic computations, etc.
-"This section"_Section_modify.html gives details.  If you add a
-feature of general interest, it can be added to the LAMMPS
-distribution. :l
+The "Modify"_Modify.html doc page gives details.  If you add a feature
+of general interest, it can be added to the LAMMPS distribution. :l
 
 The Benchmark page of the "LAMMPS WWW Site"_lws lists LAMMPS
 performance on various platforms.  The files needed to run the

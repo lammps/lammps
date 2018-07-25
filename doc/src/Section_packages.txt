@@ -51,8 +51,7 @@ technical questions about compiling the package. If you have problems
 using a feature provided in a user package, you may need to contact
 the contributor directly to get help.  Information on how to submit
 additions you make to LAMMPS as single files or as a standard or user
-package are given in "this section"_Section_modify.html#mod_15 of the
-manual.
+package are given in the "Modify contribute"_Modify.html doc page.
 
 Following the next two tables is a sub-section for each package.  It
 lists authors (if applicable) and summarizes the package contents.  It

@@ -30,9 +30,9 @@ Set a fix that will be applied to a group of atoms.  In LAMMPS, a
 timestepping or minimization.  Examples include updating of atom
 positions and velocities due to time integration, controlling
 temperature, applying constraint forces to atoms, enforcing boundary
-conditions, computing diagnostics, etc.  There are dozens of fixes
-defined in LAMMPS and new ones can be added; see "this
-section"_Section_modify.html for a discussion.
+conditions, computing diagnostics, etc.  There are hundredes of fixes
+defined in LAMMPS and new ones can be added; see the
+"Modify"_Modify.html doc page for details.
 
 Fixes perform their operations at different stages of the timestep.
 If 2 or more fixes operate at the same stage of the timestep, they are

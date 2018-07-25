@@ -255,7 +255,7 @@ with another molecular style that stores bond,angle,etc info on a
 per-atom basis.
 
 LAMMPS can be extended with new atom styles as well as new body
-styles; see "this section"_Section_modify.html.
+styles; see the "Modify"_Modify.html doc page.
 
 :line
 

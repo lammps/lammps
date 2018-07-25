@@ -114,10 +114,10 @@ it gives quick access to documentation for all LAMMPS commands.
    Section_packages
    Section_accelerate
    Section_howto
-   Section_example
+   Examples
    Section_perf
    Tools
-   Section_modify
+   Modify
    Section_python
    Section_errors
    Section_history
@@ -208,25 +208,10 @@ END_RST -->
   6.25 "Polarizable models"_howto_25 :b
   6.26 "Adiabatic core/shell model"_howto_26 :b
   6.27 "Drude induced dipoles"_howto_27 :ule,b
-"Example problems"_Section_example.html :l
+"Example scripts"_Examples.html :l
 "Performance & scalability"_Section_perf.html :l
 "Auxiliary tools"_Tools.html :l
-"Modifying & extending LAMMPS"_Section_modify.html :l
-  10.1 "Atom styles"_mod_1 :ulb,b
-  10.2 "Bond, angle, dihedral, improper potentials"_mod_2 :b
-  10.3 "Compute styles"_mod_3 :b
-  10.4 "Dump styles"_mod_4 :b
-  10.5 "Dump custom output options"_mod_5 :b
-  10.6 "Fix styles"_mod_6 :b
-  10.7 "Input script commands"_mod_7 :b
-  10.8 "Kspace computations"_mod_8 :b
-  10.9 "Minimization styles"_mod_9 :b
-  10.10 "Pairwise potentials"_mod_10 :b
-  10.11 "Region styles"_mod_11 :b
-  10.12 "Body styles"_mod_12 :b
-  10.13 "Thermodynamic output options"_mod_13 :b
-  10.14 "Variable options"_mod_14 :b
-  10.15 "Submitting new features for inclusion in LAMMPS"_mod_15 :ule,b
+"Modify & extend LAMMPS"_Modify.html :l
 "Python interface"_Section_python.html :l
   11.1 "Overview of running LAMMPS from Python"_py_1 :ulb,b
   11.2 "Overview of using Python from a LAMMPS script"_py_2 :b
@@ -301,22 +286,6 @@ END_RST -->
 :link(howto_25,Section_howto.html#howto_25)
 :link(howto_26,Section_howto.html#howto_26)
 :link(howto_27,Section_howto.html#howto_27)
-
-:link(mod_1,Section_modify.html#mod_1)
-:link(mod_2,Section_modify.html#mod_2)
-:link(mod_3,Section_modify.html#mod_3)
-:link(mod_4,Section_modify.html#mod_4)
-:link(mod_5,Section_modify.html#mod_5)
-:link(mod_6,Section_modify.html#mod_6)
-:link(mod_7,Section_modify.html#mod_7)
-:link(mod_8,Section_modify.html#mod_8)
-:link(mod_9,Section_modify.html#mod_9)
-:link(mod_10,Section_modify.html#mod_10)
-:link(mod_11,Section_modify.html#mod_11)
-:link(mod_12,Section_modify.html#mod_12)
-:link(mod_13,Section_modify.html#mod_13)
-:link(mod_14,Section_modify.html#mod_14)
-:link(mod_15,Section_modify.html#mod_15)
 
 :link(py_1,Section_python.html#py_1)
 :link(py_2,Section_python.html#py_2)

@@ -1,6 +1,6 @@
 "Previous Section"_Section_perf.html - "LAMMPS WWW Site"_lws - "LAMMPS
 Documentation"_ld - "LAMMPS Commands"_lc - "Next
-Section"_Section_modify.html :c
+Section"_Modify.html :c
 
 <!-- future sequence of sections:
 "Previous Section"_Python.html - "LAMMPS WWW Site"_lws -
@@ -14,7 +14,7 @@ Section"_Modify.html :c
 
 :line
 
-Auxiliary tools :h3
+Auxiliary tools :h2
 
 LAMMPS is designed to be a computational kernel for performing
 molecular dynamics computations.  Additional pre- and post-processing
@@ -377,7 +377,7 @@ micelle2d < def.micelle2d > data.file :pre
 
 See the def.micelle2d file in the tools directory for an example of a
 definition file.  This tool was used to create the system for the
-"micelle example"_Section_example.html.
+"micelle example"_Examples.html.
 
 :line
 

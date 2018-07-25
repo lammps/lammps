@@ -278,7 +278,7 @@ void VashishtaT::loop(const bool _eflag, const bool _vflag, const int evatom) {
     this->k_three_end_vatom.run(&this->atom->x, &param1, &param2, &param3, &param4, &param5,
                           &map, &elem2param, &_nelements,
                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                          &this->nbor->dev_acc, &this->dev_short_nbor,
+                          &this->nbor->dev_ilist, &this->dev_short_nbor,
                           &end_ans->force, &end_ans->engv, &eflag, &vflag, &ainum,
                           &nbor_pitch, &this->_threads_per_atom, &this->_gpu_nbor);
   } else {
@@ -286,7 +286,7 @@ void VashishtaT::loop(const bool _eflag, const bool _vflag, const int evatom) {
     this->k_three_end.run(&this->atom->x, &param1, &param2, &param3, &param4, &param5,
                           &map, &elem2param, &_nelements,
                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                          &this->nbor->dev_acc, &this->dev_short_nbor,
+                          &this->nbor->dev_ilist, &this->dev_short_nbor,
                           &end_ans->force, &end_ans->engv, &eflag, &vflag, &ainum,
                           &nbor_pitch, &this->_threads_per_atom, &this->_gpu_nbor);
   }

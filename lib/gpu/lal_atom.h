@@ -322,10 +322,12 @@ class Atom {
 
   // Copy charges to device asynchronously
   inline void add_q_data() {
+    time_q.start();
     if (_q_avail==false) {
       q.update_device(_nall,true);
       _q_avail=true;
     }
+    time_q.stop();
   }
 
   // Cast quaternions to write buffer
@@ -347,10 +349,12 @@ class Atom {
   // Copy quaternions to device
   /** Copies nall()*4 elements **/
   inline void add_quat_data() {
+    time_quat.start();
     if (_quat_avail==false) {
       quat.update_device(_nall*4,true);
       _quat_avail=true;
     }
+    time_quat.stop();
   }
 
   /// Cast velocities and tags to write buffer

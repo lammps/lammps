@@ -260,6 +260,9 @@ class UCL_Device {
   /// List all devices along with all properties
   inline void print_all(std::ostream &out);
 
+  /// Select the platform that has accelerators (for compatibility with OpenCL)
+  inline int set_platform_accelerator(int pid=-1) { return UCL_SUCCESS; }
+
  private:
   int _device, _num_devices;
   std::vector<NVDProperties> _properties;

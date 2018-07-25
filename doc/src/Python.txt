@@ -8,7 +8,7 @@ Section"_Errors.html :c
 
 :line
 
-Use Python with LAMMPS :h3
+Use Python with LAMMPS :h2
 
 These doc pages describe various ways that LAMMPS and Python can be
 used together.

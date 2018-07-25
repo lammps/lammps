@@ -8,7 +8,7 @@ Section"_Section_history.html :c
 
 :line
 
-Errors :h3
+Errors :h2
 
 These doc pages describe the errors you can encounter when using
 LAMMPS.  The common problems include conceptual issues.  The messages

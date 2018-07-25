@@ -67,7 +67,7 @@ values are not desired, the "processors"_processors.html and
 tell LAMMPS how to map processors to the simulation box.
 
 Many input script errors are detected by LAMMPS and an ERROR or
-WARNING message is printed.  "This section"_Section_errors.html gives
+WARNING message is printed.  The "Errors"_Errors.html doc page gives
 more information on what errors mean.  The documentation for each
 command lists restrictions on how the command can be used.
 

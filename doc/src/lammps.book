@@ -31,9 +31,22 @@ Modify_region.html
 Modify_body.html
 Modify_thermo.html
 Modify_variable.html
-
-Section_python.html
-Section_errors.html
+Python.html
+Python_overview.txt
+Python_run.txt
+Python_shlib.txt
+Python_install.txt
+Python_mpi.txt
+Python_test.txt
+Python_library.txt
+Python_pylammps.txt
+Python_examples.txt
+Python_call.txt
+Errors.html
+Errors_common.txt
+Errors_bugs.txt
+Errors_messages.txt
+Errors_warnings.txt
 Section_history.html
 
 lammps_tutorials.html

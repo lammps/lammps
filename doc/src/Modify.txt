@@ -1,12 +1,6 @@
 "Previous Section"_Tools.html - "LAMMPS WWW Site"_lws -
 "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next
-Section"_Section_python.html :c
-
-<!-- future sequence of sections:
-"Previous Section"_Tools.html - "LAMMPS WWW Site"_lws -
-"LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next
-Section"_Errors.html :c
--->
+Section"_Python.html :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
@@ -34,6 +28,8 @@ contribute"_Modify_contribute.html doc page.
    Modify_overview
    Modify_contribute
 
+.. toctree::
+
    Modify_atom
    Modify_pair
    Modify_bond
@@ -41,11 +37,15 @@ contribute"_Modify_contribute.html doc page.
    Modify_fix
    Modify_command
 
+.. toctree::
+
    Modify_dump
    Modify_kspace
    Modify_min
    Modify_region
    Modify_body
+
+.. toctree::
 
    Modify_thermo
    Modify_variable

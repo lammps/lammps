@@ -29,7 +29,7 @@ The last link for "Pizza.py"_pizza is a Python-based tool developed at
 Sandia which provides tools for doing setup, analysis, plotting, and
 visualization for LAMMPS simulations.
 
-"link(pizza,http://pizza.sandia.gov)
+:link(pizza,http://pizza.sandia.gov)
 :link(python,http://www.python.org)
 
 Additional tools included in the LAMMPS distribution are described on

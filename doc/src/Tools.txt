@@ -10,7 +10,7 @@ Section"_Modify.html :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Commands.html#comm)
+:link(lc,Section_commands.html#comm)
 
 :line
 

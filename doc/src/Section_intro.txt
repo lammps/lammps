@@ -234,8 +234,8 @@ Multi-replica models :h4
 
 Pre- and post-processing :h4
 
-Various pre- and post-processing serial tools are packaged
-with LAMMPS; see these "doc pages"_Section_tools.html. :ulb,l
+Various pre- and post-processing serial tools are packaged with
+LAMMPS; see the "Tools"_Tools.html doc page for details. :ulb,l
 
 Our group has also written and released a separate toolkit called
 "Pizza.py"_pizza which provides tools for doing setup, analysis,
@@ -296,9 +296,9 @@ visualize your MD simulation
 plot your output data :ul
 
 A few tools for pre- and post-processing tasks are provided as part of
-the LAMMPS package; they are described in "this
-section"_Section_tools.html.  However, many people use other codes or
-write their own tools for these tasks.
+the LAMMPS package; they are described on the "Tools"_Tools.html doc
+page.  However, many people use other codes or write their own tools
+for these tasks.
 
 As noted above, our group has also written and released a separate
 toolkit called "Pizza.py"_pizza which addresses some of the listed
@@ -327,8 +327,8 @@ topology information and hundreds of force-field coefficients must
 typically be specified.  We suggest you use a program like
 "CHARMM"_charmm or "AMBER"_amber or other molecular builders to setup
 such problems and dump its information to a file.  You can then
-reformat the file as LAMMPS input.  Some of the tools in "this
-section"_Section_tools.html can assist in this process.
+reformat the file as LAMMPS input.  Some of the tools described on the
+"Tools"_Tools.html doc page can assist in this process.
 
 Similarly, LAMMPS creates output files in a simple format.  Most users
 post-process these files with their own analysis tools or re-format
@@ -442,8 +442,8 @@ directory. :l
 
 The tools sub-directory of the LAMMPS distribution has various
 stand-alone codes for pre- and post-processing of LAMMPS data.  More
-details are given in "Section 9"_Section_tools.html.  If you write
-a new tool that users will find useful, it can be added to the LAMMPS
+details are given on the "Tools"_Tools.html doc page.  If you write a
+new tool that users will find useful, it can be added to the LAMMPS
 distribution. :l
 
 LAMMPS is designed to be easy to extend with new code for features

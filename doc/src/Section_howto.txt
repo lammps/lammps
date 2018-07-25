@@ -188,9 +188,9 @@ used in the CHARMM, AMBER, and DREIDING force fields.  Setting
 coefficients is done in the input data file via the
 "read_data"_read_data.html command or in the input script with
 commands like "pair_coeff"_pair_coeff.html or
-"bond_coeff"_bond_coeff.html.  See "Section 9"_Section_tools.html
-for additional tools that can use CHARMM or AMBER to assign force
-field coefficients and convert their output into LAMMPS input.
+"bond_coeff"_bond_coeff.html.  See the "Tools"_Tools.html doc page for
+additional tools that can use CHARMM or AMBER to assign force field
+coefficients and convert their output into LAMMPS input.
 
 See "(MacKerell)"_#howto-MacKerell for a description of the CHARMM force
 field.  See "(Cornell)"_#howto-Cornell for a description of the AMBER force
@@ -762,12 +762,12 @@ simulations can be visualized (and analyzed) in a variety of ways.
 LAMMPS snapshots are created by the "dump"_dump.html command which can
 create files in several formats. The native LAMMPS dump format is a
 text file (see "dump atom" or "dump custom") which can be visualized
-by several popular visualization tools. The "dump image"_dump_image.html
-and "dump movie"_dump_image.html styles can output internally rendered
-images and convert a sequence of them to a movie during the MD run.
-Several programs included with LAMMPS as auxiliary tools can convert
-between LAMMPS format files and other formats.
-See the "Section 9"_Section_tools.html doc page for details.
+by several popular visualization tools. The "dump
+image"_dump_image.html and "dump movie"_dump_image.html styles can
+output internally rendered images and convert a sequence of them to a
+movie during the MD run.  Several programs included with LAMMPS as
+auxiliary tools can convert between LAMMPS format files and other
+formats.  See the "Tools"_Tools.html doc page for details.
 
 A Python-based toolkit distributed by our group can read native LAMMPS
 dump files, including custom dump files with additional columns of

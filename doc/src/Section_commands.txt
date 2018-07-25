@@ -204,10 +204,10 @@ allowed, but that should be sufficient for most use cases.
 3.3 Input script structure :h3,link(cmd_3)
 
 This section describes the structure of a typical LAMMPS input script.
-The "examples" directory in the LAMMPS distribution contains many
-sample input scripts; the corresponding problems are discussed in
-"Section 7"_Section_example.html, and animated on the "LAMMPS
-WWW Site"_lws.
+The examples directory in the LAMMPS distribution contains many sample
+input scripts; the corresponding problems are discussed on the
+"Examples"_Examples.html doc page, and animated on the "LAMMPS WWW
+Site"_lws.
 
 A LAMMPS input script typically has 4 parts:
 

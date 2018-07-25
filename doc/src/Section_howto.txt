@@ -1,4 +1,4 @@
-"Previous Section"_Section_accelerate.html - "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next Section"_Section_example.html :c
+"Previous Section"_Section_accelerate.html - "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next Section"_Examples.html :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
@@ -40,7 +40,7 @@ This section describes how to perform common tasks using LAMMPS.
 6.28 "Magnetic spins"_#howto_28 :all(b)
 
 The example input scripts included in the LAMMPS distribution and
-highlighted in "Section 7"_Section_example.html also show how to
+highlighted on the "Examples"_Examples.html doc page also show how to
 setup and run various kinds of simulations.
 
 :line
@@ -672,10 +672,10 @@ this scenario, LAMMPS is the driver code.  During its timestepping,
 the fix is invoked, and can make library calls to the other code,
 which has been linked to LAMMPS as a library.  This is the way the
 "POEMS"_poems package that performs constrained rigid-body motion on
-groups of atoms is hooked to LAMMPS.  See the
-"fix poems"_fix_poems.html command for more details.  See "this
-section"_Section_modify.html of the documentation for info on how to add
-a new fix to LAMMPS.
+groups of atoms is hooked to LAMMPS.  See the "fix
+poems"_fix_poems.html command for more details.  See the
+"Modify"_Modify.html doc page for info on how to add a new fix to
+LAMMPS.
 
 :link(poems,http://www.rpi.edu/~anderk5/lab)
 
@@ -696,8 +696,8 @@ processors to start up another program).  In the latter case the
 stand-alone code could communicate with LAMMPS thru files that the
 command writes and reads.
 
-See "Section 10"_Section_modify.html of the documentation for how
-to add a new command to LAMMPS.
+See the "Modify"_Modify.html doc page for how to add a new command to
+LAMMPS.
 
 (3) Use LAMMPS as a library called by another code.  In this case the
 other code is the driver and calls LAMMPS as needed.  Or a wrapper
@@ -1057,7 +1057,7 @@ rigid bodies composed of finite-size particles :ul
 
 Example input scripts for these kinds of models are in the body,
 colloid, dipole, ellipse, line, peri, pour, and tri directories of the
-"examples directory"_Section_example.html in the LAMMPS distribution.
+"examples directory"_Examples.html in the LAMMPS distribution.
 
 Atom styles :h4
 
@@ -1302,8 +1302,8 @@ As discussed below, LAMMPS gives you a variety of ways to determine
 what quantities are computed and printed when the thermodynamics,
 dump, or fix commands listed above perform output.  Throughout this
 discussion, note that users can also "add their own computes and fixes
-to LAMMPS"_Section_modify.html which can then generate values that can
-then be output with these commands.
+to LAMMPS"_Modify.html which can then generate values that can then be
+output with these commands.
 
 The following sub-sections discuss different LAMMPS command related
 to output and the kind of data they operate on and produce:
@@ -1824,8 +1824,8 @@ At zero temperature, it is easy to estimate these derivatives by
 deforming the simulation box in one of the six directions using the
 "change_box"_change_box.html command and measuring the change in the
 stress tensor. A general-purpose script that does this is given in the
-examples/elastic directory described in "this
-section"_Section_example.html.
+examples/elastic directory described on the "Examples"_Examples.html
+doc page.
 
 Calculating elastic constants at finite temperature is more
 challenging, because it is necessary to run a simulation that perfoms
@@ -2322,11 +2322,10 @@ Note that this compute allows the per-atom output of other
 "computes"_compute.html, "fixes"_fix.html, and
 "variables"_variable.html to be used to define chunk IDs for each
 atom.  This means you can write your own compute or fix to output a
-per-atom quantity to use as chunk ID.  See
-"Section 10"_Section_modify.html of the documentation for how to
-do this.  You can also define a "per-atom variable"_variable.html in
-the input script that uses a formula to generate a chunk ID for each
-atom.
+per-atom quantity to use as chunk ID.  See the "Modify"_Modify.html
+doc page for how to do this.  You can also define a "per-atom
+variable"_variable.html in the input script that uses a formula to
+generate a chunk ID for each atom.
 
 Fix ave/chunk command: :h4
 

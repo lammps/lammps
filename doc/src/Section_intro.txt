@@ -1,4 +1,6 @@
-"Previous Section"_Manual.html - "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next Section"_Section_start.html :c
+"Previous Section"_Manual.html - "LAMMPS WWW Site"_lws - "LAMMPS
+Documentation"_ld - "LAMMPS Commands"_lc - "Next
+Section"_Section_start.html :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
@@ -429,7 +431,7 @@ Site"_lws, or have a suggestion for something to clarify or include,
 send an email to the
 "developers"_http://lammps.sandia.gov/authors.html. :l
 
-If you find a bug, "Section 12.2"_Section_errors.html#err_2
+If you find a bug, the "Errors bugs"_Errors_bugs.html doc page
 describes how to report it. :l
 
 If you publish a paper using LAMMPS results, send the citation (and

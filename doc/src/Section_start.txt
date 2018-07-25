@@ -1,4 +1,6 @@
-"Previous Section"_Section_intro.html - "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next Section"_Section_commands.html :c
+"Previous Section"_Section_intro.html - "LAMMPS WWW Site"_lws -
+"LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next
+Section"_Section_commands.html :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
@@ -930,8 +932,8 @@ Makefile.opt :ul
 LAMMPS can be built as either a static or shared library, which can
 then be called from another application or a scripting language.  See
 "this section"_Section_howto.html#howto_10 for more info on coupling
-LAMMPS to other codes.  See "this section"_Section_python.html for
-more info on wrapping and running LAMMPS from Python.
+LAMMPS to other codes.  See the "Python"_Python.html doc page for more
+info on wrapping and running LAMMPS from Python.
 
 Static library :h4
 
@@ -955,15 +957,15 @@ dynamically loaded, e.g. from Python, type
 make foo mode=shlib :pre
 
 where foo is the machine name.  This kind of library is required when
-wrapping LAMMPS with Python; see "Section 11"_Section_python.html
-for details.  This will use the SHFLAGS and SHLIBFLAGS settings in
+wrapping LAMMPS with Python; see the "Python"_Python.html doc page for
+details.  This will use the SHFLAGS and SHLIBFLAGS settings in
 src/MAKE/Makefile.foo and perform the build in the directory
 Obj_shared_foo.  This is so that each file can be compiled with the
 -fPIC flag which is required for inclusion in a shared library.  The
 build will create the file liblammps_foo.so which another application
-can link to dynamically.  It will also create a soft link liblammps.so,
-which will point to the most recently built shared library.  This is
-the file the Python wrapper loads by default.
+can link to dynamically.  It will also create a soft link
+liblammps.so, which will point to the most recently built shared
+library.  This is the file the Python wrapper loads by default.
 
 Note that for a shared library to be usable by a calling program, all
 the auxiliary libraries it depends on must also exist as shared
@@ -1035,10 +1037,10 @@ src/library.cpp and src/library.h.
 See the sample codes in examples/COUPLE/simple for examples of C++ and
 C and Fortran codes that invoke LAMMPS thru its library interface.
 There are other examples as well in the COUPLE directory which are
-discussed in "Section 6.10"_Section_howto.html#howto_10 of the
-manual.  See "Section 11"_Section_python.html of the manual for a
-description of the Python wrapper provided with LAMMPS that operates
-through the LAMMPS library interface.
+discussed in "Section 6.10"_Section_howto.html#howto_10 of the manual.
+See the "Python"_Python.html doc page for a description of the Python
+wrapper provided with LAMMPS that operates through the LAMMPS library
+interface.
 
 The files src/library.cpp and library.h define the C-style API for
 using LAMMPS as a library.  See "Section
@@ -1177,7 +1179,7 @@ than your working directory, which is probably not what you want.
 
 If LAMMPS encounters errors in the input script or while running a
 simulation it will print an ERROR message and stop or a WARNING
-message and continue.  See "Section 12"_Section_errors.html for a
+message and continue.  See the "Errors"_Errors.html doc page for a
 discussion of the various kinds of errors LAMMPS can or can't detect,
 a list of all ERROR and WARNING messages, and what to do about them.
 

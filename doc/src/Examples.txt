@@ -2,12 +2,6 @@
 "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next
 Section"_Section_perf.html :c
 
-<!-- future sequence of sections:
-"Previous Section"_Speed.html - "LAMMPS WWW Site"_lws -
-"LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next
-Section"_Python.html :c
--->
-
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
 :link(lc,Section_commands.html#comm)

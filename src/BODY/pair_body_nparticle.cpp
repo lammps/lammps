@@ -15,7 +15,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_body.h"
+#include "pair_body_nparticle.h"
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_body.h"
@@ -32,7 +32,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairBody::PairBody(LAMMPS *lmp) : Pair(lmp)
+PairBodyNparticle::PairBodyNparticle(LAMMPS *lmp) : Pair(lmp)
 {
   dmax = nmax = 0;
   discrete = NULL;
@@ -44,7 +44,7 @@ PairBody::PairBody(LAMMPS *lmp) : Pair(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-PairBody::~PairBody()
+PairBodyNparticle::~PairBodyNparticle()
 {
   memory->destroy(discrete);
   memory->destroy(dnum);
@@ -66,7 +66,7 @@ PairBody::~PairBody()
 
 /* ---------------------------------------------------------------------- */
 
-void PairBody::compute(int eflag, int vflag)
+void PairBodyNparticle::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   int ni,nj,npi,npj,ifirst,jfirst;
@@ -336,7 +336,7 @@ void PairBody::compute(int eflag, int vflag)
    allocate all arrays
 ------------------------------------------------------------------------- */
 
-void PairBody::allocate()
+void PairBodyNparticle::allocate()
 {
   allocated = 1;
   int n = atom->ntypes;
@@ -361,7 +361,7 @@ void PairBody::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairBody::settings(int narg, char **arg)
+void PairBodyNparticle::settings(int narg, char **arg)
 {
   if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
@@ -381,7 +381,7 @@ void PairBody::settings(int narg, char **arg)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairBody::coeff(int narg, char **arg)
+void PairBodyNparticle::coeff(int narg, char **arg)
 {
   if (narg < 4 || narg > 5)
     error->all(FLERR,"Incorrect args for pair coefficients");
@@ -415,12 +415,12 @@ void PairBody::coeff(int narg, char **arg)
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-void PairBody::init_style()
+void PairBodyNparticle::init_style()
 {
   avec = (AtomVecBody *) atom->style_match("body");
-  if (!avec) error->all(FLERR,"Pair body requires atom style body");
+  if (!avec) error->all(FLERR,"Pair body/nparticle requires atom style body");
   if (strcmp(avec->bptr->style,"nparticle") != 0)
-    error->all(FLERR,"Pair body requires body style nparticle");
+    error->all(FLERR,"Pair body/nparticle requires body style nparticle");
   bptr = (BodyNparticle *) avec->bptr;
 
   neighbor->request(this,instance_me);
@@ -430,7 +430,7 @@ void PairBody::init_style()
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairBody::init_one(int i, int j)
+double PairBodyNparticle::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) {
     epsilon[i][j] = mix_energy(epsilon[i][i],epsilon[j][j],
@@ -459,7 +459,7 @@ double PairBody::init_one(int i, int j)
    store sub-particle space-frame displacements from COM in discrete list
 ------------------------------------------------------------------------- */
 
-void PairBody::body2space(int i)
+void PairBodyNparticle::body2space(int i)
 {
   int ibonus = atom->body[i];
   AtomVecBody::Bonus *bonus = &avec->bonus[ibonus];

@@ -58,6 +58,9 @@ namespace GPU_EXTRA {
       else if (all_success == -11)
         error->all(FLERR,
                    "Invalid custom OpenCL parameter string.");
+      else if (all_success == -12)
+        error->all(FLERR,
+                   "Invalid OpenCL platform ID.");
       else
         error->all(FLERR,"Unknown error in GPU library");
     }

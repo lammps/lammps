@@ -1,4 +1,4 @@
-"Previous Section"_Section_errors.html - "LAMMPS WWW Site"_lws -
+"Previous Section"_Errors.html - "LAMMPS WWW Site"_lws -
 "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next
 Section"_Manual.html :c
 

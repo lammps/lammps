@@ -1,4 +1,6 @@
-"Previous Section"_Section_howto.html - "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next Section"_Section_perf.html :c
+"Previous Section"_Section_howto.html - "LAMMPS WWW Site"_lws -
+"LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next
+Section"_Section_perf.html :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
@@ -6,7 +8,7 @@
 
 :line
 
-7. Example problems :h2
+Example scripts :h3
 
 The LAMMPS distribution includes an examples sub-directory with many
 sample problems.  Many are 2d models that run quickly are are
@@ -46,7 +48,7 @@ Lists of both kinds of directories are given below.
 
 :line
 
-Lowercase directories :h3
+Lowercase directories :h4
 
 accelerate: run with various acceleration options (OpenMP, GPU, Phi)
 airebo:   polyethylene with AIREBO potential
@@ -122,7 +124,7 @@ browser.
 
 :line
 
-Uppercase directories :h3
+Uppercase directories :h4
 
 ASPHERE: various aspherical particle models, using ellipsoids, rigid bodies, line/triangle particles, etc
 COUPLE: examples of how to use LAMMPS as a library

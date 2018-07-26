@@ -1589,6 +1589,7 @@ void FixGCMC::attempt_atomic_deletion_full()
     }
   }
   if (force->kspace) force->kspace->qsum_qsq();
+  if (force->pair->tail_flag) force->pair->reinit();
   double energy_after = energy_full();
 
   if (random_equal->uniform() <
@@ -1607,6 +1608,7 @@ void FixGCMC::attempt_atomic_deletion_full()
       if (q_flag) atom->q[i] = q_tmp;
     }
     if (force->kspace) force->kspace->qsum_qsq();
+    if (force->pair->tail_flag) force->pair->reinit();
     energy_stored = energy_before;
   }
   update_gas_atoms_list();
@@ -1700,6 +1702,7 @@ void FixGCMC::attempt_atomic_insertion_full()
   comm->borders();
   if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
   if (force->kspace) force->kspace->qsum_qsq();
+  if (force->pair->tail_flag) force->pair->reinit();
   double energy_after = energy_full();
 
   if (energy_after < MAXENERGYTEST &&
@@ -1712,6 +1715,7 @@ void FixGCMC::attempt_atomic_insertion_full()
     atom->natoms--;
     if (proc_flag) atom->nlocal--;
     if (force->kspace) force->kspace->qsum_qsq();
+    if (force->pair->tail_flag) force->pair->reinit();
     energy_stored = energy_before;
   }
   update_gas_atoms_list();
@@ -1949,6 +1953,7 @@ void FixGCMC::attempt_molecule_deletion_full()
     }
   }
   if (force->kspace) force->kspace->qsum_qsq();
+  if (force->pair->tail_flag) force->pair->reinit();
   double energy_after = energy_full();
 
   // energy_before corrected by energy_intra
@@ -1981,6 +1986,7 @@ void FixGCMC::attempt_molecule_deletion_full()
       }
     }
     if (force->kspace) force->kspace->qsum_qsq();
+    if (force->pair->tail_flag) force->pair->reinit();
   }
   update_gas_atoms_list();
   delete[] tmpmask;
@@ -2151,6 +2157,7 @@ void FixGCMC::attempt_molecule_insertion_full()
   comm->borders();
   if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
   if (force->kspace) force->kspace->qsum_qsq();
+  if (force->pair->tail_flag) force->pair->reinit();
   double energy_after = energy_full();
 
   // energy_after corrected by energy_intra
@@ -2181,6 +2188,7 @@ void FixGCMC::attempt_molecule_insertion_full()
       } else i++;
     }
     if (force->kspace) force->kspace->qsum_qsq();
+    if (force->pair->tail_flag) force->pair->reinit();
   }
   update_gas_atoms_list();
 }

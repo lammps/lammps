@@ -67,7 +67,7 @@ values are not desired, the "processors"_processors.html and
 tell LAMMPS how to map processors to the simulation box.
 
 Many input script errors are detected by LAMMPS and an ERROR or
-WARNING message is printed.  "This section"_Section_errors.html gives
+WARNING message is printed.  The "Errors"_Errors.html doc page gives
 more information on what errors mean.  The documentation for each
 command lists restrictions on how the command can be used.
 
@@ -204,10 +204,10 @@ allowed, but that should be sufficient for most use cases.
 3.3 Input script structure :h3,link(cmd_3)
 
 This section describes the structure of a typical LAMMPS input script.
-The "examples" directory in the LAMMPS distribution contains many
-sample input scripts; the corresponding problems are discussed in
-"Section 7"_Section_example.html, and animated on the "LAMMPS
-WWW Site"_lws.
+The examples directory in the LAMMPS distribution contains many sample
+input scripts; the corresponding problems are discussed on the
+"Examples"_Examples.html doc page, and animated on the "LAMMPS WWW
+Site"_lws.
 
 A LAMMPS input script typically has 4 parts:
 
@@ -678,6 +678,8 @@ USER-INTEL, k = KOKKOS, o = USER-OMP, t = OPT.
 "vector"_fix_vector.html,
 "viscosity"_fix_viscosity.html,
 "viscous"_fix_viscous.html,
+"wall/body/polygon"_fix_wall_body_polygon.html,
+"wall/body/polyhedron"_fix_wall_body_polyhedron.html,
 "wall/colloid"_fix_wall.html,
 "wall/gran"_fix_wall_gran.html,
 "wall/gran/region"_fix_wall_gran_region.html,
@@ -931,7 +933,9 @@ KOKKOS, o = USER-OMP, t = OPT.
 "airebo/morse (oi)"_pair_airebo.html,
 "atm"_pair_atm.html,
 "beck (go)"_pair_beck.html,
-"body"_pair_body.html,
+"body/nparticle"_pair_body_nparticle.html,
+"body/rounded/polygon"_pair_body_rounded/polygon.html,
+"body/rounded/polyhedron"_pair_body_rounded/polyhedron.html,
 "bop"_pair_bop.html,
 "born (go)"_pair_born.html,
 "born/coul/dsf"_pair_born.html,

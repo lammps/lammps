@@ -41,17 +41,17 @@ gamma3 are as shown in this diagram:
 
 Note that for the interaction between a triplet of atoms I,J,K, there
 is no "central" atom.  The interaction is symmetric with respect to
-permutation of the three atoms.  In fact, it is computed 3 times by
-the code with each of I,J,K being atom 1.  Thus the nu value must be
-the same for all those permutations of the atom types of I,J,K as
-discussed below.
+permutation of the three atoms. Thus the nu value is
+the same for all those permutations of the atom types of I,J,K
+and needs to be specified only once, as discussed below.
 
 The {atm} potential is typically used in combination with a two-body
 potential using the "pair_style hybrid/overlay"_pair_hybrid.html
 command as in the example above.
 
-The potential for a triplet of atom is calculated only if all 3
-distances r12, r23, r31 between the 3 atoms satisfy rIJ < cutoff.
+The potential is calculated if atoms J and K are in the
+"neighbor list"_neighbor.html of atom I
+and the distances between atoms satisfy rIJ rJK rKI > cutoff^3.
 
 The following coefficients must be defined for each pair of atoms
 types via the "pair_coeff"_pair_coeff.html command as in the examples
@@ -88,7 +88,7 @@ pair_coeff 2 3 4 0.1 :pre
 Note that for a simulation with a single atom type, only a single
 entry is required, e.g.
 
-pair_coeff 1 1 1 0.25 :per
+pair_coeff 1 1 1 0.25 :pre
 
 For a simulation with two atom types, four pair_coeff commands will
 specify all possible nu values:

@@ -64,6 +64,11 @@ E: Incorrect args for pair coefficients
 
 Self-explanatory.  Check the input script or data file.
 
+E: Pair style ATM requires newton pair on
+
+See the newton command.  This is a restriction to use the ATM
+potential.
+
 E: All pair coeffs are not set
 
 All pair coefficients must be set in the data file or by the

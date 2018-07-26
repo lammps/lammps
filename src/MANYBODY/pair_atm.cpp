@@ -91,8 +91,8 @@ void PairATM::compute(int eflag, int vflag)
   double **f = atom->f;
   int *type = atom->type;
 
-  double cutoffsq = cut_global*cut_global;
-
+  double cutoff_sixth = cut_global*cut_global;
+  cutoff_sixth = cutoff_sixth*cutoff_sixth*cutoff_sixth;
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
@@ -112,26 +112,32 @@ void PairATM::compute(int eflag, int vflag)
       j = jlist[jj];
       j &= NEIGHMASK;
       rij[0] = x[j][0] - xi;
+      if (rij[0] < 0.0) continue;
       rij[1] = x[j][1] - yi;
+      if (rij[0] == 0.0 and rij[1] < 0.0) continue;
       rij[2] = x[j][2] - zi;
+      if (rij[0] == 0.0 and rij[1] == 0.0 and rij[2] < 0.0) continue;
       rij2 = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
 
       for (kk = jj+1; kk < jnum; kk++) {
         k = jlist[kk];
         k &= NEIGHMASK;
 
+        rjk[0] = x[k][0] - x[j][0];
+        if (rjk[0] < 0.0) continue;
+        rjk[1] = x[k][1] - x[j][1];
+        if (rjk[0] == 0.0 and rjk[1] < 0.0) continue;
+        rjk[2] = x[k][2] - x[j][2];
+        if (rjk[0] == 0.0 and rjk[1] == 0.0 and rjk[2] < 0.0) continue;
+        rjk2 = rjk[0]*rjk[0] + rjk[1]*rjk[1] + rjk[2]*rjk[2];
+
         rik[0] = x[k][0] - xi;
         rik[1] = x[k][1] - yi;
         rik[2] = x[k][2] - zi;
         rik2 = rik[0]*rik[0] + rik[1]*rik[1] + rik[2]*rik[2];
 
-        rjk[0] = x[k][0] - x[j][0];
-        rjk[1] = x[k][1] - x[j][1];
-        rjk[2] = x[k][2] - x[j][2];
-        rjk2 = rjk[0]*rjk[0] + rjk[1]*rjk[1] + rjk[2]*rjk[2];
-
         r6 = rij2*rik2*rjk2;
-        if (r6 > cutoffsq) continue;
+        if (r6 > cutoff_sixth) continue;
 
         nu_local = nu[type[i]][type[j]][type[k]];
         if (nu_local == 0.0) continue;
@@ -228,6 +234,9 @@ void PairATM::coeff(int narg, char **arg)
 
 void PairATM::init_style()
 {
+  if (force->newton_pair == 0)
+    error->all(FLERR,"Pair style ATM requires newton pair on");
+
   // need a full neighbor list
 
   int irequest = neighbor->request(this,instance_me);
@@ -258,6 +267,21 @@ double PairATM::init_one(int i, int j)
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
+// 
+// PLEASE HELP!
+// 
+// From the pair_hybrid documentation: 
+// 
+// "For the hybrid pair styles, the list of sub-styles and their respective
+// settings are written to binary restart files, so a pair_style command
+// does not need to specified in an input script that reads a restart file.
+// However, the coefficient information is not stored in the restart file.
+// Thus, pair_coeff commands need to be re-specified in the restart input
+// script."
+// 
+// As a result, the function "PairATM::write_restart" is not called from
+// "pair_hybrid.cpp". What is the best way to deal with this problem?
+// 
 void PairATM::write_restart(FILE *fp)
 {
   write_restart_settings(fp);

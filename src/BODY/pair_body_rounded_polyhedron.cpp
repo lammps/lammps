@@ -2079,6 +2079,7 @@ void PairBodyRoundedPolyhedron::distance_bt_edges(const double* x1,
 
     double s1,s2,x13[3],x23[3],x13h[3];
     double t13,t23,t31,t41,x31[3],x41[3];
+    t13=t23=t31=t41=0.0;
     
     MathExtra::sub3(x1,x3,x13); // x13 = x1 - x3
     MathExtra::sub3(x2,x3,x23); // x23 = x2 - x3

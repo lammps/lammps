@@ -901,6 +901,11 @@ if(BUILD_EXE)
 endif()
 
 ###############################################################################
+# Install potential files in data directory
+###############################################################################
+install(DIRECTORY ${LAMMPS_SOURCE_DIR}/../potentials DESTINATION ${CMAKE_INSTALL_DATADIR}/lammps)
+
+###############################################################################
 # Testing
 #
 # Requires latest gcovr (for GCC 8.1 support):#

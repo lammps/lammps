@@ -34,8 +34,7 @@ This fix allows external programs that are running LAMMPS through its
 "library interface"_Section_howto.html#howto_19 to modify certain
 LAMMPS properties on specific timesteps, similar to the way other
 fixes do.  The external driver can be a "C/C++ or Fortran
-program"_Section_howto.html#howto_19 or a "Python
-script"_Section_python.html.
+program"_Section_howto.html#howto_19 or a "Python script"_Python.html.
 
 :line
 

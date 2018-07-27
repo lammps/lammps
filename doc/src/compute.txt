@@ -153,8 +153,8 @@ via the "compute_modify"_compute_modify.html command.
 
 Computes can be deleted with the "uncompute"_uncompute.html command.
 
-Code for new computes can be added to LAMMPS (see "this
-section"_Section_modify.html of the manual) and the results of their
+Code for new computes can be added to LAMMPS; see the
+"Modify"_Modify.html doc page for details.  The results of their
 calculations accessed in the various ways described above.
 
 :line

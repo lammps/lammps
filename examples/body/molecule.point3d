@@ -1,0 +1,26 @@
+# 2d polygon body: disks Izz = 1/2 m radius^2
+
+1 atoms
+3 10 body
+
+Coords
+
+1 0 0 0
+
+Types
+
+1 1
+
+Masses
+
+1 1.0
+
+Body Integers
+
+1 0 0
+
+Body Doubles
+
+1 1 1.125 0 0 0
+0 0 0 
+3.0

@@ -126,9 +126,8 @@ and interleaving commands in your input script.  For example, a
 be redefined, e.g. to reset a thermostat temperature.  Or this could
 be useful for invoking a command you have added to LAMMPS that wraps
 some other code (e.g. as a library) to perform a computation
-periodically during a long LAMMPS run.  See "this
-section"_Section_modify.html of the documentation for info about how
-to add new commands to LAMMPS.  See "this
+periodically during a long LAMMPS run.  See the "Modify"_Modify.html
+doc page for info about how to add new commands to LAMMPS.  See "this
 section"_Section_howto.html#howto_10 of the documentation for ideas
 about how to couple LAMMPS to other codes.
 

@@ -641,18 +641,15 @@ int FixWallBodyPolygon::compute_distance_to_wall(double* x0, double rradi,
     mode = VERTEX;
     contact = 1;
   } else {
+    mode = NONE;
     if (side == XLO) {
       if (x0[0] < wall_pos) mode = VERTEX;
-      else mode = NONE;
     } else if (side == XHI) {
       if (x0[0] > wall_pos) mode = VERTEX;
-      else mode = NONE;
     } else if (side == YLO) {
       if (x0[1] < wall_pos) mode = VERTEX;
-      else mode = NONE;
     } else if (side == YHI) {
       if (x0[1] > wall_pos) mode = VERTEX;
-      else mode = NONE;
     }
   }
 

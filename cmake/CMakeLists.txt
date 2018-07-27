@@ -950,7 +950,7 @@ if(BUILD_DOC)
   )
 
   add_custom_target(
-    doc
+    doc ALL
     DEPENDS html
     SOURCES ${LAMMPS_DOC_DIR}/utils/requirements.txt ${DOC_SOURCES}
   )

@@ -685,7 +685,7 @@ void PairBodyRoundedPolyhedron::sphere_against_edge(int ibody, int jbody,
 {
   int ni,nei,ifirst,iefirst,npi1,npi2,ibonus;
   double xi1[3],xi2[3],vti[3],h[3],fn[3],ft[3],d,t;
-  double delx,dely,delz,rij,rsqinv,R,fx,fy,fz,fpair,shift,energy;
+  double delx,dely,delz,rsq,rij,rsqinv,R,fx,fy,fz,fpair,shift,energy;
   double rradi,rradj,contact_dist;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
   double *quat, *inertia;
@@ -749,7 +749,9 @@ void PairBodyRoundedPolyhedron::sphere_against_edge(int ibody, int jbody,
     delx = h[0] - x[jbody][0];
     dely = h[1] - x[jbody][1];
     delz = h[2] - x[jbody][2];
-    rij = sqrt(delx*delx + dely*dely + delz*delz);
+    rsq = delx*delx + dely*dely + delz*delz;
+    rsqinv = (rsq == 0.0) ? 0.0 : 1.0/rsq;
+    rij = sqrt(rsq);
     R = rij - contact_dist;
 
     energy = 0;

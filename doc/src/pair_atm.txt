@@ -130,6 +130,10 @@ mix, shift, table, and tail options.
 This pair style writes its information to "binary restart
 files"_restart.html, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
+However, if the {atm} potential is used in combination with other
+potentials using the "pair_style hybrid/overlay"_pair_hybrid.html
+command then pair_coeff commands need to be re-specified
+in the restart input script.
 
 This pair style can only be used via the {pair} keyword of the
 "run_style respa"_run_style.html command.  It does not support the

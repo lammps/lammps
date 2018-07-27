@@ -267,21 +267,6 @@ double PairATM::init_one(int i, int j)
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-// 
-// PLEASE HELP!
-// 
-// From the pair_hybrid documentation: 
-// 
-// "For the hybrid pair styles, the list of sub-styles and their respective
-// settings are written to binary restart files, so a pair_style command
-// does not need to specified in an input script that reads a restart file.
-// However, the coefficient information is not stored in the restart file.
-// Thus, pair_coeff commands need to be re-specified in the restart input
-// script."
-// 
-// As a result, the function "PairATM::write_restart" is not called from
-// "pair_hybrid.cpp". What is the best way to deal with this problem?
-// 
 void PairATM::write_restart(FILE *fp)
 {
   write_restart_settings(fp);

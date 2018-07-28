@@ -961,7 +961,16 @@ endif()
 ###############################################################################
 # Install potential files in data directory
 ###############################################################################
-install(DIRECTORY ${LAMMPS_SOURCE_DIR}/../potentials DESTINATION ${CMAKE_INSTALL_DATADIR}/lammps)
+set(LAMMPS_POTENTIALS_DIR ${CMAKE_INSTALL_FULL_DATADIR}/lammps/potentials)
+install(DIRECTORY ${LAMMPS_SOURCE_DIR}/../potentials DESTINATION ${CMAKE_INSTALL_DATADIR}/lammps/potentials)
+
+configure_file(etc/profile.d/lammps.sh.in ${CMAKE_BINARY_DIR}/etc/profile.d/lammps.sh @ONLY)
+configure_file(etc/profile.d/lammps.csh.in ${CMAKE_BINARY_DIR}/etc/profile.d/lammps.csh @ONLY)
+install(
+  FILES ${CMAKE_BINARY_DIR}/etc/profile.d/lammps.sh
+        ${CMAKE_BINARY_DIR}/etc/profile.d/lammps.csh
+  DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/profile.d
+)
 
 ###############################################################################
 # Testing

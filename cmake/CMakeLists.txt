@@ -920,12 +920,15 @@ if(BUILD_DOC)
     OUTPUT docenv
     COMMAND ${VIRTUALENV} docenv
   )
+
+  set(DOCENV_BINARY_DIR ${CMAKE_BINARY_DIR}/docenv/bin)
+
   add_custom_command(
     OUTPUT requirements.txt
     DEPENDS docenv
     COMMAND ${CMAKE_COMMAND} -E copy ${LAMMPS_DOC_DIR}/utils/requirements.txt requirements.txt
-    COMMAND ./docenv/bin/pip install -r requirements.txt --upgrade
-    COMMAND ./docenv/bin/pip install --upgrade ${LAMMPS_DOC_DIR}/utils/converters
+    COMMAND ${DOCENV_BINARY_DIR}/pip install -r requirements.txt --upgrade
+    COMMAND ${DOCENV_BINARY_DIR}/pip install --upgrade ${LAMMPS_DOC_DIR}/utils/converters
   )
 
   set(RST_FILES "")
@@ -938,7 +941,7 @@ if(BUILD_DOC)
     add_custom_command(
       OUTPUT ${RST_FILE}
       DEPENDS requirements.txt docenv ${TXT_FILE}
-      COMMAND ./docenv/bin/txt2rst -o ${RST_DIR} ${TXT_FILE}
+      COMMAND ${DOCENV_BINARY_DIR}/txt2rst -o ${RST_DIR} ${TXT_FILE}
     )
   endforeach()
 
@@ -946,7 +949,7 @@ if(BUILD_DOC)
     OUTPUT html
     DEPENDS ${RST_FILES}
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${LAMMPS_DOC_DIR}/src ${RST_DIR}
-    COMMAND ./docenv/bin/sphinx-build -j ${NPROCS} -b html -c ${LAMMPS_DOC_DIR}/utils/sphinx-config -d ${CMAKE_BINARY_DIR}/doctrees ${RST_DIR} html
+    COMMAND ${DOCENV_BINARY_DIR}/sphinx-build -j ${NPROCS} -b html -c ${LAMMPS_DOC_DIR}/utils/sphinx-config -d ${CMAKE_BINARY_DIR}/doctrees ${RST_DIR} html
   )
 
   add_custom_target(

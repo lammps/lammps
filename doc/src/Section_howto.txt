@@ -1,4 +1,4 @@
-"Previous Section"_Section_accelerate.html - "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next Section"_Section_example.html :c
+"Previous Section"_Section_accelerate.html - "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next Section"_Examples.html :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
@@ -40,7 +40,7 @@ This section describes how to perform common tasks using LAMMPS.
 6.28 "Magnetic spins"_#howto_28 :all(b)
 
 The example input scripts included in the LAMMPS distribution and
-highlighted in "Section 7"_Section_example.html also show how to
+highlighted on the "Examples"_Examples.html doc page also show how to
 setup and run various kinds of simulations.
 
 :line
@@ -188,9 +188,9 @@ used in the CHARMM, AMBER, and DREIDING force fields.  Setting
 coefficients is done in the input data file via the
 "read_data"_read_data.html command or in the input script with
 commands like "pair_coeff"_pair_coeff.html or
-"bond_coeff"_bond_coeff.html.  See "Section 9"_Section_tools.html
-for additional tools that can use CHARMM or AMBER to assign force
-field coefficients and convert their output into LAMMPS input.
+"bond_coeff"_bond_coeff.html.  See the "Tools"_Tools.html doc page for
+additional tools that can use CHARMM or AMBER to assign force field
+coefficients and convert their output into LAMMPS input.
 
 See "(MacKerell)"_#howto-MacKerell for a description of the CHARMM force
 field.  See "(Cornell)"_#howto-Cornell for a description of the AMBER force
@@ -672,10 +672,10 @@ this scenario, LAMMPS is the driver code.  During its timestepping,
 the fix is invoked, and can make library calls to the other code,
 which has been linked to LAMMPS as a library.  This is the way the
 "POEMS"_poems package that performs constrained rigid-body motion on
-groups of atoms is hooked to LAMMPS.  See the
-"fix poems"_fix_poems.html command for more details.  See "this
-section"_Section_modify.html of the documentation for info on how to add
-a new fix to LAMMPS.
+groups of atoms is hooked to LAMMPS.  See the "fix
+poems"_fix_poems.html command for more details.  See the
+"Modify"_Modify.html doc page for info on how to add a new fix to
+LAMMPS.
 
 :link(poems,http://www.rpi.edu/~anderk5/lab)
 
@@ -696,8 +696,8 @@ processors to start up another program).  In the latter case the
 stand-alone code could communicate with LAMMPS thru files that the
 command writes and reads.
 
-See "Section 10"_Section_modify.html of the documentation for how
-to add a new command to LAMMPS.
+See the "Modify"_Modify.html doc page for how to add a new command to
+LAMMPS.
 
 (3) Use LAMMPS as a library called by another code.  In this case the
 other code is the driver and calls LAMMPS as needed.  Or a wrapper
@@ -731,10 +731,10 @@ any other language that supports a vanilla C-like interface).  For
 example, from C++ you could create one (or more) "instances" of
 LAMMPS, pass it an input script to process, or execute individual
 commands, all by invoking the correct class methods in LAMMPS.  From C
-or Fortran you can make function calls to do the same things.  See
-"Section 11"_Section_python.html of the manual for a description
-of the Python wrapper provided with LAMMPS that operates through the
-LAMMPS library interface.
+or Fortran you can make function calls to do the same things.  See the
+"Python"_Python.html doc page for a description of the Python wrapper
+provided with LAMMPS that operates through the LAMMPS library
+interface.
 
 The files src/library.cpp and library.h contain the C-style interface
 to LAMMPS.  See "Section 6.19"_Section_howto.html#howto_19 of the
@@ -762,12 +762,12 @@ simulations can be visualized (and analyzed) in a variety of ways.
 LAMMPS snapshots are created by the "dump"_dump.html command which can
 create files in several formats. The native LAMMPS dump format is a
 text file (see "dump atom" or "dump custom") which can be visualized
-by several popular visualization tools. The "dump image"_dump_image.html
-and "dump movie"_dump_image.html styles can output internally rendered
-images and convert a sequence of them to a movie during the MD run.
-Several programs included with LAMMPS as auxiliary tools can convert
-between LAMMPS format files and other formats.
-See the "Section 9"_Section_tools.html doc page for details.
+by several popular visualization tools. The "dump
+image"_dump_image.html and "dump movie"_dump_image.html styles can
+output internally rendered images and convert a sequence of them to a
+movie during the MD run.  Several programs included with LAMMPS as
+auxiliary tools can convert between LAMMPS format files and other
+formats.  See the "Tools"_Tools.html doc page for details.
 
 A Python-based toolkit distributed by our group can read native LAMMPS
 dump files, including custom dump files with additional columns of
@@ -1057,7 +1057,7 @@ rigid bodies composed of finite-size particles :ul
 
 Example input scripts for these kinds of models are in the body,
 colloid, dipole, ellipse, line, peri, pour, and tri directories of the
-"examples directory"_Section_example.html in the LAMMPS distribution.
+"examples directory"_Examples.html in the LAMMPS distribution.
 
 Atom styles :h4
 
@@ -1302,8 +1302,8 @@ As discussed below, LAMMPS gives you a variety of ways to determine
 what quantities are computed and printed when the thermodynamics,
 dump, or fix commands listed above perform output.  Throughout this
 discussion, note that users can also "add their own computes and fixes
-to LAMMPS"_Section_modify.html which can then generate values that can
-then be output with these commands.
+to LAMMPS"_Modify.html which can then generate values that can then be
+output with these commands.
 
 The following sub-sections discuss different LAMMPS command related
 to output and the kind of data they operate on and produce:
@@ -1824,8 +1824,8 @@ At zero temperature, it is easy to estimate these derivatives by
 deforming the simulation box in one of the six directions using the
 "change_box"_change_box.html command and measuring the change in the
 stress tensor. A general-purpose script that does this is given in the
-examples/elastic directory described in "this
-section"_Section_example.html.
+examples/elastic directory described on the "Examples"_Examples.html
+doc page.
 
 Calculating elastic constants at finite temperature is more
 challenging, because it is necessary to run a simulation that perfoms
@@ -1843,10 +1843,10 @@ converge and requires careful post-processing "(Shinoda)"_#Shinoda1
 
 6.19 Library interface to LAMMPS :link(howto_19),h4
 
-As described in "Section 2.5"_Section_start.html#start_5, LAMMPS
-can be built as a library, so that it can be called by another code,
-used in a "coupled manner"_Section_howto.html#howto_10 with other
-codes, or driven through a "Python interface"_Section_python.html.
+As described in "Section 2.5"_Section_start.html#start_5, LAMMPS can
+be built as a library, so that it can be called by another code, used
+in a "coupled manner"_Section_howto.html#howto_10 with other codes, or
+driven through a "Python interface"_Python.html.
 
 All of these methodologies use a C-style interface to LAMMPS that is
 provided in the files src/library.cpp and src/library.h.  The
@@ -1869,9 +1869,9 @@ details.
 
 NOTE: You can write code for additional functions as needed to define
 how your code talks to LAMMPS and add them to src/library.cpp and
-src/library.h, as well as to the "Python
-interface"_Section_python.html.  The added functions can access or
-change any internal LAMMPS data you wish.
+src/library.h, as well as to the "Python interface"_Python.html.  The
+added functions can access or change any internal LAMMPS data you
+wish.
 
 void lammps_open(int, char **, MPI_Comm, void **)
 void lammps_open_no_mpi(int, char **, void **)
@@ -2322,11 +2322,10 @@ Note that this compute allows the per-atom output of other
 "computes"_compute.html, "fixes"_fix.html, and
 "variables"_variable.html to be used to define chunk IDs for each
 atom.  This means you can write your own compute or fix to output a
-per-atom quantity to use as chunk ID.  See
-"Section 10"_Section_modify.html of the documentation for how to
-do this.  You can also define a "per-atom variable"_variable.html in
-the input script that uses a formula to generate a chunk ID for each
-atom.
+per-atom quantity to use as chunk ID.  See the "Modify"_Modify.html
+doc page for how to do this.  You can also define a "per-atom
+variable"_variable.html in the input script that uses a formula to
+generate a chunk ID for each atom.
 
 Fix ave/chunk command: :h4
 

@@ -65,6 +65,7 @@ PairDPDfdtEnergy::~PairDPDfdtEnergy()
     memory->destroy(a0);
     memory->destroy(sigma);
     memory->destroy(kappa);
+    memory->destroy(alpha);
     memory->destroy(duCond);
     memory->destroy(duMech);
   }
@@ -269,7 +270,7 @@ void PairDPDfdtEnergy::compute(int eflag, int vflag)
           // Compute uCond
           randnum = random->gaussian();
           kappa_ij = kappa[itype][jtype];
-          alpha_ij = sqrt(2.0*force->boltz*kappa_ij);
+          alpha_ij = alpha[itype][jtype];
           randPair = alpha_ij*wr*randnum*dtinvsqrt;
 
           uTmp = kappa_ij*(1.0/dpdTheta[i] - 1.0/dpdTheta[j])*wd;
@@ -322,6 +323,7 @@ void PairDPDfdtEnergy::allocate()
   memory->create(a0,n+1,n+1,"pair:a0");
   memory->create(sigma,n+1,n+1,"pair:sigma");
   memory->create(kappa,n+1,n+1,"pair:kappa");
+  memory->create(alpha,n+1,n+1,"pair:alpha");
   if (!splitFDT_flag) {
     memory->create(duCond,nlocal+nghost+1,"pair:duCond");
     memory->create(duMech,nlocal+nghost+1,"pair:duMech");
@@ -374,11 +376,12 @@ void PairDPDfdtEnergy::coeff(int narg, char **arg)
   double a0_one = force->numeric(FLERR,arg[2]);
   double sigma_one = force->numeric(FLERR,arg[3]);
   double cut_one = cut_global;
-  double kappa_one;
+  double kappa_one, alpha_one;
 
   a0_is_zero = (a0_one == 0.0); // Typical use with SSA is to set a0 to zero
 
   kappa_one = force->numeric(FLERR,arg[4]);
+  alpha_one = sqrt(2.0*force->boltz*kappa_one);
   if (narg == 6) cut_one = force->numeric(FLERR,arg[5]);
 
   int count = 0;
@@ -387,6 +390,7 @@ void PairDPDfdtEnergy::coeff(int narg, char **arg)
       a0[i][j] = a0_one;
       sigma[i][j] = sigma_one;
       kappa[i][j] = kappa_one;
+      alpha[i][j] = alpha_one;
       cut[i][j] = cut_one;
       setflag[i][j] = 1;
       count++;
@@ -435,6 +439,7 @@ double PairDPDfdtEnergy::init_one(int i, int j)
   a0[j][i] = a0[i][j];
   sigma[j][i] = sigma[i][j];
   kappa[j][i] = kappa[i][j];
+  alpha[j][i] = alpha[i][j];
 
   return cut[i][j];
 }
@@ -488,6 +493,7 @@ void PairDPDfdtEnergy::read_restart(FILE *fp)
         MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&kappa[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
+        alpha[i][j] = sqrt(2.0*force->boltz*kappa[i][j]);
         a0_is_zero = a0_is_zero && (a0[i][j] == 0.0); // verify the zero assumption
       }
     }

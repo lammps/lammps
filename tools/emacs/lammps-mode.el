@@ -242,12 +242,5 @@
   (setq lammps-comment-regexp nil)
   (setq lammps-variable-regexp nil))
 
-;; apply it to specified filename patterns
-(setq auto-mode-alist
- (append auto-mode-alist
-  '(("in\\." . lammps-mode))
-  '(("\\.lmp\\'" . lammps-mode))
-  ))
-
 (provide 'lammps-mode)
 ;;; lammps-mode.el ends here

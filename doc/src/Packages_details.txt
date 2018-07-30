@@ -1,6 +1,5 @@
-"Previous Section"_Section_commands.html - "LAMMPS WWW Site"_lws -
-"LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next
-Section"_Section_accelerate.html :c
+"Higher level section"_Packages.html - "LAMMPS WWW Site"_lws - "LAMMPS
+Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
@@ -8,152 +7,89 @@ Section"_Section_accelerate.html :c
 
 :line
 
-4. Packages :h2
+Package details :h3
 
-This section gives an overview of the optional packages that extend
-LAMMPS functionality with instructions on how to build LAMMPS with
-each of them.  Packages are groups of files that enable a specific set
-of features.  For example, force fields for molecular systems or
-granular systems are in packages.  You can see the list of all
-packages and "make" commands to manage them by typing "make package"
-from within the src directory of the LAMMPS distribution.  "Section
-2.3"_Section_start.html#start_3 gives general info on how to install
-and un-install packages as part of the LAMMPS build process.
-
-There are two kinds of packages in LAMMPS, standard and user packages:
-
-"Table of standard packages"_#table_standard
-"Table of user packages"_#table_user :ul
-
-Either of these kinds of packages may work as is, may require some
-additional code compiled located in the lib folder, or may require
-an external library to be downloaded, compiled, installed, and LAMMPS
-configured to know about its location and additional compiler flags.
-You can often do the build of the internal or external libraries
-in one step by typing "make lib-name args='...'" from the src dir,
-with appropriate arguments included in args='...'. If you just type
-"make lib-name" you should see a help message about supported flags
-and some examples. For more details about this, please study the
-tables below and the sections about the individual packages.
-
-Standard packages are supported by the LAMMPS developers and are
-written in a syntax and style consistent with the rest of LAMMPS.
-This means the developers will answer questions about them, debug and
-fix them if necessary, and keep them compatible with future changes to
-LAMMPS.
-
-User packages have been contributed by users, and begin with the
-"user" prefix.  If they are a single command (single file), they are
-typically in the user-misc package.  User packages don't necessarily
-meet the requirements of the standard packages. This means the
-developers will try to keep things working and usually can answer
-technical questions about compiling the package. If you have problems
-using a feature provided in a user package, you may need to contact
-the contributor directly to get help.  Information on how to submit
-additions you make to LAMMPS as single files or as a standard or user
-package are given in the "Modify contribute"_Modify.html doc page.
-
-Following the next two tables is a sub-section for each package.  It
-lists authors (if applicable) and summarizes the package contents.  It
-has specific instructions on how to install the package, including (if
-necessary) downloading or building any extra library it requires. It
-also gives links to documentation, example scripts, and
-pictures/movies (if available) that illustrate use of the package.
+Here is a brief description of all the standard and user packages in
+LAMMPS.  It lists authors (if applicable) and summarizes the package
+contents.  It has specific instructions on how to install the package,
+including, if necessary, info on how to download or build any extra
+library it requires.  It also gives links to documentation, example
+scripts, and pictures/movies (if available) that illustrate use of the
+package.
 
 NOTE: To see the complete list of commands a package adds to LAMMPS,
-just look at the files in its src directory, e.g. "ls src/GRANULAR".
-Files with names that start with fix, compute, atom, pair, bond,
-angle, etc correspond to commands with the same style names.
+you can examine the files in its src directory, e.g. "ls
+src/GRANULAR".  Files with names that start with fix, compute, atom,
+pair, bond, angle, etc correspond to commands with the same style name
+as contained in the file name.
 
-In these two tables, the "Example" column is a sub-directory in the
-examples directory of the distribution which has an input script that
-uses the package.  E.g. "peptide" refers to the examples/peptide
-directory; USER/atc refers to the examples/USER/atc directory.  The
-"Library" column indicates whether an extra library is needed to build
-and use the package:
+"ASPHERE"_#ASPHERE,
+"BODY"_#BODY,
+"CLASS2"_#CLASS2,
+"COLLOID"_#COLLOID,
+"COMPRESS"_#COMPRESS,
+"CORESHELL"_#CORESHELL,
+"DIPOLE"_#DIPOLE,
+"GPU"_#GPU,
+"GRANULAR"_#GRANULAR,
+"KIM"_#KIM,
+"KOKKOS"_#KOKKOS,
+"KSPACE"_#KSPACE,
+"LATTE"_#LATTE,
+"MANYBODY"_#MANYBODY,
+"MC"_#MC,
+"MEAM"_#MEAM,
+"MISC"_#MISC,
+"MOLECULE"_#MOLECULE,
+"MPIIO"_#MPIIO,
+"MSCG"_#MSCG,
+"OPT"_#OPT,
+"PERI"_#PERI,
+"POEMS"_#POEMS,
+"PYTHON"_#PYTHON,
+"QEQ"_#QEQ,
+"REAX"_#REAX,
+"REPLICA"_#REPLICA,
+"RIGID"_#RIGID,
+"SHOCK"_#SHOCK,
+"SNAP"_#SNAP,
+"SRD"_#SRD,
+"VORONOI"_#VORONOI :tb(c=6,ea=c)
 
-dash = no library
-sys = system library: you likely have it on your machine
-int = internal library: provided with LAMMPS, but you may need to build it
-ext = external library: you will need to download and install it on your machine :ul
-
-:line
-:line
-
-[Standard packages] :link(table_standard),p
-
-Package, Description, Doc page, Example, Library
-"ASPHERE"_#ASPHERE, aspherical particle models, "Section 6.6.14"_Section_howto.html#howto_14, ellipse, -
-"BODY"_#BODY, body-style particles, "body"_body.html, body, -
-"CLASS2"_#CLASS2, class 2 force fields, "pair_style lj/class2"_pair_class2.html, -, -
-"COLLOID"_#COLLOID, colloidal particles, "atom_style colloid"_atom_style.html, colloid, -
-"COMPRESS"_#COMPRESS, I/O compression, "dump */gz"_dump.html, -, sys
-"CORESHELL"_#CORESHELL, adiabatic core/shell model, "Section 6.6.25"_Section_howto.html#howto_25, coreshell, -
-"DIPOLE"_#DIPOLE, point dipole particles, "pair_style dipole/cut"_pair_dipole.html, dipole, -
-"GPU"_#GPU, GPU-enabled styles, "Section 5.3.1"_accelerate_gpu.html, "Benchmarks"_http://lammps.sandia.gov/bench.html, int
-"GRANULAR"_#GRANULAR, granular systems, "Section 6.6.6"_Section_howto.html#howto_6, pour, -
-"KIM"_#KIM, OpenKIM wrapper, "pair_style kim"_pair_kim.html, kim, ext
-"KOKKOS"_#KOKKOS, Kokkos-enabled styles, "Section 5.3.3"_accelerate_kokkos.html, "Benchmarks"_http://lammps.sandia.gov/bench.html, -
-"KSPACE"_#KSPACE, long-range Coulombic solvers, "kspace_style"_kspace_style.html, peptide, -
-"LATTE"_#LATTE, quantum DFTB forces via LATTE, "fix latte"_fix_latte.html, latte, ext
-"MANYBODY"_#MANYBODY, many-body potentials, "pair_style tersoff"_pair_tersoff.html, shear, -
-"MC"_#MC, Monte Carlo options, "fix gcmc"_fix_gcmc.html, -, -
-"MEAM"_#MEAM, modified EAM potential, "pair_style meam"_pair_meam.html, meam, int
-"MISC"_#MISC, miscellanous single-file commands, -, -, -
-"MOLECULE"_#MOLECULE, molecular system force fields, "Section 6.6.3"_Section_howto.html#howto_3, peptide, -
-"MPIIO"_#MPIIO, MPI parallel I/O dump and restart, "dump"_dump.html, -, -
-"MSCG"_#MSCG, multi-scale coarse-graining wrapper, "fix mscg"_fix_mscg.html, mscg, ext
-"OPT"_#OPT, optimized pair styles, "Section 5.3.5"_accelerate_opt.html, "Benchmarks"_http://lammps.sandia.gov/bench.html, -
-"PERI"_#PERI, Peridynamics models, "pair_style peri"_pair_peri.html, peri, -
-"POEMS"_#POEMS, coupled rigid body motion, "fix poems"_fix_poems.html, rigid, int
-"PYTHON"_#PYTHON, embed Python code in an input script, "python"_python.html, python, sys
-"QEQ"_#QEQ, QEq charge equilibration, "fix qeq"_fix_qeq.html, qeq, -
-"REAX"_#REAX, ReaxFF potential (Fortran), "pair_style reax"_pair_reax.html, reax, int
-"REPLICA"_#REPLICA, multi-replica methods, "Section 6.6.5"_Section_howto.html#howto_5, tad, -
-"RIGID"_#RIGID, rigid bodies and constraints, "fix rigid"_fix_rigid.html, rigid, -
-"SHOCK"_#SHOCK, shock loading methods, "fix msst"_fix_msst.html, -, -
-"SNAP"_#SNAP, quantum-fitted potential, "pair_style snap"_pair_snap.html, snap, -
-"SPIN"_#SPIN, magnetic atomic spin dynamics, "Section 6.6.28"_Section_howto.html#howto_28, SPIN, -
-"SRD"_#SRD, stochastic rotation dynamics, "fix srd"_fix_srd.html, srd, -
-"VORONOI"_#VORONOI, Voronoi tesselation, "compute voronoi/atom"_compute_voronoi_atom.html, -, ext :tb(ea=c,ca1=l)
-
-[USER packages] :link(table_user),p
-
-Package, Description, Doc page, Example, Library
-"USER-ATC"_#USER-ATC, atom-to-continuum coupling, "fix atc"_fix_atc.html, USER/atc, int
-"USER-AWPMD"_#USER-AWPMD, wave-packet MD, "pair_style awpmd/cut"_pair_awpmd.html, USER/awpmd, int
-"USER-BOCS"_#USER-BOCS, BOCS bottom up coarse graining, "fix bocs"_fix_bocs.html, USER/bocs, -
-"USER-CGDNA"_#USER-CGDNA, coarse-grained DNA force fields, src/USER-CGDNA/README, USER/cgdna, -
-"USER-CGSDK"_#USER-CGSDK, SDK coarse-graining model, "pair_style lj/sdk"_pair_sdk.html, USER/cgsdk, -
-"USER-COLVARS"_#USER-COLVARS, collective variables library, "fix colvars"_fix_colvars.html, USER/colvars, int
-"USER-DIFFRACTION"_#USER-DIFFRACTION, virtual x-ray and electron diffraction,"compute xrd"_compute_xrd.html, USER/diffraction, -
-"USER-DPD"_#USER-DPD, reactive dissipative particle dynamics, src/USER-DPD/README, USER/dpd, -
-"USER-DRUDE"_#USER-DRUDE, Drude oscillators, "tutorial"_tutorial_drude.html, USER/drude, -
-"USER-EFF"_#USER-EFF, electron force field,"pair_style eff/cut"_pair_eff.html, USER/eff, -
-"USER-FEP"_#USER-FEP, free energy perturbation,"compute fep"_compute_fep.html, USER/fep, -
-"USER-H5MD"_#USER-H5MD, dump output via HDF5,"dump h5md"_dump_h5md.html, -, ext
-"USER-INTEL"_#USER-INTEL, optimized Intel CPU and KNL styles,"Section 5.3.2"_accelerate_intel.html, "Benchmarks"_http://lammps.sandia.gov/bench.html, -
-"USER-LB"_#USER-LB, Lattice Boltzmann fluid,"fix lb/fluid"_fix_lb_fluid.html, USER/lb, -
-"USER-MANIFOLD"_#USER-MANIFOLD, motion on 2d surfaces,"fix manifoldforce"_fix_manifoldforce.html, USER/manifold, -
-"USER-MEAMC"_#USER-MEAMC, modified EAM potential (C++), "pair_style meam/c"_pair_meam.html, meam, -
-"USER-MESO"_#USER-MESO, mesoscale DPD models, "pair_style edpd"_pair_meso.html, USER/meso, -
-"USER-MGPT"_#USER-MGPT, fast MGPT multi-ion potentials, "pair_style mgpt"_pair_mgpt.html, USER/mgpt, -
-"USER-MISC"_#USER-MISC, single-file contributions, USER-MISC/README, USER/misc, -
-"USER-MOFFF"_#USER-MOFFF, styles for "MOF-FF"_MOFplus force field, "pair_style buck6d/coul/gauss"_pair_buck6d_coul_gauss.html, USER/mofff, -
-"USER-MOLFILE"_#USER-MOLFILE, "VMD"_vmd_home molfile plug-ins,"dump molfile"_dump_molfile.html, -, ext
-"USER-NETCDF"_#USER-NETCDF, dump output via NetCDF,"dump netcdf"_dump_netcdf.html, -, ext
-"USER-OMP"_#USER-OMP, OpenMP-enabled styles,"Section 5.3.4"_accelerate_omp.html, "Benchmarks"_http://lammps.sandia.gov/bench.html, -
-"USER-PHONON"_#USER-PHONON, phonon dynamical matrix,"fix phonon"_fix_phonon.html, USER/phonon, -
-"USER-QMMM"_#USER-QMMM, QM/MM coupling,"fix qmmm"_fix_qmmm.html, USER/qmmm, ext
-"USER-QTB"_#USER-QTB, quantum nuclear effects,"fix qtb"_fix_qtb.html "fix qbmsst"_fix_qbmsst.html, qtb, -
-"USER-QUIP"_#USER-QUIP, QUIP/libatoms interface,"pair_style quip"_pair_quip.html, USER/quip, ext
-"USER-REAXC"_#USER-REAXC, ReaxFF potential (C/C++) ,"pair_style reaxc"_pair_reaxc.html, reax, -
-"USER-SMD"_#USER-SMD, smoothed Mach dynamics,"SMD User Guide"_PDF/SMD_LAMMPS_userguide.pdf, USER/smd, ext
-"USER-SMTBQ"_#USER-SMTBQ, second moment tight binding QEq potential,"pair_style smtbq"_pair_smtbq.html, USER/smtbq, -
-"USER-SPH"_#USER-SPH, smoothed particle hydrodynamics,"SPH User Guide"_PDF/SPH_LAMMPS_userguide.pdf, USER/sph, -
-"USER-TALLY"_#USER-TALLY, pairwise tally computes,"compute XXX/tally"_compute_tally.html, USER/tally, -
-"USER-UEF"_#USER-UEF, extensional flow,"fix nvt/uef"_fix_nh_uef.html, USER/uef, -
-"USER-VTK"_#USER-VTK, dump output via VTK, "compute vtk"_dump_vtk.html, -, ext :tb(ea=c,ca1=l)
+"USER-ATC"_#USER-ATC,
+"USER-AWPMD"_#USER-AWPMD,
+"USER-BOCS"_#USER-BOCS,
+"USER-CGDNA"_#USER-CGDNA,
+"USER-CGSDK"_#USER-CGSDK,
+"USER-COLVARS"_#USER-COLVARS,
+"USER-DIFFRACTION"_#USER-DIFFRACTION,
+"USER-DPD"_#USER-DPD,
+"USER-DRUDE"_#USER-DRUDE,
+"USER-EFF"_#USER-EFF,
+"USER-FEP"_#USER-FEP,
+"USER-H5MD"_#USER-H5MD,
+"USER-INTEL"_#USER-INTEL,
+"USER-LB"_#USER-LB,
+"USER-MANIFOLD"_#USER-MANIFOLD,
+"USER-MEAMC"_#USER-MEAMC,
+"USER-MESO"_#USER-MESO,
+"USER-MGPT"_#USER-MGPT,
+"USER-MISC"_#USER-MISC,
+"USER-MOFFF"_#USER-MOFFF,
+"USER-MOLFILE"_#USER-MOLFILE,
+"USER-NETCDF"_#USER-NETCDF,
+"USER-OMP"_#USER-OMP,
+"USER-PHONON"_#USER-PHONON,
+"USER-QMMM"_#USER-QMMM,
+"USER-QTB"_#USER-QTB,
+"USER-QUIP"_#USER-QUIP,
+"USER-REAXC"_#USER-REAXC,
+"USER-SMD"_#USER-SMD,
+"USER-SMTBQ"_#USER-SMTBQ,
+"USER-SPH"_#USER-SPH,
+"USER-TALLY"_#USER-TALLY,
+"USER-UEF"_#USER-UEF,
+"USER-VTK"_#USER-VTK :tb(c=6,ea=c)
 
 :line
 :line
@@ -380,14 +316,14 @@ GPU package :link(GPU),h4
 [Contents:]
 
 Dozens of pair styles and a version of the PPPM long-range Coulombic
-solver optimized for GPUs.  All such styles have a "gpu" as a
-suffix in their style name. The GPU code can be compiled with either
-CUDA or OpenCL, however the OpenCL variants are no longer actively
-maintained and only the CUDA versions are regularly tested.
-"Section 5.3.1"_accelerate_gpu.html gives details of what
-hardware and GPU software is required on your system,
-and details on how to build and use this package.  Its styles can be
-invoked at run time via the "-sf gpu" or "-suffix gpu" "command-line
+solver optimized for GPUs.  All such styles have a "gpu" as a suffix
+in their style name. The GPU code can be compiled with either CUDA or
+OpenCL, however the OpenCL variants are no longer actively maintained
+and only the CUDA versions are regularly tested.  The "Speed
+gpu"_Speed_gpu.html doc page gives details of what hardware and GPU
+software is required on your system, and details on how to build and
+use this package.  Its styles can be invoked at run time via the "-sf
+gpu" or "-suffix gpu" "command-line
 switches"_Section_start.html#start_6.  See also the "KOKKOS"_#KOKKOS
 package, which has GPU-enabled styles.
 
@@ -453,8 +389,8 @@ GPU library.
 src/GPU: filenames -> commands
 src/GPU/README
 lib/gpu/README
-"Section 5.3"_Section_accelerate.html#acc_3
-"Section 5.3.1"_accelerate_gpu.html
+"Speed packages"_Speed_packages.html
+"Speed gpu"_Speed_gpu.html.html
 "Section 2.6 -sf gpu"_Section_start.html#start_6
 "Section 2.6 -pk gpu"_Section_start.html#start_6
 "package gpu"_package.html
@@ -579,10 +515,10 @@ Dozens of atom, pair, bond, angle, dihedral, improper, fix, compute
 styles adapted to compile using the Kokkos library which can convert
 them to OpenMP or CUDA code so that they run efficiently on multicore
 CPUs, KNLs, or GPUs.  All the styles have a "kk" as a suffix in their
-style name.  "Section 5.3.3"_accelerate_kokkos.html gives details of
-what hardware and software is required on your system, and how to
-build and use this package.  Its styles can be invoked at run time via
-the "-sf kk" or "-suffix kk" "command-line
+style name.  The "Speed kokkos"_Speed_kokkos.html doc page gives
+details of what hardware and software is required on your system, and
+how to build and use this package.  Its styles can be invoked at run
+time via the "-sf kk" or "-suffix kk" "command-line
 switches"_Section_start.html#start_6.  Also see the "GPU"_#GPU,
 "OPT"_#OPT, "USER-INTEL"_#USER-INTEL, and "USER-OMP"_#USER-OMP
 packages, which have styles optimized for CPUs, KNLs, and GPUs.
@@ -649,8 +585,8 @@ make machine :pre
 src/KOKKOS: filenames -> commands
 src/KOKKOS/README
 lib/kokkos/README
-"Section 5.3"_Section_accelerate.html#acc_3
-"Section 5.3.3"_accelerate_kokkos.html
+"Speed packages"_Speed_packages.html
+"Speed kokkos"_Speed_kokkos.html
 "Section 2.6 -k on ..."_Section_start.html#start_6
 "Section 2.6 -sf kk"_Section_start.html#start_6
 "Section 2.6 -pk kokkos"_Section_start.html#start_6
@@ -1048,9 +984,9 @@ OPT package :link(OPT),h4
 A handful of pair styles which are optimized for improved CPU
 performance on single or multiple cores.  These include EAM, LJ,
 CHARMM, and Morse potentials.  The styles have an "opt" suffix in
-their style name.  "Section 5.3.5"_accelerate_opt.html gives details
-of how to build and use this package.  Its styles can be invoked at
-run time via the "-sf opt" or "-suffix opt" "command-line
+their style name.  The "Speed opt"_Speed_opt.html doc page gives
+details of how to build and use this package.  Its styles can be
+invoked at run time via the "-sf opt" or "-suffix opt" "command-line
 switches"_Section_start.html#start_6.  See also the "KOKKOS"_#KOKKOS,
 "USER-INTEL"_#USER-INTEL, and "USER-OMP"_#USER-OMP packages, which
 have styles optimized for CPU performance.
@@ -1076,8 +1012,8 @@ CCFLAGS: add -restrict for Intel compilers :ul
 [Supporting info:]
 
 src/OPT: filenames -> commands
-"Section 5.3"_Section_accelerate.html#acc_3
-"Section 5.3.5"_accelerate_opt.html
+"Speed packages"_Speed_packages.html
+"Speed opt"_Speed_opt.html
 "Section 2.6 -sf opt"_Section_start.html#start_6
 Pair Styles section of "Section 3.5"_Section_commands.html#cmd_5 for pair styles followed by (t)
 "Benchmarks page"_http://lammps.sandia.gov/bench.html of web site :ul
@@ -1178,10 +1114,10 @@ PYTHON package :link(PYTHON),h4
 
 A "python"_python.html command which allow you to execute Python code
 from a LAMMPS input script.  The code can be in a separate file or
-embedded in the input script itself.  See the "Python
-call"_Python_call.html doc page for an overview of using Python from
-LAMMPS in this manner and the "Python"_Python.html doc page for other
-ways to use LAMMPS and Python together.
+embedded in the input script itself.  See "Section
+11.2"_Section_python.html#py_2 for an overview of using Python from
+LAMMPS in this manner and the entire section for other ways to use
+LAMMPS and Python together.
 
 [Install or un-install:]
 
@@ -1202,7 +1138,7 @@ to Makefile.lammps) if the LAMMPS build fails.
 [Supporting info:]
 
 src/PYTHON: filenames -> commands
-"Python call"_Python_call.html
+"Section 11"_Section_python.html
 lib/python/README
 examples/python :ul
 
@@ -1412,38 +1348,6 @@ src/SNAP: filenames -> commands
 "compute snad/atom"_compute_sna_atom.html
 "compute snav/atom"_compute_sna_atom.html
 examples/snap :ul
-
-:line
-
-SPIN package :link(SPIN),h4
-
-[Contents:]
-
-Model atomic magnetic spins classically, coupled to atoms moving in
-the usual manner via MD.  Various pair, fix, and compute styles.
-
-[Author:] Julian Tranchida (Sandia).
-
-[Install or un-install:]
-
-make yes-spin
-make machine :pre
-
-make no-spin
-make machine :pre
-
-[Supporting info:]
-
-src/SPIN: filenames -> commands
-"Section 6.28"_Section_howto.html#howto_28
-"pair_style spin/dmi"_pair_spin_dmi.html
-"pair_style spin/exchange"_pair_spin_exchange.html
-"pair_style spin/magelec"_pair_spin_magelec.html
-"pair_style spin/neel"_pair_spin_neel.html
-"fix nve/spin"_fix_nve_spin.html
-"fix precession/spin"_fix_precession_spin.html
-"compute spin"_compute_spin.html
-examples/SPIN :ul
 
 :line
 
@@ -2065,8 +1969,8 @@ USER-INTEL package :link(USER-INTEL),h4
 
 Dozens of pair, fix, bond, angle, dihedral, improper, and kspace
 styles which are optimized for Intel CPUs and KNLs (Knights Landing).
-All of them have an "intel" in their style name.  "Section
-5.3.2"_accelerate_intel.html gives details of what hardware and
+All of them have an "intel" in their style name.  The "Speed
+intel"_Speed_intel.html doc page gives details of what hardware and
 compilers are required on your system, and how to build and use this
 package.  Its styles can be invoked at run time via the "-sf intel" or
 "-suffix intel" "command-line switches"_Section_start.html#start_6.
@@ -2116,7 +2020,7 @@ hardware target, to produce a separate executable.
 
 You should also typically install the USER-OMP package, as it can be
 used in tandem with the USER-INTEL package to good effect, as
-explained in "Section 5.3.2"_accelerate_intel.html.
+explained on the "Speed intel"_Speed_intel.html doc page.
 
 make yes-user-intel yes-user-omp
 make machine :pre
@@ -2128,8 +2032,8 @@ make machine :pre
 
 src/USER-INTEL: filenames -> commands
 src/USER-INTEL/README
-"Section 5.3"_Section_accelerate.html#acc_3
-"Section 5.3.2"_accelerate_gpu.html
+"Speed packages"_Speed_packages.html
+"Speed intel"_Speed_intel.html
 "Section 2.6 -sf intel"_Section_start.html#start_6
 "Section 2.6 -pk intel"_Section_start.html#start_6
 "package intel"_package.html
@@ -2475,10 +2379,10 @@ USER-OMP package :link(USER-OMP),h4
 Hundreds of pair, fix, compute, bond, angle, dihedral, improper, and
 kspace styles which are altered to enable threading on many-core CPUs
 via OpenMP directives.  All of them have an "omp" in their style name.
-"Section 5.3.4"_accelerate_omp.html gives details of what hardware and
-compilers are required on your system, and how to build and use this
-package.  Its styles can be invoked at run time via the "-sf omp" or
-"-suffix omp" "command-line switches"_Section_start.html#start_6.
+The "Speed omp"_Speed_omp.html doc page gives details of what hardware
+and compilers are required on your system, and how to build and use
+this package.  Its styles can be invoked at run time via the "-sf omp"
+or "-suffix omp" "command-line switches"_Section_start.html#start_6.
 Also see the "KOKKOS"_#KOKKOS, "OPT"_#OPT, and
 "USER-INTEL"_#USER-INTEL packages, which have styles optimized for
 CPUs.
@@ -2513,8 +2417,8 @@ LINKFLAGS: add -fopenmp :ul
 
 src/USER-OMP: filenames -> commands
 src/USER-OMP/README
-"Section 5.3"_Section_accelerate.html#acc_3
-"Section 5.3.4"_accelerate_omp.html
+"Speed packages"_Speed_packages.html
+"Speed omp"_Speed_omp.html
 "Section 2.6 -sf omp"_Section_start.html#start_6
 "Section 2.6 -pk omp"_Section_start.html#start_6
 "package omp"_package.html

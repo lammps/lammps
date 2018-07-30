@@ -1,5 +1,5 @@
-"Previous Section"_Section_packages.html - "LAMMPS WWW Site"_lws -
-"LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+"Higher level section"_Speed.html - "LAMMPS WWW Site"_lws - "LAMMPS
+Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
@@ -7,9 +7,7 @@
 
 :line
 
-"Return to Section accelerate overview"_Section_accelerate.html
-
-5.3.3 KOKKOS package :h5
+KOKKOS package :h3
 
 Kokkos is a templated C++ library that provides abstractions to allow
 a single implementation of an application kernel (e.g. a pair style) to run efficiently on
@@ -85,10 +83,10 @@ make kokkos_phi :pre
 
 [Compile for CPUs and GPUs (with OpenMPI or MPICH):]
 
-NOTE: To build with Kokkos support for NVIDIA GPUs, NVIDIA CUDA software
-version 7.5 or later must be installed on your system. See the
-discussion for the "GPU"_accelerate_gpu.html package for details of
-how to check and do this.
+NOTE: To build with Kokkos support for NVIDIA GPUs, NVIDIA CUDA
+software version 7.5 or later must be installed on your system. See
+the discussion for the "GPU package"_Speed_gpu.html for details of how
+to check and do this.
 
 use a C++11 compatible compiler and set KOKKOS_ARCH variable in
 /src/MAKE/OPTIONS/Makefile.kokkos_cuda_mpi for both GPU and CPU as described
@@ -434,8 +432,8 @@ migrate during a simulation. KOKKOS_USE_TPLS=hwloc should always be
 used if running with KOKKOS_DEVICES=Pthreads for pthreads. It is not
 necessary for KOKKOS_DEVICES=OpenMP for OpenMP, because OpenMP
 provides alternative methods via environment variables for binding
-threads to hardware cores. More info on binding threads to cores is
-given in "Section 5.3"_Section_accelerate.html#acc_3.
+threads to hardware cores.  More info on binding threads to cores is
+given on the "Speed omp"_Speed_omp.html doc page.
 
 KOKKOS_USE_TPLS=librt enables use of a more accurate timer mechanism
 on most Unix platforms. This library is not available on all

@@ -21,9 +21,9 @@ means that line #187 in the file src/domain.cpp generated the error.
 Looking in the source code may help you figure out what went wrong.
 
 Note that warning messages from "user-contributed
-packages"_Section_start.html#table_user are not listed here.  If such
-a warning occurs and is not self-explanatory, you'll need to look in
-the source code or contact the author of the package.
+packages"_Packages_user.html are not listed here.  If such a warning
+occurs and is not self-explanatory, you'll need to look in the source
+code or contact the author of the package.
 
 Doc page with "ERROR messages"_Errors_messages.html
 

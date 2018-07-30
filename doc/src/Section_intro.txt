@@ -253,7 +253,7 @@ Specialized features :h4
 
 LAMMPS can be built with optional packages which implement a variety
 of additional capabilities.  An overview of all the packages is "given
-here"_Section_packages.html.
+here"_Packages.html.
 
 These are some LAMMPS capabilities which you may not think of as
 typical classical molecular dynamics options:

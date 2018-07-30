@@ -83,6 +83,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
   flipflag = 1;
   dipole_flag = 0;
   dlm_flag = 0;
+  logistic_flag = 0;
 
   tcomputeflag = 0;
   pcomputeflag = 0;
@@ -360,6 +361,11 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"ext") == 0) {
       iarg += 2;
 
+    // logistic thermostat flag
+
+    } else if (strcmp(arg[iarg],"logistic") == 0) {
+      logistic_flag = 1;
+      iarg++;
     } else error->all(FLERR,"Illegal fix nvt/npt/nph command");
   }
 
@@ -516,19 +522,31 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
   size_vector = 0;
 
   if (tstat_flag) {
-    int ich;
-    eta = new double[mtchain];
+    if (logistic_flag) {
+      drag = 0.0;
+      mtk_flag = 1;
+      mtchain = 1;
+      eta = new double[mtchain];
+      eta_dot = new double[mtchain];
+      eta_dotdot = new double[mtchain];
+      eta[0] = eta_dot[0] = eta_dotdot[0] = 0.0;
+      eta_mass = new double[mtchain];
+      size_vector += 2*2*mtchain;
+    } else {
+      int ich;
+      eta = new double[mtchain];
 
-    // add one extra dummy thermostat, set to zero
+      // add one extra dummy thermostat, set to zero
 
-    eta_dot = new double[mtchain+1];
-    eta_dot[mtchain] = 0.0;
-    eta_dotdot = new double[mtchain];
-    for (ich = 0; ich < mtchain; ich++) {
-      eta[ich] = eta_dot[ich] = eta_dotdot[ich] = 0.0;
+      eta_dot = new double[mtchain+1];
+      eta_dot[mtchain] = 0.0;
+      eta_dotdot = new double[mtchain];
+      for (ich = 0; ich < mtchain; ich++) {
+        eta[ich] = eta_dot[ich] = eta_dotdot[ich] = 0.0;
+      }
+      eta_mass = new double[mtchain];
+      size_vector += 2*2*mtchain;
     }
-    eta_mass = new double[mtchain];
-    size_vector += 2*2*mtchain;
   }
 
   if (pstat_flag) {
@@ -543,20 +561,30 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
     else if (pstyle == TRICLINIC) size_vector += 2*2*6;
 
     if (mpchain) {
-      int ich;
-      etap = new double[mpchain];
+      if (logistic_flag) {
+         mpchain = 1;
+         etap = new double[mpchain];
+         etap_dot = new double[mpchain];
+         etap_dotdot = new double[mpchain];
+         etap[0] = etap_dot[0] = etap_dotdot[0] = 0.0;
+         etap_mass = new double[mpchain];
+         size_vector += 2*2*mpchain;
+       } else {
+         int ich;
+         etap = new double[mpchain];
 
-      // add one extra dummy thermostat, set to zero
+         // add one extra dummy thermostat, set to zero
 
-      etap_dot = new double[mpchain+1];
-      etap_dot[mpchain] = 0.0;
-      etap_dotdot = new double[mpchain];
-      for (ich = 0; ich < mpchain; ich++) {
-        etap[ich] = etap_dot[ich] =
-          etap_dotdot[ich] = 0.0;
+         etap_dot = new double[mpchain+1];
+         etap_dot[mpchain] = 0.0;
+         etap_dotdot = new double[mpchain];
+         for (ich = 0; ich < mpchain; ich++) {
+           etap[ich] = etap_dot[ich] =
+           etap_dotdot[ich] = 0.0;
+         }
+         etap_mass = new double[mpchain];
+         size_vector += 2*2*mpchain;
       }
-      etap_mass = new double[mpchain];
-      size_vector += 2*2*mpchain;
     }
 
     if (deviatoric_flag) size_vector += 1;
@@ -783,12 +811,16 @@ void FixNH::setup(int /*vflag*/)
   // masses and initial forces on thermostat variables
 
   if (tstat_flag) {
-    eta_mass[0] = tdof * boltz * t_target / (t_freq*t_freq);
-    for (int ich = 1; ich < mtchain; ich++)
-      eta_mass[ich] = boltz * t_target / (t_freq*t_freq);
-    for (int ich = 1; ich < mtchain; ich++) {
-      eta_dotdot[ich] = (eta_mass[ich-1]*eta_dot[ich-1]*eta_dot[ich-1] -
+    if (logistic_flag) {
+      eta_mass[0] = tdof * boltz * t_target / t_freq;
+    } else {
+      eta_mass[0] = tdof * boltz * t_target / (t_freq*t_freq);
+      for (int ich = 1; ich < mtchain; ich++)
+        eta_mass[ich] = boltz * t_target / (t_freq*t_freq);
+      for (int ich = 1; ich < mtchain; ich++) {
+        eta_dotdot[ich] = (eta_mass[ich-1]*eta_dot[ich-1]*eta_dot[ich-1] -
                          boltz * t_target) / eta_mass[ich];
+      }
     }
   }
 
@@ -810,13 +842,17 @@ void FixNH::setup(int /*vflag*/)
   // masses and initial forces on barostat thermostat variables
 
     if (mpchain) {
-      etap_mass[0] = boltz * t_target / (p_freq_max*p_freq_max);
-      for (int ich = 1; ich < mpchain; ich++)
-        etap_mass[ich] = boltz * t_target / (p_freq_max*p_freq_max);
-      for (int ich = 1; ich < mpchain; ich++)
-        etap_dotdot[ich] =
-          (etap_mass[ich-1]*etap_dot[ich-1]*etap_dot[ich-1] -
-           boltz * t_target) / etap_mass[ich];
+      if (logistic_flag) {
+        etap_mass[0] = boltz * t_target / p_freq_max;
+      } else {
+        etap_mass[0] = boltz * t_target / (p_freq_max*p_freq_max);
+        for (int ich = 1; ich < mpchain; ich++)
+          etap_mass[ich] = boltz * t_target / (p_freq_max*p_freq_max);
+        for (int ich = 1; ich < mpchain; ich++)
+          etap_dotdot[ich] =
+            (etap_mass[ich-1]*etap_dot[ich-1]*etap_dot[ich-1] -
+             boltz * t_target) / etap_mass[ich];
+      }
     }
   }
 }
@@ -829,13 +865,23 @@ void FixNH::initial_integrate(int /*vflag*/)
 {
   // update eta_press_dot
 
-  if (pstat_flag && mpchain) nhc_press_integrate();
+  if (pstat_flag && mpchain) {
+    if (logistic_flag) {
+      logistic_press_integrate();
+    } else {
+      nhc_press_integrate();
+    }
+  }
 
   // update eta_dot
 
   if (tstat_flag) {
     compute_temp_target();
-    nhc_temp_integrate();
+    if (logistic_flag) {
+      logistic_temp_integrate();
+    } else {
+      nhc_temp_integrate();
+    }
   }
 
   // need to recompute pressure to account for change in KE
@@ -921,8 +967,21 @@ void FixNH::final_integrate()
   // update eta_dot
   // update eta_press_dot
 
-  if (tstat_flag) nhc_temp_integrate();
-  if (pstat_flag && mpchain) nhc_press_integrate();
+  if (tstat_flag) {
+    if (logistic_flag) {
+      logistic_temp_integrate();
+    } else {
+      nhc_temp_integrate();
+    }
+  }
+
+  if (pstat_flag && mpchain) {
+    if (logistic_flag) {
+      logistic_press_integrate();
+    } else {
+      nhc_press_integrate();
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -943,13 +1002,23 @@ void FixNH::initial_integrate_respa(int /*vflag*/, int ilevel, int /*iloop*/)
 
     // update eta_press_dot
 
-    if (pstat_flag && mpchain) nhc_press_integrate();
+    if (pstat_flag && mpchain) {
+      if (logistic_flag) {
+        logistic_press_integrate();
+      } else {
+        nhc_press_integrate();
+      }
+    }
 
     // update eta_dot
 
     if (tstat_flag) {
       compute_temp_target();
-      nhc_temp_integrate();
+      if (logistic_flag) {
+        logistic_temp_integrate();
+      } else {
+        nhc_temp_integrate();
+      }
     }
 
     // recompute pressure to account for change in KE
@@ -1468,9 +1537,19 @@ double FixNH::compute_scalar()
   //       Q_k = k*T/t_freq^2, k > 1
 
   if (tstat_flag) {
-    energy += ke_target * eta[0] + 0.5*eta_mass[0]*eta_dot[0]*eta_dot[0];
-    for (ich = 1; ich < mtchain; ich++)
-      energy += kt * eta[ich] + 0.5*eta_mass[ich]*eta_dot[ich]*eta_dot[ich];
+    if (logistic_flag) {
+      // logistic thermostat energy is equivalent to Eq. (14) in
+      // D. Tapias, David P. Sanders, A. Bravetti, J. Chem. Phys. 145, 084113 (2016)
+      // L*K*T*eta - K*T*log(f(p_eta))
+      // where L = tdof
+      // p_eta = Q*eta_dot
+      // Q = L*K*T/t_freq
+      energy += ke_target * eta[0] - kt * logistic_term(eta_dot[0]);
+    } else {
+      energy += ke_target * eta[0] + 0.5*eta_mass[0]*eta_dot[0]*eta_dot[0];
+      for (ich = 1; ich < mtchain; ich++)
+         energy += kt * eta[ich] + 0.5*eta_mass[ich]*eta_dot[ich]*eta_dot[ich];
+    }
   }
 
   // barostat energy is equivalent to Eq. (8) in
@@ -1502,10 +1581,15 @@ double FixNH::compute_scalar()
     // extra contributions from thermostat chain for barostat
 
     if (mpchain) {
-      energy += lkt_press * etap[0] + 0.5*etap_mass[0]*etap_dot[0]*etap_dot[0];
-      for (ich = 1; ich < mpchain; ich++)
-        energy += kt * etap[ich] +
-          0.5*etap_mass[ich]*etap_dot[ich]*etap_dot[ich];
+      if (logistic_flag) {
+        // extra contributions from logistic thermostat for barostat
+        energy += lkt_press * etap[0] - kt * logistic_term(etap_dot[0]);
+      } else {
+        energy += lkt_press * etap[0] + 0.5*etap_mass[0]*etap_dot[0]*etap_dot[0];
+        for (ich = 1; ich < mpchain; ich++)
+           energy += kt * etap[ich] +
+             0.5*etap_mass[ich]*etap_dot[ich]*etap_dot[ich];
+      }
     }
 
     // extra contribution from strain energy
@@ -1599,10 +1683,16 @@ double FixNH::compute_vector(int n)
     ilen = mtchain;
     if (n < ilen) {
       ich = n;
-      if (ich == 0)
-        return 0.5*eta_mass[0]*eta_dot[0]*eta_dot[0];
-      else
+      if (ich == 0) {
+        if (logistic_flag) {
+          //include logistic energy
+          return -kt * logistic_term(eta[0]);
+        } else {
+          return 0.5*eta_mass[0]*eta_dot[0]*eta_dot[0];
+        }
+      } else {
         return 0.5*eta_mass[ich]*eta_dot[ich]*eta_dot[ich];
+      }
     }
     n -= ilen;
   }
@@ -1668,10 +1758,16 @@ double FixNH::compute_vector(int n)
       ilen = mpchain;
       if (n < ilen) {
         ich = n;
-        if (ich == 0)
-          return 0.5*etap_mass[0]*etap_dot[0]*etap_dot[0];
-        else
+        if (ich == 0) {
+          if (logistic_flag) {
+            //include logistic energy
+            return -kt * logistic_term(etap[0]);
+          } else {
+            return 0.5*etap_mass[0]*etap_dot[0]*etap_dot[0];
+          }
+        } else {
           return 0.5*etap_mass[ich]*etap_dot[ich]*etap_dot[ich];
+        }
       }
       n -= ilen;
     }
@@ -2386,4 +2482,132 @@ double FixNH::memory_usage()
   double bytes = 0.0;
   if (irregular) bytes += irregular->memory_usage();
   return bytes;
+}
+
+/* ----------------------------------------------------------------------
+   Implementation of logistic thermostat
+   Contributing author:
+           Samuel Cajahuaringa (Unicamp/Brazil) - samuelif@ifi.unicamp.br
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   perform half-step update of logistic thermostat variables
+------------------------------------------------------------------------- */
+
+void FixNH::logistic_temp_integrate()
+{
+  double kecurrent = tdof * boltz * t_current;
+  double kt = boltz * t_target;
+  double logistic_scaling;
+  // Update masses, to preserve initial freq, if flag set
+
+  eta_mass[0] = tdof * boltz * t_target / t_freq;
+
+  if (eta_mass[0] > 0.0)
+    eta_dotdot[0] = (kecurrent - ke_target)/eta_mass[0];
+  else eta_dotdot[0] = 0.0;
+
+  eta_dot[0] += eta_dotdot[0] * dt4;
+
+  logistic_scaling = dthalf*kt*tanh(0.5*eta_dot[0]);
+
+  eta[0] += logistic_scaling;
+
+  factor_eta = exp(-logistic_scaling);
+  nh_v_temp();
+
+  // rescale temperature due to velocity scaling
+  // should not be necessary to explicitly recompute the temperature
+
+  t_current *= factor_eta*factor_eta;
+  kecurrent = tdof * boltz * t_current;
+
+  if (eta_mass[0] > 0.0)
+    eta_dotdot[0] = (kecurrent - ke_target)/eta_mass[0];
+  else eta_dotdot[0] = 0.0;
+
+  eta_dot[0] += eta_dotdot[0] * dt4;
+}
+
+/* ----------------------------------------------------------------------
+   perform half-step update of logistic thermostat variables for barostat
+   scale barostat velocities
+------------------------------------------------------------------------- */
+
+void FixNH::logistic_press_integrate()
+{
+  int i;
+  double factor_etap,kecurrent;
+  double kt = boltz * t_target;
+  double lkt_press = kt;
+  double logistic_scaling;
+
+  // Update masses, to preserve initial freq, if flag set
+
+  if (omega_mass_flag) {
+    double nkt = atom->natoms * kt;
+    for (int i = 0; i < 3; i++)
+      if (p_flag[i])
+        omega_mass[i] = nkt/(p_freq[i]*p_freq[i]);
+
+    if (pstyle == TRICLINIC) {
+      for (int i = 3; i < 6; i++)
+        if (p_flag[i]) omega_mass[i] = nkt/(p_freq[i]*p_freq[i]);
+    }
+  }
+
+  if (etap_mass_flag) {
+    etap_mass[0] = boltz * t_target / p_freq_max;
+  }
+
+  kecurrent = 0.0;
+  for (i = 0; i < 3; i++)
+    if (p_flag[i]) kecurrent += omega_mass[i]*omega_dot[i]*omega_dot[i];
+
+  if (pstyle == TRICLINIC) {
+    for (i = 3; i < 6; i++)
+      if (p_flag[i]) kecurrent += omega_mass[i]*omega_dot[i]*omega_dot[i];
+  }
+
+  etap_dotdot[0] = (kecurrent - lkt_press)/etap_mass[0];
+
+  etap_dot[0] += etap_dotdot[0] * dt4;
+
+  logistic_scaling = dthalf*kt*tanh(0.5*etap_dot[0]);
+
+  etap[0] += logistic_scaling;
+
+  factor_etap = exp(-logistic_scaling);
+
+  for (i = 0; i < 3; i++)
+    if (p_flag[i]) omega_dot[i] *= factor_etap;
+
+  if (pstyle == TRICLINIC) {
+    for (i = 3; i < 6; i++)
+      if (p_flag[i]) omega_dot[i] *= factor_etap;
+  }
+
+  kecurrent = 0.0;
+  for (i = 0; i < 3; i++)
+    if (p_flag[i]) kecurrent += omega_mass[i]*omega_dot[i]*omega_dot[i];
+
+  if (pstyle == TRICLINIC) {
+    for (i = 3; i < 6; i++)
+      if (p_flag[i]) kecurrent += omega_mass[i]*omega_dot[i]*omega_dot[i];
+  }
+
+  etap_dotdot[0] = (kecurrent - lkt_press)/etap_mass[0];
+
+  etap_dot[0] += etap_dotdot[0] * dt4;
+}
+
+/* ----------------------------------------------------------------------
+   compute the logarithm of the logistic function
+-----------------------------------------------------------------------*/
+
+double FixNH::logistic_term(double a)
+{
+ double b;
+ b = exp(a);
+ return log(b/pow(1+b,2));
 }

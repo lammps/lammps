@@ -17,6 +17,7 @@ src/GPU/*             @ndtrung81
 src/KOKKOS/*          @stanmoore1
 src/KIM/*             @ellio167
 src/LATTE/*           @cnegre
+src/SPIN/*            @julient31
 src/USER-CGDNA/*      @ohenrich
 src/USER-CGSDK/*      @akohlmey
 src/USER-COLVARS/*    @giacomofiorin

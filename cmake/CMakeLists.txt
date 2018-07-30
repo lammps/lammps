@@ -602,9 +602,22 @@ if(PKG_USER-OMP)
 
     get_property(USER-OMP_SOURCES GLOBAL PROPERTY OMP_SOURCES)
 
-    # manually add classes, that are not styles
+    # manually add package dependent source files from USER-OMP that do not provide styles
+
     if(PKG_RIGID)
       list(APPEND USER-OMP_SOURCES ${USER-OMP_SOURCES_DIR}/fix_rigid_nh_omp.cpp)
+    endif()
+
+    if(PKG_USER-REAXC)
+      list(APPEND USER-OMP_SOURCES ${USER-OMP_SOURCES_DIR}/reaxc_bond_orders_omp.cpp
+                                   ${USER-OMP_SOURCES_DIR}/reaxc_hydrogen_bonds_omp.cpp
+                                   ${USER-OMP_SOURCES_DIR}/reaxc_nonbonded_omp.cpp
+                                   ${USER-OMP_SOURCES_DIR}/reaxc_bonds_omp.cpp
+                                   ${USER-OMP_SOURCES_DIR}/reaxc_init_md_omp.cpp
+                                   ${USER-OMP_SOURCES_DIR}/reaxc_torsion_angles_omp.cpp
+                                   ${USER-OMP_SOURCES_DIR}/reaxc_forces_omp.cpp
+                                   ${USER-OMP_SOURCES_DIR}/reaxc_multi_body_omp.cpp
+                                   ${USER-OMP_SOURCES_DIR}/reaxc_valence_angles_omp.cpp)
     endif()
 
     list(APPEND LIB_SOURCES ${USER-OMP_SOURCES})

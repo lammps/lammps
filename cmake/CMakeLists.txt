@@ -585,7 +585,13 @@ if(PKG_USER-OMP)
     # detects styles which have USER-OMP version
     RegisterStylesExt(${USER-OMP_SOURCES_DIR} omp OMP_SOURCES)
 
+
     get_property(USER-OMP_SOURCES GLOBAL PROPERTY OMP_SOURCES)
+
+    # manually add classes, that are not styles
+    if(PKG_RIGID)
+      list(APPEND USER-OMP_SOURCES ${USER-OMP_SOURCES_DIR}/fix_rigid_nh_omp.cpp)
+    endif()
 
     list(APPEND LIB_SOURCES ${USER-OMP_SOURCES})
     include_directories(${USER-OMP_SOURCES_DIR})

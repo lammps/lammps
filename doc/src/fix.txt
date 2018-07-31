@@ -133,7 +133,7 @@ reduce"_compute_reduce.html command, or histogrammed by the "fix
 ave/histo"_fix_ave_histo.html command. :l
 :ule
 
-See this "howto section"_Section_howto.html#howto_15 for a summary of
+See the "Howto output"_Howto_output.html doc page for a summary of
 various LAMMPS output options, many of which involve fixes.
 
 The results of fixes that calculate global quantities can be either

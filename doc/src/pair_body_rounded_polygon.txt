@@ -29,9 +29,8 @@ pair_coeff 1 1 100.0 1.0 :pre
 Style {body/rounded/polygon} is for use with 2d models of body
 particles of style {rounded/polygon}.  It calculates pairwise
 body/body interactions which can include body particles modeled as
-1-vertex circular disks with a specified diameter.  See "Section
-6.14"_Section_howto.html#howto_14 of the manual and the
-"body"_body.html doc page for more details on using body
+1-vertex circular disks with a specified diameter.  See the "Howto
+body"_Howto_body.html doc page for more details on using body
 rounded/polygon particles.
 
 This pairwise interaction between rounded polygons is described in

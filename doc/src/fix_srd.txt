@@ -341,11 +341,11 @@ are relevant to this fix.
 
 This fix tabulates several SRD statistics which are stored in a vector
 of length 12, which can be accessed by various "output
-commands"_Section_howto.html#howto_15.  The vector values calculated
-by this fix are "intensive", meaning they do not scale with the size
-of the simulation.  Technically, the first 8 do scale with the size of
-the simulation, but treating them as intensive means they are not
-scaled when printed as part of thermodynamic output.
+commands"_Howto_output.html.  The vector values calculated by this fix
+are "intensive", meaning they do not scale with the size of the
+simulation.  Technically, the first 8 do scale with the size of the
+simulation, but treating them as intensive means they are not scaled
+when printed as part of thermodynamic output.
 
 These are the 12 quantities.  All are values for the current timestep,
 except for quantity 5 and the last three, each of which are

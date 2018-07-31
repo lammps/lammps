@@ -33,9 +33,8 @@ Mach Dynamics in LAMMPS.
 
 This compute calculates a per-particle vector of vectors, which can be
 accessed by any command that uses per-particle values from a compute
-as input. See "How-to discussions, section
-6.15"_Section_howto.html#howto_15 for an overview of LAMMPS output
-options.
+as input. See the "Howto output"_Howto_output.html doc page for an
+overview of LAMMPS output options.
 
 The per-particle vector has 7 entries. The first three entries
 correspond to the lengths of the ellipsoid's axes and have units of

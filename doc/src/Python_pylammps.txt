@@ -10,5 +10,5 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 PyLammps interface :h3
 
 PyLammps is a Python wrapper class which can be created on its own or
-use an existing lammps Python object.  It has its own "PyLammps
-Tutorial"_tutorial_pylammps.html doc page.
+use an existing lammps Python object.  It has its own "Howto
+pylammps"_Howto_pylammps.html doc page.

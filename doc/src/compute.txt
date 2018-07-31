@@ -33,7 +33,7 @@ information about a previous state of the system.  Defining a compute
 does not perform a computation.  Instead computes are invoked by other
 LAMMPS commands as needed, e.g. to calculate a temperature needed for
 a thermostat fix or to generate thermodynamic or dump file output.
-See this "howto section"_Section_howto.html#howto_15 for a summary of
+See the "Howto output"_Howto_output.html doc page for a summary of
 various LAMMPS output options, many of which involve computes.
 
 The ID of a compute can only contain alphanumeric characters and

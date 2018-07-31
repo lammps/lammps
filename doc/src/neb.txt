@@ -56,9 +56,8 @@ Note that if you have MPI installed, you can run a multi-replica
 simulation with more replicas (partitions) than you have physical
 processors, e.g you can run a 10-replica simulation on just one or two
 processors.  You will simply not get the performance speed-up you
-would see with one or more physical processors per replica.  See
-"Section 6.5"_Section_howto.html#howto_5 of the manual for further
-discussion.
+would see with one or more physical processors per replica.  See the
+"Howto replica"_Howto_replica.html doc page for further discussion.
 
 NOTE: As explained below, a NEB calculation perfoms a damped dynamics
 minimization across all the replicas.  The minimizer uses whatever

@@ -1,6 +1,6 @@
 "Previous Section"_Package.html - "LAMMPS WWW Site"_lws -
 "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next
-Section"_Section_howto.html :c
+Section"_Howto.html :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)

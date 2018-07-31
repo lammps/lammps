@@ -45,8 +45,8 @@ pair_style lj/cut/thole/long 2.6 12.0 :pre
 The {thole} pair styles are meant to be used with force fields that
 include explicit polarization through Drude dipoles.  This link
 describes how to use the "thermalized Drude oscillator
-model"_tutorial_drude.html in LAMMPS and polarizable models in LAMMPS
-are discussed in "this Section"_Section_howto.html#howto_25.
+model"_Howto_drude.html in LAMMPS and polarizable models in LAMMPS are
+discussed on the "Howto polarizable"_Howto_polarizable.html doc page.
 
 The {thole} pair style should be used as a sub-style within in the
 "pair_hybrid/overlay"_pair_hybrid.html command, in conjunction with a

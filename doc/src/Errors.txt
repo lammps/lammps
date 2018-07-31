@@ -1,6 +1,6 @@
 "Previous Section"_Python.html - "LAMMPS WWW Site"_lws -
 "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next
-Section"_Section_history.html :c
+Section"_Manual.html :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)

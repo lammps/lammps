@@ -21,8 +21,8 @@ from lammps import lammps :pre
 These are the methods defined by the lammps module.  If you look at
 the files src/library.cpp and src/library.h you will see they
 correspond one-to-one with calls you can make to the LAMMPS library
-from a C++ or C or Fortran program, and which are described in
-"Section 6.19"_Section_howto.html#howto_19 of the manual.
+from a C++ or C or Fortran program, and which are described on the
+"Howto library"_Howto_library.html doc page.
 
 The python/examples directory has Python scripts which show how Python
 can run LAMMPS, grab data, change it, and put it back into LAMMPS.
@@ -165,11 +165,11 @@ subscripting.  The one exception is that for a fix that calculates a
 global vector or array, a single double value from the vector or array
 is returned, indexed by I (vector) or I and J (array).  I,J are
 zero-based indices.  The I,J arguments can be left out if not needed.
-See "Section 6.15"_Section_howto.html#howto_15 of the manual for a
-discussion of global, per-atom, and local data, and of scalar, vector,
-and array data types.  See the doc pages for individual
-"computes"_compute.html and "fixes"_fix.html for a description of what
-they calculate and store.
+See the "Howto output"_Howto_output.html doc page for a discussion of
+global, per-atom, and local data, and of scalar, vector, and array
+data types.  See the doc pages for individual "computes"_compute.html
+and "fixes"_fix.html for a description of what they calculate and
+store.
 
 For extract_variable(), an "equal-style or atom-style
 variable"_variable.html is evaluated and its result returned.

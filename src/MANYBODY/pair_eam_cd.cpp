@@ -21,7 +21,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_cdeam.h"
+#include "pair_eam_cd.h"
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
@@ -49,7 +49,7 @@ using namespace LAMMPS_NS;
 
 #define MAXLINE 1024        // This sets the maximum line length in EAM input files.
 
-PairCDEAM::PairCDEAM(LAMMPS *lmp, int _cdeamVersion) : PairEAM(lmp), PairEAMAlloy(lmp), cdeamVersion(_cdeamVersion)
+PairEAMCD::PairEAMCD(LAMMPS *lmp, int _cdeamVersion) : PairEAM(lmp), PairEAMAlloy(lmp), cdeamVersion(_cdeamVersion)
 {
         single_enable = 0;
         restartinfo = 0;
@@ -72,14 +72,14 @@ PairCDEAM::PairCDEAM(LAMMPS *lmp, int _cdeamVersion) : PairEAM(lmp), PairEAMAllo
         }
 }
 
-PairCDEAM::~PairCDEAM()
+PairEAMCD::~PairEAMCD()
 {
         memory->destroy(rhoB);
         memory->destroy(D_values);
         if(hcoeff) delete[] hcoeff;
 }
 
-void PairCDEAM::compute(int eflag, int vflag)
+void PairEAMCD::compute(int eflag, int vflag)
 {
         int i,j,ii,jj,inum,jnum,itype,jtype;
         double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
@@ -415,7 +415,7 @@ void PairCDEAM::compute(int eflag, int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void PairCDEAM::coeff(int narg, char **arg)
+void PairEAMCD::coeff(int narg, char **arg)
 {
         PairEAMAlloy::coeff(narg, arg);
 
@@ -452,7 +452,7 @@ void PairCDEAM::coeff(int narg, char **arg)
 /* ----------------------------------------------------------------------
    Reads in the h(x) polynomial coefficients
 ------------------------------------------------------------------------- */
-void PairCDEAM::read_h_coeff(char *filename)
+void PairEAMCD::read_h_coeff(char *filename)
 {
         if(comm->me == 0) {
                 // Open potential file
@@ -494,7 +494,7 @@ void PairCDEAM::read_h_coeff(char *filename)
 
 /* ---------------------------------------------------------------------- */
 
-int PairCDEAM::pack_forward_comm(int n, int *list, double *buf,
+int PairEAMCD::pack_forward_comm(int n, int *list, double *buf,
                                  int pbc_flag, int *pbc)
 {
         int i,j,m;
@@ -534,7 +534,7 @@ int PairCDEAM::pack_forward_comm(int n, int *list, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
-void PairCDEAM::unpack_forward_comm(int n, int first, double *buf)
+void PairEAMCD::unpack_forward_comm(int n, int first, double *buf)
 {
         int i,m,last;
 
@@ -567,7 +567,7 @@ void PairCDEAM::unpack_forward_comm(int n, int first, double *buf)
 }
 
 /* ---------------------------------------------------------------------- */
-int PairCDEAM::pack_reverse_comm(int n, int first, double *buf)
+int PairEAMCD::pack_reverse_comm(int n, int first, double *buf)
 {
         int i,m,last;
 
@@ -603,7 +603,7 @@ int PairCDEAM::pack_reverse_comm(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-void PairCDEAM::unpack_reverse_comm(int n, int *list, double *buf)
+void PairEAMCD::unpack_reverse_comm(int n, int *list, double *buf)
 {
         int i,j,m;
 
@@ -637,7 +637,7 @@ void PairCDEAM::unpack_reverse_comm(int n, int *list, double *buf)
 /* ----------------------------------------------------------------------
    memory usage of local atom-based arrays
 ------------------------------------------------------------------------- */
-double PairCDEAM::memory_usage()
+double PairEAMCD::memory_usage()
 {
         double bytes = 2 * nmax * sizeof(double);
         return PairEAMAlloy::memory_usage() + bytes;

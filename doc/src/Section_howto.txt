@@ -1,4 +1,4 @@
-"Previous Section"_Section_accelerate.html - "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next Section"_Examples.html :c
+"Previous Section"_Speed.html - "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next Section"_Examples.html :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)

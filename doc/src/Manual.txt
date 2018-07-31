@@ -111,11 +111,10 @@ it gives quick access to documentation for all LAMMPS commands.
    Section_intro
    Section_start
    Section_commands
-   Section_packages
-   Section_accelerate
+   Packages
+   Speed
    Section_howto
    Examples
-   Section_perf
    Tools
    Modify
    Python
@@ -167,19 +166,8 @@ END_RST -->
   3.3 "Input script structure"_cmd_3 :b
   3.4 "Commands listed by category"_cmd_4 :b
   3.5 "Commands listed alphabetically"_cmd_5 :ule,b
-"Packages"_Section_packages.html :l
-  4.1 "Standard packages"_pkg_1 :ulb,b
-  4.2 "User packages"_pkg_2 :ule,b
-"Accelerating LAMMPS performance"_Section_accelerate.html :l
-  5.1 "Measuring performance"_acc_1 :ulb,b
-  5.2 "Algorithms and code options to boost performace"_acc_2 :b
-  5.3 "Accelerator packages with optimized styles"_acc_3 :b
-    5.3.1 "GPU package"_accelerate_gpu.html :b
-    5.3.2 "USER-INTEL package"_accelerate_intel.html :b
-    5.3.3 "KOKKOS package"_accelerate_kokkos.html :b
-    5.3.4 "USER-OMP package"_accelerate_omp.html :b
-    5.3.5 "OPT package"_accelerate_opt.html :b
-  5.4 "Comparison of various accelerator packages"_acc_4 :ule,b
+"Optional packages"_Packages.html :l
+"Accelerate performance"_Speed.html :l
 "How-to discussions"_Section_howto.html :l
   6.1 "Restarting a simulation"_howto_1 :ulb,b
   6.2 "2d simulations"_howto_2 :b
@@ -209,7 +197,6 @@ END_RST -->
   6.26 "Adiabatic core/shell model"_howto_26 :b
   6.27 "Drude induced dipoles"_howto_27 :ule,b
 "Example scripts"_Examples.html :l
-"Performance & scalability"_Section_perf.html :l
 "Auxiliary tools"_Tools.html :l
 "Modify & extend LAMMPS"_Modify.html :l
 "Use Python with LAMMPS"_Python.html :l
@@ -239,14 +226,6 @@ END_RST -->
 :link(cmd_3,Section_commands.html#cmd_3)
 :link(cmd_4,Section_commands.html#cmd_4)
 :link(cmd_5,Section_commands.html#cmd_5)
-
-:link(pkg_1,Section_packages.html#pkg_1)
-:link(pkg_2,Section_packages.html#pkg_2)
-
-:link(acc_1,Section_accelerate.html#acc_1)
-:link(acc_2,Section_accelerate.html#acc_2)
-:link(acc_3,Section_accelerate.html#acc_3)
-:link(acc_4,Section_accelerate.html#acc_4)
 
 :link(howto_1,Section_howto.html#howto_1)
 :link(howto_2,Section_howto.html#howto_2)

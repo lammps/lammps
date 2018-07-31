@@ -1,5 +1,5 @@
-"Previous Section"_Section_packages.html - "LAMMPS WWW Site"_lws -
-"LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+"Higher level section"_Speed.html - "LAMMPS WWW Site"_lws - "LAMMPS
+Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
@@ -7,9 +7,7 @@
 
 :line
 
-"Return to Section 5 overview"_Section_accelerate.html
-
-5.3.4 USER-OMP package :h5
+USER-OMP package :h3
 
 The USER-OMP package was developed by Axel Kohlmeyer at Temple
 University.  It provides multi-threaded versions of most pair styles,
@@ -39,7 +37,8 @@ each MPI task running on a CPU.
 
 The lines above illustrate how to include/build with the USER-OMP
 package in two steps, using the "make" command.  Or how to do it with
-one command as described in "Section 4"_Section_packages.html of the manual.
+one command as described on the "Packages
+details"_Packages_details.html#USER-OMP doc page.
 
 Note that the CCFLAGS and LINKFLAGS settings in Makefile.machine must
 include "-fopenmp".  Likewise, if you use an Intel compiler, the
@@ -100,7 +99,7 @@ task, versus running standard LAMMPS with its standard un-accelerated
 styles (in serial or all-MPI parallelization with 1 task/core).  This
 is because many of the USER-OMP styles contain similar optimizations
 to those used in the OPT package, described in "Section
-5.3.5"_accelerate_opt.html.
+5.3.5"_Speed_opt.html.
 
 With multiple threads/task, the optimal choice of number of MPI
 tasks/node and OpenMP threads/task can vary a lot and should always be

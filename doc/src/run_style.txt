@@ -119,13 +119,13 @@ switches"_Section_start.html#start_6 to change this.  The log and
 screen file for the 2nd partition will not contain thermodynamic
 output beyond the 1st timestep of the run.
 
-See "Section 5"_Section_accelerate.html of the manual for
-performance details of the speed-up offered by the {verlet/split}
-style.  One important performance consideration is the assignment of
-logical processors in the 2 partitions to the physical cores of a
-parallel machine.  The "processors"_processors.html command has
-options to support this, and strategies are discussed in
-"Section 5"_Section_accelerate.html of the manual.
+See the "Speed packages"_Speed_packages.html doc page for performance
+details of the speed-up offered by the {verlet/split} style.  One
+important performance consideration is the assignment of logical
+processors in the 2 partitions to the physical cores of a parallel
+machine.  The "processors"_processors.html command has options to
+support this, and strategies are discussed in "Section
+5"_Speed.html of the manual.
 
 :line
 
@@ -274,21 +274,21 @@ run_style respa 3 3 4 inner 1 3.0 4.0 middle 2 6.0 7.0 outer 3 :pre
 
 :line
 
-The {respa/omp} styles is a variant of {respa} adapted for use with
+The {respa/omp} style is a variant of {respa} adapted for use with
 pair, bond, angle, dihedral, improper, or kspace styles with an {omp}
-suffix. It is functionally equivalent to {respa} but performs additional
-operations required for managing {omp} styles. For more on {omp} styles
-see the "Section 5"_Section_accelerate.html of the manual.
-Accelerated styles take the same arguments and should produce the same
-results, except for round-off and precision issues.
+suffix. It is functionally equivalent to {respa} but performs
+additional operations required for managing {omp} styles.  For more on
+{omp} styles see the "Speed omp"_Speed_omp.html doc page.  Accelerated
+styles take the same arguments and should produce the same results,
+except for round-off and precision issues.
 
 You can specify {respa/omp} explicitly in your input script, or
 you can use the "-suffix command-line switch"_Section_start.html#start_6
 when you invoke LAMMPS, or you can use the "suffix"_suffix.html
 command in your input script.
 
-See "Section 5"_Section_accelerate.html of the manual for
-more instructions on how to use the accelerated styles effectively.
+See the "Speed packages"_Speed_packages.html doc page for more
+instructions on how to use the accelerated styles effectively.
 
 :line
 

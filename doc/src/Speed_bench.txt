@@ -1,6 +1,5 @@
-"Previous Section"_Examples.html - "LAMMPS WWW Site"_lws - "LAMMPS
-Documentation"_ld - "LAMMPS Commands"_lc - "Next Section"_Tools.html
-:c
+"Higher level section"_Speed.html - "LAMMPS WWW Site"_lws - "LAMMPS
+Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
@@ -8,12 +7,12 @@ Documentation"_ld - "LAMMPS Commands"_lc - "Next Section"_Tools.html
 
 :line
 
-8. Performance & scalability :h2
+Benchmarks :h3
 
-Current LAMMPS performance is discussed on the Benchmarks page of the
-"LAMMPS WWW Site"_lws where CPU timings and parallel efficiencies are
-listed.  The page has several sections, which are briefly described
-below:
+Current LAMMPS performance is discussed on the "Benchmarks
+page"_http://lammps.sandia.gov/bench.html of the "LAMMPS website"_lws
+where timings and parallel efficiencies are listed.  The page has
+several sections, which are briefly described below:
 
 CPU performance on 5 standard problems, strong and weak scaling
 GPU and Xeon Phi performance on same and related problems
@@ -53,8 +52,8 @@ of these 5 problems on 1 or 4 cores of Linux desktop.  The bench/FERMI
 and bench/KEPLER dirs have input files and scripts and instructions
 for running the same (or similar) problems using OpenMP or GPU or Xeon
 Phi acceleration options.  See the README files in those dirs and the
-"Section 5.3"_Section_accelerate.html#acc_3 doc pages for
-instructions on how to build LAMMPS and run on that kind of hardware.
+"Speed packages"_Speed_packages.html doc pages for instructions on how
+to build LAMMPS and run on that kind of hardware.
 
 The bench/POTENTIALS directory has input files which correspond to the
 table of results on the

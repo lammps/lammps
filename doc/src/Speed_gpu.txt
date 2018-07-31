@@ -1,5 +1,5 @@
-"Previous Section"_Section_packages.html - "LAMMPS WWW Site"_lws -
-"LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+"Higher level section"_Speed.html - "LAMMPS WWW Site"_lws - "LAMMPS
+Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
@@ -7,9 +7,7 @@
 
 :line
 
-"Return to Section accelerate overview"_Section_accelerate.html
-
-5.3.1 GPU package :h5
+GPU package :h3
 
 The GPU package was developed by Mike Brown at ORNL and his
 collaborators, particularly Trung Nguyen (ORNL).  It provides GPU
@@ -72,10 +70,9 @@ Run lammps/lib/gpu/nvc_get_devices (after building the GPU library, see below) t
 [Building LAMMPS with the GPU package:]
 
 This requires two steps (a,b): build the GPU library, then build
-LAMMPS with the GPU package.
-
-You can do both these steps in one line as described in
-"Section 4"_Section_packages.html of the manual.
+LAMMPS with the GPU package.  You can do both these steps in one line
+as described on the "Packages details"_Packages_details.html#GPU doc
+page.
 
 Or you can follow these two (a,b) steps:
 

@@ -119,10 +119,11 @@ lower-case name of the package, e.g. replica or user-misc.
 
 If you want to do one of the following:
 
-use a LAMMPS command that requires an extra library (e.g. "dump image"_dump_image.html)
-build with a package that requires an extra library
-build with an accelerator package that requires special compiler/linker settings
-run on a machine that has its own compilers, settings, or libraries :ul
+use a LAMMPS command that requires an extra library (e.g. "dump
+image"_dump_image.html) build with a package that requires an extra
+library build with an accelerator package that requires special
+compiler/linker settings run on a machine that has its own compilers,
+settings, or libraries :ul
 
 then building LAMMPS is more complicated.  You may need to find where
 extra libraries exist on your machine or install them if they don't.
@@ -697,8 +698,8 @@ are always included, plus optional packages.  Packages are groups of
 files that enable a specific set of features.  For example, force
 fields for molecular systems or granular systems are in packages.
 
-"Section 4"_Section_packages.html in the manual has details about all
-the packages, which come in two flavors: [standard] and [user]
+The "Packages"_Packages.html doc pages has details about all the
+packages, which come in two flavors: [standard] and [user]
 packages. It also has specific instructions for building LAMMPS with
 any package which requires an extra library.  General instructions are
 below.
@@ -828,45 +829,47 @@ options.
 Packages that require extra libraries :h4,link(start_3_3)
 
 A few of the standard and user packages require extra libraries.  See
-"Section 4"_Section_packages.html for two tables of packages which
-indicate which ones require libraries.  For each such package, the
-Section 4 doc page gives details on how to build the extra library,
-including how to download it if necessary.  The basic ideas are
-summarized here.
+the "Packages"_Packages.html doc pages for two tables of packages
+which indicate which ones require libraries.  For each such package,
+the Section 4 doc page gives details on how to build the extra
+library, including how to download it if necessary.  The basic ideas
+are summarized here.
 
 [System libraries:]
 
-Packages in the tables "Section 4"_Section_packages.html with a "sys"
-in the last column link to system libraries that typically already
-exist on your machine.  E.g. the python package links to a system
-Python library.  If your machine does not have the required library,
-you will have to download and install it on your machine, in either
-the system or user space.
+Packages in the standard and user tables of the
+"Packages"_Packages.html doc pages with a "sys" in the last column
+link to system libraries that typically already exist on your machine.
+E.g. the python package links to a system Python library.  If your
+machine does not have the required library, you will have to download
+and install it on your machine, in either the system or user space.
 
 [Internal libraries:]
 
-Packages in the tables "Section 4"_Section_packages.html with an "int"
-in the last column link to internal libraries whose source code is
-included with LAMMPS, in the lib/name directory where name is the
-package name.  You must first build the library in that directory
-before building LAMMPS with that package installed.  E.g. the gpu
-package links to a library you build in the lib/gpu dir.  You can
-often do the build in one step by typing "make lib-name args=..."
-from the src dir, with appropriate arguments.  You can leave off the
-args to see a help message.  See "Section 4"_Section_packages.html for
-details for each package.
+Packages in the standard and user tables of the
+"Packages"_Packages.html doc pages with an "int" in the last column
+link to internal libraries whose source code is included with LAMMPS,
+in the lib/name directory where name is the package name.  You must
+first build the library in that directory before building LAMMPS with
+that package installed.  E.g. the gpu package links to a library you
+build in the lib/gpu dir.  You can often do the build in one step by
+typing "make lib-name args=..."  from the src dir, with appropriate
+arguments.  You can leave off the args to see a help message.  See the
+"Packages details"_Packages_details.html doc page for details for each
+package.
 
 [External libraries:]
 
-Packages in the tables "Section 4"_Section_packages.html with an "ext"
-in the last column link to external libraries whose source code is not
-included with LAMMPS.  You must first download and install the library
-before building LAMMPS with that package installed.  E.g. the voronoi
-package links to the freely available "Voro++ library"_voro_home2.  You
-can often do the download/build in one step by typing "make lib-name
+Packages in the standard and user tables of the
+"Packages"_Packages.html doc pages with an "ext" in the last column
+link to external libraries whose source code is not included with
+LAMMPS.  You must first download and install the library before
+building LAMMPS with that package installed.  E.g. the voronoi package
+links to the freely available "Voro++ library"_voro_home2.  You can
+often do the download/build in one step by typing "make lib-name
 args=..." from the src dir, with appropriate arguments.  You can leave
-off the args to see a help message.  See "Section
-4"_Section_packages.html for details for each package.
+off the args to see a help message.  See the "Packages
+details"_Packages_details.html doc page for details for each package.
 
 :link(voro_home2,http://math.lbl.gov/voro++)
 
@@ -888,9 +891,9 @@ copied from a lib/name/Makefile.lammps.* file when the library is
 built.  If those settings are not correct for your machine you will
 need to edit or create an appropriate Makefile.lammps file.
 
-Package-specific details for these steps are given in "Section
-4"_Section_packages.html an in README files in the lib/name
-directories.
+Package-specific details for these steps are given on the "Packages
+details"_Packages_details.html doc page and in README files in the
+lib/name directories.
 
 [Compiler options needed for accelerator packages:]
 
@@ -901,14 +904,14 @@ these accelerator packages for optimal performance requires specific
 settings in the Makefile.machine file you use.
 
 A summary of the Makefile.machine settings needed for each of these
-packages is given in "Section 4"_Section_packages.html.  More info is
-given on the doc pages that describe each package in detail:
+packages is given on the "Packages"_Packages.html doc pages.  More
+info is given on the doc pages that describe each package in detail:
 
-5.3.1 "USER-INTEL package"_accelerate_intel.html
-5.3.2 "GPU package"_accelerate_intel.html
-5.3.3 "KOKKOS package"_accelerate_kokkos.html
-5.3.4 "USER-OMP package"_accelerate_omp.html
-5.3.5 "OPT package"_accelerate_opt.html :all(b)
+"USER-INTEL package"_Speed_intel.html
+"GPU package"_Speed_gpu.html
+"KOKKOS package"_Speed_kokkos.html
+"USER-OMP package"_Speed_omp.html
+"OPT package"_Speed_opt.html :all(b)
 
 You can also use or examine the following machine Makefiles in
 src/MAKE/OPTIONS, which include the settings.  Note that the
@@ -1276,8 +1279,8 @@ Either the full word or an abbreviation can be used for the keywords.
 Note that the keywords do not use a leading minus sign.  I.e. the
 keyword is "t", not "-t".  Also note that each of the keywords has a
 default setting.  Example of when to use these options and what
-settings to use on different platforms is given in "Section
-5.3"_Section_accelerate.html#acc_3.
+settings to use on different platforms is given on the "Speed
+kokkos"_Speed_kokkos.html doc page.
 
 d or device
 g or gpus
@@ -1461,8 +1464,7 @@ cores within each node are ranked in a desired order.  Or when using
 the "run_style verlet/split"_run_style.html command with 2 partitions
 to insure that a specific Kspace processor (in the 2nd partition) is
 matched up with a specific set of processors in the 1st partition.
-See the "Section 5"_Section_accelerate.html doc pages for
-more details.
+See the "Speed tips"_Speed_tips.html doc page for more details.
 
 If the keyword {nth} is used with a setting {N}, then it means every
 Nth processor will be moved to the end of the ranking.  This is useful

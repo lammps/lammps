@@ -1,4 +1,4 @@
-"Previous Section"_Section_start.html - "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next Section"_Section_packages.html :c
+"Previous Section"_Section_start.html - "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next Section"_Packages.html :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
@@ -554,8 +554,8 @@ Fix styles :h3
 See the "fix"_fix.html command for one-line descriptions of each style
 or click on the style itself for a full description.  Some of the
 styles have accelerated versions, which can be used if LAMMPS is built
-with the "appropriate accelerated package"_Section_accelerate.html.
-This is indicated by additional letters in parenthesis: g = GPU, i =
+with the "appropriate accelerated package"_Speed_packages.html.  This
+is indicated by additional letters in parenthesis: g = GPU, i =
 USER-INTEL, k = KOKKOS, o = USER-OMP, t = OPT.
 
 "adapt"_fix_adapt.html,
@@ -775,9 +775,9 @@ See the "compute"_compute.html command for one-line descriptions of
 each style or click on the style itself for a full description.  Some
 of the styles have accelerated versions, which can be used if LAMMPS
 is built with the "appropriate accelerated
-package"_Section_accelerate.html.  This is indicated by additional
-letters in parenthesis: g = GPU, i = USER-INTEL, k =
-KOKKOS, o = USER-OMP, t = OPT.
+package"_Speed_packages.html.  This is indicated by additional letters
+in parenthesis: g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t =
+OPT.
 
 "aggregate/atom"_compute_cluster_atom.html,
 "angle"_compute_angle.html,
@@ -920,9 +920,9 @@ See the "pair_style"_pair_style.html command for an overview of pair
 potentials.  Click on the style itself for a full description.  Many
 of the styles have accelerated versions, which can be used if LAMMPS
 is built with the "appropriate accelerated
-package"_Section_accelerate.html.  This is indicated by additional
-letters in parenthesis: g = GPU, i = USER-INTEL, k =
-KOKKOS, o = USER-OMP, t = OPT.
+package"_Speed_packages.html.  This is indicated by additional letters
+in parenthesis: g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t =
+OPT.
 
 "none"_pair_none.html,
 "zero"_pair_zero.html,
@@ -1142,9 +1142,9 @@ See the "bond_style"_bond_style.html command for an overview of bond
 potentials.  Click on the style itself for a full description.  Some
 of the styles have accelerated versions, which can be used if LAMMPS
 is built with the "appropriate accelerated
-package"_Section_accelerate.html.  This is indicated by additional
-letters in parenthesis: g = GPU, i = USER-INTEL, k =
-KOKKOS, o = USER-OMP, t = OPT.
+package"_Speed_packages.html.  This is indicated by additional letters
+in parenthesis: g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t =
+OPT.
 
 "none"_bond_none.html,
 "zero"_bond_zero.html,
@@ -1176,9 +1176,9 @@ See the "angle_style"_angle_style.html command for an overview of
 angle potentials.  Click on the style itself for a full description.
 Some of the styles have accelerated versions, which can be used if
 LAMMPS is built with the "appropriate accelerated
-package"_Section_accelerate.html.  This is indicated by additional
-letters in parenthesis: g = GPU, i = USER-INTEL, k = KOKKOS, o =
-USER-OMP, t = OPT.
+package"_Speed_packages.html.  This is indicated by additional letters
+in parenthesis: g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t =
+OPT.
 
 "none"_angle_none.html,
 "zero"_angle_zero.html,
@@ -1212,7 +1212,7 @@ See the "dihedral_style"_dihedral_style.html command for an overview
 of dihedral potentials.  Click on the style itself for a full
 description.  Some of the styles have accelerated versions, which can
 be used if LAMMPS is built with the "appropriate accelerated
-package"_Section_accelerate.html.  This is indicated by additional
+package"_Speed_packages.html.  This is indicated by additional
 letters in parenthesis: g = GPU, i = USER-INTEL, k = KOKKOS, o =
 USER-OMP, t = OPT.
 
@@ -1247,9 +1247,9 @@ See the "improper_style"_improper_style.html command for an overview
 of improper potentials.  Click on the style itself for a full
 description.  Some of the styles have accelerated versions, which can
 be used if LAMMPS is built with the "appropriate accelerated
-package"_Section_accelerate.html.  This is indicated by additional
-letters in parenthesis: g = GPU, i = USER-INTEL, k = KOKKOS, o =
-USER-OMP, t = OPT.
+package"_Speed_packages.html.  This is indicated by additional letters
+in parenthesis: g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t =
+OPT.
 
 "none"_improper_none.html,
 "zero"_improper_zero.html,
@@ -1276,9 +1276,9 @@ See the "kspace_style"_kspace_style.html command for an overview of
 Kspace solvers.  Click on the style itself for a full description.
 Some of the styles have accelerated versions, which can be used if
 LAMMPS is built with the "appropriate accelerated
-package"_Section_accelerate.html.  This is indicated by additional
-letters in parenthesis: g = GPU, i = USER-INTEL, k = KOKKOS, o =
-USER-OMP, t = OPT.
+package"_Speed_packages.html.  This is indicated by additional letters
+in parenthesis: g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t =
+OPT.
 
 "ewald (o)"_kspace_style.html,
 "ewald/disp"_kspace_style.html,

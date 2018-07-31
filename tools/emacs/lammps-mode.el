@@ -1,7 +1,48 @@
-;; LAMMPS auto-mode
+;;; lammps-mode.el --- basic syntax highlighting for LAMMPS files
+
+;; Copyright (C) 2010-18 Aidan Thompson
+;; Copyright (C) 2018 Rohit Goswami
+
+;; Author: Aidan Thompson <athomps at sandia.gov>
+;; Maintainer: Rohit Goswami <r95g10 at gmail.com>
+;; Created: December 4, 2010
+;; Modified: July 30, 2018
+;; Version: 1.5.0
+;; Keywords: languages, faces
+;; Homepage: https://github.com/lammps/lammps/tree/master/tools/emacs
+;; Package-Requires: ((emacs "24.4"))
+
+;; This file is not part of GNU Emacs.
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License along
+;; with this program; if not, write to the Free Software Foundation, Inc.,
+;; 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+;;; Commentary:
 ;; translation of keyword classes from tools/vim
 ;; see http://xahlee.org/emacs/elisp_syntax_coloring.html
 
+;; Put this in your .emacs file to enable autoloading of lammps-mode
+;; and auto-recognition of "in.*" and "*.lmp" files:
+;;
+;; (autoload 'lammps-mode "lammps-mode.el" "LAMMPS mode." t)
+;; (setq auto-mode-alist (append auto-mode-alist
+;;                               '(("in\\." . lammps-mode))
+;;                               '(("\\.lmp\\'" . lammps-mode))
+;;                               ))
+;;
+
+;;; Code:
  ;; define several keyword classes
 (defvar lammps-output
   '("log"
@@ -136,6 +177,8 @@
 (defvar lammps-variable-regexp
   "\\$\\({[a-zA-Z0-9_]+}\\)\\|\\$[A-Za-z]")
 
+(defvar lammps-font-lock-keywords)
+
 ;; clear memory
 (setq lammps-output nil)
 (setq lammps-read nil)
@@ -151,8 +194,7 @@
 
 ;; create the list for font-lock.
 ;; each class of keyword is given a particular face
-(setq 
- lammps-font-lock-keywords
+(setq lammps-font-lock-keywords
  `((,lammps-output-regexp . font-lock-function-name-face)
    (,lammps-read-regexp . font-lock-preprocessor-face)
    (,lammps-lattice-regexp . font-lock-type-face)
@@ -199,12 +241,5 @@
   (setq lammps-comment-regexp nil)
   (setq lammps-variable-regexp nil))
 
-;; apply it to specified filename patterns
-(setq 
- auto-mode-alist
- (append 
-  auto-mode-alist
-  '(("in\\." . lammps-mode))
-  '(("\\.lmp\\'" . lammps-mode))
-  ))
-
+(provide 'lammps-mode)
+;;; lammps-mode.el ends here

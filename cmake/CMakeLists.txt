@@ -185,11 +185,11 @@ pkg_depends(CORESHELL KSPACE)
 ######################################################
 # packages with special compiler needs or external libs
 ######################################################
-if(PKG_REAX OR PKG_MEAM OR PKG_USER-QUIP OR PKG_USER-QMMM OR PKG_LATTE OR PKG_USER-SCAFACOS)
+if(PKG_REAX OR PKG_MEAM OR PKG_USER-QUIP OR PKG_USER-QMMM OR PKG_LATTE)
   enable_language(Fortran)
 endif()
 
-if(PKG_MEAM OR PKG_USER-H5MD OR PKG_USER-QMMM OR PKG_USER-SCAFACOS)
+if(PKG_MEAM OR PKG_USER-H5MD OR PKG_USER-QMMM)
   enable_language(C)
 endif()
 
@@ -349,7 +349,7 @@ if(PKG_LATTE)
 endif()
 
 if(PKG_USER-SCAFACOS)
-    FIND_PACKAGE(PkgConfig)
+    FIND_PACKAGE(PkgConfig REQUIRED)
     PKG_CHECK_MODULES(SCAFACOS scafacos)
     include_directories(${SCAFACOS_INCLUDE_DIRS})
     list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_LDFLAGS})

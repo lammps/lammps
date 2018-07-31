@@ -29,8 +29,9 @@ make lib-scafacos args="-p $HOME/scafacos" # use existing Scafacos installation 
 
 # settings
 
-version = "scafacos-1.0"
-#url = "http://math.lbl.gov/voro++/download/dir/%s.tar.gz" % version
+version = "scafacos-0.9"
+url = "https://gigamove.rz.rwth-aachen.de/d/id/fTmrTm4EUAUSAp/dd/100"
+#url = "https://gigamove.rz.rwth-aachen.de/d/id/CTzyApN76MXMJ6/dd/100" % version
 
 # print error message or help
 
@@ -75,6 +76,7 @@ def geturl(url,fname):
 
   if not success and which('wget') != None:
     cmd = 'wget -O "%s" %s' % (fname,url)
+    print("Wget command: %s" % cmd)
     try:
       subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
       success = True
@@ -92,7 +94,7 @@ nargs = len(args)
 
 homepath = "."
 
-buildflag = False
+buildflag = True 
 pathflag = False
 linkflag = True
 
@@ -145,7 +147,7 @@ if buildflag:
 
 if buildflag:
   print("Building Scafacos ...")
-  cmd = 'cd "%s"; make CXX=g++ CFLAGS="-fPIC -O3"' % homedir
+  cmd = 'cd "%s"; CC=mpicc FC=mpif90 CXX=mpicxx ./configure --prefix="`pwd`/build" --disable-doc --enable-fcs-solvers=fmm,p2nfft,direct,ewald > log.txt; make -j 4; make install' % homedir
   txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   print(txt.decode('UTF-8'))
 
@@ -157,7 +159,7 @@ if linkflag:
     os.remove("includelink")
   if os.path.isfile("liblink") or os.path.islink("liblink"):
     os.remove("liblink")
-  cmd = 'ln -s "%s/include" includelink' % homedir
+  cmd = 'ln -s "%s/build/include" includelink' % homedir
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  cmd = 'ln -s "%s/lib" liblink' % homedir
+  cmd = 'ln -s "%s/build/lib" liblink' % homedir
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)

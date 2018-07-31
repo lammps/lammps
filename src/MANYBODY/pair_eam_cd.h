@@ -13,8 +13,8 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(eam/cd,PairCDEAM_OneSite)
-PairStyle(eam/cd/old,PairCDEAM_TwoSite)
+PairStyle(eam/cd,PairEAMCD_OneSite)
+PairStyle(eam/cd/old,PairEAMCD_TwoSite)
 
 #else
 
@@ -25,14 +25,14 @@ PairStyle(eam/cd/old,PairCDEAM_TwoSite)
 
 namespace LAMMPS_NS {
 
-class PairCDEAM : public PairEAMAlloy
+class PairEAMCD : public PairEAMAlloy
 {
 public:
   /// Constructor.
-  PairCDEAM(class LAMMPS*, int cdeamVersion);
+  PairEAMCD(class LAMMPS*, int cdeamVersion);
 
   /// Destructor.
-  virtual ~PairCDEAM();
+  virtual ~PairEAMCD();
 
   /// Calculates the energies and forces for all atoms in the system.
   virtual void compute(int, int);
@@ -211,19 +211,19 @@ public:
 };
 
 /// The one-site concentration formulation of CD-EAM.
- class PairCDEAM_OneSite : public PairCDEAM
+ class PairEAMCD_OneSite : public PairEAMCD
    {
    public:
      /// Constructor.
-     PairCDEAM_OneSite(class LAMMPS* lmp) : PairEAM(lmp), PairCDEAM(lmp, 1) {}
+     PairEAMCD_OneSite(class LAMMPS* lmp) : PairEAM(lmp), PairEAMCD(lmp, 1) {}
    };
 
  /// The two-site concentration formulation of CD-EAM.
- class PairCDEAM_TwoSite : public PairCDEAM
+ class PairEAMCD_TwoSite : public PairEAMCD
    {
    public:
      /// Constructor.
-     PairCDEAM_TwoSite(class LAMMPS* lmp) : PairEAM(lmp), PairCDEAM(lmp, 2) {}
+     PairEAMCD_TwoSite(class LAMMPS* lmp) : PairEAM(lmp), PairEAMCD(lmp, 2) {}
    };
 
 }

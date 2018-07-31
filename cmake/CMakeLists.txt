@@ -178,7 +178,6 @@ pkg_depends(MPIIO MPI)
 pkg_depends(QEQ MANYBODY)
 pkg_depends(USER-ATC MANYBODY)
 pkg_depends(USER-LB MPI)
-pkg_depends(USER-MISC MANYBODY)
 pkg_depends(USER-PHONON KSPACE)
 pkg_depends(CORESHELL KSPACE)
 

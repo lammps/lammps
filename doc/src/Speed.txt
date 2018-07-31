@@ -42,11 +42,6 @@ hardware platforms.
 .. toctree::
 
    Speed_packages
-   Speed_gpu
-   Speed_intel
-   Speed_kokkos
-   Speed_omp
-   Speed_opt
    Speed_compare
 
 END_RST -->

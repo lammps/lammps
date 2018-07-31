@@ -125,7 +125,7 @@ important performance consideration is the assignment of logical
 processors in the 2 partitions to the physical cores of a parallel
 machine.  The "processors"_processors.html command has options to
 support this, and strategies are discussed in "Section
-5"_Section_accelerate.html of the manual.
+5"_Speed.html of the manual.
 
 :line
 

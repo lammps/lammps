@@ -23,11 +23,11 @@ pages.
 These are the accelerator packages currently in LAMMPS, either as
 standard or user packages:
 
-"GPU Package"_accelerate_gpu.html : for NVIDIA GPUs as well as OpenCL support
-"USER-INTEL Package"_accelerate_intel.html : for Intel CPUs and Intel Xeon Phi
-"KOKKOS Package"_accelerate_kokkos.html : for Nvidia GPUs, Intel Xeon Phi, and OpenMP threading
-"USER-OMP Package"_accelerate_omp.html : for OpenMP threading and generic CPU optimizations
-"OPT Package"_accelerate_opt.html : generic CPU optimizations :tb(s=:)
+"GPU Package"_Speed_gpu.html : for NVIDIA GPUs as well as OpenCL support
+"USER-INTEL Package"_Speed_intel.html : for Intel CPUs and Intel Xeon Phi
+"KOKKOS Package"_Speed_kokkos.html : for Nvidia GPUs, Intel Xeon Phi, and OpenMP threading
+"USER-OMP Package"_Speed_omp.html : for OpenMP threading and generic CPU optimizations
+"OPT Package"_Speed_opt.html : generic CPU optimizations :tb(s=:)
 
 <!-- RST
 
@@ -35,20 +35,20 @@ standard or user packages:
    :maxdepth: 1
    :hidden:
 
-   accelerate_gpu
-   accelerate_intel
-   accelerate_kokkos
-   accelerate_omp
-   accelerate_opt
+   Speed_gpu
+   Speed_intel
+   Speed_kokkos
+   Speed_omp
+   Speed_opt
 
 END_RST -->
 
 Inverting this list, LAMMPS currently has acceleration support for
 three kinds of hardware, via the listed packages:
 
-Many-core CPUs : "USER-INTEL"_accelerate_intel.html, "KOKKOS"_accelerate_kokkos.html, "USER-OMP"_accelerate_omp.html, "OPT"_accelerate_opt.html packages
-NVIDIA GPUs : "GPU"_accelerate_gpu.html, "KOKKOS"_accelerate_kokkos.html packages
-Intel Phi : "USER-INTEL"_accelerate_intel.html, "KOKKOS"_accelerate_kokkos.html packages :tb(s=:)
+Many-core CPUs : "USER-INTEL"_Speed_intel.html, "KOKKOS"_Speed_kokkos.html, "USER-OMP"_Speed_omp.html, "OPT"_Speed_opt.html packages
+NVIDIA GPUs : "GPU"_Speed_gpu.html, "KOKKOS"_Speed_kokkos.html packages
+Intel Phi : "USER-INTEL"_Speed_intel.html, "KOKKOS"_Speed_kokkos.html packages :tb(s=:)
 
 Which package is fastest for your hardware may depend on the size
 problem you are running and what commands (accelerated and

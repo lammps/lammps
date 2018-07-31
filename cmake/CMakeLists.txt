@@ -175,8 +175,9 @@ macro(pkg_depends PKG1 PKG2)
   endif()
 endmacro()
 
+# "hard" dependencies between packages resulting
+# in an error instead of skipping over files
 pkg_depends(MPIIO MPI)
-#pkg_depends(QEQ MANYBODY)
 pkg_depends(USER-ATC MANYBODY)
 pkg_depends(USER-LB MPI)
 pkg_depends(USER-MISC MANYBODY)

@@ -39,8 +39,14 @@ would do the following (kanged [from here](http://ergoemacs.org/emacs/emacs_inst
 
 ### Autoloading \& Auto-recognition
 
-For autoloading and auto-recognizing `in.*` and `*.lmp` files add the following
-to `.emacs`:
+To automatically turn on the LAMMPS mode for editing your input scripts,
+use the following line as the **first** line of your script:
+```
+# -*- lammps -*-
+```
+
+For automatically switching on the LAMMPS mode based on filename patterns,
+e.g. for `in.*` and `*.lmp` files, add the following code to your `.emacs`:
 
 ``` emacs-lisp
 (autoload 'lammps-mode "lammps-mode.el" "LAMMPS mode." t)

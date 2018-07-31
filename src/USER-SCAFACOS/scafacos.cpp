@@ -121,7 +121,6 @@ void Scafacos::init()
       result = fcs_set_tolerance(fcs,tolerance_type,tolerance);
       check_result(result);
     }
-    if (me == 0) fcs_print_parameters(fcs);
 
     double **x = atom->x;
     double *q = atom->q; 
@@ -130,11 +129,15 @@ void Scafacos::init()
     if (strcmp(method,"fmm") == 0)
     {
       if (fmm_tuning_flag == 1)
-        fcs_fmm_set_internal_tuning(fcs,fmm_tuning_flag);
+        fcs_fmm_set_internal_tuning(fcs,FCS_FMM_INHOMOGENOUS_SYSTEM);
+      else
+        fcs_fmm_set_internal_tuning(fcs,FCS_FMM_HOMOGENOUS_SYSTEM);
     }
 
     result = fcs_tune(fcs,nlocal,&x[0][0],q);
     check_result(result);
+    // more useful here, since the parameters should be tuned now 
+    if (me == 0) fcs_print_parameters(fcs);
   }
   initialized = 1;
 }
@@ -170,18 +173,31 @@ void Scafacos::compute(int eflag, int vflag)
   
   // grow epot & efield if necessary
 
+  if (nlocal == 0 && maxatom == 0) {
+    memory->destroy(epot);
+    memory->destroy(efield);
+    maxatom = 1;
+    memory->create(epot,maxatom,"scafacos:epot");
+    memory->create(efield,maxatom,3,"scafacos:efield");
+  }
+
   if (nlocal > maxatom) {
     memory->destroy(epot);
     memory->destroy(efield);
     maxatom = atom->nmax;
     memory->create(epot,maxatom,"scafacos:epot");
     memory->create(efield,maxatom,3,"scafacos:efield");
-     
   }
 
   if (vflag_global)
   {
     fcs_set_compute_virial(fcs,1);
+  }
+
+  if (strcmp(method,"p3m")==0)
+  {
+    result = fcs_tune(fcs,nlocal,&x[0][0],q);
+    check_result(result);
   }
 
   result = fcs_run(fcs,nlocal,&x[0][0],q,&efield[0][0],epot);
@@ -252,8 +268,8 @@ int Scafacos::modify_param(int narg, char **arg)
   //       1 -> inhomogenous system (more internal tuning is provided (sequential!))
   if (strcmp(arg[1],"fmm_tuning") == 0)
   {
-    if (screen && me == 0) fprintf(screen,"ScaFaCoS setting fmm inhomogen tuning ...%d\n", narg);
-    if (logfile && me == 0) fprintf(logfile,"ScaFaCoS setting fmm inhomogen tuning ...%d\n", narg);
+    if (screen && me == 0) fprintf(screen,"ScaFaCoS setting fmm inhomogen tuning ...\n");
+    if (logfile && me == 0) fprintf(logfile,"ScaFaCoS setting fmm inhomogen tuning ...\n");
     if (narg < 3) error->all(FLERR,"Illegal kspace_modify command (fmm_tuning)");
     fmm_tuning_flag = atoi(arg[2]);
     return 3;

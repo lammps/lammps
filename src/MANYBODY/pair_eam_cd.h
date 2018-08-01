@@ -18,8 +18,8 @@ PairStyle(eam/cd/old,PairEAMCD_TwoSite)
 
 #else
 
-#ifndef LMP_PAIR_CDEAM_H
-#define LMP_PAIR_CDEAM_H
+#ifndef LMP_PAIR_EAM_CD_H
+#define LMP_PAIR_EAM_CD_H
 
 #include "pair_eam_alloy.h"
 

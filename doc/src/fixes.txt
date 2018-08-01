@@ -168,6 +168,8 @@ Fixes :h1
    fix_viscosity
    fix_viscous
    fix_wall
+   fix_wall_body_polygon
+   fix_wall_body_polyhedron
    fix_wall_ees
    fix_wall_gran
    fix_wall_gran_region

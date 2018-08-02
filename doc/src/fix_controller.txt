@@ -139,7 +139,7 @@ for details.  If no bracketed integer is appended, the scalar
 calculated by the compute is used.  If a bracketed integer is
 appended, the Ith value of the vector calculated by the compute is
 used.  Users can also write code for their own compute styles and "add
-them to LAMMPS"_Section_modify.html.
+them to LAMMPS"_Modify.html.
 
 If {pvar} begins with "f_", a fix ID must follow which has been
 previously defined in the input script and which generates a global
@@ -150,7 +150,7 @@ references the values, or else an error results.  If no bracketed integer
 is appended, the scalar calculated by the fix is used.  If a bracketed
 integer is appended, the Ith value of the vector calculated by the fix
 is used.  Users can also write code for their own fix style and "add
-them to LAMMPS"_Section_modify.html.
+them to LAMMPS"_Modify.html.
 
 If {pvar} begins with "v_", a variable name must follow which has been
 previously defined in the input script.  Only equal-style variables

@@ -157,7 +157,6 @@ void FixShardlowKokkos<DeviceType>::init()
   k_pairDPDE->k_cutsq.template sync<DeviceType>();
   d_cutsq = k_pairDPDE->k_cutsq.template view<DeviceType>();
 
-  const double boltz2 = 2.0*force->boltz;
   for (int i = 1; i <= ntypes; i++) {
     for (int j = i; j <= ntypes; j++) {
       F_FLOAT cutone = k_pairDPDE->cut[i][j];
@@ -165,7 +164,7 @@ void FixShardlowKokkos<DeviceType>::init()
       else k_params.h_view(i,j).cutinv = FLT_MAX;
       k_params.h_view(i,j).halfsigma = 0.5*k_pairDPDE->sigma[i][j];
       k_params.h_view(i,j).kappa = k_pairDPDE->kappa[i][j];
-      k_params.h_view(i,j).alpha = sqrt(boltz2*k_pairDPDE->kappa[i][j]);
+      k_params.h_view(i,j).alpha = k_pairDPDE->alpha[i][j];
 
       k_params.h_view(j,i) = k_params.h_view(i,j);
 

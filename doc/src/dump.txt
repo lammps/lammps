@@ -1,4 +1,4 @@
- "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
@@ -184,10 +184,10 @@ file and in what format.  Settings made via the
 individual values and the file itself.
 
 The {atom}, {local}, and {custom} styles create files in a simple text
-format that is self-explanatory when viewing a dump file.  Many of the
-LAMMPS "post-processing tools"_Section_tools.html, including
-"Pizza.py"_http://www.sandia.gov/~sjplimp/pizza.html, work with this
-format, as does the "rerun"_rerun.html command.
+format that is self-explanatory when viewing a dump file.  Some of the
+LAMMPS post-processing tools described on the "Tools"_Tools.html doc
+page, including "Pizza.py"_http://www.sandia.gov/~sjplimp/pizza.html,
+work with this format, as does the "rerun"_rerun.html command.
 
 For post-processing purposes the {atom}, {local}, and {custom} text
 files are self-describing in the following sense.
@@ -413,10 +413,10 @@ If the filename ends with ".bin", the dump file (or files, if "*" or
 will be about the same size as a text version, but will typically
 write out much faster.  Of course, when post-processing, you will need
 to convert it back to text format (see the "binary2txt
-tool"_Section_tools.html#binary) or write your own code to read the
-binary file.  The format of the binary file can be understood by
-looking at the tools/binary2txt.cpp file.  This option is only
-available for the {atom} and {custom} styles.
+tool"_Tools.html#binary) or write your own code to read the binary
+file.  The format of the binary file can be understood by looking at
+the tools/binary2txt.cpp file.  This option is only available for the
+{atom} and {custom} styles.
 
 If the filename ends with ".gz", the dump file (or files, if "*" or "%"
 is also used) is written in gzipped format.  A gzipped dump file will
@@ -625,9 +625,9 @@ The {d_name} and {i_name} attributes allow to output custom per atom
 floating point or integer properties that are managed by
 "fix property/atom"_fix_property_atom.html.
 
-See "Section 10"_Section_modify.html of the manual for information
-on how to add new compute and fix styles to LAMMPS to calculate
-per-atom quantities which could then be output into dump files.
+See the "Modify"_Modify.html doc page for information on how to add
+new compute and fix styles to LAMMPS to calculate per-atom quantities
+which could then be output into dump files.
 
 :line
 

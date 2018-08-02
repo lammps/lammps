@@ -349,7 +349,7 @@ in the context of NVT dynamics.
 NOTE: If the density of the cell is initially very small or zero, and
 increases to a much larger density after a period of equilibration,
 then certain quantities that are only calculated once at the start
-(kspace parameters, tail corrections) may no longer be accurate.  The
+(kspace parameters) may no longer be accurate.  The
 solution is to start a new simulation after the equilibrium density
 has been reached.
 

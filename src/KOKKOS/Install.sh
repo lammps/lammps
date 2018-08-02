@@ -95,6 +95,8 @@ action domain_kokkos.cpp
 action domain_kokkos.h
 action fix_deform_kokkos.cpp
 action fix_deform_kokkos.h
+action fix_enforce2d_kokkos.cpp
+action fix_enforce2d_kokkos.h
 action fix_eos_table_rx_kokkos.cpp fix_eos_table_rx.cpp
 action fix_eos_table_rx_kokkos.h fix_eos_table_rx.h  
 action fix_freeze_kokkos.cpp fix_freeze.cpp

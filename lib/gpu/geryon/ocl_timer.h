@@ -49,8 +49,6 @@ class UCL_Timer {
   inline void clear() {
     if (_initialized) {
       CL_DESTRUCT_CALL(clReleaseCommandQueue(_cq));
-      clReleaseEvent(start_event);
-      clReleaseEvent(stop_event);
       _initialized=false;
       _total_time=0.0;
     }
@@ -107,6 +105,8 @@ class UCL_Timer {
     CL_SAFE_CALL(clGetEventProfilingInfo(start_event,
                                          CL_PROFILING_COMMAND_END,
                                          sizeof(cl_ulong), &tstart, NULL));
+    clReleaseEvent(start_event);
+    clReleaseEvent(stop_event);
     return (tend-tstart)*t_factor;
   }
 

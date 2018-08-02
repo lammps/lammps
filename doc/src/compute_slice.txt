@@ -58,7 +58,7 @@ page for details.  If no bracketed integer is appended, the vector
 calculated by the compute is used.  If a bracketed integer is
 appended, the Ith column of the array calculated by the compute is
 used.  Users can also write code for their own compute styles and "add
-them to LAMMPS"_Section_modify.html.
+them to LAMMPS"_Modify.html.
 
 If a value begins with "f_", a fix ID must follow which has been
 previously defined in the input script and which generates a global
@@ -69,7 +69,7 @@ the values, else an error results.  If no bracketed integer is
 appended, the vector calculated by the fix is used.  If a bracketed
 integer is appended, the Ith column of the array calculated by the fix
 is used.  Users can also write code for their own fix style and "add
-them to LAMMPS"_Section_modify.html.
+them to LAMMPS"_Modify.html.
 
 If an input value begins with "v_", a variable name must follow which
 has been previously defined in the input script.  Only vector-style

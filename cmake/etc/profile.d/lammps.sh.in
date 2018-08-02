@@ -1,0 +1,2 @@
+# set environment for LAMMPS executables to find potential files
+export LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS-@LAMMPS_POTENTIALS_DIR@}

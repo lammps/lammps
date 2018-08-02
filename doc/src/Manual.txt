@@ -21,7 +21,7 @@
 <H1></H1>
 
 LAMMPS Documentation :c,h1
-16 Mar 2018 version :c,h2
+16 Jul 2018 version :c,h2
 
 "What is a LAMMPS version?"_Manual_version.html
 
@@ -29,15 +29,18 @@ LAMMPS stands for Large-scale Atomic/Molecular Massively Parallel
 Simulator.
 
 LAMMPS is a classical molecular dynamics simulation code designed to
-run efficiently on parallel computers.  It was developed originally at
-Sandia National Laboratories, a US Department of Energy facility, with
-funding from the DOE.  It is an open-source code, distributed freely
-under the terms of the GNU Public License (GPL).
+run efficiently on parallel computers.  It is primarily used for
+materials modeling of various kinds.  It was developed originally at
+Sandia National Laboratories, a US Department of Energy facility.  The
+majority of funding for LAMMPS has come from the US Department of
+Energy (DOE).  LAMMPS is an open-source code, distributed freely under
+the terms of the GNU Public License (GPL).
 
-The "LAMMPS website"_lws has information about the code authors, a
-"mail list"_http://lammps.sandia.gov where users can post questions,
-and a "GitHub site"https://github.com/lammps/lammps where all LAMMPS
-development is coordinated.
+The "LAMMPS website"_lws has a variety of information about the code.
+It includes links to an on-line version of this manual, a "mail
+list"_http://lammps.sandia.gov/mail.html where users can post
+questions, and a "GitHub site"https://github.com/lammps/lammps where
+all LAMMPS development is coordinated.
 
 :line
 

@@ -1,6 +1,6 @@
 "Previous Section"_Manual.html - "LAMMPS WWW Site"_lws -
 "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next
-Section"_Section_start.html :c
+Section"_Install.html :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
@@ -10,34 +10,28 @@ Section"_Section_start.html :c
 
 Introduction :h2
 
-The "LAMMPS website"_lws is the best introduction to LAMMPS.
+These pages provide a brief introduction to LAMMPS.
 
-Here is a list of webpages you can browse:
+<!-- RST
 
-"Brief intro and significant recent features"_lws
-"List of features"_http://lammps.sandia.gov/features.html
-"List of non-features"_http://lammps.sandia.gov/non_features.html
-"Recent bug fixes and new features"_http://lammps.sandia.gov/bug.html :ul
+.. toctree::
 
-"Download info"_http://lammps.sandia.gov/download.html
-"GitHub site"_https://github.com/lammps/lammps
-"SourceForge site"_https://sourceforge.net/projects/lammps
-"Open source and licensing info"_http://lammps.sandia.gov/open_source.html :ul
+   Intro_overview
+   Intro_features
+   Intro_nonfeatures
+   Intro_opensource
+   Intro_authors
+   Intro_website
 
-"Glossary of MD terms relevant to LAMMPS"_http://lammps.sandia.gov/glossary.html
-"LAMMPS highlights with images"_http://lammps.sandia.gov/pictures.html
-"LAMMPS highlights with movies"_http://lammps.sandia.gov/movies.html
-"Mail list"_http://lammps.sandia.gov/mail.html
-"Workshops"_http://lammps.sandia.gov/workshops.html
-"Tutorials"_http://lammps.sandia.gov/tutorials.html
-"Developer guide"_http://lammps.sandia.gov/Developer.pdf :ul
+END_RST -->
 
-"Pre- and post-processing tools for LAMMPS"_http://lammps.sandia.gov/prepost.html
-"Other software usable with LAMMPS"_http://lammps.sandia.gov/offsite.html
-"Viz tools usable with LAMMPS"_http://lammps.sandia.gov/viz.html :ul
+<!-- HTML_ONLY -->
 
-"Benchmark performance"_http://lammps.sandia.gov/bench.html
-"Publications that have cited LAMMPS"_http://lammps.sandia.gov/papers.html
-"Authors of the LAMMPS code"_http://lammps.sandia.gov/authors.html
-"History of LAMMPS development"_http://lammps.sandia.gov/history.html
-"Funding for LAMMPS"_http://lammps.sandia.gov/funding.html :ul
+"Overview of LAMMPS"_Intro_overview.html
+"LAMMPS features"_Intro_features.html
+"LAMMPS non-features"_Intro_nonfeatures.html
+"LAMMPS open-source license"_Intro_license.html
+"LAMMPS authors"_Intro_authors.html
+"Additional website links"_Intro_website.html :all(b)
+
+<!-- END_HTML_ONLY -->

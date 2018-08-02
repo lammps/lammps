@@ -14,9 +14,8 @@ ensembles of particles in a liquid, solid, or gaseous state.  It can
 model atomic, polymeric, biological, solid-state (metals, ceramics,
 oxides), granular, coarse-grained, or macroscopic systems using a
 variety of interatomic potentials (force fields) and boundary
-conditions.  The majority of these models are for materials of various
-kinds.  It can model 2d or 3d systems with only a few particles up to
-millions or billions.
+conditions.  It can model 2d or 3d systems with only a few particles
+up to millions or billions.
 
 LAMMPS can be built and run on a laptop or destop machine, but is
 designed for parallel computers.  It will run on any parallel machine

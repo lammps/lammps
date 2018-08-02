@@ -86,17 +86,17 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   // check if -mpi is first arg
   // if so, then 2 apps were launched with one mpirun command
   //   this means passed communicator (e.g. MPI_COMM_WORLD) is bigger than LAMMPS
-  //   e.g. for client/server coupling with another code
-  //   communicator needs to shrink to be just LAMMPS
-  // syntax: -mpi P1 means P1 procs for one app, P-P1 procs for second app
-  //   LAMMPS could be either app, based on proc IDs
+  //     e.g. for client/server coupling with another code
+  //     in the future LAMMPS might leverage this in other ways
+  //   universe communicator needs to shrink to be just LAMMPS
+  // syntax: -mpi color
+  //   color = integer for this app, different than other app(s)
   // do the following:
   //   perform an MPI_Comm_split() to create a new LAMMPS-only subcomm
-  //   NOTE: assuming other app is doing the same thing, else will hang!
+  //   NOTE: this assumes other app(s) does same thing, else will hang!
   //   re-create universe with subcomm
-  //   store full two-app comm in cscomm
+  //   store full multi-app comm in cscomm
   //   cscomm is used by CSLIB package to exchange messages w/ other app
-  // eventually should extend to N > 2 apps launched with one mpirun command
 
   int iarg = 1;
   if (narg-iarg >= 2 && (strcmp(arg[iarg],"-mpi") == 0 ||
@@ -104,13 +104,9 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
     int me,nprocs;
     MPI_Comm_rank(communicator,&me);
     MPI_Comm_size(communicator,&nprocs);
-    int p1 = atoi(arg[iarg+1]);
-    if (p1 <= 0 || p1 >= nprocs) 
-      error->universe_all(FLERR,"Invalid command-line argument");
-    int which = 0;
-    if (me >= p1) which = 1;
+    int color = atoi(arg[iarg+1]);
     MPI_Comm subcomm;
-    MPI_Comm_split(communicator,which,me,&subcomm);
+    MPI_Comm_split(communicator,color,me,&subcomm);
     cscomm = communicator;
     communicator = subcomm;
     delete universe;
@@ -656,8 +652,8 @@ LAMMPS::~LAMMPS()
   delete [] suffix;
   delete [] suffix2;
 
-  // free the MPI comm created by -mpi command-line arg
-  // it was passed to universe as if origianl universe world
+  // free the MPI comm created by -mpi command-line arg processed in constructor
+  // it was passed to universe as if original universe world
   // may have been split later by partitions, universe will free the splits
   // free a copy of uorig here, so check in universe destructor will still work
 

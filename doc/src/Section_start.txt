@@ -1352,23 +1352,26 @@ specified file is "none", then no log files are created.  Using a
 "log"_log.html command in the input script will override this setting.
 Option -plog will override the name of the partition log files file.N.
 
--mpi P :pre
+-mpi color :pre
 
 If used, this must be the first command-line argument after the LAMMPS
-executable name.  It is only used when running LAMMPS in client/server
-mode with the "mpi/one" mode of messaging provided by the
-"message"_message.html command and the CSlib library LAMMPS links with
-from the lib/message directory.  See the "message"_message.html
-command for more details
-
-In the mpi/one mode of messaging, both executables (the client and the
-server) are launched by one mpirun command.  P should be specified as
-the number of processors (MPI tasks) the first executable is running
-on (could be the client or the server code).
-
-This information is required so that both codes can shrink the
-MPI_COMM_WORLD communicator they are part of to the subset of
+executable name.  It is only used when LAMMPS is launched by an mpirun
+command which also launches another executable(s) (the other
+executable could be LAMMPS as well) at the same time.  The color is an
+integer value which should be different for each executable (another
+application may set this value in a different way).  LAMMPS and the
+other executable(s) perform an MPI_Comm_split() with their own colors
+to shrink the MPI_COMM_WORLD communication to be the subset of
 processors they are actually running on.
+
+Currently, this is only used in LAMMPS to perform client/server
+messaging with another application.  LAMMPS can act as either a client
+or server (or both).
+
+Specifically, this refers to the "mpi/one" mode of messaging provided
+by the "message"_message.html command and the CSlib library LAMMPS
+links with from the lib/message directory.  See the
+"message"_message.html command for more details.
 
 -nocite :pre
 

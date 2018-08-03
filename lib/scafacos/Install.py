@@ -147,7 +147,7 @@ if buildflag:
 
 if buildflag:
   print("Building Scafacos ...")
-  cmd = 'cd "%s"; CC=mpicc FC=mpif90 CXX=mpicxx ./configure --prefix="`pwd`/build" --disable-doc --enable-fcs-solvers=fmm,p2nfft,direct,ewald > log.txt; make -j 4; make install' % homedir
+  cmd = 'cd "%s"; CC=mpicc FC=mpif90 CXX=mpicxx ./configure --prefix="`pwd`/build" --disable-doc --enable-fcs-solvers=fmm,p2nfft,direct,ewald > log.txt; make -j; make install' % homedir
   txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   print(txt.decode('UTF-8'))
 

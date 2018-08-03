@@ -179,9 +179,8 @@ parameters.  See the examples/qeq directory for some examples.
 No information about these fixes is written to "binary restart
 files"_restart.html.  No global scalar or vector or per-atom
 quantities are stored by these fixes for access by various "output
-commands"_Section_howto.html#howto_15.  No parameter of these fixes
-can be used with the {start/stop} keywords of the "run"_run.html
-command.
+commands"_Howto_output.html.  No parameter of these fixes can be used
+with the {start/stop} keywords of the "run"_run.html command.
 
 Thexe fixes are invoked during "energy minimization"_minimize.html.
 

@@ -118,9 +118,9 @@ of "thermodynamic output"_thermo_style.html.  The default is {virial
 yes}
 
 This fix computes a global scalar which can be accessed by various
-"output commands"_Section_howto.html#howto_15.  The scalar is the
-potential energy discussed above.  The scalar value calculated by this
-fix is "extensive".
+"output commands"_Howto_output.html.  The scalar is the potential
+energy discussed above.  The scalar value calculated by this fix is
+"extensive".
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.

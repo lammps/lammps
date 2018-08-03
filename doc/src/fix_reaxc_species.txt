@@ -116,8 +116,8 @@ are relevant to this fix.
 
 This fix computes both a global vector of length 2 and a per-atom
 vector, either of which can be accessed by various "output
-commands"_Section_howto.html#howto_15.  The values in the global
-vector are "intensive".
+commands"_Howto_output.html.  The values in the global vector are
+"intensive".
 
 The 2 values in the global vector are as follows:
 

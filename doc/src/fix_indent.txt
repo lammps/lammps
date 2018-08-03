@@ -180,8 +180,8 @@ integrator the fix is adding its forces. Default is the outermost level.
 
 This fix computes a global scalar energy and a global 3-vector of
 forces (on the indenter), which can be accessed by various "output
-commands"_Section_howto.html#howto_15.  The scalar and vector values
-calculated by this fix are "extensive".
+commands"_Howto_output.html.  The scalar and vector values calculated
+by this fix are "extensive".
 
 The forces due to this fix are imposed during an energy minimization,
 invoked by the "minimize"_minimize.html command.  Note that if you

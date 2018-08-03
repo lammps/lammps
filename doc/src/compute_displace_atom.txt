@@ -118,9 +118,8 @@ would be empty.
 
 This compute calculates a per-atom array with 4 columns, which can be
 accessed by indices 1-4 by any command that uses per-atom values from
-a compute as input.  See "Section
-6.15"_Section_howto.html#howto_15 for an overview of LAMMPS output
-options.
+a compute as input.  See the "Howto output"_Howto_output.html doc page
+for an overview of LAMMPS output options.
 
 The per-atom array values will be in distance "units"_units.html.
 

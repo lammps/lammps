@@ -143,10 +143,9 @@ the number of reciprocal lattice nodes that are explored by the mesh.
 The entries of the global vector are the computed diffraction
 intensities as described above.
 
-The vector can be accessed by any command that uses global values
-from a compute as input.  See "this
-section"_Section_howto.html#howto_15 for an overview of LAMMPS output
-options.
+The vector can be accessed by any command that uses global values from
+a compute as input.  See the "Howto output"_Howto_output.html doc page
+for an overview of LAMMPS output options.
 
 All array values calculated by this compute are "intensive".
 

@@ -17,8 +17,8 @@ surface meshes of discrete points, collections of sub-particles,
 deformable objects, etc.  Note that other kinds of finite-size
 spherical and aspherical particles are also supported by LAMMPS, such
 as spheres, ellipsoids, line segments, and triangles, but they are
-simpler entities that body particles.  See "Section
-6.14"_Section_howto.html#howto_14 for a general overview of all
+simpler entities that body particles.  See the "Howto
+body"_Howto_.html doc page for a general overview of all
 these particle types.
 
 Body particles are used via the "atom_style body"_atom_style.html
@@ -151,7 +151,7 @@ center-of-mass position of the particle is specified by the x,y,z
 values in the {Atoms} section of the data file, as is the total mass
 of the body particle.
 
-The "pair_style body"_pair_body.html command can be used with this
+The "pair_style body/nparticle"_pair_body_nparticle.html command can be used with this
 body style to compute body/body and body/non-body interactions.
 
 For output purposes via the "compute

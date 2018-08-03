@@ -185,9 +185,9 @@ distance are computed directly; interactions outside that distance are
 computed in reciprocal space.
 
 Style {lj/cut/coul/long/cs} is identical to {lj/cut/coul/long} except
-that a term is added for the "core/shell
-model"_Section_howto.html#howto_25 to allow charges on core and shell
-particles to be separated by r = 0.0.
+that a term is added for the "core/shell model"_Howto_coreshell.html
+to allow charges on core and shell particles to be separated by r =
+0.0.
 
 Style {coul/wolf} adds a Coulombic pairwise interaction via the Wolf
 summation method, described in "Wolf"_#Wolf1, given by:
@@ -223,16 +223,16 @@ is to enable LAMMPS to "find" the 2 H atoms associated with each O
 atom.  For example, if the atom ID of an O atom in a TIP4P water
 molecule is 500, then its 2 H atoms must have IDs 501 and 502.
 
-See the "howto section"_Section_howto.html#howto_8 for more
-information on how to use the TIP4P pair styles and lists of
-parameters to set.  Note that the neighbor list cutoff for Coulomb
-interactions is effectively extended by a distance 2*qdist when using
-the TIP4P pair style, to account for the offset distance of the
-fictitious charges on O atoms in water molecules.  Thus it is
-typically best in an efficiency sense to use a LJ cutoff >= Coulomb
-cutoff + 2*qdist, to shrink the size of the neighbor list.  This leads
-to slightly larger cost for the long-range calculation, so you can
-test the trade-off for your model.
+See the "Howto tip4p"_Howto_tip4p.html doc page for more information
+on how to use the TIP4P pair styles and lists of parameters to set.
+Note that the neighbor list cutoff for Coulomb interactions is
+effectively extended by a distance 2*qdist when using the TIP4P pair
+style, to account for the offset distance of the fictitious charges on
+O atoms in water molecules.  Thus it is typically best in an
+efficiency sense to use a LJ cutoff >= Coulomb cutoff + 2*qdist, to
+shrink the size of the neighbor list.  This leads to slightly larger
+cost for the long-range calculation, so you can test the trade-off for
+your model.
 
 For all of the {lj/cut} pair styles, the following coefficients must
 be defined for each pair of atoms types via the

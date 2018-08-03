@@ -186,9 +186,9 @@ functions, and include "thermo_style"_thermo_style.html command
 keywords for the simulation box parameters and timestep and elapsed
 time.  Thus it is easy to specify a time-dependent radius.
 
-See "Section 6.12"_Section_howto.html#howto_12 of the doc pages
-for a geometric description of triclinic boxes, as defined by LAMMPS,
-and how to transform these parameters to and from other commonly used
+See the "Howto tricilinc"_Howto_triclinic.html doc page for a
+geometric description of triclinic boxes, as defined by LAMMPS, and
+how to transform these parameters to and from other commonly used
 triclinic representations.
 
 The {union} style creates a region consisting of the volume of all the

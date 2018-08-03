@@ -1,4 +1,4 @@
-"Previous Section"_Section_intro.html - "LAMMPS WWW Site"_lws -
+"Previous Section"_Intro.html - "LAMMPS WWW Site"_lws -
 "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next
 Section"_Section_commands.html :c
 
@@ -934,9 +934,9 @@ Makefile.opt :ul
 
 LAMMPS can be built as either a static or shared library, which can
 then be called from another application or a scripting language.  See
-"this section"_Section_howto.html#howto_10 for more info on coupling
-LAMMPS to other codes.  See the "Python"_Python.html doc page for more
-info on wrapping and running LAMMPS from Python.
+the "Howto couple"_Howto_couple.html doc page for more info on
+coupling LAMMPS to other codes.  See the "Python"_Python.html doc page
+for more info on wrapping and running LAMMPS from Python.
 
 Static library :h4
 
@@ -1039,16 +1039,16 @@ src/library.cpp and src/library.h.
 
 See the sample codes in examples/COUPLE/simple for examples of C++ and
 C and Fortran codes that invoke LAMMPS thru its library interface.
-There are other examples as well in the COUPLE directory which are
-discussed in "Section 6.10"_Section_howto.html#howto_10 of the manual.
-See the "Python"_Python.html doc page for a description of the Python
-wrapper provided with LAMMPS that operates through the LAMMPS library
-interface.
+There are other examples as well in the COUPLE directory which use
+coupling ideas discussed on the "Howto couple"_Howto_couple.html doc
+page.  See the "Python"_Python.html doc page for a description of the
+Python wrapper provided with LAMMPS that operates through the LAMMPS
+library interface.
 
 The files src/library.cpp and library.h define the C-style API for
-using LAMMPS as a library.  See "Section
-6.19"_Section_howto.html#howto_19 of the manual for a description of the
-interface and how to extend it for your needs.
+using LAMMPS as a library.  See the "Howto library"_Howto_library.html
+doc page for a description of the interface and how to extend it for
+your needs.
 
 :line
 
@@ -1391,16 +1391,16 @@ processors in all partitions must equal P.  Thus the command
 "-partition 8x2 4 5" has 10 partitions and runs on a total of 25
 processors.
 
-Running with multiple partitions can e useful for running
-"multi-replica simulations"_Section_howto.html#howto_5, where each
-replica runs on on one or a few processors.  Note that with MPI
-installed on a machine (e.g. your desktop), you can run on more
-(virtual) processors than you have physical processors.
+Running with multiple partitions can be useful for running
+"multi-replica simulations"_Howto_replica.html, where each replica
+runs on on one or a few processors.  Note that with MPI installed on a
+machine (e.g. your desktop), you can run on more (virtual) processors
+than you have physical processors.
 
 To run multiple independent simulations from one input script, using
-multiple partitions, see "Section 6.4"_Section_howto.html#howto_4
-of the manual.  World- and universe-style "variables"_variable.html
-are useful in this context.
+multiple partitions, see the "Howto multiple"_Howto_multiple.html doc
+page.  World- and universe-style "variables"_variable.html are useful
+in this context.
 
 -plog file :pre
 
@@ -1787,11 +1787,13 @@ communication, roughly 75% in the example above.
 
 The current C++ began with a complete rewrite of LAMMPS 2001, which
 was written in F90.  Features of earlier versions of LAMMPS are listed
-in "Section 13"_Section_history.html.  The F90 and F77 versions
-(2001 and 99) are also freely distributed as open-source codes; check
-the "LAMMPS WWW Site"_lws for distribution information if you prefer
-those versions.  The 99 and 2001 versions are no longer under active
-development; they do not have all the features of C++ LAMMPS.
+on the "History page"_http://lammps.sandia.gov/history.html of the
+LAMMPS website.  The F90 and F77 versions (2001 and 99) are also
+freely distributed as open-source codes; check the "History
+page"_http://lammps.sandia.gov/history.html of the LAMMPS website for
+info about those versions.  The 99 and 2001 versions are no longer
+under active development; they do not have all the features of C++
+LAMMPS.
 
 If you are a previous user of LAMMPS 2001, these are the most
 significant changes you will notice in C++ LAMMPS:

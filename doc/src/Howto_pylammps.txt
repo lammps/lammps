@@ -15,13 +15,19 @@ END_RST -->
 
 Overview :h4
 
-PyLammps is a Python wrapper class which can be created on its own or use an
-existing lammps Python object. It creates a simpler, Python-like interface to
-common LAMMPS functionality. Unlike the original flat C-types interface, it
-exposes a discoverable API. It no longer requires knowledge of the underlying
-C++ code implementation.  Finally, the IPyLammps wrapper builds on top of
-PyLammps and adds some additional features for IPython integration into IPython
-notebooks, e.g. for embedded visualization output from dump/image.
+PyLammps is a Python wrapper class which can be created on its own or
+use an existing lammps Python object.  It creates a simpler,
+Python-like interface to common LAMMPS functionality, in contrast to
+the lammps.py wrapper on the C-style LAMMPS library interface which is
+written using Python ctypes.  The lammps.py wrapper is discussed on
+the "Python library"_Python_library.html doc page.
+
+Unlike the flat ctypes interface, PyLammps exposes a discoverable API.
+It no longer requires knowledge of the underlying C++ code
+implementation.  Finally, the IPyLammps wrapper builds on top of
+PyLammps and adds some additional features for IPython integration
+into IPython notebooks, e.g. for embedded visualization output from
+dump/image.
 
 Comparison of lammps and PyLammps interfaces :h5
 
@@ -39,7 +45,6 @@ manipulation of Python objects
 communication with LAMMPS is hidden from API user
 shorter, more concise Python
 better IPython integration, designed for quick prototyping :ul
-
 
 Quick Start :h4
 

@@ -285,15 +285,15 @@ performance and accuracy in the results is obtained when these values
 are different.
 
 The {disp/auto} option controls whether the pppm/disp is allowed to
-generate PPPM parameters automatically. If set to {no}, parameters have
-to be specified using the {gewald/disp}, {mesh/disp},
-{force/disp/real} or {force/disp/kspace} keywords, or
-the code will stop with an error message. When this option is set to
-{yes}, the error message will not appear and the simulation will start.
-For a typical application, using the automatic parameter generation
-will provide simulations that are either inaccurate or slow. Using this
-option is thus not recommended. For guidelines on how to obtain good
-parameters, see the "How-To"_Section_howto.html#howto_24 discussion.
+generate PPPM parameters automatically. If set to {no}, parameters
+have to be specified using the {gewald/disp}, {mesh/disp},
+{force/disp/real} or {force/disp/kspace} keywords, or the code will
+stop with an error message. When this option is set to {yes}, the
+error message will not appear and the simulation will start.  For a
+typical application, using the automatic parameter generation will
+provide simulations that are either inaccurate or slow. Using this
+option is thus not recommended.  For guidelines on how to obtain good
+parameters, see the "Howto dispersion"_Howto_dispersion.html doc page.
 
 [Restrictions:] none
 

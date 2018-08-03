@@ -164,6 +164,12 @@
   #else // !defined(KOKKOS_ENABLE_CUDA_LAMBDA)
     #undef KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA
   #endif // !defined(KOKKOS_ENABLE_CUDA_LAMBDA)
+
+  #if ( 9000 <= CUDA_VERSION ) && ( CUDA_VERSION < 10000 )
+    // CUDA 9 introduced an incorrect warning,
+    // see https://github.com/kokkos/kokkos/issues/1470
+    #define KOKKOS_CUDA_9_DEFAULTED_BUG_WORKAROUND
+  #endif
 #endif // #if defined( KOKKOS_ENABLE_CUDA ) && defined( __CUDACC__ )
 
 //----------------------------------------------------------------------------
@@ -175,10 +181,6 @@
   #define KOKKOS_FORCEINLINE_FUNCTION  __device__  __host__  __forceinline__
   #define KOKKOS_INLINE_FUNCTION       __device__  __host__  inline
   #define KOKKOS_FUNCTION              __device__  __host__
-  #ifdef KOKKOS_COMPILER_CLANG
-  #define KOKKOS_INLINE_FUNCTION_DEFAULTED KOKKOS_INLINE_FUNCTION
-  #define KOKKOS_FUNCTION_DEFAULTED KOKKOS_FUNCTION
-  #endif
 #endif // #if defined( __CUDA_ARCH__ )
 
 #if defined( KOKKOS_ENABLE_ROCM ) && defined( __HCC__ )
@@ -187,8 +189,6 @@
   #define KOKKOS_INLINE_FUNCTION       __attribute__((amp,cpu)) inline
   #define KOKKOS_FUNCTION              __attribute__((amp,cpu))
   #define KOKKOS_LAMBDA                [=] __attribute__((amp,cpu))
-  #define KOKKOS_INLINE_FUNCTION_DEFAULTED KOKKOS_INLINE_FUNCTION
-  #define KOKKOS_FUNCTION_DEFAULTED    KOKKOS_FUNCTION
 #endif
 
 #if defined( _OPENMP )
@@ -423,11 +423,6 @@
   #define KOKKOS_FUNCTION /**/
 #endif
 
-#if !defined( KOKKOS_FUNCTION_DEFAULTED )
-  #define KOKKOS_INLINE_FUNCTION_DEFAULTED inline
-  #define KOKKOS_FUNCTION_DEFAULTED /**/
-#endif
-
 //----------------------------------------------------------------------------
 // Define empty macro for restrict if necessary:
 
@@ -528,5 +523,16 @@
   #define KOKKOS_IMPL_CUDA_VERSION_9_WORKAROUND
   #endif
 #endif
+
+#define KOKKOS_INVALID_INDEX (~std::size_t(0))
+
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
+  #define KOKKOS_IMPL_CTOR_DEFAULT_ARG 0
+#else
+  #define KOKKOS_IMPL_CTOR_DEFAULT_ARG KOKKOS_INVALID_INDEX
+#endif
+
+
+
 #endif // #ifndef KOKKOS_MACROS_HPP
 

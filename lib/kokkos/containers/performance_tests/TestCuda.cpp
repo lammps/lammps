@@ -70,13 +70,12 @@ protected:
   static void SetUpTestCase()
   {
     std::cout << std::setprecision(5) << std::scientific;
-    Kokkos::HostSpace::execution_space::initialize();
-    Kokkos::Cuda::initialize( Kokkos::Cuda::SelectDevice(0) );
+    Kokkos::InitArguments args(-1, -1, 0);
+    Kokkos::initialize(args);
   }
   static void TearDownTestCase()
   {
-    Kokkos::Cuda::finalize();
-    Kokkos::HostSpace::execution_space::finalize();
+    Kokkos::finalize();
   }
 };
 

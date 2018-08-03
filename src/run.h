@@ -69,6 +69,10 @@ E: Run command stop value is before end of run
 
 Self-explanatory.
 
+E: Run flag 'pre no' not compatible with r-RESPA
+
+UNDOCUMENTED
+
 E: Too many timesteps
 
 The cumulative timesteps must fit in a 64-bit integer.

@@ -1,5 +1,58 @@
 # Change Log
 
+## [2.7.00](https://github.com/kokkos/kokkos/tree/2.7.00) (2018-05-24)
+[Full Changelog](https://github.com/kokkos/kokkos/compare/2.6.00...2.7.00)
+
+**Part of the Kokkos C++ Performance Portability Programming EcoSystem 2.7**
+
+**Implemented enhancements:**
+
+- Deprecate team\_size auto adjusting to maximal value possible [\#1618](https://github.com/kokkos/kokkos/issues/1618)
+- DynamicView - remove restrictions to std::is\_trivial types and value\_type is power of two [\#1586](https://github.com/kokkos/kokkos/issues/1586)
+- Kokkos::StaticCrsGraph does not propagate memory traits \(e.g., Unmanaged\) [\#1581](https://github.com/kokkos/kokkos/issues/1581)
+- Adding ETI for DeepCopy / ViewFill etc. [\#1578](https://github.com/kokkos/kokkos/issues/1578)
+- Deprecate all the left over KOKKOS\_HAVE\_ Macros and Kokkos\_OldMacros.hpp [\#1572](https://github.com/kokkos/kokkos/issues/1572)
+- Error if Kokkos\_ARCH set in CMake [\#1555](https://github.com/kokkos/kokkos/issues/1555)
+- Deprecate ExecSpace::initialize / ExecSpace::finalize [\#1532](https://github.com/kokkos/kokkos/issues/1532)
+- New API for TeamPolicy property setting [\#1531](https://github.com/kokkos/kokkos/issues/1531)
+- clang 6.0 + cuda debug out-of-memory test failure [\#1521](https://github.com/kokkos/kokkos/issues/1521)
+- Cuda UniqueToken interface not consistent with other backends [\#1505](https://github.com/kokkos/kokkos/issues/1505)
+- Move Reducers out of Experimental namespace [\#1494](https://github.com/kokkos/kokkos/issues/1494)
+- Provide scope guard for initialize/finalize [\#1479](https://github.com/kokkos/kokkos/issues/1479)
+- Check Kokkos::is\_initialized in SharedAllocationRecord dtor [\#1465](https://github.com/kokkos/kokkos/issues/1465)
+- Remove static list of allocations [\#1464](https://github.com/kokkos/kokkos/issues/1464)
+- Makefiles: Support single compile/link line use case [\#1402](https://github.com/kokkos/kokkos/issues/1402)
+- ThreadVectorRange with a range  [\#1400](https://github.com/kokkos/kokkos/issues/1400)
+- Exclusive scan + last value API [\#1358](https://github.com/kokkos/kokkos/issues/1358)
+- Install kokkos\_generated\_settings.cmake [\#1348](https://github.com/kokkos/kokkos/issues/1348)
+- Kokkos arrays \(not views!\) don't do bounds checking in debug mode [\#1342](https://github.com/kokkos/kokkos/issues/1342)
+- Expose round-robin GPU assignment outside of initialize\(int, char\*\*\) [\#1318](https://github.com/kokkos/kokkos/issues/1318)
+- DynamicView misses use\_count and label function [\#1298](https://github.com/kokkos/kokkos/issues/1298)
+- View constructor should check arguments [\#1286](https://github.com/kokkos/kokkos/issues/1286)
+- False Positive on Oversubscription Warning [\#1207](https://github.com/kokkos/kokkos/issues/1207)
+- Allow \(require\) execution space for 1st arg of VerifyExecutionCanAccessMemorySpace [\#1192](https://github.com/kokkos/kokkos/issues/1192)
+- ROCm: Add ROCmHostPinnedSpace [\#958](https://github.com/kokkos/kokkos/issues/958)
+- power of two functions [\#656](https://github.com/kokkos/kokkos/issues/656)
+- CUDA 8 has 64bit \_\_shfl [\#361](https://github.com/kokkos/kokkos/issues/361)
+- Add TriBITS/CMake configure information about node types [\#243](https://github.com/kokkos/kokkos/issues/243)
+
+**Fixed bugs:**
+
+- CUDA atomic\_fetch\_sub for doubles is hitting CAS instead of intrinsic [\#1624](https://github.com/kokkos/kokkos/issues/1624)
+- Bug: use of ballot on Volta [\#1612](https://github.com/kokkos/kokkos/issues/1612)
+- Kokkos::deep\_copy memory access failures [\#1583](https://github.com/kokkos/kokkos/issues/1583)
+- g++ -std option doubly set for cmake project [\#1548](https://github.com/kokkos/kokkos/issues/1548)
+- ViewFill for 1D Views of larger 32bit entries fails [\#1541](https://github.com/kokkos/kokkos/issues/1541)
+- CUDA Volta another warpsync bug [\#1520](https://github.com/kokkos/kokkos/issues/1520)
+- triple\_nested\_parallelism fails with KOKKOS\_DEBUG and CUDA [\#1513](https://github.com/kokkos/kokkos/issues/1513)
+- Jenkins errors in Kokkos\_SharedAlloc.cpp with debug build [\#1511](https://github.com/kokkos/kokkos/issues/1511)
+- Kokkos::Sort out-of-bounds with empty bins [\#1504](https://github.com/kokkos/kokkos/issues/1504)
+- Get rid of deprecated functions inside Kokkos [\#1484](https://github.com/kokkos/kokkos/issues/1484)
+- get\_work\_partition casts int64\_t to int, causing a seg fault [\#1481](https://github.com/kokkos/kokkos/issues/1481)
+- NVCC bug with \_\_device\_\_ on defaulted function [\#1470](https://github.com/kokkos/kokkos/issues/1470)
+- CMake example broken with CUDA backend [\#1468](https://github.com/kokkos/kokkos/issues/1468)
+
+
 ## [2.6.00](https://github.com/kokkos/kokkos/tree/2.6.00) (2018-03-07)
 [Full Changelog](https://github.com/kokkos/kokkos/compare/2.5.00...2.6.00)
 

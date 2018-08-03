@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <string.h>
+#include <cstring>
 #include "write_restart.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -61,9 +61,9 @@ enum{VERSION,SMALLINT,TAGINT,BIGINT,
      MULTIPROC,MPIIO,PROCSPERFILE,PERPROC,
      IMAGEINT,BOUNDMIN,TIMESTEP,
      ATOM_ID,ATOM_MAP_STYLE,ATOM_MAP_USER,ATOM_SORTFREQ,ATOM_SORTBIN,
-     COMM_MODE,COMM_CUTOFF,COMM_VEL,NO_PAIR};
-
-enum{IGNORE,WARN,ERROR};                    // same as thermo.cpp
+     COMM_MODE,COMM_CUTOFF,COMM_VEL,NO_PAIR,
+     EXTRA_BOND_PER_ATOM,EXTRA_ANGLE_PER_ATOM,EXTRA_DIHEDRAL_PER_ATOM,
+     EXTRA_IMPROPER_PER_ATOM,EXTRA_SPECIAL_PER_ATOM};
 
 /* ---------------------------------------------------------------------- */
 
@@ -252,7 +252,7 @@ void WriteRestart::write(char *file)
 
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
-  if (natoms != atom->natoms && output->thermo->lostflag == ERROR)
+  if (natoms != atom->natoms && output->thermo->lostflag == Thermo::ERROR)
     error->all(FLERR,"Atom count is inconsistent, cannot write restart file");
 
   // open single restart file or base file for multiproc case
@@ -528,6 +528,12 @@ void WriteRestart::header()
   write_int(COMM_MODE,comm->mode);
   write_double(COMM_CUTOFF,comm->cutghostuser);
   write_int(COMM_VEL,comm->ghost_velocity);
+
+  write_int(EXTRA_BOND_PER_ATOM,atom->extra_bond_per_atom);
+  write_int(EXTRA_ANGLE_PER_ATOM,atom->extra_angle_per_atom);
+  write_int(EXTRA_DIHEDRAL_PER_ATOM,atom->extra_dihedral_per_atom);
+  write_int(EXTRA_IMPROPER_PER_ATOM,atom->extra_improper_per_atom);
+  write_int(EXTRA_SPECIAL_PER_ATOM,force->special_extra);
 
   // -1 flag signals end of header
 

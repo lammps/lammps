@@ -1,6 +1,6 @@
-#include "mpi.h"
-#include "stdio.h"
-#include "stdlib.h"
+#include <mpi.h>
+#include <cstdio>
+#include <cstdlib>
 #include "many2one.h"
 #include "memory.h"
 

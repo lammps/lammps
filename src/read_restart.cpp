@@ -12,8 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 #include <dirent.h>
 #include "read_restart.h"
 #include "atom.h"
@@ -62,7 +62,9 @@ enum{VERSION,SMALLINT,TAGINT,BIGINT,
      MULTIPROC,MPIIO,PROCSPERFILE,PERPROC,
      IMAGEINT,BOUNDMIN,TIMESTEP,
      ATOM_ID,ATOM_MAP_STYLE,ATOM_MAP_USER,ATOM_SORTFREQ,ATOM_SORTBIN,
-     COMM_MODE,COMM_CUTOFF,COMM_VEL,NO_PAIR};
+     COMM_MODE,COMM_CUTOFF,COMM_VEL,NO_PAIR,
+     EXTRA_BOND_PER_ATOM,EXTRA_ANGLE_PER_ATOM,EXTRA_DIHEDRAL_PER_ATOM,
+     EXTRA_IMPROPER_PER_ATOM,EXTRA_SPECIAL_PER_ATOM};
 
 #define LB_FACTOR 1.1
 
@@ -913,6 +915,17 @@ void ReadRestart::header(int incompatible)
       comm->cutghostuser = read_double();
     } else if (flag == COMM_VEL) {
       comm->ghost_velocity = read_int();
+
+    } else if (flag == EXTRA_BOND_PER_ATOM) {
+      atom->extra_bond_per_atom = read_int();
+    } else if (flag == EXTRA_ANGLE_PER_ATOM) {
+      atom->extra_angle_per_atom = read_int();
+    } else if (flag == EXTRA_DIHEDRAL_PER_ATOM) {
+      atom->extra_dihedral_per_atom = read_int();
+    } else if (flag == EXTRA_IMPROPER_PER_ATOM) {
+      atom->extra_improper_per_atom = read_int();
+    } else if (flag == EXTRA_SPECIAL_PER_ATOM) {
+      force->special_extra = read_int();
 
     } else error->all(FLERR,"Invalid flag in header section of restart file");
 

@@ -14,7 +14,7 @@
 #ifndef LMP_LAMMPS_H
 #define LMP_LAMMPS_H
 
-#include <stdio.h>
+#include <cstdio>
 
 namespace LAMMPS_NS {
 
@@ -59,12 +59,15 @@ class LAMMPS {
 
   class CiteMe *citeme;          // citation info
 
+  static const char * installed_packages[];
+
   LAMMPS(int, char **, MPI_Comm);
   ~LAMMPS();
   void create();
   void post_create();
   void init();
   void destroy();
+  void print_config(FILE *);    // print compile time settings
 
  private:
   void help();
@@ -167,10 +170,6 @@ This error occurs whenthe sizes of smallint, imageint, tagint, bigint,
 as defined in src/lmptype.h are not what is expected.  Contact
 the developers if this occurs.
 
-E: Cannot use -cuda on and -kokkos on together
-
-This is not allowed since both packages can use GPUs.
-
 E: Cannot use -kokkos on without KOKKOS installed
 
 Self-explanatory.
@@ -195,5 +194,9 @@ E: Too many -pk arguments in command line
 
 The string formed by concatenating the arguments is too long.  Use a
 package command in the input script instead.
+
+U: Cannot use -cuda on and -kokkos on together
+
+This is not allowed since both packages can use GPUs.
 
 */

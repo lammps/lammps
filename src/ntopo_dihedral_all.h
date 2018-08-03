@@ -38,4 +38,12 @@ class NTopoDihedralAll : public NTopo {
 
 /* ERROR/WARNING messages:
 
+E: Dihedral atoms %d %d %d %d missing on proc %d at step %ld
+
+UNDOCUMENTED
+
+W: Dihedral atoms missing at step %ld
+
+UNDOCUMENTED
+
 */

@@ -1,9 +1,9 @@
 #ifndef LMP_XDR_COMPAT_H
 #define LMP_XDR_COMPAT_H
 
-#include <limits.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <climits>
+#include <cstdio>
+#include <cstdlib>
 
 #ifdef __cplusplus
 extern "C" {

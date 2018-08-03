@@ -15,9 +15,9 @@
    Contributing author: Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
-#include <string.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstring>
+#include <cstdlib>
+#include <cmath>
 #include "fix_nh_kokkos.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -148,7 +148,7 @@ void FixNHKokkos<DeviceType>::setup(int vflag)
 
   if (pstat_flag) {
     double kt = boltz * t_target;
-    double nkt = atom->natoms * kt;
+    double nkt = (atom->natoms + 1) * kt;
 
     for (int i = 0; i < 3; i++)
       if (p_flag[i])

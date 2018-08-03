@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <errno.h>
-#include <ctype.h>
+#include <cctype>
 #include <unistd.h>
 #include <sys/stat.h>
 #include "input.h"
@@ -497,7 +497,7 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
         beyond = ptr + strlen(var) + 3;
         value = variable->retrieve(var);
 
-      // immediate variable between parenthesis, e.g. $(1/2)
+      // immediate variable between parenthesis, e.g. $(1/3) or $(1/3:%.6g)
 
       } else if (*(ptr+1) == '(') {
         var = ptr+2;
@@ -516,10 +516,20 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
         if (var[i] == '\0') error->one(FLERR,"Invalid immediate variable");
         var[i] = '\0';
         beyond = ptr + strlen(var) + 3;
-        sprintf(immediate,"%.20g",variable->compute_equal(var));
+
+        // check if an inline format specifier was appended with a colon
+
+        char fmtstr[64] = "%.20g";
+        char *fmtflag;
+        if ((fmtflag=strrchr(var, ':')) && (fmtflag[1]=='%')) {
+          strncpy(fmtstr,&fmtflag[1],sizeof(fmtstr)-1);
+          *fmtflag='\0';
+        }
+
+        sprintf(immediate,fmtstr,variable->compute_equal(var));
         value = immediate;
 
-        // single character variable name, e.g. $a
+      // single character variable name, e.g. $a
 
       } else {
         var = ptr;

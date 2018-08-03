@@ -1,4 +1,6 @@
-"Previous Section"_Manual.html - "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next Section"_Section_start.html :c
+"Previous Section"_Manual.html - "LAMMPS WWW Site"_lws - "LAMMPS
+Documentation"_ld - "LAMMPS Commands"_lc - "Next
+Section"_Section_start.html :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
@@ -54,8 +56,8 @@ brief discussion of the open-source philosophy.
 
 LAMMPS is designed to be easy to modify or extend with new
 capabilities, such as new force fields, atom types, boundary
-conditions, or diagnostics.  See "Section 10"_Section_modify.html
-for more details.
+conditions, or diagnostics.  See the "Modify"_Modify.html doc page for
+more details.
 
 The current version of LAMMPS is written in C++.  Earlier versions
 were written in F77 and F90.  See
@@ -94,8 +96,8 @@ LAMMPS are listed in "this section"_#intro_5.
 This section highlights LAMMPS features, with pointers to specific
 commands which give more details.  If LAMMPS doesn't have your
 favorite interatomic potential, boundary condition, or atom type, see
-"Section 10"_Section_modify.html, which describes how you can add
-it to LAMMPS.
+the "Modify"_Modify.html doc page, which describes how you can add it
+to LAMMPS.
 
 General features :h4
 
@@ -234,8 +236,8 @@ Multi-replica models :h4
 
 Pre- and post-processing :h4
 
-Various pre- and post-processing serial tools are packaged
-with LAMMPS; see these "doc pages"_Section_tools.html. :ulb,l
+Various pre- and post-processing serial tools are packaged with
+LAMMPS; see the "Tools"_Tools.html doc page for details. :ulb,l
 
 Our group has also written and released a separate toolkit called
 "Pizza.py"_pizza which provides tools for doing setup, analysis,
@@ -251,7 +253,7 @@ Specialized features :h4
 
 LAMMPS can be built with optional packages which implement a variety
 of additional capabilities.  An overview of all the packages is "given
-here"_Section_packages.html.
+here"_Packages.html.
 
 These are some LAMMPS capabilities which you may not think of as
 typical classical molecular dynamics options:
@@ -296,9 +298,9 @@ visualize your MD simulation
 plot your output data :ul
 
 A few tools for pre- and post-processing tasks are provided as part of
-the LAMMPS package; they are described in "this
-section"_Section_tools.html.  However, many people use other codes or
-write their own tools for these tasks.
+the LAMMPS package; they are described on the "Tools"_Tools.html doc
+page.  However, many people use other codes or write their own tools
+for these tasks.
 
 As noted above, our group has also written and released a separate
 toolkit called "Pizza.py"_pizza which addresses some of the listed
@@ -327,15 +329,15 @@ topology information and hundreds of force-field coefficients must
 typically be specified.  We suggest you use a program like
 "CHARMM"_charmm or "AMBER"_amber or other molecular builders to setup
 such problems and dump its information to a file.  You can then
-reformat the file as LAMMPS input.  Some of the tools in "this
-section"_Section_tools.html can assist in this process.
+reformat the file as LAMMPS input.  Some of the tools described on the
+"Tools"_Tools.html doc page can assist in this process.
 
 Similarly, LAMMPS creates output files in a simple format.  Most users
 post-process these files with their own analysis tools or re-format
 them for input into other programs, including visualization packages.
 If you are convinced you need to compute something on-the-fly as
-LAMMPS runs, see "Section 10"_Section_modify.html for a discussion
-of how you can use the "dump"_dump.html and "compute"_compute.html and
+LAMMPS runs, see the "Modify"_Modify.html doc page for a discussion of
+how you can use the "dump"_dump.html and "compute"_compute.html and
 "fix"_fix.html commands to print out data of your choosing.  Keep in
 mind that complicated computations can slow down the molecular
 dynamics timestepping, particularly if the computations are not
@@ -429,7 +431,7 @@ Site"_lws, or have a suggestion for something to clarify or include,
 send an email to the
 "developers"_http://lammps.sandia.gov/authors.html. :l
 
-If you find a bug, "Section 12.2"_Section_errors.html#err_2
+If you find a bug, the "Errors bugs"_Errors_bugs.html doc page
 describes how to report it. :l
 
 If you publish a paper using LAMMPS results, send the citation (and
@@ -442,15 +444,14 @@ directory. :l
 
 The tools sub-directory of the LAMMPS distribution has various
 stand-alone codes for pre- and post-processing of LAMMPS data.  More
-details are given in "Section 9"_Section_tools.html.  If you write
-a new tool that users will find useful, it can be added to the LAMMPS
+details are given on the "Tools"_Tools.html doc page.  If you write a
+new tool that users will find useful, it can be added to the LAMMPS
 distribution. :l
 
 LAMMPS is designed to be easy to extend with new code for features
 like potentials, boundary conditions, diagnostic computations, etc.
-"This section"_Section_modify.html gives details.  If you add a
-feature of general interest, it can be added to the LAMMPS
-distribution. :l
+The "Modify"_Modify.html doc page gives details.  If you add a feature
+of general interest, it can be added to the LAMMPS distribution. :l
 
 The Benchmark page of the "LAMMPS WWW Site"_lws lists LAMMPS
 performance on various platforms.  The files needed to run the
@@ -526,14 +527,14 @@ and efforts.
 Axel Kohlmeyer (Temple U), akohlmey at gmail.com, SVN and Git repositories, indefatigable mail list responder, USER-CGSDK, USER-OMP, USER-COLVARS, USER-MOLFILE, USER-QMMM, USER-TALLY, and COMPRESS packages
 Roy Pollock (LLNL), Ewald and PPPM solvers
 Mike Brown (ORNL), brownw at ornl.gov, GPU and USER-INTEL package
-Greg Wagner (Sandia), gjwagne at sandia.gov, MEAM package for MEAM potential
+Greg Wagner (Sandia), gjwagne at sandia.gov, MEAM package for MEAM potential (superseded by USER-MEAMC)
 Mike Parks (Sandia), mlparks at sandia.gov, PERI package for Peridynamics
 Rudra Mukherjee (JPL), Rudranarayan.M.Mukherjee at jpl.nasa.gov, POEMS package for articulated rigid body motion
 Reese Jones (Sandia) and collaborators, rjones at sandia.gov, USER-ATC package for atom/continuum coupling
 Ilya Valuev (JIHT), valuev at physik.hu-berlin.de, USER-AWPMD package for wave-packet MD
-Christian Trott (U Tech Ilmenau), christian.trott at tu-ilmenau.de, USER-CUDA and KOKKOS packages
+Christian Trott (U Tech Ilmenau), christian.trott at tu-ilmenau.de, USER-CUDA (obsoleted by KOKKOS) and KOKKOS packages
 Andres Jaramillo-Botero (Caltech), ajaramil at wag.caltech.edu, USER-EFF package for electron force field
-Christoph Kloss (JKU), Christoph.Kloss at jku.at, USER-LIGGGHTS package for granular models and granular/fluid coupling
+Christoph Kloss (JKU), Christoph.Kloss at jku.at, LIGGGHTS fork for granular models and granular/fluid coupling
 Metin Aktulga (LBL), hmaktulga at lbl.gov, USER-REAXC package for C version of ReaxFF
 Georg Gunzenmuller (EMI), georg.ganzenmueller at emi.fhg.de, USER-SMD and USER-SPH packages
 Colin Denniston (U Western Ontario), cdennist at uwo.ca, USER-LB package :ul

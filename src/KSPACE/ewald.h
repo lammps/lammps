@@ -122,6 +122,10 @@ E: KSpace accuracy must be > 0
 
 The kspace accuracy designated in the input must be greater than zero.
 
+E: Must use 'kspace_modify gewald' for uncharged system
+
+UNDOCUMENTED
+
 E: Cannot (yet) use K-space slab correction with compute group/group for triclinic systems
 
 This option is not yet supported.

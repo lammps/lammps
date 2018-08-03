@@ -41,7 +41,7 @@ class PairLJCutDipoleLong : public Pair {
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
 
- private:
+ protected:
   double cut_lj_global;
   double **cut_lj,**cut_ljsq;
   double cut_coulsq;

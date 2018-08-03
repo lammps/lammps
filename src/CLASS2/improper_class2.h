@@ -20,7 +20,7 @@ ImproperStyle(class2,ImproperClass2)
 #ifndef LMP_IMPROPER_CLASS2_H
 #define LMP_IMPROPER_CLASS2_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "improper.h"
 
 namespace LAMMPS_NS {
@@ -30,9 +30,9 @@ class ImproperClass2 : public Improper {
   ImproperClass2(class LAMMPS *);
   virtual ~ImproperClass2();
   virtual void compute(int, int);
-  void coeff(int, char **);
+  virtual void coeff(int, char **);
   void write_restart(FILE *);
-  void read_restart(FILE *);
+  virtual void read_restart(FILE *);
   void write_data(FILE *);
 
  protected:

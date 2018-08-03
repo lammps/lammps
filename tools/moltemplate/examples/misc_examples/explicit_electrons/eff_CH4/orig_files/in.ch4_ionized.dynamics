@@ -1,0 +1,42 @@
+variable	sname index ch4_ionized
+log		${sname}.nvt.log
+
+units 		electron
+newton		on
+boundary        f f f
+
+atom_style	electron 
+
+read_data  	data.${sname}
+
+pair_style      eff/cut 5000.0 0 0
+pair_coeff	* *
+
+comm_modify	vel yes	
+
+# minimize
+min_style       cg
+min_modify      line quadratic 
+minimize        0 1.0e-6 10000 100000
+
+# dynamics
+compute		effTemp all temp/eff
+
+thermo		100
+thermo_style	custom step etotal pe ke temp press
+thermo_modify	temp effTemp
+
+# equilibrate
+timestep 	0.001
+fix 		1 all nvt/eff temp 300.0 300.0 0.1
+ 
+# the custom dump includes the radii
+compute         1 all property/atom spin eradius
+dump            1 all custom 100 ${sname}.nvt.lammpstrj id type x y z c_1[1] c_1[2]
+dump		2 all xyz 100 ${sname}.nvt.xyz 
+
+run 		1000000
+
+fix		2 all nve/eff
+
+run		1000000	

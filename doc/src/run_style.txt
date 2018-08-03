@@ -119,13 +119,13 @@ switches"_Section_start.html#start_6 to change this.  The log and
 screen file for the 2nd partition will not contain thermodynamic
 output beyond the 1st timestep of the run.
 
-See "Section 5"_Section_accelerate.html of the manual for
-performance details of the speed-up offered by the {verlet/split}
-style.  One important performance consideration is the assignment of
-logical processors in the 2 partitions to the physical cores of a
-parallel machine.  The "processors"_processors.html command has
-options to support this, and strategies are discussed in
-"Section 5"_Section_accelerate.html of the manual.
+See the "Speed packages"_Speed_packages.html doc page for performance
+details of the speed-up offered by the {verlet/split} style.  One
+important performance consideration is the assignment of logical
+processors in the 2 partitions to the physical cores of a parallel
+machine.  The "processors"_processors.html command has options to
+support this, and strategies are discussed in "Section
+5"_Speed.html of the manual.
 
 :line
 
@@ -138,13 +138,19 @@ iterations of level 1 for a single iteration of level 2, N2 is the
 iterations of level 2 per iteration of level 3, etc.  N-1 looping
 parameters must be specified.
 
-The "timestep"_timestep.html command sets the timestep for the
-outermost rRESPA level.  Thus if the example command above for a
-4-level rRESPA had an outer timestep of 4.0 fmsec, the inner timestep
-would be 8x smaller or 0.5 fmsec.  All other LAMMPS commands that
-specify number of timesteps (e.g. "neigh_modify"_neigh_modify.html
-parameters, "dump"_dump.html every N timesteps, etc) refer to the
-outermost timesteps.
+Thus with a 4-level respa setting of "2 2 2" for the 3 loop factors,
+you could choose to have bond interactions computed 8x per large
+timestep, angle interactions computed 4x, pair interactions computed
+2x, and long-range interactions once per large timestep.
+
+The "timestep"_timestep.html command sets the large timestep for the
+outermost rRESPA level.  Thus if the 3 loop factors are "2 2 2" for
+4-level rRESPA, and the outer timestep is set to 4.0 fmsec, then the
+inner timestep would be 8x smaller or 0.5 fmsec.  All other LAMMPS
+commands that specify number of timesteps (e.g. "thermo"_thermo.html
+for thermo output every N steps, "neigh_modify
+delay/every"_neigh_modify.html parameters, "dump"_dump.html every N
+steps, etc) refer to the outermost timesteps.
 
 The rRESPA keywords enable you to specify at what level of the
 hierarchy various forces will be computed.  If not specified, the
@@ -167,11 +173,17 @@ have their force go ramped to 0.0 so the overlap with the next regime
 compute forces for all pairs from 5.0 outward, with those from 5.0 to
 6.0 having their value ramped in an inverse manner.
 
-Only some pair potentials support the use of the {inner} and {middle}
-and {outer} keywords.  If not, only the {pair} keyword can be used
-with that pair style, meaning all pairwise forces are computed at the
-same rRESPA level.  See the doc pages for individual pair styles for
-details.i
+Note that you can use {inner} and {outer} without using {middle} to
+split the pairwise computations into two portions instead of three.
+Unless you are using a very long pairwise cutoff, a 2-way split is
+often faster than a 3-way split, since it avoids too much duplicate
+computation of pairwise interactions near the intermediate cutoffs.
+
+Also note that only a few pair potentials support the use of the
+{inner} and {middle} and {outer} keywords.  If not, only the {pair}
+keyword can be used with that pair style, meaning all pairwise forces
+are computed at the same rRESPA level.  See the doc pages for
+individual pair styles for details.
 
 Another option for using pair potentials with rRESPA is with the
 {hybrid} keyword, which requires the use of the "pair_style hybrid or
@@ -238,42 +250,54 @@ roughly a 1.5 fold speedup over the {verlet} style with SHAKE and a
 
 For non-biomolecular simulations, the {respa} style can be
 advantageous if there is a clear separation of time scales - fast and
-slow modes in the simulation.  Even a LJ system can benefit from
-rRESPA if the interactions are divided by the inner, middle and outer
-keywords.  A 2-fold or more speedup can be obtained while maintaining
-good energy conservation.  In real units, for a pure LJ fluid at
-liquid density, with a sigma of 3.0 angstroms, and epsilon of 0.1
-Kcal/mol, the following settings seem to work well:
+slow modes in the simulation.  For example, a system of slowly-moving
+charged polymer chains could be setup as follows:
+
+timestep 4.0
+run_style respa 2 8 :pre
+
+This is two-level rRESPA with an 8x difference between the short and
+long timesteps.  The bonds, angles, dihedrals will be computed every
+0.5 fs (assuming real units), while the pair and kspace interactions
+will be computed once every 4 fs.  These are the default settings for
+each kind of interaction, so no additional keywords are necessary.
+
+Even a LJ system can benefit from rRESPA if the interactions are
+divided by the inner, middle and outer keywords.  A 2-fold or more
+speedup can be obtained while maintaining good energy conservation.
+In real units, for a pure LJ fluid at liquid density, with a sigma of
+3.0 angstroms, and epsilon of 0.1 Kcal/mol, the following settings
+seem to work well:
 
 timestep  36.0
 run_style respa 3 3 4 inner 1 3.0 4.0 middle 2 6.0 7.0 outer 3 :pre
 
 :line
 
-The {respa/omp} styles is a variant of {respa} adapted for use with
+The {respa/omp} style is a variant of {respa} adapted for use with
 pair, bond, angle, dihedral, improper, or kspace styles with an {omp}
-suffix. It is functionally equivalent to {respa} but performs additional
-operations required for managing {omp} styles. For more on {omp} styles
-see the "Section 5"_Section_accelerate.html of the manual.
-Accelerated styles take the same arguments and should produce the same
-results, except for round-off and precision issues.
+suffix. It is functionally equivalent to {respa} but performs
+additional operations required for managing {omp} styles.  For more on
+{omp} styles see the "Speed omp"_Speed_omp.html doc page.  Accelerated
+styles take the same arguments and should produce the same results,
+except for round-off and precision issues.
 
 You can specify {respa/omp} explicitly in your input script, or
 you can use the "-suffix command-line switch"_Section_start.html#start_6
 when you invoke LAMMPS, or you can use the "suffix"_suffix.html
 command in your input script.
 
-See "Section 5"_Section_accelerate.html of the manual for
-more instructions on how to use the accelerated styles effectively.
+See the "Speed packages"_Speed_packages.html doc page for more
+instructions on how to use the accelerated styles effectively.
 
 :line
 
 [Restrictions:]
 
 The {verlet/split} style can only be used if LAMMPS was built with the
-REPLICA package. Correspondingly the {respa/omp} style is available only
-if the USER-OMP package was included. See the "Making LAMMPS"_Section_start.html#start_3
-section for more info on packages.
+REPLICA package. Correspondingly the {respa/omp} style is available
+only if the USER-OMP package was included. See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info on packages.
 
 Whenever using rRESPA, the user should experiment with trade-offs in
 speed and accuracy for their system, and verify that they are
@@ -286,6 +310,17 @@ conserving energy to adequate precision.
 [Default:]
 
 run_style verlet :pre
+
+For run_style respa, the default assignment of interactions
+to rRESPA levels is as follows:
+
+bond forces = level 1 (innermost loop)
+angle forces = same level as bond forces
+dihedral forces = same level as angle forces
+improper forces = same level as dihedral forces
+pair forces = leven N (outermost level)
+kspace forces = same level as pair forces
+inner, middle, outer forces = no default :ul
 
 :line
 

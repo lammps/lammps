@@ -63,7 +63,7 @@
 #ifndef LMP_RANDOM_EXTERNALSTATE_H
 #define LMP_RANDOM_EXTERNALSTATE_H
 
-#include <math.h>
+#include <cmath>
 #include "accelerator_kokkos.h"
 
 

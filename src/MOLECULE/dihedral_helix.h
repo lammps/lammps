@@ -20,7 +20,7 @@ DihedralStyle(helix,DihedralHelix)
 #ifndef LMP_DIHEDRAL_HELIX_H
 #define LMP_DIHEDRAL_HELIX_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "dihedral.h"
 
 namespace LAMMPS_NS {
@@ -33,6 +33,7 @@ class DihedralHelix : public Dihedral {
   void coeff(int, char **);
   void write_restart(FILE *);
   void read_restart(FILE *);
+  void write_data(FILE *);
 
  protected:
   double *aphi,*bphi,*cphi;

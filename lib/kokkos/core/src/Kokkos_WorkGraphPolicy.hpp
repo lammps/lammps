@@ -59,6 +59,7 @@ class WorkGraphPolicy
 {
 public:
 
+  using execution_policy = WorkGraphPolicy<Properties ... >;
   using self_type       = WorkGraphPolicy<Properties ... >;
   using traits          = Kokkos::Impl::PolicyTraits<Properties ... >;
   using index_type      = typename traits::index_type;

@@ -157,6 +157,18 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
     fgets( s, MAX_LINE, fp );
     c = Tokenize( s, &tmp );
 
+    /* Sanity checks */
+    if (c == 2 && !lgflag) {
+      if (me == 0)
+        fprintf(stderr, "Force field file requires using 'lgvdw yes'\n");
+      MPI_Abort( comm, FILE_NOT_FOUND );
+    }
+    if (c < 9) {
+      if (me == 0)
+        fprintf(stderr, "Inconsistent ffield file (reaxc_ffield.cpp) \n");
+      MPI_Abort( comm, FILE_NOT_FOUND );
+    }
+
     for( j = 0; j < (int)(strlen(tmp[0])); ++j )
       reax->sbp[i].name[j] = toupper( tmp[0][j] );
 
@@ -174,6 +186,13 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
     fgets( s, MAX_LINE, fp );
     c = Tokenize( s, &tmp );
 
+    /* Sanity check */
+    if (c < 8) {
+      if (me == 0)
+        fprintf(stderr, "Inconsistent ffield file (reaxc_ffield.cpp) \n");
+      MPI_Abort( comm, FILE_NOT_FOUND );
+    }
+
     val = atof(tmp[0]); reax->sbp[i].alpha      = val;
     val = atof(tmp[1]); reax->sbp[i].gamma_w    = val;
     val = atof(tmp[2]); reax->sbp[i].valency_boc= val;
@@ -186,6 +205,13 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
     /* line 3 */
     fgets( s, MAX_LINE, fp );
     c = Tokenize( s, &tmp );
+
+    /* Sanity check */
+    if (c < 8) {
+      if (me == 0)
+        fprintf(stderr, "Inconsistent ffield file (reaxc_ffield.cpp) \n");
+      MPI_Abort( comm, FILE_NOT_FOUND );
+    }
 
     val = atof(tmp[0]); reax->sbp[i].r_pi_pi    = val;
     val = atof(tmp[1]); reax->sbp[i].p_lp2      = val;
@@ -201,7 +227,7 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
     c = Tokenize( s, &tmp );
 
     /* Sanity check */
-    if (c < 3) {
+    if (c < 8) {
       if (me == 0)
         fprintf(stderr, "Inconsistent ffield file (reaxc_ffield.cpp) \n");
       MPI_Abort( comm, FILE_NOT_FOUND );
@@ -222,9 +248,9 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
       c = Tokenize( s, &tmp );
 
       /* Sanity check */
-      if (c > 3) {
+      if (c > 2) {
         if (me == 0)
-          fprintf(stderr, "Inconsistent ffield file (reaxc_ffield.cpp) \n");
+          fprintf(stderr, "Force field file incompatible with 'lgvdw yes'\n");
         MPI_Abort( comm, FILE_NOT_FOUND );
       }
 

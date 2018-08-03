@@ -20,7 +20,7 @@ BondStyle(harmonic,BondHarmonic)
 #ifndef LMP_BOND_HARMONIC_H
 #define LMP_BOND_HARMONIC_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "bond.h"
 
 namespace LAMMPS_NS {
@@ -30,10 +30,10 @@ class BondHarmonic : public Bond {
   BondHarmonic(class LAMMPS *);
   virtual ~BondHarmonic();
   virtual void compute(int, int);
-  void coeff(int, char **);
+  virtual void coeff(int, char **);
   double equilibrium_distance(int);
   void write_restart(FILE *);
-  void read_restart(FILE *);
+  virtual void read_restart(FILE *);
   void write_data(FILE *);
   double single(int, double, int, int, double &);
   virtual void *extract(char *, int &);

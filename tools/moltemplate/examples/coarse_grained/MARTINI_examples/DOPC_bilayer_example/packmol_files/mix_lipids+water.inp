@@ -1,0 +1,35 @@
+#
+# A mixture of coarse-grained (martini) DPPC (lipid) and water.
+#
+
+# All the atoms from diferent molecules will be separated at least 3.0
+# Anstroms at the solution.
+
+tolerance  3.0      # minimal distance between atoms in different molecules
+                    # (you should also consider changing the "discale" 
+                    #  parameter.  I think discale=1.0 by default.)
+
+seed       12345    # seed for random number generator
+
+# The file type of input and output files is XYZ
+
+filetype xyz
+
+# The name of the output file
+
+output system.xyz
+
+# DPPC (lipid) molecules and water molecules will be put in a box
+# defined by the minimum coordinates x, y and z = 0 0 0. and maximum
+# coordinates 100 100 100.  (Box size: 100x100x100)
+
+structure dopc.xyz
+  number 300
+  inside box  0.0  0.0  0.0  100.0  100.0  100.0 
+end structure
+
+structure water.xyz
+  number 6000
+  inside box  0.0  0.0  0.0  100.0  100.0  100.0 
+end structure
+

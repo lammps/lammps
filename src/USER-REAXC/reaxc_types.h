@@ -27,20 +27,20 @@
 #ifndef __REAX_TYPES_H_
 #define __REAX_TYPES_H_
 
+#include <mpi.h>
 #include "lmptype.h"
 
-#include <ctype.h>
-#include <math.h>
-#include <mpi.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "sys/time.h"
-#include <time.h>
+#include <cctype>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
+#include <sys/time.h>
 #include "accelerator_kokkos.h"
 
 #if defined LMP_USER_OMP
-#define OMP_TIMING 1
+#define OMP_TIMING 0
 
 #ifdef OMP_TIMING
 // pkcoff timing fields

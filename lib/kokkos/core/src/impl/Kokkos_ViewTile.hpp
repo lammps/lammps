@@ -143,10 +143,25 @@ public:
 
   //----------------------------------------
 
-  KOKKOS_FUNCTION_DEFAULTED ~ViewOffset() = default ;
-  KOKKOS_FUNCTION_DEFAULTED ViewOffset() = default ;
-  KOKKOS_FUNCTION_DEFAULTED ViewOffset( const ViewOffset & ) = default ;
-  KOKKOS_FUNCTION_DEFAULTED ViewOffset & operator = ( const ViewOffset & ) = default ;
+#ifdef KOKKOS_CUDA_9_DEFAULTED_BUG_WORKAROUND
+  KOKKOS_INLINE_FUNCTION ~ViewOffset() {}
+  KOKKOS_INLINE_FUNCTION ViewOffset() {}
+  KOKKOS_INLINE_FUNCTION ViewOffset( const ViewOffset & rhs )
+  : m_dim(rhs.m_dim)
+  , m_tile_N0(rhs.m_tile_N0)
+  {
+  }
+  KOKKOS_INLINE_FUNCTION ViewOffset & operator = ( const ViewOffset & rhs ) {
+    m_dim = rhs.m_dim;
+    m_tile_N0 = rhs.m_tile_N0;
+    return *this;
+  }
+#else
+  KOKKOS_INLINE_FUNCTION ~ViewOffset() = default;
+  KOKKOS_INLINE_FUNCTION ViewOffset() = default;
+  KOKKOS_INLINE_FUNCTION ViewOffset( const ViewOffset & ) = default;
+  KOKKOS_INLINE_FUNCTION ViewOffset & operator = ( const ViewOffset & ) = default;
+#endif
 
   template< unsigned TrivialScalarSize >
   KOKKOS_INLINE_FUNCTION

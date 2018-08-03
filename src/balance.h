@@ -20,7 +20,7 @@ CommandStyle(balance,Balance)
 #ifndef LMP_BALANCE_H
 #define LMP_BALANCE_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -109,10 +109,6 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Cannot open balance output file
-
-Self-explanatory.
-
 E: Cannot balance in z dimension for 2d simulation
 
 Self-explanatory.
@@ -129,10 +125,22 @@ E: Lost atoms via balance: original %ld current %ld
 
 This should not occur.  Report the problem to the developers.
 
+E: Unknown (fix) balance weight method
+
+UNDOCUMENTED
+
+E: Cannot open (fix) balance output file
+
+UNDOCUMENTED
+
 E: Balance produced bad splits
 
 This should not occur.  It means two or more cutting plane locations
 are on top of each other or out of order.  Report the problem to the
 developers.
+
+U: Cannot open balance output file
+
+Self-explanatory.
 
 */

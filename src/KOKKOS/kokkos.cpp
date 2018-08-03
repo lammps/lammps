@@ -11,11 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include <signal.h>
+#include <cstdio>
+#include <cstring>
+#include <cstdlib>
+#include <cctype>
+#include <csignal>
 #include <unistd.h>
 #include "kokkos.h"
 #include "lammps.h"
@@ -113,19 +113,19 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 #ifdef KOKKOS_HAVE_CUDA
   if (ngpu <= 0)
     error->all(FLERR,"Kokkos has been compiled for CUDA but no GPUs are requested");
-
-  Kokkos::HostSpace::execution_space::initialize(num_threads,numa);
-  Kokkos::Cuda::SelectDevice select_device(device);
-  Kokkos::Cuda::initialize(select_device);
-#else
-  LMPHostType::initialize(num_threads,numa);
+#endif
 
 #ifndef KOKKOS_HAVE_SERIAL
   if (num_threads == 1)
     error->warning(FLERR,"Using Kokkos Serial backend (i.e. Makefile.kokkos_mpi_only) performs better with 1 thread");
 #endif
 
-#endif
+  Kokkos::InitArguments args;
+  args.num_threads = num_threads;
+  args.num_numa = numa;
+  args.device_id = device;
+
+  Kokkos::initialize(args);
 
   // default settings for package kokkos command
 
@@ -150,12 +150,7 @@ KokkosLMP::~KokkosLMP()
 {
   // finalize Kokkos
 
-#ifdef KOKKOS_HAVE_CUDA
-  Kokkos::Cuda::finalize();
-  Kokkos::HostSpace::execution_space::finalize();
-#else
-  LMPHostType::finalize();
-#endif
+  Kokkos::finalize();
 }
 
 /* ----------------------------------------------------------------------

@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
+#include <cstring>
 #include "npair_half_size_bin_newton_omp.h"
 #include "npair_omp.h"
 #include "neighbor.h"

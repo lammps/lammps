@@ -73,4 +73,8 @@ E: No bond style is defined for compute bond/local
 
 Self-explanatory.
 
+E: Sanity check on 3 energy components failed
+
+UNDOCUMENTED
+
 */

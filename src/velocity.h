@@ -76,6 +76,10 @@ E: Could not find velocity group ID
 
 A group ID used in the velocity command does not exist.
 
+W: Changing velocities of atoms in rigid bodies. This has no effect unless rigid bodies are rebuild
+
+UNDOCUMENTED
+
 W: Mismatch between velocity and compute groups
 
 The temperature computation used by the velocity command will not be

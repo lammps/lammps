@@ -15,8 +15,8 @@
 // customize by adding new LAMMPS-specific functions
 
 #include <mpi.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 #include "library.h"
 #include "lmptype.h"
 #include "lammps.h"
@@ -38,6 +38,7 @@
 #include "memory.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 
 using namespace LAMMPS_NS;
 
@@ -480,10 +481,13 @@ void *lammps_extract_atom(void *ptr, char *name)
      compute's internal data structure for the entity
      caller should cast it to (double *) for a scalar or vector
      caller should cast it to (double **) for an array
-   for per-atom or local data, returns a pointer to the
+   for per-atom or local vector/array data, returns a pointer to the
      compute's internal data structure for the entity
      caller should cast it to (double *) for a vector
      caller should cast it to (double **) for an array
+   for local data, accessing scalar data for the compute (type = 0),
+   returns a pointer that should be cast to (int *) which points to
+   an int with the number of local rows, i.e. the length of the local array.
    returns a void pointer to the compute's internal data structure
      for the entity which the caller can cast to the proper data type
    returns a NULL if id is not recognized or style/type not supported
@@ -541,6 +545,11 @@ void *lammps_extract_compute(void *ptr, char *id, int style, int type)
 
     if (style == 2) {
       if (!compute->local_flag) return NULL;
+      if (type == 0) {
+        if (compute->invoked_local != lmp->update->ntimestep)
+          compute->compute_local();
+        return (void *) &compute->size_local_rows;
+      }
       if (type == 1) {
         if (compute->invoked_local != lmp->update->ntimestep)
           compute->compute_local();
@@ -925,7 +934,7 @@ void lammps_gather_atoms_concat(void *ptr, char *name,
 
   BEGIN_CAPTURE
   {
-    int i,j,offset;
+    int i,offset;
 
     // error if tags are not defined
     // NOTE: test that name = image or ids is not a 64-bit int in code?
@@ -967,7 +976,6 @@ void lammps_gather_atoms_concat(void *ptr, char *name,
       lmp->memory->create(copy,count*natoms,"lib/gather:copy");
       for (i = 0; i < count*natoms; i++) copy[i] = 0;
 
-      tagint *tag = lmp->atom->tag;
       int nlocal = lmp->atom->nlocal;
 
       if (count == 1) {
@@ -1109,7 +1117,6 @@ void lammps_gather_atoms_subset(void *ptr, char *name,
       lmp->memory->create(copy,count*ndata,"lib/gather:copy");
       for (i = 0; i < count*ndata; i++) copy[i] = 0;
 
-      tagint *tag = lmp->atom->tag;
       int nlocal = lmp->atom->nlocal;
 
       if (count == 1) {
@@ -1155,7 +1162,6 @@ void lammps_gather_atoms_subset(void *ptr, char *name,
       lmp->memory->create(copy,count*ndata,"lib/gather:copy");
       for (i = 0; i < count*ndata; i++) copy[i] = 0.0;
 
-      tagint *tag = lmp->atom->tag;
       int nlocal = lmp->atom->nlocal;
 
       if (count == 1) {
@@ -1515,6 +1521,56 @@ void lammps_create_atoms(void *ptr, int n, tagint *id, int *type,
     }
   }
   END_CAPTURE
+}
+
+// ----------------------------------------------------------------------
+// library API functions for accessing LAMMPS configuration
+// ----------------------------------------------------------------------
+
+int lammps_config_has_package(char * package_name) {
+  return Info::has_package(package_name);
+}
+
+int lammps_config_package_count() {
+  int i = 0;
+  while(LAMMPS::installed_packages[i] != NULL) {
+    ++i;
+  }
+  return i;
+}
+
+int lammps_config_package_name(int index, char * buffer, int max_size) {
+  int i = 0;
+  while(LAMMPS::installed_packages[i] != NULL && i < index) {
+    ++i;
+  }
+
+  if(LAMMPS::installed_packages[i] != NULL) {
+    strncpy(buffer, LAMMPS::installed_packages[i], max_size);
+    return true;
+  }
+
+  return false;
+}
+
+int lammps_config_has_gzip_support() {
+  return Info::has_gzip_support();
+}
+
+int lammps_config_has_png_support() {
+  return Info::has_png_support();
+}
+
+int lammps_config_has_jpeg_support() {
+  return Info::has_jpeg_support();
+}
+
+int lammps_config_has_ffmpeg_support() {
+  return Info::has_ffmpeg_support();
+}
+
+int lammps_config_has_exceptions() {
+  return Info::has_exceptions();
 }
 
 // ----------------------------------------------------------------------

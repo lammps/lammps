@@ -204,9 +204,13 @@ struct ROCmParallelLaunch< DriverType
 //      KOKKOS_ENSURE_ROCM_LOCK_ARRAYS_ON_DEVICE();
 
       // Invoke the driver function on the device
-      auto ext = hc::extent<3>(grid.x,grid.y,grid.z);
+      auto ext = hc::extent<3>(grid.z,grid.y,grid.x);
+      size_t bx = (grid.x > block.x)? block.x : grid.x;
+      size_t by = (grid.y > block.y)? block.y : grid.y;
+      size_t bz = (grid.z > block.z)? block.z : grid.z;
+
+      hc::parallel_for_each(ext.tile_with_dynamic(bz,by,bx,shmem), [=](const hc::index<3> & idx) [[hc]]
  
-      hc::parallel_for_each(ext.tile_with_dynamic(block.x,block.y,block.z,shmem), [=](const hc::index<3> & idx) [[hc]]
       { rocm_memory_buffer->operator()();
       }).wait();
       rocm_device_free(rocm_memory_buffer);
@@ -241,9 +245,13 @@ struct ROCmParallelLaunch< DriverType
 
 //      KOKKOS_ENSURE_ROCM_LOCK_ARRAYS_ON_DEVICE();
       // Invoke the driver function on the device
-      auto ext = hc::extent<3>(grid.x,grid.y,grid.z);
+      auto ext = hc::extent<3>(grid.z,grid.y,grid.x);
+      size_t bx = (grid.x > block.x)? block.x : grid.x;
+      size_t by = (grid.y > block.y)? block.y : grid.y;
+      size_t bz = (grid.z > block.z)? block.z : grid.z;
+
+      hc::parallel_for_each(ext.tile_with_dynamic(bz,by,bx,shmem), [=](const hc::index<3> & idx) [[hc]]
  
-      hc::parallel_for_each(ext.tile_with_dynamic(block.x,block.y,block.z,shmem), [=](const hc::index<3> & idx) [[hc]]
  
       { rocm_memory_buffer->operator()();
       }).wait();

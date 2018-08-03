@@ -28,8 +28,8 @@ action () {
 
 # list of files with optional dependcies
 
-action angle_sdk.cpp angle_harmonic.cpp
-action angle_sdk.h angle_harmonic.cpp
+action angle_sdk.cpp
+action angle_sdk.h
 action lj_sdk_common.h
 action pair_lj_sdk.cpp
 action pair_lj_sdk.h

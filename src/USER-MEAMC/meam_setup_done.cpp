@@ -213,14 +213,12 @@ MEAM::compute_pair_meam(void)
           Z2 = get_Zij2(this->lattce_meam[a][b], this->Cmin_meam[a][a][b],
                    this->Cmax_meam[a][a][b], arat, scrn);
 
-          //     The B1, B2,  and L12 cases with NN2 have a trick to them; we
-          //     need to
-          //     compute the contributions from second nearest neighbors, like
-          //     a-a
+          //     The B1, B2,  and L12 cases with NN2 have a trick to them; we need to
+          //     compute the contributions from second nearest neighbors, like a-a
           //     pairs, but need to include NN2 contributions to those pairs as
           //     well.
           if (this->lattce_meam[a][b] == B1 || this->lattce_meam[a][b] == B2 ||
-              this->lattce_meam[a][b] == L12) {
+              this->lattce_meam[a][b] == L12 || this->lattce_meam[a][b] == DIA) {
             rarat = r * arat;
 
             //               phi_aa
@@ -247,7 +245,8 @@ MEAM::compute_pair_meam(void)
               }
             }
 
-            if (this->lattce_meam[a][b] == B1 || this->lattce_meam[a][b] == B2) {
+            if (this->lattce_meam[a][b] == B1 || this->lattce_meam[a][b] == B2 ||
+                this->lattce_meam[a][b] == DIA) {
               //     Add contributions to the B1 or B2 potential
               Z1 = get_Zij(this->lattce_meam[a][b]);
               Z2 = get_Zij2(this->lattce_meam[a][b], this->Cmin_meam[a][a][b],

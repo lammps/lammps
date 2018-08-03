@@ -17,9 +17,9 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "improper_fourier.h"
 #include "atom.h"
 #include "comm.h"
@@ -342,4 +342,14 @@ void ImproperFourier::read_restart(FILE *fp)
   MPI_Bcast(&all[1],atom->nimpropertypes,MPI_INT,0,world);
 
   for (int i = 1; i <= atom->nimpropertypes; i++) setflag[i] = 1;
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void ImproperFourier::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->nimpropertypes; i++)
+    fprintf(fp,"%d %g %g %g %g %d\n",i,k[i],C0[i],C1[i],C2[i],all[i]);
 }

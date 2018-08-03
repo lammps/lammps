@@ -35,9 +35,10 @@ include         system.in.charges
 
 timestep        1.0
 dump            1 all custom 500 traj_nvt.lammpstrj id mol type x y z ix iy iz
-fix             fxnvt all nvt temp 350.0 350.0 500.0 tchain 1
+fix             fxnvt all nvt temp 270.0 270.0 500.0 tchain 1
+thermo_style    custom step temp pe etotal epair ebond eangle edihed
 thermo          100
-#thermo_modify  flush yes
+thermo_modify   norm yes
 
 run		50000
 

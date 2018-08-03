@@ -16,8 +16,8 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 #include "improper_harmonic_kokkos.h"
 #include "atom_kokkos.h"
 #include "comm.h"
@@ -321,6 +321,25 @@ template<class DeviceType>
 void ImproperHarmonicKokkos<DeviceType>::coeff(int narg, char **arg)
 {
   ImproperHarmonic::coeff(narg, arg);
+
+  int n = atom->nimpropertypes;
+  for (int i = 1; i <= n; i++) {
+    k_k.h_view[i] = k[i];
+    k_chi.h_view[i] = chi[i];
+  }
+
+  k_k.template modify<LMPHostType>();
+  k_chi.template modify<LMPHostType>();
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 reads coeffs from restart file, bcasts them
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void ImproperHarmonicKokkos<DeviceType>::read_restart(FILE *fp)
+{
+  ImproperHarmonic::read_restart(fp);
 
   int n = atom->nimpropertypes;
   for (int i = 1; i <= n; i++) {

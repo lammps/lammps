@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 #include "fix_balance.h"
 #include "balance.h"
 #include "update.h"
@@ -33,7 +33,6 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 enum{SHIFT,BISECTION};
-enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 
 /* ---------------------------------------------------------------------- */
 
@@ -115,6 +114,7 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
 
   if (nevery) force_reneighbor = 1;
   lastbalance = -1;
+  next_reneighbor = -1;
 
   // compute initial outputs
 
@@ -249,6 +249,10 @@ void FixBalance::pre_neighbor()
   if (!pending) return;
   imbfinal = balance->imbalance_factor(maxloadperproc);
   pending = 0;
+
+  // set disable = 1, so weights no longer migrate with atoms
+
+  if (wtflag) balance->fixstore->disable = 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -264,10 +268,10 @@ void FixBalance::rebalance()
   int *sendproc;
   if (lbstyle == SHIFT) {
     itercount = balance->shift();
-    comm->layout = LAYOUT_NONUNIFORM;
+    comm->layout = Comm::LAYOUT_NONUNIFORM;
   } else if (lbstyle == BISECTION) {
     sendproc = balance->bisection();
-    comm->layout = LAYOUT_TILED;
+    comm->layout = Comm::LAYOUT_TILED;
   }
 
   // output of new decomposition
@@ -276,21 +280,23 @@ void FixBalance::rebalance()
 
   // reset proc sub-domains
   // check and warn if any proc's subbox is smaller than neigh skin
-  //   since may lead to lost atoms in exchange()
+  //   since may lead to lost atoms in comm->exchange()
 
   if (domain->triclinic) domain->set_lamda_box();
   domain->set_local_box();
   domain->subbox_too_small_check(neighbor->skin);
 
   // move atoms to new processors via irregular()
-  // only needed if migrate_check() says an atom moves to far
+  // for non-RCB only needed if migrate_check() says an atom moves too far
   // else allow caller's comm->exchange() to do it
+  // set disable = 0, so weights migrate with atoms
+  //   important to delay disable = 1 until after pre_neighbor imbfinal calc
+  //   b/c atoms may migrate again in comm->exchange()
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   if (wtflag) balance->fixstore->disable = 0;
   if (lbstyle == BISECTION) irregular->migrate_atoms(0,1,sendproc);
   else if (irregular->migrate_check()) irregular->migrate_atoms();
-  if (wtflag) balance->fixstore->disable = 1;
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
   // invoke KSpace setup_grid() to adjust to new proc sub-domains

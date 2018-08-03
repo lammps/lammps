@@ -282,11 +282,11 @@ conditions are applied to remap an atom back into the simulation box.
 
 NOTE: If you get a warning about inconsistent image flags after
 reading in a dump snapshot, it means one or more pairs of bonded atoms
-now have inconsistent image flags.  As discussed in "Section
-errors"_Section_errors.html this may or may not cause problems for
-subsequent simulations, One way this can happen is if you read image
-flag fields from the dump file but do not also use the dump file box
-parameters.
+now have inconsistent image flags.  As discussed on the "Errors
+common"_Errors_common.html doc page this may or may not cause problems
+for subsequent simulations.  One way this can happen is if you read
+image flag fields from the dump file but do not also use the dump file
+box parameters.
 
 LAMMPS knows how to compute unscaled and remapped coordinates for the
 snapshot column labels discussed above, e.g. {x}, {xs}, {xu}, {xsu}.

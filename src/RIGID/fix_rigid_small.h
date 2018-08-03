@@ -63,6 +63,7 @@ class FixRigidSmall : public Fix {
   void reset_dt();
   void zero_momentum();
   void zero_rotation();
+  int modify_param(int, char **);
   void *extract(const char*, int &);
   double extract_ke();
   double extract_erotational();
@@ -78,6 +79,7 @@ class FixRigidSmall : public Fix {
 
   char *infile;             // file to read rigid body attributes from
   int setupflag;            // 1 if body properties are setup, else 0
+  int earlyflag;            // 1 if forces/torques are computed at post_force()
   int commflag;             // various modes of forward/reverse comm
   int customflag;           // 1 if custom property/variable define bodies
   int nbody;                // total # of rigid bodies
@@ -191,6 +193,8 @@ class FixRigidSmall : public Fix {
   void create_bodies(tagint *);
   void setup_bodies_static();
   void setup_bodies_dynamic();
+  void apply_langevin_thermostat();
+  void compute_forces_and_torques();
   void readfile(int, double **, int *);
   void grow_body();
   void reset_atom2body();
@@ -222,6 +226,26 @@ command-line option when running LAMMPS to see the offending line.
 E: Fix rigid/small requires atom attribute molecule
 
 Self-explanatory.
+
+E: Fix rigid/small custom requires previously defined property/atom
+
+UNDOCUMENTED
+
+E: Fix rigid/small custom requires integer-valued property/atom
+
+UNDOCUMENTED
+
+E: Variable name for fix rigid/small custom does not exist
+
+UNDOCUMENTED
+
+E: Fix rigid/small custom variable is no atom-style variable
+
+UNDOCUMENTED
+
+E: Unsupported fix rigid custom property
+
+UNDOCUMENTED
 
 E: Fix rigid/small requires an atom map, see atom_modify
 

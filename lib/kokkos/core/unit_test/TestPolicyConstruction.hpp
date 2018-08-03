@@ -480,7 +480,9 @@ private:
     int per_team_scratch = 1024;
     int per_thread_scratch = 16;
     int scratch_size = per_team_scratch + per_thread_scratch * team_size;
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
     int vector_length = 4;
+#endif
 
     policy_t p1( league_size, team_size );
     ASSERT_EQ  ( p1.league_size(),     league_size                    );
@@ -491,7 +493,11 @@ private:
     policy_t p2 = p1.set_chunk_size( chunk_size );
     ASSERT_EQ  ( p1.league_size(),     league_size                    );
     ASSERT_EQ  ( p1.team_size(),       team_size                      );
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
     ASSERT_TRUE( p1.chunk_size()  > 0                                 );
+#else
+    ASSERT_EQ  ( p1.chunk_size(),      chunk_size                     );
+#endif
     ASSERT_EQ  ( p1.scratch_size( 0 ), 0                              );
 
     ASSERT_EQ  ( p2.league_size(),     league_size                    );
@@ -503,7 +509,11 @@ private:
     ASSERT_EQ  ( p2.league_size(),     league_size                    );
     ASSERT_EQ  ( p2.team_size(),       team_size                      );
     ASSERT_EQ  ( p2.chunk_size(),      chunk_size                     );
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
     ASSERT_EQ  ( p2.scratch_size( 0 ), 0                              );
+#else
+    ASSERT_EQ  ( p2.scratch_size( 0 ), per_team_scratch               );
+#endif
     ASSERT_EQ  ( p3.league_size(),     league_size                    );
     ASSERT_EQ  ( p3.team_size(),       team_size                      );
     ASSERT_EQ  ( p3.chunk_size(),      chunk_size                     );
@@ -513,17 +523,29 @@ private:
     ASSERT_EQ  ( p2.league_size(),     league_size                    );
     ASSERT_EQ  ( p2.team_size(),       team_size                      );
     ASSERT_EQ  ( p2.chunk_size(),      chunk_size                     );
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
     ASSERT_EQ  ( p2.scratch_size( 0 ), 0                              );
+#else
+    ASSERT_EQ  ( p2.scratch_size( 0 ), scratch_size );
+#endif
     ASSERT_EQ  ( p4.league_size(),     league_size                    );
     ASSERT_EQ  ( p4.team_size(),       team_size                      );
     ASSERT_EQ  ( p4.chunk_size(),      chunk_size                     );
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
     ASSERT_EQ  ( p4.scratch_size( 0 ), per_thread_scratch * team_size );
+#else
+    ASSERT_EQ  ( p4.scratch_size( 0 ), scratch_size );
+#endif
 
     policy_t p5 = p2.set_scratch_size( 0, Kokkos::PerThread( per_thread_scratch ), Kokkos::PerTeam( per_team_scratch ) );
     ASSERT_EQ  ( p2.league_size(),     league_size                    );
     ASSERT_EQ  ( p2.team_size(),       team_size                      );
     ASSERT_EQ  ( p2.chunk_size(),      chunk_size                     );
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
     ASSERT_EQ  ( p2.scratch_size( 0 ), 0                              );
+#else
+    ASSERT_EQ  ( p2.scratch_size( 0 ), scratch_size                   );
+#endif
     ASSERT_EQ  ( p5.league_size(),     league_size                    );
     ASSERT_EQ  ( p5.team_size(),       team_size                      );
     ASSERT_EQ  ( p5.chunk_size(),      chunk_size                     );
@@ -533,7 +555,11 @@ private:
     ASSERT_EQ  ( p2.league_size(),     league_size                    );
     ASSERT_EQ  ( p2.team_size(),       team_size                      );
     ASSERT_EQ  ( p2.chunk_size(),      chunk_size                     );
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
     ASSERT_EQ  ( p2.scratch_size( 0 ), 0                              );
+#else
+    ASSERT_EQ  ( p2.scratch_size( 0 ), scratch_size                   );
+#endif
     ASSERT_EQ  ( p6.league_size(),     league_size                    );
     ASSERT_EQ  ( p6.team_size(),       team_size                      );
     ASSERT_EQ  ( p6.chunk_size(),      chunk_size                     );
@@ -543,12 +569,17 @@ private:
     ASSERT_EQ  ( p3.league_size(),     league_size                    );
     ASSERT_EQ  ( p3.team_size(),       team_size                      );
     ASSERT_EQ  ( p3.chunk_size(),      chunk_size                     );
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
     ASSERT_EQ  ( p3.scratch_size( 0 ), per_team_scratch               );
+#else
+    ASSERT_EQ  ( p3.scratch_size( 0 ), scratch_size                   );
+#endif
     ASSERT_EQ  ( p7.league_size(),     league_size                    );
     ASSERT_EQ  ( p7.team_size(),       team_size                      );
     ASSERT_EQ  ( p7.chunk_size(),      chunk_size                     );
     ASSERT_EQ  ( p7.scratch_size( 0 ), scratch_size                   );
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
     policy_t p8(league_size, team_size, Kokkos::ChunkSize(chunk_size) );
     ASSERT_EQ  ( p8.league_size(),     league_size                    );
     ASSERT_EQ  ( p8.team_size(),       team_size                      );
@@ -674,6 +705,7 @@ private:
     ASSERT_EQ  ( p29.team_size(),       team_size                      );
     ASSERT_EQ  ( p29.chunk_size(),      chunk_size                     );
     ASSERT_EQ  ( p29.scratch_size( 0 ), scratch_size                   );
+#endif
 
   }
 

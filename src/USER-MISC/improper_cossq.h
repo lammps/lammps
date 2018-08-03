@@ -20,7 +20,7 @@ ImproperStyle(cossq,ImproperCossq)
 #ifndef LMP_IMPROPER_COSSQ_H
 #define LMP_IMPROPER_COSSQ_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "improper.h"
 
 namespace LAMMPS_NS {
@@ -33,6 +33,7 @@ class ImproperCossq : public Improper {
   void coeff(int, char **);
   void write_restart(FILE *);
   void read_restart(FILE *);
+  void write_data(FILE *);
 
  protected:
   double *k, *chi;

@@ -36,7 +36,7 @@ class FixEnforce2D : public Fix {
   void post_force_respa(int, int, int);
   void min_post_force(int);
 
- private:
+ protected:
   int nfixlist;
   class Fix **flist;
 };
@@ -57,5 +57,9 @@ command-line option when running LAMMPS to see the offending line.
 E: Cannot use fix enforce2d with 3d simulation
 
 Self-explanatory.
+
+E: Fix enforce2d must be defined after fix %s
+
+UNDOCUMENTED
 
 */

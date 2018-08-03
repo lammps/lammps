@@ -1,0 +1,40 @@
+# simple sucrose model with LATTE
+
+units		metal
+atom_style	full
+atom_modify     sort 0 0.0    # turn off sorting of the coordinates
+
+read_data       data.sucrose
+
+# replicate system if requested
+
+variable	x index 1
+variable	y index 1
+variable	z index 1
+
+variable        nrep equal v_x*v_y*v_z
+if              "${nrep} > 1" then "replicate $x $y $z"
+
+# initialize system
+
+velocity	all create 0.0 87287 loop geom
+
+pair_style      zero 1.0
+pair_coeff	* *  
+
+neighbor	1.0 bin
+neigh_modify    every 1 delay 0 check yes 
+
+timestep        0.00025
+
+fix		1 all nve
+
+fix             2 all latte NULL
+fix_modify      2 energy yes
+
+thermo_style    custom step temp pe etotal press
+
+# dynamics
+
+thermo          10
+run		100

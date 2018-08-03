@@ -42,8 +42,9 @@ class ImproperClass2Kokkos : public ImproperClass2 {
 
   ImproperClass2Kokkos(class LAMMPS *);
   virtual ~ImproperClass2Kokkos();
-  virtual void compute(int, int);
-  virtual void coeff(int, char **);
+  void compute(int, int);
+  void coeff(int, char **);
+  void read_restart(FILE *);
 
   template<int NEWTON_BOND, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -97,7 +98,7 @@ class ImproperClass2Kokkos : public ImproperClass2 {
   typename AT::t_ffloat_1d d_aa_k1,d_aa_k2,d_aa_k3,d_aa_theta0_1,d_aa_theta0_2,d_aa_theta0_3;
   typename AT::t_ffloat_1d d_setflag_i,d_setflag_aa,d_setflag;
 
-  virtual void allocate();
+  void allocate();
 };
 
 }
@@ -107,7 +108,11 @@ class ImproperClass2Kokkos : public ImproperClass2 {
 
 /* ERROR/WARNING messages:
 
-W: Dihedral problem
+W: Improper problem
+
+UNDOCUMENTED
+
+U: Dihedral problem
 
 Conformation of the 4 listed dihedral atoms is extreme; you may want
 to check your simulation geometry.

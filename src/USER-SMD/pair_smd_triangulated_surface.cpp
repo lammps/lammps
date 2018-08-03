@@ -26,10 +26,13 @@
    Contributing author: Mike Parks (SNL)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <float.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cfloat>
+#include <cstdlib>
+#include <cstring>
+#include <cstdio>
+#include <iostream>
+#include <Eigen/Eigen>
 #include "pair_smd_triangulated_surface.h"
 #include "atom.h"
 #include "domain.h"
@@ -43,9 +46,6 @@
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
-#include <Eigen/Eigen>
-#include <stdio.h>
-#include <iostream>
 
 using namespace std;
 using namespace LAMMPS_NS;

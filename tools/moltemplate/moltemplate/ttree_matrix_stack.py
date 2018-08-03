@@ -1,4 +1,5 @@
 # Author: Andrew Jewett (jewett.aij@gmail.com)
+#         http://www.moltemplate.org
 #         http://www.chem.ucsb.edu/~sheagroup
 # License: 3-clause BSD License  (See LICENSE.TXT)
 # Copyright (c) 2012, Regents of the University of California
@@ -8,11 +9,18 @@ import random, math
 from collections import deque
 from array import array
 
+#try:
+#    from StringIO import StringIO
+#except ImportError:
+#    from io import StringIO
+
 try:
     from .ttree_lex import InputError, ErrorLeader, OSrcLoc
-except (SystemError, ValueError):
+except (ImportError, SystemError, ValueError):
     # not installed as a package
     from ttree_lex import InputError, ErrorLeader, OSrcLoc
+
+
 
 def MultMat(dest, A, B):
     """ Multiply two matrices together. Store result in "dest".
@@ -26,6 +34,21 @@ def MultMat(dest, A, B):
             dest[i][j] = 0.0
             for k in range(0, K):
                 dest[i][j] += A[i][k] * B[k][j]
+
+def Transpose(M):
+    return [ [M[j][i] for j in range(0, len(M))]
+             for i in range(0, len(M[0])) ]
+
+
+def TransposeInPlace(M):
+    N = len(M)
+    for i in range(0, N):
+        for j in range(0, i):
+            M_ij = M[i][j]
+            M_ji = M[j][i]
+            M[i][j] = M_ji
+            M[j][i] = M_ij
+            
 
 
 def MatToStr(M):
@@ -381,6 +404,51 @@ class AffineStack(object):
                     AffineCompose(Mtmp, moveCentBack, Mdest)
                     CopyMat(Mdest, Mtmp)
 
+            elif ((transform_str.find('quat(') == 0) or
+                  (transform_str.find('quatT(') == 0)):
+                i_paren_close = transform_str.find(')')
+                if i_paren_close == -1:
+                    i_paren_close = len(transform_str)
+                args = transform_str[5:i_paren_close].split(',')
+                center_v = None
+                if (len(args) == 7):
+                    center_v = [float(args[4]), float(args[5]), float(args[6])]
+                elif (len(args) != 4):
+                    raise InputError('Error near ' + ErrorLeader(src_loc.infile, src_loc.lineno) + ':\n'
+                                     '       Invalid command: \"' + transform_str + '\"\n'
+                                     '       This command requires either 4 or 7 numerical arguments.  Either:\n'
+                                     '           rot(angle, axisX, axisY, axiZ)  or \n'
+                                     '           rot(angle, axisX, axisY, axiZ, centerX, centerY, centerZ)')
+                M[0][3] = 0.0  # RotMatAXYZ() only modifies 3x3 submatrix of M
+                M[1][3] = 0.0  # The remaining final column must be zeroed by hand
+                M[2][3] = 0.0
+                q = (float(args[0]),
+                     float(args[1]),
+                     float(args[2]),
+                     float(args[3]))
+                Quaternion2Matrix(q, M)
+                if (transform_str.find('quatT(') == 0):
+                    TransposeInPlace(M)
+                if (center_v == None):
+                    AffineCompose(Mtmp, M, Mdest)
+                    CopyMat(Mdest, Mtmp)
+                else:
+                    # Move "center_v" to the origin
+                    moveCentToOrig = [[1.0, 0.0, 0.0, -center_v[0]],
+                                      [0.0, 1.0, 0.0, -center_v[1]],
+                                      [0.0, 0.0, 1.0, -center_v[2]]]
+                    AffineCompose(Mtmp, moveCentToOrig, Mdest)
+                    CopyMat(Mdest, Mtmp)
+                    # Rotate the coordinates (relative to the origin)
+                    AffineCompose(Mtmp, M, Mdest)  # M is the rotation matrix
+                    CopyMat(Mdest, Mtmp)
+                    # Move the origin back to center_v
+                    moveCentBack = [[1.0, 0.0, 0.0, center_v[0]],
+                                    [0.0, 1.0, 0.0, center_v[1]],
+                                    [0.0, 0.0, 1.0, center_v[2]]]
+                    AffineCompose(Mtmp, moveCentBack, Mdest)
+                    CopyMat(Mdest, Mtmp)
+
             # # elif transform_str.find('rotcm(') == 0:
             # #     assert(xcm != None)
             # #     i_paren_close = transform_str.find(')')
@@ -585,6 +653,34 @@ class AffineStack(object):
             # #     AffineCompose(Mtmp, moveCmBack, Mdest)
             # #     CopyMat(Mdest, Mtmp)
 
+            #elif transform_str.find('read_xyz(') == 0:
+            #    i_paren_close = transform_str.find(')')
+            #    if i_paren_close == -1:
+            #        i_paren_close = len(transform_str)
+            #    args = transform_str[4:i_paren_close].split(',')
+            #    if (len(args) != 1):
+            #        raise InputError('Error near ' + ErrorLeader(src_loc.infile, src_loc.lineno) + ':\n'
+            #                         '       Invalid command: \"' + transform_str + '\"\n'
+            #                         '       This command expects the name of a file in XYZ format.\n')
+            #    file_name = args[0]
+            #    if (not file_name in coord_files):
+            #        f = open(file_name, 'r')
+            #        f.close()
+            #        f.readline() # skip the first 2 lines
+            #        f.readline() # of an .xyz file (header)
+            #        for line in f:
+            #            tokens = line.split()
+            #            if (len(tokens) != 3) and (len(tokens) != 0):
+            #                raise InputError('Error near ' + ErrorLeader(src_loc.infile, src_loc.lineno) + ':\n'
+            #                                 '       Invalid command: \"' + transform_str + '\"\n'
+            #                                 '       This command expects the name of a file in XYZ format.\n')
+            #            crds.append((float(tokens[0]),
+            #                         float(tokens[1]),
+            #                         float(tokens[2]))
+            #        self.coord_files[file_name] = crds
+            #    else:
+            #        crds = self.coord_files[file_name]
+
             else:
                 raise InputError('Error near ' + ErrorLeader(src_loc.infile, src_loc.lineno) + ':\n'
                                  '       Unknown transformation command: \"' + transform_str + '\"\n')
@@ -601,6 +697,7 @@ class MultiAffineStack(object):
         self.stacks = None
         self.M = None
         self.error_if_substack_empty = False
+        self.coord_files = {}
         self.Clear()
 
     def Clear(self):
@@ -610,6 +707,7 @@ class MultiAffineStack(object):
         self.stacks = deque([])
         self.M = self.tot_stack.M
         self.error_if_substack_empty = False
+        self.coord_files = {}
 
     def _Update(self):
         self.tot_stack.Clear()
@@ -791,6 +889,70 @@ def RotMatAXYZ(dest, angle, axis_x, axis_y, axis_z):
     # from lttree_matrixstack import *
     # r = [[1.0,0.0,0.0], [0.0,1.0,0.0], [0.0,0.0,1.0]]
     # RotMatAXYZ(r, 90.0, 0.0, 0.0, 1.0)
+
+
+def Quaternion2Matrix(q, M):
+    "convert a quaternion (q) to a 3x3 rotation matrix (M)"""
+
+    M[0][0] =  (q[0]*q[0])-(q[1]*q[1])-(q[2]*q[2])+(q[3]*q[3])
+    M[1][1] = -(q[0]*q[0])+(q[1]*q[1])-(q[2]*q[2])+(q[3]*q[3])
+    M[2][2] = -(q[0]*q[0])-(q[1]*q[1])+(q[2]*q[2])+(q[3]*q[3])
+    M[0][1] = 2*(q[0]*q[1] - q[2]*q[3]);
+    M[1][0] = 2*(q[0]*q[1] + q[2]*q[3]);
+    M[1][2] = 2*(q[1]*q[2] - q[0]*q[3]);
+    M[2][1] = 2*(q[1]*q[2] + q[0]*q[3]);
+    M[0][2] = 2*(q[0]*q[2] + q[1]*q[3]);
+    M[2][0] = 2*(q[0]*q[2] - q[1]*q[3]);
+
+
+
+def Matrix2Quaternion(M, q):
+    """convert a 3x3 rotation matrix (M) to a quaternion (q)
+       http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
+    """
+    tr = M[0][0] + M[1][1] + M[2][2]
+    if tr > 0:
+        S = math.sqrt(tr+1.0) * 2                        # S=4*qw 
+        qw = 0.25 * S
+        qx = (M[2][1] - M[1][2]) / S
+        qy = (M[0][2] - M[2][0]) / S
+        qz = (M[1][0] - M[0][1]) / S
+    elif (M[0][0] > M[1][1]) and (M[0][0] > M[2][2]):
+        S = math.sqrt(1.0 + M[0][0] - M[1][1] - M[2][2]) * 2   # S=4*qx 
+        qw = (M[2][1] - M[1][2]) / S
+        qx = 0.25 * S
+        qy = (M[0][1] + M[1][0]) / S
+        qz = (M[0][2] + M[2][0]) / S
+    elif (M[1][1] > M[2][2]):
+        S = math.sqrt(1.0 + M[1][1] - M[0][0] - M[2][2]) * 2   # S=4*qy
+        qw = (M[0][2] - M[2][0]) / S
+        qx = (M[0][1] + M[1][0]) / S
+        qy = 0.25 * S
+        qz = (M[1][2] + M[2][1]) / S
+    else:
+        S = math.sqrt(1.0 + M[2][2] - M[0][0] - M[1][1]) * 2   # S=4*qz
+        qw = (M[1][0] - M[0][1]) / S
+        qx = (M[0][2] + M[2][0]) / S
+        qy = (M[1][2] + M[2][1]) / S
+        qz = 0.25 * S
+    q[0] = qw
+    q[1] = qx
+    q[2] = qy
+    q[3] = qz
+
+
+def MultQuat(dest, q1, q2):
+    """ multiply 2 quaternions and store the result in "qdest"
+      (q1[0] + i*q1[1] + j*q1[2] + k*q1[3])
+       *
+      (q2[0] + i*q2[1] + j*q3[2] + k*q3[3])
+    https://en.wikipedia.org/wiki/Quaternion#Hamilton_product
+    """
+    dest[0] = q1[0]*q2[0] - q1[1]*q2[1] - q1[2]*q2[2] - q1[3]*q2[3]
+    dest[1] = q1[0]*q2[1] + q1[1]*q2[0] + q1[2]*q2[3] - q1[3]*q2[2]
+    dest[2] = q1[0]*q2[2] - q1[1]*q2[3] + q1[2]*q2[0] + q1[3]*q2[1]
+    dest[3] = q1[0]*q2[3] + q1[1]*q2[2] - q1[2]*q2[1] + q1[3]*q2[0]
+
 
 
 def CrossProd(dest, A, B):

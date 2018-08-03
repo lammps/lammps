@@ -21,10 +21,10 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_ilp_graphene_hbn.h"
 #include "atom.h"
 #include "comm.h"
@@ -636,7 +636,9 @@ void PairILPGrapheneHBN::calc_normal()
 void PairILPGrapheneHBN::init_style()
 {
   if (force->newton_pair == 0)
-    error->all(FLERR,"Pair style ILP requires newton pair on");
+    error->all(FLERR,"Pair style ilp/graphene/hbn requires newton pair on");
+  if (!atom->molecule_flag)
+    error->all(FLERR,"Pair style ilp/graphene/hbn requires atom attribute molecule");
 
   // need a full neighbor list, including neighbors of ghosts
 

@@ -12,7 +12,8 @@
 ------------------------------------------------------------------------- */
 
 /** Fix Drude Transform ******************************************************/
-#include <math.h>
+#include <cmath>
+#include <cstring>
 #include "fix_drude_transform.h"
 #include "atom.h"
 #include "domain.h"
@@ -20,8 +21,6 @@
 #include "error.h"
 #include "modify.h"
 #include "force.h"
-
-#include <string.h>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -76,7 +75,7 @@ void FixDrudeTransform<inverse>::setup(int) {
 
   if (!rmass) {
     if (!mcoeff) mcoeff = new double[ntypes+1];
-    double mcoeff_loc[ntypes+1];
+    double *mcoeff_loc = new double[ntypes+1];
     for (int itype=0; itype<=ntypes; itype++) mcoeff_loc[itype] = 2.; // an impossible value: mcoeff is at most 1.
     for (int i=0; i<nlocal; i++) {
       if (drudetype[type[i]] == DRUDE_TYPE) {
@@ -96,6 +95,7 @@ void FixDrudeTransform<inverse>::setup(int) {
     // mcoeff is 2 for non polarizable
     // 0 < mcoeff < 1 for drude
     // mcoeff < 0 for core
+    delete[] mcoeff_loc;
   }
 }
 
@@ -314,6 +314,6 @@ void FixDrudeTransform<inverse>::unpack_forward_comm(int n, int first, double *b
 }
 
 /* ---------------------------------------------------------------------- */
-template class FixDrudeTransform<false>;
-template class FixDrudeTransform<true>;
+template class LAMMPS_NS::FixDrudeTransform<false>;
+template class LAMMPS_NS::FixDrudeTransform<true>;
 

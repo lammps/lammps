@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "set.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -44,10 +44,11 @@ using namespace MathConst;
 enum{ATOM_SELECT,MOL_SELECT,TYPE_SELECT,GROUP_SELECT,REGION_SELECT};
 
 enum{TYPE,TYPE_FRACTION,MOLECULE,X,Y,Z,CHARGE,MASS,SHAPE,LENGTH,TRI,
-     DIPOLE,DIPOLE_RANDOM,QUAT,QUAT_RANDOM,THETA,THETA_RANDOM,ANGMOM,OMEGA,
+     DIPOLE,DIPOLE_RANDOM,SPIN,SPIN_RANDOM,QUAT,QUAT_RANDOM,
+     THETA,THETA_RANDOM,ANGMOM,OMEGA,
      DIAMETER,DENSITY,VOLUME,IMAGE,BOND,ANGLE,DIHEDRAL,IMPROPER,
      MESO_E,MESO_CV,MESO_RHO,EDPD_TEMP,EDPD_CV,CC,SMD_MASS_DENSITY,
-     SMD_CONTACT_RADIUS,DPDTHETA,INAME,DNAME};
+     SMD_CONTACT_RADIUS,DPDTHETA,INAME,DNAME,VX,VY,VZ};
 
 #define BIG INT_MAX
 
@@ -140,6 +141,27 @@ void Set::command(int narg, char **arg)
       set(Z);
       iarg += 2;
 
+    } else if (strcmp(arg[iarg],"vx") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
+      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
+      else dvalue = force->numeric(FLERR,arg[iarg+1]);
+      set(VX);
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"vy") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
+      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
+      else dvalue = force->numeric(FLERR,arg[iarg+1]);
+      set(VY);
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"vz") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
+      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
+      else dvalue = force->numeric(FLERR,arg[iarg+1]);
+      set(VZ);
+      iarg += 2;
+
     } else if (strcmp(arg[iarg],"charge") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
       if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
@@ -213,6 +235,34 @@ void Set::command(int narg, char **arg)
       if (dvalue <= 0.0)
         error->all(FLERR,"Invalid dipole length in set command");
       setrandom(DIPOLE_RANDOM);
+      iarg += 3;
+
+    } else if (strcmp(arg[iarg],"spin") == 0) {
+      if (iarg+4 > narg) error->all(FLERR,"Illegal set command");
+      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
+      else dvalue = force->numeric(FLERR,arg[iarg+1]);
+      if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) varparse(arg[iarg+2],2);
+      else xvalue = force->numeric(FLERR,arg[iarg+2]);
+      if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) varparse(arg[iarg+3],3);
+      else yvalue = force->numeric(FLERR,arg[iarg+3]);
+      if (strstr(arg[iarg+4],"v_") == arg[iarg+4]) varparse(arg[iarg+4],4);
+      else zvalue = force->numeric(FLERR,arg[iarg+4]);
+      if (!atom->sp_flag)
+        error->all(FLERR,"Cannot set this attribute for this atom style");
+      set(SPIN);
+      iarg += 5;
+
+    } else if (strcmp(arg[iarg],"spin/random") == 0) {
+      if (iarg+3 > narg) error->all(FLERR,"Illegal set command");
+      ivalue = force->inumeric(FLERR,arg[iarg+1]);
+      dvalue = force->numeric(FLERR,arg[iarg+2]);
+      if (!atom->sp_flag)
+        error->all(FLERR,"Cannot set this attribute for this atom style");
+      if (ivalue <= 0)
+        error->all(FLERR,"Invalid random number seed in set command");
+      if (dvalue <= 0.0)
+        error->all(FLERR,"Invalid dipole length in set command");
+      setrandom(SPIN_RANDOM);
       iarg += 3;
 
     } else if (strcmp(arg[iarg],"quat") == 0) {
@@ -703,6 +753,9 @@ void Set::set(int keyword)
     else if (keyword == X) atom->x[i][0] = dvalue;
     else if (keyword == Y) atom->x[i][1] = dvalue;
     else if (keyword == Z) atom->x[i][2] = dvalue;
+    else if (keyword == VX) atom->v[i][0] = dvalue;
+    else if (keyword == VY) atom->v[i][1] = dvalue;
+    else if (keyword == VZ) atom->v[i][2] = dvalue;
     else if (keyword == CHARGE) atom->q[i] = dvalue;
     else if (keyword == MASS) {
       if (dvalue <= 0.0) error->one(FLERR,"Invalid mass in set command");
@@ -821,6 +874,18 @@ void Set::set(int keyword)
                       mu[i][2]*mu[i][2]);
     }
 
+    // set magnetic moments
+
+    else if (keyword == SPIN) {
+      double **sp = atom->sp;
+      double inorm = 1.0/sqrt(xvalue*xvalue+yvalue*yvalue+zvalue*zvalue);
+      sp[i][0] = inorm*xvalue;
+      sp[i][1] = inorm*yvalue;
+      sp[i][2] = inorm*zvalue;
+      sp[i][3] = dvalue;
+    }
+
+    // set quaternion orientation of ellipsoid or tri or body particle
     // set quaternion orientation of ellipsoid or tri or body particle
     // enforce quat rotation vector in z dir for 2d systems
 
@@ -977,6 +1042,48 @@ void Set::setrandom(int keyword)
           mu[i][0] *= scale;
           mu[i][1] *= scale;
           mu[i][3] = dvalue;
+          count++;
+        }
+    }
+
+
+  // set spin moments to random orientations in 3d or 2d
+  // spin length is fixed to unity
+
+  } else if (keyword == SPIN_RANDOM) {
+    double **sp = atom->sp;
+    int nlocal = atom->nlocal;
+
+    double sp_sq,scale;
+
+    if (domain->dimension == 3) {
+      for (i = 0; i < nlocal; i++)
+        if (select[i]) {
+          random->reset(seed,x[i]);
+          sp[i][0] = random->uniform() - 0.5;
+          sp[i][1] = random->uniform() - 0.5;
+          sp[i][2] = random->uniform() - 0.5;
+          sp_sq = sp[i][0]*sp[i][0] + sp[i][1]*sp[i][1] + sp[i][2]*sp[i][2];
+          scale = 1.0/sqrt(sp_sq);
+          sp[i][0] *= scale;
+          sp[i][1] *= scale;
+          sp[i][2] *= scale;
+          sp[i][3] = dvalue;
+          count++;
+        }
+
+    } else {
+      for (i = 0; i < nlocal; i++)
+        if (select[i]) {
+          random->reset(seed,x[i]);
+          sp[i][0] = random->uniform() - 0.5;
+          sp[i][1] = random->uniform() - 0.5;
+          sp[i][2] = 0.0;
+          sp_sq = sp[i][0]*sp[i][0] + sp[i][1]*sp[i][1];
+          scale = 1.0/sqrt(sp_sq);
+          sp[i][0] *= scale;
+          sp[i][1] *= scale;
+          sp[i][3] = dvalue;
           count++;
         }
     }

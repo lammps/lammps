@@ -102,9 +102,25 @@ E: Compute slice fix does not calculate global vector or array
 
 Self-explanatory.
 
+E: Variable name for compute slice does not exist
+
+UNDOCUMENTED
+
+E: Compute slice variable is not vector-style variable
+
+UNDOCUMENTED
+
+E: Compute slice vector variable cannot be indexed
+
+UNDOCUMENTED
+
 E: Fix used in compute slice not computed at compatible time
 
 Fixes generate their values on specific timesteps.  Compute slice is
 requesting a value on a non-allowed timestep.
+
+E: Compute slice variable is not long enough
+
+UNDOCUMENTED
 
 */

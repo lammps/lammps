@@ -78,7 +78,7 @@ class BornCoulLong : public BaseCharge<numtyp, acctyp> {
 
   numtyp _cut_coulsq, _qqrd2e, _g_ewald;
 
- private:
+ protected:
   bool _allocated;
   void loop(const bool _eflag, const bool _vflag);
 };

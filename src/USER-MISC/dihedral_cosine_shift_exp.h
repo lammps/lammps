@@ -20,7 +20,7 @@ DihedralStyle(cosine/shift/exp,DihedralCosineShiftExp)
 #ifndef LMP_DIHEDRAL_COSINE_SHIFT_EXP_H
 #define LMP_DIHEDRAL_COSINE_SHIFT_EXP_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "dihedral.h"
 
 namespace LAMMPS_NS {
@@ -33,6 +33,7 @@ class DihedralCosineShiftExp : public Dihedral {
   void coeff(int, char **);
   void write_restart(FILE *);
   void read_restart(FILE *);
+  void write_data(FILE *);
 
  protected:
   bool *doExpansion;

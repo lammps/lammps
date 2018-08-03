@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 #include "fix_rx_kokkos.h"
 #include "atom_masks.h"
 #include "atom_kokkos.h"
@@ -30,7 +30,7 @@
 #include "domain.h"
 #include "kokkos.h"
 
-#include <float.h> // DBL_EPSILON
+#include <cfloat> // DBL_EPSILON
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

@@ -61,6 +61,11 @@ class Atom : protected Pointers {
   double *radius,*rmass;
   int *ellipsoid,*line,*tri,*body;
 
+  // SPIN package
+
+  double **sp;
+  double **fm;
+
   // PERI package
 
   double *vfrac,*s0;
@@ -145,6 +150,10 @@ class Atom : protected Pointers {
   int cs_flag,csforce_flag,vforce_flag,ervelforce_flag,etag_flag;
   int rho_flag,e_flag,cv_flag,vest_flag;
   int dpd_flag,edpd_flag,tdpd_flag;
+
+  //USER-SPIN package
+
+  int sp_flag;
 
   // USER-SMD package
 
@@ -478,31 +487,6 @@ E: Invalid atom ID in Bodies section of data file
 Atom IDs must be positive integers and within range of defined
 atoms.
 
-E: Cannot set mass for this atom style
-
-This atom style does not support mass settings for each atom type.
-Instead they are defined on a per-atom basis in the data file.
-
-E: Invalid mass line in data file
-
-Self-explanatory.
-
-E: Invalid type for mass set
-
-Mass command must set a type from 1-N where N is the number of atom
-types.
-
-E: Invalid mass value
-
-Self-explanatory.
-
-E: All masses are not set
-
-For atom styles that define masses for each atom type, all masses must
-be set in the data file or by the mass command before running a
-simulation.  They must also be set before using the velocity
-command.
-
 E: Reuse of molecule template ID
 
 The template IDs must be unique.
@@ -522,5 +506,30 @@ E: Too many atom sorting bins
 
 This is likely due to an immense simulation box that has blown up
 to a large size.
+
+U: Cannot set mass for this atom style
+
+This atom style does not support mass settings for each atom type.
+Instead they are defined on a per-atom basis in the data file.
+
+U: Invalid mass line in data file
+
+Self-explanatory.
+
+U: Invalid type for mass set
+
+Mass command must set a type from 1-N where N is the number of atom
+types.
+
+U: Invalid mass value
+
+Self-explanatory.
+
+U: All masses are not set
+
+For atom styles that define masses for each atom type, all masses must
+be set in the data file or by the mass command before running a
+simulation.  They must also be set before using the velocity
+command.
 
 */

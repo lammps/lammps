@@ -151,7 +151,7 @@ center-of-mass position of the particle is specified by the x,y,z
 values in the {Atoms} section of the data file, as is the total mass
 of the body particle.
 
-The "pair_style body"_pair_body.html command can be used with this
+The "pair_style body/nparticle"_pair_body_nparticle.html command can be used with this
 body style to compute body/body and body/non-body interactions.
 
 For output purposes via the "compute

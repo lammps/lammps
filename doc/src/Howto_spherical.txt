@@ -129,7 +129,7 @@ styles"_pair_style.html that generate torque:
 "pair_style lubricate"_pair_lubricate.html
 "pair_style line/lj"_pair_line_lj.html
 "pair_style tri/lj"_pair_tri_lj.html
-"pair_style body"_pair_body.html :ul
+"pair_style body/nparticle"_pair_body_nparticle.html :ul
 
 The granular pair styles are used with spherical particles.  The
 dipole pair style is used with the dipole atom style, which could be
@@ -240,4 +240,4 @@ list of sub-particles.  Individual body partices are typically treated
 as rigid bodies, and their motion integrated with a command like "fix
 nve/body"_fix_nve_body.html.  Interactions between pairs of body
 particles are computed via a command like "pair_style
-body"_pair_body.html.
+body/nparticle"_pair_body_nparticle.html.

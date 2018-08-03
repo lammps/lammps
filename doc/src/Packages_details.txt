@@ -148,7 +148,7 @@ src/BODY filenames -> commands
 "Howto_body"_Howto_body.html
 "atom_style body"_atom_style.html
 "fix nve/body"_fix_nve_body.html
-"pair_style body"_pair_body.html
+"pair_style body/nparticle"_pair_body_nparticle.html
 examples/body :ul
 
 :line

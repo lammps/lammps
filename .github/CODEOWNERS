@@ -45,6 +45,7 @@ src/USER-MISC/*_grem.*              @dstelter92
 
 # tools
 tools/msi2lmp/*       @akohlmey
+tools/emacs/*         @HaoZeke
 
 # cmake
 cmake/*               @junghans @rbberger

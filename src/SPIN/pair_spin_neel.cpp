@@ -18,12 +18,12 @@
    Please cite the related publication:
    Tranchida, J., Plimpton, S. J., Thibaudeau, P., & Thompson, A. P. (2018).
    Massively parallel symplectic algorithm for coupled magnetic spin dynamics
-   and molecular dynamics. arXiv preprint arXiv:1801.10233.
+   and molecular dynamics. Journal of Computational Physics.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 
 #include "atom.h"
 #include "comm.h"
@@ -193,8 +193,16 @@ void PairSpinNeel::init_style()
 
 double PairSpinNeel::init_one(int i, int j)
 {
+  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
-   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  g1[j][i] = g1[i][j];
+  g1_mech[j][i] = g1_mech[i][j];
+  g2[j][i] = g2[i][j];
+  g3[j][i] = g3[i][j];
+  q1[j][i] = q1[i][j];
+  q1_mech[j][i] = q1_mech[i][j];
+  q2[j][i] = q2[i][j];
+  q3[j][i] = q3[i][j];
 
   return cut_spin_neel_global;
 }

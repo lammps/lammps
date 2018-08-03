@@ -9,6 +9,7 @@ set(SOVERSION 0)
 get_filename_component(LAMMPS_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../src ABSOLUTE)
 get_filename_component(LAMMPS_LIB_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../lib ABSOLUTE)
 get_filename_component(LAMMPS_LIB_BINARY_DIR ${CMAKE_BINARY_DIR}/lib ABSOLUTE)
+get_filename_component(LAMMPS_DOC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../doc ABSOLUTE)
 
 
 # To avoid conflicts with the conventional Makefile build system, we build everything here
@@ -153,14 +154,15 @@ if(ENABLE_TESTING)
   enable_testing()
 endif(ENABLE_TESTING)
 
-set(DEFAULT_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS CORESHELL DIPOLE GRANULAR
-  KSPACE MANYBODY MC MEAM MISC MOLECULE PERI QEQ REAX REPLICA RIGID SHOCK SPIN SNAP
+set(DEFAULT_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS DIPOLE GRANULAR
+  KSPACE MANYBODY MC MEAM MISC MOLECULE PERI REAX REPLICA RIGID SHOCK SPIN SNAP
   SRD KIM PYTHON MSCG MPIIO VORONOI POEMS LATTE USER-ATC USER-AWPMD USER-BOCS
   USER-CGDNA USER-MESO USER-CGSDK USER-COLVARS USER-DIFFRACTION USER-DPD USER-DRUDE
   USER-EFF USER-FEP USER-H5MD USER-LB USER-MANIFOLD USER-MEAMC USER-MGPT USER-MISC
   USER-MOFFF USER-MOLFILE USER-NETCDF USER-PHONON USER-QTB USER-REAXC USER-SCAFACOS 
   USER-SMD USER-SMTBQ USER-SPH USER-TALLY USER-UEF USER-VTK USER-QUIP USER-QMMM)
 set(ACCEL_PACKAGES USER-OMP KOKKOS OPT USER-INTEL GPU)
+set(OTHER_PACKAGES CORESHELL QEQ)
 foreach(PKG ${DEFAULT_PACKAGES})
   option(PKG_${PKG} "Build ${PKG} Package" OFF)
 endforeach()
@@ -174,13 +176,12 @@ macro(pkg_depends PKG1 PKG2)
   endif()
 endmacro()
 
+# "hard" dependencies between packages resulting
+# in an error instead of skipping over files
 pkg_depends(MPIIO MPI)
-pkg_depends(QEQ MANYBODY)
 pkg_depends(USER-ATC MANYBODY)
 pkg_depends(USER-LB MPI)
-pkg_depends(USER-MISC MANYBODY)
 pkg_depends(USER-PHONON KSPACE)
-pkg_depends(CORESHELL KSPACE)
 
 ######################################################
 # packages with special compiler needs or external libs
@@ -332,7 +333,7 @@ if(PKG_LATTE)
     include(ExternalProject)
     ExternalProject_Add(latte_build
       URL https://github.com/lanl/LATTE/archive/v1.2.1.tar.gz
-      URL_MD5 bed76e7e76c545c36dd848a8f1fd35eb
+      URL_MD5 85ac414fdada2d04619c8f936344df14
       SOURCE_SUBDIR cmake
       CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> -DCMAKE_POSITION_INDEPENDENT_CODE=${CMAKE_POSITION_INDEPENDENT_CODE}
       )
@@ -581,6 +582,41 @@ endif()
 # packages which selectively include variants based on enabled styles
 # e.g. accelerator packages
 ######################################################################
+if(PKG_CORESHELL)
+    set(CORESHELL_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/CORESHELL)
+    set(CORESHELL_SOURCES)
+    set_property(GLOBAL PROPERTY "CORESHELL_SOURCES" "${CORESHELL_SOURCES}")
+
+    # detects styles which have a CORESHELL version
+    RegisterStylesExt(${CORESHELL_SOURCES_DIR} cs CORESHELL_SOURCES)
+
+    get_property(CORESHELL_SOURCES GLOBAL PROPERTY CORESHELL_SOURCES)
+
+    list(APPEND LIB_SOURCES ${CORESHELL_SOURCES})
+    include_directories(${CORESHELL_SOURCES_DIR})
+endif()
+
+# Fix qeq/fire requires MANYBODY (i.e. COMB and COMB3) to be installed
+if(PKG_QEQ)
+  set(QEQ_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/QEQ)
+  file(GLOB QEQ_HEADERS ${QEQ_SOURCES_DIR}/fix*.h)
+  file(GLOB QEQ_SOURCES ${QEQ_SOURCES_DIR}/fix*.cpp)
+
+  if(NOT PKG_MANYBODY)
+    list(REMOVE_ITEM QEQ_HEADERS ${QEQ_SOURCES_DIR}/fix_qeq_fire.h)
+    list(REMOVE_ITEM QEQ_SOURCES ${QEQ_SOURCES_DIR}/fix_qeq_fire.cpp)
+  endif()
+  set_property(GLOBAL PROPERTY "QEQ_SOURCES" "${QEQ_SOURCES}")
+
+  foreach(MY_HEADER ${QEQ_HEADERS})
+    AddStyleHeader(${MY_HEADER} FIX)
+  endforeach()
+
+  get_property(QEQ_SOURCES GLOBAL PROPERTY QEQ_SOURCES)
+  list(APPEND LIB_SOURCES ${QEQ_SOURCES})
+  include_directories(${QEQ_SOURCES_DIR})
+endif()
+
 if(PKG_USER-OMP)
     set(USER-OMP_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/USER-OMP)
     set(USER-OMP_SOURCES ${USER-OMP_SOURCES_DIR}/thr_data.cpp
@@ -592,7 +628,26 @@ if(PKG_USER-OMP)
     # detects styles which have USER-OMP version
     RegisterStylesExt(${USER-OMP_SOURCES_DIR} omp OMP_SOURCES)
 
+
     get_property(USER-OMP_SOURCES GLOBAL PROPERTY OMP_SOURCES)
+
+    # manually add package dependent source files from USER-OMP that do not provide styles
+
+    if(PKG_RIGID)
+      list(APPEND USER-OMP_SOURCES ${USER-OMP_SOURCES_DIR}/fix_rigid_nh_omp.cpp)
+    endif()
+
+    if(PKG_USER-REAXC)
+      list(APPEND USER-OMP_SOURCES ${USER-OMP_SOURCES_DIR}/reaxc_bond_orders_omp.cpp
+                                   ${USER-OMP_SOURCES_DIR}/reaxc_hydrogen_bonds_omp.cpp
+                                   ${USER-OMP_SOURCES_DIR}/reaxc_nonbonded_omp.cpp
+                                   ${USER-OMP_SOURCES_DIR}/reaxc_bonds_omp.cpp
+                                   ${USER-OMP_SOURCES_DIR}/reaxc_init_md_omp.cpp
+                                   ${USER-OMP_SOURCES_DIR}/reaxc_torsion_angles_omp.cpp
+                                   ${USER-OMP_SOURCES_DIR}/reaxc_forces_omp.cpp
+                                   ${USER-OMP_SOURCES_DIR}/reaxc_multi_body_omp.cpp
+                                   ${USER-OMP_SOURCES_DIR}/reaxc_valence_angles_omp.cpp)
+    endif()
 
     list(APPEND LIB_SOURCES ${USER-OMP_SOURCES})
     include_directories(${USER-OMP_SOURCES_DIR})
@@ -906,6 +961,80 @@ if(BUILD_EXE)
     add_test(ShowHelp lmp${LAMMPS_MACHINE} -help)
   endif()
 endif()
+
+###############################################################################
+# Build documentation
+###############################################################################
+option(BUILD_DOC "Build LAMMPS documentation" OFF)
+if(BUILD_DOC)
+  include(ProcessorCount)
+  ProcessorCount(NPROCS)
+  find_package(PythonInterp 3 REQUIRED)
+
+  set(VIRTUALENV ${PYTHON_EXECUTABLE} -m virtualenv)
+
+  file(GLOB DOC_SOURCES ${LAMMPS_DOC_DIR}/src/*.txt)
+  file(GLOB PDF_EXTRA_SOURCES ${LAMMPS_DOC_DIR}/src/lammps_commands*.txt ${LAMMPS_DOC_DIR}/src/lammps_support.txt ${LAMMPS_DOC_DIR}/src/lammps_tutorials.txt)
+  list(REMOVE_ITEM DOC_SOURCES ${PDF_EXTRA_SOURCES})
+
+  add_custom_command(
+    OUTPUT docenv
+    COMMAND ${VIRTUALENV} docenv
+  )
+
+  set(DOCENV_BINARY_DIR ${CMAKE_BINARY_DIR}/docenv/bin)
+
+  add_custom_command(
+    OUTPUT requirements.txt
+    DEPENDS docenv
+    COMMAND ${CMAKE_COMMAND} -E copy ${LAMMPS_DOC_DIR}/utils/requirements.txt requirements.txt
+    COMMAND ${DOCENV_BINARY_DIR}/pip install -r requirements.txt --upgrade
+    COMMAND ${DOCENV_BINARY_DIR}/pip install --upgrade ${LAMMPS_DOC_DIR}/utils/converters
+  )
+
+  set(RST_FILES "")
+  set(RST_DIR ${CMAKE_BINARY_DIR}/rst)
+  file(MAKE_DIRECTORY ${RST_DIR})
+  foreach(TXT_FILE ${DOC_SOURCES})
+    get_filename_component(FILENAME ${TXT_FILE} NAME_WE)
+    set(RST_FILE ${RST_DIR}/${FILENAME}.rst)
+    list(APPEND RST_FILES ${RST_FILE})
+    add_custom_command(
+      OUTPUT ${RST_FILE}
+      DEPENDS requirements.txt docenv ${TXT_FILE}
+      COMMAND ${DOCENV_BINARY_DIR}/txt2rst -o ${RST_DIR} ${TXT_FILE}
+    )
+  endforeach()
+
+  add_custom_command(
+    OUTPUT html
+    DEPENDS ${RST_FILES}
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${LAMMPS_DOC_DIR}/src ${RST_DIR}
+    COMMAND ${DOCENV_BINARY_DIR}/sphinx-build -j ${NPROCS} -b html -c ${LAMMPS_DOC_DIR}/utils/sphinx-config -d ${CMAKE_BINARY_DIR}/doctrees ${RST_DIR} html
+  )
+
+  add_custom_target(
+    doc ALL
+    DEPENDS html
+    SOURCES ${LAMMPS_DOC_DIR}/utils/requirements.txt ${DOC_SOURCES}
+  )
+
+  install(DIRECTORY ${CMAKE_BINARY_DIR}/html DESTINATION ${CMAKE_INSTALL_DOCDIR})
+endif()
+
+###############################################################################
+# Install potential files in data directory
+###############################################################################
+set(LAMMPS_POTENTIALS_DIR ${CMAKE_INSTALL_FULL_DATADIR}/lammps/potentials)
+install(DIRECTORY ${LAMMPS_SOURCE_DIR}/../potentials DESTINATION ${CMAKE_INSTALL_DATADIR}/lammps/potentials)
+
+configure_file(etc/profile.d/lammps.sh.in ${CMAKE_BINARY_DIR}/etc/profile.d/lammps.sh @ONLY)
+configure_file(etc/profile.d/lammps.csh.in ${CMAKE_BINARY_DIR}/etc/profile.d/lammps.csh @ONLY)
+install(
+  FILES ${CMAKE_BINARY_DIR}/etc/profile.d/lammps.sh
+        ${CMAKE_BINARY_DIR}/etc/profile.d/lammps.csh
+  DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/profile.d
+)
 
 ###############################################################################
 # Testing

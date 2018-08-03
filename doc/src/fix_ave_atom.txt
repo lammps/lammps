@@ -124,7 +124,7 @@ appended, the per-atom vector calculated by the compute is used.  If a
 bracketed term containing an index I is appended, the Ith column of
 the per-atom array calculated by the compute is used.  Users can also
 write code for their own compute styles and "add them to
-LAMMPS"_Section_modify.html.  See the discussion above for how I can
+LAMMPS"_Modify.html.  See the discussion above for how I can
 be specified with a wildcard asterisk to effectively specify multiple
 values.
 
@@ -136,8 +136,8 @@ the per-atom array calculated by the fix is used.  Note that some
 fixes only produce their values on certain timesteps, which must be
 compatible with {Nevery}, else an error will result.  Users can also
 write code for their own fix styles and "add them to
-LAMMPS"_Section_modify.html.  See the discussion above for how I can
-be specified with a wildcard asterisk to effectively specify multiple
+LAMMPS"_Modify.html.  See the discussion above for how I can be
+specified with a wildcard asterisk to effectively specify multiple
 values.
 
 If a value begins with "v_", a variable name must follow which has

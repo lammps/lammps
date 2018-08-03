@@ -194,9 +194,9 @@ dump 1 all custom 100 tmp.dump id x y z c_1\[1\] c_1\[2\] :pre
 
 If you wish to add new "pair styles"_pair_style.html,
 "fixes"_fix.html, or "computes"_compute.html that use the per-atom
-properties defined by this fix, see "Section
-modify"_Section_modify.html#mod_1 of the manual which has some details
-on how the properties can be accessed from added classes.
+properties defined by this fix, see the "Modify atom"_Modify_atom.html
+doc page which has details on how the properties can be accessed from
+added classes.
 
 :line
 

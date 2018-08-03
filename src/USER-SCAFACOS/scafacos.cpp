@@ -47,14 +47,26 @@ Scafacos::Scafacos(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 
   // optional ScaFaCoS library setting defaults
   // choose the correct default tolerance type for chosen method
-  // TODO: needs to be expanded for all solvers, currently mainly used ones
+  // throw an error if a not yet supported solver is chosen
   if (strcmp(method,"fmm") == 0)
   {
     tolerance_type = FCS_TOLERANCE_TYPE_ENERGY;
     fmm_tuning_flag = 0;
   }
-  else if (strcmp(method,"p3m") == 0 || strcmp(method,"p2nfft") == 0) 
+  else if (strcmp(method,"p3m") == 0 || 
+           strcmp(method,"p2nfft") == 0 || 
+           strcmp(method,"ewald") == 0)
+  {
     tolerance_type = FCS_TOLERANCE_TYPE_FIELD;    
+  }
+  else if (strcmp(method,"direct") == 0)
+  {
+    // direct summation has no tolerance type
+  }
+  else
+  {
+    error->all(FLERR,"Unsupported ScaFaCoS method");
+  }
 
   // initializations
 
@@ -194,11 +206,13 @@ void Scafacos::compute(int eflag, int vflag)
     fcs_set_compute_virial(fcs,1);
   }
 
+  /*
   if (strcmp(method,"p3m")==0)
   {
     result = fcs_tune(fcs,nlocal,&x[0][0],q);
     check_result(result);
   }
+  */
 
   result = fcs_run(fcs,nlocal,&x[0][0],q,&efield[0][0],epot);
   check_result(result);

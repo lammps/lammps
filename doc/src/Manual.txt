@@ -14,7 +14,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html#comm)
 
 :line
 
@@ -73,7 +73,7 @@ every LAMMPS command.
 
    Intro
    Section_start
-   Section_commands
+   Commands
    Packages
    Speed
    Howto
@@ -116,12 +116,7 @@ END_RST -->
   2.6 "Command-line options"_start_6 :b
   2.7 "Screen output"_start_7 :b
   2.8 "Tips for users of previous versions"_start_8 :ule,b
-"Commands"_Section_commands.html :l
-  3.1 "LAMMPS input script"_cmd_1 :ulb,b
-  3.2 "Parsing rules"_cmd_2 :b
-  3.3 "Input script structure"_cmd_3 :b
-  3.4 "Commands listed by category"_cmd_4 :b
-  3.5 "Commands listed alphabetically"_cmd_5 :ule,b
+"Commands"_Commands.html :l
 "Optional packages"_Packages.html :l
 "Accelerate performance"_Speed.html :l
 "How-to discussions"_Howto.html :l
@@ -140,12 +135,6 @@ END_RST -->
 :link(start_6,Section_start.html#start_6)
 :link(start_7,Section_start.html#start_7)
 :link(start_8,Section_start.html#start_8)
-
-:link(cmd_1,Section_commands.html#cmd_1)
-:link(cmd_2,Section_commands.html#cmd_2)
-:link(cmd_3,Section_commands.html#cmd_3)
-:link(cmd_4,Section_commands.html#cmd_4)
-:link(cmd_5,Section_commands.html#cmd_5)
 
 <!-- END_HTML_ONLY -->
 

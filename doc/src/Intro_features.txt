@@ -3,7 +3,7 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -74,8 +74,8 @@ commands)
   long-range interactions for charge, point-dipoles, and LJ dispersion: \
     Ewald, Wolf, PPPM (similar to particle-mesh Ewald)
   polarization models: "QEq"_fix_qeq.html, \
-    "core/shell model"_Section_howto.html#howto_26, \
-    "Drude dipole model"_Section_howto.html#howto_27
+    "core/shell model"_Howto_coreshell.html, \
+    "Drude dipole model"_Howto_drude.html
   charge equilibration (QEq via dynamic, point, shielded, Slater methods)
   coarse-grained potentials: DPD, GayBerne, REsquared, colloidal, DLVO
   mesoscopic potentials: granular, Peridynamics, SPH

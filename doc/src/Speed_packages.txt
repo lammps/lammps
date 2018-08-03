@@ -3,7 +3,7 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -71,11 +71,12 @@ Lennard-Jones "pair_style lj/cut"_pair_lj.html:
 "pair_style lj/cut/omp"_pair_lj.html
 "pair_style lj/cut/opt"_pair_lj.html :ul
 
-To see what accelerate styles are currently available, see
-"Section 3.5"_Section_commands.html#cmd_5 of the manual.  The
-doc pages for individual commands (e.g. "pair lj/cut"_pair_lj.html or
-"fix nve"_fix_nve.html) also list any accelerated variants available
-for that style.
+To see what accelerate styles are currently available for a particular
+style, find the style name in the "Commands_all"_Commands_all.html
+style pages (fix,compute,pair,etc) and see what suffixes are listed
+(g,i,k,o,t) with it.  The doc pages for individual commands
+(e.g. "pair lj/cut"_pair_lj.html or "fix nve"_fix_nve.html) also list
+any accelerated variants available for that style.
 
 To use an accelerator package in LAMMPS, and one or more of the styles
 it provides, follow these general steps.  Details vary from package to

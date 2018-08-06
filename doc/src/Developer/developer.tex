@@ -16,6 +16,9 @@ as we have time, and in response to requests from developers and
 users.
 
 \tableofcontents
+% Add the list of code snippets
+\renewcommand\listoflistingscaption{List of source codes}
+\listoflistings
 
 \pagebreak
 \section{LAMMPS source files}
@@ -265,9 +268,9 @@ Now for the Verlet::run() method.  Its structure in hi-level pseudo
 code is shown in Fig \ref{fig:verlet}.  In the actual code in
 src/verlet.cpp some of these operations are conditionally invoked.
 
-\begin{figure}[htb]
+\begin{listing}[htb]
  \begin{center}
- \begin{verbatim}
+ \begin{minted}{cpp}
 loop over N timesteps:
   ev_set()
 
@@ -305,11 +308,11 @@ loop over N timesteps:
   fix->end_of_step()
 
   if any output on this step: output->write()
-  \end{verbatim}
+  \end{minted}
  \end{center}
  \caption{Pseudo-code for the Verlet::run() method.}
 \label{fig:verlet}
-\end{figure}
+\end{listing}
 
 The ev\_set() method (in the parent Integrate class), sets two flags
 ({\em eflag} and {\em vflag}) for energy and virial computation.  Each
@@ -465,11 +468,11 @@ Every fix must be registered in LAMMPS by writing the following lines
 of code in the header before include guards:
 
  \begin{center}
- \begin{verbatim}
+ \begin{minted}{cpp}
 #ifdef FIX_CLASS
 FixStyle(your/fix/name,FixMine)
 #else
-  \end{verbatim}
+  \end{minted}
  \end{center}
 
 Where "your/fix/name" is a name of your fix in the script and FixMine
@@ -484,7 +487,7 @@ Let's write a simple fix which will print average velocity at the end
 of each timestep. First of all, implement a constructor:
 
  \begin{center}
- \begin{verbatim}
+ \begin{minted}{cpp}
 FixPrintVel::FixPrintVel(LAMMPS *lmp, int narg, char **arg)
 : Fix(lmp, narg, arg)
 {
@@ -495,7 +498,7 @@ FixPrintVel::FixPrintVel(LAMMPS *lmp, int narg, char **arg)
   if (nevery <= 0)
       error->all(FLERR,"Illegal fix print command");
 }
-  \end{verbatim}
+  \end{minted}
  \end{center}
 
 In the constructor you should parse your fix arguments which are
@@ -510,14 +513,14 @@ end\_of\_step() is called. Thus all we need to do is just set it up.
 
 The next method we need to implement is setmask():
 \begin{center}
-\begin{verbatim}
+\begin{minted}{cpp}
 int FixPrintVel::setmask()
 {
   int mask = 0;
   mask |= FixConst::END_OF_STEP;
   return mask;
 }
-\end{verbatim}
+\end{minted}
 \end{center}
 
 Here user specifies which methods of your fix should be called during
@@ -541,7 +544,7 @@ Fix developer must understand when he wants to execute his code.  In
 case if we want to write FixPrintVel, we need only end\_of\_step():
 
 \begin{center}
-\begin{verbatim}
+\begin{minted}{cpp}
 void FixPrintVel::end_of_step()
 {
   // for add3, scale3
@@ -564,7 +567,7 @@ void FixPrintVel::end_of_step()
       globalAvgVel[0], globalAvgVel[1], globalAvgVel[2]);
   }
 }
-\end{verbatim}
+\end{minted}
 \end{center}
 
 In the code above, we use MathExtra routines defined in
@@ -588,13 +591,13 @@ simulation if group\_name == all, but it can be any group. The group
 information is specified by groupbit which is defined in class Fix:
 
 \begin{center}
-\begin{verbatim}
+\begin{minted}{cpp}
 for (int particleInd = 0; particleInd < nlocal; ++particleInd) {
   if (atom->mask[particleInd] & groupbit) {
   //Do all job here
   }
 }
-\end{verbatim}
+\end{minted}
 \end{center}
 
 Class Atom encapsulates atoms positions, velocities, forces, etc. User
@@ -620,7 +623,7 @@ Note, that if your class implements these methods, it must call add calls of
 add\_callback and delete\_callback to constructor and destructor:
 
 \begin{center}
-\begin{verbatim}
+\begin{minted}{cpp}
 FixSavePos::FixSavePos(LAMMPS *lmp, int narg, char **arg)  {
   //...
   atom->add_callback(0);
@@ -629,7 +632,7 @@ FixSavePos::FixSavePos(LAMMPS *lmp, int narg, char **arg)  {
 FixSavePos::~FixSavePos() {
   atom->delete_callback(id, 0);
 }
-\end{verbatim}
+\end{minted}
 \end{center}
 
 Since we want to store positions of atoms from previous timestep, we
@@ -642,7 +645,7 @@ at destructor: \verb|memory->destroy(x);|
 Finally, implement mentioned methods:
 
 \begin{center}
-\begin{verbatim}
+\begin{minted}{cpp}
 double FixSavePos::memory_usage()
 {
   int nmax = atom->nmax;
@@ -685,7 +688,7 @@ int FixSavePos::unpack_exchange(int nlocal, double *buf)
 
   return m;
 }
-\end{verbatim}
+\end{minted}
 \end{center}
 
 Now, a little bit about memory allocation. We used Memory class which

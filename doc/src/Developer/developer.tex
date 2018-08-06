@@ -475,13 +475,13 @@ FixStyle(your/fix/name,FixMine)
   \end{minted}
  \end{center}
 
-Where "your/fix/name" is a name of your fix in the script and FixMine
+Where ``your/fix/name`` is a name of your fix in the script and FixMine
 is the name of the class. This code allows LAMMPS to find your fix
 when it parses input script. In addition, your fix header must be
-included in the file "style\_fix.h". In case if you use LAMMPS make,
+included in the file ``style\_fix.h``. In case if you use LAMMPS make,
 this file is generated automatically - all files starting with prefix
 fix\_ are included, so call your header the same way. Otherwise, don't
-forget to add your include into "style\_fix.h".
+forget to add your include into ``style\_fix.h``.
 
 Let's write a simple fix which will print average velocity at the end
 of each timestep. First of all, implement a constructor:
@@ -571,11 +571,11 @@ void FixPrintVel::end_of_step()
 \end{center}
 
 In the code above, we use MathExtra routines defined in
-"math\_extra.h".  There are bunch of math functions to work with
+``math\_extra.h``.  There are bunch of math functions to work with
 arrays of doubles as with math vectors.
 
 In this code we use an instance of Atom class. This object is stored
-in the Pointers class (see "pointers.h"). This object contains all
+in the Pointers class (see ``pointers.h``). This object contains all
 global information about the simulation system. Data from Pointers
 class available to all classes inherited from it using protected
 inheritance. Hence when you write you own class, which is going to use
@@ -656,7 +656,7 @@ double FixSavePos::memory_usage()
 
 void FixSavePos::grow_arrays(int nmax)
 {
-    memory->grow(this->x, nmax, 3, "FixSavePos:x");
+    memory->grow(this->x, nmax, 3, ``FixSavePos:x``);
 }
 
 void FixSavePos::copy_arrays(int i, int j, int delflag)
@@ -693,7 +693,7 @@ int FixSavePos::unpack_exchange(int nlocal, double *buf)
 
 Now, a little bit about memory allocation. We used Memory class which
 is just a bunch of template functions for allocating 1D and 2D
-arrays. So you need to add include "memory.h" to have access to them.
+arrays. So you need to add include ``memory.h`` to have access to them.
 
 Finally, if you need to write/read some global information used in
 your fix to the restart file, you might do it by setting flag

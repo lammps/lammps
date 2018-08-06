@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -241,19 +241,17 @@ molecule ID = 0) surrounding rigid bodies, this may not be what you
 want.  Thus you should be careful to use a fix group that only
 includes atoms you want to be part of rigid bodies.
 
-Bodystyle {custom} is similar to bodystyle {molecule}, however some
-custom properties are used to group atoms into rigid bodies. The
-special case for molecule/body ID = 0 is not available. Possible
-custom properties are an integer property associated with atoms through
-"fix property/atom"_fix_property_atom.html or an atom style variable
-or an atomfile style variable. For the latter two, the variable value
-will be rounded to an integer and then rigid bodies defined from
-those values.
-
-For bodystyle {group}, each of the listed groups is treated as a
-separate rigid body.  Only atoms that are also in the fix group are
-included in each rigid body.  This option is only allowed for the
-{rigid} styles.
+Bodystyle {custom} is similar to bodystyle {molecule} except that it
+is more flexible in using other per-atom properties to define the sets
+of atoms that form rigid bodies.  An integer vector defined by the
+"fix property/atom"_fix_property_atom.txt command can be used.  Or an
+"atom-style or atomfile-style variable"_variable.html can be used; the
+floating-point value produced by the variable is rounded to an
+integer.  As with bondstyle {molecule}, each set of atoms in the fix
+groups with the same integer value is treated as a different rigid
+body.  Since fix property/atom vectors and atom-style variables
+produce values for all atoms, you should be careful to use a fix group
+that only includes atoms you want to be part of rigid bodies.
 
 NOTE: To compute the initial center-of-mass position and other
 properties of each rigid body, the image flags for each atom in the
@@ -692,10 +690,9 @@ rigid/nvt.
 Styles with a {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
-hardware, as discussed in "Section 5"_Section_accelerate.html
-of the manual.  The accelerated styles take the same arguments and
-should produce the same results, except for round-off and precision
-issues.
+hardware, as discussed on the "Speed packages"_Speed_packages.html doc
+page.  The accelerated styles take the same arguments and should
+produce the same results, except for round-off and precision issues.
 
 These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
 USER-OMP and OPT packages, respectively.  They are only enabled if
@@ -707,8 +704,8 @@ by including their suffix, or you can use the "-suffix command-line
 switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
-See "Section 5"_Section_accelerate.html of the manual for
-more instructions on how to use the accelerated styles effectively.
+See the "Speed packages"_Speed_packages.html doc page for more
+instructions on how to use the accelerated styles effectively.
 
 :line
 
@@ -748,29 +745,29 @@ computed early or late in a timestep, i.e. at the post-force stage or
 at the final-integrate stage or the timestep, respectively.
 
 The 2 NVE rigid fixes compute a global scalar which can be accessed by
-various "output commands"_Section_howto.html#howto_15.  The scalar
-value calculated by these fixes is "intensive".  The scalar is the
-current temperature of the collection of rigid bodies.  This is
-averaged over all rigid bodies and their translational and rotational
-degrees of freedom.  The translational energy of a rigid body is 1/2 m
-v^2, where m = total mass of the body and v = the velocity of its
-center of mass.  The rotational energy of a rigid body is 1/2 I w^2,
-where I = the moment of inertia tensor of the body and w = its angular
-velocity.  Degrees of freedom constrained by the {force} and {torque}
-keywords are removed from this calculation, but only for the {rigid}
-and {rigid/nve} fixes.
+various "output commands"_Howto_output.html.  The scalar value
+calculated by these fixes is "intensive".  The scalar is the current
+temperature of the collection of rigid bodies.  This is averaged over
+all rigid bodies and their translational and rotational degrees of
+freedom.  The translational energy of a rigid body is 1/2 m v^2, where
+m = total mass of the body and v = the velocity of its center of mass.
+The rotational energy of a rigid body is 1/2 I w^2, where I = the
+moment of inertia tensor of the body and w = its angular velocity.
+Degrees of freedom constrained by the {force} and {torque} keywords
+are removed from this calculation, but only for the {rigid} and
+{rigid/nve} fixes.
 
 The 6 NVT, NPT, NPH rigid fixes compute a global scalar which can be
-accessed by various "output commands"_Section_howto.html#howto_15.
-The scalar value calculated by these fixes is "extensive".  The scalar
-is the cumulative energy change due to the thermostatting and
-barostatting the fix performs.
+accessed by various "output commands"_Howto_output.html.  The scalar
+value calculated by these fixes is "extensive".  The scalar is the
+cumulative energy change due to the thermostatting and barostatting
+the fix performs.
 
 All of the {rigid} styles (not the {rigid/small} styles) compute a
 global array of values which can be accessed by various "output
-commands"_Section_howto.html#howto_15.  Similar information about the
-bodies defined by the {rigid/small} styles can be accessed via the
-"compute rigid/local"_compute_rigid_local.html command.
+commands"_Howto_output.html.  Similar information about the bodies
+defined by the {rigid/small} styles can be accessed via the "compute
+rigid/local"_compute_rigid_local.html command.
 
 The number of rows in the array is equal to the number of rigid
 bodies.  The number of columns is 15.  Thus for each rigid body, 15

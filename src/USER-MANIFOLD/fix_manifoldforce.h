@@ -51,6 +51,7 @@ class FixManifoldForce : public Fix {
  public:
   FixManifoldForce(class LAMMPS *, int, char **);
   int setmask();
+  void init();
   void setup(int);
   void min_setup(int);
   void post_force(int);

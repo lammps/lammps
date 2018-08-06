@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -205,6 +205,14 @@ a bond coefficient over time, very similar to how the {pair} keyword
 operates. The only difference is that now a bond coefficient for a
 given bond type is adapted.
 
+A wild-card asterisk can be used in place of or in conjunction with
+the bond type argument to set the coefficients for multiple bond types.
+This takes the form "*" or "*n" or "n*" or "m*n".  If N = the number of
+atom types, then an asterisk with no numeric values means all types
+from 1 to N.  A leading asterisk means all types from 1 to n (inclusive).
+A trailing asterisk means all types from n to N (inclusive).  A middle
+asterisk means all types from m to n (inclusive).
+
 Currently {bond} does not support bond_style hybrid nor bond_style
 hybrid/overlay as bond styles. The only bonds that currently are
 working with fix_adapt are
@@ -262,10 +270,10 @@ fix 1 center adapt 10 atom diameter v_size :pre
 No information about this fix is written to "binary restart
 files"_restart.html.  None of the "fix_modify"_fix_modify.html options
 are relevant to this fix.  No global or per-atom quantities are stored
-by this fix for access by various "output
-commands"_Section_howto.html#howto_15.  No parameter of this fix can
-be used with the {start/stop} keywords of the "run"_run.html command.
-This fix is not invoked during "energy minimization"_minimize.html.
+by this fix for access by various "output commands"_Howto_output.html.
+No parameter of this fix can be used with the {start/stop} keywords of
+the "run"_run.html command.  This fix is not invoked during "energy
+minimization"_minimize.html.
 
 For "rRESPA time integration"_run_style.html, this fix changes
 parameters on the outermost rRESPA level.

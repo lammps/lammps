@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -93,9 +93,8 @@ used as the cutoff for the A,C terms, and the second is the cutoff for
 the Coulombic term.
 
 Style {buck/coul/long/cs} is identical to {buck/coul/long} except that
-a term is added for the "core/shell model"_Section_howto.html#howto_25
-to allow charges on core and shell particles to be separated by r =
-0.0.
+a term is added for the "core/shell model"_Howto_coreshell.html to
+allow charges on core and shell particles to be separated by r = 0.0.
 
 Note that these potentials are related to the "Born-Mayer-Huggins
 potential"_pair_born.html.
@@ -140,10 +139,9 @@ pair_style command.
 Styles with a {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
-hardware, as discussed in "Section 5"_Section_accelerate.html
-of the manual.  The accelerated styles take the same arguments and
-should produce the same results, except for round-off and precision
-issues.
+hardware, as discussed on the "Speed packages"_Speed_packages.html doc
+page.  The accelerated styles take the same arguments and should
+produce the same results, except for round-off and precision issues.
 
 These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
 USER-OMP and OPT packages, respectively.  They are only enabled if
@@ -155,8 +153,8 @@ by including their suffix, or you can use the "-suffix command-line
 switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
-See "Section 5"_Section_accelerate.html of the manual for
-more instructions on how to use the accelerated styles effectively.
+See the "Speed packages"_Speed_packages.html doc page for more
+instructions on how to use the accelerated styles effectively.
 
 :line
 

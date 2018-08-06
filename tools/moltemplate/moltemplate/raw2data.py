@@ -1,17 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import sys, io
+
 try:
     from .dump2data import *
-except:
+    from .extract_lammps_data import lammps_data_sections
+except (ImportError, SystemError, ValueError):
     # not installed as a package
     from dump2data import *
+    from extract_lammps_data import lammps_data_sections
 
 g_program_name = 'raw2data.py'
 g_date_str = '2016-12-21'
 g_version_str = 'v0.44.0'
 
-#######  Main Code Below: #######
+    #######  Main Code Below: #######
 def main():
     sys.stderr.write(g_program_name + ' ' + g_version_str + ' ' + g_date_str)
     sys.stderr.write('\n')
@@ -21,11 +25,63 @@ def main():
         misc_settings = MiscSettings()
         misc_settings.multi = False
 
+        # First process any arguments which are specific to "raw2data.py"
+        # (and remove them before passing them to dump2data.ParseArgs())
+        sort_data_file_by_atom_id = False
+        argv = [arg for arg in sys.argv]
+        i = 1
+        while i < len(argv):
+            if argv[i].lower() == '-ignore-atom-id':
+                sort_data_file_by_atom_id = True
+                del argv[i:i+1]
+            if argv[i].lower() == '-sort':
+                sort_data_file_by_atom_id = False
+                del argv[i:i+1]
+            else:
+                i += 1
+            #(perhaps later I'll add some additional argumets)
+
         warning_strings = []
-        ParseArgs(sys.argv,
+        ParseArgs(argv,
                   misc_settings,
                   data_settings,
                   warning_strings)
+
+        frame_atom_order = []
+
+        # The atoms in the "Atoms" section of the data file might be out 
+        # of order. Extract the text from that section, and figure out the 
+        # atom-ID assigned to each atom (number in the first column).
+        # Then assign the these atom-ID numbers to entries in the 
+        # coordinates list (frame_coords) in the same order.  We want the
+        # lines of text in the coordinate file to pasted to the end of
+        # the lines of text in the "Atoms" section of the data file
+        # in the same order, regardless of the atom-ID numbers in that file.
+        # Counterintuitively, the only way to do that is to assign the same
+        # atom-ID numbers to the coordinate list in frame_coords".  So we
+        # have to extract those numbers from the data file.
+        in_atoms_section = False
+        num_blank_lines = 0
+        for line in data_settings.contents:
+            ic = line.find('#')
+            line = line[:ic]    #(this also removes the newline character)
+            tokens = line.strip().split()
+            if line.strip() == 'Atoms':
+                in_atoms_section = True
+            elif line.strip() in lammps_data_sections:
+                in_atoms_section = False
+            elif in_atoms_section:
+                if len(tokens) > 0:
+                    if sort_data_file_by_atom_id:
+                        atomid = tokens[0]
+                        frame_atom_order.append(atomid)
+                        #sys.stderr.write('atomid=\"'+str(atomid)+'\"\n')
+                    else:
+                        frame_atom_order.append(str(len(frame_atom_order)+1))
+                else:
+                    num_blank_lines += 1
+                    if num_blank_lines > 1:
+                        in_atoms_section = False
 
         frame_coords = defaultdict(list)
         frame_coords_ixiyiz = defaultdict(list)
@@ -48,8 +104,8 @@ def main():
         finished_reading_frame = False
         read_last_frame = False
 
-        #in_coord_file = open('tmp_atom_coords.dat','r')
         in_coord_file = sys.stdin
+        #in_coord_file = open('tmp_atom_coords.dat','r')
 
         read_last_frame = False
         while True:
@@ -61,11 +117,13 @@ def main():
             if line == '':  # if EOF
                 break
 
+            #frame_vects = defaultdict(list)
             frame_coords = defaultdict(list)
             while line.strip() != '':
                 n_crds = len(frame_coords)
                 #sys.stdout.write("n_crds="+str(n_crds)+": \""+line.strip()+"\"\n")
-                frame_coords[str(n_crds + 1)] = line.split()
+                frame_coords[frame_atom_order[n_crds]] = line.split()
+                #frame_vects[frame_atom_order[n_crds]] = ['0.0','0.0','0.0']
                 line = in_coord_file.readline()
 
             # Check to see if there are any blank lines at this location in the file
@@ -91,6 +149,7 @@ def main():
                              None,
                              misc_settings,
                              data_settings,
+                             None,
                              frame_natoms,
                              frame_coords,
                              frame_coords_ixiyiz,

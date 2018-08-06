@@ -112,7 +112,6 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
   if (pend-pstart == 0) return;
 
   const int nall = atom->nlocal + atom->nghost;
-  int pad = 1;
   int nall_t = nall;
   const int aend = nall;
 
@@ -207,6 +206,17 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
   const int mbinz = this->mbinz;
   const int * const stencilxyz = &this->stencilxyz[0][0];
 
+  int sb = 1;
+  if (special_flag[1] == 0) {
+    sb = 2;
+    if (special_flag[2] == 0) {
+      sb = 3;
+      if (special_flag[3] == 0)
+        sb = 4;
+    }
+  }
+  const int special_bound = sb;
+
   #ifdef _LMP_INTEL_OFFLOAD
   const int * _noalias const binhead = this->binhead;
   const int * _noalias const bins = this->bins;
@@ -230,7 +240,7 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
     in(ncachex,ncachey,ncachez,ncachej:length(0) alloc_if(0) free_if(0)) \
     in(ncachejtype,ncachetag:length(0) alloc_if(0) free_if(0)) \
     in(ncache_stride,maxnbors,nthreads,maxspecial,nstencil,e_nall,offload) \
-    in(separate_buffers,aend,nlocal,molecular,ntypes,mbinx,mbiny) \
+    in(separate_buffers,aend,nlocal,molecular,ntypes,mbinx,mbiny,special_bound)\
     in(mbinz,xperiodic,yperiodic,zperiodic,xprd_half,yprd_half,zprd_half) \
     in(stencilxyz:length(3*nstencil)) \
     out(overflow:length(5) alloc_if(0) free_if(0)) \
@@ -286,8 +296,6 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
 
       int e_ito = ito;
       const int list_size = (e_ito + tid * 2 + 2) * maxnbors;
-
-      int which;
 
       int pack_offset = maxnbors;
       int ct = (ifrom + tid * 2) * maxnbors;
@@ -418,41 +426,109 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
           }
         } // for u
 
+        if (molecular && i < nlocal) {
+          int alln = n;
+          n = 0;
+          #if defined(LMP_SIMD_COMPILER)
+          #pragma vector aligned
+          #ifdef LMP_INTEL_NBOR_COMPAT
+          #pragma ivdep
+          #else
+          #pragma simd
+          #endif
+          #endif
+          for (int u = 0; u < alln; u++) {
+            int which;
+            int addme = 1;
+            int j = neighptr[u];
+            if (need_ic && j < 0) {
+              which = 0;
+              j = -j - 1;
+            } else
+              ofind_special(which, special, nspecial, i, tag[j]);
+            if (which) {
+              j = j ^ (which << SBBITS);
+              if (which < special_bound) addme = 0;
+            }
+            #ifdef LMP_INTEL_NBOR_COMPAT
+            if (addme) neighptr2[n++] = j;
+            #else
+            neighptr2[n++] = j;
+            #endif
+          }
+          alln = n2;
+          n2 = maxnbors * 2;
+          #if defined(LMP_SIMD_COMPILER)
+          #pragma vector aligned
+          #ifdef LMP_INTEL_NBOR_COMPAT
+          #pragma ivdep
+          #else
+          #pragma simd
+          #endif
+          #endif
+          for (int u = n2; u < alln; u++) {
+            int which;
+            int addme = 1;
+            int j = neighptr[u];
+            if (need_ic && j < 0) {
+              which = 0;
+              j = -j - 1;
+            } else
+              ofind_special(which, special, nspecial, i, tag[j]);
+            if (which) {
+              j = j ^ (which << SBBITS);
+              if (which < special_bound) addme = 0;
+            }
+            #ifdef LMP_INTEL_NBOR_COMPAT
+            if (addme) neighptr2[n2++] = j;
+            #else
+            neighptr2[n2++] = j;
+            #endif
+          }
+        }
+       
         #ifndef _LMP_INTEL_OFFLOAD
         if (exclude) {
           int alln = n;
           n = maxnbors;
-          for (int u = pack_offset; u < alln; u++) {
-            const int j = neighptr[u];
-            int pj = j;
-            if (need_ic)
-              if (pj < 0) pj = -j - 1;
-            const int jtype = x[pj].w;
-            if (exclusion(i,pj,itype,jtype,mask,molecule)) continue;
-            neighptr[n++] = j;
+          #if defined(LMP_SIMD_COMPILER)
+          #pragma vector aligned
+          #pragma ivdep
+          #endif
+          for (int u = n; u < alln; u++) {
+            int addme = 1;
+            const int js = neighptr[u];
+            const int j = js & NEIGHMASK;
+            const int jtype = x[j].w;
+            if (exclusion(i,j,itype,jtype,mask,molecule)) addme = 0;
+            if (addme) neighptr2[n++] = js;
           }
           alln = n2;
           n2 = maxnbors * 2;
+          #if defined(LMP_SIMD_COMPILER)
+          #pragma vector aligned
+          #pragma ivdep
+          #endif
           for (int u = n2; u < alln; u++) {
-            const int j = neighptr[u];
-            int pj = j;
-            if (need_ic)
-              if (pj < 0) pj = -j - 1;
-            const int jtype = x[pj].w;
-            if (exclusion(i,pj,itype,jtype,mask,molecule)) continue;
-            neighptr[n2++] = j;
+            int addme = 1;
+            const int js = neighptr[u];
+            const int j = js & NEIGHMASK;
+            const int jtype = x[j].w;
+            if (exclusion(i,j,itype,jtype,mask,molecule)) addme = 0;
+            if (addme) neighptr2[n2++] = js;
           }
         }
         #endif
+        
         int ns = n - maxnbors;
         int alln = n;
         atombin[i] = ns;
         n = 0;
         for (int u = maxnbors; u < alln; u++)
-          neighptr[n++] = neighptr[u];
+          neighptr[n++] = neighptr2[u];
         ns += n2 - maxnbors * 2;
         for (int u = maxnbors * 2; u < n2; u++)
-          neighptr[n++] = neighptr[u];
+          neighptr[n++] = neighptr2[u];
         if (ns > maxnbors) *overflow = 1;
 
         ilist[i] = i;
@@ -460,9 +536,7 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
         numneigh[i] = ns;
 
         ct += ns;
-        const int alignb = (INTEL_DATA_ALIGN / sizeof(int));
-        const int edge = ct & (alignb - 1);
-        if (edge) ct += alignb - edge;
+        IP_PRE_edge_align(ct, sizeof(int));
         neighptr = firstneigh + ct;
         if (ct + obound > list_size) {
           if (i < ito - 1) {
@@ -477,84 +551,11 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
           numneigh[i] = 0;
 
       #ifdef _LMP_INTEL_OFFLOAD
-      int ghost_offset = 0, nall_offset = e_nall;
       if (separate_buffers) {
-        for (int i = ifrom; i < ito; ++i) {
-          int * _noalias jlist = firstneigh + cnumneigh[i];
-          const int jnum = numneigh[i];
-          #if __INTEL_COMPILER+0 > 1499
-          #pragma vector aligned
-          #pragma simd
-          #endif
-          for (int jj = 0; jj < jnum; jj++) {
-            int j = jlist[jj];
-            if (need_ic && j < 0) j = -j - 1;
-          }
-        }
-
         overflow[LMP_LOCAL_MIN] = 0;
         overflow[LMP_LOCAL_MAX] = nlocal - 1;
         overflow[LMP_GHOST_MIN] = nlocal;
         overflow[LMP_GHOST_MAX] = e_nall - 1;
-
-        int nghost = overflow[LMP_GHOST_MAX] + 1 - overflow[LMP_GHOST_MIN];
-        if (nghost < 0) nghost = 0;
-        if (offload) {
-          ghost_offset = overflow[LMP_GHOST_MIN] - overflow[LMP_LOCAL_MAX] - 1;
-          nall_offset = overflow[LMP_LOCAL_MAX] + 1 + nghost;
-        } else {
-          ghost_offset = overflow[LMP_GHOST_MIN] - nlocal;
-          nall_offset = nlocal + nghost;
-        }
-      } // if separate_buffers
-      #endif
-
-      if (molecular) {
-        int ito_m = ito;
-        if (ito >= nlocal) ito_m = nlocal;
-        for (int i = ifrom; i < ito_m; ++i) {
-          int * _noalias jlist = firstneigh + cnumneigh[i];
-          const int jnum = numneigh[i];
-
-          #if defined(LMP_SIMD_COMPILER)
-          #pragma vector aligned
-          #pragma simd
-          #endif
-          for (int jj = 0; jj < jnum; jj++) {
-            const int j = jlist[jj];
-            if (need_ic && j < 0) {
-              which = 0;
-              jlist[jj] = -j - 1;
-            } else
-              ofind_special(which, special, nspecial, i, tag[j]);
-            #ifdef _LMP_INTEL_OFFLOAD
-            if (j >= nlocal) {
-              if (j == e_nall)
-                jlist[jj] = nall_offset;
-              else if (which)
-                jlist[jj] = (j-ghost_offset) ^ (which << SBBITS);
-              else jlist[jj]-=ghost_offset;
-            } else
-            #endif
-            if (which) jlist[jj] = j ^ (which << SBBITS);
-          }
-        } // for i
-      } // if molecular
-      #ifdef _LMP_INTEL_OFFLOAD
-      else if (separate_buffers) {
-        for (int i = ifrom; i < ito; ++i) {
-          int * _noalias jlist = firstneigh + cnumneigh[i];
-          const int jnum = numneigh[i];
-          int jj = 0;
-          #pragma vector aligned
-          #pragma simd
-          for (jj = 0; jj < jnum; jj++) {
-            if (jlist[jj] >= nlocal) {
-              if (jlist[jj] == e_nall) jlist[jj] = nall_offset;
-              else jlist[jj] -= ghost_offset;
-            }
-          }
-        }
       }
       #endif
     } // end omp

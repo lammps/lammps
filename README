@@ -25,7 +25,7 @@ The LAMMPS distribution includes the following files and directories:
 README			   this file
 LICENSE			   the GNU General Public License (GPL)
 bench			   benchmark problems
-couple			   code coupling examples using LAMMPS as a library
+cmake			   CMake build system
 doc			   documentation
 examples		   simple test problems
 lib			   libraries LAMMPS can be linked with

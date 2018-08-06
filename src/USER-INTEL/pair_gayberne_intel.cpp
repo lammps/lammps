@@ -226,7 +226,7 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
   }
   #endif
 
-  //  const int * _noalias const ilist = list->ilist;
+  const int * _noalias const ilist = list->ilist;
   const int * _noalias const numneigh = list->numneigh;
   const int * _noalias const cnumneigh = buffers->cnumneigh(list);
   const int * _noalias const firstneigh = buffers->firstneigh(list);
@@ -287,6 +287,7 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
     in(numneigh:length(0) alloc_if(0) free_if(0)) \
     in(x:length(x_size) alloc_if(0) free_if(0)) \
     in(quat:length(nall+1) alloc_if(0) free_if(0)) \
+    in(ilist:length(0) alloc_if(0) free_if(0)) \
     in(overflow:length(0) alloc_if(0) free_if(0)) \
     in(nthreads,inum,nall,ntypes,vflag,eatom,minlocal,separate_flag) \
     in(astart,nlocal,f_stride,max_nbors,mu,gamma,upsilon,offload,pad_width) \
@@ -364,15 +365,16 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
       int * _noalias const jlist_form = jlist_formi + tid * max_nbors;
 
       int ierror = 0;
-      for (int i = iifrom; i < iito; i += iip) {
-        // const int i = ilist[ii];
+      for (int ii = iifrom; ii < iito; ii += iip) {
+        const int i = ilist[ii];
         const int itype = x[i].w;
         const int ptr_off = itype * ntypes;
         const FC_PACKED1_T * _noalias const ijci = ijc + ptr_off;
         const FC_PACKED2_T * _noalias const lj34i = lj34 + ptr_off;
 
-        const int * _noalias const jlist = firstneigh + cnumneigh[i];
-        const int jnum = numneigh[i];
+        const int * _noalias const jlist = firstneigh + cnumneigh[ii];
+        int jnum = numneigh[ii];
+        IP_PRE_neighbor_pad(jnum, offload);
 
         const flt_t xtmp = x[i].x;
         const flt_t ytmp = x[i].y;
@@ -428,15 +430,13 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
           } else
             multiple_forms = true;
         }
-        const int edge = packed_j & (pad_width - 1);
-        if (edge) {
-          const int packed_end = packed_j + (pad_width - edge);
-          #if defined(LMP_SIMD_COMPILER)
-          #pragma loop_count min=1, max=15, avg=8
-          #endif
-          for ( ; packed_j < packed_end; packed_j++)
-            jlist_form[packed_j] = nall;
-        }
+        int packed_end = packed_j;
+        IP_PRE_neighbor_pad(packed_end, offload);
+        #if defined(LMP_SIMD_COMPILER)
+        #pragma loop_count min=1, max=15, avg=8
+        #endif
+        for ( ; packed_j < packed_end; packed_j++)
+          jlist_form[packed_j] = nall;
 
         // -------------------------------------------------------------
 

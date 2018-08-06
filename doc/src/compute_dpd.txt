@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -40,9 +40,9 @@ where N is the number of particles in the system
 [Output info:]
 
 This compute calculates a global vector of length 5 (U_cond, U_mech,
-U_chem, dpdTheta, N_particles), which can be accessed by indices 1-5.  See
-"this section"_Section_howto.html#howto_15 for an overview of LAMMPS
-output options.
+U_chem, dpdTheta, N_particles), which can be accessed by indices 1-5.
+See the "Howto output"_Howto_output.html doc page for an overview of
+LAMMPS output options.
 
 The vector values will be in energy and temperature "units"_units.html.
 

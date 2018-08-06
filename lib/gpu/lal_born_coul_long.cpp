@@ -57,7 +57,7 @@ int BornCoulLongT::init(const int ntypes, double **host_cutsq, double **host_rho
                        const double g_ewald) {
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
-                            _screen,born_coul_long,"k_born_long");
+                            _screen,born_coul_long,"k_born_coul_long");
   if (success!=0)
     return success;
 

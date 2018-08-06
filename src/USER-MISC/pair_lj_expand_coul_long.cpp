@@ -88,7 +88,7 @@ void PairLJExpandCoulLong::compute(int eflag, int vflag)
   double r,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
   double grij,expm2,prefactor,t,erfc;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  double rsq,rshift,rshiftsq;
+  double rsq,rshift,rshiftsq,rshift2inv;
 
   evdwl = ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
@@ -166,8 +166,8 @@ void PairLJExpandCoulLong::compute(int eflag, int vflag)
           r = sqrt(rsq);
           rshift = r - shift[itype][jtype];
           rshiftsq = rshift*rshift;
-          r2inv = 1.0/rshiftsq;
-          r6inv = r2inv*r2inv*r2inv;
+          rshift2inv = 1.0/rshiftsq;
+          r6inv = rshift2inv*rshift2inv*rshift2inv;
           forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
           forcelj = factor_lj*forcelj/rshift/r;
         } else forcelj = 0.0;
@@ -217,7 +217,7 @@ void PairLJExpandCoulLong::compute_inner()
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,fpair;
   double rsq,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
-  double rsw,r,rshift,rshiftsq;
+  double rsw,r,rshift,rshiftsq,rshift2inv;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   double **x = atom->x;
@@ -275,8 +275,8 @@ void PairLJExpandCoulLong::compute_inner()
           r = sqrt(rsq);
           rshift = r - shift[itype][jtype];
           rshiftsq = rshift*rshift;
-          r2inv = 1.0/rshiftsq;
-          r6inv = r2inv*r2inv*r2inv;
+          rshift2inv = 1.0/rshiftsq;
+          r6inv = rshift2inv*rshift2inv*rshift2inv;
           forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
           forcelj = factor_lj*forcelj/rshift/r;
         } else forcelj = 0.0;
@@ -306,8 +306,8 @@ void PairLJExpandCoulLong::compute_middle()
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,fpair;
-  double rsq,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
-  double rsw,r,rshift,rshiftsq;
+  double rsq,r,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
+  double rsw,rshift,rshiftsq,rshift2inv;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   double **x = atom->x;
@@ -370,8 +370,8 @@ void PairLJExpandCoulLong::compute_middle()
           r = sqrt(rsq);
           rshift = r - shift[itype][jtype];
           rshiftsq = rshift*rshift;
-          r2inv = 1.0/rshiftsq;
-          r6inv = r2inv*r2inv*r2inv;
+          rshift2inv = 1.0/rshiftsq;
+          r6inv = rshift2inv*rshift2inv*rshift2inv;
           forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
           forcelj = factor_lj*forcelj/rshift/r;
         } else forcelj = 0.0;
@@ -408,9 +408,8 @@ void PairLJExpandCoulLong::compute_outer(int eflag, int vflag)
   double fraction,table;
   double r,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
   double grij,expm2,prefactor,t,erfc;
-  double rsw,rshift,rshiftsq;
+  double rsw,rsq,rshift,rshiftsq,rshift2inv;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  double rsq;
 
   evdwl = ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
@@ -507,8 +506,8 @@ void PairLJExpandCoulLong::compute_outer(int eflag, int vflag)
           r = sqrt(rsq);
           rshift = r - shift[itype][jtype];
           rshiftsq = rshift*rshift;
-          r2inv = 1.0/rshiftsq;
-          r6inv = r2inv*r2inv*r2inv;
+          rshift2inv = 1.0/rshiftsq;
+          r6inv = rshift2inv*rshift2inv*rshift2inv;
           forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
           forcelj = factor_lj*forcelj/rshift/r;
           if (rsq < cut_in_on_sq) {
@@ -680,7 +679,7 @@ void PairLJExpandCoulLong::init_style()
   if (!atom->q_flag)
     error->all(FLERR,"Pair style lj/cut/coul/long requires atom attribute q");
 
-  // request regular or rRESPA neighbor lists
+  // request regular or rRESPA neighbor list
 
   int irequest;
   int respa = 0;
@@ -729,12 +728,13 @@ double PairLJExpandCoulLong::init_one(int i, int j)
                                sigma[i][i],sigma[j][j]);
     sigma[i][j] = mix_distance(sigma[i][i],sigma[j][j]);
     cut_lj[i][j] = mix_distance(cut_lj[i][i],cut_lj[j][j]);
+    shift[i][j] = 0.5 * (shift[i][i] + shift[j][j]);
   }
 
   // include TIP4P qdist in full cutoff, qdist = 0.0 if not TIP4P
 
-  double cut = MAX(cut_lj[i][j],cut_coul+2.0*qdist);
-  cut_ljsq[i][j] = cut_lj[i][j] * cut_lj[i][j];
+  double cut = MAX(cut_lj[i][j]+shift[i][j],cut_coul+2.0*qdist);
+  cut_ljsq[i][j] = (cut_lj[i][j]+shift[i][j]) *(cut_lj[i][j]+shift[i][j]);
 
   lj1[i][j] = 48.0 * epsilon[i][j] * pow(sigma[i][j],12.0);
   lj2[i][j] = 24.0 * epsilon[i][j] * pow(sigma[i][j],6.0);

@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -47,8 +47,9 @@ compute group.
 [Output info:]
 
 This compute calculates a per-atom vector, which can be accessed by
-any command that uses per-atom values from a compute as input. See
-Section_howto 15 for an overview of LAMMPS output options.
+any command that uses per-atom values from a compute as input.  See
+the "Howto output"_Howto_output.html doc page for an overview of
+LAMMPS output options.
 
 The per-atom vector values are unitless numbers (theta) >= 0.0.
 

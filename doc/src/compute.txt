@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -33,7 +33,7 @@ information about a previous state of the system.  Defining a compute
 does not perform a computation.  Instead computes are invoked by other
 LAMMPS commands as needed, e.g. to calculate a temperature needed for
 a thermostat fix or to generate thermodynamic or dump file output.
-See this "howto section"_Section_howto.html#howto_15 for a summary of
+See the "Howto output"_Howto_output.html doc page for a summary of
 various LAMMPS output options, many of which involve computes.
 
 The ID of a compute can only contain alphanumeric characters and
@@ -153,21 +153,27 @@ via the "compute_modify"_compute_modify.html command.
 
 Computes can be deleted with the "uncompute"_uncompute.html command.
 
-Code for new computes can be added to LAMMPS (see "this
-section"_Section_modify.html of the manual) and the results of their
+Code for new computes can be added to LAMMPS; see the
+"Modify"_Modify.html doc page for details.  The results of their
 calculations accessed in the various ways described above.
 
 :line
 
 Each compute style has its own doc page which describes its arguments
 and what it does.  Here is an alphabetic list of compute styles
-available in LAMMPS.  They are also given in more compact form in the
-Compute section of "this page"_Section_commands.html#cmd_5.
+available in LAMMPS.  They are also listed in more compact form on the
+"Commands compute"_Commands_compute.html doc page.
 
 There are also additional compute styles (not listed here) submitted
-by users which are included in the LAMMPS distribution.  The list of
-these with links to the individual styles are given in the compute
-section of "this page"_Section_commands.html#cmd_5.
+by users which are included in the LAMMPS distribution.  The full list
+of all compute styles is on the "Commands
+compute"_Commands_compute.html doc page.
+
+There are also additional accelerated compute styles included in the
+LAMMPS distribution for faster performance on CPUs, GPUs, and KNLs.
+The individual style names on the "Commands
+compute"_Commands_compute.html doc page are followed by one or more of
+(g,i,k,o,t) to indicate which accerlerated styles exist.
 
 "aggregate/atom"_compute_cluster_atom.html - aggregate ID for each atom
 "angle/local"_compute_bond_local.html - theta and energy of each angle
@@ -242,16 +248,6 @@ section of "this page"_Section_commands.html#cmd_5.
 "vacf"_compute_vacf.html - velocity-autocorrelation function of group of atoms
 "vcm/chunk"_compute_vcm_chunk.html - velocity of center-of-mass for each chunk
 "voronoi/atom"_compute_voronoi_atom.html - Voronoi volume and neighbors for each atom :ul
-
-There are also additional compute styles submitted by users which are
-included in the LAMMPS distribution.  The list of these with links to
-the individual styles are given in the compute section of "this
-page"_Section_commands.html#cmd_5.
-
-There are also additional accelerated compute styles included in the
-LAMMPS distribution for faster performance on CPUs and GPUs.  The list
-of these with links to the individual styles are given in the pair
-section of "this page"_Section_commands.html#cmd_5.
 
 [Restrictions:] none
 

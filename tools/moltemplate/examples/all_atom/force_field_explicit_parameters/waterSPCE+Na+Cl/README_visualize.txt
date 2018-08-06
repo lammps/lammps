@@ -60,8 +60,8 @@ d) Try entering these commands:
     It can help to shift the location of the periodic boundary box
     To shift the box in the y direction (for example) do this:
 
-    pbc wrap -compound res -all -shiftcenterrel {0.0 0.15 0.0}
-    pbc box -shiftcenterrel {0.0 0.15 0.0}
+    pbc wrap -compound res -all -shiftcenterrel {-0.05 0.14 -0.05}
+    pbc box -shiftcenterrel {-0.05 0.14 -0.05} -width 0.5 -style tubes
 
     Distances are measured in units of box-length fractions, not Angstroms.
 

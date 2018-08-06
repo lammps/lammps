@@ -1,5 +1,5 @@
 /***************************************************************************
-                            lj_coul_long_ext.cpp
+                           lj_expand_coul_long_ext.cpp
                             ------------------------
                             Trung Nguyen (Northwestern)
 
@@ -10,7 +10,7 @@
  __________________________________________________________________________
 
     begin                :
-    email                : trung.nguyen@northwestern.edu
+    email                : ndactrung@gmail.com
  ***************************************************************************/
 
 #include <iostream>

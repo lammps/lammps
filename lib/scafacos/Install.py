@@ -29,8 +29,8 @@ make lib-scafacos args="-p $HOME/scafacos" # use existing Scafacos installation 
 
 # settings
 
-version = "scafacos-0.9"
-url = "https://gigamove.rz.rwth-aachen.de/d/id/fTmrTm4EUAUSAp/dd/100"
+version = "scafacos-1.0.0"
+url = "https://github.com/scafacos/scafacos/releases/download/v1.0.0/scafacos-1.0.0.tar.gz"
 #url = "https://gigamove.rz.rwth-aachen.de/d/id/CTzyApN76MXMJ6/dd/100" % version
 
 # print error message or help

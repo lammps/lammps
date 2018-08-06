@@ -219,7 +219,25 @@ void Scafacos::compute(int eflag, int vflag)
 
   if (vflag_global)
   {
-    fcs_get_virial(fcs,virial); 
+    fcs_get_virial(fcs,virial_int);
+    /*
+    printf(" %lf %lf %lf \n %lf %lf %lf \n %lf %lf %lf \n ",
+              virial_int[0], 
+              virial_int[1], 
+              virial_int[2], 
+              virial_int[3], 
+              virial_int[4], 
+              virial_int[5], 
+              virial_int[6], 
+              virial_int[7], 
+              virial_int[8]); 
+    */
+    virial[0] = virial_int[0];
+    virial[1] = virial_int[1];
+    virial[2] = virial_int[2];
+    virial[3] = virial_int[4];
+    virial[4] = virial_int[5];
+    virial[5] = virial_int[8];
   }
 
   // apply Efield to each particle
@@ -240,7 +258,7 @@ void Scafacos::compute(int eflag, int vflag)
 
   if (eflag_atom) {
     for (int i = 0; i < nlocal; i++)
-      eatom[i] = qscale * epot[i];
+      eatom[i] = 0.5 * qscale * q[i] * epot[i];
   }
 
   MPI_Allreduce(&myeng,&energy,1,MPI_DOUBLE,MPI_SUM,world);

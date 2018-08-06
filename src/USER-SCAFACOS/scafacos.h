@@ -57,6 +57,8 @@ class Scafacos : public KSpace {
   fcs_int old_periodicity[3];
   fcs_int old_natoms;
 
+  fcs_float virial_int[9];
+
   void check_result(FCSResult);
   void setup_handle();
   bool box_has_changed();

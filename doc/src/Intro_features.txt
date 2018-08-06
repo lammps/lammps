@@ -3,7 +3,7 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -74,8 +74,8 @@ commands)
   long-range interactions for charge, point-dipoles, and LJ dispersion: \
     Ewald, Wolf, PPPM (similar to particle-mesh Ewald)
   polarization models: "QEq"_fix_qeq.html, \
-    "core/shell model"_Section_howto.html#howto_26, \
-    "Drude dipole model"_Section_howto.html#howto_27
+    "core/shell model"_Howto_coreshell.html, \
+    "Drude dipole model"_Howto_drude.html
   charge equilibration (QEq via dynamic, point, shielded, Slater methods)
   coarse-grained potentials: DPD, GayBerne, REsquared, colloidal, DLVO
   mesoscopic potentials: granular, Peridynamics, SPH
@@ -186,14 +186,14 @@ These are LAMMPS capabilities which you may not think of as typical
 classical MD options:
 
 "static"_balance.html and "dynamic load-balancing"_fix_balance.html
-"generalized aspherical particles"_body.html
+"generalized aspherical particles"_Howto_body.html
 "stochastic rotation dynamics (SRD)"_fix_srd.html
 "real-time visualization and interactive MD"_fix_imd.html
 calculate "virtual diffraction patterns"_compute_xrd.html
 "atom-to-continuum coupling"_fix_atc.html with finite elements
 coupled rigid body integration via the "POEMS"_fix_poems.html library
 "QM/MM coupling"_fix_qmmm.html
-Monte Carlo via "GCMC"_fix_gcmc.html and "tfMC"_fix_tfmc.html and "atom swapping"_fix_swap.html
+Monte Carlo via "GCMC"_fix_gcmc.html and "tfMC"_fix_tfmc.html and "atom swapping"_fix_atom_swap.html
 "path-integral molecular dynamics (PIMD)"_fix_ipi.html and "this as well"_fix_pimd.html
 "Direct Simulation Monte Carlo"_pair_dsmc.html for low-density fluids
 "Peridynamics mesoscale modeling"_pair_peri.html

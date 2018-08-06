@@ -1,10 +1,10 @@
-"Previous Section"_Section_commands.html - "LAMMPS WWW Site"_lws -
+"Previous Section"_Commands.html - "LAMMPS WWW Site"_lws -
 "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next
 Section"_Speed.html :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 

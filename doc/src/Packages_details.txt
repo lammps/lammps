@@ -3,7 +3,7 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -396,7 +396,7 @@ lib/gpu/README
 "Section 2.6 -sf gpu"_Section_start.html#start_6
 "Section 2.6 -pk gpu"_Section_start.html#start_6
 "package gpu"_package.html
-Pair Styles section of "Section 3.5"_Section_commands.html#cmd_5 for pair styles followed by (g)
+"Commands all"_Commands_all.html pages (pair,kspace) for styles followed by (g)
 "Benchmarks page"_http://lammps.sandia.gov/bench.html of web site :ul
 
 :line
@@ -487,8 +487,8 @@ See the list of all KIM models here:
 https://openkim.org/kim-items/models/by-model-drivers
 
 See the list of example KIM models included by default here:
-https://openkim.org/kim-api in the "What is in the KIM API source
-package?" section
+https://openkim.org/kim-api on the "What is in the KIM API source
+package?" page.
 
 You can then install/un-install the package and build LAMMPS in the
 usual manner:
@@ -593,7 +593,7 @@ lib/kokkos/README
 "Section 2.6 -sf kk"_Section_start.html#start_6
 "Section 2.6 -pk kokkos"_Section_start.html#start_6
 "package kokkos"_package.html
-Styles sections of "Section 3.5"_Section_commands.html#cmd_5 for styles followed by (k)
+"Commands all"_Commands_all.html pages (fix,compute,pair,etc) for styles followed by (k)
 "Benchmarks page"_http://lammps.sandia.gov/bench.html of web site :ul
 
 :line
@@ -631,7 +631,7 @@ src/KSPACE: filenames -> commands
 "Howto tip4p"_Howto_tip4p.html
 "Howto spc"_Howto_spc.html
 "pair_style coul"_pair_coul.html
-Pair Styles section of "Section 3.5"_Section_commands.html#cmd_5 with "long" or "msm" in pair style name
+"Commands pair"_Commands_pair.html page for styles with "long" or "msm" in name
 examples/peptide
 bench/in.rhodo :ul
 
@@ -715,7 +715,7 @@ make machine :pre
 [Supporting info:]
 
 src/MANYBODY: filenames -> commands
-Pair Styles section of "Section 3.5"_Section_commands.html#cmd_5
+"Commands pair"_Commands_pair.html page
 examples/comb
 examples/eim
 examples/nb3d
@@ -1017,7 +1017,7 @@ src/OPT: filenames -> commands
 "Speed packages"_Speed_packages.html
 "Speed opt"_Speed_opt.html
 "Section 2.6 -sf opt"_Section_start.html#start_6
-Pair Styles section of "Section 3.5"_Section_commands.html#cmd_5 for pair styles followed by (t)
+"Commands pair"_Commands_pair.html for styles followed by (t)
 "Benchmarks page"_http://lammps.sandia.gov/bench.html of web site :ul
 
 :line
@@ -2072,7 +2072,7 @@ src/USER-INTEL/README
 "Section 2.6 -sf intel"_Section_start.html#start_6
 "Section 2.6 -pk intel"_Section_start.html#start_6
 "package intel"_package.html
-Styles sections of "Section 3.5"_Section_commands.html#cmd_5 for styles followed by (i)
+"Commands all"_Commands_all.html pages (fix,compute,pair,etc) for styles followed by (i)
 src/USER-INTEL/TEST
 "Benchmarks page"_http://lammps.sandia.gov/bench.html of web site :ul
 
@@ -2457,7 +2457,7 @@ src/USER-OMP/README
 "Section 2.6 -sf omp"_Section_start.html#start_6
 "Section 2.6 -pk omp"_Section_start.html#start_6
 "package omp"_package.html
-Styles sections of "Section 3.5"_Section_commands.html#cmd_5 for styles followed by (o)
+"Commands all"_Commands_all.html pages (fix,compute,pair,etc) for styles followed by (o)
 "Benchmarks page"_http://lammps.sandia.gov/bench.html of web site :ul
 
 :line

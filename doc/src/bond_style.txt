@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -66,9 +66,8 @@ the style to display the formula it computes and coefficients
 specified by the associated "bond_coeff"_bond_coeff.html command.
 
 Note that there are also additional bond styles submitted by users
-which are included in the LAMMPS distribution.  The list of these with
-links to the individual styles are given in the bond section of "this
-page"_Section_commands.html#cmd_5.
+which are included in the LAMMPS distribution.  The full list of all
+bond styles is on the "Commands bond"_Commands_bond.html doc page.
 
 "bond_style none"_bond_none.html - turn off bonded interactions
 "bond_style zero"_bond_zero.html - topology but no interactions

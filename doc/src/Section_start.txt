@@ -1,10 +1,10 @@
 "Previous Section"_Intro.html - "LAMMPS WWW Site"_lws -
 "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next
-Section"_Section_commands.html :c
+Section"_Commands.html :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -1070,7 +1070,7 @@ the '-in' command-line switch, e.g.
 
 lmp_linux -in in.file :pre
 
-"This section"_Section_commands.html describes how input scripts are
+The "Commands"_Commands.html doc page describes how input scripts are
 structured and what commands they contain.
 
 You can test LAMMPS on any of the sample inputs provided in the
@@ -1615,9 +1615,9 @@ value2 ..."  at the beginning of the input script.  Defining an index
 variable as a command-line argument overrides any setting for the same
 index variable in the input script, since index variables cannot be
 re-defined.  See the "variable"_variable.html command for more info on
-defining index and other kinds of variables and "this
-section"_Section_commands.html#cmd_2 for more info on using variables
-in input scripts.
+defining index and other kinds of variables and the "Commands
+parse"_Commands_parse.html page for more info on using variables in
+input scripts.
 
 NOTE: Currently, the command-line parser looks for arguments that
 start with "-" to indicate new switches.  Thus you cannot specify

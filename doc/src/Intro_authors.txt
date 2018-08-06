@@ -3,7 +3,7 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -140,7 +140,7 @@ Aug15 : timer command : Axel Kohlmeyer (Temple U)
 Aug15 : USER-H5MD package : Pierre de Buyl (KU Leuven)
 Aug15 : COMPRESS package : Axel Kohlmeyer (Temple U)
 Aug15 : USER-SMD package : Georg Gunzenmueller (EMI)
-Jul15 : new HTML format for "doc pages"_doc/Manual.html with search option : Richard Berger (JKU)
+Jul15 : new HTML format for "doc pages"_Manual.html with search option : Richard Berger (JKU)
 Jul15 : rRESPA with pair hybrid : Sam Genheden (U of Southampton)
 Jul15 : pair_modify special : Axel Kohlmeyer (Temple U)
 Jul15 : pair polymorphic : Xiaowang Zhou and Reese Jones (Sandia)

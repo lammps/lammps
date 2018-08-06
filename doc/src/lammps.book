@@ -107,10 +107,6 @@ Errors_bugs.html
 Errors_messages.html
 Errors_warnings.html
 
-lammps_support.html
-body.html
-manifolds.html
-
 lammps_commands.html
 atom_modify.html
 atom_style.html

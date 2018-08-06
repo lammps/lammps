@@ -249,7 +249,11 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       helpflag = 1;
       citeflag = 0;
       iarg += 1;
-    } else error->universe_all(FLERR,"Invalid command-line argument");
+    } else {
+      char msg[2048];
+      sprintf( msg, "Invalid command-line argument \"%s\"\n", arg[iarg] );
+      error->universe_all(FLERR,msg);
+    }
   }
 
   // if no partition command-line switch, universe is one world with all procs

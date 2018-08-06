@@ -115,6 +115,34 @@ set(LAMMPS_LINK_LIBS)
 set(LAMMPS_DEPS)
 set(LAMMPS_API_DEFINES)
 
+set(DEFAULT_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS DIPOLE GRANULAR
+  KSPACE MANYBODY MC MEAM MISC MOLECULE PERI REAX REPLICA RIGID SHOCK SPIN SNAP
+  SRD KIM PYTHON MSCG MPIIO VORONOI POEMS LATTE USER-ATC USER-AWPMD USER-BOCS
+  USER-CGDNA USER-MESO USER-CGSDK USER-COLVARS USER-DIFFRACTION USER-DPD USER-DRUDE
+  USER-EFF USER-FEP USER-H5MD USER-LB USER-MANIFOLD USER-MEAMC USER-MGPT USER-MISC
+  USER-MOFFF USER-MOLFILE USER-NETCDF USER-PHONON USER-QTB USER-REAXC USER-SCAFACOS 
+  USER-SMD USER-SMTBQ USER-SPH USER-TALLY USER-UEF USER-VTK USER-QUIP USER-QMMM)
+set(ACCEL_PACKAGES USER-OMP KOKKOS OPT USER-INTEL GPU)
+set(OTHER_PACKAGES CORESHELL QEQ)
+foreach(PKG ${DEFAULT_PACKAGES})
+  option(PKG_${PKG} "Build ${PKG} Package" OFF)
+endforeach()
+foreach(PKG ${ACCEL_PACKAGES} ${OTHER_PACKAGES})
+  option(PKG_${PKG} "Build ${PKG} Package" OFF)
+endforeach()
+
+######################################################
+# packages with special compiler needs or external libs
+######################################################
+if(PKG_REAX OR PKG_MEAM OR PKG_USER-QUIP OR PKG_USER-QMMM OR PKG_LATTE OR PKG_USER-SCAFACOS)
+  enable_language(Fortran)
+endif()
+
+if(PKG_MEAM OR PKG_USER-H5MD OR PKG_USER-QMMM OR PKG_USER-SCAFACOS)
+  enable_language(C)
+endif()
+
+# do MPI detection after language activation, if MPI for these language is required
 find_package(MPI QUIET)
 option(BUILD_MPI "Build MPI version" ${MPI_FOUND})
 if(BUILD_MPI)
@@ -154,22 +182,6 @@ if(ENABLE_TESTING)
   enable_testing()
 endif(ENABLE_TESTING)
 
-set(DEFAULT_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS DIPOLE GRANULAR
-  KSPACE MANYBODY MC MEAM MISC MOLECULE PERI REAX REPLICA RIGID SHOCK SPIN SNAP
-  SRD KIM PYTHON MSCG MPIIO VORONOI POEMS LATTE USER-ATC USER-AWPMD USER-BOCS
-  USER-CGDNA USER-MESO USER-CGSDK USER-COLVARS USER-DIFFRACTION USER-DPD USER-DRUDE
-  USER-EFF USER-FEP USER-H5MD USER-LB USER-MANIFOLD USER-MEAMC USER-MGPT USER-MISC
-  USER-MOFFF USER-MOLFILE USER-NETCDF USER-PHONON USER-QTB USER-REAXC USER-SCAFACOS 
-  USER-SMD USER-SMTBQ USER-SPH USER-TALLY USER-UEF USER-VTK USER-QUIP USER-QMMM)
-set(ACCEL_PACKAGES USER-OMP KOKKOS OPT USER-INTEL GPU)
-set(OTHER_PACKAGES CORESHELL QEQ)
-foreach(PKG ${DEFAULT_PACKAGES})
-  option(PKG_${PKG} "Build ${PKG} Package" OFF)
-endforeach()
-foreach(PKG ${ACCEL_PACKAGES} ${OTHER_PACKAGES})
-  option(PKG_${PKG} "Build ${PKG} Package" OFF)
-endforeach()
-
 macro(pkg_depends PKG1 PKG2)
   if(PKG_${PKG1} AND NOT (PKG_${PKG2} OR BUILD_${PKG2}))
     message(FATAL_ERROR "${PKG1} package needs LAMMPS to be build with ${PKG2}")
@@ -182,17 +194,7 @@ pkg_depends(MPIIO MPI)
 pkg_depends(USER-ATC MANYBODY)
 pkg_depends(USER-LB MPI)
 pkg_depends(USER-PHONON KSPACE)
-
-######################################################
-# packages with special compiler needs or external libs
-######################################################
-if(PKG_REAX OR PKG_MEAM OR PKG_USER-QUIP OR PKG_USER-QMMM OR PKG_LATTE)
-  enable_language(Fortran)
-endif()
-
-if(PKG_MEAM OR PKG_USER-H5MD OR PKG_USER-QMMM)
-  enable_language(C)
-endif()
+pkg_depends(USER-SCAFACOS MPI)
 
 find_package(OpenMP QUIET)
 option(BUILD_OMP "Build with OpenMP support" ${OpenMP_FOUND})
@@ -350,10 +352,55 @@ if(PKG_LATTE)
 endif()
 
 if(PKG_USER-SCAFACOS)
+  find_package(GSL REQUIRED)
+  option(DOWNLOAD_SCAFACOS "Download ScaFaCoS (instead of using the system's one)" OFF)
+  if(DOWNLOAD_SCAFACOS)
+    include(ExternalProject)
+    ExternalProject_Add(scafacos_build
+      URL https://github.com/scafacos/scafacos/releases/download/v1.0.0/scafacos-1.0.0.tar.gz
+      URL_MD5 c75d75d8a4cb9757faddb8b205a2b20f
+      CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> 
+                                               --disable-doc 
+                                               --enable-fcs-solvers=fmm,p2nfft,direct,ewald 
+                                               FC=${CMAKE_MPI_Fortran_COMPILER} 
+                                               CXX=${CMAKE_MPI_CXX_COMPILER} 
+                                               CC=${CMAKE_MPI_C_COMPILER}
+                                               F77=
+      )
+    ExternalProject_get_property(scafacos_build INSTALL_DIR)
+    set(SCAFACOS_BUILD_DIR ${INSTALL_DIR})
+    set(SCAFACOS_INCLUDE_DIRS ${SCAFACOS_BUILD_DIR}/include)
+    list(APPEND LAMMPS_DEPS scafacos_build)
+    # list and order from pkg_config file of ScaFaCoS build
+    list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs.a)
+    list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_direct.a)
+    list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_ewald.a)
+    list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_fmm.a)
+    list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_p2nfft.a)
+    list(APPEND LAMMPS_LINK_LIBS ${GSL_LIBRARIES})
+    #list(APPEND LAMMPS_LINK_LIBS gsl)
+    #list(APPEND LAMMPS_LINK_LIBS gslcblas)
+    list(APPEND LAMMPS_LINK_LIBS m)
+    list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_near.a)
+    list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_gridsort.a)
+    list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_resort.a)
+    list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_common.a)
+    list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_pnfft.a)
+    list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_pfft.a)
+    list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_fftw3_mpi.a)
+    list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_fftw3.a)
+    list(APPEND LAMMPS_LINK_LIBS ${MPI_Fortran_LIBRARIES})
+    list(APPEND LAMMPS_LINK_LIBS ${MPI_C_LIBRARIES})
+# -L${libdir} -lfcs4fortran -lfcs -lfcs_direct -lfcs_ewald -lfcs_fmm -lfcs_p2nfft -lgsl -lgslcblas -lm -lfcs_near -lfcs_gridsort -lfcs_resort -lfcs_common -lfcs_pnfft -lfcs_pfft -lfcs_fftw3_mpi -lfcs_fftw3 -L/projects/opt/centos7/mpich/3.2-gcc_6.2.0/lib -L/projects/opt/centos7/gcc/6.2.0/packages/gcc-6.2.0/bin/../lib/gcc/x86_64-pc-linux-gnu/6.2.0 -L/projects/opt/centos7/gcc/6.2.0/packages/gcc-6.2.0/bin/../lib/gcc -L/projects/opt/centos7/gcc/6.2.0/packages/gcc-6.2.0/bin/../lib/gcc/x86_64-pc-linux-gnu/6.2.0/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/projects/opt/centos7/gcc/6.2.0/packages/gcc-6.2.0/bin/../lib/gcc/x86_64-pc-linux-gnu/6.2.0/../../.. -lmpifort -lmpi -lgfortran -lm -lquadmath
+#libfcs4fortran.a   libfcs_common.a   libfcs_direct.la  libfcs_fftw3.a      libfcs_fftw3_mpi.la  libfcs_gridsort.a   libfcs_near.a    libfcs_p2nfft.la  libfcs_pnfft.a   libfcs_resort.la
+#libfcs4fortran.la  libfcs_common.la  libfcs_ewald.a    libfcs_fftw3.la     libfcs_fmm.a         libfcs_gridsort.la  libfcs_near.la   libfcs_pfft.a     libfcs_pnfft.la  pkgconfig
+#libfcs.a           libfcs_direct.a   libfcs_ewald.la   libfcs_fftw3_mpi.a  libfcs_fmm.la        libfcs.la           libfcs_p2nfft.a  libfcs_pfft.la    libfcs_resort.a
+  else()
     FIND_PACKAGE(PkgConfig REQUIRED)
     PKG_CHECK_MODULES(SCAFACOS scafacos)
-    include_directories(${SCAFACOS_INCLUDE_DIRS})
     list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_LDFLAGS})
+  endif()
+  include_directories(${SCAFACOS_INCLUDE_DIRS})
 endif()
 
 if(PKG_USER-MOLFILE)

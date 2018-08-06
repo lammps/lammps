@@ -1,10 +1,10 @@
-"Previous Section"_Section_howto.html - "LAMMPS WWW Site"_lws -
-"LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next
-Section"_Section_perf.html :c
+"Previous Section"_Howto.html - "LAMMPS WWW Site"_lws - "LAMMPS
+Documentation"_ld - "LAMMPS Commands"_lc - "Next
+Section"_Tools.html :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -143,5 +143,5 @@ The USER directory has a large number of sub-directories which
 correspond by name to a USER package.  They contain scripts that
 illustrate how to use the command(s) provided in that package.  Many
 of the sub-directories have their own README files which give further
-instructions.  See the "Section 4"_Section_packages.html doc
+instructions.  See the "Packages_details"_Packages_details.html doc
 page for more info on specific USER packages.

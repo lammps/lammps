@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -150,13 +150,13 @@ the Boltzmann criterion.
 
 This fix computes two statistical quantities as a global 2-vector of
 output, which can be accessed by various "output
-commands"_Section_howto.html#howto_15.  The first component of the
-vector is the cumulative number of swaps performed by all processors.
-The second component of the vector is the cumulative number of swaps
-attempted (whether accepted or rejected).  Note that a swap "attempt"
-only occurs when swap partners meeting the criteria described above
-are found on a particular timestep.  The vector values calculated by
-this fix are "intensive".
+commands"_Howto_output.html.  The first component of the vector is the
+cumulative number of swaps performed by all processors.  The second
+component of the vector is the cumulative number of swaps attempted
+(whether accepted or rejected).  Note that a swap "attempt" only
+occurs when swap partners meeting the criteria described above are
+found on a particular timestep.  The vector values calculated by this
+fix are "intensive".
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.  This fix is not invoked during "energy

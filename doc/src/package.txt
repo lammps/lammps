@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -149,9 +149,9 @@ the style options are set, either to default values or to specified
 settings.  I.e. settings from previous invocations do not persist
 across multiple invocations.
 
-See the "Section 5.3"_Section_accelerate.html#acc_3 section of the
-manual for more details about using the various accelerator packages
-for speeding up LAMMPS simulations.
+See the "Speed packages"_Speed_packages.html doc page for more details
+about using the various accelerator packages for speeding up LAMMPS
+simulations.
 
 :line
 

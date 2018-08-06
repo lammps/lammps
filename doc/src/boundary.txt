@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -82,9 +82,9 @@ and xhi faces of the box are planes tilting in the +y direction as y
 increases.  These tilted planes are shrink-wrapped around the atoms to
 determine the x extent of the box.
 
-See "Section 6.12"_Section_howto.html#howto_12 of the doc pages
-for a geometric description of triclinic boxes, as defined by LAMMPS,
-and how to transform these parameters to and from other commonly used
+See the "Howto triclinic"_Howto_triclinic.html doc page for a
+geometric description of triclinic boxes, as defined by LAMMPS, and
+how to transform these parameters to and from other commonly used
 triclinic representations.
 
 [Restrictions:]

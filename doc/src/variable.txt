@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -124,8 +124,8 @@ provide, so that the variable gets its value from the evaluation of
 the Python code.  Variables of style {internal} are used by a few
 commands which set their value directly.
 
-NOTE: As discussed in "Section 3.2"_Section_commands.html#cmd_2 of the
-manual, an input script can use "immediate" variables, specified as
+NOTE: As discussed on the "Commands parse"_Commands_parse.html doc
+page, an input script can use "immediate" variables, specified as
 $(formula) with parenthesis, where the formula has the same syntax as
 equal-style variables described on this page.  This is a convenient
 way to evaluate a formula immediately without using the variable
@@ -198,7 +198,7 @@ the same thing.
 
 :line
 
-"This section"_Section_commands.html#cmd_2 of the manual explains how
+The "Commands parse"_Commands_parse.html doc page explains how
 occurrences of a variable name in an input script line are replaced by
 the variable's string.  The variable name can be referenced as $x if
 the name "x" is a single character, or as $\{LoopVar\} if the name
@@ -312,8 +312,8 @@ If you simply wish to print a variable value with desired precision to
 the screen or logfile via the "print"_print.html or "fix
 print"_fix_print.html commands, you can also do this by specifying an
 "immediate" variable with a trailing colon and format string, as part
-of the string argument of those commands.  This is explained in
-"Section 3.2"_Section_commands.html#cmd_2.
+of the string argument of those commands.  This is explained on the
+"Commands parse"_Commands_parse.html doc page.
 
 For the {getenv} style, a single string is assigned to the variable
 which should be the name of an environment variable.  When the
@@ -1119,24 +1119,23 @@ Vectors" discussion above.
 
 If you want an equal-style variable to be evaluated immediately, it
 may be the case that you do not need to define a variable at all.  See
-"Section 3.2"_Section_commands.html#cmd_2 of the manual, which
-describes the use of "immediate" variables in an input script,
-specified as $(formula) with parenthesis, where the formula has the
-same syntax as equal-style variables described on this page.  This
-effectively evaluates a formula immediately without using the variable
-command to define a named variable.
+the "Commands parse"_Commands_parse.html doc page for info on how to
+use "immediate" variables in an input script, specified as $(formula)
+with parenthesis, where the formula has the same syntax as equal-style
+variables described on this page.  This effectively evaluates a
+formula immediately without using the variable command to define a
+named variable.
 
 More generally, there is a difference between referencing a variable
 with a leading $ sign (e.g. $x or $\{abc\}) versus with a leading "v_"
 (e.g. v_x or v_abc).  The former can be used in any input script
 command, including a variable command.  The input script parser
 evaluates the reference variable immediately and substitutes its value
-into the command.  As explained in "Section
-3.2"_Section_commands.html#cmd_2 for "Parsing rules", you can also use
-un-named "immediate" variables for this purpose.  For example, a
-string like this $((xlo+xhi)/2+sqrt(v_area)) in an input script
-command evaluates the string between the parenthesis as an equal-style
-variable formula.
+into the command.  As explained on the "Commands
+parse"_Commands_parse.html doc page, you can also use un-named
+"immediate" variables for this purpose.  For example, a string like
+this $((xlo+xhi)/2+sqrt(v_area)) in an input script command evaluates
+the string between the parenthesis as an equal-style variable formula.
 
 Referencing a variable with a leading "v_" is an optional or required
 kind of argument for some commands (e.g. the "fix
@@ -1180,10 +1179,9 @@ quotes if it contains variables preceded by $ signs.  For example,
 
 variable vratio equal "$\{vfinal\}/$\{v0\}" :pre
 
-This is because the quotes prevent variable substitution (see "this
-section"_Section_commands.html#cmd_2 on parsing input script
-commands), and thus an error will occur when the formula for "vratio"
-is evaluated later.
+This is because the quotes prevent variable substitution (explained on
+the "Commands parse"_Commands_parse.html doc page), and thus an error
+will occur when the formula for "vratio" is evaluated later.
 
 :line
 

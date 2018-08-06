@@ -1,10 +1,10 @@
-"Previous Section"_Section_perf.html - "LAMMPS WWW Site"_lws - "LAMMPS
+"Previous Section"_Examples.html - "LAMMPS WWW Site"_lws - "LAMMPS
 Documentation"_ld - "LAMMPS Commands"_lc - "Next
 Section"_Modify.html :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -142,8 +142,8 @@ The syntax for running the tool is
 chain < def.chain > data.file :pre
 
 See the def.chain or def.chain.ab files in the tools directory for
-examples of definition files.  This tool was used to create the
-system for the "chain benchmark"_Section_perf.html.
+examples of definition files.  This tool was used to create the system
+for the "chain benchmark"_Speed_bench.html.
 
 :line
 
@@ -249,9 +249,9 @@ These tools were provided by Andres Jaramillo-Botero at CalTech
 
 emacs tool :h4,link(emacs)
 
-The tools/emacs directory contains a Lips add-on file for Emacs that
-enables a lammps-mode for editing of input scripts when using Emacs,
-with various highlighting options setup.
+The tools/emacs directory contains an Emacs Lisp add-on file for GNU Emacs 
+that enables a lammps-mode for editing input scripts when using GNU Emacs,
+with various highlighting options set up.
 
 These tools were provided by Aidan Thompson at Sandia
 (athomps at sandia.gov).

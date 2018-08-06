@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -199,9 +199,9 @@ The {here} keyword does the same thing, except that the Python code
 follows as a single argument to the {here} keyword.  This can be done
 using triple quotes as delimiters, as in the examples above.  This
 allows Python code to be listed verbatim in your input script, with
-proper indentation, blank lines, and comments, as desired.  See
-"Section 3.2"_Section_commands.html#cmd_2, for an explanation of how
-triple quotes can be used as part of input script syntax.
+proper indentation, blank lines, and comments, as desired.  See the
+"Commands parse"_Commands_parse.html doc page, for an explanation of
+how triple quotes can be used as part of input script syntax.
 
 The {exists} keyword takes no argument.  It means that Python code
 containing the required Python function defined by the {func} setting,

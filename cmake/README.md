@@ -276,6 +276,16 @@ cmake -C ../cmake/presets/std_nolib.cmake ../cmake -DPKG_GPU=on
   </td>
 </tr>
 <tr>
+  <td><code>BUILD_DOC</code></td>
+  <td>control whether to build LAMMPS documentation</td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
   <td><code>LAMMPS_LONGLONG_TO_LONG</code></td>
   <td>Workaround if your system or MPI version does not recognize <code>long long</code> data types</td>
   <td>

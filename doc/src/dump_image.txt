@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -356,16 +356,16 @@ is used to define body particles with internal state
 body style.  If this keyword is not used, such particles will be drawn
 as spheres, the same as if they were regular atoms.
 
-The "body"_body.html doc page describes the body styles LAMMPS
-currently supports, and provides more details as to the kind of body
-particles they represent and how they are drawn by this dump image
-command.  For all the body styles, individual atoms can be either a
-body particle or a usual point (non-body) particle.  Non-body
+The "Howto body"_Howto_body.html doc page describes the body styles
+LAMMPS currently supports, and provides more details as to the kind of
+body particles they represent and how they are drawn by this dump
+image command.  For all the body styles, individual atoms can be
+either a body particle or a usual point (non-body) particle.  Non-body
 particles will be drawn the same way they would be as a regular atom.
 The {bflag1} and {bflag2} settings are numerical values which are
 passed to the body style to affect how the drawing of a body particle
-is done.  See the "body"_body.html doc page for a description of what
-these parameters mean for each body style.
+is done.  See the "Howto body"_Howto_body.html doc page for a
+description of what these parameters mean for each body style.
 
 The only setting currently allowed for the {color} value is {type},
 which will color the body particles according to the atom type of the

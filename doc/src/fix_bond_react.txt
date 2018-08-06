@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -298,9 +298,8 @@ relevant to this fix.
 
 This fix computes one statistic for each {react} argument that it
 stores in a global vector, of length 'number of react arguments', that
-can be accessed by various "output
-commands"_Section_howto.html#howto_15. The vector values calculated by
-this fix are "intensive".
+can be accessed by various "output commands"_Howto_output.html. The
+vector values calculated by this fix are "intensive".
 
 These is 1 quantity for each react argument:
 

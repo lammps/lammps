@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -322,9 +322,9 @@ with tilt factors that exceed these limits, you can use the "box
 tilt"_box.html command, with a setting of {large}; a setting of
 {small} is the default.
 
-See "Section 6.12"_Section_howto.html#howto_12 of the doc pages
-for a geometric description of triclinic boxes, as defined by LAMMPS,
-and how to transform these parameters to and from other commonly used
+See the "Howto triclinic"_Howto_triclinic.html doc page for a
+geometric description of triclinic boxes, as defined by LAMMPS, and
+how to transform these parameters to and from other commonly used
 triclinic representations.
 
 When a triclinic system is used, the simulation domain should normally
@@ -772,9 +772,9 @@ the "bodies" keyword.
 
 Each body can have a variable number of integer and/or floating-point
 values.  The number and meaning of the values is defined by the body
-style, as described in the "body"_body.html doc page.  The body style
-is given as an argument to the "atom_style body"_atom_style.html
-command.
+style, as described in the "Howto body"_Howto_body.html doc page.  The
+body style is given as an argument to the "atom_style
+body"_atom_style.html command.
 
 The Ninteger and Ndouble values determine how many integer and
 floating-point values are specified for this particle.  Ninteger and

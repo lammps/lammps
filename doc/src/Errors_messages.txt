@@ -3,7 +3,7 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -21,9 +21,9 @@ means that line #78 in the file src/velocity.cpp generated the error.
 Looking in the source code may help you figure out what went wrong.
 
 Note that error messages from "user-contributed
-packages"_Section_package.html#table_user are not listed here.  If
-such an error occurs and is not self-explanatory, you'll need to look
-in the source code or contact the author of the package.
+packages"_Packages_user.html are not listed here.  If such an error
+occurs and is not self-explanatory, you'll need to look in the source
+code or contact the author of the package.
 
 Doc page with "WARNING messages"_Errors_warnings.html
 

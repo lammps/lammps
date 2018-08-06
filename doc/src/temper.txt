@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -32,14 +32,13 @@ replicas (ensembles) of a system.  Two or more replicas must be used.
 
 Each replica runs on a partition of one or more processors.  Processor
 partitions are defined at run-time using the -partition command-line
-switch; see "Section 2.6"_Section_start.html#start_6 of the
-manual.  Note that if you have MPI installed, you can run a
-multi-replica simulation with more replicas (partitions) than you have
-physical processors, e.g you can run a 10-replica simulation on one or
-two processors.  You will simply not get the performance speed-up you
-would see with one or more physical processors per replica.  See "this
-section"_Section_howto.html#howto_5 of the manual for further
-discussion.
+switch; see "Section 2.6"_Section_start.html#start_6 of the manual.
+Note that if you have MPI installed, you can run a multi-replica
+simulation with more replicas (partitions) than you have physical
+processors, e.g you can run a 10-replica simulation on one or two
+processors.  You will simply not get the performance speed-up you
+would see with one or more physical processors per replica.  See the
+"Howto replica"_Howto_replica.html doc page for further discussion.
 
 Each replica's temperature is controlled at a different value by a fix
 with {fix-ID} that controls temperature. Most thermostat fix styles

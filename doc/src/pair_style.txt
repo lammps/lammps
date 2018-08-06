@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -78,22 +78,22 @@ previously specified pair_coeff values.
 :line
 
 Here is an alphabetic list of pair styles defined in LAMMPS.  They are
-also given in more compact form in the pair section of "this
-page"_Section_commands.html#cmd_5.
+also listed in more compact form on the "Commands
+pair"_Commands_pair.html doc page.
 
 Click on the style to display the formula it computes, arguments
 specified in the pair_style command, and coefficients specified by the
 associated "pair_coeff"_pair_coeff.html command.
 
 There are also additional pair styles (not listed here) submitted by
-users which are included in the LAMMPS distribution.  The list of
-these with links to the individual styles are given in the pair
-section of "this page"_Section_commands.html#cmd_5.
+users which are included in the LAMMPS distribution.  The full list of
+all pair styles is on the "Commands pair"_Commands_pair.html doc page.
 
 There are also additional accelerated pair styles (not listed here)
-included in the LAMMPS distribution for faster performance on CPUs and
-GPUs.  The list of these with links to the individual styles are given
-in the pair section of "this page"_Section_commands.html#cmd_5.
+included in the LAMMPS distribution for faster performance on CPUs,
+GPUs, and KNLs.  The individual style names on the "Commands
+pair"_Commands_pair.html doc page are followed by one or more of
+(g,i,k,o,t) to indicate which accerlerated styles exist.
 
 "pair_style none"_pair_none.html - turn off pairwise interactions
 "pair_style hybrid"_pair_hybrid.html - multiple styles of pairwise interactions
@@ -105,7 +105,7 @@ in the pair section of "this page"_Section_commands.html#cmd_5.
 "pair_style airebo/morse"_pair_airebo.html - AIREBO with Morse instead of LJ
 "pair_style atm"_pair_atm.html - Axilrod-Teller-Muto potential
 "pair_style beck"_pair_beck.html - Beck potential
-"pair_style body"_pair_body.html - interactions between body particles
+"pair_style body/nparticle"_pair_body_nparticle.html - interactions between body particles
 "pair_style bop"_pair_bop.html - BOP potential of Pettifor
 "pair_style born"_pair_born.html - Born-Mayer-Huggins potential
 "pair_style born/coul/long"_pair_born.html - Born-Mayer-Huggins with long-range Coulombics

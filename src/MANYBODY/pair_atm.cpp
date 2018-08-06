@@ -78,7 +78,7 @@ void PairATM::compute(int eflag, int vflag)
 {
   int i,j,k,ii,jj,kk,inum,jnum,jnumm1;
   double xi,yi,zi,evdwl;
-  double rij2,rik2,rjk2,r6;
+  double rij2,rik2,rjk2;
   double rij[3],rik[3],rjk[3],fj[3],fk[3];
   double nu_local;
   int *ilist,*jlist,*numneigh,**firstneigh;
@@ -91,8 +91,7 @@ void PairATM::compute(int eflag, int vflag)
   double **f = atom->f;
   int *type = atom->type;
 
-  double cutoff_sixth = cut_global*cut_global;
-  cutoff_sixth = cutoff_sixth*cutoff_sixth*cutoff_sixth;
+  double cutoff_squared = cut_global*cut_global;
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
@@ -118,6 +117,7 @@ void PairATM::compute(int eflag, int vflag)
       rij[2] = x[j][2] - zi;
       if (rij[0] == 0.0 and rij[1] == 0.0 and rij[2] < 0.0) continue;
       rij2 = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
+      if (rij2 > cutoff_squared) continue;
 
       for (kk = jj+1; kk < jnum; kk++) {
         k = jlist[kk];
@@ -130,20 +130,19 @@ void PairATM::compute(int eflag, int vflag)
         rjk[2] = x[k][2] - x[j][2];
         if (rjk[0] == 0.0 and rjk[1] == 0.0 and rjk[2] < 0.0) continue;
         rjk2 = rjk[0]*rjk[0] + rjk[1]*rjk[1] + rjk[2]*rjk[2];
+        if (rjk2 > cutoff_squared) continue;
 
         rik[0] = x[k][0] - xi;
         rik[1] = x[k][1] - yi;
         rik[2] = x[k][2] - zi;
         rik2 = rik[0]*rik[0] + rik[1]*rik[1] + rik[2]*rik[2];
-
-        r6 = rij2*rik2*rjk2;
-        if (r6 > cutoff_sixth) continue;
+        if (rik2 > cutoff_squared) continue;
 
         nu_local = nu[type[i]][type[j]][type[k]];
         if (nu_local == 0.0) continue;
 
         interaction_ddd(nu_local,
-                        r6,rij2,rik2,rjk2,rij,rik,rjk,fj,fk,eflag,evdwl);
+                        rij2,rik2,rjk2,rij,rik,rjk,fj,fk,eflag,evdwl);
 
         f[i][0] -= fj[0] + fk[0];
         f[i][1] -= fj[1] + fk[1];
@@ -330,11 +329,12 @@ void PairATM::read_restart_settings(FILE *fp)
 ------------------------------------------------------------------------- */
 
 void PairATM::interaction_ddd(double nu,
-                              double r6, double rij2, double rik2, double rjk2,
+                              double rij2, double rik2, double rjk2,
                               double *rij, double *rik, double *rjk,
                               double *fj, double *fk, int eflag, double &eng)
 {
-  double r5inv,rri,rrj,rrk,rrr;
+  double r6,r5inv,rri,rrj,rrk,rrr;
+  r6 = rij2*rik2*rjk2;
   r5inv = nu / (r6*r6*sqrt(r6));
   rri = rik[0]*rij[0] + rik[1]*rij[1] + rik[2]*rij[2];
   rrj = rij[0]*rjk[0] + rij[1]*rjk[1] + rij[2]*rjk[2];

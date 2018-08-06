@@ -106,7 +106,7 @@ epub: $(OBJECTS)
 	@rm -rf epub
 	@echo "Build finished. The ePUB manual file is created."
 
-pdf: utils/txt2html/txt2html.exe
+pdf: utils/txt2html/txt2html.exe $(VENV)
 	@(\
 		set -e; \
 		cd src; \
@@ -117,8 +117,10 @@ pdf: utils/txt2html/txt2html.exe
 			echo doc file $$s missing in src/lammps.book; done; \
 		rm *.html; \
 		cd Developer; \
-		pdflatex developer; \
-		pdflatex developer; \
+		. $(VENV)/bin/activate ;\
+		pdflatex -shell-escape developer; \
+		pdflatex -shell-escape developer; \
+		pdflatex -shell-escape developer; \
 		mv developer.pdf ../../Developer.pdf; \
 	)
 
@@ -169,6 +171,7 @@ $(VENV):
 		. $(VENV)/bin/activate; \
 		pip install Sphinx; \
 		pip install sphinxcontrib-images; \
+		pip install Pygments; \
 		deactivate;\
 	)
 

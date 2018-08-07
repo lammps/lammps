@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -211,8 +211,8 @@ are relevant to this fix.
 
 This fix computes two statistics which it stores in a global vector of
 length 2, which can be accessed by various "output
-commands"_Section_howto.html#howto_15.  The vector values calculated
-by this fix are "intensive".
+commands"_Howto_output.html.  The vector values calculated by this fix
+are "intensive".
 
 These are the 2 quantities:
 

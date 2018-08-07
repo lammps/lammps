@@ -236,7 +236,43 @@ void BondClass2Kokkos<DeviceType>::coeff(int narg, char **arg)
   k_k4.template sync<DeviceType>();
   k_r0.template modify<LMPHostType>();
   k_r0.template sync<DeviceType>();
+}
 
+/* ----------------------------------------------------------------------
+   proc 0 reads coeffs from restart file, bcasts them
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void BondClass2Kokkos<DeviceType>::read_restart(FILE *fp)
+{
+  BondClass2::read_restart(fp);
+
+  int n = atom->nbondtypes;
+  Kokkos::DualView<F_FLOAT*,DeviceType> k_k2("BondClass2::k2",n+1);
+  Kokkos::DualView<F_FLOAT*,DeviceType> k_k3("BondClass2::k3",n+1);
+  Kokkos::DualView<F_FLOAT*,DeviceType> k_k4("BondClass2::k4",n+1);
+  Kokkos::DualView<F_FLOAT*,DeviceType> k_r0("BondClass2::r0",n+1);
+
+  d_k2 = k_k2.template view<DeviceType>();
+  d_k3 = k_k3.template view<DeviceType>();
+  d_k4 = k_k4.template view<DeviceType>();
+  d_r0 = k_r0.template view<DeviceType>();
+
+  for (int i = 1; i <= n; i++) {
+    k_k2.h_view[i] = k2[i];
+    k_k3.h_view[i] = k3[i];
+    k_k4.h_view[i] = k4[i];
+    k_r0.h_view[i] = r0[i];
+  }
+
+  k_k2.template modify<LMPHostType>();
+  k_k2.template sync<DeviceType>();
+  k_k3.template modify<LMPHostType>();
+  k_k3.template sync<DeviceType>();
+  k_k4.template modify<LMPHostType>();
+  k_k4.template sync<DeviceType>();
+  k_r0.template modify<LMPHostType>();
+  k_r0.template sync<DeviceType>();
 }
 
 /* ----------------------------------------------------------------------

@@ -277,9 +277,9 @@ MEAM::get_Zij2(const lattice_t latt, const double cmin, const double cmax, doubl
     break;
 
   case DIA:
-    Zij2 = 0;
+    Zij2 = 12;
     a = sqrt(8.0 / 3.0);
-    numscr = 4;
+    numscr = 1;
     if (cmin < 0.500001) {
         //          call error('can not do 2NN MEAM for dia')
     }

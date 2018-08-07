@@ -42,4 +42,4 @@
 */
 
 #include <rocm/TestROCm_Category.hpp>
-#include <TestViewAPI.hpp>
+#include <TestViewAPI_b.hpp>

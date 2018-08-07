@@ -1,0 +1,62 @@
+# PREREQUISITES:
+#   system_ch4_ionized.data, system_ch4_ionized.in.init, system.in.settings
+# Generate these files using:
+#   cd moltemplate_files/
+#   moltemplate.sh -atomstyle electron system_ch4_ionized.lt
+
+# WARNING: As of 2014-3-12, the "pair_style eff/cut 5000.0 0 0" command
+#          located in "orig_files/in.ch4_ionized.dynamics" (as well as the
+#          files "moltemplate_files/ch4_ionized.lt" and "system.in.settings",
+#          which are both derived from it) causes LAMMPS to hang.
+#          Running LAMMPS on Andres' original eFF example has the same behavior.
+#          This appears to be an eFF/LAMMPS issue, not a moltemplate issue.
+#          The "pair_style eff/cut 100" command works, so
+#          try reducing the cutoff (or ask Andres Jaramillo-Botero for help).
+#          Please let me know if you solve this issue (jewett.aij -at- g mail )
+
+
+variable	sname index ch4
+log		${sname}.nve.log
+
+
+boundary        f f f
+include         system_${sname}.in.init
+
+
+read_data  	system_${sname}.data
+
+
+include         system_${sname}.in.settings
+
+
+
+# Minimize
+
+min_style       cg
+min_modify      line quadratic 
+minimize        0 1.0e-6 10000 100000
+
+
+
+# Dynamics
+
+compute		effTemp all temp/eff
+
+thermo		100
+thermo_style	custom step etotal pe ke temp press
+thermo_modify	temp effTemp
+
+# Equilibrate
+timestep 	0.001
+fix 		1 all nvt/eff temp 300.0 300.0 0.1
+ 
+# the custom dump includes the radii
+compute         1 all property/atom spin eradius
+dump            1 all custom 100 ${sname}.nvt.lammpstrj id type x y z c_1[1] c_1[2]
+dump		2 all xyz 100 ${sname}.nvt.xyz 
+
+run 		1000000
+
+fix		2 all nve/eff
+
+run		1000000	

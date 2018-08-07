@@ -1,0 +1,153 @@
+  ############################################################################
+  ## Extra OPLSAA parameters and atom types for long hydrocarbon chains     ##
+  ## SOURCES: Sui, Pluhackova, Böckmann, J.Chem.Theory.Comp (2012), 8(4), 1459
+  ##          Pluhackova,...,Böckmann, J.Phys.Chem.B (2015), 119(49), 15287 ##
+  ## CREDIT: Sebastian Echeverri (file format conversion)                   ##
+  ############################################################################
+  ## This file was used with "tinkerparm2lt.py" to create "loplsaa.lt"      ##
+  ############################################################################
+
+atom         80L  13L   CT    "Alkane CH3- (LOPLS CT_CH3)"    6   12.011   4
+atom         81L  13L   CT    "Alkane -CH2- (LOPLS CT_CH2)"   6   12.011   4
+atom         81LL 13LL  CT    "Alkane -CH2- (LOPLS ALT)"      6    12.011  4
+atom         85LCH3 46  HC    "Alkane H-C CH3 (LOPLS HC_CH3)" 1    1.008   1
+atom         85LCH2 46  HC    "Alkane H-C CH2 (LOPLS HC_CH2)" 1    1.008   1
+atom         87L  47L   CM    "Alkene RH-C= (LOPLS CM_CH)"    6   12.011   3
+atom         89L  46    HC    "Alkene H-C= (LOPLS HC_CH)"     1    1.008   1
+atom         86L  47L   CM    "Alkene R2-C= (LOPLS)"          6    12.011  3
+atom         88L  47L   CM    "Alkene H2-C= (LOPLS)"          6    12.011  3
+atom         96L   5L   OH    "Alcohol -OH (LOPLS)"           8    15.999  2
+atom         97L   7L   HO    "Alcohol -OH (LOPLS)"           1     1.008  1
+atom        111L   5L   OH    "Diol -OH (LOPLS)"              8    15.999  2
+atom        112L   7L   HO    "Diol -OH (LOPLS)"              1     1.008  1
+atom        113L   5L   OH    "Triol -OH (LOPLS)"             8    15.999  2
+atom        114L   7L   HO    "Triol -OH (LOPLS)"             1     1.008  1
+atom        118L  46L   HC    "Diol & Triol H-COH (LOPLS)"    1     1.008  1
+atom        169L  47L   CM    "Chloroalkene Cl-CH= (LOPLS)"   6    12.011  3
+atom        266L  47L   CM    "Uracil & Thymine C5 (LOPLS)"   6    12.011  3
+atom        267L  47L   CM    "Uracil & Thymine C6 (LOPLS)"   6    12.011  3
+atom        280L  47L   CM    "Cytosine C5 (LOPLS)"           6    12.011  3
+atom        281L  47L   CM    "Cytosine C6 (LOPLS)"           6    12.011  3
+atom        324L  47L   CM    "CytosineH+ C5 (LOPLS)"         6    12.011  3
+atom        325L  47L   CM    "CytosineH+ C6 (LOPLS)"         6    12.011  3
+atom        340L  47L   CM    "Trifluorothymine CF3- (LOPLS)" 6    12.011  4
+atom        342L  47L   CM    "Chloroalkene Cl2-C= (LOPLS)"   6    12.011  3
+atom        406L   3L   C_2   "Ester -COOR (LOPLS)"                  6    12.011  3
+atom        407L   4L   O_2   "Ester C=O (LOPLS)"                    8    15.999  1
+atom        408L  20L   OS    "Ester CO-O-R (LOPLS)"                 8    15.999  2
+atom        458L  47L   CM    "Vinyl Ether =CH-OR (LOPLS)"    6    12.011  3
+atom        459L  47L   CM    "Vinyl Ether =CR-OR (LOPLS)"    6    12.011  3
+atom        649L  47L   CM    "Cl..CH3..Cl- Sn2 TS (LOPLS)"   6    12.011  5
+atom        718L  46L   HC    "Propylene Carbonate CH2 (LOPLS)"      1     1.008  1
+atom        718LL 46L   HC    "Propylene Carbonate CH2 (LOPLS ALT)"  1     1.008  1
+atom        900L  47L   CM    "Allene/Ketene H2C=C=X (LOPLS)" 6    12.011  3
+atom        901L  47L   CM    "Allene/Ketene HRC=C=X (LOPLS)" 6    12.011  3
+atom        902L  47L   CM    "Allene/Ketene R2C=C=X (LOPLS)" 6    12.011  3
+
+######################
+
+vdw          80L              3.5000     0.0660
+vdw          81L              3.5000     0.0660
+vdw          81LL             0.3500     0.0660
+vdw          85LCH3           2.5000     0.0300
+vdw          85LCH2           2.5000     0.026290630975
+vdw          87L              3.5500     0.0760
+vdw          89L              2.4200     0.0300
+vdw          86L              3.5500     0.0760
+vdw          88L              3.5500     0.0760
+vdw          96L              0.3120     0.1700
+vdw          97L              0.0000     0.0000   
+vdw         111L              0.3070     0.1700
+vdw         112L              0.0000     0.0000   
+vdw         113L              0.3070     0.1700
+vdw         114L              0.0000     0.0000   
+vdw         118L              0.2500     0.0300
+vdw         169L              3.5500     0.0760
+vdw         266L              3.5000     0.0800
+vdw         267L              3.5000     0.0800
+vdw         280L              3.5000     0.0800
+vdw         281L              3.5000     0.0800
+vdw         324L              3.5000     0.0800
+vdw         325L              3.5000     0.0800
+vdw         340L              3.5000     0.0800
+vdw         342L              3.5500     0.0760
+vdw         406L              0.31875    0.1050
+vdw         407L              0.3108     0.1680
+vdw         408L              0.2550     0.1700
+vdw         458L              3.5500     0.0760
+vdw         459L              3.5500     0.0760
+vdw         649L              3.5500     0.0760
+vdw         718L              0.2420     0.1500
+vdw         718LL             0.2420     0.1500
+vdw         900L              3.3000     0.0860
+vdw         901L              3.3000     0.0860
+vdw         902L              3.3000     0.0860
+
+######################
+
+
+# New torsion angle parameters
+# Taken from table 2 of
+# Sui, Pluhackova, Böckmann, J.Chem.Theory.Comp (2012), 8, 1459
+torsion      13L  13L  13L  13L  0.6446926386 0 1  -0.2143420172 180 2  0.1782194073 0 3  0 180 4  # offset V0=-0.0731209369
+torsion       0   47L  47L   0   0.0          0 1  12.2502629063 180 2  0.0          0 3  0 180 4  # offset V0=0.0
+torsion      47L  47L  13L  13L -0.8050121893 0 1   0.3218905354 180 2 -0.1032768881 0 3  0 180 4  # offset V0=-0.3574832696 
+torsion      13L  13L  13L  47L  0.4821902486 0 1   0.1343683078 180 2  0.1777461759 0 3  0 180 4  # offset V0=0.4405726577  
+
+######################
+torsion      46L  13LL 5L   7L    0.00962596   0 1  -0.0145554    180 2  0.381091     0 3  0 180 4  # offset V0=0.00133126
+torsion      46L  13LL 13LL 5L    0.0143774    0 1   0.033021     180 2  0.26687      0 3  0 180 4  # offset V0=-0.0291993
+torsion      13LL 13LL 5L   7L   -0.675785     0 1  -0.0160421    180 2  0.373199     0 3  0 180 4  # offset V0=-0.0225884
+torsion      13LL 13LL 13LL 5L    1.31261      0 1  -0.266307     180 2  0.637867     0 3  0 180 4  # offset V0=0.00224187
+torsion      5L   13LL 13LL 5L    2.69106      0 1  -0.849706     180 2  0.725731     0 3  0 180 4  # offset V0=-0.3326
+torsion      13LL 3L   20L  13LL  3.11923      0 1   5.73771      180 2  0.0          0 3  0 180 4  # offset V0=0.493475
+torsion      13LL 20L  3L   4L    0.0          0 1   5.73772      180 2  0.0          0 3  0 180 4  # offset V0=-0.28142
+torsion      46L  13LL 3L   20L  -0.00742471   0 1   0.00217734   180 2  0.111803     0 3  0 180 4  # offset V0=-0.012512
+torsion      3L   20L  13LL 13LL -1.7354       0 1  -1.24844      180 2  0.623897     0 3  0 180 4  # offset V0=0.11706
+torsion      46L  13LL 13LL 20L   0.0113337    0 1   0.0236209    180 2  0.429747     0 3  0 180 4  # offset V0=-0.0255306
+torsion      13LL 13LL 3L   20L   0.884988     0 1  -0.626905     180 2 -0.493344     0 3  0 180 4  # offset V0=-0.0195172
+torsion      13LL 13LL 3L   4L   -0.276019     0 1   1.23685      180 2 -0.670745     0 3  0 180 4  # offset V0=-0.0322467
+torsion      3L   13LL 13LL 46L  -0.0021152    0 1   0.0173542    180 2 -0.295208     0 3  0 180 4  # offset V0=-0.0433963
+torsion      3L   13LL 13LL 13LL -2.30738      0 1  -0.627326     180 2  0.621951     0 3  0 180 4  # offset V0=0.0323566
+torsion      13LL 13LL 13LL 20L   2.25871      0 1  -1.02408      180 2  1.0071       0 3  0 180 4  # offset V0=0.0297084
+torsion      20L  13LL 13LL 20L   4.66787      0 1  -2.62698      180 2  1.3248       0 3  0 180 4  # offset V0=-1.48385
+torsion      5L   13LL 13LL 20L   5.03208      0 1  -2.37742      180 2  1.23809      0 3  0 180 4  # offset V0=0.223141
+######################
+
+charge       80L     -0.222  #"Alkane CH3- (LOPLS)"    "CT_CH3"  3.50 0.0660
+charge       81L     -0.148  #"Alkane -CH2- (LOPLS)"   "CT_CH2"  3.50 0.0660
+charge       81LL             0.19
+charge       85LCH3   0.074  #"Alkane H-C CH3 (LOPLS)" "HC_CH3"  2.50 0.0300
+charge       85LCH2   0.074  #"Alkane H-C CH2 (LOPLS)" "HC_CH2"  2.50 0.0263
+charge       87L     -0.160  #"Alkene RH-C= (LOPLS)"   "CM_CH"   3.55 0.0760
+charge       89L      0.160  #"Alkene H-C= (LOPLS)"    "HC_CH"   2.42 0.0300
+charge       86L              0.0000
+charge       88L             -0.2300
+charge       96L              -0.683
+charge       97L              0.418
+charge      111L              -0.7
+charge      112L              0.435
+charge      113L              -0.73
+charge      114L              0.465
+charge      118L              0.06
+charge      169L              0.0050
+charge      266L             -0.0700
+charge      267L              0.0800
+charge      280L             -0.0600
+charge      281L              0.1000
+charge      324L             -0.0600
+charge      325L              0.1000
+charge      340L              0.1800
+charge      342L              0.1200
+charge      406L              0.75
+charge      407L              -0.55
+charge      408L              -0.45
+charge      458L             -0.0300
+charge      459L              0.0850
+charge      649L             -0.3440
+charge      718L              0.06
+charge      718LL             0.03
+charge      900L             -0.2500
+charge      901L             -0.1000
+charge      902L              0.0500
+

@@ -259,13 +259,34 @@ void Info::command(int narg, char **arg)
   fprintf(out,"Printed on %s\n",ctime(&now));
 
   if (flags & CONFIG) {
-
-    fprintf(out,"\nLAMMPS version: %s / %s\n",
+    fprintf(out,"\nLAMMPS version: %s / %s\n\n",
             universe->version, universe->num_ver);
     fprintf(out,"sizeof(smallint): %3d-bit\n",(int)sizeof(smallint)*8);
     fprintf(out,"sizeof(imageint): %3d-bit\n",(int)sizeof(imageint)*8);
     fprintf(out,"sizeof(tagint):   %3d-bit\n",(int)sizeof(tagint)*8);
     fprintf(out,"sizeof(bigint):   %3d-bit\n",(int)sizeof(bigint)*8);
+
+    fputs("\nActive compile time flags:\n\n",out);
+    if (has_gzip_support()) fputs("-DLAMMPS_GZIP\n",out);
+    if (has_png_support()) fputs("-DLAMMPS_PNG\n",out);
+    if (has_jpeg_support()) fputs("-DLAMMPS_JPEG\n",out);
+    if (has_ffmpeg_support()) fputs("-DLAMMPS_FFMPEG\n",out);
+    if (has_exceptions()) fputs("-DLAMMPS_EXCEPTIONS\n",out);
+
+    const char *pkg;
+    int ncword, ncline = 0;
+
+    fputs("\nInstalled packages:\n\n",out);
+    for (int i = 0; NULL != (pkg = lmp->installed_packages[i]); ++i) {
+      ncword = strlen(pkg);
+      if (ncline + ncword > 78) {
+        ncline = 0;
+        fputs("\n",out);
+      }
+      fprintf(out,"%s ",pkg);
+      ncline += ncword + 1;
+    }
+    fputs("\n",out);
 
 #if defined(_WIN32)
     DWORD fullversion,majorv,minorv,buildv=0;
@@ -1129,7 +1150,7 @@ static void print_columns(FILE* fp, vector<string> & styles)
   }
 }
 
-bool Info::has_gzip_support() const {
+bool Info::has_gzip_support() {
 #ifdef LAMMPS_GZIP
   return true;
 #else
@@ -1137,7 +1158,7 @@ bool Info::has_gzip_support() const {
 #endif
 }
 
-bool Info::has_png_support() const {
+bool Info::has_png_support() {
 #ifdef LAMMPS_PNG
   return true;
 #else
@@ -1145,7 +1166,7 @@ bool Info::has_png_support() const {
 #endif
 }
 
-bool Info::has_jpeg_support() const {
+bool Info::has_jpeg_support() {
 #ifdef LAMMPS_JPEG
   return true;
 #else
@@ -1153,7 +1174,7 @@ bool Info::has_jpeg_support() const {
 #endif
 }
 
-bool Info::has_ffmpeg_support() const {
+bool Info::has_ffmpeg_support() {
 #ifdef LAMMPS_FFMPEG
   return true;
 #else
@@ -1161,12 +1182,21 @@ bool Info::has_ffmpeg_support() const {
 #endif
 }
 
-bool Info::has_exceptions() const {
+bool Info::has_exceptions() {
 #ifdef LAMMPS_EXCEPTIONS
   return true;
 #else
   return false;
 #endif
+}
+
+bool Info::has_package(const char * package_name) {
+  for(int i = 0; LAMMPS::installed_packages[i] != NULL; ++i) {
+    if(strcmp(package_name, LAMMPS::installed_packages[i]) == 0) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /* ---------------------------------------------------------------------- */

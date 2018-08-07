@@ -116,7 +116,11 @@ void TaskQueueSpecialization< Kokkos::OpenMP >::execute
     HostThreadTeamDataSingleton::singleton();
 
   Impl::OpenMPExec * instance = t_openmp_instance;
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
   const int pool_size = OpenMP::thread_pool_size();
+#else
+  const int pool_size = OpenMP::impl_thread_pool_size();
+#endif
 
   const int team_size = 1;  // Threads per core
   instance->resize_thread_data( 0 /* global reduce buffer */
@@ -214,7 +218,12 @@ void TaskQueueSpecialization< Kokkos::OpenMP >::
   using task_root_type  = TaskBase< void , void , void > ;
   using Member          = Impl::HostThreadTeamMember< execution_space > ;
 
-  if ( 1 == OpenMP::thread_pool_size() ) {
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
+  if ( 1 == OpenMP::thread_pool_size() )
+#else
+  if ( 1 == OpenMP::impl_thread_pool_size() )
+#endif
+  {
 
     task_root_type * const end = (task_root_type *) task_root_type::EndTag ;
 

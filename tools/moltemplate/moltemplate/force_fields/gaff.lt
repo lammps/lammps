@@ -30,11 +30,10 @@
 #(See "Inheritance" and "short names vs. full names" in the moltemplate manual.)
 ####################################################################
 #    Moltemplate can not assign atom charge.  You must assign atomic
-# charges yourself.  (Moltemplate is only a simple text manipulation tool.)
+# charges yourself.  (Moltemplate is only a simple text manipulation tool.
+# You can do this afterwards using commands like "set atom 70 charge -0.212"
+# For details, see http://lammps.sandia.gov/doc/set.html)
 ####################################################################
-
-
-
 
 
 

@@ -96,9 +96,10 @@ class DihedralCharmmKokkos : public DihedralCharmm {
 
   DihedralCharmmKokkos(class LAMMPS *);
   virtual ~DihedralCharmmKokkos();
-  virtual void compute(int, int);
-  virtual void coeff(int, char **);
-  virtual void init_style();
+  void compute(int, int);
+  void coeff(int, char **);
+  void init_style();
+  void read_restart(FILE *);
 
   template<int NEWTON_BOND, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -161,7 +162,7 @@ class DihedralCharmmKokkos : public DihedralCharmm {
   typename AT::t_ffloat_1d d_cos_shift;
   typename AT::t_ffloat_1d d_weight;
 
-  virtual void allocate();
+  void allocate();
 };
 
 }

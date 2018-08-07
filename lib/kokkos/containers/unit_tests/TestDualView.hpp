@@ -49,6 +49,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_DualView.hpp>
 
 namespace Test {
 
@@ -113,6 +114,10 @@ void test_dualview_combinations(unsigned int size)
   Impl::test_dualview_combinations<Scalar,Device> test(size);
   ASSERT_EQ( test.result,0);
 
+}
+
+TEST_F( TEST_CATEGORY, dualview_combination) {
+    test_dualview_combinations<int,TEST_EXECSPACE>(10);
 }
 
 

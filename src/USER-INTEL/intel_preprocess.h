@@ -134,7 +134,21 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
 #define INTEL_HTHREADS 2
 #endif
 
-#define IP_PRE_get_stride(stride, n, datasize, torque)  \
+#if INTEL_DATA_ALIGN > 1
+
+#define IP_PRE_edge_align(n, esize)                                     \
+  {                                                                     \
+    const int pad_mask = ~static_cast<int>(INTEL_DATA_ALIGN/esize-1);   \
+    n = (n + INTEL_DATA_ALIGN / esize - 1) & pad_mask;                  \
+  }
+
+#else
+  
+#define IP_PRE_edge_align(n, esize)                                     \
+
+#endif
+
+#define IP_PRE_get_stride(stride, n, datasize, torque)          \
   {                                                             \
     int blength = n;                                            \
     if (torque) blength *= 2;                                   \
@@ -303,7 +317,7 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
   {                                                             \
     tid = 0;                                                    \
     ifrom = 0;                                                  \
-    ip = 1;                                                     \
+    ip = vecsize;                                               \
     ito = inum;                                                 \
   }
 
@@ -316,7 +330,7 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
   acc_t *f_scalar = &f_start[0].x;                                      \
   flt_t *x_scalar = &pos[minlocal].x;                                   \
   int f_stride4 = f_stride * 4;                                         \
-  _alignvar(acc_t ovv[INTEL_COMPILE_WIDTH],64);                         \
+  _alignvar(acc_t ovv[16],64);                                          \
   int vwidth;                                                           \
   if (sizeof(acc_t) == sizeof(double))                                  \
     vwidth = INTEL_COMPILE_WIDTH/2;                                     \
@@ -516,6 +530,22 @@ inline double MIC_Wtime() {
   return time;
 }
 
+#define IP_PRE_neighbor_pad(jnum, offload)                              \
+{                                                                       \
+  const int opad_mask = ~static_cast<int>(INTEL_MIC_NBOR_PAD *          \
+                                          sizeof(float) /               \
+                                          sizeof(flt_t) - 1);           \
+  const int pad_mask = ~static_cast<int>(INTEL_NBOR_PAD *               \
+                                          sizeof(float) /               \
+                                          sizeof(flt_t) - 1);           \
+  if (offload && INTEL_MIC_NBOR_PAD > 1)                                \
+    jnum = (jnum + INTEL_MIC_NBOR_PAD * sizeof(float) /                 \
+            sizeof(flt_t) - 1) & opad_mask;                             \
+  else if (INTEL_NBOR_PAD > 1)                                          \
+    jnum = (jnum + INTEL_NBOR_PAD * sizeof(float) /                     \
+            sizeof(flt_t) - 1) & pad_mask;                              \
+}
+
 #define IP_PRE_pack_separate_buffers(fix, buffers, ago, offload,        \
                                      nlocal, nall)                      \
 {                                                                       \
@@ -643,6 +673,23 @@ inline double MIC_Wtime() {
                             ov0, ov1, ov2, ov3, ov4, ov5)
 
 #else
+
+#if INTEL_NBOR_PAD > 1
+
+#define IP_PRE_neighbor_pad(jnum, offload)                              \
+{                                                                       \
+  const int pad_mask = ~static_cast<int>(INTEL_NBOR_PAD *               \
+                                         sizeof(float) /                \
+                                         sizeof(flt_t) - 1);            \
+  jnum = (jnum + INTEL_NBOR_PAD * sizeof(float) /                       \
+          sizeof(flt_t) - 1) & pad_mask;                                \
+}
+
+#else
+
+#define IP_PRE_neighbor_pad(jnum, offload)
+
+#endif
 
 #define MIC_Wtime MPI_Wtime
 #define IP_PRE_pack_separate_buffers(fix, buffers, ago, offload,        \

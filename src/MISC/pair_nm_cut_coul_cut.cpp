@@ -332,10 +332,11 @@ double PairNMCutCoulCut::init_one(int i, int j)
     double rrr1 = pow(r0[i][j],nn[i][j])*(1-nn[i][j]);
     double rrr2 = pow(r0[i][j],mm[i][j])*(1-mm[i][j]);
 
-    etail_ij = 2.0*MY_PI*all[0]*all[1]*e0nm[i][j] *
-      (rr1*pow(cut_lj[i][j],p1)-rr2*pow(cut_lj[i][j],p2));
-    ptail_ij = 2.0*MY_PI*all[0]*all[1]*e0nm[i][j] *
-      nn[i][j]*mm[i][j]*(rrr1*pow(cut_lj[i][j],p1)-rrr2*pow(cut_lj[i][j],p2));
+    double cut_lj3 = cut_lj[i][j]*cut_lj[i][j]*cut_lj[i][j];
+    ptail_ij = 2.*MY_PI/3.*all[0]*all[1]*e0nm[i][j]*nm[i][j]*cut_lj3 *
+      (pow(r0[i][j]/cut_lj[i][j],nn[i][j])/(nn[i][j]-3) - pow(r0[i][j]/cut_lj[i][j],mm[i][j])/(mm[i][j]-3));
+    etail_ij = 2.*MY_PI*all[0]*all[1]*e0nm[i][j]*cut_lj3 *
+      (mm[i][j]*pow(r0[i][j]/cut_lj[i][j],nn[i][j])/(nn[i][j]-3) - nn[i][j]*pow(r0[i][j]/cut_lj[i][j],mm[i][j])/(mm[i][j]-3));
 
   }
 

@@ -258,10 +258,63 @@ public:
 
   //--------------------------------------------------------------------------
 
-  KOKKOS_INLINE_FUNCTION_DEFAULTED MemoryPool( MemoryPool && ) = default ;
-  KOKKOS_INLINE_FUNCTION_DEFAULTED MemoryPool( const MemoryPool & ) = default ;
-  KOKKOS_INLINE_FUNCTION_DEFAULTED MemoryPool & operator = ( MemoryPool && ) = default ;
-  KOKKOS_INLINE_FUNCTION_DEFAULTED MemoryPool & operator = ( const MemoryPool & ) = default ;
+#ifdef KOKKOS_CUDA_9_DEFAULTED_BUG_WORKAROUND
+  KOKKOS_INLINE_FUNCTION MemoryPool( MemoryPool && rhs )
+    : m_tracker(std::move(rhs.m_tracker))
+    , m_sb_state_array(std::move(rhs.m_sb_state_array))
+    , m_sb_state_size(std::move(rhs.m_sb_state_size))
+    , m_sb_size_lg2(std::move(rhs.m_sb_size_lg2))
+    , m_max_block_size_lg2(std::move(rhs.m_max_block_size_lg2))
+    , m_min_block_size_lg2(std::move(rhs.m_min_block_size_lg2))
+    , m_sb_count(std::move(rhs.m_sb_count))
+    , m_hint_offset(std::move(rhs.m_hint_offset))
+    , m_data_offset(std::move(rhs.m_data_offset))
+  {
+  }
+  KOKKOS_INLINE_FUNCTION MemoryPool( const MemoryPool & rhs )
+    : m_tracker(rhs.m_tracker)
+    , m_sb_state_array(rhs.m_sb_state_array)
+    , m_sb_state_size(rhs.m_sb_state_size)
+    , m_sb_size_lg2(rhs.m_sb_size_lg2)
+    , m_max_block_size_lg2(rhs.m_max_block_size_lg2)
+    , m_min_block_size_lg2(rhs.m_min_block_size_lg2)
+    , m_sb_count(rhs.m_sb_count)
+    , m_hint_offset(rhs.m_hint_offset)
+    , m_data_offset(rhs.m_data_offset)
+  {
+  }
+  KOKKOS_INLINE_FUNCTION MemoryPool & operator = ( MemoryPool && rhs )
+  {
+    m_tracker = std::move(rhs.m_tracker);
+    m_sb_state_array = std::move(rhs.m_sb_state_array);
+    m_sb_state_size = std::move(rhs.m_sb_state_size);
+    m_sb_size_lg2 = std::move(rhs.m_sb_size_lg2);
+    m_max_block_size_lg2 = std::move(rhs.m_max_block_size_lg2);
+    m_min_block_size_lg2 = std::move(rhs.m_min_block_size_lg2);
+    m_sb_count = std::move(rhs.m_sb_count);
+    m_hint_offset = std::move(rhs.m_hint_offset);
+    m_data_offset = std::move(rhs.m_data_offset);
+    return *this;
+  }
+  KOKKOS_INLINE_FUNCTION MemoryPool & operator = ( const MemoryPool & rhs )
+  {
+    m_tracker = rhs.m_tracker;
+    m_sb_state_array = rhs.m_sb_state_array;
+    m_sb_state_size = rhs.m_sb_state_size;
+    m_sb_size_lg2 = rhs.m_sb_size_lg2;
+    m_max_block_size_lg2 = rhs.m_max_block_size_lg2;
+    m_min_block_size_lg2 = rhs.m_min_block_size_lg2;
+    m_sb_count = rhs.m_sb_count;
+    m_hint_offset = rhs.m_hint_offset;
+    m_data_offset = rhs.m_data_offset;
+    return *this;
+  }
+#else
+  KOKKOS_INLINE_FUNCTION MemoryPool( MemoryPool && ) = default ;
+  KOKKOS_INLINE_FUNCTION MemoryPool( const MemoryPool & ) = default ;
+  KOKKOS_INLINE_FUNCTION MemoryPool & operator = ( MemoryPool && ) = default ;
+  KOKKOS_INLINE_FUNCTION MemoryPool & operator = ( const MemoryPool & ) = default ;
+#endif
 
   KOKKOS_INLINE_FUNCTION MemoryPool()
     : m_tracker()

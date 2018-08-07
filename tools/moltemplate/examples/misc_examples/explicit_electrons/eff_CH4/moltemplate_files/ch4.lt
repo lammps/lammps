@@ -1,0 +1,45 @@
+
+CH4 {
+
+  write_once("Data Masses") {
+    @atom:C 12.01070
+    @atom:H 1.000794
+    @atom:e 1.000000
+  }
+
+  #  id      type     q   spin  eradius   x   y   z
+
+  write("Data Atoms") {
+    $atom:c  @atom:C  6.0 0 0.0 0.0 0.0 0.0
+    $atom:h1  @atom:H  1.0 0 0.0 1.0 1.0 1.0
+    $atom:h2  @atom:H  1.0 0 0.0 -1.0 -1.0 1.0
+    $atom:h3  @atom:H  1.0 0 0.0 1.0 -1.0 -1.0
+    $atom:h4  @atom:H  1.0 0 0.0 -1.0 1.0 -1.0
+    $atom:esr  @atom:e  0.0 -1 0.5 0.0 0.0 0.0
+    $atom:esR1 @atom:e  0.0 -1 1.0 1.0 1.0 1.0
+    $atom:esR2 @atom:e  0.0 -1 1.0 -1.0 -1.0 1.0
+    $atom:esR3 @atom:e  0.0 -1 1.0 1.0 -1.0 -1.0
+    $atom:esR4 @atom:e  0.0 -1 1.0 -1.0 1.0 -1.0
+    $atom:eSr  @atom:e  0.0 1 0.5 0.0 0.0 0.0
+    $atom:eSR1 @atom:e  0.0 1 1.0 1.0 1.0 1.0
+    $atom:eSR2 @atom:e  0.0 1 1.0 -1.0 -1.0 1.0
+    $atom:eSR2 @atom:e  0.0 1 1.0 1.0 -1.0 -1.0
+    $atom:eSR3 @atom:e  0.0 1 1.0 -1.0 1.0 -1.0
+  }
+
+  # -- styles and force-field parameters --
+  #    (these can be overridden later)
+
+  write_once("In Init") {
+    atom_style      electron
+    units           electron
+    pair_style      eff/cut 100.0
+    newton          on
+    comm_modify     vel yes
+  }
+  write_once("In Settings") {
+    pair_coeff * *
+  }
+
+} # end of "CH4" object definition
+

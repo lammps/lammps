@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -49,8 +49,8 @@ Define a computation that simply stores rigid body attributes for
 rigid bodies defined by the "fix rigid/small"_fix_rigid.html command
 or one of its NVE, NVT, NPT, NPH variants.  The data is stored as
 local data so it can be accessed by other "output
-commands"_Section_howto.html#howto_15 that process local data, such as
-the "compute reduce"_compute_reduce.html or "dump local"_dump.html
+commands"_Howto_output.html that process local data, such as the
+"compute reduce"_compute_reduce.html or "dump local"_dump.html
 commands.
 
 Note that this command only works with the "fix
@@ -154,9 +154,9 @@ array is the number of rigid bodies.  If a single keyword is
 specified, a local vector is produced.  If two or more keywords are
 specified, a local array is produced where the number of columns = the
 number of keywords.  The vector or array can be accessed by any
-command that uses local values from a compute as input.  See "this
-section"_Section_howto.html#howto_15 for an overview of LAMMPS output
-options.
+command that uses local values from a compute as input.  See the
+"Howto output"_Howto_output.html doc page for an overview of LAMMPS
+output options.
 
 The vector or array values will be in whatever "units"_units.html the
 corresponding attribute is in:

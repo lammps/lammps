@@ -133,6 +133,7 @@ void PairBuckIntel::eval(const int offload, const int vflag,
 
   ATOM_T * _noalias const x = buffers->get_x(offload);
 
+  const int * _noalias const ilist = list->ilist;
   const int * _noalias const numneigh = list->numneigh;
   const int * _noalias const cnumneigh = buffers->cnumneigh(list);
   const int * _noalias const firstneigh = buffers->firstneigh(list);
@@ -169,6 +170,7 @@ void PairBuckIntel::eval(const int offload, const int vflag,
     in(cnumneigh:length(0) alloc_if(0) free_if(0)) \
     in(numneigh:length(0) alloc_if(0) free_if(0)) \
     in(x:length(x_size) alloc_if(0) free_if(0)) \
+    in(ilist:length(0) alloc_if(0) free_if(0)) \
     in(overflow:length(0) alloc_if(0) free_if(0)) \
     in(astart,nthreads,inum,nall,ntypes,vflag,eatom) \
     in(f_stride,nlocal,minlocal,separate_flag,offload) \
@@ -205,14 +207,16 @@ void PairBuckIntel::eval(const int offload, const int vflag,
       FORCE_T * _noalias const f = f_start + foff;
       if (NEWTON_PAIR) memset(f + minlocal, 0, f_stride * sizeof(FORCE_T));
 
-      for (int i = iifrom; i < iito; i += iip) {
+      for (int ii = iifrom; ii < iito; ii += iip) {
+        const int i = ilist[ii];
         const int itype = x[i].w;
 
         const int ptr_off = itype * ntypes;
         const C_FORCE_T * _noalias const c_forcei = c_force + ptr_off;
         const C_ENERGY_T * _noalias const c_energyi = c_energy + ptr_off;
-        const int   * _noalias const jlist = firstneigh + cnumneigh[i];
-        const int jnum = numneigh[i];
+        const int   * _noalias const jlist = firstneigh + cnumneigh[ii];
+        int jnum = numneigh[ii];
+        IP_PRE_neighbor_pad(jnum, offload);
 
         acc_t fxtmp,fytmp,fztmp,fwtmp;
         acc_t sevdwl,  sv0, sv1, sv2, sv3, sv4, sv5;

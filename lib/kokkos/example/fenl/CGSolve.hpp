@@ -59,7 +59,11 @@ namespace Example {
 
 template< typename ValueType , class Space >
 struct CrsMatrix {
-  typedef Kokkos::StaticCrsGraph< unsigned , Space , void , unsigned >  StaticCrsGraphType ;
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
+  typedef Kokkos::StaticCrsGraph< unsigned , Space , void , unsigned , void >  StaticCrsGraphType ;
+#else
+  typedef Kokkos::StaticCrsGraph< unsigned , Space , void , void , unsigned >  StaticCrsGraphType ;
+#endif
   typedef View< ValueType * , Space > coeff_type ;
 
   StaticCrsGraphType  graph ;

@@ -57,6 +57,32 @@
 #endif
 
 namespace Kokkos {
+
+KOKKOS_FORCEINLINE_FUNCTION
+int log2( unsigned i )
+{
+  enum : int { shift = sizeof(unsigned) * CHAR_BIT - 1 };
+#if defined( __CUDA_ARCH__ )
+  return shift - __clz(i);
+#elif defined( __HCC_ACCELERATOR__ )
+  return  (int)hc::__firstbit_u32_u32(i);
+#elif defined( KOKKOS_COMPILER_INTEL )
+  return _bit_scan_reverse(i);
+#elif defined( KOKKOS_COMPILER_IBM )
+  return shift - __cntlz4(i);
+#elif defined( KOKKOS_COMPILER_CRAYC )
+  return i ? shift - _leadz32(i) : 0 ;
+#elif defined( __GNUC__ ) || defined( __GNUG__ )
+  return shift - __builtin_clz(i);
+#else
+  int offset = 0;
+  if ( i ) {
+    for ( offset = shift ; (i & ( 1 << offset ) ) == 0 ; --offset );
+  }
+  return offset;
+#endif
+}
+
 namespace Impl {
 
 /**\brief  Find first zero bit.
@@ -113,31 +139,6 @@ int bit_scan_forward( unsigned i )
 #endif
 }
 
-KOKKOS_FORCEINLINE_FUNCTION
-int bit_scan_reverse( unsigned i )
-{
-  enum { shift = static_cast<int>( sizeof(unsigned) * CHAR_BIT - 1 ) };
-#if defined( __CUDA_ARCH__ )
-  return shift - __clz(i);
-#elif defined( __HCC_ACCELERATOR__ )
-  return  (int)hc::__firstbit_u32_u32(i);
-#elif defined( KOKKOS_COMPILER_INTEL )
-  return _bit_scan_reverse(i);
-#elif defined( KOKKOS_COMPILER_IBM )
-  return shift - __cntlz4(i);
-#elif defined( KOKKOS_COMPILER_CRAYC )
-  return i ? shift - _leadz32(i) : 0 ;
-#elif defined( __GNUC__ ) || defined( __GNUG__ )
-  return shift - __builtin_clz(i);
-#else
-  int offset = 0;
-  if ( i ) {
-    for ( offset = shift ; (i & ( 1 << offset ) ) == 0 ; --offset );
-  }
-  return offset;
-#endif
-}
-
 /// Count the number of bits set.
 KOKKOS_FORCEINLINE_FUNCTION
 int bit_count( unsigned i )
@@ -168,7 +169,7 @@ int bit_count( unsigned i )
 KOKKOS_INLINE_FUNCTION
 unsigned integral_power_of_two_that_contains( const unsigned N )
 {
-  const unsigned i = Kokkos::Impl::bit_scan_reverse( N );
+  const unsigned i = Kokkos::log2( N );
   return ( (1u << i) < N ) ? i + 1 : i ;
 }
 

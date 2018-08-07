@@ -1,0 +1,53 @@
+# /* ----------------------------------------------------------------------   
+#  Generic Linux Makefile for CUDA 
+#     - Change CUDA_ARCH for your GPU
+# ------------------------------------------------------------------------- */
+
+# which file will be copied to Makefile.lammps
+
+EXTRAMAKE = Makefile.lammps.standard
+
+ifeq ($(CUDA_HOME),)
+CUDA_HOME = /usr/local/cuda
+endif
+
+NVCC = nvcc
+
+# Kepler CUDA
+#CUDA_ARCH = -arch=sm_35
+# newer CUDA
+#CUDA_ARCH = -arch=sm_13
+# older CUDA
+#CUDA_ARCH = -arch=sm_10 -DCUDA_PRE_THREE
+
+CUDA_ARCH = -gencode arch=compute_60,code=sm_60 -gencode arch=compute_61,code=sm_61
+
+# this setting should match LAMMPS Makefile
+# one of LAMMPS_SMALLBIG (default), LAMMPS_BIGBIG and LAMMPS_SMALLSMALL
+
+LMP_INC = -DLAMMPS_SMALLBIG
+
+# precision for GPU calculations
+# -D_SINGLE_SINGLE  # Single precision for all calculations
+# -D_DOUBLE_DOUBLE  # Double precision for all calculations
+# -D_SINGLE_DOUBLE  # Accumulation of forces, etc. in double
+
+CUDA_PRECISION = -D_SINGLE_DOUBLE
+
+CUDA_INCLUDE = -I$(CUDA_HOME)/include
+CUDA_LIB = -L$(CUDA_HOME)/lib64
+CUDA_OPTS = -DUNIX -O3 -Xptxas -v --use_fast_math $(LMP_INC) -Xcompiler "-fPIC -std=c++98"
+
+CUDR_CPP = mpicxx -DMPI_GERYON -DUCL_NO_EXIT -DMPICH_IGNORE_CXX_SEEK -DOMPI_SKIP_MPICXX=1 -fPIC
+CUDR_OPTS = -O2 $(LMP_INC) # -xHost -no-prec-div -ansi-alias
+
+BIN_DIR = ./
+OBJ_DIR = ./
+LIB_DIR = ./
+AR = ar
+BSH = /bin/sh
+
+CUDPP_OPT = -DUSE_CUDPP -Icudpp_mini
+
+include Nvidia.makefile_multi
+

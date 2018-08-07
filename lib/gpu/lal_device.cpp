@@ -34,8 +34,8 @@ using namespace LAMMPS_AL;
 
 template <class numtyp, class acctyp>
 DeviceT::Device() : _init_count(0), _device_init(false),
-                                  _gpu_mode(GPU_FORCE), _first_device(0),
-                                  _last_device(0), _compiled(false) {
+                    _gpu_mode(GPU_FORCE), _first_device(0),
+                    _last_device(0), _platform_id(-1), _compiled(false) {
 }
 
 template <class numtyp, class acctyp>
@@ -67,6 +67,17 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int first_gpu,
   _particle_split=p_split;
   _cell_size=cell_size;
   _block_pair=block_pair;
+  // support selecting platform though "package device" keyword.
+  // "0:generic" will select platform 0 and tune for generic device
+  // "1:fermi" will select platform 1 and tune for Nvidia Fermi gpu
+  if (ocl_vendor) {
+    char *sep = NULL;
+    if ((sep = strstr(ocl_vendor,":"))) {
+      *sep = '\0';
+      _platform_id = atoi(ocl_vendor);
+      ocl_vendor = sep+1;
+    }
+  }
 
   // Get the rank/size within the world
   MPI_Comm_rank(_comm_world,&_world_me);
@@ -80,7 +91,7 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int first_gpu,
   char node_name[MPI_MAX_PROCESSOR_NAME];
   char *node_names = new char[MPI_MAX_PROCESSOR_NAME*_world_size];
   MPI_Get_processor_name(node_name,&name_length);
-  MPI_Allgather(&node_name,MPI_MAX_PROCESSOR_NAME,MPI_CHAR,&node_names,
+  MPI_Allgather(&node_name,MPI_MAX_PROCESSOR_NAME,MPI_CHAR,&node_names[0],
                 MPI_MAX_PROCESSOR_NAME,MPI_CHAR,_comm_world);
   std::string node_string=std::string(node_name);
 
@@ -119,8 +130,16 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int first_gpu,
 
   // Time on the device only if 1 proc per gpu
   _time_device=true;
+
+#if 0
+  // XXX: the following setting triggers a memory leak with OpenCL and MPI
+  //      setting _time_device=true for all processes doesn't seem to be a
+  //      problem with either (no segfault, no (large) memory leak.
+  //      thus keeping this disabled for now. may need to review later.
+  //      2018-07-23 <akohlmey@gmail.com>
   if (_procs_per_gpu>1)
     _time_device=false;
+#endif
 
   // Set up a per device communicator
   MPI_Comm_split(node_comm,my_gpu,0,&_comm_gpu);
@@ -134,6 +153,9 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int first_gpu,
   if (_procs_per_gpu>1 && gpu->sharing_supported(my_gpu)==false)
     return -7;
   #endif
+
+  if (gpu->set_platform_accelerator(_platform_id)!=UCL_SUCCESS)
+    return -12;
 
   if (gpu->set(my_gpu)!=UCL_SUCCESS)
     return -6;
@@ -191,13 +213,15 @@ int DeviceT::set_ocl_params(char *ocl_vendor) {
     _ocl_vendor_string="-DUSE_OPENCL";
     int token_count=0;
     std::string params[13];
-    char *pch = strtok(ocl_vendor,"\" ");
+    char *pch = strtok(ocl_vendor,",");
+    pch = strtok(NULL,",");
+    if (pch == NULL) return -11;
     while (pch != NULL) {
       if (token_count==13)
         return -11;
       params[token_count]=pch;
       token_count++;
-      pch = strtok(NULL,"\" ");
+      pch = strtok(NULL,",");
     }
     _ocl_vendor_string+=" -DMEM_THREADS="+params[0]+
                         " -DTHREADS_PER_ATOM="+params[1]+
@@ -656,7 +680,7 @@ int DeviceT::compile_kernels() {
   dev_program=new UCL_Program(*gpu);
   int success=dev_program->load_string(device,compile_string().c_str());
   if (success!=UCL_SUCCESS)
-    return -4;
+    return -6;
   k_zero.set_function(*dev_program,"kernel_zero");
   k_info.set_function(*dev_program,"kernel_info");
   _compiled=true;

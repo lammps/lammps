@@ -240,6 +240,16 @@ struct TestDynamicView
   }
 };
 
+TEST_F( TEST_CATEGORY , dynamic_view )
+{
+  typedef TestDynamicView< double , TEST_EXECSPACE >
+    TestDynView ;
+
+  for ( int i = 0 ; i < 10 ; ++i ) {
+    TestDynView::run( 100000 + 100 * i );
+  }
+}
+
 } // namespace Test
 
 #endif /* #ifndef KOKKOS_TEST_DYNAMICVIEW_HPP */

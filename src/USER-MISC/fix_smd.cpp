@@ -270,12 +270,12 @@ void FixSMD::smd_tether()
         ftotal[2] -= fz*massfrac;
         if (evflag) {
           domain->unmap(x[i],image[i],unwrap);
-          v[0] = fx*massfrac*unwrap[0];
-          v[1] = fy*massfrac*unwrap[1];
-          v[2] = fz*massfrac*unwrap[2];
-          v[3] = fx*massfrac*unwrap[1];
-          v[4] = fx*massfrac*unwrap[2];
-          v[5] = fy*massfrac*unwrap[2];
+          v[0] = -fx*massfrac*unwrap[0];
+          v[1] = -fy*massfrac*unwrap[1];
+          v[2] = -fz*massfrac*unwrap[2];
+          v[3] = -fx*massfrac*unwrap[1];
+          v[4] = -fx*massfrac*unwrap[2];
+          v[5] = -fy*massfrac*unwrap[2];
           v_tally(i, v);
         }
       }
@@ -291,12 +291,12 @@ void FixSMD::smd_tether()
         ftotal[2] -= fz*massfrac;
         if (evflag) {
           domain->unmap(x[i],image[i],unwrap);
-          v[0] = fx*massfrac*unwrap[0];
-          v[1] = fy*massfrac*unwrap[1];
-          v[2] = fz*massfrac*unwrap[2];
-          v[3] = fx*massfrac*unwrap[1];
-          v[4] = fx*massfrac*unwrap[2];
-          v[5] = fy*massfrac*unwrap[2];
+          v[0] = -fx*massfrac*unwrap[0];
+          v[1] = -fy*massfrac*unwrap[1];
+          v[2] = -fz*massfrac*unwrap[2];
+          v[3] = -fx*massfrac*unwrap[1];
+          v[4] = -fx*massfrac*unwrap[2];
+          v[5] = -fy*massfrac*unwrap[2];
           v_tally(i, v);
         }
       }

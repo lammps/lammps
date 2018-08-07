@@ -346,17 +346,12 @@ the per-atom electric field, this effectively sets a tolerance on the
 forces, simimlar to other LAMMPS KSpace styles, as explained on the
 "kspace_style"_kspace_style.html doc page.
 
-RENE: Also, can you explain more what is the difference between energy
-(total) and potential (per-atom)?  Which one is more vs less accurate?
-Does potential mean that the maximum of any atom's energy error is <
-tolerance?  I.e. it is a max across all per-atom values?  Ditto for
-field, since it is computed on a per-atom basis?
-
 Note that not all ScaFaCoS solvers support all tolerance types.
 These are the allowed values for each method:
 
 fmm = energy and energy_rel
 p2nfft = field (1d-,2d-,3d-periodic systems) or potential (0d-periodic)
+p3m = field
 ewald = field
 direct = has no tolerance tuning :ul
 
@@ -364,17 +359,13 @@ If the tolerance type is not changed, the default values for the
 tolerance type are the first values in the above list, e.g. energy
 is the default tolerance type for the fmm solver.
 
-RENE: Does the code (LAMMPS or Scafacos) generate an error
-if an unsupported tolerance is specified for a method?
-
 The {fmm_tuning} option is only relevant when using the FMM method.
 It activates (value=1) or deactivates (value=0) an internal tuning
 mechanism for the FMM solver.  The tuning operation runs sequentially
 and can be very time-consuming.  Usually it is not needed for systems
 with a homogenous charge distribution. The default for this option is
-therefore {0}.
-
-RENE: is the tuning a one-time (start-up) operation if enabled?
+therefore {0}. The FMM internal tuning is performed once, when the
+solver is set up.
 
 :line
 

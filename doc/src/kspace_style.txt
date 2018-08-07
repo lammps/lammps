@@ -251,6 +251,7 @@ These are the ScaFaCoS methods currently available from LAMMPS:
 {p2nfft} = FFT-based Coulomb solver
 {ewald} = Ewald summation
 {direct} = direct O(N^2) summation
+{p3m} = PPPM
 
 We plan to support additional ScaFaCoS solvers from LAMMPS in the
 future.  For an overview of the included solvers, refer to

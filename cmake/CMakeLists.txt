@@ -361,7 +361,10 @@ if(PKG_USER-SCAFACOS)
       URL_MD5 c75d75d8a4cb9757faddb8b205a2b20f
       CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> 
                                                --disable-doc 
-                                               --enable-fcs-solvers=fmm,p2nfft,direct,ewald 
+                                               --enable-fcs-solvers=fmm,p2nfft,direct,ewald,p3m
+                                               --with-internal-fftw
+                                               --with-internal-pfft
+                                               --with-internal-pnfft
                                                FC=${CMAKE_MPI_Fortran_COMPILER} 
                                                CXX=${CMAKE_MPI_CXX_COMPILER} 
                                                CC=${CMAKE_MPI_C_COMPILER}
@@ -377,9 +380,8 @@ if(PKG_USER-SCAFACOS)
     list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_ewald.a)
     list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_fmm.a)
     list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_p2nfft.a)
+    list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_p3m.a)
     list(APPEND LAMMPS_LINK_LIBS ${GSL_LIBRARIES})
-    #list(APPEND LAMMPS_LINK_LIBS gsl)
-    #list(APPEND LAMMPS_LINK_LIBS gslcblas)
     list(APPEND LAMMPS_LINK_LIBS m)
     list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_near.a)
     list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_gridsort.a)
@@ -391,13 +393,9 @@ if(PKG_USER-SCAFACOS)
     list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_fftw3.a)
     list(APPEND LAMMPS_LINK_LIBS ${MPI_Fortran_LIBRARIES})
     list(APPEND LAMMPS_LINK_LIBS ${MPI_C_LIBRARIES})
-# -L${libdir} -lfcs4fortran -lfcs -lfcs_direct -lfcs_ewald -lfcs_fmm -lfcs_p2nfft -lgsl -lgslcblas -lm -lfcs_near -lfcs_gridsort -lfcs_resort -lfcs_common -lfcs_pnfft -lfcs_pfft -lfcs_fftw3_mpi -lfcs_fftw3 -L/projects/opt/centos7/mpich/3.2-gcc_6.2.0/lib -L/projects/opt/centos7/gcc/6.2.0/packages/gcc-6.2.0/bin/../lib/gcc/x86_64-pc-linux-gnu/6.2.0 -L/projects/opt/centos7/gcc/6.2.0/packages/gcc-6.2.0/bin/../lib/gcc -L/projects/opt/centos7/gcc/6.2.0/packages/gcc-6.2.0/bin/../lib/gcc/x86_64-pc-linux-gnu/6.2.0/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/projects/opt/centos7/gcc/6.2.0/packages/gcc-6.2.0/bin/../lib/gcc/x86_64-pc-linux-gnu/6.2.0/../../.. -lmpifort -lmpi -lgfortran -lm -lquadmath
-#libfcs4fortran.a   libfcs_common.a   libfcs_direct.la  libfcs_fftw3.a      libfcs_fftw3_mpi.la  libfcs_gridsort.a   libfcs_near.a    libfcs_p2nfft.la  libfcs_pnfft.a   libfcs_resort.la
-#libfcs4fortran.la  libfcs_common.la  libfcs_ewald.a    libfcs_fftw3.la     libfcs_fmm.a         libfcs_gridsort.la  libfcs_near.la   libfcs_pfft.a     libfcs_pnfft.la  pkgconfig
-#libfcs.a           libfcs_direct.a   libfcs_ewald.la   libfcs_fftw3_mpi.a  libfcs_fmm.la        libfcs.la           libfcs_p2nfft.a  libfcs_pfft.la    libfcs_resort.a
   else()
     FIND_PACKAGE(PkgConfig REQUIRED)
-    PKG_CHECK_MODULES(SCAFACOS scafacos)
+    PKG_CHECK_MODULES(SCAFACOS scafacos REQUIRED)
     list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_LDFLAGS})
   endif()
   include_directories(${SCAFACOS_INCLUDE_DIRS})

@@ -96,10 +96,13 @@ Scafacos::~Scafacos()
 void Scafacos::init()
 {
   // error checks
-  if (screen && me == 0) fprintf(screen,"Setting up ScaFaCoS with solver %s ...\n",method);
-  if (logfile && me == 0) fprintf(logfile,"Setting up ScaFaCoS with solver %s ...\n",method);
+  if (screen && me == 0) fprintf(screen,
+                         "Setting up ScaFaCoS with solver %s ...\n",method);
+  if (logfile && me == 0) fprintf(logfile,
+                          "Setting up ScaFaCoS with solver %s ...\n",method);
 
-  if (!atom->q_flag) error->all(FLERR,"Kspace style requires atom attribute q");
+  if (!atom->q_flag) error->all(FLERR,
+                                "Kspace style requires atom attribute q");
 
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot use ScaFaCoS with 2d simulation");
@@ -111,7 +114,8 @@ void Scafacos::init()
     error->all(FLERR,"Scafacos atom count exceeds 2B");
 
   if (atom->molecular > 0) 
-    error->all(FLERR,"Cannot use Scafacos with molecular charged systems yet");
+    error->all(FLERR,
+               "Cannot use Scafacos with molecular charged systems yet");
 
   // one-time initialization of ScaFaCoS
 
@@ -204,15 +208,9 @@ void Scafacos::compute(int eflag, int vflag)
   if (vflag_global)
   {
     fcs_set_compute_virial(fcs,1);
+    if (strcmp(method,"p3m") == 0)
+      error->all(FLERR,"ScaFaCoS p3m does not support the computation of virial");
   }
-
-  /*
-  if (strcmp(method,"p3m")==0)
-  {
-    result = fcs_tune(fcs,nlocal,&x[0][0],q);
-    check_result(result);
-  }
-  */
 
   result = fcs_run(fcs,nlocal,&x[0][0],q,&efield[0][0],epot);
   check_result(result);
@@ -220,18 +218,6 @@ void Scafacos::compute(int eflag, int vflag)
   if (vflag_global)
   {
     fcs_get_virial(fcs,virial_int);
-    /*
-    printf(" %lf %lf %lf \n %lf %lf %lf \n %lf %lf %lf \n ",
-              virial_int[0], 
-              virial_int[1], 
-              virial_int[2], 
-              virial_int[3], 
-              virial_int[4], 
-              virial_int[5], 
-              virial_int[6], 
-              virial_int[7], 
-              virial_int[8]); 
-    */
     virial[0] = virial_int[0];
     virial[1] = virial_int[1];
     virial[2] = virial_int[2];
@@ -277,7 +263,8 @@ int Scafacos::modify_param(int narg, char **arg)
   if (strcmp(arg[0],"scafacos") != 0) return 0;
 
   if (strcmp(arg[1],"tolerance") == 0) {
-    if (narg < 3) error->all(FLERR,"Illegal kspace_modify command (tolerance)");
+    if (narg < 3) error->all(FLERR,
+                         "Illegal kspace_modify command (tolerance)");
     if (strcmp(arg[2],"energy") == 0)
       tolerance_type = FCS_TOLERANCE_TYPE_ENERGY;     
     else if (strcmp(arg[2],"energy_rel") == 0)
@@ -290,7 +277,39 @@ int Scafacos::modify_param(int narg, char **arg)
       tolerance_type = FCS_TOLERANCE_TYPE_POTENTIAL;     
     else if (strcmp(arg[2],"potential_rel") == 0)
       tolerance_type = FCS_TOLERANCE_TYPE_POTENTIAL_REL;     
-    else error->all(FLERR,"Illegal kspace_modify command (tolerance argument)");
+    else error->all(FLERR,
+                "Illegal kspace_modify command (tolerance argument)");
+    // check if method is compatatible to chosen tolerance type
+    if(
+        (
+          strcmp(method,"fmm") == 0 && 
+          ( 
+            tolerance_type != FCS_TOLERANCE_TYPE_ENERGY && 
+            tolerance_type != FCS_TOLERANCE_TYPE_ENERGY_REL
+          ) 
+        ) &&
+        (
+          strcmp(method,"p2nfft") == 0 && 
+          ( 
+            tolerance_type != FCS_TOLERANCE_TYPE_FIELD && 
+            tolerance_type != FCS_TOLERANCE_TYPE_POTENTIAL
+          ) 
+        ) &&
+        (
+          strcmp(method,"p3m") == 0 && 
+          ( 
+            tolerance_type != FCS_TOLERANCE_TYPE_FIELD 
+          ) 
+        ) &&
+        (
+          strcmp(method,"ewald") == 0 && 
+          ( 
+            tolerance_type != FCS_TOLERANCE_TYPE_FIELD  
+          )
+        ) 
+      )
+        error->all(FLERR,"Illegal kspace_modify command \
+                          (invalid tolerance / method combination)"); 
     return 3;
   }
 
@@ -300,9 +319,12 @@ int Scafacos::modify_param(int narg, char **arg)
   //       1 -> inhomogenous system (more internal tuning is provided (sequential!))
   if (strcmp(arg[1],"fmm_tuning") == 0)
   {
-    if (screen && me == 0) fprintf(screen,"ScaFaCoS setting fmm inhomogen tuning ...\n");
-    if (logfile && me == 0) fprintf(logfile,"ScaFaCoS setting fmm inhomogen tuning ...\n");
-    if (narg < 3) error->all(FLERR,"Illegal kspace_modify command (fmm_tuning)");
+    if (screen && me == 0) fprintf(screen,
+                           "ScaFaCoS setting fmm inhomogen tuning ...\n");
+    if (logfile && me == 0) fprintf(logfile,
+                            "ScaFaCoS setting fmm inhomogen tuning ...\n");
+    if (narg < 3) error->all(FLERR,
+                         "Illegal kspace_modify command (fmm_tuning)");
     fmm_tuning_flag = atoi(arg[2]);
     return 3;
   }

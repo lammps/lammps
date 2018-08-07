@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -64,9 +64,8 @@ See the "thermo_style" command for more details.
 
 This compute calculates a global scalar (the potential energy).  This
 value can be used by any command that uses a global scalar value from
-a compute as input.  See "Section
-6.15"_Section_howto.html#howto_15 for an overview of LAMMPS output
-options.
+a compute as input.  See the "Howto output"_Howto_output.html doc page
+for an overview of LAMMPS output options.
 
 The scalar value calculated by this compute is "extensive".  The
 scalar value will be in energy "units"_units.html.

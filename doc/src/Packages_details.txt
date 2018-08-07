@@ -3,7 +3,7 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -53,6 +53,7 @@ as contained in the file name.
 "RIGID"_#RIGID,
 "SHOCK"_#SHOCK,
 "SNAP"_#SNAP,
+"SPIN"_#SPIN,
 "SRD"_#SRD,
 "VORONOI"_#VORONOI :tb(c=6,ea=c)
 
@@ -112,7 +113,7 @@ make machine :pre
 [Supporting info:]
 
 src/ASPHERE: filenames -> commands
-"Section 6.14"_Section_howto.html#howto_14
+"Howto spherical"_Howto_spherical.html
 "pair_style gayberne"_pair_gayberne.html
 "pair_style resquared"_pair_resquared.html
 "doc/PDF/pair_gayberne_extra.pdf"_PDF/pair_gayberne_extra.pdf
@@ -130,7 +131,8 @@ BODY package :link(BODY),h4
 
 Body-style particles with internal structure.  Computes,
 time-integration fixes, pair styles, as well as the body styles
-themselves.  See the "body"_body.html doc page for an overview.
+themselves.  See the "Howto body"_Howto_body.html doc page for an
+overview.
 
 [Install or un-install:]
 
@@ -143,10 +145,10 @@ make machine :pre
 [Supporting info:]
 
 src/BODY filenames -> commands
-"body"_body.html
+"Howto_body"_Howto_body.html
 "atom_style body"_atom_style.html
 "fix nve/body"_fix_nve_body.html
-"pair_style body"_pair_body.html
+"pair_style body/nparticle"_pair_body_nparticle.html
 examples/body :ul
 
 :line
@@ -258,9 +260,9 @@ Compute and pair styles that implement the adiabatic core/shell model
 for polarizability.  The pair styles augment Born, Buckingham, and
 Lennard-Jones styles with core/shell capabilities.  The "compute
 temp/cs"_compute_temp_cs.html command calculates the temperature of a
-system with core/shell particles.  See "Section
-6.26"_Section_howto.html#howto_26 for an overview of how to use this
-package.
+system with core/shell particles.  See the "Howto
+coreshell"_Howto_coreshell.html doc page for an overview of how to use
+this package.
 
 [Author:] Hendrik Heenen (Technical U of Munich).
 
@@ -275,8 +277,8 @@ make machine :pre
 [Supporting info:]
 
 src/CORESHELL: filenames -> commands
-"Section 6.26"_Section_howto.html#howto_26
-"Section 6.25"_Section_howto.html#howto_25
+"Howto coreshell"_Howto_coreshell.html
+"Howto polarizable"_Howto_polarizable.html
 "compute temp/cs"_compute_temp_cs.html
 "pair_style born/coul/long/cs"_pair_cs.html
 "pair_style buck/coul/long/cs"_pair_cs.html
@@ -394,7 +396,7 @@ lib/gpu/README
 "Section 2.6 -sf gpu"_Section_start.html#start_6
 "Section 2.6 -pk gpu"_Section_start.html#start_6
 "package gpu"_package.html
-Pair Styles section of "Section 3.5"_Section_commands.html#cmd_5 for pair styles followed by (g)
+"Commands all"_Commands_all.html pages (pair,kspace) for styles followed by (g)
 "Benchmarks page"_http://lammps.sandia.gov/bench.html of web site :ul
 
 :line
@@ -418,7 +420,7 @@ make machine :pre
 [Supporting info:]
 
 src/GRANULAR: filenames -> commands
-"Section 6.6"_Section_howto.html#howto_6,
+"Howto granular"_Howto_granular.html
 "fix pour"_fix_pour.html
 "fix wall/gran"_fix_wall_gran.html
 "pair_style gran/hooke"_pair_gran.html
@@ -485,8 +487,8 @@ See the list of all KIM models here:
 https://openkim.org/kim-items/models/by-model-drivers
 
 See the list of example KIM models included by default here:
-https://openkim.org/kim-api in the "What is in the KIM API source
-package?" section
+https://openkim.org/kim-api on the "What is in the KIM API source
+package?" page.
 
 You can then install/un-install the package and build LAMMPS in the
 usual manner:
@@ -591,7 +593,7 @@ lib/kokkos/README
 "Section 2.6 -sf kk"_Section_start.html#start_6
 "Section 2.6 -pk kokkos"_Section_start.html#start_6
 "package kokkos"_package.html
-Styles sections of "Section 3.5"_Section_commands.html#cmd_5 for styles followed by (k)
+"Commands all"_Commands_all.html pages (fix,compute,pair,etc) for styles followed by (k)
 "Benchmarks page"_http://lammps.sandia.gov/bench.html of web site :ul
 
 :line
@@ -625,11 +627,11 @@ make machine :pre
 src/KSPACE: filenames -> commands
 "kspace_style"_kspace_style.html
 "doc/PDF/kspace.pdf"_PDF/kspace.pdf
-"Section 6.7"_Section_howto.html#howto_7
-"Section 6.8"_Section_howto.html#howto_8
-"Section 6.9"_Section_howto.html#howto_9
+"Howto tip3p"_Howto_tip3p.html
+"Howto tip4p"_Howto_tip4p.html
+"Howto spc"_Howto_spc.html
 "pair_style coul"_pair_coul.html
-Pair Styles section of "Section 3.5"_Section_commands.html#cmd_5 with "long" or "msm" in pair style name
+"Commands pair"_Commands_pair.html page for styles with "long" or "msm" in name
 examples/peptide
 bench/in.rhodo :ul
 
@@ -713,7 +715,7 @@ make machine :pre
 [Supporting info:]
 
 src/MANYBODY: filenames -> commands
-Pair Styles section of "Section 3.5"_Section_commands.html#cmd_5
+"Commands pair"_Commands_pair.html page
 examples/comb
 examples/eim
 examples/nb3d
@@ -876,7 +878,7 @@ src/MOLECULE: filenames -> commands
 "improper_style"_improper_style.html
 "pair_style hbond/dreiding/lj"_pair_hbond_dreiding.html
 "pair_style lj/charmm/coul/charmm"_pair_charmm.html
-"Section 6.3"_Section_howto.html#howto_3
+"Howto bioFF"_Howto_bioFF.html
 examples/cmap
 examples/dreiding
 examples/micelle,
@@ -1015,7 +1017,7 @@ src/OPT: filenames -> commands
 "Speed packages"_Speed_packages.html
 "Speed opt"_Speed_opt.html
 "Section 2.6 -sf opt"_Section_start.html#start_6
-Pair Styles section of "Section 3.5"_Section_commands.html#cmd_5 for pair styles followed by (t)
+"Commands pair"_Commands_pair.html for styles followed by (t)
 "Benchmarks page"_http://lammps.sandia.gov/bench.html of web site :ul
 
 :line
@@ -1114,10 +1116,10 @@ PYTHON package :link(PYTHON),h4
 
 A "python"_python.html command which allow you to execute Python code
 from a LAMMPS input script.  The code can be in a separate file or
-embedded in the input script itself.  See "Section
-11.2"_Section_python.html#py_2 for an overview of using Python from
-LAMMPS in this manner and the entire section for other ways to use
-LAMMPS and Python together.
+embedded in the input script itself.  See the "Python
+call"_Python_call.html doc page for an overview of using Python from
+LAMMPS in this manner and all the "Python"_Python.html doc pages for
+other ways to use LAMMPS and Python together.
 
 [Install or un-install:]
 
@@ -1138,7 +1140,7 @@ to Makefile.lammps) if the LAMMPS build fails.
 [Supporting info:]
 
 src/PYTHON: filenames -> commands
-"Section 11"_Section_python.html
+"Python call"_Python.html
 lib/python/README
 examples/python :ul
 
@@ -1228,8 +1230,8 @@ REPLICA package :link(REPLICA),h4
 [Contents:]
 
 A collection of multi-replica methods which can be used when running
-multiple LAMMPS simulations (replicas).  See "Section
-6.5"_Section_howto.html#howto_5 for an overview of how to run
+multiple LAMMPS simulations (replicas).  See the "Howto
+replica"_Howto_replica.html doc page for an overview of how to run
 multi-replica simulations in LAMMPS.  Methods in the package include
 nudged elastic band (NEB), parallel replica dynamics (PRD),
 temperature accelerated dynamics (TAD), parallel tempering, and a
@@ -1248,7 +1250,7 @@ make machine :pre
 [Supporting info:]
 
 src/REPLICA: filenames -> commands
-"Section 6.5"_Section_howto.html#howto_5
+"Howto replica"_Howto_replica.html
 "neb"_neb.html
 "prd"_prd.html
 "tad"_tad.html
@@ -1348,6 +1350,38 @@ src/SNAP: filenames -> commands
 "compute snad/atom"_compute_sna_atom.html
 "compute snav/atom"_compute_sna_atom.html
 examples/snap :ul
+
+:line
+
+SPIN package :link(SPIN),h4
+
+[Contents:]
+
+Model atomic magnetic spins classically, coupled to atoms moving in
+the usual manner via MD.  Various pair, fix, and compute styles.
+
+[Author:] Julian Tranchida (Sandia).
+
+[Install or un-install:]
+
+make yes-spin
+make machine :pre
+
+make no-spin
+make machine :pre
+
+[Supporting info:]
+
+src/SPIN: filenames -> commands
+"Howto spin"_Howto_spin.html
+"pair_style spin/dmi"_pair_spin_dmi.html
+"pair_style spin/exchange"_pair_spin_exchange.html
+"pair_style spin/magelec"_pair_spin_magelec.html
+"pair_style spin/neel"_pair_spin_neel.html
+"fix nve/spin"_fix_nve_spin.html
+"fix precession/spin"_fix_precession_spin.html
+"compute spin"_compute_spin.html
+examples/SPIN :ul
 
 :line
 
@@ -1798,10 +1832,10 @@ USER-DRUDE package :link(USER-DRUDE),h4
 [Contents:]
 
 Fixes, pair styles, and a compute to simulate thermalized Drude
-oscillators as a model of polarization.  See "Section
-6.27"_Section_howto.html#howto_27 for an overview of how to use the
-package.  There are auxiliary tools for using this package in
-tools/drude.
+oscillators as a model of polarization.  See the "Howto
+drude"_Howto_drude.html and "Howto drude2"_Howto_drude2.html doc pages
+for an overview of how to use the package.  There are auxiliary tools
+for using this package in tools/drude.
 
 [Authors:] Alain Dequidt (U Blaise Pascal Clermont-Ferrand), Julien
 Devemy (CNRS), and Agilio Padua (U Blaise Pascal).
@@ -1817,8 +1851,9 @@ make machine :pre
 [Supporting info:]
 
 src/USER-DRUDE: filenames -> commands
-"Section 6.27"_Section_howto.html#howto_27
-"Section 6.25"_Section_howto.html#howto_25
+"Howto drude"_Howto_drude.html
+"Howto drude2"_Howto_drude2.html
+"Howto polarizable"_Howto_polarizable.html
 src/USER-DRUDE/README
 "fix drude"_fix_drude.html
 "fix drude/transform/*"_fix_drude_transform.html
@@ -2037,7 +2072,7 @@ src/USER-INTEL/README
 "Section 2.6 -sf intel"_Section_start.html#start_6
 "Section 2.6 -pk intel"_Section_start.html#start_6
 "package intel"_package.html
-Styles sections of "Section 3.5"_Section_commands.html#cmd_5 for styles followed by (i)
+"Commands all"_Commands_all.html pages (fix,compute,pair,etc) for styles followed by (i)
 src/USER-INTEL/TEST
 "Benchmarks page"_http://lammps.sandia.gov/bench.html of web site :ul
 
@@ -2158,7 +2193,7 @@ make machine :pre
 
 src/USER-MANIFOLD: filenames -> commands
 src/USER-MANIFOLD/README
-"doc/manifolds"_manifolds.html
+"Howto manifold"_Howto_manifold.html
 "fix manifoldforce"_fix_manifoldforce.html
 "fix nve/manifold/rattle"_fix_nve_manifold_rattle.html
 "fix nvt/manifold/rattle"_fix_nvt_manifold_rattle.html
@@ -2422,7 +2457,7 @@ src/USER-OMP/README
 "Section 2.6 -sf omp"_Section_start.html#start_6
 "Section 2.6 -pk omp"_Section_start.html#start_6
 "package omp"_package.html
-Styles sections of "Section 3.5"_Section_commands.html#cmd_5 for styles followed by (o)
+"Commands all"_Commands_all.html pages (fix,compute,pair,etc) for styles followed by (o)
 "Benchmarks page"_http://lammps.sandia.gov/bench.html of web site :ul
 
 :line

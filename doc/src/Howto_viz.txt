@@ -1,0 +1,40 @@
+"Higher level section"_Howto.html - "LAMMPS WWW Site"_lws - "LAMMPS
+Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+Visualize LAMMPS snapshots :h3
+
+LAMMPS itself does not do visualization, but snapshots from LAMMPS
+simulations can be visualized (and analyzed) in a variety of ways.
+
+Mention dump image and dump movie.
+
+LAMMPS snapshots are created by the "dump"_dump.html command which can
+create files in several formats. The native LAMMPS dump format is a
+text file (see "dump atom" or "dump custom") which can be visualized
+by several popular visualization tools. The "dump
+image"_dump_image.html and "dump movie"_dump_image.html styles can
+output internally rendered images and convert a sequence of them to a
+movie during the MD run.  Several programs included with LAMMPS as
+auxiliary tools can convert between LAMMPS format files and other
+formats.  See the "Tools"_Tools.html doc page for details.
+
+A Python-based toolkit distributed by our group can read native LAMMPS
+dump files, including custom dump files with additional columns of
+user-specified atom information, and convert them to various formats
+or pipe them into visualization software directly.  See the "Pizza.py
+WWW site"_pizza for details.  Specifically, Pizza.py can convert
+LAMMPS dump files into PDB, XYZ, "Ensight"_ensight, and VTK formats.
+Pizza.py can pipe LAMMPS dump files directly into the Raster3d and
+RasMol visualization programs.  Pizza.py has tools that do interactive
+3d OpenGL visualization and one that creates SVG images of dump file
+snapshots.
+
+:link(pizza,http://www.sandia.gov/~sjplimp/pizza.html)
+:link(ensight,http://www.ensight.com)
+:link(atomeye,http://mt.seas.upenn.edu/Archive/Graphics/A)

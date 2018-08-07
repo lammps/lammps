@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -161,15 +161,16 @@ similar to the {ewald/disp} style. The 1/r^6 capability means
 that Lennard-Jones or Buckingham potentials can be used without a cutoff,
 i.e. they become full long-range potentials.
 
-For these styles, you will possibly want to adjust the default choice of
-parameters by using the "kspace_modify"_kspace_modify.html command.
+For these styles, you will possibly want to adjust the default choice
+of parameters by using the "kspace_modify"_kspace_modify.html command.
 This can be done by either choosing the Ewald and grid parameters, or
 by specifying separate accuracies for the real and kspace
-calculations. When not making any settings, the simulation will stop with
-an error message. Further information on the influence of the parameters
-and how to choose them is described in "(Isele-Holder)"_#Isele-Holder2012,
-"(Isele-Holder2)"_#Isele-Holder2013 and the
-"How-To"_Section_howto.html#howto_24 discussion.
+calculations. When not making any settings, the simulation will stop
+with an error message. Further information on the influence of the
+parameters and how to choose them is described in
+"(Isele-Holder)"_#Isele-Holder2012,
+"(Isele-Holder2)"_#Isele-Holder2013 and the "Howto
+dispersion"_Howto_dispersion.html doc page.
 
 :line
 

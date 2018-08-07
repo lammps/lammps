@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -22,7 +22,7 @@ improper_coeff 1 100.0 180.0 :pre
 
 The {umbrella} improper style uses the following potential, which is
 commonly referred to as a classic inversion and used in the
-"DREIDING"_Section_howto.html#howto_4 force field:
+"DREIDING"_Howto_bioFF.html force field:
 
 :c,image(Eqs/improper_umbrella.jpg)
 

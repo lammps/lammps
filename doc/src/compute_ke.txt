@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -44,7 +44,7 @@ include different degrees of freedom (translational, rotational, etc).
 
 This compute calculates a global scalar (the summed KE).  This value
 can be used by any command that uses a global scalar value from a
-compute as input.  See "Section 6.15"_Section_howto.html#howto_15
+compute as input.  See the "Howto output"_Howto_output.html doc page
 for an overview of LAMMPS output options.
 
 The scalar value calculated by this compute is "extensive".  The

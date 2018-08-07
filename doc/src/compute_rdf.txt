@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -152,7 +152,7 @@ coordinate (center of the bin), Each successive set of 2 columns has
 the g(r) and coord(r) values for a specific set of {itypeN} versus
 {jtypeN} interactions, as described above.  These values can be used
 by any command that uses a global values from a compute as input.  See
-"Section 6.15"_Section_howto.html#howto_15 for an overview of
+the "Howto output"_Howto_output.html doc page for an overview of
 LAMMPS output options.
 
 The array values calculated by this compute are all "intensive".

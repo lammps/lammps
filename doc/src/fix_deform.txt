@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -572,10 +572,9 @@ instructions on how to use the accelerated styles effectively.
 This fix will restore the initial box settings from "binary restart
 files"_restart.html, which allows the fix to be properly continue
 deformation, when using the start/stop options of the "run"_run.html
-command.  None of the "fix_modify"_fix_modify.html options
-are relevant to this fix.  No global or per-atom quantities are stored
-by this fix for access by various "output
-commands"_Section_howto.html#howto_15.
+command.  None of the "fix_modify"_fix_modify.html options are
+relevant to this fix.  No global or per-atom quantities are stored by
+this fix for access by various "output commands"_Howto_output.html.
 
 This fix can perform deformation over multiple runs, using the {start}
 and {stop} keywords of the "run"_run.html command.  See the

@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -386,9 +386,10 @@ have their temperature controlled by another fix - e.g. by "fix
 langevin"_fix_nh.html or "fix temp/rescale"_fix_temp_rescale.html
 commands.
 
-See "this howto section"_Section_howto.html#howto_16 of the manual for
-a discussion of different ways to compute temperature and perform
-thermostatting and barostatting.
+See the "Howto thermostat"_Howto_thermostat.html and "Howto
+barostat"_Howto_barostat.html doc pages for a discussion of different
+ways to compute temperature and perform thermostatting and
+barostatting.
 
 :line
 
@@ -537,9 +538,9 @@ and barostatting to the system's potential energy as part of
 "thermodynamic output"_thermo_style.html.
 
 These fixes compute a global scalar and a global vector of quantities,
-which can be accessed by various "output
-commands"_Section_howto.html#howto_15.  The scalar value calculated by
-these fixes is "extensive"; the vector values are "intensive".
+which can be accessed by various "output commands"_Howto_output.html.
+The scalar value calculated by these fixes is "extensive"; the vector
+values are "intensive".
 
 The scalar is the cumulative energy change due to the fix.
 

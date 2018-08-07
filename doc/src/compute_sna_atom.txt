@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -244,9 +244,8 @@ So the nesting order from inside to outside is bispectrum component,
 linear then quadratic, vector/tensor component, type.
 
 These values can be accessed by any command that uses per-atom values
-from a compute as input.  See "Section
-6.15"_Section_howto.html#howto_15 for an overview of LAMMPS output
-options.
+from a compute as input.  See the "Howto output"_Howto_output.html doc
+page for an overview of LAMMPS output options.
 
 [Restrictions:]
 

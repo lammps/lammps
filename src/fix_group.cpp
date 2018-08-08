@@ -84,7 +84,7 @@ idregion(NULL), idvar(NULL), idprop(NULL)
       idprop = new char[n];
       strcpy(idprop,arg[iarg+1]);
       iarg += 2;
-        } else if (strcmp(arg[iarg],"every") == 0) {
+    } else if (strcmp(arg[iarg],"every") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal group command");
       nevery = force->inumeric(FLERR,arg[iarg+1]);
       if (nevery <= 0) error->all(FLERR,"Illegal group command");

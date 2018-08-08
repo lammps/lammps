@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
 #include <cstdio>
 #include <cstring>
 #include <cstdlib>
@@ -24,6 +25,37 @@
 #include "neigh_list_kokkos.h"
 #include "error.h"
 #include "memory_kokkos.h"
+
+#ifdef KOKKOS_HAVE_CUDA
+
+// for detecting GPU-direct support:
+// the function  int have_gpu_direct()
+// - returns -1 if GPU-direct support is unknown
+// - returns  0 if no GPU-direct support available
+// - returns  1 if GPU-direct support is available
+
+#define GPU_DIRECT_UNKNOWN static int have_gpu_direct() {return -1;}
+
+// OpenMPI supports detecting GPU-direct as of version 2.0.0
+#if OPEN_MPI
+
+#if (OMPI_MAJOR_VERSION >= 2)
+#include <mpi-ext.h>
+#if defined(MPIX_CUDA_AWARE_SUPPORT)
+static int have_gpu_direct() { return MPIX_Query_cuda_support(); }
+#else
+GPU_DIRECT_UNKNOWN
+#endif
+
+#else // old OpenMPI
+GPU_DIRECT_UNKNOWN
+#endif
+
+#else // unknown MPI library
+GPU_DIRECT_UNKNOWN
+#endif
+
+#endif // KOKKOS_HAVE_CUDA
 
 using namespace LAMMPS_NS;
 
@@ -113,6 +145,27 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 #ifdef KOKKOS_HAVE_CUDA
   if (ngpu <= 0)
     error->all(FLERR,"Kokkos has been compiled for CUDA but no GPUs are requested");
+
+  // check and warn about GPU-direct availability when using multiple MPI tasks
+
+  int nmpi = 0;
+  MPI_Comm_size(world,&nmpi);
+  if ((nmpi > 1) && (me == 0)) {
+    if ( 1 == have_gpu_direct() ) {
+      ; // all good, nothing to warn about
+    } else if (-1 == have_gpu_direct() ) {
+      error->warning(FLERR,"Kokkos with CUDA assumes GPU-direct is available,"
+                     " but cannot determine if this is the case\n         try"
+                     " '-pk kokkos comm no' when getting segmentation faults");
+    } else if ( 0 == have_gpu_direct() ) {
+      error->warning(FLERR,"GPU-direct is NOT available, but some parts of "
+                     "Kokkos with CUDA require it\n         try"
+                     " '-pk kokkos comm no' when getting segmentation faults");
+    } else {
+      ; // should never get here
+    }
+  }
+    
 #endif
 
   Kokkos::InitArguments args;

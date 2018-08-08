@@ -96,6 +96,19 @@ software version 7.5 or later must be installed on your system. See
 the discussion for the "GPU package"_Speed_gpu.html for details of how
 to check and do this.
 
+NOTE: Kokkos with CUDA currently implicitly assumes, that the MPI
+library is CUDA-aware and has support for GPU-direct. This is not always
+the case, especially when using pre-compiled MPI libraries provided by
+a Linux distribution. This is not a problem when using only a single
+GPU and a single MPI rank on a desktop. When running with multiple
+MPI ranks, you may see segmentation faults without GPU-direct support.
+Many of those can be avoided by adding the flags '-pk kokkos comm no'
+to the LAMMPS command line or using "package kokkos comm on"_package.html
+in the input file, however for some KOKKOS enabled styles like 
+"EAM"_pair_eam.html or "PPPM"_kspace_style.html, this is not the case
+and a GPU-direct enabled MPI library is REQUIRED.
+
+
 Use a C++11 compatible compiler and set KOKKOS_ARCH variable in
 /src/MAKE/OPTIONS/Makefile.kokkos_cuda_mpi for both GPU and CPU as
 described above.  Then do the following:
@@ -262,9 +275,12 @@ the # of physical GPUs on the node.  You can assign multiple MPI tasks
 to the same GPU with the KOKKOS package, but this is usually only
 faster if significant portions of the input script have not been
 ported to use Kokkos. Using CUDA MPS is recommended in this
-scenario. As above for multi-core CPUs (and no GPU), if N is the
-number of physical cores/node, then the number of MPI tasks/node
-should not exceed N.
+scenario. Using a CUDA-aware MPI library with support for GPU-direct
+is highly recommended and for some KOKKOS-enabled styles even required.
+Most GPU-direct use can be avoided by using "-pk kokkos comm no".
+As above for multi-core CPUs (and no GPU), if N is the number of
+physical cores/node, then the number of MPI tasks/node should not
+exceed N.
 
 -k on g Ng :pre
 

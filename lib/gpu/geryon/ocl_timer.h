@@ -38,8 +38,8 @@ namespace ucl_opencl {
 /// Class for timing OpenCL events
 class UCL_Timer {
  public:
-  inline UCL_Timer() : _total_time(0.0f), _initialized(false) { }
-  inline UCL_Timer(UCL_Device &dev) : _total_time(0.0f), _initialized(false)
+  inline UCL_Timer() : _total_time(0.0f), _initialized(false), has_measured_time(false) { }
+  inline UCL_Timer(UCL_Device &dev) : _total_time(0.0f), _initialized(false), has_measured_time(false)
     { init(dev); }
 
   inline ~UCL_Timer() { clear(); }
@@ -52,6 +52,7 @@ class UCL_Timer {
       _initialized=false;
       _total_time=0.0;
     }
+    has_measured_time = false;
   }
 
   /// Initialize default command queue for timing
@@ -64,25 +65,39 @@ class UCL_Timer {
     _cq=cq;
     clRetainCommandQueue(_cq);
     _initialized=true;
+    has_measured_time = false;
   }
 
   /// Start timing on default command queue
-  inline void start() { UCL_OCL_MARKER(_cq,&start_event); }
+  inline void start() {
+    UCL_OCL_MARKER(_cq,&start_event);
+    has_measured_time = false;
+  }
 
   /// Stop timing on default command queue
-  inline void stop() { UCL_OCL_MARKER(_cq,&stop_event); }
+  inline void stop() {
+    UCL_OCL_MARKER(_cq,&stop_event);
+    has_measured_time = true;
+  }
 
   /// Block until the start event has been reached on device
-  inline void sync_start()
-    { CL_SAFE_CALL(clWaitForEvents(1,&start_event)); }
+  inline void sync_start() {
+    CL_SAFE_CALL(clWaitForEvents(1,&start_event));
+    has_measured_time = false;
+  }
 
   /// Block until the stop event has been reached on device
-  inline void sync_stop()
-    { CL_SAFE_CALL(clWaitForEvents(1,&stop_event)); }
+  inline void sync_stop() {
+    CL_SAFE_CALL(clWaitForEvents(1,&stop_event));
+    has_measured_time = true;
+  }
 
   /// Set the time elapsed to zero (not the total_time)
-  inline void zero()
-    { UCL_OCL_MARKER(_cq,&start_event); UCL_OCL_MARKER(_cq,&stop_event); }
+  inline void zero() {
+    has_measured_time = false;
+    UCL_OCL_MARKER(_cq,&start_event);
+    UCL_OCL_MARKER(_cq,&stop_event);
+  }
 
   /// Set the total time to zero
   inline void zero_total() { _total_time=0.0; }
@@ -97,6 +112,7 @@ class UCL_Timer {
 
   /// Return the time (ms) of last start to stop - Forces synchronization
   inline double time() {
+    if(!has_measured_time) return 0.0;
     cl_ulong tstart,tend;
     CL_SAFE_CALL(clWaitForEvents(1,&stop_event));
     CL_SAFE_CALL(clGetEventProfilingInfo(stop_event,
@@ -107,6 +123,7 @@ class UCL_Timer {
                                          sizeof(cl_ulong), &tstart, NULL));
     clReleaseEvent(start_event);
     clReleaseEvent(stop_event);
+    has_measured_time = false;
     return (tend-tstart)*t_factor;
   }
 
@@ -123,8 +140,9 @@ class UCL_Timer {
   cl_event start_event, stop_event;
   cl_command_queue _cq;
   double _total_time;
-  bool _initialized;
   double t_factor;
+  bool _initialized;
+  bool has_measured_time;
 };
 
 } // namespace

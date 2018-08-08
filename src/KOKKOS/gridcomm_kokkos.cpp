@@ -527,8 +527,8 @@ void GridCommKokkos<DeviceType>::forward_comm(KSpace *kspace, int which)
     DeviceType::fence();
 
     if (swap[m].sendproc != me) {
-      MPI_FFT_SCALAR* buf1;
-      MPI_FFT_SCALAR* buf2;
+      FFT_SCALAR* buf1;
+      FFT_SCALAR* buf2;
       if (lmp->kokkos->gpu_direct) {
         buf1 = k_buf1.view<DeviceType>().data();
         buf2 = k_buf2.view<DeviceType>().data();
@@ -577,8 +577,8 @@ void GridCommKokkos<DeviceType>::reverse_comm(KSpace *kspace, int which)
     DeviceType::fence();
 
     if (swap[m].recvproc != me) {
-      MPI_FFT_SCALAR* buf1;
-      MPI_FFT_SCALAR* buf2;
+      FFT_SCALAR* buf1;
+      FFT_SCALAR* buf2;
       if (lmp->kokkos->gpu_direct) {
         buf1 = k_buf1.view<DeviceType>().data();
         buf2 = k_buf2.view<DeviceType>().data();

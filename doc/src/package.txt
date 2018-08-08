@@ -489,10 +489,9 @@ packing/unpacking operation.
 
 The optimal choice for these keywords depends on the input script and
 the hardware used.  The {no} value is useful for verifying that the
-Kokkos-based {host} and {device} values are working correctly.  The {no}
-value should also be used, in case of using an MPI library that does
-not support GPU-direct. It may also be the fastest choice when using
-Kokkos styles in MPI-only mode (i.e. with a thread count of 1).
+Kokkos-based {host} and {device} values are working correctly. 
+It may also be the fastest choice when using Kokkos styles in
+MPI-only mode (i.e. with a thread count of 1).
 
 When running on CPUs or Xeon Phi, the {host} and {device} values work
 identically.  When using GPUs, the {device} value will typically be
@@ -513,7 +512,9 @@ this keyword is set to {on}, buffers in GPU memory are passed directly
 through MPI send/receive calls. This reduces overhead of first copying 
 the data to the host CPU. However GPU-direct is not supported on all 
 systems, which can lead to segmentation faults and would require
-using a value of {off}. 
+using a value of {off}. When the {gpu/direct} keyword is set to {off}
+while any of the {comm} keywords are set to {device}, the value for the
+{comm} keywords will be automatically changed to {host}.
 
 :line
 

@@ -102,8 +102,8 @@ the case, especially when using pre-compiled MPI libraries provided by
 a Linux distribution. This is not a problem when using only a single
 GPU and a single MPI rank on a desktop. When running with multiple
 MPI ranks, you may see segmentation faults without GPU-direct support.
-These can be avoided by adding the flags '-pk kokkos comm no gpu/direct no'
-to the LAMMPS command line or using "package kokkos comm no gpu/direct no"_package.html
+These can be avoided by adding the flags '-pk kokkos gpu/direct no'
+to the LAMMPS command line or using "package kokkos gpu/direct no"_package.html
 in the input file.
 
 Use a C++11 compatible compiler and set KOKKOS_ARCH variable in
@@ -273,8 +273,7 @@ to the same GPU with the KOKKOS package, but this is usually only
 faster if significant portions of the input script have not been
 ported to use Kokkos. Using CUDA MPS is recommended in this
 scenario. Using a CUDA-aware MPI library with support for GPU-direct
-is highly recommended and for some KOKKOS-enabled styles even required.
-Most GPU-direct use can be avoided by using "-pk kokkos comm no".
+is highly recommended. GPU-direct use can be avoided by using "-pk kokkos gpu/direct no".
 As above for multi-core CPUs (and no GPU), if N is the number of
 physical cores/node, then the number of MPI tasks/node should not
 exceed N.

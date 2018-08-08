@@ -150,6 +150,17 @@ void Scafacos::init()
         fcs_fmm_set_internal_tuning(fcs,FCS_FMM_HOMOGENOUS_SYSTEM);
     }
 
+    // for the FMM at least one particle is required per process
+    if (strcmp(method,"fmm") == 0)
+    {
+      int empty = (nlocal==0)?1:0;
+      MPI_Allreduce(MPI_IN_PLACE,&empty,1,MPI_INT,MPI_SUM,world);
+      if (empty > 0)
+        fcs_set_redistribute(fcs,1);
+      else
+        fcs_set_redistribute(fcs,0);
+    }
+
     result = fcs_tune(fcs,nlocal,&x[0][0],q);
     check_result(result);
     // more useful here, since the parameters should be tuned now 
@@ -171,6 +182,17 @@ void Scafacos::compute(int eflag, int vflag)
   int nlocal = atom->nlocal;
 
   const double qscale = qqrd2e;
+
+  // for the FMM at least one particle is required per process
+  if (strcmp(method,"fmm"))
+  {
+    int empty = (nlocal==0)?1:0;
+    MPI_Allreduce(MPI_IN_PLACE,&empty,1,MPI_INT,MPI_SUM,world);
+    if (empty > 0)
+      fcs_set_redistribute(fcs,1);
+    else
+      fcs_set_redistribute(fcs,0);
+  }
 
   if (eflag || vflag) ev_setup(eflag,vflag);
   else 

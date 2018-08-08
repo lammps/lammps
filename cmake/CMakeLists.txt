@@ -360,8 +360,8 @@ if(PKG_USER-SCAFACOS)
   if(DOWNLOAD_SCAFACOS)
     include(ExternalProject)
     ExternalProject_Add(scafacos_build
-      URL https://github.com/scafacos/scafacos/releases/download/v1.0.0/scafacos-1.0.0.tar.gz
-      URL_MD5 c75d75d8a4cb9757faddb8b205a2b20f
+      URL https://github.com/scafacos/scafacos/releases/download/v1.0.1/scafacos-1.0.1.tar.gz
+      URL_MD5 bd46d74e3296bd8a444d731bb10c1738
       CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> 
                                                --disable-doc 
                                                --enable-fcs-solvers=fmm,p2nfft,direct,ewald,p3m
@@ -389,6 +389,7 @@ if(PKG_USER-SCAFACOS)
     list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_near.a)
     list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_gridsort.a)
     list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_resort.a)
+    list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_redist.a)
     list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_common.a)
     list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_pnfft.a)
     list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_pfft.a)

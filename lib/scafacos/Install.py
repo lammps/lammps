@@ -29,8 +29,8 @@ make lib-scafacos args="-p $HOME/scafacos" # use existing Scafacos installation 
 
 # settings
 
-version = "scafacos-1.0.0"
-url = "https://github.com/scafacos/scafacos/releases/download/v1.0.0/scafacos-1.0.0.tar.gz"
+version = "scafacos-1.0.1"
+url = "https://github.com/scafacos/scafacos/releases/download/v1.0.1/scafacos-1.0.1.tar.gz"
 #url = "https://gigamove.rz.rwth-aachen.de/d/id/CTzyApN76MXMJ6/dd/100" % version
 
 # print error message or help
@@ -147,7 +147,7 @@ if buildflag:
 
 if buildflag:
   print("Building Scafacos ...")
-  cmd = 'cd "%s"; CC=mpicc FC=mpif90 CXX=mpicxx ./configure --prefix="`pwd`/build" --disable-doc --enable-fcs-solvers=fmm,p2nfft,direct,ewald > log.txt; make -j; make install' % homedir
+  cmd = 'cd "%s"; ./configure --prefix="`pwd`/build" --disable-doc --enable-fcs-solvers=fmm,p2nfft,direct,ewald,p3m --with-internal-fftw --with-internal-pfft --with-internal-pnfft CC=mpicc FC=mpif90 CXX=mpicxx F77= > log.txt; make -j; make install' % homedir
   txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   print(txt.decode('UTF-8'))
 

@@ -166,8 +166,11 @@ set_property(CACHE LAMMPS_SIZE_LIMIT PROPERTY STRINGS LAMMPS_SMALLBIG LAMMPS_BIG
 add_definitions(-D${LAMMPS_SIZE_LIMIT})
 set(LAMMPS_API_DEFINES "${LAMMPS_API_DEFINES} -D${LAMMPS_SIZE_LIMIT}")
 
-set(LAMMPS_MEMALIGN "64" CACHE STRING "enables the use of the posix_memalign() call instead of malloc() when large chunks or memory are allocated by LAMMPS")
-add_definitions(-DLAMMPS_MEMALIGN=${LAMMPS_MEMALIGN})
+# posix_memalign is not available on Windows
+if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  set(LAMMPS_MEMALIGN "64" CACHE STRING "enables the use of the posix_memalign() call instead of malloc() when large chunks or memory are allocated by LAMMPS")
+  add_definitions(-DLAMMPS_MEMALIGN=${LAMMPS_MEMALIGN})
+endif()
 
 option(LAMMPS_EXCEPTIONS "enable the use of C++ exceptions for error messages (useful for library interface)" OFF)
 if(LAMMPS_EXCEPTIONS)
@@ -519,6 +522,11 @@ if(PKG_COMPRESS)
   list(APPEND LAMMPS_LINK_LIBS ${ZLIB_LIBRARIES})
 endif()
 
+# the windows version of LAMMPS requires a couple extra libraries
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  list(APPEND LAMMPS_LINK_LIBS -lwsock32 -lpsapi)
+endif()
+
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
 ########################################################################
@@ -677,6 +685,10 @@ if(PKG_USER-OMP)
     get_property(USER-OMP_SOURCES GLOBAL PROPERTY OMP_SOURCES)
 
     # manually add package dependent source files from USER-OMP that do not provide styles
+
+    if(PKG_ASPHERE)
+      list(APPEND USER-OMP_SOURCES ${USER-OMP_SOURCES_DIR}/fix_nh_asphere_omp.cpp)
+    endif()
 
     if(PKG_RIGID)
       list(APPEND USER-OMP_SOURCES ${USER-OMP_SOURCES_DIR}/fix_rigid_nh_omp.cpp)

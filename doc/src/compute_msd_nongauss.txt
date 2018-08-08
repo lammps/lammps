@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -57,9 +57,8 @@ NOTEs, which also apply to this compute.
 
 This compute calculates a global vector of length 3, which can be
 accessed by indices 1-3 by any command that uses global vector values
-from a compute as input.  See "this
-section"_Section_howto.html#howto_15 for an overview of LAMMPS output
-options.
+from a compute as input.  See the "Howto output"_Howto_output.html doc
+page for an overview of LAMMPS output options.
 
 The vector values are "intensive".  The first vector value will be in
 distance^2 "units"_units.html, the second is in distance^4 units, and

@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -33,8 +33,8 @@ pair_coeff 1 2 hbond/dreiding/morse 3 i 3.88 1.7241379 2.9 2 9 11 90 :pre
 [Description:]
 
 The {hbond/dreiding} styles compute the Acceptor-Hydrogen-Donor (AHD)
-3-body hydrogen bond interaction for the
-"DREIDING"_Section_howto.html#howto_4 force field, given by:
+3-body hydrogen bond interaction for the "DREIDING"_Howto_bioFF.html
+force field, given by:
 
 :c,image(Eqs/pair_hbond_dreiding.jpg)
 
@@ -65,8 +65,8 @@ potential for the Donor-Acceptor interactions. "(Liu)"_#Liu showed
 that the Morse form gives improved results for Dendrimer simulations,
 when n = 2.
 
-See this "howto section"_Section_howto.html#howto_4 of the manual for
-more information on the DREIDING forcefield.
+See the "Howto bioFF"_Howto_bioFF.html doc page for more information
+on the DREIDING forcefield.
 
 NOTE: Because the Dreiding hydrogen bond potential is only one portion
 of an overall force field which typically includes other pairwise

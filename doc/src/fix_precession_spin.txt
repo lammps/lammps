@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -67,8 +67,8 @@ to add this magnetic potential energy to the potential energy of the system,
 fix             1 all precession/spin zeeman 1.0 0.0 0.0 1.0
 fix_modify      1 energy yes :pre
 
-This fix computes a global scalar which can be accessed by various 
-"output commands"_Section_howto.html#howto_15. 
+This fix computes a global scalar which can be accessed by various
+"output commands"_Howto_output.html.
 
 No information about this fix is written to "binary restart
 files"_restart.html.

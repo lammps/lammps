@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -98,8 +98,8 @@ compute 1 all entropy/atom 0.25 7.3 avg yes 5.1 :pre
 
 By default, this compute calculates the pair entropy value for each
 atom as a per-atom vector, which can be accessed by any command that
-uses per-atom values from a compute as input.  See "Section
-6.15"_Section_howto.html#howto_15 for an overview of LAMMPS output
+uses per-atom values from a compute as input.  See the "Howto
+output"_Howto_output.html doc page for an overview of LAMMPS output
 options.
 
 The pair entropy values have units of the Boltzmann constant. They are 

@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -69,8 +69,8 @@ simulation with more replicas (partitions) than you have physical
 processors, e.g you can run a 10-replica simulation on one or two
 processors.  However for PRD, this makes little sense, since running a
 replica on virtual instead of physical processors,offers no effective
-parallel speed-up in searching for infrequent events.  See "Section
-6.5"_Section_howto.html#howto_5 of the manual for further discussion.
+parallel speed-up in searching for infrequent events.  See the "Howto
+replica"_Howto_replica.html doc page for further discussion.
 
 When a PRD simulation is performed, it is assumed that each replica is
 running the same model, though LAMMPS does not check for this.

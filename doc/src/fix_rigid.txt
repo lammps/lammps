@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -745,29 +745,29 @@ computed early or late in a timestep, i.e. at the post-force stage or
 at the final-integrate stage or the timestep, respectively.
 
 The 2 NVE rigid fixes compute a global scalar which can be accessed by
-various "output commands"_Section_howto.html#howto_15.  The scalar
-value calculated by these fixes is "intensive".  The scalar is the
-current temperature of the collection of rigid bodies.  This is
-averaged over all rigid bodies and their translational and rotational
-degrees of freedom.  The translational energy of a rigid body is 1/2 m
-v^2, where m = total mass of the body and v = the velocity of its
-center of mass.  The rotational energy of a rigid body is 1/2 I w^2,
-where I = the moment of inertia tensor of the body and w = its angular
-velocity.  Degrees of freedom constrained by the {force} and {torque}
-keywords are removed from this calculation, but only for the {rigid}
-and {rigid/nve} fixes.
+various "output commands"_Howto_output.html.  The scalar value
+calculated by these fixes is "intensive".  The scalar is the current
+temperature of the collection of rigid bodies.  This is averaged over
+all rigid bodies and their translational and rotational degrees of
+freedom.  The translational energy of a rigid body is 1/2 m v^2, where
+m = total mass of the body and v = the velocity of its center of mass.
+The rotational energy of a rigid body is 1/2 I w^2, where I = the
+moment of inertia tensor of the body and w = its angular velocity.
+Degrees of freedom constrained by the {force} and {torque} keywords
+are removed from this calculation, but only for the {rigid} and
+{rigid/nve} fixes.
 
 The 6 NVT, NPT, NPH rigid fixes compute a global scalar which can be
-accessed by various "output commands"_Section_howto.html#howto_15.
-The scalar value calculated by these fixes is "extensive".  The scalar
-is the cumulative energy change due to the thermostatting and
-barostatting the fix performs.
+accessed by various "output commands"_Howto_output.html.  The scalar
+value calculated by these fixes is "extensive".  The scalar is the
+cumulative energy change due to the thermostatting and barostatting
+the fix performs.
 
 All of the {rigid} styles (not the {rigid/small} styles) compute a
 global array of values which can be accessed by various "output
-commands"_Section_howto.html#howto_15.  Similar information about the
-bodies defined by the {rigid/small} styles can be accessed via the
-"compute rigid/local"_compute_rigid_local.html command.
+commands"_Howto_output.html.  Similar information about the bodies
+defined by the {rigid/small} styles can be accessed via the "compute
+rigid/local"_compute_rigid_local.html command.
 
 The number of rows in the array is equal to the number of rigid
 bodies.  The number of columns is 15.  Thus for each rigid body, 15

@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -10,6 +10,7 @@ Using LAMMPS with Bash on Windows :h3
 [written by Richard Berger]
 
 :line
+
 Starting with Windows 10 you can install Linux tools directly in Windows. This
 allows you to compile LAMMPS following the same procedure as on a real Ubuntu
 Linux installation. Software can be easily installed using the package manager

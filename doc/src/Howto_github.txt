@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -25,8 +25,8 @@ or improvements to LAMMPS, as it significantly reduces the amount of
 work required by the LAMMPS developers. Consequently, creating a pull
 request will increase your chances to have your contribution included
 and will reduce the time until the integration is complete. For more
-information on the requirements to have your code included in LAMMPS,
-see the "Modify contribute"_Modify_contribute.html doc page.
+information on the requirements to have your code included into LAMMPS
+please see the "Modify contribute"_Modify_contribute.html doc page.
 
 :line
 
@@ -124,7 +124,7 @@ unrelated feature, you should switch branches!
 
 After everything is done, add the files to the branch and commit them:
 
- $ git add doc/src/tutorial_github.txt
+ $ git add doc/src/Howto_github.txt
  $ git add doc/src/JPG/tutorial*.png :pre
 
 IMPORTANT NOTE: Do not use {git commit -a} (or {git add -A}).  The -a
@@ -318,7 +318,7 @@ Because the changes are OK with us, we are going to merge by clicking on
 Now, since in the meantime our local text for the tutorial also changed,
 we need to pull Axel's change back into our branch, and merge them:
 
- $ git add tutorial_github.txt
+ $ git add Howto_github.txt
  $ git add JPG/tutorial_reverse_pull_request*.png
  $ git commit -m "Updated text and images on reverse pull requests"
  $ git pull :pre
@@ -331,7 +331,7 @@ With Axel's changes merged in and some final text updates, our feature
 branch is now perfect as far as we are concerned, so we are going to
 commit and push again:
 
- $ git add tutorial_github.txt
+ $ git add Howto_github.txt
  $ git add JPG/tutorial_reverse_pull_request6.png
  $ git commit -m "Merged Axel's suggestions and updated text"
  $ git push git@github.com:Pakketeretet2/lammps :pre

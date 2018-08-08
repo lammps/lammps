@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -21,10 +21,10 @@ angle_coeff * 75.0 1 6 :pre
 [Description:]
 
 The {cosine/periodic} angle style uses the following potential, which
-is commonly used in the "DREIDING"_Section_howto.html#howto_4 force
-field, particularly for organometallic systems where {n} = 4 might be
-used for an octahedral complex and {n} = 3 might be used for a
-trigonal center:
+is commonly used in the "DREIDING"_Howto_bioFF.html force field,
+particularly for organometallic systems where {n} = 4 might be used
+for an octahedral complex and {n} = 3 might be used for a trigonal
+center:
 
 :c,image(Eqs/angle_cosine_periodic.jpg)
 

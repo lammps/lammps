@@ -3,7 +3,7 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -46,7 +46,7 @@ Package, Description, Doc page, Example, Library
 "USER-COLVARS"_Packages_details.html#USER-COLVARS, collective variables library, "fix colvars"_fix_colvars.html, USER/colvars, int
 "USER-DIFFRACTION"_Packages_details.html#USER-DIFFRACTION, virtual x-ray and electron diffraction,"compute xrd"_compute_xrd.html, USER/diffraction, -
 "USER-DPD"_Packages_details.html#USER-DPD, reactive dissipative particle dynamics, src/USER-DPD/README, USER/dpd, -
-"USER-DRUDE"_Packages_details.html#USER-DRUDE, Drude oscillators, "tutorial"_tutorial_drude.html, USER/drude, -
+"USER-DRUDE"_Packages_details.html#USER-DRUDE, Drude oscillators, "Howto drude"_Howto_drude.html, USER/drude, -
 "USER-EFF"_Packages_details.html#USER-EFF, electron force field,"pair_style eff/cut"_pair_eff.html, USER/eff, -
 "USER-FEP"_Packages_details.html#USER-FEP, free energy perturbation,"compute fep"_compute_fep.html, USER/fep, -
 "USER-H5MD"_Packages_details.html#USER-H5MD, dump output via HDF5,"dump h5md"_dump_h5md.html, -, ext

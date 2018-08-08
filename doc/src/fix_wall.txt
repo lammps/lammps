@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -263,14 +263,14 @@ integrator the fix is adding its forces. Default is the outermost level.
 
 This fix computes a global scalar energy and a global vector of
 forces, which can be accessed by various "output
-commands"_Section_howto.html#howto_15.  Note that the scalar energy is
-the sum of interactions with all defined walls.  If you want the
-energy on a per-wall basis, you need to use multiple fix wall
-commands.  The length of the vector is equal to the number of walls
-defined by the fix.  Each vector value is the normal force on a
-specific wall.  Note that an outward force on a wall will be a
-negative value for {lo} walls and a positive value for {hi} walls.
-The scalar and vector values calculated by this fix are "extensive".
+commands"_Howto_output.html.  Note that the scalar energy is the sum
+of interactions with all defined walls.  If you want the energy on a
+per-wall basis, you need to use multiple fix wall commands.  The
+length of the vector is equal to the number of walls defined by the
+fix.  Each vector value is the normal force on a specific wall.  Note
+that an outward force on a wall will be a negative value for {lo}
+walls and a positive value for {hi} walls.  The scalar and vector
+values calculated by this fix are "extensive".
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.

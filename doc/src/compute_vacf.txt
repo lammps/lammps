@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -55,9 +55,8 @@ correctly with time=0 atom velocities from the restart file.
 
 This compute calculates a global vector of length 4, which can be
 accessed by indices 1-4 by any command that uses global vector values
-from a compute as input.  See "this
-section"_Section_howto.html#howto_15 for an overview of LAMMPS output
-options.
+from a compute as input.  See the "Howto output"_Howto_output.html doc
+page for an overview of LAMMPS output options.
 
 The vector values are "intensive".  The vector values will be in
 velocity^2 "units"_units.html.

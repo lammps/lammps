@@ -106,8 +106,8 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   // initialize Kokkos
 
   if (me == 0) {
-    if (screen) fprintf(screen,"  using %d GPU(s)\n",ngpu);
-    if (logfile) fprintf(logfile,"  using %d GPU(s)\n",ngpu);
+    if (screen) fprintf(screen,"  will use up to %d GPU(s) per node\n",ngpu);
+    if (logfile) fprintf(logfile,"  will use up to %d GPU(s) per node\n",ngpu);
   }
 
 #ifdef KOKKOS_HAVE_CUDA

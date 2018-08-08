@@ -404,12 +404,30 @@ void CommKokkos::forward_comm_pair_device(Pair *pair)
     // if self, set recv buffer to send buffer
 
     if (sendproc[iswap] != me) {
-      if (recvnum[iswap])
-        MPI_Irecv(k_buf_recv_pair.view<DeviceType>().data(),nsize*recvnum[iswap],MPI_DOUBLE,
+      double* buf_send_pair;
+      double* buf_recv_pair;
+      if (lmp->kokkos->gpu_direct) {
+        buf_send_pair = k_buf_send_pair.view<DeviceType>().data();
+        buf_recv_pair = k_buf_recv_pair.view<DeviceType>().data();
+      } else {
+        k_buf_send_pair.modify<DeviceType>();
+        k_buf_send_pair.sync<LMPHostType>();
+        buf_send_pair = k_buf_send_pair.h_view.data();
+        buf_recv_pair = k_buf_recv_pair.h_view.data();
+      }
+
+      if (recvnum[iswap]) {
+        MPI_Irecv(buf_recv_pair,nsize*recvnum[iswap],MPI_DOUBLE,
                   recvproc[iswap],0,world,&request);
+      }
       if (sendnum[iswap])
-        MPI_Send(k_buf_send_pair.view<DeviceType>().data(),n,MPI_DOUBLE,sendproc[iswap],0,world);
+        MPI_Send(buf_send_pair,n,MPI_DOUBLE,sendproc[iswap],0,world);
       if (recvnum[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
+
+      if (!lmp->kokkos->gpu_direct) {
+        k_buf_recv_pair.modify<LMPHostType>();
+        k_buf_recv_pair.sync<DeviceType>();
+      }
     } else k_buf_recv_pair = k_buf_send_pair;
 
     // unpack buffer

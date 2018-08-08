@@ -156,11 +156,11 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     } else if (-1 == have_gpu_direct() ) {
       error->warning(FLERR,"Kokkos with CUDA assumes GPU-direct is available,"
                      " but cannot determine if this is the case\n         try"
-                     " '-pk kokkos comm no' when getting segmentation faults");
+                     " '-pk kokkos comm no gpu/direct no' when getting segmentation faults");
     } else if ( 0 == have_gpu_direct() ) {
       error->warning(FLERR,"GPU-direct is NOT available, but some parts of "
                      "Kokkos with CUDA require it\n         try"
-                     " '-pk kokkos comm no' when getting segmentation faults");
+                     " '-pk kokkos comm no gpu/direct no' when getting segmentation faults");
     } else {
       ; // should never get here
     }
@@ -186,6 +186,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   exchange_comm_on_host = 0;
   forward_comm_on_host = 0;
   reverse_comm_on_host = 0;
+  gpu_direct = 0;
 
 #ifdef KILL_KOKKOS_ON_SIGSEGV
   signal(SIGSEGV, my_signal_handler);
@@ -216,6 +217,7 @@ void KokkosLMP::accelerator(int narg, char **arg)
   double binsize = 0.0;
   exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 0;
   exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 0;
+  gpu_direct = 1;
 
   int iarg = 0;
   while (iarg < narg) {
@@ -298,6 +300,12 @@ void KokkosLMP::accelerator(int narg, char **arg)
         reverse_comm_classic = 0;
         reverse_comm_on_host = 0;
       } else error->all(FLERR,"Illegal package kokkos command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"gpu/direct") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
+      if (strcmp(arg[iarg+1],"off") == 0) gpu_direct = 0;
+      else if (strcmp(arg[iarg+1],"on") == 0) gpu_direct = 1;
+      else error->all(FLERR,"Illegal package kokkos command");
       iarg += 2;
     } else error->all(FLERR,"Illegal package kokkos command");
   }

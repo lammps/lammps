@@ -17,6 +17,7 @@ These pages provide a brief introduction to LAMMPS.
 .. toctree::
 
    Intro_overview
+   Manual_version
    Intro_features
    Intro_nonfeatures
    Intro_opensource

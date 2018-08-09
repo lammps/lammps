@@ -71,7 +71,6 @@ every LAMMPS command.
    :name: userdoc
    :includehidden:
 
-   Manual_version
    Intro
    Install
    Build

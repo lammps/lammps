@@ -49,7 +49,7 @@ as contained in the file name.
 "PYTHON"_#PYTHON,
 "QEQ"_#QEQ,
 "REAX"_#REAX,
-"REPLICA"_#REPLICA,
+"REPLICA"_#REPLICA2,
 "RIGID"_#RIGID,
 "SHOCK"_#SHOCK,
 "SNAP"_#SNAP,
@@ -392,7 +392,7 @@ src/GPU: filenames -> commands
 src/GPU/README
 lib/gpu/README
 "Speed packages"_Speed_packages.html
-"Speed gpu"_Speed_gpu.html.html
+"Speed gpu"_Speed_gpu.html
 "Section 2.6 -sf gpu"_Section_start.html#start_6
 "Section 2.6 -pk gpu"_Section_start.html#start_6
 "package gpu"_package.html
@@ -1225,7 +1225,7 @@ examples/reax :ul
 
 :line
 
-REPLICA package :link(REPLICA),h4
+REPLICA package :link(REPLICA2),h4
 
 [Contents:]
 
@@ -1373,7 +1373,7 @@ make machine :pre
 [Supporting info:]
 
 src/SPIN: filenames -> commands
-"Howto spin"_Howto_spin.html
+"Howto spins"_Howto_spins.html
 "pair_style spin/dmi"_pair_spin_dmi.html
 "pair_style spin/exchange"_pair_spin_exchange.html
 "pair_style spin/magelec"_pair_spin_magelec.html

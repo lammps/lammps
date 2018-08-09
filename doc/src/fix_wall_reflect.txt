@@ -51,7 +51,7 @@ corresponding component of its velocity is flipped.
 When used in conjunction with "fix nve"_fix_nve.html and "run_style
 verlet"_run_style.html, the resultant time-integration algorithm is
 equivalent to the primitive splitting algorithm (PSA) described by
-"Bond"_#Bond.  Because each reflection event divides
+"Bond"_#Bond1.  Because each reflection event divides
 the corresponding timestep asymmetrically, energy conservation is only
 satisfied to O(dt), rather than to O(dt^2) as it would be for
 velocity-Verlet integration without reflective walls.
@@ -179,5 +179,5 @@ error.
 
 :line
 
-:link(Bond)
+:link(Bond1)
 [(Bond)] Bond and Leimkuhler, SIAM J Sci Comput, 30, p 134 (2007).

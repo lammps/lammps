@@ -93,7 +93,7 @@ decide if the WARNING is important or not.  A WARNING message that is
 generated in the middle of a run is only printed to the screen, not to
 the logfile, to avoid cluttering up thermodynamic output.  If LAMMPS
 crashes or hangs without spitting out an error message first then it
-could be a bug (see "this section"_#err_2) or one of the following
+could be a bug (see "this section"_Errors_bugs.html) or one of the following
 cases:
 
 LAMMPS runs in the available memory a processor allows to be

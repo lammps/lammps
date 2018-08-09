@@ -9,7 +9,7 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 "Fix styles"_Commands_fix.html,
 "Compute styles"_Commands_compute.html,
 "Pair styles"_Commands_pair.html,
-"Bond styles"_Commands_bond.html,
+"Bond styles"_Commands_bond.html#bond,
 "Angle styles"_Commands_bond.html#angle,
 "Dihedral styles"_Commands_bond.html#dihedral,
 "Improper styles"_Commands_bond.html#improper,

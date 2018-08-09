@@ -25,7 +25,7 @@ fix constrain all manifoldforce sphere 5.0
 [Description:]
 
 This fix subtracts each time step from the force the component along
-the normal of the specified "manifold"_manifolds.html.  This can be
+the normal of the specified "manifold"_Howto_manifold.html.  This can be
 used in combination with "minimize"_minimize.html to remove overlap
 between particles while keeping them (roughly) constrained to the
 given manifold, e.g. to set up a run with "fix

@@ -15,13 +15,13 @@ letter abbreviation can be used:
 
 "-e or -echo"_#echo
 "-h or -help"_#help
-"-i or -in"_#in
-"-k or -kokkos"_#kokkos
+"-i or -in"_#file
+"-k or -kokkos"_#run-kokkos
 "-l or -log"_#log
 "-nc or -nocite"_#nocite
 "-pk or -package"_#package
 "-p or -partition"_#partition
-"-pl or -plog"_#plot
+"-pl or -plog"_#plog
 "-ps or -pscreen"_#pscreen
 "-r or -restart"_#restart
 "-ro or -reorder"_#reorder
@@ -73,11 +73,11 @@ stdin.
 
 :line
 
-[-kokkos on/off keyword/value ...] :link(kokkos)
+[-kokkos on/off keyword/value ...] :link(run-kokkos)
 
 Explicitly enable or disable KOKKOS support, as provided by the KOKKOS
 package.  Even if LAMMPS is built with this package, as described
-above in "Section 2.3"_#start_3, this switch must be set to enable
+in "Speed kokkos"_Speed_kokkos.html, this switch must be set to enable
 running with the KOKKOS-enabled styles the package provides.  If the
 switch is not set (the default), LAMMPS will operate as if the KOKKOS
 package were not installed; i.e. you can run standard LAMMPS or with
@@ -379,7 +379,7 @@ partition screen files file.N.
 Use variants of various styles if they exist.  The specified style can
 be {cuda}, {gpu}, {intel}, {kk}, {omp}, {opt}, or {hybrid}.  These
 refer to optional packages that LAMMPS can be built with, as described
-above in "Section 2.3"_#start_3.  The "gpu" style corresponds to the
+in "Accelerate performance"_Speed.html.  The "gpu" style corresponds to the
 GPU package, the "intel" style to the USER-INTEL package, the "kk"
 style to the KOKKOS package, the "opt" style to the OPT package, and
 the "omp" style to the USER-OMP package. The hybrid style is the only

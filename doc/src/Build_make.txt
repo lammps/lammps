@@ -1,0 +1,66 @@
+"Higher level section"_Build.html - "LAMMPS WWW Site"_lws - "LAMMPS
+Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+Build LAMMPS with make :h3
+
+Building LAMMPS with traditional make requires you have a
+Makefile.machine file in the src/MAKE directory appropriate for your
+system (see below).  It can list various options for what to
+include/exclude in a LAMMPS build.  To include LAMMPS packages you
+must install them first, as discussed on the "Build
+package"_Build_package.html doc page.  If the packages use provided or
+external libraries, you must build those libraries before building
+LAMMPS.  Building "LAMMPS with CMake"_Build_cmake.html can automate
+all of this, so we suggest you try it first.
+
+These commands perform a default LAMMPS build, producing the LAMMPS
+executable lmp_serial or lmp_mpi in lammps/src:
+
+cd lammps/src
+make serial     # build a serial LAMMPS executable
+make mpi        # build a parallel LAMMPS executable with MPI
+make            # see a variety of make options :pre
+
+If your machine has multiple cores (most do), using a command like
+"make -j mpi" will be much faster.
+
+After the initial build, if you edit LAMMPS source files, or add new
+files to the source directory, you can re-type make and it will only
+re-compile the files that have changed.
+
+:line
+
+The lammps/src/MAKE directory contains all the Makefile.machine files
+included in the LAMMPS distribution.  Typing "make machine" uses
+Makefile.machine.  Thus the "make serial" or "make mpi" lines above
+use Makefile.serial and Makefile.mpi.  Others are in these dirs:
+
+OPTIONS      # Makefiles which enable specific options
+MACHINES     # Makefiles for specific machines
+MINE         # customized Makefiles you create :pre
+
+Typing "make" lists all the available Makefile.machine files.  A file
+with the same name can appear in multiple dirs (not a good idea).  The
+order the dirs are searched is as follows: src/MAKE/MINE, src/MAKE,
+src/MAKE/OPTIONS, src/MAKE/MACHINES.  This gives preference to a
+customized file you put in src/MAKE/MINE.
+
+Makefiles you may wish to try include these (some require a package
+first be installed).  Many of these include specific compiler flags
+for optimized performance:
+
+make mac             # build serial LAMMPS on a Mac
+make mac_mpi         # build parallel LAMMPS on a Mac
+make intel_cpu       # build with the USER-INTEL package optimized for CPUs
+make knl             # build with the USER-INTEL package optimized for KNLs
+make opt             # build with the OPT package optimized for CPUs
+make omp             # build with the USER-OMP package optimized for OpenMP
+make kokkos_omp      # build with the KOKKOS package for OpenMP
+make kokkos_cuda_mpi # build with the KOKKOS package for GPUs
+make kokkos_phi      # build with the KOKKOS package for KNLs :pre

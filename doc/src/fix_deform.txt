@@ -94,7 +94,7 @@ nvt/sllod"_fix_nvt_sllod.html and "compute
 temp/deform"_compute_temp_deform.html commands for more details.  Note
 that simulation of a continuously extended system (extensional flow)
 can be modeled using the "USER-UEF
-package"_Packages_details.html#USER-UEF and its "fix
+package"_Packages_details.html#PKG-USER-UEF and its "fix
 commands"_fix_nh_uef.html.
 
 For the {x}, {y}, {z} parameters, the associated dimension cannot be

@@ -50,9 +50,9 @@ Or they can be generated from the content provided in doc/src by
 typing "make html" from the the doc directory.
 
 After initial checkout, as bug fixes and new features are added to
-LAMMPS, as listed on "this page"_bug.html, you can stay up-to-date by
-typing the following SVN commands from within the "mylammps"
-directory:
+LAMMPS, as listed on "this page"_Errors_bugs.html, you can stay
+up-to-date by typing the following SVN commands from within the
+"mylammps" directory:
 
 svn update :pre
 

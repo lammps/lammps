@@ -30,79 +30,79 @@ src/GRANULAR".  Files with names that start with fix, compute, atom,
 pair, bond, angle, etc correspond to commands with the same style name
 as contained in the file name.
 
-"ASPHERE"_#ASPHERE,
-"BODY"_#BODY,
-"CLASS2"_#CLASS2,
-"COLLOID"_#COLLOID,
-"COMPRESS"_#COMPRESS,
-"CORESHELL"_#CORESHELL,
-"DIPOLE"_#DIPOLE,
-"GPU"_#GPU,
-"GRANULAR"_#GRANULAR,
-"KIM"_#KIM,
-"KOKKOS"_#KOKKOS,
-"KSPACE"_#KSPACE,
-"LATTE"_#LATTE,
-"MANYBODY"_#MANYBODY,
-"MC"_#MC,
-"MEAM"_#MEAM,
-"MISC"_#MISC,
-"MOLECULE"_#MOLECULE,
-"MPIIO"_#MPIIO,
-"MSCG"_#MSCG,
-"OPT"_#OPT,
-"PERI"_#PERI,
-"POEMS"_#POEMS,
-"PYTHON"_#PYTHON,
-"QEQ"_#QEQ,
-"REAX"_#REAX,
-"REPLICA"_#REPLICA2,
-"RIGID"_#RIGID,
-"SHOCK"_#SHOCK,
-"SNAP"_#SNAP,
-"SPIN"_#SPIN,
-"SRD"_#SRD,
-"VORONOI"_#VORONOI :tb(c=6,ea=c)
+"ASPHERE"_#PKG-ASPHERE,
+"BODY"_#PKG-BODY,
+"CLASS2"_#PKG-CLASS2,
+"COLLOID"_#PKG-COLLOID,
+"COMPRESS"_#PKG-COMPRESS,
+"CORESHELL"_#PKG-CORESHELL,
+"DIPOLE"_#PKG-DIPOLE,
+"GPU"_#PKG-GPU,
+"GRANULAR"_#PKG-GRANULAR,
+"KIM"_#PKG-KIM,
+"KOKKOS"_#PKG-KOKKOS,
+"KSPACE"_#PKG-KSPACE,
+"LATTE"_#PKG-LATTE,
+"MANYBODY"_#PKG-MANYBODY,
+"MC"_#PKG-MC,
+"MEAM"_#PKG-MEAM,
+"MISC"_#PKG-MISC,
+"MOLECULE"_#PKG-MOLECULE,
+"MPIIO"_#PKG-MPIIO,
+"MSCG"_#PKG-MSCG,
+"OPT"_#PKG-OPT,
+"PERI"_#PKG-PERI,
+"POEMS"_#PKG-POEMS,
+"PYTHON"_#PKG-PYTHON,
+"QEQ"_#PKG-QEQ,
+"REAX"_#PKG-REAX,
+"REPLICA"_#PKG-REPLICA2,
+"RIGID"_#PKG-RIGID,
+"SHOCK"_#PKG-SHOCK,
+"SNAP"_#PKG-SNAP,
+"SPIN"_#PKG-SPIN,
+"SRD"_#PKG-SRD,
+"VORONOI"_#PKG-VORONOI :tb(c=6,ea=c)
 
-"USER-ATC"_#USER-ATC,
-"USER-AWPMD"_#USER-AWPMD,
-"USER-BOCS"_#USER-BOCS,
-"USER-CGDNA"_#USER-CGDNA,
-"USER-CGSDK"_#USER-CGSDK,
-"USER-COLVARS"_#USER-COLVARS,
-"USER-DIFFRACTION"_#USER-DIFFRACTION,
-"USER-DPD"_#USER-DPD,
-"USER-DRUDE"_#USER-DRUDE,
-"USER-EFF"_#USER-EFF,
-"USER-FEP"_#USER-FEP,
-"USER-H5MD"_#USER-H5MD,
-"USER-INTEL"_#USER-INTEL,
-"USER-LB"_#USER-LB,
-"USER-MANIFOLD"_#USER-MANIFOLD,
-"USER-MEAMC"_#USER-MEAMC,
-"USER-MESO"_#USER-MESO,
-"USER-MGPT"_#USER-MGPT,
-"USER-MISC"_#USER-MISC,
-"USER-MOFFF"_#USER-MOFFF,
-"USER-MOLFILE"_#USER-MOLFILE,
-"USER-NETCDF"_#USER-NETCDF,
-"USER-OMP"_#USER-OMP,
-"USER-PHONON"_#USER-PHONON,
-"USER-QMMM"_#USER-QMMM,
-"USER-QTB"_#USER-QTB,
-"USER-QUIP"_#USER-QUIP,
-"USER-REAXC"_#USER-REAXC,
-"USER-SMD"_#USER-SMD,
-"USER-SMTBQ"_#USER-SMTBQ,
-"USER-SPH"_#USER-SPH,
-"USER-TALLY"_#USER-TALLY,
-"USER-UEF"_#USER-UEF,
-"USER-VTK"_#USER-VTK :tb(c=6,ea=c)
+"USER-ATC"_#PKG-USER-ATC,
+"USER-AWPMD"_#PKG-USER-AWPMD,
+"USER-BOCS"_#PKG-USER-BOCS,
+"USER-CGDNA"_#PKG-USER-CGDNA,
+"USER-CGSDK"_#PKG-USER-CGSDK,
+"USER-COLVARS"_#PKG-USER-COLVARS,
+"USER-DIFFRACTION"_#PKG-USER-DIFFRACTION,
+"USER-DPD"_#PKG-USER-DPD,
+"USER-DRUDE"_#PKG-USER-DRUDE,
+"USER-EFF"_#PKG-USER-EFF,
+"USER-FEP"_#PKG-USER-FEP,
+"USER-H5MD"_#PKG-USER-H5MD,
+"USER-INTEL"_#PKG-USER-INTEL,
+"USER-LB"_#PKG-USER-LB,
+"USER-MANIFOLD"_#PKG-USER-MANIFOLD,
+"USER-MEAMC"_#PKG-USER-MEAMC,
+"USER-MESO"_#PKG-USER-MESO,
+"USER-MGPT"_#PKG-USER-MGPT,
+"USER-MISC"_#PKG-USER-MISC,
+"USER-MOFFF"_#PKG-USER-MOFFF,
+"USER-MOLFILE"_#PKG-USER-MOLFILE,
+"USER-NETCDF"_#PKG-USER-NETCDF,
+"USER-OMP"_#PKG-USER-OMP,
+"USER-PHONON"_#PKG-USER-PHONON,
+"USER-QMMM"_#PKG-USER-QMMM,
+"USER-QTB"_#PKG-USER-QTB,
+"USER-QUIP"_#PKG-USER-QUIP,
+"USER-REAXC"_#PKG-USER-REAXC,
+"USER-SMD"_#PKG-USER-SMD,
+"USER-SMTBQ"_#PKG-USER-SMTBQ,
+"USER-SPH"_#PKG-USER-SPH,
+"USER-TALLY"_#PKG-USER-TALLY,
+"USER-UEF"_#PKG-USER-UEF,
+"USER-VTK"_#PKG-USER-VTK :tb(c=6,ea=c)
 
 :line
 :line
 
-ASPHERE package :link(ASPHERE),h4
+ASPHERE package :link(PKG-ASPHERE),h4
 
 [Contents:]
 
@@ -124,7 +124,7 @@ http://lammps.sandia.gov/movies.html#tri :ul
 
 :line
 
-BODY package :link(BODY),h4
+BODY package :link(PKG-BODY),h4
 
 [Contents:]
 
@@ -144,7 +144,7 @@ examples/body :ul
 
 :line
 
-CLASS2 package :link(CLASS2),h4
+CLASS2 package :link(PKG-CLASS2),h4
 
 [Contents:]
 
@@ -162,7 +162,7 @@ src/CLASS2: filenames -> commands
 
 :line
 
-COLLOID package :link(COLLOID),h4
+COLLOID package :link(PKG-COLLOID),h4
 
 [Contents:]
 
@@ -189,7 +189,7 @@ examples/srd :ul
 
 :line
 
-COMPRESS package :link(COMPRESS),h4
+COMPRESS package :link(PKG-COMPRESS),h4
 
 [Contents:]
 
@@ -219,7 +219,7 @@ lib/compress/README
 
 :line
 
-CORESHELL package :link(CORESHELL),h4
+CORESHELL package :link(PKG-CORESHELL),h4
 
 [Contents:]
 
@@ -246,7 +246,7 @@ examples/coreshell :ul
 
 :line
 
-DIPOLE package :link(DIPOLE),h4
+DIPOLE package :link(PKG-DIPOLE),h4
 
 [Contents:]
 
@@ -264,7 +264,7 @@ examples/dipole :ul
 
 :line
 
-GPU package :link(GPU),h4
+GPU package :link(PKG-GPU),h4
 
 [Contents:]
 
@@ -277,7 +277,7 @@ gpu"_Speed_gpu.html doc page gives details of what hardware and GPU
 software is required on your system, and details on how to build and
 use this package.  Its styles can be invoked at run time via the "-sf
 gpu" or "-suffix gpu" "command-line switches"_Run_options.html.  See
-also the "KOKKOS"_#KOKKOS package, which has GPU-enabled styles.
+also the "KOKKOS"_#PKG-KOKKOS package, which has GPU-enabled styles.
 
 [Authors:] Mike Brown (Intel) while at Sandia and ORNL and Trung Nguyen
 (Northwestern U) while at ORNL.
@@ -303,7 +303,7 @@ lib/gpu/README
 
 :line
 
-GRANULAR package :link(GRANULAR),h4
+GRANULAR package :link(PKG-GRANULAR),h4
 
 [Contents:]
 
@@ -330,7 +330,7 @@ http://lammps.sandia.gov/movies.html#granregion :ul
 
 :line
 
-KIM package :link(KIM),h4
+KIM package :link(PKG-KIM),h4
 
 [Contents:]
 
@@ -366,7 +366,7 @@ examples/kim :ul
 
 :line
 
-KOKKOS package :link(KOKKOS),h4
+KOKKOS package :link(PKG-KOKKOS),h4
 
 [Contents:]
 
@@ -378,8 +378,8 @@ style name.  The "Speed kokkos"_Speed_kokkos.html doc page gives
 details of what hardware and software is required on your system, and
 how to build and use this package.  Its styles can be invoked at run
 time via the "-sf kk" or "-suffix kk" "command-line
-switches"_Run_options.html.  Also see the "GPU"_#GPU, "OPT"_#OPT,
-"USER-INTEL"_#USER-INTEL, and "USER-OMP"_#USER-OMP packages, which
+switches"_Run_options.html.  Also see the "GPU"_#PKG-GPU, "OPT"_#PKG-OPT,
+"USER-INTEL"_#PKG-USER-INTEL, and "USER-OMP"_#PKG-USER-OMP packages, which
 have styles optimized for CPUs, KNLs, and GPUs.
 
 You must have a C++11 compatible compiler to use this package.
@@ -413,7 +413,7 @@ lib/kokkos/README
 
 :line
 
-KSPACE package :link(KSPACE),h4
+KSPACE package :link(PKG-KSPACE),h4
 
 [Contents:]
 
@@ -446,7 +446,7 @@ bench/in.rhodo :ul
 
 :line
 
-LATTE package :link(LATTE),h4
+LATTE package :link(PKG-LATTE),h4
 
 [Contents:]
 
@@ -481,7 +481,7 @@ examples/latte
 
 :line
 
-MANYBODY package :link(MANYBODY),h4
+MANYBODY package :link(PKG-MANYBODY),h4
 
 [Contents:]
 
@@ -502,7 +502,7 @@ bench/in.eam :ul
 
 :line
 
-MC package :link(MC),h4
+MC package :link(PKG-MC),h4
 
 [Contents:]
 
@@ -524,14 +524,14 @@ http://lammps.sandia.gov/movies.html#gcmc :ul
 
 :line
 
-MEAM package :link(MEAM),h4
+MEAM package :link(PKG-MEAM),h4
 
 [Contents:]
 
 A pair style for the modified embedded atom (MEAM) potential.
 
 Please note that the MEAM package has been superseded by the
-"USER-MEAMC"_#USER-MEAMC package, which is a direct translation
+"USER-MEAMC"_#PKG-USER-MEAMC package, which is a direct translation
 of the MEAM package to C++. USER-MEAMC contains additional
 optimizations making it run faster than MEAM on most machines,
 while providing the identical features and USER interface.
@@ -558,7 +558,7 @@ examples/meam :ul
 
 :line
 
-MISC package :link(MISC),h4
+MISC package :link(PKG-MISC),h4
 
 [Contents:]
 
@@ -585,7 +585,7 @@ http://lammps.sandia.gov/movies.html#evaporation :ul
 
 :line
 
-MOLECULE package :link(MOLECULE),h4
+MOLECULE package :link(PKG-MOLECULE),h4
 
 [Contents:]
 
@@ -614,7 +614,7 @@ bench/in.rhodo :ul
 
 :line
 
-MPIIO package :link(MPIIO),h4
+MPIIO package :link(PKG-MPIIO),h4
 
 [Contents:]
 
@@ -633,7 +633,7 @@ src/MPIIO: filenames -> commands
 
 :line
 
-MSCG package :link(mscg),h4
+MSCG package :link(PKG-mscg),h4
 
 [Contents:]
 
@@ -665,7 +665,7 @@ examples/mscg :ul
 
 :line
 
-OPT package :link(OPT),h4
+OPT package :link(PKG-OPT),h4
 
 [Contents:]
 
@@ -675,8 +675,8 @@ CHARMM, and Morse potentials.  The styles have an "opt" suffix in
 their style name.  The "Speed opt"_Speed_opt.html doc page gives
 details of how to build and use this package.  Its styles can be
 invoked at run time via the "-sf opt" or "-suffix opt" "command-line
-switches"_Run_options.html.  See also the "KOKKOS"_#KOKKOS,
-"USER-INTEL"_#USER-INTEL, and "USER-OMP"_#USER-OMP packages, which
+switches"_Run_options.html.  See also the "KOKKOS"_#PKG-KOKKOS,
+"USER-INTEL"_#PKG-USER-INTEL, and "USER-OMP"_#PKG-USER-OMP packages, which
 have styles optimized for CPU performance.
 
 [Authors:] James Fischer (High Performance Technologies), David Richie,
@@ -699,7 +699,7 @@ src/OPT: filenames -> commands
 
 :line
 
-PERI package :link(PERI),h4
+PERI package :link(PKG-PERI),h4
 
 [Contents:]
 
@@ -727,7 +727,7 @@ http://lammps.sandia.gov/movies.html#peri :ul
 
 :line
 
-POEMS package :link(POEMS),h4
+POEMS package :link(PKG-POEMS),h4
 
 [Contents:]
 
@@ -755,7 +755,7 @@ examples/rigid :ul
 
 :line
 
-PYTHON package :link(PYTHON),h4
+PYTHON package :link(PKG-PYTHON),h4
 
 [Contents:]
 
@@ -786,7 +786,7 @@ examples/python :ul
 
 :line
 
-QEQ package :link(QEQ),h4
+QEQ package :link(PKG-QEQ),h4
 
 [Contents:]
 
@@ -803,13 +803,13 @@ examples/streitz :ul
 
 :line
 
-REAX package :link(REAX),h4
+REAX package :link(PKG-REAX),h4
 
 [Contents:]
 
 A pair style which wraps a Fortran library which implements the ReaxFF
 potential, which is a universal reactive force field.  See the
-"USER-REAXC package"_#USER-REAXC for an alternate implementation in
+"USER-REAXC package"_#PKG-USER-REAXC for an alternate implementation in
 C/C++.  Also a "fix reax/bonds"_fix_reax_bonds.html command for
 monitoring molecules as bonds are created and destroyed.
 
@@ -831,7 +831,7 @@ examples/reax :ul
 
 :line
 
-REPLICA package :link(REPLICA2),h4
+REPLICA package :link(PKG-REPLICA2),h4
 
 [Contents:]
 
@@ -860,7 +860,7 @@ examples/tad :ul
 
 :line
 
-RIGID package :link(RIGID),h4
+RIGID package :link(PKG-RIGID),h4
 
 [Contents:]
 
@@ -884,7 +884,7 @@ http://lammps.sandia.gov/movies.html#star :ul
 
 :line
 
-SHOCK package :link(SHOCK),h4
+SHOCK package :link(PKG-SHOCK),h4
 
 [Contents:]
 
@@ -903,7 +903,7 @@ examples/msst :ul
 
 :line
 
-SNAP package :link(SNAP),h4
+SNAP package :link(PKG-SNAP),h4
 
 [Contents:]
 
@@ -925,7 +925,7 @@ examples/snap :ul
 
 :line
 
-SPIN package :link(SPIN),h4
+SPIN package :link(PKG-SPIN),h4
 
 [Contents:]
 
@@ -949,7 +949,7 @@ examples/SPIN :ul
 
 :line
 
-SRD package :link(SRD),h4
+SRD package :link(PKG-SRD),h4
 
 [Contents:]
 
@@ -970,7 +970,7 @@ http://lammps.sandia.gov/movies.html#poly :ul
 
 :line
 
-VORONOI package :link(VORONOI),h4
+VORONOI package :link(PKG-VORONOI),h4
 
 [Contents:]
 
@@ -1005,7 +1005,7 @@ examples/voronoi :ul
 :line
 :line
 
-USER-ATC package :link(USER-ATC),h4
+USER-ATC package :link(PKG-USER-ATC),h4
 
 [Contents:]
 
@@ -1032,7 +1032,7 @@ http://lammps.sandia.gov/pictures.html#atc :ul
 
 :line
 
-USER-AWPMD package :link(USER-AWPMD),h4
+USER-AWPMD package :link(PKG-USER-AWPMD),h4
 
 [Contents:]
 
@@ -1058,7 +1058,7 @@ examples/USER/awpmd :ul
 
 :line
 
-USER-BOCS package :link(USER-BOCS),h4
+USER-BOCS package :link(PKG-USER-BOCS),h4
 
 [Contents:]
 
@@ -1088,7 +1088,7 @@ Example inputs are in the examples/USER/bocs folder.
 
 :line
 
-USER-CGDNA package :link(USER-CGDNA),h4
+USER-CGDNA package :link(PKG-USER-CGDNA),h4
 
 [Contents:]
 
@@ -1112,7 +1112,7 @@ src/USER-CGDNA: filenames -> commands
 
 :line
 
-USER-CGSDK package :link(USER-CGSDK),h4
+USER-CGSDK package :link(PKG-USER-CGSDK),h4
 
 [Contents:]
 
@@ -1134,7 +1134,7 @@ http://lammps.sandia.gov/pictures.html#cg :ul
 
 :line
 
-USER-COLVARS package :link(USER-COLVARS),h4
+USER-COLVARS package :link(PKG-USER-COLVARS),h4
 
 [Contents:]
 
@@ -1168,7 +1168,7 @@ examples/USER/colvars :ul
 
 :line
 
-USER-DIFFRACTION package :link(USER-DIFFRACTION),h4
+USER-DIFFRACTION package :link(PKG-USER-DIFFRACTION),h4
 
 [Contents:]
 
@@ -1187,7 +1187,7 @@ examples/USER/diffraction :ul
 
 :line
 
-USER-DPD package :link(USER-DPD),h4
+USER-DPD package :link(PKG-USER-DPD),h4
 
 [Contents:]
 
@@ -1225,7 +1225,7 @@ examples/USER/dpd :ul
 
 :line
 
-USER-DRUDE package :link(USER-DRUDE),h4
+USER-DRUDE package :link(PKG-USER-DRUDE),h4
 
 [Contents:]
 
@@ -1255,7 +1255,7 @@ tools/drude :ul
 
 :line
 
-USER-EFF package :link(USER-EFF),h4
+USER-EFF package :link(PKG-USER-EFF),h4
 
 [Contents:]
 
@@ -1288,7 +1288,7 @@ http://lammps.sandia.gov/movies.html#eff :ul
 
 :line
 
-USER-FEP package :link(USER-FEP),h4
+USER-FEP package :link(PKG-USER-FEP),h4
 
 [Contents:]
 
@@ -1313,7 +1313,7 @@ tools/fep :ul
 
 :line
 
-USER-H5MD package :link(USER-H5MD),h4
+USER-H5MD package :link(PKG-USER-H5MD),h4
 
 [Contents:]
 
@@ -1346,7 +1346,7 @@ lib/h5md/README
 
 :line
 
-USER-INTEL package :link(USER-INTEL),h4
+USER-INTEL package :link(PKG-USER-INTEL),h4
 
 [Contents:]
 
@@ -1357,7 +1357,7 @@ intel"_Speed_intel.html doc page gives details of what hardware and
 compilers are required on your system, and how to build and use this
 package.  Its styles can be invoked at run time via the "-sf intel" or
 "-suffix intel" "command-line switches"_Run_options.html.  Also see
-the "KOKKOS"_#KOKKOS, "OPT"_#OPT, and "USER-OMP"_#USER-OMP packages,
+the "KOKKOS"_#PKG-KOKKOS, "OPT"_#PKG-OPT, and "USER-OMP"_#PKG-USER-OMP packages,
 which have styles optimized for CPUs and KNLs.
 
 You need to have an Intel compiler, version 14 or higher to take full
@@ -1390,7 +1390,7 @@ src/USER-INTEL/TEST
 
 :line
 
-USER-LB package :link(USER-LB),h4
+USER-LB package :link(PKG-USER-LB),h4
 
 [Contents:]
 
@@ -1411,7 +1411,7 @@ examples/USER/lb :ul
 
 :line
 
-USER-MGPT package :link(USER-MGPT),h4
+USER-MGPT package :link(PKG-USER-MGPT),h4
 
 [Contents:]
 
@@ -1435,7 +1435,7 @@ examples/USER/mgpt :ul
 
 :line
 
-USER-MISC package :link(USER-MISC),h4
+USER-MISC package :link(PKG-USER-MISC),h4
 
 [Contents:]
 
@@ -1455,7 +1455,7 @@ examples/USER/misc :ul
 
 :line
 
-USER-MANIFOLD package :link(USER-MANIFOLD),h4
+USER-MANIFOLD package :link(PKG-USER-MANIFOLD),h4
 
 [Contents:]
 
@@ -1483,7 +1483,7 @@ http://lammps.sandia.gov/movies.html#manifold :ul
 
 :line
 
-USER-MEAMC package :link(USER-MEAMC),h4
+USER-MEAMC package :link(PKG-USER-MEAMC),h4
 
 [Contents:]
 
@@ -1506,7 +1506,7 @@ examples/meam :ul
 
 :line
 
-USER-MESO package :link(USER-MESO),h4
+USER-MESO package :link(PKG-USER-MESO),h4
 
 [Contents:]
 
@@ -1534,7 +1534,7 @@ http://lammps.sandia.gov/movies.html#mesodpd :ul
 
 :line
 
-USER-MOFFF package :link(USER-MOFFF),h4
+USER-MOFFF package :link(PKG-USER-MOFFF),h4
 
 [Contents:]
 
@@ -1564,7 +1564,7 @@ examples/USER/mofff :ul
 
 :line
 
-USER-MOLFILE package :link(USER-MOLFILE),h4
+USER-MOLFILE package :link(PKG-USER-MOLFILE),h4
 
 [Contents:]
 
@@ -1607,7 +1607,7 @@ lib/molfile/README
 
 :line
 
-USER-NETCDF package :link(USER-NETCDF),h4
+USER-NETCDF package :link(PKG-USER-NETCDF),h4
 
 [Contents:]
 
@@ -1646,7 +1646,7 @@ lib/netcdf/README
 
 :line
 
-USER-OMP package :link(USER-OMP),h4
+USER-OMP package :link(PKG-USER-OMP),h4
 
 [Contents:]
 
@@ -1657,7 +1657,7 @@ The "Speed omp"_Speed_omp.html doc page gives details of what hardware
 and compilers are required on your system, and how to build and use
 this package.  Its styles can be invoked at run time via the "-sf omp"
 or "-suffix omp" "command-line switches"_Run_options.html.  Also see
-the "KOKKOS"_#KOKKOS, "OPT"_#OPT, and "USER-INTEL"_#USER-INTEL
+the "KOKKOS"_#PKG-KOKKOS, "OPT"_#PKG-OPT, and "USER-INTEL"_#PKG-USER-INTEL
 packages, which have styles optimized for CPUs.
 
 [Author:] Axel Kohlmeyer (Temple U).
@@ -1695,7 +1695,7 @@ src/USER-OMP/README
 
 :line
 
-USER-PHONON package :link(USER-PHONON),h4
+USER-PHONON package :link(PKG-USER-PHONON),h4
 
 [Contents:]
 
@@ -1714,7 +1714,7 @@ examples/USER/phonon :ul
 
 :line
 
-USER-QMMM package :link(USER-QMMM),h4
+USER-QMMM package :link(PKG-USER-QMMM),h4
 
 [Contents:]
 
@@ -1752,7 +1752,7 @@ lib/qmmm/example-mc/README :ul
 
 :line
 
-USER-QTB package :link(USER-QTB),h4
+USER-QTB package :link(PKG-USER-QTB),h4
 
 [Contents:]
 
@@ -1777,7 +1777,7 @@ examples/USER/qtb :ul
 
 :line
 
-USER-QUIP package :link(USER-QUIP),h4
+USER-QUIP package :link(PKG-USER-QUIP),h4
 
 [Contents:]
 
@@ -1808,12 +1808,12 @@ examples/USER/quip :ul
 
 :line
 
-USER-REAXC package :link(USER-REAXC),h4
+USER-REAXC package :link(PKG-USER-REAXC),h4
 
 [Contents:]
 
 A pair style which implements the ReaxFF potential in C/C++ (in
-contrast to the "REAX package"_#REAX and its Fortran library).  ReaxFF
+contrast to the "REAX package"_#PKG-REAX and its Fortran library).  ReaxFF
 is universal reactive force field.  See the src/USER-REAXC/README file
 for more info on differences between the two packages.  Also two fixes
 for monitoring molecules as bonds are created and destroyed.
@@ -1831,14 +1831,14 @@ examples/reax :ul
 
 :line
 
-USER-SMD package :link(USER-SMD),h4
+USER-SMD package :link(PKG-USER-SMD),h4
 
 [Contents:]
 
 An atom style, fixes, computes, and several pair styles which
 implements smoothed Mach dynamics (SMD) for solids, which is a model
 related to smoothed particle hydrodynamics (SPH) for liquids (see the
-"USER-SPH package"_#USER-SPH).
+"USER-SPH package"_#PKG-USER-SPH).
 
 This package solves solids mechanics problems via a state of the art
 stabilized meshless method with hourglass control.  It can specify
@@ -1868,7 +1868,7 @@ http://lammps.sandia.gov/movies.html#smd :ul
 
 :line
 
-USER-SMTBQ package :link(USER-SMTBQ),h4
+USER-SMTBQ package :link(PKG-USER-SMTBQ),h4
 
 [Contents:]
 
@@ -1888,13 +1888,13 @@ examples/USER/smtbq :ul
 
 :line
 
-USER-SPH package :link(USER-SPH),h4
+USER-SPH package :link(PKG-USER-SPH),h4
 
 [Contents:]
 
 An atom style, fixes, computes, and several pair styles which
 implements smoothed particle hydrodynamics (SPH) for liquids.  See the
-related "USER-SMD package"_#USER-SMD package for smooth Mach dynamics
+related "USER-SMD package"_#PKG-USER-SMD package for smooth Mach dynamics
 (SMD) for solids.
 
 This package contains ideal gas, Lennard-Jones equation of states,
@@ -1920,7 +1920,7 @@ http://lammps.sandia.gov/movies.html#sph :ul
 
 :line
 
-USER-TALLY package :link(USER-TALLY),h4
+USER-TALLY package :link(PKG-USER-TALLY),h4
 
 [Contents:]
 
@@ -1939,7 +1939,7 @@ examples/USER/tally :ul
 
 :line
 
-USER-UEF package :link(USER-UEF),h4
+USER-UEF package :link(PKG-USER-UEF),h4
 
 [Contents:]
 
@@ -1962,7 +1962,7 @@ examples/uef :ul
 
 :line
 
-USER-VTK package :link(USER-VTK),h4
+USER-VTK package :link(PKG-USER-VTK),h4
 
 [Contents:]
 

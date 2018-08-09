@@ -252,7 +252,7 @@ gzip compression by several LAMMPS commands, including
 
 -D LAMMPS_GZIP=value     # yes or no
                          # default is yes if CMake can find gzip, else no
--D GZIP_EXECUTABLE=path  # path to gzip executable if CMake cannot find it
+-D GZIP_EXECUTABLE=path  # path to gzip executable if CMake cannot find it :pre
 
 [Makefile.machine setting]:
 

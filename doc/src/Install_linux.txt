@@ -12,7 +12,7 @@ Download an executable for Linux :h3
 Binaries are available for many different versions of Linux:
 
 "Pre-built binary RPMs for Fedora/RedHat/CentOS/openSUSE"_#rpm
-"Pre-built Ubuntu Linux executables"_#unbuntu
+"Pre-built Ubuntu Linux executables"_#ubuntu
 "Pre-built Gentoo Linux executable"_#gentoo :all(b)
 
 :line

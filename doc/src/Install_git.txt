@@ -62,9 +62,9 @@ Or they can be generated from the content provided in doc/src by
 typing "make html" from the the doc directory.
 
 After initial cloning, as bug fixes and new features are added to
-LAMMPS, as listed on "this page"_bug.html, you can stay up-to-date by
-typing the following Git commands from within the "mylammps"
-directory:
+LAMMPS, as listed on "this page"_Errors_bugs.html, you can stay
+up-to-date by typing the following Git commands from within the
+"mylammps" directory:
 
 git checkout unstable      # not needed if you always stay in this branch
 git checkout stable        # use one of the 3 checkout commands
@@ -86,8 +86,8 @@ this is as follows.
 git checkout tagID :pre
 
 Stable versions and what tagID to use for a particular stable version
-are discussed on "this page"_bug.html.  Note that this command will
-print some warnings, because in order to get back to the latest
+are discussed on "this page"_Errors_bugs.html.  Note that this command
+will print some warnings, because in order to get back to the latest
 revision and to be able to update with "git pull" again, you first
 will need to first type "git checkout unstable" (or check out any
 other desired branch).

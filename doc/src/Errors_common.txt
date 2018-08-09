@@ -60,7 +60,7 @@ package which was not compiled into your executable.  The list of
 available styles in your executable can be listed by using "the -h
 command-line swith"_Run_options.html.  The installation and
 compilation of optional packages is explained on the "Build
-packages"_Build_packages.html doc page.
+packages"_Build_package.html doc page.
 
 For a given command, LAMMPS expects certain arguments in a specified
 order.  If you mess this up, LAMMPS will often flag the error, but it

@@ -58,7 +58,7 @@ available on your system.
 If CMake cannot find the library, you can set these variables:
 
 -D ZLIB_INCLUDE_DIR=path    # path to zlib.h header file 
--D ZLIB_LIBRARIES=path      # path to libzlib.a (.so) file 
+-D ZLIB_LIBRARIES=path      # path to libzlib.a (.so) file :pre
 
 [Traditional make]:
 
@@ -82,11 +82,11 @@ to build the library in lib/gpu first.
 -D OCL_TUNE=value     # hardware choice for GPU_API=opencl
                       # generic (default) or intel (Intel CPU) or phi (Intel Xeon Phi) or fermi (NVIDIA) or kepler (NVIDIA) or cypress (NVIDIA)
 -D GPU_ARCH=value     # hardware choice for GPU_API=cuda
-                      # value = sm20 (Fermi) or sm30 (Kepler) or sm50 (Maxwell) or sm60 (Pascal) or sm70 (Volta)
+                      # value = sm20 (Fermi) or sm30 or sm (Kepler) or sm50 (Maxwell) or sm60 (Pascal) or sm70 (Volta)
                       # default is Cuda-compiler dependent, but typically Fermi
 -D CUDPP_OPT=value    # optimization setting for GPU_API=cudea
-                      # enables CUDA Performance Primitives Optimizations 	
-                      # on (default) or off
+                      # enables CUDA Performance Primitives Optimizations
+                      # on (default) or off :pre
 
 [Traditional make]:
 
@@ -191,13 +191,13 @@ traditional make settings
 
 [Traditional make]:
 
-  how to choose these 3 things: mode archgpu=N archcpu=SNB
+how to choose these 3 things: mode archgpu=N archcpu=SNB
   mode = omp or cuda or phi (def = KOKKOS_DEVICES setting in Makefile )
   archgpu = number like 35 (Kepler) or 21 (Fermi) (def = none)
     sets KOKKOS_ARCH for GPU to appropriate value
   archcpu = SNB or HSW or BGQ or Power7 or Power8 (def = none)
     for CPU = SandyBridge, Haswell, BGQ, Power7, Power8
-    sets KOKKOS_ARCH for GPU to appropriate value
+    sets KOKKOS_ARCH for GPU to appropriate value :pre
 
 For the KOKKOS package, you have 3 choices when building.  You can
 build with either CPU or KNL or GPU support.  Each choice requires

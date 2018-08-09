@@ -57,9 +57,9 @@ Package, Description, Doc page, Example, Library
 "PYTHON"_Packages_details.html#PYTHON, embed Python code in an input script, "python"_python.html, python, sys
 "QEQ"_Packages_details.html#QEQ, QEq charge equilibration, "fix qeq"_fix_qeq.html, qeq, -
 "REAX"_Packages_details.html#REAX, ReaxFF potential (Fortran), "pair_style reax"_pair_reax.html, reax, int
-"REPLICA"_Packages_details.html#REPLICA, multi-replica methods, "Howto replica"_Howto_replica.html, tad, -
+"REPLICA"_Packages_details.html#REPLICA2, multi-replica methods, "Howto replica"_Howto_replica.html, tad, -
 "RIGID"_Packages_details.html#RIGID, rigid bodies and constraints, "fix rigid"_fix_rigid.html, rigid, -
 "SHOCK"_Packages_details.html#SHOCK, shock loading methods, "fix msst"_fix_msst.html, -, -
 "SNAP"_Packages_details.html#SNAP, quantum-fitted potential, "pair_style snap"_pair_snap.html, snap, -
-"SPIN"_#SPIN, magnetic atomic spin dynamics, "Howto spin"_Howto_spin.html, SPIN, -"SRD"_Packages_details.html#SRD, stochastic rotation dynamics, "fix srd"_fix_srd.html, srd, -
+"SPIN"_#SPIN, magnetic atomic spin dynamics, "Howto spins"_Howto_spins.html, SPIN, -"SRD"_Packages_details.html#SRD, stochastic rotation dynamics, "fix srd"_fix_srd.html, srd, -
 "VORONOI"_Packages_details.html#VORONOI, Voronoi tesselation, "compute voronoi/atom"_compute_voronoi_atom.html, -, ext :tb(ea=c,ca1=l)

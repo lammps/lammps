@@ -31,4 +31,5 @@ extra libraries must also be shared libraries.  If the LAMMPS
 shared-library build fails with an error complaining about this, see
 "Section 2.4"_Section_start.html#start_4 for more details.
 
-Also include CMake info on this
+TODO: Also include CMake info on this
+

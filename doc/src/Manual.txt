@@ -8,6 +8,8 @@
 
 <BODY>
 
+<H1></H1>
+
 <!-- END_HTML_ONLY -->
 
 "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
@@ -17,8 +19,6 @@
 :link(lc,Commands_all.html#comm)
 
 :line
-
-<H1></H1>
 
 LAMMPS Documentation :c,h1
 2 Aug 2018 version :c,h2
@@ -71,6 +71,7 @@ every LAMMPS command.
    :name: userdoc
    :includehidden:
 
+   Manual_version
    Intro
    Section_start
    Commands
@@ -82,6 +83,7 @@ every LAMMPS command.
    Modify
    Python
    Errors
+   Build_manual
 
 .. toctree::
    :caption: Index

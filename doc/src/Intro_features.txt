@@ -20,7 +20,7 @@ classes of functionality:
 "Integrators"_#integrate
 "Diagnostics"_#diag
 "Output"_#output
-"Multi-replica models"_#replica
+"Multi-replica models"_#replica1
 "Pre- and post-processing"_#prepost
 "Specialized features (beyond MD itself)"_#special :ul
 
@@ -154,7 +154,7 @@ Output :h4,link(output)
   time averaging of system-wide quantities
   atom snapshots in native, XYZ, XTC, DCD, CFG formats :ul
 
-Multi-replica models :h4,link(replica)
+Multi-replica models :h4,link(replica1)
 
 "nudged elastic band"_neb.html
 "parallel replica dynamics"_prd.html

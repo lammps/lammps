@@ -241,6 +241,8 @@ void RCB::compute(int dimension, int n, double **x, double *wt,
     // dim_select = selected cut dimension
     // valuehalf_select = valuehalf in that dimension
     // dotmark_select = dot markings in that dimension
+    // initialize largest = -1.0 to insure a cut in some dim is accepted
+    //   e.g. if current recursed box is size 0 in all dims
 
     int dim_select = -1;
     double largest = -1.0;

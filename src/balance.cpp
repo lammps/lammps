@@ -28,7 +28,6 @@
 #include "rcb.h"
 #include "irregular.h"
 #include "domain.h"
-#include "neighbor.h"
 #include "force.h"
 #include "update.h"
 #include "group.h"
@@ -351,13 +350,13 @@ void Balance::command(int narg, char **arg)
   domain->set_local_box();
 
   // move particles to new processors via irregular()
+  // set disable = 0, so weights migrate with atoms for imbfinal calculation
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   Irregular *irregular = new Irregular(lmp);
   if (wtflag) fixstore->disable = 0;
   if (style == BISECTION) irregular->migrate_atoms(1,1,rcb->sendproc);
   else irregular->migrate_atoms(1);
-  if (wtflag) fixstore->disable = 1;
   delete irregular;
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
@@ -378,9 +377,11 @@ void Balance::command(int narg, char **arg)
   }
 
   // imbfinal = final imbalance
+  // set disable = 1, so weights no longer migrate with atoms
 
   double maxfinal;
   double imbfinal = imbalance_factor(maxfinal);
+  if (wtflag) fixstore->disable = 1;
 
   // stats output
 
@@ -541,6 +542,8 @@ void Balance::weight_storage(char *prefix)
     fixstore = (FixStore *) modify->fix[modify->nfix-1];
   } else fixstore = (FixStore *) modify->fix[ifix];
 
+  // do not carry weights with atoms during normal atom migration
+
   fixstore->disable = 1;
 
   if (prefix) delete [] fixargs[0];
@@ -644,17 +647,19 @@ int *Balance::bisection(int sortflag)
   double *shrinklo = &shrinkall[0];
   double *shrinkhi = &shrinkall[3];
 
-  // ensure that that the box has at least some extent.
-  const double nproc_rt = domain->dimension == 3 ?
-                          cbrt(static_cast<double>(comm->nprocs)) :
-                          sqrt(static_cast<double>(comm->nprocs));
-  const double min_extent = ceil(nproc_rt)*neighbor->skin;
-  for (int i = 0; i < domain->dimension; i++) {
-    if (shrinkall[3+i]-shrinkall[i] < min_extent) {
-      const double mid = 0.5*(shrinkall[3+i]+shrinkall[i]);
-      shrinkall[3+i] = std::min(mid + min_extent*0.5, boxhi[i]);
-      shrinkall[i]   = std::max(mid - min_extent*0.5, boxlo[i]);
-    }
+  // if shrink size in any dim is zero, use box size in that dim
+
+  if (shrinklo[0] == shrinkhi[0]) {
+    shrinklo[0] = boxlo[0];
+    shrinkhi[0] = boxhi[0];
+  }
+  if (shrinklo[1] == shrinkhi[1]) {
+    shrinklo[1] = boxlo[1];
+    shrinkhi[1] = boxhi[1];
+  }
+  if (shrinklo[2] == shrinkhi[2]) {
+    shrinklo[2] = boxlo[2];
+    shrinkhi[2] = boxhi[2];
   }
 
   // invoke RCB

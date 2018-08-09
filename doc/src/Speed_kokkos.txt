@@ -102,9 +102,9 @@ the case, especially when using pre-compiled MPI libraries provided by
 a Linux distribution. This is not a problem when using only a single
 GPU and a single MPI rank on a desktop. When running with multiple
 MPI ranks, you may see segmentation faults without GPU-direct support.
-These can be avoided by adding the flags '-pk kokkos gpu/direct no'
-to the LAMMPS command line or using "package kokkos gpu/direct no"_package.html
-in the input file.
+These can be avoided by adding the flags '-pk kokkos gpu/direct off'
+to the LAMMPS command line or by using the command
+"package kokkos gpu/direct off"_package.html in the input file.
 
 Use a C++11 compatible compiler and set KOKKOS_ARCH variable in
 /src/MAKE/OPTIONS/Makefile.kokkos_cuda_mpi for both GPU and CPU as

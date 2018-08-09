@@ -156,16 +156,16 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     } else if (-1 == have_gpu_direct() ) {
       error->warning(FLERR,"Kokkos with CUDA assumes GPU-direct is available,"
                      " but cannot determine if this is the case\n         try"
-                     " '-pk kokkos gpu/direct no' when getting segmentation faults");
+                     " '-pk kokkos gpu/direct off' when getting segmentation faults");
     } else if ( 0 == have_gpu_direct() ) {
       error->warning(FLERR,"GPU-direct is NOT available, but some parts of "
                      "Kokkos with CUDA require it by default\n         try"
-                     " '-pk kokkos gpu/direct no' when getting segmentation faults");
+                     " '-pk kokkos gpu/direct off' when getting segmentation faults");
     } else {
       ; // should never get here
     }
   }
-    
+
 #endif
 
   Kokkos::InitArguments args;
@@ -310,7 +310,7 @@ void KokkosLMP::accelerator(int narg, char **arg)
     } else error->all(FLERR,"Illegal package kokkos command");
   }
 
-  // if "gpu/direct no" and "comm device", change to "comm host"
+  // if "gpu/direct off" and "comm device", change to "comm host"
 
   if (!gpu_direct) {
    if (exchange_comm_classic == 0 && exchange_comm_on_host == 0)

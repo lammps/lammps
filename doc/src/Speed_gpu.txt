@@ -52,9 +52,9 @@ specify the # of GPUs per node
 use GPU styles in your input script :ul
 
 The latter two steps can be done using the "-pk gpu" and "-sf gpu"
-"command-line switches"_Section_start.html#start_6 respectively.  Or
-the effect of the "-pk" or "-sf" switches can be duplicated by adding
-the "package gpu"_package.html or "suffix gpu"_suffix.html commands
+"command-line switches"_Run_options.html respectively.  Or the effect
+of the "-pk" or "-sf" switches can be duplicated by adding the
+"package gpu"_package.html or "suffix gpu"_suffix.html commands
 respectively to your input script.
 
 [Required hardware/software:]
@@ -143,10 +143,10 @@ automatically if you create more MPI tasks/node than there are
 GPUs/mode.  E.g. with 8 MPI tasks/node and 2 GPUs, each GPU will be
 shared by 4 MPI tasks.
 
-Use the "-sf gpu" "command-line switch"_Section_start.html#start_6,
-which will automatically append "gpu" to styles that support it.  Use
-the "-pk gpu Ng" "command-line switch"_Section_start.html#start_6 to
-set Ng = # of GPUs/node to use.
+Use the "-sf gpu" "command-line switch"_Run_options.html, which will
+automatically append "gpu" to styles that support it.  Use the "-pk
+gpu Ng" "command-line switch"_Run_options.html to set Ng = # of
+GPUs/node to use.
 
 lmp_machine -sf gpu -pk gpu 1 -in in.script                         # 1 MPI task uses 1 GPU
 mpirun -np 12 lmp_machine -sf gpu -pk gpu 2 -in in.script           # 12 MPI tasks share 2 GPUs on a single 16-core (or whatever) node
@@ -180,8 +180,8 @@ pair_style lj/cut/gpu 2.5 :pre
 
 You must also use the "package gpu"_package.html command to enable the
 GPU package, unless the "-sf gpu" or "-pk gpu" "command-line
-switches"_Section_start.html#start_6 were used.  It specifies the
-number of GPUs/node to use, as well as other options.
+switches"_Run_options.html were used.  It specifies the number of
+GPUs/node to use, as well as other options.
 
 [Speed-ups to expect:]
 

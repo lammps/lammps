@@ -245,8 +245,8 @@ that reads a restart file.
 
 The pair styles {edpd}, {mdpd}, {mdpd/rhosum} and {tdpd} are part of
 the USER-MESO package. It is only enabled if LAMMPS was built with
-that package.  See the "Making LAMMPS"_Section_start.html#start_3
-section for more info.
+that package.  See the "Build package"_Build_package.html doc page for
+more info.
 
 [Related commands:]
 

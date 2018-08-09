@@ -84,7 +84,7 @@ END_RST -->
 
 "Using GitHub with LAMMPS"_Howto_github.html
 "PyLAMMPS interface to LAMMPS"_Howto_pylammps.html
-"Using LAMMPS with bash on Windows"_Howto_bash.html
+"Using LAMMPS with bash on Windows"_Howto_bash.html :all(b)
 
 "Restart a simulation"_Howto_restart.html
 "Visualize LAMMPS snapshots"_Howto_viz.html
@@ -121,8 +121,8 @@ END_RST -->
 "Polarizable models"_Howto_polarizable.html
 "Adiabatic core/shell model"_Howto_coreshell.html
 "Drude induced dipoles"_Howto_drude.html
-"Drude induced dipoles (extended)"_Howto_drude2.html :all(b)
+"Drude induced dipoles (extended)"_Howto_drude2.html
 "Manifolds (surfaces)"_Howto_manifold.html
-"Magnetic spins"_Howto_spins.html
+"Magnetic spins"_Howto_spins.html :all(b)
 
 <!-- END_HTML_ONLY -->

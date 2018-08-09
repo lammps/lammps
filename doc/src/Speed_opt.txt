@@ -41,8 +41,8 @@ the CCFLAGS setting in your Makefile.machine must include "-restrict".
 [Run with the OPT package from the command line:]
 
 As in the lines above, use the "-sf opt" "command-line
-switch"_Section_start.html#start_6, which will automatically append
-"opt" to styles that support it.
+switch"_Run_options.html, which will automatically append "opt" to
+styles that support it.
 
 [Or run with the OPT package by editing an input script:]
 

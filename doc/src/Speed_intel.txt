@@ -306,31 +306,31 @@ Hyper-Threading technology disabled.
 [Run with the USER-INTEL package from the command line:]
 
 To enable USER-INTEL optimizations for all available styles used in
-the input script, the "-sf intel"
-"command-line switch"_Section_start.html#start_6 can be used without
-any requirement for editing the input script. This switch will
-automatically append "intel" to styles that support it. It also
-invokes a default command: "package intel 1"_package.html. This
-package command is used to set options for the USER-INTEL package.
-The default package command will specify that USER-INTEL calculations
-are performed in mixed precision, that the number of OpenMP threads
-is specified by the OMP_NUM_THREADS environment variable, and that
-if coprocessors are present and the binary was built with offload
-support, that 1 coprocessor per node will be used with automatic
-balancing of work between the CPU and the coprocessor.
+the input script, the "-sf intel" "command-line
+switch"_Run_options.html can be used without any requirement for
+editing the input script. This switch will automatically append
+"intel" to styles that support it. It also invokes a default command:
+"package intel 1"_package.html. This package command is used to set
+options for the USER-INTEL package.  The default package command will
+specify that USER-INTEL calculations are performed in mixed precision,
+that the number of OpenMP threads is specified by the OMP_NUM_THREADS
+environment variable, and that if coprocessors are present and the
+binary was built with offload support, that 1 coprocessor per node
+will be used with automatic balancing of work between the CPU and the
+coprocessor.
 
 You can specify different options for the USER-INTEL package by using
-the "-pk intel Nphi" "command-line switch"_Section_start.html#start_6
-with keyword/value pairs as specified in the documentation. Here,
-Nphi = # of Xeon Phi coprocessors/node (ignored without offload
+the "-pk intel Nphi" "command-line switch"_Run_options.html with
+keyword/value pairs as specified in the documentation. Here, Nphi = #
+of Xeon Phi coprocessors/node (ignored without offload
 support). Common options to the USER-INTEL package include {omp} to
 override any OMP_NUM_THREADS setting and specify the number of OpenMP
-threads, {mode} to set the floating-point precision mode, and
-{lrt} to enable Long-Range Thread mode as described below. See the
-"package intel"_package.html command for details, including the
-default values used for all its options if not specified, and how to
-set the number of OpenMP threads via the OMP_NUM_THREADS environment
-variable if desired.
+threads, {mode} to set the floating-point precision mode, and {lrt} to
+enable Long-Range Thread mode as described below. See the "package
+intel"_package.html command for details, including the default values
+used for all its options if not specified, and how to set the number
+of OpenMP threads via the OMP_NUM_THREADS environment variable if
+desired.
 
 Examples (see documentation for your MPI/Machine for differences in
 launching MPI applications):
@@ -390,19 +390,18 @@ lj/cut or when using LRT mode on processors supporting AVX-512.
 
 Not all styles are supported in the USER-INTEL package. You can mix
 the USER-INTEL package with styles from the "OPT"_Speed_opt.html
-package or the "USER-OMP package"_Speed_omp.html. Of course,
-this requires that these packages were installed at build time. This
-can performed automatically by using "-sf hybrid intel opt" or
-"-sf hybrid intel omp" command-line options. Alternatively, the "opt"
-and "omp" suffixes can be appended manually in the input script. For
-the latter, the "package omp"_package.html command must be in the
-input script or the "-pk omp Nt" "command-line
-switch"_Section_start.html#start_6 must be used where Nt is the
-number of OpenMP threads. The number of OpenMP threads should not be
-set differently for the different packages. Note that the "suffix
-hybrid intel omp"_suffix.html command can also be used within the
-input script to automatically append the "omp" suffix to styles when
-USER-INTEL styles are not available.
+package or the "USER-OMP package"_Speed_omp.html. Of course, this
+requires that these packages were installed at build time. This can
+performed automatically by using "-sf hybrid intel opt" or "-sf hybrid
+intel omp" command-line options. Alternatively, the "opt" and "omp"
+suffixes can be appended manually in the input script. For the latter,
+the "package omp"_package.html command must be in the input script or
+the "-pk omp Nt" "command-line switch"_Run_options.html must be used
+where Nt is the number of OpenMP threads. The number of OpenMP threads
+should not be set differently for the different packages. Note that
+the "suffix hybrid intel omp"_suffix.html command can also be used
+within the input script to automatically append the "omp" suffix to
+styles when USER-INTEL styles are not available.
 
 NOTE: For simulations on higher node counts, add "processors * * * 
 grid numa"_processors.html" to the beginning of the input script for
@@ -496,8 +495,8 @@ sorting"_atom_modify.html is changed to 1 so that the per-atom data is
 effectively sorted at every rebuild of the neighbor lists. All the
 available coprocessor threads on each Phi will be divided among MPI
 tasks, unless the {tptask} option of the "-pk intel" "command-line
-switch"_Section_start.html#start_6 is used to limit the coprocessor
-threads per MPI task.
+switch"_Run_options.html is used to limit the coprocessor threads per
+MPI task.
 
 [Restrictions:]
 

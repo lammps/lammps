@@ -9,10 +9,11 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 Build LAMMPS as a shared library :h3
 
-Instructions on how to build LAMMPS as a shared library are given in
-"Section 2.4"_Section_start.html#start_4.  A shared library is one
-that is dynamically loadable, which is what Python requires to wrap
-LAMMPS.  On Linux this is a library file that ends in ".so", not ".a".
+Instructions on how to build LAMMPS as a shared library are given on
+the "Build_basics"_Build_basics.html doc page.  A shared library is
+one that is dynamically loadable, which is what Python requires to
+wrap LAMMPS.  On Linux this is a library file that ends in ".so", not
+".a".
 
 From the src directory, type
 
@@ -29,6 +30,6 @@ NOTE: If you are building LAMMPS with an MPI or FFT library or other
 auxiliary libraries (used by various packages), then all of these
 extra libraries must also be shared libraries.  If the LAMMPS
 shared-library build fails with an error complaining about this, see
-"Section 2.4"_Section_start.html#start_4 for more details.
+the "Build_basics"_Build_basics.html doc page.
 
-Also include CMake info on this
+TODO: Also include CMake info on this

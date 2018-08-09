@@ -68,7 +68,7 @@ name.
 
 :line
 
-GPU package :h3,link(gpu)
+GPU package :h4,link(gpu)
 
 To build with this package, you need to choose options for precision
 and which GPU hardware to build for.  To build with make you also need
@@ -134,7 +134,7 @@ GPU library.
 
 :line
  
-KIM package :h3,link(kim)
+KIM package :h4,link(kim)
 
 To build with this package, the KIM library must be downloaded and
 built on your system.  It must include the KIM models that you want to
@@ -178,7 +178,7 @@ make lib-kim args="-p /usr/local/kim-api -a EAM_Dynamo_Ackland_W__MO_14162719659
 
 :line
  
-KOKKOS package :h3,link(kokkos)
+KOKKOS package :h4,link(kokkos)
 
 To build with this package, you have to choose a Kokkos setting for
 either CPU (multi-threading via OpenMP) or KNL (OpenMP) or GPU (Cuda)
@@ -241,7 +241,7 @@ do not recommend building with other acceleration packages installed
 
 :line
  
-LATTE package :h3,link(latte)
+LATTE package :h4,link(latte)
 
 To build with this package, you must download and build the LATTE
 library.
@@ -272,7 +272,7 @@ the compiler you use on your system to build LATTE.
 
 :line
  
-MEAM package :h3,link(meam)
+MEAM package :h4,link(meam)
 
 NOTE: You should test building the MEAM library with both the Intel
 and GNU compilers to see if a simulation runs faster with one versus
@@ -307,7 +307,7 @@ file.
 
 :line
  
-MSCG package :h3,link(mscg)
+MSCG package :h4,link(mscg)
 
 Before building LAMMPS with this package, you must first download and
 build the MS-CG library.  
@@ -342,7 +342,7 @@ You should not need to edit the lib/mscg/Makefile.lammps file.
 
 :line
 
-OPT package :h3,link(opt)
+OPT package :h4,link(opt)
 
 [CMake build]:
 
@@ -359,7 +359,7 @@ CCFLAGS: add -restrict for Intel compilers :ul
 
 :line
  
-POEMS package :h3,link(poems)
+POEMS package :h4,link(poems)
 
 [CMake build]:
 
@@ -388,7 +388,7 @@ a corresponding Makefile.lammps.machine file.
 
 :line
  
-PYTHON package :h3,link(python)
+PYTHON package :h4,link(python)
 
 Building with the PYTHON package assumes you have a Python shared
 library available on your system, which needs to be a Python 2
@@ -407,7 +407,7 @@ process.  You should only need to create a new Makefile.lammps.* file
 
 :line
  
-REAX package :h3,link(reax)
+REAX package :h4,link(reax)
 
 [CMake build]:
 
@@ -438,7 +438,7 @@ file.
 
 :line
 
-VORONOI package :h3,link(voronoi)
+VORONOI package :h4,link(voronoi)
 
 [CMake build]:
 
@@ -466,7 +466,7 @@ the lib/voronoi/Makefile.lammps file.
 :line
 :line
 
-USER-ATC package :h3,link(user-atc)
+USER-ATC package :h4,link(user-atc)
 
 [CMake build]:
 
@@ -507,7 +507,7 @@ make lib-linalg args="-m gfortran"  # build with GNU Fortran compiler :pre
 
 :line
 
-USER-AWPMD package :h3,link(user-awpmd)
+USER-AWPMD package :h4,link(user-awpmd)
 
 [CMake build]:
 
@@ -547,7 +547,7 @@ make lib-linalg args="-m gfortran"  # build with GNU Fortran compiler :pre
 
 :line
 
-USER-COLVARS package :h3,link(user-colvars)
+USER-COLVARS package :h4,link(user-colvars)
 
 [CMake build]:
 
@@ -577,7 +577,7 @@ a corresponding Makefile.lammps.machine file.
 
 :line
 
-USER-H5MD package :h3,link(user-h5md)
+USER-H5MD package :h4,link(user-h5md)
 
 [CMake build]:
 
@@ -608,7 +608,7 @@ file.
 
 :line
 
-USER-INTEL package :h3,link(user-intel)
+USER-INTEL package :h4,link(user-intel)
 
 [CMake build]:
 
@@ -651,7 +651,7 @@ explained on the "Speed intel"_Speed_intel.html doc page.
 
 :line
 
-USER-MOLFILE package :h3,link(user-molfile)
+USER-MOLFILE package :h4,link(user-molfile)
 
 [CMake build]:
 
@@ -668,7 +668,7 @@ lib/molfile/Makefile.lammps for details.
 
 :line
 
-USER-NETCDF package :h3,link(user-netcdf)
+USER-NETCDF package :h4,link(user-netcdf)
 
 [CMake build]:
 
@@ -685,7 +685,7 @@ lib/netcdf/README for details.
 
 :line
 
-USER-OMP package :h3,link(user-omp)
+USER-OMP package :h4,link(user-omp)
 
 [CMake build]:
 
@@ -698,7 +698,7 @@ LINKFLAGS: add -fopenmp :ul
 
 :line
 
-USER-QMMM package :h3,link(user-qmmm)
+USER-QMMM package :h4,link(user-qmmm)
 
 The LAMMPS executable these steps produce is not yet functional for a
 QM/MM simulation.  You must also build Quantum ESPRESSO and create a
@@ -736,7 +736,7 @@ usual manner:
 
 :line
 
-USER-QUIP package :h3,link(user-quip)
+USER-QUIP package :h4,link(user-quip)
 
 [CMake build]:
 
@@ -756,11 +756,11 @@ settings to successfully build on your system.
 
 :line
 
-USER-SMD package :h3,link(user-smd)
+USER-SMD package :h4,link(user-smd)
 
 [CMake build]:
 
--D EIGEN3_INCLUDE_DIR 	
+-D EIGEN3_INCLUDE_DIR=path
 
 [Traditional make]:
 
@@ -784,7 +784,7 @@ usual manner:
 
 :line
 
-USER-VTK package :h3,link(user-vtk)
+USER-VTK package :h4,link(user-vtk)
 
 [CMake build]:
 

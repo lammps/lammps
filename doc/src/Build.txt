@@ -27,6 +27,9 @@ doc page.
    Build_basics
    Build_settings
    Build_package
+
+.. toctree::
+
    Build_extras
 
 END_RST -->

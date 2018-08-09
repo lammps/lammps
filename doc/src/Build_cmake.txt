@@ -91,8 +91,8 @@ cmake directory which contains the CMakeLists.txt file.
 The argument can be preceeded or followed by various CMake
 command-line options.  Several useful ones are:
 
-CAKE_INSTALL_PREFIX=path  # where to install LAMMPS executable/lib if desired
-CMAKE_BUILD_TYPE=type     # type = Release or Debug
+-D CMAKE_INSTALL_PREFIX=path  # where to install LAMMPS executable/lib if desired
+-D CMAKE_BUILD_TYPE=type     # type = Release or Debug
 -G output                 # style of output CMake generates
 -DVARIABLE=value          # setting for a LAMMPS feature to enable
 -D VARIABLE=value         # ditto, but cannot come after CMakeLists.txt dir
@@ -103,7 +103,7 @@ All of these variable names are upper-case and their values are
 lower-case, e.g. -D LAMMPS_SIZES=smallbig.  For boolean values, any of
 these forms can be used: yes/no, on/off, 1/0.
 
-By default CMake generates a Makefile to perform the LAMMPS build.
+On Unix/Linux CMake generates a Makefile by default to perform the LAMMPS build.
 Alternate forms of build info can be generated via the -G switch,
 e.g. Visual Studio on a Windows machine.  Type "cmake --help" to see
 the "Generator" styles of output your system supports.
@@ -118,22 +118,22 @@ CMake creates a CMakeCache.txt file when it runs.  This stores all the
 settings, so that running CMake again from the same directory will
 inherit those settings.
 
-TODO: explain how to change settings on a subsequent cmake in the same
-build dir.  In that case is "." the final arg of cmake?
+If you later want to change a setting you can rerun cmake in the build
+directory with different setting. Please note that some automatically
+detected variables will not change their value. In these cases it is
+usually better to start with a fresh build directory.
 
 [Curses version (terminal-style menu) of CMake]:
 
 ccmake ~/lammps/cmake :pre
 
-TODO: give brief explanation of how to find and toggle options, how to
-perform the generate, how to use it multiple times.
+Please see the "ccmake manual"_https://cmake.org/cmake/help/latest/manual/ccmake.1.html for more information.
 
 [GUI version of CMake]:
 
 cmake-gui ~/lammps/cmake :pre
 
-TODO: give brief explanation of how to find and toggle options, how to
-perform the generate, how to use it multiple times.
+Please see the "cmake-gui manual"_https://cmake.org/cmake/help/latest/manual/cmake-gui.1.html for more information.
 
 :line
 
@@ -152,8 +152,7 @@ module list            # is a cmake module is already loaded
 module avail           # is a cmake module available?
 module load cmake3     # load cmake module with appropriate name :pre
 
-If you do not have CMake or a new enough version, you can install it
-as follows:
-
-TODO: give install instructions for Linux, Mac, Windows
-
+If you do not have CMake or a new enough version, you can download the latest
+version at "https://cmake.org/download/"_https://cmake.org/download/.
+Instructions on how to install it on various platforms can be found
+"here"_https://cmake.org/install/.

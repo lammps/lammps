@@ -301,15 +301,9 @@ want to copy files to is protected.
 
 [CMake variable]:
 
-cmake CMAKE_INSTALL_PREFIX=path \[options ...\] ~/lammps/cmake
+cmake -D CMAKE_INSTALL_PREFIX=path \[options ...\] ~/lammps/cmake
 make                        # perform make after CMake command
-make install                # perform the installation :pre
-
-Note that The CMAKE_INSTALL_PREFIX=path is not a -D variable like
-other LAMMPS settings, but rather an option to the cmake command.  The
-path is where to install the LAMMPS files.
-
-TODO: is this sub-section correct?
+make install                # perform the installation into prefix :pre
 
 [Traditional make]:
 

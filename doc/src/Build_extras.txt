@@ -159,7 +159,10 @@ package?" page.
 
 [CMake build]:
 
-TODO: how to do this
+-D PKG_KIM=on            # enable KIM package
+-D DOWNLOAD_KIM=value    # download OpenKIM API v1 for build, value = off (default) or on
+-D KIM_LIBRARY=path      # (only needed if at custom location) path to KIM shared library
+-D KIM_INCLUDE_DIR=path  # (only needed if at custom location) path to KIM include directory :pre
 
 [Traditional make]:
 
@@ -248,7 +251,9 @@ library.
 
 [CMake build]:
 
-TODO: how to do this
+-D PKG_LATTE=on            # enable LATTE package
+-D DOWNLOAD_LATTE=value    # download LATTE for build, value = off (default) or on
+-D LATTE_LIBRARY=path      # (only needed if at custom location) path to LATTE shared library :pre
 
 [Traditional make]:
 
@@ -280,7 +285,7 @@ the other on your system.
 
 [CMake build]:
 
-TODO: automatic, i.e. nothing to do?
+-D PKG_MEAM=on            # enable MEAM package :pre
 
 [Traditional make]:
 
@@ -314,7 +319,10 @@ build the MS-CG library.
 
 [CMake build]:
 
-TODO: how to do this
+-D PKG_MSCG=on            # enable MSCG package
+-D DOWNLOAD_MSCG=value    # download MSCG for build, value = off (default) or on
+-D MSCG_LIBRARY=path      # (only needed if at custom location) path to MSCG shared library
+-D MSCG_INCLUDE_DIR=path  # (only needed if at custom location) path to MSCG include directory :pre
 
 [Traditional make]:
 
@@ -346,7 +354,7 @@ OPT package :h4,link(opt)
 
 [CMake build]:
 
-TODO: automatic, i.e. nothing to do?
+-D PKG_OPT=on            # enable OPT package :pre
 
 [Traditional make]:
 
@@ -363,7 +371,7 @@ POEMS package :h4,link(poems)
 
 [CMake build]:
 
-TODO: automatic, i.e. nothing to do?
+-D PKG_POEMS=on            # enable POEMS package :pre
 
 [Traditional make]:
 
@@ -397,7 +405,13 @@ lib/python/README for more details.
 
 [CMake build]:
 
-TODO: automatic, i.e. nothing to do?
+-D PKG_PYTHON=on            # enable PYTHON package
+-D PYTHON_EXECUTABLE=path   # path to Python executable which should be used :pre
+
+If you want to use a different Python version other than your system default, you can
+either create a virtualenv, activate it and then run cmake or use the PYTHON_EXECUTABLE
+variable to specify which Python interpreter should be used. Please note that you will
+also need to have the development headers installed, e.g. python2-devel.
 
 [Traditional make]:
 
@@ -411,7 +425,7 @@ REAX package :h4,link(reax)
 
 [CMake build]:
 
-TODO: automatic, i.e. nothing to do?
+-D PKG_REAX=on            # enable REAX package :pre
 
 [Traditional make]:
 
@@ -442,7 +456,10 @@ VORONOI package :h4,link(voronoi)
 
 [CMake build]:
 
-TODO: how to do this
+-D PKG_VORONOI=on            # enable VORONOI package
+-D DOWNLOAD_VORO=value    # download VORO for build, value = off (default) or on
+-D VORO_LIBRARY=path      # (only needed if at custom location) path to VORO shared library
+-D VORO_INCLUDE_DIR=path  # (only needed if at custom location) path to VORO include directory :pre
 
 [Traditional make]:
 
@@ -470,7 +487,8 @@ USER-ATC package :h4,link(user-atc)
 
 [CMake build]:
 
-TODO: automatic, i.e. nothing to do?
+-D PKG_USER-ATC=on            # enable USER-ATC package
+-D PKG_MANYBODY=on            # requires MANYBODY package :pre
 
 [Traditional make]:
 
@@ -511,7 +529,7 @@ USER-AWPMD package :h4,link(user-awpmd)
 
 [CMake build]:
 
-TODO: automatic, i.e. nothing to do?
+-D PKG_USER-AWPMD=on            # enable USER-AWPMD package :pre
 
 [Traditional make]:
 
@@ -551,7 +569,7 @@ USER-COLVARS package :h4,link(user-colvars)
 
 [CMake build]:
 
-TODO: automatic, i.e. nothing to do?
+-D PKG_USER-COLVARS=on            # enable USER-COLVARS package :pre
 
 [Traditional make]:
 
@@ -581,7 +599,11 @@ USER-H5MD package :h4,link(user-h5md)
 
 [CMake build]:
 
-TODO: automatic, i.e. nothing to do?
+-D PKG_USER-H5MD=on            # enable USER-H5MD package :pre
+
+This will autodetect the H5MD library if it is installed on your system at standard locations.
+Several advanced H5MD options exist if you need to specify where it was installed. Run with
+ccmake to see these options.
 
 [Traditional make]:
 
@@ -655,7 +677,7 @@ USER-MOLFILE package :h4,link(user-molfile)
 
 [CMake build]:
 
-TODO: automatic, i.e. nothing to do?
+-D PKG_USER-MOLFILE=on            # enable USER-MOLFILE package :pre
 
 [Traditional make]:
 
@@ -672,7 +694,11 @@ USER-NETCDF package :h4,link(user-netcdf)
 
 [CMake build]:
 
-TODO: automatic, i.e. nothing to do?
+-D PKG_USER-NETCDF=on            # enable USER-NETCDF package :pre
+
+This will autodetect the NETCDF library if it is installed on your system at standard locations.
+Several advanced NETCDF options exist if you need to specify where it was installed. Run with
+ccmake to see these options.
 
 [Traditional make]:
 
@@ -689,7 +715,8 @@ USER-OMP package :h4,link(user-omp)
 
 [CMake build]:
 
-TODO: automatic, i.e. nothing to do?
+-D PKG_USER-OMP=on            # enable USER-OMP package
+-D BUILD_OMP=on               # enable OpenMP support :pre
 
 [Traditional make]:
 
@@ -760,7 +787,8 @@ USER-SMD package :h4,link(user-smd)
 
 [CMake build]:
 
--D EIGEN3_INCLUDE_DIR=path
+-D PKG_USER-SMD=on            # enable USER-SMD package
+-D EIGEN3_INCLUDE_DIR=path    # path to include directory of Eigen library :pre
 
 [Traditional make]:
 
@@ -788,7 +816,11 @@ USER-VTK package :h4,link(user-vtk)
 
 [CMake build]:
 
-TODO: automatic, i.e. nothing to do?
+-D PKG_USER-VTK=on            # enable USER-VTK package :pre
+
+This will autodetect the VTK library if it is installed on your system at standard locations.
+Several advanced VTK options exist if you need to specify where it was installed. Run with
+ccmake to see these options.
 
 [Traditional make]:
 

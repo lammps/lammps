@@ -406,7 +406,7 @@ void CommKokkos::forward_comm_pair_device(Pair *pair)
     if (sendproc[iswap] != me) {
       double* buf_send_pair;
       double* buf_recv_pair;
-      if (lmp->kokkos->gpu_direct) {
+      if (lmp->kokkos->gpu_direct_flag) {
         buf_send_pair = k_buf_send_pair.view<DeviceType>().data();
         buf_recv_pair = k_buf_recv_pair.view<DeviceType>().data();
       } else {
@@ -424,7 +424,7 @@ void CommKokkos::forward_comm_pair_device(Pair *pair)
         MPI_Send(buf_send_pair,n,MPI_DOUBLE,sendproc[iswap],0,world);
       if (recvnum[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
 
-      if (!lmp->kokkos->gpu_direct) {
+      if (!lmp->kokkos->gpu_direct_flag) {
         k_buf_recv_pair.modify<LMPHostType>();
         k_buf_recv_pair.sync<DeviceType>();
       }

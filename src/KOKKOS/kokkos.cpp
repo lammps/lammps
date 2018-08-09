@@ -158,14 +158,12 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
                      " but cannot determine if this is the case\n         try"
                      " '-pk kokkos gpu/direct off' when getting segmentation faults");
     } else if ( 0 == have_gpu_direct() ) {
-      error->warning(FLERR,"GPU-direct is NOT available, but some parts of "
-                     "Kokkos with CUDA require it by default\n         try"
-                     " '-pk kokkos gpu/direct off' when getting segmentation faults");
+      error->warning(FLERR,"GPU-direct is NOT available, "
+                     "using '-pk kokkos gpu/direct off' by default");
     } else {
       ; // should never get here
     }
   }
-
 #endif
 
   Kokkos::InitArguments args;
@@ -186,7 +184,12 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   exchange_comm_on_host = 0;
   forward_comm_on_host = 0;
   reverse_comm_on_host = 0;
-  gpu_direct = 1;
+  gpu_direct_flag = 1;
+
+#if KOKKOS_USE_CUDA
+  // only if we can safely detect, that GPU-direct is not available, change default
+  if (0 == have_gpu_direct()) gpu_direct_flag = 0;
+#endif
 
 #ifdef KILL_KOKKOS_ON_SIGSEGV
   signal(SIGSEGV, my_signal_handler);
@@ -217,7 +220,7 @@ void KokkosLMP::accelerator(int narg, char **arg)
   double binsize = 0.0;
   exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 0;
   exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 0;
-  gpu_direct = 1;
+  gpu_direct_flag = 1;
 
   int iarg = 0;
   while (iarg < narg) {
@@ -303,8 +306,8 @@ void KokkosLMP::accelerator(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"gpu/direct") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
-      if (strcmp(arg[iarg+1],"off") == 0) gpu_direct = 0;
-      else if (strcmp(arg[iarg+1],"on") == 0) gpu_direct = 1;
+      if (strcmp(arg[iarg+1],"off") == 0) gpu_direct_flag = 0;
+      else if (strcmp(arg[iarg+1],"on") == 0) gpu_direct_flag = 1;
       else error->all(FLERR,"Illegal package kokkos command");
       iarg += 2;
     } else error->all(FLERR,"Illegal package kokkos command");
@@ -312,7 +315,7 @@ void KokkosLMP::accelerator(int narg, char **arg)
 
   // if "gpu/direct off" and "comm device", change to "comm host"
 
-  if (!gpu_direct) {
+  if (!gpu_direct_flag) {
    if (exchange_comm_classic == 0 && exchange_comm_on_host == 0)
      exchange_comm_on_host = 1;
    if (forward_comm_classic == 0 && forward_comm_on_host == 0)

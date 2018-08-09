@@ -512,9 +512,12 @@ this keyword is set to {on}, buffers in GPU memory are passed directly
 through MPI send/receive calls. This reduces overhead of first copying
 the data to the host CPU. However GPU-direct is not supported on all
 systems, which can lead to segmentation faults and would require
-using a value of {off}. When the {gpu/direct} keyword is set to {off}
-while any of the {comm} keywords are set to {device}, the value for the
-{comm} keywords will be automatically changed to {host}.
+using a value of {off}. If LAMMPS can safely detect that GPU-direct is
+not available (currently only possible with OpenMPI v2.0.0 or later),
+then the {gpu/direct} keyword is automatically set to {off} by default.
+When the {gpu/direct} keyword is set to {off} while any of the {comm}
+keywords are set to {device}, the value for these {comm} keywords will
+be automatically changed to {host}.
 
 :line
 
@@ -624,6 +627,8 @@ switch"_Section_start.html#start_6.
 
 For the KOKKOS package, the option defaults neigh = full, neigh/qeq =
 full, newton = off, binsize = 0.0, and comm = device, gpu/direct = on.
+When LAMMPS can safely detect, that GPU-direct is not available, the
+default value of gpu/direct becomes "off".
 These settings are made automatically by the required "-k on"
 "command-line switch"_Section_start.html#start_6. You can change them by
 using the package kokkos command in your input script or via the "-pk

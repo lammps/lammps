@@ -159,7 +159,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
                      " '-pk kokkos gpu/direct no' when getting segmentation faults");
     } else if ( 0 == have_gpu_direct() ) {
       error->warning(FLERR,"GPU-direct is NOT available, but some parts of "
-                     "Kokkos with CUDA require it\n         try"
+                     "Kokkos with CUDA require it by default\n         try"
                      " '-pk kokkos gpu/direct no' when getting segmentation faults");
     } else {
       ; // should never get here

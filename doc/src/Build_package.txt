@@ -14,8 +14,9 @@ features.  For example, force fields for molecular systems or
 rigid-body constraints are in packages.  In the src directory, each
 package is a sub-directory with the package name in capital letters.
 
-A complete list of packages with brief overviews of each are on the
-"Packages details"_Packages_details.html doc page.
+An overview of packages is given on the "Packages"_Packages.html doc
+page.  Brief overviews of each package are on the "Packages
+details"_Packages_details.html doc page.
 
 When building LAMMPS, you can choose to include or exclude each
 package.  In general there is no need to include a package if you
@@ -23,12 +24,9 @@ never plan to use its features.
 
 If you get a run-time error that a LAMMPS command or style is
 "Unknown", it is often because the command is contained in a package,
-and your build did not include the package.  Running LAMMPS with the
+and your build did not include that package.  Running LAMMPS with the
 "-h command-line switch"_Run_options.html will print all the included
 packages and commands for that executable.
-
-The mechanism for including packages is different for CMake versus a
-traditional make.
 
 For the majority of packages, if you follow the single step below to
 include it, you can then build LAMMPS exactly the same as you would
@@ -62,6 +60,9 @@ packages:
 "USER-SMD"_Build_extras.html#user-smd,
 "USER-VTK"_Build_extras.html#user-vtk :tb(c=6,ea=c)
 
+The mechanism for including packages is simple but different for CMake
+versus make.
+
 [CMake variables]:
 
 -D PKG_NAME=value          # yes or no (default) :pre
@@ -74,6 +75,9 @@ Examples:
 All standard and user packages are included the same way.  Note that
 USER packages have a hyphen between USER and the rest of the package
 name, not an underscore.
+
+See the shortcut section below for how to install many packages at
+once with CMake.
 
 NOTE: If you toggle back and forth between building with CMake vs
 make, no packages in the src directory can be installed when you
@@ -95,6 +99,9 @@ make yes-user-intel :pre
 
 All standard and user packages are included the same way.
 
+See the shortcut section below for how to install many packages at
+once with make.
+
 NOTE: You must always re-build LAMMPS (via make) after installing or
 un-installing a package, for the action to take effect.
 
@@ -114,14 +121,6 @@ right thing.  Individual files are only included if their dependencies
 are already included.  Likewise, if a package is excluded, other files
 dependent on that package are also excluded.
 
-NOTE: The one exception is that for a build via make (ok via CMake),
-we do not recommend building with the KOKKOS package installed along
-with any of the other acceleration packages (GPU, OPT, USER-INTEL,
-USER-OMP) also installed.  This is because of how Kokkos sometimes
-builds using a wrapper compiler which can make it difficult to invoke
-all the compile/link flags correctly for both Kokkos and non-Kokkos
-files.
-
 When you download a LAMMPS tarball, three packages are pre-installed
 in the src directory: KSPACE, MANYBODY, MOLECULE.  This is because
 they are so commonly used.  When you download LAMMPS source files from
@@ -129,9 +128,19 @@ the Git or SVN repositories, no packages are pre-installed.
 
 :line
 
-The following make commands are useful for managing package source
-files and their installation when building LAMMPS via traditional
-make.  Just type "make" in lammps/src to see a one-line summary.
+[CMake shortcuts for installing many packages]:
+
+TODO: brief discussion of the cmake command line options with presets
+that Axel or Richard enabled to install sets of packages at once?
+Are these just for cmake, or also ccmake and cmake-gui?
+
+:line
+
+[Make shortcuts for installing many packages]:
+
+The following commands are useful for managing package source files
+and their installation when building LAMMPS via traditional make.
+Just type "make" in lammps/src to see a one-line summary.
 
 These commands install/un-install sets of packages:
 

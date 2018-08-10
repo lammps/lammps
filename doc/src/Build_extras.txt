@@ -705,9 +705,11 @@ USER-NETCDF package :h4,link(user-netcdf)
 
 -D PKG_USER-NETCDF=on            # enable USER-NETCDF package :pre
 
-This will autodetect the NETCDF library if it is installed on your system at standard locations.
-Several advanced NETCDF options exist if you need to specify where it was installed. Run with
-ccmake to see these options.
+This will autodetect the NETCDF library if it is installed on your
+system at standard locations. Several advanced NETCDF options exist,
+for example if you need to specify where it was installed. Best use
+the ccmake (console) or cmake-gui (graphical) tools to see these
+options and set them interactively from their user interfaces.
 
 [Traditional make]:
 
@@ -729,8 +731,11 @@ USER-OMP package :h4,link(user-omp)
 
 [Traditional make]:
 
-CCFLAGS: add -fopenmp (and -restrict when using Intel compilers)
-LINKFLAGS: add -fopenmp :ul
+CCFLAGS: add -fopenmp (or -qopenmp -restrict when using Intel compilers on Linux)
+LINKFLAGS: add -fopenmp (or -qopenmp when using Intel compilers on Linux) :ul
+
+For other platforms and compilers, please consult the documentation for the
+corresponding compiler.
 
 :line
 
@@ -745,12 +750,14 @@ interface that the QM/MM code in LAMMPS is using, so that currently
 (Summer 2018) using this feature requires either correcting the
 library interface feature in recent Quantum ESPRESSO releases, or
 using an outdated version of QE. The last version of Quantum ESPRESSO
-known to work with this QM/MM interface in LAMMPS was version 5.4
+known to work with this QM/MM interface in LAMMPS was version 5.4.1
 from 2016.
 
 [CMake build]:
 
-TODO: how to do this?
+The CMake build system currently does not support building the
+full, QM/MM capable hybrid executable of LAMMPS and QE called
+pwqmmm.x. Please use the traditional make procedure.
 
 [Traditional make]:
 
@@ -775,7 +782,10 @@ for your system, which should define an EXTRAMAKE variable to specify
 a corresponding Makefile.lammps.machine file.
 
 You can then install/un-install the package and build LAMMPS in the
-usual manner:
+usual manner. After completing the LAMMPS build and compiling Quantum
+ESPRESSO with external library support, you can go back to the lib/qmmm
+folder and follow the instructions on the README file to build the
+combined LAMMPS/QE QM/MM executable, pwqmmm.x in the lib/qmmm folder.
 
 :line
 
@@ -783,19 +793,27 @@ USER-QUIP package :h4,link(user-quip)
 
 [CMake build]:
 
-TODO: how to do this?
+-D PKG_USER-QUIP=on                  # enable USER-QUIP package
+-D QUIP_LIBRARIES=/path/to/libquip.a # set the location of the quip library :pre
+
+This will include the USER-QUIP package and tell the build system where
+to find the quip library. You have to first follow the steps to compile
+and install the QUIP library in the same was as for the traditional
+make build process (see below).
 
 [Traditional make]:
 
 Note that to follow these steps to compile and link to the QUIP
 library, you must first download and build QUIP on your systems.  It
-can be obtained from GitHub.  See step 1 and step 1.1 in the
-lib/quip/README file for details on how to do this.  Note that it
-requires setting two environment variables, QUIP_ROOT and QUIP_ARCH,
-which will be accessed by the lib/quip/Makefile.lammps file which is
-used when you compile and link LAMMPS with this package.  You should
-only need to edit this file if the LAMMPS build can not use its
-settings to successfully build on your system.
+can be obtained from GitHub. For support of GAP potentials, additional
+files, with specific licensing conditions need to be downloaded and
+configured. See step 1 and step 1.1 in the lib/quip/README file for
+details on how to do this.  Note that it requires setting two
+environment variables, QUIP_ROOT and QUIP_ARCH, which will be accessed
+by the lib/quip/Makefile.lammps file which is used when you compile and
+link LAMMPS with this package.  You should only need to edit this file
+if the LAMMPS build can not use its settings to successfully build on
+your system.
 
 :line
 

@@ -168,7 +168,9 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
 #ifndef KOKKOS_HAVE_SERIAL
   if (num_threads == 1)
-    error->warning(FLERR,"Using Kokkos Serial backend (i.e. Makefile.kokkos_mpi_only) performs better with 1 thread");
+    error->warning(FLERR,"When using a single thread, the Kokkos Serial backend "
+                         "(i.e. Makefile.kokkos_mpi_only) gives better performance "
+                         "than the OpenMP backend");
 #endif
 
   Kokkos::InitArguments args;

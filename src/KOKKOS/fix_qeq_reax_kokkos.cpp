@@ -496,8 +496,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
       Kokkos::parallel_for(inum,sparse13_functor);
     }
     if (need_dup)
-        if (need_dup)
-    Kokkos::Experimental::contribute(d_o, dup_o);
+      Kokkos::Experimental::contribute(d_o, dup_o);
   } else {
     Kokkos::parallel_for(Kokkos::TeamPolicy <DeviceType, TagSparseMatvec1> (inum, teamsize), *this);
   }
@@ -555,8 +554,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
         Kokkos::parallel_for(inum,sparse23_functor);
       }
       if (need_dup)
-          if (need_dup)
-    Kokkos::Experimental::contribute(d_o, dup_o);
+        Kokkos::Experimental::contribute(d_o, dup_o);
     } else {
       Kokkos::parallel_for(Kokkos::TeamPolicy <DeviceType, TagSparseMatvec2> (inum, teamsize), *this);
     }
@@ -635,8 +633,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
       Kokkos::parallel_for(inum,sparse33_functor);
     }
     if (need_dup)
-        if (need_dup)
-    Kokkos::Experimental::contribute(d_o, dup_o);
+      Kokkos::Experimental::contribute(d_o, dup_o);
   } else {
     Kokkos::parallel_for(Kokkos::TeamPolicy <DeviceType, TagSparseMatvec3> (inum, teamsize), *this);
   }
@@ -694,8 +691,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
         Kokkos::parallel_for(inum,sparse23_functor);
       }
       if (need_dup)
-          if (need_dup)
-    Kokkos::Experimental::contribute(d_o, dup_o);
+        Kokkos::Experimental::contribute(d_o, dup_o);
     } else {
       Kokkos::parallel_for(Kokkos::TeamPolicy <DeviceType, TagSparseMatvec2> (inum, teamsize), *this);
     }

@@ -279,9 +279,13 @@ the compiler you use on your system to build LATTE.
  
 MEAM package :h4,link(meam)
 
-NOTE: You should test building the MEAM library with both the Intel
-and GNU compilers to see if a simulation runs faster with one versus
-the other on your system.
+NOTE: the use of the MEAM package is discouraged, as it has been
+superseded by the USER-MEAMC package, which is a direct translation of
+the Fortran code in the MEAM library to C++. The code in USER-MEAMC is
+functionally completely equivalent, fully supports use in "pair_style
+hybrid"_pair_hybrid.html, and has optimizations (e.g. no translations of
+data structures or neighbor lists are required) that make it
+significantly faster than the MEAM package.
 
 [CMake build]:
 
@@ -422,6 +426,11 @@ process.  You should only need to create a new Makefile.lammps.* file
 :line
  
 REAX package :h4,link(reax)
+
+NOTE: the use of the REAX package is discouraged, as it is no longer
+maintained. Please use the USER-REAX package instead, and possibly the
+KOKKOS enabled variant of that, which has a more robust memory
+management.
 
 [CMake build]:
 

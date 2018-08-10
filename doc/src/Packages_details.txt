@@ -530,11 +530,12 @@ MEAM package :link(PKG-MEAM),h4
 
 A pair style for the modified embedded atom (MEAM) potential.
 
-Please note that the MEAM package has been superseded by the
-"USER-MEAMC"_#PKG-USER-MEAMC package, which is a direct translation
-of the MEAM package to C++. USER-MEAMC contains additional
-optimizations making it run faster than MEAM on most machines,
-while providing the identical features and USER interface.
+Please note that the use of the MEAM package is discouraged as
+it has been superseded by the "USER-MEAMC"_#PKG-USER-MEAMC package,
+which is a direct translation of the MEAM package to C++.
+USER-MEAMC contains additional optimizations making it run faster
+than MEAM on most machines, while providing the identical features
+and user interface.
 
 [Author:] Greg Wagner (Northwestern U) while at Sandia.
 
@@ -807,11 +808,15 @@ REAX package :link(PKG-REAX),h4
 
 [Contents:]
 
+NOTE: the use of the REAX package is discouraged, as it is no longer
+maintained. Please use the "USER-REAXC"_#PKG-USER-REAXC package instead,
+and possibly the KOKKOS enabled variant of that, which has a more robust
+memory management.
+
 A pair style which wraps a Fortran library which implements the ReaxFF
-potential, which is a universal reactive force field.  See the
-"USER-REAXC package"_#PKG-USER-REAXC for an alternate implementation in
-C/C++.  Also a "fix reax/bonds"_fix_reax_bonds.html command for
-monitoring molecules as bonds are created and destroyed.
+potential, which is a universal reactive force field.  Also included is
+a "fix reax/bonds"_fix_reax_bonds.html command for monitoring molecules
+as bonds are created and destroyed.
 
 [Author:] Aidan Thompson (Sandia).
 

@@ -9,23 +9,25 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 Basics of running LAMMPS :h3
 
-LAMMPS is run from the command line, reading commands from standard
-input, which are typically listed in an input script:
+LAMMPS is run from the command line, reading commands from a
+file via the -in command line flag, or from standard input.
+Using the "-in in.file" variant is recommended:
 
 lmp_serial < in.file
 lmp_serial -in in.file
-~/lammps/src/lmp_serial < in.file
+/path/to/lammps/src/lmp_serial < in.file
 mpirun -np 4 lmp_mpi -in in.file
-mpirun -np 8 ~/lammps/src/lmp_mpi -in in.file
-mpirun -np 6 /usr/local/bin/lmp_mpi -in in.file :pre
+mpirun -np 8 /path/to//lammps/src/lmp_mpi -in in.file
+mpirun -np 6 /usr/local/bin/lmp -in in.file :pre
 
-You normally run from the directory your input script is in.  That is
-also where output files are produced, unless you specify otherwise in
-your input script.  As in some of the examples above, the LAMMPS
-executable can be elsewhere.
+You normally run the LAMMPS command in the directory where your
+input script is located.  That is also where output files are
+produced by default, unless you provide specific other paths in
+your input script or on the command line.  As in some of the
+examples above, the LAMMPS executable itself can be placed elsewhere.
 
-NOTE: The redirection operator "<" can often be used with mpirun, but
-some systems require the -in form.
+NOTE: The redirection operator "<" will not always work when running
+in parallel with mpirun; for those systems the -in form is required.
 
 As LAMMPS runs it prints info to the screen and a logfile named
 log.lammps.  More info about output is given on the "Run

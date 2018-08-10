@@ -9,15 +9,18 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 Build LAMMPS with make :h3
 
-Building LAMMPS with traditional make requires you have a
-Makefile.machine file in the src/MAKE directory appropriate for your
-system (see below).  It can list various options for what to
-include/exclude in a LAMMPS build.  To include LAMMPS packages you
-must install them first, as discussed on the "Build
-package"_Build_package.html doc page.  If the packages use provided or
-external libraries, you must build those libraries before building
-LAMMPS.  Building "LAMMPS with CMake"_Build_cmake.html can automate
-all of this, so we suggest you try it first.
+Building LAMMPS with traditional makefiles requires, that you have a
+Makefile."machine" file in the src/MAKE, src/MAKE/MACHINES,
+src/MAKE/OPTIONS, or src/MAKE/MINE directory, which is appropriate
+for your system (see below).  It can list various options for
+customizing your LAMMPS build with a number of global compilation
+options and features.  To include LAMMPS packages (i.e. optional
+commands and styles) you must install them first, as discussed on
+the "Build package"_Build_package.html doc page.  If the packages
+use provided or external libraries, you must build those libraries
+before building LAMMPS.  Building "LAMMPS with CMake"_Build_cmake.html
+can automate all of this for many types of machines, especially
+workstations, desktops and laptops, so we suggest you try it first.
 
 These commands perform a default LAMMPS build, producing the LAMMPS
 executable lmp_serial or lmp_mpi in lammps/src:
@@ -27,23 +30,31 @@ make serial     # build a serial LAMMPS executable
 make mpi        # build a parallel LAMMPS executable with MPI
 make            # see a variety of make options :pre
 
-If your machine has multiple cores (most do), using a command like
-"make -j mpi" will be much faster.
+This initial compilation can take a long time, since LAMMPS is a large
+project with many features. If your machine has multiple CPU cores (most
+do these days), using a command like "make -jN mpi" (with N being to the
+number of available local CPU cores) can be much faster. If you plan to
+do development on LAMMPS or may need to recompile LAMMPS repeatedly, the
+installation of the ccache (= Compiler Cache) software may speed up
+compilation even more.
 
-After the initial build, if you edit LAMMPS source files, or add new
-files to the source directory, you can re-type make and it will only
-re-compile the files that have changed.
+After the initial build, whenever you edit LAMMPS source files, or 
+add or remove new files to the source directory (e.g. by installing or
+uninstalling packages), you must recompile and relink the LAMMPS executable
+with the same command line, but the makefiles will make certain, that
+only files that need to be recompiled will be compiled (because they
+were changed or depend on files, that were changed). 
 
 :line
 
-The lammps/src/MAKE directory contains all the Makefile.machine files
+The lammps/src/MAKE tree contains all the Makefile.machine files
 included in the LAMMPS distribution.  Typing "make machine" uses
 Makefile.machine.  Thus the "make serial" or "make mpi" lines above
 use Makefile.serial and Makefile.mpi.  Others are in these dirs:
 
 OPTIONS      # Makefiles which enable specific options
 MACHINES     # Makefiles for specific machines
-MINE         # customized Makefiles you create :pre
+MINE         # customized Makefiles you create (you may need to create this folder) :pre
 
 Typing "make" lists all the available Makefile.machine files.  A file
 with the same name can appear in multiple dirs (not a good idea).  The
@@ -53,7 +64,10 @@ customized file you put in src/MAKE/MINE.
 
 Makefiles you may wish to try include these (some require a package
 first be installed).  Many of these include specific compiler flags
-for optimized performance:
+for optimized performance.  Please note, however, that most of these
+customized machine Makefile are contributed and since both, compilers
+and also OS configs, as well as LAMMPS itself keep changing all the
+time, some of these settings and recommendations may be outdated:
 
 make mac             # build serial LAMMPS on a Mac
 make mac_mpi         # build parallel LAMMPS on a Mac

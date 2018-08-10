@@ -301,7 +301,7 @@ want to copy files to is protected.
 
 [CMake variable]:
 
-cmake -D CMAKE_INSTALL_PREFIX=path \[options ...\] ~/lammps/cmake
+cmake -D CMAKE_INSTALL_PREFIX=path \[options ...\] ../cmake
 make                        # perform make after CMake command
 make install                # perform the installation into prefix :pre
 

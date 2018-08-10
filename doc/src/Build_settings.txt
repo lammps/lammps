@@ -43,7 +43,7 @@ obsolete by its developers.
  
 [CMake variables]:
 
--D FFT=value              # kiss or fftw3 or fftw2 or mkl, default is fftw3 if found, else kiss
+-D FFT=value              # KISSFFT or FFTW3 or FFTW2 or MKL, default is FFTW3 if found, else KISSFFT
 -D FFT_SINGLE=value       # yes or no (default), no = double precision
 -D FFT_PACK=value         # array (default) or pointer or memcpy :pre
 
@@ -59,7 +59,7 @@ the FFT library, you can set these variables:
 
 [Makefile.machine settings]:
 
-FFT_INC = -DFFT_FFTW3         # FFTW3, FFTW2, FFTW (same as FFTW3), MKL, or KISS
+FFT_INC = -DFFT_FFTW3         # -DFFT_FFTW3, -DFFT_FFTW2, -DFFT_FFTW (same as -DFFT_FFTW3), -DFFT_MKL, or -DFFT_KISSFFT
                               # default is KISS if not specified
 FFT_INC = -DFFT_SINGLE        # do not specify for double precision
 FFT_INC = -DFFT_PACK_ARRAY    # or -DFFT_PACK_POINTER or -DFFT_PACK_MEMCPY :pre

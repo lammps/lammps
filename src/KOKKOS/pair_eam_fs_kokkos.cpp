@@ -109,7 +109,6 @@ void PairEAMFSKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   x = atomKK->k_x.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
-  v_rho = k_rho.view<DeviceType>();
   type = atomKK->k_type.view<DeviceType>();
   tag = atomKK->k_tag.view<DeviceType>();
   nlocal = atom->nlocal;

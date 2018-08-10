@@ -140,8 +140,10 @@ set(LAMMPS_API_DEFINES "${LAMMPS_API_DEFINES} -D${LAMMPS_SIZE_LIMIT}")
 
 # posix_memalign is not available on Windows
 if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  set(LAMMPS_MEMALIGN "64" CACHE STRING "enables the use of the posix_memalign() call instead of malloc() when large chunks or memory are allocated by LAMMPS")
-  add_definitions(-DLAMMPS_MEMALIGN=${LAMMPS_MEMALIGN})
+  set(LAMMPS_MEMALIGN "64" CACHE STRING "enables the use of the posix_memalign() call instead of malloc() when large chunks or memory are allocated by LAMMPS. Set to 0 to disable")
+  if(NOT ${LAMMPS_MEMALIGN} STREQUAL "0")
+    add_definitions(-DLAMMPS_MEMALIGN=${LAMMPS_MEMALIGN})
+  endif()
 endif()
 
 option(LAMMPS_EXCEPTIONS "enable the use of C++ exceptions for error messages (useful for library interface)" OFF)

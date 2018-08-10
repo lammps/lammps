@@ -29,9 +29,17 @@ FFT library :h3,link(fft)
 When the KSPACE package is included in a LAMMPS build, the
 "kspace_style pppm"_kspace_style.html command performs 3d FFTs which
 require use of an FFT library to compute 1d FFTs.  The KISS FFT
-library is included with LAMMPS but other libraries are typically
-faster if they are available on your system.  See details on other FFT
-libraries below.
+library is included with LAMMPS but other libraries can be faster
+(typically up to 20%), and LAMMPS can use them, if they are
+available on your system. Since the use of FFTs is usually only part
+of the total computation done by LAMMPS, however, the total
+performance difference for typical cases is in the range of 2-5%.
+Thus it is safe to use KISS FFT and look into using other FFT
+libraries when optimizing for maximum performance.   See details
+on enabling the use of other FFT libraries below.
+
+NOTE: FFTW2 has not been updated since 1999 and has been declared
+obsolete by its developers.
  
 [CMake variables]:
 
@@ -43,9 +51,9 @@ Usually these settings are all that is needed.  If CMake cannot find
 the FFT library, you can set these variables:
 
 -D FFTW3_INCLUDE_DIRS=path  # path to FFTW3 include files
--D FFTW2_LIBRARIES=path     # path to FFTW3 libraries
+-D FFTW3_LIBRARIES=path     # path to FFTW3 libraries
 -D FFTW2_INCLUDE_DIRS=path  # ditto for FFTW2
--D FFTW3_LIBRARIES=path
+-D FFTW2_LIBRARIES=path
 -D MKL_INCLUDE_DIRS=path    # ditto for Intel MKL library
 -D MKL_LIBRARIES=path :pre
 
@@ -77,26 +85,34 @@ The "KISS FFT library"_http://kissfft.sf.net is included in the LAMMPS
 distribution, so not FFT_LIB setting is required.  It is portable
 across all platforms.
 
-FFTW is fast, portable library that should also work on any platform
-and typically be faster than KISS FFT.  You can download it from
-"www.fftw.org"_http://www.fftw.org.  Both the legacy version 2.1.X and
-the newer 3.X versions are supported.  Building FFTW for your box
-should be as simple as ./configure; make; make install.  The install
+FFTW is a fast, portable FFT library that should also work on any
+platform and can be faster than KISS FFT.  You can download it from
+"www.fftw.org"_http://www.fftw.org.  Both the (obsolete) legacy version
+2.1.X and the newer 3.X versions are supported.  Building FFTW for your
+box should be as simple as ./configure; make; make install.  The install
 command typically requires root privileges (e.g. invoke it via sudo),
 unless you specify a local directory with the "--prefix" option of
 configure.  Type "./configure --help" to see various options.
+The total impact on the performance of LAMMPS by KISS FFT versus 
+other FFT libraries is for many case rather small (since FFTs are only
+a small to moderate part of the total computation). Thus if FFTW is
+not detected on your system, it is usually safe to continue with
+KISS FFT and look into installing FFTW only when optimizing LAMMPS
+for maximum performance.
+
 
 The Intel MKL math library is part of the Intel compiler suite.  It
 can be used with the Intel or GNU compiler (see FFT_LIB setting above).
 
-3d FFTs can be computationally expensive.  Their cost can be reduced
+Performing 3d FFTs in parallel can be time consuming due to data
+access and required communication.  This cost can be reduced
 by performing single-precision FFTs instead of double precision.
 Single precision means the real and imaginary parts of a complex datum
 are 4-byte floats.  Double precesion means they are 8-byte doubles.
 Note that Fourier transform and related PPPM operations are somewhat
-insensitive to floating point truncation errors and thus do not always
-need to be performed in double precision.  Using this setting trades
-off a little accuracy for reduced memory use and parallel
+less sensitive to floating point truncation errors and thus the resulting
+error is less than the difference in precision. Using the -DFFT_SINGLE
+setting trades off a little accuracy for reduced memory use and parallel
 communication costs for transposing 3d FFT data.
 
 When using -DFFT_SINGLE with FFTW3 or FFTW2, you may need to build the
@@ -279,18 +295,29 @@ This setting enables the use of the posix_memalign() call instead of
 malloc() when LAMMPS allocates large chunks or memory.  This can make
 vector instructions on CPUs more efficient, if dynamically allocated
 memory is aligned on larger-than-default byte boundaries.
+On most current systems, the malloc() implementation returns
+pointers that are aligned to 16-byte boundaries. Using SSE vector
+instructions efficiently, however, requires memory blocks being
+aligned on 64-byte boundaries.
 
 [CMake variable]:
 
 -D LAMMPS_MEMALIGN=value            # 8, 16, 32, 64 (default) :pre
 
+Use a LAMMPS_MEMALIGN value of 0 to disable using posix_memalign()
+and revert to using the malloc() C-library function instead. When
+compiling LAMMPS for Windows systems, malloc() will always be used
+and this setting ignored.
+
 [Makefile.machine setting]:
 
 LMP_INC = -DLAMMPS_MEMALIGN=value   # 8, 16, 32, 64 :pre
 
-TODO: I think the make default (no LAMMPS_MEMALIGN) is to not
-use posix_memalign(), just malloc().  Does a CMake build have
-an equivalent option?  I.e. none.
+Do not set -DLAMMPS_MEMALIGN, if you want to have memory allocated
+with the malloc() function call instead. -DLAMMPS_MEMALIGN [cannot]
+be used on Windows, as it does use different function calls for
+allocating aligned memory, that are not compatible with how LAMMPS
+manages its dynamical memory.
 
 :line
 

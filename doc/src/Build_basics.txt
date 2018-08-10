@@ -93,24 +93,29 @@ with it.
 
 The majority of OpenMP (threading) support in LAMMPS is provided by
 the USER-OMP package; see the "Speed omp"_Speed_omp.html doc page for
-details.
+details. The USER-INTEL package also provides OpenMP support (it is
+compatible with USER-OMP) and adds vectorization support when compiled
+with the Intel compilers on top of that. Also, the KOKKOS package can
+be compiled for using OpenMP threading.
 
 However, there are a few commands in LAMMPS that have native OpenMP
-support.  These are commands in the MPIIO, SNAP, USER-COLVARS, and
-USER-DPD packages.  See the "Packages details"_Packages_details.html
-doc page for more info on these packages and the doc pages for their
-respective commands for OpenMP threading info.
-
-TODO: is this the complete list of native OpenMP commands in LAMMPS?
+support.  These are commands in the MPIIO, SNAP, USER-DIFFRACTION, and
+USER-DPD packages.  In addition some commands support OpenMP threading
+not directly, but through the libraries they are interfacing to:
+e.g. LATTE and USER-COLVARS. See the "Packages
+details"_Packages_details.html doc page for more info on these packages
+and the doc pages for their respective commands for OpenMP threading
+info.
 
 For CMake, if you use BUILD_OMP=yes, then you can use these packages
 and turn on their native OpenMP support at run time, by first setting
 the OMP_NUM_THREADS environment variable.
 
-For make, ...
-
-TODO: how do we build LAMMPS with make, to include OpenMP support
-(separate from USER-OMP package).  Akin to CMake with BUILD_OMP=yes.
+For the conventional makefiles, the CCFLAGS and LINKFLAGS variables
+need to include the compiler flag, that enables OpenMP. For GNU
+compilers, this flag is -fopenmp, for (recent) Intel compilers,
+it is -qopenmp. Please refer to the documentation of your compiler,
+if you are using a different compiler to compile LAMMPS.
 
 :line
 

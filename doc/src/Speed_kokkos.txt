@@ -211,7 +211,7 @@ with the "-DLMP_KOKKOS_USE_ATOMICS" compile switch. Most but not all
 Kokkos-enabled pair_styles support data duplication. Alternatively, full 
 neighbor lists avoid the need for duplication or atomics but require 
 more compute operations per atom. When using the Kokkos Serial backend 
-or the OpenMP backend with a single thread, no duplication or atomics is 
+or the OpenMP backend with a single thread, no duplication or atomics are 
 used. For CUDA and half neighbor lists, the KOKKOS package always uses 
 atomics.
 

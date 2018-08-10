@@ -38,7 +38,6 @@ using namespace LAMMPS_NS;
 
 // Cannot use virtual inheritance on the GPU, so must duplicate code
 
-
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>

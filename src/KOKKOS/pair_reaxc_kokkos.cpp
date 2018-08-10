@@ -73,14 +73,6 @@ PairReaxCKokkos<DeviceType>::PairReaxCKokkos(LAMMPS *lmp) : PairReaxC(lmp)
 
   k_error_flag = DAT::tdual_int_scalar("pair:error_flag");
   k_nbuf_local = DAT::tdual_int_scalar("pair:nbuf_local");
-
-  static double t1 = 0.0;
-  static double t2 = 0.0;
-  static double t3 = 0.0;
-  static double t4 = 0.0;
-  static double t5 = 0.0;
-  static double t6 = 0.0;
-  static double t7 = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -678,8 +670,6 @@ void PairReaxCKokkos<DeviceType>::LR_vdW_Coulomb( int i, int j, double r_ij, LR_
 template<class DeviceType>
 void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 {
-  Kokkos::Timer timer;
-
   copymode = 1;
 
   bocnt = hbcnt = 0;
@@ -827,7 +817,6 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
     // zero
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxZero>(0,nmax),*this);
-
 
     if (neighflag == HALF)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBuildListsHalf<HALF> >(0,ignum),*this);
@@ -1115,8 +1104,8 @@ template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeLJCoulomb<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
-  // The f array is atomic for Half/Thread neighbor style
-  //Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
+  // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+
   auto v_f = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
@@ -1276,8 +1265,8 @@ template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTabulatedLJCoulomb<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
-  // The f array is atomic for Half/Thread neighbor style
-  //Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
+  // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+
   auto v_f = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
@@ -1660,10 +1649,9 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBuildListsHalf<NEIGHFLAG>, 
   if (d_resize_bo() || d_resize_hb())
     return;
 
-  //Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_dDeltap_self = d_dDeltap_self;
   auto v_dDeltap_self = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_dDeltap_self),decltype(ndup_dDeltap_self)>::get(dup_dDeltap_self,ndup_dDeltap_self);
   auto a_dDeltap_self = v_dDeltap_self.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
-  //Kokkos::View<F_FLOAT*, typename DAT::t_float_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_total_bo = d_total_bo;
+
   auto v_total_bo = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_total_bo),decltype(ndup_total_bo)>::get(dup_total_bo,ndup_total_bo);
   auto a_total_bo = v_total_bo.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
@@ -2356,7 +2344,6 @@ template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeMulti2<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
-  //Kokkos::View<F_FLOAT*, typename DAT::t_float_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_CdDelta = d_CdDelta;
   auto v_CdDelta = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_CdDelta),decltype(ndup_CdDelta)>::get(dup_CdDelta,ndup_CdDelta);
   auto a_CdDelta = v_CdDelta.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
@@ -2509,12 +2496,10 @@ template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeAngular<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
-  //Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
   auto v_f = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
   Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbo = d_Cdbo;
-  //auto a_Cdbo = dup_Cdbo.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
-  //Kokkos::View<F_FLOAT*, typename DAT::t_float_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_CdDelta = d_CdDelta;
+
   auto v_CdDelta = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_CdDelta),decltype(ndup_CdDelta)>::get(dup_CdDelta,ndup_CdDelta);
   auto a_CdDelta = v_CdDelta.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
@@ -2758,10 +2743,10 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeAngular<NEIGHFLAG,EV
 
       // Forces
 
-      d_Cdbo(i,j_index) += (CEval1 + CEpen2 + (CEcoa1 - CEcoa4));
-      d_Cdbo(j,i_index) += (CEval1 + CEpen2 + (CEcoa1 - CEcoa4));
-      d_Cdbo(i,k_index) += (CEval2 + CEpen3 + (CEcoa2 - CEcoa5));
-      d_Cdbo(k,i_index) += (CEval2 + CEpen3 + (CEcoa2 - CEcoa5));
+      a_Cdbo(i,j_index) += (CEval1 + CEpen2 + (CEcoa1 - CEcoa4));
+      a_Cdbo(j,i_index) += (CEval1 + CEpen2 + (CEcoa1 - CEcoa4));
+      a_Cdbo(i,k_index) += (CEval2 + CEpen3 + (CEcoa2 - CEcoa5));
+      a_Cdbo(k,i_index) += (CEval2 + CEpen3 + (CEcoa2 - CEcoa5));
 
       CdDelta_i += ((CEval3 + CEval7) + CEpen1 + CEcoa3);
       CdDelta_j += CEcoa4;
@@ -2776,7 +2761,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeAngular<NEIGHFLAG,EV
         temp = temp_bo_jt * temp_bo_jt * temp_bo_jt;
         pBOjt7 = temp * temp * temp_bo_jt;
 
-        d_Cdbo(i,l_index) += (CEval6 * pBOjt7);
+        a_Cdbo(i,l_index) += (CEval6 * pBOjt7);
         d_Cdbopi(i,l_index) += CEval5;
         d_Cdbopi2(i,l_index) += CEval5;
       }
@@ -2823,10 +2808,9 @@ template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTorsion<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
-  //Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
   auto v_f = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
-  //Kokkos::View<F_FLOAT*, typename DAT::t_float_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_CdDelta = d_CdDelta;
+
   auto v_CdDelta = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_CdDelta),decltype(ndup_CdDelta)>::get(dup_CdDelta,ndup_CdDelta);
   auto a_CdDelta = v_CdDelta.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
   Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbo = d_Cdbo;
@@ -3131,9 +3115,9 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTorsion<NEIGHFLAG,EV
         CdDelta_i += CEtors3;
         CdDelta_j += CEtors3;
 
-        d_Cdbo(i,k_index) += CEtors4 + CEconj1;
-        d_Cdbo(i,j_index) += CEtors5 + CEconj2;
-        d_Cdbo(j,l_index) += CEtors6 + CEconj3; // trouble
+        a_Cdbo(i,k_index) += CEtors4 + CEconj1;
+        a_Cdbo(i,j_index) += CEtors5 + CEconj2;
+        a_Cdbo(j,l_index) += CEtors6 + CEconj3; // trouble
 
         // dcos_theta_ijk
         const F_FLOAT coeff74 = CEtors7 + CEconj4;
@@ -3200,7 +3184,6 @@ template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeHydrogen<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
-  //Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
   auto v_f = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
@@ -3387,9 +3370,9 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxUpdateBond<NEIGHFLAG>, cons
       }
 
       if (flag) {
-        d_Cdbo(j,k_index) += Cdbo_i;
-        d_Cdbopi(j,k_index) += Cdbopi_i;
-        d_Cdbopi2(j,k_index) += Cdbopi2_i;
+        a_Cdbo(j,k_index) += Cdbo_i;
+        a_Cdbopi(j,k_index) += Cdbopi_i;
+        a_Cdbopi2(j,k_index) += Cdbopi2_i;
       }
     }
   }
@@ -3401,13 +3384,11 @@ template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeBond1<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
-  //Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
   auto v_f = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
-  //Kokkos::View<F_FLOAT*, typename DAT::t_ffloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_CdDelta = d_CdDelta;
+
   auto v_CdDelta = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_CdDelta),decltype(ndup_CdDelta)>::get(dup_CdDelta,ndup_CdDelta);
   auto a_CdDelta = v_CdDelta.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
-
 
   F_FLOAT delij[3];
   F_FLOAT p_be1, p_be2, De_s, De_p, De_pp, pow_BOs_be2, exp_be12, CEbo, ebond;
@@ -3544,7 +3525,6 @@ template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeBond2<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
-  //Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
   auto v_f = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
@@ -3758,11 +3738,11 @@ void PairReaxCKokkos<DeviceType>::ev_tally(EV_FLOAT_REAX &ev, const int &i, cons
 {
   const int VFLAG = vflag_either;
 
-  // The eatom and vatom arrays are atomic for Half/Thread neighbor style
-  //Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_eatom = d_eatom;
+  // The eatom and vatom arrays are duplicated for OpenMP, atomic for CUDA, and neither for Serial
+
   auto v_eatom = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_eatom),decltype(ndup_eatom)>::get(dup_eatom,ndup_eatom);
   auto a_eatom = v_eatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
-  //Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_vatom = d_vatom;
+
   auto v_vatom = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
   auto a_vatom = v_vatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
@@ -3827,10 +3807,10 @@ void PairReaxCKokkos<DeviceType>::e_tally(EV_FLOAT_REAX &ev, const int &i, const
       const F_FLOAT &epair) const
 {
 
-  // The eatom array is atomic for Half/Thread neighbor style
+  // The eatom array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+
 
   if (eflag_atom) {
-    //Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_eatom = d_eatom;
     auto v_eatom = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_eatom),decltype(ndup_eatom)>::get(dup_eatom,ndup_eatom);
     auto a_eatom = v_eatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
@@ -3848,8 +3828,7 @@ KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::e_tally_single(EV_FLOAT_REAX &ev, const int &i,
       const F_FLOAT &epair) const
 {
-  // The eatom array is atomic for Half/Thread neighbor style
-  //Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_eatom = d_eatom;
+  // The eatom array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
   auto v_eatom = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_eatom),decltype(ndup_eatom)>::get(dup_eatom,ndup_eatom);
   auto a_eatom = v_eatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
@@ -3884,7 +3863,6 @@ void PairReaxCKokkos<DeviceType>::v_tally(EV_FLOAT_REAX &ev, const int &i,
   }
 
   if (vflag_atom) {
-    //Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_vatom = d_vatom;
     auto v_vatom = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
     auto a_vatom = v_vatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
@@ -3902,8 +3880,7 @@ void PairReaxCKokkos<DeviceType>::v_tally3(EV_FLOAT_REAX &ev, const int &i, cons
   F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *drij, F_FLOAT *drik) const
 {
 
-  // The eatom and vatom arrays are atomic for Half/Thread neighbor style
-  //Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_vatom = d_vatom;
+  // The eatom and vatom arrays are duplicated for OpenMP, atomic for CUDA, and neither for Serial
   auto v_vatom = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
   auto a_vatom = v_vatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
@@ -3945,7 +3922,8 @@ void PairReaxCKokkos<DeviceType>::v_tally4(EV_FLOAT_REAX &ev, const int &i, cons
   const int &l, F_FLOAT *fi, F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *dril, F_FLOAT *drjl, F_FLOAT *drkl) const
 {
 
-  // The vatom array is atomic for Half/Thread neighbor style
+  // The vatom array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+
   F_FLOAT v[6];
 
   v[0] = dril[0]*fi[0] + drjl[0]*fj[0] + drkl[0]*fk[0];
@@ -3965,7 +3943,6 @@ void PairReaxCKokkos<DeviceType>::v_tally4(EV_FLOAT_REAX &ev, const int &i, cons
   }
 
   if (vflag_atom) {
-    //Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_vatom = d_vatom;
     auto v_vatom = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
     auto a_vatom = v_vatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 

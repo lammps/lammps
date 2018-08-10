@@ -731,10 +731,17 @@ The LAMMPS executable these steps produce is not yet functional for a
 QM/MM simulation.  You must also build Quantum ESPRESSO and create a
 new executable which links LAMMPS and Quantum ESPRESSO together.
 These are steps 3 and 4 described in the lib/qmmm/README file.
+Unfortunately, the Quantum ESPRESSO developers keep breaking the
+interface that the QM/MM code in LAMMPS is using, so that currently
+(Summer 2018) using this feature requires either correcting the
+library interface feature in recent Quantum ESPRESSO releases, or
+using an outdated version of QE. The last version of Quantum ESPRESSO
+known to work with this QM/MM interface in LAMMPS was version 5.4
+from 2016.
 
 [CMake build]:
 
-TODO: how to do this
+TODO: how to do this?
 
 [Traditional make]:
 
@@ -767,7 +774,7 @@ USER-QUIP package :h4,link(user-quip)
 
 [CMake build]:
 
-TODO: how to do this
+TODO: how to do this?
 
 [Traditional make]:
 

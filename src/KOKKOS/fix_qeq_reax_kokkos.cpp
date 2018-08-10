@@ -260,9 +260,6 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int vflag)
   // 2nd cg solve over b_t, t
   cg_solve2();
 
-  if (need_dup)
-    dup_o = decltype(dup_o)(); // free duplicated memory
-
   // calculate_Q();
   calculate_q();
   k_s_hist.template modify<DeviceType>();
@@ -272,6 +269,10 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int vflag)
 
   if (!allocated_flag)
     allocated_flag = 1;
+
+  // free duplicated memory
+  if (need_dup)
+    dup_o = decltype(dup_o)();
 }
 
 /* ---------------------------------------------------------------------- */

@@ -1063,6 +1063,8 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (fixspecies_flag)
     FindBondSpecies();
 
+  copymode = 0;
+
   // free duplicated memory
   if (need_dup) {
     dup_f            = decltype(dup_f)();
@@ -1075,8 +1077,6 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     dup_eatom        = decltype(dup_eatom)();
     dup_vatom        = decltype(dup_vatom)();
   }
-
-  copymode = 0;
 }
 
 /* ---------------------------------------------------------------------- */

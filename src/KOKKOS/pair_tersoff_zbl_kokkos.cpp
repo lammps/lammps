@@ -298,6 +298,13 @@ void PairTersoffZBLKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
 
   copymode = 0;
+
+  // free duplicated memory
+  if (need_dup) {
+    dup_f     = decltype(dup_f)();
+    dup_eatom = decltype(dup_eatom)();
+    dup_vatom = decltype(dup_vatom)();
+  }
 }
 
 /* ---------------------------------------------------------------------- */

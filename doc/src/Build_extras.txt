@@ -62,7 +62,7 @@ available on your system.
 If CMake cannot find the library, you can set these variables:
 
 -D ZLIB_INCLUDE_DIR=path    # path to zlib.h header file 
--D ZLIB_LIBRARIES=path      # path to libzlib.a (.so) file :pre
+-D ZLIB_LIBRARIES=path      # path to libz.a (.so) file :pre
 
 [Traditional make]:
 
@@ -720,23 +720,24 @@ USER-OMP package :h4,link(user-omp)
 
 [CMake build]:
 
-No additional settings are needed besides "-D PKG_USER-OMP=yes".
-
-TODO: Is "-D BUILD_OMP=yes" also needed?  Or is it enabled
-if PKG_USER-OMP is set?
+No additional settings are required besides "-D PKG_USER-OMP=yes".  If
+CMake detects OpenMP support, the USER-OMP code will be compiled with
+multi-threading support enabled, otherwise as optimized serial code.
 
 [Traditional make]:
 
-These compile and link flags must be added to your Makefile.machine file.
+To enable multi-threading support in the USER-OMP package (and other
+styles supporting OpenMP) the following compile and link flags must
+be added to your Makefile.machine file.
 See src/MAKE/OPTIONS/Makefile.omp for an example.
 
-CCFLAGS: -fopenmp
+CCFLAGS: -fopenmp               # for GNU Compilers
 CCFLAGS: -qopenmp -restrict     # for Intel compilers on Linux
-LINKFLAGS: -fopenmp
+LINKFLAGS: -fopenmp             # for GNU Compilers
 LINKFLAGS: -qopenmp             # for Intel compilers on Linux :pre
 
-For other platforms and compilers, consult the OpenMP documentation
-for the compiler.
+For other platforms and compilers, please consult the documentation
+about OpenMP support for your compiler.
 
 :line
 
@@ -747,18 +748,18 @@ for a QM/MM simulation.  You must also build Quantum ESPRESSO and
 create a new executable (pwqmmm.x) which links LAMMPS and Quantum
 ESPRESSO together.  These are steps 3 and 4 described in the
 lib/qmmm/README file.  Unfortunately, the Quantum ESPRESSO developers
-keep breaking the interface that the QM/MM code in LAMMPS is using, so
-that currently (summer 2018) using this feature requires either
+have been breaking the interface that the QM/MM code in LAMMPS is using,
+so that currently (Summer 2018) using this feature requires either
 correcting the library interface feature in recent Quantum ESPRESSO
 releases, or using an outdated version of QE. The last version of
-Quantum ESPRESSO known to work with this QM/MM interface in LAMMPS was
-version 5.4.1 from 2016.
+Quantum ESPRESSO known to work with this QM/MM interface was version
+5.4.1 from 2016.
 
 [CMake build]:
 
 The CMake build system currently does not support building the full
-QM/MM-capable hybrid executable of LAMMPS and QE called pwqmmm.x.  You
-must use the traditional make build for this package.
+QM/MM-capable hybrid executable of LAMMPS and QE called pwqmmm.x.  
+You must use the traditional make build for this package.
 
 [Traditional make]:
 

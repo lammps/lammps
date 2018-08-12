@@ -14,7 +14,7 @@ explain how to do this for building both with CMake and make.
 
 "FFT library"_#fft for use with the "kspace_style pppm"_kspace_style.html command
 "Size of LAMMPS data types"_#size
-"Read or write compressed files"_#compress
+"Read or write compressed files"_#gzip
 "Output of JPG and PNG files"_#graphics via the "dump image"_dump_image.html command
 "Output of movie files"_#graphics via the "dump_movie"_dump_image.html command
 "Memory allocation alignment"_#align
@@ -223,7 +223,7 @@ variables:
 -D PNG_INCLUDE_DIR=path     # path to png.h header file 
 -D PNG_LIBRARIES=path       # path to libpng.a (.so) file 
 -D ZLIB_INCLUDE_DIR=path    # path to zlib.h header file 
--D ZLIB_LIBRARIES=path      # path to libzlib.a (.so) file 
+-D ZLIB_LIBRARIES=path      # path to libz.a (.so) file 
 -D FFMPEG_EXECUTABLE=path   # path to ffmpeg executable :pre
 
 [Makefile.machine settings]:
@@ -233,8 +233,8 @@ LMP_INC = -DLAMMPS_PNG
 LMP_INC = -DLAMMPS_FFMPEG :pre
 
 JPG_INC = -I/usr/local/include   # path to jpeglib.h, png.h, zlib.h header files if make cannot find them
-JPG_PATH = -L/usr/lib            # paths to libjpeg.a, libpng.a, libzlib.a (.so) files if make cannot find them
-JPG_LIB = -ljpeg -lpng -lzlib    # library names :pre
+JPG_PATH = -L/usr/lib            # paths to libjpeg.a, libpng.a, libz.a (.so) files if make cannot find them
+JPG_LIB = -ljpeg -lpng -lz       # library names :pre
 
 As with CMake, you do not need to set JPG_INC or JPG_PATH, if make can
 find the graphics header and library files.  You must specify JPG_LIB
@@ -254,7 +254,7 @@ crash.
 
 :line
 
-Read or write compressed files :h3,link(compress)
+Read or write compressed files :h3,link(gzip)
 
 If this option is enabled, large files can be read or written with
 gzip compression by several LAMMPS commands, including
@@ -281,7 +281,7 @@ library calls (required by popen()) can interfere with the fast
 communication library and lead to simulations using compressed output
 or input to hang or crash. For selected operations, compressed file
 I/O is also available using a compression library instead, which is
-what the "COMPRESS package"_Packages.html enables.
+what the "COMPRESS package"_Packages_details.html#PKG-COMPRESS enables.
 
 :line
 

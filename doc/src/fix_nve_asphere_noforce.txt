@@ -29,7 +29,7 @@ angular momenta are used to update their positions and orientation.
 
 This is useful as an implicit time integrator for Fast Lubrication
 Dynamics, since the velocity and angular momentum are updated by the
-"pair_style lubricuteU"_pair_lubricateU.txt command.
+"pair_style lubricuteU"_pair_lubricateU.html command.
 
 :line
 

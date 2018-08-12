@@ -265,7 +265,7 @@ supports.
 
 [Running on GPUs:]
 
-Use the "-k" "command-line switch"_Run_options.thml to
+Use the "-k" "command-line switch"_Run_options.html to
 specify the number of GPUs per node. Typically the -np setting of the
 mpirun command should set the number of MPI tasks/node to be equal to
 the number of physical GPUs on the node.  You can assign multiple MPI

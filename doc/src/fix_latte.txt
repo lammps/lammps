@@ -139,8 +139,8 @@ This fix is part of the LATTE package.  It is only enabled if LAMMPS
 was built with that package.  See the "Build
 package"_Build_package.html doc page for more info.
 
-You must use metal units, as set by the "units"_units command to use
-this fix.
+You must use metal units, as set by the "units"_units.html command to
+use this fix.
 
 LATTE does not currently compute per-atom energy or per-atom virial
 contributions.  So they will not show up as part of the calculations

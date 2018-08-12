@@ -244,7 +244,7 @@ includes atoms you want to be part of rigid bodies.
 Bodystyle {custom} is similar to bodystyle {molecule} except that it
 is more flexible in using other per-atom properties to define the sets
 of atoms that form rigid bodies.  An integer vector defined by the
-"fix property/atom"_fix_property_atom.txt command can be used.  Or an
+"fix property/atom"_fix_property_atom.html command can be used.  Or an
 "atom-style or atomfile-style variable"_variable.html can be used; the
 floating-point value produced by the variable is rounded to an
 integer.  As with bondstyle {molecule}, each set of atoms in the fix

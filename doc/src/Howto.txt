@@ -22,12 +22,14 @@ also show how to setup and run various kinds of simulations.
 <!-- RST
 
 .. toctree::
+   :maxdepth: 1
 
    Howto_github
    Howto_pylammps
    Howto_bash
 
 .. toctree::
+   :maxdepth: 1
 
    Howto_restart
    Howto_viz
@@ -37,11 +39,13 @@ also show how to setup and run various kinds of simulations.
    Howto_couple
 
 .. toctree::
+   :maxdepth: 1
 
    Howto_output
    Howto_chunk
 
 .. toctree::
+   :maxdepth: 1
 
    Howto_2d
    Howto_triclinic
@@ -52,6 +56,7 @@ also show how to setup and run various kinds of simulations.
    Howto_dispersion
 
 .. toctree::
+   :maxdepth: 1
 
    Howto_temperature
    Howto_thermostat
@@ -62,6 +67,7 @@ also show how to setup and run various kinds of simulations.
    Howto_diffusion
 
 .. toctree::
+   :maxdepth: 1
 
    Howto_bioFF
    Howto_tip3p
@@ -69,6 +75,7 @@ also show how to setup and run various kinds of simulations.
    Howto_spc
 
 .. toctree::
+   :maxdepth: 1
 
    Howto_body
    Howto_polarizable

@@ -34,7 +34,7 @@ LAMMPS can use them if they are available on your system.
 
 [CMake variables]:
 
--D FFT=value              # kiss or fftw3 or fftw2 or mkl, default is fftw3 if found, else kiss
+-D FFT=value              # KISS or FFTW3 or FFTW2 or MKL, default is FFTW3 if found, else KISS
 -D FFT_SINGLE=value       # yes or no (default), no = double precision
 -D FFT_PACK=value         # array (default) or pointer or memcpy :pre
 

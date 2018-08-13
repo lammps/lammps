@@ -4,8 +4,8 @@ in a LAMMPS input script.
 
 The CSlib libary is included in the LAMMPS distribution.  A fuller
 version including documentation and test programs is available at
-http:cslib.sandia.gov (by Aug 2018) and was developed by Steve
-Plimpton at Sandia National Laboratories.
+http:cslib.sandia.gov and was developed by Steve Plimpton at Sandia
+National Laboratories.
 
 You can type "make lib-message" from the src directory to see help on
 how to build this library via make commands, or you can do the same

@@ -55,9 +55,9 @@ The format and content of the exchanged messages are explained here in
 a conceptual sense.  Python-style pseudo code for the library calls to
 the CSlib is shown, which performs the actual message exchange between
 the two codes.  See the "CSlib website"_http://cslib.sandia.gov doc
-pages for more details on the actual library syntax (as of Aug 2018).
-The "cs" object in this pseudo code is an instance of the CSlib that
-both the client and server codes store.
+pages for more details on the actual library syntax.  The "cs" object
+in this pseudo code is an instance of the CSlib that both the client
+and server codes store.
 
 See the src/MESSAGE/server_mc.cpp file for details on how LAMMPS uses
 these messages.  See the examples/COUPLE/lammmps_mc/mc.cpp file for an

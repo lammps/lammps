@@ -2994,8 +2994,8 @@ below.  The MESSAGE package also wraps a client/server library called
 CSlib which enables two codes to exchange messages in different ways,
 either via files, a socket, or MPI.  The CSlib is provided with LAMMPS
 in the lib/message dir.  It has its own
-"website"_http://cslib.sandia.gov (as of Aug 2018) with documentation
-and test programs.
+"website"_http://cslib.sandia.gov with documentation and test
+programs.
 
 NOTE: For client/server coupling to work between LAMMPS and another
 code, the other code also has to use the CSlib.  This can sometimes be

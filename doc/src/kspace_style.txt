@@ -164,7 +164,8 @@ similar to the {ewald/disp} style. The 1/r^3 capability means
 that point-dipole interactions can be used without a cutoff,
 i.e. they become full long-range potentials. This style does not
 yet support charge-dipole interactions (i.e. systems with both charges
-and point-dipoles).
+and point-dipoles). This style also doesn't support the "kspace_modify
+diff ad" option.
 
 :line
 

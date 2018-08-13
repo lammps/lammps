@@ -648,8 +648,9 @@ intel"_Speed_intel.html doc page.
 
 [CMake build]:
 
-TODO: How do you choose CPU vs KKL, so that CMake knows
-which flags to add to CCFLAGS ??
+-D INTEL_ARCH=value     # value = cpu (default) or knl :pre
+
+Requires an Intel compiler, Intel TBB and MKL and has to be built with "-D BUILD_OMP=on".
 
 [Traditional make]:
 

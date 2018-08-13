@@ -106,8 +106,6 @@ if(NOT BUILD_EXE AND NOT BUILD_LIB)
   message(FATAL_ERROR "You need to at least enable one of two following options: BUILD_LIB or BUILD_EXE")
 endif()
 
-option(DEVELOPER_MODE "Enable developer mode" OFF)
-mark_as_advanced(DEVELOPER_MODE)
 option(CMAKE_VERBOSE_MAKEFILE "Generate verbose Makefiles" OFF)
 include(GNUInstallDirs)
 
@@ -728,33 +726,54 @@ if(PKG_OPT)
 endif()
 
 if(PKG_USER-INTEL)
-    if(NOT DEVELOPER_MODE)
-      if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-        message(FATAL_ERROR "USER-INTEL is only useful together with intel compiler")
-      endif()
-      if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 16)
+    find_package(TBB REQUIRED)
+    find_package(MKL REQUIRED)
+
+    if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+      message(FATAL_ERROR "USER-INTEL is only useful together with intel compiler")
+    endif()
+
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 16)
         message(FATAL_ERROR "USER-INTEL is needed at least 2016 intel compiler, found ${CMAKE_CXX_COMPILER_VERSION}")
-      endif()
     endif()
-    option(INJECT_KNL_FLAG "Inject flags for KNL build" OFF)
-    if(INJECT_KNL_FLAG)
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -xMIC-AVX512")
+
+    if(NOT BUILD_OMP)
+        message(FATAL_ERROR "USER-INTEL requires OpenMP")
     endif()
-    option(INJECT_INTEL_FLAG "Inject OMG fast flags for USER-INTEL" ON)
-    if(INJECT_INTEL_FLAG AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+
+    if(NOT ${LAMMPS_MEMALIGN} STREQUAL "64")
+        message(FATAL_ERROR "USER-INTEL is only useful with LAMMPS_MEMALIGN=64")
+    endif()
+
+    set(INTEL_ARCH "cpu" CACHE STRING "Architectures used by USER-INTEL (cpu or knl)")
+    set_property(CACHE INTEL_ARCH PROPERTY STRINGS cpu knl)
+
+
+
+    if(INTEL_ARCH STREQUAL "knl")
+      set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -xHost -qopenmp -qoffload")
+      set(MIC_OPTIONS "-qoffload-option,mic,compiler,\"-fp-model fast=2 -mGLOB_default_function_attrs=\\\"gather_scatter_loop_unroll=4\\\"\"")
+      add_compile_options(-xMIC-AVX512 -qoffload -fno-alias -ansi-alias -restrict -qoverride-limits ${MIC_OPTIONS})
+      add_definitions(-DLMP_INTEL_OFFLOAD)
+    else()
       if(CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.3 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.4)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -xCOMMON-AVX512")
       else()
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -xHost")
       endif()
       include(CheckCXXCompilerFlag)
-      foreach(_FLAG -qopenmp -qno-offload -fno-alias -ansi-alias -restrict -DLMP_INTEL_USELRT -DLMP_USE_MKL_RNG -O2 "-fp-model fast=2" -no-prec-div -qoverride-limits -qopt-zmm-usage=high)
+      foreach(_FLAG -O2 -fp-model fast=2 -no-prec-div -qoverride-limits -qopt-zmm-usage=high -qno-offload -fno-alias -ansi-alias -restrict)
         check_cxx_compiler_flag("${__FLAG}" COMPILER_SUPPORTS${_FLAG})
         if(COMPILER_SUPPORTS${_FLAG})
-          set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${_FLAG}")
+          add_compile_options(${_FLAG})
         endif()
       endforeach()
     endif()
+
+    add_definitions(-DLMP_INTEL_USELRT -DLMP_USE_MKL_RNG)
+
+    list(APPEND LAMMPS_LINK_LIBS ${TBB_MALLOC_LIBRARIES} ${MKL_LIBRARIES})
+
     set(USER-INTEL_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/USER-INTEL)
     set(USER-INTEL_SOURCES ${USER-INTEL_SOURCES_DIR}/intel_preprocess.h
                            ${USER-INTEL_SOURCES_DIR}/intel_buffers.h

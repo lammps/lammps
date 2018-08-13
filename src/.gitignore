@@ -922,6 +922,8 @@
 /pppm.h
 /pppm_cg.cpp
 /pppm_cg.h
+/pppm_dipole.cpp
+/pppm_dipole.h
 /pppm_disp.cpp
 /pppm_disp.h
 /pppm_disp_tip4p.cpp

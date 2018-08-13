@@ -72,6 +72,7 @@ class PPPMDipole : public PPPM {
   class GridComm *cg_dipole;
   class GridComm *cg_peratom_dipole;
   int only_dipole_flag;
+  double musum,musqsum,mu2;
   double find_gewald_dipole(double, double, bigint, double, double);
   double newton_raphson_f_dipole(double, double, bigint, double, double);
   double derivf_dipole(double, double, bigint, double, double);
@@ -85,6 +86,7 @@ class PPPMDipole : public PPPM {
   void fieldforce_ik_dipole();
   void fieldforce_peratom_dipole();
   double final_accuracy_dipole();
+  void musum_musq();
 
 };
 

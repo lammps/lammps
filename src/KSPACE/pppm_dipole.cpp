@@ -171,7 +171,7 @@ void PPPMDipole::init()
 
   scale = 1.0;
   qqrd2e = force->qqrd2e;
-  qsum_qsq();
+  musum_musq();
   natoms_original = atom->natoms;
 
   // set accuracy (force units) from accuracy_relative or accuracy_absolute
@@ -441,7 +441,7 @@ void PPPMDipole::compute(int eflag, int vflag)
   // if atom count has changed, update qsum and qsqsum
 
   if (atom->natoms != natoms_original) {
-    qsum_qsq();
+    musum_musq();
     natoms_original = atom->natoms;
   }
 
@@ -2562,4 +2562,37 @@ double PPPMDipole::memory_usage()
   if (cg_peratom_dipole) bytes += cg_peratom_dipole->memory_usage();
 
   return bytes;
+}
+
+
+/* ----------------------------------------------------------------------
+   compute qsum,qsqsum,q2 and give error/warning if not charge neutral
+   called initially, when particle count changes, when charges are changed
+------------------------------------------------------------------------- */
+
+void PPPMDipole::musum_musq()
+{
+  const int nlocal = atom->nlocal;
+
+  musum = musqsum = mu2 = 0.0;
+  if (atom->mu_flag) {
+    double** mu = atom->mu;
+    double musum_local(0.0), musqsum_local(0.0);
+
+    for (int i = 0; i < nlocal; i++) {
+      musum_local += mu[i][0] + mu[i][1] + mu[i][2];
+      musqsum_local += mu[i][0]*mu[i][0] + mu[i][1]*mu[i][1] + mu[i][2]*mu[i][2];
+    }
+
+    MPI_Allreduce(&musum_local,&musum,1,MPI_DOUBLE,MPI_SUM,world);
+    MPI_Allreduce(&musqsum_local,&musqsum,1,MPI_DOUBLE,MPI_SUM,world);
+
+    mu2 = musqsum * force->qqrd2e;
+  }
+
+  static int warn_nomu = 1;
+  if ((musqsum == 0.0) && (comm->me == 0) && warn_nomu) {
+    error->warning(FLERR,"Using kspace solver PPPKDipole on system with no dipoles");
+    warn_nomu = 0;
+  }
 }

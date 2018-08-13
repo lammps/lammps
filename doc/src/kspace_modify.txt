@@ -153,7 +153,8 @@ KSpace solver to a pre-tabulated pairwise potential.  This setting can
 also be useful if Ewald or PPPM fails to choose a good grid spacing
 and G-ewald parameter automatically.  If the value is set to 0.0,
 LAMMPS will choose the G-ewald parameter automatically.  MSM does not
-use the {gewald} parameter.
+use the {gewald} parameter. This setting is also used for point-dipoles
+in the {pppm/dipole} Kspace solver.
 
 The {gewald/disp} keyword sets the value of the Ewald or PPPM G-ewald
 parameter for dispersion as {rinv} in reciprocal distance units.  It

@@ -25,6 +25,8 @@ style = {none} or {ewald} or {ewald/disp} or {ewald/omp} or {pppm} or {pppm/cg} 
   {pppm/cg} value = accuracy (smallq)
     accuracy = desired relative error in forces
     smallq = cutoff for charges to be considered (optional) (charge units)
+  {pppm/dipole} value = accuracy
+    accuracy = desired relative error in forces
   {pppm/disp} value = accuracy
     accuracy = desired relative error in forces
   {pppm/tip4p} value = accuracy
@@ -88,6 +90,7 @@ Pair style : KSpace style
 coul/long : ewald or pppm
 coul/msm : msm
 lj/long or buck/long : disp (for dispersion)
+dipole/long : dipole
 tip4p/long : tip4p :tb(s=:,ea=c)
 
 :line
@@ -103,7 +106,7 @@ capability means that Lennard-Jones or Buckingham potentials can be
 used without a cutoff, i.e. they become full long-range potentials.
 The {ewald/disp} style can also be used with point-dipoles
 "(Toukmaji)"_#Toukmaji and is currently the only kspace solver in
-LAMMPS with this capability.
+LAMMPS that supports charge-dipole interactions.
 
 :line
 
@@ -152,6 +155,16 @@ NOTE: Using {pppm/stagger} may not give the same increase in the
 accuracy of energy and pressure as it does in forces, so some caution
 must be used if energy and/or pressure are quantities of interest,
 such as when using a barostat.
+
+:line
+
+The {pppm/dipole} style adds a mesh-based long-range
+dipole option for 1/r^3 point-dipole interactions "(Cerda)"_#Cerda2008,
+similar to the {ewald/disp} style. The 1/r^3 capability means
+that point-dipole interactions can be used without a cutoff,
+i.e. they become full long-range potentials. This style does not
+yet support charge-dipole interactions (i.e. systems with both charges
+and point-dipoles).
 
 :line
 
@@ -369,6 +382,10 @@ and Computation 5, 2322 (2009)
 :link(Toukmaji)
 [(Toukmaji)] Toukmaji, Sagui, Board, and Darden, J Chem Phys, 113,
 10913 (2000).
+
+:link(Cerda2008)
+[(Cerda)] Cerda, Ballenegger, Lenz, and Holm, J. Chem. Phys. 129,
+234104 (2008).
 
 :link(Isele-Holder2012)
 [(Isele-Holder)] Isele-Holder, Mitchell, Ismail, J Chem Phys, 137,

@@ -15,9 +15,9 @@
    Contributing author: Chuanfu Luo (luochuanfu@gmail.com)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "bond_table.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -590,7 +590,7 @@ double BondTable::splint(double *xa, double *ya, double *y2a, int n, double x)
 
 void BondTable::uf_lookup(int type, double x, double &u, double &f)
 {
-  if (!ISFINITE(x)) {
+  if (!std::isfinite(x)) {
     error->one(FLERR,"Illegal bond in bond style table");
   }
 
@@ -633,7 +633,7 @@ void BondTable::uf_lookup(int type, double x, double &u, double &f)
 
 void BondTable::u_lookup(int type, double x, double &u)
 {
-  if (!ISFINITE(x)) {
+  if (!std::isfinite(x)) {
     error->one(FLERR,"Illegal bond in bond style table");
   }
 

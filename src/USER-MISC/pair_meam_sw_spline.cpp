@@ -23,10 +23,10 @@
  * 01-Aug-12 - RER: First code version.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_meam_sw_spline.h"
 #include "atom.h"
 #include "force.h"

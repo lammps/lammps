@@ -15,9 +15,9 @@
    Contributing author: David Stelter (BU)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "temper_grem.h"
 #include "fix_grem.h"
 #include "universe.h"

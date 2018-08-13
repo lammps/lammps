@@ -33,16 +33,16 @@
    135, 204105.
 ------------------------------------------------------------------------- */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <cmath>
 #include "fix_shardlow.h"
 #include "atom.h"
 #include "force.h"
 #include "update.h"
 #include "respa.h"
 #include "error.h"
-#include <math.h>
 #include "atom_vec.h"
 #include "comm.h"
 #include "neighbor.h"
@@ -354,9 +354,8 @@ void FixShardlow::ssa_update_dpde(
   double *uMech = atom->uMech;
   double *dpdTheta = atom->dpdTheta;
 
-  double *cut_i, *cut2_i, *sigma_i, *kappa_i;
+  double *cut_i, *cut2_i, *sigma_i, *kappa_i, *alpha_i;
   double theta_ij_inv, theta_i_inv;
-  const double boltz2 = 2.0*force->boltz;
   const double boltz_inv = 1.0/force->boltz;
   const double ftm2v = force->ftm2v;
 
@@ -389,6 +388,7 @@ while (ct-- > 0) {
   cut_i  = pairDPDE->cut[itype];
   sigma_i = pairDPDE->sigma[itype];
   kappa_i = pairDPDE->kappa[itype];
+  alpha_i = pairDPDE->alpha[itype];
   theta_i_inv = 1.0/dpdTheta[i];
   const double mass_i = (rmass) ? rmass[i] : mass[itype];
   const double massinv_i = 1.0 / mass_i;
@@ -448,7 +448,7 @@ while (ct-- > 0) {
 
       // Compute uCond
       double kappa_ij = kappa_i[jtype];
-      double alpha_ij = sqrt(boltz2*kappa_ij);
+      double alpha_ij = alpha_i[jtype];
       double del_uCond = alpha_ij*wr*dtsqrt * es_normal(RNGstate);
 
       del_uCond += kappa_ij*(theta_i_inv - theta_j_inv)*wdt;

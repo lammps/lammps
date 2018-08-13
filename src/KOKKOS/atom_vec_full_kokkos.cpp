@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <stdlib.h>
+#include <cstdlib>
 #include "atom_vec_full_kokkos.h"
 #include "atom_kokkos.h"
 #include "comm_kokkos.h"
@@ -835,8 +835,8 @@ struct AtomVecFullKokkos_PackExchangeFunctor {
     // 1 to store buffer length
     elements = 20+atom->maxspecial+2*atom->bond_per_atom+4*atom->angle_per_atom+
       5*atom->dihedral_per_atom + 5*atom->improper_per_atom;
-    const int maxsendlist = (buf.template view<DeviceType>().dimension_0()*
-                             buf.template view<DeviceType>().dimension_1())/elements;
+    const int maxsendlist = (buf.template view<DeviceType>().extent(0)*
+                             buf.template view<DeviceType>().extent(1))/elements;
     buffer_view<DeviceType>(_buf,buf,maxsendlist,elements);
   }
 
@@ -955,10 +955,10 @@ int AtomVecFullKokkos::pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2
 {
   const int elements = 20+atom->maxspecial+2*atom->bond_per_atom+4*atom->angle_per_atom+
       5*atom->dihedral_per_atom + 5*atom->improper_per_atom;
-  if(nsend > (int) (k_buf.view<LMPHostType>().dimension_0()*
-              k_buf.view<LMPHostType>().dimension_1())/elements) {
-    int newsize = nsend*elements/k_buf.view<LMPHostType>().dimension_1()+1;
-    k_buf.resize(newsize,k_buf.view<LMPHostType>().dimension_1());
+  if(nsend > (int) (k_buf.view<LMPHostType>().extent(0)*
+              k_buf.view<LMPHostType>().extent(1))/elements) {
+    int newsize = nsend*elements/k_buf.view<LMPHostType>().extent(1)+1;
+    k_buf.resize(newsize,k_buf.view<LMPHostType>().extent(1));
   }
   if(space == Host) {
     AtomVecFullKokkos_PackExchangeFunctor<LMPHostType>
@@ -1110,8 +1110,8 @@ struct AtomVecFullKokkos_UnpackExchangeFunctor {
 
     elements = 20+atom->maxspecial+2*atom->bond_per_atom+4*atom->angle_per_atom+
       5*atom->dihedral_per_atom + 5*atom->improper_per_atom;
-    const int maxsendlist = (buf.template view<DeviceType>().dimension_0()*
-                             buf.template view<DeviceType>().dimension_1())/elements;
+    const int maxsendlist = (buf.template view<DeviceType>().extent(0)*
+                             buf.template view<DeviceType>().extent(1))/elements;
     buffer_view<DeviceType>(_buf,buf,maxsendlist,elements);
   }
 

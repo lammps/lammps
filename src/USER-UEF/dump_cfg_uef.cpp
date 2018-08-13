@@ -14,9 +14,9 @@
 ------------------------------------------------------------------------- */
 
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "dump_cfg.h"
 #include "atom.h"
 #include "domain.h"
@@ -29,8 +29,6 @@
 #include "fix_nh_uef.h"
 
 using namespace LAMMPS_NS;
-
-enum{INT,DOUBLE,STRING,BIGINT};   // same as in DumpCustom
 
 #define UNWRAPEXPAND 10.0
 #define ONEFIELD 32

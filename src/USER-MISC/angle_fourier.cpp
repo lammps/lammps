@@ -16,8 +16,8 @@
    [ based on angle_cosine_squared.cpp Naveen Michaud-Agrawal (Johns Hopkins U)]
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 #include "angle_fourier.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -35,7 +35,13 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-AngleFourier::AngleFourier(LAMMPS *lmp) : Angle(lmp) {}
+AngleFourier::AngleFourier(LAMMPS *lmp) : Angle(lmp)
+{
+  k = NULL;
+  C0 = NULL;
+  C1 = NULL;
+  C2 = NULL;
+}
 
 /* ---------------------------------------------------------------------- */
 

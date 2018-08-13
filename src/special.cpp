@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <stdio.h>
+#include <cstdio>
 #include "special.h"
 #include "atom.h"
 #include "atom_vec.h"

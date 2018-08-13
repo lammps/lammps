@@ -15,7 +15,7 @@
    Contributing authors: Rob Hoy
 ------------------------------------------------------------------------- */
 
-#include <string.h>
+#include <cstring>
 #include "compute_msd_nongauss.h"
 #include "atom.h"
 #include "update.h"

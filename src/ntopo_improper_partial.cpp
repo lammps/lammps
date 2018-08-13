@@ -62,7 +62,7 @@ void NTopoImproperPartial::build()
       atom4 = atom->map(improper_atom4[i][m]);
       if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1) {
         nmissing++;
-        if (lostbond == ERROR) {
+        if (lostbond == Thermo::ERROR) {
           char str[128];
           sprintf(str,"Improper atoms "
                   TAGINT_FORMAT " " TAGINT_FORMAT " "
@@ -95,7 +95,7 @@ void NTopoImproperPartial::build()
     }
 
   if (cluster_check) dihedral_check(nimproperlist,improperlist);
-  if (lostbond == IGNORE) return;
+  if (lostbond == Thermo::IGNORE) return;
 
   int all;
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);

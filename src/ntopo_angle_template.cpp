@@ -76,7 +76,7 @@ void NTopoAngleTemplate::build()
       atom3 = atom->map(angle_atom3[iatom][m]+tagprev);
       if (atom1 == -1 || atom2 == -1 || atom3 == -1) {
         nmissing++;
-        if (lostbond == ERROR) {
+        if (lostbond == Thermo::ERROR) {
           char str[128];
           sprintf(str,"Angle atoms "
                   TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT
@@ -106,7 +106,7 @@ void NTopoAngleTemplate::build()
   }
 
   if (cluster_check) angle_check();
-  if (lostbond == IGNORE) return;
+  if (lostbond == Thermo::IGNORE) return;
 
   int all;
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);

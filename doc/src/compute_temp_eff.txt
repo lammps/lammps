@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -69,8 +69,8 @@ atoms that include these constraints will be computed correctly.  If
 needed, the subtracted degrees-of-freedom can be altered using the
 {extra} option of the "compute_modify"_compute_modify.html command.
 
-See "this howto section"_Section_howto.html#howto_16 of the manual for
-a discussion of different ways to compute temperature and perform
+See the "Howto thermostat"_Howto_thermostat.html doc page for a
+discussion of different ways to compute temperature and perform
 thermostatting.
 
 [Output info:]

@@ -12,7 +12,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
+#include <cmath>
 #include "pair_edip_omp.h"
 #include "atom.h"
 #include "comm.h"
@@ -84,7 +84,7 @@ void PairEDIPOMP::eval(int iifrom, int iito, ThrData * const thr)
   int itype,jtype,ktype,ijparam,ikparam;
   double xtmp,ytmp,ztmp,evdwl;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  register int preForceCoord_counter;
+  int preForceCoord_counter;
 
   double invR_ij;
   double invR_ik;

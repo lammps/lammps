@@ -34,6 +34,7 @@ class KokkosLMP : protected Pointers {
   int num_threads,ngpu;
   int numa;
   int auto_sync;
+  int gpu_direct_flag;
 
   KokkosLMP(class LAMMPS *, int, char **);
   ~KokkosLMP();
@@ -67,7 +68,7 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Must use Kokkos half/thread or full neighbor list with threads or GPUs
+U: Must use Kokkos half/thread or full neighbor list with threads or GPUs
 
 Using Kokkos half-neighbor lists with threading is not allowed.
 

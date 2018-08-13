@@ -47,6 +47,7 @@
 #include <gtest/gtest.h>
 #include <iostream>
 #include <Kokkos_Core.hpp>
+#include <Kokkos_ErrorReporter.hpp>
 
 namespace Test {
 
@@ -222,6 +223,18 @@ struct ErrorReporterDriverNativeOpenMP : public ErrorReporterDriverBase<Kokkos::
   }
 };
 #endif
+
+#if defined(KOKKOS_CLASS_LAMBDA)
+TEST_F(TEST_CATEGORY, ErrorReporterViaLambda)
+{
+  TestErrorReporter<ErrorReporterDriverUseLambda<TEST_EXECSPACE>>();
+}
+#endif
+
+TEST_F(TEST_CATEGORY, ErrorReporter)
+{
+  TestErrorReporter<ErrorReporterDriver<TEST_EXECSPACE>>();
+}
 
 } // namespace Test
 #endif // #ifndef KOKKOS_TEST_ERROR_REPORTING_HPP

@@ -6,7 +6,7 @@
 #include "OutputManager.h"
 #include "Utility.h"
 #include <sstream>
-#include <assert.h>
+#include <cassert>
 #include <algorithm>
 #include <cmath>
 #include <functional>

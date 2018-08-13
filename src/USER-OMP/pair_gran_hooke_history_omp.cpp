@@ -12,7 +12,8 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
+#include <cmath>
+#include <cstring>
 #include "pair_gran_hooke_history_omp.h"
 #include "fix_neigh_history.h"
 #include "atom.h"
@@ -23,8 +24,6 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "update.h"
-
-#include <string.h>
 
 #include "suffix.h"
 using namespace LAMMPS_NS;

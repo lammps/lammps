@@ -432,9 +432,9 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Cannot (yet) use PPPM with triclinic box and kspace_modify diff ad
+E: Cannot (yet) use PPPM Kokkos with 'kspace_modify diff ad'
 
-This feature is not yet supported.
+UNDOCUMENTED
 
 E: Cannot (yet) use PPPM with triclinic box and slab correction
 
@@ -449,9 +449,9 @@ E: PPPM can only currently be used with comm_style brick
 
 This is a current restriction in LAMMPS.
 
-E: Kspace style requires atom attribute q
+E: Kspace style requires atomKK attribute q
 
-The atom style defined does not have these attributes.
+UNDOCUMENTED
 
 E: Cannot use nonperiodic boundaries with PPPM
 
@@ -473,26 +473,9 @@ E: KSpace style is incompatible with Pair style
 Setting a kspace style requires that a pair style with matching
 long-range Coulombic or dispersion components be used.
 
-E: Pair style is incompatible with TIP4P KSpace style
+E: Cannot (yet) use PPPM Kokkos TIP4P
 
-The pair style does not have the requires TIP4P settings.
-
-E: Bond and angle potentials must be defined for TIP4P
-
-Cannot use TIP4P pair potential unless bond and angle potentials
-are defined.
-
-E: Bad TIP4P angle type for PPPM/TIP4P
-
-Specified angle type is not valid.
-
-E: Bad TIP4P bond type for PPPM/TIP4P
-
-Specified bond type is not valid.
-
-E: Cannot (yet) use PPPM with triclinic box and TIP4P
-
-This feature is not yet supported.
+UNDOCUMENTED
 
 W: Reducing PPPM order b/c stencil extends beyond nearest neighbor processor
 
@@ -512,11 +495,9 @@ E: KSpace accuracy must be > 0
 
 The kspace accuracy designated in the input must be greater than zero.
 
-E: Could not compute grid size
+E: Must use 'kspace_modify gewald' for uncharged system
 
-The code is unable to compute a grid size consistent with the desired
-accuracy.  This error should not occur for typical problems.  Please
-send an email to the developers.
+UNDOCUMENTED
 
 E: PPPM grid is too large
 
@@ -549,5 +530,40 @@ every 1 check yes".  Second, it may mean that an atom has moved far
 outside a processor's sub-domain or even the entire simulation box.
 This indicates bad physics, e.g. due to highly overlapping atoms, too
 large a timestep, etc.
+
+U: Cannot (yet) use PPPM with triclinic box and kspace_modify diff ad
+
+This feature is not yet supported.
+
+U: Kspace style requires atom attribute q
+
+The atom style defined does not have these attributes.
+
+U: Pair style is incompatible with TIP4P KSpace style
+
+The pair style does not have the requires TIP4P settings.
+
+U: Bond and angle potentials must be defined for TIP4P
+
+Cannot use TIP4P pair potential unless bond and angle potentials
+are defined.
+
+U: Bad TIP4P angle type for PPPM/TIP4P
+
+Specified angle type is not valid.
+
+U: Bad TIP4P bond type for PPPM/TIP4P
+
+Specified bond type is not valid.
+
+U: Cannot (yet) use PPPM with triclinic box and TIP4P
+
+This feature is not yet supported.
+
+U: Could not compute grid size
+
+The code is unable to compute a grid size consistent with the desired
+accuracy.  This error should not occur for typical problems.  Please
+send an email to the developers.
 
 */

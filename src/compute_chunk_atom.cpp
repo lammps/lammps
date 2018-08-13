@@ -14,8 +14,8 @@
 // NOTE: allow for bin center to be variables for sphere/cylinder
 
 #include <mpi.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 #include "compute_chunk_atom.h"
 #include "atom.h"
 #include "update.h"
@@ -1804,18 +1804,18 @@ void ComputeChunkAtom::atom2binsphere()
 
     xremap = x[i][0];
     if (periodicity[0]) {
-      if (xremap < boxlo[0]) xremap += prd[0];
-      if (xremap >= boxhi[0]) xremap -= prd[0];
+      while (xremap < boxlo[0]) {xremap += prd[0];}
+      while (xremap >= boxhi[0]) {xremap -= prd[0];}
     }
     yremap = x[i][1];
     if (periodicity[1]) {
-      if (yremap < boxlo[1]) yremap += prd[1];
-      if (yremap >= boxhi[1]) yremap -= prd[1];
+      while (yremap < boxlo[1]) {yremap += prd[1];}
+      while (yremap >= boxhi[1]) {yremap -= prd[1];}
     }
     zremap = x[i][2];
     if (periodicity[2]) {
-      if (zremap < boxlo[2]) zremap += prd[2];
-      if (zremap >= boxhi[2]) zremap -= prd[2];
+      while (zremap < boxlo[2]) {zremap += prd[2];}
+      while (zremap >= boxhi[2]) {zremap -= prd[2];}
     }
 
     dx = xremap - sorigin[0];
@@ -1829,19 +1829,19 @@ void ComputeChunkAtom::atom2binsphere()
 
     if (pbcflag) {
       if (periodicity[0]) {
-        if (fabs(dx) > prd_half[0]) {
+        while (fabs(dx) > prd_half[0]) {
           if (dx < 0.0) dx += prd[0];
           else dx -= prd[0];
         }
       }
       if (periodicity[1]) {
-        if (fabs(dy) > prd_half[1]) {
+        while (fabs(dy) > prd_half[1]) {
           if (dy < 0.0) dy += prd[1];
           else dy -= prd[1];
         }
       }
       if (periodicity[2]) {
-        if (fabs(dz) > prd_half[2]) {
+        while (fabs(dz) > prd_half[2]) {
           if (dz < 0.0) dz += prd[2];
           else dz -= prd[2];
         }

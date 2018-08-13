@@ -111,7 +111,7 @@ class UCL_Program {
       size_t ms;
       CL_SAFE_CALL(clGetProgramBuildInfo(_program,_device,CL_PROGRAM_BUILD_LOG,0,
                                          NULL, &ms));
-      char build_log[ms];
+      char *build_log = new char[ms];
       CL_SAFE_CALL(clGetProgramBuildInfo(_program,_device,CL_PROGRAM_BUILD_LOG,ms,
                                          build_log, NULL));
 
@@ -127,8 +127,9 @@ class UCL_Program {
                   << "----------------------------------------------------------\n";
         std::cerr << build_log << std::endl;
         #endif
+        delete[] build_log;
         return UCL_COMPILE_ERROR;
-      }
+      } else delete[] build_log;
     }
 
     return UCL_SUCCESS;

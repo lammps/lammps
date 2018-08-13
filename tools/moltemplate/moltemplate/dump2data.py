@@ -22,8 +22,8 @@ A reference DATA file is needed (argument).
 # All rights reserved.
 
 g_program_name = 'dump2data.py'
-g_date_str = '2017-7-27'
-g_version_str = '0.53.0'
+g_date_str = '2017-9-12'
+g_version_str = '0.54.1'
 
 import sys
 from collections import defaultdict
@@ -584,6 +584,7 @@ def WriteFrameToData(out_file,
                      descr_str,
                      misc_settings,
                      data_settings,
+                     dump_column_names,
                      natoms,
                      coords,
                      coords_ixiyiz,
@@ -677,13 +678,13 @@ def WriteFrameToData(out_file,
                         # In principle, depending on the atom_style,
                         # there could be multiple vectors per atom.
                         for I in range(0, len(data_settings.ii_vects)):
+                            i_vx = data_settings.ii_vects[I][0]
+                            i_vy = data_settings.ii_vects[I][1]
+                            i_vz = data_settings.ii_vects[I][2]
                             if atomid in vects:
                                 vxvyvz = vects[atomid][I]
                                 assert((type(vxvyvz) is tuple) and
                                        (len(vxvyvz) == 3))
-                                i_vx = data_settings.ii_vects[I][0]
-                                i_vy = data_settings.ii_vects[I][1]
-                                i_vz = data_settings.ii_vects[I][2]
                                 if ((i_vx >= len(tokens)) or
                                     (i_vy >= len(tokens)) or
                                     (i_vz >= len(tokens))):
@@ -697,8 +698,9 @@ def WriteFrameToData(out_file,
                                 tokens[i_vz] = vxvyvz[2]
 
                             else:
-                                if data_settings.column_names[
-                                        i_vx] not in dump_column_names:
+                                if (dump_column_names and
+                                    (data_settings.column_names[
+                                        i_vx] not in dump_column_names)):
                                     raise InputError('Error(dump2data): You have a vector coordinate in your DATA file named \"' + data_settings.column_names[i_vx] + '\"\n'
                                                      '       However there are no columns with this name in your DUMP file\n'
                                                      '       (or the column was not in the expected place).\n'
@@ -1273,6 +1275,7 @@ def main():
                                          descr_str,
                                          misc_settings,
                                          data_settings,
+                                         dump_column_names,
                                          frame_natoms,
                                          frame_coords,
                                          frame_coords_ixiyiz,

@@ -16,7 +16,7 @@
 #ifndef LAL_ANSWER_H
 #define LAL_ANSWER_H
 
-#include <math.h>
+#include <cmath>
 #include "mpi.h"
 
 #if defined(USE_OPENCL)

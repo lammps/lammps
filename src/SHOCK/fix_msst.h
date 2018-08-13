@@ -149,6 +149,10 @@ E: Fix msst compute ID does not compute potential energy
 
 Self-explanatory.
 
+E: Fix msst dftb cannot be used w/out fix external
+
+UNDOCUMENTED
+
 E: Could not find fix_modify temperature ID
 
 The compute ID for computing temperature does not exist.

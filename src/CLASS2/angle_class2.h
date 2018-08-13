@@ -20,7 +20,7 @@ AngleStyle(class2,AngleClass2)
 #ifndef LMP_ANGLE_CLASS2_H
 #define LMP_ANGLE_CLASS2_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "angle.h"
 
 namespace LAMMPS_NS {
@@ -30,9 +30,9 @@ class AngleClass2 : public Angle {
   AngleClass2(class LAMMPS *);
   virtual ~AngleClass2();
   virtual void compute(int, int);
-  void coeff(int, char **);
+  virtual void coeff(int, char **);
   double equilibrium_angle(int);
-  void write_restart(FILE *);
+  virtual void write_restart(FILE *);
   void read_restart(FILE *);
   void write_data(FILE *);
   double single(int, int, int, int);

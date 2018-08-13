@@ -21,9 +21,9 @@
    Version      1.0
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstring>
+#include <cstdlib>
 #include "fix_pimd.h"
 #include "universe.h"
 #include "comm.h"

@@ -1,0 +1,54 @@
+# PREREQUISITES:
+#
+#      You must use moltemplate.sh (& packmol?) to create 3 files:
+#        system.data  system.in.init  system.in.settings
+#
+# See "README_setup.sh" for instructions how to use moltemplate.sh
+# Note: This input script file only covers equilibration of the system.
+#
+# ------------------------------- Initialization Section --------------------
+
+include         "system.in.init"
+
+# ------------------------------- Atom Definition Section -------------------
+
+read_data       "system.data"
+
+# ------------------------------- Settings Section --------------------------
+
+include         "system.in.settings"
+
+# ------------------------------- Run Section -------------------------------
+
+# -- simulation protocol --
+
+# (Groups "gElbaWater" and "gMethanol" are defined in "system.in.settings"
+#  Rename them to "gSolvent" and "gSolute")
+group gSolvent union gElbaWater gElbaWater
+group gSolute union gMethanol gMethanol
+
+# Randomize the direction of the solvent dipoles
+set group gSolvent dipole/random 9876 0.541 
+
+velocity all create 298.0 9876 
+
+neighbor 1.0 bin
+neigh_modify every 1 delay 0 check yes
+
+timestep 2.0
+
+fix 1 gSolute nve # integrate gSolute
+fix 2 gSolvent nve/sphere update dipole # integrate gSolvent
+fix 3 gSolute langevin 298.0 298.0 1000 9876 # thermostat gSolute
+fix 4 gSolvent langevin 298.0 298.0 1000 9876 omega yes zero yes # thermostat gSolvent
+fix 5 all press/berendsen iso 1.0 1.0 1000 modulus 21740 # barostat
+fix 6 all momentum 500 linear 1 1 1 
+fix 7 gSolute shake 1.0e-6 100 0 m 1.0
+
+dump  1 all custom 1000 traj_nvt.lammpstrj id mol type x y z mux muy muz ix iy iz
+
+thermo_style custom step temp etotal pe epair press
+thermo_modify norm yes flush yes 
+thermo 100
+
+run 10000

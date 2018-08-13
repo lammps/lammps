@@ -16,11 +16,11 @@
 ------------------------------------------------------------------------- */
 
 #include "sna.h"
-#include <math.h>
+#include <cmath>
 #include "math_const.h"
 #include "math_extra.h"
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 #include "openmp_snap.h"
 
 #include "memory.h"

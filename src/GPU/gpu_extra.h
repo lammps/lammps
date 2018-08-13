@@ -58,16 +58,19 @@ namespace GPU_EXTRA {
       else if (all_success == -11)
         error->all(FLERR,
                    "Invalid custom OpenCL parameter string.");
+      else if (all_success == -12)
+        error->all(FLERR,
+                   "Invalid OpenCL platform ID.");
       else
         error->all(FLERR,"Unknown error in GPU library");
     }
-  };
+  }
 
   inline void gpu_ready(LAMMPS_NS::Modify *modify, LAMMPS_NS::Error *error) {
     int ifix = modify->find_fix("package_gpu");
     if (ifix < 0)
       error->all(FLERR,"The package gpu command is required for gpu styles");
-  };
+  }
 }
 
 #endif

@@ -118,24 +118,24 @@ __kernel void transpose(__global tagint *restrict out,
                         const __global tagint *restrict in,
                         int columns_in, int rows_in)
 {
-        __local tagint block[BLOCK_CELL_2D][BLOCK_CELL_2D+1];
+  __local tagint block[BLOCK_CELL_2D][BLOCK_CELL_2D+1];
 
-        unsigned ti=THREAD_ID_X;
-        unsigned tj=THREAD_ID_Y;
-        unsigned bi=BLOCK_ID_X;
-        unsigned bj=BLOCK_ID_Y;
+  unsigned ti=THREAD_ID_X;
+  unsigned tj=THREAD_ID_Y;
+  unsigned bi=BLOCK_ID_X;
+  unsigned bj=BLOCK_ID_Y;
 
-        unsigned i=bi*BLOCK_CELL_2D+ti;
-        unsigned j=bj*BLOCK_CELL_2D+tj;
-        if ((i<columns_in) && (j<rows_in))
-                block[tj][ti]=in[j*columns_in+i];
+  unsigned i=bi*BLOCK_CELL_2D+ti;
+  unsigned j=bj*BLOCK_CELL_2D+tj;
+  if ((i<columns_in) && (j<rows_in))
+    block[tj][ti]=in[j*columns_in+i];
 
-        __syncthreads();
+   __syncthreads();
 
-        i=bj*BLOCK_CELL_2D+ti;
-        j=bi*BLOCK_CELL_2D+tj;
-        if ((i<rows_in) && (j<columns_in))
-                out[j*rows_in+i] = block[ti][tj];
+  i=bj*BLOCK_CELL_2D+ti;
+  j=bi*BLOCK_CELL_2D+tj;
+  if ((i<rows_in) && (j<columns_in))
+    out[j*rows_in+i] = block[ti][tj];
 }
 
 __kernel void calc_neigh_list_cell(const __global numtyp4 *restrict x_,
@@ -191,7 +191,7 @@ __kernel void calc_neigh_list_cell(const __global numtyp4 *restrict x_,
       nbor_list[pid_i]=pid_i;
     } else {
       stride=0;
-            neigh_counts=host_numj+pid_i-inum;
+      neigh_counts=host_numj+pid_i-inum;
       neigh_list=host_nbor_list+(pid_i-inum)*neigh_bin_size;
     }
 
@@ -232,7 +232,7 @@ __kernel void calc_neigh_list_cell(const __global numtyp4 *restrict x_,
                 diff.z = atom_i.z - pos_sh[j].z;
 
                 r2 = diff.x*diff.x + diff.y*diff.y + diff.z*diff.z;
-                if (r2 < cell_size*cell_size && r2 > 1e-5) {
+                if (r2 < cell_size*cell_size && pid_j != pid_i) { //  && r2 > 1e-5
                   cnt++;
                   if (cnt <= neigh_bin_size) {
                     *neigh_list = pid_j;
@@ -243,8 +243,8 @@ __kernel void calc_neigh_list_cell(const __global numtyp4 *restrict x_,
                 }
               }
             }
-                  __syncthreads();
-                } // for (k)
+            __syncthreads();
+          } // for (k)
         }
       }
     }

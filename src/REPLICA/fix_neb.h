@@ -89,7 +89,15 @@ E: Potential energy ID for fix neb does not exist
 
 Self-explanatory.
 
-E: Atom count changed in fix neb
+E: Too many active NEB atoms
+
+UNDOCUMENTED
+
+E: Too many atoms for NEB
+
+UNDOCUMENTED
+
+U: Atom count changed in fix neb
 
 This is not allowed in a NEB calculation.
 

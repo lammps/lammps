@@ -39,8 +39,9 @@ class ImproperHarmonicKokkos : public ImproperHarmonic {
 
   ImproperHarmonicKokkos(class LAMMPS *);
   virtual ~ImproperHarmonicKokkos();
-  virtual void compute(int, int);
-  virtual void coeff(int, char **);
+  void compute(int, int);
+  void coeff(int, char **);
+  void read_restart(FILE *);
 
   template<int NEWTON_BOND, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -84,7 +85,7 @@ class ImproperHarmonicKokkos : public ImproperHarmonic {
   typename Kokkos::DualView<F_FLOAT*,DeviceType>::t_dev d_k;
   typename Kokkos::DualView<F_FLOAT*,DeviceType>::t_dev d_chi;
 
-  virtual void allocate();
+  void allocate();
 };
 
 }

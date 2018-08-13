@@ -136,14 +136,14 @@ E: Cannot use PRD with a time-dependent region defined
 
 PRD alters the timestep in ways that will mess up these regions.
 
-E: Cannot use PRD with atom_modify sort enabled
-
-This is a current restriction of PRD.  You must turn off sorting,
-which is enabled by default, via the atom_modify command.
-
 E: Too many iterations
 
 You must use a number of iterations that fit in a 32-bit integer
 for minimization.
+
+U: Cannot use PRD with atom_modify sort enabled
+
+This is a current restriction of PRD.  You must turn off sorting,
+which is enabled by default, via the atom_modify command.
 
 */

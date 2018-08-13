@@ -38,8 +38,9 @@ class AngleCharmmKokkos : public AngleCharmm {
 
   AngleCharmmKokkos(class LAMMPS *);
   virtual ~AngleCharmmKokkos();
-  virtual void compute(int, int);
-  virtual void coeff(int, char **);
+  void compute(int, int);
+  void coeff(int, char **);
+  void read_restart(FILE *);
 
   template<int NEWTON_BOND, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -78,7 +79,7 @@ class AngleCharmmKokkos : public AngleCharmm {
   typename AT::t_ffloat_1d d_k_ub;
   typename AT::t_ffloat_1d d_r_ub;
 
-  virtual void allocate();
+  void allocate();
 };
 
 }

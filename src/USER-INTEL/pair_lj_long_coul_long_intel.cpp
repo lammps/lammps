@@ -15,7 +15,7 @@
    Contributing authors: William McDoniel (RWTH Aachen University)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
+#include <cmath>
 #include "pair_lj_long_coul_long_intel.h"
 #include "atom.h"
 #include "comm.h"

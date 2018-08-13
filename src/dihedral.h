@@ -14,7 +14,7 @@
 #ifndef LMP_DIHEDRAL_H
 #define LMP_DIHEDRAL_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "pointers.h"
 
 namespace LAMMPS_NS {

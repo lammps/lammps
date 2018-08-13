@@ -80,6 +80,10 @@ E: Temperature ID for fix temp/csld does not exist
 
 Self-explanatory.
 
+W: Cannot thermostat atoms in rigid bodies
+
+UNDOCUMENTED
+
 E: Fix temp/csld variable returned negative temperature
 
 Self-explanatory.

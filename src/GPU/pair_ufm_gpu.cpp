@@ -17,9 +17,10 @@
             Maurice de Koning (Unicamp/Brazil) - dekoning@ifi.unicamp.br
  ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_ufm_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -34,7 +35,6 @@
 #include "universe.h"
 #include "update.h"
 #include "domain.h"
-#include <string.h>
 #include "gpu_extra.h"
 
 using namespace LAMMPS_NS;

@@ -127,44 +127,46 @@ int main (int narg, char* arg[]) {
   // arguments from the list that start with '--kokkos-'.
   Kokkos::initialize (narg, arg);
 
-  int size = 10000;
-  view_type a("A",size);
+  {
+    int size = 10000;
+    view_type a("A",size);
 
-  // Define two views with LayoutLeft and LayoutRight.
-  left_type l("L",size,10000);
-  right_type r("R",size,10000);
+    // Define two views with LayoutLeft and LayoutRight.
+    left_type l("L",size,10000);
+    right_type r("R",size,10000);
 
-  // Initialize the data in the views.
-  Kokkos::parallel_for(size,init_view<left_type>(l));
-  Kokkos::parallel_for(size,init_view<right_type>(r));
-  Kokkos::fence();
+    // Initialize the data in the views.
+    Kokkos::parallel_for(size,init_view<left_type>(l));
+    Kokkos::parallel_for(size,init_view<right_type>(r));
+    Kokkos::fence();
 
-  // Measure time to execute the contraction kernel when giving it a
-  // LayoutLeft view for v1 and a LayoutRight view for v2. This should be
-  // fast on GPUs and slow on CPUs
-  Kokkos::Timer time1;
-  Kokkos::parallel_for(size,contraction<left_type,right_type>(a,l,r));
-  Kokkos::fence();
-  double sec1 = time1.seconds();
+    // Measure time to execute the contraction kernel when giving it a
+    // LayoutLeft view for v1 and a LayoutRight view for v2. This should be
+    // fast on GPUs and slow on CPUs
+    Kokkos::Timer time1;
+    Kokkos::parallel_for(size,contraction<left_type,right_type>(a,l,r));
+    Kokkos::fence();
+    double sec1 = time1.seconds();
 
-  double sum1 = 0;
-  Kokkos::parallel_reduce(size,dot(a),sum1);
-  Kokkos::fence();
+    double sum1 = 0;
+    Kokkos::parallel_reduce(size,dot(a),sum1);
+    Kokkos::fence();
 
-  // Measure time to execute the contraction kernel when giving it a
-  // LayoutRight view for v1 and a LayoutLeft view for v2. This should be
-  // fast on CPUs and slow on GPUs
-  Kokkos::Timer time2;
-  Kokkos::parallel_for(size,contraction<right_type,left_type>(a,r,l));
-  Kokkos::fence();
-  double sec2 = time2.seconds();
+    // Measure time to execute the contraction kernel when giving it a
+    // LayoutRight view for v1 and a LayoutLeft view for v2. This should be
+    // fast on CPUs and slow on GPUs
+    Kokkos::Timer time2;
+    Kokkos::parallel_for(size,contraction<right_type,left_type>(a,r,l));
+    Kokkos::fence();
+    double sec2 = time2.seconds();
 
-  double sum2 = 0;
-  Kokkos::parallel_reduce(size,dot(a),sum2);
+    double sum2 = 0;
+    Kokkos::parallel_reduce(size,dot(a),sum2);
 
-  // Kokkos' reductions are deterministic.
-  // The results should always be equal.
-  printf("Result Left/Right %f Right/Left %f (equal result: %i)\n",sec1,sec2,sum2==sum1);
+    // Kokkos' reductions are deterministic.
+    // The results should always be equal.
+    printf("Result Left/Right %f Right/Left %f (equal result: %i)\n",sec1,sec2,sum2==sum1);
+  }
 
   Kokkos::finalize();
 }

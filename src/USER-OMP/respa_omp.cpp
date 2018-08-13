@@ -15,8 +15,8 @@
    Contributing authors: Mark Stevens (SNL), Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include "respa_omp.h"
 #include "neighbor.h"
 #include "domain.h"

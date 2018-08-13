@@ -15,8 +15,8 @@
    Contributing author: Ray Shan (Sandia, tnshan@sandia.gov)
 ------------------------------------------------------------------------- */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include "fix_ave_atom.h"
 #include "fix_reaxc_bonds.h"
 #include "atom.h"

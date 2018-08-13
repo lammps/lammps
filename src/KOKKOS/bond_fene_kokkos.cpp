@@ -15,8 +15,8 @@
    Contributing author: Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 #include "bond_fene_kokkos.h"
 #include "atom_kokkos.h"
 #include "neighbor_kokkos.h"
@@ -267,6 +267,30 @@ template<class DeviceType>
 void BondFENEKokkos<DeviceType>::coeff(int narg, char **arg)
 {
   BondFENE::coeff(narg, arg);
+
+  int n = atom->nbondtypes;
+  for (int i = 1; i <= n; i++) {
+    k_k.h_view[i] = k[i];
+    k_r0.h_view[i] = r0[i];
+    k_epsilon.h_view[i] = epsilon[i];
+    k_sigma.h_view[i] = sigma[i];
+  }
+
+  k_k.template modify<LMPHostType>();
+  k_r0.template modify<LMPHostType>();
+  k_epsilon.template modify<LMPHostType>();
+  k_sigma.template modify<LMPHostType>();
+}
+
+
+/* ----------------------------------------------------------------------
+   proc 0 reads coeffs from restart file, bcasts them
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void BondFENEKokkos<DeviceType>::read_restart(FILE *fp)
+{
+  BondFENE::read_restart(fp);
 
   int n = atom->nbondtypes;
   for (int i = 1; i <= n; i++) {

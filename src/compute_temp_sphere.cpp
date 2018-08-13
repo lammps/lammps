@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <string.h>
+#include <cstring>
 #include "compute_temp_sphere.h"
 #include "atom.h"
 #include "atom_vec.h"

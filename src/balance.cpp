@@ -19,9 +19,9 @@
 //#define BALANCE_DEBUG 1
 
 #include <mpi.h>
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "balance.h"
 #include "atom.h"
 #include "comm.h"
@@ -48,8 +48,6 @@ using namespace LAMMPS_NS;
 enum{XYZ,SHIFT,BISECTION};
 enum{NONE,UNIFORM,USER};
 enum{X,Y,Z};
-enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
-
 /* ---------------------------------------------------------------------- */
 
 Balance::Balance(LAMMPS *lmp) : Pointers(lmp)
@@ -281,7 +279,7 @@ void Balance::command(int narg, char **arg)
   // no load-balance if imbalance doesn't exceed threshold
   // unless switching from tiled to non tiled layout, then force rebalance
 
-  if (comm->layout == LAYOUT_TILED && style != BISECTION) {
+  if (comm->layout == Comm::LAYOUT_TILED && style != BISECTION) {
   } else if (imbinit < thresh) return;
 
   // debug output of initial state
@@ -296,16 +294,16 @@ void Balance::command(int narg, char **arg)
   // style XYZ = explicit setting of cutting planes of logical 3d grid
 
   if (style == XYZ) {
-    if (comm->layout == LAYOUT_UNIFORM) {
+    if (comm->layout == Comm::LAYOUT_UNIFORM) {
       if (xflag == USER || yflag == USER || zflag == USER)
-        comm->layout = LAYOUT_NONUNIFORM;
-    } else if (comm->style == LAYOUT_NONUNIFORM) {
+        comm->layout = Comm::LAYOUT_NONUNIFORM;
+    } else if (comm->layout == Comm::LAYOUT_NONUNIFORM) {
       if (xflag == UNIFORM && yflag == UNIFORM && zflag == UNIFORM)
-        comm->layout = LAYOUT_UNIFORM;
-    } else if (comm->style == LAYOUT_TILED) {
+        comm->layout = Comm::LAYOUT_UNIFORM;
+    } else if (comm->layout == Comm::LAYOUT_TILED) {
       if (xflag == UNIFORM && yflag == UNIFORM && zflag == UNIFORM)
-        comm->layout = LAYOUT_UNIFORM;
-      else comm->layout = LAYOUT_NONUNIFORM;
+        comm->layout = Comm::LAYOUT_UNIFORM;
+      else comm->layout = Comm::LAYOUT_NONUNIFORM;
     }
 
     if (xflag == UNIFORM) {
@@ -333,7 +331,7 @@ void Balance::command(int narg, char **arg)
   // style SHIFT = adjust cutting planes of logical 3d grid
 
   if (style == SHIFT) {
-    comm->layout = LAYOUT_NONUNIFORM;
+    comm->layout = Comm::LAYOUT_NONUNIFORM;
     shift_setup_static(bstr);
     niter = shift();
   }
@@ -341,7 +339,7 @@ void Balance::command(int narg, char **arg)
   // style BISECTION = recursive coordinate bisectioning
 
   if (style == BISECTION) {
-    comm->layout = LAYOUT_TILED;
+    comm->layout = Comm::LAYOUT_TILED;
     bisection(1);
   }
 
@@ -352,13 +350,13 @@ void Balance::command(int narg, char **arg)
   domain->set_local_box();
 
   // move particles to new processors via irregular()
+  // set disable = 0, so weights migrate with atoms for imbfinal calculation
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   Irregular *irregular = new Irregular(lmp);
   if (wtflag) fixstore->disable = 0;
   if (style == BISECTION) irregular->migrate_atoms(1,1,rcb->sendproc);
   else irregular->migrate_atoms(1);
-  if (wtflag) fixstore->disable = 1;
   delete irregular;
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
@@ -379,9 +377,11 @@ void Balance::command(int narg, char **arg)
   }
 
   // imbfinal = final imbalance
+  // set disable = 1, so weights no longer migrate with atoms
 
   double maxfinal;
   double imbfinal = imbalance_factor(maxfinal);
+  if (wtflag) fixstore->disable = 1;
 
   // stats output
 
@@ -542,6 +542,8 @@ void Balance::weight_storage(char *prefix)
     fixstore = (FixStore *) modify->fix[modify->nfix-1];
   } else fixstore = (FixStore *) modify->fix[ifix];
 
+  // do not carry weights with atoms during normal atom migration
+
   fixstore->disable = 1;
 
   if (prefix) delete [] fixargs[0];
@@ -645,6 +647,21 @@ int *Balance::bisection(int sortflag)
   double *shrinklo = &shrinkall[0];
   double *shrinkhi = &shrinkall[3];
 
+  // if shrink size in any dim is zero, use box size in that dim
+
+  if (shrinklo[0] == shrinkhi[0]) {
+    shrinklo[0] = boxlo[0];
+    shrinkhi[0] = boxhi[0];
+  }
+  if (shrinklo[1] == shrinkhi[1]) {
+    shrinklo[1] = boxlo[1];
+    shrinkhi[1] = boxhi[1];
+  }
+  if (shrinklo[2] == shrinkhi[2]) {
+    shrinklo[2] = boxlo[2];
+    shrinkhi[2] = boxhi[2];
+  }
+
   // invoke RCB
   // then invert() to create list of proc assignments for my atoms
   // NOTE: (3/2017) can remove undocumented "old" option at some point
@@ -745,7 +762,7 @@ void Balance::shift_setup_static(char *str)
   // if current layout is TILED, set initial uniform splits in Comm
   // this gives starting point to subsequent shift balancing
 
-  if (comm->layout == LAYOUT_TILED) {
+  if (comm->layout == Comm::LAYOUT_TILED) {
     int *procgrid = comm->procgrid;
     double *xsplit = comm->xsplit;
     double *ysplit = comm->ysplit;

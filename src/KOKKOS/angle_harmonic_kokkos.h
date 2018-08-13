@@ -39,8 +39,9 @@ class AngleHarmonicKokkos : public AngleHarmonic {
 
   AngleHarmonicKokkos(class LAMMPS *);
   virtual ~AngleHarmonicKokkos();
-  virtual void compute(int, int);
-  virtual void coeff(int, char **);
+  void compute(int, int);
+  void coeff(int, char **);
+  void read_restart(FILE *);
 
   template<int NEWTON_BOND, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -79,7 +80,7 @@ class AngleHarmonicKokkos : public AngleHarmonic {
   typename ArrayTypes<DeviceType>::t_ffloat_1d d_k;
   typename ArrayTypes<DeviceType>::t_ffloat_1d d_theta0;
 
-  virtual void allocate();
+  void allocate();
 };
 
 }

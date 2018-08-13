@@ -96,6 +96,8 @@ class Pair : protected Pointers {
                                  //       public so external driver can check
   int compute_flag;              // 0 if skip compute()
 
+  enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};   // mixing options
+
   // KOKKOS host/device flag and data masks
 
   ExecutionSpace execution_space;
@@ -155,8 +157,8 @@ class Pair : protected Pointers {
   virtual void free_tables();
   virtual void free_disp_tables();
 
-  virtual void write_restart(FILE *) {}
-  virtual void read_restart(FILE *) {}
+  virtual void write_restart(FILE *);
+  virtual void read_restart(FILE *);
   virtual void write_restart_settings(FILE *) {}
   virtual void read_restart_settings(FILE *) {}
   virtual void write_data(FILE *) {}
@@ -190,8 +192,6 @@ class Pair : protected Pointers {
 
  protected:
   int instance_me;        // which Pair class instantiation I am
-
-  enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};   // mixing options
 
   int special_lj[4];           // copied from force->special_lj for Kokkos
 
@@ -300,6 +300,12 @@ New coding for the pair style would need to be done.
 E: Pair style requires a KSpace style
 
 No kspace style is defined.
+
+E: BUG: restartinfo=1 but no restart support in pair style
+
+The pair style has a bug, where it does not support reading
+and writing information to a restart file, but does not set
+the member variable restartinfo to 0 as required in that case.
 
 E: Cannot yet use compute tally with Kokkos
 

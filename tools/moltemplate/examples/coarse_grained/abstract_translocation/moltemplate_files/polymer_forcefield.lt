@@ -1,0 +1,120 @@
+# Define a "ForceField" object.
+# A force field in moltemplate is any object containing mostly pair_coeff,
+# bond_coeff, angle_coeff, dihedral_coeff, "Bonds By Type", "Angles By Type",
+# "Dihedrals By Type", "Impropers By Type", "Data Masses" (and "In Charges")
+# information.  Later on when we define molecule objects, we can access all
+# of the atom types and force field parameters here using "inherits ForceField".
+# (See "monomer.lt" for example.)
+
+
+ForceField {
+
+  # LAMMPS supports a large number of "styles" (ie. equations for calculating 
+  # forces between particles).  At some point, we must eventually select the
+  # formulas we want to use.  This can be done anywhere, but we might as
+  # well specify that now.  Later on we will specify the parameters
+  # which go into these equations.
+
+  write_once("In Init") {
+    # -- Styles used in "ForceField" --
+    # -- (Changing these styles will change the formulas above) --
+    units           real
+    atom_style      full
+    bond_style      harmonic
+    angle_style     harmonic
+    dihedral_style  opls
+    pair_style      lj/cut 11.0
+  }
+
+
+  # There are 2 atom types: "CA" and "R"
+
+  write_once("Data Masses") {
+    @atom:CA    13.0
+    @atom:R     50.0
+  }
+
+  # ---- 2-body (non-bonded) interactions: ----
+  #   U(r) = 4*epsilon((sigma/r)^12 - (sigma/r)^6)
+  #   (for details see http://lammps.sandia.gov/doc/pair_lj.html)
+  #        atom-type   atom-type   epsilon sigma
+
+  write_once("In Settings") {
+    pair_coeff  @atom:CA  @atom:CA      0.05   2.0
+    pair_coeff  @atom:R   @atom:R       0.50   2.0
+    # (Interactions between different atoms are determined by mixing rules.)
+  }
+
+  # ---- 2-body (bonded) interactions: ----
+  #
+  #   Ubond(r) = k*(r-r0)^2
+  #   (for details see http://lammps.sandia.gov/doc/bond_harmonic.html)
+  #
+  write_once("In Settings") {
+    #           bond-type          k     r0
+    bond_coeff  @bond:sidechain   30.0   1.2
+    bond_coeff  @bond:bb          30.0   2.0    # "bb" shorthand for "backbone"
+  }
+
+  # For a compound molecule consisting of smaller building blocks (such as a
+  # polymer built from monomers), it is tedious to explicitly list all of the
+  # angles, dihedrals in the entire molecule.  Instead, you can define rules
+  # for automatically generating all the angular interactions between bonded 
+  # atoms according to their connectivity and the atom/bond type.
+  # Later, when you connect multiple monomers together to form a polymer, 
+  # appropriate bond-angle forces will be applied to these atoms automatically
+  # (as well as dihedral and improper forces, if defined).
+
+  # ---- 3-body angle (hinge) interactions ----
+  #  Rules for determining 3-body interactions by type
+
+  # angle-type       atomType1 atomType2 atomType3  bondType1 bondType2
+
+  write_once("Data Angles By Type") {
+    @angle:backbone  @atom:CA @atom:CA @atom:CA   @bond:*   @bond:*
+    @angle:sidechain @atom:CA @atom:CA @atom:R    @bond:*   @bond:*
+    @angle:RCR       @atom:R  @atom:CA @atom:R    @bond:*   @bond:*
+  }
+
+  # ("@angle:RCR" defines the angle between the R-C-R atoms within a monomer.
+  #  The other angular interactions are between atoms in neighboring monomers.)
+
+  # Force-field parameters for 3-body (angle) interactions:
+  #
+  #   Uangle(theta) = k*(theta-theta0)^2
+  #   (for details see http://lammps.sandia.gov/doc/angle_harmonic.html)
+  #
+  write_once("In Settings") {
+    #            angle-type         k    theta0
+    angle_coeff  @angle:backbone   50.00  160
+    angle_coeff  @angle:sidechain  50.00  120
+    angle_coeff  @angle:RCR        50.00  120
+  }
+
+  # ---- 4-body dihedral interactions ----
+
+  # Rules for determining 4-body (dihedral) interactions by atom & bond type:
+  #   dihedralType  atmType1 atmType2 atmType3 atmType4  bondType1 bType2 bType3
+
+  write_once("Data Dihedrals By Type") {
+    @dihedral:backbn @atom:CA @atom:CA @atom:CA @atom:CA @bond:* @bond:* @bond:*
+  }
+  # (A more realistic force field would have more dihedral and angle types)
+
+
+  # The forumula used for dihedral interactions is:
+  #
+  # Udihedral(phi) = (K1/2)*(1+cos(phi))  +  (K2/2)*(1+cos(2*phi)) +
+  #             ...  (K3/2)*(1+cos(3*phi)) + (K4/2)*(1+cos(4*phi))
+  #     (for details, see http://lammps.sandia.gov/doc/dihedral_opls.html)
+  #
+  # The corresponding command is 
+
+  write_once("In Settings") {
+    #                 dihedral-type      K1       K2       K3      K4
+    dihedral_coeff  @dihedral:backbn  1.411036 -0.271016 3.145034 0.0
+  }
+
+} # "ForceField"
+
+

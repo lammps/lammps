@@ -73,7 +73,16 @@ private:
   /// Impossible to initialize the main object without arguments
   colvarmodule();
 
+  /// Integer representing the version string (allows comparisons)
+  int version_int;
+
 public:
+
+  /// Get the version number (higher = more recent)
+  int version_number() const
+  {
+    return version_int;
+  }
 
   friend class colvarproxy;
   // TODO colvarscript should be unaware of colvarmodule's internals
@@ -157,10 +166,6 @@ public:
   {
     return it;
   }
-
-  /// If true, get it_restart from the state file; if set to false,
-  /// the MD program is providing it
-  bool it_restart_from_state_file;
 
   /// \brief Finite difference step size (if there is no dynamics, or
   /// if gradients need to be tested independently from the size of
@@ -306,19 +311,19 @@ private:
 public:
 
   /// Return how many variables are defined
-  int num_variables() const;
+  size_t num_variables() const;
 
   /// Return how many variables have this feature enabled
-  int num_variables_feature(int feature_id) const;
+  size_t num_variables_feature(int feature_id) const;
 
   /// Return how many biases are defined
-  int num_biases() const;
+  size_t num_biases() const;
 
   /// Return how many biases have this feature enabled
-  int num_biases_feature(int feature_id) const;
+  size_t num_biases_feature(int feature_id) const;
 
   /// Return how many biases of this type are defined
-  int num_biases_type(std::string const &type) const;
+  size_t num_biases_type(std::string const &type) const;
 
   /// Return the names of time-dependent biases with forces enabled (ABF,
   /// metadynamics, etc)
@@ -479,9 +484,6 @@ public:
   /// Print a message to the main log and set global error code
   static int error(std::string const &message, int code = COLVARS_ERROR);
 
-  /// Print a message to the main log and exit normally
-  static void exit(std::string const &message);
-
   // Replica exchange commands.
   static bool replica_enabled();
   static int replica_index();
@@ -495,15 +497,6 @@ public:
   static rvector position_distance(atom_pos const &pos1,
                                    atom_pos const &pos2);
 
-  /// \brief Get the square distance between two positions (with
-  /// periodic boundary conditions handled transparently)
-  ///
-  /// Note: in the case of periodic boundary conditions, this provides
-  /// an analytical square distance (while taking the square of
-  /// position_distance() would produce leads to a cusp)
-  static real position_dist2(atom_pos const &pos1,
-                             atom_pos const &pos2);
-
   /// \brief Names of groups from a Gromacs .ndx file to be read at startup
   std::list<std::string> index_group_names;
 
@@ -513,29 +506,36 @@ public:
   /// \brief Read a Gromacs .ndx file
   int read_index_file(char const *filename);
 
-
-  /// \brief Create atoms from a file \param filename name of the file
-  /// (usually a PDB) \param atoms array of the atoms to be allocated
-  /// \param pdb_field (optiona) if "filename" is a PDB file, use this
-  /// field to determine which are the atoms to be set
+  /// \brief Select atom IDs from a file (usually PDB) \param filename name of
+  /// the file \param atoms array into which atoms read from "filename" will be
+  /// appended \param pdb_field (optional) if the file is a PDB and this
+  /// string is non-empty, select atoms for which this field is non-zero
+  /// \param pdb_field_value (optional) if non-zero, select only atoms whose
+  /// pdb_field equals this
   static int load_atoms(char const *filename,
                         atom_group &atoms,
                         std::string const &pdb_field,
-                        double const pdb_field_value = 0.0);
+                        double pdb_field_value = 0.0);
 
-  /// \brief Load the coordinates for a group of atoms from a file
-  /// (PDB or XYZ)
+  /// \brief Load coordinates for a group of atoms from a file (PDB or XYZ);
+  /// if "pos" is already allocated, the number of its elements must match the
+  /// number of entries in "filename" \param filename name of the file \param
+  /// pos array of coordinates \param atoms group containing the atoms (used
+  /// to obtain internal IDs) \param pdb_field (optional) if the file is a PDB
+  /// and this string is non-empty, select atoms for which this field is
+  /// non-zero \param pdb_field_value (optional) if non-zero, select only
+  /// atoms whose pdb_field equals this
   static int load_coords(char const *filename,
-                         std::vector<atom_pos> &pos,
-                         const std::vector<int> &indices,
+                         std::vector<rvector> *pos,
+                         atom_group *atoms,
                          std::string const &pdb_field,
-                         double const pdb_field_value = 0.0);
+                         double pdb_field_value = 0.0);
 
   /// \brief Load the coordinates for a group of atoms from an
   /// XYZ file
   static int load_coords_xyz(char const *filename,
-                              std::vector<atom_pos> &pos,
-                              const std::vector<int> &indices);
+                             std::vector<rvector> *pos,
+                             atom_group *atoms);
 
   /// Frequency for collective variables trajectory output
   static size_t cv_traj_freq;
@@ -567,6 +567,9 @@ protected:
 
   /// Appending to the existing trajectory file?
   bool cv_traj_append;
+
+  /// Write labels at the next iteration
+  bool cv_traj_write_labels;
 
 private:
 

@@ -24,7 +24,7 @@
 #include "comm.h"
 #include "domain.h"
 
-#include <string.h>
+#include <cstring>
 
 #if defined(_OPENMP)
 #include <omp.h>
@@ -108,7 +108,7 @@ void FixRigidOMP::initial_integrate(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixRigidOMP::final_integrate()
+void FixRigidOMP::compute_forces_and_torques()
 {
   double * const * _noalias const x = atom->x;
   const dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];
@@ -261,6 +261,23 @@ void FixRigidOMP::final_integrate()
     torque[ibody][0] = all[ibody][3] + langextra[ibody][3];
     torque[ibody][1] = all[ibody][4] + langextra[ibody][4];
     torque[ibody][2] = all[ibody][5] + langextra[ibody][5];
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixRigidOMP::final_integrate()
+{
+  int ibody;
+
+  if (!earlyflag) compute_forces_and_torques();
+
+  // update vcm and angmom
+
+#if defined(_OPENMP)
+#pragma omp parallel for default(none) private(ibody) schedule(static)
+#endif
+  for (ibody = 0; ibody < nbody; ibody++) {
 
     // update vcm by 1/2 step
 

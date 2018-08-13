@@ -14,10 +14,10 @@
    Contributing author: Oliver Henrich (University of Strathclyde, Glasgow)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_oxdna_excv.h"
 #include "mf_oxdna.h"
 #include "atom.h"
@@ -152,7 +152,7 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  // loop over pair interaction neighbours of my atoms
+  // loop over pair interaction neighbors of my atoms
 
   for (ia = 0; ia < anum; ia++) {
 
@@ -179,7 +179,7 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
     for (ib = 0; ib < bnum; ib++) {
 
       b = blist[ib];
-      factor_lj = special_lj[sbmask(b)]; // = 0 for nearest neighbours
+      factor_lj = special_lj[sbmask(b)]; // = 0 for nearest neighbors
       b &= NEIGHMASK;
 
       btype = type[b];
@@ -222,7 +222,7 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
         evdwl = F3(rsq_ss,cutsq_ss_ast[atype][btype],cut_ss_c[atype][btype],lj1_ss[atype][btype],
                         lj2_ss[atype][btype],epsilon_ss[atype][btype],b_ss[atype][btype],fpair);
 
-        // knock out nearest-neighbour interaction between ss
+        // knock out nearest-neighbor interaction between ss
         fpair *= factor_lj;
         evdwl *= factor_lj;
 

@@ -19,7 +19,7 @@
 #ifndef LMP_LJ_SDK_COMMON_H
 #define LMP_LJ_SDK_COMMON_H
 
-#include <string.h>
+#include <cstring>
 
 namespace LAMMPS_NS {
 namespace LJSDKParms {

@@ -5,10 +5,10 @@
 
 #include "DependencyManager.h"
 #include "PaqAtcUtility.h"
-#include <map.h>
-#include <vector.h>
-#include <set.h>
-#include <pair.h>
+#include <map>
+#include <vector>
+#include <set>
+#include <pair>
 
 namespace ATC {
 

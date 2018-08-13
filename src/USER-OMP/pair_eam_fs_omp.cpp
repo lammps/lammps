@@ -15,9 +15,9 @@
    Contributing authors: Tim Lau (MIT)
 ------------------------------------------------------------------------- */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_eam_fs_omp.h"
 #include "atom.h"
 #include "comm.h"

@@ -15,7 +15,7 @@
    Contributing author: Jonathan Lee (Sandia)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
+#include <cmath>
 #include "fix_wall_lj1043.h"
 #include "atom.h"
 #include "math_const.h"

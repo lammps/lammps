@@ -80,6 +80,10 @@ E: Tempering fix ID is not defined
 
 The fix ID specified by the temper command does not exist.
 
+E: Illegal temperature index
+
+UNDOCUMENTED
+
 E: Invalid frequency in temper command
 
 Nevery must be > 0.
@@ -89,10 +93,9 @@ E: Non integer # of swaps in temper command
 Swap frequency in temper command must evenly divide the total # of
 timesteps.
 
-E: Tempering temperature fix is not valid
+E: Tempering temperature fix is not supported
 
-The fix specified by the temper command is not one that controls
-temperature (nvt or langevin).
+UNDOCUMENTED
 
 E: Too many timesteps
 
@@ -102,5 +105,10 @@ E: Tempering could not find thermo_pe compute
 
 This compute is created by the thermo command.  It must have been
 explicitly deleted by a uncompute command.
+
+U: Tempering temperature fix is not valid
+
+The fix specified by the temper command is not one that controls
+temperature (nvt or langevin).
 
 */

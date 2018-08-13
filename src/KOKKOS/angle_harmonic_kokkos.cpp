@@ -15,8 +15,8 @@
    Contributing author: Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 #include "angle_harmonic_kokkos.h"
 #include "atom_kokkos.h"
 #include "neighbor_kokkos.h"
@@ -256,6 +256,25 @@ template<class DeviceType>
 void AngleHarmonicKokkos<DeviceType>::coeff(int narg, char **arg)
 {
   AngleHarmonic::coeff(narg, arg);
+
+  int n = atom->nangletypes;
+  for (int i = 1; i <= n; i++) {
+    k_k.h_view[i] = k[i];
+    k_theta0.h_view[i] = theta0[i];
+  }
+
+  k_k.template modify<LMPHostType>();
+  k_theta0.template modify<LMPHostType>();
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 reads coeffs from restart file, bcasts them
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void AngleHarmonicKokkos<DeviceType>::read_restart(FILE *fp)
+{
+  AngleHarmonic::read_restart(fp);
 
   int n = atom->nangletypes;
   for (int i = 1; i <= n; i++) {

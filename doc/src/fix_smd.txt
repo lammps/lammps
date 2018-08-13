@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -111,12 +111,12 @@ this fix. This allows to set at which level of the "r-RESPA"_run_style.html
 integrator the fix is adding its forces. Default is the outermost level.
 
 This fix computes a vector list of 7 quantities, which can be accessed
-by various "output commands"_Section_howto.html#howto_15.  The
-quantities in the vector are in this order: the x-, y-, and
-z-component of the pulling force, the total force in direction of the
-pull, the equilibrium distance of the spring, the distance between the
-two reference points, and finally the accumulated PMF (the sum of
-pulling forces times displacement).
+by various "output commands"_Howto_output.html.  The quantities in the
+vector are in this order: the x-, y-, and z-component of the pulling
+force, the total force in direction of the pull, the equilibrium
+distance of the spring, the distance between the two reference points,
+and finally the accumulated PMF (the sum of pulling forces times
+displacement).
 
 The force is the total force on the group of atoms by the spring.  In
 the case of the {couple} style, it is the force on the fix group

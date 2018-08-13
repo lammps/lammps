@@ -17,7 +17,7 @@
 #include "lal_precision.h"
 #include "lal_neighbor.h"
 #include "lal_device.h"
-#include "math.h"
+#include <cmath>
 using namespace LAMMPS_AL;
 
 int Neighbor::bytes_per_atom(const int max_nbors) const {
@@ -127,10 +127,10 @@ void Neighbor::alloc(bool &success) {
     dev_packed.clear();
     success=success && (dev_packed.alloc((_max_nbors+2)*_max_atoms,*dev,
                                          _packed_permissions)==UCL_SUCCESS);
-    dev_acc.clear();
-    success=success && (dev_acc.alloc(_max_atoms,*dev,
+    dev_ilist.clear();
+    success=success && (dev_ilist.alloc(_max_atoms,*dev,
                                       UCL_READ_WRITE)==UCL_SUCCESS);
-    _c_bytes+=dev_packed.row_bytes()+dev_acc.row_bytes();
+    _c_bytes+=dev_packed.row_bytes()+dev_ilist.row_bytes();
   }
   if (_max_host>0) {
     nbor_host.clear();
@@ -197,7 +197,7 @@ void Neighbor::clear() {
 
     host_packed.clear();
     host_acc.clear();
-    dev_acc.clear();
+    dev_ilist.clear();
     dev_nbor.clear();
     nbor_host.clear();
     dev_packed.clear();
@@ -281,7 +281,7 @@ void Neighbor::get_host(const int inum, int *ilist, int *numj,
   }
   UCL_D_Vec<int> acc_view;
   acc_view.view_offset(inum,dev_nbor,inum*2);
-  ucl_copy(acc_view,host_acc,true);
+  ucl_copy(acc_view,host_acc,inum*2,true);
 
   UCL_H_Vec<int> host_view;
   host_view.alloc(_max_atoms,*dev,UCL_READ_WRITE);
@@ -289,7 +289,7 @@ void Neighbor::get_host(const int inum, int *ilist, int *numj,
     int i=ilist[ii];
     host_view[i] = ii;
   }
-  ucl_copy(dev_acc,host_view,true);
+  ucl_copy(dev_ilist,host_view,true);
 
   time_nbor.stop();
 
@@ -364,7 +364,7 @@ void Neighbor::get_host3(const int inum, const int nlist, int *ilist, int *numj,
   }
   UCL_D_Vec<int> acc_view;
   acc_view.view_offset(inum,dev_nbor,inum*2);
-  ucl_copy(acc_view,host_acc,true);
+  ucl_copy(acc_view,host_acc,inum*2,true);
   time_nbor.stop();
 
   if (_use_packing==false) {

@@ -22,7 +22,7 @@
 #include "lal_pppm.h"
 #include "mpi.h"
 #include <sstream>
-#include "stdio.h"
+#include <cstdio>
 #include <string>
 #include <queue>
 
@@ -292,7 +292,7 @@ class Device {
   MPI_Comm _comm_world, _comm_replica, _comm_gpu;
   int _procs_per_gpu, _gpu_rank, _world_me, _world_size, _replica_me,
       _replica_size;
-  int _gpu_mode, _first_device, _last_device, _nthreads;
+  int _gpu_mode, _first_device, _last_device, _platform_id, _nthreads;
   double _particle_split;
   double _cpu_full;
   double _ptx_arch;

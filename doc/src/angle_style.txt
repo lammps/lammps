@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -58,9 +58,9 @@ the style to display the formula it computes and coefficients
 specified by the associated "angle_coeff"_angle_coeff.html command.
 
 Note that there are also additional angle styles submitted by users
-which are included in the LAMMPS distribution.  The list of these with
-links to the individual styles are given in the angle section of "this
-page"_Section_commands.html#cmd_5.
+which are included in the LAMMPS distribution.  The full list of all
+angle styles are is on the "Commands bond"_Commands_bond.html#angle
+doc page.
 
 "angle_style none"_angle_none.html - turn off angle interactions
 "angle_style zero"_angle_zero.html - topology but no interactions

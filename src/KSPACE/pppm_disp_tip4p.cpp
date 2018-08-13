@@ -16,7 +16,7 @@
                          Rolf Isele-Holder (Aachen University)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
+#include <cmath>
 #include "pppm_disp_tip4p.h"
 #include "pppm_disp.h"
 #include "atom.h"
@@ -78,7 +78,7 @@ void PPPMDispTIP4P::particle_map_c(double delx, double dely, double delz,
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
-  if (!ISFINITE(boxlo[0]) || !ISFINITE(boxlo[1]) || !ISFINITE(boxlo[2]))
+  if (!std::isfinite(boxlo[0]) || !std::isfinite(boxlo[1]) || !std::isfinite(boxlo[2]))
     error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
 
   int flag = 0;

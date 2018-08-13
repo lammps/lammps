@@ -51,9 +51,9 @@ class PairGWZBL : public PairGW {
 
 /* ERROR/WARNING messages:
 
-E: Pair GW/zbl requires metal or real units
+E: Pair gw/zbl requires metal or real units
 
-This is a current restriction of this pair potential.
+UNDOCUMENTED
 
 E: Cannot open GW potential file %s
 
@@ -68,5 +68,9 @@ E: Illegal GW parameter
 
 One or more of the coefficients defined in the potential file is
 invalid.
+
+U: Pair GW/zbl requires metal or real units
+
+This is a current restriction of this pair potential.
 
 */

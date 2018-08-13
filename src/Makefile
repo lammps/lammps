@@ -18,7 +18,7 @@ OBJDIR =   Obj_$@
 OBJSHDIR = Obj_shared_$@
 
 SRC =	$(wildcard *.cpp)
-INC =	$(wildcard *.h)
+INC =	$(filter-out lmpinstalledpkgs.h,$(wildcard *.h))
 OBJ = 	$(SRC:.cpp=.o)
 
 SRCLIB = $(filter-out main.cpp,$(SRC))
@@ -55,12 +55,12 @@ endif
 PACKAGE = asphere body class2 colloid compress coreshell dipole gpu \
 	  granular kim kokkos kspace latte manybody mc meam misc \
 	  molecule mpiio mscg opt peri poems \
-	  python qeq reax replica rigid shock snap srd voronoi
+	  python qeq reax replica rigid shock snap spin srd voronoi
 
-PACKUSER = user-atc user-awpmd user-cgdna user-cgsdk user-colvars \
+PACKUSER = user-atc user-awpmd user-bocs user-cgdna user-cgsdk user-colvars \
 	   user-diffraction user-dpd user-drude user-eff user-fep user-h5md \
 	   user-intel user-lb user-manifold user-meamc user-meso \
-	   user-mgpt user-misc user-molfile \
+	   user-mgpt user-misc user-mofff user-molfile \
 	   user-netcdf user-omp user-phonon user-qmmm user-qtb \
 	   user-quip user-reaxc user-smd user-smtbq user-sph user-tally \
 	   user-uef user-vtk
@@ -150,6 +150,21 @@ help:
 	  for file in $$files; do head -1 $$file; done
 	@echo ''
 
+
+lmpinstalledpkgs.h: $(SRC) $(INC)
+	@echo 'Gathering installed package information (may take a little while)'
+	@echo '#ifndef LMP_INSTALLED_PKGS_H' >  lmpinstalledpkgs.tmp
+	@echo '#define LMP_INSTALLED_PKGS_H' >> lmpinstalledpkgs.tmp
+	@echo 'const char * LAMMPS_NS::LAMMPS::installed_packages[] = {' >> lmpinstalledpkgs.tmp
+	@for p in $(PACKAGEUC) $(PACKUSERUC); do info=$$($(SHELL) Package.sh $$p installed); \
+             [ -n "$$info" ] && echo "\"$$info\"" | sed -e 's/".*package \(.*\)"/"\1",/' >> lmpinstalledpkgs.tmp || :; done
+	@echo ' NULL };' >> lmpinstalledpkgs.tmp
+	@echo '#endif' >> lmpinstalledpkgs.tmp
+	@if [ -f lmpinstalledpkgs.h ]; \
+          then test "`diff --brief lmpinstalledpkgs.tmp lmpinstalledpkgs.h`" != "" && \
+	        mv lmpinstalledpkgs.tmp lmpinstalledpkgs.h || rm lmpinstalledpkgs.tmp ; \
+        else mv lmpinstalledpkgs.tmp lmpinstalledpkgs.h ; fi
+
 # Build LAMMPS in one of 4 modes
 # exe =   exe with static compile in Obj_machine (default)
 # shexe = exe with shared compile in Obj_shared_machine
@@ -163,6 +178,8 @@ help:
 	  -f MAKE/MACHINES/Makefile.$@ -o -f MAKE/MINE/Makefile.$@
 	@if [ ! -d $(objdir) ]; then mkdir $(objdir); fi
 	@$(SHELL) Make.sh style
+	@$(MAKE) $(MFLAGS) lmpinstalledpkgs.h
+	@echo 'Compiling LAMMPS for machine $@'
 	@if [ -f MAKE/MACHINES/Makefile.$@ ]; \
 	  then cp MAKE/MACHINES/Makefile.$@ $(objdir)/Makefile; fi
 	@if [ -f MAKE/OPTIONS/Makefile.$@ ]; \
@@ -267,7 +284,7 @@ package:
 	@echo 'make yes-all                 install all pgks in src dir'
 	@echo 'make no-all                  remove all pkgs from src dir'
 	@echo 'make yes-standard (yes-std)  install all standard pkgs'
-	@echo 'make no-standard (no-srd)    remove all standard pkgs'
+	@echo 'make no-standard (no-std)    remove all standard pkgs'
 	@echo 'make yes-user                install all user pkgs'
 	@echo 'make no-user                 remove all user pkgs'
 	@echo 'make yes-lib       install all pkgs with libs (included or ext)'

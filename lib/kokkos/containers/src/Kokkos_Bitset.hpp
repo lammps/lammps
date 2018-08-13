@@ -271,7 +271,7 @@ private:
     block = Impl::rotate_right(block, offset);
     return ((( !(scan_direction & BIT_SCAN_REVERSE) ?
                Impl::bit_scan_forward(block) :
-               Impl::bit_scan_reverse(block)
+               ::Kokkos::log2(block)
              ) + offset
             ) & block_mask
            ) + block_start;

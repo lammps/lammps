@@ -19,6 +19,7 @@ Dihedral Styles :h1
    dihedral_quadratic
    dihedral_spherical
    dihedral_table
+   dihedral_table_cut
    dihedral_zero
    dihedral_charmm
    dihedral_class2

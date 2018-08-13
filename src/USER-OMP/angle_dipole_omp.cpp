@@ -25,7 +25,7 @@
 
 #include "math_const.h"
 
-#include <math.h>
+#include <cmath>
 
 #include "suffix.h"
 using namespace LAMMPS_NS;

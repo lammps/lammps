@@ -14,8 +14,8 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 #include "compute_pressure_uef.h"
 #include "fix_nh_uef.h"
 #include "update.h"

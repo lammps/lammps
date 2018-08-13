@@ -2,10 +2,9 @@
 #define ARRAY2D_H
 
 #include <cstdlib>
+#include <cstdio>
 #include <string>
 #include <iostream>
-#include <cstdlib>
-#include <stdio.h>
 
 #include "Array.h"
 

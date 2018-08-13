@@ -1,0 +1,55 @@
+# WARNING: As of 2014-3-12, the "pair_style eff/cut 5000.0 0 0" command
+#          located in "orig_files/in.ch4_ionized.dynamics" (as well as the
+#          files "moltemplate_files/ch4_ionized.lt" (this file)
+#          ...causes LAMMPS to hang.
+#          Running LAMMPS on Andres' original eFF example has the same behavior.
+#          This appears to be an eFF/LAMMPS issue, not a moltemplate issue.
+#          The "pair_style eff/cut 100" command works, so
+#          try reducing the cutoff (or ask Andres Jaramillo-Botero for help).
+#          Please let me know if you solve this issue (jewett.aij -at- g mail )
+
+
+CH4_ionized {
+
+  write_once("Data Masses") {
+    @atom:C 12.01070
+    @atom:H 1.000794
+    @atom:e 1.000000
+  }
+
+  #  id      type     q   spin  eradius   x   y   z
+
+  write("Data Atoms") {
+    $atom:c @atom:C 6.000000 0 0.0 0.000000 -0.000000 0.000000
+    $atom:h1 @atom:H 1.000000 0 0.0 1.247211 1.247211 1.247211
+    $atom:h2 @atom:H 1.000000 0 0.0 -1.247211 -1.247211 1.247211
+    $atom:h3 @atom:H 1.000000 0 0.0 1.247211 -1.247211 -1.247211
+    $atom:h4 @atom:H 1.000000 0 0.0 -1.247211 1.247211 -1.247211
+    $atom:esr @atom:e 0.000000 -1 0.329128 -0.000000 0.000000 -0.000000
+    $atom:esR1 @atom:e 0.000000 -1 1.486181 0.979221 0.979221 0.979221
+    $atom:esR2 @atom:e 0.000000 -1 1.486181 -0.979221 -0.979221 0.979221
+    $atom:esR3 @atom:e 0.000000 -1 1.486181 0.979221 -0.979221 -0.979221
+    $atom:esR4 @atom:e 0.000000 -1 1.486181 -0.979221 0.979221 -0.979221
+    $atom:eSr @atom:e 0.000000 1 0.329128 -0.000000 0.000000 0.000000
+    $atom:eSR1 @atom:e 0.000000 1 1.486181 -0.979221 -0.979221 0.979221
+    $atom:eSR2 @atom:e 0.000000 1 1.486181 0.979221 -0.979221 -0.979221
+    $atom:eSR3 @atom:e 0.000000 1 1.486181 -0.979221 0.979221 -0.979221
+  }
+
+  # -- styles and force-field parameters --
+  #    (these can be overridden later)
+
+  write_once("In Init") {
+    atom_style      electron
+    units           electron
+    pair_style      eff/cut 5000.0 0 0
+    newton          on
+    comm_modify     vel yes
+  }
+
+  write_once("In Settings") {
+    pair_coeff * *
+  }
+
+} # end of "CH4_ionized" object definition
+

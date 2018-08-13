@@ -1,0 +1,62 @@
+# CG model of benzene where each molecule is represented as an ellipsoid
+# and the intermolecular interactions are described with the Gay-Berne potential
+#
+# Do not expect a physical behaviour from this sample: long-range electrostatic
+# interactions are missing.
+#
+# Otello M. Roscioni
+# roscioni@gmail.com
+
+# Run with the command:
+# moltemplate.sh  -atomstyle "atomid atomtype flag density x y z" system.lt -allow-wildcards -nocheck
+
+
+BENZ {
+
+  # atom-ID atom-type ellipsoidflag density  x  y  z
+  write("Data Atoms"){
+    $atom:ben @atom:b1   1    1.14337   0.0 0.0 0.0
+  }
+  
+  # atom-ID width1 width2 width3 qw qx qy qz
+  write("Data Ellipsoids"){
+    $atom:ben 6.3888 6.3888 3.1967 1.0 0.0 0.0 0.0
+  }
+
+  write_once("In Init") {
+    units           real
+    atom_style      ellipsoid
+    pair_style gayberne 1.0 1.0 -3.0 25.0
+    pair_modify mix arithmetic
+
+    # Neighbour list.  (Can be overridden)
+    neighbor        1.0 bin
+    neigh_modify    check yes one 5000
+  }
+
+
+  write_once("In Settings") {
+    # Gay-Berne parameters.
+    pair_coeff  @atom:b1  @atom:b1  1.0 3.7275 0.7797 0.7797 3.6200 0.7797 0.7797 3.6200 25.0
+  }
+
+
+  write_once("In Settings") {  # <-- append to "In Settings"
+
+    # It's probably useful to put the following computes and settings here since
+    # I imagine that most people who use this model would find them useful:
+
+    compute q               all property/atom quatw quati quatj quatk
+    compute shape           all property/atom shapex shapey shapez
+    compute temp_trasl      all temp
+    compute temp_rototrasl  all temp/asphere dof all
+    compute press_trasl     all pressure temp_trasl
+    compute myMSD           all msd com yes
+
+    # Modify temperature to include ellipsoidal degrees of freedom.
+    thermo_modify temp temp_rototrasl
+    thermo_modify press press_trasl
+  }
+
+}  #BENZ
+

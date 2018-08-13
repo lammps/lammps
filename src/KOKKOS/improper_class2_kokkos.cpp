@@ -16,8 +16,8 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 #include "improper_class2_kokkos.h"
 #include "atom_kokkos.h"
 #include "comm.h"
@@ -77,14 +77,14 @@ void ImproperClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // reallocate per-atom arrays if necessary
 
   if (eflag_atom) {
-    //if(k_eatom.dimension_0()<maxeatom) { // won't work without adding zero functor
+    //if(k_eatom.extent(0)<maxeatom) { // won't work without adding zero functor
       memoryKK->destroy_kokkos(k_eatom,eatom);
       memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"improper:eatom");
       d_eatom = k_eatom.template view<DeviceType>();
     //}
   }
   if (vflag_atom) {
-    //if(k_vatom.dimension_0()<maxvatom) { // won't work without adding zero functor
+    //if(k_vatom.extent(0)<maxvatom) { // won't work without adding zero functor
       memoryKK->destroy_kokkos(k_vatom,vatom);
       memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"improper:vatom");
       d_vatom = k_vatom.template view<DeviceType>();
@@ -884,6 +884,67 @@ template<class DeviceType>
 void ImproperClass2Kokkos<DeviceType>::coeff(int narg, char **arg)
 {
   ImproperClass2::coeff(narg, arg);
+
+  int n = atom->nimpropertypes;
+  k_k0 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("ImproperClass2::k0",n+1);
+  k_chi0 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("ImproperClass2::chi0",n+1);
+  k_aa_k1 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("ImproperClass2::aa_k1",n+1);
+  k_aa_k2 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("ImproperClass2::aa_k2",n+1);
+  k_aa_k3 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("ImproperClass2::aa_k3",n+1);
+  k_aa_theta0_1 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("ImproperClass2::aa_theta0_1",n+1);
+  k_aa_theta0_2 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("ImproperClass2::aa_theta0_2",n+1);
+  k_aa_theta0_3 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("ImproperClass2::aa_theta0_3",n+1);
+  k_setflag = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("ImproperClass2::setflag",n+1);
+  k_setflag_i = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("ImproperClass2::setflag_i",n+1);
+  k_setflag_aa = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("ImproperClass2::setflag_aa",n+1);
+
+  d_k0 = k_k0.template view<DeviceType>();
+  d_chi0 = k_chi0.template view<DeviceType>();
+  d_aa_k1 = k_aa_k1.template view<DeviceType>();
+  d_aa_k2 = k_aa_k2.template view<DeviceType>();
+  d_aa_k3 = k_aa_k3.template view<DeviceType>();
+  d_aa_theta0_1 = k_aa_theta0_1.template view<DeviceType>();
+  d_aa_theta0_2 = k_aa_theta0_2.template view<DeviceType>();
+  d_aa_theta0_3 = k_aa_theta0_3.template view<DeviceType>();
+  d_setflag = k_setflag.template view<DeviceType>();
+  d_setflag_i = k_setflag_i.template view<DeviceType>();
+  d_setflag_aa = k_setflag_aa.template view<DeviceType>();
+
+  for (int i = 1; i <= n; i++) {
+    k_k0.h_view[i] = k0[i];
+    k_chi0.h_view[i] = chi0[i];
+    k_aa_k1.h_view[i] = aa_k1[i];
+    k_aa_k2.h_view[i] = aa_k2[i];
+    k_aa_k3.h_view[i] = aa_k3[i];
+    k_aa_theta0_1.h_view[i] = aa_theta0_1[i];
+    k_aa_theta0_2.h_view[i] = aa_theta0_2[i];
+    k_aa_theta0_3.h_view[i] = aa_theta0_3[i];
+    k_setflag.h_view[i] = setflag[i];
+    k_setflag_i.h_view[i] = setflag_i[i];
+    k_setflag_aa.h_view[i] = setflag_aa[i];
+  }
+
+  k_k0.template modify<LMPHostType>();
+  k_chi0.template modify<LMPHostType>();
+  k_aa_k1.template modify<LMPHostType>();
+  k_aa_k2.template modify<LMPHostType>();
+  k_aa_k3.template modify<LMPHostType>();
+  k_aa_theta0_1.template modify<LMPHostType>();
+  k_aa_theta0_2.template modify<LMPHostType>();
+  k_aa_theta0_3 .template modify<LMPHostType>();
+  k_setflag.template modify<LMPHostType>();
+  k_setflag_i.template modify<LMPHostType>();
+  k_setflag_aa.template modify<LMPHostType>();
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 reads coeffs from restart file, bcasts them
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void ImproperClass2Kokkos<DeviceType>::read_restart(FILE *fp)
+{
+  ImproperClass2::read_restart(fp);
 
   int n = atom->nimpropertypes;
   k_k0 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("ImproperClass2::k0",n+1);

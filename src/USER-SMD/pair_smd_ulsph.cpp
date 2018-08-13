@@ -22,10 +22,12 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <float.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cfloat>
+#include <cstdlib>
+#include <cstring>
+#include <cstdio>
+#include <iostream>
 #include "pair_smd_ulsph.h"
 #include "atom.h"
 #include "domain.h"
@@ -39,8 +41,6 @@
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
-#include <stdio.h>
-#include <iostream>
 #include "smd_material_models.h"
 #include "smd_math.h"
 #include "smd_kernels.h"

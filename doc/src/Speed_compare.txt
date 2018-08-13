@@ -1,0 +1,73 @@
+"Higher level section"_Speed.html - "LAMMPS WWW Site"_lws - "LAMMPS
+Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+Comparison of various accelerator packages :h3
+
+NOTE: this section still needs to be re-worked with additional KOKKOS
+and USER-INTEL information.
+
+The next section compares and contrasts the various accelerator
+options, since there are multiple ways to perform OpenMP threading,
+run on GPUs, and run on Intel Xeon Phi coprocessors.
+
+All 3 of these packages accelerate a LAMMPS calculation using NVIDIA
+hardware, but they do it in different ways.
+
+As a consequence, for a particular simulation on specific hardware,
+one package may be faster than the other.  We give guidelines below,
+but the best way to determine which package is faster for your input
+script is to try both of them on your machine.  See the benchmarking
+section below for examples where this has been done.
+
+[Guidelines for using each package optimally:]
+
+The GPU package allows you to assign multiple CPUs (cores) to a single
+GPU (a common configuration for "hybrid" nodes that contain multicore
+CPU(s) and GPU(s)) and works effectively in this mode. :ulb,l
+
+The GPU package moves per-atom data (coordinates, forces)
+back-and-forth between the CPU and GPU every timestep.  The
+KOKKOS/CUDA package only does this on timesteps when a CPU calculation
+is required (e.g. to invoke a fix or compute that is non-GPU-ized).
+Hence, if you can formulate your input script to only use GPU-ized
+fixes and computes, and avoid doing I/O too often (thermo output, dump
+file snapshots, restart files), then the data transfer cost of the
+KOKKOS/CUDA package can be very low, causing it to run faster than the
+GPU package. :l
+
+The GPU package is often faster than the KOKKOS/CUDA package, if the
+number of atoms per GPU is smaller.  The crossover point, in terms of
+atoms/GPU at which the KOKKOS/CUDA package becomes faster depends
+strongly on the pair style.  For example, for a simple Lennard Jones
+system the crossover (in single precision) is often about 50K-100K
+atoms per GPU.  When performing double precision calculations the
+crossover point can be significantly smaller. :l
+
+Both packages compute bonded interactions (bonds, angles, etc) on the
+CPU.  If the GPU package is running with several MPI processes
+assigned to one GPU, the cost of computing the bonded interactions is
+spread across more CPUs and hence the GPU package can run faster. :l
+
+When using the GPU package with multiple CPUs assigned to one GPU, its
+performance depends to some extent on high bandwidth between the CPUs
+and the GPU.  Hence its performance is affected if full 16 PCIe lanes
+are not available for each GPU.  In HPC environments this can be the
+case if S2050/70 servers are used, where two devices generally share
+one PCIe 2.0 16x slot.  Also many multi-GPU mainboards do not provide
+full 16 lanes to each of the PCIe 2.0 16x slots. :l
+:ule
+
+[Differences between the two packages:]
+
+The GPU package accelerates only pair force, neighbor list, and PPPM
+calculations. :ulb,l
+
+The GPU package requires neighbor lists to be built on the CPU when using
+exclusion lists, hybrid pair styles, or a triclinic simulation box. :l
+:ule

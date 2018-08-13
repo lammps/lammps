@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
+#include <cstring>
 #include "verlet_lrt_intel.h"
 #include "neighbor.h"
 #include "domain.h"
@@ -157,7 +157,7 @@ void VerletLRTIntel::setup(int flag)
   pthread_create(&_kspace_thread, &_kspace_attr,
                  &VerletLRTIntel::k_launch_loop, this);
   #elif defined(_LMP_INTEL_LRT_11)
-  std::thread kspace_thread;
+  std::thread _kspace_thread;
   if (kspace_compute_flag)
     _kspace_thread=std::thread([=]{ _intel_kspace->compute_first(eflag,
                                                                  vflag); });

@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -108,12 +108,11 @@ Style {custom} is the most general setting and allows you to specify
 which of the keywords listed above you want printed on each
 thermodynamic timestep.  Note that the keywords c_ID, f_ID, v_name are
 references to "computes"_compute.html, "fixes"_fix.html, and
-equal-style "variables"_variable.html that have been defined
-elsewhere in the input script or can even be new styles which users
-have added to LAMMPS (see the "Section 10"_Section_modify.html
-section of the documentation).  Thus the {custom} style provides a
-flexible means of outputting essentially any desired quantity as a
-simulation proceeds.
+equal-style "variables"_variable.html that have been defined elsewhere
+in the input script or can even be new styles which users have added
+to LAMMPS.  See the "Modify"_Modify.html doc page for details on the
+latter.  Thus the {custom} style provides a flexible means of
+outputting essentially any desired quantity as a simulation proceeds.
 
 All styles except {custom} have {vol} appended to their list of
 outputs if the simulation box volume changes during the simulation.
@@ -287,11 +286,11 @@ takes place.
 
 The keywords {cella}, {cellb}, {cellc}, {cellalpha}, {cellbeta},
 {cellgamma}, correspond to the usual crystallographic quantities that
-define the periodic unit cell of a crystal.  See "this
-section"_Section_howto.html#howto_12 of the doc pages for a geometric
-description of triclinic periodic cells, including a precise definition
-of these quantities in terms of the internal LAMMPS cell dimensions
-{lx}, {ly}, {lz}, {yz}, {xz}, {xy}.
+define the periodic unit cell of a crystal.  See the "Howto
+triclinic"_Howto_triclinic.html doc page for a geometric description
+of triclinic periodic cells, including a precise definition of these
+quantities in terms of the internal LAMMPS cell dimensions {lx}, {ly},
+{lz}, {yz}, {xz}, {xy}.
 
 :line
 

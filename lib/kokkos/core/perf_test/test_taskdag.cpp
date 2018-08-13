@@ -206,76 +206,79 @@ int main( int argc , char* argv[] )
 
   Kokkos::initialize(argc,argv);
 
-  Functor::Scheduler sched( Functor::MemorySpace()
-                          , total_alloc_size
-                          , min_block_size
-                          , max_block_size
-                          , min_superblock_size
-                          );
+  {
 
-  Functor::FutureType f =
-    Kokkos::host_spawn( Kokkos::TaskSingle( sched )
-                      , Functor( sched , fib_input )
-                      );
+    Functor::Scheduler sched( Functor::MemorySpace()
+                            , total_alloc_size
+                            , min_block_size
+                            , max_block_size
+                            , min_superblock_size
+                            );
 
-  Kokkos::wait( sched );
-
-  test_result = f.get();
-
-  task_count_max   = sched.allocated_task_count_max();
-  task_count_accum = sched.allocated_task_count_accum();
-
-  if ( number_alloc != task_count_accum ) {
-    std::cout << " number_alloc( " << number_alloc << " )"
-              << " != task_count_accum( " << task_count_accum << " )"
-              << std::endl ;
-  }
-
-  if ( fib_output != test_result ) {
-    std::cout << " answer( " << fib_output << " )"
-              << " != result( " << test_result << " )"
-              << std::endl ;
-  }
-
-  if ( fib_output != test_result || number_alloc != task_count_accum ) {
-    printf("  TEST FAILED\n");
-    return -1;
-  }
-
-  double min_time = std::numeric_limits<double>::max();
-  double time_sum = 0;
-
-  for ( int i = 0 ; i < test_repeat_outer ; ++i ) {
-    Kokkos::Impl::Timer timer ;
-
-    Functor::FutureType ftmp =
+    Functor::FutureType f =
       Kokkos::host_spawn( Kokkos::TaskSingle( sched )
                         , Functor( sched , fib_input )
                         );
 
     Kokkos::wait( sched );
-    auto this_time = timer.seconds();
-    min_time = std::min(min_time, this_time);
-    time_sum += this_time;
-  }
 
-  auto avg_time = time_sum / test_repeat_outer;
+    test_result = f.get();
+
+    task_count_max   = sched.allocated_task_count_max();
+    task_count_accum = sched.allocated_task_count_accum();
+
+    if ( number_alloc != task_count_accum ) {
+      std::cout << " number_alloc( " << number_alloc << " )"
+                << " != task_count_accum( " << task_count_accum << " )"
+                << std::endl ;
+    }
+
+    if ( fib_output != test_result ) {
+      std::cout << " answer( " << fib_output << " )"
+                << " != result( " << test_result << " )"
+                << std::endl ;
+    }
+
+    if ( fib_output != test_result || number_alloc != task_count_accum ) {
+      printf("  TEST FAILED\n");
+      return -1;
+    }
+
+    double min_time = std::numeric_limits<double>::max();
+    double time_sum = 0;
+
+    for ( int i = 0 ; i < test_repeat_outer ; ++i ) {
+      Kokkos::Impl::Timer timer ;
+
+      Functor::FutureType ftmp =
+        Kokkos::host_spawn( Kokkos::TaskSingle( sched )
+                          , Functor( sched , fib_input )
+                          );
+
+      Kokkos::wait( sched );
+      auto this_time = timer.seconds();
+      min_time = std::min(min_time, this_time);
+      time_sum += this_time;
+    }
+
+    auto avg_time = time_sum / test_repeat_outer;
+
+    printf( "\"taskdag: alloc super repeat input output task-accum task-max\" %ld %d %d %d %ld %ld %ld\n"
+          , total_alloc_size
+          , min_superblock_size
+          , test_repeat_outer
+          , fib_input
+          , fib_output
+          , task_count_accum
+          , task_count_max );
+
+    printf( "\"taskdag: time (min, avg)\" %g %g\n", min_time, avg_time);
+    printf( "\"taskdag: tasks per second (max, avg)\" %g %g\n"
+          , number_alloc / min_time
+          , number_alloc / avg_time );
+  } // end scope to destroy scheduler prior to finalize
 
   Kokkos::finalize();
-
-  printf( "\"taskdag: alloc super repeat input output task-accum task-max\" %ld %d %d %d %ld %ld %ld\n"
-        , total_alloc_size
-        , min_superblock_size
-        , test_repeat_outer
-        , fib_input
-        , fib_output
-        , task_count_accum
-        , task_count_max );
-
-  printf( "\"taskdag: time (min, avg)\" %g %g\n", min_time, avg_time);
-  printf( "\"taskdag: tasks per second (max, avg)\" %g %g\n"
-        , number_alloc / min_time
-        , number_alloc / avg_time );
 
   return 0 ;
 }

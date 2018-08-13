@@ -17,7 +17,7 @@
 
 #include "meam.h"
 #include "math_special.h"
-#include <math.h>
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -162,11 +162,11 @@ MEAM::erose(const double r, const double re, const double alpha, const double Ec
       a3 = repuls;
 
     if (form == 1)
-      result = -Ec * (1 + astar + (-attrac + repuls / r) * pow(astar, 3)) * MathSpecial::fm_exp(-astar);
+      result = -Ec * (1 + astar + (-attrac + repuls / r) * MathSpecial::cube(astar)) * MathSpecial::fm_exp(-astar);
     else if (form == 2)
-      result = -Ec * (1 + astar + a3 * pow(astar, 3)) * MathSpecial::fm_exp(-astar);
+      result = -Ec * (1 + astar + a3 * MathSpecial::cube(astar)) * MathSpecial::fm_exp(-astar);
     else
-      result = -Ec * (1 + astar + a3 * pow(astar, 3) / (r / re)) * MathSpecial::fm_exp(-astar);
+      result = -Ec * (1 + astar + a3 * MathSpecial::cube(astar) / (r / re)) * MathSpecial::fm_exp(-astar);
   }
   return result;
 }
@@ -277,9 +277,9 @@ MEAM::get_Zij2(const lattice_t latt, const double cmin, const double cmax, doubl
     break;
 
   case DIA:
-    Zij2 = 0;
+    Zij2 = 12;
     a = sqrt(8.0 / 3.0);
-    numscr = 4;
+    numscr = 1;
     if (cmin < 0.500001) {
         //          call error('can not do 2NN MEAM for dia')
     }

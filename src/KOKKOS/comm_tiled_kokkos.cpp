@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
+#include <cstring>
 #include "comm_tiled_kokkos.h"
 #include "comm_brick.h"
 #include "atom_kokkos.h"
@@ -38,9 +38,6 @@ using namespace LAMMPS_NS;
 #define EPSILON 1.0e-6
 
 #define DELTA_PROCS 16
-
-enum{SINGLE,MULTI};               // same as in Comm
-enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 
 /* ---------------------------------------------------------------------- */
 

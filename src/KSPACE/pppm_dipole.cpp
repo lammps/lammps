@@ -95,6 +95,10 @@ PPPMDipole::~PPPMDipole()
 
   deallocate();
   if (peratom_allocate_flag) deallocate_peratom();
+  fft1 = NULL;
+  fft2 = NULL;
+  remap = NULL;
+  cg_dipole = NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -111,8 +115,8 @@ void PPPMDipole::init()
   // error check
 
   dipoleflag = atom->mu?1:0;
-  int only_dipole_flag = (dipoleflag && !atom->q)?1:0;
-  if (dipoleflag && !only_dipole_flag)
+  qsum_qsq(0);
+  if (dipoleflag && q2)
     error->all(FLERR,"Cannot (yet) uses charges with Kspace style PPPMDipole");
 
   triclinic_check();
@@ -579,13 +583,6 @@ void PPPMDipole::allocate()
   memory->create1d_offset(fky,nylo_fft,nyhi_fft,"pppm_dipole:fky");
   memory->create1d_offset(fkz,nzlo_fft,nzhi_fft,"pppm_dipole:fkz");
 
-  memory->create3d_offset(vdx_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
-                          nxlo_out,nxhi_out,"pppm_dipole:vdx_brick");
-  memory->create3d_offset(vdy_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
-                          nxlo_out,nxhi_out,"pppm_dipole:vdy_brick");
-  memory->create3d_offset(vdz_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
-                          nxlo_out,nxhi_out,"pppm_dipole:vdz_brick");
-
   memory->create3d_offset(ux_brick_dipole,nzlo_out,nzhi_out,nylo_out,nyhi_out,
                           nxlo_out,nxhi_out,"pppm_dipole:ux_brick_dipole");
   memory->create3d_offset(uy_brick_dipole,nzlo_out,nzhi_out,nylo_out,nyhi_out,
@@ -815,8 +812,8 @@ void PPPMDipole::set_grid_global()
   if (!gewaldflag) {
     if (accuracy <= 0.0)
       error->all(FLERR,"KSpace accuracy must be > 0");
-    if (q2 == 0.0 && mu2 == 0.0)
-     error->all(FLERR,"Must use kspace_modify gewald for uncharged systems");
+    if (mu2 == 0.0)
+     error->all(FLERR,"Must use kspace_modify gewald for systems with no dipoles");
     g_ewald = (1.35 - 0.15*log(accuracy))/cutoff;
     //Try Newton Solver
     double g_ewald_new =
@@ -1372,7 +1369,6 @@ void PPPMDipole::poisson_ik_dipole()
             wreal = (work1[n]*fkx[i] + work2[n]*fky[j] + work3[n]*fkz[k]);
             wimg = (work1[n+1]*fkx[i] + work2[n+1]*fky[j] + work3[n+1]*fkz[k]);
             eng = s2 * greensfn[ii] * (wreal*wreal + wimg*wimg);
-            //eng = s2 * greensfn[ii] * (wreal+wimg)*(wreal+wimg);
             for (int jj = 0; jj < 6; jj++) virial[jj] += eng*vg[ii][jj];
             virial[0] += 2.0*s2*greensfn[ii]*fkx[i]*(work1[n]*wreal + work1[n+1]*wimg);
             virial[1] += 2.0*s2*greensfn[ii]*fky[j]*(work2[n]*wreal + work2[n+1]*wimg);
@@ -1393,7 +1389,6 @@ void PPPMDipole::poisson_ik_dipole()
             wreal = (work1[n]*fkx[i] + work2[n]*fky[j] + work3[n]*fkz[k]);
             wimg = (work1[n+1]*fkx[i] + work2[n+1]*fky[j] + work3[n+1]*fkz[k]);
             energy +=
-            //s2 * greensfn[ii] * (wreal+wimg)*(wreal+wimg);
             s2 * greensfn[ii] * (wreal*wreal + wimg*wimg);
    ii++;
             n += 2;
@@ -2390,14 +2385,11 @@ void PPPMDipole::slabcorr()
 {
   // compute local contribution to global dipole moment
 
-  double *q = atom->q;
   double **x = atom->x;
   double zprd = domain->zprd;
   int nlocal = atom->nlocal;
 
   double dipole = 0.0;
-  for (int i = 0; i < nlocal; i++) dipole += q[i]*x[i][2];
-
   double **mu = atom->mu;
   for (int i = 0; i < nlocal; i++) dipole += mu[i][2];
 
@@ -2409,27 +2401,15 @@ void PPPMDipole::slabcorr()
   // need to make non-neutral systems and/or
   //  per-atom energy translationally invariant
 
-  double dipole_r2 = 0.0;
   if (eflag_atom || fabs(qsum) > SMALL) {
 
-    if (dipoleflag)
-      error->all(FLERR,"Cannot (yet) use kspace slab correction with "
-        "long-range dipoles and non-neutral systems or per-atom energy");
-
-    for (int i = 0; i < nlocal; i++)
-      dipole_r2 += q[i]*x[i][2]*x[i][2];
-
-    // sum local contributions
-
-    double tmp;
-    MPI_Allreduce(&dipole_r2,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
-    dipole_r2 = tmp;
+    error->all(FLERR,"Cannot (yet) use kspace slab correction with "
+      "long-range dipoles and non-neutral systems or per-atom energy");
   }
 
   // compute corrections
 
-  const double e_slabcorr = MY_2PI*(dipole_all*dipole_all -
-    qsum*dipole_r2 - qsum*qsum*zprd*zprd/12.0)/volume;
+  const double e_slabcorr = MY_2PI*(dipole_all*dipole_all/12.0)/volume;
   const double qscale = qqrd2e * scale;
 
   if (eflag_global) energy += qscale * e_slabcorr;
@@ -2437,23 +2417,15 @@ void PPPMDipole::slabcorr()
   // per-atom energy
 
   if (eflag_atom) {
-    double efact = qscale * MY_2PI/volume;
+    double efact = qscale * MY_2PI/volume/12.0;
     for (int i = 0; i < nlocal; i++)
-      eatom[i] += efact * q[i]*(x[i][2]*dipole_all - 0.5*(dipole_r2 +
-        qsum*x[i][2]*x[i][2]) - qsum*zprd*zprd/12.0);
+      eatom[i] += efact * mu[i][2]*dipole_all;
   }
-
-  // add on force corrections
-
-  double ffact = qscale * (-4.0*MY_PI/volume);
-  double **f = atom->f;
-
-  for (int i = 0; i < nlocal; i++)
-    f[i][2] += ffact * q[i]*(dipole_all - qsum*x[i][2]);
 
   // add on torque corrections
 
   if (atom->torque) {
+    double ffact = qscale * (-4.0*MY_PI/volume);
     double **mu = atom->mu;
     double **torque = atom->torque;
     for (int i = 0; i < nlocal; i++) {
@@ -2478,24 +2450,24 @@ int PPPMDipole::timing_1d(int n, double &time1d)
 
   for (int i = 0; i < n; i++) {
     fft1->timing1d(work1,nfft_both,1);
+    fft1->timing1d(work1,nfft_both,1);
+    fft1->timing1d(work1,nfft_both,1);
     fft2->timing1d(work1,nfft_both,-1);
-    if (dipoleflag) {
-      fft1->timing1d(work1,nfft_both,1);
-      fft1->timing1d(work1,nfft_both,1);
-      fft1->timing1d(work1,nfft_both,1);
-    }
-    if (differentiation_flag != 1) {
-      fft2->timing1d(work1,nfft_both,-1);
-      fft2->timing1d(work1,nfft_both,-1);
-    }
+    fft2->timing1d(work1,nfft_both,-1);
+    fft2->timing1d(work1,nfft_both,-1);
+    fft2->timing1d(work1,nfft_both,-1);
+    fft2->timing1d(work1,nfft_both,-1);
+    fft2->timing1d(work1,nfft_both,-1);
+    fft2->timing1d(work1,nfft_both,-1);
+    fft2->timing1d(work1,nfft_both,-1);
+    fft2->timing1d(work1,nfft_both,-1);
   }
 
   MPI_Barrier(world);
   time2 = MPI_Wtime();
   time1d = time2 - time1;
 
-  if (differentiation_flag) return 2;
-  return 4;
+  return 12;
 }
 
 /* ----------------------------------------------------------------------
@@ -2513,24 +2485,24 @@ int PPPMDipole::timing_3d(int n, double &time3d)
 
   for (int i = 0; i < n; i++) {
     fft1->compute(work1,work1,1);
+    fft1->compute(work1,work1,1);
+    fft1->compute(work1,work1,1);
     fft2->compute(work1,work1,-1);
-    if (dipoleflag) {
-      fft1->compute(work1,work1,1);
-      fft1->compute(work1,work1,1);
-      fft1->compute(work1,work1,1);
-    }
-    if (differentiation_flag != 1) {
-      fft2->compute(work1,work1,-1);
-      fft2->compute(work1,work1,-1);
-    }
+    fft2->compute(work1,work1,-1);
+    fft2->compute(work1,work1,-1);
+    fft2->compute(work1,work1,-1);
+    fft2->compute(work1,work1,-1);
+    fft2->compute(work1,work1,-1);
+    fft2->compute(work1,work1,-1);
+    fft2->compute(work1,work1,-1);
+    fft2->compute(work1,work1,-1);
   }
 
   MPI_Barrier(world);
   time2 = MPI_Wtime();
   time3d = time2 - time1;
 
-  if (differentiation_flag) return 2;
-  return 4;
+  return 12;
 }
 
 /* ----------------------------------------------------------------------
@@ -2542,21 +2514,14 @@ double PPPMDipole::memory_usage()
   double bytes = nmax*3 * sizeof(double);
   int nbrick = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
     (nzhi_out-nzlo_out+1);
-  if (differentiation_flag == 1) {
-    bytes += 2 * nbrick * sizeof(FFT_SCALAR);
-  } else {
-    bytes += 4 * nbrick * sizeof(FFT_SCALAR);
-  }
-  bytes += 6 * nfft_both * sizeof(double);
-  bytes += nfft_both * sizeof(double);
-  bytes += nfft_both*5 * sizeof(FFT_SCALAR);
+  bytes += 6 * nfft_both * sizeof(double); // vg
+  bytes += nfft_both * sizeof(double); // greensfn
+  bytes += nfft_both*5 * sizeof(FFT_SCALAR); // work*2*2
+  bytes += 9 * nbrick * sizeof(FFT_SCALAR); // ubrick*3 + vdbrick*6
+  bytes += nfft_both*7 * sizeof(FFT_SCALAR); //density_ffx*3 + work*2*2
 
-  bytes += 9 * nbrick * sizeof(FFT_SCALAR);
-  bytes += nfft_both*7 * sizeof(FFT_SCALAR);
-
-  if (peratom_allocate_flag) {
+  if (peratom_allocate_flag)
     bytes += 21 * nbrick * sizeof(FFT_SCALAR);
-  }
 
   if (cg_dipole) bytes += cg_dipole->memory_usage();
   if (cg_peratom_dipole) bytes += cg_peratom_dipole->memory_usage();
@@ -2564,10 +2529,9 @@ double PPPMDipole::memory_usage()
   return bytes;
 }
 
-
 /* ----------------------------------------------------------------------
-   compute qsum,qsqsum,q2 and give error/warning if not charge neutral
-   called initially, when particle count changes, when charges are changed
+   compute musum,musqsum,mu2
+   called initially, when particle count changes, when dipoles are changed
 ------------------------------------------------------------------------- */
 
 void PPPMDipole::musum_musq()
@@ -2590,9 +2554,6 @@ void PPPMDipole::musum_musq()
     mu2 = musqsum * force->qqrd2e;
   }
 
-  static int warn_nomu = 1;
-  if ((musqsum == 0.0) && (comm->me == 0) && warn_nomu) {
-    error->warning(FLERR,"Using kspace solver PPPKDipole on system with no dipoles");
-    warn_nomu = 0;
-  }
+  if (mu2 == 0 && comm->me == 0)
+    error->all(FLERR,"Using kspace solver PPPMDipole on system with no dipoles");
 }

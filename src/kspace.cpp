@@ -268,7 +268,7 @@ void KSpace::ev_setup(int eflag, int vflag, int alloc)
    called initially, when particle count changes, when charges are changed
 ------------------------------------------------------------------------- */
 
-void KSpace::qsum_qsq()
+void KSpace::qsum_qsq(int warning_flag)
 {
   const double * const q = atom->q;
   const int nlocal = atom->nlocal;
@@ -285,7 +285,7 @@ void KSpace::qsum_qsq()
   MPI_Allreduce(&qsum_local,&qsum,1,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(&qsqsum_local,&qsqsum,1,MPI_DOUBLE,MPI_SUM,world);
 
-  if ((qsqsum == 0.0) && (comm->me == 0) && warn_nocharge) {
+  if ((qsqsum == 0.0) && (comm->me == 0) && warn_nocharge && warning_flag) {
     error->warning(FLERR,"Using kspace solver on system with no charge");
     warn_nocharge = 0;
   }

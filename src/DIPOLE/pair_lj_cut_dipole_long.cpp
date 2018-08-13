@@ -44,7 +44,7 @@ using namespace MathConst;
 PairLJCutDipoleLong::PairLJCutDipoleLong(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
-  ewaldflag = dipoleflag = 1;
+  ewaldflag = pppmflag = dipoleflag = 1;
   respa_enable = 0;
 }
 

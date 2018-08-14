@@ -496,12 +496,13 @@ include(CheckLibraryExists)
 if (CMAKE_VERSION VERSION_LESS "3.4")
   enable_language(C) # check_library_exists isn't supported without a c compiler before v3.4
 endif()
-foreach(FUNC sin cos)
-  check_library_exists(${MATH_LIBRARIES} ${FUNC} "" FOUND_${FUNC}_${MATH_LIBRARIES})
-  if(NOT FOUND_${FUNC}_${MATH_LIBRARIES})
-    message(FATAL_ERROR "Could not find needed math function - ${FUNC}")
-  endif(NOT FOUND_${FUNC}_${MATH_LIBRARIES})
-endforeach(FUNC)
+# RB: disabled this check because it breaks with KOKKOS CUDA enabled
+#foreach(FUNC sin cos)
+#  check_library_exists(${MATH_LIBRARIES} ${FUNC} "" FOUND_${FUNC}_${MATH_LIBRARIES})
+#  if(NOT FOUND_${FUNC}_${MATH_LIBRARIES})
+#    message(FATAL_ERROR "Could not find needed math function - ${FUNC}")
+#  endif(NOT FOUND_${FUNC}_${MATH_LIBRARIES})
+#endforeach(FUNC)
 list(APPEND LAMMPS_LINK_LIBS ${MATH_LIBRARIES})
 
 ######################################

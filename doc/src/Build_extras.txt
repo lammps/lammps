@@ -685,7 +685,7 @@ intel"_Speed_intel.html doc page.
 
 [CMake build]:
 
--D INTEL_ARCH=value     # value = cpu (default) or knl :pre
+-D INTEL_ARCH=value     # value = cpu (default) or knl
 -D BUILD_OMP=yes        # also required to build with the USER-INTEl package :pre
 
 Requires an Intel compiler as well as the Intel TBB and MKL libraries.

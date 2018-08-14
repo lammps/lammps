@@ -13,7 +13,7 @@
 
 #ifdef KSPACE_CLASS
 
-KSpaceStyle(pppm/dipole,PPPMDipole)
+KSpaceStyle(pppm/spin,PPPMSpin)
 
 #else
 
@@ -24,10 +24,10 @@ KSpaceStyle(pppm/dipole,PPPMDipole)
 
 namespace LAMMPS_NS {
 
-class PPPMDipole : public PPPM {
+class PPPMSpin : public PPPM {
  public:
-  PPPMDipole(class LAMMPS *, int, char **);
-  virtual ~PPPMDipole();
+  PPPMSpin(class LAMMPS *, int, char **);
+  virtual ~PPPMSpin();
   void init();
   void setup();
   void setup_grid();
@@ -55,37 +55,37 @@ class PPPMDipole : public PPPM {
   void pack_reverse(int, FFT_SCALAR *, int, int *);
   void unpack_reverse(int, FFT_SCALAR *, int, int *);
 
-  // dipole
+  // spin
 
-  FFT_SCALAR ***densityx_brick_dipole,***densityy_brick_dipole,***densityz_brick_dipole;
-  FFT_SCALAR ***vdxx_brick_dipole,***vdyy_brick_dipole,***vdzz_brick_dipole;
-  FFT_SCALAR ***vdxy_brick_dipole,***vdxz_brick_dipole,***vdyz_brick_dipole;
-  FFT_SCALAR ***ux_brick_dipole,***uy_brick_dipole,***uz_brick_dipole;
-  FFT_SCALAR ***v0x_brick_dipole,***v1x_brick_dipole,***v2x_brick_dipole;
-  FFT_SCALAR ***v3x_brick_dipole,***v4x_brick_dipole,***v5x_brick_dipole;
-  FFT_SCALAR ***v0y_brick_dipole,***v1y_brick_dipole,***v2y_brick_dipole;
-  FFT_SCALAR ***v3y_brick_dipole,***v4y_brick_dipole,***v5y_brick_dipole;
-  FFT_SCALAR ***v0z_brick_dipole,***v1z_brick_dipole,***v2z_brick_dipole;
-  FFT_SCALAR ***v3z_brick_dipole,***v4z_brick_dipole,***v5z_brick_dipole;
+  FFT_SCALAR ***densityx_brick_spin,***densityy_brick_spin,***densityz_brick_spin;
+  FFT_SCALAR ***vdxx_brick_spin,***vdyy_brick_spin,***vdzz_brick_spin;
+  FFT_SCALAR ***vdxy_brick_spin,***vdxz_brick_spin,***vdyz_brick_spin;
+  FFT_SCALAR ***ux_brick_spin,***uy_brick_spin,***uz_brick_spin;
+  FFT_SCALAR ***v0x_brick_spin,***v1x_brick_spin,***v2x_brick_spin;
+  FFT_SCALAR ***v3x_brick_spin,***v4x_brick_spin,***v5x_brick_spin;
+  FFT_SCALAR ***v0y_brick_spin,***v1y_brick_spin,***v2y_brick_spin;
+  FFT_SCALAR ***v3y_brick_spin,***v4y_brick_spin,***v5y_brick_spin;
+  FFT_SCALAR ***v0z_brick_spin,***v1z_brick_spin,***v2z_brick_spin;
+  FFT_SCALAR ***v3z_brick_spin,***v4z_brick_spin,***v5z_brick_spin;
   FFT_SCALAR *work3,*work4;
-  FFT_SCALAR *densityx_fft_dipole,*densityy_fft_dipole,*densityz_fft_dipole;
-  class GridComm *cg_dipole;
-  class GridComm *cg_peratom_dipole;
-  int only_dipole_flag;
+  FFT_SCALAR *densityx_fft_spin,*densityy_fft_spin,*densityz_fft_spin;
+  class GridComm *cg_spin;
+  class GridComm *cg_peratom_spin;
+  int only_spin_flag;
   double musum,musqsum,mu2;
-  double find_gewald_dipole(double, double, bigint, double, double);
-  double newton_raphson_f_dipole(double, double, bigint, double, double);
-  double derivf_dipole(double, double, bigint, double, double);
-  double compute_df_kspace_dipole();
-  double compute_qopt_dipole();
-  void compute_gf_dipole();
-  void make_rho_dipole();
-  void brick2fft_dipole();
-  void poisson_ik_dipole();
-  void poisson_peratom_dipole();
-  void fieldforce_ik_dipole();
-  void fieldforce_peratom_dipole();
-  double final_accuracy_dipole();
+  double find_gewald_spin(double, double, bigint, double, double);
+  double newton_raphson_f_spin(double, double, bigint, double, double);
+  double derivf_spin(double, double, bigint, double, double);
+  double compute_df_kspace_spin();
+  double compute_qopt_spin();
+  void compute_gf_spin();
+  void make_rho_spin();
+  void brick2fft_spin();
+  void poisson_ik_spin();
+  void poisson_peratom_spin();
+  void fieldforce_ik_spin();
+  void fieldforce_peratom_spin();
+  double final_accuracy_spin();
   void musum_musq();
 
 };
@@ -97,9 +97,9 @@ class PPPMDipole : public PPPM {
 
 /* ERROR/WARNING messages:
 
-E: Cannot (yet) use charges with Kspace style PPPMDipole
+E: Cannot (yet) use charges with Kspace style PPPMSpin
 
-Charge-dipole interactions are not yet implemented in PPPMDipole so this
+Charge-spin interactions are not yet implemented in PPPMSpin so this
 feature is not yet supported.
 
 E: Must redefine kspace_style after changing to triclinic box
@@ -110,19 +110,19 @@ E: Kspace style requires atom attribute mu
 
 The atom style defined does not have this attribute.
 
-E: Cannot (yet) use kspace_modify diff ad with dipoles
+E: Cannot (yet) use kspace_modify diff ad with spins
 
 This feature is not yet supported.
 
-E: Cannot (yet) use 'electron' units with dipoles
+E: Cannot (yet) use 'electron' units with spins
 
 This feature is not yet supported.
 
-E: Cannot yet use triclinic cells with PPPMDipole
+E: Cannot yet use triclinic cells with PPPMSpin
 
 This feature is not yet supported.
 
-E: Cannot yet use TIP4P with PPPMDipole
+E: Cannot yet use TIP4P with PPPMSpin
 
 This feature is not yet supported.
 
@@ -144,7 +144,7 @@ This is a limitation of the PPPM implementation in LAMMPS.
 E: KSpace style is incompatible with Pair style
 
 Setting a kspace style requires that a pair style with matching
-long-range dipole components be used.
+long-range spin components be used.
 
 W: Reducing PPPM order b/c stencil extends beyond nearest neighbor processor
 
@@ -202,11 +202,11 @@ outside a processor's sub-domain or even the entire simulation box.
 This indicates bad physics, e.g. due to highly overlapping atoms, too
 large a timestep, etc.
 
-E: Using kspace solver PPPMDipole on system with no dipoles
+E: Using kspace solver PPPMSpin on system with no spins
 
-Must have non-zero dipoles with PPPMDipole.
+Must have non-zero spins with PPPMSpin.
 
-E: Must use kspace_modify gewald for system with no dipoles
+E: Must use kspace_modify gewald for system with no spins
 
 Self-explanatory.
 

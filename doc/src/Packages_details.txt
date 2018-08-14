@@ -100,7 +100,6 @@ as contained in the file name.
 "USER-VTK"_#PKG-USER-VTK :tb(c=6,ea=c)
 
 :line
-:line
 
 ASPHERE package :link(PKG-ASPHERE),h4
 
@@ -1007,7 +1006,6 @@ lib/voronoi/README
 "compute voronoi/atom"_compute_voronoi_atom.html
 examples/voronoi :ul
 
-:line
 :line
 
 USER-ATC package :link(PKG-USER-ATC),h4

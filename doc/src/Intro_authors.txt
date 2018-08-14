@@ -59,7 +59,6 @@ Steve Lustig (Dupont)
 Jim Belak and Roy Pollock (LLNL) :ul
 
 :line
-:line
 
 Here is a timeline for when various individuals contributed to a new
 feature or command or tool added to LAMMPS:
@@ -239,7 +238,7 @@ Aug11 : angle_style cosine/shift and cosine/shift/exp : Carsten Svaneborg
 Aug11 : dihedral_style cosine/shift/exp : Carsten Svaneborg
 Aug11 : pair_style dipole/sf : Mario Orsi
 Aug11 : fix addtorque and compute temp/rotate : Laurent Joly (U Lyon)
-Aug11 : FFT support via FFTW3, MKL, ACML, KISSFFT libraries : \
+Aug11 : FFT support via FFTW3, MKL, ACML, KISS FFT libraries : \
   Axel Kohlmeyer (Temple U)
 Jun11 : pair_style adp : Chris Weinberger (Sandia), Stephen Foiles (Sandia), \
   Chandra Veer Singh (Cornell)

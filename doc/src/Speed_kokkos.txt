@@ -37,59 +37,9 @@ task). These are Serial (MPI-only for CPUs and Intel Phi), OpenMP
 GPUs). You choose the mode at build time to produce an executable
 compatible with specific hardware.
 
-[Building LAMMPS with the KOKKOS package:]
-
 NOTE: Kokkos support within LAMMPS must be built with a C++11 compatible
 compiler. This means GCC version 4.7.2 or later, Intel 14.0.4 or later, or
 Clang 3.5.2 or later is required.
-
-The recommended method of building the KOKKOS package is to start with
-the provided Kokkos Makefiles in /src/MAKE/OPTIONS/. You may need to
-modify the KOKKOS_ARCH variable in the Makefile to match your specific
-hardware. For example:
-
-for Sandy Bridge CPUs, set KOKKOS_ARCH=SNB
-for Broadwell CPUs, set KOKKOS_ARCH=BWD
-for K80 GPUs, set KOKKOS_ARCH=Kepler37
-for P100 GPUs and Power8 CPUs, set KOKKOS_ARCH=Pascal60,Power8 :ul
-
-See the [Advanced Kokkos Options] section below for a listing of all
-KOKKOS_ARCH options.
-
-[Compile for CPU-only (MPI only, no threading):]
-
-use a C++11 compatible compiler and set KOKKOS_ARCH variable in
-/src/MAKE/OPTIONS/Makefile.kokkos_mpi_only as described above. Then do the
-following:
-
-cd lammps/src
-make yes-kokkos
-make kokkos_mpi_only :pre
-
-[Compile for CPU-only (MPI plus OpenMP threading):]
-
-NOTE: To build with Kokkos support for OpenMP threading, your compiler
-must support the OpenMP interface. You should have one or more
-multi-core CPUs so that multiple threads can be launched by each MPI
-task running on a CPU.
-
-Use a C++11 compatible compiler and set KOKKOS_ARCH variable in
-/src/MAKE/OPTIONS/Makefile.kokkos_omp as described above.  Then do the
-following:
-
-cd lammps/src
-make yes-kokkos
-make kokkos_omp :pre
-
-[Compile for Intel KNL Xeon Phi (Intel Compiler, OpenMPI):]
-
-use a C++11 compatible compiler and do the following:
-
-cd lammps/src
-make yes-kokkos
-make kokkos_phi :pre
-
-[Compile for CPUs and GPUs (with OpenMPI or MPICH):]
 
 NOTE: To build with Kokkos support for NVIDIA GPUs, NVIDIA CUDA
 software version 7.5 or later must be installed on your system. See
@@ -97,41 +47,19 @@ the discussion for the "GPU package"_Speed_gpu.html for details of how
 to check and do this.
 
 NOTE: Kokkos with CUDA currently implicitly assumes, that the MPI
-library is CUDA-aware and has support for GPU-direct. This is not always
-the case, especially when using pre-compiled MPI libraries provided by
-a Linux distribution. This is not a problem when using only a single
-GPU and a single MPI rank on a desktop. When running with multiple
-MPI ranks, you may see segmentation faults without GPU-direct support.
-These can be avoided by adding the flags
-"-pk kokkos gpu/direct off"_Run_options.html
-to the LAMMPS command line or by using the command
-"package kokkos gpu/direct off"_package.html in the input file.
+library is CUDA-aware and has support for GPU-direct. This is not
+always the case, especially when using pre-compiled MPI libraries
+provided by a Linux distribution. This is not a problem when using
+only a single GPU and a single MPI rank on a desktop. When running
+with multiple MPI ranks, you may see segmentation faults without
+GPU-direct support.  These can be avoided by adding the flags "-pk
+kokkos gpu/direct off"_Run_options.html to the LAMMPS command line or
+by using the command "package kokkos gpu/direct off"_package.html in
+the input file.
 
-Use a C++11 compatible compiler and set KOKKOS_ARCH variable in
-/src/MAKE/OPTIONS/Makefile.kokkos_cuda_mpi for both GPU and CPU as
-described above.  Then do the following:
+[Building LAMMPS with the KOKKOS package:]
 
-cd lammps/src
-make yes-kokkos
-make kokkos_cuda_mpi :pre
-
-[Alternative Methods of Compiling:]
-
-Alternatively, the KOKKOS package can be built by specifying Kokkos variables
-on the make command line. For example:
-
-make mpi KOKKOS_DEVICES=OpenMP KOKKOS_ARCH=SNB     # set the KOKKOS_DEVICES and KOKKOS_ARCH variable explicitly
-make kokkos_cuda_mpi KOKKOS_ARCH=Pascal60,Power8   # set the KOKKOS_ARCH variable explicitly :pre
-
-Setting the KOKKOS_DEVICES and KOKKOS_ARCH variables on the make
-command line requires a GNU-compatible make command. Try "gmake" if
-your system's standard make complains.
-
-NOTE: If you build using make line variables and re-build LAMMPS twice
-with different KOKKOS options and the *same* target, then you *must*
-perform a "make clean-all" or "make clean-machine" before each
-build. This is to force all the KOKKOS-dependent files to be
-re-compiled with the new options.
+See the "Build extras"_Build_extras.html#kokkos doc page for instructions.
 
 [Running LAMMPS with the KOKKOS package:]
 
@@ -411,49 +339,17 @@ hardware.
 [Advanced Kokkos options:]
 
 There are other allowed options when building with the KOKKOS package.
-As above, they can be set either as variables on the make command line
-or in Makefile.machine. This is the full list of options, including
-those discussed above. Each takes a value shown below. The default
-value is listed, which is set in the /lib/kokkos/Makefile.kokkos file.
+As explained on the "Build extras"_Build_extras.html#kokkos doc page,
+they can be set either as variables on the make command line or in
+Makefile.machine, or they can be specified as CMake variables.  Each
+takes a value shown below.  The default value is listed, which is set
+in the lib/kokkos/Makefile.kokkos file.
 
-KOKKOS_DEVICES, values = {Serial}, {OpenMP}, {Pthreads}, {Cuda}, default = {OpenMP}
-KOKKOS_ARCH, values = {KNC}, {SNB}, {HSW}, {Kepler30}, {Kepler32}, {Kepler35}, {Kepler37}, {Maxwell50}, {Maxwell52}, {Maxwell53}, {Pascal60}, {Pascal61}, {ARMv80}, {ARMv81}, {ARMv81}, {ARMv8-ThunderX}, {BGQ}, {Power7}, {Power8}, {Power9}, {KNL}, {BDW}, {SKX}, default = {none}
 KOKKOS_DEBUG, values = {yes}, {no}, default = {no}
 KOKKOS_USE_TPLS, values = {hwloc}, {librt}, {experimental_memkind}, default = {none}
 KOKKOS_CXX_STANDARD, values = {c++11}, {c++1z}, default = {c++11}
 KOKKOS_OPTIONS, values = {aggressive_vectorization}, {disable_profiling}, default = {none}
 KOKKOS_CUDA_OPTIONS, values = {force_uvm}, {use_ldg}, {rdc}, {enable_lambda}, default = {enable_lambda} :ul
-
-KOKKOS_DEVICES sets the parallelization method used for Kokkos code
-(within LAMMPS). KOKKOS_DEVICES=Serial means that no threading will be used.
-KOKKOS_DEVICES=OpenMP means that OpenMP threading will be
-used. KOKKOS_DEVICES=Pthreads means that pthreads will be used.
-KOKKOS_DEVICES=Cuda means an NVIDIA GPU running CUDA will be used.
-
-KOKKOS_ARCH enables compiler switches needed when compiling for a
-specific hardware:
-
-ARMv80 = ARMv8.0 Compatible CPU
-ARMv81 = ARMv8.1 Compatible CPU
-ARMv8-ThunderX = ARMv8 Cavium ThunderX CPU
-SNB = Intel Sandy/Ivy Bridge CPUs
-HSW = Intel Haswell CPUs
-BDW = Intel Broadwell Xeon E-class CPUs
-SKX = Intel Sky Lake Xeon E-class HPC CPUs (AVX512)
-KNC = Intel Knights Corner Xeon Phi
-KNL = Intel Knights Landing Xeon Phi
-Kepler30 = NVIDIA Kepler generation CC 3.0
-Kepler32 = NVIDIA Kepler generation CC 3.2
-Kepler35 = NVIDIA Kepler generation CC 3.5
-Kepler37 = NVIDIA Kepler generation CC 3.7
-Maxwell50 = NVIDIA Maxwell generation CC 5.0
-Maxwell52 = NVIDIA Maxwell generation CC 5.2
-Maxwell53 = NVIDIA Maxwell generation CC 5.3
-Pascal60 = NVIDIA Pascal generation CC 6.0
-Pascal61 = NVIDIA Pascal generation CC 6.1
-BGQ = IBM Blue Gene/Q CPUs
-Power8 = IBM POWER8 CPUs
-Power9 = IBM POWER9 CPUs :ul
 
 KOKKOS_USE_TPLS=hwloc binds threads to hardware cores, so they do not
 migrate during a simulation. KOKKOS_USE_TPLS=hwloc should always be

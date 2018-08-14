@@ -24,8 +24,8 @@ typedef float FFT_SCALAR;
 typedef double FFT_SCALAR;
 #endif
 
-
 // set default fftw library. switch to FFT_FFTW3 when convenient.
+
 #ifdef FFT_FFTW
 #define FFT_FFTW3
 #endif
@@ -57,8 +57,9 @@ typedef fftwf_complex FFT_DATA;
 #else
 
 /* use a stripped down version of kiss fft as default fft */
-#ifndef FFT_KISSFFT
-#define FFT_KISSFFT
+
+#ifndef FFT_KISS
+#define FFT_KISS
 #endif
 #define kiss_fft_scalar float
 typedef struct {
@@ -97,8 +98,8 @@ typedef fftw_complex FFT_DATA;
 #else
 
 /* use a stripped down version of kiss fft as default fft */
-#ifndef FFT_KISSFFT
-#define FFT_KISSFFT
+#ifndef FFT_KISS
+#define FFT_KISS
 #endif
 #define kiss_fft_scalar double
 typedef struct {
@@ -152,7 +153,7 @@ struct fft_plan_3d {
   FFTW_API(plan) plan_mid_backward;
   FFTW_API(plan) plan_slow_forward;
   FFTW_API(plan) plan_slow_backward;
-#elif defined(FFT_KISSFFT)
+#elif defined(FFT_KISS)
   kiss_fft_cfg cfg_fast_forward;
   kiss_fft_cfg cfg_fast_backward;
   kiss_fft_cfg cfg_mid_forward;

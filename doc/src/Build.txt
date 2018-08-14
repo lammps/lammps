@@ -19,18 +19,21 @@ as described on the "Install"_Install.html doc page.
 <!-- RST
 
 .. toctree::
+   :maxdepth: 1
 
    Build_cmake
    Build_make
    Build_link
 
 .. toctree::
+   :maxdepth: 1
 
    Build_basics
    Build_settings
    Build_package
 
 .. toctree::
+   :maxdepth: 1
 
    Build_extras
 

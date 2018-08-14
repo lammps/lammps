@@ -84,7 +84,7 @@ every LAMMPS command.
    Modify
    Python
    Errors
-   Build_manual
+   Manual_build
 
 .. toctree::
    :caption: Index

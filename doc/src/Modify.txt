@@ -24,11 +24,13 @@ contribute"_Modify_contribute.html doc page.
 <!-- RST
 
 .. toctree::
+   :maxdepth: 1
 
    Modify_overview
    Modify_contribute
 
 .. toctree::
+   :maxdepth: 1
 
    Modify_atom
    Modify_pair
@@ -38,6 +40,7 @@ contribute"_Modify_contribute.html doc page.
    Modify_command
 
 .. toctree::
+   :maxdepth: 1
 
    Modify_dump
    Modify_kspace
@@ -46,6 +49,7 @@ contribute"_Modify_contribute.html doc page.
    Modify_body
 
 .. toctree::
+   :maxdepth: 1
 
    Modify_thermo
    Modify_variable

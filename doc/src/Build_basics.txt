@@ -19,7 +19,6 @@ CMake and make:
 "Install LAMMPS after a build"_#install :ul
 
 :line
-:line
 
 Serial vs parallel build :h3,link(serial)
 

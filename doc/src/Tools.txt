@@ -75,7 +75,6 @@ own sub-directories with their own Makefiles and/or README files.
 "xmgrace"_#xmgrace :ul
 
 :line
-:line
 
 amber2lmp tool :h3,link(amber)
 

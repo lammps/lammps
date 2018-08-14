@@ -50,7 +50,6 @@ This is the list of packages that may require additional steps.
 "USER-VTK"_#user-vtk :tb(c=6,ea=c)
 
 :line
-:line
 
 COMPRESS package :h4,link(compress)
 
@@ -81,15 +80,15 @@ which GPU hardware to build for.
 
 -D GPU_API=value      # value = opencl (default) or cuda
 -D GPU_PREC=value     # precision setting
-                      # value = single or mixed (default) or double
+                      # value = double or mixed (default) or single
 -D OCL_TUNE=value     # hardware choice for GPU_API=opencl
-                      # generic (default) or intel (Intel CPU) or phi (Intel Xeon Phi) or fermi, kepler, cypress (NVIDIA)
+                      # generic (default) or intel (Intel CPU) or fermi, kepler, cypress (NVIDIA)
 -D GPU_ARCH=value     # hardware choice for GPU_API=cuda
-                      # value = sm20 (Fermi) or sm30 (Kepler) or sm50 (Maxwell) or sm60 (Pascal) or sm70 (Volta)
+                      # value = 20 (Fermi) or 30 (Kepler) or 50 (Maxwell) or 60 (Pascal) or 70 (Volta)
                       # default is Cuda-compiler dependent, but typically Fermi
 -D CUDPP_OPT=value    # optimization setting for GPU_API=cudea
                       # enables CUDA Performance Primitives Optimizations
-                      # on (default) or off :pre
+                      # yes (default) or no :pre
 
 [Traditional make]:
 
@@ -119,7 +118,7 @@ Makefile.machine you start from via the -h, -a, -p, -e switches, and
 also save a copy of the new Makefile if desired:
 
 CUDA_HOME = where NVIDIA CUDA software is installed on your system
-CUDA_ARCH = what GPU hardware you have (see help message for details)
+CUDA_ARCH = what GPU hardware you have (same as CMake, see help message for details)
 CUDA_PRECISION = precision (double, mixed, single)
 EXTRAMAKE = which Makefile.lammps.* file to copy to Makefile.lammps :ul
 
@@ -163,7 +162,7 @@ package?" page.
 
 [CMake build]:
 
--D DOWNLOAD_KIM=value    # download OpenKIM API v1 for build, value = off (default) or on
+-D DOWNLOAD_KIM=value    # download OpenKIM API v1 for build, value = no (default) or yes
 -D KIM_LIBRARY=path      # path to KIM shared library (only needed if a custom location) 
 -D KIM_INCLUDE_DIR=path  # path to KIM include directory (only needed if a custom location) :pre
 
@@ -183,17 +182,65 @@ make lib-kim args="-p /usr/local/kim-api" # use an existing KIM API installation
 make lib-kim args="-p /usr/local/kim-api -a EAM_Dynamo_Ackland_W__MO_141627196590_002" # ditto but add one model or driver :pre
 
 :line
- 
+
 KOKKOS package :h4,link(kokkos)
 
 To build with this package, you must choose which hardware you want to
 build for, either CPUs (multi-threading via OpenMP) or KNLs (OpenMP)
-or GPUs (Cuda).
+or GPUs (NVIDIA Cuda).
+
+For a CMake or make build, these are the possible choices for the
+KOKKOS_ARCH settings described below.  Note that for CMake, these are
+really Kokkos variables, not LAMMPS variables.  Hence you must use
+case-sensitive values, e.g. BDW, not bdw.
+
+ARMv80 = ARMv8.0 Compatible CPU
+ARMv81 = ARMv8.1 Compatible CPU
+ARMv8-ThunderX = ARMv8 Cavium ThunderX CPU
+BGQ = IBM Blue Gene/Q CPUs
+Power8 = IBM POWER8 CPUs
+Power9 = IBM POWER9 CPUs
+SNB = Intel Sandy/Ivy Bridge CPUs
+HSW = Intel Haswell CPUs
+BDW = Intel Broadwell Xeon E-class CPUs
+SKX = Intel Sky Lake Xeon E-class HPC CPUs (AVX512)
+KNC = Intel Knights Corner Xeon Phi
+KNL = Intel Knights Landing Xeon Phi
+Kepler30 = NVIDIA Kepler generation CC 3.0
+Kepler32 = NVIDIA Kepler generation CC 3.2
+Kepler35 = NVIDIA Kepler generation CC 3.5
+Kepler37 = NVIDIA Kepler generation CC 3.7
+Maxwell50 = NVIDIA Maxwell generation CC 5.0
+Maxwell52 = NVIDIA Maxwell generation CC 5.2
+Maxwell53 = NVIDIA Maxwell generation CC 5.3
+Pascal60 = NVIDIA Pascal generation CC 6.0
+Pascal61 = NVIDIA Pascal generation CC 6.1 :ul
 
 [CMake build]:
 
-TODO: how to do this, how to select CPU vs KNL vs GPU, and specify
-the particular flavor of hardware: e.g. HSW vs BWL
+For multicore CPUs using OpenMP, set these 2 variables.
+
+-D KOKKOS_ARCH=archCPU         # archCPU = CPU from list above :pre
+-D KOKKOS_ENABLE_OPENMP=yes :pre
+
+For Intel KNLs using OpenMP, set these 2 variables:
+
+-D KOKKOS_ARCH=KNL
+-D KOKKOS_ENABLE_OPENMP=yes :pre
+
+For NVIDIA GPUs using CUDA, set these 4 variables:
+
+-D KOKKOS_ARCH="archCPU;archGPU"   # archCPU = CPU from list above that is hosting the GPU
+                                   # archGPU = GPU from list above
+-D KOKKOS_ENABLE_CUDA=yes
+-D KOKKOS_ENABLE_OPENMP=yes 
+-D CMAKE_CXX_COMPILER=wrapper      # wrapper = full path to Cuda nvcc wrapper :pre
+
+The wrapper value is the Cuda nvcc compiler wrapper provided in the
+Kokkos library: lib/kokkos/bin/nvcc_wrapper.  The setting should
+include the full path name to the wrapper, e.g.
+
+-D CMAKE_CXX_COMPILER=/home/username/lammps/lib/kokkos/bin/nvcc_wrapper :pre
 
 [Traditional make]:
 
@@ -204,16 +251,7 @@ src/MAKE/OPTIONS/Makefile.kokkos* files for examples.
 For multicore CPUs using OpenMP:
 
 KOKKOS_DEVICES = OpenMP
-KOKKOS_ARCH = HSW :pre
-
-Possible values are:
-
-HSW for Intel Haswell
-SNB for Intel SandyBridge
-BDW for Intel Broadwell
-BGQ for IBM BlueGene Q
-Power7 for IBM
-Power8 for IBM :ul
+KOKKOS_ARCH = archCPU      # archCPU = CPU from list above :pre
 
 For Intel KNLs using OpenMP:
 
@@ -223,8 +261,8 @@ KOKKOS_ARCH = KNL :pre
 For NVIDIA GPUs using CUDA:
 
 KOKKOS_DEVICES = Cuda
-KOKKOS_ARCH = Pascal60,Power8     # P100 hosted by an IBM Power8, etc
-KOKKOS_ARCH = Kepler37,Power8     # K80 hosted by an IBM Power8, etc :pre
+KOKKOS_ARCH = archCPU,archGPU    # archCPU = CPU from list above that is hosting the GPU
+                                 # archGPU = GPU from list above :pre
 
 For GPUs, you also need these 2 lines in your Makefile.machine before
 the CC line is defined, in this case for use with OpenMPI mpicxx.  The
@@ -245,7 +283,7 @@ library.
 
 [CMake build]:
 
--D DOWNLOAD_LATTE=value    # download LATTE for build, value = off (default) or on
+-D DOWNLOAD_LATTE=value    # download LATTE for build, value = no (default) or yes
 -D LATTE_LIBRARY=path      # path to LATTE shared library (only needed if a custom location) :pre
 
 [Traditional make]:
@@ -320,7 +358,7 @@ lib/mscg/README and MSCG/Install files for more details.
 
 [CMake build]:
 
--D DOWNLOAD_MSCG=value    # download MSCG for build, value = off (default) or on
+-D DOWNLOAD_MSCG=value    # download MSCG for build, value = no (default) or yes
 -D MSCG_LIBRARY=path      # path to MSCG shared library (only needed if a custom location) 
 -D MSCG_INCLUDE_DIR=path  # path to MSCG include directory (only needed if a custom location) :pre
 
@@ -400,12 +438,12 @@ lib/python/README for more details.
 
 -D PYTHON_EXECUTABLE=path   # path to Python executable to use :pre
 
-Without this setting, CMake will you your system default Python.  To
-use a different Python version, you can either create a virtualenv,
-activate it and then run cmake.  Or you can set the PYTHON_EXECUTABLE
-variable to specify which Python interpreter should be used.  Note
-note that you will also need to have the development headers installed
-for this version, e.g. python2-devel.
+Without this setting, CMake will ues the default Python on your
+system.  To use a different Python version, you can either create a
+virtualenv, activate it and then run cmake.  Or you can set the
+PYTHON_EXECUTABLE variable to specify which Python interpreter should
+be used.  Note note that you will also need to have the development
+headers installed for this version, e.g. python2-devel.
 
 [Traditional make]:
 
@@ -464,7 +502,7 @@ library"_voro_home.
 
 [CMake build]:
 
--D DOWNLOAD_VORO=value    # download Voro++ for build, value = off (default) or on
+-D DOWNLOAD_VORO=value    # download Voro++ for build, value = no (default) or yes
 -D VORO_LIBRARY=path      # (only needed if at custom location) path to VORO shared library
 -D VORO_INCLUDE_DIR=path  # (only needed if at custom location) path to VORO include directory :pre
 
@@ -486,7 +524,6 @@ created in lib/voronoi to point to the Voro++ src dir.  When LAMMPS
 builds in src it will use these links.  You should not need to edit
 the lib/voronoi/Makefile.lammps file.
 
-:line
 :line
 
 USER-ATC package :h4,link(user-atc)
@@ -642,15 +679,16 @@ USER-INTEL package :h4,link(user-intel)
 
 To build with this package, you must choose which hardware you want to
 build for, either Intel CPUs or Intel KNLs.  You should also typically
-install the USER-OMP package, as it can be used in tandem with the
-USER-INTEL package to good effect, as explained on the "Speed
+"install the USER-OMP package"_#user-omp, as it can be used in tandem
+with the USER-INTEL package to good effect, as explained on the "Speed
 intel"_Speed_intel.html doc page.
 
 [CMake build]:
 
 -D INTEL_ARCH=value     # value = cpu (default) or knl :pre
+-D BUILD_OMP=yes        # also required to build with the USER-INTEl package :pre
 
-Requires an Intel compiler, Intel TBB and MKL and has to be built with "-D BUILD_OMP=on".
+Requires an Intel compiler as well as the Intel TBB and MKL libraries.
 
 [Traditional make]:
 
@@ -821,22 +859,19 @@ successfully build on your system.
 
 USER-SMD package :h4,link(user-smd)
 
-To build with this package, you must download the Eigen library.
-Eigen is a template library, so you do not need to build it.
+To build with this package, you must download the Eigen3 library.
+Eigen3 is a template library, so you do not need to build it.
 
 [CMake build]:
 
--D EIGEN3_INCLUDE_DIR=path    # path to Eigen library :pre
+-D DOWNLOAD_EIGEN3            # download Eigen3, value = no (default) or yes
+-D EIGEN3_INCLUDE_DIR=path    # path to Eigen library (only needed if a custom location) :pre
 
-TODO: there is no download option for the Eigen lib?
-
-CMake will not download the Eigen library.  But once you have done
-that, a CMake build of LAMMPS with "-D PKG_USER-SMD=yes" should work.
-Set EIGEN3_INCLUDE_DIR if CMake cannot find the Eigen library.
+Set EIGEN3_INCLUDE_DIR if CMake cannot find the Eigen3 library.
 
 [Traditional make]:
 
-You can download the Eigen library manually if you prefer; follow the
+You can download the Eigen3 library manually if you prefer; follow the
 instructions in lib/smd/README.  You can also do it in one step from
 the lammps/src dir, using a command like these, which simply invoke
 the lib/smd/Install.py script with the specified args:

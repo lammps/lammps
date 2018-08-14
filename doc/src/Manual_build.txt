@@ -122,4 +122,3 @@ software installed. "http://calibre-ebook.com/"_http://calibre-ebook.com/
 You first create the ePUB file with 'make epub' and then do:
 
 ebook-convert LAMMPS.epub LAMMPS.mobi :pre
-

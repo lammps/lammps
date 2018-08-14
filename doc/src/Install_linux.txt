@@ -16,7 +16,6 @@ Binaries are available for many different versions of Linux:
 "Pre-built Gentoo Linux executable"_#gentoo :all(b)
 
 :line
-:line
 
 Pre-built binary RPMs for Fedora/RedHat/CentOS/openSUSE :h4,link(rpm)
 

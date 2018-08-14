@@ -22,9 +22,8 @@ struct pack_plan_3d {
   int nqty;                  // # of values/element
 };
 
-
-#if !defined(PACK_POINTER) && !defined(PACK_MEMCPY)
-#define PACK_ARRAY
+#if !defined(FFT_PACK_POINTER) && !defined(FFT_PACK_MEMCPY)
+#define FFT_PACK_ARRAY
 #endif
 
 #ifndef PACK_DATA
@@ -47,7 +46,7 @@ struct pack_plan_3d {
    pack/unpack with array indices
 ------------------------------------------------------------------------- */
 
-#ifdef PACK_ARRAY
+#ifdef FFT_PACK_ARRAY
 
 /* ----------------------------------------------------------------------
    pack from data -> buf
@@ -274,7 +273,7 @@ static void unpack_3d_permute2_n(PACK_DATA *buf, PACK_DATA *data, struct pack_pl
    pack/unpack with pointers
 ------------------------------------------------------------------------- */
 
-#ifdef PACK_POINTER
+#ifdef FFT_PACK_POINTER
 
 /* ----------------------------------------------------------------------
    pack from data -> buf
@@ -523,7 +522,7 @@ static void unpack_3d_permute2_n(PACK_DATA *buf, PACK_DATA *data, struct pack_pl
      just use PACK_POINTER versions
 ------------------------------------------------------------------------- */
 
-#ifdef PACK_MEMCPY
+#ifdef FFT_PACK_MEMCPY
 
 /* ----------------------------------------------------------------------
    pack from data -> buf

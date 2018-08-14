@@ -23,6 +23,7 @@ LAMMPS build process.
 <!-- RST
 
 .. toctree::
+   :maxdepth: 1
 
    Packages_standard
    Packages_user

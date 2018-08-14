@@ -19,6 +19,7 @@ they can contain.
 <!-- RST
 
 .. toctree::
+   :maxdepth: 1
 
    Run_basics
    Run_options

@@ -130,16 +130,16 @@ the Git or SVN repositories, no packages are pre-installed.
 
 [CMake shortcuts for installing many packages]:
 
-Instead of specifying all the CMake options via the command-line, CMake allows
-initializing the variable cache using script files. These are regular CMake
-files which can manipulate and set variables, and can also contain control flow
-constructs.
+Instead of specifying all the CMake options via the command-line,
+CMake allows initializing the variable cache using script files. These
+are regular CMake files which can manipulate and set variables, and
+can also contain control flow constructs.
 
-LAMMPS includes several of these files to define configuration "presets",
-similar to the options that exist for the Make based system. Using these files
-you can enable/disable portions of the available packages in LAMMPS. If you need a
-custom preset you can take one of them as a starting point and customize it to your
-needs.
+LAMMPS includes several of these files to define configuration
+"presets", similar to the options that exist for the Make based
+system. Using these files you can enable/disable portions of the
+available packages in LAMMPS. If you need a custom preset you can take
+one of them as a starting point and customize it to your needs.
 
 cmake -C ../cmake/presets/all_on.cmake \[OPTIONS\] ../cmake | enable all packages
 cmake -C ../cmake/presets/all_off.cmake \[OPTIONS\] ../cmake | disable all packages
@@ -149,8 +149,9 @@ cmake -C ../cmake/presets/std_nolib.cmake \[OPTIONS\] ../cmake | enable standard
 cmake -C ../cmake/presets/nolib.cmake \[OPTIONS\] ../cmake | disable all packages that do not require extra libraries
 cmake -C ../cmake/presets/manual_selection.cmake \[OPTIONS\] ../cmake | example of how to create a manual selection of packages :tb(s=|,a=l)
 
-NOTE: Running cmake this way manipulates the variable cache in your current
-build directory. You can combine presets and options with multiple cmake runs.
+NOTE: Running cmake this way manipulates the variable cache in your
+current build directory. You can combine presets and options with
+multiple cmake runs.
 
 [Example:]
 

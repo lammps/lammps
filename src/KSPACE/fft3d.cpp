@@ -14,7 +14,7 @@
 /* ----------------------------------------------------------------------
    Contributing authors: Jim Shepherd (GA Tech) added SGI SCSL support
                          Axel Kohlmeyer (Temple U) added support for
-                         FFTW3, KISSFFT, Dfti/MKL, and ACML.
+                         FFTW3, KISS FFT, Dfti/MKL, and ACML.
                          Phil Blood (PSC) added single precision FFT.
                          Paul Coffman (IBM) added MPI collectives remap
 ------------------------------------------------------------------------- */
@@ -26,7 +26,7 @@
 #include "fft3d.h"
 #include "remap.h"
 
-#ifdef FFT_KISSFFT
+#ifdef FFT_KISS
 /* include kissfft implementation */
 #include "kissfft.h"
 #endif

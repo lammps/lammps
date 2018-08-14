@@ -35,7 +35,6 @@ mpirun -np 16 lmp_mpi -v f tmp.out -l my.log -sc none -i in.alloy
 mpirun -np 16 lmp_mpi -var f tmp.out -log my.log -screen none -in in.alloy :pre
 
 :line
-:line
 
 [-echo style] :link(echo)
 

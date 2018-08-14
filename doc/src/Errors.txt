@@ -19,6 +19,7 @@ additional details for many of them.
 <!-- RST
 
 .. toctree::
+   :maxdepth: 1
 
    Errors_common
    Errors_bugs

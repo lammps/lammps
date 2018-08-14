@@ -26,12 +26,13 @@ optionally copies Makefile.auto to a new Makefile.osuffix
   -h = set CUDA_HOME variable in Makefile.auto to hdir
        hdir = path to NVIDIA Cuda software, e.g. /usr/local/cuda
   -a = set CUDA_ARCH variable in Makefile.auto to arch
-       use arch = 20 for Tesla C2050/C2070 (Fermi) (deprecated as of CUDA 8.0)
+       use arch = 20 for Fermi (C2050/C2070, deprecated as of CUDA 8.0)
                      or GeForce GTX 580 or similar
-       use arch = 30 for Tesla K10 (Kepler)
-       use arch = 35 for Tesla K40 (Kepler) or GeForce GTX Titan or similar
-       use arch = 37 for Tesla dual K80 (Kepler)
-       use arch = 60 for Tesla P100 (Pascal)
+       use arch = 30 for Kepler (K10)
+       use arch = 35 for Kepler (K40) or GeForce GTX Titan or similar
+       use arch = 37 for Kepler (dual K80)
+       use arch = 60 for Pascal (P100)
+       use arch = 70 for Volta
   -p = set CUDA_PRECISION variable in Makefile.auto to precision
        use precision = double or mixed or single
   -e = set EXTRAMAKE variable in Makefile.auto to Makefile.lammps.esuffix

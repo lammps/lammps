@@ -20,6 +20,7 @@ need the source code.
 <!-- RST
 
 .. toctree::
+   :maxdepth: 1
 
    Install_linux
    Install_mac

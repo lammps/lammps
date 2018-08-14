@@ -43,89 +43,22 @@ same functionality can eventually be supported on a variety of GPU
 hardware. :l
 :ule
 
-Here is a quick overview of how to enable and use the GPU package:
-
-build the library in lib/gpu for your GPU hardware with the desired precision settings
-install the GPU package and build LAMMPS as usual
-use the mpirun command to set the number of MPI tasks/node which determines the number of MPI tasks/GPU
-specify the # of GPUs per node
-use GPU styles in your input script :ul
-
-The latter two steps can be done using the "-pk gpu" and "-sf gpu"
-"command-line switches"_Run_options.html respectively.  Or the effect
-of the "-pk" or "-sf" switches can be duplicated by adding the
-"package gpu"_package.html or "suffix gpu"_suffix.html commands
-respectively to your input script.
-
 [Required hardware/software:]
 
 To use this package, you currently need to have an NVIDIA GPU and
 install the NVIDIA CUDA software on your system:
 
-Check if you have an NVIDIA GPU: cat /proc/driver/nvidia/gpus/0/information
-Go to http://www.nvidia.com/object/cuda_get.html
-Install a driver and toolkit appropriate for your system (SDK is not necessary)
-Run lammps/lib/gpu/nvc_get_devices (after building the GPU library, see below) to list supported devices and properties :ul
+Check if you have an NVIDIA GPU: cat
+/proc/driver/nvidia/gpus/0/information Go to
+http://www.nvidia.com/object/cuda_get.html Install a driver and
+toolkit appropriate for your system (SDK is not necessary) Run
+lammps/lib/gpu/nvc_get_devices (after building the GPU library, see
+below) to list supported devices and properties :ul
 
 [Building LAMMPS with the GPU package:]
 
-This requires two steps (a,b): build the GPU library, then build
-LAMMPS with the GPU package.  You can do both these steps in one line
-as described on the "Packages details"_Packages_details.html#GPU doc
-page.
-
-Or you can follow these two (a,b) steps:
-
-(a) Build the GPU library
-
-The GPU library is in lammps/lib/gpu.  Select a Makefile.machine (in
-lib/gpu) appropriate for your system.  You should pay special
-attention to 3 settings in this makefile.
-
-CUDA_HOME = needs to be where NVIDIA CUDA software is installed on your system
-CUDA_ARCH = needs to be appropriate to your GPUs
-CUDA_PREC = precision (double, mixed, single) you desire :ul
-
-See lib/gpu/Makefile.linux.double for examples of the ARCH settings
-for different GPU choices, e.g. Fermi vs Kepler.  It also lists the
-possible precision settings:
-
-CUDA_PREC = -D_SINGLE_SINGLE  # single precision for all calculations
-CUDA_PREC = -D_DOUBLE_DOUBLE  # double precision for all calculations
-CUDA_PREC = -D_SINGLE_DOUBLE  # accumulation of forces, etc, in double :pre
-
-The last setting is the mixed mode referred to above.  Note that your
-GPU must support double precision to use either the 2nd or 3rd of
-these settings.
-
-To build the library, type:
-
-make -f Makefile.machine :pre
-
-If successful, it will produce the files libgpu.a and Makefile.lammps.
-
-The latter file has 3 settings that need to be appropriate for the
-paths and settings for the CUDA system software on your machine.
-Makefile.lammps is a copy of the file specified by the EXTRAMAKE
-setting in Makefile.machine.  You can change EXTRAMAKE or create your
-own Makefile.lammps.machine if needed.
-
-Note that to change the precision of the GPU library, you need to
-re-build the entire library.  Do a "clean" first, e.g. "make -f
-Makefile.linux clean", followed by the make command above.
-
-(b) Build LAMMPS with the GPU package
-
-cd lammps/src
-make yes-gpu
-make machine :pre
-
-No additional compile/link flags are needed in Makefile.machine.
-
-Note that if you change the GPU library precision (discussed above)
-and rebuild the GPU library, then you also need to re-install the GPU
-package and re-build LAMMPS, so that all affected files are
-re-compiled and linked to the new GPU library.
+See the "Build extras"_Build_extras.html#gpu doc page for
+instructions.
 
 [Run with the GPU package from the command line:]
 

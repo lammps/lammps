@@ -22,7 +22,6 @@ explain how to do this for building both with CMake and make.
 "Error handling exceptions"_#exceptions when using LAMMPS as a library :all(b)
 
 :line
-:line
  
 FFT library :h3,link(fft)
 
@@ -38,6 +37,10 @@ LAMMPS can use them if they are available on your system.
 -D FFT_SINGLE=value       # yes or no (default), no = double precision
 -D FFT_PACK=value         # array (default) or pointer or memcpy :pre
 
+NOTE: The values for the FFT variable must be in upper-case.
+This is an exception to the rule that all CMake variables can
+be specified with lower-case values.
+
 Usually these settings are all that is needed.  If CMake cannot find
 the FFT library, you can set these variables:
 
@@ -50,10 +53,11 @@ the FFT library, you can set these variables:
 
 [Makefile.machine settings]:
 
-FFT_INC = -DFFT_FFTW3         # -DFFT_FFTW3, -DFFT_FFTW2, -DFFT_FFTW (same as -DFFT_FFTW3), -DFFT_MKL, or -DFFT_KISSFFT
+FFT_INC = -DFFT_FFTW3         # -DFFT_FFTW3, -DFFT_FFTW2, -DFFT_FFTW (same as -DFFT_FFTW3), -DFFT_MKL, or -DFFT_KISS
                               # default is KISS if not specified
 FFT_INC = -DFFT_SINGLE        # do not specify for double precision
 FFT_INC = -DFFT_PACK_ARRAY    # or -DFFT_PACK_POINTER or -DFFT_PACK_MEMCPY :pre
+                              # default is FFT_PACK_ARRAY if not specified
 
 FFT_INC =    	-I/usr/local/include
 FFT_PATH =      -L/usr/local/lib
@@ -84,9 +88,10 @@ pppm"_kspace_style.html command.  The "Run output"_doc page gives more
 details.
 
 FFTW is a fast, portable FFT library that should also work on any
-platform and can be faster than KISS FFT.  You can download it from
-"www.fftw.org"_http://www.fftw.org.  Both the (obsolete) legacy version
-2.1.X and the newer 3.X versions are supported.  
+platform and can be faster than the KISS FFT library.  You can
+download it from "www.fftw.org"_http://www.fftw.org.  Both the
+(obsolete) legacy version 2.1.X and the newer 3.X versions are
+supported.
 
 NOTE: FFTW2 has not been updated since 1999 and has been declared
 obsolete by its developers.
@@ -148,7 +153,7 @@ adequate.
 [Makefile.machine setting]:
 
 LMP_INC = -DLAMMPS_SMALLBIG    # or -DLAMMPS_BIGBIG or -DLAMMPS_SMALLSMALL :pre
-
+                               # default is LAMMMPS_SMALLBIG if not specified
 [CMake and make info]:
 
 The default "smallbig" setting allows for simulations with:
@@ -298,10 +303,10 @@ aligned on 64-byte boundaries.
 
 [CMake variable]:
 
--D LAMMPS_MEMALIGN=value            # 8, 16, 32, 64 (default) :pre
+-D LAMMPS_MEMALIGN=value            # 0, 8, 16, 32, 64 (default) :pre
 
 Use a LAMMPS_MEMALIGN value of 0 to disable using posix_memalign()
-and revert to using the malloc() C-library function instead. When
+and revert to using the malloc() C-library function instead.  When
 compiling LAMMPS for Windows systems, malloc() will always be used
 and this setting ignored.
 

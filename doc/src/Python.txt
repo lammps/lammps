@@ -16,10 +16,12 @@ used together.
 <!-- RST
 
 .. toctree::
+   :maxdepth: 1
 
    Python_overview
 
 .. toctree::
+   :maxdepth: 1
 
    Python_run
    Python_shlib
@@ -31,6 +33,7 @@ used together.
    Python_examples
 
 .. toctree::
+   :maxdepth: 1
 
    Python_call
 

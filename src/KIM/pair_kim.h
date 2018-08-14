@@ -134,9 +134,8 @@ namespace LAMMPS_NS {
       double kim_global_influence_distance;  // KIM Model cutoff value
       int kim_number_of_neighbor_lists;
       double const * kim_cutoff_values;
-      int const * padding_neighbor_hints;
-      int const * half_list_hints;
-      class NeighList ** neighborLists;
+      int const * modelWillNotRequestNeighborsOfNoncontributingParticles;
+       class NeighList ** neighborLists;
 
       // values set in init_style()
       bool kim_particle_codes_ok;

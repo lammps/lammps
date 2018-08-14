@@ -97,8 +97,7 @@ PairKIM::PairKIM(LAMMPS *lmp) :
    kim_global_influence_distance(0.0),
    kim_number_of_neighbor_lists(0),
    kim_cutoff_values(NULL),
-   padding_neighbor_hints(NULL),
-   half_list_hints(NULL),
+   modelWillNotRequestNeighborsOfNoncontributingParticles(NULL),
    neighborLists(NULL),
    kim_particle_codes(NULL),
    lmps_maxalloc(0),
@@ -480,22 +479,15 @@ void PairKIM::init_style()
    // make sure comm_reverse expects (at most) 9 values when newton is off
    if (!lmps_using_newton) comm_reverse_off = 9;
 
-   // request full neighbor lists (unless hints allow for better alternatives)
+   // request full neighbor
    for (int i = 0; i < kim_number_of_neighbor_lists; ++i)
    {
      int irequest = neighbor->request(this,instance_me);
      neighbor->requests[irequest]->id = i;
-     if (half_list_hints[i])
-     {
-       neighbor->requests[irequest]->half = 1;
-       neighbor->requests[irequest]->full = 0;
-     }
-     else
-     {
-       neighbor->requests[irequest]->half = 0;
-       neighbor->requests[irequest]->full = 1;
-     }
-     if (padding_neighbor_hints[i])
+     neighbor->requests[irequest]->half = 0;
+     neighbor->requests[irequest]->full = 1;
+
+     if (modelWillNotRequestNeighborsOfNoncontributingParticles[i])
      {
        neighbor->requests[irequest]->ghost = 0;
      }
@@ -787,10 +779,10 @@ void PairKIM::kim_init()
    set_kim_model_has_flags();
 
    pkim->GetInfluenceDistance(&kim_global_influence_distance);
-   pkim->GetNeighborListPointers(&kim_number_of_neighbor_lists,
-                                 &kim_cutoff_values,
-                                 &padding_neighbor_hints,
-                                 &half_list_hints);
+   pkim->GetNeighborListPointers(
+       &kim_number_of_neighbor_lists,
+       &kim_cutoff_values,
+       &modelWillNotRequestNeighborsOfNoncontributingParticles);
    if (neighborLists)
    {
      delete [] neighborLists;

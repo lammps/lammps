@@ -91,7 +91,7 @@ every LAMMPS command.
    :name: index
    :hidden:
 
-   commands
+   commands_list
    fixes
    computes
    pairs

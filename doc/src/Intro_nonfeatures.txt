@@ -55,9 +55,9 @@ info on how to add your own analysis code or algorithms to LAMMPS.
 For post-processing, LAMMPS output such as "dump file
 snapshots"_dump.html can be converted into formats used by other MD or
 post-processing codes.  Some post-processing tools packaged with
-LAMMPS will do these conversions.  Scripts provided with the {python}
-tool in the tools directory can extract and massage data in dump files
-to make it easier to import into other programs.  See the
+LAMMPS will do these conversions.  Scripts provided in the
+tools/python directory can extract and massage data in dump files to
+make it easier to import into other programs.  See the
 "Tools"_Tools.html doc page for details on these various options. :l
 
 Visualization: LAMMPS can produce JPG or PNG snapshot images

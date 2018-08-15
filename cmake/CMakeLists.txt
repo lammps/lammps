@@ -314,7 +314,7 @@ if(PKG_VORONOI)
     if(BUILD_SHARED_LIBS)
         set(VORO_BUILD_OPTIONS "CFLAGS=-fPIC")
     else()
-        set(VORO_BUILD_OPTIONS "")
+        set(VORO_BUILD_OPTIONS)
     endif()
 
     ExternalProject_Add(voro_build

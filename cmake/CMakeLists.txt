@@ -35,7 +35,7 @@ function(validate_option name values)
     if(${IDX_LOWER} LESS 0 AND ${IDX_UPPER} LESS 0)
         list_to_bulletpoints(POSSIBLE_VALUE_LIST ${${values}})
         message(FATAL_ERROR "\n########################################################################\n"
-                            "Invalid value '${${name}}' for option '${name}'\n"
+                            "Invalid value '${${name}}' for option ${name}\n"
                             "\n"
                             "Possible values are:\n"
                             "${POSSIBLE_VALUE_LIST}"

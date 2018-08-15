@@ -63,6 +63,7 @@ Jim Belak and Roy Pollock (LLNL) :ul
 Here is a timeline for when various individuals contributed to a new
 feature or command or tool added to LAMMPS:
 
+Aug18 : CMake build option for LAMMPS : Christoph Junghans (LANL), Richard Berger, and Axel Kohlmeyer (Temple U)
 Jul18 : DEM polygonal and polyhedron particles : Trung Nguyen (Northwestern U)
 Jun18 : SPIN package : Julien Tranchida (Sandia and CEA)
 Jun18 : compute entropy/atom : Pablo Piaggi (EPLF, Switzerland)

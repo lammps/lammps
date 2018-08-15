@@ -28,7 +28,7 @@ GUI: LAMMPS can be built as a library and a Python wrapper that wraps
 the library interface is provided.  Thus, GUI interfaces can be
 written in Python (or C or C++ if desired) that run LAMMPS and
 visualize or plot its output.  Examples of this are provided in the
-python directory and described on the "Python"_Python.html doc
+python directory and described on the "Python"_Python_head.html doc
 page. :ulb,l
 
 Builder: Several pre-processing tools are packaged with LAMMPS.  Some
@@ -68,7 +68,7 @@ page"_http://lammps.sandia.gov/viz.html page of the LAMMPS website for
 visualization packages that can use LAMMPS output data. :l
 
 Plotting: See the next bullet about Pizza.py as well as the
-"Python"_Python.html doc page for examples of plotting LAMMPS output.
+"Python"_Python_head.html doc page for examples of plotting LAMMPS output.
 Scripts provided with the {python} tool in the tools directory will
 extract and massage data in log and dump files to make it easier to
 analyze and plot.  See the "Tools"_Tools.html doc page for more

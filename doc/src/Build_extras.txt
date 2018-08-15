@@ -84,11 +84,21 @@ which GPU hardware to build for.
 -D OCL_TUNE=value     # hardware choice for GPU_API=opencl
                       # generic (default) or intel (Intel CPU) or fermi, kepler, cypress (NVIDIA)
 -D GPU_ARCH=value     # hardware choice for GPU_API=cuda
-                      # value = 20 (Fermi) or 30 (Kepler) or 50 (Maxwell) or 60 (Pascal) or 70 (Volta)
-                      # default is Cuda-compiler dependent, but typically Fermi
+                      # value = sm_XX, see below
+                      # default is Cuda-compiler dependent, but typically sm_20
 -D CUDPP_OPT=value    # optimization setting for GPU_API=cudea
                       # enables CUDA Performance Primitives Optimizations
                       # yes (default) or no :pre
+
+GPU_ARCH settings for different GPU hardware is as follows:
+
+sm_20 for Fermi (C2050/C2070, deprecated as of CUDA 8.0) or GeForce GTX 580 or similar
+sm_30 for Kepler (K10)
+sm_35 for Kepler (K40) or GeForce GTX Titan or similar
+sm_37 for Kepler (dual K80)
+sm_50 for Maxwell
+sm_60 for Pascal (P100)
+sm_70 for Volta :ul
 
 [Traditional make]:
 
@@ -107,18 +117,19 @@ script with the specified args:
 make lib-gpu               # print help message
 make lib-gpu args="-b"     # build GPU library with default Makefile.linux
 make lib-gpu args="-m xk7 -p single -o xk7.single"  # create new Makefile.xk7.single, altered for single-precision
-make lib-gpu args="-m mpi -p mixed -b" # build GPU library with mixed precision using settings in Makefile.mpi :pre
+make lib-gpu args="-m mpi -a sm_60 -p mixed -b" # build GPU library with mixed precision and P100 using other settings in Makefile.mpi :pre
 
 Note that this procedure starts with a Makefile.machine in lib/gpu, as
 specified by the "-m" switch.  For your convenience, machine makefiles
 for "mpi" and "serial" are provided, which have the same settings as
 the corresponding machine makefiles in the main LAMMPS source
 folder. In addition you can alter 4 important settings in the
-Makefile.machine you start from via the -h, -a, -p, -e switches, and
-also save a copy of the new Makefile if desired:
+Makefile.machine you start from via the corresponding -h, -a, -p, -e
+switches (as in the examples above), and also save a copy of the new
+Makefile if desired:
 
 CUDA_HOME = where NVIDIA CUDA software is installed on your system
-CUDA_ARCH = what GPU hardware you have (same as CMake, see help message for details)
+CUDA_ARCH = sm_XX, what GPU hardware you have, same as CMake GPU_ARCH above
 CUDA_PRECISION = precision (double, mixed, single)
 EXTRAMAKE = which Makefile.lammps.* file to copy to Makefile.lammps :ul
 

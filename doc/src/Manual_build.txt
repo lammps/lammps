@@ -8,7 +8,7 @@ Section"_Manual.html :c
 
 :line
 
-Building the LAMMPS Manual :h2
+Building the LAMMPS manual :h2
 
 Depending on how you obtained LAMMPS, the doc directory has 
 2 or 3 sub-directories and optionally 2 PDF files and an ePUB file:

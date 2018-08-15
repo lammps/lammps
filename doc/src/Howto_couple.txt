@@ -84,9 +84,9 @@ supports a vanilla C-like interface).  For example, from C++ you could
 create one (or more) "instances" of LAMMPS, pass it an input script to
 process, or execute individual commands, all by invoking the correct
 class methods in LAMMPS.  From C or Fortran you can make function
-calls to do the same things.  See the "Python"_Python.html doc pages
-for a description of the Python wrapper provided with LAMMPS that
-operates through the LAMMPS library interface.
+calls to do the same things.  See the "Python"_Python_head.html doc
+pages for a description of the Python wrapper provided with LAMMPS
+that operates through the LAMMPS library interface.
 
 The files src/library.cpp and library.h contain the C-style interface
 to LAMMPS.  See the "Howto library"_Howto_library.html doc page for a

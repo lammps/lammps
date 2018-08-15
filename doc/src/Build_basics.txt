@@ -162,9 +162,10 @@ cmake ../cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_For
 NOTE: When the cmake command completes, it prints info to the screen
 as to which compilers it is using, and what flags will be used in the
 compilation.  Note that if the top-level compiler is mpicxx, it is
-simply a wrapper on a real compiler.  The low-level compiler info is
-also in the Cmake output.  You should check to insure you are using
-the compiler and optimization flags are the ones you want.
+simply a wrapper on a real compiler.  The underlying compiler info is
+what will be listed in the CMake output.  You should check to insure
+you are using the compiler and optimization flags are the ones you
+want.
 
 [Makefile.machine settings]:
 

@@ -23,16 +23,17 @@ optionally copies Makefile.auto to a new Makefile.osuffix
 
   -m = use Makefile.machine as starting point, copy to Makefile.auto
        default machine = linux
+       default for -h, -a, -p, -e settings are those in -m Makefile
   -h = set CUDA_HOME variable in Makefile.auto to hdir
        hdir = path to NVIDIA Cuda software, e.g. /usr/local/cuda
   -a = set CUDA_ARCH variable in Makefile.auto to arch
-       use arch = 20 for Fermi (C2050/C2070, deprecated as of CUDA 8.0)
-                     or GeForce GTX 580 or similar
-       use arch = 30 for Kepler (K10)
-       use arch = 35 for Kepler (K40) or GeForce GTX Titan or similar
-       use arch = 37 for Kepler (dual K80)
-       use arch = 60 for Pascal (P100)
-       use arch = 70 for Volta
+       use arch = sm_20 for Fermi (C2050/C2070, deprecated as of CUDA 8.0)
+                        or GeForce GTX 580 or similar
+       use arch = sm_30 for Kepler (K10)
+       use arch = sm_35 for Kepler (K40) or GeForce GTX Titan or similar
+       use arch = sm_37 for Kepler (dual K80)
+       use arch = sm_60 for Pascal (P100)
+       use arch = sm_70 for Volta
   -p = set CUDA_PRECISION variable in Makefile.auto to precision
        use precision = double or mixed or single
   -e = set EXTRAMAKE variable in Makefile.auto to Makefile.lammps.esuffix
@@ -47,7 +48,7 @@ Examples:
 
 make lib-gpu args="-b"      # build GPU lib with default Makefile.linux
 make lib-gpu args="-m xk7 -p single -o xk7.single"      # create new Makefile.xk7.single, altered for single-precision
-make lib-gpu args="-m mpi -a 35 -p single -o mpi.mixed -b" # create new Makefile.mpi.mixed, also build GPU lib with these settings
+make lib-gpu args="-m mpi -a sm_35 -p single -o mpi.mixed -b" # create new Makefile.mpi.mixed, also build GPU lib with these settings
 """
 
 # print error message or help
@@ -128,7 +129,7 @@ for line in lines:
   if hflag and words[0] == "CUDA_HOME" and words[1] == '=':
     line = line.replace(words[2],hdir)
   if aflag and words[0] == "CUDA_ARCH" and words[1] == '=':
-    line = line.replace(words[2],"-arch=sm_%s" % arch)
+    line = line.replace(words[2],"-arch=%s" % arch)
   if pflag and words[0] == "CUDA_PRECISION" and words[1] == '=':
     line = line.replace(words[2],precstr)
   if eflag and words[0] == "EXTRAMAKE" and words[1] == '=':

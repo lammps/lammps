@@ -12,7 +12,7 @@ Library interface to LAMMPS :h3
 As described on the "Build basics"_Build_basics.html doc page, LAMMPS
 can be built as a library, so that it can be called by another code,
 used in a "coupled manner"_Howto_couple.html with other codes, or
-driven through a "Python interface"_Python.html.
+driven through a "Python interface"_Python_head.html.
 
 All of these methodologies use a C-style interface to LAMMPS that is
 provided in the files src/library.cpp and src/library.h.  The
@@ -35,8 +35,8 @@ details.
 
 NOTE: You can write code for additional functions as needed to define
 how your code talks to LAMMPS and add them to src/library.cpp and
-src/library.h, as well as to the "Python interface"_Python.html.  The
-added functions can access or change any internal LAMMPS data you
+src/library.h, as well as to the "Python interface"_Python_head.html.
+The added functions can access or change any internal LAMMPS data you
 wish.
 
 void lammps_open(int, char **, MPI_Comm, void **)

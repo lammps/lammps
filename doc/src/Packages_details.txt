@@ -763,8 +763,8 @@ A "python"_python.html command which allow you to execute Python code
 from a LAMMPS input script.  The code can be in a separate file or
 embedded in the input script itself.  See the "Python
 call"_Python_call.html doc page for an overview of using Python from
-LAMMPS in this manner and all the "Python"_Python.html doc pages for
-other ways to use LAMMPS and Python together.
+LAMMPS in this manner and all the "Python"_Python_head.html doc pages
+for other ways to use LAMMPS and Python together.
 
 NOTE: Building with the PYTHON package assumes you have a Python
 shared library available on your system, which needs to be a Python 2
@@ -780,7 +780,7 @@ extras"_Build_extras.html doc page.
 [Supporting info:]
 
 src/PYTHON: filenames -> commands
-"Python call"_Python.html
+"Python call"_Python_head.html
 lib/python/README
 examples/python :ul
 

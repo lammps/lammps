@@ -127,7 +127,7 @@ Errors_common.html
 Errors_bugs.html
 Errors_messages.html
 Errors_warnings.html
-Build_manual.html
+Manual_build.html
 
 lammps_commands.html
 atom_modify.html

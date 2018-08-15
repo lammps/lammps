@@ -24,17 +24,9 @@ as described on the "Install"_Install.html doc page.
    Build_cmake
    Build_make
    Build_link
-
-.. toctree::
-   :maxdepth: 1
-
    Build_basics
    Build_settings
    Build_package
-
-.. toctree::
-   :maxdepth: 1
-
    Build_extras
 
 END_RST -->
@@ -43,12 +35,9 @@ END_RST -->
 
 "Build LAMMPS with CMake"_Build_cmake.html
 "Build LAMMPS with make"_Build_make.html
-"Link LAMMPS as a library to another code"_Build_link.html :all(b)
-
-Build options:
-
-"Basic build options: serial/parallel, compilers, executable/library"_Build_basics.html
-"Optional build settings"_Build_settings.html :all(b)
+"Link LAMMPS as a library to another code"_Build_link.html
+"Basic build options"_Build_basics.html
+"Optional build settings"_Build_settings.html
 "Include packages in build"_Build_package.html
 "Packages with extra build options"_Build_extras.html :all(b)
 

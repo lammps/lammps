@@ -38,19 +38,11 @@ contribute"_Modify_contribute.html doc page.
    Modify_compute
    Modify_fix
    Modify_command
-
-.. toctree::
-   :maxdepth: 1
-
    Modify_dump
    Modify_kspace
    Modify_min
    Modify_region
    Modify_body
-
-.. toctree::
-   :maxdepth: 1
-
    Modify_thermo
    Modify_variable
 
@@ -66,14 +58,12 @@ END_RST -->
 "Bond, angle, dihedral, improper styles"_Modify_bond.html
 "Compute styles"_Modify_compute.html
 "Fix styles"_Modify_fix.html
-"Input script command styles"_Modify_command.html :all(b)
-
+"Input script command styles"_Modify_command.html
 "Dump styles"_Modify_dump.html
 "Kspace styles"_Modify_kspace.html
 "Minimization styles"_Modify_min.html
 "Region styles"_Modify_region.html
-"Body styles"_Modify_body.html :all(b)
-
+"Body styles"_Modify_body.html
 "Thermodynamic output options"_Modify_thermo.html
 "Variable options"_Modify_variable.html :all(b)
 

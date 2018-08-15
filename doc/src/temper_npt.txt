@@ -48,8 +48,8 @@ on how the parallel tempering is handled in general.
 [Restrictions:]
 
 This command can only be used if LAMMPS was built with the USER-MISC
-package.  See the "Making LAMMPS"_Section_start.html#start_3 section
-for more info on packages.
+package.  See the "Build package"_Build_package.html doc page for more
+info.
 
 This command should be used with a fix that maintains the
 isothermal-isobaric (NPT) ensemble.

@@ -22,12 +22,14 @@ also show how to setup and run various kinds of simulations.
 <!-- RST
 
 .. toctree::
+   :maxdepth: 1
 
    Howto_github
    Howto_pylammps
    Howto_bash
 
 .. toctree::
+   :maxdepth: 1
 
    Howto_restart
    Howto_viz
@@ -37,11 +39,13 @@ also show how to setup and run various kinds of simulations.
    Howto_couple
 
 .. toctree::
+   :maxdepth: 1
 
    Howto_output
    Howto_chunk
 
 .. toctree::
+   :maxdepth: 1
 
    Howto_2d
    Howto_triclinic
@@ -52,6 +56,7 @@ also show how to setup and run various kinds of simulations.
    Howto_dispersion
 
 .. toctree::
+   :maxdepth: 1
 
    Howto_temperature
    Howto_thermostat
@@ -62,6 +67,7 @@ also show how to setup and run various kinds of simulations.
    Howto_diffusion
 
 .. toctree::
+   :maxdepth: 1
 
    Howto_bioFF
    Howto_tip3p
@@ -69,6 +75,7 @@ also show how to setup and run various kinds of simulations.
    Howto_spc
 
 .. toctree::
+   :maxdepth: 1
 
    Howto_body
    Howto_polarizable
@@ -84,7 +91,7 @@ END_RST -->
 
 "Using GitHub with LAMMPS"_Howto_github.html
 "PyLAMMPS interface to LAMMPS"_Howto_pylammps.html
-"Using LAMMPS with bash on Windows"_Howto_bash.html
+"Using LAMMPS with bash on Windows"_Howto_bash.html :all(b)
 
 "Restart a simulation"_Howto_restart.html
 "Visualize LAMMPS snapshots"_Howto_viz.html
@@ -121,8 +128,8 @@ END_RST -->
 "Polarizable models"_Howto_polarizable.html
 "Adiabatic core/shell model"_Howto_coreshell.html
 "Drude induced dipoles"_Howto_drude.html
-"Drude induced dipoles (extended)"_Howto_drude2.html :all(b)
+"Drude induced dipoles (extended)"_Howto_drude2.html
 "Manifolds (surfaces)"_Howto_manifold.html
-"Magnetic spins"_Howto_spins.html
+"Magnetic spins"_Howto_spins.html :all(b)
 
 <!-- END_HTML_ONLY -->

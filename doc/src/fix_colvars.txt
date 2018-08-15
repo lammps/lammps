@@ -106,8 +106,8 @@ fix is "extensive".
 [Restrictions:]
 
 This fix is part of the USER-COLVARS package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 There can only be one colvars fix active at a time. Since the interface
 communicates only the minimum amount of information and colvars module

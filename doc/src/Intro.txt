@@ -15,8 +15,10 @@ These pages provide a brief introduction to LAMMPS.
 <!-- RST
 
 .. toctree::
+   :maxdepth: 1
 
    Intro_overview
+   Manual_version
    Intro_features
    Intro_nonfeatures
    Intro_opensource

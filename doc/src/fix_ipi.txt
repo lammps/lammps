@@ -81,9 +81,9 @@ define an external potential acting on the atoms that are moved by
 i-PI.
 
 This fix is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.  Because of
-the use of UNIX domain sockets, this fix will only work in a UNIX
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.  Because of the
+use of UNIX domain sockets, this fix will only work in a UNIX
 environment.
 
 [Related commands:]

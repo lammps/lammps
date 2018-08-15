@@ -82,8 +82,8 @@ The preprint version of the article can be found "here"_PDF/USER-CGDNA.pdf.
 [Restrictions:]
 
 These pair styles can only be used if LAMMPS was built with the
-USER-CGDNA package and the MOLECULE and ASPHERE package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info on packages.
+USER-CGDNA package and the MOLECULE and ASPHERE package.  See the
+"Build package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

@@ -28,7 +28,7 @@ GUI: LAMMPS can be built as a library and a Python wrapper that wraps
 the library interface is provided.  Thus, GUI interfaces can be
 written in Python (or C or C++ if desired) that run LAMMPS and
 visualize or plot its output.  Examples of this are provided in the
-python directory and described on the "Python"_Python.html doc
+python directory and described on the "Python"_Python_head.html doc
 page. :ulb,l
 
 Builder: Several pre-processing tools are packaged with LAMMPS.  Some
@@ -55,9 +55,9 @@ info on how to add your own analysis code or algorithms to LAMMPS.
 For post-processing, LAMMPS output such as "dump file
 snapshots"_dump.html can be converted into formats used by other MD or
 post-processing codes.  Some post-processing tools packaged with
-LAMMPS will do these conversions.  Scripts provided with the {python}
-tool in the tools directory can extract and massage data in dump files
-to make it easier to import into other programs.  See the
+LAMMPS will do these conversions.  Scripts provided in the
+tools/python directory can extract and massage data in dump files to
+make it easier to import into other programs.  See the
 "Tools"_Tools.html doc page for details on these various options. :l
 
 Visualization: LAMMPS can produce JPG or PNG snapshot images
@@ -68,11 +68,11 @@ page"_http://lammps.sandia.gov/viz.html page of the LAMMPS website for
 visualization packages that can use LAMMPS output data. :l
 
 Plotting: See the next bullet about Pizza.py as well as the
-"Python"_Python.html doc page for examples of plotting LAMMPS output.
-Scripts provided with the {python} tool in the tools directory will
-extract and massage data in log and dump files to make it easier to
-analyze and plot.  See the "Tools"_Tools.html doc page for more
-discussion of the various tools. :l
+"Python"_Python_head.html doc page for examples of plotting LAMMPS
+output.  Scripts provided with the {python} tool in the tools
+directory will extract and massage data in log and dump files to make
+it easier to analyze and plot.  See the "Tools"_Tools.html doc page
+for more discussion of the various tools. :l
 
 Pizza.py: Our group has also written a separate toolkit called
 "Pizza.py"_http://pizza.sandia.gov which can do certain kinds of

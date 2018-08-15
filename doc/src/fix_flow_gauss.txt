@@ -111,8 +111,8 @@ flow/gauss fixes, one that specifies {fix_modify respa 3} and one with
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
 This fix is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 No information about this fix is written to "binary restart
 files"_restart.html.

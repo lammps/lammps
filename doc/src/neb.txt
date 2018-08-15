@@ -50,14 +50,14 @@ follows the discussion in these 4 papers: "(HenkelmanA)"_#HenkelmanA,
 "(HenkelmanB)"_#HenkelmanB, "(Nakano)"_#Nakano3 and "(Maras)"_#Maras2.
 
 Each replica runs on a partition of one or more processors.  Processor
-partitions are defined at run-time using the -partition command-line
-switch; see "Section 2.6"_Section_start.html#start_6 of the manual.
-Note that if you have MPI installed, you can run a multi-replica
-simulation with more replicas (partitions) than you have physical
-processors, e.g you can run a 10-replica simulation on just one or two
-processors.  You will simply not get the performance speed-up you
-would see with one or more physical processors per replica.  See the
-"Howto replica"_Howto_replica.html doc page for further discussion.
+partitions are defined at run-time using the "-partition command-line
+switch"_Run_options.html.  Note that if you have MPI installed, you
+can run a multi-replica simulation with more replicas (partitions)
+than you have physical processors, e.g you can run a 10-replica
+simulation on just one or two processors.  You will simply not get the
+performance speed-up you would see with one or more physical
+processors per replica.  See the "Howto replica"_Howto_replica.html
+doc page for further discussion.
 
 NOTE: As explained below, a NEB calculation perfoms a damped dynamics
 minimization across all the replicas.  The minimizer uses whatever
@@ -395,8 +395,8 @@ image.
 [Restrictions:]
 
 This command can only be used if LAMMPS was built with the REPLICA
-package.  See the "Making LAMMPS"_Section_start.html#start_3 section
-for more info on packages.
+package.  See the "Build package"_Build_package.html doc
+page for more info.
 
 :line
 

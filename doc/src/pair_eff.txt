@@ -280,8 +280,8 @@ These pair styles can only be used via the {pair} keyword of the
 
 These pair styles will only be enabled if LAMMPS is built with the
 USER-EFF package.  It will only be enabled if LAMMPS was built with
-that package.  See the "Making LAMMPS"_Section_start.html#start_3
-section for more info.
+that package.  See the "Build package"_Build_package.html doc page for
+more info.
 
 These pair styles require that particles store electron attributes
 such as radius, radial velocity, and radial force, as defined by the

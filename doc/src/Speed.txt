@@ -31,15 +31,18 @@ hardware platforms.
 <!-- RST
 
 .. toctree::
+   :maxdepth: 1
 
    Speed_bench
    Speed_measure
 
 .. toctree::
+   :maxdepth: 1
 
    Speed_tips
 
 .. toctree::
+   :maxdepth: 1
 
    Speed_packages
    Speed_compare

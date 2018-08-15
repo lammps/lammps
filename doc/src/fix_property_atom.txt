@@ -200,7 +200,8 @@ added classes.
 
 :line
 
-:link(isotopes) Example for using per-atom masses with TIP4P water to
+:link(isotopes)
+Example for using per-atom masses with TIP4P water to
 study isotope effects. When setting up simulations with the "TIP4P
 pair styles"_Howto_tip4p.html for water, you have to provide exactly
 one atom type each to identify the water oxygen and hydrogen

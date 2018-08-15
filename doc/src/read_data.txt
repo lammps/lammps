@@ -63,8 +63,8 @@ simulation.  The file can be ASCII text or a gzipped text file
 atom coordinates; see the "read_restart"_read_restart.html and
 "create_atoms"_create_atoms.html commands for alternative methods.
 Also see the explanation of the "-restart command-line
-switch"_Section_start.html#start_6 which can convert a restart file to
-a data file.
+switch"_Run_options.html which can convert a restart file to a data
+file.
 
 This command can be used multiple times to add new atoms and their
 properties to an existing system by using the {add}, {offset}, and
@@ -1153,8 +1153,8 @@ Translational velocities can also be set by the
 [Restrictions:]
 
 To read gzipped data files, you must compile LAMMPS with the
--DLAMMPS_GZIP option - see the "Making
-LAMMPS"_Section_start.html#start_2 section of the documentation.
+-DLAMMPS_GZIP option.  See the "Build settings"_Build_settings.html
+doc page for details.
 
 [Related commands:]
 

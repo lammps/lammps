@@ -112,10 +112,10 @@ web site.
 
 If you uncomment the "dump image"_dump_image.html line(s) in the input
 script a series of JPG images will be produced by the run (assuming
-you built LAMMPS with JPG support; see "Section
-2.2"_Section_start.html#start_2 for details).  These can be viewed
-individually or turned into a movie or animated by tools like
-ImageMagick or QuickTime or various Windows-based tools.  See the
+you built LAMMPS with JPG support; see the
+"Build_settings"_Build_settings.html doc page for details).  These can
+be viewed individually or turned into a movie or animated by tools
+like ImageMagick or QuickTime or various Windows-based tools.  See the
 "dump image"_dump_image.html doc page for more details.  E.g. this
 Imagemagick command would create a GIF file suitable for viewing in a
 browser.

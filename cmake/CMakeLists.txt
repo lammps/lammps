@@ -834,7 +834,7 @@ if(PKG_GPU)
       endif()
       option(CUDPP_OPT "Enable CUDPP_OPT" ON)
 
-      set(GPU_ARCH "30" CACHE STRING "LAMMPS GPU CUDA SM architecture (e.g. 60)")
+      set(GPU_ARCH "sm_30" CACHE STRING "LAMMPS GPU CUDA SM architecture (e.g. sm_60)")
 
       file(GLOB GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cu ${CMAKE_CURRENT_SOURCE_DIR}/gpu/*.cu)
       list(REMOVE_ITEM GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_pppm.cu)
@@ -848,10 +848,10 @@ if(PKG_GPU)
       endif()
 
       cuda_compile_cubin(GPU_GEN_OBJS ${GPU_LIB_CU} OPTIONS
-                   -DUNIX -O3 -Xptxas -v --use_fast_math -DNV_KERNEL -DUCL_CUDADR -arch=sm_${GPU_ARCH} -D_${GPU_PREC_SETTING})
+                   -DUNIX -O3 -Xptxas -v --use_fast_math -DNV_KERNEL -DUCL_CUDADR -arch=${GPU_ARCH} -D_${GPU_PREC_SETTING})
 
       cuda_compile(GPU_OBJS ${GPU_LIB_CUDPP_CU} OPTIONS $<$<BOOL:${BUILD_SHARED_LIBS}>:-Xcompiler=-fPIC>
-                   -DUNIX -O3 -Xptxas -v --use_fast_math -DUCL_CUDADR -arch=sm_${GPU_ARCH} -D_${GPU_PREC_SETTING})
+                   -DUNIX -O3 -Xptxas -v --use_fast_math -DUCL_CUDADR -arch=${GPU_ARCH} -D_${GPU_PREC_SETTING})
 
       foreach(CU_OBJ ${GPU_GEN_OBJS})
         get_filename_component(CU_NAME ${CU_OBJ} NAME_WE)
@@ -1160,7 +1160,7 @@ endif()
 if(PKG_GPU)
   message(STATUS "GPU Api: ${GPU_API}")
   if(GPU_API_DEFINE STREQUAL "CUDA")
-    message(STATUS "GPU Arch: sm_${GPU_ARCH}")
+    message(STATUS "GPU Arch: ${GPU_ARCH}")
   elseif(GPU_API_DEFINE STREQUAL "OPENCL")
     message(STATUS "OCL Tune: ${OCL_TUNE}")
   endif()

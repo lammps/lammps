@@ -33,27 +33,25 @@ LAMMPS can use them if they are available on your system.
 
 [CMake variables]:
 
--D FFT=value              # KISS or FFTW3 or FFTW2 or MKL, default is FFTW3 if found, else KISS
+-D FFT=value              # FFTW3 or MKL or KISS, default is FFTW3 if found, else KISS
 -D FFT_SINGLE=value       # yes or no (default), no = double precision
 -D FFT_PACK=value         # array (default) or pointer or memcpy :pre
 
-NOTE: The values for the FFT variable must be in upper-case.
-This is an exception to the rule that all CMake variables can
-be specified with lower-case values.
+NOTE: The values for the FFT variable must be in upper-case.  This is
+an exception to the rule that all CMake variables can be specified
+with lower-case values.
 
 Usually these settings are all that is needed.  If CMake cannot find
 the FFT library, you can set these variables:
 
 -D FFTW3_INCLUDE_DIRS=path  # path to FFTW3 include files
 -D FFTW3_LIBRARIES=path     # path to FFTW3 libraries
--D FFTW2_INCLUDE_DIRS=path  # ditto for FFTW2
--D FFTW2_LIBRARIES=path
 -D MKL_INCLUDE_DIRS=path    # ditto for Intel MKL library
 -D MKL_LIBRARIES=path :pre
 
 [Makefile.machine settings]:
 
-FFT_INC = -DFFT_FFTW3         # -DFFT_FFTW3, -DFFT_FFTW2, -DFFT_FFTW (same as -DFFT_FFTW3), -DFFT_MKL, or -DFFT_KISS
+FFT_INC = -DFFT_FFTW3         # -DFFT_FFTW3, -DFFT_FFTW (same as -DFFT_FFTW3), -DFFT_MKL, or -DFFT_KISS
                               # default is KISS if not specified
 FFT_INC = -DFFT_SINGLE        # do not specify for double precision
 FFT_INC = -DFFT_PACK_ARRAY    # or -DFFT_PACK_POINTER or -DFFT_PACK_MEMCPY :pre
@@ -63,8 +61,6 @@ FFT_INC =    	-I/usr/local/include
 FFT_PATH =      -L/usr/local/lib
 FFT_LIB =	-lfftw3             # FFTW3 double precision
 FFT_LIB =	-lfftw3 -lfftw3f    # FFTW3 single precision
-FFT_LIB =	-lfftw              # FFTW2 double precision, or -ldfftw
-FFT_LIB =	-lsfftw             # FFTW2 single precision
 FFT_LIB =       -lmkl_intel_lp64 -lmkl_sequential -lmkl_core  # MKL with Intel compiler
 FFT_LIB =       -lmkl_gf_lp64 -lmkl_sequential -lmkl_core     # MKL with GNU compier :pre
 
@@ -89,13 +85,9 @@ details.
 
 FFTW is a fast, portable FFT library that should also work on any
 platform and can be faster than the KISS FFT library.  You can
-download it from "www.fftw.org"_http://www.fftw.org.  Both the
-(obsolete) legacy version 2.1.X and the newer 3.X versions are
-supported.
+download it from "www.fftw.org"_http://www.fftw.org.  LAMMPS requires
+version 3.X; the legacy version 2.1.X is no longer supported.
 
-NOTE: FFTW2 has not been updated since 1999 and has been declared
-obsolete by its developers.
- 
 Building FFTW for your box should be as simple as ./configure; make;
 make install.  The install command typically requires root privileges
 (e.g. invoke it via sudo), unless you specify a local directory with
@@ -116,20 +108,14 @@ error is less than the difference in precision. Using the -DFFT_SINGLE
 setting trades off a little accuracy for reduced memory use and
 parallel communication costs for transposing 3d FFT data.
 
-When using -DFFT_SINGLE with FFTW3 or FFTW2, you may need to build the
-FFTW library a second time with support for single-precision.
+When using -DFFT_SINGLE with FFTW3 you may need to build the FFTW
+library a second time with support for single-precision.
 
 For FFTW3, do the following, which should produce the additional
 library libfftw3f.a
 
 make clean
 ./configure --enable-single; make; make install :pre
-
-For FFTW2, do the following, which should produce the additional
-library libsfftw.a
-
-make clean
-./configure --enable-float --enable-type-prefix; make; make install :pre
 
 Performing 3d FFTs requires communication to transpose the 3d FFT
 grid.  The data packing/unpacking for this can be done in one of 3

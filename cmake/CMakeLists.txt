@@ -310,10 +310,17 @@ if(PKG_VORONOI)
   option(DOWNLOAD_VORO "Download voro++ (instead of using the system's one)" OFF)
   if(DOWNLOAD_VORO)
     include(ExternalProject)
+
+    if(BUILD_SHARED_LIBS)
+        set(VORO_BUILD_OPTIONS "CFLAGS=-fPIC")
+    else()
+        set(VORO_BUILD_OPTIONS)
+    endif()
+
     ExternalProject_Add(voro_build
       URL http://math.lbl.gov/voro++/download/dir/voro++-0.4.6.tar.gz
       URL_MD5 2338b824c3b7b25590e18e8df5d68af9
-      CONFIGURE_COMMAND "" BUILD_IN_SOURCE 1 INSTALL_COMMAND "" 
+      CONFIGURE_COMMAND "" BUILD_COMMAND make ${VORO_BUILD_OPTIONS} BUILD_IN_SOURCE 1 INSTALL_COMMAND ""
       )
     ExternalProject_get_property(voro_build SOURCE_DIR)
     set(VORO_LIBRARIES ${SOURCE_DIR}/src/libvoro++.a)

@@ -121,10 +121,14 @@ right thing.  Individual files are only included if their dependencies
 are already included.  Likewise, if a package is excluded, other files
 dependent on that package are also excluded.
 
-When you download a LAMMPS tarball, three packages are pre-installed
-in the src directory: KSPACE, MANYBODY, MOLECULE.  This is because
-they are so commonly used.  When you download LAMMPS source files from
-the Git or SVN repositories, no packages are pre-installed.
+When you download a LAMMPS tarball or download LAMMPS source files
+from the Git or SVN repositories, no packages are pre-installed in the
+src directory.
+
+NOTE: Prior to Aug 2018, if you downloaded a tarball, 3 packages
+(KSPACE, MANYBODY, MOLECULE) were pre-installed in the src directory.
+That is no longer the case, so that CMake will build as-is without the
+need to un-install those packages.
 
 :line
 

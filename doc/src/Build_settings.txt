@@ -23,7 +23,7 @@ explain how to do this for building both with CMake and make.
 
 :line
  
-FFT library :h3,link(fft)
+FFT library :h4,link(fft)
 
 When the KSPACE package is included in a LAMMPS build, the
 "kspace_style pppm"_kspace_style.html command performs 3d FFTs which
@@ -126,7 +126,7 @@ ARRAY mode.
 
 :line
 
-Size of LAMMPS data types :h3,link(size)
+Size of LAMMPS data types :h4,link(size)
 
 LAMMPS has a few integer data types which can be defined as 4-byte or
 8-byte integers.  The default setting of "smallbig" is almost always
@@ -189,7 +189,7 @@ in whichever lib/gpu/Makefile is used must be the same as above.
 
 :line
 
-Output of JPG, PNG, and movie files :h3,link(graphics)
+Output of JPG, PNG, and movie files :h4,link(graphics)
 
 The "dump image"_dump_image.html command has options to output JPEG or
 PNG image files.  Likewise the "dump movie"_dump_image.html command
@@ -245,7 +245,7 @@ crash.
 
 :line
 
-Read or write compressed files :h3,link(gzip)
+Read or write compressed files :h4,link(gzip)
 
 If this option is enabled, large files can be read or written with
 gzip compression by several LAMMPS commands, including
@@ -276,7 +276,7 @@ what the "COMPRESS package"_Packages_details.html#PKG-COMPRESS enables.
 
 :line
 
-Memory allocation alignment :h3,link(align)
+Memory allocation alignment :h4,link(align)
 
 This setting enables the use of the posix_memalign() call instead of
 malloc() when LAMMPS allocates large chunks or memory.  This can make
@@ -308,7 +308,7 @@ manages its dynamical memory.
 
 :line
 
-Workaround for long long integers :h3,link(longlong)
+Workaround for long long integers :h4,link(longlong)
 
 If your system or MPI version does not recognize "long long" data
 types, the following setting will be needed.  It converts "long long"
@@ -325,7 +325,7 @@ LMP_INC = -DLAMMPS_LONGLONG_TO_LONG :pre
 
 :line
 
-Exception handling when using LAMMPS as a library :h3,link(exceptions)
+Exception handling when using LAMMPS as a library :h4,link(exceptions)
 
 This setting is useful when external codes drive LAMMPS as a library.
 With this option enabled LAMMPS errors do not kill the caller.

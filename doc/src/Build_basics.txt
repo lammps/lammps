@@ -20,7 +20,7 @@ CMake and make:
 
 :line
 
-Serial vs parallel build :h3,link(serial)
+Serial vs parallel build :h4,link(serial)
 
 LAMMPS can be built to run in parallel using the ubiquitous "MPI
 (message-passing
@@ -118,7 +118,7 @@ please refer to its documentation.
 
 :line
 
-Choice of compiler and compile/link options :h3,link(compile)
+Choice of compiler and compile/link options :h4,link(compile)
 
 The choice of compiler and compiler flags can be important for
 performance.  Vendor compilers can produce faster code than
@@ -210,7 +210,7 @@ Makefile.kokkos_phi            # KOKKOS package for KNLs (OpenMP) :pre
 
 :line
 
-Build LAMMPS as an executable or a library :h3,link(exe)
+Build LAMMPS as an executable or a library :h4,link(exe)
 
 LAMMPS can be built as either an executable or as a static or shared
 library.  The LAMMPS library can be called from another application or
@@ -271,7 +271,7 @@ should be the file /usr/local/lib/libmpich.so.
 
 :line
 
-Build the LAMMPS documentation :h3,link(doc)
+Build the LAMMPS documentation :h4,link(doc)
 
 [CMake variable]:
 
@@ -294,7 +294,7 @@ lammps/doc dir to see other options.
 
 :line
 
-Install LAMMPS after a build :h3,link(install)
+Install LAMMPS after a build :h4,link(install)
 
 After building LAMMPS, you may wish to copy the LAMMPS executable of
 library, along with other LAMMPS files (library header, doc files) to

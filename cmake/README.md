@@ -1450,12 +1450,12 @@ target API.
   <td>Tuning target for OpenCL driver code</td>
   <td>
   <dl>
-    <dt><code>GENERIC</code> (default)</dt>
-    <dt><code>INTEL</code> (Intel CPU)</dt>
-    <dt><code>PHI</code> (Intel Xeon Phi)</dt>
-    <dt><code>FERMI</code> (NVIDIA)</dt>
-    <dt><code>KEPLER</code> (NVIDIA)</dt>
-    <dt><code>CYPRESS</code> (AMD)</dt>
+    <dt><code>generic</code> (default)</dt>
+    <dt><code>intel</code> (Intel CPU)</dt>
+    <dt><code>phi</code> (Intel Xeon Phi)</dt>
+    <dt><code>fermi</code> (NVIDIA)</dt>
+    <dt><code>kepler</code> (NVIDIA)</dt>
+    <dt><code>cypress</code> (AMD)</dt>
   </dl>
   </td>
 </tr>

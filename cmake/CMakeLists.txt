@@ -793,7 +793,7 @@ if(PKG_USER-INTEL)
     validate_option(INTEL_ARCH INTEL_ARCH_VALUES)
     string(TOUPPER ${INTEL_ARCH} INTEL_ARCH)
 
-    if(INTEL_ARCH STREQUAL "CPU")
+    if(INTEL_ARCH STREQUAL "KNL")
       set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -xHost -qopenmp -qoffload")
       set(MIC_OPTIONS "-qoffload-option,mic,compiler,\"-fp-model fast=2 -mGLOB_default_function_attrs=\\\"gather_scatter_loop_unroll=4\\\"\"")
       add_compile_options(-xMIC-AVX512 -qoffload -fno-alias -ansi-alias -restrict -qoverride-limits ${MIC_OPTIONS})

@@ -37,7 +37,7 @@ KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   virial[0] = virial[1] = virial[2] = virial[3] = virial[4] = virial[5] = 0.0;
 
   triclinic_support = 1;
-  ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = dipoleflag = 0;
+  ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = dipoleflag = spinflag = 0;
   compute_flag = 1;
   group_group_enable = 0;
   stagger_flag = 0;
@@ -191,6 +191,8 @@ void KSpace::pair_check()
   if (dispersionflag && !force->pair->dispersionflag)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   if (dipoleflag && !force->pair->dipoleflag)
+    error->all(FLERR,"KSpace style is incompatible with Pair style");
+  if (spinflag && !force->pair->spinflag)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   if (tip4pflag && !force->pair->tip4pflag)
     error->all(FLERR,"KSpace style is incompatible with Pair style");

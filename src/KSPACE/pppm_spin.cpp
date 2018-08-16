@@ -115,13 +115,7 @@ void PPPMSpin::init()
 
   // error check
 
-  //spinflag = atom->mu?1:0;
   spinflag = atom->sp?1:0;
-  // no charges here, charge neutrality 
-  //qsum_qsq(0);
-  // maybe change this test
-  if (spinflag && q2)
-    error->all(FLERR,"Cannot (yet) uses charges with Kspace style PPPMSpin");
 
   triclinic_check();
 
@@ -175,17 +169,12 @@ void PPPMSpin::init()
   if (tip4pflag)
     error->all(FLERR,"Cannot yet use TIP4P with PPPMSpin");
 
-  // compute qsum & qsqsum and warn if not charge-neutral
-
   scale = 1.0;
-  //qqrd2e = force->qqrd2e;
-  // need to define mag constants instead
   hbar = force->hplanck/MY_2PI;         // eV/(rad.THz)
   mub = 5.78901e-5;                     // in eV/T
   mu_0 = 1.2566370614e-6;               // in T.m/A
   mub2mu0 = mub * mub * mu_0;           // in eV
   mub2mu0hbinv = mub2mu0 / hbar;        // in rad.THz
-  //musum_musq();
   spsum_spsq();
   natoms_original = atom->natoms;
 
@@ -458,7 +447,6 @@ void PPPMSpin::compute(int eflag, int vflag)
   // if atom count has changed, update qsum and qsqsum
 
   if (atom->natoms != natoms_original) {
-    //musum_musq();
     spsum_spsq();
     natoms_original = atom->natoms;
   }
@@ -520,7 +508,6 @@ void PPPMSpin::compute(int eflag, int vflag)
 
   // sum global energy across procs and add in volume-dependent term
 
-  //const double qscale = qqrd2e * scale;
   const double spscale = mub2mu0 * scale;
   const double g3 = g_ewald*g_ewald*g_ewald;
 
@@ -531,7 +518,7 @@ void PPPMSpin::compute(int eflag, int vflag)
 
     energy *= 0.5*volume;
     energy -= spsqsum*2.0*g3/3.0/MY_PIS;
-    energy *= qscale;
+    energy *= spscale;
   }
 
   // sum global virial across procs
@@ -539,32 +526,32 @@ void PPPMSpin::compute(int eflag, int vflag)
   if (vflag_global) {
     double virial_all[6];
     MPI_Allreduce(virial,virial_all,6,MPI_DOUBLE,MPI_SUM,world);
-    for (i = 0; i < 6; i++) virial[i] = 0.5*qscale*volume*virial_all[i];
+    for (i = 0; i < 6; i++) virial[i] = 0.5*spscale*volume*virial_all[i];
   }
 
   // per-atom energy/virial
   // energy includes self-energy correction
 
   if (evflag_atom) {
-    //double *q = atom->q;
-    //double **mu = atom->mu;
     double **sp = atom->sp;
+    double spx,spy,spz;
     int nlocal = atom->nlocal;
     int ntotal = nlocal;
 
     if (eflag_atom) {
       for (i = 0; i < nlocal; i++) {
+	spx = sp[i][0]*sp[i][3];
+	spy = sp[i][1]*sp[i][3];
+	spz = sp[i][2]*sp[i][3];
         eatom[i] *= 0.5;
-        //eatom[i] -= (mu[i][0]*mu[i][0] + mu[i][1]*mu[i][1] + mu[i][2]*mu[i][2])*2.0*g3/3.0/MY_PIS;
-        eatom[i] -= (sp[i][0]*sp[i][0] + sp[i][1]*sp[i][1] + sp[i][2]*sp[i][2])*2.0*g3/3.0/MY_PIS;
-        //eatom[i] *= qscale;
+        eatom[i] -= (spx*spx + spy*spy + spz*spz)*2.0*g3/3.0/MY_PIS;
         eatom[i] *= spscale;
       }
     }
 
     if (vflag_atom) {
       for (i = 0; i < ntotal; i++)
-        for (j = 0; j < 6; j++) vatom[i][j] *= 0.5*qscale;
+        for (j = 0; j < 6; j++) vatom[i][j] *= 0.5*spscale;
     }
   }
 
@@ -918,7 +905,6 @@ double PPPMSpin::compute_df_kspace_spin()
   double zprd_slab = zprd*slab_volfactor;
   bigint natoms = atom->natoms;
   double qopt = compute_qopt_spin();
-  //double df_kspace = sqrt(qopt/natoms)*mu2/(3.0*xprd*yprd*zprd_slab);
   double df_kspace = sqrt(qopt/natoms)*sp2/(3.0*xprd*yprd*zprd_slab);
   return df_kspace;
 }
@@ -1131,8 +1117,6 @@ double PPPMSpin::newton_raphson_f()
   double rg6 = rg4*rg2;
   double Cc = 4.0*rg4 + 6.0*rg2 + 3.0;
   double Dc = 8.0*rg6 + 20.0*rg4 + 30.0*rg2 + 15.0;
-  //df_rspace = (mu2/(sqrt(vol*powint(g_ewald,4)*powint(cutoff,9)*natoms)) *
-  //    sqrt(13.0/6.0*Cc*Cc + 2.0/15.0*Dc*Dc - 13.0/15.0*Cc*Dc) * exp(-rg2));
   df_rspace = (sp2/(sqrt(vol*powint(g_ewald,4)*powint(cutoff,9)*natoms)) *
       sqrt(13.0/6.0*Cc*Cc + 2.0/15.0*Dc*Dc - 13.0/15.0*Cc*Dc) * exp(-rg2));
   df_kspace = compute_df_kspace_spin();
@@ -1218,9 +1202,6 @@ double PPPMSpin::final_accuracy_spin()
   double rg6 = rg4*rg2;
   double Cc = 4.0*rg4 + 6.0*rg2 + 3.0;
   double Dc = 8.0*rg6 + 20.0*rg4 + 30.0*rg2 + 15.0;
-  //double df_rspace = (mu2/(sqrt(vol*powint(g_ewald,4)*powint(cutoff,9)*natoms)) *
-  //  sqrt(13.0/6.0*Cc*Cc + 2.0/15.0*Dc*Dc - 13.0/15.0*Cc*Dc) *
-  //  exp(-rg2));
   double df_rspace = (sp2/(sqrt(vol*powint(g_ewald,4)*powint(cutoff,9)*natoms)) *
     sqrt(13.0/6.0*Cc*Cc + 2.0/15.0*Dc*Dc - 13.0/15.0*Cc*Dc) *
     exp(-rg2));
@@ -1285,8 +1266,8 @@ void PPPMSpin::make_rho_spin()
   // (dx,dy,dz) = distance to "lower left" grid pt
   // (mx,my,mz) = global coords of moving stencil pt
 
-  //double **mu = atom->mu;
   double **sp = atom->sp;
+  double spx,spy,spz;
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
@@ -1301,9 +1282,12 @@ void PPPMSpin::make_rho_spin()
 
     compute_rho1d(dx,dy,dz);
 
-    z0 = delvolinv * sp[i][0];
-    z1 = delvolinv * sp[i][1];
-    z2 = delvolinv * sp[i][2];
+    spx = sp[i][0]*sp[i][3];
+    spy = sp[i][1]*sp[i][3];
+    spz = sp[i][2]*sp[i][3];
+    z0 = delvolinv * spx;
+    z1 = delvolinv * spy;
+    z2 = delvolinv * spz;
     for (n = nlower; n <= nupper; n++) {
       mz = n+nz;
       y0 = z0*rho1d[2][n];
@@ -2076,13 +2060,11 @@ void PPPMSpin::fieldforce_ik_spin()
   // (dx,dy,dz) = distance to "lower left" grid pt
   // (mx,my,mz) = global coords of moving stencil pt
 
-
-  //double **mu = atom->mu;
   double **sp = atom->sp;
+  double spx,spy,spz;
   double **x = atom->x;
   double **f = atom->f;
   double **fm = atom->fm;
-  double **t = atom->torque;
 
   int nlocal = atom->nlocal;
 
@@ -2120,16 +2102,15 @@ void PPPMSpin::fieldforce_ik_spin()
       }
     }
 
-    // convert E-field to torque
+    // convert M-field to mech. and mag. forces
 
-    //const double mufactor = qqrd2e * scale;
     const double spfactor = mub2mu0 * scale;
-    //f[i][0] += mufactor*(vxx*mu[i][0] + vxy*mu[i][1] + vxz*mu[i][2]);
-    //f[i][1] += mufactor*(vxy*mu[i][0] + vyy*mu[i][1] + vyz*mu[i][2]);
-    //f[i][2] += mufactor*(vxz*mu[i][0] + vyz*mu[i][1] + vzz*mu[i][2]);
-    f[i][0] += spfactor*(vxx*sp[i][0] + vxy*sp[i][1] + vxz*sp[i][2]);
-    f[i][1] += spfactor*(vxy*sp[i][0] + vyy*sp[i][1] + vyz*sp[i][2]);
-    f[i][2] += spfactor*(vxz*sp[i][0] + vyz*sp[i][1] + vzz*sp[i][2]);
+    spx = sp[i][0]*sp[i][3];
+    spy = sp[i][1]*sp[i][3];
+    spz = sp[i][2]*sp[i][3];
+    f[i][0] += spfactor*(vxx*spx + vxy*spy + vxz*spz);
+    f[i][1] += spfactor*(vxy*spx + vyy*spy + vyz*spz);
+    f[i][2] += spfactor*(vxz*spx + vyz*spy + vzz*spz);
 
     const double spfactorh = mub2mu0hbinv * scale;
     fm[i][0] += spfactorh*ex;
@@ -2159,8 +2140,8 @@ void PPPMSpin::fieldforce_peratom_spin()
   // (dx,dy,dz) = distance to "lower left" grid pt
   // (mx,my,mz) = global coords of moving stencil pt
 
-  //double **mu = atom->mu;
   double **sp = atom->sp;
+  double spx,spy,spz;
   double **x = atom->x;
 
   int nlocal = atom->nlocal;
@@ -2217,14 +2198,17 @@ void PPPMSpin::fieldforce_peratom_spin()
       }
     }
 
-    if (eflag_atom) eatom[i] += sp[i][0]*ux + sp[i][1]*uy + sp[i][2]*uz;
+    spx = sp[i][0]*sp[i][3];
+    spy = sp[i][1]*sp[i][3];
+    spz = sp[i][2]*sp[i][3];
+    if (eflag_atom) eatom[i] += spx*ux + spy*uy + spz*uz;
     if (vflag_atom) {
-      vatom[i][0] += sp[i][0]*v0x + sp[i][1]*v0y + sp[i][2]*v0z;
-      vatom[i][1] += sp[i][0]*v1x + sp[i][1]*v1y + sp[i][2]*v1z;
-      vatom[i][2] += sp[i][0]*v2x + sp[i][1]*v2y + sp[i][2]*v2z;
-      vatom[i][3] += sp[i][0]*v3x + sp[i][1]*v3y + sp[i][2]*v3z;
-      vatom[i][4] += sp[i][0]*v4x + sp[i][1]*v4y + sp[i][2]*v4z;
-      vatom[i][5] += sp[i][0]*v5x + sp[i][1]*v5y + sp[i][2]*v5z;
+      vatom[i][0] += spx*v0x + spy*v0y + spz*v0z;
+      vatom[i][1] += spx*v1x + spy*v1y + spz*v1z;
+      vatom[i][2] += spx*v2x + spy*v2y + spz*v2z;
+      vatom[i][3] += spx*v3x + spy*v3y + spz*v3z;
+      vatom[i][4] += spx*v4x + spy*v4y + spz*v4z;
+      vatom[i][5] += spx*v5x + spy*v5y + spz*v5z;
     }
   }
 }
@@ -2426,28 +2410,21 @@ void PPPMSpin::slabcorr()
   int nlocal = atom->nlocal;
 
   double spin = 0.0;
-  //double **mu = atom->mu;
   double **sp = atom->sp;
-  for (int i = 0; i < nlocal; i++) spin += sp[i][2];
+  double spx,spy,spz;
+  for (int i = 0; i < nlocal; i++) { 
+    spz = sp[i][2]*sp[i][3];
+    spin += spz;
+  }
 
   // sum local contributions to get global spin moment
 
   double spin_all;
   MPI_Allreduce(&spin,&spin_all,1,MPI_DOUBLE,MPI_SUM,world);
 
-  // need to make non-neutral systems and/or
-  //  per-atom energy translationally invariant
-
-  if (eflag_atom || fabs(qsum) > SMALL) {
-
-    error->all(FLERR,"Cannot (yet) use kspace slab correction with "
-      "long-range spins and non-neutral systems or per-atom energy");
-  }
-
   // compute corrections
 
   const double e_slabcorr = MY_2PI*(spin_all*spin_all/12.0)/volume;
-  //const double qscale = qqrd2e * scale;
   const double spscale = mub2mu0 * scale;
 
   if (eflag_global) energy += spscale * e_slabcorr;
@@ -2455,27 +2432,20 @@ void PPPMSpin::slabcorr()
   // per-atom energy
 
   if (eflag_atom) {
-    //double efact = qscale * MY_2PI/volume/12.0;
     double efact = spscale * MY_2PI/volume/12.0;
-    for (int i = 0; i < nlocal; i++)
-      //eatom[i] += efact * mu[i][2]*spin_all;
-      eatom[i] += efact * sp[i][2]*spin_all;
+    for (int i = 0; i < nlocal; i++) {
+      spz = sp[i][2]*sp[i][3];
+      eatom[i] += efact * spz * spin_all;
+    }
   }
 
-  // add on torque corrections
+  // add on mag. force corrections
 
-  // no torque for the spins
-  // should it be calculated for the magnetic force fm?
-
-  //if (atom->torque) {
-  //  double ffact = qscale * (-4.0*MY_PI/volume);
-  //  double **mu = atom->mu;
-  //  double **torque = atom->torque;
-  //  for (int i = 0; i < nlocal; i++) {
-  //    torque[i][0] += ffact * spin_all * mu[i][1];
-  //    torque[i][1] += -ffact * spin_all * mu[i][0];
-  //  }
-  //}
+  double ffact = spscale * (-4.0*MY_PI/volume);
+  double **fm = atom->fm;
+  for (int i = 0; i < nlocal; i++) {
+    fm[i][2] += ffact * spin_all;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -2584,20 +2554,22 @@ void PPPMSpin::spsum_spsq()
   spsum = spsqsum = sp2 = 0.0;
   if (atom->sp_flag) {
     double **sp = atom->sp;
+    double spx, spy, spz;
     double spsum_local(0.0), spsqsum_local(0.0);
 
     // not exactly the good loop: need to add norm of spins
 
     for (int i = 0; i < nlocal; i++) {
-      spsum_local += sp[i][0] + sp[i][1] + sp[i][2];
-      spsqsum_local += sp[i][0]*sp[i][0] + sp[i][1]*sp[i][1] + sp[i][2]*sp[i][2];
+      spx = sp[i][0]*sp[i][3];
+      spy = sp[i][1]*sp[i][3];
+      spz = sp[i][2]*sp[i][3];
+      spsum_local += spx + spy + spz;
+      spsqsum_local += spx*spx + spy*spy + spz*spz;
     }
 
     MPI_Allreduce(&spsum_local,&spsum,1,MPI_DOUBLE,MPI_SUM,world);
     MPI_Allreduce(&spsqsum_local,&spsqsum,1,MPI_DOUBLE,MPI_SUM,world);
 
-    //mu2 = musqsum * force->qqrd2e;
-    // find correct units
     sp2 = spsqsum * mub2mu0;
   }
 

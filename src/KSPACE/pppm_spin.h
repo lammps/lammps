@@ -37,6 +37,11 @@ class PPPMSpin : public PPPM {
   double memory_usage();
 
  protected:
+  double hbar;                  // reduced Planck's constant      
+  double mub;                   // Bohr's magneton                
+  double mu_0;                  // vacuum permeability
+  double mub2mu0;               // prefactor for mech force
+  double mub2mu0hbinv;          // prefactor for mag force
   void set_grid_global();
   double newton_raphson_f();
 
@@ -72,7 +77,7 @@ class PPPMSpin : public PPPM {
   class GridComm *cg_spin;
   class GridComm *cg_peratom_spin;
   int only_spin_flag;
-  double musum,musqsum,mu2;
+  double spsum,spsqsum,sp2;
   double find_gewald_spin(double, double, bigint, double, double);
   double newton_raphson_f_spin(double, double, bigint, double, double);
   double derivf_spin(double, double, bigint, double, double);
@@ -86,7 +91,7 @@ class PPPMSpin : public PPPM {
   void fieldforce_ik_spin();
   void fieldforce_peratom_spin();
   double final_accuracy_spin();
-  void musum_musq();
+  void spsum_spsq();
 
 };
 

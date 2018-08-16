@@ -59,7 +59,7 @@ PairSpinLong::PairSpinLong(LAMMPS *lmp) : PairSpin(lmp),
 lockfixnvespin(NULL)
 {
   single_enable = 0;
-  ewaldflag = pppmflag = 1;
+  ewaldflag = pppmflag = spinflag = 1;
   respa_enable = 0;
   no_virial_fdotr_compute = 1;
   lattice_flag = 0;

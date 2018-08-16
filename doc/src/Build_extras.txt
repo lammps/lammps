@@ -25,6 +25,7 @@ You may need to tell LAMMPS where it is found on your system.
 
 This is the list of packages that may require additional steps.
 
+"COMPRESS"_#compress,
 "GPU"_#gpu,
 "KIM"_#kim,
 "KOKKOS"_#kokkos,
@@ -231,7 +232,7 @@ Pascal61 = NVIDIA Pascal generation CC 6.1 :ul
 
 For multicore CPUs using OpenMP, set these 2 variables.
 
--D KOKKOS_ARCH=archCPU         # archCPU = CPU from list above :pre
+-D KOKKOS_ARCH=archCPU         # archCPU = CPU from list above
 -D KOKKOS_ENABLE_OPENMP=yes :pre
 
 For Intel KNLs using OpenMP, set these 2 variables:
@@ -710,16 +711,14 @@ Makefile.knl files for examples.
 For CPUs:
 
 OPTFLAGS =      -xHost -O2 -fp-model fast=2 -no-prec-div -qoverride-limits -qopt-zmm-usage=high
-CCFLAGS =	-g -qopenmp -DLAMMPS_MEMALIGN=64 -no-offload \
-                -fno-alias -ansi-alias -restrict $(OPTFLAGS)
+CCFLAGS =	-g -qopenmp -DLAMMPS_MEMALIGN=64 -no-offload -fno-alias -ansi-alias -restrict $(OPTFLAGS)
 LINKFLAGS =	-g -qopenmp $(OPTFLAGS)
 LIB =           -ltbbmalloc :pre
 
 For KNLs:
 
 OPTFLAGS =      -xMIC-AVX512 -O2 -fp-model fast=2 -no-prec-div -qoverride-limits
-CCFLAGS =	-g -qopenmp -DLAMMPS_MEMALIGN=64 -no-offload \
-                -fno-alias -ansi-alias -restrict $(OPTFLAGS)
+CCFLAGS =	-g -qopenmp -DLAMMPS_MEMALIGN=64 -no-offload -fno-alias -ansi-alias -restrict $(OPTFLAGS)
 LINKFLAGS =	-g -qopenmp $(OPTFLAGS)
 LIB =           -ltbbmalloc :pre
 
@@ -850,7 +849,7 @@ lib/quip/README file for details on how to do this.
 
 [CMake build]:
 
--D QUIP_LIBRARIES=path    # path to libquip.a (only needed if a custom location) 
+-D QUIP_LIBRARIES=path     # path to libquip.a (only needed if a custom location) :pre
 
 CMake will not download and build the QUIP library.  But once you have
 done that, a CMake build of LAMMPS with "-D PKG_USER-QUIP=yes" should

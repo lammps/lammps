@@ -61,10 +61,10 @@ the velocity non-parallel to the current force vector.  The velocity
 of each atom is initialized to 0.0 by this style, at the beginning of
 a minimization.
 
-Style {adaptglok} is a re-implementation of the style {fire} to better 
-fit the published and unpublished optimizations of the method described
+Style {adaptglok} is a re-implementation of the style {fire} with
+additionnal optimizations of the method described
 in "(Bitzek)"_#Bitzek. It includes a temporization of the variable
-timestep, a backstep when downhill and different integration
+timestep, a backstep when downhill and different time integration
 schemes.
 
 Either the {quickmin}, {fire} and {adaptglok} styles are useful in the context of

@@ -2,14 +2,14 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Commands_all.html)
+:link(lc,Section_commands.html#comm)
 
 :line
 
 min_modify command :h3
 
 [Syntax:]
-
+s
 min_modify keyword values ... :pre
 
 one or more keyword/value pairs may be listed :ulb,l
@@ -37,7 +37,7 @@ keyword = {integrator} or {tmax} or {tmin} or {delaystep} or {dtgrow} or {dtshri
     alpha = coefficient mixing velocities and forces
   {alphashrink} arg = shrink
     shrink = factor decreasing alpha
-  {relaxbox} arg = {no} or {iso} or {axial} or {x} or {y} or {z}
+  {relaxbox} arg = {no} or {iso} or {aniso} or {x} or {y} or {z}
     no = no changes in box dimension (default)
     iso, aniso, x, y, z = type of box relaxation
   {relaxbox_mod} arg = modulus
@@ -117,7 +117,7 @@ when it is reasonable to think the system will not be relaxed further.
 Note that in this case the system will NOT be relaxed. This could
 happen when the system comes to be stuck in a local basin of the phase space. 
 {vdfmax} is the maximum number of consecutive iterations with P(t) < 0. 
-For debugging purposes, it is possible to switch off the intertia correction 
+For debugging purposes, it is possible to switch off the inertia correction 
 ({halfstepback} = {no}) and the initial temporization ({initialdelay} = {no}).
 
 The style {adaptglok} performing a damped dynamics, it is not possible to use
@@ -125,7 +125,7 @@ The style {adaptglok} performing a damped dynamics, it is not possible to use
 Thus {adaptglok} implements a rudimentary box relaxation procedure that can be
 controlled by the keywords {relaxbox}, {relaxbox_mod}, {relaxbox_rate} 
 and {ptol}.
-The argument {relaxbox} controle in which directions the pressure is relaxe.
+The argument {relaxbox} controle in which directions the pressure is relaxed.
 Note that the corresponding directions have to be periodic.
 Note also that {relaxbox_mod} doesn't requires the exact value for the bulk modulus,
 but rather the order of magnitude (in pressure "units"_units.html).

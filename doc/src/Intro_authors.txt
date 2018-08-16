@@ -30,7 +30,7 @@ the packages they have written are somewhat unique to LAMMPS and the
 code would not be as general-purpose as it is without their expertise
 and efforts.
 
-Richard Berger (Temple U), GitHub site and Sphinx doc pages
+Richard Berger (Temple U), Python interface, GitHub site, Sphinx doc pages
 Roy Pollock (LLNL), Ewald and PPPM solvers
 Mike Brown (ORNL), brownw at ornl.gov, GPU and USER-INTEL packages
 Greg Wagner (Sandia), gjwagne at sandia.gov, MEAM package for MEAM potential

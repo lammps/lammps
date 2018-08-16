@@ -36,6 +36,7 @@ steps, as explained on the "Build extras"_Build_extras.html doc page.
 These links take you to the extra instructions for those select
 packages:
 
+"COMPRESS"_Build_extras.html#compress,
 "GPU"_Build_extras.html#gpu,
 "KIM"_Build_extras.html#kim,
 "KOKKOS"_Build_extras.html#kokkos,

@@ -74,7 +74,7 @@ every LAMMPS command.
    Intro
    Install
    Build
-   Run
+   Run_head
    Commands
    Packages
    Speed

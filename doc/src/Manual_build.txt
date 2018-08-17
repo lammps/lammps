@@ -81,7 +81,7 @@ sudo yum install python3-virtualenv :pre
 
 Fedora (since version 22) :h4
 
-sudo dnf install python3-virtualenv pre
+sudo dnf install python3-virtualenv :pre
 
 MacOS X :h4
 

@@ -48,7 +48,7 @@ This is the list of packages that may require additional steps.
 "USER-QMMM"_#user-qmmm,
 "USER-QUIP"_#user-quip,
 "USER-SMD"_#user-smd,
-"USER-VTK"_#user-vtk :tb(c=6,ea=c)
+"USER-VTK"_#user-vtk :tb(c=6,ea=c,a=l)
 
 :line
 

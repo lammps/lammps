@@ -13,12 +13,10 @@ This page is a short summary of how to use CMake to build LAMMPS.
 Details on CMake variables that enable specific LAMMPS build options
 are given on the pages linked to from the "Build"_Build.html doc page.
 
-Richard Berger (Temple U) has also written a more comprehensive guide
+Richard Berger (Temple U) has also written a "more comprehensive
+guide"_https://github.com/lammps/lammps/blob/master/cmake/README.md
 for how to use CMake to build LAMMPS.  If you are new to CMake it is a
-good place to start:
-
-"Bulding LAMMPS using
-CMake"_https://github.com/lammps/lammps/blob/master/cmake/README.md
+good place to start.
 
 :line
 

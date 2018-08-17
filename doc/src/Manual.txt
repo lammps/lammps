@@ -74,7 +74,7 @@ every LAMMPS command.
    Intro
    Install
    Build
-   Run
+   Run_head
    Commands
    Packages
    Speed
@@ -112,7 +112,7 @@ END_RST -->
 "Introduction"_Intro.html :olb,l
 "Install LAMMPS"_Install.html :l
 "Build LAMMPS"_Build.html :l
-"Run LAMMPS"_Run.html :l
+"Run LAMMPS"_Run_head.html :l
 "Commands"_Commands.html :l
 "Optional packages"_Packages.html :l
 "Accelerate performance"_Speed.html :l

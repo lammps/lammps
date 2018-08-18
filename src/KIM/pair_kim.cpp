@@ -310,8 +310,8 @@ void PairKIM::settings(int narg, char **arg)
 
    if (narg != 1)
    {
-     if ((narg > 0) && ((0 == strcmp("KIMvirial", argv[0])) ||
-                        (0 == strcmp("LAMMPSvirial", argv[0]))))
+     if ((narg > 0) && ((0 == strcmp("KIMvirial", arg[0])) ||
+                        (0 == strcmp("LAMMPSvirial", arg[0]))))
      {
        error->all(FLERR,"'KIMvirial' or 'LAMMPSvirial' not supported with "
                   "kim-api-v2.");

@@ -476,8 +476,8 @@ void PairKIM::init_style()
 
    }
 
-   // make sure comm_reverse expects (at most) 9 values when newton is off
-   if (!lmps_using_newton) comm_reverse_off = 9;
+   // make sure comm_reverse expects (at most) 3 values when newton is off
+   if (!lmps_using_newton) comm_reverse_off = 3;
 
    // request full neighbor
    for (int i = 0; i < kim_number_of_neighbor_lists; ++i)
@@ -543,51 +543,13 @@ int PairKIM::pack_reverse_comm(int n, int first, double *buf)
 
    m = 0;
    last = first + n;
-   if ((kim_model_support_for_forces != notSupported) &&
-       ((vflag_atom == 0) ||
-        (kim_model_support_for_particleVirial == notSupported)))
+   if (kim_model_support_for_forces != notSupported)
    {
       for (i = first; i < last; i++)
       {
          buf[m++] = fp[3*i+0];
          buf[m++] = fp[3*i+1];
          buf[m++] = fp[3*i+2];
-      }
-      return m;
-   }
-   else if ((kim_model_support_for_forces != notSupported) &&
-            (vflag_atom == 1) &&
-            (kim_model_support_for_particleVirial != notSupported))
-   {
-      double *va=&(vatom[0][0]);
-      for (i = first; i < last; i++)
-      {
-         buf[m++] = fp[3*i+0];
-         buf[m++] = fp[3*i+1];
-         buf[m++] = fp[3*i+2];
-
-         buf[m++] = va[6*i+0];
-         buf[m++] = va[6*i+1];
-         buf[m++] = va[6*i+2];
-         buf[m++] = va[6*i+3];
-         buf[m++] = va[6*i+4];
-         buf[m++] = va[6*i+5];
-      }
-      return m;
-   }
-   else if ((kim_model_support_for_forces == notSupported) &&
-            (vflag_atom == 1) &&
-            (kim_model_support_for_particleVirial != notSupported))
-   {
-      double *va=&(vatom[0][0]);
-      for (i = first; i < last; i++)
-      {
-         buf[m++] = va[6*i+0];
-         buf[m++] = va[6*i+1];
-         buf[m++] = va[6*i+2];
-         buf[m++] = va[6*i+3];
-         buf[m++] = va[6*i+4];
-         buf[m++] = va[6*i+5];
       }
       return m;
    }
@@ -606,9 +568,7 @@ void PairKIM::unpack_reverse_comm(int n, int *list, double *buf)
    fp = &(atom->f[0][0]);
 
    m = 0;
-   if ((kim_model_support_for_forces != notSupported) &&
-       ((vflag_atom == 0) ||
-        (kim_model_support_for_particleVirial == notSupported)))
+   if (kim_model_support_for_forces != notSupported)
    {
       for (i = 0; i < n; i++)
       {
@@ -616,42 +576,6 @@ void PairKIM::unpack_reverse_comm(int n, int *list, double *buf)
          fp[3*j+0]+= buf[m++];
          fp[3*j+1]+= buf[m++];
          fp[3*j+2]+= buf[m++];
-      }
-   }
-   else if ((kim_model_support_for_forces != notSupported) &&
-            (vflag_atom == 1) &&
-            (kim_model_support_for_particleVirial != notSupported))
-   {
-      double *va=&(vatom[0][0]);
-      for (i = 0; i < n; i++)
-      {
-         j = list[i];
-         fp[3*j+0]+= buf[m++];
-         fp[3*j+1]+= buf[m++];
-         fp[3*j+2]+= buf[m++];
-
-         va[j*6+0]+=buf[m++];
-         va[j*6+1]+=buf[m++];
-         va[j*6+2]+=buf[m++];
-         va[j*6+3]+=buf[m++];
-         va[j*6+4]+=buf[m++];
-         va[j*6+5]+=buf[m++];
-      }
-   }
-   else if ((kim_model_support_for_forces == notSupported) &&
-            (vflag_atom == 1) &&
-            (kim_model_support_for_particleVirial != notSupported))
-   {
-      double *va=&(vatom[0][0]);
-      for (i = 0; i < n; i++)
-      {
-         j = list[i];
-         va[j*6+0]+=buf[m++];
-         va[j*6+1]+=buf[m++];
-         va[j*6+2]+=buf[m++];
-         va[j*6+3]+=buf[m++];
-         va[j*6+4]+=buf[m++];
-         va[j*6+5]+=buf[m++];
       }
    }
    else
@@ -875,7 +799,7 @@ void PairKIM::set_argument_pointers()
   }
   else if (kim_model_support_for_particleVirial != notSupported)
   {
-    kimerror = kimerror || pargs->SetArgumentPointer(partialParticleEnergy,
+    kimerror = kimerror || pargs->SetArgumentPointer(partialParticleVirial,
                                                      &(vatom[0][0]));
   }
 

@@ -308,7 +308,17 @@ void PairKIM::settings(int narg, char **arg)
    ++settings_call_count;
    init_style_call_count = 0;
 
-   if (narg != 1) error->all(FLERR,"Illegal pair_style command");
+   if (narg != 1)
+   {
+     if ((narg > 0) && ((0 == strcmp("KIMvirial", argv[0])) ||
+                        (0 == strcmp("LAMMPSvirial", argv[0]))))
+     {
+       error->all(FLERR,"'KIMvirial' or 'LAMMPSvirial' not supported with "
+                  "kim-api-v2.");
+     }
+     else
+       error->all(FLERR,"Illegal pair_style command");
+   }
    // arg[0] is the KIM Model name
 
    lmps_using_molecular = (atom->molecular > 0);

@@ -179,6 +179,10 @@ E: KIM Compute returned error
 
 The KIM model was unable, for some reason, to complete the computation.
 
+E: 'KIMvirial' or 'LAMMPSvirial' not supported with kim-api-v2.
+
+"KIMvirial or "LAMMPSvirial" found on the pair_style line.  These keys are not supported kim-api-v2. (The virial computation is always performed by LAMMPS.) Please remove these keys, make sure the KIM model you are using supports kim-api-v2, and rerun.
+
 E: Illegal pair_style command
 
 Self-explanatory.

@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -156,9 +156,9 @@ write out much faster.
 
 The {vtk} style does not support writing of gzipped dump files.
 
-The {vtk} dump style is part of the USER-VTK package. It is
-only enabled if LAMMPS was built with that package. See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+The {vtk} dump style is part of the USER-VTK package. It is only
+enabled if LAMMPS was built with that package. See the "Build
+package"_Build_package.html doc page for more info.
 
 To use this dump style, you also must link to the VTK library.  See
 the info in lib/vtk/README and insure the Makefile.lammps file in that

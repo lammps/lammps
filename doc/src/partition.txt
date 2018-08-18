@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -26,9 +26,8 @@ partition yes 6* fix all nvt temp 1.0 1.0 0.1 :pre
 [Description:]
 
 This command invokes the specified command on a subset of the
-partitions of processors you have defined via the -partition
-command-line switch.  See "Section 2.6"_Section_start.html#start_6
-for an explanation of the switch.
+partitions of processors you have defined via the "-partition
+command-line switch"_Run_options.html.
 
 Normally, every input script command in your script is invoked by
 every partition.  This behavior can be modified by defining world- or
@@ -49,7 +48,7 @@ argument.
 
 Partitions are numbered from 1 to Np, where Np is the number of
 partitions specified by the "-partition command-line
-switch"_Section_start.html#start_6.
+switch"_Run_options.html.
 
 {N} can be specified in one of two ways.  An explicit numeric value
 can be used, as in the 1st example above.  Or a wild-card asterisk can

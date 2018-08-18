@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -58,9 +58,8 @@ to control the temperature, such as "fix nvt"_fix_nh.html or "fix
 langevin"_fix_langevin.html or "fix
 temp/berendsen"_fix_temp_berendsen.html.
 
-See "this howto section"_Section_howto.html#howto_16 of the manual for
-a discussion of different ways to compute temperature and perform
-thermostatting and barostatting.
+See the "Howto baroostat"_Howto_barostat.html doc page for a
+discussion of different ways to perform barostatting.
 
 :line
 
@@ -196,7 +195,7 @@ pressure.  LAMMPS will warn you if you choose to compute temperature
 on a subset of atoms.
 
 No global or per-atom quantities are stored by this fix for access by
-various "output commands"_Section_howto.html#howto_15.
+various "output commands"_Howto_output.html.
 
 This fix can ramp its target pressure over multiple runs, using the
 {start} and {stop} keywords of the "run"_run.html command.  See the

@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -43,7 +43,7 @@ local atom displacements and may generate "false positives."
 
 This compute calculates a global scalar (the flag).  This value can be
 used by any command that uses a global scalar value from a compute as
-input.  See "Section 6.15"_Section_howto.html#howto_15 for an
+input.  See the "Howto output"_Howto_output.html doc page for an
 overview of LAMMPS output options.
 
 The scalar value calculated by this compute is "intensive".  The
@@ -52,8 +52,8 @@ scalar value will be a 0 or 1 as explained above.
 [Restrictions:]
 
 This command can only be used if LAMMPS was built with the REPLICA
-package.  See the "Making LAMMPS"_Section_start.html#start_3 section
-for more info on packages.
+package.  See the "Build package"_Build_package.html doc
+page for more info.
 
 [Related commands:]
 

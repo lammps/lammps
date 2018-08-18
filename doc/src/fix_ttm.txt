@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -272,18 +272,17 @@ None of the "fix_modify"_fix_modify.html options are relevant to these
 fixes.
 
 Both fixes compute 2 output quantities stored in a vector of length 2,
-which can be accessed by various "output
-commands"_Section_howto.html#howto_15.  The first quantity is the
-total energy of the electronic subsystem. The second quantity is the
-energy transferred from the electronic to the atomic subsystem on that
-timestep. Note that the velocity verlet integrator applies the fix ttm
-forces to the atomic subsystem as two half-step velocity updates: one
-on the current timestep and one on the subsequent timestep.
-Consequently, the change in the atomic subsystem energy is lagged by
-half a timestep relative to the change in the electronic subsystem
-energy. As a result of this, users may notice slight fluctuations in
-the sum of the atomic and electronic subsystem energies reported at
-the end of the timestep.
+which can be accessed by various "output commands"_Howto_output.html.
+The first quantity is the total energy of the electronic
+subsystem. The second quantity is the energy transferred from the
+electronic to the atomic subsystem on that timestep. Note that the
+velocity verlet integrator applies the fix ttm forces to the atomic
+subsystem as two half-step velocity updates: one on the current
+timestep and one on the subsequent timestep.  Consequently, the change
+in the atomic subsystem energy is lagged by half a timestep relative
+to the change in the electronic subsystem energy. As a result of this,
+users may notice slight fluctuations in the sum of the atomic and
+electronic subsystem energies reported at the end of the timestep.
 
 The vector values calculated are "extensive".
 
@@ -296,8 +295,7 @@ of the "run"_run.html command.  The fixes are not invoked during
 Fix {ttm} is part of the MISC package. It is only enabled if LAMMPS
 was built with that package.  Fix {ttm/mod} is part of the USER-MISC
 package. It is only enabled if LAMMPS was built with that package.
-See the "Making LAMMPS"_Section_start.html#start_3 section for more
-info.
+See the "Build package"_Build_package.html doc page for more info.
 
 These fixes can only be used for 3d simulations and orthogonal
 simulation boxes.  You must also use periodic

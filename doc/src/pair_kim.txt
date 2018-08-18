@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -41,8 +41,8 @@ are included in the KIM library by default, in the "What is in the KIM
 API source package?" section.
 
 To use this pair style, you must first download and install the KIM
-API library from the "OpenKIM website"_https://openkim.org.  The "KIM
-section of Section packages"_Section_packages.html#KIM has
+API library from the "OpenKIM website"_https://openkim.org.  The KIM
+section of the "Packages details"_Packages_details.html doc page has
 instructions on how to do this with a simple make command, when
 building LAMMPS.
 
@@ -111,8 +111,8 @@ This pair style can only be used via the {pair} keyword of the
 [Restrictions:]
 
 This pair style is part of the KIM package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 This current version of pair_style kim is compatible with the
 kim-api package version 2.0.0-beta.1 and higher.

@@ -119,7 +119,7 @@ the core/shell pair, which is an imaginary degree of freedom, from the
 real physical system.  To do that, the "compute
 temp/cs"_compute_temp_cs.html command can be used, in conjunction with
 any of the thermostat fixes, such as "fix nvt"_fix_nh.html or "fix
-langevin"_fix_langevin.  This compute uses the center-of-mass velocity
+langevin"_fix_langevin.html.  This compute uses the center-of-mass velocity
 of the core/shell pairs to calculate a temperature, and insures that
 velocity is what is rescaled for thermostatting purposes.  This
 compute also works for a system with both core/shell pairs and
@@ -150,9 +150,9 @@ The pressure for the core/shell system is computed via the regular
 LAMMPS convention by "treating the cores and shells as individual
 particles"_#MitchellFincham2. For the thermo output of the pressure
 as well as for the application of a barostat, it is necessary to
-use an additional "pressure"_compute_pressure compute based on the
-default "temperature"_compute_temp and specifying it as a second
-argument in "fix modify"_fix_modify.html and
+use an additional "pressure"_compute_pressure.html compute based on
+the default "temperature"_compute_temp.html and specifying it as a
+second argument in "fix modify"_fix_modify.html and
 "thermo_modify"_thermo_modify.html resulting in:
 
 (...)

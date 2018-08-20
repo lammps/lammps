@@ -56,8 +56,8 @@ The per-atom vector values are unitless numbers (theta) >= 0.0.
 [Restrictions:]
 
 This compute is part of the PERI package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

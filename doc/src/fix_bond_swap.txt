@@ -165,8 +165,8 @@ minimization"_minimize.html.
 [Restrictions:]
 
 This fix is part of the MC package.  It is only enabled if LAMMPS was
-built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+built with that package.  See the "Build package"_Build_package.html
+doc page for more info.
 
 The settings of the "special_bond" command must be 0,1,1 in order to
 use this fix, which is typical of bead-spring chains with FENE or

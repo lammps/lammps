@@ -182,8 +182,8 @@ The fix is not invoked during "energy minimization"_minimize.html.
 [Restrictions:]
 
 This fix is part of the USER-UEF package. It is only enabled if LAMMPS
-was built with that package. See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+was built with that package. See the "Build
+package"_Build_package.html doc page for more info.
 
 Due to requirements of the boundary conditions, when the {strain}
 keyword is set to zero (or unset), the initial simulation box must be

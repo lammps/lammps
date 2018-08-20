@@ -204,17 +204,22 @@ void FixGroup::set_group()
   int nlocal = atom->nlocal;
 
   // invoke atom-style variable if defined
+  // set post_integrate flag to 1, then unset after
+  // this is for any compute to check if it needs to 
+  //   operate differently due to invocation this early in timestep
+  // e.g. perform ghost comm update due to atoms having just moved
 
   double *var = NULL;
   int *ivector = NULL;
   double *dvector = NULL;
 
-
   if (varflag) {
+    update->post_integrate = 1;
     modify->clearstep_compute();
     memory->create(var,nlocal,"fix/group:varvalue");
     input->variable->compute_atom(ivar,igroup,var,1,0);
     modify->addstep_compute(update->ntimestep + nevery);
+    update->post_integrate = 0;
   }
 
   // invoke per-atom property if defined

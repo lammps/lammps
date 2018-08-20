@@ -78,8 +78,8 @@ wn (typically 0.0 or 1.0) :ul
 [Restrictions:]
 
 This dihedral style can only be used if LAMMPS was built with the
-USER_MISC package.  See the "Making LAMMPS"_Section_start.html#start_3
-section for more info on packages.
+USER_MISC package.  See the "Build package"_Build_package.html doc
+page for more info.
 
 [Related commands:]
 

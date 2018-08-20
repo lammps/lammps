@@ -58,9 +58,9 @@ style", with ... being fix, compute, pair, etc, it means that you
 mistyped the style name or that the command is part of an optional
 package which was not compiled into your executable.  The list of
 available styles in your executable can be listed by using "the -h
-command-line argument"_Section_start.html#start_6.  The installation
-and compilation of optional packages is explained in the "installation
-instructions"_Section_start.html#start_3.
+command-line swith"_Run_options.html.  The installation and
+compilation of optional packages is explained on the "Build
+packages"_Build_package.html doc page.
 
 For a given command, LAMMPS expects certain arguments in a specified
 order.  If you mess this up, LAMMPS will often flag the error, but it
@@ -93,7 +93,7 @@ decide if the WARNING is important or not.  A WARNING message that is
 generated in the middle of a run is only printed to the screen, not to
 the logfile, to avoid cluttering up thermodynamic output.  If LAMMPS
 crashes or hangs without spitting out an error message first then it
-could be a bug (see "this section"_#err_2) or one of the following
+could be a bug (see "this section"_Errors_bugs.html) or one of the following
 cases:
 
 LAMMPS runs in the available memory a processor allows to be

@@ -253,9 +253,9 @@ proceed for the maximum number of allowed iterations.
 The {part} keyword is useful for multi-replica or multi-partition
 simulations to indicate which partition this output and this file
 corresponds to, or for use in a "variable"_variable.html to append to
-a filename for output specific to this partition.  See "Section
-2.6"_Section_start.html#start_6 of the manual for details on running
-in multi-partition mode.
+a filename for output specific to this partition.  See discussion of
+the "-partition command-line switch"_Run_options.html for details on
+running in multi-partition mode.
 
 The {timeremain} keyword returns the remaining seconds when a
 timeout has been configured via the "timer timeout"_timer.html command.

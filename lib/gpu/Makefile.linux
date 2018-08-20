@@ -13,8 +13,8 @@ endif
 
 NVCC = nvcc
 
-# Tesla CUDA
-CUDA_ARCH = -arch=sm_21
+# older CUDA
+#CUDA_ARCH = -arch=sm_21
 # newer CUDA
 #CUDA_ARCH = -arch=sm_13
 # older CUDA

@@ -76,9 +76,9 @@ This fix is not invoked during "energy minimization"_minimize.html.
 
 [Restrictions:]
 
-The {langevin/spin} fix is part of the SPIN package.
-This style is only enabled if LAMMPS was built with this package.
-See the "Making LAMMPS"_Section_start.html#start_3 section for more info.
+The {langevin/spin} fix is part of the SPIN package.  This style is
+only enabled if LAMMPS was built with this package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 The numerical integration has to be performed with {fix nve/spin}
 when {fix langevin/spin} is enabled. 

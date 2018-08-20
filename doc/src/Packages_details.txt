@@ -382,6 +382,11 @@ switches"_Run_options.html.  Also see the "GPU"_#PKG-GPU, "OPT"_#PKG-OPT,
 have styles optimized for CPUs, KNLs, and GPUs.
 
 You must have a C++11 compatible compiler to use this package.
+KOKKOS makes extensive use of advanced C++ features, which can
+expose compiler bugs, especially when compiling for maximum
+performance at high optimization levels. Please see the file
+lib/kokkos/README for a list of compilers and their respective
+platforms, that are known to work.
 
 [Authors:] The KOKKOS package was created primarily by Christian Trott
 and Stan Moore (Sandia), with contributions from other folks as well.

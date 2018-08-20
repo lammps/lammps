@@ -89,6 +89,8 @@ Miscellaneous tools :h3
 
 :line
 
+Tool descriptions :h3
+
 amber2lmp tool :h4,link(amber)
 
 The amber2lmp sub-directory contains two Python scripts for converting

@@ -8,14 +8,13 @@ Section"_Examples.html :c
 
 :line
 
-How to discussions :h2
+Howto discussions :h2
 
 These doc pages describe how to perform various tasks with LAMMPS,
 both for users and developers.  The
 "glossary"_http://lammps.sandia.gov website page also lists MD
-terminology with links to corresponding LAMMPS manual pages.
-
-The example input scripts included in the examples dir of the LAMMPS
+terminology with links to corresponding LAMMPS manual pages.  The
+example input scripts included in the examples dir of the LAMMPS
 distribution and highlighted on the "Examples"_Examples.html doc page
 also show how to setup and run various kinds of simulations.
 

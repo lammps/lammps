@@ -81,8 +81,13 @@ void KimQuery::command(int narg, char **arg)
 
   value = do_query(model, property, comm->me, world);
 
-  if (comm->me == 0)
-    printf("property %s for model %s is %s\n",property,model,value);
+  // check for valid result
+
+  int len = strlen(value) + 1;
+  if (len == 1) {
+    // TODO: store more detailed error message after \0 byte.
+    error->all(FLERR,"Query of OpenKIM database failed");
+  }
 
   char **varcmd = new char*[3];
   varcmd[0] = varname;
@@ -98,19 +103,21 @@ void KimQuery::command(int narg, char **arg)
 
 char *do_query(char *model, char *property, int rank, MPI_Comm comm)
 {
-  char val[512], *retval;
-  int len;
+  char value[512], *retval;
 
   // only run query from rank 0
   if (rank == 0) {
 
     // fake query
-    strcpy(val,(const char*)"4.25");
+    strcpy(value,(const char*)"4.25");
   }
-  MPI_Bcast(val, 512, MPI_CHAR, 0, comm);
-  len = strlen(val) + 1;
+  MPI_Bcast(value, 512, MPI_CHAR, 0, comm);
+
+  // must make a proper copy of the query, as the stack allocation
+  // will go out of scope
+
+  int len = strlen(value) + 1;
   retval = new char[len];
-  strcpy(retval,val);
-    
+  strcpy(retval,value);
   return retval;
 }

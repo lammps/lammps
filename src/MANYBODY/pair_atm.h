@@ -39,7 +39,8 @@ class PairATM : public Pair {
   void read_restart_settings(FILE *);
 
  protected:
-  double cut_global, cutoff_squared;
+  // SJP: add 2nd cutoff
+  double cut_global,cut_triple;
   double ***nu;
 
   void allocate();

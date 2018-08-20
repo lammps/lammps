@@ -92,6 +92,10 @@ void PairATM::compute(int eflag, int vflag)
   int *type = atom->type;
 
   double cutoff_squared = cut_global*cut_global;
+  // SJP: new cutoff
+  double triple = cut_triple*cut_triple*cut_triple;
+  double cutoff_triple_sixth = triple*triple;
+
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
@@ -137,6 +141,10 @@ void PairATM::compute(int eflag, int vflag)
         rik[2] = x[k][2] - zi;
         rik2 = rik[0]*rik[0] + rik[1]*rik[1] + rik[2]*rik[2];
         if (rik2 > cutoff_squared) continue;
+
+        // SJP: add this line?
+
+        if (rij2*rjk2*rik2 > cutoff_triple_sixth) continue;
 
         nu_local = nu[type[i]][type[j]][type[k]];
         if (nu_local == 0.0) continue;
@@ -192,9 +200,14 @@ void PairATM::allocate()
 
 void PairATM::settings(int narg, char **arg)
 {
-  if (narg != 1) error->all(FLERR,"Illegal pair_style command");
+  // SJP: change to 2 args, require triple <= global
+
+  if (narg != 2) error->all(FLERR,"Illegal pair_style command");
 
   cut_global = force->numeric(FLERR,arg[0]);
+  cut_triple = force->numeric(FLERR,arg[1]);
+
+  if (cut_triple > cut_global) error->all(FLERR,"Illegal pair_style command");
 }
 
 /* ----------------------------------------------------------------------
@@ -311,6 +324,8 @@ void PairATM::read_restart(FILE *fp)
 void PairATM::write_restart_settings(FILE *fp)
 {
   fwrite(&cut_global,sizeof(double),1,fp);
+  // SJP: 2nd arg
+  fwrite(&cut_triple,sizeof(double),1,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -319,9 +334,14 @@ void PairATM::write_restart_settings(FILE *fp)
 
 void PairATM::read_restart_settings(FILE *fp)
 {
+  // SJP: 2nd arg
   int me = comm->me;
-  if (me == 0) fread(&cut_global,sizeof(double),1,fp);
+  if (me == 0) {
+    fread(&cut_global,sizeof(double),1,fp);
+    fread(&cut_triple,sizeof(double),1,fp);
+  }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&cut_triple,1,MPI_DOUBLE,0,world);
 }
 
 /* ----------------------------------------------------------------------

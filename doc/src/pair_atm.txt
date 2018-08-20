@@ -10,16 +10,20 @@ pair_style atm command :h3
 
 [Syntax:]
 
-pair_style atm cutoff :pre
+SJP: add an arg
 
-cutoff = global cutoff for 3-body interactions (distance units) :ul
+pair_style atm cutoff cutoff_triple :pre
+
+cutoff = cutoff for each pair in 3-body interaction (distance units)
+cutoff_triple = additional cutoff applied to product of 3 pairwise distances (distance units) :ul
 
 [Examples:]
 
-pair_style atm 2.5
+SJP: is 1.5 a good value?
+pair_style atm 2.5 1.5
 pair_coeff * * * 0.072 :pre
 
-pair_style hybrid/overlay lj/cut 6.5 atm 2.5
+pair_style hybrid/overlay lj/cut 6.5 atm 2.5 1.5
 pair_coeff * * lj/cut 1.0 1.0
 pair_coeff 1 1 atm 1 0.064
 pair_coeff 1 1 atm 2 0.080
@@ -50,7 +54,10 @@ potential using the "pair_style hybrid/overlay"_pair_hybrid.html
 command as in the example above.
 
 The potential for a triplet of atom is calculated only if all 3
-distances r12, r23, r31 between the 3 atoms satisfy rIJ < cutoff
+distances r12, r23, r31 between the 3 atoms satisfy rIJ < cutoff.
+SJP: In addition, the product of the 3 distances r12*r23*r31 <
+cutoff_triple^3 is required, which limits the contribution of the
+potential to ???
 
 The following coefficients must be defined for each pair of atoms
 types via the "pair_coeff"_pair_coeff.html command as in the examples

@@ -48,7 +48,7 @@ This is the list of packages that may require additional steps.
 "USER-QMMM"_#user-qmmm,
 "USER-QUIP"_#user-quip,
 "USER-SMD"_#user-smd,
-"USER-VTK"_#user-vtk :tb(c=6,ea=c)
+"USER-VTK"_#user-vtk :tb(c=6,ea=c,a=l)
 
 :line
 
@@ -175,8 +175,15 @@ package?" page.
 [CMake build]:
 
 -D DOWNLOAD_KIM=value    # download OpenKIM API v1 for build, value = no (default) or yes
--D KIM_LIBRARY=path      # path to KIM shared library (only needed if a custom location) 
--D KIM_INCLUDE_DIR=path  # path to KIM include directory (only needed if a custom location) :pre
+-D KIM_LIBRARY=path      # KIM library file (only needed if a custom location) 
+-D KIM_INCLUDE_DIR=path  # KIM include directory (only needed if a custom location) :pre
+
+If DOWNLOAD_KIM is set, the KIM library will be downloaded and built
+inside the CMake build directory.  If the KIM library is already on
+your system (in a location CMake cannot find it), KIM_LIBRARY is the
+filename (plus path) of the KIM library file, not the directory the
+library file is in.  KIM_INCLUDE_DIR is the directory the KIM include
+file is in.
 
 [Traditional make]:
 
@@ -296,7 +303,13 @@ library.
 [CMake build]:
 
 -D DOWNLOAD_LATTE=value    # download LATTE for build, value = no (default) or yes
--D LATTE_LIBRARY=path      # path to LATTE shared library (only needed if a custom location) :pre
+-D LATTE_LIBRARY=path      # LATTE library file (only needed if a custom location) :pre
+
+If DOWNLOAD_LATTE is set, the LATTE library will be downloaded and
+built inside the CMake build directory.  If the LATTE library is
+already on your system (in a location CMake cannot find it),
+LATTE_LIBRARY is the filename (plus path) of the LATTE library file,
+not the directory the library file is in.
 
 [Traditional make]:
 
@@ -371,8 +384,15 @@ lib/mscg/README and MSCG/Install files for more details.
 [CMake build]:
 
 -D DOWNLOAD_MSCG=value    # download MSCG for build, value = no (default) or yes
--D MSCG_LIBRARY=path      # path to MSCG shared library (only needed if a custom location) 
--D MSCG_INCLUDE_DIR=path  # path to MSCG include directory (only needed if a custom location) :pre
+-D MSCG_LIBRARY=path      # MSCG library file (only needed if a custom location) 
+-D MSCG_INCLUDE_DIR=path  # MSCG include directory (only needed if a custom location) :pre
+
+If DOWNLOAD_MSCG is set, the MSCG library will be downloaded and built
+inside the CMake build directory.  If the MSCG library is already on
+your system (in a location CMake cannot find it), MSCG_LIBRARY is the
+filename (plus path) of the MSCG library file, not the directory the
+library file is in.  MSCG_INCLUDE_DIR is the directory the MSCG
+include file is in.
 
 [Traditional make]:
 
@@ -515,8 +535,15 @@ library"_voro_home.
 [CMake build]:
 
 -D DOWNLOAD_VORO=value    # download Voro++ for build, value = no (default) or yes
--D VORO_LIBRARY=path      # (only needed if at custom location) path to VORO shared library
--D VORO_INCLUDE_DIR=path  # (only needed if at custom location) path to VORO include directory :pre
+-D VORO_LIBRARY=path      # Voro++ library file (only needed if at custom location) 
+-D VORO_INCLUDE_DIR=path  # Voro++ include directory (only needed if at custom location) :pre
+
+If DOWNLOAD_VORO is set, the Voro++ library will be downloaded and
+built inside the CMake build directory.  If the Voro++ library is
+already on your system (in a location CMake cannot find it),
+VORO_LIBRARY is the filename (plus path) of the Voro++ library file,
+not the directory the library file is in.  VORO_INCLUDE_DIR is the
+directory the Voro++ include file is in.
 
 [Traditional make]:
 
@@ -877,7 +904,10 @@ Eigen3 is a template library, so you do not need to build it.
 -D DOWNLOAD_EIGEN3            # download Eigen3, value = no (default) or yes
 -D EIGEN3_INCLUDE_DIR=path    # path to Eigen library (only needed if a custom location) :pre
 
-Set EIGEN3_INCLUDE_DIR if CMake cannot find the Eigen3 library.
+If DOWNLOAD_EIGEN3 is set, the Eigen3 library will be downloaded and
+inside the CMake build directory.  If the Eig3n3 library is already on
+your system (in a location CMake cannot find it), EIGEN3_INCLUDE_DIR
+is the directory the Eigen3++ include file is in.
 
 [Traditional make]:
 

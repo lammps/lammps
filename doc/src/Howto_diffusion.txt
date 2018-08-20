@@ -7,7 +7,7 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :line
 
-Calculate a diffusion coefficient :h3
+Calculate diffusion coefficients :h3
 
 The diffusion coefficient D of a material can be measured in at least
 2 ways using various options in LAMMPS.  See the examples/DIFFUSE

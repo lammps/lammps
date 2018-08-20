@@ -7,7 +7,7 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :line
 
-Calcalate temperature :h3
+Calculate temperature :h3
 
 Temperature is computed as kinetic energy divided by some number of
 degrees of freedom (and the Boltzmann constant).  Since kinetic energy

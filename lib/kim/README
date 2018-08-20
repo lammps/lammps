@@ -13,6 +13,12 @@ do the same thing by typing "python Install.py" from within this
 directory, or you can do it manually by following the instructions
 below.
 
+As of KIM API version 2, the KIM package also provides a LAMMPS command
+to perform queries through the OpenKIM web API. This feature requires
+that the CURL library (libcurl) development package and its configuration
+query tool, curl-config, are installed. The provided Makefile.lammps
+is set up to automatically detect this. 
+
 -----------------
 
 Instructions:

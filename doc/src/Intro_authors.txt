@@ -26,8 +26,9 @@ and Ray Shan, now at Materials Design.
 :line
 
 The "Authors page"_http://lammps.sandia.gov/authors.html of the
-"LAMMPS website"_lws has a comprhensive list of all the individuals who
-have contributed code for a new feature or command or tool to LAMMPS.
+"LAMMPS website"_lws has a comprehensive list of all the individuals
+who have contributed code for a new feature or command or tool to
+LAMMPS.
 
 :line
 

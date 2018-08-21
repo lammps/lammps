@@ -9,17 +9,17 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 GPU package :h3
 
-The GPU package was developed by Mike Brown at ORNL and his
-collaborators, particularly Trung Nguyen (ORNL).  It provides GPU
-versions of many pair styles, including the 3-body Stillinger-Weber
-pair style, and for "kspace_style pppm"_kspace_style.html for
-long-range Coulombics.  It has the following general features:
+The GPU package was developed by Mike Brown while at SNL and ORNL
+and his collaborators, particularly Trung Nguyen (now at Northwestern).
+It provides GPU versions of many pair styles and for parts of the
+"kspace_style pppm"_kspace_style.html for long-range Coulombics.
+It has the following general features:
 
 It is designed to exploit common GPU hardware configurations where one
 or more GPUs are coupled to many cores of one or more multi-core CPUs,
 e.g. within a node of a parallel machine. :ulb,l
 
-Atom-based data (e.g. coordinates, forces) moves back-and-forth
+Atom-based data (e.g. coordinates, forces) are moved back-and-forth
 between the CPU(s) and GPU every timestep. :l
 
 Neighbor lists can be built on the CPU or on the GPU :l
@@ -28,8 +28,8 @@ The charge assignment and force interpolation portions of PPPM can be
 run on the GPU.  The FFT portion, which requires MPI communication
 between processors, runs on the CPU. :l
 
-Asynchronous force computations can be performed simultaneously on the
-CPU(s) and GPU. :l
+Force computations of different style (pair vs. bond/angle/dihedral/improper)
+can be performed concurrently on the GPU and CPU(s), respectively. :l
 
 It allows for GPU computations to be performed in single or double
 precision, or in mixed-mode precision, where pairwise forces are
@@ -39,20 +39,32 @@ force vectors. :l
 LAMMPS-specific code is in the GPU package.  It makes calls to a
 generic GPU library in the lib/gpu directory.  This library provides
 NVIDIA support as well as more general OpenCL support, so that the
-same functionality can eventually be supported on a variety of GPU
-hardware. :l
+same functionality is supported on a variety of hardware. :l
 :ule
 
 [Required hardware/software:]
 
-To use this package, you currently need to have an NVIDIA GPU and
-install the NVIDIA CUDA software on your system:
+To compile and use this package in CUDA mode, you currently need
+to have an NVIDIA GPU and install the corresponding NVIDIA CUDA
+toolkit software on your system (this is primarily tested on Linux
+and completely unsupported on Windows):
 
 Check if you have an NVIDIA GPU: cat /proc/driver/nvidia/gpus/*/information :ulb,l
 Go to http://www.nvidia.com/object/cuda_get.html :l
 Install a driver and toolkit appropriate for your system (SDK is not necessary) :l
 Run lammps/lib/gpu/nvc_get_devices (after building the GPU library, see below) to
 list supported devices and properties :ule,l
+
+To compile and use this package in OpenCL mode, you currently need
+to have the OpenCL headers and the (vendor neutral) OpenCL library installed.
+In OpenCL mode, the acceleration depends on having an "OpenCL Installable Client
+Driver (ICD)"_https://www.khronos.org/news/permalink/opencl-installable-client-driver-icd-loader
+installed. There can be multiple of them for the same or different hardware
+(GPUs, CPUs, Accelerators) installed at the same time. OpenCL refers to those
+as 'platforms'.  The GPU library will select the [first] suitable platform,
+but this can be overridded using the device option of the "package"_package.html
+command. run lammps/lib/gpu/ocl_get_devices to get a list of available
+platforms and devices with a suitable ICD available.
 
 [Building LAMMPS with the GPU package:]
 
@@ -119,7 +131,10 @@ GPUs/node to use, as well as other options.
 
 The performance of a GPU versus a multi-core CPU is a function of your
 hardware, which pair style is used, the number of atoms/GPU, and the
-precision used on the GPU (double, single, mixed).
+precision used on the GPU (double, single, mixed). Using the GPU package
+in OpenCL mode on CPUs (which uses vectorization and multithreading) is
+usually resulting in inferior performance compared to using LAMMPS' native
+threading and vectorization support in the USER-OMP and USER-INTEL packages.
 
 See the "Benchmark page"_http://lammps.sandia.gov/bench.html of the
 LAMMPS web site for performance of the GPU package on various
@@ -145,7 +160,7 @@ The "package gpu"_package.html command has several options for tuning
 performance.  Neighbor lists can be built on the GPU or CPU.  Force
 calculations can be dynamically balanced across the CPU cores and
 GPUs.  GPU-specific settings can be made which can be optimized
-for different hardware.  See the "packakge"_package.html command
+for different hardware.  See the "package"_package.html command
 doc page for details. :l
 
 As described by the "package gpu"_package.html command, GPU

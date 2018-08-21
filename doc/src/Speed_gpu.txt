@@ -48,12 +48,11 @@ hardware. :l
 To use this package, you currently need to have an NVIDIA GPU and
 install the NVIDIA CUDA software on your system:
 
-Check if you have an NVIDIA GPU: cat
-/proc/driver/nvidia/gpus/0/information Go to
-http://www.nvidia.com/object/cuda_get.html Install a driver and
-toolkit appropriate for your system (SDK is not necessary) Run
-lammps/lib/gpu/nvc_get_devices (after building the GPU library, see
-below) to list supported devices and properties :ul
+Check if you have an NVIDIA GPU: cat /proc/driver/nvidia/gpus/*/information :ulb,l
+Go to http://www.nvidia.com/object/cuda_get.html :l
+Install a driver and toolkit appropriate for your system (SDK is not necessary) :l
+Run lammps/lib/gpu/nvc_get_devices (after building the GPU library, see below) to
+list supported devices and properties :ule,l
 
 [Building LAMMPS with the GPU package:]
 

@@ -891,7 +891,7 @@ void PairTERSOFFHG::read_lib(Param *param)
   if (strcmp(splfile, "NULL")!=0 && comm->me == 0) 
   {
     std::ifstream fp(splfile, std::ios::in);
-    if (fp == NULL)
+    if (!fp)
     {
       char str[128];
       sprintf(str,"Cannot open specified spline file");

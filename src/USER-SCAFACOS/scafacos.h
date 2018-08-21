@@ -30,7 +30,7 @@ class Scafacos : public KSpace {
   Scafacos(class LAMMPS *, int, char **);
   ~Scafacos();
   void init();
-  void setup();
+  void setup() {}
   void compute(int, int);
   int modify_param(int, char **);
   double memory_usage();
@@ -40,7 +40,7 @@ class Scafacos : public KSpace {
 
   char *method;
   double tolerance;
-  double *epot,**efield;
+  double *xpbc,*epot,**efield;
   int tolerance_type;
   int initialized,maxatom;
 

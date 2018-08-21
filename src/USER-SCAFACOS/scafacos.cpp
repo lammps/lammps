@@ -101,8 +101,8 @@ void Scafacos::init()
   if (logfile && me == 0) fprintf(logfile,
                           "Setting up ScaFaCoS with solver %s ...\n",method);
 
-  if (!atom->q_flag) error->all(FLERR,
-                                "Kspace style requires atom attribute q");
+  if (!atom->q_flag) 
+    error->all(FLERR,"Kspace style requires atom attribute q");
 
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot use ScaFaCoS with 2d simulation");
@@ -166,12 +166,9 @@ void Scafacos::init()
     // more useful here, since the parameters should be tuned now 
     if (me == 0) fcs_print_parameters(fcs);
   }
+
   initialized = 1;
 }
-
-/* ---------------------------------------------------------------------- */
-
-void Scafacos::setup() {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -209,20 +206,14 @@ void Scafacos::compute(int eflag, int vflag)
     check_result(result);
   }
   
-  // grow epot & efield if necessary
+  // grow xpbc, epot, efield if necessary
 
-  if (nlocal == 0 && maxatom == 0) {
-    memory->destroy(epot);
-    memory->destroy(efield);
-    maxatom = 1;
-    memory->create(epot,maxatom,"scafacos:epot");
-    memory->create(efield,maxatom,3,"scafacos:efield");
-  }
-
-  if (nlocal > maxatom) {
+  if (nlocal > maxatom || maxatom == 0) {
+    memory->destroy(xpbc);
     memory->destroy(epot);
     memory->destroy(efield);
     maxatom = atom->nmax;
+    memory->create(xpbc,3*maxatom,"scafacos:xpbc");
     memory->create(epot,maxatom,"scafacos:epot");
     memory->create(efield,maxatom,3,"scafacos:efield");
   }
@@ -231,11 +222,26 @@ void Scafacos::compute(int eflag, int vflag)
   {
     fcs_set_compute_virial(fcs,1);
     if (strcmp(method,"p3m") == 0)
-      error->all(FLERR,"ScaFaCoS p3m does not support the computation of virial");
+      error->all(FLERR,"ScaFaCoS p3m does not support computation of virial");
   }
 
-  result = fcs_run(fcs,nlocal,&x[0][0],q,&efield[0][0],epot);
+  // pack coords into xpbc and apply PBC
+
+  double **x = atom->x;
+  memcpy(xpbc,&x[0][0],3*nlocal*sizeof(double));
+
+  int j = 0;
+  for (int i = 0; i < nlocal; i++) {
+    domain->remap(&xpbc[j]);
+    j += 3;
+  }
+
+  // invoke ScaFaCoS solver
+
+  result = fcs_run(fcs,nlocal,xpbc,q,&efield[0][0],epot);
   check_result(result);
+
+  // extract virial
 
   if (vflag_global)
   {
@@ -270,6 +276,14 @@ void Scafacos::compute(int eflag, int vflag)
   }
 
   MPI_Allreduce(&myeng,&energy,1,MPI_DOUBLE,MPI_SUM,world);
+}
+
+/* ----------------------------------------------------------------------
+   pack local coords into xpbc, enforcing PBC
+------------------------------------------------------------------------- */
+
+void Scafacos::pack_coords()
+{
 }
 
 /* ---------------------------------------------------------------------- */

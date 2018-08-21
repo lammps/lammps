@@ -13,28 +13,23 @@
 
 #ifdef KSPACE_CLASS
 
-KSpaceStyle(pppm/spin,PPPMSpin)
+KSpaceStyle(pppm/dipole/spin,PPPMDipoleSpin)
 
 #else
 
-#ifndef LMP_PPPM_DIPOLE_H
-#define LMP_PPPM_DIPOLE_H
+#ifndef LMP_PPPM_DIPOLE_SPIN_H
+#define LMP_PPPM_DIPOLE_SPIN_H
 
-#include "pppm.h"
+#include "pppm_dipole.h"
 
 namespace LAMMPS_NS {
 
-class PPPMSpin : public PPPM {
+class PPPMDipoleSpin : public PPPMDipole {
  public:
-  PPPMSpin(class LAMMPS *, int, char **);
-  virtual ~PPPMSpin();
+  PPPMDipoleSpin(class LAMMPS *, int, char **);
+  virtual ~PPPMDipoleSpin();
   void init();
-  void setup();
-  void setup_grid();
   void compute(int, int);
-  int timing_1d(int, double &);
-  int timing_3d(int, double &);
-  double memory_usage();
 
  protected:
   double hbar;                  // reduced Planck's constant      
@@ -42,55 +37,15 @@ class PPPMSpin : public PPPM {
   double mu_0;                  // vacuum permeability
   double mub2mu0;               // prefactor for mech force
   double mub2mu0hbinv;          // prefactor for mag force
-  void set_grid_global();
-  double newton_raphson_f();
-
-  void allocate();
-  void allocate_peratom();
-  void deallocate();
-  void deallocate_peratom();
-  void compute_gf_denom();
 
   void slabcorr();
 
-  // grid communication
-
-  void pack_forward(int, FFT_SCALAR *, int, int *);
-  void unpack_forward(int, FFT_SCALAR *, int, int *);
-  void pack_reverse(int, FFT_SCALAR *, int, int *);
-  void unpack_reverse(int, FFT_SCALAR *, int, int *);
-
   // spin
 
-  FFT_SCALAR ***densityx_brick_spin,***densityy_brick_spin,***densityz_brick_spin;
-  FFT_SCALAR ***vdxx_brick_spin,***vdyy_brick_spin,***vdzz_brick_spin;
-  FFT_SCALAR ***vdxy_brick_spin,***vdxz_brick_spin,***vdyz_brick_spin;
-  FFT_SCALAR ***ux_brick_spin,***uy_brick_spin,***uz_brick_spin;
-  FFT_SCALAR ***v0x_brick_spin,***v1x_brick_spin,***v2x_brick_spin;
-  FFT_SCALAR ***v3x_brick_spin,***v4x_brick_spin,***v5x_brick_spin;
-  FFT_SCALAR ***v0y_brick_spin,***v1y_brick_spin,***v2y_brick_spin;
-  FFT_SCALAR ***v3y_brick_spin,***v4y_brick_spin,***v5y_brick_spin;
-  FFT_SCALAR ***v0z_brick_spin,***v1z_brick_spin,***v2z_brick_spin;
-  FFT_SCALAR ***v3z_brick_spin,***v4z_brick_spin,***v5z_brick_spin;
-  FFT_SCALAR *work3,*work4;
-  FFT_SCALAR *densityx_fft_spin,*densityy_fft_spin,*densityz_fft_spin;
-  class GridComm *cg_spin;
-  class GridComm *cg_peratom_spin;
-  int only_spin_flag;
   double spsum,spsqsum,sp2;
-  double find_gewald_spin(double, double, bigint, double, double);
-  double newton_raphson_f_spin(double, double, bigint, double, double);
-  double derivf_spin(double, double, bigint, double, double);
-  double compute_df_kspace_spin();
-  double compute_qopt_spin();
-  void compute_gf_spin();
   void make_rho_spin();
-  void brick2fft_spin();
-  void poisson_ik_spin();
-  void poisson_peratom_spin();
   void fieldforce_ik_spin();
   void fieldforce_peratom_spin();
-  double final_accuracy_spin();
   void spsum_spsq();
 
 };
@@ -102,9 +57,9 @@ class PPPMSpin : public PPPM {
 
 /* ERROR/WARNING messages:
 
-E: Cannot (yet) use charges with Kspace style PPPMSpin
+E: Cannot (yet) use charges with Kspace style PPPMDipoleSpin
 
-Charge-spin interactions are not yet implemented in PPPMSpin so this
+Charge-spin interactions are not yet implemented in PPPMDipoleSpin so this
 feature is not yet supported.
 
 E: Must redefine kspace_style after changing to triclinic box
@@ -123,11 +78,11 @@ E: Cannot (yet) use 'electron' units with spins
 
 This feature is not yet supported.
 
-E: Cannot yet use triclinic cells with PPPMSpin
+E: Cannot yet use triclinic cells with PPPMDipoleSpin
 
 This feature is not yet supported.
 
-E: Cannot yet use TIP4P with PPPMSpin
+E: Cannot yet use TIP4P with PPPMDipoleSpin
 
 This feature is not yet supported.
 
@@ -207,9 +162,9 @@ outside a processor's sub-domain or even the entire simulation box.
 This indicates bad physics, e.g. due to highly overlapping atoms, too
 large a timestep, etc.
 
-E: Using kspace solver PPPMSpin on system with no spins
+E: Using kspace solver PPPMDipoleSpin on system with no spins
 
-Must have non-zero spins with PPPMSpin.
+Must have non-zero spins with PPPMDipoleSpin.
 
 E: Must use kspace_modify gewald for system with no spins
 

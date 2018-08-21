@@ -441,8 +441,6 @@ void PairSpinExchange::allocate()
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
 }
 
-
-
 /* ----------------------------------------------------------------------
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
@@ -527,4 +525,3 @@ void PairSpinExchange::read_restart_settings(FILE *fp)
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
 }
-

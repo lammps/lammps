@@ -49,6 +49,8 @@ class PairSpinLong : public PairSpin {
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
+  
+  double cut_spin_long_global;	// global long cutoff distance 
 
  protected:
   double hbar;	 		// reduced Planck's constant
@@ -56,7 +58,8 @@ class PairSpinLong : public PairSpin {
   double mu_0;			// vacuum permeability
   double mub2mu0;		// prefactor for mech force
   double mub2mu0hbinv;		// prefactor for mag force
-  double cut_spin, cut_spinsq;
+
+  double **cut_spin_long;	// cutoff distance long
 
   double g_ewald;
   int ewald_order;

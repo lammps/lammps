@@ -13,19 +13,19 @@
 
 /* ------------------------------------------------------------------------
    Contributing authors: Julien Tranchida (SNL)
-                         Stan Moore (SNL)
-   
-   Please cite the related publication:
-   Tranchida, J., Plimpton, S. J., Thibaudeau, P., & Thompson, A. P. (2018). 
-   Massively parallel symplectic algorithm for coupled magnetic spin dynamics 
-   and molecular dynamics. arXiv preprint arXiv:1801.10233.
-------------------------------------------------------------------------- */
+                         Aidan Thompson (SNL)
 
+   Please cite the related publication:
+   Tranchida, J., Plimpton, S. J., Thibaudeau, P., & Thompson, A. P. (2018).
+   Massively parallel symplectic algorithm for coupled magnetic spin dynamics
+   and molecular dynamics. Journal of Computational Physics.
+------------------------------------------------------------------------- */
 
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+
 #include "pair_spin_long.h"
 #include "atom.h"
 #include "comm.h"
@@ -80,8 +80,152 @@ PairSpinLong::~PairSpinLong()
 {
   if (allocated) {
     memory->destroy(setflag);
-    memory->destroy(cutsq);
+    memory->destroy(cut_spin_long);
   }
+}
+
+/* ----------------------------------------------------------------------
+   global settings
+------------------------------------------------------------------------- */
+
+void PairSpinLong::settings(int narg, char **arg)
+{
+  if (narg < 1 || narg > 2)
+    error->all(FLERR,"Incorrect args in pair_style command");
+
+  if (strcmp(update->unit_style,"metal") != 0)
+    error->all(FLERR,"Spin simulations require metal unit style");
+
+  cut_spin_long_global = force->numeric(FLERR,arg[0]);
+  //cut_spin = force->numeric(FLERR,arg[0]);
+  
+  // reset cutoffs that have been explicitly set
+  
+  if (allocated) {
+    int i,j;
+    for (i = 1; i <= atom->ntypes; i++) {
+      for (j = i+1; j <= atom->ntypes; j++) {
+        if (setflag[i][j]) {
+          cut_spin_long[i][j] = cut_spin_long_global;
+        }
+      }
+    }
+  }
+
+}
+
+/* ----------------------------------------------------------------------
+   set coeffs for one or more type pairs
+------------------------------------------------------------------------- */
+
+void PairSpinLong::coeff(int narg, char **arg)
+{
+  if (!allocated) allocate();
+  
+  // check if args correct
+
+  if (strcmp(arg[2],"long") != 0)
+    error->all(FLERR,"Incorrect args in pair_style command");
+  if (narg != 3) 
+    error->all(FLERR,"Incorrect args in pair_style command");
+  
+  int ilo,ihi,jlo,jhi;
+  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+
+  double spin_long_cut_one = force->numeric(FLERR,arg[3]);
+
+  int count = 0;
+  for (int i = ilo; i <= ihi; i++) {
+    for (int j = MAX(jlo,i); j <= jhi; j++) {
+      setflag[i][j] = 1;
+      cut_spin_long[i][j] = spin_long_cut_one;
+      count++;
+    }
+  }
+
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+}
+
+/* ----------------------------------------------------------------------
+   init specific to this pair style
+------------------------------------------------------------------------- */
+
+void PairSpinLong::init_style()
+{
+  if (!atom->sp_flag)
+    error->all(FLERR,"Pair spin requires atom/spin style");
+  
+  // need a full neighbor list
+
+  int irequest = neighbor->request(this,instance_me);
+  neighbor->requests[irequest]->half = 0;
+  neighbor->requests[irequest]->full = 1;
+  
+  // checking if nve/spin is a listed fix
+
+  int ifix = 0;
+  while (ifix < modify->nfix) {
+    if (strcmp(modify->fix[ifix]->style,"nve/spin") == 0) break;
+    ifix++;
+  }
+  if (ifix == modify->nfix)
+    error->all(FLERR,"pair/spin style requires nve/spin");
+
+  // get the lattice_flag from nve/spin
+
+  for (int i = 0; i < modify->nfix; i++) {
+    if (strcmp(modify->fix[i]->style,"nve/spin") == 0) {
+      lockfixnvespin = (FixNVESpin *) modify->fix[i];
+      lattice_flag = lockfixnvespin->lattice_flag;
+    }
+  }
+
+  // insure use of KSpace long-range solver, set g_ewald
+
+  if (force->kspace == NULL)
+    error->all(FLERR,"Pair style requires a KSpace style");
+
+  g_ewald = force->kspace->g_ewald;
+
+}
+
+/* ----------------------------------------------------------------------
+   init for one type pair i,j and corresponding j,i
+------------------------------------------------------------------------- */
+
+double PairSpinLong::init_one(int i, int j)
+{
+  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+ 
+  cut_spin_long[j][i] = cut_spin_long[i][j];
+
+  return cut_spin_long_global;
+}
+
+/* ----------------------------------------------------------------------
+   extract the larger cutoff if "cut" or "cut_coul"
+------------------------------------------------------------------------- */
+
+void *PairSpinLong::extract(const char *str, int &dim)
+{
+  if (strcmp(str,"cut") == 0) {
+    dim = 0;
+    return (void *) &cut_spin_long_global;
+  } else if (strcmp(str,"cut_coul") == 0) {
+    dim = 0;
+    return (void *) &cut_spin_long_global;
+  } else if (strcmp(str,"ewald_order") == 0) {
+    ewald_order = 0;
+    ewald_order |= 1<<1;
+    ewald_order |= 1<<3;
+    dim = 0;
+    return (void *) &ewald_order;
+  } else if (strcmp(str,"ewald_mix") == 0) {
+    dim = 0;
+    return (void *) &mix_flag;
+  }
+  return NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -95,6 +239,7 @@ void PairSpinLong::compute(int eflag, int vflag)
   double evdwl,ecoul;
   double xi[3],rij[3];
   double spi[4],spj[4],fi[3],fmi[3];
+  double local_cut2;
   double pre1,pre2,pre3;
   int *ilist,*jlist,*numneigh,**firstneigh;  
 
@@ -156,26 +301,25 @@ void PairSpinLong::compute(int eflag, int vflag)
       rij[2] = x[j][2] - xi[2];
       rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
 
-      if (rsq < cutsq[itype][jtype]) {
+      local_cut2 = cut_spin_long[itype][jtype]*cut_spin_long[itype][jtype];
+
+      if (rsq < local_cut2) {
         r2inv = 1.0/rsq;
         rinv = sqrt(r2inv);
 
-        if (rsq < cut_spinsq) {
-          r = sqrt(rsq);
-          grij = g_ewald * r;
-          expm2 = exp(-grij*grij);
-          t = 1.0 / (1.0 + EWALD_P*grij);
-          erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+        r = sqrt(rsq);
+        grij = g_ewald * r;
+        expm2 = exp(-grij*grij);
+        t = 1.0 / (1.0 + EWALD_P*grij);
+        erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
 
-          bij[0] = erfc * rinv;
-          bij[1] = (bij[0] + pre1*expm2) * r2inv;
-          bij[2] = (3.0*bij[1] + pre2*expm2) * r2inv;
-          bij[3] = (5.0*bij[2] + pre3*expm2) * r2inv;
+        bij[0] = erfc * rinv;
+        bij[1] = (bij[0] + pre1*expm2) * r2inv;
+        bij[2] = (3.0*bij[1] + pre2*expm2) * r2inv;
+        bij[3] = (5.0*bij[2] + pre3*expm2) * r2inv;
 
-	  compute_long(i,j,rij,bij,fmi,spi,spj);
-	  compute_long_mech(i,j,rij,bij,fmi,spi,spj);
-          
-	}
+	compute_long(i,j,rij,bij,fmi,spi,spj);
+	compute_long_mech(i,j,rij,bij,fmi,spi,spj);
       }
 
       // force accumulation
@@ -194,7 +338,7 @@ void PairSpinLong::compute(int eflag, int vflag)
       }
 
       if (eflag) {
-	if (rsq <= cut_spinsq) {
+	if (rsq <= local_cut2) {
 	  evdwl -= spi[0]*fmi[0] + spi[1]*fmi[1] + 
 	    spi[2]*fmi[2];
 	  evdwl *= hbar;
@@ -219,6 +363,7 @@ void PairSpinLong::compute_single_pair(int ii, double fmi[3])
   double r,rinv,r2inv,rsq;
   double grij,expm2,t,erfc;
   double bij[4],xi[3],rij[3],spi[4],spj[4];
+  double local_cut2;
   double pre1,pre2,pre3;
   int *ilist,*jlist,*numneigh,**firstneigh;  
 
@@ -267,25 +412,24 @@ void PairSpinLong::compute_single_pair(int ii, double fmi[3])
     rij[2] = x[j][2] - xi[2];
     rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
 
-    if (rsq < cutsq[itype][jtype]) {
+    local_cut2 = cut_spin_long[itype][jtype]*cut_spin_long[itype][jtype];
+
+    if (rsq < local_cut2) {
       r2inv = 1.0/rsq;
       rinv = sqrt(r2inv);
 
-      if (rsq < cut_spinsq) {
-        r = sqrt(rsq);
-        grij = g_ewald * r;
-        expm2 = exp(-grij*grij);
-        t = 1.0 / (1.0 + EWALD_P*grij);
-        erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+      r = sqrt(rsq);
+      grij = g_ewald * r;
+      expm2 = exp(-grij*grij);
+      t = 1.0 / (1.0 + EWALD_P*grij);
+      erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
 
-        bij[0] = erfc * rinv;
-        bij[1] = (bij[0] + pre1*expm2) * r2inv;
-        bij[2] = (3.0*bij[1] + pre2*expm2) * r2inv;
-        bij[3] = (5.0*bij[2] + pre3*expm2) * r2inv;
+      bij[0] = erfc * rinv;
+      bij[1] = (bij[0] + pre1*expm2) * r2inv;
+      bij[2] = (3.0*bij[1] + pre2*expm2) * r2inv;
+      bij[3] = (5.0*bij[2] + pre3*expm2) * r2inv;
 
-        compute_long(i,j,rij,bij,fmi,spi,spj);
-        
-      }
+      compute_long(i,j,rij,bij,fmi,spi,spj);
     }
   }
 
@@ -361,111 +505,7 @@ void PairSpinLong::allocate()
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  memory->create(cutsq,n+1,n+1,"pair:cutsq");
-}
-
-/* ----------------------------------------------------------------------
-   global settings
-------------------------------------------------------------------------- */
-
-void PairSpinLong::settings(int narg, char **arg)
-{
-  if (narg < 1 || narg > 2)
-    error->all(FLERR,"Incorrect args in pair_style command");
-
-  if (strcmp(update->unit_style,"metal") != 0)
-    error->all(FLERR,"Spin simulations require metal unit style");
-
-  cut_spin = force->numeric(FLERR,arg[0]);
-
-}
-
-/* ----------------------------------------------------------------------
-   set coeffs for one or more type pairs
-------------------------------------------------------------------------- */
-
-void PairSpinLong::coeff(int narg, char **arg)
-{
-  if (narg < 4 || narg > 5)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-  if (!allocated) allocate();
-
-  // check if args correct
-
-  if (strcmp(arg[2],"long") != 0)
-    error->all(FLERR,"Incorrect args in pair_style command");
-  if (narg != 3) 
-    error->all(FLERR,"Incorrect args in pair_style command");
-  
-  int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
-
-  int count = 0;
-  for (int i = ilo; i <= ihi; i++) {
-    for (int j = MAX(jlo,i); j <= jhi; j++) {
-      setflag[i][j] = 1;
-      count++;
-    }
-  }
-
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
-}
-
-/* ----------------------------------------------------------------------
-   init for one type pair i,j and corresponding j,i
-------------------------------------------------------------------------- */
-
-double PairSpinLong::init_one(int i, int j)
-{
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
-  
-  double cut = cut_spin;
-  return cut;
-}
-
-/* ----------------------------------------------------------------------
-   init specific to this pair style
-------------------------------------------------------------------------- */
-
-void PairSpinLong::init_style()
-{
-  if (!atom->sp_flag)
-    error->all(FLERR,"Pair spin requires atom/spin style");
-  
-  // need a full neighbor list
-
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  
-  // checking if nve/spin is a listed fix
-
-  int ifix = 0;
-  while (ifix < modify->nfix) {
-    if (strcmp(modify->fix[ifix]->style,"nve/spin") == 0) break;
-    ifix++;
-  }
-  if (ifix == modify->nfix)
-    error->all(FLERR,"pair/spin style requires nve/spin");
-
-  // get the lattice_flag from nve/spin
-
-  for (int i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style,"nve/spin") == 0) {
-      lockfixnvespin = (FixNVESpin *) modify->fix[i];
-      lattice_flag = lockfixnvespin->lattice_flag;
-    }
-  }
-
-  // insure use of KSpace long-range solver, set g_ewald
-
-  if (force->kspace == NULL)
-    error->all(FLERR,"Pair style requires a KSpace style");
-
-  g_ewald = force->kspace->g_ewald;
-
-  cut_spinsq = cut_spin * cut_spin;
+  memory->create(cut_spin_long,n+1,n+1,"pair:cut_spin_long");
 }
 
 /* ----------------------------------------------------------------------
@@ -477,10 +517,14 @@ void PairSpinLong::write_restart(FILE *fp)
   write_restart_settings(fp);
 
   int i,j;
-  for (i = 1; i <= atom->ntypes; i++)
+  for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
+      if (setflag[i][j]) {
+	fwrite(&cut_spin_long[i][j],sizeof(int),1,fp);
+      }
     }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -495,11 +539,18 @@ void PairSpinLong::read_restart(FILE *fp)
 
   int i,j;
   int me = comm->me;
-  for (i = 1; i <= atom->ntypes; i++)
+  for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
       if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
+      if (setflag[i][j]) {
+	if (me == 0) {
+	  fread(&cut_spin_long[i][j],sizeof(int),1,fp);
+	}
+	MPI_Bcast(&cut_spin_long[i][j],1,MPI_INT,0,world);
+      }
     }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -508,7 +559,7 @@ void PairSpinLong::read_restart(FILE *fp)
 
 void PairSpinLong::write_restart_settings(FILE *fp)
 {
-  fwrite(&cut_spin,sizeof(double),1,fp);
+  fwrite(&cut_spin_long_global,sizeof(double),1,fp);
   fwrite(&mix_flag,sizeof(int),1,fp);
 }
 
@@ -519,32 +570,9 @@ void PairSpinLong::write_restart_settings(FILE *fp)
 void PairSpinLong::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&cut_spin,sizeof(double),1,fp);
+    fread(&cut_spin_long_global,sizeof(double),1,fp);
     fread(&mix_flag,sizeof(int),1,fp);
   }
-  MPI_Bcast(&cut_spin,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&cut_spin_long_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void *PairSpinLong::extract(const char *str, int &dim)
-{
-  if (strcmp(str,"cut") == 0) {
-    dim = 0;
-    return (void *) &cut_spin;
-  } else if (strcmp(str,"cut_coul") == 0) {
-    dim = 0;
-    return (void *) &cut_spin;
-  } else if (strcmp(str,"ewald_order") == 0) {
-    ewald_order = 0;
-    ewald_order |= 1<<1;
-    ewald_order |= 1<<3;
-    dim = 0;
-    return (void *) &ewald_order;
-  } else if (strcmp(str,"ewald_mix") == 0) {
-    dim = 0;
-    return (void *) &mix_flag;
-  }
-  return NULL;
 }

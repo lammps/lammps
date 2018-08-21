@@ -74,6 +74,7 @@ Scafacos::Scafacos(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   initialized = 0;
 
   maxatom = 0;
+  xpbc = NULL;
   epot = NULL;
   efield = NULL;
 }
@@ -84,6 +85,7 @@ Scafacos::~Scafacos()
 {
   delete [] method;
 
+  memory->destroy(xpbc);
   memory->destroy(epot);
   memory->destroy(efield);
 
@@ -221,10 +223,12 @@ void Scafacos::compute(int eflag, int vflag)
   // pack coords into xpbc and apply PBC
   memcpy(xpbc,&x[0][0],3*nlocal*sizeof(double));
 
-  int j = 0;
+  //int j = 0;
   for (int i = 0; i < nlocal; i++) {
-    domain->remap(&xpbc[j]);
-    j += 3;
+    if (domain->xperiodic) domain->remap(&xpbc[3*i]);
+    if (domain->yperiodic) domain->remap(&xpbc[3*i+1]);
+    if (domain->zperiodic) domain->remap(&xpbc[3*i+2]);
+    //j += 3;
   }
 
   // if simulation box has changed, call fcs_tune()

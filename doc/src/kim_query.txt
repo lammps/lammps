@@ -1,0 +1,46 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+kim_query command :h3
+
+[Syntax:]
+
+kim_query variable query_function web_query_flags :pre
+
+variable = name of a (string style) variable where the result of the query is stored
+query_function = name of the OpenKIM web API query function to be used
+web_query_flags = a series of keyword=value pairs that represent the web query; supported keywords depend on query function :ul
+
+[Examples:]
+
+kim_query latconst get_test_result test=TE_156715955670_004 model=MO_800509458712_001 &
+  prop=structure-cubic-crystal-npt species=\["Al"\] keys=\["a"\] units=\["angstrom"\] :pre
+
+[Description:]
+
+The kim_query command allows to retrieve properties from the OpenKIM
+through a web query. The result is stored in a string style
+"variable"_variable.html, the name of which must be given as the first
+argument of the kim_query command. The second required argument is the
+name of the actual query function (e.g. {get_test_result}). All following
+arguments are parameters handed over to the web query in the format
+{keyword=value}. This list of supported keywords and the type of how
+the value has to be encoded depends on the query function used.
+For more details on this, please refer to the OpenKIM homepage.
+
+[Restrictions:]
+
+This command is part of the KIM package.  It is only enabled if
+LAMMPS was built with that package.  Furthermore, its correct
+functioning is dependend on compiling LAMMPS with libcurl support.
+See the "Build package"_Build_package.html doc page for more info.
+
+[Related commands:]
+
+"pair_style kim"_pair_kim.html, "variable"_variable.html
+

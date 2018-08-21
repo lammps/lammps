@@ -198,13 +198,6 @@ void Scafacos::compute(int eflag, int vflag)
     vflag_global = 0;
   }
 
-  // if simulation box has changed, call fcs_tune()
-
-  if (box_has_changed()) {
-    setup_handle();
-    result = fcs_tune(fcs,nlocal,&x[0][0],q);
-    check_result(result);
-  }
   
   // grow xpbc, epot, efield if necessary
 
@@ -221,19 +214,25 @@ void Scafacos::compute(int eflag, int vflag)
   if (vflag_global)
   {
     fcs_set_compute_virial(fcs,1);
-    if (strcmp(method,"p3m") == 0)
-      error->all(FLERR,"ScaFaCoS p3m does not support computation of virial");
+    //if (strcmp(method,"p3m") == 0)
+    //  error->all(FLERR,"ScaFaCoS p3m does not support computation of virial");
   }
 
   // pack coords into xpbc and apply PBC
-
-  double **x = atom->x;
   memcpy(xpbc,&x[0][0],3*nlocal*sizeof(double));
 
   int j = 0;
   for (int i = 0; i < nlocal; i++) {
     domain->remap(&xpbc[j]);
     j += 3;
+  }
+
+  // if simulation box has changed, call fcs_tune()
+
+  if (box_has_changed()) {
+    setup_handle();
+    result = fcs_tune(fcs,nlocal,xpbc,q);
+    check_result(result);
   }
 
   // invoke ScaFaCoS solver
@@ -276,14 +275,6 @@ void Scafacos::compute(int eflag, int vflag)
   }
 
   MPI_Allreduce(&myeng,&energy,1,MPI_DOUBLE,MPI_SUM,world);
-}
-
-/* ----------------------------------------------------------------------
-   pack local coords into xpbc, enforcing PBC
-------------------------------------------------------------------------- */
-
-void Scafacos::pack_coords()
-{
 }
 
 /* ---------------------------------------------------------------------- */

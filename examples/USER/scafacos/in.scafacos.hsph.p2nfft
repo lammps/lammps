@@ -3,7 +3,7 @@
 units		lj
 atom_style  charge	
 
-read_data data.hammersley_shphere
+read_data data.hammersley_sphere
 change_box all boundary f f f
 
 velocity	all create 1.5 49893

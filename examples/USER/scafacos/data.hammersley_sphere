@@ -4,9 +4,9 @@ LAMMPS Description
 
 1 atom types
 
--50.5 51.5 xlo xhi 
--50.5 51.5 ylo yhi 
--50.5 51.5 zlo zhi 
+-51.5 51.5 xlo xhi 
+-51.5 51.5 ylo yhi 
+-51.5 51.5 zlo zhi 
 
 Masses
 

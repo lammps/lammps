@@ -9,7 +9,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -34,8 +34,8 @@ Transform the coordinates of Drude oscillators from real to reduced
 and back for thermalizing the Drude oscillators as described in
 "(Lamoureux)"_#Lamoureux1 using a Nose-Hoover thermostat.  This fix is
 designed to be used with the "thermalized Drude oscillator
-model"_tutorial_drude.html.  Polarizable models in LAMMPS are
-described in "this Section"_Section_howto.html#howto_25.
+model"_Howto_drude.html.  Polarizable models in LAMMPS are described
+on the "Howto polarizable"_Howto_polarizable.html doc page.
 
 Drude oscillators are a pair of atoms representing a single
 polarizable atom.  Ideally, the mass of Drude particles would vanish

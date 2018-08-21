@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -180,9 +180,9 @@ files"_restart.html.  None of the "fix_modify"_fix_modify.html options
 are relevant to this fix.
 
 This fix produces a global vector with 3 values which can be accessed
-by various "output commands"_Section_howto.html#howto_15.  The values
-can be accessed on any timestep, though they are only updated on
-timesteps that are a multiple of {Nevery}.
+by various "output commands"_Howto_output.html.  The values can be
+accessed on any timestep, though they are only updated on timesteps
+that are a multiple of {Nevery}.
 
 The three values are the most recent updates made to the control
 variable by each of the 3 terms in the PID equation above.  The first

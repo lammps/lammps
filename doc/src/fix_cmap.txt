@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -103,9 +103,9 @@ the system's virial as part of "thermodynamic output"_thermo_style.html.
 The default is {virial yes}
 
 This fix computes a global scalar which can be accessed by various
-"output commands"_Section_howto.html#howto_15.  The scalar is the
-potential energy discussed above.  The scalar value calculated by this
-fix is "extensive".
+"output commands"_Howto_output.html.  The scalar is the potential
+energy discussed above.  The scalar value calculated by this fix is
+"extensive".
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.
@@ -125,8 +125,8 @@ To function as expected this fix command must be issued {before} a
 "read_restart"_read_restart.html command.
 
 This fix can only be used if LAMMPS was built with the MOLECULE
-package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info on packages.
+package.  See the "Build package"_Build_package.html doc page for more
+info.
 
 [Related commands:]
 

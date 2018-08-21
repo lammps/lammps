@@ -1,10 +1,10 @@
-"Previous Section"_Section_perf.html - "LAMMPS WWW Site"_lws - "LAMMPS
+"Previous Section"_Examples.html - "LAMMPS WWW Site"_lws - "LAMMPS
 Documentation"_ld - "LAMMPS Commands"_lc - "Next
 Section"_Modify.html :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -43,39 +43,53 @@ to edit for your platform) which will build several of the tools which
 reside in that directory.  Most of them are larger packages in their
 own sub-directories with their own Makefiles and/or README files.
 
-"amber2lmp"_#amber
-"binary2txt"_#binary
-"ch2lmp"_#charmm
-"chain"_#chain
-"colvars"_#colvars
-"createatoms"_#createatoms
-"doxygen"_#doxygen
-"drude"_#drude
-"eam database"_#eamdb
-"eam generate"_#eamgn
-"eff"_#eff
-"emacs"_#emacs
-"fep"_#fep
-"i-pi"_#ipi
-"ipp"_#ipp
-"kate"_#kate
-"lmp2arc"_#arc
-"lmp2cfg"_#cfg
-"matlab"_#matlab
-"micelle2d"_#micelle
-"moltemplate"_#moltemplate
-"msi2lmp"_#msi
-"phonon"_#phonon
-"polybond"_#polybond
-"pymol_asphere"_#pymol
-"python"_#pythontools
-"reax"_#reax_tool
-"smd"_#smd
-"vim"_#vim
-"xmgrace"_#xmgrace :ul
+:line
+
+Pre-processing tools :h3
+
+"amber2lmp"_#amber,
+"ch2lmp"_#charmm,
+"chain"_#chain,
+"createatoms"_#createatoms,
+"drude"_#drude,
+"eam database"_#eamdb,
+"eam generate"_#eamgn,
+"eff"_#eff,
+"ipp"_#ipp,
+"micelle2d"_#micelle,
+"moltemplate"_#moltemplate,
+"msi2lmp"_#msi,
+"polybond"_#polybond :tb(c=6,ea=c,a=l)
+
+Post-processing tools :h3
+
+"amber2lmp"_#amber,
+"binary2txt"_#binary,
+"ch2lmp"_#charmm,
+"colvars"_#colvars,
+"eff"_#eff,
+"fep"_#fep,
+"lmp2arc"_#arc,
+"lmp2cfg"_#cfg,
+"matlab"_#matlab,
+"phonon"_#phonon,
+"pymol_asphere"_#pymol,
+"python"_#pythontools,
+"reax"_#reax_tool,
+"smd"_#smd,
+"xmgrace"_#xmgrace :tb(c=6,ea=c,a=l)
+
+Miscellaneous tools :h3
+
+"doxygen"_#doxygen,
+"emacs"_#emacs,
+"i-pi"_#ipi,
+"kate"_#kate,
+"vim"_#vim :tb(c=5,ea=c,a=l)
 
 :line
-:line
+
+Tool descriptions :h3
 
 amber2lmp tool :h4,link(amber)
 
@@ -142,8 +156,8 @@ The syntax for running the tool is
 chain < def.chain > data.file :pre
 
 See the def.chain or def.chain.ab files in the tools directory for
-examples of definition files.  This tool was used to create the
-system for the "chain benchmark"_Section_perf.html.
+examples of definition files.  This tool was used to create the system
+for the "chain benchmark"_Speed_bench.html.
 
 :line
 
@@ -249,9 +263,9 @@ These tools were provided by Andres Jaramillo-Botero at CalTech
 
 emacs tool :h4,link(emacs)
 
-The tools/emacs directory contains a Lips add-on file for Emacs that
-enables a lammps-mode for editing of input scripts when using Emacs,
-with various highlighting options setup.
+The tools/emacs directory contains an Emacs Lisp add-on file for GNU Emacs 
+that enables a lammps-mode for editing input scripts when using GNU Emacs,
+with various highlighting options set up.
 
 These tools were provided by Aidan Thompson at Sandia
 (athomps at sandia.gov).

@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -68,7 +68,7 @@ calculate time correlations between them at varying time intervals,
 and average the correlation data over longer timescales.  The
 resulting correlation values can be time integrated by
 "variables"_variable.html or used by other "output
-commands"_Section_howto.html#howto_15 such as "thermo_style
+commands"_Howto_output.html such as "thermo_style
 custom"_thermo_style.html, and can also be written to a file.  See the
 "fix ave/correlate/long"_fix_ave_correlate_long.html command for an
 alternate method for computing correlation functions efficiently over
@@ -313,16 +313,15 @@ files"_restart.html.  None of the "fix_modify"_fix_modify.html options
 are relevant to this fix.
 
 This fix computes a global array of values which can be accessed by
-various "output commands"_Section_howto.html#howto_15.  The values can
-only be accessed on timesteps that are multiples of {Nfreq} since that
-is when averaging is performed.  The global array has # of rows =
-{Nrepeat} and # of columns = Npair+2.  The first column has the time
-delta (in timesteps) between the pairs of input values used to
-calculate the correlation, as described above.  The 2nd column has the
-number of samples contributing to the correlation average, as
-described above.  The remaining Npair columns are for I,J pairs of the
-N input values, as determined by the {type} keyword, as described
-above.
+various "output commands"_Howto_output.html.  The values can only be
+accessed on timesteps that are multiples of {Nfreq} since that is when
+averaging is performed.  The global array has # of rows = {Nrepeat}
+and # of columns = Npair+2.  The first column has the time delta (in
+timesteps) between the pairs of input values used to calculate the
+correlation, as described above.  The 2nd column has the number of
+samples contributing to the correlation average, as described above.
+The remaining Npair columns are for I,J pairs of the N input values,
+as determined by the {type} keyword, as described above.
 
 For {type} = {auto}, the Npair = N columns are ordered: C11, C22, ...,
 CNN. :ulb,l

@@ -84,7 +84,7 @@ idregion(NULL), idvar(NULL), idprop(NULL)
       idprop = new char[n];
       strcpy(idprop,arg[iarg+1]);
       iarg += 2;
-        } else if (strcmp(arg[iarg],"every") == 0) {
+    } else if (strcmp(arg[iarg],"every") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal group command");
       nevery = force->inumeric(FLERR,arg[iarg+1]);
       if (nevery <= 0) error->all(FLERR,"Illegal group command");
@@ -204,17 +204,22 @@ void FixGroup::set_group()
   int nlocal = atom->nlocal;
 
   // invoke atom-style variable if defined
+  // set post_integrate flag to 1, then unset after
+  // this is for any compute to check if it needs to 
+  //   operate differently due to invocation this early in timestep
+  // e.g. perform ghost comm update due to atoms having just moved
 
   double *var = NULL;
   int *ivector = NULL;
   double *dvector = NULL;
 
-
   if (varflag) {
+    update->post_integrate = 1;
     modify->clearstep_compute();
     memory->create(var,nlocal,"fix/group:varvalue");
     input->variable->compute_atom(ivar,igroup,var,1,0);
     modify->addstep_compute(update->ntimestep + nevery);
+    update->post_integrate = 0;
   }
 
   // invoke per-atom property if defined

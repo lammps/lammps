@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -26,7 +26,7 @@ timestep when the fix is invoked, as described below.  This is useful
 for storing forces before constraints or other boundary conditions are
 computed which modify the forces, so that unmodified forces can be
 "written to a dump file"_dump.html or accessed by other "output
-commands"_Section_howto.html#howto_15 that use per-atom quantities.
+commands"_Howto_output.html that use per-atom quantities.
 
 This fix is invoked at the point in the velocity-Verlet timestepping
 immediately after "pair"_pair_style.html, "bond"_bond_style.html,
@@ -54,9 +54,9 @@ files"_restart.html.  None of the "fix_modify"_fix_modify.html options
 are relevant to this fix.
 
 This fix produces a per-atom array which can be accessed by various
-"output commands"_Section_howto.html#howto_15.  The number of columns
-for each atom is 3, and the columns store the x,y,z forces on each
-atom.  The per-atom values be accessed on any timestep.
+"output commands"_Howto_output.html.  The number of columns for each
+atom is 3, and the columns store the x,y,z forces on each atom.  The
+per-atom values be accessed on any timestep.
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.  This fix is not invoked during "energy

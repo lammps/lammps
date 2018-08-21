@@ -157,7 +157,7 @@ $(RSTDIR)/%.rst : src/%.txt $(TXT2RST)
 	@(\
 		mkdir -p $(RSTDIR) ; \
 		. $(VENV)/bin/activate ;\
-		txt2rst $< > $@ ;\
+		txt2rst -v $< > $@ ;\
 		deactivate ;\
 	)
 

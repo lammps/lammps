@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -31,10 +31,10 @@ fix 1 all external pf/array 10 :pre
 [Description:]
 
 This fix allows external programs that are running LAMMPS through its
-"library interface"_Section_howto.html#howto_19 to modify certain
-LAMMPS properties on specific timesteps, similar to the way other
-fixes do.  The external driver can be a "C/C++ or Fortran
-program"_Section_howto.html#howto_19 or a "Python script"_Python.html.
+"library interface"_Howto_library.html to modify certain LAMMPS
+properties on specific timesteps, similar to the way other fixes do.
+The external driver can be a "C/C++ or Fortran
+program"_Howto_library.html or a "Python script"_Python_head.html.
 
 :line
 
@@ -136,9 +136,8 @@ external program to the system's virial as part of "thermodynamic
 output"_thermo_style.html. The default is {virial yes}
 
 This fix computes a global scalar which can be accessed by various
-"output commands"_Section_howto.html#howto_15.  The scalar is the
-potential energy discussed above.  The scalar stored by this fix
-is "extensive".
+"output commands"_Howto_output.html.  The scalar is the potential
+energy discussed above.  The scalar stored by this fix is "extensive".
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.

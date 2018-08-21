@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -47,9 +47,9 @@ in "(Tranchida)"_#Tranchida1.
 
 [Restrictions:]
 
-This fix style can only be used if LAMMPS was built with the
-SPIN package. See the "Making LAMMPS"_Section_start.html#start_3
-section for more info on packages.
+This fix style can only be used if LAMMPS was built with the SPIN
+package.  See the "Build package"_Build_package.html doc page for more
+info.
 
 To use the spin algorithm, it is necessary to define a map with 
 the atom_modify command. Typically, by adding the command:

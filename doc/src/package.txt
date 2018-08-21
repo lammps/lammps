@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -84,6 +84,9 @@ args = arguments specific to the style :l
         no = perform communication pack/unpack in non-KOKKOS mode
         host = perform pack/unpack on host (e.g. with OpenMP threading)
         device = perform pack/unpack on device (e.g. on GPU)
+      {gpu/direct} = {off} or {on}
+        off = do not use GPU-direct
+        on = use GPU-direct (default)
   {omp} args = Nthreads keyword value ...
     Nthread = # of OpenMP threads to associate with each MPI process
     zero or more keyword/value pairs may be appended
@@ -121,8 +124,8 @@ their initialization, before a simulation is defined.
 
 This command can also be specified from the command-line when
 launching LAMMPS, using the "-pk" "command-line
-switch"_Section_start.html#start_6.  The syntax is exactly the same as
-when used in an input script.
+switch"_Run_options.html.  The syntax is exactly the same as when used
+in an input script.
 
 Note that all of the accelerator packages require the package command
 to be specified (except the OPT package), if the package is to be used
@@ -132,26 +135,25 @@ a default version of the command is typically invoked by other
 accelerator settings.
 
 The KOKKOS package requires a "-k on" "command-line
-switch"_Section_start.html#start_6 respectively, which invokes a
-"package kokkos" command with default settings.
+switch"_Run_options.html respectively, which invokes a "package
+kokkos" command with default settings.
 
 For the GPU, USER-INTEL, and USER-OMP packages, if a "-sf gpu" or "-sf
-intel" or "-sf omp" "command-line switch"_Section_start.html#start_6
-is used to auto-append accelerator suffixes to various styles in the
-input script, then those switches also invoke a "package gpu",
-"package intel", or "package omp" command with default settings.
+intel" or "-sf omp" "command-line switch"_Run_options.html is used to
+auto-append accelerator suffixes to various styles in the input
+script, then those switches also invoke a "package gpu", "package
+intel", or "package omp" command with default settings.
 
 NOTE: A package command for a particular style can be invoked multiple
-times when a simulation is setup, e.g. by the "-c on", "-k on", "-sf",
-and "-pk" "command-line switches"_Section_start.html#start_6, and by
-using this command in an input script.  Each time it is used all of
-the style options are set, either to default values or to specified
-settings.  I.e. settings from previous invocations do not persist
-across multiple invocations.
+times when a simulation is setup, e.g. by the "-c on, -k on, -sf, and
+-pk command-line switches"_Run_options.html, and by using this command
+in an input script.  Each time it is used all of the style options are
+set, either to default values or to specified settings.  I.e. settings
+from previous invocations do not persist across multiple invocations.
 
-See the "Section 5.3"_Section_accelerate.html#acc_3 section of the
-manual for more details about using the various accelerator packages
-for speeding up LAMMPS simulations.
+See the "Speed packages"_Speed_packages.html doc page for more details
+about using the various accelerator packages for speeding up LAMMPS
+simulations.
 
 :line
 
@@ -338,10 +340,10 @@ value via their package commands, but there is only a single global
 {Nthreads} value used by OpenMP.  Thus if both package commands are
 invoked, you should insure the two values are consistent.  If they are
 not, the last one invoked will take precedence, for both packages.
-Also note that if the "-sf hybrid intel omp" "command-line
-switch"_"_Section_start.html#start_6 is used, it invokes a "package
-intel" command, followed by a "package omp" command, both with a
-setting of {Nthreads} = 0.
+Also note that if the "-sf hybrid intel omp command-line
+switch"_Run_options.html is used, it invokes a "package intel"
+command, followed by a "package omp" command, both with a setting of
+{Nthreads} = 0.
 
 The {mode} keyword determines the precision mode to use for
 computing pair style forces, either on the CPU or on the coprocessor,
@@ -480,15 +482,15 @@ The value options for all 3 keywords are {no} or {host} or {device}.
 A value of {no} means to use the standard non-KOKKOS method of
 packing/unpacking data for the communication.  A value of {host} means
 to use the host, typically a multi-core CPU, and perform the
-packing/unpacking in parallel with threads.  A value of {device} means
-to use the device, typically a GPU, to perform the packing/unpacking
-operation.
+packing/unpacking in parallel with threads.  A value of {device}
+means to use the device, typically a GPU, to perform the
+packing/unpacking operation.
 
 The optimal choice for these keywords depends on the input script and
 the hardware used.  The {no} value is useful for verifying that the
-Kokkos-based {host} and {device} values are working correctly.  It may
-also be the fastest choice when using Kokkos styles in MPI-only mode
-(i.e. with a thread count of 1).
+Kokkos-based {host} and {device} values are working correctly. 
+It may also be the fastest choice when using Kokkos styles in
+MPI-only mode (i.e. with a thread count of 1).
 
 When running on CPUs or Xeon Phi, the {host} and {device} values work
 identically.  When using GPUs, the {device} value will typically be
@@ -503,6 +505,18 @@ then data has to be move between the host and device anyway, so it is
 typically faster to let the host handle communication, by using the
 {host} value.  Using {host} instead of {no} will enable use of
 multiple threads to pack/unpack communicated data.
+
+The {gpu/direct} keyword chooses whether GPU-direct will be used. When
+this keyword is set to {on}, buffers in GPU memory are passed directly
+through MPI send/receive calls. This reduces overhead of first copying
+the data to the host CPU. However GPU-direct is not supported on all
+systems, which can lead to segmentation faults and would require
+using a value of {off}. If LAMMPS can safely detect that GPU-direct is
+not available (currently only possible with OpenMPI v2.0.0 or later),
+then the {gpu/direct} keyword is automatically set to {off} by default.
+When the {gpu/direct} keyword is set to {off} while any of the {comm}
+keywords are set to {device}, the value for these {comm} keywords will
+be automatically changed to {host}.
 
 :line
 
@@ -568,58 +582,58 @@ This command cannot be used after the simulation box is defined by a
 "read_data"_read_data.html or "create_box"_create_box.html command.
 
 The gpu style of this command can only be invoked if LAMMPS was built
-with the GPU package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+with the GPU package.  See the "Build package"_Build_package.html doc
+page for more info.
 
 The intel style of this command can only be invoked if LAMMPS was
-built with the USER-INTEL package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+built with the USER-INTEL package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 The kk style of this command can only be invoked if LAMMPS was built
-with the KOKKOS package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+with the KOKKOS package.  See the "Build package"_Build_package.html
+doc page for more info.
 
 The omp style of this command can only be invoked if LAMMPS was built
-with the USER-OMP package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+with the USER-OMP package.  See the "Build package"_Build_package.html
+doc page for more info.
 
 [Related commands:]
 
-"suffix"_suffix.html, "-pk" "command-line
-setting"_Section_start.html#start_6
+"suffix"_suffix.html, "-pk command-line switch"_Run_options.html
 
 [Default:]
 
 For the GPU package, the default is Ngpu = 1 and the option defaults
 are neigh = yes, newton = off, binsize = 0.0, split = 1.0, gpuID = 0
 to Ngpu-1, tpa = 1, and device = not used.  These settings are made
-automatically if the "-sf gpu" "command-line
-switch"_Section_start.html#start_6 is used.  If it is not used, you
-must invoke the package gpu command in your input script or via the
-"-pk gpu" "command-line switch"_Section_start.html#start_6.
+automatically if the "-sf gpu" "command-line switch"_Run_options.html
+is used.  If it is not used, you must invoke the package gpu command
+in your input script or via the "-pk gpu" "command-line
+switch"_Run_options.html.
 
 For the USER-INTEL package, the default is Nphi = 1 and the option
 defaults are omp = 0, mode = mixed, lrt = no, balance = -1, tpc = 4,
 tptask = 240.  The default ghost option is determined by the pair
 style being used.  This value is output to the screen in the offload
 report at the end of each run.  Note that all of these settings,
-except "omp" and "mode", are ignored if LAMMPS was not built with
-Xeon Phi coprocessor support.  These settings are made automatically
-if the "-sf intel" "command-line switch"_Section_start.html#start_6
-is used.  If it is not used, you must invoke the package intel
-command in your input script or or via the "-pk intel" "command-line
-switch"_Section_start.html#start_6.
+except "omp" and "mode", are ignored if LAMMPS was not built with Xeon
+Phi coprocessor support.  These settings are made automatically if the
+"-sf intel" "command-line switch"_Run_options.html is used.  If it is
+not used, you must invoke the package intel command in your input
+script or or via the "-pk intel" "command-line
+switch"_Run_options.html.
 
-For the KOKKOS package, the option defaults neigh = full,
-neigh/qeq = full, newton = off, binsize = 0.0, and comm = device.
-These settings are made automatically by the required "-k on" "command-line
-switch"_Section_start.html#start_6.  You can change them bu using the
-package kokkos command in your input script or via the "-pk kokkos"
-"command-line switch"_Section_start.html#start_6.
+For the KOKKOS package, the option defaults neigh = full, neigh/qeq =
+full, newton = off, binsize = 0.0, and comm = device, gpu/direct = on.
+When LAMMPS can safely detect, that GPU-direct is not available, the
+default value of gpu/direct becomes "off".
+These settings are made automatically by the required "-k on"
+"command-line switch"_Run_options.html. You can change them by
+using the package kokkos command in your input script or via the
+"-pk kokkos command-line switch"_Run_options.html.
 
 For the OMP package, the default is Nthreads = 0 and the option
 defaults are neigh = yes.  These settings are made automatically if
-the "-sf omp" "command-line switch"_Section_start.html#start_6 is
-used.  If it is not used, you must invoke the package omp command in
-your input script or via the "-pk omp" "command-line
-switch"_Section_start.html#start_6.
+the "-sf omp" "command-line switch"_Run_options.html is used.  If it
+is not used, you must invoke the package omp command in your input
+script or via the "-pk omp" "command-line switch"_Run_options.html.

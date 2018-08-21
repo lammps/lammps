@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -22,10 +22,10 @@ compute TDRUDE all temp/drude :pre
 [Description:]
 
 Define a computation that calculates the temperatures of core-Drude
-pairs. This compute is designed to be used with the
-"thermalized Drude oscillator model"_tutorial_drude.html.  Polarizable
-models in LAMMPS are described in "this
-Section"_Section_howto.html#howto_25.
+pairs. This compute is designed to be used with the "thermalized Drude
+oscillator model"_Howto_drude.html.  Polarizable models in LAMMPS
+are described on the "Howto polarizable"_Howto_polarizable.html doc
+page.
 
 Drude oscillators consist of a core particle and a Drude particle
 connected by a harmonic bond, and the relative motion of these Drude
@@ -57,8 +57,8 @@ kinetic energy of the centers of mass (energy units)
 kinetic energy of the dipoles (energy units) :ol
 
 These values can be used by any command that uses global scalar or
-vector values from a compute as input.  See "this
-section"_Section_howto.html#howto_15 for an overview of LAMMPS output
+vector values from a compute as input.  See the "Howto
+output"_Howto_output.html doc page for an overview of LAMMPS output
 options.
 
 Both the scalar value and the first two values of the vector

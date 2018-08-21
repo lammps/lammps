@@ -48,7 +48,18 @@ struct NVDProperties {
   int minor;
   CUDA_INT_TYPE totalGlobalMem;
   int multiProcessorCount;
-  CUdevprop_st p;
+
+  int maxThreadsPerBlock;
+  int maxThreadsDim[3];
+  int maxGridSize[3];
+  int sharedMemPerBlock;
+  int totalConstantMemory;
+  int SIMDWidth;
+  int memPitch;
+  int regsPerBlock;
+  int clockRate;
+  int textureAlign;
+
   int kernelExecTimeoutEnabled;
   int integrated;
   int canMapHostMemory;
@@ -210,18 +221,18 @@ class UCL_Device {
   inline double clock_rate() { return clock_rate(_device); }
   /// Clock rate in GHz
   inline double clock_rate(const int i)
-    { return _properties[i].p.clockRate*1e-6;}
+    { return _properties[i].clockRate*1e-6;}
 
   /// Get the maximum number of threads per block
   inline size_t group_size() { return group_size(_device); }
   /// Get the maximum number of threads per block
   inline size_t group_size(const int i)
-    { return _properties[i].p.maxThreadsPerBlock; }
+    { return _properties[i].maxThreadsPerBlock; }
 
   /// Return the maximum memory pitch in bytes for current device
   inline size_t max_pitch() { return max_pitch(_device); }
   /// Return the maximum memory pitch in bytes
-  inline size_t max_pitch(const int i) { return _properties[i].p.memPitch; }
+  inline size_t max_pitch(const int i) { return _properties[i].memPitch; }
 
   /// Returns false if accelerator cannot be shared by multiple processes
   /** If it cannot be determined, true is returned **/
@@ -275,49 +286,54 @@ class UCL_Device {
 UCL_Device::UCL_Device() {
   CU_SAFE_CALL_NS(cuInit(0));
   CU_SAFE_CALL_NS(cuDeviceGetCount(&_num_devices));
-  for (int dev=0; dev<_num_devices; ++dev) {
-    CUdevice m;
-    CU_SAFE_CALL_NS(cuDeviceGet(&m,dev));
+  for (int i=0; i<_num_devices; ++i) {
+    CUdevice dev;
+    CU_SAFE_CALL_NS(cuDeviceGet(&dev,i));
     int major, minor;
-    CU_SAFE_CALL_NS(cuDeviceComputeCapability(&major,&minor,m));
+    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, dev));
+    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&minor, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR, dev));
     if (major==9999)
       continue;
 
-    _properties.push_back(NVDProperties());
-    _properties.back().device_id=dev;
-    _properties.back().major=major;
-    _properties.back().minor=minor;
+    NVDProperties prop;
+    prop.device_id = i;
+    prop.major=major;
+    prop.minor=minor;
 
     char namecstr[1024];
-    CU_SAFE_CALL_NS(cuDeviceGetName(namecstr,1024,m));
-    _properties.back().name=namecstr;
+    CU_SAFE_CALL_NS(cuDeviceGetName(namecstr,1024,dev));
+    prop.name=namecstr;
 
-    CU_SAFE_CALL_NS(cuDeviceTotalMem(&_properties.back().totalGlobalMem,m));
-    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&_properties.back().multiProcessorCount,
-                                       CU_DEVICE_ATTRIBUTE_MULTIPROCESSOR_COUNT,
-                                         m));
-    CU_SAFE_CALL_NS(cuDeviceGetProperties(&_properties.back().p,m));
+    CU_SAFE_CALL_NS(cuDeviceTotalMem(&prop.totalGlobalMem,dev));
+    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.multiProcessorCount, CU_DEVICE_ATTRIBUTE_MULTIPROCESSOR_COUNT, dev));
+
+    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.maxThreadsPerBlock, CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK, dev));
+    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.maxThreadsDim[0], CU_DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_X, dev));
+    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.maxThreadsDim[1], CU_DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_Y, dev));
+    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.maxThreadsDim[2], CU_DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_Z, dev));
+    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.maxGridSize[0], CU_DEVICE_ATTRIBUTE_MAX_GRID_DIM_X, dev));
+    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.maxGridSize[1], CU_DEVICE_ATTRIBUTE_MAX_GRID_DIM_Y, dev));
+    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.maxGridSize[2], CU_DEVICE_ATTRIBUTE_MAX_GRID_DIM_Z, dev));
+    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.sharedMemPerBlock, CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_BLOCK, dev));
+    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.totalConstantMemory, CU_DEVICE_ATTRIBUTE_TOTAL_CONSTANT_MEMORY, dev));
+    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.SIMDWidth, CU_DEVICE_ATTRIBUTE_WARP_SIZE, dev));
+    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.memPitch, CU_DEVICE_ATTRIBUTE_MAX_PITCH, dev));
+    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.regsPerBlock, CU_DEVICE_ATTRIBUTE_MAX_REGISTERS_PER_BLOCK, dev));
+    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.clockRate, CU_DEVICE_ATTRIBUTE_CLOCK_RATE, dev));
+    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.textureAlign, CU_DEVICE_ATTRIBUTE_TEXTURE_ALIGNMENT, dev));
+
     #if CUDA_VERSION >= 2020
-    CU_SAFE_CALL_NS(cuDeviceGetAttribute(
-                      &_properties.back().kernelExecTimeoutEnabled,
-                      CU_DEVICE_ATTRIBUTE_KERNEL_EXEC_TIMEOUT,dev));
-    CU_SAFE_CALL_NS(cuDeviceGetAttribute(
-                      &_properties.back().integrated,
-                      CU_DEVICE_ATTRIBUTE_INTEGRATED, dev));
-    CU_SAFE_CALL_NS(cuDeviceGetAttribute(
-                      &_properties.back().canMapHostMemory,
-                      CU_DEVICE_ATTRIBUTE_CAN_MAP_HOST_MEMORY, dev));
-    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&_properties.back().computeMode,
-                      CU_DEVICE_ATTRIBUTE_COMPUTE_MODE,dev));
+    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.kernelExecTimeoutEnabled, CU_DEVICE_ATTRIBUTE_KERNEL_EXEC_TIMEOUT,dev));
+    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.integrated, CU_DEVICE_ATTRIBUTE_INTEGRATED, dev));
+    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.canMapHostMemory, CU_DEVICE_ATTRIBUTE_CAN_MAP_HOST_MEMORY, dev));
+    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.computeMode, CU_DEVICE_ATTRIBUTE_COMPUTE_MODE,dev));
     #endif
     #if CUDA_VERSION >= 3010
-    CU_SAFE_CALL_NS(cuDeviceGetAttribute(
-                      &_properties.back().concurrentKernels,
-                      CU_DEVICE_ATTRIBUTE_CONCURRENT_KERNELS, dev));
-    CU_SAFE_CALL_NS(cuDeviceGetAttribute(
-                      &_properties.back().ECCEnabled,
-                      CU_DEVICE_ATTRIBUTE_ECC_ENABLED, dev));
+    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.concurrentKernels, CU_DEVICE_ATTRIBUTE_CONCURRENT_KERNELS, dev));
+    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&prop.ECCEnabled, CU_DEVICE_ATTRIBUTE_ECC_ENABLED, dev));
     #endif
+
+    _properties.push_back(prop);
   }
   _device=-1;
   _cq.push_back(CUstream());
@@ -393,27 +409,27 @@ void UCL_Device::print_all(std::ostream &out) {
         << cores(i) << std::endl;
     #endif
     out << "  Total amount of constant memory:               "
-        << _properties[i].p.totalConstantMemory << " bytes\n";
+        << _properties[i].totalConstantMemory << " bytes\n";
     out << "  Total amount of local/shared memory per block: "
-        << _properties[i].p.sharedMemPerBlock << " bytes\n";
+        << _properties[i].sharedMemPerBlock << " bytes\n";
     out << "  Total number of registers available per block: "
-        << _properties[i].p.regsPerBlock << std::endl;
+        << _properties[i].regsPerBlock << std::endl;
     out << "  Warp size:                                     "
-        << _properties[i].p.SIMDWidth << std::endl;
+        << _properties[i].SIMDWidth << std::endl;
     out << "  Maximum number of threads per block:           "
-        << _properties[i].p.maxThreadsPerBlock << std::endl;
+        << _properties[i].maxThreadsPerBlock << std::endl;
     out << "  Maximum group size (# of threads per block)    "
-        << _properties[i].p.maxThreadsDim[0] << " x "
-        << _properties[i].p.maxThreadsDim[1] << " x "
-        << _properties[i].p.maxThreadsDim[2] << std::endl;
+        << _properties[i].maxThreadsDim[0] << " x "
+        << _properties[i].maxThreadsDim[1] << " x "
+        << _properties[i].maxThreadsDim[2] << std::endl;
     out << "  Maximum item sizes (# threads for each dim)    "
-        << _properties[i].p.maxGridSize[0] << " x "
-        << _properties[i].p.maxGridSize[1] << " x "
-        << _properties[i].p.maxGridSize[2] << std::endl;
+        << _properties[i].maxGridSize[0] << " x "
+        << _properties[i].maxGridSize[1] << " x "
+        << _properties[i].maxGridSize[2] << std::endl;
     out << "  Maximum memory pitch:                          "
         << max_pitch(i) << " bytes\n";
     out << "  Texture alignment:                             "
-        << _properties[i].p.textureAlign << " bytes\n";
+        << _properties[i].textureAlign << " bytes\n";
     out << "  Clock rate:                                    "
         << clock_rate(i) << " GHz\n";
     #if CUDA_VERSION >= 2020

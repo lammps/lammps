@@ -3,7 +3,7 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -21,8 +21,8 @@ typically no need to run for 1000s of timesteps to get accurate
 timings; you can simply extrapolate from short runs.
 
 For the set of runs, look at the timing data printed to the screen and
-log file at the end of each LAMMPS run.  "This
-section"_Section_start.html#start_7 of the manual has an overview.
+log file at the end of each LAMMPS run.  The
+"Run_output"_Run_output.html doc page gives an overview.
 
 Running on one (or a few processors) should give a good estimate of
 the serial performance and what portions of the timestep are taking

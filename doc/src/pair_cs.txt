@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -54,8 +54,8 @@ pair_coeff 1 1 480.0 0.25 0.00 1.05 0.50 :pre
 
 These pair styles are designed to be used with the adiabatic
 core/shell model of "(Mitchell and Finchham)"_#MitchellFinchham2.  See
-"Section 6.25"_Section_howto.html#howto_25 of the manual for an
-overview of the model as implemented in LAMMPS.
+the "Howto coreshell"_Howto_coreshell.html doc page for an overview of
+the model as implemented in LAMMPS.
 
 The styles with a {coul/long} term are identical to the "pair_style
 born/coul/long"_pair_born.html and "pair_style
@@ -100,8 +100,8 @@ core/shell pair.
 [Restrictions:]
 
 These pair styles are part of the CORESHELL package.  They are only
-enabled if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+enabled if LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

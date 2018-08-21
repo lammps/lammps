@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -205,9 +205,9 @@ pairwise interactions within this distance are computed directly;
 interactions outside that distance are computed in reciprocal space.
 
 Style {coul/long/cs} is identical to {coul/long} except that a term is
-added for the "core/shell model"_Section_howto.html#howto_25 to allow
-charges on core and shell particles to be separated by r = 0.0.  The
-same correction is introduced for the {coul/wolf/cs} style which is
+added for the "core/shell model"_Howto_coreshell.html to allow charges
+on core and shell particles to be separated by r = 0.0.  The same
+correction is introduced for the {coul/wolf/cs} style which is
 identical to {coul/wolf}.
 
 Styles {tip4p/cut} and {tip4p/long} implement the coulomb part of
@@ -226,16 +226,16 @@ is to enable LAMMPS to "find" the 2 H atoms associated with each O
 atom.  For example, if the atom ID of an O atom in a TIP4P water
 molecule is 500, then its 2 H atoms must have IDs 501 and 502.
 
-See the "howto section"_Section_howto.html#howto_8 for more
-information on how to use the TIP4P pair styles and lists of
-parameters to set.  Note that the neighbor list cutoff for Coulomb
-interactions is effectively extended by a distance 2*qdist when using
-the TIP4P pair style, to account for the offset distance of the
-fictitious charges on O atoms in water molecules.  Thus it is
-typically best in an efficiency sense to use a LJ cutoff >= Coulomb
-cutoff + 2*qdist, to shrink the size of the neighbor list.  This leads
-to slightly larger cost for the long-range calculation, so you can
-test the trade-off for your model.
+See the "Howto tip4p"_Howto_tip4p.html doc page for more information
+on how to use the TIP4P pair styles and lists of parameters to set.
+Note that the neighbor list cutoff for Coulomb interactions is
+effectively extended by a distance 2*qdist when using the TIP4P pair
+style, to account for the offset distance of the fictitious charges on
+O atoms in water molecules.  Thus it is typically best in an
+efficiency sense to use a LJ cutoff >= Coulomb cutoff + 2*qdist, to
+shrink the size of the neighbor list.  This leads to slightly larger
+cost for the long-range calculation, so you can test the trade-off for
+your model.
 
 :line
 
@@ -274,13 +274,13 @@ produce the same results, except for round-off and precision issues.
 
 These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
 USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with those packages.  See the "Build
+package"_Build_package.html doc page for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
-use the "suffix"_suffix.html command in your input script.
+switch"_Run_options.html when you invoke LAMMPS, or you can use the
+"suffix"_suffix.html command in your input script.
 
 See the "Speed packages"_Speed_packages.html doc page for more
 instructions on how to use the accelerated styles effectively.
@@ -319,7 +319,7 @@ This pair style can only be used via the {pair} keyword of the
 The {coul/long}, {coul/msm} and {tip4p/long} styles are part of the
 KSPACE package.  The {coul/long/cs} style is part of the CORESHELL
 package.  They are only enabled if LAMMPS was built with that package.
-See the "Making LAMMPS"_Section_start.html#start_3 section for more info.
+See the "Build package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

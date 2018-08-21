@@ -729,6 +729,8 @@
 /pair_eam.h
 /pair_eam_alloy.cpp
 /pair_eam_alloy.h
+/pair_eam_cd.cpp
+/pair_eam_cd.h
 /pair_eam_fs.cpp
 /pair_eam_fs.h
 /pair_edip.cpp

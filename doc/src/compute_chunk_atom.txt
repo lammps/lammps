@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -101,14 +101,13 @@ msd/chunk"_compute_msd_chunk.html.  Or they can be used by the "fix
 ave/chunk"_fix_ave_chunk.html command to sum and time average a
 variety of per-atom properties over the atoms in each chunk.  Or they
 can simply be accessed by any command that uses per-atom values from a
-compute as input, as discussed in "Section
-6.15"_Section_howto.html#howto_15.
+compute as input, as discussed on the "Howto output"_Howto_output.html
+doc page.
 
-See "Section 6.23"_Section_howto.html#howto_23 for an overview of
-how this compute can be used with a variety of other commands to
-tabulate properties of a simulation.  The howto section gives several
-examples of input script commands that can be used to calculate
-interesting properties.
+See the "Howto chunk"_Howto_chunk.html doc page for an overview of how
+this compute can be used with a variety of other commands to tabulate
+properties of a simulation.  The page gives several examples of input
+script commands that can be used to calculate interesting properties.
 
 Conceptually it is important to realize that this compute does two
 simple things.  First, it sets the value of {Nchunk} = the number of
@@ -135,7 +134,6 @@ timesteps it specifies, while it accumulates per-chunk averages.
 
 The details are described below.
 
-:line
 :line
 
 The different chunk styles operate as follows.  For each style, how it
@@ -167,11 +165,11 @@ or the bounds specified by the optional {bounds} keyword.
 For orthogonal simulation boxes, the bins are layers, pencils, or
 boxes aligned with the xyz coordinate axes.  For triclinic
 (non-orthogonal) simulation boxes, the bin faces are parallel to the
-tilted faces of the simulation box.  See "this
-section"_Section_howto.html#howto_12 of the manual for a discussion of
-the geometry of triclinic boxes in LAMMPS.  As described there, a
-tilted simulation box has edge vectors a,b,c.  In that nomenclature,
-bins in the x dimension have faces with normals in the "b" cross "c"
+tilted faces of the simulation box.  See the "Howto
+triclinic"_Howto_triclinic.html doc page for a discussion of the
+geometry of triclinic boxes in LAMMPS.  As described there, a tilted
+simulation box has edge vectors a,b,c.  In that nomenclature, bins in
+the x dimension have faces with normals in the "b" cross "c"
 direction.  Bins in y have faces normal to the "a" cross "c"
 direction.  And bins in z have faces normal to the "a" cross "b"
 direction.  Note that in order to define the size and position of
@@ -296,7 +294,6 @@ this is a very general means of generating per-atom quantities to
 treat as a chunk ID.
 
 :line
-:line
 
 Normally, {Nchunk} = the number of chunks, is re-calculated every time
 this fix is invoked, though the value may or may not change.  As
@@ -323,7 +320,6 @@ the same compute chunk/atom compute.  However, the time windows they
 induce for holding {Nchunk} constant must be identical, else an error
 will be generated.
 
-:line
 :line
 
 The various optional keywords operate as follows.  Note that some of
@@ -626,7 +622,7 @@ cylinder, x for a y-axis cylinder, and x for a z-axis cylinder.
 
 This compute calculates a per-atom vector, which can be accessed by
 any command that uses per-atom values from a compute as input.  See
-"Section 6.15"_Section_howto.html#howto_15 for an overview of
+the "Howto output"_Howto_output.html doc page for an overview of
 LAMMPS output options.
 
 The per-atom vector values are unitless chunk IDs, ranging from 1 to

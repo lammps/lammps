@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -93,9 +93,8 @@ used as the cutoff for the A,C terms, and the second is the cutoff for
 the Coulombic term.
 
 Style {buck/coul/long/cs} is identical to {buck/coul/long} except that
-a term is added for the "core/shell model"_Section_howto.html#howto_25
-to allow charges on core and shell particles to be separated by r =
-0.0.
+a term is added for the "core/shell model"_Howto_coreshell.html to
+allow charges on core and shell particles to be separated by r = 0.0.
 
 Note that these potentials are related to the "Born-Mayer-Huggins
 potential"_pair_born.html.
@@ -146,13 +145,13 @@ produce the same results, except for round-off and precision issues.
 
 These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
 USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with those packages.  See the "Build
+package"_Build_package.html doc page for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
-use the "suffix"_suffix.html command in your input script.
+switch"_Run_options.html when you invoke LAMMPS, or you can use the
+"suffix"_suffix.html command in your input script.
 
 See the "Speed packages"_Speed_packages.html doc page for more
 instructions on how to use the accelerated styles effectively.
@@ -187,8 +186,8 @@ respa"_run_style.html command.  They do not support the {inner},
 
 The {buck/coul/long} style is part of the KSPACE package.  The
 {buck/coul/long/cs} style is part of the CORESHELL package.  They are
-only enabled if LAMMPS was built with that package.  See the
-"Making LAMMPS"_Section_start.html#start_3 section for more info.
+only enabled if LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -19,8 +19,8 @@ one or more attributes may be appended :l
                         patom1 patom2 ptype1 ptype2
                         batom1 batom2 btype
                         aatom1 aatom2 aatom3 atype
-                        datom1 datom2 datom3 dtype
-                        iatom1 iatom2 iatom3 itype :pre
+                        datom1 datom2 datom3 datom4 dtype
+                        iatom1 iatom2 iatom3 iatom4 itype :pre
 
      natom1, natom2 = IDs of 2 atoms in each pair (within neighbor cutoff)
      ntype1, ntype2 = type of 2 atoms in each pair (within neighbor cutoff)
@@ -48,10 +48,10 @@ compute 1 all property/local atype aatom2 :pre
 
 Define a computation that stores the specified attributes as local
 data so it can be accessed by other "output
-commands"_Section_howto.html#howto_15.  If the input attributes refer
-to bond information, then the number of datums generated, aggregated
-across all processors, equals the number of bonds in the system.
-Ditto for pairs, angles, etc.
+commands"_Howto_output.html.  If the input attributes refer to bond
+information, then the number of datums generated, aggregated across
+all processors, equals the number of bonds in the system.  Ditto for
+pairs, angles, etc.
 
 If multiple attributes are specified then they must all generate the
 same amount of information, so that the resulting local array has the
@@ -140,8 +140,8 @@ the array is the number of bonds, angles, etc.  If a single input is
 specified, a local vector is produced.  If two or more inputs are
 specified, a local array is produced where the number of columns = the
 number of inputs.  The vector or array can be accessed by any command
-that uses local values from a compute as input.  See "this
-section"_Section_howto.html#howto_15 for an overview of LAMMPS output
+that uses local values from a compute as input.  See the "Howto
+output"_Howto_output.html doc page for an overview of LAMMPS output
 options.
 
 The vector or array values will be integers that correspond to the

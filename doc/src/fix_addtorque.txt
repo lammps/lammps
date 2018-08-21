@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -70,11 +70,11 @@ this fix. This allows to set at which level of the "r-RESPA"_run_style.html
 integrator the fix is adding its torque. Default is the outermost level.
 
 This fix computes a global scalar and a global 3-vector, which can be
-accessed by various "output commands"_Section_howto.html#howto_15.
-The scalar is the potential energy discussed above.  The vector is the
-total torque on the group of atoms before the forces on individual
-atoms are changed by the fix.  The scalar and vector values calculated
-by this fix are "extensive".
+accessed by various "output commands"_Howto_output.html.  The scalar
+is the potential energy discussed above.  The vector is the total
+torque on the group of atoms before the forces on individual atoms are
+changed by the fix.  The scalar and vector values calculated by this
+fix are "extensive".
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.
@@ -88,8 +88,8 @@ the iteration count during the minimization.
 [Restrictions:]
 
 This fix is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -176,9 +176,8 @@ LAMMPS uses this info to properly exclude or weight bonded pairwise
 interactions between bonded atoms.  See the
 "special_bonds"_special_bonds.html command for more details.  One
 reason to list the special bond info explicitly is for the
-"thermalized Drude oscillator model"_tutorial_drude.html which treats
-the bonds between nuclear cores and Drude electrons in a different
-manner.
+"thermalized Drude oscillator model"_Howto_drude.html which treats the
+bonds between nuclear cores and Drude electrons in a different manner.
 
 NOTE: Whether a section is required depends on how the molecule
 template is used by other LAMMPS commands.  For example, to add a

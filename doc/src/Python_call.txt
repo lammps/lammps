@@ -59,7 +59,7 @@ and callbacks to LAMMPS.
 The "fix python/invoke"_fix_python_invoke.html command can execute
 Python code at selected timesteps during a simulation run.
 
-The "pair_style python"_pair_python command allows you to define
+The "pair_style python"_pair_python.html command allows you to define
 pairwise potentials as python code which encodes a single pairwise
 interaction.  This is useful for rapid-developement and debugging of a
 new potential.

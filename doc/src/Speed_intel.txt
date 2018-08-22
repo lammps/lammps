@@ -400,7 +400,7 @@ within the input script to automatically append the "omp" suffix to
 styles when USER-INTEL styles are not available.
 
 NOTE: For simulations on higher node counts, add "processors * * * 
-grid numa"_processors.html" to the beginning of the input script for
+grid numa"_processors.html to the beginning of the input script for
 better scalability.
 
 When running on many nodes, performance might be better when using

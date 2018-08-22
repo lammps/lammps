@@ -297,7 +297,7 @@ lib/gpu/README
 "Section 2.6 -sf gpu"_Run_options.html
 "Section 2.6 -pk gpu"_Run_options.html
 "package gpu"_package.html
-"Commands all"_Commands_all.html pages (pair,kspace) for styles followed by (g)
+"Commands all"_lc pages (pair,kspace) for styles followed by (g)
 "Benchmarks page"_http://lammps.sandia.gov/bench.html of web site :ul
 
 :line
@@ -412,7 +412,7 @@ lib/kokkos/README
 "Section 2.6 -sf kk"_Run_options.html
 "Section 2.6 -pk kokkos"_Run_options.html
 "package kokkos"_package.html
-"Commands all"_Commands_all.html pages (fix,compute,pair,etc) for styles followed by (k)
+"Commands all"_lc pages (fix,compute,pair,etc) for styles followed by (k)
 "Benchmarks page"_http://lammps.sandia.gov/bench.html of web site :ul
 
 :line
@@ -1392,7 +1392,7 @@ src/USER-INTEL/README
 "Section 2.6 -sf intel"_Run_options.html
 "Section 2.6 -pk intel"_Run_options.html
 "package intel"_package.html
-"Commands all"_Commands_all.html pages (fix,compute,pair,etc) for styles followed by (i)
+"Commands all"_lc pages (fix,compute,pair,etc) for styles followed by (i)
 src/USER-INTEL/TEST
 "Benchmarks page"_http://lammps.sandia.gov/bench.html of web site :ul
 
@@ -1698,7 +1698,7 @@ src/USER-OMP/README
 "Section 2.6 -sf omp"_Run_options.html
 "Section 2.6 -pk omp"_Run_options.html
 "package omp"_package.html
-"Commands all"_Commands_all.html pages (fix,compute,pair,etc) for styles followed by (o)
+"Commands all"_lc pages (fix,compute,pair,etc) for styles followed by (o)
 "Benchmarks page"_http://lammps.sandia.gov/bench.html of web site :ul
 
 :line

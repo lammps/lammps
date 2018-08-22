@@ -12,7 +12,7 @@ Notes for building LAMMPS on Windows :h3
 "General remarks"_#generic
 "Running Linux on Windows"_#linux
 "Using GNU GCC ported to Windows"_#gnu
-"Using a cross-compiler"_#cross
+"Using a cross-compiler"_#cross :ul
 
 :line
 

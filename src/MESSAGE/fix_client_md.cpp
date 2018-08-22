@@ -28,8 +28,9 @@ using namespace LAMMPS_NS;
 using namespace CSLIB_NS;
 using namespace FixConst;
 
+enum{REAL,METAL}
 enum{SETUP=1,STEP};
-enum{UNITS=1,DIM,NATOMS,NTYPES,BOXLO,BOXHI,BOXTILT,TYPES,COORDS,CHARGE};
+enum{DIM=1,PERIODICITY,ORIGIN,BOX,NATOMS,NTYPES,TYPES,COORDS,CHARGE};
 enum{FORCES=1,ENERGY,VIRIAL};
 
 /* ---------------------------------------------------------------------- */
@@ -44,14 +45,32 @@ FixClientMD::FixClientMD(LAMMPS *lmp, int narg, char **arg) :
   if (sizeof(tagint) != 4) 
     error->all(FLERR,"Fix client/md requires 4-byte atom IDs");
 
+  if (strcmp(update->unit_style,"real") == 0) units = REAL;
+  else if (strcmp(update->unit_style,"metal") == 0) units = METAL;
+  else error->all(FLERR,"Units must be real or metal for fix client/md");
+
   scalar_flag = 1;
   global_freq = 1;
   extscalar = 1;
   virial_flag = 1;
   thermo_virial = 1;
 
+  if (domain->dimension == 2)
+    box[0][2] = box[1][2] = box[2][0] = box[2][1] = box[2][2] = 0.0;
+
   maxatom = 0;
   xpbc = NULL;
+
+  // unit conversion factors
+
+  double inv_nprocs = 1.0 / comm->nprocs;
+
+  fconvert = econvert = vconvert = 1.0;
+  if (units == REAL) {
+    fconvert = 1.0;
+    econvert = 1.0;
+    vconvert = 1.0;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -101,34 +120,28 @@ void FixClientMD::setup(int vflag)
 {
   CSlib *cs = (CSlib *) lmp->cslib;
 
-  // required fields: NATOMS, NTYPES, BOXLO, BOXHI, TYPES, COORDS
+  // required fields: DIM, PERIODICTY, ORIGIN, BOX, NATOMS, NTYPES, TYPES, COORDS
   // optional fields: others in enum above
 
-  int nfields = 6;
-  if (domain->dimension == 2) nfields++;
-  if (domain->triclinic) nfields++;
+  int nfields = 8;
   if (atom->q_flag) nfields++;
 
   cs->send(SETUP,nfields);
 
+  cs->pack_int(DIM,domain->dimension);
+  cs->pack(PERIODICITY,1,3,domain->periodicity);
+
+  pack_box();
+  cs->pack(ORIGIN,4,3,domain->boxlo);
+  cs->pack(BOX,4,9,&box[0][0]);
+
   cs->pack_int(NATOMS,atom->natoms);
   cs->pack_int(NTYPES,atom->ntypes);
-  cs->pack(BOXLO,4,3,domain->boxlo);
-  cs->pack(BOXHI,4,3,domain->boxhi);
+
   cs->pack_parallel(TYPES,1,atom->nlocal,atom->tag,1,atom->type);
   pack_coords();
   cs->pack_parallel(COORDS,4,atom->nlocal,atom->tag,3,xpbc);
 
-  if (domain->dimension == 2) cs->pack_int(DIM,domain->dimension);
-  if (domain->triclinic) {
-    double boxtilt[3];
-    boxtilt[0] = domain->xy;
-    if (domain->dimension == 3) {
-      boxtilt[1] = domain->xz;
-      boxtilt[2] = domain->yz;
-    } else boxtilt[1] = boxtilt[2] = 0.0;
-    cs->pack(BOXTILT,4,3,boxtilt);
-  }
   if (atom->q_flag)
     cs->pack_parallel(CHARGE,4,atom->nlocal,atom->tag,1,atom->q);
 
@@ -156,7 +169,7 @@ void FixClientMD::post_force(int vflag)
   else evflag = 0;
 
   // required fields: COORDS
-  // optional fields: BOXLO, BOXHI, BOXTILT
+  // optional fields: ORIGIN, BOX
 
   // send coords
 
@@ -164,7 +177,6 @@ void FixClientMD::post_force(int vflag)
 
   int nfields = 1;
   if (domain->box_change) nfields += 2;
-  if (domain->box_change && domain->triclinic) nfields++;;
 
   cs->send(STEP,nfields);
 
@@ -172,17 +184,9 @@ void FixClientMD::post_force(int vflag)
   cs->pack_parallel(COORDS,4,atom->nlocal,atom->tag,3,xpbc);
 
   if (domain->box_change) {
-    cs->pack(BOXLO,4,3,domain->boxlo);
-    cs->pack(BOXHI,4,3,domain->boxhi);
-    if (domain->triclinic) {
-      double boxtilt[3];
-      boxtilt[0] = domain->xy;
-      if (domain->dimension == 3) {
-        boxtilt[1] = domain->xz;
-        boxtilt[2] = domain->yz;
-      } else boxtilt[1] = boxtilt[2] = 0.0;
-      cs->pack(BOXTILT,4,3,boxtilt);
-    }
+    pack_box();
+    cs->pack(ORIGIN,4,3,domain->boxlo);
+    cs->pack(BOX,4,9,&box[0][0]);
   }
 
   // recv forces, energy, virial
@@ -231,6 +235,26 @@ void FixClientMD::pack_coords()
 }
 
 /* ----------------------------------------------------------------------
+   pack box info into box = 3 edge vectors of simulation box
+------------------------------------------------------------------------- */
+
+void FixClientMD::pack_box()
+{
+  double *boxlo = domain->boxlo;
+  double *boxhi = domain->boxhi;
+
+  box[0][0] = boxhi[0] - boxlo[0];
+  box[0][1] = 0.0;
+  box[0][2] = 0.0;
+  box[1][0] = domain->xy;
+  box[1][1] = boxhi[1] - boxlo[1];
+  box[1][2] = 0.0;
+  box[2][0] = domain->xz;
+  box[2][1] = domain->yz;
+  box[2][2] = boxhi[2] - boxlo[2];
+}
+
+/* ----------------------------------------------------------------------
    receive message from server with forces, energy, virial
 ------------------------------------------------------------------------- */
 
@@ -254,18 +278,17 @@ void FixClientMD::receive_fev(int vflag)
     m = atom->map(id);
     if (m < 0 || m >= nlocal) j += 3;
     else {
-      f[m][0] += forces[j++];
-      f[m][1] += forces[j++];
-      f[m][2] += forces[j++];
+      f[m][0] += fconvert * forces[j++];
+      f[m][1] += fconvert * forces[j++];
+      f[m][2] += fconvert * forces[j++];
     }
   }
 
-  eng = cs->unpack_double(ENERGY);
-
+  eng = econvert * cs->unpack_double(ENERGY);
+  
   if (vflag) {
     double *v = (double *) cs->unpack(VIRIAL);
-    double invnprocs = 1.0 / comm->nprocs;
     for (int i = 0; i < 6; i++)
-      virial[i] = invnprocs*v[i];
+      virial[i] = inv_nprocs * vconvert * v[i];
   }
 }

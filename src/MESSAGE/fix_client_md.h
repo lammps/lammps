@@ -38,9 +38,13 @@ class FixClientMD : public Fix {
 
  private:
   void *cslib;
-  int maxatom;
+  int maxatom,units;
+  double box[3][3];
   double eng;
   double *xpbc;
+
+  double inv_nprocs;
+  double fconvert,econvert,vconvert;
 
   void pack_coords();
   void receive_fev(int );

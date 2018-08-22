@@ -33,8 +33,9 @@
 using namespace LAMMPS_NS;
 using namespace CSLIB_NS;
 
+enum{REAL,METAL}
 enum{SETUP=1,STEP};
-enum{UNITS=1,DIM,NATOMS,NTYPES,BOXLO,BOXHI,BOXTILT,TYPES,COORDS,CHARGE};
+enum{DIM=1,PERIODICITY,ORIGIN,BOX,NATOMS,NTYPES,TYPES,COORDS,CHARGE};
 enum{FORCES=1,ENERGY,VIRIAL};
 
 // NOTE: features that could be added to this interface
@@ -54,9 +55,13 @@ ServerMD::ServerMD(LAMMPS *lmp) : Pointers(lmp)
   if (domain->box_exist == 0)
     error->all(FLERR,"Server command before simulation box is defined");
 
-  if (!atom->map_style) error->all(FLERR,"Server md mode requires atom map");
-  if (atom->tag_enable == 0) error->all(FLERR,"Server md mode requires atom IDs");
+  if (!atom->map_style) error->all(FLERR,"Server md requires atom map");
+  if (atom->tag_enable == 0) error->all(FLERR,"Server md requires atom IDs");
   if (sizeof(tagint) != 4) error->all(FLERR,"Server md requires 4-byte atom IDs");
+
+  if (strcmp(update->unit_style,"real") == 0) units = REAL;
+  else if (strcmp(update->unit_style,"metal") == 0) units = METAL;
+  else error->all(FLERR,"Units must be real or metal for server md");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -90,24 +95,31 @@ void ServerMD::loop()
 
     if (msgID == SETUP) {
 
+      int dim = 0;
+      int *periodicity = NULL;
       int natoms = -1;
       int ntypes = -1;
-      double *boxlo = NULL;
-      double *boxhi = NULL;
-      double *boxtilt = NULL;
+      double *origin = NULL;
+      double *box = NULL;
       int *types = NULL;
       double *coords = NULL;
       double *charge = NULL;
 
       for (int ifield = 0; ifield < nfield; ifield++) {
-        if (fieldID[ifield] == UNITS) {
-          char *units = cs->unpack_string(UNITS);
-          if (strcmp(units,update->unit_style) != 0)
-            error->all(FLERR,"Server md units mis-match with client");
-        } else if (fieldID[ifield] == DIM) {
-          int dim = cs->unpack_int(DIM);
-          if (dim != domain->dimension) 
+        if (fieldID[ifield] == DIM) {
+          dim = cs->unpack_int(DIM);
+          if (dim != domain->dimension)
             error->all(FLERR,"Server md dimension mis-match with client");
+        } else if (fieldID[ifield] == PERIODICITY) {
+          periodicity = (int *) cs->unpack(PERIODICITY);
+          if (periodicity[0] != domain->periodicity[0] ||
+              periodicity[1] != domain->periodicity[1]
+              periodicity[2] != domain->periodicity[2])
+            error->all(FLERR,"Server md periodicity mis-match with client");
+        } else if (fieldID[ifield] == ORIGIN) {
+          origin = (double *) cs->unpack(ORIGIN);
+        } else if (fieldID[ifield] == BOX) {
+          box = (double *) cs->unpack(BOX);
         } else if (fieldID[ifield] == NATOMS) {
           natoms = cs->unpack_int(NATOMS);
           if (3*natoms > INT_MAX)
@@ -116,12 +128,6 @@ void ServerMD::loop()
           ntypes = cs->unpack_int(NTYPES);
           if (ntypes != atom->ntypes)
             error->all(FLERR,"Server md ntypes mis-match with client");
-        } else if (fieldID[ifield] == BOXLO) {
-          boxlo = (double *) cs->unpack(BOXLO);
-        } else if (fieldID[ifield] == BOXHI) {
-          boxhi = (double *) cs->unpack(BOXHI);
-        } else if (fieldID[ifield] == BOXTILT) {
-          boxtilt = (double *) cs->unpack(BOXTILT);
         } else if (fieldID[ifield] == TYPES) {
           types = (int *) cs->unpack(TYPES);
         } else if (fieldID[ifield] == COORDS) {
@@ -131,7 +137,8 @@ void ServerMD::loop()
         } else error->all(FLERR,"Server md setup field unknown");
       }
 
-      if (natoms < 0 || ntypes < 0 || !boxlo || !boxhi || !types || !coords)
+      if (dim == 0 || !periodicity || !origin || !box || 
+          natoms < 0 || ntypes < 0 || !types || !coords)
         error->all(FLERR,"Required server md setup field not received");
 
       if (charge && atom->q_flag == 0)
@@ -139,8 +146,12 @@ void ServerMD::loop()
 
       // reset box, global and local
       // reset proc decomposition
+ 
+      if ((box[3] != 0.0 || box[6] != 0.0 || box[7] != 0.0) && 
+          domain->triclinic == 0)
+        error->all(FLERR,"Server md is not initialized for a triclinic box");
 
-      box_change(boxlo,boxhi,boxtilt);
+      box_change(origin,box);
 
       domain->set_initial_box();
       domain->set_global_box();
@@ -166,7 +177,7 @@ void ServerMD::loop()
       int ntotal;
       MPI_Allreduce(&atom->nlocal,&ntotal,1,MPI_INT,MPI_SUM,world);
       if (ntotal != natoms) 
-        error->all(FLERR,"Server md atom cound does not match client");
+        error->all(FLERR,"Server md atom count does not match client");
 
       atom->map_init();
       atom->map_set();
@@ -190,29 +201,34 @@ void ServerMD::loop()
 
     } else if (msgID == STEP) {
 
-      double *boxlo = NULL;
-      double *boxhi = NULL;
-      double *boxtilt = NULL;
       double *coords = NULL;
+      double *origin = NULL;
+      double *box = NULL;
 
       for (int ifield = 0; ifield < nfield; ifield++) {
-        if (fieldID[ifield] == BOXLO) {
-          boxlo = (double *) cs->unpack(BOXLO);
-        } else if (fieldID[ifield] == BOXHI) {
-          boxhi = (double *) cs->unpack(BOXHI);
-        } else if (fieldID[ifield] == BOXTILT) {
-          boxtilt = (double *) cs->unpack(BOXTILT);
-        } else if (fieldID[ifield] == COORDS) {
+        if (fieldID[ifield] == COORDS) {
           coords = (double *) cs->unpack(COORDS);
+        } else if (fieldID[ifield] == ORIGIN) {
+          origin = (double *) cs->unpack(ORIGIN);
+        } else if (fieldID[ifield] == BOX) {
+          box = (double *) cs->unpack(BOX);
         } else error->all(FLERR,"Server md step field unknown");
       }
 
       if (!coords)
         error->all(FLERR,"Required server md step field not received");
 
-      // change box size/shape, only if both box lo/hi received
+      // change box size/shape, only if origin and box received
+      // reset global/local box like FixDeform at end_of_step()
 
-      if (boxlo && boxhi) box_change(boxlo,boxhi,boxtilt);
+      if (origin && box) {
+        if ((box[3] != 0.0 || box[6] != 0.0 || box[7] != 0.0) && 
+            domain->triclinic == 0)
+          error->all(FLERR,"Server md is not initialized for a triclinic box");
+        box_change(origin,box);
+        domain->set_global_box();
+        domain->set_local_box();
+      }
 
       // assign received coords to owned atoms
       // closest_image() insures xyz matches current server PBC
@@ -231,9 +247,11 @@ void ServerMD::loop()
         }
       }
 
-      // if no need to reneighbor, just ghost comm
-      // else setup_minimal(1) which includes reneigh
-      // setup_minimal computes forces for 0 or 1
+      // if no need to reneighbor:
+      //   ghost comm
+      //   setup_minimal(0) which just computes forces
+      // else:
+      //   setup_minimal(1) for pbc, reset_box, reneigh, forces
 
       int nflag = neighbor->decide();
       if (nflag == 0) {
@@ -278,26 +296,21 @@ void ServerMD::loop()
    box change due to received message
 ------------------------------------------------------------------------- */
 
-void ServerMD::box_change(double *boxlo, double *boxhi, double *boxtilt)
+void ServerMD::box_change(double *origin, double *box)
 {
-  domain->boxlo[0] = boxlo[0];
-  domain->boxhi[0] = boxhi[0];
-  domain->boxlo[1] = boxlo[1];
-  domain->boxhi[1] = boxhi[1];
-  if (domain->dimension == 3) {
-    domain->boxlo[2] = boxlo[2];
-    domain->boxhi[2] = boxhi[2];
-  }
-  
-  if (boxtilt) {
-    if (!domain->triclinic) 
-      error->all(FLERR,"Server md not setup for triclinic box");
-    domain->xy = boxtilt[0];
-    if (domain->dimension == 3) {
-      domain->xz = boxtilt[1];
-      domain->yz = boxtilt[2];
-    }
-  }
+  domain->boxlo[0] = origin[0];
+  domain->boxlo[1] = origin[1];
+  domain->boxlo[2] = origin[2];
+
+  domain->boxhi[0] = origin[0] + box[0];
+  domain->boxhi[1] = origin[1] + box[4];
+  domain->boxhi[2] = origin[2] + box[8];
+
+  domain->xy = box[3];
+  domain->xz = box[6];
+  domain->yz = box[7];
+
+
 }
 
 /* ----------------------------------------------------------------------

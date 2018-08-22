@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -90,8 +90,7 @@ For more information about TMD, see "(Schlitter1)"_#Schlitter1 and
 No information about this fix is written to "binary restart
 files"_restart.html.  None of the "fix_modify"_fix_modify.html options
 are relevant to this fix.  No global or per-atom quantities are stored
-by this fix for access by various "output
-commands"_Section_howto.html#howto_15.
+by this fix for access by various "output commands"_Howto_output.html.
 
 This fix can ramp its rho parameter over multiple runs, using the
 {start} and {stop} keywords of the "run"_run.html command.  See the
@@ -111,8 +110,8 @@ are not multiple competing holonomic constraints applied to the same
 atoms.
 
 To read gzipped target files, you must compile LAMMPS with the
--DLAMMPS_GZIP option - see the "Making
-LAMMPS"_Section_start.html#start_2 section of the documentation.
+-DLAMMPS_GZIP option.  See the "Build settings"_Build_settings.html
+doc page for details.
 
 [Related commands:] none
 

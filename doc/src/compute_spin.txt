@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -61,10 +61,10 @@ metal units ("units"_units.html).
 
 [Restrictions:] 
 
-The {spin} compute is part of the SPIN package.
-This compute is only enabled if LAMMPS was built with this package.
-See the "Making LAMMPS"_Section_start.html#start_3 section for more info.
-The atom_style has to be "spin" for this compute to be valid.
+The {spin} compute is part of the SPIN package.  This compute is only
+enabled if LAMMPS was built with this package.  See the "Build
+package"_Build_package.html doc page for more info.  The atom_style
+has to be "spin" for this compute to be valid.
 
 [Related commands:] none
 

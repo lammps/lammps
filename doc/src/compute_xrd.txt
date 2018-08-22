@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -162,7 +162,7 @@ or degrees) provided with the {2Theta} values. The second column contains
 the computed diffraction intensities as described above.
 
 The array can be accessed by any command that uses global values from
-a compute as input.  See "this section"_Section_howto.html#howto_15
+a compute as input.  See the "Howto output"_Howto_output.html doc page
 for an overview of LAMMPS output options.
 
 All array values calculated by this compute are "intensive".
@@ -170,8 +170,8 @@ All array values calculated by this compute are "intensive".
 [Restrictions:]
 
 This compute is part of the USER-DIFFRACTION package.  It is only
-enabled if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+enabled if LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 The compute_xrd command does not work for triclinic cells.
 

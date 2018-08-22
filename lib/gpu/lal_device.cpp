@@ -130,8 +130,16 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int first_gpu,
 
   // Time on the device only if 1 proc per gpu
   _time_device=true;
+
+#if 0
+  // XXX: the following setting triggers a memory leak with OpenCL and MPI
+  //      setting _time_device=true for all processes doesn't seem to be a
+  //      problem with either (no segfault, no (large) memory leak.
+  //      thus keeping this disabled for now. may need to review later.
+  //      2018-07-23 <akohlmey@gmail.com>
   if (_procs_per_gpu>1)
     _time_device=false;
+#endif
 
   // Set up a per device communicator
   MPI_Comm_split(node_comm,my_gpu,0,&_comm_gpu);

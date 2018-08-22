@@ -1063,8 +1063,8 @@ void FixBondReact::superimpose_algorithm()
         hang_catch++;
         // let's go ahead and catch the simplest of hangs
         //if (hang_catch > onemol->natoms*4)
-        if (hang_catch > atom->nlocal*3) {
-          error->all(FLERR,"Excessive iteration of superimpose algorithm");
+        if (hang_catch > atom->nlocal*30) {
+          error->one(FLERR,"Excessive iteration of superimpose algorithm");
         }
       }
     }
@@ -1552,6 +1552,40 @@ void FixBondReact::find_landlocked_atoms(int myrxn)
   for (int i = 0; i < twomol->natoms; i++) {
     if (twomol->type[i] != onemol->type[equivalences[i][1][myrxn]-1] && landlocked_atoms[i][myrxn] == 0)
       error->one(FLERR,"Atom affected by reaction too close to template edge");
+  }
+
+  // additionally, if a bond changes type, but neither involved atom is landlocked, bad
+  // would someone want to change an angle type but not bond or atom types? (etc.) ...hopefully not yet
+  for (int i = 0; i < twomol->natoms; i++) {
+    if (landlocked_atoms[i][myrxn] == 0) {
+      int twomol_atomi = i+1;
+      for (int j = 0; j < twomol->num_bond[i]; j++) {
+        int twomol_atomj = twomol->bond_atom[i][j];
+        if (landlocked_atoms[twomol_atomj-1][myrxn] == 0) {
+          int onemol_atomi = equivalences[i][1][myrxn];
+          int onemol_batom;
+          for (int m = 0; m < onemol->num_bond[onemol_atomi-1]; m++) {
+            onemol_batom = onemol->bond_atom[onemol_atomi-1][m];
+            if (onemol_batom == equivalences[twomol_atomj-1][1][myrxn]) {
+              if (twomol->bond_type[i][j] != onemol->bond_type[onemol_atomi-1][m]) {
+                error->one(FLERR,"Bond type affected by reaction too close to template edge");
+              }
+            }
+          }
+          if (newton_bond) {
+            int onemol_atomj = equivalences[twomol_atomj-1][1][myrxn];
+            for (int m = 0; m < onemol->num_bond[onemol_atomj-1]; m++) {
+              onemol_batom = onemol->bond_atom[onemol_atomj-1][m];
+              if (onemol_batom == equivalences[i][1][myrxn]) {
+                if (twomol->bond_type[i][j] != onemol->bond_type[onemol_atomj-1][m]) {
+                  error->one(FLERR,"Bond type affected by reaction too close to template edge");
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   // also, if atoms change number of bonds, but aren't landlocked, that could be bad
@@ -2067,7 +2101,7 @@ void FixBondReact::update_everything()
                   nspecial[atom->map(update_mega_glove[jj+1][i])][1]++;
                   nspecial[atom->map(update_mega_glove[jj+1][i])][2]++;
                 }
-                for (int n = nspecial[atom->map(update_mega_glove[jj+1][i])][2]; n > insert_num; n--) {
+                for (int n = nspecial[atom->map(update_mega_glove[jj+1][i])][2]-1; n > insert_num; n--) {
                   special[atom->map(update_mega_glove[jj+1][i])][n] = special[atom->map(update_mega_glove[jj+1][i])][n-1];
                 }
                 special[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->special[j][k]-1][1][rxnID]][i];

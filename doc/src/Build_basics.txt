@@ -216,8 +216,8 @@ LAMMPS can be built as either an executable or as a static or shared
 library.  The LAMMPS library can be called from another application or
 a scripting language.  See the "Howto couple"_Howto_couple.html doc
 page for more info on coupling LAMMPS to other codes.  See the
-"Python"_Python doc page for more info on wrapping and running LAMMPS
-from Python via its library interface.
+"Python"_Python_head.html doc page for more info on wrapping and
+running LAMMPS from Python via its library interface.
 
 [CMake variables]:
 

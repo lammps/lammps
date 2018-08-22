@@ -28,6 +28,7 @@ as described on the "Install"_Install.html doc page.
    Build_settings
    Build_package
    Build_extras
+   Build_windows
 
 END_RST -->
 
@@ -39,7 +40,8 @@ END_RST -->
 "Basic build options"_Build_basics.html
 "Optional build settings"_Build_settings.html
 "Include packages in build"_Build_package.html
-"Packages with extra build options"_Build_extras.html :all(b)
+"Packages with extra build options"_Build_extras.html
+"Notes for building LAMMPS on Windows"_Build_windows.html  :all(b)
 
 If you have problems building LAMMPS, it is often due to software
 issues on your local machine.  If you can, find a local expert to

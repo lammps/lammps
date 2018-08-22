@@ -252,7 +252,7 @@ These are the ScaFaCoS methods currently available from LAMMPS:
 {p2nfft} = FFT-based Coulomb solver
 {ewald} = Ewald summation
 {direct} = direct O(N^2) summation
-{p3m} = PPPM
+{p3m} = PPPM :ul
 
 We plan to support additional ScaFaCoS solvers from LAMMPS in the
 future.  For an overview of the included solvers, refer to
@@ -268,7 +268,7 @@ energy or the total Columic energy.  To select from these options, see
 the "kspace_modify scafacos accuracy"_kspace_modify.html doc page.
 
 The "kspace_modify scafacos"_kspace_modify.html command also explains
-all the ScaFaCoS options currently exposed to LAMMPS.
+other ScaFaCoS options currently exposed to LAMMPS.
 
 :line
 

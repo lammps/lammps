@@ -199,7 +199,6 @@ void Scafacos::compute(int eflag, int vflag)
     eflag_atom = 0;
     vflag_global = 0;
   }
-
   
   // grow xpbc, epot, efield if necessary
 
@@ -223,12 +222,23 @@ void Scafacos::compute(int eflag, int vflag)
   // pack coords into xpbc and apply PBC
   memcpy(xpbc,&x[0][0],3*nlocal*sizeof(double));
 
+  // RENE: remove this section (see RENE below)
+
   //int j = 0;
   for (int i = 0; i < nlocal; i++) {
     if (domain->xperiodic) domain->remap(&xpbc[3*i]);
     if (domain->yperiodic) domain->remap(&xpbc[3*i+1]);
     if (domain->zperiodic) domain->remap(&xpbc[3*i+2]);
     //j += 3;
+  }
+
+  // RENE: I think the call to domain->remap needs to be this way
+  // b/c the remap() method checks for PBC and does all 3 dims at once
+
+  int j = 0;
+  for (int i = 0; i < nlocal; i++) {
+    domain->remap(&xpbc[j]);
+    j += 3;
   }
 
   // if simulation box has changed, call fcs_tune()

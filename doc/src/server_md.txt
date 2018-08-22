@@ -59,8 +59,7 @@ a conceptual sense.  Python-style pseudo code for the library calls to
 the CSlib is shown, which performs the actual message exchange between
 the two codes.  See the "CSlib website"_http://cslib.sandia.gov doc
 pages for more details on the actual library syntax.  The "cs" object
-in this pseudo code is an instance of the CSlib that both the client
-and server codes store.
+in this pseudo code is a pointer to an instance of the CSlib.
 
 See the src/MESSAGE/server_md.cpp and src/MESSAGE/fix_client_md.cpp
 files for details on how LAMMPS uses these messages.  See the
@@ -78,34 +77,34 @@ enum{FORCES=1,ENERGY,VIRIAL}; :pre
 # required fields: NATOMS, NTYPES, BOXLO, BOXHI, TYPES, COORDS
 # optional fields: others in 2nd enum above :pre
 
-cs.send(SETUP,nfields)        # msgID with nfields :pre
+cs->send(SETUP,nfields)        # msgID with nfields :pre
 
-cs.pack_string(UNITS,units)   # units = "lj", "real", "metal", etc
-cs.pack_int(NATOMS,natoms)    # total numer of atoms
-cs.pack_int(NTYPES,ntypes)    # number of atom types
-cs.pack(BOXLO,3,boxlo)        # 3-vector of lower box bounds
-cs.pack(BOXHI,3,boxhi)        # 3-vector of upper box bounds
-cs.pack(BOXTILT,3,boxtilt)    # 3-vector of tilt factors for triclinic boxes
-cs.pack(TYPES,natoms,type)    # vector of per-atom types
-cs.pack(COORDS,3*natoms,x)    # vector of 3N atom coords
-cs.pack(CHARGE,natoms,q)      # vector of per-atom charge :pre
+cs->pack_string(UNITS,units)   # units = "lj", "real", "metal", etc
+cs->pack_int(NATOMS,natoms)    # total numer of atoms
+cs->pack_int(NTYPES,ntypes)    # number of atom types
+cs->pack(BOXLO,3,boxlo)        # 3-vector of lower box bounds
+cs->pack(BOXHI,3,boxhi)        # 3-vector of upper box bounds
+cs->pack(BOXTILT,3,boxtilt)    # 3-vector of tilt factors for triclinic boxes
+cs->pack(TYPES,natoms,type)    # vector of per-atom types
+cs->pack(COORDS,3*natoms,x)    # vector of 3N atom coords
+cs->pack(CHARGE,natoms,q)      # vector of per-atom charge :pre
 
 # required fields: COORDS
 # optional fields: BOXLO, BOXHI, BOXTILT :pre
 
-cs.send(STEP,nfields)         # msgID with nfields :pre
+cs->send(STEP,nfields)         # msgID with nfields :pre
 
-cs.pack_int(NATOMS,natoms)    # total numer of atoms
-cs.pack_int(NTYPES,ntypes)    # number of atom types
-cs.pack(BOXLO,3,boxlo)        # 3-vector of lower box bounds
-cs.pack(BOXTILT,3,boxtilt)    # 3-vector of tilt factors for triclinic boxes :pre
+cs->pack_int(NATOMS,natoms)    # total numer of atoms
+cs->pack_int(NTYPES,ntypes)    # number of atom types
+cs->pack(BOXLO,3,boxlo)        # 3-vector of lower box bounds
+cs->pack(BOXTILT,3,boxtilt)    # 3-vector of tilt factors for triclinic boxes :pre
 
 [Server replies to either kind of message]:
 
-cs.send(msgID,3)            # msgID = 1 with 3 fields
-cs.pack(FORCES,3*Natoms,f)  # vector of 3N forces on atoms
-cs.pack(ENERGY,1,poteng)    # total potential energy of system
-cs.pack(VIRIAL,6,virial)    # global virial tensor (6-vector) :pre
+cs->send(msgID,3)            # msgID = 1 with 3 fields
+cs->pack(FORCES,3*Natoms,f)  # vector of 3N forces on atoms
+cs->pack(ENERGY,1,poteng)    # total potential energy of system
+cs->pack(VIRIAL,6,virial)    # global virial tensor (6-vector) :pre
 
 :line
 

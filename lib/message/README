@@ -4,7 +4,7 @@ in a LAMMPS input script.
 
 The CSlib libary is included in the LAMMPS distribution.  A fuller
 version including documentation and test programs is available at
-http:cslib.sandia.gov and was developed by Steve Plimpton at Sandia
+http://cslib.sandia.gov.  It was developed by Steve Plimpton at Sandia
 National Laboratories.
 
 You can type "make lib-message" from the src directory to see help on
@@ -16,7 +16,7 @@ The CSlib can be optionally built with support for sockets using
 the open-source ZeroMQ (ZMQ) library.  If it is not installed
 on your system, it is easy to download and install.
 
-Go to this website: http://zeromq.org
+Go to the ZMQ website for details: http://zeromq.org
 
 -----------------
 

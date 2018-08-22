@@ -1568,7 +1568,6 @@ void FixBondReact::find_landlocked_atoms(int myrxn)
             onemol_batom = onemol->bond_atom[onemol_atomi-1][m];
             if (onemol_batom == equivalences[twomol_atomj-1][1][myrxn]) {
               if (twomol->bond_type[i][j] != onemol->bond_type[onemol_atomi-1][m]) {
-                printf("%d and %d for rxn %d\n",twomol_atomi,twomol_atomj,myrxn);
                 error->one(FLERR,"Bond type affected by reaction too close to template edge");
               }
             }
@@ -1579,7 +1578,6 @@ void FixBondReact::find_landlocked_atoms(int myrxn)
               onemol_batom = onemol->bond_atom[onemol_atomj-1][m];
               if (onemol_batom == equivalences[i][1][myrxn]) {
                 if (twomol->bond_type[i][j] != onemol->bond_type[onemol_atomj-1][m]) {
-                  printf("%d and %d for rxn %d\n",twomol_atomi,twomol_atomj,myrxn);
                   error->one(FLERR,"Bond type affected by reaction too close to template edge");
                 }
               }

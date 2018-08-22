@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -25,11 +25,11 @@ This fix style enables LAMMPS to run as a "client" code and
 communicate each timestep with a separate "server" code to perform an
 MD simulation together.
 
-"This section"_Section_howto.html#howto_29 gives an overview of
-client/server coupling of LAMMPS with another code where one code is
-the "client" and sends request messages to a "server" code.  The
-server responds to each request with a reply message.  This enables
-the two codes to work in tandem to perform a simulation.
+The "Howto client/server"_Howto_client_server.html doc page gives an
+overview of client/server coupling of LAMMPS with another code where
+one code is the "client" and sends request messages to a "server"
+code.  The server responds to each request with a reply message.  This
+enables the two codes to work in tandem to perform a simulation.
 
 When using this fix, LAMMPS (as the client code) passes the current
 coordinates of all particles to the server code each timestep, which
@@ -80,9 +80,9 @@ virial as part of "thermodynamic output"_thermo_style.html.  The
 default is {virial yes}
 
 This fix computes a global scalar which can be accessed by various
-"output commands"_Section_howto.html#howto_15.  The scalar is the
-potential energy discussed above.  The scalar value calculated by this
-fix is "extensive".
+"output commands"_Howto_output.html.  The scalar is the potential
+energy discussed above.  The scalar value calculated by this fix is
+"extensive".
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.  This fix is not invoked during "energy
@@ -91,8 +91,8 @@ minimization"_minimize.html.
 [Restrictions:]
 
 This fix is part of the MESSAGE package.  It is only enabled if LAMMPS
-was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 A script that uses this command must also use the
 "message"_message.html command to setup the messaging protocol with

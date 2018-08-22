@@ -380,9 +380,13 @@ file.
  
 MESSAGE package :h4,link(message)
 
+This package can optionally include support for messaging via sockets,
+using the open-source "ZeroMQ library"_http://zeromq.org, which must
+be installed on your system.
+
 [CMake build]:
 
-No additional settings are needed besides "-D PKG_MESSAGE=yes".
+-D MESSAGE_ZMQ=value    # build with ZeroMQ support, value = no (default) or yes
 
 [Traditional make]:
 
@@ -398,8 +402,8 @@ make lib-message args="-s"     # build as serial lib with no ZMQ support
 
 The build should produce two files: lib/message/cslib/src/libmessage.a
 and lib/message/Makefile.lammps.  The latter is copied from an
-existing Makefile.lammps.* and has settings to link with the
-open-source ZMQ library if requested in the build.
+existing Makefile.lammps.* and has settings to link with the ZeroMQ
+library if requested in the build.
 
 :line
  

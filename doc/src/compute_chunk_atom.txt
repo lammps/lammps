@@ -135,7 +135,6 @@ timesteps it specifies, while it accumulates per-chunk averages.
 The details are described below.
 
 :line
-:line
 
 The different chunk styles operate as follows.  For each style, how it
 calculates {Nchunk} and assigns chunk IDs to atoms is explained.  Note
@@ -295,7 +294,6 @@ this is a very general means of generating per-atom quantities to
 treat as a chunk ID.
 
 :line
-:line
 
 Normally, {Nchunk} = the number of chunks, is re-calculated every time
 this fix is invoked, though the value may or may not change.  As
@@ -322,7 +320,6 @@ the same compute chunk/atom compute.  However, the time windows they
 induce for holding {Nchunk} constant must be identical, else an error
 will be generated.
 
-:line
 :line
 
 The various optional keywords operate as follows.  Note that some of

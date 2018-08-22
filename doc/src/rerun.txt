@@ -189,8 +189,8 @@ every 1000 steps, then you will only see thermodynamic output every
 [Restrictions:]
 
 To read gzipped dump files, you must compile LAMMPS with the
--DLAMMPS_GZIP option - see the "Making
-LAMMPS"_Section_start.html#start_2 section of the documentation.
+-DLAMMPS_GZIP option.  See the "Build settings"_Build_settings.html
+doc page for details.
 
 [Related commands:]
 

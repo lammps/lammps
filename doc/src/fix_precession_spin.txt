@@ -75,10 +75,10 @@ files"_restart.html.
 
 [Restrictions:]
 
-The {precession/spin} style is part of the SPIN package. 
-This style is only enabled if LAMMPS was built with this package, and
-if the atom_style "spin" was declared. 
-See the "Making LAMMPS"_Section_start.html#start_3 section for more info.
+The {precession/spin} style is part of the SPIN package.  This style
+is only enabled if LAMMPS was built with this package, and if the
+atom_style "spin" was declared.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

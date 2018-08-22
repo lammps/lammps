@@ -171,11 +171,11 @@ temperature of the system should not exceed the melting temperature to
 keep the system in its solid state.
 
 This fix is part of the USER-PHONON package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
-This fix requires LAMMPS be built with an FFT library.  See the
-"Making LAMMPS"_Section_start.html#start_2 section for more info.
+This fix requires LAMMPS be built with an FFT library.  See the "Build
+settings"_Build_settings.html doc page for details.
 
 [Related commands:]
 

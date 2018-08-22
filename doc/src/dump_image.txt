@@ -142,8 +142,8 @@ framerate can be set using the "dump_modify"_dump_modify.html command.
 To write out JPEG and PNG format files, you must build LAMMPS with
 support for the corresponding JPEG or PNG library. To convert images
 into movies, LAMMPS has to be compiled with the -DLAMMPS_FFMPEG
-flag. See "this section"_Section_start.html#start_2_4 of the manual
-for instructions on how to do this.
+flag. See the "Build settings"_Build_settings.html doc page for
+details.
 
 NOTE: Because periodic boundary conditions are enforced only on
 timesteps when neighbor lists are rebuilt, the coordinates of an atom
@@ -624,8 +624,7 @@ building LAMMPS and have the FFmpeg executable available on the
 machine where LAMMPS is being run.  Typically it's name is lowercase,
 i.e. ffmpeg.
 
-See the "Making LAMMPS"_Section_start.html#start_2_4 section of the
-documentation for details on how to compile with optional switches.
+See the "Build settings"_Build_settings.html doc page for details.
 
 Note that since FFmpeg is run as an external program via a pipe,
 LAMMPS has limited control over its execution and no knowledge about

@@ -16,8 +16,8 @@ restart files can be saved to disk using the "restart"_restart.html
 command.  At a later time, these binary files can be read via a
 "read_restart"_read_restart.html command in a new script.  Or they can
 be converted to text data files using the "-r command-line
-switch"_Section_start.html#start_6 and read by a
-"read_data"_read_data.html command in a new script.
+switch"_Run_options.html and read by a "read_data"_read_data.html
+command in a new script.
 
 Here we give examples of 2 scripts that read either a binary restart
 file or a converted data file and then issue a new run command to

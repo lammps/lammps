@@ -66,8 +66,7 @@ Restart files can be read by a "read_restart"_read_restart.html
 command to restart a simulation from a particular state.  Because the
 file is binary (to enable exact restarts), it may not be readable on
 another machine.  In this case, you can use the "-r command-line
-switch"_Section_start.html#start_6 to convert a restart file to a data
-file.
+switch"_Run_options.html to convert a restart file to a data file.
 
 NOTE: Although the purpose of restart files is to enable restarting a
 simulation from where it left off, not all information about a

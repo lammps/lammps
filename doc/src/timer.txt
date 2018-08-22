@@ -39,8 +39,8 @@ During a simulation run LAMMPS collects information about how much
 time is spent in different sections of the code and thus can provide
 information for determining performance and load imbalance problems.
 This can be done at different levels of detail and accuracy.  For more
-information about the timing output, see this "discussion of screen
-output in Section 2.7"_Section_start.html#start_7.
+information about the timing output, see the "Run
+output"_Run_output.html doc page.
 
 The {off} setting will turn all time measurements off. The {loop}
 setting will only measure the total time for a run and not collect any

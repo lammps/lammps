@@ -111,8 +111,9 @@ support the {inner}, {middle}, {outer} keywords.
 This pair style requires the "newton"_newton.html setting to be "on"
 for pair interactions.
 
-This pair style is only enabled if LAMMPS was built with the USER-MISC package.
-See the "Making LAMMPS"_Section_start.html#start_3 section for more info.
+This pair style is only enabled if LAMMPS was built with the USER-MISC
+package.  See the "Build package"_Build_package.html doc page for more
+info.
 
 [Related commands:]
 

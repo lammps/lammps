@@ -93,11 +93,11 @@ re-build LAMMPS |
   make machine |
 prepare and test a regular LAMMPS simulation |
   lmp_machine -in in.script; mpirun -np 32 lmp_machine -in in.script |
-enable specific accelerator support via '-k on' "command-line switch"_Section_start.html#start_6, |
+enable specific accelerator support via '-k on' "command-line switch"_Run_options.html, |
   only needed for KOKKOS package |
-set any needed options for the package via "-pk" "command-line switch"_Section_start.html#start_6 or "package"_package.html command, |
+set any needed options for the package via "-pk" "command-line switch"_Run_options.html or "package"_package.html command, |
   only if defaults need to be changed |
-use accelerated styles in your input via "-sf" "command-line switch"_Section_start.html#start_6 or "suffix"_suffix.html command | lmp_machine -in in.script -sf gpu
+use accelerated styles in your input via "-sf" "command-line switch"_Run_options.html or "suffix"_suffix.html command | lmp_machine -in in.script -sf gpu
 :tb(c=2,s=|)
 
 Note that the first 4 steps can be done as a single command with

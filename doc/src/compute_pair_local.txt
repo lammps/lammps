@@ -62,7 +62,7 @@ pair styles do not define any additional quantities, so N = 0.  An
 example of ones that do are the "granular pair styles"_pair_gran.html
 which calculate the tangential force between two particles and return
 its components and magnitude acting on atom I for N = 1,2,3,4.  See
-individual pair styles for detils.
+individual pair styles for details.
 
 The value {dist} will be in distance "units"_units.html.  The value
 {eng} will be in energy "units"_units.html.  The values {force}, {fx},
@@ -76,7 +76,7 @@ command for the types of the two atoms is used.  For the {radius}
 setting, the sum of the radii of the two particles is used as a
 cutoff.  For example, this is appropriate for granular particles which
 only interact when they are overlapping, as computed by "granular pair
-styles"_pair_gran.txt.  Note that if a granular model defines atom
+styles"_pair_gran.html.  Note that if a granular model defines atom
 types such that all particles of a specific type are monodisperse
 (same diameter), then the two settings are effectively identical.
 

@@ -184,9 +184,9 @@ lo-level Makefile.  This setting also changes some of the PPPM
 operations (e.g. mapping charge to mesh and interpolating electric
 fields to particles) to be performed in single precision.  This option
 can speed-up long-range calculations, particularly in parallel or on
-GPUs.  The use of the -DFFT_SINGLE flag is discussed in "this
-section"_Section_start.html#start_2_4 of the manual. MSM does not
-currently support the -DFFT_SINGLE compiler switch.
+GPUs.  The use of the -DFFT_SINGLE flag is discussed on the "Build
+settings"_Build_settings.html doc page. MSM does not currently support
+the -DFFT_SINGLE compiler switch.
 
 :line
 
@@ -347,10 +347,10 @@ The {pppm/kk} style also performs charge assignment and force
 interpolation calculations on the GPU while the FFTs themselves are
 calculated on the CPU in non-threaded mode.
 
-These accelerated styles are part of the GPU, USER-INTEL,
-KOKKOS, USER-OMP, and OPT packages respectively.  They are only
-enabled if LAMMPS was built with those packages.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
+USER-OMP, and OPT packages respectively.  They are only enabled if
+LAMMPS was built with those packages.  See the "Build
+package"_Build_package.html doc page for more info.
 
 See the "Speed packages"_Speed_packages.html doc page for more
 instructions on how to use the accelerated styles effectively.
@@ -369,9 +369,9 @@ triclinic simulation cells may not yet be supported by suffix versions
 of these styles.
 
 All of the kspace styles are part of the KSPACE package.  They are
-only enabled if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.  Note that
-the KSPACE package is installed by default.
+only enabled if LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.  Note that the
+KSPACE package is installed by default.
 
 For MSM, a simulation must be 3d and one can use any combination of
 periodic, non-periodic, or shrink-wrapped boundaries (specified using

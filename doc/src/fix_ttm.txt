@@ -295,8 +295,7 @@ of the "run"_run.html command.  The fixes are not invoked during
 Fix {ttm} is part of the MISC package. It is only enabled if LAMMPS
 was built with that package.  Fix {ttm/mod} is part of the USER-MISC
 package. It is only enabled if LAMMPS was built with that package.
-See the "Making LAMMPS"_Section_start.html#start_3 section for more
-info.
+See the "Build package"_Build_package.html doc page for more info.
 
 These fixes can only be used for 3d simulations and orthogonal
 simulation boxes.  You must also use periodic

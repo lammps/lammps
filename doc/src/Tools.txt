@@ -43,39 +43,53 @@ to edit for your platform) which will build several of the tools which
 reside in that directory.  Most of them are larger packages in their
 own sub-directories with their own Makefiles and/or README files.
 
-"amber2lmp"_#amber
-"binary2txt"_#binary
-"ch2lmp"_#charmm
-"chain"_#chain
-"colvars"_#colvars
-"createatoms"_#createatoms
-"doxygen"_#doxygen
-"drude"_#drude
-"eam database"_#eamdb
-"eam generate"_#eamgn
-"eff"_#eff
-"emacs"_#emacs
-"fep"_#fep
-"i-pi"_#ipi
-"ipp"_#ipp
-"kate"_#kate
-"lmp2arc"_#arc
-"lmp2cfg"_#cfg
-"matlab"_#matlab
-"micelle2d"_#micelle
-"moltemplate"_#moltemplate
-"msi2lmp"_#msi
-"phonon"_#phonon
-"polybond"_#polybond
-"pymol_asphere"_#pymol
-"python"_#pythontools
-"reax"_#reax_tool
-"smd"_#smd
-"vim"_#vim
-"xmgrace"_#xmgrace :ul
+:line
+
+Pre-processing tools :h3
+
+"amber2lmp"_#amber,
+"ch2lmp"_#charmm,
+"chain"_#chain,
+"createatoms"_#createatoms,
+"drude"_#drude,
+"eam database"_#eamdb,
+"eam generate"_#eamgn,
+"eff"_#eff,
+"ipp"_#ipp,
+"micelle2d"_#micelle,
+"moltemplate"_#moltemplate,
+"msi2lmp"_#msi,
+"polybond"_#polybond :tb(c=6,ea=c,a=l)
+
+Post-processing tools :h3
+
+"amber2lmp"_#amber,
+"binary2txt"_#binary,
+"ch2lmp"_#charmm,
+"colvars"_#colvars,
+"eff"_#eff,
+"fep"_#fep,
+"lmp2arc"_#arc,
+"lmp2cfg"_#cfg,
+"matlab"_#matlab,
+"phonon"_#phonon,
+"pymol_asphere"_#pymol,
+"python"_#pythontools,
+"reax"_#reax_tool,
+"smd"_#smd,
+"xmgrace"_#xmgrace :tb(c=6,ea=c,a=l)
+
+Miscellaneous tools :h3
+
+"doxygen"_#doxygen,
+"emacs"_#emacs,
+"i-pi"_#ipi,
+"kate"_#kate,
+"vim"_#vim :tb(c=5,ea=c,a=l)
 
 :line
-:line
+
+Tool descriptions :h3
 
 amber2lmp tool :h4,link(amber)
 

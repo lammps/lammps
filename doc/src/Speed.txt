@@ -31,16 +31,11 @@ hardware platforms.
 <!-- RST
 
 .. toctree::
+   :maxdepth: 1
 
    Speed_bench
    Speed_measure
-
-.. toctree::
-
    Speed_tips
-
-.. toctree::
-
    Speed_packages
    Speed_compare
 
@@ -49,10 +44,8 @@ END_RST -->
 <!-- HTML_ONLY -->
 
 "Benchmarks"_Speed_bench.html
-"Measuring performance"_Speed_measure.html :all(b)
-
-"General tips"_Speed_tips.html :all(b)
-
+"Measuring performance"_Speed_measure.html
+"General tips"_Speed_tips.html
 "Accelerator packages"_Speed_packages.html
 "GPU package"_Speed_gpu.html
 "USER-INTEL package"_Speed_intel.html

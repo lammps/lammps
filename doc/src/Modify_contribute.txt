@@ -44,13 +44,14 @@ compression, as this works well on all platforms.
 
 If the new features/files are broadly useful we may add them as core
 files to LAMMPS or as part of a "standard
-package"_Section_start.html#start_3.  Else we will add them as a
-user-contributed file or package.  Examples of user packages are in
-src sub-directories that start with USER.  The USER-MISC package is
-simply a collection of (mostly) unrelated single files, which is the
-simplest way to have your contribution quickly added to the LAMMPS
-distribution.  You can see a list of the both standard and user
-packages by typing "make package" in the LAMMPS src directory.
+package"_Packages_standard.html.  Else we will add them as a
+user-contributed file or "user package"_Packages_user.html.  Examples
+of user packages are in src sub-directories that start with USER.  The
+USER-MISC package is simply a collection of (mostly) unrelated single
+files, which is the simplest way to have your contribution quickly
+added to the LAMMPS distribution.  All the standard and user packages
+are listed and described on the "Packages
+details"_Packages_details.html doc page.
 
 Note that by providing us files to release, you are agreeing to make
 them open-source, i.e. we can release them under the terms of the GPL,

@@ -7911,8 +7911,8 @@ Atom IDs must be positive integers. :dd
 {One or more atom IDs is too big} :dt
 
 The limit on atom IDs is set by the SMALLBIG, BIGBIG, SMALLSMALL
-setting in your Makefile.  See Section_start 2.2 of the manual for
-more details. :dd
+setting in your LAMMPS build.  See the "Build
+settings"_Build_settings.html doc page for more info. :dd
 
 {One or more atom IDs is zero} :dt
 

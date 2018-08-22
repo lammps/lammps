@@ -1,5 +1,5 @@
-"Higher level section"_Python.html - "LAMMPS WWW Site"_lws - "LAMMPS
-Documentation"_ld - "LAMMPS Commands"_lc :c
+"Higher level section"_Python_head.html - "LAMMPS WWW Site"_lws -
+"LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
@@ -9,10 +9,13 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 Build LAMMPS as a shared library :h3
 
-Instructions on how to build LAMMPS as a shared library are given in
-"Section 2.4"_Section_start.html#start_4.  A shared library is one
-that is dynamically loadable, which is what Python requires to wrap
-LAMMPS.  On Linux this is a library file that ends in ".so", not ".a".
+Build LAMMPS as a shared library using make :h4
+
+Instructions on how to build LAMMPS as a shared library are given on
+the "Build_basics"_Build_basics.html doc page.  A shared library is
+one that is dynamically loadable, which is what Python requires to
+wrap LAMMPS.  On Linux this is a library file that ends in ".so", not
+".a".
 
 From the src directory, type
 
@@ -29,6 +32,42 @@ NOTE: If you are building LAMMPS with an MPI or FFT library or other
 auxiliary libraries (used by various packages), then all of these
 extra libraries must also be shared libraries.  If the LAMMPS
 shared-library build fails with an error complaining about this, see
-"Section 2.4"_Section_start.html#start_4 for more details.
+the "Build_basics"_Build_basics.html doc page.
 
-Also include CMake info on this
+Build LAMMPS as a shared library using CMake :h4
+
+When using CMake the following two options are necessary to generate the LAMMPS
+shared library:
+
+-D BUILD_LIB=on            # enable building LAMMPS as a library
+-D BUILD_SHARED_LIBS=on    # enable building of LAMMPS shared library (both options are needed!) :pre
+
+What this does is create a liblammps.so which contains the majority of LAMMPS
+code. The generated lmp binary also dynamically links to this library. This
+means that either this liblammps.so file has to be in the same directory, a system
+library path (e.g. /usr/lib64/) or in the LD_LIBRARY_PATH.
+
+If you want to use the shared library with Python the recommended way is to create a virtualenv and use it as
+CMAKE_INSTALL_PREFIX.
+
+# create virtualenv
+virtualenv --python=$(which python3) myenv3
+source myenv3/bin/activate :pre
+
+# build library
+mkdir build
+cd build
+cmake -D PKG_PYTHON=on -D BUILD_LIB=on -D BUILD_SHARED_LIBS=on -D CMAKE_INSTALL_PREFIX=$VIRTUAL_ENV ../cmake
+make -j 4 :pre
+
+# install into prefix
+make install :pre
+
+This will also install the Python module into your virtualenv. Since virtualenv
+doesn't change your LD_LIBRARY_PATH, you still need to add its lib64 folder to
+it, which contains the installed liblammps.so.
+
+export LD_LIBRARY_PATH=$VIRTUAL_ENV/lib64:$LD_LIBRARY_PATH :pre
+
+Starting Python outside (!) of your build directory, but with the virtualenv
+enabled and with the LD_LIBRARY_PATH set gives you access to LAMMPS via Python.

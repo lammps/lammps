@@ -80,8 +80,8 @@ per-timestep CPU cost, FFTs are only a portion of long-range
 Coulombics, and 1d FFTs are only a portion of the FFT cost (parallel
 communication can be costly).  A breakdown of these timings is printed
 to the screen at the end of a run using the "kspace_style
-pppm"_kspace_style.html command.  The "Run output"_doc page gives more
-details.
+pppm"_kspace_style.html command.  The "Run output"_Run_output.html
+doc page gives more details.
 
 FFTW is a fast, portable FFT library that should also work on any
 platform and can be faster than the KISS FFT library.  You can

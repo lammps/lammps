@@ -1582,8 +1582,6 @@ molecular visualization and analysis program, to enable LAMMPS to dump
 snapshots in formats compatible with various molecular simulation
 tools.
 
-:link(vmd_home,http://www.ks.uiuc.edu/Research/vmd)
-
 To use this package you must have the desired VMD plugins available on
 your system.
 
@@ -1635,6 +1633,7 @@ tools:
 "AtomEye"_atomeye (the libAtoms version of AtomEye contains a NetCDF reader not present in the standard distribution) :ul
 
 :link(ovito,http://www.ovito.org)
+:link(vmd_home,https://www.ks.uiuc.edu/Research/vmd/)
 :link(atomeye,http://www.libatoms.org)
 
 [Author:] Lars Pastewka (Karlsruhe Institute of Technology).
@@ -1998,3 +1997,5 @@ src/USER-VTK: filenames -> commands
 src/USER-VTK/README
 lib/vtk/README
 "dump vtk"_dump_vtk.html :ul
+
+

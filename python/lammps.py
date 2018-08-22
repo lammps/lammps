@@ -173,6 +173,9 @@ class lammps(object):
         self.lib.lammps_open(narg,cargs,comm_val,byref(self.lmp))
 
       else:
+        if lammps.has_mpi4py:
+          from mpi4py import MPI
+          self.comm = MPI.COMM_WORLD
         self.opened = 1
         if cmdargs:
           cmdargs.insert(0,"lammps.py")
@@ -862,6 +865,10 @@ class PyLammps(object):
 
   def run(self, *args, **kwargs):
     output = self.__getattr__('run')(*args, **kwargs)
+
+    if(lammps.has_mpi4py):
+      output = self.lmp.comm.bcast(output, root=0) 
+    
     self.runs += get_thermo_data(output)
     return output
 

@@ -2101,7 +2101,7 @@ void FixBondReact::update_everything()
                   nspecial[atom->map(update_mega_glove[jj+1][i])][1]++;
                   nspecial[atom->map(update_mega_glove[jj+1][i])][2]++;
                 }
-                for (int n = nspecial[atom->map(update_mega_glove[jj+1][i])][2]; n > insert_num; n--) {
+                for (int n = nspecial[atom->map(update_mega_glove[jj+1][i])][2]-1; n > insert_num; n--) {
                   special[atom->map(update_mega_glove[jj+1][i])][n] = special[atom->map(update_mega_glove[jj+1][i])][n-1];
                 }
                 special[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->special[j][k]-1][1][rxnID]][i];

@@ -21,7 +21,7 @@ KSpaceStyle(scafacos,Scafacos)
 #define LMP_SCAFACOS_H
 
 #include "kspace.h"
-#include "fcs.h"
+//#include "fcs.h"
 
 namespace LAMMPS_NS {
 
@@ -35,7 +35,7 @@ class Scafacos : public KSpace {
   int modify_param(int, char **);
   double memory_usage();
 
- private: 
+ private:
   int me;
 
   char *method;
@@ -46,20 +46,19 @@ class Scafacos : public KSpace {
 
   int fmm_tuning_flag;
 
-  FCS fcs;                // ScaFaCoS handle
-  FCSResult result;       // result for each ScaFaCoS call
+  void* fcs;                // ScaFaCoS handle
 
   // simulation state: box, natoms
   // so ScaFaCoS can detect if changes, e.g. for NPT
 
-  fcs_float old_box_x[3],old_box_y[3],old_box_z[3];
-  fcs_float old_origin[3];
-  fcs_int old_periodicity[3];
-  fcs_int old_natoms;
+  double old_box_x[3],old_box_y[3],old_box_z[3];
+  double old_origin[3];
+  int old_periodicity[3];
+  int old_natoms;
 
-  fcs_float virial_int[9];
+  double virial_int[9];
 
-  void check_result(FCSResult);
+  void check_result(void*);
   void setup_handle();
   bool box_has_changed();
 };

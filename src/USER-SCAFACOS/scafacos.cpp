@@ -90,7 +90,7 @@ Scafacos::~Scafacos()
   memory->destroy(efield);
 
   // clean up of the ScaFaCoS handle and internal arrays
-  fcs_destroy(fcs);
+  fcs_destroy((FCS)fcs);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -112,20 +112,24 @@ void Scafacos::init()
   if (domain->triclinic)
     error->all(FLERR,"Cannot use ScaFaCoS with triclinic domain yet");
 
-  if (atom->natoms > INT_MAX && sizeof(fcs_int) != 8)
+  if (atom->natoms > INT_MAX && sizeof(int) != 8)
     error->all(FLERR,"Scafacos atom count exceeds 2B");
 
   if (atom->molecular > 0) 
     error->all(FLERR,
                "Cannot use Scafacos with molecular charged systems yet");
 
+  FCSResult result;
+
   // one-time initialization of ScaFaCoS
 
   qqrd2e = force->qqrd2e;
 
   if (!initialized) {
-    result = fcs_init(&fcs,method,world);
-    check_result(result);
+    printf("DEBUG: %p\n",&fcs);
+    result = fcs_init((FCS*)&fcs,method,world);
+    check_result((void*)&result);
+    printf("DEBUG: %p\n",&fcs);
 
     setup_handle();
 
@@ -136,8 +140,8 @@ void Scafacos::init()
          strcmp(method,"p2nfft") == 0 ||
          strcmp(method,"ewald") == 0)
     {
-      result = fcs_set_tolerance(fcs,tolerance_type,tolerance);
-      check_result(result);
+      result = fcs_set_tolerance((FCS)fcs,tolerance_type,tolerance);
+      check_result((void*)&result);
     }
 
     double **x = atom->x;
@@ -147,9 +151,9 @@ void Scafacos::init()
     if (strcmp(method,"fmm") == 0)
     {
       if (fmm_tuning_flag == 1)
-        fcs_fmm_set_internal_tuning(fcs,FCS_FMM_INHOMOGENOUS_SYSTEM);
+        fcs_fmm_set_internal_tuning((FCS)fcs,FCS_FMM_INHOMOGENOUS_SYSTEM);
       else
-        fcs_fmm_set_internal_tuning(fcs,FCS_FMM_HOMOGENOUS_SYSTEM);
+        fcs_fmm_set_internal_tuning((FCS)fcs,FCS_FMM_HOMOGENOUS_SYSTEM);
     }
 
     // for the FMM at least one particle is required per process
@@ -158,15 +162,15 @@ void Scafacos::init()
       int empty = (nlocal==0)?1:0;
       MPI_Allreduce(MPI_IN_PLACE,&empty,1,MPI_INT,MPI_SUM,world);
       if (empty > 0)
-        fcs_set_redistribute(fcs,1);
+        fcs_set_redistribute((FCS)fcs,1);
       else
-        fcs_set_redistribute(fcs,0);
+        fcs_set_redistribute((FCS)fcs,0);
     }
 
-    result = fcs_tune(fcs,nlocal,&x[0][0],q);
-    check_result(result);
+    result = fcs_tune((FCS)fcs,nlocal,&x[0][0],q);
+    check_result((void*)&result);
     // more useful here, since the parameters should be tuned now 
-    if (me == 0) fcs_print_parameters(fcs);
+    if (me == 0) fcs_print_parameters((FCS)fcs);
   }
 
   initialized = 1;
@@ -181,6 +185,7 @@ void Scafacos::compute(int eflag, int vflag)
   int nlocal = atom->nlocal;
 
   const double qscale = qqrd2e;
+  FCSResult result;
 
   // for the FMM at least one particle is required per process
   if (strcmp(method,"fmm"))
@@ -188,9 +193,9 @@ void Scafacos::compute(int eflag, int vflag)
     int empty = (nlocal==0)?1:0;
     MPI_Allreduce(MPI_IN_PLACE,&empty,1,MPI_INT,MPI_SUM,world);
     if (empty > 0)
-      fcs_set_redistribute(fcs,1);
+      fcs_set_redistribute((FCS)fcs,1);
     else
-      fcs_set_redistribute(fcs,0);
+      fcs_set_redistribute((FCS)fcs,0);
   }
 
   if (eflag || vflag) ev_setup(eflag,vflag);
@@ -214,7 +219,7 @@ void Scafacos::compute(int eflag, int vflag)
 
   if (vflag_global)
   {
-    fcs_set_compute_virial(fcs,1);
+    fcs_set_compute_virial((FCS)fcs,1);
     //if (strcmp(method,"p3m") == 0)
     //  error->all(FLERR,"ScaFaCoS p3m does not support computation of virial");
   }
@@ -223,8 +228,8 @@ void Scafacos::compute(int eflag, int vflag)
   memcpy(xpbc,&x[0][0],3*nlocal*sizeof(double));
 
 
-  int j = 0;
   if (domain->xperiodic || domain -> yperiodic || domain -> zperiodic){
+  int j = 0;
     for (int i = 0; i < nlocal; i++) {
       domain->remap(&xpbc[j]);
       j += 3;
@@ -234,20 +239,20 @@ void Scafacos::compute(int eflag, int vflag)
 
   if (box_has_changed()) {
     setup_handle();
-    result = fcs_tune(fcs,nlocal,xpbc,q);
-    check_result(result);
+    result = fcs_tune((FCS)fcs,nlocal,xpbc,q);
+    check_result((void*)&result);
   }
 
   // invoke ScaFaCoS solver
 
-  result = fcs_run(fcs,nlocal,xpbc,q,&efield[0][0],epot);
-  check_result(result);
+  result = fcs_run((FCS)fcs,nlocal,xpbc,q,&efield[0][0],epot);
+  check_result((void*)&result);
 
   // extract virial
 
   if (vflag_global)
   {
-    fcs_get_virial(fcs,virial_int);
+    fcs_get_virial((FCS)fcs,virial_int);
     virial[0] = virial_int[0];
     virial[1] = virial_int[1];
     virial[2] = virial_int[2];
@@ -380,6 +385,8 @@ double Scafacos::memory_usage()
 
 void Scafacos::setup_handle()
 {
+  FCSResult result;
+
   // store simulation box params
 
   // setup periodicity
@@ -404,23 +411,23 @@ void Scafacos::setup_handle()
   old_natoms = atom->natoms;
 
   // store parameters to ScaFaCoS handle
-  result = fcs_set_box_a(fcs,old_box_x);
-  check_result(result);
+  result = fcs_set_box_a((FCS)fcs,old_box_x);
+  check_result((void*)&result);
 
-  result = fcs_set_box_b(fcs,old_box_y);
-  check_result(result);
+  result = fcs_set_box_b((FCS)fcs,old_box_y);
+  check_result((void*)&result);
 
-  result = fcs_set_box_c(fcs,old_box_z);
-  check_result(result);
+  result = fcs_set_box_c((FCS)fcs,old_box_z);
+  check_result((void*)&result);
 
-  result = fcs_set_box_origin(fcs,old_origin);
-  check_result(result);
+  result = fcs_set_box_origin((FCS)fcs,old_origin);
+  check_result((void*)&result);
 
-  result = fcs_set_periodicity(fcs,old_periodicity);
-  check_result(result);
+  result = fcs_set_periodicity((FCS)fcs,old_periodicity);
+  check_result((void*)&result);
 
-  result = fcs_set_total_particles(fcs,old_natoms);
-  check_result(result);
+  result = fcs_set_total_particles((FCS)fcs,old_natoms);
+  check_result((void*)&result);
 
   // allow ScaFaCoS to calculate the near field computations for now
   // TODO: allow the delegation of the near field computations
@@ -428,8 +435,8 @@ void Scafacos::setup_handle()
   //       (near_field_flag = 1 -> enables the internal near field calcs
   //                          0 -> disables the internal near field calcs
   int near_field_flag = 1;
-  result = fcs_set_near_field_flag(fcs,near_field_flag);
-  check_result(result);
+  result = fcs_set_near_field_flag((FCS)fcs,near_field_flag);
+  check_result((void*)&result);
 }
 
 /* ----------------------------------------------------------------------
@@ -460,8 +467,10 @@ bool Scafacos::box_has_changed()
    check ScaFaCoS result for error condition
 ------------------------------------------------------------------------- */
 
-void Scafacos::check_result(FCSResult result) 
+void Scafacos::check_result(void* result_p) 
 {
+  FCSResult result = *(FCSResult*)result_p;
+
   if (!result) return;
 
   std::stringstream ss;

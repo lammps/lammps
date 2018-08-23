@@ -29,7 +29,7 @@ The {python} pair style provides a way to define pairwise additive
 potential functions as python script code that is loaded into LAMMPS
 from a python file which must contain specific python class definitions.
 This allows to rapidly evaluate different potential functions without
-having to modify and recompile LAMMPS. Due to python being an
+having to modify and re-compile LAMMPS. Due to python being an
 interpreted language, however, the performance of this pair style is
 going to be significantly slower (often between 20x and 100x) than
 corresponding compiled code. This penalty can be significantly reduced

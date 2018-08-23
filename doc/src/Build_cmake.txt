@@ -40,7 +40,7 @@ executable called "lmp" and a library called "liblammps.a" in the
 If your machine has multiple CPU cores (most do these days), using a
 command like "make -jN" (with N being the number of available local
 CPU cores) can be much faster.  If you plan to do development on
-LAMMPS or need to recompile LAMMPS repeatedly, installation of the
+LAMMPS or need to re-compile LAMMPS repeatedly, installation of the
 ccache (= Compiler Cache) software may speed up compilation even more.
 
 After compilation, you can optionally copy the LAMMPS executable and

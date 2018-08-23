@@ -61,7 +61,7 @@ library files.  Failing this, these 3 variables can be used to specify
 where the mpi.h file (MPI_INC), and the MPI library files (MPI_PATH)
 are found, and the name of the library files (MPI_LIB).
 
-For a serial build, you need to specify the 3 varaibles, as shown
+For a serial build, you need to specify the 3 variables, as shown
 above.
 
 For a serial LAMMPS build, use the dummy MPI library provided in
@@ -145,7 +145,7 @@ By default CMake will use a compiler it finds and it will add
 optimization flags appropriate to that compiler and any "accelerator
 packages"_Speed_packages.html you have included in the build.
 
-You can tell CMake to look for a specific compiler with these varaible
+You can tell CMake to look for a specific compiler with these variable
 settings.  Likewise you can specify the FLAGS variables if you want to
 experiment with alternate optimization flags.  You should specify all
 3 compilers, so that the small number of LAMMPS source files written
@@ -247,7 +247,7 @@ Note that for a shared library to be usable by a calling program, all
 the auxiliary libraries it depends on must also exist as shared
 libraries.  This will be the case for libraries included with LAMMPS,
 such as the dummy MPI library in src/STUBS or any package libraries in
-the lib/packages directroy, since they are always built as shared
+the lib/packages directory, since they are always built as shared
 libraries using the -fPIC switch.  However, if a library like MPI or
 FFTW does not exist as a shared library, the shared library build will
 generate an error.  This means you will need to install a shared
@@ -299,7 +299,7 @@ Install LAMMPS after a build :h4,link(install)
 After building LAMMPS, you may wish to copy the LAMMPS executable of
 library, along with other LAMMPS files (library header, doc files) to
 a globally visible place on your system, for others to access.  Note
-that you may need super-user priveleges (e.g. sudo) if the directory
+that you may need super-user privileges (e.g. sudo) if the directory
 you want to copy files to is protected.
 
 [CMake variable]:

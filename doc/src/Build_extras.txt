@@ -340,7 +340,7 @@ NOTE: the use of the MEAM package is discouraged, as it has been
 superseded by the USER-MEAMC package, which is a direct translation of
 the Fortran code in the MEAM library to C++. The code in USER-MEAMC
 should be functionally equivalent to the MEAM package, fully supports
-use of "pair_style hybrid"_pair_hybrid.html (the MEAM packaged doesn
+use of "pair_style hybrid"_pair_hybrid.html (the MEAM package does
 not), and has optimizations that make it significantly faster than the
 MEAM package.
 
@@ -470,7 +470,7 @@ lib/python/README for more details.
 
 -D PYTHON_EXECUTABLE=path   # path to Python executable to use :pre
 
-Without this setting, CMake will ues the default Python on your
+Without this setting, CMake will guess the default Python on your
 system.  To use a different Python version, you can either create a
 virtualenv, activate it and then run cmake.  Or you can set the
 PYTHON_EXECUTABLE variable to specify which Python interpreter should

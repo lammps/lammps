@@ -50,7 +50,7 @@ make install    # optional, copy LAMMPS executable & library elsewhere :pre
 
 :line
 
-There are 3 variants of CMake: a command-line verison (cmake), a text mode
+There are 3 variants of CMake: a command-line version (cmake), a text mode
 UI version (ccmake), and a graphical GUI version (cmake-GUI).  You can use
 any of them interchangeably to configure and create the LAMMPS build
 environment.  On Linux all the versions produce a Makefile as their

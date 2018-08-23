@@ -774,7 +774,7 @@ void Respa::recurse(int ilevel)
    clear other arrays as needed
 ------------------------------------------------------------------------- */
 
-void Respa::force_clear(int newtonflag)
+void Respa::force_clear(int /*newtonflag*/)
 {
   if (external_force_clear) return;
 

@@ -175,7 +175,7 @@ void PairLJCubic::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairLJCubic::settings(int narg, char **arg)
+void PairLJCubic::settings(int narg, char **/*arg*/)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 
@@ -321,9 +321,9 @@ void PairLJCubic::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJCubic::single(int i, int j, int itype, int jtype,
+double PairLJCubic::single(int /*i*/, int /*j*/, int itype, int jtype,
                              double rsq,
-                             double factor_coul, double factor_lj,
+                             double /*factor_coul*/, double factor_lj,
                              double &fforce)
 {
   double r2inv,r6inv,forcelj,philj;

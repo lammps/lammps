@@ -686,7 +686,7 @@ void FixNeighHistory::grow_arrays(int nmax)
    copy values within local atom-based arrays
 ------------------------------------------------------------------------- */
 
-void FixNeighHistory::copy_arrays(int i, int j, int delflag)
+void FixNeighHistory::copy_arrays(int i, int j, int /*delflag*/)
 {
   // just copy pointers for partner and valuepartner
   // b/c can't overwrite chunk allocation inside ipage_atom,dpage_atom

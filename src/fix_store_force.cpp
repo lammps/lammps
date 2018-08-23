@@ -95,7 +95,7 @@ void FixStoreForce::min_setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStoreForce::post_force(int vflag)
+void FixStoreForce::post_force(int /*vflag*/)
 {
   if (atom->nmax > nmax) {
     nmax = atom->nmax;
@@ -118,7 +118,7 @@ void FixStoreForce::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStoreForce::post_force_respa(int vflag, int ilevel, int iloop)
+void FixStoreForce::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1) post_force(vflag);
 }

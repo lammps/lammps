@@ -990,7 +990,7 @@ void Image::compute_SSAO()
 
 /* ---------------------------------------------------------------------- */
 
-void Image::write_JPG(FILE *fp)
+void Image::write_JPG(FILE */*fp*/)
 {
 #ifdef LAMMPS_JPEG
   struct jpeg_compress_struct cinfo;
@@ -1022,7 +1022,7 @@ void Image::write_JPG(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void Image::write_PNG(FILE *fp)
+void Image::write_PNG(FILE */*fp*/)
 {
 #ifdef LAMMPS_PNG
   png_structp png_ptr;

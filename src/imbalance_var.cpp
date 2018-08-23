@@ -52,7 +52,7 @@ int ImbalanceVar::options(int narg, char **arg)
 
 /* -------------------------------------------------------------------- */
 
-void ImbalanceVar::init(int flag)
+void ImbalanceVar::init(int /*flag*/)
 {
   id = input->variable->find(name);
   if (id < 0) {

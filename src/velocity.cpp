@@ -410,7 +410,7 @@ void Velocity::create(double t_desired, int seed)
 
 /* ---------------------------------------------------------------------- */
 
-void Velocity::set(int narg, char **arg)
+void Velocity::set(int /*narg*/, char **arg)
 {
   int xstyle,ystyle,zstyle,varflag;
   double vx,vy,vz;
@@ -579,7 +579,7 @@ void Velocity::set(int narg, char **arg)
    rescale velocities of a group after computing its temperature
 ------------------------------------------------------------------------- */
 
-void Velocity::scale(int narg, char **arg)
+void Velocity::scale(int /*narg*/, char **arg)
 {
   double t_desired = force->numeric(FLERR,arg[0]);
 
@@ -628,7 +628,7 @@ void Velocity::scale(int narg, char **arg)
    apply a ramped set of velocities
 ------------------------------------------------------------------------- */
 
-void Velocity::ramp(int narg, char **arg)
+void Velocity::ramp(int /*narg*/, char **arg)
 {
   // set scale factors
 
@@ -705,7 +705,7 @@ void Velocity::ramp(int narg, char **arg)
    zero linear or angular momentum of a group
 ------------------------------------------------------------------------- */
 
-void Velocity::zero(int narg, char **arg)
+void Velocity::zero(int /*narg*/, char **arg)
 {
   if (strcmp(arg[0],"linear") == 0) {
     if (rfix < 0) zero_momentum();

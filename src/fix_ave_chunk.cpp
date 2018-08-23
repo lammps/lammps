@@ -557,7 +557,7 @@ void FixAveChunk::init()
      that nchunk may not track it
 ------------------------------------------------------------------------- */
 
-void FixAveChunk::setup(int vflag)
+void FixAveChunk::setup(int /*vflag*/)
 {
   end_of_step();
 }

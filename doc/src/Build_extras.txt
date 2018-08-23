@@ -905,7 +905,7 @@ Eigen3 is a template library, so you do not need to build it.
 -D EIGEN3_INCLUDE_DIR=path    # path to Eigen library (only needed if a custom location) :pre
 
 If DOWNLOAD_EIGEN3 is set, the Eigen3 library will be downloaded and
-inside the CMake build directory.  If the Eig3n3 library is already on
+inside the CMake build directory.  If the Eigen3 library is already on
 your system (in a location CMake cannot find it), EIGEN3_INCLUDE_DIR
 is the directory the Eigen3++ include file is in.
 

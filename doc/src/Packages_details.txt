@@ -851,7 +851,7 @@ multi-replica simulations in LAMMPS.  Methods in the package include
 nudged elastic band (NEB), parallel replica dynamics (PRD),
 temperature accelerated dynamics (TAD), parallel tempering, and a
 verlet/split algorithm for performing long-range Coulombics on one set
-of processors, and the remainder of the force field calcalation on
+of processors, and the remainder of the force field calculation on
 another set.
 
 [Supporting info:]
@@ -874,7 +874,7 @@ RIGID package :link(PKG-RIGID),h4
 [Contents:]
 
 Fixes which enforce rigid constraints on collections of atoms or
-particles.  This includes SHAKE and RATTLE, as well as varous
+particles.  This includes SHAKE and RATTLE, as well as various
 rigid-body integrators for a few large bodies or many small bodies.
 Also several computes which calculate properties of rigid bodies.
 

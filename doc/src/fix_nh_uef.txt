@@ -174,7 +174,7 @@ This fix can be used with the "fix_modify"_fix_modify.html {temp} and
 {press} options. The temperature and pressure computes used must be of
 type {temp/uef} and {pressure/uef}.
 
-This fix computes the same global scalar and vecor quantities as "fix
+This fix computes the same global scalar and vector quantities as "fix
 npt"_fix_nh.html.
 
 The fix is not invoked during "energy minimization"_minimize.html.

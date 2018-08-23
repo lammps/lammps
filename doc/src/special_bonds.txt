@@ -64,7 +64,7 @@ e.g. when using the "pair_style hybrid"_pair_hybrid.html command.
 Thus LAMMPS ignores special_bonds settings when manybody potentials
 are calculated.  Please note, that the existence of explicit bonds
 for atoms that are described by a manybody potential will alter the
-neigborlist and thus can render the computation of those interactions
+neighborlist and thus can render the computation of those interactions
 invalid, since those pairs are not only used to determine direct
 pairwise interactions but also neighbors of neighbors and more.
 The recommended course of action is to remove such bonds, or - if

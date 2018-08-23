@@ -173,7 +173,7 @@ There are also additional accelerated compute styles included in the
 LAMMPS distribution for faster performance on CPUs, GPUs, and KNLs.
 The individual style names on the "Commands
 compute"_Commands_compute.html doc page are followed by one or more of
-(g,i,k,o,t) to indicate which accerlerated styles exist.
+(g,i,k,o,t) to indicate which accelerated styles exist.
 
 "aggregate/atom"_compute_cluster_atom.html - aggregate ID for each atom
 "angle/local"_compute_bond_local.html - theta and energy of each angle

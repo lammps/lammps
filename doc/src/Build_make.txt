@@ -71,8 +71,8 @@ Makefiles you may wish to try include these (some require a package
 first be installed).  Many of these include specific compiler flags
 for optimized performance.  Please note, however, that some of these
 customized machine Makefile are contributed by users.  Since both
-compilers, OS configs, and LAMMPS itself keep changing, their settings
-may become outdated:
+compilers, OS configurations, and LAMMPS itself keep changing, their
+settings may become outdated:
 
 make mac             # build serial LAMMPS on a Mac
 make mac_mpi         # build parallel LAMMPS on a Mac

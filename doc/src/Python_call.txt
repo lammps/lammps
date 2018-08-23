@@ -61,7 +61,7 @@ Python code at selected timesteps during a simulation run.
 
 The "pair_style python"_pair_python.html command allows you to define
 pairwise potentials as python code which encodes a single pairwise
-interaction.  This is useful for rapid-developement and debugging of a
+interaction.  This is useful for rapid development and debugging of a
 new potential.
 
 To use any of these commands, you only need to build LAMMPS with the

@@ -42,7 +42,6 @@ class PPPMDipoleSpin : public PPPMDipole {
 
   // spin
 
-  double spsum,spsqsum,sp2;
   void make_rho_spin();
   void fieldforce_ik_spin();
   void fieldforce_peratom_spin();

@@ -50,8 +50,8 @@ using namespace MathSpecial;
 #define SMALL 0.00001
 #define EPS_HOC 1.0e-7
 
-enum{REVERSE_SP};
-enum{FORWARD_SP,FORWARD_SP_PERATOM};
+enum{REVERSE_MU};
+enum{FORWARD_MU,FORWARD_MU_PERATOM};
 
 #ifdef FFT_SINGLE
 #define ZEROF 0.0f
@@ -68,10 +68,12 @@ PPPMDipoleSpin::PPPMDipoleSpin(LAMMPS *lmp, int narg, char **arg) :
 {
   dipoleflag = 0;
   spinflag = 1;
-  group_group_enable = 0;
-
-  cg_dipole = NULL;
-  cg_peratom_dipole = NULL;
+  
+  hbar = force->hplanck/MY_2PI;         // eV/(rad.THz)
+  mub = 5.78901e-5;                     // in eV/T
+  mu_0 = 1.2566370614e-6;               // in T.m/A
+  mub2mu0 = mub * mub * mu_0;           // in eV
+  mub2mu0hbinv = mub2mu0 / hbar;        // in rad.THz
 }
 
 /* ----------------------------------------------------------------------
@@ -104,7 +106,10 @@ void PPPMDipoleSpin::init()
   // error check
 
   spinflag = atom->sp?1:0;
-
+  //qsum_qsq(0); // q[i] is probably not declared ?
+  //if (spinflag && q2)
+  //  error->all(FLERR,"Cannot use charges with Kspace style PPPMDipoleSpin");
+  
   triclinic_check();
 
   if (triclinic != domain->triclinic)
@@ -118,8 +123,8 @@ void PPPMDipoleSpin::init()
 
   if (!atom->sp) error->all(FLERR,"Kspace style requires atom attribute sp");
 
-  if (atom->sp && differentiation_flag == 1) error->all(FLERR,"Cannot (yet) use kspace_modify diff"
-       " ad with spins");
+  if (atom->sp && differentiation_flag == 1) error->all(FLERR,"Cannot (yet) use"
+     " kspace_modify diff ad with spins");
 
   if (spinflag && strcmp(update->unit_style,"metal") != 0)
     error->all(FLERR,"'metal' units have to be used with spins");
@@ -148,21 +153,19 @@ void PPPMDipoleSpin::init()
 
   int itmp = 0;
   double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
+  // probably not the correct extract here
   if (p_cutoff == NULL)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
 
   // kspace TIP4P not yet supported
-
+  // qdist = offset only for TIP4P fictitious charge
+  
+  qdist = 0.0; 
   if (tip4pflag)
     error->all(FLERR,"Cannot yet use TIP4P with PPPMDipoleSpin");
 
   scale = 1.0;
-  hbar = force->hplanck/MY_2PI;         // eV/(rad.THz)
-  mub = 5.78901e-5;                     // in eV/T
-  mu_0 = 1.2566370614e-6;               // in T.m/A
-  mub2mu0 = mub * mub * mu_0;           // in eV
-  mub2mu0hbinv = mub2mu0 / hbar;        // in rad.THz
   spsum_spsq();
   natoms_original = atom->natoms;
 
@@ -188,14 +191,14 @@ void PPPMDipoleSpin::init()
 
   GridComm *cgtmp = NULL;
   int iteration = 0;
-
+    
   while (order >= minorder) {
     if (iteration && me == 0)
       error->warning(FLERR,"Reducing PPPMDipoleSpin order b/c stencil extends "
                      "beyond nearest neighbor processor");
 
     compute_gf_denom();
-    set_grid_global(sp2);
+    set_grid_global();
     set_grid_local();
     if (overlap_allowed) break;
 
@@ -224,7 +227,7 @@ void PPPMDipoleSpin::init()
 
   // calculate the final accuracy
 
-  double estimated_accuracy = final_accuracy_dipole(sp2);
+  double estimated_accuracy = final_accuracy_dipole();
 
   // print stats
 
@@ -310,7 +313,7 @@ void PPPMDipoleSpin::compute(int eflag, int vflag)
 
   // return if there are no spins
 
-  if (spsqsum == 0.0) return;
+  if (musqsum == 0.0) return;
 
   // convert atoms from box to lamda coords
 
@@ -334,7 +337,7 @@ void PPPMDipoleSpin::compute(int eflag, int vflag)
   //   to fully sum contribution in their 3d bricks
   // remap from 3d decomposition to FFT decomposition
 
-  cg_dipole->reverse_comm(this,REVERSE_SP);
+  cg_dipole->reverse_comm(this,REVERSE_MU);
   brick2fft_dipole();
 
   // compute potential gradient on my FFT grid and
@@ -347,12 +350,12 @@ void PPPMDipoleSpin::compute(int eflag, int vflag)
   // all procs communicate E-field values
   // to fill ghost cells surrounding their 3d bricks
 
-  cg_dipole->forward_comm(this,FORWARD_SP);
+  cg_dipole->forward_comm(this,FORWARD_MU);
 
   // extra per-atom energy/virial communication
 
   if (evflag_atom) {
-    cg_peratom_dipole->forward_comm(this,FORWARD_SP_PERATOM);
+    cg_peratom_dipole->forward_comm(this,FORWARD_MU_PERATOM);
   }
 
   // calculate the force on my particles
@@ -374,7 +377,7 @@ void PPPMDipoleSpin::compute(int eflag, int vflag)
     energy = energy_all;
 
     energy *= 0.5*volume;
-    energy -= spsqsum*2.0*g3/3.0/MY_PIS;
+    energy -= musqsum*2.0*g3/3.0/MY_PIS;
     energy *= spscale;
   }
 
@@ -510,7 +513,7 @@ void PPPMDipoleSpin::fieldforce_ik_spin()
   double spx,spy,spz;
   double **x = atom->x;
   double **f = atom->f;
-  double **fm = atom->fm;
+  double **fm_long = atom->fm_long;
 
   int nlocal = atom->nlocal;
 
@@ -548,7 +551,7 @@ void PPPMDipoleSpin::fieldforce_ik_spin()
       }
     }
 
-    // convert M-field to mech. and mag. forces
+    // convert M-field and store mech. forces
 
     const double spfactor = mub2mu0 * scale;
     spx = sp[i][0]*sp[i][3];
@@ -558,13 +561,12 @@ void PPPMDipoleSpin::fieldforce_ik_spin()
     f[i][1] += spfactor*(vxy*spx + vyy*spy + vyz*spz);
     f[i][2] += spfactor*(vxz*spx + vyz*spy + vzz*spz);
 
+    // store long-range mag. precessions
+    
     const double spfactorh = mub2mu0hbinv * scale;
-    fm[i][0] += spfactorh*ex;
-    fm[i][1] += spfactorh*ey;
-    fm[i][2] += spfactorh*ez;
-
-    // create a new vector (in atom_spin style ?) to store long-range fm tables
-
+    fm_long[i][0] += spfactorh*ex;
+    fm_long[i][1] += spfactorh*ey;
+    fm_long[i][2] += spfactorh*ez;
   }
 }
 
@@ -708,9 +710,11 @@ void PPPMDipoleSpin::slabcorr()
   // add on mag. force corrections
 
   double ffact = spscale * (-4.0*MY_PI/volume);
-  double **fm = atom->fm;
+  //double **fm = atom->fm;
+  double **fm_long = atom->fm_long;
   for (int i = 0; i < nlocal; i++) {
-    fm[i][2] += ffact * spin_all;
+    //fm[i][2] += ffact * spin_all;
+    fm_long[i][2] += ffact * spin_all;
   }
 }
 
@@ -723,13 +727,13 @@ void PPPMDipoleSpin::spsum_spsq()
 {
   const int nlocal = atom->nlocal;
 
-  spsum = spsqsum = sp2 = 0.0;
+  musum = musqsum = mu2 = 0.0;
   if (atom->sp_flag) {
     double **sp = atom->sp;
     double spx, spy, spz;
     double spsum_local(0.0), spsqsum_local(0.0);
 
-    // not exactly the good loop: need to add norm of spins
+    // sum (direction x norm) of all spins
 
     for (int i = 0; i < nlocal; i++) {
       spx = sp[i][0]*sp[i][3];
@@ -739,12 +743,14 @@ void PPPMDipoleSpin::spsum_spsq()
       spsqsum_local += spx*spx + spy*spy + spz*spz;
     }
 
-    MPI_Allreduce(&spsum_local,&spsum,1,MPI_DOUBLE,MPI_SUM,world);
-    MPI_Allreduce(&spsqsum_local,&spsqsum,1,MPI_DOUBLE,MPI_SUM,world);
+    // store results into pppm_dipole quantities 
 
-    sp2 = spsqsum * mub2mu0;
+    MPI_Allreduce(&spsum_local,&musum,1,MPI_DOUBLE,MPI_SUM,world);
+    MPI_Allreduce(&spsqsum_local,&musqsum,1,MPI_DOUBLE,MPI_SUM,world);
+
+    mu2 = musqsum * mub2mu0;
   }
 
-  if (sp2 == 0 && comm->me == 0)
+  if (mu2 == 0 && comm->me == 0)
     error->all(FLERR,"Using kspace solver PPPMDipoleSpin on system with no spins");
 }

@@ -98,7 +98,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 
   // SPIN package
 
-  sp = fm = NULL;
+  sp = fm = fm_long = NULL;
   
   // USER-DPD
 
@@ -277,6 +277,7 @@ Atom::~Atom()
 
   memory->destroy(sp);
   memory->destroy(fm);
+  memory->destroy(fm_long);
 
   memory->destroy(vfrac);
   memory->destroy(s0);

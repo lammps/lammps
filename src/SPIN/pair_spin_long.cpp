@@ -81,6 +81,7 @@ PairSpinLong::~PairSpinLong()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cut_spin_long);
+    memory->destroy(cutsq);
   }
 }
 
@@ -97,7 +98,6 @@ void PairSpinLong::settings(int narg, char **arg)
     error->all(FLERR,"Spin simulations require metal unit style");
 
   cut_spin_long_global = force->numeric(FLERR,arg[0]);
-  //cut_spin = force->numeric(FLERR,arg[0]);
   
   // reset cutoffs that have been explicitly set
   
@@ -126,7 +126,7 @@ void PairSpinLong::coeff(int narg, char **arg)
 
   if (strcmp(arg[2],"long") != 0)
     error->all(FLERR,"Incorrect args in pair_style command");
-  if (narg != 3) 
+  if (narg < 1 || narg > 4)
     error->all(FLERR,"Incorrect args in pair_style command");
   
   int ilo,ihi,jlo,jhi;
@@ -197,9 +197,9 @@ void PairSpinLong::init_style()
 double PairSpinLong::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
- 
+  
   cut_spin_long[j][i] = cut_spin_long[i][j];
-
+  
   return cut_spin_long_global;
 }
 
@@ -505,7 +505,8 @@ void PairSpinLong::allocate()
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  memory->create(cut_spin_long,n+1,n+1,"pair:cut_spin_long");
+  memory->create(cut_spin_long,n+1,n+1,"pair/spin/long:cut_spin_long");
+  memory->create(cutsq,n+1,n+1,"pair/spin/long:cutsq");
 }
 
 /* ----------------------------------------------------------------------

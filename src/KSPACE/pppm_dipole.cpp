@@ -116,9 +116,10 @@ void PPPMDipole::init()
   // error check
 
   dipoleflag = atom->mu?1:0;
-  qsum_qsq(0);
+  qsum_qsq(0); // q[i] might not be declared ?
+
   if (dipoleflag && q2)
-    error->all(FLERR,"Cannot (yet) uses charges with Kspace style PPPMDipole");
+    error->all(FLERR,"Cannot (yet) use charges with Kspace style PPPMDipole");
 
   triclinic_check();
 
@@ -168,7 +169,9 @@ void PPPMDipole::init()
   cutoff = *p_cutoff;
 
   // kspace TIP4P not yet supported
+  // qdist = offset only for TIP4P fictitious charge
 
+  qdist = 0.0;
   if (tip4pflag)
     error->all(FLERR,"Cannot yet use TIP4P with PPPMDipole");
 
@@ -206,7 +209,7 @@ void PPPMDipole::init()
                      "beyond nearest neighbor processor");
 
     compute_gf_denom();
-    set_grid_global(mu2);
+    set_grid_global();
     set_grid_local();
     if (overlap_allowed) break;
 
@@ -235,7 +238,7 @@ void PPPMDipole::init()
 
   // calculate the final accuracy
 
-  double estimated_accuracy = final_accuracy_dipole(mu2);
+  double estimated_accuracy = final_accuracy_dipole();
 
   // print stats
 
@@ -607,7 +610,7 @@ void PPPMDipole::allocate()
   // summation coeffs
 
   order_allocated = order;
-  memory->create(gf_b,order,"pppm_dipole:gf_b");
+  if (!gf_b) memory->create(gf_b,order,"pppm_dipole:gf_b");
   memory->create2d_offset(rho1d,3,-order/2,order/2,"pppm_dipole:rho1d");
   memory->create2d_offset(drho1d,3,-order/2,order/2,"pppm_dipole:drho1d");
   memory->create2d_offset(rho_coeff,order,(1-order)/2,order/2,"pppm_dipole:rho_coeff");
@@ -791,7 +794,8 @@ void PPPMDipole::deallocate_peratom()
    used for charge accumulation, FFTs, and electric field interpolation
 ------------------------------------------------------------------------- */
 
-void PPPMDipole::set_grid_global(double dipole2)
+//void PPPMDipole::set_grid_global(double dipole2)
+void PPPMDipole::set_grid_global()
 {
   // use xprd,yprd,zprd
   // adjust z dimension for 2d slab PPPMDipole
@@ -813,14 +817,11 @@ void PPPMDipole::set_grid_global(double dipole2)
   if (!gewaldflag) {
     if (accuracy <= 0.0)
       error->all(FLERR,"KSpace accuracy must be > 0");
-    //if (mu2 == 0.0)
-    if (dipole2 == 0.0)
+    if (mu2 == 0.0)
      error->all(FLERR,"Must use kspace_modify gewald for systems with no dipoles");
     g_ewald = (1.35 - 0.15*log(accuracy))/cutoff;
-    //Try Newton Solver
     double g_ewald_new =
-      find_gewald_dipole(g_ewald,cutoff,natoms,xprd*yprd*zprd,dipole2);
-      //find_gewald_dipole(g_ewald,cutoff,natoms,xprd*yprd*zprd,mu2);
+      find_gewald_dipole(g_ewald,cutoff,natoms,xprd*yprd*zprd,mu2);
     if (g_ewald_new > 0.0) g_ewald = g_ewald_new;
     else error->warning(FLERR,"PPPMDipole dipole Newton solver failed, "
                         "using old method to estimate g_ewald");
@@ -837,6 +838,7 @@ void PPPMDipole::set_grid_global(double dipole2)
     while (1) {
 
       // set grid dimension
+      
       nx_pppm = static_cast<int> (xprd/h_x);
       ny_pppm = static_cast<int> (yprd/h_y);
       nz_pppm = static_cast<int> (zprd_slab/h_z);
@@ -845,7 +847,8 @@ void PPPMDipole::set_grid_global(double dipole2)
       if (ny_pppm <= 1) ny_pppm = 2;
       if (nz_pppm <= 1) nz_pppm = 2;
 
-      //set local grid dimension
+      // set local grid dimension
+      
       int npey_fft,npez_fft;
       if (nz_pppm >= nprocs) {
         npey_fft = 1;
@@ -862,7 +865,7 @@ void PPPMDipole::set_grid_global(double dipole2)
       nzlo_fft = me_z*nz_pppm/npez_fft;
       nzhi_fft = (me_z+1)*nz_pppm/npez_fft - 1;
 
-      double df_kspace = compute_df_kspace_dipole(dipole2);
+      double df_kspace = compute_df_kspace_dipole();
 
       count++;
 
@@ -895,7 +898,7 @@ void PPPMDipole::set_grid_global(double dipole2)
    compute estimated kspace force error for dipoles
 ------------------------------------------------------------------------- */
 
-double PPPMDipole::compute_df_kspace_dipole(double dipole2)
+double PPPMDipole::compute_df_kspace_dipole()
 {
   double xprd = domain->xprd;
   double yprd = domain->yprd;
@@ -903,8 +906,7 @@ double PPPMDipole::compute_df_kspace_dipole(double dipole2)
   double zprd_slab = zprd*slab_volfactor;
   bigint natoms = atom->natoms;
   double qopt = compute_qopt_dipole();
-  //double df_kspace = sqrt(qopt/natoms)*mu2/(3.0*xprd*yprd*zprd_slab);
-  double df_kspace = sqrt(qopt/natoms)*dipole2/(3.0*xprd*yprd*zprd_slab);
+  double df_kspace = sqrt(qopt/natoms)*mu2/(3.0*xprd*yprd*zprd_slab);
   return df_kspace;
 }
 
@@ -1101,27 +1103,27 @@ void PPPMDipole::compute_gf_dipole()
    calculate f(x) for use in Newton-Raphson solver
 ------------------------------------------------------------------------- */
 
-//double PPPMDipole::newton_raphson_f()
-//{
-//  double xprd = domain->xprd;
-//  double yprd = domain->yprd;
-//  double zprd = domain->zprd;
-//  bigint natoms = atom->natoms;
-//
-//  double df_rspace,df_kspace;
-//  double vol = xprd*yprd*zprd;
-//  double a = cutoff*g_ewald;
-//  double rg2 = a*a;
-//  double rg4 = rg2*rg2;
-//  double rg6 = rg4*rg2;
-//  double Cc = 4.0*rg4 + 6.0*rg2 + 3.0;
-//  double Dc = 8.0*rg6 + 20.0*rg4 + 30.0*rg2 + 15.0;
-//  df_rspace = (mu2/(sqrt(vol*powint(g_ewald,4)*powint(cutoff,9)*natoms)) *
-//      sqrt(13.0/6.0*Cc*Cc + 2.0/15.0*Dc*Dc - 13.0/15.0*Cc*Dc) * exp(-rg2));
-//  df_kspace = compute_df_kspace_dipole();
-//
-//  return df_rspace - df_kspace;
-//}
+double PPPMDipole::newton_raphson_f()
+{
+  double xprd = domain->xprd;
+  double yprd = domain->yprd;
+  double zprd = domain->zprd;
+  bigint natoms = atom->natoms;
+
+  double df_rspace,df_kspace;
+  double vol = xprd*yprd*zprd;
+  double a = cutoff*g_ewald;
+  double rg2 = a*a;
+  double rg4 = rg2*rg2;
+  double rg6 = rg4*rg2;
+  double Cc = 4.0*rg4 + 6.0*rg2 + 3.0;
+  double Dc = 8.0*rg6 + 20.0*rg4 + 30.0*rg2 + 15.0;
+  df_rspace = (mu2/(sqrt(vol*powint(g_ewald,4)*powint(cutoff,9)*natoms)) *
+      sqrt(13.0/6.0*Cc*Cc + 2.0/15.0*Dc*Dc - 13.0/15.0*Cc*Dc) * exp(-rg2));
+  df_kspace = compute_df_kspace_dipole();
+
+  return df_rspace - df_kspace;
+}
 
 /* ----------------------------------------------------------------------
    find g_ewald parameter for dipoles based on desired accuracy
@@ -1184,7 +1186,7 @@ double PPPMDipole::derivf_dipole(double x, double Rc,
    calculate the final estimate of the accuracy
 ------------------------------------------------------------------------- */
 
-double PPPMDipole::final_accuracy_dipole(double dipole2)
+double PPPMDipole::final_accuracy_dipole()
 {
   double xprd = domain->xprd;
   double yprd = domain->yprd;
@@ -1193,7 +1195,7 @@ double PPPMDipole::final_accuracy_dipole(double dipole2)
   bigint natoms = atom->natoms;
   if (natoms == 0) natoms = 1; // avoid division by zero
 
-  double df_kspace = compute_df_kspace_dipole(mu2);
+  double df_kspace = compute_df_kspace_dipole();
 
   double a = cutoff*g_ewald;
   double rg2 = a*a;
@@ -1201,10 +1203,7 @@ double PPPMDipole::final_accuracy_dipole(double dipole2)
   double rg6 = rg4*rg2;
   double Cc = 4.0*rg4 + 6.0*rg2 + 3.0;
   double Dc = 8.0*rg6 + 20.0*rg4 + 30.0*rg2 + 15.0;
-  //double df_rspace = (mu2/(sqrt(vol*powint(g_ewald,4)*powint(cutoff,9)*natoms)) *
-  //  sqrt(13.0/6.0*Cc*Cc + 2.0/15.0*Dc*Dc - 13.0/15.0*Cc*Dc) *
-  //  exp(-rg2));
-  double df_rspace = (dipole2/(sqrt(vol*powint(g_ewald,4)*powint(cutoff,9)*natoms)) *
+  double df_rspace = (mu2/(sqrt(vol*powint(g_ewald,4)*powint(cutoff,9)*natoms)) *
     sqrt(13.0/6.0*Cc*Cc + 2.0/15.0*Dc*Dc - 13.0/15.0*Cc*Dc) *
     exp(-rg2));
 
@@ -2521,11 +2520,11 @@ double PPPMDipole::memory_usage()
   double bytes = nmax*3 * sizeof(double);
   int nbrick = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
     (nzhi_out-nzlo_out+1);
-  bytes += 6 * nfft_both * sizeof(double); // vg
-  bytes += nfft_both * sizeof(double); // greensfn
+  bytes += 6 * nfft_both * sizeof(double);   // vg
+  bytes += nfft_both * sizeof(double); 	     // greensfn
   bytes += nfft_both*5 * sizeof(FFT_SCALAR); // work*2*2
-  bytes += 9 * nbrick * sizeof(FFT_SCALAR); // ubrick*3 + vdbrick*6
-  bytes += nfft_both*7 * sizeof(FFT_SCALAR); //density_ffx*3 + work*2*2
+  bytes += 9 * nbrick * sizeof(FFT_SCALAR);  // ubrick*3 + vdbrick*6
+  bytes += nfft_both*7 * sizeof(FFT_SCALAR); // density_ffx*3 + work*2*2
 
   if (peratom_allocate_flag)
     bytes += 21 * nbrick * sizeof(FFT_SCALAR);

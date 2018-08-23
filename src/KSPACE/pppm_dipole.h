@@ -37,8 +37,8 @@ class PPPMDipole : public PPPM {
   double memory_usage();
 
  protected:
-  void set_grid_global(double);
-  //double newton_raphson_f();
+  void set_grid_global();
+  double newton_raphson_f(); 
 
   void allocate();
   void allocate_peratom();
@@ -76,7 +76,7 @@ class PPPMDipole : public PPPM {
   double find_gewald_dipole(double, double, bigint, double, double);
   double newton_raphson_f_dipole(double, double, bigint, double, double);
   double derivf_dipole(double, double, bigint, double, double);
-  double compute_df_kspace_dipole(double);
+  double compute_df_kspace_dipole();
   double compute_qopt_dipole();
   void compute_gf_dipole();
   void make_rho_dipole();
@@ -85,7 +85,7 @@ class PPPMDipole : public PPPM {
   void poisson_peratom_dipole();
   void fieldforce_ik_dipole();
   void fieldforce_peratom_dipole();
-  double final_accuracy_dipole(double dipole2);
+  double final_accuracy_dipole();
   void musum_musq();
 
 };

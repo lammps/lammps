@@ -58,7 +58,8 @@ friend class PairSpin;
   int nlocal_max;			// max value of nlocal (for lists size)
 
   int pair_spin_flag;			// magnetic pair flags
-  int precession_spin_flag;			// magnetic precession flags
+  int long_spin_flag;			// magnetic long-range flag
+  int precession_spin_flag;		// magnetic precession flags
   int maglangevin_flag;			// magnetic langevin flags
   int tdamp_flag, temp_flag;
 

@@ -308,6 +308,8 @@ Clebsch
 Clermont
 clo
 Clovertown
+cmake
+CMake
 cmap
 Cmax
 cmdlist
@@ -713,7 +715,10 @@ fhg
 Fi
 figshare
 Fij
-filenname
+filename
+filenames
+Filename
+Filenames
 fileper
 Fincham
 Finchham
@@ -1456,6 +1461,7 @@ Mtotal
 Muccioli
 Mukherjee
 Mulders
+multi
 multibody
 Multibody
 multicenter
@@ -2489,6 +2495,7 @@ velocites
 Verlag
 verlet
 Verlet
+versa
 ves
 vhi
 vibrational
@@ -2566,6 +2573,7 @@ whitespace
 Wi
 Wicaksono
 wih
+wildcard
 Wirnsberger
 wirtes
 witin

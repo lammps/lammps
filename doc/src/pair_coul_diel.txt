@@ -67,7 +67,8 @@ The global cutoff (r_c) specified in the pair_style command is used.
 
 [Mixing, shift, table, tail correction, restart, rRESPA info]:
 
-This pair style does not support parameter mixing. Coefficients must be given explicitly for each type of particle pairs.
+This pair style does not support parameter mixing. Coefficients must
+be given explicitly for each type of particle pairs.
 
 This pair style supports the "pair_modify"_pair_modify.html shift
 option for the energy of the Gauss-potential portion of the pair
@@ -86,9 +87,9 @@ This pair style can only be used via the {pair} keyword of the
 
 [Restrictions:]
 
-This style is part of the "user-misc" package.  It is only enabled
-if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_2_3 section for more info.
+This style is part of the "USER-MISC" package.  It is only enabled if
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

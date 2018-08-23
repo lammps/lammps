@@ -100,7 +100,7 @@ be passed to various commands as arguments, so that the variable is
 evaluated during a simulation run.
 
 A broader overview of how Python can be used with LAMMPS is given on
-the "Python"_Python.html doc page.  There is an examples/python
+the "Python"_Python_head.html doc page.  There is an examples/python
 directory which illustrates use of the python command.
 
 :line
@@ -469,8 +469,8 @@ sys.exit() in the except clause).
 [Restrictions:]
 
 This command is part of the PYTHON package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 Building LAMMPS with the PYTHON package will link LAMMPS with the
 Python library on your system.  Settings to enable this are in the
@@ -483,8 +483,8 @@ building LAMMPS.  LAMMPS must also be built as a shared library and
 your Python function must be able to to load the Python module in
 python/lammps.py that wraps the LAMMPS library interface.  These are
 the same steps required to use Python by itself to wrap LAMMPS.
-Details on these steps are explained on the "Python"_Python.html doc
-page.  Note that it is important that the stand-alone LAMMPS
+Details on these steps are explained on the "Python"_Python_head.html
+doc page.  Note that it is important that the stand-alone LAMMPS
 executable and the LAMMPS shared library be consistent (built from the
 same source code files) in order for this to work.  If the two have
 been built at different times using different source files, problems

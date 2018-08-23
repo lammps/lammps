@@ -634,23 +634,22 @@ which could then be output into dump files.
 [Restrictions:]
 
 To write gzipped dump files, you must either compile LAMMPS with the
--DLAMMPS_GZIP option or use the styles from the COMPRESS package
-- see the "Making LAMMPS"_Section_start.html#start_2 section of
-the documentation.
+-DLAMMPS_GZIP option or use the styles from the COMPRESS package.
+See the "Build settings"_Build_settings.html doc page for details.
 
-The {atom/gz}, {cfg/gz}, {custom/gz}, and {xyz/gz} styles are part
-of the COMPRESS package.  They are only enabled if LAMMPS was built
-with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+The {atom/gz}, {cfg/gz}, {custom/gz}, and {xyz/gz} styles are part of
+the COMPRESS package.  They are only enabled if LAMMPS was built with
+that package.  See the "Build package"_Build_package.html doc page for
+more info.
 
 The {atom/mpiio}, {cfg/mpiio}, {custom/mpiio}, and {xyz/mpiio} styles
 are part of the MPIIO package.  They are only enabled if LAMMPS was
-built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+built with that package.  See the "Build package"_Build_package.html
+doc page for more info.
 
 The {xtc} style is part of the MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

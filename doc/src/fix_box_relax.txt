@@ -127,8 +127,6 @@ new objective function valid for the new box size/shape.  Repeat as
 necessary until the box size/shape has reached its new equilibrium.
 
 :line
-:line
-:line
 
 The {couple} keyword allows two or three of the diagonal components of
 the pressure tensor to be "coupled" together.  The value specified

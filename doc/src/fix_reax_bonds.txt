@@ -79,13 +79,13 @@ issues.
 
 These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
 USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with those packages.  See the "Build
+package"_Build_package.html doc page for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
-use the "suffix"_suffix.html command in your input script.
+switch"_Run_options.html when you invoke LAMMPS, or you can use the
+"suffix"_suffix.html command in your input script.
 
 See "Speed"_Speed.html of the manual for
 more instructions on how to use the accelerated styles effectively.
@@ -101,8 +101,8 @@ which also requires the REAX library be built and linked with LAMMPS.
 The fix reax/c/bonds command requires that the "pair_style
 reax/c"_pair_reaxc.html be invoked.  This fix is part of the
 USER-REAXC package.  It is only enabled if LAMMPS was built with that
-package.  See the "Making LAMMPS"_Section_start.html#start_3 section
-for more info.
+package.  See the "Build package"_Build_package.html doc page for more
+info.
 
 To write gzipped bond files, you must compile LAMMPS with the
 -DLAMMPS_GZIP option.

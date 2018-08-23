@@ -219,10 +219,9 @@ This command must be used before any coefficients are set by the
 "read_restart"_read_restart.html commands.
 
 Some pair styles are part of specific packages.  They are only enabled
-if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info on packages.
-The doc pages for individual pair potentials tell if it is part of a
-package.
+if LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.  The doc pages for
+individual pair potentials tell if it is part of a package.
 
 [Related commands:]
 

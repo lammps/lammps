@@ -123,8 +123,8 @@ minimization"_minimize.html.
 
 This fix is part of the POEMS package.  It is only enabled if LAMMPS
 was built with that package, which also requires the POEMS library be
-built and linked with LAMMPS.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+built and linked with LAMMPS.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

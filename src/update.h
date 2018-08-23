@@ -35,6 +35,7 @@ class Update : protected Pointers {
   int max_eval;                   // max force evaluations for minimizer
   int restrict_output;            // 1 if output should not write dump/restart
   int setupflag;                  // set when setup() is computing forces
+  int post_integrate;             // 1 if now at post_integrate() in timestep
   int multireplica;               // 1 if min across replicas, else 0
 
   bigint eflag_global,eflag_atom;  // timestep global/peratom eng is tallied on

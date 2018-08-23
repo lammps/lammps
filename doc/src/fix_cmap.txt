@@ -125,8 +125,8 @@ To function as expected this fix command must be issued {before} a
 "read_restart"_read_restart.html command.
 
 This fix can only be used if LAMMPS was built with the MOLECULE
-package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info on packages.
+package.  See the "Build package"_Build_package.html doc page for more
+info.
 
 [Related commands:]
 

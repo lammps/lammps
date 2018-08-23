@@ -44,8 +44,8 @@ minimization"_minimize.html.
 [Restrictions:]
 
 This fix is part of the ASPHERE package.  It is only enabled if LAMMPS
-was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 This fix requires that particles be triangles as defined by the
 "atom_style tri"_atom_style.html command.

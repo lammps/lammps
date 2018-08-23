@@ -9,7 +9,7 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 General tips :h3
 
-NOTE: this section 5.2 is still a work in progress
+NOTE: this page is still a work in progress
 
 Here is a list of general ideas for improving simulation performance.
 Most of them are only applicable to certain models and certain
@@ -20,13 +20,8 @@ problem size, number of processors used, and your machine.  There is
 no substitute for identifying performance bottlenecks, and trying out
 various options.
 
-make individual pages for these, or one for PPPM
-one for timestepping, etc
-one for balancing 
-or proc layout
-
 rRESPA
-2-FFT PPPM
+Two-FFT PPPM
 Staggered PPPM
 single vs double PPPM
 partial charge PPPM
@@ -34,12 +29,13 @@ verlet/split run style
 processor command for proc layout and numa layout
 load-balancing: balance and fix balance :ul
 
-2-FFT PPPM, also called {analytic differentiation} or {ad} PPPM, uses
-2 FFTs instead of the 4 FFTs used by the default {ik differentiation}
-PPPM. However, 2-FFT PPPM also requires a slightly larger mesh size to
-achieve the same accuracy as 4-FFT PPPM. For problems where the FFT
-cost is the performance bottleneck (typically large problems running
-on many processors), 2-FFT PPPM may be faster than 4-FFT PPPM.
+Two-FFT PPPM, also called {analytic differentiation} or {ad} PPPM,
+uses 2 FFTs instead of the 4 FFTs used by the default {ik
+differentiation} PPPM. However, 2-FFT PPPM also requires a slightly
+larger mesh size to achieve the same accuracy as 4-FFT PPPM. For
+problems where the FFT cost is the performance bottleneck (typically
+large problems running on many processors), 2-FFT PPPM may be faster
+than 4-FFT PPPM.
 
 Staggered PPPM performs calculations using two different meshes, one
 shifted slightly with respect to the other.  This can reduce force

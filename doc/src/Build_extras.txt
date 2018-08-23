@@ -687,7 +687,7 @@ the HDF5 library.
 
 No additional settings are needed besides "-D PKG_USER-H5MD=yes".
 
-This should autodetect the H5MD library on your system.  Several
+This should auto-detect the H5MD library on your system.  Several
 advanced CMake H5MD options exist if you need to specify where it is
 installed.  Use the ccmake (terminal window) or cmake-gui (graphical)
 tools to see these options and set them interactively from their user
@@ -777,7 +777,7 @@ on your system.
 
 No additional settings are needed besides "-D PKG_USER-NETCDF=yes".
 
-This should autodetect the NETCDF library if it is installed on your
+This should auto-detect the NETCDF library if it is installed on your
 system at standard locations.  Several advanced CMake NETCDF options
 exist if you need to specify where it was installed.  Use the ccmake
 (terminal window) or cmake-gui (graphical) tools to see these options
@@ -936,7 +936,7 @@ your system.
 
 No additional settings are needed besides "-D PKG_USER-VTK=yes".
 
-This should autodetect the VTK library if it is installed on your
+This should auto-detect the VTK library if it is installed on your
 system at standard locations.  Several advanced VTK options exist if
 you need to specify where it was installed.  Use the ccmake (terminal
 window) or cmake-gui (graphical) tools to see these options and set

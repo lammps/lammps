@@ -98,7 +98,7 @@ verify, that the potential definition in the python class and in the
 LAMMPS input match.
 
 Here is an example for a single type Lennard-Jones potential class
-{LJCutMelt} in reducted units, which defines an atom type {lj} for
+{LJCutMelt} in reduced units, which defines an atom type {lj} for
 which the parameters epsilon and sigma are both 1.0:
 
 class LJCutMelt(LAMMPSPairPotential):

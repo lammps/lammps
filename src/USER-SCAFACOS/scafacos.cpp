@@ -126,10 +126,8 @@ void Scafacos::init()
   qqrd2e = force->qqrd2e;
 
   if (!initialized) {
-    printf("DEBUG: %p\n",&fcs);
     result = fcs_init((FCS*)&fcs,method,world);
     check_result((void*)&result);
-    printf("DEBUG: %p\n",&fcs);
 
     setup_handle();
 

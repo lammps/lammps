@@ -188,7 +188,7 @@ module list            # is a cmake module already loaded?
 module avail           # is a cmake module available?
 module load cmake3     # load cmake module with appropriate name :pre
 
-Most Linux distributions offer precompiled cmake packages through
+Most Linux distributions offer pre-compiled cmake packages through
 their package management system. If you do not have CMake or a new
 enough version, you can download the latest version at
 "https://cmake.org/download/"_https://cmake.org/download/.

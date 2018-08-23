@@ -228,7 +228,7 @@ for details and default settings. Experimenting with its options can
 provide a speed-up for specific calculations. For example:
 
 mpirun -np 2 lmp_kokkos_cuda_openmpi -k on g 2 -sf kk -pk kokkos binsize 2.8 -in in.lj      # Set binsize = neighbor ghost cutoff
-mpirun -np 2 lmp_kokkos_cuda_openmpi -k on g 2 -sf kk -pk kokkos newton on neigh half binsize 2.8 -in in.lj      # Newton on, half neighborlist, set binsize = neighbor ghost cutoff :pre
+mpirun -np 2 lmp_kokkos_cuda_openmpi -k on g 2 -sf kk -pk kokkos newton on neigh half binsize 2.8 -in in.lj      # Newton on, half neighbor list, set binsize = neighbor ghost cutoff :pre
 
 NOTE: For good performance of the KOKKOS package on GPUs, you must
 have Kepler generation GPUs (or later). The Kokkos library exploits

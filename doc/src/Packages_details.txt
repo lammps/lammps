@@ -1370,7 +1370,7 @@ which have styles optimized for CPUs and KNLs.
 
 You need to have an Intel compiler, version 14 or higher to take full
 advantage of this package. While compilation with GNU compilers is
-supported, performance will be suboptimal.
+supported, performance will be sub-optimal.
 
 NOTE: the USER-INTEL package contains styles that require using the
 -restrict flag, when compiling with Intel compilers.

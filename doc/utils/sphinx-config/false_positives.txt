@@ -260,6 +260,7 @@ Caro
 cartesian
 Cates
 cbecker
+ccmake
 CCu
 cd
 cdeam
@@ -285,6 +286,9 @@ CGDNA
 cgs
 Chalopin
 Champaign
+charmm
+charmmfsw
+charmmfsh
 charmm
 CHARMM
 checkmark
@@ -412,6 +416,7 @@ Cval
 cvar
 cvff
 cwiggle
+cygwin
 Cygwin
 Cyrot
 cyrstals
@@ -587,6 +592,7 @@ ehanced
 ehex
 eHEX
 Ei
+Eigen
 Eigensolve
 Eike
 eim
@@ -1390,6 +1396,7 @@ Mikami
 Militzer
 Minary
 mincap
+mingw
 minima
 minimizations
 minimizer

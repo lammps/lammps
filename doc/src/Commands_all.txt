@@ -19,7 +19,7 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 All commands :h3
 
-An alphabetic list of all LAMMPS commmands.
+An alphabetic list of all LAMMPS commands.
 
 "angle_coeff"_angle_coeff.html,
 "angle_style"_angle_style.html,

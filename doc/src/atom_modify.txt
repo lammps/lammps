@@ -67,7 +67,7 @@ when required.  An example are the bond (angle, etc) methods which
 need to find the local index of an atom with a specific global ID
 which is a bond (angle, etc) partner.  LAMMPS performs this operation
 efficiently by creating a "map", which is either an {array} or {hash}
-table, as descibed below.
+table, as described below.
 
 When the {map} keyword is not specified in your input script, LAMMPS
 only creates a map for "atom_styles"_atom_style.html for molecular

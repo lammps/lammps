@@ -56,7 +56,7 @@ value and its corresponding pressure correction. The volumes in the file
 should be uniformly spaced. Both the volumes and the pressure corrections 
 should be provided in the proper units, e.g. if you are using {units real}, 
 the volumes should all be in cubic angstroms, and the pressure corrections 
-should all be in atomspheres. Furthermore, the table should start/end at a 
+should all be in atmospheres. Furthermore, the table should start/end at a 
 volume considerably smaller/larger than you expect your system to sample 
 during the simulation. If the system ever reaches a volume outside of the 
 range provided, the simulation will stop.

@@ -62,7 +62,7 @@ Driver (ICD)"_https://www.khronos.org/news/permalink/opencl-installable-client-d
 installed. There can be multiple of them for the same or different hardware
 (GPUs, CPUs, Accelerators) installed at the same time. OpenCL refers to those
 as 'platforms'.  The GPU library will select the [first] suitable platform,
-but this can be overridded using the device option of the "package"_package.html
+but this can be overridden using the device option of the "package"_package.html
 command. run lammps/lib/gpu/ocl_get_devices to get a list of available
 platforms and devices with a suitable ICD available.
 

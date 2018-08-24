@@ -48,7 +48,7 @@ Package, Description, Doc page, Example, Library
 "MC"_Packages_details.html#PKG-MC, Monte Carlo options, "fix gcmc"_fix_gcmc.html, n/a, no
 "MEAM"_Packages_details.html#PKG-MEAM, modified EAM potential, "pair_style meam"_pair_meam.html, meam, int
 "MESSAGE"_Packages_details.html#PKG-MESSAGE, client/server messaging, "message"_message.html, message, int
-"MISC"_Packages_details.html#PKG-MISC, miscellanous single-file commands, n/a, no, no
+"MISC"_Packages_details.html#PKG-MISC, miscellaneous single-file commands, n/a, no, no
 "MOLECULE"_Packages_details.html#PKG-MOLECULE, molecular system force fields, "Howto bioFF"_Howto_bioFF.html, peptide, no
 "MPIIO"_Packages_details.html#PKG-MPIIO, MPI parallel I/O dump and restart, "dump"_dump.html, n/a, no
 "MSCG"_Packages_details.html#PKG-MSCG, multi-scale coarse-graining wrapper, "fix mscg"_fix_mscg.html, mscg, ext

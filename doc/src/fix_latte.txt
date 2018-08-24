@@ -44,7 +44,7 @@ Once LAMMPS is built with the LATTE package, you can run the example
 input scripts for molecular dynamics or energy minimization that are
 found in examples/latte.
 
-A step-by-step tutorial can be follwed at: "LAMMPS-LATTE
+A step-by-step tutorial can be followed at: "LAMMPS-LATTE
 tutorial"_https://github.com/lanl/LATTE/wiki/Using-LATTE-through-LAMMPS
 
 The {peID} argument is not yet supported by fix latte, so it must be

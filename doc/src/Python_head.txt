@@ -62,11 +62,11 @@ library interface provided in src/library.h and src/library.h.  That
 interface is exposed to Python either when calling LAMMPS from Python
 or when calling Python from a LAMMPS input script and then calling
 back to LAMMPS from Python code.  The library interface is designed to
-be easy to add funcionality to.  Thus the Python interface to LAMMPS
+be easy to add functionality to.  Thus the Python interface to LAMMPS
 is also easy to extend as well.
 
 If you create interesting Python scripts that run LAMMPS or
 interesting Python functions that can be called from a LAMMPS input
-script, that you think would be genearlly useful, please post them as
+script, that you think would be generally useful, please post them as
 a pull request to our "GitHub site"_https://github.com/lammps/lammps,
 and they can be added to the LAMMPS distribution or webpage.

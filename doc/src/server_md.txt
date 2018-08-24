@@ -66,45 +66,46 @@ files for details on how LAMMPS uses these messages.  See the
 examples/COUPLE/lammps_vasp/vasp_wrapper.py file for an example of how
 a quantum code (VASP) can use use these messages.
 
-The following code uses these values, defined as enums in LAMMPS:
+The following pseudo-code uses these values, defined as enums.
 
 enum{SETUP=1,STEP};
-enum{UNITS=1,DIM,NATOMS,NTYPES,BOXLO,BOXHI,BOXTILT,TYPES,COORDS,CHARGE};
-enum{FORCES=1,ENERGY,VIRIAL}; :pre
+enum{DIM=1,PERIODICITY,ORIGIN,BOX,NATOMS,NTYPES,TYPES,COORDS,UNITS,CHARGE};
+enum{FORCES=1,ENERGY,VIRIAL,ERROR}; :pre
 
 [Client sends 2 kinds of messages]:
 
-# required fields: NATOMS, NTYPES, BOXLO, BOXHI, TYPES, COORDS
-# optional fields: others in 2nd enum above :pre
+# required fields: DIM, PERIODICTY, ORIGIN, BOX, NATOMS, NTYPES, TYPES, COORDS
+# optional fields: UNITS, CHARGE :pre
 
 cs->send(SETUP,nfields)        # msgID with nfields :pre
 
-cs->pack_string(UNITS,units)   # units = "lj", "real", "metal", etc
-cs->pack_int(NATOMS,natoms)    # total numer of atoms
+cs->pack_int(DIM,dim)          # dimension (2,3) of simulation
+cs->pack(PERIODICITY,3,xyz)    # periodicity flags in 3 dims
+cs->pack(ORIGIN,3,origin)      # lower-left corner of simulation box
+cs->pack(BOX,9,box)            # 3 edge vectors of simulation box
+cs->pack_int(NATOMS,natoms)    # total number of atoms
 cs->pack_int(NTYPES,ntypes)    # number of atom types
-cs->pack(BOXLO,3,boxlo)        # 3-vector of lower box bounds
-cs->pack(BOXHI,3,boxhi)        # 3-vector of upper box bounds
-cs->pack(BOXTILT,3,boxtilt)    # 3-vector of tilt factors for triclinic boxes
 cs->pack(TYPES,natoms,type)    # vector of per-atom types
 cs->pack(COORDS,3*natoms,x)    # vector of 3N atom coords
+cs->pack_string(UNITS,units)   # units = "lj", "real", "metal", etc
 cs->pack(CHARGE,natoms,q)      # vector of per-atom charge :pre
 
 # required fields: COORDS
-# optional fields: BOXLO, BOXHI, BOXTILT :pre
+# optional fields: ORIGIN, BOX :pre
 
 cs->send(STEP,nfields)         # msgID with nfields :pre
 
-cs->pack_int(NATOMS,natoms)    # total numer of atoms
-cs->pack_int(NTYPES,ntypes)    # number of atom types
-cs->pack(BOXLO,3,boxlo)        # 3-vector of lower box bounds
-cs->pack(BOXTILT,3,boxtilt)    # 3-vector of tilt factors for triclinic boxes :pre
+cs->pack(COORDS,3*natoms,x)    # vector of 3N atom coords
+cs->pack(ORIGIN,3,origin)      # lower-left corner of simulation box
+cs->pack(BOX,9,box)            # 3 edge vectors of simulation box
 
 [Server replies to either kind of message]:
 
-cs->send(msgID,3)            # msgID = 1 with 3 fields
+cs->send(msgID,nfields)      # msgID with nfields
 cs->pack(FORCES,3*Natoms,f)  # vector of 3N forces on atoms
 cs->pack(ENERGY,1,poteng)    # total potential energy of system
-cs->pack(VIRIAL,6,virial)    # global virial tensor (6-vector) :pre
+cs->pack(VIRIAL,6,virial)    # global virial tensor (6-vector)
+cs->pack(ERROR,6,virial)     # server had an error (e.g. DFT non-convergence) :pre
 
 :line
 

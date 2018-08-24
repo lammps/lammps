@@ -36,7 +36,7 @@ using namespace CSLIB_NS;
 enum{OTHER,REAL,METAL}
 enum{SETUP=1,STEP};
 enum{DIM=1,PERIODICITY,ORIGIN,BOX,NATOMS,NTYPES,TYPES,COORDS,UNITS,CHARGE};
-enum{FORCES=1,ENERGY,VIRIAL};
+enum{FORCES=1,ENERGY,VIRIAL,ERROR};
 
 /* ---------------------------------------------------------------------- */
 

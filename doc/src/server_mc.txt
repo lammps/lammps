@@ -71,26 +71,26 @@ cs->send(NATOMS,0)      # msgID = 1 with no fields :pre
 cs->send(EINIT,0)       # msgID = 2 with no fields :pre
 
 cs->send(DISPLACE,2)    # msgID = 3 with 2 fields
-cs->pack(1,1,ID)        # 1st field = ID of atom to displace
+cs->pack_int(1,ID)        # 1st field = ID of atom to displace
 cs->pack(2,3,xnew)      # 2nd field = new xyz coords of displaced atom :pre
 
 cs->send(ACCEPT,1)      # msgID = 4 with 1 field
-cs->pack(1,1,flag)      # 1st field = accept/reject flag :pre
+cs->pack_int(1,flag)    # 1st field = accept/reject flag :pre
 
 cs->send(RUN,1)         # msgID = 5 with 1 field
-cs->pack(1,1,nsteps)    # 1st field = # of timesteps to run MD :pre
+cs->pack_int(1,nsteps)  # 1st field = # of timesteps to run MD :pre
 
 [Server replies]:
 
 cs->send(NATOMS,1)      # msgID = 1 with 1 field 
-cs->pack(1,1,Natoms)    # 1st field = number of atoms :pre
+cs->pack_int(1,natoms)  # 1st field = number of atoms :pre
 
-cs->send(EINIT,2)       # msgID = 2 with 2 fields
-cs->pack(1,1,poteng)    # 1st field = potential energy of system
-cs->pack(2,3*Natoms,x)  # 2nd field = 3N coords of Natoms :pre
+cs->send(EINIT,2)         # msgID = 2 with 2 fields
+cs->pack_double(1,poteng) # 1st field = potential energy of system
+cs->pack(2,3*natoms,x)    # 2nd field = 3N coords of Natoms :pre
 
-cs->send(DISPLACE,1)    # msgID = 3 with 1 field
-cs->pack(1,1,poteng)    # 1st field = new potential energy of system :pre
+cs->send(DISPLACE,1)      # msgID = 3 with 1 field
+cs->pack_double(1,poteng) # 1st field = new potential energy of system :pre
 
 cs->send(ACCEPT,0)      # msgID = 4 with no fields
 

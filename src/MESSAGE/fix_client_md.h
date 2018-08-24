@@ -37,7 +37,6 @@ class FixClientMD : public Fix {
   double compute_scalar();
 
  private:
-  void *cslib;
   int maxatom,units;
   double box[3][3];
   double eng;

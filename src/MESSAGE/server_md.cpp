@@ -55,13 +55,12 @@ ServerMD::ServerMD(LAMMPS *lmp) : Pointers(lmp)
 
   // unit conversion factors for REAL
   // otherwise not needed
+  // local computation in REAL units, send message in METAL units
 
   fconvert = econvert = vconvert = 1.0;
   if (units == REAL) {
-    // NOTE: still need to set these
-    fconvert = 1.0;
-    econvert = 1.0;
-    vconvert = 1.0;
+    fconvert = econvert = 1.0 / 23.06035;
+    vconvert = 1.0 / 0.986923;
   }
 
   fcopy = NULL;

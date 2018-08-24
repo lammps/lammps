@@ -64,13 +64,12 @@ FixClientMD::FixClientMD(LAMMPS *lmp, int narg, char **arg) :
 
   // unit conversion factors for REAL
   // otherwise not needed
+  // message received in METAL units, convert to local REAL units
 
   fconvert = econvert = vconvert = 1.0;
   if (units == REAL) {
-    // NOTE: still need to set these
-    fconvert = 1.0;
-    econvert = 1.0;
-    vconvert = 1.0;
+    fconvert = econvert = 23.06035;
+    vconvert = 0.986923;
   }
 }
 

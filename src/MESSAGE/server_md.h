@@ -21,9 +21,13 @@ namespace LAMMPS_NS {
 class ServerMD : protected Pointers {
  public:
   ServerMD(class LAMMPS *);
+  ~ServerMD();
   void loop();
 
  private:
+  int units;
+  double **fcopy;
+
   void box_change(double *, double *, double *);
   void send_fev(int);
 };

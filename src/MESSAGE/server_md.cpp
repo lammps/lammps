@@ -33,20 +33,10 @@
 using namespace LAMMPS_NS;
 using namespace CSLIB_NS;
 
-enum{REAL,METAL}
+enum{OTHER,REAL,METAL}
 enum{SETUP=1,STEP};
-enum{DIM=1,PERIODICITY,ORIGIN,BOX,NATOMS,NTYPES,TYPES,COORDS,CHARGE};
+enum{DIM=1,PERIODICITY,ORIGIN,BOX,NATOMS,NTYPES,TYPES,COORDS,UNITS,CHARGE};
 enum{FORCES=1,ENERGY,VIRIAL};
-
-// NOTE: features that could be added to this interface
-// allow client to set periodicity vs shrink-wrap
-//   currently just assume server is same as client
-// test that triclinic boxes actually work
-// send new box size/shape every step, for NPT client
-// unit check between client/server with unit conversion if needed
-// option for client to send other per-atom quantities, e.g. rmass
-// more precise request of energy/virial (global or peratom) by client
-//   maybe Verlet should have a single(eflag,vflag) method to more easily comply
 
 /* ---------------------------------------------------------------------- */
 
@@ -61,7 +51,27 @@ ServerMD::ServerMD(LAMMPS *lmp) : Pointers(lmp)
 
   if (strcmp(update->unit_style,"real") == 0) units = REAL;
   else if (strcmp(update->unit_style,"metal") == 0) units = METAL;
-  else error->all(FLERR,"Units must be real or metal for server md");
+  else units = OTHER;
+
+  // unit conversion factors for REAL
+  // otherwise not needed
+
+  fconvert = econvert = vconvert = 1.0;
+  if (units == REAL) {
+    // NOTE: still need to set these
+    fconvert = 1.0;
+    econvert = 1.0;
+    vconvert = 1.0;
+  }
+
+  fcopy = NULL;
+}
+
+/* ---------------------------------------------------------------------- */
+
+ServerMD::~ServerMD();
+{
+  memory->destroy(fcopy);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -89,8 +99,9 @@ void ServerMD::loop()
     msgID = cs->recv(nfield,fieldID,fieldtype,fieldlen);
     if (msgID < 0) break;
 
-    // SETUP call at beginning of each run
-    // required fields: NATOMS, NTYPES, BOXLO, BOXHI, TYPES, COORDS
+    // SETUP receive at beginning of each run
+    // required fields: DIM, PERIODICTY, ORIGIN, BOX, 
+    //                  NATOMS, NTYPES, TYPES, COORDS
     // optional fields: others in enum above
 
     if (msgID == SETUP) {
@@ -103,6 +114,7 @@ void ServerMD::loop()
       double *box = NULL;
       int *types = NULL;
       double *coords = NULL;
+      char *units = NULL;
       double *charge = NULL;
 
       for (int ifield = 0; ifield < nfield; ifield++) {
@@ -132,6 +144,9 @@ void ServerMD::loop()
           types = (int *) cs->unpack(TYPES);
         } else if (fieldID[ifield] == COORDS) {
           coords = (double *) cs->unpack(COORDS);
+
+        } else if (fieldID[ifield] == UNITS) {
+          units = (char *) cs->unpack(UNITS);
         } else if (fieldID[ifield] == CHARGE) {
           charge = (double *) cs->unpack(CHARGE);
         } else error->all(FLERR,"Server md setup field unknown");
@@ -140,6 +155,9 @@ void ServerMD::loop()
       if (dim == 0 || !periodicity || !origin || !box || 
           natoms < 0 || ntypes < 0 || !types || !coords)
         error->all(FLERR,"Required server md setup field not received");
+
+      if (units && strcmp(units,update->unit_style) != 0)
+        error->all(FLERR,"Server md does not match client units");
 
       if (charge && atom->q_flag == 0)
         error->all(FLERR,"Server md does not define atom attribute q");
@@ -183,6 +201,13 @@ void ServerMD::loop()
       atom->map_set();
       atom->natoms = natoms;
 
+      // allocate fcopy if needed
+
+      if (units == REAL) {
+        memory->destroy(fcopy);
+        memory->create(fcopy,atom->nlocal,3,"server/md:fcopy");
+      }
+
       // perform system setup() for dynamics
       // also OK for minimization, since client runs minimizer
       // return forces, energy, virial to client
@@ -195,7 +220,7 @@ void ServerMD::loop()
 
       send_fev(msgID);
 
-    // STEP call at each timestep of run or minimization
+    // STEP receive at each timestep of run or minimization
     // required fields: COORDS
     // optional fields: BOXLO, BOXHI, BOXTILT
 
@@ -309,13 +334,13 @@ void ServerMD::box_change(double *origin, double *box)
   domain->xy = box[3];
   domain->xz = box[6];
   domain->yz = box[7];
-
-
 }
 
 /* ----------------------------------------------------------------------
-   send return message with forces, energy, pressure tensor
-   pressure tensor should be just pair style virial
+   return message with forces, energy, pressure tensor
+   pressure tensor should be just pair and KSpace contributions
+   required fields: FORCES, ENERGY, VIRIAL
+   optional field: ERROR (not ever sending)
 ------------------------------------------------------------------------- */
 
 void ServerMD::send_fev(int msgID)
@@ -325,12 +350,25 @@ void ServerMD::send_fev(int msgID)
   cs->send(msgID,3);
   
   double *forces = NULL;
-  if (atom->nlocal) forces = &atom->f[0][0];
+  if (atom->nlocal) {
+    if (units != REAL) forces = &atom->f[0][0];
+    else {
+      double **f = atom->f;
+      int nlocal = atom->nlocal;
+      for (i = 0; i < nlocal; i++) {
+        fcopy[i][0] = fconvert*f[i][0];
+        fcopy[i][1] = fconvert*f[i][1];
+        fcopy[i][2] = fconvert*f[i][2];
+      }
+      forces = &fcopy[0][0];
+    }
+  }
   cs->pack_parallel(FORCES,4,atom->nlocal,atom->tag,3,forces);
-  
+
   double eng = force->pair->eng_vdwl + force->pair->eng_coul;
   double engall;
   MPI_Allreduce(&eng,&engall,1,MPI_DOUBLE,MPI_SUM,world);
+  engall *= econvert;
   cs->pack_double(ENERGY,engall);
   
   double v[6],vall[6];
@@ -339,8 +377,8 @@ void ServerMD::send_fev(int msgID)
   if (force->kspace)
     for (int i = 0; i < 6; i++)
       v[i] += force->kspace->virial[i];
-  
+
+  for (int i = 0; i < 6; i++) v[i] *= vconvert;
   MPI_Allreduce(&v,&vall,6,MPI_DOUBLE,MPI_SUM,world);
   cs->pack(VIRIAL,4,6,vall);
 }
-

@@ -28,9 +28,9 @@ using namespace LAMMPS_NS;
 using namespace CSLIB_NS;
 using namespace FixConst;
 
-enum{REAL,METAL}
+enum{OTHER,REAL,METAL}
 enum{SETUP=1,STEP};
-enum{DIM=1,PERIODICITY,ORIGIN,BOX,NATOMS,NTYPES,TYPES,COORDS,CHARGE};
+enum{DIM=1,PERIODICITY,ORIGIN,BOX,NATOMS,NTYPES,TYPES,COORDS,UNITS,CHARGE};
 enum{FORCES=1,ENERGY,VIRIAL};
 
 /* ---------------------------------------------------------------------- */
@@ -47,7 +47,7 @@ FixClientMD::FixClientMD(LAMMPS *lmp, int narg, char **arg) :
 
   if (strcmp(update->unit_style,"real") == 0) units = REAL;
   else if (strcmp(update->unit_style,"metal") == 0) units = METAL;
-  else error->all(FLERR,"Units must be real or metal for fix client/md");
+  else units = OTHER;
 
   scalar_flag = 1;
   global_freq = 1;
@@ -55,18 +55,19 @@ FixClientMD::FixClientMD(LAMMPS *lmp, int narg, char **arg) :
   virial_flag = 1;
   thermo_virial = 1;
 
+  inv_nprocs = 1.0 / comm->nprocs;
   if (domain->dimension == 2)
     box[0][2] = box[1][2] = box[2][0] = box[2][1] = box[2][2] = 0.0;
 
   maxatom = 0;
   xpbc = NULL;
 
-  // unit conversion factors
-
-  double inv_nprocs = 1.0 / comm->nprocs;
+  // unit conversion factors for REAL
+  // otherwise not needed
 
   fconvert = econvert = vconvert = 1.0;
   if (units == REAL) {
+    // NOTE: still need to set these
     fconvert = 1.0;
     econvert = 1.0;
     vconvert = 1.0;
@@ -120,10 +121,12 @@ void FixClientMD::setup(int vflag)
 {
   CSlib *cs = (CSlib *) lmp->cslib;
 
+  // SETUP send at beginning of each run
   // required fields: DIM, PERIODICTY, ORIGIN, BOX, NATOMS, NTYPES, TYPES, COORDS
   // optional fields: others in enum above
 
   int nfields = 8;
+  if (units == OTHER) nfields++;
   if (atom->q_flag) nfields++;
 
   cs->send(SETUP,nfields);
@@ -142,12 +145,20 @@ void FixClientMD::setup(int vflag)
   pack_coords();
   cs->pack_parallel(COORDS,4,atom->nlocal,atom->tag,3,xpbc);
 
+  if (units == OTHER) cs->pack_string(UNITS,update->unit_style);
+
   if (atom->q_flag)
     cs->pack_parallel(CHARGE,4,atom->nlocal,atom->tag,1,atom->q);
 
   // receive initial forces, energy, virial
 
   receive_fev(vflag);
+
+  if (server_error) {
+    str = char[64];
+    sprintf(str,"Fix client/md received server error %d\n",server_error);
+    error->all(FLERR,str);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -168,6 +179,7 @@ void FixClientMD::post_force(int vflag)
   if (vflag) v_setup(vflag);
   else evflag = 0;
 
+  // STEP send every step
   // required fields: COORDS
   // optional fields: ORIGIN, BOX
 
@@ -189,9 +201,15 @@ void FixClientMD::post_force(int vflag)
     cs->pack(BOX,4,9,&box[0][0]);
   }
 
-  // recv forces, energy, virial
+  // receive forces, energy, virial
 
   receive_fev(vflag);
+
+  if (server_error) {
+    str = char[64];
+    sprintf(str,"Fix client/md received server error %d\n",server_error);
+    error->all(FLERR,str);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -202,7 +220,7 @@ void FixClientMD::min_post_force(int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   potential energy from QM code
+   potential energy from server
 ------------------------------------------------------------------------- */
 
 double FixClientMD::compute_scalar()
@@ -255,7 +273,9 @@ void FixClientMD::pack_box()
 }
 
 /* ----------------------------------------------------------------------
-   receive message from server with forces, energy, virial
+   receive message from server
+   required fields: FORCES, ENERGY, VIRIAL
+   optional field: ERROR
 ------------------------------------------------------------------------- */
 
 void FixClientMD::receive_fev(int vflag)
@@ -291,4 +311,9 @@ void FixClientMD::receive_fev(int vflag)
     for (int i = 0; i < 6; i++)
       virial[i] = inv_nprocs * vconvert * v[i];
   }
+
+  // error return
+
+  server_error = 0;
+  if (nfield == 4) server_error = cs->unpack_int(ERROR);
 }

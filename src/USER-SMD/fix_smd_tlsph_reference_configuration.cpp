@@ -149,7 +149,7 @@ void FixSMD_TLSPH_ReferenceConfiguration::pre_exchange() {
 
         if (updateFlag > 0) {
                 if (comm->me == 0) {
-                        printf("**** updating ref config at step: %ld\n", update->ntimestep);
+                        printf("**** updating ref config at step: " BIGINT_FORMAT "\n", update->ntimestep);
                 }
 
                 for (i = 0; i < nlocal; i++) {

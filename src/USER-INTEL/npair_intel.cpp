@@ -109,8 +109,8 @@ void NPairIntel::bin_newton(const int /*offload*/, NeighList *list,
 
   int tnum;
   int *overflow;
-  double *timer_compute;
   #ifdef _LMP_INTEL_OFFLOAD
+  double *timer_compute;
   if (offload) {
     timer_compute = _fix->off_watch_neighbor();
     tnum = buffers->get_off_threads();
@@ -265,8 +265,9 @@ void NPairIntel::bin_newton(const int /*offload*/, NeighList *list,
       int * _noalias itjtype;
 
       // loop over all atoms in other bins in stencil, store every pair
-      int istart, icount, ncount, oldbin = -9999999, lane, max_chunk;
+      int istart, icount, ncount, oldbin = -9999999;
       #ifdef LMP_INTEL_3BODY_FAST
+      int lane, max_chunk;
       if (THREE) {
         lane = 0;
         max_chunk = 0;
@@ -579,7 +580,6 @@ void NPairIntel::bin_newton(const int /*offload*/, NeighList *list,
 
         int ns;
         if (THREE) {
-          int alln = n;
           ns = n - pack_offset;
           atombin[i] = ns;
           ns += n2 - pack_offset - maxnbors;

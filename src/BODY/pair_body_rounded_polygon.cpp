@@ -105,10 +105,9 @@ void PairBodyRoundedPolygon::compute(int eflag, int vflag)
   int i,j,ii,jj,inum,jnum,itype,jtype;
   int ni,nj,npi,npj,ifirst,jfirst;
   int nei,nej,iefirst,jefirst;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fx,fy,fz;
+  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl;
   double rsq,rsqinv,r,radi,radj,eradi,eradj,rradi,rradj,k_nij,k_naij;
-  double xi[3],xj[3],fi[3],fj[3],ti[3],tj[3],facc[3];
-  double *dxi,*dxj;
+  double xi[3],xj[3],facc[3];
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
@@ -709,9 +708,8 @@ int PairBodyRoundedPolygon::vertex_against_edge(int i, int j,
   int ni, npi, ifirst, nei, iefirst;
   int nj, npj, jfirst, nej, jefirst;
   double xpi[3], xpj[3], dist, eradi, eradj, rradi, rradj;
-  double fx, fy, fz, rx, ry, rz, energy;
+  double fx, fy, fz, energy;
   int interact;
-  int nlocal = atom->nlocal;
 
   npi = dnum[i];
   ifirst = dfirst[i];
@@ -758,7 +756,7 @@ int PairBodyRoundedPolygon::vertex_against_edge(int i, int j,
 
     int mode, contact, p2vertex;
     double d, R, hi[3], t, delx, dely, delz, fpair, shift;
-    double xj[3], rij;
+    double rij;
 
     // loop through body j's edges
 
@@ -781,6 +779,7 @@ int PairBodyRoundedPolygon::vertex_against_edge(int i, int j,
         if (mode == VERTEXI) p2vertex = edge[jefirst+nj][0];
         else if (mode == VERTEXJ) p2vertex = edge[jefirst+nj][1];
 
+        // double xj[3];
         // p2.body2space(p2vertex, xj);
         xpj[0] = x[j][0] + discrete[jfirst+p2vertex][0];
         xpj[1] = x[j][1] + discrete[jfirst+p2vertex][1];

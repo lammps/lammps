@@ -2243,7 +2243,7 @@ public:
   FVEC_BINOP(*, mul)
   FVEC_BINOP(/, div)
 
-  VEC_INLINE static void gather_prefetch0(const ivec &idx, const void * mem) {}
+  VEC_INLINE static void gather_prefetch0(const ivec & /*idx*/, const void * /*mem*/) {}
 };
 
 class avec {

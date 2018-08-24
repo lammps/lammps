@@ -724,11 +724,13 @@ void FixIntel::add_oresults(const ft * _noalias const f_in,
   lmp_ft * _noalias const f = (lmp_ft *) lmp->atom->f[0] + out_offset;
   if (atom->torque) {
     if (f_in[1].w)
+    {
       if (f_in[1].w == 1)
         error->all(FLERR,"Bad matrix inversion in mldivide3");
       else
         error->all(FLERR,
                    "Sphere particles not yet supported for gayberne/intel");
+    }
   }
 
   int packthreads;

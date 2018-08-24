@@ -1030,7 +1030,6 @@ void FixRigid::enforce2d()
 void FixRigid::compute_forces_and_torques()
 {
   int i,ibody;
-  double dtfm;
 
   // sum over atoms to get force and torque on rigid body
 

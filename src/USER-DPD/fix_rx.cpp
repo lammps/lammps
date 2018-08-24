@@ -729,7 +729,7 @@ void FixRX::setup_pre_force(int /*vflag*/)
 
 void FixRX::pre_force(int /*vflag*/)
 {
-  TimerType timer_start = getTimeStamp();
+  //TimerType timer_start = getTimeStamp();
 
   int nlocal = atom->nlocal;
   int nghost = atom->nghost;
@@ -808,7 +808,7 @@ void FixRX::pre_force(int /*vflag*/)
   comm->forward_comm_fix(this);
   if(localTempFlag) delete [] dpdThetaLocal;
 
-  TimerType timer_stop = getTimeStamp();
+  //TimerType timer_stop = getTimeStamp();
 
   double time_ODE = getElapsedTime(timer_localTemperature, timer_ODE);
 

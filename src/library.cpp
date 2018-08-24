@@ -1515,7 +1515,7 @@ void lammps_create_atoms(void *ptr, int n, tagint *id, int *type,
     if (lmp->atom->natoms != natoms_prev + n) {
       char str[128];
       sprintf(str,"Library warning in lammps_create_atoms, "
-              "invalid total atoms %ld %ld",lmp->atom->natoms,natoms_prev+n);
+              "invalid total atoms " BIGINT_FORMAT " %lld",lmp->atom->natoms,natoms_prev+n);
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR,str);
     }

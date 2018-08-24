@@ -213,7 +213,7 @@ void FixWallBodyPolyhedron::setup(int vflag)
 
 void FixWallBodyPolyhedron::post_force(int /*vflag*/)
 {
-  double vwall[3],dx,dy,dz,del1,del2,delxy,delr,rsq,eradi,rradi,wall_pos;
+  double vwall[3],dx,dy,dz,del1,del2,rsq,eradi,rradi,wall_pos;
   int i,ni,npi,ifirst,nei,iefirst,nfi,iffirst,side;
   double facc[3];
 
@@ -325,9 +325,6 @@ void FixWallBodyPolyhedron::post_force(int /*vflag*/)
       rsq = dx*dx + dy*dy + dz*dz;
       if (rsq > radius[i]*radius[i]) continue;
 
-      double r = sqrt(rsq);
-      double rsqinv = 1.0 / rsq;
-
       if (dnum[i] == 0) body2space(i);
       npi = dnum[i];
       ifirst = dfirst[i];
@@ -359,8 +356,7 @@ void FixWallBodyPolyhedron::post_force(int /*vflag*/)
         edge[iefirst+ni][5] = 0;
       }
 
-      int interact, num_contacts, done;
-      double delta_a, delta_ua, j_a;
+      int interact, num_contacts;
       Contact contact_list[MAX_CONTACTS];
 
       num_contacts = 0;
@@ -550,7 +546,6 @@ int FixWallBodyPolyhedron::edge_against_wall(int i, double wall_pos,
 {
   int ni, nei, mode, contact;
   double rradi;
-  int nlocal = atom->nlocal;
 
   nei = ednum[i];
   rradi = rounded_radius[i];
@@ -702,10 +697,10 @@ void FixWallBodyPolyhedron::contact_forces(int ibody,
   double fx, double fy, double fz, double** x, double** v, double** angmom,
   double** f, double** torque, double* vwall)
 {
-  int ibonus,jbonus;
+  int ibonus;
   double fxt,fyt,fzt,rsq,rsqinv;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
-  double fn[3],ft[3],vi[3],vj[3];
+  double fn[3],ft[3],vi[3];
   double *quat, *inertia;
   AtomVecBody::Bonus *bonus;
 
@@ -787,7 +782,7 @@ void FixWallBodyPolyhedron::contact_forces(Contact& contact, double j_a,
                       double** x, double** v, double** angmom, double** f,
                       double** torque, double* vwall, double* facc)
 {
-  int ibody,ibonus,ifirst, jefirst, ni;
+  int ibody,ibonus,ifirst,ni;
   double fx,fy,fz,delx,dely,delz,rsq,rsqinv;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
   double fn[3],ft[3],vi[3];

@@ -625,11 +625,9 @@ void FixBocs::init()
 // NJD MRD 2 functions
 int FixBocs::read_F_table( char *filename, int p_basis_type )
 {
-  char separator = ',';
   FILE *fpi;
   int N_columns = 2, n_entries = 0, i;
   float f1, f2;
-  double n1, n2;
   int test_sscanf;
   double **data = (double **) calloc(N_columns,sizeof(double *));
   char * line = (char *) calloc(200,sizeof(char));

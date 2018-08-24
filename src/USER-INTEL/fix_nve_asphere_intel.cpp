@@ -79,7 +79,7 @@ void FixNVEAsphereIntel::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVEAsphereIntel::initial_integrate(int vflag)
+void FixNVEAsphereIntel::initial_integrate(int /*vflag*/)
 {
   double dtfm;
   double inertia[3],omega[3];

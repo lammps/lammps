@@ -36,7 +36,7 @@
 #include "reaxc_tool_box.h"
 #include "reaxc_vector.h"
 
-int Init_System( reax_system *system, control_params *control, char *msg )
+int Init_System( reax_system *system, control_params *control, char */*msg*/ )
 {
   int i;
   reax_atom *atom;
@@ -66,7 +66,7 @@ int Init_System( reax_system *system, control_params *control, char *msg )
 
 
 int Init_Simulation_Data( reax_system *system, control_params *control,
-                          simulation_data *data, char *msg )
+                          simulation_data *data, char */*msg*/ )
 {
   Reset_Simulation_Data( data, control->virial );
 
@@ -139,8 +139,8 @@ int Init_Workspace( reax_system *system, control_params *control,
 
 
 /************** setup communication data structures  **************/
-int Init_MPI_Datatypes( reax_system *system, storage *workspace,
-                        mpi_datatypes *mpi_data, MPI_Comm comm, char *msg )
+int Init_MPI_Datatypes( reax_system *system, storage */*workspace*/,
+                        mpi_datatypes *mpi_data, MPI_Comm comm, char */*msg*/ )
 {
 
   /* setup the world */
@@ -151,8 +151,8 @@ int Init_MPI_Datatypes( reax_system *system, storage *workspace,
 }
 
 int  Init_Lists( reax_system *system, control_params *control,
-                 simulation_data *data, storage *workspace, reax_list **lists,
-                 mpi_datatypes *mpi_data, char *msg )
+                 simulation_data */*data*/, storage */*workspace*/, reax_list **lists,
+                 mpi_datatypes *mpi_data, char */*msg*/ )
 {
   int i, total_hbonds, total_bonds, bond_cap, num_3body, cap_3body, Htop;
   int *hb_top, *bond_top;

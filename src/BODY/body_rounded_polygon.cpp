@@ -323,7 +323,7 @@ void BodyRoundedPolygon::data_body(int ibonus, int ninteger, int ndouble,
    called by Molecule class which needs single body size
 ------------------------------------------------------------------------- */
 
-double BodyRoundedPolygon::radius_body(int ninteger, int ndouble,
+double BodyRoundedPolygon::radius_body(int /*ninteger*/, int ndouble,
 				       int *ifile, double *dfile)
 {
   int nsub = ifile[0];
@@ -392,7 +392,7 @@ void BodyRoundedPolygon::output(int ibonus, int m, double *values)
 
 /* ---------------------------------------------------------------------- */
 
-int BodyRoundedPolygon::image(int ibonus, double flag1, double flag2,
+int BodyRoundedPolygon::image(int ibonus, double flag1, double /*flag2*/,
                               int *&ivec, double **&darray)
 {
   int j;

@@ -104,7 +104,7 @@ void FixQEqFire::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqFire::pre_force(int vflag)
+void FixQEqFire::pre_force(int /*vflag*/)
 {
   int inum, *ilist;
   int i,ii,iloop;
@@ -311,7 +311,7 @@ double FixQEqFire::compute_eneg()
 /* ---------------------------------------------------------------------- */
 
 int FixQEqFire::pack_forward_comm(int n, int *list, double *buf,
-                          int pbc_flag, int *pbc)
+                          int /*pbc_flag*/, int */*pbc*/)
 {
   int m = 0;
 

@@ -349,7 +349,7 @@ void FixIntel::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixIntel::setup(int vflag)
+void FixIntel::setup(int /*vflag*/)
 {
   if (neighbor->style != Neighbor::BIN)
     error->all(FLERR,
@@ -539,7 +539,7 @@ void FixIntel::check_neighbor_intel()
 
 /* ---------------------------------------------------------------------- */
 
-void FixIntel::pre_reverse(int eflag, int vflag)
+void FixIntel::pre_reverse(int /*eflag*/, int /*vflag*/)
 {
   if (_force_array_m != 0) {
     if (_need_reduce) {
@@ -652,7 +652,7 @@ template <class ft, class acc_t>
 void FixIntel::add_results(const ft * _noalias const f_in,
                            const acc_t * _noalias const ev_global,
                            const int eatom, const int vatom,
-                           const int offload) {
+                           const int /*offload*/) {
   start_watch(TIME_PACK);
   int f_length;
   #ifdef _LMP_INTEL_OFFLOAD
@@ -719,7 +719,7 @@ void FixIntel::add_results(const ft * _noalias const f_in,
 template <class ft, class acc_t>
 void FixIntel::add_oresults(const ft * _noalias const f_in,
                             const acc_t * _noalias const ev_global,
-                            const int eatom, const int vatom,
+                            const int eatom, const int /*vatom*/,
                             const int out_offset, const int nall) {
   lmp_ft * _noalias const f = (lmp_ft *) lmp->atom->f[0] + out_offset;
   if (atom->torque) {

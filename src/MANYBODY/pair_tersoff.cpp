@@ -280,7 +280,7 @@ void PairTersoff::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairTersoff::settings(int narg, char **arg)
+void PairTersoff::settings(int narg, char **/*arg*/)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 }

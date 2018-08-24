@@ -274,7 +274,7 @@ void FixQEq::reallocate_matrix()
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEq::init_list(int id, NeighList *ptr)
+void FixQEq::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }
@@ -329,7 +329,7 @@ void FixQEq::init_storage()
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEq::pre_force_respa(int vflag, int ilevel, int iloop)
+void FixQEq::pre_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1) pre_force(vflag);
 }
@@ -471,7 +471,7 @@ void FixQEq::calculate_Q()
 /* ---------------------------------------------------------------------- */
 
 int FixQEq::pack_forward_comm(int n, int *list, double *buf,
-                          int pbc_flag, int *pbc)
+                          int /*pbc_flag*/, int */*pbc*/)
 {
   int m;
 
@@ -552,7 +552,7 @@ void FixQEq::grow_arrays(int nmax)
    copy values within fictitious charge arrays
 ------------------------------------------------------------------------- */
 
-void FixQEq::copy_arrays(int i, int j, int delflag)
+void FixQEq::copy_arrays(int i, int j, int /*delflag*/)
 {
   for (int m = 0; m < nprev; m++) {
     s_hist[j][m] = s_hist[i][m];

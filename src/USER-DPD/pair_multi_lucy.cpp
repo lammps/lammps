@@ -781,7 +781,7 @@ void PairMultiLucy::computeLocalDensity()
 }
 /* ---------------------------------------------------------------------- */
 
-int PairMultiLucy::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int PairMultiLucy::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int */*pbc*/)
 {
   int i,j,m;
   double *rho = atom->rho;

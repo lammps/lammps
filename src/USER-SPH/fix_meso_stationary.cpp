@@ -67,7 +67,7 @@ void FixMesoStationary::init() {
  allow for both per-type and per-atom mass
  ------------------------------------------------------------------------- */
 
-void FixMesoStationary::initial_integrate(int vflag) {
+void FixMesoStationary::initial_integrate(int /*vflag*/) {
 
   double *rho = atom->rho;
   double *drho = atom->drho;

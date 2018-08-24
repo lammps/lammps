@@ -424,7 +424,7 @@ void PairADP::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairADP::settings(int narg, char **arg)
+void PairADP::settings(int narg, char **/*arg*/)
 {
   if (narg > 0) error->all(FLERR,"Illegal pair_style command");
 }
@@ -521,7 +521,7 @@ void PairADP::init_style()
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairADP::init_one(int i, int j)
+double PairADP::init_one(int /*i*/, int /*j*/)
 {
   // single global cutoff = max of cut from all files read in
   // for funcfl could be multiple files
@@ -935,7 +935,7 @@ void PairADP::grab(FILE *fp, int n, double *list)
 /* ---------------------------------------------------------------------- */
 
 int PairADP::pack_forward_comm(int n, int *list, double *buf,
-                               int pbc_flag, int *pbc)
+                               int /*pbc_flag*/, int */*pbc*/)
 {
   int i,j,m;
 

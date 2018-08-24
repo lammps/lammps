@@ -598,7 +598,7 @@ void PairBodyRoundedPolygon::body2space(int i)
 
 void PairBodyRoundedPolygon::sphere_against_sphere(int i, int j,
                        double delx, double dely, double delz, double rsq,
-                       double k_n, double k_na, double** x, double** v,
+                       double k_n, double k_na, double** /*x*/, double** v,
                        double** f, int evflag)
 {
   double eradi,eradj,rradi,rradj;
@@ -1166,7 +1166,7 @@ int PairBodyRoundedPolygon::compute_distance_to_vertex(int ibody,
 
 void PairBodyRoundedPolygon::contact_forces(Contact& contact, double j_a,
                        double** x, double** v, double** angmom, double** f,
-                       double** torque, double &evdwl, double* facc)
+                       double** torque, double &/*evdwl*/, double* facc)
 {
   int ibody,jbody,ibonus,jbonus,ifirst,jefirst,ni,nj;
   double fx,fy,fz,delx,dely,delz,rsq,rsqinv;

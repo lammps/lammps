@@ -668,7 +668,7 @@ void FixRX::init_list(int, class NeighList* ptr)
 
 /* ---------------------------------------------------------------------- */
 
-void FixRX::setup_pre_force(int vflag)
+void FixRX::setup_pre_force(int /*vflag*/)
 {
   int nlocal = atom->nlocal;
   int nghost = atom->nghost;
@@ -727,7 +727,7 @@ void FixRX::setup_pre_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixRX::pre_force(int vflag)
+void FixRX::pre_force(int /*vflag*/)
 {
   TimerType timer_start = getTimeStamp();
 
@@ -1191,7 +1191,7 @@ void FixRX::rkf45_step (const int neq, const double h, double y[], double y_out[
    return;
 }
 
-int FixRX::rkf45_h0 (const int neq, const double t, const double t_stop,
+int FixRX::rkf45_h0 (const int neq, const double t, const double /*t_stop*/,
                      const double hmin, const double hmax,
                      double& h0, double y[], double rwk[], void* v_params)
 {
@@ -1668,7 +1668,7 @@ int FixRX::rhs(double t, const double *y, double *dydt, void *params)
 
 /* ---------------------------------------------------------------------- */
 
-int FixRX::rhs_dense(double t, const double *y, double *dydt, void *params)
+int FixRX::rhs_dense(double /*t*/, const double *y, double *dydt, void *params)
 {
   UserRHSData *userData = (UserRHSData *) params;
 
@@ -1702,7 +1702,7 @@ int FixRX::rhs_dense(double t, const double *y, double *dydt, void *params)
 
 /* ---------------------------------------------------------------------- */
 
-int FixRX::rhs_sparse(double t, const double *y, double *dydt, void *v_params) const
+int FixRX::rhs_sparse(double /*t*/, const double *y, double *dydt, void *v_params) const
 {
    UserRHSData *userData = (UserRHSData *) v_params;
 
@@ -1885,7 +1885,7 @@ void FixRX::computeLocalTemperature()
 
 /* ---------------------------------------------------------------------- */
 
-int FixRX::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int FixRX::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int */*pbc*/)
 {
   int ii,jj,m;
   double tmp;

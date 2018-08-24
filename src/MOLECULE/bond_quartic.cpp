@@ -251,7 +251,7 @@ void BondQuartic::init_style()
    return an equilbrium bond length
 ------------------------------------------------------------------------- */
 
-double BondQuartic::equilibrium_distance(int i)
+double BondQuartic::equilibrium_distance(int /*i*/)
 {
   return 0.97;
 }

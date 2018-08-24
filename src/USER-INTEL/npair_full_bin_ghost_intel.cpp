@@ -106,7 +106,7 @@ void NPairFullBinGhostIntel::fbi(NeighList * list,
 /* ---------------------------------------------------------------------- */
 
 template<class flt_t, class acc_t, int need_ic>
-void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
+void NPairFullBinGhostIntel::fbi(const int /*offload*/, NeighList * list,
                                  IntelBuffers<flt_t,acc_t> * buffers,
                                  const int pstart, const int pend) {
   if (pend-pstart == 0) return;

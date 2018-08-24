@@ -309,7 +309,7 @@ void AngleCosineBuck6d::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-double AngleCosineBuck6d::equilibrium_angle(int i)
+double AngleCosineBuck6d::equilibrium_angle(int /*i*/)
 {
   return MY_PI;
 }

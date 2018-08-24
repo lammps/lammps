@@ -64,7 +64,7 @@ void FixNVEAsphereNoforce::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVEAsphereNoforce::initial_integrate(int vflag)
+void FixNVEAsphereNoforce::initial_integrate(int /*vflag*/)
 {
   AtomVecEllipsoid::Bonus *bonus;
   if (avec) bonus = avec->bonus;

@@ -588,7 +588,7 @@ void FixBondReact::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixBondReact::init_list(int id, NeighList *ptr)
+void FixBondReact::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }
@@ -2621,7 +2621,7 @@ double FixBondReact::compute_vector(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixBondReact::post_integrate_respa(int ilevel, int iloop)
+void FixBondReact::post_integrate_respa(int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1) post_integrate();
 }
@@ -2629,7 +2629,7 @@ void FixBondReact::post_integrate_respa(int ilevel, int iloop)
 /* ---------------------------------------------------------------------- */
 
 int FixBondReact::pack_forward_comm(int n, int *list, double *buf,
-                                    int pbc_flag, int *pbc)
+                                    int /*pbc_flag*/, int */*pbc*/)
 {
   int i,j,k,m,ns;
 

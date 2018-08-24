@@ -178,7 +178,7 @@ int FixEOStableRX::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixEOStableRX::setup(int vflag)
+void FixEOStableRX::setup(int /*vflag*/)
 {
   int nlocal = atom->nlocal;
   int *mask = atom->mask;
@@ -803,7 +803,7 @@ void FixEOStableRX::temperature_lookup(int id, double ui, double &thetai)
 
 /* ---------------------------------------------------------------------- */
 
-int FixEOStableRX::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int FixEOStableRX::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int */*pbc*/)
 {
   int ii,jj,m;
   double *uChem = atom->uChem;

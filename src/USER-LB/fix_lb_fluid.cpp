@@ -646,7 +646,7 @@ void FixLbFluid::init(void)
 
 }
 
-void FixLbFluid::setup(int vflag)
+void FixLbFluid::setup(int /*vflag*/)
 {
   //--------------------------------------------------------------------------
   // Need to calculate the force on the fluid for a restart run.
@@ -655,7 +655,7 @@ void FixLbFluid::setup(int vflag)
     calc_fluidforce();
 }
 
-void FixLbFluid::initial_integrate(int vflag)
+void FixLbFluid::initial_integrate(int /*vflag*/)
 {
   //--------------------------------------------------------------------------
   // Print a header labelling any output printed to the screen.
@@ -711,7 +711,7 @@ void FixLbFluid::initial_integrate(int vflag)
     streamout();
 
 }
-void FixLbFluid::post_force(int vflag)
+void FixLbFluid::post_force(int /*vflag*/)
 {
   if(fixviscouslb==1)
     calc_fluidforce();
@@ -741,7 +741,7 @@ void FixLbFluid::grow_arrays(int nmax)
 //==========================================================================
 //   copy values within local atom-based array
 //==========================================================================
-void FixLbFluid::copy_arrays(int i, int j, int delflag)
+void FixLbFluid::copy_arrays(int i, int j, int /*delflag*/)
 {
   hydroF[j][0] = hydroF[i][0];
   hydroF[j][1] = hydroF[i][1];

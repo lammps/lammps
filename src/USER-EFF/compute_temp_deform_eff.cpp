@@ -290,7 +290,7 @@ void ComputeTempDeformEff::remove_bias_all()
    assume remove_bias() was previously called
 ------------------------------------------------------------------------- */
 
-void ComputeTempDeformEff::restore_bias(int i, double *v)
+void ComputeTempDeformEff::restore_bias(int /*i*/, double *v)
 {
   v[0] += vbias[0];
   v[1] += vbias[1];

@@ -54,10 +54,10 @@ NPairIntel::~NPairIntel() {
 
 template <class flt_t, class acc_t, int offload_noghost, int need_ic,
           int FULL, int TRI, int THREE>
-void NPairIntel::bin_newton(const int offload, NeighList *list,
+void NPairIntel::bin_newton(const int /*offload*/, NeighList *list,
                             IntelBuffers<flt_t,acc_t> *buffers,
                             const int astart, const int aend,
-                            const int offload_end) {
+                            const int /*offload_end*/) {
 
   if (aend-astart == 0) return;
 

@@ -181,7 +181,7 @@ void ComputeSNAVAtom::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSNAVAtom::init_list(int id, NeighList *ptr)
+void ComputeSNAVAtom::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }

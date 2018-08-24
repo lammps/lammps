@@ -204,7 +204,7 @@ void FixWallBodyPolygon::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixWallBodyPolygon::post_force(int vflag)
+void FixWallBodyPolygon::post_force(int /*vflag*/)
 {
   double vwall[3],dx,dy,dz,del1,del2,delxy,delr,rsq,eradi,rradi,wall_pos;
   int i,ni,npi,ifirst,nei,iefirst,side;
@@ -475,7 +475,7 @@ void FixWallBodyPolygon::body2space(int i)
 
 int FixWallBodyPolygon::vertex_against_wall(int i, double wall_pos,
                 double** x, double** f, double** torque, int side,
-                Contact* contact_list, int &num_contacts, double* facc)
+                Contact* contact_list, int &num_contacts, double* /*facc*/)
 {
   int ni, npi, ifirst, interact;
   double xpi[3], xpj[3], dist, eradi, rradi;

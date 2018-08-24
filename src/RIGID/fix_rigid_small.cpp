@@ -867,7 +867,7 @@ void FixRigidSmall::enforce2d()
 
 /* ---------------------------------------------------------------------- */
 
-void FixRigidSmall::post_force(int vflag)
+void FixRigidSmall::post_force(int /*vflag*/)
 {
   if (langflag) apply_langevin_thermostat();
   if (earlyflag) compute_forces_and_torques();
@@ -1004,7 +1004,7 @@ void FixRigidSmall::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixRigidSmall::initial_integrate_respa(int vflag, int ilevel, int iloop)
+void FixRigidSmall::initial_integrate_respa(int vflag, int ilevel, int /*iloop*/)
 {
   dtv = step_respa[ilevel];
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
@@ -1016,7 +1016,7 @@ void FixRigidSmall::initial_integrate_respa(int vflag, int ilevel, int iloop)
 
 /* ---------------------------------------------------------------------- */
 
-void FixRigidSmall::final_integrate_respa(int ilevel, int iloop)
+void FixRigidSmall::final_integrate_respa(int ilevel, int /*iloop*/)
 {
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
   final_integrate();
@@ -2999,7 +2999,7 @@ int FixRigidSmall::unpack_exchange(int nlocal, double *buf)
 ------------------------------------------------------------------------- */
 
 int FixRigidSmall::pack_forward_comm(int n, int *list, double *buf,
-                                     int pbc_flag, int *pbc)
+                                     int /*pbc_flag*/, int */*pbc*/)
 {
   int i,j;
   double *xcm,*vcm,*quat,*omega,*ex_space,*ey_space,*ez_space,*conjqm;

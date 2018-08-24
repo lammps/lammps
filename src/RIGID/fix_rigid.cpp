@@ -1096,7 +1096,7 @@ void FixRigid::compute_forces_and_torques()
 
 /* ---------------------------------------------------------------------- */
 
-void FixRigid::post_force(int vflag)
+void FixRigid::post_force(int /*vflag*/)
 {
   if (langflag) apply_langevin_thermostat();
   if (earlyflag) compute_forces_and_torques();
@@ -1141,7 +1141,7 @@ void FixRigid::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixRigid::initial_integrate_respa(int vflag, int ilevel, int iloop)
+void FixRigid::initial_integrate_respa(int vflag, int ilevel, int /*iloop*/)
 {
   dtv = step_respa[ilevel];
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
@@ -1153,7 +1153,7 @@ void FixRigid::initial_integrate_respa(int vflag, int ilevel, int iloop)
 
 /* ---------------------------------------------------------------------- */
 
-void FixRigid::final_integrate_respa(int ilevel, int iloop)
+void FixRigid::final_integrate_respa(int ilevel, int /*iloop*/)
 {
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
   final_integrate();
@@ -2478,7 +2478,7 @@ void FixRigid::grow_arrays(int nmax)
    copy values within local atom-based arrays
 ------------------------------------------------------------------------- */
 
-void FixRigid::copy_arrays(int i, int j, int delflag)
+void FixRigid::copy_arrays(int i, int j, int /*delflag*/)
 {
   body[j] = body[i];
   xcmimage[j] = xcmimage[i];

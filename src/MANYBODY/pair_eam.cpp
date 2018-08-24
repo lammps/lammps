@@ -347,7 +347,7 @@ void PairEAM::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairEAM::settings(int narg, char **arg)
+void PairEAM::settings(int narg, char **/*arg*/)
 {
   if (narg > 0) error->all(FLERR,"Illegal pair_style command");
 }
@@ -795,7 +795,7 @@ void PairEAM::grab(FILE *fptr, int n, double *list)
 /* ---------------------------------------------------------------------- */
 
 double PairEAM::single(int i, int j, int itype, int jtype,
-                       double rsq, double factor_coul, double factor_lj,
+                       double rsq, double /*factor_coul*/, double /*factor_lj*/,
                        double &fforce)
 {
   int m;
@@ -829,7 +829,7 @@ double PairEAM::single(int i, int j, int itype, int jtype,
 /* ---------------------------------------------------------------------- */
 
 int PairEAM::pack_forward_comm(int n, int *list, double *buf,
-                               int pbc_flag, int *pbc)
+                               int /*pbc_flag*/, int */*pbc*/)
 {
   int i,j,m;
 

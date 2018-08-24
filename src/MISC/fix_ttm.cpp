@@ -235,7 +235,7 @@ void FixTTM::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixTTM::post_force(int vflag)
+void FixTTM::post_force(int /*vflag*/)
 {
   double **x = atom->x;
   double **v = atom->v;
@@ -287,7 +287,7 @@ void FixTTM::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixTTM::post_force_setup(int vflag)
+void FixTTM::post_force_setup(int /*vflag*/)
 {
   double **f = atom->f;
   int *mask = atom->mask;
@@ -306,14 +306,14 @@ void FixTTM::post_force_setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixTTM::post_force_respa(int vflag, int ilevel, int iloop)
+void FixTTM::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1) post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixTTM::post_force_respa_setup(int vflag, int ilevel, int iloop)
+void FixTTM::post_force_respa_setup(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1) post_force_setup(vflag);
 }
@@ -685,7 +685,7 @@ int FixTTM::maxsize_restart()
    size of atom nlocal's restart data
 ------------------------------------------------------------------------- */
 
-int FixTTM::size_restart(int nlocal)
+int FixTTM::size_restart(int /*nlocal*/)
 {
   return 4;
 }

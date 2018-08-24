@@ -159,7 +159,7 @@ void FixQEQComb::min_post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEQComb::post_force(int vflag)
+void FixQEQComb::post_force(int /*vflag*/)
 {
   int i,ii,iloop,loopmax,inum,*ilist;
   double heatpq,qmass,dtq,dtq2;
@@ -276,7 +276,7 @@ void FixQEQComb::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEQComb::post_force_respa(int vflag, int ilevel, int iloop)
+void FixQEQComb::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == ilevel_respa) post_force(vflag);
 }
@@ -293,7 +293,7 @@ double FixQEQComb::memory_usage()
 /* ---------------------------------------------------------------------- */
 
 int FixQEQComb::pack_forward_comm(int n, int *list, double *buf,
-                                  int pbc_flag, int *pbc)
+                                  int /*pbc_flag*/, int */*pbc*/)
 {
   int i,j,m;
 

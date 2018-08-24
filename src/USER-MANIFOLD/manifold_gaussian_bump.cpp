@@ -133,7 +133,7 @@ public:
 
 // Manifold itself:
 manifold_gaussian_bump::manifold_gaussian_bump(class LAMMPS* lmp,
-                                               int narg, char **arg)
+                                               int /*narg*/, char **/*arg*/)
         : manifold(lmp), lut_z(NULL), lut_zp(NULL) {}
 
 

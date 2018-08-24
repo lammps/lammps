@@ -98,6 +98,10 @@ void PairATM::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
+  int count1 = 0;
+  int count2 = 0;
+  int count3 = 0;
+
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     xi = x[i][0];
@@ -108,7 +112,10 @@ void PairATM::compute(int eflag, int vflag)
     jnum = numneigh[i];
     jnumm1 = jnum - 1;
 
-    for (jj = 0; jj < jnumm1; jj++) {
+    //    for (jj = 0; jj < jnumm1; jj++) {
+    // replace with this line:
+    for (jj = 0; jj < jnum; jj++) {
+
       j = jlist[jj];
       j &= NEIGHMASK;
       rij[0] = x[j][0] - xi;
@@ -118,9 +125,15 @@ void PairATM::compute(int eflag, int vflag)
       rij[2] = x[j][2] - zi;
       if (rij[0] == 0.0 and rij[1] == 0.0 and rij[2] < 0.0) continue;
       rij2 = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
+      count1++;
       if (rij2 > cutoff_squared) continue;
+      count2++;
 
-      for (kk = jj+1; kk < jnum; kk++) {
+      //for (kk = jj+1; kk < jnum; kk++) {
+      // replace with these two lines:
+      for (kk = 0; kk < jnum; kk++) {
+        if (kk == jj) continue;
+
         k = jlist[kk];
         k &= NEIGHMASK;
 
@@ -145,6 +158,7 @@ void PairATM::compute(int eflag, int vflag)
         nu_local = nu[type[i]][type[j]][type[k]];
         if (nu_local == 0.0) continue;
 
+        count3++;
         interaction_ddd(nu_local,
                         r6,rij2,rik2,rjk2,rij,rik,rjk,fj,fk,eflag,evdwl);
 
@@ -162,6 +176,15 @@ void PairATM::compute(int eflag, int vflag)
       }
     }
   }
+
+  int count = count1;
+  MPI_Allreduce(&count,&count1,1,MPI_INT,MPI_SUM,world);
+  count = count2;
+  MPI_Allreduce(&count,&count2,1,MPI_INT,MPI_SUM,world);
+  count = count3;
+  MPI_Allreduce(&count,&count3,1,MPI_INT,MPI_SUM,world);
+  printf("FORCE %g %d %d %d\n",cutoff_squared,count1,count2,count3);
+
 
   if (vflag_fdotr) virial_fdotr_compute();
 }

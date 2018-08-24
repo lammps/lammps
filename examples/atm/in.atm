@@ -16,7 +16,7 @@ region		box block 0 ${xx} 0 ${yy} 0 ${zz}
 create_box	1 box
 create_atoms	1 box
 
-pair_style	hybrid/overlay lj/cut 4.5 atm 2.5
+pair_style	hybrid/overlay lj/cut 4.5 atm 4.5 2.5
 pair_coeff	* * lj/cut 1.0 1.0
 pair_coeff	* * atm * 0.072
 

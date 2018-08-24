@@ -39,12 +39,11 @@ class PairATM : public Pair {
   void read_restart_settings(FILE *);
 
  protected:
-  // SJP: add 2nd cutoff
   double cut_global,cut_triple;
   double ***nu;
 
   void allocate();
-  void interaction_ddd(double, double, double, double, double *, 
+  void interaction_ddd(double, double, double, double, double, double *, 
                        double *, double *, double *, double *, int, double &);
 };
 

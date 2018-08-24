@@ -15,9 +15,7 @@
    Contributing author: Sergey Lishchuk
 ------------------------------------------------------------------------- */
 
-
 #include <cmath>
-
 #include "pair_atm.h"
 #include "atom.h"
 #include "citeme.h"
@@ -92,7 +90,6 @@ void PairATM::compute(int eflag, int vflag)
   int *type = atom->type;
 
   double cutoff_squared = cut_global*cut_global;
-  // SJP: new cutoff
   double triple = cut_triple*cut_triple*cut_triple;
   double cutoff_triple_sixth = triple*triple;
 
@@ -142,15 +139,14 @@ void PairATM::compute(int eflag, int vflag)
         rik2 = rik[0]*rik[0] + rik[1]*rik[1] + rik[2]*rik[2];
         if (rik2 > cutoff_squared) continue;
 
-        // SJP: add this line?
-
-        if (rij2*rjk2*rik2 > cutoff_triple_sixth) continue;
+        double r6 = rij2*rjk2*rik2;
+        if (r6 > cutoff_triple_sixth) continue;
 
         nu_local = nu[type[i]][type[j]][type[k]];
         if (nu_local == 0.0) continue;
 
         interaction_ddd(nu_local,
-                        rij2,rik2,rjk2,rij,rik,rjk,fj,fk,eflag,evdwl);
+                        r6,rij2,rik2,rjk2,rij,rik,rjk,fj,fk,eflag,evdwl);
 
         f[i][0] -= fj[0] + fk[0];
         f[i][1] -= fj[1] + fk[1];
@@ -200,14 +196,10 @@ void PairATM::allocate()
 
 void PairATM::settings(int narg, char **arg)
 {
-  // SJP: change to 2 args, require triple <= global
-
   if (narg != 2) error->all(FLERR,"Illegal pair_style command");
 
   cut_global = force->numeric(FLERR,arg[0]);
   cut_triple = force->numeric(FLERR,arg[1]);
-
-  if (cut_triple > cut_global) error->all(FLERR,"Illegal pair_style command");
 }
 
 /* ----------------------------------------------------------------------
@@ -324,7 +316,6 @@ void PairATM::read_restart(FILE *fp)
 void PairATM::write_restart_settings(FILE *fp)
 {
   fwrite(&cut_global,sizeof(double),1,fp);
-  // SJP: 2nd arg
   fwrite(&cut_triple,sizeof(double),1,fp);
 }
 
@@ -334,7 +325,6 @@ void PairATM::write_restart_settings(FILE *fp)
 
 void PairATM::read_restart_settings(FILE *fp)
 {
-  // SJP: 2nd arg
   int me = comm->me;
   if (me == 0) {
     fread(&cut_global,sizeof(double),1,fp);
@@ -348,13 +338,12 @@ void PairATM::read_restart_settings(FILE *fp)
    Axilrod-Teller-Muto (dipole-dipole-dipole) potential
 ------------------------------------------------------------------------- */
 
-void PairATM::interaction_ddd(double nu,
+void PairATM::interaction_ddd(double nu, double r6,
                               double rij2, double rik2, double rjk2,
                               double *rij, double *rik, double *rjk,
                               double *fj, double *fk, int eflag, double &eng)
 {
-  double r6,r5inv,rri,rrj,rrk,rrr;
-  r6 = rij2*rik2*rjk2;
+  double r5inv,rri,rrj,rrk,rrr;
   r5inv = nu / (r6*r6*sqrt(r6));
   rri = rik[0]*rij[0] + rik[1]*rij[1] + rik[2]*rij[2];
   rrj = rij[0]*rjk[0] + rij[1]*rjk[1] + rij[2]*rjk[2];

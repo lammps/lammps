@@ -7,10 +7,9 @@
 \usepackage{minted}
 % Better inline directory listings
 \usepackage[dvipsnames]{xcolor}
-\definecolor{light-gray}{gray}{0.9}
 \definecolor{cadetblue}{rgb}{0.37, 0.62, 0.63}
-\newcommand{\path}[1]{\colorbox{light-gray}{\texttt{#1}}}
-\newcommand{\code}[1]{\colorbox{cadetblue}{\color{white}\texttt{#1}}}
+\newcommand{\path}[1]{{\color{gray}\texttt{#1}}}
+\newcommand{\code}[1]{{\color{cadetblue}\texttt{#1}}}
 
 \usepackage{hyperref}
 \hypersetup{

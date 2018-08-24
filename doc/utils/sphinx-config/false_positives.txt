@@ -260,6 +260,8 @@ Caro
 cartesian
 Cates
 cbecker
+ccache
+ccmake
 CCu
 cd
 cdeam
@@ -286,6 +288,9 @@ cgs
 Chalopin
 Champaign
 charmm
+charmmfsw
+charmmfsh
+charmm
 CHARMM
 checkmark
 checkqeq
@@ -308,6 +313,8 @@ Clebsch
 Clermont
 clo
 Clovertown
+cmake
+CMake
 cmap
 Cmax
 cmdlist
@@ -410,6 +417,7 @@ Cval
 cvar
 cvff
 cwiggle
+cygwin
 Cygwin
 Cyrot
 cyrstals
@@ -585,6 +593,7 @@ ehanced
 ehex
 eHEX
 Ei
+Eigen
 Eigensolve
 Eike
 eim
@@ -713,7 +722,10 @@ fhg
 Fi
 figshare
 Fij
-filenname
+filename
+filenames
+Filename
+Filenames
 fileper
 Fincham
 Finchham
@@ -1385,6 +1397,7 @@ Mikami
 Militzer
 Minary
 mincap
+mingw
 minima
 minimizations
 minimizer
@@ -1456,6 +1469,7 @@ Mtotal
 Muccioli
 Mukherjee
 Mulders
+multi
 multibody
 Multibody
 multicenter
@@ -2489,6 +2503,7 @@ velocites
 Verlag
 verlet
 Verlet
+versa
 ves
 vhi
 vibrational
@@ -2566,6 +2581,7 @@ whitespace
 Wi
 Wicaksono
 wih
+wildcard
 Wirnsberger
 wirtes
 witin

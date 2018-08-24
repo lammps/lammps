@@ -6,7 +6,7 @@
 
 :line
 
-fix wall/surface/globale command :h3
+fix wall/surface/global command :h3
 
 [Description:]
 

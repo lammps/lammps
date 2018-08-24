@@ -743,7 +743,7 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
-{Cannot (yet) use single precision with MSM (remove -DFFT_SINGLE from Makefile and recompile)} :dt
+{Cannot (yet) use single precision with MSM (remove -DFFT_SINGLE from Makefile and re-compile)} :dt
 
 Single precision cannot be used with MSM. :dd
 
@@ -5078,7 +5078,7 @@ Self-explanatory. :dd
 
 Occurs when number of neighbor atoms for an atom increased too much
 during a run.  Increase SAFE_ZONE and MIN_CAP in fix_qeq.h and
-recompile. :dd
+re-compile. :dd
 
 {Fix qeq/point requires atom attribute q} :dt
 
@@ -5092,7 +5092,7 @@ Self-explanatory. :dd
 
 Occurs when number of neighbor atoms for an atom increased too much
 during a run.  Increase SAFE_ZONE and MIN_CAP in fix_qeq.h and
-recompile. :dd
+re-compile. :dd
 
 {Fix qeq/shielded requires atom attribute q} :dt
 
@@ -5110,7 +5110,7 @@ Self-explanatory. :dd
 
 Occurs when number of neighbor atoms for an atom increased too much
 during a run.  Increase SAFE_ZONE and MIN_CAP in fix_qeq.h and
-recompile. :dd
+re-compile. :dd
 
 {Fix qeq/slater requires atom attribute q} :dt
 
@@ -5541,7 +5541,7 @@ See the package gpu command. :dd
 
 {GPUs are requested but Kokkos has not been compiled for CUDA} :dt
 
-Recompile Kokkos with CUDA support to use GPUs. :dd
+Re-compile Kokkos with CUDA support to use GPUs. :dd
 
 {Ghost velocity forward comm not yet implemented with Kokkos} :dt
 

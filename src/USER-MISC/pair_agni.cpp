@@ -394,7 +394,7 @@ void PairAGNI::read_file(char *file)
     if (nwords == 0) continue;
 
     if (nwords > MAXWORD)
-      error->all(FLERR,"Increase MAXWORD and recompile");
+      error->all(FLERR,"Increase MAXWORD and re-compile");
 
     // words = ptrs to all words in line
 

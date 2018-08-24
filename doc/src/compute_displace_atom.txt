@@ -85,7 +85,7 @@ dump            1 all custom 100 tmp.dump id type x y z
 dump_modify     1 append yes thresh c_dsp[4] > ${Dhop} &
                 refresh c_dsp delay 100 :pre
 
-The "dump_modify thresh"_dump_modify.html command will only ouptut
+The "dump_modify thresh"_dump_modify.html command will only output
 atoms that have displaced more than 0.6 Angstroms on each snapshot
 (assuming metal units).  The dump_modify {refresh} option triggers a
 call to this compute at the end of every dump.

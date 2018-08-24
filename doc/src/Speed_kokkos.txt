@@ -93,12 +93,12 @@ The "t Nt" option specifies how many OpenMP threads per MPI task to
 use with a node. The default is Nt = 1, which is MPI-only mode.  Note
 that the product of MPI tasks * OpenMP threads/task should not exceed
 the physical number of cores (on a node), otherwise performance will
-suffer. If hyperthreading is enabled, then the product of MPI tasks *
-OpenMP threads/task should not exceed the physical number of cores *
-hardware threads.  The "-k on" switch also issues a "package kokkos"
-command (with no additional arguments) which sets various KOKKOS
-options to default values, as discussed on the "package"_package.html
-command doc page.
+suffer. If Hyper-Threading (HT) is enabled, then the product of MPI
+tasks * OpenMP threads/task should not exceed the physical number of
+cores * hardware threads.  The "-k on" switch also issues a
+"package kokkos" command (with no additional arguments) which sets
+various KOKKOS options to default values, as discussed on the
+"package"_package.html command doc page.
 
 The "-sf kk" "command-line switch"_Run_options.html will automatically
 append the "/kk" suffix to styles that support it.  In this manner no
@@ -149,7 +149,7 @@ Intel Knight's Landing (KNL) Xeon Phi:
 
 KNL Intel Phi chips have 68 physical cores. Typically 1 to 4 cores are
 reserved for the OS, and only 64 or 66 cores are used. Each core has 4
-hyperthreads,so there are effectively N = 256 (4*64) or N = 264 (4*66)
+Hyper-Threads,so there are effectively N = 256 (4*64) or N = 264 (4*66)
 cores to run on. The product of MPI tasks * OpenMP threads/task should
 not exceed this limit, otherwise performance will suffer. Note that
 with the KOKKOS package you do not need to specify how many KNLs there
@@ -228,7 +228,7 @@ for details and default settings. Experimenting with its options can
 provide a speed-up for specific calculations. For example:
 
 mpirun -np 2 lmp_kokkos_cuda_openmpi -k on g 2 -sf kk -pk kokkos binsize 2.8 -in in.lj      # Set binsize = neighbor ghost cutoff
-mpirun -np 2 lmp_kokkos_cuda_openmpi -k on g 2 -sf kk -pk kokkos newton on neigh half binsize 2.8 -in in.lj      # Newton on, half neighborlist, set binsize = neighbor ghost cutoff :pre
+mpirun -np 2 lmp_kokkos_cuda_openmpi -k on g 2 -sf kk -pk kokkos newton on neigh half binsize 2.8 -in in.lj      # Newton on, half neighbor list, set binsize = neighbor ghost cutoff :pre
 
 NOTE: For good performance of the KOKKOS package on GPUs, you must
 have Kepler generation GPUs (or later). The Kokkos library exploits

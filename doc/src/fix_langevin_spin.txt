@@ -34,7 +34,7 @@ the following stochastic differential equation:
 
 :c,image(Eqs/fix_langevin_spin_sLLG.jpg)
 
-with lambda the transverse damping, and eta a random verctor.
+with lambda the transverse damping, and eta a random vector.
 This equation is referred to as the stochastic Landau-Lifshitz-Gilbert (sLLG) 
 equation.
 

@@ -43,40 +43,55 @@ to edit for your platform) which will build several of the tools which
 reside in that directory.  Most of them are larger packages in their
 own sub-directories with their own Makefiles and/or README files.
 
-"amber2lmp"_#amber
-"binary2txt"_#binary
-"ch2lmp"_#charmm
-"chain"_#chain
-"colvars"_#colvars
-"createatoms"_#createatoms
-"doxygen"_#doxygen
-"drude"_#drude
-"eam database"_#eamdb
-"eam generate"_#eamgn
-"eff"_#eff
-"emacs"_#emacs
-"fep"_#fep
-"i-pi"_#ipi
-"ipp"_#ipp
-"kate"_#kate
-"lmp2arc"_#arc
-"lmp2cfg"_#cfg
-"matlab"_#matlab
-"micelle2d"_#micelle
-"moltemplate"_#moltemplate
-"msi2lmp"_#msi
-"phonon"_#phonon
-"polybond"_#polybond
-"pymol_asphere"_#pymol
-"python"_#pythontools
-"reax"_#reax_tool
-"smd"_#smd
-"vim"_#vim
-"xmgrace"_#xmgrace :ul
+:line
+
+Pre-processing tools :h3
+
+"amber2lmp"_#amber,
+"ch2lmp"_#charmm,
+"chain"_#chain,
+"createatoms"_#createatoms,
+"drude"_#drude,
+"eam database"_#eamdb,
+"eam generate"_#eamgn,
+"eff"_#eff,
+"ipp"_#ipp,
+"micelle2d"_#micelle,
+"moltemplate"_#moltemplate,
+"msi2lmp"_#msi,
+"polybond"_#polybond :tb(c=6,ea=c,a=l)
+
+Post-processing tools :h3
+
+"amber2lmp"_#amber,
+"binary2txt"_#binary,
+"ch2lmp"_#charmm,
+"colvars"_#colvars,
+"eff"_#eff,
+"fep"_#fep,
+"lmp2arc"_#arc,
+"lmp2cfg"_#cfg,
+"matlab"_#matlab,
+"phonon"_#phonon,
+"pymol_asphere"_#pymol,
+"python"_#pythontools,
+"reax"_#reax_tool,
+"smd"_#smd,
+"xmgrace"_#xmgrace :tb(c=6,ea=c,a=l)
+
+Miscellaneous tools :h3
+
+"doxygen"_#doxygen,
+"emacs"_#emacs,
+"i-pi"_#ipi,
+"kate"_#kate,
+"vim"_#vim :tb(c=5,ea=c,a=l)
 
 :line
 
-amber2lmp tool :h3,link(amber)
+Tool descriptions :h3
+
+amber2lmp tool :h4,link(amber)
 
 The amber2lmp sub-directory contains two Python scripts for converting
 files back-and-forth between the AMBER MD code and LAMMPS.  See the
@@ -91,7 +106,7 @@ necessary modifications yourself.
 
 :line
 
-binary2txt tool :h3,link(binary)
+binary2txt tool :h4,link(binary)
 
 The file binary2txt.cpp converts one or more binary LAMMPS dump file
 into ASCII text files.  The syntax for running the tool is
@@ -104,7 +119,7 @@ since binary files are not compatible across all platforms.
 
 :line
 
-ch2lmp tool :h3,link(charmm)
+ch2lmp tool :h4,link(charmm)
 
 The ch2lmp sub-directory contains tools for converting files
 back-and-forth between the CHARMM MD code and LAMMPS.
@@ -129,7 +144,7 @@ Chris Lorenz (chris.lorenz at kcl.ac.uk), King's College London.
 
 :line
 
-chain tool :h3,link(chain)
+chain tool :h4,link(chain)
 
 The file chain.f creates a LAMMPS data file containing bead-spring
 polymer chains and/or monomer solvent atoms.  It uses a text file
@@ -146,7 +161,7 @@ for the "chain benchmark"_Speed_bench.html.
 
 :line
 
-colvars tools :h3,link(colvars)
+colvars tools :h4,link(colvars)
 
 The colvars directory contains a collection of tools for postprocessing
 data produced by the colvars collective variable library.
@@ -168,7 +183,7 @@ gmail.com) at ICTP, Italy.
 
 :line
 
-createatoms tool :h3,link(createatoms)
+createatoms tool :h4,link(createatoms)
 
 The tools/createatoms directory contains a Fortran program called
 createAtoms.f which can generate a variety of interesting crystal
@@ -181,7 +196,7 @@ The tool is authored by Xiaowang Zhou (Sandia), xzhou at sandia.gov.
 
 :line
 
-doxygen tool :h3,link(doxygen)
+doxygen tool :h4,link(doxygen)
 
 The tools/doxygen directory contains a shell script called
 doxygen.sh which can generate a call graph and API lists using
@@ -193,7 +208,7 @@ The tool is authored by Nandor Tamaskovics, numericalfreedom at googlemail.com.
 
 :line
 
-drude tool :h3,link(drude)
+drude tool :h4,link(drude)
 
 The tools/drude directory contains a Python script called
 polarizer.py which can add Drude oscillators to a LAMMPS
@@ -206,7 +221,7 @@ at univ-bpclermont.fr, alain.dequidt at univ-bpclermont.fr
 
 :line
 
-eam database tool :h3,link(eamdb)
+eam database tool :h4,link(eamdb)
 
 The tools/eam_database directory contains a Fortran program that will
 generate EAM alloy setfl potential files for any combination of 16
@@ -222,7 +237,7 @@ X. W. Zhou, R. A. Johnson, and H. N. G. Wadley, Phys. Rev. B, 69,
 
 :line
 
-eam generate tool :h3,link(eamgn)
+eam generate tool :h4,link(eamgn)
 
 The tools/eam_generate directory contains several one-file C programs
 that convert an analytic formula into a tabulated "embedded atom
@@ -235,7 +250,7 @@ The source files and potentials were provided by Gerolf Ziegenhain
 
 :line
 
-eff tool :h3,link(eff)
+eff tool :h4,link(eff)
 
 The tools/eff directory contains various scripts for generating
 structures and post-processing output for simulations using the
@@ -246,7 +261,7 @@ These tools were provided by Andres Jaramillo-Botero at CalTech
 
 :line
 
-emacs tool :h3,link(emacs)
+emacs tool :h4,link(emacs)
 
 The tools/emacs directory contains an Emacs Lisp add-on file for GNU Emacs 
 that enables a lammps-mode for editing input scripts when using GNU Emacs,
@@ -257,7 +272,7 @@ These tools were provided by Aidan Thompson at Sandia
 
 :line
 
-fep tool :h3,link(fep)
+fep tool :h4,link(fep)
 
 The tools/fep directory contains Python scripts useful for
 post-processing results from performing free-energy perturbation
@@ -270,7 +285,7 @@ See README file in the tools/fep directory.
 
 :line
 
-i-pi tool :h3,link(ipi)
+i-pi tool :h4,link(ipi)
 
 The tools/i-pi directory contains a version of the i-PI package, with
 all the LAMMPS-unrelated files removed.  It is provided so that it can
@@ -287,7 +302,7 @@ calculations with LAMMPS.
 
 :line
 
-ipp tool :h3,link(ipp)
+ipp tool :h4,link(ipp)
 
 The tools/ipp directory contains a Perl script ipp which can be used
 to facilitate the creation of a complicated file (say, a lammps input
@@ -301,7 +316,7 @@ tools/createatoms tool's input file.
 
 :line
 
-kate tool :h3,link(kate)
+kate tool :h4,link(kate)
 
 The file in the tools/kate directory is an add-on to the Kate editor
 in the KDE suite that allow syntax highlighting of LAMMPS input
@@ -312,7 +327,7 @@ The file was provided by Alessandro Luigi Sellerio
 
 :line
 
-lmp2arc tool :h3,link(arc)
+lmp2arc tool :h4,link(arc)
 
 The lmp2arc sub-directory contains a tool for converting LAMMPS output
 files to the format for Accelrys' Insight MD code (formerly
@@ -328,7 +343,7 @@ Greathouse at Sandia (jagreat at sandia.gov).
 
 :line
 
-lmp2cfg tool :h3,link(cfg)
+lmp2cfg tool :h4,link(cfg)
 
 The lmp2cfg sub-directory contains a tool for converting LAMMPS output
 files into a series of *.cfg files which can be read into the
@@ -339,7 +354,7 @@ This tool was written by Ara Kooser at Sandia (askoose at sandia.gov).
 
 :line
 
-matlab tool :h3,link(matlab)
+matlab tool :h4,link(matlab)
 
 The matlab sub-directory contains several "MATLAB"_matlabhome scripts for
 post-processing LAMMPS output.  The scripts include readers for log
@@ -357,7 +372,7 @@ These scripts were written by Arun Subramaniyan at Purdue Univ
 
 :line
 
-micelle2d tool :h3,link(micelle)
+micelle2d tool :h4,link(micelle)
 
 The file micelle2d.f creates a LAMMPS data file containing short lipid
 chains in a monomer solution.  It uses a text file containing lipid
@@ -374,7 +389,7 @@ definition file.  This tool was used to create the system for the
 
 :line
 
-moltemplate tool :h3,link(moltemplate)
+moltemplate tool :h4,link(moltemplate)
 
 The moltemplate sub-directory contains a Python-based tool for
 building molecular systems based on a text-file description, and
@@ -388,7 +403,7 @@ supports it.  It has its own WWW page at
 
 :line
 
-msi2lmp tool :h3,link(msi)
+msi2lmp tool :h4,link(msi)
 
 The msi2lmp sub-directory contains a tool for creating LAMMPS template
 input and data files from BIOVIA's Materias Studio files (formerly Accelrys'
@@ -405,7 +420,7 @@ See the README file in the tools/msi2lmp folder for more information.
 
 :line
 
-phonon tool :h3,link(phonon)
+phonon tool :h4,link(phonon)
 
 The phonon sub-directory contains a post-processing tool useful for
 analyzing the output of the "fix phonon"_fix_phonon.html command in
@@ -420,7 +435,7 @@ University.
 
 :line
 
-polybond tool :h3,link(polybond)
+polybond tool :h4,link(polybond)
 
 The polybond sub-directory contains a Python-based tool useful for
 performing "programmable polymer bonding".  The Python file
@@ -434,7 +449,7 @@ This tool was written by Zachary Kraus at Georgia Tech.
 
 :line
 
-pymol_asphere tool :h3,link(pymol)
+pymol_asphere tool :h4,link(pymol)
 
 The pymol_asphere sub-directory contains a tool for converting a
 LAMMPS dump file that contains orientation info for ellipsoidal
@@ -452,7 +467,7 @@ This tool was written by Mike Brown at Sandia.
 
 :line
 
-python tool :h3,link(pythontools)
+python tool :h4,link(pythontools)
 
 The python sub-directory contains several Python scripts
 that perform common LAMMPS post-processing tasks, such as:
@@ -468,7 +483,7 @@ README for more info on Pizza.py and how to use these scripts.
 
 :line
 
-reax tool :h3,link(reax_tool)
+reax tool :h4,link(reax_tool)
 
 The reax sub-directory contains stand-alond codes that can
 post-process the output of the "fix reax/bonds"_fix_reax_bonds.html
@@ -479,7 +494,7 @@ These tools were written by Aidan Thompson at Sandia.
 
 :line
 
-smd tool :h3,link(smd)
+smd tool :h4,link(smd)
 
 The smd sub-directory contains a C++ file dump2vtk_tris.cpp and
 Makefile which can be compiled and used to convert triangle output
@@ -495,7 +510,7 @@ Ernst Mach Institute in Germany (georg.ganzenmueller at emi.fhg.de).
 
 :line
 
-vim tool :h3,link(vim)
+vim tool :h4,link(vim)
 
 The files in the tools/vim directory are add-ons to the VIM editor
 that allow easier editing of LAMMPS input scripts.  See the README.txt
@@ -506,7 +521,7 @@ ziegenhain.com)
 
 :line
 
-xmgrace tool :h3,link(xmgrace)
+xmgrace tool :h4,link(xmgrace)
 
 The files in the tools/xmgrace directory can be used to plot the
 thermodynamic data in LAMMPS log files via the xmgrace plotting

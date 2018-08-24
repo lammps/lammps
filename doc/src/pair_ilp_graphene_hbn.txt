@@ -39,7 +39,7 @@ in "(Kolmogorov)"_#Kolmogorov2.
 
 Where Tap(r_ij) is the taper function which provides a continuous
 cutoff (up to third derivative) for interatomic separations larger than
-r_c "(Maaravi)"_#Maaravi2. The definitons of each parameter in the above
+r_c "(Maaravi)"_#Maaravi2. The definitions of each parameter in the above
 equation can be found in "(Leven)"_#Leven and "(Maaravi)"_#Maaravi2.
 
 It is important to include all the pairs to build the neighbor list for

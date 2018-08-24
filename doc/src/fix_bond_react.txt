@@ -34,7 +34,7 @@ react = mandatory argument indicating new reaction specification :l
   Rmax = bonding pair atoms must be separated by less than Rmax to initiate reaction (distance units) :l
   template-ID(pre-reacted) = ID of a molecule template containing pre-reaction topology :l
   template-ID(post-reacted) = ID of a molecule template containing post-reaction topology :l
-  map_file = name of file specifying corresponding atomIDs in the pre- and post-reacted templates :l
+  map_file = name of file specifying corresponding atom-IDs in the pre- and post-reacted templates :l
   zero or more individual keyword/value pairs may be appended to each react argument :l
   individual_keyword = {prob} or {stabilize_steps} :l
     {prob} values = fraction seed

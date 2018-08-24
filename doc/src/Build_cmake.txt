@@ -40,7 +40,7 @@ executable called "lmp" and a library called "liblammps.a" in the
 If your machine has multiple CPU cores (most do these days), using a
 command like "make -jN" (with N being the number of available local
 CPU cores) can be much faster.  If you plan to do development on
-LAMMPS or need to recompile LAMMPS repeatedly, installation of the
+LAMMPS or need to re-compile LAMMPS repeatedly, installation of the
 ccache (= Compiler Cache) software may speed up compilation even more.
 
 After compilation, you can optionally copy the LAMMPS executable and
@@ -50,7 +50,7 @@ make install    # optional, copy LAMMPS executable & library elsewhere :pre
 
 :line
 
-There are 3 variants of CMake: a command-line verison (cmake), a text mode
+There are 3 variants of CMake: a command-line version (cmake), a text mode
 UI version (ccmake), and a graphical GUI version (cmake-GUI).  You can use
 any of them interchangeably to configure and create the LAMMPS build
 environment.  On Linux all the versions produce a Makefile as their
@@ -188,7 +188,7 @@ module list            # is a cmake module already loaded?
 module avail           # is a cmake module available?
 module load cmake3     # load cmake module with appropriate name :pre
 
-Most Linux distributions offer precompiled cmake packages through
+Most Linux distributions offer pre-compiled cmake packages through
 their package management system. If you do not have CMake or a new
 enough version, you can download the latest version at
 "https://cmake.org/download/"_https://cmake.org/download/.

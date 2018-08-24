@@ -23,7 +23,7 @@ for bond, angle, dihedral, improper topology data.  This will
 create a set of IDs that are numbered contiguously from 1 to N
 for a N atoms system.
 
-This can be useful to do after perfoming a "delete_atoms" command for
+This can be useful to do after performing a "delete_atoms" command for
 a molecular system.  The delete_atoms compress yes option will not
 perform this operation due to the existence of bond topology.  It can
 also be useful to do after any simulation which has lost atoms,

@@ -340,7 +340,7 @@ NOTE: the use of the MEAM package is discouraged, as it has been
 superseded by the USER-MEAMC package, which is a direct translation of
 the Fortran code in the MEAM library to C++. The code in USER-MEAMC
 should be functionally equivalent to the MEAM package, fully supports
-use of "pair_style hybrid"_pair_hybrid.html (the MEAM packaged doesn
+use of "pair_style hybrid"_pair_hybrid.html (the MEAM package does
 not), and has optimizations that make it significantly faster than the
 MEAM package.
 
@@ -470,7 +470,7 @@ lib/python/README for more details.
 
 -D PYTHON_EXECUTABLE=path   # path to Python executable to use :pre
 
-Without this setting, CMake will ues the default Python on your
+Without this setting, CMake will guess the default Python on your
 system.  To use a different Python version, you can either create a
 virtualenv, activate it and then run cmake.  Or you can set the
 PYTHON_EXECUTABLE variable to specify which Python interpreter should
@@ -687,7 +687,7 @@ the HDF5 library.
 
 No additional settings are needed besides "-D PKG_USER-H5MD=yes".
 
-This should autodetect the H5MD library on your system.  Several
+This should auto-detect the H5MD library on your system.  Several
 advanced CMake H5MD options exist if you need to specify where it is
 installed.  Use the ccmake (terminal window) or cmake-gui (graphical)
 tools to see these options and set them interactively from their user
@@ -777,7 +777,7 @@ on your system.
 
 No additional settings are needed besides "-D PKG_USER-NETCDF=yes".
 
-This should autodetect the NETCDF library if it is installed on your
+This should auto-detect the NETCDF library if it is installed on your
 system at standard locations.  Several advanced CMake NETCDF options
 exist if you need to specify where it was installed.  Use the ccmake
 (terminal window) or cmake-gui (graphical) tools to see these options
@@ -905,7 +905,7 @@ Eigen3 is a template library, so you do not need to build it.
 -D EIGEN3_INCLUDE_DIR=path    # path to Eigen library (only needed if a custom location) :pre
 
 If DOWNLOAD_EIGEN3 is set, the Eigen3 library will be downloaded and
-inside the CMake build directory.  If the Eig3n3 library is already on
+inside the CMake build directory.  If the Eigen3 library is already on
 your system (in a location CMake cannot find it), EIGEN3_INCLUDE_DIR
 is the directory the Eigen3++ include file is in.
 
@@ -936,7 +936,7 @@ your system.
 
 No additional settings are needed besides "-D PKG_USER-VTK=yes".
 
-This should autodetect the VTK library if it is installed on your
+This should auto-detect the VTK library if it is installed on your
 system at standard locations.  Several advanced VTK options exist if
 you need to specify where it was installed.  Use the ccmake (terminal
 window) or cmake-gui (graphical) tools to see these options and set

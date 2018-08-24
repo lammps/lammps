@@ -95,7 +95,7 @@ OPT.
 "helix (o)"_dihedral_helix.html,
 "multi/harmonic (o)"_dihedral_multi_harmonic.html,
 "nharmonic (o)"_dihedral_nharmonic.html,
-"opls (iko)"_dihedral_opls.htm;,
+"opls (iko)"_dihedral_opls.html,
 "quadratic (o)"_dihedral_quadratic.html,
 "spherical (o)"_dihedral_spherical.html,
 "table (o)"_dihedral_table.html,

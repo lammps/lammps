@@ -177,7 +177,7 @@ void MSM::init()
 
   if (sizeof(FFT_SCALAR) != 8)
     error->all(FLERR,"Cannot (yet) use single precision with MSM "
-               "(remove -DFFT_SINGLE from Makefile and recompile)");
+               "(remove -DFFT_SINGLE from Makefile and re-compile)");
 
   // extract short-range Coulombic cutoff from pair style
 
@@ -419,7 +419,7 @@ void MSM::setup()
     boxlo = domain->boxlo_lamda;
 
   // ghost grid points depend on direct sum interaction limits,
-  // so need to recompute local grid
+  // so need to re-compute local grid
 
   set_grid_local();
 

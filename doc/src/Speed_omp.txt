@@ -29,7 +29,7 @@ instructions.
 
 [Run with the USER-OMP package from the command line:]
 
-These example asume one or more 16-core nodes.
+These examples assume one or more 16-core nodes.
 
 env OMP_NUM_THREADS=16 lmp_omp -sf omp -in in.script           # 1 MPI task, 16 threads according to OMP_NUM_THREADS
 lmp_mpi -sf omp -in in.script                                  # 1 MPI task, no threads, optimized kernels

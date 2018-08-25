@@ -84,7 +84,7 @@ connectivity that has already been assigned.  However, the
 "reset_ids"_reset_ids.html command can be used after this command to
 accomplish the same thing.
 
-Note that the re-assignement of IDs is not really a compression, where
+Note that the re-assignment of IDs is not really a compression, where
 gaps in atom IDs are removed by decrementing atom IDs that are larger.
 Instead the IDs for all atoms are erased, and new IDs are assigned so
 that the atoms owned by individual processors have consecutive IDs, as

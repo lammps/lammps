@@ -27,7 +27,9 @@ compute 1 all pair reax :pre
 
 Define a computation that extracts additional values calculated by a
 pair style, and makes them accessible for output or further processing
-by other commands.  The group specified for this command is ignored.
+by other commands.
+
+NOTE: The group specified for this command is [ignored].
 
 The specified {pstyle} must be a pair style used in your simulation
 either by itself or as a sub-style in a "pair_style hybrid or

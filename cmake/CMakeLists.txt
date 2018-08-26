@@ -1130,7 +1130,7 @@ endif()
 # Install potential files in data directory
 ###############################################################################
 set(LAMMPS_POTENTIALS_DIR ${CMAKE_INSTALL_FULL_DATADIR}/lammps/potentials)
-install(DIRECTORY ${LAMMPS_SOURCE_DIR}/../potentials DESTINATION ${CMAKE_INSTALL_DATADIR}/lammps/potentials)
+install(DIRECTORY ${LAMMPS_SOURCE_DIR}/../potentials/ DESTINATION ${LAMMPS_POTENTIALS_DIR})
 
 configure_file(etc/profile.d/lammps.sh.in ${CMAKE_BINARY_DIR}/etc/profile.d/lammps.sh @ONLY)
 configure_file(etc/profile.d/lammps.csh.in ${CMAKE_BINARY_DIR}/etc/profile.d/lammps.csh @ONLY)

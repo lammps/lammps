@@ -26,7 +26,7 @@ Created orthogonal box = (0 0 0) to (18.3252 18.3252 18.3252)
   1 by 2 by 2 MPI processor grid
 create_atoms	1 box
 Created 4000 atoms
-  Time spent = 0.000785112 secs
+  Time spent = 0.000900984 secs
 
 pair_style	hybrid/overlay lj/cut 4.5 atm 4.5 2.5
 pair_coeff	* * lj/cut 1.0 1.0
@@ -60,26 +60,26 @@ Neighbor list info ...
       bin: standard
 Per MPI rank memory allocation (min/avg/max) = 5.532 | 5.532 | 5.532 Mbytes
 Step Temp E_pair E_mol TotEng Press 
-       0        1.033   -4.8921547            0    -3.343042   -4.2340557 
-       5    1.0337949   -4.8947881            0   -3.3444835   -4.2271456 
-      10    1.0358286   -4.8973178            0   -3.3439632   -4.1935779 
-      15    1.0381322   -4.9010593            0   -3.3442503    -4.134913 
-      20    1.0390107   -4.9034854            0   -3.3453589   -4.0446162 
-      25    1.0358988   -4.9010506            0   -3.3475908   -3.9133006 
-Loop time of 3.20632 on 4 procs for 25 steps with 4000 atoms
+       0        1.033   -4.8404387            0    -3.291326   -4.1332095 
+       5    1.0337247   -4.8402263            0    -3.290027   -4.1207962 
+      10    1.0355935   -4.8425889            0   -3.2895869   -4.0870158 
+      15    1.0376519     -4.84599            0   -3.2899013   -4.0278711 
+      20    1.0382257   -4.8478854            0   -3.2909361   -3.9368052 
+      25    1.0347886     -4.84473            0   -3.2929351   -3.8044469 
+Loop time of 4.34636 on 4 procs for 25 steps with 4000 atoms
 
-Performance: 1347.340 tau/day, 7.797 timesteps/s
-100.0% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 993.935 tau/day, 5.752 timesteps/s
+99.6% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 3.1207     | 3.1553     | 3.1859     |   1.5 | 98.41
+Pair    | 3.9977     | 4.1036     | 4.209      |   4.9 | 94.41
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.019466   | 0.05009    | 0.084602   |  12.0 |  1.56
-Output  | 7.1049e-05 | 8.2076e-05 | 0.00011325 |   0.0 |  0.00
-Modify  | 0.00056338 | 0.00057292 | 0.00058413 |   0.0 |  0.02
-Other   |            | 0.0003092  |            |       |  0.01
+Comm    | 0.13588    | 0.24134    | 0.34722    |  20.4 |  5.55
+Output  | 0.00013757 | 0.00015104 | 0.00016761 |   0.0 |  0.00
+Modify  | 0.00087953 | 0.00091547 | 0.00095582 |   0.0 |  0.02
+Other   |            | 0.0003656  |            |       |  0.01
 
 Nlocal:    1000 ave 1000 max 1000 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -97,4 +97,4 @@ Dangerous builds = 0
 
 Please see the log.cite file for references relevant to this simulation
 
-Total wall time: 0:00:03
+Total wall time: 0:00:04

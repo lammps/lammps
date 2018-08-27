@@ -98,9 +98,15 @@ void PairATM::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  int count1 = 0;
-  int count2 = 0;
-  int count3 = 0;
+  // triple loop over local atoms and neighbors twice
+  // must compute each IJK triplet interaction exactly once
+  // by proc that owns the triplet atom with smallest x coord
+  //   special logic to break ties if multiple atoms have same x or y coords
+  // inner two loops for jj=1,Jnum and kk=jj+1,Jnum insure
+  //   the pair of other 2 non-minimum-x atoms is only considered once
+  // triplet geometry criteria for calculation:
+  //   each pair distance <= cutoff
+  //   produce of 3 pair distances <= cutoff_triple^3
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -112,12 +118,10 @@ void PairATM::compute(int eflag, int vflag)
     jnum = numneigh[i];
     jnumm1 = jnum - 1;
 
-    //    for (jj = 0; jj < jnumm1; jj++) {
-    // replace with this line:
-    for (jj = 0; jj < jnum; jj++) {
-
+    for (jj = 0; jj < jnumm1; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
+
       rij[0] = x[j][0] - xi;
       if (rij[0] < 0.0) continue;
       rij[1] = x[j][1] - yi;
@@ -125,32 +129,26 @@ void PairATM::compute(int eflag, int vflag)
       rij[2] = x[j][2] - zi;
       if (rij[0] == 0.0 and rij[1] == 0.0 and rij[2] < 0.0) continue;
       rij2 = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
-      count1++;
       if (rij2 > cutoff_squared) continue;
-      count2++;
 
-      //for (kk = jj+1; kk < jnum; kk++) {
-      // replace with these two lines:
-      for (kk = 0; kk < jnum; kk++) {
-        if (kk == jj) continue;
-
+      for (kk = jj+1; kk < jnum; kk++) {
         k = jlist[kk];
         k &= NEIGHMASK;
 
-        rjk[0] = x[k][0] - x[j][0];
-        if (rjk[0] < 0.0) continue;
-        rjk[1] = x[k][1] - x[j][1];
-        if (rjk[0] == 0.0 and rjk[1] < 0.0) continue;
-        rjk[2] = x[k][2] - x[j][2];
-        if (rjk[0] == 0.0 and rjk[1] == 0.0 and rjk[2] < 0.0) continue;
-        rjk2 = rjk[0]*rjk[0] + rjk[1]*rjk[1] + rjk[2]*rjk[2];
-        if (rjk2 > cutoff_squared) continue;
-
         rik[0] = x[k][0] - xi;
+        if (rik[0] < 0.0) continue;
         rik[1] = x[k][1] - yi;
+        if (rik[0] == 0.0 and rik[1] < 0.0) continue;
         rik[2] = x[k][2] - zi;
+        if (rik[0] == 0.0 and rik[1] == 0.0 and rik[2] < 0.0) continue;
         rik2 = rik[0]*rik[0] + rik[1]*rik[1] + rik[2]*rik[2];
         if (rik2 > cutoff_squared) continue;
+
+        rjk[0] = x[k][0] - x[j][0];
+        rjk[1] = x[k][1] - x[j][1];
+        rjk[2] = x[k][2] - x[j][2];
+        rjk2 = rjk[0]*rjk[0] + rjk[1]*rjk[1] + rjk[2]*rjk[2];
+        if (rjk2 > cutoff_squared) continue;
 
         double r6 = rij2*rjk2*rik2;
         if (r6 > cutoff_triple_sixth) continue;
@@ -158,7 +156,6 @@ void PairATM::compute(int eflag, int vflag)
         nu_local = nu[type[i]][type[j]][type[k]];
         if (nu_local == 0.0) continue;
 
-        count3++;
         interaction_ddd(nu_local,
                         r6,rij2,rik2,rjk2,rij,rik,rjk,fj,fk,eflag,evdwl);
 
@@ -176,15 +173,6 @@ void PairATM::compute(int eflag, int vflag)
       }
     }
   }
-
-  int count = count1;
-  MPI_Allreduce(&count,&count1,1,MPI_INT,MPI_SUM,world);
-  count = count2;
-  MPI_Allreduce(&count,&count2,1,MPI_INT,MPI_SUM,world);
-  count = count3;
-  MPI_Allreduce(&count,&count3,1,MPI_INT,MPI_SUM,world);
-  printf("FORCE %g %d %d %d\n",cutoff_squared,count1,count2,count3);
-
 
   if (vflag_fdotr) virial_fdotr_compute();
 }

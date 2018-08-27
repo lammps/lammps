@@ -80,7 +80,7 @@ void ComputeContactAtom::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeContactAtom::init_list(int id, NeighList *ptr)
+void ComputeContactAtom::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }

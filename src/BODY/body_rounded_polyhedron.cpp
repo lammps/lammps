@@ -96,7 +96,7 @@ int BodyRoundedPolyhedron::nedges(AtomVecBody::Bonus *bonus)
 {
   int nvertices = bonus->ivalue[0];
   int nedges = bonus->ivalue[1];
-  int nfaces = bonus->ivalue[2];
+  //int nfaces = bonus->ivalue[2];
   if (nvertices == 1) return 0;
   else if (nvertices == 2) return 1;
   return nedges; //(nvertices+nfaces-2); // Euler's polyon formula: V-E+F=2
@@ -381,7 +381,7 @@ void BodyRoundedPolyhedron::data_body(int ibonus, int ninteger, int ndouble,
    called by Molecule class which needs single body size
 ------------------------------------------------------------------------- */
 
-double BodyRoundedPolyhedron::radius_body(int ninteger, int ndouble,
+double BodyRoundedPolyhedron::radius_body(int /*ninteger*/, int ndouble,
 				       int *ifile, double *dfile)
 {
   int nsub = ifile[0];
@@ -460,10 +460,10 @@ void BodyRoundedPolyhedron::output(int ibonus, int m, double *values)
 
 /* ---------------------------------------------------------------------- */
 
-int BodyRoundedPolyhedron::image(int ibonus, double flag1, double flag2,
+int BodyRoundedPolyhedron::image(int ibonus, double flag1, double /*flag2*/,
                               int *&ivec, double **&darray)
 {
-  int j, nelements;
+  int nelements;
   double p[3][3];
   double *x, rrad;
 
@@ -488,7 +488,7 @@ int BodyRoundedPolyhedron::image(int ibonus, double flag1, double flag2,
 
     nelements = nvertices;
   } else {
-    int nfaces = bonus->ivalue[2];
+    //int nfaces = bonus->ivalue[2];
     int nedges = bonus->ivalue[1]; //nvertices + nfaces - 2;
     if (nvertices == 2) nedges = 1; // special case: rods
     double* edge_ends = &bonus->dvalue[3*nvertices];

@@ -151,7 +151,7 @@ void Complete_Cubic_Spline( const double *h, const double *f, double v0, double 
 
 
 int Init_Lookup_Tables( reax_system *system, control_params *control,
-                        storage *workspace, mpi_datatypes *mpi_data, char *msg )
+                        storage *workspace, mpi_datatypes *mpi_data, char */*msg*/ )
 {
   int i, j, r;
   int num_atom_types;

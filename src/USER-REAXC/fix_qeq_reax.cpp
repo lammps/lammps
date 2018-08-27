@@ -381,7 +381,7 @@ void FixQEqReax::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReax::init_list(int id, NeighList *ptr)
+void FixQEqReax::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }
@@ -485,7 +485,7 @@ void FixQEqReax::init_storage()
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReax::pre_force(int vflag)
+void FixQEqReax::pre_force(int /*vflag*/)
 {
   double t_start, t_end;
 
@@ -518,7 +518,7 @@ void FixQEqReax::pre_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReax::pre_force_respa(int vflag, int ilevel, int iloop)
+void FixQEqReax::pre_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1) pre_force(vflag);
 }
@@ -833,7 +833,7 @@ void FixQEqReax::calculate_Q()
 /* ---------------------------------------------------------------------- */
 
 int FixQEqReax::pack_forward_comm(int n, int *list, double *buf,
-                                  int pbc_flag, int *pbc)
+                                  int /*pbc_flag*/, int */*pbc*/)
 {
   int m;
 
@@ -952,7 +952,7 @@ void FixQEqReax::grow_arrays(int nmax)
    copy values within fictitious charge arrays
 ------------------------------------------------------------------------- */
 
-void FixQEqReax::copy_arrays(int i, int j, int delflag)
+void FixQEqReax::copy_arrays(int i, int j, int /*delflag*/)
 {
   for (int m = 0; m < nprev; m++) {
     s_hist[j][m] = s_hist[i][m];

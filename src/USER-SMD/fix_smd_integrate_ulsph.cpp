@@ -158,7 +158,7 @@ void FixSMDIntegrateUlsph::init() {
  allow for both per-type and per-atom mass
  ------------------------------------------------------------------------- */
 
-void FixSMDIntegrateUlsph::initial_integrate(int vflag) {
+void FixSMDIntegrateUlsph::initial_integrate(int /*vflag*/) {
         double **x = atom->x;
         double **v = atom->v;
         double **f = atom->f;

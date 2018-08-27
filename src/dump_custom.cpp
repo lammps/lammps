@@ -1023,12 +1023,12 @@ int DumpCustom::count()
       } else if (thresh_op[ithresh] == XOR) {
         if (lastflag) {
           for (i = 0; i < nlocal; i++, ptr += nstride)
-            if (choose[i] && (*ptr == 0.0 && values[i] == 0.0) ||
+            if ((choose[i] && *ptr == 0.0 && values[i] == 0.0) ||
                 (*ptr != 0.0 && values[i] != 0.0))
               choose[i] = 0;
         } else {
           for (i = 0; i < nlocal; i++, ptr += nstride)
-            if (choose[i] && (*ptr == 0.0 && value == 0.0) ||
+            if ((choose[i] && *ptr == 0.0 && value == 0.0) ||
                 (*ptr != 0.0 && value != 0.0))
               choose[i] = 0;
         }

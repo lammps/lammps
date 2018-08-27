@@ -666,7 +666,7 @@ void PairOxdnaCoaxstk::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairOxdnaCoaxstk::settings(int narg, char **arg)
+void PairOxdnaCoaxstk::settings(int narg, char **/*arg*/)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 

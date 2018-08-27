@@ -705,7 +705,7 @@ double FixFilterCorotate::compute_array(int,int)
   return 1;
 }
 
-void FixFilterCorotate::pre_force_respa(int vflag, int ilevel, int iloop)
+void FixFilterCorotate::pre_force_respa(int /*vflag*/, int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1)
   {
@@ -717,7 +717,7 @@ void FixFilterCorotate::pre_force_respa(int vflag, int ilevel, int iloop)
   }
 }
 
-void FixFilterCorotate::post_force_respa(int vflag, int ilevel, int iloop)
+void FixFilterCorotate::post_force_respa(int /*vflag*/, int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1)
   {
@@ -1699,7 +1699,7 @@ void FixFilterCorotate::general_cluster(int index, int index_in_list)
 }
 
 int FixFilterCorotate::pack_forward_comm(int n, int *list, double *buf,
-                                         int pbc_flag, int *pbc)
+                                         int /*pbc_flag*/, int */*pbc*/)
 {
   int i,j,m;
   double**f = atom->f;
@@ -1839,7 +1839,7 @@ double FixFilterCorotate::memory_usage()
  *  copy values within local atom-based arrays
  * ------------------------------------------------------------------------- */
 
-void FixFilterCorotate::copy_arrays(int i, int j, int delflag)
+void FixFilterCorotate::copy_arrays(int i, int j, int /*delflag*/)
 {
   int flag = shake_flag[j] = shake_flag[i];
   if (flag == 1) {

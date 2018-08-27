@@ -559,7 +559,7 @@ void FixAveHisto::init()
    only does something if nvalid = current timestep
 ------------------------------------------------------------------------- */
 
-void FixAveHisto::setup(int vflag)
+void FixAveHisto::setup(int /*vflag*/)
 {
   end_of_step();
 }

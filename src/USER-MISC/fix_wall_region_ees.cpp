@@ -149,7 +149,7 @@ void FixWallRegionEES::min_setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixWallRegionEES::post_force(int vflag)
+void FixWallRegionEES::post_force(int /*vflag*/)
 {
   //sth is needed here, but I dont know what
   //that is calculation of sn
@@ -246,7 +246,7 @@ void FixWallRegionEES::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixWallRegionEES::post_force_respa(int vflag, int ilevel, int iloop)
+void FixWallRegionEES::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1) post_force(vflag);
 }

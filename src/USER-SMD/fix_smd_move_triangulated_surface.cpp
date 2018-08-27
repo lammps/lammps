@@ -248,7 +248,7 @@ void FixSMDMoveTriSurf::init() {
 /* ----------------------------------------------------------------------
  ------------------------------------------------------------------------- */
 
-void FixSMDMoveTriSurf::initial_integrate(int vflag) {
+void FixSMDMoveTriSurf::initial_integrate(int /*vflag*/) {
         double **x = atom->x;
         double **x0 = atom->x0;
         double **v = atom->v;
@@ -461,7 +461,7 @@ void FixSMDMoveTriSurf::reset_dt() {
 
 /* ---------------------------------------------------------------------- */
 
-int FixSMDMoveTriSurf::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc) {
+int FixSMDMoveTriSurf::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int */*pbc*/) {
         int i, j, m;
         double **x0 = atom->x0;
         double **smd_data_9 = atom->smd_data_9;

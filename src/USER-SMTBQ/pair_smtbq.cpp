@@ -242,7 +242,7 @@ void PairSMTBQ::allocate()
    global settings
    ------------------------------------------------------------------------- */
 
-void PairSMTBQ::settings(int narg, char **arg)
+void PairSMTBQ::settings(int narg, char **/*arg*/)
 {
   if (narg > 0) error->all(FLERR,"Illegal pair_style command");
 }
@@ -1592,7 +1592,7 @@ void PairSMTBQ::tabqeq()
 /* ---------------------------------------------------------------------*/
 
 void PairSMTBQ::potqeq(int i, int j, double qi, double qj, double rsq,
-                       double &fforce, int eflag, double &eng)
+                       double &fforce, int /*eflag*/, double &eng)
 {
 
   /* ===================================================================
@@ -1840,7 +1840,7 @@ void PairSMTBQ::pot_ES2 (int i, int j, double rsq, double &pot)
    -------------------------------------------------------------------- */
 
 void PairSMTBQ::rep_OO(Intparam *intparam, double rsq, double &fforce,
-                       int eflag, double &eng)
+                       int /*eflag*/, double &eng)
 {
   double r,tmp_exp,tmp;
   double A = intparam->abuck ;
@@ -1858,7 +1858,7 @@ void PairSMTBQ::rep_OO(Intparam *intparam, double rsq, double &fforce,
 
 
 void PairSMTBQ::Attr_OO(Intparam *intparam, double rsq, double &fforce,
-                        int eflag, double &eng)
+                        int /*eflag*/, double &eng)
 {
   double r,tmp_exp;
   double aOO = intparam->aOO ;
@@ -1980,8 +1980,8 @@ void PairSMTBQ::tabsm()
 
 /* -------------------------------------------------------------- */
 
-void PairSMTBQ::repulsive(Intparam *intparam, double rsq, int i, int j,
-                          double &fforce, int eflag, double &eng)
+void PairSMTBQ::repulsive(Intparam *intparam, double rsq, int /*i*/, int /*j*/,
+                          double &fforce, int /*eflag*/, double &eng)
 {
 
   /* ================================================
@@ -2031,7 +2031,7 @@ void PairSMTBQ::repulsive(Intparam *intparam, double rsq, int i, int j,
 
 
 void PairSMTBQ::attractive(Intparam *intparam, double rsq,
-                           int eflag, int i, double iq, int j, double jq)
+                           int /*eflag*/, int i, double /*iq*/, int /*j*/, double /*jq*/)
 {
   int itype,l;
   double r,t1,t2,xi,sds;
@@ -3334,7 +3334,7 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
 
 /* ---------------------------------------------------------------------- */
 
-void PairSMTBQ::Init_charge(int *nQEq, int *nQEqa, int *nQEqc)
+void PairSMTBQ::Init_charge(int */*nQEq*/, int */*nQEqa*/, int */*nQEqc*/)
 {
   int ii,i,gp,itype;
   int *ilist,test[nteam],init[nteam];
@@ -3391,7 +3391,7 @@ void PairSMTBQ::Init_charge(int *nQEq, int *nQEqa, int *nQEqc)
  *                        COMMUNICATION
  * ---------------------------------------------------------------------- */
 
-int PairSMTBQ::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int PairSMTBQ::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int */*pbc*/)
 {
   int i,j,m;
 

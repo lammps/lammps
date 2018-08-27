@@ -751,7 +751,7 @@ int PairReaxC::write_reax_lists()
 
 /* ---------------------------------------------------------------------- */
 
-void PairReaxC::read_reax_forces(int vflag)
+void PairReaxC::read_reax_forces(int /*vflag*/)
 {
   for( int i = 0; i < system->N; ++i ) {
     system->my_atoms[i].f[0] = workspace->f[i][0];

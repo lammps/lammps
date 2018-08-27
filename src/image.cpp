@@ -992,6 +992,7 @@ void Image::compute_SSAO()
 
 void Image::write_JPG(FILE *fp)
 {
+  (void)(fp); // suppress unused parameter warning
 #ifdef LAMMPS_JPEG
   struct jpeg_compress_struct cinfo;
   struct jpeg_error_mgr jerr;
@@ -1024,6 +1025,7 @@ void Image::write_JPG(FILE *fp)
 
 void Image::write_PNG(FILE *fp)
 {
+  (void)(fp); // suppress unused parameter warning
 #ifdef LAMMPS_PNG
   png_structp png_ptr;
   png_infop info_ptr;

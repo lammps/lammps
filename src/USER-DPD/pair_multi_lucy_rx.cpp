@@ -1019,7 +1019,7 @@ void PairMultiLucyRX::getMixingWeights(int id, double &mixWtSite1old, double &mi
 
 /* ---------------------------------------------------------------------- */
 
-int PairMultiLucyRX::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int PairMultiLucyRX::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int */*pbc*/)
 {
   int i,j,m;
   double *rho = atom->rho;

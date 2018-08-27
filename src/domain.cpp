@@ -1618,7 +1618,7 @@ void Domain::image_flip(int m, int n, int p)
    called from create_atoms() in library.cpp
 ------------------------------------------------------------------------- */
 
-int Domain::ownatom(int id, double *x, imageint *image, int shrinkexceed)
+int Domain::ownatom(int /*id*/, double *x, imageint *image, int shrinkexceed)
 {
   double lamda[3];
   double *coord,*blo,*bhi,*slo,*shi;

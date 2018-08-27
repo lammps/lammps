@@ -219,8 +219,8 @@ void PairGranHooke::compute(int eflag, int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-double PairGranHooke::single(int i, int j, int itype, int jtype, double rsq,
-                             double factor_coul, double factor_lj,
+double PairGranHooke::single(int i, int j, int /*itype*/, int /*jtype*/, double rsq,
+                             double /*factor_coul*/, double /*factor_lj*/,
                              double &fforce)
 {
   double radi,radj,radsum,r,rinv,rsqinv;

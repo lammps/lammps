@@ -173,7 +173,7 @@ void ComputeGroupGroup::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeGroupGroup::init_list(int id, NeighList *ptr)
+void ComputeGroupGroup::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }

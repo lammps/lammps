@@ -12,7 +12,7 @@ using namespace LAMMPS_NS;
 using namespace user_manifold;
 
 
-manifold_thylakoid::manifold_thylakoid( LAMMPS *lmp, int narg, char ** arg)
+manifold_thylakoid::manifold_thylakoid( LAMMPS *lmp, int /*narg*/, char ** /*arg*/)
   : manifold(lmp)
 {
   // You can NOT depend on proper construction of the domains in
@@ -117,7 +117,7 @@ void   manifold_thylakoid::n( const double *x, double *n )
   }
 }
 
-thyla_part *manifold_thylakoid::get_thyla_part( const double *x, int *err_flag, std::size_t *idx )
+thyla_part *manifold_thylakoid::get_thyla_part( const double *x, int */*err_flag*/, std::size_t *idx )
 {
 
   for( std::size_t i = 0; i < parts.size(); ++i ){

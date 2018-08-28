@@ -40,7 +40,8 @@ You can run the vasp_wrap.py script as-is to test that the coupling
 between it and LAMMPS is functional.  This will use the included
 vasprun.xml file output by a previous VASP run.
 
-But the as-is version of vasp_wrap.py will not attempt to run VASP.
+But note that the as-is version of vasp_wrap.py will not attempt to
+run VASP.
 
 To do this, you must edit the 1st vaspcmd line at the top of
 vasp_wrapper.py to be the launch command needed to run VASP on your

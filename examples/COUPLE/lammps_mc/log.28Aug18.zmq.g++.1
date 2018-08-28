@@ -1,4 +1,4 @@
-LAMMPS (16 Jul 2018)
+LAMMPS (22 Aug 2018)
 # 3d Lennard-Jones Monte Carlo server script
 
 variable        mode index file
@@ -24,7 +24,7 @@ Created orthogonal box = (0 0 0) to (8.39798 8.39798 8.39798)
   1 by 1 by 1 MPI processor grid
 create_atoms	1 box
 Created 500 atoms
-  Time spent = 0.000612974 secs
+  Time spent = 0.000741005 secs
 mass		1 1.0
 
 pair_style	lj/cut 2.5
@@ -56,9 +56,9 @@ Neighbor list info ...
 Per MPI rank memory allocation (min/avg/max) = 2.658 | 2.658 | 2.658 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0         1.44   -6.7733681            0   -4.6176881   -5.0221006 
-Loop time of 2.14577e-06 on 1 procs for 0 steps with 500 atoms
+Loop time of 1.90735e-06 on 1 procs for 0 steps with 500 atoms
 
-46.6% CPU use with 1 MPI tasks x no OpenMP threads
+52.4% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -68,7 +68,7 @@ Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 2.146e-06  |            |       |100.00
+Other   |            | 1.907e-06  |            |       |100.00
 
 Nlocal:    500 ave 500 max 500 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -87,7 +87,7 @@ Step Temp E_pair E_mol TotEng Press
        0         1.44   -6.7723127            0   -4.6166327    -5.015531 
 Loop time of 1.90735e-06 on 1 procs for 0 steps with 500 atoms
 
-157.3% CPU use with 1 MPI tasks x no OpenMP threads
+52.4% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -119,9 +119,9 @@ run 0
 Per MPI rank memory allocation (min/avg/max) = 2.658 | 2.658 | 2.658 Mbytes
 Step Temp E_pair E_mol TotEng Press 
      100    0.7565013   -5.7565768            0   -4.6240944   0.22436405 
-Loop time of 9.53674e-07 on 1 procs for 0 steps with 500 atoms
+Loop time of 1.19209e-06 on 1 procs for 0 steps with 500 atoms
 
-209.7% CPU use with 1 MPI tasks x no OpenMP threads
+83.9% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -131,7 +131,7 @@ Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 9.537e-07  |            |       |100.00
+Other   |            | 1.192e-06  |            |       |100.00
 
 Nlocal:    500 ave 500 max 500 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -187,9 +187,9 @@ run 0
 Per MPI rank memory allocation (min/avg/max) = 2.658 | 2.658 | 2.658 Mbytes
 Step Temp E_pair E_mol TotEng Press 
      300   0.76300831    -5.768304            0   -4.6260806   0.15954325 
-Loop time of 0 on 1 procs for 0 steps with 500 atoms
+Loop time of 9.53674e-07 on 1 procs for 0 steps with 500 atoms
 
-0.0% CPU use with 1 MPI tasks x no OpenMP threads
+104.9% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -199,7 +199,7 @@ Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 0          |            |       |  0.00
+Other   |            | 9.537e-07  |            |       |100.00
 
 Nlocal:    500 ave 500 max 500 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -221,9 +221,9 @@ run 0
 Per MPI rank memory allocation (min/avg/max) = 2.658 | 2.658 | 2.658 Mbytes
 Step Temp E_pair E_mol TotEng Press 
      400   0.72469448   -5.7077332            0   -4.6228655   0.47669832 
-Loop time of 0 on 1 procs for 0 steps with 500 atoms
+Loop time of 9.53674e-07 on 1 procs for 0 steps with 500 atoms
 
-0.0% CPU use with 1 MPI tasks x no OpenMP threads
+209.7% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -233,7 +233,7 @@ Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 0          |            |       |  0.00
+Other   |            | 9.537e-07  |            |       |100.00
 
 Nlocal:    500 ave 500 max 500 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

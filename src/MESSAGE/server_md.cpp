@@ -24,6 +24,7 @@
 #include "neighbor.h"
 #include "comm.h"
 #include "domain.h"
+#include "memory.h"
 #include "error.h"
 
 // CSlib interface
@@ -33,7 +34,7 @@
 using namespace LAMMPS_NS;
 using namespace CSLIB_NS;
 
-enum{OTHER,REAL,METAL}
+enum{OTHER,REAL,METAL};
 enum{SETUP=1,STEP};
 enum{DIM=1,PERIODICITY,ORIGIN,BOX,NATOMS,NTYPES,TYPES,COORDS,UNITS,CHARGE};
 enum{FORCES=1,ENERGY,VIRIAL,ERROR};
@@ -68,7 +69,7 @@ ServerMD::ServerMD(LAMMPS *lmp) : Pointers(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-ServerMD::~ServerMD();
+ServerMD::~ServerMD()
 {
   memory->destroy(fcopy);
 }
@@ -113,7 +114,7 @@ void ServerMD::loop()
       double *box = NULL;
       int *types = NULL;
       double *coords = NULL;
-      char *units = NULL;
+      char *unit_style = NULL;
       double *charge = NULL;
 
       for (int ifield = 0; ifield < nfield; ifield++) {
@@ -124,7 +125,7 @@ void ServerMD::loop()
         } else if (fieldID[ifield] == PERIODICITY) {
           periodicity = (int *) cs->unpack(PERIODICITY);
           if (periodicity[0] != domain->periodicity[0] ||
-              periodicity[1] != domain->periodicity[1]
+              periodicity[1] != domain->periodicity[1] ||
               periodicity[2] != domain->periodicity[2])
             error->all(FLERR,"Server md periodicity mis-match with client");
         } else if (fieldID[ifield] == ORIGIN) {
@@ -145,7 +146,7 @@ void ServerMD::loop()
           coords = (double *) cs->unpack(COORDS);
 
         } else if (fieldID[ifield] == UNITS) {
-          units = (char *) cs->unpack(UNITS);
+          unit_style = (char *) cs->unpack(UNITS);
         } else if (fieldID[ifield] == CHARGE) {
           charge = (double *) cs->unpack(CHARGE);
         } else error->all(FLERR,"Server md setup field unknown");
@@ -155,7 +156,7 @@ void ServerMD::loop()
           natoms < 0 || ntypes < 0 || !types || !coords)
         error->all(FLERR,"Required server md setup field not received");
 
-      if (units && strcmp(units,update->unit_style) != 0)
+      if (unit_style && strcmp(unit_style,update->unit_style) != 0)
         error->all(FLERR,"Server md does not match client units");
 
       if (charge && atom->q_flag == 0)
@@ -221,7 +222,7 @@ void ServerMD::loop()
 
     // STEP receive at each timestep of run or minimization
     // required fields: COORDS
-    // optional fields: BOXLO, BOXHI, BOXTILT
+    // optional fields: ORIGIN, BOX
 
     } else if (msgID == STEP) {
 
@@ -354,7 +355,7 @@ void ServerMD::send_fev(int msgID)
     else {
       double **f = atom->f;
       int nlocal = atom->nlocal;
-      for (i = 0; i < nlocal; i++) {
+      for (int i = 0; i < nlocal; i++) {
         fcopy[i][0] = fconvert*f[i][0];
         fcopy[i][1] = fconvert*f[i][1];
         fcopy[i][2] = fconvert*f[i][2];

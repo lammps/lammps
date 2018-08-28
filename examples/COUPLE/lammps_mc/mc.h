@@ -14,7 +14,7 @@ class MC {
   int naccept;           // # of accepted MC events
   int nattempt;          // # of attempted MC events
 
-  MC(char *, class CSlib *);
+  MC(char *, void *);
   ~MC();
   void run();
 
@@ -32,7 +32,7 @@ class MC {
   int seed;              // RNG seed
   class RanPark *random;
 
-  class CSlib *cs;              // messaging library
+  void *cs_void;              // messaging library
 
   void options(char *);
 };

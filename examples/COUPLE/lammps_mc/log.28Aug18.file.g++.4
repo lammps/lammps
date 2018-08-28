@@ -1,4 +1,4 @@
-LAMMPS (16 Jul 2018)
+LAMMPS (22 Aug 2018)
 # 3d Lennard-Jones Monte Carlo server script
 
 variable        mode index file
@@ -24,7 +24,7 @@ Created orthogonal box = (0 0 0) to (8.39798 8.39798 8.39798)
   1 by 2 by 2 MPI processor grid
 create_atoms	1 box
 Created 500 atoms
-  Time spent = 0.000604868 secs
+  Time spent = 0.000592947 secs
 mass		1 1.0
 
 pair_style	lj/cut 2.5
@@ -56,9 +56,9 @@ Neighbor list info ...
 Per MPI rank memory allocation (min/avg/max) = 2.619 | 2.619 | 2.619 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0         1.44   -6.7733681            0   -4.6176881   -5.0221006 
-Loop time of 3.09944e-06 on 4 procs for 0 steps with 500 atoms
+Loop time of 3.8147e-06 on 4 procs for 0 steps with 500 atoms
 
-72.6% CPU use with 4 MPI tasks x no OpenMP threads
+59.0% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -68,7 +68,7 @@ Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 3.099e-06  |            |       |100.00
+Other   |            | 3.815e-06  |            |       |100.00
 
 Nlocal:    125 ave 125 max 125 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -85,9 +85,9 @@ run 0
 Per MPI rank memory allocation (min/avg/max) = 2.619 | 2.619 | 2.619 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0         1.44   -6.7723127            0   -4.6166327    -5.015531 
-Loop time of 3.33786e-06 on 4 procs for 0 steps with 500 atoms
+Loop time of 3.03984e-06 on 4 procs for 0 steps with 500 atoms
 
-119.8% CPU use with 4 MPI tasks x no OpenMP threads
+106.9% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -97,7 +97,7 @@ Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 3.338e-06  |            |       |100.00
+Other   |            | 3.04e-06   |            |       |100.00
 
 Nlocal:    125 ave 125 max 125 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -119,9 +119,9 @@ run 0
 Per MPI rank memory allocation (min/avg/max) = 2.619 | 2.619 | 2.619 Mbytes
 Step Temp E_pair E_mol TotEng Press 
      100   0.75891559   -5.7609392            0   -4.6248426   0.20981291 
-Loop time of 3.51667e-06 on 4 procs for 0 steps with 500 atoms
+Loop time of 3.75509e-06 on 4 procs for 0 steps with 500 atoms
 
-113.7% CPU use with 4 MPI tasks x no OpenMP threads
+113.2% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -131,7 +131,7 @@ Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 3.517e-06  |            |       |100.00
+Other   |            | 3.755e-06  |            |       |100.00
 
 Nlocal:    125 ave 126 max 124 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
@@ -153,9 +153,9 @@ run 0
 Per MPI rank memory allocation (min/avg/max) = 2.619 | 2.619 | 2.619 Mbytes
 Step Temp E_pair E_mol TotEng Press 
      200   0.73111257   -5.7143906            0   -4.6199151   0.37126023 
-Loop time of 2.92063e-06 on 4 procs for 0 steps with 500 atoms
+Loop time of 2.563e-06 on 4 procs for 0 steps with 500 atoms
 
-119.8% CPU use with 4 MPI tasks x no OpenMP threads
+117.1% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -165,7 +165,7 @@ Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 2.921e-06  |            |       |100.00
+Other   |            | 2.563e-06  |            |       |100.00
 
 Nlocal:    125 ave 126 max 123 min
 Histogram: 1 0 0 0 0 0 1 0 0 2
@@ -187,9 +187,9 @@ run 0
 Per MPI rank memory allocation (min/avg/max) = 2.619 | 2.619 | 2.619 Mbytes
 Step Temp E_pair E_mol TotEng Press 
      300   0.76392796   -5.7725589            0   -4.6289588   0.17994628 
-Loop time of 3.39746e-06 on 4 procs for 0 steps with 500 atoms
+Loop time of 3.99351e-06 on 4 procs for 0 steps with 500 atoms
 
-117.7% CPU use with 4 MPI tasks x no OpenMP threads
+93.9% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -199,7 +199,7 @@ Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 3.397e-06  |            |       |100.00
+Other   |            | 3.994e-06  |            |       |100.00
 
 Nlocal:    125 ave 128 max 121 min
 Histogram: 1 0 0 0 0 1 0 1 0 1
@@ -221,9 +221,9 @@ run 0
 Per MPI rank memory allocation (min/avg/max) = 2.619 | 2.619 | 2.619 Mbytes
 Step Temp E_pair E_mol TotEng Press 
      400    0.7319047   -5.7158168            0   -4.6201554   0.49192039 
-Loop time of 3.39746e-06 on 4 procs for 0 steps with 500 atoms
+Loop time of 3.57628e-06 on 4 procs for 0 steps with 500 atoms
 
-117.7% CPU use with 4 MPI tasks x no OpenMP threads
+111.8% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -233,7 +233,7 @@ Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 3.397e-06  |            |       |100.00
+Other   |            | 3.576e-06  |            |       |100.00
 
 Nlocal:    125 ave 132 max 118 min
 Histogram: 1 0 0 0 0 2 0 0 0 1

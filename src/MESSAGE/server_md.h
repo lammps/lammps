@@ -26,9 +26,10 @@ class ServerMD : protected Pointers {
 
  private:
   int units;
+  double fconvert,econvert,vconvert;
   double **fcopy;
 
-  void box_change(double *, double *, double *);
+  void box_change(double *, double *);
   void send_fev(int);
 };
 

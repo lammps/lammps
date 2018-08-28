@@ -37,16 +37,16 @@ class FixClientMD : public Fix {
   double compute_scalar();
 
  private:
-  int maxatom,units;
-  double box[3][3];
+  int maxatom,units,server_error;
   double eng;
-  double *xpbc;
-
   double inv_nprocs;
   double fconvert,econvert,vconvert;
+  double box[3][3];
+  double *xpbc;
 
   void pack_coords();
-  void receive_fev(int );
+  void pack_box();
+  void receive_fev(int);
 };
 
 }

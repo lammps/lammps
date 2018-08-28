@@ -1,10 +1,10 @@
-LAMMPS (16 Jul 2018)
+LAMMPS (22 Aug 2018)
 # 3d Lennard-Jones melt - server script
 
 variable        mode index file
 
 if "${mode} == file" then   "message server md file tmp.couple" elif "${mode} == zmq"   "message server md zmq *:5555" elif "${mode} == mpione"   "message server md mpi/one" elif "${mode} == mpitwo"   "message server md mpi/two tmp.couple"
-message server md zmq *:5555
+message server md mpi/two tmp.couple
 
 units		lj
 atom_style	atomic

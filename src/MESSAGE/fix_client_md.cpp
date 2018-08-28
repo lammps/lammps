@@ -14,6 +14,7 @@
 #include <cstdio>
 #include <cstring>
 #include "fix_client_md.h"
+#include "update.h"
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
@@ -28,7 +29,7 @@ using namespace LAMMPS_NS;
 using namespace CSLIB_NS;
 using namespace FixConst;
 
-enum{OTHER,REAL,METAL}
+enum{OTHER,REAL,METAL};
 enum{SETUP=1,STEP};
 enum{DIM=1,PERIODICITY,ORIGIN,BOX,NATOMS,NTYPES,TYPES,COORDS,UNITS,CHARGE};
 enum{FORCES=1,ENERGY,VIRIAL,ERROR};
@@ -154,7 +155,7 @@ void FixClientMD::setup(int vflag)
   receive_fev(vflag);
 
   if (server_error) {
-    str = char[64];
+    char str[64];
     sprintf(str,"Fix client/md received server error %d\n",server_error);
     error->all(FLERR,str);
   }
@@ -205,7 +206,7 @@ void FixClientMD::post_force(int vflag)
   receive_fev(vflag);
 
   if (server_error) {
-    str = char[64];
+    char str[64];
     sprintf(str,"Fix client/md received server error %d\n",server_error);
     error->all(FLERR,str);
   }

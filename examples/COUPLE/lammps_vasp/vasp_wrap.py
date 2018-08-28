@@ -13,18 +13,25 @@
 #   creates VASP inputs
 #   invokes VASP to calculate self-consistent energy of that config
 #   reads VASP outputs
-#   sends message with energy, forces, virial to client
+#   sends message with energy, forces, pressure to client
 
 # NOTES:
 # check to insure basic VASP input files are in place?
-# worry about archiving VASP input/output in special filenames or dirs?
-# how to get ordering (by type) of VASP atoms vs LAMMPS atoms
-#   create one initial permutation vector?
+# could archive VASP input/output in special filenames or dirs?
+# need to check that POTCAR file is consistent with atom ordering?
 # could make syntax for launching VASP more flexible
 #   e.g. command-line arg for # of procs
+# detect if VASP had an error and return ERROR field, e.g. non-convergence ??
 
-import sys,subprocess
-import xml.etree.ElementTree as ET  
+from __future__ import print_function
+import sys
+
+version = sys.version_info[0]
+if version == 3:
+  sys.exit("The CSlib python wrapper does not yet support python 3")
+  
+import subprocess
+import xml.etree.ElementTree as ET
 from cslib import CSlib
 
 # comment out 2nd line once 1st line is correct for your system
@@ -36,8 +43,8 @@ vaspcmd = "touch tmp"
 # enums matching FixClientMD class in LAMMPS
 
 SETUP,STEP = range(1,2+1)
-UNITS,DIM,NATOMS,NTYPES,BOXLO,BOXHI,BOXTILT,TYPES,COORDS,CHARGE = range(1,10+1)
-FORCES,ENERGY,VIRIAL = range(1,3+1)
+DIM,PERIODICITY,ORIGIN,BOX,NATOMS,NTYPES,TYPES,COORDS,UNITS,CHARGE = range(1,10+1)
+FORCES,ENERGY,VIRIAL,ERROR = range(1,4+1)
 
 # -------------------------------------
 # functions
@@ -45,7 +52,7 @@ FORCES,ENERGY,VIRIAL = range(1,3+1)
 # error message and exit
 
 def error(txt):
-  print "ERROR:",txt
+  print("ERROR:",txt)
   sys.exit(1)
 
 # -------------------------------------
@@ -88,9 +95,9 @@ def poscar_write(poscar,natoms,ntypes,types,coords,box):
   
   psnew.write(psold[0])
   psnew.write(psold[1])
-  psnew.write("%g 0.0 0.0\n" % box[0])
-  psnew.write("0.0 %g 0.0\n" % box[1])
-  psnew.write("0.0 0.0 %g\n" % box[2])
+  psnew.write("%g %g %g\n" % (box[0],box[1],box[2]))
+  psnew.write("%g %g %g\n" % (box[3],box[4],box[5]))
+  psnew.write("%g %g %g\n" % (box[6],box[7],box[8]))
   psnew.write(psold[5])
   psnew.write(psold[6])
 
@@ -149,6 +156,7 @@ def vasprun_read():
       sxx = stensor[0][0]
       syy = stensor[1][1]
       szz = stensor[2][2]
+      # symmetrize off-diagonal components
       sxy = 0.5 * (stensor[0][1] + stensor[1][0])
       sxz = 0.5 * (stensor[0][2] + stensor[2][0])
       syz = 0.5 * (stensor[1][2] + stensor[2][1])
@@ -164,7 +172,7 @@ def vasprun_read():
 # command-line args
 
 if len(sys.argv) != 3:
-  print "Syntax: python vasp_wrap.py file/zmq POSCARfile"
+  print("Syntax: python vasp_wrap.py file/zmq POSCARfile")
   sys.exit(1)
 
 mode = sys.argv[1]
@@ -173,7 +181,7 @@ poscar_template = sys.argv[2]
 if mode == "file": cs = CSlib(1,mode,"tmp.couple",None)
 elif mode == "zmq": cs = CSlib(1,mode,"*:5555",None)
 else:
-  print "Syntax: python vasp_wrap.py file/zmq POSCARfile"
+  print("Syntax: python vasp_wrap.py file/zmq POSCARfile")
   sys.exit(1)
 
 natoms,ntypes,box = vasp_setup(poscar_template)
@@ -196,30 +204,87 @@ while 1:
   msgID,nfield,fieldID,fieldtype,fieldlen = cs.recv()
   if msgID < 0: break
 
-  # could generalize this to be more like ServerMD class
-  # allow for box size, atom types, natoms, etc
-  
-  # unpack coords from client
-  # create VASP input
-  # NOTE: generalize this for general list of atom types
-  
-  coords = cs.unpack(COORDS,1)
-  #types = cs.unpack(2);
-  types = 2*[1]
+  # SETUP receive at beginning of each run
+  # required fields: DIM, PERIODICTY, ORIGIN, BOX, 
+  #                  NATOMS, NTYPES, TYPES, COORDS
+  # optional fields: others in enum above, but VASP ignores them
 
+  if msgID == SETUP:
+    
+    origin = []
+    box = []
+    natoms_recv = ntypes_recv = 0
+    types = []
+    coords = []
+    
+    for field in fieldID:
+      if field == DIM:
+        dim = cs.unpack_int(DIM)
+        if dim != 3: error("VASP only performs 3d simulations")
+      elif field == PERIODICITY:
+        periodicity = cs.unpack(PERIODICITY,1)
+        if not periodicity[0] or not periodicity[1] or not periodicity[2]:
+          error("VASP wrapper only currently supports fully periodic systems")
+      elif field == ORIGIN:
+        origin = cs.unpack(ORIGIN,1)
+      elif field == BOX:
+        box = cs.unpack(BOX,1)
+      elif field == NATOMS:
+        natoms_recv = cs.unpack_int(NATOMS)
+        if natoms != natoms_recv:
+          error("VASP wrapper mis-match in number of atoms")
+      elif field == NTYPES:
+        ntypes_recv = cs.unpack_int(NTYPES)
+        if ntypes != ntypes_recv:
+          error("VASP wrapper mis-match in number of atom types")
+      elif field == TYPES:
+        types = cs.unpack(TYPES,1)
+      elif field == COORDS:
+        coords = cs.unpack(COORDS,1)
+
+    if not origin or not box or not natoms or not ntypes or \
+       not types or not coords:
+      error("Required VASP wrapper setup field not received");
+
+  # STEP receive at each timestep of run or minimization
+  # required fields: COORDS
+  # optional fields: ORIGIN, BOX
+
+  elif msgID == STEP:
+
+    coords = []
+    
+    for field in fieldID:
+      if field == COORDS:
+        coords = cs.unpack(COORDS,1)
+      elif field == ORIGIN:
+        origin = cs.unpack(ORIGIN,1)
+      elif field == BOX:
+        box = cs.unpack(BOX,1)
+    
+    if not coords: error("Required VASP wrapper step field not received");
+
+  else: error("VASP wrapper received unrecognized message")
+  
+  # create POSCAR file
+  
   poscar_write(poscar_template,natoms,ntypes,types,coords,box)
 
   # invoke VASP
   
-  print "\nLaunching VASP ..."
-  print vaspcmd
+  print("\nLaunching VASP ...")
+  print(vaspcmd)
   subprocess.check_output(vaspcmd,stderr=subprocess.STDOUT,shell=True)
   
   # process VASP output
     
   energy,forces,virial = vasprun_read()
 
-  # return forces, energy, virial to client
+  # convert VASP kilobars to bars
+
+  for i,value in enumerate(virial): virial[i] *= 1000.0
+    
+  # return forces, energy, pressure to client
   
   cs.send(msgID,3);
   cs.pack(FORCES,4,3*natoms,forces)

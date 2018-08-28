@@ -92,9 +92,10 @@ CSlib *cs_create(char *mode, char *arg)
 // MC class
 // ----------------------------------------------------------------------
 
-MC::MC(char *mcfile, CSlib *cs_caller)
+MC::MC(char *mcfile, void *cs_caller)
+//MC::MC(char *mcfile, CSlib *cs_caller)
 {
-  cs = cs_caller;
+  cs_void = cs_caller;
 
   // setup MC params
 
@@ -124,6 +125,8 @@ void MC::run()
   int *fieldID,*fieldtype,*fieldlen;
 
   enum{NATOMS=1,EINIT,DISPLACE,ACCEPT,RUN};
+
+  CSlib *cs = (CSlib *) cs_void;
 
   // one-time request for atom count from MD
   // allocate 1d coord buffer

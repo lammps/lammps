@@ -136,7 +136,7 @@ int FixReaxC::unpack_exchange(int nlocal, double *buf)
 /* ---------------------------------------------------------------------- */
 
 int FixReaxC::pack_forward_comm(int n, int *list, double *buf,
-                                int /*pbc_flag*/, int */*pbc*/)
+                                int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
 

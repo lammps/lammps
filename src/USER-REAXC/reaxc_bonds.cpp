@@ -31,9 +31,9 @@
 #include "reaxc_tool_box.h"
 #include "reaxc_vector.h"
 
-void Bonds( reax_system *system, control_params */*control*/,
+void Bonds( reax_system *system, control_params * /*control*/,
             simulation_data *data, storage *workspace, reax_list **lists,
-            output_controls */*out_control*/ )
+            output_controls * /*out_control*/ )
 {
   int i, j, pj, natoms;
   int start_i, end_i;

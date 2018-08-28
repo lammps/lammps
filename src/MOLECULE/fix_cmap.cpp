@@ -1163,7 +1163,7 @@ void FixCMAP::read_data_section(char *keyword, int n, char *buf,
 
 /* ---------------------------------------------------------------------- */
 
-bigint FixCMAP::read_data_skip_lines(char */*keyword*/)
+bigint FixCMAP::read_data_skip_lines(char * /*keyword*/)
 {
   return ncmap;
 }

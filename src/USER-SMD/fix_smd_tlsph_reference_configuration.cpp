@@ -512,7 +512,7 @@ int FixSMD_TLSPH_ReferenceConfiguration::size_restart(int nlocal) {
 
 /* ---------------------------------------------------------------------- */
 
-int FixSMD_TLSPH_ReferenceConfiguration::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int */*pbc*/) {
+int FixSMD_TLSPH_ReferenceConfiguration::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/) {
         int i, j, m;
         double *radius = atom->radius;
         double *vfrac = atom->vfrac;

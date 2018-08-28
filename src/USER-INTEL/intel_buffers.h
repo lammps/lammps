@@ -135,8 +135,8 @@ class IntelBuffers {
 
   void set_ntypes(const int ntypes, const int use_ghost_cut = 0);
 
-  inline int * firstneigh(const NeighList */*list*/) { return _list_alloc; }
-  inline int * cnumneigh(const NeighList */*list*/) { return _cnumneigh; }
+  inline int * firstneigh(const NeighList * /*list*/) { return _list_alloc; }
+  inline int * cnumneigh(const NeighList * /*list*/) { return _cnumneigh; }
   inline int * get_atombin() { return _atombin; }
   inline int * get_binpacked() { return _binpacked; }
 

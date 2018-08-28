@@ -2168,8 +2168,8 @@ void FixSRD::collision_ellipsoid_inexact(double *xs, double *xb,
    norm = surface normal of collision pt at time of collision
 ------------------------------------------------------------------------- */
 
-double FixSRD::collision_line_exact(double */*xs*/, double */*xb*/,
-                                    double */*vs*/, double */*vb*/, Big */*big*/,
+double FixSRD::collision_line_exact(double * /*xs*/, double * /*xb*/,
+                                    double * /*vs*/, double * /*vb*/, Big * /*big*/,
                                     double dt_step,
                                     double *xscoll, double *xbcoll,
                                     double *norm)
@@ -2197,8 +2197,8 @@ double FixSRD::collision_line_exact(double */*xs*/, double */*xb*/,
    norm = surface normal of collision pt at time of collision
 ------------------------------------------------------------------------- */
 
-double FixSRD::collision_tri_exact(double */*xs*/, double */*xb*/,
-                                   double */*vs*/, double */*vb*/, Big */*big*/,
+double FixSRD::collision_tri_exact(double * /*xs*/, double * /*xb*/,
+                                   double * /*vs*/, double * /*vb*/, Big * /*big*/,
                                    double dt_step,
                                    double *xscoll, double *xbcoll,
                                    double *norm)

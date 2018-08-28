@@ -189,7 +189,7 @@ void FixLatte::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixLatte::init_list(int /*id*/, NeighList */*ptr*/)
+void FixLatte::init_list(int /*id*/, NeighList * /*ptr*/)
 {
   // list = ptr;
 }

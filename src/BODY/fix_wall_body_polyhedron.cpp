@@ -693,7 +693,7 @@ int FixWallBodyPolyhedron::compute_distance_to_wall(int ibody, int edge_index,
 ------------------------------------------------------------------------- */
 
 void FixWallBodyPolyhedron::contact_forces(int ibody,
-  double j_a, double *xi, double */*xj*/, double delx, double dely, double delz,
+  double j_a, double *xi, double * /*xj*/, double delx, double dely, double delz,
   double fx, double fy, double fz, double** x, double** v, double** angmom,
   double** f, double** torque, double* vwall)
 {

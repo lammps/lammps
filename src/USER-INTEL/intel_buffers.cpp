@@ -310,7 +310,7 @@ void IntelBuffers<flt_t, acc_t>::free_nbor_list()
 /* ---------------------------------------------------------------------- */
 
 template <class flt_t, class acc_t>
-void IntelBuffers<flt_t, acc_t>::_grow_nbor_list(NeighList */*list*/,
+void IntelBuffers<flt_t, acc_t>::_grow_nbor_list(NeighList * /*list*/,
                                                  const int nlocal,
                                                  const int nthreads,
                                                  const int /*offload_end*/,

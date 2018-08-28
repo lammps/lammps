@@ -2002,7 +2002,7 @@ void PairComb::Over_cor(Param *param, double rsq1, int NCoi,
 /* ---------------------------------------------------------------------- */
 
 int PairComb::pack_forward_comm(int n, int *list, double *buf,
-                                int /*pbc_flag*/, int */*pbc*/)
+                                int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
 

@@ -247,7 +247,7 @@ double FixQEqDynamic::compute_eneg()
 /* ---------------------------------------------------------------------- */
 
 int FixQEqDynamic::pack_forward_comm(int n, int *list, double *buf,
-                          int /*pbc_flag*/, int */*pbc*/)
+                          int /*pbc_flag*/, int * /*pbc*/)
 {
   int m=0;
 

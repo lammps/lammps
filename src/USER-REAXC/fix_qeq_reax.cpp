@@ -833,7 +833,7 @@ void FixQEqReax::calculate_Q()
 /* ---------------------------------------------------------------------- */
 
 int FixQEqReax::pack_forward_comm(int n, int *list, double *buf,
-                                  int /*pbc_flag*/, int */*pbc*/)
+                                  int /*pbc_flag*/, int * /*pbc*/)
 {
   int m;
 

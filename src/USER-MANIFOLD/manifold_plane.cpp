@@ -16,7 +16,7 @@ double manifold_plane::g( const double *x )
 }
 
 
-void manifold_plane::n( const double */*x*/, double *n )
+void manifold_plane::n( const double * /*x*/, double *n )
 {
   n[0] = params[0];
   n[1] = params[1];

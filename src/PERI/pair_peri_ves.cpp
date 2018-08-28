@@ -697,7 +697,7 @@ void PairPeriVES::compute_dilatation()
 ---------------------------------------------------------------------- */
 
 int PairPeriVES::pack_forward_comm(int n, int *list, double *buf,
-                                   int /*pbc_flag*/, int */*pbc*/)
+                                   int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
 

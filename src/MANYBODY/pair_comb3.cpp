@@ -2109,7 +2109,7 @@ void PairComb3::coord(Param *param, double r, int i,
 
 void PairComb3::cntri_int(int tri_flag, double xval, double yval,
                 double zval, int ixmin, int iymin, int izmin, double &vval,
-                double &dvalx, double &dvaly, double &dvalz, Param */*param*/)
+                double &dvalx, double &dvaly, double &dvalz, Param * /*param*/)
 {
   double x;
   vval = 0.0; dvalx = 0.0; dvaly = 0.0; dvalz = 0.0;
@@ -3863,7 +3863,7 @@ double PairComb3::switching_d(double rr)
 /* ---------------------------------------------------------------------- */
 
 int PairComb3::pack_forward_comm(int n, int *list, double *buf,
-                                 int /*pbc_flag*/, int */*pbc*/)
+                                 int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
 

@@ -1839,7 +1839,7 @@ void *PairTlsph::extract(const char *str, int &/*i*/) {
 
 /* ---------------------------------------------------------------------- */
 
-int PairTlsph::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int */*pbc*/) {
+int PairTlsph::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/) {
         int i, j, m;
         tagint *mol = atom->molecule;
         double *damage = atom->damage;

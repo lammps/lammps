@@ -1087,7 +1087,7 @@ double PairEIM::funccoul(int i, int j, double r)
 /* ---------------------------------------------------------------------- */
 
 int PairEIM::pack_forward_comm(int n, int *list, double *buf,
-                               int /*pbc_flag*/, int */*pbc*/)
+                               int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
 

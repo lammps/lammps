@@ -1699,7 +1699,7 @@ void FixFilterCorotate::general_cluster(int index, int index_in_list)
 }
 
 int FixFilterCorotate::pack_forward_comm(int n, int *list, double *buf,
-                                         int /*pbc_flag*/, int */*pbc*/)
+                                         int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
   double**f = atom->f;

@@ -701,7 +701,7 @@ void FixBondBreak::post_integrate_respa(int ilevel, int /*iloop*/)
 /* ---------------------------------------------------------------------- */
 
 int FixBondBreak::pack_forward_comm(int n, int *list, double *buf,
-                                    int /*pbc_flag*/, int */*pbc*/)
+                                    int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,k,m,ns;
 

@@ -117,7 +117,7 @@ void   manifold_thylakoid::n( const double *x, double *n )
   }
 }
 
-thyla_part *manifold_thylakoid::get_thyla_part( const double *x, int */*err_flag*/, std::size_t *idx )
+thyla_part *manifold_thylakoid::get_thyla_part( const double *x, int * /*err_flag*/, std::size_t *idx )
 {
 
   for( std::size_t i = 0; i < parts.size(); ++i ){

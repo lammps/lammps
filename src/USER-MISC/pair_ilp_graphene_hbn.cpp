@@ -1047,7 +1047,7 @@ double PairILPGrapheneHBN::single(int /*i*/, int /*j*/, int itype, int jtype, do
 /* ---------------------------------------------------------------------- */
 
 int PairILPGrapheneHBN::pack_forward_comm(int n, int *list, double *buf,
-                               int /*pbc_flag*/, int */*pbc*/)
+                               int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m,id,ip,l;
 

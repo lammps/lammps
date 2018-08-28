@@ -292,7 +292,7 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf,
    return # of lines in section of data file labeled by keyword
 ------------------------------------------------------------------------- */
 
-bigint FixPropertyAtom::read_data_skip_lines(char */*keyword*/)
+bigint FixPropertyAtom::read_data_skip_lines(char * /*keyword*/)
 {
   return atom->natoms;
 }

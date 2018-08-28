@@ -336,7 +336,7 @@ void lammps_free(void *ptr)
    customize by adding names
 ------------------------------------------------------------------------- */
 
-int lammps_extract_setting(void */*ptr*/, char *name)
+int lammps_extract_setting(void * /*ptr*/, char *name)
 {
   if (strcmp(name,"bigint") == 0) return sizeof(bigint);
   if (strcmp(name,"tagint") == 0) return sizeof(tagint);

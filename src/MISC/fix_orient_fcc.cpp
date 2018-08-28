@@ -486,7 +486,7 @@ double FixOrientFCC::compute_scalar()
 /* ---------------------------------------------------------------------- */
 
 int FixOrientFCC::pack_forward_comm(int n, int *list, double *buf,
-                                    int /*pbc_flag*/, int */*pbc*/)
+                                    int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,k,num;
   tagint id;

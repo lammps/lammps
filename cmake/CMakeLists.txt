@@ -679,6 +679,7 @@ if(PKG_USER-OMP)
                          ${USER-OMP_SOURCES_DIR}/thr_omp.cpp
                          ${USER-OMP_SOURCES_DIR}/fix_nh_omp.cpp
                          ${USER-OMP_SOURCES_DIR}/fix_nh_sphere_omp.cpp)
+    add_definitions(-DLMP_USER_OMP)
     set_property(GLOBAL PROPERTY "OMP_SOURCES" "${USER-OMP_SOURCES}")
 
     # detects styles which have USER-OMP version

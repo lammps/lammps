@@ -213,6 +213,8 @@ typedef int bigint;
 #include "lmpwindows.h"
 #endif
 
-#define LMP_UNUSED_PARAM(x) (void)x
+// suppress unused parameter warning
+
+#define LMP_UNUSED_PARAM(x) (void)(x)
 
 #endif

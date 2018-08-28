@@ -33,7 +33,7 @@
 #include "memory.h"
 #include "error.h"
 
-#define LMP_NEED_FIND_SDK_LJ_TYPE 1
+#define LMP_NEED_SDK_FIND_LJ_TYPE 1
 #include "lj_sdk_common.h"
 
 using namespace LAMMPS_NS;

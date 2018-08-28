@@ -27,7 +27,7 @@ namespace LJSDKParms {
   // LJ type flags. list of supported LJ exponent combinations
   enum {LJ_NOT_SET=0, LJ9_6, LJ12_4, LJ12_6, NUM_LJ_TYPES};
 
-#if defined(LMP_NEED_FIND_SDK_LJ_TYPE)
+#if defined(LMP_NEED_SDK_FIND_LJ_TYPE)
   static int find_lj_type(const char *label,
                           const char * const * const list) {
     for (int i=0; i < NUM_LJ_TYPES; ++i)

@@ -195,7 +195,7 @@ set(DEFAULT_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS DIPOLE GRANULAR
   USER-MOFFF USER-MOLFILE USER-NETCDF USER-PHONON USER-QTB USER-REAXC USER-SMD
   USER-SMTBQ USER-SPH USER-TALLY USER-UEF USER-VTK USER-QUIP USER-QMMM)
 set(ACCEL_PACKAGES USER-OMP KOKKOS OPT USER-INTEL GPU)
-set(OTHER_PACKAGES CORESHELL QEQ)
+set(OTHER_PACKAGES CORESHELL QEQ MESSAGE)
 foreach(PKG ${DEFAULT_PACKAGES})
   option(PKG_${PKG} "Build ${PKG} Package" OFF)
 endforeach()
@@ -1198,7 +1198,7 @@ endif()
 ###############################################################################
 # Print package summary
 ###############################################################################
-foreach(PKG ${DEFAULT_PACKAGES} ${ACCEL_PACKAGES})
+foreach(PKG ${DEFAULT_PACKAGES} ${ACCEL_PACKAGES} ${OTHER_PACKAGES})
   if(PKG_${PKG})
     message(STATUS "Building package: ${PKG}")
   endif()

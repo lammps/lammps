@@ -1063,6 +1063,7 @@ if(BUILD_EXE)
   
   set_target_properties(lmp PROPERTIES OUTPUT_NAME lmp${LAMMPS_MACHINE})
   install(TARGETS lmp DESTINATION ${CMAKE_INSTALL_BINDIR})
+  install(FILES ${LAMMPS_DOC_DIR}/lammps.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 RENAME lmp${LAMMPS_MACHINE}.1)
   if(ENABLE_TESTING)
     add_test(ShowHelp lmp${LAMMPS_MACHINE} -help)
   endif()

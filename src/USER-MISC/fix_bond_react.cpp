@@ -1861,13 +1861,13 @@ void FixBondReact::glove_ghostcheck()
   // noteworthy: it's only relevant for parallel
 
   // here we add glove to either local_mega_glove or ghostly_mega_glove
-  int ghostly = 0;
-  for (int i = 0; i < onemol->natoms; i++) {
-    if (atom->map(glove[i][1]) >= atom->nlocal) {
-      ghostly = 1;
-      break;
-    }
-  }
+  int ghostly = 1;
+  //for (int i = 0; i < onemol->natoms; i++) {
+  //  if (atom->map(glove[i][1]) >= atom->nlocal) {
+  //    ghostly = 1;
+  //    break;
+  //  }
+  //}
 
   if (ghostly == 1) {
     ghostly_mega_glove[0][ghostly_num_mega] = rxnID;

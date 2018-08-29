@@ -500,7 +500,7 @@ if(PKG_MESSAGE)
     target_link_libraries(cslib PUBLIC ${ZMQ_LIBRARIES})
   else()
     target_compile_definitions(cslib PRIVATE -DZMQ_NO)
-    target_include_directories(cslib PRIVATE ${LAMMPS_SOURCE_DIR}/message/cslib/src/STUBS_ZMQ)
+    target_include_directories(cslib PRIVATE ${LAMMPS_LIB_SOURCE_DIR}/message/cslib/src/STUBS_ZMQ)
   endif()
 
   list(APPEND LAMMPS_LINK_LIBS cslib)

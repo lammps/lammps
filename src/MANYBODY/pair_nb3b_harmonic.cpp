@@ -454,7 +454,7 @@ void PairNb3bHarmonic::setup_params()
 /* ---------------------------------------------------------------------- */
 
 
-void PairNb3bHarmonic::threebody(Param */*paramij*/, Param */*paramik*/,
+void PairNb3bHarmonic::threebody(Param * /*paramij*/, Param * /*paramik*/,
                                  Param *paramijk,
                                  double rsq1, double rsq2,
                                  double *delr1, double *delr2,

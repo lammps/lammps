@@ -695,7 +695,7 @@ void FixAtomSwap::update_swap_atoms_list()
 
 /* ---------------------------------------------------------------------- */
 
-int FixAtomSwap::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int */*pbc*/)
+int FixAtomSwap::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
 

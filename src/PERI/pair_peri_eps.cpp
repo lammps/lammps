@@ -799,7 +799,7 @@ double PairPeriEPS::compute_DeviatoricForceStateNorm(int i)
 ---------------------------------------------------------------------- */
 
 int PairPeriEPS::pack_forward_comm(int n, int *list, double *buf,
-                                   int /*pbc_flag*/, int */*pbc*/)
+                                   int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
 

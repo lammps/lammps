@@ -1885,7 +1885,7 @@ void FixRX::computeLocalTemperature()
 
 /* ---------------------------------------------------------------------- */
 
-int FixRX::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int */*pbc*/)
+int FixRX::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
 {
   int ii,jj,m;
   double tmp;

@@ -288,7 +288,7 @@ double PairSPHRhoSum::single(int /*i*/, int /*j*/, int /*itype*/, int /*jtype*/,
 /* ---------------------------------------------------------------------- */
 
 int PairSPHRhoSum::pack_forward_comm(int n, int *list, double *buf,
-                                     int /*pbc_flag*/, int */*pbc*/) {
+                                     int /*pbc_flag*/, int * /*pbc*/) {
   int i, j, m;
   double *rho = atom->rho;
 

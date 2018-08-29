@@ -734,7 +734,7 @@ void PairMEAM::read_files(char *globalfile, char *userfile)
 /* ---------------------------------------------------------------------- */
 
 int PairMEAM::pack_forward_comm(int n, int *list, double *buf,
-                                int /*pbc_flag*/, int */*pbc*/)
+                                int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,k,m;
 

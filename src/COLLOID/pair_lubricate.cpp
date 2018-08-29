@@ -749,7 +749,7 @@ void PairLubricate::read_restart_settings(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 int PairLubricate::pack_forward_comm(int n, int *list, double *buf,
-                                     int /*pbc_flag*/, int */*pbc*/)
+                                     int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
 

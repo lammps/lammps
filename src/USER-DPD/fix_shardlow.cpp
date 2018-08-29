@@ -646,7 +646,7 @@ fprintf(stdout, "\n%6d %6d,%6d %6d: "
 
 /* ---------------------------------------------------------------------- */
 
-int FixShardlow::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int */*pbc*/)
+int FixShardlow::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
 {
   int ii,jj,m;
   double **v  = atom->v;

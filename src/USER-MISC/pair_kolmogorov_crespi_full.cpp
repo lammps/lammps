@@ -1050,7 +1050,7 @@ double PairKolmogorovCrespiFull::single(int /*i*/, int /*j*/, int itype, int jty
 /* ---------------------------------------------------------------------- */
 
 int PairKolmogorovCrespiFull::pack_forward_comm(int n, int *list, double *buf,
-                               int /*pbc_flag*/, int */*pbc*/)
+                               int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m,l,ip,id;
 

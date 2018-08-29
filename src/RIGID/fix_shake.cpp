@@ -2528,7 +2528,7 @@ void FixShake::update_arrays(int i, int atom_offset)
 ------------------------------------------------------------------------- */
 
 void FixShake::set_molecule(int nlocalprev, tagint tagprev, int imol,
-                            double */*xgeom*/, double */*vcm*/, double */*quat*/)
+                            double * /*xgeom*/, double * /*vcm*/, double * /*quat*/)
 {
   int m,flag;
 

@@ -2999,7 +2999,7 @@ int FixRigidSmall::unpack_exchange(int nlocal, double *buf)
 ------------------------------------------------------------------------- */
 
 int FixRigidSmall::pack_forward_comm(int n, int *list, double *buf,
-                                     int /*pbc_flag*/, int */*pbc*/)
+                                     int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j;
   double *xcm,*vcm,*quat,*omega,*ex_space,*ey_space,*ez_space,*conjqm;

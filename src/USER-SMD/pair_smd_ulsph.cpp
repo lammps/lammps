@@ -1487,7 +1487,7 @@ double PairULSPH::memory_usage() {
 
 /* ---------------------------------------------------------------------- */
 
-int PairULSPH::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int */*pbc*/) {
+int PairULSPH::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/) {
         double *vfrac = atom->vfrac;
         double *eff_plastic_strain = atom->eff_plastic_strain;
         int i, j, m;

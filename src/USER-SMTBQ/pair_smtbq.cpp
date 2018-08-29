@@ -3334,7 +3334,7 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
 
 /* ---------------------------------------------------------------------- */
 
-void PairSMTBQ::Init_charge(int */*nQEq*/, int */*nQEqa*/, int */*nQEqc*/)
+void PairSMTBQ::Init_charge(int * /*nQEq*/, int * /*nQEqa*/, int * /*nQEqc*/)
 {
   int ii,i,gp,itype;
   int *ilist,test[nteam],init[nteam];
@@ -3391,7 +3391,7 @@ void PairSMTBQ::Init_charge(int */*nQEq*/, int */*nQEqa*/, int */*nQEqc*/)
  *                        COMMUNICATION
  * ---------------------------------------------------------------------- */
 
-int PairSMTBQ::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int */*pbc*/)
+int PairSMTBQ::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
 

@@ -442,7 +442,7 @@ void FixReaxCSpecies::post_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixReaxCSpecies::Output_ReaxC_Bonds(bigint ntimestep, FILE */*fp*/)
+void FixReaxCSpecies::Output_ReaxC_Bonds(bigint ntimestep, FILE * /*fp*/)
 
 {
   int Nmole, Nspec;
@@ -946,7 +946,7 @@ int FixReaxCSpecies::nint(const double &r)
 /* ---------------------------------------------------------------------- */
 
 int FixReaxCSpecies::pack_forward_comm(int n, int *list, double *buf,
-                                       int /*pbc_flag*/, int */*pbc*/)
+                                       int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
 

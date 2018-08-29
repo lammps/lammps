@@ -311,7 +311,7 @@ double FixQEqFire::compute_eneg()
 /* ---------------------------------------------------------------------- */
 
 int FixQEqFire::pack_forward_comm(int n, int *list, double *buf,
-                          int /*pbc_flag*/, int */*pbc*/)
+                          int /*pbc_flag*/, int * /*pbc*/)
 {
   int m = 0;
 

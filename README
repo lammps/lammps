@@ -36,7 +36,14 @@ tools			   pre- and post-processing tools
 
 Point your browser at any of these files to get started:
 
-doc/Manual.html	           the LAMMPS manual
-doc/Section_intro.html	   hi-level introduction to LAMMPS
-doc/Section_start.html	   how to build and use LAMMPS
-doc/Developer.pdf          LAMMPS developer guide
+http://lammps.sandia.gov/doc/Manual.html         the LAMMPS manual
+http://lammps.sandia.gov/doc/Intro.html          hi-level introduction
+http://lammps.sandia.gov/doc/Build.html          how to build LAMMPS
+http://lammps.sandia.gov/doc/Run_head.html       how to run LAMMPS
+http://lammps.sandia.gov/doc/Developer.pdf       LAMMPS developer guide
+
+You can also create these doc pages locally:
+
+% cd doc
+% make html                # creates HTML pages in doc/html
+% make pdf                 # creates Manual.pdf and Developer.pdf

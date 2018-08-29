@@ -1231,7 +1231,7 @@ void SNA::compute_uarray(double x, double y, double z,
 }
 
 void SNA::compute_uarray_omp(double x, double y, double z,
-                             double z0, double r, int sub_threads)
+                             double z0, double r, int /*sub_threads*/)
 {
   double r0inv;
   double a_r, b_r, a_i, b_i;

@@ -80,7 +80,7 @@ void FixLineForce::min_setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixLineForce::post_force(int vflag)
+void FixLineForce::post_force(int /*vflag*/)
 {
   double **f = atom->f;
   int *mask = atom->mask;
@@ -98,7 +98,7 @@ void FixLineForce::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixLineForce::post_force_respa(int vflag, int ilevel, int iloop)
+void FixLineForce::post_force_respa(int vflag, int /*ilevel*/, int /*iloop*/)
 {
   post_force(vflag);
 }

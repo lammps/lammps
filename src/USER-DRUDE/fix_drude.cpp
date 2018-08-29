@@ -235,7 +235,7 @@ void FixDrude::grow_arrays(int nmax)
    copy values within local atom-based array
 ------------------------------------------------------------------------- */
 
-void FixDrude::copy_arrays(int i, int j, int delflag)
+void FixDrude::copy_arrays(int i, int j, int /*delflag*/)
 {
     drudeid[j] = drudeid[i];
 }

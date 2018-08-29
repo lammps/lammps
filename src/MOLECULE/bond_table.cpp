@@ -244,7 +244,7 @@ void BondTable::read_restart(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double BondTable::single(int type, double rsq, int i, int j,
+double BondTable::single(int type, double rsq, int /*i*/, int /*j*/,
                          double &fforce)
 {
   double r = sqrt(rsq);

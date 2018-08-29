@@ -3,14 +3,14 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
 Overview :h3
 
 The best way to add a new feature to LAMMPS is to find a similar
-featureand look at the corresponding source and header files to figure
+feature and look at the corresponding source and header files to figure
 out what it does.  You will need some knowledge of C++ to be able to
 understand the hi-level structure of LAMMPS and its class
 organization, but functions (class methods) that do actual

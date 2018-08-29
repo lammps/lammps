@@ -8,6 +8,7 @@ Pair Styles :h1
    pair_adp
    pair_agni
    pair_airebo
+   pair_atm
    pair_awpmd
    pair_beck
    pair_body_nparticle

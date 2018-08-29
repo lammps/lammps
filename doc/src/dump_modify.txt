@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -133,7 +133,6 @@ dump_modify option below is valid for the {atom} style, it is also
 valid for the {atom/mpiio} style, and similarly for the other styles
 which allow for use of MPI-IO.
 
-:line
 :line
 
 These keywords apply to various dump styles, including the "dump
@@ -630,7 +629,6 @@ periodic box.  Note that these coordinates may thus be far outside the
 box size stored with the snapshot.
 
 :line
-:line
 
 These keywords apply only to the "dump image"_dump_image.html and
 "dump movie"_dump_image.html styles.  Any keyword that affects an
@@ -895,7 +893,6 @@ simply dropping the rendered images. It is more efficient to dump
 images less frequently.
 
 :line
-:line
 
 [Restrictions:] none
 
@@ -917,7 +914,7 @@ flush = yes
 format = %d and %g for each integer or floating point value
 image = no
 label = ENTRIES
-maxifiles = -1
+maxfiles = -1
 nfile = 1
 pad = 0
 pbc = no

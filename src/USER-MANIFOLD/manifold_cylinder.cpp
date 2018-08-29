@@ -5,8 +5,8 @@ using namespace LAMMPS_NS;
 using namespace user_manifold;
 
 
-manifold_cylinder::manifold_cylinder( LAMMPS *lmp, int argc,
-                                      char **argv ) : manifold(lmp)
+manifold_cylinder::manifold_cylinder( LAMMPS *lmp, int /*argc*/,
+                                      char **/*argv*/ ) : manifold(lmp)
 {}
 
 

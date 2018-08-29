@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -39,7 +39,7 @@ in "(Kolmogorov)"_#Kolmogorov2.
 
 Where Tap(r_ij) is the taper function which provides a continuous
 cutoff (up to third derivative) for interatomic separations larger than
-r_c "(Maaravi)"_#Maaravi2. The definitons of each parameter in the above
+r_c "(Maaravi)"_#Maaravi2. The definitions of each parameter in the above
 equation can be found in "(Leven)"_#Leven and "(Maaravi)"_#Maaravi2.
 
 It is important to include all the pairs to build the neighbor list for
@@ -87,8 +87,8 @@ that reads a restart file.
 [Restrictions:]
 
 This fix is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 This pair potential requires the newton setting to be {on} for pair
 interactions.

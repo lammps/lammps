@@ -149,7 +149,7 @@ void FixManifoldForce::min_setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixManifoldForce::post_force(int vflag)
+void FixManifoldForce::post_force(int /*vflag*/)
 {
   double **x = atom->x;
   double **f = atom->f;
@@ -177,7 +177,7 @@ void FixManifoldForce::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixManifoldForce::post_force_respa(int vflag, int ilevel, int iloop)
+void FixManifoldForce::post_force_respa(int vflag, int /*ilevel*/, int /*iloop*/)
 {
   post_force(vflag);
 }

@@ -3,11 +3,11 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
-Long-raage dispersion settings :h3
+Long-range dispersion settings :h3
 
 The PPPM method computes interactions by splitting the pair potential
 into two parts, one of which is computed in a normal pairwise fashion,

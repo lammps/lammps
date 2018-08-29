@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -311,12 +311,12 @@ needed to generate absolute, unscaled coordinates.
 [Restrictions:]
 
 To read gzipped dump files, you must compile LAMMPS with the
--DLAMMPS_GZIP option - see the "Making
-LAMMPS"_Section_start.html#start_2 section of the documentation.
+-DLAMMPS_GZIP option.  See the "Build settings"_Build_settings.html
+doc page for details.
 
 The {molfile} dump file formats are part of the USER-MOLFILE package.
 They are only enabled if LAMMPS was built with that packages.  See the
-"Making LAMMPS"_Section_start.html#start_3 section for more info.
+"Build package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

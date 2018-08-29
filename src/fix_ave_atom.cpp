@@ -283,7 +283,7 @@ void FixAveAtom::init()
    only does something if nvalid = current timestep
 ------------------------------------------------------------------------- */
 
-void FixAveAtom::setup(int vflag)
+void FixAveAtom::setup(int /*vflag*/)
 {
   end_of_step();
 }
@@ -432,7 +432,7 @@ void FixAveAtom::grow_arrays(int nmax)
    copy values within local atom-based array
 ------------------------------------------------------------------------- */
 
-void FixAveAtom::copy_arrays(int i, int j, int delflag)
+void FixAveAtom::copy_arrays(int i, int j, int /*delflag*/)
 {
   for (int m = 0; m < nvalues; m++)
     array[j][m] = array[i][m];

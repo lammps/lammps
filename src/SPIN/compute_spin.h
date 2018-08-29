@@ -33,7 +33,6 @@ class ComputeSpin : public Compute {
 
  private:
   double kb,hbar;
-  int usecenter;
 
   void allocate();
 };

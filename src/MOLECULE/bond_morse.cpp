@@ -196,7 +196,7 @@ void BondMorse::write_data(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double BondMorse::single(int type, double rsq, int i, int j,
+double BondMorse::single(int type, double rsq, int /*i*/, int /*j*/,
                          double &fforce)
 {
   double r = sqrt(rsq);

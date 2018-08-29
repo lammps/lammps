@@ -99,7 +99,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   // SPIN package
 
   sp = fm = NULL;
-  
+
   // USER-DPD
 
   uCond = uMech = uChem = uCG = uCGnew = NULL;
@@ -1516,7 +1516,7 @@ void Atom::set_mass(const char *file, int line, int itype, double value)
    called from reading of input script
 ------------------------------------------------------------------------- */
 
-void Atom::set_mass(const char *file, int line, int narg, char **arg)
+void Atom::set_mass(const char *file, int line, int /*narg*/, char **arg)
 {
   if (mass == NULL) error->all(file,line,"Cannot set mass for this atom style");
 

@@ -56,7 +56,7 @@ void FixNVEIntel::setup(int vflag)
    allow for both per-type and per-atom mass
 ------------------------------------------------------------------------- */
 
-void FixNVEIntel::initial_integrate(int vflag)
+void FixNVEIntel::initial_integrate(int /*vflag*/)
 {
   // update v and x of atoms in group
 

@@ -1,9 +1,9 @@
-"Higher level section"_Python.html - "LAMMPS WWW Site"_lws - "LAMMPS
-Documentation"_ld - "LAMMPS Commands"_lc :c
+"Higher level section"_Python_head.html - "LAMMPS WWW Site"_lws -
+"LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -68,7 +68,7 @@ need to prefix this with "sudo".  In this mode you cannot control
 which Python is invoked by root.
 
 Note that if you want Python to be able to load different versions of
-the LAMMPS shared library (see "this section"_#py_5 below), you will
+the LAMMPS shared library (see "this section"_Python_shlib.html), you will
 need to manually copy files like liblammps_g++.so into the appropriate
 system directory.  This is not needed if you set the LD_LIBRARY_PATH
 environment variable as described above.

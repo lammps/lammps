@@ -3,16 +3,16 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
 Library interface to LAMMPS :h3
 
-As described in "Section 2.5"_Section_start.html#start_5, LAMMPS can
-be built as a library, so that it can be called by another code, used
-in a "coupled manner"_Howto_couple.html with other codes, or driven
-through a "Python interface"_Python.html.
+As described on the "Build basics"_Build_basics.html doc page, LAMMPS
+can be built as a library, so that it can be called by another code,
+used in a "coupled manner"_Howto_couple.html with other codes, or
+driven through a "Python interface"_Python_head.html.
 
 All of these methodologies use a C-style interface to LAMMPS that is
 provided in the files src/library.cpp and src/library.h.  The
@@ -35,8 +35,8 @@ details.
 
 NOTE: You can write code for additional functions as needed to define
 how your code talks to LAMMPS and add them to src/library.cpp and
-src/library.h, as well as to the "Python interface"_Python.html.  The
-added functions can access or change any internal LAMMPS data you
+src/library.h, as well as to the "Python interface"_Python_head.html.
+The added functions can access or change any internal LAMMPS data you
 wish.
 
 void lammps_open(int, char **, MPI_Comm, void **)
@@ -51,12 +51,11 @@ void lammps_free(void *) :pre
 
 The lammps_open() function is used to initialize LAMMPS, passing in a
 list of strings as if they were "command-line
-arguments"_Section_start.html#start_6 when LAMMPS is run in
-stand-alone mode from the command line, and a MPI communicator for
-LAMMPS to run under.  It returns a ptr to the LAMMPS object that is
-created, and which is used in subsequent library calls.  The
-lammps_open() function can be called multiple times, to create
-multiple instances of LAMMPS.
+arguments"_Run_options.html when LAMMPS is run in stand-alone mode
+from the command line, and a MPI communicator for LAMMPS to run under.
+It returns a ptr to the LAMMPS object that is created, and which is
+used in subsequent library calls.  The lammps_open() function can be
+called multiple times, to create multiple instances of LAMMPS.
 
 LAMMPS will run on the set of processors in the communicator.  This
 means the calling code can run LAMMPS on all or a subset of
@@ -172,16 +171,16 @@ void lammps_create_atoms(void *, int, tagint *, int *, double *, double *,
 
 The gather functions collect peratom info of the requested type (atom
 coords, atom types, forces, etc) from all processors, and returns the
-same vector of values to each callling processor.  The scatter
+same vector of values to each calling processor.  The scatter
 functions do the inverse.  They distribute a vector of peratom values,
-passed by all calling processors, to invididual atoms, which may be
-owned by different processos.
+passed by all calling processors, to individual atoms, which may be
+owned by different processors.
 
 The lammps_gather_atoms() function does this for all N atoms in the
 system, ordered by atom ID, from 1 to N.  The
 lammps_gather_atoms_concat() function does it for all N atoms, but
 simply concatenates the subset of atoms owned by each processor.  The
-resulting vector is not ordered by atom ID.  Atom IDs can be requetsed
+resulting vector is not ordered by atom ID.  Atom IDs can be requested
 by the same function if the caller needs to know the ordering.  The
 lammps_gather_subset() function allows the caller to request values
 for only a subset of atoms (identified by ID).

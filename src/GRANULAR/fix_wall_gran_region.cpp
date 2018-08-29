@@ -130,7 +130,7 @@ void FixWallGranRegion::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixWallGranRegion::post_force(int vflag)
+void FixWallGranRegion::post_force(int /*vflag*/)
 {
   int i,m,nc,iwall;
   double dx,dy,dz,rsq,meff;
@@ -347,7 +347,7 @@ void FixWallGranRegion::grow_arrays(int nmax)
    copy values within local atom-based arrays
 ------------------------------------------------------------------------- */
 
-void FixWallGranRegion::copy_arrays(int i, int j, int delflag)
+void FixWallGranRegion::copy_arrays(int i, int j, int /*delflag*/)
 {
   int m,n,iwall;
 

@@ -723,7 +723,7 @@ void PPPMDispIntel::particle_map(double delx, double dely, double delz,
                                  double sft, int** p2g, int nup, int nlow,
                                  int nxlo, int nylo, int nzlo,
                                  int nxhi, int nyhi, int nzhi,
-                                 IntelBuffers<flt_t,acc_t> *buffers)
+                                 IntelBuffers<flt_t,acc_t> * /*buffers*/)
 {
   int nlocal = atom->nlocal;
   int nthr = comm->nthreads;
@@ -790,7 +790,7 @@ void PPPMDispIntel::particle_map(double delx, double dely, double delz,
 ------------------------------------------------------------------------- */
 
 template<class flt_t, class acc_t, int use_table>
-void PPPMDispIntel::make_rho_c(IntelBuffers<flt_t,acc_t> *buffers)
+void PPPMDispIntel::make_rho_c(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 {
   // clear 3d density array
 
@@ -940,7 +940,7 @@ void PPPMDispIntel::make_rho_c(IntelBuffers<flt_t,acc_t> *buffers)
 ------------------------------------------------------------------------- */
 
 template<class flt_t, class acc_t, int use_table>
-void PPPMDispIntel::make_rho_g(IntelBuffers<flt_t,acc_t> *buffers)
+void PPPMDispIntel::make_rho_g(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 {
   // clear 3d density array
 
@@ -1091,7 +1091,7 @@ void PPPMDispIntel::make_rho_g(IntelBuffers<flt_t,acc_t> *buffers)
 ------------------------------------------------------------------------- */
 
 template<class flt_t, class acc_t, int use_table>
-void PPPMDispIntel::make_rho_a(IntelBuffers<flt_t,acc_t> *buffers)
+void PPPMDispIntel::make_rho_a(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 {
   // clear 3d density array
 
@@ -1225,7 +1225,7 @@ void PPPMDispIntel::make_rho_a(IntelBuffers<flt_t,acc_t> *buffers)
 ------------------------------------------------------------------------- */
 
 template<class flt_t, class acc_t, int use_table>
-void PPPMDispIntel::make_rho_none(IntelBuffers<flt_t,acc_t> *buffers)
+void PPPMDispIntel::make_rho_none(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 {
 
   FFT_SCALAR * _noalias global_density = &(density_brick_none[0][nzlo_out_6][nylo_out_6][nxlo_out_6]);
@@ -1373,7 +1373,7 @@ void PPPMDispIntel::make_rho_none(IntelBuffers<flt_t,acc_t> *buffers)
 ------------------------------------------------------------------------- */
 
 template<class flt_t, class acc_t, int use_table>
-void PPPMDispIntel::fieldforce_c_ik(IntelBuffers<flt_t,acc_t> *buffers)
+void PPPMDispIntel::fieldforce_c_ik(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 {
 
   // loop over my charges, interpolate electric field from nearby grid points
@@ -1520,7 +1520,7 @@ void PPPMDispIntel::fieldforce_c_ik(IntelBuffers<flt_t,acc_t> *buffers)
 ------------------------------------------------------------------------- */
 
 template<class flt_t, class acc_t, int use_table>
-void PPPMDispIntel::fieldforce_c_ad(IntelBuffers<flt_t,acc_t> *buffers)
+void PPPMDispIntel::fieldforce_c_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 {
 
   // loop over my charges, interpolate electric field from nearby grid points
@@ -1725,7 +1725,7 @@ void PPPMDispIntel::fieldforce_c_ad(IntelBuffers<flt_t,acc_t> *buffers)
 ------------------------------------------------------------------------- */
 
 template<class flt_t, class acc_t, int use_table>
-void PPPMDispIntel::fieldforce_g_ik(IntelBuffers<flt_t,acc_t> *buffers)
+void PPPMDispIntel::fieldforce_g_ik(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 {
 
   // loop over my charges, interpolate electric field from nearby grid points
@@ -1869,7 +1869,7 @@ void PPPMDispIntel::fieldforce_g_ik(IntelBuffers<flt_t,acc_t> *buffers)
 ------------------------------------------------------------------------- */
 
 template<class flt_t, class acc_t, int use_table>
-void PPPMDispIntel::fieldforce_g_ad(IntelBuffers<flt_t,acc_t> *buffers)
+void PPPMDispIntel::fieldforce_g_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 {
 
   // loop over my charges, interpolate electric field from nearby grid points
@@ -2069,7 +2069,7 @@ void PPPMDispIntel::fieldforce_g_ad(IntelBuffers<flt_t,acc_t> *buffers)
 ------------------------------------------------------------------------- */
 
 template<class flt_t, class acc_t, int use_table>
-void PPPMDispIntel::fieldforce_a_ik(IntelBuffers<flt_t,acc_t> *buffers)
+void PPPMDispIntel::fieldforce_a_ik(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 {
 
   // loop over my charges, interpolate electric field from nearby grid points
@@ -2282,7 +2282,7 @@ void PPPMDispIntel::fieldforce_a_ik(IntelBuffers<flt_t,acc_t> *buffers)
 ------------------------------------------------------------------------- */
 
 template<class flt_t, class acc_t, int use_table>
-void PPPMDispIntel::fieldforce_a_ad(IntelBuffers<flt_t,acc_t> *buffers)
+void PPPMDispIntel::fieldforce_a_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 {
 
   // loop over my charges, interpolate electric field from nearby grid points
@@ -2594,7 +2594,7 @@ void PPPMDispIntel::fieldforce_a_ad(IntelBuffers<flt_t,acc_t> *buffers)
 ------------------------------------------------------------------------- */
 
 template<class flt_t, class acc_t, int use_table>
-void PPPMDispIntel::fieldforce_none_ik(IntelBuffers<flt_t,acc_t> *buffers)
+void PPPMDispIntel::fieldforce_none_ik(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 {
 
   // loop over my charges, interpolate electric field from nearby grid points
@@ -2755,7 +2755,7 @@ void PPPMDispIntel::fieldforce_none_ik(IntelBuffers<flt_t,acc_t> *buffers)
 ------------------------------------------------------------------------- */
 
 template<class flt_t, class acc_t, int use_table>
-void PPPMDispIntel::fieldforce_none_ad(IntelBuffers<flt_t,acc_t> *buffers)
+void PPPMDispIntel::fieldforce_none_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 {
   // loop over my charges, interpolate electric field from nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge

@@ -109,7 +109,7 @@ void IntelBuffers<flt_t, acc_t>::free_buffers()
 template <class flt_t, class acc_t>
 void IntelBuffers<flt_t, acc_t>::_grow(const int nall, const int nlocal,
                                        const int nthreads,
-                                       const int offload_end)
+                                       const int /*offload_end*/)
 {
   free_buffers();
   _buf_size = static_cast<double>(nall) * 1.1 + 1;
@@ -200,7 +200,7 @@ void IntelBuffers<flt_t, acc_t>::free_nmax()
 /* ---------------------------------------------------------------------- */
 
 template <class flt_t, class acc_t>
-void IntelBuffers<flt_t, acc_t>::_grow_nmax(const int offload_end)
+void IntelBuffers<flt_t, acc_t>::_grow_nmax(const int /*offload_end*/)
 {
   #ifdef _LMP_INTEL_OFFLOAD
   free_nmax();
@@ -264,7 +264,7 @@ void IntelBuffers<flt_t, acc_t>::free_list_local()
 
 template <class flt_t, class acc_t>
 void IntelBuffers<flt_t, acc_t>::_grow_list_local(NeighList *list,
-                                                  const int offload_end)
+                                                  const int /*offload_end*/)
 {
   free_list_local();
   int size = list->get_maxlocal();
@@ -310,10 +310,10 @@ void IntelBuffers<flt_t, acc_t>::free_nbor_list()
 /* ---------------------------------------------------------------------- */
 
 template <class flt_t, class acc_t>
-void IntelBuffers<flt_t, acc_t>::_grow_nbor_list(NeighList *list,
+void IntelBuffers<flt_t, acc_t>::_grow_nbor_list(NeighList * /*list*/,
                                                  const int nlocal,
                                                  const int nthreads,
-                                                 const int offload_end,
+                                                 const int /*offload_end*/,
                                                  const int pack_width)
 {
   free_nbor_list();
@@ -382,7 +382,7 @@ void IntelBuffers<flt_t, acc_t>::free_ccache()
 /* ---------------------------------------------------------------------- */
 
 template <class flt_t, class acc_t>
-void IntelBuffers<flt_t, acc_t>::grow_ccache(const int off_flag,
+void IntelBuffers<flt_t, acc_t>::grow_ccache(const int /*off_flag*/,
         const int nthreads,
         const int width)
 {
@@ -481,7 +481,7 @@ void IntelBuffers<flt_t, acc_t>::free_ncache()
 /* ---------------------------------------------------------------------- */
 
 template <class flt_t, class acc_t>
-void IntelBuffers<flt_t, acc_t>::grow_ncache(const int off_flag,
+void IntelBuffers<flt_t, acc_t>::grow_ncache(const int /*off_flag*/,
                                              const int nthreads)
 {
   const int nsize = get_max_nbors() * 3;

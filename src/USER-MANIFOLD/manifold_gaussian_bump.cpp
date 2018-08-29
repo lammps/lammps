@@ -25,7 +25,6 @@ public:
 
   cubic_hermite( double x0, double x1, double y0, double y1,
                  double yp0, double yp1, LAMMPS_NS::Error *err ) :
-    x0(x0), x1(x1), y0(y0), y1(y1), yp0(yp0), yp1(yp1),
     a(  2*x0 + 2 - 2*x1 ),
     b( -3*x0 - 3 + 3*x1 ),
     c( 1.0 ),
@@ -34,6 +33,7 @@ public:
     u( -3*y0 + 3*y1 - 2*yp0 - yp1  ),
     v(  yp0  ),
     w(  y0 ),
+    x0(x0), x1(x1), y0(y0), y1(y1), yp0(yp0), yp1(yp1),
     err(err)
   {
     test();
@@ -133,7 +133,7 @@ public:
 
 // Manifold itself:
 manifold_gaussian_bump::manifold_gaussian_bump(class LAMMPS* lmp,
-                                               int narg, char **arg)
+                                               int /*narg*/, char **/*arg*/)
         : manifold(lmp), lut_z(NULL), lut_zp(NULL) {}
 
 

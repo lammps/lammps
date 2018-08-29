@@ -485,7 +485,12 @@ if(PKG_MESSAGE)
   option(MESSAGE_ZMQ "Use ZeroMQ in MESSAGE package" OFF)
   file(GLOB_RECURSE cslib_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/message/cslib/*.F
       ${LAMMPS_LIB_SOURCE_DIR}/message/cslib/*.c ${LAMMPS_LIB_SOURCE_DIR}/message/cslib/*.cpp)
-  add_library(cslib STATIC ${cslib_SOURCES})
+
+  if(BUILD_SHARED_LIBS)
+      add_library(cslib SHARED ${cslib_SOURCES})
+  else()
+      add_library(cslib STATIC ${cslib_SOURCES})
+  endif()
 
   if(BUILD_MPI)
     target_compile_definitions(cslib PRIVATE -DMPI_YES)

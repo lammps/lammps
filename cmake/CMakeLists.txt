@@ -486,12 +486,13 @@ if(PKG_MESSAGE)
   file(GLOB_RECURSE cslib_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/message/cslib/*.F
       ${LAMMPS_LIB_SOURCE_DIR}/message/cslib/*.c ${LAMMPS_LIB_SOURCE_DIR}/message/cslib/*.cpp)
   add_library(cslib STATIC ${cslib_SOURCES})
-  set_target_properties(cslib PROPERTIES OUTPUT_NAME "cs")
 
   if(BUILD_MPI)
     target_compile_definitions(cslib PRIVATE -DMPI_YES)
+    set_target_properties(cslib PROPERTIES OUTPUT_NAME "csmpi")
   else()
     target_compile_definitions(cslib PRIVATE -DMPI_NO)
+    set_target_properties(cslib PROPERTIES OUTPUT_NAME "csnompi")
   endif()
 
   if(MESSAGE_ZMQ)

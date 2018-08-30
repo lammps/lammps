@@ -176,7 +176,7 @@ void FixGroup::init()
    assign atoms to group
 ------------------------------------------------------------------------- */
 
-void FixGroup::setup(int vflag)
+void FixGroup::setup(int /*vflag*/)
 {
   set_group();
 }
@@ -192,7 +192,7 @@ void FixGroup::post_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixGroup::post_integrate_respa(int ilevel, int iloop)
+void FixGroup::post_integrate_respa(int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1) post_integrate();
 }
@@ -259,7 +259,7 @@ void FixGroup::set_group()
 
 /* ---------------------------------------------------------------------- */
 
-void *FixGroup::extract(const char *str, int &unused)
+void *FixGroup::extract(const char *str, int &/*unused*/)
 {
   if (strcmp(str,"property") == 0 && propflag) return (void *) idprop;
   if (strcmp(str,"variable") == 0 && varflag) return (void *) idvar;

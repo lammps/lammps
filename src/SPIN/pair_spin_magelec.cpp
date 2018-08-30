@@ -380,7 +380,7 @@ void PairSpinMagelec::compute_single_pair(int ii, double fmi[3])
 
 /* ---------------------------------------------------------------------- */
 
-void PairSpinMagelec::compute_magelec(int i, int j, double rsq, double eij[3], double fmi[3], double spj[3])
+void PairSpinMagelec::compute_magelec(int i, int j, double /*rsq*/, double eij[3], double fmi[3], double spj[3])
 {
   int *type = atom->type;
   int itype, jtype;

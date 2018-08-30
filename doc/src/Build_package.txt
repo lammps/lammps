@@ -59,7 +59,7 @@ packages:
 "USER-QMMM"_Build_extras.html#user-qmmm,
 "USER-QUIP"_Build_extras.html#user-quip,
 "USER-SMD"_Build_extras.html#user-smd,
-"USER-VTK"_Build_extras.html#user-vtk :tb(c=6,ea=c)
+"USER-VTK"_Build_extras.html#user-vtk :tb(c=6,ea=c,a=l)
 
 The mechanism for including packages is simple but different for CMake
 versus make.

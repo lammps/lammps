@@ -337,7 +337,7 @@ the sphere that surrounds each vertex. The diameter value can be
 different for each body particle. These floating-point values can be
 listed on as many lines as you wish; see the
 "read_data"_read_data.html command for more details.  Because the
-maxmimum vertices per face is hard-coded to be 4
+maximum number of vertices per face is hard-coded to be 4
 (i.e. quadrilaterals), faces with more than 4 vertices need to be
 split into triangles or quadrilaterals.  For triangular faces, the
 last vertex index should be set to -1.

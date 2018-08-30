@@ -112,7 +112,7 @@ int FixReaxCBonds::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixReaxCBonds::setup(int vflag)
+void FixReaxCBonds::setup(int /*vflag*/)
 {
   end_of_step();
 }
@@ -137,7 +137,7 @@ void FixReaxCBonds::end_of_step()
 
 /* ---------------------------------------------------------------------- */
 
-void FixReaxCBonds::Output_ReaxC_Bonds(bigint ntimestep, FILE *fp)
+void FixReaxCBonds::Output_ReaxC_Bonds(bigint /*ntimestep*/, FILE * /*fp*/)
 
 {
   int i, j;
@@ -185,7 +185,7 @@ void FixReaxCBonds::Output_ReaxC_Bonds(bigint ntimestep, FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void FixReaxCBonds::FindBond(struct _reax_list *lists, int &numbonds)
+void FixReaxCBonds::FindBond(struct _reax_list * /*lists*/, int &numbonds)
 {
   int *ilist, i, ii, inum;
   int j, pj, nj;

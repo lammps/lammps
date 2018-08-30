@@ -276,6 +276,16 @@ cmake -C ../cmake/presets/std_nolib.cmake -D PKG_GPU=on ../cmake
   </td>
 </tr>
 <tr>
+  <td><code>BUILD_EXE</code></td>
+  <td>control whether to build LAMMPS executable</td>
+  <td>
+  <dl>
+    <dt><code>on</code> (default)</dt>
+    <dt><code>off</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
   <td><code>BUILD_SHARED_LIBS</code></td>
   <td>control whether to build LAMMPS as a shared-library</td>
   <td>

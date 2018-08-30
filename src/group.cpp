@@ -629,7 +629,7 @@ int Group::find_unused()
    do not include molID = 0
 ------------------------------------------------------------------------- */
 
-void Group::add_molecules(int igroup, int bit)
+void Group::add_molecules(int /*igroup*/, int bit)
 {
   // hash = unique molecule IDs of atoms already in group
 

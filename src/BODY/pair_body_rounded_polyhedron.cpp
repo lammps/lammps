@@ -603,7 +603,7 @@ void PairBodyRoundedPolyhedron::sphere_against_sphere(int ibody, int jbody,
 {
   double rradi,rradj,contact_dist;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
-  double rij,rsqinv,R,fx,fy,fz,fn[3],ft[3],fpair,shift,energy;
+  double rij,rsqinv,R,fx,fy,fz,fn[3],ft[3],fpair,energy;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
 
@@ -685,7 +685,7 @@ void PairBodyRoundedPolyhedron::sphere_against_edge(int ibody, int jbody,
 {
   int ni,nei,ifirst,iefirst,npi1,npi2,ibonus;
   double xi1[3],xi2[3],vti[3],h[3],fn[3],ft[3],d,t;
-  double delx,dely,delz,rsq,rij,rsqinv,R,fx,fy,fz,fpair,shift,energy;
+  double delx,dely,delz,rsq,rij,rsqinv,R,fx,fy,fz,fpair,energy;
   double rradi,rradj,contact_dist;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
   double *quat, *inertia;
@@ -835,7 +835,7 @@ void PairBodyRoundedPolyhedron::sphere_against_face(int ibody, int jbody,
 {
   int ni,nfi,inside,ifirst,iffirst,npi1,npi2,npi3,ibonus,tmp;
   double xi1[3],xi2[3],xi3[3],ui[3],vi[3],vti[3],n[3],h[3],fn[3],ft[3],d;
-  double delx,dely,delz,rsq,rij,rsqinv,R,fx,fy,fz,fpair,shift,energy;
+  double delx,dely,delz,rsq,rij,rsqinv,R,fx,fy,fz,fpair,energy;
   double rradi,rradj,contact_dist;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
   double *quat, *inertia;
@@ -988,7 +988,7 @@ int PairBodyRoundedPolyhedron::edge_against_edge(int ibody, int jbody,
   int itype, int jtype, double** x, Contact* contact_list, int &num_contacts,
   double &evdwl, double* facc)
 {
-  int ni,nei,nj,nej,contact,interact;
+  int ni,nei,nj,nej,interact;
   double rradi,rradj,energy;
 
   nei = ednum[ibody];
@@ -1045,7 +1045,7 @@ int PairBodyRoundedPolyhedron::edge_against_face(int ibody, int jbody,
   int itype, int jtype, double** x, Contact* contact_list, int &num_contacts,
   double &evdwl, double* facc)
 {
-  int ni,nei,nj,nfj,contact,interact;
+  int ni,nei,nj,nfj,interact;
   double rradi,rradj,energy;
 
   nei = ednum[ibody];
@@ -1118,7 +1118,7 @@ int PairBodyRoundedPolyhedron::interaction_edge_to_edge(int ibody,
   int ifirst,iefirst,jfirst,jefirst,npi1,npi2,npj1,npj2,interact;
   double xi1[3],xi2[3],xpj1[3],xpj2[3];
   double r,t1,t2,h1[3],h2[3];
-  double contact_dist, shift;
+  double contact_dist;
 
   double** x = atom->x;
   double** v = atom->v;
@@ -1314,7 +1314,7 @@ int PairBodyRoundedPolyhedron::interaction_face_to_edge(int ibody,
 
   // determine the intersection of the edge to the face
 
-  double hi1[3], hi2[3], d1, d2, contact_dist, shift;
+  double hi1[3], hi2[3], d1, d2, contact_dist;
   int inside1 = 0;
   int inside2 = 0;
 
@@ -2345,9 +2345,8 @@ void PairBodyRoundedPolyhedron::find_unique_contacts(Contact* contact_list,
 void PairBodyRoundedPolyhedron::sanity_check()
 {
 
-  double x1[3],x2[3],x3[3],x4[3],h_a[3],h_b[3],d_a,d_b,u[3],v[3],n[3];
+  double x1[3],x2[3],x3[3],x4[3],h_a[3],h_b[3],d_a,d_b;
   double a[3],b[3],t_a,t_b;
-  int inside_a, inside_b;
 
   x1[0] = 0; x1[1] = 3; x1[2] = 0;
   x2[0] = 3; x2[1] = 0; x2[2] = 0;
@@ -2364,9 +2363,11 @@ void PairBodyRoundedPolyhedron::sanity_check()
     h_a[0], h_a[1], h_a[2], h_b[0], h_b[1], h_b[2], t_a, t_b, d_a, d_b);
 */
 /*
+  int inside_a, inside_b;
   int mode = edge_face_intersect(x1, x2, x3, a, b, h_a, h_b, d_a, d_b,
                                  inside_a, inside_b);
 
+  double u[3],v[3],n[3];
   MathExtra::sub3(x2, x1, u);
   MathExtra::sub3(x3, x1, v);
   MathExtra::cross3(u, v, n);

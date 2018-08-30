@@ -297,7 +297,7 @@ lib/gpu/README
 "Section 2.6 -sf gpu"_Run_options.html
 "Section 2.6 -pk gpu"_Run_options.html
 "package gpu"_package.html
-"Commands all"_Commands_all.html pages (pair,kspace) for styles followed by (g)
+"Commands all"_lc pages (pair,kspace) for styles followed by (g)
 "Benchmarks page"_http://lammps.sandia.gov/bench.html of web site :ul
 
 :line
@@ -382,6 +382,11 @@ switches"_Run_options.html.  Also see the "GPU"_#PKG-GPU, "OPT"_#PKG-OPT,
 have styles optimized for CPUs, KNLs, and GPUs.
 
 You must have a C++11 compatible compiler to use this package.
+KOKKOS makes extensive use of advanced C++ features, which can
+expose compiler bugs, especially when compiling for maximum
+performance at high optimization levels. Please see the file
+lib/kokkos/README for a list of compilers and their respective
+platforms, that are known to work.
 
 [Authors:] The KOKKOS package was created primarily by Christian Trott
 and Stan Moore (Sandia), with contributions from other folks as well.
@@ -407,7 +412,7 @@ lib/kokkos/README
 "Section 2.6 -sf kk"_Run_options.html
 "Section 2.6 -pk kokkos"_Run_options.html
 "package kokkos"_package.html
-"Commands all"_Commands_all.html pages (fix,compute,pair,etc) for styles followed by (k)
+"Commands all"_lc pages (fix,compute,pair,etc) for styles followed by (k)
 "Benchmarks page"_http://lammps.sandia.gov/bench.html of web site :ul
 
 :line
@@ -846,7 +851,7 @@ multi-replica simulations in LAMMPS.  Methods in the package include
 nudged elastic band (NEB), parallel replica dynamics (PRD),
 temperature accelerated dynamics (TAD), parallel tempering, and a
 verlet/split algorithm for performing long-range Coulombics on one set
-of processors, and the remainder of the force field calcalation on
+of processors, and the remainder of the force field calculation on
 another set.
 
 [Supporting info:]
@@ -869,7 +874,7 @@ RIGID package :link(PKG-RIGID),h4
 [Contents:]
 
 Fixes which enforce rigid constraints on collections of atoms or
-particles.  This includes SHAKE and RATTLE, as well as varous
+particles.  This includes SHAKE and RATTLE, as well as various
 rigid-body integrators for a few large bodies or many small bodies.
 Also several computes which calculate properties of rigid bodies.
 
@@ -1365,7 +1370,7 @@ which have styles optimized for CPUs and KNLs.
 
 You need to have an Intel compiler, version 14 or higher to take full
 advantage of this package. While compilation with GNU compilers is
-supported, performance will be suboptimal.
+supported, performance will be sub-optimal.
 
 NOTE: the USER-INTEL package contains styles that require using the
 -restrict flag, when compiling with Intel compilers.
@@ -1387,7 +1392,7 @@ src/USER-INTEL/README
 "Section 2.6 -sf intel"_Run_options.html
 "Section 2.6 -pk intel"_Run_options.html
 "package intel"_package.html
-"Commands all"_Commands_all.html pages (fix,compute,pair,etc) for styles followed by (i)
+"Commands all"_lc pages (fix,compute,pair,etc) for styles followed by (i)
 src/USER-INTEL/TEST
 "Benchmarks page"_http://lammps.sandia.gov/bench.html of web site :ul
 
@@ -1577,8 +1582,6 @@ molecular visualization and analysis program, to enable LAMMPS to dump
 snapshots in formats compatible with various molecular simulation
 tools.
 
-:link(vmd_home,http://www.ks.uiuc.edu/Research/vmd)
-
 To use this package you must have the desired VMD plugins available on
 your system.
 
@@ -1588,7 +1591,7 @@ plugin via the "dump molfile"_dump_molfile.html command.  Plugins can
 be obtained from a VMD installation which has to match the platform
 that you are using to compile LAMMPS for. By adding plugins to VMD,
 support for new file formats can be added to LAMMPS (or VMD or other
-programs that use them) without having to recompile the application
+programs that use them) without having to re-compile the application
 itself.  More information about the VMD molfile plugins can be found
 at
 "http://www.ks.uiuc.edu/Research/vmd/plugins/molfile"_http://www.ks.uiuc.edu/Research/vmd/plugins/molfile.
@@ -1630,6 +1633,7 @@ tools:
 "AtomEye"_atomeye (the libAtoms version of AtomEye contains a NetCDF reader not present in the standard distribution) :ul
 
 :link(ovito,http://www.ovito.org)
+:link(vmd_home,https://www.ks.uiuc.edu/Research/vmd/)
 :link(atomeye,http://www.libatoms.org)
 
 [Author:] Lars Pastewka (Karlsruhe Institute of Technology).
@@ -1693,7 +1697,7 @@ src/USER-OMP/README
 "Section 2.6 -sf omp"_Run_options.html
 "Section 2.6 -pk omp"_Run_options.html
 "package omp"_package.html
-"Commands all"_Commands_all.html pages (fix,compute,pair,etc) for styles followed by (o)
+"Commands all"_lc pages (fix,compute,pair,etc) for styles followed by (o)
 "Benchmarks page"_http://lammps.sandia.gov/bench.html of web site :ul
 
 :line
@@ -1993,3 +1997,5 @@ src/USER-VTK: filenames -> commands
 src/USER-VTK/README
 lib/vtk/README
 "dump vtk"_dump_vtk.html :ul
+
+

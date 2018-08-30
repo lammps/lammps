@@ -135,24 +135,24 @@ class IntelBuffers {
 
   void set_ntypes(const int ntypes, const int use_ghost_cut = 0);
 
-  inline int * firstneigh(const NeighList *list) { return _list_alloc; }
-  inline int * cnumneigh(const NeighList *list) { return _cnumneigh; }
+  inline int * firstneigh(const NeighList * /*list*/) { return _list_alloc; }
+  inline int * cnumneigh(const NeighList * /*list*/) { return _cnumneigh; }
   inline int * get_atombin() { return _atombin; }
   inline int * get_binpacked() { return _binpacked; }
 
-  inline atom_t * get_x(const int offload = 1) {
+  inline atom_t * get_x(const int /*offload*/ = 1) {
     #ifdef _LMP_INTEL_OFFLOAD
     if (_separate_buffers && offload == 0) return _host_x;
     #endif
     return _x;
   }
-  inline flt_t * get_q(const int offload = 1) {
+  inline flt_t * get_q(const int /*offload*/ = 1) {
     #ifdef _LMP_INTEL_OFFLOAD
     if (_separate_buffers && offload == 0) return _host_q;
     #endif
     return _q;
   }
-  inline quat_t * get_quat(const int offload = 1) {
+  inline quat_t * get_quat(const int /*offload*/ = 1) {
     #ifdef _LMP_INTEL_OFFLOAD
     if (_separate_buffers && offload == 0) return _host_quat;
     #endif

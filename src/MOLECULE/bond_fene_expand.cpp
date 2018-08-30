@@ -253,7 +253,7 @@ void BondFENEExpand::write_data(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double BondFENEExpand::single(int type, double rsq, int i, int j,
+double BondFENEExpand::single(int type, double rsq, int /*i*/, int /*j*/,
                         double &fforce)
 {
   double r = sqrt(rsq);

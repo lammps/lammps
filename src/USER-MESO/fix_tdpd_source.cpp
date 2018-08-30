@@ -88,7 +88,7 @@ void FixTDPDSource::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixTDPDSource::post_force(int vflag)
+void FixTDPDSource::post_force(int /*vflag*/)
 {
   double **x = atom->x;
   double **cc_flux = atom->cc_flux;

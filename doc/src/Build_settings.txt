@@ -80,8 +80,8 @@ per-timestep CPU cost, FFTs are only a portion of long-range
 Coulombics, and 1d FFTs are only a portion of the FFT cost (parallel
 communication can be costly).  A breakdown of these timings is printed
 to the screen at the end of a run using the "kspace_style
-pppm"_kspace_style.html command.  The "Run output"_doc page gives more
-details.
+pppm"_kspace_style.html command.  The "Run output"_Run_output.html
+doc page gives more details.
 
 FFTW is a fast, portable FFT library that should also work on any
 platform and can be faster than the KISS FFT library.  You can
@@ -101,7 +101,7 @@ Performing 3d FFTs in parallel can be time consuming due to data
 access and required communication.  This cost can be reduced by
 performing single-precision FFTs instead of double precision.  Single
 precision means the real and imaginary parts of a complex datum are
-4-byte floats.  Double precesion means they are 8-byte doubles.  Note
+4-byte floats.  Double precision means they are 8-byte doubles.  Note
 that Fourier transform and related PPPM operations are somewhat less
 sensitive to floating point truncation errors and thus the resulting
 error is less than the difference in precision. Using the -DFFT_SINGLE
@@ -193,7 +193,7 @@ Output of JPG, PNG, and movie files :h4,link(graphics)
 
 The "dump image"_dump_image.html command has options to output JPEG or
 PNG image files.  Likewise the "dump movie"_dump_image.html command
-ouputs movie files in MPEG format.  Using these options requires the
+outputs movie files in MPEG format.  Using these options requires the
 following settings:
 
 [CMake variables]:
@@ -206,7 +206,7 @@ following settings:
                           # default = yes if CMake can find ffmpeg, else no :pre
 
 Usually these settings are all that is needed.  If CMake cannot find
-the graphics header, library, executuable files, you can set these
+the graphics header, library, executable files, you can set these
 variables:
 
 -D JPEG_INCLUDE_DIR=path    # path to jpeglib.h header file 

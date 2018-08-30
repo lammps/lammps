@@ -17,7 +17,7 @@ variety of interatomic potentials (force fields) and boundary
 conditions.  It can model 2d or 3d systems with only a few particles
 up to millions or billions.
 
-LAMMPS can be built and run on a laptop or destop machine, but is
+LAMMPS can be built and run on a laptop or desktop machine, but is
 designed for parallel computers.  It will run on any parallel machine
 that supports the "MPI"_mpi message-passing library.  This includes
 shared-memory boxes and distributed-memory clusters and
@@ -45,7 +45,7 @@ nature; some long-range models are included as well.
 LAMMPS uses neighbor lists to keep track of nearby particles.  The
 lists are optimized for systems with particles that are repulsive at
 short distances, so that the local density of particles never becomes
-too large.  This is in contrast to methods used for modeling plasmas
+too large.  This is in contrast to methods used for modeling plasma
 or gravitational bodies (e.g. galaxy formation).
 
 On parallel machines, LAMMPS uses spatial-decomposition techniques to

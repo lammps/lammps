@@ -258,7 +258,7 @@ void FixNVESpin::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVESpin::initial_integrate(int vflag)
+void FixNVESpin::initial_integrate(int /*vflag*/)
 {
   double dtfm;
 	

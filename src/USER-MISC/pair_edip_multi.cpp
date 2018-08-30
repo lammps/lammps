@@ -516,7 +516,7 @@ void PairEDIPMulti::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairEDIPMulti::settings(int narg, char **arg)
+void PairEDIPMulti::settings(int narg, char **/*arg*/)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 }

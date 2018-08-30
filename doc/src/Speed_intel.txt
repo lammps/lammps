@@ -68,7 +68,7 @@ In most molecular dynamics software, parallelization parameters
 to changing the order of operations with finite-precision
 calculations. The USER-INTEL package is deterministic. This means
 that the results should be reproducible from run to run with the
-{same} parallel configurations and when using determinstic
+{same} parallel configurations and when using deterministic
 libraries or library settings (MPI, OpenMP, FFT). However, there
 are differences in the USER-INTEL package that can change the
 order of operations compared to LAMMPS without acceleration:
@@ -400,7 +400,7 @@ within the input script to automatically append the "omp" suffix to
 styles when USER-INTEL styles are not available.
 
 NOTE: For simulations on higher node counts, add "processors * * * 
-grid numa"_processors.html" to the beginning of the input script for
+grid numa"_processors.html to the beginning of the input script for
 better scalability.
 
 When running on many nodes, performance might be better when using

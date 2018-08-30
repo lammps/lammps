@@ -14,7 +14,7 @@ fix ID group-ID dt/reset N Tmin Tmax Xmax keyword values ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command
 dt/reset = style name of this fix command
-N = recompute dt every N timesteps
+N = re-compute dt every N timesteps
 Tmin = minimum dt allowed which can be NULL (time units)
 Tmax = maximum dt allowed which can be NULL (time units)
 Xmax = maximum distance for an atom to move in one timestep (distance units)

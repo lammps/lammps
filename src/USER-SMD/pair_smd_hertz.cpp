@@ -373,7 +373,7 @@ double PairHertz::memory_usage() {
         return 0.0;
 }
 
-void *PairHertz::extract(const char *str, int &i) {
+void *PairHertz::extract(const char *str, int &/*i*/) {
         //printf("in PairTriSurf::extract\n");
         if (strcmp(str, "smd/hertz/stable_time_increment_ptr") == 0) {
                 return (void *) &stable_time_increment;

@@ -325,7 +325,7 @@ void FixSAEDVTK::init()
    only does something if nvalid = current timestep
 ------------------------------------------------------------------------- */
 
-void FixSAEDVTK::setup(int vflag)
+void FixSAEDVTK::setup(int /*vflag*/)
 {
   end_of_step();
 }

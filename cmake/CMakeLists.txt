@@ -276,11 +276,14 @@ endif()
 
 if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-QUIP OR PKG_LATTE)
   find_package(LAPACK)
-  if(NOT LAPACK_FOUND)
+  find_package(BLAS)
+  if(NOT LAPACK_FOUND OR NOT BLAS_FOUND)
     enable_language(Fortran)
     file(GLOB LAPACK_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/linalg/*.[fF])
     add_library(linalg STATIC ${LAPACK_SOURCES})
     set(LAPACK_LIBRARIES linalg)
+  else()
+    list(APPEND LAPACK_LIBRARIES ${BLAS_LIBRARIES})
   endif()
 endif()
 
@@ -377,6 +380,9 @@ endif()
 if(PKG_LATTE)
   option(DOWNLOAD_LATTE "Download latte (instead of using the system's one)" OFF)
   if(DOWNLOAD_LATTE)
+    if (CMAKE_VERSION VERSION_LESS "3.7") # due to SOURCE_SUBDIR 
+      message(FATAL_ERROR "For downlading LATTE you need at least cmake-3.7")
+    endif()
     message(STATUS "LATTE not found - we will build our own")
     include(ExternalProject)
     ExternalProject_Add(latte_build
@@ -479,6 +485,9 @@ if(PKG_MSCG)
   find_package(GSL REQUIRED)
   option(DOWNLOAD_MSCG "Download latte (instead of using the system's one)" OFF)
   if(DOWNLOAD_MSCG)
+    if (CMAKE_VERSION VERSION_LESS "3.7") # due to SOURCE_SUBDIR 
+      message(FATAL_ERROR "For downlading LATTE you need at least cmake-3.7")
+    endif()
     include(ExternalProject)
     if(NOT LAPACK_FOUND)
       set(EXTRA_MSCG_OPTS "-DLAPACK_LIBRARIES=${CMAKE_CURRENT_BINARY_DIR}/liblinalg.a")
@@ -669,7 +678,9 @@ if(PKG_USER-OMP)
     set(USER-OMP_SOURCES ${USER-OMP_SOURCES_DIR}/thr_data.cpp
                          ${USER-OMP_SOURCES_DIR}/thr_omp.cpp
                          ${USER-OMP_SOURCES_DIR}/fix_nh_omp.cpp
-                         ${USER-OMP_SOURCES_DIR}/fix_nh_sphere_omp.cpp)
+                         ${USER-OMP_SOURCES_DIR}/fix_nh_sphere_omp.cpp
+                         ${USER-OMP_SOURCES_DIR}/domain_omp.cpp)
+    add_definitions(-DLMP_USER_OMP)
     set_property(GLOBAL PROPERTY "OMP_SOURCES" "${USER-OMP_SOURCES}")
 
     # detects styles which have USER-OMP version
@@ -1002,7 +1013,9 @@ include_directories(${LAMMPS_STYLE_HEADERS_DIR})
 ######################################
 set(temp "#ifndef LMP_INSTALLED_PKGS_H\n#define LMP_INSTALLED_PKGS_H\n")
 set(temp "${temp}const char * LAMMPS_NS::LAMMPS::installed_packages[] =  {\n")
-foreach(PKG ${DEFAULT_PACKAGES} ${ACCEL_PACKAGES} ${OTHER_PACKAGES})
+set(temp_PKG_LIST ${DEFAULT_PACKAGES} ${ACCEL_PACKAGES} ${OTHER_PACKAGES})
+list(SORT temp_PKG_LIST)
+foreach(PKG ${temp_PKG_LIST})
     if(PKG_${PKG})
         set(temp "${temp}  \"${PKG}\",\n")
     endif()
@@ -1052,6 +1065,7 @@ if(BUILD_EXE)
   
   set_target_properties(lmp PROPERTIES OUTPUT_NAME lmp${LAMMPS_MACHINE})
   install(TARGETS lmp DESTINATION ${CMAKE_INSTALL_BINDIR})
+  install(FILES ${LAMMPS_DOC_DIR}/lammps.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 RENAME lmp${LAMMPS_MACHINE}.1)
   if(ENABLE_TESTING)
     add_test(ShowHelp lmp${LAMMPS_MACHINE} -help)
   endif()
@@ -1121,7 +1135,7 @@ endif()
 # Install potential files in data directory
 ###############################################################################
 set(LAMMPS_POTENTIALS_DIR ${CMAKE_INSTALL_FULL_DATADIR}/lammps/potentials)
-install(DIRECTORY ${LAMMPS_SOURCE_DIR}/../potentials DESTINATION ${CMAKE_INSTALL_DATADIR}/lammps/potentials)
+install(DIRECTORY ${LAMMPS_SOURCE_DIR}/../potentials/ DESTINATION ${LAMMPS_POTENTIALS_DIR})
 
 configure_file(etc/profile.d/lammps.sh.in ${CMAKE_BINARY_DIR}/etc/profile.d/lammps.sh @ONLY)
 configure_file(etc/profile.d/lammps.csh.in ${CMAKE_BINARY_DIR}/etc/profile.d/lammps.csh @ONLY)

@@ -126,8 +126,9 @@ void PPPMDipole::init()
   if (triclinic != domain->triclinic)
     error->all(FLERR,"Must redefine kspace_style after changing to triclinic box");
 
-  if (domain->dimension == 2) error->all(FLERR,
-                                         "Cannot use PPPMDipole with 2d simulation");
+  if (domain->dimension == 2)
+    error->all(FLERR,"Cannot use PPPMDipole with 2d simulation");
+
   if (comm->style != 0)
     error->universe_all(FLERR,"PPPMDipole can only currently be used with "
                         "comm_style brick");
@@ -175,7 +176,7 @@ void PPPMDipole::init()
   if (tip4pflag)
     error->all(FLERR,"Cannot yet use TIP4P with PPPMDipole");
 
-  // compute qsum & qsqsum and warn if not charge-neutral
+  // compute musum & musqsum and warn if no dipoles
 
   scale = 1.0;
   qqrd2e = force->qqrd2e;
@@ -794,7 +795,6 @@ void PPPMDipole::deallocate_peratom()
    used for charge accumulation, FFTs, and electric field interpolation
 ------------------------------------------------------------------------- */
 
-//void PPPMDipole::set_grid_global(double dipole2)
 void PPPMDipole::set_grid_global()
 {
   // use xprd,yprd,zprd

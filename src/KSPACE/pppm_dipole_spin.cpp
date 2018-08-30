@@ -710,10 +710,8 @@ void PPPMDipoleSpin::slabcorr()
   // add on mag. force corrections
 
   double ffact = spscale * (-4.0*MY_PI/volume);
-  //double **fm = atom->fm;
   double **fm_long = atom->fm_long;
   for (int i = 0; i < nlocal; i++) {
-    //fm[i][2] += ffact * spin_all;
     fm_long[i][2] += ffact * spin_all;
   }
 }

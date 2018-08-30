@@ -11,7 +11,7 @@ boundary 	p p p
 atom_modify 	map array 
 
 lattice 	hcp 2.5071
-region 		box block 0.0 20.0 0.0 20.0 0.0 8.0
+region 		box block 0.0 8.0 0.0 8.0 0.0 8.0
 create_box 	1 box
 create_atoms 	1 box
 
@@ -33,7 +33,7 @@ neighbor 	0.1 bin
 neigh_modify 	every 10 check yes delay 20
 
 kspace_style pppm/dipole/spin 1.0e-4
-
+kspace_modify mesh 32 32 32
 #fix 		1 all precession/spin zeeman 1.0 0.0 0.0 1.0
 fix 		1 all precession/spin zeeman 0.0 0.0 0.0 1.0
 fix 		2 all langevin/spin 0.0 0.0 21
@@ -58,4 +58,5 @@ thermo          10
 compute 	outsp all property/atom spx spy spz sp fmx fmy fmz
 dump 		100 all custom 1 dump_cobalt_hcp.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3]
 
-run 		20000
+#run 		20000
+run 		1

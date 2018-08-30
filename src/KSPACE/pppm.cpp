@@ -100,9 +100,6 @@ PPPM::PPPM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg),
   nyhi_in = nylo_in = nyhi_out = nylo_out = 0;
   nzhi_in = nzlo_in = nzhi_out = nzlo_out = 0;
 
-  // test 
-  nlower = nupper = 0;
-
   density_brick = vdx_brick = vdy_brick = vdz_brick = NULL;
   density_fft = NULL;
   u_brick = NULL;

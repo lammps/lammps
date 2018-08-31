@@ -406,6 +406,7 @@ compute_bond.html
 compute_bond_local.html
 compute_centro_atom.html
 compute_chunk_atom.html
+compute_chunk_spread_atom.html
 compute_cluster_atom.html
 compute_cna_atom.html
 compute_cnp_atom.html
@@ -463,6 +464,7 @@ compute_property_chunk.html
 compute_property_local.html
 compute_rdf.html
 compute_reduce.html
+compute_reduce_chunk.html
 compute_rigid_local.html
 compute_saed.html
 compute_slice.html

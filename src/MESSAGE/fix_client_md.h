@@ -40,7 +40,7 @@ class FixClientMD : public Fix {
   int maxatom,units,server_error;
   double eng;
   double inv_nprocs;
-  double fconvert,econvert,vconvert;
+  double fconvert,econvert,pconvert;
   double box[3][3];
   double *xpbc;
 

@@ -588,7 +588,7 @@ void FixBondReact::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixBondReact::init_list(int id, NeighList *ptr)
+void FixBondReact::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }
@@ -1558,7 +1558,6 @@ void FixBondReact::find_landlocked_atoms(int myrxn)
   // would someone want to change an angle type but not bond or atom types? (etc.) ...hopefully not yet
   for (int i = 0; i < twomol->natoms; i++) {
     if (landlocked_atoms[i][myrxn] == 0) {
-      int twomol_atomi = i+1;
       for (int j = 0; j < twomol->num_bond[i]; j++) {
         int twomol_atomj = twomol->bond_atom[i][j];
         if (landlocked_atoms[twomol_atomj-1][myrxn] == 0) {
@@ -1862,13 +1861,13 @@ void FixBondReact::glove_ghostcheck()
   // noteworthy: it's only relevant for parallel
 
   // here we add glove to either local_mega_glove or ghostly_mega_glove
-  int ghostly = 0;
-  for (int i = 0; i < onemol->natoms; i++) {
-    if (atom->map(glove[i][1]) >= atom->nlocal) {
-      ghostly = 1;
-      break;
-    }
-  }
+  int ghostly = 1;
+  //for (int i = 0; i < onemol->natoms; i++) {
+  //  if (atom->map(glove[i][1]) >= atom->nlocal) {
+  //    ghostly = 1;
+  //    break;
+  //  }
+  //}
 
   if (ghostly == 1) {
     ghostly_mega_glove[0][ghostly_num_mega] = rxnID;
@@ -2621,7 +2620,7 @@ double FixBondReact::compute_vector(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixBondReact::post_integrate_respa(int ilevel, int iloop)
+void FixBondReact::post_integrate_respa(int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1) post_integrate();
 }
@@ -2629,7 +2628,7 @@ void FixBondReact::post_integrate_respa(int ilevel, int iloop)
 /* ---------------------------------------------------------------------- */
 
 int FixBondReact::pack_forward_comm(int n, int *list, double *buf,
-                                    int pbc_flag, int *pbc)
+                                    int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,k,m,ns;
 

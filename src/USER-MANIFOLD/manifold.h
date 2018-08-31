@@ -61,7 +61,7 @@ namespace user_manifold {
 
     virtual const char *id() = 0;
 
-    virtual void set_atom_id( tagint a_id ){}
+    virtual void set_atom_id( tagint /*a_id*/ ){}
     virtual int nparams() = 0;
     // double *get_params(){ return params; };
 

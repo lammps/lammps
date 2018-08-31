@@ -618,7 +618,7 @@ void FixRigidNHSmall::initial_integrate(int vflag)
 
 void FixRigidNHSmall::final_integrate()
 {
-  int i,ibody;
+  int ibody;
   double tmp,scale_t[3],scale_r;
   double dtfm;
   double mbody[3],tbody[3],fquat[4];

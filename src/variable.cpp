@@ -733,7 +733,7 @@ int Variable::find(char *name)
    called when atom is created
 ------------------------------------------------------------------------- */
 
-void Variable::set_arrays(int i)
+void Variable::set_arrays(int /*i*/)
 {
   for (int i = 0; i < nvar; i++)
     if (reader[i] && style[i] == ATOMFILE)
@@ -3733,7 +3733,7 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
 
   if (strcmp(word,"count") == 0) {
     if (narg == 1) value = group->count(igroup);
-    else if (narg == 2) 
+    else if (narg == 2)
       value = group->count(igroup,region_function(args[1],ivar));
     else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
 
@@ -3744,7 +3744,7 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
 
   } else if (strcmp(word,"charge") == 0) {
     if (narg == 1) value = group->charge(igroup);
-    else if (narg == 2) 
+    else if (narg == 2)
       value = group->charge(igroup,region_function(args[1],ivar));
     else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
 
@@ -3795,7 +3795,7 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
   } else if (strcmp(word,"bound") == 0) {
     double minmax[6];
     if (narg == 2) group->bounds(igroup,minmax);
-    else if (narg == 3) 
+    else if (narg == 3)
       group->bounds(igroup,minmax,region_function(args[2],ivar));
     else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
     if (strcmp(args[1],"xmin") == 0) value = minmax[0];
@@ -3959,7 +3959,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
                                double *argstack, int &nargstack, int ivar)
 {
   bigint sx,sxx;
-  double value,xvalue,sy,sxy;
+  double value,sy,sxy;
 
   // word not a match to any special function
 
@@ -4055,7 +4055,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
       } else index = 0;
 
       int ifix = modify->find_fix(&args[0][2]);
-      if (ifix < 0) 
+      if (ifix < 0)
         print_var_error(FLERR,"Invalid fix ID in variable formula",ivar);
       fix = modify->fix[ifix];
       if (index == 0 && fix->vector_flag) {

@@ -372,7 +372,7 @@ void PairMEAMSWSpline::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairMEAMSWSpline::settings(int narg, char **arg)
+void PairMEAMSWSpline::settings(int narg, char **/*arg*/)
 {
   if(narg != 0) error->all(FLERR,"Illegal pair_style command");
 }
@@ -552,7 +552,7 @@ void PairMEAMSWSpline::init_list(int id, NeighList *ptr)
 /* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
-double PairMEAMSWSpline::init_one(int i, int j)
+double PairMEAMSWSpline::init_one(int /*i*/, int /*j*/)
 {
         return cutoff;
 }
@@ -560,7 +560,7 @@ double PairMEAMSWSpline::init_one(int i, int j)
 /* ---------------------------------------------------------------------- */
 
 int PairMEAMSWSpline::pack_forward_comm(int n, int *list, double *buf,
-                                        int pbc_flag, int *pbc)
+                                        int /*pbc_flag*/, int * /*pbc*/)
 {
         int* list_iter = list;
         int* list_iter_end = list + n;
@@ -578,14 +578,14 @@ void PairMEAMSWSpline::unpack_forward_comm(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int PairMEAMSWSpline::pack_reverse_comm(int n, int first, double *buf)
+int PairMEAMSWSpline::pack_reverse_comm(int /*n*/, int /*first*/, double * /*buf*/)
 {
         return 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairMEAMSWSpline::unpack_reverse_comm(int n, int *list, double *buf)
+void PairMEAMSWSpline::unpack_reverse_comm(int /*n*/, int * /*list*/, double * /*buf*/)
 {
 }
 

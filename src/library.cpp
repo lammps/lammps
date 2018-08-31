@@ -336,7 +336,7 @@ void lammps_free(void *ptr)
    customize by adding names
 ------------------------------------------------------------------------- */
 
-int lammps_extract_setting(void *ptr, char *name)
+int lammps_extract_setting(void * /*ptr*/, char *name)
 {
   if (strcmp(name,"bigint") == 0) return sizeof(bigint);
   if (strcmp(name,"tagint") == 0) return sizeof(tagint);
@@ -1515,7 +1515,7 @@ void lammps_create_atoms(void *ptr, int n, tagint *id, int *type,
     if (lmp->atom->natoms != natoms_prev + n) {
       char str[128];
       sprintf(str,"Library warning in lammps_create_atoms, "
-              "invalid total atoms %ld %ld",lmp->atom->natoms,natoms_prev+n);
+              "invalid total atoms " BIGINT_FORMAT " %lld",lmp->atom->natoms,natoms_prev+n);
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR,str);
     }

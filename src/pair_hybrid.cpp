@@ -844,7 +844,7 @@ void PairHybrid::modify_params(int narg, char **arg)
    store a local per pair style override for special_lj and special_coul
 ------------------------------------------------------------------------- */
 
-void PairHybrid::modify_special(int m, int narg, char **arg)
+void PairHybrid::modify_special(int m, int /*narg*/, char **arg)
 {
   double special[4];
   int i;

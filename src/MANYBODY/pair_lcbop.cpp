@@ -121,7 +121,7 @@ void PairLCBOP::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairLCBOP::settings(int narg, char **arg) {
+void PairLCBOP::settings(int narg, char **/*arg*/) {
   if( narg != 0 ) error->all(FLERR,"Illegal pair_style command");
 }
 
@@ -353,7 +353,7 @@ void PairLCBOP::SR_neigh()
   Short range forces and energy
 ------------------------------------------------------------------------- */
 
-void PairLCBOP::FSR(int eflag, int vflag)
+void PairLCBOP::FSR(int eflag, int /*vflag*/)
 {
   int i,j,jj,ii,inum;
   tagint itag,jtag;
@@ -449,7 +449,7 @@ void PairLCBOP::FSR(int eflag, int vflag)
    compute long range forces and energy
 ------------------------------------------------------------------------- */
 
-void PairLCBOP::FLR(int eflag, int vflag)
+void PairLCBOP::FLR(int eflag, int /*vflag*/)
 {
   int i,j,jj,ii;
   tagint itag,jtag;

@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Region::Region(LAMMPS *lmp, int narg, char **arg) :
+Region::Region(LAMMPS *lmp, int /*narg*/, char **arg) :
   Pointers(lmp),
   id(NULL), style(NULL), contact(NULL), list(NULL),
   xstr(NULL), ystr(NULL), zstr(NULL), tstr(NULL)

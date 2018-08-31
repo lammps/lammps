@@ -98,7 +98,8 @@ compute 10 all chunk/spread/atom mychunk c_com\[1\] c_com\[2\] c_com\[3\] :pre
 :line
 
 Here is an example of writing a dump file the with the center-of-mass
-(COM) for the chunk each atom is in:
+(COM) for the chunk each atom is in.  The commands below can be added
+to the bench/in.chain script.
 
 compute         cmol all chunk/atom molecule
 compute         com all com/chunk cmol
@@ -124,10 +125,10 @@ calculation, so that the effect of periodic boundaries is accounted
 for properly.
 
 Over time this applied force could shrink each polymer chain's radius
-of gyration in a polymer mixture simulation.  Here is output after
-adding the above lines to the bench/in.chain script.  The thermo
-output is shown for 1000 steps, where the last column is the average
-radius of gyration over all 320 chains in the 32000 atom system:
+of gyration in a polymer mixture simulation.  Here is output from the
+bench/in.chain script.  Thermo output is shown for 1000 steps, where
+the last column is the average radius of gyration over all 320 chains
+in the 32000 atom system:
 
 compute         gyr all gyration/chunk cmol
 variable        ave equal ave(c_gyr)

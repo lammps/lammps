@@ -105,13 +105,13 @@ Mpi/one mode of messaging:
 
 Launch LAMMPS twice in a single mpirun command:
 
-% mpirun -np 2 lmp_mpi -mpi 0 -in in.message.client -v mode mpione -log log.client : -np 4 lmp_mpi -mpi 1 -in in.message.server -v mode mpione -log log.server
+% mpirun -np 2 lmp_mpi -mpicolor 0 -in in.message.client -v mode mpione -log log.client : -np 4 lmp_mpi -mpicolor 1 -in in.message.server -v mode mpione -log log.server
 
 Or run with in.message.tilt.client/server.
 
 The two -np values determine how many procs the client and the server
 run on.
 
-A LAMMPS executable run in this manner must use the -mpi color
-command-line option as their first option, where color is set to
-one integer value for the 1st app, and another value for the 2nd app.
+A LAMMPS executable run in this manner must use the -mpicolor color
+command-line option as its first option, where color is set to one
+integer value for the 1st app, and another value for the 2nd app.

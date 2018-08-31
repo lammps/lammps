@@ -119,12 +119,13 @@ For message exchange in {mpi/one} mode:
 
 Launch both codes in a single mpirun command:
 
-mpirun -np 2 lmp_mpi -mpi 2 -in in.message.client -log log.client : -np 4 lmp_mpi -mpi 2 -in in.message.server -log log.server
+mpirun -np 2 lmp_mpi -mpicolor 0 -in in.message.client -log log.client : -np 4 lmp_mpi -mpicolor 1 -in in.message.server -log log.server
 
 The two -np values determine how many procs the client and the server
 run on.
 
-A LAMMPS executable run in this manner must use the -mpi P
-command-line option as their first option, where P is the number of
-processors the first code in the mpirun command (client or server) is
-running on.
+A LAMMPS executable run in this manner must use the -mpicolor color
+command-line option as their its option, where color is an integer
+label that will be used to distinguish one executable from another in
+the multiple executables that the mpirun command launches.  In this
+example the client was colored with a 0, and the server with a 1.

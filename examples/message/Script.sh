@@ -13,7 +13,7 @@ mpirun -np 1 lmp_mpi -v mode zmq -log log.message.server.zmq.g++.1 < in.message.
 mpirun -np 1 lmp_mpi -v mode mpitwo -log log.message.client.mpitwo.g++.1 < in.message.client & 
 mpirun -np 1 lmp_mpi -v mode mpitwo -log log.message.server.mpitwo.g++.1 < in.message.server
 
-mpirun -np 1 lmp_mpi -mpi 0 -in in.message.client -v mode mpione -log log.message.client.mpione.g++.1 : -np 1 lmp_mpi -mpi 1 -in in.message.server -v mode mpione -log log.message.server.mpione.g++.1 
+mpirun -np 1 lmp_mpi -m 0 -in in.message.client -v mode mpione -log log.message.client.mpione.g++.1 : -np 1 lmp_mpi -m 1 -in in.message.server -v mode mpione -log log.message.server.mpione.g++.1 
 
 # message on 2/4 procs each
 
@@ -28,7 +28,7 @@ mpirun -np 4 lmp_mpi -v mode zmq -log log.message.server.zmq.g++.4 < in.message.
 mpirun -np 2 lmp_mpi -v mode mpitwo -log log.message.client.mpitwo.g++.2 < in.message.client & 
 mpirun -np 4 lmp_mpi -v mode mpitwo -log log.message.server.mpitwo.g++.4 < in.message.server
 
-mpirun -np 2 lmp_mpi -mpi 0 -in in.message.client -v mode mpione -log log.message.client.mpione.g++.2 : -np 4 lmp_mpi -mpi 1 -in in.message.server -v mode mpione -log log.message.server.mpione.g++.4
+mpirun -np 2 lmp_mpi -m 0 -in in.message.client -v mode mpione -log log.message.client.mpione.g++.2 : -np 4 lmp_mpi -m 1 -in in.message.server -v mode mpione -log log.message.server.mpione.g++.4
 
 # message.tilt on 1 proc each
 
@@ -40,7 +40,7 @@ mpirun -np 1 lmp_mpi -v mode zmq -log log.message.tilt.server.zmq.g++.1 < in.mes
 mpirun -np 1 lmp_mpi -v mode mpitwo -log log.message.tilt.client.mpitwo.g++.1 < in.message.tilt.client & 
 mpirun -np 1 lmp_mpi -v mode mpitwo -log log.message.tilt.server.mpitwo.g++.1 < in.message.tilt.server
 
-mpirun -np 1 lmp_mpi -mpi 0 -in in.message.tilt.client -v mode mpione -log log.message.tilt.client.mpione.g++.1 : -np 1 lmp_mpi -mpi 1 -in in.message.tilt.server -v mode mpione -log log.message.tilt.server.mpione.g++.1 
+mpirun -np 1 lmp_mpi -m 0 -in in.message.tilt.client -v mode mpione -log log.message.tilt.client.mpione.g++.1 : -np 1 lmp_mpi -m 1 -in in.message.tilt.server -v mode mpione -log log.message.tilt.server.mpione.g++.1 
 
 # message.tilt on 2/4 procs each
 
@@ -52,4 +52,4 @@ mpirun -np 4 lmp_mpi -v mode zmq -log log.message.tilt.server.zmq.g++.4 < in.mes
 mpirun -np 2 lmp_mpi -v mode mpitwo -log log.message.tilt.client.mpitwo.g++.2 < in.message.tilt.client & 
 mpirun -np 4 lmp_mpi -v mode mpitwo -log log.message.tilt.server.mpitwo.g++.4 < in.message.tilt.server
 
-mpirun -np 2 lmp_mpi -mpi 0 -in in.message.tilt.client -v mode mpione -log log.message.tilt.client.mpione.g++.2 : -np 4 lmp_mpi -mpi 1 -in in.message.tilt.server -v mode mpione -log log.message.tilt.server.mpione.g++.4
+mpirun -np 2 lmp_mpi -m 0 -in in.message.tilt.client -v mode mpione -log log.message.tilt.client.mpione.g++.2 : -np 4 lmp_mpi -m 1 -in in.message.tilt.server -v mode mpione -log log.message.tilt.server.mpione.g++.4

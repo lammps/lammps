@@ -105,12 +105,12 @@ mode on a parallel machine, e.g. a cluster with many nodes.
 For mode {mpi/one}, the 2 codes communicate via MPI and are launched
 by the same mpirun command, e.g. with this syntax for OpenMPI:
 
-mpirun -np 2 lmp_mpi -mpi 2 -in in.client -log log.client : -np 4 othercode args  # LAMMPS is client
-mpirun -np 2 othercode args : -np 4 lmp_mpi -mpi 2 -in in.server  # LAMMPS is server :pre
+mpirun -np 2 lmp_mpi -mpicolor 0 -in in.client -log log.client : -np 4 othercode args  # LAMMPS is client
+mpirun -np 2 othercode args : -np 4 lmp_mpi -mpicolor 1 -in in.server  # LAMMPS is server :pre
 
-Note the use of the "-mpi P" command-line argument with LAMMPS.  See
-the "command-line args"_Run_options.html doc page for further
-explanation.
+Note the use of the "-mpicolor color" command-line argument with
+LAMMPS.  See the "command-line args"_Run_options.html doc page for
+further explanation.
 
 For mode {mpi/two}, the 2 codes communicate via MPI, but are launched
 be 2 separate mpirun commands.  The specified {filename} argument is a

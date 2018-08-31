@@ -879,6 +879,7 @@ void LAMMPS::help()
           "-in filename                : read input from file, not stdin (-i)\n"
           "-kokkos on/off ...          : turn KOKKOS mode on or off (-k)\n"
           "-log none/filename          : where to send log output (-l)\n"
+          "-mpicolor color             : which exe in a multi-exe mpirun cmd (-m)\n"
           "-nocite                     : disable writing log.cite file (-nc)\n"
           "-package style ...          : invoke package command (-pk)\n"
           "-partition size1 size2 ...  : assign partition sizes (-p)\n"

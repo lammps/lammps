@@ -18,7 +18,7 @@ letter abbreviation can be used:
 "-i or -in"_#file
 "-k or -kokkos"_#run-kokkos
 "-l or -log"_#log
-"-m or -mpi"_#mpi
+"-m or -mpicolor"_#mpicolor
 "-nc or -nocite"_#nocite
 "-pk or -package"_#package
 "-p or -partition"_#partition
@@ -176,7 +176,7 @@ Option -plog will override the name of the partition log files file.N.
 
 :line
 
-[-mpi] color :link(mpi)
+[-mpicolor] color :link(mpi)
 
 If used, this must be the first command-line argument after the LAMMPS
 executable name.  It is only used when LAMMPS is launched by an mpirun

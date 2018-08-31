@@ -37,7 +37,7 @@ using namespace CSLIB_NS;
 enum{OTHER,REAL,METAL};
 enum{SETUP=1,STEP};
 enum{DIM=1,PERIODICITY,ORIGIN,BOX,NATOMS,NTYPES,TYPES,COORDS,UNITS,CHARGE};
-enum{FORCES=1,ENERGY,VIRIAL,ERROR};
+enum{FORCES=1,ENERGY,PRESSURE,ERROR};
 
 /* ---------------------------------------------------------------------- */
 
@@ -58,10 +58,10 @@ ServerMD::ServerMD(LAMMPS *lmp) : Pointers(lmp)
   // otherwise not needed
   // local computation in REAL units, send message in METAL units
 
-  fconvert = econvert = vconvert = 1.0;
+  fconvert = econvert = pconvert = 1.0;
   if (units == REAL) {
-    fconvert = econvert = 1.0 / 23.06035;
-    vconvert = 1.0 / 0.986923;
+    fconvert = econvert = 1.0 / 23.06035;    // Kcal/mole -> eV
+    pconvert = 1.0 / 0.986923;               // atmospheres -> bars
   }
 
   fcopy = NULL;
@@ -339,7 +339,7 @@ void ServerMD::box_change(double *origin, double *box)
 /* ----------------------------------------------------------------------
    return message with forces, energy, pressure tensor
    pressure tensor should be just pair and KSpace contributions
-   required fields: FORCES, ENERGY, VIRIAL
+   required fields: FORCES, ENERGY, PRESSURE
    optional field: ERROR (not ever sending)
 ------------------------------------------------------------------------- */
 
@@ -374,11 +374,16 @@ void ServerMD::send_fev(int msgID)
   double v[6],vall[6];
   for (int i = 0; i < 6; i++)
     v[i] = force->pair->virial[i];
+  MPI_Allreduce(&v,&vall,6,MPI_DOUBLE,MPI_SUM,world);
+
   if (force->kspace)
     for (int i = 0; i < 6; i++)
-      v[i] += force->kspace->virial[i];
+      vall[i] += force->kspace->virial[i];
 
-  for (int i = 0; i < 6; i++) v[i] *= vconvert;
-  MPI_Allreduce(&v,&vall,6,MPI_DOUBLE,MPI_SUM,world);
-  cs->pack(VIRIAL,4,6,vall);
+  double nktv2p = force->nktv2p;
+  double volume = domain->xprd * domain->yprd * domain->zprd;
+  double factor = pconvert / volume * nktv2p;
+  for (int i = 0; i < 6; i++) vall[i] *= factor;
+
+  cs->pack(PRESSURE,4,6,vall);
 }

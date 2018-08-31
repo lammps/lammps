@@ -44,10 +44,11 @@ running {ab initio} MD with quantum forces.
 
 The group associated with this fix is ignored.
 
-The protocol for message format and content that LAMMPS exchanges with
-the server code is defined on the "server md"_server_md.html doc page.
+The protocol and "units"_units.html for message format and content
+that LAMMPS exchanges with the server code is defined on the "server
+md"_server_md.html doc page.
 
-Note that when using LAMMPS in this mode, your LAMMPS input script
+Note that when using LAMMPS as an MD client, your LAMMPS input script
 should not normally contain force field commands, like a
 "pair_style"_doc/pair_style.html, "bond_style"_doc/bond_style.html, or
 "kspace_style"_kspace_style.html commmand.  However it is possible for

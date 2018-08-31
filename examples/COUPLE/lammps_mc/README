@@ -22,25 +22,43 @@ change, and to run dynamics between MC moves.
 
 ----------------
 
-Build LAMMPS and the MC client code
+Build LAMMPS with its MESSAGE package installed:
 
-First, build LAMMPS with its MESSAGE package installed:
+See the Build extras doc page and its MESSAGE package
+section for details.
+
+CMake:
+
+-D PKG_MESSAGE=yes      # include the MESSAGE package
+-D MESSAGE_ZMQ=value    # build with ZeroMQ support, value = no (default) or yes
+
+Traditional make:
 
 % cd lammps/lib/message
 % python Install.py -m -z       # build CSlib with MPI and ZMQ support
-% python Install.py -s -z       # also build serial lib and ZMQ support
 % cd lammps/src
 % make yes-message
 % make mpi
 
 You can leave off the -z if you do not have ZMQ on your system.
 
-Next build the MC client code, which will link with the serial CSlib.
+----------------
 
-First edit the Makefile in this dir.  The CSLIB variable should be the
-path to where the LAMMPS lib/message dir is on your system.  If you
-built the CSlib without ZMQ support you will also need to
-comment/uncomment two lines.  Then you can just type 
+Build the MC client code
+
+The source files for the MC code are in this dir.  It links with the
+CSlib library in lib/message/cslib.
+
+You must first build the CSlib in serial mode, e.g.
+
+% cd lammps/lib/message/cslib/src
+% make lib            # build serial and parallel lib with ZMQ support
+% make lib zmq=no     # build serial and parallel lib without ZMQ support
+
+Then edit the Makefile in this dir.  The CSLIB variable should be the
+path to where the LAMMPS lib/message/cslib/src dir is on your system.
+If you built the CSlib without ZMQ support you will also need to
+comment/uncomment one line.  Then you can just type
 
 % make
 

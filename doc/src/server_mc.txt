@@ -37,6 +37,7 @@ signals when it is done sending messages to LAMMPS, at which point the
 loop will exit, and the remainder of the LAMMPS script will be
 processed.
 
+The "server"_server.html doc page gives other options for using LAMMPS
 See an example of how this command is used in
 examples/COUPLE/lammps_mc/in.server.
 

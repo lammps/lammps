@@ -34,11 +34,13 @@ These are the sub-directories included in this directory:
 
 simple		    simple example of driver code calling LAMMPS as a lib
 multiple	    example of driver code calling multiple instances of LAMMPS
-lammps_mc           client/server coupling Monte Carlo with LAMMPS MD
+lammps_mc           client/server coupling of Monte Carlo client 
+                      with LAMMPS server for energy evaluation
 lammps_quest	    MD with quantum forces, coupling to Quest DFT code
 lammps_spparks	    grain-growth Monte Carlo with strain via MD,
 		    coupling to SPPARKS kinetic MC code
-lammps_vasp         client/server coupling LAMMPS MD with VASP quantum DFT
+lammps_vasp         client/server coupling of LAMMPS client  with 
+                      VASP quantum DFT as server for quantum forces
 library		    collection of useful inter-code communication routines
 fortran             a simple wrapper on the LAMMPS library API that
  		      can be called from Fortran

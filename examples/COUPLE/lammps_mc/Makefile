@@ -19,10 +19,9 @@ LINKFLAGS =	-g -O -L$(CSLIB)
 # targets
 
 mc:	$(OBJ)
-#	this line if built the CSlib within lib/message with ZMQ support
-#       note this is using the serial (no-mpi) version of the CSlib
+#	first line if built the CSlib within lib/message with ZMQ support
+#	second line if built the CSlib without ZMQ support
 	$(LINK) $(LINKFLAGS) $(OBJ) -lcsnompi -lzmq -o mc
-#	this line if built the CSlib without ZMQ support
 #	$(LINK) $(LINKFLAGS) $(OBJ) -lcsnompi -o mc
 
 clean:

@@ -24,6 +24,16 @@ MPI.
 
 Build LAMMPS with its MESSAGE package installed:
 
+See the Build extras doc page and its MESSAGE package
+section for details.
+
+CMake:
+
+-D PKG_MESSAGE=yes      # include the MESSAGE package
+-D MESSAGE_ZMQ=value    # build with ZeroMQ support, value = no (default) or yes
+
+Traditional make:
+
 cd lammps/lib/message
 python Install.py -m -z       # build CSlib with MPI and ZMQ support
 cd lammps/src
@@ -31,6 +41,27 @@ make yes-message
 make mpi
 
 You can leave off the -z if you do not have ZMQ on your system.
+
+----------------
+
+Build the CSlib in a form usable by the vasp_wrapper.py script:
+
+% cd lammps/lib/message/cslib/src
+% make shlib            # build serial and parallel shared lib with ZMQ support
+% make shlib zmq=no     # build serial and parallel shared lib w/out ZMQ support
+
+This will make a shared library versions of the CSlib, which Python
+requires.  Python must be able to find both the cslib.py script and
+the libcsnompi.so library in your lammps/lib/message/cslib/src
+directory.  If it is not able to do this, you will get an error when
+you run vasp_wrapper.py.
+
+You can do this by augmenting two environment variables, either
+from the command line, or in your shell start-up script.
+Here is the sample syntax for the csh or tcsh shells:
+
+setenv PYTHONPATH ${PYTHONPATH}:/home/sjplimp/lammps/lib/message/cslib/src
+setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/home/sjplimp/lammps/lib/message/cslib/src
 
 ----------------
 
@@ -68,12 +99,13 @@ POSCAR_W matches in.client.W.
 
 Once you run VASP yourself, the vasprun.xml file will be overwritten.
 
-NOTE: explain how vasp_wrapper.py finds the cslib.py wrapper on the
-CSlib to import.
-
 ----------------
 
 To run in client/server mode:
+
+NOTE: The vasp_wrap.py script must be run with Python version 2, not
+3.  This is because it used the CSlib python wrapper, which only
+supports version 2.  We plan to upgrade CSlib to support Python 3.
 
 Both the client (LAMMPS) and server (vasp_wrap.py) must use the same
 messaging mode, namely file or zmq.  This is an argument to the

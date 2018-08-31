@@ -32,7 +32,7 @@ using namespace FixConst;
 enum{OTHER,REAL,METAL};
 enum{SETUP=1,STEP};
 enum{DIM=1,PERIODICITY,ORIGIN,BOX,NATOMS,NTYPES,TYPES,COORDS,UNITS,CHARGE};
-enum{FORCES=1,ENERGY,VIRIAL,ERROR};
+enum{FORCES=1,ENERGY,PRESSURE,ERROR};
 
 /* ---------------------------------------------------------------------- */
 
@@ -67,10 +67,10 @@ FixClientMD::FixClientMD(LAMMPS *lmp, int narg, char **arg) :
   // otherwise not needed
   // message received in METAL units, convert to local REAL units
 
-  fconvert = econvert = vconvert = 1.0;
+  fconvert = econvert = pconvert = 1.0;
   if (units == REAL) {
-    fconvert = econvert = 23.06035;
-    vconvert = 0.986923;
+    fconvert = econvert = 23.06035;    // eV -> Kcal/mole
+    pconvert = 0.986923;               // bars -> atmospheres
   }
 }
 
@@ -274,7 +274,7 @@ void FixClientMD::pack_box()
 
 /* ----------------------------------------------------------------------
    receive message from server
-   required fields: FORCES, ENERGY, VIRIAL
+   required fields: FORCES, ENERGY, PRESSURE
    optional field: ERROR
 ------------------------------------------------------------------------- */
 
@@ -307,9 +307,14 @@ void FixClientMD::receive_fev(int vflag)
   eng = econvert * cs->unpack_double(ENERGY);
   
   if (vflag) {
-    double *v = (double *) cs->unpack(VIRIAL);
+    double *v = (double *) cs->unpack(PRESSURE);
+
+    double nktv2p = force->nktv2p;
+    double volume = domain->xprd * domain->yprd * domain->zprd;
+    double factor = inv_nprocs * pconvert * volume / nktv2p;
+
     for (int i = 0; i < 6; i++)
-      virial[i] = inv_nprocs * vconvert * v[i];
+      virial[i] = factor * v[i];
   }
 
   // error return

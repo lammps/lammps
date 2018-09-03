@@ -1,0 +1,62 @@
+variable T equal 0.8
+variable p_solid equal 0.05
+
+lattice fcc 1.0
+region box block 0.0 6.0 0.0 6.0 -2.0 12.0
+create_box 2 box
+
+mass * 1.0
+pair_style lj/cut 2.5
+pair_coeff * * 1.0 1.0
+pair_coeff 1 2 0.5 1.0 
+pair_coeff 2 2 0.0 0.0
+neigh_modify delay 0
+
+region solid_bottom block INF INF INF INF -1.1 0.1
+region liquid block INF INF INF INF 1.1 8.9
+region solid_up block INF INF INF INF 9.9 11.1
+
+create_atoms 1 region liquid
+delete_atoms porosity liquid 0.26 88765
+group liquid region liquid
+
+create_atoms 2 region solid_bottom
+group solid_bottom region solid_bottom
+create_atoms 2 region solid_up
+group solid_up region solid_up
+group solid union solid_bottom solid_up
+
+variable faSolid equal ${p_solid}*lx*ly/count(solid_up)
+fix piston_up solid_up aveforce NULL NULL -${faSolid} 
+fix freeze_up solid_up setforce 0.0 0.0 NULL 
+fix freeze_bottom solid_bottom setforce 0.0 0.0 0.0
+fix nvesol solid nve
+compute Tliq liquid temp
+fix nvtliq liquid nvt temp $T $T 0.5
+fix_modify nvtliq temp Tliq
+
+thermo 10000
+thermo_modify flush yes temp Tliq
+
+dump 1 all atom 10000 dump.lammpstrj
+
+fix fxbal all balance 1000 1.05 shift z 10 1.05
+velocity liquid create $T 47298 dist gaussian rot yes
+run 50000
+undump 1
+reset_timestep 0
+
+compute bin_z liquid chunk/atom bin/1d z 0.0 0.1 units box
+
+compute liquidStress_ke liquid stress/atom NULL ke
+compute liquidStress_vir liquid stress/atom NULL virial
+fix profile_z liquid ave/chunk 10 1000 10000 bin_z density/number temp c_liquidStress_ke[1] c_liquidStress_ke[2] c_liquidStress_ke[3] c_liquidStress_ke[4] c_liquidStress_ke[5] c_liquidStress_ke[6] c_liquidStress_vir[1] c_liquidStress_vir[2] c_liquidStress_vir[3] c_liquidStress_vir[4] c_liquidStress_vir[5] c_liquidStress_vir[6] ave running overwrite file profile.z
+
+compute mopz0 all mop z center kin conf
+fix mopz0t all ave/time 10 1000 10000 c_mopz0[*] file mopz0.time
+
+compute moppz liquid mop/profile z 0.0 0.1 kin conf
+fix moppzt all ave/time 100 100 10000 c_moppz[*] ave running overwrite file moppz.time mode vector
+
+run 40000
+

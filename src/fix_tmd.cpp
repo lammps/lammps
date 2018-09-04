@@ -412,7 +412,7 @@ void FixTMD::readfile(char *file)
       m++;
     }
 
-    MPI_Bcast(&eof,sizeof(char *)/sizeof(char),MPI_CHAR,0,world);
+    MPI_Bcast(&eof,sizeof(char *),MPI_CHAR,0,world);
     MPI_Bcast(&nlines,1,MPI_INT,0,world);
     MPI_Bcast(&m,1,MPI_INT,0,world);
     MPI_Bcast(buffer,m,MPI_CHAR,0,world);

@@ -167,6 +167,7 @@ label.html
 lattice.html
 log.html
 mass.html
+message.html
 min_modify.html
 min_style.html
 minimize.html
@@ -194,6 +195,9 @@ reset_timestep.html
 restart.html
 run.html
 run_style.html
+server.html
+server_mc.html
+server_md.html
 set.html
 shell.html
 special_bonds.html
@@ -241,6 +245,7 @@ fix_bond_create.html
 fix_bond_react.html
 fix_bond_swap.html
 fix_box_relax.html
+fix_client_md.html
 fix_cmap.html
 fix_colvars.html
 fix_controller.html

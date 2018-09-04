@@ -207,7 +207,7 @@ endif()
 option(CMAKE_VERBOSE_MAKEFILE "Verbose makefile" OFF)
 
 option(ENABLE_TESTING "Enable testing" OFF)
-if(ENABLE_TESTING)
+if(ENABLE_TESTING AND BUILD_EXE)
   enable_testing()
   option(LAMMPS_TESTING_SOURCE_DIR "Location of lammps-testing source directory" "")
   option(LAMMPS_TESTING_GIT_TAG    "Git tag of lammps-testing" "master")
@@ -252,7 +252,7 @@ if(ENABLE_TESTING)
 
     message(STATUS "Found ${NUM_TESTS} tests.")
   endif()
-endif(ENABLE_TESTING)
+endif()
 
 set(DEFAULT_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS DIPOLE GRANULAR
   KSPACE MANYBODY MC MEAM MESSAGE MISC MOLECULE PERI REAX REPLICA RIGID SHOCK SPIN SNAP

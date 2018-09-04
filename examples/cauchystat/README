@@ -1,0 +1,42 @@
+There are 6 examples in this directory.  All are run by executing:
+
+% lmp_serial < lammps.in
+
+from the respective home directory.
+
+Note that these examples use an EAM potential, and therefore must be
+run with a LAMMPS executable built with the MANYBODY package.
+
+Al_shear_PR: Application of a simple shear stress, illustrating that
+there is a non-zero direct stress in the equilibrated system due to
+the fact that Parinello-Rahman controls the second Piola-Kirchhoff
+stress instead of the Cauchy stress.  First fix equilibrates the
+temperature at zero stress, second fix applies the shear.  The third
+fix corrects the problem because each new run resets the reference
+simulation cell (H0) to the current cell shape.
+
+Al_shear_CS: Cauchystat example. Same as above, using the Cauchystat
+instead of PR control.  In this case, the equilibrated stresses are as
+prescribed (ie., the set stresses control the Cauchy stress, not Piola
+Kirchhoff)
+
+NiAl_cool: Cauchystat example. First fix equilibrates the system to
+uniaxial tension of 2800 bars, 1200K.  Second fix cools to 300 K,
+causing a phase transformation.  Cauchy stress remains at the set
+level after the transformation
+
+NiAl_stretch: Cauchystat example.  After a brief equilibration
+at 600 K and zero stress, quickly ramp up the applied tensile stress
+from 0 to 6000 bars over 100000 time steps.  After the phase
+transformation, Cauchy stress continues to follow the set value.
+
+NiAl_slow_stretch_CS: Cauchystat example.  After a brief equilibration
+at 500 K and zero stress, gradually ramp up the applied tensile stress
+from 0 to 14000 bars over 350000 time steps.  After the phase
+transformation, Cauchy stress continues to follow the set value.
+
+NiAl_slow_stretch_PR: After a brief equilibration at 500 K and zero
+stress, gradually ramp up the applied tensile stress from 0 to 14000
+bars over 350000 time steps.  After the phase transformation, Cauchy
+stress departs substantially from the set value, because the PR
+control is used instead of the Cauchystat.

@@ -1,0 +1,45 @@
+units		metal
+atom_style	atomic
+atom_modify	map array
+
+processors      1 1 1
+
+# Box and atom positions:
+boundary p p p
+read_data input.dat
+
+# Atomic mass:
+mass 1 58.69
+mass 2 26.98154
+
+# Potential, Al fcc crystal
+pair_style eam/alloy
+pair_coeff * * ../Mishin-Ni-Al-2009.eam.alloy Ni Al
+
+thermo 100
+thermo_style custom step temp pxx pyy pzz lx ly lz
+compute cna all cna/atom 2.8
+
+velocity all create 1000.0 4928459 rot yes dist gaussian
+
+fix 1 all npt temp 500.0 500.0 1.0 x 0.0 0.0 0.1 y 0.0 0.0 0.1 z 0.0 0.0 0.1 couple none cauchystat 0.001 no
+
+dump 1 all cfg 5000 test*.cfg mass type xs ys zs type c_cna
+
+timestep 0.002
+
+variable l equal lz
+variable p equal pzz
+variable t equal temp
+
+fix avg all ave/time 1 1000 1000 v_t v_l v_p file avg.txt
+
+velocity all create 2400 4928459 rot yes dist gaussian
+
+run 10000
+
+unfix 1
+
+fix 1 all npt temp 500.0 500.0 1.0 x 0.0 0.0 0.1 y 0.0 0.0 0.1 z 0.0 -14000.0 0.1 couple none cauchystat 0.001 yes
+
+run 350000

@@ -1176,12 +1176,12 @@ int Domain::closest_image(int i, int j)
    if J is not a valid index like -1, just return it
 ------------------------------------------------------------------------- */
 
-int Domain::closest_image(double *pos, int j)
+int Domain::closest_image(const double * const pos, int j)
 {
   if (j < 0) return j;
 
-  int *sametag = atom->sametag;
-  double **x = atom->x;
+  const int * const sametag = atom->sametag;
+  const double * const * const x = atom->x;
 
   int closest = j;
   double delx = pos[0] - x[j][0];
@@ -1208,10 +1208,10 @@ int Domain::closest_image(double *pos, int j)
 /* ----------------------------------------------------------------------
    find and return Xj image = periodic image of Xj that is closest to Xi
    for triclinic, add/subtract tilt factors in other dims as needed
-   called by ServerMD class
+   called by ServerMD class and LammpsInterface in lib/atc.
 ------------------------------------------------------------------------- */
 
-void Domain::closest_image(double *xi, double *xj, double *xjimage)
+void Domain::closest_image(const double * const xi, const double * const xj, double * const xjimage)
 {
   double dx = xj[0] - xi[0];
   double dy = xj[1] - xi[1];

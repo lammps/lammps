@@ -55,7 +55,6 @@ Computes :h1
    compute_meso_e_atom
    compute_meso_rho_atom
    compute_meso_t_atom
-   compute_mop
    compute_msd
    compute_msd_chunk
    compute_msd_nongauss
@@ -99,6 +98,7 @@ Computes :h1
    compute_sna_atom
    compute_spin
    compute_stress_atom
+   compute_stress_mop
    compute_tally
    compute_tdpd_cc_atom
    compute_temp

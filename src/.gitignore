@@ -288,10 +288,6 @@
 /compute_meso_rho_atom.h
 /compute_meso_t_atom.cpp
 /compute_meso_t_atom.h
-/compute_mop.cpp
-/compute_mop.h
-/compute_mop_profile.cpp
-/compute_mop_profile.h
 /compute_msd_nongauss.cpp
 /compute_msd_nongauss.h
 /compute_pe_tally.cpp
@@ -306,6 +302,10 @@
 /compute_rigid_local.h
 /compute_spec_atom.cpp
 /compute_spec_atom.h
+/compute_stress_mop.cpp
+/compute_stress_mop.h
+/compute_stress_mop.profile.cpp
+/compute_stress_mop.profile.h
 /compute_stress_tally.cpp
 /compute_stress_tally.h
 /compute_temp_asphere.cpp

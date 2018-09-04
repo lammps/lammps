@@ -416,6 +416,7 @@ if(PKG_USER-SCAFACOS)
                                                --with-internal-fftw
                                                --with-internal-pfft
                                                --with-internal-pnfft
+                                               $<$<BOOL:${BUILD_SHARED_LIBS}>:--with-pic>                                               
                                                FC=${CMAKE_MPI_Fortran_COMPILER} 
                                                CXX=${CMAKE_MPI_CXX_COMPILER} 
                                                CC=${CMAKE_MPI_C_COMPILER}

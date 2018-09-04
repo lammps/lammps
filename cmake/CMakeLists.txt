@@ -209,14 +209,16 @@ option(CMAKE_VERBOSE_MAKEFILE "Verbose makefile" OFF)
 option(ENABLE_TESTING "Enable testing" OFF)
 if(ENABLE_TESTING)
   enable_testing()
+  option(LAMMPS_TESTING_SOURCE_DIR "Location of lammps-testing source directory" "")
+  option(LAMMPS_TESTING_GIT_TAG    "Git tag of lammps-testing" "master")
+  mark_as_advanced(LAMMPS_TESTING_SOURCE_DIR LAMMPS_TESTING_GIT_TAG)
 
-  if (CMAKE_VERSION VERSION_GREATER "3.10.3") # due to FetchContent
+  if (CMAKE_VERSION VERSION_GREATER "3.10.3" AND NOT LAMMPS_TESTING_SOURCE_DIR)
     include(FetchContent)
-
 
     FetchContent_Declare(lammps-testing
       GIT_REPOSITORY https://github.com/lammps/lammps-testing.git
-      GIT_TAG master
+      GIT_TAG ${LAMMPS_TESTING_GIT_TAG}
     )
 
     FetchContent_GetProperties(lammps-testing)
@@ -224,9 +226,17 @@ if(ENABLE_TESTING)
       message(STATUS "Downloading tests...")
       FetchContent_Populate(lammps-testing)
     endif()
+
+    set(LAMMPS_TESTING_SOURCE_DIR ${lammps-testing_SOURCE_DIR})
+  elseif(NOT LAMMPS_TESTING_SOURCE_DIR)
+    message(WARNING "Full test-suite requires CMake >= 3.11 or copy of\n"
+                    "https://github.com/lammps/lammps-testing in LAMMPS_TESTING_SOURCE_DIR")
+  endif()
+
+  if(EXISTS ${LAMMPS_TESTING_SOURCE_DIR})
     message(STATUS "Running test discovery...")
 
-    file(GLOB_RECURSE TEST_SCRIPTS ${lammps-testing_SOURCE_DIR}/tests/core/*/in.*)
+    file(GLOB_RECURSE TEST_SCRIPTS ${LAMMPS_TESTING_SOURCE_DIR}/tests/core/*/in.*)
     foreach(script_path ${TEST_SCRIPTS})
       get_filename_component(TEST_NAME ${script_path} EXT)
       get_filename_component(SCRIPT_NAME ${script_path} NAME)
@@ -238,8 +248,9 @@ if(ENABLE_TESTING)
       add_test(${TEST_NAME} ${CMAKE_BINARY_DIR}/${LAMMPS_BINARY} -in ${SCRIPT_NAME})
       set_tests_properties(${TEST_NAME} PROPERTIES WORKING_DIRECTORY ${PARENT_DIR})
     endforeach()
-  else()
-    message(WARNING "Full test-suite requires CMake >= 3.11")
+    list(LENGTH TEST_SCRIPTS NUM_TESTS)
+
+    message(STATUS "Found ${NUM_TESTS} tests.")
   endif()
 endif(ENABLE_TESTING)
 

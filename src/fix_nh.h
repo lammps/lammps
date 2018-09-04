@@ -139,6 +139,23 @@ class FixNH : public Fix {
   double compute_strain_energy();
   void compute_press_target();
   void nh_omega_dot();
+
+  // Implementation of CauchyStat
+  double H0[3][3];               //shape matrix for the undeformed cell
+  double h_old[6];               //previous time step shape matrix for the undeformed cell
+  double invH0[3][3];            //inverse of H0;
+  double myvol0;
+  double setPK[3][3];
+  static double setPKinit[6];
+  double alpha;                  //integration parameter cauchystat
+  int initPK;                    // 1 if setPK needs to be initialized either from cauchy or restart, else 0
+  int usePK;                     // 0 if use CauchyStat else 1
+  static int restartPK;          // Read PK stress from the previous step
+  static int restart_stored;          // Read PK stress from the previous step
+  int initRUN;                   // 0 if run not initialized (pressure->vector not computed yet), else 1 (pressure->vector available)
+
+  virtual void CauchyStat(bigint step, double (&F)[3][3], double (&Fi)[3][3], double (&Fdot)[3][3], double (&cauchy)[3][3], double (&setcauchy)[3][3], double (&setPK)[3][3], double volume, double volume0, double deltat, double alpha);
+
 };
 
 }

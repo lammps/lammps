@@ -1015,8 +1015,8 @@ void PairKolmogorovCrespiFull::read_file(char *filename)
 
 /* ---------------------------------------------------------------------- */
 
-double PairKolmogorovCrespiFull::single(int i, int j, int itype, int jtype, double rsq,
-                         double factor_coul, double factor_lj,
+double PairKolmogorovCrespiFull::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
+                         double /*factor_coul*/, double factor_lj,
                          double &fforce)
 {
   double r,r2inv,r6inv,r8inv,forcelj,philj;
@@ -1050,7 +1050,7 @@ double PairKolmogorovCrespiFull::single(int i, int j, int itype, int jtype, doub
 /* ---------------------------------------------------------------------- */
 
 int PairKolmogorovCrespiFull::pack_forward_comm(int n, int *list, double *buf,
-                               int pbc_flag, int *pbc)
+                               int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m,l,ip,id;
 

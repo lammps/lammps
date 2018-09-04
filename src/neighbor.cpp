@@ -2193,7 +2193,7 @@ void Neighbor::set(int narg, char **arg)
    ditto for lastcall and last_setup_bins
 ------------------------------------------------------------------------- */
 
-void Neighbor::reset_timestep(bigint ntimestep)
+void Neighbor::reset_timestep(bigint /*ntimestep*/)
 {
   for (int i = 0; i < nbin; i++)
     neigh_bin[i]->last_bin = -1;

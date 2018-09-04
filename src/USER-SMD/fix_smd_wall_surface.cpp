@@ -110,7 +110,7 @@ void FixSMDWallSurface::min_setup(int vflag) {
  must be done in setup (not init) since fix init comes before neigh init
  ------------------------------------------------------------------------- */
 
-void FixSMDWallSurface::setup(int vflag) {
+void FixSMDWallSurface::setup(int /*vflag*/) {
 
         if (!first)
                 return;

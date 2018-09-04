@@ -62,7 +62,7 @@ void FixNVEDot::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVEDot::initial_integrate(int vflag)
+void FixNVEDot::initial_integrate(int /*vflag*/)
 {
   double *shape,*quat;
   double fquat[4],conjqm[4],inertia[3];

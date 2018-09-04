@@ -187,7 +187,7 @@ void ComputeOrientOrderAtom::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeOrientOrderAtom::init_list(int id, NeighList *ptr)
+void ComputeOrientOrderAtom::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }
@@ -542,4 +542,3 @@ double ComputeOrientOrderAtom::associated_legendre(int l, int m, double x)
 
   return p;
 }
-

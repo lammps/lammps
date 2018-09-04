@@ -33,6 +33,7 @@ OPT.
 "agni (o)"_pair_agni.html,
 "airebo (oi)"_pair_airebo.html,
 "airebo/morse (oi)"_pair_airebo.html,
+"atm"_pair_atm.html,
 "awpmd/cut"_pair_awpmd.html,
 "beck (go)"_pair_beck.html,
 "body/nparticle"_pair_body_nparticle.html,

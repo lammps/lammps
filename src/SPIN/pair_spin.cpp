@@ -63,7 +63,7 @@ PairSpin::~PairSpin() {}
    global settings
 ------------------------------------------------------------------------- */
 
-void PairSpin::settings(int narg, char **arg)
+void PairSpin::settings(int narg, char **/*arg*/)
 {
   if (narg < 1 || narg > 2)
     error->all(FLERR,"Incorrect number of args in pair_style pair/spin command");

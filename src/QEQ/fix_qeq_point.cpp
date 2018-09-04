@@ -67,7 +67,7 @@ void FixQEqPoint::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqPoint::pre_force(int vflag)
+void FixQEqPoint::pre_force(int /*vflag*/)
 {
   if (update->ntimestep % nevery) return;
 

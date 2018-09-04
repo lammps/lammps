@@ -90,7 +90,7 @@ void FixDrag::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixDrag::post_force(int vflag)
+void FixDrag::post_force(int /*vflag*/)
 {
   // apply drag force to atoms in group of magnitude f_mag
   // apply in direction (r-r0) if atom is further than delta away
@@ -132,7 +132,7 @@ void FixDrag::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixDrag::post_force_respa(int vflag, int ilevel, int iloop)
+void FixDrag::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == ilevel_respa) post_force(vflag);
 }

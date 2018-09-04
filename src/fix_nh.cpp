@@ -742,7 +742,7 @@ void FixNH::init()
    compute T,P before integrator starts
 ------------------------------------------------------------------------- */
 
-void FixNH::setup(int vflag)
+void FixNH::setup(int /*vflag*/)
 {
   // tdof needed by compute_temp_target()
 
@@ -827,7 +827,7 @@ void FixNH::setup(int vflag)
    1st half of Verlet update
 ------------------------------------------------------------------------- */
 
-void FixNH::initial_integrate(int vflag)
+void FixNH::initial_integrate(int /*vflag*/)
 {
   // update eta_press_dot
 
@@ -922,7 +922,7 @@ void FixNH::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNH::initial_integrate_respa(int vflag, int ilevel, int iloop)
+void FixNH::initial_integrate_respa(int /*vflag*/, int ilevel, int /*iloop*/)
 {
   // set timesteps by level
 
@@ -991,7 +991,7 @@ void FixNH::initial_integrate_respa(int vflag, int ilevel, int iloop)
 
 /* ---------------------------------------------------------------------- */
 
-void FixNH::final_integrate_respa(int ilevel, int iloop)
+void FixNH::final_integrate_respa(int ilevel, int /*iloop*/)
 {
   // set timesteps by level
 

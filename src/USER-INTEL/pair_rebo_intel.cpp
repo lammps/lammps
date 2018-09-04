@@ -28,7 +28,7 @@ PairREBOIntel::PairREBOIntel(LAMMPS *lmp) : PairAIREBOIntel(lmp) {}
    global settings
 ------------------------------------------------------------------------- */
 
-void PairREBOIntel::settings(int narg, char **arg)
+void PairREBOIntel::settings(int narg, char **/*arg*/)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 

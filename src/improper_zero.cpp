@@ -99,13 +99,13 @@ void ImproperZero::coeff(int narg, char **arg)
    proc 0 writes out coeffs to restart file
 ------------------------------------------------------------------------- */
 
-void ImproperZero::write_restart(FILE *fp) {}
+void ImproperZero::write_restart(FILE * /*fp*/) {}
 
 /* ----------------------------------------------------------------------
    proc 0 reads coeffs from restart file, bcasts them
 ------------------------------------------------------------------------- */
 
-void ImproperZero::read_restart(FILE *fp)
+void ImproperZero::read_restart(FILE * /*fp*/)
 {
   allocate();
   for (int i = 1; i <= atom->nimpropertypes; i++) setflag[i] = 1;

@@ -64,7 +64,7 @@ void FixMeso::init() {
   dtf = 0.5 * update->dt * force->ftm2v;
 }
 
-void FixMeso::setup_pre_force(int vflag)
+void FixMeso::setup_pre_force(int /*vflag*/)
 {
   // set vest equal to v
   double **v = atom->v;
@@ -87,7 +87,7 @@ void FixMeso::setup_pre_force(int vflag)
  allow for both per-type and per-atom mass
  ------------------------------------------------------------------------- */
 
-void FixMeso::initial_integrate(int vflag) {
+void FixMeso::initial_integrate(int /*vflag*/) {
   // update v and x and rho and e of atoms in group
 
   double **x = atom->x;

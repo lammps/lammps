@@ -79,12 +79,8 @@ void FixNVEAsphereIntel::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVEAsphereIntel::initial_integrate(int vflag)
+void FixNVEAsphereIntel::initial_integrate(int /*vflag*/)
 {
-  double dtfm;
-  double inertia[3],omega[3];
-  double *shape,*quat;
-
   AtomVecEllipsoid::Bonus *bonus = avec->bonus;
   int *ellipsoid = atom->ellipsoid;
   double * _noalias const x = atom->x[0];
@@ -94,7 +90,6 @@ void FixNVEAsphereIntel::initial_integrate(int vflag)
 
   double **angmom = atom->angmom;
   double **torque = atom->torque;
-  double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
@@ -142,8 +137,6 @@ void FixNVEAsphereIntel::initial_integrate(int vflag)
 void FixNVEAsphereIntel::final_integrate()
 {
   if (neighbor->ago == 0) reset_dt();
-
-  double dtfm;
 
   double * _noalias const v = atom->v[0];
   const double * _noalias const f = atom->f[0];

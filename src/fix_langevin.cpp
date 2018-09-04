@@ -298,7 +298,7 @@ void FixLangevin::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixLangevin::post_force(int vflag)
+void FixLangevin::post_force(int /*vflag*/)
 {
   double *rmass = atom->rmass;
 
@@ -441,7 +441,7 @@ void FixLangevin::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixLangevin::post_force_respa(int vflag, int ilevel, int iloop)
+void FixLangevin::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1) post_force(vflag);
 }
@@ -896,7 +896,7 @@ void FixLangevin::grow_arrays(int nmax)
    copy values within local atom-based array
 ------------------------------------------------------------------------- */
 
-void FixLangevin::copy_arrays(int i, int j, int delflag)
+void FixLangevin::copy_arrays(int i, int j, int /*delflag*/)
 {
   for (int m = 0; m < nvalues; m++)
     franprev[j][m] = franprev[i][m];

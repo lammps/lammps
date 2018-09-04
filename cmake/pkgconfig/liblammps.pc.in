@@ -4,15 +4,15 @@
 # after you added @CMAKE_INSTALL_FULL_LIBDIR@/pkg-config to PKG_CONFIG_PATH,
 # e.g. export PKG_CONFIG_PATH=@CMAKE_INSTALL_FULL_LIBDIR@/pkgconfig
 
-prefix=@CMAKE_INSTALL_FULL_PREFIX@
+prefix=@CMAKE_INSTALL_PREFIX@
 libdir=@CMAKE_INSTALL_FULL_LIBDIR@
 includedir=@CMAKE_INSTALL_FULL_INCLUDEDIR@
 
 Name: liblammps@LAMMPS_MACHINE@
 Description: Large-scale Atomic/Molecular Massively Parallel Simulator Library
 URL: http://lammps.sandia.gov
-Version:
+Version: @LAMMPS_VERSION@
 Requires:
-Libs: -L${libdir} -llammps@LIB_SUFFIX@@
+Libs: -L${libdir} -llammps@LAMMPS_LIB_SUFFIX@
 Libs.private: -lm
 Cflags: -I${includedir} @LAMMPS_API_DEFINES@

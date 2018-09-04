@@ -15,10 +15,11 @@
   Contributing Authors : Romain Vermorel (LFCR), Laurent Joly (ULyon)
   --------------------------------------------------------------------------*/
 
-#include "math.h"
-#include "mpi.h"
-#include "string.h"
-#include "stdlib.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
+#include <cstdlib>
+
 #include "compute_mop_profile.h"
 #include "atom.h"
 #include "update.h"
@@ -33,8 +34,6 @@
 #include "neigh_list.h"
 #include "error.h"
 #include "memory.h"
-
-#include <iostream>
 
 using namespace LAMMPS_NS;
 
@@ -53,20 +52,18 @@ ComputeMopProfile::ComputeMopProfile(LAMMPS *lmp, int narg, char **arg) :
 
   MPI_Comm_rank(world,&me);
 
-  //set compute mode and direction of plane(s) for pressure calculation
+  // set compute mode and direction of plane(s) for pressure calculation
 
-  if (strcmp(arg[3],"x")==0){
+  if (strcmp(arg[3],"x")==0) {
     dir = X;
-  }
-  else if (strcmp(arg[3],"y")==0){
+  } else if (strcmp(arg[3],"y")==0) {
     dir = Y;
-  }
-  else if (strcmp(arg[3],"z")==0){
+  } else if (strcmp(arg[3],"z")==0) {
     dir = Z;
-  }
-  else error->all(FLERR,"Illegal compute mop/profile command");
+  } else error->all(FLERR,"Illegal compute mop/profile command");
 
-  //Bin parameters
+  // bin parameters
+
   if (strcmp(arg[4],"lower") == 0) originflag = LOWER;
   else if (strcmp(arg[4],"center") == 0) originflag = CENTER;
   else if (strcmp(arg[4],"upper") == 0) originflag = UPPER;
@@ -104,20 +101,26 @@ ComputeMopProfile::ComputeMopProfile(LAMMPS *lmp, int narg, char **arg) :
     iarg++;
   }
 
-    //Check domain relared errors
-    // 3D only
-    if (domain->dimension<3)
-        error->all(FLERR, "Compute mop/profile incompatible with simulation dimension");
-    // orthogonal simulation box
-    if (domain->triclinic != 0)
-        error->all(FLERR, "Compute mop/profile incompatible with triclinic simulation box");
+  // check domain related errors
 
-  // Initialize some variables
+  // 3D only
+
+  if (domain->dimension < 3)
+    error->all(FLERR, "Compute mop/profile incompatible with simulation dimension");
+
+  // orthogonal simulation box
+
+  if (domain->triclinic != 0)
+    error->all(FLERR, "Compute mop/profile incompatible with triclinic simulation box");
+
+  // initialize some variables
+
   nbins = 0;
   coord = coordp = NULL;
   values_local = values_global = array = NULL;
 
-  //Bin setup
+  // bin setup
+
   setup_bins();
 
   // this fix produces a global array
@@ -128,7 +131,6 @@ ComputeMopProfile::ComputeMopProfile(LAMMPS *lmp, int narg, char **arg) :
 
   array_flag = 1;
   extarray = 0;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -150,46 +152,54 @@ ComputeMopProfile::~ComputeMopProfile()
 void ComputeMopProfile::init()
 {
 
-  //Conversion constants
+  // conversion constants
+
   nktv2p = force->nktv2p;
   ftm2v = force->ftm2v;
 
-  //Plane area
+  // plane area
+
   area = 1;
   int i;
-  for (i=0; i<3; i++){
+  for (i=0; i<3; i++) {
     if (i!=dir) area = area*domain->prd[i];
   }
 
-  //Timestep Value
+  // timestep Value
+
   dt = update->dt;
   
   // Error check
-    // Compute mop/profile requires fixed simulation box
-        if (domain->box_change_size || domain->box_change_shape || domain->deform_flag)
-            error->all(FLERR, "Compute mop/profile requires a fixed simulation box");
+  // Compute mop/profile requires fixed simulation box
+  
+  if (domain->box_change_size || domain->box_change_shape || domain->deform_flag)
+    error->all(FLERR, "Compute mop/profile requires a fixed simulation box");
         
-        //This compute requires a pair style with pair_single method implemented
-        if (force->pair == NULL)
-            error->all(FLERR,"No pair style is defined for compute mop/profile");
-        if (force->pair->single_enable == 0)
-            error->all(FLERR,"Pair style does not support compute mop/profile");
+  //This compute requires a pair style with pair_single method implemented
+
+  if (force->pair == NULL)
+    error->all(FLERR,"No pair style is defined for compute mop/profile");
+  if (force->pair->single_enable == 0)
+    error->all(FLERR,"Pair style does not support compute mop/profile");
     
-    // Warnings
-    if (me==0){
-        //Compute mop/profile only accounts for pair interactions.
-        // issue a warning if any intramolecular potential or Kspace is defined.
-        if (force->bond!=NULL)
-            error->warning(FLERR,"compute mop/profile does not account for bond potentials");
-        if (force->angle!=NULL)
-            error->warning(FLERR,"compute mop/profile does not account for angle potentials");
-        if (force->dihedral!=NULL)
-            error->warning(FLERR,"compute mop/profile does not account for dihedral potentials");
-        if (force->improper!=NULL)
-            error->warning(FLERR,"compute mop/profile does not account for improper potentials");
-        if (force->kspace!=NULL)
-            error->warning(FLERR,"compute mop/profile does not account for kspace contributions");
-    }
+  // Warnings
+
+  if (me==0){
+
+    //Compute mop/profile only accounts for pair interactions.
+    // issue a warning if any intramolecular potential or Kspace is defined.
+
+    if (force->bond!=NULL)
+      error->warning(FLERR,"compute mop/profile does not account for bond potentials");
+    if (force->angle!=NULL)
+      error->warning(FLERR,"compute mop/profile does not account for angle potentials");
+    if (force->dihedral!=NULL)
+      error->warning(FLERR,"compute mop/profile does not account for dihedral potentials");
+    if (force->improper!=NULL)
+      error->warning(FLERR,"compute mop/profile does not account for improper potentials");
+    if (force->kspace!=NULL)
+      error->warning(FLERR,"compute mop/profile does not account for kspace contributions");
+  }
 
   // need an occasional half neighbor list
 
@@ -197,7 +207,6 @@ void ComputeMopProfile::init()
   neighbor->requests[irequest]->pair = 0;
   neighbor->requests[irequest]->compute = 1;
   neighbor->requests[irequest]->occasional = 1;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -214,7 +223,6 @@ void ComputeMopProfile::init_list(int id, NeighList *ptr)
 
 void ComputeMopProfile::compute_array()
 {
-
   invoked_array = update->ntimestep;
 
   //Compute pressures on separate procs
@@ -235,7 +243,6 @@ void ComputeMopProfile::compute_array()
       m++;
     }
   }
-
 }
 
 
@@ -267,6 +274,7 @@ void ComputeMopProfile::compute_pairs()
   }
 
   // invoke half neighbor list (will copy or build if necessary)
+
   neighbor->build_one(list);
 
   inum = list->inum;
@@ -279,7 +287,8 @@ void ComputeMopProfile::compute_pairs()
   Pair *pair = force->pair;
   double **cutsq = force->pair->cutsq;
 
-  //Parse values
+  // parse values
+
   double xi[3];
   double vi[3];
   double fi[3];
@@ -289,7 +298,8 @@ void ComputeMopProfile::compute_pairs()
   while (m<nvalues) {
     if (which[m] == CONF || which[m] == TOTAL) {
 
-      //Compute configurational contribution to pressure
+      // Compute configurational contribution to pressure
+
       for (ii = 0; ii < inum; ii++) {
         i = ilist[ii];
 
@@ -307,6 +317,7 @@ void ComputeMopProfile::compute_pairs()
           j &= NEIGHMASK;
 
           // skip if neither I nor J are in group
+
           if (!(mask[i] & groupbit || mask[j] & groupbit)) continue;
 
           xj[0] = atom->x[j][0];
@@ -326,15 +337,18 @@ void ComputeMopProfile::compute_pairs()
               pos1 = coordp[ibin][0];
 
               //check if ij pair is accross plane, add contribution to pressure
-              if ( ((xi[dir]>pos) && (xj[dir]<pos)) || ((xi[dir]>pos1) && (xj[dir]<pos1)) ) {
+
+              if ( ((xi[dir]>pos) && (xj[dir]<pos))
+                   || ((xi[dir]>pos1) && (xj[dir]<pos1)) ) {
 
                 pair->single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fpair);
 
                 values_local[ibin][m] += fpair*(xi[0]-xj[0])/area*nktv2p;
                 values_local[ibin][m+1] += fpair*(xi[1]-xj[1])/area*nktv2p;
                 values_local[ibin][m+2] += fpair*(xi[2]-xj[2])/area*nktv2p;
-              }
-              else if ( ((xi[dir]<pos) && (xj[dir]>pos)) || ((xi[dir]<pos1) && (xj[dir]>pos1)) ){
+
+              } else if ( ((xi[dir]<pos) && (xj[dir]>pos))
+                          || ((xi[dir]<pos1) && (xj[dir]>pos1)) ) {
 
                 pair->single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fpair);
 
@@ -342,9 +356,7 @@ void ComputeMopProfile::compute_pairs()
                 values_local[ibin][m+1] -= fpair*(xi[1]-xj[1])/area*nktv2p;
                 values_local[ibin][m+2] -= fpair*(xi[2]-xj[2])/area*nktv2p;
               }
-
             }
-
           } else {
 
             for (ibin=0;ibin<nbins;ibin++) {
@@ -352,7 +364,9 @@ void ComputeMopProfile::compute_pairs()
               pos1 = coordp[ibin][0];
 
               //check if ij pair is accross plane, add contribution to pressure
-              if ( ((xi[dir]>pos) && (xj[dir]<pos)) || ((xi[dir]>pos1) && (xj[dir]<pos1)) ) {
+
+              if ( ((xi[dir]>pos) && (xj[dir]<pos))
+                   || ((xi[dir]>pos1) && (xj[dir]<pos1)) ) {
 
                 pair->single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fpair);
 
@@ -360,21 +374,16 @@ void ComputeMopProfile::compute_pairs()
                 values_local[ibin][m+1] += fpair*(xi[1]-xj[1])/area*nktv2p;
                 values_local[ibin][m+2] += fpair*(xi[2]-xj[2])/area*nktv2p;
               }
-
             }
-
           }
-
         }
-
       }
-
     }
 
+    // compute kinetic contribution to pressure
+    // counts local particles transfers across the plane
 
     if (which[m] == KIN || which[m] == TOTAL){
-      //Compute kinetic contribution to pressure
-      // counts local particles transfers across the plane
 
       double vcm[3];
       double masstotal,sgn;
@@ -382,6 +391,7 @@ void ComputeMopProfile::compute_pairs()
       for (int i = 0; i < nlocal; i++){
 
         // skip if I is not in group
+
         if (mask[i] & groupbit){
 
           itype = type[i];
@@ -424,16 +434,13 @@ void ComputeMopProfile::compute_pairs()
               values_local[ibin][m+1] += mass[itype]*vcross[1]*sgn/dt/area*nktv2p/ftm2v;
               values_local[ibin][m+2] += mass[itype]*vcross[2]*sgn/dt/area*nktv2p/ftm2v;
             }
-
           }
-
         }
       }
     }
     m+=3;
   }
 }
-
 
 /* ----------------------------------------------------------------------
    setup 1d bins and their extent and coordinates
@@ -486,5 +493,4 @@ void ComputeMopProfile::setup_bins()
       coordp[i][0] = coord[i][0] - domain->prd[dir];
     }
   }
-
 }

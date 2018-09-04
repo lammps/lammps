@@ -15,10 +15,11 @@
   Contributing Authors : Romain Vermorel (LFCR), Laurent Joly (ULyon)
   --------------------------------------------------------------------------*/
 
-#include "math.h"
-#include "mpi.h"
-#include "string.h"
-#include "stdlib.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
+#include <cstdlib>
+
 #include "compute_mop.h"
 #include "atom.h"
 #include "update.h"
@@ -33,8 +34,6 @@
 #include "neigh_list.h"
 #include "error.h"
 #include "memory.h"
-
-#include <iostream>
 
 using namespace LAMMPS_NS;
 
@@ -52,30 +51,25 @@ ComputeMop::ComputeMop(LAMMPS *lmp, int narg, char **arg) :
 
   MPI_Comm_rank(world,&me);
 
-  //set compute mode and direction of plane(s) for pressure calculation
+  // set compute mode and direction of plane(s) for pressure calculation
 
-  if (strcmp(arg[3],"x")==0){
+  if (strcmp(arg[3],"x")==0) {
     dir = X;
-  }
-  else if (strcmp(arg[3],"y")==0){
+  } else if (strcmp(arg[3],"y")==0) {
     dir = Y;
-  }
-  else if (strcmp(arg[3],"z")==0){
+  } else if (strcmp(arg[3],"z")==0) {
     dir = Z;
-  }
-  else error->all(FLERR,"Illegal compute mop command");
+  } else error->all(FLERR,"Illegal compute mop command");
 
-  //Position of the plane
-  if (strcmp(arg[4],"lower")==0){
+  // Position of the plane
+
+  if (strcmp(arg[4],"lower")==0) {
     pos = domain->boxlo[dir];
-  }
-  else if (strcmp(arg[4],"upper")==0){
+  } else if (strcmp(arg[4],"upper")==0) {
     pos = domain->boxhi[dir];
-  }
-  else if (strcmp(arg[4],"center")==0){
+  } else if (strcmp(arg[4],"center")==0) {
     pos = 0.5*(domain->boxlo[dir]+domain->boxhi[dir]);
-  }
-  else pos = force->numeric(FLERR,arg[4]);
+  } else pos = force->numeric(FLERR,arg[4]);
   
   if ( pos < (domain->boxlo[dir]+domain->prd_half[dir]) ) {
     pos1 = pos + domain->prd[dir];
@@ -111,19 +105,22 @@ ComputeMop::ComputeMop(LAMMPS *lmp, int narg, char **arg) :
     iarg++;
   }
 
-  //Error check
-    // 3D only
-    if (domain->dimension<3)
-        error->all(FLERR, "Compute mop incompatible with simulation dimension");
-    // orthogonal simulation box
-    if (domain->triclinic != 0)
-        error->all(FLERR, "Compute mop incompatible with triclinic simulation box");
-    // plane inside the box
-    if (pos >domain->boxhi[dir] || pos <domain->boxlo[dir])
-        error->all(FLERR, "Plane for compute mop is out of bounds");
+  // Error check
+  // 3D only
+
+  if (domain->dimension < 3)
+    error->all(FLERR, "Compute mop incompatible with simulation dimension");
+
+  // orthogonal simulation box
+  if (domain->triclinic != 0)
+    error->all(FLERR, "Compute mop incompatible with triclinic simulation box");
+  // plane inside the box
+  if (pos >domain->boxhi[dir] || pos <domain->boxlo[dir])
+    error->all(FLERR, "Plane for compute mop is out of bounds");
 
     
   // Initialize some variables
+
   values_local = values_global = vector = NULL;
 
   // this fix produces a global vector
@@ -155,54 +152,60 @@ ComputeMop::~ComputeMop()
 void ComputeMop::init()
 {
 
-  //Conversion constants
+  // Conversion constants
+
   nktv2p = force->nktv2p;
   ftm2v = force->ftm2v;
 
-  //Plane area
+  // Plane area
+
   area = 1;
   int i;
   for (i=0; i<3; i++){
     if (i!=dir) area = area*domain->prd[i];
   }
 
-  //Timestep Value
+  // Timestep Value
+
   dt = update->dt;
   
-// Error check
+  // Error check
    
-// Compute mop requires fixed simulation box
-if (domain->box_change_size || domain->box_change_shape || domain->deform_flag)
+  // Compute mop requires fixed simulation box
+  if (domain->box_change_size || domain->box_change_shape || domain->deform_flag)
     error->all(FLERR, "Compute mop requires a fixed simulation box");
     
-//This compute requires a pair style with pair_single method implemented
-if (force->pair == NULL)
+  // This compute requires a pair style with pair_single method implemented
+
+  if (force->pair == NULL)
     error->all(FLERR,"No pair style is defined for compute mop");
-if (force->pair->single_enable == 0)
+  if (force->pair->single_enable == 0)
     error->all(FLERR,"Pair style does not support compute mop");
 
-// Warnings
-if (me==0){
-  //Compute mop only accounts for pair interactions.
-  // issue a warning if any intramolecular potential or Kspace is defined.
-  if (force->bond!=NULL)
+  // Warnings
+
+  if (me==0){
+
+    //Compute mop only accounts for pair interactions.
+    // issue a warning if any intramolecular potential or Kspace is defined.
+
+    if (force->bond!=NULL)
       error->warning(FLERR,"compute mop does not account for bond potentials");
-  if (force->angle!=NULL)
+    if (force->angle!=NULL)
       error->warning(FLERR,"compute mop does not account for angle potentials");
-  if (force->dihedral!=NULL)
+    if (force->dihedral!=NULL)
       error->warning(FLERR,"compute mop does not account for dihedral potentials");
-  if (force->improper!=NULL)
+    if (force->improper!=NULL)
       error->warning(FLERR,"compute mop does not account for improper potentials");
-  if (force->kspace!=NULL)
-        error->warning(FLERR,"compute mop does not account for kspace contributions");
- }
+    if (force->kspace!=NULL)
+      error->warning(FLERR,"compute mop does not account for kspace contributions");
+  }
 
   // need an occasional half neighbor list
   int irequest = neighbor->request((void *) this);
   neighbor->requests[irequest]->pair = 0;
   neighbor->requests[irequest]->compute = 1;
   neighbor->requests[irequest]->occasional = 1;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -219,7 +222,6 @@ void ComputeMop::init_list(int id, NeighList *ptr)
 
 void ComputeMop::compute_vector()
 {
-
   invoked_array = update->ntimestep;
 
   //Compute pressures on separate procs
@@ -259,9 +261,11 @@ void ComputeMop::compute_pairs()
 
 
   // zero out arrays for one sample
+
   for (i = 0; i < nvalues; i++) values_local[i] = 0.0;
 
   // invoke half neighbor list (will copy or build if necessary)
+
   neighbor->build_one(list);
 
   inum = list->inum;
@@ -274,7 +278,8 @@ void ComputeMop::compute_pairs()
   Pair *pair = force->pair;
   double **cutsq = force->pair->cutsq;
 
-  //Parse values
+  // Parse values
+
   double xi[3];
   double vi[3];
   double fi[3];
@@ -354,19 +359,12 @@ void ComputeMop::compute_pairs()
     }
 
 
-    if (which[m] == KIN || which[m] == TOTAL){
-      //Compute kinetic contribution to pressure
-      // counts local particles transfers across the plane
+    // Compute kinetic contribution to pressure
+    // counts local particles transfers across the plane
 
+    if (which[m] == KIN || which[m] == TOTAL){
       double vcm[3];
       double masstotal,sgn;
-
-      //Velocity of the center of mass
-      //int ivcm,vcmbit;
-      //ivcm = igroup;
-      //vcmbit = groupbit;
-      //masstotal = group->mass(ivcm);
-      //group->vcm(ivcm,masstotal,vcm);
 
       for (int i = 0; i < nlocal; i++){
 
@@ -395,8 +393,10 @@ void ComputeMop::compute_pairs()
           xj[1] = xi[1]-vi[1]*dt+fi[1]/2/mass[itype]*dt*dt*ftm2v;
           xj[2] = xi[2]-vi[2]*dt+fi[2]/2/mass[itype]*dt*dt*ftm2v;
 
-          //because LAMMPS does not put atoms back in the box at each timestep, must check
-          //atoms going through the image of the plane that is closest to the box
+          // because LAMMPS does not put atoms back in the box
+          // at each timestep, must check atoms going through the
+          // image of the plane that is closest to the box
+
           double pos_temp = pos+copysign(1,domain->prd_half[dir]-pos)*domain->prd[dir];
           if (fabs(xi[dir]-pos)<fabs(xi[dir]-pos_temp)) pos_temp = pos;
 

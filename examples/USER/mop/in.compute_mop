@@ -38,12 +38,12 @@ fix_modify nvtliq temp Tliq
 thermo 10000
 thermo_modify flush yes temp Tliq
 
-dump 1 all atom 10000 dump.lammpstrj
+# dump 1 all atom 10000 dump.lammpstrj
 
 fix fxbal all balance 1000 1.05 shift z 10 1.05
 velocity liquid create $T 47298 dist gaussian rot yes
 run 50000
-undump 1
+# undump 1
 reset_timestep 0
 
 compute bin_z liquid chunk/atom bin/1d z 0.0 0.1 units box

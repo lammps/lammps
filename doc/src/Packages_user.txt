@@ -57,6 +57,7 @@ Package, Description, Doc page, Example, Library
 "USER-MESO"_Packages_details.html#PKG-USER-MESO, mesoscale DPD models, "pair_style edpd"_pair_meso.html, USER/meso, no
 "USER-MGPT"_Packages_details.html#PKG-USER-MGPT, fast MGPT multi-ion potentials, "pair_style mgpt"_pair_mgpt.html, USER/mgpt, no
 "USER-MISC"_Packages_details.html#PKG-USER-MISC, single-file contributions, USER-MISC/README, USER/misc, no
+"USER-MOP"_Packages_details.html#PKG-USER-MOP, compute stress via method-of-planes, "compute_style mop"_compute_mop.html, USER/mop, no
 "USER-MOFFF"_Packages_details.html#PKG-USER-MOFFF, styles for "MOF-FF"_MOFplus force field, "pair_style buck6d/coul/gauss"_pair_buck6d_coul_gauss.html, USER/mofff, no
 "USER-MOLFILE"_Packages_details.html#PKG-USER-MOLFILE, "VMD"_https://www.ks.uiuc.edu/Research/vmd/ molfile plug-ins,"dump molfile"_dump_molfile.html, n/a, ext
 "USER-NETCDF"_Packages_details.html#PKG-USER-NETCDF, dump output via NetCDF,"dump netcdf"_dump_netcdf.html, n/a, ext

@@ -106,6 +106,11 @@ modification to the input script is needed. Alternatively, one can run
 with the KOKKOS package by editing the input script as described
 below.
 
+NOTE: When using a single OpenMP thread, the Kokkos Serial backend (i.e. 
+Makefile.kokkos_mpi_only) will give better performance than the OpenMP 
+backend (i.e. Makefile.kokkos_omp) because some of the overhead to make 
+the code thread-safe is removed. 
+
 NOTE: The default for the "package kokkos"_package.html command is to
 use "full" neighbor lists and set the Newton flag to "off" for both
 pairwise and bonded interactions. However, when running on CPUs, it
@@ -121,6 +126,22 @@ mpirun -np 16 lmp_kokkos_mpi_only -k on -sf kk -pk kokkos newton on neigh half c
 
 If the "newton"_newton.html command is used in the input
 script, it can also override the Newton flag defaults.
+
+For half neighbor lists and OpenMP, the KOKKOS package uses data 
+duplication (i.e. thread-private arrays) by default to avoid 
+thread-level write conflicts in the force arrays (and other data 
+structures as necessary). Data duplication is typically fastest for 
+small numbers of threads (i.e. 8 or less) but does increase memory 
+footprint and is not scalable to large numbers of threads. An 
+alternative to data duplication is to use thread-level atomics, which 
+don't require duplication. The use of atomics can be forced by compiling 
+with the "-DLMP_KOKKOS_USE_ATOMICS" compile switch. Most but not all 
+Kokkos-enabled pair_styles support data duplication. Alternatively, full 
+neighbor lists avoid the need for duplication or atomics but require 
+more compute operations per atom. When using the Kokkos Serial backend 
+or the OpenMP backend with a single thread, no duplication or atomics are 
+used. For CUDA and half neighbor lists, the KOKKOS package always uses 
+atomics.
 
 [Core and Thread Affinity:]
 

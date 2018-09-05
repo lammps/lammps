@@ -59,6 +59,7 @@ packages:
 "USER-OMP"_Build_extras.html#user-omp,
 "USER-QMMM"_Build_extras.html#user-qmmm,
 "USER-QUIP"_Build_extras.html#user-quip,
+"USER-SCAFACOS"_#Build_extras.html#user-scafacos,
 "USER-SMD"_Build_extras.html#user-smd,
 "USER-VTK"_Build_extras.html#user-vtk :tb(c=6,ea=c,a=l)
 

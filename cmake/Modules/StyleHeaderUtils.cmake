@@ -85,6 +85,10 @@ function(RegisterNPairStyle path)
     AddStyleHeader(${path} NPAIR)
 endfunction(RegisterNPairStyle)
 
+function(RegisterFixStyle path)
+    AddStyleHeader(${path} FIX)
+endfunction(RegisterFixStyle)
+
 function(RegisterStyles search_path)
     FindStyleHeaders(${search_path} ANGLE_CLASS     angle_     ANGLE     ) # angle     ) # force
     FindStyleHeaders(${search_path} ATOM_CLASS      atom_vec_  ATOM_VEC  ) # atom      ) # atom      atom_vec_hybrid

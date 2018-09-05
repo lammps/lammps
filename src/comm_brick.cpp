@@ -55,7 +55,8 @@ CommBrick::CommBrick(LAMMPS *lmp) :
   size_reverse_send(NULL), size_reverse_recv(NULL),
   slablo(NULL), slabhi(NULL), multilo(NULL), multihi(NULL),
   cutghostmulti(NULL), pbc_flag(NULL), pbc(NULL), firstrecv(NULL),
-  sendlist(NULL), maxsendlist(NULL), buf_send(NULL), buf_recv(NULL)
+  sendlist(NULL),  localsendlist(NULL), maxsendlist(NULL),
+  buf_send(NULL), buf_recv(NULL)
 {
   style = 0;
   layout = Comm::LAYOUT_UNIFORM;
@@ -74,6 +75,7 @@ CommBrick::~CommBrick()
   }
 
   if (sendlist) for (int i = 0; i < maxswap; i++) memory->destroy(sendlist[i]);
+  if (localsendlist) memory->destroy(localsendlist);
   memory->sfree(sendlist);
   memory->destroy(maxsendlist);
 
@@ -1467,6 +1469,33 @@ void CommBrick::free_multi()
   memory->destroy(multilo);
   memory->destroy(multihi);
   multilo = multihi = NULL;
+}
+
+/* ----------------------------------------------------------------------
+   extract data potentially useful to other classes
+------------------------------------------------------------------------- */
+
+void *CommBrick::extract(const char *str, int &dim)
+{
+  if (strcmp(str,"localsendlist") == 0) {
+    int i, iswap, isend;
+    if (!localsendlist)
+      memory->create(localsendlist,atom->nlocal,"comm:localsendlist");
+    else
+      memory->grow(localsendlist,atom->nlocal,"comm:localsendlist");
+
+    for (i = 0; i < atom->nlocal; i++)
+      localsendlist[i] = 0;
+
+    for (iswap = 0; iswap < nswap; iswap++)
+      for (isend = 0; isend < sendnum[iswap]; isend++)
+        if (sendlist[iswap][isend] < atom->nlocal)
+          localsendlist[sendlist[iswap][isend]] = 1;
+
+    return (void *) localsendlist;
+  }
+
+  return NULL;
 }
 
 /* ----------------------------------------------------------------------

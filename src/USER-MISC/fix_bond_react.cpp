@@ -1858,16 +1858,27 @@ if so, flag for broadcasting for perusal by all processors
 
 void FixBondReact::glove_ghostcheck()
 {
-  // it appears this little loop was deemed important enough for its own function!
-  // noteworthy: it's only relevant for parallel
-
   // here we add glove to either local_mega_glove or ghostly_mega_glove
+  // ghostly_mega_glove includes atoms that are ghosts, either of this proc or another
+  // 'ghosts of another' indication taken from comm->sendlist
+
   int ghostly = 0;
-  for (int i = 0; i < onemol->natoms; i++) {
-    if (atom->map(glove[i][1]) >= atom->nlocal) {
-      ghostly = 1;
-      break;
+  if (comm->style == 0) {
+    int tmp;
+    int *localsendlist = (int *) comm->extract("localsendlist",tmp);
+
+    // create an indexed sendlist
+    for (int i = 0; i < onemol->natoms; i++) {
+      int ilocal = atom->map(glove[i][1]);
+      if (ilocal >= atom->nlocal || localsendlist[ilocal] == 1) {
+        ghostly = 1;
+        break;
+      }
     }
+  } else {
+    #if !defined(MPI_STUBS)
+      ghostly = 1;
+    #endif
   }
 
   if (ghostly == 1) {

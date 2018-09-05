@@ -188,7 +188,7 @@ void FixRestrain::min_setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixRestrain::post_force(int vflag)
+void FixRestrain::post_force(int /*vflag*/)
 {
   energy = 0.0;
   
@@ -204,7 +204,7 @@ void FixRestrain::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixRestrain::post_force_respa(int vflag, int ilevel, int iloop)
+void FixRestrain::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == ilevel_respa) post_force(vflag);
 }

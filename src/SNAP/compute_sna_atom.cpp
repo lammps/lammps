@@ -184,7 +184,7 @@ void ComputeSNAAtom::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSNAAtom::init_list(int id, NeighList *ptr)
+void ComputeSNAAtom::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }

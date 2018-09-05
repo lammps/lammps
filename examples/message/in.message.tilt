@@ -1,0 +1,30 @@
+# 2d NEMD simulation - no client/server mode
+
+units		lj
+atom_style	atomic
+dimension	2
+
+lattice		sq2 0.8442
+region		box prism 0 10 0 8 -0.5 0.5 0 0 0
+create_box	2 box
+create_atoms	1 box
+mass		* 1.0
+
+velocity	all create 1.44 87287 loop geom
+
+region		slice block 4 6 INF INF INF INF
+set		region slice type 2
+
+pair_style	lj/cut 2.5
+pair_coeff	* * 1.0 1.0 1.0
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 1 check yes
+
+fix		1 all nvt/sllod temp 1.0 1.0 1.0 tchain 1
+fix		2 all deform 1 xy erate 0.01 remap v
+
+thermo_style    custom step temp epair etotal press xy
+
+thermo		1000
+run		50000

@@ -425,7 +425,7 @@ void PairAIREBO::REBO_neigh()
    REBO forces and energy
 ------------------------------------------------------------------------- */
 
-void PairAIREBO::FREBO(int eflag, int vflag)
+void PairAIREBO::FREBO(int eflag, int /*vflag*/)
 {
   int i,j,k,m,ii,inum,itype,jtype;
   tagint itag,jtag;
@@ -524,7 +524,7 @@ void PairAIREBO::FREBO(int eflag, int vflag)
    find 3- and 4-step paths between atoms I,J via REBO neighbor lists
 ------------------------------------------------------------------------- */
 
-void PairAIREBO::FLJ(int eflag, int vflag)
+void PairAIREBO::FLJ(int eflag, int /*vflag*/)
 {
   int i,j,k,m,ii,jj,kk,mm,inum,jnum,itype,jtype,ktype,mtype;
   int atomi,atomj,atomk,atomm;
@@ -893,7 +893,7 @@ void PairAIREBO::FLJ(int eflag, int vflag)
    torsional forces and energy
 ------------------------------------------------------------------------- */
 
-void PairAIREBO::TORSION(int eflag, int vflag)
+void PairAIREBO::TORSION(int eflag, int /*vflag*/)
 {
   int i,j,k,l,ii,inum;
   tagint itag,jtag;
@@ -2116,7 +2116,7 @@ but of the vector r_ij.
 
 */
 
-double PairAIREBO::bondorderLJ(int i, int j, double rij_mod[3], double rijmag_mod,
+double PairAIREBO::bondorderLJ(int i, int j, double /*rij_mod*/[3], double rijmag_mod,
                                double VA, double rij[3], double rijmag,
                                double **f, int vflag_atom)
 {

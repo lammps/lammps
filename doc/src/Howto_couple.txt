@@ -16,9 +16,11 @@ atoms and pass those forces to LAMMPS.  Or a continuum finite element
 nodal points, compute a FE solution, and return interpolated forces on
 MD atoms.
 
-LAMMPS can be coupled to other codes in at least 3 ways.  Each has
+LAMMPS can be coupled to other codes in at least 4 ways.  Each has
 advantages and disadvantages, which you'll have to think about in the
 context of your application.
+
+:line
 
 (1) Define a new "fix"_fix.html command that calls the other code.  In
 this scenario, LAMMPS is the driver code.  During its timestepping,
@@ -31,6 +33,8 @@ poems"_fix_poems.html command for more details.  See the
 LAMMPS.
 
 :link(poems,http://www.rpi.edu/~anderk5/lab)
+
+:line
 
 (2) Define a new LAMMPS command that calls the other code.  This is
 conceptually similar to method (1), but in this case LAMMPS and the
@@ -51,6 +55,8 @@ command writes and reads.
 
 See the "Modify command"_Modify_command.html doc page for info on how
 to add a new command to LAMMPS.
+
+:line
 
 (3) Use LAMMPS as a library called by another code.  In this case the
 other code is the driver and calls LAMMPS as needed.  Or a wrapper
@@ -102,3 +108,9 @@ on all the processors.  Or it might allocate half the processors to
 LAMMPS and half to the other code and run both codes simultaneously
 before syncing them up periodically.  Or it might instantiate multiple
 instances of LAMMPS to perform different calculations.
+
+:line
+
+(4) Couple LAMMPS with another code in a client/server mode.  This is
+described on the "Howto client/server"_Howto_client_server.html doc
+page.

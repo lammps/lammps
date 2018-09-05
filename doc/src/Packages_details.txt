@@ -549,10 +549,6 @@ This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
 extras"_Build_extras.html doc page.
 
-NOTE: You should test building the MEAM library with both the Intel
-and GNU compilers to see if a simulation runs faster with one versus
-the other on your system.
-
 [Supporting info:]
 
 src/MEAM: filenames -> commands
@@ -560,6 +556,31 @@ src/meam/README
 lib/meam/README
 "pair_style meam"_pair_meam.html
 examples/meam :ul
+
+:line
+
+MESSAGE package :link(PKG-MESSAGE),h4
+
+[Contents:]
+
+Commands to use LAMMPS as either a client or server and couple it to
+another application.
+
+[Install:]
+
+This package has "specific installation
+instructions"_Build_extras.html#message on the "Build
+extras"_Build_extras.html doc page.
+
+[Supporting info:]
+
+src/MESSAGE: filenames -> commands
+lib/message/README
+"message"_message.html
+"fix client/md"_fix_client_md.html
+"server md"_server_md.html
+"server mc"_server_mc.html
+examples/message :ul
 
 :line
 

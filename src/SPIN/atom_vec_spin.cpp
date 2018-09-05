@@ -943,7 +943,7 @@ bigint AtomVecSpin::memory_usage()
   return bytes;
 }
 
-void AtomVecSpin::force_clear(int n, size_t nbytes)
+void AtomVecSpin::force_clear(int /*n*/, size_t nbytes)
 {
   memset(&atom->f[0][0],0,3*nbytes);
   memset(&atom->fm[0][0],0,3*nbytes);

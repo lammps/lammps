@@ -41,7 +41,7 @@ double Calculate_Omega( rvec dvec_ij, double r_ij,
                       three_body_interaction_data *p_jkl,
                       rvec dcos_omega_di, rvec dcos_omega_dj,
                       rvec dcos_omega_dk, rvec dcos_omega_dl,
-                      output_controls *out_control )
+                      output_controls * /*out_control*/ )
 {
   double unnorm_cos_omega, unnorm_sin_omega, omega;
   double sin_ijk, cos_ijk, sin_jkl, cos_jkl;

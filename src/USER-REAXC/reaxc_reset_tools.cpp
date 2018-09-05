@@ -87,7 +87,7 @@ void Reset_Pressures( simulation_data *data )
 }
 
 
-void Reset_Simulation_Data( simulation_data* data, int virial )
+void Reset_Simulation_Data( simulation_data* data, int /*virial*/ )
 {
   Reset_Energies( &data->my_en );
   Reset_Energies( &data->sys_en );

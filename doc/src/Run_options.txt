@@ -18,6 +18,7 @@ letter abbreviation can be used:
 "-i or -in"_#file
 "-k or -kokkos"_#run-kokkos
 "-l or -log"_#log
+"-m or -mpicolor"_#mpicolor
 "-nc or -nocite"_#nocite
 "-pk or -package"_#package
 "-p or -partition"_#partition
@@ -172,6 +173,30 @@ file.N.  For both one-partition and multi-partition mode, if the
 specified file is "none", then no log files are created.  Using a
 "log"_log.html command in the input script will override this setting.
 Option -plog will override the name of the partition log files file.N.
+
+:line
+
+[-mpicolor] color :link(mpi)
+
+If used, this must be the first command-line argument after the LAMMPS
+executable name.  It is only used when LAMMPS is launched by an mpirun
+command which also launches another executable(s) at the same time.
+(The other executable could be LAMMPS as well.)  The color is an
+integer value which should be different for each executable (another
+application may set this value in a different way).  LAMMPS and the
+other executable(s) perform an MPI_Comm_split() with their own colors
+to shrink the MPI_COMM_WORLD communication to be the subset of
+processors they are actually running on.
+
+Currently, this is only used in LAMMPS to perform client/server
+messaging with another application.  LAMMPS can act as either a client
+or server (or both).  More details are given on the "Howto
+client/server"_Howto_client_server.html doc page.
+
+Specifically, this refers to the "mpi/one" mode of messaging provided
+by the "message"_message.html command and the CSlib library LAMMPS
+links with from the lib/message directory.  See the
+"message"_message.html command for more details.
 
 :line
 

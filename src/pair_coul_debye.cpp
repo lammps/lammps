@@ -163,8 +163,8 @@ void PairCoulDebye::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairCoulDebye::single(int i, int j, int itype, int jtype,
-                           double rsq, double factor_coul, double factor_lj,
+double PairCoulDebye::single(int i, int j, int /*itype*/, int /*jtype*/,
+                           double rsq, double factor_coul, double /*factor_lj*/,
                            double &fforce)
 {
   double r2inv,r,rinv,forcecoul,phicoul,screening;

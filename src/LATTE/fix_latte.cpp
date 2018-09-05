@@ -189,7 +189,7 @@ void FixLatte::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixLatte::init_list(int id, NeighList *ptr)
+void FixLatte::init_list(int /*id*/, NeighList * /*ptr*/)
 {
   // list = ptr;
 }
@@ -223,13 +223,13 @@ void FixLatte::setup_pre_reverse(int eflag, int vflag)
    integrate electronic degrees of freedom
 ------------------------------------------------------------------------- */
 
-void FixLatte::initial_integrate(int vflag) {}
+void FixLatte::initial_integrate(int /*vflag*/) {}
 
 /* ----------------------------------------------------------------------
    store eflag, so can use it in post_force to tally per-atom energies
 ------------------------------------------------------------------------- */
 
-void FixLatte::pre_reverse(int eflag, int vflag)
+void FixLatte::pre_reverse(int eflag, int /*vflag*/)
 {
   eflag_caller = eflag;
 }

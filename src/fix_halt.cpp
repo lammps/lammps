@@ -184,7 +184,7 @@ void FixHalt::end_of_step()
   // print message with ID of fix halt in case multiple instances
 
   char str[128];
-  sprintf(str,"Fix halt %s condition met on step %ld with value %g",
+  sprintf(str,"Fix halt %s condition met on step " BIGINT_FORMAT " with value %g",
           id,update->ntimestep,attvalue);
 
   if (eflag == HARD) {

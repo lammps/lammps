@@ -84,7 +84,6 @@ as contained in the file name.
 "USER-MGPT"_#PKG-USER-MGPT,
 "USER-MISC"_#PKG-USER-MISC,
 "USER-MOFFF"_#PKG-USER-MOFFF,
-"USER-MOP"_#PKG-USER-MOP,
 "USER-MOLFILE"_#PKG-USER-MOLFILE,
 "USER-NETCDF"_#PKG-USER-NETCDF,
 "USER-OMP"_#PKG-USER-OMP,
@@ -1570,29 +1569,6 @@ src/USER-MOFFF/README
 "angle_style cosine/buck6d"_angle_cosine_buck6d.html
 "improper_style inversion/harmonic"_improper_inversion_harmonic.html
 examples/USER/mofff :ul
-
-:line
-
-USER-MOP package :link(PKG-USER-MOP),h4
-
-[Contents:]
-
-This package contains two compute styles: compute stress/mop and compute stress/mop/profile.
-
-compute stress/mop calculates components of the local stress tensor using the method of planes, applied on one plane.
-
-compute stress/mop/profile calculates profiles of components of the local stress tensor using the method of planes, applied on an array of regularly spaced planes.
-
-[Author:] Laurent Joly (University of Lyon 1)
-Romain Vermorel at (University of Pau and Pays de l'Adour)
-
-[Supporting info:]
-
-src/USER-MOP: filenames -> commands
-src/USER-MOP/README
-"compute stress/mop"_compute_stress_mop.html
-"compute stress/mop/profile"_compute_stress_mop.html
-examples/USER/mop :ul
 
 :line
 

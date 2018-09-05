@@ -229,7 +229,7 @@ void FixNVTManifoldRattle::init()
 
 
 
-void FixNVTManifoldRattle::setup(int vflag)
+void FixNVTManifoldRattle::setup(int /*vflag*/)
 {
   compute_temp_target();
 
@@ -371,7 +371,7 @@ void FixNVTManifoldRattle::nh_v_temp()
 
 
 // Most of this logic is based on fix_nh:
-void FixNVTManifoldRattle::initial_integrate(int vflag)
+void FixNVTManifoldRattle::initial_integrate(int /*vflag*/)
 {
 
   update_var_params();

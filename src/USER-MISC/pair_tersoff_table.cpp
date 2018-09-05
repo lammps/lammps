@@ -719,7 +719,7 @@ void PairTersoffTable::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairTersoffTable::settings(int narg, char **arg)
+void PairTersoffTable::settings(int narg, char **/*arg*/)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 }

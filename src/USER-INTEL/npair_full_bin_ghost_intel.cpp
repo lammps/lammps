@@ -106,7 +106,7 @@ void NPairFullBinGhostIntel::fbi(NeighList * list,
 /* ---------------------------------------------------------------------- */
 
 template<class flt_t, class acc_t, int need_ic>
-void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
+void NPairFullBinGhostIntel::fbi(const int /*offload*/, NeighList * list,
                                  IntelBuffers<flt_t,acc_t> * buffers,
                                  const int pstart, const int pend) {
   if (pend-pstart == 0) return;
@@ -115,7 +115,6 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
   int nall_t = nall;
   const int aend = nall;
 
-  const int pack_width = _fix->nbor_pack_width();
   const ATOM_T * _noalias const x = buffers->get_x();
   int * _noalias const firstneigh = buffers->firstneigh(list);
   const int e_nall = nall_t;
@@ -155,9 +154,6 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
   tagint * const molecule = atom->molecule;
   #endif
 
-  int *molindex = atom->molindex;
-  int *molatom = atom->molatom;
-  Molecule **onemols = atom->avec->onemols;
   int moltemplate;
   if (molecular == 2) moltemplate = 1;
   else moltemplate = 0;
@@ -167,8 +163,8 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
 
   int tnum;
   int *overflow;
-  double *timer_compute;
   #ifdef _LMP_INTEL_OFFLOAD
+  double *timer_compute;
   if (offload) {
     timer_compute = _fix->off_watch_neighbor();
     tnum = buffers->get_off_threads();
@@ -311,7 +307,7 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
       int * _noalias const ttag = ncachetag + toffs;
 
       // loop over all atoms in other bins in stencil, store every pair
-      int istart, icount, ncount, oldbin = -9999999, lane, max_chunk;
+      int ncount, oldbin = -9999999;
       for (int i = ifrom; i < ito; i++) {
         const flt_t xtmp = x[i].x;
         const flt_t ytmp = x[i].y;

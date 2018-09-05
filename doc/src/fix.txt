@@ -30,7 +30,7 @@ Set a fix that will be applied to a group of atoms.  In LAMMPS, a
 timestepping or minimization.  Examples include updating of atom
 positions and velocities due to time integration, controlling
 temperature, applying constraint forces to atoms, enforcing boundary
-conditions, computing diagnostics, etc.  There are hundredes of fixes
+conditions, computing diagnostics, etc.  There are hundreds of fixes
 defined in LAMMPS and new ones can be added; see the
 "Modify"_Modify.html doc page for details.
 
@@ -164,7 +164,7 @@ There are also additional accelerated fix styles included in the
 LAMMPS distribution for faster performance on CPUs, GPUs, and KNLs.
 The individual style names on the "Commands fix"_Commands_fix.html doc
 page are followed by one or more of (g,i,k,o,t) to indicate which
-accerlerated styles exist.
+accelerated styles exist.
 
 "adapt"_fix_adapt.html - change a simulation parameter over time
 "addforce"_fix_addforce.html - add a force to each atom

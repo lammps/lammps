@@ -13,7 +13,7 @@ This is an alphabetic list of the WARNING messages LAMMPS prints out
 and the reason why.  If the explanation here is not sufficient, the
 documentation for the offending command may help.  Warning messages
 also list the source file and line number where the warning was
-generated.  For example, a message lile this:
+generated.  For example, a message like this:
 
 WARNING: Bond atom missing in box size check (domain.cpp:187) :pre
 

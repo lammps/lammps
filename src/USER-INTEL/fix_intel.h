@@ -74,7 +74,7 @@ class FixIntel : public Fix {
   inline int nbor_pack_width() const { return _nbor_pack_width; }
   inline void nbor_pack_width(const int w) { _nbor_pack_width = w; }
   inline int three_body_neighbor() { return _three_body_neighbor; }
-  inline void three_body_neighbor(const int i) { _three_body_neighbor = 1; }
+  inline void three_body_neighbor(const int /*i*/) { _three_body_neighbor = 1; }
 
   inline int need_zero(const int tid) {
     if (_need_reduce == 0 && tid > 0) return 1;
@@ -159,8 +159,8 @@ class FixIntel : public Fix {
   inline int host_start_neighbor() { return 0; }
   inline int host_start_pair() { return 0; }
   inline void zero_timers() {}
-  inline void start_watch(const int which) {}
-  inline double stop_watch(const int which) { return 0.0; }
+  inline void start_watch(const int /*which*/) {}
+  inline double stop_watch(const int /*which*/) { return 0.0; }
   double * off_watch_pair() { return NULL; }
   double * off_watch_neighbor() { return NULL; }
   inline void balance_stamp() {}
@@ -238,7 +238,7 @@ class FixIntel : public Fix {
 
 /* ---------------------------------------------------------------------- */
 
-void FixIntel::get_buffern(const int offload, int &nlocal, int &nall,
+void FixIntel::get_buffern(const int /*offload*/, int &nlocal, int &nall,
                            int &minlocal) {
   #ifdef _LMP_INTEL_OFFLOAD
   if (_separate_buffers) {
@@ -273,7 +273,7 @@ void FixIntel::get_buffern(const int offload, int &nlocal, int &nall,
 /* ---------------------------------------------------------------------- */
 
 void FixIntel::add_result_array(IntelBuffers<double,double>::vec3_acc_t *f_in,
-                                double *ev_in, const int offload,
+                                double *ev_in, const int /*offload*/,
                                 const int eatom, const int vatom,
                                 const int rflag) {
   #ifdef _LMP_INTEL_OFFLOAD
@@ -301,7 +301,7 @@ void FixIntel::add_result_array(IntelBuffers<double,double>::vec3_acc_t *f_in,
 /* ---------------------------------------------------------------------- */
 
 void FixIntel::add_result_array(IntelBuffers<float,double>::vec3_acc_t *f_in,
-                                double *ev_in, const int offload,
+                                double *ev_in, const int /*offload*/,
                                 const int eatom, const int vatom,
                                 const int rflag) {
   #ifdef _LMP_INTEL_OFFLOAD
@@ -329,7 +329,7 @@ void FixIntel::add_result_array(IntelBuffers<float,double>::vec3_acc_t *f_in,
 /* ---------------------------------------------------------------------- */
 
 void FixIntel::add_result_array(IntelBuffers<float,float>::vec3_acc_t *f_in,
-                                float *ev_in, const int offload,
+                                float *ev_in, const int /*offload*/,
                                 const int eatom, const int vatom,
                                 const int rflag) {
   #ifdef _LMP_INTEL_OFFLOAD

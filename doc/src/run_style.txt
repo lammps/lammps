@@ -318,7 +318,7 @@ bond forces = level 1 (innermost loop)
 angle forces = same level as bond forces
 dihedral forces = same level as angle forces
 improper forces = same level as dihedral forces
-pair forces = leven N (outermost level)
+pair forces = level N (outermost level)
 kspace forces = same level as pair forces
 inner, middle, outer forces = no default :ul
 

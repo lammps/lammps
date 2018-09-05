@@ -54,6 +54,7 @@ General howto :h3
    Howto_replica
    Howto_library
    Howto_couple
+   Howto_client_server
 
 END_RST -->
 
@@ -64,7 +65,8 @@ END_RST -->
 "Run multiple simulations from one input script"_Howto_multiple.html
 "Multi-replica simulations"_Howto_replica.html
 "Library interface to LAMMPS"_Howto_library.html
-"Couple LAMMPS to other codes"_Howto_couple.html :all(b)
+"Couple LAMMPS to other codes"_Howto_couple.html
+"Using LAMMPS in client/server mode"_Howto_client_server.html :all(b)
 
 <!-- END_HTML_ONLY -->
 

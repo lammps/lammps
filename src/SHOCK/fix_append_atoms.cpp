@@ -231,7 +231,7 @@ int FixAppendAtoms::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixAppendAtoms::initial_integrate(int vflag)
+void FixAppendAtoms::initial_integrate(int /*vflag*/)
 {
   if (update->ntimestep % freq == 0) next_reneighbor = update->ntimestep;
 }
@@ -331,7 +331,7 @@ int FixAppendAtoms::get_spatial()
 
 /* ---------------------------------------------------------------------- */
 
-void FixAppendAtoms::post_force(int vflag)
+void FixAppendAtoms::post_force(int /*vflag*/)
 {
   double **f = atom->f;
   double **v = atom->v;

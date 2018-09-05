@@ -784,7 +784,7 @@ void PairEAMIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
 /* ---------------------------------------------------------------------- */
 
 int PairEAMIntel::pack_forward_comm(int n, int *list, double *buf,
-                                    int pbc_flag, int *pbc)
+                                    int /*pbc_flag*/, int * /*pbc*/)
 {
   if (fix->precision() == FixIntel::PREC_MODE_DOUBLE)
     return pack_forward_comm(n, list, buf, fp);

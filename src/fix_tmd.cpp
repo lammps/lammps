@@ -170,7 +170,7 @@ void FixTMD::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixTMD::initial_integrate(int vflag)
+void FixTMD::initial_integrate(int /*vflag*/)
 {
   double a,b,c,d,e;
   double dx,dy,dz,dxkt,dykt,dzkt;
@@ -335,7 +335,7 @@ void FixTMD::grow_arrays(int nmax)
    copy values within local atom-based arrays
 ------------------------------------------------------------------------- */
 
-void FixTMD::copy_arrays(int i, int j, int delflag)
+void FixTMD::copy_arrays(int i, int j, int /*delflag*/)
 {
   xf[j][0] = xf[i][0];
   xf[j][1] = xf[i][1];
@@ -412,7 +412,7 @@ void FixTMD::readfile(char *file)
       m++;
     }
 
-    MPI_Bcast(&eof,sizeof(char *)/sizeof(char),MPI_CHAR,0,world);
+    MPI_Bcast(&eof,sizeof(char *),MPI_CHAR,0,world);
     MPI_Bcast(&nlines,1,MPI_INT,0,world);
     MPI_Bcast(&m,1,MPI_INT,0,world);
     MPI_Bcast(buffer,m,MPI_CHAR,0,world);

@@ -601,7 +601,7 @@ void PairOxdnaHbond::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairOxdnaHbond::settings(int narg, char **arg)
+void PairOxdnaHbond::settings(int narg, char **/*arg*/)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 

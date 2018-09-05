@@ -195,7 +195,7 @@ void BodyNparticle::data_body(int ibonus, int ninteger, int ndouble,
    called by Molecule class which needs single body size
 ------------------------------------------------------------------------- */
 
-double BodyNparticle::radius_body(int ninteger, int ndouble,
+double BodyNparticle::radius_body(int /*ninteger*/, int ndouble,
                                   int *ifile, double *dfile)
 {
   int nsub = ifile[0];
@@ -258,7 +258,7 @@ void BodyNparticle::output(int ibonus, int m, double *values)
 
 /* ---------------------------------------------------------------------- */
 
-int BodyNparticle::image(int ibonus, double flag1, double flag2,
+int BodyNparticle::image(int ibonus, double flag1, double /*flag2*/,
                          int *&ivec, double **&darray)
 {
   double p[3][3];

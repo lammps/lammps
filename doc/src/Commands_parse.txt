@@ -14,7 +14,7 @@ LAMMPS commands are case sensitive.  Command names are lower-case, as
 are specified command arguments.  Upper case letters may be used in
 file names or user-chosen ID strings.
 
-Here are 6 rulse for how each line in the input script is parsed by
+Here are 6 rules for how each line in the input script is parsed by
 LAMMPS:
 
 (1) If the last printable character on the line is a "&" character,
@@ -71,7 +71,7 @@ floating-point value.  The format string is used to output the result
 of the variable expression evaluation.  If a format string is not
 specified a high-precision "%.20g" is used as the default.
 
-This can be useful for formatting print output to a desired precion:
+This can be useful for formatting print output to a desired precision:
 
 print "Final energy per atom: $(pe/atoms:%10.3f) eV/atom" :pre
 

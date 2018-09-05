@@ -625,11 +625,9 @@ void FixBocs::init()
 // NJD MRD 2 functions
 int FixBocs::read_F_table( char *filename, int p_basis_type )
 {
-  char separator = ',';
   FILE *fpi;
   int N_columns = 2, n_entries = 0, i;
   float f1, f2;
-  double n1, n2;
   int test_sscanf;
   double **data = (double **) calloc(N_columns,sizeof(double *));
   char * line = (char *) calloc(200,sizeof(char));
@@ -790,7 +788,7 @@ void FixBocs::build_cubic_splines( double **data )
    compute T,P before integrator starts
 ------------------------------------------------------------------------- */
 
-void FixBocs::setup(int vflag)
+void FixBocs::setup(int /*vflag*/)
 {
   // tdof needed by compute_temp_target()
 
@@ -875,7 +873,7 @@ void FixBocs::setup(int vflag)
    1st half of Verlet update
 ------------------------------------------------------------------------- */
 
-void FixBocs::initial_integrate(int vflag)
+void FixBocs::initial_integrate(int /*vflag*/)
 {
   // update eta_press_dot
 
@@ -970,7 +968,7 @@ void FixBocs::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixBocs::initial_integrate_respa(int vflag, int ilevel, int iloop)
+void FixBocs::initial_integrate_respa(int /*vflag*/, int ilevel, int /*iloop*/)
 {
   // set timesteps by level
 
@@ -1039,7 +1037,7 @@ void FixBocs::initial_integrate_respa(int vflag, int ilevel, int iloop)
 
 /* ---------------------------------------------------------------------- */
 
-void FixBocs::final_integrate_respa(int ilevel, int iloop)
+void FixBocs::final_integrate_respa(int ilevel, int /*iloop*/)
 {
   // set timesteps by level
 

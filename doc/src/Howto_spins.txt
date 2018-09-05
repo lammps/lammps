@@ -9,10 +9,10 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 Magnetic spins :h3
 
-The magnetic spin simualtions are enabled by the SPIN package, whose
+The magnetic spin simulations are enabled by the SPIN package, whose
 implementation is detailed in "Tranchida"_#Tranchida7.
 
-The model representents the simulation of atomic magnetic spins coupled 
+The model represents the simulation of atomic magnetic spins coupled 
 to lattice vibrations. The dynamics of those magnetic spins can be used 
 to simulate a broad range a phenomena related to magneto-elasticity, or 
 or to study the influence of defects on the magnetic properties of 
@@ -43,7 +43,7 @@ langevin/spin"_fix_langevin_spin.html. It allows to either dissipate
 the thermal energy of the Langevin thermostat, or to perform a 
 relaxation of the magnetic configuration toward an equilibrium state.
 
-All the computed magnetic properties can be outputed by two main 
+All the computed magnetic properties can be output by two main 
 commands. The first one is "compute spin"_compute_spin.html, that 
 enables to evaluate magnetic averaged quantities, such as the total 
 magnetization of the system along x, y, or z, the spin temperature, or

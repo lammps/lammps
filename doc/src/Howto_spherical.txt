@@ -159,7 +159,7 @@ ellipsoidal particles:
 
 The advantage of these fixes is that those which thermostat the
 particles include the rotational degrees of freedom in the temperature
-calculation and thermostatting.  The "fix langevin"_fix_langevin
+calculation and thermostatting.  The "fix langevin"_fix_langevin.html
 command can also be used with its {omgea} or {angmom} options to
 thermostat the rotational degrees of freedom for spherical or
 ellipsoidal particles.  Other thermostatting fixes only operate on the

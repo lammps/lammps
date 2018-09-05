@@ -337,7 +337,7 @@ int ComputeBondLocal::compute_bonds(int flag)
 /* ---------------------------------------------------------------------- */
 
 int ComputeBondLocal::pack_forward_comm(int n, int *list, double *buf,
-                                        int pbc_flag, int *pbc)
+                                        int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
 

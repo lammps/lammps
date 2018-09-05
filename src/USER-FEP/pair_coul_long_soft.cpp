@@ -348,7 +348,7 @@ void PairCoulLongSoft::read_restart_settings(FILE *fp)
 
 double PairCoulLongSoft::single(int i, int j, int itype, int jtype,
                             double rsq,
-                            double factor_coul, double factor_lj,
+                            double factor_coul, double /*factor_lj*/,
                             double &fforce)
 {
   double r,grij,expm2,t,erfc,prefactor;

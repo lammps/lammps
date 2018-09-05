@@ -31,6 +31,7 @@ This is the list of packages that may require additional steps.
 "KOKKOS"_#kokkos,
 "LATTE"_#latte,
 "MEAM"_#meam,
+"MESSAGE"_#message,
 "MSCG"_#mscg,
 "OPT"_#opt,
 "POEMS"_#poems,
@@ -341,7 +342,7 @@ NOTE: the use of the MEAM package is discouraged, as it has been
 superseded by the USER-MEAMC package, which is a direct translation of
 the Fortran code in the MEAM library to C++. The code in USER-MEAMC
 should be functionally equivalent to the MEAM package, fully supports
-use of "pair_style hybrid"_pair_hybrid.html (the MEAM packaged doesn
+use of "pair_style hybrid"_pair_hybrid.html (the MEAM package does
 not), and has optimizations that make it significantly faster than the
 MEAM package.
 
@@ -362,6 +363,10 @@ make lib-meam args="-m mpi"    # build with default Fortran compiler compatible 
 make lib-meam args="-m serial" # build with compiler compatible with "make serial" (GNU Fortran)
 make lib-meam args="-m ifort"  # build with Intel Fortran compiler using Makefile.ifort :pre
 
+NOTE: You should test building the MEAM library with both the Intel
+and GNU compilers to see if a simulation runs faster with one versus
+the other on your system.
+
 The build should produce two files: lib/meam/libmeam.a and
 lib/meam/Makefile.lammps.  The latter is copied from an existing
 Makefile.lammps.* and has settings needed to link C++ (LAMMPS) with
@@ -371,6 +376,35 @@ GNU compilers).  If necessary, you can edit/create a new
 lib/meam/Makefile.machine file for your system, which should define an
 EXTRAMAKE variable to specify a corresponding Makefile.lammps.machine
 file.
+
+:line
+ 
+MESSAGE package :h4,link(message)
+
+This package can optionally include support for messaging via sockets,
+using the open-source "ZeroMQ library"_http://zeromq.org, which must
+be installed on your system.
+
+[CMake build]:
+
+-D MESSAGE_ZMQ=value    # build with ZeroMQ support, value = no (default) or yes
+
+[Traditional make]:
+
+Before building LAMMPS, you must build the CSlib library in
+lib/message.  You can build the CSlib library manually if you prefer;
+follow the instructions in lib/message/README.  You can also do it in
+one step from the lammps/src dir, using a command like these, which
+simply invoke the lib/message/Install.py script with the specified args:
+
+make lib-message               # print help message
+make lib-message args="-m -z"  # build with MPI and socket (ZMQ) support
+make lib-message args="-s"     # build as serial lib with no ZMQ support
+
+The build should produce two files: lib/message/cslib/src/libmessage.a
+and lib/message/Makefile.lammps.  The latter is copied from an
+existing Makefile.lammps.* and has settings to link with the ZeroMQ
+library if requested in the build.
 
 :line
  
@@ -471,7 +505,7 @@ lib/python/README for more details.
 
 -D PYTHON_EXECUTABLE=path   # path to Python executable to use :pre
 
-Without this setting, CMake will ues the default Python on your
+Without this setting, CMake will guess the default Python on your
 system.  To use a different Python version, you can either create a
 virtualenv, activate it and then run cmake.  Or you can set the
 PYTHON_EXECUTABLE variable to specify which Python interpreter should
@@ -688,7 +722,7 @@ the HDF5 library.
 
 No additional settings are needed besides "-D PKG_USER-H5MD=yes".
 
-This should autodetect the H5MD library on your system.  Several
+This should auto-detect the H5MD library on your system.  Several
 advanced CMake H5MD options exist if you need to specify where it is
 installed.  Use the ccmake (terminal window) or cmake-gui (graphical)
 tools to see these options and set them interactively from their user
@@ -778,7 +812,7 @@ on your system.
 
 No additional settings are needed besides "-D PKG_USER-NETCDF=yes".
 
-This should autodetect the NETCDF library if it is installed on your
+This should auto-detect the NETCDF library if it is installed on your
 system at standard locations.  Several advanced CMake NETCDF options
 exist if you need to specify where it was installed.  Use the ccmake
 (terminal window) or cmake-gui (graphical) tools to see these options
@@ -945,7 +979,7 @@ Eigen3 is a template library, so you do not need to build it.
 -D EIGEN3_INCLUDE_DIR=path    # path to Eigen library (only needed if a custom location) :pre
 
 If DOWNLOAD_EIGEN3 is set, the Eigen3 library will be downloaded and
-inside the CMake build directory.  If the Eig3n3 library is already on
+inside the CMake build directory.  If the Eigen3 library is already on
 your system (in a location CMake cannot find it), EIGEN3_INCLUDE_DIR
 is the directory the Eigen3++ include file is in.
 
@@ -976,7 +1010,7 @@ your system.
 
 No additional settings are needed besides "-D PKG_USER-VTK=yes".
 
-This should autodetect the VTK library if it is installed on your
+This should auto-detect the VTK library if it is installed on your
 system at standard locations.  Several advanced VTK options exist if
 you need to specify where it was installed.  Use the ccmake (terminal
 window) or cmake-gui (graphical) tools to see these options and set

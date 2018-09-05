@@ -128,7 +128,7 @@ There are also additional accelerated pair styles (not listed on the
 distribution for faster performance on CPUs, GPUs, and KNLs.  The
 individual style names on the "Commands pair"_Commands_pair.html doc
 page are followed by one or more of (g,i,k,o,t) to indicate which
-accerlerated styles exist.
+accelerated styles exist.
 
 :line
 

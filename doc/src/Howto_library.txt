@@ -171,16 +171,16 @@ void lammps_create_atoms(void *, int, tagint *, int *, double *, double *,
 
 The gather functions collect peratom info of the requested type (atom
 coords, atom types, forces, etc) from all processors, and returns the
-same vector of values to each callling processor.  The scatter
+same vector of values to each calling processor.  The scatter
 functions do the inverse.  They distribute a vector of peratom values,
-passed by all calling processors, to invididual atoms, which may be
-owned by different processos.
+passed by all calling processors, to individual atoms, which may be
+owned by different processors.
 
 The lammps_gather_atoms() function does this for all N atoms in the
 system, ordered by atom ID, from 1 to N.  The
 lammps_gather_atoms_concat() function does it for all N atoms, but
 simply concatenates the subset of atoms owned by each processor.  The
-resulting vector is not ordered by atom ID.  Atom IDs can be requetsed
+resulting vector is not ordered by atom ID.  Atom IDs can be requested
 by the same function if the caller needs to know the ordering.  The
 lammps_gather_subset() function allows the caller to request values
 for only a subset of atoms (identified by ID).

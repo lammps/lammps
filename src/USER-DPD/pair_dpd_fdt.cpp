@@ -433,8 +433,8 @@ void PairDPDfdt::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairDPDfdt::single(int i, int j, int itype, int jtype, double rsq,
-                       double factor_coul, double factor_dpd, double &fforce)
+double PairDPDfdt::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
+                       double /*factor_coul*/, double factor_dpd, double &fforce)
 {
   double r,rinv,wr,wd,phi;
 

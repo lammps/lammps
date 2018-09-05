@@ -961,6 +961,10 @@ void FixBondReact::superimpose_algorithm()
   local_num_mega = 0;
   ghostly_num_mega = 0;
 
+  // indicates local ghosts of other procs
+  int tmp;
+  localsendlist = (int *) comm->extract("localsendlist",tmp);
+
   // quick description of important global indices you'll see floating about:
   // 'pion' is the pioneer loop index
   // 'neigh' in the first neighbor index
@@ -1863,10 +1867,6 @@ void FixBondReact::glove_ghostcheck()
 
   int ghostly = 0;
   if (comm->style == 0) {
-    int tmp;
-    int *localsendlist = (int *) comm->extract("localsendlist",tmp);
-
-    // create an indexed sendlist
     for (int i = 0; i < onemol->natoms; i++) {
       int ilocal = atom->map(glove[i][1]);
       if (ilocal >= atom->nlocal || localsendlist[ilocal] == 1) {

@@ -10,6 +10,7 @@ See these sections of the LAMMPS manaul for details:
 
 2.5 Building LAMMPS as a library (doc/Section_start.html#start_5)
 6.10 Coupling LAMMPS to other codes (doc/Section_howto.html#howto_10)
+6.29 Using LAMMPS in client/server mode (doc/Section_howto.html#howto_29)
 
 In all of the examples included here, LAMMPS must first be built as a
 library.  Basically, in the src dir you type one of
@@ -33,9 +34,13 @@ These are the sub-directories included in this directory:
 
 simple		    simple example of driver code calling LAMMPS as a lib
 multiple	    example of driver code calling multiple instances of LAMMPS
+lammps_mc           client/server coupling of Monte Carlo client 
+                      with LAMMPS server for energy evaluation
 lammps_quest	    MD with quantum forces, coupling to Quest DFT code
 lammps_spparks	    grain-growth Monte Carlo with strain via MD,
 		    coupling to SPPARKS kinetic MC code
+lammps_vasp         client/server coupling of LAMMPS client  with 
+                      VASP quantum DFT as server for quantum forces
 library		    collection of useful inter-code communication routines
 fortran             a simple wrapper on the LAMMPS library API that
  		      can be called from Fortran

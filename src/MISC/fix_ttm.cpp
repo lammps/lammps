@@ -71,7 +71,7 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
   fpr = fopen(arg[13],"r");
   if (fpr == NULL) {
     char str[128];
-    sprintf(str,"Cannot open file %s",arg[13]);
+    snprintf(str,128,"Cannot open file %s",arg[13]);
     error->one(FLERR,str);
   }
 
@@ -84,7 +84,7 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
       fp = fopen(arg[15],"w");
       if (fp == NULL) {
         char str[128];
-        sprintf(str,"Cannot open fix ttm file %s",arg[15]);
+        snprintf(str,128,"Cannot open fix ttm file %s",arg[15]);
         error->one(FLERR,str);
       }
     }

@@ -320,11 +320,7 @@ void PairComb3::read_lib()
 
   if (comm->me == 0) {
     FILE *fp = force->open_potential("lib.comb3");
-    if (fp == NULL) {
-      char str[128];
-      sprintf(str,"Cannot open COMB3 lib.comb3 file");
-      error->one(FLERR,str);
-    }
+    if (fp == NULL) error->one(FLERR,"Cannot open COMB3 lib.comb3 file");
 
     // read and store at the same time
     fgets(s,MAXLIB,fp);
@@ -607,7 +603,7 @@ void PairComb3::read_file(char *file)
     fp = force->open_potential(file);
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open COMB3 potential file %s",file);
+      snprintf(str,128,"Cannot open COMB3 potential file %s",file);
       error->one(FLERR,str);
     }
   }

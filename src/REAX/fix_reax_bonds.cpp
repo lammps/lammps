@@ -53,7 +53,7 @@ FixReaxBonds::FixReaxBonds(LAMMPS *lmp, int narg, char **arg) :
     if (suffix && strcmp(suffix,".gz") == 0) {
 #ifdef LAMMPS_GZIP
       char gzip[128];
-      sprintf(gzip,"gzip -6 > %s",arg[4]);
+      snprintf(gzip128,,"gzip -6 > %s",arg[4]);
 #ifdef _WIN32
       fp = _popen(gzip,"wb");
 #else
@@ -66,7 +66,7 @@ FixReaxBonds::FixReaxBonds(LAMMPS *lmp, int narg, char **arg) :
 
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open fix reax/bonds file %s",arg[4]);
+      snprintf(str,128,"Cannot open fix reax/bonds file %s",arg[4]);
       error->one(FLERR,str);
     }
   }
@@ -222,11 +222,8 @@ void FixReaxBonds::OutputReaxBonds(bigint ntimestep, FILE *fp)
         numbonds = nint(buf[j+2]);
         fprintf(fp," %d %d %d",nint(buf[j]),nint(buf[j+1]),numbonds);
         j += 3;
-        if (numbonds > nsbmax_most) {
-          char str[128];
-          sprintf(str,"Fix reax/bonds numbonds > nsbmax_most");
-          error->one(FLERR,str);
-        }
+        if (numbonds > nsbmax_most)
+          error->one(FLERR,"Fix reax/bonds numbonds > nsbmax_most");
 
         // print connection table
 

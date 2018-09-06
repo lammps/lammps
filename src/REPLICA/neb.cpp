@@ -549,7 +549,7 @@ void NEB::open(char *file)
   else {
 #ifdef LAMMPS_GZIP
     char gunzip[128];
-    snprintf(gunz128,ip,"gzip -c -d %s",file);
+    snprintf(gunzip,128,"gzip -c -d %s",file);
 
 #ifdef _WIN32
     fp = _popen(gunzip,"rb");

@@ -1684,8 +1684,8 @@ void PairTlsph::coeff(int narg, char **arg) {
                 } // end energy release rate failure criterion
 
                 else {
-                        sprintf(str, "unknown *KEYWORD: %s", arg[ioffset]);
-                        error->all(FLERR, str);
+                  snprintf(str,128,"unknown *KEYWORD: %s", arg[ioffset]);
+                  error->all(FLERR, str);
                 }
 
         }

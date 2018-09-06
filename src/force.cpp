@@ -182,8 +182,8 @@ void Force::init()
   if (pair_restart) {
     if (!pair) {
       char msg[128];
-      sprintf(msg,"Must re-specify non-restarted pair style (%s) "
-              "after read_restart", pair_restart);
+      snprintf(msg,128,"Must re-specify non-restarted pair style (%s) "
+               "after read_restart", pair_restart);
       error->all(FLERR,msg);
     }
   }

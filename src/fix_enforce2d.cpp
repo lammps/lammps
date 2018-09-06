@@ -78,7 +78,7 @@ void FixEnforce2D::init()
           flist[nfixlist++] = modify->fix[i];
         else {
           char msg[256];
-          sprintf(msg,"Fix enforce2d must be defined after fix %s",modify->fix[i]->style);
+          snprintf(msg,256,"Fix enforce2d must be defined after fix %s",modify->fix[i]->style);
           error->all(FLERR,msg);
         }
       }

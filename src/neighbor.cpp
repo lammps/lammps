@@ -1408,7 +1408,7 @@ void Neighbor::init_topology()
 void Neighbor::print_pairwise_info()
 {
   int i,m;
-  char str[128];
+  char str[256];
   NeighRequest *rq;
   FILE *out;
 

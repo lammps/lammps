@@ -225,7 +225,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
         fp = fopen(arg[iarg+1],"w");
         if (fp == NULL) {
           char str[128];
-          sprintf(str,"Cannot open fix ave/chunk file %s",arg[iarg+1]);
+          snprintf(str,128,"Cannot open fix ave/chunk file %s",arg[iarg+1]);
           error->one(FLERR,str);
         }
       }

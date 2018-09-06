@@ -138,7 +138,7 @@ void ReadRestart::command(int narg, char **arg)
     fp = fopen(hfile,"rb");
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open restart file %s",hfile);
+      snprintf(str,128,"Cannot open restart file %s",hfile);
       error->one(FLERR,str);
     }
     if (multiproc) delete [] hfile;
@@ -297,7 +297,7 @@ void ReadRestart::command(int narg, char **arg)
       fp = fopen(procfile,"rb");
       if (fp == NULL) {
         char str[128];
-        sprintf(str,"Cannot open restart file %s",procfile);
+        snprintf(str,128,"Cannot open restart file %s",procfile);
         error->one(FLERR,str);
       }
 
@@ -369,7 +369,7 @@ void ReadRestart::command(int narg, char **arg)
       fp = fopen(procfile,"rb");
       if (fp == NULL) {
         char str[128];
-        sprintf(str,"Cannot open restart file %s",procfile);
+        snprintf(str,128,"Cannot open restart file %s",procfile);
         error->one(FLERR,str);
       }
       delete [] procfile;

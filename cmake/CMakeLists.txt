@@ -830,6 +830,7 @@ if(PKG_USER-OMP)
     set(USER-OMP_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/USER-OMP)
     set(USER-OMP_SOURCES ${USER-OMP_SOURCES_DIR}/thr_data.cpp
                          ${USER-OMP_SOURCES_DIR}/thr_omp.cpp
+                         ${USER-OMP_SOURCES_DIR}/fix_omp.cpp
                          ${USER-OMP_SOURCES_DIR}/fix_nh_omp.cpp
                          ${USER-OMP_SOURCES_DIR}/fix_nh_sphere_omp.cpp
                          ${USER-OMP_SOURCES_DIR}/domain_omp.cpp)
@@ -838,7 +839,7 @@ if(PKG_USER-OMP)
 
     # detects styles which have USER-OMP version
     RegisterStylesExt(${USER-OMP_SOURCES_DIR} omp OMP_SOURCES)
-
+    RegisterFixStyle("${USER-OMP_SOURCES_DIR}/fix_omp.h")
 
     get_property(USER-OMP_SOURCES GLOBAL PROPERTY OMP_SOURCES)
 

@@ -1,0 +1,23 @@
+This is the the Client/Server messaging library (CSlib).
+
+Only the source directory and license file are included here as part
+of the LAMMPS distribution.  The full CSlib distribution, including
+documentation and test codes, can be found at the website:
+http://cslib.sandia.gov (as of Aug 2018).
+
+The contact author is
+
+Steve Plimpton
+Sandia National Laboratories
+sjplimp@sandia.gov
+http://www.sandia.gov/~sjplimp
+
+The CSlib is distributed as open-source code under the modified
+Berkeley Software Distribution (BSD) License.  See the accompanying
+LICENSE file.
+
+This directory contains the following:
+
+README         this file
+LICENSE        GNU LGPL license
+src            source files for library

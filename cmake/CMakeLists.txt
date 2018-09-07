@@ -604,7 +604,8 @@ endif()
 if(PKG_MESSAGE)
   option(MESSAGE_ZMQ "Use ZeroMQ in MESSAGE package" OFF)
   file(GLOB_RECURSE cslib_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/message/cslib/[^.]*.F
-      ${LAMMPS_LIB_SOURCE_DIR}/message/cslib/*.c ${LAMMPS_LIB_SOURCE_DIR}/message/cslib/*.cpp)
+      ${LAMMPS_LIB_SOURCE_DIR}/message/cslib/[^.]*.c
+      ${LAMMPS_LIB_SOURCE_DIR}/message/cslib/[^.]*.cpp)
 
   if(BUILD_SHARED_LIBS)
       add_library(cslib SHARED ${cslib_SOURCES})
@@ -754,8 +755,10 @@ foreach(SIMPLE_LIB REAX MEAM POEMS USER-ATC USER-AWPMD USER-COLVARS USER-H5MD
   if(PKG_${SIMPLE_LIB})
     string(REGEX REPLACE "^USER-" "" PKG_LIB "${SIMPLE_LIB}")
     string(TOLOWER "${PKG_LIB}" PKG_LIB)
-    file(GLOB_RECURSE ${PKG_LIB}_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/[^.]*.F
-      ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/*.c ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/*.cpp)
+    file(GLOB_RECURSE ${PKG_LIB}_SOURCES
+      ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/[^.]*.F
+      ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/[^.]*.c
+      ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/[^.]*.cpp)
     add_library(${PKG_LIB} STATIC ${${PKG_LIB}_SOURCES})
     list(APPEND LAMMPS_LINK_LIBS ${PKG_LIB})
     if(PKG_LIB STREQUAL awpmd)

@@ -7,7 +7,7 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :line
 
-Using LAMMPS in client/server mode
+Using LAMMPS in client/server mode :h3
 
 Client/server coupling of two codes is where one code is the "client"
 and sends request messages to a "server" code.  The server responds to

@@ -1,0 +1,76 @@
+This directory contains links to the ScaFaCoS library which
+is required to use the KSPACE scafacos and its kspace_style
+scafacos command in a LAMMPS input script.
+
+The ScaFaCoS library is available at http://scafacos.de or
+on github at https://github.com/scafacos, the libary was
+developed by a consortium of different universities in
+Germany (Bonn, Chemnitz, Stuttgart, Wuppertal) and
+the Research Centre Juelich (Juelich Supercomputing Centre).
+
+-----------------
+
+Instructions:
+
+1.) Download ScaFaCoS at http://scafacos.de or directly from github
+    https://github.com/scafacos where you can either clone the
+    repository or download the latest stable release.
+    NOTE: For the P2NFFT solver, you require an installation of the
+          GNU Scientific Library (GSL). Also to ensure the correct
+          linker-flags are used, ScaFaCoS employs the pkg-config
+          tool, which is also required.
+    If you cloned the repository, please refer to 2.), else continue
+    with 3.)
+
+2.) If you cloned the git repository, you require autotools to setup
+    the library. For that the following packages are required:
+      m4
+      autotools
+      automake
+      libtools
+    In the build_aux folder of the scafacos folder, you can find the
+    get_autotools.sh script, that downloads and installs the tools
+    to ${HOME}/local. To change the target folder, please change the
+    value of 'myprefix' in that script.
+    To start the auto-configuration process, please run the './bootstrap'
+    command in the scafacos base-folder.
+
+3.) If you downloaded the library as a tarball, please extract the file
+    to somewhere in your file system, or if you finished running 
+    './bootstrap', please run './configure' in the base folder.
+    Important flags for './configure' are:
+      --prefix=<install_dir>:       sets the directory the compiled files will
+                                    be installed to [default: /usr/local]
+      --fcs-enable-solvers=<list>:  sets the list of solvers that are going to
+                                    be built. By default all solvers will be
+                                    built. Currently supported by the kspace in LAMMPS
+                                    are: direct, ewald, fmm, p2nfft
+                                    The other solvers might work, but support
+                                    is purely experimental at the moment. To
+                                    give a list of solvers, use a comma seperated
+                                    list.
+      --fcs-disable-doc:            disables the compilation of the documentation,
+                                    e.g. if no Latex is available on the system.
+
+4.) To build the library after configuration, run 'make' from the base folder.
+
+5.) To install the libray in the designated installation folder, run 'make install'.
+    Installation is required, as ScaFaCoS does not support an in-source build!
+
+6.) Create two soft links to this directory (lib/scafacos) to where the libary
+    is installed. E.g. if you built ScaFaCoS in the default install directory:
+      % ln -s /usr/local/include includelink
+      % ln -s /usr/local/lib liblink
+    for any custom directory <custom_dir>:
+      % ln -s <custom_dir>/include includelink
+      % ln -s <custom_dir>/lib liblink
+
+7.) ScaFaCoS uses the pkg-config tool to supply the correct, so you need to setup your
+    PKG_CONFIG_PATH environment variable to include the lib/pkgconfig folder in the
+    installation directory.
+    Depending on the shell you use, this can be done either by:
+      % export PKG_CONFIG_PATH=<custom_dir>/lib/pkgconfig:${PKG_CONFIG_PATH}
+    or
+      % setenv PKG_CONFIG_PATH=<custom_dir>/lib/pkgconfig:${PKG_CONFIG_PATH}
+
+-----------------

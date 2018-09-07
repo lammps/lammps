@@ -31,6 +31,7 @@ This is the list of packages that may require additional steps.
 "KOKKOS"_#kokkos,
 "LATTE"_#latte,
 "MEAM"_#meam,
+"MESSAGE"_#message,
 "MSCG"_#mscg,
 "OPT"_#opt,
 "POEMS"_#poems,
@@ -47,6 +48,7 @@ This is the list of packages that may require additional steps.
 "USER-OMP"_#user-omp,
 "USER-QMMM"_#user-qmmm,
 "USER-QUIP"_#user-quip,
+"USER-SCAFACOS"_#user-scafacos,
 "USER-SMD"_#user-smd,
 "USER-VTK"_#user-vtk :tb(c=6,ea=c,a=l)
 
@@ -361,6 +363,10 @@ make lib-meam args="-m mpi"    # build with default Fortran compiler compatible 
 make lib-meam args="-m serial" # build with compiler compatible with "make serial" (GNU Fortran)
 make lib-meam args="-m ifort"  # build with Intel Fortran compiler using Makefile.ifort :pre
 
+NOTE: You should test building the MEAM library with both the Intel
+and GNU compilers to see if a simulation runs faster with one versus
+the other on your system.
+
 The build should produce two files: lib/meam/libmeam.a and
 lib/meam/Makefile.lammps.  The latter is copied from an existing
 Makefile.lammps.* and has settings needed to link C++ (LAMMPS) with
@@ -370,6 +376,35 @@ GNU compilers).  If necessary, you can edit/create a new
 lib/meam/Makefile.machine file for your system, which should define an
 EXTRAMAKE variable to specify a corresponding Makefile.lammps.machine
 file.
+
+:line
+ 
+MESSAGE package :h4,link(message)
+
+This package can optionally include support for messaging via sockets,
+using the open-source "ZeroMQ library"_http://zeromq.org, which must
+be installed on your system.
+
+[CMake build]:
+
+-D MESSAGE_ZMQ=value    # build with ZeroMQ support, value = no (default) or yes
+
+[Traditional make]:
+
+Before building LAMMPS, you must build the CSlib library in
+lib/message.  You can build the CSlib library manually if you prefer;
+follow the instructions in lib/message/README.  You can also do it in
+one step from the lammps/src dir, using a command like these, which
+simply invoke the lib/message/Install.py script with the specified args:
+
+make lib-message               # print help message
+make lib-message args="-m -z"  # build with MPI and socket (ZMQ) support
+make lib-message args="-s"     # build as serial lib with no ZMQ support
+
+The build should produce two files: lib/message/cslib/src/libmessage.a
+and lib/message/Makefile.lammps.  The latter is copied from an
+existing Makefile.lammps.* and has settings to link with the ZeroMQ
+library if requested in the build.
 
 :line
  
@@ -891,6 +926,45 @@ lib/quip/Makefile.lammps file which is used when you compile and link
 LAMMPS with this package.  You should only need to edit
 Makefile.lammps if the LAMMPS build can not use its settings to
 successfully build on your system.
+
+:line
+
+USER-SCAFACOS package :h4,link(user-scafacos)
+
+To build with this package, you must download and build the "ScaFaCoS
+Coulomb solver library"_scafacos_home
+
+:link(scafacos_home,http://www.scafacos.de)
+
+[CMake build]:
+
+-D DOWNLOAD_SCAFACOS=value    # download ScaFaCoS for build, value = no (default) or yes
+-D SCAFACOS_LIBRARY=path      # ScaFaCos library file (only needed if at custom location) 
+-D SCAFACOS_INCLUDE_DIR=path  # ScaFaCoS include directory (only needed if at custom location) :pre
+
+If DOWNLOAD_SCAFACOS is set, the ScaFaCoS library will be downloaded
+and built inside the CMake build directory.  If the ScaFaCoS library
+is already on your system (in a location CMake cannot find it),
+SCAFACOS_LIBRARY is the filename (plus path) of the ScaFaCoS library
+file, not the directory the library file is in.  SCAFACOS_INCLUDE_DIR
+is the directory the ScaFaCoS include file is in.
+
+[Traditional make]:
+
+You can download and build the ScaFaCoS library manually if you
+prefer; follow the instructions in lib/scafacos/README.  You can also
+do it in one step from the lammps/src dir, using a command like these,
+which simply invoke the lib/scafacos/Install.py script with the
+specified args:
+
+make lib-scafacos                         # print help message
+make lib-scafacos args="-b"               # download and build in lib/scafacos/scafacos-<version>
+make lib-scafacos args="-p $HOME/scafacos  # use existing ScaFaCoS installation in $HOME/scafacos
+
+Note that 2 symbolic (soft) links, "includelink" and "liblink", are
+created in lib/scafacos to point to the ScaFaCoS src dir.  When LAMMPS
+builds in src it will use these links.  You should not need to edit
+the lib/scafacos/Makefile.lammps file.
 
 :line
 

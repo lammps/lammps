@@ -1533,7 +1533,8 @@ void Atom::set_mass(const char *file, int line, int /*narg*/, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   set all masses as read in from restart file
+   set all masses
+   called from reading of restart file, also from ServerMD
 ------------------------------------------------------------------------- */
 
 void Atom::set_mass(double *values)

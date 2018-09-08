@@ -51,9 +51,9 @@ can complete the timestep.  This command could also be used with a
 client code that performs energy minimization, using the server to
 compute forces and energy each iteration of its minimizer.
 
-When using the "fix client/md" command, LAMMPS (as the client code)
-does the timestepping and receives needed energy, forces, and pressure
-values from the server code.
+When using the "fix client/md"_fix_client_md.html command, LAMMPS (as
+the client code) does the timestepping and receives needed energy,
+forces, and pressure values from the server code.
 
 The format and content of the exchanged messages are explained here in
 a conceptual sense.  Python-style pseudo code for the library calls to
@@ -69,9 +69,11 @@ a quantum code (VASP) can use use these messages.
 
 The following pseudo-code uses these values, defined as enums.
 
-enum{SETUP=1,STEP};
-enum{DIM=1,PERIODICITY,ORIGIN,BOX,NATOMS,NTYPES,TYPES,COORDS,UNITS,CHARGE};
-enum{FORCES=1,ENERGY,PRESSURE,ERROR}; :pre
+Define:
+
+SETUP=1, STEP=2
+DIM=1, PERIODICITY=2, ORIGIN=3, BOX=4, NATOMS=5, NTYPES=6, TYPES=7, COORDS=8, UNITS-9, CHARGE=10
+FORCES=1, ENERGY=2, PRESSURE=3, ERROR=4 :pre
 
 [Client sends 2 kinds of messages]:
 
@@ -98,7 +100,7 @@ cs->send(STEP,nfields)         # msgID with nfields :pre
 
 cs->pack(COORDS,3*natoms,x)    # vector of 3N atom coords
 cs->pack(ORIGIN,3,origin)      # lower-left corner of simulation box
-cs->pack(BOX,9,box)            # 3 edge vectors of simulation box
+cs->pack(BOX,9,box)            # 3 edge vectors of simulation box :pre
 
 [Server replies to either kind of message]:
 

@@ -7,7 +7,7 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :line
 
-Download source as a tarball :h3
+Download source and documentation as a tarball :h3
 
 You can download a current LAMMPS tarball from the "download page"_download
 of the "LAMMPS website"_lws.
@@ -21,6 +21,10 @@ release or the most current patch release.  Stable releases occur a
 few times per year, and undergo more testing before release.  Patch
 releases occur a couple times per month.  The new contents in all
 releases are listed on the "bug and feature page"_bug of the website.
+
+Both tarballs include LAMMPS documentation (HTML and PDF files)
+corresponding to that version.  The download page also has an option
+to download the current-version LAMMPS documentation by itself.
 
 Older versions of LAMMPS can also be downloaded from "this
 page"_older.

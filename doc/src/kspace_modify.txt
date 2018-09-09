@@ -133,7 +133,7 @@ the code will stop with an error message. When this option is set to
 For a typical application, using the automatic parameter generation
 will provide simulations that are either inaccurate or slow. Using this
 option is thus not recommended. For guidelines on how to obtain good
-parameters, see the "How-To"_Section_howto.html#howto_24 discussion.
+parameters, see the "How-To"_Howto_dispersion.html discussion.
 
 :line
 

@@ -231,7 +231,7 @@ may be modified. Atoms whose values are 0.0 are removed from the
 dynamic group, otherwise they are added to the group.
 
 NOTE: The dynamic property command assumes per-atom values have been
-properly initialized, for example with by use of the 'run 0' command.
+properly initialized, for example via the 'run 0' command.
 
 The assignment of atoms to a dynamic group is done at the beginning of
 each run and on every timestep that is a multiple of {N}, which is the

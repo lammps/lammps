@@ -82,20 +82,14 @@ idregion(NULL), idvar(NULL), idprop(NULL)
       int *mask = atom->mask;
       if (!typeflag) {
         int *ivector = atom->ivector[icustom];
-        for (int i = 0; i < atom->nlocal; i++) {
-          if (mask[i] & gbit)
+        for (int i = 0; i < atom->nlocal; i++)
+          if (mask[i] & gbit && ivector[i] == 0)
             ivector[i] = 1;
-          else
-            ivector[i] = 0;
-        }
       } else if (typeflag) {
         double *dvector = atom->dvector[icustom];
-        for (int i = 0; i < atom->nlocal; i++) {
-          if (mask[i] & gbit)
+        for (int i = 0; i < atom->nlocal; i++)
+          if (mask[i] & gbit && dvector[i] == 0)
             dvector[i] = 1;
-          else
-            dvector[i] = 0;
-        }
       }
       propflag = 1;
       delete [] idprop;

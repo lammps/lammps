@@ -224,13 +224,14 @@ keyword is used, the variable name must be an atom-style or
 atomfile-style variable.  The variable is evaluated and atoms whose
 per-atom values are 0.0, are removed from the dynamic group. If the
 {property} keyword is used, the per-atom property name must be a
-previously defined custom per-atom property.  Per-atom atom values are
-overwritten when the group is initialized; if the group ID already
-exists, specified atoms are assigned a per-atom value of 1.0,
-otherwise they are assigned a value of 0.0.  Therefore, per-atom
-values should be modified after the group command.  The per-atom
-property is evaluated and atoms whose values are 0.0 are removed from
-the dynamic group, otherwise they are added to the group.
+previously defined custom per-atom property.  If the group ID already
+exists and specified atoms have a per-atom value of 0.0, they are
+assigned a per-atom value of 1.0.  Subsequently, the per-atom property
+may be modified. Atoms whose values are 0.0 are removed from the
+dynamic group, otherwise they are added to the group.
+
+NOTE: The dynamic property command assumes per-atom values have been
+properly initialized, for example with by use of the 'run 0' command.
 
 The assignment of atoms to a dynamic group is done at the beginning of
 each run and on every timestep that is a multiple of {N}, which is the

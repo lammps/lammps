@@ -17,23 +17,23 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(eam/cd/omp,PairCDEAM_OneSiteOMP)
-PairStyle(eam/cd/old/omp,PairCDEAM_TwoSiteOMP)
+PairStyle(eam/cd/omp,PairEAMCD_OneSiteOMP)
+PairStyle(eam/cd/old/omp,PairEAMCD_TwoSiteOMP)
 
 #else
 
-#ifndef LMP_PAIR_CDEAM_OMP_H
-#define LMP_PAIR_CDEAM_OMP_H
+#ifndef LMP_PAIR_EAM_CD_OMP_H
+#define LMP_PAIR_EAM_CD_OMP_H
 
-#include "pair_cdeam.h"
+#include "pair_eam_cd.h"
 #include "thr_omp.h"
 
 namespace LAMMPS_NS {
 
-class PairCDEAMOMP : public PairCDEAM, public ThrOMP {
+class PairEAMCDOMP : public PairEAMCD, public ThrOMP {
 
  public:
-  PairCDEAMOMP(class LAMMPS *, int);
+  PairEAMCDOMP(class LAMMPS *, int);
 
   virtual void compute(int, int);
   virtual double memory_usage();
@@ -44,19 +44,19 @@ class PairCDEAMOMP : public PairCDEAM, public ThrOMP {
 };
 
   /// The one-site concentration formulation of CD-EAM.
-  class PairCDEAM_OneSiteOMP : public PairCDEAMOMP
+  class PairEAMCD_OneSiteOMP : public PairEAMCDOMP
   {
   public:
     /// Constructor.
-    PairCDEAM_OneSiteOMP(class LAMMPS* lmp) : PairEAM(lmp), PairCDEAMOMP(lmp, 1) {}
+    PairEAMCD_OneSiteOMP(class LAMMPS* lmp) : PairEAM(lmp), PairEAMCDOMP(lmp, 1) {}
   };
 
   /// The two-site concentration formulation of CD-EAM.
-  class PairCDEAM_TwoSiteOMP : public PairCDEAMOMP
+  class PairEAMCD_TwoSiteOMP : public PairEAMCDOMP
   {
   public:
     /// Constructor.
-    PairCDEAM_TwoSiteOMP(class LAMMPS* lmp) : PairEAM(lmp), PairCDEAMOMP(lmp, 2) {}
+    PairEAMCD_TwoSiteOMP(class LAMMPS* lmp) : PairEAM(lmp), PairEAMCDOMP(lmp, 2) {}
   };
 
 }

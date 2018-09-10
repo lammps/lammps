@@ -222,11 +222,15 @@ conditions are applied.  If the {region} keyword is used, atoms not in
 the specified region are removed from the dynamic group.  If the {var}
 keyword is used, the variable name must be an atom-style or
 atomfile-style variable.  The variable is evaluated and atoms whose
-per-atom values are 0.0, are removed from the dynamic group. If the {property}
-keyword is used, the per-atom property name must be a previously defined
-per-atom property.  The per-atom property is evaluated and atoms whose
-values are 0.0 are removed from the dynamic group, otherwise they
-are added to the group.
+per-atom values are 0.0, are removed from the dynamic group. If the
+{property} keyword is used, the per-atom property name must be a
+previously defined custom per-atom property.  Per-atom atom values are
+overwritten when the group is initialized; if the group ID already
+exists, specified atoms are assigned a per-atom value of 1.0,
+otherwise they are assigned a value of 0.0.  Therefore, per-atom
+values should be modified after the group command.  The per-atom
+property is evaluated and atoms whose values are 0.0 are removed from
+the dynamic group, otherwise they are added to the group.
 
 The assignment of atoms to a dynamic group is done at the beginning of
 each run and on every timestep that is a multiple of {N}, which is the

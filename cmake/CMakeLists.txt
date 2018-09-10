@@ -538,13 +538,6 @@ if(PKG_USER-NETCDF)
 endif()
 
 if(PKG_USER-SMD)
-  # hack alert!
-  # something defines the Eigen3_DIR variable, but it has no effect
-  # yet shows up in the TUI/GUI display as "not found".
-  # and due to not being marked as advanced, it can mislead people
-  # as the EIGEN3_INCLUDE_DIR variable which does have an effect
-  # is marked as advanced. Tested on Fedora28 with Eigen3-3.3.5 rpm.
-  mark_as_advanced(Eigen3_DIR)
   option(DOWNLOAD_EIGEN3 "Download Eigen3 (instead of using the system's one)" OFF)
   if(DOWNLOAD_EIGEN3)
     include(ExternalProject)
@@ -557,7 +550,8 @@ if(PKG_USER-SMD)
     set(EIGEN3_INCLUDE_DIR ${SOURCE_DIR})
     list(APPEND LAMMPS_DEPS Eigen3_build)
   else()
-    find_package(Eigen3)
+    find_package(Eigen3 NO_MODULE)
+    mark_as_advanced(Eigen3_DIR)
     if(NOT EIGEN3_FOUND)
       message(FATAL_ERROR "Eigen3 not found, help CMake to find it by setting EIGEN3_INCLUDE_DIR, or set DOWNLOAD_EIGEN3=ON to download it")
     endif()

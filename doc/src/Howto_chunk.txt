@@ -125,7 +125,7 @@ molecule diffusion rates. :l
 As input to special functions of "equal-style
 variables"_variable.html, like sum() and max() and ave().  E.g. to
 find the largest cluster or fastest diffusing molecule or average
-radius-of-gyration of a set of molecules (chunks). :l :ule
+radius-of-gyration of a set of molecules (chunks). :l,ule
 
 Other chunk commands: :h4
 

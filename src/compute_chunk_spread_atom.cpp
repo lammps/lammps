@@ -37,7 +37,7 @@ enum{COMPUTE,FIX};
 ComputeChunkSpreadAtom::
 ComputeChunkSpreadAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  which(NULL), argindex(NULL), ids(NULL), value2index(NULL), idchunk(NULL)
+  idchunk(NULL), ids(NULL), which(NULL), argindex(NULL), value2index(NULL)
 {
   if (narg < 5) error->all(FLERR,"Illegal compute chunk/spread/atom command");
 

@@ -35,9 +35,8 @@ class ComputeChunkSpreadAtom : public Compute {
  protected:
   int mode,nvalues;
   char *idchunk;
-
-  int *which,*argindex,*value2index;
   char **ids;
+  int *which,*argindex,*value2index;
 
   int nmax;
   class ComputeChunkAtom *cchunk;

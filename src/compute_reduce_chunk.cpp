@@ -38,8 +38,8 @@ enum{COMPUTE,FIX,VARIABLE};
 
 ComputeReduceChunk::ComputeReduceChunk(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  vlocal(NULL), vglobal(NULL), alocal(NULL), aglobal(NULL), varatom(NULL),
-  which(NULL), argindex(NULL), value2index(NULL), idchunk(NULL), ids(NULL)
+  which(NULL), argindex(NULL), value2index(NULL), idchunk(NULL), ids(NULL),
+  vlocal(NULL), vglobal(NULL), alocal(NULL), aglobal(NULL), varatom(NULL)
 {
   if (narg < 6) error->all(FLERR,"Illegal compute reduce/chunk command");
 

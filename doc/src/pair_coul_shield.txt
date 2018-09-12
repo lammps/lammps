@@ -38,7 +38,7 @@ charge and molecule ID information is included.
 
 Where Tap(r_ij) is the taper function which provides a continuous cutoff
 (up to third derivative) for inter-atomic separations larger than r_c
-"(Leven1)"_#Leven2, "(Leven2)"_#Leven3 and "(Maaravi)"_#Maaravi1. Here {lambda} is the shielding parameter that
+"(Leven1)"_#Leven3, "(Leven2)"_#Leven4 and "(Maaravi)"_#Maaravi1. Here {lambda} is the shielding parameter that
 eliminates the short-range singularity of the classical mono-polar
 electrostatic interaction expression "(Maaravi)"_#Maaravi1.
 
@@ -82,11 +82,11 @@ LAMMPS"_Section_start.html#start_2_3 section for more info.
 
 :line
 
-:link(Leven2)
-[(Leven)] I. Leven, I. Azuri, L. Kronik and O. Hod, J. Chem. Phys. 140, 104106 (2014).
-
 :link(Leven3)
-[(Leven)] I. Leven et al, J. Chem.Theory Comput. 12, 2896-905 (2016).
+[(Leven1)] I. Leven, I. Azuri, L. Kronik and O. Hod, J. Chem. Phys. 140, 104106 (2014).
+
+:link(Leven4)
+[(Leven2)] I. Leven et al, J. Chem.Theory Comput. 12, 2896-905 (2016).
 
 :link(Maaravi1)
 [(Maaravi)] T. Maaravi et al, J. Phys. Chem. C 121, 22826-22835 (2017).

@@ -31,7 +31,7 @@ pair_coeff  2 2 coul/shield 0.69 :pre
 [Description:]
 
 The {ilp/graphene/hbn} style computes the registry-dependent interlayer
-potential (ILP) potential as described in "(Leven1)"_#Leven1, "(Leven2)"_#Leven and
+potential (ILP) potential as described in "(Leven1)"_#Leven1, "(Leven2)"_#Leven2 and
 "(Maaravi)"_#Maaravi2. The normals are calculated in the way as described
 in "(Kolmogorov)"_#Kolmogorov2.
 
@@ -40,7 +40,7 @@ in "(Kolmogorov)"_#Kolmogorov2.
 Where Tap(r_ij) is the taper function which provides a continuous
 cutoff (up to third derivative) for interatomic separations larger than
 r_c "(Maaravi)"_#Maaravi2. The definitons of each parameter in the above
-equation can be found in "(Leven)"_#Leven1 and "(Maaravi)"_#Maaravi2.
+equation can be found in "(Leven1)"_#Leven1 and "(Maaravi)"_#Maaravi2.
 
 It is important to include all the pairs to build the neighbor list for
 calculating the normals.
@@ -112,10 +112,10 @@ units, if your simulation does not use {metal} units.
 :line
 
 :link(Leven1)
-[(Leven)] I. Leven, I. Azuri, L. Kronik and O. Hod, J. Chem. Phys. 140, 104106 (2014).
+[(Leven1)] I. Leven, I. Azuri, L. Kronik and O. Hod, J. Chem. Phys. 140, 104106 (2014).
 
-:link(Leven)
-[(Leven)] I. Leven et al, J. Chem.Theory Comput. 12, 2896-905 (2016).
+:link(Leven2)
+[(Leven2)] I. Leven et al, J. Chem.Theory Comput. 12, 2896-905 (2016).
 
 :link(Maaravi2)
 [(Maaravi)] T. Maaravi et al, J. Phys. Chem. C 121, 22826-22835 (2017).

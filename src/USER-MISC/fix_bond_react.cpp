@@ -961,6 +961,10 @@ void FixBondReact::superimpose_algorithm()
   local_num_mega = 0;
   ghostly_num_mega = 0;
 
+  // indicates local ghosts of other procs
+  int tmp;
+  localsendlist = (int *) comm->extract("localsendlist",tmp);
+
   // quick description of important global indices you'll see floating about:
   // 'pion' is the pioneer loop index
   // 'neigh' in the first neighbor index
@@ -1857,17 +1861,24 @@ if so, flag for broadcasting for perusal by all processors
 
 void FixBondReact::glove_ghostcheck()
 {
-  // it appears this little loop was deemed important enough for its own function!
-  // noteworthy: it's only relevant for parallel
-
   // here we add glove to either local_mega_glove or ghostly_mega_glove
-  int ghostly = 1;
-  //for (int i = 0; i < onemol->natoms; i++) {
-  //  if (atom->map(glove[i][1]) >= atom->nlocal) {
-  //    ghostly = 1;
-  //    break;
-  //  }
-  //}
+  // ghostly_mega_glove includes atoms that are ghosts, either of this proc or another
+  // 'ghosts of another' indication taken from comm->sendlist
+
+  int ghostly = 0;
+  if (comm->style == 0) {
+    for (int i = 0; i < onemol->natoms; i++) {
+      int ilocal = atom->map(glove[i][1]);
+      if (ilocal >= atom->nlocal || localsendlist[ilocal] == 1) {
+        ghostly = 1;
+        break;
+      }
+    }
+  } else {
+    #if !defined(MPI_STUBS)
+      ghostly = 1;
+    #endif
+  }
 
   if (ghostly == 1) {
     ghostly_mega_glove[0][ghostly_num_mega] = rxnID;

@@ -1,6 +1,6 @@
 try:
     from .nbody_graph_search import Ugraph
-except (SystemError, ValueError):
+except (ImportError, SystemError, ValueError):
     # not installed as a package
     from nbody_graph_search import Ugraph
 

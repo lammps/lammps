@@ -404,7 +404,7 @@ void FixAveCorrelate::init()
    only does something if nvalid = current timestep
 ------------------------------------------------------------------------- */
 
-void FixAveCorrelate::setup(int vflag)
+void FixAveCorrelate::setup(int /*vflag*/)
 {
   end_of_step();
 }

@@ -125,7 +125,7 @@ void FixSMDIntegrateTlsph::init() {
 /* ----------------------------------------------------------------------
  ------------------------------------------------------------------------- */
 
-void FixSMDIntegrateTlsph::initial_integrate(int vflag) {
+void FixSMDIntegrateTlsph::initial_integrate(int /*vflag*/) {
         double dtfm, vsq, scale;
 
         // update v and x of atoms in group

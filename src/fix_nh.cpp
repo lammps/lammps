@@ -742,7 +742,7 @@ void FixNH::init()
    compute T,P before integrator starts
 ------------------------------------------------------------------------- */
 
-void FixNH::setup(int vflag)
+void FixNH::setup(int /*vflag*/)
 {
   // tdof needed by compute_temp_target()
 
@@ -798,7 +798,7 @@ void FixNH::setup(int vflag)
 
   if (pstat_flag) {
     double kt = boltz * t_target;
-    double nkt = atom->natoms * kt;
+    double nkt = (atom->natoms + 1) * kt;
 
     for (int i = 0; i < 3; i++)
       if (p_flag[i])
@@ -827,7 +827,7 @@ void FixNH::setup(int vflag)
    1st half of Verlet update
 ------------------------------------------------------------------------- */
 
-void FixNH::initial_integrate(int vflag)
+void FixNH::initial_integrate(int /*vflag*/)
 {
   // update eta_press_dot
 
@@ -922,7 +922,7 @@ void FixNH::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNH::initial_integrate_respa(int vflag, int ilevel, int iloop)
+void FixNH::initial_integrate_respa(int /*vflag*/, int ilevel, int /*iloop*/)
 {
   // set timesteps by level
 
@@ -991,7 +991,7 @@ void FixNH::initial_integrate_respa(int vflag, int ilevel, int iloop)
 
 /* ---------------------------------------------------------------------- */
 
-void FixNH::final_integrate_respa(int ilevel, int iloop)
+void FixNH::final_integrate_respa(int ilevel, int /*iloop*/)
 {
   // set timesteps by level
 
@@ -1446,7 +1446,7 @@ double FixNH::compute_scalar()
   double volume;
   double energy;
   double kt = boltz * t_target;
-  double lkt_press = kt;
+  double lkt_press = 0.0;
   int ich;
   if (dimension == 3) volume = domain->xprd * domain->yprd * domain->zprd;
   else volume = domain->xprd * domain->yprd;
@@ -1477,15 +1477,21 @@ double FixNH::compute_scalar()
   //       sum is over barostatted dimensions
 
   if (pstat_flag) {
-    for (i = 0; i < 3; i++)
-      if (p_flag[i])
+    for (i = 0; i < 3; i++) {
+      if (p_flag[i]) {
         energy += 0.5*omega_dot[i]*omega_dot[i]*omega_mass[i] +
           p_hydro*(volume-vol0) / (pdim*nktv2p);
+        lkt_press += kt;
+      }
+    }
 
     if (pstyle == TRICLINIC) {
-      for (i = 3; i < 6; i++)
-        if (p_flag[i])
+      for (i = 3; i < 6; i++) {
+        if (p_flag[i]) {
           energy += 0.5*omega_dot[i]*omega_dot[i]*omega_mass[i];
+          lkt_press += kt;
+        }
+      }
     }
 
     // extra contributions from thermostat chain for barostat
@@ -1818,15 +1824,15 @@ void FixNH::nhc_temp_integrate()
 
 void FixNH::nhc_press_integrate()
 {
-  int ich,i;
+  int ich,i,pdof;
   double expfac,factor_etap,kecurrent;
   double kt = boltz * t_target;
-  double lkt_press = kt;
+  double lkt_press;
 
   // Update masses, to preserve initial freq, if flag set
 
   if (omega_mass_flag) {
-    double nkt = atom->natoms * kt;
+    double nkt = (atom->natoms + 1) * kt;
     for (int i = 0; i < 3; i++)
       if (p_flag[i])
         omega_mass[i] = nkt/(p_freq[i]*p_freq[i]);
@@ -1850,14 +1856,22 @@ void FixNH::nhc_press_integrate()
   }
 
   kecurrent = 0.0;
+  pdof = 0;
   for (i = 0; i < 3; i++)
-    if (p_flag[i]) kecurrent += omega_mass[i]*omega_dot[i]*omega_dot[i];
+    if (p_flag[i]) {
+      kecurrent += omega_mass[i]*omega_dot[i]*omega_dot[i];
+      pdof++;
+    }
 
   if (pstyle == TRICLINIC) {
     for (i = 3; i < 6; i++)
-      if (p_flag[i]) kecurrent += omega_mass[i]*omega_dot[i]*omega_dot[i];
+      if (p_flag[i]) {
+        kecurrent += omega_mass[i]*omega_dot[i]*omega_dot[i];
+        pdof++;
+      }
   }
 
+  lkt_press = pdof * kt;
   etap_dotdot[0] = (kecurrent - lkt_press)/etap_mass[0];
 
   double ncfac = 1.0/nc_pchain;

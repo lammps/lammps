@@ -38,6 +38,7 @@
 #include "memory.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 
 using namespace LAMMPS_NS;
 
@@ -335,7 +336,7 @@ void lammps_free(void *ptr)
    customize by adding names
 ------------------------------------------------------------------------- */
 
-int lammps_extract_setting(void *ptr, char *name)
+int lammps_extract_setting(void * /*ptr*/, char *name)
 {
   if (strcmp(name,"bigint") == 0) return sizeof(bigint);
   if (strcmp(name,"tagint") == 0) return sizeof(tagint);
@@ -1514,12 +1515,63 @@ void lammps_create_atoms(void *ptr, int n, tagint *id, int *type,
     if (lmp->atom->natoms != natoms_prev + n) {
       char str[128];
       sprintf(str,"Library warning in lammps_create_atoms, "
-              "invalid total atoms %ld %ld",lmp->atom->natoms,natoms_prev+n);
+              "invalid total atoms " BIGINT_FORMAT " " BIGINT_FORMAT,
+              lmp->atom->natoms,natoms_prev+n);
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR,str);
     }
   }
   END_CAPTURE
+}
+
+// ----------------------------------------------------------------------
+// library API functions for accessing LAMMPS configuration
+// ----------------------------------------------------------------------
+
+int lammps_config_has_package(char * package_name) {
+  return Info::has_package(package_name);
+}
+
+int lammps_config_package_count() {
+  int i = 0;
+  while(LAMMPS::installed_packages[i] != NULL) {
+    ++i;
+  }
+  return i;
+}
+
+int lammps_config_package_name(int index, char * buffer, int max_size) {
+  int i = 0;
+  while(LAMMPS::installed_packages[i] != NULL && i < index) {
+    ++i;
+  }
+
+  if(LAMMPS::installed_packages[i] != NULL) {
+    strncpy(buffer, LAMMPS::installed_packages[i], max_size);
+    return true;
+  }
+
+  return false;
+}
+
+int lammps_config_has_gzip_support() {
+  return Info::has_gzip_support();
+}
+
+int lammps_config_has_png_support() {
+  return Info::has_png_support();
+}
+
+int lammps_config_has_jpeg_support() {
+  return Info::has_jpeg_support();
+}
+
+int lammps_config_has_ffmpeg_support() {
+  return Info::has_ffmpeg_support();
+}
+
+int lammps_config_has_exceptions() {
+  return Info::has_exceptions();
 }
 
 // ----------------------------------------------------------------------

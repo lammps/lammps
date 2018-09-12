@@ -26,6 +26,7 @@ Fixes :h1
    fix_bond_swap
    fix_bond_react
    fix_box_relax
+   fix_client_md
    fix_cmap
    fix_colvars
    fix_controller
@@ -61,6 +62,7 @@ Fixes :h1
    fix_langevin
    fix_langevin_drude
    fix_langevin_eff
+   fix_langevin_spin
    fix_latte
    fix_lb_fluid
    fix_lb_momentum
@@ -99,6 +101,7 @@ Fixes :h1
    fix_nve_manifold_rattle
    fix_nve_noforce
    fix_nve_sphere
+   fix_nve_spin
    fix_nve_tri
    fix_nvk
    fix_nvt_asphere
@@ -114,6 +117,7 @@ Fixes :h1
    fix_planeforce
    fix_poems
    fix_pour
+   fix_precession_spin
    fix_press_berendsen
    fix_print
    fix_property_atom
@@ -165,6 +169,8 @@ Fixes :h1
    fix_viscosity
    fix_viscous
    fix_wall
+   fix_wall_body_polygon
+   fix_wall_body_polyhedron
    fix_wall_ees
    fix_wall_gran
    fix_wall_gran_region

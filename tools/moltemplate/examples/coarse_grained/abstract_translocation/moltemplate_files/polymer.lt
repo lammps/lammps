@@ -1,9 +1,9 @@
-import "monomer.lt"
+import "monomer.lt"  # <-- defines "Monomer" and "ForceField"
 
-Polymer {
+Polymer inherits ForceField {
 
   create_var {$mol}  # optional:force all monomers to share the same molecule-ID
-                     # (The "Data Atoms" in Monomer must use "$mol:..." notation.)
+                    #(The "Data Atoms" in Monomer must use "$mol:..." notation.)
 
   # Make a chain of monomers
   monomers = new Monomer [12].rot(180, 1,0,0).move(2.0, 0, 0)
@@ -29,4 +29,4 @@ Polymer {
 
 
 # Angle, dihedral and improper interactions will be generated
-# automatically according to the instructions in "monomer.lt"
+# automatically according to the instructions in "forcefield.lt"

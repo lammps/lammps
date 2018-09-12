@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -135,14 +135,14 @@ fixes. This allows to set at which level of the "r-RESPA"_run_style.html
 integrator a fix is adding its forces. Default is the outermost level.
 
 This fix calculates a global scalar which can be accessed by various
-"output commands"_Section_howto.html#howto_15.  The scalar is the
-potential energy change due to this fix.  The scalar value calculated
-by this fix is "extensive".
+"output commands"_Howto_output.html.  The scalar is the potential
+energy change due to this fix.  The scalar value calculated by this
+fix is "extensive".
 
 This fix also calculates a per-atom array which can be accessed by
-various "output commands"_Section_howto.html#howto_15.  The array
-stores the order parameter Xi and normalized order parameter (0 to 1)
-for each atom.  The per-atom values can be accessed on any timestep.
+various "output commands"_Howto_output.html.  The array stores the
+order parameter Xi and normalized order parameter (0 to 1) for each
+atom.  The per-atom values can be accessed on any timestep.
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.  This fix is not invoked during "energy
@@ -151,8 +151,8 @@ minimization"_minimize.html.
 [Restrictions:]
 
 This fix is part of the MISC package.  It is only enabled if LAMMPS
-was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 This fix should only be used with fcc or bcc lattices.
 

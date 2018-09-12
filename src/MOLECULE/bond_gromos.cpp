@@ -190,7 +190,7 @@ void BondGromos::write_data(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double BondGromos::single(int type, double rsq, int i, int j,
+double BondGromos::single(int type, double rsq, int /*i*/, int /*j*/,
                         double &fforce)
 {
   double dr = rsq - r0[type]*r0[type];

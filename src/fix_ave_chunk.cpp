@@ -63,7 +63,6 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
   strcpy(idchunk,arg[6]);
 
   global_freq = nfreq;
-  peratom_freq = nfreq;
   no_change_box = 1;
 
   // expand args if any have wildcard character "*"
@@ -557,7 +556,7 @@ void FixAveChunk::init()
      that nchunk may not track it
 ------------------------------------------------------------------------- */
 
-void FixAveChunk::setup(int vflag)
+void FixAveChunk::setup(int /*vflag*/)
 {
   end_of_step();
 }

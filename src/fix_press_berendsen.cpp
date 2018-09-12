@@ -334,7 +334,7 @@ void FixPressBerendsen::init()
    compute T,P before integrator starts
 ------------------------------------------------------------------------- */
 
-void FixPressBerendsen::setup(int vflag)
+void FixPressBerendsen::setup(int /*vflag*/)
 {
   // trigger virial computation on next timestep
 

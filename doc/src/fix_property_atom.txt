@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -194,24 +194,24 @@ dump 1 all custom 100 tmp.dump id x y z c_1\[1\] c_1\[2\] :pre
 
 If you wish to add new "pair styles"_pair_style.html,
 "fixes"_fix.html, or "computes"_compute.html that use the per-atom
-properties defined by this fix, see "Section
-modify"_Section_modify.html#mod_1 of the manual which has some details
-on how the properties can be accessed from added classes.
+properties defined by this fix, see the "Modify atom"_Modify_atom.html
+doc page which has details on how the properties can be accessed from
+added classes.
 
 :line
 
 :link(isotopes)
-Example for using per-atom masses with TIP4P water to study isotope
-effects. When setting up simulations with the "TIP4P pair
-styles"_Section_howto.html#howto_8 for water, you have to provide
-exactly one atom type each to identify the water oxygen and hydrogen
+Example for using per-atom masses with TIP4P water to
+study isotope effects. When setting up simulations with the "TIP4P
+pair styles"_Howto_tip4p.html for water, you have to provide exactly
+one atom type each to identify the water oxygen and hydrogen
 atoms. Since the atom mass is normally tied to the atom type, this
 makes it impossible to study multiple isotopes in the same simulation.
 With {fix property/atom rmass} however, the per-type masses are
 replaced by per-atom masses. Asumming you have a working input deck
-for regular TIP4P water, where water oxygen is atom type 1 and
-water hydrogen is atom type 2, the following lines of input script
-convert this to using per-atom masses:
+for regular TIP4P water, where water oxygen is atom type 1 and water
+hydrogen is atom type 2, the following lines of input script convert
+this to using per-atom masses:
 
 fix Isotopes all property/atom rmass ghost yes
 set type 1 mass 15.9994
@@ -247,12 +247,12 @@ command for info on how to re-specify a fix in an input script that
 reads a restart file, so that the operation of the fix continues in an
 uninterrupted fashion.
 
-None of the "fix_modify"_fix_modify.html options
-are relevant to this fix.  No global or per-atom quantities are stored
-by this fix for access by various "output
-commands"_Section_howto.html#howto_15.  No parameter of this fix can
-be used with the {start/stop} keywords of the "run"_run.html command.
-This fix is not invoked during "energy minimization"_minimize.html.
+None of the "fix_modify"_fix_modify.html options are relevant to this
+fix.  No global or per-atom quantities are stored by this fix for
+access by various "output commands"_Howto_output.html.  No parameter
+of this fix can be used with the {start/stop} keywords of the
+"run"_run.html command.  This fix is not invoked during "energy
+minimization"_minimize.html.
 
 [Restrictions:] none
 

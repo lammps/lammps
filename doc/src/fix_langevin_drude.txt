@@ -9,7 +9,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -44,8 +44,9 @@ fix 1 all langevin/drude 298.15 100.0 19377 5.0 10.0 83451 zero yes :pre
 Apply two Langevin thermostats as described in "(Jiang)"_#Jiang1 for
 thermalizing the reduced degrees of freedom of Drude oscillators.
 This link describes how to use the "thermalized Drude oscillator
-model"_tutorial_drude.html in LAMMPS and polarizable models in LAMMPS
-are discussed in "this Section"_Section_howto.html#howto_25.
+model"_Howto_drude.html in LAMMPS and polarizable models in LAMMPS
+are discussed on the "Howto polarizable"_Howto_polarizable.html doc
+page.
 
 Drude oscillators are a way to simulate polarizables atoms, by
 splitting them into a core and a Drude particle bound by a harmonic
@@ -99,8 +100,8 @@ Likewise, this fix should not normally be used on atoms that also have
 their temperature controlled by another fix - e.g. by "fix
 nvt"_fix_nh.html or "fix temp/rescale"_fix_temp_rescale.html commands.
 
-See "this howto section"_Section_howto.html#howto_16 of the manual for
-a discussion of different ways to compute temperature and perform
+See the "Howto thermostat"_Howto_thermostat.html doc page for a
+discussion of different ways to compute temperature and perform
 thermostating.
 
 :line

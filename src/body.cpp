@@ -21,7 +21,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Body::Body(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
+Body::Body(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
 {
   int n = strlen(arg[0]) + 1;
   style = new char[n];

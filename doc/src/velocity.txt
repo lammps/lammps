@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -139,10 +139,9 @@ if rot = yes, the angular momentum is zeroed.
 If specified, the {temp} keyword is used by {create} and {scale} to
 specify a "compute"_compute.html that calculates temperature in a
 desired way, e.g. by first subtracting out a velocity bias, as
-discussed in "Section 6.16"_Section_howto.html#howto_16 of the doc
-pages.  If this keyword is not specified, {create} and {scale}
-calculate temperature using a compute that is defined internally as
-follows:
+discussed on the "Howto thermostat"_Howto_thermostat.html doc page.
+If this keyword is not specified, {create} and {scale} calculate
+temperature using a compute that is defined internally as follows:
 
 compute velocity_temp group-ID temp :pre
 
@@ -161,11 +160,11 @@ The {bias} keyword with a {yes} setting is used by {create} and
 If the temperature compute also calculates a velocity bias, the the
 bias is subtracted from atom velocities before the {create} and
 {scale} operations are performed.  After the operations, the bias is
-added back to the atom velocities.  See "Section
-6.16"_Section_howto.html#howto_16 of the doc pages for more discussion
-of temperature computes with biases.  Note that the velocity bias is
-only applied to atoms in the temperature compute specified with the
-{temp} keyword.
+added back to the atom velocities.  See the "Howto
+thermostat"_Howto_thermostat.html doc page for more discussion of
+temperature computes with biases.  Note that the velocity bias is only
+applied to atoms in the temperature compute specified with the {temp}
+keyword.
 
 As an example, assume atoms are currently streaming in a flow
 direction (which could be separately initialized with the {ramp}

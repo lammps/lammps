@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -81,9 +81,9 @@ the style to display the formula it computes and coefficients
 specified by the associated "dihedral_coeff"_dihedral_coeff.html command.
 
 Note that there are also additional dihedral styles submitted by users
-which are included in the LAMMPS distribution.  The list of these with
-links to the individual styles are given in the dihedral section of
-"this page"_Section_commands.html#cmd_5.
+which are included in the LAMMPS distribution.  The full list of all
+dihedral styles is on the "Commands bond"_Commands_bond.html#dihedral
+doc page.
 
 "dihedral_style none"_dihedral_none.html - turn off dihedral interactions
 "dihedral_style zero"_dihedral_zero.html - topology but no interactions
@@ -104,10 +104,9 @@ Dihedral styles can only be set for atom styles that allow dihedrals
 to be defined.
 
 Most dihedral styles are part of the MOLECULE package.  They are only
-enabled if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info on packages.
-The doc pages for individual dihedral potentials tell if it is part of
-a package.
+enabled if LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.  The doc pages for
+individual dihedral potentials tell if it is part of a package.
 
 [Related commands:]
 

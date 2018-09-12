@@ -1569,7 +1569,7 @@ void PairComb3::compute(int eflag, int vflag)
 /* ---------------------------------------------------------------------- */
 
 void PairComb3::repulsive(Param *parami, Param *paramj, double rsq,
-        double &fforce,int eflag, double &eng, double iq, double jq)
+        double &fforce,int /*eflag*/, double &eng, double iq, double jq)
 {
   double r,tmp_fc,tmp_fc_d,Di,Dj;
   double caj,vrcs,fvrcs;
@@ -1614,7 +1614,7 @@ void PairComb3::repulsive(Param *parami, Param *paramj, double rsq,
 /* ---------------------------------------------------------------------- */
 
 double PairComb3::zeta(Param *parami, Param *paramj, double rsqij,
-        double rsqik, double *delrij, double *delrik, int i, double xcn)
+        double rsqik, double *delrij, double *delrik, int /*i*/, double xcn)
 {
   double rij,rik,costheta,arg,ex_delr,rlm3;
 
@@ -1661,7 +1661,7 @@ void PairComb3::selfp6p(Param *parami, Param *paramj, double rsq,
 /* ---------------------------------------------------------------------- */
 
 double PairComb3::ep6p(Param *paramj, Param *paramk, double rsqij, double rsqik,
-                     double *delrij, double *delrik , double &zet_add)
+                     double *delrij, double *delrik , double &/*zet_add*/)
 {
   double comtt;
   double pplp0 = paramj->p6p0;
@@ -2109,7 +2109,7 @@ void PairComb3::coord(Param *param, double r, int i,
 
 void PairComb3::cntri_int(int tri_flag, double xval, double yval,
                 double zval, int ixmin, int iymin, int izmin, double &vval,
-                double &dvalx, double &dvaly, double &dvalz, Param *param)
+                double &dvalx, double &dvaly, double &dvalz, Param * /*param*/)
 {
   double x;
   vval = 0.0; dvalx = 0.0; dvaly = 0.0; dvalz = 0.0;
@@ -2254,7 +2254,7 @@ void PairComb3::comb_gijk_d(double costheta, Param *param, double nco_tmp,
 void PairComb3::attractive(Param *parami, Param *paramj , Param *paramk, double prefac_ij1,
         double prefac_ij2, double prefac_ij3, double prefac_ij4,
         double prefac_ij5, double rsqij, double rsqik, double *delrij,
-        double *delrik, double *fi, double *fj,double *fk, int i, double xcn)
+        double *delrik, double *fi, double *fj,double *fk, int /*i*/, double xcn)
 {
   double rij_hat[3],rik_hat[3];
   double rij,rijinv,rik,rikinv;
@@ -2867,7 +2867,7 @@ void PairComb3::field(Param *parami, Param *paramj, double rsq, double iq,
 
 /* ---------------------------------------------------------------------- */
 
-double PairComb3::rad_init(double rsq2,Param *param,int i,
+double PairComb3::rad_init(double rsq2,Param *param,int /*i*/,
                 double &radtot, double cnconj)
 {
   double r, fc1k, radcut;
@@ -2882,7 +2882,7 @@ double PairComb3::rad_init(double rsq2,Param *param,int i,
 /* ---------------------------------------------------------------------- */
 
 void PairComb3::rad_calc(double r, Param *parami, Param *paramj,
-        double kconjug, double lconjug, int i, int j, double xcn, double ycn)
+        double kconjug, double lconjug, int /*i*/, int /*j*/, double xcn, double ycn)
 {
   int ixmin, iymin, izmin;
   int radindx;
@@ -3061,7 +3061,7 @@ double PairComb3::bbtor1(int torindx, Param *paramk, Param *paraml,
 /* ---------------------------------------------------------------------- */
 
 void PairComb3::tor_calc(double r, Param *parami, Param *paramj,
-        double kconjug, double lconjug, int i, int j, double xcn, double ycn)
+        double kconjug, double lconjug, int /*i*/, int /*j*/, double xcn, double ycn)
 {
   int ixmin, iymin, izmin;
   double vtor, dtorx, dtory, dtorz;
@@ -3589,7 +3589,7 @@ void PairComb3::qfo_dipole(double fac11, int mr1, int mr2, int mr3,
 
 void PairComb3::qfo_short(Param *parami, Param *paramj, double rsq,
         double iq, double jq, double &fqij, double &fqji,
-        int i, int j, int nj)
+        int i, int /*j*/, int nj)
 {
   double r, tmp_fc;
   double Di, Dj, dDi, dDj, Bsi, Bsj, dBsi, dBsj;
@@ -3863,7 +3863,7 @@ double PairComb3::switching_d(double rr)
 /* ---------------------------------------------------------------------- */
 
 int PairComb3::pack_forward_comm(int n, int *list, double *buf,
-                                 int pbc_flag, int *pbc)
+                                 int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
 

@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -62,15 +62,15 @@ timescale spanned by the multiple simulations, while waiting for an
 event to occur.
 
 Each replica runs on a partition of one or more processors.  Processor
-partitions are defined at run-time using the -partition command-line
-switch; see "Section 2.6"_Section_start.html#start_6 of the manual.
-Note that if you have MPI installed, you can run a multi-replica
-simulation with more replicas (partitions) than you have physical
-processors, e.g you can run a 10-replica simulation on one or two
-processors.  However for PRD, this makes little sense, since running a
-replica on virtual instead of physical processors,offers no effective
-parallel speed-up in searching for infrequent events.  See "Section
-6.5"_Section_howto.html#howto_5 of the manual for further discussion.
+partitions are defined at run-time using the "-partition command-line
+switch"_Run_options.html.  Note that if you have MPI installed, you
+can run a multi-replica simulation with more replicas (partitions)
+than you have physical processors, e.g you can run a 10-replica
+simulation on one or two processors.  However for PRD, this makes
+little sense, since running a replica on virtual instead of physical
+processors,offers no effective parallel speed-up in searching for
+infrequent events.  See the "Howto replica"_Howto_replica.html doc
+page for further discussion.
 
 When a PRD simulation is performed, it is assumed that each replica is
 running the same model, though LAMMPS does not check for this.
@@ -285,8 +285,8 @@ value for the first event in the new run will be slightly off.
 [Restrictions:]
 
 This command can only be used if LAMMPS was built with the REPLICA
-package.  See the "Making LAMMPS"_Section_start.html#start_3 section
-for more info on packages.
+package.  See the "Build package"_Build_package.html doc
+page for more info.
 
 The {N} and {t_correlate} settings must be integer multiples of
 {t_event}.

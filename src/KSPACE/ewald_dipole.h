@@ -40,6 +40,9 @@ class EwaldDipole : public Ewald {
   double rms_dipole(int, double, bigint);
   virtual void eik_dot_r();
   void slabcorr();
+  double NewtonSolve(double, double, bigint, double, double);
+  double f(double, double, bigint, double, double);
+  double derivf(double, double, bigint, double, double);
 
   // triclinic
 

@@ -584,8 +584,8 @@ void EwaldDipole::eik_dot_r()
           cs[-m][ic][i] = cs[m][ic][i];
           sn[-m][ic][i] = -sn[m][ic][i];
 	  muk[n][i] = (mu[i][ic]*m*unitk[ic]);
-          cstr1 += muk[n][i]*cs[1][ic][i];
-          sstr1 += muk[n][i]*sn[1][ic][i];
+          cstr1 += muk[n][i]*cs[m][ic][i];
+          sstr1 += muk[n][i]*sn[m][ic][i];
         }
         sfacrl[n] = cstr1;
         sfacim[n++] = sstr1;

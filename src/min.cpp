@@ -60,7 +60,7 @@ Min::Min(LAMMPS *lmp) : Pointers(lmp)
   dtshrink = 0.5;
   alpha0 = 0.25;
   alphashrink = 0.99;
-  tmax = 2.0;
+  tmax = 10.0;
   tmin = 0.02;
   integrator = 0;
   halfstepback_flag = 1;

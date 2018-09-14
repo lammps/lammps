@@ -87,7 +87,7 @@ ComputeReduceChunk::ComputeReduceChunk(LAMMPS *lmp, int narg, char **arg) :
       else if (arg[iarg][0] == 'f') which[nvalues] = FIX;
       else if (arg[iarg][0] == 'v') which[nvalues] = VARIABLE;
 
-      int n = strlen(arg[iarg]);
+      int n = strlen(arg[iarg]) + 1;
       char *suffix = new char[n];
       strcpy(suffix,&arg[iarg][2]);
 

@@ -75,7 +75,7 @@ ComputeChunkSpreadAtom(LAMMPS *lmp, int narg, char **arg) :
       if (arg[iarg][0] == 'c') which[nvalues] = COMPUTE;
       else if (arg[iarg][0] == 'f') which[nvalues] = FIX;
 
-      int n = strlen(arg[iarg]);
+      int n = strlen(arg[iarg]) + 1;
       char *suffix = new char[n];
       strcpy(suffix,&arg[iarg][2]);
 

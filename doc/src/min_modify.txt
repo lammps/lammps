@@ -143,7 +143,7 @@ down the box relaxation but improve the stability of the procedure.
 [Default:]
 
 The option defaults are dmax = 0.1, line = quadratic, 
-integrator = eulerimplicit, tmax = 2.0, tmin = 0.02,
+integrator = eulerimplicit, tmax = 10.0, tmin = 0.02,
 delaystep = 20, dtgrow = 1.1, dtshrink = 0.5, alpha0 = 0.25, alphashrink = 0.99,
 relaxbox = no, relaxbox_mod = 1e6 and relaxbox_rate = 0.33, ptol = 0.1
 vdfmax = 2000, halfstepback = yes and initialdelay = yes.

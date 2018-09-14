@@ -79,9 +79,9 @@ void EwaldDipole::init()
 
   triclinic_check();
   
-  // set triclinic to 0 for now (no triclinic calc.)
-  triclinic = 0;
-
+  // no triclinic ewald dipole (yet)
+  
+  triclinic = domain->triclinic;
   if (triclinic)
     error->all(FLERR,"Cannot (yet) use EwaldDipole with triclinic box");
   
@@ -100,9 +100,6 @@ void EwaldDipole::init()
     if (domain->xperiodic != 1 || domain->yperiodic != 1 ||
         domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
       error->all(FLERR,"Incorrect boundaries with slab EwaldDipole");
-    //if (domain->triclinic)
-    //  error->all(FLERR,"Cannot (yet) use EwaldDipole with triclinic box "
-    //             "and slab correction");
   }
 
   // extract short-range Coulombic cutoff from pair style
@@ -278,23 +275,6 @@ void EwaldDipole::setup()
     kymax_orig = kymax;
     kzmax_orig = kzmax;
 
-    // scale lattice vectors for triclinic skew
-
-    //if (triclinic) {
-    //  double tmp[3];
-    //  tmp[0] = kxmax/xprd;
-    //  tmp[1] = kymax/yprd;
-    //  tmp[2] = kzmax/zprd;
-    //  lamda2xT(&tmp[0],&tmp[0]);
-    //  kxmax = MAX(1,static_cast<int>(tmp[0]));
-    //  kymax = MAX(1,static_cast<int>(tmp[1]));
-    //  kzmax = MAX(1,static_cast<int>(tmp[2]));
-
-    //  kmax = MAX(kxmax,kymax);
-    //  kmax = MAX(kmax,kzmax);
-    //  kmax3d = 4*kmax*kmax*kmax + 6*kmax*kmax + 3*kmax;
-    //}
-
   } else {
 
     kxmax = kx_ewald;
@@ -340,10 +320,6 @@ void EwaldDipole::setup()
   // pre-compute EwaldDipole coefficients
 
   coeffs();
-  //if (triclinic == 0)
-  //  coeffs();
-  //else
-  //  coeffs_triclinic();
 }
 
 /* ----------------------------------------------------------------------
@@ -380,7 +356,6 @@ void EwaldDipole::compute(int eflag, int vflag)
   // if atom count has changed, update qsum and qsqsum
 
   if (atom->natoms != natoms_original) {
-    //qsum_qsq();
     musum_musq();
     natoms_original = atom->natoms;
   }
@@ -407,10 +382,6 @@ void EwaldDipole::compute(int eflag, int vflag)
   // partial structure factors on each processor
   // total structure factor by summing over procs
 
-  //if (triclinic == 0)
-  //  eik_dot_r();
-  //else
-  //  eik_dot_r_triclinic();
   eik_dot_r();
 
   MPI_Allreduce(sfacrl,sfacrl_all,kcount,MPI_DOUBLE,MPI_SUM,world);
@@ -421,7 +392,8 @@ void EwaldDipole::compute(int eflag, int vflag)
   // perform per-atom calculations if needed
 
   double **f = atom->f;
-  double *q = atom->q;
+  //double *q = atom->q;
+  double **mu = atom->mu;
   int nlocal = atom->nlocal;
 
   int kx,ky,kz;
@@ -439,21 +411,34 @@ void EwaldDipole::compute(int eflag, int vflag)
     kz = kzvecs[k];
 
     for (i = 0; i < nlocal; i++) {
+
+      // calculating  exp(i*k*ri)
+
       cypz = cs[ky][1][i]*cs[kz][2][i] - sn[ky][1][i]*sn[kz][2][i];
       sypz = sn[ky][1][i]*cs[kz][2][i] + cs[ky][1][i]*sn[kz][2][i];
       exprl = cs[kx][0][i]*cypz - sn[kx][0][i]*sypz;
       expim = sn[kx][0][i]*cypz + cs[kx][0][i]*sypz;
+
+      // taking im-part of struct_fact x exp(i*k*ri) (for force calc.)
+
       partial = expim*sfacrl_all[k] - exprl*sfacim_all[k];
-      ek[i][0] += partial*eg[k][0];
-      ek[i][1] += partial*eg[k][1];
-      ek[i][2] += partial*eg[k][2];
+      //ek[i][0] += partial*eg[k][0];
+      //ek[i][1] += partial*eg[k][1];
+      //ek[i][2] += partial*eg[k][2];
+      ek[i][0] += kx*partial*eg[k][0];
+      ek[i][1] += ky*partial*eg[k][1];
+      ek[i][2] += kz*partial*eg[k][2];
 
       if (evflag_atom) {
+
+	// taking re-part of struct_fact x exp(i*k*ri) (for energy calc.)
+
         partial_peratom = exprl*sfacrl_all[k] + expim*sfacim_all[k];
         //if (eflag_atom) eatom[i] += q[i]*ug[k]*partial_peratom;
         if (eflag_atom) eatom[i] += muk[k][i]*ug[k]*partial_peratom;
         if (vflag_atom)
           for (j = 0; j < 6; j++)
+	    // to be done
             vatom[i][j] += ug[k]*vg[k][j]*partial_peratom;
       }
     }
@@ -461,30 +446,33 @@ void EwaldDipole::compute(int eflag, int vflag)
 
   // convert E-field to force
 
-  const double qscale = qqrd2e * scale;
+  //const double qscale = qqrd2e * scale;
   const double muscale = qqrd2e * scale;
 
   for (i = 0; i < nlocal; i++) {
-    for (k = 0; k < kcount; k++) {
-      //f[i][0] += qscale * q[i]*ek[i][0];
-      //f[i][1] += qscale * q[i]*ek[i][1];
-      //if (slabflag != 2) f[i][2] += qscale * q[i]*ek[i][2];
-      f[i][0] += muscale * muk[k][i] * ek[i][0];
-      f[i][1] += muscale * muk[k][i] * ek[i][1];
-      if (slabflag != 2) f[i][2] += muscale * muk[k][i] * ek[i][2];
-    }
+    //f[i][0] += qscale * q[i]*ek[i][0];
+    //f[i][1] += qscale * q[i]*ek[i][1];
+    //if (slabflag != 2) f[i][2] += qscale * q[i]*ek[i][2];
+    f[i][0] += muscale * mu[i][0] * ek[i][0];
+    f[i][1] += muscale * mu[i][1] * ek[i][1];
+    if (slabflag != 2) f[i][2] += muscale * mu[i][2] * ek[i][2];
   }
 
   // sum global energy across Kspace vevs and add in volume-dependent term
 
   if (eflag_global) {
-    for (k = 0; k < kcount; k++)
+    for (k = 0; k < kcount; k++) {
+
+      // taking the re-part of struct_fact_i x struct_fact_j
+
       energy += ug[k] * (sfacrl_all[k]*sfacrl_all[k] +
                          sfacim_all[k]*sfacim_all[k]);
+    }
 
-    energy -= g_ewald*qsqsum/MY_PIS +
-      MY_PI2*qsum*qsum / (g_ewald*g_ewald*volume);
-    energy *= qscale;
+    // substracting self energy and scaling
+
+    energy -= musqsum*2.0*g3/3.0/MY_PIS;
+    energy *= muscale;
   }
 
   // global virial
@@ -495,7 +483,8 @@ void EwaldDipole::compute(int eflag, int vflag)
       uk = ug[k] * (sfacrl_all[k]*sfacrl_all[k] + sfacim_all[k]*sfacim_all[k]);
       for (j = 0; j < 6; j++) virial[j] += uk*vg[k][j];
     }
-    for (j = 0; j < 6; j++) virial[j] *= qscale;
+    //for (j = 0; j < 6; j++) virial[j] *= qscale;
+    for (j = 0; j < 6; j++) virial[j] *= muscale;
   }
 
   // per-atom energy/virial
@@ -504,9 +493,9 @@ void EwaldDipole::compute(int eflag, int vflag)
   if (evflag_atom) {
     if (eflag_atom) {
       for (i = 0; i < nlocal; i++) {
-        eatom[i] -= g_ewald*q[i]*q[i]/MY_PIS + MY_PI2*q[i]*qsum /
-          (g_ewald*g_ewald*volume);
-        eatom[i] *= qscale;
+        eatom[i] -= (mu[i][0]*mu[i][0] + mu[i][1]*mu[i][1] + mu[i][2]*mu[i][2])
+	  *2.0*g3/3.0/MY_PIS;
+        eatom[i] *= muscale;
       }
     }
 
@@ -520,7 +509,9 @@ void EwaldDipole::compute(int eflag, int vflag)
   if (slabflag == 1) slabcorr();
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   compute the 
+------------------------------------------------------------------------- */
 
 void EwaldDipole::eik_dot_r()
 {
@@ -530,7 +521,6 @@ void EwaldDipole::eik_dot_r()
   double mux, muy, muz;
 
   double **x = atom->x;
-  //double *q = atom->q;
   double **mu = atom->mu;
   int nlocal = atom->nlocal;
 

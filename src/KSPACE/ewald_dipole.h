@@ -34,16 +34,12 @@ class EwaldDipole : public Ewald {
 
  protected:
   double musum,musqsum,mu2;
-  double **muk; 		// mu_i dot k
+  double **muk; 		// store mu_i dot k
 
   void musum_musq(); 
   double rms_dipole(int, double, bigint);
   virtual void eik_dot_r();
   void slabcorr();
-
-  // triclinic
-
-  //void eik_dot_r_triclinic();
 
 };
 

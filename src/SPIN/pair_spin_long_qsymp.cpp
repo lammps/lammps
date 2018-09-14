@@ -26,7 +26,7 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "pair_spin_long.h"
+#include "pair_spin_long_qsymp.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
@@ -55,7 +55,7 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairSpinLong::PairSpinLong(LAMMPS *lmp) : PairSpin(lmp),
+PairSpinLongQsymp::PairSpinLongQsymp(LAMMPS *lmp) : PairSpin(lmp),
 lockfixnvespin(NULL)
 {
   single_enable = 0;
@@ -76,7 +76,7 @@ lockfixnvespin(NULL)
    free all arrays
 ------------------------------------------------------------------------- */
 
-PairSpinLong::~PairSpinLong()
+PairSpinLongQsymp::~PairSpinLongQsymp()
 {
   if (allocated) {
     memory->destroy(setflag);
@@ -89,7 +89,7 @@ PairSpinLong::~PairSpinLong()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairSpinLong::settings(int narg, char **arg)
+void PairSpinLongQsymp::settings(int narg, char **arg)
 {
   if (narg < 1 || narg > 2)
     error->all(FLERR,"Incorrect args in pair_style command");
@@ -118,7 +118,7 @@ void PairSpinLong::settings(int narg, char **arg)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairSpinLong::coeff(int narg, char **arg)
+void PairSpinLongQsymp::coeff(int narg, char **arg)
 {
   if (!allocated) allocate();
   
@@ -151,7 +151,7 @@ void PairSpinLong::coeff(int narg, char **arg)
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-void PairSpinLong::init_style()
+void PairSpinLongQsymp::init_style()
 {
   if (!atom->sp_flag)
     error->all(FLERR,"Pair spin requires atom/spin style");
@@ -194,7 +194,7 @@ void PairSpinLong::init_style()
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairSpinLong::init_one(int i, int j)
+double PairSpinLongQsymp::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
   
@@ -207,7 +207,7 @@ double PairSpinLong::init_one(int i, int j)
    extract the larger cutoff if "cut" or "cut_coul"
 ------------------------------------------------------------------------- */
 
-void *PairSpinLong::extract(const char *str, int &dim)
+void *PairSpinLongQsymp::extract(const char *str, int &dim)
 {
   if (strcmp(str,"cut") == 0) {
     dim = 0;
@@ -230,15 +230,18 @@ void *PairSpinLong::extract(const char *str, int &dim)
 
 /* ---------------------------------------------------------------------- */
 
-void PairSpinLong::compute(int eflag, int vflag)
+void PairSpinLongQsymp::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;  
   double r,rinv,r2inv,rsq;
-  double grij,expm2,t,erfc;
+  double grij,expm2,t,erfc,erf;
+  double sjdotr,gigj;
   double bij[4];
+  double cij[4];
   double evdwl,ecoul;
   double xi[3],rij[3];
   double spi[4],spj[4],fi[3],fmi[3];
+  double fmx_erf_s,fmy_erf_s,fmz_erf_s;
   double local_cut2;
   double pre1,pre2,pre3;
   int *ilist,*jlist,*numneigh,**firstneigh;  
@@ -250,6 +253,7 @@ void PairSpinLong::compute(int eflag, int vflag)
   double **x = atom->x;
   double **f = atom->f;
   double **fm = atom->fm;
+  double **fm_long = atom->fm_long;
   double **sp = atom->sp;	
   int *type = atom->type;  
   int nlocal = atom->nlocal;  
@@ -294,7 +298,9 @@ void PairSpinLong::compute(int eflag, int vflag)
 
       fi[0] = fi[1] = fi[2] = 0.0;
       fmi[0] = fmi[1] = fmi[2] = 0.0;
+      fmx_erf_s = fmy_erf_s = fmz_erf_s = 0.0;
       bij[0] = bij[1] = bij[2] = bij[3] = 0.0;
+      cij[0] = cij[1] = cij[2] = cij[3] = 0.0;
      
       rij[0] = x[j][0] - xi[0];
       rij[1] = x[j][1] - xi[1];
@@ -312,24 +318,50 @@ void PairSpinLong::compute(int eflag, int vflag)
         expm2 = exp(-grij*grij);
         t = 1.0 / (1.0 + EWALD_P*grij);
         erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+        erf = 1.0 - t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+
+	// evaluating erfc for mech. force and energy calc.
 
         bij[0] = erfc * rinv;
         bij[1] = (bij[0] + pre1*expm2) * r2inv;
         bij[2] = (3.0*bij[1] + pre2*expm2) * r2inv;
         bij[3] = (5.0*bij[2] + pre3*expm2) * r2inv;
-
+	
 	compute_long(i,j,rij,bij,fmi,spi,spj);
 	compute_long_mech(i,j,rij,bij,fmi,spi,spj);
+
+	// evaluating erf comp. for fm_kspace correction
+        
+	cij[0] = erf * rinv;
+        cij[1] = (bij[0] + pre1*expm2) * r2inv;
+        cij[2] = (3.0*bij[1] + pre2*expm2) * r2inv;
+        //cij[3] = (5.0*bij[2] + pre3*expm2) * r2inv;
+
+        gigj = spi[3] * spj[3];
+        sjdotr = spj[0]*rij[0] + spj[1]*rij[1] + spj[2]*rij[2];
+
+        // evaluating short-range correction to the kspace part on [0,rc]
+
+        fmx_erf_s += gigj * (cij[2] * sjdotr * rij[0] - cij[1] * spj[0]);
+        fmy_erf_s += gigj * (cij[2] * sjdotr * rij[1] - cij[1] * spj[1]);
+        fmz_erf_s += gigj * (cij[2] * sjdotr * rij[2] - cij[1] * spj[2]);
+      
       }
 
       // force accumulation
 
-      f[i][0] += fi[0] * mub2mu0;	 
-      f[i][1] += fi[1] * mub2mu0;	  	  
+      f[i][0] += fi[0] * mub2mu0; 
+      f[i][1] += fi[1] * mub2mu0;  	  
       f[i][2] += fi[2] * mub2mu0;
-      fm[i][0] += fmi[0] * mub2mu0hbinv;	 
-      fm[i][1] += fmi[1] * mub2mu0hbinv;	  	  
+      fm[i][0] += fmi[0] * mub2mu0hbinv;
+      fm[i][1] += fmi[1] * mub2mu0hbinv;
       fm[i][2] += fmi[2] * mub2mu0hbinv;
+
+      // correction of the fm_kspace
+
+      fm_long[i][0] -= mub2mu0hbinv * fmx_erf_s;
+      fm_long[i][1] -= mub2mu0hbinv * fmy_erf_s;
+      fm_long[i][2] -= mub2mu0hbinv * fmz_erf_s;
 
       if (newton_pair || j < nlocal) {
 	f[j][0] -= fi[0];	 
@@ -355,18 +387,25 @@ void PairSpinLong::compute(int eflag, int vflag)
 
 /* ----------------------------------------------------------------------
    update the pair interaction fmi acting on the spin ii
+   adding 1/r (for r in [0,rc]) contribution to the pair
+   removing erf(r)/r (for r in [0,rc]) from the kspace force
 ------------------------------------------------------------------------- */
 
-void PairSpinLong::compute_single_pair(int ii, double fmi[3])
+void PairSpinLongQsymp::compute_single_pair(int ii, double fmi[3])
 {
   int i,j,jj,jnum,itype,jtype;  
-  double r,rinv,r2inv,rsq;
-  double grij,expm2,t,erfc;
+  double r,rinv,r2inv,r3inv,rsq;
+  double grij,expm2,t,erf;
+  double sjdotr,sjdotrr3inv;
+  double b1,b2,gigj;
   double bij[4],xi[3],rij[3];
   double spi[4],spj[4];
   double local_cut2;
   double pre1,pre2,pre3;
   int *ilist,*jlist,*numneigh,**firstneigh;  
+  //double fmx_erf_s,fmy_erf_s,fmz_erf_s;
+  double fmx_s,fmy_s,fmz_s;
+  //double fmx_long,fmy_long,fmz_long;
 
   double **x = atom->x;
   double **sp = atom->sp;	
@@ -395,6 +434,10 @@ void PairSpinLong::compute_single_pair(int ii, double fmi[3])
   jlist = firstneigh[i];
   jnum = numneigh[i]; 
   itype = type[i];
+  
+  //fmx_long = fmy_long = fmz_long = 0.0;
+  //fmx_erf_s = fmy_erf_s = fmz_erf_s = 0.0;
+  fmx_s = fmy_s = fmz_s = 0.0;
 
   for (jj = 0; jj < jnum; jj++) {
     j = jlist[jj];
@@ -406,7 +449,6 @@ void PairSpinLong::compute_single_pair(int ii, double fmi[3])
     spj[2] = sp[j][2]; 
     spj[3] = sp[j][3]; 
 
-    fmi[0] = fmi[1] = fmi[2] = 0.0;
     bij[0] = bij[1] = bij[2] = bij[3] = 0.0;
    
     rij[0] = x[j][0] - xi[0];
@@ -419,35 +461,65 @@ void PairSpinLong::compute_single_pair(int ii, double fmi[3])
     if (rsq < local_cut2) {
       r2inv = 1.0/rsq;
       rinv = sqrt(r2inv);
+      r3inv = r2inv*rinv;
 
       r = sqrt(rsq);
-      grij = g_ewald * r;
-      expm2 = exp(-grij*grij);
-      t = 1.0 / (1.0 + EWALD_P*grij);
-      erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+      //grij = g_ewald * r;
+      //expm2 = exp(-grij*grij);
+      //t = 1.0 / (1.0 + EWALD_P*grij);
+      
+      // evaluating erf instead of erfc
+      
+      //erf = 1.0 - t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
 
-      bij[0] = erfc * rinv;
-      bij[1] = (bij[0] + pre1*expm2) * r2inv;
-      bij[2] = (3.0*bij[1] + pre2*expm2) * r2inv;
-      bij[3] = (5.0*bij[2] + pre3*expm2) * r2inv;
+      //bij[0] = erf * rinv;
+      //bij[1] = (bij[0] + pre1*expm2) * r2inv;
+      //bij[2] = (3.0*bij[1] + pre2*expm2) * r2inv;
+      //bij[3] = (5.0*bij[2] + pre3*expm2) * r2inv;
 
-      compute_long(i,j,rij,bij,fmi,spi,spj);
+      //gigj = spi[3] * spj[3];
+      //sjdotr = spj[0]*rij[0] + spj[1]*rij[1] + spj[2]*rij[2];
+
+      //b1 = bij[1];
+      //b2 = bij[2];
+
+      // evaluating short-range correction to the kspace part on [0,rc]
+
+      //fmx_erf_s += mub2mu0hbinv * gigj * (b2 * sjdotr * rij[0] - b1 * spj[0]);
+      //fmy_erf_s += mub2mu0hbinv * gigj * (b2 * sjdotr * rij[1] - b1 * spj[1]);
+      //fmz_erf_s += mub2mu0hbinv * gigj * (b2 * sjdotr * rij[2] - b1 * spj[2]);
+     
+      // evaluating real dipolar interaction on [0,rc]
+
+      sjdotrr3inv = 3.0 * sjdotr * r3inv;
+      fmx_s += mub2mu0hbinv * gigj * (sjdotrr3inv * rij[0] - sp[i][0]/r3inv); 
+      fmy_s += mub2mu0hbinv * gigj * (sjdotrr3inv * rij[1] - sp[i][1]/r3inv); 
+      fmz_s += mub2mu0hbinv * gigj * (sjdotrr3inv * rij[2] - sp[i][2]/r3inv);
+
     }
   }
 
-  // adding the kspace components to fm
-  
-  fmi[0] += fm_long[i][0];
-  fmi[1] += fm_long[i][1];
-  fmi[2] += fm_long[i][2];
+  // removing short-range erf function from kspace force
 
+  //fmx_long = fm_long[i][0] - fmx_erf_s; 
+  //fmy_long = fm_long[i][1] - fmy_erf_s; 
+  //fmz_long = fm_long[i][2] - fmz_erf_s; 
+
+  // adding truncated kspace force and short-range full force
+  
+  //fmi[0] += fmx_s + fmx_long;
+  //fmi[1] += fmy_s + fmy_long;
+  //fmi[2] += fmz_s + fmz_long;
+  fmi[0] += (fmx_s + fm_long[i][0]);
+  fmi[1] += (fmy_s + fm_long[i][1]);
+  fmi[2] += (fmz_s + fm_long[i][2]);
 }
 
 /* ----------------------------------------------------------------------
    compute dipolar interaction between spins i and j
 ------------------------------------------------------------------------- */
 
-void PairSpinLong::compute_long(int i, int j, double rij[3], 
+void PairSpinLongQsymp::compute_long(int i, int j, double rij[3], 
     double bij[4], double fmi[3], double spi[4], double spj[4])
 {
   double sjdotr;
@@ -469,7 +541,7 @@ void PairSpinLong::compute_long(int i, int j, double rij[3],
    atom i and atom j
 ------------------------------------------------------------------------- */
 
-void PairSpinLong::compute_long_mech(int i, int j, double rij[3],
+void PairSpinLongQsymp::compute_long_mech(int i, int j, double rij[3],
     double bij[4], double fi[3], double spi[3], double spj[3])
 {
   double sdots,sidotr,sjdotr,b2,b3;
@@ -499,7 +571,7 @@ void PairSpinLong::compute_long_mech(int i, int j, double rij[3],
    allocate all arrays
 ------------------------------------------------------------------------- */
 
-void PairSpinLong::allocate()
+void PairSpinLongQsymp::allocate()
 {
   allocated = 1;
   int n = atom->ntypes;
@@ -517,7 +589,7 @@ void PairSpinLong::allocate()
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairSpinLong::write_restart(FILE *fp)
+void PairSpinLongQsymp::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
 
@@ -536,7 +608,7 @@ void PairSpinLong::write_restart(FILE *fp)
    proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairSpinLong::read_restart(FILE *fp)
+void PairSpinLongQsymp::read_restart(FILE *fp)
 {
   read_restart_settings(fp);
 
@@ -562,7 +634,7 @@ void PairSpinLong::read_restart(FILE *fp)
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairSpinLong::write_restart_settings(FILE *fp)
+void PairSpinLongQsymp::write_restart_settings(FILE *fp)
 {
   fwrite(&cut_spin_long_global,sizeof(double),1,fp);
   fwrite(&mix_flag,sizeof(int),1,fp);
@@ -572,7 +644,7 @@ void PairSpinLong::write_restart_settings(FILE *fp)
    proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairSpinLong::read_restart_settings(FILE *fp)
+void PairSpinLongQsymp::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
     fread(&cut_spin_long_global,sizeof(double),1,fp);

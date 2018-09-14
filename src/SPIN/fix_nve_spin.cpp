@@ -295,6 +295,13 @@ void FixNVESpin::initial_integrate(int vflag)
     }
   }
 
+  // update fm_kspace if long-range
+  // remove short-range comp. of fm_kspace
+
+  if (long_spin_flag) {
+
+  }
+
   // update half s for all atoms
 
   if (sector_flag) {				// sectoring seq. update
@@ -434,7 +441,7 @@ void FixNVESpin::ComputeInteractionsSpin(int i)
 
   double **sp = atom->sp;
   double **fm = atom->fm;
-  double **fm_long = atom->fm_long;
+  //double **fm_long = atom->fm_long;
 
   // force computation for spin i
 
@@ -450,14 +457,6 @@ void FixNVESpin::ComputeInteractionsSpin(int i)
     for (int k = 0; k < npairspin; k++) {
       spin_pairs[k]->compute_single_pair(i,fmi);
     }
-  }
-
-  // update magnetic long-range components
-
-  if (long_spin_flag) {
-    fmi[0] += fm_long[i][0];
-    fmi[1] += fm_long[i][1];
-    fmi[2] += fm_long[i][2];
   }
 
   // update magnetic precession interactions

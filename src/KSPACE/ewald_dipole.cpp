@@ -28,6 +28,7 @@
 #include "pair.h"
 #include "domain.h"
 #include "math_const.h"
+#include "math_special.h"
 #include "memory.h"
 #include "error.h"
 #include "update.h"
@@ -37,6 +38,7 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace MathSpecial;
 
 #define SMALL 0.00001
 
@@ -154,13 +156,11 @@ void EwaldDipole::init()
   // zprd used rather than zprd_slab
 
   if (!gewaldflag) {
-    if (accuracy <= 0.0)
-      error->all(FLERR,"KSpace accuracy must be > 0");
-    if (q2 == 0.0)
-      error->all(FLERR,"Must use 'kspace_modify gewald' for uncharged system");
-    g_ewald = accuracy*sqrt(natoms*cutoff*xprd*yprd*zprd) / (2.0*q2);
-    if (g_ewald >= 1.0) g_ewald = (1.35 - 0.15*log(accuracy))/cutoff;
-    else g_ewald = sqrt(-log(g_ewald)) / cutoff;
+    double g_ewald_new =
+      NewtonSolve(g_ewald,cutoff,natoms,xprd*yprd*zprd,mu2);
+    if (g_ewald_new > 0.0) g_ewald = g_ewald_new;
+    else error->warning(FLERR,"Ewald/disp Newton solver failed, "
+                        "using old method to estimate g_ewald");  
   }
 
   // setup EwaldDipole coefficients so can print stats
@@ -249,16 +249,16 @@ void EwaldDipole::setup()
       err = rms_dipole(kxmax,xprd,natoms);
     }
 
-    err = rms_dipole(kxmax,xprd,natoms);
+    err = rms_dipole(kymax,yprd,natoms);
     while (err > accuracy) {
       kymax++;
-      err = rms_dipole(kxmax,xprd,natoms);
+      err = rms_dipole(kymax,yprd,natoms);
     }
 
-    err = rms_dipole(kxmax,xprd,natoms);
+    err = rms_dipole(kzmax,zprd,natoms);
     while (err > accuracy) {
       kzmax++;
-      err = rms_dipole(kxmax,xprd,natoms);
+      err = rms_dipole(kzmax,zprd,natoms);
     }
 
     kmax = MAX(kxmax,kymax);
@@ -346,6 +346,7 @@ double EwaldDipole::rms_dipole(int km, double prd, bigint natoms)
 void EwaldDipole::compute(int eflag, int vflag)
 {
   int i,j,k;
+  const double g3 = g_ewald*g_ewald*g_ewald;
 
   // set energy/virial flags
 
@@ -362,7 +363,7 @@ void EwaldDipole::compute(int eflag, int vflag)
 
   // return if there are no charges
 
-  if (qsqsum == 0.0) return;
+  if (musqsum == 0.0) return;
 
   // extend size of per-atom arrays if necessary
 
@@ -472,7 +473,7 @@ void EwaldDipole::compute(int eflag, int vflag)
     // substracting self energy and scaling
 
     energy -= musqsum*2.0*g3/3.0/MY_PIS;
-    energy *= muscale;
+    energy *= qscale;
   }
 
   // global virial
@@ -574,8 +575,8 @@ void EwaldDipole::eik_dot_r()
           cs[-m][ic][i] = cs[m][ic][i];
           sn[-m][ic][i] = -sn[m][ic][i];
 	  muk[n][i] = (mu[i][ic]*m*unitk[ic]);
-          cstr1 += muk[n][i]*cs[1][ic][i];
-          sstr1 += muk[n][i]*sn[1][ic][i];
+          cstr1 += muk[n][i]*cs[m][ic][i];
+          sstr1 += muk[n][i]*sn[m][ic][i];
         }
         sfacrl[n] = cstr1;
         sfacim[n++] = sstr1;
@@ -835,3 +836,61 @@ void EwaldDipole::musum_musq()
   if (mu2 == 0 && comm->me == 0)
     error->all(FLERR,"Using kspace solver PPPMDipole on system with no dipoles");
 }
+
+/* ----------------------------------------------------------------------
+   Newton solver used to find g_ewald for LJ systems
+------------------------------------------------------------------------- */
+
+double EwaldDipole::NewtonSolve(double x, double Rc,
+                              bigint natoms, double vol, double b2)
+{
+  double dx,tol;
+  int maxit;
+
+  maxit = 10000; //Maximum number of iterations
+  tol = 0.00001; //Convergence tolerance
+
+  //Begin algorithm
+
+  for (int i = 0; i < maxit; i++) {
+    dx = f(x,Rc,natoms,vol,b2) / derivf(x,Rc,natoms,vol,b2);
+    x = x - dx; //Update x
+    if (fabs(dx) < tol) return x;
+    if (x < 0 || x != x) // solver failed
+      return -1;
+  }
+  return -1;
+}
+
+/* ----------------------------------------------------------------------
+ Calculate f(x)
+ ------------------------------------------------------------------------- */
+
+double EwaldDipole::f(double x, double Rc, bigint natoms, double vol, double b2)
+{
+  double a = Rc*x;
+  double f = 0.0;
+
+  double rg2 = a*a;
+  double rg4 = rg2*rg2;
+  double rg6 = rg4*rg2;
+  double Cc = 4.0*rg4 + 6.0*rg2 + 3.0;
+  double Dc = 8.0*rg6 + 20.0*rg4 + 30.0*rg2 + 15.0;
+  f = (b2/(sqrt(vol*powint(x,4)*powint(Rc,9)*natoms)) *
+    sqrt(13.0/6.0*Cc*Cc + 2.0/15.0*Dc*Dc - 13.0/15.0*Cc*Dc) *
+    exp(-rg2)) - accuracy;
+
+  return f;
+}
+
+/* ----------------------------------------------------------------------
+ Calculate numerical derivative f'(x)
+ ------------------------------------------------------------------------- */
+
+double EwaldDipole::derivf(double x, double Rc,
+                         bigint natoms, double vol, double b2)
+{
+  double h = 0.000001;  //Derivative step-size
+  return (f(x + h,Rc,natoms,vol,b2) - f(x,Rc,natoms,vol,b2)) / h;
+}
+

@@ -497,6 +497,7 @@ compute_smd_vol.html
 compute_sna_atom.html
 compute_spin.html
 compute_stress_atom.html
+compute_stress_mop.html
 compute_tally.html
 compute_tdpd_cc_atom.html
 compute_temp.html

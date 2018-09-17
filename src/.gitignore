@@ -302,6 +302,10 @@
 /compute_rigid_local.h
 /compute_spec_atom.cpp
 /compute_spec_atom.h
+/compute_stress_mop.cpp
+/compute_stress_mop.h
+/compute_stress_mop.profile.cpp
+/compute_stress_mop.profile.h
 /compute_stress_tally.cpp
 /compute_stress_tally.h
 /compute_temp_asphere.cpp

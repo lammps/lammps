@@ -49,6 +49,7 @@ void MinAdaptGlok::init()
   if (dtgrow < 1.0) error->all(FLERR,"dtgrow has to be larger than 1.0");
   if (dtshrink > 1.0) error->all(FLERR,"dtshrink has to be smaller than 1.0");
   if (relaxbox_mod < 0.0) error->all(FLERR,"relaxbox_mod has to be positif");
+  if (relaxbox_rate < 0.0 || relaxbox_rate > 1.0) error->all(FLERR,"relaxbox_rate has to be positif, lower than 1.0");
 
   // require periodicity in boxrelax dimensions
 

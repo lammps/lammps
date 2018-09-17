@@ -65,7 +65,7 @@ implementation used for the "fix nvt"_fix_nh.html command.
 
 NOTE: A recent (2017) book by "(Daivis and Todd)"_#Daivis-sllod
 discusses use of the SLLOD method and non-equilibrium MD (NEMD)
-thermosttating generally, for both simple and complex fluids,
+thermostatting generally, for both simple and complex fluids,
 e.g. molecular systems.  The latter can be tricky to do correctly.
 
 Additional parameters affecting the thermostat are specified by

@@ -45,7 +45,7 @@ particles.
 
 NOTE: A recent (2017) book by "(Daivis and Todd)"_#Daivis-thermostat
 discusses use of the SLLOD method and non-equilibrium MD (NEMD)
-thermosttating generally, for both simple and complex fluids,
+thermostatting generally, for both simple and complex fluids,
 e.g. molecular systems.  The latter can be tricky to do correctly.
 
 DPD thermostatting alters pairwise interactions in a manner analogous

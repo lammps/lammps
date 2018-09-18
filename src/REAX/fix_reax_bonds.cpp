@@ -53,7 +53,7 @@ FixReaxBonds::FixReaxBonds(LAMMPS *lmp, int narg, char **arg) :
     if (suffix && strcmp(suffix,".gz") == 0) {
 #ifdef LAMMPS_GZIP
       char gzip[128];
-      snprintf(gzip128,,"gzip -6 > %s",arg[4]);
+      snprintf(gzip,128,"gzip -6 > %s",arg[4]);
 #ifdef _WIN32
       fp = _popen(gzip,"wb");
 #else

@@ -67,7 +67,7 @@ FixQEQComb::FixQEQComb(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
         fp = fopen(arg[iarg+1],"w");
         if (fp == NULL) {
           char str[128];
-          sprintf(str,"Cannot open fix qeq/comb file %s",arg[iarg+1]);
+          snprintf(str,128,"Cannot open fix qeq/comb file %s",arg[iarg+1]);
           error->one(FLERR,str);
         }
       }

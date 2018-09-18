@@ -880,7 +880,7 @@ void PairILPGrapheneHBN::read_file(char *filename)
     fp = force->open_potential(filename);
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open ILP potential file %s",filename);
+      snprintf(str,128,"Cannot open ILP potential file %s",filename);
       error->one(FLERR,str);
     }
   }

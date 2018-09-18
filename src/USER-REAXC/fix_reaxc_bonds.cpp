@@ -62,7 +62,7 @@ FixReaxCBonds::FixReaxCBonds(LAMMPS *lmp, int narg, char **arg) :
     if (suffix && strcmp(suffix,".gz") == 0) {
 #ifdef LAMMPS_GZIP
       char gzip[128];
-      sprintf(gzip,"gzip -6 > %s",arg[4]);
+      snprintf(gzip,128,"gzip -6 > %s",arg[4]);
 #ifdef _WIN32
       fp = _popen(gzip,"wb");
 #else
@@ -75,7 +75,7 @@ FixReaxCBonds::FixReaxCBonds(LAMMPS *lmp, int narg, char **arg) :
 
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open fix reax/c/bonds file %s",arg[4]);
+      snprintf(str,128,"Cannot open fix reax/c/bonds file %s",arg[4]);
       error->one(FLERR,str);
     }
   }

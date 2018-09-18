@@ -224,7 +224,7 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf,
 
   if (nwords != nvalue+1) {
     char str[128];
-    sprintf(str,"Incorrect %s format in data file",keyword);
+    snprintf(str,128,"Incorrect %s format in data file",keyword);
     error->all(FLERR,str);
   }
 
@@ -242,7 +242,7 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf,
     values[0] = strtok(buf," \t\n\r\f");
     if (values[0] == NULL) {
       char str[128];
-      sprintf(str,"Too few lines in %s section of data file",keyword);
+      snprintf(str,128,"Too few lines in %s section of data file",keyword);
       error->one(FLERR,str);
     }
     int format_ok = 1;
@@ -252,14 +252,14 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf,
     }
     if (!format_ok) {
       char str[128];
-      sprintf(str,"Incorrect %s format in data file",keyword);
+      snprintf(str,128,"Incorrect %s format in data file",keyword);
       error->all(FLERR,str);
     }
 
     itag = ATOTAGINT(values[0]) + id_offset;
     if (itag <= 0 || itag > map_tag_max) {
       char str[128];
-      sprintf(str,"Invalid atom ID in %s section of data file",keyword);
+      snprintf(str,128,"Invalid atom ID in %s section of data file",keyword);
       error->one(FLERR,str);
     }
 

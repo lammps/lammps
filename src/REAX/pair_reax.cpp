@@ -46,8 +46,8 @@ using namespace LAMMPS_NS;
 PairREAX::PairREAX(LAMMPS *lmp) : Pair(lmp)
 {
   if (comm->me == 0)
-    error->warning(FLERR,"The pair_style reax command is unsupported. "
-                   "Please switch to pair_style reax/c instead");
+    error->warning(FLERR,"THE pair_style reax COMMAND IS OBSOLETE AND "
+                   "WILL BE REMOVED VERY SOON. PLEASE USE reax/c");
 
   single_enable = 0;
   restartinfo = 0;

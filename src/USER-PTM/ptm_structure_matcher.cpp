@@ -15,6 +15,8 @@
 #include "ptm_constants.h"
 
 
+namespace ptm {
+
 static double calc_rmsd(int num_points, const double (*ideal_points)[3], double (*normalized)[3], int8_t* mapping,
 			double G1, double G2, double E0, double* q, double* p_scale)
 {
@@ -290,5 +292,7 @@ int match_dcub_dhex(double (*ch_points)[3], double (*points)[3], int32_t flags, 
 	if (flags & PTM_CHECK_DHEX)	check_graphs(&structure_dhex, hash, canonical_labelling, normalized, res);
 
 	return PTM_NO_ERROR;
+}
+
 }
 

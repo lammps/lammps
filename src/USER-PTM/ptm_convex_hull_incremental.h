@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include "ptm_constants.h"
 
+namespace ptm {
 
 typedef struct
 {
@@ -22,6 +23,8 @@ typedef struct
 
 void add_facet(const double (*points)[3], int a, int b, int c, int8_t* facet, double* plane_normal, double* barycentre);
 int get_convex_hull(int num_points, const double (*points)[3], convexhull_t* ch, int8_t simplex[][3]);
+
+}
 
 #endif
 

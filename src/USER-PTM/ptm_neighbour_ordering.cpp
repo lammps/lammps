@@ -5,9 +5,9 @@
 #include <algorithm>
 #include "ptm_constants.h"
 #include "ptm_voronoi_cell.h"
-using namespace voro;
 
 
+namespace ptm {
 
 typedef struct
 {
@@ -31,7 +31,7 @@ static bool sorthelper_compare(sorthelper_t const& a, sorthelper_t const& b)
 }
 
 //todo: change voronoi code to return errors rather than exiting
-static int calculate_voronoi_face_areas(int num_points, const double (*_points)[3], double* normsq, double max_norm, voronoicell_neighbor* v, std::vector<int>& nbr_indices, std::vector<double>& face_areas)
+static int calculate_voronoi_face_areas(int num_points, const double (*_points)[3], double* normsq, double max_norm, ptm_voro::voronoicell_neighbor* v, std::vector<int>& nbr_indices, std::vector<double>& face_areas)
 {
 	const double k = 1000 * max_norm;	//todo: reduce this constant
 	v->init(-k,k,-k,k,-k,k);
@@ -53,7 +53,7 @@ int calculate_neighbour_ordering(void* _voronoi_handle, int num_points, const do
 {
 	assert(num_points <= PTM_MAX_INPUT_POINTS);
 
-	voronoicell_neighbor* voronoi_handle = (voronoicell_neighbor*)_voronoi_handle;
+	ptm_voro::voronoicell_neighbor* voronoi_handle = (ptm_voro::voronoicell_neighbor*)_voronoi_handle;
 
 	double max_norm = 0;
 	double points[PTM_MAX_INPUT_POINTS][3];
@@ -116,13 +116,13 @@ int calculate_neighbour_ordering(void* _voronoi_handle, int num_points, const do
 
 void* voronoi_initialize_local()
 {
-	voronoicell_neighbor* ptr = new voronoicell_neighbor;
+	ptm_voro::voronoicell_neighbor* ptr = new ptm_voro::voronoicell_neighbor;
 	return (void*)ptr;
 }
 
 void voronoi_uninitialize_local(void* _ptr)
 {
-	voronoicell_neighbor* ptr = (voronoicell_neighbor*)_ptr;
+	ptm_voro::voronoicell_neighbor* ptr = (ptm_voro::voronoicell_neighbor*)_ptr;
 	delete ptr;
 }
 
@@ -199,5 +199,7 @@ int calculate_diamond_neighbour_ordering(	int num_points, double (*unpermuted_po
 	}
 
 	return 0;
+}
+
 }
 

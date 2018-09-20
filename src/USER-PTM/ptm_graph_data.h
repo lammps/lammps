@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include "ptm_constants.h"
 
+namespace ptm {
 
 typedef struct
 {
@@ -32,6 +33,8 @@ extern graph_t graphs_ico[NUM_ICO_GRAPHS];
 extern graph_t graphs_bcc[NUM_BCC_GRAPHS];
 extern graph_t graphs_dcub[NUM_DCUB_GRAPHS];
 extern graph_t graphs_dhex[NUM_DHEX_GRAPHS];
+
+}
 
 #endif
 

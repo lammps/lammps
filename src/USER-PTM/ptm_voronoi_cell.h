@@ -17,7 +17,7 @@
 
 #include "ptm_voronoi_config.h"
 
-namespace voro {
+namespace ptm_voro {
 
 /** \brief A class representing a single Voronoi cell.
  *

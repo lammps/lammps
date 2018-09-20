@@ -36,13 +36,13 @@ static double calculate_lattice_constant(int type, double interatomic_distance)
 
 static int rotate_into_fundamental_zone(int type, double* q)
 {
-	if (type == PTM_MATCH_SC)	return rotate_quaternion_into_cubic_fundamental_zone(q);
-	if (type == PTM_MATCH_FCC)	return rotate_quaternion_into_cubic_fundamental_zone(q);
-	if (type == PTM_MATCH_BCC)	return rotate_quaternion_into_cubic_fundamental_zone(q);
-	if (type == PTM_MATCH_ICO)	return rotate_quaternion_into_icosahedral_fundamental_zone(q);
-	if (type == PTM_MATCH_HCP)	return rotate_quaternion_into_hcp_fundamental_zone(q);
-	if (type == PTM_MATCH_DCUB)	return rotate_quaternion_into_diamond_cubic_fundamental_zone(q);
-	if (type == PTM_MATCH_DHEX)	return rotate_quaternion_into_diamond_hexagonal_fundamental_zone(q);
+	if (type == PTM_MATCH_SC)	return ptm::rotate_quaternion_into_cubic_fundamental_zone(q);
+	if (type == PTM_MATCH_FCC)	return ptm::rotate_quaternion_into_cubic_fundamental_zone(q);
+	if (type == PTM_MATCH_BCC)	return ptm::rotate_quaternion_into_cubic_fundamental_zone(q);
+	if (type == PTM_MATCH_ICO)	return ptm::rotate_quaternion_into_icosahedral_fundamental_zone(q);
+	if (type == PTM_MATCH_HCP)	return ptm::rotate_quaternion_into_hcp_fundamental_zone(q);
+	if (type == PTM_MATCH_DCUB)	return ptm::rotate_quaternion_into_diamond_cubic_fundamental_zone(q);
+	if (type == PTM_MATCH_DHEX)	return ptm::rotate_quaternion_into_diamond_hexagonal_fundamental_zone(q);
 	return -1;
 }
 
@@ -52,8 +52,8 @@ static void order_points(ptm_local_handle_t local_handle, int num_points, double
 	if (topological_ordering)
 	{
 		double normalized_points[PTM_MAX_INPUT_POINTS][3];
-		normalize_vertices(num_points, unpermuted_points, normalized_points);
-		int ret = calculate_neighbour_ordering((void*)local_handle, num_points, (const double (*)[3])normalized_points, ordering);
+		ptm::normalize_vertices(num_points, unpermuted_points, normalized_points);
+		int ret = ptm::calculate_neighbour_ordering((void*)local_handle, num_points, (const double (*)[3])normalized_points, ordering);
 		if (ret != 0)
 			topological_ordering = false;
 	}
@@ -71,7 +71,7 @@ static void order_points(ptm_local_handle_t local_handle, int num_points, double
 	}
 }
 
-static void output_data(result_t* res, int num_points, int32_t* unpermuted_numbers, double (*points)[3], int32_t* numbers, int8_t* ordering,
+static void output_data(ptm::result_t* res, int num_points, int32_t* unpermuted_numbers, double (*points)[3], int32_t* numbers, int8_t* ordering,
 			int32_t* p_type, int32_t* p_alloy_type, double* p_scale, double* p_rmsd, double* q, double* F, double* F_res,
 			double* U, double* P, int8_t* mapping, double* p_interatomic_distance, double* p_lattice_constant)
 {
@@ -82,13 +82,13 @@ static void output_data(result_t* res, int num_points, int32_t* unpermuted_numbe
 	if (mapping != NULL)
 		memset(mapping, -1, num_points * sizeof(int8_t));
 
-	const refdata_t* ref = res->ref_struct;
+	const ptm::refdata_t* ref = res->ref_struct;
 	if (ref == NULL)
 		return;
 
 	*p_type = ref->type;
 	if (p_alloy_type != NULL && unpermuted_numbers != NULL)
-		*p_alloy_type = find_alloy_type(ref, res->mapping, numbers);
+		*p_alloy_type = ptm::find_alloy_type(ref, res->mapping, numbers);
 
 	int bi = rotate_into_fundamental_zone(ref->type, res->q);
 	int8_t temp[PTM_MAX_POINTS];
@@ -101,17 +101,17 @@ static void output_data(result_t* res, int num_points, int32_t* unpermuted_numbe
 	{
 		double scaled_points[PTM_MAX_INPUT_POINTS][3];
 
-		subtract_barycentre(ref->num_nbrs + 1, points, scaled_points);
+		ptm::subtract_barycentre(ref->num_nbrs + 1, points, scaled_points);
 		for (int i = 0;i<ref->num_nbrs + 1;i++)
 		{
 			scaled_points[i][0] *= res->scale;
 			scaled_points[i][1] *= res->scale;
 			scaled_points[i][2] *= res->scale;
 		}
-		calculate_deformation_gradient(ref->num_nbrs + 1, ref->points, res->mapping, scaled_points, ref->penrose, F, F_res);
+		ptm::calculate_deformation_gradient(ref->num_nbrs + 1, ref->points, res->mapping, scaled_points, ref->penrose, F, F_res);
 
 		if (P != NULL && U != NULL)
-			polar_decomposition_3x3(F, false, U, P);
+			ptm::polar_decomposition_3x3(F, false, U, P);
 	}
 
 	if (mapping != NULL)
@@ -156,7 +156,7 @@ int ptm_index(	ptm_local_handle_t local_handle, int32_t flags,
 		assert(num_points >= PTM_NUM_POINTS_DCUB);
 
 	int ret = 0;
-	result_t res;
+	ptm::result_t res;
 	res.ref_struct = NULL;
 	res.rmsd = INFINITY;
 
@@ -168,32 +168,32 @@ int ptm_index(	ptm_local_handle_t local_handle, int32_t flags,
 	double dpoints[PTM_MAX_POINTS][3];
 	int32_t dnumbers[PTM_MAX_POINTS];
 
-	convexhull_t ch;
+	ptm::convexhull_t ch;
 	double ch_points[PTM_MAX_INPUT_POINTS][3];
 
 	if (flags & (PTM_CHECK_SC | PTM_CHECK_FCC | PTM_CHECK_HCP | PTM_CHECK_ICO | PTM_CHECK_BCC))
 	{
 		int num_lpoints = std::min(std::min(PTM_MAX_POINTS, 20), num_points);
 		order_points(local_handle, num_lpoints, unpermuted_points, unpermuted_numbers, topological_ordering, ordering, points, numbers);
-		normalize_vertices(num_lpoints, points, ch_points);
+		ptm::normalize_vertices(num_lpoints, points, ch_points);
 		ch.ok = false;
 
 		if (flags & PTM_CHECK_SC)
-			ret = match_general(&structure_sc, ch_points, points, &ch, &res);
+			ret = match_general(&ptm::structure_sc, ch_points, points, &ch, &res);
 
 		if (flags & (PTM_CHECK_FCC | PTM_CHECK_HCP | PTM_CHECK_ICO))
 			ret = match_fcc_hcp_ico(ch_points, points, flags, &ch, &res);
 
 		if (flags & PTM_CHECK_BCC)
-			ret = match_general(&structure_bcc, ch_points, points, &ch, &res);
+			ret = match_general(&ptm::structure_bcc, ch_points, points, &ch, &res);
 	}
 
 	if (flags & (PTM_CHECK_DCUB | PTM_CHECK_DHEX))
 	{
-		ret = calculate_diamond_neighbour_ordering(num_points, unpermuted_points, unpermuted_numbers, dordering, dpoints, dnumbers);
+		ret = ptm::calculate_diamond_neighbour_ordering(num_points, unpermuted_points, unpermuted_numbers, dordering, dpoints, dnumbers);
 		if (ret == 0)
 		{
-			normalize_vertices(PTM_NUM_NBRS_DCUB + 1, dpoints, ch_points);
+			ptm::normalize_vertices(PTM_NUM_NBRS_DCUB + 1, dpoints, ch_points);
 			ch.ok = false;
 
 			ret = match_dcub_dhex(ch_points, dpoints, flags, &ch, &res);

@@ -6,6 +6,7 @@
 #include "ptm_convex_hull_incremental.h"
 #include "ptm_constants.h"
 
+namespace ptm {
 
 #define VISIBLE 1
 #define INVISIBLE 2
@@ -359,5 +360,7 @@ int get_convex_hull(int num_points, const double (*points)[3], convexhull_t* ch,
 	}
 
 	return ret;
+}
+
 }
 

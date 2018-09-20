@@ -4,6 +4,8 @@
 #include "ptm_constants.h"
 
 
+namespace ptm {
+
 bool build_facet_map(int num_facets, int8_t facets[][3], int8_t common[PTM_MAX_NBRS][PTM_MAX_NBRS])
 {
 	memset(common, -1, sizeof(int8_t) * PTM_MAX_NBRS * PTM_MAX_NBRS);
@@ -48,5 +50,7 @@ int graph_degree(int num_facets, int8_t facets[][3], int num_nodes, int8_t* degr
 		max_degree = std::max(max_degree, degree[i]);
 
 	return max_degree;
+}
+
 }
 

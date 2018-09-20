@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include "ptm_constants.h"
 
+namespace ptm {
+
 void calculate_deformation_gradient(int num_points, const double (*ideal_points)[3], int8_t* mapping, double (*normalized)[3], const double (*penrose)[3], double* F, double* res);
 
 //sc
@@ -137,6 +139,8 @@ const double penrose_dhex[PTM_NUM_POINTS_DHEX][3] = {
 					{          0,  2 * kdcub,  -2 * kdcub },
 					{  2 * kdcub,          0,  -2 * kdcub },
 				};
+}
+
 #endif
 
 

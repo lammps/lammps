@@ -2,6 +2,7 @@
 #include "ptm_constants.h"
 #include "ptm_initialize_data.h"
 
+namespace ptm {
 
 #define NUM_ALLOY_TYPES 3
 static uint32_t typedata[NUM_ALLOY_TYPES][3] = {
@@ -97,5 +98,7 @@ int32_t find_alloy_type(const refdata_t* ref, int8_t* mapping, int32_t* numbers)
 			return PTM_ALLOY_SIC;
 
 	return PTM_ALLOY_NONE;
+}
+
 }
 

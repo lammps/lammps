@@ -12,7 +12,7 @@
 #ifndef PTM_VOROPP_CONFIG_HH
 #define PTM_VOROPP_CONFIG_HH
 
-namespace voro {
+namespace ptm_voro {
 
 // These constants set the initial memory allocation for the Voronoi cell
 /** The initial memory allocation for the number of vertices. */

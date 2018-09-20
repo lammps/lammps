@@ -1,5 +1,6 @@
 #include "ptm_deformation_gradient.h"
 
+namespace ptm {
 
 void calculate_deformation_gradient(int num_points, const double (*ideal_points)[3], int8_t* mapping, double (*normalized)[3], const double (*penrose)[3], double* F, double* res)
 {
@@ -33,5 +34,7 @@ void calculate_deformation_gradient(int num_points, const double (*ideal_points)
 			res[i] += delta * delta;
 		}
 	}
+}
+
 }
 

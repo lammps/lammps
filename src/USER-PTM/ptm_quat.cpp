@@ -3,6 +3,8 @@
 #include <cfloat>
 
 
+namespace ptm {
+
 #define SIGN(x) (x >= 0 ? 1 : -1)
 #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
 #define MAX(X, Y) (((X) > (Y)) ? (X) : (Y))
@@ -392,5 +394,7 @@ double quat_quick_disorientation_icosahedral(double* q0, double* q1)
 double quat_disorientation_icosahedral(double* q0, double* q1)
 {
 	return acos(quat_quick_disorientation_icosahedral(q0, q1));
+}
+
 }
 

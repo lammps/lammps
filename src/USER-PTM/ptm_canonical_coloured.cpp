@@ -4,6 +4,7 @@
 #include "ptm_graph_tools.h"
 #include "ptm_constants.h"
 
+namespace ptm {
 
 static bool weinberg_coloured(int num_nodes, int num_edges, int8_t common[PTM_MAX_NBRS][PTM_MAX_NBRS], int8_t* colours, int8_t* best_code, int8_t* canonical_labelling, int a, int b)
 {
@@ -163,5 +164,7 @@ int canonical_form_coloured(int num_facets, int8_t facets[][3], int num_nodes, i
 
 	*p_hash = hash;
 	return PTM_NO_ERROR;
+}
+
 }
 

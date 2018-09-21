@@ -1,0 +1,119 @@
+LAMMPS (11 May 2018)
+# fcc cobalt in a 3d periodic box
+
+units 		metal
+atom_style 	spin
+
+dimension 	3
+boundary	p p p
+
+# necessary for the serial algorithm (sametag)
+atom_modify 	map array
+
+lattice 	hcp 2.5071
+Lattice spacing in x,y,z = 2.5071 4.34242 4.09408
+region 		box block 0.0 5.0 0.0 5.0 0.0 5.0
+create_box 	1 box
+Created orthogonal box = (0 0 0) to (12.5355 21.7121 20.4704)
+  1 by 2 by 2 MPI processor grid
+create_atoms 	1 box
+Created 500 atoms
+  Time spent = 0.000257969 secs
+
+# setting mass, mag. moments, and interactions for cobalt
+
+mass		1 58.93
+
+set 		group all spin/random 31 1.72
+  500 settings made for spin/random
+
+pair_style	spin/exchange 4.0
+pair_coeff 	* * exchange 4.0 0.3593 1.135028015e-05 1.064568567
+
+neighbor 	0.1 bin
+neigh_modify 	every 10 check yes delay 20
+
+fix 		1 all precession/spin zeeman 0.0 0.0 0.0 1.0
+fix 		2 all langevin/spin 100.0 0.01 21
+
+fix 		3 all nve/spin lattice no
+timestep	0.0001
+
+# compute and output options
+
+compute 	out_mag    all compute/spin
+compute 	out_pe     all pe
+compute 	out_ke     all ke
+compute 	out_temp   all temp
+
+variable 	magz      equal c_out_mag[3]
+variable 	magnorm   equal c_out_mag[4]
+variable 	emag      equal c_out_mag[5]
+variable 	tmag      equal c_out_mag[6]
+
+thermo_style    custom step time v_magnorm v_emag temp etotal
+thermo          100
+
+compute 	outsp all property/atom spx spy spz sp fmx fmy fmz
+dump 		100 all custom 1 dump.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3] c_outsp[4] c_outsp[5] c_outsp[6] c_outsp[7]
+
+run 		1000
+Neighbor list info ...
+  update every 10 steps, delay 20 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 4.1
+  ghost atom cutoff = 4.1
+  binsize = 2.05, bins = 7 11 10
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair spin/exchange, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 6.367 | 6.367 | 6.367 Mbytes
+Step Time v_magnorm v_emag Temp TotEng 
+       0            0  0.076558814    1.7982359            0    1.7982359 
+     100         0.01  0.081414414   0.70545723            0   0.70545723 
+     200         0.02  0.084519539  -0.33171078            0  -0.33171078 
+     300         0.03  0.089334139   -1.3988283            0   -1.3988283 
+     400         0.04  0.092873722   -2.8519371            0   -2.8519371 
+     500         0.05    0.0970839   -4.1531164            0   -4.1531164 
+     600         0.06  0.099626132   -5.7993765            0   -5.7993765 
+     700         0.07   0.10467169   -7.3011333            0   -7.3011333 
+     800         0.08   0.10893493   -8.6918141            0   -8.6918141 
+     900         0.09   0.11389657   -10.236174            0   -10.236174 
+    1000          0.1    0.1180057   -11.896933            0   -11.896933 
+Loop time of 1.05012 on 4 procs for 1000 steps with 500 atoms
+
+Performance: 8.228 ns/day, 2.917 hours/ns, 952.272 timesteps/s
+98.1% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.08972    | 0.090456   | 0.091872   |   0.3 |  8.61
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.016958   | 0.018047   | 0.019791   |   0.8 |  1.72
+Output  | 0.36286    | 0.37483    | 0.38975    |   1.6 | 35.69
+Modify  | 0.55131    | 0.56541    | 0.57702    |   1.3 | 53.84
+Other   |            | 0.001374   |            |       |  0.13
+
+Nlocal:    125 ave 125 max 125 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    597.5 ave 600 max 595 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  2500 ave 2500 max 2500 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 10000
+Ave neighs/atom = 20
+Neighbor list builds = 0
+Dangerous builds = 0
+write_restart 	restart_hcp_cobalt.equil
+
+
+Please see the log.cite file for references relevant to this simulation
+
+Total wall time: 0:00:01

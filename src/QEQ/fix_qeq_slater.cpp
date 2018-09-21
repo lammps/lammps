@@ -107,7 +107,7 @@ void FixQEqSlater::extract_streitz()
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqSlater::pre_force(int vflag)
+void FixQEqSlater::pre_force(int /*vflag*/)
 {
   if (update->ntimestep % nevery) return;
 

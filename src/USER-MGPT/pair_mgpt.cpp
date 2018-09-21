@@ -79,7 +79,7 @@ static double gettime(int x = 0) {
     return 0.0;
 }
 #else
-static double gettime(int x = 0) { return 0.0; }
+static double gettime(int /*x*/ = 0) { return 0.0; }
 #endif
 
 
@@ -1805,7 +1805,7 @@ void PairMGPT::allocate()
 /* ----------------------------------------------------------------------
    global settings
 ------------------------------------------------------------------------- */
-void PairMGPT::settings(int narg, char **arg)
+void PairMGPT::settings(int narg, char **/*arg*/)
 {
   if(narg != 0) error->all(__FILE__,__LINE__,"Illegal pair_style command");
 }
@@ -2025,7 +2025,7 @@ void PairMGPT::init_list(int id, NeighList *ptr)
 /* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
-double PairMGPT::init_one(int i, int j)
+double PairMGPT::init_one(int /*i*/, int /*j*/)
 {
 	return cutoff;
 }

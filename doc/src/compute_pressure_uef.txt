@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -27,8 +27,8 @@ compute 2 all pressure/uef my_temp_uef virial :pre
 
 This command is used to compute the pressure tensor in
 the reference frame of the applied flow field when
-"fix nvt/uef"_fix_nh_uef.html" or
-"fix npt/uef"_fix_nh_uef.html" is used.
+"fix nvt/uef"_fix_nh_uef.html or
+"fix npt/uef"_fix_nh_uef.html is used.
 It is not necessary to use this command to compute the scalar
 value of the pressure. A "compute pressure"_compute_pressure.html
 may be used for that purpose.
@@ -38,9 +38,9 @@ The keywords and output information are documented in
 
 [Restrictions:]
 
-This fix is part of the USER-UEF package. It is only enabled if
-LAMMPS was built with that package. See the
-"Making LAMMPS"_Section_start.html#start_3 section for more info.
+This fix is part of the USER-UEF package. It is only enabled if LAMMPS
+was built with that package. See the "Build
+package"_Build_package.html doc page for more info.
 
 This command can only be used when "fix nvt/uef"_fix_nh_uef.html
 or "fix npt/uef"_fix_nh_uef.html is active.

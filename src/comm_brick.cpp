@@ -88,7 +88,7 @@ CommBrick::~CommBrick()
 //           The call to Comm::copy_arrays() then converts the shallow copy
 //           into a deep copy of the class with the new layout.
 
-CommBrick::CommBrick(LAMMPS *lmp, Comm *oldcomm) : Comm(*oldcomm)
+CommBrick::CommBrick(LAMMPS * /*lmp*/, Comm *oldcomm) : Comm(*oldcomm)
 {
   if (oldcomm->layout == Comm::LAYOUT_TILED)
     error->all(FLERR,"Cannot change to comm_style brick from tiled layout");
@@ -457,7 +457,7 @@ int CommBrick::updown(int dim, int dir, int loc,
    other per-atom attributes may also be sent via pack/unpack routines
 ------------------------------------------------------------------------- */
 
-void CommBrick::forward_comm(int dummy)
+void CommBrick::forward_comm(int /*dummy*/)
 {
   int n;
   MPI_Request request;

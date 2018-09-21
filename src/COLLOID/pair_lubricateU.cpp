@@ -2010,7 +2010,7 @@ void PairLubricateU::copy_uo_vec(int inum, double **f, double **torque,
 /* ---------------------------------------------------------------------- */
 
 int PairLubricateU::pack_forward_comm(int n, int *list, double *buf,
-                                      int pbc_flag, int *pbc)
+                                      int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
 

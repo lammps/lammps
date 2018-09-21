@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -116,7 +116,7 @@ per-atom or local quantities.  See the individual
 is appended, the vector calculated by the compute is used.  If a
 bracketed integer is appended, the Ith column of the array calculated
 by the compute is used.  Users can also write code for their own
-compute styles and "add them to LAMMPS"_Section_modify.html.  See the
+compute styles and "add them to LAMMPS"_Modify.html.  See the
 discussion above for how I can be specified with a wildcard asterisk
 to effectively specify multiple values.
 
@@ -129,9 +129,9 @@ references the values, else an error results.  If no bracketed integer
 is appended, the vector calculated by the fix is used.  If a bracketed
 integer is appended, the Ith column of the array calculated by the fix
 is used.  Users can also write code for their own fix style and "add
-them to LAMMPS"_Section_modify.html.  See the discussion above for how
-I can be specified with a wildcard asterisk to effectively specify
-multiple values.
+them to LAMMPS"_Modify.html.  See the discussion above for how I can
+be specified with a wildcard asterisk to effectively specify multiple
+values.
 
 If a value begins with "v_", a variable name must follow which has
 been previously defined in the input script.  It must be an
@@ -192,7 +192,7 @@ This compute calculates a global scalar if a single input value is
 specified or a global vector of length N where N is the number of
 inputs, and which can be accessed by indices 1 to N.  These values can
 be used by any command that uses global scalar or vector values from a
-compute as input.  See "Section 6.15"_Section_howto.html#howto_15
+compute as input.  See the "Howto output"_Howto_output.html doc page
 for an overview of LAMMPS output options.
 
 All the scalar or vector values calculated by this compute are

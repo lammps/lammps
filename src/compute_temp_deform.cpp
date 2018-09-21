@@ -277,7 +277,7 @@ void ComputeTempDeform::remove_bias_all()
    assume remove_bias() was previously called
 ------------------------------------------------------------------------- */
 
-void ComputeTempDeform::restore_bias(int i, double *v)
+void ComputeTempDeform::restore_bias(int /*i*/, double *v)
 {
   v[0] += vbias[0];
   v[1] += vbias[1];
@@ -289,7 +289,7 @@ void ComputeTempDeform::restore_bias(int i, double *v)
    assume remove_bias_thr() was previously called with the same buffer b
 ------------------------------------------------------------------------- */
 
-void ComputeTempDeform::restore_bias_thr(int i, double *v, double *b)
+void ComputeTempDeform::restore_bias_thr(int /*i*/, double *v, double *b)
 {
   v[0] += b[0];
   v[1] += b[1];

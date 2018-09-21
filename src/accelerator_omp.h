@@ -17,47 +17,6 @@
 
 // true interface to USER-OMP
 
-// this part is used inside the neighbor.h header file to
-// add functions to the Neighbor class definition
-
-#ifdef LMP_INSIDE_NEIGHBOR_H
-
-  void half_nsq_no_newton_omp(class NeighList *);
-  void half_nsq_no_newton_ghost_omp(class NeighList *);
-  void half_nsq_newton_omp(class NeighList *);
-
-  void half_bin_no_newton_omp(class NeighList *);
-  void half_bin_no_newton_ghost_omp(class NeighList *);
-  void half_bin_newton_omp(class NeighList *);
-  void half_bin_newton_tri_omp(class NeighList *);
-
-  void half_multi_no_newton_omp(class NeighList *);
-  void half_multi_newton_omp(class NeighList *);
-  void half_multi_newton_tri_omp(class NeighList *);
-
-  void full_nsq_omp(class NeighList *);
-  void full_nsq_ghost_omp(class NeighList *);
-  void full_bin_omp(class NeighList *);
-  void full_bin_ghost_omp(class NeighList *);
-  void full_multi_omp(class NeighList *);
-
-  void half_from_full_no_newton_omp(class NeighList *);
-  void half_from_full_newton_omp(class NeighList *);
-
-  void granular_nsq_no_newton_omp(class NeighList *);
-  void granular_nsq_newton_omp(class NeighList *);
-  void granular_bin_no_newton_omp(class NeighList *);
-  void granular_bin_newton_omp(class NeighList *);
-  void granular_bin_newton_tri_omp(class NeighList *);
-
-  void respa_nsq_no_newton_omp(class NeighList *);
-  void respa_nsq_newton_omp(class NeighList *);
-  void respa_bin_no_newton_omp(class NeighList *);
-  void respa_bin_newton_omp(class NeighList *);
-  void respa_bin_newton_tri_omp(class NeighList *);
-
-#else /* !LMP_INSIDE_NEIGHBOR_H */
-
 // provide a DomainOMP class with some overrides for Domain
 #include "domain.h"
 
@@ -68,8 +27,8 @@ namespace LAMMPS_NS {
 
 class DomainOMP : public Domain {
  public:
-  DomainOMP(class LAMMPS *lmp) : Domain(lmp) {};
-  virtual ~DomainOMP() {};
+  DomainOMP(class LAMMPS *lmp) : Domain(lmp) {}
+  virtual ~DomainOMP() {}
 
   // multi-threaded versions
   virtual void pbc();
@@ -81,48 +40,5 @@ class DomainOMP : public Domain {
 }
 
 #endif /* LMP_DOMAIN_OMP_H */
-#endif /* !LMP_INSIDE_NEIGHBOR_H */
-
-#else /* !LMP_USER_OMP */
-
-// dummy interface to USER-OMP
-// needed for compiling when USER-OMP is not installed
-
-#ifdef LMP_INSIDE_NEIGHBOR_H
-
-  void half_nsq_no_newton_omp(class NeighList *) {}
-  void half_nsq_no_newton_ghost_omp(class NeighList *) {}
-  void half_nsq_newton_omp(class NeighList *) {}
-
-  void half_bin_no_newton_omp(class NeighList *) {}
-  void half_bin_no_newton_ghost_omp(class NeighList *) {}
-  void half_bin_newton_omp(class NeighList *) {}
-  void half_bin_newton_tri_omp(class NeighList *) {}
-
-  void half_multi_no_newton_omp(class NeighList *) {}
-  void half_multi_newton_omp(class NeighList *) {}
-  void half_multi_newton_tri_omp(class NeighList *) {}
-
-  void full_nsq_omp(class NeighList *) {}
-  void full_nsq_ghost_omp(class NeighList *) {}
-  void full_bin_omp(class NeighList *) {}
-  void full_bin_ghost_omp(class NeighList *) {}
-  void full_multi_omp(class NeighList *) {}
-
-  void half_from_full_no_newton_omp(class NeighList *) {}
-  void half_from_full_newton_omp(class NeighList *) {}
-
-  void granular_nsq_no_newton_omp(class NeighList *) {}
-  void granular_nsq_newton_omp(class NeighList *) {}
-  void granular_bin_no_newton_omp(class NeighList *) {}
-  void granular_bin_newton_omp(class NeighList *) {}
-  void granular_bin_newton_tri_omp(class NeighList *) {}
-
-  void respa_nsq_no_newton_omp(class NeighList *) {}
-  void respa_nsq_newton_omp(class NeighList *) {}
-  void respa_bin_no_newton_omp(class NeighList *) {}
-  void respa_bin_newton_omp(class NeighList *) {}
-  void respa_bin_newton_tri_omp(class NeighList *) {}
-#endif
 
 #endif /* !LMP_USER_OMP */

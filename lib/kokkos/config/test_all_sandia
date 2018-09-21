@@ -22,28 +22,36 @@ if [[ "$HOSTNAME" =~ .*bowman.* ]]; then
   module load git
 fi
 
-if [[ "$HOSTNAME" =~ n.* ]]; then # Warning: very generic name
+if [[ "$HOSTNAME" == n* ]]; then # Warning: very generic name
   if [[ "$PROCESSOR" = "aarch64" ]]; then
     MACHINE=sullivan
     module load git
   fi
 fi
 
-if [[ "$HOSTNAME" =~ node.* ]]; then # Warning: very generic name
+if [[ "$HOSTNAME" == node* ]]; then # Warning: very generic name
   if [[ "$MACHINE" = "" ]]; then
     MACHINE=shepard
     module load git
   fi
 fi
 
-if [[ "$HOSTNAME" =~ apollo ]]; then
+if [[ "$HOSTNAME" == apollo\.* ]]; then
   MACHINE=apollo
   module load git
 fi
 
-if [[ "$HOSTNAME" =~ sullivan ]]; then
+if [[ "$HOSTNAME" == sullivan ]]; then
   MACHINE=sullivan
   module load git
+fi
+
+if [[ "$HOSTNAME" == mayer\.* ]]; then
+  MACHINE=mayer
+#  module load git
+fi
+if [[ "$HOSTNAME" == cn* ]]; then # Warning: very generic name
+  MACHINE=mayer
 fi
 
 if [ ! -z "$SEMS_MODULEFILES_ROOT" ]; then
@@ -83,7 +91,7 @@ CUSTOM_BUILD_LIST=""
 QTHREADS_PATH=""
 DRYRUN=False
 BUILD_ONLY=False
-declare -i NUM_JOBS_TO_RUN_IN_PARALLEL=3
+declare -i NUM_JOBS_TO_RUN_IN_PARALLEL=1
 TEST_SCRIPT=False
 SKIP_HWLOC=False
 SPOT_CHECK=False
@@ -141,6 +149,9 @@ do
       ;;
     --with-cuda-options*)
       KOKKOS_CUDA_OPTIONS="--with-cuda-options=${key#*=}"
+      ;;
+    --with-options*)
+      KOKKOS_OPTIONS="--with-options=enable_large_mem_tests,${key#*=}"
       ;;
     --cxxflags-extra*)
       CXX_FLAGS_EXTRA="${key#*=}"
@@ -247,7 +258,7 @@ elif [ "$MACHINE" = "white" ]; then
     ARCH_FLAG="--arch=Power8,Kepler37"
   fi
 
-  NUM_JOBS_TO_RUN_IN_PARALLEL=2
+  NUM_JOBS_TO_RUN_IN_PARALLEL=1
 
 elif [ "$MACHINE" = "bowman" ]; then
   source /etc/profile.d/modules.sh
@@ -268,7 +279,7 @@ elif [ "$MACHINE" = "bowman" ]; then
     ARCH_FLAG="--arch=KNL"
   fi
 
-  NUM_JOBS_TO_RUN_IN_PARALLEL=2
+  NUM_JOBS_TO_RUN_IN_PARALLEL=1
 
 elif [ "$MACHINE" = "sullivan" ]; then
   source /etc/profile.d/modules.sh
@@ -284,7 +295,24 @@ elif [ "$MACHINE" = "sullivan" ]; then
     ARCH_FLAG="--arch=ARMv8-ThunderX"
   fi
 
-  NUM_JOBS_TO_RUN_IN_PARALLEL=2
+  NUM_JOBS_TO_RUN_IN_PARALLEL=1
+
+elif [ "$MACHINE" = "mayer" ]; then
+  SKIP_HWLOC=True
+  export SLURM_TASKS_PER_NODE=96
+
+  BASE_MODULE_LIST="<COMPILER_NAME>/<COMPILER_VERSION>"
+  ARM_MODULE_LIST="<COMPILER_NAME>/<COMPILER_VERSION>"
+
+  # Format: (compiler module-list build-list exe-name warning-flag)
+  COMPILERS=("gcc/7.2.0 $BASE_MODULE_LIST $ARM_GCC_BUILD_LIST g++ $GCC_WARNING_FLAGS"
+             "arm/1.4.0 $ARM_MODULE_LIST $ARM_GCC_BUILD_LIST armclang++ $CLANG_WARNING_FLAGS")
+
+  if [ -z "$ARCH_FLAG" ]; then
+    ARCH_FLAG="--arch=ARMv8-TX2"
+  fi
+
+  NUM_JOBS_TO_RUN_IN_PARALLEL=1
 
 elif [ "$MACHINE" = "shepard" ]; then
   source /etc/profile.d/modules.sh
@@ -303,7 +331,7 @@ elif [ "$MACHINE" = "shepard" ]; then
   if [ -z "$ARCH_FLAG" ]; then
     ARCH_FLAG="--arch=HSW"
   fi
-  NUM_JOBS_TO_RUN_IN_PARALLEL=2
+  NUM_JOBS_TO_RUN_IN_PARALLEL=1
 
 elif [ "$MACHINE" = "apollo" ]; then
   source /projects/sems/modulefiles/utils/sems-modules-init.sh
@@ -331,7 +359,7 @@ elif [ "$MACHINE" = "apollo" ]; then
   if [ "$SPOT_CHECK" = "True" ]; then
     # Format: (compiler module-list build-list exe-name warning-flag)
     COMPILERS=("gcc/4.8.4 $BASE_MODULE_LIST "OpenMP,Pthread" g++ $GCC_WARNING_FLAGS"
-               "gcc/5.1.0 $BASE_MODULE_LIST "Serial" g++ $GCC_WARNING_FLAGS"
+               "gcc/5.3.0 $BASE_MODULE_LIST "Serial" g++ $GCC_WARNING_FLAGS"
                "intel/16.0.1 $BASE_MODULE_LIST "OpenMP" icpc $INTEL_WARNING_FLAGS"
                "clang/3.9.0 $BASE_MODULE_LIST "Pthread_Serial" clang++ $CLANG_WARNING_FLAGS"
                "clang/6.0 $CLANG_MODULE_LIST "Cuda_Pthread" clang++ $CUDA_WARNING_FLAGS"
@@ -358,7 +386,7 @@ elif [ "$MACHINE" = "apollo" ]; then
     ARCH_FLAG="--arch=SNB,Volta70"
   fi
 
-  NUM_JOBS_TO_RUN_IN_PARALLEL=2
+  NUM_JOBS_TO_RUN_IN_PARALLEL=1
 
 else
   echo "Unhandled machine $MACHINE" >&2
@@ -627,6 +655,11 @@ single_build_and_test() {
   if [[ "$KOKKOS_CUDA_OPTIONS" != "" ]]; then
     local extra_args="$extra_args $KOKKOS_CUDA_OPTIONS"
   fi
+  if [[ "$KOKKOS_OPTIONS" != "" ]]; then
+    local extra_args="$extra_args $KOKKOS_OPTIONS"
+  else
+    local extra_args="$extra_args --with-options=enable_large_mem_tests"
+  fi    
 
   echo "  Starting job $desc"
 
@@ -642,7 +675,7 @@ single_build_and_test() {
   else
     run_cmd ${KOKKOS_PATH}/generate_makefile.bash --with-devices=$build $ARCH_FLAG --compiler=$(which $compiler_exe) --cxxflags=\"$cxxflags\" --ldflags=\"$ldflags\" $extra_args &>> ${desc}.configure.log || { report_and_log_test_result 1 ${desc} configure && return 0; }
     local -i build_start_time=$(date +%s)
-    run_cmd make -j 32 build-test >& ${desc}.build.log || { report_and_log_test_result 1 ${desc} build && return 0; }
+    run_cmd make -j 48 build-test >& ${desc}.build.log || { report_and_log_test_result 1 ${desc} build && return 0; }
     local -i build_end_time=$(date +%s)
     comment="build_time=$(($build_end_time-$build_start_time))"
 
@@ -680,6 +713,9 @@ run_in_background() {
   #   num_jobs=8
   # else
     if [[ "$compiler" == cuda* ]]; then
+      num_jobs=1
+    fi
+    if [[ "$compiler" == clang ]]; then 
       num_jobs=1
     fi
   # fi

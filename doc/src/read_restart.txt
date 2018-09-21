@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -76,13 +76,11 @@ different than if the run had continued.  These pair styles include
 
 If a restarted run is immediately different than the run which
 produced the restart file, it could be a LAMMPS bug, so consider
-"reporting it"_Section_errors.html#err_2 if you think the behavior is
-wrong.
+"reporting it"_Errors_bugs.html if you think the behavior is a bug.
 
 Because restart files are binary, they may not be portable to other
 machines.  In this case, you can use the "-restart command-line
-switch"_Section_start.html#start_6 to convert a restart file to a data
-file.
+switch"_Run_options.html to convert a restart file to a data file.
 
 Similar to how restart files are written (see the
 "write_restart"_write_restart.html and "restart"_restart.html

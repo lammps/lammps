@@ -621,7 +621,7 @@ void PairEDIP::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairEDIP::settings(int narg, char **arg)
+void PairEDIP::settings(int narg, char **/*arg*/)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 }

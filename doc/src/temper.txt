@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -31,15 +31,14 @@ Run a parallel tempering or replica exchange simulation using multiple
 replicas (ensembles) of a system.  Two or more replicas must be used.
 
 Each replica runs on a partition of one or more processors.  Processor
-partitions are defined at run-time using the -partition command-line
-switch; see "Section 2.6"_Section_start.html#start_6 of the
-manual.  Note that if you have MPI installed, you can run a
-multi-replica simulation with more replicas (partitions) than you have
-physical processors, e.g you can run a 10-replica simulation on one or
-two processors.  You will simply not get the performance speed-up you
-would see with one or more physical processors per replica.  See "this
-section"_Section_howto.html#howto_5 of the manual for further
-discussion.
+partitions are defined at run-time using the "-partition command-line
+switch"_Run_options.html.  Note that if you have MPI installed, you
+can run a multi-replica simulation with more replicas (partitions)
+than you have physical processors, e.g you can run a 10-replica
+simulation on one or two processors.  You will simply not get the
+performance speed-up you would see with one or more physical
+processors per replica.  See the "Howto replica"_Howto_replica.html
+doc page for further discussion.
 
 Each replica's temperature is controlled at a different value by a fix
 with {fix-ID} that controls temperature. Most thermostat fix styles
@@ -69,9 +68,8 @@ rejected based on a Boltzmann-weighted Metropolis criterion which uses
 As a tempering run proceeds, multiple log files and screen output
 files are created, one per replica.  By default these files are named
 log.lammps.M and screen.M where M is the replica number from 0 to N-1,
-with N = # of replicas.  See the "section on command-line
-switches"_Section_start.html#start_6 for info on how to change these
-names.
+with N = # of replicas.  See the "-log and -screen command-line
+swiches"_Run_options.html for info on how to change these names.
 
 The main screen and log file (log.lammps) will list information about
 which temperature is assigned to each replica at each thermodynamic
@@ -139,8 +137,8 @@ example above with $w as the last argument.
 [Restrictions:]
 
 This command can only be used if LAMMPS was built with the REPLICA
-package.  See the "Making LAMMPS"_Section_start.html#start_3 section
-for more info on packages.
+package.  See the "Build package"_Build_package.html doc
+page for more info.
 
 [Related commands:]
 

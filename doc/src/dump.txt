@@ -1,8 +1,8 @@
- "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -184,10 +184,10 @@ file and in what format.  Settings made via the
 individual values and the file itself.
 
 The {atom}, {local}, and {custom} styles create files in a simple text
-format that is self-explanatory when viewing a dump file.  Many of the
-LAMMPS "post-processing tools"_Section_tools.html, including
-"Pizza.py"_http://www.sandia.gov/~sjplimp/pizza.html, work with this
-format, as does the "rerun"_rerun.html command.
+format that is self-explanatory when viewing a dump file.  Some of the
+LAMMPS post-processing tools described on the "Tools"_Tools.html doc
+page, including "Pizza.py"_http://www.sandia.gov/~sjplimp/pizza.html,
+work with this format, as does the "rerun"_rerun.html command.
 
 For post-processing purposes the {atom}, {local}, and {custom} text
 files are self-describing in the following sense.
@@ -224,12 +224,12 @@ This bounding box is convenient for many visualization programs.  The
 meaning of the 6 character flags for "xx yy zz" is the same as above.
 
 Note that the first two numbers on each line are now xlo_bound instead
-of xlo, etc, since they represent a bounding box.  See "this
-section"_Section_howto.html#howto_12 of the doc pages for a geometric
-description of triclinic boxes, as defined by LAMMPS, simple formulas
-for how the 6 bounding box extents (xlo_bound,xhi_bound,etc) are
-calculated from the triclinic parameters, and how to transform those
-parameters to and from other commonly used triclinic representations.
+of xlo, etc, since they represent a bounding box.  See the "Howto
+triclinic"_Howto_triclinic.html doc page for a geometric description
+of triclinic boxes, as defined by LAMMPS, simple formulas for how the
+6 bounding box extents (xlo_bound,xhi_bound,etc) are calculated from
+the triclinic parameters, and how to transform those parameters to and
+from other commonly used triclinic representations.
 
 The "ITEM: ATOMS" line in each snapshot lists column descriptors for
 the per-atom lines that follow.  For example, the descriptors would be
@@ -413,10 +413,10 @@ If the filename ends with ".bin", the dump file (or files, if "*" or
 will be about the same size as a text version, but will typically
 write out much faster.  Of course, when post-processing, you will need
 to convert it back to text format (see the "binary2txt
-tool"_Section_tools.html#binary) or write your own code to read the
-binary file.  The format of the binary file can be understood by
-looking at the tools/binary2txt.cpp file.  This option is only
-available for the {atom} and {custom} styles.
+tool"_Tools.html#binary) or write your own code to read the binary
+file.  The format of the binary file can be understood by looking at
+the tools/binary2txt.cpp file.  This option is only available for the
+{atom} and {custom} styles.
 
 If the filename ends with ".gz", the dump file (or files, if "*" or "%"
 is also used) is written in gzipped format.  A gzipped dump file will
@@ -530,7 +530,7 @@ so that each value is 0.0 to 1.0.  If the simulation box is triclinic
 (tilted), then all atom coords will still be between 0.0 and 1.0.
 I.e. actual unscaled (x,y,z) = xs*A + ys*B + zs*C, where (A,B,C) are
 the non-orthogonal vectors of the simulation box edges, as discussed
-in "Section 6.12"_Section_howto.html#howto_12.
+on the "Howto triclinic"_Howto_triclinic.html doc page.
 
 Use {xu}, {yu}, {zu} if you want the coordinates "unwrapped" by the
 image flags for each atom.  Unwrapped means that if the atom has
@@ -625,32 +625,31 @@ The {d_name} and {i_name} attributes allow to output custom per atom
 floating point or integer properties that are managed by
 "fix property/atom"_fix_property_atom.html.
 
-See "Section 10"_Section_modify.html of the manual for information
-on how to add new compute and fix styles to LAMMPS to calculate
-per-atom quantities which could then be output into dump files.
+See the "Modify"_Modify.html doc page for information on how to add
+new compute and fix styles to LAMMPS to calculate per-atom quantities
+which could then be output into dump files.
 
 :line
 
 [Restrictions:]
 
 To write gzipped dump files, you must either compile LAMMPS with the
--DLAMMPS_GZIP option or use the styles from the COMPRESS package
-- see the "Making LAMMPS"_Section_start.html#start_2 section of
-the documentation.
+-DLAMMPS_GZIP option or use the styles from the COMPRESS package.
+See the "Build settings"_Build_settings.html doc page for details.
 
-The {atom/gz}, {cfg/gz}, {custom/gz}, and {xyz/gz} styles are part
-of the COMPRESS package.  They are only enabled if LAMMPS was built
-with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+The {atom/gz}, {cfg/gz}, {custom/gz}, and {xyz/gz} styles are part of
+the COMPRESS package.  They are only enabled if LAMMPS was built with
+that package.  See the "Build package"_Build_package.html doc page for
+more info.
 
 The {atom/mpiio}, {cfg/mpiio}, {custom/mpiio}, and {xyz/mpiio} styles
 are part of the MPIIO package.  They are only enabled if LAMMPS was
-built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+built with that package.  See the "Build package"_Build_package.html
+doc page for more info.
 
 The {xtc} style is part of the MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

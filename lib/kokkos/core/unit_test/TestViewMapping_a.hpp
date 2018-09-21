@@ -1043,7 +1043,11 @@ struct TestViewMapOperator {
   static_assert( ViewType::reference_type_is_lvalue_reference
                , "Test only valid for lvalue reference type" );
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
   const ViewType v;
+#else
+  ViewType v;
+#endif
 
   KOKKOS_INLINE_FUNCTION
   void test_left( size_t i0, long & error_count ) const
@@ -1071,7 +1075,7 @@ struct TestViewMapOperator {
     for ( size_t i2 = 0; i2 < n2; ++i2 )
     for ( size_t i1 = 0; i1 < n1; ++i1 )
     {
-#ifdef KOKKOS_ENABLE_DEPREACATED_CODE
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
         const long d = & v( i0, i1, i2, i3, i4, i5, i6, i7 ) - base_ptr;
 #else
         const long d = & v.access( i0, i1, i2, i3, i4, i5, i6, i7 ) - base_ptr;
@@ -1086,7 +1090,7 @@ struct TestViewMapOperator {
   KOKKOS_INLINE_FUNCTION
   void test_right( size_t i0, long & error_count ) const
   {
-#ifdef KOKKOS_ENABLE_DEPREACATED_CODE
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
     typename ViewType::value_type * const base_ptr = & v( 0, 0, 0, 0, 0, 0, 0, 0 );
 #else
     typename ViewType::value_type * const base_ptr = & v.access( 0, 0, 0, 0, 0, 0, 0, 0 );
@@ -1109,7 +1113,7 @@ struct TestViewMapOperator {
     for ( size_t i6 = 0; i6 < n6; ++i6 )
     for ( size_t i7 = 0; i7 < n7; ++i7 )
     {
-#ifdef KOKKOS_ENABLE_DEPREACATED_CODE
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
         const long d = & v( i0, i1, i2, i3, i4, i5, i6, i7 ) - base_ptr;
 #else
         const long d = & v.access( i0, i1, i2, i3, i4, i5, i6, i7 ) - base_ptr;
@@ -1141,8 +1145,49 @@ struct TestViewMapOperator {
   enum { N6 = 4 };
   enum { N7 = 3 };
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
   TestViewMapOperator() : v( "Test", N0, N1, N2, N3, N4, N5, N6, N7 ) {}
 
+ #else
+  TestViewMapOperator() {
+
+    const size_t dyn_rank = v.rank_dynamic;
+    const std::string label("Test");
+    switch(dyn_rank) {
+      case 0:
+        v = ViewType(label);
+        break;
+      case 1:
+        v = ViewType(label, N0);
+        break;
+      case 2:
+        v = ViewType(label, N0, N1);
+        break;
+      case 3:
+        v = ViewType(label, N0, N1, N2);
+        break;
+      case 4:
+        v = ViewType(label, N0, N1, N2, N3);
+        break;
+      case 5:
+        v = ViewType(label, N0, N1, N2, N3, N4);
+        break;
+      case 6:
+        v = ViewType(label, N0, N1, N2, N3, N4, N5);
+        break;
+      case 7:
+        v = ViewType(label, N0, N1, N2, N3, N4, N5, N6);
+        break;
+      case 8:
+      default:
+        v = ViewType(label, N0, N1, N2, N3, N4, N5, N6, N7);
+
+    }
+
+  }
+
+
+#endif
   void run()
   {
     ASSERT_EQ( v.extent(0), ( 0 < ViewType::rank ? TestViewMapOperator<ViewType>::N0 : 1 ) );

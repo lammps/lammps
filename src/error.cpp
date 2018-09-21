@@ -16,6 +16,7 @@
 #include <cstring>
 #include "error.h"
 #include "universe.h"
+#include "update.h"
 #include "output.h"
 #include "input.h"
 
@@ -28,7 +29,7 @@ static const char *truncpath(const char *path)
    if (path) {
      int len = strlen(path);
      for (int i = len-4; i > 0; --i) {
-	if (strncmp("src/",path+i,4) == 0)
+        if (strncmp("src/",path+i,4) == 0)
           return path+i;
      }
    }
@@ -69,6 +70,10 @@ void Error::universe_all(const char *file, int line, const char *str)
   if (universe->ulogfile) fclose(universe->ulogfile);
 
 #ifdef LAMMPS_EXCEPTIONS
+
+  // allow commands if an exception was caught in a run
+  update->whichflag = 0;
+
   char msg[100];
   sprintf(msg, "ERROR: %s (%s:%d)\n", str, file, line);
   throw LAMMPSException(msg);
@@ -90,6 +95,10 @@ void Error::universe_one(const char *file, int line, const char *str)
             universe->me,str,truncpath(file),line);
 
 #ifdef LAMMPS_EXCEPTIONS
+
+  // allow commands if an exception was caught in a run
+  update->whichflag = 0;
+
   char msg[100];
   sprintf(msg, "ERROR: %s (%s:%d)\n", str, file, line);
   throw LAMMPSAbortException(msg, universe->uworld);
@@ -137,6 +146,10 @@ void Error::all(const char *file, int line, const char *str)
   }
 
 #ifdef LAMMPS_EXCEPTIONS
+
+  // allow commands if an exception was caught in a run
+  update->whichflag = 0;
+
   char msg[100];
   sprintf(msg, "ERROR: %s (%s:%d)\n", str, file, line);
 
@@ -183,6 +196,10 @@ void Error::one(const char *file, int line, const char *str)
               universe->me,str,truncpath(file),line);
 
 #ifdef LAMMPS_EXCEPTIONS
+
+  // allow commands if an exception was caught in a run
+  update->whichflag = 0;
+
   char msg[100];
   sprintf(msg, "ERROR on proc %d: %s (%s:%d)\n", me, str, file, line);
   throw LAMMPSAbortException(msg, world);

@@ -93,7 +93,7 @@ MEAM::meam_dens_init(int i, int ntype, int* type, int* fmap, double** x,
 
 void
 MEAM::getscreen(int i, double* scrfcn, double* dscrfcn, double* fcpair, double** x, int numneigh,
-                int* firstneigh, int numneigh_full, int* firstneigh_full, int ntype, int* type, int* fmap)
+                int* firstneigh, int numneigh_full, int* firstneigh_full, int /*ntype*/, int* type, int* fmap)
 {
   int jn, j, kn, k;
   int elti, eltj, eltk;
@@ -256,7 +256,7 @@ MEAM::getscreen(int i, double* scrfcn, double* dscrfcn, double* fcpair, double**
 // ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 void
-MEAM::calc_rho1(int i, int ntype, int* type, int* fmap, double** x, int numneigh, int* firstneigh,
+MEAM::calc_rho1(int i, int /*ntype*/, int* type, int* fmap, double** x, int numneigh, int* firstneigh,
                 double* scrfcn, double* fcpair)
 {
   int jn, j, m, n, p, elti, eltj;

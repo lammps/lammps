@@ -81,7 +81,7 @@ void FixNVELine::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVELine::initial_integrate(int vflag)
+void FixNVELine::initial_integrate(int /*vflag*/)
 {
   double dtfm,dtirotate,length,theta;
 

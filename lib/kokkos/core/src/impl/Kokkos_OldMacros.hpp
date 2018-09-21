@@ -44,6 +44,8 @@
 #ifndef KOKKOS_IMPL_OLD_MACROS_HPP
 #define KOKKOS_IMPL_OLD_MACROS_HPP
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
+
 #ifdef KOKKOS_ATOMICS_USE_CUDA
 #ifndef KOKKOS_ENABLE_CUDA_ATOMICS
 #define KOKKOS_ENABLE_CUDA_ATOMICS KOKKOS_ATOMICS_USE_CUDA
@@ -449,5 +451,69 @@
 #define KOKKOS_ENABLE_CXX11 1
 #define KOKKOS_USING_EXP_VIEW 1
 #define KOKKOS_USING_EXPERIMENTAL_VIEW 1
+
+// backwards compatibility of no-longer-defined HAVE macros
+// https://github.com/kokkos/kokkos/pull/1576/files
+#if (!defined(KOKKOS_HAVE_CUDA)) && defined(KOKKOS_ENABLE_CUDA)
+#define KOKKOS_HAVE_CUDA 1
+#endif
+
+#if (!defined(KOKKOS_HAVE_OPENMP)) && defined(KOKKOS_ENABLE_OPENMP)
+#define KOKKOS_HAVE_OPENMP 1
+#endif
+
+#if (!defined(KOKKOS_HAVE_PTHREAD)) && defined(KOKKOS_ENABLE_THREADS)
+#define KOKKOS_HAVE_PTHREAD 1
+#endif
+
+#if (!defined(KOKKOS_HAVE_QTHREADS)) && defined(KOKKOS_ENABLE_QTHREADS)
+#define KOKKOS_HAVE_QTHREADS 1
+#endif
+
+#if (!defined(KOKKOS_HAVE_SERIAL)) && defined(KOKKOS_ENABLE_SERIAL)
+#define KOKKOS_HAVE_SERIAL 1
+#endif
+
+#if (!defined(KOKKOS_HAVE_CXX1Z)) && defined(KOKKOS_ENABLE_CXX1Z)
+#define KOKKOS_HAVE_CXX1Z 1
+#endif
+
+#if (!defined(KOKKOS_HAVE_DEBUG)) && defined(KOKKOS_ENABLE_DEBUG)
+#define KOKKOS_HAVE_DEBUG 1
+#endif
+
+#if (!defined(KOKKOS_HAVE_HWLOC)) && defined(KOKKOS_ENABLE_HWLOC)
+#define KOKKOS_HAVE_HWLOC 1
+#endif
+
+#if (!defined(KOKKOS_HAVE_HBWSPACE)) && defined(KOKKOS_ENABLE_HBWSPACE)
+#define KOKKOS_HAVE_HBWSPACE 1
+#endif
+
+#if (!defined(KOKKOS_CUDA_USE_LDG_INTRINSIC)) && defined(KOKKOS_ENABLE_CUDA_LDG_INTRINSIC)
+#define KOKKOS_CUDA_USE_LDG_INTRINSIC 1
+#endif
+
+#if (!defined(KOKKOS_CUDA_USE_UVM)) && defined(KOKKOS_ENABLE_CUDA_UVM)
+#define KOKKOS_CUDA_USE_UVM 1
+#endif
+
+#if (!defined(KOKKOS_CUDA_USE_RELOCATABLE_DEVICE_CODE)) && defined(KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE)
+#define KOKKOS_CUDA_USE_RELOCATABLE_DEVICE_CODE 1
+#endif
+
+#if (!defined(KOKKOS_CUDA_USE_LAMBDA)) && defined(KOKKOS_ENABLE_CUDA_LAMBDA)
+#define KOKKOS_CUDA_USE_LAMBDA 1
+#endif
+
+#if (!defined(KOKKOS_CUDA_CLANG_WORKAROUND)) && defined(KOKKOS_IMPL_CUDA_CLANG_WORKAROUND)
+#define KOKKOS_CUDA_CLANG_WORKAROUND 1
+#endif
+
+#if (!defined(KOKKOS_HAVE_MPI)) && defined(KOKKOS_ENABLE_MPI)
+#define KOKKOS_HAVE_MPI 1
+#endif
+
+#endif // KOKKOS_ENABLE_DEPRECATED_CODE
 
 #endif //KOKKOS_IMPL_OLD_MACROS_HPP

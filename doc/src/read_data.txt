@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -63,8 +63,8 @@ simulation.  The file can be ASCII text or a gzipped text file
 atom coordinates; see the "read_restart"_read_restart.html and
 "create_atoms"_create_atoms.html commands for alternative methods.
 Also see the explanation of the "-restart command-line
-switch"_Section_start.html#start_6 which can convert a restart file to
-a data file.
+switch"_Run_options.html which can convert a restart file to a data
+file.
 
 This command can be used multiple times to add new atoms and their
 properties to an existing system by using the {add}, {offset}, and
@@ -124,14 +124,14 @@ bond atoms or bad dynamics.
 The three choices for the {add} argument affect how the atom IDs and
 molecule IDs of atoms in the data file are treated.  If {append} is
 specified, atoms in the data file are added to the current system,
-with their atom IDs reset so that an atomID = M in the data file
-becomes atomID = N+M, where N is the largest atom ID in the current
+with their atom IDs reset so that an atom-ID = M in the data file
+becomes atom-ID = N+M, where N is the largest atom ID in the current
 system.  This rule is applied to all occurrences of atom IDs in the
 data file, e.g. in the Velocity or Bonds section. This is also done
 for molecule IDs, if the atom style does support molecule IDs or
 they are enabled via fix property/atom. If {IDoffset} is specified,
 then {IDoffset} is a numeric value is given, e.g. 1000, so that an
-atomID = M in the data file becomes atomID = 1000+M. For systems
+atom-ID = M in the data file becomes atom-ID = 1000+M. For systems
 with enabled molecule IDs, another numerical argument {MOLoffset}
 is required representing the equivalent offset for molecule IDs.
 If {merge} is specified, the data file atoms
@@ -139,7 +139,7 @@ are added to the current system without changing their IDs.  They are
 assumed to merge (without duplication) with the currently defined
 atoms.  It is up to you to insure there are no multiply defined atom
 IDs, as LAMMPS only performs an incomplete check that this is the case
-by insuring the resulting max atomID >= the number of atoms. For
+by insuring the resulting max atom-ID >= the number of atoms. For
 molecule IDs, there is no check done at all.
 
 The {offset} and {shift} keywords can only be used if the {add}
@@ -322,9 +322,9 @@ with tilt factors that exceed these limits, you can use the "box
 tilt"_box.html command, with a setting of {large}; a setting of
 {small} is the default.
 
-See "Section 6.12"_Section_howto.html#howto_12 of the doc pages
-for a geometric description of triclinic boxes, as defined by LAMMPS,
-and how to transform these parameters to and from other commonly used
+See the "Howto triclinic"_Howto_triclinic.html doc page for a
+geometric description of triclinic boxes, as defined by LAMMPS, and
+how to transform these parameters to and from other commonly used
 triclinic representations.
 
 When a triclinic system is used, the simulation domain should normally
@@ -772,9 +772,9 @@ the "bodies" keyword.
 
 Each body can have a variable number of integer and/or floating-point
 values.  The number and meaning of the values is defined by the body
-style, as described in the "body"_body.html doc page.  The body style
-is given as an argument to the "atom_style body"_atom_style.html
-command.
+style, as described in the "Howto body"_Howto_body.html doc page.  The
+body style is given as an argument to the "atom_style
+body"_atom_style.html command.
 
 The Ninteger and Ndouble values determine how many integer and
 floating-point values are specified for this particle.  Ninteger and
@@ -1153,8 +1153,8 @@ Translational velocities can also be set by the
 [Restrictions:]
 
 To read gzipped data files, you must compile LAMMPS with the
--DLAMMPS_GZIP option - see the "Making
-LAMMPS"_Section_start.html#start_2 section of the documentation.
+-DLAMMPS_GZIP option.  See the "Build settings"_Build_settings.html
+doc page for details.
 
 [Related commands:]
 

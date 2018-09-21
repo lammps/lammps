@@ -102,6 +102,8 @@ struct InitArguments {
   int num_threads;
   int num_numa;
   int device_id;
+  int ndevices;
+  int skip_device;
   bool disable_warnings;
 
   InitArguments( int nt = -1
@@ -112,6 +114,8 @@ struct InitArguments {
     : num_threads{ nt }
     , num_numa{ nn }
     , device_id{ dv }
+    , ndevices{ -1 }
+    , skip_device{ 9999 }
     , disable_warnings{ dw }
   {}
 };
@@ -204,6 +208,54 @@ void * kokkos_realloc( void * arg_alloc , const size_t arg_alloc_size )
   return Impl::SharedAllocationRecord< MemorySpace >::
     reallocate_tracked( arg_alloc , arg_alloc_size );
 }
+
+} // namespace Kokkos
+
+namespace Kokkos {
+
+/** \brief  ScopeGuard
+ *  Some user scope issues have been identified with some Kokkos::finalize calls;
+ *  ScopeGuard aims to correct these issues.
+ *
+ *  Two requirements for ScopeGuard: 
+ *     if Kokkos::is_initialized() in the constructor, don't call Kokkos::initialize or Kokkos::finalize
+ *     it is not copyable or assignable
+ */
+
+class ScopeGuard {
+public:
+  ScopeGuard ( int& narg, char* arg[] )
+  {
+    sg_init = false; 
+    if ( ! Kokkos::is_initialized() ) { 
+      initialize( narg, arg );
+      sg_init = true;
+    }
+  }
+
+  ScopeGuard ( const InitArguments& args = InitArguments() )
+  {
+    sg_init = false; 
+    if ( ! Kokkos::is_initialized() ) { 
+      initialize( args );
+      sg_init = true;
+    }
+  }
+
+  ~ScopeGuard( )
+  {
+    if ( Kokkos::is_initialized() && sg_init) { 
+      finalize(); 
+    }
+  }
+
+//private:
+  bool sg_init;    
+
+  ScopeGuard& operator=( const ScopeGuard& ) = delete;
+  ScopeGuard( const ScopeGuard& ) = delete;
+
+};
 
 } // namespace Kokkos
 

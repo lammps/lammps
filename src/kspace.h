@@ -126,6 +126,8 @@ class KSpace : protected Pointers {
   virtual int timing(int, double &, double &) {return 0;}
   virtual int timing_1d(int, double &) {return 0;}
   virtual int timing_3d(int, double &) {return 0;}
+
+  virtual int modify_param(int, char **) {return 0;}
   virtual double memory_usage() {return 0.0;}
 
 /* ----------------------------------------------------------------------

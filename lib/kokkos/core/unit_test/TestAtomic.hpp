@@ -189,6 +189,19 @@ struct AddFunctor {
   }
 };
 
+template< class T, class DEVICE_TYPE >
+struct AddFunctorReduce {
+  typedef DEVICE_TYPE execution_space;
+  typedef Kokkos::View< T, execution_space > type;
+
+  type data;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()( int , int& ) const {
+    Kokkos::atomic_fetch_add( &data(), (T) 1 );
+  }
+};
+
 template< class T, class execution_space >
 T AddLoop( int loop ) {
   struct ZeroFunctor< T, execution_space > f_zero;
@@ -196,6 +209,7 @@ T AddLoop( int loop ) {
   typename ZeroFunctor< T, execution_space >::h_type h_data( "HData" );
 
   f_zero.data = data;
+
   Kokkos::parallel_for( 1, f_zero );
   execution_space::fence();
 
@@ -207,6 +221,11 @@ T AddLoop( int loop ) {
 
   Kokkos::deep_copy( h_data, data );
   T val = h_data();
+
+  struct AddFunctorReduce< T, execution_space > f_add_red;
+  f_add_red.data = data;
+  Kokkos::parallel_reduce( loop, f_add_red );
+  execution_space::fence();
 
   return val;
 }
@@ -250,6 +269,26 @@ struct CASFunctor {
   }
 };
 
+template< class T, class DEVICE_TYPE >
+struct CASFunctorReduce {
+  typedef DEVICE_TYPE execution_space;
+  typedef Kokkos::View< T, execution_space > type;
+
+  type data;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()( int , int& ) const {
+    T old = data();
+    T newval, assumed;
+
+    do {
+      assumed = old;
+      newval = assumed + (T) 1;
+      old = Kokkos::atomic_compare_exchange( &data(), assumed, newval );
+    } while( old != assumed );
+  }
+};
+
 template< class T, class execution_space >
 T CASLoop( int loop ) {
   struct ZeroFunctor< T, execution_space > f_zero;
@@ -261,13 +300,17 @@ T CASLoop( int loop ) {
   execution_space::fence();
 
   struct CASFunctor< T, execution_space > f_cas;
-
   f_cas.data = data;
   Kokkos::parallel_for( loop, f_cas );
   execution_space::fence();
 
   Kokkos::deep_copy( h_data, data );
   T val = h_data();
+
+  struct CASFunctorReduce< T, execution_space > f_cas_red;
+  f_cas_red.data = data;
+  Kokkos::parallel_reduce( loop, f_cas_red );
+  execution_space::fence();
 
   return val;
 }
@@ -314,6 +357,20 @@ struct ExchFunctor {
   }
 };
 
+template< class T, class DEVICE_TYPE >
+struct ExchFunctorReduce {
+  typedef DEVICE_TYPE execution_space;
+  typedef Kokkos::View< T, execution_space > type;
+
+  type data, data2;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()( int i , int& ) const {
+    T old = Kokkos::atomic_exchange( &data(), (T) i );
+    Kokkos::atomic_fetch_add( &data2(), old );
+  }
+};
+
 template< class T, class execution_space >
 T ExchLoop( int loop ) {
   struct ZeroFunctor< T, execution_space > f_zero;
@@ -332,7 +389,6 @@ T ExchLoop( int loop ) {
   execution_space::fence();
 
   struct ExchFunctor< T, execution_space > f_exch;
-
   f_exch.data = data;
   f_exch.data2 = data2;
   Kokkos::parallel_for( loop, f_exch );
@@ -341,6 +397,12 @@ T ExchLoop( int loop ) {
   Kokkos::deep_copy( h_data, data );
   Kokkos::deep_copy( h_data2, data2 );
   T val = h_data() + h_data2();
+
+  struct ExchFunctorReduce< T, execution_space > f_exch_red;
+  f_exch_red.data = data;
+  f_exch_red.data2 = data2;
+  Kokkos::parallel_reduce( loop, f_exch_red );
+  execution_space::fence();
 
   return val;
 }
@@ -468,6 +530,10 @@ TEST_F( TEST_CATEGORY, atomics )
 
 #ifndef KOKKOS_ENABLE_OPENMPTARGET
 #ifndef KOKKOS_ENABLE_ROCM
+  ASSERT_TRUE( ( TestAtomic::Loop< Kokkos::complex<double>, TEST_EXECSPACE >( 1, 1 ) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< Kokkos::complex<double>, TEST_EXECSPACE >( 1, 2 ) ) );
+  ASSERT_TRUE( ( TestAtomic::Loop< Kokkos::complex<double>, TEST_EXECSPACE >( 1, 3 ) ) );
+
   ASSERT_TRUE( ( TestAtomic::Loop< Kokkos::complex<double>, TEST_EXECSPACE >( 100, 1 ) ) );
   ASSERT_TRUE( ( TestAtomic::Loop< Kokkos::complex<double>, TEST_EXECSPACE >( 100, 2 ) ) );
   ASSERT_TRUE( ( TestAtomic::Loop< Kokkos::complex<double>, TEST_EXECSPACE >( 100, 3 ) ) );

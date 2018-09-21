@@ -40,6 +40,7 @@ using namespace LAMMPS_NS;
 PairQUIP::PairQUIP(LAMMPS *lmp) : Pair(lmp)
 {
    single_enable = 0;
+   restartinfo = 0;
    one_coeff = 1;
    no_virial_fdotr_compute = 1;
    manybody_flag = 1;
@@ -211,7 +212,7 @@ void PairQUIP::compute(int eflag, int vflag)
    global settings
 ------------------------------------------------------------------------- */
 
-void PairQUIP::settings(int narg, char **arg)
+void PairQUIP::settings(int narg, char **/*arg*/)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
   if (strcmp(force->pair_style,"hybrid") == 0)
@@ -314,7 +315,7 @@ void PairQUIP::init_style()
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairQUIP::init_one(int i, int j)
+double PairQUIP::init_one(int /*i*/, int /*j*/)
 {
   return cutoff;
 }

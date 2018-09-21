@@ -9,6 +9,7 @@ TXT2RST       = $(VENV)/bin/txt2rst
 ANCHORCHECK   = $(VENV)/bin/doc_anchor_check
 
 PYTHON        = $(shell which python3)
+VIRTUALENV     = virtualenv
 HAS_PYTHON3    = NO
 HAS_VIRTUALENV = NO
 
@@ -16,7 +17,13 @@ ifeq ($(shell which python3 >/dev/null 2>&1; echo $$?), 0)
 HAS_PYTHON3 = YES
 endif
 
+ifeq ($(shell which virtualenv-3 >/dev/null 2>&1; echo $$?), 0)
+VIRTUALENV     = virtualenv-3
+HAS_VIRTUALENV = YES
+endif
+
 ifeq ($(shell which virtualenv >/dev/null 2>&1; echo $$?), 0)
+VIRTUALENV     = virtualenv
 HAS_VIRTUALENV = YES
 endif
 
@@ -24,7 +31,7 @@ SPHINXEXTRA = -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiprocess
 SOURCES=$(filter-out $(wildcard src/lammps_commands*.txt) src/lammps_support.txt src/lammps_tutorials.txt,$(wildcard src/*.txt))
 OBJECTS=$(SOURCES:src/%.txt=$(RSTDIR)/%.rst)
 
-.PHONY: help clean-all clean epub html pdf old venv spelling anchor_check
+.PHONY: help clean-all clean epub mobi html pdf old venv spelling anchor_check
 
 # ------------------------------------------
 
@@ -35,6 +42,8 @@ help:
 	@echo "  old        create old-style HTML doc pages in old dir"
 	@echo "  fetch      fetch HTML and PDF files from LAMMPS web site"
 	@echo "  epub       create ePUB format manual for e-book readers"
+	@echo "  mobi       convert ePUB to MOBI format manual for e-book readers (e.g. Kindle)"
+	@echo "                      (requires ebook-convert tool from calibre)"
 	@echo "  clean      remove all intermediate RST files"
 	@echo "  clean-all  reset the entire build environment"
 	@echo "  txt2html   build txt2html tool"
@@ -42,11 +51,11 @@ help:
 
 # ------------------------------------------
 
-clean-all:
+clean-all: clean
 	rm -rf $(BUILDDIR)/* utils/txt2html/txt2html.exe
 
 clean:
-	rm -rf $(RSTDIR) html
+	rm -rf $(RSTDIR) html old epub
 	rm -rf spelling
 
 clean-spelling:
@@ -99,6 +108,11 @@ epub: $(OBJECTS)
 	@rm -rf epub
 	@echo "Build finished. The ePUB manual file is created."
 
+mobi: epub
+	@rm -f LAMMPS.mobi
+	@ebook-convert LAMMPS.epub LAMMPS.mobi
+	@echo "Conversion finished. The MOBI manual file is created."
+
 pdf: utils/txt2html/txt2html.exe
 	@(\
 		set -e; \
@@ -150,7 +164,7 @@ $(RSTDIR)/%.rst : src/%.txt $(TXT2RST)
 	@(\
 		mkdir -p $(RSTDIR) ; \
 		. $(VENV)/bin/activate ;\
-		txt2rst $< > $@ ;\
+		txt2rst -v $< > $@ ;\
 		deactivate ;\
 	)
 
@@ -158,7 +172,7 @@ $(VENV):
 	@if [ "$(HAS_PYTHON3)" == "NO" ] ; then echo "Python3 was not found! Please check README.md for further instructions" 1>&2; exit 1; fi
 	@if [ "$(HAS_VIRTUALENV)" == "NO" ] ; then echo "virtualenv was not found! Please check README.md for further instructions" 1>&2; exit 1; fi
 	@( \
-		virtualenv -p $(PYTHON) $(VENV); \
+		$(VIRTUALENV) -p $(PYTHON) $(VENV); \
 		. $(VENV)/bin/activate; \
 		pip install Sphinx; \
 		pip install sphinxcontrib-images; \

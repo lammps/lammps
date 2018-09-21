@@ -48,6 +48,7 @@ class FixBondReact : public Fix {
 
  private:
   int me,nprocs;
+  int newton_bond;
   int nreacts;
   int *nevery;
   FILE *fp;
@@ -71,7 +72,6 @@ class FixBondReact : public Fix {
   int maxcreate;
   int allncreate;
   tagint ***created;
-  int *local_ncreate;
 
   class Molecule *onemol; // pre-reacted molecule template
   class Molecule *twomol; // post-reacted molecule template
@@ -112,6 +112,9 @@ class FixBondReact : public Fix {
   int ***reverse_equiv; // re-ordered equivalences
   int **landlocked_atoms; // all atoms at least three bonds away from edge atoms
 
+  int **nxspecial,**onemol_nxspecial,**twomol_nxspecial; // full number of 1-4 neighbors
+  tagint **xspecial,**onemol_xspecial,**twomol_xspecial; // full 1-4 neighbor list
+
   int pion,neigh,trace; // important indices for various loops. required for restore points
   int lcl_inst; // reaction instance
   tagint **glove; // 1st colmn: pre-reacted template, 2nd colmn: global IDs
@@ -144,6 +147,7 @@ class FixBondReact : public Fix {
 
   void far_partner();
   void close_partner();
+  void get_molxspecials();
   void find_landlocked_atoms(int);
   void glove_ghostcheck();
   void ghost_glovecast();
@@ -152,7 +156,7 @@ class FixBondReact : public Fix {
   void limit_bond(int);
   void dedup_mega_gloves(int); //dedup global mega_glove
 
-  // DEBUG (currently obsolete)
+  // DEBUG
 
   void print_bb();
 

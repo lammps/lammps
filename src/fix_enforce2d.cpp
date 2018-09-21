@@ -38,6 +38,8 @@ FixEnforce2D::FixEnforce2D(LAMMPS *lmp, int narg, char **arg) :
 
 FixEnforce2D::~FixEnforce2D()
 {
+  if (copymode) return;
+
   delete [] flist;
 }
 
@@ -110,7 +112,7 @@ void FixEnforce2D::min_setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixEnforce2D::post_force(int vflag)
+void FixEnforce2D::post_force(int /*vflag*/)
 {
   double **v = atom->v;
   double **f = atom->f;
@@ -162,7 +164,7 @@ void FixEnforce2D::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixEnforce2D::post_force_respa(int vflag, int ilevel, int iloop)
+void FixEnforce2D::post_force_respa(int vflag, int /*ilevel*/, int /*iloop*/)
 {
   post_force(vflag);
 }

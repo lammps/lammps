@@ -46,7 +46,7 @@ import sys
 
 try:
     from .ttree_lex import SplitQuotedString, InputError
-except (SystemError, ValueError):
+except (ImportError, SystemError, ValueError):
     # not installed as a package
     from ttree_lex import *
 

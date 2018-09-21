@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -66,8 +66,8 @@ by "thermo_style"_thermo_style.html.
 
 The {netcdf} and {netcdf/mpiio} dump styles are part of the
 USER-NETCDF package.  They are only enabled if LAMMPS was built with
-that package. See the "Making LAMMPS"_Section_start.html#start_3
-section for more info.
+that package. See the "Build package"_Build_package.html doc page for
+more info.
 
 :line
 

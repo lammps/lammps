@@ -40,8 +40,9 @@ class BondClass2Kokkos : public BondClass2 {
 
   BondClass2Kokkos(class LAMMPS *);
   virtual ~BondClass2Kokkos();
-  virtual void compute(int, int);
-  virtual void coeff(int, char **);
+  void compute(int, int);
+  void coeff(int, char **);
+  void read_restart(FILE *);
 
   template<int NEWTON_BOND, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -76,7 +77,7 @@ class BondClass2Kokkos : public BondClass2 {
   typename AT::t_ffloat_1d d_k2, d_k3, d_k4;
   typename AT::t_ffloat_1d d_r0;
 
-  virtual void allocate();
+  void allocate();
 };
 
 }

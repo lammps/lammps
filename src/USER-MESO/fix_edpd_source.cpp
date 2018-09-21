@@ -87,7 +87,7 @@ void FixEDPDSource::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixEDPDSource::post_force(int vflag)
+void FixEDPDSource::post_force(int /*vflag*/)
 {
   double **x = atom->x;
   double *edpd_flux = atom->edpd_flux;

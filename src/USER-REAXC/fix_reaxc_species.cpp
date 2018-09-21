@@ -281,7 +281,7 @@ int FixReaxCSpecies::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixReaxCSpecies::setup(int vflag)
+void FixReaxCSpecies::setup(int /*vflag*/)
 {
   ntotal = static_cast<int> (atom->natoms);
   if (Name == NULL)
@@ -427,7 +427,7 @@ void FixReaxCSpecies::create_fix()
 
 /* ---------------------------------------------------------------------- */
 
-void FixReaxCSpecies::init_list(int id, NeighList *ptr)
+void FixReaxCSpecies::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }
@@ -442,7 +442,7 @@ void FixReaxCSpecies::post_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixReaxCSpecies::Output_ReaxC_Bonds(bigint ntimestep, FILE *fp)
+void FixReaxCSpecies::Output_ReaxC_Bonds(bigint ntimestep, FILE * /*fp*/)
 
 {
   int Nmole, Nspec;
@@ -946,7 +946,7 @@ int FixReaxCSpecies::nint(const double &r)
 /* ---------------------------------------------------------------------- */
 
 int FixReaxCSpecies::pack_forward_comm(int n, int *list, double *buf,
-                                       int pbc_flag, int *pbc)
+                                       int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
 

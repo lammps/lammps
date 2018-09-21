@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -219,8 +219,8 @@ unperturbed parameters. The energies include kspace terms if these
 are used in the simulation.
 
 These output results can be used by any command that uses a global
-scalar or vector from a compute as input.  See "Section
-6.15"_Section_howto.html#howto_15 for an overview of LAMMPS output
+scalar or vector from a compute as input.  See the "Howto
+output"_Howto_output.html doc page for an overview of LAMMPS output
 options. For example, the computed values can be averaged using "fix
 ave/time"_fix_ave_time.html.
 
@@ -230,8 +230,8 @@ The values calculated by this compute are "extensive".
 [Restrictions:]
 
 This compute is distributed as the USER-FEP package.  It is only
-enabled if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+enabled if LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

@@ -260,7 +260,11 @@ namespace Kokkos {
 
 //----------------------------------------------------------------------------
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
 int OpenMP::get_current_max_threads() noexcept
+#else
+int OpenMP::impl_get_current_max_threads() noexcept
+#endif
 {
   // Using omp_get_max_threads(); is problematic in conjunction with
   // Hwloc on Intel (essentially an initial call to the OpenMP runtime
@@ -280,8 +284,11 @@ int OpenMP::get_current_max_threads() noexcept
   return count;
 }
 
-
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
 void OpenMP::initialize( int thread_count )
+#else
+void OpenMP::impl_initialize( int thread_count )
+#endif
 {
   if ( omp_in_parallel() ) {
     std::string msg("Kokkos::OpenMP::initialize ERROR : in parallel");
@@ -306,7 +313,11 @@ void OpenMP::initialize( int thread_count )
     // Before any other call to OMP query the maximum number of threads
     // and save the value for re-initialization unit testing.
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
     Impl::g_openmp_hardware_max_threads = get_current_max_threads();
+#else
+    Impl::g_openmp_hardware_max_threads = impl_get_current_max_threads();
+#endif
 
     int process_num_threads = Impl::g_openmp_hardware_max_threads;
 
@@ -365,22 +376,26 @@ void OpenMP::initialize( int thread_count )
 
   // Check for over-subscription
   if( Kokkos::show_warnings() && (Impl::mpi_ranks_per_node() * long(thread_count) > Impl::processors_per_node()) ) {
-    std::cout << "Kokkos::OpenMP::initialize WARNING: You are likely oversubscribing your CPU cores." << std::endl;
-    std::cout << "                                    Detected: " << Impl::processors_per_node() << " cores per node." << std::endl;
-    std::cout << "                                    Detected: " << Impl::mpi_ranks_per_node() << " MPI_ranks per node." << std::endl;
-    std::cout << "                                    Requested: " << thread_count << " threads per process." << std::endl;
+    std::cerr << "Kokkos::OpenMP::initialize WARNING: You are likely oversubscribing your CPU cores." << std::endl;
+    std::cerr << "                                    Detected: " << Impl::processors_per_node() << " cores per node." << std::endl;
+    std::cerr << "                                    Detected: " << Impl::mpi_ranks_per_node() << " MPI_ranks per node." << std::endl;
+    std::cerr << "                                    Requested: " << thread_count << " threads per process." << std::endl;
   }
   // Init the array for used for arbitrarily sized atomics
   Impl::init_lock_array_host_space();
 
-  #if defined(KOKKOS_ENABLE_PROFILING)
-    Kokkos::Profiling::initialize();
+  #if defined(KOKKOS_ENABLE_DEPRECATED_CODE) && defined(KOKKOS_ENABLE_PROFILING)
+  Kokkos::Profiling::initialize();
   #endif
 }
 
 //----------------------------------------------------------------------------
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
 void OpenMP::finalize()
+#else
+void OpenMP::impl_finalize()
+#endif
 {
   if ( omp_in_parallel() )
   {
@@ -453,12 +468,11 @@ std::vector<OpenMP> OpenMP::partition(...)
 
 OpenMP OpenMP::create_instance(...) { return OpenMP(); }
 
-
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-
 int OpenMP::concurrency() {
   return Impl::g_openmp_hardware_max_threads;
 }
+
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
 
 void OpenMP::initialize( int thread_count , int, int )
 {

@@ -158,7 +158,7 @@ void FixTFMC::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixTFMC::initial_integrate(int vflag)
+void FixTFMC::initial_integrate(int /*vflag*/)
 {
   double boltz = force->boltz;
   double **x = atom->x;

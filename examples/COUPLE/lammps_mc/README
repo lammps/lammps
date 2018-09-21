@@ -1,0 +1,128 @@
+Sample Monte Carlo (MC) wrapper on LAMMPS via client/server coupling
+
+See the MESSAGE package (doc/Section_messages.html#MESSAGE)
+and Section_howto.html#howto10 for more details on how
+client/server coupling works in LAMMPS.
+
+In this dir, the mc.cpp/h files are a standalone "client" MC code.  It
+should be run on a single processor, though it could become a parallel
+program at some point.  LAMMPS is also run as a standalone executable
+as a "server" on as many processors as desired using its "server mc"
+command; see it's doc page for details.
+
+Messages are exchanged between MC and LAMMPS via a client/server
+library (CSlib), which is included in the LAMMPS distribution in
+lib/message.  As explained below you can choose to exchange data
+between the two programs either via files or sockets (ZMQ).  If the MC
+program became parallel, data could also be exchanged via MPI.
+
+The MC code makes simple MC moves, by displacing a single random atom
+by a small random amount.  It uses LAMMPS to calculate the energy
+change, and to run dynamics between MC moves.
+
+----------------
+
+Build LAMMPS with its MESSAGE package installed:
+
+See the Build extras doc page and its MESSAGE package
+section for details.
+
+CMake:
+
+-D PKG_MESSAGE=yes      # include the MESSAGE package
+-D MESSAGE_ZMQ=value    # build with ZeroMQ support, value = no (default) or yes
+
+Traditional make:
+
+% cd lammps/lib/message
+% python Install.py -m -z       # build CSlib with MPI and ZMQ support
+% cd lammps/src
+% make yes-message
+% make mpi
+
+You can leave off the -z if you do not have ZMQ on your system.
+
+----------------
+
+Build the MC client code
+
+The source files for the MC code are in this dir.  It links with the
+CSlib library in lib/message/cslib.
+
+You must first build the CSlib in serial mode, e.g.
+
+% cd lammps/lib/message/cslib/src
+% make lib            # build serial and parallel lib with ZMQ support
+% make lib zmq=no     # build serial and parallel lib without ZMQ support
+
+Then edit the Makefile in this dir.  The CSLIB variable should be the
+path to where the LAMMPS lib/message/cslib/src dir is on your system.
+If you built the CSlib without ZMQ support you will also need to
+comment/uncomment one line.  Then you can just type
+
+% make
+
+and you should get an "mc" executable.
+
+----------------
+
+To run in client/server mode:
+
+Both the client (MC) and server (LAMMPS) must use the same messaging
+mode, namely file or zmq.  This is an argument to the MC code; it can
+be selected by setting the "mode" variable when you run LAMMPS.  The
+default mode = file.
+
+Here we assume LAMMPS was built to run in parallel, and the MESSAGE
+package was installed with socket (ZMQ) support.  This means either of
+the messaging modes can be used and LAMMPS can be run in serial or
+parallel.  The MC code is always run in serial.
+
+When you run, the server should print out thermodynamic info
+for every MD run it performs (between MC moves).  The client
+will print nothing until the simulation ends, then it will
+print stats about the accepted MC moves.
+
+The examples below are commands you should use in two different
+terminal windows.  The order of the two commands (client or server
+launch) does not matter.  You can run them both in the same window if
+you append a "&" character to the first one to run it in the
+background.
+
+--------------
+
+File mode of messaging:
+
+% mpirun -np 1 mc in.mc file tmp.couple
+% mpirun -np 1 lmp_mpi -v mode file < in.mc.server
+
+% mpirun -np 1 mc in.mc file tmp.couple
+% mpirun -np 4 lmp_mpi -v mode file < in.mc.server
+
+ZMQ mode of messaging:
+
+% mpirun -np 1 mc in.mc zmq localhost:5555
+% mpirun -np 1 lmp_mpi -v mode zmq < in.mc.server
+
+% mpirun -np 1 mc in.mc zmq localhost:5555
+% mpirun -np 4 lmp_mpi -v mode zmq < in.mc.server
+
+--------------
+
+The input script for the MC program is in.mc.  You can edit it to run
+longer simulations.
+
+500   nsteps = total # of steps of MD
+100   ndynamics = # of MD steps between MC moves
+0.1   delta = displacement size of MC move
+1.0   temperature = used in MC Boltzman factor
+12345 seed = random number seed
+
+--------------
+
+The problem size that LAMMPS is computing the MC energy for and
+running dynamics on is set by the x,y,z variables in the LAMMPS
+in.mc.server script.  The default size is 500 particles.  You can
+adjust the size as follows:
+
+lmp_mpi -v x 10 -v y 10 -v z 20    # 8000 particles

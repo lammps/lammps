@@ -54,7 +54,7 @@ void FixNVENoforce::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVENoforce::initial_integrate(int vflag)
+void FixNVENoforce::initial_integrate(int /*vflag*/)
 {
   double **x = atom->x;
   double **v = atom->v;

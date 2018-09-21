@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -79,10 +79,10 @@ output"_thermo_style.html.  Note that use of this option requires
 setting the {tally} keyword to {yes}.
 
 This fix computes a global scalar which can be accessed by various
-"output commands"_Section_howto.html#howto_15.  The scalar is the
-cumulative energy change due to this fix.  The scalar value
-calculated by this fix is "extensive".  Note that calculation of this
-quantity requires setting the {tally} keyword to {yes}.
+"output commands"_Howto_output.html.  The scalar is the cumulative
+energy change due to this fix.  The scalar value calculated by this
+fix is "extensive".  Note that calculation of this quantity requires
+setting the {tally} keyword to {yes}.
 
 This fix can ramp its target temperature over multiple runs, using the
 {start} and {stop} keywords of the "run"_run.html command.  See the
@@ -93,8 +93,8 @@ This fix is not invoked during "energy minimization"_minimize.html.
 [Restrictions:] none
 
 This fix is part of the USER-EFF package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

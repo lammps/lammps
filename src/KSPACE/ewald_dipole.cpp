@@ -44,11 +44,14 @@ using namespace MathSpecial;
 
 /* ---------------------------------------------------------------------- */
 
-EwaldDipole::EwaldDipole(LAMMPS *lmp, int narg, char **arg) : Ewald(lmp, narg, arg)
+EwaldDipole::EwaldDipole(LAMMPS *lmp, int narg, char **arg) : Ewald(lmp, narg, arg),
+  muk(NULL), tk(NULL), vc(NULL)
 {
   ewaldflag = dipoleflag = 1;
   group_group_enable = 0;
   muk = NULL;
+  tk = NULL;
+  vc = NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -58,6 +61,8 @@ EwaldDipole::EwaldDipole(LAMMPS *lmp, int narg, char **arg) : Ewald(lmp, narg, a
 EwaldDipole::~EwaldDipole()
 {
   memory->destroy(muk);
+  memory->destroy(tk);
+  memory->destroy(vc);
 }
 
 /* ----------------------------------------------------------------------
@@ -306,14 +311,18 @@ void EwaldDipole::setup()
     group_allocate_flag = 0;
 
     memory->destroy(ek);
+    memory->destroy(tk);
+    memory->destroy(vc);
     memory->destroy3d_offset(cs,-kmax_created);
     memory->destroy3d_offset(sn,-kmax_created);
     memory->destroy(muk);
     nmax = atom->nmax;
-    memory->create(ek,nmax,3,"ewald:ek");
-    memory->create3d_offset(cs,-kmax,kmax,3,nmax,"ewald:cs");
-    memory->create3d_offset(sn,-kmax,kmax,3,nmax,"ewald:sn");
-    memory->create(muk,kmax3d,nmax,"ewald:muk");
+    memory->create(ek,nmax,3,"ewald_dipole:ek");
+    memory->create(tk,nmax,3,"ewald_dipole:tk");
+    memory->create(vc,kmax3d,6,"ewald_dipole:tk");
+    memory->create3d_offset(cs,-kmax,kmax,3,nmax,"ewald_dipole:cs");
+    memory->create3d_offset(sn,-kmax,kmax,3,nmax,"ewald_dipole:sn");
+    memory->create(muk,kmax3d,nmax,"ewald_dipole:muk");
     kmax_created = kmax;
   }
 
@@ -369,14 +378,18 @@ void EwaldDipole::compute(int eflag, int vflag)
 
   if (atom->nmax > nmax) {
     memory->destroy(ek);
+    memory->destroy(tk);
+    memory->destroy(vc);
     memory->destroy3d_offset(cs,-kmax_created);
     memory->destroy3d_offset(sn,-kmax_created);
     memory->destroy(muk);
     nmax = atom->nmax;
-    memory->create(ek,nmax,3,"ewald:ek");
-    memory->create3d_offset(cs,-kmax,kmax,3,nmax,"ewald:cs");
-    memory->create3d_offset(sn,-kmax,kmax,3,nmax,"ewald:sn");
-    memory->create(muk,kmax3d,nmax,"ewald:muk");
+    memory->create(ek,nmax,3,"ewald_dipole:ek");
+    memory->create(tk,nmax,3,"ewald_dipole:tk");
+    memory->create(vc,kmax3d,6,"ewald_dipole:tk");
+    memory->create3d_offset(cs,-kmax,kmax,3,nmax,"ewald_dipole:cs");
+    memory->create3d_offset(sn,-kmax,kmax,3,nmax,"ewald_dipole:sn");
+    memory->create(muk,kmax3d,nmax,"ewald_dipole:muk");
     kmax_created = kmax;
   }
 
@@ -393,98 +406,108 @@ void EwaldDipole::compute(int eflag, int vflag)
   // perform per-atom calculations if needed
 
   double **f = atom->f;
-  //double *q = atom->q;
+  double **t = atom->torque;
   double **mu = atom->mu;
   int nlocal = atom->nlocal;
 
   int kx,ky,kz;
-  double cypz,sypz,exprl,expim,partial,partial_peratom;
+  double cypz,sypz,exprl,expim;
+  double partial,partial2,partial_peratom;
+  double vcik[6];
 
   for (i = 0; i < nlocal; i++) {
-    ek[i][0] = 0.0;
-    ek[i][1] = 0.0;
-    ek[i][2] = 0.0;
+    ek[i][0] = ek[i][1] = ek[i][2] = 0.0;
+    tk[i][0] = tk[i][1] = tk[i][2] = 0.0;
   }
 
   for (k = 0; k < kcount; k++) {
     kx = kxvecs[k];
     ky = kyvecs[k];
     kz = kzvecs[k];
+    for (j = 0; j<6; j++) vc[k][j] = 0.0;
 
     for (i = 0; i < nlocal; i++) {
 
-      // calculating  exp(i*k*ri)
+      vcik[0] = vcik[1] = vcik[2] = 0.0;
+      vcik[3] = vcik[4] = vcik[5] = 0.0;
+
+      // calculating  re and im of exp(i*k*ri)
 
       cypz = cs[ky][1][i]*cs[kz][2][i] - sn[ky][1][i]*sn[kz][2][i];
       sypz = sn[ky][1][i]*cs[kz][2][i] + cs[ky][1][i]*sn[kz][2][i];
       exprl = cs[kx][0][i]*cypz - sn[kx][0][i]*sypz;
       expim = sn[kx][0][i]*cypz + cs[kx][0][i]*sypz;
 
-      // taking im-part of struct_fact x exp(i*k*ri) (for force calc.)
+      // taking im of struct_fact x exp(i*k*ri) (for force calc.)
 
-      partial = expim*sfacrl_all[k] - exprl*sfacim_all[k];
-      //ek[i][0] += partial*eg[k][0];
-      //ek[i][1] += partial*eg[k][1];
-      //ek[i][2] += partial*eg[k][2];
-      ek[i][0] += kx*partial*eg[k][0];
-      ek[i][1] += ky*partial*eg[k][1];
-      ek[i][2] += kz*partial*eg[k][2];
+      partial = (muk[k][i])*(expim*sfacrl_all[k] + exprl*sfacim_all[k]);
+      ek[i][0] += partial*eg[k][0];
+      ek[i][1] += partial*eg[k][1];
+      ek[i][2] += partial*eg[k][2];
+
+      // compute field for torque calculation
+
+      partial2 = exprl*sfacrl_all[k] - expim*sfacim_all[k];
+      tk[i][0] += partial2*eg[k][0];
+      tk[i][1] += partial2*eg[k][1];
+      tk[i][2] += partial2*eg[k][2];
+
+      // total and per-atom virial correction (dipole only)
+
+      vc[k][0] += vcik[0] = partial2 * mu[i][0] * kx;
+      vc[k][1] += vcik[1] = partial2 * mu[i][1] * ky;
+      vc[k][2] += vcik[2] = partial2 * mu[i][2] * kz;
+      vc[k][3] += vcik[3] = partial2 * mu[i][0] * ky;
+      vc[k][4] += vcik[4] = partial2 * mu[i][0] * kz;
+      vc[k][5] += vcik[5] = partial2 * mu[i][1] * kz;
+      
+      // taking re-part of struct_fact x exp(i*k*ri) 
+      // (for per-atom energy and virial calc.)
 
       if (evflag_atom) {
-
-	// taking re-part of struct_fact x exp(i*k*ri) (for energy calc.)
-
         partial_peratom = exprl*sfacrl_all[k] + expim*sfacim_all[k];
-        //if (eflag_atom) eatom[i] += q[i]*ug[k]*partial_peratom;
         if (eflag_atom) eatom[i] += muk[k][i]*ug[k]*partial_peratom;
         if (vflag_atom)
           for (j = 0; j < 6; j++)
-	    // to be done
-            vatom[i][j] += ug[k]*vg[k][j]*partial_peratom;
+	    vatom[i][j] += ug[k] * (vg[k][j]*partial_peratom - vcik[j]);
       }
     }
   }
 
-  // convert E-field to force
+  // force and torque calculation
 
-  //const double qscale = qqrd2e * scale;
   const double muscale = qqrd2e * scale;
 
   for (i = 0; i < nlocal; i++) {
-    //f[i][0] += qscale * q[i]*ek[i][0];
-    //f[i][1] += qscale * q[i]*ek[i][1];
-    //if (slabflag != 2) f[i][2] += qscale * q[i]*ek[i][2];
-    f[i][0] += muscale * mu[i][0] * ek[i][0];
-    f[i][1] += muscale * mu[i][1] * ek[i][1];
-    if (slabflag != 2) f[i][2] += muscale * mu[i][2] * ek[i][2];
+    f[i][0] += muscale * ek[i][0];
+    f[i][1] += muscale * ek[i][1];
+    if (slabflag != 2) f[i][2] += muscale * ek[i][2];
+    t[i][0] += -mu[i][1]*tk[i][2] + mu[i][2]*tk[i][1];
+    t[i][1] += -mu[i][2]*tk[i][0] + mu[i][0]*tk[i][2];
+    if (slabflag != 2) t[i][2] += -mu[i][0]*tk[i][1] + mu[i][1]*tk[i][0];
   }
 
   // sum global energy across Kspace vevs and add in volume-dependent term
+  // taking the re-part of struct_fact_i x struct_fact_j
+  // substracting self energy and scaling
 
   if (eflag_global) {
     for (k = 0; k < kcount; k++) {
-
-      // taking the re-part of struct_fact_i x struct_fact_j
-
       energy += ug[k] * (sfacrl_all[k]*sfacrl_all[k] +
                          sfacim_all[k]*sfacim_all[k]);
     }
-
-    // substracting self energy and scaling
-
     energy -= musqsum*2.0*g3/3.0/MY_PIS;
-    energy *= qscale;
+    energy *= muscale;
   }
 
   // global virial
 
   if (vflag_global) {
-    double uk;
+    double uk, vk;
     for (k = 0; k < kcount; k++) {
       uk = ug[k] * (sfacrl_all[k]*sfacrl_all[k] + sfacim_all[k]*sfacim_all[k]);
-      for (j = 0; j < 6; j++) virial[j] += uk*vg[k][j];
+      for (j = 0; j < 6; j++) virial[j] += uk*vg[k][j] + ug[k]*vc[k][j];
     }
-    //for (j = 0; j < 6; j++) virial[j] *= qscale;
     for (j = 0; j < 6; j++) virial[j] *= muscale;
   }
 
@@ -502,7 +525,7 @@ void EwaldDipole::compute(int eflag, int vflag)
 
     if (vflag_atom)
       for (i = 0; i < nlocal; i++)
-        for (j = 0; j < 6; j++) vatom[i][j] *= q[i]*qscale;
+        for (j = 0; j < 6; j++) vatom[i][j] *= muscale;
   }
 
   // 2d slab correction
@@ -539,7 +562,7 @@ void EwaldDipole::eik_dot_r()
   // define first val. of cos and sin
 
   for (ic = 0; ic < 3; ic++) {
-    sqk = (unitk[ic] * unitk[ic]);
+    sqk = unitk[ic]*unitk[ic];
     if (sqk <= gsqmx) {
       cstr1 = 0.0;
       sstr1 = 0.0;
@@ -548,8 +571,8 @@ void EwaldDipole::eik_dot_r()
         sn[0][ic][i] = 0.0;
         cs[1][ic][i] = cos(unitk[ic]*x[i][ic]);
         sn[1][ic][i] = sin(unitk[ic]*x[i][ic]);
-        cs[-1][ic][i] = cs[1][0][i];
-        sn[-1][ic][i] = -sn[1][0][i];
+        cs[-1][ic][i] = cs[1][ic][i];
+        sn[-1][ic][i] = -sn[1][ic][i];
         muk[n][i] = (mu[i][ic]*unitk[ic]);
         cstr1 += muk[n][i]*cs[1][ic][i];
         sstr1 += muk[n][i]*sn[1][ic][i];
@@ -631,7 +654,7 @@ void EwaldDipole::eik_dot_r()
 	  muz = mu[i][2];
 
 	  // dir 1: (0,l,m)
-	  muk[n][i] = (muy*l*unitk[1] + muz*m*unitk[2]); 
+      	  muk[n][i] = (muy*l*unitk[1] + muz*m*unitk[2]); 
           cstr1 += muk[n][i]*(cs[l][1][i]*cs[m][2][i] - sn[l][1][i]*sn[m][2][i]);
           sstr1 += muk[n][i]*(sn[l][1][i]*cs[m][2][i] + cs[l][1][i]*sn[m][2][i]);
 	  
@@ -647,7 +670,7 @@ void EwaldDipole::eik_dot_r()
       }
     }
   }
-  
+
   // 1 = (k,0,m), 2 = (k,0,-m)
 
   for (k = 1; k <= kxmax; k++) {
@@ -659,7 +682,7 @@ void EwaldDipole::eik_dot_r()
         cstr2 = 0.0;
         sstr2 = 0.0;
         for (i = 0; i < nlocal; i++) {
-	  mux = mu[i][0];
+      	  mux = mu[i][0];
 	  muz = mu[i][2];
 
 	  // dir 1: (k,0,m)
@@ -697,7 +720,7 @@ void EwaldDipole::eik_dot_r()
           cstr4 = 0.0;
           sstr4 = 0.0;
           for (i = 0; i < nlocal; i++) {
-	    mux = mu[i][0];
+      	    mux = mu[i][0];
 	    muy = mu[i][1];
 	    muz = mu[i][2];
 
@@ -755,13 +778,15 @@ void EwaldDipole::slabcorr()
 {
   // compute local contribution to global dipole moment
 
-  double *q = atom->q;
+  //double *q = atom->q;
   double **x = atom->x;
   double zprd = domain->zprd;
   int nlocal = atom->nlocal;
 
   double dipole = 0.0;
-  for (int i = 0; i < nlocal; i++) dipole += q[i]*x[i][2];
+  double **mu = atom->mu;
+  //for (int i = 0; i < nlocal; i++) dipole += q[i]*x[i][2];
+  for (int i = 0; i < nlocal; i++) dipole += mu[i][2];
 
   // sum local contributions to get global dipole moment
 
@@ -771,22 +796,15 @@ void EwaldDipole::slabcorr()
   // need to make non-neutral systems and/or
   //  per-atom energy translationally invariant
 
-  double dipole_r2 = 0.0;
   if (eflag_atom || fabs(qsum) > SMALL) {
-    for (int i = 0; i < nlocal; i++)
-      dipole_r2 += q[i]*x[i][2]*x[i][2];
 
-    // sum local contributions
-
-    double tmp;
-    MPI_Allreduce(&dipole_r2,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
-    dipole_r2 = tmp;
+    error->all(FLERR,"Cannot (yet) use kspace slab correction with "
+      "long-range dipoles and non-neutral systems or per-atom energy");
   }
 
   // compute corrections
 
-  const double e_slabcorr = MY_2PI*(dipole_all*dipole_all -
-    qsum*dipole_r2 - qsum*qsum*zprd*zprd/12.0)/volume;
+  const double e_slabcorr = MY_2PI*(dipole_all*dipole_all/12.0)/volume;
   const double qscale = qqrd2e * scale;
 
   if (eflag_global) energy += qscale * e_slabcorr;
@@ -794,18 +812,22 @@ void EwaldDipole::slabcorr()
   // per-atom energy
 
   if (eflag_atom) {
-    double efact = qscale * MY_2PI/volume;
+    double efact = qscale * MY_2PI/volume/12.0;
     for (int i = 0; i < nlocal; i++)
-      eatom[i] += efact * q[i]*(x[i][2]*dipole_all - 0.5*(dipole_r2 +
-        qsum*x[i][2]*x[i][2]) - qsum*zprd*zprd/12.0);
+      eatom[i] += efact * mu[i][2]*dipole_all;
   }
 
-  // add on force corrections
+  // add on torque corrections
 
-  double ffact = qscale * (-4.0*MY_PI/volume);
-  double **f = atom->f;
-
-  for (int i = 0; i < nlocal; i++) f[i][2] += ffact * q[i]*(dipole_all - qsum*x[i][2]);
+  if (atom->torque) {
+    double ffact = qscale * (-4.0*MY_PI/volume);
+    double **mu = atom->mu;
+    double **torque = atom->torque;
+    for (int i = 0; i < nlocal; i++) {
+      torque[i][0] += ffact * dipole_all * mu[i][1];
+      torque[i][1] += -ffact * dipole_all * mu[i][0];
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------

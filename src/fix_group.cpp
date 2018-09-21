@@ -75,9 +75,22 @@ idregion(NULL), idvar(NULL), idprop(NULL)
       strcpy(idvar,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"property") == 0) {
-          if (iarg+2 > narg) error->all(FLERR,"Illegal group command");
-          if (atom->find_custom(arg[iarg+1],typeflag) < 0)
+      if (iarg+2 > narg) error->all(FLERR,"Illegal group command");
+      int icustom = atom->find_custom(arg[iarg+1],typeflag);
+      if (icustom < 0)
         error->all(FLERR,"Per atom property for group dynamic does not exist");
+      int *mask = atom->mask;
+      if (!typeflag) {
+        int *ivector = atom->ivector[icustom];
+        for (int i = 0; i < atom->nlocal; i++)
+          if (mask[i] & gbit && ivector[i] == 0)
+            ivector[i] = 1;
+      } else if (typeflag) {
+        double *dvector = atom->dvector[icustom];
+        for (int i = 0; i < atom->nlocal; i++)
+          if (mask[i] & gbit && dvector[i] == 0)
+            dvector[i] = 1;
+      }
       propflag = 1;
       delete [] idprop;
       int n = strlen(arg[iarg+1]) + 1;
@@ -205,7 +218,7 @@ void FixGroup::set_group()
 
   // invoke atom-style variable if defined
   // set post_integrate flag to 1, then unset after
-  // this is for any compute to check if it needs to 
+  // this is for any compute to check if it needs to
   //   operate differently due to invocation this early in timestep
   // e.g. perform ghost comm update due to atoms having just moved
 

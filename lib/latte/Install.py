@@ -40,7 +40,7 @@ version = '1.2.1'
 checksums = { \
         '1.1.0' : '533635721ee222d0ed2925a18fb5b294', \
         '1.2.0' : '68bf0db879da5e068a71281020239ae7', \
-        '1.2.1' : 'bed76e7e76c545c36dd848a8f1fd35eb' \
+        '1.2.1' : '85ac414fdada2d04619c8f936344df14', \
         }
 
 # print error message or help

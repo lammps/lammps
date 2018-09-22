@@ -190,7 +190,7 @@ void BondHarmonic::write_data(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double BondHarmonic::single(int type, double rsq, int i, int j,
+double BondHarmonic::single(int type, double rsq, int /*i*/, int /*j*/,
                         double &fforce)
 {
   double r = sqrt(rsq);

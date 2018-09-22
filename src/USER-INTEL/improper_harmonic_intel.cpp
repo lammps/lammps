@@ -384,7 +384,7 @@ void ImproperHarmonicIntel::init_style()
 
 template <class flt_t, class acc_t>
 void ImproperHarmonicIntel::pack_force_const(ForceConst<flt_t> &fc,
-                                             IntelBuffers<flt_t,acc_t> *buffers)
+                                             IntelBuffers<flt_t,acc_t> * /*buffers*/)
 {
   const int bp1 = atom->nimpropertypes + 1;
   fc.set_ntypes(bp1,memory);

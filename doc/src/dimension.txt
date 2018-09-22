@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -26,7 +26,7 @@ prior to setting up a simulation box via the
 "create_box"_create_box.html or "read_data"_read_data.html commands.
 Restart files also store this setting.
 
-See the discussion in "Section 6"_Section_howto.html for
+See the discussion on the "Howto 2d"_Howto_2d.html doc page for
 additional instructions on how to run 2d simulations.
 
 NOTE: Some models in LAMMPS treat particles as finite-size spheres or

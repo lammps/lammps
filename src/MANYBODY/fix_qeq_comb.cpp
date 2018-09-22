@@ -67,7 +67,7 @@ FixQEQComb::FixQEQComb(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
         fp = fopen(arg[iarg+1],"w");
         if (fp == NULL) {
           char str[128];
-          sprintf(str,"Cannot open fix qeq/comb file %s",arg[iarg+1]);
+          snprintf(str,128,"Cannot open fix qeq/comb file %s",arg[iarg+1]);
           error->one(FLERR,str);
         }
       }
@@ -159,7 +159,7 @@ void FixQEQComb::min_post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEQComb::post_force(int vflag)
+void FixQEQComb::post_force(int /*vflag*/)
 {
   int i,ii,iloop,loopmax,inum,*ilist;
   double heatpq,qmass,dtq,dtq2;
@@ -276,7 +276,7 @@ void FixQEQComb::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEQComb::post_force_respa(int vflag, int ilevel, int iloop)
+void FixQEQComb::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == ilevel_respa) post_force(vflag);
 }
@@ -293,7 +293,7 @@ double FixQEQComb::memory_usage()
 /* ---------------------------------------------------------------------- */
 
 int FixQEQComb::pack_forward_comm(int n, int *list, double *buf,
-                                  int pbc_flag, int *pbc)
+                                  int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
 

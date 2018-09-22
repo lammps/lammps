@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -156,14 +156,14 @@ thermo_style     custom step temp ke pe lz pzz etotal v_dhug v_dray v_lgr_vel v_
 
 These fixes compute a global scalar and a global vector of 4
 quantities, which can be accessed by various "output
-commands"_Section_howto.html#howto_15.  The scalar values calculated
-by this fix are "extensive"; the vector values are "intensive".
+commands"_Howto_output.html.  The scalar values calculated by this fix
+are "extensive"; the vector values are "intensive".
 
 [Restrictions:]
 
 This fix style is part of the SHOCK package.  It is only enabled if
-LAMMPS was built with that package. See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package. See the "Build
+package"_Build_package.html doc page for more info.
 
 All cell dimensions must be periodic. This fix can not be used with a
 triclinic cell.  The MSST fix has been tested only for the group-ID

@@ -51,6 +51,10 @@ class LAMMPS {
   int num_package;               // number of cmdline package commands
   int cite_enable;               // 1 if generating log.cite, 0 if disabled
 
+  int clientserver;              // 0 = neither, 1 = client, 2 = server
+  void *cslib;                   // client/server messaging via CSlib
+  MPI_Comm cscomm;               // MPI comm for client+server in mpi/one mode
+
   class KokkosLMP *kokkos;       // KOKKOS accelerator class
   class AtomKokkos *atomKK;      // KOKKOS version of Atom class
   class MemoryKokkos *memoryKK;  // KOKKOS version of Memory class
@@ -59,12 +63,15 @@ class LAMMPS {
 
   class CiteMe *citeme;          // citation info
 
+  static const char * installed_packages[];
+
   LAMMPS(int, char **, MPI_Comm);
   ~LAMMPS();
   void create();
   void post_create();
   void init();
   void destroy();
+  void print_config(FILE *);    // print compile time settings
 
  private:
   void help();

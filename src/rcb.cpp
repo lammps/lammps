@@ -241,9 +241,11 @@ void RCB::compute(int dimension, int n, double **x, double *wt,
     // dim_select = selected cut dimension
     // valuehalf_select = valuehalf in that dimension
     // dotmark_select = dot markings in that dimension
+    // initialize largest = -1.0 to insure a cut in some dim is accepted
+    //   e.g. if current recursed box is size 0 in all dims
 
     int dim_select = -1;
-    double largest = 0.0;
+    double largest = -1.0;
 
     for (dim = 0; dim < dimension; dim++) {
 
@@ -1106,7 +1108,7 @@ void RCB::compute_old(int dimension, int n, double **x, double *wt,
    merge of each component of an RCB bounding box
 ------------------------------------------------------------------------- */
 
-void box_merge(void *in, void *inout, int *len, MPI_Datatype *dptr)
+void box_merge(void *in, void *inout, int * /*len*/, MPI_Datatype * /*dptr*/)
 
 {
   RCB::BBox *box1 = (RCB::BBox *) in;
@@ -1136,7 +1138,7 @@ void box_merge(void *in, void *inout, int *len, MPI_Datatype *dptr)
                                   all procs must get same proclo,prochi
 ------------------------------------------------------------------------- */
 
-void median_merge(void *in, void *inout, int *len, MPI_Datatype *dptr)
+void median_merge(void *in, void *inout, int * /*len*/, MPI_Datatype * /*dptr*/)
 
 {
   RCB::Median *med1 = (RCB::Median *) in;

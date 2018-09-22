@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -133,7 +133,6 @@ dump_modify option below is valid for the {atom} style, it is also
 valid for the {atom/mpiio} style, and similarly for the other styles
 which allow for use of MPI-IO.
 
-:line
 :line
 
 These keywords apply to various dump styles, including the "dump
@@ -486,7 +485,7 @@ to respond to the call from the dump command, and update the
 appropriate reference positions.  This is done be defining an
 "atom-style variable"_variable.html, {check} in this example, which
 calculates a Boolean value (0 or 1) for each atom, based on the same
-criterion used by dump_modify thresh.  
+criterion used by dump_modify thresh.
 
 See the "compute displace/atom"_compute_displace_atom.html command for
 more details, including an example of how to produce output that
@@ -600,13 +599,13 @@ included.)
 
 region foo sphere 10 20 10 15
 variable inregion atom rmask(foo)
-dump_modify ... thresh v_inregion |^ LAST
+dump_modify ... thresh v_inregion |^ LAST :pre
 
 This will dump atoms which crossed the boundary of the spherical
 region since the last dump.
 
 variable charge atom "(q > 0.5) || (q < -0.5)"
-dump_modify ... thresh v_charge |^ LAST
+dump_modify ... thresh v_charge |^ LAST :pre
 
 This will dump atoms whose charge has changed from an absolute value
 less than 1/2 to greater than 1/2 (or vice versa) since the last dump.
@@ -629,7 +628,6 @@ the coordinate would be if it had not been wrapped back into the
 periodic box.  Note that these coordinates may thus be far outside the
 box size stored with the snapshot.
 
-:line
 :line
 
 These keywords apply only to the "dump image"_dump_image.html and
@@ -895,7 +893,6 @@ simply dropping the rendered images. It is more efficient to dump
 images less frequently.
 
 :line
-:line
 
 [Restrictions:] none
 
@@ -917,7 +914,7 @@ flush = yes
 format = %d and %g for each integer or floating point value
 image = no
 label = ENTRIES
-maxifiles = -1
+maxfiles = -1
 nfile = 1
 pad = 0
 pbc = no

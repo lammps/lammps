@@ -37,6 +37,7 @@ class Group : protected Pointers {
   void write_restart(FILE *);
   void read_restart(FILE *);
 
+  bigint count_all();                      // count atoms in group all
   bigint count(int);                       // count atoms in group
   bigint count(int,int);                   // count atoms in group & region
   double mass(int);                        // total mass of atoms in group

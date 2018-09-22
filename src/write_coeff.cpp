@@ -51,7 +51,7 @@ void WriteCoeff::command(int narg, char **arg)
     char str[256], coeff[256];
     FILE *one = fopen(file,"wb+");
     if (one == NULL) {
-          sprintf(str,"Cannot open coeff file %s",file);
+      snprintf(str,256,"Cannot open coeff file %s",file);
       error->one(FLERR,str);
     }
 
@@ -86,7 +86,7 @@ void WriteCoeff::command(int narg, char **arg)
 
     FILE *two = fopen(file+4,"w");
     if (two == NULL) {
-      sprintf(str,"Cannot open coeff file %s",file+4);
+      snprintf(str,256,"Cannot open coeff file %s",file+4);
       error->one(FLERR,str);
     }
     fprintf(two,"# LAMMPS coeff file via write_coeff, version %s\n",

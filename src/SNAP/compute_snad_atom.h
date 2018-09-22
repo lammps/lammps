@@ -47,6 +47,7 @@ class ComputeSNADAtom : public Compute {
   class SNA** snaptr;
   double cutmax;
   int quadraticflag;
+  int nthreads;
 };
 
 }

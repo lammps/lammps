@@ -380,8 +380,8 @@ void PairBuck::write_data_all(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairBuck::single(int i, int j, int itype, int jtype,
-                        double rsq, double factor_coul, double factor_lj,
+double PairBuck::single(int /*i*/, int /*j*/, int itype, int jtype,
+                        double rsq, double /*factor_coul*/, double factor_lj,
                         double &fforce)
 {
   double r2inv,r6inv,r,rexp,forcebuck,phibuck;

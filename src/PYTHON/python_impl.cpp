@@ -344,7 +344,7 @@ void PythonImpl::invoke_function(int ifunc, char *result)
     } else if (otype == DOUBLE) {
       sprintf(result,"%.15g",PyFloat_AsDouble(pValue));
     } else if (otype == STRING) {
-      char *pystr = PY_STRING_AS_STRING(pValue);
+      const char *pystr = PY_STRING_AS_STRING(pValue);
       if (pfuncs[ifunc].longstr)
         strncpy(pfuncs[ifunc].longstr,pystr,pfuncs[ifunc].length_longstr);
       else strncpy(result,pystr,VALUELENGTH-1);

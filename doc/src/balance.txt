@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -394,11 +394,11 @@ weights.  It assigns the same weight to each particle owned by a
 processor based on the total computational time spent by that
 processor.  See details below on what time window is used.  It uses
 the same timing information as is used for the "MPI task timing
-breakdown"_Section_start.html#start_7, namely, for sections {Pair},
-{Bond}, {Kspace}, and {Neigh}.  The time spent in those portions of
-the timestep are measured for each MPI rank, summed, then divided by
-the number of particles owned by that processor.  I.e. the weight is
-an effective CPU time/particle averaged over the particles on that
+breakdown"_Run_output.html, namely, for sections {Pair}, {Bond},
+{Kspace}, and {Neigh}.  The time spent in those portions of the
+timestep are measured for each MPI rank, summed, then divided by the
+number of particles owned by that processor.  I.e. the weight is an
+effective CPU time/particle averaged over the particles on that
 processor.
 
 The {factor} setting is applied as an overall scale factor to the

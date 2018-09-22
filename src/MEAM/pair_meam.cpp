@@ -325,7 +325,7 @@ void PairMEAM::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairMEAM::settings(int narg, char **arg)
+void PairMEAM::settings(int narg, char **/*arg*/)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 }
@@ -448,7 +448,7 @@ void PairMEAM::init_list(int id, NeighList *ptr)
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairMEAM::init_one(int i, int j)
+double PairMEAM::init_one(int /*i*/, int /*j*/)
 {
   return cutmax;
 }
@@ -464,7 +464,7 @@ void PairMEAM::read_files(char *globalfile, char *userfile)
     fp = force->open_potential(globalfile);
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open MEAM potential file %s",globalfile);
+      snprintf(str,128,"Cannot open MEAM potential file %s",globalfile);
       error->one(FLERR,str);
     }
   }
@@ -645,7 +645,7 @@ void PairMEAM::read_files(char *globalfile, char *userfile)
     fp = force->open_potential(userfile);
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open MEAM potential file %s",userfile);
+      snprintf(str,128,"Cannot open MEAM potential file %s",userfile);
       error->one(FLERR,str);
     }
   }
@@ -694,8 +694,8 @@ void PairMEAM::read_files(char *globalfile, char *userfile)
       if (strcmp(params[0],keywords[which]) == 0) break;
     if (which == nkeywords) {
       char str[128];
-      sprintf(str,"Keyword %s in MEAM parameter file not recognized",
-              params[0]);
+      snprintf(str,128,"Keyword %s in MEAM parameter file not recognized",
+               params[0]);
       error->all(FLERR,str);
     }
     nindex = nparams - 2;
@@ -734,7 +734,7 @@ void PairMEAM::read_files(char *globalfile, char *userfile)
 /* ---------------------------------------------------------------------- */
 
 int PairMEAM::pack_forward_comm(int n, int *list, double *buf,
-                                int pbc_flag, int *pbc)
+                                int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,k,m;
 

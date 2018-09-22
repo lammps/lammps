@@ -880,7 +880,7 @@ void PairILPGrapheneHBN::read_file(char *filename)
     fp = force->open_potential(filename);
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open ILP potential file %s",filename);
+      snprintf(str,128,"Cannot open ILP potential file %s",filename);
       error->one(FLERR,str);
     }
   }
@@ -1010,8 +1010,8 @@ void PairILPGrapheneHBN::read_file(char *filename)
 
 /* ---------------------------------------------------------------------- */
 
-double PairILPGrapheneHBN::single(int i, int j, int itype, int jtype, double rsq,
-                         double factor_coul, double factor_lj,
+double PairILPGrapheneHBN::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
+                         double /*factor_coul*/, double factor_lj,
                          double &fforce)
 {
   double r,r2inv,r6inv,r8inv,forcelj,philj,fpair;
@@ -1047,7 +1047,7 @@ double PairILPGrapheneHBN::single(int i, int j, int itype, int jtype, double rsq
 /* ---------------------------------------------------------------------- */
 
 int PairILPGrapheneHBN::pack_forward_comm(int n, int *list, double *buf,
-                               int pbc_flag, int *pbc)
+                               int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m,id,ip,l;
 

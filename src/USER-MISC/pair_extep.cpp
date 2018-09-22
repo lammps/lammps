@@ -442,7 +442,7 @@ void PairExTeP::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairExTeP::settings(int narg, char **arg)
+void PairExTeP::settings(int narg, char **/*arg*/)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 }
@@ -591,7 +591,7 @@ void PairExTeP::read_file(char *file)
     fp = force->open_potential(file);
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open ExTeP potential file %s",file);
+      snprintf(str,128,"Cannot open ExTeP potential file %s",file);
       error->one(FLERR,str);
     }
   }

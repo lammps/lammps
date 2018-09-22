@@ -142,6 +142,9 @@ ComputeSNAVAtom::~ComputeSNAVAtom()
   memory->destroy(radelem);
   memory->destroy(wjelem);
   memory->destroy(cutsq);
+
+  for (int tid = 0; tid<nthreads; tid++)
+    delete snaptr[tid];
   delete [] snaptr;
 }
 
@@ -181,7 +184,7 @@ void ComputeSNAVAtom::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSNAVAtom::init_list(int id, NeighList *ptr)
+void ComputeSNAVAtom::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }

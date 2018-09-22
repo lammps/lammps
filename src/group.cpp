@@ -629,7 +629,7 @@ int Group::find_unused()
    do not include molID = 0
 ------------------------------------------------------------------------- */
 
-void Group::add_molecules(int igroup, int bit)
+void Group::add_molecules(int /*igroup*/, int bit)
 {
   // hash = unique molecule IDs of atoms already in group
 
@@ -753,6 +753,18 @@ void Group::read_restart(FILE *fp)
 // ----------------------------------------------------------------------
 // computations on a group of atoms
 // ----------------------------------------------------------------------
+
+/* ----------------------------------------------------------------------
+   count atoms in group all
+------------------------------------------------------------------------- */
+
+bigint Group::count_all()
+{
+  bigint nme = atom->nlocal;
+  bigint nall;
+  MPI_Allreduce(&nme,&nall,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  return nall;
+}
 
 /* ----------------------------------------------------------------------
    count atoms in group

@@ -54,7 +54,7 @@ class CreateAtoms : protected Pointers {
   void add_molecule(double *, double * = NULL);
   int nlattpts;                // number of eligible lattice points
   int *Nmask;                  // used to insert N number of particles on lattice
-  int ninsert,insertflag;
+  int randnpos,randnflag;
   int vartest(double *);       // evaluate a variable with new atom position
 };
 
@@ -162,7 +162,7 @@ E: Attempting to insert more particles than available lattice points
 
 Self-explanatory.
 
-W: Specifying an 'insert' value of '0' is equivalent to no 'insert' keyword
+W: Specifying an 'randnpos' value of '0' is equivalent to no 'randnpos' keyword
 
 Self-explanatory.
 

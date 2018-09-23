@@ -109,11 +109,11 @@ void CreateAtoms::command(int narg, char **arg)
   remapflag = 0;
   mode = ATOM;
   int molseed;
-  int insertseed;
+  int randnseed;
   varflag = 0;
   vstr = xstr = ystr = zstr = NULL;
   quatone[0] = quatone[1] = quatone[2] = 0.0;
-  nlattpts = ninsert = insertflag = 0;
+  nlattpts = randnpos = randnflag = 0;
   Nmask = NULL;
 
   nbasis = domain->lattice->nbasis;
@@ -197,15 +197,15 @@ void CreateAtoms::command(int narg, char **arg)
       MathExtra::norm3(axisone);
       MathExtra::axisangle_to_quat(axisone,thetaone,quatone);
       iarg += 5;
-    } else if (strcmp(arg[iarg],"insert") == 0) {
+    } else if (strcmp(arg[iarg],"randnpos") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal create_atoms command");
-      ninsert = force->inumeric(FLERR,arg[iarg+1]);
-      insertseed = force->inumeric(FLERR,arg[iarg+2]);
-      if (ninsert > 0) insertflag = 1;
+      randnpos = force->inumeric(FLERR,arg[iarg+1]);
+      randnseed = force->inumeric(FLERR,arg[iarg+2]);
+      if (randnpos > 0) randnflag = 1;
       else {
-        if (me == 0) error->warning(FLERR,"Specifying an 'insert' value of "
-                                 "'0' is equivalent to no 'insert' keyword");
-        insertflag = 0;
+        if (me == 0) error->warning(FLERR,"Specifying an 'randnpos' value of "
+                                 "'0' is equivalent to no 'randnpos' keyword");
+        randnflag = 0;
       }
       iarg += 3;
     } else error->all(FLERR,"Illegal create_atoms command");
@@ -245,8 +245,8 @@ void CreateAtoms::command(int narg, char **arg)
     ranmol = new RanMars(lmp,molseed+me);
   }
 
-  if (insertflag) {
-    ranbox = new RanMars(lmp,insertseed+me);
+  if (randnflag) {
+    ranbox = new RanMars(lmp,randnseed+me);
   }
 
   // error check and further setup for variable test
@@ -769,12 +769,12 @@ void CreateAtoms::add_lattice()
 
   int i,j,k,m;
 
-  // one pass for default mode, two passes for insert mode:
+  // one pass for default mode, two passes for randnpos mode:
   // first pass: count how many particles will be inserted
   // second pass: filter to N number of particles (and insert)
   int maskcntr = 0;
   int npass = 1;
-  if (insertflag) npass = 2;
+  if (randnflag) npass = 2;
   for (int pass = 0; pass < npass; pass++) {
     if (pass == 1) lattice_mask();
     for (k = klo; k <= khi; k++)
@@ -811,9 +811,9 @@ void CreateAtoms::add_lattice()
                 coord[2] < sublo[2] || coord[2] >= subhi[2]) continue;
 
             // add the atom or entire molecule to my list of atoms
-            if (insertflag && pass == 0) nlattpts++;
+            if (randnflag && pass == 0) nlattpts++;
             else {
-              if (!insertflag || Nmask[maskcntr++] == 1)
+              if (!randnflag || Nmask[maskcntr++] == 1)
                 if (mode == ATOM) atom->avec->create_atom(basistype[m],x);
                 else add_molecule(x);
             }
@@ -844,15 +844,15 @@ void CreateAtoms::lattice_mask()
         cumsum_lattpts[i] = total_lattpts;
       }
 
-     if (ninsert > total_lattpts)
+     if (randnpos > total_lattpts)
         error->one(FLERR,"Attempting to insert more particles than available lattice points");
 
-     // using proc 0, let's insert N particles onto available lattice points by instead
+      // using proc 0, let's insert N particles onto available lattice points by instead
       // poking [nlattpts - N] holes into the lattice, randomly
       int *allNmask = new int[total_lattpts];
       for (int i = 0; i < total_lattpts; i++)
         allNmask[i] = 1;
-      int nholes = total_lattpts - ninsert;
+      int nholes = total_lattpts - randnpos;
       int noptions = total_lattpts;
       for (int i = 0; i < nholes; i++) {
         int hindex = ceil(ranbox->uniform()*noptions);
@@ -869,7 +869,7 @@ void CreateAtoms::lattice_mask()
         }
       }
 
-     // tell individual procs their nboxme (personal # to insert)
+      // tell individual procs their nboxme (personal # to insert)
       int iproc = 0;
       while (allnlattpts[iproc] == 0 && iproc < nprocs)
         iproc++;
@@ -884,25 +884,23 @@ void CreateAtoms::lattice_mask()
       delete [] allNmask;
     }
 
-   MPI_Scatter(allnboxmes, 1, MPI_INT, &nboxme, 1, MPI_INT, 0, world);
+    MPI_Scatter(allnboxmes, 1, MPI_INT, &nboxme, 1, MPI_INT, 0, world);
     delete [] allnlattpts;
     delete [] allnboxmes;
     delete [] cumsum_lattpts;
   } else {
-    if (ninsert > nlattpts)
+    if (randnpos > nlattpts)
        error->one(FLERR,"Attempting to insert more particles than available lattice points");
-    nboxme = ninsert;
+    nboxme = randnpos;
   }
 
-
-
- // probably faster to have individual processors 're-choose' their random points
+  // probably faster to have individual processors 're-choose' their random points
   // Nmask will be used to indicate which lattice points to insert
   Nmask = new int[nlattpts];
   for (int i = 0; i < nlattpts; i++)
     Nmask[i] = 1;
 
- // let's insert N particles onto available lattice points by instead
+  // let's insert N particles onto available lattice points by instead
   // poking [nlattpts - N] holes into the lattice, randomly
   int nholes = nlattpts - nboxme;
   int noptions = nlattpts;

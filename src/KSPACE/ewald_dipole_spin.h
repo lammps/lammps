@@ -13,38 +13,35 @@
 
 #ifdef KSPACE_CLASS
 
-KSpaceStyle(ewald/dipole,EwaldDipole)
+KSpaceStyle(ewald/dipole/spin,EwaldDipoleSpin)
 
 #else
 
-#ifndef LMP_EWALD_DIPOLE_H
-#define LMP_EWALD_DIPOLE_H
+#ifndef LMP_EWALD_DIPOLE_SPIN_H
+#define LMP_EWALD_DIPOLE_SPIN_H
 
-#include "ewald.h"
+#include "ewald_dipole.h"
 
 namespace LAMMPS_NS {
 
-class EwaldDipole : public Ewald {
+class EwaldDipoleSpin : public EwaldDipole {
  public:
-  EwaldDipole(class LAMMPS *, int, char **);
-  virtual ~EwaldDipole();
+  EwaldDipoleSpin(class LAMMPS *, int, char **);
+  virtual ~EwaldDipoleSpin();
   void init();
   void setup();
-  virtual void compute(int, int);
+  void compute(int, int);
 
  protected:
-  double musum,musqsum,mu2;
-  double **muk; 		// mu_i dot k
-  double **tk;			// field for torque 
-  double **vc;			// virial per k
+  double hbar;                  // reduced Planck's constant      
+  double mub;                   // Bohr's magneton                
+  double mu_0;                  // vacuum permeability
+  double mub2mu0;               // prefactor for mech force
+  double mub2mu0hbinv;          // prefactor for mag force
 
-  void musum_musq(); 
-  double rms_dipole(int, double, bigint);
+  void spsum_musq(); 
   virtual void eik_dot_r();
   void slabcorr();
-  double NewtonSolve(double, double, bigint, double, double);
-  double f(double, double, bigint, double, double);
-  double derivf(double, double, bigint, double, double);
 
 };
 
@@ -61,27 +58,27 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Cannot use EwaldDipole with 2d simulation
+E: Cannot use EwaldDipoleSpin with 2d simulation
 
 The kspace style ewald cannot be used in 2d simulations.  You can use
-2d EwaldDipole in a 3d simulation; see the kspace_modify command.
+2d EwaldDipoleSpin in a 3d simulation; see the kspace_modify command.
 
 E: Kspace style requires atom attribute q
 
 The atom style defined does not have these attributes.
 
-E: Cannot use nonperiodic boundaries with EwaldDipole
+E: Cannot use nonperiodic boundaries with EwaldDipoleSpin
 
 For kspace style ewald, all 3 dimensions must have periodic boundaries
 unless you use the kspace_modify command to define a 2d slab with a
 non-periodic z dimension.
 
-E: Incorrect boundaries with slab EwaldDipole
+E: Incorrect boundaries with slab EwaldDipoleSpin
 
 Must have periodic x,y dimensions and non-periodic z dimension to use
-2d slab option with EwaldDipole.
+2d slab option with EwaldDipoleSpin.
 
-E: Cannot (yet) use EwaldDipole with triclinic box and slab correction
+E: Cannot (yet) use EwaldDipoleSpin with triclinic box and slab correction
 
 This feature is not yet supported.
 

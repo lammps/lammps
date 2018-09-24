@@ -163,6 +163,15 @@ void EwaldDipole::init()
   if (!gewaldflag) {
     if (accuracy <= 0.0)
       error->all(FLERR,"KSpace accuracy must be > 0");
+    
+    // initial guess with old method
+    
+    g_ewald = accuracy*sqrt(natoms*cutoff*xprd*yprd*zprd) / (2.0*mu2);
+    if (g_ewald >= 1.0) g_ewald = (1.35 - 0.15*log(accuracy))/cutoff;
+    else g_ewald = sqrt(-log(g_ewald)) / cutoff;
+    
+    // try Newton solver
+
     double g_ewald_new =
       NewtonSolve(g_ewald,cutoff,natoms,xprd*yprd*zprd,mu2);
     if (g_ewald_new > 0.0) g_ewald = g_ewald_new;

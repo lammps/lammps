@@ -36,8 +36,8 @@ neigh_modify 	every 10 check yes delay 20
 
 #kspace_style pppm/dipole/spin 1.0e-4
 #kspace_style ewald/dipole/spin 1.0e-4
-kspace_style ewald/dipole/spin 1.0e-2
-kspace_modify mesh 32 32 32
+kspace_style ewald/dipole/spin 1.0e-4
+#kspace_modify mesh 32 32 32
 
 #fix 		1 all precession/spin zeeman 1.0 0.0 0.0 1.0
 fix 		1 all precession/spin zeeman 0.0 0.0 0.0 1.0

@@ -164,6 +164,15 @@ void EwaldDipoleSpin::init()
   if (!gewaldflag) {
     if (accuracy <= 0.0)
       error->all(FLERR,"KSpace accuracy must be > 0");
+    
+    // initial guess with old method
+    
+    g_ewald = accuracy*sqrt(natoms*cutoff*xprd*yprd*zprd) / (2.0*mu2);
+    if (g_ewald >= 1.0) g_ewald = (1.35 - 0.15*log(accuracy))/cutoff;
+    else g_ewald = sqrt(-log(g_ewald)) / cutoff;
+    
+    // try Newton solver
+
     double g_ewald_new =
       NewtonSolve(g_ewald,cutoff,natoms,xprd*yprd*zprd,mu2);
     if (g_ewald_new > 0.0) g_ewald = g_ewald_new;
@@ -887,7 +896,8 @@ void EwaldDipoleSpin::spsum_musq()
     MPI_Allreduce(&musum_local,&musum,1,MPI_DOUBLE,MPI_SUM,world);
     MPI_Allreduce(&musqsum_local,&musqsum,1,MPI_DOUBLE,MPI_SUM,world);
 
-    mu2 = musqsum * mub2mu0;
+    //mu2 = musqsum * mub2mu0;
+    mu2 = musqsum;
   }
 
   if (mu2 == 0 && comm->me == 0)

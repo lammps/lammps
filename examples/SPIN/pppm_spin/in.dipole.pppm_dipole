@@ -28,7 +28,7 @@ pair_coeff      * * 0.0 0.0
 #kspace_style    pppm/disp 1.0e-4
 #kspace_style    pppm/dipole 1.0e-4
 kspace_style    ewald/dipole 1.0e-4
-kspace_modify   gewald 0.1
+#kspace_modify   gewald 0.1
 
 neighbor	0.3 bin
 neigh_modify	every 2 delay 4 check yes

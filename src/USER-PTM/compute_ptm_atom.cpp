@@ -46,7 +46,7 @@ using namespace LAMMPS_NS;
 static const char cite_user_ptm_package[] =
     "USER-PTM package:\n\n"
     "@Article{larsen2016ptm,\n"
-    " author={Larsen, Peter Mahler and Schmidt, S{\o}ren and Schi{\o}tz, "
+    " author={Larsen, Peter Mahler and Schmidt, S{\\o}ren and Schi{\\o}tz, "
     "Jakob},\n"
     " title={Robust structural identification via polyhedral template "
     "matching},\n"

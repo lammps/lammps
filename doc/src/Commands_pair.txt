@@ -26,7 +26,7 @@ OPT.
 
 "none"_pair_none.html,
 "zero"_pair_zero.html,
-"hybrid"_pair_hybrid.html,
+"hybrid (k)"_pair_hybrid.html,
 "hybrid/overlay (k)"_pair_hybrid.html :tb(c=4,ea=c)
 
 "adp (o)"_pair_adp.html,

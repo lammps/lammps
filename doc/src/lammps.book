@@ -311,6 +311,7 @@ fix_npt_sphere.html
 fix_nve.html
 fix_nve_asphere.html
 fix_nve_asphere_noforce.html
+fix_nve_awpmd.html
 fix_nve_body.html
 fix_nve_dot.html
 fix_nve_dotc_langevin.html
@@ -374,7 +375,6 @@ fix_spring_self.html
 fix_srd.html
 fix_store_force.html
 fix_store_state.html
-fix_surface_global.html
 fix_temp_berendsen.html
 fix_temp_csvr.html
 fix_temp_rescale.html
@@ -488,7 +488,7 @@ compute_smd_tlsph_shape.html
 compute_smd_tlsph_strain.html
 compute_smd_tlsph_strain_rate.html
 compute_smd_tlsph_stress.html
-compute_smd_triangle_mesh_vertices.html
+compute_smd_triangle_vertices.html
 compute_smd_ulsph_num_neighs.html
 compute_smd_ulsph_strain.html
 compute_smd_ulsph_strain_rate.html

@@ -9,36 +9,10 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 Download an executable for Linux :h3
 
-Binaries are available for many different versions of Linux:
+Binaries are available for different versions of Linux:
 
-"Pre-built binary RPMs for Fedora/RedHat/CentOS/openSUSE"_#rpm
 "Pre-built Ubuntu Linux executables"_#ubuntu
 "Pre-built Gentoo Linux executable"_#gentoo :all(b)
-
-:line
-
-Pre-built binary RPMs for Fedora/RedHat/CentOS/openSUSE :h4,link(rpm)
-
-Pre-built LAMMPS executables for various Linux distributions
-can be downloaded as binary RPM files from this site:
-
-"http://rpm.lammps.org"_http://rpm.lammps.org
-
-There are multiple package variants supporting serial, parallel and
-Python wrapper versions.  The LAMMPS binaries contain all optional
-packages included in the source distribution except: GPU, KIM, REAX,
-and USER-INTEL.
-
-Installation instructions for the various versions are here:
-
-"http://rpm.lammps.org/install.html"_http://rpm.lammps.org/install.html
-
-The instructions show how to enable the repository in the respective
-system's package management system.  Installing and updating are then
-straightforward and automatic.  
-
-Thanks to Axel Kohlmeyer (Temple U, akohlmey at gmail.com) for setting
-up this RPM capability.
 
 :line
 

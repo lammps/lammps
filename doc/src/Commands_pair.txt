@@ -167,7 +167,7 @@ OPT.
 "morse/soft"_pair_morse.html,
 "multi/lucy"_pair_multi_lucy.html,
 "multi/lucy/rx (k)"_pair_multi_lucy_rx.html,
-"nb3b/harmonic (o)"_pair_nb3b_harmonic.html,
+"nb3b/harmonic"_pair_nb3b_harmonic.html,
 "nm/cut (o)"_pair_nm.html,
 "nm/cut/coul/cut (o)"_pair_nm.html,
 "nm/cut/coul/long (o)"_pair_nm.html,

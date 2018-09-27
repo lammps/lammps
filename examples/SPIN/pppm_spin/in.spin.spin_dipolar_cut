@@ -19,16 +19,17 @@ create_atoms 	1 box
 
 mass		1 58.93
 
-#set 		group all spin/random 31 1.72
-set 		group all spin 1.72 0.0 0.0 1.0 
-velocity 	all create 100 4928459 rot yes dist gaussian
+set 		group all spin/random 31 1.72
+#set 		group all spin 1.72 0.0 0.0 1.0 
+#velocity 	all create 100 4928459 rot yes dist gaussian
 
 #pair_style 	hybrid/overlay eam/alloy spin/exchange 4.0 spin/long 8.0
-pair_style 	hybrid/overlay eam/alloy spin/exchange 4.0 spin/dipolar/cut 8.0
+#pair_style 	hybrid/overlay eam/alloy spin/exchange 4.0 spin/dipolar/cut 8.0
+pair_style 	spin/dipolar/cut 8.0
 #pair_style 	hybrid/overlay eam/alloy spin/exchange 4.0
-pair_coeff 	* * eam/alloy ../examples/SPIN/pppm_spin/Co_PurjaPun_2012.eam.alloy Co
-pair_coeff 	* * spin/exchange exchange 4.0 0.3593 1.135028015e-05 1.064568567
-pair_coeff 	* * spin/dipolar/cut long 8.0
+#pair_coeff 	* * eam/alloy ../examples/SPIN/pppm_spin/Co_PurjaPun_2012.eam.alloy Co
+#pair_coeff 	* * spin/exchange exchange 4.0 0.3593 1.135028015e-05 1.064568567
+pair_coeff 	* * long 8.0
 #pair_coeff 	* * spin/long long 8.0
 
 neighbor 	0.1 bin
@@ -37,7 +38,8 @@ neigh_modify 	every 10 check yes delay 20
 #fix 		1 all precession/spin zeeman 1.0 0.0 0.0 1.0
 fix 		1 all precession/spin zeeman 0.0 0.0 0.0 1.0
 fix 		2 all langevin/spin 0.0 0.0 21
-fix 		3 all nve/spin lattice yes
+#fix 		3 all nve/spin lattice yes
+fix 		3 all nve/spin lattice no
 
 timestep	0.0001
 

@@ -13,7 +13,7 @@
 
 /* ------------------------------------------------------------------------
    Contributing authors: Julien Tranchida (SNL)
-                         Aidan Thompson (SNL)
+                         Stan Moore (SNL)
 
    Please cite the related publication:
    Tranchida, J., Plimpton, S. J., Thibaudeau, P., & Thompson, A. P. (2018).
@@ -64,11 +64,13 @@ lockfixnvespin(NULL)
   no_virial_fdotr_compute = 1;
   lattice_flag = 0;
 
-  hbar = force->hplanck/MY_2PI;		// eV/(rad.THz)
-  mub = 5.78901e-5;                	// in eV/T
-  mu_0 = 1.2566370614e-6;		// in T.m/A
-  mub2mu0 = mub * mub * mu_0;		// in eV
-  mub2mu0hbinv = mub2mu0 / hbar;	// in rad.THz
+  hbar = force->hplanck/MY_2PI;			// eV/(rad.THz)
+  mub = 5.78901e-5;                		// in eV/T
+  mu_0 = 1.2566370614e-6;			// in T.m/A
+  mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);	// in eV
+  mub2mu0hbinv = mub2mu0 / hbar;		// in rad.THz
+
+  //printf("hbar: %g, mub2mu0hbinv: %g \n",hbar,mub2mu0hbinv);
 
 }
 
@@ -391,7 +393,9 @@ void PairSpinDipolarCut::compute_single_pair(int ii, double fmi[3])
       compute_dipolar(i,j,rij,fmi,spi,spj,r3inv);
     }
   }
-  
+ 
+  //printf("test fm: %g, %g, %g \n",fmi[0],fmi[1],fmi[2]);
+
   //fmi[0] *= mub2mu0hbinv;
   //fmi[1] *= mub2mu0hbinv;
   //fmi[2] *= mub2mu0hbinv;
@@ -405,15 +409,15 @@ void PairSpinDipolarCut::compute_dipolar(int i, int j, double rij[3],
     double fmi[3], double spi[4], double spj[4], double r3inv)
 {
   double sjdotr;
-  double gigjri2,pre;
+  double gigjri3,pre;
 
   sjdotr = spj[0]*rij[0] + spj[1]*rij[1] + spj[2]*rij[2];
-  gigjri2 = (spi[3] * spj[3])*r3inv;
-  pre = mub2mu0hbinv * gigjri2 / 4.0 / MY_PI;
+  gigjri3 = (spi[3] * spj[3])*r3inv;
+  pre = mub2mu0hbinv * gigjri3 / 4.0 / MY_PI;
 
-  fmi[0] += pre * gigjri2 * (3.0 * sjdotr *rij[0] - spj[0]);
-  fmi[1] += pre * gigjri2 * (3.0 * sjdotr *rij[1] - spj[1]);
-  fmi[2] += pre * gigjri2 * (3.0 * sjdotr *rij[2] - spj[2]);
+  fmi[0] += pre * gigjri3 * (3.0 * sjdotr *rij[0] - spj[0]);
+  fmi[1] += pre * gigjri3 * (3.0 * sjdotr *rij[1] - spj[1]);
+  fmi[2] += pre * gigjri3 * (3.0 * sjdotr *rij[2] - spj[2]);
 }
 
 /* ----------------------------------------------------------------------

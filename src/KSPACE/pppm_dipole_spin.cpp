@@ -69,11 +69,11 @@ PPPMDipoleSpin::PPPMDipoleSpin(LAMMPS *lmp, int narg, char **arg) :
   dipoleflag = 0;
   spinflag = 1;
   
-  hbar = force->hplanck/MY_2PI;         // eV/(rad.THz)
-  mub = 5.78901e-5;                     // in eV/T
-  mu_0 = 1.2566370614e-6;               // in T.m/A
-  mub2mu0 = mub * mub * mu_0;           // in eV
-  mub2mu0hbinv = mub2mu0 / hbar;        // in rad.THz
+  hbar = force->hplanck/MY_2PI;         	// eV/(rad.THz)
+  mub = 5.78901e-5;                     	// in eV/T
+  mu_0 = 1.2566370614e-6;               	// in T.m/A
+  mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);	// in eV
+  mub2mu0hbinv = mub2mu0 / hbar;        	// in rad.THz
 }
 
 /* ----------------------------------------------------------------------
@@ -746,7 +746,8 @@ void PPPMDipoleSpin::spsum_spsq()
     MPI_Allreduce(&spsum_local,&musum,1,MPI_DOUBLE,MPI_SUM,world);
     MPI_Allreduce(&spsqsum_local,&musqsum,1,MPI_DOUBLE,MPI_SUM,world);
 
-    mu2 = musqsum * mub2mu0;
+    //mu2 = musqsum * mub2mu0;
+    mu2 = musqsum;
   }
 
   if (mu2 == 0 && comm->me == 0)

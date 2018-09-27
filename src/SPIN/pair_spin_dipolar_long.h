@@ -13,24 +13,24 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(spin/long,PairSpinLong)
+PairStyle(spin/dipolar/long,PairSpinDipolarLong)
 
 #else
 
-#ifndef LMP_PAIR_SPIN_LONG_H
-#define LMP_PAIR_SPIN_LONG_H
+#ifndef LMP_PAIR_SPIN_DIPOLAR_LONG_H
+#define LMP_PAIR_SPIN_DIPOLAR_LONG_H
 
 #include "pair_spin.h"
 
 namespace LAMMPS_NS {
 
-class PairSpinLong : public PairSpin {
+class PairSpinDipolarLong : public PairSpin {
  public:
   double cut_coul;
   double **sigma;
 
-  PairSpinLong(class LAMMPS *);
-  ~PairSpinLong();
+  PairSpinDipolarLong(class LAMMPS *);
+  ~PairSpinDipolarLong();
   void settings(int, char **);
   void coeff(int, char **);
   double init_one(int, int);

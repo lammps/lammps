@@ -50,11 +50,11 @@ EwaldDipoleSpin::EwaldDipoleSpin(LAMMPS *lmp, int narg, char **arg) :
   dipoleflag = 0;
   spinflag = 1;
   
-  hbar = force->hplanck/MY_2PI;         // eV/(rad.THz)
-  mub = 5.78901e-5;                     // in eV/T
-  mu_0 = 1.2566370614e-6;               // in T.m/A
-  mub2mu0 = mub * mub * mu_0;           // in eV
-  mub2mu0hbinv = mub2mu0 / hbar;        // in rad.THz
+  hbar = force->hplanck/MY_2PI;         	// eV/(rad.THz)
+  mub = 5.78901e-5;                     	// in eV/T
+  mu_0 = 1.2566370614e-6;               	// in T.m/A
+  mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);	// in eV
+  mub2mu0hbinv = mub2mu0 / hbar;        	// in rad.THz
 }
 
 /* ----------------------------------------------------------------------
@@ -500,6 +500,9 @@ void EwaldDipoleSpin::compute(int eflag, int vflag)
   const double spscale2 = mub2mu0hbinv * scale;
   //const double muscale = qqrd2e * scale;
 
+  printf("test ek: %g %g %g \n",ek[0][0],ek[0][1],ek[0][2]);
+  printf("test tk: %g %g %g \n",tk[0][0],tk[0][1],tk[0][2]);
+
   for (i = 0; i < nlocal; i++) {
     f[i][0] += spscale * ek[i][0];
     f[i][1] += spscale * ek[i][1];
@@ -509,6 +512,9 @@ void EwaldDipoleSpin::compute(int eflag, int vflag)
     if (slabflag != 2) fm_long[i][2] += spscale2 * tk[i][3];
   }
 
+  printf("test f_l: %g %g %g \n",f[0][0],f[0][1],f[0][2]);
+  printf("test fm_l: %g %g %g \n",fm_long[0][0],fm_long[0][1],fm_long[0][2]);
+  
   // sum global energy across Kspace vevs and add in volume-dependent term
   // taking the re-part of struct_fact_i x struct_fact_j
   // substracting self energy and scaling

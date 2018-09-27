@@ -60,10 +60,10 @@ To install LAMMPS do the following once:
 
 sudo apt-get install lammps-daily :pre
 
-This downloads an executable named "lammps-daily" to your box, which
+This downloads an executable named "lmp_daily" to your box, which
 can then be used in the usual way to run input scripts:
 
-lammps-daily < in.lj :pre
+lmp_daily -in in.lj :pre
 
 To update LAMMPS to the most current version, do the following:
 

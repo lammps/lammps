@@ -101,7 +101,11 @@ The (qw,qx,qy,qz) parameters represent the orientation of the local structure
 in quaternion form.  The reference coordinates for each template (from which the
 orientation is determined) can be found in the {ptm_constants.h} file in the PTM source directory.
 
-[Restrictions:] none
+[Restrictions:]
+
+This fix is part of the USER-PTM package.  It is only enabled if
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

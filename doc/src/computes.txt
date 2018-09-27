@@ -70,6 +70,7 @@ Computes :h1
    compute_property_atom
    compute_property_chunk
    compute_property_local
+   compute_ptm_atom
    compute_rdf
    compute_reduce
    compute_rigid_local

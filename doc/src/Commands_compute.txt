@@ -95,6 +95,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "property/atom"_compute_property_atom.html,
 "property/chunk"_compute_property_chunk.html,
 "property/local"_compute_property_local.html,
+"ptm/atom"_compute_ptm_atom.html
 "rdf"_compute_rdf.html,
 "reduce"_compute_reduce.html,
 "reduce/region"_compute_reduce.html,

@@ -89,6 +89,7 @@ as contained in the file name.
 "USER-NETCDF"_#PKG-USER-NETCDF,
 "USER-OMP"_#PKG-USER-OMP,
 "USER-PHONON"_#PKG-USER-PHONON,
+"USER-PTM"_#PKG-USER-PTM,
 "USER-QMMM"_#PKG-USER-QMMM,
 "USER-QTB"_#PKG-USER-QTB,
 "USER-QUIP"_#PKG-USER-QUIP,
@@ -1734,6 +1735,25 @@ matrices, which can then be used to compute phonon dispersion
 relations, directly from molecular dynamics simulations.
 
 [Author:] Ling-Ti Kong (Shanghai Jiao Tong University).
+
+[Supporting info:]
+
+src/USER-PHONON: filenames -> commands
+src/USER-PHONON/README
+"fix phonon"_fix_phonon.html
+examples/USER/phonon :ul
+
+:line
+
+USER-PTM package :link(PKG-USER-PTM),h4
+
+[Contents:]
+
+A "compute ptm/atom"_compute_ptm.html command that calculates
+local structure characterization using the Polyhedral Template
+Matching methodology.
+
+[Author:] Peter Mahler Larsen (MIT).
 
 [Supporting info:]
 

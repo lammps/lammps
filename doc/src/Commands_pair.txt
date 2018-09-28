@@ -81,6 +81,7 @@ OPT.
 "eam (gikot)"_pair_eam.html,
 "eam/alloy (gikot)"_pair_eam.html,
 "eam/cd (o)"_pair_eam.html,
+"eam/cd/old (o)"_pair_eam.html,
 "eam/fs (gikot)"_pair_eam.html,
 "edip (o)"_pair_edip.html,
 "edip/multi"_pair_edip.html,

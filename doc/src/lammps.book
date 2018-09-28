@@ -468,6 +468,7 @@ compute_pressure_uef.html
 compute_property_atom.html
 compute_property_chunk.html
 compute_property_local.html
+compute_ptm_atom.html
 compute_rdf.html
 compute_reduce.html
 compute_reduce_chunk.html

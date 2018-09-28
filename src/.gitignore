@@ -41,6 +41,11 @@
 /pair_meamc.cpp
 /pair_meamc.h
 
+/ptm_*.cpp
+/ptm_*.h
+/compute_ptm.cpp
+/compute_ptm.h
+
 /fix_qeq*.cpp
 /fix_qeq*.h
 

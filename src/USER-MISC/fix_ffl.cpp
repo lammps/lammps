@@ -22,9 +22,9 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstring>
+#include <cstdlib>
 #include "fix_ffl.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -91,19 +91,24 @@ FixFFL::FixFFL(LAMMPS *lmp, int narg, char **arg) :
     int seed = force->inumeric(FLERR,arg[6]);
 
     // Flip type used, uses rescale if no flip is given
-    if (narg == 8) strcpy(flip_type,arg[7]);
-    else strcpy(flip_type,"rescale");
+    if (narg == 8) {
+        if (strcmp(arg[7],"no_flip") == 0) {flip_int = 0;}
+	else if ((strcmp(arg[7],"rescale") == 0) {flip_int = 1;}
+	else if ((strcmp(arg[7],"hard") == 0) {flip_int = 2;}
+	else if ((strcmp(arg[7],"soft") == 0) {flip_int = 3;}
+	else {
+   	  error->all(FLERR,"Illegal fix ffl flip type, only accepts : rescale - hard - soft - no_flip");
+	}
+    } else {
+        flip_int = 1;
+    }
 
 
-    // Tests if the flip type is valid
-    if ( strcmp(flip_type,"rescale") && strcmp(flip_type,"hard") 
-         && strcmp(flip_type,"soft") && strcmp(flip_type,"no_flip") )
-        error->all(FLERR,"Illegal fix ffl flip type, only accepts : rescale - hard - soft - no_flip");
 
-    if ( strcmp(flip_type,"no_flip") == 0 ) flip_int = 0;
-    if ( strcmp(flip_type,"rescale") == 0 ) flip_int = 1;
-    if ( strcmp(flip_type,"hard") == 0 ) flip_int = 2;
-    if ( strcmp(flip_type,"soft") == 0 ) flip_int = 3;
+//    if ( strcmp(flip_type,"no_flip") == 0 ) flip_int = 0;
+ //   if ( strcmp(flip_type,"rescale") == 0 ) flip_int = 1;
+  //  if ( strcmp(flip_type,"hard") == 0 ) flip_int = 2;
+  //  if ( strcmp(flip_type,"soft") == 0 ) flip_int = 3;
 
     t_target=t_start;
     const double kT = t_target * force->boltz / force->mvv2e;

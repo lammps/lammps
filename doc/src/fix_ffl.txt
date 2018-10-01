@@ -100,11 +100,6 @@ calculated by this fix is "extensive".
 
 [Restrictions:]
 
-The GLE thermostat in its current implementation should not be used
-with rigid bodies, SHAKE or RATTLE. It is expected that all the
-thermostatted degrees of freedom are fully flexible, and the sampled
-ensemble will not be correct otherwise.
-
 In order to perform constant-pressure simulations please use
 "fix press/berendsen"_fix_press_berendsen.html, rather than
 "fix npt"_fix_nh.html, to avoid duplicate integration of the

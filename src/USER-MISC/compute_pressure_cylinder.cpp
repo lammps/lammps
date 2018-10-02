@@ -12,8 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include <cmath>
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 #include "compute_pressure_cylinder.h"
 #include "atom.h"
 #include "update.h"

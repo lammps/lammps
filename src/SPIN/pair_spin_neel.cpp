@@ -62,7 +62,9 @@ PairSpinNeel::~PairSpinNeel()
 {
   if (allocated) {
     memory->destroy(setflag);
-    memory->destroy(cut_spin_neel);
+    memory->destroy(rs);
+    memory->destroy(rl);
+    memory->destroy(dr);
     memory->destroy(r0);
 
     memory->destroy(g1);
@@ -111,7 +113,9 @@ void PairSpinNeel::settings(int narg, char **arg)
     for (i = 1; i <= atom->ntypes; i++) {
       for (j = i+1; j <= atom->ntypes; j++) {
         if (setflag[i][j]) {
-          cut_spin_neel[i][j] = cut_spin_neel_global;
+          rs[i][j] = cut_spin_neel_global;
+          rl[i][j] = cut_spin_neel_global;
+          dr[i][j] = 0.0;
         }
       }
     }
@@ -131,30 +135,34 @@ void PairSpinNeel::coeff(int narg, char **arg)
 
   if (strcmp(arg[2],"neel") != 0)
     error->all(FLERR,"Incorrect args in pair_style command");
-  if (narg != 15)
+  if (narg != 17)
     error->all(FLERR,"Incorrect args in pair_style command");
 
   int ilo,ihi,jlo,jhi;
   force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
   force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
-  const double rij = force->numeric(FLERR,arg[3]);
-  const double ro = force->numeric(FLERR,arg[4]);
-  const double k1 = force->numeric(FLERR,arg[5]);
-  const double k2 = force->numeric(FLERR,arg[6]);
-  const double k3 = force->numeric(FLERR,arg[7]);
-  const double k4 = force->numeric(FLERR,arg[8]);
-  const double k5 = force->numeric(FLERR,arg[9]);
-  const double l1 = force->numeric(FLERR,arg[10]);
-  const double l2 = force->numeric(FLERR,arg[11]);
-  const double l3 = force->numeric(FLERR,arg[12]);
-  const double l4 = force->numeric(FLERR,arg[13]);
-  const double l5 = force->numeric(FLERR,arg[14]);
+  const double r1 = force->numeric(FLERR,arg[3]);
+  const double r2 = force->numeric(FLERR,arg[4]);
+  const double r3 = force->numeric(FLERR,arg[5]);
+  const double ro = force->numeric(FLERR,arg[6]);
+  const double k1 = force->numeric(FLERR,arg[7]);
+  const double k2 = force->numeric(FLERR,arg[8]);
+  const double k3 = force->numeric(FLERR,arg[9]);
+  const double k4 = force->numeric(FLERR,arg[10]);
+  const double k5 = force->numeric(FLERR,arg[11]);
+  const double l1 = force->numeric(FLERR,arg[12]);
+  const double l2 = force->numeric(FLERR,arg[13]);
+  const double l3 = force->numeric(FLERR,arg[14]);
+  const double l4 = force->numeric(FLERR,arg[15]);
+  const double l5 = force->numeric(FLERR,arg[16]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
-      cut_spin_neel[i][j] = rij;
+      rs[i][j] = r1;
+      rl[i][j] = r2;
+      dr[i][j] = r3;
       r0[i][j] = ro;
 
       g1[i][j] = k1/hbar;
@@ -231,7 +239,9 @@ double PairSpinNeel::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
-  cut_spin_neel[j][i] = cut_spin_neel[i][j];
+  rs[j][i] = rs[i][j];
+  rl[j][i] = rl[i][j];
+  dr[j][i] = dr[i][j];
   r0[j][i] = r0[i][j];
 
   g1[j][i] = g1[i][j];
@@ -281,11 +291,14 @@ void PairSpinNeel::compute(int eflag, int vflag)
   double fi[3], fmi[3];
   double local_cut2;
   double rsq, inorm;
+  double r_s,r_l,d_r,r1,r2,r_ij;
+  double pi,sm;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
+  pi = MY_PI;
 
   double **x = atom->x;
   double **f = atom->f;
@@ -344,23 +357,41 @@ void PairSpinNeel::compute(int eflag, int vflag)
       itype = type[i];
       jtype = type[j];
 
-      local_cut2 = cut_spin_neel[itype][jtype]*cut_spin_neel[itype][jtype];
+      r_s = rs[itype][jtype];
+      r_l = rl[itype][jtype];
+      d_r = dr[itype][jtype];
 
+      local_cut2 = (r_l + d_r) * (r_l + d_r);
+     
+      // define smoothing factor
       // compute neel interaction
 
       if (rsq <= local_cut2) {
+        r_ij = sqrt(rsq);
+        r1 = fabs(r_s - r_ij);
+        r2 = fabs(r_l - r_ij);
+
+        sm = 0.0;
+        if (r1 <= d_r) {
+          sm = (1.0 - sin(pi*(r1)/(2.0*d_r))) / 2.0;
+        } else if (r_ij > (r_s+d_r) && r_ij < (r_l-d_r)) {
+          sm = 1.0;
+        } else if (r2 <= d_r) {
+          sm = (1.0 - sin(pi*(r1)/(2.0*d_r))) / 2.0;
+        } else sm = 0.0;
+
         compute_neel(i,j,rsq,eij,fmi,spi,spj);
         if (lattice_flag) {
           compute_neel_mech(i,j,rsq,eij,fi,spi,spj);
         }
       }
 
-      f[i][0] += fi[0];
-      f[i][1] += fi[1];
-      f[i][2] += fi[2];
-      fm[i][0] += fmi[0];
-      fm[i][1] += fmi[1];
-      fm[i][2] += fmi[2];
+      f[i][0] += sm * fi[0];
+      f[i][1] += sm * fi[1];
+      f[i][2] += sm * fi[2];
+      fm[i][0] += sm * fmi[0];
+      fm[i][1] += sm * fmi[1];
+      fm[i][2] += sm * fmi[2];
 
       if (newton_pair || j < nlocal) {
         f[j][0] -= fi[0];
@@ -369,9 +400,7 @@ void PairSpinNeel::compute(int eflag, int vflag)
       }
 
       if (eflag) {
-        //evdwl = (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
-        //evdwl *= hbar;
-	evdwl = compute_neel_energy(i,j,rsq,eij,spi,spj);
+	evdwl = sm * compute_neel_energy(i,j,rsq,eij,spi,spj);
 
       } else evdwl = 0.0;
 
@@ -388,18 +417,18 @@ void PairSpinNeel::compute(int eflag, int vflag)
 
 void PairSpinNeel::compute_single_pair(int ii, double fmi[3])
 {
-  int *type = atom->type;
+  int i,j,jnum,itype,jtype;
+  double local_cut2,rsq, inorm;
+  double r_s,r_l,d_r,r1,r2,r_ij;
+  double pi,sm;
+  double xi[3],rij[3],eij[3];
+  double spi[3],spj[3],fmij[3];
+
   double **x = atom->x;
   double **sp = atom->sp;
-  double local_cut2;
-
-  double xi[3], rij[3], eij[3];
-  double spi[3], spj[3];
-
-  int i,j,jnum,itype,jtype;
+  int *type = atom->type;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  double rsq, inorm;
 
   ilist = list->ilist;
   numneigh = list->numneigh;
@@ -416,18 +445,15 @@ void PairSpinNeel::compute_single_pair(int ii, double fmi[3])
   xi[1] = x[i][1];
   xi[2] = x[i][2];
 
-  eij[0] = eij[1] = eij[2] = 0.0;
-
   jlist = firstneigh[i];
   jnum = numneigh[i];
+  pi = MY_PI;
 
   for (int jj = 0; jj < jnum; jj++) {
 
     j = jlist[jj];
     j &= NEIGHMASK;
     jtype = type[j];
-
-    local_cut2 = cut_spin_neel[itype][jtype]*cut_spin_neel[itype][jtype];
 
     spj[0] = sp[j][0];
     spj[1] = sp[j][1];
@@ -441,18 +467,46 @@ void PairSpinNeel::compute_single_pair(int ii, double fmi[3])
     eij[0] = inorm*rij[0];
     eij[1] = inorm*rij[1];
     eij[2] = inorm*rij[2];
+    
+    fmij[0] = fmij[1] = fmij[2] = 0.0;
+
+    r_s = rs[itype][jtype];
+    r_l = rl[itype][jtype];
+    d_r = dr[itype][jtype];
+
+    local_cut2 = (r_l + d_r) * (r_l + d_r);
+    
+    // define smoothing factor
+    // compute neel interaction
 
     if (rsq <= local_cut2) {
-      compute_neel(i,j,rsq,eij,fmi,spi,spj);
-    }
-  }
+      r_ij = sqrt(rsq);
+      r1 = fabs(r_s - r_ij);
+      r2 = fabs(r_l - r_ij);
 
+      sm = 0.0;
+      if (r1 <= d_r) {
+        sm = (1.0 - sin(pi*(r1)/(2.0*d_r))) / 2.0;
+      } else if (r_ij > (r_s+d_r) && r_ij < (r_l-d_r)) {
+        sm = 1.0;
+      } else if (r2 <= d_r) {
+        sm = (1.0 - sin(pi*(r1)/(2.0*d_r))) / 2.0;
+      } else sm = 0.0;
+
+      compute_neel(i,j,rsq,eij,fmij,spi,spj);
+
+    }
+    
+    fmi[0] += sm * fmij[0]; 
+    fmi[1] += sm * fmij[1]; 
+    fmi[2] += sm * fmij[2]; 
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairSpinNeel::compute_neel(int i, int j, double rsq, double eij[3], double fmi[3], 
-    double spi[3], double spj[3])
+void PairSpinNeel::compute_neel(int i, int j, double rsq, double eij[3], 
+    double fmi[3], double spi[3], double spj[3])
 {
   int *type = atom->type;
   int itype, jtype;
@@ -483,11 +537,15 @@ void PairSpinNeel::compute_neel(int i, int j, double rsq, double eij[3], double 
   qd = q4[itype][jtype];
   qe = q5[itype][jtype];
 
+  //printf("test coeffs: %g %g %g %g %g \n",ga,gb,gc,gd,ge);
+
   ri3 = 1.0 / 3.0;
   r1 = (rij-ro);
   r2 = r1*r1;
   r3 = r2*r1;
   r4 = r2*r2;
+  
+  //printf("test r: %g %g %g %g \n",r1,r2,r3,r4);
 
   gr = ga + gb*r1 + gc*r2 * gd*r3 + ge*r4;
   qr = qa + qb*r1 + qc*r2 * qd*r3 + qe*r4;
@@ -495,6 +553,8 @@ void PairSpinNeel::compute_neel(int i, int j, double rsq, double eij[3], double 
   g1r = gr + 12.0*qr/35.0;
   q1r = 9.0*qr/5.0;
   q2r = -2.0*qr/5.0;
+  
+  //printf("test coeffsi2: %g %g %g \n",g1r,q1r,q2r);
 
   eij_si = eij[0]*spi[0] + eij[1]*spi[1] + eij[2]*spi[2];
   eij_sj = eij[0]*spj[0] + eij[1]*spj[1] + eij[2]*spj[2];
@@ -695,7 +755,9 @@ void PairSpinNeel::allocate()
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  memory->create(cut_spin_neel,n+1,n+1,"pair/spin/soc/neel:cut_spin_neel");
+  memory->create(rs,n+1,n+1,"pair/spin/soc/neel:rs");
+  memory->create(rl,n+1,n+1,"pair/spin/soc/neel:rl");
+  memory->create(dr,n+1,n+1,"pair/spin/soc/neel:dr");
   memory->create(r0,n+1,n+1,"pair/spin/soc/neel:r0");
 
   memory->create(g1,n+1,n+1,"pair/spin/neel:g1");
@@ -757,7 +819,9 @@ void PairSpinNeel::write_restart(FILE *fp)
         fwrite(&qm3[i][j],sizeof(double),1,fp);
         fwrite(&qm4[i][j],sizeof(double),1,fp);
         fwrite(&qm5[i][j],sizeof(double),1,fp);
-        fwrite(&cut_spin_neel[i][j],sizeof(double),1,fp);
+        fwrite(&rs[i][j],sizeof(double),1,fp);
+        fwrite(&rl[i][j],sizeof(double),1,fp);
+        fwrite(&dr[i][j],sizeof(double),1,fp);
       }
     }
 }

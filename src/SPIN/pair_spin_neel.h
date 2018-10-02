@@ -57,7 +57,7 @@ class PairSpinNeel : public PairSpin {
   double **q1,**q2,**q3,**q4,**q5;
   double **gm1,**gm2,**gm3,**gm4,**gm5;
   double **qm1,**qm2,**qm3,**qm4,**qm5;
-  double **cut_spin_neel;		// cutoff distance exchange
+  double **rs,**rl,**dr;		// short-, long- cuts, and delta switch 
 
   int lattice_flag;			// flag for mech force computation
   class FixNVESpin *lockfixnvespin;	// ptr to FixNVESpin for setups

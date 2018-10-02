@@ -41,14 +41,23 @@ tensor values are output in pressure units.
 [Output info:]
 
 This compute calculates a global array with 5 columns and Rmax/bin_width
-rows.
+rows. The output columns are: R (distance units), number density (inverse 
+volume units), configurational radial pressure (pressure units), 
+configurational azimuthal pressure (pressure units), and configurational
+axial pressure (pressure units).
 
 The values calculated by this compute are
 "intensive".  The pressure values will be in pressure
 "units"_units.html. The number density values will be in 
 inverse volume "units"_units.html.
 
-[Restrictions:] none
+[Restrictions:] This compute currently calculates the pressure 
+tensor contributions for pair styles only (i.e. no bond, dihedral, etc.)
+and requires pair force 
+calculations not available for many manybody pair styles. K-space 
+calculations are also excluded. Note that the pressure outputs 
+are the configurational terms only; the kinetic contribution may
+be calculated from the number density output by P_kin=density*k*T.
 
 [Related commands:]
 

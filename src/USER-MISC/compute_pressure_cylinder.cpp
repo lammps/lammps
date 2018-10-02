@@ -26,6 +26,7 @@
 #include "memory.h"
 #include "error.h"
 #include "citeme.h"
+#include "domain.h"
 
 using namespace LAMMPS_NS;
 
@@ -56,10 +57,19 @@ ComputePressureCyl::ComputePressureCyl(LAMMPS *lmp, int narg, char **arg) :
   zhi=force->numeric(FLERR,arg[4]);
   Rmax=force->numeric(FLERR,arg[5]);
   bin_width=force->numeric(FLERR,arg[6]);
+     
+  if (bin_width<0.0 || bin_width<Rmax) 
+    error->all(FLERR,"Illegal compute pressure/cylinder command");
+  if (zhi<zlo || (zhi-zlo)<bin_width)
+    error->all(FLERR,"Illegal compute pressure/cylinder command");
+  if (zhi>domain->boxhi[2] || zlo<domain->boxlo[2])
+    error->all(FLERR,"Illegal compute pressure/cylinder command");
 
   nbins=(int)(Rmax/bin_width);
-
   nzbins=(int)((zhi-zlo)/bin_width);
+     
+  if (nbins<1 or nzbins<1) 
+    error->all(FLERR,"Illegal compute pressure/cylinder command");
 
   array_flag=1;
   vector_flag=0;

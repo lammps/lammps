@@ -49,7 +49,11 @@ if (lmp->citeme) lmp->citeme->add(cite_compute_pressure_cylinder);
   +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 
 ComputePressureCyl::ComputePressureCyl(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  R(NULL), Rinv(NULL), R2(NULL), R2kin(NULL), invVbin(NULL),
+  density_temp(NULL), density_all(NULL), tangent(NULL), ephi_x(NULL), 
+  ephi_y(NULL), Pr_temp(NULL), Pr_all(NULL), Pz_temp(NULL), Pz_all(NULL),
+  Pphi_temp(NULL), Pphi_all(NULL), PrAinv(NULL) PzAinv(NULL), binz(NULL)
 {
   if (narg != 7) error->all(FLERR,"Illegal compute pressure/cylinder command");
 

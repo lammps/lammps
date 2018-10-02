@@ -40,9 +40,7 @@ static const char cite_compute_pressure_cylinder[] =
   " volume =  149,\n"
   " pages =   {084109}\n"
   "}\n\n";
-
-if (lmp->citeme) lmp->citeme->add(cite_compute_pressure_cylinder);
-  
+ 
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   Calculate the configurational components of the pressure tensor in 
   cylindrical geometry, according to the formulation of Addington et al. (2018)
@@ -55,6 +53,7 @@ ComputePressureCyl::ComputePressureCyl(LAMMPS *lmp, int narg, char **arg) :
   ephi_y(NULL), Pr_temp(NULL), Pr_all(NULL), Pz_temp(NULL), Pz_all(NULL),
   Pphi_temp(NULL), Pphi_all(NULL), PrAinv(NULL) PzAinv(NULL), binz(NULL)
 {
+  if (lmp->citeme) lmp->citeme->add(cite_compute_pressure_cylinder);
   if (narg != 7) error->all(FLERR,"Illegal compute pressure/cylinder command");
 
   zlo=force->numeric(FLERR,arg[3]);

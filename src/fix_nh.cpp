@@ -46,10 +46,6 @@ enum{NOBIAS,BIAS};
 enum{NONE,XYZ,XY,YZ,XZ};
 enum{ISO,ANISO,TRICLINIC};
 
-int FixNH::restartPK;
-int FixNH::restart_stored=0;
-double FixNH::setPKinit[6];
-
 /* ----------------------------------------------------------------------
    NVT,NPH,NPT integrators for improved Nose-Hoover equations of motion
  ---------------------------------------------------------------------- */
@@ -63,8 +59,6 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 4) error->all(FLERR,"Illegal fix nvt/npt/nph command");
 
-  usePK = 1;
-  restart_global = 1;
   dynamic_group_allow = 1;
   time_integrate = 1;
   scalar_flag = 1;
@@ -72,6 +66,12 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extscalar = 1;
   extvector = 0;
+
+  // for CauchyStat
+
+  usePK = 1;
+  restart_global = 1;
+  restart_stored = 0;
 
   // default values
 
@@ -2246,15 +2246,18 @@ void FixNH::compute_press_target()
       p_target[i] = p_start[i] + delta * (p_stop[i]-p_start[i]);
 
   // CauchyStat: call CauchyStat to modify p_target[i] and p_hydro,
-  //             if CauchyStat enabled and pressure->vector computation has been initiated
-  if((usePK==0) && (initRUN==1)) CauchyStat();
-  if(initRUN==0){
-    for (int i=0;i<6;i++) {
+  // if CauchyStat enabled and pressure->vector computation has been initiated
+
+  if ((usePK == 0) && (initRUN == 1)) CauchyStat();
+  if (initRUN == 0) {
+    for (int i=0; i < 6; i++) {
       h_old[i]=domain->h[i];
     }
   }
 
-  initRUN=1; // when run is initialized tensor[] not available (pressure on cell wall)
+  // when run is initialized tensor[] not available (pressure on cell wall)
+
+  initRUN=1;
 
   // if deviatoric, recompute sigma each time p_target changes
 
@@ -2417,30 +2420,29 @@ void FixNH::CauchyStat_init()
   if (comm->me == 0) {
     if (screen) {
       fprintf(screen,"Using the Cauchystat fix with alpha=%f\n",alpha);
-      if(restartPK==1) {
-	fprintf(screen,"   (this is a continuation fix)\n");
-      }
-      else {
-	fprintf(screen,"   (this is NOT a continuation fix)\n");
+      if (restartPK==1) {
+        fprintf(screen,"   (this is a continuation fix)\n");
+      } else {
+        fprintf(screen,"   (this is NOT a continuation fix)\n");
       }
     }
     if (logfile) {
       fprintf(logfile,"Using the Cauchystat with alpha=%f\n",alpha);
-      if(restartPK==1) {
-	fprintf(logfile,"   this is a continuation run\n");
-      }
-      else {
-	fprintf(logfile,"   this is NOT a continuation run\n");
+      if (restartPK==1) {
+        fprintf(logfile,"   this is a continuation run\n");
+      } else {
+        fprintf(logfile,"   this is NOT a continuation run\n");
       }
     }
   }
-  if(restartPK==1 && restart_stored==0) {
+
+  if (restartPK==1 && restart_stored==0)
     error->all(FLERR,"Illegal cauchystat command.  Continuation run"
-	       " must follow a previously equilibrated Cauchystat run");
-  }
-  if(alpha<=0.0) {
-    error->all(FLERR,"Illegal cauchystat command.  Alpha cannot be zero or negative");
-  }
+               " must follow a previously equilibrated Cauchystat run");
+
+  if (alpha<=0.0)
+    error->all(FLERR,"Illegal cauchystat command: "
+               " Alpha cannot be zero or negative.");
 
   initRUN = 0;
   initPK = 1;
@@ -2564,8 +2566,8 @@ void FixNH::CauchyStat()
   }
 
   //initialize:
-  if(initPK==1) {
-    if(restartPK==1) {
+  if (initPK==1) {
+    if (restartPK==1) {
       setPK(1,1)=setPKinit[0]; setPK(1,2)=setPKinit[1]; setPK(1,3)=setPKinit[2];
       setPK(2,1)=setPKinit[1]; setPK(2,2)=setPKinit[3]; setPK(2,3)=setPKinit[4];
       setPK(3,1)=setPKinit[2]; setPK(3,2)=setPKinit[4]; setPK(3,3)=setPKinit[5];
@@ -2580,7 +2582,7 @@ void FixNH::CauchyStat()
   CauchyStat_Step(update->ntimestep,F,Fi,Fdot,cauchy,setcauchy,setPK,vol,CSvol0,deltat,alpha);
 
   // use currentPK as new target:
-  //p_target:          0          1          2          3          4          5
+  // p_target:         0          1          2          3          4          5
   //                   x          y          z         yz         xz         xy
 
   p_target[0]=-setPK(1,1);
@@ -2600,6 +2602,7 @@ void FixNH::CauchyStat()
   p_hydro /= pdim;
 
   // save information for Cauchystat restart
+
   setPKinit[0] = setcauchy(1,1);
   setPKinit[1] = setcauchy(1,2);
   setPKinit[2] = setcauchy(1,3);
@@ -2620,8 +2623,6 @@ void FixNH::CauchyStat()
 #undef sigmahat
 
 }
-
-
 
 /* ----------------------------------------------------------------------
    CauchyStat_Step
@@ -2644,9 +2645,12 @@ void FixNH::CauchyStat()
    setPK(3,3)       :  PK stress tensor at the next time step
    ------------------------------------------------------------------------- */
 
-void FixNH::CauchyStat_Step(bigint step, double (&F)[3][3], double (&Fi)[3][3], double (&Fdot)[3][3], double (&cauchy)[3][3], double (&setcauchy)[3][3], double (&setPK)[3][3], double volume, double volume0, double deltat, double alpha)
+void FixNH::CauchyStat_Step(bigint step, double (&F)[3][3],
+                            double (&Fi)[3][3], double (&Fdot)[3][3],
+                            double (&cauchy)[3][3], double (&setcauchy)[3][3],
+                            double (&setPK)[3][3], double volume,
+                            double volume0, double deltat, double alpha)
 {
-
 
   //macros to go from c to fortran style for arrays:
 #define F(row,col) (F[(row-1)][(col-1)])

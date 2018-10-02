@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "string.h"
-#include "stdlib.h"
+#include <cmath>
+#include <string.h>
+#include <stdlib.h>
 #include "compute_pressure_cylinder.h"
 #include "atom.h"
 #include "update.h"
@@ -25,6 +25,7 @@
 #include "group.h"
 #include "memory.h"
 #include "error.h"
+#include "citeme.h"
 
 using namespace LAMMPS_NS;
 

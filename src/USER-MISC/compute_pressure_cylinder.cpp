@@ -152,16 +152,14 @@ void ComputePressureCyl::init()
 
   double phi;
 
-  for (int iphi=0;iphi<nphi;iphi++)
-  {
+  for (int iphi = 0; iphi < nphi; iphi++) {
     phi=((double)iphi)*MY_PI/180.0;
     tangent[iphi]=tan(phi);
     ephi_x[iphi]=-sin(phi);
     ephi_y[iphi]=cos(phi);
   }
 
-  for (int iq=0;iq<nbins;iq++)
-  {
+  for (int iq = 0; iq < nbins; iq++) {
     R[iq]=((double)iq+0.5)*bin_width;
     Rinv[iq]=1.0/R[iq];
     R2[iq]=R[iq]*R[iq];
@@ -173,8 +171,8 @@ void ComputePressureCyl::init()
 
   invVbin[0]=1.0/((zhi-zlo)*MY_PI*R2kin[0]);
   PzAinv[0]=1.0/(MY_PI*R2kin[0]*((double)nzbins));
-  for (int jq=1;jq<nbins;jq++)
-  {
+   
+  for (int jq = 1; jq < nbins; jq++) {
     invVbin[jq]=1.0/((zhi-zlo)*MY_PI*(R2kin[jq]-R2kin[jq-1]));
     PzAinv[jq]=1.0/(MY_PI*(R2kin[jq]-R2kin[jq-1])*((double)nzbins));
   }
@@ -185,7 +183,7 @@ void ComputePressureCyl::init()
   neighbor->requests[irequest]->compute = 1;
   neighbor->requests[irequest]->occasional = 1;
 
-  for (int zzz=0;zzz<nzbins;zzz++) binz[zzz]=(((double)zzz)+0.5)*bin_width+zlo;
+  for (int zzz = 0; zzz < nzbins; zzz++) binz[zzz]=(((double)zzz)+0.5)*bin_width+zlo;
 
 }
 
@@ -213,8 +211,7 @@ void ComputePressureCyl::compute_array()
   int ibin;
 
   // clear pressures
-  for (ibin=0;ibin<nbins;ibin++)
-  {
+  for (ibin = 0; ibin < nbins; ibin++) {
     density_temp[ibin]=0.0;
     density_all[ibin]=0.0;
     Pr_temp[ibin]=0.0;
@@ -254,17 +251,16 @@ void ComputePressureCyl::compute_array()
 
   // calculate number density (by radius)
   double temp_R2;
-  for (i=0;i<nlocal;i++) if (x[i][2]<zhi && x[i][2]>zlo)
-  {
+  for (i = 0; i < nlocal; i++) if ((x[i][2] < zhi) && (x[i][2] > zlo)) {
     temp_R2=x[i][0]*x[i][0]+x[i][1]*x[i][1];
-    if (temp_R2>R2kin[nbins-1]) continue; // outside of Rmax
+    if (temp_R2 > R2kin[nbins-1]) continue; // outside of Rmax
 
-    for (j=0;j<nbins;j++) if (temp_R2<R2kin[j]) break;
+    for (j = 0; j < nbins; j++) if (temp_R2 < R2kin[j]) break;
 
     density_temp[j]+=invVbin[j];
   }
   MPI_Allreduce(density_temp,density_all,nbins,MPI_DOUBLE,MPI_SUM,world);
-  for (i=0;i<nbins;i++) array[i][1]=density_all[i]; // NEW
+  for (i = 0; i < nbins; i++) array[i][1]=density_all[i]; // NEW
 
   // loop over neighbors of my atoms
   // skip if I or J are not in group
@@ -289,8 +285,7 @@ void ComputePressureCyl::compute_array()
   double sqrtD;
   double lower_z,upper_z;
 
-  for (ii = 0; ii < inum; ii++)
-  {
+  for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     if (!(mask[i] & groupbit)) continue;
 
@@ -304,8 +299,7 @@ void ComputePressureCyl::compute_array()
 
     r1=x[i][0]*x[i][0]+x[i][1]*x[i][1];
 
-    for (jj = 0; jj < jnum; jj++)
-    {
+    for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       factor_lj = special_lj[sbmask(j)];
       factor_coul = special_coul[sbmask(j)];
@@ -315,22 +309,17 @@ void ComputePressureCyl::compute_array()
 
       // itag = jtag is possible for long cutoffs that include images of self
       // do calculation only on appropriate processor
-      if (newton_pair == 0 && j >= nlocal)
-      {
+      if (newton_pair == 0 && j >= nlocal) {
         jtag = tag[j];
-        if (itag > jtag)
-        {
+        if (itag > jtag) {
           if ((itag+jtag) % 2 == 0) continue;
         }
-        else if (itag < jtag)
-        {
+        else if (itag < jtag) {
           if ((itag+jtag) % 2 == 1) continue;
         }
-        else
-        {
+        else {
           if (x[j][2] < ztmp) continue;
-          if (x[j][2] == ztmp)
-          {
+          if (x[j][2] == ztmp) {
             if (x[j][1] < ytmp) continue;
             if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
           }
@@ -344,8 +333,7 @@ void ComputePressureCyl::compute_array()
       r2=x[j][0]*x[j][0]+x[j][1]*x[j][1];
 
       // ri is smaller of r1 and r2
-      if (r2<r1)
-      {
+      if (r2 < r1) {
         risq=r2;
         rjsq=r1;
         xi=x[j][0];
@@ -355,8 +343,7 @@ void ComputePressureCyl::compute_array()
         dy=x[i][1]-x[j][1];
         dz=x[i][2]-x[j][2];
       }
-      else
-      {
+      else {
         risq=r1;
         rjsq=r2;
         xi=x[i][0];
@@ -377,25 +364,23 @@ void ComputePressureCyl::compute_array()
       B=2.0*(xi*dx+yi*dy);
 
       // normal pressure contribution P_rhorho
-      for (ibin=0;ibin<nbins;ibin++)
-      {
+      for (ibin = 0; ibin < nbins; ibin++) {
         // completely inside of R
-        if (rjsq<R2[ibin]) continue;
+        if (rjsq < R2[ibin]) continue;
 
         C=risq-R2[ibin];
         D=B*B-4.0*A*C;
 
         // completely outside of R
-        if (D<0.0) continue;
+        if (D < 0.0) continue;
 
         sqrtD=sqrt(D);
         alpha1=0.5*(-B+sqrtD)/A;
         alpha2=0.5*(-B-sqrtD)/A;
 
-        if (alpha1>0.0 && alpha1<1.0)
-        {
+        if ((alpha1 > 0.0) && (alpha1 < 1.0)) {
           zR=zi+alpha1*dz;
-          if (zR<zhi && zR>zlo)
+          if ((zR < zhi) && (zR > zlo))
           {
             xR=xi+alpha1*dx;
             yR=yi+alpha1*dy;
@@ -404,11 +389,9 @@ void ComputePressureCyl::compute_array()
             Pr_temp[ibin]+=fn;
           }
         }
-        if (alpha2>0.0 && alpha2<1.0)
-        {
+        if ((alpha2 > 0.0) && (alpha2 < 1.0)) {
           zR=zi+alpha2*dz;
-          if (zR<zhi && zR>zlo)
-          {
+          if ((zR < zhi) && (zR > zlo)) {
             xR=xi+alpha2*dx;
             yR=yi+alpha2*dy;
             fn=fpair*fabs(xR*dx+yR*dy);
@@ -419,16 +402,15 @@ void ComputePressureCyl::compute_array()
       }
 
       // azimuthal pressure contribution (P_phiphi)
-      for (int iphi=0;iphi<nphi;iphi++)
-      {
+      for (int iphi = 0; iphi < nphi; iphi++) {
         alpha=(yi-xi*tangent[iphi])/(dx*tangent[iphi]-dy);
 
         // no intersection with phi surface
-        if (alpha>=1.0 || alpha<=0.0) continue;
+        if ((alpha >= 1.0) || (alpha <= 0.0)) continue;
 
         // no contribution (outside of averaging region)
         zL=zi+alpha*dz;
-        if (zL>zhi || zL<zlo) continue;
+        if ((zL > zhi) || (zL < zlo)) continue;
 
         xL=xi+alpha*dx;
         yL=yi+alpha*dy;
@@ -436,24 +418,22 @@ void ComputePressureCyl::compute_array()
         L2=xL*xL+yL*yL;
 
         // no intersection (outside of Rmax)
-        if (L2>R2kin[nbins-1]) continue;
+        if (L2 > R2kin[nbins-1]) continue;
 
         ftphi=fabs(dx*ephi_x[iphi]+dy*ephi_y[iphi])*fpair;
 
         // add to appropriate bin
-        for (ibin=0;ibin<nbins;ibin++) if (L2<R2kin[ibin])
-        {
+        for (ibin = 0; ibin < nbins; ibin++) if (L2 < R2kin[ibin]) {
           Pphi_temp[ibin]+=ftphi;
           break;
         }
       }
 
       // z pressure contribution (P_zz)
-      for (int zbin=0;zbin<nzbins;zbin++)
-      {
+      for (int zbin = 0; zbin < nzbins; zbin++) {
         // check if interaction contributes
-        if (x[i][2]>binz[zbin] && x[j][2]>binz[zbin]) continue;
-        if (x[i][2]<binz[zbin] && x[j][2]<binz[zbin]) continue;
+        if ((x[i][2] > binz[zbin]) && (x[j][2] > binz[zbin])) continue;
+        if ((x[i][2] < binz[zbin]) && (x[j][2] < binz[zbin])) continue;
 
         alpha=(binz[zbin]-zi)/dz;
 
@@ -462,13 +442,12 @@ void ComputePressureCyl::compute_array()
 
         L2=xL*xL+yL*yL;
 
-        if (L2>R2kin[nbins-1]) continue;
+        if (L2 > R2kin[nbins-1]) continue;
 
         ftz=fabs(dz)*fpair;
 
         // add to appropriate bin
-        for (ibin=0;ibin<nbins;ibin++) if (L2<R2kin[ibin])
-        {
+        for (ibin = 0; ibin < nbins; ibin++) if (L2 < R2kin[ibin]) {
           Pz_temp[ibin]+=ftz;
           break;
         }
@@ -477,8 +456,7 @@ void ComputePressureCyl::compute_array()
   }
 
   // calculate pressure (force over area)
-  for (ibin=0;ibin<nbins;ibin++)
-  {
+  for (ibin = 0; ibin < nbins; ibin++) {
     Pr_temp[ibin]*=PrAinv[ibin]*Rinv[ibin];
     Pphi_temp[ibin]*=PphiAinv;
     Pz_temp[ibin]*=PzAinv[ibin];
@@ -490,8 +468,7 @@ void ComputePressureCyl::compute_array()
   MPI_Allreduce(Pz_temp,Pz_all,nbins,MPI_DOUBLE,MPI_SUM,world);
 
   // populate array
-  for (ibin=0;ibin<nbins;ibin++)
-  {
+  for (ibin = 0; ibin < nbins; ibin++) {
     array[ibin][0]=R[ibin];
     array[ibin][2]=Pr_all[ibin]*nktv2p;
     array[ibin][3]=Pphi_all[ibin]*nktv2p;

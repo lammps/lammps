@@ -1454,7 +1454,7 @@ void FixLbRigidPCSphere::grow_arrays(int nmax)
    copy values within local atom-based arrays
 ------------------------------------------------------------------------- */
 
-void FixLbRigidPCSphere::copy_arrays(int i, int j, int delflag)
+void FixLbRigidPCSphere::copy_arrays(int i, int j, int /*delflag*/)
 {
   body[j] = body[i];
   up[j][0] = up[i][0];

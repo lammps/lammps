@@ -127,7 +127,7 @@ void FixNVEDotcLangevin::compute_target()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVEDotcLangevin::initial_integrate(int vflag)
+void FixNVEDotcLangevin::initial_integrate(int /*vflag*/)
 {
   double *shape,*quat;
   double fquat[4],conjqm[4],inertia[3];

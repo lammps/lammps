@@ -464,7 +464,6 @@ void FixNHIntel::nve_x()
 {
   double * _noalias const x = atom->x[0];
   double * _noalias const v = atom->v[0];
-  const double * _noalias const f = atom->f[0];
 
   // x update by full step only for atoms in group
 

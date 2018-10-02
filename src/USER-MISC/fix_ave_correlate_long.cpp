@@ -165,7 +165,7 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS * lmp, int narg, char **arg):
         fp = fopen(arg[iarg+1],"w");
         if (fp == NULL) {
           char str[128];
-          sprintf(str,"Cannot open fix ave/correlate/long file %s",arg[iarg+1]);
+          snprintf(str,128,"Cannot open fix ave/correlate/long file %s",arg[iarg+1]);
           error->one(FLERR,str);
         }
       }
@@ -412,7 +412,7 @@ void FixAveCorrelateLong::init()
    only does something if nvalid = current timestep
 ------------------------------------------------------------------------- */
 
-void FixAveCorrelateLong::setup(int vflag)
+void FixAveCorrelateLong::setup(int /*vflag*/)
 {
   end_of_step();
 }

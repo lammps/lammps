@@ -2200,7 +2200,7 @@ typedef typename intr_types<flt_t, acc_t>::bvec bvec;
 VEC_INLINE inline
 static void aut_loadatoms_vec(
     AtomAIREBOT<flt_t> * atoms, ivec j_vec,
-    fvec *x, fvec * y, fvec * z, bvec * type_mask, int * map, ivec map_i,
+    fvec *x, fvec * y, fvec * z, bvec * type_mask, int * /*map*/, ivec map_i,
     ivec c_1
 ) {
   const ivec c_4 = ivec::set1(4);
@@ -2413,7 +2413,7 @@ static fvec aut_eval_poly_lin_pd_2(int n, flt_t * vals, ivec idx, fvec x,
 }
 
 static fvec aut_mask_gSpline_pd_2(KernelArgsAIREBOT<flt_t,acc_t> * ka,
-                                  bvec active_mask, int itype, fvec cosjik,
+                                  bvec /*active_mask*/, int itype, fvec cosjik,
                                   fvec Nij, fvec *dgdc, fvec *dgdN) {
   int i;
   flt_t * gDom = NULL;
@@ -2835,7 +2835,7 @@ static void aut_frebo_data_writeback(
 static void aut_frebo_N_spline_force(
      KernelArgsAIREBOT<flt_t,acc_t> * _noalias ka,
      struct aut_frebo_data * _noalias data, int itype, int jtype, ivec vi,
-     ivec vj, fvec VA, fvec dN, fvec dNconj, fvec Nconj) {
+     ivec /*vj*/, fvec VA, fvec dN, fvec dNconj, fvec Nconj) {
   ivec c_i1 = ivec::set1(1);
   fvec c_2 = fvec::set1(2);
   fvec c_TOL = fvec::set1(TOL);
@@ -2999,8 +2999,8 @@ static fvec aut_frebo_sum_omega(
     KernelArgsAIREBOT<flt_t,acc_t> * _noalias ka,
     struct aut_frebo_data * _noalias i_data,
     struct aut_frebo_data * _noalias j_data,
-    int itype, int jtype,
-    ivec vi, ivec vj,
+    int /*itype*/, int /*jtype*/,
+    ivec /*vi*/, ivec /*vj*/,
     fvec r23x, fvec r23y, fvec r23z, fvec r23mag,
     fvec VA, fvec fij[3]
 ) {
@@ -3284,7 +3284,7 @@ static void aut_torsion_vec(
     KernelArgsAIREBOT<flt_t,acc_t> * ka,
     struct aut_frebo_data * i_data,
     struct aut_frebo_data * j_data,
-    ivec i, ivec j, fvec wij, fvec dwij
+    ivec /*i*/, ivec /*j*/, fvec wij, fvec dwij
 ) {
   AtomAIREBOT<flt_t> * x = ka->x;
   int * map = ka->map;
@@ -4134,7 +4134,7 @@ exceed_limits:
 /*
  * Attempt to look up an element in the hash-map.
  */
-static fvec aut_airebo_lj_tap_test_path(KernelArgsAIREBOT<flt_t,acc_t> * ka,
+static fvec aut_airebo_lj_tap_test_path(KernelArgsAIREBOT<flt_t,acc_t> * /*ka*/,
   struct aut_airebo_lj_test_path_result_data * test_path_result,
   bvec need_search, ivec i_bc, ivec j,
   LennardJonesPathAIREBOT<flt_t> path[fvec::VL]

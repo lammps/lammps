@@ -47,8 +47,8 @@
 #include "accelerator_omp.h"
 #include "timer.h"
 #include "python.h"
-#include "memory.h"
 #include "version.h"
+#include "memory.h"
 #include "error.h"
 
 #include "lmpinstalledpkgs.h"
@@ -73,11 +73,45 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   output = NULL;
   python = NULL;
 
+  clientserver = 0;
+  cslib = NULL;
+  cscomm = 0;
+
   screen = NULL;
   logfile = NULL;
   infile = NULL;
 
   initclock = MPI_Wtime();
+
+  // check if -mpi is first arg
+  // if so, then 2 apps were launched with one mpirun command
+  //   this means passed communicator (e.g. MPI_COMM_WORLD) is bigger than LAMMPS
+  //     e.g. for client/server coupling with another code
+  //     in the future LAMMPS might leverage this in other ways
+  //   universe communicator needs to shrink to be just LAMMPS
+  // syntax: -mpi color
+  //   color = integer for this app, different than other app(s)
+  // do the following:
+  //   perform an MPI_Comm_split() to create a new LAMMPS-only subcomm
+  //   NOTE: this assumes other app(s) does same thing, else will hang!
+  //   re-create universe with subcomm
+  //   store full multi-app comm in cscomm
+  //   cscomm is used by CSLIB package to exchange messages w/ other app
+
+  int iarg = 1;
+  if (narg-iarg >= 2 && (strcmp(arg[iarg],"-mpi") == 0 ||
+                         strcmp(arg[iarg],"-m") == 0)) {
+    int me,nprocs;
+    MPI_Comm_rank(communicator,&me);
+    MPI_Comm_size(communicator,&nprocs);
+    int color = atoi(arg[iarg+1]);
+    MPI_Comm subcomm;
+    MPI_Comm_split(communicator,color,me,&subcomm);
+    cscomm = communicator;
+    communicator = subcomm;
+    delete universe;
+    universe = new Universe(this,communicator);
+  }
 
   // parse input switches
 
@@ -107,59 +141,30 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   int *pfirst = NULL;
   int *plast = NULL;
 
-  int iarg = 1;
+  iarg = 1;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"-partition") == 0 ||
-        strcmp(arg[iarg],"-p") == 0) {
-      universe->existflag = 1;
+
+    if (strcmp(arg[iarg],"-echo") == 0 ||
+               strcmp(arg[iarg],"-e") == 0) {
       if (iarg+2 > narg)
         error->universe_all(FLERR,"Invalid command-line argument");
-      iarg++;
-      while (iarg < narg && arg[iarg][0] != '-') {
-        universe->add_world(arg[iarg]);
-        iarg++;
-      }
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"-help") == 0 ||
+               strcmp(arg[iarg],"-h") == 0) {
+      if (iarg+1 > narg)
+        error->universe_all(FLERR,"Invalid command-line argument");
+      helpflag = 1;
+      citeflag = 0;
+      iarg += 1;
+
     } else if (strcmp(arg[iarg],"-in") == 0 ||
                strcmp(arg[iarg],"-i") == 0) {
       if (iarg+2 > narg)
         error->universe_all(FLERR,"Invalid command-line argument");
       inflag = iarg + 1;
       iarg += 2;
-    } else if (strcmp(arg[iarg],"-screen") == 0 ||
-               strcmp(arg[iarg],"-sc") == 0) {
-      if (iarg+2 > narg)
-        error->universe_all(FLERR,"Invalid command-line argument");
-      screenflag = iarg + 1;
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"-log") == 0 ||
-               strcmp(arg[iarg],"-l") == 0) {
-      if (iarg+2 > narg)
-        error->universe_all(FLERR,"Invalid command-line argument");
-      logflag = iarg + 1;
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"-var") == 0 ||
-               strcmp(arg[iarg],"-v") == 0) {
-      if (iarg+3 > narg)
-        error->universe_all(FLERR,"Invalid command-line argument");
-      iarg += 3;
-      while (iarg < narg && arg[iarg][0] != '-') iarg++;
-    } else if (strcmp(arg[iarg],"-echo") == 0 ||
-               strcmp(arg[iarg],"-e") == 0) {
-      if (iarg+2 > narg)
-        error->universe_all(FLERR,"Invalid command-line argument");
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"-pscreen") == 0 ||
-               strcmp(arg[iarg],"-ps") == 0) {
-      if (iarg+2 > narg)
-       error->universe_all(FLERR,"Invalid command-line argument");
-      partscreenflag = iarg + 1;
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"-plog") == 0 ||
-               strcmp(arg[iarg],"-pl") == 0) {
-      if (iarg+2 > narg)
-       error->universe_all(FLERR,"Invalid command-line argument");
-      partlogflag = iarg + 1;
-      iarg += 2;
+
     } else if (strcmp(arg[iarg],"-kokkos") == 0 ||
                strcmp(arg[iarg],"-k") == 0) {
       if (iarg+2 > narg)
@@ -172,6 +177,26 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       kkfirst = iarg;
       while (iarg < narg && arg[iarg][0] != '-') iarg++;
       kklast = iarg;
+
+    } else if (strcmp(arg[iarg],"-log") == 0 ||
+               strcmp(arg[iarg],"-l") == 0) {
+      if (iarg+2 > narg)
+        error->universe_all(FLERR,"Invalid command-line argument");
+      logflag = iarg + 1;
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"-mpi") == 0 ||
+               strcmp(arg[iarg],"-m") == 0) {
+      if (iarg+2 > narg)
+        error->universe_all(FLERR,"Invalid command-line argument");
+      if (iarg != 1) error->universe_all(FLERR,"Invalid command-line argument");
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"-nocite") == 0 ||
+               strcmp(arg[iarg],"-nc") == 0) {
+      citeflag = 0;
+      iarg++;
+
     } else if (strcmp(arg[iarg],"-package") == 0 ||
                strcmp(arg[iarg],"-pk") == 0) {
       if (iarg+2 > narg)
@@ -188,6 +213,69 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
         else break;
       }
       plast[npack++] = iarg;
+
+    } else if (strcmp(arg[iarg],"-partition") == 0 ||
+        strcmp(arg[iarg],"-p") == 0) {
+      universe->existflag = 1;
+      if (iarg+2 > narg)
+        error->universe_all(FLERR,"Invalid command-line argument");
+      iarg++;
+      while (iarg < narg && arg[iarg][0] != '-') {
+        universe->add_world(arg[iarg]);
+        iarg++;
+      }
+
+    } else if (strcmp(arg[iarg],"-plog") == 0 ||
+               strcmp(arg[iarg],"-pl") == 0) {
+      if (iarg+2 > narg)
+       error->universe_all(FLERR,"Invalid command-line argument");
+      partlogflag = iarg + 1;
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"-pscreen") == 0 ||
+               strcmp(arg[iarg],"-ps") == 0) {
+      if (iarg+2 > narg)
+       error->universe_all(FLERR,"Invalid command-line argument");
+      partscreenflag = iarg + 1;
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"-reorder") == 0 ||
+               strcmp(arg[iarg],"-ro") == 0) {
+      if (iarg+3 > narg)
+        error->universe_all(FLERR,"Invalid command-line argument");
+      if (universe->existflag)
+        error->universe_all(FLERR,"Cannot use -reorder after -partition");
+      universe->reorder(arg[iarg+1],arg[iarg+2]);
+      iarg += 3;
+
+    } else if (strcmp(arg[iarg],"-restart") == 0 ||
+               strcmp(arg[iarg],"-r") == 0) {
+      if (iarg+3 > narg)
+        error->universe_all(FLERR,"Invalid command-line argument");
+      restartflag = 1;
+      rfile = arg[iarg+1];
+      dfile = arg[iarg+2];
+      // check for restart remap flag
+      if (strcmp(dfile,"remap") == 0) {
+        if (iarg+4 > narg)
+          error->universe_all(FLERR,"Invalid command-line argument");
+        restartremapflag = 1;
+        dfile = arg[iarg+3];
+        iarg++;
+      }
+      iarg += 3;
+      // delimit any extra args for the write_data command
+      wdfirst = iarg;
+      while (iarg < narg && arg[iarg][0] != '-') iarg++;
+      wdlast = iarg;
+
+    } else if (strcmp(arg[iarg],"-screen") == 0 ||
+               strcmp(arg[iarg],"-sc") == 0) {
+      if (iarg+2 > narg)
+        error->universe_all(FLERR,"Invalid command-line argument");
+      screenflag = iarg + 1;
+      iarg += 2;
+
     } else if (strcmp(arg[iarg],"-suffix") == 0 ||
                strcmp(arg[iarg],"-sf") == 0) {
       if (iarg+2 > narg)
@@ -213,45 +301,14 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
         strcpy(suffix,arg[iarg+1]);
         iarg += 2;
       }
-    } else if (strcmp(arg[iarg],"-reorder") == 0 ||
-               strcmp(arg[iarg],"-ro") == 0) {
+
+    } else if (strcmp(arg[iarg],"-var") == 0 ||
+               strcmp(arg[iarg],"-v") == 0) {
       if (iarg+3 > narg)
         error->universe_all(FLERR,"Invalid command-line argument");
-      if (universe->existflag)
-        error->universe_all(FLERR,"Cannot use -reorder after -partition");
-      universe->reorder(arg[iarg+1],arg[iarg+2]);
       iarg += 3;
-    } else if (strcmp(arg[iarg],"-restart") == 0 ||
-               strcmp(arg[iarg],"-r") == 0) {
-      if (iarg+3 > narg)
-        error->universe_all(FLERR,"Invalid command-line argument");
-      restartflag = 1;
-      rfile = arg[iarg+1];
-      dfile = arg[iarg+2];
-      // check for restart remap flag
-      if (strcmp(dfile,"remap") == 0) {
-        if (iarg+4 > narg)
-          error->universe_all(FLERR,"Invalid command-line argument");
-        restartremapflag = 1;
-        dfile = arg[iarg+3];
-        iarg++;
-      }
-      iarg += 3;
-      // delimit any extra args for the write_data command
-      wdfirst = iarg;
       while (iarg < narg && arg[iarg][0] != '-') iarg++;
-      wdlast = iarg;
-    } else if (strcmp(arg[iarg],"-nocite") == 0 ||
-               strcmp(arg[iarg],"-nc") == 0) {
-      citeflag = 0;
-      iarg++;
-    } else if (strcmp(arg[iarg],"-help") == 0 ||
-               strcmp(arg[iarg],"-h") == 0) {
-      if (iarg+1 > narg)
-        error->universe_all(FLERR,"Invalid command-line argument");
-      helpflag = 1;
-      citeflag = 0;
-      iarg += 1;
+
     } else error->universe_all(FLERR,"Invalid command-line argument");
   }
 
@@ -328,7 +385,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       else infile = fopen(arg[inflag],"r");
       if (infile == NULL) {
         char str[128];
-        sprintf(str,"Cannot open input script %s",arg[inflag]);
+        snprintf(str,128,"Cannot open input script %s",arg[inflag]);
         error->one(FLERR,str);
       }
     }
@@ -359,7 +416,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
          screen = NULL;
        else {
          char str[128];
-         sprintf(str,"%s.%d",arg[screenflag],universe->iworld);
+         snprintf(str,128,"%s.%d",arg[screenflag],universe->iworld);
          screen = fopen(str,"w");
          if (screen == NULL) error->one(FLERR,"Cannot open screen file");
        }
@@ -367,7 +424,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
         screen = NULL;
       else {
         char str[128];
-        sprintf(str,"%s.%d",arg[partscreenflag],universe->iworld);
+        snprintf(str,128,"%s.%d",arg[partscreenflag],universe->iworld);
         screen = fopen(str,"w");
         if (screen == NULL) error->one(FLERR,"Cannot open screen file");
       } else screen = NULL;
@@ -383,7 +440,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
          logfile = NULL;
        else {
          char str[128];
-         sprintf(str,"%s.%d",arg[logflag],universe->iworld);
+         snprintf(str,128,"%s.%d",arg[logflag],universe->iworld);
          logfile = fopen(str,"w");
          if (logfile == NULL) error->one(FLERR,"Cannot open logfile");
        }
@@ -391,7 +448,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
         logfile = NULL;
       else {
         char str[128];
-        sprintf(str,"%s.%d",arg[partlogflag],universe->iworld);
+        snprintf(str,128,"%s.%d",arg[partlogflag],universe->iworld);
         logfile = fopen(str,"w");
         if (logfile == NULL) error->one(FLERR,"Cannot open logfile");
       } else logfile = NULL;
@@ -400,7 +457,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       infile = fopen(arg[inflag],"r");
       if (infile == NULL) {
         char str[128];
-        sprintf(str,"Cannot open input script %s",arg[inflag]);
+        snprintf(str,128,"Cannot open input script %s",arg[inflag]);
         error->one(FLERR,str);
       }
     } else infile = NULL;
@@ -522,10 +579,10 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
 
   if (restartflag) {
     char cmd[128];
-    sprintf(cmd,"read_restart %s\n",rfile);
+    snprintf(cmd,128,"read_restart %s\n",rfile);
     if (restartremapflag) strcat(cmd," remap\n");
     input->one(cmd);
-    sprintf(cmd,"write_data %s",dfile);
+    snprintf(cmd,128,"write_data %s",dfile);
     for (iarg = wdfirst; iarg < wdlast; iarg++)
       sprintf(&cmd[strlen(cmd)]," %s",arg[iarg]);
     strcat(cmd," noinit\n");
@@ -594,6 +651,14 @@ LAMMPS::~LAMMPS()
   delete kokkos;
   delete [] suffix;
   delete [] suffix2;
+
+  // free the MPI comm created by -mpi command-line arg processed in constructor
+  // it was passed to universe as if original universe world
+  // may have been split later by partitions, universe will free the splits
+  // free a copy of uorig here, so check in universe destructor will still work
+
+  MPI_Comm copy = universe->uorig;
+  if (cscomm) MPI_Comm_free(&copy);
 
   delete input;
   delete universe;
@@ -814,6 +879,7 @@ void LAMMPS::help()
           "-in filename                : read input from file, not stdin (-i)\n"
           "-kokkos on/off ...          : turn KOKKOS mode on or off (-k)\n"
           "-log none/filename          : where to send log output (-l)\n"
+          "-mpicolor color             : which exe in a multi-exe mpirun cmd (-m)\n"
           "-nocite                     : disable writing log.cite file (-nc)\n"
           "-package style ...          : invoke package command (-pk)\n"
           "-partition size1 size2 ...  : assign partition sizes (-p)\n"

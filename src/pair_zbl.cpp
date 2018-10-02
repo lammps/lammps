@@ -267,8 +267,8 @@ double PairZBL::init_one(int i, int j)
 
 /* ---------------------------------------------------------------------- */
 
-double PairZBL::single(int i, int j, int itype, int jtype, double rsq,
-                         double dummy1, double dummy2,
+double PairZBL::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
+                         double /*dummy1*/, double /*dummy2*/,
                          double &fforce)
 {
   double phi,r,t,eswitch,fswitch;

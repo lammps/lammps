@@ -171,7 +171,7 @@ int FixWallPiston::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixWallPiston::initial_integrate(int vflag)
+void FixWallPiston::initial_integrate(int /*vflag*/)
 {
   next_reneighbor = update->ntimestep;
 }

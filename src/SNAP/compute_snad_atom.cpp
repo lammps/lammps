@@ -148,6 +148,8 @@ ComputeSNADAtom::~ComputeSNADAtom()
   memory->destroy(radelem);
   memory->destroy(wjelem);
   memory->destroy(cutsq);
+  for (int tid = 0; tid<nthreads; tid++)
+    delete snaptr[tid];
   delete [] snaptr;
 }
 
@@ -186,7 +188,7 @@ void ComputeSNADAtom::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSNADAtom::init_list(int id, NeighList *ptr)
+void ComputeSNADAtom::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }

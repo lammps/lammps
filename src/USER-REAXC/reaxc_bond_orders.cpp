@@ -359,8 +359,8 @@ int BOp( storage *workspace, reax_list *bonds, double bo_cut,
 }
 
 
-void BO( reax_system *system, control_params *control, simulation_data *data,
-         storage *workspace, reax_list **lists, output_controls *out_control )
+void BO( reax_system *system, control_params * /*control*/, simulation_data * /*data*/,
+         storage *workspace, reax_list **lists, output_controls * /*out_control*/ )
 {
   int i, j, pj, type_i, type_j;
   int start_i, end_i, sym_index;

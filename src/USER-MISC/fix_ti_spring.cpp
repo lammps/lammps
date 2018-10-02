@@ -167,7 +167,7 @@ void FixTISpring::min_setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixTISpring::post_force(int vflag)
+void FixTISpring::post_force(int /*vflag*/)
 {
   // do not calculate forces during equilibration
   if ((update->ntimestep - t0) < t_equil) return;
@@ -200,7 +200,7 @@ void FixTISpring::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixTISpring::post_force_respa(int vflag, int ilevel, int iloop)
+void FixTISpring::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1) post_force(vflag);
 }
@@ -214,7 +214,7 @@ void FixTISpring::min_post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixTISpring::initial_integrate(int vflag)
+void FixTISpring::initial_integrate(int /*vflag*/)
 {
   // Update the coupling parameter value if needed
   if ((update->ntimestep - t0) < t_equil) return;
@@ -278,7 +278,7 @@ void FixTISpring::grow_arrays(int nmax)
      copy values within local atom-based array
 ------------------------------------------------------------------------- */
 
-void FixTISpring::copy_arrays(int i, int j, int delflag)
+void FixTISpring::copy_arrays(int i, int j, int /*delflag*/)
 {
   xoriginal[j][0] = xoriginal[i][0];
   xoriginal[j][1] = xoriginal[i][1];
@@ -354,7 +354,7 @@ int FixTISpring::maxsize_restart()
      size of atom nlocal's restart data
 ------------------------------------------------------------------------- */
 
-int FixTISpring::size_restart(int nlocal)
+int FixTISpring::size_restart(int /*nlocal*/)
 {
   return 4;
 }

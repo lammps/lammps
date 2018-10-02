@@ -255,7 +255,7 @@ void PPPMIntel::compute_first(int eflag, int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void PPPMIntel::compute_second(int eflag, int vflag)
+void PPPMIntel::compute_second(int /*eflag*/, int /*vflag*/)
 {
   int i,j;
 

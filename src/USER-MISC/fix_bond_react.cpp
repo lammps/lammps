@@ -588,7 +588,7 @@ void FixBondReact::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixBondReact::init_list(int id, NeighList *ptr)
+void FixBondReact::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }
@@ -960,6 +960,10 @@ void FixBondReact::superimpose_algorithm()
 {
   local_num_mega = 0;
   ghostly_num_mega = 0;
+
+  // indicates local ghosts of other procs
+  int tmp;
+  localsendlist = (int *) comm->extract("localsendlist",tmp);
 
   // quick description of important global indices you'll see floating about:
   // 'pion' is the pioneer loop index
@@ -1558,7 +1562,6 @@ void FixBondReact::find_landlocked_atoms(int myrxn)
   // would someone want to change an angle type but not bond or atom types? (etc.) ...hopefully not yet
   for (int i = 0; i < twomol->natoms; i++) {
     if (landlocked_atoms[i][myrxn] == 0) {
-      int twomol_atomi = i+1;
       for (int j = 0; j < twomol->num_bond[i]; j++) {
         int twomol_atomj = twomol->bond_atom[i][j];
         if (landlocked_atoms[twomol_atomj-1][myrxn] == 0) {
@@ -1858,16 +1861,23 @@ if so, flag for broadcasting for perusal by all processors
 
 void FixBondReact::glove_ghostcheck()
 {
-  // it appears this little loop was deemed important enough for its own function!
-  // noteworthy: it's only relevant for parallel
-
   // here we add glove to either local_mega_glove or ghostly_mega_glove
+  // ghostly_mega_glove includes atoms that are ghosts, either of this proc or another
+  // 'ghosts of another' indication taken from comm->sendlist
+
   int ghostly = 0;
-  for (int i = 0; i < onemol->natoms; i++) {
-    if (atom->map(glove[i][1]) >= atom->nlocal) {
-      ghostly = 1;
-      break;
+  if (comm->style == 0) {
+    for (int i = 0; i < onemol->natoms; i++) {
+      int ilocal = atom->map(glove[i][1]);
+      if (ilocal >= atom->nlocal || localsendlist[ilocal] == 1) {
+        ghostly = 1;
+        break;
+      }
     }
+  } else {
+    #if !defined(MPI_STUBS)
+      ghostly = 1;
+    #endif
   }
 
   if (ghostly == 1) {
@@ -2530,7 +2540,7 @@ void FixBondReact::open(char *file)
   fp = fopen(file,"r");
   if (fp == NULL) {
     char str[128];
-    sprintf(str,"Cannot open superimpose file %s",file);
+    snprintf(str,128,"Cannot open superimpose file %s",file);
     error->one(FLERR,str);
   }
 }
@@ -2621,7 +2631,7 @@ double FixBondReact::compute_vector(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixBondReact::post_integrate_respa(int ilevel, int iloop)
+void FixBondReact::post_integrate_respa(int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1) post_integrate();
 }
@@ -2629,7 +2639,7 @@ void FixBondReact::post_integrate_respa(int ilevel, int iloop)
 /* ---------------------------------------------------------------------- */
 
 int FixBondReact::pack_forward_comm(int n, int *list, double *buf,
-                                    int pbc_flag, int *pbc)
+                                    int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,k,m,ns;
 

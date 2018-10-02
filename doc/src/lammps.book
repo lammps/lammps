@@ -67,6 +67,7 @@ Howto_multiple.html
 Howto_replica.html
 Howto_library.html
 Howto_couple.html
+Howto_client_server.html
 Howto_output.html
 Howto_chunk.html
 Howto_2d.html
@@ -167,6 +168,7 @@ label.html
 lattice.html
 log.html
 mass.html
+message.html
 min_modify.html
 min_style.html
 minimize.html
@@ -194,6 +196,9 @@ reset_timestep.html
 restart.html
 run.html
 run_style.html
+server.html
+server_mc.html
+server_md.html
 set.html
 shell.html
 special_bonds.html
@@ -241,6 +246,7 @@ fix_bond_create.html
 fix_bond_react.html
 fix_bond_swap.html
 fix_box_relax.html
+fix_client_md.html
 fix_cmap.html
 fix_colvars.html
 fix_controller.html
@@ -406,6 +412,7 @@ compute_bond.html
 compute_bond_local.html
 compute_centro_atom.html
 compute_chunk_atom.html
+compute_chunk_spread_atom.html
 compute_cluster_atom.html
 compute_cna_atom.html
 compute_cnp_atom.html
@@ -461,8 +468,10 @@ compute_pressure_uef.html
 compute_property_atom.html
 compute_property_chunk.html
 compute_property_local.html
+compute_ptm_atom.html
 compute_rdf.html
 compute_reduce.html
+compute_reduce_chunk.html
 compute_rigid_local.html
 compute_saed.html
 compute_slice.html
@@ -489,6 +498,7 @@ compute_smd_vol.html
 compute_sna_atom.html
 compute_spin.html
 compute_stress_atom.html
+compute_stress_mop.html
 compute_tally.html
 compute_tdpd_cc_atom.html
 compute_temp.html
@@ -524,6 +534,7 @@ pair_write.html
 pair_adp.html
 pair_agni.html
 pair_airebo.html
+pair_atm.html
 pair_awpmd.html
 pair_beck.html
 pair_body_nparticle.html

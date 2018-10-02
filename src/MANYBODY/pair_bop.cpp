@@ -4976,7 +4976,7 @@ void PairBOP::read_table(char *filename)
     FILE *fp = force->open_potential(filename);
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open BOP potential file %s",filename);
+      snprintf(str,128,"Cannot open BOP potential file %s",filename);
       error->one(FLERR,str);
     }
     fgets(s,MAXLINE,fp);  // skip first comment line
@@ -5079,7 +5079,7 @@ void PairBOP::read_table(char *filename)
     FILE *fp = force->open_potential(filename);
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open BOP potential file %s",filename);
+      snprintf(str,128,"Cannot open BOP potential file %s",filename);
       error->one(FLERR,str);
     }
     fgets(s,MAXLINE,fp);  // skip first comment line

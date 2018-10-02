@@ -241,7 +241,7 @@ void FixEvent::grow_arrays(int nmax)
    copy values within local atom-based array
 ------------------------------------------------------------------------- */
 
-void FixEvent::copy_arrays(int i, int j, int delflag)
+void FixEvent::copy_arrays(int i, int j, int /*delflag*/)
 {
   xevent[j][0] = xevent[i][0];
   xevent[j][1] = xevent[i][1];

@@ -15,6 +15,7 @@ Computes :h1
    compute_bond_local
    compute_centro_atom
    compute_chunk_atom
+   compute_chunk_spread_atom
    compute_cluster_atom
    compute_cna_atom
    compute_cnp_atom
@@ -70,8 +71,10 @@ Computes :h1
    compute_property_atom
    compute_property_chunk
    compute_property_local
+   compute_ptm_atom
    compute_rdf
    compute_reduce
+   compute_reduce_chunk
    compute_rigid_local
    compute_saed
    compute_slice
@@ -98,6 +101,7 @@ Computes :h1
    compute_sna_atom
    compute_spin
    compute_stress_atom
+   compute_stress_mop
    compute_tally
    compute_tdpd_cc_atom
    compute_temp

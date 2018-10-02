@@ -267,7 +267,7 @@ void Input::file(const char *filename)
     infile = fopen(filename,"r");
     if (infile == NULL) {
       char str[128];
-      sprintf(str,"Cannot open input script %s",filename);
+      snprintf(str,128,"Cannot open input script %s",filename);
       error->one(FLERR,str);
     }
     infiles[0] = infile;
@@ -526,7 +526,7 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
           *fmtflag='\0';
         }
 
-        sprintf(immediate,fmtstr,variable->compute_equal(var));
+        snprintf(immediate,256,fmtstr,variable->compute_equal(var));
         value = immediate;
 
       // single character variable name, e.g. $a
@@ -541,7 +541,7 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
 
       if (value == NULL) {
         char str[128];
-        sprintf(str,"Substitution for illegal variable %s",var);
+        snprintf(str,128,"Substitution for illegal variable %s",var);
         error->one(FLERR,str);
       }
       // check if storage in str2 needs to be expanded
@@ -1047,7 +1047,7 @@ void Input::include()
     infile = fopen(arg[0],"r");
     if (infile == NULL) {
       char str[128];
-      sprintf(str,"Cannot open input script %s",arg[0]);
+      snprintf(str,128,"Cannot open input script %s",arg[0]);
       error->one(FLERR,str);
     }
     infiles[nfile++] = infile;
@@ -1072,7 +1072,7 @@ void Input::jump()
       infile = fopen(arg[0],"r");
       if (infile == NULL) {
         char str[128];
-        sprintf(str,"Cannot open input script %s",arg[0]);
+        snprintf(str,128,"Cannot open input script %s",arg[0]);
         error->one(FLERR,str);
       }
       infiles[nfile-1] = infile;
@@ -1117,7 +1117,7 @@ void Input::log()
 
       if (logfile == NULL) {
         char str[128];
-        sprintf(str,"Cannot open logfile %s",arg[0]);
+        snprintf(str,128,"Cannot open logfile %s",arg[0]);
         error->one(FLERR,str);
       }
     }
@@ -1196,7 +1196,7 @@ void Input::print()
         else fp = fopen(arg[iarg+1],"a");
         if (fp == NULL) {
           char str[128];
-          sprintf(str,"Cannot open print file %s",arg[iarg+1]);
+          snprintf(str,128,"Cannot open print file %s",arg[iarg+1]);
           error->one(FLERR,str);
         }
       }

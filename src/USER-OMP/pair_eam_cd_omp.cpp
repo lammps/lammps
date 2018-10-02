@@ -15,7 +15,7 @@
 #include <cmath>
 #include <cstring>
 
-#include "pair_cdeam_omp.h"
+#include "pair_eam_cd_omp.h"
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
@@ -44,8 +44,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairCDEAMOMP::PairCDEAMOMP(LAMMPS *lmp, int _cdeamVersion) :
-  PairEAM(lmp), PairCDEAM(lmp,_cdeamVersion), ThrOMP(lmp, THR_PAIR)
+PairEAMCDOMP::PairEAMCDOMP(LAMMPS *lmp, int _cdeamVersion) :
+  PairEAM(lmp), PairEAMCD(lmp,_cdeamVersion), ThrOMP(lmp, THR_PAIR)
 {
   suffix_flag |= Suffix::OMP;
   respa_enable = 0;
@@ -53,7 +53,7 @@ PairCDEAMOMP::PairCDEAMOMP(LAMMPS *lmp, int _cdeamVersion) :
 
 /* ---------------------------------------------------------------------- */
 
-void PairCDEAMOMP::compute(int eflag, int vflag)
+void PairEAMCDOMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
@@ -143,7 +143,7 @@ void PairCDEAMOMP::compute(int eflag, int vflag)
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR, int CDEAMVERSION>
-void PairCDEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
+void PairEAMCDOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   int i,j,ii,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
@@ -534,10 +534,10 @@ void PairCDEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
 
 /* ---------------------------------------------------------------------- */
 
-double PairCDEAMOMP::memory_usage()
+double PairEAMCDOMP::memory_usage()
 {
   double bytes = memory_usage_thr();
-  bytes += PairCDEAM::memory_usage();
+  bytes += PairEAMCD::memory_usage();
 
   return bytes;
 }

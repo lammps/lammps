@@ -528,7 +528,7 @@ void Variable::set(int narg, char **arg)
   for (int i = 0; i < n-1; i++)
     if (!isalnum(names[nvar][i]) && names[nvar][i] != '_') {
       char errmsg[128];
-      sprintf(errmsg,"Variable name '%s' must have only alphanumeric "
+      snprintf(errmsg,128,"Variable name '%s' must have only alphanumeric "
               "characters or underscore",names[nvar]);
       error->all(FLERR,errmsg);
     }
@@ -586,7 +586,7 @@ int Variable::next(int narg, char **arg)
     ivar = find(arg[iarg]);
     if (ivar < 0) {
       char errmsg[128];
-      sprintf(errmsg,"Invalid variable '%s' in next command",arg[iarg]);
+      snprintf(errmsg,128,"Invalid variable '%s' in next command",arg[iarg]);
       error->all(FLERR,errmsg);
     }
     if (style[ivar] == ULOOP && style[find(arg[0])] == UNIVERSE) continue;
@@ -733,7 +733,7 @@ int Variable::find(char *name)
    called when atom is created
 ------------------------------------------------------------------------- */
 
-void Variable::set_arrays(int i)
+void Variable::set_arrays(int /*i*/)
 {
   for (int i = 0; i < nvar; i++)
     if (reader[i] && style[i] == ATOMFILE)
@@ -886,7 +886,7 @@ char *Variable::retrieve(char *name)
     int ifunc = python->variable_match(data[ivar][0],name,0);
     if (ifunc < 0) {
       char errmsg[128];
-      sprintf(errmsg,"Python variable '%s' does not match Python function",name);
+      snprintf(errmsg,128,"Python variable '%s' does not match Python function",name);
       error->all(FLERR,errmsg);
     }
     python->invoke_function(ifunc,data[ivar][1]);
@@ -1597,7 +1597,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
         int ifix = modify->find_fix(word+2);
         if (ifix < 0) {
           char msg[128];
-          sprintf(msg,"Invalid fix ID '%s' in variable formula",word+2);
+          snprintf(msg,128,"Invalid fix ID '%s' in variable formula",word+2);
           print_var_error(FLERR,msg,ivar);
         }
         Fix *fix = modify->fix[ifix];
@@ -2032,8 +2032,8 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
                                     argstack,nargstack,ivar));
           else {
             char msg[128];
-            sprintf(msg,"Invalid math/group/special function '%s()'"
-                    "in variable formula", word);
+            snprintf(msg,128,"Invalid math/group/special function '%s()'"
+                     "in variable formula", word);
             print_var_error(FLERR,msg,ivar);
           }
           delete [] contents;
@@ -2092,7 +2092,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           int flag = output->thermo->evaluate_keyword(word,&value1);
           if (flag) {
             char msg[128];
-            sprintf(msg,"Invalid thermo keyword '%s' in variable formula",word);
+            snprintf(msg,128,"Invalid thermo keyword '%s' in variable formula",word);
             print_var_error(FLERR,msg,ivar);
           }
           if (tree) {
@@ -3733,7 +3733,7 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
 
   if (strcmp(word,"count") == 0) {
     if (narg == 1) value = group->count(igroup);
-    else if (narg == 2) 
+    else if (narg == 2)
       value = group->count(igroup,region_function(args[1],ivar));
     else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
 
@@ -3744,7 +3744,7 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
 
   } else if (strcmp(word,"charge") == 0) {
     if (narg == 1) value = group->charge(igroup);
-    else if (narg == 2) 
+    else if (narg == 2)
       value = group->charge(igroup,region_function(args[1],ivar));
     else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
 
@@ -3795,7 +3795,7 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
   } else if (strcmp(word,"bound") == 0) {
     double minmax[6];
     if (narg == 2) group->bounds(igroup,minmax);
-    else if (narg == 3) 
+    else if (narg == 3)
       group->bounds(igroup,minmax,region_function(args[2],ivar));
     else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
     if (strcmp(args[1],"xmin") == 0) value = minmax[0];
@@ -3959,7 +3959,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
                                double *argstack, int &nargstack, int ivar)
 {
   bigint sx,sxx;
-  double value,xvalue,sy,sxy;
+  double value,sy,sxy;
 
   // word not a match to any special function
 
@@ -4013,7 +4013,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
       int icompute = modify->find_compute(&args[0][2]);
       if (icompute < 0) {
         char msg[128];
-        sprintf(msg,"Invalid compute ID '%s' in variable formula",word+2);
+        snprintf(msg,128,"Invalid compute ID '%s' in variable formula",word+2);
         print_var_error(FLERR,msg,ivar);
       }
       compute = modify->compute[icompute];
@@ -4055,7 +4055,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
       } else index = 0;
 
       int ifix = modify->find_fix(&args[0][2]);
-      if (ifix < 0) 
+      if (ifix < 0)
         print_var_error(FLERR,"Invalid fix ID in variable formula",ivar);
       fix = modify->fix[ifix];
       if (index == 0 && fix->vector_flag) {
@@ -4656,7 +4656,7 @@ void Variable::print_var_error(const char *srcfile, int lineno,
   if ((ivar >= 0) && (ivar < nvar)) {
     char msg[128];
 
-    sprintf(msg,"Variable %s: %s",names[ivar],errmsg);
+    snprintf(msg,128,"Variable %s: %s",names[ivar],errmsg);
     error->all(srcfile,lineno,msg);
   } else error->all(srcfile,lineno,errmsg);
 }
@@ -4944,7 +4944,7 @@ VarReader::VarReader(LAMMPS *lmp, char *name, char *file, int flag) :
     fp = fopen(file,"r");
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open file variable file %s",file);
+      snprintf(str,128,"Cannot open file variable file %s",file);
       error->one(FLERR,str);
     }
   }

@@ -27,8 +27,10 @@
 #include "error.h"
 #include "citeme.h"
 #include "domain.h"
+#include "math_const.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 static const char cite_compute_pressure_cylinder[] =
   "compute pressure/cylinder:\n\n"
@@ -152,7 +154,7 @@ void ComputePressureCyl::init()
 
   for (int iphi=0;iphi<nphi;iphi++)
   {
-    phi=((double)iphi)*3.14159/180.0;
+    phi=((double)iphi)*MY_PI/180.0;
     tangent[iphi]=tan(phi);
     ephi_x[iphi]=-sin(phi);
     ephi_y[iphi]=cos(phi);
@@ -165,16 +167,16 @@ void ComputePressureCyl::init()
     R2[iq]=R[iq]*R[iq];
     R2kin[iq]=(((double)iq)+1.0)*bin_width;
     R2kin[iq]*=R2kin[iq];
-    PrAinv[iq]=1.0/(2.0*3.14159*(zhi-zlo)*R[iq]);
+    PrAinv[iq]=1.0/(2.0*MY_PI*(zhi-zlo)*R[iq]);
   }
   PphiAinv=1.0/((zhi-zlo)*bin_width*2.0*(double)nphi);
 
-  invVbin[0]=1.0/((zhi-zlo)*3.14159*R2kin[0]);
-  PzAinv[0]=1.0/(3.14159*R2kin[0]*((double)nzbins));
+  invVbin[0]=1.0/((zhi-zlo)*MY_PI*R2kin[0]);
+  PzAinv[0]=1.0/(MY_PI*R2kin[0]*((double)nzbins));
   for (int jq=1;jq<nbins;jq++)
   {
-    invVbin[jq]=1.0/((zhi-zlo)*3.14159*(R2kin[jq]-R2kin[jq-1]));
-    PzAinv[jq]=1.0/(3.14159*(R2kin[jq]-R2kin[jq-1])*((double)nzbins));
+    invVbin[jq]=1.0/((zhi-zlo)*MY_PI*(R2kin[jq]-R2kin[jq-1]));
+    PzAinv[jq]=1.0/(MY_PI*(R2kin[jq]-R2kin[jq-1])*((double)nzbins));
   }
 
   // need an occasional half neighbor list

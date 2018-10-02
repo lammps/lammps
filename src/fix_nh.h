@@ -163,10 +163,10 @@ class FixNH : public Fix {
 
   void CauchyStat_init();
   void CauchyStat();
-  void CauchyStat_Step(bigint step, double (&F)[3][3], double (&Fi)[3][3],
-                       double (&Fdot)[3][3], double (&cauchy)[3][3],
-                       double (&setcauchy)[3][3], double (&setPK)[3][3],
-			  double volume, double volume0, double deltat, double alpha);
+  void CauchyStat_Step(double (&Fi)[3][3], double (&Fdot)[3][3],
+                       double (&cauchy)[3][3], double (&setcauchy)[3][3],
+                       double (&setPK)[3][3], double volume, double volume0,
+                       double deltat, double alpha);
 
 };
 

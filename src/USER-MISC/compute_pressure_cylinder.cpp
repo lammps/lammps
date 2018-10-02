@@ -40,16 +40,16 @@ static const char cite_compute_pressure_cylinder[] =
   " volume =  149,\n"
   " pages =   {084109}\n"
   "}\n\n";
- 
+
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  Calculate the configurational components of the pressure tensor in 
+  Calculate the configurational components of the pressure tensor in
   cylindrical geometry, according to the formulation of Addington et al. (2018)
   +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 
 ComputePressureCyl::ComputePressureCyl(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
   R(NULL), Rinv(NULL), R2(NULL), R2kin(NULL), invVbin(NULL),
-  density_temp(NULL), density_all(NULL), tangent(NULL), ephi_x(NULL), 
+  density_temp(NULL), density_all(NULL), tangent(NULL), ephi_x(NULL),
   ephi_y(NULL), Pr_temp(NULL), Pr_all(NULL), Pz_temp(NULL), Pz_all(NULL),
   Pphi_temp(NULL), Pphi_all(NULL), PrAinv(NULL), PzAinv(NULL), binz(NULL)
 {
@@ -60,8 +60,8 @@ ComputePressureCyl::ComputePressureCyl(LAMMPS *lmp, int narg, char **arg) :
   zhi=force->numeric(FLERR,arg[4]);
   Rmax=force->numeric(FLERR,arg[5]);
   bin_width=force->numeric(FLERR,arg[6]);
-     
-  if ((bin_width <= 0.0) || (bin_width < Rmax)) 
+
+  if ((bin_width <= 0.0) || (bin_width < Rmax))
     error->all(FLERR,"Illegal compute pressure/cylinder command");
   if ((zhi < zlo) || ((zhi-zlo) < bin_width))
     error->all(FLERR,"Illegal compute pressure/cylinder command");
@@ -73,8 +73,8 @@ ComputePressureCyl::ComputePressureCyl(LAMMPS *lmp, int narg, char **arg) :
 
   // NOTE: at 2^22 = 4.2M bins, we will be close to exhausting allocatable
   // memory on a 32-bit environment. so we use this as an upper limit.
- 
-  if ((nbins < 1) || (nzbins < 1) || (nbins > 2>>22) || (nbins > 2>>22)) 
+
+  if ((nbins < 1) || (nzbins < 1) || (nbins > 2>>22) || (nbins > 2>>22))
     error->all(FLERR,"Illegal compute pressure/cylinder command");
 
   array_flag=1;
@@ -109,7 +109,7 @@ ComputePressureCyl::ComputePressureCyl(LAMMPS *lmp, int narg, char **arg) :
   ephi_y = new double[nphi];
 
   nktv2p = force->nktv2p;
-  
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -170,8 +170,8 @@ void ComputePressureCyl::init()
   PphiAinv=1.0/((zhi-zlo)*bin_width*2.0*(double)nphi);
 
   invVbin[0]=1.0/((zhi-zlo)*3.14159*R2kin[0]);
-  PzAinv[0]=1.0/(3.14159*R2kin[0]*((double)nzbins)); 
-  for (int jq=1;jq<nbins;jq++) 
+  PzAinv[0]=1.0/(3.14159*R2kin[0]*((double)nzbins));
+  for (int jq=1;jq<nbins;jq++)
   {
     invVbin[jq]=1.0/((zhi-zlo)*3.14159*(R2kin[jq]-R2kin[jq-1]));
     PzAinv[jq]=1.0/(3.14159*(R2kin[jq]-R2kin[jq-1])*((double)nzbins));
@@ -206,12 +206,12 @@ void ComputePressureCyl::init_list(int id, NeighList *ptr)
 
 void ComputePressureCyl::compute_array()
 {
-  invoked_array = update->ntimestep; 
+  invoked_array = update->ntimestep;
 
   int ibin;
 
   // clear pressures
-  for (ibin=0;ibin<nbins;ibin++) 
+  for (ibin=0;ibin<nbins;ibin++)
   {
     density_temp[ibin]=0.0;
     density_all[ibin]=0.0;
@@ -287,7 +287,7 @@ void ComputePressureCyl::compute_array()
   double sqrtD;
   double lower_z,upper_z;
 
-  for (ii = 0; ii < inum; ii++) 
+  for (ii = 0; ii < inum; ii++)
   {
     i = ilist[ii];
     if (!(mask[i] & groupbit)) continue;
@@ -302,7 +302,7 @@ void ComputePressureCyl::compute_array()
 
     r1=x[i][0]*x[i][0]+x[i][1]*x[i][1];
 
-    for (jj = 0; jj < jnum; jj++) 
+    for (jj = 0; jj < jnum; jj++)
     {
       j = jlist[jj];
       factor_lj = special_lj[sbmask(j)];
@@ -313,21 +313,21 @@ void ComputePressureCyl::compute_array()
 
       // itag = jtag is possible for long cutoffs that include images of self
       // do calculation only on appropriate processor
-      if (newton_pair == 0 && j >= nlocal) 
+      if (newton_pair == 0 && j >= nlocal)
       {
         jtag = tag[j];
-        if (itag > jtag) 
+        if (itag > jtag)
         {
           if ((itag+jtag) % 2 == 0) continue;
-        } 
-        else if (itag < jtag) 
+        }
+        else if (itag < jtag)
         {
           if ((itag+jtag) % 2 == 1) continue;
-        }  
-        else 
+        }
+        else
         {
           if (x[j][2] < ztmp) continue;
-          if (x[j][2] == ztmp) 
+          if (x[j][2] == ztmp)
           {
             if (x[j][1] < ytmp) continue;
             if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
@@ -458,7 +458,7 @@ void ComputePressureCyl::compute_array()
         xL=xi+alpha*dx;
         yL=yi+alpha*dy;
 
-        L2=xL*xL+yL*yL; 
+        L2=xL*xL+yL*yL;
 
         if (L2>R2kin[nbins-1]) continue;
 
@@ -475,7 +475,7 @@ void ComputePressureCyl::compute_array()
   }
 
   // calculate pressure (force over area)
-  for (ibin=0;ibin<nbins;ibin++) 
+  for (ibin=0;ibin<nbins;ibin++)
   {
     Pr_temp[ibin]*=PrAinv[ibin]*Rinv[ibin];
     Pphi_temp[ibin]*=PphiAinv;
@@ -488,7 +488,7 @@ void ComputePressureCyl::compute_array()
   MPI_Allreduce(Pz_temp,Pz_all,nbins,MPI_DOUBLE,MPI_SUM,world);
 
   // populate array
-  for (ibin=0;ibin<nbins;ibin++) 
+  for (ibin=0;ibin<nbins;ibin++)
   {
     array[ibin][0]=R[ibin];
     array[ibin][2]=Pr_all[ibin]*nktv2p;
@@ -504,7 +504,7 @@ memory usage of data
 
 double ComputePressureCyl::memory_usage()
 {
-  double bytes = 
+  double bytes =
   (3.0*(double)nphi + 16.0*(double)nbins+5.0*(double)nbins) * sizeof(double);
   return bytes;
 }

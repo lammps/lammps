@@ -67,6 +67,7 @@ Computes :h1
    compute_pe_atom
    compute_plasticity_atom
    compute_pressure
+   compute_pressure_cylinder
    compute_pressure_uef
    compute_property_atom
    compute_property_chunk

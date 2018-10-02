@@ -69,7 +69,7 @@ The flipping type {flip-type} can be chosen between 4 types described in
 "(Hijazi)"_#Hijazi. The flipping operation occurs during the thermostatting
 step and it flips the momenta of the atoms. If no_flip is chosen, no flip
 will be executed and the integration will be the same as a standard
-Langevin thermostat "(Bussi)"_#Bussi. The other flipping types are : rescale - hard - soft.
+Langevin thermostat "(Bussi)"_#Bussi3. The other flipping types are : rescale - hard - soft.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
@@ -119,6 +119,6 @@ dpd/tstat"_pair_dpd.html, "fix gld"_fix_gld.html, "fix gle"_fix_gle.html
 
 :link(Hijazi)
 [(Hijazi)] M. Hijazi, D. M. Wilkins, M. Ceriotti, J. Chem. Phys. 148, 184109 (2018)
-:link(Bussi)
+:link(Bussi3)
 [(Bussi)] G. Bussi, M. Parrinello, Phs. Rev. E 75, 056707 (2007)
 

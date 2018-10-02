@@ -14,6 +14,7 @@
 /* ------------------------------------------------------------------------
    Contributing authors: Julien Tranchida (SNL)
                          Aidan Thompson (SNL)
+			 Mitch Wood (SNL)
 
    Please cite the related publication:
    Tranchida, J., Plimpton, S. J., Thibaudeau, P., & Thompson, A. P. (2018).
@@ -62,14 +63,29 @@ PairSpinNeel::~PairSpinNeel()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cut_spin_neel);
+    memory->destroy(r0);
+
     memory->destroy(g1);
-    memory->destroy(g1_mech);
     memory->destroy(g2);
     memory->destroy(g3);
+    memory->destroy(g4);
+    memory->destroy(g5);
+    memory->destroy(gm1);
+    memory->destroy(gm2);
+    memory->destroy(gm3);
+    memory->destroy(gm4);
+    memory->destroy(gm5);
+    
     memory->destroy(q1);
-    memory->destroy(q1_mech);
     memory->destroy(q2);
     memory->destroy(q3);
+    memory->destroy(q4);
+    memory->destroy(q5);
+    memory->destroy(qm1);
+    memory->destroy(qm2);
+    memory->destroy(qm3);
+    memory->destroy(qm4);
+    memory->destroy(qm5);
     memory->destroy(cutsq); // to be deleted
   }
 }
@@ -115,7 +131,7 @@ void PairSpinNeel::coeff(int narg, char **arg)
 
   if (strcmp(arg[2],"neel") != 0)
     error->all(FLERR,"Incorrect args in pair_style command");
-  if (narg != 10)
+  if (narg != 15)
     error->all(FLERR,"Incorrect args in pair_style command");
 
   int ilo,ihi,jlo,jhi;
@@ -123,25 +139,45 @@ void PairSpinNeel::coeff(int narg, char **arg)
   force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
   const double rij = force->numeric(FLERR,arg[3]);
-  const double k1 = force->numeric(FLERR,arg[4]);
-  const double k2 = force->numeric(FLERR,arg[5]);
-  const double k3 = force->numeric(FLERR,arg[6]);
-  const double l1 = force->numeric(FLERR,arg[7]);
-  const double l2 = force->numeric(FLERR,arg[8]);
-  const double l3 = force->numeric(FLERR,arg[9]);
+  const double ro = force->numeric(FLERR,arg[4]);
+  const double k1 = force->numeric(FLERR,arg[5]);
+  const double k2 = force->numeric(FLERR,arg[6]);
+  const double k3 = force->numeric(FLERR,arg[7]);
+  const double k4 = force->numeric(FLERR,arg[8]);
+  const double k5 = force->numeric(FLERR,arg[9]);
+  const double l1 = force->numeric(FLERR,arg[10]);
+  const double l2 = force->numeric(FLERR,arg[11]);
+  const double l3 = force->numeric(FLERR,arg[12]);
+  const double l4 = force->numeric(FLERR,arg[13]);
+  const double l5 = force->numeric(FLERR,arg[14]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
       cut_spin_neel[i][j] = rij;
+      r0[i][j] = ro;
+
       g1[i][j] = k1/hbar;
+      g2[i][j] = k2/hbar;
+      g3[i][j] = k3/hbar;
+      g4[i][j] = k4/hbar;
+      g5[i][j] = k5/hbar;
+      gm1[i][j] = k1;
+      gm2[i][j] = k2;
+      gm3[i][j] = k3;
+      gm4[i][j] = k4;
+      gm5[i][j] = k5;
+      
       q1[i][j] = l1/hbar;
-      g1_mech[i][j] = k1;
-      q1_mech[i][j] = l1;
-      g2[i][j] = k2;
-      g3[i][j] = k3;
-      q2[i][j] = l2;
-      q3[i][j] = l3;
+      q2[i][j] = l2/hbar;
+      q3[i][j] = l3/hbar;
+      q4[i][j] = l4/hbar;
+      q5[i][j] = l5/hbar;
+      qm1[i][j] = l1;
+      qm2[i][j] = l2;
+      qm3[i][j] = l3;
+      qm4[i][j] = l4;
+      qm5[i][j] = l5;
       setflag[i][j] = 1;
       count++;
     }
@@ -195,14 +231,30 @@ double PairSpinNeel::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
+  cut_spin_neel[j][i] = cut_spin_neel[i][j];
+  r0[j][i] = r0[i][j];
+
   g1[j][i] = g1[i][j];
-  g1_mech[j][i] = g1_mech[i][j];
   g2[j][i] = g2[i][j];
   g3[j][i] = g3[i][j];
+  g4[j][i] = g4[i][j];
+  g5[j][i] = g5[i][j];
+  gm1[j][i] = gm1[i][j];
+  gm2[j][i] = gm2[i][j];
+  gm3[j][i] = gm3[i][j];
+  gm4[j][i] = gm4[i][j];
+  gm5[j][i] = gm5[i][j];
+
   q1[j][i] = q1[i][j];
-  q1_mech[j][i] = q1_mech[i][j];
   q2[j][i] = q2[i][j];
   q3[j][i] = q3[i][j];
+  q4[j][i] = q4[i][j];
+  q5[j][i] = q5[i][j];
+  qm1[j][i] = qm1[i][j];
+  qm2[j][i] = qm2[i][j];
+  qm3[j][i] = qm3[i][j];
+  qm4[j][i] = qm4[i][j];
+  qm5[j][i] = qm5[i][j];
 
   return cut_spin_neel_global;
 }
@@ -317,8 +369,10 @@ void PairSpinNeel::compute(int eflag, int vflag)
       }
 
       if (eflag) {
-        evdwl = (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
-        evdwl *= hbar;
+        //evdwl = (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
+        //evdwl *= hbar;
+	evdwl = compute_neel_energy(i,j,rsq,eij,spi,spj);
+
       } else evdwl = 0.0;
 
       if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
@@ -397,204 +451,236 @@ void PairSpinNeel::compute_single_pair(int ii, double fmi[3])
 
 /* ---------------------------------------------------------------------- */
 
-void PairSpinNeel::compute_neel(int i, int j, double rsq, double eij[3], double fmi[3],  double spi[3], double spj[3])
+void PairSpinNeel::compute_neel(int i, int j, double rsq, double eij[3], double fmi[3], 
+    double spi[3], double spj[3])
 {
   int *type = atom->type;
   int itype, jtype;
   itype = type[i];
   jtype = type[j];
 
-  double gij, q1ij, q2ij, ra;
-  double pdx, pdy, pdz;
-  double pq1x, pq1y, pq1z;
-  double pq2x, pq2y, pq2z;
+  double ro,rij,ri3;
+  double r1,r2,r3,r4;
+  double qr,gr,g1r,q1r,q2r;
+  double ga,gb,gc,gd,ge;
+  double qa,qb,qc,qd,qe;
+  double eij_si,eij_sj,si_sj;
+  double coeff0,coeff1,coeff2,coeff3,coeff4;
+  double fix,fiy,fiz;
 
-  // pseudo-dipolar component
+  ro = r0[itype][jtype];
+  rij = sqrt(rsq);
 
-  ra = rsq/g3[itype][jtype]/g3[itype][jtype];
-  gij = 4.0*g1[itype][jtype]*ra;
-  gij *= (1.0-g2[itype][jtype]*ra);
-  gij *= exp(-ra);
+  ga = g1[itype][jtype];
+  gb = g2[itype][jtype];
+  gc = g3[itype][jtype];
+  gd = g4[itype][jtype];
+  ge = g5[itype][jtype];
 
-  double scalar_eij_si = eij[0]*spi[0] + eij[1]*spi[1] + eij[2]*spi[2];
-  double scalar_eij_sj = eij[0]*spj[0] + eij[1]*spj[1] + eij[2]*spj[2];
-  double scalar_si_sj = spi[0]*spj[0] + spi[1]*spj[1] + spi[2]*spj[2];
+  qa = q1[itype][jtype];
+  qb = q2[itype][jtype];
+  qc = q3[itype][jtype];
+  qd = q4[itype][jtype];
+  qe = q5[itype][jtype];
 
-  double gij_eij_sj = gij*scalar_eij_sj;
-  double gij_3 = gij/3.0;
-  pdx = gij_eij_sj*eij[0] - gij_3*spj[0];
-  pdy = gij_eij_sj*eij[1] - gij_3*spj[1];
-  pdz = gij_eij_sj*eij[2] - gij_3*spj[2];
+  ri3 = 1.0 / 3.0;
+  r1 = (rij-ro);
+  r2 = r1*r1;
+  r3 = r2*r1;
+  r4 = r2*r2;
 
-  // pseudo-quadrupolar component
+  gr = ga + gb*r1 + gc*r2 * gd*r3 + ge*r4;
+  qr = qa + qb*r1 + qc*r2 * qd*r3 + qe*r4;
 
-  ra = rsq/q3[itype][jtype]/q3[itype][jtype];
-  q1ij = 4.0*q1[itype][jtype]*ra;
-  q1ij *= (1.0-q2[itype][jtype]*ra);
-  q1ij *= exp(-ra);
-  q2ij = (-2.0*q1ij/9.0);
+  g1r = gr + 12.0*qr/35.0;
+  q1r = 9.0*qr/5.0;
+  q2r = -2.0*qr/5.0;
 
-  double scalar_eij_si_2 = scalar_eij_si*scalar_eij_si;
-  pq1x = -(scalar_eij_si_2*scalar_eij_si_2 - scalar_si_sj/3.0)*spj[0]/3.0;
-  pq1y = -(scalar_eij_si_2*scalar_eij_si_2 - scalar_si_sj/3.0)*spj[1]/3.0;
-  pq1z = -(scalar_eij_si_2*scalar_eij_si_2 - scalar_si_sj/3.0)*spj[2]/3.0;
+  eij_si = eij[0]*spi[0] + eij[1]*spi[1] + eij[2]*spi[2];
+  eij_sj = eij[0]*spj[0] + eij[1]*spj[1] + eij[2]*spj[2];
+  si_sj = spi[0]*spj[0] + spi[1]*spj[1] + spi[2]*spj[2];
+  
+  fix = g1r * (eij[0]*eij_sj - spj[0]*ri3);
+  fiy = g1r * (eij[1]*eij_sj - spj[1]*ri3);
+  fiz = g1r * (eij[2]*eij_sj - spj[2]*ri3);
+ 
+  coeff0 = q1r * (eij_sj*eij_sj - si_sj*ri3);
+  coeff1 = coeff0 * 2.0 * eij_si;
+  coeff2 = q1r * eij_si*eij_si - si_sj*ri3;
+  fix += coeff1*eij[0] - spj[0]*ri3*(coeff0 + coeff2);
+  fiy += coeff1*eij[1] - spj[1]*ri3*(coeff0 + coeff2);
+  fiz += coeff1*eij[2] - spj[2]*ri3*(coeff0 + coeff2);
 
-  double pqt1 = (scalar_eij_sj*scalar_eij_sj-scalar_si_sj/3.0);
-  pq1x += pqt1*(2.0*scalar_eij_si*eij[0] - spj[0]/3.0);
-  pq1y += pqt1*(2.0*scalar_eij_si*eij[1] - spj[1]/3.0);
-  pq1z += pqt1*(2.0*scalar_eij_si*eij[2] - spj[2]/3.0);
+  coeff3 = q2r*eij_sj*eij_sj*eij_sj;
+  coeff4 = 3.0*q2r*eij_sj*eij_si*eij_si;
+  fix += (coeff3 + coeff4) * eij[0];
+  fiy += (coeff3 + coeff4) * eij[1];
+  fiz += (coeff3 + coeff4) * eij[2];
 
-  pq1x *= q1ij;
-  pq1y *= q1ij;
-  pq1z *= q1ij;
-
-  double scalar_eij_sj_3 = scalar_eij_sj*scalar_eij_sj*scalar_eij_sj;
-  pq2x = 3.0*scalar_eij_si_2*scalar_eij_sj*eij[0] + scalar_eij_sj_3*eij[0];
-  pq2y = 3.0*scalar_eij_si_2*scalar_eij_sj*eij[1] + scalar_eij_sj_3*eij[1];
-  pq2z = 3.0*scalar_eij_si_2*scalar_eij_sj*eij[2] + scalar_eij_sj_3*eij[2];
-
-  pq2x *= q2ij;
-  pq2y *= q2ij;
-  pq2z *= q2ij;
-
-  // adding three contributions
-
-  fmi[0] += (pdx + pq1x + pq2x);
-  fmi[1] += (pdy + pq1y + pq2y);
-  fmi[2] += (pdz + pq1z + pq2z);
+  fmi[0] += fix;
+  fmi[1] += fiy;
+  fmi[2] += fiz;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairSpinNeel::compute_neel_mech(int i, int j, double rsq, double eij[3], double fi[3],  double spi[3], double spj[3])
+void PairSpinNeel::compute_neel_mech(int i, int j, double rsq, double eij[3], 
+    double fi[3], double spi[3], double spj[3])
+{
+  int *type = atom->type;
+  int itype, jtype;
+  itype = type[i];
+  jtype = type[j];
+  
+  double ro,rij,ri3;
+  double r1,r2,r3,r4;
+  double qr,gr,g1r,q1r,q2r;
+  double dqr,dgr,dg1r,dq1r,dq2r;
+  double ga,gb,gc,gd,ge;
+  double qa,qb,qc,qd,qe;
+  double dga,dgb,dgc,dgd,dge;
+  double dqa,dqb,dqc,dqd,dqe;
+  double eij_si,eij_sj,si_sj;
+  double coeff1,coeff2,coeff3,coeff4;
+  double coeff5,coeff6,coeff7,coeff8;
+  double coeff9,coeff10,coeff11,coeff12;
+  double fix,fiy,fiz;
+
+  ro = r0[itype][jtype];
+  rij = sqrt(rsq);
+
+  ga = g1[itype][jtype];
+  gb = g2[itype][jtype];
+  gc = g3[itype][jtype];
+  gd = g4[itype][jtype];
+  ge = g5[itype][jtype];
+
+  qa = q1[itype][jtype];
+  qb = q2[itype][jtype];
+  qc = q3[itype][jtype];
+  qd = q4[itype][jtype];
+  qe = q5[itype][jtype];
+
+  ri3 = 1.0 / 3.0; 
+  r1 = (rij-ro);
+  r2 = r1*r1;
+  r3 = r2*r1;
+  r4 = r2*r2;
+
+  gr = ga + gb*r1 + gc*r2 * gd*r3 + ge*r4;
+  qr = qa + qb*r1 + qc*r2 * qd*r3 + qe*r4;
+  
+  dgr = gb + 2.0*gc*r1 + 3.0*gd*r2 + 4.0*ge*r3;
+  dqr = qb + 2.0*qc*r1 + 3.0*qd*r2 + 4.0*qe*r3;
+  
+  g1r = gr + 12.0*qr/35.0;
+  q1r = 9.0*qr/5.0;
+  q2r = -2.0*qr/5.0;
+  
+  dg1r = dgr + 12.0*dqr/35.0;
+  dq1r = 9.0*dqr/5.0;
+  dq2r = -2.0*dqr/5.0;
+
+  eij_si = eij[0]*spi[0] + eij[1]*spi[1] + eij[2]*spi[2];
+  eij_sj = eij[0]*spj[0] + eij[1]*spj[1] + eij[2]*spj[2];
+  si_sj = spi[0]*spj[0] + spi[1]*spj[1] + spi[2]*spj[2];
+
+  coeff1 = dg1r * (eij_si*eij_sj - si_sj*ri3);
+  coeff2 = dq1r * (eij_si*eij_si - si_sj*ri3) * (eij_sj*eij_sj - si_sj*ri3); 
+  coeff3 = dq2r * (eij_sj*eij_si*eij_si*eij_si + eij_si*eij_sj*eij_sj*eij_sj);
+
+  fix = (coeff1 + coeff2 + coeff3) * eij[0];
+  fiy = (coeff1 + coeff2 + coeff3) * eij[1];
+  fiz = (coeff1 + coeff2 + coeff3) * eij[2];
+
+  coeff4 = g1r * eij_sj / rij;
+  coeff5 = g1r * eij_si / rij;
+  coeff6 = -2.0 * g1r * eij_si * eij_sj / rij;
+
+  fix += coeff4*spi[0] + coeff5*spj[0] + coeff6*eij[0];
+  fiy += coeff4*spi[1] + coeff5*spj[1] + coeff6*eij[1];
+  fiz += coeff4*spi[2] + coeff5*spj[2] + coeff6*eij[2];
+
+  coeff7 = q1r*2.0*eij_si*(eij_sj*eij_sj*eij_sj - si_sj*ri3)/rij;
+  coeff8 = q1r*2.0*eij_sj*(eij_si*eij_si*eij_si - si_sj*ri3)/rij;
+  coeff9 = q1r*2.0*(2.0*eij_si*eij_si*eij_sj*eij_sj 
+      + si_sj*si_sj*ri3*(eij_si+eij_sj))/rij;
+
+  fix += coeff7*spi[0] + coeff8*spj[0] + coeff9*eij[0];
+  fiy += coeff7*spi[1] + coeff8*spj[1] + coeff9*eij[1];
+  fiz += coeff7*spi[2] + coeff8*spj[2] + coeff9*eij[2];
+
+  coeff10 = q2r*eij_sj*(eij_sj*eij_sj + 3.0*eij_si*eij_si)/rij;
+  coeff11 = q2r*eij_si*(eij_si*eij_si + 3.0*eij_sj*eij_sj)/rij;
+  coeff12 = -q2r*4.0*eij_si*eij_sj*(eij_si*eij_si + eij_sj*eij_sj)/rij;
+
+  fix += coeff10*spi[0] + coeff11*spj[0] + coeff12*eij[0];
+  fix += coeff10*spi[1] + coeff11*spj[1] + coeff12*eij[1];
+  fix += coeff10*spi[2] + coeff11*spj[2] + coeff12*eij[2];
+
+  fi[0] += fix;
+  fi[1] += fiy;
+  fi[2] += fiz;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double PairSpinNeel::compute_neel_energy(int i, int j, double rsq, double eij[3], 
+    double spi[3], double spj[3])
 {
   int *type = atom->type;
   int itype, jtype;
   itype = type[i];
   jtype = type[j];
 
-  double g_mech, gij, dgij;
-  double q_mech, q1ij, dq1ij;
-  double q2ij, dq2ij;
-  double pdx, pdy, pdz;
-  double pq1x, pq1y, pq1z;
-  double pq2x, pq2y, pq2z;
-  double ra, rr, drij, ig3, iq3;
+  double ro,rij,ri3;
+  double r1,r2,r3,r4;
+  double qr,gr,g1r,q1r,q2r;
+  double ga,gb,gc,gd,ge;
+  double qa,qb,qc,qd,qe;
+  double eij_si,eij_sj,si_sj;
+  double energy;
 
-  drij = sqrt(rsq);
+  ro = r0[itype][jtype];
+  rij = sqrt(rsq);
 
-  double scalar_si_sj = spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2];
-  double scalar_eij_si = eij[0]*spi[0]+eij[1]*spi[1]+eij[2]*spi[2];
-  double scalar_eij_sj = eij[0]*spj[0]+eij[1]*spj[1]+eij[2]*spj[2];
+  ga = g1[itype][jtype];
+  gb = g2[itype][jtype];
+  gc = g3[itype][jtype];
+  gd = g4[itype][jtype];
+  ge = g5[itype][jtype];
 
-  // pseudo-dipolar component
+  qa = q1[itype][jtype];
+  qb = q2[itype][jtype];
+  qc = q3[itype][jtype];
+  qd = q4[itype][jtype];
+  qe = q5[itype][jtype];
 
-  g_mech = g1_mech[itype][jtype];
-  ig3 = 1.0/(g3[itype][jtype]*g3[itype][jtype]);
+  ri3 = 1.0 / 3.0;
+  r1 = (rij-ro);
+  r2 = r1*r1;
+  r3 = r2*r1;
+  r4 = r2*r2;
 
-  ra = rsq*ig3;
-  rr = drij*ig3;
+  gr = ga + gb*r1 + gc*r2 * gd*r3 + ge*r4;
+  qr = qa + qb*r1 + qc*r2 * qd*r3 + qe*r4;
 
-  gij = 4.0*g_mech*ra;
-  gij *= (1.0-g2[itype][jtype]*ra);
-  gij *= exp(-ra);
+  g1r = gr + 12.0*qr/35.0;
+  q1r = 9.0*qr/5.0;
+  q2r = -2.0*qr/5.0;
 
-  dgij = 1.0-ra-g2[itype][jtype]*ra*(2.0-ra);
-  dgij *= 8.0*g_mech*rr*exp(-ra);
-
-  double pdt1 = (dgij-2.0*gij/drij)*scalar_eij_si*scalar_eij_sj;
-  pdt1 -= scalar_si_sj*dgij/3.0;
-  double pdt2 = scalar_eij_sj*gij/drij;
-  double pdt3 = scalar_eij_si*gij/drij;
-  pdx = -(pdt1*eij[0] + pdt2*spi[0] + pdt3*spj[0]);
-  pdy = -(pdt1*eij[1] + pdt2*spi[1] + pdt3*spj[1]);
-  pdz = -(pdt1*eij[2] + pdt2*spi[2] + pdt3*spj[2]);
-
-  // pseudo-quadrupolar component
-
-  q_mech = q1_mech[itype][jtype];
-  iq3 = 1.0/(q3[itype][jtype]*q3[itype][jtype]);
-
-  ra = rsq*iq3;
-  rr = drij*iq3;
-
-  q1ij = 4.0*q_mech*ra;
-  q1ij *= (1.0-q2[itype][jtype]*ra);
-  q1ij *= exp(-ra);
-  q2ij = -2.0*q1ij/9.0;
-
-  dq1ij = 1.0-ra-q2[itype][jtype]*ra*(2.0-ra);
-  dq1ij *= 8.0*q_mech*rr*exp(-ra);
-  dq2ij = -2.0*dq1ij/9.0;
-
-  double scalar_eij_si_2 = scalar_eij_si*scalar_eij_si;
-  double scalar_eij_sj_2 = scalar_eij_sj*scalar_eij_sj;
-  double pqt1 = scalar_eij_si_2 - scalar_si_sj/3.0;
-  double pqt2 = scalar_eij_sj_2 - scalar_si_sj/3.0;
-  pq1x = dq1ij * pqt1 * pqt2 * eij[0];
-  pq1y = dq1ij * pqt1 * pqt2 * eij[1];
-  pq1z = dq1ij * pqt1 * pqt2 * eij[2];
-
-  double scalar_eij_si_3 = scalar_eij_si*scalar_eij_si*scalar_eij_si;
-  double scalar_eij_sj_3 = scalar_eij_sj*scalar_eij_sj*scalar_eij_sj;
-  double scalar_si_sj_2 = scalar_si_sj*scalar_si_sj;
-/*  double pqt3 = 2.0*scalar_eij_si*scalar_eij_sj_3/drij;
-  double pqt4 = 2.0*scalar_eij_sj*scalar_eij_si_3/drij;
-  double pqt5 = -2.0*scalar_si_sj*scalar_eij_si/(3.0*drij);
-  double pqt6 = -2.0*scalar_si_sj*scalar_eij_sj/(3.0*drij);
-//  pq1x += q1ij*(spi[0]*(pqt3+pqt6) + spj[0]*(pqt4+));
-  pq1x += q1ij*(pqt3*spi[0]+pqt4*spj[0]+pqt5*spi[0]+pqt6*spi[0]);
-  pq1y += q1ij*(pqt3*spi[1]+pqt4*spj[1]+pqt5*spi[1]+pqt6*spj[1]);
-  pq1z += q1ij*(pqt3*spi[2]+pqt4*spj[2]+pqt5*spi[2]+pqt6*spj[2]);
-*/
-  double pqt3 = 2.0*scalar_eij_si*(scalar_eij_sj_2-scalar_si_sj/3.0)/drij;
-  double pqt4 = 2.0*scalar_eij_sj*(scalar_eij_si_2-scalar_si_sj/3.0)/drij;
-  pq1x += q1ij*(pqt3*spi[0] + pqt4*spj[0]);
-  pq1y += q1ij*(pqt3*spi[1] + pqt4*spj[1]);
-  pq1z += q1ij*(pqt3*spi[2] + pqt4*spj[2]);
-  double pqt7 = 4.0*scalar_eij_si_2*scalar_eij_sj_2/drij;
-  double pqt8 = 2.0*scalar_si_sj_2*scalar_eij_sj/(3.0*drij);
-  double pqt9 = 2.0*scalar_si_sj_2*scalar_eij_si/(3.0*drij);
-  pq1x -= q1ij*(pqt7 + pqt8 + pqt9)*eij[0];
-  pq1y -= q1ij*(pqt7 + pqt8 + pqt9)*eij[1];
-  pq1z -= q1ij*(pqt7 + pqt8 + pqt9)*eij[2];
-
-/*
-  double pqt3 = 2.0*scalar_eij_si*(scalar_eij_sj_2-scalar_si_sj/3.0)/drij;
-  double pqt4 = 2.0*scalar_eij_sj*(scalar_eij_si_2-scalar_si_sj/3.0)/drij;
-  pq1x += q1ij*(pqt3*spi[0] + pqt4*spj[0]);
-  pq1y += q1ij*(pqt3*spi[1] + pqt4*spj[1]);
-  pq1z += q1ij*(pqt3*spi[2] + pqt4*spj[2]);
-*/
-
-  //double scalar_eij_si_3 = scalar_eij_si*scalar_eij_si*scalar_eij_si;
-  //double scalar_eij_sj_3 = scalar_eij_sj*scalar_eij_sj*scalar_eij_sj;
-  double pqt10 = scalar_eij_sj*scalar_eij_si_3;
-  double pqt11 = scalar_eij_si*scalar_eij_sj_3;
-  pq2x = dq2ij*(pqt10 + pqt11)*eij[0];
-  pq2y = dq2ij*(pqt10 + pqt11)*eij[1];
-  pq2z = dq2ij*(pqt10 + pqt11)*eij[2];
-
-  double pqt12 = scalar_eij_si_3/drij;
-  double pqt13 = scalar_eij_sj_3/drij;
-  double pqt14 = 3.0*scalar_eij_sj*scalar_eij_si_2/drij;
-  double pqt15 = 3.0*scalar_eij_si*scalar_eij_sj_2/drij;
-  pq2x += q2ij*((pqt12+pqt15)*spj[0]+(pqt13+pqt14)*spi[0]);
-  pq2y += q2ij*((pqt12+pqt15)*spj[1]+(pqt13+pqt14)*spi[1]);
-  pq2z += q2ij*((pqt12+pqt15)*spj[2]+(pqt13+pqt14)*spi[2]);
-  double pqt16 = 4.0*scalar_eij_sj*scalar_eij_si_3/drij;
-  double pqt17 = 4.0*scalar_eij_si*scalar_eij_sj_3/drij;
-  pq2x -= q2ij*(pqt16 + pqt17)*eij[0];
-  pq2y -= q2ij*(pqt16 + pqt17)*eij[1];
-  pq2z -= q2ij*(pqt16 + pqt17)*eij[2];
-
-  // adding three contributions
-
-  fi[0] = pdx + pq1x + pq2x;
-  fi[1] = pdy + pq1y + pq2y;
-  fi[2] = pdz + pq1z + pq2z;
+  eij_si = eij[0]*spi[0] + eij[1]*spi[1] + eij[2]*spi[2];
+  eij_sj = eij[0]*spj[0] + eij[1]*spj[1] + eij[2]*spj[2];
+  si_sj = spi[0]*spj[0] + spi[1]*spj[1] + spi[2]*spj[2];
+  
+  energy = g1r*(eij_si*eij_sj - si_sj*ri3);
+  energy += q1r*(eij_si*eij_si - si_sj*ri3)*(eij_sj*eij_sj - si_sj*ri3);
+  energy += q2r*eij_sj*eij_si*(eij_si*eij_si + eij_sj*eij_sj);
+  energy *= (-hbar);
+  
+  return energy;
 }
-
+  
 /* ----------------------------------------------------------------------
    allocate all arrays
 ------------------------------------------------------------------------- */
@@ -610,21 +696,32 @@ void PairSpinNeel::allocate()
       setflag[i][j] = 0;
 
   memory->create(cut_spin_neel,n+1,n+1,"pair/spin/soc/neel:cut_spin_neel");
+  memory->create(r0,n+1,n+1,"pair/spin/soc/neel:r0");
 
-  memory->create(g1,n+1,n+1,"pair/spin/soc/neel:g1");
-  memory->create(g1_mech,n+1,n+1,"pair/spin/soc/neel:g1_mech");
-  memory->create(g2,n+1,n+1,"pair/spin/soc/neel:g2");
-  memory->create(g3,n+1,n+1,"pair/spin/soc/neel:g3");
+  memory->create(g1,n+1,n+1,"pair/spin/neel:g1");
+  memory->create(gm1,n+1,n+1,"pair/spin/neel:gm1");
+  memory->create(g2,n+1,n+1,"pair/spin/neel:g2");
+  memory->create(gm2,n+1,n+1,"pair/spin/neel:gm2");
+  memory->create(g3,n+1,n+1,"pair/spin/neel:g3");
+  memory->create(gm3,n+1,n+1,"pair/spin/neel:gm3");
+  memory->create(g4,n+1,n+1,"pair/spin/neel:g4");
+  memory->create(gm4,n+1,n+1,"pair/spin/neel:gm4");
+  memory->create(g5,n+1,n+1,"pair/spin/neel:g5");
+  memory->create(gm5,n+1,n+1,"pair/spin/neel:gm5");
 
-  memory->create(q1,n+1,n+1,"pair/spin/soc/neel:q1");
-  memory->create(q1_mech,n+1,n+1,"pair/spin/soc/neel:q1_mech");
-  memory->create(q2,n+1,n+1,"pair/spin/soc/neel:q2");
-  memory->create(q3,n+1,n+1,"pair/spin/soc/neel:q3");
+  memory->create(q1,n+1,n+1,"pair/spin/neel:q1");
+  memory->create(qm1,n+1,n+1,"pair/spin/neel:qm1");
+  memory->create(q2,n+1,n+1,"pair/spin/neel:q2");
+  memory->create(qm2,n+1,n+1,"pair/spin/neel:qm2");
+  memory->create(q3,n+1,n+1,"pair/spin/neel:q3");
+  memory->create(qm3,n+1,n+1,"pair/spin/neel:qm3");
+  memory->create(q4,n+1,n+1,"pair/spin/neel:q4");
+  memory->create(qm4,n+1,n+1,"pair/spin/neel:qm4");
+  memory->create(q5,n+1,n+1,"pair/spin/neel:q5");
+  memory->create(qm5,n+1,n+1,"pair/spin/neel:qm5");
 
   memory->create(cutsq,n+1,n+1,"pair/spin/soc/neel:cutsq");
-
 }
-
 
 /* ----------------------------------------------------------------------
    proc 0 writes to restart file
@@ -639,14 +736,27 @@ void PairSpinNeel::write_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
-        fwrite(&g1[i][j],sizeof(double),1,fp);
-        fwrite(&g1_mech[i][j],sizeof(double),1,fp);
-        fwrite(&g2[i][j],sizeof(double),1,fp);
-        fwrite(&g3[i][j],sizeof(double),1,fp);
         fwrite(&q1[i][j],sizeof(double),1,fp);
-        fwrite(&q1_mech[i][j],sizeof(double),1,fp);
         fwrite(&q2[i][j],sizeof(double),1,fp);
         fwrite(&q3[i][j],sizeof(double),1,fp);
+        fwrite(&q4[i][j],sizeof(double),1,fp);
+        fwrite(&q5[i][j],sizeof(double),1,fp);
+        fwrite(&qm1[i][j],sizeof(double),1,fp);
+        fwrite(&qm2[i][j],sizeof(double),1,fp);
+        fwrite(&qm3[i][j],sizeof(double),1,fp);
+        fwrite(&qm4[i][j],sizeof(double),1,fp);
+        fwrite(&qm5[i][j],sizeof(double),1,fp);
+
+        fwrite(&q1[i][j],sizeof(double),1,fp);
+        fwrite(&q2[i][j],sizeof(double),1,fp);
+        fwrite(&q3[i][j],sizeof(double),1,fp);
+        fwrite(&q4[i][j],sizeof(double),1,fp);
+        fwrite(&q5[i][j],sizeof(double),1,fp);
+        fwrite(&qm1[i][j],sizeof(double),1,fp);
+        fwrite(&qm2[i][j],sizeof(double),1,fp);
+        fwrite(&qm3[i][j],sizeof(double),1,fp);
+        fwrite(&qm4[i][j],sizeof(double),1,fp);
+        fwrite(&qm5[i][j],sizeof(double),1,fp);
         fwrite(&cut_spin_neel[i][j],sizeof(double),1,fp);
       }
     }
@@ -670,25 +780,53 @@ void PairSpinNeel::read_restart(FILE *fp)
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
+          fread(&r0[i][j],sizeof(double),1,fp);
+
           fread(&g1[i][j],sizeof(double),1,fp);
-          fread(&g1_mech[i][j],sizeof(double),1,fp);
           fread(&g2[i][j],sizeof(double),1,fp);
-          fread(&g2[i][j],sizeof(double),1,fp);
+          fread(&g3[i][j],sizeof(double),1,fp);
+          fread(&g4[i][j],sizeof(double),1,fp);
+          fread(&g5[i][j],sizeof(double),1,fp);
+          fread(&gm1[i][j],sizeof(double),1,fp);
+          fread(&gm2[i][j],sizeof(double),1,fp);
+          fread(&gm3[i][j],sizeof(double),1,fp);
+          fread(&gm4[i][j],sizeof(double),1,fp);
+          fread(&gm5[i][j],sizeof(double),1,fp);
+          
           fread(&q1[i][j],sizeof(double),1,fp);
-          fread(&q1_mech[i][j],sizeof(double),1,fp);
           fread(&q2[i][j],sizeof(double),1,fp);
-          fread(&q2[i][j],sizeof(double),1,fp);
-          fread(&cut_spin_neel[i][j],sizeof(double),1,fp);
+          fread(&q3[i][j],sizeof(double),1,fp);
+          fread(&q4[i][j],sizeof(double),1,fp);
+          fread(&q5[i][j],sizeof(double),1,fp);
+          fread(&qm1[i][j],sizeof(double),1,fp);
+          fread(&qm2[i][j],sizeof(double),1,fp);
+          fread(&qm3[i][j],sizeof(double),1,fp);
+          fread(&qm4[i][j],sizeof(double),1,fp);
+          fread(&qm5[i][j],sizeof(double),1,fp);
         }
-        MPI_Bcast(&g1[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&g1_mech[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&r0[i][j],1,MPI_DOUBLE,0,world);
+        
+	MPI_Bcast(&g1[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&g2[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&g3[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&q1[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&q1_mech[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&g4[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&g5[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&gm1[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&gm2[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&gm3[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&gm4[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&gm5[i][j],1,MPI_DOUBLE,0,world);
+        
+	MPI_Bcast(&q1[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&q2[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&q3[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&cut_spin_neel[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&q4[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&q5[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&qm1[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&qm2[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&qm3[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&qm4[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&qm5[i][j],1,MPI_DOUBLE,0,world);
       }
     }
   }

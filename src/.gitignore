@@ -424,6 +424,8 @@
 /fix_eos_table.h
 /fix_evaporate.cpp
 /fix_evaporate.h
+/fix_ffl.cpp
+/fix_ffl.h
 /fix_filter_corotate.cpp
 /fix_filter_corotate.h
 /fix_viscosity.cpp

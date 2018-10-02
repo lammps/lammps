@@ -11,21 +11,25 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include "fix_deprecated.h"
+/* ----------------------------------------------------------------------
+   Contributing author: Axel Kohlmeyer (Temple U)
+------------------------------------------------------------------------- */
+
+#include "pair_deprecated.h"
+#include "pair_hybrid.h"
 #include "comm.h"
+#include "force.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-FixDeprecated::FixDeprecated(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+PairDeprecated::PairDeprecated(LAMMPS *lmp) : Pair(lmp)
 {
-  if (strcmp(style,"deprecated") == 0) {
+  if (strcmp(force->pair_style,"deprecated") == 0) {
     const char *message = "\n"
-    "NOTE: The fix style 'deprecated' is a dummy fix style that was added to\n"
+    "NOTE: The pair style 'deprecated' is a dummy fix style that was added to\n"
     "LAMMPS in order to print suitable error messages for deleted features.\n\n";
 
     if (comm->me == 0) {
@@ -33,20 +37,17 @@ FixDeprecated::FixDeprecated(LAMMPS *lmp, int narg, char **arg) :
       if (logfile) fputs(message,logfile);
     }
   }
-  if (strncmp(style,"ave/spatial",11) == 0) {
+  if (strncmp(force->pair_style,"reax",11) == 0) {
     const char *message = "\n"
-    "NOTE: The fix styles 'ave/spatial' and 'ave/spatial/sphere' have been replaced\n"
-    "by the more general fix ave/chunk and compute chunk/atom commands.\n"
-    "All ave/spatial and ave/spatial/sphere functionality is available in these\n"
-    "new commands. These ave/spatial keywords & options are part of fix ave/chunk:\n"
-    "  Nevery, Nrepeat, Nfreq, input values, norm, ave, file, overwrite, title123\n"
-    "These ave/spatial keywords & options for binning are part of compute chunk/atom:\n"
-    "  dim, origin, delta, region, bound, discard, units\n\n";
+    "NOTE: The pair style 'reax' has been removed from LAMMPS after the\n"
+    "## November 2018 stable release. Its functionality has long before\n"
+    "been superseded by pair styles 'reax/c' and 'reax/c/kk'\n\n";
 
     if (comm->me == 0) {
       if (screen) fputs(message,screen);
       if (logfile) fputs(message,logfile);
     }
   }
-  error->all(FLERR,"This fix command has been removed from LAMMPS");
+  error->all(FLERR,"This pair_style command has been removed from LAMMPS");
 }
+

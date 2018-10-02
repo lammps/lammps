@@ -50,10 +50,10 @@ static const char cite_compute_pressure_cylinder[] =
 
 ComputePressureCyl::ComputePressureCyl(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  R(NULL), Rinv(NULL), R2(NULL), R2kin(NULL), invVbin(NULL),
-  density_temp(NULL), density_all(NULL), tangent(NULL), ephi_x(NULL),
-  ephi_y(NULL), Pr_temp(NULL), Pr_all(NULL), Pz_temp(NULL), Pz_all(NULL),
-  Pphi_temp(NULL), Pphi_all(NULL), PrAinv(NULL), PzAinv(NULL), binz(NULL)
+  Pr_temp(NULL), Pr_all(NULL), Pz_temp(NULL), Pz_all(NULL), Pphi_temp(NULL),
+  Pphi_all(NULL), R(NULL), Rinv(NULL), R2(NULL), PrAinv(NULL), PzAinv(NULL),
+  R2kin(NULL), density_temp(NULL), invVbin(NULL), density_all(NULL),
+  tangent(NULL), ephi_x(NULL), ephi_y(NULL), binz(NULL)
 {
   if (lmp->citeme) lmp->citeme->add(cite_compute_pressure_cylinder);
   if (narg != 7) error->all(FLERR,"Illegal compute pressure/cylinder command");
@@ -171,7 +171,7 @@ void ComputePressureCyl::init()
 
   invVbin[0]=1.0/((zhi-zlo)*MY_PI*R2kin[0]);
   PzAinv[0]=1.0/(MY_PI*R2kin[0]*((double)nzbins));
-   
+
   for (int jq = 1; jq < nbins; jq++) {
     invVbin[jq]=1.0/((zhi-zlo)*MY_PI*(R2kin[jq]-R2kin[jq-1]));
     PzAinv[jq]=1.0/(MY_PI*(R2kin[jq]-R2kin[jq-1])*((double)nzbins));
@@ -189,7 +189,7 @@ void ComputePressureCyl::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePressureCyl::init_list(int id, NeighList *ptr)
+void ComputePressureCyl::init_list(int /* id */, NeighList *ptr)
 {
   list = ptr;
 }
@@ -226,10 +226,10 @@ void ComputePressureCyl::compute_array()
   int me;
   MPI_Comm_rank(world,&me);
 
-  int i,j,n,ii,jj,inum,jnum,itype,jtype;
+  int i,j,ii,jj,inum,jnum,itype,jtype;
   tagint itag,jtag;
   double xtmp,ytmp,ztmp,delx,dely,delz;
-  double rsq,eng,fpair,factor_coul,factor_lj;
+  double rsq,fpair,factor_coul,factor_lj;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   double **x = atom->x;
@@ -276,14 +276,12 @@ void ComputePressureCyl::compute_array()
   double r1=0.0;
   double r2=0.0;
   double risq,rjsq;
-  double ri,rj,rij,fij;
-  double A,B,C,Bsq,A2inv,A4,D;
-  double alpha1,alpha2,aij;
+  double A,B,C,D;
+  double alpha1,alpha2;
   double xi,yi,zi,dx,dy,dz;
-  double m,xR,yR,zR,fn;
+  double xR,yR,zR,fn;
   double alpha,xL,yL,zL,L2,ftphi,ftz;
   double sqrtD;
-  double lower_z,upper_z;
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -313,11 +311,9 @@ void ComputePressureCyl::compute_array()
         jtag = tag[j];
         if (itag > jtag) {
           if ((itag+jtag) % 2 == 0) continue;
-        }
-        else if (itag < jtag) {
+        } else if (itag < jtag) {
           if ((itag+jtag) % 2 == 1) continue;
-        }
-        else {
+        } else {
           if (x[j][2] < ztmp) continue;
           if (x[j][2] == ztmp) {
             if (x[j][1] < ytmp) continue;
@@ -342,8 +338,7 @@ void ComputePressureCyl::compute_array()
         dx=x[i][0]-x[j][0];
         dy=x[i][1]-x[j][1];
         dz=x[i][2]-x[j][2];
-      }
-      else {
+      } else {
         risq=r1;
         rjsq=r2;
         xi=x[i][0];
@@ -358,7 +353,7 @@ void ComputePressureCyl::compute_array()
       jtype = type[j];
       if (rsq >= cutsq[itype][jtype]) continue;
 
-      eng = pair->single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fpair);
+      pair->single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fpair);
 
       A=dx*dx+dy*dy;
       B=2.0*(xi*dx+yi*dy);

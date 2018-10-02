@@ -735,7 +735,7 @@ void PairKIM::kim_init()
    kimerror = pargs->SetCallbackPointer(
        KIM::COMPUTE_CALLBACK_NAME::GetNeighborList,
        KIM::LANGUAGE_NAME::cpp,
-       reinterpret_cast<KIM::func *>(get_neigh),
+       reinterpret_cast<KIM::Function *>(get_neigh),
        reinterpret_cast<void *>(this));
 
    if (kimerror)

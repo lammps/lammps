@@ -2453,14 +2453,8 @@ void FixNH::CauchyStat_init()
 
   // initialize H0 to current box shape
 
-  int triclinic = domain->triclinic;
   double *h = domain->h;
   double *h_inv = domain->h_inv;
-  double *boxhi = domain->boxhi;
-  double *boxlo = domain->boxlo;
-  double yz = domain->yz;
-  double xz = domain->xz;
-  double xy = domain->xy;
 
   H0(1,1)=h[0];  H0(1,2)=h[5];  H0(1,3)=h[4];
   H0(2,1)=0.0;   H0(2,2)=h[1];  H0(2,3)=h[3];
@@ -2518,10 +2512,9 @@ void FixNH::CauchyStat()
     Hdot(1,2)=h_rate[5];  Hdot(1,3)=h_rate[4]; Hdot(2,3)=h_rate[3];
   }
 
-  double F[3][3]={0.0};
-  double FT[3][3]={0.0};
-  double Fi[3][3]={0.0};
-  double Fdot[3][3]={0.0};
+  double F[3][3]={{0.0,0.0,0.0},{0.0,0.0,0.0},{0.0,0.0,0.0}};
+  double Fi[3][3]={{0.0,0.0,0.0},{0.0,0.0,0.0},{0.0,0.0,0.0}};
+  double Fdot[3][3]={{0.0,0.0,0.0},{0.0,0.0,0.0},{0.0,0.0,0.0}};
   double J,vol;
 
   MathExtra::times3(H,invH0,F);
@@ -2579,7 +2572,7 @@ void FixNH::CauchyStat()
     initPK=0;
   }
 
-  CauchyStat_Step(update->ntimestep,F,Fi,Fdot,cauchy,setcauchy,setPK,vol,CSvol0,deltat,alpha);
+  CauchyStat_Step(Fi,Fdot,cauchy,setcauchy,setPK,vol,CSvol0,deltat,alpha);
 
   // use currentPK as new target:
   // p_target:         0          1          2          3          4          5
@@ -2628,8 +2621,6 @@ void FixNH::CauchyStat()
    CauchyStat_Step
 
    Inputs:
-   step             :  current step number
-   F(3,3)           :  current deformation gradient
    Fi(3,3)          :  inverse of the deformation gradient
    Fdot(3,3)        :  time derivative of the deformation gradient (velocity)
    cauchy(3,3)      :  current cauchy stress tensor
@@ -2645,8 +2636,7 @@ void FixNH::CauchyStat()
    setPK(3,3)       :  PK stress tensor at the next time step
    ------------------------------------------------------------------------- */
 
-void FixNH::CauchyStat_Step(bigint step, double (&F)[3][3],
-                            double (&Fi)[3][3], double (&Fdot)[3][3],
+void FixNH::CauchyStat_Step(double (&Fi)[3][3], double (&Fdot)[3][3],
                             double (&cauchy)[3][3], double (&setcauchy)[3][3],
                             double (&setPK)[3][3], double volume,
                             double volume0, double deltat, double alpha)

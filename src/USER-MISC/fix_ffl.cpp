@@ -49,6 +49,7 @@ using namespace FixConst;
 
 enum {NOBIAS,BIAS};
 enum {CONSTANT,EQUAL,ATOM};
+enum {NO_FLIP, FLIP_RESCALE, FLIP_HARD, FLIP_SOFT};
 //#define FFL_DEBUG 1
 
 #define MAXLINE 1024
@@ -92,18 +93,18 @@ FixFFL::FixFFL(LAMMPS *lmp, int narg, char **arg) :
   // Flip type used, uses rescale if no flip is given
   if (narg == 8) {
     if (strcmp(arg[7],"no_flip") == 0) {
-      flip_int = 0;
+      flip_int = NO_FLIP;
     } else if (strcmp(arg[7],"rescale") == 0) {
-      flip_int = 1;
+      flip_int = FLIP_RESCALE;
     } else if (strcmp(arg[7],"hard") == 0) {
-      flip_int = 2;
+      flip_int = FLIP_HARD;
     } else if (strcmp(arg[7],"soft") == 0) {
-      flip_int = 3;
+      flip_int = FLIP_SOFT;
     } else {
       error->all(FLERR,"Illegal fix ffl flip type, only accepts : rescale - hard - soft - no_flip");
     }
   } else {
-    flip_int = 1;
+    flip_int = FLIP_RESCALE;
   }
 
   t_target=t_start;
@@ -249,7 +250,7 @@ void FixFFL::ffl_integrate() {
         deltae-= v[i][k]*v[i][k] /ismi /ismi;
 
         //flips the sign of the momentum (HARD FLIP)
-        if ( flip_int == 2) {
+        if ( flip_int == FLIP_HARD) {
           if (v[i][k]*ffl_tmp2[nk] < 0.0) v[i][k] = -v[i][k];
         }
 
@@ -258,7 +259,7 @@ void FixFFL::ffl_integrate() {
     }
 
   //rescale operation (RESCALE FLIP)
-  if (flip_int == 1) {
+  if (flip_int == FLIP_RESCALE) {
     nk=0;
     for (int i = 0; i < nlocal; i++) if (mask[i] & groupbit) {
       factor = sqrt ((v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) /
@@ -274,7 +275,7 @@ void FixFFL::ffl_integrate() {
 
 
   //soft flip operation (SOFT FLIP)
-  if (flip_int == 3) {
+  if (flip_int == FLIP_SOFT) {
     nk=0;
     for (int i = 0; i < nlocal; i++) if (mask[i] & groupbit) {
       factor = v[i][0]*ffl_tmp2[nk] + v[i][1]*ffl_tmp2[nk+1] + v[i][2]*ffl_tmp2[nk+2];

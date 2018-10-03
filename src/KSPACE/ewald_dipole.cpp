@@ -449,16 +449,9 @@ void EwaldDipole::compute(int eflag, int vflag)
       exprl = cs[kx][0][i]*cypz - sn[kx][0][i]*sypz;
       expim = sn[kx][0][i]*cypz + cs[kx][0][i]*sypz;
 
-      // mu dot k product
-
-      //muik = mu[i][0]*kx + mu[i][1]*ky + mu[i][2]*kz;
-
-
       // taking im of struct_fact x exp(i*k*ri) (for force calc.)
 
-      partial = (muk[k][i])*(expim*sfacrl_all[k] + exprl*sfacim_all[k]);
-      //partial = (muk[k][i])*(expim*sfacrl_all[k] - exprl*sfacim_all[k]);
-      //partial = muik * (expim*sfacrl_all[k] + exprl*sfacim_all[k]);
+      partial = (muk[k][i])*(expim*sfacrl_all[k] - exprl*sfacim_all[k]);
       ek[i][0] += partial * eg[k][0];
       ek[i][1] += partial * eg[k][1];
       ek[i][2] += partial * eg[k][2];
@@ -500,9 +493,6 @@ void EwaldDipole::compute(int eflag, int vflag)
     f[i][0] += muscale * ek[i][0];
     f[i][1] += muscale * ek[i][1];
     if (slabflag != 2) f[i][2] += muscale * ek[i][2];
-    //f[i][0] -= muscale * ek[i][0];
-    //f[i][1] -= muscale * ek[i][1];
-    //if (slabflag != 2) f[i][2] -= muscale * ek[i][2];
     t[i][0] += -mu[i][1]*tk[i][2] + mu[i][2]*tk[i][1];
     t[i][1] += -mu[i][2]*tk[i][0] + mu[i][0]*tk[i][2];
     if (slabflag != 2) t[i][2] += -mu[i][0]*tk[i][1] + mu[i][1]*tk[i][0];

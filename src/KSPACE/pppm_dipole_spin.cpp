@@ -70,8 +70,12 @@ PPPMDipoleSpin::PPPMDipoleSpin(LAMMPS *lmp, int narg, char **arg) :
   spinflag = 1;
   
   hbar = force->hplanck/MY_2PI;         	// eV/(rad.THz)
-  mub = 5.78901e-5;                     	// in eV/T
-  mu_0 = 1.2566370614e-6;               	// in T.m/A
+  //mub = 5.78901e-5;                     	// in eV/T
+  //mu_0 = 1.2566370614e-6;               	// in T.m/A
+  mub = 9.274e-4;                     		// in A.Ang^2
+  mu_0 = 785.15;               			// in eV/Ang/A^2
+  mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);	// in eV.Ang^3
+  //mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);	// in eV
   mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);	// in eV
   mub2mu0hbinv = mub2mu0 / hbar;        	// in rad.THz
 }

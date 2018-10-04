@@ -53,8 +53,7 @@ void PairDeprecated::settings(int, char **)
   } else if (strcmp(my_style,"reax") == 0) {
     writemsg(lmp, "\nPair style 'reax' has been removed from LAMMPS "
              "after the\n## November 2018 stable release. Its "
-             "functionality has long before\nbeen superseded by pair "
-             "styles 'reax/c' and 'reax/c/kk'\n\n");
+             "functionality has\nbeen superseded by pair style 'reax/c'.\n\n");
   }
 }  
 

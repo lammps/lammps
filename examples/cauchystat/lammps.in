@@ -2,8 +2,6 @@ units		metal
 atom_style	atomic
 atom_modify	map array
 
-processors      1 1 1
-
 # Box and atom positions:
 boundary p p p
 
@@ -21,13 +19,17 @@ mass 2 26.98154
 # Potential, Al fcc crystal
 pair_style eam/alloy
 pair_coeff * * Mishin-Ni-Al-2009.eam.alloy Ni Al
-
+neigh_modify delay 5
 
 thermo 100
 thermo_style custom step temp pxx pyy pzz pxy pxz pyz
 compute cna all cna/atom 2.8
 
-fix 1 all npt temp 600.0 600.0 1.0 x 0.0 0.0 0.1 y 0.0 0.0 0.1 z 0.0 0.0 0.1 couple none cauchystat 0.001 no
+fix 1 all npt temp 600.0 600.0 1.0 &
+                     x 0.0 0.0 0.1 &
+                     y 0.0 0.0 0.1 &
+                     z 0.0 0.0 0.1 &
+                     couple none cauchystat 0.001 no
 
 dump 1 all cfg 1000 test*.cfg mass type xs ys zs type c_cna
 
@@ -56,8 +58,11 @@ velocity all create 1200 4928459 rot yes dist gaussian
 
 run 10000
 
-unfix 1
-
-fix 1 all npt temp 600.0 600.0 1.0 x 0.0 0.0 0.1 y 0.0 0.0 0.1 z 0.0 0.0 0.1 xy -10000.0 -10000.0 0.1 couple none cauchystat 0.001 yes
+fix 1 all npt temp 600.0 600.0 1.0 &
+                     x 0.0 0.0 0.1 &
+                     y 0.0 0.0 0.1 &
+                     z 0.0 0.0 0.1 &
+                     xy -10000.0 -10000.0 0.1 &
+                     couple none cauchystat 0.001 yes
 
 run 10000

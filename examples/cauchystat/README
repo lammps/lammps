@@ -1,6 +1,6 @@
 Run this example by executing:
 
-% lmp_serial < lammps.in
+% lmp -in lammps.in
 
 Note that this example use an EAM potential, and therefore must be
 run with a LAMMPS executable built with the MANYBODY package.

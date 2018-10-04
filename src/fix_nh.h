@@ -141,6 +141,8 @@ class FixNH : public Fix {
   void nh_omega_dot();
 
   // Implementation of CauchyStat
+  char *id_store;       // fix id of the STORE fix for retaining data
+  class FixStore *init_store;  // fix pointer to STORE fix
   double H0[3][3];      // shape matrix for the undeformed cell
   double h_old[6];      // previous time step shape matrix for
                         // the undeformed cell

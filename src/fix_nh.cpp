@@ -28,6 +28,7 @@
 #include "irregular.h"
 #include "modify.h"
 #include "fix_deform.h"
+#include "fix_store.h"
 #include "compute.h"
 #include "kspace.h"
 #include "update.h"
@@ -55,7 +56,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
   rfix(NULL), id_dilate(NULL), irregular(NULL), id_temp(NULL), id_press(NULL),
   eta(NULL), eta_dot(NULL), eta_dotdot(NULL),
   eta_mass(NULL), etap(NULL), etap_dot(NULL), etap_dotdot(NULL),
-  etap_mass(NULL)
+  etap_mass(NULL), id_store(NULL),init_store(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix nvt/npt/nph command");
 
@@ -600,6 +601,7 @@ FixNH::~FixNH()
   delete [] id_dilate;
   delete [] rfix;
 
+  delete [] id_store;
   delete irregular;
 
   // delete temperature and pressure if fix created them
@@ -2421,9 +2423,9 @@ void FixNH::CauchyStat_init()
     if (screen) {
       fprintf(screen,"Using the Cauchystat fix with alpha=%f\n",alpha);
       if (restartPK==1) {
-        fprintf(screen,"   (this is a continuation fix)\n");
+        fprintf(screen,"   (this is a continuation run)\n");
       } else {
-        fprintf(screen,"   (this is NOT a continuation fix)\n");
+        fprintf(screen,"   (this is NOT a continuation run)\n");
       }
     }
     if (logfile) {
@@ -2436,13 +2438,39 @@ void FixNH::CauchyStat_init()
     }
   }
 
-  if (restartPK==1 && restart_stored==0)
+  if (!id_store) {
+    int n = strlen(id) + 11;
+    id_store = new char[n];
+    strcpy(id_store,id);
+    strcat(id_store,"_FIX_STORE");
+  }
+
+  restart_stored = modify->find_fix(id_store);
+
+  if (restartPK==1 && restart_stored < 0)
     error->all(FLERR,"Illegal cauchystat command.  Continuation run"
                " must follow a previously equilibrated Cauchystat run");
 
   if (alpha<=0.0)
     error->all(FLERR,"Illegal cauchystat command: "
                " Alpha cannot be zero or negative.");
+
+
+  if (restartPK == 0) {
+    if (restart_stored < 0) {
+      char **newarg = new char *[6];
+      newarg[0] = id_store;
+      newarg[1] = (char *) "all";
+      newarg[2] = (char *) "STORE";
+      newarg[3] = (char *) "global";
+      newarg[4] = (char *) "1";
+      newarg[5] = (char *) "6";
+      modify->add_fix(6,newarg);
+      delete[] newarg;
+    }
+    int n = modify->find_fix(id_store);
+    init_store = (FixStore *)modify->fix[n];
+  }
 
   initRUN = 0;
   initPK = 1;

@@ -238,6 +238,7 @@ void PairSpinDmi::compute(int eflag, int vflag)
 
   double **x = atom->x;
   double **f = atom->f;
+  double *emag = atom->emag;
   double **fm = atom->fm;
   double **sp = atom->sp;	
   int *type = atom->type;
@@ -318,6 +319,7 @@ void PairSpinDmi::compute(int eflag, int vflag)
       if (eflag) {
 	evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
 	evdwl *= hbar;
+	emag[i] += evdwl;
       } else evdwl = 0.0;
 
       if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,

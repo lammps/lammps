@@ -63,6 +63,7 @@ class Atom : protected Pointers {
 
   // SPIN package
 
+  double *emag;
   double **sp;
   double **fm;
 

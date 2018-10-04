@@ -99,7 +99,7 @@ FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lm
   time_origin = update->ntimestep;
 
   eflag = 0;
-  emag = 0.0;
+  eprec = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -179,13 +179,14 @@ void FixPrecessionSpin::post_force(int /*vflag*/)
     set_magneticprecession();                   // update mag. field if time-dep.
   }
 
-  double **sp = atom->sp;
+  double *emag = atom->emag;
   double **fm = atom->fm;
+  double **sp = atom->sp;
   double spi[3], fmi[3];
   const int nlocal = atom->nlocal;
 
   eflag = 0;
-  emag = 0.0;
+  eprec = 0.0;
 
   for (int i = 0; i < nlocal; i++) {
     spi[0] = sp[i][0];
@@ -195,19 +196,20 @@ void FixPrecessionSpin::post_force(int /*vflag*/)
 
     if (zeeman_flag) {          // compute Zeeman interaction
       compute_zeeman(i,fmi);
-      emag -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
+      eprec -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
     }
 
     if (aniso_flag) {           // compute magnetic anisotropy
       compute_anisotropy(spi,fmi);
-      emag -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
+      eprec -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
     }
 
+    emag[i] += hbar * eprec;
     fm[i][0] += fmi[0];
     fm[i][1] += fmi[1];
     fm[i][2] += fmi[2];
   }
-  emag *= hbar;
+  eprec *= hbar;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -275,8 +277,8 @@ double FixPrecessionSpin::compute_scalar()
   // only sum across procs one time
 
   if (eflag == 0) {
-    MPI_Allreduce(&emag,&emag_all,1,MPI_DOUBLE,MPI_SUM,world);
+    MPI_Allreduce(&eprec,&eprec_all,1,MPI_DOUBLE,MPI_SUM,world);
     eflag = 1;
   }
-  return emag_all;
+  return eprec_all;
 }

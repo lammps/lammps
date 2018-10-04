@@ -50,7 +50,7 @@ class FixPrecessionSpin : public Fix {
   int ilevel_respa;
   int time_origin;
   int eflag;
-  double emag, emag_all;
+  double eprec, eprec_all;
 
   int varflag;
   int magfieldstyle;

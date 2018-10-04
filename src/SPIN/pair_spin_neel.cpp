@@ -192,7 +192,6 @@ void PairSpinNeel::coeff(int narg, char **arg)
   }
   if (count == 0)
     error->all(FLERR,"Incorrect args in pair_style command");
-
 }
 
 /* ----------------------------------------------------------------------
@@ -302,6 +301,7 @@ void PairSpinNeel::compute(int eflag, int vflag)
 
   double **x = atom->x;
   double **f = atom->f;
+  double *emag = atom->emag;
   double **fm = atom->fm;
   double **sp = atom->sp;
   int *type = atom->type;
@@ -401,7 +401,7 @@ void PairSpinNeel::compute(int eflag, int vflag)
 
       if (eflag) {
 	evdwl = sm * compute_neel_energy(i,j,rsq,eij,spi,spj);
-
+        emag[i] += evdwl;
       } else evdwl = 0.0;
 
       if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
@@ -410,7 +410,6 @@ void PairSpinNeel::compute(int eflag, int vflag)
   }
 
   if (vflag_fdotr) virial_fdotr_compute();
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -537,24 +536,18 @@ void PairSpinNeel::compute_neel(int i, int j, double rsq, double eij[3],
   qd = q4[itype][jtype];
   qe = q5[itype][jtype];
 
-  //printf("test coeffs: %g %g %g %g %g \n",ga,gb,gc,gd,ge);
-
   ri3 = 1.0 / 3.0;
   r1 = (rij-ro);
   r2 = r1*r1;
   r3 = r2*r1;
   r4 = r2*r2;
-  
-  //printf("test r: %g %g %g %g \n",r1,r2,r3,r4);
 
-  gr = ga + gb*r1 + gc*r2 * gd*r3 + ge*r4;
-  qr = qa + qb*r1 + qc*r2 * qd*r3 + qe*r4;
+  gr = ga + gb*r1 + gc*r2 + gd*r3 + ge*r4;
+  qr = qa + qb*r1 + qc*r2 + qd*r3 + qe*r4;
 
   g1r = gr + 12.0*qr/35.0;
   q1r = 9.0*qr/5.0;
   q2r = -2.0*qr/5.0;
-  
-  //printf("test coeffsi2: %g %g %g \n",g1r,q1r,q2r);
 
   eij_si = eij[0]*spi[0] + eij[1]*spi[1] + eij[2]*spi[2];
   eij_sj = eij[0]*spj[0] + eij[1]*spj[1] + eij[2]*spj[2];
@@ -609,17 +602,17 @@ void PairSpinNeel::compute_neel_mech(int i, int j, double rsq, double eij[3],
   ro = r0[itype][jtype];
   rij = sqrt(rsq);
 
-  ga = g1[itype][jtype];
-  gb = g2[itype][jtype];
-  gc = g3[itype][jtype];
-  gd = g4[itype][jtype];
-  ge = g5[itype][jtype];
+  ga = gm1[itype][jtype];
+  gb = gm2[itype][jtype];
+  gc = gm3[itype][jtype];
+  gd = gm4[itype][jtype];
+  ge = gm5[itype][jtype];
 
-  qa = q1[itype][jtype];
-  qb = q2[itype][jtype];
-  qc = q3[itype][jtype];
-  qd = q4[itype][jtype];
-  qe = q5[itype][jtype];
+  qa = qm1[itype][jtype];
+  qb = qm2[itype][jtype];
+  qc = qm3[itype][jtype];
+  qd = qm4[itype][jtype];
+  qe = qm5[itype][jtype];
 
   ri3 = 1.0 / 3.0; 
   r1 = (rij-ro);
@@ -627,8 +620,8 @@ void PairSpinNeel::compute_neel_mech(int i, int j, double rsq, double eij[3],
   r3 = r2*r1;
   r4 = r2*r2;
 
-  gr = ga + gb*r1 + gc*r2 * gd*r3 + ge*r4;
-  qr = qa + qb*r1 + qc*r2 * qd*r3 + qe*r4;
+  gr = ga + gb*r1 + gc*r2 + gd*r3 + ge*r4;
+  qr = qa + qb*r1 + qc*r2 + qd*r3 + qe*r4;
   
   dgr = gb + 2.0*gc*r1 + 3.0*gd*r2 + 4.0*ge*r3;
   dqr = qb + 2.0*qc*r1 + 3.0*qd*r2 + 4.0*qe*r3;
@@ -695,26 +688,26 @@ double PairSpinNeel::compute_neel_energy(int i, int j, double rsq, double eij[3]
 
   double ro,rij,ri3;
   double r1,r2,r3,r4;
-  double qr,gr,g1r,q1r,q2r;
+  double gr,qr,g1r,q1r,q2r;
   double ga,gb,gc,gd,ge;
   double qa,qb,qc,qd,qe;
   double eij_si,eij_sj,si_sj;
-  double energy;
+  double energy = 0.0;
 
   ro = r0[itype][jtype];
   rij = sqrt(rsq);
 
-  ga = g1[itype][jtype];
-  gb = g2[itype][jtype];
-  gc = g3[itype][jtype];
-  gd = g4[itype][jtype];
-  ge = g5[itype][jtype];
+  ga = gm1[itype][jtype];
+  gb = gm2[itype][jtype];
+  gc = gm3[itype][jtype];
+  gd = gm4[itype][jtype];
+  ge = gm5[itype][jtype];
 
-  qa = q1[itype][jtype];
-  qb = q2[itype][jtype];
-  qc = q3[itype][jtype];
-  qd = q4[itype][jtype];
-  qe = q5[itype][jtype];
+  qa = qm1[itype][jtype];
+  qb = qm2[itype][jtype];
+  qc = qm3[itype][jtype];
+  qd = qm4[itype][jtype];
+  qe = qm5[itype][jtype];
 
   ri3 = 1.0 / 3.0;
   r1 = (rij-ro);
@@ -722,23 +715,22 @@ double PairSpinNeel::compute_neel_energy(int i, int j, double rsq, double eij[3]
   r3 = r2*r1;
   r4 = r2*r2;
 
-  gr = ga + gb*r1 + gc*r2 * gd*r3 + ge*r4;
-  qr = qa + qb*r1 + qc*r2 * qd*r3 + qe*r4;
+  gr = ga + gb*r1 + gc*r2 + gd*r3 + ge*r4;
+  qr = qa + qb*r1 + qc*r2 + qd*r3 + qe*r4;
 
   g1r = gr + 12.0*qr/35.0;
   q1r = 9.0*qr/5.0;
   q2r = -2.0*qr/5.0;
-
+ 
   eij_si = eij[0]*spi[0] + eij[1]*spi[1] + eij[2]*spi[2];
   eij_sj = eij[0]*spj[0] + eij[1]*spj[1] + eij[2]*spj[2];
   si_sj = spi[0]*spj[0] + spi[1]*spj[1] + spi[2]*spj[2];
   
-  energy = g1r*(eij_si*eij_sj - si_sj*ri3);
-  energy += q1r*(eij_si*eij_si - si_sj*ri3)*(eij_sj*eij_sj - si_sj*ri3);
-  energy += q2r*eij_sj*eij_si*(eij_si*eij_si + eij_sj*eij_sj);
-  energy *= (-hbar);
+  energy = g1r*(si_sj*ri3 - eij_si*eij_sj);
+  energy -= (q1r*(eij_si*eij_si - si_sj*ri3)*(eij_sj*eij_sj - si_sj*ri3));
+  energy -= (q2r*eij_sj*eij_si*(eij_si*eij_si + eij_sj*eij_sj));
   
-  return energy;
+  return -energy;
 }
   
 /* ----------------------------------------------------------------------

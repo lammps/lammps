@@ -23,31 +23,39 @@
 
 using namespace LAMMPS_NS;
 
+static void writemsg(LAMMPS *lmp, const char *msg, int abend=1)
+{
+  if (lmp->comm->me == 0) {
+    if (lmp->screen) fputs(msg,lmp->screen);
+    if (lmp->logfile) fputs(msg,lmp->logfile);
+  }
+  if (abend)
+    lmp->error->all(FLERR,"This pair_style is no longer available");
+}
+
+
 /* ---------------------------------------------------------------------- */
 
-PairDeprecated::PairDeprecated(LAMMPS *lmp) : Pair(lmp)
+void PairDeprecated::settings(int, char **)
 {
-  if (strcmp(force->pair_style,"deprecated") == 0) {
-    const char *message = "\n"
-    "NOTE: The pair style 'deprecated' is a dummy fix style that was added to\n"
-    "LAMMPS in order to print suitable error messages for deleted features.\n\n";
+  const char *my_style = force->pair_style;
 
-    if (comm->me == 0) {
-      if (screen) fputs(message,screen);
-      if (logfile) fputs(message,logfile);
-    }
+  // hybrid substyles are created in PairHybrid::settings(), so when this is
+  // called, our style was just added at the end of the list of substyles
+  if (strncmp(my_style,"hybrid",6) == 0) {
+    PairHybrid *hybrid = (PairHybrid *)force->pair;
+    my_style = hybrid->keywords[hybrid->nstyles];
   }
-  if (strncmp(force->pair_style,"reax",11) == 0) {
-    const char *message = "\n"
-    "NOTE: The pair style 'reax' has been removed from LAMMPS after the\n"
-    "## November 2018 stable release. Its functionality has long before\n"
-    "been superseded by pair styles 'reax/c' and 'reax/c/kk'\n\n";
 
-    if (comm->me == 0) {
-      if (screen) fputs(message,screen);
-      if (logfile) fputs(message,logfile);
-    }
+  if (strcmp(my_style,"deprecated") == 0) {
+    writemsg(lmp,"\nPair style 'deprecated' is a dummy pair style\n\n",0);
+
+  } else if (strcmp(my_style,"reax") == 0) {
+    writemsg(lmp, "\nPair style 'reax' has been removed from LAMMPS "
+             "after the\n## November 2018 stable release. Its "
+             "functionality has long before\nbeen superseded by pair "
+             "styles 'reax/c' and 'reax/c/kk'\n\n");
   }
-  error->all(FLERR,"This pair_style command has been removed from LAMMPS");
-}
+}  
+
 

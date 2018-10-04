@@ -26,12 +26,12 @@ namespace LAMMPS_NS {
 
 class PairDeprecated : public Pair {
  public:
-  PairDeprecated(class LAMMPS *);
-  virtual ~PairDeprecated() {};
+  PairDeprecated(class LAMMPS *lmp) : Pair(lmp) {}
+  virtual ~PairDeprecated() {}
 
-  virtual void compute(int, int) {};
-  virtual void settings(int, char **) {};
-  virtual void coeff(int, char **) {};
+  virtual void compute(int, int) {}
+  virtual void settings(int, char **);
+  virtual void coeff(int, char **) {}
 
 };
 

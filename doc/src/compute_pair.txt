@@ -18,7 +18,7 @@ pstyle = style name of a pair style that calculates additional values :l
 zero or more keyword/value pairs may be appended :l
 keyword = {evalue} or {nsub}
   {evalue} arg = {epair} or {evdwl} or {ecoul}
-  {nsub} n = use {n}-th instance of a sub-style in a pair_style hybrid or hybrid/overlay command :pre
+  {nsub} n = use the {n}-th instance of a sub-style in a pair_style hybrid or hybrid/overlay command :pre
 :ule
 
 [Examples:]
@@ -39,14 +39,15 @@ NOTE: The group specified for this command is [ignored].
 The specified {pstyle} must be a pair style used in your simulation
 either by itself or as a sub-style in a "pair_style hybrid or
 hybrid/overlay"_pair_hybrid.html command. If the sub-style is
-used more than once, additional keyword {nsub} has to be specified in
-order to choose a single instance.
+used more than once, an additional keyword {nsub} has to be
+specified in order to choose which instance of the sub-style will
+be used by the compute.
 
 NOTE: The {nsub} keyword should be used only if the sub-style occurs
 multiple times. Its value must be an integer from 1 to M, where M is
 the number of times the sub-style is listed in the "pair_style hybrid
 or hybrid/overlay"_pair_hybrid.html" command. If the pair style is
-used once, {nsub} must remain zero.
+used only once, {nsub} must remain zero.
 
 The {evalue} setting is optional.  All
 pair styles tally a potential energy {epair} which may be broken into

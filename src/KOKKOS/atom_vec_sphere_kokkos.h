@@ -14,6 +14,8 @@
 #ifdef ATOM_CLASS
 
 AtomStyle(sphere/kk,AtomVecSphereKokkos)
+AtomStyle(sphere/kk/device,AtomVecSphereKokkos)
+AtomStyle(sphere/kk/host,AtomVecSphereKokkos)
 
 #else
 

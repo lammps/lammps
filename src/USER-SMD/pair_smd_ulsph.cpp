@@ -1331,8 +1331,8 @@ void PairULSPH::coeff(int narg, char **arg) {
                         } // end *ARTIFICIAL_STRESS
 
                         else {
-                                sprintf(str, "unknown *KEYWORD: %s", arg[ioffset]);
-                                error->all(FLERR, str);
+                          snprintf(str,128, "unknown *KEYWORD: %s", arg[ioffset]);
+                          error->all(FLERR, str);
                         }
 
                 }

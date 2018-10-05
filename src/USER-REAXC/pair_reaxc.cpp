@@ -301,7 +301,7 @@ void PairReaxC::coeff( int nargs, char **args )
     Read_Force_Field(fp, &(system->reax_param), control);
   else {
       char str[128];
-      sprintf(str,"Cannot open ReaxFF potential file %s",file);
+      snprintf(str,128,"Cannot open ReaxFF potential file %s",file);
       error->all(FLERR,str);
   }
 

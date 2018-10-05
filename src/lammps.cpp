@@ -385,7 +385,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       else infile = fopen(arg[inflag],"r");
       if (infile == NULL) {
         char str[128];
-        sprintf(str,"Cannot open input script %s",arg[inflag]);
+        snprintf(str,128,"Cannot open input script %s",arg[inflag]);
         error->one(FLERR,str);
       }
     }
@@ -416,7 +416,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
          screen = NULL;
        else {
          char str[128];
-         sprintf(str,"%s.%d",arg[screenflag],universe->iworld);
+         snprintf(str,128,"%s.%d",arg[screenflag],universe->iworld);
          screen = fopen(str,"w");
          if (screen == NULL) error->one(FLERR,"Cannot open screen file");
        }
@@ -424,7 +424,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
         screen = NULL;
       else {
         char str[128];
-        sprintf(str,"%s.%d",arg[partscreenflag],universe->iworld);
+        snprintf(str,128,"%s.%d",arg[partscreenflag],universe->iworld);
         screen = fopen(str,"w");
         if (screen == NULL) error->one(FLERR,"Cannot open screen file");
       } else screen = NULL;
@@ -440,7 +440,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
          logfile = NULL;
        else {
          char str[128];
-         sprintf(str,"%s.%d",arg[logflag],universe->iworld);
+         snprintf(str,128,"%s.%d",arg[logflag],universe->iworld);
          logfile = fopen(str,"w");
          if (logfile == NULL) error->one(FLERR,"Cannot open logfile");
        }
@@ -448,7 +448,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
         logfile = NULL;
       else {
         char str[128];
-        sprintf(str,"%s.%d",arg[partlogflag],universe->iworld);
+        snprintf(str,128,"%s.%d",arg[partlogflag],universe->iworld);
         logfile = fopen(str,"w");
         if (logfile == NULL) error->one(FLERR,"Cannot open logfile");
       } else logfile = NULL;
@@ -457,7 +457,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       infile = fopen(arg[inflag],"r");
       if (infile == NULL) {
         char str[128];
-        sprintf(str,"Cannot open input script %s",arg[inflag]);
+        snprintf(str,128,"Cannot open input script %s",arg[inflag]);
         error->one(FLERR,str);
       }
     } else infile = NULL;
@@ -579,10 +579,10 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
 
   if (restartflag) {
     char cmd[128];
-    sprintf(cmd,"read_restart %s\n",rfile);
+    snprintf(cmd,128,"read_restart %s\n",rfile);
     if (restartremapflag) strcat(cmd," remap\n");
     input->one(cmd);
-    sprintf(cmd,"write_data %s",dfile);
+    snprintf(cmd,128,"write_data %s",dfile);
     for (iarg = wdfirst; iarg < wdlast; iarg++)
       sprintf(&cmd[strlen(cmd)]," %s",arg[iarg]);
     strcat(cmd," noinit\n");

@@ -1591,7 +1591,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     fpcoeff = force->open_potential(coefffilename);
     if (fpcoeff == NULL) {
       char str[128];
-      sprintf(str,"Cannot open SNAP coefficient file %s",coefffilename);
+      snprintf(str,128,"Cannot open SNAP coefficient file %s",coefffilename);
       error->one(FLERR,str);
     }
   }
@@ -1757,7 +1757,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     fpparam = force->open_potential(paramfilename);
     if (fpparam == NULL) {
       char str[128];
-      sprintf(str,"Cannot open SNAP parameter file %s",paramfilename);
+      snprintf(str,128,"Cannot open SNAP parameter file %s",paramfilename);
       error->one(FLERR,str);
     }
   }

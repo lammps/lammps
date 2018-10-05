@@ -369,7 +369,7 @@ void FixPOEMS::init()
       if (pflag && (modify->fmask[i] & POST_FORCE) && 
           !modify->fix[i]->rigid_flag) {
         char str[128];
-        sprintf(str,"Fix %s alters forces after fix poems",modify->fix[i]->id);
+        snprintf(str,128,"Fix %s alters forces after fix poems",modify->fix[i]->id);
         error->warning(FLERR,str);
       }
     }
@@ -961,7 +961,7 @@ void FixPOEMS::readfile(char *file)
     fp = fopen(file,"r");
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open fix poems file %s",file);
+      snprintf(str,128,"Cannot open fix poems file %s",file);
       error->one(FLERR,str);
     }
   }

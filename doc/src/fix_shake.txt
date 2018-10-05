@@ -214,8 +214,10 @@ which can lead to poor energy conservation.  You can test for this in
 your system by running a constant NVE simulation with a particular set
 of SHAKE parameters and monitoring the energy versus time.
 
-SHAKE or RATTLE should not be used to constrain an angle at 180 degrees
-(e.g. linear CO2 molecule).  This causes numeric difficulties.
+SHAKE or RATTLE should not be used to constrain an angle at 180
+degrees (e.g. linear CO2 molecule).  This causes numeric difficulties.
+You can use "fix rigid or fix rigid/small"_fix_rigid.html instead to
+make a linear molecule rigid.
 
 [Related commands:] none
 

@@ -176,7 +176,7 @@ Option -plog will override the name of the partition log files file.N.
 
 :line
 
-[-mpicolor] color :link(mpi)
+[-mpicolor] color :link(mpicolor)
 
 If used, this must be the first command-line argument after the LAMMPS
 executable name.  It is only used when LAMMPS is launched by an mpirun

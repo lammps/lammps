@@ -7,7 +7,7 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :line
 
-Using LAMMPS in client/server mode
+Using LAMMPS in client/server mode :h3
 
 Client/server coupling of two codes is where one code is the "client"
 and sends request messages to a "server" code.  The server responds to
@@ -61,7 +61,7 @@ client or server.
 "message"_message.html
 "fix client md"_fix_client_md.html = LAMMPS is a client for running MD
 "server md"_server_md.html = LAMMPS is a server for computing MD forces
-"server mc"_server_mc.html = LAMMPS is a server for computing a Monte Carlo energy
+"server mc"_server_mc.html = LAMMPS is a server for computing a Monte Carlo energy :ul
 
 The server doc files give details of the message protocols
 for data that is exchanged bewteen the client and server.
@@ -119,7 +119,7 @@ For message exchange in {mpi/one} mode:
 
 Launch both codes in a single mpirun command:
 
-mpirun -np 2 lmp_mpi -mpicolor 0 -in in.message.client -log log.client : -np 4 lmp_mpi -mpicolor 1 -in in.message.server -log log.server
+mpirun -np 2 lmp_mpi -mpicolor 0 -in in.message.client -log log.client : -np 4 lmp_mpi -mpicolor 1 -in in.message.server -log log.server :pre
 
 The two -np values determine how many procs the client and the server
 run on.

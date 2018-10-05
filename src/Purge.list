@@ -24,6 +24,9 @@ style_nstencil.h
 style_ntopo.h
 # other auto-generated files
 lmpinstalledpkgs.h
+# renamed on 25 September 2018
+compute_smd_triangle_mesh_vertices.h
+compute_smd_triangle_mesh_vertices.cpp
 # renamed on 6 September 2018
 pair_cdeam_omp.h
 pair_cdeam_omp.cpp

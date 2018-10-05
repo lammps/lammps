@@ -38,7 +38,7 @@ OBJECTS=$(SOURCES:src/%.txt=$(RSTDIR)/%.rst)
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
 	@echo "  html       create HTML doc pages in html dir"
-	@echo "  pdf        create Manual.pdf and Developer.pdf in this dir"
+	@echo "  pdf        create Developer.pdf and Manual.pdf in this dir"
 	@echo "  old        create old-style HTML doc pages in old dir"
 	@echo "  fetch      fetch HTML and PDF files from LAMMPS web site"
 	@echo "  epub       create ePUB format manual for e-book readers"
@@ -116,17 +116,17 @@ mobi: epub
 pdf: utils/txt2html/txt2html.exe
 	@(\
 		set -e; \
-		cd src; \
+		cd src/Developer; \
+		pdflatex developer; \
+		pdflatex developer; \
+		mv developer.pdf ../../Developer.pdf; \
+		cd ..; \
 		../utils/txt2html/txt2html.exe -b *.txt; \
 		htmldoc --batch lammps.book;          \
 		for s in `echo *.txt | sed -e 's,\.txt,\.html,g'` ; \
 			do grep -q $$s lammps.book || \
 			echo doc file $$s missing in src/lammps.book; done; \
 		rm *.html; \
-		cd Developer; \
-		pdflatex developer; \
-		pdflatex developer; \
-		mv developer.pdf ../../Developer.pdf; \
 	)
 
 old: utils/txt2html/txt2html.exe

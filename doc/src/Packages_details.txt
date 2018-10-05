@@ -1749,7 +1749,7 @@ USER-PTM package :link(PKG-USER-PTM),h4
 
 [Contents:]
 
-A "compute ptm/atom"_compute_ptm.html command that calculates
+A "compute ptm/atom"_compute_ptm_atom.html command that calculates
 local structure characterization using the Polyhedral Template
 Matching methodology.
 
@@ -1757,10 +1757,9 @@ Matching methodology.
 
 [Supporting info:]
 
-src/USER-PHONON: filenames -> commands
-src/USER-PHONON/README
-"fix phonon"_fix_phonon.html
-examples/USER/phonon :ul
+src/USER-PTM: filename starting with ptm_ -> supporting code, other filenames -> commands
+src/USER-PTM/LICENSE
+"compute ptm/atom"_compute_ptm_atom.html :ul
 
 :line
 

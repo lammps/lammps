@@ -90,12 +90,12 @@ This is so that the fix this compute creates to store per-chunk
 quantities will also have the same ID, and thus be initialized
 correctly with chunk reference positions from the restart file.
 
-The simplest way to output the results of the compute com/msd
+The simplest way to output the results of the compute msd/chunk
 calculation to a file is to use the "fix ave/time"_fix_ave_time.html
 command, for example:
 
 compute cc1 all chunk/atom molecule
-compute myChunk all com/msd cc1
+compute myChunk all msd/chunk cc1
 fix 1 all ave/time 100 1 100 c_myChunk\[*\] file tmp.out mode vector :pre
 
 [Output info:]

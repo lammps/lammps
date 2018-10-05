@@ -96,7 +96,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "property/atom"_compute_property_atom.html,
 "property/chunk"_compute_property_chunk.html,
 "property/local"_compute_property_local.html,
-"ptm/atom"_compute_ptm_atom.html
+"ptm/atom"_compute_ptm_atom.html,
 "rdf"_compute_rdf.html,
 "reduce"_compute_reduce.html,
 "reduce/chunk"_compute_reduce_chunk.html,
@@ -118,7 +118,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "smd/tlsph/strain"_compute_smd_tlsph_strain.html,
 "smd/tlsph/strain/rate"_compute_smd_tlsph_strain_rate.html,
 "smd/tlsph/stress"_compute_smd_tlsph_stress.html,
-"smd/triangle/mesh/vertices"_compute_smd_triangle_mesh_vertices.html,
+"smd/triangle/mesh/vertices"_compute_smd_triangle_vertices.html,
 "smd/ulsph/num/neighs"_compute_smd_ulsph_num_neighs.html,
 "smd/ulsph/strain"_compute_smd_ulsph_strain.html,
 "smd/ulsph/strain/rate"_compute_smd_ulsph_strain_rate.html,

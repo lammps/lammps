@@ -62,7 +62,7 @@ Package, Description, Doc page, Example, Library
 "USER-NETCDF"_Packages_details.html#PKG-USER-NETCDF, dump output via NetCDF,"dump netcdf"_dump_netcdf.html, n/a, ext
 "USER-OMP"_Packages_details.html#PKG-USER-OMP, OpenMP-enabled styles,"Speed omp"_Speed_omp.html, "Benchmarks"_http://lammps.sandia.gov/bench.html, no
 "USER-PHONON"_Packages_details.html#PKG-USER-PHONON, phonon dynamical matrix,"fix phonon"_fix_phonon.html, USER/phonon, no
-"USER-PTM"_Packages_details.html#PKG-USER-PTM, Polyhedral Template Matching,"compute ptm/atom"_compute_ptm.html, n/a, no
+"USER-PTM"_Packages_details.html#PKG-USER-PTM, Polyhedral Template Matching,"compute ptm/atom"_compute_ptm_atom.html, n/a, no
 "USER-QMMM"_Packages_details.html#PKG-USER-QMMM, QM/MM coupling,"fix qmmm"_fix_qmmm.html, USER/qmmm, ext
 "USER-QTB"_Packages_details.html#PKG-USER-QTB, quantum nuclear effects,"fix qtb"_fix_qtb.html "fix qbmsst"_fix_qbmsst.html, qtb, no
 "USER-QUIP"_Packages_details.html#PKG-USER-QUIP, QUIP/libatoms interface,"pair_style quip"_pair_quip.html, USER/quip, ext

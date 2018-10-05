@@ -1092,11 +1092,6 @@ correct. :dd
 The specified file cannot be opened.  Check that the path and name are
 correct. :dd
 
-{Cannot open fix ave/spatial file %s} :dt
-
-The specified file cannot be opened.  Check that the path and name are
-correct. :dd
-
 {Cannot open fix ave/time file %s} :dt
 
 The specified file cannot be opened.  Check that the path and name are
@@ -1676,10 +1671,6 @@ Using this fix requires the ability to lookup an atom index, which is
 provided by an atom map.  An atom map does not exist (by default) for
 non-molecular problems.  Using the atom_modify map command will force
 an atom map to be created. :dd
-
-{Cannot use fix ave/spatial z for 2 dimensional model} :dt
-
-Self-explanatory. :dd
 
 {Cannot use fix bond/break with non-molecular systems} :dt
 
@@ -2422,10 +2413,6 @@ Self-explanatory. :dd
 Self-explanatory. :dd
 
 {Compute ID for fix ave/histo does not exist} :dt
-
-Self-explanatory. :dd
-
-{Compute ID for fix ave/spatial does not exist} :dt
 
 Self-explanatory. :dd
 
@@ -4074,10 +4061,6 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
-{Fix ID for fix ave/spatial does not exist} :dt
-
-Self-explanatory. :dd
-
 {Fix ID for fix ave/time does not exist} :dt
 
 Self-explanatory. :dd
@@ -4378,51 +4361,6 @@ same style. :dd
 {Fix ave/histo/weight value and weight vector lengths do not match} :dt
 
 Self-explanatory. :dd
-
-{Fix ave/spatial compute does not calculate a per-atom array} :dt
-
-Self-explanatory. :dd
-
-{Fix ave/spatial compute does not calculate a per-atom vector} :dt
-
-A compute used by fix ave/spatial must generate per-atom values. :dd
-
-{Fix ave/spatial compute does not calculate per-atom values} :dt
-
-A compute used by fix ave/spatial must generate per-atom values. :dd
-
-{Fix ave/spatial compute vector is accessed out-of-range} :dt
-
-The index for the vector is out of bounds. :dd
-
-{Fix ave/spatial fix does not calculate a per-atom array} :dt
-
-Self-explanatory. :dd
-
-{Fix ave/spatial fix does not calculate a per-atom vector} :dt
-
-A fix used by fix ave/spatial must generate per-atom values. :dd
-
-{Fix ave/spatial fix does not calculate per-atom values} :dt
-
-A fix used by fix ave/spatial must generate per-atom values. :dd
-
-{Fix ave/spatial fix vector is accessed out-of-range} :dt
-
-The index for the vector is out of bounds. :dd
-
-{Fix ave/spatial for triclinic boxes requires units reduced} :dt
-
-Self-explanatory. :dd
-
-{Fix ave/spatial settings invalid with changing box size} :dt
-
-If the box size changes, only the units reduced option can be
-used. :dd
-
-{Fix ave/spatial variable is not atom-style variable} :dt
-
-A variable used by fix ave/spatial must generate per-atom values. :dd
 
 {Fix ave/time cannot set output array intensive/extensive from these inputs} :dt
 

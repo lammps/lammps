@@ -64,7 +64,7 @@ enum{VERSION,SMALLINT,TAGINT,BIGINT,
      ATOM_ID,ATOM_MAP_STYLE,ATOM_MAP_USER,ATOM_SORTFREQ,ATOM_SORTBIN,
      COMM_MODE,COMM_CUTOFF,COMM_VEL,NO_PAIR,
      EXTRA_BOND_PER_ATOM,EXTRA_ANGLE_PER_ATOM,EXTRA_DIHEDRAL_PER_ATOM,
-     EXTRA_IMPROPER_PER_ATOM,EXTRA_SPECIAL_PER_ATOM};
+     EXTRA_IMPROPER_PER_ATOM,MAXSPECIAL};
 
 #define LB_FACTOR 1.1
 
@@ -924,8 +924,8 @@ void ReadRestart::header(int incompatible)
       atom->extra_dihedral_per_atom = read_int();
     } else if (flag == EXTRA_IMPROPER_PER_ATOM) {
       atom->extra_improper_per_atom = read_int();
-    } else if (flag == EXTRA_SPECIAL_PER_ATOM) {
-      force->special_extra = read_int();
+    } else if (flag == MAXSPECIAL) {
+      atom->maxspecial = read_int();
 
     } else error->all(FLERR,"Invalid flag in header section of restart file");
 

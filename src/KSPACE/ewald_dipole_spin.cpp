@@ -434,7 +434,7 @@ void EwaldDipoleSpin::compute(int eflag, int vflag)
 
       // compute field for torque calculation
 
-      partial2 = exprl*sfacrl_all[k] - expim*sfacim_all[k];
+      partial2 = exprl*sfacrl_all[k] + expim*sfacim_all[k];
       tk[i][0] += partial2*eg[k][0];
       tk[i][1] += partial2*eg[k][1];
       tk[i][2] += partial2*eg[k][2];
@@ -478,9 +478,6 @@ void EwaldDipoleSpin::compute(int eflag, int vflag)
     fm_long[i][1] += spscale2 * tk[i][1];
     if (slabflag != 2) fm_long[i][2] += spscale2 * tk[i][3];
   }
-
-  //printf("test f_l: %g %g %g \n",f[0][0],f[0][1],f[0][2]);
-  //printf("test fm_l: %g %g %g \n",fm_long[0][0],fm_long[0][1],fm_long[0][2]);
   
   // sum global energy across Kspace vevs and add in volume-dependent term
   // taking the re-part of struct_fact_i x struct_fact_j

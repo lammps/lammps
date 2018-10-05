@@ -458,7 +458,7 @@ void EwaldDipole::compute(int eflag, int vflag)
 
       // compute field for torque calculation
 
-      partial2 = exprl*sfacrl_all[k] - expim*sfacim_all[k];
+      partial2 = exprl*sfacrl_all[k] + expim*sfacim_all[k];
       tk[i][0] += partial2*eg[k][0];
       tk[i][1] += partial2*eg[k][1];
       tk[i][2] += partial2*eg[k][2];
@@ -493,9 +493,9 @@ void EwaldDipole::compute(int eflag, int vflag)
     f[i][0] += muscale * ek[i][0];
     f[i][1] += muscale * ek[i][1];
     if (slabflag != 2) f[i][2] += muscale * ek[i][2];
-    t[i][0] += -mu[i][1]*tk[i][2] + mu[i][2]*tk[i][1];
-    t[i][1] += -mu[i][2]*tk[i][0] + mu[i][0]*tk[i][2];
-    if (slabflag != 2) t[i][2] += -mu[i][0]*tk[i][1] + mu[i][1]*tk[i][0];
+    t[i][0] -= muscale * (mu[i][1]*tk[i][2] - mu[i][2]*tk[i][1]);
+    t[i][1] -= muscale * (mu[i][2]*tk[i][0] - mu[i][0]*tk[i][2]);
+    if (slabflag != 2) t[i][2] -= muscale * (mu[i][0]*tk[i][1] - mu[i][1]*tk[i][0]);
   }
 
   // sum global energy across Kspace vevs and add in volume-dependent term

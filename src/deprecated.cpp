@@ -12,15 +12,15 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Axel Kohlmeyer (Temple U)
+   Contributing authors:  Axel Kohlmeyer (Temple U),
 ------------------------------------------------------------------------- */
 
 #include <cstring>
-#include "pair_deprecated.h"
-#include "pair_hybrid.h"
+#include "deprecated.h"
 #include "comm.h"
 #include "force.h"
 #include "error.h"
+#include "input.h"
 
 using namespace LAMMPS_NS;
 
@@ -31,31 +31,18 @@ static void writemsg(LAMMPS *lmp, const char *msg, int abend=1)
     if (lmp->logfile) fputs(msg,lmp->logfile);
   }
   if (abend)
-    lmp->error->all(FLERR,"This pair_style is no longer available");
+    lmp->error->all(FLERR,"This command is no longer available");
 }
-
 
 /* ---------------------------------------------------------------------- */
 
-void PairDeprecated::settings(int, char **)
+void Deprecated::command(int narg, char **arg)
 {
-  const char *my_style = force->pair_style;
+  if (strcmp(input->command,"deprecated") == 0) {
+    writemsg(lmp,"\nCommand 'deprecated' is a dummy command\n\n",0);
 
-  // hybrid substyles are created in PairHybrid::settings(), so when this is
-  // called, our style was just added at the end of the list of substyles
-  if (strncmp(my_style,"hybrid",6) == 0) {
-    PairHybrid *hybrid = (PairHybrid *)force->pair;
-    my_style = hybrid->keywords[hybrid->nstyles];
+  } else if (strcmp(input->command,"XXX") == 0) {
+    writemsg(lmp, "\nCommand 'XXX' has been removed from LAMMPS "
+             "after the\n## XXX 20## stable release.\n\n");
   }
-
-  if (strcmp(my_style,"deprecated") == 0) {
-    writemsg(lmp,"\nPair style 'deprecated' is a dummy pair style\n\n",0);
-
-  } else if (strcmp(my_style,"reax") == 0) {
-    writemsg(lmp, "\nPair style 'reax' has been removed from LAMMPS "
-             "after the\n## November 2018 stable release. Its "
-             "functionality has\nbeen superseded by pair style 'reax/c'.\n\n");
-  }
-}  
-
-
+}

@@ -44,7 +44,7 @@ ComputePair::ComputePair(LAMMPS *lmp, int narg, char **arg) :
 
   int iarg = 4;
   nsub = 0;
-  evalue = NPAIR;
+  evalue = EPAIR;
 
   if (narg > iarg) {
     if (isdigit(arg[iarg][0])) {

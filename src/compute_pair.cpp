@@ -13,6 +13,7 @@
 
 #include <mpi.h>
 #include <cstring>
+#include <cctype>
 #include "compute_pair.h"
 #include "update.h"
 #include "force.h"
@@ -43,23 +44,24 @@ ComputePair::ComputePair(LAMMPS *lmp, int narg, char **arg) :
 
   int iarg = 4;
   nsub = 0;
+  evalue = NPAIR;
 
-  while (iarg < narg) {
-    if (strcmp(arg[iarg],"evalue") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal compute pair command");
-      if (strcmp(arg[iarg+1],"epair") == 0) evalue = EPAIR;
-      else if (strcmp(arg[iarg+1],"evdwl") == 0) evalue = EVDWL;
-      else if (strcmp(arg[iarg+1],"ecoul") == 0) evalue = ECOUL;
-      else error->all(FLERR, "Unrecognized energy type");
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"nsub") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal compute pair command");
-      nsub = force->inumeric(FLERR,arg[iarg+1]);
-      iarg += 2;
-    } else error->all(FLERR,"Illegal compute pair command");
-    
+  if (narg > iarg) {
+    if (isdigit(arg[iarg][0])) {
+      nsub = force->inumeric(FLERR,arg[iarg]);
+      ++iarg;
+      if (nsub <= 0)
+        error->all(FLERR,"Illegal compute pair command");
+    }
   }
-  
+
+  if  (narg > iarg) {
+    if (strcmp(arg[iarg],"epair") == 0) evalue = EPAIR;
+    else if (strcmp(arg[iarg],"evdwl") == 0) evalue = EVDWL;
+    else if (strcmp(arg[iarg],"ecoul") == 0) evalue = ECOUL;
+    else error->all(FLERR, "Illegal compute pair command");
+    ++iarg;
+  }
 
   // check if pair style with and without suffix exists
 

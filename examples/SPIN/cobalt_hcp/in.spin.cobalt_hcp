@@ -5,13 +5,16 @@ units	 	metal
 atom_style 	spin
 
 dimension 	3
-boundary 	p p p
+#boundary 	p p f
+#boundary 	p p p
+boundary 	f f f
 
 # necessary for the serial algorithm (sametag)
 atom_modify 	map array 
 
 lattice 	hcp 2.5071
-region 		box block 0.0 5.0 0.0 5.0 0.0 5.0
+region 		box block 0.0 8.0 0.0 8.0 0.0 5.0
+#region 		box block 0.0 5.0 0.0 5.0 0.0 5.0
 #region 		box block 0.0 3.0 0.0 3.0 0.0 3.0
 create_box 	1 box
 create_atoms 	1 box
@@ -24,7 +27,7 @@ set 		group all spin/random 31 1.72
 #set 		group all spin 1.72 0.0 1.0 1.0 
 #velocity 	all create 100 4928459 rot yes dist gaussian
 
-#pair_style 	hybrid/overlay eam/alloy spin/exchange 4.0 spin/neel 5.0
+#pair_style 	hybrid/overlay eam/alloy spin/exchange 4.0 spin/neel 3.5
 #pair_style 	hybrid/overlay spin/exchange 4.0 spin/neel 4.0
 #pair_style 	spin/exchange 4.0
 pair_style 	spin/neel 4.0
@@ -62,11 +65,11 @@ variable 	magnorm   equal c_out_mag[4]
 variable 	emag      equal c_out_mag[5]
 variable 	tmag      equal c_out_mag[6]
 
-thermo_style    custom step time v_magx v_magz v_magnorm v_emag temp etotal
-thermo          50
+thermo_style    custom step time v_magx v_magz v_magnorm v_tmag temp pe ke v_emag etotal
+thermo          100
 
 compute 	outsp all property/atom spx spy spz sp fmx fmy fmz
-dump 		100 all custom 1 dump_cobalt_hcp.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3]
+dump 		200 all custom 1 dump_cobalt_hcp.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3]
 
-run 		40000
+run 		5000
 #run 		1

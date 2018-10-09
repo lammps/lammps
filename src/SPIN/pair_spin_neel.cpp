@@ -671,9 +671,9 @@ void PairSpinNeel::compute_neel_mech(int i, int j, double rsq, double eij[3],
   fix += coeff10*spi[1] + coeff11*spj[1] + coeff12*eij[1];
   fix += coeff10*spi[2] + coeff11*spj[2] + coeff12*eij[2];
 
-  fi[0] += fix;
-  fi[1] += fiy;
-  fi[2] += fiz;
+  fi[0] -= fix;
+  fi[1] -= fiy;
+  fi[2] -= fiz;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -727,10 +727,10 @@ double PairSpinNeel::compute_neel_energy(int i, int j, double rsq, double eij[3]
   si_sj = spi[0]*spj[0] + spi[1]*spj[1] + spi[2]*spj[2];
   
   energy = g1r*(si_sj*ri3 - eij_si*eij_sj);
-  energy -= (q1r*(eij_si*eij_si - si_sj*ri3)*(eij_sj*eij_sj - si_sj*ri3));
-  energy -= (q2r*eij_sj*eij_si*(eij_si*eij_si + eij_sj*eij_sj));
+  energy -= q1r*(eij_si*eij_si - si_sj*ri3)*(eij_sj*eij_sj - si_sj*ri3);
+  energy -= q2r*eij_sj*eij_si*(eij_si*eij_si + eij_sj*eij_sj);
   
-  return -energy;
+  return energy;
 }
   
 /* ----------------------------------------------------------------------
@@ -753,25 +753,25 @@ void PairSpinNeel::allocate()
   memory->create(r0,n+1,n+1,"pair/spin/soc/neel:r0");
 
   memory->create(g1,n+1,n+1,"pair/spin/neel:g1");
-  memory->create(gm1,n+1,n+1,"pair/spin/neel:gm1");
   memory->create(g2,n+1,n+1,"pair/spin/neel:g2");
-  memory->create(gm2,n+1,n+1,"pair/spin/neel:gm2");
   memory->create(g3,n+1,n+1,"pair/spin/neel:g3");
-  memory->create(gm3,n+1,n+1,"pair/spin/neel:gm3");
   memory->create(g4,n+1,n+1,"pair/spin/neel:g4");
-  memory->create(gm4,n+1,n+1,"pair/spin/neel:gm4");
   memory->create(g5,n+1,n+1,"pair/spin/neel:g5");
+  memory->create(gm1,n+1,n+1,"pair/spin/neel:gm1");
+  memory->create(gm2,n+1,n+1,"pair/spin/neel:gm2");
+  memory->create(gm3,n+1,n+1,"pair/spin/neel:gm3");
+  memory->create(gm4,n+1,n+1,"pair/spin/neel:gm4");
   memory->create(gm5,n+1,n+1,"pair/spin/neel:gm5");
 
   memory->create(q1,n+1,n+1,"pair/spin/neel:q1");
-  memory->create(qm1,n+1,n+1,"pair/spin/neel:qm1");
   memory->create(q2,n+1,n+1,"pair/spin/neel:q2");
-  memory->create(qm2,n+1,n+1,"pair/spin/neel:qm2");
   memory->create(q3,n+1,n+1,"pair/spin/neel:q3");
-  memory->create(qm3,n+1,n+1,"pair/spin/neel:qm3");
   memory->create(q4,n+1,n+1,"pair/spin/neel:q4");
-  memory->create(qm4,n+1,n+1,"pair/spin/neel:qm4");
   memory->create(q5,n+1,n+1,"pair/spin/neel:q5");
+  memory->create(qm1,n+1,n+1,"pair/spin/neel:qm1");
+  memory->create(qm2,n+1,n+1,"pair/spin/neel:qm2");
+  memory->create(qm3,n+1,n+1,"pair/spin/neel:qm3");
+  memory->create(qm4,n+1,n+1,"pair/spin/neel:qm4");
   memory->create(qm5,n+1,n+1,"pair/spin/neel:qm5");
 
   memory->create(cutsq,n+1,n+1,"pair/spin/soc/neel:cutsq");

@@ -532,8 +532,13 @@ void FixIntel::check_neighbor_intel()
       _offload_noghost = 0;
     }
     #endif
+
+    // avoid flagging a neighbor list as both USER-INTEL and USER-OMP
+    if (neighbor->requests[i]->intel)
+      neighbor->requests[i]->omp = 0;
+
     if (neighbor->requests[i]->skip)
-      error->all(FLERR, "Cannot yet use hybrid styles with Intel package.");
+      error->all(FLERR, "Hybrid styles with Intel package are unsupported.");
   }
 }
 

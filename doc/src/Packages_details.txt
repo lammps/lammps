@@ -1757,7 +1757,8 @@ Matching methodology.
 
 [Supporting info:]
 
-src/USER-PTM: filename starting with ptm_ -> supporting code, other filenames -> commands
+src/USER-PTM: filenames not starting with ptm_ -> commands
+src/USER-PTM: filenames starting with ptm_ -> supporting code
 src/USER-PTM/LICENSE
 "compute ptm/atom"_compute_ptm_atom.html :ul
 

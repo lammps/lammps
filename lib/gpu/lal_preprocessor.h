@@ -119,6 +119,8 @@
 #define BLOCK_ELLIPSE 128
 #define MAX_SHARED_TYPES 11
 
+#if (__CUDACC_VER_MAJOR__ < 9)
+
 #ifdef _SINGLE_SINGLE
 #define shfl_xor __shfl_xor
 #else
@@ -130,6 +132,25 @@ ucl_inline double shfl_xor(double var, int laneMask, int width) {
   tmp.y = __shfl_xor(tmp.y,laneMask,width);
   return __hiloint2double(tmp.x,tmp.y);
 }
+#endif
+
+#else
+
+#ifdef _SINGLE_SINGLE
+ucl_inline double shfl_xor(double var, int laneMask, int width) {
+  return __shfl_xor_sync(0xffffffff, var, laneMask, width);
+}
+#else
+ucl_inline double shfl_xor(double var, int laneMask, int width) {
+  int2 tmp;
+  tmp.x = __double2hiint(var);
+  tmp.y = __double2loint(var);
+  tmp.x = __shfl_xor_sync(0xffffffff,tmp.x,laneMask,width);
+  tmp.y = __shfl_xor_sync(0xffffffff,tmp.y,laneMask,width);
+  return __hiloint2double(tmp.x,tmp.y);
+}
+#endif
+
 #endif
 
 #endif

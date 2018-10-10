@@ -343,6 +343,7 @@ void PairReaxCKokkos<DeviceType>::init_md()
 
   swa = control->nonb_low;
   swb = control->nonb_cut;
+  enobondsflag = control->enobondsflag;
 
   if (fabs(swa) > 0.01 )
     error->warning(FLERR,"Warning: non-zero lower Taper-radius cutoff");
@@ -2272,12 +2273,12 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeMulti2<NEIGHFLAG,EVF
   int numbonds = d_bo_num[i];
 
   e_lp = 0.0;
-  if (numbonds > 0 || control->enobondsflag)
+  if (numbonds > 0 || enobondsflag)
     e_lp = p_lp2 * d_Delta_lp[i] * inv_expvd2;
   const F_FLOAT dElp = p_lp2 * inv_expvd2 + 75.0 * p_lp2 * d_Delta_lp[i] * expvd2 * inv_expvd2*inv_expvd2;
   const F_FLOAT CElp = dElp * d_dDelta_lp[i];
 
-  if (numbonds > 0 || control->enobondsflag)
+  if (numbonds > 0 || enobondsflag)
     a_CdDelta[i] += CElp;
 
   if (eflag) ev.ereax[0] += e_lp;
@@ -2314,7 +2315,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeMulti2<NEIGHFLAG,EVF
   const F_FLOAT inv_exp_ovun8 = 1.0 / (1.0 + exp_ovun8);
 
   e_un = 0;
-  if (numbonds > 0 || control->enobondsflag)
+  if (numbonds > 0 || enobondsflag)
     e_un = -p_ovun5 * (1.0 - exp_ovun6) * inv_exp_ovun2n * inv_exp_ovun8;
 
   if (eflag) ev.ereax[2] += e_un;
@@ -2334,7 +2335,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeMulti2<NEIGHFLAG,EVF
   // multibody forces
 
   a_CdDelta[i] += CEover3;
-  if (numbonds > 0 || control->enobondsflag)
+  if (numbonds > 0 || enobondsflag)
     a_CdDelta[i] += CEunder3;
 
   const int j_start = d_bo_first[i];

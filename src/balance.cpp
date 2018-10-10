@@ -350,13 +350,13 @@ void Balance::command(int narg, char **arg)
   domain->set_local_box();
 
   // move particles to new processors via irregular()
+  // set disable = 0, so weights migrate with atoms for imbfinal calculation
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   Irregular *irregular = new Irregular(lmp);
   if (wtflag) fixstore->disable = 0;
   if (style == BISECTION) irregular->migrate_atoms(1,1,rcb->sendproc);
   else irregular->migrate_atoms(1);
-  if (wtflag) fixstore->disable = 1;
   delete irregular;
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
@@ -377,9 +377,11 @@ void Balance::command(int narg, char **arg)
   }
 
   // imbfinal = final imbalance
+  // set disable = 1, so weights no longer migrate with atoms
 
   double maxfinal;
   double imbfinal = imbalance_factor(maxfinal);
+  if (wtflag) fixstore->disable = 1;
 
   // stats output
 
@@ -540,6 +542,8 @@ void Balance::weight_storage(char *prefix)
     fixstore = (FixStore *) modify->fix[modify->nfix-1];
   } else fixstore = (FixStore *) modify->fix[ifix];
 
+  // do not carry weights with atoms during normal atom migration
+
   fixstore->disable = 1;
 
   if (prefix) delete [] fixargs[0];
@@ -642,6 +646,21 @@ int *Balance::bisection(int sortflag)
 
   double *shrinklo = &shrinkall[0];
   double *shrinkhi = &shrinkall[3];
+
+  // if shrink size in any dim is zero, use box size in that dim
+
+  if (shrinklo[0] == shrinkhi[0]) {
+    shrinklo[0] = boxlo[0];
+    shrinkhi[0] = boxhi[0];
+  }
+  if (shrinklo[1] == shrinkhi[1]) {
+    shrinklo[1] = boxlo[1];
+    shrinkhi[1] = boxhi[1];
+  }
+  if (shrinklo[2] == shrinkhi[2]) {
+    shrinklo[2] = boxlo[2];
+    shrinkhi[2] = boxhi[2];
+  }
 
   // invoke RCB
   // then invert() to create list of proc assignments for my atoms

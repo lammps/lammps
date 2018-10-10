@@ -1,0 +1,119 @@
+"Higher level section"_Install.html - "LAMMPS WWW Site"_lws - "LAMMPS
+Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+Download an executable for Linux :h3
+
+Binaries are available for many different versions of Linux:
+
+"Pre-built binary RPMs for Fedora/RedHat/CentOS/openSUSE"_#rpm
+"Pre-built Ubuntu Linux executables"_#ubuntu
+"Pre-built Gentoo Linux executable"_#gentoo :all(b)
+
+:line
+
+Pre-built binary RPMs for Fedora/RedHat/CentOS/openSUSE :h4,link(rpm)
+
+Pre-built LAMMPS executables for various Linux distributions
+can be downloaded as binary RPM files from this site:
+
+"http://rpm.lammps.org"_http://rpm.lammps.org
+
+There are multiple package variants supporting serial, parallel and
+Python wrapper versions.  The LAMMPS binaries contain all optional
+packages included in the source distribution except: GPU, KIM, REAX,
+and USER-INTEL.
+
+Installation instructions for the various versions are here:
+
+"http://rpm.lammps.org/install.html"_http://rpm.lammps.org/install.html
+
+The instructions show how to enable the repository in the respective
+system's package management system.  Installing and updating are then
+straightforward and automatic.  
+
+Thanks to Axel Kohlmeyer (Temple U, akohlmey at gmail.com) for setting
+up this RPM capability.
+
+:line
+
+Pre-built Ubuntu Linux executables :h4,link(ubuntu)
+
+A pre-built LAMMPS executable suitable for running on the latest
+Ubuntu Linux versions, can be downloaded as a Debian package.  This
+allows you to install LAMMPS with a single command, and stay
+up-to-date with the current version of LAMMPS by simply updating your
+operating system.
+
+To install the appropriate personal-package archive (PPA), do the
+following once:
+
+sudo add-apt-repository ppa:gladky-anton/lammps
+sudo apt-get update :pre
+
+To install LAMMPS do the following once:
+
+sudo apt-get install lammps-daily :pre
+
+This downloads an executable named "lammps-daily" to your box, which
+can then be used in the usual way to run input scripts:
+
+lammps-daily < in.lj :pre
+
+To update LAMMPS to the most current version, do the following:
+
+sudo apt-get update :pre
+
+which will also update other packages on your system.
+
+To get a copy of the current documentation and examples:
+
+sudo apt-get install lammps-daily-doc :pre
+
+which will download the doc files in
+/usr/share/doc/lammps-daily-doc/doc and example problems in
+/usr/share/doc/lammps-doc/examples.
+
+Note that you may still wish to download the tarball to get potential
+files and auxiliary tools.
+
+To un-install LAMMPS, do the following:
+
+sudo apt-get remove lammps-daily :pre
+
+Note that the lammps-daily executable is built with the following
+sequence of make commands, as if you had done the same with the
+unpacked tarball files in the src directory:
+
+make yes-all; make no-lib; make openmpi
+
+Thus it builds with FFTW3 and OpenMPI.
+
+Thanks to Anton Gladky (gladky.anton at gmail.com) for setting up this
+Ubuntu package capability.
+
+:line
+
+Pre-built Gentoo Linux executable :h4,link(gentoo)
+
+LAMMPS is part of Gentoo's main package tree and can be installed by
+typing:
+
+% emerge --ask lammps :pre
+
+Note that in Gentoo the LAMMPS source is downloaded and the package is
+built on the your machine.
+
+Certain LAMMPS packages can be enable via USE flags, type
+
+% equery uses lammps :pre
+
+for details.
+
+Thanks to Nicolas Bock and Christoph Junghans (LANL) for setting up
+this Gentoo capability.

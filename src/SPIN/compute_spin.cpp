@@ -18,11 +18,11 @@
    Please cite the related publication:
    Tranchida, J., Plimpton, S. J., Thibaudeau, P., & Thompson, A. P. (2018).
    Massively parallel symplectic algorithm for coupled magnetic spin dynamics
-   and molecular dynamics. arXiv preprint arXiv:1801.10233.
+   and molecular dynamics. Journal of Computational Physics.
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <string.h>
+#include <cstring>
 #include "atom.h"
 #include "compute_spin.h"
 #include "domain.h"
@@ -105,16 +105,16 @@ void ComputeSpin::compute_vector()
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       if (atom->sp_flag) {
-		mag[0] += sp[i][0];
-		mag[1] += sp[i][1];
-		mag[2] += sp[i][2];
-		magenergy -= (sp[i][0]*fm[i][0] + sp[i][1]*fm[i][1] + sp[i][2]*fm[i][2]);
-                tx = sp[i][1]*fm[i][2]-sp[i][2]*fm[i][1];
-                ty = sp[i][2]*fm[i][0]-sp[i][0]*fm[i][2];
-                tz = sp[i][0]*fm[i][1]-sp[i][1]*fm[i][0];
-                tempnum += tx*tx+ty*ty+tz*tz;
-                tempdenom += sp[i][0]*fm[i][0]+fm[i][1]*sp[i][1]+sp[i][2]*fm[i][2];  	
-		countsp++;
+	mag[0] += sp[i][0];
+	mag[1] += sp[i][1];
+	mag[2] += sp[i][2];
+	magenergy -= (sp[i][0]*fm[i][0] + sp[i][1]*fm[i][1] + sp[i][2]*fm[i][2]);
+        tx = sp[i][1]*fm[i][2]-sp[i][2]*fm[i][1];
+        ty = sp[i][2]*fm[i][0]-sp[i][0]*fm[i][2];
+        tz = sp[i][0]*fm[i][1]-sp[i][1]*fm[i][0];
+        tempnum += tx*tx+ty*ty+tz*tz;
+        tempdenom += sp[i][0]*fm[i][0]+fm[i][1]*sp[i][1]+sp[i][2]*fm[i][2];  	
+	countsp++;
       }
     }
     else error->all(FLERR,"Compute compute/spin requires atom/spin style");

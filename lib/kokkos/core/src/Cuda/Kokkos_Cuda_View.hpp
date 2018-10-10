@@ -292,7 +292,8 @@ public:
 
 #if ! defined( KOKKOS_ENABLE_CUDA_LDG_INTRINSIC )
       if ( 0 == r ) {
-        Kokkos::abort("Cuda const random access View using Cuda texture memory requires Kokkos to allocate the View's memory");
+        //Kokkos::abort("Cuda const random access View using Cuda texture memory requires Kokkos to allocate the View's memory");
+        return handle_type();
       }
 #endif
 

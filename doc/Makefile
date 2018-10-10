@@ -49,11 +49,11 @@ help:
 
 # ------------------------------------------
 
-clean-all:
+clean-all: clean
 	rm -rf $(BUILDDIR)/* utils/txt2html/txt2html.exe
 
 clean:
-	rm -rf $(RSTDIR) html
+	rm -rf $(RSTDIR) html old epub
 	rm -rf spelling
 
 clean-spelling:
@@ -157,7 +157,7 @@ $(RSTDIR)/%.rst : src/%.txt $(TXT2RST)
 	@(\
 		mkdir -p $(RSTDIR) ; \
 		. $(VENV)/bin/activate ;\
-		txt2rst $< > $@ ;\
+		txt2rst -v $< > $@ ;\
 		deactivate ;\
 	)
 

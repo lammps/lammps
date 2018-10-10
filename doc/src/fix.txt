@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -30,9 +30,9 @@ Set a fix that will be applied to a group of atoms.  In LAMMPS, a
 timestepping or minimization.  Examples include updating of atom
 positions and velocities due to time integration, controlling
 temperature, applying constraint forces to atoms, enforcing boundary
-conditions, computing diagnostics, etc.  There are dozens of fixes
-defined in LAMMPS and new ones can be added; see "this
-section"_Section_modify.html for a discussion.
+conditions, computing diagnostics, etc.  There are hundredes of fixes
+defined in LAMMPS and new ones can be added; see the
+"Modify"_Modify.html doc page for details.
 
 Fixes perform their operations at different stages of the timestep.
 If 2 or more fixes operate at the same stage of the timestep, they are
@@ -133,7 +133,7 @@ reduce"_compute_reduce.html command, or histogrammed by the "fix
 ave/histo"_fix_ave_histo.html command. :l
 :ule
 
-See this "howto section"_Section_howto.html#howto_15 for a summary of
+See the "Howto output"_Howto_output.html doc page for a summary of
 various LAMMPS output options, many of which involve fixes.
 
 The results of fixes that calculate global quantities can be either
@@ -151,16 +151,20 @@ for further info.
 
 :line
 
-Each fix style has its own documentation page which describes its
-arguments and what it does, as listed below.  Here is an alphabetic
-list of fix styles available in LAMMPS.  They are also given in more
-compact form in the Fix section of "this
-page"_Section_commands.html#cmd_5.
+Each fix style has its own doc page which describes its arguments and
+what it does, as listed below.  Here is an alphabetic list of fix
+styles available in LAMMPS.  They are also listed in more compact form
+on the "Commands fix"_Commands_fix.html doc page.
 
 There are also additional fix styles (not listed here) submitted by
-users which are included in the LAMMPS distribution.  The list of
-these with links to the individual styles are given in the fix section
-of "this page"_Section_commands.html#cmd_5.
+users which are included in the LAMMPS distribution.  The full list of
+all fix styles is on the "Commands fix"_Commands_fix.html doc page.
+
+There are also additional accelerated fix styles included in the
+LAMMPS distribution for faster performance on CPUs, GPUs, and KNLs.
+The individual style names on the "Commands fix"_Commands_fix.html doc
+page are followed by one or more of (g,i,k,o,t) to indicate which
+accerlerated styles exist.
 
 "adapt"_fix_adapt.html - change a simulation parameter over time
 "addforce"_fix_addforce.html - add a force to each atom
@@ -305,9 +309,9 @@ of "this page"_Section_commands.html#cmd_5.
 [Restrictions:]
 
 Some fix styles are part of specific packages.  They are only enabled
-if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info on packages.
-The doc pages for individual fixes tell if it is part of a package.
+if LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.  The doc pages for
+individual fixes tell if it is part of a package.
 
 [Related commands:]
 

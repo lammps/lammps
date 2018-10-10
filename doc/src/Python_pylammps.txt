@@ -1,0 +1,14 @@
+"Higher level section"_Python_head.html - "LAMMPS WWW Site"_lws -
+"LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+PyLammps interface :h3
+
+PyLammps is a Python wrapper class which can be created on its own or
+use an existing lammps Python object.  It has its own "Howto
+pylammps"_Howto_pylammps.html doc page.

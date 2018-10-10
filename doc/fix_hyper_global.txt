@@ -1,0 +1,146 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix hyper/global command :h3
+
+[Syntax:]
+
+fix ID group-ID hyper/global cutbond qfactor Vmax Tequil :pre
+
+ID, group-ID are documented in "fix"_fix.html command
+hyper/global = style name of this fix command
+cutbond = max distance at which a pair of atoms is considered bonded (distance units)
+qfactor = max strain at which bias potential goes to 0.0 (unitless)
+Vmax = height of bias potential (energy units)
+Tequil = equilibration temperature (temperature units) :ul
+
+[Examples:]
+
+fix 1 all hyper/global 1.0 0.3 0.8 300.0 :pre
+
+[Description:]
+
+This fix is meant to be used with the "hyper"_hyper.html command to
+perform a bond-boost hyperdynamics simulation.  The role of this fix
+is a select a single pair of atoms within the system at each timestep
+to add a global bias potential to, which will alter their dynamics.
+This is in contrast to the "fix hyper/local"_fix_hyper_local.html
+command, which can add a local bias potential to multiple pairs of
+atoms at each timestep.
+
+For a system that undergoes rare transition events, where one or more
+atoms move across an energy barrier to a new potential energy basin,
+the effect of the bias potential is to induce more rapid transitions.
+This can lead to a dramatic speed-up in the rate at which events
+occurs, without altering their relative frequencies, thus leading to
+an overall dramatic speed-up in the effective elapsed time of the
+simulation.
+
+Cite various papers.
+
+The current strain of a bond IJ is defined as
+
+Eij = (Rij - R0ij) / R0ij :pre
+
+Emax = is the max of the absolute value of Eij for all IJ bonds.
+
+dVij = Vmax * (1 - (Eij/q)^2) for abs(Eij) < q
+     = 0  otherwise :pre
+
+Delta Vbias = minimum of dVij for all IJ bonds :pre
+
+The boost factor B = exp(beta * Delta Vbias)
+for a single timestep.
+
+Thus the accumulated hypertime is simply
+
+t_hyper = Sum (i = 1 to Nsteps) Bi * dt :pre
+
+The {cutbond} argument is the cutoff distance for defining bonds
+between pairs of nearby atoms.  A pair of atoms in their equilibrium,
+minimum-energy config, which are a distance Rij < cutbond, are
+defined as a bonded pair.
+
+The {qfactor} argument is the limiting strain at which
+the Vbias (the bias potential) goes to 0.0.
+
+If {qfactor} is too big, then transitions are affected b/c
+the bias energy is non-zero at the transitions.  If it is
+too small than not must boost is achieved for a large system
+with many bonds (some bonds Eij always exceeds qfactor).
+
+The {Vmax} argument is the prefactor on the bias potential.
+
+The {Tequil} argument is part of the beta term in the
+exponential factor that determines how much boost is
+achieved as a function of the bias potential.
+
+[Restart, fix_modify, output, run start/stop, minimize info:]
+
+No information about this fix is written to "binary restart
+files"_restart.html.
+
+The "fix_modify"_fix_modify.html {energy} option is supported by this
+fix to add the energy of the bias potential to the the system's
+potential energy as part of "thermodynamic output"_thermo_style.html.
+
+This fix computes a global scalar and global vector of length 10,
+which can be accessed by various "output
+commands"_Section_howto.html#howto_15.  The scalar is the magnitude of
+the bias potential (energy units) applied on the current timestep.
+The vector stores the following quantities:
+
+1 = boost factor on this step (unitless)
+2 = max strain of any bond on this step (unitless)
+3 = ID of first atom in the max-strain bond
+4 = ID of second atom in the max-strain bond
+5 = average # of bonds/atom on this step :ul
+
+6 = fraction of step with no bias during this run
+7 = max drift distance of any atom during this run (distance units)
+8 = max bond length during this run (distance units) :ul
+
+9 = cummulative hyper time since fix created (time units)
+10 = cummulative count of event timesteps since fix created
+11 = cummulative count of atoms in events since fix created :ul
+
+The first 5 quantities are for the current timestep.  The quantities
+6-8 are for the current run.  The quantities 9-11 are cummulative
+across multiple runs (since the fix was defined in the input script).
+
+For value 10, events are checked for by the "hyper"_hyper.html command
+once every {Nevent} timesteps.  This value is the count of the number
+of timesteps on which one (or more) events was detected.  It is NOT
+the number of distinct events, since more than one physical event may
+occur in the same {Nevent} time window.
+
+For value 11, each time the "hyper"_hyper.html command checks for an
+event, the event compute it uses will flag zero or more atoms as
+participating in an event.  E.g. atoms that have displaced more than
+some distance from the previous quench state.  This value is the count
+of the number of atoms participating in any of the events that were
+found.
+
+The scalar and vector values calculated by this fix are all
+"intensive".
+
+No parameter of this fix can be used with the {start/stop} keywords of
+the "run"_run.html command.  This fix is not invoked during "energy
+minimization"_minimize.html.
+
+[Restrictions:]
+
+This fix is part of the REPLICA package.  It is only enabled if LAMMPS
+was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
+
+[Related commands:]
+
+"fix hyper/local"_fix_hyper_local.html
+
+[Default:] None

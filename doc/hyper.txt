@@ -1,0 +1,117 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+hyper command :h3
+
+[Syntax:]
+
+hyper N Nevent fixID computeID keyword values ... :pre
+
+N = # of timesteps to run :ulb,l
+Nevent = check for events every this many steps :l
+fixID = ID of a fix that applies a global or local bias potential :l
+computeID = ID of a compute that identifies when an event has occurred :l
+zero or more keyword/value pairs may be appended :l
+keyword = {min} or {time} :l
+  {min} values = etol ftol maxiter maxeval
+    etol = stopping tolerance for energy, used in quenching
+    ftol = stopping tolerance for force, used in quenching
+    maxiter = max iterations of minimize, used in quenching
+    maxeval = max number of force/energy evaluations, used in quenching
+  {time} value = {steps} or {clock}
+    {steps} = simulation runs for N timesteps (default)
+    {clock} = simulation runs until hyper time exceeds N timesteps :pre
+:ule
+
+[Examples:]
+
+hyper 5000 100 global event :pre
+
+[Description:]
+
+Run a bond-boost hyperdynamics (HD) simulation where time is
+accelerated by application of a bias potential to a one or more pairs
+of atoms in the system.  This command can be used to run both global
+and local hyperdyamics.  In global HD a single bond (nearby pair of
+atoms) within the system is biased on a given timestep.  In local HD
+multiple bonds (separated by a sufficient distance) can be biased
+simultaneously at each timestep.
+
+Make next paragraph more HD-specific.
+
+Both global and local HD are described in "this paper"_#Voter2013 by
+Art Voter and collaborators.  They are methods for performing
+accelerated dynamics that is suitable for infrequent-event systems
+that obey first-order kinetics.  A good overview of accelerated
+dynamics methods for such systems in given in "this review
+paper"_#Voter2002prd from the same group.  To quote from the paper:
+"The dynamical evolution is characterized by vibrational excursions
+within a potential basin, punctuated by occasional transitions between
+basins."  The transition probability is characterized by p(t) =
+k*exp(-kt) where k is the rate constant.  Running multiple replicas
+gives an effective enhancement in the timescale spanned by the
+multiple simulations, while waiting for an event to occur.
+
+How different than PRD.
+
+An HD run has several stages, which are repeated each time an "event"
+occurs, as defined below.  The logic for a HD run is as follows:
+
+quench
+reset list of bonds :pre
+
+while (time remains):
+  run dynamics for Nevery steps
+  quench
+  check for an event
+  if event occurred: reset list of bonds
+  restore pre-quench state :pre
+
+Explain each of the steps above.  Explain what list of bonds is and
+how event is detected.
+
+Explain the specified fix and compute.
+
+Statistics about the number of events, the number of bonds that a bias
+potential is applied to, the accumulated hyper time, etc are stored by
+the fix and can be output with thermodynamic output.
+
+:line
+
+[Restrictions:]
+
+This command can only be used if LAMMPS was built with the REPLICA
+package.  See the "Making LAMMPS"_Section_start.html#start_3 section
+for more info on packages.
+
+NOTE: is this true?
+This command cannot be used when any fixes are defined that keep track
+of elapsed time to perform time-dependent operations.  Examples
+include the "ave" fixes such as "fix ave/chunk"_fix_ave_chunk.html.
+Also "fix dt/reset"_fix_dt_reset.html and "fix
+deposit"_fix_deposit.html.
+
+[Related commands:]
+
+"fix hyper/global"_fix_hyper_global.html, "fix
+hyper/local"_fix_hyper_local.html, "compute
+event/displace"_compute_event_displace.html
+
+[Default:]
+
+The option defaults are min = 0.1 0.1 40 50 and time = steps.
+
+:line
+
+:link(Voter2013)
+[(Voter2013)] S. Y. Kim, D. Perez, A. F. Voter, J Chem Phys, 139,
+144110 (2013).
+
+:link(Voter2002prd)
+[(Voter2002)] Voter, Montalenti, Germann, Annual Review of Materials
+Research 32, 321 (2002).

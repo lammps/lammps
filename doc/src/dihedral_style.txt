@@ -90,11 +90,19 @@ doc page.
 "hybrid"_dihedral_hybrid.html - define multiple styles of dihedral interactions :ul
 
 "charmm"_dihedral_charmm.html - CHARMM dihedral
+"charmmfsw"_dihedral_charmm.html - 
 "class2"_dihedral_class2.html - COMPASS (class 2) dihedral
+"cosine/shift/exp"_dihedral_cosine_shift_exp.html - 
+"fourier"_dihedral_fourier.html - 
 "harmonic"_dihedral_harmonic.html - harmonic dihedral
 "helix"_dihedral_helix.html - helix dihedral
 "multi/harmonic"_dihedral_multi_harmonic.html - multi-harmonic dihedral
-"opls"_dihedral_opls.html - OPLS dihedral :ul
+"nharmonic"_dihedral_nharmonic.html - 
+"opls"_dihedral_opls.html - OPLS dihedral
+"quadratic"_dihedral_quadratic.html - 
+"spherical"_dihedral_spherical.html - 
+"table"_dihedral_table.html - 
+"table/cut"_dihedral_table_cut.html - :ul
 
 :line
 

@@ -68,11 +68,20 @@ doc page.
 
 "charmm"_angle_charmm.html - CHARMM angle
 "class2"_angle_class2.html - COMPASS (class 2) angle
+"class2/p6"_angle_class2.html - 
 "cosine"_angle_cosine.html - cosine angle potential
+"cosine/buck6d"_angle_cosine_buck6d.html - 
 "cosine/delta"_angle_cosine_delta.html - difference of cosines angle potential
 "cosine/periodic"_angle_cosine_periodic.html - DREIDING angle
+"cosine/shift"_angle_cosine_shift.html - 
+"cosine/shift/exp"_angle_cosine_shift_exp.html - 
 "cosine/squared"_angle_cosine_squared.html - cosine squared angle potential
+"dipole"_angle_dipole.html - 
+"fourier"_angle_fourier.html - 
+"fourier/simple"_angle_fourier_simple.html - 
 "harmonic"_angle_harmonic.html - harmonic angle
+"quartic"_angle_quartic.html - 
+"sdk"_angle_sdk.html - 
 "table"_angle_table.html - tabulated by angle :ul
 
 :line

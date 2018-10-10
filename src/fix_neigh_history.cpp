@@ -35,7 +35,7 @@ enum{DEFAULT,NPARTNER,PERPARTNER}; // also set in fix neigh/history/omp
 
 FixNeighHistory::FixNeighHistory(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  npartner(NULL), partner(NULL), valuepartner(NULL), pair(NULL),
+  pair(NULL), npartner(NULL), partner(NULL), valuepartner(NULL),
   ipage_atom(NULL), dpage_atom(NULL), ipage_neigh(NULL), dpage_neigh(NULL)
 {
   if (narg != 4) error->all(FLERR,"Illegal fix NEIGH_HISTORY command");
@@ -688,7 +688,7 @@ void FixNeighHistory::grow_arrays(int nmax)
    copy values within local atom-based arrays
 ------------------------------------------------------------------------- */
 
-void FixNeighHistory::copy_arrays(int i, int j, int delflag)
+void FixNeighHistory::copy_arrays(int i, int j, int /*delflag*/)
 {
   // just copy pointers for partner and valuepartner
   // b/c can't overwrite chunk allocation inside ipage_atom,dpage_atom

@@ -363,7 +363,7 @@ specified with the OMP_NUM_THREADS environment variable or the {omp}
 keyword). The extra thread is dedicated for performing part of the
 "PPPM solver"_kspace_style.html computations and communications. This
 can improve parallel performance on processors supporting
-Simultaneous Multithreading (SMT) such as Hyperthreading on Intel
+Simultaneous Multithreading (SMT) such as Hyper-Threading (HT) on Intel
 processors. In this mode, one additional thread is generated per MPI
 process. LAMMPS will generate a warning in the case that more threads
 are used than available in SMT hardware on a node. If the PPPM solver

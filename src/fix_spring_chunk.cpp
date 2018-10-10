@@ -144,7 +144,7 @@ void FixSpringChunk::min_setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixSpringChunk::post_force(int vflag)
+void FixSpringChunk::post_force(int /*vflag*/)
 {
   int i,m;
   double dx,dy,dz,r;
@@ -231,7 +231,7 @@ void FixSpringChunk::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixSpringChunk::post_force_respa(int vflag, int ilevel, int iloop)
+void FixSpringChunk::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == ilevel_respa) post_force(vflag);
 }

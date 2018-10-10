@@ -77,7 +77,7 @@ normalized. But since it represents the {absolute} displacement of
 group-ID2 relative to the fix group, (1,1,0) is a different spring
 than (-1,-1,0).  For each vector component, the displacement can be
 described with the {auto} parameter. In this case the direction is
-recomputed in every step, which can be useful for steering a local
+re-computed in every step, which can be useful for steering a local
 process where the whole object undergoes some other change.  When the
 relative positions and distance between the two groups are not in
 equilibrium, the same spring force described above is applied to atoms

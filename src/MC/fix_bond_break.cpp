@@ -693,7 +693,7 @@ int FixBondBreak::dedup(int nstart, int nstop, tagint *copy)
 
 /* ---------------------------------------------------------------------- */
 
-void FixBondBreak::post_integrate_respa(int ilevel, int iloop)
+void FixBondBreak::post_integrate_respa(int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1) post_integrate();
 }
@@ -701,7 +701,7 @@ void FixBondBreak::post_integrate_respa(int ilevel, int iloop)
 /* ---------------------------------------------------------------------- */
 
 int FixBondBreak::pack_forward_comm(int n, int *list, double *buf,
-                                    int pbc_flag, int *pbc)
+                                    int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,k,m,ns;
 

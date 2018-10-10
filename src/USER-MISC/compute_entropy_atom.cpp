@@ -151,7 +151,7 @@ void ComputeEntropyAtom::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeEntropyAtom::init_list(int id, NeighList *ptr)
+void ComputeEntropyAtom::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }

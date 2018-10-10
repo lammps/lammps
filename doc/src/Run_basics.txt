@@ -75,7 +75,7 @@ setenv OMP_NUM_THREADS 2     # csh or tcsh :pre
 This can also be done via the "package"_package.html command or via
 the "-pk command-line switch"_Run_options.html which invokes the
 package command.  See the "package"_package.html command or
-"Speed"_Speed.html doc pages for more details about which accerlarator
+"Speed"_Speed.html doc pages for more details about which accelerator
 packages and which commands support multi-threading.
 
 :line

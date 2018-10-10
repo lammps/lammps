@@ -13,7 +13,7 @@ This is an alphabetic list of the WARNING messages LAMMPS prints out
 and the reason why.  If the explanation here is not sufficient, the
 documentation for the offending command may help.  Warning messages
 also list the source file and line number where the warning was
-generated.  For example, a message lile this:
+generated.  For example, a message like this:
 
 WARNING: Bond atom missing in box size check (domain.cpp:187) :pre
 
@@ -290,24 +290,6 @@ This may cause accuracy problems. :dd
 {Fix srd viscosity < 0.0 due to low SRD density} :dt
 
 This may cause accuracy problems. :dd
-
-{Fix thermal/conductivity comes before fix ave/spatial} :dt
-
-The order of these 2 fixes in your input script is such that fix
-thermal/conductivity comes first.  If you are using fix ave/spatial to
-measure the temperature profile induced by fix viscosity, then this
-may cause a glitch in the profile since you are averaging immediately
-after swaps have occurred.  Flipping the order of the 2 fixes
-typically helps. :dd
-
-{Fix viscosity comes before fix ave/spatial} :dt
-
-The order of these 2 fixes in your input script is such that
-fix viscosity comes first.  If you are using fix ave/spatial
-to measure the velocity profile induced by fix viscosity, then
-this may cause a glitch in the profile since you are averaging
-immediately after swaps have occurred.  Flipping the order
-of the 2 fixes typically helps. :dd
 
 {Fixes cannot send data in Kokkos communication, switching to classic communication} :dt
 

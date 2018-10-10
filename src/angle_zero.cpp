@@ -148,7 +148,7 @@ void AngleZero::write_data(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double AngleZero::single(int type, int i1, int i2, int i3)
+double AngleZero::single(int /*type*/, int /*i1*/, int /*i2*/, int /*i3*/)
 {
   return 0.0;
 }

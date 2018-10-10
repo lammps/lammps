@@ -46,6 +46,7 @@ as contained in the file name.
 "MANYBODY"_#PKG-MANYBODY,
 "MC"_#PKG-MC,
 "MEAM"_#PKG-MEAM,
+"MESSAGE"_#PKG-MESSAGE,
 "MISC"_#PKG-MISC,
 "MOLECULE"_#PKG-MOLECULE,
 "MPIIO"_#PKG-MPIIO,
@@ -88,10 +89,12 @@ as contained in the file name.
 "USER-NETCDF"_#PKG-USER-NETCDF,
 "USER-OMP"_#PKG-USER-OMP,
 "USER-PHONON"_#PKG-USER-PHONON,
+"USER-PTM"_#PKG-USER-PTM,
 "USER-QMMM"_#PKG-USER-QMMM,
 "USER-QTB"_#PKG-USER-QTB,
 "USER-QUIP"_#PKG-USER-QUIP,
 "USER-REAXC"_#PKG-USER-REAXC,
+"USER-SCAFACOS"_#PKG-USER-SCAFACOS,
 "USER-SMD"_#PKG-USER-SMD,
 "USER-SMTBQ"_#PKG-USER-SMTBQ,
 "USER-SPH"_#PKG-USER-SPH,
@@ -297,7 +300,7 @@ lib/gpu/README
 "Section 2.6 -sf gpu"_Run_options.html
 "Section 2.6 -pk gpu"_Run_options.html
 "package gpu"_package.html
-"Commands all"_Commands_all.html pages (pair,kspace) for styles followed by (g)
+"Commands all"_lc pages (pair,kspace) for styles followed by (g)
 "Benchmarks page"_http://lammps.sandia.gov/bench.html of web site :ul
 
 :line
@@ -412,7 +415,7 @@ lib/kokkos/README
 "Section 2.6 -sf kk"_Run_options.html
 "Section 2.6 -pk kokkos"_Run_options.html
 "package kokkos"_package.html
-"Commands all"_Commands_all.html pages (fix,compute,pair,etc) for styles followed by (k)
+"Commands all"_lc pages (fix,compute,pair,etc) for styles followed by (k)
 "Benchmarks page"_http://lammps.sandia.gov/bench.html of web site :ul
 
 :line
@@ -549,10 +552,6 @@ This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
 extras"_Build_extras.html doc page.
 
-NOTE: You should test building the MEAM library with both the Intel
-and GNU compilers to see if a simulation runs faster with one versus
-the other on your system.
-
 [Supporting info:]
 
 src/MEAM: filenames -> commands
@@ -560,6 +559,31 @@ src/meam/README
 lib/meam/README
 "pair_style meam"_pair_meam.html
 examples/meam :ul
+
+:line
+
+MESSAGE package :link(PKG-MESSAGE),h4
+
+[Contents:]
+
+Commands to use LAMMPS as either a client or server and couple it to
+another application.
+
+[Install:]
+
+This package has "specific installation
+instructions"_Build_extras.html#message on the "Build
+extras"_Build_extras.html doc page.
+
+[Supporting info:]
+
+src/MESSAGE: filenames -> commands
+lib/message/README
+"message"_message.html
+"fix client/md"_fix_client_md.html
+"server md"_server_md.html
+"server mc"_server_mc.html
+examples/message :ul
 
 :line
 
@@ -851,7 +875,7 @@ multi-replica simulations in LAMMPS.  Methods in the package include
 nudged elastic band (NEB), parallel replica dynamics (PRD),
 temperature accelerated dynamics (TAD), parallel tempering, and a
 verlet/split algorithm for performing long-range Coulombics on one set
-of processors, and the remainder of the force field calcalation on
+of processors, and the remainder of the force field calculation on
 another set.
 
 [Supporting info:]
@@ -874,7 +898,7 @@ RIGID package :link(PKG-RIGID),h4
 [Contents:]
 
 Fixes which enforce rigid constraints on collections of atoms or
-particles.  This includes SHAKE and RATTLE, as well as varous
+particles.  This includes SHAKE and RATTLE, as well as various
 rigid-body integrators for a few large bodies or many small bodies.
 Also several computes which calculate properties of rigid bodies.
 
@@ -1370,7 +1394,7 @@ which have styles optimized for CPUs and KNLs.
 
 You need to have an Intel compiler, version 14 or higher to take full
 advantage of this package. While compilation with GNU compilers is
-supported, performance will be suboptimal.
+supported, performance will be sub-optimal.
 
 NOTE: the USER-INTEL package contains styles that require using the
 -restrict flag, when compiling with Intel compilers.
@@ -1392,7 +1416,7 @@ src/USER-INTEL/README
 "Section 2.6 -sf intel"_Run_options.html
 "Section 2.6 -pk intel"_Run_options.html
 "package intel"_package.html
-"Commands all"_Commands_all.html pages (fix,compute,pair,etc) for styles followed by (i)
+"Commands all"_lc pages (fix,compute,pair,etc) for styles followed by (i)
 src/USER-INTEL/TEST
 "Benchmarks page"_http://lammps.sandia.gov/bench.html of web site :ul
 
@@ -1582,8 +1606,6 @@ molecular visualization and analysis program, to enable LAMMPS to dump
 snapshots in formats compatible with various molecular simulation
 tools.
 
-:link(vmd_home,http://www.ks.uiuc.edu/Research/vmd)
-
 To use this package you must have the desired VMD plugins available on
 your system.
 
@@ -1593,7 +1615,7 @@ plugin via the "dump molfile"_dump_molfile.html command.  Plugins can
 be obtained from a VMD installation which has to match the platform
 that you are using to compile LAMMPS for. By adding plugins to VMD,
 support for new file formats can be added to LAMMPS (or VMD or other
-programs that use them) without having to recompile the application
+programs that use them) without having to re-compile the application
 itself.  More information about the VMD molfile plugins can be found
 at
 "http://www.ks.uiuc.edu/Research/vmd/plugins/molfile"_http://www.ks.uiuc.edu/Research/vmd/plugins/molfile.
@@ -1635,6 +1657,7 @@ tools:
 "AtomEye"_atomeye (the libAtoms version of AtomEye contains a NetCDF reader not present in the standard distribution) :ul
 
 :link(ovito,http://www.ovito.org)
+:link(vmd_home,https://www.ks.uiuc.edu/Research/vmd/)
 :link(atomeye,http://www.libatoms.org)
 
 [Author:] Lars Pastewka (Karlsruhe Institute of Technology).
@@ -1698,7 +1721,7 @@ src/USER-OMP/README
 "Section 2.6 -sf omp"_Run_options.html
 "Section 2.6 -pk omp"_Run_options.html
 "package omp"_package.html
-"Commands all"_Commands_all.html pages (fix,compute,pair,etc) for styles followed by (o)
+"Commands all"_lc pages (fix,compute,pair,etc) for styles followed by (o)
 "Benchmarks page"_http://lammps.sandia.gov/bench.html of web site :ul
 
 :line
@@ -1719,6 +1742,24 @@ src/USER-PHONON: filenames -> commands
 src/USER-PHONON/README
 "fix phonon"_fix_phonon.html
 examples/USER/phonon :ul
+
+:line
+
+USER-PTM package :link(PKG-USER-PTM),h4
+
+[Contents:]
+
+A "compute ptm/atom"_compute_ptm_atom.html command that calculates
+local structure characterization using the Polyhedral Template
+Matching methodology.
+
+[Author:] Peter Mahler Larsen (MIT).
+
+[Supporting info:]
+
+src/USER-PTM: filename starting with ptm_ -> supporting code, other filenames -> commands
+src/USER-PTM/LICENSE
+"compute ptm/atom"_compute_ptm_atom.html :ul
 
 :line
 
@@ -1836,6 +1877,41 @@ src/USER-REAXC/README
 "fix reax/c/bonds"_fix_reax_bonds.html
 "fix reax/c/species"_fix_reaxc_species.html
 examples/reax :ul
+
+:line
+
+USER-SCAFACOS package :link(PKG-USER-SCAFACOS),h4
+
+[Contents:]
+
+A KSpace style which wraps the "ScaFaCoS Coulomb solver
+library"_http://www.scafacos.de to compute long-range Coulombic
+interactions.
+
+To use this package you must have the ScaFaCoS library available on
+your system.
+
+[Author:] Rene Halver (JSC) wrote the scafacos LAMMPS command.
+
+ScaFaCoS itself was developed by a consortium of German research
+facilities with a BMBF (German Ministry of Science and Education)
+funded project in 2009-2012. Participants of the consortium were the
+Universities of Bonn, Chemnitz, Stuttgart, and Wuppertal as well as
+the Forschungszentrum Juelich.
+
+[Install:]
+
+This package has "specific installation
+instructions"_Build_extras.html#user-scafacos on the "Build
+extras"_Build_extras.html doc page.
+
+[Supporting info:]
+
+src/USER-SCAFACOS: filenames -> commands
+src/USER-SCAFACOS/README
+"kspace_style scafacos"_kspace_style.html
+"kspace_modify"_kspace_modify.html
+examples/USER/scafacos :ul
 
 :line
 
@@ -1998,3 +2074,5 @@ src/USER-VTK: filenames -> commands
 src/USER-VTK/README
 lib/vtk/README
 "dump vtk"_dump_vtk.html :ul
+
+

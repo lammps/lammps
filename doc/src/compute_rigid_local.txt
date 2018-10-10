@@ -92,7 +92,7 @@ dump 1 all local 1000 tmp.dump index c_1\[1\] c_1\[2\] c_1\[3\] c_1\[4\] c_1\[5\
 
 This section explains the rigid body attributes that can be specified.
 
-The {id} attribute is the atomID of the atom which owns the rigid body, which is
+The {id} attribute is the atom-ID of the atom which owns the rigid body, which is
 assigned by the "fix rigid/small"_fix_rigid.html command.
 
 The {mol} attribute is the molecule ID of the rigid body.  It should

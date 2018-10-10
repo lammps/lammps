@@ -70,7 +70,7 @@ OPT.
 "fourier/simple (o)"_angle_fourier_simple.html,
 "harmonic (iko)"_angle_harmonic.html,
 "quartic (o)"_angle_quartic.html,
-"sdk"_angle_sdk.html,
+"sdk (o)"_angle_sdk.html,
 "table (o)"_angle_table.html :tb(c=4,ea=c)
 
 :line
@@ -95,7 +95,7 @@ OPT.
 "helix (o)"_dihedral_helix.html,
 "multi/harmonic (o)"_dihedral_multi_harmonic.html,
 "nharmonic (o)"_dihedral_nharmonic.html,
-"opls (iko)"_dihedral_opls.htm;,
+"opls (iko)"_dihedral_opls.html,
 "quadratic (o)"_dihedral_quadratic.html,
 "spherical (o)"_dihedral_spherical.html,
 "table (o)"_dihedral_table.html,

@@ -589,9 +589,9 @@ void PairGranHookeHistory::reset_dt()
 
 /* ---------------------------------------------------------------------- */
 
-double PairGranHookeHistory::single(int i, int j, int itype, int jtype,
+double PairGranHookeHistory::single(int i, int j, int /*itype*/, int /*jtype*/,
                                     double rsq,
-                                    double factor_coul, double factor_lj,
+                                    double /*factor_coul*/, double /*factor_lj*/,
                                     double &fforce)
 {
   double radi,radj,radsum;
@@ -748,7 +748,7 @@ double PairGranHookeHistory::single(int i, int j, int itype, int jtype,
 /* ---------------------------------------------------------------------- */
 
 int PairGranHookeHistory::pack_forward_comm(int n, int *list, double *buf,
-                                            int pbc_flag, int *pbc)
+                                            int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
 

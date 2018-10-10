@@ -85,7 +85,7 @@ void ComputeBasalAtom::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeBasalAtom::init_list(int id, NeighList *ptr)
+void ComputeBasalAtom::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }

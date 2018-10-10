@@ -8,12 +8,15 @@
 
 pair_style lj/charmm/coul/charmm command :h3
 pair_style lj/charmm/coul/charmm/intel command :h3
+pair_style lj/charmm/coul/charmm/kk command :h3
 pair_style lj/charmm/coul/charmm/omp command :h3
 pair_style lj/charmm/coul/charmm/implicit command :h3
+pair_style lj/charmm/coul/charmm/implicit/kk command :h3
 pair_style lj/charmm/coul/charmm/implicit/omp command :h3
 pair_style lj/charmm/coul/long command :h3
 pair_style lj/charmm/coul/long/gpu command :h3
 pair_style lj/charmm/coul/long/intel command :h3
+pair_style lj/charmm/coul/long/kk command :h3
 pair_style lj/charmm/coul/long/opt command :h3
 pair_style lj/charmm/coul/long/omp command :h3
 pair_style lj/charmm/coul/msm command :h3

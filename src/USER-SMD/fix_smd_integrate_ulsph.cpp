@@ -119,7 +119,7 @@ FixSMDIntegrateUlsph::FixSMDIntegrateUlsph(LAMMPS *lmp, int narg, char **arg) :
                         }
                 } else {
                         char msg[128];
-                        sprintf(msg, "Illegal keyword for smd/integrate_ulsph: %s\n", arg[iarg]);
+                        snprintf(msg,128, "Illegal keyword for smd/integrate_ulsph: %s\n", arg[iarg]);
                         error->all(FLERR, msg);
                 }
 
@@ -158,7 +158,7 @@ void FixSMDIntegrateUlsph::init() {
  allow for both per-type and per-atom mass
  ------------------------------------------------------------------------- */
 
-void FixSMDIntegrateUlsph::initial_integrate(int vflag) {
+void FixSMDIntegrateUlsph::initial_integrate(int /*vflag*/) {
         double **x = atom->x;
         double **v = atom->v;
         double **f = atom->f;

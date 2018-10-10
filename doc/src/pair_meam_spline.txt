@@ -6,8 +6,8 @@
 
 :line
 
-pair_style meam/spline :h3
-pair_style meam/spline/omp :h3
+pair_style meam/spline command :h3
+pair_style meam/spline/omp command :h3
 
 [Syntax:]
 

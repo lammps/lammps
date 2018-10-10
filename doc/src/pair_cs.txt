@@ -12,6 +12,7 @@ pair_style buck/coul/long/cs command :h3
 pair_style born/coul/dsf/cs command :h3
 pair_style born/coul/wolf/cs command :h3
 pair_style born/coul/wolf/cs/gpu command :h3
+pair_style lj/cut/coul/long/cs command :h3
 
 [Syntax:]
 
@@ -51,6 +52,11 @@ pair_coeff 1 1 480.0 0.25 0.00 1.05 0.50 :pre
 pair_style born/coul/wolf/cs 0.25 10.0 12.0
 pair_coeff * *   0.0 1.00 0.00 0.00 0.00
 pair_coeff 1 1 480.0 0.25 0.00 1.05 0.50 :pre
+
+pair_style lj/cut/coul/long/cs 10.0
+pair_style lj/cut/coul/long/cs 10.0 8.0
+pair_coeff * * 100.0 3.0
+pair_coeff 1 1 100.0 3.5 9.0 :pre
 
 [Description:]
 
@@ -98,6 +104,11 @@ the Coulomb contribution. This approach does not require
 a long-range solver, thus the only correction is the addition of a
 minimal distance to avoid the possible r = 0.0 case for a
 core/shell pair.
+
+Style {lj/cut/coul/long/cs} is identical to {lj/cut/coul/long} except
+that a term is added for the "core/shell model"_Howto_coreshell.html
+to allow charges on core and shell particles to be separated by r =
+0.0.
 
 :line
 

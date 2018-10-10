@@ -64,14 +64,14 @@ which are included in the LAMMPS distribution.  The full list of all
 improper styles is on the "Commands bond"_Commands_bond.html#improper
 doc page.
 
-"improper_style none"_improper_none.html - turn off improper interactions
-"improper_style zero"_improper_zero.html - topology but no interactions
-"improper_style hybrid"_improper_hybrid.html - define multiple styles of improper interactions :ul
+"none"_improper_none.html - turn off improper interactions
+"zero"_improper_zero.html - topology but no interactions
+"hybrid"_improper_hybrid.html - define multiple styles of improper interactions :ul
 
-"improper_style class2"_improper_class2.html - COMPASS (class 2) improper
-"improper_style cvff"_improper_cvff.html - CVFF improper
-"improper_style harmonic"_improper_harmonic.html - harmonic improper
-"improper_style umbrella"_improper_umbrella.html - DREIDING improper :ul
+"class2"_improper_class2.html - COMPASS (class 2) improper
+"cvff"_improper_cvff.html - CVFF improper
+"harmonic"_improper_harmonic.html - harmonic improper
+"umbrella"_improper_umbrella.html - DREIDING improper :ul
 
 :line
 

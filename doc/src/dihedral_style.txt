@@ -85,16 +85,16 @@ which are included in the LAMMPS distribution.  The full list of all
 dihedral styles is on the "Commands bond"_Commands_bond.html#dihedral
 doc page.
 
-"dihedral_style none"_dihedral_none.html - turn off dihedral interactions
-"dihedral_style zero"_dihedral_zero.html - topology but no interactions
-"dihedral_style hybrid"_dihedral_hybrid.html - define multiple styles of dihedral interactions :ul
+"none"_dihedral_none.html - turn off dihedral interactions
+"zero"_dihedral_zero.html - topology but no interactions
+"hybrid"_dihedral_hybrid.html - define multiple styles of dihedral interactions :ul
 
-"dihedral_style charmm"_dihedral_charmm.html - CHARMM dihedral
-"dihedral_style class2"_dihedral_class2.html - COMPASS (class 2) dihedral
-"dihedral_style harmonic"_dihedral_harmonic.html - harmonic dihedral
-"dihedral_style helix"_dihedral_helix.html - helix dihedral
-"dihedral_style multi/harmonic"_dihedral_multi_harmonic.html - multi-harmonic dihedral
-"dihedral_style opls"_dihedral_opls.html - OPLS dihedral :ul
+"charmm"_dihedral_charmm.html - CHARMM dihedral
+"class2"_dihedral_class2.html - COMPASS (class 2) dihedral
+"harmonic"_dihedral_harmonic.html - harmonic dihedral
+"helix"_dihedral_helix.html - helix dihedral
+"multi/harmonic"_dihedral_multi_harmonic.html - multi-harmonic dihedral
+"opls"_dihedral_opls.html - OPLS dihedral :ul
 
 :line
 

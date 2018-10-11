@@ -192,7 +192,6 @@ void NBinIntel::bin_atoms(IntelBuffers<flt_t,acc_t> * buffers) {
 
   // ---------- Bin Atoms -------------
   _fix->start_watch(TIME_HOST_NEIGHBOR);
-  //const ATOM_T * _noalias const x = buffers->get_x();
   int * _noalias const atombin = this->_atombin;
   int * _noalias const binpacked = this->_binpacked;
 

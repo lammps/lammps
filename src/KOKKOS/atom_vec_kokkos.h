@@ -63,11 +63,11 @@ class AtomVecKokkos : public AtomVec {
   virtual int
     pack_comm_vel_kokkos(const int &n, const DAT::tdual_int_2d &list,
                          const int & iswap, const DAT::tdual_xfloat_2d &buf,
-                         const int &pbc_flag, const int pbc[]) { return 0; }
+                         const int &pbc_flag, const int pbc[]);
 
   virtual void
     unpack_comm_vel_kokkos(const int &n, const int &nfirst,
-                           const DAT::tdual_xfloat_2d &buf) {}
+                           const DAT::tdual_xfloat_2d &buf);
 
   virtual int
     unpack_reverse_self(const int &n, const DAT::tdual_int_2d &list,

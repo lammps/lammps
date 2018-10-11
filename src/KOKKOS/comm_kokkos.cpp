@@ -136,6 +136,9 @@ void CommKokkos::init()
 
   if (!comm_f_only) // not all Kokkos atom_vec styles have reverse pack/unpack routines yet
     reverse_comm_classic = true;
+
+  if (ghost_velocity && ((AtomVecKokkos*)atom->avec)->no_comm_vel_flag) // not all Kokkos atom_vec styles have comm vel pack/unpack routines yet
+    forward_comm_classic = true;
 }
 
 /* ----------------------------------------------------------------------
@@ -725,7 +728,8 @@ void CommKokkos::borders()
   if (!exchange_comm_classic) {
     static int print = 1;
 
-    if (mode != Comm::SINGLE || bordergroup) {
+    if (mode != Comm::SINGLE || bordergroup ||
+         (ghost_velocity && ((AtomVecKokkos*)atom->avec)->no_border_vel_flag)) {
       if (print && comm->me==0) {
         error->warning(FLERR,"Required border comm not yet implemented in Kokkos communication, "
                       "switching to classic communication");

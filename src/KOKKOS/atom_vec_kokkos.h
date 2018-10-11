@@ -113,6 +113,8 @@ class AtomVecKokkos : public AtomVec {
                            ExecutionSpace space) = 0;
 
 
+  int no_comm_vel_flag,no_border_vel_flag;
+
  protected:
 
   HAT::t_x_array h_x;

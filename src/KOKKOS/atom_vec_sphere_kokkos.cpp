@@ -57,6 +57,8 @@ AtomVecSphereKokkos::AtomVecSphereKokkos(LAMMPS *lmp) : AtomVecKokkos(lmp)
   k_count = DAT::tdual_int_1d("atom::k_count",1);
   atomKK = (AtomKokkos *) atom;
   commKK = (CommKokkos *) comm;
+
+  no_border_vel_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */

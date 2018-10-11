@@ -26,6 +26,9 @@ AtomVecKokkos::AtomVecKokkos(LAMMPS *lmp) : AtomVec(lmp)
   kokkosable = 1;
   buffer = NULL;
   buffer_size = 0;
+
+  no_comm_vel_flag = 0;
+  no_border_vel_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

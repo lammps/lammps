@@ -90,19 +90,19 @@ doc page.
 "hybrid"_dihedral_hybrid.html - define multiple styles of dihedral interactions :ul
 
 "charmm"_dihedral_charmm.html - CHARMM dihedral
-"charmmfsw"_dihedral_charmm.html - 
+"charmmfsw"_dihedral_charmm.html - CHARMM dihedral with force switching
 "class2"_dihedral_class2.html - COMPASS (class 2) dihedral
-"cosine/shift/exp"_dihedral_cosine_shift_exp.html - 
-"fourier"_dihedral_fourier.html - 
+"cosine/shift/exp"_dihedral_cosine_shift_exp.html - dihedral with exponential in spring constant
+"fourier"_dihedral_fourier.html - dihedral with multiple cosine terms
 "harmonic"_dihedral_harmonic.html - harmonic dihedral
 "helix"_dihedral_helix.html - helix dihedral
-"multi/harmonic"_dihedral_multi_harmonic.html - multi-harmonic dihedral
-"nharmonic"_dihedral_nharmonic.html - 
+"multi/harmonic"_dihedral_multi_harmonic.html - dihedral with 5 harmonic terms
+"nharmonic"_dihedral_nharmonic.html - same as multi-harmonic with N terms
 "opls"_dihedral_opls.html - OPLS dihedral
-"quadratic"_dihedral_quadratic.html - 
-"spherical"_dihedral_spherical.html - 
-"table"_dihedral_table.html - 
-"table/cut"_dihedral_table_cut.html - :ul
+"quadratic"_dihedral_quadratic.html - dihedral with quadratic term in angle
+"spherical"_dihedral_spherical.html - dihedral which includes angle terms to avoid singularities
+"table"_dihedral_table.html - tabulated dihedral
+"table/cut"_dihedral_table_cut.html - tabulated dihedral with analytic cutoff :ul
 
 :line
 

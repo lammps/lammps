@@ -76,14 +76,14 @@ bond styles is on the "Commands bond"_Commands_bond.html doc page.
 "class2"_bond_class2.html - COMPASS (class 2) bond
 "fene"_bond_fene.html - FENE (finite-extensible non-linear elastic) bond
 "fene/expand"_bond_fene_expand.html - FENE bonds with variable size particles
-"gromos"_bond_gromos.html - 
+"gromos"_bond_gromos.html - GROMOS force field bond
 "harmonic"_bond_harmonic.html - harmonic bond
-"harmonic/shift"_bond_harmonic_shift.html - 
-"harmonic/shift/cut"_bond_harmonic_shift_cut.html - 
+"harmonic/shift"_bond_harmonic_shift.html - shifted harmonic bond
+"harmonic/shift/cut"_bond_harmonic_shift_cut.html - shifted harmonic bond with a cutoff
 "morse"_bond_morse.html - Morse bond
 "nonlinear"_bond_nonlinear.html - nonlinear bond
-"oxdna/fene"_bond_oxdna.html - 
-"oxdna2/fene"_bond_oxdna.html - 
+"oxdna/fene"_bond_oxdna.html - modified FENE bond suitable for DNA modeling
+"oxdna2/fene"_bond_oxdna.html - same as oxdna but used with different pair styles 
 "quartic"_bond_quartic.html - breakable quartic bond
 "table"_bond_table.html - tabulated by bond length :ul
 

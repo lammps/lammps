@@ -69,13 +69,13 @@ doc page.
 "hybrid"_improper_hybrid.html - define multiple styles of improper interactions :ul
 
 "class2"_improper_class2.html - COMPASS (class 2) improper
-"cossq"_improper_cossq.html - 
+"cossq"_improper_cossq.html - improper with a cosine squared term
 "cvff"_improper_cvff.html - CVFF improper
-"distance"_improper_distance.html - 
-"fourier"_improper_fourier.html - 
+"distance"_improper_distance.html - improper based on distance between atom planes
+"fourier"_improper_fourier.html - improper with multiple cosine terms
 "harmonic"_improper_harmonic.html - harmonic improper
-"inversion/harmonic"_improper_inversion_harmonic.html - 
-"ring"_improper_ring.html - 
+"inversion/harmonic"_improper_inversion_harmonic.html - harmonic improper with Wilson-Decius out-of-plane definition
+"ring"_improper_ring.html - improper which prevents planar conformations
 "umbrella"_improper_umbrella.html - DREIDING improper :ul
 
 :line

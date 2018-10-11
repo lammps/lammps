@@ -18,7 +18,7 @@ cutbond = max distance at which a pair of atoms is considered bonded (distance u
 qfactor = max strain at which bias potential goes to 0.0 (unitless) :l
 Vmax = estimated height of bias potential (energy units) :l
 Tequil = equilibration temperature (temperature units) :l
-Dcut = min distance between boosted bonds (distance units) :l
+Dcut = minimum distance between boosted bonds (distance units) :l
 alpha = boostostat relaxation time (time units) :l
 boost = desired time boost factor (unitless) :l
 zero or more keyword/value pairs may be appended :l
@@ -40,65 +40,114 @@ fix 1 all hyper/local 1.0 0.3 0.8 300.0 :pre
 [Description:]
 
 This fix is meant to be used with the "hyper"_hyper.html command to
-perform a bond-boost hyperdynamics simulation.  The role of this fix
-is a select a multiple pairs of atoms within the system at each
-timestep to add a local bias potential to, which will alter their
-dynamics.  This is in contrast to the "fix
-hyper/global"_fix_hyper_global.html command, which adds a global bias
-potential to a single pair of atoms at each timestep.
+perform a bond-boost local hyperdynamics (LHD) simulation.  The role
+of this fix is to a select multiple pairs of atoms in the system at
+each timestep to add a local bias potential to, which will alter the
+dynamics of the system in a manner that effectively accelerates time.
+This is in contrast to the "fix hyper/global"_fix_hyper_global.html
+command, which can be user to perform a global hyperdynamics (GHD)
+simulation, by adding a global bias potential to a single pair of
+atoms at each timestep.  GHD can time accelerate a small simulation
+with up to a few 100 atoms.  For larger systems, LHD is needed to
+achieve good time acceleration.
 
 For a system that undergoes rare transition events, where one or more
-atoms move across an energy barrier to a new potential energy basin,
-the effect of the bias potential is to induce more rapid transitions.
+atoms move over an energy barrier to a new potential energy basin, the
+effect of the bias potential is to induce more rapid transitions.
 This can lead to a dramatic speed-up in the rate at which events
 occurs, without altering their relative frequencies, thus leading to
-an overall dramatic speed-up in the effective wall-clock time of the
-simulation.
+an overall increase in the elapsed real time of the simulation as
+compared to running for the same number of timesteps with normal MD.
+See the "hyper"_hyper.html doc page for a more general discussion of
+hyperdynamics and citations that explain both GHD and LHD.
 
-Cite various papers.
+The equations and logic used by this fix to perform LHD follow the
+description given in "(Voter2013)"_#Voter2013lhd.  The bond-boost form
+of a bias potential for HD is due to Miron and Fichthorn as described
+in "(Miron)"_#Mironlhd.  
 
-The current strain of a bond IJ is defined as
+To understand this description, you should first read the description
+of the GHD algorithm on the "fix hyper/global"_fix_hyper/global.html
+doc page.  This description of LHD builds on the GHD description.
 
-Eij = (Rij - R0ij) / R0ij
+The definition of bonds, Eij, and Emax are the same for GHD and LHD.
+The formula for Vij(max) and Fij(max) are also the same except for a
+pre-factor Cij, explained below.
 
-Emax = is the max of the absolute value of Eij for all IJ bonds.
+The bias energy Vij applied to a bond IJ with maximum strain is
 
-dVij = Vmax * (1 - (Eij/q)^2) for abs(Eij) < q
-     = 0  otherwise
+Vij(max) = Cij * Vmax * (1 - (Eij/q)^2) for abs(Eij) < qfactor
+    = 0 otherwise :pre
 
-Delta Vbias = minimum of dVij for all IJ bonds
+The derivative of Vij(max) with respect to the position of each atom
+in the IJ bond gives a force Fij(max) acting on the bond as
 
-The boost factor B = exp(beta * Delta Vbias)
-for a single timestep.
+Fij(max) = - dVij(max)/dEij = 2 Cij Vmax Eij / qfactor^2   for abs(Eij) < qfactor
+         = 0 otherwise :pre
 
-Thus the accumulated hypertime is simply
+which can be decomposed into an equal and opposite force acting on
+only the two I,J atoms in the IJ bond.
 
-t_hyper = Sum (i = 1 to Nsteps) Bi * dt
+The key difference is that in GHD this bias energy and force is added
+(on a particular timestep) to only one bond (pair of atoms) in the
+system, the bond which has maximum strain Emax.
+
+In LHD, the bias energy and force 
+
 
 NOTE: Add eqs for boostostat and boost coeff.
 Explain how many bonds are boosted simultaneously
 and how to choose boost factor and initial Vmax.
 
+
+
+:line
+
+Here is additional information on the input parameters for GHD.
+
 The {cutbond} argument is the cutoff distance for defining bonds
-between pairs of nearby atoms.  A pair of atoms in their equilibrium,
-minimum-energy config, which are a distance Rij < cutbond, are
-defined as a bonded pair.
+between pairs of nearby atoms.  A pair of I,J atoms in their
+equilibrium, minimum-energy configuration, which are separated by a
+distance Rij < {cutbond}, are flagged as a bonded pair.  Setting
+{cubond} to be ~25% larger than the nearest-neighbor distance in a
+crystalline lattice is a typical choice for solids, so that bonds
+exist only between nearest neighbor pairs.
 
-The {qfactor} argument is the limiting strain at which
-the Vbias (the bias potential) goes to 0.0.
+The {qfactor} argument is the limiting strain at which the bias
+potential goes to 0.0.  It is dimensionless, so a value of 0.3 means a
+bond distance can be up to 30% larger or 30% smaller than the
+equilibrium (quenched) R0ij distance and the two atoms in the bond
+could still experience a non-zero bias force.
 
-If qfactor is too big, then transitions are affected b/c
-the bias energy is non-zero at the transitions.  If it is
-too small than not must boost is achieved for a large system
-with many bonds (some bonds Eij always exceeds qfactor).
+If {qfactor} is set too large, then transitions from one energy basin
+to another are affected because the bias potneial is non-zero at the
+transition state (e.g. saddle point).  If {qfactor} is set too small
+than little boost can be achieved because the Eij strain of some bond in
+the system will (nearly) always exceed {qfactor).  A value of 0.3 for
+{qfactor} is typically a reasonable value.
 
-The {Vmax} argument is the initial prefactor on the bias potential.
-Should be chosen as estimate of final.  Will be adjusted by
-boost cooeficient
+What about requested boost
 
-The {Tequil} argument is part of the beta term in the
-exponential factor that determines how much boost is
+
+The {Vmax} argument is the prefactor on the bias potential.  It should
+be set to a value less than the smallest barrier height for an event
+to occur.  Otherwise the applied bias potential may be large enough
+(when added to the interatomic potential) to produce a local energy
+basin with a maxima in the center.  This can produce artificial energy
+minima in the same basin that trap an atom.  Or if {Vmax} is even
+larger, it may induce an atom(s) to rapidly transition to another
+energy basin.  Both cases are "bad dynamics" which violate the
+assumptions of GHD that guarantee an accelerated time-accurate
+trajectory of the system.
+
+The {Tequil} argument is the temperature at which the system is
+simulated; see the comment above about the "fix
+langevin"_fix_langevin.html thermostatting.  It is also part of the
+beta term in the exponential factor that determines how much boost is
 achieved as a function of the bias potential.
+
+In general, the lower the value of {Tequil} and the higher the value
+of {Vmax}, the more boost will be achieved by the GHD algorithm.
 
 The {Dcut} argument is the distance required between two bonds for
 them to be selected as both being boosted.  The distance is between
@@ -121,6 +170,8 @@ chosen to be too large, then the bias potential applied to pairs of
 bonded atoms may become unphysically large, leading to bad dynamics.
 If chosen too small, the hyperdynamics run may be inefficient in the
 sense that events take a long time to occur.
+
+:line
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
@@ -165,11 +216,10 @@ is run (distance units)
 22 = cummulative count of atoms in events since fix created
 23 = cummulative # of new bonds since fix created :ul
 
-The first quantities (1-5) are for the current timestep.  The
-quantities 6-19 are for the current hyper run.  They are reset each
-time a new hyper run is performed.  The quantities 20-23 are
-cummulative across multiple hyper runs,  They are only set to initial
-values once, when this fix is defined in the input script.
+The first quantities (1-5) are for the current timestep.  Quantities
+6-19 are for the current hyper run.  They are reset each time a new
+hyper run is performed.  Quantities 20-23 are cummulative across
+multiple runs (since the fix was defined in the input script).
 
 For value 6, the numerator is a count of all biased bonds on every
 timestep whose bias value = 0.0.  The denominator is the count of all
@@ -197,4 +247,13 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 "hyper"_hyper.html, "fix hyper/global"_fix_hyper_global.html
 
 [Default:] None
+
+:line
+
+:link(Voter2013lhd)
+[(Voter2013)] S. Y. Kim, D. Perez, A. F. Voter, J Chem Phys, 139,
+144110 (2013).
+
+:link(Mironlhd)
+[(Miron)] R. A. Miron and K. A. Fichthorn, J Chem Phys, 119, 6210 (2003).
 

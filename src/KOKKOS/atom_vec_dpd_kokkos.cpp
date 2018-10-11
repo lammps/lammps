@@ -37,7 +37,7 @@ AtomVecDPDKokkos::AtomVecDPDKokkos(LAMMPS *lmp) : AtomVecKokkos(lmp)
   size_forward = 7;
   size_reverse = 3;
   size_border = 12;
-  size_velocity = 10;
+  size_velocity = 3;
   size_data_atom = 6;
   size_data_vel = 4;
   xcol_data = 4;

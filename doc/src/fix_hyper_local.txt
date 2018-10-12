@@ -172,7 +172,7 @@ If {qfactor} is set too large, then transitions from one energy basin
 to another are affected because the bias potential is non-zero at the
 transition state (e.g. saddle point).  If {qfactor} is set too small
 than little boost can be achieved because the Eij strain of some bond in
-the system will (nearly) always exceed {qfactor).  A value of 0.3 for
+the system will (nearly) always exceed {qfactor}.  A value of 0.3 for
 {qfactor} is typically a reasonable value.
 
 The {Vmax} argument is a fixed prefactor on the bias potential.  There

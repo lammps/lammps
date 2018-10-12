@@ -63,6 +63,8 @@ PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
 
 PairGranHookeHistory::~PairGranHookeHistory()
 {
+  if (copymode) return;
+
   delete [] svector;
   if (fix_history) modify->delete_fix("NEIGH_HISTORY");
 

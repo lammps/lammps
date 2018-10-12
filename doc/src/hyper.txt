@@ -17,15 +17,12 @@ Nevent = check for events every this many steps :l
 fix-ID = ID of a fix that applies a global or local bias potential, can be NULL :l
 compute-ID = ID of a compute that identifies when an event has occurred :l
 zero or more keyword/value pairs may be appended :l
-keyword = {min} or {time} or {dump} or {rebond} :l
+keyword = {min} or {dump} or {rebond} :l
   {min} values = etol ftol maxiter maxeval
     etol = stopping tolerance for energy, used in quenching
     ftol = stopping tolerance for force, used in quenching
     maxiter = max iterations of minimize, used in quenching
     maxeval = max number of force/energy evaluations, used in quenching
-  {time} value = {steps} or {clock}
-    {steps} = simulation runs for N timesteps (default)
-    {clock} = simulation runs until hyper time exceeds N timesteps
   {dump} value = dump-ID
     dump-ID = ID of dump to trigger whenever an event takes place
   {rebond} value = Nrebond
@@ -73,9 +70,8 @@ that each timestep is effectively longer.  PRD creates Nr replicas of
 the system and runs dynamics on each independently with a normal
 unbiased potential until an event occurs in one of the replicas.  The
 time between events is reduced by a factor of Nr replicas.  For both
-methods, per wall-clock second, more physical time elapses and more
-events occur.  See the "prd"_prd.html doc page for more info about
-PRD.
+methods, per CPU second, more physical time elapses and more events
+occur.  See the "prd"_prd.html doc page for more info about PRD.
 
 An HD run has several stages, which are repeated each time an "event"
 occurs, as explained below.  The logic for an HD run is as follows:
@@ -145,14 +141,6 @@ The optional keywords operate as follows.
 As explained above, the {min} keyword can be used to specify
 parameters for the quench.  Their meaning is the same
 as for the "minimize"_minimize.html command
-
-The {time} keyword determines how the {N} timesteps argument is
-interpreted.  If {time} is set to {steps}, then hyperdynamics is run
-for {N} timesteps.  If the time acceleration provided by the bias
-potential is 10x, then that is the same as running a normal (unbiased)
-MD simulation for 10N steps.  If {time} is set to {clock}, then
-hyperdynamics would run for N/10 steps, since that would correspond to
-an elapsed real time of N*dt.
 
 The {dump} keyword can be used to trigger a specific dump command with
 the specified {dump-ID} to output a snapshot each time an event is

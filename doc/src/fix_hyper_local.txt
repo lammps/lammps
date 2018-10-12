@@ -216,6 +216,21 @@ each pair.  E.g. something like 2x the cutoff of the interatomic
 potential.  In practice a {Dcut} value of ~10 Angstroms seems to work
 well for many solid-state systems.
 
+NOTE: You must also insure that ghost atom communication is performed
+for a distance of at least {Dcut} + {cutevent} where {cutevent} = the
+distance one or more atoms move (between quenched states) to be
+considered an "event".  It is an argument to the "compute
+event/displace" command used to detect events.  By default the ghost
+communication distance is set by the pair_style cutoff, which will
+typically be < {Dcut}.  The "comm_modify cutoff"_comm_modify.html
+command can be used to set the ghost cutoff explicitly, e.g.
+
+comm_modify cutoff 12.0 :pre
+
+This fix does not know the {cutevent} parameter, but uses half the
+bond length as an estimate to warn if the ghost cutoff is not long
+enough.
+
 As described above the {alpha} argument is a pre-factor in the
 boostostat update equation for each bond's Cij prefactor.  {Alpha} is
 specified in time units, similar to other thermostat or barostat

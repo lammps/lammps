@@ -178,7 +178,6 @@ void Hyper::command(int narg, char **arg)
 
   nbuild = ndanger = 0;
   time_dynamics = time_quench = 0.0;
-  double clock = 0.0;
 
   if (hyperenable) fix_hyper->init_hyper();
 
@@ -227,14 +226,10 @@ void Hyper::command(int narg, char **arg)
     }
     
     fix_event->restore_state_quench();
-
-    // NOTE: replace clock with hypertime
-    //clock = clock + t_event*universe->nworlds;
-    if (stepmode == 0) istep = update->ntimestep - update->beginstep;
-    else istep = clock;
+    istep = update->ntimestep - update->beginstep;
   }
 
-  if (stepmode) nsteps = update->ntimestep - update->beginstep;
+  nsteps = update->ntimestep - update->beginstep;
 
   // set total timers and counters so Finish() will process them
 
@@ -302,6 +297,7 @@ void Hyper::command(int narg, char **arg)
     if (screen) {
       fprintf(screen,"Cummulative quantities for fix hyper:\n");
       fprintf(screen,"  hyper time = %g\n",t_hyper);
+      fprintf(screen,"  time boost factor = %g\n",t_hyper/(nsteps*update->dt));
       fprintf(screen,"  event timesteps = %d\n",nevent_running);
       fprintf(screen,"  # of atoms in events = %d\n",nevent_atoms_running);
       fprintf(screen,"Quantities for this hyper run:\n");
@@ -504,7 +500,6 @@ void Hyper::options(int narg, char **arg)
   ftol = 1.0e-4;
   maxiter = 40;
   maxeval = 50;
-  stepmode = 0;
   dumpflag = 0;
   ndump = 0;
   dumplist = NULL;
@@ -520,13 +515,6 @@ void Hyper::options(int narg, char **arg)
       maxeval = force->inumeric(FLERR,arg[iarg+4]);
       if (maxiter < 0) error->all(FLERR,"Illegal hyper command");
       iarg += 5;
-
-    } else if (strcmp(arg[iarg],"time") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal hyper command");
-      if (strcmp(arg[iarg+1],"steps") == 0) stepmode = 0;
-      else if (strcmp(arg[iarg+1],"clock") == 0) stepmode = 1;
-      else error->all(FLERR,"Illegal hyper command");
-      iarg += 2;
 
     } else if (strcmp(arg[iarg],"dump") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal hyper command");

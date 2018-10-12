@@ -70,9 +70,8 @@ an event occurs in one of the replicas.  The time between events is
 reduced by a factor of Nr replicas.  HD uses a single replica of the
 system and accelerates time by biasing the interaction potential in a
 manner such that each timestep is effectively longer.  For both
-methods, per wall-clock second, more physical time elapses and more
-events occur.  See the "hyper"_hyper.html doc page for more info about
-HD.
+methods, per CPU second, more physical time elapses and more events
+occur.  See the "hyper"_hyper.html doc page for more info about HD.
 
 In PRD, each replica runs on a partition of one or more processors.
 Processor partitions are defined at run-time using the "-partition

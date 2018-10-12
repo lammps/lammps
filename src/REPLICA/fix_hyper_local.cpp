@@ -98,6 +98,7 @@ FixHyperLocal::FixHyperLocal(LAMMPS *lmp, int narg, char **arg) :
 
   int iarg = 10;
   while (iarg < narg) {
+    /*
     if (strcmp(arg[iarg],"histo") == 0) {
       if (iarg+5 > narg) error->all(FLERR,"Illegal fix hyper/local command");
       histoflag = 1;
@@ -109,8 +110,9 @@ FixHyperLocal::FixHyperLocal(LAMMPS *lmp, int narg, char **arg) :
           histo_delta <= 0.0 || histo_print <= 0)
         error->all(FLERR,"Illegal fix hyper/local command");
       iarg += 5;
+    */
 
-    } else if (strcmp(arg[iarg],"lostbond") == 0) {
+    if (strcmp(arg[iarg],"lostbond") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix hyper/local command");
       if (strcmp(arg[iarg+1],"error") == 0) lostbond = ERROR;
       else if (strcmp(arg[iarg+1],"warn") == 0) lostbond = WARN;
@@ -272,7 +274,7 @@ void FixHyperLocal::init()
     if (cutghost < dcut) 
       error->all(FLERR,"Fix hyper/local bond cutoff exceeds ghost atom range - "
                  "use comm_modify cutoff command");
-    if (cutghost < dcut+cutbond && me == 0) 
+    if (cutghost < dcut+cutbond/2.0 && me == 0) 
       error->warning(FLERR,"Fix hyper/local ghost atom range "
                      "may not allow for atom drift between events");
   }
@@ -655,6 +657,7 @@ void FixHyperLocal::pre_reverse(int eflag, int vflag)
 
   // DEBUG info for Max and Min bias coeffs every step
 
+  /*
   //  if (update->ntimestep >= 300000) {
   if (update->ntimestep >= 0) {
 
@@ -795,6 +798,7 @@ void FixHyperLocal::pre_reverse(int eflag, int vflag)
              inbondi,inbondj,incoeff,inbias,instraddle,mbrmax);
     }
   }
+  */
 
   // end of DEBUG
 

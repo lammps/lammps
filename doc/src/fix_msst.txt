@@ -6,7 +6,7 @@
 
 :line
 
- fix msst command :h3
+fix msst command :h3
 
 [Syntax:]
 

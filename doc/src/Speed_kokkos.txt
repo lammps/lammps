@@ -93,18 +93,23 @@ The "t Nt" option specifies how many OpenMP threads per MPI task to
 use with a node. The default is Nt = 1, which is MPI-only mode.  Note
 that the product of MPI tasks * OpenMP threads/task should not exceed
 the physical number of cores (on a node), otherwise performance will
-suffer. If hyperthreading is enabled, then the product of MPI tasks *
-OpenMP threads/task should not exceed the physical number of cores *
-hardware threads.  The "-k on" switch also issues a "package kokkos"
-command (with no additional arguments) which sets various KOKKOS
-options to default values, as discussed on the "package"_package.html
-command doc page.
+suffer. If Hyper-Threading (HT) is enabled, then the product of MPI
+tasks * OpenMP threads/task should not exceed the physical number of
+cores * hardware threads.  The "-k on" switch also issues a
+"package kokkos" command (with no additional arguments) which sets
+various KOKKOS options to default values, as discussed on the
+"package"_package.html command doc page.
 
 The "-sf kk" "command-line switch"_Run_options.html will automatically
 append the "/kk" suffix to styles that support it.  In this manner no
 modification to the input script is needed. Alternatively, one can run
 with the KOKKOS package by editing the input script as described
 below.
+
+NOTE: When using a single OpenMP thread, the Kokkos Serial backend (i.e. 
+Makefile.kokkos_mpi_only) will give better performance than the OpenMP 
+backend (i.e. Makefile.kokkos_omp) because some of the overhead to make 
+the code thread-safe is removed. 
 
 NOTE: The default for the "package kokkos"_package.html command is to
 use "full" neighbor lists and set the Newton flag to "off" for both
@@ -121,6 +126,22 @@ mpirun -np 16 lmp_kokkos_mpi_only -k on -sf kk -pk kokkos newton on neigh half c
 
 If the "newton"_newton.html command is used in the input
 script, it can also override the Newton flag defaults.
+
+For half neighbor lists and OpenMP, the KOKKOS package uses data 
+duplication (i.e. thread-private arrays) by default to avoid 
+thread-level write conflicts in the force arrays (and other data 
+structures as necessary). Data duplication is typically fastest for 
+small numbers of threads (i.e. 8 or less) but does increase memory 
+footprint and is not scalable to large numbers of threads. An 
+alternative to data duplication is to use thread-level atomics, which 
+don't require duplication. The use of atomics can be forced by compiling 
+with the "-DLMP_KOKKOS_USE_ATOMICS" compile switch. Most but not all 
+Kokkos-enabled pair_styles support data duplication. Alternatively, full 
+neighbor lists avoid the need for duplication or atomics but require 
+more compute operations per atom. When using the Kokkos Serial backend 
+or the OpenMP backend with a single thread, no duplication or atomics are 
+used. For CUDA and half neighbor lists, the KOKKOS package always uses 
+atomics.
 
 [Core and Thread Affinity:]
 
@@ -149,7 +170,7 @@ Intel Knight's Landing (KNL) Xeon Phi:
 
 KNL Intel Phi chips have 68 physical cores. Typically 1 to 4 cores are
 reserved for the OS, and only 64 or 66 cores are used. Each core has 4
-hyperthreads,so there are effectively N = 256 (4*64) or N = 264 (4*66)
+Hyper-Threads,so there are effectively N = 256 (4*64) or N = 264 (4*66)
 cores to run on. The product of MPI tasks * OpenMP threads/task should
 not exceed this limit, otherwise performance will suffer. Note that
 with the KOKKOS package you do not need to specify how many KNLs there
@@ -228,7 +249,7 @@ for details and default settings. Experimenting with its options can
 provide a speed-up for specific calculations. For example:
 
 mpirun -np 2 lmp_kokkos_cuda_openmpi -k on g 2 -sf kk -pk kokkos binsize 2.8 -in in.lj      # Set binsize = neighbor ghost cutoff
-mpirun -np 2 lmp_kokkos_cuda_openmpi -k on g 2 -sf kk -pk kokkos newton on neigh half binsize 2.8 -in in.lj      # Newton on, half neighborlist, set binsize = neighbor ghost cutoff :pre
+mpirun -np 2 lmp_kokkos_cuda_openmpi -k on g 2 -sf kk -pk kokkos newton on neigh half binsize 2.8 -in in.lj      # Newton on, half neighbor list, set binsize = neighbor ghost cutoff :pre
 
 NOTE: For good performance of the KOKKOS package on GPUs, you must
 have Kepler generation GPUs (or later). The Kokkos library exploits

@@ -97,7 +97,7 @@ void FixNVESphere::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVESphere::initial_integrate(int vflag)
+void FixNVESphere::initial_integrate(int /*vflag*/)
 {
   double dtfm,dtirotate,msq,scale,s2,inv_len_mu;
   double g[3];

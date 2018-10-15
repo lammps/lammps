@@ -24,7 +24,7 @@ static inline void LimitDoubleMagnitude(double &x, const double limit) {
          * if |x| exceeds limit, set x to limit with the sign of x
          */
         if (fabs(x) > limit) { // limit delVdotDelR to a fraction of speed of sound
-                x = limit * copysign(1, x);
+                x = limit * copysign(1.0, x);
         }
 }
 

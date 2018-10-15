@@ -118,7 +118,7 @@ void FixLbPC::init()
 }
 
 /* ---------------------------------------------------------------------- */
-void FixLbPC::initial_integrate(int vflag) {
+void FixLbPC::initial_integrate(int /*vflag*/) {
 
   double dtfm;
 
@@ -285,7 +285,7 @@ void FixLbPC::grow_arrays(int nmax)
    copy values within local atom-based array
 ------------------------------------------------------------------------- */
 
-void FixLbPC::copy_arrays(int i, int j, int delflag)
+void FixLbPC::copy_arrays(int i, int j, int /*delflag*/)
 {
 
   force_old[j][0] = force_old[i][0];

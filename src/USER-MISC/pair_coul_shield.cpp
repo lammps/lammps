@@ -341,7 +341,7 @@ void PairCoulShield::read_restart_settings(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 double PairCoulShield::single(int i, int j, int itype, int jtype,
-                           double rsq, double factor_coul, double factor_lj,
+                           double rsq, double factor_coul, double /*factor_lj*/,
                            double &fforce)
 {
   double r, rarg,Vc,fvc,forcecoul,phishieldec;

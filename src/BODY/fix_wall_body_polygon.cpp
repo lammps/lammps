@@ -204,7 +204,7 @@ void FixWallBodyPolygon::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixWallBodyPolygon::post_force(int vflag)
+void FixWallBodyPolygon::post_force(int /*vflag*/)
 {
   double vwall[3],dx,dy,dz,del1,del2,delxy,delr,rsq,eradi,rradi,wall_pos;
   int i,ni,npi,ifirst,nei,iefirst,side;
@@ -309,9 +309,6 @@ void FixWallBodyPolygon::post_force(int vflag)
 
       rsq = dx*dx + dy*dy + dz*dz;
       if (rsq > radius[i]*radius[i]) continue;
-
-      double r = sqrt(rsq);
-      double rsqinv = 1.0 / rsq;
 
       if (dnum[i] == 0) body2space(i);
       npi = dnum[i];
@@ -475,12 +472,11 @@ void FixWallBodyPolygon::body2space(int i)
 
 int FixWallBodyPolygon::vertex_against_wall(int i, double wall_pos,
                 double** x, double** f, double** torque, int side,
-                Contact* contact_list, int &num_contacts, double* facc)
+                Contact* contact_list, int &num_contacts, double* /*facc*/)
 {
   int ni, npi, ifirst, interact;
-  double xpi[3], xpj[3], dist, eradi, rradi;
-  double fx, fy, fz, rx, ry, rz;
-  int nlocal = atom->nlocal;
+  double xpi[3], eradi, rradi;
+  double fx, fy, fz;
 
   npi = dnum[i];
   ifirst = dfirst[i];
@@ -499,9 +495,9 @@ int FixWallBodyPolygon::vertex_against_wall(int i, double wall_pos,
     xpi[1] = x[i][1] + discrete[ifirst+ni][1];
     xpi[2] = x[i][2] + discrete[ifirst+ni][2];
 
-    int mode, contact, p2vertex;
-    double d, R, hi[3], t, delx, dely, delz, fpair, shift;
-    double xj[3], rij;
+    int mode, contact;
+    double d, R, hi[3], delx, dely, delz, fpair;
+    double rij;
 
     // compute the distance from the vertex xpi to the wall
 
@@ -671,7 +667,7 @@ void FixWallBodyPolygon::contact_forces(Contact& contact, double j_a,
                       double** x, double** v, double** angmom, double** f,
                       double** torque, double* vwall, double* facc)
 {
-  int ibody,ibonus,ifirst, jefirst, ni;
+  int ibody,ibonus,ifirst, ni;
   double fx,fy,fz,delx,dely,delz,rsq,rsqinv;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
   double fn[3],ft[3],vi[3];

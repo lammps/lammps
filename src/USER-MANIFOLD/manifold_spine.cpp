@@ -8,7 +8,7 @@ using namespace user_manifold;
 
 
 
-manifold_spine::manifold_spine( LAMMPS *lmp, int argc, char **argv )
+manifold_spine::manifold_spine( LAMMPS *lmp, int /*argc*/, char **/*argv*/ )
   : manifold(lmp)
 {
   power = 4;

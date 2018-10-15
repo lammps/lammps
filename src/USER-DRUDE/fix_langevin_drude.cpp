@@ -157,7 +157,7 @@ void FixLangevinDrude::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixLangevinDrude::setup(int vflag)
+void FixLangevinDrude::setup(int /*vflag*/)
 {
   if (!strstr(update->integrate_style,"verlet"))
     error->all(FLERR,"RESPA style not compatible with fix langevin/drude");

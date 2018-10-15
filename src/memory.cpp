@@ -121,6 +121,7 @@ void Memory::sfree(void *ptr)
 void Memory::fail(const char *name)
 {
   char str[128];
-  sprintf(str,"Cannot create/grow a vector/array of pointers for %s",name);
+  snprintf(str,128,
+           "Cannot create/grow a vector/array of pointers for %s",name);
   error->one(FLERR,str);
 }

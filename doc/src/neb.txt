@@ -338,9 +338,9 @@ energy gradient of image i.  ReplicaForce is the two-norm of the
 3N-length force vector (including nudging forces) for replica i.
 MaxAtomForce is the maximum force component of any atom in replica i.
 
-When a NEB calculation does not converge properly, the suplementary
+When a NEB calculation does not converge properly, the supplementary
 information can help understanding what is going wrong. For instance
-when the path angle becomes accute the definition of tangent used in
+when the path angle becomes accute, the definition of tangent used in
 the NEB calculation is questionable and the NEB cannot may diverge
 "(Maras)"_#Maras2.
 

@@ -213,7 +213,7 @@ void ComputeRDF::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeRDF::init_list(int id, NeighList *ptr)
+void ComputeRDF::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }

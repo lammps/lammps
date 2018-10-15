@@ -13,7 +13,7 @@ get_filename_component(LAMMPS_DOC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../doc ABSOLUT
 
 
 # To avoid conflicts with the conventional Makefile build system, we build everything here
-file(GLOB LIB_SOURCES ${LAMMPS_SOURCE_DIR}/*.cpp)
+file(GLOB LIB_SOURCES ${LAMMPS_SOURCE_DIR}/[^.]*.cpp)
 file(GLOB LMP_SOURCES ${LAMMPS_SOURCE_DIR}/main.cpp)
 list(REMOVE_ITEM LIB_SOURCES ${LMP_SOURCES})
 
@@ -42,6 +42,29 @@ function(validate_option name values)
                             "########################################################################")
     endif()
 endfunction(validate_option)
+
+function(get_lammps_version version_header variable)
+    file(READ ${version_header} line)
+    set(MONTHS x Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec)
+    string(REGEX REPLACE "#define LAMMPS_VERSION \"([0-9]+) ([A-Za-z]+) ([0-9]+)\"" "\\1" day "${line}")
+    string(REGEX REPLACE "#define LAMMPS_VERSION \"([0-9]+) ([A-Za-z]+) ([0-9]+)\"" "\\2" month "${line}")
+    string(REGEX REPLACE "#define LAMMPS_VERSION \"([0-9]+) ([A-Za-z]+) ([0-9]+)\"" "\\3" year "${line}")
+    string(STRIP ${day} day)
+    string(STRIP ${month} month)
+    string(STRIP ${year} year)
+    list(FIND MONTHS "${month}" month)
+    string(LENGTH ${day} day_length)
+    string(LENGTH ${month} month_length)
+    if(day_length EQUAL 1)
+        set(day "0${day}")
+    endif()
+    if(month_length EQUAL 1)
+        set(month "0${month}")
+    endif()
+    set(${variable} "${year}${month}${day}" PARENT_SCOPE)
+endfunction()
+
+get_lammps_version(${LAMMPS_SOURCE_DIR}/version.h LAMMPS_VERSION)
 
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/Modules)
@@ -113,6 +136,7 @@ if(BUILD_EXE)
   if(LAMMPS_MACHINE)
     set(LAMMPS_MACHINE "_${LAMMPS_MACHINE}")
   endif()
+  set(LAMMPS_BINARY lmp${LAMMPS_MACHINE})
 endif()
 
 option(BUILD_LIB "Build LAMMPS library" OFF)
@@ -121,10 +145,10 @@ if(BUILD_LIB)
   if(BUILD_SHARED_LIBS) # for all pkg libs, mpi_stubs and linalg
     set(CMAKE_POSITION_INDEPENDENT_CODE ON)
   endif()
-  set(LIB_SUFFIX "" CACHE STRING "Suffix to append to liblammps and pkg-config file")
-  mark_as_advanced(LIB_SUFFIX)
-  if(LIB_SUFFIX)
-    set(LIB_SUFFIX "_${LIB_SUFFIX}")
+  set(LAMMPS_LIB_SUFFIX "" CACHE STRING "Suffix to append to liblammps and pkg-config file")
+  mark_as_advanced(LAMMPS_LIB_SUFFIX)
+  if(LAMMPS_LIB_SUFFIX)
+    set(LAMMPS_LIB_SUFFIX "_${LAMMPS_LIB_SUFFIX}")
   endif()
 endif()
 
@@ -139,6 +163,35 @@ set(LAMMPS_LINK_LIBS)
 set(LAMMPS_DEPS)
 set(LAMMPS_API_DEFINES)
 
+set(DEFAULT_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS DIPOLE GRANULAR
+  KSPACE MANYBODY MC MEAM MESSAGE MISC MOLECULE PERI REAX REPLICA RIGID SHOCK
+  SPIN SNAP SRD KIM PYTHON MSCG MPIIO VORONOI POEMS LATTE USER-ATC USER-AWPMD
+  USER-BOCS USER-CGDNA USER-MESO USER-CGSDK USER-COLVARS USER-DIFFRACTION
+  USER-DPD USER-DRUDE USER-EFF USER-FEP USER-H5MD USER-LB USER-MANIFOLD
+  USER-MEAMC USER-MGPT USER-MISC USER-MOFFF USER-MOLFILE USER-NETCDF
+  USER-PHONON USER-PTM USER-QTB USER-REAXC USER-SCAFACOS USER-SMD USER-SMTBQ
+  USER-SPH USER-TALLY USER-UEF USER-VTK USER-QUIP USER-QMMM)
+set(ACCEL_PACKAGES USER-OMP KOKKOS OPT USER-INTEL GPU)
+set(OTHER_PACKAGES CORESHELL QEQ)
+foreach(PKG ${DEFAULT_PACKAGES})
+  option(PKG_${PKG} "Build ${PKG} Package" OFF)
+endforeach()
+foreach(PKG ${ACCEL_PACKAGES} ${OTHER_PACKAGES})
+  option(PKG_${PKG} "Build ${PKG} Package" OFF)
+endforeach()
+
+######################################################
+# packages with special compiler needs or external libs
+######################################################
+if(PKG_REAX OR PKG_MEAM OR PKG_USER-QUIP OR PKG_USER-QMMM OR PKG_LATTE OR PKG_USER-SCAFACOS)
+  enable_language(Fortran)
+endif()
+
+if(PKG_MEAM OR PKG_USER-H5MD OR PKG_USER-QMMM OR PKG_USER-SCAFACOS)
+  enable_language(C)
+endif()
+
+# do MPI detection after language activation, if MPI for these language is required
 find_package(MPI QUIET)
 option(BUILD_MPI "Build MPI version" ${MPI_FOUND})
 if(BUILD_MPI)
@@ -183,25 +236,52 @@ endif()
 option(CMAKE_VERBOSE_MAKEFILE "Verbose makefile" OFF)
 
 option(ENABLE_TESTING "Enable testing" OFF)
-if(ENABLE_TESTING)
+if(ENABLE_TESTING AND BUILD_EXE)
   enable_testing()
-endif(ENABLE_TESTING)
+  option(LAMMPS_TESTING_SOURCE_DIR "Location of lammps-testing source directory" "")
+  option(LAMMPS_TESTING_GIT_TAG    "Git tag of lammps-testing" "master")
+  mark_as_advanced(LAMMPS_TESTING_SOURCE_DIR LAMMPS_TESTING_GIT_TAG)
 
-set(DEFAULT_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS DIPOLE GRANULAR
-  KSPACE MANYBODY MC MEAM MISC MOLECULE PERI REAX REPLICA RIGID SHOCK SPIN SNAP
-  SRD KIM PYTHON MSCG MPIIO VORONOI POEMS LATTE USER-ATC USER-AWPMD USER-BOCS
-  USER-CGDNA USER-MESO USER-CGSDK USER-COLVARS USER-DIFFRACTION USER-DPD USER-DRUDE
-  USER-EFF USER-FEP USER-H5MD USER-LB USER-MANIFOLD USER-MEAMC USER-MGPT USER-MISC
-  USER-MOFFF USER-MOLFILE USER-NETCDF USER-PHONON USER-QTB USER-REAXC USER-SMD
-  USER-SMTBQ USER-SPH USER-TALLY USER-UEF USER-VTK USER-QUIP USER-QMMM)
-set(ACCEL_PACKAGES USER-OMP KOKKOS OPT USER-INTEL GPU)
-set(OTHER_PACKAGES CORESHELL QEQ)
-foreach(PKG ${DEFAULT_PACKAGES})
-  option(PKG_${PKG} "Build ${PKG} Package" OFF)
-endforeach()
-foreach(PKG ${ACCEL_PACKAGES} ${OTHER_PACKAGES})
-  option(PKG_${PKG} "Build ${PKG} Package" OFF)
-endforeach()
+  if (CMAKE_VERSION VERSION_GREATER "3.10.3" AND NOT LAMMPS_TESTING_SOURCE_DIR)
+    include(FetchContent)
+
+    FetchContent_Declare(lammps-testing
+      GIT_REPOSITORY https://github.com/lammps/lammps-testing.git
+      GIT_TAG ${LAMMPS_TESTING_GIT_TAG}
+    )
+
+    FetchContent_GetProperties(lammps-testing)
+    if(NOT lammps-testing_POPULATED)
+      message(STATUS "Downloading tests...")
+      FetchContent_Populate(lammps-testing)
+    endif()
+
+    set(LAMMPS_TESTING_SOURCE_DIR ${lammps-testing_SOURCE_DIR})
+  elseif(NOT LAMMPS_TESTING_SOURCE_DIR)
+    message(WARNING "Full test-suite requires CMake >= 3.11 or copy of\n"
+                    "https://github.com/lammps/lammps-testing in LAMMPS_TESTING_SOURCE_DIR")
+  endif()
+
+  if(EXISTS ${LAMMPS_TESTING_SOURCE_DIR})
+    message(STATUS "Running test discovery...")
+
+    file(GLOB_RECURSE TEST_SCRIPTS ${LAMMPS_TESTING_SOURCE_DIR}/tests/core/*/in.*)
+    foreach(script_path ${TEST_SCRIPTS})
+      get_filename_component(TEST_NAME ${script_path} EXT)
+      get_filename_component(SCRIPT_NAME ${script_path} NAME)
+      get_filename_component(PARENT_DIR ${script_path} DIRECTORY)
+      string(SUBSTRING ${TEST_NAME} 1 -1 TEST_NAME)
+      string(REPLACE "-" "_" TEST_NAME ${TEST_NAME})
+      string(REPLACE "+" "_" TEST_NAME ${TEST_NAME})
+      set(TEST_NAME "test_core_${TEST_NAME}_serial")
+      add_test(${TEST_NAME} ${CMAKE_BINARY_DIR}/${LAMMPS_BINARY} -in ${SCRIPT_NAME})
+      set_tests_properties(${TEST_NAME} PROPERTIES WORKING_DIRECTORY ${PARENT_DIR})
+    endforeach()
+    list(LENGTH TEST_SCRIPTS NUM_TESTS)
+
+    message(STATUS "Found ${NUM_TESTS} tests.")
+  endif()
+endif()
 
 macro(pkg_depends PKG1 PKG2)
   if(PKG_${PKG1} AND NOT (PKG_${PKG2} OR BUILD_${PKG2}))
@@ -215,17 +295,7 @@ pkg_depends(MPIIO MPI)
 pkg_depends(USER-ATC MANYBODY)
 pkg_depends(USER-LB MPI)
 pkg_depends(USER-PHONON KSPACE)
-
-######################################################
-# packages with special compiler needs or external libs
-######################################################
-if(PKG_REAX OR PKG_MEAM OR PKG_USER-QUIP OR PKG_USER-QMMM OR PKG_LATTE)
-  enable_language(Fortran)
-endif()
-
-if(PKG_MEAM OR PKG_USER-H5MD OR PKG_USER-QMMM)
-  enable_language(C)
-endif()
+pkg_depends(USER-SCAFACOS MPI)
 
 find_package(OpenMP QUIET)
 option(BUILD_OMP "Build with OpenMP support" ${OpenMP_FOUND})
@@ -276,11 +346,14 @@ endif()
 
 if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-QUIP OR PKG_LATTE)
   find_package(LAPACK)
-  if(NOT LAPACK_FOUND)
+  find_package(BLAS)
+  if(NOT LAPACK_FOUND OR NOT BLAS_FOUND)
     enable_language(Fortran)
-    file(GLOB LAPACK_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/linalg/*.[fF])
+    file(GLOB LAPACK_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/linalg/[^.]*.[fF])
     add_library(linalg STATIC ${LAPACK_SOURCES})
     set(LAPACK_LIBRARIES linalg)
+  else()
+    list(APPEND LAPACK_LIBRARIES ${BLAS_LIBRARIES})
   endif()
 endif()
 
@@ -400,6 +473,57 @@ if(PKG_LATTE)
   list(APPEND LAMMPS_LINK_LIBS ${LATTE_LIBRARIES} ${LAPACK_LIBRARIES})
 endif()
 
+if(PKG_USER-SCAFACOS)
+  find_package(GSL REQUIRED)
+  option(DOWNLOAD_SCAFACOS "Download ScaFaCoS (instead of using the system's one)" OFF)
+  if(DOWNLOAD_SCAFACOS)
+    include(ExternalProject)
+    ExternalProject_Add(scafacos_build
+      URL https://github.com/scafacos/scafacos/releases/download/v1.0.1/scafacos-1.0.1.tar.gz
+      URL_MD5 bd46d74e3296bd8a444d731bb10c1738
+      CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> 
+                                               --disable-doc 
+                                               --enable-fcs-solvers=fmm,p2nfft,direct,ewald,p3m
+                                               --with-internal-fftw
+                                               --with-internal-pfft
+                                               --with-internal-pnfft
+                                               $<$<BOOL:${BUILD_SHARED_LIBS}>:--with-pic>                                               
+                                               FC=${CMAKE_MPI_Fortran_COMPILER} 
+                                               CXX=${CMAKE_MPI_CXX_COMPILER} 
+                                               CC=${CMAKE_MPI_C_COMPILER}
+                                               F77=
+      )
+    ExternalProject_get_property(scafacos_build INSTALL_DIR)
+    set(SCAFACOS_BUILD_DIR ${INSTALL_DIR})
+    set(SCAFACOS_INCLUDE_DIRS ${SCAFACOS_BUILD_DIR}/include)
+    list(APPEND LAMMPS_DEPS scafacos_build)
+    # list and order from pkg_config file of ScaFaCoS build
+    list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs.a)
+    list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_direct.a)
+    list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_ewald.a)
+    list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_fmm.a)
+    list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_p2nfft.a)
+    list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_p3m.a)
+    list(APPEND LAMMPS_LINK_LIBS ${GSL_LIBRARIES})
+    list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_near.a)
+    list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_gridsort.a)
+    list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_resort.a)
+    list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_redist.a)
+    list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_common.a)
+    list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_pnfft.a)
+    list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_pfft.a)
+    list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_fftw3_mpi.a)
+    list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_BUILD_DIR}/lib/libfcs_fftw3.a)
+    list(APPEND LAMMPS_LINK_LIBS ${MPI_Fortran_LIBRARIES})
+    list(APPEND LAMMPS_LINK_LIBS ${MPI_C_LIBRARIES})
+  else()
+    FIND_PACKAGE(PkgConfig REQUIRED)
+    PKG_CHECK_MODULES(SCAFACOS scafacos REQUIRED)
+    list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_LDFLAGS})
+  endif()
+  include_directories(${SCAFACOS_INCLUDE_DIRS})
+endif()
+
 if(PKG_USER-MOLFILE)
   add_library(molfile INTERFACE)
   target_include_directories(molfile INTERFACE ${LAMMPS_LIB_SOURCE_DIR}/molfile)
@@ -409,8 +533,8 @@ endif()
 
 if(PKG_USER-NETCDF)
   find_package(NetCDF REQUIRED)
-  include_directories(NETCDF_INCLUDE_DIR)
-  list(APPEND LAMMPS_LINK_LIBS ${NETCDF_LIBRARY})
+  include_directories(${NETCDF_INCLUDE_DIRS})
+  list(APPEND LAMMPS_LINK_LIBS ${NETCDF_LIBRARIES})
   add_definitions(-DLMP_HAS_NETCDF -DNC_64BIT_DATA=0x0020)
 endif()
 
@@ -427,8 +551,9 @@ if(PKG_USER-SMD)
     set(EIGEN3_INCLUDE_DIR ${SOURCE_DIR})
     list(APPEND LAMMPS_DEPS Eigen3_build)
   else()
-    find_package(Eigen3)
-    if(NOT Eigen3_FOUND)
+    find_package(Eigen3 NO_MODULE)
+    mark_as_advanced(Eigen3_DIR)
+    if(NOT EIGEN3_FOUND)
       message(FATAL_ERROR "Eigen3 not found, help CMake to find it by setting EIGEN3_INCLUDE_DIR, or set DOWNLOAD_EIGEN3=ON to download it")
     endif()
   endif()
@@ -476,6 +601,40 @@ if(PKG_KIM)
   endif()
   list(APPEND LAMMPS_LINK_LIBS ${KIM_LIBRARIES})
   include_directories(${KIM_INCLUDE_DIRS})
+endif()
+
+if(PKG_MESSAGE)
+  option(MESSAGE_ZMQ "Use ZeroMQ in MESSAGE package" OFF)
+  file(GLOB_RECURSE cslib_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/message/cslib/[^.]*.F
+      ${LAMMPS_LIB_SOURCE_DIR}/message/cslib/[^.]*.c
+      ${LAMMPS_LIB_SOURCE_DIR}/message/cslib/[^.]*.cpp)
+
+  if(BUILD_SHARED_LIBS)
+      add_library(cslib SHARED ${cslib_SOURCES})
+  else()
+      add_library(cslib STATIC ${cslib_SOURCES})
+  endif()
+
+  if(BUILD_MPI)
+    target_compile_definitions(cslib PRIVATE -DMPI_YES)
+    set_target_properties(cslib PROPERTIES OUTPUT_NAME "csmpi")
+  else()
+    target_compile_definitions(cslib PRIVATE -DMPI_NO)
+    set_target_properties(cslib PROPERTIES OUTPUT_NAME "csnompi")
+  endif()
+
+  if(MESSAGE_ZMQ)
+    target_compile_definitions(cslib PRIVATE -DZMQ_YES)
+    find_package(ZMQ REQUIRED)
+    target_include_directories(cslib PRIVATE ${ZMQ_INCLUDE_DIRS})
+    target_link_libraries(cslib PUBLIC ${ZMQ_LIBRARIES})
+  else()
+    target_compile_definitions(cslib PRIVATE -DZMQ_NO)
+    target_include_directories(cslib PRIVATE ${LAMMPS_LIB_SOURCE_DIR}/message/cslib/src/STUBS_ZMQ)
+  endif()
+
+  list(APPEND LAMMPS_LINK_LIBS cslib)
+  include_directories(${LAMMPS_LIB_SOURCE_DIR}/message/cslib/src)
 endif()
 
 if(PKG_MSCG)
@@ -564,8 +723,8 @@ RegisterStyles(${LAMMPS_SOURCE_DIR})
 foreach(PKG ${DEFAULT_PACKAGES})
   set(${PKG}_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/${PKG})
 
-  file(GLOB ${PKG}_SOURCES ${${PKG}_SOURCES_DIR}/*.cpp)
-  file(GLOB ${PKG}_HEADERS ${${PKG}_SOURCES_DIR}/*.h)
+  file(GLOB ${PKG}_SOURCES ${${PKG}_SOURCES_DIR}/[^.]*.cpp)
+  file(GLOB ${PKG}_HEADERS ${${PKG}_SOURCES_DIR}/[^.]*.h)
 
   # check for package files in src directory due to old make system
   DetectBuildSystemConflict(${LAMMPS_SOURCE_DIR} ${${PKG}_SOURCES} ${${PKG}_HEADERS})
@@ -583,8 +742,8 @@ endforeach()
 foreach(PKG ${ACCEL_PACKAGES})
   set(${PKG}_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/${PKG})
 
-  file(GLOB ${PKG}_SOURCES ${${PKG}_SOURCES_DIR}/*.cpp)
-  file(GLOB ${PKG}_HEADERS ${${PKG}_SOURCES_DIR}/*.h)
+  file(GLOB ${PKG}_SOURCES ${${PKG}_SOURCES_DIR}/[^.]*.cpp)
+  file(GLOB ${PKG}_HEADERS ${${PKG}_SOURCES_DIR}/[^.]*.h)
 
   # check for package files in src directory due to old make system
   DetectBuildSystemConflict(${LAMMPS_SOURCE_DIR} ${${PKG}_SOURCES} ${${PKG}_HEADERS})
@@ -598,8 +757,10 @@ foreach(SIMPLE_LIB REAX MEAM POEMS USER-ATC USER-AWPMD USER-COLVARS USER-H5MD
   if(PKG_${SIMPLE_LIB})
     string(REGEX REPLACE "^USER-" "" PKG_LIB "${SIMPLE_LIB}")
     string(TOLOWER "${PKG_LIB}" PKG_LIB)
-    file(GLOB_RECURSE ${PKG_LIB}_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/*.F
-      ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/*.c ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/*.cpp)
+    file(GLOB_RECURSE ${PKG_LIB}_SOURCES
+      ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/[^.]*.F
+      ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/[^.]*.c
+      ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/[^.]*.cpp)
     add_library(${PKG_LIB} STATIC ${${PKG_LIB}_SOURCES})
     list(APPEND LAMMPS_LINK_LIBS ${PKG_LIB})
     if(PKG_LIB STREQUAL awpmd)
@@ -674,13 +835,16 @@ if(PKG_USER-OMP)
     set(USER-OMP_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/USER-OMP)
     set(USER-OMP_SOURCES ${USER-OMP_SOURCES_DIR}/thr_data.cpp
                          ${USER-OMP_SOURCES_DIR}/thr_omp.cpp
+                         ${USER-OMP_SOURCES_DIR}/fix_omp.cpp
                          ${USER-OMP_SOURCES_DIR}/fix_nh_omp.cpp
-                         ${USER-OMP_SOURCES_DIR}/fix_nh_sphere_omp.cpp)
+                         ${USER-OMP_SOURCES_DIR}/fix_nh_sphere_omp.cpp
+                         ${USER-OMP_SOURCES_DIR}/domain_omp.cpp)
+    add_definitions(-DLMP_USER_OMP)
     set_property(GLOBAL PROPERTY "OMP_SOURCES" "${USER-OMP_SOURCES}")
 
     # detects styles which have USER-OMP version
     RegisterStylesExt(${USER-OMP_SOURCES_DIR} omp OMP_SOURCES)
-
+    RegisterFixStyle("${USER-OMP_SOURCES_DIR}/fix_omp.h")
 
     get_property(USER-OMP_SOURCES GLOBAL PROPERTY OMP_SOURCES)
 
@@ -880,7 +1044,7 @@ if(PKG_GPU)
       set(GPU_PREC_SETTING "SINGLE_SINGLE")
     endif()
 
-    file(GLOB GPU_LIB_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cpp)
+    file(GLOB GPU_LIB_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/gpu/[^.]*.cpp)
     file(MAKE_DIRECTORY ${LAMMPS_LIB_BINARY_DIR}/gpu)
 
     if(GPU_API STREQUAL "CUDA")
@@ -893,15 +1057,15 @@ if(PKG_GPU)
 
       set(GPU_ARCH "sm_30" CACHE STRING "LAMMPS GPU CUDA SM architecture (e.g. sm_60)")
 
-      file(GLOB GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cu ${CMAKE_CURRENT_SOURCE_DIR}/gpu/*.cu)
+      file(GLOB GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/[^.]*.cu ${CMAKE_CURRENT_SOURCE_DIR}/gpu/[^.]*.cu)
       list(REMOVE_ITEM GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_pppm.cu)
 
       cuda_include_directories(${LAMMPS_LIB_SOURCE_DIR}/gpu ${LAMMPS_LIB_BINARY_DIR}/gpu)
 
       if(CUDPP_OPT)
         cuda_include_directories(${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini)
-        file(GLOB GPU_LIB_CUDPP_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini/*.cpp)
-        file(GLOB GPU_LIB_CUDPP_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini/*.cu)
+        file(GLOB GPU_LIB_CUDPP_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini/[^.]*.cpp)
+        file(GLOB GPU_LIB_CUDPP_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini/[^.]*.cu)
       endif()
 
       cuda_compile_cubin(GPU_GEN_OBJS ${GPU_LIB_CU} OPTIONS
@@ -950,7 +1114,7 @@ if(PKG_GPU)
       include(OpenCLUtils)
       set(OCL_COMMON_HEADERS ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_preprocessor.h ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_aux_fun1.h)
 
-      file(GLOB GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cu)
+      file(GLOB GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/[^.]*.cu)
       list(REMOVE_ITEM GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_gayberne.cu ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_gayberne_lj.cu)
 
       foreach(GPU_KERNEL ${GPU_LIB_CU})
@@ -1008,7 +1172,9 @@ include_directories(${LAMMPS_STYLE_HEADERS_DIR})
 ######################################
 set(temp "#ifndef LMP_INSTALLED_PKGS_H\n#define LMP_INSTALLED_PKGS_H\n")
 set(temp "${temp}const char * LAMMPS_NS::LAMMPS::installed_packages[] =  {\n")
-foreach(PKG ${DEFAULT_PACKAGES} ${ACCEL_PACKAGES} ${OTHER_PACKAGES})
+set(temp_PKG_LIST ${DEFAULT_PACKAGES} ${ACCEL_PACKAGES} ${OTHER_PACKAGES})
+list(SORT temp_PKG_LIST)
+foreach(PKG ${temp_PKG_LIST})
     if(PKG_${PKG})
         set(temp "${temp}  \"${PKG}\",\n")
     endif()
@@ -1033,14 +1199,14 @@ if(BUILD_LIB)
   if(LAMMPS_DEPS)
     add_dependencies(lammps ${LAMMPS_DEPS})
   endif()
-  set_target_properties(lammps PROPERTIES OUTPUT_NAME lammps${LIB_SUFFIX})
-  if(BUILD_SHARED_LIBS)
-    set_target_properties(lammps PROPERTIES SOVERSION ${SOVERSION})
-    install(TARGETS lammps LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
-    install(FILES ${LAMMPS_SOURCE_DIR}/library.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/lammps)
-    configure_file(pkgconfig/liblammps.pc.in ${CMAKE_CURRENT_BINARY_DIR}/liblammps${LIB_SUFFIX}.pc @ONLY)
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/liblammps${LIB_SUFFIX}.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
-  endif()
+  set_target_properties(lammps PROPERTIES OUTPUT_NAME lammps${LAMMPS_LIB_SUFFIX})
+  set_target_properties(lammps PROPERTIES SOVERSION ${SOVERSION})
+  install(TARGETS lammps LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+  install(FILES ${LAMMPS_SOURCE_DIR}/library.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/lammps)
+  configure_file(pkgconfig/liblammps.pc.in ${CMAKE_CURRENT_BINARY_DIR}/liblammps${LAMMPS_LIB_SUFFIX}.pc @ONLY)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/liblammps${LAMMPS_LIB_SUFFIX}.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+  configure_file(FindLAMMPS.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/FindLAMMPS${LAMMPS_LIB_SUFFIX}.cmake @ONLY)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/FindLAMMPS${LAMMPS_LIB_SUFFIX}.cmake DESTINATION ${CMAKE_INSTALL_DATADIR}/cmake/Module)
 else()
   list(APPEND LMP_SOURCES ${LIB_SOURCES})
 endif()
@@ -1056,10 +1222,11 @@ if(BUILD_EXE)
     endif()
   endif()
   
-  set_target_properties(lmp PROPERTIES OUTPUT_NAME lmp${LAMMPS_MACHINE})
+  set_target_properties(lmp PROPERTIES OUTPUT_NAME ${LAMMPS_BINARY})
   install(TARGETS lmp DESTINATION ${CMAKE_INSTALL_BINDIR})
+  install(FILES ${LAMMPS_DOC_DIR}/lammps.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 RENAME ${LAMMPS_BINARY}.1)
   if(ENABLE_TESTING)
-    add_test(ShowHelp lmp${LAMMPS_MACHINE} -help)
+    add_test(ShowHelp ${LAMMPS_BINARY} -help)
   endif()
 endif()
 
@@ -1074,7 +1241,7 @@ if(BUILD_DOC)
 
   set(VIRTUALENV ${PYTHON_EXECUTABLE} -m virtualenv)
 
-  file(GLOB DOC_SOURCES ${LAMMPS_DOC_DIR}/src/*.txt)
+  file(GLOB DOC_SOURCES ${LAMMPS_DOC_DIR}/src/[^.]*.txt)
   file(GLOB PDF_EXTRA_SOURCES ${LAMMPS_DOC_DIR}/src/lammps_commands*.txt ${LAMMPS_DOC_DIR}/src/lammps_support.txt ${LAMMPS_DOC_DIR}/src/lammps_tutorials.txt)
   list(REMOVE_ITEM DOC_SOURCES ${PDF_EXTRA_SOURCES})
 
@@ -1127,7 +1294,7 @@ endif()
 # Install potential files in data directory
 ###############################################################################
 set(LAMMPS_POTENTIALS_DIR ${CMAKE_INSTALL_FULL_DATADIR}/lammps/potentials)
-install(DIRECTORY ${LAMMPS_SOURCE_DIR}/../potentials DESTINATION ${CMAKE_INSTALL_DATADIR}/lammps/potentials)
+install(DIRECTORY ${LAMMPS_SOURCE_DIR}/../potentials/ DESTINATION ${LAMMPS_POTENTIALS_DIR})
 
 configure_file(etc/profile.d/lammps.sh.in ${CMAKE_BINARY_DIR}/etc/profile.d/lammps.sh @ONLY)
 configure_file(etc/profile.d/lammps.csh.in ${CMAKE_BINARY_DIR}/etc/profile.d/lammps.csh @ONLY)
@@ -1169,7 +1336,7 @@ endif()
 ###############################################################################
 # Print package summary
 ###############################################################################
-foreach(PKG ${DEFAULT_PACKAGES} ${ACCEL_PACKAGES})
+foreach(PKG ${DEFAULT_PACKAGES} ${ACCEL_PACKAGES} ${OTHER_PACKAGES})
   if(PKG_${PKG})
     message(STATUS "Building package: ${PKG}")
   endif()

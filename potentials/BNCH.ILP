@@ -1,6 +1,6 @@
 # Interlayer Potential (ILP) for graphene/graphene, graphene/hBN and hBN/hBN junctions
 #
-# Cite as Wengen Ouyang,Davide Mandelli, Michael Urbakh, Oded Hod, arXiv:1806.09555 (2018).
+# Cite as W. Ouyang, D. Mandelli, M. Urbakh and O. Hod, Nano Letters 18, 6009-6016 (2018).
 #
 # ----------------- Repulsion Potential ------------------++++++++++++++ Vdw Potential ++++++++++++++++************  
 #    beta(A)    alpha    delta(A)  epsilon(meV)  C(meV)        d         sR      reff(A)   C6(meV*A^6)    S    rcut

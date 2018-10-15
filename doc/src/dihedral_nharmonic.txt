@@ -16,7 +16,7 @@ dihedral_style nharmonic :pre
 [Examples:]
 
 dihedral_style nharmonic
-dihedral_coeff 3 10.0 20.0 30.0 :pre
+dihedral_coeff * 3 10.0 20.0 30.0 :pre
 
 [Description:]
 

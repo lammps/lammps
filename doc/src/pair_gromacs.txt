@@ -8,8 +8,10 @@
 
 pair_style lj/gromacs command :h3
 pair_style lj/gromacs/gpu command :h3
+pair_style lj/gromacs/kk command :h3
 pair_style lj/gromacs/omp command :h3
 pair_style lj/gromacs/coul/gromacs command :h3
+pair_style lj/gromacs/coul/gromacs/kk command :h3
 pair_style lj/gromacs/coul/gromacs/omp command :h3
 
 [Syntax:]

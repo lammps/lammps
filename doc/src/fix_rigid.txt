@@ -442,11 +442,11 @@ couple none :pre
 The keyword/value option pairs are used in the following ways.
 
 The {reinit} keyword determines, whether the rigid body properties
-are reinitialized between run commands. With the option {yes} (the
+are re-initialized between run commands. With the option {yes} (the
 default) this is done, with the option {no} this is not done. Turning
-off the reinitialization can be helpful to protect rigid bodies against
+off the re-initialization can be helpful to protect rigid bodies against
 unphysical manipulations between runs or when properties cannot be
-easily recomputed (e.g. when read from a file). When using the {infile}
+easily re-computed (e.g. when read from a file). When using the {infile}
 keyword, the {reinit} option is automatically set to {no}.
 
 The {langevin} and {temp} and {tparam} keywords perform thermostatting

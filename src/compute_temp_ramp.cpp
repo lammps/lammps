@@ -279,7 +279,7 @@ void ComputeTempRamp::remove_bias_all()
    assume remove_bias() was previously called
 ------------------------------------------------------------------------- */
 
-void ComputeTempRamp::restore_bias(int i, double *v)
+void ComputeTempRamp::restore_bias(int /*i*/, double *v)
 {
   v[v_dim] += vbias[v_dim];
 }
@@ -289,7 +289,7 @@ void ComputeTempRamp::restore_bias(int i, double *v)
    assume remove_bias_thr() was previously called with the same buffer b
 ------------------------------------------------------------------------- */
 
-void ComputeTempRamp::restore_bias_thr(int i, double *v, double *b)
+void ComputeTempRamp::restore_bias_thr(int /*i*/, double *v, double *b)
 {
   v[v_dim] += b[v_dim];
 }

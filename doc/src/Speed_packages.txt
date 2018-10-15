@@ -72,7 +72,7 @@ Lennard-Jones "pair_style lj/cut"_pair_lj.html:
 "pair_style lj/cut/opt"_pair_lj.html :ul
 
 To see what accelerate styles are currently available for a particular
-style, find the style name in the "Commands_all"_Commands_all.html
+style, find the style name in the "Commands_all"_lc
 style pages (fix,compute,pair,etc) and see what suffixes are listed
 (g,i,k,o,t) with it.  The doc pages for individual commands
 (e.g. "pair lj/cut"_pair_lj.html or "fix nve"_fix_nve.html) also list

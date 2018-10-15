@@ -183,7 +183,7 @@ void WriteData::write(char *file)
     fp = fopen(file,"w");
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open data file %s",file);
+      snprintf(str,128,"Cannot open data file %s",file);
       error->one(FLERR,str);
     }
   }

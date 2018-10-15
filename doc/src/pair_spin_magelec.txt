@@ -6,11 +6,11 @@
 
 :line
 
-pair_style spin/me command :h3
+pair_style spin/magelec command :h3
 
 [Syntax:]
 
-pair_style spin/me cutoff :pre
+pair_style spin/magelec cutoff :pre
 
 cutoff = global cutoff pair (distance in metal units) :ulb,l
 
@@ -18,8 +18,8 @@ cutoff = global cutoff pair (distance in metal units) :ulb,l
 
 [Examples:]
 
-pair_style spin/me 4.5
-pair_coeff * * me 4.5 0.00109 1.0 1.0 1.0 :pre
+pair_style spin/magelec 4.5
+pair_coeff * * magelec 4.5 0.00109 1.0 1.0 1.0 :pre
 
 [Description:]
 

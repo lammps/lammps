@@ -144,7 +144,7 @@ FixRhok::min_setup( int inVFlag )
 
 // Modify the forces calculated in the main force loop of ordinary MD
 void
-FixRhok::post_force( int inVFlag )
+FixRhok::post_force( int /*inVFlag*/ )
 {
   double **x = atom->x;
   double **f = atom->f;
@@ -206,7 +206,7 @@ FixRhok::post_force( int inVFlag )
 
 // Forces in RESPA loop
 void
-FixRhok::post_force_respa( int inVFlag, int inILevel, int inILoop )
+FixRhok::post_force_respa( int inVFlag, int inILevel, int /*inILoop*/ )
 {
   if( inILevel == mNLevelsRESPA - 1 )
     post_force( inVFlag );

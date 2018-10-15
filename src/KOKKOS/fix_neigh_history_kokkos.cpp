@@ -18,6 +18,7 @@
 #include "neigh_list_kokkos.h"
 #include "pair_kokkos.h"
 #include "comm.h"
+#include "atom_vec_kokkos.h"
 
 using namespace LAMMPS_NS;
 
@@ -304,6 +305,217 @@ int FixNeighHistoryKokkos<DeviceType>::pack_exchange(int i, double *buf)
   for (int m = 0; m < dnum*npartner[i]; m++) buf[n++] = valuepartner[i][m];
 
   return n;
+}
+
+/* ---------------------------------------------------------------------- */
+
+template <class DeviceType>
+struct FixNeighHistoryKokkos_ExchangeFirstPartnerFunctor
+{
+  typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
+  typename AT::t_int_1d_const _sendlist;
+  typename AT::t_int_1d_const _npartner;
+  typename AT::t_xfloat_1d_um _firstpartner;
+  typename AT::t_int_scalar _count;
+  const int _nsend;
+  const int _dnum;
+
+  FixNeighHistoryKokkos_ExchangeFirstPartnerFunctor(
+    const typename AT::tdual_int_1d &sendlist,
+    const typename AT::tdual_int_1d &npartner,
+    const typename AT::t_xfloat_1d_um &firstpartner,
+    const typename AT::tdual_int_scalar &count,
+    const int &nsend,
+    const int &dnum):
+    _sendlist(sendlist.template view<DeviceType>()),
+    _npartner(npartner.template view<DeviceType>()),
+    _firstpartner(firstpartner),
+    _count(count.template view<DeviceType>()),
+    _nsend(nsend),
+    _dnum(dnum)
+  {}
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int &i, int &update, const bool &final) const {
+    const int n = 1+_npartner(_sendlist(i))*(_dnum+1);
+    if (final) {
+      _firstpartner(i) = d_ubuf(_nsend+update).d;
+      if (i == _nsend - 1)
+        _count() = _nsend+update+n;
+    }
+    update += n;
+  }
+};
+
+/* ---------------------------------------------------------------------- */
+
+template <class DeviceType>
+struct FixNeighHistoryKokkos_PackExchangeFunctor
+{
+  typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
+  typename AT::t_int_1d_const _sendlist;
+  typename AT::t_int_1d_const _copylist;
+  typename AT::t_int_1d _npartner;
+  typename AT::t_tagint_2d _partner;
+  typename AT::t_float_2d _valuepartner;
+  typename AT::t_xfloat_1d_um _firstpartner;
+  typename AT::t_xfloat_1d_um _buf;
+  const int _dnum;
+
+  FixNeighHistoryKokkos_PackExchangeFunctor(
+    const typename AT::tdual_int_1d &sendlist,
+    const typename AT::tdual_int_1d &copylist,
+    const typename AT::tdual_int_1d &npartner,
+    const typename AT::tdual_tagint_2d &partner,
+    const typename AT::tdual_float_2d &valuepartner,
+    const typename AT::t_xfloat_1d_um &firstpartner,
+    const typename AT::t_xfloat_1d_um &buf,
+    const int &dnum):
+    _sendlist(sendlist.template view<DeviceType>()),
+    _copylist(copylist.template view<DeviceType>()),
+    _npartner(npartner.template view<DeviceType>()),
+    _partner(partner.template view<DeviceType>()),
+    _valuepartner(valuepartner.template view<DeviceType>()),
+    _firstpartner(firstpartner),
+    _buf(buf),
+    _dnum(dnum)
+  {}
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int &mysend) const {
+    const int i = _sendlist(mysend);
+    const int n = _npartner(i);
+    int m = (int) d_ubuf(_firstpartner(mysend)).i;
+    _buf(m++) = d_ubuf(n).d;
+    for (int p = 0; p < n; p++) {
+      _buf(m++) = d_ubuf(_partner(i,p)).d;
+      for (int v = 0; v < _dnum; v++) {
+        _buf(m++) = _valuepartner(i,_dnum*p+v);
+      }
+    }
+    const int j = _copylist(mysend);
+    if (j > -1) {
+      const int nj = _npartner(j);
+      _npartner(i) = nj;
+      for (int p = 0; p < nj; p++) {
+        _partner(i,p) = _partner(j,p);
+        for (int v = 0; v < _dnum; v++) {
+          _valuepartner(i,_dnum*p+v) = _valuepartner(j,_dnum*p+v);
+        }
+      }
+    }
+  }
+};
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+int FixNeighHistoryKokkos<DeviceType>::pack_exchange_kokkos(
+   const int &nsend,DAT::tdual_xfloat_2d &buf,
+   DAT::tdual_int_1d k_sendlist,
+   DAT::tdual_int_1d k_copylist,
+   ExecutionSpace space, int dim,
+   X_FLOAT lo, X_FLOAT hi)
+{
+  k_npartner.template sync<DeviceType>();
+  k_partner.template sync<DeviceType>();
+  k_valuepartner.template sync<DeviceType>();
+
+  typename ArrayTypes<DeviceType>::t_xfloat_1d_um d_firstpartner(
+    buf.template view<DeviceType>().data(),
+    buf.extent(0)*buf.extent(1));
+  typename ArrayTypes<DeviceType>::tdual_int_scalar k_count("neighbor_history:k_count");
+
+  k_count.h_view() = 0;
+  if (space == Device) {
+    k_count.template modify<LMPHostType>();
+    k_count.template sync<LMPDeviceType>();
+  }
+
+  Kokkos::parallel_scan(
+    nsend,
+    FixNeighHistoryKokkos_ExchangeFirstPartnerFunctor<DeviceType>(
+      k_sendlist,k_npartner,d_firstpartner,k_count,nsend,dnum));
+
+  if (space == Device) {
+    k_count.template modify<LMPDeviceType>();
+    k_count.template sync<LMPHostType>();
+  }
+
+  Kokkos::parallel_for(
+    nsend,
+    FixNeighHistoryKokkos_PackExchangeFunctor<DeviceType>(
+      k_sendlist,k_copylist,k_npartner,k_partner,k_valuepartner,
+      d_firstpartner,d_firstpartner,dnum));
+
+  return k_count.h_view();
+}
+
+/* ---------------------------------------------------------------------- */
+
+template <class DeviceType>
+struct FixNeighHistoryKokkos_UnpackExchangeFunctor
+{
+  typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
+  typename AT::t_xfloat_1d_um _buf;
+  typename AT::t_int_1d _npartner;
+  typename AT::t_tagint_2d _partner;
+  typename AT::t_float_2d _valuepartner;
+  typename AT::t_int_1d _indices;
+  const int _dnum;
+
+  FixNeighHistoryKokkos_UnpackExchangeFunctor(
+    const typename AT::tdual_xfloat_2d buf,
+    const typename AT::tdual_int_1d &npartner,
+    const typename AT::tdual_tagint_2d &partner,
+    const typename AT::tdual_float_2d &valuepartner,
+    const typename AT::t_int_1d &indices,
+    const int &dnum):
+    _npartner(npartner.template view<DeviceType>()),
+    _partner(partner.template view<DeviceType>()),
+    _valuepartner(valuepartner.template view<DeviceType>()),
+    _indices(indices),
+    _dnum(dnum)
+  {
+    _buf = typename AT::t_xfloat_1d_um(buf.template view<DeviceType>().data(),buf.extent(0)*buf.extent(1));
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int &i) const {
+    int index = _indices(i);
+    if (index > 0) {
+      int m = (int) d_ubuf(_buf(i)).i;
+      int n = (int) d_ubuf(_buf(m++)).i;
+      _npartner(index) = n;
+      for (int p = 0; p < n; p++) {
+        _partner(index,p) = (tagint) d_ubuf(_buf(m++)).i;
+        for (int v = 0; v < _dnum; v++) {
+          _valuepartner(index,_dnum*p+v) = _buf(m++);
+        }
+      }
+    }
+  }
+};
+
+/* ---------------------------------------------------------------------- */
+
+template <class DeviceType>
+void FixNeighHistoryKokkos<DeviceType>::unpack_exchange_kokkos(
+  DAT::tdual_xfloat_2d &k_buf,DAT::t_int_1d &indices,int nrecv,
+  int nlocal,int dim,X_FLOAT lo,X_FLOAT hi,
+  ExecutionSpace space)
+{
+  Kokkos::parallel_for(
+    nrecv/16,
+    FixNeighHistoryKokkos_UnpackExchangeFunctor<DeviceType>(
+      k_buf,k_npartner,k_partner,k_valuepartner,indices,dnum));
+
+  k_npartner.template modify<DeviceType>();
+  k_partner.template modify<DeviceType>();
+  k_valuepartner.template modify<DeviceType>();
 }
 
 /* ----------------------------------------------------------------------

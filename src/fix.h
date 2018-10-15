@@ -15,6 +15,7 @@
 #define LMP_FIX_H
 
 #include "pointers.h"
+#include "kokkos_type.h"
 
 namespace LAMMPS_NS {
 
@@ -210,6 +211,16 @@ class Fix : protected Pointers {
 
   virtual double memory_usage() {return 0.0;}
 
+  virtual int pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2d &buf,
+                                   DAT::tdual_int_1d k_sendlist,
+                                   DAT::tdual_int_1d k_copylist,
+                                   ExecutionSpace space, int dim,
+                                   X_FLOAT lo, X_FLOAT hi) { return 0; }
+  virtual void unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,
+                                      DAT::t_int_1d &indices,int nrecv,
+                                      int nlocal,int dim,X_FLOAT lo,X_FLOAT hi,
+                                      ExecutionSpace space) {}
+  
  protected:
   int instance_me;        // which Fix class instantiation I am
 

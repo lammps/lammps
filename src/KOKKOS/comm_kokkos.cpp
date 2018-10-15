@@ -457,17 +457,17 @@ void CommKokkos::reverse_comm_dump(Dump *dump)
 
 void CommKokkos::exchange()
 {
-  if(atom->nextra_grow + atom->nextra_border) {
-    if(!exchange_comm_classic) {
-      static int print = 1;
-      if(print && comm->me==0) {
-        error->warning(FLERR,"Fixes cannot yet send data in Kokkos communication, "
-                      "switching to classic communication");
-      }
-      print = 0;
-      exchange_comm_classic = true;
-    }
-  }
+  // if(atom->nextra_grow + atom->nextra_border) {
+  //   if(!exchange_comm_classic) {
+  //     static int print = 1;
+  //     if(print && comm->me==0) {
+  //       error->warning(FLERR,"Fixes cannot yet send data in Kokkos communication, "
+  //                     "switching to classic communication");
+  //     }
+  //     print = 0;
+  //     exchange_comm_classic = true;
+  //   }
+  // }
   if (!exchange_comm_classic) {
     if (exchange_comm_on_host) exchange_device<LMPHostType>();
     else exchange_device<LMPDeviceType>();
@@ -568,65 +568,56 @@ void CommKokkos::exchange_device()
     nlocal = atom->nlocal;
     i = nsend = 0;
 
-    if (true) {
-      if (k_sendflag.h_view.extent(0)<nlocal) k_sendflag.resize(nlocal);
-      k_sendflag.sync<DeviceType>();
-      k_count.h_view() = k_exchange_sendlist.h_view.extent(0);
-      while (k_count.h_view()>=k_exchange_sendlist.h_view.extent(0)) {
-        k_count.h_view() = 0;
-        k_count.modify<LMPHostType>();
-        k_count.sync<DeviceType>();
+    if (k_sendflag.h_view.extent(0)<nlocal) k_sendflag.resize(nlocal);
+    k_sendflag.sync<DeviceType>();
+    k_count.h_view() = k_exchange_sendlist.h_view.extent(0);
+    while (k_count.h_view()>=k_exchange_sendlist.h_view.extent(0)) {
+      k_count.h_view() = 0;
+      k_count.modify<LMPHostType>();
+      k_count.sync<DeviceType>();
 
-        BuildExchangeListFunctor<DeviceType>
-          f(atomKK->k_x,k_exchange_sendlist,k_count,k_sendflag,
-            nlocal,dim,lo,hi);
-        Kokkos::parallel_for(nlocal,f);
-        k_exchange_sendlist.modify<DeviceType>();
-        k_sendflag.modify<DeviceType>();
-        k_count.modify<DeviceType>();
+      BuildExchangeListFunctor<DeviceType>
+        f(atomKK->k_x,k_exchange_sendlist,k_count,k_sendflag,
+          nlocal,dim,lo,hi);
+      Kokkos::parallel_for(nlocal,f);
+      k_exchange_sendlist.modify<DeviceType>();
+      k_sendflag.modify<DeviceType>();
+      k_count.modify<DeviceType>();
 
-        k_count.sync<LMPHostType>();
-        if (k_count.h_view()>=k_exchange_sendlist.h_view.extent(0)) {
-          k_exchange_sendlist.resize(k_count.h_view()*1.1);
-          k_exchange_copylist.resize(k_count.h_view()*1.1);
-          k_count.h_view()=k_exchange_sendlist.h_view.extent(0);
-        }
-      }
-      k_exchange_copylist.sync<LMPHostType>();
-      k_exchange_sendlist.sync<LMPHostType>();
-      k_sendflag.sync<LMPHostType>();
-
-      int sendpos = nlocal-1;
-      nlocal -= k_count.h_view();
-      for(int i = 0; i < k_count.h_view(); i++) {
-        if (k_exchange_sendlist.h_view(i)<nlocal) {
-          while (k_sendflag.h_view(sendpos)) sendpos--;
-          k_exchange_copylist.h_view(i) = sendpos;
-          sendpos--;
-        } else
-          k_exchange_copylist.h_view(i) = -1;
-      }
-
-      k_exchange_copylist.modify<LMPHostType>();
-      k_exchange_copylist.sync<DeviceType>();
-      nsend = k_count.h_view();
-      if (nsend > maxsend) grow_send_kokkos(nsend,1);
-      nsend =
-        avec->pack_exchange_kokkos(k_count.h_view(),k_buf_send,
-                                   k_exchange_sendlist,k_exchange_copylist,
-                                   ExecutionSpaceFromDevice<DeviceType>::space,
-                                   dim,lo,hi);
-      DeviceType::fence();
-    } else {
-      while (i < nlocal) {
-        if (x[i][dim] < lo || x[i][dim] >= hi) {
-          if (nsend > maxsend) grow_send_kokkos(nsend,1);
-          nsend += avec->pack_exchange(i,&buf_send[nsend]);
-          avec->copy(nlocal-1,i,1);
-          nlocal--;
-        } else i++;
+      k_count.sync<LMPHostType>();
+      if (k_count.h_view()>=k_exchange_sendlist.h_view.extent(0)) {
+        k_exchange_sendlist.resize(k_count.h_view()*1.1);
+        k_exchange_copylist.resize(k_count.h_view()*1.1);
+        k_count.h_view()=k_exchange_sendlist.h_view.extent(0);
       }
     }
+    k_exchange_copylist.sync<LMPHostType>();
+    k_exchange_sendlist.sync<LMPHostType>();
+    k_sendflag.sync<LMPHostType>();
+
+    int sendpos = nlocal-1;
+    nlocal -= k_count.h_view();
+    for(int i = 0; i < k_count.h_view(); i++) {
+      if (k_exchange_sendlist.h_view(i)<nlocal) {
+        while (k_sendflag.h_view(sendpos)) sendpos--;
+        k_exchange_copylist.h_view(i) = sendpos;
+        sendpos--;
+      } else
+        k_exchange_copylist.h_view(i) = -1;
+    }
+
+    k_exchange_copylist.modify<LMPHostType>();
+    k_exchange_copylist.sync<DeviceType>();
+    nsend = k_count.h_view();
+    if (nsend > maxsend) grow_send_kokkos(nsend,1);
+
+    nsend =
+      avec->pack_exchange_kokkos(k_count.h_view(),k_buf_send,
+                                 k_exchange_sendlist,k_exchange_copylist,
+                                 ExecutionSpaceFromDevice<DeviceType>::space,
+                                 dim,lo,hi);
+    DeviceType::fence();
+
     atom->nlocal = nlocal;
 
     // send/recv atoms in both directions
@@ -634,12 +625,21 @@ void CommKokkos::exchange_device()
     // if 2 procs in dimension, single send/recv
     // if more than 2 procs in dimension, send/recv to both neighbors
 
+    const int data_size = atom->avec->size_border+atom->avec->size_velocity+2;
+    DAT::t_int_1d indices = DAT::t_int_1d("comm:indices");
     if (procgrid[dim] == 1) {
       nrecv = nsend;
       if (nrecv) {
-        atom->nlocal=avec->
-          unpack_exchange_kokkos(k_buf_send,nrecv,atom->nlocal,dim,lo,hi,
-                                 ExecutionSpaceFromDevice<DeviceType>::space);
+        Kokkos::resize(indices,nrecv/data_size);
+        if (atom->nextra_grow) {
+          atom->nlocal = avec->
+            unpack_exchange_kokkos(k_buf_send,indices,nrecv,atom->nlocal,dim,lo,hi,
+                                   ExecutionSpaceFromDevice<DeviceType>::space);
+        } else {
+          atom->nlocal = avec->
+            unpack_exchange_kokkos(k_buf_send,nrecv,atom->nlocal,dim,lo,hi,
+                                   ExecutionSpaceFromDevice<DeviceType>::space);
+        }
         DeviceType::fence();
       }
     } else {
@@ -670,16 +670,79 @@ void CommKokkos::exchange_device()
       }
 
       if (nrecv) {
-        atom->nlocal = avec->
-          unpack_exchange_kokkos(k_buf_recv,nrecv,atom->nlocal,dim,lo,hi,
-                                 ExecutionSpaceFromDevice<DeviceType>::space);
+        Kokkos::resize(indices,nrecv/data_size);
+        if (atom->nextra_grow) {
+          atom->nlocal = avec->
+            unpack_exchange_kokkos(k_buf_recv,indices,nrecv,atom->nlocal,dim,lo,hi,
+                                   ExecutionSpaceFromDevice<DeviceType>::space);
+        } else {
+          atom->nlocal = avec->
+            unpack_exchange_kokkos(k_buf_recv,nrecv,atom->nlocal,dim,lo,hi,
+                                   ExecutionSpaceFromDevice<DeviceType>::space);
+        }
         DeviceType::fence();
       }
     }
 
-    // check incoming atoms to see if they are in my box
-    // if so, add to my list
+    if (atom->nextra_grow) {
+      for (int iextra = 0; iextra < atom->nextra_grow; iextra++) {
+        int nextrasend = modify->fix[atom->extra_grow[iextra]]->pack_exchange_kokkos(
+          k_count.h_view(),k_buf_send,k_exchange_sendlist,k_exchange_copylist,
+          ExecutionSpaceFromDevice<DeviceType>::space,dim,lo,hi);
+        DeviceType::fence();
 
+        int nextrarecv = 0;
+        if (procgrid[dim] == 1) {
+          nextrarecv = nextrasend;
+          if (nextrarecv) {
+            modify->fix[atom->extra_grow[iextra]]->unpack_exchange_kokkos(
+              k_buf_send,indices,nrecv1,nlocal,dim,lo,hi,
+              ExecutionSpaceFromDevice<DeviceType>::space);
+            DeviceType::fence();
+          }
+        } else {
+          MPI_Sendrecv(&nextrasend,1,MPI_INT,procneigh[dim][0],0,
+                       &nextrarecv,1,MPI_INT,procneigh[dim][1],0,
+                       world,MPI_STATUS_IGNORE);
+
+          if (nextrarecv > maxrecv) grow_recv_kokkos(nextrarecv);
+
+          MPI_Irecv(k_buf_recv.view<DeviceType>().data(),nextrarecv,
+                    MPI_DOUBLE,procneigh[dim][1],0,
+                    world,&request);
+          MPI_Send(k_buf_send.view<DeviceType>().data(),nextrasend,
+                   MPI_DOUBLE,procneigh[dim][0],0,world);
+          MPI_Wait(&request,MPI_STATUS_IGNORE);
+
+          if (nextrarecv) {
+            modify->fix[atom->extra_grow[iextra]]->unpack_exchange_kokkos(
+              k_buf_recv,indices,nrecv1,nlocal,dim,lo,hi,
+              ExecutionSpaceFromDevice<DeviceType>::space);
+            DeviceType::fence();
+          }
+
+          if (procgrid[dim] > 2) {
+            MPI_Sendrecv(&nextrasend,1,MPI_INT,procneigh[dim][1],0,
+                         &nextrarecv,1,MPI_INT,procneigh[dim][0],0,
+                         world,MPI_STATUS_IGNORE);
+
+            MPI_Irecv(k_buf_recv.view<DeviceType>().data(),
+                      nextrarecv,MPI_DOUBLE,procneigh[dim][0],0,
+                      world,&request);
+            MPI_Send(k_buf_send.view<DeviceType>().data(),nextrasend,
+                     MPI_DOUBLE,procneigh[dim][1],0,world);
+            MPI_Wait(&request,MPI_STATUS_IGNORE);
+
+            if (nextrarecv) {
+              modify->fix[atom->extra_grow[iextra]]->unpack_exchange_kokkos(
+                k_buf_recv,indices,nrecv2,nlocal,dim,lo,hi,
+                ExecutionSpaceFromDevice<DeviceType>::space);
+              DeviceType::fence();
+            }
+          }
+        }
+      }
+    }
   }
 
   atomKK->modified(ExecutionSpaceFromDevice<DeviceType>::space,ALL_MASK);

@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <inttypes.h>
 
 namespace ptm {
 

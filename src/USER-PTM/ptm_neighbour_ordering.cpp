@@ -5,6 +5,7 @@
 #include <algorithm>
 #include "ptm_constants.h"
 #include "ptm_voronoi_cell.h"
+#include "ptm_neighbour_ordering.h"
 
 
 namespace ptm {

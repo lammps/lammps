@@ -89,6 +89,7 @@
 #include <algorithm>
 #include <string.h>
 #include "ptm_quat.h"
+#include "ptm_polar.h"
 
 
 namespace ptm {

@@ -364,7 +364,7 @@ void PairSpinNeel::compute(int eflag, int vflag)
       local_cut2 = (r_l + d_r) * (r_l + d_r);
      
       // define smoothing factor
-      // compute neel interaction
+      // compute neel interaction and energy
 
       if (rsq <= local_cut2) {
         r_ij = sqrt(rsq);
@@ -373,17 +373,25 @@ void PairSpinNeel::compute(int eflag, int vflag)
 
         sm = 0.0;
         if (r1 <= d_r) {
-          sm = (1.0 - sin(pi*(r1)/(2.0*d_r))) / 2.0;
+          sm = (1.0 - sin(pi*(r_s-r_ij)/(2.0*d_r))) / 2.0;
         } else if (r_ij > (r_s+d_r) && r_ij < (r_l-d_r)) {
           sm = 1.0;
         } else if (r2 <= d_r) {
-          sm = (1.0 - sin(pi*(r1)/(2.0*d_r))) / 2.0;
+          sm = (1.0 - sin(pi*(r_ij-r_l)/(2.0*d_r))) / 2.0;
         } else sm = 0.0;
 
         compute_neel(i,j,rsq,eij,fmi,spi,spj);
         if (lattice_flag) {
           compute_neel_mech(i,j,rsq,eij,fi,spi,spj);
         }
+        
+	if (eflag) {
+          evdwl = sm * compute_neel_energy(i,j,rsq,eij,spi,spj);
+          emag[i] += evdwl;
+        } else evdwl = 0.0;
+
+        if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
+            evdwl,ecoul,fi[0],fi[1],fi[2],rij[0],rij[1],rij[2]);
       }
 
       f[i][0] += sm * fi[0];
@@ -399,13 +407,13 @@ void PairSpinNeel::compute(int eflag, int vflag)
         f[j][2] -= fi[2];
       }
 
-      if (eflag) {
-	evdwl = sm * compute_neel_energy(i,j,rsq,eij,spi,spj);
-        emag[i] += evdwl;
-      } else evdwl = 0.0;
+      //if (eflag) {
+      //  evdwl = sm * compute_neel_energy(i,j,rsq,eij,spi,spj);
+      //  emag[i] += evdwl;
+      //} else evdwl = 0.0;
 
-      if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
-          evdwl,ecoul,fi[0],fi[1],fi[2],rij[0],rij[1],rij[2]);
+      //if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
+      //    evdwl,ecoul,fi[0],fi[1],fi[2],rij[0],rij[1],rij[2]);
     }
   }
 
@@ -483,13 +491,15 @@ void PairSpinNeel::compute_single_pair(int ii, double fmi[3])
       r1 = fabs(r_s - r_ij);
       r2 = fabs(r_l - r_ij);
 
+      // to be corrected (error in sw func)
+
       sm = 0.0;
       if (r1 <= d_r) {
-        sm = (1.0 - sin(pi*(r1)/(2.0*d_r))) / 2.0;
+        sm = (1.0 - sin(pi*(r_s-r_ij)/(2.0*d_r))) / 2.0;
       } else if (r_ij > (r_s+d_r) && r_ij < (r_l-d_r)) {
         sm = 1.0;
       } else if (r2 <= d_r) {
-        sm = (1.0 - sin(pi*(r1)/(2.0*d_r))) / 2.0;
+        sm = (1.0 - sin(pi*(r_ij-r_l)/(2.0*d_r))) / 2.0;
       } else sm = 0.0;
 
       compute_neel(i,j,rsq,eij,fmij,spi,spj);
@@ -519,7 +529,7 @@ void PairSpinNeel::compute_neel(int i, int j, double rsq, double eij[3],
   double qa,qb,qc,qd,qe;
   double eij_si,eij_sj,si_sj;
   double coeff0,coeff1,coeff2,coeff3,coeff4;
-  double fix,fiy,fiz;
+  double fmix,fmiy,fmiz;
 
   ro = r0[itype][jtype];
   rij = sqrt(rsq);
@@ -553,26 +563,26 @@ void PairSpinNeel::compute_neel(int i, int j, double rsq, double eij[3],
   eij_sj = eij[0]*spj[0] + eij[1]*spj[1] + eij[2]*spj[2];
   si_sj = spi[0]*spj[0] + spi[1]*spj[1] + spi[2]*spj[2];
   
-  fix = g1r * (eij[0]*eij_sj - spj[0]*ri3);
-  fiy = g1r * (eij[1]*eij_sj - spj[1]*ri3);
-  fiz = g1r * (eij[2]*eij_sj - spj[2]*ri3);
+  fmix = g1r * (eij[0]*eij_sj - spj[0]*ri3);
+  fmiy = g1r * (eij[1]*eij_sj - spj[1]*ri3);
+  fmiz = g1r * (eij[2]*eij_sj - spj[2]*ri3);
  
   coeff0 = q1r * (eij_sj*eij_sj - si_sj*ri3);
   coeff1 = coeff0 * 2.0 * eij_si;
   coeff2 = q1r * eij_si*eij_si - si_sj*ri3;
-  fix += coeff1*eij[0] - spj[0]*ri3*(coeff0 + coeff2);
-  fiy += coeff1*eij[1] - spj[1]*ri3*(coeff0 + coeff2);
-  fiz += coeff1*eij[2] - spj[2]*ri3*(coeff0 + coeff2);
+  fmix += coeff1*eij[0] - spj[0]*ri3*(coeff0 + coeff2);
+  fmiy += coeff1*eij[1] - spj[1]*ri3*(coeff0 + coeff2);
+  fmiz += coeff1*eij[2] - spj[2]*ri3*(coeff0 + coeff2);
 
   coeff3 = q2r*eij_sj*eij_sj*eij_sj;
   coeff4 = 3.0*q2r*eij_sj*eij_si*eij_si;
-  fix += (coeff3 + coeff4) * eij[0];
-  fiy += (coeff3 + coeff4) * eij[1];
-  fiz += (coeff3 + coeff4) * eij[2];
+  fmix += (coeff3 + coeff4) * eij[0];
+  fmiy += (coeff3 + coeff4) * eij[1];
+  fmiz += (coeff3 + coeff4) * eij[2];
 
-  fmi[0] += fix;
-  fmi[1] += fiy;
-  fmi[2] += fiz;
+  fmi[0] += fmix;
+  fmi[1] += fmiy;
+  fmi[2] += fmiz;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -721,6 +731,9 @@ double PairSpinNeel::compute_neel_energy(int i, int j, double rsq, double eij[3]
   g1r = gr + 12.0*qr/35.0;
   q1r = 9.0*qr/5.0;
   q2r = -2.0*qr/5.0;
+
+  //printf("test gi %g %g %g %g %g \n",ga,gb,gc,gd,ge);
+  //printf("test %g %g %g | %g \n",g1r,q1r,q2r,rij);
  
   eij_si = eij[0]*spi[0] + eij[1]*spi[1] + eij[2]*spi[2];
   eij_sj = eij[0]*spj[0] + eij[1]*spj[1] + eij[2]*spj[2];

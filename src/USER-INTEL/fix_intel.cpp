@@ -65,6 +65,7 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
 
   _nbor_pack_width = 1;
   _three_body_neighbor = 0;
+  _pair_intel_count = 0;
   _hybrid_nonpair = 0;
 
   _precision_mode = PREC_MODE_MIXED;
@@ -312,22 +313,14 @@ void FixIntel::init()
   }
   #endif
 
-  int nstyles = 0;
+  const int nstyles = _pair_intel_count;
   if (force->pair_match("hybrid", 1) != NULL) {
     _pair_hybrid_flag = 1;
-    PairHybrid *hybrid = (PairHybrid *) force->pair;
-    for (int i = 0; i < hybrid->nstyles; i++)
-      if (strstr(hybrid->keywords[i], "/intel") != NULL)
-        nstyles++;
     if (force->newton_pair != 0 && force->pair->no_virial_fdotr_compute)
       error->all(FLERR,
                  "Intel package requires fdotr virial with newton on.");
   } else if (force->pair_match("hybrid/overlay", 1) != NULL) {
     _pair_hybrid_flag = 1;
-    PairHybridOverlay *hybrid = (PairHybridOverlay *) force->pair;
-    for (int i = 0; i < hybrid->nstyles; i++)
-      if (strstr(hybrid->keywords[i], "/intel") != NULL)
-        nstyles++;
     if (force->newton_pair != 0 && force->pair->no_virial_fdotr_compute)
       error->all(FLERR,
                  "Intel package requires fdotr virial with newton on.");
@@ -344,6 +337,8 @@ void FixIntel::init()
     if (_pair_hybrid_flag > 1 || force->newton_pair == 0)
       _pair_hybrid_zero = 1;
   _hybrid_nonpair = 0;
+
+  _pair_intel_count = 0;
 
   #ifdef _LMP_INTEL_OFFLOAD
   if (offload_balance() != 0.0) {
@@ -458,7 +453,7 @@ void FixIntel::pair_init_check(const bool cdmessage)
         force->special_coul[3] == 0.0) flag = 1;
     if (flag)
       error->all(FLERR,"Add -DLMP_INTEL_NBOR_COMPAT to build for special_bond"
-                 "exclusions with Intel");
+                 " exclusions with Intel");
   }
   #endif
   
@@ -477,6 +472,8 @@ void FixIntel::pair_init_check(const bool cdmessage)
     strcpy(kmode, "double");
     get_double_buffers()->need_tag(need_tag);
   }
+
+  _pair_intel_count++;
 
   #ifdef _LMP_INTEL_OFFLOAD
   set_offload_affinity();
@@ -521,16 +518,10 @@ void FixIntel::bond_init_check()
     intel_pair = 1;
   else if (force->pair_match("hybrid", 1) != NULL) {
     _hybrid_nonpair = 1;
-    PairHybrid *hybrid = (PairHybrid *) force->pair;
-    for (int i = 0; i < hybrid->nstyles; i++)
-      if (strstr(hybrid->keywords[i], "/intel") != NULL)
-        intel_pair = 1;
+    if (_pair_intel_count) intel_pair = 1;
   } else if (force->pair_match("hybrid/overlay", 1) != NULL) {
     _hybrid_nonpair = 1;
-    PairHybridOverlay *hybrid = (PairHybridOverlay *) force->pair;
-    for (int i = 0; i < hybrid->nstyles; i++)
-      if (strstr(hybrid->keywords[i], "/intel") != NULL)
-        intel_pair = 1;
+    if (_pair_intel_count) intel_pair = 1;
   }
 
   if (intel_pair == 0)
@@ -547,16 +538,10 @@ void FixIntel::kspace_init_check()
     intel_pair = 1;
   else if (force->pair_match("hybrid", 1) != NULL) {
     _hybrid_nonpair = 1;
-    PairHybrid *hybrid = (PairHybrid *) force->pair;
-    for (int i = 0; i < hybrid->nstyles; i++)
-      if (strstr(hybrid->keywords[i], "/intel") != NULL)
-        intel_pair = 1;
+    if (_pair_intel_count) intel_pair = 1;
   } else if (force->pair_match("hybrid/overlay", 1) != NULL) {
     _hybrid_nonpair = 1;
-    PairHybridOverlay *hybrid = (PairHybridOverlay *) force->pair;
-    for (int i = 0; i < hybrid->nstyles; i++)
-      if (strstr(hybrid->keywords[i], "/intel") != NULL)
-        intel_pair = 1;
+    if (_pair_intel_count) intel_pair = 1;
   }
 
   if (intel_pair == 0)

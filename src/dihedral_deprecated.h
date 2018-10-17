@@ -11,28 +11,29 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef PAIR_CLASS
+#ifdef DIHEDRAL_CLASS
 
-PairStyle(DEPRECATED,PairDeprecated)
+DihedralStyle(DEPRECATED,DihedralDeprecated)
 
 #else
 
-#ifndef LMP_PAIR_DEPRECATED_H
-#define LMP_PAIR_DEPRECATED_H
+#ifndef LMP_DIHEDRAL_DEPRECATED_H
+#define LMP_DIHEDRAL_DEPRECATED_H
 
-#include "pair.h"
+#include "dihedral.h"
 
 namespace LAMMPS_NS {
 
-class PairDeprecated : public Pair {
+class DihedralDeprecated : public Dihedral {
  public:
-  PairDeprecated(class LAMMPS *lmp) : Pair(lmp) {}
-  virtual ~PairDeprecated() {}
+  DihedralDeprecated(class LAMMPS *lmp) : Dihedral(lmp) {}
+  virtual ~DihedralDeprecated() {}
 
   virtual void compute(int, int) {}
   virtual void settings(int, char **);
   virtual void coeff(int, char **) {}
-
+  virtual void write_restart(FILE *) {}
+  virtual void read_restart(FILE *) {}
 };
 
 }

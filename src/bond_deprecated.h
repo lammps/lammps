@@ -11,28 +11,31 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef PAIR_CLASS
+#ifdef BOND_CLASS
 
-PairStyle(DEPRECATED,PairDeprecated)
+BondStyle(DEPRECATED,BondDeprecated)
 
 #else
 
-#ifndef LMP_PAIR_DEPRECATED_H
-#define LMP_PAIR_DEPRECATED_H
+#ifndef LMP_BOND_DEPRECATED_H
+#define LMP_BOND_DEPRECATED_H
 
-#include "pair.h"
+#include "bond.h"
 
 namespace LAMMPS_NS {
 
-class PairDeprecated : public Pair {
+class BondDeprecated : public Bond {
  public:
-  PairDeprecated(class LAMMPS *lmp) : Pair(lmp) {}
-  virtual ~PairDeprecated() {}
+  BondDeprecated(class LAMMPS *lmp) : Bond(lmp) {}
+  virtual ~BondDeprecated() {}
 
   virtual void compute(int, int) {}
   virtual void settings(int, char **);
   virtual void coeff(int, char **) {}
-
+  virtual double equilibrium_distance(int) { return 0.0; }
+  virtual void write_restart(FILE *) {}
+  virtual void read_restart(FILE *) {}
+  virtual double single(int, double, int, int, double &) { return 0.0; }
 };
 
 }

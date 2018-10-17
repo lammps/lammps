@@ -38,11 +38,8 @@ static void writemsg(LAMMPS *lmp, const char *msg, int abend=1)
 
 void Deprecated::command(int narg, char **arg)
 {
-  if (strcmp(input->command,"deprecated") == 0) {
-    writemsg(lmp,"\nCommand 'deprecated' is a dummy command\n\n",0);
+  if (strcmp(input->command,"DEPRECATED") == 0) {
+    writemsg(lmp,"\nCommand 'DEPRECATED' is a dummy command\n\n",0);
 
-  } else if (strcmp(input->command,"XXX") == 0) {
-    writemsg(lmp, "\nCommand 'XXX' has been removed from LAMMPS "
-             "after the\n## XXX 20## stable release.\n\n");
   }
 }

@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(deprecated,PairDeprecated)
+PairStyle(DEPRECATED,PairDeprecated)
 
 #else
 

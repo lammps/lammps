@@ -13,8 +13,7 @@
 
 #ifdef COMMAND_CLASS
 
-CommandStyle(deprecated,Deprecated)
-CommandStyle(XXX,Deprecated)
+CommandStyle(DEPRECATED,Deprecated)
 
 #else
 

@@ -31,9 +31,8 @@ static void writemsg(LAMMPS *lmp, const char *msg, int abend=1)
     if (lmp->logfile) fputs(msg,lmp->logfile);
   }
   if (abend)
-    lmp->error->all(FLERR,"This pair_style is no longer available");
+    lmp->error->all(FLERR,"This pair style is no longer available");
 }
-
 
 /* ---------------------------------------------------------------------- */
 
@@ -43,18 +42,15 @@ void PairDeprecated::settings(int, char **)
 
   // hybrid substyles are created in PairHybrid::settings(), so when this is
   // called, our style was just added at the end of the list of substyles
+
   if (strncmp(my_style,"hybrid",6) == 0) {
     PairHybrid *hybrid = (PairHybrid *)force->pair;
     my_style = hybrid->keywords[hybrid->nstyles];
   }
 
-  if (strcmp(my_style,"deprecated") == 0) {
-    writemsg(lmp,"\nPair style 'deprecated' is a dummy pair style\n\n",0);
+  if (strcmp(my_style,"DEPRECATED") == 0) {
+    writemsg(lmp,"\nPair style 'DEPRECATED' is a dummy style\n\n",0);
 
-  } else if (strcmp(my_style,"reax") == 0) {
-    writemsg(lmp, "\nPair style 'reax' has been removed from LAMMPS "
-             "after the\n## November 2018 stable release. Its "
-             "functionality has\nbeen superseded by pair style 'reax/c'.\n\n");
   }
 }  
 

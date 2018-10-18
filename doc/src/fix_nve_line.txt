@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -24,9 +24,9 @@ fix 1 all nve/line :pre
 Perform constant NVE integration to update position, velocity,
 orientation, and angular velocity for line segment particles in the
 group each timestep.  V is volume; E is energy.  This creates a system
-trajectory consistent with the microcanonical ensemble.  See
-"Section 6.14"_Section_howto.html#howto_14 of the manual for an
-overview of using line segment particles.
+trajectory consistent with the microcanonical ensemble.  See "Howto
+spherical"_Howto_spherical.html doc page for an overview of using line
+segment particles.
 
 This fix differs from the "fix nve"_fix_nve.html command, which
 assumes point particles and only updates their position and velocity.
@@ -36,16 +36,16 @@ assumes point particles and only updates their position and velocity.
 No information about this fix is written to "binary restart
 files"_restart.html.  None of the "fix_modify"_fix_modify.html options
 are relevant to this fix.  No global or per-atom quantities are stored
-by this fix for access by various "output
-commands"_Section_howto.html#howto_15.  No parameter of this fix can
-be used with the {start/stop} keywords of the "run"_run.html command.
-This fix is not invoked during "energy minimization"_minimize.html.
+by this fix for access by various "output commands"_Howto_output.html.
+No parameter of this fix can be used with the {start/stop} keywords of
+the "run"_run.html command.  This fix is not invoked during "energy
+minimization"_minimize.html.
 
 [Restrictions:]
 
 This fix is part of the ASPHERE package.  It is only enabled if LAMMPS
-was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 This fix requires that particles be line segments as defined by the
 "atom_style line"_atom_style.html command.

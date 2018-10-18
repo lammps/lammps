@@ -2,12 +2,12 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
-pair_style buck6d/coul/gauss/dsf :h3
-pair_style buck6d/coul/gauss/long :h3
+pair_style buck6d/coul/gauss/dsf command :h3
+pair_style buck6d/coul/gauss/long command :h3
 
 [Syntax:]
 
@@ -52,18 +52,18 @@ The latter corrects for artifacts occurring at short distances which
 become an issue for soft vdW potentials. 
 
 The {buck6d} styles include a smoothing function which is invoked 
-according to the global smooting parameter within the specified 
+according to the global smoothing parameter within the specified 
 cutoff.  Hereby a parameter of i.e. 0.9 invokes the smoothing 
 within 90% of the cutoff.  No smoothing is applied at a value
 of 1.0. For the {gauss/dsf} style this smoothing is only applicable 
 for the dispersion damped Buckingham potential. For the {gauss/long}
 styles the smoothing function can also be invoked for the real
-space coulomb interactions which enforce continous energies and 
+space coulomb interactions which enforce continuous energies and 
 forces at the cutoff.
 
 Both styles {buck6d/coul/gauss/dsf} and {buck6d/coul/gauss/long} 
 evaluate a Coulomb potential using spherical Gaussian type charge 
-distributions which effectively dampen electrostatic ineractions 
+distributions which effectively dampen electrostatic interactions 
 for high charges at close distances.  The electrostatic potential
 is thus evaluated as:
 
@@ -122,9 +122,9 @@ to be specified in an input script that reads a restart file.
 
 [Restrictions:]
 
-These styles are part of the USER-MOFFF package.  They are only enabled 
-if LAMMPS was built with that package.  See the
-"Making LAMMPS"_Section_start.html#start_3 section for more info.
+These styles are part of the USER-MOFFF package.  They are only
+enabled if LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

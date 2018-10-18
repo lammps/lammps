@@ -35,7 +35,7 @@ include         system.in.settings
 # -- simulation protocol --
 
 
-timestep        1.0
+timestep        2.0
 dump            1 all custom 5000 traj_nvt.lammpstrj id mol type x y z ix iy iz
 fix             fxnvt all nvt temp 300.0 300.0 500.0 tchain 1
 thermo          500

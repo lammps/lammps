@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -13,7 +13,7 @@ special_bonds command :h3
 special_bonds keyword values ... :pre
 
 one or more keyword/value pairs may be appended :ulb,l
-keyword = {amber} or {charmm} or {dreiding} or {fene} or {lj/coul} or {lj} or {coul} or {angle} or {dihedral} or {extra} :l
+keyword = {amber} or {charmm} or {dreiding} or {fene} or {lj/coul} or {lj} or {coul} or {angle} or {dihedral} :l
   {amber} values = none
   {charmm} values = none
   {dreiding} values = none
@@ -64,7 +64,7 @@ e.g. when using the "pair_style hybrid"_pair_hybrid.html command.
 Thus LAMMPS ignores special_bonds settings when manybody potentials
 are calculated.  Please note, that the existence of explicit bonds
 for atoms that are described by a manybody potential will alter the
-neigborlist and thus can render the computation of those interactions
+neighbor list and thus can render the computation of those interactions
 invalid, since those pairs are not only used to determine direct
 pairwise interactions but also neighbors of neighbors and more.
 The recommended course of action is to remove such bonds, or - if
@@ -110,7 +110,7 @@ simulation.
 The two exceptions to this rule are (a) if the {angle} or {dihedral}
 keywords are set to {yes} (see below), or (b) if the
 "delete_bonds"_delete_bonds.html command is used with the {special}
-option that recomputes the 1-2,1-3,1-4 topologies after bonds are
+option that re-computes the 1-2,1-3,1-4 topologies after bonds are
 deleted; see the "delete_bonds"_delete_bonds.html command for more
 details.
 
@@ -219,7 +219,7 @@ each time the command is issued.
 [Default:]
 
 All 3 Lennard-Jones and 3 Coulombic weighting coefficients = 0.0,
-angle = no, dihedral = no, and extra = 0.
+angle = no, dihedral = no.
 
 :line
 

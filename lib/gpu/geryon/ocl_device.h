@@ -165,8 +165,8 @@ class UCL_Device {
   /// Get the current OpenCL device name
   inline std::string name() { return name(_device); }
   /// Get the OpenCL device name
-  inline std::string name(const int i)
-    { return std::string(_properties[i].name); }
+  inline std::string name(const int i) {
+    return std::string(_properties[i].name); }
 
   /// Get a string telling the type of the current device
   inline std::string device_type_name() { return device_type_name(_device); }
@@ -281,7 +281,7 @@ class UCL_Device {
   inline cl_device_id & cl_device() { return _cl_device; }
 
   /// Select the platform that has accelerators
-  inline void set_platform_accelerator(int pid=-1);
+  inline int set_platform_accelerator(int pid=-1);
 
  private:
   int _num_platforms;          // Number of platforms
@@ -324,6 +324,7 @@ UCL_Device::~UCL_Device() {
 
 void UCL_Device::clear() {
   _properties.clear();
+  _cl_devices.clear();
   if (_device>-1) {
     for (size_t i=0; i<_cq.size(); i++) {
       CL_DESTRUCT_CALL(clReleaseCommandQueue(_cq.back()));
@@ -520,8 +521,6 @@ int UCL_Device::device_type(const int i) {
 
 // Set the CUDA device to the specified device number
 int UCL_Device::set(int num) {
-  clear();
-
   cl_device_id *device_list = new cl_device_id[_num_devices];
   cl_uint n;
   CL_SAFE_CALL(clGetDeviceIDs(_cl_platform,CL_DEVICE_TYPE_ALL,_num_devices,
@@ -612,7 +611,7 @@ void UCL_Device::print_all(std::ostream &out) {
 
 // Select the platform that is associated with accelerators
 // if pid < 0, select the first platform
-void UCL_Device::set_platform_accelerator(int pid) {
+int UCL_Device::set_platform_accelerator(int pid) {
   if (pid < 0) {
     int found = 0;
     for (int n=0; n<_num_platforms; n++) {
@@ -625,10 +624,11 @@ void UCL_Device::set_platform_accelerator(int pid) {
           break;
         }
       }
-      if (found) break;
+      if (found) return UCL_SUCCESS;
     }
+    return UCL_ERROR;
   } else {
-    set_platform(pid);
+    return set_platform(pid);
   }
 }
 

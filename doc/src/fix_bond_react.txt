@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -34,7 +34,7 @@ react = mandatory argument indicating new reaction specification :l
   Rmax = bonding pair atoms must be separated by less than Rmax to initiate reaction (distance units) :l
   template-ID(pre-reacted) = ID of a molecule template containing pre-reaction topology :l
   template-ID(post-reacted) = ID of a molecule template containing post-reaction topology :l
-  map_file = name of file specifying corresponding atomIDs in the pre- and post-reacted templates :l
+  map_file = name of file specifying corresponding atom-IDs in the pre- and post-reacted templates :l
   zero or more individual keyword/value pairs may be appended to each react argument :l
   individual_keyword = {prob} or {stabilize_steps} :l
     {prob} values = fraction seed
@@ -125,13 +125,13 @@ template. If both these conditions are met, the reaction site is
 modified to match the post-reaction template.
 
 A bonding atom pair will be identified if several conditions are met.
-First, a pair of atoms within the specified react-group-ID of type
-typei and typej must separated by a distance between {Rmin} and
+First, a pair of atoms I,J within the specified react-group-ID of type
+itype and jtype must separated by a distance between {Rmin} and
 {Rmax}. It is possible that multiple bonding atom pairs are
 identified: if the bonding atoms in the pre-reacted template are not
 1-2, 1-3, or 1-4 neighbors, the closest bonding atom partner is set as
 its bonding partner; otherwise, the farthest potential partner is
-chosen. Then, if both an atomi and atomj have each other as their
+chosen. Then, if both an atom I and atom J have each other as their
 nearest bonding partners, these two atoms are identified as the
 bonding atom pair of the reaction site. Once this unique bonding atom
 pair is identified for each reaction, there could two or more
@@ -298,9 +298,8 @@ relevant to this fix.
 
 This fix computes one statistic for each {react} argument that it
 stores in a global vector, of length 'number of react arguments', that
-can be accessed by various "output
-commands"_Section_howto.html#howto_15. The vector values calculated by
-this fix are "intensive".
+can be accessed by various "output commands"_Howto_output.html. The
+vector values calculated by this fix are "intensive".
 
 These is 1 quantity for each react argument:
 
@@ -313,8 +312,8 @@ minimization"_minimize.html.
 [Restrictions:]
 
 This fix is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 
@@ -324,7 +323,7 @@ bond/break"_fix_bond_break.html, "fix bond/swap"_fix_bond_swap.html,
 
 [Default:]
 
-The option defaults are stabilization = no, stabilize_steps = 60
+The option defaults are stabilization = no, prob = 1.0, stabilize_steps = 60
 
 :line
 

@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -36,15 +36,14 @@ chunk/atom"_compute_chunk_atom.html command, which assigns each atom
 to a single chunk (or no chunk).  The ID for this command is specified
 as chunkID.  For example, a single chunk could be the atoms in a
 molecule or atoms in a spatial bin.  See the "compute
-chunk/atom"_compute_chunk_atom.html doc page and "Section
-6.23"_Section_howto.html#howto_23 for details of how chunks can be
-defined and examples of how they can be used to measure properties of
-a system.
+chunk/atom"_compute_chunk_atom.html and "Howto chunk"_Howto_chunk.html
+doc pages for details of how chunks can be defined and examples of how
+they can be used to measure properties of a system.
 
 This compute calculates and stores the specified attributes of chunks
 as global data so they can be accessed by other "output
-commands"_Section_howto.html#howto_15 and used in conjunction with
-other commands that generate per-chunk data, such as "compute
+commands"_Howto_output.html and used in conjunction with other
+commands that generate per-chunk data, such as "compute
 com/chunk"_compute_com_chunk.html or "compute
 msd/chunk"_compute_msd_chunk.html.
 
@@ -103,8 +102,8 @@ single input is specified, a global vector is produced.  If two or
 more inputs are specified, a global array is produced where the number
 of columns = the number of inputs.  The vector or array can be
 accessed by any command that uses global values from a compute as
-input.  See "this section"_Section_howto.html#howto_15 for an overview
-of LAMMPS output options.
+input.  See the "Howto output"_Howto_output.html doc page for an
+overview of LAMMPS output options.
 
 The vector or array values are "intensive".  The values will be
 unitless or in the units discussed above.

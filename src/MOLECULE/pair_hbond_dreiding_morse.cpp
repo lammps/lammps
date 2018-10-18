@@ -371,7 +371,7 @@ void PairHbondDreidingMorse::init_style()
 
 double PairHbondDreidingMorse::single(int i, int j, int itype, int jtype,
                                      double rsq,
-                                     double factor_coul, double factor_lj,
+                                     double /*factor_coul*/, double /*factor_lj*/,
                                      double &fforce)
 {
   int k,kk,ktype,knum,m;

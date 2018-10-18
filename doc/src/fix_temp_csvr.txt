@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -76,8 +76,8 @@ normally be used on atoms that also have their temperature controlled
 by another fix - e.g. by "fix nvt"_fix_nh.html or "fix
 langevin"_fix_langevin.html commands.
 
-See "this howto section"_Section_howto.html#howto_16 of the manual for
-a discussion of different ways to compute temperature and perform
+See the "Howto thermostat"_Howto_thermostat.html doc page for a
+discussion of different ways to compute temperature and perform
 thermostatting.
 
 These fixes compute a temperature each timestep.  To do this, the fix
@@ -135,9 +135,9 @@ the {start} and {stop} keywords of the "run"_run.html command.  See the
 These fixes are not invoked during "energy minimization"_minimize.html.
 
 These fixes compute a global scalar which can be accessed by various
-"output commands"_Section_howto.html#howto_15.  The scalar is the
-cumulative energy change due to the fix.  The scalar value
-calculated by this fix is "extensive".
+"output commands"_Howto_output.html.  The scalar is the cumulative
+energy change due to the fix.  The scalar value calculated by this fix
+is "extensive".
 
 [Restrictions:]
 

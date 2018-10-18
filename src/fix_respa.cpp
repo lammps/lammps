@@ -93,7 +93,7 @@ void FixRespa::grow_arrays(int nmax)
    copy values within local atom-based arrays
 ------------------------------------------------------------------------- */
 
-void FixRespa::copy_arrays(int i, int j, int delflag)
+void FixRespa::copy_arrays(int i, int j, int /*delflag*/)
 {
   for (int k = 0; k < nlevels; k++) {
     f_level[j][k][0] = f_level[i][k][0];

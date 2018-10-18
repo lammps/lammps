@@ -1,0 +1,27 @@
+import "monomer.lt"   # <-- defines "Monomer" and "ForceField"
+
+Polymer inherits ForceField {
+
+  # The next line is optional
+  create_var {$mol}  # force all monomers to share the same molecule-ID
+
+  # Now create some monomers
+
+  mon1 = new Monomer
+  mon2 = new Monomer.rot(180.0, 1,0,0).move(3.2,0,0)
+  mon3 = new Monomer.move(6.4,0,0)
+  mon4 = new Monomer.rot(180.0, 1,0,0).move(9.6,0,0)
+  mon5 = new Monomer.move(12.8,0,0)
+  mon6 = new Monomer.rot(180.0, 1,0,0).move(16.0,0,0)
+  mon7 = new Monomer.move(19.2,0,0)
+
+  # Now, link the monomers together this way:
+  write("Data Bonds") {
+    $bond:backbone1  @bond:Backbone  $atom:mon1/ca  $atom:mon2/ca
+    $bond:backbone2  @bond:Backbone  $atom:mon2/ca  $atom:mon3/ca
+    $bond:backbone3  @bond:Backbone  $atom:mon3/ca  $atom:mon4/ca
+    $bond:backbone4  @bond:Backbone  $atom:mon4/ca  $atom:mon5/ca
+    $bond:backbone5  @bond:Backbone  $atom:mon5/ca  $atom:mon6/ca
+    $bond:backbone6  @bond:Backbone  $atom:mon6/ca  $atom:mon7/ca
+  }
+}

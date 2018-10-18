@@ -71,6 +71,8 @@ action atom_vec_kokkos.cpp
 action atom_vec_kokkos.h
 action atom_vec_molecular_kokkos.cpp atom_vec_molecular.cpp
 action atom_vec_molecular_kokkos.h atom_vec_molecular.h
+action atom_vec_sphere_kokkos.cpp atom_vec_sphere.cpp
+action atom_vec_sphere_kokkos.h atom_vec_sphere.h
 action bond_class2_kokkos.cpp bond_class2.cpp 
 action bond_class2_kokkos.h bond_class2.h
 action bond_fene_kokkos.cpp bond_fene.cpp
@@ -93,10 +95,18 @@ action domain_kokkos.cpp
 action domain_kokkos.h
 action fix_deform_kokkos.cpp
 action fix_deform_kokkos.h
+action fix_enforce2d_kokkos.cpp
+action fix_enforce2d_kokkos.h
 action fix_eos_table_rx_kokkos.cpp fix_eos_table_rx.cpp
 action fix_eos_table_rx_kokkos.h fix_eos_table_rx.h  
+action fix_freeze_kokkos.cpp fix_freeze.cpp
+action fix_freeze_kokkos.h fix_freeze.h
+action fix_gravity_kokkos.cpp
+action fix_gravity_kokkos.h
 action fix_langevin_kokkos.cpp
 action fix_langevin_kokkos.h
+action fix_neigh_history_kokkos.cpp
+action fix_neigh_history_kokkos.h
 action fix_nh_kokkos.cpp
 action fix_nh_kokkos.h
 action fix_nph_kokkos.cpp
@@ -105,6 +115,8 @@ action fix_npt_kokkos.cpp
 action fix_npt_kokkos.h
 action fix_nve_kokkos.cpp
 action fix_nve_kokkos.h
+action fix_nve_sphere_kokkos.cpp
+action fix_nve_sphere_kokkos.h
 action fix_nvt_kokkos.cpp
 action fix_nvt_kokkos.h
 action fix_property_atom_kokkos.cpp
@@ -191,6 +203,8 @@ action pair_eam_fs_kokkos.cpp pair_eam_fs.cpp
 action pair_eam_fs_kokkos.h pair_eam_fs.h
 action pair_exp6_rx_kokkos.cpp pair_exp6_rx.cpp
 action pair_exp6_rx_kokkos.h pair_exp6_rx.h
+action pair_gran_hooke_history_kokkos.h pair_gran_hooke_history.h
+action pair_gran_hooke_history_kokkos.cpp pair_gran_hooke_history.cpp
 action pair_hybrid_kokkos.cpp
 action pair_hybrid_kokkos.h
 action pair_hybrid_overlay_kokkos.cpp

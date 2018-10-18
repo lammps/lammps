@@ -1,0 +1,13 @@
+# -------- WARNING: --------
+
+This software is experimental, and the force-fields and equilbration protocols
+have not been tested carefully by me.  There is no gaurantee that the simulation
+will reproduce the behavior of real hexadecane molecules,
+
+# -------- REQUEST FOR HELP: --------
+
+However, if you notice a problem with this example, please report it.
+Peer-review is the only way to improve this software (or any software).
+Other suggestions are also welcome!
+
+(Contact jewett.aij@gmail.com, 2017-10-03)

@@ -9,7 +9,7 @@ LATTE INPUT FILE
 
 #General controls
 CONTROL{
-  xControl= 1
+  XCONTROL= 1
   BASISTYPE= NONORTHO
   PARAMPATH= "./TBparam"
   KBT= 0.0

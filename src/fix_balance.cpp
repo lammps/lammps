@@ -114,6 +114,7 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
 
   if (nevery) force_reneighbor = 1;
   lastbalance = -1;
+  next_reneighbor = -1;
 
   // compute initial outputs
 
@@ -159,7 +160,7 @@ void FixBalance::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixBalance::setup(int vflag)
+void FixBalance::setup(int /*vflag*/)
 {
   // compute final imbalance factor if setup_pre_exchange() invoked balancer
   // this is called at end of run setup, before output
@@ -248,6 +249,10 @@ void FixBalance::pre_neighbor()
   if (!pending) return;
   imbfinal = balance->imbalance_factor(maxloadperproc);
   pending = 0;
+
+  // set disable = 1, so weights no longer migrate with atoms
+
+  if (wtflag) balance->fixstore->disable = 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -275,21 +280,23 @@ void FixBalance::rebalance()
 
   // reset proc sub-domains
   // check and warn if any proc's subbox is smaller than neigh skin
-  //   since may lead to lost atoms in exchange()
+  //   since may lead to lost atoms in comm->exchange()
 
   if (domain->triclinic) domain->set_lamda_box();
   domain->set_local_box();
   domain->subbox_too_small_check(neighbor->skin);
 
   // move atoms to new processors via irregular()
-  // only needed if migrate_check() says an atom moves to far
+  // for non-RCB only needed if migrate_check() says an atom moves too far
   // else allow caller's comm->exchange() to do it
+  // set disable = 0, so weights migrate with atoms
+  //   important to delay disable = 1 until after pre_neighbor imbfinal calc
+  //   b/c atoms may migrate again in comm->exchange()
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   if (wtflag) balance->fixstore->disable = 0;
   if (lbstyle == BISECTION) irregular->migrate_atoms(0,1,sendproc);
   else if (irregular->migrate_check()) irregular->migrate_atoms();
-  if (wtflag) balance->fixstore->disable = 1;
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
   // invoke KSpace setup_grid() to adjust to new proc sub-domains

@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -100,13 +100,12 @@ accurately infer a viscosity and should try increasing the Nevery
 parameter.
 
 An alternative method for calculating a viscosity is to run a NEMD
-simulation, as described in "Section
-6.13"_Section_howto.html#howto_13 of the manual.  NEMD simulations
-deform the simulation box via the "fix deform"_fix_deform.html
-command.  Thus they cannot be run on a charged system using a "PPPM
-solver"_kspace_style.html since PPPM does not currently support
-non-orthogonal boxes.  Using fix viscosity keeps the box orthogonal;
-thus it does not suffer from this limitation.
+simulation, as described on the "Howto nemd"_Howto_nemd.html doc page.
+NEMD simulations deform the simulation box via the "fix
+deform"_fix_deform.html command.  Thus they cannot be run on a charged
+system using a "PPPM solver"_kspace_style.html since PPPM does not
+currently support non-orthogonal boxes.  Using fix viscosity keeps the
+box orthogonal; thus it does not suffer from this limitation.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
@@ -115,13 +114,13 @@ files"_restart.html.  None of the "fix_modify"_fix_modify.html options
 are relevant to this fix.
 
 This fix computes a global scalar which can be accessed by various
-"output commands"_Section_howto.html#howto_15.  The scalar is the
-cumulative momentum transferred between the bottom and middle of the
-simulation box (in the {pdim} direction) is stored as a scalar
-quantity by this fix.  This quantity is zeroed when the fix is defined
-and accumulates thereafter, once every N steps.  The units of the
-quantity are momentum = mass*velocity.  The scalar value calculated by
-this fix is "intensive".
+"output commands"_Howto_output.html.  The scalar is the cumulative
+momentum transferred between the bottom and middle of the simulation
+box (in the {pdim} direction) is stored as a scalar quantity by this
+fix.  This quantity is zeroed when the fix is defined and accumulates
+thereafter, once every N steps.  The units of the quantity are
+momentum = mass*velocity.  The scalar value calculated by this fix is
+"intensive".
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.  This fix is not invoked during "energy
@@ -130,8 +129,8 @@ minimization"_minimize.html.
 [Restrictions:]
 
 This fix is part of the MISC package.  It is only enabled if LAMMPS
-was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 Swaps conserve both momentum and kinetic energy, even if the masses of
 the swapped atoms are not equal.  Thus you should not need to

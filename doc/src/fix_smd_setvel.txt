@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -66,9 +66,9 @@ None of the "fix_modify"_fix_modify.html options
 are relevant to this fix.
 
 This fix computes a global 3-vector of forces, which can be accessed
-by various "output commands"_Section_howto.html#howto_15.  This is the
-total force on the group of atoms.  The vector values calculated by this
-fix are "extensive".
+by various "output commands"_Howto_output.html.  This is the total
+force on the group of atoms.  The vector values calculated by this fix
+are "extensive".
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.
@@ -76,8 +76,8 @@ the "run"_run.html command.
 [Restrictions:]
 
 This fix is part of the USER-SMD package.  It is only enabled if
-LAMMPS was built with that package. See the "Making LAMMPS"_Section_start.html#start_3
-section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:] none
 

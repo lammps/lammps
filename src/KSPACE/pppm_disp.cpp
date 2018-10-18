@@ -8052,7 +8052,7 @@ void PPPMDisp::compute_rho_coeff(FFT_SCALAR **coeff , FFT_SCALAR **dcoeff,
    extended to non-neutral systems (J. Chem. Phys. 131, 094107).
 ------------------------------------------------------------------------- */
 
-void PPPMDisp::slabcorr(int eflag)
+void PPPMDisp::slabcorr(int /*eflag*/)
 {
   // compute local contribution to global dipole moment
 

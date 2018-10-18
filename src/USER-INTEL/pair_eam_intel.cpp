@@ -164,8 +164,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
     memory->destroy(rho);
     memory->destroy(fp);
     nmax = atom->nmax;
-    int edge = (nmax * sizeof(acc_t)) % INTEL_DATA_ALIGN;
-    if (edge) nmax += (INTEL_DATA_ALIGN - edge) / sizeof(acc_t);
+    IP_PRE_edge_align(nmax, sizeof(acc_t));
     if (NEWTON_PAIR)
       memory->create(rho,nmax*comm->nthreads,"pair:rho");
     else
@@ -192,9 +191,9 @@ void PairEAMIntel::eval(const int offload, const int vflag,
 
   ATOM_T * _noalias const x = buffers->get_x(offload);
 
+  const int * _noalias const ilist = list->ilist;
   const int * _noalias const numneigh = list->numneigh;
-  const int * _noalias const cnumneigh = buffers->cnumneigh(list);
-  const int * _noalias const firstneigh = buffers->firstneigh(list);
+  const int ** _noalias const firstneigh = (const int **)list->firstneigh;
   const FC_PACKED1_T * _noalias const rhor_spline_f = fc.rhor_spline_f;
   const FC_PACKED1_T * _noalias const rhor_spline_e = fc.rhor_spline_e;
   const FC_PACKED2_T * _noalias const z2r_spline_t = fc.z2r_spline_t;
@@ -243,8 +242,10 @@ void PairEAMIntel::eval(const int offload, const int vflag,
                               f_stride, x, 0);
 
     acc_t oevdwl, ov0, ov1, ov2, ov3, ov4, ov5;
-    if (EFLAG) oevdwl = (acc_t)0;
-    if (vflag) ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0;
+    if (EFLAG || vflag)
+      oevdwl = ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0;
+    if (NEWTON_PAIR == 0 && inum != nlocal)
+      memset(f_start, 0, f_stride * sizeof(FORCE_T));
 
     // loop over neighbors of my atoms
     #if defined(_OPENMP)
@@ -286,14 +287,16 @@ void PairEAMIntel::eval(const int offload, const int vflag,
         rhor_joff = rhor_ioff + _onetype * jstride;
         frho_ioff = fstride * _onetype;
       }
-      for (int i = iifrom; i < iito; ++i) {
+      for (int ii = iifrom; ii < iito; ++ii) {
+        const int i = ilist[ii];
         int itype, rhor_ioff;
         if (!ONETYPE) {
           itype = x[i].w;
           rhor_ioff = istride * itype;
         }
-        const int * _noalias const jlist = firstneigh + cnumneigh[i];
-        const int jnum = numneigh[i];
+        const int * _noalias const jlist = firstneigh[i];
+        int jnum = numneigh[i];
+        IP_PRE_neighbor_pad(jnum, offload);
 
         const flt_t xtmp = x[i].x;
         const flt_t ytmp = x[i].y;
@@ -411,7 +414,8 @@ void PairEAMIntel::eval(const int offload, const int vflag,
       #pragma vector aligned
       #pragma simd reduction(+:tevdwl)
       #endif
-      for (int i = iifrom; i < iito; ++i) {
+      for (int ii = iifrom; ii < iito; ++ii) {
+        const int i = ilist[ii];
         int itype;
         if (!ONETYPE) itype = x[i].w;
         flt_t p = rho[i]*frdrho + (flt_t)1.0;
@@ -447,8 +451,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
 
       if (tid == 0)
         comm->forward_comm_pair(this);
-      if (NEWTON_PAIR)
-        memset(f + minlocal, 0, f_stride * sizeof(FORCE_T));
+      if (NEWTON_PAIR) memset(f + minlocal, 0, f_stride * sizeof(FORCE_T));
 
       #if defined(_OPENMP)
       #pragma omp barrier
@@ -457,7 +460,8 @@ void PairEAMIntel::eval(const int offload, const int vflag,
       // compute forces on each atom
       // loop over neighbors of my atoms
 
-      for (int i = iifrom; i < iito; ++i) {
+      for (int ii = iifrom; ii < iito; ++ii) {
+        const int i = ilist[ii];
         int itype, rhor_ioff;
         const flt_t * _noalias scale_fi;
         if (!ONETYPE) {
@@ -465,8 +469,9 @@ void PairEAMIntel::eval(const int offload, const int vflag,
           rhor_ioff = istride * itype;
           scale_fi = scale_f + itype*ntypes;
         }
-        const int * _noalias const jlist = firstneigh + cnumneigh[i];
-        const int jnum = numneigh[i];
+        const int * _noalias const jlist = firstneigh[i];
+        int jnum = numneigh[i];
+        IP_PRE_neighbor_pad(jnum, offload);
 
         acc_t fxtmp, fytmp, fztmp, fwtmp;
         acc_t sevdwl, sv0, sv1, sv2, sv3, sv4, sv5;
@@ -592,11 +597,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
     IP_PRE_fdotr_reduce(NEWTON_PAIR, nall, nthreads, f_stride, vflag,
                         ov0, ov1, ov2, ov3, ov4, ov5);
 
-    if (EFLAG) {
-      ev_global[0] = oevdwl;
-      ev_global[1] = (acc_t)0.0;
-    }
-    if (vflag) {
+    if (EFLAG || vflag) {
       if (NEWTON_PAIR == 0) {
         ov0 *= (acc_t)0.5;
         ov1 *= (acc_t)0.5;
@@ -605,6 +606,8 @@ void PairEAMIntel::eval(const int offload, const int vflag,
         ov4 *= (acc_t)0.5;
         ov5 *= (acc_t)0.5;
       }
+      ev_global[0] = oevdwl;
+      ev_global[1] = (acc_t)0.0;
       ev_global[2] = ov0;
       ev_global[3] = ov1;
       ev_global[4] = ov2;
@@ -677,19 +680,16 @@ void PairEAMIntel::pack_force_const(ForceConst<flt_t> &fc,
 
   int tp1 = atom->ntypes + 1;
   fc.set_ntypes(tp1,nr,nrho,memory,_cop);
-  buffers->set_ntypes(tp1);
-  flt_t **cutneighsq = buffers->get_cutneighsq();
 
   // Repeat cutsq calculation because done after call to init_style
-  double cut, cutneigh;
   for (int i = 1; i <= atom->ntypes; i++) {
     for (int j = i; j <= atom->ntypes; j++) {
-      if (setflag[i][j] != 0 || (setflag[i][i] != 0 && setflag[j][j] != 0)) {
+      double cut;
+      if (setflag[i][j] != 0 || (setflag[i][i] != 0 && setflag[j][j] != 0))
         cut = init_one(i,j);
-        cutneigh = cut + neighbor->skin;
-        cutsq[i][j] = cutsq[j][i] = cut*cut;
-        cutneighsq[i][j] = cutneighsq[j][i] = cutneigh * cutneigh;
-      }
+      else
+        cut = 0.0;
+      cutsq[i][j] = cutsq[j][i] = cut*cut;
     }
   }
 
@@ -728,13 +728,13 @@ void PairEAMIntel::pack_force_const(ForceConst<flt_t> &fc,
           fc.rhor_spline_e[joff + k].b=rhor_spline[type2rhor[j][i]][k][4];
           fc.rhor_spline_e[joff + k].c=rhor_spline[type2rhor[j][i]][k][5];
           fc.rhor_spline_e[joff + k].d=rhor_spline[type2rhor[j][i]][k][6];
-          fc.z2r_spline_t[joff + k].a=z2r_spline[type2rhor[j][i]][k][0];
-          fc.z2r_spline_t[joff + k].b=z2r_spline[type2rhor[j][i]][k][1];
-          fc.z2r_spline_t[joff + k].c=z2r_spline[type2rhor[j][i]][k][2];
-          fc.z2r_spline_t[joff + k].d=z2r_spline[type2rhor[j][i]][k][3];
-          fc.z2r_spline_t[joff + k].e=z2r_spline[type2rhor[j][i]][k][4];
-          fc.z2r_spline_t[joff + k].f=z2r_spline[type2rhor[j][i]][k][5];
-          fc.z2r_spline_t[joff + k].g=z2r_spline[type2rhor[j][i]][k][6];
+          fc.z2r_spline_t[joff + k].a=z2r_spline[type2z2r[j][i]][k][0];
+          fc.z2r_spline_t[joff + k].b=z2r_spline[type2z2r[j][i]][k][1];
+          fc.z2r_spline_t[joff + k].c=z2r_spline[type2z2r[j][i]][k][2];
+          fc.z2r_spline_t[joff + k].d=z2r_spline[type2z2r[j][i]][k][3];
+          fc.z2r_spline_t[joff + k].e=z2r_spline[type2z2r[j][i]][k][4];
+          fc.z2r_spline_t[joff + k].f=z2r_spline[type2z2r[j][i]][k][5];
+          fc.z2r_spline_t[joff + k].g=z2r_spline[type2z2r[j][i]][k][6];
         }
       }
     }
@@ -749,7 +749,7 @@ void PairEAMIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
                                                  const int nr, const int nrho,
                                                  Memory *memory,
                                                  const int cop) {
-  if (ntypes != _ntypes || nr > _nr || nrho > _nrho) {
+  if (ntypes != _ntypes || nr + 1 > _nr || nrho + 1 > _nrho) {
     if (_ntypes > 0) {
       _memory->destroy(rhor_spline_f);
       _memory->destroy(rhor_spline_e);
@@ -761,14 +761,12 @@ void PairEAMIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
     if (ntypes > 0) {
       _cop = cop;
       _nr = nr + 1;
-      int edge = (_nr * sizeof(flt_t)) % INTEL_DATA_ALIGN;
-      if (edge) _nr += (INTEL_DATA_ALIGN - edge) / sizeof(flt_t);
+      IP_PRE_edge_align(_nr, sizeof(flt_t));
       memory->create(rhor_spline_f,ntypes*ntypes*_nr,"fc.rhor_spline_f");
       memory->create(rhor_spline_e,ntypes*ntypes*_nr,"fc.rhor_spline_e");
       memory->create(z2r_spline_t,ntypes*ntypes*_nr,"fc.z2r_spline_t");
       _nrho = nrho + 1;
-      edge = (_nrho * sizeof(flt_t)) % INTEL_DATA_ALIGN;
-      if (edge) _nrho += (INTEL_DATA_ALIGN - edge) / sizeof(flt_t);
+      IP_PRE_edge_align(_nrho, sizeof(flt_t));
       memory->create(frho_spline_f,ntypes*_nrho,"fc.frho_spline_f");
       memory->create(frho_spline_e,ntypes*_nrho,"fc.frho_spline_e");
       memory->create(scale_f,ntypes,ntypes,"fc.scale_f");
@@ -781,7 +779,7 @@ void PairEAMIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
 /* ---------------------------------------------------------------------- */
 
 int PairEAMIntel::pack_forward_comm(int n, int *list, double *buf,
-                                    int pbc_flag, int *pbc)
+                                    int /*pbc_flag*/, int * /*pbc*/)
 {
   if (fix->precision() == FixIntel::PREC_MODE_DOUBLE)
     return pack_forward_comm(n, list, buf, fp);

@@ -56,7 +56,7 @@ try:
         iEsptAtomCoords, iEsptAtomVects, iEsptAtomType, iEsptAtomID
     from .ttree_matrix_stack import AffineTransform, MultiAffineStack, \
         LinTransform
-except (SystemError, ValueError):
+except (ImportError, SystemError, ValueError):
     # not installed as a package
     from ttree import *
     from ttree_lex import *
@@ -482,7 +482,7 @@ def WriteFiles(files_content, suffix='', write_to_stdout=True):
 
 
 
-def main()
+def main():
     """
     This is is a "main module" wrapper for invoking ettree.py
     as a stand alone program.  This program:
@@ -495,8 +495,8 @@ def main()
 
     """
     g_program_name = 'ettree.py'
-    g_date_str     = '2016-12-22'
-    g_version_str  = '0.36.0'
+    g_date_str     = '2018-6-26'
+    g_version_str  = '0.37.0'
 
     SimpleCounter.default_n0 = 0   # counters in Espresso begin at 0, not 1
 

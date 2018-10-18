@@ -1,6 +1,7 @@
 # auto-generated style files
 style_angle.h
 style_atom.h
+style_body.h
 style_bond.h
 style_command.h
 style_compute.h
@@ -12,10 +13,29 @@ style_integrate.h
 style_kspace.h
 style_minimize.h
 style_pair.h
+style_reader.h
 style_region.h
 style_neigh_bin.h
 style_neigh_pair.h
 style_neigh_stencil.h
+style_nbin.h
+style_npair.h
+style_nstencil.h
+style_ntopo.h
+# other auto-generated files
+lmpinstalledpkgs.h
+# renamed on 25 September 2018
+compute_smd_triangle_mesh_vertices.h
+compute_smd_triangle_mesh_vertices.cpp
+# renamed on 6 September 2018
+pair_cdeam_omp.h
+pair_cdeam_omp.cpp
+# renamed on 31 July 2018
+pair_cdeam.h
+pair_cdeam.cpp
+# renamed on 20 July 2018
+pair_body.h
+pair_body.cpp
 # deleted on 4 April 2018
 pair_kim_version.h
 # deleted on 15 December 2017

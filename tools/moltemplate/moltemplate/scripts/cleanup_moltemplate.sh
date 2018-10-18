@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
   # cleanup_moltemplate.sh
   # This script attempts to remove irrelevant information from LAMMPS 
   # input scripts and data files (such as extra, unneeded atom types 
@@ -71,16 +73,29 @@
   moltemplate.sh system.lt
   # This will create: "system.data" "system.in.init" "system.in.settings."
 
-  # That's it.  The new "system.data" and system.in.* files should
+  # That's it.  The new "system.data" and system.in.settings files should
   # be ready to run in LAMMPS.
+
+  # Special case: "set" commands
+  # Typically "set type" or "set atom" commands are used to assign atom charge
+  # If there is a "system.in.charges" file, then it contains these commands
+  # however the atom type numbers will be wrong, so we must rewrite it.
+  # Replace it with the corresponding commands from the system.in.settings
+  # (whose atom type numbers are correct)
+  if [ -f "../system.in.charges" ]; then
+    awk '{ if ((NF >= 5) && ($1 == "set") && ($4 == "charge")) print $0}' \
+        < system.in.settings > system.in.charges
+    # There is no need to remove these lines from "system.in.settings",
+    # (because there's no harm to invoke the "set" command twice)
+    # ...but if you want to do that, try using a command similar to:
+    #sed '/set type/,+1 d' < system.in.settings > system.in.settings.tmp
+    #mv -f system.in.settings.tmp system.in.settings
+  fi
+
 
   # Now move the system.data and system.in.* files to their original location:
   mv -f system.data system.in.* ../
   cd ../
-  grep "set type" system.in.settings > system.in.charges
-  # now remove these lines from system.in.settings
-  sed '/set type/,+1 d' < system.in.settings > system.in.settings.tmp
-  mv -f system.in.settings.tmp system.in.settings
 
   # Finally, delete all of the temporary files we generated
   rm -rf new_lt_file_TMP

@@ -1,0 +1,71 @@
+# This file contains a definition for the "CH2" molecular subunit.
+# First, load the COMPASS force field parameters we will need:
+
+import "compass_published.lt" # <-- defines the "COMPASS" force field
+
+# (The "compass_published.lt" file is located in the "force_fields" 
+#  subdirectory distributed with moltemplate.)
+# Then define "CH2":
+
+
+
+
+CH2 inherits COMPASS {
+
+  # atom-id  mol-id   atom-type  charge   x             y                z
+
+  write("Data Atoms") {
+    $atom:C  $mol:... @atom:c4   0.0    0.000000     0.000000      0.000000
+    $atom:H1 $mol:... @atom:h1   0.0    0.000000     0.631044      0.892431
+    $atom:H2 $mol:... @atom:h1   0.0    0.000000     0.631044     -0.892431
+  }
+
+  write('Data Bond List') {
+    $bond:CH1 $atom:C $atom:H1
+    $bond:CH2 $atom:C $atom:H2
+  }
+
+} # CH2
+
+
+
+
+# COMMENTS:
+# 1) Atom type names (eg. "c4", "h1") are defined in "compass_published.lt".
+# 2) In this example, the atomic charge of an atom is calculated by summing 
+#    partial charge contributions from neighboring atoms bonded to this atom.
+#    (according to the rules in "compass_published.lt").  For this reason,
+#    we can ignore the "charge" column in the "Data Atoms" section.  Just
+#    leave theses charges as "0.0" for now. Moltemplate will recalculate them.
+# 3) The "..." in "$mol:..." tells moltemplate that this molecule may be part
+#    of a larger molecule, and (if so) to use the larger parent object's 
+#    molecule id number as it's own.
+
+
+
+
+
+
+# Optional: Shift all the coordinates in the +Y direction by 0.4431163.
+#           This way, the carbon atom is no longer located at 0,0,0, but the
+#           axis of an alkane chain containing this monomer is at 0,0,0.
+#           (This makes it more convenient to construct a polymer later.
+#            If this is confusing, then simply add 0.4431163 to the Y 
+#            coordinates in the "Data Atoms" section above.)
+
+CH2.move(0,0.4431163,0)
+
+
+
+
+
+######### (scratchwork calculations for the atomic coordinates) #########
+#
+# Lcc = 1.5350 # length of the C-C bond (Sp3)
+# Lch = 1.0930 # length of the C-H bond
+# theta=2*atan(sqrt(2)) # ~= 109.5 degrees = tetrahedronal angle (C-C-C angle)
+# DeltaXc = Lcc*sin(theta/2)  # = 1.2533222517240594
+# DeltaYc = Lcc*cos(theta/2)  # = 0.8862326632060754
+#                             # 0.5*DeltaYc = 0.4431163
+# DeltaZh = Lch*sin(theta/2)  # = 0.892431
+# DeltaYh = Lch*cos(theta/2)  # = 0.631044

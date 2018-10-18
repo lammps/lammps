@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -103,8 +103,8 @@ dihedrals a bead can have in the coarse-grained model.
 [Restrictions:]
 
 This fix is part of the MSCG package. It is only enabled if LAMMPS was
-built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+built with that package.  See the "Build package"_Build_package.html
+doc page for more info.
 
 The MS-CG library uses C++11, which may not be supported by older
 compilers. The MS-CG library also has some additional numeric library

@@ -88,10 +88,10 @@ class PairDPDfdtEnergyKokkos : public PairDPDfdtEnergy {
 
   struct params_dpd {
     KOKKOS_INLINE_FUNCTION
-    params_dpd(){cut=0;a0=0;sigma=0;kappa=0;};
+    params_dpd(){cut=0;a0=0;sigma=0;kappa=0;alpha=0;};
     KOKKOS_INLINE_FUNCTION
-    params_dpd(int i){cut=0;a0=0;sigma=0;kappa=0;};
-    F_FLOAT cut,a0,sigma,kappa;
+    params_dpd(int i){cut=0;a0=0;sigma=0;kappa=0;alpha=0;};
+    F_FLOAT cut,a0,sigma,kappa,alpha;
   };
 
   DAT::tdual_efloat_1d k_duCond,k_duMech;
@@ -132,7 +132,7 @@ class PairDPDfdtEnergyKokkos : public PairDPDfdtEnergy {
   typename ArrayTypes<DeviceType>::t_f_array f;
   typename ArrayTypes<DeviceType>::t_int_1d_randomread type;
   typename ArrayTypes<DeviceType>::t_float_1d_randomread mass;
-  double *rmass;
+  typename ArrayTypes<DeviceType>::t_float_1d rmass;
   typename AT::t_efloat_1d dpdTheta;
   typename AT::t_efloat_1d d_duCond,d_duMech;
   HAT::t_efloat_1d h_duCond,h_duMech;

@@ -121,8 +121,9 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   int partscreenflag = 0;
   int partlogflag = 0;
   int kokkosflag = 0;
-  int restartflag = 0;
-  int restartremapflag = 0;
+  int restart2data = 0;
+  int restart2dump = 0;
+  int restartremap = 0;
   int citeflag = 1;
   int helpflag = 0;
 
@@ -132,9 +133,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   else exename = NULL;
   packargs = NULL;
   num_package = 0;
-  char *rfile = NULL;
-  char *dfile = NULL;
-  int wdfirst,wdlast;
+  char *restartfile = NULL;
+  int wfirst,wlast;
   int kkfirst,kklast;
 
   int npack = 0;
@@ -248,26 +248,49 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       universe->reorder(arg[iarg+1],arg[iarg+2]);
       iarg += 3;
 
-    } else if (strcmp(arg[iarg],"-restart") == 0 ||
-               strcmp(arg[iarg],"-r") == 0) {
+    } else if (strcmp(arg[iarg],"-restart2data") == 0 ||
+               strcmp(arg[iarg],"-r2data") == 0) {
       if (iarg+3 > narg)
         error->universe_all(FLERR,"Invalid command-line argument");
-      restartflag = 1;
-      rfile = arg[iarg+1];
-      dfile = arg[iarg+2];
+      if (restart2dump)
+        error->universe_all(FLERR,
+                            "Cannot use both -restart2data and -restart2dump");
+      restart2data = 1;
+      restartfile = arg[iarg+1];
       // check for restart remap flag
-      if (strcmp(dfile,"remap") == 0) {
+      if (strcmp(arg[iarg+2],"remap") == 0) {
         if (iarg+4 > narg)
           error->universe_all(FLERR,"Invalid command-line argument");
-        restartremapflag = 1;
-        dfile = arg[iarg+3];
+        restartremap = 1;
         iarg++;
       }
-      iarg += 3;
-      // delimit any extra args for the write_data command
-      wdfirst = iarg;
+      iarg += 2;
+      // delimit args for the write_data command
+      wfirst = iarg;
       while (iarg < narg && arg[iarg][0] != '-') iarg++;
-      wdlast = iarg;
+      wlast = iarg;
+
+    } else if (strcmp(arg[iarg],"-restart2dump") == 0 ||
+               strcmp(arg[iarg],"-r2dump") == 0) {
+      if (iarg+3 > narg)
+        error->universe_all(FLERR,"Invalid command-line argument");
+      if (restart2data)
+        error->universe_all(FLERR,
+                            "Cannot use both -restart2data and -restart2dump");
+      restart2dump = 1;
+      restartfile = arg[iarg+1];
+      // check for restart remap flag
+      if (strcmp(arg[iarg+2],"remap") == 0) {
+        if (iarg+4 > narg)
+          error->universe_all(FLERR,"Invalid command-line argument");
+        restartremap = 1;
+        iarg++;
+      }
+      iarg += 2;
+      // delimit args for the write_dump command
+      wfirst = iarg;
+      while (iarg < narg && arg[iarg][0] != '-') iarg++;
+      wlast = iarg;
 
     } else if (strcmp(arg[iarg],"-screen") == 0 ||
                strcmp(arg[iarg],"-sc") == 0) {
@@ -547,6 +570,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   input = new Input(this,narg,arg);
 
   // copy package cmdline arguments
+
   if (npack > 0) {
     num_package = npack;
     packargs = new char**[npack];
@@ -573,19 +597,21 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
     error->done(0);
   }
 
-  // if restartflag set, invoke 2 commands and quit
-  // add args between wdfirst and wdlast to write_data command
-  // also add "noinit" to prevent write_data from doing system init
+  // if either restart conversion option was used, invoke 2 commands and quit
+  // add args between wfirst and wlast to write_data or write_data command
+  // add "noinit" to write_data to prevent a system init
+  // write_dump will just give a warning message about no init
 
-  if (restartflag) {
-    char cmd[128];
-    snprintf(cmd,128,"read_restart %s\n",rfile);
-    if (restartremapflag) strcat(cmd," remap\n");
+  if (restart2data || restart2dump) {
+    char cmd[256];
+    snprintf(cmd,256,"read_restart %s\n",restartfile);
+    if (restartremap) strcat(cmd," remap\n");
     input->one(cmd);
-    snprintf(cmd,128,"write_data %s",dfile);
-    for (iarg = wdfirst; iarg < wdlast; iarg++)
+    if (restart2data) snprintf(cmd,256,"write_data");
+    else snprintf(cmd,256,"write_dump");
+    for (iarg = wfirst; iarg < wlast; iarg++)
       sprintf(&cmd[strlen(cmd)]," %s",arg[iarg]);
-    strcat(cmd," noinit\n");
+    if (restart2data) strcat(cmd," noinit\n");
     input->one(cmd);
     error->done(0);
   }

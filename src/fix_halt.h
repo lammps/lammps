@@ -32,12 +32,12 @@ class FixHalt : public Fix {
   int setmask();
   void init();
   void end_of_step();
-  void min_step(double, double *);
+  void min_post_force(int);
   void post_run();
 
  private:
   int attribute,operation,eflag,msgflag,ivar;
-  bigint nextstep;
+  bigint nextstep,thisstep;
   double value,tratio;
   char *idvar;
 

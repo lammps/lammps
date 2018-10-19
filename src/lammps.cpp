@@ -604,14 +604,15 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
 
   if (restart2data || restart2dump) {
     char cmd[256];
-    snprintf(cmd,256,"read_restart %s\n",restartfile);
+    snprintf(cmd,248,"read_restart %s\n",restartfile);
     if (restartremap) strcat(cmd," remap\n");
     input->one(cmd);
-    if (restart2data) snprintf(cmd,256,"write_data");
-    else snprintf(cmd,256,"write_dump");
+    if (restart2data) strcpy(cmd,"write_data");
+    else strcpy(cmd,"write_dump");
     for (iarg = wfirst; iarg < wlast; iarg++)
-      sprintf(&cmd[strlen(cmd)]," %s",arg[iarg]);
+      snprintf(&cmd[strlen(cmd)],246-strlen(cmd)," %s",arg[iarg]);
     if (restart2data) strcat(cmd," noinit\n");
+    else strcat(cmd,"\n");
     input->one(cmd);
     error->done(0);
   }

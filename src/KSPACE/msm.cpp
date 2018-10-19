@@ -111,13 +111,13 @@ MSM::MSM(LAMMPS *lmp) : KSpace(lmp),
   order = 10;
 }
 
+/* ---------------------------------------------------------------------- */
 
 void MSM::settings(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal kspace_style msm command");
   accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
 }
-
 
 /* ----------------------------------------------------------------------
    free all memory

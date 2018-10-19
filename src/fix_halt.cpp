@@ -143,6 +143,13 @@ void FixHalt::init()
 
 /* ---------------------------------------------------------------------- */
 
+void FixHalt::min_step(double, double *)
+{
+  if ((update->ntimestep % nevery) == 0) end_of_step();
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixHalt::end_of_step()
 {
   // variable evaluation may invoke computes so wrap with clear/add

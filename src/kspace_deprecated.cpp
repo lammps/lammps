@@ -17,7 +17,6 @@
 
 #include <cstring>
 #include "kspace_deprecated.h"
-#include "kspace_hybrid.h"
 #include "comm.h"
 #include "force.h"
 #include "error.h"
@@ -36,14 +35,14 @@ static void writemsg(LAMMPS *lmp, const char *msg, int abend=1)
 
 /* ---------------------------------------------------------------------- */
 
-void KspaceDeprecated::settings(int, char **)
+void KSpaceDeprecated::settings(int, char **)
 {
   const char *my_style = force->kspace_style;
 
   if (strcmp(my_style,"DEPRECATED") == 0) {
-    writemsg(lmp,"\nKspace style 'DEPRECATED' is a dummy style\n\n",0);
+    writemsg(lmp,"\nKSpace style 'DEPRECATED' is a dummy style\n\n",0);
 
   }
-}  
+}
 
 

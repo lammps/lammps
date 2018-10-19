@@ -13,7 +13,7 @@
 
 #ifdef KSPACE_CLASS
 
-KspaceStyle(DEPRECATED,KspaceDeprecated)
+KSpaceStyle(DEPRECATED,KSpaceDeprecated)
 
 #else
 
@@ -24,12 +24,13 @@ KspaceStyle(DEPRECATED,KspaceDeprecated)
 
 namespace LAMMPS_NS {
 
-class KspaceDeprecated : public Kspace {
+class KSpaceDeprecated : public KSpace {
  public:
-  KspaceDeprecated(class LAMMPS *lmp) : Kspace(lmp) {}
-  virtual ~KspaceDeprecated() {}
+  KSpaceDeprecated(class LAMMPS *lmp) : KSpace(lmp) {}
+  virtual ~KSpaceDeprecated() {}
 
   virtual void init() {}
+  virtual void settings(int, char**);
   virtual void setup() {}
   virtual void compute(int, int) {}
 };

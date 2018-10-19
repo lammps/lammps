@@ -133,7 +133,7 @@ class KSpace : protected Pointers {
 
 /* ----------------------------------------------------------------------
    compute gamma for MSM and pair styles
-   see Eq 4 from Parallel Computing 35 (2009) 164177
+   see Eq 4 from Parallel Computing 35 (2009) 164-177
 ------------------------------------------------------------------------- */
 
   double gamma(const double &rho) const

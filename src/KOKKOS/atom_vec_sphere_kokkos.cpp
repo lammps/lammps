@@ -59,6 +59,7 @@ AtomVecSphereKokkos::AtomVecSphereKokkos(LAMMPS *lmp) : AtomVecKokkos(lmp)
   commKK = (CommKokkos *) comm;
 
   no_border_vel_flag = 0;
+  unpack_exchange_indices_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2295,7 +2296,7 @@ struct AtomVecSphereKokkos_UnpackExchangeFunctor {
     const AtomKokkos* atom,
     const typename AT::tdual_xfloat_2d buf,
     typename AT::tdual_int_1d nlocal,
-    typename AT::t_int_1d indices,
+    typename AT::tdual_int_1d indices,
     int dim, X_FLOAT lo, X_FLOAT hi):
     _x(atom->k_x.view<DeviceType>()),
     _v(atom->k_v.view<DeviceType>()),
@@ -2307,7 +2308,7 @@ struct AtomVecSphereKokkos_UnpackExchangeFunctor {
     _rmass(atom->k_rmass.view<DeviceType>()),
     _omega(atom->k_omega.view<DeviceType>()),
     _nlocal(nlocal.template view<DeviceType>()),
-    _indices(indices),
+    _indices(indices.template view<DeviceType>()),
     _dim(dim),
     _lo(lo),_hi(hi)
   {
@@ -2347,7 +2348,7 @@ struct AtomVecSphereKokkos_UnpackExchangeFunctor {
 /* ---------------------------------------------------------------------- */
 
 int AtomVecSphereKokkos::unpack_exchange_kokkos(
-  DAT::tdual_xfloat_2d &k_buf,DAT::t_int_1d &indices,int nrecv,int nlocal,
+  DAT::tdual_xfloat_2d &k_buf,DAT::tdual_int_1d &indices,int nrecv,int nlocal,
   int dim,X_FLOAT lo,X_FLOAT hi,ExecutionSpace space) {
   if(space == Host) {
     k_count.h_view(0) = nlocal;
@@ -2385,7 +2386,7 @@ int AtomVecSphereKokkos::unpack_exchange_kokkos(
 int AtomVecSphereKokkos::unpack_exchange_kokkos(
   DAT::tdual_xfloat_2d &k_buf,int nrecv,int nlocal,
   int dim,X_FLOAT lo,X_FLOAT hi,ExecutionSpace space) {
-  DAT::t_int_1d indices = DAT::t_int_1d("atom:indices");
+  DAT::tdual_int_1d indices = DAT::tdual_int_1d("atom:indices");
   return unpack_exchange_kokkos(k_buf,indices,nrecv,nlocal,dim,lo,hi,space);
 }
 

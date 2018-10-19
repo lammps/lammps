@@ -113,13 +113,14 @@ class AtomVecKokkos : public AtomVec {
                            ExecutionSpace space) = 0;
 
   virtual int
-    unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf, DAT::t_int_1d &indices, int nrecv,
+    unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf, DAT::tdual_int_1d &indices, int nrecv,
                            int nlocal, int dim, X_FLOAT lo, X_FLOAT hi,
                            ExecutionSpace space) { return 0; }
 
 
   int no_comm_vel_flag,no_border_vel_flag;
-
+  int unpack_exchange_indices_flag;
+  
  protected:
 
   HAT::t_x_array h_x;

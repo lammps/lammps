@@ -472,12 +472,12 @@ struct FixNeighHistoryKokkos_UnpackExchangeFunctor
     const typename AT::tdual_int_1d &npartner,
     const typename AT::tdual_tagint_2d &partner,
     const typename AT::tdual_float_2d &valuepartner,
-    const typename AT::t_int_1d &indices,
+    const typename AT::tdual_int_1d &indices,
     const int &dnum):
     _npartner(npartner.template view<DeviceType>()),
     _partner(partner.template view<DeviceType>()),
     _valuepartner(valuepartner.template view<DeviceType>()),
-    _indices(indices),
+    _indices(indices.template view<DeviceType>()),
     _dnum(dnum)
   {
     _buf = typename AT::t_xfloat_1d_um(buf.template view<DeviceType>().data(),buf.extent(0)*buf.extent(1));
@@ -504,7 +504,7 @@ struct FixNeighHistoryKokkos_UnpackExchangeFunctor
 
 template <class DeviceType>
 void FixNeighHistoryKokkos<DeviceType>::unpack_exchange_kokkos(
-  DAT::tdual_xfloat_2d &k_buf,DAT::t_int_1d &indices,int nrecv,
+  DAT::tdual_xfloat_2d &k_buf,DAT::tdual_int_1d &indices,int nrecv,
   int nlocal,int dim,X_FLOAT lo,X_FLOAT hi,
   ExecutionSpace space)
 {

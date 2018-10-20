@@ -167,7 +167,7 @@ coordinate (angle-related ordinate at midpoint of bin). Each subsequent column h
 the two ADF values for a specific set of ({itypeN},{jtypeN},{ktypeN}) 
 interactions, as described above.  These values can be used
 by any command that uses a global values from a compute as input.  See
-"Section 6.15"_Section_howto.html#howto_15 for an overview of
+the "Howto output"_Howto_output.html doc page for an overview of
 LAMMPS output options.
 
 The array values calculated by this compute are all "intensive".

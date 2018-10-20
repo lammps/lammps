@@ -275,20 +275,19 @@ ComputeADF::~ComputeADF()
 
 void ComputeADF::init()
 {
-  double mycutneigh;
-  double maxouter;
+  double mycutneigh = 0.0;
+  double maxouter = 0.0;
 
   if (!cutflag) {
     if (!force->pair)
       error->all(FLERR,"Compute adf requires a pair style be defined "
-                 "or outer cutoff specified");
+                 "or an outer cutoff specified");
     rcutinnerj[0] = 0.0;
     rcutinnerk[0] = 0.0;
     rcutouterj[0] = force->pair->cutforce;
     rcutouterk[0] = force->pair->cutforce;
     maxouter = force->pair->cutforce;;
   } else {
-    maxouter = 0.0;
     for (int m = 0; m < ntriples; m++) {
       maxouter = MAX(rcutouterj[m],maxouter);
       maxouter = MAX(rcutouterk[m],maxouter);

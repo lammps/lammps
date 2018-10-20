@@ -133,21 +133,21 @@ ComputeADF::ComputeADF(LAMMPS *lmp, int narg, char **arg) :
   } else {
     cutflag = 1;
     iarg = 4;
-    for (int itriple = 0; itriple < ntriples; itriple++) {
-      force->bounds(FLERR,arg[iarg],atom->ntypes,ilo[itriple],ihi[itriple]);
-      force->bounds(FLERR,arg[iarg+1],atom->ntypes,jlo[itriple],jhi[itriple]);
-      force->bounds(FLERR,arg[iarg+2],atom->ntypes,klo[itriple],khi[itriple]);
-      if (ilo[itriple] > ihi[itriple] || 
-          jlo[itriple] > jhi[itriple] || 
-          klo[itriple] > khi[itriple])
+    for (int m = 0; m < ntriples; m++) {
+      force->bounds(FLERR,arg[iarg],atom->ntypes,ilo[m],ihi[m]);
+      force->bounds(FLERR,arg[iarg+1],atom->ntypes,jlo[m],jhi[m]);
+      force->bounds(FLERR,arg[iarg+2],atom->ntypes,klo[m],khi[m]);
+      if (ilo[m] > ihi[m] || 
+          jlo[m] > jhi[m] || 
+          klo[m] > khi[m])
         error->all(FLERR,"Illegal compute adf command");
-      rcutinnerj[itriple] = force->numeric(FLERR,arg[iarg+3]);
-      rcutouterj[itriple] = force->numeric(FLERR,arg[iarg+4]);
-      if (rcutinnerj[itriple] < 0.0 || rcutinnerj[itriple] >= rcutouterj[itriple])
+      rcutinnerj[m] = force->numeric(FLERR,arg[iarg+3]);
+      rcutouterj[m] = force->numeric(FLERR,arg[iarg+4]);
+      if (rcutinnerj[m] < 0.0 || rcutinnerj[m] >= rcutouterj[m])
         error->all(FLERR,"Illegal compute adf command");
-      rcutinnerk[itriple] = force->numeric(FLERR,arg[iarg+5]);
-      rcutouterk[itriple] = force->numeric(FLERR,arg[iarg+6]);
-      if (rcutinnerk[itriple] < 0.0 || rcutinnerk[itriple] >= rcutouterk[itriple])
+      rcutinnerk[m] = force->numeric(FLERR,arg[iarg+5]);
+      rcutouterk[m] = force->numeric(FLERR,arg[iarg+6]);
+      if (rcutinnerk[m] < 0.0 || rcutinnerk[m] >= rcutouterk[m])
         error->all(FLERR,"Illegal compute adf command");
       iarg += nargsperadf;
     }
@@ -377,14 +377,14 @@ void ComputeADF::compute_array()
 
   // zero the histogram counts
 
-  for (i = 0; i < ntriples; i++)
-    for (j = 0; j < nbin; j++)
-      hist[i][j] = 0.0;
+  for (m = 0; m < ntriples; m++)
+    for (ibin = 0; ibin < nbin; ibin++)
+      hist[m][ibin] = 0.0;
 
   // zero the central atom counts
 
-  for (i = 0; i < ntriples; i++)
-    iatomcount[i] = 0;
+  for (m = 0; m < ntriples; m++)
+    iatomcount[m] = 0;
 
   // tally the ADFs
   // all three atoms i, j, and k must be in fix group
@@ -563,7 +563,7 @@ void ComputeADF::compute_array()
       count += histall[m][ibin];
 
     double normfac1, pdftheta, normfac2, adftheta;
-    if (count > 0.0) normfac1 = deltaxinv/count;
+    if (count > 0.0) normfac1 = 1.0/deltax/count;
     else normfac1 = 0.0;
     if (iatomcountall[m] > 0.0) normfac2 = 1.0/iatomcountall[m];
     else normfac2 = 0.0;

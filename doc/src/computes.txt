@@ -6,6 +6,7 @@ Computes :h1
    :maxdepth: 1
 
    compute_ackland_atom
+   compute_adf
    compute_angle
    compute_angle_local
    compute_angmom_chunk

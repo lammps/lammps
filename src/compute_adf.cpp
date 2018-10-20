@@ -384,7 +384,7 @@ void ComputeADF::compute_array()
   // zero the central atom counts
 
   for (i = 0; i < ntriples; i++)
-    iatomcount[m] = 0;
+    iatomcount[i] = 0;
 
   // tally the ADFs
   // all three atoms i, j, and k must be in fix group

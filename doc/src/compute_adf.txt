@@ -133,7 +133,7 @@ arguments are specified.
 
 The first ADF value for a bin is calculated from the histogram count by
 dividing by the total number of triples satisfying the criteria,
-so that the integral of the ADF w.r.t. angle is one i.e. the ADF
+so that the integral of the ADF w.r.t. angle is 1, i.e. the ADF
 is a probability density function.
 
 The second ADF value is reported as a cumulative sum of
@@ -147,9 +147,15 @@ number radial distribution function.
 The {ordinate} optional keyword determines
 whether the bins are of uniform angular size from zero
 to 180 ({degree}), zero to Pi ({radian}), or the 
-cosine of the angle uniform in the range \[-1,1\] ({cosine}). 
-Regardless of which is chosen, the first ADF will be normalized
-so that the integral w.r.t. the ordinate is one.
+cosine of the angle uniform in the range \[-1,1\] ({cosine}).
+{cosine} has the advantage of eliminating the {acos()} function
+call, which speeds up the compute by 2-3x, and it is also preferred
+on physical grounds, because the for uniformly distributed particles 
+in 3D, the angular probability density w.r.t dtheta is
+sin(theta)/2, while for d(cos(theta)), it is 1/2,  
+Regardless of which ordinate is chosen, the first column of ADF 
+values is normalized w.r.t. the range of that ordinate, so that 
+the integral is 1.
 
 The simplest way to output the results of the compute adf calculation
 to a file is to use the "fix ave/time"_fix_ave_time.html command, for
@@ -177,7 +183,7 @@ the angle in degrees or radians, or the cosine of the angle.  Each
 subsequent pair of columns gives the first and second kinds of ADF
 for a specific set of ({itypeN},{jtypeN},{ktypeN}). The values 
 in the first ADF column are normalized numbers >= 0.0,
-whose integral w.r.t. the ordinate is one,
+whose integral w.r.t. the ordinate is 1,
 i.e. the first ADF is a normalized probability distribution. 
 The values in the second ADF column are also numbers >= 0.0.
 They are the cumulative density distribution of angles per atom.

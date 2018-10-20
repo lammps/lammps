@@ -123,9 +123,9 @@ pdf: utils/txt2html/txt2html.exe
 		cd ..; \
 		../utils/txt2html/txt2html.exe -b *.txt; \
 		htmldoc --batch lammps.book;          \
-		for s in `echo *.txt | sed -e 's,\.txt,\.html,g'` ; \
-			do grep -q $$s lammps.book || \
-			echo doc file $$s missing in src/lammps.book; done; \
+		for s in `echo *.txt | sed -e 's/ \(pairs\|bonds\|angles\|dihedrals\|impropers\|commands_list\|fixes\|computes\).txt/ /g' | sed -e 's,\.txt,\.html,g'` ; \
+			do grep -q ^$$s lammps.book || \
+			echo WARNING: doc file $$s missing in src/lammps.book; done; \
 		rm *.html; \
 	)
 

@@ -25,6 +25,7 @@ additional letters in parenthesis: g = GPU, i = USER-INTEL, k =
 KOKKOS, o = USER-OMP, t = OPT.
 
 "ackland/atom"_compute_ackland_atom.html,
+"adf"_compute_adf.html,
 "aggregate/atom"_compute_cluster_atom.html,
 "angle"_compute_angle.html,
 "angle/local"_compute_angle_local.html,

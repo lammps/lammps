@@ -404,6 +404,7 @@ lammps_commands_compute.html
 compute.html
 compute_modify.html
 compute_ackland_atom.html
+compute_adf.html
 compute_angle.html
 compute_angle_local.html
 compute_angmom_chunk.html

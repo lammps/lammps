@@ -1,6 +1,6 @@
 Run this example by executing:
 
-% lmp -in lammps.in
+% lmp -in in.cauchystat
 
 Note that this example use an EAM potential, and therefore must be
 run with a LAMMPS executable built with the MANYBODY package.

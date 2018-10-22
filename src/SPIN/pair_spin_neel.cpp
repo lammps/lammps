@@ -659,14 +659,14 @@ void PairSpinNeel::compute_neel_mech(int i, int j, double rij, double eij[3],
   fiy += coeff4*spi[1] + coeff5*spj[1] + coeff6*eij[1];
   fiz += coeff4*spi[2] + coeff5*spj[2] + coeff6*eij[2];
 
-  coeff7 = q1r*2.0*eij_si*(eij_sj*eij_sj*eij_sj - si_sj*ri3)/rij;
-  coeff8 = q1r*2.0*eij_sj*(eij_si*eij_si*eij_si - si_sj*ri3)/rij;
+  coeff7 = q1r*2.0*eij_si*(eij_sj*eij_sj - si_sj*ri3)/rij;
+  coeff8 = q1r*2.0*eij_sj*(eij_si*eij_si - si_sj*ri3)/rij;
   coeff9 = q1r*2.0*(2.0*eij_si*eij_si*eij_sj*eij_sj 
-      + si_sj*si_sj*ri3*(eij_si+eij_sj))/rij;
+      + si_sj*si_sj*ri3*(eij_si*eij_si + eij_sj*eij_sj))/rij;
 
-  fix += coeff7*spi[0] + coeff8*spj[0] + coeff9*eij[0];
-  fiy += coeff7*spi[1] + coeff8*spj[1] + coeff9*eij[1];
-  fiz += coeff7*spi[2] + coeff8*spj[2] + coeff9*eij[2];
+  fix += coeff7*spi[0] + coeff8*spj[0] - coeff9*eij[0];
+  fiy += coeff7*spi[1] + coeff8*spj[1] - coeff9*eij[1];
+  fiz += coeff7*spi[2] + coeff8*spj[2] - coeff9*eij[2];
 
   coeff10 = q2r*eij_sj*(eij_sj*eij_sj + 3.0*eij_si*eij_si)/rij;
   coeff11 = q2r*eij_si*(eij_si*eij_si + 3.0*eij_sj*eij_sj)/rij;

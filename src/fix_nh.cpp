@@ -71,6 +71,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
   // for CauchyStat
 
   usePK = 1;
+  restartPK = 0;
   restart_global = 1;
   restart_stored = 0;
 
@@ -79,7 +80,6 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
   pcouple = NONE;
   drag = 0.0;
   allremap = 1;
-  id_dilate = NULL;
   mtchain = mpchain = 3;
   nc_tchain = nc_pchain = 1;
   mtk_flag = 1;
@@ -94,8 +94,6 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
 
   tcomputeflag = 0;
   pcomputeflag = 0;
-  id_temp = NULL;
-  id_press = NULL;
 
   // turn on tilt factor scaling, whenever applicable
 
@@ -348,14 +346,15 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
       } else error->all(FLERR,"Illegal fix nvt/npt/nph command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"cauchystat") == 0) {
+      usePK = 0;
       if (iarg+3 > narg) error->all(FLERR,
 				    "Illegal fix npt cauchystat command:"
 				    " wrong number of arguments");
       if (strcmp(arg[iarg+2],"yes") != 0 && strcmp(arg[iarg+2],"no") != 0)
-	error->all(FLERR,"Illegal cauchystat continue value.  Must be 'yes' or 'no'");
+        error->all(FLERR,"Illegal cauchystat continue value.  "
+                   "Must be 'yes' or 'no'");
       alpha = force->numeric(FLERR,arg[iarg+1]);
       restartPK = !strcmp(arg[iarg+2],"yes");
-      CauchyStat_init();
       iarg += 3;
     } else if (strcmp(arg[iarg],"fixedpoint") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
@@ -590,6 +589,14 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
   // values then assigned in init(), if necessary
 
   vol0 = t0 = 0.0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixNH::post_constructor()
+{
+  if (!usePK) CauchyStat_init();
+  else CauchyStat_cleanup();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2439,12 +2446,11 @@ void FixNH::CauchyStat_init()
   }
 
   if (!id_store) {
-    int n = strlen(id) + 11;
+    int n = strlen(id) + 14;
     id_store = new char[n];
     strcpy(id_store,id);
-    strcat(id_store,"_FIX_STORE");
+    strcat(id_store,"_FIX_NH_STORE");
   }
-
   restart_stored = modify->find_fix(id_store);
 
   if (restartPK==1 && restart_stored < 0)
@@ -2455,26 +2461,22 @@ void FixNH::CauchyStat_init()
     error->all(FLERR,"Illegal cauchystat command: "
                " Alpha cannot be zero or negative.");
 
-
-  if (restartPK == 0) {
-    if (restart_stored < 0) {
-      char **newarg = new char *[6];
-      newarg[0] = id_store;
-      newarg[1] = (char *) "all";
-      newarg[2] = (char *) "STORE";
-      newarg[3] = (char *) "global";
-      newarg[4] = (char *) "1";
-      newarg[5] = (char *) "6";
-      modify->add_fix(6,newarg);
-      delete[] newarg;
-    }
-    int n = modify->find_fix(id_store);
-    init_store = (FixStore *)modify->fix[n];
+  if (restart_stored < 0) {
+    char **newarg = new char *[6];
+    newarg[0] = id_store;
+    newarg[1] = (char *) "all";
+    newarg[2] = (char *) "STORE";
+    newarg[3] = (char *) "global";
+    newarg[4] = (char *) "1";
+    newarg[5] = (char *) "6";
+    modify->add_fix(6,newarg);
+    delete[] newarg;
+    restart_stored = modify->find_fix(id_store);
   }
+  init_store = (FixStore *)modify->fix[restart_stored];
 
   initRUN = 0;
   initPK = 1;
-  usePK = 0;
 
 #define H0(row,col) (H0[(row-1)][(col-1)])
 #define invH0(row,col) (invH0[(row-1)][(col-1)])
@@ -2498,7 +2500,26 @@ void FixNH::CauchyStat_init()
 #undef invH0
 }
 
+/* ----------------------------------------------------------------------
+   cleanup when not using Cauchystat
+------------------------------------------------------------------------- */
 
+void FixNH::CauchyStat_cleanup()
+{
+  if (id_store) {
+    modify->delete_fix(id_store);
+    delete[] id_store;
+  } else {
+    int n = strlen(id) + 14;
+    id_store = new char[n];
+    strcpy(id_store,id);
+    strcat(id_store,"_FIX_NH_STORE");
+    modify->delete_fix(id_store);
+    delete[] id_store;
+  }
+  id_store = NULL;
+  restart_stored = -1;
+}
 
 /* ----------------------------------------------------------------------
    Cauchystat
@@ -2589,6 +2610,7 @@ void FixNH::CauchyStat()
   //initialize:
   if (initPK==1) {
     if (restartPK==1) {
+      double *setPKinit = init_store->astore[0];
       setPK(1,1)=setPKinit[0]; setPK(1,2)=setPKinit[1]; setPK(1,3)=setPKinit[2];
       setPK(2,1)=setPKinit[1]; setPK(2,2)=setPKinit[3]; setPK(2,3)=setPKinit[4];
       setPK(3,1)=setPKinit[2]; setPK(3,2)=setPKinit[4]; setPK(3,3)=setPKinit[5];
@@ -2623,14 +2645,13 @@ void FixNH::CauchyStat()
   p_hydro /= pdim;
 
   // save information for Cauchystat restart
-
+  double *setPKinit = init_store->astore[0];
   setPKinit[0] = setcauchy(1,1);
   setPKinit[1] = setcauchy(1,2);
   setPKinit[2] = setcauchy(1,3);
   setPKinit[3] = setcauchy(2,2);
   setPKinit[4] = setcauchy(2,3);
   setPKinit[5] = setcauchy(3,3);
-  restart_stored=1;
 
 #undef H
 #undef Hdot

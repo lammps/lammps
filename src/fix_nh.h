@@ -21,6 +21,7 @@ namespace LAMMPS_NS {
 class FixNH : public Fix {
  public:
   FixNH(class LAMMPS *, int, char **);
+  virtual void post_constructor();
   virtual ~FixNH();
   int setmask();
   virtual void init();
@@ -151,8 +152,6 @@ class FixNH : public Fix {
   double setPK[3][3];   // current set values of the PK stress
                         // (this is modified until the cauchy
                         // stress converges)
-  double setPKinit[6];  // initialization value of setPK for
-                        // continuation runs
   double alpha;         // integration parameter for the cauchystat
   int initPK;           // 1 if setPK needs to be initialized either
                         // from cauchy or restart, else 0
@@ -164,6 +163,7 @@ class FixNH : public Fix {
                         // else 1 (pressure->vector available)
 
   void CauchyStat_init();
+  void CauchyStat_cleanup();
   void CauchyStat();
   void CauchyStat_Step(double (&Fi)[3][3], double (&Fdot)[3][3],
                        double (&cauchy)[3][3], double (&setcauchy)[3][3],

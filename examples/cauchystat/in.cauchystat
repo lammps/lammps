@@ -31,7 +31,7 @@ fix 1 all npt temp 600.0 600.0 1.0 &
                      z 0.0 0.0 0.1 &
                      couple none cauchystat 0.001 no
 
-dump 1 all cfg 1000 test*.cfg mass type xs ys zs type c_cna
+# dump 1 all cfg 1000 test*.cfg mass type xs ys zs type c_cna
 
 info fixes
 
@@ -60,12 +60,16 @@ velocity all create 1200 4928459 rot yes dist gaussian
 
 run 10000
 
+info fixes
+
 fix 1 all npt temp 600.0 600.0 1.0 &
                      x 0.0 0.0 0.1 &
                      y 0.0 0.0 0.1 &
                      z 0.0 0.0 0.1 &
                      xy -10000.0 -10000.0 0.1 &
                      couple none cauchystat 0.001 yes
+
+info fixes
 
 run 10000
 
@@ -74,5 +78,6 @@ fix 1 all npt temp 600.0 600.0 1.0 &
                      y 0.0 0.0 0.1 &
                      z 0.0 0.0 0.1 &
                      xy -10000.0 -10000.0 0.1 &
-                     couple none cauchystat 0.001 no
+                     couple none
+info fixes
 run 10000

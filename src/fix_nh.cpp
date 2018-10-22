@@ -71,6 +71,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
   // for CauchyStat
 
   usePK = 1;
+  initRUN = 0;
   restartPK = 0;
   restart_global = 1;
   restart_stored = 0;

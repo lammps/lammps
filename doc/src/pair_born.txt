@@ -24,21 +24,21 @@ pair_style born/coul/dsf command :h3
 
 pair_style style args :pre
 
-style = {born} or {born/coul/long} or {born/coul/long/cs} or {born/coul/msm} or {born/coul/wolf}
+style = {born} or {born/coul/long} or {born/coul/msm} or {born/coul/wolf}
 args = list of arguments for a particular style :ul
   {born} args = cutoff
     cutoff = global cutoff for non-Coulombic interactions (distance units)
-  {born/coul/long} or {born/coul/long/cs} args = cutoff (cutoff2)
+  {born/coul/long} args = cutoff (cutoff2)
     cutoff = global cutoff for non-Coulombic (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
   {born/coul/msm} args = cutoff (cutoff2)
     cutoff = global cutoff for non-Coulombic (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
-  {born/coul/wolf} or {born/coul/wolf/cs} args = alpha cutoff (cutoff2)
+  {born/coul/wolf} args = alpha cutoff (cutoff2)
     alpha = damping parameter (inverse distance units)
     cutoff = global cutoff for non-Coulombic (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
-  {born/coul/dsf} or {born/coul/dsf/cs} args = alpha cutoff (cutoff2)
+  {born/coul/dsf} args = alpha cutoff (cutoff2)
     alpha = damping parameter (inverse distance units)
     cutoff = global cutoff for non-Coulombic (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (distance units) :pre

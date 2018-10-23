@@ -563,9 +563,9 @@ file.
 VORONOI package :h4,link(voronoi)
 
 To build with this package, you must download and build the "Voro++
-library"_voro_home.
+library"_voro-home.
 
-:link(voro_home,http://math.lbl.gov/voro++)
+:link(voro-home,http://math.lbl.gov/voro++)
 
 [CMake build]:
 
@@ -932,9 +932,9 @@ successfully build on your system.
 USER-SCAFACOS package :h4,link(user-scafacos)
 
 To build with this package, you must download and build the "ScaFaCoS
-Coulomb solver library"_scafacos_home
+Coulomb solver library"_scafacos-home
 
-:link(scafacos_home,http://www.scafacos.de)
+:link(scafacos-home,http://www.scafacos.de)
 
 [CMake build]:
 

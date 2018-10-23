@@ -11,28 +11,25 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef FIX_CLASS
+#ifdef COMPUTE_CLASS
 
-// list all deprecated and removed fix styles here
+// list all deprecated and removed compute styles here
 
-FixStyle(DEPRECATED,FixDeprecated)
-FixStyle(ave/spatial,FixDeprecated)
-FixStyle(ave/spatial/sphere,FixDeprecated)
+ComputeStyle(DEPRECATED,ComputeDeprecated)
 
 #else
 
-#ifndef LMP_FIX_DEPRECATED_H
-#define LMP_FIX_DEPRECATED_H
+#ifndef LMP_COMPUTE_DEPRECATED_H
+#define LMP_COMPUTE_DEPRECATED_H
 
-#include "fix.h"
+#include "compute.h"
 
 namespace LAMMPS_NS {
 
-class FixDeprecated : public Fix {
+class ComputeDeprecated : public Compute {
  public:
-  FixDeprecated(class LAMMPS *, int, char **);
-  ~FixDeprecated() {}
-  int setmask() {return 0;}
+  ComputeDeprecated(class LAMMPS *, int, char **);
+  ~ComputeDeprecated() {}
   void init() {}
 };
 
@@ -43,14 +40,8 @@ class FixDeprecated : public Fix {
 
 /* ERROR/WARNING messages:
 
-E: This fix command has been removed from LAMMPS
+E: This compute command has been removed from LAMMPS
 
 UNDOCUMENTED
-
-U: The fix ave/spatial command has been removed from LAMMPS
-
-It has been replaced by the more flexible fix ave/chunk and compute
-chunk/atom commands.  All the fix ave/spatial keywords and options are
-available in those two newer commands.
 
 */

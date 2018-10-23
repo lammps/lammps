@@ -785,16 +785,17 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
   //   but can't think of better way
   // too late if instantiate fix, then check flag set in fix constructor,
   //   since some fixes access domain settings in their constructor
-  // MUST change NEXCEPT above when add new fix to this list
+  // NULL must be last entry in this list
 
-  const char *exceptions[NEXCEPT] =
-    {"GPU","OMP","INTEL","property/atom","cmap","cmap3","rx"};
+  const char *exceptions[] =
+    {"GPU", "OMP", "INTEL", "property/atom", "cmap", "cmap3", "rx",
+     "deprecated", NULL};
 
   if (domain->box_exist == 0) {
     int m;
-    for (m = 0; m < NEXCEPT; m++)
+    for (m = 0; exceptions[m] != NULL; m++)
       if (strcmp(arg[2],exceptions[m]) == 0) break;
-    if (m == NEXCEPT)
+    if (exceptions[m] == NULL)
       error->all(FLERR,"Fix command before simulation box is defined");
   }
 

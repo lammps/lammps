@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include <cstring>
-#include "fix_deprecated.h"
+#include "region_deprecated.h"
 #include "comm.h"
 #include "error.h"
 
@@ -25,26 +25,16 @@ static void writemsg(LAMMPS *lmp, const char *msg, int abend=1)
     if (lmp->logfile) fputs(msg,lmp->logfile);
   }
   if (abend)
-    lmp->error->all(FLERR,"This fix style is no longer available");
+    lmp->error->all(FLERR,"This region style is no longer available");
 }
 
 /* ---------------------------------------------------------------------- */
 
-FixDeprecated::FixDeprecated(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+RegionDeprecated::RegionDeprecated(LAMMPS *lmp, int narg, char **arg) :
+  Region(lmp, narg, arg)
 {
   if (strcmp(style,"DEPRECATED") == 0) {
-    writemsg(lmp,"\nFix style 'DEPRECATED' is a dummy style\n\n",0);
+    writemsg(lmp,"\nRegion style 'DEPRECATED' is a dummy style\n\n",0);
 
-  } else if (strncmp(style,"ave/spatial",11) == 0) {
-    writemsg(lmp,"\nFix styles 'ave/spatial' and 'ave/spatial/sphere' have "
-             "been replaced\nby the more general fix ave/chunk and compute "
-             "chunk/atom commands.\nAll ave/spatial and ave/spatial/sphere "
-             "functionality is available in these\nnew commands. These "
-             "ave/spatial keywords & options are part of fix ave/chunk:\n"
-             "  Nevery, Nrepeat, Nfreq, input values, norm, ave, file, "
-             "overwrite, title123\nThese ave/spatial keywords & options for "
-             "binning are part of compute chunk/atom:\n  dim, origin, delta,"
-             " region, bound, discard, units\n\n");
   }
 }

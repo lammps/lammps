@@ -32,6 +32,7 @@ class PairHybrid : public Pair {
   friend class Force;
   friend class Respa;
   friend class Info;
+  friend class PairDeprecated;
  public:
   PairHybrid(class LAMMPS *);
   virtual ~PairHybrid();

@@ -57,7 +57,7 @@ enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
 
 /* ---------------------------------------------------------------------- */
 
-PPPMIntel::PPPMIntel(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp, narg, arg)
+PPPMIntel::PPPMIntel(LAMMPS *lmp) : PPPM(lmp)
 {
   suffix_flag |= Suffix::INTEL;
 

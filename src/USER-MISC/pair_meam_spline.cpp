@@ -439,7 +439,7 @@ void PairMEAMSpline::read_file(const char* filename)
     FILE *fp = force->open_potential(filename);
     if(fp == NULL) {
       char str[1024];
-      sprintf(str,"Cannot open spline MEAM potential file %s", filename);
+      snprintf(str,128,"Cannot open spline MEAM potential file %s", filename);
       error->one(FLERR,str);
     }
 

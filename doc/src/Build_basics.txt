@@ -292,6 +292,10 @@ This will create a lammps/doc/html dir with the HTML doc pages so that
 you can browse them locally on your system.  Type "make" from the
 lammps/doc dir to see other options.
 
+NOTE: You can also download a tarball of the documention for the
+current LAMMPS version (HTML and PDF files), from the website
+"download page"_http://lammps.sandia.gov/download.html.
+
 :line
 
 Install LAMMPS after a build :h4,link(install)

@@ -369,7 +369,7 @@ void PairVashishta::read_file(char *file)
     fp = force->open_potential(file);
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open Vashishta potential file %s",file);
+      snprintf(str,128,"Cannot open Vashishta potential file %s",file);
       error->one(FLERR,str);
     }
   }

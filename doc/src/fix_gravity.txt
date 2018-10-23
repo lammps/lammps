@@ -8,6 +8,7 @@
 
 fix gravity command :h3
 fix gravity/omp command :h3
+fix gravity/kk command :h3
 
 [Syntax:]
 

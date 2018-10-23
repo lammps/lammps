@@ -3373,9 +3373,9 @@ void PairAIREBO::read_file(char *filename)
     if (fp == NULL) {
       char str[128];
       if (morseflag)
-        sprintf(str,"Cannot open AIREBO-M potential file %s",filename);
+        snprintf(str,128,"Cannot open AIREBO-M potential file %s",filename);
       else
-        sprintf(str,"Cannot open AIREBO potential file %s",filename);
+        snprintf(str,128,"Cannot open AIREBO potential file %s",filename);
       error->one(FLERR,str);
     }
 

@@ -7,9 +7,10 @@
 :line
 
 pair_style gran/hooke command :h3
-pair_style gran/omp command :h3
+pair_style gran/hooke/omp command :h3
 pair_style gran/hooke/history command :h3
 pair_style gran/hooke/history/omp command :h3
+pair_style gran/hooke/history/kk command :h3
 pair_style gran/hertz/history command :h3
 pair_style gran/hertz/history/omp command :h3
 

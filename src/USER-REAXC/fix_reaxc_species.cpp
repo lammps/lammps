@@ -98,9 +98,7 @@ FixReaxCSpecies::FixReaxCSpecies(LAMMPS *lmp, int narg, char **arg) :
   }
 
   if (me == 0 && rene_flag) {
-    char str[128];
-    sprintf(str,"Resetting reneighboring criteria for fix reax/c/species");
-    error->warning(FLERR,str);
+    error->warning(FLERR,"Resetting reneighboring criteria for fix reax/c/species");
   }
 
   tmparg = NULL;
@@ -127,7 +125,7 @@ FixReaxCSpecies::FixReaxCSpecies(LAMMPS *lmp, int narg, char **arg) :
 
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open fix reax/c/species file %s",arg[6]);
+      snprintf(str,128,"Cannot open fix reax/c/species file %s",arg[6]);
       error->one(FLERR,str);
     }
   }

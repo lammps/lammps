@@ -13,31 +13,26 @@
 
 #ifdef KSPACE_CLASS
 
-KSpaceStyle(msm/omp,MSMOMP)
+KSpaceStyle(DEPRECATED,KSpaceDeprecated)
 
 #else
 
-#ifndef LMP_MSM_OMP_H
-#define LMP_MSM_OMP_H
+#ifndef LMP_KSPACE_DEPRECATED_H
+#define LMP_KSPACE_DEPRECATED_H
 
-#include "msm.h"
-#include "thr_omp.h"
+#include "kspace.h"
 
 namespace LAMMPS_NS {
 
-  class MSMOMP : public MSM, public ThrOMP {
+class KSpaceDeprecated : public KSpace {
  public:
-  MSMOMP(class LAMMPS *);
-  virtual ~MSMOMP () {};
+  KSpaceDeprecated(class LAMMPS *lmp) : KSpace(lmp) {}
+  virtual ~KSpaceDeprecated() {}
 
- protected:
-  virtual void direct(int);
-  virtual void compute(int,int);
-
- private:
-  template <int, int, int> void direct_eval(int);
-  template <int> void direct_peratom(int);
-
+  virtual void init() {}
+  virtual void settings(int, char**);
+  virtual void setup() {}
+  virtual void compute(int, int) {}
 };
 
 }
@@ -46,9 +41,5 @@ namespace LAMMPS_NS {
 #endif
 
 /* ERROR/WARNING messages:
-
-E: Must use 'kspace_modify pressure/scalar no' with kspace_style msm/omp
-
-The kspace scalar pressure option is not compatible with kspace_style msm/omp.
 
 */

@@ -64,10 +64,8 @@ enum{FORWARD_IK,FORWARD_IK_PERATOM};
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-PPPMKokkos<DeviceType>::PPPMKokkos(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp, narg, arg)
+PPPMKokkos<DeviceType>::PPPMKokkos(LAMMPS *lmp) : PPPM(lmp)
 {
-  if (narg < 1) error->all(FLERR,"Illegal kspace_style pppm command");
-
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | Q_MASK;
@@ -76,8 +74,6 @@ PPPMKokkos<DeviceType>::PPPMKokkos(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp
   pppmflag = 1;
   group_group_enable = 0;
   triclinic_support = 0;
-
-  accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
 
   nfactors = 3;
   //factors = new int[nfactors];
@@ -146,6 +142,13 @@ PPPMKokkos<DeviceType>::PPPMKokkos(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp
   acons(7,6) = 4887769399.0 / 37838389248.0;
 
   k_flag = DAT::tdual_int_scalar("PPPM:flag");
+}
+
+template<class DeviceType>
+void PPPMKokkos<DeviceType>::settings(int narg, char **arg)
+{
+  if (narg < 1) error->all(FLERR,"Illegal kspace_style pppm/kk command");
+  accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
 }
 
 /* ----------------------------------------------------------------------

@@ -388,7 +388,7 @@ optional keyword/value settings.
 
 :line
 
-[-restart2dump restartfile {remap} group-ID dumpstyle dumpfile arg1 arg2 ...] :link(restart2dump)
+[-restart2dump restartfile (remap) group-ID dumpstyle dumpfile arg1 arg2 ...] :link(restart2dump)
 
 Convert the restart file into a dump file and immediately exit.  This
 is the same operation as if the following 2-line input script were

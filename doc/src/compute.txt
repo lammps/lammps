@@ -164,11 +164,6 @@ and what it does.  Here is an alphabetic list of compute styles
 available in LAMMPS.  They are also listed in more compact form on the
 "Commands compute"_Commands_compute.html doc page.
 
-There are also additional compute styles (not listed here) submitted
-by users which are included in the LAMMPS distribution.  The full list
-of all compute styles is on the "Commands
-compute"_Commands_compute.html doc page.
-
 There are also additional accelerated compute styles included in the
 LAMMPS distribution for faster performance on CPUs, GPUs, and KNLs.
 The individual style names on the "Commands

@@ -156,10 +156,6 @@ what it does, as listed below.  Here is an alphabetic list of fix
 styles available in LAMMPS.  They are also listed in more compact form
 on the "Commands fix"_Commands_fix.html doc page.
 
-There are also additional fix styles (not listed here) submitted by
-users which are included in the LAMMPS distribution.  The full list of
-all fix styles is on the "Commands fix"_Commands_fix.html doc page.
-
 There are also additional accelerated fix styles included in the
 LAMMPS distribution for faster performance on CPUs, GPUs, and KNLs.
 The individual style names on the "Commands fix"_Commands_fix.html doc

@@ -171,6 +171,7 @@ compute"_Commands_compute.html doc page are followed by one or more of
 (g,i,k,o,t) to indicate which accelerated styles exist.
 
 "ackland/atom"_compute_ackland_atom.html - 
+"adf"_compute_adf.html - angular distribution function of triples of atoms
 "aggregate/atom"_compute_cluster_atom.html - aggregate ID for each atom
 "angle"_compute_angle.html - 
 "angle/local"_compute_angle_local.html - 

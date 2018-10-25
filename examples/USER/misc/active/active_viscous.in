@@ -27,7 +27,7 @@ set group all density ${rho}
 
 # Simple repulsive LJ
 pair_style lj/cut 1.1225
-pair_coeff * * 0.0 1.0
+pair_coeff * * 1.0 1.0
 pair_modify shift yes
 
 # Remove initial overlap:
@@ -63,4 +63,4 @@ dump traj all custom 100 ${DUMP_OUT} id type x y z &
 fix msd all ave/time 1 10 50 c_msd[4] c_vacf[1] c_vacf[2] c_vacf[3] c_vacf[4] file ${MSD_OUT}
 
 timestep 0.001
-run 10000
+run 100000

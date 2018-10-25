@@ -137,8 +137,8 @@ If LAMMPS is the server code, it will begin receiving messages when
 the "server"_server.html command is invoked.
 
 A fix client command will terminate its messaging with the server when
-LAMMPS ends, or the fix is deleted via the "unfix"_unfix command.  The
-server command will terminate its messaging with the client when the
+LAMMPS ends, or the fix is deleted via the "unfix"_unfix.html command.
+The server command will terminate its messaging with the client when the
 client signals it.  Then the remainder of the LAMMPS input script will
 be processed.
 

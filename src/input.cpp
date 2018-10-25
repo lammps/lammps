@@ -1633,7 +1633,8 @@ void Input::kspace_modify()
 
 void Input::kspace_style()
 {
-  force->create_kspace(narg,arg,1);
+  force->create_kspace(arg[0],1);
+  if (force->kspace) force->kspace->settings(narg-1,&arg[1]);
 }
 
 /* ---------------------------------------------------------------------- */

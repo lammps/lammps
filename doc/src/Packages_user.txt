@@ -74,3 +74,4 @@ Package, Description, Doc page, Example, Library
 "USER-TALLY"_Packages_details.html#PKG-USER-TALLY, pairwise tally computes,"compute XXX/tally"_compute_tally.html, USER/tally, no
 "USER-UEF"_Packages_details.html#PKG-USER-UEF, extensional flow,"fix nvt/uef"_fix_nh_uef.html, USER/uef, no
 "USER-VTK"_Packages_details.html#PKG-USER-VTK, dump output via VTK, "compute vtk"_dump_vtk.html, n/a, ext :tb(ea=c,ca1=l)
+:link(MOFplus,https://www.mofplus.org/content/show/MOF-FF)

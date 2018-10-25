@@ -1,7 +1,7 @@
 # Point dipoles in a 2d box
 
 units		lj
-atom_style  full	
+atom_style  charge	
 
 read_data data.NaCl
 
@@ -29,7 +29,7 @@ pair_coeff	* *
 #fix		2 all scafacos p3m tolerance field 0.001
 
 kspace_style    scafacos p3m 0.001
-kspace_style    scafacos tolerance field 
+#kspace_style    scafacos tolerance field 
 
 timestep	0.005
 thermo          10

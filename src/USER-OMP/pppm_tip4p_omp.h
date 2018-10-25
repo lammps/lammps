@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 
 class PPPMTIP4POMP : public PPPMTIP4P, public ThrOMP {
  public:
-  PPPMTIP4POMP(class LAMMPS *, int, char **);
+  PPPMTIP4POMP(class LAMMPS *);
   virtual ~PPPMTIP4POMP ();
   virtual void compute(int, int);
 

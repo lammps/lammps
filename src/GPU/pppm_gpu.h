@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 
 class PPPMGPU : public PPPM {
  public:
-  PPPMGPU(class LAMMPS *, int, char **);
+  PPPMGPU(class LAMMPS *);
   virtual ~PPPMGPU();
   void init();
   void setup();

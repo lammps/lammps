@@ -36,7 +36,21 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Scafacos::Scafacos(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
+Scafacos::Scafacos(LAMMPS *lmp) : KSpace(lmp)
+{
+  me = comm->me;
+  initialized = 0;
+
+  maxatom = 0;
+  xpbc = NULL;
+  epot = NULL;
+  efield = NULL;
+  fcs = NULL;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Scafacos::settings(int narg, char **arg)
 {
   if (narg != 2) error->all(FLERR,"Illegal scafacos command");
 
@@ -48,35 +62,18 @@ Scafacos::Scafacos(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   // optional ScaFaCoS library setting defaults
   // choose the correct default tolerance type for chosen method
   // throw an error if a not yet supported solver is chosen
-  if (strcmp(method,"fmm") == 0)
-  {
+  if (strcmp(method,"fmm") == 0) {
     tolerance_type = FCS_TOLERANCE_TYPE_ENERGY;
     fmm_tuning_flag = 0;
-  }
-  else if (strcmp(method,"p3m") == 0 || 
-           strcmp(method,"p2nfft") == 0 || 
-           strcmp(method,"ewald") == 0)
-  {
+  } else if (strcmp(method,"p3m") == 0 || 
+             strcmp(method,"p2nfft") == 0 || 
+             strcmp(method,"ewald") == 0) {
     tolerance_type = FCS_TOLERANCE_TYPE_FIELD;    
-  }
-  else if (strcmp(method,"direct") == 0)
-  {
-    // direct summation has no tolerance type
-  }
-  else
-  {
+  } else if (strcmp(method,"direct") == 0) {
+    ; // direct summation has no tolerance type
+  } else {
     error->all(FLERR,"Unsupported ScaFaCoS method");
   }
-
-  // initializations
-
-  me = comm->me;
-  initialized = 0;
-
-  maxatom = 0;
-  xpbc = NULL;
-  epot = NULL;
-  efield = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

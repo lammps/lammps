@@ -38,10 +38,10 @@ Theta0 (degrees) :ul
 Theta0 is specified in degrees, but LAMMPS converts it to radians 
 internally.
 
-Additional to the cosine term the {cosine/buck6d} angle style computes 
-the short range (vdW) interaction belonging to the 
-"pair_buck6d"_pair_buck6d_coul_gauss.html between the end atoms of 
-the angle.  For this reason this angle style only works in combination
+Additional to the cosine term the {cosine/buck6d} angle style computes
+the short range (vdW) interaction belonging to the
+"pair_buck6d"_pair_buck6d_coul_gauss.html between the end atoms of the
+angle.  For this reason this angle style only works in combination
 with the "pair_buck6d"_pair_buck6d_coul_gauss.html styles and needs
 the "special_bonds"_special_bonds.html 1-3 interactions to be weighted
 0.0 to prevent double counting.

@@ -101,7 +101,7 @@ class FixIntel : public Fix {
   IntelBuffers<double,double> *_double_buffers;
 
   int _precision_mode, _nthreads, _nbor_pack_width, _three_body_neighbor;
-  int _pair_hybrid_flag;
+  int _pair_intel_count, _pair_hybrid_flag;
   // These should be removed in subsequent update w/ simpler hybrid arch
   int _pair_hybrid_zero, _hybrid_nonpair, _zero_master;
   

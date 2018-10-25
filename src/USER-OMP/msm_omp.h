@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 
   class MSMOMP : public MSM, public ThrOMP {
  public:
-  MSMOMP(class LAMMPS *, int, char **);
+  MSMOMP(class LAMMPS *);
   virtual ~MSMOMP () {};
 
  protected:

@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 
   class EwaldOMP : public Ewald, public ThrOMP {
  public:
-  EwaldOMP(class LAMMPS *, int, char **);
+  EwaldOMP(class LAMMPS *);
   virtual ~EwaldOMP() { };
   virtual void allocate();
   virtual void compute(int, int);

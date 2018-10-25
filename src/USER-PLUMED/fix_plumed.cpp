@@ -26,7 +26,9 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
   nlocal(0),
   gatindex(NULL),
   masses(NULL),
-  charges(NULL)
+  charges(NULL),
+  id_pe(NULL),
+  id_press(NULL)
 {
 // Not sure this is really necessary:
   if (!atom->tag_enable) error->all(FLERR,"fix plumed requires atom tags");
@@ -145,16 +147,48 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
   p->cmd("init");
 
 // Define compute to calculate potential energy
-  char *id_pe = (char *) "thermo_pe";
+  id_pe = new char[7];
+  id_pe = (char *) "plmd_pe";
+  char **newarg = new char*[3];
+  newarg[0] = id_pe;
+  newarg[1] = (char *) "all";
+  newarg[2] = (char *) "pe";
+  modify->add_compute(3,newarg);
+  delete [] newarg;
   int ipe = modify->find_compute(id_pe);
   c_pe = modify->compute[ipe];
-  // Trigger computation of potential energy every step
-  c_pe->addstep(update->ntimestep+1);
+
+// Define compute to calculate pressure tensor
+  id_press = new char[9];
+  id_press = (char *) "plmd_press";
+  newarg = new char*[5];
+  newarg[0] = id_press;
+  newarg[1] = (char *) "all";
+  newarg[2] = (char *) "pressure";
+  newarg[3] = (char *) "NULL";
+  newarg[4] = (char *) "virial";
+  modify->add_compute(5,newarg);
+  delete [] newarg;
+  int ipress = modify->find_compute(id_press);
+  c_press = modify->compute[ipress];
+ 
+  // Check if nh type fixes have been called
+  // See comment in the setup method
+  for (int i = 0; i < modify->nfix; i++) {
+    if ( strncmp(modify->fix[i]->style,"nph",3) ||
+         strncmp(modify->fix[i]->style,"nph_sphere",10) ||
+         strncmp(modify->fix[i]->style,"npt",3) ||
+         strncmp(modify->fix[i]->style,"npt_sphere",10) )
+      error->all(FLERR,"Fix plumed must be called before fix_nh derived fixes, "
+                       "for instance nph and npt fixes");
+  }
 }
 
 FixPlumed::~FixPlumed()
 {
   delete p;
+  modify->delete_compute(id_pe);
+  modify->delete_compute(id_press);
 }
 
 int FixPlumed::setmask()
@@ -172,10 +206,22 @@ void FixPlumed::init()
 {
   if (strcmp(update->integrate_style,"respa") == 0)
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
+  // This avoids nan pressure if compute_pressure is called
+  // in a setup method
+  for(int i=0;i<6;i++) virial[i] = 0.;
 }
 
 void FixPlumed::setup(int vflag)
 {
+  // Here there is a crucial issue connected to constant pressure
+  // simulations. The fix_nh will call the compute_pressure inside
+  // the setup method, that is executed once and for all at the 
+  // beginning of the simulation. Since our fix has a contribution 
+  // to the virial, when this happens the variable virial must have
+  // been calculated. In other words, the setup method of fix_plumed
+  // has to be executed first. This creates a race condition with the 
+  // setup method of fix_nh. This is why in the constructor I check if 
+  // nh fixes have already been called.
   if (strcmp(update->integrate_style,"verlet") == 0)
     post_force(vflag);
   else {
@@ -187,6 +233,8 @@ void FixPlumed::setup(int vflag)
 
 void FixPlumed::min_setup(int vflag)
 {
+  // This has to be checked.
+  // For instance it might have problems with fix_box_relax
   post_force(vflag);
 }
 
@@ -248,6 +296,9 @@ void FixPlumed::post_force(int vflag)
   box[2][1]=domain->h[3];
   box[2][0]=domain->h[4];
   box[1][0]=domain->h[5];
+  // Make initial of virial of this fix zero
+  // The following line is very important, otherwise the compute pressure will include 
+  for(int i=0;i<6;++i) virial[i] = 0.;
 
 // local variable with timestep:
   int step=update->ntimestep;
@@ -259,33 +310,87 @@ void FixPlumed::post_force(int vflag)
   p->cmd("setForces",&atom->f[0][0]);
   p->cmd("setMasses",&masses[0]);
   if(atom->q) p->cmd("setCharges",&charges[0]);
-  p->cmd("setVirial",&plmd_virial[0][0]);
   p->cmd("getBias",&bias);
+  // Pass virial to plumed
+  // If energy is needed virial_plmd is equal to Lammps' virial
+  // If energy is not needed virial_plmd is initialized to zero
+  // In the first case the virial will be rescaled and an extra term will be added
+  // In the latter case only an extra term will be added
+  p->cmd("setVirial",&plmd_virial[0][0]);
+  p->cmd("prepareCalc");
 
-// pass the energy
-  double pot_energy = 0.;
-  c_pe->compute_scalar();
-  c_pe->invoked_flag |= INVOKED_SCALAR;
-  pot_energy = c_pe->scalar;
-  int nprocs;
-  // Divide energy by number of processors 
-  // Plumed wants it this way
-  MPI_Comm_size(world,&nprocs);
-  pot_energy /= nprocs;
-  p->cmd("setEnergy",&pot_energy);
-  // Trigger computation of potential energy every step
+  plumedNeedsEnergy=0;
+  p->cmd("isEnergyNeeded",&plumedNeedsEnergy);
+
+  // Pass potential energy and virial if needed
+  double *virial_lmp;
+  if (plumedNeedsEnergy) {
+    // Error if tail corrections are included
+    if (force->pair && force->pair->tail_flag)
+      error->all(FLERR,"Tail corrections to the pair potential included."
+                       " The energy cannot be biased in this case."
+                       " Remove the tail corrections by removing the"
+                       " command: pair_modify tail yes");
+    // compute the potential energy
+    double pot_energy = 0.;
+    c_pe->compute_scalar();
+    pot_energy = c_pe->scalar;
+    // Divide energy by number of processes
+    // Plumed wants it this way
+    int nprocs;
+    MPI_Comm_size(world,&nprocs);
+    pot_energy /= nprocs;
+    p->cmd("setEnergy",&pot_energy);
+    // Compute pressure due to the virial (no kinetic energy term!)
+    c_press->compute_vector();
+    virial_lmp = c_press->vector;
+    // Check if pressure is finite 
+    if (!std::isfinite(virial_lmp[0]) || !std::isfinite(virial_lmp[1]) || !std::isfinite(virial_lmp[2])
+   || !std::isfinite(virial_lmp[3]) || !std::isfinite(virial_lmp[4]) || !std::isfinite(virial_lmp[5]))
+      error->all(FLERR,"Non-numeric virial - Plumed cannot work with that");
+    // Convert pressure to virial per number of MPI processes
+    // From now on all virials are divided by the number of MPI processes
+    double nktv2p = force->nktv2p;
+    double inv_volume;
+    if (domain->dimension == 3) {
+      inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
+    } else {
+      inv_volume = 1.0 / (domain->xprd * domain->yprd);
+    }
+    for(int i=0;i<6;i++) virial_lmp[i] /= (inv_volume * nktv2p * nprocs);
+    // Convert virial from lammps to plumed representation
+    plmd_virial[0][0]=-virial_lmp[0];
+    plmd_virial[1][1]=-virial_lmp[1];
+    plmd_virial[2][2]=-virial_lmp[2];
+    plmd_virial[0][1]=-virial_lmp[3];
+    plmd_virial[0][2]=-virial_lmp[4];
+    plmd_virial[1][2]=-virial_lmp[5];
+  } else {
+    virial_lmp = new double[6];
+    for(int i=0;i<6;i++) virial_lmp[i] = 0.;
+  }
+  // do the real calculation:
+  p->cmd("performCalc");
+
+// retransform virial to lammps representation and assign it to this fix's virial.
+// Plumed is giving back the full virial and therefore we have to subtract the
+// initial virial i.e. virial_lmp. 
+// The vector virial contains only the contribution added by plumed
+// The calculation of the pressure will be done by a compute pressure and will
+// include this contribution. 
+  virial[0] = -plmd_virial[0][0]-virial_lmp[0];
+  virial[1] = -plmd_virial[1][1]-virial_lmp[1];
+  virial[2] = -plmd_virial[2][2]-virial_lmp[2];
+  virial[3] = -plmd_virial[0][1]-virial_lmp[3];
+  virial[4] = -plmd_virial[0][2]-virial_lmp[4];
+  virial[5] = -plmd_virial[1][2]-virial_lmp[5];
+
+  // Ask for the computes in the next time step
+  // such that the virial and energy are tallied.
+  // This should be changed to something that triggers the 
+  // calculation only if plumed needs it.
   c_pe->addstep(update->ntimestep+1);
-
-// do the real calculation:
-  p->cmd("calc");
-
-// retransform virial to lammps representation:
-  Fix::virial[0]=-plmd_virial[0][0];
-  Fix::virial[1]=-plmd_virial[1][1];
-  Fix::virial[2]=-plmd_virial[2][2];
-  Fix::virial[3]=-plmd_virial[0][1];
-  Fix::virial[4]=-plmd_virial[0][2];
-  Fix::virial[5]=-plmd_virial[1][2];
+  c_press->addstep(update->ntimestep+1);
 }
 
 void FixPlumed::post_force_respa(int vflag, int ilevel, int iloop)

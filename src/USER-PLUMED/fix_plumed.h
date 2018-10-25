@@ -45,6 +45,12 @@ class FixPlumed : public Fix {
   double bias;
 // Compute for the energy
   class Compute *c_pe; 
+// Compute for the pressure
+  class Compute *c_press; 
+// Flag to trigger calculation of the energy and virial
+  int plumedNeedsEnergy;
+// ID for potential energy and pressure compute
+  char  *id_pe, *id_press;
 };
 
 };

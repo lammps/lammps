@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -352,14 +352,14 @@ This pair style can only be used via the {pair} keyword of the
 
 [Restrictions:]
 
-The {meam} style is part of the MEAM package.  It is only enabled if LAMMPS
-was built with that package, which also requires the MEAM library be
-built and linked with LAMMPS.
-The {meam/c} style is provided in the USER-MEAMC package. It is only enabled
-if LAMMPS was built with that package. In contrast to the {meam} style,
-{meam/c} does not require a separate library to be compiled and it can be
+The {meam} style is part of the MEAM package.  It is only enabled if
+LAMMPS was built with that package, which also requires the MEAM
+library be built and linked with LAMMPS.  The {meam/c} style is
+provided in the USER-MEAMC package. It is only enabled if LAMMPS was
+built with that package. In contrast to the {meam} style, {meam/c}
+does not require a separate library to be compiled and it can be
 instantiated multiple times in a "hybrid"_pair_hybrid.html pair style.
-See the "Making LAMMPS"_Section_start.html#start_3 section for more info.
+See the "Build package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

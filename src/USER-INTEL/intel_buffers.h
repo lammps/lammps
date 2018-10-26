@@ -33,12 +33,20 @@ namespace LAMMPS_NS {
 #define QUAT_T typename IntelBuffers<flt_t,acc_t>::quat_t
 #define FORCE_T typename IntelBuffers<flt_t,acc_t>::vec3_acc_t
 
+struct IntelNeighListPtrs {
+  void * list_ptr;
+  int *cnumneigh;
+  int *numneighhalf;
+  int size;
+};
+
 // May not need a separate force array for mixed/double
 template <class flt_t, class acc_t>
 class IntelBuffers {
  public:
   typedef struct { flt_t x,y,z; int w; } atom_t;
   typedef struct { flt_t w,i,j,k; } quat_t;
+  typedef struct { flt_t x,y; } vec2_t;
   typedef struct { flt_t x,y,z,w; } vec3_t;
   typedef struct { flt_t x,y,z,w; } vec4_t;
   typedef struct { acc_t x,y,z,w; } vec3_acc_t;
@@ -62,8 +70,12 @@ class IntelBuffers {
 
   void free_buffers();
   void free_nmax();
-  inline void set_bininfo(int *atombin, int *binpacked)
-    { _atombin = atombin; _binpacked = binpacked; }
+  inline void set_bininfo(int *atombin, int *binpacked) {
+    _atombin = atombin;
+    _binpacked = binpacked;
+    _neigh_list_ptrs[0].numneighhalf = atombin;
+  }
+
   inline void grow(const int nall, const int nlocal, const int nthreads,
                    const int offload_end) {
     if (nall >= _buf_size || nlocal >= _buf_local_size)
@@ -79,18 +91,22 @@ class IntelBuffers {
     free_nmax();
     free_list_local();
     free_ncache();
+    free_list_ptrs();
   }
 
   inline void grow_list(NeighList *list, const int nlocal, const int nthreads,
-                        const int offload_end, const int pack_width=1) {
-    grow_list_local(list, offload_end);
+                        const int three_body, const int offload_end,
+                        const int pack_width=1) {
+    grow_list_local(list, three_body, offload_end);
     grow_nbor_list(list, nlocal, nthreads, offload_end, pack_width);
   }
 
   void free_list_local();
-  inline void grow_list_local(NeighList *list, const int offload_end) {
+  inline void grow_list_local(NeighList *list, const int three_body,
+                              const int offload_end) {
+    _neigh_list_ptrs[0].list_ptr = (void *)list;
     if (list->get_maxlocal() > _off_map_listlocal)
-      _grow_list_local(list, offload_end);
+      _grow_list_local(list, three_body, offload_end);
   }
 
   void free_ccache();
@@ -133,12 +149,22 @@ class IntelBuffers {
       _grow_nbor_list(list, nlocal, nthreads, offload_end, pack_width);
   }
 
-  void set_ntypes(const int ntypes, const int use_ghost_cut = 0);
+  void set_ntypes(const int ntypes, const int use_ghost_cut = 1);
 
-  inline int * firstneigh(const NeighList *list) { return _list_alloc; }
-  inline int * cnumneigh(const NeighList *list) { return _cnumneigh; }
+  inline int * intel_list(const NeighList * /*list*/) { return _list_alloc; }
   inline int * get_atombin() { return _atombin; }
   inline int * get_binpacked() { return _binpacked; }
+  inline int * cnumneigh() { return _neigh_list_ptrs[0].cnumneigh; }
+  inline void get_list_data3(const NeighList *list, int *&numneighhalf,
+                             int *&cnumneigh) {
+    for (int i = 0; i < _n_list_ptrs; i++)
+      if ((void *)list == _neigh_list_ptrs[i].list_ptr) {
+        numneighhalf = _neigh_list_ptrs[i].numneighhalf;
+        cnumneigh = _neigh_list_ptrs[i].cnumneigh;
+      }
+  }
+  void grow_data3(NeighList *list, int *&numneighhalf, int *&cnumneigh);
+  void free_list_ptrs();
 
   inline atom_t * get_x(const int offload = 1) {
     #ifdef _LMP_INTEL_OFFLOAD
@@ -298,6 +324,9 @@ class IntelBuffers {
   int _list_alloc_atoms;
   int *_list_alloc, *_cnumneigh, *_atombin, *_binpacked;
 
+  IntelNeighListPtrs *_neigh_list_ptrs;
+  int _n_list_ptrs, _max_list_ptrs;
+
   flt_t **_cutneighsq, **_cutneighghostsq;
   int _ntypes;
 
@@ -325,7 +354,7 @@ class IntelBuffers {
   int _off_map_nmax, _cop, _off_ccache, _off_ncache;
   int *_off_map_ilist;
   int *_off_map_special, *_off_map_nspecial, *_off_map_tag;
-  int *_off_map_numneigh;
+  int **_off_map_firstneigh, *_off_map_numneigh;
   bool _off_list_alloc;
   #endif
 
@@ -336,7 +365,8 @@ class IntelBuffers {
   void _grow(const int nall, const int nlocal, const int nthreads,
              const int offload_end);
   void _grow_nmax(const int offload_end);
-  void _grow_list_local(NeighList *list, const int offload_end);
+  void _grow_list_local(NeighList *list, const int three_body,
+                        const int offload_end);
   void _grow_nbor_list(NeighList *list, const int nlocal, const int nthreads,
                        const int offload_end, const int pack_width);
 };

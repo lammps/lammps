@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -76,9 +76,9 @@ Both the scalar and vector values calculated by this compute are
 
 [Restrictions:]
 
-This compute is part of the USER-TALLY package.  It is only enabled
-if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+This compute is part of the USER-TALLY package.  It is only enabled if
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 Not all pair styles can be evaluated in a pairwise mode as required by
 this compute.  For example, 3-body and other many-body potentials,

@@ -18,12 +18,12 @@
    Please cite the related publication:
    Tranchida, J., Plimpton, S. J., Thibaudeau, P., & Thompson, A. P. (2018).
    Massively parallel symplectic algorithm for coupled magnetic spin dynamics
-   and molecular dynamics. arXiv preprint arXiv:1801.10233.
+   and molecular dynamics. Journal of Computational Physics.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstring>
 
 #include "atom.h"
 #include "atom_vec.h"
@@ -59,8 +59,9 @@ static const char cite_fix_nve_spin[] =
   "title={Massively parallel symplectic algorithm for coupled magnetic spin "
   "dynamics and molecular dynamics},\n"
   "author={Tranchida, J and Plimpton, SJ and Thibaudeau, P and Thompson, AP},\n"
-  "journal={arXiv preprint arXiv:1801.10233},\n"
-  "year={2018}\n"
+  "journal={Journal of Computational Physics},\n"
+  "year={2018},\n"
+  "publisher={Elsevier}\n"
   "}\n\n";
 
 enum{NONE};
@@ -257,7 +258,7 @@ void FixNVESpin::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVESpin::initial_integrate(int vflag)
+void FixNVESpin::initial_integrate(int /*vflag*/)
 {
   double dtfm;
 	

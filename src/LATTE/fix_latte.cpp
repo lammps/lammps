@@ -48,7 +48,7 @@ extern "C" {
 // a meaningful error messages, as they can cause
 // difficult to debug crashes or memory corruption.
 
-#define ABIVERSION 20180622
+#define LATTE_ABIVERSION 20180622
 #define INVOKED_PERATOM 8
 
 /* ---------------------------------------------------------------------- */
@@ -62,7 +62,7 @@ FixLatte::FixLatte(LAMMPS *lmp, int narg, char **arg) :
   if (comm->nprocs != 1)
     error->all(FLERR,"Fix latte currently runs only in serial");
 
-  if (latte_abiversion() != ABIVERSION)
+  if (LATTE_ABIVERSION != latte_abiversion())
     error->all(FLERR,"LAMMPS is linked against incompatible LATTE library");
 
   if (narg != 4) error->all(FLERR,"Illegal fix latte command");
@@ -189,7 +189,7 @@ void FixLatte::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixLatte::init_list(int id, NeighList *ptr)
+void FixLatte::init_list(int /*id*/, NeighList * /*ptr*/)
 {
   // list = ptr;
 }
@@ -223,13 +223,13 @@ void FixLatte::setup_pre_reverse(int eflag, int vflag)
    integrate electronic degrees of freedom
 ------------------------------------------------------------------------- */
 
-void FixLatte::initial_integrate(int vflag) {}
+void FixLatte::initial_integrate(int /*vflag*/) {}
 
 /* ----------------------------------------------------------------------
    store eflag, so can use it in post_force to tally per-atom energies
 ------------------------------------------------------------------------- */
 
-void FixLatte::pre_reverse(int eflag, int vflag)
+void FixLatte::pre_reverse(int eflag, int /*vflag*/)
 {
   eflag_caller = eflag;
 }

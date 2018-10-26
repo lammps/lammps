@@ -128,21 +128,25 @@ void PairTableKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
         ff(this,(NeighListKokkos<DeviceType>*) list);
       if (eflag || vflag) Kokkos::parallel_reduce(list->inum,ff,ev);
       else Kokkos::parallel_for(list->inum,ff);
+      ff.contribute();
     } else if (neighflag == HALFTHREAD) {
       PairComputeFunctor<PairTableKokkos<DeviceType>,HALFTHREAD,false,S_TableCompute<DeviceType,TABSTYLE> >
         ff(this,(NeighListKokkos<DeviceType>*) list);
       if (eflag || vflag) Kokkos::parallel_reduce(list->inum,ff,ev);
       else Kokkos::parallel_for(list->inum,ff);
+      ff.contribute();
     } else if (neighflag == HALF) {
       PairComputeFunctor<PairTableKokkos<DeviceType>,HALF,false,S_TableCompute<DeviceType,TABSTYLE> >
         f(this,(NeighListKokkos<DeviceType>*) list);
       if (eflag || vflag) Kokkos::parallel_reduce(list->inum,f,ev);
       else Kokkos::parallel_for(list->inum,f);
+      f.contribute();
     } else if (neighflag == N2) {
       PairComputeFunctor<PairTableKokkos<DeviceType>,N2,false,S_TableCompute<DeviceType,TABSTYLE> >
         f(this,(NeighListKokkos<DeviceType>*) list);
       if (eflag || vflag) Kokkos::parallel_reduce(list->inum,f,ev);
       else Kokkos::parallel_for(list->inum,f);
+      f.contribute();
     }
   } else {
     if (neighflag == FULL) {
@@ -150,21 +154,25 @@ void PairTableKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
         f(this,(NeighListKokkos<DeviceType>*) list);
       if (eflag || vflag) Kokkos::parallel_reduce(list->inum,f,ev);
       else Kokkos::parallel_for(list->inum,f);
+      f.contribute();
     } else if (neighflag == HALFTHREAD) {
       PairComputeFunctor<PairTableKokkos<DeviceType>,HALFTHREAD,true,S_TableCompute<DeviceType,TABSTYLE> >
         f(this,(NeighListKokkos<DeviceType>*) list);
       if (eflag || vflag) Kokkos::parallel_reduce(list->inum,f,ev);
       else Kokkos::parallel_for(list->inum,f);
+      f.contribute();
     } else if (neighflag == HALF) {
       PairComputeFunctor<PairTableKokkos<DeviceType>,HALF,true,S_TableCompute<DeviceType,TABSTYLE> >
         f(this,(NeighListKokkos<DeviceType>*) list);
       if (eflag || vflag) Kokkos::parallel_reduce(list->inum,f,ev);
       else Kokkos::parallel_for(list->inum,f);
+      f.contribute();
     } else if (neighflag == N2) {
       PairComputeFunctor<PairTableKokkos<DeviceType>,N2,true,S_TableCompute<DeviceType,TABSTYLE> >
         f(this,(NeighListKokkos<DeviceType>*) list);
       if (eflag || vflag) Kokkos::parallel_reduce(list->inum,f,ev);
       else Kokkos::parallel_for(list->inum,f);
+      f.contribute();
     }
   }
 

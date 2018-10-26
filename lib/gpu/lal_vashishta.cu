@@ -554,7 +554,7 @@ __kernel void k_vashishta_three_end(const __global numtyp4 *restrict x_,
                              const int nelements,
                              const __global int * dev_nbor,
                              const __global int * dev_packed,
-                             const __global int * dev_acc,
+                             const __global int * dev_ilist,
                              const __global int * dev_short_nbor,
                              __global acctyp4 *restrict ans,
                              __global acctyp *restrict engv,
@@ -623,13 +623,13 @@ __kernel void k_vashishta_three_end(const __global numtyp4 *restrict x_,
       int nbor_k,numk;
       if (dev_nbor==dev_packed) {
         if (gpu_nbor) nbor_k=j+nbor_pitch;
-        else nbor_k=dev_acc[j]+nbor_pitch;
+        else nbor_k=dev_ilist[j]+nbor_pitch;
         numk=dev_nbor[nbor_k];
         nbor_k+=nbor_pitch+fast_mul(j,t_per_atom-1);
         k_end=nbor_k+fast_mul(numk/t_per_atom,n_stride)+(numk & (t_per_atom-1));
         nbor_k+=offset_k;
       } else {
-        nbor_k=dev_acc[j]+nbor_pitch;
+        nbor_k=dev_ilist[j]+nbor_pitch;
         numk=dev_nbor[nbor_k];
         nbor_k+=nbor_pitch;
         nbor_k=dev_nbor[nbor_k];
@@ -709,7 +709,7 @@ __kernel void k_vashishta_three_end_vatom(const __global numtyp4 *restrict x_,
                              const int nelements,
                              const __global int * dev_nbor,
                              const __global int * dev_packed,
-                             const __global int * dev_acc,
+                             const __global int * dev_ilist,
                              const __global int * dev_short_nbor,
                              __global acctyp4 *restrict ans,
                              __global acctyp *restrict engv,
@@ -778,13 +778,13 @@ __kernel void k_vashishta_three_end_vatom(const __global numtyp4 *restrict x_,
       int nbor_k,numk;
       if (dev_nbor==dev_packed) {
         if (gpu_nbor) nbor_k=j+nbor_pitch;
-        else nbor_k=dev_acc[j]+nbor_pitch;
+        else nbor_k=dev_ilist[j]+nbor_pitch;
         numk=dev_nbor[nbor_k];
         nbor_k+=nbor_pitch+fast_mul(j,t_per_atom-1);
         k_end=nbor_k+fast_mul(numk/t_per_atom,n_stride)+(numk & (t_per_atom-1));
         nbor_k+=offset_k;
       } else {
-        nbor_k=dev_acc[j]+nbor_pitch;
+        nbor_k=dev_ilist[j]+nbor_pitch;
         numk=dev_nbor[nbor_k];
         nbor_k+=nbor_pitch;
         nbor_k=dev_nbor[nbor_k];

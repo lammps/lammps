@@ -302,7 +302,7 @@ void FixWallGran::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixWallGran::post_force(int vflag)
+void FixWallGran::post_force(int /*vflag*/)
 {
   int i,j;
   double dx,dy,dz,del1,del2,delxy,delr,rsq,rwall,meff;
@@ -446,7 +446,7 @@ void FixWallGran::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixWallGran::post_force_respa(int vflag, int ilevel, int iloop)
+void FixWallGran::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1) post_force(vflag);
 }
@@ -1041,7 +1041,7 @@ void FixWallGran::grow_arrays(int nmax)
    copy values within local atom-based arrays
 ------------------------------------------------------------------------- */
 
-void FixWallGran::copy_arrays(int i, int j, int delflag)
+void FixWallGran::copy_arrays(int i, int j, int /*delflag*/)
 {
   if (history)
     for (int m = 0; m < sheardim; m++)
@@ -1136,7 +1136,7 @@ int FixWallGran::maxsize_restart()
    size of atom nlocal's restart data
 ------------------------------------------------------------------------- */
 
-int FixWallGran::size_restart(int nlocal)
+int FixWallGran::size_restart(int /*nlocal*/)
 {
   if (!history) return 0;
   return 1 + sheardim;

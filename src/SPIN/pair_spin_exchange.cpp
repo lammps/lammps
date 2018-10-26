@@ -18,12 +18,12 @@
    Please cite the related publication:
    Tranchida, J., Plimpton, S. J., Thibaudeau, P., & Thompson, A. P. (2018).
    Massively parallel symplectic algorithm for coupled magnetic spin dynamics
-   and molecular dynamics. arXiv preprint arXiv:1801.10233.
+   and molecular dynamics. Journal of Computational Physics.
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 
 #include "atom.h"
 #include "comm.h"
@@ -65,7 +65,7 @@ PairSpinExchange::~PairSpinExchange()
     memory->destroy(J1_mech);
     memory->destroy(J2);
     memory->destroy(J3);
-    memory->destroy(cutsq); // to be deleted
+    memory->destroy(cutsq); // to be implemented
   }
 }
 
@@ -134,8 +134,8 @@ void PairSpinExchange::coeff(int narg, char **arg)
       count++;
     }
   }
-  if (count == 0)
-    error->all(FLERR,"Incorrect args in pair_style command");
+  
+  if (count == 0) error->all(FLERR,"Incorrect args in pair_style command");
 }
 
 /* ----------------------------------------------------------------------
@@ -183,6 +183,12 @@ double PairSpinExchange::init_one(int i, int j)
 
    if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
+  J1_mag[j][i] = J1_mag[i][j];
+  J1_mech[j][i] = J1_mech[i][j];
+  J2[j][i] = J2[i][j];
+  J3[j][i] = J3[i][j];
+  cut_spin_exchange[j][i] = cut_spin_exchange[i][j];
+
   return cut_spin_exchange_global;
 }
 
@@ -203,7 +209,8 @@ void PairSpinExchange::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double evdwl, ecoul;
-  double xi[3], rij[3], eij[3];
+  double xi[3], eij[3];
+  double delx,dely,delz;
   double spi[3], spj[3];
   double fi[3], fmi[3];
   double local_cut2;
@@ -255,18 +262,17 @@ void PairSpinExchange::compute(int eflag, int vflag)
       spj[2] = sp[j][2];
 
       evdwl = 0.0;
-
       fi[0] = fi[1] = fi[2] = 0.0;
       fmi[0] = fmi[1] = fmi[2] = 0.0;
 
-      rij[0] = x[j][0] - xi[0];
-      rij[1] = x[j][1] - xi[1];
-      rij[2] = x[j][2] - xi[2];
-      rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
+      delx = xi[0] - x[j][0];
+      dely = xi[1] - x[j][1];
+      delz = xi[2] - x[j][2];
+      rsq = delx*delx + dely*dely + delz*delz;
       inorm = 1.0/sqrt(rsq);
-      eij[0] = inorm*rij[0];
-      eij[1] = inorm*rij[1];
-      eij[2] = inorm*rij[2];
+      eij[0] = -inorm*delx;
+      eij[1] = -inorm*dely;
+      eij[2] = -inorm*delz;
 
       local_cut2 = cut_spin_exchange[itype][jtype]*cut_spin_exchange[itype][jtype];
 
@@ -298,7 +304,7 @@ void PairSpinExchange::compute(int eflag, int vflag)
       } else evdwl = 0.0;
 
       if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
-	  evdwl,ecoul,fi[0],fi[1],fi[2],rij[0],rij[1],rij[2]);
+	  evdwl,ecoul,fi[0],fi[1],fi[2],delx,dely,delz);
     }
   }
 
@@ -317,8 +323,8 @@ void PairSpinExchange::compute_single_pair(int ii, double fmi[3])
   double **x = atom->x;
   double **sp = atom->sp;
   double local_cut2;
-
   double xi[3], rij[3];
+  double delx,dely,delz;
   double spj[3];
 
   int i,j,jnum,itype,jtype;
@@ -351,15 +357,14 @@ void PairSpinExchange::compute_single_pair(int ii, double fmi[3])
     spj[1] = sp[j][1];
     spj[2] = sp[j][2];
 
-    rij[0] = x[j][0] - xi[0];
-    rij[1] = x[j][1] - xi[1];
-    rij[2] = x[j][2] - xi[2];
-    rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
+    delx = xi[0] - x[j][0];
+    dely = xi[1] - x[j][1];
+    delz = xi[2] - x[j][2];
+    rsq = delx*delx + dely*dely + delz*delz;
 
     if (rsq <= local_cut2) {
       compute_exchange(i,j,rsq,fmi,spj);
     }
-
   }
 
 }
@@ -390,7 +395,8 @@ void PairSpinExchange::compute_exchange(int i, int j, double rsq, double fmi[3],
    compute the mechanical force due to the exchange interaction between atom i and atom j
 ------------------------------------------------------------------------- */
 
-void PairSpinExchange::compute_exchange_mech(int i, int j, double rsq, double rij[3], double fi[3],  double spi[3], double spj[3])
+void PairSpinExchange::compute_exchange_mech(int i, int j, double rsq, double eij[3], 
+    double fi[3],  double spi[3], double spj[3])
 {
   int *type = atom->type;
   int itype, jtype;
@@ -408,9 +414,9 @@ void PairSpinExchange::compute_exchange_mech(int i, int j, double rsq, double ri
   Jex_mech *= 8.0*Jex*rr*exp(-ra);
   Jex_mech *= (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);
 
-  fi[0] -= Jex_mech*rij[0];
-  fi[1] -= Jex_mech*rij[1];
-  fi[2] -= Jex_mech*rij[2];
+  fi[0] -= Jex_mech*eij[0];
+  fi[1] -= Jex_mech*eij[1];
+  fi[2] -= Jex_mech*eij[2];
 }
 
 /* ----------------------------------------------------------------------

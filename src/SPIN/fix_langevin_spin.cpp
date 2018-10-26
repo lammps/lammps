@@ -18,13 +18,13 @@
    Please cite the related publication:
    Tranchida, J., Plimpton, S. J., Thibaudeau, P., & Thompson, A. P. (2018).
    Massively parallel symplectic algorithm for coupled magnetic spin dynamics
-   and molecular dynamics. arXiv preprint arXiv:1801.10233.
+   and molecular dynamics. Journal of Computational Physics.
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstring>
+#include <cstdlib>
 
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
@@ -192,7 +192,7 @@ void FixLangevinSpin::add_temperature(double fmi[3])
 
 /* ---------------------------------------------------------------------- */
 
-void FixLangevinSpin::post_force_respa(int vflag, int ilevel, int iloop)
+void FixLangevinSpin::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1) post_force(vflag);
 }

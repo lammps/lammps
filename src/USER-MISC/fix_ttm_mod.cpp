@@ -86,7 +86,7 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   FILE *fpr_2 = force->open_potential(arg[4]);
   if (fpr_2 == NULL) {
     char str[128];
-    sprintf(str,"Cannot open file %s",arg[4]);
+    snprintf(str,128,"Cannot open file %s",arg[4]);
     error->all(FLERR,str);
   }
 
@@ -99,7 +99,7 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   FILE *fpr = force->open_potential(arg[8]);
   if (fpr == NULL) {
     char str[128];
-    sprintf(str,"Cannot open file %s",arg[8]);
+    snprintf(str,128,"Cannot open file %s",arg[8]);
     error->all(FLERR,str);
   }
 
@@ -111,7 +111,7 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
       fp = fopen(arg[10],"w");
       if (fp == NULL) {
         char str[128];
-        sprintf(str,"Cannot open fix ttm/mod file %s",arg[10]);
+        snprintf(str,128,"Cannot open fix ttm/mod file %s",arg[10]);
         error->one(FLERR,str);
       }
     }
@@ -357,7 +357,7 @@ void FixTTMMod::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixTTMMod::post_force(int vflag)
+void FixTTMMod::post_force(int /*vflag*/)
 {
   double **x = atom->x;
   double **v = atom->v;
@@ -451,7 +451,7 @@ void FixTTMMod::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixTTMMod::post_force_setup(int vflag)
+void FixTTMMod::post_force_setup(int /*vflag*/)
 {
   double **f = atom->f;
   int *mask = atom->mask;
@@ -468,14 +468,14 @@ void FixTTMMod::post_force_setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixTTMMod::post_force_respa(int vflag, int ilevel, int iloop)
+void FixTTMMod::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1) post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixTTMMod::post_force_respa_setup(int vflag, int ilevel, int iloop)
+void FixTTMMod::post_force_respa_setup(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1) post_force_setup(vflag);
 }
@@ -916,7 +916,7 @@ int FixTTMMod::maxsize_restart()
    size of atom nlocal's restart data
 ------------------------------------------------------------------------- */
 
-int FixTTMMod::size_restart(int nlocal)
+int FixTTMMod::size_restart(int /*nlocal*/)
 {
   return 4;
 }

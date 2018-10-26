@@ -31,17 +31,19 @@ SPHINXEXTRA = -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiprocess
 SOURCES=$(filter-out $(wildcard src/lammps_commands*.txt) src/lammps_support.txt src/lammps_tutorials.txt,$(wildcard src/*.txt))
 OBJECTS=$(SOURCES:src/%.txt=$(RSTDIR)/%.rst)
 
-.PHONY: help clean-all clean epub html pdf old venv spelling anchor_check
+.PHONY: help clean-all clean epub mobi html pdf old venv spelling anchor_check
 
 # ------------------------------------------
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
 	@echo "  html       create HTML doc pages in html dir"
-	@echo "  pdf        create Manual.pdf and Developer.pdf in this dir"
+	@echo "  pdf        create Developer.pdf and Manual.pdf in this dir"
 	@echo "  old        create old-style HTML doc pages in old dir"
 	@echo "  fetch      fetch HTML and PDF files from LAMMPS web site"
 	@echo "  epub       create ePUB format manual for e-book readers"
+	@echo "  mobi       convert ePUB to MOBI format manual for e-book readers (e.g. Kindle)"
+	@echo "                      (requires ebook-convert tool from calibre)"
 	@echo "  clean      remove all intermediate RST files"
 	@echo "  clean-all  reset the entire build environment"
 	@echo "  txt2html   build txt2html tool"
@@ -49,11 +51,11 @@ help:
 
 # ------------------------------------------
 
-clean-all:
+clean-all: clean
 	rm -rf $(BUILDDIR)/* utils/txt2html/txt2html.exe
 
 clean:
-	rm -rf $(RSTDIR) html
+	rm -rf $(RSTDIR) html old epub
 	rm -rf spelling
 
 clean-spelling:
@@ -93,9 +95,10 @@ spelling: $(OBJECTS) utils/sphinx-config/false_positives.txt
 	@echo "Spell check finished."
 
 epub: $(OBJECTS)
-	@mkdir -p epub
+	@mkdir -p epub/JPG
 	@rm -f LAMMPS.epub
 	@cp src/JPG/lammps-logo.png epub/
+	@cp src/JPG/*.* epub/JPG
 	@(\
 		. $(VENV)/bin/activate ;\
 		cp -r src/* $(RSTDIR)/ ;\
@@ -106,20 +109,25 @@ epub: $(OBJECTS)
 	@rm -rf epub
 	@echo "Build finished. The ePUB manual file is created."
 
+mobi: epub
+	@rm -f LAMMPS.mobi
+	@ebook-convert LAMMPS.epub LAMMPS.mobi
+	@echo "Conversion finished. The MOBI manual file is created."
+
 pdf: utils/txt2html/txt2html.exe
 	@(\
 		set -e; \
-		cd src; \
-		../utils/txt2html/txt2html.exe -b *.txt; \
-		htmldoc --batch lammps.book;          \
-		for s in `echo *.txt | sed -e 's,\.txt,\.html,g'` ; \
-			do grep -q $$s lammps.book || \
-			echo doc file $$s missing in src/lammps.book; done; \
-		rm *.html; \
-		cd Developer; \
+		cd src/Developer; \
 		pdflatex developer; \
 		pdflatex developer; \
 		mv developer.pdf ../../Developer.pdf; \
+		cd ..; \
+		../utils/txt2html/txt2html.exe -b *.txt; \
+		htmldoc --batch lammps.book;          \
+		for s in `echo *.txt | sed -e 's/ \(pairs\|bonds\|angles\|dihedrals\|impropers\|commands_list\|fixes\|computes\).txt/ /g' | sed -e 's,\.txt,\.html,g'` ; \
+			do grep -q ^$$s lammps.book || \
+			echo WARNING: doc file $$s missing in src/lammps.book; done; \
+		rm *.html; \
 	)
 
 old: utils/txt2html/txt2html.exe
@@ -157,7 +165,7 @@ $(RSTDIR)/%.rst : src/%.txt $(TXT2RST)
 	@(\
 		mkdir -p $(RSTDIR) ; \
 		. $(VENV)/bin/activate ;\
-		txt2rst $< > $@ ;\
+		txt2rst -v $< > $@ ;\
 		deactivate ;\
 	)
 

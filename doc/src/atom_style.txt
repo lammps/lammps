@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -15,12 +15,12 @@ atom_style style args :pre
 style = {angle} or {atomic} or {body} or {bond} or {charge} or {dipole} or \
         {dpd} or {edpd} or {mdpd} or {tdpd} or {electron} or {ellipsoid} or \
         {full} or {line} or {meso} or {molecular} or {peri} or {smd} or \
-        {sphere} or {tri} or {template} or {hybrid} or {spin} :ulb,l
+        {sphere} or {spin} or {tri} or {template} or {hybrid} :ulb,l
   args = none for any style except the following
     {body} args = bstyle bstyle-args
       bstyle = style of body particles
       bstyle-args = additional arguments specific to the bstyle
-                    see the "body"_body.html doc page for details
+                    see the "Howto body"_Howto_body.html doc page for details
     {tdpd} arg = Nspecies
       Nspecies = # of chemical species
     {template} arg = template-ID
@@ -106,9 +106,9 @@ output the custom values.
 
 All of the above styles define point particles, except the {sphere},
 {ellipsoid}, {electron}, {peri}, {wavepacket}, {line}, {tri}, and
-{body} styles, which define finite-size particles.  See "Section
-6.14"_Section_howto.html#howto_14 for an overview of using finite-size
-particle models with LAMMPS.
+{body} styles, which define finite-size particles.  See the "Howto
+spherical"_Howto_spherical.html doc page for an overview of using
+finite-size particle models with LAMMPS.
 
 All of the point-particle styles assign mass to particles on a
 per-type basis, using the "mass"_mass.html command, The finite-size
@@ -224,15 +224,16 @@ the {bstyle} argument.  Body particles can represent complex entities,
 such as surface meshes of discrete points, collections of
 sub-particles, deformable objects, etc.
 
-The "body"_body.html doc page describes the body styles LAMMPS
-currently supports, and provides more details as to the kind of body
-particles they represent.  For all styles, each body particle stores
-moments of inertia and a quaternion 4-vector, so that its orientation
-and position can be time integrated due to forces and torques.
+The "Howto body"_Howto_body.html doc page describes the body styles
+LAMMPS currently supports, and provides more details as to the kind of
+body particles they represent.  For all styles, each body particle
+stores moments of inertia and a quaternion 4-vector, so that its
+orientation and position can be time integrated due to forces and
+torques.
 
 Note that there may be additional arguments required along with the
 {bstyle} specification, in the atom_style body command.  These
-arguments are described in the "body"_body.html doc page.
+arguments are described on the "Howto body"_Howto_body.html doc page.
 
 :line
 
@@ -255,32 +256,32 @@ with another molecular style that stores bond,angle,etc info on a
 per-atom basis.
 
 LAMMPS can be extended with new atom styles as well as new body
-styles; see "this section"_Section_modify.html.
+styles; see the "Modify"_Modify.html doc page.
 
 :line
 
 Styles with a {kk} suffix are functionally the same as the
 corresponding style without the suffix.  They have been optimized to
-run faster, depending on your available hardware, as discussed in
-"Section 5"_Section_accelerate.html of the manual.  The
-accelerated styles take the same arguments and should produce the same
-results, except for round-off and precision issues.
+run faster, depending on your available hardware, as discussed in on
+the "Speed packages"_Speed_packages.html doc page.  The accelerated
+styles take the same arguments and should produce the same results,
+except for round-off and precision issues.
 
 Note that other acceleration packages in LAMMPS, specifically the GPU,
 USER-INTEL, USER-OMP, and OPT packages do not use accelerated atom
 styles.
 
 The accelerated styles are part of the KOKKOS package.  They are only
-enabled if LAMMPS was built with those packages.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+enabled if LAMMPS was built with those packages.  See the "Build
+package"_Build_package.html doc page for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
-use the "suffix"_suffix.html command in your input script.
+switch"_Run_options.html when you invoke LAMMPS, or you can use the
+"suffix"_suffix.html command in your input script.
 
-See "Section 5"_Section_accelerate.html of the manual for
-more instructions on how to use the accelerated styles effectively.
+See the "Speed packages"_Speed_packages.html doc page for more
+instructions on how to use the accelerated styles effectively.
 
 [Restrictions:]
 
@@ -288,8 +289,8 @@ This command cannot be used after the simulation box is defined by a
 "read_data"_read_data.html or "create_box"_create_box.html command.
 
 Many of the styles listed above are only enabled if LAMMPS was built
-with a specific package, as listed below.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+with a specific package, as listed below.  See the "Build
+package"_Build_package.html doc page for more info.
 
 The {angle}, {bond}, {full}, {molecular}, and {template} styles are
 part of the MOLECULE package.

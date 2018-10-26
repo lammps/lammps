@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -166,9 +166,9 @@ files"_restart.html.  None of the "fix_modify"_fix_modify.html options
 are relevant to this fix.
 
 This fix computes a global array of values which can be accessed by
-various "output commands"_Section_howto.html#howto_15.  The number of
-rows in the array is equal to the number of walls defined by the fix.
-The number of columns is 3, for the x,y,z components of force on each
+various "output commands"_Howto_output.html.  The number of rows in
+the array is equal to the number of walls defined by the fix.  The
+number of columns is 3, for the x,y,z components of force on each
 wall.
 
 Note that an outward normal force on a wall will be a negative value

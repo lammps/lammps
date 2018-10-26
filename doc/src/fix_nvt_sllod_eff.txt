@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -69,8 +69,8 @@ This fix is not invoked during "energy minimization"_minimize.html.
 [Restrictions:]
 
 This fix is part of the USER-EFF package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 This fix works best without Nose-Hoover chain thermostats, i.e. using
 tchain = 1.  Setting tchain to larger values can result in poor

@@ -13,15 +13,18 @@ Syntax from src dir: make lib-plumed args="-b"
                  or: make lib-plumed args="-b -v 2.4.2"
 Syntax from lib dir: python Install.py -b -v 2.4.2
                  or: python Install.py -b
+                 or: python Install.py -p /usr/local/plumed-2.4.2
 
 specify one or more options, order does not matter
 
   -b = download and build the plumed2 library
-  -v = set version of Voro++ to download and build (default: latest stable version)
+  -p = specify folder of existing plumed2 installation
+  -v = set version of plumed2 to download and build (default: 2.4.2)
 
 Example:
 
 make lib-plumed args="-b"   # download/build in lib/plumed/plumed2
+make lib-plumed args="-p $HOME/plumed-2.4.2" # use existing Plumed2 installation in $HOME/plumed-2.4.2
 """
 
 # settings
@@ -93,6 +96,7 @@ if nargs == 0: error()
 homepath = "."
 
 buildflag = False
+pathflag = False
 suffixflag = False
 linkflag = True
 
@@ -102,6 +106,11 @@ while iarg < nargs:
     if iarg+2 > nargs: error()
     version = args[iarg+1]
     iarg += 2
+  elif args[iarg] == "-p":
+    if iarg+2 > nargs: error()
+    plumedpath = fullpath(args[iarg+1])
+    pathflag = True
+    iarg += 2
   elif args[iarg] == "-b":
     buildflag = True
     iarg += 1
@@ -109,7 +118,17 @@ while iarg < nargs:
 
 homepath = fullpath(homepath)
 
-# download and unpack plumed  tarball
+if (pathflag):
+    if not os.path.isdir(plumedpath): error("Plumed2 path does not exist")
+    homedir = plumedpath
+
+if (buildflag and pathflag):
+    error("Cannot use -b and -p flag at the same time")
+
+if (not buildflag and not pathflag):
+    error("Have to use either -b or -p flag")
+
+# download and unpack plumed2 tarball
 
 if buildflag:
   url = "https://github.com/plumed/plumed2/archive/v%s.tar.gz" % version
@@ -118,8 +137,11 @@ if buildflag:
   geturl(url,filename) 
 
   print("Unpacking plumed tarball ...")
-  if os.path.exists("%s/%s" % (homepath,version)):
-    cmd = 'rm -rf "%s/%s"' % (homepath,version)
+  if os.path.exists("%s/plumed2-%s" % (homepath,version)):
+    cmd = 'rm -rf "%s/plumed2-%s"' % (homepath,version)
+    subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+  if os.path.exists("%s/plumed2" % (homepath)):
+    cmd = 'rm -rf "%s/plumed2"' % (homepath)
     subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   cmd = 'cd "%s"; tar -xzvf v%s.tar.gz' % (homepath,version)
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
@@ -129,19 +151,19 @@ if buildflag:
  
 if buildflag:
    print("Building plumed ...")
-   cmd = 'cd %s/plumed2-%s; ./configure ; make' % (homepath,version)
+   cmd = 'cd %s/plumed2-%s; ./configure --prefix=%s/plumed2 ; make ; make install' % (homepath,version,homepath)
    txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
    print(txt.decode('UTF-8'))
 # 
-# # create 2 links in lib/voronoi to Voro++ src dir
-# 
-# if linkflag:
-#   print("Creating links to Voro++ include and lib files")
-#   if os.path.isfile("includelink") or os.path.islink("includelink"):
-#     os.remove("includelink")
-#   if os.path.isfile("liblink") or os.path.islink("liblink"):
-#     os.remove("liblink")
-#   cmd = 'ln -s "%s/src" includelink' % homedir
-#   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-#   cmd = 'ln -s "%s/src" liblink' % homedir
-#   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+# create 2 links in lib/plumed to plumed2 installation dir
+
+if linkflag:
+  print("Creating links to plumed2 include and lib files")
+  if os.path.isfile("includelink") or os.path.islink("includelink"):
+    os.remove("includelink")
+  if os.path.isfile("liblink") or os.path.islink("liblink"):
+    os.remove("liblink")
+  cmd = 'ln -s "%s/plumed2/include" includelink' % homepath
+  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+  cmd = 'ln -s "%s/plumed2/lib" liblink' % homepath
+  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)

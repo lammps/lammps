@@ -171,8 +171,9 @@ set(DEFAULT_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS DIPOLE GRANULAR
   USER-BOCS USER-CGDNA USER-MESO USER-CGSDK USER-COLVARS USER-DIFFRACTION
   USER-DPD USER-DRUDE USER-EFF USER-FEP USER-H5MD USER-LB USER-MANIFOLD
   USER-MEAMC USER-MGPT USER-MISC USER-MOFFF USER-MOLFILE USER-NETCDF
-  USER-PHONON USER-PTM USER-QTB USER-REAXC USER-SCAFACOS USER-SMD USER-SMTBQ
-  USER-SPH USER-TALLY USER-UEF USER-VTK USER-QUIP USER-QMMM)
+  USER-PHONON USER-PLUMED USER-PTM USER-QTB USER-REAXC USER-SCAFACOS
+  USER-SMD USER-SMTBQ USER-SPH USER-TALLY USER-UEF USER-VTK USER-QUIP
+  USER-QMMM)
 set(ACCEL_PACKAGES USER-OMP KOKKOS OPT USER-INTEL GPU)
 set(OTHER_PACKAGES CORESHELL QEQ)
 foreach(PKG ${DEFAULT_PACKAGES})
@@ -524,6 +525,27 @@ if(PKG_USER-SCAFACOS)
     list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_LDFLAGS})
   endif()
   include_directories(${SCAFACOS_INCLUDE_DIRS})
+endif()
+
+if(PKG_USER-PLUMED)
+  option(DOWNLOAD_PLUMED "Download Plumed (instead of using the system's one)" OFF)
+  if(DOWNLOAD_PLUMED)
+    include(ExternalProject)
+    ExternalProject_Add(plumed_build
+      URL https://github.com/plumed/plumed2/releases/download/v2.4.3/plumed-2.4.3.tgz 
+      URL_MD5 bed9c88c8c635b269c1cd4a0598a2934
+      BUILD_IN_SOURCE 1
+      CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> 
+                                               $<$<BOOL:${BUILD_SHARED_LIBS}>:--with-pic>                                                  )
+    ExternalProject_get_property(plumed_build INSTALL_DIR)
+    set(PLUMED_BUILD_DIR ${INSTALL_DIR})
+    list(APPEND LAMMPS_DEPS plumed_build)
+    list(APPEND LAMMPS_LINK_LIBS ${PLUMED_BUILD_DIR}/lib/libplumed.so)
+  else()
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(PLUMED plumed REQUIRED)
+    list(APPEND LAMMPS_LINK_LIBS ${PLUMED_LDFLAGS})
+  endif()
 endif()
 
 if(PKG_USER-MOLFILE)

@@ -6,7 +6,7 @@ The following is a set of guidelines as well as explanations of policies and wor
 
 Thus please also have a look at:
 * [The Section on submitting new features for inclusion in LAMMPS of the Manual](http://lammps.sandia.gov/doc/Section_modify.html#mod-15)
-* [The LAMMPS GitHub Tutorial in the Manual](http://lammps.sandia.gov/doc/tutorial_github.html)
+* [The LAMMPS GitHub Tutorial in the Manual](http://lammps.sandia.gov/doc/Howto_github.html)
 
 ## Table of Contents
 
@@ -62,7 +62,7 @@ To be able to submit an issue on GitHub, you have to register for an account (fo
 
 We encourage users to submit new features or modifications for LAMMPS to the core developers so they can be added to the LAMMPS distribution. The preferred way to manage and coordinate this is by submitting a pull request at the LAMMPS project on GitHub. For any larger modifications or programming project, you are encouraged to contact the LAMMPS developers ahead of time, in order to discuss implementation strategies and coding guidelines, that will make it easier to integrate your contribution and result in less work for everybody involved. You are also encouraged to search through the list of open issues on GitHub and submit a new issue for a planned feature, so you would not duplicate the work of others (and possibly get scooped by them) or have your work duplicated by others.
 
-How quickly your contribution will be integrated depends largely on how much effort it will cause to integrate and test it, how much it requires changes to the core code base, and of how much interest it is to the larger LAMMPS community. Please see below for a checklist of typical requirements. Once you have prepared everything, see [this tutorial](http://lammps.sandia.gov/doc/tutorial_github.html)
+How quickly your contribution will be integrated depends largely on how much effort it will cause to integrate and test it, how much it requires changes to the core code base, and of how much interest it is to the larger LAMMPS community. Please see below for a checklist of typical requirements. Once you have prepared everything, see [this tutorial](http://lammps.sandia.gov/doc/Howto_github.html)
  for instructions on how to submit your changes or new files through a GitHub pull request
 
 Here is a checklist of steps you need to follow to submit a single file or user package for our consideration. Following these steps will save both you and us time. See existing files in packages in the source directory for examples. If you are uncertain, please ask on the lammps-users mailing list.
@@ -102,7 +102,7 @@ For bug reports, the next step is that one of the core LAMMPS developers will se
 
 ### Pull Requests
 
-For submitting pull requests, there is a [detailed tutorial](http://lammps.sandia.gov/doc/tutorial_github.html) in the LAMMPS manual. Thus only a brief breakdown of the steps is presented here.
+For submitting pull requests, there is a [detailed tutorial](http://lammps.sandia.gov/doc/Howto_github.html) in the LAMMPS manual. Thus only a brief breakdown of the steps is presented here.
 Immediately after the submission, the LAMMPS continuing integration server at ci.lammps.org will download your submitted branch and perform a simple compilation test, i.e. will test whether your submitted code can be compiled under various conditions. It will also do a check on whether your included documentation translates cleanly. Whether these tests are successful or fail will be recorded. If a test fails, please inspect the corresponding output on the CI server and take the necessary steps, if needed, so that the code can compile cleanly again. The test will be re-run each the pull request is updated with a push to the remote branch on GitHub.
 Next a LAMMPS core developer will self-assign and do an overall technical assessment of the submission. If you are not yet registered as a LAMMPS collaborator, you will receive an invitation for that.
 You may also receive comments and suggestions on the overall submission or specific details. If permitted, additional changes may be pushed into your pull request branch or a pull request may be filed in your LAMMPS fork on GitHub to include those changes.

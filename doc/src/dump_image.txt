@@ -384,12 +384,7 @@ change this via the "dump_modify"_dump_modify.html command.
 :line
 
 The {fix} keyword can be used with a "fix"_fix.html that produces
-objects to be drawn.  An example is the "fix
-surface/global"_fix_surface_global.html command which can draw lines
-or triangles for 2d/3d simulations.
-
-NOTE: Aug 2016 - The fix surface/global command is not yet added to
-LAMMPS.
+objects to be drawn.
 
 The {fflag1} and {fflag2} settings are numerical values which are
 passed to the fix to affect how the drawing of its objects is done.

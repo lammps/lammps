@@ -63,7 +63,7 @@ See the src/MESSAGE/server_mc.cpp file for details on how LAMMPS uses
 these messages.  See the examples/COUPLE/lammmps_mc/mc.cpp file for an
 example of how an MC driver code can use these messages.
 
-Let NATOMS=1, EINIT=2, DISPLACE=3, ACCEPT=4, RUN=5.
+Define NATOMS=1, EINIT=2, DISPLACE=3, ACCEPT=4, RUN=5.
 
 [Client sends one of these kinds of message]:
 
@@ -93,9 +93,9 @@ cs->pack(2,3*natoms,x)    # 2nd field = 3N coords of Natoms :pre
 cs->send(DISPLACE,1)      # msgID = 3 with 1 field
 cs->pack_double(1,poteng) # 1st field = new potential energy of system :pre
 
-cs->send(ACCEPT,0)      # msgID = 4 with no fields
+cs->send(ACCEPT,0)      # msgID = 4 with no fields :pre
 
-cs->send(RUN,0)         # msgID = 5 with no fields
+cs->send(RUN,0)         # msgID = 5 with no fields :pre
 
 :line
 

@@ -97,9 +97,9 @@ equivalent, since the "compute stress/atom"_compute_stress_atom.html
 command creates a per-atom array with 6 columns:
 
 compute myPress all stress/atom NULL
-compute 2 all reduce min myPress\[*\]
-compute 2 all reduce min myPress\[1\] myPress\[2\] myPress\[3\] &
-                         myPress\[4\] myPress\[5\] myPress\[6\] :pre
+compute 2 all reduce min c_myPress\[*\]
+compute 2 all reduce min c_myPress\[1\] c_myPress\[2\] c_myPress\[3\] &
+                         c_myPress\[4\] c_myPress\[5\] c_myPress\[6\] :pre
 
 :line
 

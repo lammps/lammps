@@ -6,7 +6,7 @@
 
 :line
 
-fix poems :h3
+fix poems command :h3
 
 Syntax:
 

@@ -6,14 +6,14 @@
 
 :line
 
-compute smd/triangle/mesh/vertices :h3
+compute smd/triangle/vertices command :h3
 
 [Syntax:]
 
-compute ID group-ID smd/triangle/mesh/vertices :pre
+compute ID group-ID smd/triangle/vertices :pre
 
 ID, group-ID are documented in "compute"_compute.html command
-smd/triangle/mesh/vertices = style name of this compute command :ul
+smd/triangle/vertices = style name of this compute command :ul
 
 [Examples:]
 

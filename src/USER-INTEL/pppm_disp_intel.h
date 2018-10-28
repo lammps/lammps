@@ -31,7 +31,7 @@ namespace LAMMPS_NS {
 
   class PPPMDispIntel : public PPPMDisp {
   public:
-    PPPMDispIntel(class LAMMPS *, int, char **);
+    PPPMDispIntel(class LAMMPS *);
     virtual ~PPPMDispIntel();
     virtual void init();
     virtual void compute(int, int);

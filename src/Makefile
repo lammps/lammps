@@ -61,7 +61,7 @@ PACKUSER = user-atc user-awpmd user-bocs user-cgdna user-cgsdk user-colvars \
 	   user-diffraction user-dpd user-drude user-eff user-fep user-h5md \
 	   user-intel user-lb user-manifold user-meamc user-meso \
 	   user-mgpt user-misc user-mofff user-molfile \
-	   user-netcdf user-omp user-phonon user-qmmm user-qtb \
+	   user-netcdf user-omp user-phonon user-ptm user-qmmm user-qtb \
 	   user-quip user-reaxc user-scafacos user-smd user-smtbq \
 	   user-sph user-tally user-uef user-vtk
 
@@ -74,7 +74,7 @@ PACKSYS = compress mpiio python user-lb
 
 PACKINT = gpu kokkos meam message poems reax user-atc user-awpmd user-colvars
 
-PACKEXT = kim mscg voronoi \
+PACKEXT = kim latte mscg voronoi \
 	  user-h5md user-molfile user-netcdf user-qmmm user-quip \
 	  user-smd user-vtk
 

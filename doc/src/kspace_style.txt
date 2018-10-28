@@ -383,8 +383,8 @@ dimensions.  The only exception is if the slab option is set with
 must be periodic and the z dimension must be non-periodic.
 
 The scafacos KSpace style will only be enabled if LAMMPS is built with
-the USER-SCAFACOS package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+the USER-SCAFACOS package.  See the "Build package"_Build_package.html
+doc page for more info.
 
 The use of ScaFaCos in LAMMPS does not yet support molecular charged
 systems where the short-range Coulombic interactions between atoms in

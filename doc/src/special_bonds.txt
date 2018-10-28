@@ -13,7 +13,7 @@ special_bonds command :h3
 special_bonds keyword values ... :pre
 
 one or more keyword/value pairs may be appended :ulb,l
-keyword = {amber} or {charmm} or {dreiding} or {fene} or {lj/coul} or {lj} or {coul} or {angle} or {dihedral} or {extra} :l
+keyword = {amber} or {charmm} or {dreiding} or {fene} or {lj/coul} or {lj} or {coul} or {angle} or {dihedral} :l
   {amber} values = none
   {charmm} values = none
   {dreiding} values = none
@@ -219,7 +219,7 @@ each time the command is issued.
 [Default:]
 
 All 3 Lennard-Jones and 3 Coulombic weighting coefficients = 0.0,
-angle = no, dihedral = no, and extra = 0.
+angle = no, dihedral = no.
 
 :line
 

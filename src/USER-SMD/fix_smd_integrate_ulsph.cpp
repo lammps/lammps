@@ -119,7 +119,7 @@ FixSMDIntegrateUlsph::FixSMDIntegrateUlsph(LAMMPS *lmp, int narg, char **arg) :
                         }
                 } else {
                         char msg[128];
-                        sprintf(msg, "Illegal keyword for smd/integrate_ulsph: %s\n", arg[iarg]);
+                        snprintf(msg,128, "Illegal keyword for smd/integrate_ulsph: %s\n", arg[iarg]);
                         error->all(FLERR, msg);
                 }
 

@@ -46,6 +46,7 @@ as contained in the file name.
 "MANYBODY"_#PKG-MANYBODY,
 "MC"_#PKG-MC,
 "MEAM"_#PKG-MEAM,
+"MESSAGE"_#PKG-MESSAGE,
 "MISC"_#PKG-MISC,
 "MOLECULE"_#PKG-MOLECULE,
 "MPIIO"_#PKG-MPIIO,
@@ -88,11 +89,12 @@ as contained in the file name.
 "USER-NETCDF"_#PKG-USER-NETCDF,
 "USER-OMP"_#PKG-USER-OMP,
 "USER-PHONON"_#PKG-USER-PHONON,
+"USER-PTM"_#PKG-USER-PTM,
 "USER-QMMM"_#PKG-USER-QMMM,
 "USER-QTB"_#PKG-USER-QTB,
 "USER-QUIP"_#PKG-USER-QUIP,
 "USER-REAXC"_#PKG-USER-REAXC,
-"USER-SCAFACOS"_#USER-SCAFACOS,
+"USER-SCAFACOS"_#PKG-USER-SCAFACOS,
 "USER-SMD"_#PKG-USER-SMD,
 "USER-SMTBQ"_#PKG-USER-SMTBQ,
 "USER-SPH"_#PKG-USER-SPH,
@@ -460,10 +462,10 @@ dynamics can be run with LAMMPS using density-functional tight-binding
 quantum forces calculated by LATTE.
 
 More information on LATTE can be found at this web site:
-"https://github.com/lanl/LATTE"_latte_home.  A brief technical
+"https://github.com/lanl/LATTE"_latte-home.  A brief technical
 description is given with the "fix latte"_fix_latte.html command.
 
-:link(latte_home,https://github.com/lanl/LATTE)
+:link(latte-home,https://github.com/lanl/LATTE)
 
 [Authors:] Christian Negre (LANL) and Steve Plimpton (Sandia).  LATTE
 itself is developed at Los Alamos National Laboratory by Marc
@@ -666,9 +668,9 @@ MSCG package :link(PKG-mscg),h4
 
 A "fix mscg"_fix_mscg.html command which can parameterize a
 Multi-Scale Coarse-Graining (MSCG) model using the open-source "MS-CG
-library"_mscg_home.
+library"_mscg-home.
 
-:link(mscg_home,https://github.com/uchicago-voth/MSCG-release)
+:link(mscg-home,https://github.com/uchicago-voth/MSCG-release)
 
 To use this package you must have the MS-CG library available on your
 system.
@@ -1006,11 +1008,11 @@ VORONOI package :link(PKG-VORONOI),h4
 [Contents:]
 
 A compute command which calculates the Voronoi tesselation of a
-collection of atoms by wrapping the "Voro++ library"_voro_home.  This
+collection of atoms by wrapping the "Voro++ library"_voro-home.  This
 can be used to calculate the local volume or each atoms or its near
 neighbors.
 
-:link(voro_home,http://math.lbl.gov/voro++)
+:link(voro-home,http://math.lbl.gov/voro++)
 
 To use this package you must have the Voro++ library available on your
 system.
@@ -1518,7 +1520,7 @@ USER-MEAMC package :link(PKG-USER-MEAMC),h4
 [Contents:]
 
 A pair style for the modified embedded atom (MEAM) potential
-translated from the Fortran version in the "MEAM"_MEAM package
+translated from the Fortran version in the "MEAM"_#PKG-MEAM package
 to plain C++. In contrast to the MEAM package, no library
 needs to be compiled and the pair style can be instantiated
 multiple times.
@@ -1599,7 +1601,7 @@ USER-MOLFILE package :link(PKG-USER-MOLFILE),h4
 [Contents:]
 
 A "dump molfile"_dump_molfile.html command which uses molfile plugins
-that are bundled with the "VMD"_vmd_home
+that are bundled with the "VMD"_vmd-home
 molecular visualization and analysis program, to enable LAMMPS to dump
 snapshots in formats compatible with various molecular simulation
 tools.
@@ -1651,11 +1653,11 @@ Note that NetCDF files can be directly visualized with the following
 tools:
 
 "Ovito"_ovito (Ovito supports the AMBER convention and the extensions mentioned above)
-"VMD"_vmd_home
+"VMD"_vmd-home
 "AtomEye"_atomeye (the libAtoms version of AtomEye contains a NetCDF reader not present in the standard distribution) :ul
 
 :link(ovito,http://www.ovito.org)
-:link(vmd_home,https://www.ks.uiuc.edu/Research/vmd/)
+:link(vmd-home,https://www.ks.uiuc.edu/Research/vmd/)
 :link(atomeye,http://www.libatoms.org)
 
 [Author:] Lars Pastewka (Karlsruhe Institute of Technology).
@@ -1740,6 +1742,25 @@ src/USER-PHONON: filenames -> commands
 src/USER-PHONON/README
 "fix phonon"_fix_phonon.html
 examples/USER/phonon :ul
+
+:line
+
+USER-PTM package :link(PKG-USER-PTM),h4
+
+[Contents:]
+
+A "compute ptm/atom"_compute_ptm_atom.html command that calculates
+local structure characterization using the Polyhedral Template
+Matching methodology.
+
+[Author:] Peter Mahler Larsen (MIT).
+
+[Supporting info:]
+
+src/USER-PTM: filenames not starting with ptm_ -> commands
+src/USER-PTM: filenames starting with ptm_ -> supporting code
+src/USER-PTM/LICENSE
+"compute ptm/atom"_compute_ptm_atom.html :ul
 
 :line
 
@@ -1860,7 +1881,7 @@ examples/reax :ul
 
 :line
 
-USER-SCAFACOS package :link(USER-SCAFACOS),h4
+USER-SCAFACOS package :link(PKG-USER-SCAFACOS),h4
 
 [Contents:]
 

@@ -7,9 +7,8 @@
 :line
 
 pair_style hybrid command :h3
-pair_style hybrid/omp command :h3
+pair_style hybrid/kk command :h3
 pair_style hybrid/overlay command :h3
-pair_style hybrid/overlay/omp command :h3
 pair_style hybrid/overlay/kk command :h3
 
 [Syntax:]

@@ -1,0 +1,111 @@
+LAMMPS (5 Sep 2018)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:87)
+  using 1 OpenMP thread(s) per MPI task
+variable T equal 0.8
+variable p_solid equal 0.05
+
+read_data data.mop
+  orthogonal box = (0 0 -2) to (9.52441 9.52441 16)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  1224 atoms
+  reading velocities ...
+  1224 velocities
+
+pair_style lj/cut 2.5
+pair_coeff * * 1.0 1.0
+pair_coeff 1 2 0.5 1.0
+pair_coeff 2 2 0.0 0.0
+neigh_modify delay 0
+
+group liquid type 1
+792 atoms in group liquid
+group solid type 2
+432 atoms in group solid
+region bottom block INF INF INF INF INF 7.0
+group bottom region bottom
+630 atoms in group bottom
+group solid_bottom intersect solid bottom
+216 atoms in group solid_bottom
+group solid_up subtract solid solid_bottom
+216 atoms in group solid_up
+
+variable faSolid equal ${p_solid}*lx*ly/count(solid_up)
+variable faSolid equal 0.05*lx*ly/count(solid_up)
+fix piston_up solid_up aveforce NULL NULL -${faSolid}
+fix piston_up solid_up aveforce NULL NULL -0.0209986841649146
+fix freeze_up solid_up setforce 0.0 0.0 NULL
+fix freeze_bottom solid_bottom setforce 0.0 0.0 0.0
+fix nvesol solid nve
+compute Tliq liquid temp
+fix nvtliq liquid nvt temp $T $T 0.5
+fix nvtliq liquid nvt temp 0.8 $T 0.5
+fix nvtliq liquid nvt temp 0.8 0.8 0.5
+fix_modify nvtliq temp Tliq
+WARNING: Temperature for fix modify is not for group all (src/fix_nh.cpp:1404)
+
+thermo 1000
+thermo_modify flush yes temp Tliq
+WARNING: Temperature for thermo pressure is not for group all (src/thermo.cpp:488)
+
+fix fxbal all balance 1000 1.05 shift z 10 1.05
+
+compute mopz0 all stress/mop z center kin conf
+fix mopz0t all ave/time 1 1 1 c_mopz0[*] file mopz0.time
+
+compute moppz liquid stress/mop/profile z 0.0 0.1 kin conf
+fix moppzt all ave/time 1 1 1 c_moppz[*] ave running overwrite file moppz.time mode vector
+
+run 0
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 7 7 13
+  3 neighbor lists, perpetual/occasional/extra = 1 2 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+  (2) compute stress/mop, occasional, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+  (3) compute stress/mop/profile, occasional, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 3.596 | 3.596 | 3.596 Mbytes
+Step Temp E_pair E_mol TotEng Press Volume 
+       0   0.82011245   -3.0642111            0   -2.2692246   0.16906107    1632.8577 
+Loop time of 1.19209e-06 on 1 procs for 0 steps with 1224 atoms
+
+167.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0          | 0          | 0          |   0.0 |  0.00
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 1.192e-06  |            |       |100.00
+
+Nlocal:    1224 ave 1224 max 1224 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    2975 ave 2975 max 2975 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    40241 ave 40241 max 40241 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 40241
+Ave neighs/atom = 32.8766
+Neighbor list builds = 0
+Dangerous builds = 0
+
+Total wall time: 0:00:00

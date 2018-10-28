@@ -13,7 +13,7 @@ get_filename_component(LAMMPS_DOC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../doc ABSOLUT
 
 
 # To avoid conflicts with the conventional Makefile build system, we build everything here
-file(GLOB LIB_SOURCES ${LAMMPS_SOURCE_DIR}/*.cpp)
+file(GLOB LIB_SOURCES ${LAMMPS_SOURCE_DIR}/[^.]*.cpp)
 file(GLOB LMP_SOURCES ${LAMMPS_SOURCE_DIR}/main.cpp)
 list(REMOVE_ITEM LIB_SOURCES ${LMP_SOURCES})
 
@@ -68,6 +68,8 @@ get_lammps_version(${LAMMPS_SOURCE_DIR}/version.h LAMMPS_VERSION)
 
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/Modules)
+
+include(PreventInSourceBuilds)
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
   #release comes with -O3 by default
@@ -164,12 +166,13 @@ set(LAMMPS_DEPS)
 set(LAMMPS_API_DEFINES)
 
 set(DEFAULT_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS DIPOLE GRANULAR
-  KSPACE MANYBODY MC MEAM MESSAGE MISC MOLECULE PERI REAX REPLICA RIGID SHOCK SPIN SNAP
-  SRD KIM PYTHON MSCG MPIIO VORONOI POEMS LATTE USER-ATC USER-AWPMD USER-BOCS
-  USER-CGDNA USER-MESO USER-CGSDK USER-COLVARS USER-DIFFRACTION USER-DPD USER-DRUDE
-  USER-EFF USER-FEP USER-H5MD USER-LB USER-MANIFOLD USER-MEAMC USER-MGPT USER-MISC
-  USER-MOFFF USER-MOLFILE USER-NETCDF USER-PHONON USER-QTB USER-REAXC USER-SCAFACOS 
-  USER-SMD USER-SMTBQ USER-SPH USER-TALLY USER-UEF USER-VTK USER-QUIP USER-QMMM)
+  KSPACE MANYBODY MC MEAM MESSAGE MISC MOLECULE PERI REAX REPLICA RIGID SHOCK
+  SPIN SNAP SRD KIM PYTHON MSCG MPIIO VORONOI POEMS LATTE USER-ATC USER-AWPMD
+  USER-BOCS USER-CGDNA USER-MESO USER-CGSDK USER-COLVARS USER-DIFFRACTION
+  USER-DPD USER-DRUDE USER-EFF USER-FEP USER-H5MD USER-LB USER-MANIFOLD
+  USER-MEAMC USER-MGPT USER-MISC USER-MOFFF USER-MOLFILE USER-NETCDF
+  USER-PHONON USER-PTM USER-QTB USER-REAXC USER-SCAFACOS USER-SMD USER-SMTBQ
+  USER-SPH USER-TALLY USER-UEF USER-VTK USER-QUIP USER-QMMM)
 set(ACCEL_PACKAGES USER-OMP KOKKOS OPT USER-INTEL GPU)
 set(OTHER_PACKAGES CORESHELL QEQ)
 foreach(PKG ${DEFAULT_PACKAGES})
@@ -348,7 +351,7 @@ if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-QUIP OR PKG_LATTE)
   find_package(BLAS)
   if(NOT LAPACK_FOUND OR NOT BLAS_FOUND)
     enable_language(Fortran)
-    file(GLOB LAPACK_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/linalg/*.[fF])
+    file(GLOB LAPACK_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/linalg/[^.]*.[fF])
     add_library(linalg STATIC ${LAPACK_SOURCES})
     set(LAPACK_LIBRARIES linalg)
   else()
@@ -550,8 +553,9 @@ if(PKG_USER-SMD)
     set(EIGEN3_INCLUDE_DIR ${SOURCE_DIR})
     list(APPEND LAMMPS_DEPS Eigen3_build)
   else()
-    find_package(Eigen3)
-    if(NOT Eigen3_FOUND)
+    find_package(Eigen3 NO_MODULE)
+    mark_as_advanced(Eigen3_DIR)
+    if(NOT EIGEN3_FOUND)
       message(FATAL_ERROR "Eigen3 not found, help CMake to find it by setting EIGEN3_INCLUDE_DIR, or set DOWNLOAD_EIGEN3=ON to download it")
     endif()
   endif()
@@ -603,8 +607,9 @@ endif()
 
 if(PKG_MESSAGE)
   option(MESSAGE_ZMQ "Use ZeroMQ in MESSAGE package" OFF)
-  file(GLOB_RECURSE cslib_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/message/cslib/*.F
-      ${LAMMPS_LIB_SOURCE_DIR}/message/cslib/*.c ${LAMMPS_LIB_SOURCE_DIR}/message/cslib/*.cpp)
+  file(GLOB_RECURSE cslib_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/message/cslib/[^.]*.F
+      ${LAMMPS_LIB_SOURCE_DIR}/message/cslib/[^.]*.c
+      ${LAMMPS_LIB_SOURCE_DIR}/message/cslib/[^.]*.cpp)
 
   if(BUILD_SHARED_LIBS)
       add_library(cslib SHARED ${cslib_SOURCES})
@@ -720,8 +725,8 @@ RegisterStyles(${LAMMPS_SOURCE_DIR})
 foreach(PKG ${DEFAULT_PACKAGES})
   set(${PKG}_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/${PKG})
 
-  file(GLOB ${PKG}_SOURCES ${${PKG}_SOURCES_DIR}/*.cpp)
-  file(GLOB ${PKG}_HEADERS ${${PKG}_SOURCES_DIR}/*.h)
+  file(GLOB ${PKG}_SOURCES ${${PKG}_SOURCES_DIR}/[^.]*.cpp)
+  file(GLOB ${PKG}_HEADERS ${${PKG}_SOURCES_DIR}/[^.]*.h)
 
   # check for package files in src directory due to old make system
   DetectBuildSystemConflict(${LAMMPS_SOURCE_DIR} ${${PKG}_SOURCES} ${${PKG}_HEADERS})
@@ -739,8 +744,8 @@ endforeach()
 foreach(PKG ${ACCEL_PACKAGES})
   set(${PKG}_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/${PKG})
 
-  file(GLOB ${PKG}_SOURCES ${${PKG}_SOURCES_DIR}/*.cpp)
-  file(GLOB ${PKG}_HEADERS ${${PKG}_SOURCES_DIR}/*.h)
+  file(GLOB ${PKG}_SOURCES ${${PKG}_SOURCES_DIR}/[^.]*.cpp)
+  file(GLOB ${PKG}_HEADERS ${${PKG}_SOURCES_DIR}/[^.]*.h)
 
   # check for package files in src directory due to old make system
   DetectBuildSystemConflict(${LAMMPS_SOURCE_DIR} ${${PKG}_SOURCES} ${${PKG}_HEADERS})
@@ -754,8 +759,10 @@ foreach(SIMPLE_LIB REAX MEAM POEMS USER-ATC USER-AWPMD USER-COLVARS USER-H5MD
   if(PKG_${SIMPLE_LIB})
     string(REGEX REPLACE "^USER-" "" PKG_LIB "${SIMPLE_LIB}")
     string(TOLOWER "${PKG_LIB}" PKG_LIB)
-    file(GLOB_RECURSE ${PKG_LIB}_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/*.F
-      ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/*.c ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/*.cpp)
+    file(GLOB_RECURSE ${PKG_LIB}_SOURCES
+      ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/[^.]*.F
+      ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/[^.]*.c
+      ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/[^.]*.cpp)
     add_library(${PKG_LIB} STATIC ${${PKG_LIB}_SOURCES})
     list(APPEND LAMMPS_LINK_LIBS ${PKG_LIB})
     if(PKG_LIB STREQUAL awpmd)
@@ -830,6 +837,7 @@ if(PKG_USER-OMP)
     set(USER-OMP_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/USER-OMP)
     set(USER-OMP_SOURCES ${USER-OMP_SOURCES_DIR}/thr_data.cpp
                          ${USER-OMP_SOURCES_DIR}/thr_omp.cpp
+                         ${USER-OMP_SOURCES_DIR}/fix_omp.cpp
                          ${USER-OMP_SOURCES_DIR}/fix_nh_omp.cpp
                          ${USER-OMP_SOURCES_DIR}/fix_nh_sphere_omp.cpp
                          ${USER-OMP_SOURCES_DIR}/domain_omp.cpp)
@@ -838,7 +846,7 @@ if(PKG_USER-OMP)
 
     # detects styles which have USER-OMP version
     RegisterStylesExt(${USER-OMP_SOURCES_DIR} omp OMP_SOURCES)
-
+    RegisterFixStyle("${USER-OMP_SOURCES_DIR}/fix_omp.h")
 
     get_property(USER-OMP_SOURCES GLOBAL PROPERTY OMP_SOURCES)
 
@@ -1038,7 +1046,7 @@ if(PKG_GPU)
       set(GPU_PREC_SETTING "SINGLE_SINGLE")
     endif()
 
-    file(GLOB GPU_LIB_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cpp)
+    file(GLOB GPU_LIB_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/gpu/[^.]*.cpp)
     file(MAKE_DIRECTORY ${LAMMPS_LIB_BINARY_DIR}/gpu)
 
     if(GPU_API STREQUAL "CUDA")
@@ -1051,15 +1059,15 @@ if(PKG_GPU)
 
       set(GPU_ARCH "sm_30" CACHE STRING "LAMMPS GPU CUDA SM architecture (e.g. sm_60)")
 
-      file(GLOB GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cu ${CMAKE_CURRENT_SOURCE_DIR}/gpu/*.cu)
+      file(GLOB GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/[^.]*.cu ${CMAKE_CURRENT_SOURCE_DIR}/gpu/[^.]*.cu)
       list(REMOVE_ITEM GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_pppm.cu)
 
       cuda_include_directories(${LAMMPS_LIB_SOURCE_DIR}/gpu ${LAMMPS_LIB_BINARY_DIR}/gpu)
 
       if(CUDPP_OPT)
         cuda_include_directories(${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini)
-        file(GLOB GPU_LIB_CUDPP_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini/*.cpp)
-        file(GLOB GPU_LIB_CUDPP_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini/*.cu)
+        file(GLOB GPU_LIB_CUDPP_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini/[^.]*.cpp)
+        file(GLOB GPU_LIB_CUDPP_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini/[^.]*.cu)
       endif()
 
       cuda_compile_cubin(GPU_GEN_OBJS ${GPU_LIB_CU} OPTIONS
@@ -1108,7 +1116,7 @@ if(PKG_GPU)
       include(OpenCLUtils)
       set(OCL_COMMON_HEADERS ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_preprocessor.h ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_aux_fun1.h)
 
-      file(GLOB GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/*.cu)
+      file(GLOB GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/[^.]*.cu)
       list(REMOVE_ITEM GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_gayberne.cu ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_gayberne_lj.cu)
 
       foreach(GPU_KERNEL ${GPU_LIB_CU})
@@ -1235,7 +1243,7 @@ if(BUILD_DOC)
 
   set(VIRTUALENV ${PYTHON_EXECUTABLE} -m virtualenv)
 
-  file(GLOB DOC_SOURCES ${LAMMPS_DOC_DIR}/src/*.txt)
+  file(GLOB DOC_SOURCES ${LAMMPS_DOC_DIR}/src/[^.]*.txt)
   file(GLOB PDF_EXTRA_SOURCES ${LAMMPS_DOC_DIR}/src/lammps_commands*.txt ${LAMMPS_DOC_DIR}/src/lammps_support.txt ${LAMMPS_DOC_DIR}/src/lammps_tutorials.txt)
   list(REMOVE_ITEM DOC_SOURCES ${PDF_EXTRA_SOURCES})
 

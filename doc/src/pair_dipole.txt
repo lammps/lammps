@@ -13,6 +13,7 @@ pair_style lj/sf/dipole/sf command :h3
 pair_style lj/sf/dipole/sf/gpu command :h3
 pair_style lj/sf/dipole/sf/omp command :h3
 pair_style lj/cut/dipole/long command :h3
+pair_style lj/cut/dipole/long/gpu command :h3
 pair_style lj/long/dipole/long command :h3
 
 [Syntax:]

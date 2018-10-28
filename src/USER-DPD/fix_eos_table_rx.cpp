@@ -309,7 +309,7 @@ void FixEOStableRX::read_file(char *file)
     fp = fopen(file,"r");
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open eos table/rx potential file %s",file);
+      snprintf(str,128,"Cannot open eos table/rx potential file %s",file);
       error->one(FLERR,str);
     }
   }
@@ -419,7 +419,7 @@ void FixEOStableRX::read_table(Table *tb, Table *tb2, char *file, char *keyword)
   FILE *fp = fopen(file,"r");
   if (fp == NULL) {
     char str[128];
-    sprintf(str,"Cannot open file %s",file);
+    snprintf(str,128,"Cannot open file %s",file);
     error->one(FLERR,str);
   }
 

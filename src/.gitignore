@@ -63,7 +63,6 @@
 /fix_plumed.h
 /Plumed.cpp
 /Plumed.h
-/Plumed.inc
 /dump_molfile.cpp
 /dump_molfile.h
 /molfile_interface.cpp

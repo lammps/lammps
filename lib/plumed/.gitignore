@@ -1,2 +1,3 @@
-# files to ignore
 /plumed2*
+/includelink
+/liblink

@@ -40,7 +40,6 @@
 #include "Plumed.h"
 
 using namespace LAMMPS_NS;
-using namespace PLMD;
 using namespace FixConst;
 
 #define INVOKED_SCALAR 1

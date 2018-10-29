@@ -51,7 +51,7 @@ ComputeADF::ComputeADF(LAMMPS *lmp, int narg, char **arg) :
   iatomflag(NULL), 
   jatomflag(NULL), rcutinnerj(NULL), rcutouterj(NULL), 
   katomflag(NULL), rcutinnerk(NULL), rcutouterk(NULL),
-  maxjatom(NULL), numjatom(NULL), neighjatom(NULL), 
+  list(NULL), maxjatom(NULL), numjatom(NULL), neighjatom(NULL),
   maxkatom(NULL), numkatom(NULL), neighkatom(NULL), 
   maxjkatom(NULL), numjkatom(NULL), neighjkatom(NULL), bothjkatom(NULL)
 {

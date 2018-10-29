@@ -16,6 +16,29 @@
 #include "modify.h"
 #include "pair.h"
 
+/*
+  Do not link plumed directly but rather do it at runtime
+*/
+#define __PLUMED_WRAPPER_LINK_RUNTIME 1
+
+/*
+  Make sure the inline C++ interface is not included here.
+  Should not be necessary, but it doesn't hurt.
+*/
+#define __PLUMED_WRAPPER_CXX 0
+
+/*
+  Tell Plumed.h to emit the whole implementation
+*/
+#define __PLUMED_WRAPPER_IMPLEMENTATION 1
+
+/*
+  Emit fortran wrappers
+*/
+#define __PLUMED_WRAPPER_FORTRAN 1
+
+#include "Plumed.h"
+
 using namespace LAMMPS_NS;
 using namespace PLMD;
 using namespace FixConst;

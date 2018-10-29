@@ -37,7 +37,7 @@
 */
 #define __PLUMED_WRAPPER_FORTRAN 1
 
-#include "Plumed.h"
+#include "plumed/wrapper/Plumed.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

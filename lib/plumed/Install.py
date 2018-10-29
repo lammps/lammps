@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Install.py tool to download, unpack, build, and link to the Voro++ library
+# Install.py tool to download, unpack, build, and link to the plumed2 library
 # used to automate the steps described in the README file in this dir
 
 from __future__ import print_function

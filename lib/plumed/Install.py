@@ -163,7 +163,7 @@ if linkflag:
     os.remove("includelink")
   if os.path.isfile("liblink") or os.path.islink("liblink"):
     os.remove("liblink")
-  cmd = 'ln -s "%s/plumed2/include" includelink' % homepath
+  cmd = 'ln -s "%s/plumed2/include/plumed/wrapper" includelink' % homepath
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   cmd = 'ln -s "%s/plumed2/lib" liblink' % homepath
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)

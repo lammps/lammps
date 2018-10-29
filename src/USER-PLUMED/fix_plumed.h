@@ -9,9 +9,11 @@ FixStyle(plumed,FixPlumed)
 #define LMP_FIX_PLUMED_H
 
 #include "fix.h"
-#include "compute.h"
-// the plumed header that defines the class//
-#include "Plumed.h"
+
+// forward declaration
+namespace PLMD {
+  class Plumed;
+}
 
 namespace LAMMPS_NS {
 
@@ -30,15 +32,15 @@ class FixPlumed : public Fix {
 
  private:
 // pointer to plumed object:
-  PLMD::Plumed*p;
+  PLMD::Plumed *p;
 // number of atoms local to this process:
   int nlocal;
 // array of atom indexes local to this process:
-  int*gatindex;
+  int *gatindex;
 // array of masses for local atoms:
-  double*masses;
+  double *masses;
 // array of charges for local atoms:
-  double*charges;
+  double *charges;
 // this is something to enable respa
   int nlevels_respa;
 // output bias potential

@@ -1,6 +1,8 @@
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
+
 #include "atom.h"
 #include "update.h"
 #include "force.h"

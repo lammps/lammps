@@ -1,0 +1,13 @@
+This package implements the Smoothed Dissipative Particle Dynamics (SDPD)
+method for modelling fluids at mesoscale and diffusion of colloids.
+Currently it adds pair style sdpd/taitwater/isothermal for modelling water
+at isothermal conditions using the Tait equation of state.
+It also adds fix meso/move command to move mesoscopic SPH/SDPD particles with
+prescribed velocity and fix rigid/meso command to integrate rigid bodies
+composed of mesoscopic SPH/SDPD particles.
+
+Creator of this package is:
+
+Morteza Jalalvand
+Institute for Advanced Studies in Basic Sciences
+jalalvand.m AT gmail DOT com

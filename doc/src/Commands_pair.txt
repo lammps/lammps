@@ -198,6 +198,7 @@ OPT.
 "reax/c (ko)"_pair_reaxc.html,
 "rebo (io)"_pair_airebo.html,
 "resquared (go)"_pair_resquared.html,
+"sdpd/taitwater/isothermal"_pair_sdpd_taitwater_isothermal.html,
 "smd/hertz"_pair_smd_hertz.html,
 "smd/tlsph"_pair_smd_tlsph.html,
 "smd/tri_surface"_pair_smd_triangulated_surface.html,

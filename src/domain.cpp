@@ -1623,8 +1623,14 @@ int Domain::ownatom(int /*id*/, double *x, imageint *image, int shrinkexceed)
   if (image) remap(x,*image);
   else remap(x);
 
+  // if triclinic, convert to lamda coords (0-1)
+  // for periodic dims, resulting coord must satisfy 0.0 <= coord < 1.0
+
   if (triclinic) {
     x2lamda(x,lamda);
+    if (xperiodic && (lamda[0] < 0.0 || lamda[0] >= 1.0)) lamda[0] = 0.0;
+    if (yperiodic && (lamda[1] < 0.0 || lamda[1] >= 1.0)) lamda[1] = 0.0;
+    if (zperiodic && (lamda[2] < 0.0 || lamda[2] >= 1.0)) lamda[2] = 0.0;
     coord = lamda;
   } else coord = x;
 

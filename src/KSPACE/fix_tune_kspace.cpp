@@ -273,7 +273,8 @@ void FixTuneKspace::update_kspace_style(char *new_kspace_style,
 
   // delete old kspace style and create new one
 
-  force->create_kspace(narg,arg,1);
+  force->create_kspace(arg[0],1);
+  force->kspace->settings(narg-1,&arg[1]);
   force->kspace->differentiation_flag = old_differentiation_flag;
   force->kspace->slabflag = old_slabflag;
   force->kspace->slab_volfactor = old_slab_volfactor;

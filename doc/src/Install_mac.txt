@@ -49,7 +49,8 @@ Lennard-Jones benchmark file:
 % brew test lammps -v :pre
 
 If you have problems with the installation you can post issues to
-"this link"_https://github.com/Homebrew/homebrew-science/issues.
+"this link"_homebrew.
 
 Thanks to Derek Thomas (derekt at cello.t.u-tokyo.ac.jp) for setting
 up the Homebrew capability.
+:link(homebrew,https://github.com/Homebrew/homebrew-science/issues)

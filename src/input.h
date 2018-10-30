@@ -24,6 +24,8 @@ namespace LAMMPS_NS {
 class Input : protected Pointers {
   friend class Info;
   friend class Error;
+  friend class Deprecated;
+
  public:
   int narg;                    // # of command args
   char **arg;                  // parsed args for command
@@ -38,9 +40,11 @@ class Input : protected Pointers {
                                  // substitute for variables in a string
   int expand_args(int, char **, int, char **&);  // expand args due to wildcard
 
+ protected:
+  char *command;               // ptr to current command
+
  private:
   int me;                      // proc ID
-  char *command;               // ptr to current command
   int maxarg;                  // max # of args in arg
   char *line,*copy,*work;      // input line & copy and work string
   int maxline,maxcopy,maxwork; // max lengths of char strings

@@ -53,6 +53,8 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 6) error->all(FLERR,"Illegal fix pour command");
 
+  if (lmp->kokkos) error->all(FLERR,"Cannot yet use fix pour with the KOKKOS package");
+
   time_depend = 1;
 
   if (!atom->radius_flag || !atom->rmass_flag)
@@ -181,6 +183,7 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
   for (ifix = 0; ifix < modify->nfix; ifix++) {
     if (strcmp(modify->fix[ifix]->style,"gravity") == 0) break;
     if (strcmp(modify->fix[ifix]->style,"gravity/omp") == 0) break;
+    if (strstr(modify->fix[ifix]->style,"gravity/kk") != NULL) break;
   }
   if (ifix == modify->nfix)
     error->all(FLERR,"No fix gravity defined for fix pour");
@@ -315,6 +318,7 @@ void FixPour::init()
   for (ifix = 0; ifix < modify->nfix; ifix++) {
     if (strcmp(modify->fix[ifix]->style,"gravity") == 0) break;
     if (strcmp(modify->fix[ifix]->style,"gravity/omp") == 0) break;
+    if (strstr(modify->fix[ifix]->style,"gravity/kk") != NULL) break;
   }
   if (ifix == modify->nfix)
     error->all(FLERR,"No fix gravity defined for fix pour");

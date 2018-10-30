@@ -80,9 +80,9 @@ too frequently or to have multiple compute/dump commands, each with a
 
 [Output info:]
 
-This compute calculates a per-atom array, which can be accessed by
+This compute calculates a per-atom arry, which can be accessed by
 any command that uses per-atom values from a compute as input.  See
-"Section 6.15"_Section_howto.html#howto_15 for an overview of
+the "Howto output"_Howto_output.html doc page for an overview of
 LAMMPS output options.
 
 Results are stored in the per-atom array in the following order:

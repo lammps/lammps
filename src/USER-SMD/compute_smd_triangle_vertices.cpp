@@ -28,7 +28,7 @@
 #include <cstring>
 #include <iostream>
 #include <Eigen/Eigen>
-#include "compute_smd_triangle_mesh_vertices.h"
+#include "compute_smd_triangle_vertices.h"
 #include "atom.h"
 #include "update.h"
 #include "modify.h"

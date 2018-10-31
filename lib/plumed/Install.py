@@ -4,34 +4,40 @@
 # used to automate the steps described in the README file in this dir
 
 from __future__ import print_function
-import sys,os,re,subprocess
+import sys,os,re,subprocess,hashlib
 
 # help message
 
 help = """
 Syntax from src dir: make lib-plumed args="-b"
-                 or: make lib-plumed args="-b -v 2.4.2"
-Syntax from lib dir: python Install.py -b -v 2.4.2
+                 or: make lib-plumed args="-b -v 2.4.3"
+                 or: make lib-plumed args="-p /usr/local/plumed2-2.4.3"
+
+Syntax from lib dir: python Install.py -b -v 2.4.3
                  or: python Install.py -b
-                 or: python Install.py -p /usr/local/plumed-2.4.2
+                 or: python Install.py -p /usr/local/plumed2-2.4.3
 
 specify one or more options, order does not matter
 
   -b = download and build the plumed2 library
   -p = specify folder of existing plumed2 installation
-  -v = set version of plumed2 to download and build (default: 2.4.2)
+  -v = set version of plumed2 to download and build (default: 2.4.3)
 
 Example:
 
 make lib-plumed args="-b"   # download/build in lib/plumed/plumed2
-make lib-plumed args="-p $HOME/plumed-2.4.2" # use existing Plumed2 installation in $HOME/plumed-2.4.2
+make lib-plumed args="-p $HOME/plumed-2.4.3" # use existing Plumed2 installation in $HOME/plumed-2.4.3
 """
 
 # settings
 
-version = "2.4.2"
+version = "2.4.3"
 
-# Add known checksums for different PLUMED versions and use them to validate the download
+# known checksums for different PLUMED versions. used to validate the download.
+checksums = { \
+        '2.4.2' : '0f66f24b4c763ae8b2f39574113e9935', \
+        '2.4.3' : 'dc38de0ffd59d13950d8f1ef1ce05574', \
+        }
 
 # print error message or help
 def error(str=None):
@@ -85,7 +91,16 @@ def geturl(url,fname):
     error("Failed to download source code with 'curl' or 'wget'")
   return
 
-# Here add function to check fsum
+def checkmd5sum(md5sum,fname):
+    with open(fname,'rb') as fh:
+        m = hashlib.md5()
+        while True:
+            data = fh.read(81920)
+            if not data:
+                break
+            m.update(data)
+    fh.close()
+    return m.hexdigest() == md5sum
 
 # parse args
 
@@ -134,9 +149,15 @@ if buildflag:
   url = "https://github.com/plumed/plumed2/archive/v%s.tar.gz" % version
   filename = "v%s.tar.gz" %version
   print("Downloading plumed  ...")
-  geturl(url,filename) 
+  geturl(url,filename)
 
-  print("Unpacking plumed tarball ...")
+  # verify downloaded archive integrity via md5 checksum, if known.
+  if version in checksums:
+    if not checkmd5sum(checksums[version],filename):
+      error("Checksum for plumed2 library does not match")
+
+
+  print("Unpacking plumed2 tarball ...")
   if os.path.exists("%s/plumed2-%s" % (homepath,version)):
     cmd = 'rm -rf "%s/plumed2-%s"' % (homepath,version)
     subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)

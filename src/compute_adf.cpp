@@ -46,14 +46,17 @@ enum{DEGREE, RADIAN, COSINE};
 ComputeADF::ComputeADF(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
   ilo(NULL), ihi(NULL), jlo(NULL), jhi(NULL), klo(NULL), khi(NULL), 
-  iatomcount(NULL), iatomcountall(NULL), 
   hist(NULL), histall(NULL),
-  iatomflag(NULL), 
-  jatomflag(NULL), rcutinnerj(NULL), rcutouterj(NULL), 
-  katomflag(NULL), rcutinnerk(NULL), rcutouterk(NULL),
-  list(NULL), maxjatom(NULL), numjatom(NULL), neighjatom(NULL),
-  maxkatom(NULL), numkatom(NULL), neighkatom(NULL), 
-  maxjkatom(NULL), numjkatom(NULL), neighjkatom(NULL), bothjkatom(NULL)
+  rcutinnerj(NULL), rcutinnerk(NULL),
+  rcutouterj(NULL), rcutouterk(NULL),
+  list(NULL),
+  iatomcount(NULL), iatomcountall(NULL), iatomflag(NULL),
+  maxjatom(NULL), maxkatom(NULL),
+  numjatom(NULL), numkatom(NULL),
+  neighjatom(NULL),neighkatom(NULL), 
+  jatomflag(NULL), katomflag(NULL),
+  maxjkatom(NULL), numjkatom(NULL),
+  neighjkatom(NULL), bothjkatom(NULL), delrjkatom(NULL)
 {
   int nargsperadf = 7;
 
@@ -358,9 +361,9 @@ void ComputeADF::init_list(int /*id*/, NeighList *ptr)
 void ComputeADF::compute_array()
 {
   int i,j,k,m,ii,jj,jatom,katom,jk,jjj,kkk;
-  int inum,jnum,itype,jtype,ibin,ihisto;
+  int inum,jnum,itype,jtype,ibin;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
-  int *ilist,*jlist,*klist,*numneigh,**firstneigh;
+  int *ilist,*jlist,*numneigh,**firstneigh;
   double factor_lj,factor_coul;
   double delr1[3],delr2[3],rinv1,rinv2,rinv12,cs,theta;
 
@@ -394,11 +397,9 @@ void ComputeADF::compute_array()
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
-  int nlocal = atom->nlocal;
 
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
-  int newton_pair = force->newton_pair;
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];

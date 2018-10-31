@@ -262,7 +262,7 @@ void FixPlumed::min_setup(int vflag)
   post_force(vflag);
 }
 
-void FixPlumed::post_force(int vflag)
+void FixPlumed::post_force(int /* vflag */)
 {
 // Check tag is enabled
   if( !atom->tag_enable ) error->all(FLERR,"to run PLUMED you must have tag_enable==1");
@@ -417,7 +417,7 @@ void FixPlumed::post_force(int vflag)
   c_press->addstep(update->ntimestep+1);
 }
 
-void FixPlumed::post_force_respa(int vflag, int ilevel, int iloop)
+void FixPlumed::post_force_respa(int vflag, int ilevel, int /* iloop */)
 {
   if (ilevel == nlevels_respa-1) post_force(vflag);
 }

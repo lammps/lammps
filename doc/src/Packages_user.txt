@@ -62,7 +62,7 @@ Package, Description, Doc page, Example, Library
 "USER-NETCDF"_Packages_details.html#PKG-USER-NETCDF, dump output via NetCDF,"dump netcdf"_dump_netcdf.html, n/a, ext
 "USER-OMP"_Packages_details.html#PKG-USER-OMP, OpenMP-enabled styles,"Speed omp"_Speed_omp.html, "Benchmarks"_http://lammps.sandia.gov/bench.html, no
 "USER-PHONON"_Packages_details.html#PKG-USER-PHONON, phonon dynamical matrix,"fix phonon"_fix_phonon.html, USER/phonon, no
-"USER-PTM"_Packages_details.html#PKG-USER-PTM, Polyhedral Template Matching,"compute ptm/atom"_compute_ptm.html, n/a, no
+"USER-PTM"_Packages_details.html#PKG-USER-PTM, Polyhedral Template Matching,"compute ptm/atom"_compute_ptm_atom.html, n/a, no
 "USER-QMMM"_Packages_details.html#PKG-USER-QMMM, QM/MM coupling,"fix qmmm"_fix_qmmm.html, USER/qmmm, ext
 "USER-QTB"_Packages_details.html#PKG-USER-QTB, quantum nuclear effects,"fix qtb"_fix_qtb.html "fix qbmsst"_fix_qbmsst.html, qtb, no
 "USER-QUIP"_Packages_details.html#PKG-USER-QUIP, QUIP/libatoms interface,"pair_style quip"_pair_quip.html, USER/quip, ext
@@ -74,3 +74,4 @@ Package, Description, Doc page, Example, Library
 "USER-TALLY"_Packages_details.html#PKG-USER-TALLY, pairwise tally computes,"compute XXX/tally"_compute_tally.html, USER/tally, no
 "USER-UEF"_Packages_details.html#PKG-USER-UEF, extensional flow,"fix nvt/uef"_fix_nh_uef.html, USER/uef, no
 "USER-VTK"_Packages_details.html#PKG-USER-VTK, dump output via VTK, "compute vtk"_dump_vtk.html, n/a, ext :tb(ea=c,ca1=l)
+:link(MOFplus,https://www.mofplus.org/content/show/MOF-FF)

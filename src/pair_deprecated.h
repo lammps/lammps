@@ -11,39 +11,35 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   Contributing author: Axel Kohlmeyer (Temple U)
-------------------------------------------------------------------------- */
-
 #ifdef PAIR_CLASS
 
-//PairStyle(nb3b/harmonic/omp,PairNb3bHarmonicOMP)
-PairStyle(disabled,PairNb3bHarmonicOMP)
+PairStyle(DEPRECATED,PairDeprecated)
 
 #else
 
-#ifndef LMP_PAIR_NB3BHARMONIC_OMP_H
-#define LMP_PAIR_NB3BHARMONIC_OMP_H
+#ifndef LMP_PAIR_DEPRECATED_H
+#define LMP_PAIR_DEPRECATED_H
 
-#include "pair_nb3b_harmonic.h"
-#include "thr_omp.h"
+#include "pair.h"
 
 namespace LAMMPS_NS {
 
-class PairNb3bHarmonicOMP : public PairNb3bHarmonic, public ThrOMP {
-
+class PairDeprecated : public Pair {
  public:
-  PairNb3bHarmonicOMP(class LAMMPS *);
+  PairDeprecated(class LAMMPS *lmp) : Pair(lmp) {}
+  virtual ~PairDeprecated() {}
 
-  virtual void compute(int, int);
-  virtual double memory_usage();
+  virtual void compute(int, int) {}
+  virtual void settings(int, char **);
+  virtual void coeff(int, char **) {}
 
- private:
-  template <int EVFLAG, int EFLAG>
-  void eval(int ifrom, int ito, ThrData * const thr);
 };
 
 }
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+*/

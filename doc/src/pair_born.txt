@@ -11,39 +11,34 @@ pair_style born command :h3
 pair_style born/omp command :h3
 pair_style born/gpu command :h3
 pair_style born/coul/long command :h3
-pair_style born/coul/long/cs command :h3
-pair_style born/coul/long/cs/gpu command :h3
 pair_style born/coul/long/gpu command :h3
 pair_style born/coul/long/omp command :h3
 pair_style born/coul/msm command :h3
 pair_style born/coul/msm/omp command :h3
 pair_style born/coul/wolf command :h3
-pair_style born/coul/wolf/cs command :h3
-pair_style born/coul/wolf/cs/gpu command :h3
 pair_style born/coul/wolf/gpu command :h3
 pair_style born/coul/wolf/omp command :h3
 pair_style born/coul/dsf command :h3
-pair_style born/coul/dsf/cs command :h3
 
 [Syntax:]
 
 pair_style style args :pre
 
-style = {born} or {born/coul/long} or {born/coul/long/cs} or {born/coul/msm} or {born/coul/wolf}
+style = {born} or {born/coul/long} or {born/coul/msm} or {born/coul/wolf}
 args = list of arguments for a particular style :ul
   {born} args = cutoff
     cutoff = global cutoff for non-Coulombic interactions (distance units)
-  {born/coul/long} or {born/coul/long/cs} args = cutoff (cutoff2)
+  {born/coul/long} args = cutoff (cutoff2)
     cutoff = global cutoff for non-Coulombic (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
   {born/coul/msm} args = cutoff (cutoff2)
     cutoff = global cutoff for non-Coulombic (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
-  {born/coul/wolf} or {born/coul/wolf/cs} args = alpha cutoff (cutoff2)
+  {born/coul/wolf} args = alpha cutoff (cutoff2)
     alpha = damping parameter (inverse distance units)
     cutoff = global cutoff for non-Coulombic (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
-  {born/coul/dsf} or {born/coul/dsf/cs} args = alpha cutoff (cutoff2)
+  {born/coul/dsf} args = alpha cutoff (cutoff2)
     alpha = damping parameter (inverse distance units)
     cutoff = global cutoff for non-Coulombic (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (distance units) :pre
@@ -55,9 +50,7 @@ pair_coeff * * 6.08 0.317 2.340 24.18 11.51
 pair_coeff 1 1 6.08 0.317 2.340 24.18 11.51 :pre
 
 pair_style born/coul/long 10.0
-pair_style born/coul/long/cs 10.0
-pair_style born/coul/long 10.0 8.0
-pair_style born/coul/long/cs 10.0 8.0
+pair_style born/coul/long 10.0 8.
 pair_coeff * * 6.08 0.317 2.340 24.18 11.51
 pair_coeff 1 1 6.08 0.317 2.340 24.18 11.51 :pre
 
@@ -68,7 +61,6 @@ pair_coeff 1 1 6.08 0.317 2.340 24.18 11.51 :pre
 
 pair_style born/coul/wolf 0.25 10.0
 pair_style born/coul/wolf 0.25 10.0 9.0
-pair_style born/coul/wolf/cs 0.25 10.0 9.0
 pair_coeff * * 6.08 0.317 2.340 24.18 11.51
 pair_coeff 1 1 6.08 0.317 2.340 24.18 11.51 :pre
 
@@ -106,13 +98,6 @@ Wolf potential in the "coul/wolf"_pair_coul.html pair style.
 
 The {born/coul/dsf} style computes the Coulomb contribution with the
 damped shifted force model as in the "coul/dsf"_pair_coul.html style.
-
-Style {born/coul/long/cs} is identical to {born/coul/long} except that
-a term is added for the "core/shell model"_Howto_coreshell.html to
-allow charges on core and shell particles to be separated by r = 0.0.
-The same correction is introduced for the {born/coul/dsf/cs} style
-which is identical to {born/coul/dsf}.  And likewise for
-{born/coul/wolf/cs} style which is identical to {born/coul/wolf}.
 
 Note that these potentials are related to the "Buckingham
 potential"_pair_buck.html.
@@ -174,7 +159,7 @@ for the energy of the exp(), 1/r^6, and 1/r^8 portion of the pair
 interaction.
 
 The {born/coul/long} pair style supports the
-"pair_modify"_pair_modify.html table option ti tabulate the
+"pair_modify"_pair_modify.html table option to tabulate the
 short-range portion of the long-range Coulombic interaction.
 
 These styles support the pair_modify tail option for adding long-range

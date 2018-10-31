@@ -92,11 +92,12 @@ class PPPMKokkos : public PPPM, public KokkosBase {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
 
-  PPPMKokkos(class LAMMPS *, int, char **);
+  PPPMKokkos(class LAMMPS *);
   virtual ~PPPMKokkos();
   virtual void init();
   virtual void setup();
   void setup_grid();
+  virtual void settings(int, char **);
   virtual void compute(int, int);
   virtual int timing_1d(int, double &);
   virtual int timing_3d(int, double &);

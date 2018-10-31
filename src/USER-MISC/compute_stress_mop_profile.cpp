@@ -422,7 +422,7 @@ void ComputeStressMopProfile::compute_pairs()
 
             if (((xi[dir]-pos)*(xj[dir]-pos)*(xi[dir]-pos1)*(xj[dir]-pos1)<0)){
 
-              sgn = copysign(1,vi[dir]);
+              sgn = copysign(1.0,vi[dir]);
 
               //approximate crossing velocity by v(t-dt/2) (based on Velocity-Verlet alg.)
               double vcross[3];

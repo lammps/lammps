@@ -397,13 +397,13 @@ void ComputeStressMop::compute_pairs()
           // at each timestep, must check atoms going through the
           // image of the plane that is closest to the box
 
-          double pos_temp = pos+copysign(1,domain->prd_half[dir]-pos)*domain->prd[dir];
+          double pos_temp = pos+copysign(1.0,domain->prd_half[dir]-pos)*domain->prd[dir];
           if (fabs(xi[dir]-pos)<fabs(xi[dir]-pos_temp)) pos_temp = pos;
 
           if (((xi[dir]-pos_temp)*(xj[dir]-pos_temp)<0)){
 
-            //sgn = copysign(1,vi[dir]-vcm[dir]);
-            sgn = copysign(1,vi[dir]);
+            //sgn = copysign(1.0,vi[dir]-vcm[dir]);
+            sgn = copysign(1.0,vi[dir]);
 
             //approximate crossing velocity by v(t-dt/2) (based on Velocity-Verlet alg.)
             double vcross[3];

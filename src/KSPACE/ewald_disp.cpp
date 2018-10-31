@@ -43,14 +43,11 @@ using namespace MathSpecial;
 
 /* ---------------------------------------------------------------------- */
 
-EwaldDisp::EwaldDisp(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg),
+EwaldDisp::EwaldDisp(LAMMPS *lmp) : KSpace(lmp),
   kenergy(NULL), kvirial(NULL), energy_self_peratom(NULL), virial_self_peratom(NULL),
   ekr_local(NULL), hvec(NULL), kvec(NULL), B(NULL), cek_local(NULL), cek_global(NULL)
 {
-  if (narg!=1) error->all(FLERR,"Illegal kspace_style ewald/n command");
-
   ewaldflag = dispersionflag = dipoleflag = 1;
-  accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
 
   memset(function, 0, EWALD_NFUNCS*sizeof(int));
   kenergy = kvirial = NULL;
@@ -67,6 +64,13 @@ EwaldDisp::EwaldDisp(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   b2 = 0;
   M2 = 0;
 }
+
+void EwaldDisp::settings(int narg, char **arg)
+{
+  if (narg!=1) error->all(FLERR,"Illegal kspace_style ewald/n command");
+  accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
+}
+
 
 /* ---------------------------------------------------------------------- */
 

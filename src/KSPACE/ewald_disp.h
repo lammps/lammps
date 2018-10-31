@@ -36,10 +36,11 @@ typedef struct kvector { long x, y, z; } kvector;
 
 class EwaldDisp : public KSpace {
  public:
-  EwaldDisp(class LAMMPS *, int, char **);
+  EwaldDisp(class LAMMPS *);
   ~EwaldDisp();
   void init();
   void setup();
+  void settings(int, char **);
   void compute(int, int);
   double memory_usage() {return bytes;}
 

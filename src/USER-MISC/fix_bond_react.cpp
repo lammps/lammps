@@ -279,6 +279,9 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     open(files[i]);
     onemol = atom->molecules[unreacted_mol[i]];
     twomol = atom->molecules[reacted_mol[i]];
+    if (onemol->natoms != twomol->natoms)
+      error->all(FLERR,"Post-reacted template must contain the same "
+                       "number of atoms as the pre-reacted template");
     get_molxspecials();
     read(i);
     fclose(fp);

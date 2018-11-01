@@ -41,7 +41,10 @@ react = mandatory argument indicating new reaction specification :l
       fraction = initiate reaction with this probability if otherwise eligible
       seed = random number seed (positive integer)
     {stabilize_steps} value = timesteps
-      timesteps = number of timesteps to apply internally created nve/limit.html :pre
+      timesteps = number of timesteps to apply internally created nve/limit.html
+    {update_edges} value = {none} or {charges} :l
+      none = do not update topology near the edges of reaction templates
+      charges = update atomic charges of all atoms in reaction templates :pre
 :ule
 
 [Examples:]
@@ -155,7 +158,17 @@ Some atoms in the pre-reacted template that are not reacting may have
 missing topology with respect to the simulation. For example, the
 pre-reacted template may contain an atom that would connect to the
 rest of a long polymer chain. These are referred to as edge atoms, and
-are also specified in the map file.
+are also specified in the map file. When the pre-reaction template
+contains edge atoms, not all atoms, bonds, charges, etc. specified in
+the reaction templates will be updated. Specifically, topology that
+involves only atoms that are 'too near' to template edges will not be
+updated. The definition of 'too near the edge' depends on which
+interactions are defined in the simulation. If the simulation has
+defined dihedrals, atoms within two bonds of edge atoms are considered
+'too near the edge.' If the simulation defines angles, but not
+dihedrals, atoms within one bond of edge atoms are considered 'too
+near the edge.' If just bonds are defined, only edge atoms are
+considered 'too near the edge.'
 
 Note that some care must be taken when a building a molecule template
 for a given simulation. All atom types in the pre-reacted template
@@ -255,6 +268,12 @@ The {stabilize_steps} keyword allows for the specification of how many
 timesteps a reaction site is stabilized before being returned to the
 overall system thermostat.
 
+The {update_edges} keyword can increase the number of atoms whose
+atomic charges are updated, when the pre-reaction template contains
+edge atoms. When the value is set to 'charges,' all atoms' atomic
+charges are updated to those specified by the post-reaction template,
+including atoms near the edge of reaction templates.
+
 In order to produce the most physical behavior, this 'reaction site
 equilibration time' should be tuned to be as small as possible while
 retaining stability for a given system or reaction step. After a
@@ -323,7 +342,7 @@ bond/break"_fix_bond_break.html, "fix bond/swap"_fix_bond_swap.html,
 
 [Default:]
 
-The option defaults are stabilization = no, prob = 1.0, stabilize_steps = 60
+The option defaults are stabilization = no, prob = 1.0, stabilize_steps = 60, update_edges = none
 
 :line
 

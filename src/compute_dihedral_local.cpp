@@ -40,7 +40,7 @@ enum{PHI,VARIABLE};
 
 ComputeDihedralLocal::ComputeDihedralLocal(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  bstyle(NULL), vstr(NULL), vvar(NULL), pstr(NULL), vlocal(NULL), alocal(NULL)
+  bstyle(NULL), vvar(NULL), pstr(NULL), vstr(NULL), vlocal(NULL), alocal(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute dihedral/local command");
 

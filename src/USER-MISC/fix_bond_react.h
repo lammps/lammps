@@ -57,6 +57,7 @@ class FixBondReact : public Fix {
   double **cutsq,*fraction;
   tagint lastcheck;
   int stabilization_flag;
+  int custom_exclude_flag;
   int *stabilize_steps_flag;
   int *update_edges_flag;
   int status;
@@ -88,6 +89,8 @@ class FixBondReact : public Fix {
   char *nve_limit_xmax; // indicates max distance allowed to move when relaxing
   char *id_fix1; // id of internally created fix nve/limit
   char *id_fix2; // id of internally created fix per-atom properties
+  char *id_fix3; // id of internally created 'stabilization group' per-atom property fix
+  char *statted_id; // name of 'stabilization group' per-atom property
   char *master_group; // group containing relaxing atoms from all fix rxns
   char *exclude_group; // group for system-wide thermostat
 

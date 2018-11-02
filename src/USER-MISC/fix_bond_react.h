@@ -58,6 +58,7 @@ class FixBondReact : public Fix {
   tagint lastcheck;
   int stabilization_flag;
   int *stabilize_steps_flag;
+  int *update_edges_flag;
   int status;
   int *groupbits;
 

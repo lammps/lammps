@@ -163,6 +163,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   memory->create(seed,nreacts,"bond/react:seed");
   memory->create(limit_duration,nreacts,"bond/react:limit_duration");
   memory->create(stabilize_steps_flag,nreacts,"bond/react:stabilize_steps_flag");
+  memory->create(update_edges_flag,nreacts,"bond/react:update_edges_flag");
   memory->create(iatomtype,nreacts,"bond/react:iatomtype");
   memory->create(jatomtype,nreacts,"bond/react:jatomtype");
   memory->create(ibonding,nreacts,"bond/react:ibonding");
@@ -178,6 +179,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     fraction[i] = 1;
     seed[i] = 12345;
     stabilize_steps_flag[i] = 0;
+    update_edges_flag[i] = 0;
     // set default limit duration to 60 timesteps
     limit_duration[i] = 60;
     reaction_count[i] = 0;
@@ -248,6 +250,11 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
                                       "'stabilize_steps' has too few arguments");
         limit_duration[rxn] = force->numeric(FLERR,arg[iarg+1]);
         stabilize_steps_flag[rxn] = 1;
+        iarg += 2;
+      } else if (strcmp(arg[iarg],"update_edges") == 0) {
+        if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
+                                      "'update_edges' has too few arguments");
+        if (strcmp(arg[iarg+1],"charges") == 0) update_edges_flag[rxn] = 1;
         iarg += 2;
       } else error->all(FLERR,"Illegal fix bond/react command: unknown keyword");
     }
@@ -379,6 +386,7 @@ FixBondReact::~FixBondReact()
   memory->destroy(seed);
   memory->destroy(limit_duration);
   memory->destroy(stabilize_steps_flag);
+  memory->destroy(update_edges_flag);
 
   memory->destroy(iatomtype);
   memory->destroy(jatomtype);
@@ -2022,13 +2030,13 @@ void FixBondReact::update_everything()
     }
 
     // update charges and types of landlocked atoms
-    // here, add check for charge instead of requiring it
     for (int i = 0; i < update_num_mega; i++) {
       rxnID = update_mega_glove[0][i];
       twomol = atom->molecules[reacted_mol[rxnID]];
       for (int j = 0; j < twomol->natoms; j++) {
         int jj = equivalences[j][1][rxnID]-1;
-        if (landlocked_atoms[j][rxnID] == 1 && atom->map(update_mega_glove[jj+1][i]) >= 0 &&
+        if ((landlocked_atoms[j][rxnID] == 1 || update_edges_flag[rxnID] == 1) &&
+            atom->map(update_mega_glove[jj+1][i]) >= 0 &&
             atom->map(update_mega_glove[jj+1][i]) < nlocal) {
           type[atom->map(update_mega_glove[jj+1][i])] = twomol->type[j];
           if (twomol->qflag && atom->q_flag) {

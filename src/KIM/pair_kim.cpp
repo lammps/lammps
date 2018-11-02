@@ -50,7 +50,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Designed for use with the kim-api-v2.0.0-beta.1 (and newer) package
+   Designed for use with the kim-api-v2.0.0-beta.2 (and newer) package
 ------------------------------------------------------------------------- */
 
 #include <cstring>
@@ -82,17 +82,17 @@ PairKIM::PairKIM(LAMMPS *lmp) :
    lmps_unique_elements(NULL),
    lmps_num_unique_elements(0),
    lmps_units(METAL),
-   lengthUnit(KIM::LENGTH_UNIT::unused),
-   energyUnit(KIM::ENERGY_UNIT::unused),
-   chargeUnit(KIM::CHARGE_UNIT::unused),
-   temperatureUnit(KIM::TEMPERATURE_UNIT::unused),
-   timeUnit(KIM::TIME_UNIT::unused),
+   lengthUnit(KIM_LENGTH_UNIT_unused),
+   energyUnit(KIM_ENERGY_UNIT_unused),
+   chargeUnit(KIM_CHARGE_UNIT_unused),
+   temperatureUnit(KIM_TEMPERATURE_UNIT_unused),
+   timeUnit(KIM_TIME_UNIT_unused),
    pkim(NULL),
    pargs(NULL),
-   kim_model_support_for_energy(KIM::SUPPORT_STATUS::notSupported),
-   kim_model_support_for_forces(KIM::SUPPORT_STATUS::notSupported),
-   kim_model_support_for_particleEnergy(KIM::SUPPORT_STATUS::notSupported),
-   kim_model_support_for_particleVirial(KIM::SUPPORT_STATUS::notSupported),
+   kim_model_support_for_energy(KIM_SUPPORT_STATUS_notSupported),
+   kim_model_support_for_forces(KIM_SUPPORT_STATUS_notSupported),
+   kim_model_support_for_particleEnergy(KIM_SUPPORT_STATUS_notSupported),
+   kim_model_support_for_particleVirial(KIM_SUPPORT_STATUS_notSupported),
    lmps_local_tot_num_atoms(0),
    kim_global_influence_distance(0.0),
    kim_number_of_neighbor_lists(0),
@@ -205,13 +205,14 @@ void PairKIM::compute(int eflag , int vflag)
       lmps_maxalloc = atom->nmax;
       memory->create(kim_particleSpecies,lmps_maxalloc,
                      "pair:kim_particleSpecies");
-      int kimerror = pargs->SetArgumentPointer(
-          KIM::COMPUTE_ARGUMENT_NAME::particleSpeciesCodes,
+      int kimerror = KIM_ComputeArguments_SetArgumentPointerInteger(pargs,
+          KIM_COMPUTE_ARGUMENT_NAME_particleSpeciesCodes,
           kim_particleSpecies);
       memory->create(kim_particleContributing,lmps_maxalloc,
                      "pair:kim_particleContributing");
-      kimerror = kimerror || pargs->SetArgumentPointer(
-          KIM::COMPUTE_ARGUMENT_NAME::particleContributing,
+      kimerror = kimerror || KIM_ComputeArguments_SetArgumentPointerInteger(
+          pargs,
+          KIM_COMPUTE_ARGUMENT_NAME_particleContributing,
           kim_particleContributing);
       if (kimerror)
         error->all(
@@ -240,7 +241,7 @@ void PairKIM::compute(int eflag , int vflag)
    lmps_local_tot_num_atoms = (int) nall;
 
    // compute via KIM model
-   kimerror = pkim->Compute(pargs);
+   kimerror = KIM_Model_Compute(pkim, pargs);
    if (kimerror) error->all(FLERR,"KIM Compute returned error");
 
    // compute virial before reverse comm!
@@ -256,8 +257,9 @@ void PairKIM::compute(int eflag , int vflag)
    }
 
    if ((vflag_atom) &&
-       (kim_model_support_for_particleVirial !=
-        KIM::SUPPORT_STATUS::notSupported))
+       KIM_SupportStatus_NotEqual(kim_model_support_for_particleVirial,
+                                  KIM_SUPPORT_STATUS_notSupported)
+      )
    {  // flip sign and order of virial if KIM is computing it
       double tmp;
       for (int i = 0; i < nall; ++i)
@@ -438,8 +440,9 @@ void PairKIM::coeff(int narg, char **arg)
       int kimerror;
       int supported;
       int code;
-      kimerror = pkim->GetSpeciesSupportAndCode(
-          KIM::SpeciesName(lmps_unique_elements[i]),
+      kimerror = KIM_Model_GetSpeciesSupportAndCode(
+          pkim,
+          KIM_SpeciesName_FromString(lmps_unique_elements[i]),
           &supported,
           &code);
       if (supported)
@@ -545,17 +548,18 @@ double PairKIM::init_one(int i, int j)
 
 int PairKIM::pack_reverse_comm(int n, int first, double *buf)
 {
-  using namespace KIM::SUPPORT_STATUS;
-
    int i,m,last;
    double *fp;
    fp = &(atom->f[0][0]);
 
    m = 0;
    last = first + n;
-   if ((kim_model_support_for_forces != notSupported) &&
+   if (KIM_SupportStatus_NotEqual(kim_model_support_for_forces,
+                                  KIM_SUPPORT_STATUS_notSupported)
+       &&
        ((vflag_atom == 0) ||
-        (kim_model_support_for_particleVirial == notSupported)))
+        KIM_SupportStatus_Equal(kim_model_support_for_particleVirial,
+                                KIM_SUPPORT_STATUS_notSupported)))
    {
       for (i = first; i < last; i++)
       {
@@ -565,9 +569,11 @@ int PairKIM::pack_reverse_comm(int n, int first, double *buf)
       }
       return m;
    }
-   else if ((kim_model_support_for_forces != notSupported) &&
+   else if (KIM_SupportStatus_NotEqual(kim_model_support_for_forces,
+                                       KIM_SUPPORT_STATUS_notSupported) &&
             (vflag_atom == 1) &&
-            (kim_model_support_for_particleVirial != notSupported))
+            KIM_SupportStatus_NotEqual(kim_model_support_for_particleVirial,
+                                       KIM_SUPPORT_STATUS_notSupported))
    {
       double *va=&(vatom[0][0]);
       for (i = first; i < last; i++)
@@ -585,9 +591,12 @@ int PairKIM::pack_reverse_comm(int n, int first, double *buf)
       }
       return m;
    }
-   else if ((kim_model_support_for_forces == notSupported) &&
+   else if (KIM_SupportStatus_Equal(kim_model_support_for_forces,
+                                    KIM_SUPPORT_STATUS_notSupported)
+            &&
             (vflag_atom == 1) &&
-            (kim_model_support_for_particleVirial != notSupported))
+            KIM_SupportStatus_NotEqual(kim_model_support_for_particleVirial,
+                                       KIM_SUPPORT_STATUS_notSupported))
    {
       double *va=&(vatom[0][0]);
       for (i = first; i < last; i++)
@@ -609,16 +618,17 @@ int PairKIM::pack_reverse_comm(int n, int first, double *buf)
 
 void PairKIM::unpack_reverse_comm(int n, int *list, double *buf)
 {
-  using namespace KIM::SUPPORT_STATUS;
-
    int i,j,m;
    double *fp;
    fp = &(atom->f[0][0]);
 
    m = 0;
-   if ((kim_model_support_for_forces != notSupported) &&
+   if (KIM_SupportStatus_NotEqual(kim_model_support_for_forces,
+                                  KIM_SUPPORT_STATUS_notSupported)
+       &&
        ((vflag_atom == 0) ||
-        (kim_model_support_for_particleVirial == notSupported)))
+        KIM_SupportStatus_Equal(kim_model_support_for_particleVirial,
+                                KIM_SUPPORT_STATUS_notSupported)))
    {
       for (i = 0; i < n; i++)
       {
@@ -628,9 +638,12 @@ void PairKIM::unpack_reverse_comm(int n, int *list, double *buf)
          fp[3*j+2]+= buf[m++];
       }
    }
-   else if ((kim_model_support_for_forces != notSupported) &&
+   else if (KIM_SupportStatus_NotEqual(kim_model_support_for_forces,
+                                       KIM_SUPPORT_STATUS_notSupported)
+            &&
             (vflag_atom == 1) &&
-            (kim_model_support_for_particleVirial != notSupported))
+            KIM_SupportStatus_NotEqual(kim_model_support_for_particleVirial,
+                                       KIM_SUPPORT_STATUS_notSupported))
    {
       double *va=&(vatom[0][0]);
       for (i = 0; i < n; i++)
@@ -648,9 +661,12 @@ void PairKIM::unpack_reverse_comm(int n, int *list, double *buf)
          va[j*6+5]+=buf[m++];
       }
    }
-   else if ((kim_model_support_for_forces == notSupported) &&
+   else if (KIM_SupportStatus_Equal(kim_model_support_for_forces,
+                                    KIM_SUPPORT_STATUS_notSupported)
+            &&
             (vflag_atom == 1) &&
-            (kim_model_support_for_particleVirial != notSupported))
+            KIM_SupportStatus_NotEqual(kim_model_support_for_particleVirial,
+                                       KIM_SUPPORT_STATUS_notSupported))
    {
       double *va=&(vatom[0][0]);
       for (i = 0; i < n; i++)
@@ -741,11 +757,11 @@ void PairKIM::kim_free()
 
    if (kim_init_ok)
    {
-     int kimerror = pkim->ComputeArgumentsDestroy(&pargs);
+     int kimerror = KIM_Model_ComputeArgumentsDestroy(pkim, &pargs);
      if (kimerror)
        error->all(FLERR,"Unable to destroy Compute Arguments Object");
 
-     KIM::Model::Destroy(&pkim);
+     KIM_Model_Destroy(&pkim);
    }
    kim_init_ok = false;
 
@@ -760,8 +776,8 @@ void PairKIM::kim_init()
 
    // initialize KIM model
    int requestedUnitsAccepted;
-   kimerror = KIM::Model::Create(
-       KIM::NUMBERING::zeroBased,
+   kimerror = KIM_Model_Create(
+       KIM_NUMBERING_zeroBased,
        lengthUnit, energyUnit, chargeUnit, temperatureUnit, timeUnit,
        kim_modelname,
        &requestedUnitsAccepted,
@@ -773,10 +789,10 @@ void PairKIM::kim_init()
        error->all(FLERR,"KIM Model did not accept the requested unit system");
      }
 
-     kimerror = pkim->ComputeArgumentsCreate(&pargs);
+     kimerror = KIM_Model_ComputeArgumentsCreate(pkim, &pargs);
      if (kimerror)
      {
-       KIM::Model::Destroy(&pkim);
+       KIM_Model_Destroy(&pkim);
        error->all(FLERR,"KIM ComputeArgumentsCreate failed");
      }
      else
@@ -788,8 +804,9 @@ void PairKIM::kim_init()
    // determine KIM Model capabilities (used in this function below)
    set_kim_model_has_flags();
 
-   pkim->GetInfluenceDistance(&kim_global_influence_distance);
-   pkim->GetNeighborListPointers(
+   KIM_Model_GetInfluenceDistance(pkim, &kim_global_influence_distance);
+   KIM_Model_GetNeighborListPointers(
+       pkim,
        &kim_number_of_neighbor_lists,
        &kim_cutoff_values,
        &modelWillNotRequestNeighborsOfNoncontributingParticles);
@@ -800,18 +817,19 @@ void PairKIM::kim_init()
    }
    neighborLists = new NeighList*[kim_number_of_neighbor_lists];
 
-   kimerror = pargs->SetArgumentPointer(
-       KIM::COMPUTE_ARGUMENT_NAME::numberOfParticles,
+   kimerror = KIM_ComputeArguments_SetArgumentPointerInteger(pargs,
+       KIM_COMPUTE_ARGUMENT_NAME_numberOfParticles,
        &lmps_local_tot_num_atoms);
-   if (kim_model_support_for_energy != KIM::SUPPORT_STATUS::notSupported)
-     kimerror = kimerror || pargs->SetArgumentPointer(
-         KIM::COMPUTE_ARGUMENT_NAME::partialEnergy,
+   if (KIM_SupportStatus_NotEqual(kim_model_support_for_energy,
+                                  KIM_SUPPORT_STATUS_notSupported))
+     kimerror = kimerror || KIM_ComputeArguments_SetArgumentPointerDouble(pargs,
+         KIM_COMPUTE_ARGUMENT_NAME_partialEnergy,
          &(eng_vdwl));
 
-   kimerror = pargs->SetCallbackPointer(
-       KIM::COMPUTE_CALLBACK_NAME::GetNeighborList,
-       KIM::LANGUAGE_NAME::cpp,
-       reinterpret_cast<KIM::Function *>(get_neigh),
+   kimerror = KIM_ComputeArguments_SetCallbackPointer(pargs,
+       KIM_COMPUTE_CALLBACK_NAME_GetNeighborList,
+       KIM_LANGUAGE_NAME_cpp,
+       reinterpret_cast<KIM_Function *>(get_neigh),
        reinterpret_cast<void *>(this));
 
    if (kimerror)
@@ -824,14 +842,14 @@ void PairKIM::kim_init()
 
 void PairKIM::set_argument_pointers()
 {
-  using namespace KIM::COMPUTE_ARGUMENT_NAME;
-  using namespace KIM::SUPPORT_STATUS;
-
   int kimerror;
-  kimerror = pargs->SetArgumentPointer(coordinates, &(atom->x[0][0]));
+  kimerror = KIM_ComputeArguments_SetArgumentPointerDouble(
+      pargs, KIM_COMPUTE_ARGUMENT_NAME_coordinates, &(atom->x[0][0]));
 
   // Set KIM pointer appropriately for particalEnergy
-  if ((kim_model_support_for_particleEnergy == required) && (eflag_atom != 1))
+  if (KIM_SupportStatus_Equal(kim_model_support_for_particleEnergy,
+                              KIM_SUPPORT_STATUS_required)
+      && (eflag_atom != 1))
   {
     // reallocate per-atom energy array if necessary
     if (atom->nmax > maxeatom)
@@ -841,33 +859,41 @@ void PairKIM::set_argument_pointers()
       memory->create(eatom,comm->nthreads*maxeatom,"pair:eatom");
     }
   }
-  if ((kim_model_support_for_particleEnergy == optional) && (eflag_atom != 1))
+  if (KIM_SupportStatus_Equal(kim_model_support_for_particleEnergy,
+                              KIM_SUPPORT_STATUS_optional)
+      && (eflag_atom != 1))
   {
-    kimerror = kimerror || pargs->SetArgumentPointer(
-        partialParticleEnergy,
+    kimerror = kimerror || KIM_ComputeArguments_SetArgumentPointerDouble(
+        pargs,
+        KIM_COMPUTE_ARGUMENT_NAME_partialParticleEnergy,
         reinterpret_cast<double * const>(NULL));
   }
-  else if (kim_model_support_for_particleEnergy != notSupported)
+  else if (KIM_SupportStatus_NotEqual(kim_model_support_for_particleEnergy,
+                                      KIM_SUPPORT_STATUS_notSupported))
   {
-    kimerror = kimerror || pargs->SetArgumentPointer(partialParticleEnergy,
-                                                     eatom);
+    kimerror = kimerror || KIM_ComputeArguments_SetArgumentPointerDouble(
+        pargs, KIM_COMPUTE_ARGUMENT_NAME_partialParticleEnergy, eatom);
   }
 
   // Set KIM pointer appropriately for forces
-  if (kim_model_support_for_forces == notSupported)
+  if (KIM_SupportStatus_Equal(kim_model_support_for_forces,
+                              KIM_SUPPORT_STATUS_notSupported))
   {
-    kimerror = kimerror || pargs->SetArgumentPointer(
-        partialForces,
+    kimerror = kimerror || KIM_ComputeArguments_SetArgumentPointerDouble(
+        pargs,
+        KIM_COMPUTE_ARGUMENT_NAME_partialForces,
         reinterpret_cast<double * const>(NULL));
   }
   else
   {
-    kimerror = kimerror || pargs->SetArgumentPointer(partialForces,
-                                                     &(atom->f[0][0]));
+    kimerror = kimerror || KIM_ComputeArguments_SetArgumentPointerDouble(
+        pargs, KIM_COMPUTE_ARGUMENT_NAME_partialForces, &(atom->f[0][0]));
   }
 
   // Set KIM pointer appropriately for particleVirial
-  if ((kim_model_support_for_particleVirial == required) && (vflag_atom != 1))
+  if (KIM_SupportStatus_Equal(kim_model_support_for_particleVirial,
+                              KIM_SUPPORT_STATUS_required)
+      && (vflag_atom != 1))
   {
     // reallocate per-atom virial array if necessary
     if (atom->nmax > maxeatom)
@@ -877,16 +903,20 @@ void PairKIM::set_argument_pointers()
       memory->create(vatom,comm->nthreads*maxvatom,6,"pair:vatom");
     }
   }
-  if ((kim_model_support_for_particleVirial == optional) && (vflag_atom != 1))
+  if (KIM_SupportStatus_Equal(kim_model_support_for_particleVirial,
+                              KIM_SUPPORT_STATUS_optional)
+      && (vflag_atom != 1))
   {
-    kimerror = kimerror || pargs->SetArgumentPointer(
-        partialParticleVirial,
+    kimerror = kimerror || KIM_ComputeArguments_SetArgumentPointerDouble(
+        pargs,
+        KIM_COMPUTE_ARGUMENT_NAME_partialParticleVirial,
         reinterpret_cast<double * const>(NULL));
   }
-  else if (kim_model_support_for_particleVirial != notSupported)
+  else if (KIM_SupportStatus_NotEqual(kim_model_support_for_particleVirial,
+                                      KIM_SUPPORT_STATUS_notSupported))
   {
-    kimerror = kimerror || pargs->SetArgumentPointer(partialParticleEnergy,
-                                                     &(vatom[0][0]));
+    kimerror = kimerror || KIM_ComputeArguments_SetArgumentPointerDouble(
+        pargs, KIM_COMPUTE_ARGUMENT_NAME_partialParticleEnergy, &(vatom[0][0]));
   }
 
   if (kimerror)
@@ -913,39 +943,39 @@ void PairKIM::set_lmps_flags()
    // determine unit system and set lmps_units flag
    if ((strcmp(update->unit_style,"real")==0)) {
      lmps_units = REAL;
-     lengthUnit = KIM::LENGTH_UNIT::A;
-     energyUnit = KIM::ENERGY_UNIT::kcal_mol;
-     chargeUnit = KIM::CHARGE_UNIT::e;
-     temperatureUnit = KIM::TEMPERATURE_UNIT::K;
-     timeUnit = KIM::TIME_UNIT::fs;
+     lengthUnit = KIM_LENGTH_UNIT_A;
+     energyUnit = KIM_ENERGY_UNIT_kcal_mol;
+     chargeUnit = KIM_CHARGE_UNIT_e;
+     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
+     timeUnit = KIM_TIME_UNIT_fs;
    } else if ((strcmp(update->unit_style,"metal")==0)) {
      lmps_units = METAL;
-     lengthUnit = KIM::LENGTH_UNIT::A;
-     energyUnit = KIM::ENERGY_UNIT::eV;
-     chargeUnit = KIM::CHARGE_UNIT::e;
-     temperatureUnit = KIM::TEMPERATURE_UNIT::K;
-     timeUnit = KIM::TIME_UNIT::ps;
+     lengthUnit = KIM_LENGTH_UNIT_A;
+     energyUnit = KIM_ENERGY_UNIT_eV;
+     chargeUnit = KIM_CHARGE_UNIT_e;
+     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
+     timeUnit = KIM_TIME_UNIT_ps;
    } else if ((strcmp(update->unit_style,"si")==0)) {
      lmps_units = SI;
-     lengthUnit = KIM::LENGTH_UNIT::m;
-     energyUnit = KIM::ENERGY_UNIT::J;
-     chargeUnit = KIM::CHARGE_UNIT::C;
-     temperatureUnit = KIM::TEMPERATURE_UNIT::K;
-     timeUnit = KIM::TIME_UNIT::s;
+     lengthUnit = KIM_LENGTH_UNIT_m;
+     energyUnit = KIM_ENERGY_UNIT_J;
+     chargeUnit = KIM_CHARGE_UNIT_C;
+     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
+     timeUnit = KIM_TIME_UNIT_s;
    } else if ((strcmp(update->unit_style,"cgs")==0)) {
      lmps_units = CGS;
-     lengthUnit = KIM::LENGTH_UNIT::cm;
-     energyUnit = KIM::ENERGY_UNIT::erg;
-     chargeUnit = KIM::CHARGE_UNIT::statC;
-     temperatureUnit = KIM::TEMPERATURE_UNIT::K;
-     timeUnit = KIM::TIME_UNIT::s;
+     lengthUnit = KIM_LENGTH_UNIT_cm;
+     energyUnit = KIM_ENERGY_UNIT_erg;
+     chargeUnit = KIM_CHARGE_UNIT_statC;
+     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
+     timeUnit = KIM_TIME_UNIT_s;
    } else if ((strcmp(update->unit_style,"electron")==0)) {
      lmps_units = ELECTRON;
-     lengthUnit = KIM::LENGTH_UNIT::Bohr;
-     energyUnit = KIM::ENERGY_UNIT::Hartree;
-     chargeUnit = KIM::CHARGE_UNIT::e;
-     temperatureUnit = KIM::TEMPERATURE_UNIT::K;
-     timeUnit = KIM::TIME_UNIT::fs;
+     lengthUnit = KIM_LENGTH_UNIT_Bohr;
+     energyUnit = KIM_ENERGY_UNIT_Hartree;
+     chargeUnit = KIM_CHARGE_UNIT_e;
+     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
+     timeUnit = KIM_TIME_UNIT_fs;
    } else if ((strcmp(update->unit_style,"lj")==0)) {
      error->all(FLERR,"LAMMPS unit_style lj not supported by KIM models");
    } else {
@@ -959,75 +989,85 @@ void PairKIM::set_lmps_flags()
 
 void PairKIM::set_kim_model_has_flags()
 {
-  {  // BEGIN enclosing scope for using directives
-  using namespace KIM::COMPUTE_ARGUMENT_NAME;
-  using namespace KIM::SUPPORT_STATUS;
-
   int numberOfComputeArgumentNames;
-  GetNumberOfComputeArgumentNames(&numberOfComputeArgumentNames);
+  KIM_COMPUTE_ARGUMENT_NAME_GetNumberOfComputeArgumentNames(
+      &numberOfComputeArgumentNames);
   for (int i = 0; i < numberOfComputeArgumentNames; ++i)
   {
-    KIM::ComputeArgumentName computeArgumentName;
-    int kimerror = GetComputeArgumentName(i, &computeArgumentName);
-    KIM::SupportStatus supportStatus;
-    kimerror = pargs->GetArgumentSupportStatus(computeArgumentName,
-                                               &supportStatus);
+    KIM_ComputeArgumentName computeArgumentName;
+    int kimerror = KIM_COMPUTE_ARGUMENT_NAME_GetComputeArgumentName(
+        i, &computeArgumentName);
+    KIM_SupportStatus supportStatus;
+    kimerror = KIM_ComputeArguments_GetArgumentSupportStatus(
+        pargs, computeArgumentName, &supportStatus);
 
-    if (computeArgumentName == partialEnergy)
+    if (KIM_ComputeArgumentName_Equal(computeArgumentName,
+                                      KIM_COMPUTE_ARGUMENT_NAME_partialEnergy)
+       )
       kim_model_support_for_energy = supportStatus;
-    else if (computeArgumentName == partialForces)
+    else if (KIM_ComputeArgumentName_Equal(
+                 computeArgumentName, KIM_COMPUTE_ARGUMENT_NAME_partialForces)
+            )
       kim_model_support_for_forces = supportStatus;
-    else if (computeArgumentName == partialParticleEnergy)
+    else if
+        (KIM_ComputeArgumentName_Equal(
+            computeArgumentName,
+            KIM_COMPUTE_ARGUMENT_NAME_partialParticleEnergy)\
+        )
       kim_model_support_for_particleEnergy = supportStatus;
-    else if (computeArgumentName == partialParticleVirial)
+    else if
+        (KIM_ComputeArgumentName_Equal(
+            computeArgumentName,
+            KIM_COMPUTE_ARGUMENT_NAME_partialParticleVirial)
+        )
       kim_model_support_for_particleVirial = supportStatus;
-    else if (supportStatus == required)
+    else if (KIM_SupportStatus_Equal(supportStatus, KIM_SUPPORT_STATUS_required)
+            )
     {
       std::stringstream msg;
       msg << "KIM Model requires unsupported compute argument: "
-          << computeArgumentName.String();
+          << KIM_ComputeArgumentName_ToString(computeArgumentName);
       error->all(FLERR, msg.str().c_str());
     }
   }
 
-  if (kim_model_support_for_energy == notSupported)
+  if (KIM_SupportStatus_Equal(kim_model_support_for_energy,
+                              KIM_SUPPORT_STATUS_notSupported))
     error->warning(FLERR,"KIM Model does not provide `partialEnergy'; "
                    "Potential energy will be zero");
 
-  if (kim_model_support_for_forces == notSupported)
+  if (KIM_SupportStatus_Equal(kim_model_support_for_forces,
+                              KIM_SUPPORT_STATUS_notSupported))
     error->warning(FLERR,"KIM Model does not provide `partialForce'; "
                    "Forces will be zero");
 
-  if (kim_model_support_for_particleEnergy == notSupported)
+  if (KIM_SupportStatus_Equal(kim_model_support_for_particleEnergy,
+                              KIM_SUPPORT_STATUS_notSupported))
     error->warning(FLERR,"KIM Model does not provide `partialParticleEnergy'; "
                    "energy per atom will be zero");
 
-  if (kim_model_support_for_particleVirial == notSupported)
+  if (KIM_SupportStatus_Equal(kim_model_support_for_particleVirial,
+                              KIM_SUPPORT_STATUS_notSupported))
     error->warning(FLERR,"KIM Model does not provide `partialParticleVirial'; "
                    "virial per atom will be zero");
-  }  // END enclosing scope for using directives
 
+  int numberOfComputeCallbackNames;
+  KIM_COMPUTE_CALLBACK_NAME_GetNumberOfComputeCallbackNames(
+      &numberOfComputeCallbackNames);
+  for (int i = 0; i < numberOfComputeCallbackNames; ++i)
+  {
+    KIM_ComputeCallbackName computeCallbackName;
+    int kimerror = KIM_COMPUTE_CALLBACK_NAME_GetComputeCallbackName(
+        i, &computeCallbackName);
+    KIM_SupportStatus supportStatus;
+    kimerror = KIM_ComputeArguments_GetCallbackSupportStatus(
+        pargs, computeCallbackName, &supportStatus);
 
-  {  // BEGIN enclosing scope for using directives
-    using namespace KIM::COMPUTE_CALLBACK_NAME;
-    using namespace KIM::SUPPORT_STATUS;
-
-    int numberOfComputeCallbackNames;
-    GetNumberOfComputeCallbackNames(&numberOfComputeCallbackNames);
-    for (int i = 0; i < numberOfComputeCallbackNames; ++i)
+    if (KIM_SupportStatus_Equal(supportStatus, KIM_SUPPORT_STATUS_required))
     {
-      KIM::ComputeCallbackName computeCallbackName;
-      int kimerror = GetComputeCallbackName(i, &computeCallbackName);
-      KIM::SupportStatus supportStatus;
-      kimerror = pargs->GetCallbackSupportStatus(computeCallbackName,
-                                                 &supportStatus);
-
-      if (supportStatus == required)
-      {
-        error->all(FLERR,"KIM Model requires unsupported compute callback");
-      }
+      error->all(FLERR,"KIM Model requires unsupported compute callback");
     }
-  }  // END enclosing scope for using directives
+  }
 
-   return;
+  return;
 }

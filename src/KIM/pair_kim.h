@@ -50,7 +50,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Designed for use with the kim-api-v2.0.0-beta.1 (and newer) package
+   Designed for use with the kim-api-v2.0.0-beta.2 (and newer) package
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
@@ -65,7 +65,9 @@ PairStyle(kim,PairKIM)
 // includes from KIM & LAMMPS
 class KIM_API_model;
 #include "pair.h"
-#include "KIM_SimulatorHeaders.hpp"
+extern "C" {
+#include "KIM_SimulatorHeaders.h"
+}
 #include <sstream>
 
 
@@ -113,20 +115,20 @@ namespace LAMMPS_NS {
       bool lmps_using_molecular;
       enum unit_sys {REAL, METAL, SI, CGS, ELECTRON};
       unit_sys lmps_units;
-      KIM::LengthUnit lengthUnit;
-      KIM::EnergyUnit energyUnit;
-      KIM::ChargeUnit chargeUnit;
-      KIM::TemperatureUnit temperatureUnit;
-      KIM::TimeUnit timeUnit;
+      KIM_LengthUnit lengthUnit;
+      KIM_EnergyUnit energyUnit;
+      KIM_ChargeUnit chargeUnit;
+      KIM_TemperatureUnit temperatureUnit;
+      KIM_TimeUnit timeUnit;
 
-      KIM::Model * pkim;
-      KIM::ComputeArguments * pargs;
+      KIM_Model * pkim;
+      KIM_ComputeArguments * pargs;
 
       // values set in set_kim_model_has_flags(), called by kim_init()
-      KIM::SupportStatus kim_model_support_for_energy;
-      KIM::SupportStatus kim_model_support_for_forces;
-      KIM::SupportStatus kim_model_support_for_particleEnergy;
-      KIM::SupportStatus kim_model_support_for_particleVirial;
+      KIM_SupportStatus kim_model_support_for_energy;
+      KIM_SupportStatus kim_model_support_for_forces;
+      KIM_SupportStatus kim_model_support_for_particleEnergy;
+      KIM_SupportStatus kim_model_support_for_particleVirial;
 
       // values set in kim_init()
       bool kim_init_ok;

@@ -102,39 +102,27 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
   // LAMMPS units wrt kj/mol - nm - ps
   // Set up units
 
-  if (force->boltz == 1.0) {
+  if(strcmp(update->unit_style,"lj") == 0) {
     // LAMMPS units lj
     p->cmd("setNaturalUnits");
   } else {
+    // Conversion factor from LAMMPS energy units to kJ mol-1 (units of PLUMED) 
     double energyUnits=1.0;
-    double lengthUnits=1.0;
-    double timeUnits=1.0;
-    if (force->boltz == 0.0019872067) {
-      // LAMMPS units real :: kcal/mol; angstrom; fs
-      energyUnits=4.184;
-      lengthUnits=0.1;
-      timeUnits=0.001;
-    } else if (force->boltz == 8.617343e-5) {
-      // LAMMPS units metal :: eV; angstrom; ps
-      energyUnits=96.48530749925792;
-      lengthUnits=0.1;
-      timeUnits=1.0;
-    } else if (force->boltz == 1.3806504e-23) {
-      // LAMMPS units si :: Joule, m; s
-      energyUnits=0.001;
-      lengthUnits=1.e-9;
-      timeUnits=1.e-12;
-    } else if (force->boltz == 1.3806504e-16) {
-      // LAMMPS units cgs :: erg; cms;, s
-      energyUnits=6.0221418e13;
-      lengthUnits=1.e-7;
-      timeUnits=1.e-12;
-    } else if (force->boltz == 3.16681534e-6) {
-      // LAMMPS units electron :: Hartree, bohr, fs
-      energyUnits=2625.5257;
-      lengthUnits=0.052917725;
-      timeUnits=0.001;
-    } else error->all(FLERR,"Odd LAMMPS units, plumed cannot work with that");
+    // LAMMPS units real :: kcal/mol; 
+    if (strcmp(update->unit_style,"real") == 0) energyUnits=4.184;
+    // LAMMPS units metal :: eV;
+    else if (strcmp(update->unit_style,"metal") == 0) energyUnits=96.48530749925792;
+    // LAMMPS units si :: Joule;
+    else if (strcmp(update->unit_style,"si") == 0) energyUnits=0.001;
+    // LAMMPS units cgs :: erg;
+    else if (strcmp(update->unit_style,"cgs") == 0) energyUnits=6.0221418e13;
+    // LAMMPS units electron :: Hartree;
+    else if (strcmp(update->unit_style,"electron") == 0) energyUnits=2625.5257;
+    else error->all(FLERR,"Odd LAMMPS units, plumed cannot work with that");
+    // Conversion factor from LAMMPS length units to nm (units of PLUMED)
+    double lengthUnits=0.1/force->angstrom;
+    // Conversion factor from LAMMPS time unit to ps (units of PLUMED)
+    double timeUnits=0.001/force->femtosecond;
     p->cmd("setMDEnergyUnits",&energyUnits);
     p->cmd("setMDLengthUnits",&lengthUnits);
     p->cmd("setMDTimeUnits",&timeUnits);

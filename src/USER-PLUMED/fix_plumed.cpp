@@ -55,6 +55,8 @@
 
 #include "plumed/wrapper/Plumed.h"
 
+/* -------------------------------------------------------------------- */
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
@@ -62,76 +64,88 @@ using namespace FixConst;
 
 FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  p(NULL),
-  nlocal(0),
-  gatindex(NULL),
-  masses(NULL),
-  charges(NULL),
-  id_pe(NULL),
-  id_press(NULL)
+  p(NULL), nlocal(0), gatindex(NULL), masses(NULL), charges(NULL),
+  id_pe(NULL), id_press(NULL)
 {
-// Not sure this is really necessary:
-  if (!atom->tag_enable) error->all(FLERR,"fix plumed requires atom tags");
-// Initialize plumed:
-  p=new PLMD::Plumed;
-// Check API version
-  int api_version; p->cmd("getApiVersion",&api_version);
-  if( api_version>6 ) error->all(FLERR,"invalid api version for PLUMED");
 
-// If the -partition option is activated then enable inter-partition communication
+  if (!atom->tag_enable)
+    error->all(FLERR,"Fix plumed requires atom tags");
+
+  if (igroup != 0 && comm->me == 0)
+    error->warning(FLERR,"Fix group for fix plumed is not 'all'. "
+                   "Group will be ignored.");
+
+
+  p=new PLMD::Plumed;
+
+  // Check API version
+
+  int api_version;
+  p->cmd("getApiVersion",&api_version);
+  if (api_version > 6)
+    error->all(FLERR,"Incompatible API version for PLUMED in fix plumed");
+
+  // If the -partition option is activated then enable
+  // inter-partition communication
+
   if (universe->existflag == 1) {
-     int me;
-     MPI_Comm inter_comm;
-     MPI_Comm_rank(world,&me);
-     // Change MPI_COMM_WORLD to universe->uworld which seems more appropriate
-     MPI_Comm_split(universe->uworld,me,0,&inter_comm);
-     p->cmd("GREX setMPIIntracomm",&world);
-     if (me == 0) {
-        // The inter-partition communicator is only defined for the root in
-        //    each partition (a.k.a. world). This is due to the way in which
-        //    it is defined inside plumed.
-        p->cmd("GREX setMPIIntercomm",&inter_comm);
-     }
-     p->cmd("GREX init",NULL);
+    int me;
+    MPI_Comm inter_comm;
+    MPI_Comm_rank(world,&me);
+
+    // Change MPI_COMM_WORLD to universe->uworld which seems more appropriate
+
+    MPI_Comm_split(universe->uworld,me,0,&inter_comm);
+    p->cmd("GREX setMPIIntracomm",&world);
+    if (me == 0) {
+      // The inter-partition communicator is only defined for the root in
+      //    each partition (a.k.a. world). This is due to the way in which
+      //    it is defined inside plumed.
+      p->cmd("GREX setMPIIntercomm",&inter_comm);
+    }
+    p->cmd("GREX init",NULL);
   }
+
   // The general communicator is independent of the existence of partitions,
-  //   if there are partitions, world is defined within each partition,
-  //   whereas if partitions are not defined then world is equal to MPI_COMM_WORLD.
+  // if there are partitions, world is defined within each partition,
+  // whereas if partitions are not defined then world is equal to
+  // MPI_COMM_WORLD.
+
   p->cmd("setMPIComm",&world);
 
-// Set up units
-// LAMMPS units wrt kj/mol - nm - ps
-// Set up units
+  // Set up units
+  // LAMMPS units wrt kj/mol - nm - ps
+  // Set up units
 
-  if (force->boltz == 1.0){
-// LAMMPS units lj
+  if (force->boltz == 1.0) {
+    // LAMMPS units lj
     p->cmd("setNaturalUnits");
   } else {
     double energyUnits=1.0;
     double lengthUnits=1.0;
     double timeUnits=1.0;
-    if (force->boltz == 0.0019872067){
-// LAMMPS units real :: kcal/mol; angstrom; fs
+    if (force->boltz == 0.0019872067) {
+      // LAMMPS units real :: kcal/mol; angstrom; fs
       energyUnits=4.184;
       lengthUnits=0.1;
       timeUnits=0.001;
-    } else if (force->boltz == 8.617343e-5){
-// LAMMPS units metal :: eV; angstrom; ps
+    } else if (force->boltz == 8.617343e-5) {
+      // LAMMPS units metal :: eV; angstrom; ps
       energyUnits=96.48530749925792;
       lengthUnits=0.1;
       timeUnits=1.0;
-    } else if (force->boltz == 1.3806504e-23){
-// LAMMPS units si :: Joule, m; s
+    } else if (force->boltz == 1.3806504e-23) {
+      // LAMMPS units si :: Joule, m; s
       energyUnits=0.001;
       lengthUnits=1.e-9;
       timeUnits=1.e-12;
-    } else if (force->boltz == 1.3806504e-16){
-// LAMMPS units cgs :: erg; cms;, s
+    } else if (force->boltz == 1.3806504e-16) {
+      // LAMMPS units cgs :: erg; cms;, s
       energyUnits=6.0221418e13;
       lengthUnits=1.e-7;
       timeUnits=1.e-12;
-    } else if (force->boltz == 3.16681534e-6){
-// LAMMPS units electron :: Hartree, bohr, fs
+    } else if (force->boltz == 3.16681534e-6) {
+      // LAMMPS units electron :: Hartree, bohr, fs
       energyUnits=2625.5257;
       lengthUnits=0.052917725;
       timeUnits=0.001;
@@ -141,12 +155,13 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
     p->cmd("setMDTimeUnits",&timeUnits);
   }
 
-// Read fix parameters:
+  // Read fix parameters:
   int next=0;
-  for(int i=3;i<narg;++i){
-    if(!strcmp(arg[i],"outfile")) next=1;
-    else if(next==1){
-      if(universe->existflag == 1){
+  for (int i=3;i<narg;++i) {
+    if (!strcmp(arg[i],"outfile")) {
+      next=1;
+    } else if (next==1) {
+      if (universe->existflag == 1) {
         // Each replica writes an independent log file
         //  with suffix equal to the replica id
         char str_num[32], logFile[1024];
@@ -160,16 +175,16 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
         p->cmd("setLogFile",arg[i]);
         next=0;
       }
-    }
-    else if(!strcmp(arg[i],"plumedfile"))next=2;
-    else if(next==2){
+    } else if (!strcmp(arg[i],"plumedfile")) {
+      next=2;
+    } else if (next==2) {
       p->cmd("setPlumedDat",arg[i]);
       next=0;
-    }
-    else error->all(FLERR,"syntax error in fix plumed - use 'fix name plumed plumedfile plumed.dat outfile plumed.out' ");
+    } else error->all(FLERR,"Syntax error - use 'fix <fix-ID> plumed "
+                      "plumedfile plumed.dat outfile plumed.out' ");
   }
-  if(next==1) error->all(FLERR,"missing argument for outfile option");
-  if(next==2) error->all(FLERR,"missing argument for plumedfile option");
+  if (next==1) error->all(FLERR,"missing argument for outfile option");
+  if (next==2) error->all(FLERR,"missing argument for plumedfile option");
 
   p->cmd("setMDEngine","LAMMPS");
 
@@ -183,10 +198,12 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
   thermo_virial=1;
   scalar_flag = 1;
 
-// This is the real initialization:
+  // This is the real initialization:
+
   p->cmd("init");
 
-// Define compute to calculate potential energy
+  // Define compute to calculate potential energy
+
   id_pe = new char[7];
   id_pe = (char *) "plmd_pe";
   char **newarg = new char*[3];
@@ -220,7 +237,7 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
          strncmp(modify->fix[i]->style,"npt",3) ||
          strncmp(modify->fix[i]->style,"npt_sphere",10) )
       error->all(FLERR,"Fix plumed must be called before fix_nh derived fixes, "
-                       "for instance nph and npt fixes");
+                 "for instance nph and npt fixes");
   }
 }
 
@@ -248,7 +265,7 @@ void FixPlumed::init()
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
   // This avoids nan pressure if compute_pressure is called
   // in a setup method
-  for(int i=0;i<6;i++) virial[i] = 0.;
+  for (int i=0;i<6;i++) virial[i] = 0.;
 }
 
 void FixPlumed::setup(int vflag)
@@ -281,22 +298,22 @@ void FixPlumed::min_setup(int vflag)
 void FixPlumed::post_force(int /* vflag */)
 {
 // Check tag is enabled
-  if( !atom->tag_enable ) error->all(FLERR,"to run PLUMED you must have tag_enable==1");
+  if ( !atom->tag_enable ) error->all(FLERR,"to run PLUMED you must have tag_enable==1");
 
   int update_gatindex=0;
 // Try to find out if the domain decomposition has been updated:
-  if(nlocal!=atom->nlocal){
-    if(charges) delete [] charges;
-    if(masses) delete [] masses;
-    if(gatindex) delete [] gatindex;
+  if (nlocal!=atom->nlocal) {
+    if (charges) delete [] charges;
+    if (masses) delete [] masses;
+    if (gatindex) delete [] gatindex;
     nlocal=atom->nlocal;
     gatindex=new int [nlocal];
     masses=new double [nlocal];
     charges=new double [nlocal];
     update_gatindex=1;
   } else {
-    for(int i=0;i<nlocal;i++){
-      if(gatindex[i]!=atom->tag[i]-1){
+    for (int i=0;i<nlocal;i++) {
+      if (gatindex[i]!=atom->tag[i]-1) {
         update_gatindex=1;
         break;
       }
@@ -306,19 +323,19 @@ void FixPlumed::post_force(int /* vflag */)
 
 // In case it has been updated, rebuild the local mass/charges array
 // and tell plumed about the change:
-  if(update_gatindex){
-    for(int i=0;i<nlocal;i++) gatindex[i]=atom->tag[i]-1;
+  if (update_gatindex) {
+    for (int i=0;i<nlocal;i++) gatindex[i]=atom->tag[i]-1;
     // Get masses 
-    if(atom->rmass_flag) {
-       for(int i=0;i<nlocal;i++) masses[i]=atom->rmass[i];
+    if (atom->rmass_flag) {
+      for (int i=0;i<nlocal;i++) masses[i]=atom->rmass[i];
     } else {
-       for(int i=0;i<nlocal;i++) masses[i]=atom->mass[atom->type[i]];
+      for (int i=0;i<nlocal;i++) masses[i]=atom->mass[atom->type[i]];
     }
     // Get charges
-    if(atom->q_flag) {
-       for(int i=0;i<nlocal;i++) charges[i]=atom->q[i];
+    if (atom->q_flag) {
+      for (int i=0;i<nlocal;i++) charges[i]=atom->q[i];
     } else {
-       for(int i=0;i<nlocal;i++) charges[i]=0.0;
+      for (int i=0;i<nlocal;i++) charges[i]=0.0;
     }
     p->cmd("setAtomsNlocal",&nlocal);
     p->cmd("setAtomsGatindex",gatindex);
@@ -327,9 +344,9 @@ void FixPlumed::post_force(int /* vflag */)
 
 // set up local virial/box. plumed uses full 3x3 matrices
   double plmd_virial[3][3];
-  for(int i=0;i<3;i++) for(int j=0;j<3;j++) plmd_virial[i][j]=0.0;
+  for (int i=0;i<3;i++) for (int j=0;j<3;j++) plmd_virial[i][j]=0.0;
   double box[3][3];
-  for(int i=0;i<3;i++) for(int j=0;j<3;j++) box[i][j]=0.0;
+  for (int i=0;i<3;i++) for (int j=0;j<3;j++) box[i][j]=0.0;
   box[0][0]=domain->h[0];
   box[1][1]=domain->h[1];
   box[2][2]=domain->h[2];
@@ -338,7 +355,7 @@ void FixPlumed::post_force(int /* vflag */)
   box[1][0]=domain->h[5];
   // Make initial of virial of this fix zero
   // The following line is very important, otherwise the compute pressure will include 
-  for(int i=0;i<6;++i) virial[i] = 0.;
+  for (int i=0;i<6;++i) virial[i] = 0.;
 
 // local variable with timestep:
   int step=update->ntimestep;
@@ -349,7 +366,7 @@ void FixPlumed::post_force(int /* vflag */)
   p->cmd("setBox",&box[0][0]);
   p->cmd("setForces",&atom->f[0][0]);
   p->cmd("setMasses",&masses[0]);
-  if(atom->q) p->cmd("setCharges",&charges[0]);
+  if (atom->q) p->cmd("setCharges",&charges[0]);
   p->cmd("getBias",&bias);
   // Pass virial to plumed
   // If energy is needed virial_plmd is equal to Lammps' virial
@@ -368,9 +385,9 @@ void FixPlumed::post_force(int /* vflag */)
     // Error if tail corrections are included
     if (force->pair && force->pair->tail_flag)
       error->all(FLERR,"Tail corrections to the pair potential included."
-                       " The energy cannot be biased in this case."
-                       " Remove the tail corrections by removing the"
-                       " command: pair_modify tail yes");
+                 " The energy cannot be biased in this case."
+                 " Remove the tail corrections by removing the"
+                 " command: pair_modify tail yes");
     // compute the potential energy
     double pot_energy = 0.;
     c_pe->compute_scalar();
@@ -386,7 +403,7 @@ void FixPlumed::post_force(int /* vflag */)
     virial_lmp = c_press->vector;
     // Check if pressure is finite 
     if (!std::isfinite(virial_lmp[0]) || !std::isfinite(virial_lmp[1]) || !std::isfinite(virial_lmp[2])
-   || !std::isfinite(virial_lmp[3]) || !std::isfinite(virial_lmp[4]) || !std::isfinite(virial_lmp[5]))
+        || !std::isfinite(virial_lmp[3]) || !std::isfinite(virial_lmp[4]) || !std::isfinite(virial_lmp[5]))
       error->all(FLERR,"Non-numeric virial - Plumed cannot work with that");
     // Convert pressure to virial per number of MPI processes
     // From now on all virials are divided by the number of MPI processes
@@ -397,7 +414,7 @@ void FixPlumed::post_force(int /* vflag */)
     } else {
       inv_volume = 1.0 / (domain->xprd * domain->yprd);
     }
-    for(int i=0;i<6;i++) virial_lmp[i] /= (inv_volume * nktv2p * nprocs);
+    for (int i=0;i<6;i++) virial_lmp[i] /= (inv_volume * nktv2p * nprocs);
     // Convert virial from lammps to plumed representation
     plmd_virial[0][0]=-virial_lmp[0];
     plmd_virial[1][1]=-virial_lmp[1];
@@ -407,7 +424,7 @@ void FixPlumed::post_force(int /* vflag */)
     plmd_virial[1][2]=-virial_lmp[5];
   } else {
     virial_lmp = new double[6];
-    for(int i=0;i<6;i++) virial_lmp[i] = 0.;
+    for (int i=0;i<6;i++) virial_lmp[i] = 0.;
   }
   // do the real calculation:
   p->cmd("performCalc");

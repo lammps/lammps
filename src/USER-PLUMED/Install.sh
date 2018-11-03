@@ -1,45 +1,65 @@
 # Install/unInstall package files in LAMMPS
-# edit 2 Makefile.package files to include/exclude ATC info
+# mode = 0/1/2 for uninstall/install/update
+
+mode=$1
+
+# enforce using portable C locale
+LC_ALL=C
+export LC_ALL
+
+# arg1 = file, arg2 = file it depends on
+
+action () {
+  if (test $mode = 0) then
+    rm -f ../$1
+  elif (! cmp -s $1 ../$1) then
+    if (test -z "$2" || test -e ../$2) then
+      cp $1 ..
+      if (test $mode = 2) then
+        echo "  updating src/$1"
+      fi
+    fi
+  elif (test -n "$2") then
+    if (test ! -e ../$2) then
+      rm -f ../$1
+    fi
+  fi
+}
+
+# all package files with no dependencies
+
+for file in *.cpp *.h; do
+  test -f ${file} && action $file
+done
+
+# edit 2 Makefile.package files to include/exclude package info
 
 if (test $1 = 1) then
 
   if (test -e ../Makefile.package) then
-    sed -i -e 's|^PKG_LIB =[ \t]*|& -lplumedWrapper -ldl |' ../Makefile.package
-    if ( ! test -e ../../lib/plumed/liblink/plumed/src/lib/Plumed.inc.static ) then
-        sed -i -e 's|^PKG_SYSINC =[ \t]*|& -D__PLUMED_HAS_DLOPEN |' ../Makefile.package
-    fi
+    sed -i -e 's/[^ \t]*plumed[^ \t]* //' ../Makefile.package
     sed -i -e 's|^PKG_INC =[ \t]*|&-I../../lib/plumed/includelink |' ../Makefile.package
-    sed -i -e 's|^PKG_PATH =[ \t]*|&-L../../lib/plumed/liblink |' ../Makefile.package
+    sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(plumed_SYSINC) |' ../Makefile.package
+    sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(plumed_SYSLIB) |' ../Makefile.package
+    sed -i -e 's|^PKG_SYSPATH =[ \t]*|&$(plumed_SYSPATH) |' ../Makefile.package
   fi
 
   if (test -e ../Makefile.package.settings) then
-    # This is for statically linking plumed2
-    if ( test -e ../../lib/plumed/liblink/src/lib/Plumed.inc.static ) then  
-       fname=../../lib/plumed/liblink/src/lib/Plumed.inc.static 
-       sed -i -e '4 i \
-include '$fname'
-' ../Makefile.package.settings
-    # This is for linking plumed2 as a runtime library  -- this is the default behavior
-    else 
+    sed -i -e '/^include.*plumed.*$/d' ../Makefile.package.settings
     # multiline form needed for BSD sed on Macs
-       sed -i -e '4 i \
-PLUMED_LOAD=-ldl
+    sed -i -e '4 i \
+include ..\/..\/lib\/plumed\/Makefile.lammps
 ' ../Makefile.package.settings
-    fi
   fi
-
-  cp fix_plumed.cpp ..
-  cp fix_plumed.h ..
 
 elif (test $1 = 0) then
 
   if (test -e ../Makefile.package) then
-    sed -i -e 's/[^ \t]*-lplumedWrapper -ldl[^ \t]* //' ../Makefile.package
-    sed -i -e 's/[^ \t]*-D__PLUMED_HAS_DLOPEN[^ \t]* //' ../Makefile.package
-    sed -i -e 's|[^ \t]*-I../../lib/plumed/includelink[^ \t]* ||' ../Makefile.package
-    sed -i -e 's|[^ \t]*-L../../lib/plumed/liblink[^ \t]* ||' ../Makefile.package
+    sed -i -e 's/[^ \t]*plumed[^ \t]* //' ../Makefile.package
   fi
 
-  rm -f ../fix_plumed.cpp
-  rm -f ../fix_plumed.h
+  if (test -e ../Makefile.package.settings) then
+    sed -i -e '/^include.*plumed.*$/d' ../Makefile.package.settings
+  fi
+
 fi

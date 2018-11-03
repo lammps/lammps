@@ -156,7 +156,6 @@ if buildflag:
     if not checkmd5sum(checksums[version],filename):
       error("Checksum for plumed2 library does not match")
 
-
   print("Unpacking plumed2 tarball ...")
   if os.path.exists("%s/plumed2-%s" % (homepath,version)):
     cmd = 'rm -rf "%s/plumed2-%s"' % (homepath,version)
@@ -188,3 +187,7 @@ if linkflag:
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   cmd = 'ln -s "%s/plumed2/lib" liblink' % homepath
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+  if os.path.isfile("Makefile.lammps.static"):
+    print("Creating Makefile.lammps")
+    cmd = 'cat liblink/plumed/src/lib/Plumed.inc.static Makefile.lammps.static > Makefile.lammps'
+

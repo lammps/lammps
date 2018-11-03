@@ -43,28 +43,19 @@ class FixPlumed : public Fix {
   double compute_scalar();
 
  private:
-// pointer to plumed object:
-  PLMD::Plumed *p;
-// number of atoms local to this process:
-  int nlocal;
-// array of atom indexes local to this process:
-  int *gatindex;
-// array of masses for local atoms:
-  double *masses;
-// array of charges for local atoms:
-  double *charges;
-// this is something to enable respa
-  int nlevels_respa;
-// output bias potential
-  double bias;
-// Compute for the energy
-  class Compute *c_pe; 
-// Compute for the pressure
-  class Compute *c_press; 
-// Flag to trigger calculation of the energy and virial
-  int plumedNeedsEnergy;
-// ID for potential energy and pressure compute
-  char  *id_pe, *id_press;
+
+  PLMD::Plumed *p;         // pointer to plumed object
+  int nlocal;              // number of atoms local to this process
+  int *gatindex;           // array of atom indexes local to this process
+  double *masses;          // array of masses for local atoms
+  double *charges;         // array of charges for local atoms
+  int nlevels_respa;       // this is something to enable respa
+  double bias;             // output bias potential
+  class Compute *c_pe;     // Compute for the energy
+  class Compute *c_press;  // Compute for the pressure
+  int plumedNeedsEnergy;   // Flag to trigger calculation of the
+                           // energy and virial
+  char  *id_pe, *id_press; // ID for potential energy and pressure compute
 };
 
 };

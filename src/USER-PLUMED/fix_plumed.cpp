@@ -20,6 +20,7 @@
 #include <cstring>
 
 #include "atom.h"
+#include "comm.h"
 #include "update.h"
 #include "force.h"
 #include "respa.h"

@@ -78,6 +78,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
 
   fix1 = NULL;
   fix2 = NULL;
+  fix3 = NULL;
 
   if (narg < 8) error->all(FLERR,"Illegal fix bond/react command: "
                            "too few arguments");
@@ -433,10 +434,8 @@ FixBondReact::~FixBondReact()
     if (id_fix1 == NULL && modify->nfix) modify->delete_fix(id_fix1);
     delete [] id_fix1;
 
-    if (custom_exclude_flag == 0) {
-      if (id_fix3 == NULL && modify->nfix) modify->delete_fix(id_fix3);
-      delete [] id_fix3;
-    }
+    if (id_fix3 == NULL && modify->nfix) modify->delete_fix(id_fix3);
+    delete [] id_fix3;
   }
 
   if (id_fix2 == NULL && modify->nfix) modify->delete_fix(id_fix2);
@@ -512,14 +511,14 @@ void FixBondReact::post_constructor()
       ifix = modify->find_fix(id_fix3);
       if (ifix == -1) {
         char **newarg = new char*[6];
-        newarg[0] = (char *) "bond_react_stabilization_internal";
+        newarg[0] = (char *) id_fix3;
         newarg[1] = (char *) "all"; // group ID is ignored
         newarg[2] = (char *) "property/atom";
         newarg[3] = (char *) "i_statted_tags";
         newarg[4] = (char *) "ghost";
         newarg[5] = (char *) "yes";
         modify->add_fix(6,newarg);
-        fix2 = modify->fix[modify->nfix-1];
+        fix3 = modify->fix[modify->nfix-1];
         delete [] newarg;
       }
 
@@ -527,17 +526,17 @@ void FixBondReact::post_constructor()
       statted_id = new char[len];
       strcpy(statted_id,"statted_tags");
 
-      // if static group exists, duplicate it, use duplicate as parent group
-      // original will be converted into dynamic per-atom property group
-      if (igroup != -1) {
-        char **newarg;
-        newarg = new char*[3];
-        newarg[0] = (char *) "exclude_PARENT_group";
-        newarg[1] = (char *) "union";
-        newarg[2] = exclude_group;
-        group->assign(3,newarg);
-        delete [] newarg;
-      }
+      // if static group exists, use as parent group
+      // also, rename dynamic exclude_group by appending '_REACT'
+      char *exclude_PARENT_group;
+      int n = strlen(exclude_group) + 1;
+      exclude_PARENT_group = new char[n];
+      strcpy(exclude_PARENT_group,exclude_group);
+      n += strlen("_REACT");
+      delete [] exclude_group;
+      exclude_group = new char[n];
+      strcpy(exclude_group,exclude_PARENT_group);
+      strcat(exclude_group,"_REACT");
 
       group->find_or_create(exclude_group);
       char **newarg;
@@ -545,16 +544,17 @@ void FixBondReact::post_constructor()
       newarg[0] = exclude_group;
       newarg[1] = (char *) "dynamic";
       if (igroup == -1) newarg[2] = (char *) "all";
-      else newarg[2] = (char *) "exclude_PARENT_group";
+      else newarg[2] = (char *) exclude_PARENT_group;
       newarg[3] = (char *) "property";
       newarg[4] = (char *) "statted_tags";
       group->assign(5,newarg);
       delete [] newarg;
+      delete [] exclude_PARENT_group;
 
       // on to statted_tags (system-wide thermostat)
       // intialize per-atom statted_flags to 1
       // (only if not already initialized by restart)
-      if (fix2->restart_reset != 1) {
+      if (fix3->restart_reset != 1) {
         int flag;
         int index = atom->find_custom("statted_tags",flag);
         int *i_statted_tags = atom->ivector[index];

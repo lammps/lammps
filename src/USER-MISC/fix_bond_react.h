@@ -78,9 +78,9 @@ class FixBondReact : public Fix {
   class Molecule *onemol; // pre-reacted molecule template
   class Molecule *twomol; // post-reacted molecule template
   Fix *fix1;              // nve/limit used to relax reaction sites
-  Fix *fix2;              // properties/atom used to indicate 1) indicate relaxing atoms
-                          //                                  2) system-wide thermostat
-                          //                                  3) to which 'react' atom belongs
+  Fix *fix2;              // properties/atom used to indicate 1) relaxing atoms
+                          //                                  2) to which 'react' atom belongs
+  Fix *fix3;              // property/atom used for system-wide thermostat
   class RanMars **random;
   class NeighList *list;
 

@@ -229,16 +229,29 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
   delete [] newarg;
   int ipress = modify->find_compute(id_press);
   c_press = modify->compute[ipress];
- 
-  // Check if nh type fixes have been called
-  // See comment in the setup method
+
   for (int i = 0; i < modify->nfix; i++) {
-    if ( strncmp(modify->fix[i]->style,"nph",3) ||
-         strncmp(modify->fix[i]->style,"nph_sphere",10) ||
-         strncmp(modify->fix[i]->style,"npt",3) ||
-         strncmp(modify->fix[i]->style,"npt_sphere",10) )
-      error->all(FLERR,"Fix plumed must be called before fix_nh derived fixes, "
-                 "for instance nph and npt fixes");
+    const char * const check_style = modify->fix[i]->style;
+
+    // There must be only one
+
+    if (strcmp(check_style,"plumed") == 0)
+      error->all(FLERR,"There must be only one instance of fix plumed");
+
+    // Avoid conflict with fixes that define internal pressure computes.
+    // See comment in the setup method
+
+    if ((strncmp(check_style,"nph",3) == 0) ||
+        (strncmp(check_style,"npt",3) == 0) ||
+        (strncmp(check_style,"rigid/nph",9) == 0) ||
+        (strncmp(check_style,"rigid/npt",9) == 0) ||
+        (strncmp(check_style,"msst",4) == 0) ||
+        (strncmp(check_style,"nphug",5) == 0) ||
+        (strncmp(check_style,"ipi",3) == 0) ||
+        (strncmp(check_style,"press/berendsen",15) == 0) ||
+        (strncmp(check_style,"qbmsst",6) == 0))
+      error->all(FLERR,"Fix plumed must be defined before any other fixes, "
+                 "that compute pressure internally");
   }
 }
 

@@ -15,7 +15,7 @@ kspace_style	pppm 0.0001
 
 read_data	data.peptide
   orthogonal box = (36.8402 41.0137 29.7681) to (64.2116 68.3851 57.1395)
-  1 by 1 by 2 MPI processor grid
+  1 by 2 by 2 MPI processor grid
   reading atoms ...
   2004 atoms
   reading velocities ...
@@ -85,7 +85,7 @@ PPPM initialization ...
   estimated absolute RMS force accuracy = 0.0228209
   estimated relative force accuracy = 6.87243e-05
   using double precision FFTs
-  3d grid and FFT values/proc = 6776 1800
+  3d grid and FFT values/proc = 4312 960
 Neighbor list info ...
   update every 1 steps, delay 5 steps, check yes
   max neighbors/atom: 2000, page size: 100000
@@ -107,7 +107,7 @@ SHAKE stats (type/ave/delta) on step 0
   14 0.96 0
   18 0.957206 4.37979e-05
   31 104.519 0.00396029
-Per MPI rank memory allocation (min/avg/max) = 16.81 | 16.82 | 16.83 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 15.65 | 15.86 | 16.05 Mbytes
 Step Temp TotEng PotEng KinEng E_pair E_bond f_2 
        0    282.10052    -5237.458   -6372.3766    1134.9186    -6442.768    16.557152            0 
       10     276.9783   -5234.3057   -6348.6171    1114.3114   -6421.6171    17.024361   0.47785504 
@@ -118,7 +118,7 @@ Step Temp TotEng PotEng KinEng E_pair E_bond f_2
       60    273.01449   -5217.7381   -6316.1026    1098.3646   -6406.4709    21.800931   0.92327815 
       70    274.67549   -5221.0246   -6326.0716     1105.047   -6409.7721     19.41235 0.0016975896 
       80    273.74824   -5224.7613   -6326.0778    1101.3165   -6418.5055    19.206793   0.48550348 
-      90    284.32594    -5229.195   -6373.0667    1143.8717   -6461.3467    21.124789    0.5468014 
+      90    284.32594    -5229.195   -6373.0667    1143.8717   -6461.3466    21.124789    0.5468014 
 SHAKE stats (type/ave/delta) on step 100
   4 1.111 2.06868e-06
   6 0.996999 2.09521e-06
@@ -128,31 +128,31 @@ SHAKE stats (type/ave/delta) on step 100
   14 0.959999 0
   18 0.9572 9.14098e-06
   31 104.52 0.000760401
-     100    270.40648   -5234.9604   -6322.8327    1087.8723     -6417.73    19.666404 0.0094784372 
+     100    270.40648   -5234.9604   -6322.8327    1087.8723     -6417.73    19.666404  0.009478437 
      101    270.99811   -5235.8295    -6326.082    1090.2525   -6418.8974    17.285816  0.086681332 
-Loop time of 1.23137 on 2 procs for 101 steps with 2004 atoms
+Loop time of 1.16767 on 4 procs for 101 steps with 2004 atoms
 
-Performance: 14.173 ns/day, 1.693 hours/ns, 82.022 timesteps/s
-99.5% CPU use with 2 MPI tasks x 1 OpenMP threads
+Performance: 14.947 ns/day, 1.606 hours/ns, 86.497 timesteps/s
+97.8% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.97985    | 0.98197    | 0.98409    |   0.2 | 79.75
-Bond    | 0.0033333  | 0.0035326  | 0.003732   |   0.3 |  0.29
-Kspace  | 0.096567   | 0.098457   | 0.10035    |   0.6 |  8.00
-Neigh   | 0.088877   | 0.088888   | 0.088898   |   0.0 |  7.22
-Comm    | 0.018255   | 0.018347   | 0.01844    |   0.1 |  1.49
-Output  | 0.00024843 | 0.00031161 | 0.00037479 |   0.0 |  0.03
-Modify  | 0.037596   | 0.037645   | 0.037695   |   0.0 |  3.06
-Other   |            | 0.00222    |            |       |  0.18
+Pair    | 0.84633    | 0.86651    | 0.88617    |   1.6 | 74.21
+Bond    | 0.0010614  | 0.0027132  | 0.004288   |   3.0 |  0.23
+Kspace  | 0.095008   | 0.1162     | 0.13491    |   4.3 |  9.95
+Neigh   | 0.07834    | 0.078424   | 0.078516   |   0.0 |  6.72
+Comm    | 0.03314    | 0.033299   | 0.033426   |   0.1 |  2.85
+Output  | 0.00036979 | 0.00076199 | 0.0019338  |   0.0 |  0.07
+Modify  | 0.063471   | 0.064011   | 0.065312   |   0.3 |  5.48
+Other   |            | 0.005751   |            |       |  0.49
 
-Nlocal:    1002 ave 1010 max 994 min
-Histogram: 1 0 0 0 0 0 0 0 0 1
-Nghost:    8639.5 ave 8651 max 8628 min
-Histogram: 1 0 0 0 0 0 0 0 0 1
-Neighs:    353980 ave 355907 max 352054 min
-Histogram: 1 0 0 0 0 0 0 0 0 1
+Nlocal:    501 ave 512 max 492 min
+Histogram: 1 0 0 1 0 1 0 0 0 1
+Nghost:    6570.25 ave 6604 max 6529 min
+Histogram: 1 0 0 1 0 0 0 0 1 1
+Neighs:    176990 ave 181122 max 173551 min
+Histogram: 1 1 0 0 0 0 1 0 0 1
 
 Total # of neighbors = 707961
 Ave neighs/atom = 353.274

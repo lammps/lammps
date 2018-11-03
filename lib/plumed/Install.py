@@ -35,9 +35,15 @@ version = "2.4.3"
 
 # known checksums for different PLUMED versions. used to validate the download.
 checksums = { \
-        '2.4.2' : '0f66f24b4c763ae8b2f39574113e9935', \
-        '2.4.3' : 'dc38de0ffd59d13950d8f1ef1ce05574', \
+        '2.4.2' : '88188743a6e03ef076e5377d03ebb0e7', \
+        '2.4.3' : 'b1be7c48971627febc11c61b70767fc5', \
+        '2.5b'  : 'e341bdef469be1da058b8a0b97a3db22', \
         }
+
+#checksums = { \
+#        '2.4.2' : '0f66f24b4c763ae8b2f39574113e9935', \
+#        '2.4.3' : 'dc38de0ffd59d13950d8f1ef1ce05574', \
+#        }
 
 # print error message or help
 def error(str=None):
@@ -146,8 +152,10 @@ if (not buildflag and not pathflag):
 # download and unpack plumed2 tarball
 
 if buildflag:
-  url = "https://github.com/plumed/plumed2/archive/v%s.tar.gz" % version
-  filename = "v%s.tar.gz" %version
+  url = "https://github.com/plumed/plumed2/releases/download/v%s/plumed-src-%s.tgz" % (version,version)
+  filename = "plumed-src-%s.tar.gz" %version
+  #url = "https://github.com/plumed/plumed2/archive/v%s.tar.gz" % version
+  #filename = "v%s.tar.gz" %version
   print("Downloading plumed  ...")
   geturl(url,filename)
 
@@ -156,22 +164,26 @@ if buildflag:
     if not checkmd5sum(checksums[version],filename):
       error("Checksum for plumed2 library does not match")
 
-  print("Unpacking plumed2 tarball ...")
-  if os.path.exists("%s/plumed2-%s" % (homepath,version)):
-    cmd = 'rm -rf "%s/plumed2-%s"' % (homepath,version)
+  print("Unpacking plumed2 source tarball ...")
+  if os.path.exists("%s/plumed-%s" % (homepath,version)):
+    cmd = 'rm -rf "%s/plumed-%s"' % (homepath,version)
     subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+  #if os.path.exists("%s/plumed2-%s" % (homepath,version)):
+  #  cmd = 'rm -rf "%s/plumed2-%s"' % (homepath,version)
+  #  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   if os.path.exists("%s/plumed2" % (homepath)):
     cmd = 'rm -rf "%s/plumed2"' % (homepath)
     subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  cmd = 'cd "%s"; tar -xzvf v%s.tar.gz' % (homepath,version)
+  cmd = 'cd "%s"; tar -xzvf %s' % (homepath,filename)
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  os.remove("%s/v%s.tar.gz" % (homepath,version))
+  os.remove("%s/%s" % (homepath,filename))
 
 # build plumed
  
 if buildflag:
    print("Building plumed ...")
-   cmd = 'cd %s/plumed2-%s; ./configure --prefix=%s/plumed2 ; make ; make install' % (homepath,version,homepath)
+   cmd = 'cd %s/plumed-%s; ./configure --prefix=%s/plumed2 --enable-static-patch ; make ; make install' % (homepath,version,homepath)
+   #cmd = 'cd %s/plumed2-%s; ./configure --prefix=%s/plumed2 --enable-static-patch ; make ; make install' % (homepath,version,homepath)
    txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
    print(txt.decode('UTF-8'))
 # 
@@ -190,4 +202,5 @@ if linkflag:
   if os.path.isfile("Makefile.lammps.static"):
     print("Creating Makefile.lammps")
     cmd = 'cat liblink/plumed/src/lib/Plumed.inc.static Makefile.lammps.static > Makefile.lammps'
+    subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
 

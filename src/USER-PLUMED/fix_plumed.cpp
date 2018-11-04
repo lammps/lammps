@@ -456,4 +456,42 @@ double FixPlumed::compute_scalar()
   return bias;
 }
 
+int FixPlumed::modify_param(int narg, char **arg)
+{
+  if (strcmp(arg[0],"pe") == 0) {
+    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
+    modify->delete_compute(id_pe); delete [] id_pe;
+    int n = strlen(arg[1]) + 1;
+    id_pe = new char[n];
+    strcpy(id_pe,arg[1]);
+
+    int icompute = modify->find_compute(arg[1]);
+    if (icompute < 0) error->all(FLERR,"Could not find fix_modify potential energy ID");
+    c_pe = modify->compute[icompute];
+
+    if (c_pe->peflag == 0)
+      error->all(FLERR,"Fix_modify plmd_pe ID does not compute potential energy");
+    if (c_pe->igroup != 0 && comm->me == 0)
+      error->warning(FLERR,"Potential for fix PLUMED is not for group all");
+
+    return 2;
+
+  } else if (strcmp(arg[0],"press") == 0) {
+    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
+    modify->delete_compute(id_press); delete [] id_press;
+    int n = strlen(arg[1]) + 1;
+    id_press = new char[n];
+    strcpy(id_press,arg[1]);
+
+    int icompute = modify->find_compute(arg[1]);
+    if (icompute < 0) error->all(FLERR,"Could not find fix_modify pressure ID");
+    c_press = modify->compute[icompute];
+
+    if (c_press->pressflag == 0)
+      error->all(FLERR,"Fix_modify pressure ID does not compute pressure");
+
+    return 2;
+  }
+  return 0;
+}
 

@@ -446,6 +446,11 @@ void FixPlumed::min_post_force(int vflag)
   post_force(vflag);
 }
 
+void FixPlumed::reset_dt()
+{
+  error->all(FLERR,"cannot reset_dt within a fix plumed action"); 
+}
+
 double FixPlumed::compute_scalar()
 {
   return bias;

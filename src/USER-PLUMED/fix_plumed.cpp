@@ -489,6 +489,8 @@ int FixPlumed::modify_param(int narg, char **arg)
 
     if (c_press->pressflag == 0)
       error->all(FLERR,"Fix_modify pressure ID does not compute pressure");
+    if (c_press->igroup != 0 && comm->me == 0)
+      error->warning(FLERR,"Virial for fix PLUMED is not for group all");
 
     return 2;
   }

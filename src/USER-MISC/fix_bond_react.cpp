@@ -486,18 +486,16 @@ void FixBondReact::post_constructor()
 
   // create master_group if not already existing
   // NOTE: limit_tags and react_tags automaticaly intitialized to zero (unless read from restart)
-  if (group->find(master_group) == -1) {
-    group->find_or_create(master_group);
-    char **newarg;
-    newarg = new char*[5];
-    newarg[0] = master_group;
-    newarg[1] = (char *) "dynamic";
-    newarg[2] = (char *) "all";
-    newarg[3] = (char *) "property";
-    newarg[4] = (char *) "limit_tags";
-    group->assign(5,newarg);
-    delete [] newarg;
-  }
+  group->find_or_create(master_group);
+  char **newarg;
+  newarg = new char*[5];
+  newarg[0] = master_group;
+  newarg[1] = (char *) "dynamic";
+  newarg[2] = (char *) "all";
+  newarg[3] = (char *) "property";
+  newarg[4] = (char *) "limit_tags";
+  group->assign(5,newarg);
+  delete [] newarg;
 
   if (stabilization_flag == 1) {
     int igroup = group->find(exclude_group);

@@ -586,12 +586,18 @@ endif()
 if(PKG_KIM)
   option(DOWNLOAD_KIM "Download kim-api (instead of using the system's one)" OFF)
   if(DOWNLOAD_KIM)
+    enable_language(C)
+    enable_language(Fortran)
     include(ExternalProject)
     ExternalProject_Add(kim_build
       URL https://s3.openkim.org/kim-api/kim-api-v2.0.0-beta.2.txz
       URL_MD5 1fbdbb734059cf0dc9d807e6dd6cc8ea
       BINARY_DIR build
-      CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> -DCMAKE_BUILD_TYPE=Release
+      CMAKE_ARGS -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+                 -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+                 -DCMAKE_Fortran_COMPILER=${CMAKE_Fortran_COMPILER}
+                 -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+                 -DCMAKE_BUILD_TYPE=Release
       )
     ExternalProject_get_property(kim_build INSTALL_DIR)
     set(KIM-API-V2_INCLUDE_DIRS ${INSTALL_DIR}/include/kim-api-v2)
@@ -603,7 +609,7 @@ if(PKG_KIM)
       message(FATAL_ERROR "KIM not found, help CMake to find it by setting PKG_CONFIG_PATH, or set DOWNLOAD_KIM=ON to download it")
     endif()
   endif()
-  list(APPEND LAMMPS_LINK_LIBS ${KIM-API-V3_LIBRARIES})
+  list(APPEND LAMMPS_LINK_LIBS ${KIM-API-V2_LIBRARIES})
   include_directories(${KIM-API-V2_INCLUDE_DIRS})
 endif()
 

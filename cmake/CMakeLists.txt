@@ -591,7 +591,7 @@ if(PKG_KIM)
       URL https://s3.openkim.org/kim-api/kim-api-v2.0.0-beta.2.txz
       URL_MD5 1fbdbb734059cf0dc9d807e6dd6cc8ea
       BINARY_DIR build
-      CMAKE_ARGS -DCMAKE_CXX_COMPILER=g++-8 -DCMAKE_C_COMPILER=gcc-8 -DCMAKE_Fortran_COMPILER=gfortran-8 -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> -DCMAKE_BUILD_TYPE=Release
+      CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> -DCMAKE_BUILD_TYPE=Release
       )
     ExternalProject_get_property(kim_build INSTALL_DIR)
     set(KIM-API-V2_INCLUDE_DIRS ${INSTALL_DIR}/include/kim-api-v2)

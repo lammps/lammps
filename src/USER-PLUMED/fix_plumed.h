@@ -43,11 +43,13 @@ class FixPlumed : public Fix {
   double compute_scalar();
   void reset_dt();
   int modify_param(int narg, char **arg);
+  double memory_usage();
 
  private:
 
   PLMD::Plumed *p;         // pointer to plumed object
   int nlocal;              // number of atoms local to this process
+  int natoms;              // total number of atoms
   int *gatindex;           // array of atom indexes local to this process
   double *masses;          // array of masses for local atoms
   double *charges;         // array of charges for local atoms

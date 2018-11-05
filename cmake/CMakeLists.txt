@@ -532,19 +532,19 @@ if(PKG_USER-PLUMED)
   if(DOWNLOAD_PLUMED)
     include(ExternalProject)
     ExternalProject_Add(plumed_build
-      URL https://github.com/plumed/plumed2/releases/download/v2.4.3/plumed-2.4.3.tgz 
-      URL_MD5 bed9c88c8c635b269c1cd4a0598a2934
+      URL https://github.com/plumed/plumed2/releases/download/v2.4.3/plumed-src-2.4.3.tgz 
+      URL_MD5 b1be7c48971627febc11c61b70767fc5
       BUILD_IN_SOURCE 1
       CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> 
                                                $<$<BOOL:${BUILD_SHARED_LIBS}>:--with-pic>                                                  )
     ExternalProject_get_property(plumed_build INSTALL_DIR)
     set(PLUMED_INSTALL_DIR ${INSTALL_DIR})
     list(APPEND LAMMPS_DEPS plumed_build)
-    list(APPEND LAMMPS_LINK_LIBS ${PLUMED_INSTALL_DIR}/lib/libplumed.so)
+    list(APPEND LAMMPS_LINK_LIBS ${PLUMED_INSTALL_DIR}/lib/libplumedWrapper.a ${CMAKE_DL_LIBS})
     set(PLUMED_INCLUDE_DIRS "${PLUMED_INSTALL_DIR}/include")
   else()
     find_package(PkgConfig REQUIRED)
-    pkg_check_modules(PLUMED plumed REQUIRED)
+    pkg_check_modules(PLUMED plumedWrapper REQUIRED)
     list(APPEND LAMMPS_LINK_LIBS ${PLUMED_LDFLAGS})
   endif()
   include_directories(${PLUMED_INCLUDE_DIRS})

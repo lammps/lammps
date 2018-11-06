@@ -426,8 +426,8 @@ int colvar::init_custom_function(std::string const &conf)
 
   if (x.size() != value_evaluators.size()) {
     cvm::error("Error: based on custom function type, expected "
-        + cvm::to_str(x.size()) + " scalar expressions, but "
-        + cvm::to_str(value_evaluators.size() + " were found.\n"));
+               + cvm::to_str(x.size()) + " scalar expressions, but "
+               + cvm::to_str(value_evaluators.size()) + " were found.\n");
     return INPUT_ERROR;
   }
 
@@ -455,36 +455,42 @@ int colvar::init_grid_parameters(std::string const &conf)
   }
 
   lower_boundary.type(value());
-
   upper_boundary.type(value());
-  upper_wall.type(value());
 
   if (is_enabled(f_cv_scalar)) {
 
     if (get_keyval(conf, "lowerBoundary", lower_boundary, lower_boundary)) {
       enable(f_cv_lower_boundary);
     }
-    std::string lw_conf, uw_conf;
-
-    if (get_keyval(conf, "lowerWallConstant", lower_wall_k, 0.0, parse_silent)) {
-      cvm::log("Warning: lowerWallConstant and lowerWall are deprecated, "
-               "please define a harmonicWalls bias instead.\n");
-      lower_wall.type(value());
-      get_keyval(conf, "lowerWall", lower_wall, lower_boundary);
-      lw_conf = std::string("\n\
-    lowerWallConstant "+cvm::to_str(lower_wall_k*width*width)+"\n\
-    lowerWalls "+cvm::to_str(lower_wall)+"\n");
-    }
 
     if (get_keyval(conf, "upperBoundary", upper_boundary, upper_boundary)) {
       enable(f_cv_upper_boundary);
     }
 
-    if (get_keyval(conf, "upperWallConstant", upper_wall_k, 0.0, parse_silent)) {
-      cvm::log("Warning: upperWallConstant and upperWall are deprecated, "
-               "please define a harmonicWalls bias instead.\n");
+    std::string lw_conf, uw_conf;
+    if (get_keyval(conf, "lowerWallConstant", lower_wall_k, 0.0,
+                   parse_silent)) {
+      cvm::log("Reading legacy options lowerWall and lowerWallConstant: "
+               "consider using a harmonicWalls restraint.\n");
+      lower_wall.type(value());
+      if (!get_keyval(conf, "lowerWall", lower_wall, lower_boundary)) {
+        cvm::log("Warning: lowerWall will need to be "
+                 "defined explicitly in the next release.\n");
+      }
+      lw_conf = std::string("\n\
+    lowerWallConstant "+cvm::to_str(lower_wall_k*width*width)+"\n\
+    lowerWalls "+cvm::to_str(lower_wall)+"\n");
+    }
+
+    if (get_keyval(conf, "upperWallConstant", upper_wall_k, 0.0,
+                   parse_silent)) {
+      cvm::log("Reading legacy options upperWall and upperWallConstant: "
+               "consider using a harmonicWalls restraint.\n");
       upper_wall.type(value());
-      get_keyval(conf, "upperWall", upper_wall, upper_boundary);
+      if (!get_keyval(conf, "upperWall", upper_wall, upper_boundary)) {
+        cvm::log("Warning: upperWall will need to be "
+                 "defined explicitly in the next release.\n");
+      }
       uw_conf = std::string("\n\
     upperWallConstant "+cvm::to_str(upper_wall_k*width*width)+"\n\
     upperWalls "+cvm::to_str(upper_wall)+"\n");
@@ -677,6 +683,7 @@ template<typename def_class_name> int colvar::init_components_type(std::string c
     if (cvcp != NULL) {
       cvcs.push_back(cvcp);
       cvcp->check_keywords(def_conf, def_config_key);
+      cvcp->config_key = def_config_key;
       if (cvm::get_error()) {
         cvm::error("Error: in setting up component \""+
                    std::string(def_config_key)+"\".\n", INPUT_ERROR);
@@ -1022,12 +1029,12 @@ int colvar::calc()
 
 int colvar::calc_cvcs(int first_cvc, size_t num_cvcs)
 {
-  colvarproxy *proxy = cvm::main()->proxy;
-
-  int error_code = COLVARS_OK;
   if (cvm::debug())
     cvm::log("Calculating colvar \""+this->name+"\", components "+
              cvm::to_str(first_cvc)+" through "+cvm::to_str(first_cvc+num_cvcs)+".\n");
+
+  colvarproxy *proxy = cvm::main()->proxy;
+  int error_code = COLVARS_OK;
 
   error_code |= check_cvc_range(first_cvc, num_cvcs);
   if (error_code != COLVARS_OK) {
@@ -1059,9 +1066,10 @@ int colvar::collect_cvc_data()
   if (cvm::debug())
     cvm::log("Calculating colvar \""+this->name+"\"'s properties.\n");
 
+  colvarproxy *proxy = cvm::main()->proxy;
   int error_code = COLVARS_OK;
 
-  if (cvm::step_relative() > 0) {
+  if ((cvm::step_relative() > 0) && (!proxy->total_forces_same_step())){
     // Total force depends on Jacobian derivative from previous timestep
     // collect_cvc_total_forces() uses the previous value of jd
     error_code |= collect_cvc_total_forces();
@@ -1069,6 +1077,10 @@ int colvar::collect_cvc_data()
   error_code |= collect_cvc_values();
   error_code |= collect_cvc_gradients();
   error_code |= collect_cvc_Jacobians();
+  if (proxy->total_forces_same_step()){
+    // Use Jacobian derivative from this timestep
+    error_code |= collect_cvc_total_forces();
+  }
   error_code |= calc_colvar_properties();
 
   if (cvm::debug())
@@ -1394,6 +1406,13 @@ int colvar::calc_colvar_properties()
       vr.reset(); // (already 0; added for clarity)
     }
 
+    // Special case of a repeated timestep (eg. multiple NAMD "run" statements)
+    // revert values of the extended coordinate and velocity prior to latest integration
+    if (cvm::step_relative() == prev_timestep) {
+      xr = prev_xr;
+      vr = prev_vr;
+    }
+
     // report the restraint center as "value"
     x_reported = xr;
     v_reported = vr;
@@ -1450,7 +1469,6 @@ cvm::real colvar::update_forces_energy()
   // extended variable if there is one
 
   if (is_enabled(f_cv_extended_Lagrangian)) {
-
     if (cvm::debug()) {
       cvm::log("Updating extended-Lagrangian degree of freedom.\n");
     }
@@ -1501,6 +1519,11 @@ cvm::real colvar::update_forces_energy()
       // This will be used in the next timestep
       ft_reported = f_ext;
     }
+
+    // backup in case we need to revert this integration timestep
+    // if the same MD timestep is re-run
+    prev_xr = xr;
+    prev_vr = vr;
 
     // leapfrog: starting from x_i, f_i, v_(i-1/2)
     vr  += (0.5 * dt) * f_ext / ext_mass;
@@ -1638,18 +1661,26 @@ int colvar::set_cvc_flags(std::vector<bool> const &flags)
 }
 
 
+void colvar::update_active_cvc_square_norm()
+{
+  active_cvc_square_norm = 0.0;
+  for (size_t i = 0; i < cvcs.size(); i++) {
+    if (cvcs[i]->is_enabled()) {
+      active_cvc_square_norm += cvcs[i]->sup_coeff * cvcs[i]->sup_coeff;
+    }
+  }
+}
+
+
 int colvar::update_cvc_flags()
 {
   // Update the enabled/disabled status of cvcs if necessary
   if (cvc_flags.size()) {
     n_active_cvcs = 0;
-    active_cvc_square_norm = 0.;
-
     for (size_t i = 0; i < cvcs.size(); i++) {
       cvcs[i]->set_enabled(f_cvc_active, cvc_flags[i]);
       if (cvcs[i]->is_enabled()) {
         n_active_cvcs++;
-        active_cvc_square_norm += cvcs[i]->sup_coeff * cvcs[i]->sup_coeff;
       }
     }
     if (!n_active_cvcs) {
@@ -1657,9 +1688,46 @@ int colvar::update_cvc_flags()
       return COLVARS_ERROR;
     }
     cvc_flags.clear();
+
+    update_active_cvc_square_norm();
   }
 
   return COLVARS_OK;
+}
+
+
+int colvar::update_cvc_config(std::vector<std::string> const &confs)
+{
+  cvm::log("Updating configuration for colvar \""+name+"\"");
+
+  if (confs.size() != cvcs.size()) {
+    return cvm::error("Error: Wrong number of CVC config strings.  "
+                      "For those CVCs that are not being changed, try passing "
+                      "an empty string.", INPUT_ERROR);
+  }
+
+  int error_code = COLVARS_OK;
+  int num_changes = 0;
+  for (size_t i = 0; i < cvcs.size(); i++) {
+    if (confs[i].size()) {
+      std::string conf(confs[i]);
+      cvm::increase_depth();
+      error_code |= cvcs[i]->colvar::cvc::init(conf);
+      error_code |= cvcs[i]->check_keywords(conf,
+                                            cvcs[i]->config_key.c_str());
+      cvm::decrease_depth();
+      num_changes++;
+    }
+  }
+
+  if (num_changes == 0) {
+    cvm::log("Warning: no changes were applied through modifycvcs; "
+             "please check that its argument is a list of strings.\n");
+  }
+
+  update_active_cvc_square_norm();
+
+  return error_code;
 }
 
 

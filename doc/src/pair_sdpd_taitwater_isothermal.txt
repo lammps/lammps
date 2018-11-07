@@ -26,7 +26,7 @@ pair_coeff * * 1000.0 1430.0 2.4 :pre
 
 The sdpd/taitwater/isothermal style computes forces between mesoscopic
 particles according to the Smoothed Dissipative Particle Dynamics model
-described in this paper by "(Español and Revenga)"_#Español_Revenga under
+described in this paper by "(Espanol and Revenga)"_#Espanol_Revenga under
 the following assumptions:
 
 :olb
@@ -49,7 +49,7 @@ where gamma = 7 and B = c_0^2 rho_0 / gamma, with rho_0 being the
 reference density and c_0 the reference speed of sound.
 
 The laminar viscosity and the random forces will be computed according
-to formulas described in "(Español and Revenga)"_#Español_Revenga.
+to formulas described in "(Espanol and Revenga)"_#Espanol_Revenga.
 
 IMPORTANT NOTE: Similar to "brownian"_pair_brownian.html and
 "dpd"_pair_dpd.html styles, the "newton"_newton.html setting for
@@ -104,5 +104,5 @@ The default seed is 0 (before mixing).
 
 :line
 
-:link(Español_Revenga)
-[(Español and Revenga)] Español, Revenga, Physical Review E, 67, 026705 (2003).
+:link(Espanol_Revenga)
+[(Espanol and Revenga)] Espanol, Revenga, Physical Review E, 67, 026705 (2003).

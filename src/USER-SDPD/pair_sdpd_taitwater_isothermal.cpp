@@ -18,8 +18,8 @@
     references: Espanol and Revenga, Phys Rev E 67, 026705 (2003)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 #include "pair_sdpd_taitwater_isothermal.h"
 #include "atom.h"
 #include "force.h"

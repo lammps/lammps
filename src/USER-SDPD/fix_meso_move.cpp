@@ -16,8 +16,8 @@
       Morteza Jalalvand (IASBS)  jalalvand.m AT gmail.com
 ------------------------------------------------------------------------- */
 
-#include "string.h"
-#include "math.h"
+#include <cstring>
+#include <cmath>
 #include "fix_meso_move.h"
 #include "atom.h"
 #include "group.h"

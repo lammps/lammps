@@ -27,7 +27,7 @@
     and all codes relevant to that has been removed
 ------------------------------------------------------------------------- */
 
-#include <math.h>
+#include <cmath>
 #include "fix_rigid_meso.h"
 #include "math_extra.h"
 #include "atom.h"

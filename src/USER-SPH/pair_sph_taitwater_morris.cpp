@@ -229,7 +229,7 @@ void PairSPHTaitwaterMorris::allocate() {
 void PairSPHTaitwaterMorris::settings(int narg, char **/*arg*/) {
   if (narg != 0)
     error->all(FLERR,
-        "Illegal number of setting arguments for pair_style sph/taitwater/morris");
+        "Illegal number of arguments for pair_style sph/taitwater/morris");
 }
 
 /* ----------------------------------------------------------------------
@@ -279,7 +279,7 @@ void PairSPHTaitwaterMorris::coeff(int narg, char **arg) {
 double PairSPHTaitwaterMorris::init_one(int i, int j) {
 
   if (setflag[i][j] == 0) {
-    error->all(FLERR,"Not all pair sph/taitwater/morris coeffs are not set");
+    error->all(FLERR,"All pair sph/taitwater/morris coeffs are not set");
   }
 
   cut[j][i] = cut[i][j];

@@ -238,8 +238,9 @@ void PairSDPDTaitwaterIsothermal::allocate () {
  ------------------------------------------------------------------------- */
 
 void PairSDPDTaitwaterIsothermal::settings (int narg, char **arg) {
-  if (narg != 2 && narg != 3) error->all (FLERR, "Illegal number of setting "
-    "arguments for pair_style sdpd/taitwater/morris/isothermal");
+  if (narg != 2 && narg != 3)
+    error->all (FLERR, "Illegal number of arguments for "
+                "pair_style sdpd/taitwater/morris/isothermal");
   
   temperature = force->numeric (FLERR, arg[0]);
   viscosity = force->numeric (FLERR, arg[1]);
@@ -262,8 +263,9 @@ void PairSDPDTaitwaterIsothermal::settings (int narg, char **arg) {
  ------------------------------------------------------------------------- */
 
 void PairSDPDTaitwaterIsothermal::coeff (int narg, char **arg) {
-  if (narg != 5) error->all (FLERR, "Incorrect args for pair_style "
-    "sph/taitwater/morris coefficients");
+  if (narg != 5)
+    error->all (FLERR, "Incorrect args for pair_style "
+                "sph/taitwater/morris coefficients");
   
   if (!allocated) allocate();
 
@@ -303,7 +305,7 @@ void PairSDPDTaitwaterIsothermal::coeff (int narg, char **arg) {
 
 double PairSDPDTaitwaterIsothermal::init_one (int i, int j) {
   if (setflag[i][j] == 0) 
-    error->all(FLERR,"Not all pair sph/taitwater/morris coeffs are not set");
+    error->all(FLERR,"Not all pair sph/taitwater/morris coeffs are set");
 
   cut[j][i] = cut[i][j];
 

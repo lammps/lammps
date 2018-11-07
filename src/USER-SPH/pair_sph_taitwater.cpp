@@ -228,7 +228,7 @@ void PairSPHTaitwater::allocate() {
 void PairSPHTaitwater::settings(int narg, char **/*arg*/) {
   if (narg != 0)
     error->all(FLERR,
-        "Illegal number of setting arguments for pair_style sph/taitwater");
+        "Illegal number of arguments for pair_style sph/taitwater");
 }
 
 /* ----------------------------------------------------------------------
@@ -282,7 +282,7 @@ void PairSPHTaitwater::coeff(int narg, char **arg) {
 double PairSPHTaitwater::init_one(int i, int j) {
 
   if (setflag[i][j] == 0) {
-    error->all(FLERR,"Not all pair sph/taitwater coeffs are set");
+    error->all(FLERR,"All pair sph/taitwater coeffs are set");
   }
 
   cut[j][i] = cut[i][j];

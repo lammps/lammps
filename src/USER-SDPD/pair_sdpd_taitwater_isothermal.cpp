@@ -67,7 +67,7 @@ void PairSDPDTaitwaterIsothermal::compute (int eflag, int vflag) {
   int *ilist, *jlist, *numneigh, **firstneigh;
   double vxtmp, vytmp, vztmp, imass, jmass, fi, fj, fvisc;
   double h, ih, ihsq, velx, vely, velz;
-  double rsq, tmp, wfd, delVdotDelR, deltaE;
+  double rsq, tmp, wfd, delVdotDelR;
   double prefactor, wiener[3][3], f_random[3];
 
   if (eflag || vflag) ev_setup (eflag, vflag);
@@ -78,7 +78,6 @@ void PairSDPDTaitwaterIsothermal::compute (int eflag, int vflag) {
   double **f = atom->f;
   double *rho = atom->rho;
   double *mass = atom->mass;
-  double *de = atom->de;
   double *drho = atom->drho;
   int *type = atom->type;
   int nlocal = atom->nlocal;

@@ -397,7 +397,6 @@ void FixMesoMove::initial_integrate (int /*vflag*/) {
   double *e = atom->e;
   double *de = atom->de;
   double **f = atom->f;
-  double **omega = atom->omega;
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
@@ -987,7 +986,7 @@ int FixMesoMove::maxsize_restart () {
    size of atom nlocal's restart data
 ------------------------------------------------------------------------- */
 
-int FixMesoMove::size_restart (int nlocal) {
+int FixMesoMove::size_restart (int /* nlocal */) {
   return 4;
 }
 

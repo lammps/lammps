@@ -52,7 +52,7 @@ FixRigid (lmp, narg, arg) {
   size_array_cols = 28;
   if ((atom->e_flag != 1) || (atom->rho_flag != 1))
     error->all (FLERR, "fix rigid/meso command requires atom_style with"
-                       " both energy and density");
+                " both energy and density");
   
   if (langflag || tstat_flag)
     error->all (FLERR,"Can not use thermostat with fix rigid/meso");
@@ -179,8 +179,8 @@ void FixRigidMeso::initial_integrate (int vflag) {
 /* ---------------------------------------------------------------------- */
 
 void FixRigidMeso::final_integrate () {
-  int i,ibody;
-  double dtfm,xy,xz,yz;
+  int ibody;
+  double dtfm;
   double mbody[3],tbody[3],fquat[4];
 
   double dtf2 = dtf * 2.0;
@@ -248,7 +248,7 @@ void FixRigidMeso::set_xv () {
   int xbox,ybox,zbox;
   double x0,x1,x2,v0,v1,v2,fc0,fc1,fc2,massone;
   double xy,xz,yz;
-  double ione[3],exone[3],eyone[3],ezone[3],vr[6],p[3][3];
+  double vr[6];
 
   double **x = atom->x;
   double **v = atom->v;
@@ -379,7 +379,7 @@ void FixRigidMeso::set_v () {
   int xbox,ybox,zbox;
   double x0,x1,x2,v0,v1,v2,fc0,fc1,fc2,massone;
   double xy,xz,yz;
-  double ione[3],exone[3],eyone[3],ezone[3],delta[3],vr[6];
+  double delta[3],vr[6];
 
   double **x = atom->x;
   double **v = atom->v;

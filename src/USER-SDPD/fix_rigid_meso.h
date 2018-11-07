@@ -32,7 +32,7 @@ class FixRigidMeso : public FixRigid {
   void setup (int);
   void initial_integrate (int);
   void final_integrate ();
-  double compute_scalar () {}
+  double compute_scalar () { return 0.0; }
   double compute_array (int, int);
 
  protected:

@@ -36,7 +36,6 @@ class PairSDPDTaitwaterIsothermal : public Pair {
   void settings (int, char **);
   void coeff (int, char **);
   virtual double init_one (int, int);
-  virtual double single (int, int, int, int, double, double, double, double &);
 
  protected:
   double viscosity, temperature;
@@ -44,7 +43,7 @@ class PairSDPDTaitwaterIsothermal : public Pair {
   double **cut;
 
   void allocate ();
-  
+
   unsigned int seed;
 #ifdef USE_ZEST
   std::mt19937_64 generator;

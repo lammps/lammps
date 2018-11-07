@@ -42,6 +42,7 @@ static const double sqrt_2_inv = std::sqrt(0.5);
 PairSDPDTaitwaterIsothermal::PairSDPDTaitwaterIsothermal (LAMMPS *lmp)
 : Pair (lmp) {
   restartinfo = 0;
+  single_enable =0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -309,12 +310,3 @@ double PairSDPDTaitwaterIsothermal::init_one (int i, int j) {
   return cut[i][j];
 }
 
-/* ---------------------------------------------------------------------- */
-
-double PairSDPDTaitwaterIsothermal::single (int /*i*/, int /*j*/, int /*itype*/,
-                    int /*jtype*/, double /*rsq*/, double /*factor_coul*/,
-                    double /*factor_lj*/, double &fforce) {
-  fforce = 0.0;
-
-  return 0.0;
-}

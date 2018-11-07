@@ -29,7 +29,7 @@ using namespace LAMMPS_NS;
 PairSPHTaitwater::PairSPHTaitwater(LAMMPS *lmp) : Pair(lmp)
 {
   restartinfo = 0;
-
+  single_enable = 0;
   first = 1;
 }
 
@@ -291,11 +291,3 @@ double PairSPHTaitwater::init_one(int i, int j) {
   return cut[i][j];
 }
 
-/* ---------------------------------------------------------------------- */
-
-double PairSPHTaitwater::single(int /*i*/, int /*j*/, int /*itype*/, int /*jtype*/,
-    double /*rsq*/, double /*factor_coul*/, double /*factor_lj*/, double &fforce) {
-  fforce = 0.0;
-
-  return 0.0;
-}

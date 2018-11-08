@@ -428,13 +428,14 @@ void EwaldDipoleSpin::compute(int eflag, int vflag)
       // taking im of struct_fact x exp(i*k*ri) (for force calc.)
 
       partial = (muk[k][i])*(expim*sfacrl_all[k] - exprl*sfacim_all[k]);
-      ek[i][0] += partial*eg[k][0];
-      ek[i][1] += partial*eg[k][1];
-      ek[i][2] += partial*eg[k][2];
+      ek[i][0] += partial * eg[k][0];
+      ek[i][1] += partial * eg[k][1];
+      ek[i][2] += partial * eg[k][2];
 
       // compute field for torque calculation
 
-      partial2 = exprl*sfacrl_all[k] + expim*sfacim_all[k];
+      //partial2 = exprl*sfacrl_all[k] + expim*sfacim_all[k];
+      partial_peratom = exprl*sfacrl_all[k] + expim*sfacim_all[k];
       tk[i][0] += partial2*eg[k][0];
       tk[i][1] += partial2*eg[k][1];
       tk[i][2] += partial2*eg[k][2];
@@ -445,22 +446,23 @@ void EwaldDipoleSpin::compute(int eflag, int vflag)
       spy = sp[i][1]*sp[i][3];
       spz = sp[i][2]*sp[i][3];
 
-      vc[k][0] += vcik[0] = partial2 * spx * kx;
-      vc[k][1] += vcik[1] = partial2 * spy * ky;
-      vc[k][2] += vcik[2] = partial2 * spz * kz;
-      vc[k][3] += vcik[3] = partial2 * spx * ky;
-      vc[k][4] += vcik[4] = partial2 * spx * kz;
-      vc[k][5] += vcik[5] = partial2 * spy * kz;
+      vc[k][0] += vcik[0] = -(partial_peratom * spx * eg[k][0]);
+      vc[k][1] += vcik[1] = -(partial_peratom * spy * eg[k][1]);
+      vc[k][2] += vcik[2] = -(partial_peratom * spz * eg[k][2]);
+      vc[k][3] += vcik[3] = -(partial_peratom * spx * eg[k][1]);
+      vc[k][4] += vcik[4] = -(partial_peratom * spx * eg[k][2]);
+      vc[k][5] += vcik[5] = -(partial_peratom * spy * eg[k][2]);
       
       // taking re-part of struct_fact x exp(i*k*ri) 
       // (for per-atom energy and virial calc.)
 
       if (evflag_atom) {
-        partial_peratom = exprl*sfacrl_all[k] + expim*sfacim_all[k];
+        //partial_peratom = exprl*sfacrl_all[k] + expim*sfacim_all[k];
         if (eflag_atom) eatom[i] += muk[k][i]*ug[k]*partial_peratom;
         if (vflag_atom)
           for (j = 0; j < 6; j++)
-	    vatom[i][j] += ug[k] * (vg[k][j]*partial_peratom - vcik[j]);
+	    vatom[i][j] += (ug[k]*muk[k][i]*vg[k][j]*partial_peratom - vcik[j]);
+	    //vatom[i][j] += ug[k] * (vg[k][j]*partial_peratom - vcik[j]);
       }
     }
   }
@@ -498,7 +500,7 @@ void EwaldDipoleSpin::compute(int eflag, int vflag)
     double uk, vk;
     for (k = 0; k < kcount; k++) {
       uk = ug[k] * (sfacrl_all[k]*sfacrl_all[k] + sfacim_all[k]*sfacim_all[k]);
-      for (j = 0; j < 6; j++) virial[j] += uk*vg[k][j] + ug[k]*vc[k][j];
+      for (j = 0; j < 6; j++) virial[j] += uk*vg[k][j] - vc[k][j];
     }
     for (j = 0; j < 6; j++) virial[j] *= spscale;
   }
@@ -529,7 +531,7 @@ void EwaldDipoleSpin::compute(int eflag, int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   compute the 
+   compute the struc. factors and mu dot k products
 ------------------------------------------------------------------------- */
 
 void EwaldDipoleSpin::eik_dot_r()

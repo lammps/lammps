@@ -19,14 +19,15 @@ create_atoms 	1 box
 
 mass		1 58.93
 
-#set 		group all spin/random 31 1.72
-set 		group all spin 1.72 0.0 0.0 1.0 
+set 		group all spin/random 31 1.72
+#set 		group all spin 1.72 0.0 0.0 1.0 
 velocity 	all create 100 4928459 rot yes dist gaussian
 
 pair_style 	hybrid/overlay eam/alloy spin/exchange 4.0 spin/dipolar/long 8.0
 #pair_style 	hybrid/overlay eam/alloy spin/exchange 4.0 spin/dipolar/long/qsymp 8.0
 pair_coeff 	* * eam/alloy ../examples/SPIN/pppm_spin/Co_PurjaPun_2012.eam.alloy Co
-pair_coeff 	* * spin/exchange exchange 4.0 0.3593 1.135028015e-05 1.064568567
+#pair_coeff 	* * spin/exchange exchange 4.0 0.3593 1.135028015e-05 1.064568567
+pair_coeff 	* * spin/exchange exchange 4.0 0.0 1.135028015e-05 1.064568567
 #pair_coeff 	* * spin/dipolar/long/qsymp long 8.0
 pair_coeff 	* * spin/dipolar/long long 8.0
 
@@ -34,7 +35,7 @@ neighbor 	0.1 bin
 neigh_modify 	every 10 check yes delay 20
 
 kspace_style 	pppm/dipole/spin 1.0e-4
-#kspace_modify 	mesh 32 32 32
+kspace_modify 	compute yes
 
 #fix 		1 all precession/spin zeeman 1.0 0.0 0.0 1.0
 fix 		1 all precession/spin zeeman 0.0 0.0 0.0 1.0
@@ -55,6 +56,7 @@ variable 	emag      equal c_out_mag[5]
 variable 	tmag      equal c_out_mag[6]
 
 thermo_style    custom step time v_magnorm v_emag temp etotal
+thermo_modify   format float %20.16g
 thermo          10
 
 compute 	outsp all property/atom spx spy spz sp fmx fmy fmz

@@ -439,8 +439,7 @@ void EwaldDipole::compute(int eflag, int vflag)
 
     for (i = 0; i < nlocal; i++) {
 
-      vcik[0] = vcik[1] = vcik[2] = 0.0;
-      vcik[3] = vcik[4] = vcik[5] = 0.0;
+      for (j = 0; j<6; j++) vcik[j] = 0.0;
 
       // calculating  re and im of exp(i*k*ri)
 
@@ -458,29 +457,28 @@ void EwaldDipole::compute(int eflag, int vflag)
 
       // compute field for torque calculation
 
-      partial2 = exprl*sfacrl_all[k] + expim*sfacim_all[k];
-      tk[i][0] += partial2*eg[k][0];
-      tk[i][1] += partial2*eg[k][1];
-      tk[i][2] += partial2*eg[k][2];
+      partial_peratom = exprl*sfacrl_all[k] + expim*sfacim_all[k];
+      tk[i][0] += partial_peratom * eg[k][0];
+      tk[i][1] += partial_peratom * eg[k][1];
+      tk[i][2] += partial_peratom * eg[k][2];
 
       // total and per-atom virial correction (dipole only)
 
-      vc[k][0] += vcik[0] = partial2 * mu[i][0] * kx;
-      vc[k][1] += vcik[1] = partial2 * mu[i][1] * ky;
-      vc[k][2] += vcik[2] = partial2 * mu[i][2] * kz;
-      vc[k][3] += vcik[3] = partial2 * mu[i][0] * ky;
-      vc[k][4] += vcik[4] = partial2 * mu[i][0] * kz;
-      vc[k][5] += vcik[5] = partial2 * mu[i][1] * kz;
+      vc[k][0] += vcik[0] = -(partial_peratom * mu[i][0] * eg[k][0]);
+      vc[k][1] += vcik[1] = -(partial_peratom * mu[i][1] * eg[k][1]);
+      vc[k][2] += vcik[2] = -(partial_peratom * mu[i][2] * eg[k][2]);
+      vc[k][3] += vcik[3] = -(partial_peratom * mu[i][0] * eg[k][1]);
+      vc[k][4] += vcik[4] = -(partial_peratom * mu[i][0] * eg[k][2]);
+      vc[k][5] += vcik[5] = -(partial_peratom * mu[i][1] * eg[k][2]);
       
       // taking re-part of struct_fact x exp(i*k*ri) 
       // (for per-atom energy and virial calc.)
 
       if (evflag_atom) {
-        partial_peratom = exprl*sfacrl_all[k] + expim*sfacim_all[k];
         if (eflag_atom) eatom[i] += muk[k][i]*ug[k]*partial_peratom;
         if (vflag_atom)
           for (j = 0; j < 6; j++)
-	    vatom[i][j] += ug[k] * (vg[k][j]*partial_peratom - vcik[j]);
+	    vatom[i][j] += (ug[k]*muk[k][i]*vg[k][j]*partial_peratom - vcik[j]);
       }
     }
   }
@@ -517,7 +515,7 @@ void EwaldDipole::compute(int eflag, int vflag)
     double uk, vk;
     for (k = 0; k < kcount; k++) {
       uk = ug[k] * (sfacrl_all[k]*sfacrl_all[k] + sfacim_all[k]*sfacim_all[k]);
-      for (j = 0; j < 6; j++) virial[j] += uk*vg[k][j] + ug[k]*vc[k][j];
+      for (j = 0; j < 6; j++) virial[j] += uk*vg[k][j] - vc[k][j];
     }
     for (j = 0; j < 6; j++) virial[j] *= muscale;
   }

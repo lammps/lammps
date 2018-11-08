@@ -1,0 +1,72 @@
+# bcc iron in a 3d periodic box
+
+clear 
+units	 	metal
+atom_style 	spin
+
+dimension 	3
+boundary 	p p p
+atom_modify 	map array 
+
+lattice 	bcc 2.8665
+region 		box block 0.0 5.0 0.0 5.0 0.0 5.0
+create_box 	1 box
+create_atoms 	1 box
+
+mass		1 58.93
+#set 		group all spin 2.2 0.0 0.0 1.0
+set 		group all spin/random 31 2.2
+
+#pair_style 	spin/dipolar/cut 5.0
+#pair_coeff 	* * long 5.0
+pair_style 	spin/dipolar/long 4.0
+pair_coeff 	* * long 4.0
+
+#neighbor 	0.1 bin
+#neigh_modify 	every 10 check yes delay 20
+neighbor	0.3 bin 
+neigh_modify	delay 0
+#neigh_modify	every 1 delay 10 check yes page 100000000 one 10000000
+
+#kspace_style 	pppm/dipole/spin 1.0e-4
+kspace_style 	ewald/dipole/spin 1.0e-4
+kspace_modify 	compute yes
+#kspace_modify 	compute yes gewald 0.1
+
+fix 		1 all precession/spin zeeman 0.0 0.0 0.0 1.0
+fix 		2 all langevin/spin 0.0 0.1 21
+#fix 		3 all nve/spin lattice yes
+fix 		3 all nve/spin lattice no
+
+timestep	0.0001
+
+thermo_style	custom step temp pe ke etotal press
+thermo_modify   format float %20.16g
+thermo		50
+
+#compute		peratom all pe/atom
+#compute		pe all reduce sum c_peratom
+#thermo_style	custom step temp pe c_pe
+
+#compute peratom2 all stress/atom
+#compute peratom2 all stress/atom NULL
+#compute p all reduce sum c_peratom2[1] c_peratom2[2] c_peratom2[3]  c_peratom2[4] c_peratom2[5] c_peratom2[6] 
+#variable press equal -(c_p[1]+c_p[2]+c_p[3])/(3*vol)
+#variable pxx equal -c_p[1]/vol
+#variable pyy equal -c_p[2]/vol
+#variable pzz equal -c_p[3]/vol
+#variable pxy equal -c_p[4]/vol
+#variable pxz equal -c_p[5]/vol
+#variable pyz equal -c_p[6]/vol
+#thermo_style custom step temp etotal pe c_pe press v_press pxx v_pxx pyy v_pyy pzz v_pzz pxy v_pxy pxz v_pxz pyz v_pyz
+#thermo_style custom step etotal pe press v_press v_pxx v_pyy v_pzz v_pxy v_pxz v_pyz
+#thermo_style custom step temp etotal press v_press
+
+compute 	outsp all property/atom spx spy spz sp fmx fmy fmz
+dump		50 all custom 1 dump.equil id type x y z c_outsp[1] c_outsp[2] c_outsp[3] 
+#c_outsp[5] c_outsp[6] c_outsp[7]
+#dump_modify 1 format line "%d %d %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g" scale yes
+
+#pair_modify compute no
+
+run	 	10000

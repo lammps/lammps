@@ -65,16 +65,11 @@ lockfixnvespin(NULL)
   lattice_flag = 0;
 
   hbar = force->hplanck/MY_2PI;			// eV/(rad.THz)
-  //mub = 5.78901e-5;                		// in eV/T
-  //mu_0 = 1.2566370614e-6;			// in T.m/A
   mub = 9.274e-4;                               // in A.Ang^2
   mu_0 = 785.15;                                // in eV/Ang/A^2
   mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);     // in eV.Ang^3
-  //mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);	// in eV
   mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);	// in eV
   mub2mu0hbinv = mub2mu0 / hbar;		// in rad.THz
-
-  //printf("hbar: %g, mub2mu0hbinv: %g \n",hbar,mub2mu0hbinv);
 
 }
 
@@ -102,6 +97,9 @@ void PairSpinDipolarCut::settings(int narg, char **arg)
 
   if (strcmp(update->unit_style,"metal") != 0)
     error->all(FLERR,"Spin simulations require metal unit style");
+
+  if (!atom->sp) 
+    error->all(FLERR,"Pair/spin style requires atom attribute sp");
 
   cut_spin_long_global = force->numeric(FLERR,arg[0]);
   
@@ -234,7 +232,7 @@ void PairSpinDipolarCut::compute(int eflag, int vflag)
   int i,j,ii,jj,inum,jnum,itype,jtype;  
   double rinv,r2inv,r3inv,rsq;
   double evdwl,ecoul;
-  double xi[3],rij[3];
+  double xi[3],rij[3],eij[3];
   double spi[4],spj[4],fi[3],fmi[3];
   double local_cut2;
   int *ilist,*jlist,*numneigh,**firstneigh;  
@@ -282,6 +280,7 @@ void PairSpinDipolarCut::compute(int eflag, int vflag)
       spj[2] = sp[j][2]; 
       spj[3] = sp[j][3]; 
 
+      evdwl = 0.0;
       fi[0] = fi[1] = fi[2] = 0.0;
       fmi[0] = fmi[1] = fmi[2] = 0.0;
      
@@ -289,16 +288,19 @@ void PairSpinDipolarCut::compute(int eflag, int vflag)
       rij[1] = x[j][1] - xi[1];
       rij[2] = x[j][2] - xi[2];
       rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
+      rinv = 1.0/sqrt(rsq);
+      eij[0] = rij[0]*rinv;
+      eij[1] = rij[1]*rinv;
+      eij[2] = rij[2]*rinv;
 
       local_cut2 = cut_spin_long[itype][jtype]*cut_spin_long[itype][jtype];
 
       if (rsq < local_cut2) {
         r2inv = 1.0/rsq;
-        rinv = sqrt(r2inv);
 	r3inv = r2inv*rinv;
 	
-	compute_dipolar(i,j,rij,fmi,spi,spj,r3inv);
-	if (lattice_flag) compute_dipolar_mech(i,j,rij,fmi,spi,spj,r2inv);
+	compute_dipolar(i,j,eij,fmi,spi,spj,r3inv);
+	if (lattice_flag) compute_dipolar_mech(i,j,eij,fi,spi,spj,r2inv);
       }
 
       // force accumulation
@@ -318,12 +320,10 @@ void PairSpinDipolarCut::compute(int eflag, int vflag)
 
       if (eflag) {
 	if (rsq <= local_cut2) {
-	  evdwl -= spi[0]*fmi[0] + spi[1]*fmi[1] + 
-	    spi[2]*fmi[2];
+	  evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
 	  evdwl *= hbar;
 	}
       } else evdwl = 0.0;
-
 
       if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
 	  evdwl,ecoul,fi[0],fi[1],fi[2],rij[0],rij[1],rij[2]);
@@ -342,7 +342,7 @@ void PairSpinDipolarCut::compute_single_pair(int ii, double fmi[3])
 {
   int i,j,jj,jnum,itype,jtype;  
   double rsq,rinv,r2inv,r3inv;
-  double xi[3],rij[3];
+  double xi[3],rij[3],eij[3];
   double spi[4],spj[4];
   double local_cut2;
   int *ilist,*jlist,*numneigh,**firstneigh;  
@@ -384,44 +384,41 @@ void PairSpinDipolarCut::compute_single_pair(int ii, double fmi[3])
     rij[1] = x[j][1] - xi[1];
     rij[2] = x[j][2] - xi[2];
     rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
+    rinv = 1.0/sqrt(rsq);
+    eij[0] = rij[0]*rinv;
+    eij[1] = rij[1]*rinv;
+    eij[2] = rij[2]*rinv;
 
     local_cut2 = cut_spin_long[itype][jtype]*cut_spin_long[itype][jtype];
 
     if (rsq < local_cut2) {
       r2inv = 1.0/rsq;
-      rinv = sqrt(r2inv);
       r3inv = r2inv*rinv;
       
       // compute dipolar interaction
       
-      compute_dipolar(i,j,rij,fmi,spi,spj,r3inv);
+      compute_dipolar(i,j,eij,fmi,spi,spj,r3inv);
     }
   }
- 
-  //printf("test fm: %g, %g, %g \n",fmi[0],fmi[1],fmi[2]);
-
-  //fmi[0] *= mub2mu0hbinv;
-  //fmi[1] *= mub2mu0hbinv;
-  //fmi[2] *= mub2mu0hbinv;
 }
 
 /* ----------------------------------------------------------------------
    compute dipolar interaction between spins i and j
 ------------------------------------------------------------------------- */
 
-void PairSpinDipolarCut::compute_dipolar(int i, int j, double rij[3], 
+void PairSpinDipolarCut::compute_dipolar(int i, int j, double eij[3], 
     double fmi[3], double spi[4], double spj[4], double r3inv)
 {
   double sjdotr;
-  double gigjri3,pre;
+  double gigjiri3,pre;
 
-  sjdotr = spj[0]*rij[0] + spj[1]*rij[1] + spj[2]*rij[2];
-  gigjri3 = (spi[3] * spj[3])*r3inv;
-  pre = mub2mu0hbinv * gigjri3 / 4.0 / MY_PI;
+  sjdotr = spj[0]*eij[0] + spj[1]*eij[1] + spj[2]*eij[2];
+  gigjiri3 = (spi[3] * spj[3])*r3inv;
+  pre = mub2mu0hbinv * gigjiri3;
 
-  fmi[0] += pre * gigjri3 * (3.0 * sjdotr *rij[0] - spj[0]);
-  fmi[1] += pre * gigjri3 * (3.0 * sjdotr *rij[1] - spj[1]);
-  fmi[2] += pre * gigjri3 * (3.0 * sjdotr *rij[2] - spj[2]);
+  fmi[0] += pre * (3.0 * sjdotr *eij[0] - spj[0]);
+  fmi[1] += pre * (3.0 * sjdotr *eij[1] - spj[1]);
+  fmi[2] += pre * (3.0 * sjdotr *eij[2] - spj[2]);
 }
 
 /* ----------------------------------------------------------------------
@@ -429,24 +426,24 @@ void PairSpinDipolarCut::compute_dipolar(int i, int j, double rij[3],
    atom i and atom j
 ------------------------------------------------------------------------- */
 
-void PairSpinDipolarCut::compute_dipolar_mech(int i, int j, double rij[3],
+void PairSpinDipolarCut::compute_dipolar_mech(int i, int j, double eij[3],
     double fi[3], double spi[3], double spj[3], double r2inv)
 {
-  double sdots,sidotr,sjdotr,b2,b3;
+  double sisj,sieij,sjeij;
   double gigjri4,bij,pre;
 
-  gigjri4 = (spi[3] * spj[3])/r2inv/r2inv;
-  sdots = spi[0]*spj[0] + spi[1]*spj[1] + spi[2]*spj[2];
-  sidotr = spi[0]*rij[0] + spi[1]*rij[1] + spi[2]*rij[2];
-  sjdotr = spj[0]*rij[0] + spj[1]*rij[1] + spj[2]*rij[2];
+  gigjri4 = (spi[3] * spj[3])*r2inv*r2inv;
+  sisj = spi[0]*spj[0] + spi[1]*spj[1] + spi[2]*spj[2];
+  sieij = spi[0]*eij[0] + spi[1]*eij[1] + spi[2]*eij[2];
+  sjeij = spj[0]*eij[0] + spj[1]*eij[1] + spj[2]*eij[2];
+  
+  bij = sisj - 5.0*sieij*sjeij;
+  pre = mub2mu0*gigjri4;
 
-  bij = sdots - 5.0 * sidotr*sjdotr;
-  pre = mub2mu0 * bij / 4.0 / MY_PI;
-  fi[0] += pre * (rij[0] * bij + (sjdotr*spi[0] + sidotr*spj[0]));
-  fi[1] += pre * (rij[1] * bij + (sjdotr*spi[1] + sidotr*spj[1]));
-  fi[2] += pre * (rij[2] * bij + (sjdotr*spi[2] + sidotr*spj[2]));
+  fi[0] += pre * (eij[0] * bij + (sjeij*spi[0] + sieij*spj[0]));
+  fi[1] += pre * (eij[1] * bij + (sjeij*spi[1] + sieij*spj[1]));
+  fi[2] += pre * (eij[2] * bij + (sjeij*spi[2] + sieij*spj[2]));
 }
-
 
 /* ----------------------------------------------------------------------
    allocate all arrays

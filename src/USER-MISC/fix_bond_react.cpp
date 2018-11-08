@@ -255,7 +255,10 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
       } else if (strcmp(arg[iarg],"update_edges") == 0) {
         if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
                                       "'update_edges' has too few arguments");
-        if (strcmp(arg[iarg+1],"charges") == 0) update_edges_flag[rxn] = 1;
+        if (strcmp(arg[iarg+1],"none") == 0) update_edges_flag[rxn] = 0;
+        else if (strcmp(arg[iarg+1],"charges") == 0) update_edges_flag[rxn] = 1;
+        else if (strcmp(arg[iarg+1],"custom") == 0) update_edges_flag[rxn] = 2;
+        else error->all(FLERR,"Illegal value for 'update_edges' keyword'");
         iarg += 2;
       } else error->all(FLERR,"Illegal fix bond/react command: unknown keyword");
     }
@@ -271,11 +274,16 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   memory->create(reverse_equiv,max_natoms,2,nreacts,"bond/react:reverse_equiv");
   memory->create(edge,max_natoms,nreacts,"bond/react:edge");
   memory->create(landlocked_atoms,max_natoms,nreacts,"bond/react:landlocked_atoms");
+  memory->create(custom_edges,max_natoms,nreacts,"bond/react:custom_edges");
 
   for (int j = 0; j < nreacts; j++)
-    for (int i = 0; i < max_natoms; i++) edge[i][j] = 0;
+    for (int i = 0; i < max_natoms; i++) {
+      edge[i][j] = 0;
+      if (update_edges_flag[j] == 1) custom_edges[i][j] = 1;
+      else custom_edges[i][j] = 0;
+    }
 
-  // read all superimpose files afterward
+  // read all map files afterward
   for (int i = 0; i < nreacts; i++) {
     open(files[i]);
     onemol = atom->molecules[unreacted_mol[i]];
@@ -384,6 +392,7 @@ FixBondReact::~FixBondReact()
   memory->destroy(edge);
   memory->destroy(equivalences);
   memory->destroy(reverse_equiv);
+  memory->destroy(custom_edges);
 
   memory->destroy(nevery);
   memory->destroy(cutsq);
@@ -1854,8 +1863,11 @@ void FixBondReact::limit_bond(int limit_bond_mode)
   int index1 = atom->find_custom("limit_tags",flag);
   int *i_limit_tags = atom->ivector[index1];
 
-  int index2 = atom->find_custom(statted_id,flag);
-  int *i_statted_tags = atom->ivector[index2];
+  int *i_statted_tags;
+  if (stabilization_flag == 1) {
+    int index2 = atom->find_custom(statted_id,flag);
+    i_statted_tags = atom->ivector[index2];
+  }
 
   int index3 = atom->find_custom("react_tags",flag);
   int *i_react_tags = atom->ivector[index3];
@@ -1863,7 +1875,7 @@ void FixBondReact::limit_bond(int limit_bond_mode)
   for (int i = 0; i < temp_limit_num; i++) {
     // update->ntimestep could be 0. so add 1 throughout
     i_limit_tags[atom->map(temp_limit_glove[i])] = update->ntimestep + 1;
-    i_statted_tags[atom->map(temp_limit_glove[i])] = 0;
+    if (stabilization_flag == 1) i_statted_tags[atom->map(temp_limit_glove[i])] = 0;
     i_react_tags[atom->map(temp_limit_glove[i])] = rxnID;
   }
 
@@ -1884,8 +1896,11 @@ void FixBondReact::unlimit_bond()
   int index1 = atom->find_custom("limit_tags",flag);
   int *i_limit_tags = atom->ivector[index1];
 
-  int index2 = atom->find_custom(statted_id,flag);
-  int *i_statted_tags = atom->ivector[index2];
+  int *i_statted_tags;
+  if (stabilization_flag == 1) {
+    int index2 = atom->find_custom(statted_id,flag);
+    i_statted_tags = atom->ivector[index2];
+  }
 
   int index3 = atom->find_custom("react_tags",flag);
   int *i_react_tags = atom->ivector[index3];
@@ -1895,7 +1910,7 @@ void FixBondReact::unlimit_bond()
     // first '1': indexing offset, second '1': for next step
     if (i_limit_tags[i] != 0 && (update->ntimestep + 1 - i_limit_tags[i]) > limit_duration[i_react_tags[i]]) { // + 1
       i_limit_tags[i] = 0;
-      i_statted_tags[i] = 1;
+      if (stabilization_flag == 1) i_statted_tags[i] = 1;
       i_react_tags[i] = 0;
     }
   }
@@ -2077,7 +2092,7 @@ void FixBondReact::update_everything()
       twomol = atom->molecules[reacted_mol[rxnID]];
       for (int j = 0; j < twomol->natoms; j++) {
         int jj = equivalences[j][1][rxnID]-1;
-        if ((landlocked_atoms[j][rxnID] == 1 || update_edges_flag[rxnID] == 1) &&
+        if ((landlocked_atoms[j][rxnID] == 1 || custom_edges[jj][rxnID] == 1) &&
             atom->map(update_mega_glove[jj+1][i]) >= 0 &&
             atom->map(update_mega_glove[jj+1][i]) < nlocal) {
           type[atom->map(update_mega_glove[jj+1][i])] = twomol->type[j];
@@ -2520,6 +2535,7 @@ void FixBondReact::read(int myrxn)
 
     if (strstr(line,"edgeIDs")) sscanf(line,"%d",&nedge);
     else if (strstr(line,"equivalences")) sscanf(line,"%d",&nequivalent);
+    else if (strstr(line,"customIDs")) sscanf(line,"%d",&ncustom);
     else break;
   }
 
@@ -2532,7 +2548,7 @@ void FixBondReact::read(int myrxn)
 
   // loop over sections of superimpose file
 
-  int equivflag = 0, edgeflag = 0, bondflag = 0;
+  int equivflag = 0, edgeflag = 0, bondflag = 0, customedgesflag = 0;
   while (strlen(keyword)) {
     if (strcmp(keyword,"BondingIDs") == 0) {
       bondflag = 1;
@@ -2546,6 +2562,9 @@ void FixBondReact::read(int myrxn)
     } else if (strcmp(keyword,"Equivalences") == 0) {
       equivflag = 1;
       Equivalences(line, myrxn);
+    } else if (strcmp(keyword,"Custom Edges") == 0) {
+      customedgesflag = 1;
+      CustomEdges(line, myrxn);
     } else error->one(FLERR,"Unknown section in superimpose file");
 
     parse_keyword(1,line,keyword);
@@ -2555,6 +2574,12 @@ void FixBondReact::read(int myrxn)
   // error check
   if (bondflag == 0 || equivflag == 0)
     error->all(FLERR,"Superimpose file missing BondingIDs or Equivalences section\n");
+
+  if (update_edges_flag[myrxn] == 2 && customedgesflag == 0)
+    error->all(FLERR,"Map file must have a Custom Edges section when using 'update_edges custom'\n");
+
+  if (update_edges_flag[myrxn] != 2 && customedgesflag == 1)
+    error->all(FLERR,"Specify 'update_edges custom' to include Custom Edges section in map file\n");
 }
 
 void FixBondReact::EdgeIDs(char *line, int myrxn)
@@ -2583,6 +2608,26 @@ void FixBondReact::Equivalences(char *line, int myrxn)
     reverse_equiv[tmp1-1][0][myrxn] = tmp1;
     reverse_equiv[tmp1-1][1][myrxn] = tmp2;
   }
+}
+
+void FixBondReact::CustomEdges(char *line, int myrxn)
+{
+  // 0 for 'none', 1 for 'charges'
+
+  int tmp;
+  int n = MAX(strlen("none"),strlen("charges")) + 1;
+  char *edgemode = new char[n];
+  for (int i = 0; i < ncustom; i++) {
+    readline(line);
+    sscanf(line,"%d %s",&tmp,edgemode);
+    if (strcmp(edgemode,"none") == 0)
+      custom_edges[tmp-1][myrxn] = 0;
+    else if (strcmp(edgemode,"charges") == 0)
+      custom_edges[tmp-1][myrxn] = 1;
+    else
+      error->one(FLERR,"Illegal value in 'Custom Edges' section of map file");
+  }
+  delete [] edgemode;
 }
 
 void FixBondReact::open(char *file)

@@ -44,7 +44,8 @@ react = mandatory argument indicating new reaction specification :l
       timesteps = number of timesteps to apply internally created nve/limit.html
     {update_edges} value = {none} or {charges} :l
       none = do not update topology near the edges of reaction templates
-      charges = update atomic charges of all atoms in reaction templates :pre
+      charges = update atomic charges of all atoms in reaction templates
+      custom = force the update of user-specified atomic charges :pre
 :ule
 
 [Examples:]
@@ -201,23 +202,30 @@ A discussion of correctly handling this is also provided on the
 The map file is a text document with the following format:
 
 A map file has a header and a body. The header of map file the
-contains one mandatory keyword and one optional keyword. The mandatory
-keyword is 'equivalences' and the optional keyword is 'edgeIDs':
+contains one mandatory keyword and two optional keywords. The mandatory
+keyword is 'equivalences' and the optional keywords are 'edgeIDs' and
+'customIDs':
 
 N {equivalences} = # of atoms N in the reaction molecule templates
-N {edgeIDs} = # of edge atoms N in the pre-reacted molecule template :pre
+N {edgeIDs} = # of edge atoms N in the pre-reacted molecule template
+N {customIDs} = # of atoms N that are specified for a custom update :pre
 
-The body of the map file contains two mandatory sections and one
-optional section. The first mandatory section begins with the keyword
+The body of the map file contains two mandatory sections and two
+optional sections. The first mandatory section begins with the keyword
 'BondingIDs' and lists the atom IDs of the bonding atom pair in the
 pre-reacted molecule template. The second mandatory section begins
 with the keyword 'Equivalences' and lists a one-to-one correspondence
 between atom IDs of the pre- and post-reacted templates. The first
 column is an atom ID of the pre-reacted molecule template, and the
 second column is the corresponding atom ID of the post-reacted
-molecule template. The optional section begins with the keyword
+molecule template. The first optional section begins with the keyword
 'EdgeIDs' and lists the atom IDs of edge atoms in the pre-reacted
-molecule template.
+molecule template. The second optional section begins with the keyword
+'Custom Edges' and allows for forcing the update of a specific atom's
+atomic charge. The first column is the ID of an atom near the edge of
+the pre-reacted molecule template, and the value of the second column
+is either 'none' or 'charges.' Further details are provided in the
+discussion of the 'update_edges' keyword.
 
 A sample map file is given below:
 
@@ -282,7 +290,13 @@ The {update_edges} keyword can increase the number of atoms whose
 atomic charges are updated, when the pre-reaction template contains
 edge atoms. When the value is set to 'charges,' all atoms' atomic
 charges are updated to those specified by the post-reaction template,
-including atoms near the edge of reaction templates.
+including atoms near the edge of reaction templates. When the value is
+set to 'custom,' an additional section must be included in the map
+file that specifies whether to update charges, on a per-atom basis.
+The format of this section is detailed above. Listing a pre-reaction
+atom ID with a value of 'charges' will force the update of the atom's
+charge, even if it is near a template edge. Atoms not near a template
+edge are unaffected by this setting.
 
 In order to produce the most physical behavior, this 'reaction site
 equilibration time' should be tuned to be as small as possible while

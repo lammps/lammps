@@ -171,8 +171,12 @@ protected:
   // Options for extended_lagrangian
   /// Restraint center
   colvarvalue xr;
+  /// Previous value of the restraint center;
+  colvarvalue prev_xr;
   /// Velocity of the restraint center
   colvarvalue vr;
+  /// Previous velocity of the restraint center
+  colvarvalue prev_vr;
   /// Mass of the restraint center
   cvm::real ext_mass;
   /// Restraint force constant
@@ -352,6 +356,9 @@ public:
   /// \brief Updates the flags in the CVC objects, and their number
   int update_cvc_flags();
 
+  /// \brief Modify the configuration of CVCs (currently, only base class data)
+  int update_cvc_config(std::vector<std::string> const &confs);
+
 protected:
   /// \brief Number of CVC objects with an active flag
   size_t n_active_cvcs;
@@ -359,10 +366,17 @@ protected:
   /// Sum of square coefficients for active cvcs
   cvm::real active_cvc_square_norm;
 
+  /// Update the sum of square coefficients for active cvcs
+  void update_active_cvc_square_norm();
+
   /// \brief Absolute timestep number when this colvar was last updated
   int prev_timestep;
 
 public:
+
+  /// \brief Return the number of CVC objects defined
+  inline size_t num_cvcs() const { return cvcs.size(); }
+
   /// \brief Return the number of CVC objects with an active flag (as set by update_cvc_flags)
   inline size_t num_active_cvcs() const { return n_active_cvcs; }
 
@@ -371,21 +385,21 @@ public:
   ///
   /// Handles correctly symmetries and periodic boundary conditions
   cvm::real dist2(colvarvalue const &x1,
-                   colvarvalue const &x2) const;
+                  colvarvalue const &x2) const;
 
   /// \brief Use the internal metrics (as from \link cvc
   /// \endlink objects) to calculate square distances and gradients
   ///
   /// Handles correctly symmetries and periodic boundary conditions
   colvarvalue dist2_lgrad(colvarvalue const &x1,
-                           colvarvalue const &x2) const;
+                          colvarvalue const &x2) const;
 
   /// \brief Use the internal metrics (as from \link cvc
   /// \endlink objects) to calculate square distances and gradients
   ///
   /// Handles correctly symmetries and periodic boundary conditions
   colvarvalue dist2_rgrad(colvarvalue const &x1,
-                           colvarvalue const &x2) const;
+                          colvarvalue const &x2) const;
 
   /// \brief Use the internal metrics (as from \link cvc
   /// \endlink objects) to wrap a value into a standard interval

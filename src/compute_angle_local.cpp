@@ -38,7 +38,7 @@ enum{THETA,ENG,VARIABLE};
 
 ComputeAngleLocal::ComputeAngleLocal(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  bstyle(NULL), vstr(NULL), vvar(NULL), tstr(NULL), vlocal(NULL), alocal(NULL)
+  bstyle(NULL), vvar(NULL), tstr(NULL), vstr(NULL), vlocal(NULL), alocal(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute angle/local command");
 

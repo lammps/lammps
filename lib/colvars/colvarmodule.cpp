@@ -139,7 +139,7 @@ int colvarmodule::read_config_file(char const  *config_filename)
   // read the config file into a string
   std::string conf = "";
   std::string line;
-  while (colvarparse::getline_nocomments(config_s, line)) {
+  while (parse->read_config_line(config_s, line)) {
     // Delete lines that contain only white space after removing comments
     if (line.find_first_not_of(colvarparse::white_space) != std::string::npos)
       conf.append(line+"\n");
@@ -159,11 +159,12 @@ int colvarmodule::read_config_string(std::string const &config_str)
   // strip the comments away
   std::string conf = "";
   std::string line;
-  while (colvarparse::getline_nocomments(config_s, line)) {
+  while (parse->read_config_line(config_s, line)) {
     // Delete lines that contain only white space after removing comments
     if (line.find_first_not_of(colvarparse::white_space) != std::string::npos)
       conf.append(line+"\n");
   }
+
   return parse_config(conf);
 }
 
@@ -190,6 +191,12 @@ std::istream & colvarmodule::getline(std::istream &is, std::string &line)
 int colvarmodule::parse_config(std::string &conf)
 {
   extra_conf.clear();
+
+  // Check that the input has matching braces
+  if (colvarparse::check_braces(conf, 0) != COLVARS_OK) {
+    return cvm::error("Error: unmatched curly braces in configuration.\n",
+                      INPUT_ERROR);
+  }
 
   // Parse global options
   if (catch_input_errors(parse_global_params(conf))) {
@@ -235,6 +242,12 @@ int colvarmodule::parse_config(std::string &conf)
 }
 
 
+std::string const & colvarmodule::get_config() const
+{
+  return parse->get_config();
+}
+
+
 int colvarmodule::append_new_config(std::string const &new_conf)
 {
   extra_conf += new_conf;
@@ -246,9 +259,13 @@ int colvarmodule::parse_global_params(std::string const &conf)
 {
   colvarmodule *cvm = cvm::main();
 
-  std::string index_file_name;
-  if (parse->get_keyval(conf, "indexFile", index_file_name)) {
-    cvm->read_index_file(index_file_name.c_str());
+  {
+    std::string index_file_name;
+    size_t pos = 0;
+    while (parse->key_lookup(conf, "indexFile", &index_file_name, &pos)) {
+      cvm->read_index_file(index_file_name.c_str());
+      index_file_name.clear();
+    }
   }
 
   if (parse->get_keyval(conf, "smp", proxy->b_smp_active, proxy->b_smp_active)) {
@@ -1073,9 +1090,9 @@ colvarmodule::~colvarmodule()
 
 int colvarmodule::reset()
 {
-  parse->init();
-
   cvm::log("Resetting the Collective Variables module.\n");
+
+  parse->init();
 
   // Iterate backwards because we are deleting the elements as we go
   for (std::vector<colvarbias *>::reverse_iterator bi = biases.rbegin();

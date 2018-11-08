@@ -118,6 +118,7 @@ Fixes :h1
    fix_phonon
    fix_pimd
    fix_planeforce
+   fix_plumed
    fix_poems
    fix_pour
    fix_precession_spin

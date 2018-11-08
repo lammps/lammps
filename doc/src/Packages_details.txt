@@ -95,6 +95,7 @@ as contained in the file name.
 "USER-QUIP"_#PKG-USER-QUIP,
 "USER-REAXC"_#PKG-USER-REAXC,
 "USER-SCAFACOS"_#PKG-USER-SCAFACOS,
+"USER-SDPD"_#PKG-USER-SDPD,
 "USER-SMD"_#PKG-USER-SMD,
 "USER-SMTBQ"_#PKG-USER-SMTBQ,
 "USER-SPH"_#PKG-USER-SPH,
@@ -1941,6 +1942,31 @@ src/USER-SCAFACOS/README
 "kspace_style scafacos"_kspace_style.html
 "kspace_modify"_kspace_modify.html
 examples/USER/scafacos :ul
+
+:line
+
+USER-SDPD package :link(PKG-USER-SDPD),h4
+
+[Contents:]
+
+A pair style for smoothed dissipative particle dynamics (SDPD), which
+is an extension of smoothed particle hydrodynamics (SPH) to mesoscale
+where thermal fluctuations are important (see the
+"USER-SPH package"_#PKG-USER-SPH).
+Also two fixes for moving and rigid body integration of SPH/SDPD particles
+(particles of atom_style meso).
+
+[Author:] Morteza Jalalvand (Institute for Advanced Studies in Basic
+Sciences, Iran).
+
+[Supporting info:]
+
+src/USER-SDPD: filenames -> commands
+src/USER-SDPD/README
+"pair_style sdpd/taitwater/isothermal"_pair_sdpd_taitwater_isothermal.html
+"fix meso/move"_fix_meso_move.html
+"fix rigid/meso"_fix_rigid_meso.html
+examples/USER/sdpd :ul
 
 :line
 

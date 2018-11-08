@@ -293,6 +293,7 @@ fix_lb_viscous.html
 fix_lineforce.html
 fix_manifoldforce.html
 fix_meso.html
+fix_meso_move.html
 fix_meso_stationary.html
 fix_momentum.html
 fix_move.html
@@ -357,6 +358,7 @@ fix_reaxc_species.html
 fix_recenter.html
 fix_restrain.html
 fix_rigid.html
+fix_rigid_meso.html
 fix_rhok.html
 fix_rx.html
 fix_saed_vtk.html
@@ -616,6 +618,7 @@ pair_reax.html
 pair_reaxc.html
 pair_resquared.html
 pair_sdk.html
+pair_sdpd_taitwater_isothermal.html
 pair_smd_hertz.html
 pair_smd_tlsph.html
 pair_smd_triangulated_surface.html

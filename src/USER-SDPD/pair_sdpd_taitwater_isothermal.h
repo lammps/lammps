@@ -13,32 +13,44 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(sph/taitwater/morris,PairSPHTaitwaterMorris)
+PairStyle(sdpd/taitwater/isothermal,PairSDPDTaitwaterIsothermal)
 
 #else
 
-#ifndef LMP_PAIR_TAITWATER_MORRIS_H
-#define LMP_PAIR_TAITWATER_MORRIS_H
+#ifndef LMP_PAIR_SDPD_TAITWATER_MORRIS_ISOTHERMAL_H
+#define LMP_PAIR_SDPD_TAITWATER_MORRIS_ISOTHERMAL_H
 
 #include "pair.h"
+#ifdef USE_ZEST
+#include <random>
+#include "zest.hpp"
+#endif
 
 namespace LAMMPS_NS {
 
-class PairSPHTaitwaterMorris : public Pair {
+class PairSDPDTaitwaterIsothermal : public Pair {
  public:
-  PairSPHTaitwaterMorris(class LAMMPS *);
-  virtual ~PairSPHTaitwaterMorris();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  virtual double init_one(int, int);
+  PairSDPDTaitwaterIsothermal (class LAMMPS *);
+  virtual ~PairSDPDTaitwaterIsothermal ();
+  virtual void compute (int, int);
+  void settings (int, char **);
+  void coeff (int, char **);
+  virtual double init_one (int, int);
 
  protected:
+  double viscosity, temperature;
   double *rho0, *soundspeed, *B;
-  double **cut,**viscosity;
-  int first;
+  double **cut;
 
-  void allocate();
+  void allocate ();
+
+  unsigned int seed;
+#ifdef USE_ZEST
+  std::mt19937_64 generator;
+  Ziggurat<zest::StandardNormal,std::mt19937_64> gaussian;
+#else
+  class RanMars *random;
+#endif
 };
 
 }

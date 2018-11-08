@@ -73,6 +73,7 @@ Fixes :h1
    fix_lineforce
    fix_manifoldforce
    fix_meso
+   fix_meso_move
    fix_meso_stationary
    fix_momentum
    fix_move
@@ -138,6 +139,7 @@ Fixes :h1
    fix_restrain
    fix_rhok
    fix_rigid
+   fix_rigid_meso
    fix_rx
    fix_saed_vtk
    fix_setforce

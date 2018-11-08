@@ -1,0 +1,49 @@
+dimension       2
+units           micro
+atom_style      meso
+
+variable        R equal 0.5             # radius of sphere          micrometers
+variable        a equal $R/5            # lattice spacing           micrometers
+variable        L equal $R*3
+variable        T equal 300.
+variable        rho_0 equal 1.          # density                   picograms/micrometer^3
+variable        c_0 equal 100.          # speed of sound            micrometers/microsecond
+variable        mu equal 1.             # dynamic viscosity         picogram/(micrometer-microsecond)
+variable        h equal $a*4.5          # kernel function cutoff    micrometers
+variable        mass equal $a*$a*$a*${rho_0}
+variable        dt equal 1e-3           # timestep                  microseconds
+variable        skin equal 0.2*$h
+
+region          box block -$L $L -$L $L 0 $a units box
+create_box      2 box
+lattice         sq $a
+
+create_atoms    1 box
+
+region          sphere sphere 0 0 0 $R units box
+set             region sphere type 2
+
+group           fluid type 1
+group           sphere type 2
+
+mass            * ${mass}
+set             group all meso/rho ${rho_0}
+
+pair_style      sdpd/taitwater/isothermal $T ${mu} 76787    # temperature viscosity random_seed
+pair_coeff      * * ${rho_0} ${c_0} ${h}
+
+fix             1 fluid meso
+fix             2 sphere rigid/meso single
+
+fix             2d all enforce2d
+
+neighbor        ${skin} bin
+neigh_modify	delay 0 every 1 check yes
+timestep        ${dt}
+
+dump            dump_id all atom 100 dump.lammpstrj
+
+thermo          100
+thermo_style    custom step time nbuild ndanger
+
+run             10000

@@ -301,7 +301,7 @@ void Pair::init_style()
    specific pair style can override this function
 ------------------------------------------------------------------------- */
 
-void Pair::init_list(int /*which*/, NeighList *ptr)
+void Pair::init_list(int which, NeighList *ptr)
 {
   list = ptr;
 }
@@ -1738,6 +1738,18 @@ void Pair::init_bitmap(double inner, double outer, int ntablebits,
   masklo = rsq_lookup.i & ~(nmask);
 }
 
+/* ---------------------------------------------------------------------- */
+
+void Pair::pairTensor(double fforce, double dfac, double delr[3], double phiTensor[6]) {
+  int m = 0;
+  for (int k=0; k<3; k++) {
+    phiTensor[m] = fforce;
+    for (int l=k; l<3; l++) {
+      if (l>k) phiTensor[m] = 0;
+      phiTensor[m++] += delr[k]*delr[l] * dfac;
+    }
+  }
+}
 /* ---------------------------------------------------------------------- */
 
 double Pair::memory_usage()

@@ -145,6 +145,16 @@ class Pair : protected Pointers {
     return 0.0;
   }
 
+  void pairTensor(double fforce, double dfac, double delr[3], double phiTensor[6]);
+
+  virtual double single2(int, int, int, int,
+                        double, double[3], double, double,
+                        double& fforce, double d2u[6]) {
+    fforce = 0.0;
+    for (int i=0; i<6; i++) d2u[i] = 0;
+    return 0.0;
+  }
+
   virtual void settings(int, char **) = 0;
   virtual void coeff(int, char **) = 0;
 
@@ -206,10 +216,6 @@ class Pair : protected Pointers {
   // custom data type for accessing Coulomb tables
 
   typedef union {int i; float f;} union_int_float_t;
-
-  // Accessor for the user-intel package to determine virial calc for hybrid
-
-  inline int fdotr_is_set() const { return vflag_fdotr; }
 
  protected:
   int vflag_fdotr;

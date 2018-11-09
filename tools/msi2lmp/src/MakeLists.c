@@ -363,7 +363,7 @@ int count_dihedrals()
               if (i != k) {
                 for (ll=0; ll < atoms[k].no_connect; ll++) {
                   l = atoms[k].conn_no[ll];
-                  if ((l != j) && (i != l)) n++
+                  if ((l != j) && (i != l)) n++;
                 }
               }
             }

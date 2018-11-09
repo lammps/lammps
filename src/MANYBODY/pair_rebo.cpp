@@ -30,7 +30,6 @@ void PairREBO::settings(int narg, char **/*arg*/)
 
   cutlj = 0.0;
   ljflag = torflag = 0;
- PCCf_2_0 = -0.0276030;
 }
 
 /* ----------------------------------------------------------------------

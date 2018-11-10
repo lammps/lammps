@@ -35,6 +35,7 @@ class ComputeHMA : public Compute {
   void set_arrays(int);
   int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);
+  double memory_usage();
 
  private:
   int nmax;

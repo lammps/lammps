@@ -59,9 +59,9 @@ ComputeHMA::ComputeHMA(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;                         
   timeflag = 1;                         
 
-// (from compute displace/atom) create a new fix STORE style  
-// our new fix's id (id_fix)= compute-ID + COMPUTE_STORE 
-// our new fix's group = same as compute group
+  // (from compute displace/atom) create a new fix STORE style  
+  // our new fix's id (id_fix)= compute-ID + COMPUTE_STORE 
+  // our new fix's group = same as compute group
 
   int n = strlen(id) + strlen("_COMPUTE_STORE") + 1;
   id_fix = new char[n];
@@ -169,7 +169,8 @@ void ComputeHMA::init() {
   neighbor->requests[irequest]->occasional = 1; 
 }
 
-void ComputeHMA::init_list(int id, NeighList *ptr) {
+void ComputeHMA::init_list(int id, NeighList *ptr)
+{
   list = ptr;
 }
 
@@ -196,12 +197,7 @@ void ComputeHMA::compute_vector()
 {
   invoked_vector = update->ntimestep;         
 
-// dx,dy,dz = displacement of atom from original position
-  // original unwrapped position is stored by fix
-  // for triclinic, need to unwrap current atom coord via h matrix
-
   // grow deltaR array if necessary
-
   if (comm_forward>0 && atom->nmax > nmax) {
     memory->destroy(deltaR);
     nmax = atom->nmax;
@@ -391,7 +387,8 @@ void ComputeHMA::compute_vector()
   }
 }
 
-double ComputeHMA::virial_compute(int n) {
+double ComputeHMA::virial_compute(int n)
+{
   double v = 0;
 
   // sum contributions to virial from forces and fixes
@@ -467,4 +464,10 @@ void ComputeHMA::set_arrays(int i)
   xoriginal[i][0] = x[i][0];
   xoriginal[i][1] = x[i][1];
   xoriginal[i][2] = x[i][2];
+}
+
+double ComputeHMA::memory_usage()
+{
+  double bytes = nmax * 3 * sizeof(double);
+  return bytes;
 }

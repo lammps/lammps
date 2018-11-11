@@ -1492,6 +1492,11 @@ target API.
   </dl>
   </td>
 </tr>
+<tr>
+  <td><code>BIN2C</code> (CUDA only)</td>
+  <td>Path to bin2c executable</td>
+  <td>1st in path (if found)</td>
+</tr>
 </tbody>
 </table>
 
@@ -1647,9 +1652,8 @@ requires `gzip` to be in your `PATH`
 </tr>
 <tr>
   <td><code>GZIP_EXECUTABLE</code></td>
-  <td></td>
-  <td>
-  </td>
+  <td>path to gzip executable</td>
+  <td>1st in path (if found)</td>
 </tr>
 </tbody>
 </table>
@@ -1679,9 +1683,8 @@ requires `ffmpeg` to be in your `PATH`
 </tr>
 <tr>
   <td><code>FFMPEG_EXECUTABLE</code></td>
-  <td></td>
-  <td>
-  </td>
+  <td>path to ffmpeg executable</td>
+  <td>1st in path (if found)</td>
 </tr>
 </tbody>
 </table>

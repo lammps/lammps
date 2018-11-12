@@ -1,8 +1,14 @@
 # Default settings common options.
 
+#LAMMPS specific settings:
+ifndef KOKKOS_PATH
+  KOKKOS_PATH=../../lib/kokkos
+endif
+CXXFLAGS=$(CCFLAGS)
+
 # Options: Cuda,ROCm,OpenMP,Pthread,Qthreads,Serial
-#KOKKOS_DEVICES ?= "OpenMP"
-KOKKOS_DEVICES ?= "Pthread"
+KOKKOS_DEVICES ?= "OpenMP"
+#KOKKOS_DEVICES ?= "Pthread"
 # Options: 
 # Intel:    KNC,KNL,SNB,HSW,BDW,SKX
 # NVIDIA:   Kepler,Kepler30,Kepler32,Kepler35,Kepler37,Maxwell,Maxwell50,Maxwell52,Maxwell53,Pascal60,Pascal61,Volta70,Volta72
@@ -25,7 +31,7 @@ KOKKOS_CMAKE ?= "no"
 
 # Default settings specific options.
 # Options: force_uvm,use_ldg,rdc,enable_lambda
-KOKKOS_CUDA_OPTIONS ?= ""
+KOKKOS_CUDA_OPTIONS ?= "enable_lambda"
 
 # Return a 1 if a string contains a substring and 0 if not
 # Note the search string should be without '"'

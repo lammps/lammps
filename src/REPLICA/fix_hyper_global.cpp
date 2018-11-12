@@ -35,15 +35,15 @@ using namespace FixConst;
 #define DELTA 16384
 #define VECLEN 5
 
+// NOTE: count/output # of timesteps on which bias is non-zero
+// NOTE: should there be a virial contribution from boosted bond?
+// NOTE: allow newton off?  see Note in pre_reverse()
+
 /* ---------------------------------------------------------------------- */
 
 FixHyperGlobal::FixHyperGlobal(LAMMPS *lmp, int narg, char **arg) :
-  FixHyper(lmp, narg, arg)
+  FixHyper(lmp, narg, arg), blist(NULL), xold(NULL), tagold(NULL)
 {
-  // NOTE: add NULL declarations
-  // NOTE: count/output # of timesteps on which bias is non-zero
-  // NOTE: require newton on?
-
   if (atom->map_style == 0) 
     error->all(FLERR,"Fix hyper/global command requires atom map");
 
@@ -121,6 +121,9 @@ void FixHyperGlobal::init_hyper()
 
 void FixHyperGlobal::init()
 {
+  if (force->newton_pair == 0)
+    error->all(FLERR,"Hyper global requires newton pair on");
+
   dt = update->dt;
 
   // need an occasional half neighbor list
@@ -279,8 +282,6 @@ void FixHyperGlobal::pre_reverse(int eflag, int vflag)
     f[jmax][1] -= dely*fbiasr;
     f[jmax][2] -= delz*fbiasr;
   } else nobias++;
-
-  // NOTE: should there be a virial contribution from boosted bond?
 
   // output quantities
 

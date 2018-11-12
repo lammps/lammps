@@ -44,10 +44,11 @@ enum{IGNORE,WARN,ERROR};
 /* ---------------------------------------------------------------------- */
 
 FixHyperLocal::FixHyperLocal(LAMMPS *lmp, int narg, char **arg) :
-  FixHyper(lmp, narg, arg)
+  FixHyper(lmp, narg, arg), old2now(NULL), xold(NULL), tagold(NULL), 
+  bonds(NULL), numbond(NULL), maxstrain(NULL), maxstrain_region(NULL), 
+  maxstrain_bondindex(NULL), biasflag(NULL), boost(NULL), 
+  histo(NULL), allhisto(NULL)
 {
-  // NOTE: add NULL declarations
-
   // error checks
   // solution for tagint != int is to worry about storing
   //   local index vs global ID in same variable
@@ -258,7 +259,17 @@ void FixHyperLocal::init_hyper()
 
 void FixHyperLocal::init()
 {
-  alpha = update->dt / alpha_user;
+  // for newton off, bond force bias will not be applied correctly
+  //   bonds that straddle 2 procs
+  // warn if molecular system, since near-neighbors may not appear in neigh list
+  //   user should not be including bonded atoms as hyper "bonds"
+
+  if (force->newton_pair == 0)
+    error->all(FLERR,"Hyper local requires newton pair on");
+
+  if (atom->molecular && me == 0)
+    error->warning(FLERR,"Hyper local for molecular systems "
+                   "requires care in defining hyperdynamics bonds");
 
   // cutghost = communication cutoff as calculated by Neighbor and Comm
   // error if cutghost is smaller than Dcut
@@ -279,11 +290,8 @@ void FixHyperLocal::init()
                      "may not allow for atom drift between events");
   }
 
-  // NOTE: error if not newton,
-  //       since bond force bias will not be applied correctly to straddle bonds?
 
-  // NOTE: if exclusions are enabled, some near-neighbors won't appear
-  //       will be missed in bonds - WARN if molecular system?
+  alpha = update->dt / alpha_user;
 
   // need an occasional full neighbor list with cutoff = Dcut
   // do not need to include neigh skin in cutoff,
@@ -652,160 +660,6 @@ void FixHyperLocal::pre_reverse(int eflag, int vflag)
   // maxboost_region is function of two maxstrain_regions for I,J
   // NOTE: if J is lost to I but not vice versa, then biascoeff IJ != JI
 
-
-
-
-  // DEBUG info for Max and Min bias coeffs every step
-
-  /*
-  //  if (update->ntimestep >= 300000) {
-  if (update->ntimestep >= 0) {
-
-    double emaxi,emaxj,maxboost_region;
-    double mincoeff = 1.0e20;
-    double maxcoeff = -1.0e20;
-    double delta;
-    double maxcoeffprev,deltamax,eimax,ejmax,emaximax,emaxjmax,mbrmax;
-    double mincoeffprev,deltamin,eimin,ejmin,emaximin,emaxjmin,mbrmin;
-    int itagmax,jtagmax,jtagmax2;
-    int itagmin,jtagmin,jtagmin2;
-
-    for (i = 0; i < nlocal; i++) {
-      emaxi = maxstrain_region[i];
-      nbond = numbond[i];
-      for (m = 0; m < nbond; m++) {
-        j = bonds[i][m].j;
-        if (j < 0) continue;
-        emaxj = maxstrain_region[j];
-        emax = MAX(emaxi,emaxj);
-        if (emax < qfactor) vbias = vmax * (1.0 - emax*emax*invqfactorsq);
-        else vbias = 0.0;
-        boostcoeff = bonds[i][m].boostcoeff;
-        maxboost_region = exp(beta * boostcoeff*vbias);
-        delta = -alpha * (maxboost_region-boosttarget) / boosttarget;
-        boostcoeff += delta;
-
-        if (boostcoeff > maxcoeff) {
-          maxcoeffprev = boostcoeff - delta;
-          maxcoeff = boostcoeff;
-          itagmax = tag[i];
-          jtagmax = tag[j];
-          jtagmax2 = bonds[i][m].jtag;
-          deltamax = delta;
-          eimax = maxstrain[i];
-          ejmax = maxstrain[j];
-          emaximax = emaxi;
-          emaxjmax = emaxj;
-          mbrmax = maxboost_region;
-        }
-
-        if (boostcoeff < mincoeff) {
-          mincoeffprev = boostcoeff - delta;
-          mincoeff = boostcoeff;
-          itagmin = tag[i];
-          jtagmin = tag[j];
-          jtagmin2 = bonds[i][m].jtag;
-          deltamin = delta;
-          eimin = maxstrain[i];
-          ejmin = maxstrain[j];
-          emaximin = emaxi;
-          emaxjmin = emaxj;
-          mbrmin = maxboost_region;
-        }
-      }
-    }
-
-    // min/max owner = procs that own the Min and Max bias coeffs
-
-    pairme.value = mincoeff;
-    pairme.proc = me;
-    MPI_Allreduce(&pairme,&pairall,1,MPI_DOUBLE_INT,MPI_MINLOC,world);
-    int minowner = pairall.proc;
-    
-    pairme.value = maxcoeff;
-    pairme.proc = me;
-    MPI_Allreduce(&pairme,&pairall,1,MPI_DOUBLE_INT,MPI_MAXLOC,world);
-    int maxowner = pairall.proc;
-  
-    // get info about which atom and bond influenced Max coeff
-    // querystrain = strain of bond that is influencing the max Cij
-    // inbondi,inbondj = ID of I,J atoms in the influence bond
-    // incoeff = bias coeff of influence bond
-    // inbias = 1/0 if inflence bond is biased or not on this step
-    // instraddle = 1/0 if influence bond straddles proc boundary or not
-
-    double querystrain;
-    if (maxowner == me) querystrain = MAX(emaximax,emaxjmax);
-    MPI_Bcast(&querystrain,1,MPI_DOUBLE,maxowner,world);
-
-    int count = 0;
-    for (i = 0; i < nlocal; i++) {
-      m = maxstrain_bondindex[i];
-      if (tag[i] > bonds[i][m].jtag) continue;
-      if (querystrain == maxstrain[i]) count++;
-    }
-
-    int countall;
-    MPI_Allreduce(&count,&countall,1,MPI_INT,MPI_SUM,world);
-
-    int inbias = 0;
-    int instraddle = countall;     // output in rare case countall != 1
-    tagint inbondi = 0;
-    tagint inbondj = 0;
-    double incoeff = 0.0;
-    
-    if (countall == 1) {
-      int procowner;
-      int proc = 0;
-      for (i = 0; i < nlocal; i++) {
-        m = maxstrain_bondindex[i];
-        if (tag[i] > bonds[i][m].jtag) continue;
-        if (querystrain == maxstrain[i]) {
-          proc = me;
-          inbondi = tag[i];
-          inbondj = bonds[i][m].jtag;
-          incoeff = bonds[i][m].boostcoeff;
-          instraddle = 0;
-          if (bonds[i][m].j >= nlocal) instraddle = 1;
-          inbias = 0;
-          for (int iboost = 0; iboost < nboost; iboost++)
-            if (boost[iboost] == i) inbias = 1;
-        }
-      }
-      
-      MPI_Allreduce(&proc,&procowner,1,MPI_INT,MPI_MAX,world);
-      MPI_Bcast(&inbondi,1,MPI_LMP_TAGINT,procowner,world);
-      MPI_Bcast(&inbondj,1,MPI_LMP_TAGINT,procowner,world);
-      MPI_Bcast(&incoeff,1,MPI_DOUBLE,procowner,world);
-      MPI_Bcast(&instraddle,1,MPI_INT,procowner,world);
-      MPI_Bcast(&inbias,1,MPI_INT,procowner,world);
-    }
-
-    // output by procs that own the Min and Max bias coeffs
-    
-    if (minowner == me) {
-      printf("MinCoeff %ld %d : %d %d %d : prev/delta/new %g %g %g : "
-             "Eij %g %g %g %g : BR %g\n",
-             update->ntimestep,comm->me,itagmin,jtagmin,jtagmin2,
-             mincoeffprev,deltamin,mincoeff,eimin,ejmin,emaximin,emaxjmin,mbrmin);
-    }
-    if (maxowner == me) {
-      printf("MaxCoeff %ld %d : %d %d %d : prev/delta/new %g %g %g : "
-             "Eij %g %g %g %g : Bond %d %d %g %d %d : BR %g\n",
-             update->ntimestep,comm->me,itagmax,jtagmax,jtagmax2,
-             maxcoeffprev,deltamax,maxcoeff,
-             eimax,ejmax,emaximax,emaxjmax,
-             inbondi,inbondj,incoeff,inbias,instraddle,mbrmax);
-    }
-  }
-  */
-
-  // end of DEBUG
-
-
-
-
-
   double myboost = 0.0;
   double emaxi,emaxj,maxboost_region;
 
@@ -822,7 +676,7 @@ void FixHyperLocal::pre_reverse(int eflag, int vflag)
       boostcoeff = bonds[i][m].boostcoeff;
       maxboost_region = exp(beta * boostcoeff*vbias);
       boostcoeff -= alpha * (maxboost_region-boosttarget) / boosttarget;
-      // COMMENT OUT for now
+      // COMMENT OUT for now - need better way to bound boostcoeff
       //boostcoeff = MIN(boostcoeff,COEFFMAX);
       myboost += boostcoeff;
       maxboostcoeff = MAX(maxboostcoeff,boostcoeff);
@@ -954,40 +808,6 @@ void FixHyperLocal::pre_reverse(int eflag, int vflag)
       }
     }
   }
-
-  // DEBUG timing output
-  // examine these timings for new hyper/local before delete this code
-  // verify that boost cooefs stay in sync for 2 copies of each bond
-  //   before delete this code
-
-  /*
-  time8 = MPI_Wtime();
-
-  timefirst += time2-time1;
-  timesecond += time3-time2;
-  timethird += time4-time3;
-  timefourth += time5-time4;
-  timefifth += time6-time5;
-  timesixth += time7-time6;
-  timeseventh += time8-time7;
-  timetotal += time8-time1;
-
-  double bpera = compute_vector(6);
-  double nbperb = compute_vector(7);
-
-  if (update->ntimestep == 10000 && me == 0) {
-    printf("TIME First %g\n",timefirst);
-    printf("TIME Second %g\n",timesecond);
-    printf("TIME Third %g\n",timethird);
-    printf("TIME Fourth %g\n",timefourth);
-    printf("TIME Fifth %g\n",timefifth);
-    printf("TIME Sixth %g\n",timesixth);
-    printf("TIME Seventh %g\n",timeseventh);
-    printf("TIME Total %g\n",timetotal);
-    printf("Bonds/atom, neigh-bonds/bond %g %g\n",bpera,nbperb);
-    also print nbondbuild and tbondbuild
-  }
-  */
 }
 
 /* ---------------------------------------------------------------------- */

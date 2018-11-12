@@ -336,11 +336,11 @@ Sentinel::Sentinel()
 
     const hwloc_obj_t core = hwloc_get_obj_by_type( s_hwloc_topology , HWLOC_OBJ_CORE , 0 );
 
-    if ( hwloc_bitmap_intersects( s_process_binding , core->allowed_cpuset ) ) {
+    if ( hwloc_bitmap_intersects( s_process_binding , core->cpuset ) ) {
 
       hwloc_bitmap_t s_process_no_core_zero = hwloc_bitmap_alloc();
 
-      hwloc_bitmap_andnot( s_process_no_core_zero , s_process_binding , core->allowed_cpuset );
+      hwloc_bitmap_andnot( s_process_no_core_zero , s_process_binding , core->cpuset );
 
       bool ok = 0 == hwloc_set_cpubind( s_hwloc_topology ,
                                         s_process_no_core_zero ,
@@ -402,14 +402,14 @@ Sentinel::Sentinel()
 
     const hwloc_obj_t root = hwloc_get_obj_by_type( s_hwloc_topology , root_type , i );
 
-    if ( hwloc_bitmap_intersects( s_process_binding , root->allowed_cpuset ) ) {
+    if ( hwloc_bitmap_intersects( s_process_binding , root->cpuset ) ) {
 
       ++root_count ;
 
       // Remember which root (NUMA) object the master thread is running on.
       // This will be logical NUMA rank #0 for this process.
 
-      if ( hwloc_bitmap_intersects( proc_cpuset_location, root->allowed_cpuset ) ) {
+      if ( hwloc_bitmap_intersects( proc_cpuset_location, root->cpuset ) ) {
         root_base = i ;
       }
 
@@ -417,7 +417,7 @@ Sentinel::Sentinel()
 
       const unsigned max_core =
         hwloc_get_nbobjs_inside_cpuset_by_type( s_hwloc_topology ,
-                                                root->allowed_cpuset ,
+                                                root->cpuset ,
                                                 HWLOC_OBJ_CORE );
 
       unsigned core_count = 0 ;
@@ -426,7 +426,7 @@ Sentinel::Sentinel()
 
         const hwloc_obj_t core =
           hwloc_get_obj_inside_cpuset_by_type( s_hwloc_topology ,
-                                               root->allowed_cpuset ,
+                                               root->cpuset ,
                                                HWLOC_OBJ_CORE , j );
 
         // If process' cpuset intersects core's cpuset then process can access this core.
@@ -438,13 +438,13 @@ Sentinel::Sentinel()
         // This assumes that it would be performance-detrimental
         // to spawn more than one MPI process per core and use nested threading.
 
-        if ( hwloc_bitmap_intersects( s_process_binding , core->allowed_cpuset ) ) {
+        if ( hwloc_bitmap_intersects( s_process_binding , core->cpuset ) ) {
 
           ++core_count ;
 
           const unsigned pu_count =
             hwloc_get_nbobjs_inside_cpuset_by_type( s_hwloc_topology ,
-                                                    core->allowed_cpuset ,
+                                                    core->cpuset ,
                                                     HWLOC_OBJ_PU );
 
           if ( pu_per_core == 0 ) pu_per_core = pu_count ;
@@ -480,11 +480,11 @@ Sentinel::Sentinel()
 
     const hwloc_obj_t root = hwloc_get_obj_by_type( s_hwloc_topology , root_type , root_rank );
 
-    if ( hwloc_bitmap_intersects( s_process_binding , root->allowed_cpuset ) ) {
+    if ( hwloc_bitmap_intersects( s_process_binding , root->cpuset ) ) {
 
       const unsigned max_core =
         hwloc_get_nbobjs_inside_cpuset_by_type( s_hwloc_topology ,
-                                                root->allowed_cpuset ,
+                                                root->cpuset ,
                                                 HWLOC_OBJ_CORE );
 
       unsigned core_count = 0 ;
@@ -493,12 +493,12 @@ Sentinel::Sentinel()
 
         const hwloc_obj_t core =
           hwloc_get_obj_inside_cpuset_by_type( s_hwloc_topology ,
-                                               root->allowed_cpuset ,
+                                               root->cpuset ,
                                                HWLOC_OBJ_CORE , j );
 
-        if ( hwloc_bitmap_intersects( s_process_binding , core->allowed_cpuset ) ) {
+        if ( hwloc_bitmap_intersects( s_process_binding , core->cpuset ) ) {
 
-          s_core[ core_count + core_per_root * i ] = core->allowed_cpuset ;
+          s_core[ core_count + core_per_root * i ] = core->cpuset ;
 
           ++core_count ;
         }

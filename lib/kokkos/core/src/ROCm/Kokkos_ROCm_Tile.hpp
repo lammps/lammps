@@ -278,7 +278,7 @@ struct single_action
     void action_at(std::size_t i, Action a) [[hc]]
     {
         auto& value = static_cast<Derived&>(*this)[i];
-#if KOKKOS_ROCM_HAS_WORKAROUNDS
+#ifdef KOKKOS_IMPL_ROCM_CLANG_WORKAROUND
         T state = value;
         a(state);
         value = state;
@@ -347,7 +347,7 @@ struct tile_buffer<T[]>
 #if defined (ROCM15)
         a(value);
 #else
-#if KOKKOS_ROCM_HAS_WORKAROUNDS
+#ifdef KOKKOS_IMPL_ROCM_CLANG_WORKAROUND
         if (m > get_max_tile_array_size()) return;
         T state[get_max_tile_array_size()];
         // std::copy(value, value+m, state);
@@ -372,7 +372,6 @@ struct tile_buffer<T[]>
 #if defined (ROCM15)
         a(value);
 #else
-//#if KOKKOS_ROCM_HAS_WORKAROUNDS
         if (m > get_max_tile_array_size()) return;
         T state[get_max_tile_array_size()];
         // std::copy(value, value+m, state);

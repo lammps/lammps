@@ -60,6 +60,6 @@ protected:
 } // namespace Test
 
 #define TEST_CATEGORY rocm
-#define TEST_EXECSPACE Kokkos::ROCm
+#define TEST_EXECSPACE Kokkos::Experimental::ROCm
 
 #endif

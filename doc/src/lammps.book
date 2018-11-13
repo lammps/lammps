@@ -160,6 +160,7 @@ dump_cfg_uef.html
 echo.html
 group.html
 group2ndx.html
+hyper.html
 if.html
 include.html
 info.html
@@ -277,6 +278,8 @@ fix_gravity.html
 fix_grem.html
 fix_halt.html
 fix_heat.html
+fix_hyper_global.html
+fix_hyper_local.html
 fix_imd.html
 fix_indent.html
 fix_ipi.html

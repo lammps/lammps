@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
+#include <cmath.h>
+#include <cstdio.h>
+#include <cstring.h>
 #include "fix_hyper_local.h"
 #include "atom.h"
 #include "update.h"
@@ -99,7 +99,7 @@ FixHyperLocal::FixHyperLocal(LAMMPS *lmp, int narg, char **arg) :
 
   int iarg = 10;
   while (iarg < narg) {
-    /*
+    /*  NOTE: do not enable this yet, need to think about it differently
     if (strcmp(arg[iarg],"histo") == 0) {
       if (iarg+5 > narg) error->all(FLERR,"Illegal fix hyper/local command");
       histoflag = 1;

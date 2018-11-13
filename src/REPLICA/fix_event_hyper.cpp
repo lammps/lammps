@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib.h>
+#include <cstring.h>
 #include "fix_event_hyper.h"
 #include "atom.h"
 #include "update.h"

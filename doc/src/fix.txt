@@ -221,6 +221,8 @@ accelerated styles exist.
 "grem"_fix_grem.html - 
 "halt"_fix_halt.html - terminate a dynamics run or minimization
 "heat"_fix_heat.html - add/subtract momentum-conserving heat
+"hyper/global"_fix_hyper_global.html - global hyperdynamics
+"hyper/local"_fix_hyper_local.html - local hyperdynamics
 "imd"_fix_imd.html - 
 "indent"_fix_indent.html - impose force due to an indenter
 "ipi"_fix_ipi.html - 
@@ -238,6 +240,7 @@ accelerated styles exist.
 "manifoldforce"_fix_manifoldforce.html - 
 "meso"_fix_meso.html - 
 "meso"_fix_meso_move.html - move mesoscopic SPH/SDPD particles in a prescribed fashion
+"meso/move"_fix_meso_move.html - 
 "meso/stationary"_fix_meso_stationary.html - 
 "momentum"_fix_momentum.html - zero the linear and/or angular momentum of a group of atoms
 "move"_fix_move.html - move atoms in a prescribed fashion
@@ -293,6 +296,7 @@ accelerated styles exist.
 "phonon"_fix_phonon.html - 
 "pimd"_fix_pimd.html - 
 "planeforce"_fix_planeforce.html - constrain atoms to move in a plane
+"plumed"_fix_plumed.html - wrapper on PLUMED free energy library
 "poems"_fix_poems.html - constrain clusters of atoms to move as coupled rigid bodies
 "pour"_fix_pour.html - pour new atoms/molecules into a granular simulation domain
 "precession/spin"_fix_precession_spin.html - 

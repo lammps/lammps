@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath.h>
-#include <cstdlib.h>
-#include <cstring.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include "hyper.h"
 #include "update.h"
 #include "atom.h"

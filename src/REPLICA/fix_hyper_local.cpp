@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <cmath.h>
-#include <cstdio.h>
-#include <cstring.h>
+#include <cmath>
+#include <cstdio>
+#include <cstring>
 #include "fix_hyper_local.h"
 #include "atom.h"
 #include "update.h"

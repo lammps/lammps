@@ -301,6 +301,7 @@ fix_msst.html
 fix_mvv_dpd.html
 fix_neb.html
 fix_nh.html
+fix_cauchy.html
 fix_nh_eff.html
 fix_nph_asphere.html
 fix_nph_body.html
@@ -308,7 +309,6 @@ fix_nph_sphere.html
 fix_nphug.html
 fix_npt_asphere.html
 fix_npt_body.html
-fix_npt_cauchy.html
 fix_npt_sphere.html
 fix_nve.html
 fix_nve_asphere.html

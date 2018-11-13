@@ -54,9 +54,6 @@ keyword = {temp} or {iso} or {aniso} or {tri} or {x} or {y} or {z} or {xy} or {y
   {scaleyz} value = {yes} or {no} = scale yz with lz
   {scalexz} value = {yes} or {no} = scale xz with lz
   {flip} value = {yes} or {no} = allow or disallow box flips when it becomes highly skewed
-  {cauchystat} cauchystat values = alpha continue
-    alpha = strength of Cauchystat control parameter
-    continue = {yes} or {no} = whether of not to continue from a previous run
   {fixedpoint} values = x y z
     x,y,z = perform barostat dilation/contraction around this point (distance units)
   {update} value = {dipole} or {dipole/dlm}
@@ -609,39 +606,6 @@ can only be used if the 2nd dimension in the keyword is periodic,
 and if the tilt factor is not coupled to the barostat via keywords
 {tri}, {yz}, {xz}, and {xy}.
 
-Without the {cauchystat} keyword, the barostat algorithm
-controls the Second-Piola Kirchhoff stress, which is a stress measure
-referred to the undeformed (initial) simulation box.  If the box
-deforms substantially during the equilibration, the difference between
-the set values and the final true (Cauchy) stresses can be
-considerable.
-
-The {cauchystat} keyword modifies the barostat as per Miller et
-al. (Miller)_"#nh-Miller" so that the Cauchy stress is controlled.
-{alpha} is the non-dimensional parameter, typically set to 0.001 or
-0.01 that determines how aggresively the algorithm drives the system
-towards the set Cauchy stresses.  Larger values of {alpha} will modify
-the system more quickly, but can lead to instabilities.  Smaller
-values will lead to longer convergence time.  Since {alpha} also
-influences how much the stress fluctuations deviate from the
-equilibrium fluctuations, it should be set as small as possible.
-
-A {continue} value of {yes} indicates that the fix is subsequent to a
-previous run with the Cauchystat fix, and the intention is to continue
-from the converged stress state at the end of the previous run.  This
-may be required, for example, when implementing a multi-step loading/unloading
-sequence over several fixes.
-
-Setting {alpha} to zero is not permitted.  To "turn off" the
-Cauchystat control and thus restore the equilibrium stress
-fluctuations, two subsequent fixes should be used.  In the first, the
-Cauchystat is used and the simulation box equilibrates to the correct
-shape for the desired stresses.  In the second, the {fix} statement is
-identical except that the {cauchystat} keyword is removed (along with
-related {alpha} and {continue} values). This restores the original
-Parrinello-Rahman algorithm, but now with the correct simulation box
-shape from the first fix.
-
 These fixes can be used with dynamic groups as defined by the
 "group"_group.html command.  Likewise they can be used with groups to
 which atoms are added or deleted over time, e.g. a deposition
@@ -659,7 +623,6 @@ over time or the atom count becomes very small.
 
 The keyword defaults are tchain = 3, pchain = 3, mtk = yes, tloop =
 ploop = 1, nreset = 0, drag = 0.0, dilate = all, couple = none,
-cauchystat = no,
 scaleyz = scalexz = scalexy = yes if periodic in 2nd dimension and
 not coupled to barostat, otherwise no.
 
@@ -681,7 +644,3 @@ Martyna, J Phys A: Math Gen, 39, 5629 (2006).
 :link(nh-Dullweber)
 [(Dullweber)] Dullweber, Leimkuhler and McLachlan, J Chem Phys, 107,
 5840 (1997).
-
-:link(nh-Miller)
-[(Miller)] Miller, Tadmor, Gibson, Bernstein and Pavia, J Chem Phys,
-144, 184107 (2016).

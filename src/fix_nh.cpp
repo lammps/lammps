@@ -28,7 +28,6 @@
 #include "irregular.h"
 #include "modify.h"
 #include "fix_deform.h"
-#include "fix_store.h"
 #include "compute.h"
 #include "kspace.h"
 #include "update.h"
@@ -56,10 +55,11 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
   rfix(NULL), id_dilate(NULL), irregular(NULL), id_temp(NULL), id_press(NULL),
   eta(NULL), eta_dot(NULL), eta_dotdot(NULL),
   eta_mass(NULL), etap(NULL), etap_dot(NULL), etap_dotdot(NULL),
-  etap_mass(NULL), id_store(NULL),init_store(NULL)
+  etap_mass(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix nvt/npt/nph command");
 
+  restart_global = 1;
   dynamic_group_allow = 1;
   time_integrate = 1;
   scalar_flag = 1;
@@ -68,19 +68,12 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
   extvector = 0;
 
-  // for CauchyStat
-
-  usePK = 1;
-  initRUN = 0;
-  restartPK = 0;
-  restart_global = 1;
-  restart_stored = 0;
-
   // default values
 
   pcouple = NONE;
   drag = 0.0;
   allremap = 1;
+  id_dilate = NULL;
   mtchain = mpchain = 3;
   nc_tchain = nc_pchain = 1;
   mtk_flag = 1;
@@ -95,6 +88,8 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
 
   tcomputeflag = 0;
   pcomputeflag = 0;
+  id_temp = NULL;
+  id_press = NULL;
 
   // turn on tilt factor scaling, whenever applicable
 
@@ -346,17 +341,6 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
         dlm_flag = 1;
       } else error->all(FLERR,"Illegal fix nvt/npt/nph command");
       iarg += 2;
-    } else if (strcmp(arg[iarg],"cauchystat") == 0) {
-      usePK = 0;
-      if (iarg+3 > narg) error->all(FLERR,
-				    "Illegal fix npt cauchystat command:"
-				    " wrong number of arguments");
-      if (strcmp(arg[iarg+2],"yes") != 0 && strcmp(arg[iarg+2],"no") != 0)
-        error->all(FLERR,"Illegal cauchystat continue value.  "
-                   "Must be 'yes' or 'no'");
-      alpha = force->numeric(FLERR,arg[iarg+1]);
-      restartPK = !strcmp(arg[iarg+2],"yes");
-      iarg += 3;
     } else if (strcmp(arg[iarg],"fixedpoint") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       fixedpoint[0] = force->numeric(FLERR,arg[iarg+1]);
@@ -594,14 +578,6 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-void FixNH::post_constructor()
-{
-  if (!usePK) CauchyStat_init();
-  else CauchyStat_cleanup();
-}
-
-/* ---------------------------------------------------------------------- */
-
 FixNH::~FixNH()
 {
   if (copymode) return;
@@ -609,7 +585,6 @@ FixNH::~FixNH()
   delete [] id_dilate;
   delete [] rfix;
 
-  delete [] id_store;
   delete irregular;
 
   // delete temperature and pressure if fix created them
@@ -2255,20 +2230,6 @@ void FixNH::compute_press_target()
     for (int i = 3; i < 6; i++)
       p_target[i] = p_start[i] + delta * (p_stop[i]-p_start[i]);
 
-  // CauchyStat: call CauchyStat to modify p_target[i] and p_hydro,
-  // if CauchyStat enabled and pressure->vector computation has been initiated
-
-  if ((usePK == 0) && (initRUN == 1)) CauchyStat();
-  if (initRUN == 0) {
-    for (int i=0; i < 6; i++) {
-      h_old[i]=domain->h[i];
-    }
-  }
-
-  // when run is initialized tensor[] not available (pressure on cell wall)
-
-  initRUN=1;
-
   // if deviatoric, recompute sigma each time p_target changes
 
   if (deviatoric_flag) compute_sigma();
@@ -2419,379 +2380,4 @@ double FixNH::memory_usage()
   double bytes = 0.0;
   if (irregular) bytes += irregular->memory_usage();
   return bytes;
-}
-
-/* ----------------------------------------------------------------------
-   initialize Cauchystat
-------------------------------------------------------------------------- */
-
-void FixNH::CauchyStat_init()
-{
-  if (comm->me == 0) {
-    if (screen) {
-      fprintf(screen,"Using the Cauchystat fix with alpha=%f\n",alpha);
-      if (restartPK==1) {
-        fprintf(screen,"   (this is a continuation run)\n");
-      } else {
-        fprintf(screen,"   (this is NOT a continuation run)\n");
-      }
-    }
-    if (logfile) {
-      fprintf(logfile,"Using the Cauchystat with alpha=%f\n",alpha);
-      if (restartPK==1) {
-        fprintf(logfile,"   this is a continuation run\n");
-      } else {
-        fprintf(logfile,"   this is NOT a continuation run\n");
-      }
-    }
-  }
-
-  if (!id_store) {
-    int n = strlen(id) + 14;
-    id_store = new char[n];
-    strcpy(id_store,id);
-    strcat(id_store,"_FIX_NH_STORE");
-  }
-  restart_stored = modify->find_fix(id_store);
-
-  if (restartPK==1 && restart_stored < 0)
-    error->all(FLERR,"Illegal cauchystat command.  Continuation run"
-               " must follow a previously equilibrated Cauchystat run");
-
-  if (alpha<=0.0)
-    error->all(FLERR,"Illegal cauchystat command: "
-               " Alpha cannot be zero or negative.");
-
-  if (restart_stored < 0) {
-    char **newarg = new char *[6];
-    newarg[0] = id_store;
-    newarg[1] = (char *) "all";
-    newarg[2] = (char *) "STORE";
-    newarg[3] = (char *) "global";
-    newarg[4] = (char *) "1";
-    newarg[5] = (char *) "6";
-    modify->add_fix(6,newarg);
-    delete[] newarg;
-    restart_stored = modify->find_fix(id_store);
-  }
-  init_store = (FixStore *)modify->fix[restart_stored];
-
-  initRUN = 0;
-  initPK = 1;
-
-#define H0(row,col) (H0[(row-1)][(col-1)])
-#define invH0(row,col) (invH0[(row-1)][(col-1)])
-
-  // initialize H0 to current box shape
-
-  double *h = domain->h;
-  double *h_inv = domain->h_inv;
-
-  H0(1,1)=h[0];  H0(1,2)=h[5];  H0(1,3)=h[4];
-  H0(2,1)=0.0;   H0(2,2)=h[1];  H0(2,3)=h[3];
-  H0(3,1)=0.0;   H0(3,2)=0.0;   H0(3,3)=h[2];
-
-  invH0(1,1)=h_inv[0];  invH0(1,2)=h_inv[5];  invH0(1,3)=h_inv[4];
-  invH0(2,1)=0.0;       invH0(2,2)=h_inv[1];  invH0(2,3)=h_inv[3];
-  invH0(3,1)=0.0;       invH0(3,2)=0.0;       invH0(3,3)=h_inv[2];
-
-  CSvol0 = abs(MathExtra::det3(H0));   //find reference volume
-
-#undef H0
-#undef invH0
-}
-
-/* ----------------------------------------------------------------------
-   cleanup when not using Cauchystat
-------------------------------------------------------------------------- */
-
-void FixNH::CauchyStat_cleanup()
-{
-  if (id_store) {
-    modify->delete_fix(id_store);
-    delete[] id_store;
-  } else {
-    int n = strlen(id) + 14;
-    id_store = new char[n];
-    strcpy(id_store,id);
-    strcat(id_store,"_FIX_NH_STORE");
-    modify->delete_fix(id_store);
-    delete[] id_store;
-  }
-  id_store = NULL;
-  restart_stored = -1;
-}
-
-/* ----------------------------------------------------------------------
-   Cauchystat
-------------------------------------------------------------------------- */
-
-void FixNH::CauchyStat()
-{
-  double* h = domain->h;           // shape matrix in Voigt notation
-  double* h_rate = domain->h_rate; // rate of box size/shape change in Voigt notation
-  double H[3][3];
-  double Hdot[3][3];
-
-#define H(row,col) (H[(row-1)][(col-1)])
-#define Hdot(row,col) (Hdot[(row-1)][(col-1)])
-#define F(row,col) (F[(row-1)][(col-1)])
-#define Fi(row,col) (Fi[(row-1)][(col-1)])
-#define Fdot(row,col) (Fdot[(row-1)][(col-1)])
-#define invH0(row,col) (invH0[(row-1)][(col-1)])
-#define cauchy(row,col) (cauchy[(row-1)][(col-1)])
-#define setcauchy(row,col) (setcauchy[(row-1)][(col-1)])
-#define setPK(row,col) (setPK[(row-1)][(col-1)])
-#define sigmahat(row,col) (sigmahat[(row-1)][(col-1)])
-
-  H(1,1)=h[0]; H(1,2)=0.0;  H(1,3)=0.0;
-  H(2,1)=0.0;  H(2,2)=h[1];  H(2,3)=0.0;
-  H(3,1)=0.0;  H(3,2)=0.0;   H(3,3)=h[2];
-
-  for (int i=0;i<6;i++) {
-    h_rate[i]=(h[i]-h_old[i])/update->dt;
-    h_old[i]=h[i];
-  }
-
-  Hdot(1,1)=h_rate[0]; Hdot(1,2)=0.0;        Hdot(1,3)=0.0;
-  Hdot(2,1)=0.0;       Hdot(2,2)=h_rate[1];  Hdot(2,3)=0.0;
-  Hdot(3,1)=0.0;       Hdot(3,2)=0.0;        Hdot(3,3)=h_rate[2];
-
-  if (domain->triclinic) {
-    H(1,2)=h[5];  H(1,3)=h[4]; H(2,3)=h[3];
-    Hdot(1,2)=h_rate[5];  Hdot(1,3)=h_rate[4]; Hdot(2,3)=h_rate[3];
-  }
-
-  double F[3][3]={{0.0,0.0,0.0},{0.0,0.0,0.0},{0.0,0.0,0.0}};
-  double Fi[3][3]={{0.0,0.0,0.0},{0.0,0.0,0.0},{0.0,0.0,0.0}};
-  double Fdot[3][3]={{0.0,0.0,0.0},{0.0,0.0,0.0},{0.0,0.0,0.0}};
-  double J,vol;
-
-  MathExtra::times3(H,invH0,F);
-  MathExtra::times3(Hdot,invH0,Fdot);
-  MathExtra::invert3(F,Fi);
-  J = MathExtra::det3(F);
-  vol=CSvol0*J;
-
-  double deltat;
-  deltat = update->dt; //increment of time step
-
-  // Current pressure on the cell boundaries:
-  //tensor:  0    1    2    3    4    5
-  //         x    y    z    xy   xz   yz
-
-  double *tensor = pressure->vector;
-
-  double cauchy[3][3];
-  cauchy(1,1)=-tensor[0]; cauchy(1,2)=0.0;        cauchy(1,3)=0.0;
-  cauchy(2,1)=0.0;        cauchy(2,2)=-tensor[1]; cauchy(2,3)=0.0;
-  cauchy(3,1)=0.0;        cauchy(3,2)=0.0;        cauchy(3,3)=-tensor[2];
-
-  if (domain->triclinic) {
-    cauchy(1,2)=-tensor[3]; cauchy(1,3)=-tensor[4];
-    cauchy(2,1)=-tensor[3]; cauchy(2,3)=-tensor[5];
-    cauchy(3,1)=-tensor[4]; cauchy(3,2)=-tensor[5];
-  }
-
-  // target pressure on the cell boundaries:
-  // p_target:          0          1          2          3          4          5
-  //                   x          y          z         yz         xz         xy
-
-  double setcauchy[3][3];
-  setcauchy(1,1)=-p_target[0]; setcauchy(1,2)=0.0;          setcauchy(1,3)=0.0;
-  setcauchy(2,1)=0.0;          setcauchy(2,2)=-p_target[1]; setcauchy(2,3)=0.0;
-  setcauchy(3,1)=0.0;          setcauchy(3,2)=0.0;          setcauchy(3,3)=-p_target[2];
-
-  if (domain->triclinic) {
-    setcauchy(1,2)=-p_target[5]; setcauchy(1,3)=-p_target[4];
-    setcauchy(2,1)=-p_target[5]; setcauchy(2,3)=-p_target[3];
-    setcauchy(3,1)=-p_target[4]; setcauchy(3,2)=-p_target[3];
-  }
-
-  //initialize:
-  if (initPK==1) {
-    if (restartPK==1) {
-      double *setPKinit = init_store->astore[0];
-      setPK(1,1)=setPKinit[0]; setPK(1,2)=setPKinit[1]; setPK(1,3)=setPKinit[2];
-      setPK(2,1)=setPKinit[1]; setPK(2,2)=setPKinit[3]; setPK(2,3)=setPKinit[4];
-      setPK(3,1)=setPKinit[2]; setPK(3,2)=setPKinit[4]; setPK(3,3)=setPKinit[5];
-    }else {
-      setPK(1,1)=cauchy(1,1); setPK(1,2)=cauchy(1,2); setPK(1,3)=cauchy(1,3);
-      setPK(2,1)=cauchy(2,1); setPK(2,2)=cauchy(2,2); setPK(2,3)=cauchy(2,3);
-      setPK(3,1)=cauchy(3,1); setPK(3,2)=cauchy(3,2); setPK(3,3)=cauchy(3,3);
-    }
-    initPK=0;
-  }
-
-  CauchyStat_Step(Fi,Fdot,cauchy,setcauchy,setPK,vol,CSvol0,deltat,alpha);
-
-  // use currentPK as new target:
-  // p_target:         0          1          2          3          4          5
-  //                   x          y          z         yz         xz         xy
-
-  p_target[0]=-setPK(1,1);
-  p_target[1]=-setPK(2,2);
-  p_target[2]=-setPK(3,3);
-  if (pstyle == TRICLINIC) {
-    p_target[3]=-setPK(2,3);
-    p_target[4]=-setPK(1,3);
-    p_target[5]=-setPK(1,2);
-  }
-
-  p_hydro = 0.0;
-  for (int i = 0; i < 3; i++)
-    if (p_flag[i]) {
-      p_hydro += p_target[i];
-    }
-  p_hydro /= pdim;
-
-  // save information for Cauchystat restart
-  double *setPKinit = init_store->astore[0];
-  setPKinit[0] = setcauchy(1,1);
-  setPKinit[1] = setcauchy(1,2);
-  setPKinit[2] = setcauchy(1,3);
-  setPKinit[3] = setcauchy(2,2);
-  setPKinit[4] = setcauchy(2,3);
-  setPKinit[5] = setcauchy(3,3);
-
-#undef H
-#undef Hdot
-#undef F
-#undef Fi
-#undef Fdot
-#undef invH0
-#undef cauchy
-#undef setcauchy
-#undef setPK
-#undef sigmahat
-
-}
-
-/* ----------------------------------------------------------------------
-   CauchyStat_Step
-
-   Inputs:
-   Fi(3,3)          :  inverse of the deformation gradient
-   Fdot(3,3)        :  time derivative of the deformation gradient (velocity)
-   cauchy(3,3)      :  current cauchy stress tensor
-   setcauchy(3,3)   :  target cauchy stress tensor
-   alpha            :  parameter =0.01
-   setPK(3,3)       :  current PK stress tensor, at initialization (time=0) setPK=cauchy
-   volume           :  current volume of the periodic box
-   volume0          :  initial volume of the periodic box
-   deltat           :  simulation step increment
-   alpha            :  parameter
-
-   Outputs:
-   setPK(3,3)       :  PK stress tensor at the next time step
-   ------------------------------------------------------------------------- */
-
-void FixNH::CauchyStat_Step(double (&Fi)[3][3], double (&Fdot)[3][3],
-                            double (&cauchy)[3][3], double (&setcauchy)[3][3],
-                            double (&setPK)[3][3], double volume,
-                            double volume0, double deltat, double alpha)
-{
-
-  //macros to go from c to fortran style for arrays:
-#define F(row,col) (F[(row-1)][(col-1)])
-#define Fi(row,col) (Fi[(row-1)][(col-1)])
-#define Fdot(row,col) (Fdot[(row-1)][(col-1)])
-#define cauchy(row,col) (cauchy[(row-1)][(col-1)])
-#define setcauchy(row,col) (setcauchy[(row-1)][(col-1)])
-#define setPK(row,col) (setPK[(row-1)][(col-1)])
-#define uv(row,col) (uv[(row-1)][(col-1)])
-#define deltastress(row) (deltastress[(row-1)])
-#define fdotvec(row) (fdotvec[(row-1)])
-#define dsdf(row,col) (dsdf[(row-1)][(col-1)])
-#define dsds(row,col) (dsds[(row-1)][(col-1)])
-#define deltaF(row) (deltaF[(row-1)])
-#define deltaPK(row) (deltaPK[(row-1)])
-
-  //initialize local variables:
-  int i,j,m,n;
-
-  double deltastress[6],fdotvec[6];
-  double dsdf[6][6]={0.0}; //zeroed, used in incremental form
-  double dsds[6][6]={0.0}; //zeroed, used in incremental form
-  double jac;
-  double deltaF[6]={0.0}; //zeroed, used in incremental form
-  double deltaPK[6]={0.0}; //zeroed, used in incremental form
-
-  int uv[6][2];
-  uv(1,1)=1; uv(1,2)=1;
-  uv(2,1)=2; uv(2,2)=2;
-  uv(3,1)=3; uv(3,2)=3;
-  uv(4,1)=2; uv(4,2)=3;
-  uv(5,1)=1; uv(5,2)=3;
-  uv(6,1)=1; uv(6,2)=2;
-
-  for(int ii = 1;ii <= 6;ii++) {
-    i=uv(ii,1);
-    j=uv(ii,2);
-    deltastress(ii)=setcauchy(i,j)-cauchy(i,j);
-    if(ii>3) deltastress(ii)=deltastress(ii)*2.0;
-    fdotvec(ii)=Fdot(i,j)*deltat;
-  }
-
-  for(int ii = 1;ii <= 6;ii++) {
-    i=uv(ii,1);
-    j=uv(ii,2);
-    for(int jj = 1;jj <= 6;jj++) {
-      m=uv(jj,1);
-      n=uv(jj,2);
-      dsds(ii,jj) = Fi(i,m)*Fi(j,n) + Fi(i,n)*Fi(j,m) + Fi(j,m)*Fi(i,n) + Fi(j,n)*Fi(i,m);
-      for(int l = 1;l <= 3;l++) {
-	for(int k = 1;k <= 3;k++) {
-	  dsdf(ii,jj) = dsdf(ii,jj) + cauchy(k,l)*
-	    ( Fi(i,k)*Fi(j,l)*Fi(n,m) - Fi(i,m)*Fi(j,l)*Fi(n,k) - Fi(i,k)*Fi(j,m)*Fi(n,l) );
-	}
-      }
-    }
-  }
-
-  jac=volume/volume0;
-  for(int ii = 1;ii <= 6;ii++) {
-    for(int jj = 1;jj <= 6;jj++) {
-      dsds(ii,jj)=dsds(ii,jj)*jac/4.0;
-      dsdf(ii,jj)=dsdf(ii,jj)*jac;
-    }
-  }
-
-  for(int ii = 1;ii <= 6;ii++) {
-    for(int jj = 1;jj <= 6;jj++) {
-      deltaF(ii)=deltaF(ii)+dsdf(ii,jj)*fdotvec(jj);
-    }
-  }
-
-  for(int ii = 1;ii <= 6;ii++) {
-    for(int jj = 1;jj <= 6;jj++) {
-      deltaPK(ii)=deltaPK(ii)+alpha*dsds(ii,jj)*deltastress(jj);
-    }
-    deltaPK(ii)=deltaPK(ii)+alpha*deltaF(ii);
-  }
-
-  setPK(1,1)=setPK(1,1)+deltaPK(1);
-  setPK(2,2)=setPK(2,2)+deltaPK(2);
-  setPK(3,3)=setPK(3,3)+deltaPK(3);
-  setPK(2,3)=setPK(2,3)+deltaPK(4);
-  setPK(3,2)=setPK(3,2)+deltaPK(4);
-  setPK(1,3)=setPK(1,3)+deltaPK(5);
-  setPK(3,1)=setPK(3,1)+deltaPK(5);
-  setPK(1,2)=setPK(1,2)+deltaPK(6);
-  setPK(2,1)=setPK(2,1)+deltaPK(6);
-
-#undef F
-#undef Fi
-#undef Fdot
-#undef cauchy
-#undef setcauchy
-#undef setPK
-#undef uv
-#undef deltastress
-#undef fdotvec
-#undef dsdf
-#undef dsds
-#undef deltaF
-#undef deltaPK
-
 }

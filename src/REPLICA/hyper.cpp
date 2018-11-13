@@ -469,9 +469,6 @@ void Hyper::quench(int flag)
   //modify->addstep_compute_all(update->ntimestep);
   //update->minimize->setup_minimal(1);
 
-  // NOTE: what doing with ncalls?
-  // int ncalls = neighbor->ncalls;
-
   timer->barrier_start();
   update->minimize->run(maxiter);
   timer->barrier_stop();

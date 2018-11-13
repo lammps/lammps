@@ -308,10 +308,10 @@ void FixHyperLocal::init()
   neighbor->requests[irequest]->cutoff = dcut;
   neighbor->requests[irequest]->occasional = 1;
 
-  // DEBUG timing output
+  // extra timing output
 
-  timefirst = timesecond = timethird = timefourth = timefifth =
-    timesixth = timeseventh = timetotal = 0.0;
+  //timefirst = timesecond = timethird = timefourth = timefifth =
+  //  timesixth = timeseventh = timetotal = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -530,18 +530,20 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
         continue;
       }
 
-      // DEBUG - only good for 2 dims x,y
-
       if (j >= nlocal) {
         if (x[j][0] < sublo[0]) rmaxbig = MAX(rmaxbig,sublo[0]-x[j][0]);
         if (x[j][1] < sublo[1]) rmaxbig = MAX(rmaxbig,sublo[1]-x[j][1]);
+        if (x[j][2] < sublo[2]) rmaxbig = MAX(rmaxbig,sublo[2]-x[j][2]);
         if (x[j][0] > subhi[0]) rmaxbig = MAX(rmaxbig,x[j][0]-subhi[0]);
         if (x[j][1] > subhi[1]) rmaxbig = MAX(rmaxbig,x[j][1]-subhi[1]);
+        if (x[j][2] > subhi[2]) rmaxbig = MAX(rmaxbig,x[j][2]-subhi[2]);
         if (maxstrain[j] < qfactor) {
           if (x[j][0] < sublo[0]) rmax = MAX(rmax,sublo[0]-x[j][0]);
           if (x[j][1] < sublo[1]) rmax = MAX(rmax,sublo[1]-x[j][1]);
+          if (x[j][2] < sublo[2]) rmax = MAX(rmax,sublo[2]-x[j][2]);
           if (x[j][0] > subhi[0]) rmax = MAX(rmax,x[j][0]-subhi[0]);
           if (x[j][1] > subhi[1]) rmax = MAX(rmax,x[j][1]-subhi[1]);
+          if (x[j][2] > subhi[2]) rmax = MAX(rmax,x[j][2]-subhi[2]);
         }
       }
     }

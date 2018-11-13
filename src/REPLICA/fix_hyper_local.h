@@ -96,8 +96,10 @@ class FixHyperLocal : public FixHyper {
   double rmaxever,rmaxeverbig;
   int ghost_toofar;
 
-  double timefirst,timesecond,timethird,timefourth;
-  double timefifth,timesixth,timeseventh,timetotal;
+  // extra timers
+
+  //double timefirst,timesecond,timethird,timefourth;
+  //double timefifth,timesixth,timeseventh,timetotal;
 
   // data structs for per-atom and per-bond info
   // all of these are for current owned and ghost atoms
@@ -148,15 +150,6 @@ class FixHyperLocal : public FixHyper {
   int histo_flag,histo_every,histo_count,histo_print,histo_steps;
   double histo_delta,invhisto_delta,histo_lo;
   bigint *histo,*allhisto;
-
-  // DEBUG: MPI data struct for finding min/max bias coeffs via Allreduce
-
-  struct Two {
-    double value;
-    int proc;
-  };
-  Two pairme,pairall;
-
 };
 
 }

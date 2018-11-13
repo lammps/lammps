@@ -110,6 +110,7 @@ OPT.
 "npt (kio)"_fix_nh.html,
 "npt/asphere (o)"_fix_npt_asphere.html,
 "npt/body"_fix_npt_body.html,
+"npt/cauchy"_fix_cauchy.html,
 "npt/eff"_fix_nh_eff.html,
 "npt/sphere (o)"_fix_npt_sphere.html,
 "npt/uef"_fix_nh_uef.html,

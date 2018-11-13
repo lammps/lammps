@@ -89,6 +89,7 @@ Fixes :h1
    fix_nphug
    fix_npt_asphere
    fix_npt_body
+   fix_cauchy
    fix_npt_sphere
    fix_nve
    fix_nve_asphere

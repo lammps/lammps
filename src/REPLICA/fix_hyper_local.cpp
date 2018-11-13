@@ -1417,6 +1417,8 @@ double FixHyperLocal::query(int i)
   if (i == 23) return compute_vector(18);  // count of non-matching bias coeffs
 
   error->all(FLERR,"Invalid query to fix hyper/local");
+
+  return 0.0;
 }
 
 /* ----------------------------------------------------------------------

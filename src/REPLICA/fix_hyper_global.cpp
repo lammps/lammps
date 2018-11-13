@@ -487,6 +487,8 @@ double FixHyperGlobal::query(int i)
   if (i == 7) return compute_vector(5);  // fraction with zero bias
 
   error->all(FLERR,"Invalid query to fix hyper/global");
+
+  return 0.0;
 }
 
 /* ----------------------------------------------------------------------

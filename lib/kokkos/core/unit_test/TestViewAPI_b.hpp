@@ -45,13 +45,11 @@
 
 namespace Test {
 
-#if !defined(KOKKOS_ENABLE_ROCM)
 TEST_F( TEST_CATEGORY, view_api_b )
 {
   TestViewAPI< double, TEST_EXECSPACE >::run_test_view_operator_a();
   TestViewAPI< double, TEST_EXECSPACE >::run_test_mirror();
   TestViewAPI< double, TEST_EXECSPACE >::run_test_scalar();
 }
-#endif
 
 }

@@ -227,9 +227,6 @@ void BondHybrid::settings(int narg, char **arg)
     if (strcmp(arg[i],"none") == 0)
       error->all(FLERR,"Bond style hybrid cannot have none as an argument");
 
-    if (strcmp(arg[i],"none") == 0)
-      error->all(FLERR,"Bond style hybrid cannot have none as an argument");
-
     // register index of quartic bond type,
     // so that bond type 0 can be mapped to it
 

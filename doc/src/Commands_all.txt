@@ -59,6 +59,7 @@ An alphabetic list of all LAMMPS commands.
 "fix_modify"_fix_modify.html,
 "group"_group.html,
 "group2ndx"_group2ndx.html,
+"hyper"_hyper.html,
 "if"_if.html,
 "info"_info.html,
 "improper_coeff"_improper_coeff.html,

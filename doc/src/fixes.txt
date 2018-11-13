@@ -57,6 +57,8 @@ Fixes :h1
    fix_grem
    fix_halt
    fix_heat
+   fix_hyper_global
+   fix_hyper_local
    fix_imd
    fix_indent
    fix_ipi

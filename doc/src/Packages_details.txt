@@ -89,6 +89,7 @@ as contained in the file name.
 "USER-NETCDF"_#PKG-USER-NETCDF,
 "USER-OMP"_#PKG-USER-OMP,
 "USER-PHONON"_#PKG-USER-PHONON,
+"USER-PLUMED"_#PKG-USER-PLUMED,
 "USER-PTM"_#PKG-USER-PTM,
 "USER-QMMM"_#PKG-USER-QMMM,
 "USER-QTB"_#PKG-USER-QTB,
@@ -1205,14 +1206,16 @@ USER-PLUMED package :link(USER-PLUMED),h4
 
 [Contents:]
 
-The fix plumed command allows you to use the plugin for molecular
-dynamics PLUMED to analyse and bias your LAMMPS trajectory on the fly.
-In practise PLUMED is called from within the lammps input script by using
-the "fix plumed _fix_plumed.html command.
+The fix plumed command allows you to use the PLUMED free energy plugin
+for molecular dynamics to analyse and bias your LAMMPS trajectory on
+the fly.  The PLUMED library is called from within the LAMMPS input
+script by using the "fix plumed _fix_plumed.html command.
 
-[Authors:] The PLUMED library is written and maintained by
-Massimilliano Bonomi, Giovanni Bussi, Carlo Camiloni and
-Gareth Tribello. 
+[Authors:] The "PLUMED library"_#PLUMED is written and maintained by
+Massimilliano Bonomi, Giovanni Bussi, Carlo Camiloni and Gareth
+Tribello.
+
+:link(PLUMED,http://www.plumed.org)
 
 [Install:]
 
@@ -1224,7 +1227,7 @@ extras"_Build_extras.html doc page.
 
 src/USER-PLUMED/README
 lib/plumed/README
-"fix plumed "_fix_plumed.html
+"fix plumed"_fix_plumed.html
 examples/USER/plumed :ul
 
 :line

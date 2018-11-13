@@ -136,7 +136,7 @@ void FixHyperGlobal::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixHyperGlobal::init_list(int id, NeighList *ptr)
+void FixHyperGlobal::init_list(int /* id */, NeighList *ptr)
 {
   list = ptr;
 }
@@ -167,7 +167,7 @@ void FixHyperGlobal::setup_pre_reverse(int eflag, int vflag)
 
 void FixHyperGlobal::pre_neighbor()
 {
-  int i,m,jnum,iold,jold,ilocal,jlocal;
+  int m,iold,jold,ilocal,jlocal;
   double distsq;
 
   // reset local IDs for owned bond atoms, since atoms have migrated
@@ -200,10 +200,10 @@ void FixHyperGlobal::pre_neighbor()
 
 /* ---------------------------------------------------------------------- */
 
-void FixHyperGlobal::pre_reverse(int eflag, int vflag)
+void FixHyperGlobal::pre_reverse(int /* eflag */, int /* vflag */)
 {
   int i,j,m,imax,jmax;
-  double xtmp,ytmp,ztmp,delx,dely,delz;
+  double delx,dely,delz;
   double r,r0,estrain,rmax,r0max,emax,dt_boost;
   double vbias,fbias,fbiasr;
 
@@ -299,11 +299,9 @@ void FixHyperGlobal::pre_reverse(int eflag, int vflag)
 
 void FixHyperGlobal::build_bond_list(int natom)
 {
-  int i,j,n,ii,jj,inum,jnum;
+  int i,j,ii,jj,inum,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  tagint *bptr;
-  double *rptr;
 
   if (natom) {
     nevent++;

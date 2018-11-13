@@ -316,7 +316,7 @@ void FixHyperLocal::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixHyperLocal::init_list(int id, NeighList *ptr)
+void FixHyperLocal::init_list(int /* id */, NeighList *ptr)
 {
   list = ptr;
 }
@@ -413,7 +413,7 @@ void FixHyperLocal::pre_neighbor()
 
 /* ---------------------------------------------------------------------- */
 
-void FixHyperLocal::pre_reverse(int eflag, int vflag)
+void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
 {
   int i,j,m,ii,jj,inum,jnum,iold,jold,nbond,bondindex;
   tagint itag,jtag;
@@ -788,7 +788,6 @@ void FixHyperLocal::pre_reverse(int eflag, int vflag)
 
   if (checkcoeff && update->ntimestep % checkcoeff_every == 0) {
     int jb,jbonds;
-    double ibias,jbias;
     
     for (i = 0; i < nlocal; i++) {
       nbond = numbond[i];
@@ -998,9 +997,9 @@ void FixHyperLocal::build_bond_list(int natom)
 /* ---------------------------------------------------------------------- */
 
 int FixHyperLocal::pack_forward_comm(int n, int *list, double *buf, 
-                                     int pbc_flag, int *pbc)
+                                     int /* pbc_flag */, int * /* pbc */)
 {
-  int i,j,k,m,ibond,nbond,start;
+  int i,j,m;
 
   m = 0;
 
@@ -1039,7 +1038,7 @@ int FixHyperLocal::pack_forward_comm(int n, int *list, double *buf,
 
 void FixHyperLocal::unpack_forward_comm(int n, int first, double *buf)
 {
-  int i,j,k,m,last,ibond,nbond,jlocal,flag;
+  int i,m,last;
 
   m = 0;
   last = first + n;
@@ -1158,7 +1157,7 @@ void FixHyperLocal::grow_arrays(int nmax)
    copy values within local atom-based arrays
 ------------------------------------------------------------------------- */
 
-void FixHyperLocal::copy_arrays(int i, int j, int delflag)
+void FixHyperLocal::copy_arrays(int i, int j, int /* delflag */)
 {
   // avoid valgrind copy-to-self warning
 

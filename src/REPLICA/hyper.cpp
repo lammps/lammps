@@ -413,7 +413,7 @@ void Hyper::command(int narg, char **arg)
    short dynamics run
 ------------------------------------------------------------------------- */
 
-void Hyper::dynamics(int nsteps, double &time_category)
+void Hyper::dynamics(int nsteps, double & /* time_category */)
 {
   update->whichflag = 1;
   update->nsteps = nsteps;
@@ -470,7 +470,7 @@ void Hyper::quench(int flag)
   //update->minimize->setup_minimal(1);
 
   // NOTE: what doing with ncalls?
-  int ncalls = neighbor->ncalls;
+  // int ncalls = neighbor->ncalls;
 
   timer->barrier_start();
   update->minimize->run(maxiter);

@@ -1378,6 +1378,8 @@ double FixHyperLocal::compute_vector(int i)
     MPI_Allreduce(&nnewbond,&allnew,1,MPI_INT,MPI_SUM,world);
     return (double) 0.5*allnew;
   }
+
+  return 0.0;
 }
 
 /* ----------------------------------------------------------------------

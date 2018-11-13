@@ -467,6 +467,8 @@ double FixHyperGlobal::compute_vector(int i)
   if (i == 8) return t_hyper;
   if (i == 9) return (double) nevent;
   if (i == 10) return (double) nevent_atom;
+
+  return 0.0;
 }
 
 /* ----------------------------------------------------------------------

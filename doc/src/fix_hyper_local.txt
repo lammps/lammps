@@ -62,7 +62,7 @@ bond-boost form of a bias potential for HD is due to Miron and
 Fichthorn as described in "(Miron)"_#Mironlhd.
 
 To understand this description, you should first read the description
-of the GHD algorithm on the "fix hyper/global"_fix_hyper/global.html
+of the GHD algorithm on the "fix hyper/global"_fix_hyper_global.html
 doc page.  This description of LHD builds on the GHD description.
 
 The definition of bonds, Eij, and Emax are the same for GHD and LHD.
@@ -284,7 +284,7 @@ potential energy as part of "thermodynamic output"_thermo_style.html.
 
 This fix computes a global scalar and global vector of length 23,
 which can be accessed by various "output
-commands"_Section_howto.html#howto_15.  The scalar is the magnitude of
+commands"_Howto_output.html.  The scalar is the magnitude of
 the bias potential (energy units) applied on the current timestep,
 summed over all biased bonds.  The vector stores the following
 quantities:
@@ -385,8 +385,8 @@ minimization"_minimize.html.
 [Restrictions:]
 
 This fix is part of the REPLICA package.  It is only enabled if LAMMPS
-was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+was built with that package.  See the "Build package"_Build_package.html
+doc page for more info.
 
 [Related commands:]
 

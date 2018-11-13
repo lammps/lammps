@@ -190,11 +190,10 @@ The "fix_modify"_fix_modify.html {energy} option is supported by this
 fix to add the energy of the bias potential to the the system's
 potential energy as part of "thermodynamic output"_thermo_style.html.
 
-This fix computes a global scalar and global vector of length 11,
-which can be accessed by various "output
-commands"_Section_howto.html#howto_15.  The scalar is the magnitude of
-the bias potential (energy units) applied on the current timestep.
-The vector stores the following quantities:
+This fix computes a global scalar and global vector of length 11, which
+can be accessed by various "output commands"_Howto_output.html".  The
+scalar is the magnitude of the bias potential (energy units) applied on
+the current timestep.  The vector stores the following quantities:
 
 1 = boost factor on this step (unitless)
 2 = max strain Eij of any bond on this step (unitless)

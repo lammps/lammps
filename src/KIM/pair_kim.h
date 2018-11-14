@@ -158,6 +158,7 @@ namespace LAMMPS_NS {
       virtual void set_argument_pointers();
       virtual void set_lmps_flags();
       virtual void set_kim_model_has_flags();
+      virtual int check_for_routine_compatibility();
       // static methods used as callbacks from KIM
       static int get_neigh(
          void const * const dataObject,

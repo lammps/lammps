@@ -789,6 +789,14 @@ void PairKIM::kim_init()
        error->all(FLERR,"KIM Model did not accept the requested unit system");
      }
 
+     // check that the model does not require unknown capabilities
+     kimerror = check_for_routine_compatibility();
+     if (kimerror)
+     {
+       error->all(FLERR,
+                  "KIM Model requires unknown Routines.  Unable to proceed.");
+     }
+
      kimerror = KIM_Model_ComputeArgumentsCreate(pkim, &pargs);
      if (kimerror)
      {
@@ -983,6 +991,49 @@ void PairKIM::set_lmps_flags()
    }
 
    return;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int PairKIM::check_for_routine_compatibility()
+{
+  /* Check that we know about all required routines */
+  int numberOfModelRoutineNames;
+  KIM_MODEL_ROUTINE_NAME_GetNumberOfModelRoutineNames(
+      &numberOfModelRoutineNames);
+  for (int i = 0; i < numberOfModelRoutineNames; ++i)
+  {
+    KIM_ModelRoutineName modelRoutineName;
+    KIM_MODEL_ROUTINE_NAME_GetModelRoutineName(i, &modelRoutineName);
+
+    int present;
+    int required;
+    int error = KIM_Model_IsRoutinePresent(
+        pkim, modelRoutineName, &present, &required);
+    if (error) { return true; }
+
+    if ((present == true) && (required == true))
+    {
+      if (!(KIM_ModelRoutineName_Equal(modelRoutineName,
+                                       KIM_MODEL_ROUTINE_NAME_Create)
+            || KIM_ModelRoutineName_Equal(
+                   modelRoutineName,
+                   KIM_MODEL_ROUTINE_NAME_ComputeArgumentsCreate)
+            || KIM_ModelRoutineName_Equal(modelRoutineName,
+                                          KIM_MODEL_ROUTINE_NAME_Compute)
+            || KIM_ModelRoutineName_Equal(modelRoutineName,
+                                          KIM_MODEL_ROUTINE_NAME_Refresh)
+            || KIM_ModelRoutineName_Equal(
+                   modelRoutineName,
+                   KIM_MODEL_ROUTINE_NAME_ComputeArgumentsDestroy)
+            || KIM_ModelRoutineName_Equal(modelRoutineName,
+                                          KIM_MODEL_ROUTINE_NAME_Destroy)))
+      { return true; }
+    }
+  }
+
+  /* everything is good */
+  return false;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -609,7 +609,7 @@ if(PKG_KIM)
       message(FATAL_ERROR "KIM not found, help CMake to find it by setting PKG_CONFIG_PATH, or set DOWNLOAD_KIM=ON to download it")
     endif()
   endif()
-  list(APPEND LAMMPS_LINK_LIBS ${KIM-API-V2_LIBRARIES})
+  list(APPEND LAMMPS_LINK_LIBS "${KIM-API-V2_LDFLAGS}")
   include_directories(${KIM-API-V2_INCLUDE_DIRS})
 endif()
 

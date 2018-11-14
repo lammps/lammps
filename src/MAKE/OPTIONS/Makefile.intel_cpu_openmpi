@@ -16,8 +16,8 @@ SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
 LINK =		mpicxx
-LINKFLAGS =	-qopenmp $(OPTFLAGS)
-LIB =           -ltbbmalloc
+LINKFLAGS =	-qopenmp $(OPTFLAGS) -L$(MKLROOT)/lib/intel64/
+LIB =           -ltbbmalloc -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core
 SIZE =		size
 
 ARCHIVE =	ar
@@ -54,7 +54,7 @@ MPI_LIB =
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =       
+FFT_INC =      -DFFT_MKL -DFFT_SINGLE 
 FFT_PATH = 
 FFT_LIB =       
 

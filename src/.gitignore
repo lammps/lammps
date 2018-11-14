@@ -41,8 +41,16 @@
 /pair_meamc.cpp
 /pair_meamc.h
 
+/ptm_*.cpp
+/ptm_*.h
+/compute_ptm.cpp
+/compute_ptm.h
+
 /fix_qeq*.cpp
 /fix_qeq*.h
+
+/fix_*cauchy.cpp
+/fix_*cauchy.h
 
 /compute_test_nbl.cpp
 /compute_test_nbl.h
@@ -264,6 +272,8 @@
 /compute_dpd.h
 /compute_dpd_atom.cpp
 /compute_dpd_atom.h
+/compute_entropy_atom.cpp
+/compute_entropy_atom.h
 /compute_erotate_asphere.cpp
 /compute_erotate_asphere.h
 /compute_erotate_rigid.cpp
@@ -296,12 +306,18 @@
 /compute_plasticity_atom.h
 /compute_pressure_bocs.cpp
 /compute_pressure_bocs.h
+/compute_pressure_cylinder.cpp
+/compute_pressure_cylinder.h
 /compute_pressure_grem.cpp
 /compute_pressure_grem.h
 /compute_rigid_local.cpp
 /compute_rigid_local.h
 /compute_spec_atom.cpp
 /compute_spec_atom.h
+/compute_stress_mop.cpp
+/compute_stress_mop.h
+/compute_stress_mop_profile.cpp
+/compute_stress_mop_profile.h
 /compute_stress_tally.cpp
 /compute_stress_tally.h
 /compute_temp_asphere.cpp
@@ -420,6 +436,8 @@
 /fix_eos_table.h
 /fix_evaporate.cpp
 /fix_evaporate.h
+/fix_ffl.cpp
+/fix_ffl.h
 /fix_filter_corotate.cpp
 /fix_filter_corotate.h
 /fix_viscosity.cpp
@@ -733,6 +751,8 @@
 /pair_eam_cd.h
 /pair_eam_fs.cpp
 /pair_eam_fs.h
+/pair_lj_expand_coul_long.cpp
+/pair_lj_expand_coul_long.h
 /pair_edip.cpp
 /pair_edip.h
 /pair_edip_multi.cpp

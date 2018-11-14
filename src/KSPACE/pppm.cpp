@@ -64,7 +64,7 @@ enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
 
 /* ---------------------------------------------------------------------- */
 
-PPPM::PPPM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg),
+PPPM::PPPM(LAMMPS *lmp) : KSpace(lmp),
   factors(NULL), density_brick(NULL), vdx_brick(NULL), vdy_brick(NULL), vdz_brick(NULL),
   u_brick(NULL), v0_brick(NULL), v1_brick(NULL), v2_brick(NULL), v3_brick(NULL),
   v4_brick(NULL), v5_brick(NULL), greensfn(NULL), vg(NULL), fkx(NULL), fky(NULL),
@@ -78,13 +78,9 @@ PPPM::PPPM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg),
   peratom_allocate_flag = 0;
   group_allocate_flag = 0;
 
-  if (narg < 1) error->all(FLERR,"Illegal kspace_style pppm command");
-
   pppmflag = 1;
   group_group_enable = 1;
   triclinic = domain->triclinic;
-
-  accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
 
   nfactors = 3;
   factors = new int[nfactors];
@@ -159,6 +155,14 @@ PPPM::PPPM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg),
   acons[7][4] = 25091609.0 / 1560084480.0;
   acons[7][5] = 1755948832039.0 / 36229939200000.0;
   acons[7][6] = 4887769399.0 / 37838389248.0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PPPM::settings(int narg, char **arg)
+{
+  if (narg < 1) error->all(FLERR,"Illegal kspace_style pppm command");
+  accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
 }
 
 /* ----------------------------------------------------------------------

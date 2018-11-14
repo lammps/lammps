@@ -1,0 +1,31 @@
+
+units		lj
+atom_style  charge	
+
+read_data data.cloud_wall
+
+velocity	all set 0.0 0.0 0.0 mom no
+
+pair_style	zero 1.0
+pair_coeff	* * 
+
+neighbor	1.0 bin
+neigh_modify	delay 0
+
+fix     1 all nve
+kspace_style scafacos p3m  0.001
+kspace_modify scafacos tolerance field 
+
+timestep	0.005
+
+thermo_style custom step atoms cpu temp pe ke etotal ecoul press
+
+run_style verlet
+
+#dump simple all custom 1000 id x y z vx vy vz 
+#dump dmp    all custom 1000 part.dump id mol x y z vx vy vz fx fy fz q mass
+#dump dmpvtk all vtk 1000 vtk/part_*.vtk id mol x y z vx vy vz fx fy fz q mass 
+#dump_modify dmpvtk pad 7
+
+thermo 10
+run	100

@@ -26,10 +26,11 @@ namespace LAMMPS_NS {
 
 class Ewald : public KSpace {
  public:
-  Ewald(class LAMMPS *, int, char **);
+  Ewald(class LAMMPS *);
   virtual ~Ewald();
   void init();
   void setup();
+  virtual void settings(int, char **);
   virtual void compute(int, int);
   double memory_usage();
 

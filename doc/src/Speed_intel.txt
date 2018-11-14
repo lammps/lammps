@@ -499,7 +499,7 @@ MPI task.
 When offloading to a coprocessor, "hybrid"_pair_hybrid.html styles
 that require skip lists for neighbor builds cannot be offloaded.
 Using "hybrid/overlay"_pair_hybrid.html is allowed.  Only one intel
-accelerated style may be used with hybrid styles.
+accelerated style may be used with hybrid styles when offloading.
 "Special_bonds"_special_bonds.html exclusion lists are not currently
 supported with offload, however, the same effect can often be
 accomplished by setting cutoffs for excluded atom types to 0.  None of

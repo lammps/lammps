@@ -46,6 +46,7 @@ as contained in the file name.
 "MANYBODY"_#PKG-MANYBODY,
 "MC"_#PKG-MC,
 "MEAM"_#PKG-MEAM,
+"MESSAGE"_#PKG-MESSAGE,
 "MISC"_#PKG-MISC,
 "MOLECULE"_#PKG-MOLECULE,
 "MPIIO"_#PKG-MPIIO,
@@ -88,10 +89,12 @@ as contained in the file name.
 "USER-NETCDF"_#PKG-USER-NETCDF,
 "USER-OMP"_#PKG-USER-OMP,
 "USER-PHONON"_#PKG-USER-PHONON,
+"USER-PTM"_#PKG-USER-PTM,
 "USER-QMMM"_#PKG-USER-QMMM,
 "USER-QTB"_#PKG-USER-QTB,
 "USER-QUIP"_#PKG-USER-QUIP,
 "USER-REAXC"_#PKG-USER-REAXC,
+"USER-SCAFACOS"_#PKG-USER-SCAFACOS,
 "USER-SMD"_#PKG-USER-SMD,
 "USER-SMTBQ"_#PKG-USER-SMTBQ,
 "USER-SPH"_#PKG-USER-SPH,
@@ -1742,6 +1745,24 @@ examples/USER/phonon :ul
 
 :line
 
+USER-PTM package :link(PKG-USER-PTM),h4
+
+[Contents:]
+
+A "compute ptm/atom"_compute_ptm_atom.html command that calculates
+local structure characterization using the Polyhedral Template
+Matching methodology.
+
+[Author:] Peter Mahler Larsen (MIT).
+
+[Supporting info:]
+
+src/USER-PTM: filename starting with ptm_ -> supporting code, other filenames -> commands
+src/USER-PTM/LICENSE
+"compute ptm/atom"_compute_ptm_atom.html :ul
+
+:line
+
 USER-QMMM package :link(PKG-USER-QMMM),h4
 
 [Contents:]
@@ -1856,6 +1877,41 @@ src/USER-REAXC/README
 "fix reax/c/bonds"_fix_reax_bonds.html
 "fix reax/c/species"_fix_reaxc_species.html
 examples/reax :ul
+
+:line
+
+USER-SCAFACOS package :link(PKG-USER-SCAFACOS),h4
+
+[Contents:]
+
+A KSpace style which wraps the "ScaFaCoS Coulomb solver
+library"_http://www.scafacos.de to compute long-range Coulombic
+interactions.
+
+To use this package you must have the ScaFaCoS library available on
+your system.
+
+[Author:] Rene Halver (JSC) wrote the scafacos LAMMPS command.
+
+ScaFaCoS itself was developed by a consortium of German research
+facilities with a BMBF (German Ministry of Science and Education)
+funded project in 2009-2012. Participants of the consortium were the
+Universities of Bonn, Chemnitz, Stuttgart, and Wuppertal as well as
+the Forschungszentrum Juelich.
+
+[Install:]
+
+This package has "specific installation
+instructions"_Build_extras.html#user-scafacos on the "Build
+extras"_Build_extras.html doc page.
+
+[Supporting info:]
+
+src/USER-SCAFACOS: filenames -> commands
+src/USER-SCAFACOS/README
+"kspace_style scafacos"_kspace_style.html
+"kspace_modify"_kspace_modify.html
+examples/USER/scafacos :ul
 
 :line
 

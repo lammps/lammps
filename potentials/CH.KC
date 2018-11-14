@@ -1,6 +1,6 @@
-# Refined parameters for Kolmogorov-Crespi Potential
+# Refined parameters for Kolmogorov-Crespi Potential without taper function
 #
-# Cite as Wengen Ouyang,Davide Mandelli, Michael Urbakh, Oded Hod, arXiv:1806.09555 (2018).
+# Cite as W. Ouyang, D. Mandelli, M. Urbakh and O. Hod, Nano Letters 18, 6009-6016 (2018).
 # 
 #        z0         C0             C2          C4         C          delta     lambda       A          S    rcut
 C  C  3.328819  21.847167     12.060173     4.711099  6.678908e-4  0.7718101  3.143921  12.660270     1.0   2.0

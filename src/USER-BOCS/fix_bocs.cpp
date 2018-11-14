@@ -207,12 +207,11 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
         p_basis_type = 2;
         spline_length = read_F_table( arg[iarg+1], p_basis_type );
         iarg += 2;
-      }  else
-      {
-         char * errmsg = (char *) calloc(150,sizeof(char));
-         sprintf(errmsg,"CG basis type %s is not recognized\nSupported "
-             "basis types: analytic linear_spline cubic_spline",arg[iarg]);
-         error->all(FLERR,errmsg);
+      }  else {
+        char errmsg[256];
+        snprintf(errmsg,256,"CG basis type %s is not recognized\nSupported "
+                 "basis types: analytic linear_spline cubic_spline",arg[iarg]);
+        error->all(FLERR,errmsg);
       } // END NJD MRD
     } else if (strcmp(arg[iarg],"tchain") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix bocs command");
@@ -243,9 +242,9 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
       if (nc_pchain < 0) error->all(FLERR,"Illegal fix bocs command");
       iarg += 2;
     } else {
-      char * errmsg = (char *) calloc(80,sizeof(char));
-      sprintf(errmsg,"Illegal fix bocs command: unrecognized keyword %s"
-                                                             ,arg[iarg]);
+      char errmsg[128];
+      snprintf(errmsg,128,"Illegal fix bocs command: unrecognized keyword %s"
+               ,arg[iarg]);
       error->all(FLERR,errmsg);
     }
   }
@@ -641,20 +640,16 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
     {
       data[i] = (double *) calloc(n_entries,sizeof(double));
     }
-  }
-  else
-  {
-    char * errmsg = (char *) calloc(50,sizeof(char));
-    sprintf(errmsg,"Unable to open file: %s\n",filename);
+  } else {
+    char errmsg[128];
+    snprintf(errmsg,128,"Unable to open file: %s\n",filename);
     error->all(FLERR,errmsg);
   }
 
   n_entries = 0;
   fpi = fopen(filename,"r");
-  if (fpi)
-  {
-    while( fgets(line,199,fpi))
-    {
+  if (fpi) {
+    while( fgets(line,199,fpi)) {
       ++n_entries;
       test_sscanf = sscanf(line," %f , %f ",&f1, &f2);
       if (test_sscanf == 2)
@@ -668,11 +663,9 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
                  "line %d of file %s\n\tline: %s",n_entries,filename,line);
       }
     }
-  }
-  else
-  {
-    char * errmsg = (char *) calloc(50,sizeof(char));
-    sprintf(errmsg,"Unable to open file: %s\n",filename);
+  } else {
+    char errmsg[128];
+    snprintf(errmsg,128,"Unable to open file: %s\n",filename);
     error->all(FLERR,errmsg);
   }
   fclose(fpi);

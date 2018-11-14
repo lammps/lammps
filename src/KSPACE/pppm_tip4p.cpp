@@ -39,8 +39,7 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PPPMTIP4P::PPPMTIP4P(LAMMPS *lmp, int narg, char **arg) :
-  PPPM(lmp, narg, arg)
+PPPMTIP4P::PPPMTIP4P(LAMMPS *lmp) : PPPM(lmp)
 {
   triclinic_support = 1;
   tip4pflag = 1;

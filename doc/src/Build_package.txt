@@ -42,7 +42,7 @@ packages:
 "KOKKOS"_Build_extras.html#kokkos,
 "LATTE"_Build_extras.html#latte,
 "MEAM"_Build_extras.html#meam,
-"MESSAGE"_#Build_extras.html#message,
+"MESSAGE"_Build_extras.html#message,
 "MSCG"_Build_extras.html#mscg,
 "OPT"_Build_extras.html#opt,
 "POEMS"_Build_extras.html#poems,
@@ -59,6 +59,7 @@ packages:
 "USER-OMP"_Build_extras.html#user-omp,
 "USER-QMMM"_Build_extras.html#user-qmmm,
 "USER-QUIP"_Build_extras.html#user-quip,
+"USER-SCAFACOS"_Build_extras.html#user-scafacos,
 "USER-SMD"_Build_extras.html#user-smd,
 "USER-VTK"_Build_extras.html#user-vtk :tb(c=6,ea=c,a=l)
 

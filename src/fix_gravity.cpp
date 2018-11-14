@@ -141,6 +141,8 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
 
 FixGravity::~FixGravity()
 {
+  if (copymode) return;
+
   delete [] mstr;
   delete [] vstr;
   delete [] pstr;

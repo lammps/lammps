@@ -258,7 +258,7 @@ void PairCoulStreitz::read_file(char *file)
     fp = fopen(file,"r");
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open coul/streitz potential file %s",file);
+      snprintf(str,128,"Cannot open coul/streitz potential file %s",file);
       error->one(FLERR,str);
     }
   }

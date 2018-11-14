@@ -70,7 +70,7 @@ OPT.
 "fourier/simple (o)"_angle_fourier_simple.html,
 "harmonic (iko)"_angle_harmonic.html,
 "quartic (o)"_angle_quartic.html,
-"sdk"_angle_sdk.html,
+"sdk (o)"_angle_sdk.html,
 "table (o)"_angle_table.html :tb(c=4,ea=c)
 
 :line

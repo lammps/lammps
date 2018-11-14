@@ -6,8 +6,8 @@
 
 :line
 
-pair_style buck6d/coul/gauss/dsf :h3
-pair_style buck6d/coul/gauss/long :h3
+pair_style buck6d/coul/gauss/dsf command :h3
+pair_style buck6d/coul/gauss/long command :h3
 
 [Syntax:]
 

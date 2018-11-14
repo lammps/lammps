@@ -232,7 +232,7 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
     fgle = force->open_potential(fname);
     if (fgle == NULL) {
       char str[128];
-      sprintf(str,"Cannot open A-matrix file %s",fname);
+      snprintf(str,128,"Cannot open A-matrix file %s",fname);
       error->one(FLERR,str);
     }
     if (screen) fprintf(screen,"Reading A-matrix from %s\n", fname);
@@ -302,7 +302,7 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
       fgle = force->open_potential(fname);
       if (fgle == NULL) {
         char str[128];
-        sprintf(str,"Cannot open C-matrix file %s",fname);
+        snprintf(str,128,"Cannot open C-matrix file %s",fname);
         error->one(FLERR,str);
       }
       if (screen)

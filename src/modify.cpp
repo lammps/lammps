@@ -239,7 +239,8 @@ void Modify::init()
   for (i = 0; i < nfix; i++)
     if (!fix[i]->dynamic_group_allow && group->dynamic[fix[i]->igroup]) {
       char str[128];
-      sprintf(str,"Fix %s does not allow use of dynamic group",fix[i]->id);
+      snprintf(str,128,
+               "Fix %s does not allow use of dynamic group",fix[i]->id);
       error->all(FLERR,str);
     }
 
@@ -247,7 +248,7 @@ void Modify::init()
     if (!compute[i]->dynamic_group_allow &&
         group->dynamic[compute[i]->igroup]) {
       char str[128];
-      sprintf(str,"Compute %s does not allow use of dynamic group",fix[i]->id);
+      snprintf(str,128,"Compute %s does not allow use of dynamic group",fix[i]->id);
       error->all(FLERR,str);
     }
 
@@ -784,16 +785,17 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
   //   but can't think of better way
   // too late if instantiate fix, then check flag set in fix constructor,
   //   since some fixes access domain settings in their constructor
-  // MUST change NEXCEPT above when add new fix to this list
+  // NULL must be last entry in this list
 
-  const char *exceptions[NEXCEPT] =
-    {"GPU","OMP","INTEL","property/atom","cmap","cmap3","rx"};
+  const char *exceptions[] =
+    {"GPU", "OMP", "INTEL", "property/atom", "cmap", "cmap3", "rx",
+     "deprecated", NULL};
 
   if (domain->box_exist == 0) {
     int m;
-    for (m = 0; m < NEXCEPT; m++)
+    for (m = 0; exceptions[m] != NULL; m++)
       if (strcmp(arg[2],exceptions[m]) == 0) break;
-    if (m == NEXCEPT)
+    if (exceptions[m] == NULL)
       error->all(FLERR,"Fix command before simulation box is defined");
   }
 
@@ -889,7 +891,7 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
 
   if (fix[ifix] == NULL) {
     char str[128];
-    sprintf(str,"Unknown fix style %s",arg[2]);
+    snprintf(str,128,"Unknown fix style %s",arg[2]);
     error->all(FLERR,str);
   }
 
@@ -1191,7 +1193,7 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
 
   if (compute[ncompute] == NULL) {
     char str[128];
-    sprintf(str,"Unknown compute style %s",arg[2]);
+    snprintf(str,128,"Unknown compute style %s",arg[2]);
     error->all(FLERR,str);
   }
 

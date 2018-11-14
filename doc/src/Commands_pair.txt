@@ -26,7 +26,7 @@ OPT.
 
 "none"_pair_none.html,
 "zero"_pair_zero.html,
-"hybrid"_pair_hybrid.html,
+"hybrid (k)"_pair_hybrid.html,
 "hybrid/overlay (k)"_pair_hybrid.html :tb(c=4,ea=c)
 
 "adp (o)"_pair_adp.html,
@@ -81,6 +81,7 @@ OPT.
 "eam (gikot)"_pair_eam.html,
 "eam/alloy (gikot)"_pair_eam.html,
 "eam/cd (o)"_pair_eam.html,
+"eam/cd/old (o)"_pair_eam.html,
 "eam/fs (gikot)"_pair_eam.html,
 "edip (o)"_pair_edip.html,
 "edip/multi"_pair_edip.html,
@@ -94,7 +95,7 @@ OPT.
 "gayberne (gio)"_pair_gayberne.html,
 "gran/hertz/history (o)"_pair_gran.html,
 "gran/hooke (o)"_pair_gran.html,
-"gran/hooke/history (o)"_pair_gran.html,
+"gran/hooke/history (ko)"_pair_gran.html,
 "gw"_pair_gw.html,
 "gw/zbl"_pair_gw.html,
 "hbond/dreiding/lj (o)"_pair_hbond_dreiding.html,
@@ -167,7 +168,7 @@ OPT.
 "morse/soft"_pair_morse.html,
 "multi/lucy"_pair_multi_lucy.html,
 "multi/lucy/rx (k)"_pair_multi_lucy_rx.html,
-"nb3b/harmonic (o)"_pair_nb3b_harmonic.html,
+"nb3b/harmonic"_pair_nb3b_harmonic.html,
 "nm/cut (o)"_pair_nm.html,
 "nm/cut/coul/cut (o)"_pair_nm.html,
 "nm/cut/coul/long (o)"_pair_nm.html,

@@ -26,7 +26,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AtomVecHybridKokkos::AtomVecHybridKokkos(LAMMPS *lmp) : AtomVecKokkos(lmp) {}
+AtomVecHybridKokkos::AtomVecHybridKokkos(LAMMPS *lmp) : AtomVecKokkos(lmp) {
+  no_comm_vel_flag = 1;
+  no_border_vel_flag = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 

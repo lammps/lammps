@@ -924,10 +924,12 @@ void ReadRestart::header(int incompatible)
       atom->extra_dihedral_per_atom = read_int();
     } else if (flag == EXTRA_IMPROPER_PER_ATOM) {
       atom->extra_improper_per_atom = read_int();
-    } else if (flag == EXTRA_SPECIAL_PER_ATOM) {
-      force->special_extra = read_int();
     } else if (flag == ATOM_MAXSPECIAL) {
       atom->maxspecial = read_int();
+
+      // for backward compatibility
+    } else if (flag == EXTRA_SPECIAL_PER_ATOM) {
+      force->special_extra = read_int();
 
     } else error->all(FLERR,"Invalid flag in header section of restart file");
 

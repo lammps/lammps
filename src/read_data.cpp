@@ -1435,7 +1435,7 @@ void ReadData::dihedrals(int firstpass)
 
   if (firstpass) {
     int max = 0;
-    for (int i = 0; i < nlocal; i++) max = MAX(max,count[i]);
+    for (int i = nlocal_previous; i < nlocal; i++) max = MAX(max,count[i]);
     int maxall;
     MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
     if (addflag == NONE) maxall += atom->extra_dihedral_per_atom;

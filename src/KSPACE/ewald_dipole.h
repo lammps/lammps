@@ -34,7 +34,7 @@ class EwaldDipole : public Ewald {
 
  protected:
   double musum,musqsum,mu2;
-  double **muk; 		// mu_i dot k
+  //double **muk; 		// mu_i dot k
   double **tk;			// field for torque 
   double **vc;			// virial per k
 

@@ -45,11 +45,10 @@ using namespace MathSpecial;
 /* ---------------------------------------------------------------------- */
 
 EwaldDipole::EwaldDipole(LAMMPS *lmp, int narg, char **arg) : Ewald(lmp, narg, arg),
-  muk(NULL), tk(NULL), vc(NULL)
+  tk(NULL), vc(NULL)
 {
   ewaldflag = dipoleflag = 1;
   group_group_enable = 0;
-  muk = NULL;
   tk = NULL;
   vc = NULL;
 }
@@ -60,7 +59,6 @@ EwaldDipole::EwaldDipole(LAMMPS *lmp, int narg, char **arg) : Ewald(lmp, narg, a
 
 EwaldDipole::~EwaldDipole()
 {
-  memory->destroy(muk);
   memory->destroy(tk);
   memory->destroy(vc);
 }
@@ -326,14 +324,12 @@ void EwaldDipole::setup()
     memory->destroy(vc);
     memory->destroy3d_offset(cs,-kmax_created);
     memory->destroy3d_offset(sn,-kmax_created);
-    memory->destroy(muk);
     nmax = atom->nmax;
     memory->create(ek,nmax,3,"ewald_dipole:ek");
     memory->create(tk,nmax,3,"ewald_dipole:tk");
     memory->create(vc,kmax3d,6,"ewald_dipole:tk");
     memory->create3d_offset(cs,-kmax,kmax,3,nmax,"ewald_dipole:cs");
     memory->create3d_offset(sn,-kmax,kmax,3,nmax,"ewald_dipole:sn");
-    memory->create(muk,kmax3d,nmax,"ewald_dipole:muk");
     kmax_created = kmax;
   }
 
@@ -393,14 +389,12 @@ void EwaldDipole::compute(int eflag, int vflag)
     memory->destroy(vc);
     memory->destroy3d_offset(cs,-kmax_created);
     memory->destroy3d_offset(sn,-kmax_created);
-    memory->destroy(muk);
     nmax = atom->nmax;
     memory->create(ek,nmax,3,"ewald_dipole:ek");
     memory->create(tk,nmax,3,"ewald_dipole:tk");
     memory->create(vc,kmax3d,6,"ewald_dipole:tk");
     memory->create3d_offset(cs,-kmax,kmax,3,nmax,"ewald_dipole:cs");
     memory->create3d_offset(sn,-kmax,kmax,3,nmax,"ewald_dipole:sn");
-    memory->create(muk,kmax3d,nmax,"ewald_dipole:muk");
     kmax_created = kmax;
   }
 
@@ -425,6 +419,7 @@ void EwaldDipole::compute(int eflag, int vflag)
   double cypz,sypz,exprl,expim;
   double partial,partial2,partial_peratom;
   double vcik[6];
+  double mudotk;
 
   for (i = 0; i < nlocal; i++) {
     ek[i][0] = ek[i][1] = ek[i][2] = 0.0;
@@ -440,6 +435,9 @@ void EwaldDipole::compute(int eflag, int vflag)
     for (i = 0; i < nlocal; i++) {
 
       for (j = 0; j<6; j++) vcik[j] = 0.0;
+      
+      // re-evaluating mu dot k
+      mudotk = mu[i][0]*kx*unitk[0] + mu[i][1]*ky*unitk[1] + mu[i][2]*kz*unitk[2];
 
       // calculating  re and im of exp(i*k*ri)
 
@@ -450,7 +448,7 @@ void EwaldDipole::compute(int eflag, int vflag)
 
       // taking im of struct_fact x exp(i*k*ri) (for force calc.)
 
-      partial = (muk[k][i])*(expim*sfacrl_all[k] - exprl*sfacim_all[k]);
+      partial = (mudotk)*(expim*sfacrl_all[k] - exprl*sfacim_all[k]);
       ek[i][0] += partial * eg[k][0];
       ek[i][1] += partial * eg[k][1];
       ek[i][2] += partial * eg[k][2];
@@ -475,10 +473,10 @@ void EwaldDipole::compute(int eflag, int vflag)
       // (for per-atom energy and virial calc.)
 
       if (evflag_atom) {
-        if (eflag_atom) eatom[i] += muk[k][i]*ug[k]*partial_peratom;
+        if (eflag_atom) eatom[i] += mudotk*ug[k]*partial_peratom;
         if (vflag_atom)
           for (j = 0; j < 6; j++)
-	    vatom[i][j] += (ug[k]*muk[k][i]*vg[k][j]*partial_peratom - vcik[j]);
+	    vatom[i][j] += (ug[k]*mudotk*vg[k][j]*partial_peratom - vcik[j]);
       }
     }
   }
@@ -552,6 +550,7 @@ void EwaldDipole::eik_dot_r()
   double cstr1,sstr1,cstr2,sstr2,cstr3,sstr3,cstr4,sstr4;
   double sqk,clpm,slpm;
   double mux, muy, muz;
+  double mudotk;
 
   double **x = atom->x;
   double **mu = atom->mu;
@@ -582,9 +581,9 @@ void EwaldDipole::eik_dot_r()
         sn[1][ic][i] = sin(unitk[ic]*x[i][ic]);
         cs[-1][ic][i] = cs[1][ic][i];
         sn[-1][ic][i] = -sn[1][ic][i];
-        muk[n][i] = (mu[i][ic]*unitk[ic]);
-        cstr1 += muk[n][i]*cs[1][ic][i];
-        sstr1 += muk[n][i]*sn[1][ic][i];
+        mudotk = (mu[i][ic]*unitk[ic]);
+        cstr1 += mudotk*cs[1][ic][i];
+        sstr1 += mudotk*sn[1][ic][i];
       }
       sfacrl[n] = cstr1;
       sfacim[n++] = sstr1;
@@ -606,9 +605,9 @@ void EwaldDipole::eik_dot_r()
             cs[m-1][ic][i]*sn[1][ic][i];
           cs[-m][ic][i] = cs[m][ic][i];
           sn[-m][ic][i] = -sn[m][ic][i];
-	  muk[n][i] = (mu[i][ic]*m*unitk[ic]);
-          cstr1 += muk[n][i]*cs[m][ic][i];
-          sstr1 += muk[n][i]*sn[m][ic][i];
+	  mudotk = (mu[i][ic]*m*unitk[ic]);
+          cstr1 += mudotk*cs[m][ic][i];
+          sstr1 += mudotk*sn[m][ic][i];
         }
         sfacrl[n] = cstr1;
         sfacim[n++] = sstr1;
@@ -631,14 +630,14 @@ void EwaldDipole::eik_dot_r()
 	  muy = mu[i][1];
 
 	  // dir 1: (k,l,0)
-	  muk[n][i] = (mux*k*unitk[0] + muy*l*unitk[1]);
-          cstr1 += muk[n][i]*(cs[k][0][i]*cs[l][1][i]-sn[k][0][i]*sn[l][1][i]);
-          sstr1 += muk[n][i]*(sn[k][0][i]*cs[l][1][i]+cs[k][0][i]*sn[l][1][i]);
+	  mudotk = (mux*k*unitk[0] + muy*l*unitk[1]);
+          cstr1 += mudotk*(cs[k][0][i]*cs[l][1][i]-sn[k][0][i]*sn[l][1][i]);
+          sstr1 += mudotk*(sn[k][0][i]*cs[l][1][i]+cs[k][0][i]*sn[l][1][i]);
 	  
 	  // dir 2: (k,-l,0)
-	  muk[n+1][i] = (mux*k*unitk[0] - muy*l*unitk[1]);
-          cstr2 += muk[n+1][i]*(cs[k][0][i]*cs[l][1][i]+sn[k][0][i]*sn[l][1][i]);
-          sstr2 += muk[n+1][i]*(sn[k][0][i]*cs[l][1][i]-cs[k][0][i]*sn[l][1][i]);
+	  mudotk = (mux*k*unitk[0] - muy*l*unitk[1]);
+          cstr2 += mudotk*(cs[k][0][i]*cs[l][1][i]+sn[k][0][i]*sn[l][1][i]);
+          sstr2 += mudotk*(sn[k][0][i]*cs[l][1][i]-cs[k][0][i]*sn[l][1][i]);
 	}
         sfacrl[n] = cstr1;
         sfacim[n++] = sstr1;
@@ -663,14 +662,14 @@ void EwaldDipole::eik_dot_r()
 	  muz = mu[i][2];
 
 	  // dir 1: (0,l,m)
-      	  muk[n][i] = (muy*l*unitk[1] + muz*m*unitk[2]); 
-          cstr1 += muk[n][i]*(cs[l][1][i]*cs[m][2][i] - sn[l][1][i]*sn[m][2][i]);
-          sstr1 += muk[n][i]*(sn[l][1][i]*cs[m][2][i] + cs[l][1][i]*sn[m][2][i]);
+      	  mudotk = (muy*l*unitk[1] + muz*m*unitk[2]); 
+          cstr1 += mudotk*(cs[l][1][i]*cs[m][2][i] - sn[l][1][i]*sn[m][2][i]);
+          sstr1 += mudotk*(sn[l][1][i]*cs[m][2][i] + cs[l][1][i]*sn[m][2][i]);
 	  
 	  // dir 2: (0,l,-m)
-	  muk[n+1][i] = (muy*l*unitk[1] - muz*m*unitk[2]); 
-          cstr2 += muk[n+1][i]*(cs[l][1][i]*cs[m][2][i]+sn[l][1][i]*sn[m][2][i]);
-          sstr2 += muk[n+1][i]*(sn[l][1][i]*cs[m][2][i]-cs[l][1][i]*sn[m][2][i]);
+	  mudotk = (muy*l*unitk[1] - muz*m*unitk[2]); 
+          cstr2 += mudotk*(cs[l][1][i]*cs[m][2][i]+sn[l][1][i]*sn[m][2][i]);
+          sstr2 += mudotk*(sn[l][1][i]*cs[m][2][i]-cs[l][1][i]*sn[m][2][i]);
         }
         sfacrl[n] = cstr1;
         sfacim[n++] = sstr1;
@@ -695,14 +694,14 @@ void EwaldDipole::eik_dot_r()
 	  muz = mu[i][2];
 
 	  // dir 1: (k,0,m)
-	  muk[n][i] = (mux*k*unitk[0] + muz*m*unitk[2]); 
-          cstr1 += muk[n][i]*(cs[k][0][i]*cs[m][2][i]-sn[k][0][i]*sn[m][2][i]);
-          sstr1 += muk[n][i]*(sn[k][0][i]*cs[m][2][i]+cs[k][0][i]*sn[m][2][i]);
+	  mudotk = (mux*k*unitk[0] + muz*m*unitk[2]); 
+          cstr1 += mudotk*(cs[k][0][i]*cs[m][2][i]-sn[k][0][i]*sn[m][2][i]);
+          sstr1 += mudotk*(sn[k][0][i]*cs[m][2][i]+cs[k][0][i]*sn[m][2][i]);
 	  
 	  // dir 2: (k,0,-m)
-	  muk[n+1][i] = (mux*k*unitk[0] - muz*m*unitk[2]); 
-          cstr2 += muk[n+1][i]*(cs[k][0][i]*cs[m][2][i]+sn[k][0][i]*sn[m][2][i]);
-          sstr2 += muk[n+1][i]*(sn[k][0][i]*cs[m][2][i]-cs[k][0][i]*sn[m][2][i]);
+	  mudotk = (mux*k*unitk[0] - muz*m*unitk[2]); 
+          cstr2 += mudotk*(cs[k][0][i]*cs[m][2][i]+sn[k][0][i]*sn[m][2][i]);
+          sstr2 += mudotk*(sn[k][0][i]*cs[m][2][i]-cs[k][0][i]*sn[m][2][i]);
         }
         sfacrl[n] = cstr1;
         sfacim[n++] = sstr1;
@@ -734,32 +733,32 @@ void EwaldDipole::eik_dot_r()
 	    muz = mu[i][2];
 
 	    // dir 1: (k,l,m)
-	    muk[n][i] = (mux*k*unitk[0] + muy*l*unitk[1] + muz*m*unitk[2]); 
+	    mudotk = (mux*k*unitk[0] + muy*l*unitk[1] + muz*m*unitk[2]); 
             clpm = cs[l][1][i]*cs[m][2][i] - sn[l][1][i]*sn[m][2][i];
             slpm = sn[l][1][i]*cs[m][2][i] + cs[l][1][i]*sn[m][2][i];
-            cstr1 += muk[n][i]*(cs[k][0][i]*clpm - sn[k][0][i]*slpm);
-            sstr1 += muk[n][i]*(sn[k][0][i]*clpm + cs[k][0][i]*slpm);
+            cstr1 += mudotk*(cs[k][0][i]*clpm - sn[k][0][i]*slpm);
+            sstr1 += mudotk*(sn[k][0][i]*clpm + cs[k][0][i]*slpm);
 
 	    // dir 2: (k,-l,m)
-	    muk[n+1][i] = (mux*k*unitk[0] - muy*l*unitk[1] + muz*m*unitk[2]); 
+	    mudotk = (mux*k*unitk[0] - muy*l*unitk[1] + muz*m*unitk[2]); 
             clpm = cs[l][1][i]*cs[m][2][i] + sn[l][1][i]*sn[m][2][i];
             slpm = -sn[l][1][i]*cs[m][2][i] + cs[l][1][i]*sn[m][2][i];
-            cstr2 += muk[n+1][i]*(cs[k][0][i]*clpm - sn[k][0][i]*slpm);
-            sstr2 += muk[n+1][i]*(sn[k][0][i]*clpm + cs[k][0][i]*slpm);
+            cstr2 += mudotk*(cs[k][0][i]*clpm - sn[k][0][i]*slpm);
+            sstr2 += mudotk*(sn[k][0][i]*clpm + cs[k][0][i]*slpm);
 
 	    // dir 3: (k,l,-m)
-	    muk[n+2][i] = (mux*k*unitk[0] + muy*l*unitk[1] - muz*m*unitk[2]); 
+	    mudotk = (mux*k*unitk[0] + muy*l*unitk[1] - muz*m*unitk[2]); 
             clpm = cs[l][1][i]*cs[m][2][i] + sn[l][1][i]*sn[m][2][i];
             slpm = sn[l][1][i]*cs[m][2][i] - cs[l][1][i]*sn[m][2][i];
-            cstr3 += muk[n+2][i]*(cs[k][0][i]*clpm - sn[k][0][i]*slpm);
-            sstr3 += muk[n+2][i]*(sn[k][0][i]*clpm + cs[k][0][i]*slpm);
+            cstr3 += mudotk*(cs[k][0][i]*clpm - sn[k][0][i]*slpm);
+            sstr3 += mudotk*(sn[k][0][i]*clpm + cs[k][0][i]*slpm);
 
 	    // dir 4: (k,-l,-m)
-	    muk[n+3][i] = (mux*k*unitk[0] - muy*l*unitk[1] - muz*m*unitk[2]); 
+	    mudotk = (mux*k*unitk[0] - muy*l*unitk[1] - muz*m*unitk[2]); 
             clpm = cs[l][1][i]*cs[m][2][i] - sn[l][1][i]*sn[m][2][i];
             slpm = -sn[l][1][i]*cs[m][2][i] - cs[l][1][i]*sn[m][2][i];
-            cstr4 += muk[n+3][i]*(cs[k][0][i]*clpm - sn[k][0][i]*slpm);
-            sstr4 += muk[n+3][i]*(sn[k][0][i]*clpm + cs[k][0][i]*slpm);
+            cstr4 += mudotk*(cs[k][0][i]*clpm - sn[k][0][i]*slpm);
+            sstr4 += mudotk*(sn[k][0][i]*clpm + cs[k][0][i]*slpm);
           }
           sfacrl[n] = cstr1;
           sfacim[n++] = sstr1;

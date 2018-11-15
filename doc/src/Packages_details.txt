@@ -95,6 +95,7 @@ as contained in the file name.
 "USER-QUIP"_#PKG-USER-QUIP,
 "USER-REAXC"_#PKG-USER-REAXC,
 "USER-SCAFACOS"_#PKG-USER-SCAFACOS,
+"USER-SDPD"_#PKG-USER-SDPD,
 "USER-SMD"_#PKG-USER-SMD,
 "USER-SMTBQ"_#PKG-USER-SMTBQ,
 "USER-SPH"_#PKG-USER-SPH,
@@ -1200,6 +1201,34 @@ examples/USER/colvars :ul
 
 :line
 
+USER-PLUMED package :link(USER-PLUMED),h4
+
+[Contents:]
+
+The fix plumed command allows you to use the plugin for molecular
+dynamics PLUMED to analyse and bias your LAMMPS trajectory on the fly.
+In practise PLUMED is called from within the lammps input script by using
+the "fix plumed _fix_plumed.html command.
+
+[Authors:] The PLUMED library is written and maintained by
+Massimilliano Bonomi, Giovanni Bussi, Carlo Camiloni and
+Gareth Tribello. 
+
+[Install:]
+
+This package has "specific installation
+instructions"_Build_extras.html#gpu on the "Build
+extras"_Build_extras.html doc page.
+
+[Supporting info:]
+
+src/USER-PLUMED/README
+lib/plumed/README
+"fix plumed "_fix_plumed.html
+examples/USER/plumed :ul
+
+:line
+
 USER-DIFFRACTION package :link(PKG-USER-DIFFRACTION),h4
 
 [Contents:]
@@ -1913,6 +1942,31 @@ src/USER-SCAFACOS/README
 "kspace_style scafacos"_kspace_style.html
 "kspace_modify"_kspace_modify.html
 examples/USER/scafacos :ul
+
+:line
+
+USER-SDPD package :link(PKG-USER-SDPD),h4
+
+[Contents:]
+
+A pair style for smoothed dissipative particle dynamics (SDPD), which
+is an extension of smoothed particle hydrodynamics (SPH) to mesoscale
+where thermal fluctuations are important (see the
+"USER-SPH package"_#PKG-USER-SPH).
+Also two fixes for moving and rigid body integration of SPH/SDPD particles
+(particles of atom_style meso).
+
+[Author:] Morteza Jalalvand (Institute for Advanced Studies in Basic
+Sciences, Iran).
+
+[Supporting info:]
+
+src/USER-SDPD: filenames -> commands
+src/USER-SDPD/README
+"pair_style sdpd/taitwater/isothermal"_pair_sdpd_taitwater_isothermal.html
+"fix meso/move"_fix_meso_move.html
+"fix rigid/meso"_fix_rigid_meso.html
+examples/USER/sdpd :ul
 
 :line
 

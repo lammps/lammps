@@ -171,8 +171,9 @@ set(DEFAULT_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS DIPOLE GRANULAR
   USER-BOCS USER-CGDNA USER-MESO USER-CGSDK USER-COLVARS USER-DIFFRACTION
   USER-DPD USER-DRUDE USER-EFF USER-FEP USER-H5MD USER-LB USER-MANIFOLD
   USER-MEAMC USER-MGPT USER-MISC USER-MOFFF USER-MOLFILE USER-NETCDF
-  USER-PHONON USER-PTM USER-QTB USER-REAXC USER-SCAFACOS USER-SMD USER-SMTBQ
-  USER-SPH USER-TALLY USER-UEF USER-VTK USER-QUIP USER-QMMM)
+  USER-PHONON USER-PLUMED USER-PTM USER-QTB USER-REAXC USER-SCAFACOS
+  USER-SDPD USER-SMD USER-SMTBQ USER-SPH USER-TALLY USER-UEF USER-VTK
+  USER-QUIP USER-QMMM)
 set(ACCEL_PACKAGES USER-OMP KOKKOS OPT USER-INTEL GPU)
 set(OTHER_PACKAGES CORESHELL QEQ)
 foreach(PKG ${DEFAULT_PACKAGES})
@@ -528,6 +529,32 @@ if(PKG_USER-SCAFACOS)
   include_directories(${SCAFACOS_INCLUDE_DIRS})
 endif()
 
+if(PKG_USER-PLUMED)
+  find_package(GSL REQUIRED)
+  option(DOWNLOAD_PLUMED "Download Plumed (instead of using the system's one)" OFF)
+  if(DOWNLOAD_PLUMED)
+    include(ExternalProject)
+    ExternalProject_Add(plumed_build
+      URL https://github.com/plumed/plumed2/releases/download/v2.4.3/plumed-src-2.4.3.tgz 
+      URL_MD5 b1be7c48971627febc11c61b70767fc5
+      BUILD_IN_SOURCE 1
+      CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> 
+                                               $<$<BOOL:${BUILD_SHARED_LIBS}>:--with-pic>                                                  )
+    ExternalProject_get_property(plumed_build INSTALL_DIR)
+    set(PLUMED_INSTALL_DIR ${INSTALL_DIR})
+    list(APPEND LAMMPS_DEPS plumed_build)
+    list(APPEND LAMMPS_LINK_LIBS ${PLUMED_INSTALL_DIR}/lib/plumed/obj/kernel.o
+      ${PLUMED_INSTALL_DIR}/lib/plumed/obj/PlumedStatic.o ${GSL_LIBRARIES} ${CMAKE_DL_LIBS})
+    set(PLUMED_INCLUDE_DIRS "${PLUMED_INSTALL_DIR}/include")
+  else()
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(PLUMED plumed REQUIRED)
+    include(${PLUMED_LIBDIR}/plumed/src/lib/Plumed.cmake.static)
+    list(APPEND LAMMPS_LINK_LIBS ${PLUMED_LOAD})
+  endif()
+  include_directories(${PLUMED_INCLUDE_DIRS})
+endif()
+
 if(PKG_USER-MOLFILE)
   add_library(molfile INTERFACE)
   target_include_directories(molfile INTERFACE ${LAMMPS_LIB_SOURCE_DIR}/molfile)
@@ -876,6 +903,20 @@ if(PKG_USER-OMP)
 
     list(APPEND LIB_SOURCES ${USER-OMP_SOURCES})
     include_directories(${USER-OMP_SOURCES_DIR})
+endif()
+
+# Fix rigid/meso requires RIGID to be installed
+if(PKG_USER-SDPD)
+  set(USER-SDPD_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/USER-SDPD)
+
+  get_property(hlist GLOBAL PROPERTY FIX)
+  if(NOT PKG_RIGID)
+    list(REMOVE_ITEM hlist ${USER-SDPD_SOURCES_DIR}/fix_rigid_meso.h)
+    list(REMOVE_ITEM LIB_SOURCES ${USER-SDPD_SOURCES_DIR}/fix_rigid_meso.cpp)
+  endif()
+  set_property(GLOBAL PROPERTY FIX "${hlist}")
+
+  include_directories(${USER-SDPD_SOURCES_DIR})
 endif()
 
 if(PKG_KOKKOS)

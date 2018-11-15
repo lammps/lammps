@@ -232,8 +232,8 @@ doc page for more info.
 [Related commands:]
 
 "fix bond/break"_fix_bond_break.html, "fix
-bond/swap"_fix_bond_swap.html, "dump local"_dump.html,
-"special_bonds"_special_bonds.html
+bond/react"_fix_bond_react.html, "fix bond/swap"_fix_bond_swap.html,
+"dump local"_dump.html, "special_bonds"_special_bonds.html
 
 [Default:]
 

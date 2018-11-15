@@ -543,20 +543,13 @@ enum { sizeScratchGrain = sizeof(ScratchGrain) };
 void rocmMemset(  Kokkos::Experimental::ROCm::size_type * ptr ,  Kokkos::Experimental::ROCm::size_type value , Kokkos::Experimental::ROCm::size_type size)
 {
 char * mptr = (char * ) ptr;
-#if 0
-   parallel_for_each(hc::extent<1>(size),
+/*   parallel_for_each(hc::extent<1>(size),
                     [=, &ptr]
                     (hc::index<1> idx) __HC__
    {
       int i = idx[0];
       ptr[i] = value;
-   }).wait();
-#else
-   for (int i= 0; i<size ; i++)
-   {
-     mptr[i] = (char) value;
-   }
-#endif
+   }).wait();*/
 }
 
 Kokkos::Experimental::ROCm::size_type *
@@ -567,9 +560,9 @@ ROCmInternal::scratch_flags( const Kokkos::Experimental::ROCm::size_type size )
 
     m_scratchFlagsCount = ( size + sizeScratchGrain - 1 ) / sizeScratchGrain ;
 
-    typedef Kokkos::Impl::SharedAllocationRecord< Kokkos::HostSpace , void > Record ;
+    typedef Kokkos::Impl::SharedAllocationRecord< Kokkos::Experimental::ROCmSpace , void > Record ;
 
-    Record * const r = Record::allocate( Kokkos::HostSpace()
+    Record * const r = Record::allocate( Kokkos::Experimental::ROCmSpace()
                                        , "InternalScratchFlags"
                                        , ( sizeScratchGrain  * m_scratchFlagsCount ) );
 
@@ -590,9 +583,9 @@ ROCmInternal::scratch_space( const Kokkos::Experimental::ROCm::size_type size )
 
     m_scratchSpaceCount = ( size + sizeScratchGrain - 1 ) / sizeScratchGrain ;
 
-     typedef Kokkos::Impl::SharedAllocationRecord< Kokkos::HostSpace , void > Record ;
+     typedef Kokkos::Impl::SharedAllocationRecord< Kokkos::Experimental::ROCmSpace , void > Record ;
 
-     Record * const r = Record::allocate( Kokkos::HostSpace()
+     static Record * const r = Record::allocate( Kokkos::Experimental::ROCmSpace()
                                         , "InternalScratchSpace"
                                         , ( sizeScratchGrain  * m_scratchSpaceCount ) );
 
@@ -616,7 +609,7 @@ void ROCmInternal::finalize()
 //    scratch_lock_array_rocm_space_ptr(false);
 //    threadid_lock_array_rocm_space_ptr(false);
 
-    typedef Kokkos::Impl::SharedAllocationRecord< HostSpace > RecordROCm ;
+    typedef Kokkos::Impl::SharedAllocationRecord< Kokkos::Experimental::ROCmSpace > RecordROCm ;
     typedef Kokkos::Impl::SharedAllocationRecord< Kokkos::Experimental::ROCmHostPinnedSpace > RecordHost ;
 
     RecordROCm::decrement( RecordROCm::get_record( m_scratchFlags ) );

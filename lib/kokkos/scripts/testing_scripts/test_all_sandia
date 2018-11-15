@@ -1,0 +1,790 @@
+#!/bin/bash -e
+
+#
+# Global config
+#
+
+set -o pipefail
+
+# Determine current machine.
+
+MACHINE=""
+HOSTNAME=$(hostname)
+PROCESSOR=`uname -p`
+
+if [[ "$HOSTNAME" =~ (white|ride).* ]]; then
+  MACHINE=white
+  module load git
+fi
+
+if [[ "$HOSTNAME" =~ .*bowman.* ]]; then
+  MACHINE=bowman
+  module load git
+fi
+
+if [[ "$HOSTNAME" == *blake* ]]; then # Warning: very generic name
+  MACHINE=blake
+  module load git
+fi
+
+if [[ "$HOSTNAME" == apollo\.* ]]; then
+  MACHINE=apollo
+  module load git
+fi
+
+if [[ "$HOSTNAME" == mayer\.* ]]; then
+  MACHINE=mayer
+#  module load git
+fi
+if [[ "$HOSTNAME" == cn* ]]; then # Warning: very generic name
+  MACHINE=mayer
+fi
+
+if [ ! -z "$SEMS_MODULEFILES_ROOT" ]; then
+  if [[ "$MACHINE" = "" ]]; then
+    MACHINE=sems
+    module load sems-git
+  fi  
+fi
+
+if [[ "$MACHINE" = "" ]]; then
+  echo "Unrecognized machine" >&2
+  exit 1
+fi
+
+echo "Running on machine: $MACHINE"
+
+GCC_BUILD_LIST="OpenMP,Pthread,Serial,OpenMP_Serial,Pthread_Serial"
+IBM_BUILD_LIST="OpenMP,Serial,OpenMP_Serial"
+ARM_GCC_BUILD_LIST="OpenMP,Serial,OpenMP_Serial"
+INTEL_BUILD_LIST="OpenMP,Pthread,Serial,OpenMP_Serial,Pthread_Serial"
+CLANG_BUILD_LIST="Pthread,Serial,Pthread_Serial"
+CUDA_BUILD_LIST="Cuda_OpenMP,Cuda_Pthread,Cuda_Serial"
+CUDA_IBM_BUILD_LIST="Cuda_OpenMP,Cuda_Serial"
+
+GCC_WARNING_FLAGS="-Wall,-Wshadow,-pedantic,-Werror,-Wsign-compare,-Wtype-limits,-Wignored-qualifiers,-Wempty-body,-Wclobbered,-Wuninitialized"
+IBM_WARNING_FLAGS="-Wall,-Wshadow,-pedantic,-Wsign-compare,-Wtype-limits,-Wuninitialized"
+CLANG_WARNING_FLAGS="-Wall,-Wshadow,-pedantic,-Werror,-Wsign-compare,-Wtype-limits,-Wuninitialized"
+INTEL_WARNING_FLAGS="-Wall,-Wshadow,-pedantic,-Werror,-Wsign-compare,-Wtype-limits,-Wuninitialized"
+CUDA_WARNING_FLAGS="-Wall,-Wshadow,-pedantic,-Werror,-Wsign-compare,-Wtype-limits,-Wuninitialized"
+#CUDA_WARNING_FLAGS="-Wall,-Wshadow,-pedantic,-Wsign-compare,-Wtype-limits,-Wuninitialized"
+PGI_WARNING_FLAGS=""
+
+# Default. Machine specific can override.
+DEBUG=False
+ARGS=""
+CUSTOM_BUILD_LIST=""
+QTHREADS_PATH=""
+DRYRUN=False
+BUILD_ONLY=False
+declare -i NUM_JOBS_TO_RUN_IN_PARALLEL=1
+TEST_SCRIPT=False
+SKIP_HWLOC=False
+SPOT_CHECK=False
+
+PRINT_HELP=False
+OPT_FLAG=""
+CXX_FLAGS_EXTRA=""
+LD_FLAGS_EXTRA=""
+KOKKOS_OPTIONS=""
+
+#
+# Handle arguments.
+#
+
+while [[ $# > 0 ]]
+do
+  key="$1"
+
+  case $key in
+    --kokkos-path*)
+      KOKKOS_PATH="${key#*=}"
+      ;;
+    --qthreads-path*)
+      QTHREADS_PATH="${key#*=}"
+      ;;
+    --build-list*)
+      CUSTOM_BUILD_LIST="${key#*=}"
+      ;;
+    --debug*)
+      DEBUG=True
+      ;;
+    --build-only*)
+      BUILD_ONLY=True
+      ;;
+    --test-script*)
+      TEST_SCRIPT=True
+      ;;
+    --skip-hwloc*)
+      SKIP_HWLOC=True
+      ;;
+    --num*)
+      NUM_JOBS_TO_RUN_IN_PARALLEL="${key#*=}"
+      ;;
+    --dry-run*)
+      DRYRUN=True
+      ;;
+    --spot-check*)
+      SPOT_CHECK=True
+      ;;
+    --arch*)
+      ARCH_FLAG="--arch=${key#*=}"
+      ;;
+    --opt-flag*)
+      OPT_FLAG="${key#*=}"
+      ;;
+    --with-cuda-options*)
+      KOKKOS_CUDA_OPTIONS="--with-cuda-options=${key#*=}"
+      ;;
+    --with-options*)
+      KOKKOS_OPTIONS="--with-options=${key#*=}"
+      ;;
+    --cxxflags-extra*)
+      CXX_FLAGS_EXTRA="${key#*=}"
+      ;;
+    --ldflags-extra*)
+      LD_FLAGS_EXTRA="${key#*=}"
+      ;;
+    --help*)
+      PRINT_HELP=True
+      ;;
+    *)
+      # args, just append
+      ARGS="$ARGS $1"
+      ;;
+  esac
+
+  shift
+done
+
+SCRIPT_KOKKOS_ROOT=$( cd "$( dirname "$0" )" && cd ../.. && pwd )
+
+# Set kokkos path.
+if [ -z "$KOKKOS_PATH" ]; then
+  KOKKOS_PATH=$SCRIPT_KOKKOS_ROOT
+else
+  # Ensure KOKKOS_PATH is abs path.
+  KOKKOS_PATH=$( cd $KOKKOS_PATH && pwd )
+fi
+
+UNCOMMITTED=`cd ${KOKKOS_PATH}; git status --porcelain 2>/dev/null`
+if ! [ -z "$UNCOMMITTED" ]; then
+  echo "WARNING!! THE FOLLOWING CHANGES ARE UNCOMMITTED!! :"
+  echo "$UNCOMMITTED"
+  echo ""
+fi
+
+GITSTATUS=`cd ${KOKKOS_PATH}; git log -n 1 --format=oneline`
+echo "Repository Status: " ${GITSTATUS}
+echo ""
+echo ""
+
+#
+# Machine specific config.
+#
+
+if [ "$MACHINE" = "sems" ]; then
+  source /projects/sems/modulefiles/utils/sems-modules-init.sh
+
+  BASE_MODULE_LIST="sems-env,kokkos-env,kokkos-hwloc/1.10.1/base,sems-<COMPILER_NAME>/<COMPILER_VERSION>"
+  CUDA_MODULE_LIST="sems-env,kokkos-env,kokkos-<COMPILER_NAME>/<COMPILER_VERSION>,sems-gcc/4.8.4,kokkos-hwloc/1.10.1/base"
+  CUDA8_MODULE_LIST="sems-env,kokkos-env,kokkos-<COMPILER_NAME>/<COMPILER_VERSION>,sems-gcc/5.3.0,kokkos-hwloc/1.10.1/base"
+
+  if [ -z "$ARCH_FLAG" ]; then
+    ARCH_FLAG=""
+  fi
+
+  if [ "$SPOT_CHECK" = "True" ]; then
+    # Format: (compiler module-list build-list exe-name warning-flag)
+    COMPILERS=("gcc/5.3.0 $BASE_MODULE_LIST "OpenMP" g++ $GCC_WARNING_FLAGS"
+               "gcc/7.3.0 $BASE_MODULE_LIST "Serial" g++ $GCC_WARNING_FLAGS"
+               "intel/17.0.1 $BASE_MODULE_LIST "OpenMP" icpc $INTEL_WARNING_FLAGS"
+               "clang/4.0.1 $BASE_MODULE_LIST "Pthread_Serial" clang++ $CLANG_WARNING_FLAGS"
+               "cuda/8.0.44 $CUDA8_MODULE_LIST "Cuda_OpenMP" $KOKKOS_PATH/bin/nvcc_wrapper $CUDA_WARNING_FLAGS"
+    )
+  else
+    # Format: (compiler module-list build-list exe-name warning-flag)
+    COMPILERS=("gcc/4.8.4 $BASE_MODULE_LIST $GCC_BUILD_LIST g++ $GCC_WARNING_FLAGS"
+               "gcc/4.9.3 $BASE_MODULE_LIST $GCC_BUILD_LIST g++ $GCC_WARNING_FLAGS"
+               "gcc/5.3.0 $BASE_MODULE_LIST $GCC_BUILD_LIST g++ $GCC_WARNING_FLAGS"
+               "gcc/6.1.0 $BASE_MODULE_LIST $GCC_BUILD_LIST g++ $GCC_WARNING_FLAGS"
+               "gcc/7.3.0 $BASE_MODULE_LIST $GCC_BUILD_LIST g++ $GCC_WARNING_FLAGS"
+               "intel/15.0.2 $BASE_MODULE_LIST $INTEL_BUILD_LIST icpc $INTEL_WARNING_FLAGS"
+               "intel/16.0.3 $BASE_MODULE_LIST $INTEL_BUILD_LIST icpc $INTEL_WARNING_FLAGS"
+               "intel/17.0.1 $BASE_MODULE_LIST $INTEL_BUILD_LIST icpc $INTEL_WARNING_FLAGS"
+               "clang/3.6.1 $BASE_MODULE_LIST $CLANG_BUILD_LIST clang++ $CLANG_WARNING_FLAGS"
+               "clang/3.7.1 $BASE_MODULE_LIST $CLANG_BUILD_LIST clang++ $CLANG_WARNING_FLAGS"
+               "clang/3.8.1 $BASE_MODULE_LIST $CLANG_BUILD_LIST clang++ $CLANG_WARNING_FLAGS"
+               "clang/3.9.0 $BASE_MODULE_LIST $CLANG_BUILD_LIST clang++ $CLANG_WARNING_FLAGS"
+               "clang/4.0.1 $BASE_MODULE_LIST $CLANG_BUILD_LIST clang++ $CLANG_WARNING_FLAGS"
+               "cuda/7.5.18 $CUDA_MODULE_LIST $CUDA_BUILD_LIST $KOKKOS_PATH/bin/nvcc_wrapper $CUDA_WARNING_FLAGS"
+               "cuda/8.0.44 $CUDA8_MODULE_LIST $CUDA_BUILD_LIST $KOKKOS_PATH/bin/nvcc_wrapper $CUDA_WARNING_FLAGS"
+    )
+  fi
+elif [ "$MACHINE" = "white" ]; then
+  source /etc/profile.d/modules.sh
+  SKIP_HWLOC=True
+  export SLURM_TASKS_PER_NODE=32
+
+  BASE_MODULE_LIST="<COMPILER_NAME>/<COMPILER_VERSION>"
+  IBM_MODULE_LIST="<COMPILER_NAME>/xl/<COMPILER_VERSION>"
+  CUDA_MODULE_LIST="<COMPILER_NAME>/<COMPILER_VERSION>,gcc/7.2.0,ibm/xl/16.1.0"
+
+  # Don't do pthread on white.
+  GCC_BUILD_LIST="OpenMP,Serial,OpenMP_Serial"
+
+  # Format: (compiler module-list build-list exe-name warning-flag)
+  COMPILERS=("gcc/6.4.0 $BASE_MODULE_LIST $IBM_BUILD_LIST g++ $GCC_WARNING_FLAGS"
+             "gcc/7.2.0 $BASE_MODULE_LIST $IBM_BUILD_LIST g++ $GCC_WARNING_FLAGS"
+             "ibm/16.1.0 $IBM_MODULE_LIST $IBM_BUILD_LIST xlC $IBM_WARNING_FLAGS"
+             "cuda/9.2.88 $CUDA_MODULE_LIST $CUDA_IBM_BUILD_LIST ${KOKKOS_PATH}/bin/nvcc_wrapper $CUDA_WARNING_FLAGS"
+  )
+
+  if [ -z "$ARCH_FLAG" ]; then
+    ARCH_FLAG="--arch=Power8,Kepler37"
+  fi
+
+elif [ "$MACHINE" = "bowman" ]; then
+  source /etc/profile.d/modules.sh
+  SKIP_HWLOC=True
+  export SLURM_TASKS_PER_NODE=32
+
+  BASE_MODULE_LIST="<COMPILER_NAME>/compilers/<COMPILER_VERSION>"
+
+  OLD_INTEL_BUILD_LIST="Pthread,Serial,Pthread_Serial"
+
+  # Format: (compiler module-list build-list exe-name warning-flag)
+  COMPILERS=("intel/16.4.258 $BASE_MODULE_LIST $OLD_INTEL_BUILD_LIST icpc $INTEL_WARNING_FLAGS"
+             "intel/17.2.174 $BASE_MODULE_LIST $INTEL_BUILD_LIST icpc $INTEL_WARNING_FLAGS"
+             "intel/18.2.199 $BASE_MODULE_LIST $INTEL_BUILD_LIST icpc $INTEL_WARNING_FLAGS"
+  )
+
+  if [ -z "$ARCH_FLAG" ]; then
+    ARCH_FLAG="--arch=KNL"
+  fi
+
+elif [ "$MACHINE" = "mayer" ]; then
+  SKIP_HWLOC=True
+  export SLURM_TASKS_PER_NODE=96
+
+  BASE_MODULE_LIST="<COMPILER_NAME>/<COMPILER_VERSION>"
+  ARM_MODULE_LIST="<COMPILER_NAME>/compilers/<COMPILER_VERSION>"
+
+  # Format: (compiler module-list build-list exe-name warning-flag)
+  COMPILERS=("gcc/7.2.0 $BASE_MODULE_LIST $ARM_GCC_BUILD_LIST g++ $GCC_WARNING_FLAGS"
+             "arm/18.4.0 $ARM_MODULE_LIST $ARM_GCC_BUILD_LIST armclang++ $CLANG_WARNING_FLAGS")
+
+  if [ -z "$ARCH_FLAG" ]; then
+    ARCH_FLAG="--arch=ARMv8-TX2"
+  fi
+
+elif [ "$MACHINE" = "blake" ]; then
+  source /etc/profile.d/modules.sh
+  SKIP_HWLOC=True
+  export SLURM_TASKS_PER_NODE=32
+
+  BASE_MODULE_LIST="<COMPILER_NAME>/<COMPILER_VERSION>"
+  BASE_MODULE_LIST_INTEL="<COMPILER_NAME>/compilers/<COMPILER_VERSION>"
+
+  if [ "$SPOT_CHECK" = "True" ]; then
+
+  # Format: (compiler module-list build-list exe-name warning-flag)
+  COMPILERS=("intel/18.1.163 $BASE_MODULE_LIST_INTEL $INTEL_BUILD_LIST icpc $INTEL_WARNING_FLAGS"
+             "gcc/7.2.0 $BASE_MODULE_LIST $GCC_BUILD_LIST g++ $GCC_WARNING_FLAGS"
+             "pgi/17.10.0 $BASE_MODULE_LIST $GCC_BUILD_LIST pgc++ $PGI_WARNING_FLAGS"
+  )
+  else
+  COMPILERS=("intel/18.1.163 $BASE_MODULE_LIST_INTEL $INTEL_BUILD_LIST icpc $INTEL_WARNING_FLAGS"
+             "gcc/4.9.3 $BASE_MODULE_LIST $GCC_BUILD_LIST g++ $GCC_WARNING_FLAGS"
+             "gcc/5.5.0 $BASE_MODULE_LIST $GCC_BUILD_LIST g++ $GCC_WARNING_FLAGS"
+             "gcc/6.4.0 $BASE_MODULE_LIST $GCC_BUILD_LIST g++ $GCC_WARNING_FLAGS"
+             "gcc/7.2.0 $BASE_MODULE_LIST $GCC_BUILD_LIST g++ $GCC_WARNING_FLAGS"
+             "gcc/8.1.0 $BASE_MODULE_LIST $GCC_BUILD_LIST g++ $GCC_WARNING_FLAGS"
+             "pgi/17.10.0 $BASE_MODULE_LIST $GCC_BUILD_LIST pgc++ $PGI_WARNING_FLAGS"
+  )
+
+  fi
+  if [ -z "$ARCH_FLAG" ]; then
+    ARCH_FLAG="--arch=SKX"
+  fi
+
+elif [ "$MACHINE" = "apollo" ]; then
+  source /projects/sems/modulefiles/utils/sems-modules-init.sh
+  module use /home/projects/modulefiles/local/x86-64
+  module load kokkos-env
+
+  module load sems-git
+  module load sems-tex
+  module load sems-cmake/3.5.2
+  module load sems-gdb
+
+  SKIP_HWLOC=True
+
+  BASE_MODULE_LIST="sems-env,kokkos-env,sems-<COMPILER_NAME>/<COMPILER_VERSION>,kokkos-hwloc/1.10.1/base"
+  CUDA_MODULE_LIST="sems-env,kokkos-env,kokkos-<COMPILER_NAME>/<COMPILER_VERSION>,sems-gcc/4.8.4,kokkos-hwloc/1.10.1/base"
+  CUDA8_MODULE_LIST="sems-env,kokkos-env,kokkos-<COMPILER_NAME>/<COMPILER_VERSION>,sems-gcc/5.3.0,kokkos-hwloc/1.10.1/base"
+
+  CLANG_MODULE_LIST="sems-env,kokkos-env,sems-git,sems-cmake/3.5.2,<COMPILER_NAME>/<COMPILER_VERSION>,cuda/9.0.69"
+  CLANG7_MODULE_LIST="sems-env,kokkos-env,sems-git,sems-cmake/3.5.2,<COMPILER_NAME>/<COMPILER_VERSION>,cuda/9.1"
+  NVCC_MODULE_LIST="sems-env,kokkos-env,sems-git,sems-cmake/3.5.2,<COMPILER_NAME>/<COMPILER_VERSION>,sems-gcc/5.3.0"
+
+  BUILD_LIST_CUDA_NVCC="Cuda_Serial,Cuda_OpenMP"
+  BUILD_LIST_CUDA_CLANG="Cuda_Serial,Cuda_Pthread"
+  BUILD_LIST_CLANG="Serial,Pthread,OpenMP"
+
+  if [ "$SPOT_CHECK" = "True" ]; then
+    # Format: (compiler module-list build-list exe-name warning-flag)
+    COMPILERS=("gcc/4.8.4 $BASE_MODULE_LIST "OpenMP,Pthread" g++ $GCC_WARNING_FLAGS"
+               "gcc/5.3.0 $BASE_MODULE_LIST "Serial" g++ $GCC_WARNING_FLAGS"
+               "intel/16.0.1 $BASE_MODULE_LIST "OpenMP" icpc $INTEL_WARNING_FLAGS"
+               "clang/3.9.0 $BASE_MODULE_LIST "Pthread_Serial" clang++ $CLANG_WARNING_FLAGS"
+               "clang/6.0 $CLANG_MODULE_LIST "Cuda_Pthread,OpenMP" clang++ $CUDA_WARNING_FLAGS"
+               "cuda/9.1 $CUDA_MODULE_LIST "Cuda_OpenMP" $KOKKOS_PATH/bin/nvcc_wrapper $CUDA_WARNING_FLAGS"
+    )
+  else
+    # Format: (compiler module-list build-list exe-name warning-flag)
+    COMPILERS=("cuda/9.1 $CUDA8_MODULE_LIST $BUILD_LIST_CUDA_NVCC $KOKKOS_PATH/bin/nvcc_wrapper $CUDA_WARNING_FLAGS"
+               "clang/6.0 $CLANG_MODULE_LIST $BUILD_LIST_CUDA_CLANG clang++ $CUDA_WARNING_FLAGS"
+               "clang/7.0 $CLANG7_MODULE_LIST $BUILD_LIST_CUDA_CLANG clang++ $CUDA_WARNING_FLAGS"
+               "clang/3.9.0 $CLANG_MODULE_LIST $BUILD_LIST_CLANG clang++ $CLANG_WARNING_FLAGS"
+               "gcc/4.8.4 $BASE_MODULE_LIST $GCC_BUILD_LIST g++ $GCC_WARNING_FLAGS"
+               "gcc/4.9.3 $BASE_MODULE_LIST $GCC_BUILD_LIST g++ $GCC_WARNING_FLAGS"
+               "gcc/5.3.0 $BASE_MODULE_LIST $GCC_BUILD_LIST g++ $GCC_WARNING_FLAGS"
+               "gcc/6.1.0 $BASE_MODULE_LIST $GCC_BUILD_LIST g++ $GCC_WARNING_FLAGS"
+               "intel/15.0.2 $BASE_MODULE_LIST $INTEL_BUILD_LIST icpc $INTEL_WARNING_FLAGS"
+               "intel/16.0.1 $BASE_MODULE_LIST $INTEL_BUILD_LIST icpc $INTEL_WARNING_FLAGS"
+               "intel/17.0.1 $BASE_MODULE_LIST $INTEL_BUILD_LIST icpc $INTEL_WARNING_FLAGS"
+               "clang/3.5.2 $BASE_MODULE_LIST $CLANG_BUILD_LIST clang++ $CLANG_WARNING_FLAGS"
+               "clang/3.6.1 $BASE_MODULE_LIST $CLANG_BUILD_LIST clang++ $CLANG_WARNING_FLAGS"
+    )
+  fi
+
+  if [ -z "$ARCH_FLAG" ]; then
+    ARCH_FLAG="--arch=SNB,Volta70"
+  fi
+
+else
+  echo "Unhandled machine $MACHINE" >&2
+  exit 1
+fi
+
+export OMP_NUM_THREADS=8
+export OMP_PROC_BIND=spread
+export OMP_PLACES=cores
+
+declare -i NUM_RESULTS_TO_KEEP=7
+
+RESULT_ROOT_PREFIX=TestAll
+
+if [ "$PRINT_HELP" = "True" ]; then
+  echo "test_all_sandia <ARGS> <OPTIONS>:"
+  echo "--kokkos-path=/Path/To/Kokkos: Path to the Kokkos root directory"
+  echo "    Defaults to root repo containing this script"
+  echo "--debug: Run tests in debug. Defaults to False"
+  echo "--test-script: Test this script, not Kokkos"
+  echo "--skip-hwloc: Do not do hwloc tests"
+  echo "--num=N: Number of jobs to run in parallel"
+  echo "--spot-check: Minimal test set to issue pull request"
+  echo "--dry-run: Just print what would be executed"
+  echo "--build-only: Just do builds, don't run anything"
+  echo "--opt-flag=FLAG: Optimization flag (default: -O3)"
+  echo "--cxxflags-extra=FLAGS: Extra flags to be added to CXX_FLAGS"
+  echo "--ldflags-extra=FLAGS: Extra flags to be added to LD_FLAGS"
+  echo "--arch=ARCHITECTURE: overwrite architecture flags"
+  echo "--with-cuda-options=OPT: set KOKKOS_CUDA_OPTIONS"
+  echo "--build-list=BUILD,BUILD,BUILD..."
+  echo "    Provide a comma-separated list of builds instead of running all builds"
+  echo "    Valid items:"
+  echo "      OpenMP, Pthread, Qthreads, Serial, OpenMP_Serial, Pthread_Serial"
+  echo "      Qthreads_Serial, Cuda_OpenMP, Cuda_Pthread, Cuda_Serial"
+  echo ""
+
+  echo "ARGS: list of expressions matching compilers to test"
+  echo "  supported compilers sems"
+  for COMPILER_DATA in "${COMPILERS[@]}"; do
+    ARR=($COMPILER_DATA)
+    COMPILER=${ARR[0]}
+    echo "    $COMPILER"
+  done
+  echo ""
+
+  echo "Examples:"
+  echo "  Run all tests"
+  echo "  % test_all_sandia"
+  echo ""
+  echo "  Run all gcc tests"
+  echo "  % test_all_sandia gcc"
+  echo ""
+  echo "  Run all gcc/4.8.4 and all intel tests"
+  echo "  % test_all_sandia gcc/4.8.4 intel"
+  echo ""
+  echo "  Run all tests in debug"
+  echo "  % test_all_sandia --debug"
+  echo ""
+  echo "  Run gcc/4.8.4 and only do OpenMP and OpenMP_Serial builds"
+  echo "  % test_all_sandia gcc/4.8.4 --build-list=OpenMP,OpenMP_Serial"
+  echo ""
+  echo "If you want to kill the tests, do:"
+  echo "  hit ctrl-z"
+  echo "  % kill -9 %1"
+  echo
+  exit 0
+fi
+
+# Set build type.
+if [ "$DEBUG" = "True" ]; then
+  BUILD_TYPE=debug
+else
+  BUILD_TYPE=release
+fi
+
+# If no args provided, do all compilers.
+if [ -z "$ARGS" ]; then
+  ARGS='?'
+fi
+
+# Process args to figure out which compilers to test.
+COMPILERS_TO_TEST=""
+
+for ARG in $ARGS; do
+  for COMPILER_DATA in "${COMPILERS[@]}"; do
+    ARR=($COMPILER_DATA)
+    COMPILER=${ARR[0]}
+
+    if [[ "$COMPILER" = $ARG* ]]; then
+      if [[ "$COMPILERS_TO_TEST" != *${COMPILER}* ]]; then
+        COMPILERS_TO_TEST="$COMPILERS_TO_TEST $COMPILER"
+      else
+        echo "Tried to add $COMPILER twice"
+      fi
+    fi
+  done
+done
+
+# Check if Qthreads build requested.
+HAVE_QTHREADS_BUILD="False"
+if [ -n "$CUSTOM_BUILD_LIST" ]; then
+  if [[ "$CUSTOM_BUILD_LIST" = *Qthreads* ]]; then
+    HAVE_QTHREADS_BUILD="True"
+  fi
+else
+  for COMPILER_DATA in "${COMPILERS[@]}"; do
+    ARR=($COMPILER_DATA)
+    BUILD_LIST=${ARR[2]}
+    if [[ "$BUILD_LIST" = *Qthreads* ]]; then
+      HAVE_QTHREADS_BUILD="True"
+    fi
+  done
+fi
+
+# Ensure Qthreads path is set if Qthreads build is requested.
+if [ "$HAVE_QTHREADS_BUILD" = "True" ]; then
+  if [ -z "$QTHREADS_PATH" ]; then
+    echo "Need to supply Qthreads path (--qthreads-path) when testing Qthreads backend." >&2
+    exit 1
+  else
+    # Strip trailing slashes from path.
+    QTHREADS_PATH=$(echo $QTHREADS_PATH | sed 's/\/*$//')
+  fi
+fi
+
+#
+# Functions.
+#
+
+# get_compiler_name <COMPILER>
+get_compiler_name() {
+  echo $1 | cut -d/ -f1
+}
+
+# get_compiler_version <COMPILER>
+get_compiler_version() {
+  echo $1 | cut -d/ -f2
+}
+
+# Do not call directly.
+get_compiler_data() {
+  local compiler=$1
+  local item=$2
+  local compiler_name=$(get_compiler_name $compiler)
+  local compiler_vers=$(get_compiler_version $compiler)
+
+  local compiler_data
+  for compiler_data in "${COMPILERS[@]}" ; do
+    local arr=($compiler_data)
+
+    if [ "$compiler" = "${arr[0]}" ]; then
+      echo "${arr[$item]}" | tr , ' ' | sed -e "s/<COMPILER_NAME>/$compiler_name/g" -e "s/<COMPILER_VERSION>/$compiler_vers/g"
+      return 0
+    fi
+  done
+
+  # Not found.
+  echo "Unreconized compiler $compiler" >&2
+  exit 1
+}
+
+#
+# For all getters, usage: <GETTER> <COMPILER>
+#
+
+get_compiler_modules() {
+  get_compiler_data $1 1
+}
+
+get_compiler_build_list() {
+  get_compiler_data $1 2
+}
+
+get_compiler_exe_name() {
+  get_compiler_data $1 3
+}
+
+get_compiler_warning_flags() {
+  get_compiler_data $1 4
+}
+
+run_cmd() {
+  echo "RUNNING: $*"
+  if [ "$DRYRUN" != "True" ]; then
+    eval "$* 2>&1"
+  fi
+}
+
+# report_and_log_test_results <SUCCESS> <DESC> <COMMENT>
+report_and_log_test_result() {
+  # Use sane var names.
+  local success=$1; local desc=$2; local comment=$3;
+
+  if [ "$success" = "0" ]; then
+    echo "  PASSED $desc"
+    echo $comment > $PASSED_DIR/$desc
+  else
+    # For failures, comment should be the name of the phase that failed.
+    echo "  FAILED $desc" >&2
+    echo $comment > $FAILED_DIR/$desc
+    cat ${desc}.${comment}.log
+  fi
+}
+
+setup_env() {
+  local compiler=$1
+  local compiler_modules=$(get_compiler_modules $compiler)
+
+  module purge
+
+  local mod
+  for mod in $compiler_modules; do
+    echo "Loading module $mod"
+    module load $mod 2>&1
+    # It is ridiculously hard to check for the success of a loaded
+    # module. Module does not return error codes and piping to grep
+    # causes module to run in a subshell.
+    module list 2>&1 | grep "$mod" >& /dev/null || return 1
+  done
+
+  return 0
+}
+
+# single_build_and_test <COMPILER> <BUILD> <BUILD_TYPE>
+single_build_and_test() {
+  # Use sane var names.
+  local compiler=$1; local build=$2; local build_type=$3;
+
+  # Set up env.
+  mkdir -p $ROOT_DIR/$compiler/"${build}-$build_type"
+  cd $ROOT_DIR/$compiler/"${build}-$build_type"
+  local desc=$(echo "${compiler}-${build}-${build_type}" | sed 's:/:-:g')
+  setup_env $compiler >& ${desc}.configure.log || { report_and_log_test_result 1 ${desc} configure && return 0; }
+
+  # Set up flags.
+  local compiler_warning_flags=$(get_compiler_warning_flags $compiler)
+  local compiler_exe=$(get_compiler_exe_name $compiler)
+
+  if [[ "$build_type" = hwloc* ]]; then
+    local extra_args=--with-hwloc=$(dirname $(dirname $(which hwloc-info)))
+  fi
+
+  if [[ "$build" = *Qthreads* ]]; then
+    if [[ "$build_type" = hwloc* ]]; then
+      local extra_args="$extra_args --qthreads-path=${QTHREADS_PATH}_hwloc"
+    else
+      local extra_args="$extra_args --qthreads-path=$QTHREADS_PATH"
+    fi
+  fi
+
+  if [[ "$OPT_FLAG" = "" ]]; then
+    OPT_FLAG="-O3"
+  fi
+
+  if [[ "$build_type" = *debug* ]]; then
+    local extra_args="$extra_args --debug"
+    local cxxflags="-g $compiler_warning_flags"
+    local ldflags="-g"
+  else
+    local cxxflags="$OPT_FLAG $compiler_warning_flags"
+    local ldflags="${OPT_FLAG}"
+  fi
+
+  local cxxflags="${cxxflags} ${CXX_FLAGS_EXTRA}"
+  local ldflags="${ldflags} ${LD_FLAGS_EXTRA}"
+
+  if [[ "$KOKKOS_CUDA_OPTIONS" != "" ]]; then
+    local extra_args="$extra_args $KOKKOS_CUDA_OPTIONS"
+  fi
+  if [[ "$KOKKOS_OPTIONS" != "" ]]; then
+    local extra_args="$extra_args $KOKKOS_OPTIONS"
+  else
+    local extra_args="$extra_args --with-options=enable_large_mem_tests"
+  fi    
+
+  echo "  Starting job $desc"
+
+  local comment="no_comment"
+
+  if [ "$TEST_SCRIPT" = "True" ]; then
+    local rand=$[ 1 + $[ RANDOM % 10 ]]
+    sleep $rand
+
+    if [ $rand -gt 5 ]; then
+      run_cmd ls fake_problem >& ${desc}.configure.log || { report_and_log_test_result 1 $desc configure && return 0; }
+    fi
+  else
+    run_cmd ${KOKKOS_PATH}/generate_makefile.bash --with-devices=$build $ARCH_FLAG --compiler=$(which $compiler_exe) --cxxflags=\"$cxxflags\" --ldflags=\"$ldflags\" $extra_args &>> ${desc}.configure.log || { report_and_log_test_result 1 ${desc} configure && return 0; }
+    local -i build_start_time=$(date +%s)
+    run_cmd make -j 48 build-test >& ${desc}.build.log || { report_and_log_test_result 1 ${desc} build && return 0; }
+    local -i build_end_time=$(date +%s)
+    comment="build_time=$(($build_end_time-$build_start_time))"
+
+    if [[ "$BUILD_ONLY" == False ]]; then
+      run_cmd make test >& ${desc}.test.log || { report_and_log_test_result 1 ${desc} test && return 0; }
+      local -i run_end_time=$(date +%s)
+      comment="$comment run_time=$(($run_end_time-$build_end_time))"
+    fi
+  fi
+
+  report_and_log_test_result 0 $desc "$comment"
+
+  return 0
+}
+
+# wait_for_jobs <NUM-JOBS>
+wait_for_jobs() {
+  local -i max_jobs=$1
+  local -i num_active_jobs=$(jobs | wc -l)
+  while [ $num_active_jobs -ge $max_jobs ]
+  do
+    sleep 1
+    num_active_jobs=$(jobs | wc -l)
+    jobs >& /dev/null
+  done
+}
+
+# run_in_background <COMPILER> <BUILD> <BUILD_TYPE>
+run_in_background() {
+  local compiler=$1
+
+  local -i num_jobs=$NUM_JOBS_TO_RUN_IN_PARALLEL
+  # Don't override command line input.
+  # if [[ "$BUILD_ONLY" == True ]]; then
+  #   num_jobs=8
+  # else
+    if [[ "$compiler" == cuda* ]]; then
+      num_jobs=1
+    fi
+    if [[ "$compiler" == clang ]]; then 
+      num_jobs=1
+    fi
+  # fi
+  wait_for_jobs $num_jobs
+
+  single_build_and_test $* &
+}
+
+# build_and_test_all <COMPILER>
+build_and_test_all() {
+  # Get compiler data.
+  local compiler=$1
+  if [ -z "$CUSTOM_BUILD_LIST" ]; then
+    local compiler_build_list=$(get_compiler_build_list $compiler)
+  else
+    local compiler_build_list=$(echo "$CUSTOM_BUILD_LIST" | tr , ' ')
+  fi
+
+  # Do builds.
+  local build
+  for build in $compiler_build_list
+  do
+    run_in_background $compiler $build $BUILD_TYPE
+
+    # If not cuda, do a hwloc test too.
+    if [[ "$compiler" != cuda* && "$SKIP_HWLOC" == False ]]; then
+      run_in_background $compiler $build "hwloc-$BUILD_TYPE"
+    fi
+  done
+
+  return 0
+}
+
+get_test_root_dir() {
+  local existing_results=$(find . -maxdepth 1 -name "$RESULT_ROOT_PREFIX*" | sort)
+  local -i num_existing_results=$(echo $existing_results | tr ' ' '\n' | wc -l)
+  local -i num_to_delete=${num_existing_results}-${NUM_RESULTS_TO_KEEP}
+
+  if [ $num_to_delete -gt 0 ]; then
+    /bin/rm -rf $(echo $existing_results | tr ' ' '\n' | head -n $num_to_delete)
+  fi
+
+  echo $(pwd)/${RESULT_ROOT_PREFIX}_$(date +"%Y-%m-%d_%H.%M.%S")
+}
+
+wait_summarize_and_exit() {
+  wait_for_jobs 1
+
+  echo "#######################################################"
+  echo "PASSED TESTS"
+  echo "#######################################################"
+
+  local passed_test
+  for passed_test in $(\ls -1 $PASSED_DIR | sort)
+  do
+    echo $passed_test $(cat $PASSED_DIR/$passed_test)
+  done
+
+  local -i rv=0
+  if [ "$(ls -A $FAILED_DIR)" ]; then
+    echo "#######################################################"
+    echo "FAILED TESTS"
+    echo "#######################################################"
+
+    local failed_test
+    for failed_test in $(\ls -1 $FAILED_DIR | sort)
+    do
+      echo $failed_test "("$(cat $FAILED_DIR/$failed_test)" failed)"
+      rv=$rv+1
+    done
+  fi
+
+  exit $rv
+}
+
+#
+# Main.
+#
+
+ROOT_DIR=$(get_test_root_dir)
+mkdir -p $ROOT_DIR
+cd $ROOT_DIR
+
+PASSED_DIR=$ROOT_DIR/results/passed
+FAILED_DIR=$ROOT_DIR/results/failed
+mkdir -p $PASSED_DIR
+mkdir -p $FAILED_DIR
+
+echo "Going to test compilers: " $COMPILERS_TO_TEST
+for COMPILER in $COMPILERS_TO_TEST; do
+  echo "Testing compiler $COMPILER"
+  build_and_test_all $COMPILER
+done
+
+wait_summarize_and_exit

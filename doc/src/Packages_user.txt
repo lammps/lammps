@@ -68,6 +68,7 @@ Package, Description, Doc page, Example, Library
 "USER-QUIP"_Packages_details.html#PKG-USER-QUIP, QUIP/libatoms interface,"pair_style quip"_pair_quip.html, USER/quip, ext
 "USER-REAXC"_Packages_details.html#PKG-USER-REAXC, ReaxFF potential (C/C++) ,"pair_style reaxc"_pair_reaxc.html, reax, no
 "USER-SCAFACOS"_Packages_details.html#PKG-USER-SCAFACOS, wrapper on ScaFaCoS solver,"kspace_style scafacos"_kspace_style.html, USER/scafacos, ext
+"USER-SDPD"_Packages_details.html#PKG-USER-SDPD, smoothed dissipative particle dynamics,"pair_style sdpd/taitwater/isothermal"_pair_sdpd_taitwater_isothermal.html, USER/sdpd, no
 "USER-SMD"_Packages_details.html#PKG-USER-SMD, smoothed Mach dynamics,"SMD User Guide"_PDF/SMD_LAMMPS_userguide.pdf, USER/smd, ext
 "USER-SMTBQ"_Packages_details.html#PKG-USER-SMTBQ, second moment tight binding QEq potential,"pair_style smtbq"_pair_smtbq.html, USER/smtbq, no
 "USER-SPH"_Packages_details.html#PKG-USER-SPH, smoothed particle hydrodynamics,"SPH User Guide"_PDF/SPH_LAMMPS_userguide.pdf, USER/sph, no

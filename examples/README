@@ -78,6 +78,7 @@ friction: frictional contact of spherical asperities between 2d surfaces
 gcmc:     Grand Canonical Monte Carlo (GCMC) via the fix gcmc command
 granregion: use of fix wall/region/gran as boundary on granular particles
 hugoniostat: Hugoniostat shock dynamics
+hyper:    global and local hyperdynamics of diffusion on Pt surface
 indent:	  spherical indenter into a 2d solid
 kim:      use of potentials in Knowledge Base for Interatomic Models (KIM)
 latte:    use of LATTE density-functional tight-binding quantum code

@@ -47,7 +47,7 @@ class BondHybrid : public Bond {
 
  private:
   int *map;                     // which style each bond type points to
-
+  int has_quartic;              // which style, if any is a quartic bond style
   int *nbondlist;               // # of bonds in sub-style bondlists
   int *maxbond;                 // max # of bonds sub-style lists can store
   int ***bondlist;              // bondlist for each sub-style

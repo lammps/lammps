@@ -78,6 +78,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
 
   fix1 = NULL;
   fix2 = NULL;
+  fix3 = NULL;
 
   if (narg < 8) error->all(FLERR,"Illegal fix bond/react command: "
                            "too few arguments");
@@ -254,7 +255,10 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
       } else if (strcmp(arg[iarg],"update_edges") == 0) {
         if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
                                       "'update_edges' has too few arguments");
-        if (strcmp(arg[iarg+1],"charges") == 0) update_edges_flag[rxn] = 1;
+        if (strcmp(arg[iarg+1],"none") == 0) update_edges_flag[rxn] = 0;
+        else if (strcmp(arg[iarg+1],"charges") == 0) update_edges_flag[rxn] = 1;
+        else if (strcmp(arg[iarg+1],"custom") == 0) update_edges_flag[rxn] = 2;
+        else error->all(FLERR,"Illegal value for 'update_edges' keyword'");
         iarg += 2;
       } else error->all(FLERR,"Illegal fix bond/react command: unknown keyword");
     }
@@ -270,15 +274,23 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   memory->create(reverse_equiv,max_natoms,2,nreacts,"bond/react:reverse_equiv");
   memory->create(edge,max_natoms,nreacts,"bond/react:edge");
   memory->create(landlocked_atoms,max_natoms,nreacts,"bond/react:landlocked_atoms");
+  memory->create(custom_edges,max_natoms,nreacts,"bond/react:custom_edges");
 
   for (int j = 0; j < nreacts; j++)
-    for (int i = 0; i < max_natoms; i++) edge[i][j] = 0;
+    for (int i = 0; i < max_natoms; i++) {
+      edge[i][j] = 0;
+      if (update_edges_flag[j] == 1) custom_edges[i][j] = 1;
+      else custom_edges[i][j] = 0;
+    }
 
-  // read all superimpose files afterward
+  // read all map files afterward
   for (int i = 0; i < nreacts; i++) {
     open(files[i]);
     onemol = atom->molecules[unreacted_mol[i]];
     twomol = atom->molecules[reacted_mol[i]];
+    if (onemol->natoms != twomol->natoms)
+      error->all(FLERR,"Post-reacted template must contain the same "
+                       "number of atoms as the pre-reacted template");
     get_molxspecials();
     read(i);
     fclose(fp);
@@ -354,6 +366,9 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
 
   id_fix1 = NULL;
   id_fix2 = NULL;
+  id_fix3 = NULL;
+  statted_id = NULL;
+  custom_exclude_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -377,6 +392,7 @@ FixBondReact::~FixBondReact()
   memory->destroy(edge);
   memory->destroy(equivalences);
   memory->destroy(reverse_equiv);
+  memory->destroy(custom_edges);
 
   memory->destroy(nevery);
   memory->destroy(cutsq);
@@ -426,11 +442,15 @@ FixBondReact::~FixBondReact()
     // check nfix in case all fixes have already been deleted
     if (id_fix1 == NULL && modify->nfix) modify->delete_fix(id_fix1);
     delete [] id_fix1;
+
+    if (id_fix3 == NULL && modify->nfix) modify->delete_fix(id_fix3);
+    delete [] id_fix3;
   }
 
   if (id_fix2 == NULL && modify->nfix) modify->delete_fix(id_fix2);
   delete [] id_fix2;
 
+  delete [] statted_id;
   delete [] guess_branch;
   delete [] pioneer_count;
 }
@@ -461,61 +481,126 @@ void FixBondReact::post_constructor()
 
   int ifix = modify->find_fix(id_fix2);
   if (ifix == -1) {
-    char **newarg = new char*[8];
+    char **newarg = new char*[7];
     newarg[0] = (char *) "bond_react_props_internal";
     newarg[1] = (char *) "all"; // group ID is ignored
     newarg[2] = (char *) "property/atom";
     newarg[3] = (char *) "i_limit_tags";
-    newarg[4] = (char *) "i_statted_tags";
-    newarg[5] = (char *) "i_react_tags";
-    newarg[6] = (char *) "ghost";
-    newarg[7] = (char *) "yes";
-    modify->add_fix(8,newarg);
-    fix2 = modify->fix[modify->nfix-1];
+    newarg[4] = (char *) "i_react_tags";
+    newarg[5] = (char *) "ghost";
+    newarg[6] = (char *) "yes";
+    modify->add_fix(7,newarg);
     delete [] newarg;
   }
 
   // create master_group if not already existing
-  if (group->find(master_group) == -1) {
-    group->find_or_create(master_group);
-    char **newarg;
-    newarg = new char*[5];
-    newarg[0] = master_group;
-    newarg[1] = (char *) "dynamic";
-    newarg[2] = (char *) "all";
-    newarg[3] = (char *) "property";
-    newarg[4] = (char *) "limit_tags";
-    group->assign(5,newarg);
-    delete [] newarg;
-  }
-
-  // on to statted_tags (system-wide thermostat)
-  // intialize per-atom statted_flags to 1
-  // (only if not already initialized by restart)
   // NOTE: limit_tags and react_tags automaticaly intitialized to zero (unless read from restart)
-  if (fix2->restart_reset != 1) {
-    int flag;
-    int index = atom->find_custom("statted_tags",flag);
-    int *i_statted_tags = atom->ivector[index];
-
-    for (int i = 0; i < atom->nlocal; i++)
-      i_statted_tags[i] = 1;
-  }
+  group->find_or_create(master_group);
+  char **newarg;
+  newarg = new char*[5];
+  newarg[0] = master_group;
+  newarg[1] = (char *) "dynamic";
+  newarg[2] = (char *) "all";
+  newarg[3] = (char *) "property";
+  newarg[4] = (char *) "limit_tags";
+  group->assign(5,newarg);
+  delete [] newarg;
 
   if (stabilization_flag == 1) {
-    // create exclude_group if not already existing
-    if (group->find(exclude_group) == -1) {
+    int igroup = group->find(exclude_group);
+    // create exclude_group if not already existing, or use as parent group if static
+    if (igroup == -1 || group->dynamic[igroup] == 0) {
+      // create stabilization per-atom property
+      len = strlen("bond_react_stabilization_internal") + 1;
+      id_fix3 = new char[len];
+      strcpy(id_fix3,"bond_react_stabilization_internal");
+
+      ifix = modify->find_fix(id_fix3);
+      if (ifix == -1) {
+        char **newarg = new char*[6];
+        newarg[0] = (char *) id_fix3;
+        newarg[1] = (char *) "all"; // group ID is ignored
+        newarg[2] = (char *) "property/atom";
+        newarg[3] = (char *) "i_statted_tags";
+        newarg[4] = (char *) "ghost";
+        newarg[5] = (char *) "yes";
+        modify->add_fix(6,newarg);
+        fix3 = modify->fix[modify->nfix-1];
+        delete [] newarg;
+      }
+
+      len = strlen("statted_tags") + 1;
+      statted_id = new char[len];
+      strcpy(statted_id,"statted_tags");
+
+      // if static group exists, use as parent group
+      // also, rename dynamic exclude_group by appending '_REACT'
+      char *exclude_PARENT_group;
+      int n = strlen(exclude_group) + 1;
+      exclude_PARENT_group = new char[n];
+      strcpy(exclude_PARENT_group,exclude_group);
+      n += strlen("_REACT");
+      delete [] exclude_group;
+      exclude_group = new char[n];
+      strcpy(exclude_group,exclude_PARENT_group);
+      strcat(exclude_group,"_REACT");
+
       group->find_or_create(exclude_group);
       char **newarg;
       newarg = new char*[5];
       newarg[0] = exclude_group;
       newarg[1] = (char *) "dynamic";
-      newarg[2] = (char *) "all";
+      if (igroup == -1) newarg[2] = (char *) "all";
+      else newarg[2] = (char *) exclude_PARENT_group;
       newarg[3] = (char *) "property";
       newarg[4] = (char *) "statted_tags";
       group->assign(5,newarg);
       delete [] newarg;
-    }
+      delete [] exclude_PARENT_group;
+
+      // on to statted_tags (system-wide thermostat)
+      // intialize per-atom statted_flags to 1
+      // (only if not already initialized by restart)
+      if (fix3->restart_reset != 1) {
+        int flag;
+        int index = atom->find_custom("statted_tags",flag);
+        int *i_statted_tags = atom->ivector[index];
+
+        for (int i = 0; i < atom->nlocal; i++)
+          i_statted_tags[i] = 1;
+      }
+    } else {
+        // sleeping code, for future capabilities
+        custom_exclude_flag = 1;
+        // first we have to find correct fix group reference
+        int n = strlen("GROUP_") + strlen(exclude_group) + 1;
+        char *fix_group = new char[n];
+        strcpy(fix_group,"GROUP_");
+        strcat(fix_group,exclude_group);
+        int ifix = modify->find_fix(fix_group);
+        Fix *fix = modify->fix[ifix];
+        delete [] fix_group;
+
+        // this returns names of corresponding property
+        int unused;
+        char * idprop;
+        idprop = (char *) fix->extract("property",unused);
+        if (idprop == NULL)
+          error->all(FLERR,"Exclude group must be a per-atom property group");
+
+        len = strlen(idprop) + 1;
+        statted_id = new char[len];
+        strcpy(statted_id,idprop);
+
+        // intialize per-atom statted_tags to 1
+        // need to correct for smooth restarts
+        //int flag;
+        //int index = atom->find_custom(statted_id,flag);
+        //int *i_statted_tags = atom->ivector[index];
+        //for (int i = 0; i < atom->nlocal; i++)
+        //  i_statted_tags[i] = 1;
+      }
+
 
     // let's create a new nve/limit fix to limit newly reacted atoms
     len = strlen("bond_react_MASTER_nve_limit") + 1;
@@ -532,40 +617,6 @@ void FixBondReact::post_constructor()
       newarg[3] = nve_limit_xmax;
       modify->add_fix(4,newarg);
       fix1 = modify->fix[modify->nfix-1];
-      delete [] newarg;
-    }
-
-  }
-
-  // currently must redefine dynamic groups so they are updated at proper time
-  // -> should double check as to why
-
-  int must_redefine_groups = 1;
-
-  if (must_redefine_groups) {
-    group->find_or_create(master_group);
-    char **newarg;
-    newarg = new char*[5];
-    newarg[0] = master_group;
-    newarg[1] = (char *) "dynamic";
-    newarg[2] = (char *) "all";
-    newarg[3] = (char *) "property";
-    newarg[4] = (char *) "limit_tags";
-    group->assign(5,newarg);
-    delete [] newarg;
-  }
-
-  if (stabilization_flag == 1) {
-    if (must_redefine_groups) {
-      group->find_or_create(exclude_group);
-      char **newarg;
-      newarg = new char*[5];
-      newarg[0] = exclude_group;
-      newarg[1] = (char *) "dynamic";
-      newarg[2] = (char *) "all";
-      newarg[3] = (char *) "property";
-      newarg[4] = (char *) "statted_tags";
-      group->assign(5,newarg);
       delete [] newarg;
     }
   }
@@ -1812,8 +1863,11 @@ void FixBondReact::limit_bond(int limit_bond_mode)
   int index1 = atom->find_custom("limit_tags",flag);
   int *i_limit_tags = atom->ivector[index1];
 
-  int index2 = atom->find_custom("statted_tags",flag);
-  int *i_statted_tags = atom->ivector[index2];
+  int *i_statted_tags;
+  if (stabilization_flag == 1) {
+    int index2 = atom->find_custom(statted_id,flag);
+    i_statted_tags = atom->ivector[index2];
+  }
 
   int index3 = atom->find_custom("react_tags",flag);
   int *i_react_tags = atom->ivector[index3];
@@ -1821,7 +1875,7 @@ void FixBondReact::limit_bond(int limit_bond_mode)
   for (int i = 0; i < temp_limit_num; i++) {
     // update->ntimestep could be 0. so add 1 throughout
     i_limit_tags[atom->map(temp_limit_glove[i])] = update->ntimestep + 1;
-    i_statted_tags[atom->map(temp_limit_glove[i])] = 0;
+    if (stabilization_flag == 1) i_statted_tags[atom->map(temp_limit_glove[i])] = 0;
     i_react_tags[atom->map(temp_limit_glove[i])] = rxnID;
   }
 
@@ -1842,8 +1896,11 @@ void FixBondReact::unlimit_bond()
   int index1 = atom->find_custom("limit_tags",flag);
   int *i_limit_tags = atom->ivector[index1];
 
-  int index2 = atom->find_custom("statted_tags",flag);
-  int *i_statted_tags = atom->ivector[index2];
+  int *i_statted_tags;
+  if (stabilization_flag == 1) {
+    int index2 = atom->find_custom(statted_id,flag);
+    i_statted_tags = atom->ivector[index2];
+  }
 
   int index3 = atom->find_custom("react_tags",flag);
   int *i_react_tags = atom->ivector[index3];
@@ -1853,7 +1910,7 @@ void FixBondReact::unlimit_bond()
     // first '1': indexing offset, second '1': for next step
     if (i_limit_tags[i] != 0 && (update->ntimestep + 1 - i_limit_tags[i]) > limit_duration[i_react_tags[i]]) { // + 1
       i_limit_tags[i] = 0;
-      i_statted_tags[i] = 1;
+      if (stabilization_flag == 1) i_statted_tags[i] = 1;
       i_react_tags[i] = 0;
     }
   }
@@ -2035,7 +2092,7 @@ void FixBondReact::update_everything()
       twomol = atom->molecules[reacted_mol[rxnID]];
       for (int j = 0; j < twomol->natoms; j++) {
         int jj = equivalences[j][1][rxnID]-1;
-        if ((landlocked_atoms[j][rxnID] == 1 || update_edges_flag[rxnID] == 1) &&
+        if ((landlocked_atoms[j][rxnID] == 1 || custom_edges[jj][rxnID] == 1) &&
             atom->map(update_mega_glove[jj+1][i]) >= 0 &&
             atom->map(update_mega_glove[jj+1][i]) < nlocal) {
           type[atom->map(update_mega_glove[jj+1][i])] = twomol->type[j];
@@ -2478,6 +2535,7 @@ void FixBondReact::read(int myrxn)
 
     if (strstr(line,"edgeIDs")) sscanf(line,"%d",&nedge);
     else if (strstr(line,"equivalences")) sscanf(line,"%d",&nequivalent);
+    else if (strstr(line,"customIDs")) sscanf(line,"%d",&ncustom);
     else break;
   }
 
@@ -2490,7 +2548,7 @@ void FixBondReact::read(int myrxn)
 
   // loop over sections of superimpose file
 
-  int equivflag = 0, edgeflag = 0, bondflag = 0;
+  int equivflag = 0, edgeflag = 0, bondflag = 0, customedgesflag = 0;
   while (strlen(keyword)) {
     if (strcmp(keyword,"BondingIDs") == 0) {
       bondflag = 1;
@@ -2504,6 +2562,9 @@ void FixBondReact::read(int myrxn)
     } else if (strcmp(keyword,"Equivalences") == 0) {
       equivflag = 1;
       Equivalences(line, myrxn);
+    } else if (strcmp(keyword,"Custom Edges") == 0) {
+      customedgesflag = 1;
+      CustomEdges(line, myrxn);
     } else error->one(FLERR,"Unknown section in superimpose file");
 
     parse_keyword(1,line,keyword);
@@ -2513,6 +2574,12 @@ void FixBondReact::read(int myrxn)
   // error check
   if (bondflag == 0 || equivflag == 0)
     error->all(FLERR,"Superimpose file missing BondingIDs or Equivalences section\n");
+
+  if (update_edges_flag[myrxn] == 2 && customedgesflag == 0)
+    error->all(FLERR,"Map file must have a Custom Edges section when using 'update_edges custom'\n");
+
+  if (update_edges_flag[myrxn] != 2 && customedgesflag == 1)
+    error->all(FLERR,"Specify 'update_edges custom' to include Custom Edges section in map file\n");
 }
 
 void FixBondReact::EdgeIDs(char *line, int myrxn)
@@ -2541,6 +2608,26 @@ void FixBondReact::Equivalences(char *line, int myrxn)
     reverse_equiv[tmp1-1][0][myrxn] = tmp1;
     reverse_equiv[tmp1-1][1][myrxn] = tmp2;
   }
+}
+
+void FixBondReact::CustomEdges(char *line, int myrxn)
+{
+  // 0 for 'none', 1 for 'charges'
+
+  int tmp;
+  int n = MAX(strlen("none"),strlen("charges")) + 1;
+  char *edgemode = new char[n];
+  for (int i = 0; i < ncustom; i++) {
+    readline(line);
+    sscanf(line,"%d %s",&tmp,edgemode);
+    if (strcmp(edgemode,"none") == 0)
+      custom_edges[tmp-1][myrxn] = 0;
+    else if (strcmp(edgemode,"charges") == 0)
+      custom_edges[tmp-1][myrxn] = 1;
+    else
+      error->one(FLERR,"Illegal value in 'Custom Edges' section of map file");
+  }
+  delete [] edgemode;
 }
 
 void FixBondReact::open(char *file)

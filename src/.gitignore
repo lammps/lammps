@@ -59,6 +59,8 @@
 /colvarproxy_lammps_version.h
 /fix_colvars.cpp
 /fix_colvars.h
+/fix_plumed.cpp
+/fix_plumed.h
 /dump_molfile.cpp
 /dump_molfile.h
 /molfile_interface.cpp
@@ -485,6 +487,8 @@
 /fix_load_report.h
 /fix_meso.cpp
 /fix_meso.h
+/fix_meso_move.cpp
+/fix_meso_move.h
 /fix_meso_stationary.cpp
 /fix_meso_stationary.h
 /fix_mscg.cpp
@@ -573,6 +577,8 @@
 /fix_rhok.h
 /fix_rigid.cpp
 /fix_rigid.h
+/fix_rigid_meso.cpp
+/fix_rigid_meso.h
 /fix_rigid_nh.cpp
 /fix_rigid_nh.h
 /fix_rigid_nph.cpp
@@ -901,6 +907,8 @@
 /pair_rebo.h
 /pair_resquared.cpp
 /pair_resquared.h
+/pair_sdpd_taitwater_isothermal.cpp
+/pair_sdpd_taitwater_isothermal.h
 /pair_sph_heatconduction.cpp
 /pair_sph_heatconduction.h
 /pair_sph_idealgas.cpp

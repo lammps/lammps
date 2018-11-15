@@ -1,0 +1,117 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+fix plumed command :h3
+
+[Syntax:]
+
+fix ID group-ID plumed keyword value ... :pre
+
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+plumed = style name of this fix command :l
+keyword = {plumedfile} or {outfile} :l
+  {plumedfile} arg = name of PLUMED input file to use (default: NULL)
+  {outfile} arg = name of file on which to write the PLUMED log (default: NULL) :pre
+:ule
+
+[Examples:]
+
+fix pl all plumed all plumed plumedfile plumed.dat outfile p.log
+
+[Description:]
+
+This fix instructs LAMMPS to call the PLUMED library, which allows one
+to perform various forms of trajectory analysis on the fly and to also
+use methods such as umbrella sampling and metadynamics to enhance the
+sampling of phase space.
+
+The documentation included here only describes the fix plumed command.
+This command is LAMMPS specific whereas most of the functionality
+implemented in PLUMED will work with a range of MD codes and also when
+PLUMED is used as a stand alone code.  The full documentation for PLUMED
+is available at "this website"_http://www.plumed.org/documentation
+
+The PLUMED library is developed at
+"https://github.com/plumed/plumed2"_https://github.com/plumed/plumed2 A
+detailed discussion of the code can be found in "(PLUMED)"_#PLUMED.
+
+There are some example scripts for using this package with LAMMPS in the
+examples/USER/plumed directory.
+
+:line
+
+The command to call PLUMED above is reasonably self explanatory.  Within
+the input file for lammps the user is required to specify the input file
+for PLUMED and a file on which to output the PLUMED log.  The user must
+specify both of these arguments every time PLUMED is to be used.
+Furthermore, the fix plumed command should appear in the LAMMPS input
+file after the relevant input paramters (e.g. the timestep) have been
+set.
+
+The {group-ID} entry is ignored. LAMMPS will always pass all the atoms
+to PLUMED and there can only be one instance of the plumed fix at a
+time. The plumed fix communicates the minimum amount of information
+required and the PLUMED supports multiple, completely independent
+collective variables, multiple independent biases and multiple
+independent forms of analysis.  There is thus really no restriction in
+functionality by only allowing only one plumed fix in the LAMMPS input.
+
+The {plumedfile} keyword allows the user to specify the name of the
+PLUMED input file.  Instructions as to what should be included in a
+plumed input file can be found in the "documentation for
+PLUMED"_http://www.plumed.org/documentation.
+
+The {outfile} keyword allows the user to specify the name of a file on
+which to output the PLUMED log.  This log file normally just parots the
+information that is contained in the input file.  The names of the files
+on which the results from the various analyses that have been performed
+using PLUMED will be specified by the user in the PLUMED input file.
+
+[Restart, fix_modify, output, run start/stop, minimize info:]
+
+When performing a restart of a calculation that involves PLUMED you must
+include a RESTART command in the PLUMED input file as detailed in the
+"PLUMED documentation"_http://www.plumed.org/documentation.  When the
+restart command is found in the PLUMED input PLUMED will append to the
+files that were generated in the run that was performed previously.
+Furthermore, any history dependent bias potentials that were accumulated
+in previous calculations will be read in when the restart command is
+included in the PLUMED input.
+
+The "fix_modify"_fix_modify.html {energy} option is not supported by
+this fix.
+
+Nothing is computed by this fix that can be accessed by any of the
+"output commands"_Howto_output.html within LAMMPS.  All the quantities
+of interest can be output by commands that are native to PLUMED,
+however.
+
+[Restrictions:]
+
+This fix is part of the USER-PLUMED package.  It is only enabled if
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
+
+There can only be one plumed fix active at a time. Since the interface
+communicates only the minimum amount of information and since the PLUMED
+module itself can handle an arbitrary number of analysis and biasing
+methods, this is not a limitation of functionality.
+
+[Related commands:]
+
+"fix smd"_fix_smd.html
+"fix colvars"_fix_colvars.html
+
+[Default:]
+
+The default options are plumedfile = NULL and outfile = NULL
+
+:line
+
+:link(PLUMED)
+[(PLUMED)] G.A. Tribello, M. Bonomi, D. Branduardi, C. Camilloni and G. Bussi, Comp. Phys. Comm 185, 604 (2014)

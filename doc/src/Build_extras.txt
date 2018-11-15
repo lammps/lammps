@@ -41,6 +41,7 @@ This is the list of packages that may require additional steps.
 "USER-ATC"_#user-atc,
 "USER-AWPMD"_#user-awpmd,
 "USER-COLVARS"_#user-colvars,
+"USER-PLUMED" _#user-plumed,
 "USER-H5MD"_#user-h5md,
 "USER-INTEL"_#user-intel,
 "USER-MOLFILE"_#user-molfile,
@@ -709,6 +710,62 @@ COLVARS library (though typically the settings are just blank).  If
 necessary, you can edit/create a new lib/colvars/Makefile.machine file
 for your system, which should define an EXTRAMAKE variable to specify
 a corresponding Makefile.lammps.machine file.
+
+:line
+
+USER-PLUMED package :h4,link(user-plumed)
+
+[CMake build]:
+
+[Traditional make]:
+
+Before building LAMMPS with this package, you must first build 
+PLUMED.  We recommending building PLUMED separately to LAMMPS using 
+the instructions that can be found at http://plumed.github.io/doc-master/user-doc/html/_installation.html.
+Before compiling LAMMPS you can then install the fix plumed command
+and compile LAMMPS in the usual manner:
+
+make yes-user-plumed 
+make machine :pre
+
+Once this compilation completes you should be able to run LAMMPS in the usual
+way.  When running LAMMPS with an input script that contains a fix
+plumed command LAMMPS will try to call the PLUMED runtime library.  PLUMED
+must therefore be available in your path if LAMMPS is compiled in this way.
+
+On some machines it is not possible to call runtime libraries in the way described
+above.  When compiling on these machines it is thus better to statically link
+PLUMED when compiling LAMMPS.  To do this you must either download a PLUMED
+tarball from http://www.plumed.org/get-it or clone it using
+git clone https://github.com/plumed/plumed2.git.  If you download the tarball
+unpack it in the /lib/plumed directory.  Similarly if you clone 
+it clone it to the /lib/plumed directory as if there is a version of PLUMED within
+this directory LAMMPS will always try to statically link the version of PLUMED
+that this directory contains instead of dynamically linking the library.
+
+Once you have downloaded PLUMED into /lib/plumed you must again build the code
+here by following the instructions that can be found at
+http://plumed.github.io/doc-master/user-doc/html/_installation.html.
+
+You can statically link PLUMED manually and if you want to access the full
+range of PLUMED functionalities this is what you should do.  If you only want the
+basic range of functionalities, however, (i.e. no user contributed modules) then
+you can download and compile PLUMED in one step from the lammps/src dir, using a
+command like like those below:
+
+make lib-plumed                       # print help message
+make lib-plumed  args="-b"            # download and build the latest stable version of PLUMED
+
+These commands will simply invoke the lib/plumed/Install.py script with
+args specified.  Furthermore, once the script has completed you should
+have a compiled version of PLUMED.  With this built you can install/un-install
+PLUMED and build LAMMPS in the usual manner:
+
+make yes-user-plumed
+make machine :pre
+
+make no-user-plumed
+make machine :pre
 
 :line
 

@@ -85,7 +85,7 @@ void PairBuck6dCoulGaussLong::compute(int eflag, int vflag)
   double grij,expm2,erf;
   double term1,term2,term3,term4,term5;
   double rcu,rqu,sme,smf,ebuck6d,ealpha;
-  double prefactor,erfa,expa,t,arg,falpha;
+  double prefactor,erfa,expa,arg,falpha;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;

@@ -451,10 +451,9 @@ void ComputeStressMopProfile::setup_bins()
   int i,n;
   double lo = 0.0, hi = 0.0;
 
-  double *boxlo,*boxhi,*prd;
+  double *boxlo,*boxhi;
   boxlo = domain->boxlo;
   boxhi = domain->boxhi;
-  prd = domain->prd;
 
   if (originflag == LOWER) origin = boxlo[dir];
   else if (originflag == UPPER) origin = boxhi[dir];

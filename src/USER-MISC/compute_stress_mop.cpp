@@ -210,7 +210,7 @@ void ComputeStressMop::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeStressMop::init_list(int id, NeighList *ptr)
+void ComputeStressMop::init_list(int /* id */, NeighList *ptr)
 {
   list = ptr;
 }
@@ -246,9 +246,9 @@ void ComputeStressMop::compute_vector()
 void ComputeStressMop::compute_pairs()
 
 {
-  int i,j,m,n,ii,jj,inum,jnum,itype,jtype;
+  int i,j,m,ii,jj,inum,jnum,itype,jtype;
   double delx,dely,delz;
-  double rsq,eng,fpair,factor_coul,factor_lj;
+  double rsq,fpair,factor_coul,factor_lj;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   double *mass = atom->mass;
@@ -363,8 +363,7 @@ void ComputeStressMop::compute_pairs()
     // counts local particles transfers across the plane
 
     if (which[m] == KIN || which[m] == TOTAL){
-      double vcm[3];
-      double masstotal,sgn;
+      double sgn;
 
       for (int i = 0; i < nlocal; i++){
 

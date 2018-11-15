@@ -87,7 +87,7 @@ class FixHyperLocal : public FixHyper {
   int nevent;                // # of events that trigger bond rebuild
   int nevent_atom;           // # of atoms that experienced an event
   double cutbondsq,dcutsq;
-  double beta,t_hyper,invqfactorsq;
+  double beta,invqfactorsq;
   double mybias;
   double maxbondlen;         // cummulative max length of any bond
   double maxdriftsq;         // max distance any atom drifts from original pos
@@ -147,7 +147,7 @@ class FixHyperLocal : public FixHyper {
 
   // histogramming of bond boost cooeficients
 
-  int histo_flag,histo_every,histo_count,histo_print,histo_steps;
+  int histo_every,histo_count,histo_print,histo_steps;
   double histo_delta,invhisto_delta,histo_lo;
   bigint *histo,*allhisto;
 };

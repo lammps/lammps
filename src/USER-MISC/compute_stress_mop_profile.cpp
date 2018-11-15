@@ -211,7 +211,7 @@ void ComputeStressMopProfile::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeStressMopProfile::init_list(int id, NeighList *ptr)
+void ComputeStressMopProfile::init_list(int /* id */, NeighList *ptr)
 {
   list = ptr;
 }
@@ -253,11 +253,11 @@ void ComputeStressMopProfile::compute_array()
 void ComputeStressMopProfile::compute_pairs()
 
 {
-  int i,j,m,n,ii,jj,inum,jnum,itype,jtype,ibin;
+  int i,j,m,ii,jj,inum,jnum,itype,jtype,ibin;
   double delx,dely,delz;
-  double rsq,eng,fpair,factor_coul,factor_lj;
+  double rsq,fpair,factor_coul,factor_lj;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  double pos,pos1,pos_temp;    
+  double pos,pos1;    
 
   double *mass = atom->mass;
   int *type = atom->type;
@@ -385,8 +385,7 @@ void ComputeStressMopProfile::compute_pairs()
 
     if (which[m] == KIN || which[m] == TOTAL){
 
-      double vcm[3];
-      double masstotal,sgn;
+      double sgn;
 
       for (int i = 0; i < nlocal; i++){
 
@@ -449,13 +448,12 @@ void ComputeStressMopProfile::compute_pairs()
 
 void ComputeStressMopProfile::setup_bins()
 {
-  int i,j,k,m,n;
-  double lo,hi,coord1,coord2;
+  int i,n;
+  double lo = 0.0, hi = 0.0;
 
-  double *boxlo,*boxhi,*prd;
+  double *boxlo,*boxhi;
   boxlo = domain->boxlo;
   boxhi = domain->boxhi;
-  prd = domain->prd;
 
   if (originflag == LOWER) origin = boxlo[dir];
   else if (originflag == UPPER) origin = boxhi[dir];

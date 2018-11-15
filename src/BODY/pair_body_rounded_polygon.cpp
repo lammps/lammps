@@ -107,7 +107,7 @@ void PairBodyRoundedPolygon::compute(int eflag, int vflag)
   int nei,nej,iefirst,jefirst;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl;
   double rsq,rsqinv,r,radi,radj,eradi,eradj,rradi,rradj,k_nij,k_naij;
-  double xi[3],xj[3],facc[3];
+  double facc[3];
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;

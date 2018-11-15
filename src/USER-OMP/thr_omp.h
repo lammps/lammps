@@ -185,6 +185,7 @@ static inline void loop_setup_thr(int &ifrom, int &ito, int &tid,
   tid = 0;
   ifrom = 0;
   ito = inum;
+  nthreads = 1;
 #endif
 }
 

@@ -50,7 +50,6 @@ namespace LAMMPS_NS {
     double **coord,**coordp;
     double **values_local,**values_global;
 
-    int ndim;
     double dt,nktv2p,ftm2v;
     double area;
     class NeighList *list;

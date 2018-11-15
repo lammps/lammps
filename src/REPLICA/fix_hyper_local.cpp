@@ -716,7 +716,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
     if (update->ntimestep % histo_print == 0) {
       MPI_Allreduce(histo,allhisto,histo_count+2,MPI_LMP_BIGINT,MPI_SUM,world);
 
-      bigint total;
+      bigint total = 0;
       for (i = 0; i < histo_count+2; i++) total += allhisto[i];
 
       if (me == 0) {

@@ -68,7 +68,7 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
 
   // parse args
 
-  int iarg;
+  int iarg = 0;
 
   if (strcmp(arg[3],"linear") == 0) {
     if (narg < 7) error->all(FLERR,"Illegal fix move command");

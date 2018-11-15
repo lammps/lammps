@@ -1188,7 +1188,7 @@ the NAMD MD code, but with portability in mind.  Axel Kohlmeyer
 [Install:] 
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-colvars on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -1202,7 +1202,7 @@ examples/USER/colvars :ul
 
 :line
 
-USER-PLUMED package :link(USER-PLUMED),h4
+USER-PLUMED package :link(PKG-USER-PLUMED),h4
 
 [Contents:]
 

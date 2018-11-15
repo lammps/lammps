@@ -34,12 +34,13 @@
 #include "modify.h"
 #include "pair.h"
 
-/*
-  Use statically linked C++ interface to plumed
-*/
-#define __PLUMED_WRAPPER_CXX 1
-
 #include "plumed/wrapper/Plumed.h"
+
+#if defined(__PLUMED_DEFAULT_KERNEL)
+#define PLUMED_QUOTE_DIRECT(name) #name
+#define PLUMED_QUOTE(macro) PLUMED_QUOTE_DIRECT(macro)
+static char plumed_default_kernel[] = "PLUMED_KERNEL=" PLUMED_QUOTE(__PLUMED_DEFAULT_KERNEL);
+#endif
 
 /* -------------------------------------------------------------------- */
 
@@ -63,6 +64,11 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
   if (igroup != 0 && comm->me == 0)
     error->warning(FLERR,"Fix group for fix plumed is not 'all'. "
                    "Group will be ignored.");
+
+#if defined(__PLUMED_DEFAULT_KERNEL)
+  if (getenv("PLUMED_KERNEL") == NULL)
+    putenv(plumed_default_kernel);
+#endif
 
   p=new PLMD::Plumed;
 

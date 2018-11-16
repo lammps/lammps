@@ -791,6 +791,13 @@ foreach(PKG ${DEFAULT_PACKAGES})
   endif()
 endforeach()
 
+# packages that need defines set
+foreach(PKG MPIIO)
+  if(PKG_${PKG})
+    add_definitions(-DLMP_${PKG})
+  endif()
+endforeach()
+
 # dedicated check for entire contents of accelerator packages
 foreach(PKG ${ACCEL_PACKAGES})
   set(${PKG}_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/${PKG})

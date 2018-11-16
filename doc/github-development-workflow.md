@@ -1,7 +1,7 @@
 # Outline of the GitHub Development Workflow
 
 This purpose of this document is to provide a point of reference for the
-core LAMMPS developers and other LAMMPS contibutors to understand the
+core LAMMPS developers and other LAMMPS contributors to understand the
 choices the LAMMPS developers have agreed on. Git and GitHub provide the
 tools, but do not set policies, so it is up to the developers to come to
 an agreement as to how to define and interpret policies. This document
@@ -25,7 +25,10 @@ In the interest of consistency, ONLY ONE of the core LAMMPS developers
 should doing the merging itself.  This is currently
 [@akohlmey](https://github.com/akohlmey) (Axel Kohlmeyer).
 If this assignment needs to be changed, it shall be done right after a
-stable release.
+stable release.  If the currently assigned developer cannot merge outstanding pull 
+requests in a timely manner, or in other extenuating circumstances, 
+other core LAMMPS developers with merge rights can merge pull requests,
+when necessary. 
 
 ## Pull Requests
 
@@ -37,7 +40,7 @@ upon patch or stable releases with fast-forward merges based on the
 associated tags. Pull requests may also be submitted to (long-running)
 feature branches created by LAMMPS developers inside the LAMMPS project,
 if needed. Those are not subject to the merge and review restrictions
-discussed in this document, though, but get manages as needed on a
+discussed in this document, though, but get managed as needed on a
 case-by-case basis.
 
 ### Pull Request Assignments

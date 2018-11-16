@@ -291,6 +291,9 @@ public:
   /// \brief Calculate the colvar's value and related quantities
   int calc();
 
+  /// Carry out operations needed before next step is run
+  int end_of_step();
+
   /// \brief Calculate a subset of the colvar components (CVCs) currently active
   /// (default: all active CVCs)
   /// Note: both arguments refer to the sect of *active* CVCs, not all CVCs
@@ -410,8 +413,9 @@ public:
 
   /// Read the analysis tasks
   int parse_analysis(std::string const &conf);
+
   /// Perform analysis tasks
-  void analyze();
+  int analyze();
 
 
   /// Read the value from a collective variable trajectory file
@@ -489,23 +493,23 @@ protected:
   acf_type_e             acf_type;
 
   /// \brief Velocity ACF, scalar product between v(0) and v(t)
-  int calc_vel_acf(std::list<colvarvalue> &v_history,
-                     colvarvalue const      &v);
+  void calc_vel_acf(std::list<colvarvalue> &v_history,
+                    colvarvalue const      &v);
 
   /// \brief Coordinate ACF, scalar product between x(0) and x(t)
   /// (does not work with scalar numbers)
   void calc_coor_acf(std::list<colvarvalue> &x_history,
-                      colvarvalue const      &x);
+                     colvarvalue const      &x);
 
   /// \brief Coordinate ACF, second order Legendre polynomial between
   /// x(0) and x(t) (does not work with scalar numbers)
   void calc_p2coor_acf(std::list<colvarvalue> &x_history,
-                        colvarvalue const      &x);
+                       colvarvalue const      &x);
 
   /// Calculate the auto-correlation function (ACF)
   int calc_acf();
   /// Save the ACF to a file
-  void write_acf(std::ostream &os);
+  int write_acf(std::ostream &os);
 
   /// Length of running average series
   size_t         runave_length;
@@ -521,7 +525,7 @@ protected:
   cvm::real      runave_variance;
 
   /// Calculate the running average and its standard deviation
-  void calc_runave();
+  int calc_runave();
 
   /// If extended Lagrangian active: colvar energies (kinetic and harmonic potential)
   cvm::real kinetic_energy;

@@ -236,6 +236,12 @@ void colvarbias::communicate_forces()
 }
 
 
+int colvarbias::end_of_step()
+{
+  return COLVARS_OK;
+}
+
+
 int colvarbias::change_configuration(std::string const &conf)
 {
   cvm::error("Error: change_configuration() not implemented.\n",

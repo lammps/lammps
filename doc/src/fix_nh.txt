@@ -123,7 +123,12 @@ of {Tdamp}.  If {Tdamp} is too small, the temperature can fluctuate
 wildly; if it is too large, the temperature will take a very long time
 to equilibrate.  A good choice for many models is a {Tdamp} of around
 100 timesteps.  Note that this is NOT the same as 100 time units for
-most "units"_units.html settings.
+most "units"_units.html settings. A simple way to ensure this, is
+via using an "immediate variable"_variable.html expression accessing
+the thermo property 'dt', which is the length of the time step. Example:
+
+fix 1 all nvt temp 300.0 300.0 $(100.0*dt) :pre
+
 
 :line
 

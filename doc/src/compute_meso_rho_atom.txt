@@ -46,8 +46,8 @@ The per-atom vector values will be in mass/volume "units"_units.html.
 [Restrictions:]
 
 This compute is part of the USER-SPH package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

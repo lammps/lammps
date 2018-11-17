@@ -689,9 +689,13 @@ Cuda::size_type cuda_internal_multiprocessor_count()
 
 CudaSpace::size_type cuda_internal_maximum_concurrent_block_count()
 {
+  #if defined(KOKKOS_ARCH_KEPLER)
+  // Compute capability 3.0 through 3.7
+  enum : int { max_resident_blocks_per_multiprocessor = 16 };
+  #else
   // Compute capability 5.0 through 6.2
   enum : int { max_resident_blocks_per_multiprocessor = 32 };
-
+  #endif
    return CudaInternal::singleton().m_multiProcCount
           * max_resident_blocks_per_multiprocessor ;
 };

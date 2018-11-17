@@ -54,7 +54,7 @@ void CreateBonds::command(int narg, char **arg)
 
   int style;
 
-  int iarg;
+  int iarg = 0;
   if (strcmp(arg[0],"many") == 0) {
     style = MANY;
     if (narg != 6) error->all(FLERR,"Illegal create_bonds command");

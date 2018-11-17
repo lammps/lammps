@@ -1,0 +1,56 @@
+"Higher level section"_Install.html - "LAMMPS WWW Site"_lws - "LAMMPS
+Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+Download an executable for Mac :h3
+
+LAMMPS can be downloaded, built, and configured for OS X on a Mac with
+"Homebrew"_homebrew.  Only four of the LAMMPS packages are unavailable
+at this time because of additional needs not yet met: KIM, GPU,
+USER-INTEL, USER-ATC.
+
+After installing Homebrew, you can install LAMMPS on your system with
+the following commands:
+
+% brew tap homebrew/science
+% brew install lammps              # serial version
+% brew install lammps --with-mpi   # mpi support :pre
+
+This will install the executable "lammps", a python module named
+"lammps", and additional resources with all the standard packages.  To
+get the location of the additional resources type this:
+
+% brew info lammps :pre
+
+This command also tells you additional installation options available.
+The user-packages are available as options, just install them like
+this example for the USER-OMP package:
+
+% brew install lammps --enable-user-omp :pre
+
+It is usually best to install LAMMPS with the most up to date source
+files, which can be done with the "--HEAD" option:
+
+% brew install lammps --HEAD :pre
+
+To re-install the LAMMPS HEAD, run this command occasionally (make sure
+to use the desired options).
+
+% brew install --force lammps --HEAD $\{options\} :pre
+
+Once LAMMPS is installed, you can test the installation with the
+Lennard-Jones benchmark file:
+
+% brew test lammps -v :pre
+
+If you have problems with the installation you can post issues to
+"this link"_homebrew.
+
+Thanks to Derek Thomas (derekt at cello.t.u-tokyo.ac.jp) for setting
+up the Homebrew capability.
+:link(homebrew,https://github.com/Homebrew/homebrew-science/issues)

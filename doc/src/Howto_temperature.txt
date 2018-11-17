@@ -7,7 +7,7 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :line
 
-Calcalate temperature :h3
+Calculate temperature :h3
 
 Temperature is computed as kinetic energy divided by some number of
 degrees of freedom (and the Boltzmann constant).  Since kinetic energy
@@ -17,7 +17,10 @@ aggregate motion of particles) and its thermal velocity.  The sum of
 the two is the particle's total velocity, but the latter is often what
 is wanted to compute a temperature.
 
-LAMMPS has several options for computing temperatures, any of which can be used in "thermostatting"_Howto_thermostat.html and "barostatting"_Howto_barostat.html.  These "compute commands"_compute.html calculate temperature:
+LAMMPS has several options for computing temperatures, any of which
+can be used in "thermostatting"_Howto_thermostat.html and
+"barostatting"_Howto_barostat.html.  These "compute
+commands"_compute.html calculate temperature:
 
 "compute temp"_compute_temp.html
 "compute temp/sphere"_compute_temp_sphere.html
@@ -35,6 +38,6 @@ velocities) that are removed when computing the thermal temperature.
 temp/asphere"_compute_temp_asphere.html compute kinetic energy for
 finite-size particles that includes rotational degrees of freedom.
 They both allow for velocity biases indirectly, via an optional extra
-argument which is another temperature compute that subtracts a velocity bias.
-This allows the translational velocity of spherical or aspherical
-particles to be adjusted in prescribed ways.
+argument which is another temperature compute that subtracts a
+velocity bias.  This allows the translational velocity of spherical or
+aspherical particles to be adjusted in prescribed ways.

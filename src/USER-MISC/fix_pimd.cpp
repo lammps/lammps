@@ -214,7 +214,7 @@ void FixPIMD::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD::initial_integrate(int vflag)
+void FixPIMD::initial_integrate(int /*vflag*/)
 {
   nhc_update_v();
   nhc_update_x();
@@ -229,7 +229,7 @@ void FixPIMD::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD::post_force(int flag)
+void FixPIMD::post_force(int /*flag*/)
 {
   for(int i=0; i<atom->nlocal; i++) for(int j=0; j<3; j++) atom->f[i][j] /= np;
 
@@ -686,7 +686,7 @@ void FixPIMD::comm_exec(double **ptr)
 /* ---------------------------------------------------------------------- */
 
 int FixPIMD::pack_forward_comm(int n, int *list, double *buf,
-                             int pbc_flag, int *pbc)
+                             int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
 
@@ -744,7 +744,7 @@ void FixPIMD::grow_arrays(int nmax)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD::copy_arrays(int i, int j, int delflag)
+void FixPIMD::copy_arrays(int i, int j, int /*delflag*/)
 {
   int i_pos = i*3;
   int j_pos = j*3;
@@ -832,7 +832,7 @@ int FixPIMD::maxsize_restart()
 
 /* ---------------------------------------------------------------------- */
 
-int FixPIMD::size_restart(int nlocal)
+int FixPIMD::size_restart(int /*nlocal*/)
 {
   return size_peratom_cols+1;
 }

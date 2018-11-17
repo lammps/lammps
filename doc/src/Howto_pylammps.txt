@@ -73,7 +73,7 @@ that package into your current Python installation.
 cd $LAMMPS_DIR/python
 python install.py :pre
 
-NOTE: Recompiling the shared library requires reinstalling the Python package
+NOTE: Recompiling the shared library requires re-installing the Python package
 
 
 Installation inside of a virtualenv :h5

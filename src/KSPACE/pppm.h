@@ -37,8 +37,9 @@ namespace LAMMPS_NS {
 
 class PPPM : public KSpace {
  public:
-  PPPM(class LAMMPS *, int, char **);
+  PPPM(class LAMMPS *);
   virtual ~PPPM();
+  virtual void settings(int, char **);
   virtual void init();
   virtual void setup();
   void setup_grid();

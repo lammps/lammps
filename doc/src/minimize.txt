@@ -216,10 +216,10 @@ The "fix box/relax"_fix_box_relax.html command can be used to apply an
 external pressure to the simulation box and allow it to shrink/expand
 during the minimization.
 
-Only a few other fixes (typically those that apply force constraints)
-are invoked during minimization.  See the doc pages for individual
-"fix"_fix.html commands to see which ones are relevant.  Current
-examples of fixes that can be used include:
+Only a few other fixes (typically those that add forces) are invoked
+during minimization.  See the doc pages for individual "fix"_fix.html
+commands to see which ones are relevant.  Current examples of fixes
+that can be used include:
 
 "fix addforce"_fix_addforce.html
 "fix addtorque"_fix_addtorque.html
@@ -241,6 +241,11 @@ total potential energy of the system (the quantity being minimized),
 you MUST enable the "fix_modify"_fix_modify.html {energy} option for
 that fix.  The doc pages for individual "fix"_fix.html commands
 specify if this should be done.
+
+NOTE: The minimizers in LAMMPS do not allow for bonds (or angles, etc)
+to be held fixed while atom coordinates are being relaxed, e.g. via
+"fix shake"_fix_shake.html or "fix rigid"_fix_rigid.html.  See more
+info in the Restrictions section below.
 
 :line
 

@@ -219,7 +219,7 @@ void FixSetForce::min_setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixSetForce::post_force(int vflag)
+void FixSetForce::post_force(int /*vflag*/)
 {
   double **x = atom->x;
   double **f = atom->f;
@@ -293,7 +293,7 @@ void FixSetForce::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixSetForce::post_force_respa(int vflag, int ilevel, int iloop)
+void FixSetForce::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   // set force to desired value on requested level, 0.0 on other levels
 

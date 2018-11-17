@@ -127,8 +127,6 @@ new objective function valid for the new box size/shape.  Repeat as
 necessary until the box size/shape has reached its new equilibrium.
 
 :line
-:line
-:line
 
 The {couple} keyword allows two or three of the diagonal components of
 the pressure tensor to be "coupled" together.  The value specified
@@ -223,8 +221,8 @@ This equation only applies when the box dimensions are equal to those
 of the reference dimensions. If this is not the case, then the
 converged stress tensor will not equal that specified by the user.  We
 can resolve this problem by periodically resetting the reference
-dimensions. The keyword {nreset_ref} controls how often this is done.
-If this keyword is not used, or is given a value of zero, then the
+dimensions. The keyword {nreset} controls how often this is done.  If
+this keyword is not used, or is given a value of zero, then the
 reference dimensions are set to those of the initial simulation domain
 and are never changed. A value of {nstep} means that every {nstep}
 minimization steps, the reference dimensions are set to those of the

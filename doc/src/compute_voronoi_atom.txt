@@ -212,8 +212,8 @@ The Voronoi face area will be in distance "units"_units.html squared.
 [Restrictions:]
 
 This compute is part of the VORONOI package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 It also requires you have a copy of the Voro++ library built and
 installed on your system.  See instructions on obtaining and

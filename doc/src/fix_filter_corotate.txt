@@ -47,7 +47,7 @@ this can significantly accelerate the simulation.
 The filter computes a cluster decomposition of the molecular structure
 following the criteria indicated by the options a, b, t and m. This
 process is similar to the approach in "fix shake"_fix_shake.html,
-however, the clusters are not kept contrained. Instead, the position
+however, the clusters are not kept constrained. Instead, the position
 is slightly modified only for the computation of long-range forces. A
 good cluster decomposition constitutes in building clusters which
 contain the fastest covalent bonds inside clusters.
@@ -70,8 +70,8 @@ fixes are not invoked during "energy minimization"_minimize.html.
 [Restrictions:]
 
 This fix is part of the USER-MISC package. It is only enabled if
-LAMMPS was built with that package. See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package. See the "Build
+package"_Build_package.html doc page for more info.
 
 Currently, it does not support "molecule templates"_molecule.html.
 

@@ -158,7 +158,7 @@ corresponding attribute is in, e.g. velocity units for vx, charge
 units for q, etc.
 
 For the spin quantities, sp is in the units of the Bohr magneton, spx,
-spy, and spz are adimentional quantities, and fmx, fmy and fmz are 
+spy, and spz are adimensional quantities, and fmx, fmy and fmz are 
 given in rad.THz. 
 
 [Restrictions:] none

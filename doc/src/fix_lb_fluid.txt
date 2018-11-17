@@ -187,7 +187,7 @@ NOTE: Care must be taken when choosing both a value for dx, and a
 simulation domain size.  This fix uses the same subdivision of the
 simulation domain among processors as the main LAMMPS program.  In
 order to uniformly cover the simulation domain with lattice sites, the
-lengths of the individual LAMMPS subdomains must all be evenly
+lengths of the individual LAMMPS sub-domains must all be evenly
 divisible by dx.  If the simulation domain size is cubic, with equal
 lengths in all dimensions, and the default value for dx is used, this
 will automatically be satisfied.
@@ -307,8 +307,8 @@ minimization"_minimize.html.
 [Restrictions:]
 
 This fix is part of the USER-LB package.  It is only enabled if LAMMPS
-was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 This fix can only be used with an orthogonal simulation domain.
 

@@ -272,7 +272,7 @@ void FixRX::post_constructor()
     fp = force->open_potential(kineticsFile);
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open rx file %s",kineticsFile);
+      snprintf(str,128,"Cannot open rx file %s",kineticsFile);
       error->one(FLERR,str);
     }
   }
@@ -668,7 +668,7 @@ void FixRX::init_list(int, class NeighList* ptr)
 
 /* ---------------------------------------------------------------------- */
 
-void FixRX::setup_pre_force(int vflag)
+void FixRX::setup_pre_force(int /*vflag*/)
 {
   int nlocal = atom->nlocal;
   int nghost = atom->nghost;
@@ -727,9 +727,9 @@ void FixRX::setup_pre_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixRX::pre_force(int vflag)
+void FixRX::pre_force(int /*vflag*/)
 {
-  TimerType timer_start = getTimeStamp();
+  //TimerType timer_start = getTimeStamp();
 
   int nlocal = atom->nlocal;
   int nghost = atom->nghost;
@@ -758,8 +758,10 @@ void FixRX::pre_force(int vflag)
     memory->create( diagnosticCounterPerODE[FuncSum], nlocal, "FixRX::diagnosticCounterPerODE");
   }
 
-  //#pragma omp parallel \
-  //   reduction(+: nSteps, nIters, nFuncs, nFails )
+#if 0
+  #pragma omp parallel \
+     reduction(+: nSteps, nIters, nFuncs, nFails )
+#endif
   {
     double *rwork = new double[8*nspecies];
 
@@ -808,7 +810,7 @@ void FixRX::pre_force(int vflag)
   comm->forward_comm_fix(this);
   if(localTempFlag) delete [] dpdThetaLocal;
 
-  TimerType timer_stop = getTimeStamp();
+  //TimerType timer_stop = getTimeStamp();
 
   double time_ODE = getElapsedTime(timer_localTemperature, timer_ODE);
 
@@ -859,7 +861,7 @@ void FixRX::read_file(char *file)
     fp = force->open_potential(file);
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open rx file %s",file);
+      snprintf(str,128,"Cannot open rx file %s",file);
       error->one(FLERR,str);
     }
   }
@@ -1191,7 +1193,7 @@ void FixRX::rkf45_step (const int neq, const double h, double y[], double y_out[
    return;
 }
 
-int FixRX::rkf45_h0 (const int neq, const double t, const double t_stop,
+int FixRX::rkf45_h0 (const int neq, const double t, const double /*t_stop*/,
                      const double hmin, const double hmax,
                      double& h0, double y[], double rwk[], void* v_params)
 {
@@ -1668,7 +1670,7 @@ int FixRX::rhs(double t, const double *y, double *dydt, void *params)
 
 /* ---------------------------------------------------------------------- */
 
-int FixRX::rhs_dense(double t, const double *y, double *dydt, void *params)
+int FixRX::rhs_dense(double /*t*/, const double *y, double *dydt, void *params)
 {
   UserRHSData *userData = (UserRHSData *) params;
 
@@ -1702,7 +1704,7 @@ int FixRX::rhs_dense(double t, const double *y, double *dydt, void *params)
 
 /* ---------------------------------------------------------------------- */
 
-int FixRX::rhs_sparse(double t, const double *y, double *dydt, void *v_params) const
+int FixRX::rhs_sparse(double /*t*/, const double *y, double *dydt, void *v_params) const
 {
    UserRHSData *userData = (UserRHSData *) v_params;
 
@@ -1885,7 +1887,7 @@ void FixRX::computeLocalTemperature()
 
 /* ---------------------------------------------------------------------- */
 
-int FixRX::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int FixRX::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
 {
   int ii,jj,m;
   double tmp;

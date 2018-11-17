@@ -20,6 +20,8 @@ pair_style eam/alloy/omp command :h3
 pair_style eam/alloy/opt command :h3
 pair_style eam/cd command :h3
 pair_style eam/cd/omp command :h3
+pair_style eam/cd/old command :h3
+pair_style eam/cd/old/omp command :h3
 pair_style eam/fs command :h3
 pair_style eam/fs/gpu command :h3
 pair_style eam/fs/intel command :h3
@@ -31,7 +33,7 @@ pair_style eam/fs/opt command :h3
 
 pair_style style :pre
 
-style = {eam} or {eam/alloy} or {eam/cd} or {eam/fs} :ul
+style = {eam} or {eam/alloy} or {eam/cd} or {eam/cd/old} or {eam/fs} :ul
 
 [Examples:]
 
@@ -268,7 +270,8 @@ Style {eam/cd} is similar to the {eam/alloy} style, except that it
 computes alloy pairwise interactions using the concentration-dependent
 embedded-atom method (CD-EAM).  This model can reproduce the enthalpy
 of mixing of alloys over the full composition range, as described in
-"(Stukowski)"_#Stukowski.
+"(Stukowski)"_#Stukowski. Style {eam/cd/old} is an older, slightly
+different and slower two-site formulation of the model "(Caro)"_#Caro.
 
 The pair_coeff command is specified the same as for the {eam/alloy}
 style.  However the DYNAMO {setfl} file must has two
@@ -377,13 +380,13 @@ produce the same results, except for round-off and precision issues.
 
 These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
 USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with those packages.  See the "Build
+package"_Build_package.html doc page for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
-use the "suffix"_suffix.html command in your input script.
+switch"_Run_options.html when you invoke LAMMPS, or you can use the
+"suffix"_suffix.html command in your input script.
 
 See the "Speed packages"_Speed_packages.html doc page for more
 instructions on how to use the accelerated styles effectively.
@@ -414,8 +417,8 @@ The eam pair styles can only be used via the {pair} keyword of the
 [Restrictions:]
 
 All of these styles are part of the MANYBODY package.  They are only
-enabled if LAMMPS was built with that package.
-See the "Making LAMMPS"_Section_start.html#start_3 section for more info.
+enabled if LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 
@@ -442,3 +445,6 @@ Daw, Baskes, Phys Rev B, 29, 6443 (1984).
 :link(Stukowski)
 [(Stukowski)] Stukowski, Sadigh, Erhart, Caro; Modeling Simulation
 Materials Science & Engineering, 7, 075005 (2009).
+
+:link(Caro)
+[(Caro)] A Caro, DA Crowson, M Caro; Phys Rev Lett, 95, 075702 (2005)

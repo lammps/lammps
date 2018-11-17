@@ -530,7 +530,7 @@ void PairEDPD::read_restart_settings(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 double PairEDPD::single(int i, int j, int itype, int jtype, double rsq,
-                       double factor_coul, double factor_dpd, double &fforce)
+                       double /*factor_coul*/, double factor_dpd, double &fforce)
 {
   double r,rinv,wc,phi;
   double *T = atom->edpd_temp;

@@ -504,7 +504,7 @@ void PairEAMCD::read_h_coeff(char *filename)
     fptr = force->open_potential(filename);
     if (fptr == NULL) {
       char str[128];
-      sprintf(str,"Cannot open EAM potential file %s", filename);
+      snprintf(str,128,"Cannot open EAM potential file %s", filename);
       error->one(FLERR,str);
     }
 
@@ -539,7 +539,7 @@ void PairEAMCD::read_h_coeff(char *filename)
 /* ---------------------------------------------------------------------- */
 
 int PairEAMCD::pack_forward_comm(int n, int *list, double *buf,
-                                 int pbc_flag, int *pbc)
+                                 int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
 

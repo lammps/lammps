@@ -21,6 +21,8 @@ cvm::atom::atom()
 {
   index = -1;
   id = -1;
+  mass = 1.0;
+  charge = 1.0;
   reset_data();
 }
 
@@ -395,7 +397,7 @@ int cvm::atom_group::parse(std::string const &group_conf)
       }
 
       // NOTE: calls to add_atom() and/or add_atom_id() are in the proxy-implemented function
-      cvm::load_atoms(atoms_file_name.c_str(), *this, atoms_col, atoms_col_value);
+      parse_error |= cvm::load_atoms(atoms_file_name.c_str(), *this, atoms_col, atoms_col_value);
     }
   }
 

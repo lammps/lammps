@@ -15,34 +15,21 @@ Technologies).  It contains a handful of pair styles whose compute()
 methods were rewritten in C++ templated form to reduce the overhead
 due to if tests and other conditional code.
 
-Here is a quick overview of how to use the OPT package.  More details
-follow.
-
-make yes-opt
-make mpi                               # build with the OPT package :pre
-
-lmp_mpi -sf opt -in in.script                # run in serial
-mpirun -np 4 lmp_mpi -sf opt -in in.script   # run in parallel :pre
-
 [Required hardware/software:]
 
 None.
 
 [Building LAMMPS with the OPT package:]
 
-The lines above illustrate how to build LAMMPS with the OPT package in
-two steps, using the "make" command.  Or how to do it with one command
-as described on the "Packages details"_Packages_details.html#OPT doc
-page.
-
-Note that if you use an Intel compiler to build with the OPT package,
-the CCFLAGS setting in your Makefile.machine must include "-restrict".
+See the "Build extras"_Build_extras.html#opt doc page for instructions.
 
 [Run with the OPT package from the command line:]
 
-As in the lines above, use the "-sf opt" "command-line
-switch"_Section_start.html#start_6, which will automatically append
-"opt" to styles that support it.
+lmp_mpi -sf opt -in in.script                # run in serial
+mpirun -np 4 lmp_mpi -sf opt -in in.script   # run in parallel :pre
+
+Use the "-sf opt" "command-line switch"_Run_options.html, which will
+automatically append "opt" to styles that support it.
 
 [Or run with the OPT package by editing an input script:]
 

@@ -19,7 +19,7 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 All commands :h3
 
-An alphabetic list of all LAMMPS commmands.
+An alphabetic list of all LAMMPS commands.
 
 "angle_coeff"_angle_coeff.html,
 "angle_style"_angle_style.html,
@@ -59,6 +59,7 @@ An alphabetic list of all LAMMPS commmands.
 "fix_modify"_fix_modify.html,
 "group"_group.html,
 "group2ndx"_group2ndx.html,
+"hyper"_hyper.html,
 "if"_if.html,
 "info"_info.html,
 "improper_coeff"_improper_coeff.html,
@@ -71,6 +72,7 @@ An alphabetic list of all LAMMPS commmands.
 "lattice"_lattice.html,
 "log"_log.html,
 "mass"_mass.html,
+"message"_message.html,
 "minimize"_minimize.html,
 "min_modify"_min_modify.html,
 "min_style"_min_style.html,
@@ -103,6 +105,7 @@ An alphabetic list of all LAMMPS commmands.
 "restart"_restart.html,
 "run"_run.html,
 "run_style"_run_style.html,
+"server"_server.html,
 "set"_set.html,
 "shell"_shell.html,
 "special_bonds"_special_bonds.html,

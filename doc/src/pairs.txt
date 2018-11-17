@@ -8,6 +8,7 @@ Pair Styles :h1
    pair_adp
    pair_agni
    pair_airebo
+   pair_atm
    pair_awpmd
    pair_beck
    pair_body_nparticle
@@ -85,6 +86,7 @@ Pair Styles :h1
    pair_reaxc
    pair_resquared
    pair_sdk
+   pair_sdpd_taitwater_isothermal
    pair_smd_hertz
    pair_smd_tlsph
    pair_smd_triangulated_surface

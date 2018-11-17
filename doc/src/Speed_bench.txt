@@ -11,7 +11,7 @@ Benchmarks :h3
 
 Current LAMMPS performance is discussed on the "Benchmarks
 page"_http://lammps.sandia.gov/bench.html of the "LAMMPS website"_lws
-where timings and parallel efficiencies are listed.  The page has
+where timings and parallel efficiency are listed.  The page has
 several sections, which are briefly described below:
 
 CPU performance on 5 standard problems, strong and weak scaling
@@ -77,8 +77,8 @@ style, force field, cutoff, etc) can then be estimated.
 Performance on a parallel machine can also be predicted from one-core
 or one-node timings if the parallel efficiency can be estimated.  The
 communication bandwidth and latency of a particular parallel machine
-affects the efficiency.  On most machines LAMMPS will give parallel
-efficiencies on these benchmarks above 50% so long as the number of
+affects the efficiency.  On most machines LAMMPS will give a parallel
+efficiency on these benchmarks above 50% so long as the number of
 atoms/core is a few 100 or greater, and closer to 100% for large
 numbers of atoms/core.  This is for all-MPI mode with one MPI task per
 core.  For nodes with accelerator options or hardware (OpenMP, GPU,

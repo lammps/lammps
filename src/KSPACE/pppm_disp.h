@@ -41,11 +41,12 @@ namespace LAMMPS_NS {
 
 class PPPMDisp : public KSpace {
  public:
-  PPPMDisp(class LAMMPS *, int, char **);
+  PPPMDisp(class LAMMPS *);
   virtual ~PPPMDisp();
   virtual void init();
   virtual void setup();
   void setup_grid();
+  virtual void settings(int, char **);
   virtual void compute(int, int);
   virtual int timing_1d(int, double &);
   virtual int timing_3d(int, double &);

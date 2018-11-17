@@ -5,7 +5,7 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 :link(ld,Manual.html)
 :link(lc,Commands_all.html)
 
-"All commands"_Commands_all.html,
+"General commands"_Commands_all.html,
 "Fix styles"_Commands_fix.html,
 "Compute styles"_Commands_compute.html,
 "Pair styles"_Commands_pair.html,

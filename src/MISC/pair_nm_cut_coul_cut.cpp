@@ -324,14 +324,6 @@ double PairNMCutCoulCut::init_one(int i, int j)
     }
     MPI_Allreduce(count,all,2,MPI_DOUBLE,MPI_SUM,world);
 
-    double rr1 = mm[i][j]*(nn[i][j]-1)*pow(r0[i][j],nn[i][j]);
-    double rr2 = nn[i][j]*(mm[i][j]-1)*pow(r0[i][j],mm[i][j]);
-    double p1 = 1-nn[i][j];
-    double p2 = 1-mm[i][j];
-
-    double rrr1 = pow(r0[i][j],nn[i][j])*(1-nn[i][j]);
-    double rrr2 = pow(r0[i][j],mm[i][j])*(1-mm[i][j]);
-
     double cut_lj3 = cut_lj[i][j]*cut_lj[i][j]*cut_lj[i][j];
     ptail_ij = 2.*MY_PI/3.*all[0]*all[1]*e0nm[i][j]*nm[i][j]*cut_lj3 *
       (pow(r0[i][j]/cut_lj[i][j],nn[i][j])/(nn[i][j]-3) - pow(r0[i][j]/cut_lj[i][j],mm[i][j])/(mm[i][j]-3));

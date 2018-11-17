@@ -66,7 +66,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
 
   // chunk style and its args
 
-  int iarg;
+  int iarg = 0;
 
   binflag = 0;
   ncoord = 0;
@@ -248,7 +248,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"bound") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal compute chunk/atom command");
-      int idim;
+      int idim = 0;
       if (strcmp(arg[iarg+1],"x") == 0) idim = 0;
       else if (strcmp(arg[iarg+1],"y") == 0) idim = 1;
       else if (strcmp(arg[iarg+1],"z") == 0) idim = 2;

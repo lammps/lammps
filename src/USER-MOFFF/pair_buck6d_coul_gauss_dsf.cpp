@@ -83,7 +83,7 @@ void PairBuck6dCoulGaussDSF::compute(int eflag, int vflag)
   double r,rsq,r2inv,r6inv,r14inv,rexp,forcecoul,forcebuck6d,factor_coul,factor_lj;
   double term1,term2,term3,term4,term5;
   double rcu,rqu,sme,smf,ebuck6d;
-  double prefactor,erfcc,erfcd,t,arg;
+  double prefactor,erfcc,erfcd,arg;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;

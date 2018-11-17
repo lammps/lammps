@@ -108,8 +108,6 @@ FixFFL::FixFFL(LAMMPS *lmp, int narg, char **arg) :
   }
 
   t_target=t_start;
-  const double kT = t_target * force->boltz / force->mvv2e;
-
 
   // initialize Marsaglia RNG with processor-unique seed
   // NB: this means runs will not be the same with different numbers of processors
@@ -298,7 +296,7 @@ void FixFFL::ffl_integrate() {
 
 }
 
-void FixFFL::initial_integrate(int vflag) {
+void FixFFL::initial_integrate(int /* vflag */) {
   double dtfm;
 
   // update v and x of atoms in group
@@ -391,7 +389,7 @@ void FixFFL::final_integrate() {
 }
 /* ---------------------------------------------------------------------- */
 
-void FixFFL::initial_integrate_respa(int vflag, int ilevel, int iloop) {
+void FixFFL::initial_integrate_respa(int vflag, int ilevel, int /* iloop */) {
   dtv = step_respa[ilevel];
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
 
@@ -406,7 +404,7 @@ void FixFFL::initial_integrate_respa(int vflag, int ilevel, int iloop) {
   }
 }
 
-void FixFFL::final_integrate_respa(int ilevel, int iloop) {
+void FixFFL::final_integrate_respa(int ilevel, int /* iloop */) {
 
   dtv = step_respa[ilevel];
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;

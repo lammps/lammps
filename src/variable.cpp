@@ -182,7 +182,7 @@ void Variable::set(int narg, char **arg)
     if (find(arg[0]) >= 0) return;
     if (nvar == maxvar) grow();
     style[nvar] = LOOP;
-    int nfirst,nlast;
+    int nfirst = 0,nlast = 0;
     if (narg == 3 || (narg == 4 && strcmp(arg[3],"pad") == 0)) {
       nfirst = 1;
       nlast = force->inumeric(FLERR,arg[2]);
@@ -3983,7 +3983,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
       strcmp(word,"max") == 0 || strcmp(word,"ave") == 0 ||
       strcmp(word,"trap") == 0 || strcmp(word,"slope") == 0) {
 
-    int method;
+    int method = 0;
     if (strcmp(word,"sum") == 0) method = SUM;
     else if (strcmp(word,"min") == 0) method = XMIN;
     else if (strcmp(word,"max") == 0) method = XMAX;

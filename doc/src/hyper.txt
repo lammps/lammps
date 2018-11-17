@@ -94,8 +94,8 @@ hyper/local"_fix_hyper_local.html command specified as {fix-ID}.  At
 every dynamics timestep, the same fix selects one of more bonds to
 apply a bias potential to.
 
-IMPORTANT NOTE: The style of fix associated with the specified
-{fix-ID} determines whether you are running the global versus local
+NOTE: The style of fix associated with the specified {fix-ID}
+determines whether you are running the global versus local
 hyperdynamics algorithm.
 
 Dynamics (with the bias potential) is run continuously, stopping every

@@ -732,7 +732,7 @@ can be shared across multiple MD packages and can be updated, for as
 long as the shared PLUMED library is ABI-compatible. The third linkage
 mode is "runtime" which allows to switch the PLUMED kernel at runtime
 between different variants through setting the PLUMED_KERNEL environment
-varible, which has to point to the location of the libplumedKernel.so
+variable, which has to point to the location of the libplumedKernel.so
 dynamical shared object, which is then loaded at runtime. This is
 particularly convenient for doing PLUMED development and comparing
 multiple PLUMED versions without having to recompile the hosting MD

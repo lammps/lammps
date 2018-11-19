@@ -150,8 +150,8 @@ indent"_fix_indent.html and "fix langevin"_fix_langevin.html.  So you
 should think carefully as to whether that makes sense for the manner
 in which you are reprocessing the dump snapshots.
 
-If you only want the rerun script to perform analyses that do not
-involve pair interactions, such as use compute msd to calculated
+If you only want the rerun script to perform an analysis that does
+not involve pair interactions, such as use compute msd to calculated
 displacements over time, you do not need to define a "pair
 style"_pair_style.html, which may also mean neighbor lists will not
 need to be calculated which saves time.  The "comm_modify

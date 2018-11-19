@@ -65,11 +65,12 @@ PLUMED input file.  Instructions as to what should be included in a
 plumed input file can be found in the "documentation for
 PLUMED"_plumeddocs
 
-The {outfile} keyword allows the user to specify the name of a file on
-which to output the PLUMED log.  This log file normally just parrots the
-information that is contained in the input file.  The names of the files
-on which the results from the various analyses that have been performed
-using PLUMED will be specified by the user in the PLUMED input file.
+The {outfile} keyword allows the user to specify the name of a file in
+which to output the PLUMED log.  This log file normally just repeats the
+information that is contained in the input file to confirm it was
+correctly read and parsed.  The names of the files in which the results
+are stored from the various analysis options performed by PLUMED will
+be specified by the user in the PLUMED input file.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 

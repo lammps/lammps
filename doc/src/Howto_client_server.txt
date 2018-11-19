@@ -64,7 +64,7 @@ client or server.
 "server mc"_server_mc.html = LAMMPS is a server for computing a Monte Carlo energy :ul
 
 The server doc files give details of the message protocols
-for data that is exchanged bewteen the client and server.
+for data that is exchanged between the client and server.
 
 These example directories illustrate how to use LAMMPS as either a
 client or server code:

@@ -326,7 +326,7 @@ field_rel = relative accuracy in electric field :ul
 
 The values with suffix _rel indicate the tolerance is a relative
 tolerance; the other values impose an absolute tolerance on the given
-quantity. Absoulte tolerance in this case means, that for a given
+quantity. Absolute tolerance in this case means, that for a given
 quantity q and a given absolute tolerance of t_a the result should
 be between q-t_a and q+t_a. For a relative tolerance t_r the relative 
 error should not be greater than t_r, i.e. abs(1 - (result/q)) < t_r. 

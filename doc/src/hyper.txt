@@ -131,7 +131,7 @@ system (coordinates and velocities) is restored, and dynamics continue.
 At the end of the hyper run, a variety of statistics are output to the
 screen and logfile.  These include info relevant to both global and
 local hyperdynamics, such as the number of events and the elapsed
-hyper time (acclerated time), And it includes info specific to one or
+hyper time (accelerated time), And it includes info specific to one or
 the other, depending on which style of fix was specified by {fix-ID}.
 
 :line

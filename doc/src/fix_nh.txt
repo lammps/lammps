@@ -362,7 +362,7 @@ The flip operation is described in more detail in the doc page for
 "fix deform"_fix_deform.html.  Both the barostat dynamics and the atom
 trajectories are unaffected by this operation.  However, if a tilt
 factor is incremented by a large amount (1.5 times the box length) on
-a single timestep, LAMMPS can not accomodate this event and will
+a single timestep, LAMMPS can not accommodate this event and will
 terminate the simulation with an error. This error typically indicates
 that there is something badly wrong with how the simulation was
 constructed, such as specifying values of {Pstart} that are too far

@@ -127,7 +127,7 @@ which lattice point; the lattice indices start from 0. An auxiliary
 code, "latgen"_http://code.google.com/p/latgen, can be employed to
 generate the compatible map file for various crystals.
 
-In case one simulates an aperiodic system, where the whole simulation
+In case one simulates a nonperiodic system, where the whole simulation
 box is treated as a unit cell, one can set {map_file} as {GAMMA}, so
 that the mapping info will be generated internally and a file is not
 needed. In this case, the dynamical matrix at only the gamma-point

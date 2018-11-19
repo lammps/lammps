@@ -13,7 +13,7 @@ Kokkos is a templated C++ library that provides abstractions to allow
 a single implementation of an application kernel (e.g. a pair style)
 to run efficiently on different kinds of hardware, such as GPUs, Intel
 Xeon Phis, or many-core CPUs. Kokkos maps the C++ kernel onto
-different backend languages such as CUDA, OpenMP, or Pthreads.  The
+different back end languages such as CUDA, OpenMP, or Pthreads.  The
 Kokkos library also provides data abstractions to adjust (at compile
 time) the memory layout of data structures like 2d and 3d arrays to
 optimize performance on different hardware. For more information on
@@ -106,9 +106,9 @@ modification to the input script is needed. Alternatively, one can run
 with the KOKKOS package by editing the input script as described
 below.
 
-NOTE: When using a single OpenMP thread, the Kokkos Serial backend (i.e. 
+NOTE: When using a single OpenMP thread, the Kokkos Serial back end (i.e. 
 Makefile.kokkos_mpi_only) will give better performance than the OpenMP 
-backend (i.e. Makefile.kokkos_omp) because some of the overhead to make 
+back end (i.e. Makefile.kokkos_omp) because some of the overhead to make 
 the code thread-safe is removed. 
 
 NOTE: The default for the "package kokkos"_package.html command is to
@@ -139,7 +139,7 @@ be enforced by compiling LAMMPS with the "-DLMP_KOKKOS_USE_ATOMICS"
 pre-processor flag. Most but not all Kokkos-enabled pair_styles support
 data duplication. Alternatively, full neighbor lists avoid the need for
 duplication or atomic operations but require more compute operations per
-atom.  When using the Kokkos Serial backend or the OpenMP backend with
+atom.  When using the Kokkos Serial back end or the OpenMP back end with
 a single thread, no duplication or atomic operations are used. For CUDA
 and half neighbor lists, the KOKKOS package always uses atomic operations.
 

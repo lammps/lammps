@@ -106,8 +106,8 @@ semi-implicit Euler (= symplectic Euler), leapfrog, and velocity Verlet.
 The parameters {tmax} and {tmin} define the maximum and minimum timestep 
 allowed during an adaptglok minimization. Those are not in time unit, but are 
 multiplication factor applied to the "timestep"_timestep.html. Thus 
-{tmax} = 2.0 in metal "units"_units.html means that the maximum value
-the timestep can reached during the relaxation is 2 ps (with the default
+{tmax} = 10.0 in metal "units"_units.html means that the maximum value
+the timestep can be reached during the relaxation is 10 fs (with the default
 "timestep"_timestep.html value).
 Note that even with the default parameters being chosen to be reliable in most
 cases, adjusting "timestep"_timestep.html, {tmax} and {tmin} should be consider

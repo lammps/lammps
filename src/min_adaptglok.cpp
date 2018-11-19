@@ -16,6 +16,7 @@
 #include "universe.h"
 #include "atom.h"
 #include "force.h"
+#include "pair.h"
 #include "update.h"
 #include "output.h"
 #include "timer.h"
@@ -26,6 +27,8 @@
 #include "domain.h"
 #include "neighbor.h"
 #include "comm.h"
+#include "irregular.h"
+#include "change_box.h"
 
 using namespace LAMMPS_NS;
 
@@ -49,6 +52,7 @@ void MinAdaptGlok::init()
   if (dtgrow < 1.0) error->all(FLERR,"dtgrow has to be larger than 1.0");
   if (dtshrink > 1.0) error->all(FLERR,"dtshrink has to be smaller than 1.0");
   if (relaxbox_mod < 0.0) error->all(FLERR,"relaxbox_mod has to be positif");
+  if (relaxbox_rate < 0.0 || relaxbox_rate > 1.0) error->all(FLERR,"relaxbox_rate has to be positif, lower than 1.0");
 
   // require periodicity in boxrelax dimensions
 
@@ -67,6 +71,12 @@ void MinAdaptGlok::init()
   vdotf_negatif = 0;
 
   if (relaxbox_flag){
+
+    // require the box to be orthogonal
+
+    if (domain->triclinic)
+      error->all(FLERR,"Cannot use boxrelax with triclinic box");
+
     int icompute = modify->find_compute("thermo_press");
     pressure = modify->compute[icompute];
   }
@@ -133,25 +143,30 @@ void MinAdaptGlok::save_box_state()
    deform the simulation box and remap the particles
 ------------------------------------------------------------------------- */
 
+void MinAdaptGlok::relax_box1()
+{
+  
+}
+
 void MinAdaptGlok::relax_box()
 {
-  int i,n;
-      
   // rescale simulation box and scale atom coords for all atoms
+  // based on change_box.cpp
 
+  int i,n;
   double **x = atom->x;
   double epsilon,disp;
-  double *current_pressure_v;
-  int *mask = atom->mask;
-  n = atom->nlocal + atom->nghost;
+  int nlocal = atom->nlocal;
+
+  domain->pbc();
+  domain->reset_box();
   save_box_state();
-
-  // convert pertinent atoms and rigid bodies to lamda coords
-
-  domain->x2lamda(n);
+  neighbor->setup_bins();
+  comm->exchange();
+  comm->borders();
+  neighbor->build(1);
 
   // ensure the virial is tallied, update the flag
-
   pressure->addstep(update->ntimestep);
   update->vflag_global = update->ntimestep;
 
@@ -162,20 +177,34 @@ void MinAdaptGlok::relax_box()
   epsilon = pressure->scalar / relaxbox_mod;
   for (int i = 0; i < 3; i++) {
     if (relaxbox_flag == 2) epsilon = pressure->vector[i] / relaxbox_mod;
-    disp = domain->boxhi[i] * epsilon * relaxbox_rate;
+    disp = domain->h[i] * epsilon * relaxbox_rate;
     if (fabs(disp) > dmax) disp > 0.0 ? disp = dmax : disp = -1 * dmax;
-    domain->boxhi[i] += p_flag[i] * disp;
+    domain->boxlo[i] -= p_flag[i] * disp * 0.5;
+    domain->boxhi[i] += p_flag[i] * disp * 0.5;
   }
 
   // reset global and local box to new size/shape
-
+  domain->set_initial_box();
   domain->set_global_box();
   domain->set_local_box();
 
-  // convert atoms and back to box coords
-
-  domain->lamda2x(n);
+  // convert atoms to lamda coords, using last box state
+  // convert atoms back to box coords, using current box state
+  // save current box state
+  for (i = 0; i < nlocal; i++)
+    domain->x2lamda(x[i],x[i],boxlo,h_inv);
+  for (i = 0; i < nlocal; i++)
+    domain->lamda2x(x[i],x[i]);
   save_box_state();
+
+  // move atoms back inside simulation box and to new processors
+  // use remap() instead of pbc()
+  //   in case box moved a long distance relative to atoms
+
+  imageint *image = atom->image;
+  for (i = 0; i < nlocal; i++) domain->remap(x[i],image[i]);
+  domain->reset_box();
+
 }
 
 /* ---------------------------------------------------------------------- */

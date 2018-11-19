@@ -16,7 +16,6 @@
 #include "universe.h"
 #include "atom.h"
 #include "force.h"
-#include "pair.h"
 #include "update.h"
 #include "output.h"
 #include "timer.h"
@@ -27,8 +26,6 @@
 #include "domain.h"
 #include "neighbor.h"
 #include "comm.h"
-#include "irregular.h"
-#include "change_box.h"
 
 using namespace LAMMPS_NS;
 
@@ -143,11 +140,6 @@ void MinAdaptGlok::save_box_state()
    deform the simulation box and remap the particles
 ------------------------------------------------------------------------- */
 
-void MinAdaptGlok::relax_box1()
-{
-  
-}
-
 void MinAdaptGlok::relax_box()
 {
   // rescale simulation box and scale atom coords for all atoms
@@ -184,6 +176,7 @@ void MinAdaptGlok::relax_box()
   }
 
   // reset global and local box to new size/shape
+
   domain->set_initial_box();
   domain->set_global_box();
   domain->set_local_box();
@@ -191,6 +184,7 @@ void MinAdaptGlok::relax_box()
   // convert atoms to lamda coords, using last box state
   // convert atoms back to box coords, using current box state
   // save current box state
+  
   for (i = 0; i < nlocal; i++)
     domain->x2lamda(x[i],x[i],boxlo,h_inv);
   for (i = 0; i < nlocal; i++)

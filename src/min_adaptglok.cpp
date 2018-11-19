@@ -151,12 +151,11 @@ void MinAdaptGlok::relax_box()
   int nlocal = atom->nlocal;
 
   domain->pbc();
-  domain->reset_box();
   save_box_state();
   neighbor->setup_bins();
   comm->exchange();
   comm->borders();
-  neighbor->build(1);
+  if (neighbor->check_distance()) neighbor->build(1);
 
   // ensure the virial is tallied, update the flag
   pressure->addstep(update->ntimestep);

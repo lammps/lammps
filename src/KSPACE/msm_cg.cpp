@@ -199,7 +199,7 @@ void MSMCG::compute(int eflag, int vflag)
   }
 
 
-  // compute direct interation for top grid level for nonperiodic
+  // compute direct interation for top grid level for non-periodic
   //   and for second from top grid level for periodic
 
   if (active_flag[levels-1]) {

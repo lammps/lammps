@@ -390,7 +390,7 @@ E: PPPMDisp can only currently be used with comm_style brick
 
 This is a current restriction in LAMMPS.
 
-E: Cannot use nonperiodic boundaries with PPPMDisp
+E: Cannot use non-periodic boundaries with PPPMDisp
 
 For kspace style pppm/disp, all 3 dimensions must have periodic
 boundaries unless you use the kspace_modify command to define a 2d

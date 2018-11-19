@@ -100,7 +100,7 @@ void EwaldDisp::init()
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot use EwaldDisp with 2d simulation");
   if (slabflag == 0 && domain->nonperiodic > 0)
-    error->all(FLERR,"Cannot use nonperiodic boundaries with EwaldDisp");
+    error->all(FLERR,"Cannot use non-periodic boundaries with EwaldDisp");
   if (slabflag == 1) {
     if (domain->xperiodic != 1 || domain->yperiodic != 1 ||
         domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)

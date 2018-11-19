@@ -337,7 +337,7 @@ after a read_data, read_restart, or create_box command.
 
 E: Package command after simulation box is defined
 
-The package command cannot be used afer a read_data, read_restart, or
+The package command cannot be used after a read_data, read_restart, or
 create_box command.
 
 E: Package gpu command without GPU package installed

@@ -33,7 +33,7 @@ the library interface is provided.  Thus, GUI interfaces can be
 written in Python (or C or C++ if desired) that run LAMMPS and
 visualize or plot its output.  Examples of this are provided in the
 python directory and described on the "Python"_Python_head.html doc
-page.  Also, there are several external wrappers or GUI frontends.:ulb,l
+page.  Also, there are several external wrappers or GUI front ends.:ulb,l
 
 Builder: Several pre-processing tools are packaged with LAMMPS.  Some
 of them convert input files in formats produced by other MD codes such
@@ -64,7 +64,7 @@ post-processing codes.  To some degree, that conversion can be done
 directly inside of LAMMPS by interfacing to the VMD molfile plugins.
 The "rerun"_rerun.html command also allows to do some post-processing
 of existing trajectories, and through being able to read a variety
-of file formats, this can also be used for analysing trajectories
+of file formats, this can also be used for analyzing trajectories
 from other MD codes.  Some post-processing tools packaged with
 LAMMPS will do these conversions.  Scripts provided in the
 tools/python directory can extract and massage data in dump files to

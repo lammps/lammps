@@ -170,7 +170,7 @@ assigned a molecule ID of 4.
 
 Note that "atomfile-style variables"_variable.html can also be used in
 place of atom-style variables, which means in this case that the
-molecule IDs could be read-in from a separate file and assinged by the
+molecule IDs could be read-in from a separate file and assigned by the
 "set"_set.html command.  This allows you to initialize new per-atom
 properties in a completely general fashion.
 

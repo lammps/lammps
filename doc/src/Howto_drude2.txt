@@ -396,7 +396,7 @@ global pressure and thus a global temperature whatever the fix group.
 We do want the pressure to correspond to the whole system, but we want
 the temperature to correspond to the fix group only.  We must then use
 the {fix_modify} command for this.  In the end, the block of
-instructions for thermostating and barostating will look like
+instructions for thermostating and barostatting will look like
 
 compute TATOMS ATOMS temp
 fix DIRECT all drude/transform/direct

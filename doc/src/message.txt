@@ -93,7 +93,7 @@ localhost:5555        # client and server running on same machine
 192.168.1.1:5555      # server is 192.168.1.1
 deptbox.uni.edu:5555  # server is deptbox.uni.edu :pre
 
-The server specifes "*:5555" where "*" represents all available
+The server specifies "*:5555" where "*" represents all available
 interfaces on the server's machine, and the port ID must match
 what the client specifies.
 

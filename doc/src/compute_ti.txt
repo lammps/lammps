@@ -45,7 +45,7 @@ described in "Eike"_#Eike.
 
 Typically this compute will be used in conjunction with the "fix
 adapt"_fix_adapt.html command which can perform alchemical
-transformations by adusting the strength of an interaction potential
+transformations by adjusting the strength of an interaction potential
 as a simulation runs, as defined by one or more
 "pair_style"_pair_style.html or "kspace_style"_kspace_style.html
 commands.  This scaling is done via a prefactor on the energy, forces,

@@ -460,7 +460,7 @@ compute. :dd
 
 {Big particle in fix srd cannot be point particle} :dt
 
-Big particles must be extended spheriods or ellipsoids. :dd
+Big particles must be extended spheroids or ellipsoids. :dd
 
 {Bigint setting in lmptype.h is invalid} :dt
 
@@ -780,7 +780,7 @@ Cannot use tilt factors unless the simulation box is non-orthogonal. :dd
 
 Self-explanatory. :dd
 
-{Cannot change box z boundary to nonperiodic for a 2d simulation} :dt
+{Cannot change box z boundary to non-periodic for a 2d simulation} :dt
 
 Self-explanatory. :dd
 
@@ -1288,7 +1288,7 @@ are defined. :dd
 You cannot reset the timestep when a fix that keeps track of elapsed
 time is in place. :dd
 
-{Cannot run 2d simulation with nonperiodic Z dimension} :dt
+{Cannot run 2d simulation with non-periodic Z dimension} :dt
 
 Use the boundary command to make the z dimension periodic in order to
 run a 2d simulation. :dd
@@ -2116,29 +2116,29 @@ Self-explanatory. :dd
 Fix setforce cannot be used in this manner.  Use fix addforce
 instead. :dd
 
-{Cannot use nonperiodic boundares with fix ttm} :dt
+{Cannot use non-periodic boundares with fix ttm} :dt
 
 This fix requires a fully periodic simulation box. :dd
 
-{Cannot use nonperiodic boundaries with Ewald} :dt
+{Cannot use non-periodic boundaries with Ewald} :dt
 
 For kspace style ewald, all 3 dimensions must have periodic boundaries
 unless you use the kspace_modify command to define a 2d slab with a
 non-periodic z dimension. :dd
 
-{Cannot use nonperiodic boundaries with EwaldDisp} :dt
+{Cannot use non-periodic boundaries with EwaldDisp} :dt
 
 For kspace style ewald/disp, all 3 dimensions must have periodic
 boundaries unless you use the kspace_modify command to define a 2d
 slab with a non-periodic z dimension. :dd
 
-{Cannot use nonperiodic boundaries with PPPM} :dt
+{Cannot use non-periodic boundaries with PPPM} :dt
 
 For kspace style pppm, all 3 dimensions must have periodic boundaries
 unless you use the kspace_modify command to define a 2d slab with a
 non-periodic z dimension. :dd
 
-{Cannot use nonperiodic boundaries with PPPMDisp} :dt
+{Cannot use non-periodic boundaries with PPPMDisp} :dt
 
 For kspace style pppm/disp, all 3 dimensions must have periodic
 boundaries unless you use the kspace_modify command to define a 2d
@@ -8014,7 +8014,7 @@ Self-explanatory. :dd
 
 {Package command after simulation box is defined} :dt
 
-The package command cannot be used afer a read_data, read_restart, or
+The package command cannot be used after a read_data, read_restart, or
 create_box command. :dd
 
 {Package gpu command without GPU package installed} :dt

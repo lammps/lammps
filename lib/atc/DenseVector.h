@@ -82,7 +82,7 @@ void DenseVector<T>::resize(INDEX rows, INDEX cols, bool copy)
 ///////////////////////////////////////////////////////////////////////////////
 //* resizes the matrix and optionally zeros it out
 template <typename T>
-void DenseVector<T>::reset(INDEX rows, INDEX cols, bool zero)
+void DenseVector<T>::reset(INDEX rows, INDEX /* cols */, bool zero)
 {
   if (_size!=rows)
   {
@@ -94,7 +94,7 @@ void DenseVector<T>::reset(INDEX rows, INDEX cols, bool zero)
 ///////////////////////////////////////////////////////////////////////////////
 //* resizes the matrix and optionally zeros it out
 template <typename T>
-void DenseVector<T>::copy(const T * ptr, INDEX rows, INDEX cols)
+void DenseVector<T>::copy(const T * ptr, INDEX rows, INDEX /* cols */)
 {
   resize(rows, 1, false);
   memcpy(_data, ptr, this->size()*sizeof(T));

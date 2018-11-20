@@ -107,7 +107,9 @@ Here are some items to check:
   * new style docs should be added to the "overview" files in
   `doc/src/Commands_*.txt`, `doc/src/{fixes,computes,pairs,bonds,...}.txt`
   and `doc/src/lammps.book`
-  * new files in packages should be added to `src/.gitignore`
+  * check whether manual cleanly translates with `make html` and `make pdf`
+  * check spelling of manual with `make spelling` in doc folder
+  * new source files in packages should be added to `src/.gitignore`
   * removed or renamed files in packages should be added to `src/Purge.list`
   * C++ source files should use C++ style include files for accessing
   C-library APIs, e.g. `#include <cstdlib>` instead of `#include <stdlib.h>`.

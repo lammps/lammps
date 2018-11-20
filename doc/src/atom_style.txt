@@ -87,7 +87,7 @@ quantities.
 {line} | end points, angular velocity | rigid bodies |
 {meso} | rho, e, cv | SPH particles |
 {molecular} | bonds, angles, dihedrals, impropers | uncharged molecules |
-{peri} | mass, volume | mesocopic Peridynamic models |
+{peri} | mass, volume | mesoscopic Peridynamic models |
 {smd} | volume, kernel diameter, contact radius, mass | solid and fluid SPH particles |
 {sphere} | diameter, mass, angular velocity | granular models |
 {spin} | magnetic moment | system with magnetic particles |

@@ -10,7 +10,7 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 Pair styles :h3
 
 Classes that compute pairwise interactions are derived from the Pair
-class.  In LAMMPS, pairwise calculation include manybody potentials
+class.  In LAMMPS, pairwise calculation include many-body potentials
 such as EAM or Tersoff where particles interact without a static bond
 topology.  New styles can be created to add new pair potentials to
 LAMMPS.

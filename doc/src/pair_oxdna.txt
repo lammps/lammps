@@ -61,7 +61,7 @@ for a detailed description of the oxDNA force field.
 NOTE: These pair styles have to be used together with the related oxDNA bond style
 {oxdna/fene} for the connectivity of the phosphate backbone (see also documentation of
 "bond_style oxdna/fene"_bond_oxdna.html). Most of the coefficients
-in the above example have to be kept fixed and cannot be changed without reparametrizing the entire model.
+in the above example have to be kept fixed and cannot be changed without reparameterizing the entire model.
 Exceptions are the first and second coefficient after {oxdna/stk} (seq=seqdep and T=0.1 in the above example)
 and the first coefficient after {oxdna/hbond} (seq=seqdep in the above example).
 When using a Langevin thermostat, e.g. through "fix langevin"_fix_langevin.html

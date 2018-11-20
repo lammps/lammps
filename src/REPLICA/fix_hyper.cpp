@@ -18,7 +18,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-FixHyper::FixHyper(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg) {}
+FixHyper::FixHyper(LAMMPS *lmp, int narg, char **arg)
+        : Fix(lmp, narg, arg), hyperflag(0) {}
 
 /* ----------------------------------------------------------------------
    extract hyper flag setting for all Fixes that perform hyperdynamics

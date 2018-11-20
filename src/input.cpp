@@ -429,14 +429,14 @@ char *Input::nextword(char *str, char **next)
     start += 3;
     *next = stop+3;
     if (**next && !isspace(**next))
-      error->all(FLERR,"Input line quote not followed by whitespace");
+      error->all(FLERR,"Input line quote not followed by white-space");
   } else if (*start == '"' || *start == '\'') {
     stop = strchr(&start[1],*start);
     if (!stop) error->all(FLERR,"Unbalanced quotes in input line");
     start++;
     *next = stop+1;
     if (**next && !isspace(**next))
-      error->all(FLERR,"Input line quote not followed by whitespace");
+      error->all(FLERR,"Input line quote not followed by white-space");
   } else {
     stop = &start[strcspn(start," \t\n\v\f\r")];
     if (*stop == '\0') *next = stop;

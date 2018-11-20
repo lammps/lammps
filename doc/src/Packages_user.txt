@@ -38,8 +38,8 @@ int = internal library: provided with LAMMPS, but you may need to build it
 ext = external library: you will need to download and install it on your machine :ul
 
 Package, Description, Doc page, Example, Library
-"USER-ATC"_Packages_details.html#PKG-USER-ATC, atom-to-continuum coupling, "fix atc"_fix_atc.html, USER/atc, int
-"USER-AWPMD"_Packages_details.html#PKG-USER-AWPMD, wave-packet MD, "pair_style awpmd/cut"_pair_awpmd.html, USER/awpmd, int
+"USER-ATC"_Packages_details.html#PKG-USER-ATC, Atom-to-Continuum coupling, "fix atc"_fix_atc.html, USER/atc, int
+"USER-AWPMD"_Packages_details.html#PKG-USER-AWPMD, wave packet MD, "pair_style awpmd/cut"_pair_awpmd.html, USER/awpmd, int
 "USER-BOCS"_Packages_details.html#PKG-USER-BOCS, BOCS bottom up coarse graining, "fix bocs"_fix_bocs.html, USER/bocs, no
 "USER-CGDNA"_Packages_details.html#PKG-USER-CGDNA, coarse-grained DNA force fields, src/USER-CGDNA/README, USER/cgdna, no
 "USER-CGSDK"_Packages_details.html#PKG-USER-CGSDK, SDK coarse-graining model, "pair_style lj/sdk"_pair_sdk.html, USER/cgsdk, no

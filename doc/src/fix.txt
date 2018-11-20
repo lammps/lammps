@@ -202,7 +202,7 @@ accelerated styles exist.
 "dt/reset"_fix_dt_reset.html - reset the timestep based on velocity, forces
 "edpd/source"_fix_dpd_source.html - 
 "efield"_fix_efield.html - impose electric field on system
-"ehex"_fix_ehex.html - ehanced heat exchange algorithm
+"ehex"_fix_ehex.html - enhanced heat exchange algorithm
 "enforce2d"_fix_enforce2d.html - zero out z-dimension velocity and force
 "eos/cv"_fix_eos_cv.html - 
 "eos/table"_fix_eos_table.html - 

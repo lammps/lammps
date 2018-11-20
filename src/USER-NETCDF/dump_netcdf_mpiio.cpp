@@ -803,7 +803,7 @@ void DumpNetCDFMPIIO::write_time_and_cell()
     cell_angles[2] = acos(cosgamma)*180.0/MY_PI;
   }
 
-  // Recent AMBER conventions say that nonperiodic boundaries should have
+  // Recent AMBER conventions say that non-periodic boundaries should have
   // 'cell_lengths' set to zero.
   for (int dim = 0; dim < 3; dim++) {
     if (!domain->periodicity[dim])

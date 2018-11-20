@@ -41,7 +41,7 @@ hyper 5000 100 HG event min 1.0e-6 1.0e-6 100 100 dump 1 dump 5 :pre
 Run a bond-boost hyperdynamics (HD) simulation where time is
 accelerated by application of a bias potential to one or more pairs of
 nearby atoms in the system.  This command can be used to run both
-global and local hyperdyamics.  In global HD a single bond within the
+global and local hyperdynamics.  In global HD a single bond within the
 system is biased on each timestep.  In local HD multiple bonds
 (separated by a sufficient distance) can be biased simultaneously at
 each timestep.  In the bond-boost hyperdynamics context, a "bond" is
@@ -131,7 +131,7 @@ system (coordinates and velocities) is restored, and dynamics continue.
 At the end of the hyper run, a variety of statistics are output to the
 screen and logfile.  These include info relevant to both global and
 local hyperdynamics, such as the number of events and the elapsed
-hyper time (acclerated time), And it includes info specific to one or
+hyper time (accelerated time), And it includes info specific to one or
 the other, depending on which style of fix was specified by {fix-ID}.
 
 :line

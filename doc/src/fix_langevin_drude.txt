@@ -78,22 +78,22 @@ transform:
 \begin\{equation\} F = \frac M \{M'\}\, F' - f' \end\{equation\}
 \begin\{equation\} f = \frac m \{M'\}\, F' + f' \end\{equation\}
 
-This fix also thermostates non-polarizable atoms in the group at
+This fix also thermostats non-polarizable atoms in the group at
 temperature {Tcom}, as if they had a massless Drude partner.  The
 Drude particles themselves need not be in the group. The center of
-mass and the dipole are thermostated iff the core atom is in the
+mass and the dipole are thermostatted iff the core atom is in the
 group.
 
 Note that the thermostat effect of this fix is applied to only the
 translational degrees of freedom of the particles, which is an
 important consideration if finite-size particles, which have
-rotational degrees of freedom, are being thermostated. The
+rotational degrees of freedom, are being thermostatted. The
 translational degrees of freedom can also have a bias velocity removed
-from them before thermostating takes place; see the description below.
+from them before thermostatting takes place; see the description below.
 
 NOTE: Like the "fix langevin"_fix_langevin.html command, this fix does
 NOT perform time integration. It only modifies forces to effect
-thermostating. Thus you must use a separate time integration fix, like
+thermostatting. Thus you must use a separate time integration fix, like
 "fix nve"_fix_nve.html or "fix nph"_fix_nh.html to actually update the
 velocities and positions of atoms using the modified forces.
 Likewise, this fix should not normally be used on atoms that also have
@@ -102,7 +102,7 @@ nvt"_fix_nh.html or "fix temp/rescale"_fix_temp_rescale.html commands.
 
 See the "Howto thermostat"_Howto_thermostat.html doc page for a
 discussion of different ways to compute temperature and perform
-thermostating.
+thermostatting.
 
 :line
 
@@ -126,7 +126,7 @@ comm_modify vel yes :pre
 :line
 
 {Tcom} is the target temperature of the centers of mass, which would
-be used to thermostate the non-polarizable atoms.  {Tdrude} is the
+be used to thermostat the non-polarizable atoms.  {Tdrude} is the
 (normally low) target temperature of the core-Drude particle pairs
 (dipoles).  {Tcom} and {Tdrude} can be specified as an equal-style
 "variable"_variable.html.  If the value is a variable, it should be
@@ -139,7 +139,7 @@ functions, and include "thermo_style"_thermo_style.html command
 keywords for the simulation box parameters and timestep and elapsed
 time.  Thus it is easy to specify a time-dependent temperature.
 
-Like other fixes that perform thermostating, this fix can be used with
+Like other fixes that perform thermostatting, this fix can be used with
 "compute commands"_compute.html that remove a "bias" from the atom
 velocities.  E.g. removing the center-of-mass velocity from a group of
 atoms.  This is not done by default, but only if the
@@ -147,11 +147,11 @@ atoms.  This is not done by default, but only if the
 compute to this fix that includes such a bias term.  See the doc pages
 for individual "compute commands"_compute.html to determine which ones
 include a bias.  In this case, the thermostat works in the following
-manner: bias is removed from each atom, thermostating is performed on
+manner: bias is removed from each atom, thermostatting is performed on
 the remaining thermal degrees of freedom, and the bias is added back
 in.  NOTE: this feature has not been tested.
 
-Note: The temperature thermostating the core-Drude particle pairs
+Note: The temperature thermostatting the core-Drude particle pairs
 should be chosen low enough, so as to mimic as closely as possible the
 self-consistent minimization. It must however be high enough, so that
 the dipoles can follow the local electric field exerted by the
@@ -213,7 +213,7 @@ the system, but is a bit slower. :l
 Use two different random seeds to avoid unphysical correlations. :l
 
 Temperature is controlled by the fix {langevin/drude}, so the
-time-integration fixes do not thermostate.  Don't forget to
+time-integration fixes do not thermostat.  Don't forget to
 time-integrate both cores and Drude particles. :l
 
 Pressure is time-integrated only once by using {nve} for Drude
@@ -223,11 +223,11 @@ for both. :l
 The temperatures of cores and Drude particles are calculated by
 "compute temp/drude"_compute_temp_drude.html :l
 
-Contrary to the alternative thermostating using Nose-Hoover thermostat
+Contrary to the alternative thermostatting using Nose-Hoover thermostat
 fix {npt} and "fix drude/transform"_fix_drude_transform.html, the
 {fix_modify} command is not required here, because the fix {nph}
 computes the global pressure even if its group is {ATOMS}. This is
-what we want. If we thermostated {ATOMS} using {npt}, the pressure
+what we want. If we thermostatted {ATOMS} using {npt}, the pressure
 should be the global one, but the temperature should be only that of
 the cores. That's why the command {fix_modify} should be called in
 that case. :l
@@ -247,7 +247,7 @@ restarted simulation should produce the same behavior.
 
 The "fix_modify"_fix_modify.html {temp} option is supported by this
 fix.  You can use it to assign a temperature "compute"_compute.html
-you have defined to this fix which will be used in its thermostating
+you have defined to this fix which will be used in its thermostatting
 procedure, as described above. For consistency, the group used by the
 compute should include the group of this fix and the Drude particles.
 

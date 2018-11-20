@@ -139,7 +139,7 @@ adequate.
 [Makefile.machine setting]:
 
 LMP_INC = -DLAMMPS_SMALLBIG    # or -DLAMMPS_BIGBIG or -DLAMMPS_SMALLSMALL :pre
-                               # default is LAMMMPS_SMALLBIG if not specified
+                               # default is LAMMPS_SMALLBIG if not specified
 [CMake and make info]:
 
 The default "smallbig" setting allows for simulations with:

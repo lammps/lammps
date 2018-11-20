@@ -37,7 +37,7 @@ and D is the DM vector defining the intensity (in eV) and the direction
 of the interaction.
 
 In "(Rohart)"_#Rohart, D is defined as the direction normal to the film oriented 
-from the high spin-orbit layer to the magnetic ultrathin film.
+from the high spin-orbit layer to the magnetic ultra-thin film.
 
 The application of a spin-lattice Poisson bracket to this energy (as described
 in "(Tranchida)"_#Tranchida5) allows to derive a magnetic torque omega, and a

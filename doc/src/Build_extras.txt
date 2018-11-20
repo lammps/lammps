@@ -732,7 +732,7 @@ can be shared across multiple MD packages and can be updated, for as
 long as the shared PLUMED library is ABI-compatible. The third linkage
 mode is "runtime" which allows to switch the PLUMED kernel at runtime
 between different variants through setting the PLUMED_KERNEL environment
-varible, which has to point to the location of the libplumedKernel.so
+variable, which has to point to the location of the libplumedKernel.so
 dynamical shared object, which is then loaded at runtime. This is
 particularly convenient for doing PLUMED development and comparing
 multiple PLUMED versions without having to recompile the hosting MD
@@ -750,7 +750,7 @@ a global PLUMED installation or downloading it during building LAMMPS.
 -D PLUMED_MODE=value       # Linkage mode for PLUMED, value = static (default), shared, or runtime :pre
 
 If DOWNLOAD_PLUMED is set to "yes", the PLUMED library will be
-downloaded (the version of that is hardcoded to a vetted version of
+downloaded (the version of that is hard-coded to a vetted version of
 PLUMED, usually a recent stable release version) and built inside the
 CMake build directory.  If DOWNLOAD_PLUMED is set to "no" (the default),
 CMake will try to detect an installed version of PLUMED and link to
@@ -788,7 +788,7 @@ Note that 2 symbolic (soft) links, "includelink" and "liblink" are
 created in lib/plumed to point into the location of the PLUMED build to
 use and also a new file lib/plumed/Makefile.lammps is created with
 settings suitable for LAMMPS to compile and link PLUMED in the desired
-linkage mode. After this step is compleded, you can install the
+linkage mode. After this step is completed, you can install the
 USER-PLUMED package and compile LAMMPS in the usual manner:
 
 make yes-user-plumed 
@@ -804,7 +804,7 @@ operating systems, using the static linkage is expected to be the most
 portable, and thus set to be the default.
 
 If you want to change the linkage mode, you have to re-run "make
-lib-plumed" with the desired settings [and] do a reinstall if the
+lib-plumed" with the desired settings [and] do a re-install if the
 USER-PLUMED package with "make yes-user-plumed" to update the required
 makefile settings with the changes in the lib/plumed folder.
 

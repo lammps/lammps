@@ -30,7 +30,7 @@ The plasticity for a Peridynamic particle is the so-called consistency
 parameter (lambda).  For elastic deformation lambda = 0, otherwise
 lambda > 0 for plastic deformation.  For details, see
 "(Mitchell)"_#Mitchell and the PDF doc included in the LAMMPS
-distro in "doc/PDF/PDLammps_EPS.pdf"_PDF/PDLammps_EPS.pdf.
+distribution in "doc/PDF/PDLammps_EPS.pdf"_PDF/PDLammps_EPS.pdf.
 
 This command can be invoked for one of the Peridynamic "pair
 styles"_pair_peri.html: peri/eps.

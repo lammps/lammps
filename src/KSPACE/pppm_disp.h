@@ -489,7 +489,7 @@ Self-explanatory.
 
 E: KSpace accuracy too large to estimate G vector
 
-Reduce the accuracy request or specify gwald explicitly
+Reduce the accuracy request or specify gewald explicitly
 via the kspace_modify command.
 
 E: Could not compute grid size for Coulomb interaction

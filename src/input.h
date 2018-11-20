@@ -173,9 +173,9 @@ E: Unbalanced quotes in input line
 No matching end double quote was found following a leading double
 quote.
 
-E: Input line quote not followed by whitespace
+E: Input line quote not followed by white-space
 
-An end quote must be followed by whitespace.
+An end quote must be followed by white-space.
 
 E: Invalid variable name
 

@@ -76,6 +76,8 @@ void MinAdaptGlok::init()
 
     int icompute = modify->find_compute("thermo_press");
     pressure = modify->compute[icompute];
+
+    pflag = 1;
   }
 }
 
@@ -143,10 +145,11 @@ void MinAdaptGlok::save_box_state()
 void MinAdaptGlok::relax_box()
 {
   // rescale simulation box and scale atom coords for all atoms
-  // based on change_box.cpp
+  // inspired by change_box.cpp
 
   int i,n;
   double **x = atom->x;
+  double **v = atom->v;
   double epsilon,disp;
   int nlocal = atom->nlocal;
 
@@ -155,49 +158,62 @@ void MinAdaptGlok::relax_box()
   neighbor->setup_bins();
   comm->exchange();
   comm->borders();
-  if (neighbor->check_distance()) neighbor->build(1);
+  if (neighbor->decide()) neighbor->build(1);
 
   // ensure the virial is tallied, update the flag
+
   pressure->addstep(update->ntimestep);
   update->vflag_global = update->ntimestep;
 
-  // compute pressure and change simulation box
+  // Only when the presure is not yet free:
+  // - compute and apply box re-scaling
+  // - freez atoms
 
-  pressure->compute_scalar();
-  pressure->compute_vector();
-  epsilon = pressure->scalar / relaxbox_mod;
-  for (int i = 0; i < 3; i++) {
-    if (relaxbox_flag == 2) epsilon = pressure->vector[i] / relaxbox_mod;
-    disp = domain->h[i] * epsilon * relaxbox_rate;
-    if (fabs(disp) > dmax) disp > 0.0 ? disp = dmax : disp = -1 * dmax;
-    domain->boxlo[i] -= p_flag[i] * disp * 0.5;
-    domain->boxhi[i] += p_flag[i] * disp * 0.5;
+  if (pflag != 1){
+
+    // compute pressure and change simulation box
+
+    pressure->compute_scalar();
+    pressure->compute_vector();
+    epsilon = pressure->scalar / relaxbox_mod;
+    for (int i = 0; i < 3; i++) {
+      if (relaxbox_flag == 2) epsilon = pressure->vector[i] / relaxbox_mod;
+      disp = domain->h[i] * epsilon * relaxbox_rate;
+      if (fabs(disp) > dmax) disp > 0.0 ? disp = dmax : disp = -1 * dmax;
+      domain->boxlo[i] -= p_flag[i] * disp * 0.5;
+      domain->boxhi[i] += p_flag[i] * disp * 0.5;
+    }
+
+    // reset global and local box to new size/shape
+
+    domain->set_initial_box();
+    domain->set_global_box();
+    domain->set_local_box();
+
+    // convert atoms to lamda coords, using last box state
+    // convert atoms back to box coords, using current box state
+    // save current box state
+    
+    for (i = 0; i < nlocal; i++)
+      domain->x2lamda(x[i],x[i],boxlo,h_inv);
+    for (i = 0; i < nlocal; i++)
+      domain->lamda2x(x[i],x[i]);
+    save_box_state();
+
+    // move atoms back inside simulation box and to new processors
+    // use remap() instead of pbc()
+    //   in case box moved a long distance relative to atoms
+
+    imageint *image = atom->image;
+    for (i = 0; i < nlocal; i++) domain->remap(x[i],image[i]);
+    domain->reset_box();
+
+    // freez atoms velocities when the box is rescaled
+    // prevent atoms getting unintended extra velocity
+
+    for (int i = 0; i < nlocal; i++)
+      v[i][0] = v[i][1] = v[i][2] = 0.0;
   }
-
-  // reset global and local box to new size/shape
-
-  domain->set_initial_box();
-  domain->set_global_box();
-  domain->set_local_box();
-
-  // convert atoms to lamda coords, using last box state
-  // convert atoms back to box coords, using current box state
-  // save current box state
-  
-  for (i = 0; i < nlocal; i++)
-    domain->x2lamda(x[i],x[i],boxlo,h_inv);
-  for (i = 0; i < nlocal; i++)
-    domain->lamda2x(x[i],x[i]);
-  save_box_state();
-
-  // move atoms back inside simulation box and to new processors
-  // use remap() instead of pbc()
-  //   in case box moved a long distance relative to atoms
-
-  imageint *image = atom->image;
-  for (i = 0; i < nlocal; i++) domain->remap(x[i],image[i]);
-  domain->reset_box();
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -350,10 +366,11 @@ int MinAdaptGlok::iterate(int maxiter)
         }
       }
 
-      // stopping criterion while stuck in a local bassin
+      // stopping criterion while stuck in a local bassin of the PES
+      // only checked when the box dimesions are not modified bu relax_box()
 
       vdotf_negatif++;
-      if (max_vdotf_negatif > 0 && vdotf_negatif > max_vdotf_negatif)
+      if (pflag == 1 && max_vdotf_negatif > 0 && vdotf_negatif > max_vdotf_negatif)
         return MAXVDOTF;
 
       // inertia correction

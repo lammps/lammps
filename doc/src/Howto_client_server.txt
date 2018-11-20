@@ -87,7 +87,7 @@ DFT forces, thru a Python wrapper script on VASP.
 Here is how to launch a client and server code together for any of the
 4 modes of message exchange that the "message"_message.html command
 and the CSlib support.  Here LAMMPS is used as both the client and
-server code.  Another code could be subsitituted for either.
+server code.  Another code could be substituted for either.
 
 The examples below show launching both codes from the same window (or
 batch script), using the "&" character to launch the first code in the

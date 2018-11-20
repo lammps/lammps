@@ -51,7 +51,7 @@ md"_server_md.html doc page.
 Note that when using LAMMPS as an MD client, your LAMMPS input script
 should not normally contain force field commands, like a
 "pair_style"_pair_style.html, "bond_style"_bond_style.html, or
-"kspace_style"_kspace_style.html commmand.  However it is possible for
+"kspace_style"_kspace_style.html command.  However it is possible for
 a server code to only compute a portion of the full force-field, while
 LAMMPS computes the remaining part.  Your LAMMPS script can also
 specify boundary conditions or force constraints in the usual way,

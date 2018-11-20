@@ -49,7 +49,7 @@ The command to make LAMMPS call PLUMED during a run requires two keyword
 value pairs pointing to the PLUMED input file and an output file for the
 PLUMED log. The user must specify these arguments every time PLUMED is
 to be used.  Furthermore, the fix plumed command should appear in the
-LAMMPS input file [after] relevant input paramters (e.g. the timestep)
+LAMMPS input file [after] relevant input parameters (e.g. the timestep)
 have been set.
 
 The {group-ID} entry is ignored. LAMMPS will always pass all the atoms

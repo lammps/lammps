@@ -179,7 +179,7 @@ options.
 For the {omega} keyword there is also a scale factor of 10.0/3.0 that
 is applied as a multiplier on the Ff (damping) term in the equation
 above and of sqrt(10.0/3.0) as a multiplier on the Fr term.  This does
-not affect the thermostatting behaviour of the Langevin formalism but
+not affect the thermostatting behavior of the Langevin formalism but
 insures that the randomized rotational diffusivity of spherical
 particles is correct.
 

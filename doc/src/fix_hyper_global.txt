@@ -205,12 +205,12 @@ the current timestep.  The vector stores the following quantities:
 7 = max drift distance of any atom during this run (distance units)
 8 = max bond length during this run (distance units) :ul
 
-9 = cummulative hyper time since fix was defined (time units)
-10 = cummulative count of event timesteps since fix was defined
-11 = cummulative count of atoms in events since fix was defined :ul
+9 = cumulative hyper time since fix was defined (time units)
+10 = cumulative count of event timesteps since fix was defined
+11 = cumulative count of atoms in events since fix was defined :ul
 
 The first 5 quantities are for the current timestep.  Quantities 6-8
-are for the current hyper run.  Quantities 9-11 are cummulative across
+are for the current hyper run.  Quantities 9-11 are cumulative across
 multiple runs (since the fix was defined in the input script).
 
 For value 7, drift is the distance an atom moves between timesteps
@@ -228,7 +228,7 @@ For value 11, each time the "hyper"_hyper.html command checks for an
 event, it invokes a compute to flag zero or more atoms as
 participating in one or more events.  E.g. atoms that have displaced
 more than some distance from the previous quench state.  Value 11 is
-the cummulative count of the number of atoms participating in any of
+the cumulative count of the number of atoms participating in any of
 the events that were found.
 
 The scalar and vector values calculated by this fix are all

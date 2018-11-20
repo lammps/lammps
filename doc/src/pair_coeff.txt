@@ -90,7 +90,7 @@ is looked for in the current working directory.  If it is specified as
 directory, assuming it is a sister directory of the current working
 directory.  If the file is not found, it is then looked for in the
 directory specified by the LAMMPS_POTENTIALS environment variable.
-Thus if this is set to the potentials directory in the LAMMPS distro,
+Thus if this is set to the potentials directory in the LAMMPS distribution,
 then you can use those files from anywhere on your system, without
 copying them into your working directory.  Environment variables are
 set in different ways for different shells.  Here are example settings

@@ -30,7 +30,7 @@ examples/elastic directory described on the "Examples"_Examples.html
 doc page.
 
 Calculating elastic constants at finite temperature is more
-challenging, because it is necessary to run a simulation that perfoms
+challenging, because it is necessary to run a simulation that performs
 time averages of differential properties. One way to do this is to
 measure the change in average stress tensor in an NVT simulations when
 the cell volume undergoes a finite deformation. In order to balance

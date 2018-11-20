@@ -50,8 +50,8 @@ above matches with the values of the magneto-elastic constant of the
 materials at stake.
 
 Examples and more explanations about this function and its
-parametrization are reported in "(Tranchida)"_#Tranchida6. More
-examples of parametrization will be provided in future work.
+parameterization are reported in "(Tranchida)"_#Tranchida6. More
+examples of parameterization will be provided in future work.
 
 From this DM interaction, each spin i will be submitted to a magnetic
 torque omega and its associated atom to a force F (for spin-lattice

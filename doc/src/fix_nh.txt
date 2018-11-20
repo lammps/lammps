@@ -286,7 +286,7 @@ negligible.
 
 The keyword {tloop} can be used to improve the accuracy of integration
 scheme at little extra cost.  The initial and final updates of the
-thermostat variables are broken up into {tloop} substeps, each of
+thermostat variables are broken up into {tloop} sub-steps, each of
 length {dt}/{tloop}. This corresponds to using a first-order
 Suzuki-Yoshida scheme "(Tuckerman)"_#nh-Tuckerman.  The keyword {ploop}
 does the same thing for the barostat thermostat.

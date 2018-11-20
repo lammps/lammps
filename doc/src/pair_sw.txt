@@ -124,13 +124,13 @@ configuration. In the literature, however, the three-body parameters
 are usually defined by simple formulas involving two sets of pair-wise
 parameters, corresponding to the ij and ik pairs, where i is the
 center atom. The user must ensure that the correct combining rule is
-used to calculate the values of the threebody parameters for
+used to calculate the values of the three-body parameters for
 alloys. Note also that the function phi3 contains two exponential
 screening factors with parameter values from the ij pair and ik
 pairs. So phi3 for a C atom bonded to a Si atom and a second C atom
 will depend on the three-body parameters for the CSiC entry, and also
 on the two-body parameters for the CCC and CSiSi entries. Since the
-order of the two neighbors is arbitrary, the threebody parameters for
+order of the two neighbors is arbitrary, the three-body parameters for
 entries CSiC and CCSi should be the same.  Similarly, the two-body
 parameters for entries SiCC and CSiSi should also be the same.  The
 parameters used only for two-body interactions (A, B, p, and q) in

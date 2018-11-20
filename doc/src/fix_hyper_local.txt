@@ -310,14 +310,14 @@ quantities:
 18 = count of bias overlaps found during this run
 19 = count of non-matching bias coefficients found during this run :ul
 
-20 = cummulative hyper time since fix created (time units)
-21 = cummulative count of event timesteps since fix created
-22 = cummulative count of atoms in events since fix created
-23 = cummulative # of new bonds since fix created :ul
+20 = cumulative hyper time since fix created (time units)
+21 = cumulative count of event timesteps since fix created
+22 = cumulative count of atoms in events since fix created
+23 = cumulative # of new bonds since fix created :ul
 
 The first quantities (1-5) are for the current timestep.  Quantities
 6-19 are for the current hyper run.  They are reset each time a new
-hyper run is performed.  Quantities 20-23 are cummulative across
+hyper run is performed.  Quantities 20-23 are cumulative across
 multiple runs (since the fix was defined in the input script).
 
 For value 6, the numerator is a count of all biased bonds on every
@@ -333,7 +333,7 @@ For values 13 and 14, the maxstrain of a ghost atom is the maxstrain
 of any bond it is part of, and it is checked for ghost atoms within
 the bond neighbor cutoff.
 
-Values 15-19 are mostly useful for debugging and diagnositc purposes.
+Values 15-19 are mostly useful for debugging and diagnostic purposes.
 
 For values 15-17, it is possible that a ghost atom owned by another
 processor will move far enough (e.g. as part of an event-in-progress)
@@ -367,7 +367,7 @@ For value 22, each time the "hyper"_hyper.html command checks for an
 event, it invokes a compute to flag zero or more atoms as
 participating in one or more events.  E.g. atoms that have displaced
 more than some distance from the previous quench state.  Value 22 is
-the cummulative count of the number of atoms participating in any of
+the cumulative count of the number of atoms participating in any of
 the events that were found.
 
 Value 23 tallies the number of new bonds created by the bond reset

@@ -33,7 +33,7 @@ Currently, there are five kinds of CNA patterns LAMMPS recognizes:
 fcc = 1
 hcp = 2
 bcc = 3
-icosohedral = 4
+icosahedral = 4
 unknown = 5 :ul
 
 The value of the CNA pattern will be 0 for atoms not in the specified

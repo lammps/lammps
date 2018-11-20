@@ -17,7 +17,7 @@ different back end languages such as CUDA, OpenMP, or Pthreads.  The
 Kokkos library also provides data abstractions to adjust (at compile
 time) the memory layout of data structures like 2d and 3d arrays to
 optimize performance on different hardware. For more information on
-Kokkos, see "Github"_https://github.com/kokkos/kokkos. Kokkos is part
+Kokkos, see "GitHub"_https://github.com/kokkos/kokkos. Kokkos is part
 of "Trilinos"_http://trilinos.sandia.gov/packages/kokkos. The Kokkos
 library was written primarily by Carter Edwards, Christian Trott, and
 Dan Sunderland (all Sandia).
@@ -193,7 +193,7 @@ threads/task as Nt. The product of these two values should be N, i.e.
 NOTE: The default for the "package kokkos"_package.html command is to
 use "full" neighbor lists and set the Newton flag to "off" for both
 pairwise and bonded interactions. When running on KNL, this will
-typically be best for pair-wise potentials. For manybody potentials,
+typically be best for pair-wise potentials. For many-body potentials,
 using "half" neighbor lists and setting the Newton flag to "on" may be
 faster. It can also be faster to use non-threaded communication.  Use
 the "-pk kokkos" "command-line switch"_Run_options.html to change the
@@ -207,7 +207,7 @@ mpirun -np 64 lmp_kokkos_phi -k on t 4 -sf kk -pk kokkos newton on neigh half co
 NOTE: MPI tasks and threads should be bound to cores as described
 above for CPUs.
 
-NOTE: To build with Kokkos support for Intel Xeon Phi coprocessors
+NOTE: To build with Kokkos support for Intel Xeon Phi co-processors
 such as Knight's Corner (KNC), your system must be configured to use
 them in "native" mode, not "offload" mode like the USER-INTEL package
 supports.

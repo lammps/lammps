@@ -96,7 +96,7 @@ machine to a directory with the name you chose. If none is given, it will
 default to "lammps". Typical names are "mylammps" or something similar.
 
 You can use this local clone to make changes and
-test them without interfering with the repository on Github.
+test them without interfering with the repository on GitHub.
 
 To pull changes from upstream into this copy, you can go to the directory
 and use git pull:
@@ -150,7 +150,7 @@ After the commit, the changes can be pushed to the same branch on GitHub:
 $ git push :pre
 
 Git will ask you for your user name and password on GitHub if you have
-not configured anything. If your local branch is not present on Github yet,
+not configured anything. If your local branch is not present on GitHub yet,
 it will ask you to add it by running
 
   $ git push --set-upstream origin github-tutorial-update :pre
@@ -369,7 +369,7 @@ commit and push again:
  $ git commit -m "Merged Axel's suggestions and updated text"
  $ git push git@github.com:Pakketeretet2/lammps :pre
 
-This merge also shows up on the lammps Github page:
+This merge also shows up on the lammps GitHub page:
 
 :c,image(JPG/tutorial_reverse_pull_request7.png)
 

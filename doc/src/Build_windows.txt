@@ -66,7 +66,7 @@ In case of problems, you are recommended to contact somebody with
 experience in using cygwin.  If you do come across portability problems
 requiring changes to the LAMMPS source code, or figure out corrections
 yourself, please report them on the lammps-users mailing list, or file
-them as an issue or pull request on the LAMMPS github project.
+them as an issue or pull request on the LAMMPS GitHub project.
 
 
 Using a cross-compiler :h4,link(cross)

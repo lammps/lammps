@@ -74,7 +74,7 @@ equations, but is used in calculating the deviation from the Hugoniot.
 
 The keyword {beta} is a scaling term that can be added to the MSST
 ionic equations of motion to account for drift in the conserved
-quantity during long timescale simulations, similar to a Berendson
+quantity during long timescale simulations, similar to a Berendsen
 thermostat. See "(Reed)"_#Reed and "(Goldman)"_#Goldman2 for more
 details.  The value of {beta} must be between 0.0 and 1.0 inclusive.
 A value of 0.0 means no contribution, a value of 1.0 means a full

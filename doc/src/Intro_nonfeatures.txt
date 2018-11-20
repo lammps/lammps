@@ -51,7 +51,7 @@ the option to insert molecule templates instead of atoms.:l
 Force-field assignment: The conversion tools described in the previous
 bullet for CHARMM, AMBER, and Insight will also assign force field
 coefficients in the LAMMPS format, assuming you provide CHARMM, AMBER,
-or Accelerys force field files. :l
+or BIOVIA (formerly Accelrys) force field files. :l
 
 Simulation analysis: If you want to perform analysis on-the-fly as
 your simulation runs, see the "compute"_compute.html and

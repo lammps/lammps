@@ -494,7 +494,7 @@ MANYBODY package :link(PKG-MANYBODY),h4
 
 [Contents:]
 
-A variety of manybody and bond-order potentials.  These include
+A variety of many-body and bond-order potentials.  These include
 (AI)REBO, BOP, EAM, EIM, Stillinger-Weber, and Tersoff potentials.
 
 [Supporting info:]
@@ -518,7 +518,7 @@ MC package :link(PKG-MC),h4
 Several fixes and a pair style that have Monte Carlo (MC) or MC-like
 attributes.  These include fixes for creating, breaking, and swapping
 bonds, for performing atomic swaps, and performing grand-canonical MC
-(GCMC) in conjuction with dynamics.
+(GCMC) in conjunction with dynamics.
 
 [Supporting info:]
 

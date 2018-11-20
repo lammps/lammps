@@ -47,7 +47,7 @@ the based classes of LAMMPS.
 The pairwise contributions are computing via a callback that the
 compute registers with the non-bonded pairwise force computation.
 This limits the use to systems that have no bonds, no Kspace, and no
-manybody interactions. On the other hand, the computation does not
+many-body interactions. On the other hand, the computation does not
 have to compute forces or energies a second time and thus can be much
 more efficient. The callback mechanism allows to write more complex
 pairwise property computations.

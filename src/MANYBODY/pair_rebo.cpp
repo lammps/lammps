@@ -18,7 +18,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairREBO::PairREBO(LAMMPS *lmp) : PairAIREBO(lmp) {}
+PairREBO::PairREBO(LAMMPS *lmp) : PairAIREBO(lmp) {
+  variant = REBO_2;
+}
 
 /* ----------------------------------------------------------------------
    global settings

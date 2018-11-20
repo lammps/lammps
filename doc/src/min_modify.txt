@@ -133,6 +133,11 @@ Ultimately, {relaxbox_mod} and {relaxbox_rate}
 control how fast the relaxation of the box is performed: lower values will slow
 down the box relaxation but improve the stability of the procedure.
 
+NOTE: the option {relaxbox} is currently experimental and often 
+requires to tune the communication cutoff for gost atoms with the command 
+"comm_modify cutoff"_comm_modify.html. The value will depend on the expected
+box variation and the number of cpu. A value from 2 to 3 times the current cutoff
+(largest pair cutoff + neighbor skin) is often enough.
 
 [Restrictions:] none
 

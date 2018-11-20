@@ -19,7 +19,7 @@ pair_coeff * * ffield.smtbq.Al2O3 O Al :pre
 
 [Description:]
 
-This pair stylecomputes a variable charge SMTB-Q (Second-Moment
+This pair style computes a variable charge SMTB-Q (Second-Moment
 tight-Binding QEq) potential as described in "SMTB-Q_1"_#SMTB-Q_1 and
 "SMTB-Q_2"_#SMTB-Q_2. Briefly, the energy of metallic-oxygen systems
 is given by three contributions:

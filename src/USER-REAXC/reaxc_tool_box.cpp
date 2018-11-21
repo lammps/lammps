@@ -43,7 +43,7 @@ int Tokenize( char* s, char*** tok )
   char *word;
   int count=0;
 
-  strncpy( test, s, MAX_LINE );
+  strncpy( test, s, MAX_LINE-1);
 
   for( word = strtok(test, sep); word; word = strtok(NULL, sep) ) {
     strncpy( (*tok)[count], word, MAX_LINE );

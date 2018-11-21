@@ -371,9 +371,13 @@ minimization"_minimize.html.
 For 2d simulations, the {z} style cannot be used.  Nor can a "z"
 appear in {dimstr} for the {shift} style.
 
+Balancing through recursive bisectioning ({rcb} style) requires
+"comm_style tiled"_comm_style.html
+
 [Related commands:]
 
-"group"_group.html, "processors"_processors.html, "balance"_balance.html
+"group"_group.html, "processors"_processors.html, "balance"_balance.html,
+"comm_style"_comm_style.html
 
 [Default:] none
 :link(pizza,http://pizza.sandia.gov)

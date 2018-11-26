@@ -176,7 +176,6 @@ $(VENV):
 		$(VIRTUALENV) -p $(PYTHON) $(VENV); \
 		. $(VENV)/bin/activate; \
 		pip install Sphinx; \
-		pip install sphinxcontrib-images; \
 		deactivate;\
 	)
 

@@ -315,7 +315,7 @@ int Init_Traj( reax_system *system, control_params *control,
                output_controls *out_control, mpi_datatypes *mpi_data,
                char *msg )
 {
-  char fname[MAX_STR];
+  char fname[MAX_STR+8];
   int  atom_line_len[ NR_OPT_ATOM ] = { 0, 0, 0, 0,
                                         ATOM_BASIC_LEN, ATOM_wV_LEN,
                                         ATOM_wF_LEN, ATOM_FULL_LEN };

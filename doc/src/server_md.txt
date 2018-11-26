@@ -15,7 +15,7 @@ server md :pre
 md = the protocol argument to the "server"_server.html command
 
 [Examples:]
-  
+
 server md :pre
 
 [Description:]

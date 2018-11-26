@@ -263,7 +263,7 @@ These tools were provided by Andres Jaramillo-Botero at CalTech
 
 emacs tool :h4,link(emacs)
 
-The tools/emacs directory contains an Emacs Lisp add-on file for GNU Emacs 
+The tools/emacs directory contains an Emacs Lisp add-on file for GNU Emacs
 that enables a lammps-mode for editing input scripts when using GNU Emacs,
 with various highlighting options set up.
 

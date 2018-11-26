@@ -24,8 +24,8 @@ pair_coeff 1 2 neel 4.0 0.0048 0.234 1.168 0.0 0.0 1.0 :pre
 
 [Description:]
 
-Style {spin/neel} computes the Neel pair anisotropy model 
-between pairs of magnetic spins: 
+Style {spin/neel} computes the Neel pair anisotropy model
+between pairs of magnetic spins:
 
 :c,image(Eqs/pair_spin_neel_interaction.jpg)
 
@@ -71,7 +71,7 @@ package"_Build_package.html doc page for more info.
 
 [Related commands:]
 
-"atom_style spin"_atom_style.html, "pair_coeff"_pair_coeff.html, 
+"atom_style spin"_atom_style.html, "pair_coeff"_pair_coeff.html,
 "pair_eam"_pair_eam.html,
 
 [Default:] none

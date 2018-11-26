@@ -232,7 +232,7 @@ accelerated styles exist.
 "meam/sw/spline"_pair_meam_sw_spline.html - splined version of MEAM with a Stillinger-Weber term
 "mgpt"_pair_mgpt.html - simplified model generalized pseudopotential theory (MGPT) potential
 "mie/cut"_pair_mie.html - Mie potential
-"momb"_pair_momb.html - Many-Body Metal-Organic (MOMB) force field 
+"momb"_pair_momb.html - Many-Body Metal-Organic (MOMB) force field
 "morse"_pair_morse.html - Morse potential
 "morse/smooth/linear"_pair_morse.html - linear smoothed Morse potential
 "morse/soft"_pair_morse.html - Morse potential with a soft core
@@ -242,64 +242,64 @@ accelerated styles exist.
 "nm/cut"_pair_nm.html - N-M potential
 "nm/cut/coul/cut"_pair_nm.html - N-M potential with cutoff Coulomb
 "nm/cut/coul/long"_pair_nm.html - N-M potential with long-range Coulombics
-"oxdna/coaxstk"_pair_oxdna.html - 
-"oxdna/excv"_pair_oxdna.html - 
-"oxdna/hbond"_pair_oxdna.html - 
-"oxdna/stk"_pair_oxdna.html - 
-"oxdna/xstk"_pair_oxdna.html - 
-"oxdna2/coaxstk"_pair_oxdna2.html - 
-"oxdna2/dh"_pair_oxdna2.html - 
-"oxdna2/excv"_pair_oxdna2.html - 
-"oxdna2/hbond"_pair_oxdna2.html - 
-"oxdna2/stk"_pair_oxdna2.html - 
-"oxdna2/xstk"_pair_oxdna2.html - 
+"oxdna/coaxstk"_pair_oxdna.html -
+"oxdna/excv"_pair_oxdna.html -
+"oxdna/hbond"_pair_oxdna.html -
+"oxdna/stk"_pair_oxdna.html -
+"oxdna/xstk"_pair_oxdna.html -
+"oxdna2/coaxstk"_pair_oxdna2.html -
+"oxdna2/dh"_pair_oxdna2.html -
+"oxdna2/excv"_pair_oxdna2.html -
+"oxdna2/hbond"_pair_oxdna2.html -
+"oxdna2/stk"_pair_oxdna2.html -
+"oxdna2/xstk"_pair_oxdna2.html -
 "peri/eps"_pair_peri.html - peridynamic EPS potential
 "peri/lps"_pair_peri.html - peridynamic LPS potential
 "peri/pmb"_pair_peri.html - peridynamic PMB potential
 "peri/ves"_pair_peri.html - peridynamic VES potential
 "polymorphic"_pair_polymorphic.html - polymorphic 3-body potential
-"python"_pair_python.html - 
-"quip"_pair_quip.html - 
+"python"_pair_python.html -
+"quip"_pair_quip.html -
 "reax"_pair_reax.html - ReaxFF potential in Fortran
 "reax/c"_pair_reaxc.html - ReaxFF potential in C
 "rebo"_pair_airebo.html - 2nd generation REBO potential of Brenner
 "resquared"_pair_resquared.html - Everaers RE-Squared ellipsoidal potential
 "sdpd/taitwater/isothermal"_pair_sdpd_taitwater_isothermal.html - smoothed dissipative particle dynamics for water at isothermal conditions
-"smd/hertz"_pair_smd_hertz.html - 
-"smd/tlsph"_pair_smd_tlsph.html - 
-"smd/tri_surface"_pair_smd_triangulated_surface.html - 
-"smd/ulsph"_pair_smd_ulsph.html - 
-"smtbq"_pair_smtbq.html - 
+"smd/hertz"_pair_smd_hertz.html -
+"smd/tlsph"_pair_smd_tlsph.html -
+"smd/tri_surface"_pair_smd_triangulated_surface.html -
+"smd/ulsph"_pair_smd_ulsph.html -
+"smtbq"_pair_smtbq.html -
 "snap"_pair_snap.html - SNAP quantum-accurate potential
 "soft"_pair_soft.html - Soft (cosine) potential
-"sph/heatconduction"_pair_sph_heatconduction.html - 
-"sph/idealgas"_pair_sph_idealgas.html - 
-"sph/lj"_pair_sph_lj.html - 
-"sph/rhosum"_pair_sph_rhosum.html - 
-"sph/taitwater"_pair_sph_taitwater.html - 
-"sph/taitwater/morris"_pair_sph_taitwater_morris.html - 
-"spin/dmi"_pair_spin_dmi.html - 
-"spin/exchange"_pair_spin_exchange.html - 
-"spin/magelec"_pair_spin_magelec.html - 
-"spin/neel"_pair_spin_neel.html - 
-"srp"_pair_srp.html - 
+"sph/heatconduction"_pair_sph_heatconduction.html -
+"sph/idealgas"_pair_sph_idealgas.html -
+"sph/lj"_pair_sph_lj.html -
+"sph/rhosum"_pair_sph_rhosum.html -
+"sph/taitwater"_pair_sph_taitwater.html -
+"sph/taitwater/morris"_pair_sph_taitwater_morris.html -
+"spin/dmi"_pair_spin_dmi.html -
+"spin/exchange"_pair_spin_exchange.html -
+"spin/magelec"_pair_spin_magelec.html -
+"spin/neel"_pair_spin_neel.html -
+"srp"_pair_srp.html -
 "sw"_pair_sw.html - Stillinger-Weber 3-body potential
 "table"_pair_table.html - tabulated pair potential
-"table/rx"_pair_table_rx.html - 
+"table/rx"_pair_table_rx.html -
 "tdpd"_pair_meso.html - tDPD particle interactions
 "tersoff"_pair_tersoff.html - Tersoff 3-body potential
 "tersoff/mod"_pair_tersoff_mod.html - modified Tersoff 3-body potential
-"tersoff/mod/c"_pair_tersoff_mod.html - 
-"tersoff/table"_pair_tersoff.html - 
+"tersoff/mod/c"_pair_tersoff_mod.html -
+"tersoff/table"_pair_tersoff.html -
 "tersoff/zbl"_pair_tersoff_zbl.html - Tersoff/ZBL 3-body potential
 "thole"_pair_thole.html - Coulomb interactions with thole damping
 "tip4p/cut"_pair_coul.html - Coulomb for TIP4P water w/out LJ
 "tip4p/long"_pair_coul.html - long-range Coulombics for TIP4P water w/out LJ
-"tip4p/long/soft"_pair_lj_soft.html - 
+"tip4p/long/soft"_pair_lj_soft.html -
 "tri/lj"_pair_tri_lj.html - LJ potential between triangles
-"ufm"_pair_ufm.html - 
+"ufm"_pair_ufm.html -
 "vashishta"_pair_vashishta.html - Vashishta 2-body and 3-body potential
-"vashishta/table"_pair_vashishta.html - 
+"vashishta/table"_pair_vashishta.html -
 "yukawa"_pair_yukawa.html - Yukawa potential
 "yukawa/colloid"_pair_yukawa_colloid.html - screened Yukawa potential for finite-size particles
 "zbl"_pair_zbl.html - Ziegler-Biersack-Littmark potential :ul

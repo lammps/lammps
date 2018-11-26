@@ -106,10 +106,10 @@ modification to the input script is needed. Alternatively, one can run
 with the KOKKOS package by editing the input script as described
 below.
 
-NOTE: When using a single OpenMP thread, the Kokkos Serial back end (i.e. 
-Makefile.kokkos_mpi_only) will give better performance than the OpenMP 
-back end (i.e. Makefile.kokkos_omp) because some of the overhead to make 
-the code thread-safe is removed. 
+NOTE: When using a single OpenMP thread, the Kokkos Serial back end (i.e.
+Makefile.kokkos_mpi_only) will give better performance than the OpenMP
+back end (i.e. Makefile.kokkos_omp) because some of the overhead to make
+the code thread-safe is removed.
 
 NOTE: The default for the "package kokkos"_package.html command is to
 use "full" neighbor lists and set the Newton flag to "off" for both

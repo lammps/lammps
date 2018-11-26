@@ -61,7 +61,7 @@ make pdf          # generate 2 PDF files (Manual.pdf,Developer.pdf)
 make old          # generate old-style HTML pages in old dir via txt2html
 make fetch        # fetch HTML doc pages and 2 PDF files from web site
                   #   as a tarball and unpack into html dir and 2 PDFs
-make epub         # generate LAMMPS.epub in ePUB format using Sphinx 
+make epub         # generate LAMMPS.epub in ePUB format using Sphinx
 make mobi         # generate LAMMPS.mobi in MOBI format using ebook-convert
 make clean        # remove intermediate RST files created by HTML build
 make clean-all    # remove entire build folder and any cached data :pre

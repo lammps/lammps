@@ -89,7 +89,7 @@ accelerated styles exist.
 "morse"_bond_morse.html - Morse bond
 "nonlinear"_bond_nonlinear.html - nonlinear bond
 "oxdna/fene"_bond_oxdna.html - modified FENE bond suitable for DNA modeling
-"oxdna2/fene"_bond_oxdna.html - same as oxdna but used with different pair styles 
+"oxdna2/fene"_bond_oxdna.html - same as oxdna but used with different pair styles
 "quartic"_bond_quartic.html - breakable quartic bond
 "table"_bond_table.html - tabulated by bond length :ul
 

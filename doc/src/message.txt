@@ -26,7 +26,7 @@ mode = {file} or {zmq} or {mpi/one} or {mpi/two} :l
 :ule
 
 [Examples:]
-  
+
 message client md file tmp.couple
 message server md file tmp.couple :pre
 

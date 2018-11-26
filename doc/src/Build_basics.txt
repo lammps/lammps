@@ -49,7 +49,7 @@ make mybox :pre         # uses Makefile.mybox to produce lmp_mybox :pre
 
 Serial build (see src/MAKE/Makefile.serial):
 
-MPI_INC =       -I../STUBS 
+MPI_INC =       -I../STUBS
 MPI_PATH =      -L../STUBS
 MPI_LIB =	-lmpi_stubs :pre
 
@@ -172,7 +172,7 @@ want.
 Parallel build (see src/MAKE/Makefile.mpi):
 
 CC =		mpicxx
-CCFLAGS =	-g -O3 
+CCFLAGS =	-g -O3
 LINK =		mpicxx
 LINKFLAGS =	-g -O :pre
 

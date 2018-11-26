@@ -27,7 +27,7 @@ make command to build LAMMPS, which uses the created
 Makefile(s). Example:
 
 cd lammps                        # change to the LAMMPS distribution directory
-mkdir build; cd build            # create a new directory (folder) for build       
+mkdir build; cd build            # create a new directory (folder) for build
 cmake ../cmake \[options ...\]   # configuration with (command-line) cmake
 make                             # compilation :pre
 

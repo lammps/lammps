@@ -95,7 +95,7 @@ the "/cs" in the name:
 
 except that they correctly treat the special case where the distance
 between two charged core and shell atoms in the same core/shell pair
-approach r = 0.0.  
+approach r = 0.0.
 
 Styles with a "/long" in the name are used with a long-range solver
 for Coulombic interactions via the "kspace_style"_kspace_style.html

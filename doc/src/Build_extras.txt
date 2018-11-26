@@ -64,7 +64,7 @@ available on your system.
 
 If CMake cannot find the library, you can set these variables:
 
--D ZLIB_INCLUDE_DIR=path    # path to zlib.h header file 
+-D ZLIB_INCLUDE_DIR=path    # path to zlib.h header file
 -D ZLIB_LIBRARIES=path      # path to libz.a (.so) file :pre
 
 [Traditional make]:
@@ -151,7 +151,7 @@ package uses the library settings from the lib/gpu/Makefile.machine
 used to build the GPU library.
 
 :line
- 
+
 KIM package :h4,link(kim)
 
 To build with this package, the KIM library must be downloaded and
@@ -178,7 +178,7 @@ package?" page.
 [CMake build]:
 
 -D DOWNLOAD_KIM=value    # download OpenKIM API v1 for build, value = no (default) or yes
--D KIM_LIBRARY=path      # KIM library file (only needed if a custom location) 
+-D KIM_LIBRARY=path      # KIM library file (only needed if a custom location)
 -D KIM_INCLUDE_DIR=path  # KIM include directory (only needed if a custom location) :pre
 
 If DOWNLOAD_KIM is set, the KIM library will be downloaded and built
@@ -255,7 +255,7 @@ For NVIDIA GPUs using CUDA, set these 4 variables:
 -D KOKKOS_ARCH="archCPU;archGPU"   # archCPU = CPU from list above that is hosting the GPU
                                    # archGPU = GPU from list above
 -D KOKKOS_ENABLE_CUDA=yes
--D KOKKOS_ENABLE_OPENMP=yes 
+-D KOKKOS_ENABLE_OPENMP=yes
 -D CMAKE_CXX_COMPILER=wrapper      # wrapper = full path to Cuda nvcc wrapper :pre
 
 The wrapper value is the Cuda nvcc compiler wrapper provided in the
@@ -297,7 +297,7 @@ export OMPI_CXX = $(KOKKOS_ABSOLUTE_PATH)/config/nvcc_wrapper
 CC =		mpicxx :pre
 
 :line
- 
+
 LATTE package :h4,link(latte)
 
 To build with this package, you must download and build the LATTE
@@ -325,7 +325,7 @@ args:
 make lib-latte                          # print help message
 make lib-latte args="-b"                # download and build in lib/latte/LATTE-master
 make lib-latte args="-p $HOME/latte"    # use existing LATTE installation in $HOME/latte
-make lib-latte args="-b -m gfortran"    # download and build in lib/latte and 
+make lib-latte args="-b -m gfortran"    # download and build in lib/latte and
                                         #   copy Makefile.lammps.gfortran to Makefile.lammps
 :pre
 
@@ -336,7 +336,7 @@ also check that the Makefile.lammps file you create is appropriate for
 the compiler you use on your system to build LATTE.
 
 :line
- 
+
 MEAM package :h4,link(meam)
 
 NOTE: the use of the MEAM package is discouraged, as it has been
@@ -379,7 +379,7 @@ EXTRAMAKE variable to specify a corresponding Makefile.lammps.machine
 file.
 
 :line
- 
+
 MESSAGE package :h4,link(message)
 
 This package can optionally include support for messaging via sockets,
@@ -408,7 +408,7 @@ existing Makefile.lammps.* and has settings to link with the ZeroMQ
 library if requested in the build.
 
 :line
- 
+
 MSCG package :h4,link(mscg)
 
 To build with this package, you must download and build the MS-CG
@@ -420,7 +420,7 @@ lib/mscg/README and MSCG/Install files for more details.
 [CMake build]:
 
 -D DOWNLOAD_MSCG=value    # download MSCG for build, value = no (default) or yes
--D MSCG_LIBRARY=path      # MSCG library file (only needed if a custom location) 
+-D MSCG_LIBRARY=path      # MSCG library file (only needed if a custom location)
 -D MSCG_INCLUDE_DIR=path  # MSCG include directory (only needed if a custom location) :pre
 
 If DOWNLOAD_MSCG is set, the MSCG library will be downloaded and built
@@ -465,7 +465,7 @@ line of your Makefile.machine.  See src/MAKE/OPTIONS/Makefile.opt for
 an example.
 
 :line
- 
+
 POEMS package :h4,link(poems)
 
 [CMake build]:
@@ -494,7 +494,7 @@ for your system, which should define an EXTRAMAKE variable to specify
 a corresponding Makefile.lammps.machine file.
 
 :line
- 
+
 PYTHON package :h4,link(python)
 
 Building with the PYTHON package requires you have a Python shared
@@ -521,7 +521,7 @@ Makefile.lammps.* file (and copy it to Makefile.lammps) if the LAMMPS
 build fails.
 
 :line
- 
+
 REAX package :h4,link(reax)
 
 NOTE: the use of the REAX package and its "pair_style
@@ -571,7 +571,7 @@ library"_voro-home.
 [CMake build]:
 
 -D DOWNLOAD_VORO=value    # download Voro++ for build, value = no (default) or yes
--D VORO_LIBRARY=path      # Voro++ library file (only needed if at custom location) 
+-D VORO_LIBRARY=path      # Voro++ library file (only needed if at custom location)
 -D VORO_INCLUDE_DIR=path  # Voro++ include directory (only needed if at custom location) :pre
 
 If DOWNLOAD_VORO is set, the Voro++ library will be downloaded and
@@ -791,7 +791,7 @@ settings suitable for LAMMPS to compile and link PLUMED in the desired
 linkage mode. After this step is completed, you can install the
 USER-PLUMED package and compile LAMMPS in the usual manner:
 
-make yes-user-plumed 
+make yes-user-plumed
 make machine :pre
 
 Once this compilation completes you should be able to run LAMMPS in the
@@ -967,7 +967,7 @@ Quantum ESPRESSO known to work with this QM/MM interface was version
 [CMake build]:
 
 The CMake build system currently does not support building the full
-QM/MM-capable hybrid executable of LAMMPS and QE called pwqmmm.x.  
+QM/MM-capable hybrid executable of LAMMPS and QE called pwqmmm.x.
 You must use the traditional make build for this package.
 
 [Traditional make]:
@@ -1037,7 +1037,7 @@ Coulomb solver library"_scafacos-home
 [CMake build]:
 
 -D DOWNLOAD_SCAFACOS=value    # download ScaFaCoS for build, value = no (default) or yes
--D SCAFACOS_LIBRARY=path      # ScaFaCos library file (only needed if at custom location) 
+-D SCAFACOS_LIBRARY=path      # ScaFaCos library file (only needed if at custom location)
 -D SCAFACOS_INCLUDE_DIR=path  # ScaFaCoS include directory (only needed if at custom location) :pre
 
 If DOWNLOAD_SCAFACOS is set, the ScaFaCoS library will be downloaded

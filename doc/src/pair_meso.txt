@@ -24,7 +24,7 @@ args = list of arguments for a particular style :l
     T = temperature (temperature units)
     cutoff = global cutoff for mDPD interactions (distance units)
     seed = random # seed (integer) (if <= 0, mDPD will use current time as the seed)
-  {mdpd/rhosum} args = 
+  {mdpd/rhosum} args =
   {tdpd} args = T cutoff seed
     T = temperature (temperature units)
     cutoff = global cutoff for tDPD interactions (distance units)
@@ -43,7 +43,7 @@ pair_coeff 1 1 mdpd/rhosum  0.75
 pair_coeff 1 1 mdpd -40.0 25.0 18.0 1.0 0.75 :pre
 
 pair_style tdpd 1.0 1.58 935662
-pair_coeff * * 18.75 4.5 0.41 1.58 1.58 1.0 1.0E-5 2.0 
+pair_coeff * * 18.75 4.5 0.41 1.58 1.58 1.0 1.0E-5 2.0
 pair_coeff 1 1 18.75 4.5 0.41 1.58 1.58 1.0 1.0E-5 2.0 3.0 1.0E-5 2.0 :pre
 
 [Description:]
@@ -73,7 +73,7 @@ heat flux <font size="4">q<sup>V</sup></font>, and random heat flux
 
 :c,image(Eqs/pair_edpd_heat.jpg)
 
-where the mesoscopic heat friction <font size="4">&kappa;</font> is given by 
+where the mesoscopic heat friction <font size="4">&kappa;</font> is given by
 
 :c,image(Eqs/pair_edpd_kappa.jpg)
 
@@ -84,7 +84,7 @@ The following coefficients must be defined in eDPD system for each
 pair of atom types via the "pair_coeff"_pair_coeff.html command as in
 the examples above.
 
-A (force units) 
+A (force units)
 gamma (force/velocity units)
 power_f (positive real)
 cutoff (distance units)
@@ -172,7 +172,7 @@ size="4"><i>m</i><sub>s</sub></font> is much smaller than the mass of
 a tDPD particle <font size="4"><i>m</i></font>. For more details, see
 "(Li2015_JCP)"_#Li2015_JCP.
 
-The following coefficients must be defined for each pair of atom types via the 
+The following coefficients must be defined for each pair of atom types via the
 "pair_coeff"_pair_coeff.html command as in the examples above.
 
 A (force units)
@@ -250,10 +250,10 @@ more info.
 
 [Related commands:]
 
-"pair_coeff"_pair_coeff.html, "fix mvv/dpd"_fix_mvv_dpd.html, 
+"pair_coeff"_pair_coeff.html, "fix mvv/dpd"_fix_mvv_dpd.html,
 "fix mvv/edpd"_fix_mvv_dpd.html, "fix mvv/tdpd"_fix_mvv_dpd.html,
-"fix edpd/source"_fix_dpd_source.html, "fix tdpd/source"_fix_dpd_source.html, 
-"compute edpd/temp/atom"_compute_edpd_temp_atom.html, 
+"fix edpd/source"_fix_dpd_source.html, "fix tdpd/source"_fix_dpd_source.html,
+"compute edpd/temp/atom"_compute_edpd_temp_atom.html,
 "compute tdpd/cc/atom"_compute_tdpd_cc_atom.html
 
 [Default:] none

@@ -23,7 +23,7 @@ keyword = {q} or {mu} or {p0} or {v0} or {e0} or {tscale} or {beta} or {dftb} :l
   {p0} value = initial pressure in the shock equations (pressure units)
   {v0} value = initial simulation cell volume in the shock equations (distance^3 units)
   {e0} value = initial total energy (energy units)
-  {tscale} value = reduction in initial temperature (unitless fraction between 0.0 and 1.0) 
+  {tscale} value = reduction in initial temperature (unitless fraction between 0.0 and 1.0)
   {dftb} value = {yes} or {no} for whether using MSST in conjunction with DFTB+
   {beta} value = scale factor for improved energy conservation :pre
 :ule

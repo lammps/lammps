@@ -87,22 +87,30 @@ which GPU hardware to build for.
                       # value = double or mixed (default) or single
 -D OCL_TUNE=value     # hardware choice for GPU_API=opencl
                       # generic (default) or intel (Intel CPU) or fermi, kepler, cypress (NVIDIA)
--D GPU_ARCH=value     # hardware choice for GPU_API=cuda
+-D GPU_ARCH=value     # primary GPU hardware choice for GPU_API=cuda
                       # value = sm_XX, see below
                       # default is Cuda-compiler dependent, but typically sm_20
--D CUDPP_OPT=value    # optimization setting for GPU_API=cudea
+-D CUDPP_OPT=value    # optimization setting for GPU_API=cuda
                       # enables CUDA Performance Primitives Optimizations
                       # yes (default) or no :pre
 
 GPU_ARCH settings for different GPU hardware is as follows:
 
-sm_20 for Fermi (C2050/C2070, deprecated as of CUDA 8.0) or GeForce GTX 580 or similar
-sm_30 for Kepler (K10)
-sm_35 for Kepler (K40) or GeForce GTX Titan or similar
-sm_37 for Kepler (dual K80)
-sm_50 for Maxwell
-sm_60 for Pascal (P100)
-sm_70 for Volta :ul
+sm_20 or sm_21 for Fermi (supported by CUDA 3.2 until CUDA 7.5)
+sm_30 or sm_35 or sm_37 for Kepler (supported since CUDA 5)
+sm_50 or sm_52 for Maxwell (supported since CUDA 6)
+sm_60 or sm_61 for Pascal (supported since CUDA 8)
+sm_70 for Volta (supported since CUDA 9)
+sm_75 for Turing (supported since CUDA 10) :ul
+
+A more detailed list can be found, for example,
+at "Wikipedia's CUDA article"_https://en.wikipedia.org/wiki/CUDA#GPUs_supported
+
+CMake can detect which version of the CUDA toolkit is used and thus can
+include support for [all] major GPU architectures supported by this toolkit.
+Thus the GPU_ARCH setting is merely an optimization, to have code for
+the preferred GPU architecture directly included rather than having to wait
+for the JIT compiler of the CUDA driver to translate it.
 
 [Traditional make]:
 
@@ -137,6 +145,11 @@ CUDA_ARCH = sm_XX, what GPU hardware you have, same as CMake GPU_ARCH above
 CUDA_PRECISION = precision (double, mixed, single)
 EXTRAMAKE = which Makefile.lammps.* file to copy to Makefile.lammps :ul
 
+The file Makefile.linux_multi is set up to include support for multiple
+GPU architectures as supported by the CUDA toolkit in use. This is done
+through using the "--gencode " flag, which can be used multiple times and
+thus support all GPU architectures supported by your CUDA compiler.
+
 If the library build is successful, 3 files should be created:
 lib/gpu/libgpu.a, lib/gpu/nvc_get_devices, and
 lib/gpu/Makefile.lammps.  The latter has settings that enable LAMMPS
@@ -149,6 +162,7 @@ un-install the GPU package in lammps/src, then re-install it and
 re-build LAMMPS.  This is because the compilation of files in the GPU
 package uses the library settings from the lib/gpu/Makefile.machine
 used to build the GPU library.
+
 
 :line
 

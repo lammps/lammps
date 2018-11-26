@@ -90,7 +90,7 @@ The {many} style will create bonds between pairs of atoms I,J where I
 is in one of the two specified groups, and J is in the other.  The two
 groups can be the same, e.g. group "all".  The created bonds will be
 of bond type {btype}, where {btype} must be a value between 1 and the
-number of bond types defined. 
+number of bond types defined.
 
 For a bond to be created, an I,J pair of atoms must be a distance D
 apart such that {rmin} <= D <= {rmax}.

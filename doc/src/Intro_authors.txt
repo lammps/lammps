@@ -58,7 +58,7 @@ page"_http://lammps.sandia.gov/history.html of the website, LAMMPS
 originated as a cooperative project between DOE labs and industrial
 partners.  Folks involved in the design and testing of the original
 version of LAMMPS were the following:
-    
+
 John Carpenter (Mayo Clinic, formerly at Cray Research)
 Terry Stouch (Lexicon Pharmaceuticals, formerly at Bristol Myers Squibb)
 Steve Lustig (Dupont)

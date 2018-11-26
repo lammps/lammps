@@ -86,7 +86,7 @@ input = one or more atom attributes :l
 
 compute 1 all property/atom xs vx fx mux
 compute 2 all property/atom type
-compute 1 all property/atom ix iy iz 
+compute 1 all property/atom ix iy iz
 compute 3 all property/atom sp spx spy spz :pre
 
 [Description:]

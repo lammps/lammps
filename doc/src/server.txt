@@ -15,7 +15,7 @@ server protocol :pre
 protocol = {md} or {mc} :ul
 
 [Examples:]
-  
+
 server md :pre
 
 [Description:]

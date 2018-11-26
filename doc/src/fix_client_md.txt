@@ -68,7 +68,7 @@ LAMMPS and another code in tandem to perform a coupled simulation.
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
 No information about this fix is written to "binary restart
-files"_restart.html.  
+files"_restart.html.
 
 The "fix_modify"_fix_modify.html {energy} option is supported by this
 fix to add the potential energy computed by the server application to

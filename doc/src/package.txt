@@ -488,7 +488,7 @@ packing/unpacking operation.
 
 The optimal choice for these keywords depends on the input script and
 the hardware used.  The {no} value is useful for verifying that the
-Kokkos-based {host} and {device} values are working correctly. 
+Kokkos-based {host} and {device} values are working correctly.
 It may also be the fastest choice when using Kokkos styles in
 MPI-only mode (i.e. with a thread count of 1).
 

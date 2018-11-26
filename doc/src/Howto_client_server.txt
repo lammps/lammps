@@ -75,7 +75,7 @@ examples/COUPLE/lammps_mc
 examples/COUPLE/lammps_vasp :ul
 
 The examples/message dir couples a client instance of LAMMPS to a
-server instance of LAMMPS.  
+server instance of LAMMPS.
 
 The lammps_mc dir shows how to couple LAMMPS as a server to a simple
 Monte Carlo client code as the driver.
@@ -106,13 +106,13 @@ together to exchange MPI messages between them.
 
 For message exchange in {file}, {zmq}, or {mpi/two} modes:
 
-% mpirun -np 1 lmp_mpi -log log.client < in.client & 
+% mpirun -np 1 lmp_mpi -log log.client < in.client &
 % mpirun -np 2 lmp_mpi -log log.server < in.server :pre
 
-% mpirun -np 4 lmp_mpi -log log.client < in.client & 
+% mpirun -np 4 lmp_mpi -log log.client < in.client &
 % mpirun -np 1 lmp_mpi -log log.server < in.server :pre
 
-% mpirun -np 2 lmp_mpi -log log.client < in.client & 
+% mpirun -np 2 lmp_mpi -log log.client < in.client &
 % mpirun -np 4 lmp_mpi -log log.server < in.server :pre
 
 For message exchange in {mpi/one} mode:

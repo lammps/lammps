@@ -58,7 +58,7 @@ style = {none} or {ewald} or {ewald/disp} or {ewald/omp} or {pppm} or {pppm/cg} 
     accuracy = desired relative error in forces
     smallq = cutoff for charges to be considered (optional) (charge units)
   {scafacos} values = method accuracy
-    method = fmm or p2nfft or ewald or direct 
+    method = fmm or p2nfft or ewald or direct
     accuracy = desired relative error in forces :pre
 :ule
 

@@ -27,9 +27,9 @@ Bond Styles: fene, fourier, harmonic :l
 Dihedral Styles: charmm, harmonic, opls :l
 Fixes: nve, npt, nvt, nvt/sllod, nve/asphere :l
 Improper Styles: cvff, harmonic :l
-Pair Styles: airebo, airebo/morse, buck/coul/cut, buck/coul/long, 
-buck, dpd, eam, eam/alloy, eam/fs, gayberne, lj/charmm/coul/charmm, 
-lj/charmm/coul/long, lj/cut, lj/cut/coul/long, lj/long/coul/long, 
+Pair Styles: airebo, airebo/morse, buck/coul/cut, buck/coul/long,
+buck, dpd, eam, eam/alloy, eam/fs, gayberne, lj/charmm/coul/charmm,
+lj/charmm/coul/long, lj/cut, lj/cut/coul/long, lj/long/coul/long,
 rebo, sw, tersoff :l
 K-Space Styles: pppm, pppm/disp :l
 :ule
@@ -233,12 +233,12 @@ However, if you do not have co-processors on your system, building
 without offload support will produce a smaller binary.
 
 The general requirements for Makefiles with the USER-INTEL package
-are as follows. When using Intel compilers, "-restrict" is required 
-and "-qopenmp" is highly recommended for CCFLAGS and LINKFLAGS. 
+are as follows. When using Intel compilers, "-restrict" is required
+and "-qopenmp" is highly recommended for CCFLAGS and LINKFLAGS.
 CCFLAGS should include "-DLMP_INTEL_USELRT" (unless POSIX Threads
 are not supported in the build environment) and "-DLMP_USE_MKL_RNG"
 (unless Intel Math Kernel Library (MKL) is not available in the build
-environment). For Intel compilers, LIB should include "-ltbbmalloc" 
+environment). For Intel compilers, LIB should include "-ltbbmalloc"
 or if the library is not available, "-DLMP_INTEL_NO_TBB" can be added
 to CCFLAGS. For builds supporting offload, "-DLMP_INTEL_OFFLOAD" is
 required for CCFLAGS and "-qoffload" is required for LINKFLAGS. Other
@@ -399,7 +399,7 @@ the "suffix hybrid intel omp"_suffix.html command can also be used
 within the input script to automatically append the "omp" suffix to
 styles when USER-INTEL styles are not available.
 
-NOTE: For simulations on higher node counts, add "processors * * * 
+NOTE: For simulations on higher node counts, add "processors * * *
 grid numa"_processors.html to the beginning of the input script for
 better scalability.
 

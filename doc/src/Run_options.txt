@@ -363,20 +363,20 @@ run:
 read_restart restartfile (remap)
 write_data datafile keyword value ... :pre
 
-Note that the specified restartfile and/or datafile can have the
-wild-card character "*".  The restartfile can also have the wild-card
-character "%".  The meaning of these characters is explained on the
+The specified restartfile and/or datafile can have the wild-card
+character "*".  The restartfile can also have the wild-card character
+"%".  The meaning of these characters is explained on the
 "read_restart"_read_restart.html and "write_data"_write_data.html doc
 pages.  The use of "%" means that a parallel restart file can be read.
 Note that a filename such as file.* will need to be enclosed in quotes
 to avoid shell expansion of the "*" character.
 
-Note that following restartfile, the optional word "remap" can be
-used.  This has the effect of adding it to the
-"read_restart"_read_restart.html command, as explained on its doc
-page.  This is useful if reading the restart file triggers an error
-that atoms have been lost.  In that case, use of the remap flag should
-allow the data file to still be produced.
+Following restartfile, the optional word "remap" can be used.  This
+has the effect of adding it to the "read_restart"_read_restart.html
+command, as explained on its doc page.  This is useful if reading the
+restart file triggers an error that atoms have been lost.  In that
+case, use of the remap flag should allow the data file to still be
+produced.
 
 The syntax following restartfile (or remap), namely
 

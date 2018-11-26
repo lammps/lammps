@@ -15,7 +15,7 @@
    Contributing author: Jaap Kroes (Radboud Universiteit)
    e-mail: jaapkroes at gmail dot com
    based on previous versions by Merel van Wijk and by Marco Raguzzoni
-  
+
    This is a simplified version of the potential described in
    [Kolmogorov & Crespi, Phys. Rev. B 71, 235415 (2005)]
    The simplification is that all normals are taken along the z-direction
@@ -42,7 +42,7 @@ using namespace LAMMPS_NS;
 
 PairKolmogorovCrespiZ::PairKolmogorovCrespiZ(LAMMPS *lmp) : Pair(lmp)
 {
-  writedata = 1;
+  single_enable = 0;
   restartinfo = 0;
 
   // initialize element to parameter maps

@@ -55,11 +55,11 @@ required changes or ask the submitter of the pull request to implement
 them.  Even though, all LAMMPS developers may have write access to pull
 requests (if enabled by the submitter, which is the default), only the
 submitter or the assignee of a pull request may do so.  During this
-period the "work_in_progress" label shall be applied to the pull
+period the `work_in_progress` label shall be applied to the pull
 request.  The assignee gets to decide what happens to the pull request
 next, e.g. whether it should be assigned to a different developer for
 additional checks and changes, or is recommended to be merged.  Removing
-the "work_in_progress" label and assigning the pull request to the
+the `work_in_progress` label and assigning the pull request to the
 developer tasked with merging signals that a pull request is ready to be
 merged.
 
@@ -145,6 +145,9 @@ Here are some items to check:
   compiling LAMMPS with `-DLAMMPS_BIGBIG`.
   * when including both `lmptype.h` (and using defines or macros from it)
   and `mpi.h`, `lmptype.h` must be included first.
+  * when pair styles are added, check if settings for flags like
+  `single_enable`, `writedata`, `reinitflag`, `manybody_flag`
+  and others are correctly set and supported.
 
 ## GitHub Issues
 

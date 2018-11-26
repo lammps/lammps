@@ -1,6 +1,6 @@
 #include <cmath>
 #include <cfloat>
-#include <string.h>
+#include <cstring>
 #include <cassert>
 #include <algorithm>
 #include "ptm_convex_hull_incremental.h"

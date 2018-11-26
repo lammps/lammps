@@ -61,9 +61,9 @@ Tersoff, COMB, AIREBO, and ReaxFF.  In fact, it generally makes no
 sense to define permanent bonds between atoms that interact via these
 potentials, though such bonds may exist elsewhere in your system,
 e.g. when using the "pair_style hybrid"_pair_hybrid.html command.
-Thus LAMMPS ignores special_bonds settings when manybody potentials
+Thus LAMMPS ignores special_bonds settings when many-body potentials
 are calculated.  Please note, that the existence of explicit bonds
-for atoms that are described by a manybody potential will alter the
+for atoms that are described by a many-body potential will alter the
 neighbor list and thus can render the computation of those interactions
 invalid, since those pairs are not only used to determine direct
 pairwise interactions but also neighbors of neighbors and more.

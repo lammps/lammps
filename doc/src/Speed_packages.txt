@@ -14,7 +14,7 @@ Accelerated versions of various "pair_style"_pair_style.html,
 been added to LAMMPS, which will typically run faster than the
 standard non-accelerated versions.  Some require appropriate hardware
 to be present on your system, e.g. GPUs or Intel Xeon Phi
-coprocessors.
+co-processors.
 
 All of these commands are in packages provided with LAMMPS.  An
 overview of packages is give on the "Packages"_Packages.html doc
@@ -161,7 +161,7 @@ package. These styles support vectorized single and mixed precision
 calculations, in addition to full double precision.  In extreme cases,
 this can provide speedups over 3.5x on CPUs.  The package also
 supports acceleration in "offload" mode to Intel(R) Xeon Phi(TM)
-coprocessors.  This can result in additional speedup over 2x depending
+co-processors.  This can result in additional speedup over 2x depending
 on the hardware configuration. :l
 
 Styles with a "kk" suffix are part of the KOKKOS package, and can be

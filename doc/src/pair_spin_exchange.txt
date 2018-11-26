@@ -41,7 +41,7 @@ where a, b and d are the three constant coefficients defined in the associated
 
 The coefficients a, b, and d need to be fitted so that the function above matches with
 the value of the exchange interaction for the N neighbor shells taken into account.
-Examples and more explanations about this function and its parametrization are reported
+Examples and more explanations about this function and its parameterization are reported
 in "(Tranchida)"_#Tranchida3.
 
 From this exchange interaction, each spin i will be submitted 
@@ -69,7 +69,7 @@ b  (adim parameter)
 d  (distance units) :ul
 
 Note that rc is the radius cutoff of the considered exchange interaction,
-and a, b and d are the three coefficients performing the parametrization
+and a, b and d are the three coefficients performing the parameterization
 of the function J(rij) defined above.
 
 None of those coefficients is optional. If not specified, the 

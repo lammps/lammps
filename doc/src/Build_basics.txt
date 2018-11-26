@@ -137,9 +137,9 @@ simply loading the appropriate module before building LAMMPS.
 -D CMAKE_C_COMPILER=name              # name of C compiler
 -D CMAKE_Fortran_COMPILER=name        # name of Fortran compiler :pre
 
--D CMAKE_CXX_FlAGS=string             # flags to use with C++ compiler
--D CMAKE_C_FlAGS=string               # flags to use with C compiler
--D CMAKE_Fortran_FlAGS=string         # flags to use with Fortran compiler :pre
+-D CMAKE_CXX_FLAGS=string             # flags to use with C++ compiler
+-D CMAKE_C_FLAGS=string               # flags to use with C compiler
+-D CMAKE_Fortran_FLAGS=string         # flags to use with Fortran compiler :pre
 
 By default CMake will use a compiler it finds and it will add
 optimization flags appropriate to that compiler and any "accelerator
@@ -292,7 +292,7 @@ This will create a lammps/doc/html dir with the HTML doc pages so that
 you can browse them locally on your system.  Type "make" from the
 lammps/doc dir to see other options.
 
-NOTE: You can also download a tarball of the documention for the
+NOTE: You can also download a tarball of the documentation for the
 current LAMMPS version (HTML and PDF files), from the website
 "download page"_http://lammps.sandia.gov/download.html.
 

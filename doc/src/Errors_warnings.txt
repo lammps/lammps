@@ -757,7 +757,7 @@ Self-explanatory. :dd
 
 This may indicate the shell command did not operate as expected. :dd
 
-{Should not allow rigid bodies to bounce off relecting walls} :dt
+{Should not allow rigid bodies to bounce off reflecting walls} :dt
 
 LAMMPS allows this, but their dynamics are not computed correctly. :dd
 
@@ -850,10 +850,10 @@ Most FENE models need this setting for the special_bonds command. :dd
 
 Most FENE models need this setting for the special_bonds command. :dd
 
-{Using a manybody potential with bonds/angles/dihedrals and special_bond exclusions} :dt
+{Using a many-body potential with bonds/angles/dihedrals and special_bond exclusions} :dt
 
 This is likely not what you want to do.  The exclusion settings will
-eliminate neighbors in the neighbor list, which the manybody potential
+eliminate neighbors in the neighbor list, which the many-body potential
 needs to calculated its terms correctly. :dd
 
 {Using compute temp/deform with inconsistent fix deform remap option} :dt

@@ -272,7 +272,7 @@ E: Cannot use pair tail corrections with 2d simulations
 
 The correction factors are only currently defined for 3d systems.
 
-W: Using pair tail corrections with nonperiodic system
+W: Using pair tail corrections with non-periodic system
 
 This is probably a bogus thing to do, since tail corrections are
 computed by integrating the density of a periodic system out to

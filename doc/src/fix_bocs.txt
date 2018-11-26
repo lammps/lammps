@@ -91,7 +91,7 @@ package"_Build_package.html doc page for more info.
 [Related:]
 
 For more details about the pressure correction and the entire BOCS software 
-package, visit the "BOCS package on github"_bocsgithub and read the release 
+package, visit the "BOCS package on GitHub"_bocsgithub and read the release 
 paper by Dunn et. al. "(Dunn2)"_#bocs-Dunn2 .
 
 

@@ -22,7 +22,7 @@ fix 1 qmol qmmm
 [Description:]
 
 This fix provides functionality to enable a quantum
-mechanics/molecular mechanice (QM/MM) coupling of LAMMPS to a quantum
+mechanics/molecular mechanics (QM/MM) coupling of LAMMPS to a quantum
 mechanical code.  The current implementation only supports an ONIOM
 style mechanical coupling to the "Quantum ESPRESSO"_espresso plane
 wave DFT package.  Electrostatic coupling is in preparation and the
@@ -58,7 +58,7 @@ library provided with LAMMPS.  See the "Build
 package"_Build_package.html doc page for more info.
 
 The fix is only functional when LAMMPS is built as a library and
-linked with a compatible QM program and a QM/MM frontend into a QM/MM
+linked with a compatible QM program and a QM/MM front end into a QM/MM
 executable.  See the lib/qmmm/README file for details.
 
 [Related commands:] none

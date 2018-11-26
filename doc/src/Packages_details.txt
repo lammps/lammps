@@ -89,12 +89,14 @@ as contained in the file name.
 "USER-NETCDF"_#PKG-USER-NETCDF,
 "USER-OMP"_#PKG-USER-OMP,
 "USER-PHONON"_#PKG-USER-PHONON,
+"USER-PLUMED"_#PKG-USER-PLUMED,
 "USER-PTM"_#PKG-USER-PTM,
 "USER-QMMM"_#PKG-USER-QMMM,
 "USER-QTB"_#PKG-USER-QTB,
 "USER-QUIP"_#PKG-USER-QUIP,
 "USER-REAXC"_#PKG-USER-REAXC,
 "USER-SCAFACOS"_#PKG-USER-SCAFACOS,
+"USER-SDPD"_#PKG-USER-SDPD,
 "USER-SMD"_#PKG-USER-SMD,
 "USER-SMTBQ"_#PKG-USER-SMTBQ,
 "USER-SPH"_#PKG-USER-SPH,
@@ -492,7 +494,7 @@ MANYBODY package :link(PKG-MANYBODY),h4
 
 [Contents:]
 
-A variety of manybody and bond-order potentials.  These include
+A variety of many-body and bond-order potentials.  These include
 (AI)REBO, BOP, EAM, EIM, Stillinger-Weber, and Tersoff potentials.
 
 [Supporting info:]
@@ -516,7 +518,7 @@ MC package :link(PKG-MC),h4
 Several fixes and a pair style that have Monte Carlo (MC) or MC-like
 attributes.  These include fixes for creating, breaking, and swapping
 bonds, for performing atomic swaps, and performing grand-canonical MC
-(GCMC) in conjuction with dynamics.
+(GCMC) in conjunction with dynamics.
 
 [Supporting info:]
 
@@ -1186,7 +1188,7 @@ the NAMD MD code, but with portability in mind.  Axel Kohlmeyer
 [Install:] 
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-colvars on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -1197,6 +1199,36 @@ src/USER-COLVARS/README
 lib/colvars/README
 "fix colvars"_fix_colvars.html
 examples/USER/colvars :ul
+
+:line
+
+USER-PLUMED package :link(PKG-USER-PLUMED),h4
+
+[Contents:]
+
+The fix plumed command allows you to use the PLUMED free energy plugin
+for molecular dynamics to analyze and bias your LAMMPS trajectory on
+the fly.  The PLUMED library is called from within the LAMMPS input
+script by using the "fix plumed _fix_plumed.html command.
+
+[Authors:] The "PLUMED library"_#PLUMED is written and maintained by
+Massimilliano Bonomi, Giovanni Bussi, Carlo Camiloni and Gareth
+Tribello.
+
+:link(PLUMED,http://www.plumed.org)
+
+[Install:]
+
+This package has "specific installation
+instructions"_Build_extras.html#gpu on the "Build
+extras"_Build_extras.html doc page.
+
+[Supporting info:]
+
+src/USER-PLUMED/README
+lib/plumed/README
+"fix plumed"_fix_plumed.html
+examples/USER/plumed :ul
 
 :line
 
@@ -1913,6 +1945,31 @@ src/USER-SCAFACOS/README
 "kspace_style scafacos"_kspace_style.html
 "kspace_modify"_kspace_modify.html
 examples/USER/scafacos :ul
+
+:line
+
+USER-SDPD package :link(PKG-USER-SDPD),h4
+
+[Contents:]
+
+A pair style for smoothed dissipative particle dynamics (SDPD), which
+is an extension of smoothed particle hydrodynamics (SPH) to mesoscale
+where thermal fluctuations are important (see the
+"USER-SPH package"_#PKG-USER-SPH).
+Also two fixes for moving and rigid body integration of SPH/SDPD particles
+(particles of atom_style meso).
+
+[Author:] Morteza Jalalvand (Institute for Advanced Studies in Basic
+Sciences, Iran).
+
+[Supporting info:]
+
+src/USER-SDPD: filenames -> commands
+src/USER-SDPD/README
+"pair_style sdpd/taitwater/isothermal"_pair_sdpd_taitwater_isothermal.html
+"fix meso/move"_fix_meso_move.html
+"fix rigid/meso"_fix_rigid_meso.html
+examples/USER/sdpd :ul
 
 :line
 

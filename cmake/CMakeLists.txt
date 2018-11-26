@@ -171,8 +171,9 @@ set(DEFAULT_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS DIPOLE GRANULAR
   USER-BOCS USER-CGDNA USER-MESO USER-CGSDK USER-COLVARS USER-DIFFRACTION
   USER-DPD USER-DRUDE USER-EFF USER-FEP USER-H5MD USER-LB USER-MANIFOLD
   USER-MEAMC USER-MGPT USER-MISC USER-MOFFF USER-MOLFILE USER-NETCDF
-  USER-PHONON USER-PTM USER-QTB USER-REAXC USER-SCAFACOS USER-SMD USER-SMTBQ
-  USER-SPH USER-TALLY USER-UEF USER-VTK USER-QUIP USER-QMMM)
+  USER-PHONON USER-PLUMED USER-PTM USER-QTB USER-REAXC USER-SCAFACOS
+  USER-SDPD USER-SMD USER-SMTBQ USER-SPH USER-TALLY USER-UEF USER-VTK
+  USER-QUIP USER-QMMM)
 set(ACCEL_PACKAGES USER-OMP KOKKOS OPT USER-INTEL GPU)
 set(OTHER_PACKAGES CORESHELL QEQ)
 foreach(PKG ${DEFAULT_PACKAGES})
@@ -192,6 +193,8 @@ endif()
 if(PKG_MEAM OR PKG_USER-H5MD OR PKG_USER-QMMM OR PKG_USER-SCAFACOS)
   enable_language(C)
 endif()
+
+include_directories(${LAMMPS_SOURCE_DIR})
 
 # do MPI detection after language activation, if MPI for these language is required
 find_package(MPI QUIET)
@@ -301,7 +304,7 @@ pkg_depends(USER-SCAFACOS MPI)
 
 find_package(OpenMP QUIET)
 option(BUILD_OMP "Build with OpenMP support" ${OpenMP_FOUND})
-if(BUILD_OMP OR PKG_USER-OMP OR PKG_KOKKOS OR PKG_USER-INTEL)
+if(BUILD_OMP OR PKG_KOKKOS OR PKG_USER-INTEL)
   find_package(OpenMP REQUIRED)
   set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
@@ -346,7 +349,7 @@ if(PKG_KSPACE)
   endif()
 endif()
 
-if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-QUIP OR PKG_LATTE)
+if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-QUIP OR PKG_LATTE OR PKG_USER-PLUMED)
   find_package(LAPACK)
   find_package(BLAS)
   if(NOT LAPACK_FOUND OR NOT BLAS_FOUND)
@@ -524,6 +527,54 @@ if(PKG_USER-SCAFACOS)
     list(APPEND LAMMPS_LINK_LIBS ${SCAFACOS_LDFLAGS})
   endif()
   include_directories(${SCAFACOS_INCLUDE_DIRS})
+endif()
+
+if(PKG_USER-PLUMED)
+  find_package(GSL REQUIRED)
+  set(PLUMED_MODE "static" CACHE STRING "Linkage mode for Plumed2 library")
+  set(PLUMED_MODE_VALUES static shared runtime)
+  set_property(CACHE PLUMED_MODE PROPERTY STRINGS ${PLUMED_MODE_VALUES})
+  validate_option(PLUMED_MODE PLUMED_MODE_VALUES)
+  string(TOUPPER ${PLUMED_MODE} PLUMED_MODE)
+
+  option(DOWNLOAD_PLUMED "Download Plumed (instead of using the system's one)" OFF)
+  if(DOWNLOAD_PLUMED)
+    include(ExternalProject)
+    ExternalProject_Add(plumed_build
+      URL https://github.com/plumed/plumed2/releases/download/v2.4.3/plumed-src-2.4.3.tgz 
+      URL_MD5 b1be7c48971627febc11c61b70767fc5
+      BUILD_IN_SOURCE 1
+      CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> 
+                                               $<$<BOOL:${BUILD_SHARED_LIBS}>:--with-pic>                                                  )
+    ExternalProject_get_property(plumed_build INSTALL_DIR)
+    set(PLUMED_INSTALL_DIR ${INSTALL_DIR})
+    list(APPEND LAMMPS_DEPS plumed_build)
+    if(PLUMED_MODE STREQUAL "STATIC")
+      add_definitions(-D__PLUMED_WRAPPER_CXX=1)
+      list(APPEND LAMMPS_LINK_LIBS ${PLUMED_INSTALL_DIR}/lib/plumed/obj/kernel.o
+        "${PLUMED_INSTALL_DIR}/lib/plumed/obj/PlumedStatic.o" ${GSL_LIBRARIES} ${CMAKE_DL_LIBS} ${LAPACK_LIBRARIES})
+    elseif(PLUMED_MODE STREQUAL "SHARED")
+      list(APPEND LAMMPS_LINK_LIBS ${PLUMED_INSTALL_DIR}/lib/libplumed.so ${CMAKE_DL_LIBS})
+    elseif(PLUMED_MODE STREQUAL "RUNTIME")
+      add_definitions(-D__PLUMED_HAS_DLOPEN=1 -D__PLUMED_DEFAULT_KERNEL=${PLUMED_INSTALL_DIR}/lib/libplumedKernel.so)
+      list(APPEND LAMMPS_LINK_LIBS ${PLUMED_INSTALL_DIR}/lib/libplumedWrapper.a -rdynamic ${CMAKE_DL_LIBS})
+    endif()
+    set(PLUMED_INCLUDE_DIRS "${PLUMED_INSTALL_DIR}/include")
+  else()
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(PLUMED plumed REQUIRED)
+    if(PLUMED_MODE STREQUAL "STATIC")
+      add_definitions(-D__PLUMED_WRAPPER_CXX=1)
+      include(${PLUMED_LIBDIR}/plumed/src/lib/Plumed.cmake.static)
+    elseif(PLUMED_MODE STREQUAL "SHARED")
+      include(${PLUMED_LIBDIR}/plumed/src/lib/Plumed.cmake.shared)
+    elseif(PLUMED_MODE STREQUAL "RUNTIME")
+      add_definitions(-D__PLUMED_HAS_DLOPEN=1 -D__PLUMED_DEFAULT_KERNEL=${PLUMED_LIBDIR}/libplumedKernel.so)
+      include(${PLUMED_LIBDIR}/plumed/src/lib/Plumed.cmake.runtime)
+    endif()
+    list(APPEND LAMMPS_LINK_LIBS ${PLUMED_LOAD})
+  endif()
+  include_directories(${PLUMED_INCLUDE_DIRS})
 endif()
 
 if(PKG_USER-MOLFILE)
@@ -740,6 +791,13 @@ foreach(PKG ${DEFAULT_PACKAGES})
   endif()
 endforeach()
 
+# packages that need defines set
+foreach(PKG MPIIO)
+  if(PKG_${PKG})
+    add_definitions(-DLMP_${PKG})
+  endif()
+endforeach()
+
 # dedicated check for entire contents of accelerator packages
 foreach(PKG ${ACCEL_PACKAGES})
   set(${PKG}_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/${PKG})
@@ -768,7 +826,7 @@ foreach(SIMPLE_LIB REAX MEAM POEMS USER-ATC USER-AWPMD USER-COLVARS USER-H5MD
     if(PKG_LIB STREQUAL awpmd)
       target_include_directories(awpmd PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/awpmd/systems/interact ${LAMMPS_LIB_SOURCE_DIR}/awpmd/ivutils/include)
     elseif(PKG_LIB STREQUAL h5md)
-      target_include_directories(h5md PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/h5md/include)
+      target_include_directories(h5md PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/h5md/include ${HDF5_INCLUDE_DIRS})
     elseif(PKG_LIB STREQUAL colvars)
       target_compile_options(colvars PRIVATE -DLEPTON)
       target_include_directories(colvars PRIVATE ${LAMMPS_LIB_SOURCE_DIR}/colvars/lepton/include)
@@ -791,6 +849,7 @@ if(PKG_USER-H5MD)
   find_package(HDF5 REQUIRED)
   target_link_libraries(h5md ${HDF5_LIBRARIES})
   target_include_directories(h5md PRIVATE ${HDF5_INCLUDE_DIRS})
+  include_directories(${HDF5_INCLUDE_DIRS})
 endif()
 
 
@@ -874,6 +933,20 @@ if(PKG_USER-OMP)
 
     list(APPEND LIB_SOURCES ${USER-OMP_SOURCES})
     include_directories(${USER-OMP_SOURCES_DIR})
+endif()
+
+# Fix rigid/meso requires RIGID to be installed
+if(PKG_USER-SDPD)
+  set(USER-SDPD_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/USER-SDPD)
+
+  get_property(hlist GLOBAL PROPERTY FIX)
+  if(NOT PKG_RIGID)
+    list(REMOVE_ITEM hlist ${USER-SDPD_SOURCES_DIR}/fix_rigid_meso.h)
+    list(REMOVE_ITEM LIB_SOURCES ${USER-SDPD_SOURCES_DIR}/fix_rigid_meso.cpp)
+  endif()
+  set_property(GLOBAL PROPERTY FIX "${hlist}")
+
+  include_directories(${USER-SDPD_SOURCES_DIR})
 endif()
 
 if(PKG_KOKKOS)
@@ -1166,7 +1239,6 @@ set(LAMMPS_STYLE_HEADERS_DIR ${CMAKE_CURRENT_BINARY_DIR}/styles)
 
 GenerateStyleHeaders(${LAMMPS_STYLE_HEADERS_DIR})
 
-include_directories(${LAMMPS_SOURCE_DIR})
 include_directories(${LAMMPS_STYLE_HEADERS_DIR})
 
 ######################################

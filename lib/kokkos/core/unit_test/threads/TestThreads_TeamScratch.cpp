@@ -65,6 +65,10 @@ TEST_F( TEST_CATEGORY, team_lambda_shared_request )
   TestLambdaSharedTeam< Kokkos::HostSpace, TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> >();
   TestLambdaSharedTeam< Kokkos::HostSpace, TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >();
 }
+
+TEST_F( TEST_CATEGORY, scratch_align) {
+  TestScratchAlignment< TEST_EXECSPACE >();
+}
 #endif
 #endif
 

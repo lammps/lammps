@@ -379,6 +379,40 @@ void colvarvalue::set_random()
 }
 
 
+void colvarvalue::set_ones(cvm::real assigned_value)
+{
+  size_t ic;
+  switch (this->type()) {
+  case colvarvalue::type_scalar:
+    this->real_value = assigned_value;
+    break;
+  case colvarvalue::type_3vector:
+  case colvarvalue::type_unit3vector:
+  case colvarvalue::type_unit3vectorderiv:
+    this->rvector_value.x = assigned_value;
+    this->rvector_value.y = assigned_value;
+    this->rvector_value.z = assigned_value;
+    break;
+  case colvarvalue::type_quaternion:
+  case colvarvalue::type_quaternionderiv:
+    this->quaternion_value.q0 = assigned_value;
+    this->quaternion_value.q1 = assigned_value;
+    this->quaternion_value.q2 = assigned_value;
+    this->quaternion_value.q3 = assigned_value;
+    break;
+  case colvarvalue::type_vector:
+    for (ic = 0; ic < this->vector1d_value.size(); ic++) {
+      this->vector1d_value[ic] = assigned_value;
+    }
+    break;
+  case colvarvalue::type_notset:
+  default:
+    undef_op();
+    break;
+  }
+}
+
+
 void colvarvalue::undef_op() const
 {
   cvm::error("Error: Undefined operation on a colvar of type \""+

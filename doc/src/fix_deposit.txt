@@ -255,7 +255,7 @@ temperature compute you are using.
 
 This fix writes the state of the deposition to "binary restart
 files"_restart.html.  This includes information about how many
-particles have been depositied, the random number generator seed, the
+particles have been deposited, the random number generator seed, the
 next timestep for deposition, etc.  See the
 "read_restart"_read_restart.html command for info on how to re-specify
 a fix in an input script that reads a restart file, so that the

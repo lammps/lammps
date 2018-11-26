@@ -36,7 +36,7 @@ A Langevin thermostat can be applied to those magnetic spins using
 "fix langevin/spin"_fix_langevin_spin.html. Typically, this thermostat 
 can be coupled to another Langevin thermostat applied to the atoms 
 using "fix langevin"_fix_langevin.html in order to simulate 
-thermostated spin-lattice system. 
+thermostatted spin-lattice system. 
 
 The magnetic Gilbert damping can also be applied using "fix 
 langevin/spin"_fix_langevin_spin.html. It allows to either dissipate 

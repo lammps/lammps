@@ -179,7 +179,7 @@ options.
 For the {omega} keyword there is also a scale factor of 10.0/3.0 that
 is applied as a multiplier on the Ff (damping) term in the equation
 above and of sqrt(10.0/3.0) as a multiplier on the Fr term.  This does
-not affect the thermostatting behaviour of the Langevin formalism but
+not affect the thermostatting behavior of the Langevin formalism but
 insures that the randomized rotational diffusivity of spherical
 particles is correct.
 
@@ -255,7 +255,7 @@ bonds, configurational properties generated with dt = 2.5 fs and tdamp
 = 100 fs are indistinguishable from dt = 0.5 fs.  Because the velocity
 distribution systematically decreases with increasing timestep, the
 method should not be used to generate properties that depend on the
-velocity distribution, such as the velocity autocorrelation function
+velocity distribution, such as the velocity auto-correlation function
 (VACF). In this example, the velocity distribution at dt = 2.5fs
 generates an average temperature of 220 K, instead of 300 K.
 

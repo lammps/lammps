@@ -39,6 +39,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
 	OBJ_CUDA += TestCuda_DynRankViewAPI_rank12345.o
 	OBJ_CUDA += TestCuda_DynRankViewAPI_rank67.o
 	OBJ_CUDA += TestCuda_ErrorReporter.o
+	OBJ_CUDA += TestCuda_OffsetView.o
 	OBJ_CUDA += TestCuda_ScatterView.o
 	OBJ_CUDA += TestCuda_StaticCrsGraph.o
 	OBJ_CUDA += TestCuda_UnorderedMap.o
@@ -57,6 +58,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_ROCM), 1)
 	OBJ_ROCM += TestROCm_DynRankViewAPI_rank12345.o
 	OBJ_ROCM += TestROCm_DynRankViewAPI_rank67.o
 	OBJ_ROCM += TestROCm_ErrorReporter.o
+	OBJ_ROCM += TestROCm_OffsetView.o
 	OBJ_ROCM += TestROCm_ScatterView.o
 	OBJ_ROCM += TestROCm_StaticCrsGraph.o
 	OBJ_ROCM += TestROCm_UnorderedMap.o
@@ -75,6 +77,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_PTHREADS), 1)
 	OBJ_THREADS += TestThreads_DynRankViewAPI_rank12345.o
 	OBJ_THREADS += TestThreads_DynRankViewAPI_rank67.o
 	OBJ_THREADS += TestThreads_ErrorReporter.o
+	OBJ_THREADS += TestThreads_OffsetView.o
 	OBJ_THREADS += TestThreads_ScatterView.o
 	OBJ_THREADS += TestThreads_StaticCrsGraph.o
 	OBJ_THREADS += TestThreads_UnorderedMap.o
@@ -93,6 +96,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_OPENMP), 1)
 	OBJ_OPENMP += TestOpenMP_DynRankViewAPI_rank12345.o
 	OBJ_OPENMP += TestOpenMP_DynRankViewAPI_rank67.o
 	OBJ_OPENMP += TestOpenMP_ErrorReporter.o
+	OBJ_OPENMP += TestOpenMP_OffsetView.o
 	OBJ_OPENMP += TestOpenMP_ScatterView.o
 	OBJ_OPENMP += TestOpenMP_StaticCrsGraph.o
 	OBJ_OPENMP += TestOpenMP_UnorderedMap.o
@@ -111,6 +115,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_SERIAL), 1)
 	OBJ_SERIAL += TestSerial_DynRankViewAPI_rank12345.o
 	OBJ_SERIAL += TestSerial_DynRankViewAPI_rank67.o
 	OBJ_SERIAL += TestSerial_ErrorReporter.o
+	OBJ_SERIAL += TestSerial_OffsetView.o
 	OBJ_SERIAL += TestSerial_ScatterView.o
 	OBJ_SERIAL += TestSerial_StaticCrsGraph.o
 	OBJ_SERIAL += TestSerial_UnorderedMap.o

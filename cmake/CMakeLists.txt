@@ -1143,11 +1143,44 @@ if(PKG_GPU)
         file(GLOB GPU_LIB_CUDPP_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini/[^.]*.cu)
       endif()
 
-      cuda_compile_cubin(GPU_GEN_OBJS ${GPU_LIB_CU} OPTIONS
-                   -DUNIX -O3 -Xptxas -v --use_fast_math -DNV_KERNEL -DUCL_CUDADR -arch=${GPU_ARCH} -D_${GPU_PREC_SETTING})
+      # build arch/gencode commands for nvcc based on CUDA toolkit version and use choice
+      # --arch translates directly instead of JIT, so this should be for the preferred or most common architecture
+      set(GPU_CUDA_GENCODE "-arch=${GPU_ARCH} ")
+      # Fermi (GPU Arch 2.x) is supported by CUDA 3.2 to CUDA 8.0
+      if((CUDA_VERSION VERSION_GREATER "3.1") AND (CUDA_VERSION VERSION_LESS "9.0"))
+        string(APPEND GPU_CUDA_GENCODE "-gencode arch=compute_20,code=[sm_20,compute_20] ")
+      endif()
+      # Kepler (GPU Arch 3.x) is supported by CUDA 5 and later
+      if(CUDA_VERSION VERSION_GREATER "4.9")
+        string(APPEND GPU_CUDA_GENCODE "-gencode arch=compute_30,code=[sm_30,compute_30] -gencode arch=compute_35,code=[sm_35,compute_35] ")
+      endif()
+      # Maxwell (GPU Arch 5.x) is supported by CUDA 6 and later
+      if(CUDA_VERSION VERSION_GREATER "5.9")
+        string(APPEND GPU_CUDA_GENCODE "-gencode arch=compute_50,code=[sm_50,compute_50] -gencode arch=compute_52,code=[sm_52,compute_52] ")
+      endif()
+      # Pascal (GPU Arch 6.x) is supported by CUDA 8 and later
+      if(CUDA_VERSION VERSION_GREATER "7.9")
+        string(APPEND GPU_CUDA_GENCODE "-gencode arch=compute_60,code=[sm_60,compute_60] -gencode arch=compute_61,code=[sm_61,compute_61] ")
+      endif()
+      # Volta (GPU Arch 7.0) is supported by CUDA 9 and later
+      if(CUDA_VERSION VERSION_GREATER "8.9")
+        string(APPEND GPU_CUDA_GENCODE "-gencode arch=compute_70,code=[sm_70,compute_70] ")
+      endif()
+      # Turing (GPU Arch 7.5) is supported by CUDA 10 and later
+      if(CUDA_VERSION VERSION_GREATER "9.9")
+        string(APPEND GPU_CUDA_GENCODE "-gencode arch=compute_75,code=[sm_75,compute_75] ")
+      endif()
 
-      cuda_compile(GPU_OBJS ${GPU_LIB_CUDPP_CU} OPTIONS $<$<BOOL:${BUILD_SHARED_LIBS}>:-Xcompiler=-fPIC>
-                   -DUNIX -O3 -Xptxas -v --use_fast_math -DUCL_CUDADR -arch=${GPU_ARCH} -D_${GPU_PREC_SETTING})
+      cuda_compile_fatbin(GPU_GEN_OBJS ${GPU_LIB_CU} OPTIONS
+              -DUNIX -O3 -Xptxas -v --use_fast_math -DNV_KERNEL -DUCL_CUDADR ${GPU_CUDA_GENCODE} -D_${GPU_PREC_SETTING})
+
+      if(${BUILD_SHARED_LIBS})
+        cuda_compile(GPU_OBJS ${GPU_LIB_CUDPP_CU} OPTIONS -Xcompiler=-fPIC
+                -DUNIX -O3 -Xptxas -v --use_fast_math -DUCL_CUDADR ${GPU_CUDA_GENCODE} -D_${GPU_PREC_SETTING})
+      else()
+        cuda_compile(GPU_OBJS ${GPU_LIB_CUDPP_CU} OPTIONS
+                -DUNIX -O3 -Xptxas -v --use_fast_math -DUCL_CUDADR ${GPU_CUDA_GENCODE} -D_${GPU_PREC_SETTING})
+      endif()
 
       foreach(CU_OBJ ${GPU_GEN_OBJS})
         get_filename_component(CU_NAME ${CU_OBJ} NAME_WE)

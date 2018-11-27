@@ -182,7 +182,7 @@ if buildflag:
  
 if buildflag:
    print("Building plumed ...")
-   cmd = 'cd %s/plumed-%s; ./configure --prefix=%s --enable-static-patch ; make ; make install' % (homepath,version,homedir)
+   cmd = 'cd %s/plumed-%s; ./configure --prefix=%s --enable-static-patch ; make -j8 ; make install' % (homepath,version,homedir)
    txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
    print(txt.decode('UTF-8'))
 # 

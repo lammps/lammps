@@ -139,6 +139,7 @@ while iarg < nargs:
   else: error()
 
 homepath = fullpath(homepath)
+homedir = "%s/plumed2" % (homepath)
 
 if (pathflag):
     if not os.path.isdir(plumedpath): error("Plumed2 path does not exist")
@@ -170,8 +171,8 @@ if buildflag:
   if os.path.exists("%s/plumed-%s" % (homepath,version)):
     cmd = 'rm -rf "%s/plumed-%s"' % (homepath,version)
     subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  if os.path.exists("%s/plumed2" % (homepath)):
-    cmd = 'rm -rf "%s/plumed2"' % (homepath)
+  if os.path.exists(homedir):
+    cmd = 'rm -rf "%s"' % (homedir)
     subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   cmd = 'cd "%s"; tar -xzvf %s' % (homepath,filename)
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
@@ -181,7 +182,7 @@ if buildflag:
  
 if buildflag:
    print("Building plumed ...")
-   cmd = 'cd %s/plumed-%s; ./configure --prefix=%s/plumed2 --enable-static-patch ; make ; make install' % (homepath,version,homepath)
+   cmd = 'cd %s/plumed-%s; ./configure --prefix=%s --enable-static-patch ; make ; make install' % (homepath,version,homedir)
    txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
    print(txt.decode('UTF-8'))
 # 

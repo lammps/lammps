@@ -476,7 +476,6 @@ if(PKG_LATTE)
       SOURCE_SUBDIR cmake
       CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> ${CMAKE_REQUEST_PIC}
     )
-    endif()
     ExternalProject_get_property(latte_build INSTALL_DIR)
     set(LATTE_LIBRARIES ${INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/liblatte.a)
     list(APPEND LAMMPS_DEPS latte_build)
@@ -1491,7 +1490,7 @@ endif()
 if(CMAKE_EXE_LINKER_FLAGS)
   message(STATUS "Linker flags:
    Executable      ${CMAKE_EXE_LINKER_FLAGS}")
-  endif()
+endif()
 if(BUILD_SHARED_LIBS)
   message(STATUS "Shared libraries  ${CMAKE_SHARED_LINKER_FLAGS}")
 else()

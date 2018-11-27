@@ -422,15 +422,25 @@ if(WITH_FFMPEG)
   add_definitions(-DLAMMPS_FFMPEG)
 endif()
 
+if(BUILD_SHARED_LIBS)
+  set(CONFIGURE_REQUEST_PIC "--with-pic")
+  set(CMAKE_REQUEST_PIC "-DCMAKE_POSITION_INDEPENDENT_CODE=${CMAKE_POSITION_INDEPENDENT_CODE}")
+else()
+  set(CONFIGURE_REQUEST_PIC "")
+  set(CMAKE_REQUEST_PIC "")
+endif()
+
+
 if(PKG_VORONOI)
-  option(DOWNLOAD_VORO "Download voro++ (instead of using the system's one)" OFF)
+  option(DOWNLOAD_VORO "Download and compile the Voro++ library instead of using an already installed one" OFF)
   if(DOWNLOAD_VORO)
+    message(STATUS "Voro++ download requested - we will build our own")
     include(ExternalProject)
 
     if(BUILD_SHARED_LIBS)
-        set(VORO_BUILD_OPTIONS "CFLAGS=-fPIC")
+      set(VORO_BUILD_OPTIONS CXX="${CMAKE_CXX_COMPILER}" CFLAGS="${CMAKE_POSITION_INDEPENDENT_CODE} ${CMAKE_C_FLAGS}")
     else()
-        set(VORO_BUILD_OPTIONS)
+      set(VORO_BUILD_OPTIONS CXX="${CMAKE_CXX_COMPILER}" CFLAGS="${CMAKE_C_FLAGS}")
     endif()
 
     ExternalProject_Add(voro_build
@@ -445,7 +455,7 @@ if(PKG_VORONOI)
   else()
     find_package(VORO)
     if(NOT VORO_FOUND)
-      message(FATAL_ERROR "VORO not found, help CMake to find it by setting VORO_LIBRARY and VORO_INCLUDE_DIR, or set DOWNLOAD_VORO=ON to download it")
+      message(FATAL_ERROR "Voro++ library not found. Help CMake to find it by setting VORO_LIBRARY and VORO_INCLUDE_DIR, or set DOWNLOAD_VORO=ON to download it")
     endif()
   endif()
   include_directories(${VORO_INCLUDE_DIRS})
@@ -453,26 +463,27 @@ if(PKG_VORONOI)
 endif()
 
 if(PKG_LATTE)
-  option(DOWNLOAD_LATTE "Download latte (instead of using the system's one)" OFF)
+  option(DOWNLOAD_LATTE "Download the LATTE library instead of using an already installed one" OFF)
   if(DOWNLOAD_LATTE)
-    if (CMAKE_VERSION VERSION_LESS "3.7") # due to SOURCE_SUBDIR 
+    if (CMAKE_VERSION VERSION_LESS "3.7") # due to SOURCE_SUBDIR
       message(FATAL_ERROR "For downlading LATTE you need at least cmake-3.7")
     endif()
-    message(STATUS "LATTE not found - we will build our own")
+    message(STATUS "LATTE download requested - we will build our own")
     include(ExternalProject)
     ExternalProject_Add(latte_build
       URL https://github.com/lanl/LATTE/archive/v1.2.1.tar.gz
       URL_MD5 85ac414fdada2d04619c8f936344df14
       SOURCE_SUBDIR cmake
-      CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> -DCMAKE_POSITION_INDEPENDENT_CODE=${CMAKE_POSITION_INDEPENDENT_CODE}
-      )
+      CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> ${CMAKE_REQUEST_PIC}
+    )
+    endif()
     ExternalProject_get_property(latte_build INSTALL_DIR)
     set(LATTE_LIBRARIES ${INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/liblatte.a)
     list(APPEND LAMMPS_DEPS latte_build)
   else()
     find_package(LATTE)
     if(NOT LATTE_FOUND)
-      message(FATAL_ERROR "LATTE not found, help CMake to find it by setting LATTE_LIBRARY, or set DOWNLOAD_LATTE=ON to download it")
+      message(FATAL_ERROR "LATTE library not found, help CMake to find it by setting LATTE_LIBRARY, or set DOWNLOAD_LATTE=ON to download it")
     endif()
   endif()
   list(APPEND LAMMPS_LINK_LIBS ${LATTE_LIBRARIES} ${LAPACK_LIBRARIES})
@@ -480,24 +491,22 @@ endif()
 
 if(PKG_USER-SCAFACOS)
   find_package(GSL REQUIRED)
-  option(DOWNLOAD_SCAFACOS "Download ScaFaCoS (instead of using the system's one)" OFF)
+  option(DOWNLOAD_SCAFACOS "Download ScaFaCoS library instead of using an already installed one" OFF)
   if(DOWNLOAD_SCAFACOS)
+    message(STATUS "ScaFaCoS download requested - we will build our own")
     include(ExternalProject)
     ExternalProject_Add(scafacos_build
       URL https://github.com/scafacos/scafacos/releases/download/v1.0.1/scafacos-1.0.1.tar.gz
       URL_MD5 bd46d74e3296bd8a444d731bb10c1738
-      CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
-                                               --disable-doc
+      CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --disable-doc
                                                --enable-fcs-solvers=fmm,p2nfft,direct,ewald,p3m
-                                               --with-internal-fftw
-                                               --with-internal-pfft
-                                               --with-internal-pnfft
-                                               --with-pic
+                                               --with-internal-fftw --with-internal-pfft
+                                               --with-internal-pnfft ${CONFIGURE_REQUEST_PIC}
                                                FC=${CMAKE_MPI_Fortran_COMPILER}
                                                CXX=${CMAKE_MPI_CXX_COMPILER}
                                                CC=${CMAKE_MPI_C_COMPILER}
                                                F77=
-      )
+    )
     ExternalProject_get_property(scafacos_build INSTALL_DIR)
     set(SCAFACOS_BUILD_DIR ${INSTALL_DIR})
     set(SCAFACOS_INCLUDE_DIRS ${SCAFACOS_BUILD_DIR}/include)
@@ -537,14 +546,15 @@ if(PKG_USER-PLUMED)
   validate_option(PLUMED_MODE PLUMED_MODE_VALUES)
   string(TOUPPER ${PLUMED_MODE} PLUMED_MODE)
 
-  option(DOWNLOAD_PLUMED "Download Plumed (instead of using the system's one)" OFF)
+  option(DOWNLOAD_PLUMED "Download Plumed package instead of using an already installed one" OFF)
   if(DOWNLOAD_PLUMED)
+    message(STATUS "PLUMED download requested - we will build our own")
     include(ExternalProject)
     ExternalProject_Add(plumed_build
       URL https://github.com/plumed/plumed2/releases/download/v2.4.3/plumed-src-2.4.3.tgz
       URL_MD5 b1be7c48971627febc11c61b70767fc5
       BUILD_IN_SOURCE 1
-      CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --with-pic)
+      CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> ${CONFIGURE_REQUEST_PIC})
     ExternalProject_get_property(plumed_build INSTALL_DIR)
     set(PLUMED_INSTALL_DIR ${INSTALL_DIR})
     list(APPEND LAMMPS_DEPS plumed_build)
@@ -591,11 +601,12 @@ if(PKG_USER-NETCDF)
 endif()
 
 if(PKG_USER-SMD)
-  option(DOWNLOAD_EIGEN3 "Download Eigen3 (instead of using the system's one)" OFF)
+  option(DOWNLOAD_EIGEN3 "Download Eigen3 instead of using an already installed one)" OFF)
   if(DOWNLOAD_EIGEN3)
+    message(STATUS "Eigen3 download requested - we will build our own")
     include(ExternalProject)
     ExternalProject_Add(Eigen3_build
-      URL http://bitbucket.org/eigen/eigen/get/3.3.4.tar.gz 
+      URL http://bitbucket.org/eigen/eigen/get/3.3.4.tar.gz
       URL_MD5 1a47e78efe365a97de0c022d127607c3
       CONFIGURE_COMMAND "" BUILD_COMMAND "" INSTALL_COMMAND ""
     )
@@ -632,8 +643,9 @@ if(PKG_USER-VTK)
 endif()
 
 if(PKG_KIM)
-  option(DOWNLOAD_KIM "Download kim-api (instead of using the system's one)" OFF)
+  option(DOWNLOAD_KIM "Download KIM-API v1 from OpenKIM instead of using an already installed one)" OFF)
   if(DOWNLOAD_KIM)
+    message(STATUS "KIM-API v1 download requested - we will build our own")
     include(ExternalProject)
     ExternalProject_Add(kim_build
       URL https://github.com/openkim/kim-api/archive/v1.9.5.tar.gz
@@ -648,7 +660,7 @@ if(PKG_KIM)
   else()
     find_package(KIM)
     if(NOT KIM_FOUND)
-      message(FATAL_ERROR "KIM not found, help CMake to find it by setting KIM_LIBRARY and KIM_INCLUDE_DIR, or set DOWNLOAD_KIM=ON to download it")
+      message(FATAL_ERROR "KIM-API v1 not found, help CMake to find it by setting KIM_LIBRARY and KIM_INCLUDE_DIR, or set DOWNLOAD_KIM=ON to download it")
     endif()
   endif()
   list(APPEND LAMMPS_LINK_LIBS ${KIM_LIBRARIES})
@@ -691,10 +703,10 @@ endif()
 
 if(PKG_MSCG)
   find_package(GSL REQUIRED)
-  option(DOWNLOAD_MSCG "Download latte (instead of using the system's one)" OFF)
+  option(DOWNLOAD_MSCG "Download MSCG library instead of using an already installed one)" OFF)
   if(DOWNLOAD_MSCG)
-    if (CMAKE_VERSION VERSION_LESS "3.7") # due to SOURCE_SUBDIR 
-      message(FATAL_ERROR "For downlading LATTE you need at least cmake-3.7")
+    if (CMAKE_VERSION VERSION_LESS "3.7") # due to SOURCE_SUBDIR
+      message(FATAL_ERROR "For downlading MSCG you need at least cmake-3.7")
     endif()
     include(ExternalProject)
     if(NOT LAPACK_FOUND)
@@ -704,7 +716,7 @@ if(PKG_MSCG)
       URL https://github.com/uchicago-voth/MSCG-release/archive/1.7.3.1.tar.gz
       URL_MD5 8c45e269ee13f60b303edd7823866a91
       SOURCE_SUBDIR src/CMake
-      CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> -DCMAKE_POSITION_INDEPENDENT_CODE=${CMAKE_POSITION_INDEPENDENT_CODE} ${EXTRA_MSCG_OPTS}
+      CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> ${CMAKE_REQUEST_PIC} ${EXTRA_MSCG_OPTS}
       BUILD_COMMAND make mscg INSTALL_COMMAND ""
       )
     ExternalProject_get_property(mscg_build BINARY_DIR)
@@ -752,7 +764,7 @@ set(MATH_LIBRARIES "m" CACHE STRING "math library")
 mark_as_advanced( MATH_LIBRARIES )
 include(CheckLibraryExists)
 if (CMAKE_VERSION VERSION_LESS "3.4")
-  enable_language(C) # check_library_exists isn't supported without a c compiler before v3.4
+  enable_language(C) # check_library_exists isn't supported without a C compiler before v3.4
 endif()
 # RB: disabled this check because it breaks with KOKKOS CUDA enabled
 #foreach(FUNC sin cos)
@@ -1174,7 +1186,7 @@ if(PKG_GPU)
               -DUNIX -O3 -Xptxas -v --use_fast_math -DNV_KERNEL -DUCL_CUDADR ${GPU_CUDA_GENCODE} -D_${GPU_PREC_SETTING})
 
       if(${BUILD_SHARED_LIBS})
-        cuda_compile(GPU_OBJS ${GPU_LIB_CUDPP_CU} OPTIONS -Xcompiler=-fPIC
+        cuda_compile(GPU_OBJS ${GPU_LIB_CUDPP_CU} OPTIONS -Xcompiler ${CMAKE_POSITION_INDEPENDENT_CODE}
                 -DUNIX -O3 -Xptxas -v --use_fast_math -DUCL_CUDADR ${GPU_CUDA_GENCODE} -D_${GPU_PREC_SETTING})
       else()
         cuda_compile(GPU_OBJS ${GPU_LIB_CUDPP_CU} OPTIONS
@@ -1327,7 +1339,7 @@ if(BUILD_EXE)
       add_dependencies(lmp ${LAMMPS_DEPS})
     endif()
   endif()
-  
+
   set_target_properties(lmp PROPERTIES OUTPUT_NAME ${LAMMPS_BINARY})
   install(TARGETS lmp DESTINATION ${CMAKE_INSTALL_BINDIR})
   install(FILES ${LAMMPS_DOC_DIR}/lammps.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 RENAME ${LAMMPS_BINARY}.1)
@@ -1464,14 +1476,14 @@ message(STATUS "<<< Build configuration >>>
 get_property(LANGUAGES GLOBAL PROPERTY ENABLED_LANGUAGES)
 list (FIND LANGUAGES "Fortran" _index)
 if (${_index} GREATER -1)
-  message(STATUS "Fortran Compiler ${CMAKE_Fortran_COMPILER} 
+  message(STATUS "Fortran Compiler ${CMAKE_Fortran_COMPILER}
            Type     ${CMAKE_Fortran_COMPILER_ID}
            Version  ${CMAKE_Fortran_COMPILER_VERSION}
    Fortran Flags    ${CMAKE_Fortran_FLAGS} ${CMAKE_Fortran_FLAGS_${BTYPE}}")
 endif()
 list (FIND LANGUAGES "C" _index)
 if (${_index} GREATER -1)
-  message(STATUS "C Compiler ${CMAKE_C_COMPILER} 
+  message(STATUS "C Compiler ${CMAKE_C_COMPILER}
      Type     ${CMAKE_C_COMPILER_ID}
      Version  ${CMAKE_C_COMPILER_VERSION}
      C Flags  ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${BTYPE}}")

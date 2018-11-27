@@ -410,8 +410,8 @@ void FixPlumed::post_force(int /* vflag */)
   p->cmd("getBias",&bias);
 
   // Pass virial to plumed
-  // If energy is needed virial_plmd is equal to Lammps' virial
-  // If energy is not needed virial_plmd is initialized to zero
+  // If energy is needed plmd_virial is equal to Lammps' virial
+  // If energy is not needed plmd_virial is initialized to zero
   // In the first case the virial will be rescaled and an extra term will be added
   // In the latter case only an extra term will be added
   p->cmd("setVirial",&plmd_virial[0][0]);
@@ -470,25 +470,31 @@ void FixPlumed::post_force(int /* vflag */)
     plmd_virial[0][1]=-virial_lmp[3];
     plmd_virial[0][2]=-virial_lmp[4];
     plmd_virial[1][2]=-virial_lmp[5];
-  } else {
-    virial_lmp = new double[6];
-    for (int i=0;i<6;i++) virial_lmp[i] = 0.;
   }
   // do the real calculation:
   p->cmd("performCalc");
 
   // retransform virial to lammps representation and assign it to this
-  // fix's virial.  Plumed is giving back the full virial and therefore
-  // we have to subtract the initial virial i.e. virial_lmp.
+  // fix's virial. If the energy is biased, Plumed is giving back the full
+  // virial and therefore we have to subtract the initial virial i.e. virial_lmp.
   // The vector virial contains only the contribution added by plumed.
   // The calculation of the pressure will be done by a compute pressure
   // and will include this contribution.
-  virial[0] = -plmd_virial[0][0]-virial_lmp[0];
-  virial[1] = -plmd_virial[1][1]-virial_lmp[1];
-  virial[2] = -plmd_virial[2][2]-virial_lmp[2];
-  virial[3] = -plmd_virial[0][1]-virial_lmp[3];
-  virial[4] = -plmd_virial[0][2]-virial_lmp[4];
-  virial[5] = -plmd_virial[1][2]-virial_lmp[5];
+  if (plumedNeedsEnergy) {
+    virial[0] = -plmd_virial[0][0]-virial_lmp[0];
+    virial[1] = -plmd_virial[1][1]-virial_lmp[1];
+    virial[2] = -plmd_virial[2][2]-virial_lmp[2];
+    virial[3] = -plmd_virial[0][1]-virial_lmp[3];
+    virial[4] = -plmd_virial[0][2]-virial_lmp[4];
+    virial[5] = -plmd_virial[1][2]-virial_lmp[5];
+  } else {
+    virial[0] = -plmd_virial[0][0];
+    virial[1] = -plmd_virial[1][1];
+    virial[2] = -plmd_virial[2][2];
+    virial[3] = -plmd_virial[0][1];
+    virial[4] = -plmd_virial[0][2];
+    virial[5] = -plmd_virial[1][2];
+  }
 
   // Ask for the computes in the next time step
   // such that the virial and energy are tallied.

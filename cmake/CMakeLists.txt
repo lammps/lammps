@@ -1183,10 +1183,10 @@ if(PKG_GPU)
       endif()
 
       cuda_compile_fatbin(GPU_GEN_OBJS ${GPU_LIB_CU} OPTIONS
-              -DUNIX -O3 --use_fast_math -DNV_KERNEL -DUCL_CUDADR ${GPU_CUDA_GENCODE} -D_${GPU_PREC_SETTING})
+              -DUNIX -O3 --use_fast_math -Wno-deprecated-gpu-targets -DNV_KERNEL -DUCL_CUDADR ${GPU_CUDA_GENCODE} -D_${GPU_PREC_SETTING})
 
       cuda_compile(GPU_OBJS ${GPU_LIB_CUDPP_CU} OPTIONS ${CUDA_REQUEST_PIC}
-              -DUNIX -O3 --use_fast_math -DUCL_CUDADR ${GPU_CUDA_GENCODE} -D_${GPU_PREC_SETTING})
+              -DUNIX -O3 --use_fast_math -Wno-deprecated-gpu-targets -DUCL_CUDADR ${GPU_CUDA_GENCODE} -D_${GPU_PREC_SETTING})
 
       foreach(CU_OBJ ${GPU_GEN_OBJS})
         get_filename_component(CU_NAME ${CU_OBJ} NAME_WE)

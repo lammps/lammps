@@ -737,8 +737,6 @@ __kernel void k_tersoff_zbl_three_end(const __global numtyp4 *restrict x_,
   for (int i=0; i<6; i++)
     virial[i]=(acctyp)0;
 
-  __local int red_acc[2*BLOCK_PAIR];
-
   __syncthreads();
 
   if (ii<inum) {
@@ -810,15 +808,13 @@ __kernel void k_tersoff_zbl_three_end(const __global numtyp4 *restrict x_,
       int nbork_start = nbor_k;
 
       // look up for zeta_ji: find i in the j's neighbor list
-      int m = tid / t_per_atom;
+
       int ijnum = -1;
       for ( ; nbor_k<k_end; nbor_k+=n_stride) {
         int k=nbor_mem[nbor_k];
         k &= NEIGHMASK;
         if (k == i) {
           ijnum = nbor_k;
-          red_acc[2*m+0] = ijnum;
-          red_acc[2*m+1] = offset_k;
           break;
         }
       }
@@ -968,8 +964,6 @@ __kernel void k_tersoff_zbl_three_end_vatom(const __global numtyp4 *restrict x_,
   for (int i=0; i<6; i++)
     virial[i]=(acctyp)0;
 
-  __local int red_acc[2*BLOCK_PAIR];
-
   __syncthreads();
 
   if (ii<inum) {
@@ -1041,15 +1035,13 @@ __kernel void k_tersoff_zbl_three_end_vatom(const __global numtyp4 *restrict x_,
       int nbork_start = nbor_k;
 
       // look up for zeta_ji
-      int m = tid / t_per_atom;
+
       int ijnum = -1;
       for ( ; nbor_k<k_end; nbor_k+=n_stride) {
         int k=nbor_mem[nbor_k];
         k &= NEIGHMASK;
         if (k == i) {
           ijnum = nbor_k;
-          red_acc[2*m+0] = ijnum;
-          red_acc[2*m+1] = offset_k;
           break;
         }
       }

@@ -11,7 +11,7 @@
 //
 //       begin                :
 //       email                : ndactrung@gmail.com
-// ***************************************************************************/
+// **************************************************************************
 
 #ifdef NV_KERNEL
 #include "lal_tersoff_zbl_extra.h"
@@ -778,7 +778,6 @@ __kernel void k_tersoff_zbl_three_end(const __global numtyp4 *restrict x_,
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       int jtype=jx.w;
       jtype=map[jtype];
-      int ijparam=elem2param[itype*nelements*nelements+jtype*nelements+jtype];
 
       // Compute r12
       numtyp delr1[3];
@@ -833,21 +832,11 @@ __kernel void k_tersoff_zbl_three_end(const __global numtyp4 *restrict x_,
 
       numtyp r1 = ucl_sqrt(rsq1);
       numtyp r1inv = ucl_rsqrt(rsq1);
-      int offset_kf;
-      if (ijnum >= 0) {
-        offset_kf = offset_k;
-      } else {
-        ijnum = red_acc[2*m+0];
-        offset_kf = red_acc[2*m+1];
-      }
 
-      //int iix = (ijnum - offset_kf - 2*nbor_pitch) / n_stride;
-      //int idx = iix*n_stride + j*t_per_atom + offset_kf;
       //idx to zetaij is shifted by n_stride relative to ijnum in dev_short_nbor
       int idx = ijnum;
       if (dev_packed==dev_nbor) idx -= n_stride;
-//      zeta_idx(dev_nbor,dev_packed, nbor_pitch, n_stride, t_per_atom,
-//               j, ijnum, offset_kf, idx);
+
       acctyp4 zeta_ji = zetaij[idx]; // fetch(zeta_ji,idx,zeta_tex);
       numtyp force = zeta_ji.x*tpainv;
       numtyp prefactor_ji = zeta_ji.y;
@@ -1023,7 +1012,6 @@ __kernel void k_tersoff_zbl_three_end_vatom(const __global numtyp4 *restrict x_,
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       int jtype=jx.w;
       jtype=map[jtype];
-      int ijparam=elem2param[itype*nelements*nelements+jtype*nelements+jtype];
 
       // Compute r12
       numtyp delr1[3];
@@ -1078,21 +1066,11 @@ __kernel void k_tersoff_zbl_three_end_vatom(const __global numtyp4 *restrict x_,
 
       numtyp r1 = ucl_sqrt(rsq1);
       numtyp r1inv = ucl_rsqrt(rsq1);
-      int offset_kf;
-      if (ijnum >= 0) {
-        offset_kf = offset_k;
-      } else {
-        ijnum = red_acc[2*m+0];
-        offset_kf = red_acc[2*m+1];
-      }
 
-      //int iix = (ijnum - offset_kf - 2*nbor_pitch) / n_stride;
-      //int idx = iix*n_stride + j*t_per_atom + offset_kf;
       //idx to zetaij is shifted by n_stride relative to ijnum in dev_short_nbor
       int idx = ijnum;
       if (dev_packed==dev_nbor) idx -= n_stride;
-//      zeta_idx(dev_nbor,dev_packed, nbor_pitch, n_stride, t_per_atom,
-//               j, ijnum, offset_kf, idx);
+
       acctyp4 zeta_ji = zetaij[idx]; //  fetch(zeta_ji,idx,zeta_tex);
       numtyp force = zeta_ji.x*tpainv;
       numtyp prefactor_ji = zeta_ji.y;

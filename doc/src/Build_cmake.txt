@@ -44,7 +44,7 @@ LAMMPS or need to re-compile LAMMPS repeatedly, installation of the
 ccache (= Compiler Cache) software may speed up compilation even more.
 
 After compilation, you can optionally copy the LAMMPS executable and
-library into your system folders (by default under /usr/local) with:
+library into your system folders (by default under $HOME/.local) with:
 
 make install    # optional, copy LAMMPS executable & library elsewhere :pre
 

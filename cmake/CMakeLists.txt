@@ -425,9 +425,11 @@ endif()
 if(BUILD_SHARED_LIBS)
   set(CONFIGURE_REQUEST_PIC "--with-pic")
   set(CMAKE_REQUEST_PIC "-DCMAKE_POSITION_INDEPENDENT_CODE=${CMAKE_POSITION_INDEPENDENT_CODE}")
+  set(CUDA_REQUEST_PIC "-Xcompiler ${CMAKE_SHARED_LIBRARY_CXX_FLAGS}")
 else()
   set(CONFIGURE_REQUEST_PIC "")
   set(CMAKE_REQUEST_PIC "")
+  set(CUDA_REQUEST_PIC "")
 endif()
 
 
@@ -1179,13 +1181,8 @@ if(PKG_GPU)
       cuda_compile_fatbin(GPU_GEN_OBJS ${GPU_LIB_CU} OPTIONS
               -DUNIX -O3 -Xptxas -v --use_fast_math -DNV_KERNEL -DUCL_CUDADR ${GPU_CUDA_GENCODE} -D_${GPU_PREC_SETTING})
 
-      if(${BUILD_SHARED_LIBS})
-        cuda_compile(GPU_OBJS ${GPU_LIB_CUDPP_CU} OPTIONS -Xcompiler ${CMAKE_POSITION_INDEPENDENT_CODE}
+      cuda_compile(GPU_OBJS ${GPU_LIB_CUDPP_CU} OPTIONS ${CUDA_REQUEST_PIC}
                 -DUNIX -O3 -Xptxas -v --use_fast_math -DUCL_CUDADR ${GPU_CUDA_GENCODE} -D_${GPU_PREC_SETTING})
-      else()
-        cuda_compile(GPU_OBJS ${GPU_LIB_CUDPP_CU} OPTIONS
-                -DUNIX -O3 -Xptxas -v --use_fast_math -DUCL_CUDADR ${GPU_CUDA_GENCODE} -D_${GPU_PREC_SETTING})
-      endif()
 
       foreach(CU_OBJ ${GPU_GEN_OBJS})
         get_filename_component(CU_NAME ${CU_OBJ} NAME_WE)

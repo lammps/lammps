@@ -486,15 +486,15 @@ if(PKG_USER-SCAFACOS)
     ExternalProject_Add(scafacos_build
       URL https://github.com/scafacos/scafacos/releases/download/v1.0.1/scafacos-1.0.1.tar.gz
       URL_MD5 bd46d74e3296bd8a444d731bb10c1738
-      CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> 
-                                               --disable-doc 
+      CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
+                                               --disable-doc
                                                --enable-fcs-solvers=fmm,p2nfft,direct,ewald,p3m
                                                --with-internal-fftw
                                                --with-internal-pfft
                                                --with-internal-pnfft
-                                               $<$<BOOL:${BUILD_SHARED_LIBS}>:--with-pic>                                               
-                                               FC=${CMAKE_MPI_Fortran_COMPILER} 
-                                               CXX=${CMAKE_MPI_CXX_COMPILER} 
+                                               --with-pic
+                                               FC=${CMAKE_MPI_Fortran_COMPILER}
+                                               CXX=${CMAKE_MPI_CXX_COMPILER}
                                                CC=${CMAKE_MPI_C_COMPILER}
                                                F77=
       )
@@ -541,11 +541,10 @@ if(PKG_USER-PLUMED)
   if(DOWNLOAD_PLUMED)
     include(ExternalProject)
     ExternalProject_Add(plumed_build
-      URL https://github.com/plumed/plumed2/releases/download/v2.4.3/plumed-src-2.4.3.tgz 
+      URL https://github.com/plumed/plumed2/releases/download/v2.4.3/plumed-src-2.4.3.tgz
       URL_MD5 b1be7c48971627febc11c61b70767fc5
       BUILD_IN_SOURCE 1
-      CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> 
-                                               $<$<BOOL:${BUILD_SHARED_LIBS}>:--with-pic>                                                  )
+      CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --with-pic)
     ExternalProject_get_property(plumed_build INSTALL_DIR)
     set(PLUMED_INSTALL_DIR ${INSTALL_DIR})
     list(APPEND LAMMPS_DEPS plumed_build)

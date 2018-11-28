@@ -1,4 +1,5 @@
-LAMMPS (5 Oct 2016)
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
 # Point dipoles in a 2d box
 
 units		lj
@@ -13,6 +14,7 @@ Created orthogonal box = (0 0 -0.845154) to (16.9031 16.9031 0.845154)
   2 by 2 by 1 MPI processor grid
 create_atoms	1 box
 Created 200 atoms
+  Time spent = 0.00139761 secs
 
 # need both mass settings due to hybrid atom style
 
@@ -46,13 +48,18 @@ thermo		500
 
 run		10000
 Neighbor list info ...
-  1 neighbor list requests
   update every 1 steps, delay 0 steps, check yes
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 2.8
   ghost atom cutoff = 2.8
-  binsize = 1.4 -> bins = 13 13 2
-Memory usage per processor = 4.47621 Mbytes
+  binsize = 1.4, bins = 13 13 2
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut/dipole/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/2d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 5.047 | 5.047 | 5.047 Mbytes
 Step Temp E_pair c_erot TotEng Press 
        0            0   -2.1909822            0   -2.1909822   -2.5750971 
      500   0.39335419   -2.7940623   0.20683255   -2.4026749  -0.24768899 
@@ -75,20 +82,20 @@ Step Temp E_pair c_erot TotEng Press
     9000   0.42318631   -2.7600929   0.25229644   -2.3390225   0.36820391 
     9500   0.42857449   -2.6958592   0.18686752   -2.2694276   0.15379721 
    10000   0.43323126     -2.71981   0.22185737   -2.2887449  0.038354509 
-Loop time of 0.406978 on 4 procs for 10000 steps with 200 atoms
+Loop time of 0.396069 on 4 procs for 10000 steps with 200 atoms
 
-Performance: 10614834.981 tau/day, 24571.377 timesteps/s
-99.5% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 10907185.759 tau/day, 25248.115 timesteps/s
+96.5% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.18518    | 0.23558    | 0.25487    |   6.0 | 57.88
-Neigh   | 0.0090437  | 0.011033   | 0.011971   |   1.1 |  2.71
-Comm    | 0.086857   | 0.10807    | 0.16262    |   9.6 | 26.56
-Output  | 0.00029182 | 0.00031263 | 0.00035739 |   0.1 |  0.08
-Modify  | 0.022396   | 0.025649   | 0.026865   |   1.2 |  6.30
-Other   |            | 0.02633    |            |       |  6.47
+Pair    | 0.13746    | 0.17338    | 0.19067    |   5.1 | 43.77
+Neigh   | 0.0096052  | 0.011424   | 0.012275   |   1.0 |  2.88
+Comm    | 0.12394    | 0.14718    | 0.1914     |   7.1 | 37.16
+Output  | 0.00037861 | 0.00056618 | 0.0011225  |   0.0 |  0.14
+Modify  | 0.021838   | 0.024665   | 0.026625   |   1.1 |  6.23
+Other   |            | 0.03886    |            |       |  9.81
 
 Nlocal:    50 ave 53 max 41 min
 Histogram: 1 0 0 0 0 0 0 0 0 3

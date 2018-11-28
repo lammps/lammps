@@ -1,4 +1,5 @@
-LAMMPS (5 Oct 2016)
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
 # Point dipoles in a 2d box
 
 units		lj
@@ -13,6 +14,7 @@ Created orthogonal box = (0 0 -0.845154) to (16.9031 16.9031 0.845154)
   1 by 1 by 1 MPI processor grid
 create_atoms	1 box
 Created 200 atoms
+  Time spent = 0.00140882 secs
 
 # need both mass settings due to hybrid atom style
 
@@ -46,13 +48,18 @@ thermo		500
 
 run		10000
 Neighbor list info ...
-  1 neighbor list requests
   update every 1 steps, delay 0 steps, check yes
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 2.8
   ghost atom cutoff = 2.8
-  binsize = 1.4 -> bins = 13 13 2
-Memory usage per processor = 4.47689 Mbytes
+  binsize = 1.4, bins = 13 13 2
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut/dipole/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/2d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 5.049 | 5.049 | 5.049 Mbytes
 Step Temp E_pair c_erot TotEng Press 
        0            0   -2.1909822            0   -2.1909822   -2.5750971 
      500   0.39335419   -2.7940623   0.20683255   -2.4026749  -0.24768899 
@@ -75,20 +82,20 @@ Step Temp E_pair c_erot TotEng Press
     9000   0.42532413    -2.748856   0.21378021   -2.3256584  0.015079949 
     9500   0.42237159   -2.7266142   0.20255034   -2.3063545  -0.15538561 
    10000   0.40758268    -2.778401    0.2746675   -2.3728562  -0.20811978 
-Loop time of 1.05484 on 1 procs for 10000 steps with 200 atoms
+Loop time of 0.851938 on 1 procs for 10000 steps with 200 atoms
 
-Performance: 4095400.088 tau/day, 9480.093 timesteps/s
-99.9% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 5070791.481 tau/day, 11737.943 timesteps/s
+99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.88325    | 0.88325    | 0.88325    |   0.0 | 83.73
-Neigh   | 0.038596   | 0.038596   | 0.038596   |   0.0 |  3.66
-Comm    | 0.034257   | 0.034257   | 0.034257   |   0.0 |  3.25
-Output  | 0.00013828 | 0.00013828 | 0.00013828 |   0.0 |  0.01
-Modify  | 0.083041   | 0.083041   | 0.083041   |   0.0 |  7.87
-Other   |            | 0.01556    |            |       |  1.48
+Pair    | 0.64889    | 0.64889    | 0.64889    |   0.0 | 76.17
+Neigh   | 0.04038    | 0.04038    | 0.04038    |   0.0 |  4.74
+Comm    | 0.058003   | 0.058003   | 0.058003   |   0.0 |  6.81
+Output  | 0.00021219 | 0.00021219 | 0.00021219 |   0.0 |  0.02
+Modify  | 0.083454   | 0.083454   | 0.083454   |   0.0 |  9.80
+Other   |            | 0.021      |            |       |  2.47
 
 Nlocal:    200 ave 200 max 200 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -101,4 +108,4 @@ Total # of neighbors = 1625
 Ave neighs/atom = 8.125
 Neighbor list builds = 673
 Dangerous builds = 0
-Total wall time: 0:00:01
+Total wall time: 0:00:00

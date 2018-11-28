@@ -1,4 +1,5 @@
-LAMMPS (5 Oct 2016)
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
 # 3d Lennard-Jones melt, thermostatted by fix controller
 
 units		lj
@@ -12,6 +13,7 @@ Created orthogonal box = (0 0 0) to (16.796 16.796 16.796)
   1 by 2 by 2 MPI processor grid
 create_atoms	1 box
 Created 4000 atoms
+  Time spent = 0.000405788 secs
 mass		1 1.0
 
 velocity	all create 1.44 87287 loop geom
@@ -32,13 +34,18 @@ fix             tstat all langevin v_tcontrol 0.5 0.5 2938940
 thermo          50
 run		500
 Neighbor list info ...
-  1 neighbor list requests
   update every 20 steps, delay 0 steps, check no
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 2.8
   ghost atom cutoff = 2.8
-  binsize = 1.4 -> bins = 12 12 12
-Memory usage per processor = 2.10344 Mbytes
+  binsize = 1.4, bins = 12 12 12
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 2.705 | 2.705 | 2.705 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0         1.44   -6.7733681            0   -4.6139081   -5.0199732 
       50   0.61546984   -5.9273631            0   -5.0043892  -0.80234884 
@@ -51,20 +58,20 @@ Step Temp E_pair E_mol TotEng Press
      400   0.50869337   -6.1435002            0   -5.3806509   -2.0654599 
      450   0.50821435   -6.1436659            0    -5.381535   -2.0660991 
      500   0.51057155    -6.138733            0   -5.3730671   -2.0305015 
-Loop time of 0.474689 on 4 procs for 500 steps with 4000 atoms
+Loop time of 0.469437 on 4 procs for 500 steps with 4000 atoms
 
-Performance: 455034.992 tau/day, 1053.322 timesteps/s
-99.7% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 460125.812 tau/day, 1065.106 timesteps/s
+97.7% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.31692    | 0.32816    | 0.35039    |   2.3 | 69.13
-Neigh   | 0.042872   | 0.044288   | 0.046693   |   0.7 |  9.33
-Comm    | 0.043676   | 0.070658   | 0.084897   |   6.0 | 14.89
-Output  | 0.00025439 | 0.0002867  | 0.00030446 |   0.1 |  0.06
-Modify  | 0.02728    | 0.028604   | 0.030571   |   0.8 |  6.03
-Other   |            | 0.002697   |            |       |  0.57
+Pair    | 0.31917    | 0.32582    | 0.32979    |   0.7 | 69.41
+Neigh   | 0.048915   | 0.051251   | 0.053828   |   0.8 | 10.92
+Comm    | 0.054731   | 0.059151   | 0.069726   |   2.5 | 12.60
+Output  | 0.00028014 | 0.00033808 | 0.00048709 |   0.0 |  0.07
+Modify  | 0.02967    | 0.031206   | 0.033305   |   0.8 |  6.65
+Other   |            | 0.00167    |            |       |  0.36
 
 Nlocal:    1000 ave 1027 max 969 min
 Histogram: 1 0 0 1 0 0 0 0 1 1
@@ -90,7 +97,7 @@ fix             10 all controller 100 1.0 0.5 0.0 0.0                 c_thermo_t
 # run with controller
 
 run             2500
-Memory usage per processor = 2.10344 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 2.705 | 2.705 | 2.705 Mbytes
 Step Temp E_pair E_mol TotEng Press 
      500   0.51057155    -6.138733            0   -5.3730671   -2.0305015 
      550   0.50420106   -6.1501845            0    -5.394072    -2.095219 
@@ -143,20 +150,20 @@ Step Temp E_pair E_mol TotEng Press
     2900    1.4994026   -4.8400966            0    -2.591555    5.3231654 
     2950    1.5057915   -4.8842358            0   -2.6261131    5.1645778 
     3000    1.5038806   -4.8661399            0    -2.610883    5.2228747 
-Loop time of 2.33203 on 4 procs for 2500 steps with 4000 atoms
+Loop time of 2.39888 on 4 procs for 2500 steps with 4000 atoms
 
-Performance: 463116.726 tau/day, 1072.029 timesteps/s
-99.9% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 450209.527 tau/day, 1042.152 timesteps/s
+97.4% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 1.6173     | 1.6621     | 1.7135     |   3.2 | 71.27
-Neigh   | 0.2201     | 0.22394    | 0.23011    |   0.9 |  9.60
-Comm    | 0.22619    | 0.29012    | 0.33801    |   8.8 | 12.44
-Output  | 0.001302   | 0.0013426  | 0.0013707  |   0.1 |  0.06
-Modify  | 0.13805    | 0.14195    | 0.14664    |   0.9 |  6.09
-Other   |            | 0.01257    |            |       |  0.54
+Pair    | 1.6469     | 1.6659     | 1.7027     |   1.7 | 69.45
+Neigh   | 0.25338    | 0.26008    | 0.26833    |   1.2 | 10.84
+Comm    | 0.24458    | 0.30644    | 0.33939    |   6.6 | 12.77
+Output  | 0.0012605  | 0.0020466  | 0.0043511  |   2.9 |  0.09
+Modify  | 0.15009    | 0.15611    | 0.16933    |   2.0 |  6.51
+Other   |            | 0.008278   |            |       |  0.35
 
 Nlocal:    1000 ave 1014 max 988 min
 Histogram: 2 0 0 0 0 0 0 0 1 1

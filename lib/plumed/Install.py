@@ -12,12 +12,10 @@ help = """
 Syntax from src dir: make lib-plumed args="-b"
                  or: make lib-plumed args="-b -v 2.4.3"
                  or: make lib-plumed args="-p /usr/local/plumed2 -m shared"
-                 or: make lib-plumed args="-p /home/myname/myplumed2sourcecode --noinstall"
 
 Syntax from lib dir: python Install.py -b -v 2.4.3
                  or: python Install.py -b
                  or: python Install.py -p /usr/local/plumed2 -m shared
-                 or: python Install.py -p /home/myname/myplumed2sourcecode --noinstall
 
 specify one or more options, order does not matter
 
@@ -25,13 +23,11 @@ specify one or more options, order does not matter
   -v = set version of plumed2 to download and build (default: 2.4.3)
   -p = specify folder of existing plumed2 installation
   -m = set plumed linkage mode: static (default), shared, or runtime
-  --noinstall = use existing plumed2 source code folder where make was issued but make install was not
 
 Example:
 
 make lib-plumed args="-b"   # download/build in lib/plumed/plumed2
-make lib-plumed args="-p /usr/local/plumed2 -m shared" # use existing Plumed2 installation in /usr/local/plumed2
-make lib-plumed args="-p $HOME/plumed2 -m shared --noinstall" # use existing Plumed2 source code folder in $HOME/plumed2
+make lib-plumed args="-p $HOME/plumed2 -m shared" # use existing Plumed2 installation in $HOME/plumed2
 """
 
 # settings
@@ -121,7 +117,6 @@ buildflag = False
 pathflag = False
 suffixflag = False
 linkflag = True
-noinstallflag = False
 
 iarg = 0
 while iarg < nargs:
@@ -140,9 +135,6 @@ while iarg < nargs:
     iarg += 2
   elif args[iarg] == "-b":
     buildflag = True
-    iarg += 1
-  elif args[iarg] == "--noinstall":
-    noinstallflag = True
     iarg += 1
   else: error()
 
@@ -205,21 +197,12 @@ if linkflag:
     os.remove("includelink")
   if os.path.isfile("liblink") or os.path.islink("liblink"):
     os.remove("liblink")
-  if noinstallflag:
-    cmd = 'ln -s "%s/src/include" includelink' % homedir
-    subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-    cmd = 'ln -s "%s/src/lib" liblink' % homedir
-    subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  else:
-    cmd = 'ln -s "%s/include" includelink' % homedir
-    subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-    cmd = 'ln -s "%s/lib" liblink' % homedir
-    subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+  cmd = 'ln -s "%s/include" includelink' % homedir
+  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+  cmd = 'ln -s "%s/lib" liblink' % homedir
+  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   if os.path.isfile("Makefile.lammps.%s" % mode):
     print("Creating Makefile.lammps")
-    if noinstallflag:
-      cmd = 'echo PLUMED_LIBDIR="%s/src/lib" > Makefile.lammps; cat liblink/Plumed.inc.%s Makefile.lammps.%s >> Makefile.lammps' % (homedir,mode,mode)
-    else:
-      cmd = 'echo PLUMED_LIBDIR="%s/lib" > Makefile.lammps; cat liblink/plumed/src/lib/Plumed.inc.%s Makefile.lammps.%s >> Makefile.lammps' % (homedir,mode,mode)
+    cmd = 'echo PLUMED_LIBDIR="%s/lib" > Makefile.lammps; cat liblink/plumed/src/lib/Plumed.inc.%s Makefile.lammps.%s >> Makefile.lammps' % (homedir,mode,mode)
     subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
 

@@ -1,4 +1,4 @@
-LAMMPS (23 Jun 2017)
+LAMMPS (27 Nov 2018)
   using 1 OpenMP thread(s) per MPI task
 # AIREBO polyethelene benchmark
 
@@ -15,6 +15,7 @@ replicate	    17 16 2
   orthogonal box = (-2.1 -2.1 0) to (69.3 65.1 51.158)
   1 by 1 by 1 MPI processor grid
   32640 atoms
+  Time spent = 0.00141144 secs
 
 neighbor	    0.5 bin
 neigh_modify	    delay 5 every 1
@@ -55,20 +56,20 @@ Step Temp E_pair E_mol TotEng Press
       80    164.28396    -138709.5            0    -138016.4   -1524.7353 
       90    180.26403   -138776.42            0    -138015.9   -27143.467 
      100    164.05694   -138706.58            0   -138014.44    5157.5516 
-Loop time of 117.672 on 1 procs for 100 steps with 32640 atoms
+Loop time of 64.6107 on 1 procs for 100 steps with 32640 atoms
 
-Performance: 0.037 ns/day, 653.734 hours/ns, 0.850 timesteps/s
-99.3% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 0.067 ns/day, 358.948 hours/ns, 1.548 timesteps/s
+99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 108.31     | 108.31     | 108.31     |   0.0 | 92.04
-Neigh   | 9.2199     | 9.2199     | 9.2199     |   0.0 |  7.84
-Comm    | 0.052942   | 0.052942   | 0.052942   |   0.0 |  0.04
-Output  | 0.0015149  | 0.0015149  | 0.0015149  |   0.0 |  0.00
-Modify  | 0.060962   | 0.060962   | 0.060962   |   0.0 |  0.05
-Other   |            | 0.02656    |            |       |  0.02
+Pair    | 59.916     | 59.916     | 59.916     |   0.0 | 92.73
+Neigh   | 4.6347     | 4.6347     | 4.6347     |   0.0 |  7.17
+Comm    | 0.025572   | 0.025572   | 0.025572   |   0.0 |  0.04
+Output  | 0.00098896 | 0.00098896 | 0.00098896 |   0.0 |  0.00
+Modify  | 0.022327   | 0.022327   | 0.022327   |   0.0 |  0.03
+Other   |            | 0.01076    |            |       |  0.02
 
 Nlocal:    32640 ave 32640 max 32640 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -83,4 +84,4 @@ Total # of neighbors = 22210922
 Ave neighs/atom = 680.482
 Neighbor list builds = 8
 Dangerous builds = 0
-Total wall time: 0:02:00
+Total wall time: 0:01:05

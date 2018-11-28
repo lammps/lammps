@@ -956,7 +956,7 @@ double Variable::compute_equal(char *str)
 void Variable::compute_atom(int ivar, int igroup,
                             double *result, int stride, int sumflag)
 {
-  Tree *tree;
+  Tree *tree = NULL;
   double *vstore;
 
   if (eval_in_progress[ivar])
@@ -1028,7 +1028,7 @@ void Variable::compute_atom(int ivar, int igroup,
 
 int Variable::compute_vector(int ivar, double **result)
 {
-  Tree *tree;
+  Tree *tree = NULL;
   if (vecs[ivar].currentstep == update->ntimestep) {
     *result = vecs[ivar].values;
     return vecs[ivar].n;
@@ -1215,7 +1215,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
       // evaluate contents and push on stack
 
       if (tree) {
-        Tree *newtree;
+        Tree *newtree = NULL;
         evaluate(contents,&newtree,ivar);
         treestack[ntreestack++] = newtree;
       } else argstack[nargstack++] = evaluate(contents,NULL,ivar);
@@ -1915,7 +1915,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             print_var_error(FLERR,"Atom-style variable in "
                             "vector-style variable formula",ivar);
 
-          Tree *newtree;
+          Tree *newtree = NULL;
           evaluate(data[ivar][0],&newtree,ivar);
           treestack[ntreestack++] = newtree;
 
@@ -3325,7 +3325,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
   char *args[MAXFUNCARG];
   int narg = parse_args(contents,args);
 
-  Tree *newtree;
+  Tree *newtree = NULL;
   double value1,value2;
   double values[MAXFUNCARG-2];
 
@@ -3333,7 +3333,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
     newtree = new Tree();
     newtree->first = newtree->second = NULL;
     newtree->nextra = 0;
-    Tree *argtree;
+    Tree *argtree = NULL;
     evaluate(args[0],&argtree,ivar);
     newtree->first = argtree;
     if (narg > 1) {

@@ -22,10 +22,10 @@
    [Lebedeva et al., Physica E, 44(6), 949-954, 2012.]
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "pair_lebedeva.h"
 #include "atom.h"
 #include "comm.h"

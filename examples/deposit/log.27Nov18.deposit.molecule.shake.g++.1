@@ -1,4 +1,5 @@
-LAMMPS (5 Oct 2016)
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
 # sample surface deposition script for molecules
 
 units		lj
@@ -15,6 +16,7 @@ Created orthogonal box = (0 0 0) to (7.93701 7.93701 15.874)
 region		substrate block INF INF INF INF INF 3
 create_atoms	1 region substrate
 Created 350 atoms
+  Time spent = 0.000657082 secs
 
 pair_style	lj/cut 2.5
 pair_coeff	* * 1.0 1.0
@@ -33,7 +35,7 @@ group		mobile region mobile
 150 atoms in group mobile
 
 compute		add addatoms temp
-compute_modify	add dynamic yes extra 0
+compute_modify	add dynamic/dof yes extra/dof 0
 
 fix		1 addatoms nve
 fix		2 mobile langevin 0.1 0.1 0.1 587283
@@ -41,11 +43,11 @@ fix		3 mobile nve
 
 molecule        dimer molecule.dimer.shake
 Read molecule dimer:
-  2 atoms with 3 types
-  1 bonds with 1 types
-  0 angles with 0 types
-  0 dihedrals with 0 types
-  0 impropers with 0 types
+  2 atoms with max type 3
+  1 bonds with max type 1
+  0 angles with max type 0
+  0 dihedrals with max type 0
+  0 impropers with max type 0
 region          slab block 0 5 0 5 8 9
 fix		4 addatoms deposit 100 0 100 12345 region slab near 1.0                 mol dimer vz -1.0 -1.0 shake 6
 fix		5 addatoms wall/reflect zhi EDGE
@@ -58,7 +60,7 @@ fix             6 all shake 0.0001 20 1000 b 1 mol dimer
 thermo_style	custom step atoms temp epair etotal press
 thermo          100
 thermo_modify	temp add lost/bond ignore lost warn
-WARNING: Temperature for thermo pressure is not for group all (../thermo.cpp:474)
+WARNING: Temperature for thermo pressure is not for group all (src/thermo.cpp:488)
 
 #dump		1 all atom 50 dump.deposit.atom
 
@@ -70,14 +72,19 @@ WARNING: Temperature for thermo pressure is not for group all (../thermo.cpp:474
 
 run             10000
 Neighbor list info ...
-  1 neighbor list requests
   update every 1 steps, delay 0 steps, check yes
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 5.3
   ghost atom cutoff = 5.3
-  binsize = 2.65 -> bins = 3 3 6
+  binsize = 2.65, bins = 3 3 6
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d/newton
+      bin: standard
 SHAKE stats (type/ave/delta) on step 0
-Memory usage per processor = 4.44065 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 5.027 | 5.027 | 5.027 Mbytes
 Step Atoms Temp E_pair TotEng Press 
        0      350            0   -6.9215833   -6.9215833   -1.0052629 
      100      352    1.0079368   -6.8875167   -6.8803581  -0.73353914 
@@ -200,21 +207,21 @@ SHAKE stats (type/ave/delta) on step 9000
 SHAKE stats (type/ave/delta) on step 10000
   1 1 2.44249e-15
    10000      550   0.31059632   -6.7463923   -6.6052122  -0.75225652 
-Loop time of 6.31791 on 1 procs for 10000 steps with 550 atoms
+Loop time of 7.11276 on 1 procs for 10000 steps with 550 atoms
 
-Performance: 683770.197 tau/day, 1582.801 timesteps/s
-99.9% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 607358.878 tau/day, 1405.923 timesteps/s
+99.7% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 3.9451     | 3.9451     | 3.9451     |   0.0 | 62.44
-Bond    | 0.012146   | 0.012146   | 0.012146   |   0.0 |  0.19
-Neigh   | 2.0103     | 2.0103     | 2.0103     |   0.0 | 31.82
-Comm    | 0.13071    | 0.13071    | 0.13071    |   0.0 |  2.07
-Output  | 0.00093651 | 0.00093651 | 0.00093651 |   0.0 |  0.01
-Modify  | 0.1759     | 0.1759     | 0.1759     |   0.0 |  2.78
-Other   |            | 0.04281    |            |       |  0.68
+Pair    | 3.9705     | 3.9705     | 3.9705     |   0.0 | 55.82
+Bond    | 0.011102   | 0.011102   | 0.011102   |   0.0 |  0.16
+Neigh   | 2.6732     | 2.6732     | 2.6732     |   0.0 | 37.58
+Comm    | 0.20071    | 0.20071    | 0.20071    |   0.0 |  2.82
+Output  | 0.0015368  | 0.0015368  | 0.0015368  |   0.0 |  0.02
+Modify  | 0.21124    | 0.21124    | 0.21124    |   0.0 |  2.97
+Other   |            | 0.0444     |            |       |  0.62
 
 Nlocal:    550 ave 550 max 550 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -228,4 +235,4 @@ Ave neighs/atom = 66.2873
 Ave special neighs/atom = 0.363636
 Neighbor list builds = 839
 Dangerous builds = 0
-Total wall time: 0:00:06
+Total wall time: 0:00:07

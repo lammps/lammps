@@ -1,4 +1,5 @@
-LAMMPS (5 Oct 2016)
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
 # sample surface deposition script for atoms
 
 units		lj
@@ -15,6 +16,7 @@ Created orthogonal box = (0 0 0) to (7.93701 7.93701 15.874)
 region		substrate block INF INF INF INF INF 3
 create_atoms	1 region substrate
 Created 350 atoms
+  Time spent = 0.000444174 secs
 
 pair_style	lj/cut 2.5
 pair_coeff	* * 1.0 1.0
@@ -30,7 +32,7 @@ group		mobile region mobile
 150 atoms in group mobile
 
 compute		add addatoms temp
-compute_modify	add dynamic yes extra 0
+compute_modify	add dynamic/dof yes extra/dof 0
 
 fix		1 addatoms nve
 fix		2 mobile langevin 1.0 1.0 0.1 587283
@@ -43,7 +45,7 @@ fix		5 addatoms wall/reflect zhi EDGE
 thermo_style	custom step atoms temp epair etotal press
 thermo          100
 thermo_modify	temp add
-WARNING: Temperature for thermo pressure is not for group all (../thermo.cpp:474)
+WARNING: Temperature for thermo pressure is not for group all (src/thermo.cpp:488)
 
 #dump		1 all atom 50 dump.deposit.atom
 
@@ -55,13 +57,18 @@ WARNING: Temperature for thermo pressure is not for group all (../thermo.cpp:474
 
 run             10000
 Neighbor list info ...
-  1 neighbor list requests
   update every 1 steps, delay 0 steps, check yes
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 5.3
   ghost atom cutoff = 5.3
-  binsize = 2.65 -> bins = 3 3 6
-Memory usage per processor = 2.54053 Mbytes
+  binsize = 2.65, bins = 3 3 6
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.126 | 3.126 | 3.126 Mbytes
 Step Atoms Temp E_pair TotEng Press 
        0      350            0   -6.9215833   -6.9215833   -1.0052629 
      100      351   0.83994737   -6.3459678   -6.3423783  -0.12047746 
@@ -164,20 +171,20 @@ Step Atoms Temp E_pair TotEng Press
     9800      448   0.97167962    -5.185173   -4.8663406  -0.56989109 
     9900      449    1.0038671   -5.1540302   -4.8220162  -0.56356384 
    10000      450   0.95642062   -5.2046982   -4.8858913  -0.70500643 
-Loop time of 5.63963 on 1 procs for 10000 steps with 450 atoms
+Loop time of 6.17726 on 1 procs for 10000 steps with 450 atoms
 
-Performance: 766007.688 tau/day, 1773.166 timesteps/s
-99.9% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 699339.360 tau/day, 1618.841 timesteps/s
+99.0% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 3.1973     | 3.1973     | 3.1973     |   0.0 | 56.69
-Neigh   | 2.1646     | 2.1646     | 2.1646     |   0.0 | 38.38
-Comm    | 0.11922    | 0.11922    | 0.11922    |   0.0 |  2.11
-Output  | 0.00081301 | 0.00081301 | 0.00081301 |   0.0 |  0.01
-Modify  | 0.11702    | 0.11702    | 0.11702    |   0.0 |  2.07
-Other   |            | 0.04063    |            |       |  0.72
+Pair    | 3.1708     | 3.1708     | 3.1708     |   0.0 | 51.33
+Neigh   | 2.6376     | 2.6376     | 2.6376     |   0.0 | 42.70
+Comm    | 0.18927    | 0.18927    | 0.18927    |   0.0 |  3.06
+Output  | 0.0013239  | 0.0013239  | 0.0013239  |   0.0 |  0.02
+Modify  | 0.13663    | 0.13663    | 0.13663    |   0.0 |  2.21
+Other   |            | 0.04162    |            |       |  0.67
 
 Nlocal:    450 ave 450 max 450 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -190,4 +197,4 @@ Total # of neighbors = 29176
 Ave neighs/atom = 64.8356
 Neighbor list builds = 1143
 Dangerous builds = 0
-Total wall time: 0:00:05
+Total wall time: 0:00:06

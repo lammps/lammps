@@ -1,4 +1,5 @@
-LAMMPS (5 Oct 2016)
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
 # Pure Si crystal, qeq off, calculates stress-strain, no out.*.cfg
 
 units		metal
@@ -14,6 +15,7 @@ Created orthogonal box = (0 0 0) to (21.724 21.724 21.724)
   1 by 1 by 1 MPI processor grid
 create_atoms	1 box
 Created 512 atoms
+  Time spent = 0.000361919 secs
 mass		1 29.0
 change_box  	all triclinic
   triclinic box = (0 0 0) to (21.724 21.724 21.724) with tilt (0 0 0)
@@ -34,15 +36,20 @@ thermo_style	custom step temp etotal pe evdwl ecoul 		#lx ly lz vol pxx pyy pzz
 thermo_modify	norm yes
 thermo		1
 minimize	1.0e-14  1.0e-20  1000  10000
-WARNING: Resetting reneighboring criteria during minimization (../min.cpp:168)
+WARNING: Using 'neigh_modify every 1 delay 0 check yes' setting during minimization (src/min.cpp:168)
 Neighbor list info ...
-  1 neighbor list requests
   update every 1 steps, delay 0 steps, check yes
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 12.5
   ghost atom cutoff = 12.5
-  binsize = 6.25 -> bins = 4 4 4
-Memory usage per processor = 7.60455 Mbytes
+  binsize = 6.25, bins = 4 4 4
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair comb, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 8.98 | 8.98 | 8.98 Mbytes
 Step Temp TotEng PotEng E_vdwl E_coul 
        0            1   -4.6295947   -4.6297237   -4.6297237            0 
        1            1   -4.6295965   -4.6297255   -4.6297255            0 
@@ -50,9 +57,9 @@ Step Temp TotEng PotEng E_vdwl E_coul
        3            1   -4.6295965   -4.6297255   -4.6297255            0 
        4            1   -4.6295965   -4.6297255   -4.6297255            0 
        5            1   -4.6295965   -4.6297255   -4.6297255            0 
-Loop time of 0.201077 on 1 procs for 5 steps with 512 atoms
+Loop time of 0.150557 on 1 procs for 5 steps with 512 atoms
 
-99.9% CPU use with 1 MPI tasks x no OpenMP threads
+98.6% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 Minimization stats:
   Stopping criterion = energy tolerance
@@ -66,12 +73,12 @@ Minimization stats:
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.1996     | 0.1996     | 0.1996     |   0.0 | 99.27
+Pair    | 0.14823    | 0.14823    | 0.14823    |   0.0 | 98.45
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.00029564 | 0.00029564 | 0.00029564 |   0.0 |  0.15
-Output  | 2.861e-05  | 2.861e-05  | 2.861e-05  |   0.0 |  0.01
+Comm    | 0.00061703 | 0.00061703 | 0.00061703 |   0.0 |  0.41
+Output  | 6.8903e-05 | 6.8903e-05 | 6.8903e-05 |   0.0 |  0.05
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 0.001153   |            |       |  0.57
+Other   |            | 0.001645   |            |       |  1.09
 
 Nlocal:    512 ave 512 max 512 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -90,32 +97,25 @@ min_modify	dmax 0.2 line quadratic
 
 unfix		1
 run		1
-WARNING: No fixes defined, atoms won't move (../verlet.cpp:55)
-Neighbor list info ...
-  1 neighbor list requests
-  update every 20 steps, delay 0 steps, check no
-  max neighbors/atom: 2000, page size: 100000
-  master list distance cutoff = 12.5
-  ghost atom cutoff = 12.5
-  binsize = 6.25 -> bins = 4 4 4
-Memory usage per processor = 5.97955 Mbytes
+WARNING: No fixes defined, atoms won't move (src/verlet.cpp:55)
+Per MPI rank memory allocation (min/avg/max) = 7.355 | 7.355 | 7.355 Mbytes
 Step Temp TotEng PotEng E_vdwl E_coul 
        5            1   -4.6295965   -4.6297255   -4.6297255            0 
        6            1   -4.6295965   -4.6297255   -4.6297255            0 
-Loop time of 0.018162 on 1 procs for 1 steps with 512 atoms
+Loop time of 0.0137405 on 1 procs for 1 steps with 512 atoms
 
-Performance: 0.951 ns/day, 25.225 hours/ns, 55.060 timesteps/s
-99.1% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 1.258 ns/day, 19.084 hours/ns, 72.777 timesteps/s
+98.8% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.018118   | 0.018118   | 0.018118   |   0.0 | 99.76
+Pair    | 0.013664   | 0.013664   | 0.013664   |   0.0 | 99.44
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 2.6941e-05 | 2.6941e-05 | 2.6941e-05 |   0.0 |  0.15
-Output  | 8.1062e-06 | 8.1062e-06 | 8.1062e-06 |   0.0 |  0.04
-Modify  | 2.1458e-06 | 2.1458e-06 | 2.1458e-06 |   0.0 |  0.01
-Other   |            | 6.914e-06  |            |       |  0.04
+Comm    | 4.2915e-05 | 4.2915e-05 | 4.2915e-05 |   0.0 |  0.31
+Output  | 2.4319e-05 | 2.4319e-05 | 2.4319e-05 |   0.0 |  0.18
+Modify  | 2.3842e-07 | 2.3842e-07 | 2.3842e-07 |   0.0 |  0.00
+Other   |            | 8.821e-06  |            |       |  0.06
 
 Nlocal:    512 ave 512 max 512 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -140,9 +140,9 @@ fix  		2 all deform 1 x scale 1.0001 remap x
 compute   	perfx all stress/atom NULL pair
 compute   	fx all reduce sum 		c_perfx[1] c_perfx[2] c_perfx[3] 		c_perfx[4] c_perfx[5] c_perfx[6]
 thermo_style	custom step lx ly lz xy xz yz 		c_fx[1] c_fx[2] c_fx[3] c_fx[4] c_fx[5] c_fx[6]
-WARNING: New thermo_style command, previous thermo_modify settings will be lost (../output.cpp:690)
+WARNING: New thermo_style command, previous thermo_modify settings will be lost (src/output.cpp:705)
 run		10
-Memory usage per processor = 6.72955 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 8.105 | 8.105 | 8.105 Mbytes
 Step Lx Ly Lz Xy Xz Yz c_fx[1] c_fx[2] c_fx[3] c_fx[4] c_fx[5] c_fx[6] 
        6    21.727916    21.727916    21.727916            0            0            0 -4.5569391e-06 -9.3041736e-06 -3.863262e-06 5.3686749e-06 -1.5078216e-06 5.1674734e-06 
        7    21.728133    21.727916    21.727916            0            0            0 -2.4800435e-06 -9.5067314e-06 -2.1562734e-06 5.5972954e-06 -2.3715124e-06 3.9555507e-06 
@@ -155,20 +155,20 @@ Step Lx Ly Lz Xy Xz Yz c_fx[1] c_fx[2] c_fx[3] c_fx[4] c_fx[5] c_fx[6]
       14    21.729654    21.727916    21.727916            0            0            0    1023414.2    541206.18    541206.18 5.6537455e-06 -1.9222461e-06 4.3649131e-06 
       15    21.729871    21.727916    21.727916            0            0            0    1169613.3    618507.19    618507.19 5.5850663e-06 -2.204341e-06 6.1719985e-06 
       16    21.730089    21.727916    21.727916            0            0            0    1315811.8    695804.66    695804.66 -1.3406996e-05 2.5348334e-06 6.2581356e-06 
-Loop time of 0.199118 on 1 procs for 10 steps with 512 atoms
+Loop time of 0.15253 on 1 procs for 10 steps with 512 atoms
 
-Performance: 0.868 ns/day, 27.655 hours/ns, 50.221 timesteps/s
-99.9% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 1.133 ns/day, 21.185 hours/ns, 65.561 timesteps/s
+99.1% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.19755    | 0.19755    | 0.19755    |   0.0 | 99.21
+Pair    | 0.15014    | 0.15014    | 0.15014    |   0.0 | 98.44
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.00027704 | 0.00027704 | 0.00027704 |   0.0 |  0.14
-Output  | 0.0011551  | 0.0011551  | 0.0011551  |   0.0 |  0.58
-Modify  | 7.8201e-05 | 7.8201e-05 | 7.8201e-05 |   0.0 |  0.04
-Other   |            | 5.865e-05  |            |       |  0.03
+Comm    | 0.00041151 | 0.00041151 | 0.00041151 |   0.0 |  0.27
+Output  | 0.0017772  | 0.0017772  | 0.0017772  |   0.0 |  1.17
+Modify  | 0.00014377 | 0.00014377 | 0.00014377 |   0.0 |  0.09
+Other   |            | 5.341e-05  |            |       |  0.04
 
 Nlocal:    512 ave 512 max 512 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -191,7 +191,7 @@ compute   	perfz all stress/atom NULL pair
 compute   	fz all reduce sum 		c_perfz[1] c_perfz[2] c_perfz[3] 		c_perfz[4] c_perfz[5] c_perfz[6]
 thermo_style	custom  step lx ly lz xy xz yz 		c_fz[1] c_fz[2] c_fz[3] c_fz[4] c_fz[5] c_fz[6]
 run		10
-Memory usage per processor = 7.47955 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 8.855 | 8.855 | 8.855 Mbytes
 Step Lx Ly Lz Xy Xz Yz c_fz[1] c_fz[2] c_fz[3] c_fz[4] c_fz[5] c_fz[6] 
       16    21.730089    21.727916    21.727916            0            0            0    1462009.5    773098.59    773098.59 4.2549849e-06 -8.3746497e-07 7.0310015e-06 
       17    21.730089    21.727916    21.728133            0            0            0    1462009.5    773098.59    773098.59 5.1784721e-06 -2.3038152e-06 5.7172699e-06 
@@ -204,20 +204,20 @@ Step Lx Ly Lz Xy Xz Yz c_fz[1] c_fz[2] c_fz[3] c_fz[4] c_fz[5] c_fz[6]
       24    21.730089    21.727916    21.729654            0            0            0      2003022    1314132.4    1796319.1 2.3497113e-06 -2.3680104e-06 4.7932602e-06 
       25    21.730089    21.727916    21.729871            0            0            0    2080295.4    1391408.8    1942490.6 6.941166e-06 -1.1601937e-06 4.9355658e-06 
       26    21.730089    21.727916    21.730089            0            0            0    2157565.2    1468681.6    2088661.4 5.7633476e-06 -8.4264935e-07 4.0350137e-06 
-Loop time of 0.199616 on 1 procs for 10 steps with 512 atoms
+Loop time of 0.152854 on 1 procs for 10 steps with 512 atoms
 
-Performance: 0.866 ns/day, 27.724 hours/ns, 50.096 timesteps/s
-100.2% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 1.130 ns/day, 21.230 hours/ns, 65.422 timesteps/s
+98.6% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.19798    | 0.19798    | 0.19798    |   0.0 | 99.18
+Pair    | 0.15047    | 0.15047    | 0.15047    |   0.0 | 98.44
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.00028658 | 0.00028658 | 0.00028658 |   0.0 |  0.14
-Output  | 0.0012088  | 0.0012088  | 0.0012088  |   0.0 |  0.61
-Modify  | 7.987e-05  | 7.987e-05  | 7.987e-05  |   0.0 |  0.04
-Other   |            | 5.698e-05  |            |       |  0.03
+Comm    | 0.00043082 | 0.00043082 | 0.00043082 |   0.0 |  0.28
+Output  | 0.0017312  | 0.0017312  | 0.0017312  |   0.0 |  1.13
+Modify  | 0.00015283 | 0.00015283 | 0.00015283 |   0.0 |  0.10
+Other   |            | 7.296e-05  |            |       |  0.05
 
 Nlocal:    512 ave 512 max 512 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -240,7 +240,7 @@ compute   	perfyz all stress/atom NULL pair
 compute   	fyz all reduce sum 		c_perfyz[1] c_perfyz[2] c_perfyz[3] 		c_perfyz[4] c_perfyz[5] c_perfyz[6]
 thermo_style	custom  step lx ly lz xy xz yz 		c_fyz[1] c_fyz[2] c_fyz[3] c_fyz[4] c_fyz[5] c_fyz[6]
 run		10
-Memory usage per processor = 8.24482 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 9.621 | 9.621 | 9.621 Mbytes
 Step Lx Ly Lz Xy Xz Yz c_fyz[1] c_fyz[2] c_fyz[3] c_fyz[4] c_fyz[5] c_fyz[6] 
       26    21.730089    21.727916    21.730089            0            0            0    2234831.5    1545950.9    2234831.5 4.8476018e-06 4.2828413e-07  5.75372e-06 
       27    21.730089    21.727916    21.730089            0            0 4.3460177e-07    2234831.5    1545950.9    2234831.5 5.088922e-06 -2.3012471e-06 5.6950612e-06 
@@ -253,20 +253,20 @@ Step Lx Ly Lz Xy Xz Yz c_fyz[1] c_fyz[2] c_fyz[3] c_fyz[4] c_fyz[5] c_fyz[6]
       34    21.730089    21.727916    21.730089            0            0 3.4768142e-06    2234831.5    1545950.9    2234831.5 4.8447261e-06 -1.9614792e-06    1705.6275 
       35    21.730089    21.727916    21.730089            0            0 3.911416e-06    2234831.5    1545950.9    2234831.5 5.1297449e-06 -2.114135e-06    1949.2885 
       36    21.730089    21.727916    21.730089            0            0 4.3460177e-06    2234831.5    1545950.9    2234831.5 4.5571577e-06 -1.8415232e-06    2192.9496 
-Loop time of 0.199427 on 1 procs for 10 steps with 512 atoms
+Loop time of 0.149663 on 1 procs for 10 steps with 512 atoms
 
-Performance: 0.866 ns/day, 27.698 hours/ns, 50.144 timesteps/s
-100.3% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 1.155 ns/day, 20.787 hours/ns, 66.817 timesteps/s
+99.4% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.19785    | 0.19785    | 0.19785    |   0.0 | 99.21
+Pair    | 0.14745    | 0.14745    | 0.14745    |   0.0 | 98.52
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.00027561 | 0.00027561 | 0.00027561 |   0.0 |  0.14
-Output  | 0.0011613  | 0.0011613  | 0.0011613  |   0.0 |  0.58
-Modify  | 7.6056e-05 | 7.6056e-05 | 7.6056e-05 |   0.0 |  0.04
-Other   |            | 6.199e-05  |            |       |  0.03
+Comm    | 0.00038886 | 0.00038886 | 0.00038886 |   0.0 |  0.26
+Output  | 0.0016539  | 0.0016539  | 0.0016539  |   0.0 |  1.11
+Modify  | 0.00012946 | 0.00012946 | 0.00012946 |   0.0 |  0.09
+Other   |            | 4.387e-05  |            |       |  0.03
 
 Nlocal:    512 ave 512 max 512 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -289,7 +289,7 @@ compute   	perfxy all stress/atom NULL pair
 compute   	fxy all reduce sum 		c_perfxy[1] c_perfxy[2] c_perfxy[3] 		c_perfxy[4] c_perfxy[5] c_perfxy[6]
 thermo_style	custom  step lx ly lz xy xz yz 		c_fxy[1] c_fxy[2] c_fxy[3] c_fxy[4] c_fxy[5] c_fxy[6]
 run		10
-Memory usage per processor = 8.99482 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 10.37 | 10.37 | 10.37 Mbytes
 Step Lx Ly Lz Xy Xz Yz c_fxy[1] c_fxy[2] c_fxy[3] c_fxy[4] c_fxy[5] c_fxy[6] 
       36    21.730089    21.727916    21.730089            0            0 4.3460177e-06    2234831.5    1545950.9    2234831.5 5.1293854e-06 -1.6748595e-06    2436.6106 
       37    21.730089    21.727916    21.730089 4.3455832e-07            0 4.3460177e-06    2234831.5    1545950.9    2234831.5 5.1236563e-06 -3.3624188e-06    2436.6106 
@@ -302,20 +302,20 @@ Step Lx Ly Lz Xy Xz Yz c_fxy[1] c_fxy[2] c_fxy[3] c_fxy[4] c_fxy[5] c_fxy[6]
       44    21.730089    21.727916    21.730089 3.4764665e-06            0 4.3460177e-06    2234831.5    1545950.9    2234831.5     1705.531 -0.00091806693    2436.6106 
       45    21.730089    21.727916    21.730089 3.9110248e-06            0 4.3460177e-06    2234831.5    1545950.9    2234831.5    1949.1783 -0.001049945    2436.6106 
       46    21.730089    21.727916    21.730089 4.3455832e-06            0 4.3460177e-06    2234831.5    1545950.9    2234831.5    2192.8256 -0.0011787861    2436.6106 
-Loop time of 0.200513 on 1 procs for 10 steps with 512 atoms
+Loop time of 0.150095 on 1 procs for 10 steps with 512 atoms
 
-Performance: 0.862 ns/day, 27.849 hours/ns, 49.872 timesteps/s
-100.2% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 1.151 ns/day, 20.847 hours/ns, 66.624 timesteps/s
+99.4% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.19893    | 0.19893    | 0.19893    |   0.0 | 99.21
+Pair    | 0.14786    | 0.14786    | 0.14786    |   0.0 | 98.51
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.00027752 | 0.00027752 | 0.00027752 |   0.0 |  0.14
-Output  | 0.0011744  | 0.0011744  | 0.0011744  |   0.0 |  0.59
-Modify  | 7.4387e-05 | 7.4387e-05 | 7.4387e-05 |   0.0 |  0.04
-Other   |            | 6.08e-05   |            |       |  0.03
+Comm    | 0.00038791 | 0.00038791 | 0.00038791 |   0.0 |  0.26
+Output  | 0.0016763  | 0.0016763  | 0.0016763  |   0.0 |  1.12
+Modify  | 0.00012708 | 0.00012708 | 0.00012708 |   0.0 |  0.08
+Other   |            | 4.101e-05  |            |       |  0.03
 
 Nlocal:    512 ave 512 max 512 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -330,4 +330,4 @@ Total # of neighbors = 212992
 Ave neighs/atom = 416
 Neighbor list builds = 0
 Dangerous builds not checked
-Total wall time: 0:00:01
+Total wall time: 0:00:00

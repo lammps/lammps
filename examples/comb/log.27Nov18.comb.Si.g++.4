@@ -1,4 +1,5 @@
-LAMMPS (5 Oct 2016)
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
 # Pure Si crystal, structure created by LAMMPS, qeq off
 
 units		metal
@@ -14,6 +15,7 @@ Created orthogonal box = (0 0 0) to (21.72 21.72 21.72)
   1 by 2 by 2 MPI processor grid
 create_atoms	1 box
 Created 512 atoms
+  Time spent = 0.000349522 secs
 mass		1 29.0
 
 pair_style	comb
@@ -42,13 +44,18 @@ thermo	  	1
 
 run  		10
 Neighbor list info ...
-  1 neighbor list requests
   update every 1 steps, delay 1 steps, check yes
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 12.5
   ghost atom cutoff = 12.5
-  binsize = 6.25 -> bins = 4 4 4
-Memory usage per processor = 6.39352 Mbytes
+  binsize = 6.25, bins = 4 4 4
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair comb, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 6.99 | 6.99 | 6.99 Mbytes
 Step Temp TotEng PotEng E_vdwl E_coul Press Volume Lx Ly Lz Xz 
        0         10.1   -4.6284152   -4.6297182   -4.6297182            0    1140.7851    10246.592        21.72        21.72        21.72            0 
        1    10.097841   -4.6284152   -4.6297179   -4.6297179            0    1140.8134    10246.592        21.72        21.72        21.72            0 
@@ -61,20 +68,20 @@ Step Temp TotEng PotEng E_vdwl E_coul Press Volume Lx Ly Lz Xz
        8    9.9627224   -4.6284152   -4.6297005   -4.6297005            0    1142.5835    10246.592        21.72        21.72        21.72            0 
        9    9.9265602   -4.6284152   -4.6296958   -4.6296958            0    1143.0565    10246.592        21.72        21.72        21.72            0 
       10    9.8862927   -4.6284152   -4.6296906   -4.6296906            0    1143.5829    10246.592        21.72        21.72        21.72            0 
-Loop time of 0.0527902 on 4 procs for 10 steps with 512 atoms
+Loop time of 0.0424338 on 4 procs for 10 steps with 512 atoms
 
-Performance: 3.273 ns/day, 7.332 hours/ns, 189.429 timesteps/s
-99.9% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 4.072 ns/day, 5.894 hours/ns, 235.661 timesteps/s
+93.9% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.045993   | 0.047917   | 0.051259   |   0.9 | 90.77
+Pair    | 0.034115   | 0.035889   | 0.040149   |   1.3 | 84.58
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.0010545  | 0.0044153  | 0.0063219  |   3.0 |  8.36
-Output  | 0.00030351 | 0.00033081 | 0.00036931 |   0.1 |  0.63
-Modify  | 2.3365e-05 | 2.6286e-05 | 2.8372e-05 |   0.0 |  0.05
-Other   |            | 0.0001011  |            |       |  0.19
+Comm    | 0.0015998  | 0.0058764  | 0.0076761  |   3.2 | 13.85
+Output  | 0.00023532 | 0.00029427 | 0.00042939 |   0.0 |  0.69
+Modify  | 2.7418e-05 | 2.9385e-05 | 3.1948e-05 |   0.0 |  0.07
+Other   |            | 0.0003446  |            |       |  0.81
 
 Nlocal:    128 ave 128 max 128 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

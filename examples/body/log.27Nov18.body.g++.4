@@ -1,4 +1,5 @@
-LAMMPS (5 Oct 2016)
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
 # 2d polygon nparticle bodies
 
 units		lj
@@ -14,7 +15,7 @@ read_data       data.body
 
 velocity	all create 1.44 87287 loop geom
 
-pair_style	body 5.0
+pair_style	body/nparticle 5.0
 pair_coeff	* * 1.0 1.0
 
 neighbor	0.5 bin
@@ -33,13 +34,18 @@ fix		2 all enforce2d
 thermo          100
 run		10000
 Neighbor list info ...
-  1 neighbor list requests
   update every 1 steps, delay 0 steps, check yes
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 5.5
   ghost atom cutoff = 5.5
-  binsize = 2.75 -> bins = 12 12 1
-Memory usage per processor = 4.43864 Mbytes
+  binsize = 2.75, bins = 12 12 1
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair body/nparticle, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/2d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.759 | 4.759 | 4.759 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0         1.44  -0.63799525            0   0.78760475  -0.15028724 
      100     1.642337   -1.0003869            0   0.62552682   0.16140818 
@@ -142,20 +148,20 @@ Step Temp E_pair E_mol TotEng Press
     9800    1.7799071   -1.7889616            0 -0.026853542    0.3169291 
     9900    1.5838158    -1.718909            0  -0.15093133   0.46050618 
    10000    1.6100625   -1.7018091            0  -0.10784725   0.10312591 
-Loop time of 0.849795 on 4 procs for 10000 steps with 100 atoms
+Loop time of 0.715445 on 4 procs for 10000 steps with 100 atoms
 
-Performance: 5083579.790 tau/day, 11767.546 timesteps/s
-99.0% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 6038199.147 tau/day, 13977.313 timesteps/s
+95.9% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.47067    | 0.53757    | 0.61119    |   7.9 | 63.26
-Neigh   | 0.0030298  | 0.0032511  | 0.0035295  |   0.3 |  0.38
-Comm    | 0.1592     | 0.23416    | 0.30247    |  12.4 | 27.56
-Output  | 0.0015244  | 0.0016521  | 0.0018895  |   0.4 |  0.19
-Modify  | 0.039954   | 0.0415     | 0.044199   |   0.8 |  4.88
-Other   |            | 0.03166    |            |       |  3.73
+Pair    | 0.35395    | 0.40307    | 0.45588    |   5.9 | 56.34
+Neigh   | 0.0033705  | 0.0036112  | 0.0039394  |   0.4 |  0.50
+Comm    | 0.17564    | 0.22399    | 0.26912    |   7.8 | 31.31
+Output  | 0.0014601  | 0.0024824  | 0.0054784  |   3.5 |  0.35
+Modify  | 0.038037   | 0.039219   | 0.04163    |   0.7 |  5.48
+Other   |            | 0.04308    |            |       |  6.02
 
 Nlocal:    25 ave 28 max 23 min
 Histogram: 1 0 1 0 1 0 0 0 0 1

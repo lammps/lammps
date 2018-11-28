@@ -1,4 +1,5 @@
-LAMMPS (5 Oct 2016)
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
 # 2d polygon nparticle bodies
 
 units		lj
@@ -14,7 +15,7 @@ read_data       data.body
 
 velocity	all create 1.44 87287 loop geom
 
-pair_style	body 5.0
+pair_style	body/nparticle 5.0
 pair_coeff	* * 1.0 1.0
 
 neighbor	0.5 bin
@@ -33,13 +34,18 @@ fix		2 all enforce2d
 thermo          100
 run		10000
 Neighbor list info ...
-  1 neighbor list requests
   update every 1 steps, delay 0 steps, check yes
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 5.5
   ghost atom cutoff = 5.5
-  binsize = 2.75 -> bins = 12 12 1
-Memory usage per processor = 4.44944 Mbytes
+  binsize = 2.75, bins = 12 12 1
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair body/nparticle, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/2d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.772 | 4.772 | 4.772 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0         1.44  -0.63799525            0   0.78760475  -0.15028724 
      100     1.642337   -1.0003869            0   0.62552682   0.16140818 
@@ -142,20 +148,20 @@ Step Temp E_pair E_mol TotEng Press
     9800    1.6713187   -1.6842507            0 -0.029645137   0.17982115 
     9900    1.7707351   -1.6638268            0  0.089200949    0.2983883 
    10000    1.6466807    -1.592436            0  0.037777866   0.12761693 
-Loop time of 2.33651 on 1 procs for 10000 steps with 100 atoms
+Loop time of 1.76365 on 1 procs for 10000 steps with 100 atoms
 
-Performance: 1848909.758 tau/day, 4279.884 timesteps/s
-99.9% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 2449465.017 tau/day, 5670.058 timesteps/s
+98.9% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 2.1308     | 2.1308     | 2.1308     |   0.0 | 91.20
-Neigh   | 0.011168   | 0.011168   | 0.011168   |   0.0 |  0.48
-Comm    | 0.02469    | 0.02469    | 0.02469    |   0.0 |  1.06
-Output  | 0.00063729 | 0.00063729 | 0.00063729 |   0.0 |  0.03
-Modify  | 0.15896    | 0.15896    | 0.15896    |   0.0 |  6.80
-Other   |            | 0.01025    |            |       |  0.44
+Pair    | 1.5533     | 1.5533     | 1.5533     |   0.0 | 88.08
+Neigh   | 0.01155    | 0.01155    | 0.01155    |   0.0 |  0.65
+Comm    | 0.042146   | 0.042146   | 0.042146   |   0.0 |  2.39
+Output  | 0.00089574 | 0.00089574 | 0.00089574 |   0.0 |  0.05
+Modify  | 0.14124    | 0.14124    | 0.14124    |   0.0 |  8.01
+Other   |            | 0.01448    |            |       |  0.82
 
 Nlocal:    100 ave 100 max 100 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -168,4 +174,4 @@ Total # of neighbors = 467
 Ave neighs/atom = 4.67
 Neighbor list builds = 468
 Dangerous builds = 0
-Total wall time: 0:00:02
+Total wall time: 0:00:01

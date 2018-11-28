@@ -1,4 +1,5 @@
-LAMMPS (29 Jun 2018)
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
 # 3d rounded cubes
 
 variable    r     index 3
@@ -23,7 +24,7 @@ replicate   3 3 3
   orthogonal box = (0 0 0) to (18 18 18)
   1 by 2 by 2 MPI processor grid
   54 atoms
-  Time spent = 0.00103807 secs
+  Time spent = 0.000776052 secs
 
 velocity    all create 1.2 187287 dist gaussian mom yes rot yes
 
@@ -95,20 +96,20 @@ Step KinEng PotEng TotEng c_p2 c_1_temp
     8000    3.0101226   0.28825968    3.2983823  0.027273454    1.2138056 
     9000    3.0164253    0.1901733    3.2065986  0.033228915    1.3095914 
    10000    2.3780401   0.34082434    2.7188644  0.031838531    1.0208679 
-Loop time of 20.5306 on 4 procs for 10000 steps with 54 atoms
+Loop time of 25.5798 on 4 procs for 10000 steps with 54 atoms
 
-Performance: 42083.509 tau/day, 487.078 timesteps/s
-100.0% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 33776.718 tau/day, 390.934 timesteps/s
+97.1% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 7.5288     | 10.878     | 19.952     | 159.0 | 52.98
-Neigh   | 0.0014424  | 0.0016552  | 0.0021195  |   0.7 |  0.01
-Comm    | 0.50623    | 9.5805     | 12.93      | 169.4 | 46.66
-Output  | 0.00011921 | 0.00014341 | 0.00021386 |   0.0 |  0.00
-Modify  | 0.044663   | 0.047684   | 0.05382    |   1.6 |  0.23
-Other   |            | 0.023      |            |       |  0.11
+Pair    | 9.256      | 13.423     | 24.653     | 177.1 | 52.47
+Neigh   | 0.0021949  | 0.0024942  | 0.0031152  |   0.7 |  0.01
+Comm    | 0.73678    | 11.948     | 16.096     | 187.4 | 46.71
+Output  | 0.00023246 | 0.00041932 | 0.0009768  |   0.0 |  0.00
+Modify  | 0.12505    | 0.15661    | 0.18165    |   6.0 |  0.61
+Other   |            | 0.04968    |            |       |  0.19
 
 Nlocal:    13.5 ave 17 max 9 min
 Histogram: 1 0 0 1 0 0 0 0 1 1
@@ -122,4 +123,4 @@ Ave neighs/atom = 1.85185
 Neighbor list builds = 268
 Dangerous builds = 0
 
-Total wall time: 0:00:20
+Total wall time: 0:00:25

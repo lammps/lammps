@@ -1,4 +1,5 @@
-LAMMPS (5 Oct 2016)
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
 # 3d Lennard-Jones melt
 
 units		lj
@@ -13,6 +14,7 @@ Created orthogonal box = (0 0 0) to (16.796 16.796 16.796)
   4 by 1 by 1 MPI processor grid
 create_atoms	1 box
 Created 4000 atoms
+  Time spent = 0.000430107 secs
 mass		* 1.0
 
 region		long block 3 6 0 10 0 10
@@ -51,14 +53,19 @@ fix		1 all nve
 thermo		50
 run		500
 Neighbor list info ...
-  1 neighbor list requests
   update every 2 steps, delay 4 steps, check yes
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 5.3
   ghost atom cutoff = 5.3
-  binsize = 2.65 -> bins = 7 7 7
-WARNING: Balance weight neigh skipped b/c no list found (../imbalance_neigh.cpp:67)
-Memory usage per processor = 3.0442 Mbytes
+  binsize = 2.65, bins = 7 7 7
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+WARNING: Balance weight neigh skipped b/c no list found (src/imbalance_neigh.cpp:65)
+Per MPI rank memory allocation (min/avg/max) = 3.691 | 4.072 | 4.454 Mbytes
 Step Temp E_pair E_mol TotEng Press Volume 
        0            1   -6.9453205            0   -5.4456955   -5.6812358    4738.2137 
       50   0.48653399   -6.1788509            0   -5.4492324   -1.6017778    4738.2137 
@@ -71,20 +78,20 @@ Step Temp E_pair E_mol TotEng Press Volume
      400   0.53241503   -6.2453665            0   -5.4469436    -1.878594    4738.2137 
      450    0.5439158      -6.2623            0   -5.4466302   -1.9744161    4738.2137 
      500   0.55526241   -6.2793396            0   -5.4466542   -2.0595015    4738.2137 
-Loop time of 2.30888 on 4 procs for 500 steps with 4000 atoms
+Loop time of 2.45924 on 4 procs for 500 steps with 4000 atoms
 
-Performance: 93551.974 tau/day, 216.555 timesteps/s
-99.4% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 87831.985 tau/day, 203.315 timesteps/s
+97.9% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 1.0928     | 1.4128     | 1.6873     |  21.3 | 61.19
-Neigh   | 0.26037    | 0.38342    | 0.55053    |  20.2 | 16.61
-Comm    | 0.33912    | 0.49342    | 0.644      |  18.3 | 21.37
-Output  | 0.00029206 | 0.00033247 | 0.00037789 |   0.2 |  0.01
-Modify  | 0.0062437  | 0.0082552  | 0.010971   |   2.2 |  0.36
-Other   |            | 0.01067    |            |       |  0.46
+Pair    | 1.1372     | 1.4179     | 1.6656     |  18.1 | 57.66
+Neigh   | 0.30681    | 0.46841    | 0.69372    |  24.1 | 19.05
+Comm    | 0.46019    | 0.55206    | 0.6052     |   7.7 | 22.45
+Output  | 0.00034404 | 0.0005753  | 0.001132   |   0.0 |  0.02
+Modify  | 0.007339   | 0.0099927  | 0.013719   |   2.7 |  0.41
+Other   |            | 0.01029    |            |       |  0.42
 
 Nlocal:    1000 ave 1549 max 605 min
 Histogram: 2 0 0 0 0 0 1 0 0 1
@@ -98,7 +105,7 @@ Ave neighs/atom = 149.308
 Neighbor list builds = 50
 Dangerous builds = 0
 run		500
-Memory usage per processor = 3.06519 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 4.097 | 4.288 | 4.475 Mbytes
 Step Temp E_pair E_mol TotEng Press Volume 
      500   0.55526241   -6.2793396            0   -5.4466542   -2.0595015    4738.2137 
      550   0.53879347   -6.2554274            0   -5.4474393   -1.9756834    4738.2137 
@@ -111,20 +118,20 @@ Step Temp E_pair E_mol TotEng Press Volume
      900   0.54756622   -6.2668303            0   -5.4456863   -1.9796122    4738.2137 
      950   0.54791593   -6.2673161            0   -5.4456477   -1.9598278    4738.2137 
     1000   0.54173198   -6.2586101            0   -5.4462153   -1.9007466    4738.2137 
-Loop time of 2.16949 on 4 procs for 500 steps with 4000 atoms
+Loop time of 2.389 on 4 procs for 500 steps with 4000 atoms
 
-Performance: 99562.401 tau/day, 230.469 timesteps/s
-99.5% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 90414.542 tau/day, 209.293 timesteps/s
+97.2% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 1.1466     | 1.3644     | 1.5476     |  15.2 | 62.89
-Neigh   | 0.25492    | 0.38744    | 0.57253    |  22.1 | 17.86
-Comm    | 0.34836    | 0.39805    | 0.45037    |   6.7 | 18.35
-Output  | 0.00028539 | 0.00031531 | 0.00037646 |   0.2 |  0.01
-Modify  | 0.0060055  | 0.008239   | 0.011282   |   2.5 |  0.38
-Other   |            | 0.01107    |            |       |  0.51
+Pair    | 1.2112     | 1.381      | 1.5214     |  11.0 | 57.81
+Neigh   | 0.29746    | 0.48382    | 0.74669    |  27.5 | 20.25
+Comm    | 0.40449    | 0.50032    | 0.57922    |   9.4 | 20.94
+Output  | 0.00033617 | 0.00064272 | 0.0013907  |   0.0 |  0.03
+Modify  | 0.0070128  | 0.010942   | 0.015494   |   3.7 |  0.46
+Other   |            | 0.01223    |            |       |  0.51
 
 Nlocal:    1000 ave 1569 max 595 min
 Histogram: 2 0 0 0 0 0 1 0 0 1
@@ -138,7 +145,7 @@ Ave neighs/atom = 150.169
 Neighbor list builds = 53
 Dangerous builds = 0
 run             500
-Memory usage per processor = 3.06519 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 4.097 | 4.288 | 4.475 Mbytes
 Step Temp E_pair E_mol TotEng Press Volume 
     1000   0.54173198   -6.2586101            0   -5.4462153   -1.9007466    4738.2137 
     1050   0.54629742   -6.2657526            0   -5.4465113    -1.945821    4738.2137 
@@ -151,20 +158,20 @@ Step Temp E_pair E_mol TotEng Press Volume
     1400   0.53726924   -6.2518379            0   -5.4461355   -1.8544028    4738.2137 
     1450   0.54525935   -6.2632653            0   -5.4455808   -1.9072158    4738.2137 
     1500   0.54223346   -6.2591057            0   -5.4459588   -1.8866985    4738.2137 
-Loop time of 2.17283 on 4 procs for 500 steps with 4000 atoms
+Loop time of 2.45895 on 4 procs for 500 steps with 4000 atoms
 
-Performance: 99409.423 tau/day, 230.114 timesteps/s
-99.6% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 87842.291 tau/day, 203.339 timesteps/s
+95.7% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 1.1581     | 1.3768     | 1.574      |  15.8 | 63.37
-Neigh   | 0.24753    | 0.3727     | 0.54533    |  21.2 | 17.15
-Comm    | 0.33306    | 0.40373    | 0.47481    |   9.3 | 18.58
-Output  | 0.00036979 | 0.0003832  | 0.00039721 |   0.0 |  0.02
-Modify  | 0.0059896  | 0.0082257  | 0.011168   |   2.5 |  0.38
-Other   |            | 0.01095    |            |       |  0.50
+Pair    | 1.2592     | 1.4017     | 1.5327     |  11.0 | 57.01
+Neigh   | 0.28831    | 0.47661    | 0.75988    |  28.7 | 19.38
+Comm    | 0.41426    | 0.54907    | 0.6044     |  10.6 | 22.33
+Output  | 0.0003705  | 0.00060898 | 0.0012109  |   0.0 |  0.02
+Modify  | 0.014004   | 0.016774   | 0.020669   |   1.9 |  0.68
+Other   |            | 0.01415    |            |       |  0.58
 
 Nlocal:    1000 ave 1543 max 605 min
 Histogram: 2 0 0 0 0 0 1 0 0 1
@@ -178,7 +185,7 @@ Ave neighs/atom = 150.494
 Neighbor list builds = 51
 Dangerous builds = 0
 run             500
-Memory usage per processor = 3.06519 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 4.097 | 4.288 | 4.475 Mbytes
 Step Temp E_pair E_mol TotEng Press Volume 
     1500   0.54223346   -6.2591057            0   -5.4459588   -1.8866985    4738.2137 
     1550   0.55327018   -6.2750126            0   -5.4453148   -1.9506585    4738.2137 
@@ -191,20 +198,20 @@ Step Temp E_pair E_mol TotEng Press Volume
     1900   0.53992511    -6.254136            0   -5.4444508   -1.7768715    4738.2137 
     1950   0.54665895   -6.2640958            0   -5.4443124   -1.7946993    4738.2137 
     2000    0.5455751   -6.2625337            0   -5.4443756   -1.8072242    4738.2137 
-Loop time of 2.20474 on 4 procs for 500 steps with 4000 atoms
+Loop time of 2.42708 on 4 procs for 500 steps with 4000 atoms
 
-Performance: 97970.946 tau/day, 226.785 timesteps/s
-99.4% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 88995.678 tau/day, 206.009 timesteps/s
+97.3% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 1.1731     | 1.3783     | 1.5498     |  14.7 | 62.51
-Neigh   | 0.26429    | 0.40654    | 0.59777    |  22.6 | 18.44
-Comm    | 0.36731    | 0.40043    | 0.44935    |   5.2 | 18.16
-Output  | 0.00030565 | 0.00033122 | 0.00039625 |   0.2 |  0.02
-Modify  | 0.0059974  | 0.008266   | 0.01132    |   2.6 |  0.37
-Other   |            | 0.01088    |            |       |  0.49
+Pair    | 1.2482     | 1.3902     | 1.5329     |  10.6 | 57.28
+Neigh   | 0.31099    | 0.50813    | 0.78451    |  28.1 | 20.94
+Comm    | 0.37293    | 0.5011     | 0.58684    |  11.2 | 20.65
+Output  | 0.00033593 | 0.00060582 | 0.0012991  |   0.0 |  0.02
+Modify  | 0.007091   | 0.0097566  | 0.013303   |   2.7 |  0.40
+Other   |            | 0.01727    |            |       |  0.71
 
 Nlocal:    1000 ave 1539 max 607 min
 Histogram: 2 0 0 0 0 0 1 0 0 1
@@ -218,4 +225,4 @@ Ave neighs/atom = 151.655
 Neighbor list builds = 56
 Dangerous builds = 0
 
-Total wall time: 0:00:08
+Total wall time: 0:00:09

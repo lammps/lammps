@@ -186,14 +186,17 @@ if buildflag:
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   os.remove("%s/%s" % (homepath,filename))
 
-# build plumed
+  # build plumed
+  print("Building plumed ...")
+  try:
+    import multiprocessing
+    n_cpus = multiprocessing.cpu_count()
+  except:
+    n_cpus = 1
+  cmd = 'cd %s/plumed-%s; ./configure --prefix=%s --enable-static-patch ; make -j%d ; make install' % (homepath,version,homedir,n_cpus)
+  txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+  print(txt.decode('UTF-8'))
  
-if buildflag:
-   print("Building plumed ...")
-   cmd = 'cd %s/plumed-%s; ./configure --prefix=%s --enable-static-patch ; make -j8 ; make install' % (homepath,version,homedir)
-   txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-   print(txt.decode('UTF-8'))
-# 
 # create 2 links in lib/plumed to plumed2 installation dir
 
 if linkflag:

@@ -1,4 +1,5 @@
-LAMMPS (27 Oct 2016)
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
 # Testsystem for core-shell model compared to Mitchel and Finchham
 # Hendrik Heenen, June 2014
 
@@ -68,12 +69,17 @@ thermo_modify temp CSequ
 
 velocity all create 1427 134 dist gaussian mom yes rot no bias yes temp CSequ
 Neighbor list info ...
-  1 neighbor list requests
   update every 1 steps, delay 10 steps, check yes
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 22
   ghost atom cutoff = 22
-  binsize = 11 -> bins = 3 3 3
+  binsize = 11, bins = 3 3 3
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair born/coul/dsf/cs, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d/newton
+      bin: standard
 velocity all scale 1427 temp CSequ
 
 fix thermoberendsen all temp/berendsen 1427 1427 0.4
@@ -84,7 +90,7 @@ fix_modify thermoberendsen temp CSequ
 
 timestep 0.002
 run 500
-Memory usage per processor = 7.04355 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 8.59 | 8.59 | 8.59 Mbytes
 Step TotEng PotEng KinEng Temp Press E_pair E_vdwl E_coul E_long E_bond Fnorm Fmax Volume 
        0   -635.80596   -675.46362    39.657659         1427   -21302.622   -675.46362    1.6320365   -677.09565            0            0 1.3517686e-14 2.942091e-15      13990.5 
       50    -633.9898   -666.02679     32.03699    1152.7858   -4578.5681   -668.50431    37.800204   -706.30452            0    2.4775226    14.568073    4.3012389      13990.5 
@@ -97,21 +103,21 @@ Step TotEng PotEng KinEng Temp Press E_pair E_vdwl E_coul E_long E_bond Fnorm Fm
      400   -625.02586   -661.46042    36.434568    1311.0236    -868.2031   -664.40231     43.21398   -707.61629            0    2.9418875    14.945389    2.7493413      13990.5 
      450    -624.3278   -660.50844    36.180639    1301.8865   -2203.3944   -663.49896    40.008669   -703.50763            0    2.9905179    14.158866    1.7299899      13990.5 
      500   -623.56254   -661.33839    37.775849    1359.2869   -810.50736   -664.11652    42.993999   -707.11052            0    2.7781274     13.68709    2.9115277      13990.5 
-Loop time of 10.7162 on 1 procs for 500 steps with 432 atoms
+Loop time of 8.43387 on 1 procs for 500 steps with 432 atoms
 
-Performance: 8.063 ns/day, 2.977 hours/ns, 46.658 timesteps/s
-99.9% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 10.244 ns/day, 2.343 hours/ns, 59.285 timesteps/s
+99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 10.478     | 10.478     | 10.478     |   0.0 | 97.78
-Bond    | 0.0029511  | 0.0029511  | 0.0029511  |   0.0 |  0.03
-Neigh   | 0.14159    | 0.14159    | 0.14159    |   0.0 |  1.32
-Comm    | 0.074382   | 0.074382   | 0.074382   |   0.0 |  0.69
-Output  | 0.00054097 | 0.00054097 | 0.00054097 |   0.0 |  0.01
-Modify  | 0.010588   | 0.010588   | 0.010588   |   0.0 |  0.10
-Other   |            | 0.007748   |            |       |  0.07
+Pair    | 8.1175     | 8.1175     | 8.1175     |   0.0 | 96.25
+Bond    | 0.0019796  | 0.0019796  | 0.0019796  |   0.0 |  0.02
+Neigh   | 0.21242    | 0.21242    | 0.21242    |   0.0 |  2.52
+Comm    | 0.085533   | 0.085533   | 0.085533   |   0.0 |  1.01
+Output  | 0.00041103 | 0.00041103 | 0.00041103 |   0.0 |  0.00
+Modify  | 0.012187   | 0.012187   | 0.012187   |   0.0 |  0.14
+Other   |            | 0.003863   |            |       |  0.05
 
 Nlocal:    432 ave 432 max 432 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -131,7 +137,7 @@ unfix thermoberendsen
 # ------------------------ Dynamic Run -------------------------------
 
 run 1000
-Memory usage per processor = 7.04355 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 8.59 | 8.59 | 8.59 Mbytes
 Step TotEng PotEng KinEng Temp Press E_pair E_vdwl E_coul E_long E_bond Fnorm Fmax Volume 
      500   -623.56254   -661.33839    37.775849    1359.2869   -810.50736   -664.11652    42.993999   -707.11052            0    2.7781274     13.68709    2.9115277      13990.5 
      550    -623.5004   -660.74472    37.244326    1340.1611   -1413.4326   -663.99669    41.875014    -705.8717            0    3.2519651    15.097948     2.278405      13990.5 
@@ -154,21 +160,21 @@ Step TotEng PotEng KinEng Temp Press E_pair E_vdwl E_coul E_long E_bond Fnorm Fm
     1400   -623.50803   -660.03912     36.53109    1314.4968    362.97431   -663.24909    45.772904   -709.02199            0    3.2099708    14.566488    1.9170714      13990.5 
     1450   -623.51243   -659.65548    36.143052     1300.534    2853.0755    -663.0534    51.355353   -714.40875            0    3.3979157    15.890282    2.5251359      13990.5 
     1500   -623.51621   -661.87741    38.361201    1380.3496    740.04973   -665.00896    46.208742    -711.2177            0    3.1315492    15.168927    2.4710846      13990.5 
-Loop time of 22.2766 on 1 procs for 1000 steps with 432 atoms
+Loop time of 16.907 on 1 procs for 1000 steps with 432 atoms
 
-Performance: 7.757 ns/day, 3.094 hours/ns, 44.890 timesteps/s
-99.9% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 10.221 ns/day, 2.348 hours/ns, 59.147 timesteps/s
+99.9% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 21.8       | 21.8       | 21.8       |   0.0 | 97.86
-Bond    | 0.005852   | 0.005852   | 0.005852   |   0.0 |  0.03
-Neigh   | 0.30423    | 0.30423    | 0.30423    |   0.0 |  1.37
-Comm    | 0.14388    | 0.14388    | 0.14388    |   0.0 |  0.65
-Output  | 0.0010855  | 0.0010855  | 0.0010855  |   0.0 |  0.00
-Modify  | 0.0064189  | 0.0064189  | 0.0064189  |   0.0 |  0.03
-Other   |            | 0.01527    |            |       |  0.07
+Pair    | 16.247     | 16.247     | 16.247     |   0.0 | 96.09
+Bond    | 0.0039518  | 0.0039518  | 0.0039518  |   0.0 |  0.02
+Neigh   | 0.46795    | 0.46795    | 0.46795    |   0.0 |  2.77
+Comm    | 0.17146    | 0.17146    | 0.17146    |   0.0 |  1.01
+Output  | 0.00082397 | 0.00082397 | 0.00082397 |   0.0 |  0.00
+Modify  | 0.0065799  | 0.0065799  | 0.0065799  |   0.0 |  0.04
+Other   |            | 0.009467   |            |       |  0.06
 
 Nlocal:    432 ave 432 max 432 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -182,4 +188,4 @@ Ave neighs/atom = 687.803
 Ave special neighs/atom = 1
 Neighbor list builds = 44
 Dangerous builds = 0
-Total wall time: 0:00:33
+Total wall time: 0:00:25

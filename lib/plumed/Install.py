@@ -200,6 +200,6 @@ if linkflag:
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   if os.path.isfile("Makefile.lammps.%s" % mode):
     print("Creating Makefile.lammps")
-    cmd = 'echo PLUMED_LIBDIR="%s/lib" > Makefile.lammps; cat liblink/Plumed.inc.%s Makefile.lammps.%s >> Makefile.lammps' % (homedir,mode,mode)
+    cmd = 'echo PLUMED_LIBDIR="%s/lib" > Makefile.lammps; cat liblink/plumed/src/lib/Plumed.inc.%s Makefile.lammps.%s >> Makefile.lammps' % (homedir,mode,mode)
     subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
 

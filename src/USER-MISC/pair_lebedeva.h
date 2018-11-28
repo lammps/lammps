@@ -17,8 +17,8 @@ PairStyle(lebedeva,PairLebedeva)
 
 #else
 
-#ifndef LMP_PAIR_Lebedeva_H
-#define LMP_PAIR_Lebedeva_H
+#ifndef LMP_PAIR_LEBEDEVA_H
+#define LMP_PAIR_LEBEDEVA_H
 
 #include "pair.h"
 

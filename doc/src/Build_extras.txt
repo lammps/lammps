@@ -796,6 +796,10 @@ make lib-plumed args="-b"               # download and build PLUMED in lib/plume
 make lib-plumed args="-p $HOME/.local"  # use existing PLUMED installation in $HOME/.local
 make lib-plumed args="-p /usr/local -m shared"  # use existing PLUMED installation in
                                                 # /usr/local and use shared linkage mode
+make lib-plumed args="-p $HOME/plumed2 --noinstall -m shared"  # use existing PLUMED
+                                                               # compiled source code in
+                                                               # $HOME/plumed2 and use
+                                                               # shared linkage mode
 :pre
 
 Note that 2 symbolic (soft) links, "includelink" and "liblink" are

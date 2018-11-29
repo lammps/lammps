@@ -1,4 +1,5 @@
-LAMMPS (5 Oct 2016)
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
 # LJ test of msst shock dynamics
 
 # Energy in eV, time in ps, distance in angstroms.
@@ -20,6 +21,7 @@ Created orthogonal box = (0 0 0) to (96.4602 96.4602 96.4602)
   1 by 2 by 2 MPI processor grid
 create_atoms    1 region box1
 Created 23328 atoms
+  Time spent = 0.00104165 secs
 
 mass		1 40.00
 
@@ -37,13 +39,18 @@ thermo		10
 
 run		100
 Neighbor list info ...
-  1 neighbor list requests
   update every 1 steps, delay 10 steps, check yes
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 12
   ghost atom cutoff = 12
-  binsize = 6 -> bins = 17 17 17
-Memory usage per processor = 5.24184 Mbytes
+  binsize = 6, bins = 17 17 17
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 7.784 | 7.784 | 7.784 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0          600   -1943.9014            0   -134.75058    992.06384 
       10    586.47212   -1917.4465            0   -149.08565    1305.7368 
@@ -56,20 +63,20 @@ Step Temp E_pair E_mol TotEng Press
       80    299.37658   -1053.8476            0    -151.1519    8352.9467 
       90    304.24026   -1068.4941            0   -151.13319    8218.1594 
      100     301.9683   -1061.6332            0   -151.12284    8244.1277 
-Loop time of 0.933851 on 4 procs for 100 steps with 23328 atoms
+Loop time of 0.978562 on 4 procs for 100 steps with 23328 atoms
 
-Performance: 18.504 ns/day, 1.297 hours/ns, 107.083 timesteps/s
-99.8% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 17.659 ns/day, 1.359 hours/ns, 102.191 timesteps/s
+97.8% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.83046    | 0.85727    | 0.86953    |   1.7 | 91.80
-Neigh   | 0.01685    | 0.017314   | 0.017519   |   0.2 |  1.85
-Comm    | 0.028471   | 0.041764   | 0.070721   |   8.3 |  4.47
-Output  | 0.00049806 | 0.00062126 | 0.00067735 |   0.3 |  0.07
-Modify  | 0.0090787  | 0.009689   | 0.0099437  |   0.4 |  1.04
-Other   |            | 0.007188   |            |       |  0.77
+Pair    | 0.86406    | 0.88129    | 0.89922    |   1.4 | 90.06
+Neigh   | 0.019231   | 0.019453   | 0.019816   |   0.2 |  1.99
+Comm    | 0.043947   | 0.06197    | 0.079005   |   5.1 |  6.33
+Output  | 0.00057197 | 0.00082499 | 0.0015628  |   0.0 |  0.08
+Modify  | 0.0091414  | 0.0092927  | 0.0094769  |   0.1 |  0.95
+Other   |            | 0.005727   |            |       |  0.59
 
 Nlocal:    5832 ave 5850 max 5813 min
 Histogram: 1 0 0 0 1 1 0 0 0 1
@@ -118,7 +125,7 @@ Fix MSST v0 =  8.97521e+05
 Fix MSST p0 =  8.18624e+03
 Fix MSST e0 = to be -1.51123e+02
 Fix MSST initial strain rate of -3.19005e-02 established by reducing temperature by factor of  1.00000e-02
-Memory usage per processor = 5.24184 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 8.534 | 8.534 | 8.534 Mbytes
 Step Temp KinEng PotEng Lx Ly Lz Pxx Pyy Pzz TotEng v_dhug v_dray v_lgr_vel v_lgr_pos f_msst 
      100    298.94862    901.40524   -1052.5281      96.4602      96.4602      96.4602    8270.9151    8253.4662    8175.4946   -151.12284    1.5098415   -10.744684            0            0    9.1051034 
      110    296.49826    894.01679    -1045.224      96.4602      96.4602    96.399609    8338.4937    8340.5504    8294.9909   -151.20723    1.4327442     23.73173  0.017588167  -0.55980562    5.6560557 
@@ -131,20 +138,20 @@ Step Temp KinEng PotEng Lx Ly Lz Pxx Pyy Pzz TotEng v_dhug v_dray v_lgr_vel v_lg
      180    305.86343    922.25514   -1073.9633      96.4602      96.4602    96.023049    8345.1853    8432.5201    8461.3276   -151.70813   0.97863988   -338.30793   0.12689398   -4.4693274   -15.815462 
      190    307.44054    927.01052   -1078.7892      96.4602      96.4602      95.9747    8368.4081    8427.5109     8450.584   -151.77867   0.92329631   -416.89333    0.1409285   -5.0266346   -18.541801 
      200    308.43619    930.01265   -1081.8521      96.4602      96.4602    95.927349    8393.2058    8443.1265    8454.6733   -151.83947    0.8723277   -479.24592    0.1546734   -5.5836644    -21.20378 
-Loop time of 1.23008 on 4 procs for 100 steps with 23328 atoms
+Loop time of 1.57102 on 4 procs for 100 steps with 23328 atoms
 
-Performance: 14.048 ns/day, 1.708 hours/ns, 81.295 timesteps/s
-99.7% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 10.999 ns/day, 2.182 hours/ns, 63.653 timesteps/s
+97.5% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.83631    | 0.84345    | 0.85189    |   0.8 | 68.57
-Neigh   | 0.033866   | 0.03409    | 0.034339   |   0.1 |  2.77
-Comm    | 0.029796   | 0.038609   | 0.045779   |   3.5 |  3.14
-Output  | 0.0036259  | 0.0036446  | 0.0036905  |   0.0 |  0.30
-Modify  | 0.30399    | 0.30447    | 0.30495    |   0.1 | 24.75
-Other   |            | 0.00582    |            |       |  0.47
+Pair    | 1.2237     | 1.2543     | 1.3264     |   3.7 | 79.84
+Neigh   | 0.038648   | 0.039684   | 0.041811   |   0.6 |  2.53
+Comm    | 0.026617   | 0.10771    | 0.14194    |  14.3 |  6.86
+Output  | 0.0035126  | 0.0045422  | 0.0076261  |   2.6 |  0.29
+Modify  | 0.15787    | 0.15969    | 0.16403    |   0.6 | 10.16
+Other   |            | 0.005042   |            |       |  0.32
 
 Nlocal:    5832 ave 5874 max 5803 min
 Histogram: 2 0 0 0 0 1 0 0 0 1

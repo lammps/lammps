@@ -1,4 +1,5 @@
-LAMMPS (5 Oct 2016)
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
 # 2d LJ obstacle flow
 
 dimension	2
@@ -18,6 +19,7 @@ Created orthogonal box = (0 0 -0.321089) to (51.3743 22.2457 0.321089)
   4 by 1 by 1 MPI processor grid
 create_atoms	1 box
 Created 840 atoms
+  Time spent = 0.000343561 secs
 
 mass		1 1.0
 mass		2 1.0
@@ -80,7 +82,7 @@ fix		9 all enforce2d
 timestep	0.003
 thermo		1000
 thermo_modify	temp mobile
-WARNING: Temperature for thermo pressure is not for group all (../thermo.cpp:474)
+WARNING: Temperature for thermo pressure is not for group all (src/thermo.cpp:488)
 
 #dump		1 all atom 100 dump.obstacle
 
@@ -92,13 +94,18 @@ WARNING: Temperature for thermo pressure is not for group all (../thermo.cpp:474
 
 run		25000
 Neighbor list info ...
-  1 neighbor list requests
   update every 1 steps, delay 5 steps, check yes
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 1.42246
   ghost atom cutoff = 1.42246
-  binsize = 0.71123 -> bins = 73 32 1
-Memory usage per processor = 2.47142 Mbytes
+  binsize = 0.71123, bins = 73 32 1
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/2d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.043 | 3.043 | 3.043 Mbytes
 Step Temp E_pair E_mol TotEng Press Volume 
        0    1.0004177            0            0   0.68689281   0.46210058    1143.0857 
     1000            1  -0.32494012            0   0.36166587    1.2240503    1282.5239 
@@ -126,20 +133,20 @@ Step Temp E_pair E_mol TotEng Press Volume
    23000            1  -0.37327871            0   0.31332728    1.0623185    1453.1342 
    24000            1  -0.40040333            0   0.28620265   0.94983886    1459.4461 
    25000            1  -0.37645924            0   0.31014674    1.0526044    1458.7191 
-Loop time of 0.821326 on 4 procs for 25000 steps with 769 atoms
+Loop time of 0.950647 on 4 procs for 25000 steps with 769 atoms
 
-Performance: 7889678.376 tau/day, 30438.574 timesteps/s
-99.4% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 6816413.742 tau/day, 26297.893 timesteps/s
+95.6% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.064561   | 0.12703    | 0.20657    |  15.5 | 15.47
-Neigh   | 0.036315   | 0.04798    | 0.06249    |   4.4 |  5.84
-Comm    | 0.14793    | 0.21791    | 0.27951    |  10.6 | 26.53
-Output  | 0.00043583 | 0.00046438 | 0.00054574 |   0.2 |  0.06
-Modify  | 0.27754    | 0.31239    | 0.3371     |   3.9 | 38.03
-Other   |            | 0.1156     |            |       | 14.07
+Pair    | 0.068658   | 0.11988    | 0.18819    |  13.5 | 12.61
+Neigh   | 0.034307   | 0.046836   | 0.063159   |   5.0 |  4.93
+Comm    | 0.1325     | 0.21714    | 0.27078    |  11.3 | 22.84
+Output  | 0.00052547 | 0.00096804 | 0.0022867  |   0.0 |  0.10
+Modify  | 0.37752    | 0.41834    | 0.48768    |   6.5 | 44.01
+Other   |            | 0.1475     |            |       | 15.51
 
 Nlocal:    192.25 ave 243 max 151 min
 Histogram: 1 1 0 0 0 0 1 0 0 1

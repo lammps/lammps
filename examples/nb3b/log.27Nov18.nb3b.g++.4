@@ -1,4 +1,5 @@
-LAMMPS (5 Oct 2016)
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
 # test of NB3B pair style with pair hybrid and KSpace solver
 
 units           real
@@ -57,26 +58,46 @@ thermo          50
 ### Minimize forces in structure ###
 
 minimize        1.0e-06 1.0e-08 1000 10000
-WARNING: Resetting reneighboring criteria during minimization (../min.cpp:168)
+WARNING: Using 'neigh_modify every 1 delay 0 check yes' setting during minimization (src/min.cpp:168)
 EwaldDisp initialization ...
-WARNING: Using a manybody potential with bonds/angles/dihedrals and special_bond exclusions (../pair.cpp:216)
-  G vector = 0.269426
-WARNING: Using a manybody potential with bonds/angles/dihedrals and special_bond exclusions (../pair.cpp:216)
+WARNING: Using a manybody potential with bonds/angles/dihedrals and special_bond exclusions (src/pair.cpp:218)
+  G vector = 0.269426   accuracy = 0.0332064
+WARNING: Using a manybody potential with bonds/angles/dihedrals and special_bond exclusions (src/pair.cpp:218)
 Neighbor list info ...
-  4 neighbor list requests
   update every 1 steps, delay 0 steps, check yes
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 12
   ghost atom cutoff = 12
-  binsize = 6 -> bins = 4 4 4
+  binsize = 6, bins = 4 4 4
+  4 neighbor lists, perpetual/occasional/extra = 4 0 0
+  (1) pair nb3b/harmonic, perpetual
+      attributes: full, newton on
+      pair build: full/bin
+      stencil: full/bin/3d
+      bin: standard
+  (2) pair lj/cut/coul/long, perpetual, half/full from (1)
+      attributes: half, newton on
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+  (3) pair nb3b/harmonic, perpetual, copy from (1)
+      attributes: full, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+  (4) pair lj/cut/coul/long, perpetual, copy from (2)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
   vectors: nbox = 6, nkvec = 478
-Memory usage per processor = 16.9507 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 20.64 | 21.18 | 22.02 Mbytes
 Step TotEng KinEng Temp PotEng E_bond E_angle E_dihed E_impro E_vdwl E_coul E_long Press Lx Ly Lz Xy Xz Yz Volume 
        0   -61505.983            0            0   -61505.983    198.11978            0            0            0    5426.6842   -20935.868   -46194.919    979.72822      22.5907       22.359      23.4708            0            0            0    11855.229 
        4   -61506.604            0            0   -61506.604    198.69671            0            0            0    5460.0893   -20970.348   -46195.042      1657.43      22.5907       22.359      23.4708            0            0            0    11855.229 
-Loop time of 0.129448 on 4 procs for 4 steps with 1400 atoms
+Loop time of 0.164255 on 4 procs for 4 steps with 1400 atoms
 
-99.4% CPU use with 4 MPI tasks x no OpenMP threads
+99.1% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 Minimization stats:
   Stopping criterion = energy tolerance
@@ -90,14 +111,14 @@ Minimization stats:
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.082641   | 0.0934     | 0.10605    |   3.3 | 72.15
-Bond    | 7.2002e-05 | 7.9215e-05 | 8.6546e-05 |   0.1 |  0.06
-Kspace  | 0.021445   | 0.032612   | 0.04218    |   4.9 | 25.19
+Pair    | 0.11101    | 0.12473    | 0.13747    |   3.3 | 75.93
+Bond    | 5.8889e-05 | 6.2823e-05 | 6.6757e-05 |   0.0 |  0.04
+Kspace  | 0.025273   | 0.036047   | 0.047969   |   5.3 | 21.95
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.0015318  | 0.0030052  | 0.0042045  |   2.1 |  2.32
+Comm    | 0.001081   | 0.0030527  | 0.0048478  |   2.8 |  1.86
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 0.0003518  |            |       |  0.27
+Other   |            | 0.000367   |            |       |  0.22
 
 Nlocal:    350 ave 399 max 305 min
 Histogram: 1 1 0 0 0 0 0 0 1 1
@@ -123,38 +144,31 @@ fix             2 all temp/rescale 10 298.0 298.0 25.0 1.0
 
 run             100
 EwaldDisp initialization ...
-WARNING: Using a manybody potential with bonds/angles/dihedrals and special_bond exclusions (../pair.cpp:216)
-  G vector = 0.269426
-WARNING: Using a manybody potential with bonds/angles/dihedrals and special_bond exclusions (../pair.cpp:216)
-Neighbor list info ...
-  4 neighbor list requests
-  update every 1 steps, delay 5 steps, check yes
-  max neighbors/atom: 2000, page size: 100000
-  master list distance cutoff = 12
-  ghost atom cutoff = 12
-  binsize = 6 -> bins = 4 4 4
-Memory usage per processor = 16.5757 Mbytes
+WARNING: Using a manybody potential with bonds/angles/dihedrals and special_bond exclusions (src/pair.cpp:218)
+  G vector = 0.269426   accuracy = 0.0332064
+WARNING: Using a manybody potential with bonds/angles/dihedrals and special_bond exclusions (src/pair.cpp:218)
+Per MPI rank memory allocation (min/avg/max) = 20.26 | 20.8 | 21.65 Mbytes
 Step TotEng KinEng Temp PotEng E_bond E_angle E_dihed E_impro E_vdwl E_coul E_long Press Lx Ly Lz Xy Xz Yz Volume 
        4   -60263.898    1242.7057          298   -61506.604    198.69671            0            0            0    5460.0893   -20970.348   -46195.042    6449.1472      22.5907       22.359      23.4708            0            0            0    11855.229 
       50   -58769.885    1186.4036    284.49881   -59956.289    309.92499            0            0            0    6168.8458   -20249.062   -46185.998    21737.807      22.5907       22.359      23.4708            0            0            0    11855.229 
      100   -58865.196    1242.7057          298   -60107.902    371.56168            0            0            0    6422.4016   -20716.005    -46185.86    22887.006      22.5907       22.359      23.4708            0            0            0    11855.229 
      104   -58865.334    1260.1244      302.177   -60125.458    386.24491            0            0            0    6377.3686   -20705.327   -46183.745     19154.01      22.5907       22.359      23.4708            0            0            0    11855.229 
-Loop time of 2.3186 on 4 procs for 100 steps with 1400 atoms
+Loop time of 3.0299 on 4 procs for 100 steps with 1400 atoms
 
-Performance: 3.726 ns/day, 6.441 hours/ns, 43.129 timesteps/s
-99.6% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 2.852 ns/day, 8.416 hours/ns, 33.004 timesteps/s
+99.0% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 1.7054     | 1.8352     | 1.9875     |   8.4 | 79.15
-Bond    | 0.0015972  | 0.0017807  | 0.0019476  |   0.3 |  0.08
-Kspace  | 0.21511    | 0.22245    | 0.23383    |   1.6 |  9.59
-Neigh   | 0.026175   | 0.026182   | 0.026186   |   0.0 |  1.13
-Comm    | 0.062151   | 0.21516    | 0.34573    |  24.7 |  9.28
-Output  | 0.0001421  | 0.00016701 | 0.00020218 |   0.2 |  0.01
-Modify  | 0.0021067  | 0.0031134  | 0.0037572  |   1.2 |  0.13
-Other   |            | 0.01456    |            |       |  0.63
+Pair    | 2.424      | 2.5288     | 2.6552     |   6.3 | 83.46
+Bond    | 0.0011241  | 0.0011699  | 0.0011907  |   0.1 |  0.04
+Kspace  | 0.24584    | 0.25484    | 0.26259    |   1.5 |  8.41
+Neigh   | 0.031059   | 0.031067   | 0.031075   |   0.0 |  1.03
+Comm    | 0.070014   | 0.19745    | 0.30262    |  22.7 |  6.52
+Output  | 0.00011683 | 0.0002265  | 0.00050616 |   0.0 |  0.01
+Modify  | 0.0022085  | 0.0030763  | 0.0039916  |   1.3 |  0.10
+Other   |            | 0.01331    |            |       |  0.44
 
 Nlocal:    350 ave 357 max 340 min
 Histogram: 1 0 0 0 0 0 1 1 0 1
@@ -170,4 +184,4 @@ Ave neighs/atom = 850.439
 Ave special neighs/atom = 0.8
 Neighbor list builds = 2
 Dangerous builds = 0
-Total wall time: 0:00:02
+Total wall time: 0:00:03

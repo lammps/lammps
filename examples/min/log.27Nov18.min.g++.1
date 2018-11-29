@@ -1,4 +1,5 @@
-LAMMPS (5 Oct 2016)
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
 # 2d Lennard-Jones melt and subsequent energy minimization
 
 units		lj
@@ -13,6 +14,7 @@ Created orthogonal box = (0 0 -0.153919) to (30.7838 30.7838 0.153919)
   1 by 1 by 1 MPI processor grid
 create_atoms	1 box
 Created 800 atoms
+  Time spent = 0.000434637 secs
 mass		1 1.0
 
 velocity	all create 5.0 87287 loop geom
@@ -39,13 +41,18 @@ thermo		100
 
 run		1000
 Neighbor list info ...
-  1 neighbor list requests
   update every 1 steps, delay 0 steps, check yes
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 2.8
   ghost atom cutoff = 2.8
-  binsize = 1.4 -> bins = 22 22 1
-Memory usage per processor = 2.47843 Mbytes
+  binsize = 1.4, bins = 22 22 1
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/2d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.056 | 3.056 | 3.056 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0            5    -2.461717            0     2.532033    5.0190509 
      100    3.2788864  -0.74311698            0    2.5316708    15.912832 
@@ -58,20 +65,20 @@ Step Temp E_pair E_mol TotEng Press
      800    3.3016275  -0.76569171            0    2.5318087    15.639335 
      900    3.4639203  -0.92788002            0    2.5317104    14.765912 
     1000    3.3256788  -0.79078181            0    2.5307399    15.599298 
-Loop time of 0.201747 on 1 procs for 1000 steps with 800 atoms
+Loop time of 0.206744 on 1 procs for 1000 steps with 800 atoms
 
-Performance: 2141296.412 tau/day, 4956.705 timesteps/s
-99.6% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 2089538.727 tau/day, 4836.895 timesteps/s
+99.7% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.12879    | 0.12879    | 0.12879    |   0.0 | 63.84
-Neigh   | 0.051049   | 0.051049   | 0.051049   |   0.0 | 25.30
-Comm    | 0.0043695  | 0.0043695  | 0.0043695  |   0.0 |  2.17
-Output  | 8.1301e-05 | 8.1301e-05 | 8.1301e-05 |   0.0 |  0.04
-Modify  | 0.011838   | 0.011838   | 0.011838   |   0.0 |  5.87
-Other   |            | 0.005622   |            |       |  2.79
+Pair    | 0.12643    | 0.12643    | 0.12643    |   0.0 | 61.15
+Neigh   | 0.053694   | 0.053694   | 0.053694   |   0.0 | 25.97
+Comm    | 0.0061328  | 0.0061328  | 0.0061328  |   0.0 |  2.97
+Output  | 0.00011373 | 0.00011373 | 0.00011373 |   0.0 |  0.06
+Modify  | 0.014107   | 0.014107   | 0.014107   |   0.0 |  6.82
+Other   |            | 0.006263   |            |       |  3.03
 
 Nlocal:    800 ave 800 max 800 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -91,7 +98,7 @@ neigh_modify	delay 0 every 1 check yes
 
 thermo		50
 minimize	1.0e-6 0.001 1000 10000
-Memory usage per processor = 3.60343 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 4.182 | 4.182 | 4.182 Mbytes
 Step Temp E_pair E_mol TotEng Press 
     1000    3.3256788  -0.79078181            0    2.5307399    15.599298 
     1050    3.3256788   -2.8361415            0   0.48538014    1.6090001 
@@ -104,9 +111,9 @@ Step Temp E_pair E_mol TotEng Press
     1400    3.3256788   -2.9131297            0   0.40839199    1.7078217 
     1450    3.3256788   -2.9167506            0   0.40477104    1.7780477 
     1475    3.3256788   -2.9169436            0    0.4045781    1.7914542 
-Loop time of 0.231352 on 1 procs for 475 steps with 800 atoms
+Loop time of 0.233542 on 1 procs for 475 steps with 800 atoms
 
-99.8% CPU use with 1 MPI tasks x no OpenMP threads
+99.3% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 Minimization stats:
   Stopping criterion = energy tolerance
@@ -120,12 +127,12 @@ Minimization stats:
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.18807    | 0.18807    | 0.18807    |   0.0 | 81.29
-Neigh   | 0.02088    | 0.02088    | 0.02088    |   0.0 |  9.03
-Comm    | 0.0028048  | 0.0028048  | 0.0028048  |   0.0 |  1.21
-Output  | 6.9618e-05 | 6.9618e-05 | 6.9618e-05 |   0.0 |  0.03
-Modify  | 0.0020773  | 0.0020773  | 0.0020773  |   0.0 |  0.90
-Other   |            | 0.01745    |            |       |  7.54
+Pair    | 0.18404    | 0.18404    | 0.18404    |   0.0 | 78.80
+Neigh   | 0.02204    | 0.02204    | 0.02204    |   0.0 |  9.44
+Comm    | 0.0040922  | 0.0040922  | 0.0040922  |   0.0 |  1.75
+Output  | 0.00010443 | 0.00010443 | 0.00010443 |   0.0 |  0.04
+Modify  | 0.0023651  | 0.0023651  | 0.0023651  |   0.0 |  1.01
+Other   |            | 0.0209     |            |       |  8.95
 
 Nlocal:    800 ave 800 max 800 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

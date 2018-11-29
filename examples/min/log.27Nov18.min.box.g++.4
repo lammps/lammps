@@ -1,4 +1,5 @@
-LAMMPS (5 Oct 2016)
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
 # 2d Lennard-Jones melt and subsequent energy minimization,
 # followed by box relaxation to a target stress state
 #
@@ -14,6 +15,7 @@ Created orthogonal box = (0 0 -0.153919) to (30.7838 30.7838 0.153919)
   2 by 2 by 1 MPI processor grid
 create_atoms	1 box
 Created 800 atoms
+  Time spent = 0.000339985 secs
 mass		1 1.0
 
 velocity	all create 5.0 87287 loop geom
@@ -40,13 +42,18 @@ thermo		100
 
 run		1000
 Neighbor list info ...
-  1 neighbor list requests
   update every 1 steps, delay 0 steps, check yes
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 2.8
   ghost atom cutoff = 2.8
-  binsize = 1.4 -> bins = 22 22 1
-Memory usage per processor = 2.47676 Mbytes
+  binsize = 1.4, bins = 22 22 1
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/2d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.049 | 3.049 | 3.049 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0            5    -2.461717            0     2.532033    5.0190509 
      100    3.2788864  -0.74311698            0    2.5316708    15.912832 
@@ -59,20 +66,20 @@ Step Temp E_pair E_mol TotEng Press
      800    3.3016408  -0.76570603            0    2.5318077    15.639259 
      900    3.4621697  -0.92610292            0    2.5317391    14.773473 
     1000    3.3058424  -0.77076863            0    2.5309414    15.708171 
-Loop time of 0.066087 on 4 procs for 1000 steps with 800 atoms
+Loop time of 0.0739716 on 4 procs for 1000 steps with 800 atoms
 
-Performance: 6536837.061 tau/day, 15131.567 timesteps/s
-98.3% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 5840081.570 tau/day, 13518.707 timesteps/s
+96.9% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.032169   | 0.032534   | 0.032995   |   0.2 | 49.23
-Neigh   | 0.013092   | 0.013286   | 0.01348    |   0.1 | 20.10
-Comm    | 0.011925   | 0.012799   | 0.013343   |   0.5 | 19.37
-Output  | 0.00017333 | 0.00018448 | 0.00021172 |   0.1 |  0.28
-Modify  | 0.0029421  | 0.0029953  | 0.0030239  |   0.1 |  4.53
-Other   |            | 0.004288   |            |       |  6.49
+Pair    | 0.031443   | 0.032581   | 0.034717   |   0.7 | 44.04
+Neigh   | 0.01403    | 0.014414   | 0.01483    |   0.2 | 19.49
+Comm    | 0.013565   | 0.015975   | 0.01834    |   1.4 | 21.60
+Output  | 0.00017476 | 0.00018531 | 0.00020695 |   0.0 |  0.25
+Modify  | 0.0037742  | 0.0043355  | 0.0058382  |   1.3 |  5.86
+Other   |            | 0.006481   |            |       |  8.76
 
 Nlocal:    200 ave 202 max 196 min
 Histogram: 1 0 0 0 0 0 0 0 2 1
@@ -98,7 +105,7 @@ thermo		50
 # atoms only
 
 minimize	1.0e-6 0.001 1000 10000
-Memory usage per processor = 3.60176 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 4.174 | 4.174 | 4.174 Mbytes
 Step Temp E_pair E_mol TotEng Press 
     1000            0  -0.77076863            0  -0.77076863    12.920868 
     1050            0   -2.8318266            0   -2.8318266   -1.1892931 
@@ -107,9 +114,9 @@ Step Temp E_pair E_mol TotEng Press
     1200            0   -2.8831122            0   -2.8831122   -1.1004001 
     1250            0   -2.8877971            0   -2.8877971   -1.0596414 
     1300            0   -2.8887969            0   -2.8887969   -1.0448381 
-Loop time of 0.0501025 on 4 procs for 300 steps with 800 atoms
+Loop time of 0.0533715 on 4 procs for 300 steps with 800 atoms
 
-99.8% CPU use with 4 MPI tasks x no OpenMP threads
+96.3% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 Minimization stats:
   Stopping criterion = energy tolerance
@@ -123,12 +130,12 @@ Minimization stats:
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.030059   | 0.030357   | 0.030755   |   0.2 | 60.59
-Neigh   | 0.0037379  | 0.0037849  | 0.0038264  |   0.1 |  7.55
-Comm    | 0.0061991  | 0.0067289  | 0.0071735  |   0.5 | 13.43
-Output  | 7.3195e-05 | 7.7724e-05 | 8.9407e-05 |   0.1 |  0.16
-Modify  | 0.00036192 | 0.00037038 | 0.00037956 |   0.0 |  0.74
-Other   |            | 0.008784   |            |       | 17.53
+Pair    | 0.029885   | 0.031269   | 0.033625   |   0.8 | 58.59
+Neigh   | 0.0038524  | 0.0040049  | 0.0040805  |   0.1 |  7.50
+Comm    | 0.0062668  | 0.0087315  | 0.010314   |   1.7 | 16.36
+Output  | 7.9632e-05 | 8.3268e-05 | 9.346e-05  |   0.0 |  0.16
+Modify  | 0.00043797 | 0.00044793 | 0.00045705 |   0.0 |  0.84
+Other   |            | 0.008835   |            |       | 16.55
 
 Nlocal:    200 ave 202 max 196 min
 Histogram: 1 0 0 0 0 0 1 0 0 2
@@ -152,15 +159,15 @@ thermo_style    custom step temp pe pxx pyy pxy f_3 v_emin
 # anisotropic volume relaxation to hydrostatic target
 
 minimize	0.0 10.0e0 10000 100000
-Memory usage per processor = 3.60176 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 4.174 | 4.174 | 4.174 Mbytes
 Step Temp PotEng Pxx Pyy Pxy f_3 v_emin 
     1300            0   -2.8887969  -0.93904343   -1.1506328 -0.0037265764            0   -2.8887969 
     1350            0    -2.889313     1.555657    1.4414453 -0.025585726  -0.10933729   -2.9986503 
     1400            0   -2.8958621    1.5320803     1.476774 0.0041557664   -0.1208966   -3.0167587 
     1403            0   -2.8962558    1.5290172    1.4743135   0.00471395  -0.12088872   -3.0171446 
-Loop time of 0.0163901 on 4 procs for 103 steps with 800 atoms
+Loop time of 0.0172202 on 4 procs for 103 steps with 800 atoms
 
-97.6% CPU use with 4 MPI tasks x no OpenMP threads
+96.4% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 Minimization stats:
   Stopping criterion = force tolerance
@@ -174,12 +181,12 @@ Minimization stats:
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.0086238  | 0.0087494  | 0.0088425  |   0.1 | 53.38
-Neigh   | 0.00099087 | 0.0010223  | 0.0010412  |   0.1 |  6.24
-Comm    | 0.0017323  | 0.0018613  | 0.002028   |   0.3 | 11.36
-Output  | 7.3195e-05 | 7.4625e-05 | 7.8917e-05 |   0.0 |  0.46
-Modify  | 9.7513e-05 | 0.00010496 | 0.00011063 |   0.1 |  0.64
-Other   |            | 0.004578   |            |       | 27.93
+Pair    | 0.0085471  | 0.0087811  | 0.0090215  |   0.2 | 50.99
+Neigh   | 0.0010307  | 0.0011456  | 0.0013525  |   0.4 |  6.65
+Comm    | 0.0017407  | 0.0020964  | 0.0024772  |   0.6 | 12.17
+Output  | 7.5102e-05 | 7.695e-05  | 8.1301e-05 |   0.0 |  0.45
+Modify  | 0.00012064 | 0.0001241  | 0.00012684 |   0.0 |  0.72
+Other   |            | 0.004996   |            |       | 29.01
 
 Nlocal:    200 ave 202 max 198 min
 Histogram: 1 0 0 0 0 2 0 0 0 1
@@ -196,13 +203,13 @@ Dangerous builds = 0
 fix             3 all box/relax aniso 1.5 vmax 1.0e-3
 
 minimize	0.0 10.0 10000 100000
-Memory usage per processor = 3.60176 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 4.174 | 4.174 | 4.174 Mbytes
 Step Temp PotEng Pxx Pyy Pxy f_3 v_emin 
     1403            0   -2.8962558    1.5290172    1.4743135   0.00471395            0   -2.8962558 
     1404            0   -2.8963678      1.49615     1.499767 0.0037848845 9.6365079e-05   -2.8962714 
-Loop time of 0.000319898 on 4 procs for 1 steps with 800 atoms
+Loop time of 0.000330448 on 4 procs for 1 steps with 800 atoms
 
-0.0% CPU use with 4 MPI tasks x no OpenMP threads
+96.8% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 Minimization stats:
   Stopping criterion = force tolerance
@@ -216,12 +223,12 @@ Minimization stats:
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.00016475 | 0.0001657  | 0.00016618 |   0.0 | 51.80
+Pair    | 0.00016141 | 0.00016457 | 0.00016809 |   0.0 | 49.80
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 2.9802e-05 | 3.1531e-05 | 3.4094e-05 |   0.0 |  9.86
+Comm    | 2.861e-05  | 3.3557e-05 | 3.7193e-05 |   0.0 | 10.16
 Output  | 0          | 0          | 0          |   0.0 |  0.00
-Modify  | 2.1458e-06 | 2.563e-06  | 3.3379e-06 |   0.0 |  0.80
-Other   |            | 0.0001201  |            |       | 37.54
+Modify  | 2.1458e-06 | 2.3842e-06 | 2.6226e-06 |   0.0 |  0.72
+Other   |            | 0.0001299  |            |       | 39.32
 
 Nlocal:    200 ave 202 max 197 min
 Histogram: 1 0 0 0 0 0 1 0 1 1
@@ -240,16 +247,16 @@ Dangerous builds = 0
 fix             3 all box/relax x 1.0 y 2.0 vmax 1.0e-3
 
 minimize	0.0 10.0 10000 100000
-Memory usage per processor = 3.60176 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 4.174 | 4.174 | 4.174 Mbytes
 Step Temp PotEng Pxx Pyy Pxy f_3 v_emin 
     1404            0   -2.8963678      1.49615     1.499767 0.0037848845 -7.1054274e-17   -2.8963678 
     1450            0   -2.8925305   0.94584654    2.0945709 -0.029336194 -0.016086454   -2.9086169 
     1500            0   -2.8975934    1.0123866     2.009477 -0.036498498  -0.01841842   -2.9160118 
     1550            0    -2.903576    1.0046986    1.9380791 -0.037683327 -0.020970768   -2.9245468 
     1592            0   -2.9061298   0.98518925    1.9835783 -0.048932212 -0.024234721   -2.9303646 
-Loop time of 0.0294311 on 4 procs for 188 steps with 800 atoms
+Loop time of 0.0321782 on 4 procs for 188 steps with 800 atoms
 
-101.1% CPU use with 4 MPI tasks x no OpenMP threads
+97.1% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 Minimization stats:
   Stopping criterion = force tolerance
@@ -263,12 +270,12 @@ Minimization stats:
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.016194   | 0.016255   | 0.0163     |   0.0 | 55.23
-Neigh   | 0.00050688 | 0.0005179  | 0.00053    |   0.0 |  1.76
-Comm    | 0.0030935  | 0.0031458  | 0.0031939  |   0.1 | 10.69
-Output  | 0.00011897 | 0.00012201 | 0.00013018 |   0.0 |  0.41
-Modify  | 0.00016952 | 0.0001781  | 0.00018668 |   0.0 |  0.61
-Other   |            | 0.009212   |            |       | 31.30
+Pair    | 0.015791   | 0.016377   | 0.01695    |   0.3 | 50.90
+Neigh   | 0.00053954 | 0.00056165 | 0.00057793 |   0.0 |  1.75
+Comm    | 0.0027378  | 0.0033152  | 0.0039263  |   0.8 | 10.30
+Output  | 0.00014901 | 0.00015163 | 0.00015783 |   0.0 |  0.47
+Modify  | 0.00021982 | 0.00022542 | 0.0002315  |   0.0 |  0.70
+Other   |            | 0.01155    |            |       | 35.88
 
 Nlocal:    200 ave 202 max 196 min
 Histogram: 1 0 0 0 0 0 0 0 2 1
@@ -283,7 +290,7 @@ Neighbor list builds = 8
 Dangerous builds = 0
 
 minimize	0.0 1.0 10000 100000
-Memory usage per processor = 3.60176 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 4.174 | 4.174 | 4.174 Mbytes
 Step Temp PotEng Pxx Pyy Pxy f_3 v_emin 
     1592            0   -2.9061298   0.98518925    1.9835783 -0.048932212 3.5527137e-17   -2.9061298 
     1600            0   -2.9046586    1.0529014    2.0593731 -0.050860896 -0.0020973121   -2.9067559 
@@ -378,9 +385,9 @@ Step Temp PotEng Pxx Pyy Pxy f_3 v_emin
     6050            0   -3.0313105    0.9590106     1.959899   0.10814531 -0.084790331   -3.1161008 
     6100            0   -3.0313244    0.9580272    1.9605104   0.10879691  -0.08493735   -3.1162617 
     6130            0   -3.0313384   0.95532497    1.9595324   0.10924759 -0.084945274   -3.1162837 
-Loop time of 0.833589 on 4 procs for 4538 steps with 800 atoms
+Loop time of 0.937381 on 4 procs for 4538 steps with 800 atoms
 
-99.7% CPU use with 4 MPI tasks x no OpenMP threads
+95.6% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 Minimization stats:
   Stopping criterion = force tolerance
@@ -394,12 +401,12 @@ Minimization stats:
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.45739    | 0.47006    | 0.47928    |   1.2 | 56.39
-Neigh   | 0.006587   | 0.0068482  | 0.0069439  |   0.2 |  0.82
-Comm    | 0.089155   | 0.097262   | 0.11111    |   2.7 | 11.67
-Output  | 0.0035946  | 0.0036807  | 0.0039296  |   0.2 |  0.44
-Modify  | 0.0051167  | 0.0053424  | 0.005434   |   0.2 |  0.64
-Other   |            | 0.2504     |            |       | 30.04
+Pair    | 0.45297    | 0.47262    | 0.48939    |   2.1 | 50.42
+Neigh   | 0.0071242  | 0.0072536  | 0.0073645  |   0.1 |  0.77
+Comm    | 0.12672    | 0.1453     | 0.17041    |   4.8 | 15.50
+Output  | 0.0040541  | 0.0063651  | 0.013254   |   5.0 |  0.68
+Modify  | 0.0063808  | 0.0065207  | 0.0066283  |   0.1 |  0.70
+Other   |            | 0.2993     |            |       | 31.93
 
 Nlocal:    200 ave 203 max 197 min
 Histogram: 1 0 0 1 0 0 1 0 0 1
@@ -414,7 +421,7 @@ Neighbor list builds = 104
 Dangerous builds = 0
 
 minimize	0.0 1.0e-2 10000 100000
-Memory usage per processor = 3.60176 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 4.174 | 4.174 | 4.174 Mbytes
 Step Temp PotEng Pxx Pyy Pxy f_3 v_emin 
     6130            0   -3.0313384   0.95532497    1.9595324   0.10924759 -3.5527137e-17   -3.0313384 
     6150            0   -3.0304428    0.9947235    1.9969091   0.10935746 -0.00091797415   -3.0313608 
@@ -448,9 +455,9 @@ Step Temp PotEng Pxx Pyy Pxy f_3 v_emin
     7550            0   -3.0303533    1.0000018    1.9999949   0.10769873 -0.0010415749   -3.0313949 
     7600            0   -3.0303529    1.0000017    2.0000034   0.10770161 -0.0010419517   -3.0313949 
     7607            0   -3.0303527    1.0000104    2.0000131   0.10770259 -0.0010421819   -3.0313949 
-Loop time of 0.279601 on 4 procs for 1477 steps with 800 atoms
+Loop time of 0.311816 on 4 procs for 1477 steps with 800 atoms
 
-99.9% CPU use with 4 MPI tasks x no OpenMP threads
+96.2% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 Minimization stats:
   Stopping criterion = force tolerance
@@ -464,12 +471,12 @@ Minimization stats:
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.15759    | 0.16061    | 0.16246    |   0.5 | 57.44
+Pair    | 0.16143    | 0.16413    | 0.16779    |   0.6 | 52.64
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.026405   | 0.029149   | 0.033293   |   1.5 | 10.43
-Output  | 0.0011969  | 0.0012203  | 0.0012867  |   0.1 |  0.44
-Modify  | 0.0017877  | 0.0018381  | 0.0019131  |   0.1 |  0.66
-Other   |            | 0.08679    |            |       | 31.04
+Comm    | 0.03717    | 0.042433   | 0.05037    |   2.5 | 13.61
+Output  | 0.0012872  | 0.0017485  | 0.0031171  |   1.9 |  0.56
+Modify  | 0.0022309  | 0.0022756  | 0.002321   |   0.1 |  0.73
+Other   |            | 0.1012     |            |       | 32.46
 
 Nlocal:    200 ave 203 max 197 min
 Histogram: 1 0 0 1 0 0 1 0 0 1
@@ -488,7 +495,7 @@ Dangerous builds = 0
 fix             3 all box/relax x 1.0 y 2.0 vmax 1.0e-3 nreset 100
 
 minimize	0.0 1.0e-4 10000 100000
-Memory usage per processor = 3.60176 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 4.174 | 4.174 | 4.174 Mbytes
 Step Temp PotEng Pxx Pyy Pxy f_3 v_emin 
     7607            0   -3.0303527    1.0000104    2.0000131   0.10770259 3.5527137e-17   -3.0303527 
     7650            0    -3.030353    0.9999904    2.0000076   0.10770145 2.9878713e-07   -3.0303527 
@@ -504,9 +511,9 @@ Step Temp PotEng Pxx Pyy Pxy f_3 v_emin
     8150            0   -3.0303532    1.0000003    2.0000002   0.10770398 -1.4421314e-09   -3.0303532 
     8200            0   -3.0303532    1.0000001    2.0000001   0.10770407 7.0744514e-10   -3.0303532 
     8201            0   -3.0303532   0.99999993            2   0.10770406 3.9670625e-09   -3.0303532 
-Loop time of 0.118568 on 4 procs for 594 steps with 800 atoms
+Loop time of 0.129036 on 4 procs for 594 steps with 800 atoms
 
-99.7% CPU use with 4 MPI tasks x no OpenMP threads
+95.5% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 Minimization stats:
   Stopping criterion = force tolerance
@@ -520,12 +527,12 @@ Minimization stats:
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.063769   | 0.065702   | 0.068746   |   0.7 | 55.41
+Pair    | 0.06542    | 0.066275   | 0.068163   |   0.4 | 51.36
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.011877   | 0.015052   | 0.017311   |   1.6 | 12.69
-Output  | 0.0004735  | 0.00048357 | 0.00051045 |   0.1 |  0.41
-Modify  | 0.00073504 | 0.00075912 | 0.00081396 |   0.1 |  0.64
-Other   |            | 0.03657    |            |       | 30.84
+Comm    | 0.015691   | 0.016819   | 0.018781   |   0.9 | 13.03
+Output  | 0.00052595 | 0.00067312 | 0.0011091  |   0.0 |  0.52
+Modify  | 0.00091577 | 0.0009293  | 0.0009408  |   0.0 |  0.72
+Other   |            | 0.04434    |            |       | 34.36
 
 Nlocal:    200 ave 203 max 197 min
 Histogram: 1 0 0 1 0 0 1 0 0 1

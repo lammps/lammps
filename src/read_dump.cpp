@@ -1050,12 +1050,17 @@ void ReadDump::process_atoms()
     }
   }
 
-  // if addflag = YESADD
+  // if addflag = YESADD or KEEPADD, update total atom count
+
+  if (addflag == YESADD || addflag == KEEPADD) {
+    bigint nblocal = atom->nlocal;
+    MPI_Allreduce(&nblocal,&atom->natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  }
+
+  // if addflag = YESADD,
   // assign consistent IDs to new snapshot atoms across all procs
 
   if (addflag == YESADD) {
-    bigint nblocal = atom->nlocal;
-    MPI_Allreduce(&nblocal,&atom->natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
     if (atom->natoms < 0 || atom->natoms >= MAXBIGINT)
       error->all(FLERR,"Too many total atoms");
     if (atom->tag_enable) atom->tag_extend();
@@ -1069,7 +1074,6 @@ void ReadDump::process_atoms()
 
   memory->destroy(updateflag);
   memory->destroy(newflag);
-
 }
 
 /* ----------------------------------------------------------------------

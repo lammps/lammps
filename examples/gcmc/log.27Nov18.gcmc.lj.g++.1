@@ -1,4 +1,4 @@
-LAMMPS (30 Mar 2018)
+LAMMPS (27 Nov 2018)
   using 1 OpenMP thread(s) per MPI task
 # GCMC for LJ simple fluid, no dynamics
 # T = 2.0
@@ -112,20 +112,20 @@ Step Temp Press PotEng KinEng Density Atoms v_iacc v_dacc v_tacc v_rhoav v_pav v
     8000    2.2135488    2.0878792   -3.0471089    3.2707661        0.536       67  0.067926473  0.067738312    0.1135594      0.52736    1.4348314  0.034380623        62.43 
     9000    1.8904287   0.52639383   -3.3548657    2.7920177         0.52       65   0.06818197  0.068003094   0.11356319      0.53072    1.4528143  0.021683615        63.23 
    10000    2.2353281   0.73275312   -3.2197702    3.3006016        0.512       64  0.068465059  0.068208485   0.11414748      0.52712    1.4143492   0.03497858        62.44 
-Loop time of 21.2409 on 1 procs for 10000 steps with 64 atoms
+Loop time of 27.8547 on 1 procs for 10000 steps with 64 atoms
 
-Performance: 203381.368 tau/day, 470.790 timesteps/s
-99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 155090.656 tau/day, 359.006 timesteps/s
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.45931    | 0.45931    | 0.45931    |   0.0 |  2.16
-Neigh   | 1.1637     | 1.1637     | 1.1637     |   0.0 |  5.48
-Comm    | 0.17294    | 0.17294    | 0.17294    |   0.0 |  0.81
-Output  | 0.00027394 | 0.00027394 | 0.00027394 |   0.0 |  0.00
-Modify  | 19.416     | 19.416     | 19.416     |   0.0 | 91.41
-Other   |            | 0.02919    |            |       |  0.14
+Pair    | 0.43892    | 0.43892    | 0.43892    |   0.0 |  1.58
+Neigh   | 1.278      | 1.278      | 1.278      |   0.0 |  4.59
+Comm    | 0.24105    | 0.24105    | 0.24105    |   0.0 |  0.87
+Output  | 0.00032067 | 0.00032067 | 0.00032067 |   0.0 |  0.00
+Modify  | 25.88      | 25.88      | 25.88      |   0.0 | 92.91
+Other   |            | 0.01693    |            |       |  0.06
 
 Nlocal:    64 ave 64 max 64 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -138,4 +138,4 @@ Total # of neighbors = 2423
 Ave neighs/atom = 37.8594
 Neighbor list builds = 10000
 Dangerous builds = 0
-Total wall time: 0:00:21
+Total wall time: 0:00:27

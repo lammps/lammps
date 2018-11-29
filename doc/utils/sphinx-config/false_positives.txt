@@ -904,6 +904,7 @@ gcc
 gcmc
 gdot
 GeC
+gencode
 georg
 Georg
 Germann

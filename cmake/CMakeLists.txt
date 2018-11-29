@@ -133,6 +133,16 @@ if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
   endif()
 endif()
 
+option(ENABLE_CCACHE "Try to use ccache to speed-up compilation" OFF)
+if(ENABLE_CCACHE)
+  find_program(CCACHE_EXECUTABLE ccache)
+  include(FindPackageHandleStandardArgs)
+  find_package_handle_standard_args(CCACHE REQUIRED_VARS CCACHE_EXECUTABLE)
+  if(CCACHE_FOUND)
+    set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE_EXECUTABLE})
+  endif()
+endif()
+
 ########################################################################
 # User input options                                                   #
 ########################################################################

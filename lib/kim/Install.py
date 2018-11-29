@@ -4,7 +4,7 @@
 # used to automate the steps described in the README file in this dir
 
 from __future__ import print_function
-import sys,os,re,subprocess
+import sys,os,re,subprocess,shutil
 
 # help message
 
@@ -177,8 +177,7 @@ if buildflag:
 
   if os.path.isdir(kimdir):
     print("kim-api is already installed at %s.\nRemoving it for re-install" % kimdir)
-    cmd = 'rm -rf "%s"' % kimdir
-    subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+    shutil.rmtree(kimdir)
 
   # configure LAMMPS to use kim-api to be installed
 

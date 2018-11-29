@@ -4,7 +4,7 @@
 # used to automate the steps described in the README file in this dir
 
 from __future__ import print_function
-import sys,os,re,glob,subprocess
+import sys,os,re,glob,subprocess,shutil
 
 # help message
 
@@ -139,7 +139,7 @@ if buildflag:
   edir = glob.glob("%s/eigen-eigen-*" % homepath)
   for one in edir:
     if os.path.isdir(one):
-      subprocess.check_output('rm -rf "%s"' % one,stderr=subprocess.STDOUT,shell=True)
+      shutil.rmtree(one)
   cmd = 'cd "%s"; tar -xzvf %s' % (homepath,tarball)
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   edir = glob.glob("%s/eigen-eigen-*" % homepath)

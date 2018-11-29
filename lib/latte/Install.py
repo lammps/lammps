@@ -4,7 +4,7 @@
 # used to automate the steps described in the README file in this dir
 
 from __future__ import print_function
-import sys,os,re,subprocess,hashlib
+import sys,os,re,subprocess,hashlib,shutil
 
 # help message
 
@@ -167,8 +167,7 @@ if buildflag:
 
   print("Unpacking LATTE ...")
   if os.path.exists(lattedir):
-    cmd = 'rm -rf "%s"' % lattedir
-    subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+    shutil.rmtree(lattedir)
   cmd = 'cd "%s"; tar zxvf LATTE.tar.gz' % lattepath
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   os.remove("%s/LATTE.tar.gz" % lattepath)

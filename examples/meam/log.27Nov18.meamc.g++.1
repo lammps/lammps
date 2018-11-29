@@ -1,4 +1,4 @@
-LAMMPS (19 May 2017)
+LAMMPS (27 Nov 2018)
   using 1 OpenMP thread(s) per MPI task
 # Test of MEAM potential for SiC system
 
@@ -9,7 +9,7 @@ atom_style	atomic
 
 read_data	data.meam
   orthogonal box = (-6 -6 -6) to (5.97232 5.97232 5.97232)
-  1 by 2 by 2 MPI processor grid
+  1 by 1 by 1 MPI processor grid
   reading atoms ...
   128 atoms
 
@@ -51,7 +51,7 @@ Neighbor list info ...
       pair build: halffull/newton
       stencil: none
       bin: none
-Per MPI rank memory allocation (min/avg/max) = 8.024 | 8.026 | 8.027 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 8.103 | 8.103 | 8.103 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0            0   -636.38121            0   -636.38121   -76571.819 
       10    1807.8862   -666.21959            0   -636.54126   -150571.49 
@@ -64,29 +64,29 @@ Step Temp E_pair E_mol TotEng Press
       80    2126.0903   -671.43755            0   -636.53557   -97475.832 
       90    2065.7549    -670.4349            0   -636.52338   -95858.836 
      100    2051.4553   -670.20799            0   -636.53122   -107068.89 
-Loop time of 0.037066 on 4 procs for 100 steps with 128 atoms
+Loop time of 0.0780671 on 1 procs for 100 steps with 128 atoms
 
-Performance: 233.097 ns/day, 0.103 hours/ns, 2697.887 timesteps/s
-97.4% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 110.674 ns/day, 0.217 hours/ns, 1280.950 timesteps/s
+99.4% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.029985   | 0.031596   | 0.033021   |   0.8 | 85.24
-Neigh   | 0.0007906  | 0.00085384 | 0.00088596 |   0.0 |  2.30
-Comm    | 0.0025654  | 0.0040313  | 0.0057514  |   2.2 | 10.88
-Output  | 0.00027013 | 0.00029153 | 0.00033426 |   0.0 |  0.79
-Modify  | 9.5367e-05 | 0.00010639 | 0.00012016 |   0.0 |  0.29
-Other   |            | 0.0001866  |            |       |  0.50
+Pair    | 0.074199   | 0.074199   | 0.074199   |   0.0 | 95.05
+Neigh   | 0.0026548  | 0.0026548  | 0.0026548  |   0.0 |  3.40
+Comm    | 0.00068045 | 0.00068045 | 0.00068045 |   0.0 |  0.87
+Output  | 0.00020933 | 0.00020933 | 0.00020933 |   0.0 |  0.27
+Modify  | 0.00021243 | 0.00021243 | 0.00021243 |   0.0 |  0.27
+Other   |            | 0.0001111  |            |       |  0.14
 
-Nlocal:    32 ave 36 max 30 min
-Histogram: 1 2 0 0 0 0 0 0 0 1
-Nghost:    293.75 ave 305 max 285 min
-Histogram: 2 0 0 0 0 0 0 1 0 1
-Neighs:    381.5 ave 413 max 334 min
-Histogram: 1 0 0 0 1 0 0 0 0 2
-FullNghs:  763 ave 866 max 678 min
-Histogram: 1 0 1 0 0 1 0 0 0 1
+Nlocal:    128 ave 128 max 128 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    543 ave 543 max 543 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    1526 ave 1526 max 1526 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  3052 ave 3052 max 3052 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 3052
 Ave neighs/atom = 23.8438

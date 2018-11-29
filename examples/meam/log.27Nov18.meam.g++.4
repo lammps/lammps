@@ -1,4 +1,4 @@
-LAMMPS (19 May 2017)
+LAMMPS (27 Nov 2018)
   using 1 OpenMP thread(s) per MPI task
 # Test of MEAM potential for SiC system
 
@@ -14,6 +14,7 @@ read_data	data.meam
   128 atoms
 
 pair_style	meam
+WARNING: THE pair_style meam COMMAND IS OBSOLETE AND WILL BE REMOVED VERY SOON. PLEASE USE meam/c (src/MEAM/pair_meam.cpp:51)
 pair_coeff	* * library.meam Si C SiC.meam Si C
 Reading potential file library.meam with DATE: 2012-06-29
 Reading potential file SiC.meam with DATE: 2007-06-11
@@ -64,20 +65,20 @@ Step Temp E_pair E_mol TotEng Press
       80    2126.0903   -671.43755            0   -636.53557   -97475.831 
       90     2065.755    -670.4349            0   -636.52338   -95858.837 
      100    2051.4553   -670.20799            0   -636.53122    -107068.9 
-Loop time of 0.0389078 on 4 procs for 100 steps with 128 atoms
+Loop time of 0.023721 on 4 procs for 100 steps with 128 atoms
 
-Performance: 222.063 ns/day, 0.108 hours/ns, 2570.177 timesteps/s
-99.4% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 364.234 ns/day, 0.066 hours/ns, 4215.667 timesteps/s
+95.5% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.031958   | 0.033267   | 0.034691   |   0.6 | 85.50
-Neigh   | 0.00079155 | 0.00086409 | 0.00098801 |   0.0 |  2.22
-Comm    | 0.0025704  | 0.0041765  | 0.005573   |   1.9 | 10.73
-Output  | 0.0002749  | 0.00029588 | 0.00033569 |   0.0 |  0.76
-Modify  | 9.4891e-05 | 0.00010347 | 0.00011587 |   0.0 |  0.27
-Other   |            | 0.000201   |            |       |  0.52
+Pair    | 0.019888   | 0.020242   | 0.020626   |   0.2 | 85.33
+Neigh   | 0.00071859 | 0.00076133 | 0.00082922 |   0.0 |  3.21
+Comm    | 0.0019681  | 0.0022618  | 0.002651   |   0.5 |  9.53
+Output  | 0.00018048 | 0.0002225  | 0.00034213 |   0.0 |  0.94
+Modify  | 8.2016e-05 | 8.6308e-05 | 9.203e-05  |   0.0 |  0.36
+Other   |            | 0.000147   |            |       |  0.62
 
 Nlocal:    32 ave 36 max 30 min
 Histogram: 1 2 0 0 0 0 0 0 0 1

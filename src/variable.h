@@ -92,6 +92,13 @@ class Variable : protected Pointers {
     int nextra;            // # of additional args beyond first 2
     Tree *first,*second;   // ptrs further down tree for first 2 args
     Tree **extra;          // ptrs further down tree for nextra args
+
+    Tree() :
+      array(NULL), iarray(NULL), barray(NULL),
+      selfalloc(0), nextra(0),
+      first(NULL), second(NULL), extra(NULL)
+    {
+    }
   };
 
   int compute_python(int);

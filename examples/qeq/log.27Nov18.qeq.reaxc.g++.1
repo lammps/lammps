@@ -1,4 +1,5 @@
-LAMMPS (5 Oct 2016)
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
 # This example demonstrates the use of various fix qeq variants with pair reax/c
 # You can comment in/out various versions below
 #
@@ -14,7 +15,7 @@ atom_style	charge
 
 read_data	data.CHO
   orthogonal box = (0 0 0) to (25 25 25)
-  1 by 2 by 2 MPI processor grid
+  1 by 1 by 1 MPI processor grid
   reading atoms ...
   105 atoms
 
@@ -54,49 +55,59 @@ timestep	0.25
 
 run		10
 Neighbor list info ...
-  2 neighbor list requests
   update every 1 steps, delay 0 steps, check yes
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 11
   ghost atom cutoff = 11
-  binsize = 5.5 -> bins = 5 5 5
-Memory usage per processor = 11.6046 Mbytes
+  binsize = 5.5, bins = 5 5 5
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair reax/c, perpetual
+      attributes: half, newton off, ghost
+      pair build: half/bin/newtoff/ghost
+      stencil: half/ghost/bin/3d/newtoff
+      bin: standard
+  (2) fix qeq/reax, perpetual, copy from (1)
+      attributes: half, newton off, ghost
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 16.65 | 16.65 | 16.65 Mbytes
 Step PotEng c_q1 c_q2 c_q3 v_qtot 
-       0   -10226.557  0.095633919  -0.15658765 -0.091167194 1.7763568e-15 
-       1   -10225.799    0.0956503  -0.15662357  -0.09117143 2.8865799e-15 
-       2   -10223.656  0.095669684  -0.15666698 -0.091175327 1.110223e-15 
-       3   -10220.276  0.095691296  -0.15671615 -0.091178696            0 
-       4   -10215.894   0.09571384  -0.15676787 -0.091181678 8.8817842e-16 
-       5   -10210.804  0.095734178  -0.15681468  -0.09118418 1.3322676e-15 
-       6   -10205.342  0.095751126  -0.15685409 -0.091185769 4.4408921e-16 
-       7   -10199.848  0.095762403  -0.15688037 -0.091186751            0 
-       8   -10194.646  0.095766449  -0.15689014 -0.091186673 -4.4408921e-16 
-       9   -10190.016  0.095761078  -0.15687818  -0.09118551 -4.4408921e-16 
-      10   -10186.168  0.095747223  -0.15684634 -0.091183742            0 
-Loop time of 0.0217528 on 4 procs for 10 steps with 105 atoms
+       0   -10226.557  0.095634063  -0.15658793 -0.091167279 4.4408921e-16 
+       1   -10225.799  0.095649584   -0.1566219 -0.091171371 7.1054274e-15 
+       2   -10223.656  0.095669731  -0.15666714 -0.091175264 -6.4392935e-15 
+       3   -10220.276  0.095691257  -0.15671597 -0.091178813 2.6645353e-15 
+       4   -10215.894  0.095714363  -0.15676887 -0.091182006 -3.1086245e-15 
+       5   -10210.804  0.095733863  -0.15681398  -0.09118412 6.6613381e-16 
+       6   -10205.342  0.095751253  -0.15685427 -0.091185918 -1.110223e-15 
+       7   -10199.848  0.095762028   -0.1568795 -0.091186707 8.8817842e-15 
+       8   -10194.646  0.095767243  -0.15689184 -0.091186932 -2.4424907e-15 
+       9   -10190.016  0.095760528  -0.15687664 -0.091185782 -4.4408921e-16 
+      10   -10186.168  0.095748006  -0.15684815  -0.09118383 1.110223e-15 
+Loop time of 0.0322483 on 1 procs for 10 steps with 105 atoms
 
-Performance: 9.930 ns/day, 2.417 hours/ns, 459.710 timesteps/s
-93.1% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 6.698 ns/day, 3.583 hours/ns, 310.094 timesteps/s
+99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.012203   | 0.014022   | 0.015427   |   1.0 | 64.46
+Pair    | 0.026229   | 0.026229   | 0.026229   |   0.0 | 81.34
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.00011754 | 0.0015323  | 0.0033445  |   3.0 |  7.04
-Output  | 0.00041366 | 0.00044626 | 0.00048447 |   0.1 |  2.05
-Modify  | 0.0056725  | 0.0056758  | 0.0056815  |   0.0 | 26.09
-Other   |            | 7.629e-05  |            |       |  0.35
+Comm    | 5.2214e-05 | 5.2214e-05 | 5.2214e-05 |   0.0 |  0.16
+Output  | 0.00027299 | 0.00027299 | 0.00027299 |   0.0 |  0.85
+Modify  | 0.0056667  | 0.0056667  | 0.0056667  |   0.0 | 17.57
+Other   |            | 2.694e-05  |            |       |  0.08
 
-Nlocal:    26.25 ave 35 max 15 min
-Histogram: 1 0 0 1 0 0 0 0 0 2
-Nghost:    300 ave 357 max 239 min
-Histogram: 2 0 0 0 0 0 0 0 0 2
-Neighs:    1025.25 ave 1468 max 405 min
-Histogram: 1 0 0 0 1 0 0 0 0 2
+Nlocal:    105 ave 105 max 105 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    512 ave 512 max 512 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    3417 ave 3417 max 3417 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
 
-Total # of neighbors = 4101
-Ave neighs/atom = 39.0571
+Total # of neighbors = 3417
+Ave neighs/atom = 32.5429
 Neighbor list builds = 0
 Dangerous builds = 0
 

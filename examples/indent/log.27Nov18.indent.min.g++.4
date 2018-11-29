@@ -1,4 +1,5 @@
-LAMMPS (5 Oct 2016)
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
 # 2d indenter simulation with minimization instead of dynamics
 
 dimension     2
@@ -18,6 +19,7 @@ Created orthogonal box = (0 0 -0.283174) to (22.6539 19.6189 0.283174)
   2 by 2 by 1 MPI processor grid
 create_atoms  1 box
 Created 420 atoms
+  Time spent = 0.000312805 secs
 
 mass	      * 1.0
 
@@ -57,24 +59,29 @@ thermo	      10
 #dump_modify   3 pad 4
 
 minimize      1.0e-6 1.0e-6 1000 1000
-WARNING: Resetting reneighboring criteria during minimization (../min.cpp:168)
+WARNING: Using 'neigh_modify every 1 delay 0 check yes' setting during minimization (src/min.cpp:168)
 Neighbor list info ...
-  1 neighbor list requests
   update every 1 steps, delay 0 steps, check yes
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 2.8
   ghost atom cutoff = 2.8
-  binsize = 1.4 -> bins = 17 15 1
-Memory usage per processor = 3.60136 Mbytes
+  binsize = 1.4, bins = 17 15 1
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/2d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.172 | 4.172 | 4.172 Mbytes
 Step Temp E_pair E_mol TotEng Press Volume 
        0            0   -3.1727576            0   -3.1727576   -1.5977027    444.53333 
       10            0   -3.1815908            0   -3.1815908   -1.1226904    440.57558 
       20            0   -3.1895471            0   -3.1895471  -0.86027602    436.93033 
       30            0   -3.1908366            0   -3.1908366  -0.72179223    436.93033 
       35            0   -3.1909386            0   -3.1909386  -0.69788745    433.53082 
-Loop time of 0.00329685 on 4 procs for 35 steps with 420 atoms
+Loop time of 0.00425965 on 4 procs for 35 steps with 420 atoms
 
-75.8% CPU use with 4 MPI tasks x no OpenMP threads
+91.0% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 Minimization stats:
   Stopping criterion = energy tolerance
@@ -88,12 +95,12 @@ Minimization stats:
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.0018942  | 0.0019329  | 0.0019758  |   0.1 | 58.63
-Neigh   | 0.00011587 | 0.000121   | 0.00012612 |   0.0 |  3.67
-Comm    | 0.00034523 | 0.00040966 | 0.00046587 |   0.3 | 12.43
-Output  | 4.3869e-05 | 4.667e-05  | 5.2929e-05 |   0.1 |  1.42
-Modify  | 2.4796e-05 | 3.7432e-05 | 5.0306e-05 |   0.2 |  1.14
-Other   |            | 0.0007492  |            |       | 22.73
+Pair    | 0.0018404  | 0.0020409  | 0.002239   |   0.3 | 47.91
+Neigh   | 0.00011182 | 0.00011867 | 0.00012565 |   0.0 |  2.79
+Comm    | 0.00071144 | 0.0010059  | 0.0013125  |   0.7 | 23.62
+Output  | 4.1723e-05 | 4.4882e-05 | 5.1022e-05 |   0.0 |  1.05
+Modify  | 4.7445e-05 | 5.6326e-05 | 6.4611e-05 |   0.0 |  1.32
+Other   |            | 0.0009929  |            |       | 23.31
 
 Nlocal:    105 ave 111 max 99 min
 Histogram: 1 1 0 0 0 0 0 0 1 1
@@ -114,8 +121,8 @@ fix           4 all indent $k sphere 10 13.0 0 6.0
 fix           4 all indent 4414.24643457407 sphere 10 13.0 0 6.0
 fix_modify    4 energy yes
 minimize      1.0e-6 1.0e-6 1000 1000
-WARNING: Resetting reneighboring criteria during minimization (../min.cpp:168)
-Memory usage per processor = 3.60136 Mbytes
+WARNING: Using 'neigh_modify every 1 delay 0 check yes' setting during minimization (src/min.cpp:168)
+Per MPI rank memory allocation (min/avg/max) = 4.172 | 4.172 | 4.172 Mbytes
 Step Temp E_pair E_mol TotEng Press Volume 
       35            0   -3.1909386            0    -2.174369   -0.6944516    435.67574 
       40            0   -3.1462704            0   -3.1261242  -0.20646557    435.67534 
@@ -127,9 +134,9 @@ Step Temp E_pair E_mol TotEng Press Volume
      100            0   -3.1812307            0   -3.1805381  -0.15305002    434.96379 
      110            0   -3.1812588            0   -3.1805938  -0.12504601    432.50683 
      111            0   -3.1812728            0   -3.1805961  -0.12407115    432.50683 
-Loop time of 0.00908947 on 4 procs for 76 steps with 420 atoms
+Loop time of 0.009408 on 4 procs for 76 steps with 420 atoms
 
-96.2% CPU use with 4 MPI tasks x no OpenMP threads
+98.4% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 Minimization stats:
   Stopping criterion = energy tolerance
@@ -143,12 +150,12 @@ Minimization stats:
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.0037253  | 0.0040306  | 0.0043435  |   0.5 | 44.34
-Neigh   | 0.00058532 | 0.00061685 | 0.00064421 |   0.1 |  6.79
-Comm    | 0.0012383  | 0.0015994  | 0.0019143  |   0.8 | 17.60
-Output  | 0.00012493 | 0.0001325  | 0.00015235 |   0.1 |  1.46
-Modify  | 0.00026274 | 0.00028539 | 0.00030255 |   0.1 |  3.14
-Other   |            | 0.002425   |            |       | 26.68
+Pair    | 0.0035956  | 0.0040194  | 0.0043173  |   0.5 | 42.72
+Neigh   | 0.00058937 | 0.00061256 | 0.00065064 |   0.0 |  6.51
+Comm    | 0.0012782  | 0.0017276  | 0.0023015  |   1.0 | 18.36
+Output  | 0.00012088 | 0.00013882 | 0.00018907 |   0.0 |  1.48
+Modify  | 0.00037575 | 0.00040001 | 0.00041938 |   0.0 |  4.25
+Other   |            | 0.00251    |            |       | 26.68
 
 Nlocal:    105 ave 111 max 99 min
 Histogram: 1 1 0 0 0 0 0 0 1 1
@@ -166,8 +173,8 @@ fix           4 all indent ${k1} sphere 10 12.5 0 6.0
 fix           4 all indent 882.849286914813 sphere 10 12.5 0 6.0
 fix_modify    4 energy yes
 minimize      1.0e-6 1.0e-6 1000 1000
-WARNING: Resetting reneighboring criteria during minimization (../min.cpp:168)
-Memory usage per processor = 3.60136 Mbytes
+WARNING: Using 'neigh_modify every 1 delay 0 check yes' setting during minimization (src/min.cpp:168)
+Per MPI rank memory allocation (min/avg/max) = 4.172 | 4.172 | 4.172 Mbytes
 Step Temp E_pair E_mol TotEng Press Volume 
      111            0   -3.1812728            0  -0.21796955  -0.12362156    434.07977 
      120            0   -2.9592755            0   -2.8003562    1.9418398     434.0832 
@@ -179,9 +186,9 @@ Step Temp E_pair E_mol TotEng Press Volume
      180            0   -3.1041304            0   -3.0969544    1.3751455    430.37021 
      190            0   -3.1043441            0   -3.0970791    1.3920926    430.37021 
      193            0   -3.1043346            0   -3.0970891    1.3934753    430.37021 
-Loop time of 0.00948715 on 4 procs for 82 steps with 420 atoms
+Loop time of 0.00970888 on 4 procs for 82 steps with 420 atoms
 
-100.1% CPU use with 4 MPI tasks x no OpenMP threads
+98.4% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 Minimization stats:
   Stopping criterion = energy tolerance
@@ -195,12 +202,12 @@ Minimization stats:
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.0037739  | 0.0042151  | 0.0046482  |   0.6 | 44.43
-Neigh   | 0.00041008 | 0.0004425  | 0.00048161 |   0.1 |  4.66
-Comm    | 0.0013449  | 0.0018466  | 0.0023468  |   1.1 | 19.46
-Output  | 0.00012422 | 0.00013196 | 0.00015044 |   0.1 |  1.39
-Modify  | 0.00026131 | 0.00028855 | 0.00030518 |   0.1 |  3.04
-Other   |            | 0.002563   |            |       | 27.01
+Pair    | 0.0038064  | 0.0043663  | 0.0049345  |   0.7 | 44.97
+Neigh   | 0.00041938 | 0.00044787 | 0.00046825 |   0.0 |  4.61
+Comm    | 0.0012298  | 0.0018778  | 0.0025084  |   1.2 | 19.34
+Output  | 0.00010872 | 0.00013095 | 0.00019455 |   0.0 |  1.35
+Modify  | 0.0003829  | 0.00042218 | 0.00045204 |   0.0 |  4.35
+Other   |            | 0.002464   |            |       | 25.38
 
 Nlocal:    105 ave 112 max 98 min
 Histogram: 1 0 1 0 0 0 0 1 0 1
@@ -218,8 +225,8 @@ fix           4 all indent ${k1} sphere 10 12.0 0 6.0
 fix           4 all indent 882.849286914813 sphere 10 12.0 0 6.0
 fix_modify    4 energy yes
 minimize      1.0e-6 1.0e-6 1000 1000
-WARNING: Resetting reneighboring criteria during minimization (../min.cpp:168)
-Memory usage per processor = 3.60136 Mbytes
+WARNING: Using 'neigh_modify every 1 delay 0 check yes' setting during minimization (src/min.cpp:168)
+Per MPI rank memory allocation (min/avg/max) = 4.172 | 4.172 | 4.172 Mbytes
 Step Temp E_pair E_mol TotEng Press Volume 
      193            0   -3.1043346            0    2.0111873    1.3910032    431.13505 
      200            0   -2.5918062            0     -1.93191     5.511262    430.91953 
@@ -235,9 +242,9 @@ Step Temp E_pair E_mol TotEng Press Volume
      300            0   -3.1109522            0   -3.1046995     1.064904    470.50807 
      310            0   -3.1123989            0    -3.105985    1.0430839    470.40952 
      313            0   -3.1125022            0   -3.1060453    1.0390872    470.40952 
-Loop time of 0.016437 on 4 procs for 120 steps with 420 atoms
+Loop time of 0.0169249 on 4 procs for 120 steps with 420 atoms
 
-95.8% CPU use with 4 MPI tasks x no OpenMP threads
+95.2% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 Minimization stats:
   Stopping criterion = linesearch alpha is zero
@@ -251,12 +258,12 @@ Minimization stats:
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.0060949  | 0.0071945  | 0.008219   |   1.2 | 43.77
-Neigh   | 0.00081253 | 0.00092614 | 0.0010352  |   0.3 |  5.63
-Comm    | 0.0022275  | 0.0035025  | 0.0047491  |   2.1 | 21.31
-Output  | 0.00018907 | 0.00019854 | 0.00022316 |   0.1 |  1.21
-Modify  | 0.00045967 | 0.00049853 | 0.0005331  |   0.1 |  3.03
-Other   |            | 0.004117   |            |       | 25.05
+Pair    | 0.0061595  | 0.0073055  | 0.0083787  |   1.2 | 43.16
+Neigh   | 0.00085759 | 0.00095439 | 0.0010619  |   0.0 |  5.64
+Comm    | 0.0020378  | 0.0032984  | 0.0046635  |   2.1 | 19.49
+Output  | 0.00016832 | 0.00020832 | 0.00032616 |   0.0 |  1.23
+Modify  | 0.0006628  | 0.00078654 | 0.00090957 |   0.0 |  4.65
+Other   |            | 0.004372   |            |       | 25.83
 
 Nlocal:    105 ave 123 max 90 min
 Histogram: 2 0 0 0 0 0 0 0 1 1
@@ -274,8 +281,8 @@ fix           4 all indent ${k1} sphere 10 11.4 0 6.0
 fix           4 all indent 882.849286914813 sphere 10 11.4 0 6.0
 fix_modify    4 energy yes
 minimize      1.0e-6 1.0e-6 1000 1000
-WARNING: Resetting reneighboring criteria during minimization (../min.cpp:168)
-Memory usage per processor = 3.60136 Mbytes
+WARNING: Using 'neigh_modify every 1 delay 0 check yes' setting during minimization (src/min.cpp:168)
+Per MPI rank memory allocation (min/avg/max) = 4.172 | 4.172 | 4.173 Mbytes
 Step Temp E_pair E_mol TotEng Press Volume 
      313            0   -3.1125022            0    5.3341053    1.0377311    471.02427 
      320            0    -2.402824            0  -0.86170235    6.1550233    471.02943 
@@ -289,9 +296,9 @@ Step Temp E_pair E_mol TotEng Press Volume
      400            0   -3.0098108            0   -2.9963408    2.0798685    490.87751 
      410            0   -3.0142937            0   -3.0017605    2.0015139    491.52711 
      417            0   -3.0148998            0   -3.0024932    1.9909706    492.48053 
-Loop time of 0.0132418 on 4 procs for 104 steps with 420 atoms
+Loop time of 0.0135124 on 4 procs for 104 steps with 420 atoms
 
-94.4% CPU use with 4 MPI tasks x no OpenMP threads
+90.7% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 Minimization stats:
   Stopping criterion = energy tolerance
@@ -305,12 +312,12 @@ Minimization stats:
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.0043645  | 0.0054896  | 0.0065427  |   1.4 | 41.46
-Neigh   | 0.00071716 | 0.00088716 | 0.0010509  |   0.5 |  6.70
-Comm    | 0.0017078  | 0.0030243  | 0.0044179  |   2.3 | 22.84
-Output  | 0.00015879 | 0.00016719 | 0.00018978 |   0.1 |  1.26
-Modify  | 0.00033998 | 0.00038028 | 0.00042176 |   0.2 |  2.87
-Other   |            | 0.003293   |            |       | 24.87
+Pair    | 0.0043001  | 0.0056325  | 0.0068884  |   1.5 | 41.68
+Neigh   | 0.0007472  | 0.00091684 | 0.0010941  |   0.0 |  6.79
+Comm    | 0.0015268  | 0.0030602  | 0.0046747  |   2.4 | 22.65
+Output  | 0.00014591 | 0.00017387 | 0.00025606 |   0.0 |  1.29
+Modify  | 0.00047064 | 0.00054699 | 0.00062537 |   0.0 |  4.05
+Other   |            | 0.003182   |            |       | 23.55
 
 Nlocal:    105 ave 121 max 89 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
@@ -328,8 +335,8 @@ fix           4 all indent ${k1} sphere 10 11.2 0 6.0
 fix           4 all indent 882.849286914813 sphere 10 11.2 0 6.0
 fix_modify    4 energy yes
 minimize      1.0e-6 1.0e-6 1000 1000
-WARNING: Resetting reneighboring criteria during minimization (../min.cpp:168)
-Memory usage per processor = 3.60141 Mbytes
+WARNING: Using 'neigh_modify every 1 delay 0 check yes' setting during minimization (src/min.cpp:168)
+Per MPI rank memory allocation (min/avg/max) = 4.172 | 4.173 | 4.173 Mbytes
 Step Temp E_pair E_mol TotEng Press Volume 
      417            0   -3.0148998            0   -2.4816986    1.9918498    492.26314 
      420            0   -2.9209943            0   -2.7871779    2.8201475    492.26417 
@@ -352,9 +359,9 @@ Step Temp E_pair E_mol TotEng Press Volume
      590            0    -3.114722            0   -3.1095528   0.90665975    515.99746 
      600            0   -3.1149189            0   -3.1096744   0.88783587    515.99746 
      605            0   -3.1149612            0   -3.1097106   0.88187936    515.99746 
-Loop time of 0.0257494 on 4 procs for 188 steps with 420 atoms
+Loop time of 0.0262601 on 4 procs for 188 steps with 420 atoms
 
-98.0% CPU use with 4 MPI tasks x no OpenMP threads
+95.8% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 Minimization stats:
   Stopping criterion = linesearch alpha is zero
@@ -368,12 +375,12 @@ Minimization stats:
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.0080748  | 0.010793   | 0.013608   |   2.6 | 41.91
-Neigh   | 0.000983   | 0.0012598  | 0.0015397  |   0.8 |  4.89
-Comm    | 0.003365   | 0.0064785  | 0.0095432  |   3.8 | 25.16
-Output  | 0.0002985  | 0.00031477 | 0.00035667 |   0.1 |  1.22
-Modify  | 0.00062346 | 0.0007531  | 0.00086522 |   0.4 |  2.92
-Other   |            | 0.00615    |            |       | 23.89
+Pair    | 0.0080013  | 0.010975   | 0.013789   |   2.6 | 41.79
+Neigh   | 0.001025   | 0.001315   | 0.0016329  |   0.8 |  5.01
+Comm    | 0.0033126  | 0.0065627  | 0.010028   |   3.9 | 24.99
+Output  | 0.00025845 | 0.00032175 | 0.00050783 |   0.0 |  1.23
+Modify  | 0.00088954 | 0.0010915  | 0.0012805  |   0.6 |  4.16
+Other   |            | 0.005994   |            |       | 22.83
 
 Nlocal:    105 ave 125 max 84 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
@@ -391,8 +398,8 @@ fix	      4 all indent ${k1} sphere 10 11.0 0 6.0
 fix	      4 all indent 882.849286914813 sphere 10 11.0 0 6.0
 fix_modify    4 energy yes
 minimize      1.0e-6 1.0e-6 1000 1000
-WARNING: Resetting reneighboring criteria during minimization (../min.cpp:168)
-Memory usage per processor = 3.60141 Mbytes
+WARNING: Using 'neigh_modify every 1 delay 0 check yes' setting during minimization (src/min.cpp:168)
+Per MPI rank memory allocation (min/avg/max) = 4.172 | 4.173 | 4.173 Mbytes
 Step Temp E_pair E_mol TotEng Press Volume 
      605            0   -3.1149612            0   -2.7562264   0.88153856    516.19694 
      610            0   -3.0480145            0   -3.0046036    1.5377628    516.18952 
@@ -408,9 +415,9 @@ Step Temp E_pair E_mol TotEng Press Volume
      710            0   -3.0738836            0   -3.0635305    1.6674853    516.40455 
      720            0   -3.0744809            0   -3.0640016    1.6430059    516.40455 
      729            0    -3.074692            0   -3.0641622    1.6351234    517.12194 
-Loop time of 0.017405 on 4 procs for 124 steps with 420 atoms
+Loop time of 0.0187363 on 4 procs for 124 steps with 420 atoms
 
-97.7% CPU use with 4 MPI tasks x no OpenMP threads
+94.5% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 Minimization stats:
   Stopping criterion = linesearch alpha is zero
@@ -424,12 +431,12 @@ Minimization stats:
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.0049167  | 0.0073144  | 0.0095913  |   2.7 | 42.02
-Neigh   | 0.00037408 | 0.00051659 | 0.00065827 |   0.6 |  2.97
-Comm    | 0.0021894  | 0.0047411  | 0.0072858  |   3.6 | 27.24
-Output  | 0.00018907 | 0.0001967  | 0.00021863 |   0.1 |  1.13
-Modify  | 0.00040865 | 0.00051677 | 0.00060606 |   0.4 |  2.97
-Other   |            | 0.004119   |            |       | 23.67
+Pair    | 0.0051301  | 0.0074221  | 0.0098505  |   2.6 | 39.61
+Neigh   | 0.00038052 | 0.00054228 | 0.00068402 |   0.0 |  2.89
+Comm    | 0.0018504  | 0.004572   | 0.007129   |   3.8 | 24.40
+Output  | 0.00017834 | 0.00021213 | 0.00030828 |   0.0 |  1.13
+Modify  | 0.00057554 | 0.00075471 | 0.00091839 |   0.0 |  4.03
+Other   |            | 0.005233   |            |       | 27.93
 
 Nlocal:    105 ave 131 max 78 min
 Histogram: 2 0 0 0 0 0 0 0 0 2

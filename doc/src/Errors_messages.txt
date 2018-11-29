@@ -279,12 +279,6 @@ multibody joint).  The bodies you have defined exceed this limit. :dd
 This is an internal LAMMPS error.  Please report it to the
 developers. :dd
 
-{Atom sorting has bin size = 0.0} :dt
-
-The neighbor cutoff is being used as the bin size, but it is zero.
-Thus you must explicitly list a bin size in the atom_modify sort
-command or turn off sorting. :dd
-
 {Atom style hybrid cannot have hybrid as an argument} :dt
 
 Self-explanatory. :dd

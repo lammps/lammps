@@ -68,6 +68,7 @@ as contained in the file name.
 "USER-ATC"_#PKG-USER-ATC,
 "USER-AWPMD"_#PKG-USER-AWPMD,
 "USER-BOCS"_#PKG-USER-BOCS,
+"USER-CAUCHY"_#PKG-USER-CAUCHY,
 "USER-CGDNA"_#PKG-USER-CGDNA,
 "USER-CGSDK"_#PKG-USER-CGSDK,
 "USER-COLVARS"_#PKG-USER-COLVARS,
@@ -203,7 +204,7 @@ available on your system.
 
 [Author:] Axel Kohlmeyer (Temple U).
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -284,7 +285,7 @@ also the "KOKKOS"_#PKG-KOKKOS package, which has GPU-enabled styles.
 [Authors:] Mike Brown (Intel) while at Sandia and ORNL and Trung Nguyen
 (Northwestern U) while at ORNL.
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -352,7 +353,7 @@ API which the "pair_style kim"_pair_kim.html command uses.  He
 developed the pair style in collaboration with Valeriu Smirichinski (U
 Minnesota).
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -398,7 +399,7 @@ which was developed by Carter Edwards, Christian Trott, and others at
 Sandia, and which is included in the LAMMPS distribution in
 lib/kokkos.
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -546,7 +547,7 @@ and user interface.
 
 [Author:] Greg Wagner (Northwestern U) while at Sandia.
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -679,7 +680,7 @@ system.
 library was developed by Jacob Wagner in Greg Voth's group at the
 University of Chicago.
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -711,7 +712,7 @@ have styles optimized for CPU performance.
 [Authors:] James Fischer (High Performance Technologies), David Richie,
 and Vincent Natoli (Stone Ridge Technolgy).
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -768,7 +769,7 @@ connections at hinge points.
 
 [Author:] Rudra Mukherjee (JPL) while at RPI.
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -800,7 +801,7 @@ shared library available on your system, which needs to be a Python 2
 version, 2.6 or later.  Python 3 is not yet supported.  See the
 lib/python/README for more details.
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -848,7 +849,7 @@ as bonds are created and destroyed.
 
 [Author:] Aidan Thompson (Sandia).
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -1021,7 +1022,7 @@ system.
 library was written by Chris Rycroft (Harvard U) while at UC Berkeley
 and LBNL.
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -1048,7 +1049,7 @@ atomic information to continuum fields.
 
 [Authors:] Reese Jones, Jeremy Templeton, Jon Zimmerman (Sandia).
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -1075,7 +1076,7 @@ model.
 
 [Author:] Ilya Valuev (JIHT, Russia).
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -1098,7 +1099,7 @@ This package provides "fix bocs"_fix_bocs.html, a modified version
 of "fix npt"_fix_nh.html which includes the pressure correction to
 the barostat as outlined in:
 
-N. J. H. Dunn and W. G. Noid, "Bottom-up coarse-grained models that 
+N. J. H. Dunn and W. G. Noid, "Bottom-up coarse-grained models that
 accurately describe the structure, pressure, and compressibility of
 molecular liquids," J. Chem. Phys. 143, 243148 (2015).
 
@@ -1117,6 +1118,26 @@ Dunn, NJH; Lebold, KM; DeLyser, MR; Rudzinski, JF; Noid, WG.
 J. Phys. Chem. B. 122, 13, 3363-3377 (2018).
 
 Example inputs are in the examples/USER/bocs folder.
+
+:line
+
+USER-CAUCHY package :link(PKG-USER-CAUCHY),h4
+
+[Contents:]
+
+This package provides a modified version of
+"fix npt"_fix_nh.html which directly controls the Cauchy (true) stress
+instead of the second Piola-Kirchhoff stress, as presented in:
+
+R. E. Miller, E. B. Tadmor, J. S. Gibson, N. Bernstein, and F. Pavia,
+“Molecular Dynamics at Constant Cauchy Stress,”  J. Chem. Phys. 144, 184107 (2016).
+
+[Authors:] R. E. Miller (Carleton University), F. Pavia and S. Pattamatta
+
+[Supporting info:]
+
+Example input is in the examples/USER/cauchy folder.  Usage instructions are part of
+the "fix npt"_fix_nh.html description.
 
 :line
 
@@ -1183,7 +1204,7 @@ and Jerome Henin (LISM, CNRS, Marseille, France), originally for
 the NAMD MD code, but with portability in mind.  Axel Kohlmeyer
 (Temple U) provided the interface to LAMMPS.
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -1363,7 +1384,7 @@ system.
 [Author:] Pierre de Buyl (KU Leuven) created both the package and the
 H5MD format.
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -1401,7 +1422,7 @@ NOTE: the USER-INTEL package contains styles that require using the
 
 [Author:] Mike Brown (Intel).
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -1571,17 +1592,17 @@ USER-MOFFF package :link(PKG-USER-MOFFF),h4
 [Contents:]
 
 Pair, angle and improper styles needed to employ the MOF-FF
-force field by Schmid and coworkers with LAMMPS. 
+force field by Schmid and coworkers with LAMMPS.
 MOF-FF is a first principles derived force field with the primary aim
-to simulate MOFs and related porous framework materials, using spherical 
+to simulate MOFs and related porous framework materials, using spherical
 Gaussian charges. It is described in S. Bureekaew et al., Phys. Stat. Sol. B
 2013, 250, 1128-1141.
-For the usage of MOF-FF see the example in the example directory as 
+For the usage of MOF-FF see the example in the example directory as
 well as the "MOF+"_MOFplus website.
 
 :link(MOFplus,https://www.mofplus.org/content/show/MOF-FF)
 
-[Author:] Hendrik Heenen (Technical U of Munich), 
+[Author:] Hendrik Heenen (Technical U of Munich),
 Rochus Schmid (Ruhr-University Bochum).
 
 [Supporting info:]
@@ -1622,7 +1643,7 @@ at
 
 [Author:] Axel Kohlmeyer (Temple U).
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -1662,7 +1683,7 @@ tools:
 
 [Author:] Lars Pastewka (Karlsruhe Institute of Technology).
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -1706,7 +1727,7 @@ See src/MAKE/OPTIONS/Makefile.omp for an example.
 Once you have an appropriate Makefile.machine, you can
 install/un-install the package and build LAMMPS in the usual manner:
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -1784,7 +1805,7 @@ without changes to LAMMPS itself.
 
 [Author:] Axel Kohlmeyer (Temple U).
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -1842,7 +1863,7 @@ on your system.
 
 [Author:] Albert Bartok (Cambridge University)
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -1936,7 +1957,7 @@ specified as surface geometries from *.STL files.
 [Author:] Georg Ganzenmuller (Fraunhofer-Institute for High-Speed
 Dynamics, Ernst Mach Institute, Germany).
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -2062,7 +2083,7 @@ system.
 
 [Authors:] Richard Berger (JKU) and Daniel Queteschiner (DCS Computing).
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -2074,5 +2095,3 @@ src/USER-VTK: filenames -> commands
 src/USER-VTK/README
 lib/vtk/README
 "dump vtk"_dump_vtk.html :ul
-
-

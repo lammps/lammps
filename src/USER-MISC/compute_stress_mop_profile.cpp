@@ -168,20 +168,20 @@ void ComputeStressMopProfile::init()
   // timestep Value
 
   dt = update->dt;
-  
+
   // Error check
   // Compute stress/mop/profile requires fixed simulation box
-  
+
   if (domain->box_change_size || domain->box_change_shape || domain->deform_flag)
     error->all(FLERR, "Compute stress/mop/profile requires a fixed simulation box");
-        
+
   //This compute requires a pair style with pair_single method implemented
 
   if (force->pair == NULL)
     error->all(FLERR,"No pair style is defined for compute stress/mop/profile");
   if (force->pair->single_enable == 0)
     error->all(FLERR,"Pair style does not support compute stress/mop/profile");
-    
+
   // Warnings
 
   if (me==0){
@@ -232,7 +232,7 @@ void ComputeStressMopProfile::compute_array()
   MPI_Allreduce(&values_local[0][0],&values_global[0][0],nbins*nvalues,
                 MPI_DOUBLE,MPI_SUM,world);
 
-  int ibin,m,mo; 
+  int ibin,m,mo;
   for (ibin=0; ibin<nbins; ibin++) {
     array[ibin][0] = coord[ibin][0];
     mo=1;
@@ -257,9 +257,10 @@ void ComputeStressMopProfile::compute_pairs()
   double delx,dely,delz;
   double rsq,fpair,factor_coul,factor_lj;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  double pos,pos1;    
+  double pos,pos1;
 
   double *mass = atom->mass;
+  double *rmass = atom->rmass;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -411,9 +412,15 @@ void ComputeStressMopProfile::compute_pairs()
           fi[2] = atom->f[i][2];
 
           //coordinates at t-dt (based on Velocity-Verlet alg.)
-          xj[0] = xi[0]-vi[0]*dt+fi[0]/2/mass[itype]*dt*dt*ftm2v;
-          xj[1] = xi[1]-vi[1]*dt+fi[1]/2/mass[itype]*dt*dt*ftm2v;
-          xj[2] = xi[2]-vi[2]*dt+fi[2]/2/mass[itype]*dt*dt*ftm2v;
+          if (rmass) {
+            xj[0] = xi[0]-vi[0]*dt+fi[0]/2/rmass[i]*dt*dt*ftm2v;
+            xj[1] = xi[1]-vi[1]*dt+fi[1]/2/rmass[i]*dt*dt*ftm2v;
+            xj[2] = xi[2]-vi[2]*dt+fi[2]/2/rmass[i]*dt*dt*ftm2v;
+          } else {
+            xj[0] = xi[0]-vi[0]*dt+fi[0]/2/mass[itype]*dt*dt*ftm2v;
+            xj[1] = xi[1]-vi[1]*dt+fi[1]/2/mass[itype]*dt*dt*ftm2v;
+            xj[2] = xi[2]-vi[2]*dt+fi[2]/2/mass[itype]*dt*dt*ftm2v;
+          }
 
           for (ibin=0;ibin<nbins;ibin++) {
             pos = coord[ibin][0];
@@ -424,14 +431,25 @@ void ComputeStressMopProfile::compute_pairs()
               sgn = copysign(1.0,vi[dir]);
 
               //approximate crossing velocity by v(t-dt/2) (based on Velocity-Verlet alg.)
-              double vcross[3];
-              vcross[0] = vi[0]-fi[0]/mass[itype]/2*ftm2v*dt;
-              vcross[1] = vi[1]-fi[1]/mass[itype]/2*ftm2v*dt;
-              vcross[2] = vi[2]-fi[2]/mass[itype]/2*ftm2v*dt;
+              if (rmass) {
+                double vcross[3];
+                vcross[0] = vi[0]-fi[0]/rmass[i]/2*ftm2v*dt;
+                vcross[1] = vi[1]-fi[1]/rmass[i]/2*ftm2v*dt;
+                vcross[2] = vi[2]-fi[2]/rmass[i]/2*ftm2v*dt;
 
-              values_local[ibin][m] += mass[itype]*vcross[0]*sgn/dt/area*nktv2p/ftm2v;
-              values_local[ibin][m+1] += mass[itype]*vcross[1]*sgn/dt/area*nktv2p/ftm2v;
-              values_local[ibin][m+2] += mass[itype]*vcross[2]*sgn/dt/area*nktv2p/ftm2v;
+                values_local[ibin][m] += rmass[i]*vcross[0]*sgn/dt/area*nktv2p/ftm2v;
+                values_local[ibin][m+1] += rmass[i]*vcross[1]*sgn/dt/area*nktv2p/ftm2v;
+                values_local[ibin][m+2] += rmass[i]*vcross[2]*sgn/dt/area*nktv2p/ftm2v;
+              } else {
+                double vcross[3];
+                vcross[0] = vi[0]-fi[0]/mass[itype]/2*ftm2v*dt;
+                vcross[1] = vi[1]-fi[1]/mass[itype]/2*ftm2v*dt;
+                vcross[2] = vi[2]-fi[2]/mass[itype]/2*ftm2v*dt;
+
+                values_local[ibin][m] += mass[itype]*vcross[0]*sgn/dt/area*nktv2p/ftm2v;
+                values_local[ibin][m+1] += mass[itype]*vcross[1]*sgn/dt/area*nktv2p/ftm2v;
+                values_local[ibin][m+2] += mass[itype]*vcross[2]*sgn/dt/area*nktv2p/ftm2v;
+              }
             }
           }
         }

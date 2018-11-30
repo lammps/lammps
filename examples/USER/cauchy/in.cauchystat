@@ -29,7 +29,7 @@ fix 1 all npt/cauchy temp 600.0 600.0 1.0 &
                      x 0.0 0.0 0.1 &
                      y 0.0 0.0 0.1 &
                      z 0.0 0.0 0.1 &
-                     couple none cauchystat 0.001 no
+                     couple none alpha 0.001 continue no
 
 # dump 1 all cfg 1000 test*.cfg mass type xs ys zs type c_cna
 
@@ -67,17 +67,8 @@ fix 1 all npt/cauchy temp 600.0 600.0 1.0 &
                      y 0.0 0.0 0.1 &
                      z 0.0 0.0 0.1 &
                      xy -10000.0 -10000.0 0.1 &
-                     couple none alpha 0.001 continue no
-
-info fixes
-
-run 10000
-
-fix 1 all npt/cauchy temp 600.0 600.0 1.0 &
-                     x 0.0 0.0 0.1 &
-                     y 0.0 0.0 0.1 &
-                     z 0.0 0.0 0.1 &
-                     xy -10000.0 -10000.0 0.1 &
                      couple none alpha 0.001 continue yes
+
 info fixes
+
 run 10000

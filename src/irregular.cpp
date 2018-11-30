@@ -501,7 +501,8 @@ int compare_standalone(const int i, const int j, void *ptr)
 
 void Irregular::exchange_atom(double *sendbuf, int *sizes, double *recvbuf)
 {
-  int i,m,n,offset,count;
+  int i,m,n,count;
+  bigint offset;
 
   // post all receives
 
@@ -739,11 +740,13 @@ int Irregular::create_data(int n, int *proclist, int sortflag)
 
 void Irregular::exchange_data(char *sendbuf, int nbytes, char *recvbuf)
 {
-  int i,m,n,offset,count;
+  int i,n,count;
+  bigint m;       // these 2 lines enable send/recv buf to be larger than 2 GB
+  char *dest;
 
   // post all receives, starting after self copies
 
-  offset = num_self*nbytes;
+  bigint offset = num_self*nbytes;
   for (int irecv = 0; irecv < nrecv_proc; irecv++) {
     MPI_Irecv(&recvbuf[offset],num_recv[irecv]*nbytes,MPI_CHAR,
               proc_recv[irecv],0,world,&request[irecv]);
@@ -765,18 +768,22 @@ void Irregular::exchange_data(char *sendbuf, int nbytes, char *recvbuf)
   n = 0;
   for (int isend = 0; isend < nsend_proc; isend++) {
     count = num_send[isend];
+    dest = buf;
     for (i = 0; i < count; i++) {
       m = index_send[n++];
-      memcpy(&buf[i*nbytes],&sendbuf[m*nbytes],nbytes);
+      memcpy(dest,&sendbuf[m*nbytes],nbytes);
+      dest += nbytes;
     }
     MPI_Send(buf,count*nbytes,MPI_CHAR,proc_send[isend],0,world);
   }
 
   // copy datums to self, put at beginning of recvbuf
 
+  dest = recvbuf;
   for (i = 0; i < num_self; i++) {
     m = index_self[i];
-    memcpy(&recvbuf[i*nbytes],&sendbuf[m*nbytes],nbytes);
+    memcpy(dest,&sendbuf[m*nbytes],nbytes);
+    dest += nbytes;
   }
 
   // wait on all incoming messages

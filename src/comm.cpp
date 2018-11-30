@@ -28,6 +28,7 @@
 #include "dump.h"
 #include "group.h"
 #include "procmap.h"
+#include "irregular.h"
 #include "accelerator_kokkos.h"
 #include "memory.h"
 #include "error.h"
@@ -723,6 +724,56 @@ void Comm::ring(int n, int nper, void *inbuf, int messtag,
 
   memory->destroy(buf);
   memory->destroy(bufcopy);
+}
+
+/* ----------------------------------------------------------------------
+   rendezvous communication operation
+------------------------------------------------------------------------- */
+
+int Comm::rendezvous(int n, int *proclist, char *inbuf, int insize,
+                     int (*callback)(int, char *, int *&, char *&, void *),
+                     char *&outbuf, int outsize, void *ptr)
+{
+  // comm data from caller decomposition to rendezvous decomposition
+
+  Irregular *irregular = new Irregular(lmp);
+
+  int n_rvous = irregular->create_data(n,proclist);  // add sort
+  char *inbuf_rvous = (char *) memory->smalloc((bigint) n_rvous*insize,
+                                               "rendezvous:inbuf_rvous");
+  irregular->exchange_data(inbuf,insize,inbuf_rvous);
+
+  irregular->destroy_data();
+  delete irregular;
+
+  // peform rendezvous computation via callback()
+  // callback() allocates proclist_rvous and outbuf_rvous
+
+  int *proclist_rvous;
+  char *outbuf_rvous;
+
+  int nout_rvous = 
+    callback(n_rvous,inbuf_rvous,proclist_rvous,outbuf_rvous,ptr);
+
+  memory->sfree(inbuf_rvous);
+
+  // comm data from rendezvous decomposition back to caller
+  // caller will free outbuf
+
+  irregular = new Irregular(lmp);
+  
+  int nout = irregular->create_data(nout_rvous,proclist_rvous);
+  outbuf = (char *) memory->smalloc((bigint) nout*outsize,"rendezvous:outbuf");
+  irregular->exchange_data(outbuf_rvous,outsize,outbuf);
+  
+  irregular->destroy_data();
+  delete irregular;
+  memory->destroy(proclist_rvous);
+  memory->sfree(outbuf_rvous);
+
+  // return number of datums
+
+  return nout;
 }
 
 /* ----------------------------------------------------------------------

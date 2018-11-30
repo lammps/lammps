@@ -67,7 +67,7 @@ fix 1 all npt/cauchy temp 600.0 600.0 1.0 &
                      y 0.0 0.0 0.1 &
                      z 0.0 0.0 0.1 &
                      xy -10000.0 -10000.0 0.1 &
-                     couple none cauchystat 0.001 yes
+                     couple none alpha 0.001 continue no
 
 info fixes
 
@@ -78,6 +78,6 @@ fix 1 all npt/cauchy temp 600.0 600.0 1.0 &
                      y 0.0 0.0 0.1 &
                      z 0.0 0.0 0.1 &
                      xy -10000.0 -10000.0 0.1 &
-                     couple none
+                     couple none alpha 0.001 continue yes
 info fixes
 run 10000

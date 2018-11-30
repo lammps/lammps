@@ -155,7 +155,6 @@ class FixCauchy : public Fix {
   double alpha;         // integration parameter for the cauchystat
   int initPK;           // 1 if setPK needs to be initialized either
                         // from cauchy or restart, else 0
-  int usePK;            // 0 if use CauchyStat else 1
   int restartPK;        // Read PK stress from the previous run
   int restart_stored;   // values of PK stress from the previous step stored
   int initRUN;          // 0 if run not initialized

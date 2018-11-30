@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: 
+   Contributing authors:
 ------------------------------------------------------------------------- */
 
 #include <cstring>
@@ -70,7 +70,7 @@ FixCauchy::FixCauchy(LAMMPS *lmp, int narg, char **arg) :
 
   // for CauchyStat
 
-  usePK = 1;
+  alpha=0.001;
   initRUN = 0;
   restartPK = 0;
   restart_global = 1;
@@ -346,17 +346,15 @@ FixCauchy::FixCauchy(LAMMPS *lmp, int narg, char **arg) :
         dlm_flag = 1;
       } else error->all(FLERR,"Illegal fix nvt/npt/nph command");
       iarg += 2;
-    } else if (strcmp(arg[iarg],"cauchystat") == 0) {
-      usePK = 0;
-      if (iarg+3 > narg) error->all(FLERR,
-				    "Illegal fix npt cauchystat command:"
-				    " wrong number of arguments");
-      if (strcmp(arg[iarg+2],"yes") != 0 && strcmp(arg[iarg+2],"no") != 0)
+    } else if (strcmp(arg[iarg],"alpha") == 0) {
+      alpha = force->numeric(FLERR,arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"continue") == 0) {
+      if (strcmp(arg[iarg+1],"yes") != 0 && strcmp(arg[iarg+1],"no") != 0)
         error->all(FLERR,"Illegal cauchystat continue value.  "
                    "Must be 'yes' or 'no'");
-      alpha = force->numeric(FLERR,arg[iarg+1]);
-      restartPK = !strcmp(arg[iarg+2],"yes");
-      iarg += 3;
+      restartPK = !strcmp(arg[iarg+1],"yes");
+      iarg += 2;
     } else if (strcmp(arg[iarg],"fixedpoint") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       fixedpoint[0] = force->numeric(FLERR,arg[iarg+1]);
@@ -596,8 +594,7 @@ FixCauchy::FixCauchy(LAMMPS *lmp, int narg, char **arg) :
 
 void FixCauchy::post_constructor()
 {
-  if (!usePK) CauchyStat_init();
-  else CauchyStat_cleanup();
+  CauchyStat_init();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2258,7 +2255,7 @@ void FixCauchy::compute_press_target()
   // CauchyStat: call CauchyStat to modify p_target[i] and p_hydro,
   // if CauchyStat enabled and pressure->vector computation has been initiated
 
-  if ((usePK == 0) && (initRUN == 1)) CauchyStat();
+  if (initRUN == 1) CauchyStat();
   if (initRUN == 0) {
     for (int i=0; i < 6; i++) {
       h_old[i]=domain->h[i];
@@ -2499,27 +2496,6 @@ void FixCauchy::CauchyStat_init()
 
 #undef H0
 #undef invH0
-}
-
-/* ----------------------------------------------------------------------
-   cleanup when not using Cauchystat
-------------------------------------------------------------------------- */
-
-void FixCauchy::CauchyStat_cleanup()
-{
-  if (id_store) {
-    modify->delete_fix(id_store);
-    delete[] id_store;
-  } else {
-    int n = strlen(id) + 14;
-    id_store = new char[n];
-    strcpy(id_store,id);
-    strcat(id_store,"_FIX_NH_STORE");
-    modify->delete_fix(id_store);
-    delete[] id_store;
-  }
-  id_store = NULL;
-  restart_stored = -1;
 }
 
 /* ----------------------------------------------------------------------

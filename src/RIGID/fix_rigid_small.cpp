@@ -1571,9 +1571,9 @@ void FixRigidSmall::create_bodies(tagint *bodyID)
   }
 
   // perform rendezvous operation
-  // each proc owns random subset of bodies, receives all atoms in the bodies
-  // func = compute bbox of each body, flag atom closest to geometric center
-  // when done: each atom has atom ID of owning atom of its body
+  // each proc owns random subset of bodies
+  // receives all atoms in those bodies
+  // func = compute bbox of each body, find atom closest to geometric center
 
   char *buf;
   int nreturn = comm->rendezvous(ncount,proclist,(char *) inbuf,sizeof(InRvous),
@@ -1627,6 +1627,8 @@ int FixRigidSmall::rendezvous_body(int n, char *inbuf,
   MPI_Comm world = frsptr->world;
 
   // setup hash
+  // use STL map instead of atom->map
+  //   b/c know nothing about body ID values specified by user
   // ncount = number of bodies assigned to me
   // key = body ID
   // value = index into Ncount-length data structure

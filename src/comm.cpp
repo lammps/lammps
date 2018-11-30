@@ -728,13 +728,27 @@ void Comm::ring(int n, int nper, void *inbuf, int messtag,
 
 /* ----------------------------------------------------------------------
    rendezvous communication operation
+   three stages:
+     first Irregular converts inbuf from caller decomp to rvous decomp
+     callback operates on data in rendevous decomp
+     last Irregular converts outbuf from rvous decomp back to caller decomp
+   inputs:
+     n = # of input datums
+     proclist = proc that owns each input datum in rendezvous decomposition
+     inbuf = list of input datums
+     insize = size in bytes of each input datum
+     callback = caller function to invoke in rendezvous decomposition
+   outputs:
+     nout = # of output datums (function return)
+     outbuf = list of output datums
+     outsize = size in bytes of each output datum
 ------------------------------------------------------------------------- */
 
 int Comm::rendezvous(int n, int *proclist, char *inbuf, int insize,
                      int (*callback)(int, char *, int *&, char *&, void *),
                      char *&outbuf, int outsize, void *ptr)
 {
-  // comm data from caller decomposition to rendezvous decomposition
+  // comm inbuf from caller decomposition to rendezvous decomposition
 
   Irregular *irregular = new Irregular(lmp);
 
@@ -747,7 +761,7 @@ int Comm::rendezvous(int n, int *proclist, char *inbuf, int insize,
   delete irregular;
 
   // peform rendezvous computation via callback()
-  // callback() allocates proclist_rvous and outbuf_rvous
+  // callback() allocates/populates proclist_rvous and outbuf_rvous
 
   int *proclist_rvous;
   char *outbuf_rvous;
@@ -757,7 +771,7 @@ int Comm::rendezvous(int n, int *proclist, char *inbuf, int insize,
 
   memory->sfree(inbuf_rvous);
 
-  // comm data from rendezvous decomposition back to caller
+  // comm outbuf from rendezvous decomposition back to caller
   // caller will free outbuf
 
   irregular = new Irregular(lmp);

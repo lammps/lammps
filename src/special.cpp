@@ -108,9 +108,11 @@ void Special::build()
     memory->smalloc((bigint) ncount*sizeof(InRvous),"special:inbuf");
 
   // setup input buf to rendezvous comm
-  // one datum for each owned atom: datum = proc, atomID
-  // one datum for each bond partner: datum = atomID, bond partner ID
+  // input datums = pairs of bonded atoms
   // owning proc for each datum = random hash of atomID
+  // one datum for each owned atom: datum = owning proc, atomID
+  // one datum for each bond partner: datum = atomID, bond partner ID
+  //   add inverted datum when netwon_bond on
 
   m = 0;
   for (i = 0; i < nlocal; i++) {
@@ -140,7 +142,8 @@ void Special::build()
   }
 
   // perform rendezvous operation
-  // each proc owns random subset of atoms, receives all their bond partners
+  // each proc owns random subset of atoms
+  // receives all info to form and return their onetwo lists
 
   int nreturn = comm->rendezvous(ncount,proclist,(char *) inbuf,sizeof(InRvous),
                                  rendezvous_1234,
@@ -151,6 +154,7 @@ void Special::build()
   memory->sfree(inbuf);
 
   // set nspecial[0] and onetwo for all owned atoms based on output info
+  // output datums = pairs of atoms that are 1-2 neighbors
 
   MPI_Allreduce(&max_rvous,&maxall,1,MPI_INT,MPI_MAX,world);
   memory->create(onetwo,nlocal,maxall,"special:onetwo");
@@ -200,9 +204,10 @@ void Special::build()
     memory->smalloc((bigint) ncount*sizeof(InRvous),"special:inbuf");
 
   // setup input buf to rendezvous comm
-  // one datum for each owned atom: datum = proc, atomID
-  // one datum for each bond partner: datum = atomID, bond partner ID
+  // input datums = all pairs of onetwo atoms (they are 1-3 neighbors)
   // owning proc for each datum = random hash of atomID
+  // one datum for each owned atom: datum = owning proc, atomID
+  // one datum for each onetwo pair: datum = atomID1, atomID2
 
   m = 0;
   for (i = 0; i < nlocal; i++) {
@@ -226,7 +231,8 @@ void Special::build()
   }
 
   // perform rendezvous operation
-  // each proc owns random subset of atoms, receives all their bond partners
+  // each proc owns random subset of atoms
+  // receives all info to form and return their onethree lists
 
   nreturn = comm->rendezvous(ncount,proclist,(char *) inbuf,sizeof(InRvous),
                              rendezvous_1234,
@@ -237,6 +243,7 @@ void Special::build()
   memory->sfree(inbuf);
 
   // set nspecial[1] and onethree for all owned atoms based on output info
+  // output datums = pairs of atoms that are 1-3 neighbors
 
   MPI_Allreduce(&max_rvous,&maxall,1,MPI_INT,MPI_MAX,world);
   memory->create(onethree,nlocal,maxall,"special:onethree");
@@ -284,9 +291,10 @@ void Special::build()
     memory->smalloc((bigint) ncount*sizeof(InRvous),"special:inbuf");
 
   // setup input buf to rendezvous comm
-  // one datum for each owned atom: datum = proc, atomID
-  // one datum for each partner: datum = atomID, bond partner ID
+  // input datums = all pairs of onethree and onetwo atoms (they're 1-4 neighbors)
   // owning proc for each datum = random hash of atomID
+  // one datum for each owned atom: datum = owning proc, atomID
+  // one datum for each onethree/onetwo pair: datum = atomID1, atomID2
 
   m = 0;
   for (i = 0; i < nlocal; i++) {
@@ -309,9 +317,8 @@ void Special::build()
   }
 
   // perform rendezvous operation
-  // each proc owns random subset of bodies, receives all atoms in the bodies
-  // func = compute bbox of each body, flag atom closest to geometric center
-  // when done: each atom has atom ID of owning atom of its body
+  // each proc owns random subset of atoms
+  // receives all info to form and return their onefour lists
 
   nreturn = comm->rendezvous(ncount,proclist,(char *) inbuf,sizeof(InRvous),
                              rendezvous_1234,
@@ -322,6 +329,7 @@ void Special::build()
   memory->sfree(inbuf);
 
   // set nspecial[2] and onefour for all owned atoms based on output info
+  // output datums = pairs of atoms that are 1-4 neighbors
 
   MPI_Allreduce(&max_rvous,&maxall,1,MPI_INT,MPI_MAX,world);
   memory->create(onefour,nlocal,maxall,"special:onefour");
@@ -934,21 +942,28 @@ int Special::rendezvous_1234(int n, char *inbuf,
   int i,j,m;
 
   Special *sptr = (Special *) ptr;
+  Atom *atom = sptr->atom;
   Memory *memory = sptr->memory;
 
-  // setup hash
+  // clear atom map so it can be here as a hash table
+  // faster than an STL map for large atom counts
+
+  atom->map_clear();
+
+  // initialize hash
   // ncount = number of atoms assigned to me
   // key = atom ID
   // value = index into Ncount-length data structure
 
   InRvous *in = (InRvous *) inbuf;
-  std::map<tagint,int> hash;
+  //std::map<tagint,int> hash;
   tagint id;
   
   int ncount = 0;
   for (i = 0; i < n; i++)
     if (in[i].me >= 0)
-      hash[in[i].atomID] = ncount++;
+      //hash[in[i].atomID] = ncount++;
+      atom->map_one(in[i].atomID,ncount++);
 
   // procowner = caller proc that owns each atom
   // atomID = ID of each rendezvous atom I own
@@ -961,7 +976,8 @@ int Special::rendezvous_1234(int n, char *inbuf,
   for (m = 0; m < ncount; m++) npartner[m] = 0;
 
   for (i = 0; i < n; i++) { 
-    m = hash.find(in[i].atomID)->second;
+    //m = hash.find(in[i].atomID)->second;
+    m = atom->map(in[i].atomID);
     if (in[i].me >= 0) {
       procowner[m] = in[i].me;
       atomID[m] = in[i].atomID;
@@ -979,7 +995,8 @@ int Special::rendezvous_1234(int n, char *inbuf,
 
   for (i = 0; i < n; i++) {
     if (in[i].me >= 0) continue;
-    m = hash.find(in[i].atomID)->second;
+    //m = hash.find(in[i].atomID)->second;
+    m = atom->map(in[i].atomID);
     partner[m][npartner[m]++] = in[i].partnerID;
   }
 
@@ -1011,6 +1028,12 @@ int Special::rendezvous_1234(int n, char *inbuf,
   memory->destroy(npartner);
   memory->destroy(partner);
 
+  // re-create atom map
+
+  atom->map_init(0);
+  atom->nghost = 0;
+  atom->map_set();
+
   return nout;
 }
 
@@ -1027,21 +1050,28 @@ int Special::rendezvous_trim(int n, char *inbuf,
   int i,j,m;
 
   Special *sptr = (Special *) ptr;
+  Atom *atom = sptr->atom;
   Memory *memory = sptr->memory;
 
-  // setup hash
+  // clear atom map so it can be here as a hash table
+  // faster than an STL map for large atom counts
+
+  atom->map_clear();
+
+  // initialize hash
   // ncount = number of atoms assigned to me
   // key = atom ID
   // value = index into Ncount-length data structure
 
   InRvous *in = (InRvous *) inbuf;
-  std::map<tagint,int> hash;
+  //std::map<tagint,int> hash;
   tagint id;
   
   int ncount = 0;
   for (i = 0; i < n; i++)
     if (in[i].me >= 0)
-      hash[in[i].atomID] = ncount++;
+      //hash[in[i].atomID] = ncount++;
+      atom->map_one(in[i].atomID,ncount++);
 
   // procowner = caller proc that owns each atom
   // atomID = ID of each rendezvous atom I own
@@ -1055,7 +1085,8 @@ int Special::rendezvous_trim(int n, char *inbuf,
   for (m = 0; m < ncount; m++) npartner[m] = 0;
 
   for (i = 0; i < n; i++) { 
-    m = hash.find(in[i].atomID)->second;
+    //m = hash.find(in[i].atomID)->second;
+    m = atom->map(in[i].atomID);
     if (in[i].me >= 0) {
       procowner[m] = in[i].me;
       atomID[m] = in[i].atomID;
@@ -1073,7 +1104,8 @@ int Special::rendezvous_trim(int n, char *inbuf,
 
   for (i = 0; i < n; i++) {
     if (in[i].me >= 0 || in[i].me == -2) continue;
-    m = hash.find(in[i].atomID)->second;
+    //m = hash.find(in[i].atomID)->second;
+    m = atom->map(in[i].atomID);
     partner[m][npartner[m]++] = in[i].partnerID;
   }
 
@@ -1090,7 +1122,8 @@ int Special::rendezvous_trim(int n, char *inbuf,
   for (i = 0; i < n; i++) {
     if (in[i].me != -2) continue;
     actual = in[i].partnerID;
-    m = hash.find(in[i].atomID)->second;
+    //m = hash.find(in[i].atomID)->second;
+    m = atom->map(in[i].atomID);
     for (j = 0; j < npartner[m]; j++)
       if (partner[m][j] == actual) {
         flag[m][j] = 1;
@@ -1128,6 +1161,12 @@ int Special::rendezvous_trim(int n, char *inbuf,
   memory->destroy(partner);
   memory->destroy(flag);
 
+  // re-create atom map
+
+  atom->map_init(0);
+  atom->nghost = 0;
+  atom->map_set();
+
   return nout;
 }
 
@@ -1150,9 +1189,9 @@ void Special::fix_alteration()
 
 void Special::timer_output(double time1)
 {
-  double t2 = MPI_Wtime();
+  double time2 = MPI_Wtime();
   if (comm->me == 0) {
-    if (screen) fprintf(screen,"  special bonds CPU = %g secs\n",t2-t1);
-    if (logfile) fprintf(logfile,"  special bonds CPU = %g secs\n",t2-t1);
+    if (screen) fprintf(screen,"  special bonds CPU = %g secs\n",time2-time1);
+    if (logfile) fprintf(logfile,"  special bonds CPU = %g secs\n",time2-time1);
   }
 }

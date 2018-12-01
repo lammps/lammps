@@ -275,12 +275,14 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   memory->create(edge,max_natoms,nreacts,"bond/react:edge");
   memory->create(landlocked_atoms,max_natoms,nreacts,"bond/react:landlocked_atoms");
   memory->create(custom_edges,max_natoms,nreacts,"bond/react:custom_edges");
+  memory->create(delete_atoms,max_natoms,nreacts,"bond/react:delete_atoms");
 
   for (int j = 0; j < nreacts; j++)
     for (int i = 0; i < max_natoms; i++) {
       edge[i][j] = 0;
       if (update_edges_flag[j] == 1) custom_edges[i][j] = 1;
       else custom_edges[i][j] = 0;
+      delete_atoms[i][j] = 0;
     }
 
   // read all map files afterward
@@ -393,6 +395,7 @@ FixBondReact::~FixBondReact()
   memory->destroy(equivalences);
   memory->destroy(reverse_equiv);
   memory->destroy(custom_edges);
+  memory->destroy(delete_atoms);
 
   memory->destroy(nevery);
   memory->destroy(cutsq);
@@ -2053,6 +2056,13 @@ void FixBondReact::update_everything()
   tagint **bond_atom = atom->bond_atom;
   int *num_bond = atom->num_bond;
 
+  // used when deleting atoms
+  int ndel,ndelone;
+  int *mark = new int[nlocal];
+  for (int i = 0; i < nlocal; i++) mark[i] = 0;
+  tagint *tag = atom->tag;
+  AtomVec *avec = atom->avec;
+
   // update atom->nbonds, etc.
   // TODO: correctly tally with 'newton off'
   int delta_bonds = 0;
@@ -2083,6 +2093,18 @@ void FixBondReact::update_everything()
       for (int i = 0; i < global_megasize; i++) {
         for (int j = 0; j < max_natoms+1; j++)
           update_mega_glove[j][i] = global_mega_glove[j][i];
+      }
+    }
+
+    // mark to-delete atoms
+    for (int i = 0; i < update_num_mega; i++) {
+      rxnID = update_mega_glove[0][i];
+      onemol = atom->molecules[unreacted_mol[rxnID]];
+      for (int j = 0; j < onemol->natoms; j++) {
+        int iatom = atom->map(update_mega_glove[j+1][i]);
+        if (delete_atoms[j][rxnID] == 1 && iatom >= 0 && iatom < nlocal) {
+          mark[iatom] = 1;
+        }
       }
     }
 
@@ -2486,6 +2508,59 @@ void FixBondReact::update_everything()
 
   memory->destroy(update_mega_glove);
 
+  // delete atoms. taken from fix_evaporate. but don't think it needs to be in pre_exchange
+  // loop in reverse order to avoid copying marked atoms
+  ndel = ndelone = 0;
+  for (int i = atom->nlocal-1; i >= 0; i--) {
+    if (mark[i] == 1) {
+      avec->copy(atom->nlocal-1,i,1);
+      atom->nlocal--;
+      ndelone++;
+
+      if (atom->avec->bonds_allow) {
+        if (force->newton_bond) delta_bonds += atom->num_bond[i];
+        else {
+          for (int j = 0; j < atom->num_bond[i]; j++) {
+            if (tag[i] < atom->bond_atom[i][j]) delta_bonds++;
+          }
+        }
+      }
+      if (atom->avec->angles_allow) {
+        if (force->newton_bond) delta_angle += atom->num_angle[i];
+        else {
+          for (int j = 0; j < atom->num_angle[i]; j++) {
+            int m = atom->map(atom->angle_atom2[i][j]);
+            if (m >= 0 && m < nlocal) delta_angle++;
+          }
+        }
+      }
+      if (atom->avec->dihedrals_allow) {
+        if (force->newton_bond) delta_dihed += atom->num_dihedral[i];
+        else {
+          for (int j = 0; j < atom->num_dihedral[i]; j++) {
+            int m = atom->map(atom->dihedral_atom2[i][j]);
+            if (m >= 0 && m < nlocal) delta_dihed++;
+          }
+        }
+      }
+      if (atom->avec->impropers_allow) {
+        if (force->newton_bond) delta_imprp += atom->num_improper[i];
+        else {
+          for (int j = 0; j < atom->num_improper[i]; j++) {
+            int m = atom->map(atom->improper_atom2[i][j]);
+            if (m >= 0 && m < nlocal) delta_imprp;
+          }
+        }
+      }
+    }
+  }
+  delete [] mark;
+
+  MPI_Allreduce(&ndelone,&ndel,1,MPI_INT,MPI_SUM,world);
+
+  atom->natoms -= ndel;
+  // done deleting atoms
+
   // something to think about: this could done much more concisely if
   // all atom-level info (bond,angles, etc...) were kinda inherited from a common data struct --JG
 
@@ -2536,6 +2611,7 @@ void FixBondReact::read(int myrxn)
     if (strstr(line,"edgeIDs")) sscanf(line,"%d",&nedge);
     else if (strstr(line,"equivalences")) sscanf(line,"%d",&nequivalent);
     else if (strstr(line,"customIDs")) sscanf(line,"%d",&ncustom);
+    else if (strstr(line,"deleteIDs")) sscanf(line,"%d",&ndelete);
     else break;
   }
 
@@ -2565,6 +2641,8 @@ void FixBondReact::read(int myrxn)
     } else if (strcmp(keyword,"Custom Edges") == 0) {
       customedgesflag = 1;
       CustomEdges(line, myrxn);
+    } else if (strcmp(keyword,"DeleteIDs") == 0) {
+      DeleteAtoms(line, myrxn);
     } else error->one(FLERR,"Unknown section in superimpose file");
 
     parse_keyword(1,line,keyword);
@@ -2628,6 +2706,16 @@ void FixBondReact::CustomEdges(char *line, int myrxn)
       error->one(FLERR,"Illegal value in 'Custom Edges' section of map file");
   }
   delete [] edgemode;
+}
+
+void FixBondReact::DeleteAtoms(char *line, int myrxn)
+{
+  int tmp;
+  for (int i = 0; i < ndelete; i++) {
+    readline(line);
+    sscanf(line,"%d",&tmp);
+    delete_atoms[tmp-1][myrxn] = 1;
+  }
 }
 
 void FixBondReact::open(char *file)

@@ -195,6 +195,7 @@ cmake -C ../cmake/presets/std_nolib.cmake -D PKG_GPU=on ../cmake
   <td><code>CMAKE_INSTALL_PREFIX</code></td>
   <td>Install location where LAMMPS files will be copied to. In the Unix/Linux case with Makefiles this controls what `make install` will do.</td>
   <td>
+   Default setting is <code>$HOME/.local</code>.
   </td>
 </tr>
 <tr>

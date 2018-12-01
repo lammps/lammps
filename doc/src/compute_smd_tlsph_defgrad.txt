@@ -30,7 +30,7 @@ Mach Dynamics in LAMMPS.
 
 [Output info:]
 
-This compute outputss a per-particle vector of vectors (tensors),
+This compute outputs a per-particle vector of vectors (tensors),
 which can be accessed by any command that uses per-particle values
 from a compute as input. See the "Howto output"_Howto_output.html doc
 page for an overview of LAMMPS output options.

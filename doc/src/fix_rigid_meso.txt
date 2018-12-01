@@ -128,7 +128,7 @@ of particles that form rigid bodies.  An integer vector defined by the
 "fix property/atom"_fix_property_atom.html command can be used.  Or an
 "atom-style or atomfile-style variable"_variable.html can be used; the
 floating-point value produced by the variable is rounded to an
-integer.  As with bondstyle {molecule}, each set of particles in the fix
+integer.  As with bodystyle {molecule}, each set of particles in the fix
 groups with the same integer value is treated as a different rigid
 body.  Since fix property/atom vectors and atom-style variables
 produce values for all particles, you should be careful to use a fix group
@@ -345,5 +345,5 @@ torque. Also reinit = yes.
 :line
 
 :link(Miller)
-[(Miller)] Miller, Eleftheriou, Pattnaik, Ndirango, and Newns, 
+[(Miller)] Miller, Eleftheriou, Pattnaik, Ndirango, and Newns,
 J Chem Phys, 116, 8649 (2002).

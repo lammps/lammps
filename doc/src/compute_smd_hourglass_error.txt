@@ -29,7 +29,7 @@ within the neighborhood of the central node and the deformation
 gradient, the approximated relative separation will coincide with the
 actual relative separation of the particles i and j in the deformed
 configuration.  This compute is only really useful for debugging the
-hourglass control mechanim which is part of the Total-Lagrangian SPH
+hourglass control mechanism which is part of the Total-Lagrangian SPH
 pair style.
 
 See "this PDF guide"_PDF/SMD_LAMMPS_userguide.pdf to use Smooth

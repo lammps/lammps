@@ -155,7 +155,7 @@ enabled if LAMMPS was built with that package.  See the "Build
 package"_Build_package.html doc page for more info.
 
 Pair styles {dpd/fdt} and {dpd/fdt/energy} require use of the
-"comm_modify vel yes"_comm_modify.html option so that velocites are
+"comm_modify vel yes"_comm_modify.html option so that velocities are
 stored by ghost atoms.
 
 Pair style {dpd/fdt/energy} requires "atom_style dpd"_atom_style.html

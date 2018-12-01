@@ -74,7 +74,7 @@ materials, or computing vapor-liquid coexistence curves.
 Every N timesteps the fix attempts both GCMC exchanges
 (insertions or deletions) and MC moves of gas atoms or molecules.
 On those timesteps, the average number of attempted GCMC exchanges is X,
-while the average number of attempted MC moves is M. 
+while the average number of attempted MC moves is M.
 For GCMC exchanges of either molecular or atomic gasses,
 these exchanges can be either deletions or insertions,
 with equal probability.
@@ -203,7 +203,7 @@ atom translations, molecule translations, and molecule rotations,
 respectively. The values must be non-negative integers or real
 numbers, with at least one non-zero value. For example, (10,30,0)
 would result in 25% of the MC moves being atomic translations, 75%
-molecular translations, and no molecular rotations. 
+molecular translations, and no molecular rotations.
 
 Optionally, users may specify the maximum rotation angle for molecular
 rotations using the {maxangle} keyword and specifying the angle in

@@ -63,7 +63,7 @@ instructions on how to use the accelerated styles effectively.
 [Restrictions:]
 
 This angle style can only be used if LAMMPS was built with the
-USER-MISC package.  
+USER-MISC package.
 
 [Related commands:]
 

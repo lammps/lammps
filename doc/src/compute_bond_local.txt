@@ -68,7 +68,7 @@ in the bond, which is simply 1/2 m1 v1^2 + 1/2 m2 v2^2, where v1 and
 v2 are the magnitude of the velocity of the 2 atoms along the bond
 direction, after the COM velocity has been subtracted from each.
 
-The value {engrot} is the rotationsl kinetic energy of the two atoms
+The value {engrot} is the rotational kinetic energy of the two atoms
 in the bond, which is simply 1/2 m1 v1^2 + 1/2 m2 v2^2, where v1 and
 v2 are the magnitude of the velocity of the 2 atoms perpendicular to
 the bond direction, after the COM velocity has been subtracted from

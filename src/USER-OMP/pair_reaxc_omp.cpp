@@ -582,7 +582,7 @@ int PairReaxCOMP::write_reax_lists()
 
 /* ---------------------------------------------------------------------- */
 
-void PairReaxCOMP::read_reax_forces(int vflag)
+void PairReaxCOMP::read_reax_forces(int /* vflag */)
 {
 #if defined(_OPENMP)
 #pragma omp parallel for schedule(static) default(shared)

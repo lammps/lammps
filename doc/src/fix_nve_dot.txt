@@ -36,7 +36,7 @@ The command is equivalent to the "fix nve"_fix_nve.html.
 The particles are always considered to have a finite size.
 
 An example input file can be found in /examples/USER/cgdna/examples/duplex1/.
-Further details of the implementation and stability of the integrator are contained in "(Henrich)"_#Henrich3. 
+Further details of the implementation and stability of the integrator are contained in "(Henrich)"_#Henrich3.
 The preprint version of the article can be found "here"_PDF/USER-CGDNA.pdf.
 
 :line

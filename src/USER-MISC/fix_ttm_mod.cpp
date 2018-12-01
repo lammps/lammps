@@ -325,7 +325,7 @@ void FixTTMMod::init()
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot use fix ttm/mod with 2d simulation");
   if (domain->nonperiodic != 0)
-    error->all(FLERR,"Cannot use nonperiodic boundares with fix ttm/mod");
+    error->all(FLERR,"Cannot use non-periodic boundares with fix ttm/mod");
   if (domain->triclinic)
     error->all(FLERR,"Cannot use fix ttm/mod with triclinic box");
   // set force prefactors

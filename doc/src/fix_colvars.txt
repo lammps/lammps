@@ -81,7 +81,7 @@ the image flags to reconstruct the absolute atom positions.
 Setting this to {no} will use the current local coordinates that are
 wrapped back into the simulation cell at each re-neighboring instead.
 
-The {tstat} keyword can be either NULL or the label of a thermostating
+The {tstat} keyword can be either NULL or the label of a thermostatting
 fix that thermostats all atoms in the fix colvars group. This will be
 used to provide the colvars module with the current thermostat target
 temperature.

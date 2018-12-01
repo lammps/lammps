@@ -57,7 +57,7 @@ correctly with time=0 atom coordinates from the restart file.
 
 :line
 
-The {refresh} option can be used in conjuction with the "dump_modify
+The {refresh} option can be used in conjunction with the "dump_modify
 refresh" command to generate incremental dump files.
 
 The definition and motivation of an incremental dump file is as

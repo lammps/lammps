@@ -118,7 +118,7 @@ pair_coeff 3 3 3 nu10 :pre
 By default the nu value for all triplets is set to 0.0.  Thus it is
 not required to provide pair_coeff commands that enumerate triplet
 interactions for all K types.  If some I,J,K combination is not
-speficied, then there will be no 3-body ATM interactions for that
+specified, then there will be no 3-body ATM interactions for that
 combination and all its permutations.  However, as with all pair
 styles, it is required to specify a pair_coeff command for all I,J
 combinations, else an error will result.

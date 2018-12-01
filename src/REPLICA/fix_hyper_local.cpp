@@ -44,9 +44,9 @@ enum{IGNORE,WARN,ERROR};
 /* ---------------------------------------------------------------------- */
 
 FixHyperLocal::FixHyperLocal(LAMMPS *lmp, int narg, char **arg) :
-  FixHyper(lmp, narg, arg), old2now(NULL), xold(NULL), tagold(NULL), 
-  bonds(NULL), numbond(NULL), maxstrain(NULL), maxstrain_region(NULL), 
-  maxstrain_bondindex(NULL), biasflag(NULL), boost(NULL), 
+  FixHyper(lmp, narg, arg), old2now(NULL), xold(NULL), tagold(NULL),
+  bonds(NULL), numbond(NULL), maxstrain(NULL), maxstrain_region(NULL),
+  maxstrain_bondindex(NULL), biasflag(NULL), boost(NULL),
   histo(NULL), allhisto(NULL)
 {
   // error checks
@@ -1274,16 +1274,18 @@ double FixHyperLocal::compute_vector(int i)
   if (i == 3) return 1.0*allbonds/atom->natoms;
 
   if (i == 4) {
-    int nlocal = atom->nlocal;
-    int nbonds = 0;   // BIGINT?
+    const int nlocal = atom->nlocal;
+    bigint nbonds = 0;
     for (int j = 0; j < nlocal; j++)
       nbonds += numbond[j];
-    int allbonds;
-    MPI_Allreduce(&nbonds,&allbonds,1,MPI_INT,MPI_SUM,world);
-    int allneigh;   // BIGINT?
-    MPI_Allreduce(&list->ipage->ndatum,&allneigh,1,MPI_INT,MPI_SUM,world);
-    double neighsperatom = allneigh/atom->natoms; 
-    double bondsperatom = 0.5*allbonds/atom->natoms;
+    bigint allbonds;
+    MPI_Allreduce(&nbonds,&allbonds,1,MPI_LMP_BIGINT,MPI_SUM,world);
+    bigint allneigh,thisneigh;
+    thisneigh = list->ipage->ndatum;
+    MPI_Allreduce(&thisneigh,&allneigh,1,MPI_LMP_BIGINT,MPI_SUM,world);
+    const double natoms = atom->natoms;
+    const double neighsperatom = static_cast<double>(allneigh)/natoms;
+    const double bondsperatom = 0.5*static_cast<double>(allbonds)/natoms;
     return neighsperatom * bondsperatom;
   }
 

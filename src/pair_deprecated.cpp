@@ -52,6 +52,6 @@ void PairDeprecated::settings(int, char **)
     writemsg(lmp,"\nPair style 'DEPRECATED' is a dummy style\n\n",0);
 
   }
-}  
+}
 
 

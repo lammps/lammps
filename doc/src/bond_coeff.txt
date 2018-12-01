@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -56,26 +56,13 @@ corresponds to the 1st example above would be listed as
 
 :line
 
-Here is an alphabetic list of bond styles defined in LAMMPS.  Click on
-the style to display the formula it computes and coefficients
-specified by the associated "bond_coeff"_bond_coeff.html command.
+The list of all bond styles defined in LAMMPS is given on the
+"bond_style"_bond_style.html doc page.  They are also listed in more
+compact form on the "Commands bond"_Commands_bond.html doc page.
 
-Note that here are also additional bond styles submitted by users
-which are included in the LAMMPS distribution.  The list of these with
-links to the individual styles are given in the bond section of "this
-page"_Section_commands.html#cmd_5.
-
-"bond_style none"_bond_none.html - turn off bonded interactions
-"bond_style hybrid"_bond_hybrid.html - define multiple styles of bond interactions :ul
-
-"bond_style class2"_bond_class2.html - COMPASS (class 2) bond
-"bond_style fene"_bond_fene.html - FENE (finite-extensible non-linear elastic) bond
-"bond_style fene/expand"_bond_fene_expand.html - FENE bonds with variable size particles
-"bond_style harmonic"_bond_harmonic.html - harmonic bond
-"bond_style morse"_bond_morse.html - Morse bond
-"bond_style nonlinear"_bond_nonlinear.html - nonlinear bond
-"bond_style quartic"_bond_quartic.html - breakable quartic bond
-"bond_style table"_bond_table.html - tabulated by bond length :ul
+On either of those pages, click on the style to display the formula it
+computes and its coefficients as specified by the associated
+bond_coeff command.
 
 :line
 

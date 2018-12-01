@@ -171,8 +171,12 @@ protected:
   // Options for extended_lagrangian
   /// Restraint center
   colvarvalue xr;
+  /// Previous value of the restraint center;
+  colvarvalue prev_xr;
   /// Velocity of the restraint center
   colvarvalue vr;
+  /// Previous velocity of the restraint center
+  colvarvalue prev_vr;
   /// Mass of the restraint center
   cvm::real ext_mass;
   /// Restraint force constant
@@ -287,6 +291,9 @@ public:
   /// \brief Calculate the colvar's value and related quantities
   int calc();
 
+  /// Carry out operations needed before next step is run
+  int end_of_step();
+
   /// \brief Calculate a subset of the colvar components (CVCs) currently active
   /// (default: all active CVCs)
   /// Note: both arguments refer to the sect of *active* CVCs, not all CVCs
@@ -352,6 +359,9 @@ public:
   /// \brief Updates the flags in the CVC objects, and their number
   int update_cvc_flags();
 
+  /// \brief Modify the configuration of CVCs (currently, only base class data)
+  int update_cvc_config(std::vector<std::string> const &confs);
+
 protected:
   /// \brief Number of CVC objects with an active flag
   size_t n_active_cvcs;
@@ -359,10 +369,17 @@ protected:
   /// Sum of square coefficients for active cvcs
   cvm::real active_cvc_square_norm;
 
+  /// Update the sum of square coefficients for active cvcs
+  void update_active_cvc_square_norm();
+
   /// \brief Absolute timestep number when this colvar was last updated
   int prev_timestep;
 
 public:
+
+  /// \brief Return the number of CVC objects defined
+  inline size_t num_cvcs() const { return cvcs.size(); }
+
   /// \brief Return the number of CVC objects with an active flag (as set by update_cvc_flags)
   inline size_t num_active_cvcs() const { return n_active_cvcs; }
 
@@ -371,21 +388,21 @@ public:
   ///
   /// Handles correctly symmetries and periodic boundary conditions
   cvm::real dist2(colvarvalue const &x1,
-                   colvarvalue const &x2) const;
+                  colvarvalue const &x2) const;
 
   /// \brief Use the internal metrics (as from \link cvc
   /// \endlink objects) to calculate square distances and gradients
   ///
   /// Handles correctly symmetries and periodic boundary conditions
   colvarvalue dist2_lgrad(colvarvalue const &x1,
-                           colvarvalue const &x2) const;
+                          colvarvalue const &x2) const;
 
   /// \brief Use the internal metrics (as from \link cvc
   /// \endlink objects) to calculate square distances and gradients
   ///
   /// Handles correctly symmetries and periodic boundary conditions
   colvarvalue dist2_rgrad(colvarvalue const &x1,
-                           colvarvalue const &x2) const;
+                          colvarvalue const &x2) const;
 
   /// \brief Use the internal metrics (as from \link cvc
   /// \endlink objects) to wrap a value into a standard interval
@@ -396,8 +413,9 @@ public:
 
   /// Read the analysis tasks
   int parse_analysis(std::string const &conf);
+
   /// Perform analysis tasks
-  void analyze();
+  int analyze();
 
 
   /// Read the value from a collective variable trajectory file
@@ -475,23 +493,23 @@ protected:
   acf_type_e             acf_type;
 
   /// \brief Velocity ACF, scalar product between v(0) and v(t)
-  int calc_vel_acf(std::list<colvarvalue> &v_history,
-                     colvarvalue const      &v);
+  void calc_vel_acf(std::list<colvarvalue> &v_history,
+                    colvarvalue const      &v);
 
   /// \brief Coordinate ACF, scalar product between x(0) and x(t)
   /// (does not work with scalar numbers)
   void calc_coor_acf(std::list<colvarvalue> &x_history,
-                      colvarvalue const      &x);
+                     colvarvalue const      &x);
 
   /// \brief Coordinate ACF, second order Legendre polynomial between
   /// x(0) and x(t) (does not work with scalar numbers)
   void calc_p2coor_acf(std::list<colvarvalue> &x_history,
-                        colvarvalue const      &x);
+                       colvarvalue const      &x);
 
   /// Calculate the auto-correlation function (ACF)
   int calc_acf();
   /// Save the ACF to a file
-  void write_acf(std::ostream &os);
+  int write_acf(std::ostream &os);
 
   /// Length of running average series
   size_t         runave_length;
@@ -507,7 +525,7 @@ protected:
   cvm::real      runave_variance;
 
   /// Calculate the running average and its standard deviation
-  void calc_runave();
+  int calc_runave();
 
   /// If extended Lagrangian active: colvar energies (kinetic and harmonic potential)
   cvm::real kinetic_energy;

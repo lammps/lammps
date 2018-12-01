@@ -111,7 +111,7 @@ void FixQEqShielded::init_shielding()
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqShielded::pre_force(int vflag)
+void FixQEqShielded::pre_force(int /*vflag*/)
 {
   if (update->ntimestep % nevery) return;
 

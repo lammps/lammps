@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -77,7 +77,7 @@ normalized. But since it represents the {absolute} displacement of
 group-ID2 relative to the fix group, (1,1,0) is a different spring
 than (-1,-1,0).  For each vector component, the displacement can be
 described with the {auto} parameter. In this case the direction is
-recomputed in every step, which can be useful for steering a local
+re-computed in every step, which can be useful for steering a local
 process where the whole object undergoes some other change.  When the
 relative positions and distance between the two groups are not in
 equilibrium, the same spring force described above is applied to atoms
@@ -111,12 +111,12 @@ this fix. This allows to set at which level of the "r-RESPA"_run_style.html
 integrator the fix is adding its forces. Default is the outermost level.
 
 This fix computes a vector list of 7 quantities, which can be accessed
-by various "output commands"_Section_howto.html#howto_15.  The
-quantities in the vector are in this order: the x-, y-, and
-z-component of the pulling force, the total force in direction of the
-pull, the equilibrium distance of the spring, the distance between the
-two reference points, and finally the accumulated PMF (the sum of
-pulling forces times displacement).
+by various "output commands"_Howto_output.html.  The quantities in the
+vector are in this order: the x-, y-, and z-component of the pulling
+force, the total force in direction of the pull, the equilibrium
+distance of the spring, the distance between the two reference points,
+and finally the accumulated PMF (the sum of pulling forces times
+displacement).
 
 The force is the total force on the group of atoms by the spring.  In
 the case of the {couple} style, it is the force on the fix group
@@ -130,14 +130,15 @@ minimization"_minimize.html.
 [Restrictions:]
 
 This fix is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 
 "fix drag"_fix_drag.html, "fix spring"_fix_spring.html,
 "fix spring/self"_fix_spring_self.html,
-"fix spring/rg"_fix_spring_rg.html
+"fix spring/rg"_fix_spring_rg.html,
+"fix colvars"_fix_colvars.html, "fix plumed"_fix_plumed.html
 
 [Default:] none
 

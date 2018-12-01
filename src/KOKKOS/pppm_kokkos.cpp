@@ -64,10 +64,8 @@ enum{FORWARD_IK,FORWARD_IK_PERATOM};
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-PPPMKokkos<DeviceType>::PPPMKokkos(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp, narg, arg)
+PPPMKokkos<DeviceType>::PPPMKokkos(LAMMPS *lmp) : PPPM(lmp)
 {
-  if (narg < 1) error->all(FLERR,"Illegal kspace_style pppm command");
-
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | Q_MASK;
@@ -76,8 +74,6 @@ PPPMKokkos<DeviceType>::PPPMKokkos(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp
   pppmflag = 1;
   group_group_enable = 0;
   triclinic_support = 0;
-
-  accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
 
   nfactors = 3;
   //factors = new int[nfactors];
@@ -148,6 +144,13 @@ PPPMKokkos<DeviceType>::PPPMKokkos(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp
   k_flag = DAT::tdual_int_scalar("PPPM:flag");
 }
 
+template<class DeviceType>
+void PPPMKokkos<DeviceType>::settings(int narg, char **arg)
+{
+  if (narg < 1) error->all(FLERR,"Illegal kspace_style pppm/kk command");
+  accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
+}
+
 /* ----------------------------------------------------------------------
    free all memory
 ------------------------------------------------------------------------- */
@@ -199,7 +202,7 @@ void PPPMKokkos<DeviceType>::init()
   if (!atomKK->q_flag) error->all(FLERR,"Kspace style requires atomKK attribute q");
 
   if (slabflag == 0 && domain->nonperiodic > 0)
-    error->all(FLERR,"Cannot use nonperiodic boundaries with PPPM");
+    error->all(FLERR,"Cannot use non-periodic boundaries with PPPM");
   if (slabflag) {
     if (domain->xperiodic != 1 || domain->yperiodic != 1 ||
         domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
@@ -368,7 +371,7 @@ void PPPMKokkos<DeviceType>::setup()
   // perform some checks to avoid illegal boundaries with read_data
 
   if (slabflag == 0 && domain->nonperiodic > 0)
-    error->all(FLERR,"Cannot use nonperiodic boundaries with PPPM");
+    error->all(FLERR,"Cannot use non-periodic boundaries with PPPM");
   if (slabflag) {
     if (domain->xperiodic != 1 || domain->yperiodic != 1 ||
         domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)

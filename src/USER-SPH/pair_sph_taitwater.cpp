@@ -29,7 +29,7 @@ using namespace LAMMPS_NS;
 PairSPHTaitwater::PairSPHTaitwater(LAMMPS *lmp) : Pair(lmp)
 {
   restartinfo = 0;
-
+  single_enable = 0;
   first = 1;
 }
 
@@ -225,10 +225,10 @@ void PairSPHTaitwater::allocate() {
  global settings
  ------------------------------------------------------------------------- */
 
-void PairSPHTaitwater::settings(int narg, char **arg) {
+void PairSPHTaitwater::settings(int narg, char **/*arg*/) {
   if (narg != 0)
     error->all(FLERR,
-        "Illegal number of setting arguments for pair_style sph/taitwater");
+        "Illegal number of arguments for pair_style sph/taitwater");
 }
 
 /* ----------------------------------------------------------------------
@@ -282,7 +282,7 @@ void PairSPHTaitwater::coeff(int narg, char **arg) {
 double PairSPHTaitwater::init_one(int i, int j) {
 
   if (setflag[i][j] == 0) {
-    error->all(FLERR,"Not all pair sph/taitwater coeffs are set");
+    error->all(FLERR,"All pair sph/taitwater coeffs are set");
   }
 
   cut[j][i] = cut[i][j];
@@ -291,11 +291,3 @@ double PairSPHTaitwater::init_one(int i, int j) {
   return cut[i][j];
 }
 
-/* ---------------------------------------------------------------------- */
-
-double PairSPHTaitwater::single(int i, int j, int itype, int jtype,
-    double rsq, double factor_coul, double factor_lj, double &fforce) {
-  fforce = 0.0;
-
-  return 0.0;
-}

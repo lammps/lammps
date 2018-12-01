@@ -9,7 +9,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -34,8 +34,8 @@ Transform the coordinates of Drude oscillators from real to reduced
 and back for thermalizing the Drude oscillators as described in
 "(Lamoureux)"_#Lamoureux1 using a Nose-Hoover thermostat.  This fix is
 designed to be used with the "thermalized Drude oscillator
-model"_tutorial_drude.html.  Polarizable models in LAMMPS are
-described in "this Section"_Section_howto.html#howto_25.
+model"_Howto_drude.html.  Polarizable models in LAMMPS are described
+on the "Howto polarizable"_Howto_polarizable.html doc page.
 
 Drude oscillators are a pair of atoms representing a single
 polarizable atom.  Ideally, the mass of Drude particles would vanish
@@ -91,8 +91,8 @@ different temperatures, two Nose-Hoover thermostats must be defined,
 acting on two distinct groups.
 
 NOTE: The {fix drude/transform/direct} command must appear before any
-Nose-Hoover thermostating fixes.  The {fix drude/transform/inverse}
-command must appear after any Nose-Hoover thermostating fixes.
+Nose-Hoover thermostatting fixes.  The {fix drude/transform/inverse}
+command must appear after any Nose-Hoover thermostatting fixes.
 
 Example:
 
@@ -106,8 +106,8 @@ thermo_style custom step cpu etotal ke pe ebond ecoul elong press vol temp c_TDR
 
 In this example, {gCORES} is the group of the atom cores and {gDRUDES}
 is the group of the Drude particles (electrons). The centers of mass
-of the Drude oscillators will be thermostated at 300.0 and the
-internal degrees of freedom will be thermostated at 1.0.  The
+of the Drude oscillators will be thermostatted at 300.0 and the
+internal degrees of freedom will be thermostatted at 1.0.  The
 temperatures of cores and Drude particles, in center-of-mass and
 relative coordinates, are calculated using "compute
 temp/drude"_compute_temp_drude.html
@@ -130,9 +130,9 @@ fix fINVERSE all drude/transform/inverse :pre
 
 In this example, {gCORES} is the group of the atom cores and {gDRUDES}
 is the group of the Drude particles. The centers of mass of the Drude
-oscillators will be thermostated at 298.0 and the internal degrees of
-freedom will be thermostated at 5.0. The whole system will be
-barostated at 1.0.
+oscillators will be thermostatted at 298.0 and the internal degrees of
+freedom will be thermostatted at 5.0. The whole system will be
+barostatted at 1.0.
 
 In order to avoid the flying ice cube problem (irreversible transfer
 of linear momentum to the center of mass of the system), you may need

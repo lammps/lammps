@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -28,9 +28,9 @@ Define a computation that calculates the temperature of a system based
 on the center-of-mass velocity of atom pairs that are bonded to each
 other.  This compute is designed to be used with the adiabatic
 core/shell model of "(Mitchell and Finchham)"_#MitchellFinchham1.  See
-"Section 6.25"_Section_howto.html#howto_25 of the manual for an
-overview of the model as implemented in LAMMPS.  Specifically, this
-compute enables correct temperature calculation and thermostatting of
+the "Howto coreshell"_Howto_coreshell.html doc page for an overview of
+the model as implemented in LAMMPS.  Specifically, this compute
+enables correct temperature calculation and thermostatting of
 core/shell pairs where it is desirable for the internal degrees of
 freedom of the core/shell pairs to not be influenced by a thermostat.
 A compute of this style can be used by any command that computes a
@@ -74,7 +74,7 @@ relative to the COM velocity of the core/shell pair.  If this compute
 is used with a fix command that performs thermostatting then this bias
 will be subtracted from each atom, thermostatting of the remaining COM
 velocity will be performed, and the bias will be added back in.  This
-means the thermostating will effectively be performed on the
+means the thermostatting will effectively be performed on the
 core/shell pairs, instead of on the individual core and shell atoms.
 Thermostatting fixes that work in this way include "fix
 nvt"_fix_nh.html, "fix temp/rescale"_fix_temp_rescale.html, "fix
@@ -83,8 +83,9 @@ langevin"_fix_langevin.html.
 
 The internal energy of core/shell pairs can be calculated by the
 "compute temp/chunk"_compute_temp_chunk.html command, if chunks are
-defined as core/shell pairs.  See "Section
-6.25"_Section_howto.html#howto_25 for more discussion on how to do this.
+defined as core/shell pairs.  See the "Howto
+coreshell"_Howto_coreshell.html doc page doc page for more discussion
+on how to do this.
 
 [Output info:]
 

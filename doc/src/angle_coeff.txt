@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -60,26 +60,14 @@ doc page for details.
 
 :line
 
-Here is an alphabetic list of angle styles defined in LAMMPS.  Click on
-the style to display the formula it computes and coefficients
-specified by the associated "angle_coeff"_angle_coeff.html command.
+The list of all angle styles defined in LAMMPS is given on the
+"angle_style"_angle_style.html doc page.  They are also listed in more
+compact form on the "Commands angle"_Commands_bond.html#angle doc
+page.
 
-Note that there are also additional angle styles submitted by users
-which are included in the LAMMPS distribution.  The list of these with
-links to the individual styles are given in the angle section of "this
-page"_Section_commands.html#cmd_5.
-
-"angle_style none"_angle_none.html - turn off angle interactions
-"angle_style hybrid"_angle_hybrid.html - define multiple styles of angle interactions :ul
-
-"angle_style charmm"_angle_charmm.html - CHARMM angle
-"angle_style class2"_angle_class2.html - COMPASS (class 2) angle
-"angle_style cosine"_angle_cosine.html - cosine angle potential
-"angle_style cosine/delta"_angle_cosine_delta.html - difference of cosines angle potential
-"angle_style cosine/periodic"_angle_cosine_periodic.html - DREIDING angle
-"angle_style cosine/squared"_angle_cosine_squared.html - cosine squared angle potential
-"angle_style harmonic"_angle_harmonic.html - harmonic angle
-"angle_style table"_angle_table.html - tabulated by angle :ul
+On either of those pages, click on the style to display the formula it
+computes and its coefficients as specified by the associated
+angle_coeff command.
 
 :line
 

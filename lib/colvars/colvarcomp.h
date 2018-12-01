@@ -82,6 +82,9 @@ public:
   /// this variable definition should be set within the constructor.
   std::string function_type;
 
+  /// Keyword used in the input to denote this CVC
+  std::string config_key;
+
   /// \brief Coefficient in the polynomial combination (default: 1.0)
   cvm::real sup_coeff;
   /// \brief Exponent in the polynomial combination (default: 1)
@@ -834,49 +837,70 @@ protected:
   cvm::real     r0;
   /// \brief "Cutoff vector" for anisotropic calculation
   cvm::rvector  r0_vec;
-  /// \brief Wheter dist/r0 or \vec{dist}*\vec{1/r0_vec} should ne be
-  /// used
+  /// \brief Whether r/r0 or \vec{r}*\vec{1/r0_vec} should be used
   bool b_anisotropic;
   /// Integer exponent of the function numerator
   int en;
   /// Integer exponent of the function denominator
   int ed;
-  /// \brief If true, group2 will be treated as a single atom
-  /// (default: loop over all pairs of atoms in group1 and group2)
-  bool b_group2_center_only;
+
+  /// \brief If true, group2 will be treated as a single atom, stored in this
+  /// accessory group
+  cvm::atom_group *group2_center;
+
+  /// Tolerance for the pair list
+  cvm::real tolerance;
+
+  /// Frequency of update of the pair list
+  int pairlist_freq;
+
+  /// Pair list
+  bool *pairlist;
+
 public:
-  /// Constructor
+
   coordnum(std::string const &conf);
   coordnum();
-  virtual ~coordnum() {}
+  ~coordnum();
+
   virtual void calc_value();
   virtual void calc_gradients();
   virtual void apply_force(colvarvalue const &force);
-  template<bool b_gradients>
-  /// \brief Calculate a coordination number through the function
-  /// (1-x**n)/(1-x**m), x = |A1-A2|/r0 \param r0 "cutoff" for the
-  /// coordination number \param exp_num \i n exponent \param exp_den
-  /// \i m exponent \param A1 atom \param A2 atom
-  static cvm::real switching_function(cvm::real const &r0,
-                                      int const &exp_num, int const &exp_den,
-                                      cvm::atom &A1, cvm::atom &A2);
-
-  template<bool b_gradients>
-  /// \brief Calculate a coordination number through the function
-  /// (1-x**n)/(1-x**m), x = |(A1-A2)*(r0_vec)^-|1 \param r0_vec
-  /// vector of different cutoffs in the three directions \param
-  /// exp_num \i n exponent \param exp_den \i m exponent \param A1
-  /// atom \param A2 atom
-  static cvm::real switching_function(cvm::rvector const &r0_vec,
-                                      int const &exp_num, int const &exp_den,
-                                      cvm::atom &A1, cvm::atom &A2);
-
   virtual cvm::real dist2(colvarvalue const &x1,
                           colvarvalue const &x2) const;
   virtual colvarvalue dist2_lgrad(colvarvalue const &x1,
                                   colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
                                   colvarvalue const &x2) const;
+
+  enum {
+    ef_null = 0,
+    ef_gradients = 1,
+    ef_anisotropic = (1<<8),
+    ef_use_pairlist = (1<<9),
+    ef_rebuild_pairlist = (1<<10)
+  };
+
+  /// \brief Calculate a coordination number through the function
+  /// (1-x**n)/(1-x**m), where x = |A1-A2|/r0 \param r0, r0_vec "cutoff" for
+  /// the coordination number (scalar or vector depending on user choice)
+  /// \param en Numerator exponent \param ed Denominator exponent \param First
+  /// atom \param Second atom \param pairlist_elem pointer to pair flag for
+  /// this pair \param tolerance A pair is defined as having a larger
+  /// coordination than this number
+  template<int flags>
+  static cvm::real switching_function(cvm::real const &r0,
+                                      cvm::rvector const &r0_vec,
+                                      int en,
+                                      int ed,
+                                      cvm::atom &A1,
+                                      cvm::atom &A2,
+                                      bool **pairlist_elem,
+                                      cvm::real tolerance);
+
+  /// Main workhorse function
+  template<int flags> int compute_coordnum();
+
 };
 
 
@@ -887,7 +911,8 @@ class colvar::selfcoordnum
   : public colvar::cvc
 {
 protected:
-  /// First atom group
+
+  /// Selected atoms
   cvm::atom_group  *group1;
   /// \brief "Cutoff" for isotropic calculation (default)
   cvm::real     r0;
@@ -895,22 +920,18 @@ protected:
   int en;
   /// Integer exponent of the function denominator
   int ed;
+  cvm::real tolerance;
+  int pairlist_freq;
+  bool *pairlist;
+
 public:
-  /// Constructor
+
   selfcoordnum(std::string const &conf);
   selfcoordnum();
-  virtual ~selfcoordnum() {}
+  ~selfcoordnum();
   virtual void calc_value();
   virtual void calc_gradients();
   virtual void apply_force(colvarvalue const &force);
-  template<bool b_gradients>
-  /// \brief Calculate a coordination number through the function
-  /// (1-x**n)/(1-x**m), x = |A1-A2|/r0 \param r0 "cutoff" for the
-  /// coordination number \param exp_num \i n exponent \param exp_den
-  /// \i m exponent \param A1 atom \param A2 atom
-  static cvm::real switching_function(cvm::real const &r0,
-                                      int const &exp_num, int const &exp_den,
-                                      cvm::atom &A1, cvm::atom &A2);
 
   virtual cvm::real dist2(colvarvalue const &x1,
                           colvarvalue const &x2) const;
@@ -918,6 +939,9 @@ public:
                                   colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
                                   colvarvalue const &x2) const;
+
+  /// Main workhorse function
+  template<int flags> int compute_selfcoordnum();
 };
 
 
@@ -947,26 +971,6 @@ public:
   virtual void calc_value();
   virtual void calc_gradients();
   virtual void apply_force(colvarvalue const &force);
-  template<bool b_gradients>
-  /// \brief Calculate a coordination number through the function
-  /// (1-x**n)/(1-x**m), x = |A1-A2|/r0 \param r0 "cutoff" for the
-  /// coordination number \param exp_num \i n exponent \param exp_den
-  /// \i m exponent \param A1 atom \param A2 atom
-  static cvm::real switching_function(cvm::real const &r0,
-                                      int const &exp_num, int const &exp_den,
-                                      cvm::atom &A1, cvm::atom &A2);
-
-  /*
-  template<bool b_gradients>
-  /// \brief Calculate a coordination number through the function
-  /// (1-x**n)/(1-x**m), x = |(A1-A2)*(r0_vec)^-|1 \param r0_vec
-  /// vector of different cutoffs in the three directions \param
-  /// exp_num \i n exponent \param exp_den \i m exponent \param A1
-  /// atom \param A2 atom
-  static cvm::real switching_function(cvm::rvector const &r0_vec,
-                                      int const &exp_num, int const &exp_den,
-                                      cvm::atom &A1, cvm::atom &A2);
-  */
 
   virtual cvm::real dist2(colvarvalue const &x1,
                           colvarvalue const &x2) const;

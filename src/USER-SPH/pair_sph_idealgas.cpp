@@ -197,10 +197,10 @@ void PairSPHIdealGas::allocate() {
  global settings
  ------------------------------------------------------------------------- */
 
-void PairSPHIdealGas::settings(int narg, char **arg) {
+void PairSPHIdealGas::settings(int narg, char **/*arg*/) {
   if (narg != 0)
     error->all(FLERR,
-        "Illegal number of setting arguments for pair_style sph/idealgas");
+        "Illegal number of arguments for pair_style sph/idealgas");
 }
 
 /* ----------------------------------------------------------------------
@@ -252,8 +252,8 @@ double PairSPHIdealGas::init_one(int i, int j) {
 
 /* ---------------------------------------------------------------------- */
 
-double PairSPHIdealGas::single(int i, int j, int itype, int jtype,
-    double rsq, double factor_coul, double factor_lj, double &fforce) {
+double PairSPHIdealGas::single(int /*i*/, int /*j*/, int /*itype*/, int /*jtype*/,
+    double /*rsq*/, double /*factor_coul*/, double /*factor_lj*/, double &fforce) {
   fforce = 0.0;
 
   return 0.0;

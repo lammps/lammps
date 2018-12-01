@@ -1684,7 +1684,7 @@ void Molecule::open(char *file)
   fp = fopen(file,"r");
   if (fp == NULL) {
     char str[128];
-    sprintf(str,"Cannot open molecule file %s",file);
+    snprintf(str,128,"Cannot open molecule file %s",file);
     error->one(FLERR,str);
   }
 }

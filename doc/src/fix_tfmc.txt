@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -54,7 +54,7 @@ estimation of the effective time scale of such a simulation, but it
 was later shown that the speed-up one can gain from a tfMC simulation
 is system- and process-dependent, ranging from none to several orders
 of magnitude. In general, solid-state processes such as
-(re)crystallisation or growth can be accelerated by up to two or three
+(re)crystallization or growth can be accelerated by up to two or three
 orders of magnitude, whereas diffusion in the liquid phase is not
 accelerated at all. The observed pseudodynamics when using the tfMC
 method is not the actual dynamics one would obtain using MD, but the
@@ -125,8 +125,8 @@ This fix is not invoked during "energy minimization"_minimize.html.
 [Restrictions:]
 
 This fix is part of the MC package.  It is only enabled if LAMMPS was
-built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+built with that package.  See the "Build package"_Build_package.html
+doc page for more info.
 
 This fix is not compatible with "fix shake"_fix_shake.html.
 

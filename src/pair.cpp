@@ -195,7 +195,7 @@ void Pair::init()
   if (tail_flag && domain->dimension == 2)
     error->all(FLERR,"Cannot use pair tail corrections with 2d simulations");
   if (tail_flag && domain->nonperiodic && comm->me == 0)
-    error->warning(FLERR,"Using pair tail corrections with nonperiodic system");
+    error->warning(FLERR,"Using pair tail corrections with non-periodic system");
   if (!compute_flag && tail_flag && comm->me == 0)
     error->warning(FLERR,"Using pair tail corrections with "
                    "pair_modify compute no");
@@ -301,7 +301,7 @@ void Pair::init_style()
    specific pair style can override this function
 ------------------------------------------------------------------------- */
 
-void Pair::init_list(int which, NeighList *ptr)
+void Pair::init_list(int /*which*/, NeighList *ptr)
 {
   list = ptr;
 }
@@ -693,17 +693,19 @@ void Pair::compute_dummy(int eflag, int vflag)
 }
 
 /* ---------------------------------------------------------------------- */
+
 void Pair::read_restart(FILE *)
 {
   if (comm->me == 0)
-    error->warning(FLERR,"BUG: restartinfo=1 but no restart support in pair style");
+    error->warning(FLERR,"Pair style restartinfo set but has no restart support");
 }
 
 /* ---------------------------------------------------------------------- */
+
 void Pair::write_restart(FILE *)
 {
   if (comm->me == 0)
-    error->warning(FLERR,"BUG: restartinfo=1 but no restart support in pair style");
+    error->warning(FLERR,"Pair style restartinfo set but has no restart support");
 }
 
 /* -------------------------------------------------------------------

@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -124,8 +124,8 @@ provide, so that the variable gets its value from the evaluation of
 the Python code.  Variables of style {internal} are used by a few
 commands which set their value directly.
 
-NOTE: As discussed in "Section 3.2"_Section_commands.html#cmd_2 of the
-manual, an input script can use "immediate" variables, specified as
+NOTE: As discussed on the "Commands parse"_Commands_parse.html doc
+page, an input script can use "immediate" variables, specified as
 $(formula) with parenthesis, where the formula has the same syntax as
 equal-style variables described on this page.  This is a convenient
 way to evaluate a formula immediately without using the variable
@@ -178,9 +178,8 @@ This means variables can NOT be re-defined in an input script (with
 two exceptions, read further).  This is to allow an input script to be
 processed multiple times without resetting the variables; see the
 "jump"_jump.html or "include"_include.html commands.  It also means
-that using the "command-line switch"_Section_start.html#start_6 -var
-will override a corresponding index variable setting in the input
-script.
+that using the "command-line switch"_Run_options.html -var will
+override a corresponding index variable setting in the input script.
 
 There are two exceptions to this rule.  First, variables of style
 {string}, {getenv}, {internal}, {equal}, {vector}, {atom}, and
@@ -198,7 +197,7 @@ the same thing.
 
 :line
 
-"This section"_Section_commands.html#cmd_2 of the manual explains how
+The "Commands parse"_Commands_parse.html doc page explains how
 occurrences of a variable name in an input script line are replaced by
 the variable's string.  The variable name can be referenced as $x if
 the name "x" is a single character, or as $\{LoopVar\} if the name
@@ -247,8 +246,7 @@ string is assigned.  All processors assign the same string to the
 variable.
 
 {Index} style variables with a single string value can also be set by
-using the command-line switch -var; see "this
-section"_Section_start.html#start_6 for details.
+using the "command-line switch -var"_Run_options.html.
 
 The {loop} style is identical to the {index} style except that the
 strings are the integers from 1 to N inclusive, if only one argument N
@@ -263,32 +261,31 @@ inclusive, and the string N1 is initially assigned to the variable.
 N1 <= N2 and N2 >= 0 is required.
 
 For the {world} style, one or more strings are specified.  There must
-be one string for each processor partition or "world".  See "this
-section"_Section_start.html#start_6 of the manual for information on
-running LAMMPS with multiple partitions via the "-partition"
-command-line switch.  This variable command assigns one string to each
-world.  All processors in the world are assigned the same string.  The
-next command cannot be used with {equal} style variables, since there
-is only one value per world.  This style of variable is useful when
-you wish to run different simulations on different partitions, or when
-performing a parallel tempering simulation (see the
+be one string for each processor partition or "world".  LAMMPS can be
+run with multiple partitions via the "-partition command-line
+switch"_Run_options.html.  This variable command assigns one string to
+each world.  All processors in the world are assigned the same string.
+The next command cannot be used with {equal} style variables, since
+there is only one value per world.  This style of variable is useful
+when you wish to run different simulations on different partitions, or
+when performing a parallel tempering simulation (see the
 "temper"_temper.html command), to assign different temperatures to
 different partitions.
 
 For the {universe} style, one or more strings are specified.  There
 must be at least as many strings as there are processor partitions or
-"worlds".  See "this page"_Section_start.html#start_6 for information
-on running LAMMPS with multiple partitions via the "-partition"
-command-line switch.  This variable command initially assigns one
-string to each world.  When a "next"_next.html command is encountered
-using this variable, the first processor partition to encounter it, is
-assigned the next available string.  This continues until all the
-variable strings are consumed.  Thus, this command can be used to run
-50 simulations on 8 processor partitions.  The simulations will be run
-one after the other on whatever partition becomes available, until
-they are all finished.  {Universe} style variables are incremented
-using the files "tmp.lammps.variable" and "tmp.lammps.variable.lock"
-which you will see in your directory during such a LAMMPS run.
+"worlds".  LAMMPS can be run with multiple partitions via the
+"-partition command-line switch"_Run_options.html.  This variable
+command initially assigns one string to each world.  When a
+"next"_next.html command is encountered using this variable, the first
+processor partition to encounter it, is assigned the next available
+string.  This continues until all the variable strings are consumed.
+Thus, this command can be used to run 50 simulations on 8 processor
+partitions.  The simulations will be run one after the other on
+whatever partition becomes available, until they are all finished.
+{Universe} style variables are incremented using the files
+"tmp.lammps.variable" and "tmp.lammps.variable.lock" which you will
+see in your directory during such a LAMMPS run.
 
 The {uloop} style is identical to the {universe} style except that the
 strings are the integers from 1 to N.  This allows generation of long
@@ -312,8 +309,8 @@ If you simply wish to print a variable value with desired precision to
 the screen or logfile via the "print"_print.html or "fix
 print"_fix_print.html commands, you can also do this by specifying an
 "immediate" variable with a trailing colon and format string, as part
-of the string argument of those commands.  This is explained in
-"Section 3.2"_Section_commands.html#cmd_2.
+of the string argument of those commands.  This is explained on the
+"Commands parse"_Commands_parse.html doc page.
 
 For the {getenv} style, a single string is assigned to the variable
 which should be the name of an environment variable.  When the
@@ -342,7 +339,7 @@ below.
 The rules for formatting the file are as follows.  A comment character
 "#" can be used anywhere on a line; text starting with the comment
 character is stripped.  Blank lines are skipped.  The first "word" of
-a non-blank line, delimited by white space, is the "string" assigned
+a non-blank line, delimited by white-space, is the "string" assigned
 to the variable.
 
 For the {atomfile} style, a filename is provided which contains one or
@@ -361,7 +358,7 @@ The rules for formatting the file are as follows.  Each time a set of
 per-atom values is read, a non-blank line is searched for in the file.
 A comment character "#" can be used anywhere on a line; text starting
 with the comment character is stripped.  Blank lines are skipped.  The
-first "word" of a non-blank line, delimited by white space, is read as
+first "word" of a non-blank line, delimited by white-space, is read as
 the count N of per-atom lines to immediately follow.  N can be be the
 total number of atoms in the system, or only a subset.  The next N
 lines have the following format
@@ -1119,24 +1116,23 @@ Vectors" discussion above.
 
 If you want an equal-style variable to be evaluated immediately, it
 may be the case that you do not need to define a variable at all.  See
-"Section 3.2"_Section_commands.html#cmd_2 of the manual, which
-describes the use of "immediate" variables in an input script,
-specified as $(formula) with parenthesis, where the formula has the
-same syntax as equal-style variables described on this page.  This
-effectively evaluates a formula immediately without using the variable
-command to define a named variable.
+the "Commands parse"_Commands_parse.html doc page for info on how to
+use "immediate" variables in an input script, specified as $(formula)
+with parenthesis, where the formula has the same syntax as equal-style
+variables described on this page.  This effectively evaluates a
+formula immediately without using the variable command to define a
+named variable.
 
 More generally, there is a difference between referencing a variable
 with a leading $ sign (e.g. $x or $\{abc\}) versus with a leading "v_"
 (e.g. v_x or v_abc).  The former can be used in any input script
 command, including a variable command.  The input script parser
 evaluates the reference variable immediately and substitutes its value
-into the command.  As explained in "Section
-3.2"_Section_commands.html#cmd_2 for "Parsing rules", you can also use
-un-named "immediate" variables for this purpose.  For example, a
-string like this $((xlo+xhi)/2+sqrt(v_area)) in an input script
-command evaluates the string between the parenthesis as an equal-style
-variable formula.
+into the command.  As explained on the "Commands
+parse"_Commands_parse.html doc page, you can also use un-named
+"immediate" variables for this purpose.  For example, a string like
+this $((xlo+xhi)/2+sqrt(v_area)) in an input script command evaluates
+the string between the parenthesis as an equal-style variable formula.
 
 Referencing a variable with a leading "v_" is an optional or required
 kind of argument for some commands (e.g. the "fix
@@ -1180,10 +1176,9 @@ quotes if it contains variables preceded by $ signs.  For example,
 
 variable vratio equal "$\{vfinal\}/$\{v0\}" :pre
 
-This is because the quotes prevent variable substitution (see "this
-section"_Section_commands.html#cmd_2 on parsing input script
-commands), and thus an error will occur when the formula for "vratio"
-is evaluated later.
+This is because the quotes prevent variable substitution (explained on
+the "Commands parse"_Commands_parse.html doc page), and thus an error
+will occur when the formula for "vratio" is evaluated later.
 
 :line
 

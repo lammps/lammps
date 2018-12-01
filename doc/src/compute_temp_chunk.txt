@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -52,10 +52,9 @@ chunk/atom"_compute_chunk_atom.html command, which assigns each atom
 to a single chunk (or no chunk).  The ID for this command is specified
 as chunkID.  For example, a single chunk could be the atoms in a
 molecule or atoms in a spatial bin.  See the "compute
-chunk/atom"_compute_chunk_atom.html doc page and "Section
-6.23"_Section_howto.html#howto_23 for details of how chunks can be
-defined and examples of how they can be used to measure properties of
-a system.
+chunk/atom"_compute_chunk_atom.html and "Howto chunk"_Howto_chunk.html
+doc pages for details of how chunks can be defined and examples of how
+they can be used to measure properties of a system.
 
 The temperature is calculated by the formula KE = DOF/2 k T, where KE =
 total kinetic energy of all atoms assigned to chunks (sum of 1/2 m
@@ -119,7 +118,7 @@ or "fix rigid"_fix_rigid.html.  This is because those degrees of
 freedom (e.g. a constrained bond) could apply to sets of atoms that
 are both included and excluded from a specific chunk, and hence the
 concept is somewhat ill-defined.  In some cases, you can use the
-{adof} and {cdof} keywords to adjust the calculated degress of freedom
+{adof} and {cdof} keywords to adjust the calculated degrees of freedom
 appropriately, as explained below.
 
 Note that the per-chunk temperature calculated by this compute and the
@@ -200,8 +199,8 @@ molecule.
 This compute calculates a global scalar (the temperature) and a global
 vector of length 6 (KE tensor), which can be accessed by indices 1-6.
 These values can be used by any command that uses global scalar or
-vector values from a compute as input.  See "this
-section"_Section_howto.html#howto_15 for an overview of LAMMPS output
+vector values from a compute as input.  See the "Howto
+output"_Howto_output.html doc page for an overview of LAMMPS output
 options.
 
 This compute also optionally calculates a global array, if one or more
@@ -210,9 +209,8 @@ of the optional values are specified.  The number of rows in the array
 "compute chunk/atom"_compute_chunk_atom.html command.  The number of
 columns is the number of specified values (1 or more).  These values
 can be accessed by any command that uses global array values from a
-compute as input.  Again, see "Section
-6.15"_Section_howto.html#howto_15 for an overview of LAMMPS output
-options.
+compute as input.  Again, see the "Howto output"_Howto_output.html doc
+page for an overview of LAMMPS output options.
 
 The scalar value calculated by this compute is "intensive".  The
 vector values are "extensive".  The array values are "intensive".

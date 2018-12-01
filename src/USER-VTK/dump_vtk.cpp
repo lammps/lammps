@@ -93,10 +93,10 @@ enum{VTK,VTP,VTU,PVTP,PVTU}; // file formats
 #define ONEFIELD 32
 #define DELTA 1048576
 
-#if VTK_MAJOR_VERSION == 7
+#if (VTK_MAJOR_VERSION < 5) || (VTK_MAJOR_VERSION > 8)
+#error This code has only been tested with VTK 5, 6, 7, and 8
+#elif VTK_MAJOR_VERSION > 6
 #define InsertNextTupleValue InsertNextTypedTuple
-#elif VTK_MAJOR_VERSION > 7
-#error This code has only been tested with VTK 5, 6, and 7
 #endif
 
 /* ---------------------------------------------------------------------- */

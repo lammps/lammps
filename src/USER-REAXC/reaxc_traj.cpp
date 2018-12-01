@@ -48,7 +48,7 @@ int Reallocate_Output_Buffer( output_controls *out_control, int req_space,
 }
 
 
-void Write_Skip_Line( output_controls *out_control, mpi_datatypes *mpi_data,
+void Write_Skip_Line( output_controls *out_control, mpi_datatypes * /*mpi_data*/,
                       int my_rank, int skip, int num_section )
 {
   if( my_rank == MASTER_NODE )
@@ -259,7 +259,7 @@ int Write_Header( reax_system *system, control_params *control,
 }
 
 
-int Write_Init_Desc( reax_system *system, control_params *control,
+int Write_Init_Desc( reax_system *system, control_params * /*control*/,
                      output_controls *out_control, mpi_datatypes *mpi_data )
 {
   int i, me, np, cnt, buffer_len, buffer_req;
@@ -315,7 +315,7 @@ int Init_Traj( reax_system *system, control_params *control,
                output_controls *out_control, mpi_datatypes *mpi_data,
                char *msg )
 {
-  char fname[MAX_STR];
+  char fname[MAX_STR+8];
   int  atom_line_len[ NR_OPT_ATOM ] = { 0, 0, 0, 0,
                                         ATOM_BASIC_LEN, ATOM_wV_LEN,
                                         ATOM_wF_LEN, ATOM_FULL_LEN };
@@ -482,7 +482,7 @@ int Write_Frame_Header( reax_system *system, control_params *control,
 
 
 
-int Write_Atoms( reax_system *system, control_params *control,
+int Write_Atoms( reax_system *system, control_params * /*control*/,
                  output_controls *out_control, mpi_datatypes *mpi_data )
 {
   int i, me, np, line_len, buffer_len, buffer_req, cnt;

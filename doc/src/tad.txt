@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -18,7 +18,7 @@ t_event = timestep interval between event checks :l
 T_lo = temperature at which event times are desired :l
 T_hi = temperature at which MD simulation is performed :l
 delta = desired confidence level for stopping criterion :l
-tmax = reciprocal of lowest expected preexponential factor (time units) :l
+tmax = reciprocal of lowest expected pre-exponential factor (time units) :l
 compute-ID = ID of the compute used for event detection :l
 zero or more keyword/value pairs may be appended :l
 keyword = {min} or {neb} or {min_style} or {neb_style} or {neb_log} :l
@@ -92,9 +92,8 @@ restricts you to having exactly one processor per replica. For more
 information, see the documentation for the "neb"_neb.html command.  In
 the current LAMMPS implementation of TAD, all the non-NEB TAD
 operations are performed on the first partition, while the other
-partitions remain idle. See "Section
-6.5"_Section_howto.html#howto_5 of the manual for further discussion of
-multi-replica simulations.
+partitions remain idle. See the "Howto replica"_Howto_replica.html doc
+page for further discussion of multi-replica simulations.
 
 A TAD run has several stages, which are repeated each time an event is
 performed.  The logic for a TAD run is as follows:
@@ -272,8 +271,8 @@ are always monotonically increasing.
 [Restrictions:]
 
 This command can only be used if LAMMPS was built with the REPLICA
-package.  See the "Making LAMMPS"_Section_start.html#start_3 section
-for more info on packages.
+package.  See the "Build package"_Build_package.html doc
+page for more info.
 
 {N} setting must be integer multiple of {t_event}.
 

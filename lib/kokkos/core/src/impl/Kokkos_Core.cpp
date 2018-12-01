@@ -780,8 +780,20 @@ void print_configuration( std::ostream & out , const bool detail )
 #else
   msg << "no" << std::endl;
 #endif
-  msg << "  KOKKOS_ENABLE_CXX1Z: ";
-#ifdef KOKKOS_ENABLE_CXX1Z
+  msg << "  KOKKOS_ENABLE_CXX14: ";
+#ifdef KOKKOS_ENABLE_CXX14
+  msg << "yes" << std::endl;
+#else
+  msg << "no" << std::endl;
+#endif
+  msg << "  KOKKOS_ENABLE_CXX17: ";
+#ifdef KOKKOS_ENABLE_CXX17
+  msg << "yes" << std::endl;
+#else
+  msg << "no" << std::endl;
+#endif
+  msg << "  KOKKOS_ENABLE_CXX20: ";
+#ifdef KOKKOS_ENABLE_CXX20
   msg << "yes" << std::endl;
 #else
   msg << "no" << std::endl;

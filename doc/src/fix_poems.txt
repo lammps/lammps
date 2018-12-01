@@ -2,11 +2,11 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
-fix poems :h3
+fix poems command :h3
 
 Syntax:
 
@@ -106,7 +106,7 @@ off, and there is only a single fix poems defined.
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
 No information about this fix is written to "binary restart
-files"_restart.html.  
+files"_restart.html.
 
 The "fix_modify"_fix_modify.html {bodyforces} option is supported by
 this fix style to set whether per-body forces and torques are computed
@@ -114,17 +114,17 @@ early or late in a timestep, i.e. at the post-force stage or at the
 final-integrate stage, respectively.
 
 No global or per-atom quantities are stored by this fix for access by
-various "output commands"_Section_howto.html#howto_15.  No parameter
-of this fix can be used with the {start/stop} keywords of the
-"run"_run.html command.  This fix is not invoked during "energy
+various "output commands"_Howto_output.html.  No parameter of this fix
+can be used with the {start/stop} keywords of the "run"_run.html
+command.  This fix is not invoked during "energy
 minimization"_minimize.html.
 
 [Restrictions:]
 
 This fix is part of the POEMS package.  It is only enabled if LAMMPS
 was built with that package, which also requires the POEMS library be
-built and linked with LAMMPS.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+built and linked with LAMMPS.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

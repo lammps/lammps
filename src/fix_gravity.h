@@ -29,7 +29,7 @@ class FixGravity : public Fix {
 
  public:
   FixGravity(class LAMMPS *, int, char **);
-  ~FixGravity();
+  virtual ~FixGravity();
   int setmask();
   void init();
   void setup(int);

@@ -172,7 +172,7 @@ void AngleCosine::coeff(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-double AngleCosine::equilibrium_angle(int i)
+double AngleCosine::equilibrium_angle(int /*i*/)
 {
   return MY_PI;
 }

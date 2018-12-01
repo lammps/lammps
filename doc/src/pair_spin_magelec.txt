@@ -2,15 +2,15 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
-pair_style spin/me command :h3
+pair_style spin/magelec command :h3
 
 [Syntax:]
 
-pair_style spin/me cutoff :pre
+pair_style spin/magelec cutoff :pre
 
 cutoff = global cutoff pair (distance in metal units) :ulb,l
 
@@ -18,14 +18,14 @@ cutoff = global cutoff pair (distance in metal units) :ulb,l
 
 [Examples:]
 
-pair_style spin/me 4.5
-pair_coeff * * me 4.5 0.00109 1.0 1.0 1.0 :pre
+pair_style spin/magelec 4.5
+pair_coeff * * magelec 4.5 0.00109 1.0 1.0 1.0 :pre
 
 [Description:]
 
 Style {spin/me} computes a magneto-electric interaction between
 pairs of magnetic spins. According to the derivation reported in
-"(Katsura)"_#Katsura1, this interaction is defined as: 
+"(Katsura)"_#Katsura1, this interaction is defined as:
 
 :c,image(Eqs/pair_spin_me_interaction.jpg)
 
@@ -51,10 +51,10 @@ More details about the derivation of these torques/forces are reported in
 
 [Restrictions:]
 
-All the {pair/spin} styles are part of the SPIN package.
-These styles are only enabled if LAMMPS was built with this package, and
-if the atom_style "spin" was declared.
-See the "Making LAMMPS"_Section_start.html#start_3 section for more info.
+All the {pair/spin} styles are part of the SPIN package.  These styles
+are only enabled if LAMMPS was built with this package, and if the
+atom_style "spin" was declared.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 
@@ -69,5 +69,5 @@ See the "Making LAMMPS"_Section_start.html#start_3 section for more info.
 [(Katsura)] H. Katsura, N. Nagaosa, A.V. Balatsky. Phys. Rev. Lett., 95(5), 057205. (2005)
 
 :link(Tranchida4)
-[(Tranchida)] Tranchida, Plimpton, Thibaudeau, and Thompson, 
+[(Tranchida)] Tranchida, Plimpton, Thibaudeau, and Thompson,
 Journal of Computational Physics, (2018).

@@ -15,16 +15,16 @@
 
 # Ensure that KOKKOS_ARCH is in the ARCH_LIST
 if (KOKKOS_ARCH MATCHES ",")
-  message("-- Detected a comma in: KOKKOS_ARCH=${KOKKOS_ARCH}")
+  message("-- Detected a comma in: KOKKOS_ARCH=`${KOKKOS_ARCH}`")
   message("-- Although we prefer KOKKOS_ARCH to be semicolon-delimited, we do allow")
   message("-- comma-delimited values for compatibility with scripts (see github.com/trilinos/Trilinos/issues/2330)")
   string(REPLACE "," ";" KOKKOS_ARCH "${KOKKOS_ARCH}")
-  message("-- Commas were changed to semicolons, now KOKKOS_ARCH=${KOKKOS_ARCH}")
+  message("-- Commas were changed to semicolons, now KOKKOS_ARCH=`${KOKKOS_ARCH}`")
 endif()
 foreach(arch ${KOKKOS_ARCH})
   list(FIND KOKKOS_ARCH_LIST ${arch} indx)
   if (indx EQUAL -1)
-    message(FATAL_ERROR "${arch} is not an accepted value for KOKKOS_ARCH."
+    message(FATAL_ERROR "`${arch}` is not an accepted value in KOKKOS_ARCH=`${KOKKOS_ARCH}`."
       "  Please pick from these choices: ${KOKKOS_INTERNAL_ARCH_DOCSTR}")
   endif ()
 endforeach()
@@ -130,7 +130,8 @@ string(REPLACE ";" ":" KOKKOS_INTERNAL_ADDTOPATH "${addpathl}")
 # Set the KOKKOS_SETTINGS String -- this is the primary communication with the
 # makefile configuration.  See Makefile.kokkos
 
-set(KOKKOS_SETTINGS KOKKOS_SRC_PATH=${KOKKOS_SRC_PATH})
+set(KOKKOS_SETTINGS KOKKOS_CMAKE=yes)
+set(KOKKOS_SETTINGS ${KOKKOS_SETTINGS} KOKKOS_SRC_PATH=${KOKKOS_SRC_PATH})
 set(KOKKOS_SETTINGS ${KOKKOS_SETTINGS} KOKKOS_PATH=${KOKKOS_PATH})
 set(KOKKOS_SETTINGS ${KOKKOS_SETTINGS} KOKKOS_INSTALL_PATH=${CMAKE_INSTALL_PREFIX})
 
@@ -158,7 +159,7 @@ if (NOT "${KOKKOS_INTERNAL_PATHS}" STREQUAL "")
   set(KOKKOS_SETTINGS ${KOKKOS_SETTINGS} ${KOKKOS_INTERNAL_PATHS})
 endif()
 if (NOT "${KOKKOS_INTERNAL_ADDTOPATH}" STREQUAL "")
-  set(KOKKOS_SETTINGS ${KOKKOS_SETTINGS} "PATH=\"${KOKKOS_INTERNAL_ADDTOPATH}:$ENV{PATH}\"")
+  set(KOKKOS_SETTINGS ${KOKKOS_SETTINGS} "PATH=${KOKKOS_INTERNAL_ADDTOPATH}:$ENV{PATH}")
 endif()
 
 if (CMAKE_CXX_STANDARD)

@@ -93,7 +93,7 @@ namespace LAMMPS_NS {
   private:
     class CommKokkos *commKK;
 
-    double *rmass;
+    typename ArrayTypes<DeviceType>::t_float_1d rmass;
     typename ArrayTypes<DeviceType>::tdual_double_2d k_franprev;
     typename ArrayTypes<DeviceType>::t_double_2d d_franprev;
     HAT::t_double_2d h_franprev;

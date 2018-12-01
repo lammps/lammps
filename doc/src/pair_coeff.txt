@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -90,7 +90,7 @@ is looked for in the current working directory.  If it is specified as
 directory, assuming it is a sister directory of the current working
 directory.  If the file is not found, it is then looked for in the
 directory specified by the LAMMPS_POTENTIALS environment variable.
-Thus if this is set to the potentials directory in the LAMMPS distro,
+Thus if this is set to the potentials directory in the LAMMPS distribution,
 then you can use those files from anywhere on your system, without
 copying them into your working directory.  Environment variables are
 set in different ways for different shells.  Here are example settings
@@ -111,25 +111,11 @@ Windows:
 :line
 
 The alphabetic list of pair styles defined in LAMMPS is given on the
-"pair_style"_pair_style.html doc page.  They are also given in more
-compact form in the pair section of "this
-page"_Section_commands.html#cmd_5.
+"pair_style"_pair_style.html doc page.  They are also listed in more
+compact form on the "Commands pair"_Commands_pair.html doc page.
 
-Click on the style to display the formula it computes, arguments
-specified in the pair_style command, and coefficients specified by the
-associated "pair_coeff"_pair_coeff.html command.
-
-Note that there are also additional pair styles (not listed on the
-"pair_style"_pair_style.html doc page) submitted by users which are
-included in the LAMMPS distribution.  The list of these with links to
-the individual styles are given in the pair section of "this
-page"_Section_commands.html#cmd_5.
-
-There are also additional accelerated pair styles (not listed on the
-"pair_style"_pair_style.html doc page) included in the LAMMPS
-distribution for faster performance on CPUs and GPUs.  The list of
-these with links to the individual styles are given in the pair
-section of "this page"_Section_commands.html#cmd_5.
+Click on the style to display the formula it computes and its
+coefficients as specified by the associated pair_coeff command.
 
 :line
 

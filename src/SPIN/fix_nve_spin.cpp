@@ -60,8 +60,11 @@ static const char cite_fix_nve_spin[] =
   "dynamics and molecular dynamics},\n"
   "author={Tranchida, J and Plimpton, SJ and Thibaudeau, P and Thompson, AP},\n"
   "journal={Journal of Computational Physics},\n"
+  "volume={372},\n"
+  "pages={406-425},\n"
   "year={2018},\n"
   "publisher={Elsevier}\n"
+  "doi={10.1016/j.jcp.2018.06.042}\n"
   "}\n\n";
 
 enum{NONE};
@@ -258,7 +261,7 @@ void FixNVESpin::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVESpin::initial_integrate(int vflag)
+void FixNVESpin::initial_integrate(int /*vflag*/)
 {
   double dtfm;
 	

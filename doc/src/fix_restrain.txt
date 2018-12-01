@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -49,7 +49,7 @@ file, as specified by the "read_data"_read_data.html command, albeit
 with a time-varying pre-factor coefficient, and except for exclusion
 rules, as explained below.
 
-For the purpose of forcefield parameter-fitting or mapping a molecular
+For the purpose of force field parameter-fitting or mapping a molecular
 potential energy surface, this fix reduces the hassle and risk
 associated with modifying data files.  In other words, use this fix to
 temporarily force a molecule to adopt a particular conformation.  To
@@ -82,7 +82,7 @@ self-consistent minimization problem (see below).
 
 In order for a restraint to be effective, the restraint force must
 typically be significantly larger than the forces associated with
-conventional forcefield terms.  If the restraint is applied during a
+conventional force field terms.  If the restraint is applied during a
 dynamics run (as opposed to during an energy minimization), a large
 restraint coefficient can significantly reduce the stable timestep
 size, especially if the atoms are initially far from the preferred
@@ -90,7 +90,7 @@ conformation.  You may need to experiment to determine what value of K
 works best for a given application.
 
 For the case of finding a minimum energy structure for a single
-molecule with particular restraints (e.g. for fitting forcefield
+molecule with particular restraints (e.g. for fitting force field
 parameters or constructing a potential energy surface), commands such
 as the following may be useful:
 
@@ -187,8 +187,8 @@ added forces to be included in the total potential energy of the
 system (the quantity being minimized), you MUST enable the
 "fix_modify"_fix_modify.html {energy} option for this fix.
 
-This fix computes a global scalar and a global vector of length 3, which
-can be accessed by various "output commands"_Section_howto.html#howto_15.
+This fix computes a global scalar and a global vector of length 3,
+which can be accessed by various "output commands"_Howto_output.html.
 The scalar is the total potential energy for {all} the restraints as
 discussed above. The vector values are the sum of contributions to the
 following individual categories:

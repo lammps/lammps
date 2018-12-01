@@ -1,0 +1,191 @@
+"Previous Section"_Performance.html - "LAMMPS WWW Site"_lws -
+"LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next
+Section"_Examples.html :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands.html#comm)
+
+:line
+
+Howto discussions :h2
+
+These doc pages describe how to perform various tasks with LAMMPS,
+both for users and developers.  The
+"glossary"_http://lammps.sandia.gov website page also lists MD
+terminology with links to corresponding LAMMPS manual pages.  The
+example input scripts included in the examples dir of the LAMMPS
+distribution and highlighted on the "Examples"_Examples.html doc page
+also show how to setup and run various kinds of simulations.
+
+Tutorials howto :h3
+
+<!-- RST
+
+.. toctree::
+   :name: tutorials
+   :maxdepth: 1
+
+   Howto_github
+   Howto_pylammps
+   Howto_bash
+
+END_RST -->
+
+<!-- HTML_ONLY -->
+
+"Using GitHub with LAMMPS"_Howto_github.html
+"PyLAMMPS interface to LAMMPS"_Howto_pylammps.html
+"Using LAMMPS with bash on Windows"_Howto_bash.html :all(b)
+
+<!-- END_HTML_ONLY -->
+
+General howto :h3
+
+<!-- RST
+
+.. toctree::
+   :name: general_howto
+   :maxdepth: 1
+
+   Howto_restart
+   Howto_viz
+   Howto_multiple
+   Howto_replica
+   Howto_library
+   Howto_couple
+   Howto_client_server
+
+END_RST -->
+
+<!-- HTML_ONLY -->
+
+"Restart a simulation"_Howto_restart.html
+"Visualize LAMMPS snapshots"_Howto_viz.html
+"Run multiple simulations from one input script"_Howto_multiple.html
+"Multi-replica simulations"_Howto_replica.html
+"Library interface to LAMMPS"_Howto_library.html
+"Couple LAMMPS to other codes"_Howto_couple.html
+"Using LAMMPS in client/server mode"_Howto_client_server.html :all(b)
+
+<!-- END_HTML_ONLY -->
+
+Settings howto :h3
+
+<!-- RST
+
+.. toctree::
+   :name: settings
+   :maxdepth: 1
+
+   Howto_2d
+   Howto_triclinic
+   Howto_thermostat
+   Howto_barostat
+   Howto_walls
+   Howto_nemd
+   Howto_dispersion
+
+END_RST -->
+
+<!-- HTML_ONLY -->
+
+"2d simulations"_Howto_2d.html
+"Triclinic (non-orthogonal) simulation boxes"_Howto_triclinic.html
+"Thermostats"_Howto_thermostat.html
+"Barostats"_Howto_barostat.html
+"Walls"_Howto_walls.html
+"NEMD simulations"_Howto_nemd.html
+"Long-range dispersion settings"_Howto_dispersion.html :all(b)
+
+<!-- END_HTML_ONLY -->
+
+
+Analysis howto :h3
+
+<!-- RST
+
+.. toctree::
+   :name: analysis
+   :maxdepth: 1
+
+   Howto_output
+   Howto_chunk
+   Howto_temperature
+   Howto_elastic
+   Howto_kappa
+   Howto_viscosity
+   Howto_diffusion
+
+END_RST -->
+
+<!-- HTML_ONLY -->
+
+"Output from LAMMPS (thermo, dumps, computes, fixes, variables)"_Howto_output.html
+"Use chunks to calculate system properties"_Howto_chunk.html :all(b)
+"Calculate temperature"_Howto_temperature.html
+"Calculate elastic constants"_Howto_elastic.html
+"Calculate thermal conductivity"_Howto_kappa.html
+"Calculate viscosity"_Howto_viscosity.html
+"Calculate a diffusion coefficient"_Howto_diffusion.html :all(b)
+
+<!-- END_HTML_ONLY -->
+
+Force fields howto :h3
+
+<!-- RST
+
+.. toctree::
+   :name: force
+   :maxdepth: 1
+
+   Howto_bioFF
+   Howto_tip3p
+   Howto_tip4p
+   Howto_spc
+
+END_RST -->
+
+<!-- HTML_ONLY -->
+
+"CHARMM, AMBER, and DREIDING force fields"_Howto_bioFF.html
+"TIP3P water model"_Howto_tip3p.html
+"TIP4P water model"_Howto_tip4p.html
+"SPC water model"_Howto_spc.html :all(b)
+
+<!-- END_HTML_ONLY -->
+
+Packages howto :h3
+
+<!-- RST
+
+.. toctree::
+   :name: packages
+   :maxdepth: 1
+
+   Howto_spherical
+   Howto_granular
+   Howto_body
+   Howto_polarizable
+   Howto_coreshell
+   Howto_drude
+   Howto_drude2
+   Howto_manifold
+   Howto_spins
+
+END_RST -->
+
+
+<!-- HTML_ONLY -->
+
+"Finite-size spherical and aspherical particles"_Howto_spherical.html
+"Granular models"_Howto_granular.html
+"Body style particles"_Howto_body.html
+"Polarizable models"_Howto_polarizable.html
+"Adiabatic core/shell model"_Howto_coreshell.html
+"Drude induced dipoles"_Howto_drude.html
+"Drude induced dipoles (extended)"_Howto_drude2.html
+"Manifolds (surfaces)"_Howto_manifold.html
+"Magnetic spins"_Howto_spins.html :all(b)
+
+<!-- END_HTML_ONLY -->

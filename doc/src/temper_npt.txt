@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 temper/npt command :h3
@@ -23,7 +23,7 @@ index = which temperature (0 to N-1) I am simulating (optional) :ul
 [Examples:]
 
 temper/npt 100000 100 $t nptfix 0 58728 1
-temper/npt 2500000 1000 300 nptfix  0 32285 $p 
+temper/npt 2500000 1000 300 nptfix  0 32285 $p
 temper/npt 5000000 2000 $t nptfix 0 12523 1 $w :pre
 
 [Description:]
@@ -43,13 +43,13 @@ of pressure, this command works much like the "temper"_temper.html
 command. See the documentation on "temper"_temper.html for information
 on how the parallel tempering is handled in general.
 
-:line 
+:line
 
 [Restrictions:]
 
 This command can only be used if LAMMPS was built with the USER-MISC
-package.  See the "Making LAMMPS"_Section_start.html#start_3 section
-for more info on packages.
+package.  See the "Build package"_Build_package.html doc page for more
+info.
 
 This command should be used with a fix that maintains the
 isothermal-isobaric (NPT) ensemble.

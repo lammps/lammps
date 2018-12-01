@@ -41,9 +41,9 @@
 
 interaction_function Interaction_Functions[NUM_INTRS];
 
-void Dummy_Interaction( reax_system *system, control_params *control,
-                        simulation_data *data, storage *workspace,
-                        reax_list **lists, output_controls *out_control )
+void Dummy_Interaction( reax_system * /*system*/, control_params * /*control*/,
+                        simulation_data * /*data*/, storage * /*workspace*/,
+                        reax_list **/*lists*/, output_controls * /*out_control*/ )
 {
 }
 
@@ -68,7 +68,7 @@ void Init_Force_Functions( control_params *control )
 void Compute_Bonded_Forces( reax_system *system, control_params *control,
                             simulation_data *data, storage *workspace,
                             reax_list **lists, output_controls *out_control,
-                            MPI_Comm comm )
+                            MPI_Comm /*comm*/ )
 {
   int i;
 
@@ -83,7 +83,7 @@ void Compute_Bonded_Forces( reax_system *system, control_params *control,
 void Compute_NonBonded_Forces( reax_system *system, control_params *control,
                                simulation_data *data, storage *workspace,
                                reax_list **lists, output_controls *out_control,
-                               MPI_Comm comm )
+                               MPI_Comm /*comm*/ )
 {
 
   /* van der Waals and Coulomb interactions */
@@ -98,7 +98,7 @@ void Compute_NonBonded_Forces( reax_system *system, control_params *control,
 
 void Compute_Total_Force( reax_system *system, control_params *control,
                           simulation_data *data, storage *workspace,
-                          reax_list **lists, mpi_datatypes *mpi_data )
+                          reax_list **lists, mpi_datatypes * /*mpi_data*/ )
 {
   int i, pj;
   reax_list *bonds = (*lists) + BONDS;
@@ -114,8 +114,8 @@ void Compute_Total_Force( reax_system *system, control_params *control,
 
 }
 
-void Validate_Lists( reax_system *system, storage *workspace, reax_list **lists,
-                     int step, int n, int N, int numH, MPI_Comm comm )
+void Validate_Lists( reax_system *system, storage * /*workspace*/, reax_list **lists,
+                     int step, int /*n*/, int N, int numH, MPI_Comm comm )
 {
   int i, comp, Hindex;
   reax_list *bonds, *hbonds;
@@ -173,7 +173,7 @@ void Validate_Lists( reax_system *system, storage *workspace, reax_list **lists,
 
 void Init_Forces_noQEq( reax_system *system, control_params *control,
                         simulation_data *data, storage *workspace,
-                        reax_list **lists, output_controls *out_control,
+                        reax_list **lists, output_controls * /*out_control*/,
                         MPI_Comm comm ) {
   int i, j, pj;
   int start_i, end_i;
@@ -317,7 +317,7 @@ void Init_Forces_noQEq( reax_system *system, control_params *control,
 
 void Estimate_Storages( reax_system *system, control_params *control,
                         reax_list **lists, int *Htop, int *hb_top,
-                        int *bond_top, int *num_3body, MPI_Comm comm )
+                        int *bond_top, int *num_3body, MPI_Comm /*comm*/ )
 {
   int i, j, pj;
   int start_i, end_i;

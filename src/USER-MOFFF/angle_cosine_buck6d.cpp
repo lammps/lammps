@@ -56,7 +56,7 @@ AngleCosineBuck6d::~AngleCosineBuck6d()
 
 void AngleCosineBuck6d::compute(int eflag, int vflag)
 {
-  int i,i1,i2,i3,n,type,itype,jtype;
+  int i1,i2,i3,n,type,itype,jtype;
   double delx1,dely1,delz1,delx2,dely2,delz2;
   double eangle,f1[3],f3[3];
   double rsq1,rsq2,r1,r2,c,s,a,a11,a12,a22;
@@ -309,7 +309,7 @@ void AngleCosineBuck6d::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-double AngleCosineBuck6d::equilibrium_angle(int i)
+double AngleCosineBuck6d::equilibrium_angle(int /*i*/)
 {
   return MY_PI;
 }
@@ -353,7 +353,7 @@ void AngleCosineBuck6d::read_restart(FILE *fp)
 void AngleCosineBuck6d::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->nangletypes; i++) {
-    fprintf(fp,"%d %g %d %d\n",i,k[i],multiplicity[i],th0[i]);
+    fprintf(fp,"%d %g %d %g\n",i,k[i],multiplicity[i],th0[i]);
   }
 }
 

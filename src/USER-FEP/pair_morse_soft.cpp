@@ -360,8 +360,8 @@ void PairMorseSoft::write_data_all(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairMorseSoft::single(int i, int j, int itype, int jtype, double rsq,
-                             double factor_coul, double factor_lj,
+double PairMorseSoft::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
+                             double /*factor_coul*/, double factor_lj,
                              double &fforce)
 {
   double r, dr, dexp, dexp2, dexp3, phi;

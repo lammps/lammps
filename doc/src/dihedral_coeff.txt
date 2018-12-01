@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -69,24 +69,14 @@ necessary.
 
 :line
 
-Here is an alphabetic list of dihedral styles defined in LAMMPS.  Click on
-the style to display the formula it computes and coefficients
-specified by the associated "dihedral_coeff"_dihedral_coeff.html command.
+The list of all dihedral styles defined in LAMMPS is given on the
+"dihedral_style"_dihedral_style.html doc page.  They are also listed
+in more compact form on the "Commands
+dihedral"_Commands_bond.html#dihedral doc page.
 
-Note that there are also additional dihedral styles submitted by users
-which are included in the LAMMPS distribution.  The list of these with
-links to the individual styles are given in the dihedral section of
-"this page"_Section_commands.html#cmd_5.
-
-"dihedral_style none"_dihedral_none.html - turn off dihedral interactions
-"dihedral_style hybrid"_dihedral_hybrid.html - define multiple styles of dihedral interactions :ul
-
-"dihedral_style charmm"_dihedral_charmm.html - CHARMM dihedral
-"dihedral_style class2"_dihedral_class2.html - COMPASS (class 2) dihedral
-"dihedral_style harmonic"_dihedral_harmonic.html - harmonic dihedral
-"dihedral_style helix"_dihedral_helix.html - helix dihedral
-"dihedral_style multi/harmonic"_dihedral_multi_harmonic.html - multi-harmonic dihedral
-"dihedral_style opls"_dihedral_opls.html - OPLS dihedral :ul
+On either of those pages, click on the style to display the formula it
+computes and its coefficients as specified by the associated
+dihedral_coeff command.
 
 :line
 

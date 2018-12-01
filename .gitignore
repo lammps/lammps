@@ -1,6 +1,7 @@
 *~
 *.o
 *.so
+*.lo
 *.cu_o
 *.ptx
 *_ptx.h
@@ -21,6 +22,7 @@ log.cite
 .*.swp
 *.orig
 *.rej
+vgcore.*
 .vagrant
 \#*#
 .#*
@@ -32,6 +34,7 @@ log.cite
 .Trashes
 ehthumbs.db
 Thumbs.db
+.clang-format
 
 #cmake
 /build*

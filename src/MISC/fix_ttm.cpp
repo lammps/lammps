@@ -71,7 +71,7 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
   fpr = fopen(arg[13],"r");
   if (fpr == NULL) {
     char str[128];
-    sprintf(str,"Cannot open file %s",arg[13]);
+    snprintf(str,128,"Cannot open file %s",arg[13]);
     error->one(FLERR,str);
   }
 
@@ -84,7 +84,7 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
       fp = fopen(arg[15],"w");
       if (fp == NULL) {
         char str[128];
-        sprintf(str,"Cannot open fix ttm file %s",arg[15]);
+        snprintf(str,128,"Cannot open fix ttm file %s",arg[15]);
         error->one(FLERR,str);
       }
     }
@@ -199,7 +199,7 @@ void FixTTM::init()
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot use fix ttm with 2d simulation");
   if (domain->nonperiodic != 0)
-    error->all(FLERR,"Cannot use nonperiodic boundares with fix ttm");
+    error->all(FLERR,"Cannot use non-periodic boundares with fix ttm");
   if (domain->triclinic)
     error->all(FLERR,"Cannot use fix ttm with triclinic box");
 
@@ -235,7 +235,7 @@ void FixTTM::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixTTM::post_force(int vflag)
+void FixTTM::post_force(int /*vflag*/)
 {
   double **x = atom->x;
   double **v = atom->v;
@@ -287,7 +287,7 @@ void FixTTM::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixTTM::post_force_setup(int vflag)
+void FixTTM::post_force_setup(int /*vflag*/)
 {
   double **f = atom->f;
   int *mask = atom->mask;
@@ -306,14 +306,14 @@ void FixTTM::post_force_setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixTTM::post_force_respa(int vflag, int ilevel, int iloop)
+void FixTTM::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1) post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixTTM::post_force_respa_setup(int vflag, int ilevel, int iloop)
+void FixTTM::post_force_respa_setup(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1) post_force_setup(vflag);
 }
@@ -685,7 +685,7 @@ int FixTTM::maxsize_restart()
    size of atom nlocal's restart data
 ------------------------------------------------------------------------- */
 
-int FixTTM::size_restart(int nlocal)
+int FixTTM::size_restart(int /*nlocal*/)
 {
   return 4;
 }

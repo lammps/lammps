@@ -8,10 +8,12 @@ Pair Styles :h1
    pair_adp
    pair_agni
    pair_airebo
+   pair_atm
    pair_awpmd
    pair_beck
-   pair_body
+   pair_body_nparticle
    pair_body_rounded_polygon
+   pair_body_rounded_polyhedron
    pair_bop
    pair_born
    pair_brownian
@@ -84,6 +86,7 @@ Pair Styles :h1
    pair_reaxc
    pair_resquared
    pair_sdk
+   pair_sdpd_taitwater_isothermal
    pair_smd_hertz
    pair_smd_tlsph
    pair_smd_triangulated_surface

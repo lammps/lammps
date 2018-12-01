@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -25,7 +25,6 @@ keyword = {*LINEAR} or {*WIGGLE} or {*ROTATE} :l
       Px,Py,Pz = origin point of axis of rotation (distance units)
       Rx,Ry,Rz = axis of rotation vector
       period = period of rotation (time units) :pre
-
 :ule
 
 [Examples:]
@@ -36,9 +35,11 @@ fix 2 tool smd/move_tri_surf *ROTATE 0 0 0 5 2 1 :pre
 
 [Description:]
 
-This fix applies only to rigid surfaces read from .STL files via fix "smd/wall_surface"_fix_smd_wall_surface.html .
-It updates position and velocity for the particles in the group each timestep without regard to forces on the particles.
-The rigid surfaces can thus be moved along simple trajectories during the simulation.
+This fix applies only to rigid surfaces read from .STL files via fix
+"smd/wall_surface"_fix_smd_wall_surface.html .  It updates position
+and velocity for the particles in the group each timestep without
+regard to forces on the particles.  The rigid surfaces can thus be
+moved along simple trajectories during the simulation.
 
 The {*LINEAR} style moves particles with the specified constant velocity
 vector V = (Vx,Vy,Vz). This style also sets the velocity of each particle
@@ -49,27 +50,30 @@ Particles are moved along (vx, vy, vz) with constant velocity until a
 displacement of max_travel is reached. Then, the velocity vector is
 reversed. This process is repeated.
 
-The {*ROTATE} style rotates particles around a rotation axis R = (Rx,Ry,Rz) that
-goes through a point P = (Px,Py,Pz). The period of the rotation is also
-specified. This style also sets the velocity of each particle to (omega cross
-Rperp) where omega is its angular velocity around the rotation axis and
-Rperp is a perpendicular vector from the rotation axis to the particle.
+The {*ROTATE} style rotates particles around a rotation axis R =
+(Rx,Ry,Rz) that goes through a point P = (Px,Py,Pz). The period of the
+rotation is also specified. This style also sets the velocity of each
+particle to (omega cross Rperp) where omega is its angular velocity
+around the rotation axis and Rperp is a perpendicular vector from the
+rotation axis to the particle.
 
-See "this PDF guide"_PDF/SMD_LAMMPS_userguide.pdf to using Smooth Mach Dynamics in LAMMPS.
+See "this PDF guide"_PDF/SMD_LAMMPS_userguide.pdf to using Smooth Mach
+Dynamics in LAMMPS.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
-Currently, no part of USER-SMD supports restarting nor minimization. This fix has no outputs.
+Currently, no part of USER-SMD supports restarting nor
+minimization. This fix has no outputs.
 
 [Restrictions:]
 
 This fix is part of the USER-SMD package.  It is only enabled if
-LAMMPS was built with that package. See the "Making LAMMPS"_Section_start.html#start_3
-section for more info.
-
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 
-"smd/triangle_mesh_vertices"_compute_smd_triangle_mesh_vertices.html, "smd/wall_surface"_fix_smd_wall_surface.html
+"smd/triangle_mesh_vertices"_compute_smd_triangle_vertices.html,
+"smd/wall_surface"_fix_smd_wall_surface.html
 
 [Default:] none

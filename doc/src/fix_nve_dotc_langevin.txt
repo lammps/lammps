@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -24,7 +24,7 @@ keyword = {angmom} :l
 
 [Examples:]
 
-fix 1 all nve/dotc/langevin 1.0 1.0 0.03 457145 angmom 10 
+fix 1 all nve/dotc/langevin 1.0 1.0 0.03 457145 angmom 10
 fix 1 all nve/dotc/langevin 0.1 0.1 78.9375 457145 angmom 10 :pre
 
 [Description:]
@@ -79,9 +79,9 @@ a Gaussian random number) for speed.
 :line
 
 {Tstart} and {Tstop} have to be constant values, i.e. they cannot
-be variables. If used together with the oxDNA force field for 
+be variables. If used together with the oxDNA force field for
 coarse-grained simulation of DNA please note that T = 0.1 in oxDNA units
-corresponds to T = 300 K.  
+corresponds to T = 300 K.
 
 The {damp} parameter is specified in time units and determines how
 rapidly the temperature is relaxed.  For example, a value of 0.03
@@ -92,10 +92,10 @@ viscosity of the solvent, i.e. a small relaxation time implies a
 hi-viscosity solvent and vice versa.  See the discussion about gamma
 and viscosity in the documentation for the "fix
 viscous"_fix_viscous.html command for more details.
-Note that the value 78.9375 in the second example above corresponds 
-to a diffusion constant, which is about an order of magnitude larger 
+Note that the value 78.9375 in the second example above corresponds
+to a diffusion constant, which is about an order of magnitude larger
 than realistic ones. This has been used to sample configurations faster
-in Brownian dynamics simulations. 
+in Brownian dynamics simulations.
 
 The random # {seed} must be a positive integer. A Marsaglia random
 number generator is used.  Each processor uses the input seed to
@@ -114,16 +114,16 @@ The scale factor after the {angmom} keyword gives the ratio of the rotational to
 the translational friction coefficient.
 
 An example input file can be found in /examples/USER/cgdna/examples/duplex2/.
-A technical report with more information on this integrator can be found
-"here"_PDF/USER-CGDNA-overview.pdf.
+Further details of the implementation and stability of the integrators are contained in "(Henrich)"_#Henrich4.
+The preprint version of the article can be found "here"_PDF/USER-CGDNA.pdf.
 
 :line
 
 [Restrictions:]
 
 These pair styles can only be used if LAMMPS was built with the
-"USER-CGDNA"_#USER-CGDNA package and the MOLECULE and ASPHERE package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info on packages.
+"USER-CGDNA"_Package_details.html#PKG-USER-CGDNA package and the MOLECULE and ASPHERE package.
+See the "Build package"_Build_package.html doc page for more info.
 
 [Related commands:]
 
@@ -139,3 +139,5 @@ LAMMPS"_Section_start.html#start_3 section for more info on packages.
 [(Miller)] T. F. Miller III, M. Eleftheriou, P. Pattnaik, A. Ndirango, G. J. Martyna, J. Chem. Phys., 116, 8649-8659 (2002).
 :link(Dunweg3)
 [(Dunweg)] B. Dunweg, W. Paul, Int. J. Mod. Phys. C, 2, 817-27 (1991).
+:link(Henrich4)
+[(Henrich)] O. Henrich, Y. A. Gutierrez-Fosado, T. Curk, T. E. Ouldridge, Eur. Phys. J. E 41, 57 (2018).

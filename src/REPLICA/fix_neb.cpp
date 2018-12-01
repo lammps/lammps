@@ -270,7 +270,7 @@ void FixNEB::min_setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixNEB::min_post_force(int vflag)
+void FixNEB::min_post_force(int /*vflag*/)
 {
   double vprev,vnext;
   double delxp,delyp,delzp,delxn,delyn,delzn;

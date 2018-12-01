@@ -1,0 +1,202 @@
+"Higher level section"_Intro.html - "LAMMPS WWW Site"_lws - "LAMMPS
+Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+LAMMPS features :h3
+
+LAMMPS is a classical molecular dynamics (MD) code with these general
+classes of functionality:
+
+"General features"_#general
+"Particle and model types"_#particle
+"Interatomic potentials (force fields)"_#ff
+"Atom creation"_#create
+"Ensembles, constraints, and boundary conditions"_#ensemble
+"Integrators"_#integrate
+"Diagnostics"_#diag
+"Output"_#output
+"Multi-replica models"_#replica1
+"Pre- and post-processing"_#prepost
+"Specialized features (beyond MD itself)"_#special :ul
+
+:line
+
+General features :h4,link(general)
+
+  runs on a single processor or in parallel
+  distributed-memory message-passing parallelism (MPI)
+  spatial-decomposition of simulation domain for parallelism
+  open-source distribution
+  highly portable C++
+  optional libraries used: MPI and single-processor FFT
+  GPU (CUDA and OpenCL), Intel Xeon Phi, and OpenMP support for many code features
+  easy to extend with new features and functionality
+  runs from an input script
+  syntax for defining and using variables and formulas
+  syntax for looping over runs and breaking out of loops
+  run one or multiple simulations simultaneously (in parallel) from one script
+  build as library, invoke LAMMPS thru library interface or provided Python wrapper
+  couple with other codes: LAMMPS calls other code, other code calls LAMMPS, umbrella code calls both :ul
+
+Particle and model types :h4,link(particle)
+("atom style"_atom_style.html command)
+
+  atoms
+  coarse-grained particles (e.g. bead-spring polymers)
+  united-atom polymers or organic molecules
+  all-atom polymers, organic molecules, proteins, DNA
+  metals
+  granular materials
+  coarse-grained mesoscale models
+  finite-size spherical and ellipsoidal particles
+  finite-size  line segment (2d) and triangle (3d) particles
+  point dipole particles
+  rigid collections of particles
+  hybrid combinations of these :ul
+
+Interatomic potentials (force fields) :h4,link(ff)
+("pair style"_pair_style.html, "bond style"_bond_style.html,
+"angle style"_angle_style.html, "dihedral style"_dihedral_style.html,
+"improper style"_improper_style.html, "kspace style"_kspace_style.html
+commands)
+
+  pairwise potentials: Lennard-Jones, Buckingham, Morse, Born-Mayer-Huggins, \
+    Yukawa, soft, class 2 (COMPASS), hydrogen bond, tabulated
+  charged pairwise potentials: Coulombic, point-dipole
+  many-body potentials: EAM, Finnis/Sinclair EAM, modified EAM (MEAM), \
+    embedded ion method (EIM), EDIP, ADP, Stillinger-Weber, Tersoff, \
+    REBO, AIREBO, ReaxFF, COMB, SNAP, Streitz-Mintmire, 3-body polymorphic
+  long-range interactions for charge, point-dipoles, and LJ dispersion: \
+    Ewald, Wolf, PPPM (similar to particle-mesh Ewald)
+  polarization models: "QEq"_fix_qeq.html, \
+    "core/shell model"_Howto_coreshell.html, \
+    "Drude dipole model"_Howto_drude.html
+  charge equilibration (QEq via dynamic, point, shielded, Slater methods)
+  coarse-grained potentials: DPD, GayBerne, REsquared, colloidal, DLVO
+  mesoscopic potentials: granular, Peridynamics, SPH
+  electron force field (eFF, AWPMD)
+  bond potentials: harmonic, FENE, Morse, nonlinear, class 2, \
+    quartic (breakable)
+  angle potentials: harmonic, CHARMM, cosine, cosine/squared, cosine/periodic, \
+    class 2 (COMPASS)
+  dihedral potentials: harmonic, CHARMM, multi-harmonic, helix, \
+    class 2 (COMPASS), OPLS
+  improper potentials: harmonic, cvff, umbrella, class 2 (COMPASS)
+  polymer potentials: all-atom, united-atom, bead-spring, breakable
+  water potentials: TIP3P, TIP4P, SPC
+  implicit solvent potentials: hydrodynamic lubrication, Debye
+  force-field compatibility with common CHARMM, AMBER, DREIDING, \
+    OPLS, GROMACS, COMPASS options
+  access to "KIM archive"_http://openkim.org of potentials via \
+    "pair kim"_pair_kim.html
+  hybrid potentials: multiple pair, bond, angle, dihedral, improper \
+    potentials can be used in one simulation
+  overlaid potentials: superposition of multiple pair potentials :ul
+
+Atom creation :h4,link(create)
+("read_data"_read_data.html, "lattice"_lattice.html,
+"create_atoms"_create_atoms.html, "delete_atoms"_delete_atoms.html,
+"displace_atoms"_displace_atoms.html, "replicate"_replicate.html commands)
+
+  read in atom coords from files
+  create atoms on one or more lattices (e.g. grain boundaries)
+  delete geometric or logical groups of atoms (e.g. voids)
+  replicate existing atoms multiple times
+  displace atoms :ul
+
+Ensembles, constraints, and boundary conditions :h4,link(ensemble)
+("fix"_fix.html command)
+
+  2d or 3d systems
+  orthogonal or non-orthogonal (triclinic symmetry) simulation domains
+  constant NVE, NVT, NPT, NPH, Parrinello/Rahman integrators
+  thermostatting options for groups and geometric regions of atoms
+  pressure control via Nose/Hoover or Berendsen barostatting in 1 to 3 dimensions
+  simulation box deformation (tensile and shear)
+  harmonic (umbrella) constraint forces
+  rigid body constraints
+  SHAKE bond and angle constraints
+  Monte Carlo bond breaking, formation, swapping
+  atom/molecule insertion and deletion
+  walls of various kinds
+  non-equilibrium molecular dynamics (NEMD)
+  variety of additional boundary conditions and constraints :ul
+
+Integrators :h4,link(integrate)
+("run"_run.html, "run_style"_run_style.html, "minimize"_minimize.html commands)
+
+  velocity-Verlet integrator
+  Brownian dynamics
+  rigid body integration
+  energy minimization via conjugate gradient or steepest descent relaxation
+  rRESPA hierarchical timestepping
+  rerun command for post-processing of dump files :ul
+
+Diagnostics :h4,link(diag)
+
+  see various flavors of the "fix"_fix.html and "compute"_compute.html commands :ul
+
+Output :h4,link(output)
+("dump"_dump.html, "restart"_restart.html commands)
+
+  log file of thermodynamic info
+  text dump files of atom coords, velocities, other per-atom quantities
+  binary restart files
+  parallel I/O of dump and restart files
+  per-atom quantities (energy, stress, centro-symmetry parameter, CNA, etc)
+  user-defined system-wide (log file) or per-atom (dump file) calculations
+  spatial and time averaging of per-atom quantities
+  time averaging of system-wide quantities
+  atom snapshots in native, XYZ, XTC, DCD, CFG formats :ul
+
+Multi-replica models :h4,link(replica1)
+
+"nudged elastic band"_neb.html
+"parallel replica dynamics"_prd.html
+"temperature accelerated dynamics"_tad.html
+"parallel tempering"_temper.html :ul
+
+Pre- and post-processing :h4,link(prepost)
+
+A handful of pre- and post-processing tools are packaged with LAMMPS,
+some of which can convert input and output files to/from formats used
+by other codes; see the "Toos"_Tools.html doc page. :ulb,l
+
+Our group has also written and released a separate toolkit called
+"Pizza.py"_pizza which provides tools for doing setup, analysis,
+plotting, and visualization for LAMMPS simulations.  Pizza.py is
+written in "Python"_python and is available for download from "the
+Pizza.py WWW site"_pizza. :l,ule
+
+:link(pizza,http://www.sandia.gov/~sjplimp/pizza.html)
+:link(python,http://www.python.org)
+
+Specialized features :h4,link(special)
+
+LAMMPS can be built with optional packages which implement a variety
+of additional capabilities.  See the "Packages"_Packages.html doc
+page for details.
+
+These are LAMMPS capabilities which you may not think of as typical
+classical MD options:
+
+"static"_balance.html and "dynamic load-balancing"_fix_balance.html
+"generalized aspherical particles"_Howto_body.html
+"stochastic rotation dynamics (SRD)"_fix_srd.html
+"real-time visualization and interactive MD"_fix_imd.html
+calculate "virtual diffraction patterns"_compute_xrd.html
+"atom-to-continuum coupling"_fix_atc.html with finite elements
+coupled rigid body integration via the "POEMS"_fix_poems.html library
+"QM/MM coupling"_fix_qmmm.html
+Monte Carlo via "GCMC"_fix_gcmc.html and "tfMC"_fix_tfmc.html and "atom swapping"_fix_atom_swap.html
+"path-integral molecular dynamics (PIMD)"_fix_ipi.html and "this as well"_fix_pimd.html
+"Direct Simulation Monte Carlo"_pair_dsmc.html for low-density fluids
+"Peridynamics mesoscale modeling"_pair_peri.html
+"Lattice Boltzmann fluid"_fix_lb_fluid.html
+"targeted"_fix_tmd.html and "steered"_fix_smd.html molecular dynamics
+"two-temperature electron model"_fix_ttm.html :ul

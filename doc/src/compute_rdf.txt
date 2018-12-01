@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -152,7 +152,7 @@ coordinate (center of the bin), Each successive set of 2 columns has
 the g(r) and coord(r) values for a specific set of {itypeN} versus
 {jtypeN} interactions, as described above.  These values can be used
 by any command that uses a global values from a compute as input.  See
-"Section 6.15"_Section_howto.html#howto_15 for an overview of
+the "Howto output"_Howto_output.html doc page for an overview of
 LAMMPS output options.
 
 The array values calculated by this compute are all "intensive".
@@ -182,7 +182,7 @@ change from zero to one at the location of the spike in g(r).
 
 NOTE: compute rdf can handle dynamic groups and systems where atoms
 are added or removed, but this causes that certain normalization
-parameters need to be recomputed in every step and include collective
+parameters need to be re-computed in every step and include collective
 communication operations. This will reduce performance and limit
 parallel efficiency and scaling. For systems, where only the type
 of atoms changes (e.g. when using "fix atom/swap"_fix_atom_swap.html),
@@ -191,7 +191,8 @@ via "compute_modify dynamic yes"_compute_modify.html
 
 [Related commands:]
 
-"fix ave/time"_fix_ave_time.html, "compute_modify"_compute_modify.html
+"fix ave/time"_fix_ave_time.html, "compute_modify"_compute_modify.html,
+"compute adf"_compute_adf.html
 
 [Default:]
 

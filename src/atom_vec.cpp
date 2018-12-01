@@ -66,7 +66,7 @@ void AtomVec::store_args(int narg, char **arg)
    no additional args by default
 ------------------------------------------------------------------------- */
 
-void AtomVec::process_args(int narg, char **arg)
+void AtomVec::process_args(int narg, char ** /*arg*/)
 {
   if (narg) error->all(FLERR,"Invalid atom_style command");
 }

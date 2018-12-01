@@ -92,11 +92,12 @@ class PPPMKokkos : public PPPM, public KokkosBase {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
 
-  PPPMKokkos(class LAMMPS *, int, char **);
+  PPPMKokkos(class LAMMPS *);
   virtual ~PPPMKokkos();
   virtual void init();
   virtual void setup();
   void setup_grid();
+  virtual void settings(int, char **);
   virtual void compute(int, int);
   virtual int timing_1d(int, double &);
   virtual int timing_3d(int, double &);
@@ -453,7 +454,7 @@ E: Kspace style requires atomKK attribute q
 
 UNDOCUMENTED
 
-E: Cannot use nonperiodic boundaries with PPPM
+E: Cannot use non-periodic boundaries with PPPM
 
 For kspace style pppm, all 3 dimensions must have periodic boundaries
 unless you use the kspace_modify command to define a 2d slab with a

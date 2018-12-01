@@ -42,9 +42,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-void BondsOMP( reax_system *system, control_params *control,
+void BondsOMP( reax_system *system, control_params * /* control */,
             simulation_data *data, storage *workspace, reax_list **lists,
-            output_controls *out_control )
+            output_controls * /* out_control */)
 {
 #ifdef OMP_TIMING
   double endTimeBase, startTimeBase;

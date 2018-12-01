@@ -1,0 +1,106 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+fix client/md command :h3
+
+[Syntax:]
+
+fix ID group-ID client/md :pre
+
+ID, group-ID are documented in "fix"_fix.html command
+client/md = style name of this fix command :ul
+
+[Examples:]
+
+fix 1 all client/md :pre
+
+[Description:]
+
+This fix style enables LAMMPS to run as a "client" code and
+communicate each timestep with a separate "server" code to perform an
+MD simulation together.
+
+The "Howto client/server"_Howto_client_server.html doc page gives an
+overview of client/server coupling of LAMMPS with another code where
+one code is the "client" and sends request messages to a "server"
+code.  The server responds to each request with a reply message.  This
+enables the two codes to work in tandem to perform a simulation.
+
+When using this fix, LAMMPS (as the client code) passes the current
+coordinates of all particles to the server code each timestep, which
+computes their interaction, and returns the energy, forces, and virial
+for the interacting particles to LAMMPS, so it can complete the
+timestep.
+
+The server code could be a quantum code, or another classical MD code
+which encodes a force field (pair_style in LAMMPS lingo) which LAMMPS
+does not have.  In the quantum case, this fix is a mechanism for
+running {ab initio} MD with quantum forces.
+
+The group associated with this fix is ignored.
+
+The protocol and "units"_units.html for message format and content
+that LAMMPS exchanges with the server code is defined on the "server
+md"_server_md.html doc page.
+
+Note that when using LAMMPS as an MD client, your LAMMPS input script
+should not normally contain force field commands, like a
+"pair_style"_pair_style.html, "bond_style"_bond_style.html, or
+"kspace_style"_kspace_style.html command.  However it is possible for
+a server code to only compute a portion of the full force-field, while
+LAMMPS computes the remaining part.  Your LAMMPS script can also
+specify boundary conditions or force constraints in the usual way,
+which will be added to the per-atom forces returned by the server
+code.
+
+See the examples/message dir for example scripts where LAMMPS is both
+the "client" and/or "server" code for this kind of client/server MD
+simulation.  The examples/message/README file explains how to launch
+LAMMPS and another code in tandem to perform a coupled simulation.
+
+:line
+
+[Restart, fix_modify, output, run start/stop, minimize info:]
+
+No information about this fix is written to "binary restart
+files"_restart.html.
+
+The "fix_modify"_fix_modify.html {energy} option is supported by this
+fix to add the potential energy computed by the server application to
+the system's potential energy as part of "thermodynamic
+output"_thermo_style.html.
+
+The "fix_modify"_fix_modify.html {virial} option is supported by this
+fix to add the server application's contribution to the system's
+virial as part of "thermodynamic output"_thermo_style.html.  The
+default is {virial yes}
+
+This fix computes a global scalar which can be accessed by various
+"output commands"_Howto_output.html.  The scalar is the potential
+energy discussed above.  The scalar value calculated by this fix is
+"extensive".
+
+No parameter of this fix can be used with the {start/stop} keywords of
+the "run"_run.html command.  This fix is not invoked during "energy
+minimization"_minimize.html.
+
+[Restrictions:]
+
+This fix is part of the MESSAGE package.  It is only enabled if LAMMPS
+was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
+
+A script that uses this command must also use the
+"message"_message.html command to setup the messaging protocol with
+the other server code.
+
+[Related commands:]
+
+"message"_message.html, "server"_server.html
+
+[Default:] none

@@ -1652,7 +1652,7 @@ void Atom::set_mass(const char *file, int line, int itype, double value)
    called from reading of input script
 ------------------------------------------------------------------------- */
 
-void Atom::set_mass(const char *file, int line, int narg, char **arg)
+void Atom::set_mass(const char *file, int line, int /*narg*/, char **arg)
 {
   if (mass == NULL) error->all(file,line,"Cannot set mass for this atom style");
 
@@ -1669,7 +1669,8 @@ void Atom::set_mass(const char *file, int line, int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   set all masses as read in from restart file
+   set all masses
+   called from reading of restart file, also from ServerMD
 ------------------------------------------------------------------------- */
 
 void Atom::set_mass(double *values)
@@ -2019,11 +2020,19 @@ void Atom::setup_sort_bins()
   // user setting if explicitly set
   // default = 1/2 of neighbor cutoff
   // check if neighbor cutoff = 0.0
+  // and in that case, disable sorting
 
   double binsize;
   if (userbinsize > 0.0) binsize = userbinsize;
-  else binsize = 0.5 * neighbor->cutneighmax;
-  if (binsize == 0.0) error->all(FLERR,"Atom sorting has bin size = 0.0");
+  else if (neighbor->cutneighmax > 0.0) binsize = 0.5 * neighbor->cutneighmax;
+
+  if ((binsize == 0.0) && (sortfreq > 0)) {
+    sortfreq = 0;
+    if (comm->me == 0)
+          error->warning(FLERR,"No pairwise cutoff or binsize set. "
+                         "Atom sorting therefore disabled.");
+    return;
+  }
 
   double bininv = 1.0/binsize;
 

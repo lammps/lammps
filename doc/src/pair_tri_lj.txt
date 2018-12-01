@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -52,7 +52,7 @@ spheres.  It the diameter is larger than sigma_II, then split the
 triangle into 2 triangles by bisecting its longest side.  Repeat the
 process on each sub-triangle, recursing as far as needed to generate a
 set of covering spheres.  When finished, the original criteria are
-met, and the set of covering spheres shoule be near minimal in number
+met, and the set of covering spheres should be near minimal in number
 and overlap, at least for input triangles with a reasonable
 aspect-ratio.
 
@@ -101,8 +101,8 @@ This pair style can only be used via the {pair} keyword of the
 [Restrictions:]
 
 This style is part of the ASPHERE package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS was built with that package.  See the "Build
+package"_Build_package.html doc page for more info.
 
 Defining particles to be triangles so they participate in tri/tri or
 tri/particle interactions requires the use the "atom_style

@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -50,17 +50,16 @@ follows the discussion in these 4 papers: "(HenkelmanA)"_#HenkelmanA,
 "(HenkelmanB)"_#HenkelmanB, "(Nakano)"_#Nakano3 and "(Maras)"_#Maras2.
 
 Each replica runs on a partition of one or more processors.  Processor
-partitions are defined at run-time using the -partition command-line
-switch; see "Section 2.6"_Section_start.html#start_6 of the manual.
-Note that if you have MPI installed, you can run a multi-replica
-simulation with more replicas (partitions) than you have physical
-processors, e.g you can run a 10-replica simulation on just one or two
-processors.  You will simply not get the performance speed-up you
-would see with one or more physical processors per replica.  See
-"Section 6.5"_Section_howto.html#howto_5 of the manual for further
-discussion.
+partitions are defined at run-time using the "-partition command-line
+switch"_Run_options.html.  Note that if you have MPI installed, you
+can run a multi-replica simulation with more replicas (partitions)
+than you have physical processors, e.g you can run a 10-replica
+simulation on just one or two processors.  You will simply not get the
+performance speed-up you would see with one or more physical
+processors per replica.  See the "Howto replica"_Howto_replica.html
+doc page for further discussion.
 
-NOTE: As explained below, a NEB calculation perfoms a damped dynamics
+NOTE: As explained below, a NEB calculation performs a damped dynamics
 minimization across all the replicas.  The minimizer uses whatever
 timestep you have defined in your input script, via the
 "timestep"_timestep.html command.  Often NEB will converge more
@@ -212,7 +211,7 @@ over a barrier.  The MEP for a transition is defined as a sequence of
 3N-dimensional states, each of which has a potential energy gradient
 parallel to the MEP itself.  The configuration of highest energy along
 a MEP corresponds to a saddle point.  The replica states will also be
-roughly equally spaced along the MEP due to the inter-replica nugding
+roughly equally spaced along the MEP due to the inter-replica nudging
 force added by the "fix neb"_fix_neb.html command.
 
 In the second stage of NEB, the replica with the highest energy is
@@ -339,9 +338,9 @@ energy gradient of image i.  ReplicaForce is the two-norm of the
 3N-length force vector (including nudging forces) for replica i.
 MaxAtomForce is the maximum force component of any atom in replica i.
 
-When a NEB calculation does not converge properly, the suplementary
+When a NEB calculation does not converge properly, the supplementary
 information can help understanding what is going wrong. For instance
-when the path angle becomes accute the definition of tangent used in
+when the path angle becomes acute, the definition of tangent used in
 the NEB calculation is questionable and the NEB cannot may diverge
 "(Maras)"_#Maras2.
 
@@ -396,8 +395,8 @@ image.
 [Restrictions:]
 
 This command can only be used if LAMMPS was built with the REPLICA
-package.  See the "Making LAMMPS"_Section_start.html#start_3 section
-for more info on packages.
+package.  See the "Build package"_Build_package.html doc
+page for more info.
 
 :line
 

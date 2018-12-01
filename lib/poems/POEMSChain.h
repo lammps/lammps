@@ -31,6 +31,7 @@ struct POEMSChain{
 		{
 			delete childChains(i);
 		}
+        listOfNodes.DeleteValues();
 	}
 	//void printTreeStructure(int tabs);
 	//void getTreeAsList(List<int> * temp);

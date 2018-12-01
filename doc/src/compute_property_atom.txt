@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -19,7 +19,7 @@ input = one or more atom attributes :l
                         x, y, z, xs, ys, zs, xu, yu, zu, ix, iy, iz,
                         vx, vy, vz, fx, fy, fz,
                         q, mux, muy, muz, mu,
-			sp, spx, spy, spz, fmx, fmy, fmz,
+                        sp, spx, spy, spz, fmx, fmy, fmz,
                         radius, diameter, omegax, omegay, omegaz,
                         angmomx, angmomy, angmomz,
                         shapex,shapey, shapez,
@@ -86,18 +86,18 @@ input = one or more atom attributes :l
 
 compute 1 all property/atom xs vx fx mux
 compute 2 all property/atom type
-compute 1 all property/atom ix iy iz 
+compute 1 all property/atom ix iy iz
 compute 3 all property/atom sp spx spy spz :pre
 
 [Description:]
 
 Define a computation that simply stores atom attributes for each atom
 in the group.  This is useful so that the values can be used by other
-"output commands"_Section_howto.html#howto_15 that take computes as
-inputs.  See for example, the "compute reduce"_compute_reduce.html,
-"fix ave/atom"_fix_ave_atom.html, "fix ave/histo"_fix_ave_histo.html,
-"fix ave/chunk"_fix_ave_chunk.html, and "atom-style
-variable"_variable.html commands.
+"output commands"_Howto_output.html that take computes as inputs.  See
+for example, the "compute reduce"_compute_reduce.html, "fix
+ave/atom"_fix_ave_atom.html, "fix ave/histo"_fix_ave_histo.html, "fix
+ave/chunk"_fix_ave_chunk.html, and "atom-style variable"_variable.html
+commands.
 
 The list of possible attributes is the same as that used by the "dump
 custom"_dump.html command, which describes their meaning, with some
@@ -149,8 +149,8 @@ on the number of input values.  If a single input is specified, a
 per-atom vector is produced.  If two or more inputs are specified, a
 per-atom array is produced where the number of columns = the number of
 inputs.  The vector or array can be accessed by any command that uses
-per-atom values from a compute as input.  See "this
-section"_Section_howto.html#howto_15 for an overview of LAMMPS output
+per-atom values from a compute as input.  See the "Howto
+output"_Howto_output.html doc page for an overview of LAMMPS output
 options.
 
 The vector or array values will be in whatever "units"_units.html the
@@ -158,8 +158,8 @@ corresponding attribute is in, e.g. velocity units for vx, charge
 units for q, etc.
 
 For the spin quantities, sp is in the units of the Bohr magneton, spx,
-spy, and spz are adimentional quantities, and fmx, fmy and fmz are 
-given in rad.THz. 
+spy, and spz are unitless quantities, and fmx, fmy and fmz are given
+in rad/THz.
 
 [Restrictions:] none
 

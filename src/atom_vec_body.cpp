@@ -82,6 +82,9 @@ AtomVecBody::~AtomVecBody()
 
 void AtomVecBody::process_args(int narg, char **arg)
 {
+  // suppress unused parameter warning dependent on style_body.h
+  (void)(arg);
+
   if (narg < 1) error->all(FLERR,"Invalid atom_style body command");
 
   if (0) bptr = NULL;

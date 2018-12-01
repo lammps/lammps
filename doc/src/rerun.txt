@@ -2,7 +2,7 @@
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
-:link(lc,Section_commands.html#comm)
+:link(lc,Commands_all.html)
 
 :line
 
@@ -150,8 +150,8 @@ indent"_fix_indent.html and "fix langevin"_fix_langevin.html.  So you
 should think carefully as to whether that makes sense for the manner
 in which you are reprocessing the dump snapshots.
 
-If you only want the rerun script to perform analyses that do not
-involve pair interactions, such as use compute msd to calculated
+If you only want the rerun script to perform an analysis that does
+not involve pair interactions, such as use compute msd to calculated
 displacements over time, you do not need to define a "pair
 style"_pair_style.html, which may also mean neighbor lists will not
 need to be calculated which saves time.  The "comm_modify
@@ -189,8 +189,8 @@ every 1000 steps, then you will only see thermodynamic output every
 [Restrictions:]
 
 To read gzipped dump files, you must compile LAMMPS with the
--DLAMMPS_GZIP option - see the "Making
-LAMMPS"_Section_start.html#start_2 section of the documentation.
+-DLAMMPS_GZIP option.  See the "Build settings"_Build_settings.html
+doc page for details.
 
 [Related commands:]
 

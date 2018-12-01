@@ -174,9 +174,9 @@ void Universe::add_world(char *str)
 
     // str may not be empty and may only consist of digits or 'x'
 
-    int len = strlen(str);
+    size_t len = strlen(str);
     if (len < 1) valid = false;
-    for (int i=0; i < len; ++i)
+    for (size_t i=0; i < len; ++i)
       if (isdigit(str[i]) || str[i] == 'x') continue;
       else valid = false;
 
@@ -204,7 +204,7 @@ void Universe::add_world(char *str)
 
     if (!valid) {
       char msg[128];
-      sprintf(msg,"Invalid partition string '%s'",str);
+      snprintf(msg,128,"Invalid partition string '%s'",str);
       error->universe_all(FLERR,msg);
     }
   } else nper = nprocs;
@@ -269,7 +269,7 @@ char *date2num(const char *version)
     year = atoi(version);
   }
 
-  char *ver = new char[10];
+  char *ver = new char[64];
   sprintf(ver,"%04d%02d%02d", year % 10000, month, day % 100);
 
   return ver;

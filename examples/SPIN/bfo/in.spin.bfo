@@ -21,9 +21,11 @@ mass		1 1.0
 
 set 		group all spin/random 11 2.50
 
-pair_style 	hybrid/overlay spin/exchange 6.0 spin/magelec 4.5
+#pair_style 	hybrid/overlay spin/exchange 6.0 spin/magelec 4.5
+pair_style 	hybrid/overlay spin/exchange 6.0 spin/magelec 4.5 spin/dmi 4.5
 pair_coeff 	* * spin/exchange exchange 6.0 -0.01575 0.0 1.965
 pair_coeff 	* * spin/magelec magelec 4.5 0.000109 1.0 1.0 1.0
+pair_coeff 	* * spin/dmi dmi 4.5 0.00005 1.0 1.0 1.0
 
 neighbor 	0.1 bin
 neigh_modify 	every 10 check yes delay 20
@@ -34,7 +36,7 @@ fix 		3 all nve/spin lattice no
 
 timestep	0.0002
 
-compute 	out_mag	 all compute/spin
+compute 	out_mag	 all spin
 compute 	out_pe	 all pe
 compute 	out_ke	 all ke
 compute 	out_temp all temp
@@ -44,10 +46,11 @@ variable 	magnorm	 equal c_out_mag[4]
 variable 	emag	 equal c_out_mag[5]
 variable 	tmag	 equal c_out_mag[6]
 
-thermo_style    custom step time v_magnorm v_emag temp etotal
-thermo          50
+#thermo_style    custom step time v_magnorm v_emag temp etotal
+thermo_style    custom step time v_magnorm pe ke v_emag temp etotal
+thermo          10
 
 compute outsp all property/atom spx spy spz sp fmx fmy fmz
 dump 100 all custom 1 dump_bfo.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3]
 
-run 		5000
+run 		2000

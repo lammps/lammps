@@ -707,7 +707,7 @@ void ReadData::command(int narg, char **arg)
 
       } else {
         char str[128];
-        sprintf(str,"Unknown identifier in data file: %s",keyword);
+        snprintf(str,128,"Unknown identifier in data file: %s",keyword);
         error->all(FLERR,str);
       }
 
@@ -1249,7 +1249,7 @@ void ReadData::bonds(int firstpass)
   int *count = NULL;
   if (firstpass) {
     memory->create(count,nlocal,"read_data:count");
-    for (int i = 0; i < nlocal; i++) count[i] = 0;
+    memset(count,0,nlocal*sizeof(int));
   }
 
   // read and process bonds
@@ -1332,7 +1332,7 @@ void ReadData::angles(int firstpass)
   int *count = NULL;
   if (firstpass) {
     memory->create(count,nlocal,"read_data:count");
-    for (int i = 0; i < nlocal; i++) count[i] = 0;
+    memset(count,0,nlocal*sizeof(int));
   }
 
   // read and process angles
@@ -1415,7 +1415,7 @@ void ReadData::dihedrals(int firstpass)
   int *count = NULL;
   if (firstpass) {
     memory->create(count,nlocal,"read_data:count");
-    for (int i = 0; i < nlocal; i++) count[i] = 0;
+    memset(count,0,nlocal*sizeof(int));
   }
 
   // read and process dihedrals
@@ -1436,7 +1436,7 @@ void ReadData::dihedrals(int firstpass)
 
   if (firstpass) {
     int max = 0;
-    for (int i = 0; i < nlocal; i++) max = MAX(max,count[i]);
+    for (int i = nlocal_previous; i < nlocal; i++) max = MAX(max,count[i]);
     int maxall;
     MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
     if (addflag == NONE) maxall += atom->extra_dihedral_per_atom;
@@ -1498,7 +1498,7 @@ void ReadData::impropers(int firstpass)
   int *count = NULL;
   if (firstpass) {
     memory->create(count,nlocal,"read_data:count");
-    for (int i = 0; i < nlocal; i++) count[i] = 0;
+    memset(count,0,nlocal*sizeof(int));
   }
 
   // read and process impropers
@@ -2000,7 +2000,7 @@ void ReadData::open(char *file)
   else {
 #ifdef LAMMPS_GZIP
     char gunzip[128];
-    sprintf(gunzip,"gzip -c -d %s",file);
+    snprintf(gunzip,128,"gzip -c -d %s",file);
 
 #ifdef _WIN32
     fp = _popen(gunzip,"rb");
@@ -2015,7 +2015,7 @@ void ReadData::open(char *file)
 
   if (fp == NULL) {
     char str[128];
-    sprintf(str,"Cannot open file %s",file);
+    snprintf(str,128,"Cannot open file %s",file);
     error->one(FLERR,str);
   }
 }

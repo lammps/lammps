@@ -279,6 +279,8 @@ public:
   KOKKOS_INLINE_FUNCTION
   static handle_type assign( value_type * arg_data_ptr, track_type const & arg_tracker )
     {
+      if(arg_data_ptr == NULL) return handle_type();
+
 #if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
       // Assignment of texture = non-texture requires creation of a texture object
       // which can only occur on the host.  In addition, 'get_record' is only valid

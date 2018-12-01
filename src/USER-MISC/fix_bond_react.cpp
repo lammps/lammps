@@ -1653,6 +1653,18 @@ void FixBondReact::find_landlocked_atoms(int myrxn)
     }
   }
 
+  // additionally, if a deleted atom is bonded to a undeleted atom, bad
+  for (int i = 0; i < onemol->natoms; i++) {
+    if (delete_atoms[i][myrxn] == 1) {
+      int ii = reverse_equiv[i][1][myrxn] - 1;
+      for (int j = 0; j < twomol_nxspecial[ii][0]; j++) {
+        if (delete_atoms[equivalences[twomol_xspecial[ii][j]-1][1][myrxn]-1][myrxn] == 0) {
+         error->one(FLERR,"A deleted atom cannot be bonded to an undeleted atom");
+        }
+      }
+    }
+  }
+
   // also, if atoms change number of bonds, but aren't landlocked, that could be bad
   if (me == 0)
     for (int i = 0; i < twomol->natoms; i++) {

@@ -40,7 +40,7 @@ below), Kb is the Boltzmann constant, T is the temperature, d is the
 dimensionality of the system (2 or 3 for 2d/3d), and V is the system
 volume (or area in 2d).  The second term is the virial, equal to
 -dU/dV, computed for all pairwise as well as 2-body, 3-body, 4-body,
-manybody, and long-range interactions, where r_i and f_i are the
+many-body, and long-range interactions, where r_i and f_i are the
 position and force vector of atom i, and the black dot indicates a dot
 product.  When periodic boundary conditions are used, N' necessarily
 includes periodic image (ghost) atoms outside the central box, and the
@@ -68,7 +68,7 @@ compute temperature or ke and/or the virial.  The {virial} keyword
 means include all terms except the kinetic energy {ke}.
 
 Details of how LAMMPS computes the virial efficiently for the entire
-system, including for manybody potentials and accounting for the
+system, including for many-body potentials and accounting for the
 effects of periodic boundary conditions are discussed in
 "(Thompson)"_#Thompson1.
 

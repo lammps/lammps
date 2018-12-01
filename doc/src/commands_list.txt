@@ -44,6 +44,7 @@ Commands :h1
    fix_modify
    group
    group2ndx
+   hyper
    if
    improper_coeff
    improper_style

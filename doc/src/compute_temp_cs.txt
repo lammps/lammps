@@ -74,7 +74,7 @@ relative to the COM velocity of the core/shell pair.  If this compute
 is used with a fix command that performs thermostatting then this bias
 will be subtracted from each atom, thermostatting of the remaining COM
 velocity will be performed, and the bias will be added back in.  This
-means the thermostating will effectively be performed on the
+means the thermostatting will effectively be performed on the
 core/shell pairs, instead of on the individual core and shell atoms.
 Thermostatting fixes that work in this way include "fix
 nvt"_fix_nh.html, "fix temp/rescale"_fix_temp_rescale.html, "fix

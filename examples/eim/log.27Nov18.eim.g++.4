@@ -1,0 +1,94 @@
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
+# NaCl test problem for embedded atom method (EIM) potential
+
+units		metal
+atom_style      atomic
+
+boundary	p p p
+
+lattice         diamond 5.0
+Lattice spacing in x,y,z = 5 5 5
+read_data       data.eim
+  orthogonal box = (-0.5 -0.5 -0.5) to (35.54 35.54 35.54)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  2000 atoms
+  reading velocities ...
+  2000 velocities
+
+pair_style      eim
+pair_coeff      * * Na Cl ffield.eim Na Cl
+Reading potential file ffield.eim with DATE: 2010-08-31
+
+neighbor	0.3 bin
+neigh_modify	delay 0
+
+timestep        0.001
+thermo_style    custom step pe pxx pyy pzz temp
+thermo          50
+
+velocity        all create 1400.0 43454 dist gaussian mom yes
+fix             int all npt temp 1400.0 300.0 0.1 aniso 0.0 0.0 0.1
+
+#dump		id all atom 100 dump.eim
+
+#dump		2 all image 25 image.*.jpg element element #		axes yes 0.8 0.02 view 60 -30
+#dump_modify	2 pad 3 element Na Cl
+
+#dump		3 all movie 25 movie.mpg element element #		axes yes 0.8 0.02 view 60 -30
+#dump_modify	3 pad 3 element Na Cl
+
+run             500
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 7.906
+  ghost atom cutoff = 7.906
+  binsize = 3.953, bins = 10 10 10
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair eim, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.051 | 3.051 | 3.051 Mbytes
+Step PotEng Pxx Pyy Pzz Temp 
+       0   -5660.4738   -118151.29   -117613.39   -118064.41         1400 
+      50   -5773.8755      1024.91    1034.0269     838.0568    891.54632 
+     100   -5742.8536     806.6806    769.72456     836.8687    838.72572 
+     150   -5738.7736   -355.86552     -362.389   -155.34159    900.47212 
+     200   -5704.2318   -227.29937   -538.51196    -762.1005    834.64611 
+     250   -5724.4788    502.49466    657.68817    529.01376    966.07978 
+     300   -5718.6085    457.03928    186.13362    725.43587    934.80653 
+     350   -5722.7713   -318.51677   -377.15809    125.76892    865.12488 
+     400   -5743.7387   -2.3555301    61.330533   -402.22943    840.67167 
+     450   -5751.2518   -437.13614   -374.77859    236.60865    743.10367 
+     500   -5780.5268   -750.96919   -793.62966   -1722.9652    712.74134 
+Loop time of 1.79017 on 4 procs for 500 steps with 2000 atoms
+
+Performance: 24.132 ns/day, 0.995 hours/ns, 279.303 timesteps/s
+98.3% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.5775     | 1.584      | 1.5959     |   0.6 | 88.48
+Neigh   | 0.10838    | 0.10882    | 0.10955    |   0.1 |  6.08
+Comm    | 0.050677   | 0.062797   | 0.069371   |   2.9 |  3.51
+Output  | 0.00031972 | 0.00056875 | 0.0013139  |   0.0 |  0.03
+Modify  | 0.027115   | 0.02819    | 0.028965   |   0.4 |  1.57
+Other   |            | 0.005774   |            |       |  0.32
+
+Nlocal:    500 ave 501 max 499 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:    2180.25 ave 2183 max 2177 min
+Histogram: 1 0 0 0 0 1 1 0 0 1
+Neighs:    24862.8 ave 25154 max 24659 min
+Histogram: 1 0 1 1 0 0 0 0 0 1
+
+Total # of neighbors = 99451
+Ave neighs/atom = 49.7255
+Neighbor list builds = 90
+Dangerous builds = 10
+Total wall time: 0:00:01

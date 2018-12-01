@@ -61,7 +61,7 @@ in "(Hecht)"_#Hecht.  The key idea behind using SRD particles as a
 cheap coarse-grained solvent is that SRD particles do not interact
 with each other, but only with the solute particles, which in LAMMPS
 can be spheroids, ellipsoids, or line segments, or triangles, or rigid
-bodies containing multiple spheriods or ellipsoids or line segments
+bodies containing multiple spheroids or ellipsoids or line segments
 or triangles.  The collision and rotation properties of the model
 imbue the SRD particles with fluid-like properties, including an
 effective viscosity.  Thus simulations with large solute particles can

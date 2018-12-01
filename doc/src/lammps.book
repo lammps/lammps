@@ -160,6 +160,7 @@ dump_cfg_uef.html
 echo.html
 group.html
 group2ndx.html
+hyper.html
 if.html
 include.html
 info.html
@@ -266,6 +267,7 @@ fix_eos_table.html
 fix_eos_table_rx.html
 fix_evaporate.html
 fix_external.html
+fix_ffl.html
 fix_filter_corotate.html
 fix_flow_gauss.html
 fix_freeze.html
@@ -276,6 +278,8 @@ fix_gravity.html
 fix_grem.html
 fix_halt.html
 fix_heat.html
+fix_hyper_global.html
+fix_hyper_local.html
 fix_imd.html
 fix_indent.html
 fix_ipi.html
@@ -292,6 +296,7 @@ fix_lb_viscous.html
 fix_lineforce.html
 fix_manifoldforce.html
 fix_meso.html
+fix_meso_move.html
 fix_meso_stationary.html
 fix_momentum.html
 fix_move.html
@@ -311,6 +316,7 @@ fix_npt_sphere.html
 fix_nve.html
 fix_nve_asphere.html
 fix_nve_asphere_noforce.html
+fix_nve_awpmd.html
 fix_nve_body.html
 fix_nve_dot.html
 fix_nve_dotc_langevin.html
@@ -335,6 +341,7 @@ fix_orient.html
 fix_phonon.html
 fix_pimd.html
 fix_planeforce.html
+fix_plumed.html
 fix_poems.html
 fix_pour.html
 fix_precession_spin.html
@@ -354,6 +361,7 @@ fix_reaxc_species.html
 fix_recenter.html
 fix_restrain.html
 fix_rigid.html
+fix_rigid_meso.html
 fix_rhok.html
 fix_rx.html
 fix_saed_vtk.html
@@ -374,7 +382,6 @@ fix_spring_self.html
 fix_srd.html
 fix_store_force.html
 fix_store_state.html
-fix_surface_global.html
 fix_temp_berendsen.html
 fix_temp_csvr.html
 fix_temp_rescale.html
@@ -403,6 +410,7 @@ lammps_commands_compute.html
 compute.html
 compute_modify.html
 compute_ackland_atom.html
+compute_adf.html
 compute_angle.html
 compute_angle_local.html
 compute_angmom_chunk.html
@@ -464,10 +472,12 @@ compute_pe.html
 compute_pe_atom.html
 compute_plasticity_atom.html
 compute_pressure.html
+compute_pressure_cylinder.html
 compute_pressure_uef.html
 compute_property_atom.html
 compute_property_chunk.html
 compute_property_local.html
+compute_ptm_atom.html
 compute_rdf.html
 compute_reduce.html
 compute_reduce_chunk.html
@@ -488,7 +498,7 @@ compute_smd_tlsph_shape.html
 compute_smd_tlsph_strain.html
 compute_smd_tlsph_strain_rate.html
 compute_smd_tlsph_stress.html
-compute_smd_triangle_mesh_vertices.html
+compute_smd_triangle_vertices.html
 compute_smd_ulsph_num_neighs.html
 compute_smd_ulsph_strain.html
 compute_smd_ulsph_strain_rate.html
@@ -611,6 +621,7 @@ pair_reax.html
 pair_reaxc.html
 pair_resquared.html
 pair_sdk.html
+pair_sdpd_taitwater_isothermal.html
 pair_smd_hertz.html
 pair_smd_tlsph.html
 pair_smd_triangulated_surface.html

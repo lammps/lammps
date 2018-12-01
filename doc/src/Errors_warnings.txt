@@ -291,24 +291,6 @@ This may cause accuracy problems. :dd
 
 This may cause accuracy problems. :dd
 
-{Fix thermal/conductivity comes before fix ave/spatial} :dt
-
-The order of these 2 fixes in your input script is such that fix
-thermal/conductivity comes first.  If you are using fix ave/spatial to
-measure the temperature profile induced by fix viscosity, then this
-may cause a glitch in the profile since you are averaging immediately
-after swaps have occurred.  Flipping the order of the 2 fixes
-typically helps. :dd
-
-{Fix viscosity comes before fix ave/spatial} :dt
-
-The order of these 2 fixes in your input script is such that
-fix viscosity comes first.  If you are using fix ave/spatial
-to measure the velocity profile induced by fix viscosity, then
-this may cause a glitch in the profile since you are averaging
-immediately after swaps have occurred.  Flipping the order
-of the 2 fixes typically helps. :dd
-
 {Fixes cannot send data in Kokkos communication, switching to classic communication} :dt
 
 This is current restriction with Kokkos. :dd
@@ -775,7 +757,7 @@ Self-explanatory. :dd
 
 This may indicate the shell command did not operate as expected. :dd
 
-{Should not allow rigid bodies to bounce off relecting walls} :dt
+{Should not allow rigid bodies to bounce off reflecting walls} :dt
 
 LAMMPS allows this, but their dynamics are not computed correctly. :dd
 
@@ -868,10 +850,10 @@ Most FENE models need this setting for the special_bonds command. :dd
 
 Most FENE models need this setting for the special_bonds command. :dd
 
-{Using a manybody potential with bonds/angles/dihedrals and special_bond exclusions} :dt
+{Using a many-body potential with bonds/angles/dihedrals and special_bond exclusions} :dt
 
 This is likely not what you want to do.  The exclusion settings will
-eliminate neighbors in the neighbor list, which the manybody potential
+eliminate neighbors in the neighbor list, which the many-body potential
 needs to calculated its terms correctly. :dd
 
 {Using compute temp/deform with inconsistent fix deform remap option} :dt

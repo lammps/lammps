@@ -611,7 +611,7 @@ void CommBrick::exchange()
   maxexchange = maxexchange_atom + maxexchange_fix;
   bufextra = maxexchange + BUFEXTRA;
   if (bufextra > bufextra_old)
-    memory->grow(buf_send,maxsend+bufextra,"comm:buf_send");
+    grow_send(maxsend+bufextra,1);
 
   // subbox bounds for orthogonal or triclinic
 
@@ -1477,8 +1477,10 @@ void CommBrick::free_multi()
 
 void *CommBrick::extract(const char *str, int &dim)
 {
+  dim = 0;
   if (strcmp(str,"localsendlist") == 0) {
     int i, iswap, isend;
+    dim = 1;
     if (!localsendlist)
       memory->create(localsendlist,atom->nlocal,"comm:localsendlist");
     else

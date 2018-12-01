@@ -7,9 +7,8 @@
 :line
 
 pair_style hybrid command :h3
-pair_style hybrid/omp command :h3
+pair_style hybrid/kk command :h3
 pair_style hybrid/overlay command :h3
-pair_style hybrid/overlay/omp command :h3
 pair_style hybrid/overlay/kk command :h3
 
 [Syntax:]
@@ -230,7 +229,7 @@ For use with the various "compute */tally"_compute_tally.html
 computes, the "pair_modify compute/tally"_pair_modify.html
 command can be used to selectively turn off processing of
 the compute tally styles, for example, if those pair styles
-(e.g. manybody styles) do not support this feature.
+(e.g. many-body styles) do not support this feature.
 
 See the "pair_modify"_pair_modify.html doc page for details on
 the specific syntax, requirements and restrictions.
@@ -271,7 +270,7 @@ atoms when the potential computes 3-body or 4-body interactions.
 
 However, you can still use the pair_coeff none setting or the
 "neigh_modify exclude"_neigh_modify.html command to exclude certain
-type pairs from the neighbor list that will be passed to a manybody
+type pairs from the neighbor list that will be passed to a many-body
 sub-style.  This will alter the calculations made by a many-body
 potential, since it builds its list of 3-body, 4-body, etc
 interactions from the pair list.  You will need to think carefully as

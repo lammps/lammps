@@ -37,7 +37,7 @@ Style {ufm} computes pairwise interactions using the Uhlenbeck-Ford model (UFM) 
 
 where rc is the cutoff, sigma is a distance-scale and epsilon is an energy-scale, i.e., a product of Boltzmann constant kB, temperature T and the Uhlenbeck-Ford p-parameter which is responsible
 to control the softness of the interactions "(Paula Leite2017)"_#PL1.
-This model is useful as a reference system for fluid-phase free-energy calculations "(Paula Leite2016)"_#PL2. 
+This model is useful as a reference system for fluid-phase free-energy calculations "(Paula Leite2016)"_#PL2.
 
 The following coefficients must be defined for each pair of atom types
 via the "pair_coeff"_pair_coeff.html command as in the examples above,

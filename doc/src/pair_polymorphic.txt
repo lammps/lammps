@@ -95,7 +95,7 @@ N element names = mapping of Tersoff elements to atom types :ul
 
 See the pair_coeff doc page for alternate ways to specify the path for
 the potential file.  Several files for polymorphic potentials are
-included in the potentials dir of the LAMMPS distro.  They have a
+included in the potentials dir of the LAMMPS distribution.  They have a
 "poly" suffix.
 
 As an example, imagine the SiC_tersoff.polymorphic file has tabulated

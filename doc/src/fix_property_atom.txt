@@ -7,6 +7,7 @@
 :line
 
 fix property/atom command :h3
+fix property/atom/kk command :h3
 
 [Syntax:]
 
@@ -99,7 +100,7 @@ then you most likely want to set {ghost} yes, since these properties
 are stored with ghost atoms if you use an "atom_style"_atom_style.html
 that defines them, and many LAMMPS operations that use molecule IDs or
 charge, such as neighbor lists and pair styles, will expect ghost
-atoms to have these valuse.  LAMMPS will issue a warning it you define
+atoms to have these values.  LAMMPS will issue a warning it you define
 those vectors but do not set {ghost} yes.
 
 NOTE: The properties for ghost atoms are not updated every timestep,
@@ -169,7 +170,7 @@ assigned a molecule ID of 4.
 
 Note that "atomfile-style variables"_variable.html can also be used in
 place of atom-style variables, which means in this case that the
-molecule IDs could be read-in from a separate file and assinged by the
+molecule IDs could be read-in from a separate file and assigned by the
 "set"_set.html command.  This allows you to initialize new per-atom
 properties in a completely general fashion.
 
@@ -201,6 +202,7 @@ added classes.
 :line
 
 :link(isotopes)
+
 Example for using per-atom masses with TIP4P water to
 study isotope effects. When setting up simulations with the "TIP4P
 pair styles"_Howto_tip4p.html for water, you have to provide exactly
@@ -235,6 +237,28 @@ example to heavy water:
 group hwat id 2:300:3
 group hwat id 3:300:3
 set group hwat mass 2.0141018 :pre
+
+:line
+
+Styles with a {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed on the "Speed packages"_Speed_packages.html doc
+page.  The accelerated styles take the same arguments and should
+produce the same results, except for round-off and precision issues.
+
+These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
+USER-OMP and OPT packages, respectively.  They are only enabled if
+LAMMPS was built with those packages.  See the "Build
+package"_Build_package.html doc page for more info.
+
+You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the "-suffix command-line
+switch"_Run_options.html when you invoke LAMMPS, or you can use the
+"suffix"_suffix.html command in your input script.
+
+See the "Speed packages"_Speed_packages.html doc page for more
+instructions on how to use the accelerated styles effectively.
 
 :line
 

@@ -5,7 +5,7 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 :link(ld,Manual.html)
 :link(lc,Commands_all.html)
 
-"All commands"_Commands_all.html,
+"General commands"_Commands_all.html,
 "Fix styles"_Commands_fix.html,
 "Compute styles"_Commands_compute.html,
 "Pair styles"_Commands_pair.html,
@@ -34,7 +34,7 @@ OPT.
 "fene (iko)"_bond_fene.html,
 "fene/expand (o)"_bond_fene_expand.html,
 "gromos (o)"_bond_gromos.html,
-"harmonic (ko)"_bond_harmonic.html,
+"harmonic (iko)"_bond_harmonic.html,
 "harmonic/shift (o)"_bond_harmonic_shift.html,
 "harmonic/shift/cut (o)"_bond_harmonic_shift_cut.html,
 "morse (o)"_bond_morse.html,
@@ -57,9 +57,11 @@ OPT.
 "zero"_angle_zero.html,
 "hybrid"_angle_hybrid.html :tb(c=3,ea=c)
 
-"charmm (ko)"_angle_charmm.html,
+"charmm (iko)"_angle_charmm.html,
 "class2 (ko)"_angle_class2.html,
+"class2/p6"_angle_class2.html,
 "cosine (o)"_angle_cosine.html,
+"cosine/buck6d"_angle_cosine_buck6d.html,
 "cosine/delta (o)"_angle_cosine_delta.html,
 "cosine/periodic (o)"_angle_cosine_periodic.html,
 "cosine/shift (o)"_angle_cosine_shift.html,
@@ -70,7 +72,7 @@ OPT.
 "fourier/simple (o)"_angle_fourier_simple.html,
 "harmonic (iko)"_angle_harmonic.html,
 "quartic (o)"_angle_quartic.html,
-"sdk"_angle_sdk.html,
+"sdk (o)"_angle_sdk.html,
 "table (o)"_angle_table.html :tb(c=4,ea=c)
 
 :line
@@ -97,7 +99,7 @@ OPT.
 "nharmonic (o)"_dihedral_nharmonic.html,
 "opls (iko)"_dihedral_opls.html,
 "quadratic (o)"_dihedral_quadratic.html,
-"spherical (o)"_dihedral_spherical.html,
+"spherical"_dihedral_spherical.html,
 "table (o)"_dihedral_table.html,
 "table/cut"_dihedral_table_cut.html :tb(c=4,ea=c)
 
@@ -112,7 +114,7 @@ OPT.
 
 "none"_improper_none.html,
 "zero"_improper_zero.html,
-"hybrid"_improper_hybrid.html  :tb(c=3,ea=c)
+"hybrid"_improper_hybrid.html :tb(c=3,ea=c)
 
 "class2 (ko)"_improper_class2.html,
 "cossq (o)"_improper_cossq.html,
@@ -120,5 +122,6 @@ OPT.
 "distance"_improper_distance.html,
 "fourier (o)"_improper_fourier.html,
 "harmonic (iko)"_improper_harmonic.html,
+"inversion/harmonic"_improper_inversion_harmonic.html,
 "ring (o)"_improper_ring.html,
 "umbrella (o)"_improper_umbrella.html :tb(c=4,ea=c)

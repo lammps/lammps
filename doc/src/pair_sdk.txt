@@ -13,6 +13,8 @@ pair_style lj/sdk/omp command :h3
 pair_style lj/sdk/coul/long command :h3
 pair_style lj/sdk/coul/long/gpu command :h3
 pair_style lj/sdk/coul/long/omp command :h3
+pair_style lj/sdk/coul/msm command :h3
+pair_style lj/sdk/coul/msm/omp command :h3
 
 [Syntax:]
 
@@ -35,6 +37,10 @@ pair_style lj/sdk/coul/long 10.0
 pair_style lj/sdk/coul/long 10.0 12.0
 pair_coeff 1 1 lj9_6 100.0 3.5 12.0 :pre
 
+pair_style lj/sdk/coul/msm 10.0
+pair_style lj/sdk/coul/msm 10.0 12.0
+pair_coeff 1 1 lj9_6 100.0 3.5 12.0 :pre
+
 [Description:]
 
 The {lj/sdk} styles compute a 9/6, 12/4, or 12/6 Lennard-Jones potential,
@@ -42,7 +48,7 @@ given by
 
 :c,image(Eqs/pair_cmm.jpg)
 
-as required for the SDK Coarse-grained MD parametrization discussed in
+as required for the SDK Coarse-grained MD parameterization discussed in
 "(Shinoda)"_#Shinoda3 and "(DeVane)"_#DeVane.  Rc is the cutoff.
 
 Style {lj/sdk/coul/long} computes the adds Coulombic interactions
@@ -75,10 +81,10 @@ and Coulombic interactions for this type pair.  If both coefficients
 are specified, they are used as the LJ and Coulombic cutoffs for this
 type pair.
 
-For {lj/sdk/coul/long} only the LJ cutoff can be specified since a
-Coulombic cutoff cannot be specified for an individual I,J type pair.
-All type pairs use the same global Coulombic cutoff specified in the
-pair_style command.
+For {lj/sdk/coul/long} and {lj/sdk/coul/msm} only the LJ cutoff can be
+specified since a Coulombic cutoff cannot be specified for an
+individual I,J type pair.  All type pairs use the same global
+Coulombic cutoff specified in the pair_style command.
 
 :line
 

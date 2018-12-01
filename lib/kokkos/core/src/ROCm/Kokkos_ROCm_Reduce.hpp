@@ -57,7 +57,6 @@
 #include <ROCm/Kokkos_ROCm_Tile.hpp>
 #include <ROCm/Kokkos_ROCm_Invoke.hpp>
 #include <ROCm/Kokkos_ROCm_Join.hpp>
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace Kokkos {
@@ -75,7 +74,7 @@ T& reduce_value(T* x, std::false_type) [[hc]]
   return *x;
 }
 
-#if KOKKOS_ROCM_HAS_WORKAROUNDS
+#ifdef KOKKOS_IMPL_ROCM_CLANG_WORKAROUND
 struct always_true
 {
     template<class... Ts>
@@ -149,7 +148,7 @@ void reduce_enqueue(
       // Store the tile result in the global memory.
       if (local == 0)
       {
-#if KOKKOS_ROCM_HAS_WORKAROUNDS
+#ifdef KOKKOS_IMPL_ROCM_CLANG_WORKAROUND
           // Workaround for assigning from LDS memory: std::copy should work
           // directly
           buffer.action_at(0, [&](T* x)
@@ -158,7 +157,7 @@ void reduce_enqueue(
 // new ROCM 15 address space changes aren't implemented in std algorithms yet
               auto * src = reinterpret_cast<char *>(x);
               auto * dest = reinterpret_cast<char *>(result.data()+tile*output_length);
-              for(int i=0; i<sizeof(T);i++) dest[i] = src[i];
+              for(int i=0; i<sizeof(T)*output_length;i++) dest[i] = src[i];
 #else
               // Workaround: copy_if used to avoid memmove
               std::copy_if(x, x+output_length, result.data()+tile*output_length, always_true{} );
@@ -169,12 +168,10 @@ void reduce_enqueue(
 
 #endif
       }
-      
   });
   if (output_result != nullptr)
      ValueInit::init(ReducerConditional::select(f, reducer), output_result);
   fut.wait();
-
   copy(result,result_cpu.data());
   if (output_result != nullptr) {
     for(std::size_t i=0;i<td.num_tiles;i++)

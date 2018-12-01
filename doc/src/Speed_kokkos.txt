@@ -13,11 +13,11 @@ Kokkos is a templated C++ library that provides abstractions to allow
 a single implementation of an application kernel (e.g. a pair style)
 to run efficiently on different kinds of hardware, such as GPUs, Intel
 Xeon Phis, or many-core CPUs. Kokkos maps the C++ kernel onto
-different backend languages such as CUDA, OpenMP, or Pthreads.  The
+different back end languages such as CUDA, OpenMP, or Pthreads.  The
 Kokkos library also provides data abstractions to adjust (at compile
 time) the memory layout of data structures like 2d and 3d arrays to
 optimize performance on different hardware. For more information on
-Kokkos, see "Github"_https://github.com/kokkos/kokkos. Kokkos is part
+Kokkos, see "GitHub"_https://github.com/kokkos/kokkos. Kokkos is part
 of "Trilinos"_http://trilinos.sandia.gov/packages/kokkos. The Kokkos
 library was written primarily by Carter Edwards, Christian Trott, and
 Dan Sunderland (all Sandia).
@@ -106,10 +106,10 @@ modification to the input script is needed. Alternatively, one can run
 with the KOKKOS package by editing the input script as described
 below.
 
-NOTE: When using a single OpenMP thread, the Kokkos Serial backend (i.e. 
-Makefile.kokkos_mpi_only) will give better performance than the OpenMP 
-backend (i.e. Makefile.kokkos_omp) because some of the overhead to make 
-the code thread-safe is removed. 
+NOTE: When using a single OpenMP thread, the Kokkos Serial back end (i.e.
+Makefile.kokkos_mpi_only) will give better performance than the OpenMP
+back end (i.e. Makefile.kokkos_omp) because some of the overhead to make
+the code thread-safe is removed.
 
 NOTE: The default for the "package kokkos"_package.html command is to
 use "full" neighbor lists and set the Newton flag to "off" for both
@@ -127,21 +127,21 @@ mpirun -np 16 lmp_kokkos_mpi_only -k on -sf kk -pk kokkos newton on neigh half c
 If the "newton"_newton.html command is used in the input
 script, it can also override the Newton flag defaults.
 
-For half neighbor lists and OpenMP, the KOKKOS package uses data 
-duplication (i.e. thread-private arrays) by default to avoid 
-thread-level write conflicts in the force arrays (and other data 
-structures as necessary). Data duplication is typically fastest for 
-small numbers of threads (i.e. 8 or less) but does increase memory 
-footprint and is not scalable to large numbers of threads. An 
-alternative to data duplication is to use thread-level atomics, which 
-don't require duplication. The use of atomics can be forced by compiling 
-with the "-DLMP_KOKKOS_USE_ATOMICS" compile switch. Most but not all 
-Kokkos-enabled pair_styles support data duplication. Alternatively, full 
-neighbor lists avoid the need for duplication or atomics but require 
-more compute operations per atom. When using the Kokkos Serial backend 
-or the OpenMP backend with a single thread, no duplication or atomics are 
-used. For CUDA and half neighbor lists, the KOKKOS package always uses 
-atomics.
+For half neighbor lists and OpenMP, the KOKKOS package uses data
+duplication (i.e. thread-private arrays) by default to avoid
+thread-level write conflicts in the force arrays (and other data
+structures as necessary). Data duplication is typically fastest for
+small numbers of threads (i.e. 8 or less) but does increase memory
+footprint and is not scalable to large numbers of threads. An
+alternative to data duplication is to use thread-level atomic operations
+which do not require data duplication. The use of atomic operations can
+be enforced by compiling LAMMPS with the "-DLMP_KOKKOS_USE_ATOMICS"
+pre-processor flag. Most but not all Kokkos-enabled pair_styles support
+data duplication. Alternatively, full neighbor lists avoid the need for
+duplication or atomic operations but require more compute operations per
+atom.  When using the Kokkos Serial back end or the OpenMP back end with
+a single thread, no duplication or atomic operations are used. For CUDA
+and half neighbor lists, the KOKKOS package always uses atomic operations.
 
 [Core and Thread Affinity:]
 
@@ -193,7 +193,7 @@ threads/task as Nt. The product of these two values should be N, i.e.
 NOTE: The default for the "package kokkos"_package.html command is to
 use "full" neighbor lists and set the Newton flag to "off" for both
 pairwise and bonded interactions. When running on KNL, this will
-typically be best for pair-wise potentials. For manybody potentials,
+typically be best for pair-wise potentials. For many-body potentials,
 using "half" neighbor lists and setting the Newton flag to "on" may be
 faster. It can also be faster to use non-threaded communication.  Use
 the "-pk kokkos" "command-line switch"_Run_options.html to change the
@@ -207,7 +207,7 @@ mpirun -np 64 lmp_kokkos_phi -k on t 4 -sf kk -pk kokkos newton on neigh half co
 NOTE: MPI tasks and threads should be bound to cores as described
 above for CPUs.
 
-NOTE: To build with Kokkos support for Intel Xeon Phi coprocessors
+NOTE: To build with Kokkos support for Intel Xeon Phi co-processors
 such as Knight's Corner (KNC), your system must be configured to use
 them in "native" mode, not "offload" mode like the USER-INTEL package
 supports.

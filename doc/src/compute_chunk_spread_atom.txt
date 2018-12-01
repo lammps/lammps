@@ -74,7 +74,7 @@ produces a global vector or array.
 
 :line
 
-Each listed input is operated on independently.  
+Each listed input is operated on independently.
 
 If a bracketed index I is used, it can be specified using a wildcard
 asterisk with the index to effectively specify multiple values.  This
@@ -134,16 +134,16 @@ compute         gyr all gyration/chunk cmol
 variable        ave equal ave(c_gyr)
 thermo_style    custom step etotal press v_ave :pre
 
-       0    22.394765    4.6721833     5.128278 
-     100    22.445002    4.8166709    5.0348372 
-     200    22.500128    4.8790392    4.9364875 
-     300    22.534686    4.9183766    4.8590693 
-     400    22.557196    4.9492211    4.7937849 
-     500    22.571017    4.9161853    4.7412008 
-     600    22.573944    5.0229708    4.6931243 
-     700    22.581804    5.0541301    4.6440647 
-     800    22.584683    4.9691734    4.6000016 
-     900     22.59128    5.0247538    4.5611513 
+       0    22.394765    4.6721833     5.128278
+     100    22.445002    4.8166709    5.0348372
+     200    22.500128    4.8790392    4.9364875
+     300    22.534686    4.9183766    4.8590693
+     400    22.557196    4.9492211    4.7937849
+     500    22.571017    4.9161853    4.7412008
+     600    22.573944    5.0229708    4.6931243
+     700    22.581804    5.0541301    4.6440647
+     800    22.584683    4.9691734    4.6000016
+     900     22.59128    5.0247538    4.5611513
     1000    22.586832      4.94697    4.5238362 :pre
 
 :line

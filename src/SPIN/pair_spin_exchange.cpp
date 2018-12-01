@@ -323,7 +323,7 @@ void PairSpinExchange::compute_single_pair(int ii, double fmi[3])
   double **x = atom->x;
   double **sp = atom->sp;
   double local_cut2;
-  double xi[3], rij[3];
+  double xi[3];
   double delx,dely,delz;
   double spj[3];
 

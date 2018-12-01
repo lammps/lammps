@@ -34,7 +34,7 @@ cause the force to vary smoothly from the inner cutoff Rin to the
 outer cutoff Rc.
 
 At the inner cutoff the force and its 1st derivative
-will match the unsmoothed LJ formula.  At the outer cutoff the force
+will match the non-smoothed LJ formula.  At the outer cutoff the force
 and its 1st derivative will be 0.0.  The inner cutoff cannot be 0.0.
 
 NOTE: this force smoothing causes the energy to be discontinuous both

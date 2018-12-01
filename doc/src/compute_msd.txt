@@ -50,7 +50,7 @@ The value of the displacement will be
 
 If the {com} option is set to {yes} then the effect of any drift in
 the center-of-mass of the group of atoms is subtracted out before the
-displacment of each atom is calculated.
+displacement of each atom is calculated.
 
 If the {average} option is set to {yes} then the reference position of
 an atom is based on the average position of that atom, corrected for

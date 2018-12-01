@@ -25,44 +25,44 @@ pair_coeff 1 2 dmi 4.0 0.00109 0.0 0.0 1.0 :pre
 [Description:]
 
 Style {spin/dmi} computes the Dzyaloshinskii-Moriya (DM) interaction
-between pairs of magnetic spins. 
+between pairs of magnetic spins.
 According to the expression reported in "(Rohart)"_#Rohart, one has
 the following DM energy:
 
 :c,image(Eqs/pair_spin_dmi_interaction.jpg)
 
-where si and sj are two neighboring magnetic spins of two particles, 
+where si and sj are two neighboring magnetic spins of two particles,
 eij = (ri - rj)/|ri-rj| is the unit vector between sites i and j,
-and D is the DM vector defining the intensity (in eV) and the direction 
+and D is the DM vector defining the intensity (in eV) and the direction
 of the interaction.
 
-In "(Rohart)"_#Rohart, D is defined as the direction normal to the film oriented 
-from the high spin-orbit layer to the magnetic ultrathin film.
+In "(Rohart)"_#Rohart, D is defined as the direction normal to the film oriented
+from the high spin-orbit layer to the magnetic ultra-thin film.
 
 The application of a spin-lattice Poisson bracket to this energy (as described
 in "(Tranchida)"_#Tranchida5) allows to derive a magnetic torque omega, and a
-mechanical force F (for spin-lattice calculations only) for each magnetic 
-particle i: 
+mechanical force F (for spin-lattice calculations only) for each magnetic
+particle i:
 
 :c,image(Eqs/pair_spin_dmi_forces.jpg)
 
 More details about the derivation of these torques/forces are reported in
 "(Tranchida)"_#Tranchida5.
 
-For the {spin/dmi} pair style, the following coefficients must be defined for 
-each pair of atoms types via the "pair_coeff"_pair_coeff.html command as in 
-the examples above, or in the data file or restart files read by the 
-"read_data"_read_data.html or "read_restart"_read_restart.html commands, and 
-set in the following order: 
+For the {spin/dmi} pair style, the following coefficients must be defined for
+each pair of atoms types via the "pair_coeff"_pair_coeff.html command as in
+the examples above, or in the data file or restart files read by the
+"read_data"_read_data.html or "read_restart"_read_restart.html commands, and
+set in the following order:
 
 rc (distance units)
 |D| (energy units)
 Dx, Dy, Dz  (direction of D) :ul
 
-Note that rc is the radius cutoff of the considered DM interaction, |D| is 
-the norm of the DM vector (in eV), and Dx, Dy and Dz define its direction. 
+Note that rc is the radius cutoff of the considered DM interaction, |D| is
+the norm of the DM vector (in eV), and Dx, Dy and Dz define its direction.
 
-None of those coefficients is optional.  If not specified, the {spin/dmi} 
+None of those coefficients is optional.  If not specified, the {spin/dmi}
 pair style cannot be used.
 
 :line
@@ -76,7 +76,7 @@ package"_Build_package.html doc page for more info.
 
 [Related commands:]
 
-"atom_style spin"_atom_style.html, "pair_coeff"_pair_coeff.html, 
+"atom_style spin"_atom_style.html, "pair_coeff"_pair_coeff.html,
 "pair_eam"_pair_eam.html,
 
 [Default:] none

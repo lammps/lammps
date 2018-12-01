@@ -179,7 +179,7 @@ selected starting from 1. Thus for the example given below
 
 pair_coeff * * library.meam Si C sic.meam Si Si Si C :pre
 
-an index of 1 would refer to Si and an index of 2 to C. 
+an index of 1 would refer to Si and an index of 2 to C.
 
 The recognized keywords for the parameter file are as follows:
 

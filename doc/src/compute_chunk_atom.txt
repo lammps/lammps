@@ -210,7 +210,7 @@ between {crmin} and {crmax}.  For example, if {crmin} = 1.0 and
 {crmax} = 10.0 and {ncbin} = 9, then the first bin spans 1.0 < r <
 2.0, and the last bin spans 9.0 < r 10.0.  The geometry of the bins in
 the radial dimensions is the same whether the simulation box is
-orthogonal or triclinic; i.e. the concetric circles are not tilted or
+orthogonal or triclinic; i.e. the concentric circles are not tilted or
 scaled differently in the two different dimensions to transform them
 into ellipses.
 

@@ -346,7 +346,7 @@ void DumpH5MD::openfile()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpH5MD::write_header(bigint nbig)
+void DumpH5MD::write_header(bigint /* nbig */)
 {
   return;
 }

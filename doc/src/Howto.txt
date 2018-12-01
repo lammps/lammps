@@ -45,7 +45,7 @@ General howto :h3
 <!-- RST
 
 .. toctree::
-   :name: general
+   :name: general_howto
    :maxdepth: 1
 
    Howto_restart

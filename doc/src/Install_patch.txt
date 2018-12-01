@@ -17,7 +17,7 @@ how to stay current are on the "Install git"_Install_git.html and
 If you prefer to download a tarball, as described on the "Install
 git"_Install_tarball.html doc page, you can stay current by
 downloading "patch files" when new patch releases are made.  A link to
-a patch file is posted on the "bug and feature 
+a patch file is posted on the "bug and feature
 page"_http://lammps.sandia.gov/bug.html of the LAMMPS website, along
 with a list of changed files and details about what is in the new patch
 release.  This page explains how to apply the patch file to your local

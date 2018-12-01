@@ -159,6 +159,9 @@ void PairEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       }
     }
 
+    if (need_dup)
+      Kokkos::Experimental::contribute(d_rho, dup_rho);
+
     // communicate and sum densities (on the host)
 
     if (newton_pair) {

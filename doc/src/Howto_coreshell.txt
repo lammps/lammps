@@ -19,7 +19,7 @@ polarizable"_Howto_polarizable.html doc page for a discussion of all
 the polarizable models available in LAMMPS.
 
 Technically, shells are attached to the cores by a spring force f =
-k*r where k is a parametrized spring constant and r is the distance
+k*r where k is a parameterized spring constant and r is the distance
 between the core and the shell. The charges of the core and the shell
 add up to the ion charge, thus q(ion) = q(core) + q(shell). This
 setup introduces the ion polarizability (alpha) given by
@@ -111,7 +111,7 @@ the core and shell particles corresponds to the polarization,
 hereby an instantaneous relaxation of the shells is approximated
 and a fast core/shell spring frequency ensures a nearly constant
 internal kinetic energy during the simulation.
-Thermostats can alter this polarization behaviour, by scaling the
+Thermostats can alter this polarization behavior, by scaling the
 internal kinetic energy, meaning the shell will not react freely to
 its electrostatic environment.
 Therefore it is typically desirable to decouple the relative motion of
@@ -165,7 +165,7 @@ fix_modify press_bar temp CSequ press thermo_press_lmp  # pressure modification 
 If "compute temp/cs"_compute_temp_cs.html is used, the decoupled
 relative motion of the core and the shell should in theory be
 stable.  However numerical fluctuation can introduce a small
-momentum to the system, which is noticable over long trajectories.
+momentum to the system, which is noticeable over long trajectories.
 Therefore it is recommendable to use the "fix
 momentum"_fix_momentum.html command in combination with "compute
 temp/cs"_compute_temp_cs.html when equilibrating the system to

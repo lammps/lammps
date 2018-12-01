@@ -13,7 +13,7 @@
 
 #ifdef COMPUTE_CLASS
 
-ComputeStyle(compute/spin,ComputeSpin)
+ComputeStyle(spin,ComputeSpin)
 
 #else
 

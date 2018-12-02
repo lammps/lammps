@@ -54,7 +54,7 @@ FixHyperLocal::FixHyperLocal(LAMMPS *lmp, int narg, char **arg) :
   //   local index vs global ID in same variable
   //   maybe need to declare them all tagint, not int
 
-  if (atom->map_style == 0) 
+  if (atom->map_style == 0)
     error->all(FLERR,"Fix hyper/local command requires atom map");
 
   if (sizeof(tagint) != sizeof(int))
@@ -81,7 +81,7 @@ FixHyperLocal::FixHyperLocal(LAMMPS *lmp, int narg, char **arg) :
   alpha_user = force->numeric(FLERR,arg[8]);
   boosttarget = force->numeric(FLERR,arg[9]);
 
-  if (cutbond < 0.0 || qfactor < 0.0 || vmax < 0.0 || 
+  if (cutbond < 0.0 || qfactor < 0.0 || vmax < 0.0 ||
       tequil <= 0.0 || dcut <= 0.0 || alpha_user <= 0.0 || boosttarget < 1.0)
     error->all(FLERR,"Illegal fix hyper/local command");
 
@@ -107,7 +107,7 @@ FixHyperLocal::FixHyperLocal(LAMMPS *lmp, int narg, char **arg) :
       histo_count = force->inumeric(FLERR,arg[iarg+2]);
       histo_delta = force->numeric(FLERR,arg[iarg+3]);
       histo_print = force->inumeric(FLERR,arg[iarg+4]);
-      if (histo_every <= 0 || histo_count % 2 || 
+      if (histo_every <= 0 || histo_count % 2 ||
           histo_delta <= 0.0 || histo_print <= 0)
         error->all(FLERR,"Illegal fix hyper/local command");
       iarg += 5;
@@ -276,16 +276,16 @@ void FixHyperLocal::init()
   // warn if no drift distance added to cutghost
 
   if (firstflag) {
-    double cutghost;            
-    if (force->pair) 
+    double cutghost;
+    if (force->pair)
       cutghost = MAX(force->pair->cutforce+neighbor->skin,comm->cutghostuser);
-    else 
+    else
       cutghost = comm->cutghostuser;
-    
-    if (cutghost < dcut) 
+
+    if (cutghost < dcut)
       error->all(FLERR,"Fix hyper/local bond cutoff exceeds ghost atom range - "
                  "use comm_modify cutoff command");
-    if (cutghost < dcut+cutbond/2.0 && me == 0) 
+    if (cutghost < dcut+cutbond/2.0 && me == 0)
       error->warning(FLERR,"Fix hyper/local ghost atom range "
                      "may not allow for atom drift between events");
   }
@@ -371,8 +371,8 @@ void FixHyperLocal::pre_neighbor()
         missing_coeff += bonds[i][m].boostcoeff;
         if (lostbond != IGNORE) {
           char str[128];
-          sprintf(str,"Fix hyper/local bond info missing for bond " 
-                  TAGINT_FORMAT "," TAGINT_FORMAT 
+          sprintf(str,"Fix hyper/local bond info missing for bond "
+                  TAGINT_FORMAT "," TAGINT_FORMAT
                   " with coeff %g at step " BIGINT_FORMAT,
                   atom->tag[i],bonds[i][m].jtag,bonds[i][m].boostcoeff,
                   update->ntimestep);
@@ -520,7 +520,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
 
     i = old2now[iold];
     emax = maxstrain[i];
-    
+
     for (jj = 0; jj < jnum; jj++) {
       jold = jlist[jj];
       j = old2now[jold];
@@ -722,13 +722,13 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
       if (me == 0) {
         if (screen) {
           fprintf(screen,"Histogram of bias coeffs:\n");
-          for (i = 0; i < histo_count+2; i++) 
+          for (i = 0; i < histo_count+2; i++)
             fprintf(screen,"  %g",1.0*allhisto[i]/total);
           fprintf(screen,"\n");
         }
         if (logfile) {
           fprintf(logfile,"Histogram of bias coeffs:\n");
-          for (i = 0; i < histo_count+2; i++) 
+          for (i = 0; i < histo_count+2; i++)
             fprintf(logfile,"  %g",1.0*allhisto[i]/total);
           fprintf(logfile,"\n");
         }
@@ -790,7 +790,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
 
   if (checkcoeff && update->ntimestep % checkcoeff_every == 0) {
     int jb,jbonds;
-    
+
     for (i = 0; i < nlocal; i++) {
       nbond = numbond[i];
       for (m = 0; m < nbond; m++) {
@@ -802,9 +802,9 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
         jbonds = numbond[j];
         for (jb = 0; jb < jbonds; jb++)
           if (bonds[j][jb].jtag == itag) break;
-        if (jb == jbonds) 
+        if (jb == jbonds)
           error->one(FLERR,"Fix hyper/local could not find duplicate bond");
-        if (bonds[i][m].boostcoeff != bonds[j][jb].boostcoeff) 
+        if (bonds[i][m].boostcoeff != bonds[j][jb].boostcoeff)
           checkcoeff_count++;
       }
     }
@@ -885,7 +885,7 @@ void FixHyperLocal::build_bond_list(int natom)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   while (1) {
     bonds = (OneBond **) memory->create(bonds,nmax,maxbondperatom,
                                         "hyper/local:bonds");
@@ -941,7 +941,7 @@ void FixHyperLocal::build_bond_list(int natom)
             nbond++;
             continue;
           }
-          
+
           bonds[i][nbond].r0 = sqrt(rsq);
           bonds[i][nbond].jtag = tag[j];
           bonds[i][nbond].j = j;
@@ -998,7 +998,7 @@ void FixHyperLocal::build_bond_list(int natom)
 
 /* ---------------------------------------------------------------------- */
 
-int FixHyperLocal::pack_forward_comm(int n, int *list, double *buf, 
+int FixHyperLocal::pack_forward_comm(int n, int *list, double *buf,
                                      int /* pbc_flag */, int * /* pbc */)
 {
   int i,j,m;
@@ -1233,7 +1233,7 @@ double FixHyperLocal::compute_vector(int i)
   // i = 9 = average bias potential for all bonds during this run
   // i = 10 = max bias potential for any bond during this run
   // i = 11 = min bias potential for any bond during this run
-  // i = 12 = max dist from my box of any ghost atom with 
+  // i = 12 = max dist from my box of any ghost atom with
   //          maxstain < qfactor during this run
   // i = 13 = max dist from my box of any ghost atom with
   //          any maxstrain during this run
@@ -1245,7 +1245,7 @@ double FixHyperLocal::compute_vector(int i)
   // i = 18 = count of non-matching bias coefficients found during this run
 
   // i = 19 = cummulative hyper time
-  // i = 20 = cummulative # of event timesteps since fix created 
+  // i = 20 = cummulative # of event timesteps since fix created
   // i = 21 = cummulative # of atoms in events since fix created
   // i = 22 = cummulative # of new bonds formed since fix created
 
@@ -1394,7 +1394,7 @@ double FixHyperLocal::query(int i)
 {
   if (i == 1) return compute_vector(19);  // cummulative hyper time
   if (i == 2) return compute_vector(20);  // nevent
-  if (i == 3) return compute_vector(21);  // nevent_atom 
+  if (i == 3) return compute_vector(21);  // nevent_atom
   if (i == 4) return compute_vector(3);   // ave bonds/atom
   if (i == 5) return compute_vector(6);   // maxdrift
   if (i == 6) return compute_vector(7);   // maxbondlen

@@ -1271,6 +1271,7 @@ Klapp
 Kloss
 kmax
 Kmax
+Knizhnik
 knl
 Kohlmeyer
 Kohn
@@ -1343,6 +1344,7 @@ lcbop
 ld
 ldfftw
 ldg
+Lebedeva
 Lebold
 Lechman
 Lehoucq
@@ -1438,6 +1440,7 @@ Lorant
 lorenz
 lossless
 lossy
+Lozovik
 lps
 lpsapi
 lrt
@@ -2087,6 +2090,7 @@ pos
 Poschel
 posix
 Postma
+Potapkin
 potin
 Pourtois
 powderblue

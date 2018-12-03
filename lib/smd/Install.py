@@ -5,6 +5,8 @@
 
 from __future__ import print_function
 import sys,os,re,glob,subprocess,shutil
+sys.path.append('..')
+from install_helpers import error,get_cpus,fullpath,which,geturl
 
 # help message
 
@@ -34,64 +36,12 @@ make lib-smd args="-p /usr/include/eigen3" # use existing Eigen installation in 
 version = '3.3.4'
 tarball = "eigen.tar.gz"
 
-# print error message or help
-
-def error(str=None):
-  if not str: print(help)
-  else: print("ERROR",str)
-  sys.exit()
-
-# expand to full path name
-# process leading '~' or relative path
-
-def fullpath(path):
-  return os.path.abspath(os.path.expanduser(path))
-
-def which(program):
-  def is_exe(fpath):
-    return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
-
-  fpath, fname = os.path.split(program)
-  if fpath:
-    if is_exe(program):
-      return program
-  else:
-    for path in os.environ["PATH"].split(os.pathsep):
-      path = path.strip('"')
-      exe_file = os.path.join(path, program)
-      if is_exe(exe_file):
-        return exe_file
-
-  return None
-
-def geturl(url,fname):
-  success = False
-
-  if which('curl') != None:
-    cmd = 'curl -L -o "%s" %s' % (fname,url)
-    try:
-      subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-      success = True
-    except subprocess.CalledProcessError as e:
-      print("Calling curl failed with: %s" % e.output.decode('UTF-8'))
-
-  if not success and which('wget') != None:
-    cmd = 'wget -O "%s" %s' % (fname,url)
-    try:
-      subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-      success = True
-    except subprocess.CalledProcessError as e:
-      print("Calling wget failed with: %s" % e.output.decode('UTF-8'))
-
-  if not success:
-    error("Failed to download source code with 'curl' or 'wget'")
-  return
 
 # parse args
 
 args = sys.argv[1:]
 nargs = len(args)
-if nargs == 0: error()
+if nargs == 0: error(help=help)
 
 homepath = "."
 homedir = "eigen3"
@@ -103,18 +53,18 @@ linkflag = True
 iarg = 0
 while iarg < nargs:
   if args[iarg] == "-v":
-    if iarg+2 > nargs: error()
+    if iarg+2 > nargs: error(help=help)
     version = args[iarg+1]
     iarg += 2
   elif args[iarg] == "-p":
-    if iarg+2 > nargs: error()
+    if iarg+2 > nargs: error(help=help)
     eigenpath = fullpath(args[iarg+1])
     pathflag = True
     iarg += 2
   elif args[iarg] == "-b":
     buildflag = True
     iarg += 1
-  else: error()
+  else: error(help=help)
 
 homepath = fullpath(homepath)
 

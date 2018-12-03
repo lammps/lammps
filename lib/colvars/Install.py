@@ -4,6 +4,8 @@
 
 from __future__ import print_function
 import sys,os,subprocess
+sys.path.append('..')
+from install_helpers import error,get_cpus
 
 # help message
 
@@ -24,18 +26,11 @@ Examples:
 make lib-colvars args="-m mpi"     # build COLVARS lib with default mpi compiler wrapper
 """
 
-# print error message or help
-
-def error(str=None):
-  if not str: print(help)
-  else: print("ERROR",str)
-  sys.exit()
-
 # parse args
 
 args = sys.argv[1:]
 nargs = len(args)
-if nargs == 0: error()
+if nargs == 0: error(help=help)
 
 machine = None
 extraflag = False
@@ -43,15 +38,15 @@ extraflag = False
 iarg = 0
 while iarg < nargs:
   if args[iarg] == "-m":
-    if iarg+2 > len(args): error()
+    if iarg+2 > len(args): error(help=help)
     machine = args[iarg+1]
     iarg += 2
   elif args[iarg] == "-e":
-    if iarg+2 > len(args): error()
+    if iarg+2 > len(args): error(help=help)
     extraflag = True
     suffix = args[iarg+1]
     iarg += 2
-  else: error()
+  else: error(help=help)
 
 # set lib from working dir
 
@@ -124,17 +119,16 @@ fp.close()
 
 # make the library via Makefile.auto optionally with parallel make
 
-try:
-  import multiprocessing
-  n_cpus = multiprocessing.cpu_count()
-except:
-  n_cpus = 1
+n_cpus = get_cpus()
 
 print("Building lib%s.a ..." % lib)
-cmd = ["make -f Makefile.auto clean"]
-print(subprocess.check_output(cmd, shell=True).decode('UTF-8'))
-cmd = ["make -f Makefile.auto -j%d" % n_cpus]
-print(subprocess.check_output(cmd, shell=True).decode('UTF-8'))
+cmd = ["make -f Makefile.auto clearn; make -f Makefile.auto -j%d" % n_cpus]
+try:
+  txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True);
+  print(txt.decode('UTF-8'))
+except subprocess.CalledProcessError as e:
+  print("Make failed with:\n %s" % e.output.decode('UTF-8'))
+  sys.exit(1)       
 
 if os.path.exists("lib%s.a" % lib): print("Build was successful")
 else: error("Build of lib/%s/lib%s.a was NOT successful" % (lib,lib))

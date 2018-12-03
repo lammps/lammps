@@ -5,6 +5,8 @@
 
 from __future__ import print_function
 import sys,os,subprocess
+sys.path.append('..')
+from install_helpers import error,get_cpus
 
 # help message
 
@@ -51,18 +53,11 @@ make lib-gpu args="-m xk7 -p single -o xk7.single"      # create new Makefile.xk
 make lib-gpu args="-m mpi -a sm_35 -p single -o mpi.mixed -b" # create new Makefile.mpi.mixed, also build GPU lib with these settings
 """
 
-# print error message or help
-
-def error(str=None):
-  if not str: print(help)
-  else: print("ERROR",str)
-  sys.exit()
-
 # parse args
 
 args = sys.argv[1:]
 nargs = len(args)
-if nargs == 0: error()
+if nargs == 0: error(help=help)
 
 isuffix = "linux"
 hflag = aflag = pflag = eflag = 0
@@ -72,26 +67,26 @@ outflag = 0
 iarg = 0
 while iarg < nargs:
   if args[iarg] == "-m":
-    if iarg+2 > nargs: error()
+    if iarg+2 > nargs: error(help=help)
     isuffix = args[iarg+1]
     iarg += 2
   elif args[iarg] == "-h":
-    if iarg+2 > nargs: error()
+    if iarg+2 > nargs: error(help=help)
     hflag = 1
     hdir = args[iarg+1]
     iarg += 2
   elif args[iarg] == "-a":
-    if iarg+2 > nargs: error()
+    if iarg+2 > nargs: error(help=help)
     aflag = 1
     arch = args[iarg+1]
     iarg += 2
   elif args[iarg] == "-p":
-    if iarg+2 > nargs: error()
+    if iarg+2 > nargs: error(help=help)
     pflag = 1
     precision = args[iarg+1]
     iarg += 2
   elif args[iarg] == "-e":
-    if iarg+2 > nargs: error()
+    if iarg+2 > nargs: error(help=help)
     eflag = 1
     lmpsuffix = args[iarg+1]
     iarg += 2
@@ -99,11 +94,11 @@ while iarg < nargs:
     makeflag = 1
     iarg += 1
   elif args[iarg] == "-o":
-    if iarg+2 > nargs: error()
+    if iarg+2 > nargs: error(help=help)
     outflag = 1
     osuffix = args[iarg+1]
     iarg += 2
-  else: error()
+  else: error(help=help)
 
 if pflag:
   if precision == "double": precstr = "-D_DOUBLE_DOUBLE"
@@ -145,9 +140,15 @@ if makeflag:
   print("Building libgpu.a ...")
   if os.path.exists("libgpu.a"):
     os.remove("libgpu.a")
-  cmd = "make -f Makefile.auto clean; make -f Makefile.auto"
-  txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  print(txt.decode('UTF-8'))
+  n_cpus = get_cpus()
+  cmd = "make -f Makefile.auto clean; make -f Makefile.auto -j%d" % n_cpus
+  try:
+    txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+    print(txt.decode('UTF-8'))
+  except subprocess.CalledProcessError as e:
+    print("Make failed with:\n %s" % e.output.decode('UTF-8'))
+    sys.exit(1)
+
   if not os.path.exists("libgpu.a"):
     error("Build of lib/gpu/libgpu.a was NOT successful")
   if not os.path.exists("Makefile.lammps"):

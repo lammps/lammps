@@ -4,7 +4,7 @@
 # used to automate the steps described in the README file in this dir
 
 from __future__ import print_function
-import sys,os,re,subprocess
+import sys,os,re,subprocess,shutil
 
 # help message
 
@@ -136,15 +136,13 @@ if buildflag:
 
   print("Unpacking Voro++ tarball ...")
   if os.path.exists("%s/%s" % (homepath,version)):
-    cmd = 'rm -rf "%s/%s"' % (homepath,version)
-    subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+    shutil.rmtree("%s/%s" % (homepath,version))
   cmd = 'cd "%s"; tar -xzvf %s.tar.gz' % (homepath,version)
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   os.remove("%s/%s.tar.gz" % (homepath,version))
   if os.path.basename(homedir) != version:
     if os.path.exists(homedir):
-      cmd = 'rm -rf "%s"' % homedir
-      subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+      shutil.rmtree(homedir)
     os.rename("%s/%s" % (homepath,version),homedir)
 
 # build Voro++

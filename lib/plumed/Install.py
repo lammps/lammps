@@ -4,7 +4,7 @@
 # used to automate the steps described in the README file in this dir
 
 from __future__ import print_function
-import sys,os,re,subprocess,hashlib
+import sys,os,re,subprocess,hashlib,shutil
 
 # help message
 
@@ -169,11 +169,9 @@ if buildflag:
 
   print("Unpacking plumed2 source tarball ...")
   if os.path.exists("%s/plumed-%s" % (homepath,version)):
-    cmd = 'rm -rf "%s/plumed-%s"' % (homepath,version)
-    subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+    shutil.rmtree("%s/plumed-%s" % (homepath,version))
   if os.path.exists(homedir):
-    cmd = 'rm -rf "%s"' % (homedir)
-    subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+    shutil.rmtree(homedir)
   cmd = 'cd "%s"; tar -xzvf %s' % (homepath,filename)
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   os.remove("%s/%s" % (homepath,filename))

@@ -143,8 +143,8 @@ fp.close()
 
 if makeflag:
   print("Building libgpu.a ...")
-  cmd = "rm -f libgpu.a"
-  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+  if os.path.exists("libgpu.a"):
+    os.remove("libgpu.a")
   cmd = "make -f Makefile.auto clean; make -f Makefile.auto"
   txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   print(txt.decode('UTF-8'))

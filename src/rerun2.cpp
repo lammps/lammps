@@ -13,8 +13,8 @@
 
 #include <cstdlib>
 #include <cstring>
-#include "rerun.h"
-#include "read_dump.h"
+#include "rerun2.h"
+#include "read_dump2.h"
 #include "domain.h"
 #include "update.h"
 #include "integrate.h"
@@ -29,11 +29,11 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Rerun::Rerun(LAMMPS *lmp) : Pointers(lmp) {}
+Rerun2::Rerun2(LAMMPS *lmp) : Pointers(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
-void Rerun::command(int narg, char **arg)
+void Rerun2::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
     error->all(FLERR,"Rerun command before simulation box is defined");
@@ -115,7 +115,7 @@ void Rerun::command(int narg, char **arg)
   // pass list of filenames to ReadDump
   // along with post-"dump" args and post-"format" args
 
-  ReadDump *rd = new ReadDump(lmp);
+  ReadDump2 *rd = new ReadDump2(lmp);
 
   rd->store_files(nfile,arg);
   if (nremain)
@@ -148,13 +148,12 @@ void Rerun::command(int narg, char **arg)
   bigint ntimestep = rd->seek(first,0);
   if (ntimestep < 0)
     error->all(FLERR,"Rerun dump file does not contain requested snapshot");
-
+  
   while (1) {
     ndump++;
     rd->header(firstflag);
     update->reset_timestep(ntimestep);
     rd->atoms();
-
     modify->init();
     update->integrate->setup_minimal(1);
     modify->end_of_step();

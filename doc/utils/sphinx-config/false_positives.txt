@@ -1345,6 +1345,7 @@ ld
 ldfftw
 ldg
 Lebedeva
+lebedeva
 Lebold
 Lechman
 Lehoucq
@@ -2084,6 +2085,7 @@ polydisperse
 polydispersity
 polyhedra
 popen
+Popov
 popstore
 Poresag
 pos

@@ -193,7 +193,7 @@ specified frequency, e.g. every N steps.  If the timestep for a dump
 snapshot is not a multiple of N, then it will be read and processed,
 but no output will be produced.  If you want output for every dump
 snapshot, you can simply use N=1 for an output frequency, e.g. for
-thermodyanmic output or new dump file output.
+thermodynamic output or new dump file output.
 
 :line
 

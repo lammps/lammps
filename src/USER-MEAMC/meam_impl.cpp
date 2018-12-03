@@ -34,12 +34,12 @@ MEAM::MEAM(Memory* mem)
 
   maxneigh = 0;
   scrfcn = dscrfcn = fcpair = NULL;
-  
+
   neltypes = 0;
   for (int i = 0; i < maxelt; i++) {
-    Omega_meam[i] = Z_meam[i] = A_meam[i] = rho0_meam[i] = beta0_meam[i] = 
-      beta1_meam[i]= beta2_meam[i] = beta3_meam[i] = 
-      t0_meam[i] = t1_meam[i] = t2_meam[i] = t3_meam[i] = 
+    Omega_meam[i] = Z_meam[i] = A_meam[i] = rho0_meam[i] = beta0_meam[i] =
+      beta1_meam[i]= beta2_meam[i] = beta3_meam[i] =
+      t0_meam[i] = t1_meam[i] = t2_meam[i] = t3_meam[i] =
       rho_ref_meam[i] = ibar_meam[i] = ielt_meam[i] = 0.0;
     for (int j = 0; j < maxelt; j++) {
       lattce_meam[i][j] = FCC;

@@ -65,10 +65,10 @@ void Scafacos::settings(int narg, char **arg)
   if (strcmp(method,"fmm") == 0) {
     tolerance_type = FCS_TOLERANCE_TYPE_ENERGY;
     fmm_tuning_flag = 0;
-  } else if (strcmp(method,"p3m") == 0 || 
-             strcmp(method,"p2nfft") == 0 || 
+  } else if (strcmp(method,"p3m") == 0 ||
+             strcmp(method,"p2nfft") == 0 ||
              strcmp(method,"ewald") == 0) {
-    tolerance_type = FCS_TOLERANCE_TYPE_FIELD;    
+    tolerance_type = FCS_TOLERANCE_TYPE_FIELD;
   } else if (strcmp(method,"direct") == 0) {
     ; // direct summation has no tolerance type
   } else {
@@ -100,7 +100,7 @@ void Scafacos::init()
   if (logfile && me == 0) fprintf(logfile,
                           "Setting up ScaFaCoS with solver %s ...\n",method);
 
-  if (!atom->q_flag) 
+  if (!atom->q_flag)
     error->all(FLERR,"Kspace style requires atom attribute q");
 
   if (domain->dimension == 2)
@@ -112,7 +112,7 @@ void Scafacos::init()
   if (atom->natoms > INT_MAX && sizeof(int) != 8)
     error->all(FLERR,"Scafacos atom count exceeds 2B");
 
-  if (atom->molecular > 0) 
+  if (atom->molecular > 0)
     error->all(FLERR,
                "Cannot use Scafacos with molecular charged systems yet");
 
@@ -140,7 +140,7 @@ void Scafacos::init()
     }
 
     double **x = atom->x;
-    double *q = atom->q; 
+    double *q = atom->q;
     int nlocal = atom->nlocal;
 
     if (strcmp(method,"fmm") == 0)
@@ -164,7 +164,7 @@ void Scafacos::init()
 
     result = fcs_tune((FCS)fcs,nlocal,&x[0][0],q);
     check_result((void*)&result);
-    // more useful here, since the parameters should be tuned now 
+    // more useful here, since the parameters should be tuned now
     if (me == 0) fcs_print_parameters((FCS)fcs);
   }
 
@@ -194,12 +194,12 @@ void Scafacos::compute(int eflag, int vflag)
   }
 
   if (eflag || vflag) ev_setup(eflag,vflag);
-  else 
+  else
   {
     eflag_atom = 0;
     vflag_global = 0;
   }
-  
+
   // grow xpbc, epot, efield if necessary
 
   if (nlocal > maxatom || maxatom == 0) {
@@ -270,7 +270,7 @@ void Scafacos::compute(int eflag, int vflag)
     f[i][1] += qone * efield[i][1];
     f[i][2] += qone * efield[i][2];
     myeng += 0.5 * qone * epot[i];
-  } 
+  }
 
   if (eflag_atom) {
     for (int i = 0; i < nlocal; i++)
@@ -296,50 +296,50 @@ int Scafacos::modify_param(int narg, char **arg)
     if (narg < 3) error->all(FLERR,
                          "Illegal kspace_modify command (tolerance)");
     if (strcmp(arg[2],"energy") == 0)
-      tolerance_type = FCS_TOLERANCE_TYPE_ENERGY;     
+      tolerance_type = FCS_TOLERANCE_TYPE_ENERGY;
     else if (strcmp(arg[2],"energy_rel") == 0)
-      tolerance_type = FCS_TOLERANCE_TYPE_ENERGY_REL;     
+      tolerance_type = FCS_TOLERANCE_TYPE_ENERGY_REL;
     else if (strcmp(arg[2],"field") == 0)
-      tolerance_type = FCS_TOLERANCE_TYPE_FIELD;     
+      tolerance_type = FCS_TOLERANCE_TYPE_FIELD;
     else if (strcmp(arg[2],"field_rel") == 0)
-      tolerance_type = FCS_TOLERANCE_TYPE_FIELD_REL;     
+      tolerance_type = FCS_TOLERANCE_TYPE_FIELD_REL;
     else if (strcmp(arg[2],"potential") == 0)
-      tolerance_type = FCS_TOLERANCE_TYPE_POTENTIAL;     
+      tolerance_type = FCS_TOLERANCE_TYPE_POTENTIAL;
     else if (strcmp(arg[2],"potential_rel") == 0)
-      tolerance_type = FCS_TOLERANCE_TYPE_POTENTIAL_REL;     
+      tolerance_type = FCS_TOLERANCE_TYPE_POTENTIAL_REL;
     else error->all(FLERR,
                 "Illegal kspace_modify command (tolerance argument)");
     // check if method is compatatible to chosen tolerance type
     if(
         (
-          strcmp(method,"fmm") == 0 && 
-          ( 
-            tolerance_type != FCS_TOLERANCE_TYPE_ENERGY && 
+          strcmp(method,"fmm") == 0 &&
+          (
+            tolerance_type != FCS_TOLERANCE_TYPE_ENERGY &&
             tolerance_type != FCS_TOLERANCE_TYPE_ENERGY_REL
-          ) 
-        ) || 
-        (
-          strcmp(method,"p2nfft") == 0 && 
-          ( 
-            tolerance_type != FCS_TOLERANCE_TYPE_FIELD && 
-            tolerance_type != FCS_TOLERANCE_TYPE_POTENTIAL
-          ) 
-        ) ||
-        (
-          strcmp(method,"p3m") == 0 && 
-          ( 
-            tolerance_type != FCS_TOLERANCE_TYPE_FIELD 
-          ) 
-        ) ||
-        (
-          strcmp(method,"ewald") == 0 && 
-          ( 
-            tolerance_type != FCS_TOLERANCE_TYPE_FIELD  
           )
-        ) 
+        ) ||
+        (
+          strcmp(method,"p2nfft") == 0 &&
+          (
+            tolerance_type != FCS_TOLERANCE_TYPE_FIELD &&
+            tolerance_type != FCS_TOLERANCE_TYPE_POTENTIAL
+          )
+        ) ||
+        (
+          strcmp(method,"p3m") == 0 &&
+          (
+            tolerance_type != FCS_TOLERANCE_TYPE_FIELD
+          )
+        ) ||
+        (
+          strcmp(method,"ewald") == 0 &&
+          (
+            tolerance_type != FCS_TOLERANCE_TYPE_FIELD
+          )
+        )
       )
         error->all(FLERR,"Illegal kspace_modify command \
-                          (invalid tolerance / method combination)"); 
+                          (invalid tolerance / method combination)");
     return 3;
   }
 
@@ -375,7 +375,7 @@ double Scafacos::memory_usage()
 }
 
 /* ----------------------------------------------------------------------
-    setup of ScaFaCoS handle with common parameters 
+    setup of ScaFaCoS handle with common parameters
 ------------------------------------------------------------------------- */
 
 void Scafacos::setup_handle()
@@ -443,7 +443,7 @@ bool Scafacos::box_has_changed()
   int *periodicity = domain->periodicity;
   double *prd = domain->prd;
 
-  bool changed = 
+  bool changed =
     (periodicity[0] != old_periodicity[0]) ||
     (periodicity[1] != old_periodicity[1]) ||
     (periodicity[2] != old_periodicity[2]) ||
@@ -462,14 +462,14 @@ bool Scafacos::box_has_changed()
    check ScaFaCoS result for error condition
 ------------------------------------------------------------------------- */
 
-void Scafacos::check_result(void* result_p) 
+void Scafacos::check_result(void* result_p)
 {
   FCSResult result = *(FCSResult*)result_p;
 
   if (!result) return;
 
   std::stringstream ss;
-  ss << "ScaFaCoS: " << fcs_result_get_function(result) << "\n" 
+  ss << "ScaFaCoS: " << fcs_result_get_function(result) << "\n"
      << fcs_result_get_message(result) << "\n";
   fcs_result_destroy(result);
   std::string err_msg = ss.str();
@@ -477,4 +477,4 @@ void Scafacos::check_result(void* result_p)
 
   error->one(FLERR,str);
 }
- 
+

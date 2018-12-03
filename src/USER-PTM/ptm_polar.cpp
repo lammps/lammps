@@ -1,5 +1,5 @@
 /*******************************************************************************
- *  -/_|:|_|_\- 
+ *  -/_|:|_|_\-
  *
  *  This code is a modification of D.L. Theobald's QCP rotation code.
  *  It has been adapted to calculate the polar decomposition of a 3x3 matrix
@@ -14,7 +14,7 @@
  *				  USA
  *
  *				  dtheobald@brandeis.edu
- *				  
+ *				
  *				  Pu Liu
  *				  Johnson & Johnson Pharmaceutical Research and Development, L.L.C.
  *				  665 Stockton Drive
@@ -22,7 +22,7 @@
  *				  USA
  *
  *				  pliu24@its.jnj.com
- * 
+ *
  *
  *	If you use this QCP rotation calculation method in a publication, please
  *	reference:
@@ -33,7 +33,7 @@
  *	  Acta Crystallographica A 61(4):478-480.
  *
  *	  Pu Liu, Dmitris K. Agrafiotis, and Douglas L. Theobald (2009)
- *	  "Fast determination of the optimal rotational matrix for macromolecular 
+ *	  "Fast determination of the optimal rotational matrix for macromolecular
  *	  superpositions."
  *	  Journal of Computational Chemistry 31(7):1561-1563.
  *
@@ -63,7 +63,7 @@
  *  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  *  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+ *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  *  Source:		 started anew.
  *
@@ -82,7 +82,7 @@
  *
  *      2016/05/29        QCP method adapted for polar decomposition of a 3x3 matrix,
  *			  for use in Polyhedral Template Matching.
- *  
+ *
  ******************************************************************************/
 
 #include <cmath>
@@ -327,7 +327,7 @@ void InnerProduct(double *A, int num, const double (*coords1)[3], double (*coord
 
 		A[6] += z1 * x2;
 		A[7] += z1 * y2;
-		A[8] += z1 * z2;  
+		A[8] += z1 * z2;
 	}
 }
 

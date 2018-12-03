@@ -79,7 +79,7 @@ class FixRattle : public FixShake {
 
 /* ERROR/WARNING messages:
 
-W: Fix rattle should come after all other integration fixes 
+W: Fix rattle should come after all other integration fixes
 
 UNDOCUMENTED
 
@@ -88,15 +88,15 @@ E: Rattle determinant = 0.0
 The determinant of the matrix being solved for a single cluster
 specified by the fix rattle command is numerically invalid.
 
-E: Rattle failed 
+E: Rattle failed
 
 UNDOCUMENTED
 
-E: Coordinate constraints are not satisfied up to desired tolerance 
+E: Coordinate constraints are not satisfied up to desired tolerance
 
 UNDOCUMENTED
 
-E: Velocity constraints are not satisfied up to desired tolerance 
+E: Velocity constraints are not satisfied up to desired tolerance
 
 UNDOCUMENTED
 

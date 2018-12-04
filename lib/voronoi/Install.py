@@ -5,10 +5,11 @@
 
 from __future__ import print_function
 import sys,os,re,subprocess
+from argparse import ArgumentParser
 
 # help message
 
-help = """
+help_text = """
 Syntax from src dir: make lib-voronoi args="-b"
                  or: make lib-voronoi args="-p /usr/local/voro++-0.4.6"
                  or: make lib-voronoi args="-b -v voro++-0.4.6"
@@ -32,13 +33,6 @@ make lib-voronoi args="-p $HOME/voro++-0.4.6" # use existing Voro++ installation
 
 version = "voro++-0.4.6"
 url = "http://math.lbl.gov/voro++/download/dir/%s.tar.gz" % version
-
-# print error message or help
-
-def error(str=None):
-  if not str: print(help)
-  else: print("ERROR",str)
-  sys.exit()
 
 # expand to full path name
 # process leading '~' or relative path
@@ -83,73 +77,55 @@ def geturl(url,fname):
       print("Calling wget failed with: %s" % e.output.decode('UTF-8'))
 
   if not success:
-    error("Failed to download source code with 'curl' or 'wget'")
+    sys.exit("Failed to download source code with 'curl' or 'wget'")
   return
 
 # parse args
+parser = ArgumentParser(description=help_text)
 
-args = sys.argv[1:]
-nargs = len(args)
-if nargs == 0: error()
+parser.add_argument("--build", help="download and build the Voro++ library.")
+parser.add_argument("--path", help="specify folder of existing Voro++ installation.")
+parser.add_argument("--version", help="set version of Voro++ to download and build (default voro++-0.4.6).", default=version)
+
+args = parser.parse_args()
 
 homepath = "."
-homedir = version
-
-buildflag = False
-pathflag = False
-linkflag = True
-
-iarg = 0
-while iarg < nargs:
-  if args[iarg] == "-v":
-    if iarg+2 > nargs: error()
-    version = args[iarg+1]
-    iarg += 2
-  elif args[iarg] == "-p":
-    if iarg+2 > nargs: error()
-    voropath = fullpath(args[iarg+1])
-    pathflag = True
-    iarg += 2
-  elif args[iarg] == "-b":
-    buildflag = True
-    iarg += 1
-  else: error()
+homedir = args.version
 
 homepath = fullpath(homepath)
-homedir = "%s/%s" % (homepath,version)
+homedir = "%s/%s" % (homepath,args.version)
 
-if (pathflag):
-    if not os.path.isdir(voropath): error("Voro++ path does not exist")
-    homedir = voropath
+if args.path is not None:
+    if not os.path.isdir(args.path): sys.exit("Voro++ path does not exist")
+    homedir = args.path
 
-if (buildflag and pathflag):
-    error("Cannot use -b and -p flag at the same time")
+if args.build is not None and args.path is not None:
+    sys.exit("Cannot use -b and -p flag at the same time")
 
-if (not buildflag and not pathflag):
-    error("Have to use either -b or -p flag")
+if args.build is None and args.path is None:
+    sys.exit("Have to use either -b or -p flag")
 
 # download and unpack Voro++ tarball
 
-if buildflag:
+if args.build:
   print("Downloading Voro++ ...")
-  geturl(url,"%s/%s.tar.gz" % (homepath,version))
+  geturl(url,"%s/%s.tar.gz" % (homepath,args.version))
 
   print("Unpacking Voro++ tarball ...")
-  if os.path.exists("%s/%s" % (homepath,version)):
-    cmd = 'rm -rf "%s/%s"' % (homepath,version)
+  if os.path.exists("%s/%s" % (homepath,args.version)):
+    cmd = 'rm -rf "%s/%s"' % (homepath,args.version)
     subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  cmd = 'cd "%s"; tar -xzvf %s.tar.gz' % (homepath,version)
+  cmd = 'cd "%s"; tar -xzvf %s.tar.gz' % (homepath,args.version)
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  os.remove("%s/%s.tar.gz" % (homepath,version))
-  if os.path.basename(homedir) != version:
+  os.remove("%s/%s.tar.gz" % (homepath,args.version))
+  if os.path.basename(homedir) != args.version:
     if os.path.exists(homedir):
       cmd = 'rm -rf "%s"' % homedir
       subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-    os.rename("%s/%s" % (homepath,version),homedir)
+    os.rename("%s/%s" % (homepath,args.version),homedir)
 
 # build Voro++
 
-if buildflag:
   print("Building Voro++ ...")
   cmd = 'cd "%s"; make CXX=g++ CFLAGS="-fPIC -O3"' % homedir
   txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
@@ -157,13 +133,12 @@ if buildflag:
 
 # create 2 links in lib/voronoi to Voro++ src dir
 
-if linkflag:
-  print("Creating links to Voro++ include and lib files")
-  if os.path.isfile("includelink") or os.path.islink("includelink"):
-    os.remove("includelink")
-  if os.path.isfile("liblink") or os.path.islink("liblink"):
-    os.remove("liblink")
-  cmd = 'ln -s "%s/src" includelink' % homedir
-  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  cmd = 'ln -s "%s/src" liblink' % homedir
-  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+print("Creating links to Voro++ include and lib files")
+if os.path.isfile("includelink") or os.path.islink("includelink"):
+  os.remove("includelink")
+if os.path.isfile("liblink") or os.path.islink("liblink"):
+  os.remove("liblink")
+cmd = 'ln -s "%s/src" includelink' % homedir
+subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+cmd = 'ln -s "%s/src" liblink' % homedir
+subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)

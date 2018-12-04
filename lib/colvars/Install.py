@@ -122,13 +122,13 @@ fp.close()
 n_cpus = get_cpus()
 
 print("Building lib%s.a ..." % lib)
-cmd = ["make -f Makefile.auto clearn; make -f Makefile.auto -j%d" % n_cpus]
+cmd = ["make -f Makefile.auto clean; make -f Makefile.auto -j%d" % n_cpus]
 try:
-  txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True);
+  txt = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True);
   print(txt.decode('UTF-8'))
 except subprocess.CalledProcessError as e:
   print("Make failed with:\n %s" % e.output.decode('UTF-8'))
-  sys.exit(1)       
+  sys.exit(1)
 
 if os.path.exists("lib%s.a" % lib): print("Build was successful")
 else: error("Build of lib/%s/lib%s.a was NOT successful" % (lib,lib))

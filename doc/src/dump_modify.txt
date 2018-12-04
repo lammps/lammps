@@ -461,10 +461,10 @@ last snapshot.  This can be accomplished with something the following
 commands:
 
 variable        Dhop equal 0.6
-variable        check atom "c_dsp[4] > v_Dhop"
+variable        check atom "c_dsp\[4\] > v_Dhop"
 compute         dsp all displace/atom refresh check
 dump            1 all custom 20 tmp.dump id type x y z
-dump_modify     1 append yes thresh c_dsp[4] > ${Dhop} refresh c_dsp :pre
+dump_modify     1 append yes thresh c_dsp\[4\] > $\{Dhop\} refresh c_dsp :pre
 
 The "compute displace/atom"_compute_displace_atom.html command
 calculates the displacement of each atom from its reference position.

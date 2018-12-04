@@ -69,8 +69,8 @@ Initiate complex covalent bonding (topology) changes. These topology
 changes will be referred to as 'reactions' throughout this
 documentation. Topology changes are defined in pre- and post-reaction
 molecule templates and can include creation and deletion of bonds,
-angles, dihedrals, impropers, bond-types, angle-types, dihedral-types,
-atom-types, or atomic charges. In addition, reaction by-products or
+angles, dihedrals, impropers, bond types, angle types, dihedral types,
+atom types, or atomic charges. In addition, reaction by-products or
 other molecules can be identified and deleted.
 
 Fix bond/react does not use quantum mechanical (eg. fix qmmm) or
@@ -80,7 +80,7 @@ probabilistic criteria to effect predetermined topology changes in
 simulations using standard force fields.
 
 This fix was created to facilitate the dynamic creation of polymeric,
-amorphous or highly-crosslinked systems. A suggested workflow for
+amorphous or highly cross-linked systems. A suggested workflow for
 using this fix is: 1) identify a reaction to be simulated 2) build a
 molecule template of the reaction site before the reaction has
 occurred 3) build a molecule template of the reaction site after the

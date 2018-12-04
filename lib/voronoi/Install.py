@@ -8,7 +8,17 @@ import sys,os,re,subprocess,shutil
 sys.path.append('..')
 from install_helpers import error,get_cpus,fullpath,which,geturl
 
-# help message
+from argparse import ArgumentParser
+
+parser = ArgumentParser(prog='Install.py',
+                        description="LAMMPS library build wrapper script")
+
+# settings
+
+version = "voro++-0.4.6"
+url = "http://math.lbl.gov/voro++/download/dir/%s.tar.gz" % version
+
+# extra help message
 
 help = """
 Syntax from src dir: make lib-voronoi args="-b"
@@ -18,65 +28,40 @@ Syntax from lib dir: python Install.py -b -v voro++-0.4.6
                  or: python Install.py -b
                  or: python Install.py -p /usr/local/voro++-0.4.6
 
-specify one or more options, order does not matter
-
-  -b = download and build the Voro++ library
-  -p = specify folder of existing Voro++ installation
-  -v = set version of Voro++ to download and build (default voro++-0.4.6)
-
 Example:
 
 make lib-voronoi args="-b"   # download/build in lib/voronoi/voro++-0.4.6
 make lib-voronoi args="-p $HOME/voro++-0.4.6" # use existing Voro++ installation in $HOME/voro++-0.4.6
 """
 
-# settings
+# parse and process arguments
 
-version = "voro++-0.4.6"
-url = "http://math.lbl.gov/voro++/download/dir/%s.tar.gz" % version
+pgroup = parser.add_mutually_exclusive_group()
+pgroup.add_argument("-b", "--build", action="store_true",
+                    help="download and build the Voro++ library")
+pgroup.add_argument("-p", "--path",
+                    help="specify folder of existing Voro++ installation")
+parser.add_argument("-v", "--version", default=version,
+                    help="set Voro++ version of Voro++ to download and build (default: %s)" % version)
 
+args = parser.parse_args()
 
-# parse args
+# print help message and exit, if neither build nor path options are given
+if args.build == False and not args.path:
+  parser.print_help()
+  sys.exit(help)
 
-args = sys.argv[1:]
-nargs = len(args)
-if nargs == 0: error(help=help)
-
-homepath = "."
-homedir = version
-
-buildflag = False
-pathflag = False
+buildflag = args.build
+pathflag = args.path != None
+voropath = args.path
 linkflag = True
 
-iarg = 0
-while iarg < nargs:
-  if args[iarg] == "-v":
-    if iarg+2 > nargs: error(help=help)
-    version = args[iarg+1]
-    iarg += 2
-  elif args[iarg] == "-p":
-    if iarg+2 > nargs: error(help=help)
-    voropath = fullpath(args[iarg+1])
-    pathflag = True
-    iarg += 2
-  elif args[iarg] == "-b":
-    buildflag = True
-    iarg += 1
-  else: error(help=help)
-
-homepath = fullpath(homepath)
+homepath = fullpath(".")
 homedir = "%s/%s" % (homepath,version)
 
 if (pathflag):
     if not os.path.isdir(voropath): error("Voro++ path does not exist")
     homedir = voropath
-
-if (buildflag and pathflag):
-    error("Cannot use -b and -p flag at the same time")
-
-if (not buildflag and not pathflag):
-    error("Have to use either -b or -p flag")
 
 # download and unpack Voro++ tarball
 
@@ -109,13 +94,12 @@ if buildflag:
 
 # create 2 links in lib/voronoi to Voro++ src dir
 
-if linkflag:
-  print("Creating links to Voro++ include and lib files")
-  if os.path.isfile("includelink") or os.path.islink("includelink"):
-    os.remove("includelink")
-  if os.path.isfile("liblink") or os.path.islink("liblink"):
-    os.remove("liblink")
-  cmd = 'ln -s "%s/src" includelink' % homedir
-  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  cmd = 'ln -s "%s/src" liblink' % homedir
-  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+print("Creating links to Voro++ include and lib files")
+if os.path.isfile("includelink") or os.path.islink("includelink"):
+  os.remove("includelink")
+if os.path.isfile("liblink") or os.path.islink("liblink"):
+  os.remove("liblink")
+cmd = 'ln -s "%s/src" includelink' % homedir
+subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+cmd = 'ln -s "%s/src" liblink' % homedir
+subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)

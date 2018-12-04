@@ -6,8 +6,7 @@
 from __future__ import print_function
 import sys,os,re,subprocess,shutil
 sys.path.append('..')
-from install_helpers import error,get_cpus,fullpath,which,geturl
-
+from install_helpers import get_cpus,fullpath,geturl
 from argparse import ArgumentParser
 
 parser = ArgumentParser(prog='Install.py',

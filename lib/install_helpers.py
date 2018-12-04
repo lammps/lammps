@@ -1,36 +1,5 @@
 import hashlib,os,subprocess,sys
 
-# default help message
-
-defhelp = """
-Syntax from src dir: make lib-libname args="-m machine -e suffix"
-Syntax from lib dir: python Install.py -m machine -e suffix
-
-libname = name of lib dir (e.g. atc, h5md, meam, poems, etc)
-specify -m and optionally -e, order does not matter
-
-  -m = peform a clean followed by "make -f Makefile.machine"
-       machine = suffix of a lib/Makefile.* file
-  -e = set EXTRAMAKE variable in Makefile.machine to Makefile.lammps.suffix
-       does not alter existing Makefile.machine
-
-Examples:
-
-make lib-poems args="-m serial" # build POEMS lib with same settings as in the serial Makefile in src
-make lib-colvars args="-m mpi"  # build USER-COLVARS lib with same settings as in the mpi Makefile in src
-make lib-meam args="-m ifort"   # build MEAM lib with custom Makefile.ifort (using Intel Fortran)
-"""
-
-# print error message or help
-def error(str=None,help=None):
-  if not str:
-    if not help:
-        print(defhelp)
-    else:
-        print(help)
-  else: print("ERROR",str)
-  sys.exit()
-
 # try to auto-detect the maximum number of available CPUs
 def get_cpus():
   try:

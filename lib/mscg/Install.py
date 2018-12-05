@@ -6,79 +6,75 @@
 from __future__ import print_function
 import sys,os,re,subprocess,shutil
 sys.path.append('..')
-from install_helpers import error,get_cpus,fullpath,which,get_cpus,geturl
+from install_helpers import get_cpus,fullpath,get_cpus,geturl
+
+from argparse import ArgumentParser
+
+parser = ArgumentParser(prog='Install.py',
+                        description="LAMMPS library build wrapper script")
+
+# settings
+
+version = "1.7.3.1"
+machine = "g++_simple"
 
 # help message
 
 help = """
-Syntax from src dir: make lib-mscg args="-p [path] -m [suffix]"
+Syntax from src dir: make lib-mscg args="-p [path] -m [suffix] -v [version]"
                  or: make lib-mscg args="-b -m [suffix]"
-Syntax from lib dir: python Install.py -p [path]  -m [suffix]
+Syntax from lib dir: python Install.py -p [path]  -m [suffix] -v [version]
 Syntax from lib dir: python Install.py -b -m [suffix]
-
-specify one or more options, order does not matter
-
-  -b = download and build MS-CG library
-  -p = specify folder of existing MS-CG installation
-  -m = machine suffix specifies which src/Make/Makefile.suffix to use
-       default suffix = g++_simple
 
 Example:
 
-make lib-mscg args="-b -m serial " # download/build in lib/mscg/MSCG-release-master with settings compatible with "make serial"
-make lib-mscg args="-b -m mpi " # download/build in lib/mscg/MSCG-release-master with settings compatible with "make mpi"
+make lib-mscg args="-b -m serial " # download/build in lib/mscg/MSCG-release with settings compatible with "make serial"
+make lib-mscg args="-b -m mpi " # download/build in lib/mscg/MSCG-release with settings compatible with "make mpi"
 make lib-mscg args="-p /usr/local/mscg-release " # use existing MS-CG installation in /usr/local/mscg-release
 """
 
+# known checksums for different MSCG versions. used to validate the download.
+checksums = { \
+        '1.7.3.1' : '8c45e269ee13f60b303edd7823866a91', \
+        }
+
+# parse and process arguments
+
+pgroup = parser.add_mutually_exclusive_group()
+pgroup.add_argument("-b", "--build", action="store_true",
+                    help="download and build the MSCG library")
+pgroup.add_argument("-p", "--path",
+                    help="specify folder of existing MSCG installation")
+parser.add_argument("-v", "--version", default=version, choices=checksums.keys(),
+                    help="set version of MSCG to download and build (default: %s)" % version)
+parser.add_argument("-m", "--machine", default=machine, choices=['g++_simple','intel_simple','lapack', 'mac'],
+                    help="set machine suffix specifies which src/Make/Makefile.suffix to use. (default: %s)" % machine)
+
+args = parser.parse_args()
+
+# print help message and exit, if neither build nor path options are given
+if args.build == False and not args.path:
+  parser.print_help()
+  sys.exit(help)
+
+buildflag = args.build
+pathflag = args.path != None
+mscgpath= args.path
+msuffix = args.machine
+mscgver = args.version
+
 # settings
 
-mscgver = "1.7.3.1"
 url = "https://github.com/uchicago-voth/MSCG-release/archive/%s.tar.gz" % mscgver
 tarfile = "MS-CG-%s.tar.gz" % mscgver
 tardir = "MSCG-release-%s" % mscgver
 
-# parse args
-
-args = sys.argv[1:]
-nargs = len(args)
-if nargs == 0: error(help=help)
-
-homepath = "."
-homedir = tardir
-
-buildflag = False
-pathflag = False
-linkflag = True
-msuffix = "g++_simple"
-
-iarg = 0
-while iarg < nargs:
-  if args[iarg] == "-p":
-    if iarg+2 > nargs: error(help=help)
-    mscgpath = fullpath(args[iarg+1])
-    pathflag = True
-    iarg += 2
-  elif args[iarg] == "-m":
-    if iarg+2 > nargs: error(help=help)
-    msuffix = args[iarg+1]
-    iarg += 2
-  elif args[iarg] == "-b":
-    buildflag = True
-    iarg += 1
-  else: error(help=help)
-
-homepath = fullpath(homepath)
-homedir = "%s/%s" % (homepath,homedir)
+homepath = fullpath('.')
+homedir = "%s/%s" % (homepath,tardir)
 
 if (pathflag):
     if not os.path.isdir(mscgpath): error("MS-CG path does not exist")
     homedir = mscgpath
-
-if (buildflag and pathflag):
-    error("Cannot use -b and -p flag at the same time")
-
-if (not buildflag and not pathflag):
-    error("Have to use either -b or -p flag")
 
 # download and unpack MS-CG tarfile
 
@@ -127,13 +123,12 @@ if buildflag:
 
 # create 2 links in lib/mscg to MS-CG src dir
 
-if linkflag:
-  print("Creating links to MS-CG include and lib files")
-  if os.path.isfile("includelink") or os.path.islink("includelink"):
-    os.remove("includelink")
-  if os.path.isfile("liblink") or os.path.islink("liblink"):
-    os.remove("liblink")
-  cmd = 'ln -s "%s/src" includelink' % homedir
-  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  cmd = 'ln -s "%s/src" liblink' % homedir
-  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+print("Creating links to MS-CG include and lib files")
+if os.path.isfile("includelink") or os.path.islink("includelink"):
+  os.remove("includelink")
+if os.path.isfile("liblink") or os.path.islink("liblink"):
+  os.remove("liblink")
+cmd = 'ln -s "%s/src" includelink' % homedir
+subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+cmd = 'ln -s "%s/src" liblink' % homedir
+subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)

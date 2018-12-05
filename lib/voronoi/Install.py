@@ -23,6 +23,7 @@ help = """
 Syntax from src dir: make lib-voronoi args="-b"
                  or: make lib-voronoi args="-p /usr/local/voro++-0.4.6"
                  or: make lib-voronoi args="-b -v voro++-0.4.6"
+
 Syntax from lib dir: python Install.py -b -v voro++-0.4.6
                  or: python Install.py -b
                  or: python Install.py -p /usr/local/voro++-0.4.6
@@ -41,7 +42,7 @@ pgroup.add_argument("-b", "--build", action="store_true",
 pgroup.add_argument("-p", "--path",
                     help="specify folder of existing Voro++ installation")
 parser.add_argument("-v", "--version", default=version,
-                    help="set Voro++ version of Voro++ to download and build (default: %s)" % version)
+                    help="set version of Voro++ to download and build (default: %s)" % version)
 
 args = parser.parse_args()
 
@@ -53,7 +54,6 @@ if args.build == False and not args.path:
 buildflag = args.build
 pathflag = args.path != None
 voropath = args.path
-linkflag = True
 
 homepath = fullpath(".")
 homedir = "%s/%s" % (homepath,version)

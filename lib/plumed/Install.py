@@ -6,7 +6,16 @@
 from __future__ import print_function
 import sys,os,re,subprocess,hashlib,shutil
 sys.path.append('..')
-from install_helpers import error,get_cpus,fullpath,which,geturl,checkmd5sum
+from install_helpers import get_cpus,fullpath,geturl,checkmd5sum
+from argparse import ArgumentParser
+
+parser = ArgumentParser(prog='Install.py',
+                        description="LAMMPS library build wrapper script")
+
+# settings
+
+version = "2.4.3"
+mode = "static"
 
 # help message
 
@@ -19,23 +28,11 @@ Syntax from lib dir: python Install.py -b -v 2.4.3
                  or: python Install.py -b
                  or: python Install.py -p /usr/local/plumed2 -m shared
 
-specify one or more options, order does not matter
-
-  -b = download and build the plumed2 library
-  -v = set version of plumed2 to download and build (default: 2.4.3)
-  -p = specify folder of existing plumed2 installation
-  -m = set plumed linkage mode: static (default), shared, or runtime
-
 Example:
 
 make lib-plumed args="-b"   # download/build in lib/plumed/plumed2
 make lib-plumed args="-p $HOME/plumed2 -m shared" # use existing Plumed2 installation in $HOME/plumed2
 """
-
-# settings
-
-version = "2.4.3"
-mode = "static"
 
 # known checksums for different PLUMED versions. used to validate the download.
 checksums = { \
@@ -44,54 +41,35 @@ checksums = { \
         '2.5b'  : 'e341bdef469be1da058b8a0b97a3db22', \
         }
 
-# parse args
+# parse and process arguments
 
-args = sys.argv[1:]
-nargs = len(args)
-if nargs == 0: error(help=help)
+pgroup = parser.add_mutually_exclusive_group()
+pgroup.add_argument("-b", "--build", action="store_true",
+                    help="download and build the plumed2 library")
+pgroup.add_argument("-p", "--path",
+                    help="specify folder of existing plumed2 installation")
+parser.add_argument("-v", "--version", default=version, choices=checksums.keys(),
+                    help="set version of plumed to download and build (default: %s)" % version)
+parser.add_argument("-m", "--mode", default=mode, choices=['static', 'shared', 'runtime'],
+                    help="set plumed linkage mode: static (default), shared, or runtime")
 
-homepath = "."
+args = parser.parse_args()
 
-buildflag = False
-pathflag = False
-suffixflag = False
-linkflag = True
+# print help message and exit, if neither build nor path options are given
+if args.build == False and not args.path:
+  parser.print_help()
+  sys.exit(help)
 
-iarg = 0
-while iarg < nargs:
-  if args[iarg] == "-v":
-    if iarg+2 > nargs: error(help=help)
-    version = args[iarg+1]
-    iarg += 2
-  elif args[iarg] == "-p":
-    if iarg+2 > nargs: error(help=help)
-    plumedpath = fullpath(args[iarg+1])
-    pathflag = True
-    iarg += 2
-  elif args[iarg] == "-m":
-    if iarg+2 > nargs: error(help=help)
-    mode = args[iarg+1]
-    iarg += 2
-  elif args[iarg] == "-b":
-    buildflag = True
-    iarg += 1
-  else: error(help=help)
+buildflag = args.build
+pathflag = args.path != None
+plumedpath= args.path
 
-homepath = fullpath(homepath)
+homepath = fullpath('.')
 homedir = "%s/plumed2" % (homepath)
 
 if (pathflag):
     if not os.path.isdir(plumedpath): error("Plumed2 path does not exist")
     homedir = plumedpath
-
-if (buildflag and pathflag):
-    error("Cannot use -b and -p flag at the same time")
-
-if (not buildflag and not pathflag):
-    error("Have to use either -b or -p flag")
-
-if ((mode != "static") and (mode != "shared") and (mode != "runtime")):
-    error("Unknown linkage mode '%s' for Plumed" % mode)
 
 # download and unpack plumed2 tarball
 
@@ -128,18 +106,17 @@ if buildflag:
  
 # create 2 links in lib/plumed to plumed2 installation dir
 
-if linkflag:
-  print("Creating links to plumed2 include and lib files")
-  if os.path.isfile("includelink") or os.path.islink("includelink"):
-    os.remove("includelink")
-  if os.path.isfile("liblink") or os.path.islink("liblink"):
-    os.remove("liblink")
-  cmd = 'ln -s "%s/include" includelink' % homedir
+print("Creating links to plumed2 include and lib files")
+if os.path.isfile("includelink") or os.path.islink("includelink"):
+  os.remove("includelink")
+if os.path.isfile("liblink") or os.path.islink("liblink"):
+  os.remove("liblink")
+cmd = 'ln -s "%s/include" includelink' % homedir
+subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+cmd = 'ln -s "%s/lib" liblink' % homedir
+subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+if os.path.isfile("Makefile.lammps.%s" % mode):
+  print("Creating Makefile.lammps")
+  cmd = 'echo PLUMED_LIBDIR="%s/lib" > Makefile.lammps; cat liblink/plumed/src/lib/Plumed.inc.%s Makefile.lammps.%s >> Makefile.lammps' % (homedir,mode,mode)
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  cmd = 'ln -s "%s/lib" liblink' % homedir
-  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  if os.path.isfile("Makefile.lammps.%s" % mode):
-    print("Creating Makefile.lammps")
-    cmd = 'echo PLUMED_LIBDIR="%s/lib" > Makefile.lammps; cat liblink/plumed/src/lib/Plumed.inc.%s Makefile.lammps.%s >> Makefile.lammps' % (homedir,mode,mode)
-    subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
 

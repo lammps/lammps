@@ -100,8 +100,7 @@ by the following commands:
         zbl $\{zblcutinner\} $\{zblcutouter\} snap
         pair_coeff * * zbl 0.0
         pair_coeff 1 1 zbl $\{zblz\}
-        pair_coeff * * snap ../potentials/Ta06A.snapcoeff Ta &
-        ../potentials/Ta06A.snapparam Ta :pre
+        pair_coeff * * snap Ta06A.snapcoeff Ta06A.snapparam Ta :pre
 
 It is convenient to keep these commands in a separate file that can
 be inserted in any LAMMPS input script using the "include"_include.html

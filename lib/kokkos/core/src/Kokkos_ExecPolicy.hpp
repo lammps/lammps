@@ -57,6 +57,10 @@
 
 namespace Kokkos {
 
+struct ParallelForTag {};
+struct ParallelScanTag {};
+struct ParallelReduceTag {};
+
 struct ChunkSize {
   int value;
   ChunkSize(int value_):value(value_) {}
@@ -320,6 +324,10 @@ public:
 
   template< class FunctorType >
   static int team_size_recommended( const FunctorType & , const int&);
+
+  template<class FunctorType>
+  int team_size_recommended( const FunctorType & functor , const int vector_length);
+
   //----------------------------------------
   /** \brief  Construct policy with the given instance of the execution space */
   TeamPolicyInternal( const typename traits::execution_space & , int league_size_request , int team_size_request , int vector_length_request = 1 );

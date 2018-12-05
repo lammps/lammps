@@ -95,9 +95,10 @@ spelling: $(OBJECTS) utils/sphinx-config/false_positives.txt
 	@echo "Spell check finished."
 
 epub: $(OBJECTS)
-	@mkdir -p epub
+	@mkdir -p epub/JPG
 	@rm -f LAMMPS.epub
 	@cp src/JPG/lammps-logo.png epub/
+	@cp src/JPG/*.* epub/JPG
 	@(\
 		. $(VENV)/bin/activate ;\
 		cp -r src/* $(RSTDIR)/ ;\
@@ -123,9 +124,9 @@ pdf: utils/txt2html/txt2html.exe
 		cd ..; \
 		../utils/txt2html/txt2html.exe -b *.txt; \
 		htmldoc --batch lammps.book;          \
-		for s in `echo *.txt | sed -e 's,\.txt,\.html,g'` ; \
-			do grep -q $$s lammps.book || \
-			echo doc file $$s missing in src/lammps.book; done; \
+		for s in `echo *.txt | sed -e 's/ \(pairs\|bonds\|angles\|dihedrals\|impropers\|commands_list\|fixes\|computes\).txt/ /g' | sed -e 's,\.txt,\.html,g'` ; \
+			do grep -q ^$$s lammps.book || \
+			echo WARNING: doc file $$s missing in src/lammps.book; done; \
 		rm *.html; \
 	)
 
@@ -175,7 +176,6 @@ $(VENV):
 		$(VIRTUALENV) -p $(PYTHON) $(VENV); \
 		. $(VENV)/bin/activate; \
 		pip install Sphinx; \
-		pip install sphinxcontrib-images; \
 		deactivate;\
 	)
 

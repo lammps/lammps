@@ -190,7 +190,7 @@ it when running dynamics).  If you do not do this, the total energy of
 the system will have discontinuities when the relative distance
 between any pair of atoms changes from cutoff+epsilon to
 cutoff-epsilon and the minimizer may behave poorly.  Some of the
-manybody potentials use splines and other internal cutoffs that
+many-body potentials use splines and other internal cutoffs that
 inherently have this problem.  The "long-range Coulombic
 styles"_kspace_style.html (PPPM, Ewald) are approximate to within the
 user-specified tolerance, which means their energy and forces may not

@@ -28,7 +28,7 @@ The results enable efficient identification and characterization of
 twins and grains in hexagonal close-packed structures.
 
 The output of the compute is thus the 3 components of a unit vector
-associdate with each atom.  The components are set to 0.0 for
+associated with each atom.  The components are set to 0.0 for
 atoms not in the group.
 
 Details of the calculation are given in "(Barrett)"_#Barrett.

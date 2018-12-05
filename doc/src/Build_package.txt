@@ -56,6 +56,7 @@ packages:
 "USER-INTEL"_Build_extras.html#user-intel,
 "USER-MOLFILE"_Build_extras.html#user-molfile,
 "USER-NETCDF"_Build_extras.html#user-netcdf,
+"USER-PLUMED"_Build_extras.html#user-plumed,
 "USER-OMP"_Build_extras.html#user-omp,
 "USER-QMMM"_Build_extras.html#user-qmmm,
 "USER-QUIP"_Build_extras.html#user-quip,

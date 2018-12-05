@@ -60,10 +60,10 @@ template class TaskQueue< Kokkos::Serial > ;
 void TaskQueueSpecialization< Kokkos::Serial >::execute
   ( TaskQueue< Kokkos::Serial > * const queue )
 {
-  using execution_space = Kokkos::Serial ;
-  using queue_type      = TaskQueue< execution_space > ;
+  using exec_space = Kokkos::Serial ;
+  using tqs_queue_type      = TaskQueue< exec_space > ;
   using task_root_type  = TaskBase< void , void , void > ;
-  using Member          = Impl::HostThreadTeamMember< execution_space > ;
+  using Member          = Impl::HostThreadTeamMember< exec_space > ;
 
   task_root_type * const end = (task_root_type *) task_root_type::EndTag ;
 
@@ -83,9 +83,9 @@ void TaskQueueSpecialization< Kokkos::Serial >::execute
 
     task_root_type * task = end ;
 
-    for ( int i = 0 ; i < queue_type::NumQueue && end == task ; ++i ) {
+    for ( int i = 0 ; i < tqs_queue_type::NumQueue && end == task ; ++i ) {
       for ( int j = 0 ; j < 2 && end == task ; ++j ) {
-        task = queue_type::pop_ready_task( & queue->m_ready[i][j] );
+        task = tqs_queue_type::pop_ready_task( & queue->m_ready[i][j] );
       }
     }
 
@@ -120,10 +120,10 @@ void TaskQueueSpecialization< Kokkos::Serial > ::
   iff_single_thread_recursive_execute(
     TaskQueue< Kokkos::Serial > * const queue )
 {
-  using execution_space = Kokkos::Serial ;
-  using queue_type      = TaskQueue< execution_space > ;
+  using exec_space = Kokkos::Serial ;
+  using tqs_queue_type      = TaskQueue< exec_space > ;
   using task_root_type  = TaskBase< void , void , void > ;
-  using Member          = Impl::HostThreadTeamMember< execution_space > ;
+  using Member          = Impl::HostThreadTeamMember< exec_space > ;
 
   task_root_type * const end = (task_root_type *) task_root_type::EndTag ;
 
@@ -139,9 +139,9 @@ void TaskQueueSpecialization< Kokkos::Serial > ::
 
     task = end ;
 
-    for ( int i = 0 ; i < queue_type::NumQueue && end == task ; ++i ) {
+    for ( int i = 0 ; i < tqs_queue_type::NumQueue && end == task ; ++i ) {
       for ( int j = 0 ; j < 2 && end == task ; ++j ) {
-        task = queue_type::pop_ready_task( & queue->m_ready[i][j] );
+        task = tqs_queue_type::pop_ready_task( & queue->m_ready[i][j] );
       }
     }
 

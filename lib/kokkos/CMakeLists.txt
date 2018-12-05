@@ -11,7 +11,7 @@ IF(NOT KOKKOS_HAS_TRILINOS)
 
   # Define Project Name if this is a standalone build
   IF(NOT DEFINED ${PROJECT_NAME})
-    project(Kokkos CXX) 
+    project(Kokkos CXX)
   ENDIF()
 
   # Basic initialization (Used in KOKKOS_SETTINGS)
@@ -22,7 +22,7 @@ IF(NOT KOKKOS_HAS_TRILINOS)
   include(${KOKKOS_SRC_PATH}/cmake/kokkos_functions.cmake)
   set_kokkos_cxx_compiler()
   set_kokkos_cxx_standard()
-  
+
   #------------ GET OPTIONS AND KOKKOS_SETTINGS --------------------------------
   # Add Kokkos' modules to CMake's module path.
   set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${Kokkos_SOURCE_DIR}/cmake/Modules/")
@@ -34,7 +34,7 @@ IF(NOT KOKKOS_HAS_TRILINOS)
 
   #------------ GENERATE HEADER AND SOURCE FILES -------------------------------
   execute_process(
-    COMMAND ${KOKKOS_SETTINGS} make -f ${KOKKOS_SRC_PATH}/cmake/Makefile.generate_cmake_settings CXX=${CMAKE_CXX_COMPILER} generate_build_settings
+    COMMAND ${KOKKOS_SETTINGS} make -f ${KOKKOS_SRC_PATH}/cmake/Makefile.generate_cmake_settings CXX=${CMAKE_CXX_COMPILER} PREFIX=${CMAKE_INSTALL_PREFIX} generate_build_settings
     WORKING_DIRECTORY "${Kokkos_BINARY_DIR}"
     OUTPUT_FILE ${Kokkos_BINARY_DIR}/core_src_make.out
     RESULT_VARIABLE GEN_SETTINGS_RESULT
@@ -45,6 +45,7 @@ IF(NOT KOKKOS_HAS_TRILINOS)
   endif()
   include(${Kokkos_BINARY_DIR}/kokkos_generated_settings.cmake)
   install(FILES ${Kokkos_BINARY_DIR}/kokkos_generated_settings.cmake DESTINATION lib/cmake/Kokkos)
+  install(FILES ${Kokkos_BINARY_DIR}/kokkos_generated_settings.cmake DESTINATION ${CMAKE_INSTALL_PREFIX})
   string(REPLACE " " ";" KOKKOS_TPL_INCLUDE_DIRS "${KOKKOS_GMAKE_TPL_INCLUDE_DIRS}")
   string(REPLACE " " ";" KOKKOS_TPL_LIBRARY_DIRS "${KOKKOS_GMAKE_TPL_LIBRARY_DIRS}")
   string(REPLACE " " ";" KOKKOS_TPL_LIBRARY_NAMES "${KOKKOS_GMAKE_TPL_LIBRARY_NAMES}")

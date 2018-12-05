@@ -100,7 +100,7 @@ void Calculate_dCos_ThetaOMP( rvec dvec_ji, double d_ji, rvec dvec_jk, double d_
    played by j which sits in the middle of the other two. */
 void Valence_AnglesOMP( reax_system *system, control_params *control,
                         simulation_data *data, storage *workspace,
-                        reax_list **lists, output_controls *out_control )
+                        reax_list **lists, output_controls * /* out_control */)
 {
 
 #ifdef OMP_TIMING

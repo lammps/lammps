@@ -18,25 +18,33 @@
 
 using namespace LAMMPS_NS;
 
+static void writemsg(LAMMPS *lmp, const char *msg, int abend=1)
+{
+  if (lmp->comm->me == 0) {
+    if (lmp->screen) fputs(msg,lmp->screen);
+    if (lmp->logfile) fputs(msg,lmp->logfile);
+  }
+  if (abend)
+    lmp->error->all(FLERR,"This fix style is no longer available");
+}
+
 /* ---------------------------------------------------------------------- */
 
 FixDeprecated::FixDeprecated(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (strncmp(style,"ave/spatial",11) == 0) {
-    const char *message = "\n"
-    "NOTE: The fix styles 'ave/spatial' and 'ave/spatial/sphere' have been replaced\n"
-    "by the more general fix ave/chunk and compute chunk/atom commands.\n"
-    "All ave/spatial and ave/spatial/sphere functionality is available in these\n"
-    "new commands. These ave/spatial keywords & options are part of fix ave/chunk:\n"
-    "  Nevery, Nrepeat, Nfreq, input values, norm, ave, file, overwrite, title123\n"
-    "These ave/spatial keywords & options for binning are part of compute chunk/atom:\n"
-    "  dim, origin, delta, region, bound, discard, units\n\n";
+  if (strcmp(style,"DEPRECATED") == 0) {
+    writemsg(lmp,"\nFix style 'DEPRECATED' is a dummy style\n\n",0);
 
-    if (comm->me == 0) {
-      if (screen) fputs(message,screen);
-      if (logfile) fputs(message,logfile);
-    }
+  } else if (strncmp(style,"ave/spatial",11) == 0) {
+    writemsg(lmp,"\nFix styles 'ave/spatial' and 'ave/spatial/sphere' have "
+             "been replaced\nby the more general fix ave/chunk and compute "
+             "chunk/atom commands.\nAll ave/spatial and ave/spatial/sphere "
+             "functionality is available in these\nnew commands. These "
+             "ave/spatial keywords & options are part of fix ave/chunk:\n"
+             "  Nevery, Nrepeat, Nfreq, input values, norm, ave, file, "
+             "overwrite, title123\nThese ave/spatial keywords & options for "
+             "binning are part of compute chunk/atom:\n  dim, origin, delta,"
+             " region, bound, discard, units\n\n");
   }
-  error->all(FLERR,"This fix command has been removed from LAMMPS");
 }

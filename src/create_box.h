@@ -47,7 +47,7 @@ E: Cannot create_box after simulation box is defined
 
 A simulation box can only be defined once.
 
-E: Cannot run 2d simulation with nonperiodic Z dimension
+E: Cannot run 2d simulation with non-periodic Z dimension
 
 Use the boundary command to make the z dimension periodic in order to
 run a 2d simulation.

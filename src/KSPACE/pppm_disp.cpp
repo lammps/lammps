@@ -63,7 +63,7 @@ enum{FORWARD_IK, FORWARD_AD, FORWARD_IK_PERATOM, FORWARD_AD_PERATOM,
 
 /* ---------------------------------------------------------------------- */
 
-PPPMDisp::PPPMDisp(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg),
+PPPMDisp::PPPMDisp(LAMMPS *lmp) : KSpace(lmp),
   factors(NULL), csumi(NULL), cii(NULL), B(NULL), density_brick(NULL), vdx_brick(NULL),
   vdy_brick(NULL), vdz_brick(NULL), density_fft(NULL), u_brick(NULL), v0_brick(NULL),
   v1_brick(NULL), v2_brick(NULL), v3_brick(NULL), v4_brick(NULL), v5_brick(NULL),
@@ -106,11 +106,8 @@ PPPMDisp::PPPMDisp(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg),
    fft2_6(NULL), remap(NULL), remap_6(NULL), cg(NULL), cg_peratom(NULL), cg_6(NULL),
    cg_peratom_6(NULL), part2grid(NULL), part2grid_6(NULL), boxlo(NULL)
 {
-  if (narg < 1) error->all(FLERR,"Illegal kspace_style pppm/disp command");
-
   triclinic_support = 0;
   pppmflag = dispersionflag = 1;
-  accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
 
   nfactors = 3;
   factors = new int[nfactors];
@@ -225,6 +222,14 @@ PPPMDisp::PPPMDisp(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg),
   memset(function, 0, EWALD_FUNCS*sizeof(int));
 }
 
+/* ---------------------------------------------------------------------- */
+
+void PPPMDisp::settings(int narg, char **arg)
+{
+  if (narg < 1) error->all(FLERR,"Illegal kspace_style pppm/disp command");
+  accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
+}
+
 /* ----------------------------------------------------------------------
    free all memory
 ------------------------------------------------------------------------- */
@@ -264,7 +269,7 @@ void PPPMDisp::init()
                         "comm_style brick");
 
   if (slabflag == 0 && domain->nonperiodic > 0)
-    error->all(FLERR,"Cannot use nonperiodic boundaries with PPPMDisp");
+    error->all(FLERR,"Cannot use non-periodic boundaries with PPPMDisp");
   if (slabflag == 1) {
     if (domain->xperiodic != 1 || domain->yperiodic != 1 ||
         domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
@@ -652,7 +657,7 @@ void PPPMDisp::setup()
 {
 
   if (slabflag == 0 && domain->nonperiodic > 0)
-    error->all(FLERR,"Cannot use nonperiodic boundaries with PPPMDisp");
+    error->all(FLERR,"Cannot use non-periodic boundaries with PPPMDisp");
   if (slabflag == 1) {
     if (domain->xperiodic != 1 || domain->yperiodic != 1 ||
         domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)

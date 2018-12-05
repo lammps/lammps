@@ -406,6 +406,8 @@ FixGCMC::~FixGCMC()
 
   memory->destroy(local_gas_list);
   memory->destroy(molcoords);
+  memory->destroy(molq);
+  memory->destroy(molimage);
 
   delete [] idrigid;
   delete [] idshake;

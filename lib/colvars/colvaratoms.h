@@ -90,7 +90,7 @@ public:
   /// Destructor
   ~atom();
 
-  /// Set mutable data (everything except id and mass) to zero; update mass
+  /// Set mutable data (everything except id and mass) to zero
   inline void reset_data()
   {
     pos = cvm::atom_pos(0.0);

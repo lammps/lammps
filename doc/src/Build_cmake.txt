@@ -27,7 +27,7 @@ make command to build LAMMPS, which uses the created
 Makefile(s). Example:
 
 cd lammps                        # change to the LAMMPS distribution directory
-mkdir build; cd build            # create a new directory (folder) for build       
+mkdir build; cd build            # create a new directory (folder) for build
 cmake ../cmake \[options ...\]   # configuration with (command-line) cmake
 make                             # compilation :pre
 
@@ -44,7 +44,7 @@ LAMMPS or need to re-compile LAMMPS repeatedly, installation of the
 ccache (= Compiler Cache) software may speed up compilation even more.
 
 After compilation, you can optionally copy the LAMMPS executable and
-library into your system folders (by default under /usr/local) with:
+library into your system folders (by default under $HOME/.local) with:
 
 make install    # optional, copy LAMMPS executable & library elsewhere :pre
 

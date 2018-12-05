@@ -143,7 +143,12 @@ T atomic_fetch_add( volatile T * const dest ,
   T return_val;
   // This is a way to (hopefully) avoid dead lock in a warp
   int done = 0;
-  unsigned int active = KOKKOS_IMPL_CUDA_BALLOT(1);
+#ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
+  unsigned int mask = KOKKOS_IMPL_CUDA_ACTIVEMASK;
+  unsigned int active = KOKKOS_IMPL_CUDA_BALLOT_MASK(mask,1);
+#else
+  unsigned int active = KOKKOS_IMPL_CUDA_BALLOT_MASK(1);
+#endif
   unsigned int done_active = 0;
   while (active!=done_active) {
     if(!done) {
@@ -155,7 +160,12 @@ T atomic_fetch_add( volatile T * const dest ,
         done = 1;
       }
     }
-    done_active = KOKKOS_IMPL_CUDA_BALLOT(done);
+
+#ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
+    done_active = KOKKOS_IMPL_CUDA_BALLOT_MASK(mask,done);
+#else
+    done_active = KOKKOS_IMPL_CUDA_BALLOT_MASK(done);
+#endif
   }
   return return_val;
 }

@@ -142,15 +142,10 @@
 #endif
 #endif
 
-#ifdef KOKKOS_HAVE_CXX1Z
+
+#if defined(KOKKOS_HAVE_CXX1Z) || defined(KOKKOS_ENABLE_CXX17)
 #ifndef KOKKOS_ENABLE_CXX1Z
 #define KOKKOS_ENABLE_CXX1Z KOKKOS_HAVE_CXX1Z
-#endif
-#endif
-
-#ifdef KOKKOS_HAVE_DEBUG
-#ifndef KOKKOS_DEBUG
-#define KOKKOS_DEBUG KOKKOS_HAVE_DEBUG
 #endif
 #endif
 
@@ -480,6 +475,12 @@
 
 #if (!defined(KOKKOS_HAVE_DEBUG)) && defined(KOKKOS_ENABLE_DEBUG)
 #define KOKKOS_HAVE_DEBUG 1
+#endif
+
+#ifdef KOKKOS_HAVE_DEBUG
+#ifndef KOKKOS_DEBUG
+#define KOKKOS_DEBUG KOKKOS_HAVE_DEBUG
+#endif
 #endif
 
 #if (!defined(KOKKOS_HAVE_HWLOC)) && defined(KOKKOS_ENABLE_HWLOC)

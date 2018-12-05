@@ -7,8 +7,8 @@
 :line
 
 angle_style class2 command :h3
-angle_style class2/omp command :h3
 angle_style class2/kk command :h3
+angle_style class2/omp command :h3
 angle_style class2/p6 command :h3
 
 [Syntax:]

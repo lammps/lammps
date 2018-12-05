@@ -78,7 +78,6 @@ def geturl(url,fname):
 
   if which('curl') != None:
     cmd = 'curl -L -o "%s" %s' % (fname,url)
-    print(cmd)
     try:
       subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
       success = True
@@ -87,7 +86,6 @@ def geturl(url,fname):
 
   if not success and which('wget') != None:
     cmd = 'wget -O "%s" %s' % (fname,url)
-    print(cmd)
     try:
       subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
       success = True

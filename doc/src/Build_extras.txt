@@ -45,6 +45,7 @@ This is the list of packages that may require additional steps.
 "USER-INTEL"_#user-intel,
 "USER-MOLFILE"_#user-molfile,
 "USER-NETCDF"_#user-netcdf,
+"USER-PLUMED"_#user-plumed,
 "USER-OMP"_#user-omp,
 "USER-QMMM"_#user-qmmm,
 "USER-QUIP"_#user-quip,
@@ -63,7 +64,7 @@ available on your system.
 
 If CMake cannot find the library, you can set these variables:
 
--D ZLIB_INCLUDE_DIR=path    # path to zlib.h header file 
+-D ZLIB_INCLUDE_DIR=path    # path to zlib.h header file
 -D ZLIB_LIBRARIES=path      # path to libz.a (.so) file :pre
 
 [Traditional make]:
@@ -86,22 +87,30 @@ which GPU hardware to build for.
                       # value = double or mixed (default) or single
 -D OCL_TUNE=value     # hardware choice for GPU_API=opencl
                       # generic (default) or intel (Intel CPU) or fermi, kepler, cypress (NVIDIA)
--D GPU_ARCH=value     # hardware choice for GPU_API=cuda
+-D GPU_ARCH=value     # primary GPU hardware choice for GPU_API=cuda
                       # value = sm_XX, see below
                       # default is Cuda-compiler dependent, but typically sm_20
--D CUDPP_OPT=value    # optimization setting for GPU_API=cudea
+-D CUDPP_OPT=value    # optimization setting for GPU_API=cuda
                       # enables CUDA Performance Primitives Optimizations
                       # yes (default) or no :pre
 
 GPU_ARCH settings for different GPU hardware is as follows:
 
-sm_20 for Fermi (C2050/C2070, deprecated as of CUDA 8.0) or GeForce GTX 580 or similar
-sm_30 for Kepler (K10)
-sm_35 for Kepler (K40) or GeForce GTX Titan or similar
-sm_37 for Kepler (dual K80)
-sm_50 for Maxwell
-sm_60 for Pascal (P100)
-sm_70 for Volta :ul
+sm_20 or sm_21 for Fermi (supported by CUDA 3.2 until CUDA 7.5)
+sm_30 or sm_35 or sm_37 for Kepler (supported since CUDA 5)
+sm_50 or sm_52 for Maxwell (supported since CUDA 6)
+sm_60 or sm_61 for Pascal (supported since CUDA 8)
+sm_70 for Volta (supported since CUDA 9)
+sm_75 for Turing (supported since CUDA 10) :ul
+
+A more detailed list can be found, for example,
+at "Wikipedia's CUDA article"_https://en.wikipedia.org/wiki/CUDA#GPUs_supported
+
+CMake can detect which version of the CUDA toolkit is used and thus can
+include support for [all] major GPU architectures supported by this toolkit.
+Thus the GPU_ARCH setting is merely an optimization, to have code for
+the preferred GPU architecture directly included rather than having to wait
+for the JIT compiler of the CUDA driver to translate it.
 
 [Traditional make]:
 
@@ -136,6 +145,11 @@ CUDA_ARCH = sm_XX, what GPU hardware you have, same as CMake GPU_ARCH above
 CUDA_PRECISION = precision (double, mixed, single)
 EXTRAMAKE = which Makefile.lammps.* file to copy to Makefile.lammps :ul
 
+The file Makefile.linux_multi is set up to include support for multiple
+GPU architectures as supported by the CUDA toolkit in use. This is done
+through using the "--gencode " flag, which can be used multiple times and
+thus support all GPU architectures supported by your CUDA compiler.
+
 If the library build is successful, 3 files should be created:
 lib/gpu/libgpu.a, lib/gpu/nvc_get_devices, and
 lib/gpu/Makefile.lammps.  The latter has settings that enable LAMMPS
@@ -149,8 +163,9 @@ re-build LAMMPS.  This is because the compilation of files in the GPU
 package uses the library settings from the lib/gpu/Makefile.machine
 used to build the GPU library.
 
+
 :line
- 
+
 KIM package :h4,link(kim)
 
 To build with this package, the KIM library must be downloaded and
@@ -177,7 +192,7 @@ package?" page.
 [CMake build]:
 
 -D DOWNLOAD_KIM=value    # download OpenKIM API v1 for build, value = no (default) or yes
--D KIM_LIBRARY=path      # KIM library file (only needed if a custom location) 
+-D KIM_LIBRARY=path      # KIM library file (only needed if a custom location)
 -D KIM_INCLUDE_DIR=path  # KIM include directory (only needed if a custom location) :pre
 
 If DOWNLOAD_KIM is set, the KIM library will be downloaded and built
@@ -254,7 +269,7 @@ For NVIDIA GPUs using CUDA, set these 4 variables:
 -D KOKKOS_ARCH="archCPU;archGPU"   # archCPU = CPU from list above that is hosting the GPU
                                    # archGPU = GPU from list above
 -D KOKKOS_ENABLE_CUDA=yes
--D KOKKOS_ENABLE_OPENMP=yes 
+-D KOKKOS_ENABLE_OPENMP=yes
 -D CMAKE_CXX_COMPILER=wrapper      # wrapper = full path to Cuda nvcc wrapper :pre
 
 The wrapper value is the Cuda nvcc compiler wrapper provided in the
@@ -296,7 +311,7 @@ export OMPI_CXX = $(KOKKOS_ABSOLUTE_PATH)/config/nvcc_wrapper
 CC =		mpicxx :pre
 
 :line
- 
+
 LATTE package :h4,link(latte)
 
 To build with this package, you must download and build the LATTE
@@ -324,7 +339,7 @@ args:
 make lib-latte                          # print help message
 make lib-latte args="-b"                # download and build in lib/latte/LATTE-master
 make lib-latte args="-p $HOME/latte"    # use existing LATTE installation in $HOME/latte
-make lib-latte args="-b -m gfortran"    # download and build in lib/latte and 
+make lib-latte args="-b -m gfortran"    # download and build in lib/latte and
                                         #   copy Makefile.lammps.gfortran to Makefile.lammps
 :pre
 
@@ -335,7 +350,7 @@ also check that the Makefile.lammps file you create is appropriate for
 the compiler you use on your system to build LATTE.
 
 :line
- 
+
 MEAM package :h4,link(meam)
 
 NOTE: the use of the MEAM package is discouraged, as it has been
@@ -378,7 +393,7 @@ EXTRAMAKE variable to specify a corresponding Makefile.lammps.machine
 file.
 
 :line
- 
+
 MESSAGE package :h4,link(message)
 
 This package can optionally include support for messaging via sockets,
@@ -407,7 +422,7 @@ existing Makefile.lammps.* and has settings to link with the ZeroMQ
 library if requested in the build.
 
 :line
- 
+
 MSCG package :h4,link(mscg)
 
 To build with this package, you must download and build the MS-CG
@@ -419,7 +434,7 @@ lib/mscg/README and MSCG/Install files for more details.
 [CMake build]:
 
 -D DOWNLOAD_MSCG=value    # download MSCG for build, value = no (default) or yes
--D MSCG_LIBRARY=path      # MSCG library file (only needed if a custom location) 
+-D MSCG_LIBRARY=path      # MSCG library file (only needed if a custom location)
 -D MSCG_INCLUDE_DIR=path  # MSCG include directory (only needed if a custom location) :pre
 
 If DOWNLOAD_MSCG is set, the MSCG library will be downloaded and built
@@ -464,7 +479,7 @@ line of your Makefile.machine.  See src/MAKE/OPTIONS/Makefile.opt for
 an example.
 
 :line
- 
+
 POEMS package :h4,link(poems)
 
 [CMake build]:
@@ -493,7 +508,7 @@ for your system, which should define an EXTRAMAKE variable to specify
 a corresponding Makefile.lammps.machine file.
 
 :line
- 
+
 PYTHON package :h4,link(python)
 
 Building with the PYTHON package requires you have a Python shared
@@ -520,7 +535,7 @@ Makefile.lammps.* file (and copy it to Makefile.lammps) if the LAMMPS
 build fails.
 
 :line
- 
+
 REAX package :h4,link(reax)
 
 NOTE: the use of the REAX package and its "pair_style
@@ -563,14 +578,14 @@ file.
 VORONOI package :h4,link(voronoi)
 
 To build with this package, you must download and build the "Voro++
-library"_voro_home.
+library"_voro-home.
 
-:link(voro_home,http://math.lbl.gov/voro++)
+:link(voro-home,http://math.lbl.gov/voro++)
 
 [CMake build]:
 
 -D DOWNLOAD_VORO=value    # download Voro++ for build, value = no (default) or yes
--D VORO_LIBRARY=path      # Voro++ library file (only needed if at custom location) 
+-D VORO_LIBRARY=path      # Voro++ library file (only needed if at custom location)
 -D VORO_INCLUDE_DIR=path  # Voro++ include directory (only needed if at custom location) :pre
 
 If DOWNLOAD_VORO is set, the Voro++ library will be downloaded and
@@ -709,6 +724,103 @@ COLVARS library (though typically the settings are just blank).  If
 necessary, you can edit/create a new lib/colvars/Makefile.machine file
 for your system, which should define an EXTRAMAKE variable to specify
 a corresponding Makefile.lammps.machine file.
+
+:line
+
+USER-PLUMED package :h4,link(user-plumed)
+
+Before building LAMMPS with this package, you must first build PLUMED.
+PLUMED can be built as part of the LAMMPS build or installed separately
+from LAMMPS using the generic "plumed installation instructions"_plumedinstall.
+:link(plumedinstall,http://plumed.github.io/doc-master/user-doc/html/_installation.html)
+
+PLUMED can be linked into MD codes in three different modes: static,
+shared, and runtime.  With the "static" mode, all required PLUMED code
+is linked statically into the MD code. The MD code is then fully
+independent from the PLUMED installation, but also you have to
+rebuild/relink the MD code to update the PLUMED code inside it.  With
+"shared" linkage mode, the MD code is linked to a shared library
+containing the PLUMED code, preferably after it was installed in a
+globally accessible location. This way the same installed PLUMED code
+can be shared across multiple MD packages and can be updated, for as
+long as the shared PLUMED library is ABI-compatible. The third linkage
+mode is "runtime" which allows to switch the PLUMED kernel at runtime
+between different variants through setting the PLUMED_KERNEL environment
+variable, which has to point to the location of the libplumedKernel.so
+dynamical shared object, which is then loaded at runtime. This is
+particularly convenient for doing PLUMED development and comparing
+multiple PLUMED versions without having to recompile the hosting MD
+code. All three linkage modes are supported by LAMMPS on selected
+operating systems (e.g. Linux) and using either CMake or traditional
+make build. The "static" mode should be most portable, the "runtime"
+mode support in LAMMPS makes the most assumptions about operating
+system and compiler environment. If one mode does not work, try a
+different one, or switch to a different build system, or consider
+a global PLUMED installation or downloading it during building LAMMPS.
+
+[CMake build]:
+
+-D DOWNLOAD_PLUMED=value   # download PLUMED for build, value = no (default) or yes
+-D PLUMED_MODE=value       # Linkage mode for PLUMED, value = static (default), shared, or runtime :pre
+
+If DOWNLOAD_PLUMED is set to "yes", the PLUMED library will be
+downloaded (the version of that is hard-coded to a vetted version of
+PLUMED, usually a recent stable release version) and built inside the
+CMake build directory.  If DOWNLOAD_PLUMED is set to "no" (the default),
+CMake will try to detect an installed version of PLUMED and link to
+that. For this to work, the PLUMED library has to be installed into a
+location where the pkg-config tool can find it or the PKG_CONFIG_PATH
+environment variable has to be set up accordingly.
+
+The PLUMED_MODE setting determines the linkage mode of the PLUMED
+library.  Allowed values are "static" (default), "shared", or "runtime".
+For a discussion of PLUMED linkage modes, please see above.  When
+enabling DOWNLOAD_PLUMED, the static linkage mode is recommended.
+
+[Traditional make]:
+
+Before installing the USER-PLUMED package, first the PLUMED library
+needs to be configured so that LAMMPS can find the right settings when
+compiling and linking the LAMMPS executable itself. You can either
+download and build PLUMED inside the LAMMPS plumed library folder or use
+a previously installed PLUMED library and point LAMMPS to its
+location. You also have to choose the linkage mode: "static" (default),
+"shared" or "runtime".  For a discussion of PLUMED linkage modes, please
+see above.
+
+Download/compilation/configuration of the plumed library can be done
+from the src folder through the following make args:
+
+make lib-plumed                         # print help message
+make lib-plumed args="-b"               # download and build PLUMED in lib/plumed/plumed2
+make lib-plumed args="-p $HOME/.local"  # use existing PLUMED installation in $HOME/.local
+make lib-plumed args="-p /usr/local -m shared"  # use existing PLUMED installation in
+                                                # /usr/local and use shared linkage mode
+:pre
+
+Note that 2 symbolic (soft) links, "includelink" and "liblink" are
+created in lib/plumed to point into the location of the PLUMED build to
+use and also a new file lib/plumed/Makefile.lammps is created with
+settings suitable for LAMMPS to compile and link PLUMED in the desired
+linkage mode. After this step is completed, you can install the
+USER-PLUMED package and compile LAMMPS in the usual manner:
+
+make yes-user-plumed
+make machine :pre
+
+Once this compilation completes you should be able to run LAMMPS in the
+usual way.  For shared linkage mode, libplumed.so must be found by the
+LAMMPS executable, which on many operating systems means, you have to
+set the LD_LIBRARY_PATH environment variable accordingly.
+
+Support for the different linkage modes in LAMMPS varies for different
+operating systems, using the static linkage is expected to be the most
+portable, and thus set to be the default.
+
+If you want to change the linkage mode, you have to re-run "make
+lib-plumed" with the desired settings [and] do a re-install if the
+USER-PLUMED package with "make yes-user-plumed" to update the required
+makefile settings with the changes in the lib/plumed folder.
 
 :line
 
@@ -869,7 +981,7 @@ Quantum ESPRESSO known to work with this QM/MM interface was version
 [CMake build]:
 
 The CMake build system currently does not support building the full
-QM/MM-capable hybrid executable of LAMMPS and QE called pwqmmm.x.  
+QM/MM-capable hybrid executable of LAMMPS and QE called pwqmmm.x.
 You must use the traditional make build for this package.
 
 [Traditional make]:
@@ -932,14 +1044,14 @@ successfully build on your system.
 USER-SCAFACOS package :h4,link(user-scafacos)
 
 To build with this package, you must download and build the "ScaFaCoS
-Coulomb solver library"_scafacos_home
+Coulomb solver library"_scafacos-home
 
-:link(scafacos_home,http://www.scafacos.de)
+:link(scafacos-home,http://www.scafacos.de)
 
 [CMake build]:
 
 -D DOWNLOAD_SCAFACOS=value    # download ScaFaCoS for build, value = no (default) or yes
--D SCAFACOS_LIBRARY=path      # ScaFaCos library file (only needed if at custom location) 
+-D SCAFACOS_LIBRARY=path      # ScaFaCos library file (only needed if at custom location)
 -D SCAFACOS_INCLUDE_DIR=path  # ScaFaCoS include directory (only needed if at custom location) :pre
 
 If DOWNLOAD_SCAFACOS is set, the ScaFaCoS library will be downloaded

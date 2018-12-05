@@ -54,8 +54,8 @@ just the single atom is deleted.
 As an example, if you wish to delete 10 water molecules every {N}
 steps, you should set {M} to 30.  If only the water's oxygen atoms
 were in the fix group, then two hydrogen atoms would be deleted when
-an oxygen atom is selected for deletion, whether the hydrogens are
-inside the evaporation region or not.
+an oxygen atom is selected for deletion, whether the hydrogen atoms
+are inside the evaporation region or not.
 
 Note that neighbor lists are re-built on timesteps that atoms are
 removed.  Thus you should not remove atoms too frequently or you will

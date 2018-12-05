@@ -201,7 +201,7 @@ atom type (1 to Ntype) in the simulation.  The same element name can
 be given to multiple atom types.
 
 In the case of {xyz} format dumps, there are no restrictions to what
-label can be used as an element name.  Any whitespace separated text
+label can be used as an element name.  Any white-space separated text
 will be accepted.
 
 :link(atomeye,http://mt.seas.upenn.edu/Archive/Graphics/A)
@@ -667,7 +667,7 @@ command, when its atom diameter setting is {type}, to set the size
 that atoms of each type will be drawn in the image.  The specified
 {type} should be an integer from 1 to Ntypes.  As with the {acolor}
 keyword, a wildcard asterisk can be used as part of the {type}
-argument to specify a range of atomt types.  The specified {diam} is
+argument to specify a range of atom types.  The specified {diam} is
 the size in whatever distance "units"_units.html the input script is
 using, e.g. Angstroms.
 

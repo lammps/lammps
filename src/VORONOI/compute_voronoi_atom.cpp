@@ -19,6 +19,7 @@
 #include <cmath>
 #include <cstring>
 #include <cstdlib>
+#include "voro++.hh"
 #include "compute_voronoi_atom.h"
 #include "atom.h"
 #include "group.h"

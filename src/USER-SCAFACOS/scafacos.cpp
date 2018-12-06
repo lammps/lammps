@@ -100,6 +100,12 @@ void Scafacos::init()
   if (logfile && me == 0) fprintf(logfile,
                           "Setting up ScaFaCoS with solver %s ...\n",method);
 
+  if ((strcmp(method,"p3m") == 0) && (me == 0))
+    error->warning(FLERR,"Virial computation for P3M not available");
+
+  if ((strcmp(method,"ewald") == 0) && (me == 0))
+    error->warning(FLERR,"Virial computation for Ewald not available");
+
   if (!atom->q_flag)
     error->all(FLERR,"Kspace style requires atom attribute q");
 
@@ -143,8 +149,7 @@ void Scafacos::init()
     double *q = atom->q;
     int nlocal = atom->nlocal;
 
-    if (strcmp(method,"fmm") == 0)
-    {
+    if (strcmp(method,"fmm") == 0) {
       if (fmm_tuning_flag == 1)
         fcs_fmm_set_internal_tuning((FCS)fcs,FCS_FMM_INHOMOGENOUS_SYSTEM);
       else
@@ -152,8 +157,7 @@ void Scafacos::init()
     }
 
     // for the FMM at least one particle is required per process
-    if (strcmp(method,"fmm") == 0)
-    {
+    if (strcmp(method,"fmm") == 0) {
       int empty = (nlocal==0)?1:0;
       MPI_Allreduce(MPI_IN_PLACE,&empty,1,MPI_INT,MPI_SUM,world);
       if (empty > 0)
@@ -212,11 +216,15 @@ void Scafacos::compute(int eflag, int vflag)
     memory->create(efield,maxatom,3,"scafacos:efield");
   }
 
-  if (vflag_global)
-  {
-    fcs_set_compute_virial((FCS)fcs,1);
-    //if (strcmp(method,"p3m") == 0)
-    //  error->all(FLERR,"ScaFaCoS p3m does not support computation of virial");
+  if (vflag_global) {
+
+    // for P3M or Ewald we cannot compute the virial. skip it.
+
+    if ((strcmp(method,"p3m") != 0)
+        && (strcmp(method,"ewald") != 0)) {
+      result = fcs_set_compute_virial((FCS)fcs,1);
+      check_result((void*)&result);
+    }
   }
 
   // pack coords into xpbc and apply PBC
@@ -230,6 +238,7 @@ void Scafacos::compute(int eflag, int vflag)
       j += 3;
     }
   }
+
   // if simulation box has changed, call fcs_tune()
 
   if (box_has_changed()) {
@@ -245,15 +254,22 @@ void Scafacos::compute(int eflag, int vflag)
 
   // extract virial
 
-  if (vflag_global)
-  {
-    fcs_get_virial((FCS)fcs,virial_int);
-    virial[0] = virial_int[0];
-    virial[1] = virial_int[1];
-    virial[2] = virial_int[2];
-    virial[3] = virial_int[4];
-    virial[4] = virial_int[5];
-    virial[5] = virial_int[8];
+  if (vflag_global) {
+
+    // for P3M or Ewald we cannot compute the virial. skip it.
+
+    if ((strcmp(method,"p3m") != 0)
+        && (strcmp(method,"ewald") != 0)) {
+      result = fcs_get_virial((FCS)fcs,virial_int);
+      check_result((void*)&result);
+
+      virial[0] = virial_int[0];
+      virial[1] = virial_int[1];
+      virial[2] = virial_int[2];
+      virial[3] = virial_int[4];
+      virial[4] = virial_int[5];
+      virial[5] = virial_int[8];
+    }
   }
 
   // apply Efield to each particle

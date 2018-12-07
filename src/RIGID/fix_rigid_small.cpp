@@ -1611,7 +1611,7 @@ void FixRigidSmall::create_bodies(tagint *bodyID)
 ------------------------------------------------------------------------- */
 
 int FixRigidSmall::rendezvous_body(int n, char *inbuf,
-                                   int *&proclist, char *&outbuf,
+                                   int &rflag, int *&proclist, char *&outbuf,
                                    void *ptr)
 {
   int i,j,m;
@@ -1749,6 +1749,7 @@ int FixRigidSmall::rendezvous_body(int n, char *inbuf,
   memory->destroy(iclose);
   memory->destroy(rsqclose);
 
+  rflag = 2;
   return nout;
 }
 

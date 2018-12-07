@@ -209,7 +209,7 @@ class FixRigidSmall : public Fix {
 
   // callback function for rendezvous communication
 
-  static int rendezvous_body(int, char *, int *&, char *&, void *);
+  static int rendezvous_body(int, char *, int &, int *&, char *&, void *);
 
   // debug
 

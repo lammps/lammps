@@ -764,7 +764,7 @@ a global PLUMED installation or consider downloading PLUMED during the LAMMPS bu
 [CMake build]:
 
 When the "-D PKG_USER-PLUMED" flag is included in the cmake command you must ensure that 
-GSL, BLAS and LAPACK are installed in locations that are specified in your environment.  There
+GSL is installed in locations that are specified in your environment.  There
 are then two additional commands that control the manner in which PLUMED is obtained and linked
 into LAMMPS.
 

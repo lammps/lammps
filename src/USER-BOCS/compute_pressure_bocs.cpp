@@ -38,8 +38,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputePressureBocs::ComputePressureBocs(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  vptr(NULL), id_temp(NULL)
+  Compute(lmp, narg, arg)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute pressure/bocs command");
   if (igroup) error->all(FLERR,"Compute pressure/bocs must use group all");
@@ -52,7 +51,6 @@ ComputePressureBocs::ComputePressureBocs(LAMMPS *lmp, int narg, char **arg) :
   timeflag = 1;
 
   p_match_flag = 0;
-  phi_coeff = NULL;
 
   // store temperature ID used by pressure computation
   // insure it is valid for temperature computation
@@ -61,9 +59,9 @@ ComputePressureBocs::ComputePressureBocs(LAMMPS *lmp, int narg, char **arg) :
   else {
     int n = strlen(arg[3]) + 1;
     id_temp = new char[n];
-    strcpy(id_temp,arg[3]);
+    strcpy(id_temp.get(),arg[3]);
 
-    int icompute = modify->find_compute(id_temp);
+    int icompute = modify->find_compute(id_temp.get());
     if (icompute < 0)
       error->all(FLERR,"Could not find compute pressure/bocs temperature ID");
     if (modify->compute[icompute]->tempflag == 0)
@@ -110,17 +108,13 @@ ComputePressureBocs::ComputePressureBocs(LAMMPS *lmp, int narg, char **arg) :
 
   vector = new double[6];
   nvirial = 0;
-  vptr = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
 
 ComputePressureBocs::~ComputePressureBocs()
 {
-  delete [] id_temp;
   delete [] vector;
-  delete [] vptr;
-  if (phi_coeff) free(phi_coeff);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -135,7 +129,7 @@ void ComputePressureBocs::init()
   // fixes could have changed or compute_modify could have changed it
 
   if (keflag) {
-    int icompute = modify->find_compute(id_temp);
+    int icompute = modify->find_compute(id_temp.get());
     if (icompute < 0)
       error->all(FLERR,"Could not find compute pressure/bocs temperature ID");
     temperature = modify->compute[icompute];
@@ -144,7 +138,6 @@ void ComputePressureBocs::init()
   // detect contributions to virial
   // vptr points to all virial[6] contributions
 
-  delete [] vptr;
   nvirial = 0;
   vptr = NULL;
 
@@ -265,7 +258,6 @@ void ComputePressureBocs::send_cg_info(int basis_type, int sent_N_basis,
   p_match_flag = 1;
 
   N_basis = sent_N_basis;
-  if (phi_coeff) free(phi_coeff);
   phi_coeff = ((double *) calloc(N_basis, sizeof(double)) );
   for (int i=0; i<N_basis; i++) { phi_coeff[i] = sent_phi_coeff[i]; }
 
@@ -319,7 +311,7 @@ double ComputePressureBocs::compute_scalar()
     /* MRD NJD if block */
     if ( p_basis_type == 0 )
     {
-      correction = get_cg_p_corr(N_basis,phi_coeff,N_mol,vavg,volume);
+      correction = get_cg_p_corr(N_basis,phi_coeff.get(),N_mol,vavg,volume);
     }
     else if ( p_basis_type == 1 || p_basis_type == 2 )
     {
@@ -437,8 +429,7 @@ void ComputePressureBocs::virial_compute(int n, int ndiag)
 
 void ComputePressureBocs::reset_extra_compute_fix(const char *id_new)
 {
-  delete [] id_temp;
   int n = strlen(id_new) + 1;
   id_temp = new char[n];
-  strcpy(id_temp,id_new);
+  strcpy(id_temp.get(),id_new);
 }

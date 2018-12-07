@@ -25,6 +25,7 @@ ComputeStyle(PRESSURE/BOCS,ComputePressureBocs)
 #define LMP_COMPUTE_PRESSURE_BOCS_H
 
 #include "compute.h"
+#include "resource_ptr.h"
 
 namespace LAMMPS_NS {
 // ComputePressure -> ComputePressureBocs MRD NJD
@@ -48,10 +49,10 @@ class ComputePressureBocs : public Compute {
  protected:
   double boltz,nktv2p,inv_volume;
   int nvirial,dimension;
-  double **vptr;
+  memory_ptr<double *[]> vptr;
   double *kspace_virial;
   Compute *temperature;
-  char *id_temp;
+  memory_ptr<char[]> id_temp;
   double virial[6];
   int keflag,pairflag,bondflag,angleflag,dihedralflag,improperflag;
   int fixflag,kspaceflag;
@@ -62,7 +63,7 @@ class ComputePressureBocs : public Compute {
   double vavg;
   int N_mol;
   int N_basis;
-  double *phi_coeff;
+  C_memory_ptr<double[]> phi_coeff;
   double ** splines;
   int spline_length;
 

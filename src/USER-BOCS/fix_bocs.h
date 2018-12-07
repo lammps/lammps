@@ -25,6 +25,7 @@ FixStyle(bocs,FixBocs)
 #define LMP_FIX_BOCS_H
 
 #include "fix.h"
+#include "resource_ptr.h"
 
 
 namespace LAMMPS_NS {
@@ -79,9 +80,9 @@ class FixBocs : public Fix {
   int kspace_flag;                 // 1 if KSpace invoked, 0 if not
   int nrigid;                      // number of rigid fixes
   int dilate_group_bit;            // mask for dilation group
-  int *rfix;                       // indices of rigid fixes
+  memory_ptr<int[]> rfix;          // indices of rigid fixes
   char *id_dilate;                 // group name to dilate
-  class Irregular *irregular;      // for migrating atoms after box flips
+  memory_ptr<class Irregular> irregular;      // for migrating atoms after box flips
 
 // MRD NJD
   int p_basis_type;
@@ -89,8 +90,8 @@ class FixBocs : public Fix {
   double vavg;
   int N_mol;
   int N_p_match;
-  double *p_match_coeffs;
-  double ** splines;
+  C_memory_ptr<double[]> p_match_coeffs;
+  C_memory_ptr_noncontiguous_2d<double *[]> splines;
   int spline_length;
 
 
@@ -102,16 +103,16 @@ class FixBocs : public Fix {
   int tcomputeflag,pcomputeflag;   // 1 = compute was created by fix
                                    // 0 = created externally
 
-  double *eta,*eta_dot;            // chain thermostat for particles
-  double *eta_dotdot;
-  double *eta_mass;
+  memory_ptr<double[]> eta,eta_dot;            // chain thermostat for particles
+  memory_ptr<double[]> eta_dotdot;
+  memory_ptr<double[]> eta_mass;
   int mtchain;                     // length of chain
   int mtchain_default_flag;        // 1 = mtchain is default
 
-  double *etap;                    // chain thermostat for barostat
-  double *etap_dot;
-  double *etap_dotdot;
-  double *etap_mass;
+  memory_ptr<double[]> etap;                    // chain thermostat for barostat
+  memory_ptr<double[]> etap_dot;
+  memory_ptr<double[]> etap_dotdot;
+  memory_ptr<double[]> etap_mass;
   int mpchain;                     // length of chain
 
   int mtk_flag;                    // 0 if using Hoover barostat

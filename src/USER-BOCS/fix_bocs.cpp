@@ -66,10 +66,7 @@ enum{ISO,ANISO,TRICLINIC};
 
 FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  rfix(NULL), id_dilate(NULL), irregular(NULL), id_temp(NULL), id_press(NULL),
-  eta(NULL), eta_dot(NULL), eta_dotdot(NULL),
-  eta_mass(NULL), etap(NULL), etap_dot(NULL), etap_dotdot(NULL),
-  etap_mass(NULL)
+  id_dilate(NULL), id_temp(NULL), id_press(NULL)
 {
   if (lmp->citeme) lmp->citeme->add(cite_user_bocs_package);
 
@@ -106,8 +103,6 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
   pcomputeflag = 0;
   id_temp = NULL;
   id_press = NULL;
-
-  p_match_coeffs = NULL;
 
   // turn on tilt factor scaling, whenever applicable
 
@@ -371,10 +366,8 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
   }
 
   nrigid = 0;
-  rfix = NULL;
 
   if (pre_exchange_flag) irregular = new Irregular(lmp);
-  else irregular = NULL;
 
   // initialize vol0,t0 to zero to signal uninitialized
   // values then assigned in init(), if necessary
@@ -438,33 +431,16 @@ FixBocs::~FixBocs()
   if (copymode) return;
 
   delete [] id_dilate;
-  delete [] rfix;
-
-  delete irregular;
 
   // delete temperature and pressure if fix created them
 
   if (tcomputeflag) modify->delete_compute(id_temp);
   delete [] id_temp;
 
-  if (tstat_flag) {
-    delete [] eta;
-    delete [] eta_dot;
-    delete [] eta_dotdot;
-    delete [] eta_mass;
-  }
-
   if (pstat_flag) {
     if (pcomputeflag) modify->delete_compute(id_press);
     delete [] id_press;
-    if (mpchain) {
-      delete [] etap;
-      delete [] etap_dot;
-      delete [] etap_dotdot;
-      delete [] etap_mass;
-    }
   }
-  if (p_match_coeffs) free(p_match_coeffs);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -534,12 +510,12 @@ void FixBocs::init()
         if (p_basis_type == 0)
         {
           ((ComputePressureBocs *)pressure)->send_cg_info(p_basis_type,
-                               N_p_match, p_match_coeffs, N_mol, vavg);
+                               N_p_match, p_match_coeffs.get(), N_mol, vavg);
         }
         else if ( p_basis_type == 1 || p_basis_type == 2 )
         {
           ((ComputePressureBocs *)pressure)->send_cg_info(p_basis_type,
-                                               splines, spline_length);
+                                               splines.get(), spline_length);
         }
       }
       else
@@ -607,9 +583,8 @@ void FixBocs::init()
   // detect if any rigid fixes exist so rigid bodies move when box is remapped
   // rfix[] = indices to each fix rigid
 
-  delete [] rfix;
   nrigid = 0;
-  rfix = NULL;
+  rfix.reset();
 
   for (int i = 0; i < modify->nfix; i++)
     if (modify->fix[i]->rigid_flag) nrigid++;
@@ -628,13 +603,13 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
   int N_columns = 2, n_entries = 0, i;
   float f1, f2;
   int test_sscanf;
-  double **data = (double **) calloc(N_columns,sizeof(double *));
-  char * line = (char *) calloc(200,sizeof(char));
+  C_memory_ptr_noncontiguous_2d<double *[]> data ((double **) calloc(N_columns,sizeof(double *)), N_columns);
+  C_memory_ptr<char[]> line ((char *) calloc(200,sizeof(char)));
 
   fpi = fopen(filename,"r");
   if (fpi)
   {
-    while (fgets(line,199,fpi)) { ++n_entries; }
+    while (fgets(line.get(),199,fpi)) { ++n_entries; }
     fclose(fpi);
     for (i = 0; i < N_columns; ++i)
     {
@@ -649,9 +624,9 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
   n_entries = 0;
   fpi = fopen(filename,"r");
   if (fpi) {
-    while( fgets(line,199,fpi)) {
+    while( fgets(line.get(),199,fpi)) {
       ++n_entries;
-      test_sscanf = sscanf(line," %f , %f ",&f1, &f2);
+      test_sscanf = sscanf(line.get()," %f , %f ",&f1, &f2);
       if (test_sscanf == 2)
       {
         data[0][n_entries-1] = (double) f1;
@@ -660,7 +635,7 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
       else
       {
         fprintf(stderr,"WARNING: did not find 2 comma separated values in "
-                 "line %d of file %s\n\tline: %s",n_entries,filename,line);
+                 "line %d of file %s\n\tline: %s",n_entries,filename,line.get());
       }
     }
   } else {
@@ -672,7 +647,7 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
 
   if (p_basis_type == 1)
   {
-    splines = (double **) calloc(2,sizeof(double *));
+    splines.reset_ptr_and_size ((double **) calloc(2,sizeof(double *)), 2);
     splines[0] = (double *) calloc(n_entries,sizeof(double));
     splines[1] = (double *) calloc(n_entries,sizeof(double));
     int idxa, idxb;
@@ -687,7 +662,7 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
   else if (p_basis_type == 2)
   {
     spline_length = n_entries;
-    build_cubic_splines(data);
+    build_cubic_splines(data.get());
     n_entries -= 1;
   }
   else
@@ -702,7 +677,7 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
 
 void FixBocs::build_cubic_splines( double **data )
 {
-  double *a, *b, *d, *h, *alpha, *c, *l, *mu, *z;
+  C_memory_ptr<double[]> a, b, d, h, alpha, c, l, mu, z;
   int n = spline_length;
   double alpha_i;
   a = (double *) calloc(n,sizeof(double));
@@ -759,7 +734,7 @@ void FixBocs::build_cubic_splines( double **data )
 
     d[j] = (c[j+1]-c[j])/(3.0 * h[j]);
   }
-  splines = (double **) calloc(5,sizeof(double *));
+  splines.reset_ptr_and_size ((double **) calloc(5,sizeof(double *)), 5);
 
   for ( idx = 0; idx < 5; ++idx)
   {
@@ -1474,11 +1449,11 @@ int FixBocs::modify_param(int narg, char **arg)
       if ( p_basis_type == 0 )
       {
         ((ComputePressureBocs *)pressure)->send_cg_info(p_basis_type, N_p_match,
-                                                   p_match_coeffs, N_mol, vavg);
+                                                   p_match_coeffs.get(), N_mol, vavg);
       }
       else if ( p_basis_type == 1 || p_basis_type == 2  )
       {
-        ((ComputePressureBocs *)pressure)->send_cg_info(p_basis_type, splines,
+        ((ComputePressureBocs *)pressure)->send_cg_info(p_basis_type, splines.get(),
                                                                 spline_length );
       }
     }
@@ -1785,9 +1760,9 @@ void *FixBocs::extract(const char *str, int &dim)
   }
   dim=1;
   if (tstat_flag && strcmp(str,"eta") == 0) {
-    return &eta;
+    return eta.get_address();
   } else if (pstat_flag && strcmp(str,"etap") == 0) {
-    return &eta;
+    return etap.get_address();
   } else if (pstat_flag && strcmp(str,"p_flag") == 0) {
     return &p_flag;
   } else if (pstat_flag && strcmp(str,"p_start") == 0) {
@@ -2432,6 +2407,6 @@ void FixBocs::pre_exchange()
 double FixBocs::memory_usage()
 {
   double bytes = 0.0;
-  if (irregular) bytes += irregular->memory_usage();
+  if (irregular.get()) bytes += irregular->memory_usage();
   return bytes;
 }

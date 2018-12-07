@@ -1,5 +1,4 @@
-LAMMPS (24 Oct 2018)
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (../comm.cpp:87)
+LAMMPS (27 Nov 2018)
   using 1 OpenMP thread(s) per MPI task
 # Solvated 5-mer peptide
 
@@ -78,7 +77,7 @@ variable        pe equal pe
 
 run		101
 PPPM initialization ...
-  using 12-bit tables for long-range coulomb (../kspace.cpp:321)
+  using 12-bit tables for long-range coulomb (src/kspace.cpp:321)
   G vector (1/distance) = 0.268725
   grid = 15 15 15
   stencil order = 5
@@ -107,7 +106,7 @@ SHAKE stats (type/ave/delta) on step 0
   14 0.96 0
   18 0.957206 4.37979e-05
   31 104.519 0.00396029
-Per MPI rank memory allocation (min/avg/max) = 15.65 | 15.86 | 16.05 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 15.66 | 15.87 | 16.06 Mbytes
 Step Temp TotEng PotEng KinEng E_pair E_bond f_2 
        0    282.10052    -5237.458   -6372.3766    1134.9186    -6442.768    16.557152            0 
       10     276.9783   -5234.3057   -6348.6171    1114.3114   -6421.6171    17.024361   0.47785504 
@@ -118,7 +117,7 @@ Step Temp TotEng PotEng KinEng E_pair E_bond f_2
       60    273.01449   -5217.7381   -6316.1026    1098.3646   -6406.4709    21.800931   0.92327815 
       70    274.67549   -5221.0246   -6326.0716     1105.047   -6409.7721     19.41235 0.0016975896 
       80    273.74824   -5224.7613   -6326.0778    1101.3165   -6418.5055    19.206793   0.48550348 
-      90    284.32594    -5229.195   -6373.0667    1143.8717   -6461.3466    21.124789    0.5468014 
+      90    284.32594    -5229.195   -6373.0667    1143.8717   -6461.3467    21.124789    0.5468014 
 SHAKE stats (type/ave/delta) on step 100
   4 1.111 2.06868e-06
   6 0.996999 2.09521e-06
@@ -128,24 +127,24 @@ SHAKE stats (type/ave/delta) on step 100
   14 0.959999 0
   18 0.9572 9.14098e-06
   31 104.52 0.000760401
-     100    270.40648   -5234.9604   -6322.8327    1087.8723     -6417.73    19.666404  0.009478437 
+     100    270.40648   -5234.9604   -6322.8327    1087.8723     -6417.73    19.666404 0.0094784372 
      101    270.99811   -5235.8295    -6326.082    1090.2525   -6418.8974    17.285816  0.086681332 
-Loop time of 1.16767 on 4 procs for 101 steps with 2004 atoms
+Loop time of 0.812799 on 4 procs for 101 steps with 2004 atoms
 
-Performance: 14.947 ns/day, 1.606 hours/ns, 86.497 timesteps/s
-97.8% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 21.472 ns/day, 1.118 hours/ns, 124.262 timesteps/s
+97.5% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.84633    | 0.86651    | 0.88617    |   1.6 | 74.21
-Bond    | 0.0010614  | 0.0027132  | 0.004288   |   3.0 |  0.23
-Kspace  | 0.095008   | 0.1162     | 0.13491    |   4.3 |  9.95
-Neigh   | 0.07834    | 0.078424   | 0.078516   |   0.0 |  6.72
-Comm    | 0.03314    | 0.033299   | 0.033426   |   0.1 |  2.85
-Output  | 0.00036979 | 0.00076199 | 0.0019338  |   0.0 |  0.07
-Modify  | 0.063471   | 0.064011   | 0.065312   |   0.3 |  5.48
-Other   |            | 0.005751   |            |       |  0.49
+Pair    | 0.57957    | 0.59988    | 0.62504    |   2.6 | 73.80
+Bond    | 0.00080013 | 0.0017412  | 0.0028315  |   2.1 |  0.21
+Kspace  | 0.075724   | 0.10008    | 0.12023    |   6.4 | 12.31
+Neigh   | 0.067733   | 0.067947   | 0.068168   |   0.1 |  8.36
+Comm    | 0.01375    | 0.014175   | 0.014681   |   0.3 |  1.74
+Output  | 0.00025511 | 0.00051183 | 0.001277   |   0.0 |  0.06
+Modify  | 0.026406   | 0.026436   | 0.026462   |   0.0 |  3.25
+Other   |            | 0.002027   |            |       |  0.25
 
 Nlocal:    501 ave 512 max 492 min
 Histogram: 1 0 0 1 0 1 0 0 0 1
@@ -159,4 +158,4 @@ Ave neighs/atom = 353.274
 Ave special neighs/atom = 2.34032
 Neighbor list builds = 8
 Dangerous builds = 0
-Total wall time: 0:00:01
+Total wall time: 0:00:00

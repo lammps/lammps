@@ -745,7 +745,7 @@ void Comm::ring(int n, int nper, void *inbuf, int messtag,
 ------------------------------------------------------------------------- */
 
 int Comm::rendezvous(int n, int *proclist, char *inbuf, int insize,
-                     int (*callback)(int, char *, int *&, char *&, void *),
+                     int (*callback)(int, char *, int &, int *&, char *&, void *),
                      char *&outbuf, int outsize, void *ptr)
 {
   // comm inbuf from caller decomposition to rendezvous decomposition
@@ -763,13 +763,15 @@ int Comm::rendezvous(int n, int *proclist, char *inbuf, int insize,
   // peform rendezvous computation via callback()
   // callback() allocates/populates proclist_rvous and outbuf_rvous
 
+  int flag;
   int *proclist_rvous;
   char *outbuf_rvous;
 
   int nout_rvous = 
-    callback(n_rvous,inbuf_rvous,proclist_rvous,outbuf_rvous,ptr);
+    callback(n_rvous,inbuf_rvous,flag,proclist_rvous,outbuf_rvous,ptr);
 
-  memory->sfree(inbuf_rvous);
+  if (flag != 1) memory->sfree(inbuf_rvous);  // outbuf_rvous = inbuf_vous
+  if (flag == 0) return 0;    // all nout_rvous are 0, no 2nd irregular
 
   // comm outbuf from rendezvous decomposition back to caller
   // caller will free outbuf

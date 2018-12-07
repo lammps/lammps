@@ -26,20 +26,29 @@ class Special : protected Pointers {
 
  private:
   int me,nprocs;
+  int maxall;
   tagint **onetwo,**onethree,**onefour;
 
   // data used by rendezvous callback methods
 
-  int max_rvous;
+  int ncount;
+  tagint *atomIDs;
+  int *procowner;
 
-  struct InRvous {
+  struct IDRvous {
     int me;
+    tagint atomID;
+  };
+
+  struct PairRvous {
     tagint atomID,partnerID;
   };
 
-  struct OutRvous {
-    tagint atomID,partnerID;
-  };
+  void atom_owners();
+  void onetwo_build_newton();
+  void onetwo_build_newton_off();
+  void onethree_build();
+  void onefour_build();
 
   void dedup();
   void angle_trim();
@@ -48,10 +57,11 @@ class Special : protected Pointers {
   void fix_alteration();
   void timer_output(double);
 
-  // callback function for rendezvous communication
+  // callback functions for rendezvous communication
 
-  static int rendezvous_1234(int, char *, int *&, char *&, void *);
-  static int rendezvous_trim(int, char *, int *&, char *&, void *);
+  static int rendezvous_ids(int, char *, int &, int *&, char *&, void *);
+  static int rendezvous_1234(int, char *, int &, int *&, char *&, void *);
+  static int rendezvous_trim(int, char *, int &, int *&, char *&, void *);
 };
 
 }

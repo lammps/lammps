@@ -110,7 +110,7 @@ class Comm : protected Pointers {
   void ring(int, int, void *, int, void (*)(int, char *, void *),
             void *, void *, int self = 1);
   int rendezvous(int, int *, char *, int, 
-                 int (*)(int, char *, int *&, char *&, void *), 
+                 int (*)(int, char *, int &, int *&, char *&, void *), 
                  char *&, int, void *);
 
   int read_lines_from_file(FILE *, int, int, char *);

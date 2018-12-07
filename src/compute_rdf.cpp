@@ -77,7 +77,7 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
   // pairwise args
 
   if (nargpair == 0) npairs = 1;
-  else { 
+  else {
     if (nargpair % 2) error->all(FLERR,"Illegal compute rdf command");
     npairs = nargpair/2;
   }

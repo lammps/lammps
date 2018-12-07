@@ -1,5 +1,4 @@
 variable	sname index h_atom
-log		${sname}.spe.log
 
 units 		real
 newton		on
@@ -37,4 +36,4 @@ variable        press equal -(c_p[1]+c_p[2]+c_p[3])/(3*vol)
 thermo          1
 thermo_style    custom step etotal pe ke v_eke v_epauli v_estatics v_errestrain temp press v_press 
 
-run 		0
+run 		10

@@ -72,6 +72,6 @@ fix 5 all print ${efreq} "$(step)  ekin = ${ekin} |  erot = ${erot} | epot = ${e
 #dump_modify out sort id
 #dump_modify out format line "%d   %13.6le %13.6le %13.6le  %13.6le %13.6le %13.6le  %13.6le %13.6le %13.6le  %13.6le %13.6le %13.6le"
 
-run 1000000
+run 10000
 
 #write_restart config.${number}.*

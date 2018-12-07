@@ -1,5 +1,4 @@
 variable  A string bulkNi
-log		$A.log
 
 boundary        p p p
 
@@ -26,7 +25,7 @@ fix             1 all ave/histo/weight 1 1 1 40 80 200 c_XRD[1] c_XRD[2] &
 
 fix             2 all saed/vtk 1 1 1 c_SAED file $A_001.saed 
 
-dump            1 all custom 1 $A.dump id x y z 
+#dump            1 all custom 1 $A.dump id x y z 
 run             0
 
 unfix           1

@@ -1,11 +1,13 @@
-LAMMPS (17 Jan 2018)
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
 clear
+  using 1 OpenMP thread(s) per MPI task
 units real
 boundary p p p
 atom_style full
 read_data hkust1.data
   triclinic box = (0 0 0) to (26.4408 26.4408 26.4408) with tilt (0 0 0)
-  1 by 2 by 2 MPI processor grid
+  1 by 1 by 1 MPI processor grid
   reading atoms ...
   624 atoms
   scanning bonds ...
@@ -33,9 +35,8 @@ neighbor 2.0 bin
 
 
 # ------------------------ MOF-FF FORCE FIELD ------------------------------
-kspace_style ewald 1.0e-6
 
-pair_style buck6d/coul/gauss/long  0.9  0.9  12.0000
+pair_style buck6d/coul/gauss/dsf     0.9000    12.0000
 
 pair_coeff     1     1           10304       3.0612245       457.17971       4.5218516      0.60800971    # buck6d->(c3_c2h1@ph)|benzene/gaussian->(c3_c3@ph)|CuPW <--> buck6d->(c3_c2h1@ph)|benzene/gaussian->(c3_c3@ph)|CuPW
 pair_coeff     1     2           10304       3.0612245       457.17971       4.5218516      0.60800971    # buck6d->(c3_c2h1@ph)|benzene/gaussian->(c3_c3@ph)|CuPW <--> buck6d->(c3_c2h1@ph)|benzene/gaussian->(c3_c2h1@ph)|benzene
@@ -91,7 +92,7 @@ angle_coeff     3 class2/p6 ba   -25.179000    53.523360     1.394000     1.0940
 angle_coeff     8 class2/p6      115.098000    79.493700   -63.765149    14.613896   -10.466432    18.847160    # mm3->(c3_c3@ph,c3_c1o2@co2,o2_c1cu1@co2)|CuPW
 angle_coeff     8 class2/p6 bb 0.0 1.0 1.0
 angle_coeff     8 class2/p6 ba 0.0 0.0 1.0 1.0
-angle_coeff     5 cosine/buck6d       1.978350     4   180.000000 #1.0   # fourier->(o2_c1cu1@co2,cu5_cu1o4@cu2,o2_c1cu1@co2)|CuPW
+angle_coeff     5 cosine/buck6d       1.978350     4   180.000000   # fourier->(o2_c1cu1@co2,cu5_cu1o4@cu2,o2_c1cu1@co2)|CuPW
 
 dihedral_style opls
 
@@ -120,14 +121,7 @@ special_bonds lj 0.0 0.0 1.0 coul 1.0 1.0 1.0
 # ------------------------ MOF-FF FORCE FIELD END --------------------------
 
 run 0
-WARNING: No fixes defined, atoms won't move (../verlet.cpp:55)
-Ewald initialization ...
-WARNING: Using 12-bit tables for long-range coulomb (../kspace.cpp:321)
-  G vector (1/distance) = 0.267593
-  estimated absolute RMS force accuracy = 0.000333665
-  estimated relative force accuracy = 1.00482e-06
-  KSpace vectors: actual max1d max3d = 1054 8 2456
-                  kxmax kymax kzmax  = 8 8 8
+WARNING: No fixes defined, atoms won't move (src/verlet.cpp:55)
 Neighbor list info ...
   update every 1 steps, delay 10 steps, check yes
   max neighbors/atom: 2000, page size: 100000
@@ -135,37 +129,36 @@ Neighbor list info ...
   ghost atom cutoff = 14
   binsize = 7, bins = 4 4 4
   1 neighbor lists, perpetual/occasional/extra = 1 0 0
-  (1) pair buck6d/coul/gauss/long, perpetual
+  (1) pair buck6d/coul/gauss/dsf, perpetual
       attributes: half, newton on
       pair build: half/bin/newton/tri
       stencil: half/bin/3d/newton/tri
       bin: standard
-WARNING: Inconsistent image flags (../domain.cpp:786)
-Per MPI rank memory allocation (min/avg/max) = 34.1 | 34.1 | 34.1 Mbytes
+WARNING: Inconsistent image flags (src/domain.cpp:782)
+Per MPI rank memory allocation (min/avg/max) = 21.23 | 21.23 | 21.23 Mbytes
 Step Temp E_pair E_mol TotEng Press 
-       0            0   -16541.109     343.7619   -16197.347   -629.64956 
-Loop time of 6.13928e-06 on 4 procs for 0 steps with 624 atoms
+       0            0    -11833.81     343.7619   -11490.048   -5.8508834 
+Loop time of 9.53674e-07 on 1 procs for 0 steps with 624 atoms
 
-0.0% CPU use with 4 MPI tasks x no OpenMP threads
+314.6% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
 Pair    | 0          | 0          | 0          |   0.0 |  0.00
 Bond    | 0          | 0          | 0          |   0.0 |  0.00
-Kspace  | 0          | 0          | 0          |   0.0 |  0.00
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 6.139e-06  |            |       |100.00
+Other   |            | 9.537e-07  |            |       |100.00
 
-Nlocal:    156 ave 156 max 156 min
-Histogram: 4 0 0 0 0 0 0 0 0 0
-Nghost:    2718 ave 2718 max 2718 min
-Histogram: 4 0 0 0 0 0 0 0 0 0
-Neighs:    28842 ave 28870 max 28814 min
-Histogram: 1 1 0 0 0 0 0 0 1 1
+Nlocal:    624 ave 624 max 624 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    4464 ave 4464 max 4464 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    115368 ave 115368 max 115368 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 115368
 Ave neighs/atom = 184.885

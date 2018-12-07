@@ -204,7 +204,7 @@ void PairBuckCoulCutIntel::eval(const int offload, const int vflag,
     acc_t oevdwl, oecoul, ov0, ov1, ov2, ov3, ov4, ov5;
     if (EFLAG || vflag)
       oevdwl = oecoul = ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0;
-    if (NEWTON_PAIR == 0 && inum != nlocal)     
+    if (NEWTON_PAIR == 0 && inum != nlocal)
       memset(f_start, 0, f_stride * sizeof(FORCE_T));
 
     // loop over neighbors of my atoms

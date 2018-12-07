@@ -58,7 +58,7 @@ style = {none} or {ewald} or {ewald/disp} or {ewald/omp} or {pppm} or {pppm/cg} 
     accuracy = desired relative error in forces
     smallq = cutoff for charges to be considered (optional) (charge units)
   {scafacos} values = method accuracy
-    method = fmm or p2nfft or ewald or direct
+    method = fmm or p2nfft or p3m or ewald or direct
     accuracy = desired relative error in forces :pre
 :ule
 
@@ -392,6 +392,8 @@ the same bond/angle/dihedral are weighted by the
 "special_bonds"_special_bonds.html command.  Likewise it does not
 support the "TIP4P water style" where a fictitious charge site is
 introduced in each water molecule.
+Finally, the methods {p3m} and {ewald} do not support computing the
+virial, so this contribution is not included.
 
 [Related commands:]
 

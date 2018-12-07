@@ -482,7 +482,7 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
             #endif
           }
         }
-       
+
         #ifndef _LMP_INTEL_OFFLOAD
         if (exclude) {
           int alln = n;
@@ -515,7 +515,7 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
           }
         }
         #endif
-        
+
         int ns = n - maxnbors;
         int alln = n;
         atombin[i] = ns;

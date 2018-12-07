@@ -318,7 +318,7 @@ unwanted by-products. Therefore, bond/react provides the option to
 delete a user-specified set of atoms. These pre-reaction atoms are
 identified in the map file. A deleted atom must still be included in
 the post-reaction molecule template, in which it cannot be bonded to
-an undeleted atom. In addition to deleting unwanted reaction
+an atom that is not deleted. In addition to deleting unwanted reaction
 by-products, this feature can be used to remove specific topologies,
 such as small rings, that may be otherwise indistinguishable.
 

@@ -1,5 +1,4 @@
-LAMMPS (2 Aug 2018)
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:87)
+LAMMPS (27 Nov 2018)
   using 1 OpenMP thread(s) per MPI task
 # Point dipoles in a 2d box
 
@@ -8,15 +7,15 @@ atom_style  charge
 
 read_data data.NaCl
   orthogonal box = (0 0 0) to (1 1 1)
-  2 by 2 by 2 MPI processor grid
+  1 by 2 by 2 MPI processor grid
   reading atoms ...
   8 atoms
 
 replicate 8 8 8
   orthogonal box = (0 0 0) to (8 8 8)
-  2 by 2 by 2 MPI processor grid
+  1 by 2 by 2 MPI processor grid
   4096 atoms
-  Time spent = 0.000236988 secs
+  Time spent = 0.00015521 secs
 
 velocity	all create 1.5 49893
 
@@ -59,7 +58,7 @@ Neighbor list info ...
       pair build: half/bin/atomonly/newton
       stencil: half/bin/3d/newton
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 3.508 | 3.508 | 3.508 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 4.008 | 4.008 | 4.008 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0          1.5   -1.7475646            0   0.50188608     10.44368 
       10    1.5000016   -1.7475671            0   0.50188602     10.44369 
@@ -72,31 +71,31 @@ Step Temp E_pair E_mol TotEng Press
       80    1.5032684   -1.7524625            0   0.50188958    10.465466 
       90    1.5107749    -1.763714            0   0.50189507    10.515502 
      100      1.52919    -1.791306            0   0.50191895    10.638261 
-Loop time of 5.96037 on 8 procs for 100 steps with 4096 atoms
+Loop time of 3.05974 on 4 procs for 100 steps with 4096 atoms
 
-Performance: 7247.876 tau/day, 16.777 timesteps/s
-99.8% CPU use with 8 MPI tasks x 1 OpenMP threads
+Performance: 14118.863 tau/day, 32.683 timesteps/s
+98.6% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.00049591 | 0.0005368  | 0.00056005 |   0.0 |  0.01
-Kspace  | 5.94       | 5.941      | 5.9419     |   0.0 | 99.68
+Pair    | 0.00021482 | 0.0002175  | 0.00022054 |   0.0 |  0.01
+Kspace  | 3.0468     | 3.0468     | 3.0468     |   0.0 | 99.58
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.013702   | 0.014631   | 0.015768   |   0.6 |  0.25
-Output  | 0.00044751 | 0.00048846 | 0.00058961 |   0.0 |  0.01
-Modify  | 0.0016675  | 0.0017205  | 0.0017893  |   0.1 |  0.03
-Other   |            | 0.001971   |            |       |  0.03
+Comm    | 0.0081758  | 0.0082486  | 0.0083146  |   0.1 |  0.27
+Output  | 0.00019073 | 0.00049388 | 0.0013943  |   0.0 |  0.02
+Modify  | 0.001507   | 0.0015851  | 0.0017498  |   0.2 |  0.05
+Other   |            | 0.002385   |            |       |  0.08
 
-Nlocal:    512 ave 512 max 512 min
-Histogram: 8 0 0 0 0 0 0 0 0 0
-Nghost:    3584 ave 3584 max 3584 min
-Histogram: 8 0 0 0 0 0 0 0 0 0
-Neighs:    65536 ave 65536 max 65536 min
-Histogram: 8 0 0 0 0 0 0 0 0 0
+Nlocal:    1024 ave 1024 max 1024 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    5120 ave 5120 max 5120 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    131072 ave 131072 max 131072 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 524288
 Ave neighs/atom = 128
 Neighbor list builds = 0
 Dangerous builds = 0
-Total wall time: 0:00:07
+Total wall time: 0:00:04

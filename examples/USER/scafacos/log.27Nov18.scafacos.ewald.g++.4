@@ -1,5 +1,4 @@
-LAMMPS (2 Aug 2018)
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:87)
+LAMMPS (27 Nov 2018)
   using 1 OpenMP thread(s) per MPI task
 # Point dipoles in a 2d box
 
@@ -8,15 +7,15 @@ atom_style  charge
 
 read_data data.NaCl
   orthogonal box = (0 0 0) to (1 1 1)
-  1 by 1 by 2 MPI processor grid
+  1 by 2 by 2 MPI processor grid
   reading atoms ...
   8 atoms
 
 replicate 8 8 8
   orthogonal box = (0 0 0) to (8 8 8)
-  1 by 1 by 2 MPI processor grid
+  1 by 2 by 2 MPI processor grid
   4096 atoms
-  Time spent = 0.000344753 secs
+  Time spent = 0.000125408 secs
 
 velocity	all create 1.5 49893
 
@@ -47,6 +46,7 @@ thermo          10
 
 run		100
 Setting up ScaFaCoS with solver ewald ...
+WARNING: Virial computation for Ewald not available (src/USER-SCAFACOS/scafacos.cpp:107)
 Neighbor list info ...
   update every 1 steps, delay 0 steps, check yes
   max neighbors/atom: 2000, page size: 100000
@@ -59,7 +59,7 @@ Neighbor list info ...
       pair build: half/bin/atomonly/newton
       stencil: half/bin/3d/newton
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 4.574 | 4.574 | 4.574 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 4.008 | 4.008 | 4.008 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0          1.5   -1.7475938            0   0.50185691     11.99707 
       10     1.500011    -1.747529            0   0.50193816    11.997158 
@@ -72,31 +72,31 @@ Step Temp E_pair E_mol TotEng Press
       80    1.5033218   -1.7524875            0   0.50194458    12.023638 
       90    1.5108306   -1.7637462            0   0.50194636    12.083694 
      100    1.5292479   -1.7913449            0   0.50196695    12.230996 
-Loop time of 566.796 on 2 procs for 100 steps with 4096 atoms
+Loop time of 113.519 on 4 procs for 100 steps with 4096 atoms
 
-Performance: 76.218 tau/day, 0.176 timesteps/s
-100.0% CPU use with 2 MPI tasks x 1 OpenMP threads
+Performance: 380.555 tau/day, 0.881 timesteps/s
+98.8% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.0010231  | 0.0010413  | 0.0010595  |   0.1 |  0.00
-Kspace  | 566.77     | 566.77     | 566.77     |   0.0 | 99.99
+Pair    | 0.00022793 | 0.00023127 | 0.00023508 |   0.0 |  0.00
+Kspace  | 113.51     | 113.51     | 113.51     |   0.0 | 99.99
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.019707   | 0.01982    | 0.019932   |   0.1 |  0.00
-Output  | 0.0002656  | 0.00029266 | 0.00031972 |   0.0 |  0.00
-Modify  | 0.0055575  | 0.0055707  | 0.0055838  |   0.0 |  0.00
-Other   |            | 0.002497   |            |       |  0.00
+Comm    | 0.0084581  | 0.0085486  | 0.0086188  |   0.1 |  0.01
+Output  | 0.00019598 | 0.00046694 | 0.0012727  |   0.0 |  0.00
+Modify  | 0.0016849  | 0.0017331  | 0.0017881  |   0.1 |  0.00
+Other   |            | 0.002307   |            |       |  0.00
 
-Nlocal:    2048 ave 2048 max 2048 min
-Histogram: 2 0 0 0 0 0 0 0 0 0
-Nghost:    7168 ave 7168 max 7168 min
-Histogram: 2 0 0 0 0 0 0 0 0 0
-Neighs:    262144 ave 262144 max 262144 min
-Histogram: 2 0 0 0 0 0 0 0 0 0
+Nlocal:    1024 ave 1024 max 1024 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    5120 ave 5120 max 5120 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    131072 ave 131072 max 131072 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 524288
 Ave neighs/atom = 128
 Neighbor list builds = 0
 Dangerous builds = 0
-Total wall time: 0:09:38
+Total wall time: 0:01:54

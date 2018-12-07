@@ -1,5 +1,4 @@
-LAMMPS (2 Aug 2018)
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:87)
+LAMMPS (27 Nov 2018)
   using 1 OpenMP thread(s) per MPI task
 # Point dipoles in a 2d box
 
@@ -16,7 +15,7 @@ replicate 8 8 8
   orthogonal box = (0 0 0) to (8 8 8)
   1 by 1 by 1 MPI processor grid
   4096 atoms
-  Time spent = 0.000518799 secs
+  Time spent = 0.000253677 secs
 
 velocity	all create 1.5 49893
 
@@ -39,14 +38,15 @@ pair_coeff	* *
 
 #fix		2 all scafacos p3m tolerance field 0.001
 
-kspace_style    scafacos fmm 0.001
-kspace_modify    scafacos tolerance energy
+kspace_style    scafacos p3m 0.001
+#kspace_style    scafacos tolerance field
 
 timestep	0.005
 thermo          10
 
 run		100
-Setting up ScaFaCoS with solver fmm ...
+Setting up ScaFaCoS with solver p3m ...
+WARNING: Virial computation for P3M not available (src/USER-SCAFACOS/scafacos.cpp:104)
 Neighbor list info ...
   update every 1 steps, delay 0 steps, check yes
   max neighbors/atom: 2000, page size: 100000
@@ -61,32 +61,32 @@ Neighbor list info ...
       bin: standard
 Per MPI rank memory allocation (min/avg/max) = 5.813 | 5.813 | 5.813 Mbytes
 Step Temp E_pair E_mol TotEng Press 
-       0          1.5   -1.7475646            0   0.50188608     10.44368 
-      10    1.5000016   -1.7475671            0   0.50188602     10.44369 
-      20    1.4999827   -1.7475388            0   0.50188592    10.443564 
-      30    1.4999016   -1.7474173            0    0.5018858    10.443023 
-      40    1.4997356   -1.7471685            0   0.50188572    10.441917 
-      50    1.4995414   -1.7468771            0    0.5018858    10.440623 
-      60    1.4995587   -1.7469027            0   0.50188622    10.440739 
-      70    1.5003837   -1.7481389            0   0.50188727    10.446238 
-      80    1.5032684   -1.7524625            0   0.50188958    10.465466 
-      90    1.5107749    -1.763714            0   0.50189507    10.515502 
-     100      1.52919    -1.791306            0   0.50191895    10.638261 
-Loop time of 34.7058 on 1 procs for 100 steps with 4096 atoms
+       0          1.5   -1.7475752            0    0.5018755     11.99707 
+      10    1.5000018   -1.7475779            0   0.50187548    11.997085 
+      20    1.4999833   -1.7475525            0    0.5018731    11.996936 
+      30    1.4999006   -1.7474414            0    0.5018603    11.996276 
+      40      1.49973   -1.7471989            0   0.50184695    11.994911 
+      50    1.4995292   -1.7469064            0   0.50183822    11.993305 
+      60      1.49954   -1.7469273            0   0.50183355    11.993391 
+      70    1.5003599   -1.7481583            0   0.50183215    11.999949 
+      80    1.5032409    -1.752478            0   0.50183276    12.022991 
+      90    1.5107445   -1.7637257            0   0.50183781    12.083005 
+     100    1.5291568   -1.7913136            0   0.50186158    12.230268 
+Loop time of 2.98552 on 1 procs for 100 steps with 4096 atoms
 
-Performance: 1244.749 tau/day, 2.881 timesteps/s
-100.0% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 14469.821 tau/day, 33.495 timesteps/s
+98.7% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.0015228  | 0.0015228  | 0.0015228  |   0.0 |  0.00
-Kspace  | 34.675     | 34.675     | 34.675     |   0.0 | 99.91
+Pair    | 0.0003686  | 0.0003686  | 0.0003686  |   0.0 |  0.01
+Kspace  | 2.9749     | 2.9749     | 2.9749     |   0.0 | 99.65
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.013741   | 0.013741   | 0.013741   |   0.0 |  0.04
-Output  | 0.00041246 | 0.00041246 | 0.00041246 |   0.0 |  0.00
-Modify  | 0.01107    | 0.01107    | 0.01107    |   0.0 |  0.03
-Other   |            | 0.004232   |            |       |  0.01
+Comm    | 0.0049963  | 0.0049963  | 0.0049963  |   0.0 |  0.17
+Output  | 0.00027728 | 0.00027728 | 0.00027728 |   0.0 |  0.01
+Modify  | 0.0031269  | 0.0031269  | 0.0031269  |   0.0 |  0.10
+Other   |            | 0.001828   |            |       |  0.06
 
 Nlocal:    4096 ave 4096 max 4096 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -99,4 +99,4 @@ Total # of neighbors = 524288
 Ave neighs/atom = 128
 Neighbor list builds = 0
 Dangerous builds = 0
-Total wall time: 0:00:35
+Total wall time: 0:00:03

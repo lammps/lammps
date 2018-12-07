@@ -1,5 +1,4 @@
-LAMMPS (20 Mar 2014-ICMS)
-WARNING: OMP_NUM_THREADS environment is not set. (../comm.cpp:100)
+LAMMPS (27 Nov 2018)
   using 1 OpenMP thread(s) per MPI task
 # coarse grained SDS surfactant monolayer
 
@@ -58,7 +57,7 @@ atom_modify     first charged
 kspace_style    pppm/cg 0.00001
 kspace_modify   order 3
 
-communicate     multi
+comm_modify     mode multi
 neighbor        2.0 multi
 neigh_modify    delay 4 every 2 check yes
 
@@ -70,6 +69,7 @@ thermo          10
 
 run              100
 PPPM initialization ...
+  using 12-bit tables for long-range coulomb (src/kspace.cpp:321)
   G vector (1/distance) = 0.0416781
   grid = 8 4 12
   stencil order = 3
@@ -77,10 +77,27 @@ PPPM initialization ...
   estimated relative force accuracy = 7.49185e-06
   using double precision FFTs
   3d grid and FFT values/proc = 525 96
+Neighbor list info ...
+  update every 2 steps, delay 4 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 28.5
+  ghost atom cutoff = 28.5
+  binsize = 8.5, bins = 27 14 48
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair lj/sdk, perpetual
+      attributes: half, newton on
+      pair build: half/multi/newton
+      stencil: half/multi/3d/newton
+      bin: standard
+  (2) pair coul/long, perpetual, skip from (1)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
   PPPM/cg optimization cutoff: 1e-05
   Total charged atoms: 6.5%
   Min/max charged atoms/proc: 6.4% 6.7%
-Memory usage per processor = 7.66668 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 17.48 | 17.48 | 17.48 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0     310.0934   -249339.72    2566.2036   -217861.41   -25.664516 
       10    310.88051    -249369.1    2549.1166   -217834.49   -29.095262 
@@ -93,22 +110,22 @@ Step Temp E_pair E_mol TotEng Press
       80    310.60448   -249415.99    2596.6752   -217859.56   -27.942924 
       90    309.63209   -249403.14    2606.3186   -217927.73   -24.456575 
      100    309.40793   -249341.62    2599.6402   -217893.79   -22.554823 
+Loop time of 2.54454 on 4 procs for 100 steps with 31280 atoms
 
-Loop time of 4.07239 on 4 procs for 100 steps with 31280 atoms
-98.6% CPU use with 4 MPI tasks x 1 OpenMP threads
-Performance: 21.216 ns/day  1.131 hours/ns  24.556 timesteps/s
+Performance: 33.955 ns/day, 0.707 hours/ns, 39.300 timesteps/s
+98.9% CPU use with 4 MPI tasks x 1 OpenMP threads
 
-MPI task timings breakdown:
+MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 3.082      | 3.0928     | 3.1091     |   0.6 | 75.95
-Bond    | 0.021077   | 0.021421   | 0.021823   |   0.2 |  0.53
-Kspace  | 0.042646   | 0.058859   | 0.069797   |   4.1 |  1.45
-Neigh   | 0.79689    | 0.79696    | 0.79711    |   0.0 | 19.57
-Comm    | 0.048668   | 0.049552   | 0.050446   |   0.3 |  1.22
-Output  | 0.00072145 | 0.00095147 | 0.0016341  |   1.3 |  0.02
-Modify  | 0.034767   | 0.035175   | 0.035714   |   0.2 |  0.86
-Other   |            | 0.01665    |            |       |  0.41
+Pair    | 1.8639     | 1.8913     | 1.9283     |   1.8 | 74.33
+Bond    | 0.0092797  | 0.0094567  | 0.0095828  |   0.1 |  0.37
+Kspace  | 0.018389   | 0.056616   | 0.084424   |  10.7 |  2.23
+Neigh   | 0.53553    | 0.53569    | 0.53605    |   0.0 | 21.05
+Comm    | 0.023819   | 0.02433    | 0.02506    |   0.3 |  0.96
+Output  | 0.00058866 | 0.00084978 | 0.0016243  |   0.0 |  0.03
+Modify  | 0.021841   | 0.022059   | 0.022308   |   0.1 |  0.87
+Other   |            | 0.004233   |            |       |  0.17
 
 Nlocal:    7820 ave 7866 max 7774 min
 Histogram: 1 1 0 0 0 0 0 0 1 1
@@ -125,3 +142,4 @@ Dangerous builds = 0
 
 Please see the log.cite file for references relevant to this simulation
 
+Total wall time: 0:00:02

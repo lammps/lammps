@@ -418,7 +418,8 @@ void PairLJLongCoulLong::read_restart_settings(FILE *fp)
 void PairLJLongCoulLong::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    fprintf(fp,"%d %g %g\n",i,epsilon_read[i][i],sigma_read[i][i]);
+    if (!atom->chartypesflag) fprintf(fp,"%d %g %g\n",i,epsilon_read[i][i],sigma_read[i][i]);
+    else fprintf(fp,"%d %g %g # %s\n",i,epsilon_read[i][i],sigma_read[i][i],atom->char_atomtype[i-1]);
 }
 
 /* ----------------------------------------------------------------------
@@ -429,8 +430,11 @@ void PairLJLongCoulLong::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp,"%d %d %g %g %g\n",i,j,
+      if (!atom->chartypesflag) fprintf(fp,"%d %d %g %g %g\n",i,j,
               epsilon_read[i][j],sigma_read[i][j],cut_lj_read[i][j]);
+      else fprintf(fp,"%d %d %g %g %g # %s %s\n",i,j,
+              epsilon_read[i][j],sigma_read[i][j],cut_lj_read[i][j],
+                   atom->char_atomtype[i-1],atom->char_atomtype[j-1]);
 }
 
 /* ----------------------------------------------------------------------

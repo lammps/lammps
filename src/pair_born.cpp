@@ -389,8 +389,10 @@ void PairBorn::read_restart_settings(FILE *fp)
 void PairBorn::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    fprintf(fp,"%d %g %g %g %g %g\n",i,
+    if (!atom->chartypesflag) fprintf(fp,"%d %g %g %g %g %g\n",i,
             a[i][i],rho[i][i],sigma[i][i],c[i][i],d[i][i]);
+    else fprintf(fp,"%d %g %g %g %g %g # %s\n",i,
+            a[i][i],rho[i][i],sigma[i][i],c[i][i],d[i][i],atom->char_atomtype[i-1]);
 }
 
 /* ----------------------------------------------------------------------
@@ -401,8 +403,11 @@ void PairBorn::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp,"%d %d %g %g %g %g %g %g\n",i,j,
+      if (!atom->chartypesflag) fprintf(fp,"%d %d %g %g %g %g %g %g\n",i,j,
               a[i][j],rho[i][j],sigma[i][j],c[i][j],d[i][j],cut[i][j]);
+      else fprintf(fp,"%d %d %g %g %g %g %g %g # %s %s\n",i,j,
+              a[i][j],rho[i][j],sigma[i][j],c[i][j],d[i][j],cut[i][j],
+                   atom->char_atomtype[i-1],atom->char_atomtype[j-1]);
 }
 
 /* ---------------------------------------------------------------------- */

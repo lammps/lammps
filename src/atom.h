@@ -37,6 +37,8 @@ class Atom : protected Pointers {
 
   bigint nbonds,nangles,ndihedrals,nimpropers;
   int ntypes,nbondtypes,nangletypes,ndihedraltypes,nimpropertypes;
+  char *ichartype,*jchartype,**char_atomtype,**char_bondtype,**char_angletype;
+  char **char_dihedraltype,**char_impropertype;
   int bond_per_atom,angle_per_atom,dihedral_per_atom,improper_per_atom;
   int extra_bond_per_atom,extra_angle_per_atom;
   int extra_dihedral_per_atom,extra_improper_per_atom;
@@ -105,6 +107,9 @@ class Atom : protected Pointers {
   double *edpd_temp,*edpd_flux;  // temperature and heat flux
   double *edpd_cv;               // heat capacity
   int cc_species;
+
+  // character-based types flag
+  int chartypesflag;
 
   // molecular info
 
@@ -250,6 +255,9 @@ class Atom : protected Pointers {
   void data_fix_compute_variable(int, int);
 
   virtual void allocate_type_arrays();
+  virtual void allocate_chartype_arrays();
+  virtual void deallocate_chartype_arrays();
+  int find_type(char *, char **, int);
   void set_mass(const char *, int, const char *, int);
   void set_mass(const char *, int, int, double);
   void set_mass(const char *, int, int, char **);

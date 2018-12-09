@@ -450,7 +450,8 @@ void PairLJCutCoulCutSoft::read_restart_settings(FILE *fp)
 void PairLJCutCoulCutSoft::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    fprintf(fp,"%d %g %g %g\n",i,epsilon[i][i],sigma[i][i],lambda[i][i]);
+    if (!atom->chartypesflag) fprintf(fp,"%d %g %g %g\n",i,epsilon[i][i],sigma[i][i],lambda[i][i]);
+    else fprintf(fp,"%d %g %g %g # %s\n",i,epsilon[i][i],sigma[i][i],lambda[i][i],atom->char_atomtype[i-1]);
 }
 
 /* ----------------------------------------------------------------------
@@ -461,8 +462,11 @@ void PairLJCutCoulCutSoft::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp,"%d %d %g %g %g %g\n",i,j,epsilon[i][j],sigma[i][j],
+      if (!atom->chartypesflag) fprintf(fp,"%d %d %g %g %g %g\n",i,j,epsilon[i][j],sigma[i][j],
               lambda[i][j],cut_lj[i][j]);
+      else fprintf(fp,"%d %d %g %g %g %g # %s %s\n",i,j,epsilon[i][j],sigma[i][j],
+              lambda[i][j],cut_lj[i][j],
+                   atom->char_atomtype[i-1],atom->char_atomtype[j-1]);
 }
 
 /* ---------------------------------------------------------------------- */

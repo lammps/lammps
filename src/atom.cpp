@@ -47,6 +47,7 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
+#define MAXLINE 256
 #define DELTA 1
 #define DELTA_MEMSTR 1024
 #define EPSILON 1.0e-6
@@ -157,6 +158,12 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   ivector = NULL;
   dvector = NULL;
   iname = dname = NULL;
+
+  // character-based types flags
+  chartypesflag = 0;
+  ichartype = jchartype = NULL;
+  char_atomtype = char_bondtype = char_angletype = NULL;
+  char_dihedraltype = char_impropertype = NULL;
 
   // initialize atom style and array existence flags
   // customize by adding new flag
@@ -831,6 +838,37 @@ void Atom::deallocate_topology()
 }
 
 /* ----------------------------------------------------------------------
+   deallocate character-based type arrays of length ntypes
+------------------------------------------------------------------------- */
+
+void Atom::deallocate_chartype_arrays()
+{
+  int i;
+  delete [] ichartype;
+  delete [] jchartype;
+
+  for (i = 0; i < ntypes; i++)
+    delete [] char_atomtype[i];
+  memory->sfree(char_atomtype);
+
+  for (i = 0; i < nbondtypes; i++)
+    delete [] char_bondtype[i];
+  if (force->bond) memory->sfree(char_bondtype);
+
+  for (i = 0; i < nangletypes; i++)
+    delete [] char_angletype[i];
+  if (force->angle) memory->sfree(char_angletype);
+
+  for (i = 0; i < ndihedraltypes; i++)
+    delete [] char_dihedraltype[i];
+  if (force->dihedral) memory->sfree(char_dihedraltype);
+
+  for (i = 0; i < nimpropertypes; i++)
+    delete [] char_impropertype[i];
+  if (force->improper) memory->sfree(char_impropertype);
+}
+
+/* ----------------------------------------------------------------------
    unpack N lines from Atom section of data file
    call style-specific routine to parse line
 ------------------------------------------------------------------------- */
@@ -1453,6 +1491,71 @@ void Atom::data_fix_compute_variable(int nprev, int nnew)
 
   for (int i = nprev; i < nnew; i++)
     input->variable->set_arrays(i);
+}
+
+/* ----------------------------------------------------------------------
+   allocate character-based type arrays of length ntypes
+   always allocated (for both numeric and character-based type modes)
+------------------------------------------------------------------------- */
+
+void Atom::allocate_chartype_arrays()
+{
+  // temporary storage
+  ichartype = new char[MAXLINE];
+  jchartype = new char[MAXLINE];
+  // allow for arbitrarily-long character-based types
+  // initialize value to indicate no char type provided
+  char_atomtype = (char **) memory->srealloc(char_atomtype,
+                 ntypes*sizeof(char *),"atom:char_atomtype");
+  for (int i = 0; i < ntypes; i++) {
+    char_atomtype[i] = new char[MAXLINE];
+    strcpy(char_atomtype[i],"nullptr");
+  }
+  if (force->bond) {
+    char_bondtype = (char **) memory->srealloc(char_bondtype,
+                              nbondtypes*sizeof(char *),"atom:char_bondtype");
+    for (int i = 0; i < nbondtypes; i++) {
+      char_bondtype[i] = new char[MAXLINE];
+      strcpy(char_bondtype[i],"nullptr");
+    }
+  }
+  if (force->angle) {
+    char_angletype = (char **) memory->srealloc(char_angletype,
+                              nangletypes*sizeof(char *),"atom:char_angletype");
+    for (int i = 0; i < nangletypes; i++) {
+      char_angletype[i] = new char[MAXLINE];
+      strcpy(char_angletype[i],"nullptr");
+    }
+  }
+  if (force->dihedral) {
+    char_dihedraltype = (char **) memory->srealloc(char_dihedraltype,
+                              ndihedraltypes*sizeof(char *),"atom:char_dihedraltype");
+    for (int i = 0; i < ndihedraltypes; i++) {
+      char_dihedraltype[i] = new char[MAXLINE];
+      strcpy(char_dihedraltype[i],"nullptr");
+    }
+  }
+  if (force->improper) {
+    char_impropertype = (char **) memory->srealloc(char_impropertype,
+                              nimpropertypes*sizeof(char *),"atom:char_impropertype");
+    for (int i = 0; i < nimpropertypes; i++) {
+      char_impropertype[i] = new char[MAXLINE];
+      strcpy(char_impropertype[i],"nullptr");
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   find integer type given a character-based type
+   return -1 if type not yet defined
+------------------------------------------------------------------------- */
+
+int Atom::find_type(char *char_type, char **char_type_array, int num_types)
+{
+  for (int i = 0; i < num_types; i++) {
+    if (char_type_array[i] && strcmp(char_type,char_type_array[i]) == 0) return i+1;
+  }
+  return -1;
 }
 
 /* ----------------------------------------------------------------------

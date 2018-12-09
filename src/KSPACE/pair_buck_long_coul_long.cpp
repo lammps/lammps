@@ -420,8 +420,10 @@ void PairBuckLongCoulLong::read_restart_settings(FILE *fp)
 void PairBuckLongCoulLong::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    fprintf(fp,"%d %g %g %g\n",i,
+    if (!atom->chartypesflag) fprintf(fp,"%d %g %g %g\n",i,
             buck_a_read[i][i],buck_rho_read[i][i],buck_c_read[i][i]);
+    else fprintf(fp,"%d %g %g %g # %s\n",i,
+            buck_a_read[i][i],buck_rho_read[i][i],buck_c_read[i][i],atom->char_atomtype[i-1]);
 }
 
 /* ----------------------------------------------------------------------
@@ -432,8 +434,11 @@ void PairBuckLongCoulLong::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp,"%d %d %g %g %g\n",i,j,
+      if (!atom->chartypesflag) fprintf(fp,"%d %d %g %g %g\n",i,j,
               buck_a_read[i][j],buck_rho_read[i][j],buck_c_read[i][j]);
+      else fprintf(fp,"%d %d %g %g %g # %s %s\n",i,j,
+              buck_a_read[i][j],buck_rho_read[i][j],buck_c_read[i][j],
+                   atom->char_atomtype[i-1],atom->char_atomtype[j-1]);
 }
 
 /* ----------------------------------------------------------------------

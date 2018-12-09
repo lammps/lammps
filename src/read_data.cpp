@@ -112,6 +112,9 @@ ReadData::~ReadData()
   memory->destroy(fix_index);
   memory->sfree(fix_header);
   memory->sfree(fix_section);
+
+  // this will soon be elsewhere
+  atom->deallocate_chartype_arrays();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -185,6 +188,9 @@ void ReadData::command(int narg, char **arg)
       iarg += 4;
     } else if (strcmp(arg[iarg],"nocoeff") == 0) {
       coeffflag = 0;
+      iarg ++;
+    } else if (strcmp(arg[iarg],"chartypes") == 0) {
+      atom->chartypesflag = 1;
       iarg ++;
     } else if (strcmp(arg[iarg],"extra/atom/types") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
@@ -438,6 +444,7 @@ void ReadData::command(int narg, char **arg)
       else n = static_cast<int> (LB_FACTOR * atom->natoms / comm->nprocs);
 
       atom->allocate_type_arrays();
+      atom->allocate_chartype_arrays();
       atom->deallocate_topology();
       atom->avec->grow(n);
 
@@ -1735,6 +1742,7 @@ void ReadData::paircoeffs()
     parse_coeffs(buf,NULL,1,2,toffset);
     if (narg == 0) error->all(FLERR,"Unexpected end of PairCoeffs section");
     force->pair->coeff(narg,arg);
+    if (atom->chartypesflag) strcpy(atom->char_atomtype[i],atom->ichartype);
     buf = next + 1;
   }
   delete [] original;
@@ -1761,6 +1769,10 @@ void ReadData::pairIJcoeffs()
       parse_coeffs(buf,NULL,0,2,toffset);
       if (narg == 0) error->all(FLERR,"Unexpected end of PairCoeffs section");
       force->pair->coeff(narg,arg);
+      if (atom->chartypesflag) {
+        strcpy(atom->char_atomtype[i],atom->ichartype);
+        strcpy(atom->char_atomtype[j],atom->jchartype);
+      }
       buf = next + 1;
     }
   delete [] original;
@@ -2027,7 +2039,7 @@ void ReadData::skip_lines(bigint n)
 
 /* ----------------------------------------------------------------------
    parse a line of coeffs into words, storing them in narg,arg
-   trim anything from '#' onward
+   save comments, if using character-based types
    word strings remain in line, are not copied
    if addstr != NULL, add addstr as extra arg for class2 angle/dihedral/improper
      if 2nd word starts with letter, then is hybrid style, add addstr after it
@@ -2040,7 +2052,23 @@ void ReadData::parse_coeffs(char *line, const char *addstr,
                             int dupflag, int noffset, int offset)
 {
   char *ptr;
-  if ((ptr = strchr(line,'#'))) *ptr = '\0';
+  if (atom->chartypesflag) {
+    if ((ptr = strchr(line,'#'))) {
+      *ptr++ = '\0';
+      while (*ptr == ' ' || *ptr == '\t') ptr++;
+      int stop = strlen(ptr) - 1;
+      while (ptr[stop] == ' ' || ptr[stop] == '\t'
+             || ptr[stop] == '\n' || ptr[stop] == '\r') stop--;
+      ptr[stop+1] = '\0';
+      // scans two types for PairIJ, one type for Pair
+      sscanf(ptr,"%s %s",atom->ichartype,atom->jchartype);
+    } else {
+      strcpy(atom->ichartype,"nullptr");
+      strcpy(atom->jchartype,"nullptr");
+    }
+  } else {
+    if (ptr = strchr(line,'#')) *ptr = '\0';
+  }
 
   narg = 0;
   char *word = strtok(line," \t\n\r\f");

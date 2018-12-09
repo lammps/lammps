@@ -323,7 +323,8 @@ void PairMorseSmoothLinear::read_restart_settings(FILE *fp)
 void PairMorseSmoothLinear::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    fprintf(fp,"%d %g %g %g\n",i,d0[i][i],alpha[i][i],r0[i][i]);
+    if (!atom->chartypesflag) fprintf(fp,"%d %g %g %g\n",i,d0[i][i],alpha[i][i],r0[i][i]);
+    else fprintf(fp,"%d %g %g %g # %s\n",i,d0[i][i],alpha[i][i],r0[i][i],atom->char_atomtype[i-1]);
 }
 
 /* ----------------------------------------------------------------------
@@ -334,8 +335,11 @@ void PairMorseSmoothLinear::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp,"%d %d %g %g %g %g\n",
+      if (!atom->chartypesflag) fprintf(fp,"%d %d %g %g %g %g\n",
               i,j,d0[i][j],alpha[i][j],r0[i][j],cut[i][j]);
+      else fprintf(fp,"%d %d %g %g %g %g # %s %s\n",
+              i,j,d0[i][j],alpha[i][j],r0[i][j],cut[i][j],
+                   atom->char_atomtype[i-1],atom->char_atomtype[j-1]);
 }
 
 /* ---------------------------------------------------------------------- */

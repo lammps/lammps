@@ -216,7 +216,8 @@ void PairZero::read_restart_settings(FILE *fp)
 void PairZero::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    fprintf(fp,"%d\n",i);
+    if (!atom->chartypesflag) fprintf(fp,"%d\n",i);
+    else fprintf(fp,"%d # %s\n",i,atom->char_atomtype[i-1]);
 }
 
 /* ----------------------------------------------------------------------
@@ -227,7 +228,9 @@ void PairZero::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp,"%d %d %g\n",i,j,cut[i][j]);
+      if (!atom->chartypesflag) fprintf(fp,"%d %d %g\n",i,j,cut[i][j]);
+      else fprintf(fp,"%d %d %g # %s %s\n",i,j,cut[i][j],
+                   atom->char_atomtype[i-1],atom->char_atomtype[j-1]);
 }
 
 

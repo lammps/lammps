@@ -656,7 +656,8 @@ void PairLJCut::read_restart_settings(FILE *fp)
 void PairLJCut::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    fprintf(fp,"%d %g %g\n",i,epsilon[i][i],sigma[i][i]);
+    if (!atom->chartypesflag) fprintf(fp,"%d %g %g\n",i,epsilon[i][i],sigma[i][i]);
+    else fprintf(fp,"%d %g %g # %s\n",i,epsilon[i][i],sigma[i][i],atom->char_atomtype[i-1]);
 }
 
 /* ----------------------------------------------------------------------
@@ -667,7 +668,9 @@ void PairLJCut::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp,"%d %d %g %g %g\n",i,j,epsilon[i][j],sigma[i][j],cut[i][j]);
+      if (!atom->chartypesflag) fprintf(fp,"%d %d %g %g %g\n",i,j,epsilon[i][j],sigma[i][j],cut[i][j]);
+      else fprintf(fp,"%d %d %g %g %g # %s %s\n",i,j,epsilon[i][j],sigma[i][j],cut[i][j],
+                   atom->char_atomtype[i-1],atom->char_atomtype[j-1]);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -374,7 +374,8 @@ void PairDPD::read_restart_settings(FILE *fp)
 void PairDPD::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    fprintf(fp,"%d %g %g\n",i,a0[i][i],gamma[i][i]);
+    if (!atom->chartypesflag) fprintf(fp,"%d %g %g\n",i,a0[i][i],gamma[i][i]);
+    else fprintf(fp,"%d %g %g # %s\n",i,a0[i][i],gamma[i][i],atom->char_atomtype[i-1]);
 }
 
 /* ----------------------------------------------------------------------
@@ -385,7 +386,9 @@ void PairDPD::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp,"%d %d %g %g %g\n",i,j,a0[i][j],gamma[i][j],cut[i][j]);
+      if (!atom->chartypesflag) fprintf(fp,"%d %d %g %g %g\n",i,j,a0[i][j],gamma[i][j],cut[i][j]);
+      else fprintf(fp,"%d %d %g %g %g # %s %s\n",i,j,a0[i][j],gamma[i][j],cut[i][j],
+                   atom->char_atomtype[i-1],atom->char_atomtype[j-1]);
 }
 
 /* ---------------------------------------------------------------------- */

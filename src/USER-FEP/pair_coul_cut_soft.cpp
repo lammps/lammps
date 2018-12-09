@@ -330,7 +330,8 @@ void PairCoulCutSoft::read_restart_settings(FILE *fp)
 void PairCoulCutSoft::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    fprintf(fp,"%d %g\n",i,lambda[i][i]);
+    if (!atom->chartypesflag) fprintf(fp,"%d %g\n",i,lambda[i][i]);
+    else fprintf(fp,"%d %g # %s\n",i,lambda[i][i],atom->char_atomtype[i-1]);
 }
 
 /* ----------------------------------------------------------------------
@@ -341,7 +342,9 @@ void PairCoulCutSoft::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp,"%d %d %g\n",i,j,lambda[i][j]);
+      if (!atom->chartypesflag) fprintf(fp,"%d %d %g\n",i,j,lambda[i][j]);
+      else fprintf(fp,"%d %d %g # %s %s\n",i,j,lambda[i][j],
+                   atom->char_atomtype[i-1],atom->char_atomtype[j-1]);
 }
 
 /* ---------------------------------------------------------------------- */

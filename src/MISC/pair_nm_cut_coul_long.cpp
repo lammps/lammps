@@ -484,7 +484,8 @@ void PairNMCutCoulLong::read_restart_settings(FILE *fp)
 void PairNMCutCoulLong::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    fprintf(fp,"%d %g %g %g %g\n",i,e0[i][i],r0[i][i],nn[i][i],mm[i][i]);
+    if (!atom->chartypesflag) fprintf(fp,"%d %g %g %g %g\n",i,e0[i][i],r0[i][i],nn[i][i],mm[i][i]);
+    else fprintf(fp,"%d %g %g %g %g # %s\n",i,e0[i][i],r0[i][i],nn[i][i],mm[i][i],atom->char_atomtype[i-1]);
 }
 
 /* ----------------------------------------------------------------------
@@ -495,8 +496,11 @@ void PairNMCutCoulLong::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp,"%d %d %g %g %g %g %g\n",i,j,
+      if (!atom->chartypesflag) fprintf(fp,"%d %d %g %g %g %g %g\n",i,j,
               e0[i][j],r0[i][j],nn[i][j],mm[i][j],cut_lj[i][j]);
+      else fprintf(fp,"%d %d %g %g %g %g %g # %s %s\n",i,j,
+              e0[i][j],r0[i][j],nn[i][j],mm[i][j],cut_lj[i][j],
+                   atom->char_atomtype[i-1],atom->char_atomtype[j-1]);
 }
 
 /* ---------------------------------------------------------------------- */

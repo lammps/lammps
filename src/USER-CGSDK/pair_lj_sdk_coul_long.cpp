@@ -547,8 +547,11 @@ void PairLJSDKCoulLong::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp,"%d %d %s %g %g %g\n",i,j,lj_type_list[lj_type[i][j]],
+      if (!atom->chartypesflag) fprintf(fp,"%d %d %s %g %g %g\n",i,j,lj_type_list[lj_type[i][j]],
               epsilon[i][j],sigma[i][j],cut_lj[i][j]);
+      else fprintf(fp,"%d %d %s %g %g %g # %s %s\n",i,j,lj_type_list[lj_type[i][j]],
+              epsilon[i][j],sigma[i][j],cut_lj[i][j],
+                   atom->char_atomtype[i-1],atom->char_atomtype[j-1]);
 }
 
 /* ---------------------------------------------------------------------- */

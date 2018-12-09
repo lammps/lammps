@@ -363,7 +363,8 @@ void PairBuck::read_restart_settings(FILE *fp)
 void PairBuck::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    fprintf(fp,"%d %g %g %g\n",i,a[i][i],rho[i][i],c[i][i]);
+    if (!atom->chartypesflag) fprintf(fp,"%d %g %g %g\n",i,a[i][i],rho[i][i],c[i][i]);
+    else fprintf(fp,"%d %g %g %g # %s\n",i,a[i][i],rho[i][i],c[i][i],atom->char_atomtype[i-1]);
 }
 
 /* ----------------------------------------------------------------------
@@ -374,8 +375,11 @@ void PairBuck::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp,"%d %d %g %g %g %g\n",i,j,
+      if (!atom->chartypesflag) fprintf(fp,"%d %d %g %g %g %g\n",i,j,
               a[i][j],rho[i][j],c[i][j],cut[i][j]);
+      else fprintf(fp,"%d %d %g %g %g %g # %s %s\n",i,j,
+              a[i][j],rho[i][j],c[i][j],cut[i][j],
+                   atom->char_atomtype[i-1],atom->char_atomtype[j-1]);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -41,6 +41,7 @@ keyword = {add} or {offset} or {shift} or {extra/atom/types} or {extra/bond/type
   {group} args = groupID
     groupID = add atoms in data file to this group
   {nocoeff} = ignore force field parameters
+  {chartypes} = use comments as character-based atom types, bond types, etc.
   {fix} args = fix-ID header-string section-string
     fix-ID = ID of fix to process header lines and sections of data file
     header-string = header lines containing this string will be passed to fix
@@ -85,6 +86,12 @@ The various Coeff sections are still read and have to have the correct
 number of lines, but they are not applied. This also allows to read a
 data file without having any pair, bond, angle, dihedral or improper
 styles defined, or to read a data file for a different force field.
+
+The {chartypes} keyword tells read_data to interpret comments as
+character-based types, on certain lines that define interaction
+coefficients. Currently, this option only serves to remember atom
+types defined in this way in the pair coefficient section of the
+last-read data file. Currently, there is no support for restart files.
 
 The use of the {fix} keyword is discussed below.
 

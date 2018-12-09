@@ -112,9 +112,6 @@ ReadData::~ReadData()
   memory->destroy(fix_index);
   memory->sfree(fix_header);
   memory->sfree(fix_section);
-
-  // this will soon be elsewhere
-  atom->deallocate_chartype_arrays();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -444,7 +441,7 @@ void ReadData::command(int narg, char **arg)
       else n = static_cast<int> (LB_FACTOR * atom->natoms / comm->nprocs);
 
       atom->allocate_type_arrays();
-      atom->allocate_chartype_arrays();
+      if (atom->chartypesflag) atom->allocate_chartype_arrays();
       atom->deallocate_topology();
       atom->avec->grow(n);
 

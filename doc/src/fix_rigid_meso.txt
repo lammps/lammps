@@ -160,7 +160,7 @@ unaffected by interactions with other particles.  Note that if you
 expect a rigid body not to move or rotate by using these keywords, you
 must insure its initial center-of-mass translational or angular
 velocity is 0.0. Otherwise the initial translational or angular
-momentum the body has will persist.
+momentum, the body has, will persist.
 
 An xflag, yflag, or zflag set to {off} means turn off the component of
 force or torque in that dimension.  A setting of {on} means turn on
@@ -287,9 +287,10 @@ bodies.  The number of columns is 28.  Thus for each rigid body, 28
 values are stored: the xyz coords of the center of mass (COM), the xyz
 components of the COM velocity, the xyz components of the force acting
 on the COM, the components of the 4-vector quaternion representing the
-orientation of the rigid body, the xyz components of the angular momentum
+orientation of the rigid body, the xyz components of the angular velocity
 of the body around its COM, the xyz components of the torque acting on the
-COM, the 3 principal components of the moment of inertia and the xyz image
+COM, the 3 principal components of the moment of inertia, the xyz components
+of the angular momentum of the body around its COM, and the xyz image
 flags of the COM.
 
 The center of mass (COM) for each body is similar to unwrapped

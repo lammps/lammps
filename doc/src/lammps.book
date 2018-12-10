@@ -356,7 +356,7 @@ fix_qeq_comb.html
 fix_qeq_reax.html
 fix_qmmm.html
 fix_qtb.html
-fix_reax_bonds.html
+fix_reaxc_bonds.html
 fix_reaxc_species.html
 fix_recenter.html
 fix_restrain.html

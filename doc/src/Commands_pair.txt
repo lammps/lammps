@@ -193,7 +193,6 @@ OPT.
 "polymorphic"_pair_polymorphic.html,
 "python"_pair_python.html,
 "quip"_pair_quip.html,
-"reax"_pair_reax.html,
 "reax/c (ko)"_pair_reaxc.html,
 "rebo (io)"_pair_airebo.html,
 "resquared (go)"_pair_resquared.html,

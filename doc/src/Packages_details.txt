@@ -55,7 +55,6 @@ as contained in the file name.
 "POEMS"_#PKG-POEMS,
 "PYTHON"_#PKG-PYTHON,
 "QEQ"_#PKG-QEQ,
-"REAX"_#PKG-REAX,
 "REPLICA"_#PKG-REPLICA2,
 "RIGID"_#PKG-RIGID,
 "SHOCK"_#PKG-SHOCK,
@@ -799,38 +798,6 @@ src/QEQ: filenames -> commands
 "fix qeq/*"_fix_qeq.html
 examples/qeq
 examples/streitz :ul
-
-:line
-
-REAX package :link(PKG-REAX),h4
-
-[Contents:]
-
-NOTE: the use of the REAX package is discouraged, as it is no longer
-maintained. Please use the "USER-REAXC"_#PKG-USER-REAXC package instead,
-and possibly the KOKKOS enabled variant of that, which has a more robust
-memory management.
-
-A pair style which wraps a Fortran library which implements the ReaxFF
-potential, which is a universal reactive force field.  Also included is
-a "fix reax/bonds"_fix_reax_bonds.html command for monitoring molecules
-as bonds are created and destroyed.
-
-[Author:] Aidan Thompson (Sandia).
-
-[Install:]
-
-This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
-extras"_Build_extras.html doc page.
-
-[Supporting info:]
-
-src/REAX: filenames -> commands
-lib/reax/README
-"pair_style reax"_pair_reax.html
-"fix reax/bonds"_fix_reax_bonds.html
-examples/reax :ul
 
 :line
 
@@ -1861,9 +1828,8 @@ USER-REAXC package :link(PKG-USER-REAXC),h4
 
 [Contents:]
 
-A pair style which implements the ReaxFF potential in C/C++ (in
-contrast to the "REAX package"_#PKG-REAX and its Fortran library).  ReaxFF
-is universal reactive force field.  See the src/USER-REAXC/README file
+A pair style which implements the ReaxFF potential in C/C++.  ReaxFF
+is a universal reactive force field.  See the src/USER-REAXC/README file
 for more info on differences between the two packages.  Also two fixes
 for monitoring molecules as bonds are created and destroyed.
 
@@ -1874,7 +1840,7 @@ for monitoring molecules as bonds are created and destroyed.
 src/USER-REAXC: filenames -> commands
 src/USER-REAXC/README
 "pair_style reax/c"_pair_reaxc.html
-"fix reax/c/bonds"_fix_reax_bonds.html
+"fix reax/c/bonds"_fix_reaxc_bonds.html
 "fix reax/c/species"_fix_reaxc_species.html
 examples/reax :ul
 

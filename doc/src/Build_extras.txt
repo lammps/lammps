@@ -621,8 +621,8 @@ The USER-ATC package requires the MANYBODY package also be installed.
 
 [CMake build]:
 
-No additional settings are needed besides "-D PKG_REAX=yes" and "-D
-PKG_MANYBODY=yes".
+No additional settings are needed besides "-D PKG_USER-ATC=yes"
+and "-D PKG_MANYBODY=yes".
 
 [Traditional make]:
 

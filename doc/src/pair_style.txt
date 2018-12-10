@@ -226,8 +226,7 @@ accelerated styles exist.
 "lubricateU/poly"_pair_lubricateU.html - hydrodynamic lubrication forces for Fast Lubrication with polydispersity
 "mdpd"_pair_meso.html - mDPD particle interactions
 "mdpd/rhosum"_pair_meso.html - mDPD particle interactions for mass density
-"meam"_pair_meam.html - modified embedded atom method (MEAM) in Fortran
-"meam/c"_pair_meam.html - modified embedded atom method (MEAM) in C
+"meam/c"_pair_meamc.html - modified embedded atom method (MEAM) in C
 "meam/spline"_pair_meam_spline.html - splined version of MEAM
 "meam/sw/spline"_pair_meam_sw_spline.html - splined version of MEAM with a Stillinger-Weber term
 "mgpt"_pair_mgpt.html - simplified model generalized pseudopotential theory (MGPT) potential
@@ -260,7 +259,6 @@ accelerated styles exist.
 "polymorphic"_pair_polymorphic.html - polymorphic 3-body potential
 "python"_pair_python.html -
 "quip"_pair_quip.html -
-"reax"_pair_reax.html - ReaxFF potential in Fortran
 "reax/c"_pair_reaxc.html - ReaxFF potential in C
 "rebo"_pair_airebo.html - 2nd generation REBO potential of Brenner
 "resquared"_pair_resquared.html - Everaers RE-Squared ellipsoidal potential

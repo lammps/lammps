@@ -45,7 +45,6 @@ as contained in the file name.
 "LATTE"_#PKG-LATTE,
 "MANYBODY"_#PKG-MANYBODY,
 "MC"_#PKG-MC,
-"MEAM"_#PKG-MEAM,
 "MESSAGE"_#PKG-MESSAGE,
 "MISC"_#PKG-MISC,
 "MOLECULE"_#PKG-MOLECULE,
@@ -530,37 +529,6 @@ src/MC: filenames -> commands
 "fix gcmc"_fix_gcmc.html
 "pair_style dsmc"_pair_dsmc.html
 http://lammps.sandia.gov/movies.html#gcmc :ul
-
-:line
-
-MEAM package :link(PKG-MEAM),h4
-
-[Contents:]
-
-A pair style for the modified embedded atom (MEAM) potential.
-
-Please note that the use of the MEAM package is discouraged as
-it has been superseded by the "USER-MEAMC"_#PKG-USER-MEAMC package,
-which is a direct translation of the MEAM package to C++.
-USER-MEAMC contains additional optimizations making it run faster
-than MEAM on most machines, while providing the identical features
-and user interface.
-
-[Author:] Greg Wagner (Northwestern U) while at Sandia.
-
-[Install:]
-
-This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
-extras"_Build_extras.html doc page.
-
-[Supporting info:]
-
-src/MEAM: filenames -> commands
-src/meam/README
-lib/meam/README
-"pair_style meam"_pair_meam.html
-examples/meam :ul
 
 :line
 
@@ -1552,10 +1520,9 @@ USER-MEAMC package :link(PKG-USER-MEAMC),h4
 [Contents:]
 
 A pair style for the modified embedded atom (MEAM) potential
-translated from the Fortran version in the "MEAM"_#PKG-MEAM package
-to plain C++. In contrast to the MEAM package, no library
-needs to be compiled and the pair style can be instantiated
-multiple times.
+translated from the Fortran version in the (obsolete) "MEAM" package
+to plain C++. The USER-MEAMC fully replaces the MEAM package, which
+has been removed from LAMMPS after the 12 December 2018 version.
 
 [Author:] Sebastian Huetter, (Otto-von-Guericke University Magdeburg)
 based on the Fortran version of Greg Wagner (Northwestern U) while at
@@ -1565,8 +1532,8 @@ Sandia.
 
 src/USER-MEAMC: filenames -> commands
 src/USER-MEAMC/README
-"pair_style meam/c"_pair_meam.html
-examples/meam :ul
+"pair_style meam/c"_pair_meamc.html
+examples/meamc :ul
 
 :line
 

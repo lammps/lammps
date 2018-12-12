@@ -58,5 +58,3 @@ void PairDeprecated::settings(int, char **)
 
   }
 }
-
-

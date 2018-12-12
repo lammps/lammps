@@ -221,7 +221,7 @@ else()
 endif()
 
 
-set(LAMMPS_SIZES "smallbig" CACHE STRING "LAMMPS size limit")
+set(LAMMPS_SIZES "smallbig" CACHE STRING "LAMMPS integer sizes (smallsmall: all 32-bit, smallbig: 64-bit #atoms #timesteps, bigbig: also 64-bit imageint, 64-bit atom ids)")
 set(LAMMPS_SIZES_VALUES smallbig bigbig smallsmall)
 set_property(CACHE LAMMPS_SIZES PROPERTY STRINGS ${LAMMPS_SIZES_VALUES})
 validate_option(LAMMPS_SIZES LAMMPS_SIZES_VALUES)
@@ -856,6 +856,9 @@ if(PKG_USER-AWPMD)
 endif()
 
 if(PKG_USER-ATC)
+  if(LAMMPS_SIZES STREQUAL BIGBIG)
+    message(FATAL_ERROR "The USER-ATC Package is not compatible with -DLAMMPS_BIGBIG")
+  endif()
   target_link_libraries(atc ${LAPACK_LIBRARIES})
 endif()
 

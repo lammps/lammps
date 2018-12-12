@@ -48,6 +48,7 @@ help:
 	@echo "  clean-all  reset the entire build environment"
 	@echo "  txt2html   build txt2html tool"
 	@echo "  anchor_check  scan for duplicate anchor labels"
+	@echo "  spelling   spell-check the manual"
 
 # ------------------------------------------
 

@@ -65,6 +65,8 @@ make epub         # generate LAMMPS.epub in ePUB format using Sphinx
 make mobi         # generate LAMMPS.mobi in MOBI format using ebook-convert
 make clean        # remove intermediate RST files created by HTML build
 make clean-all    # remove entire build folder and any cached data :pre
+make anchor_check # check for duplicate anchor labels
+make spelling     # spell-check the manual
 
 :line
 

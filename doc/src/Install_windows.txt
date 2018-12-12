@@ -23,8 +23,8 @@ install the Windows MPI package (MPICH2 from Argonne National Labs),
 needed to run in parallel.
 
 The LAMMPS binaries contain all optional packages included in the
-source distribution except: KIM, REAX, KOKKOS, USER-INTEL,
-and USER-QMMM.  The serial version also does not include the MPIIO and
+source distribution except: KIM, KOKKOS, USER-INTEL, and USER-QMMM.
+The serial version also does not include the MPIIO and
 USER-LB packages.  GPU support is provided for OpenCL.
 
 The installer site also has instructions on how to run LAMMPS under

@@ -6,18 +6,17 @@
 
 :line
 
-pair_style meam command :h3
 pair_style meam/c command :h3
 
 [Syntax:]
 
 pair_style style :pre
 
-style = {meam} or {meam/c}
+style = {meam/c}
 
 [Examples:]
 
-pair_style meam
+pair_style meam/c
 pair_coeff * * ../potentials/library.meam Si ../potentials/si.meam Si
 pair_coeff * * ../potentials/library.meam Ni Al NULL Ni Al Ni Ni :pre
 
@@ -27,14 +26,16 @@ NOTE: The behavior of the MEAM potential for alloy systems has changed
 as of November 2010; see description below of the mixture_ref_t
 parameter
 
-Style {meam} computes pairwise interactions for a variety of materials
+Style {meam/c} computes pairwise interactions for a variety of materials
 using modified embedded-atom method (MEAM) potentials
 "(Baskes)"_#Baskes.  Conceptually, it is an extension to the original
 "EAM potentials"_pair_eam.html which adds angular forces.  It is
 thus suitable for modeling metals and alloys with fcc, bcc, hcp and
 diamond cubic structures, as well as covalently bonded materials like
-silicon and carbon. Style {meam/c} is a translation of the {meam} code
-from (mostly) Fortran to C++. It is functionally equivalent to {meam}.
+silicon and carbon. Style {meam/c} is a translation of the (now obsolete)
+{meam} code from Fortran to C++. It is functionally equivalent to {meam}
+but more efficient, and thus {meam} has been removed from LAMMPS after
+the 12 December 2018 release.
 
 In the MEAM formulation, the total energy E of a system of atoms is
 given by:
@@ -352,13 +353,8 @@ This pair style can only be used via the {pair} keyword of the
 
 [Restrictions:]
 
-The {meam} style is part of the MEAM package.  It is only enabled if
-LAMMPS was built with that package, which also requires the MEAM
-library be built and linked with LAMMPS.  The {meam/c} style is
-provided in the USER-MEAMC package. It is only enabled if LAMMPS was
-built with that package. In contrast to the {meam} style, {meam/c}
-does not require a separate library to be compiled and it can be
-instantiated multiple times in a "hybrid"_pair_hybrid.html pair style.
+The {meam/c} style is provided in the USER-MEAMC package. It is
+only enabled if LAMMPS was built with that package.
 See the "Build package"_Build_package.html doc page for more info.
 
 [Related commands:]

@@ -1088,6 +1088,18 @@ void LAMMPS::print_config(FILE *fp)
   if (Info::has_jpeg_support()) fputs("-DLAMMPS_JPEG\n",fp);
   if (Info::has_ffmpeg_support()) fputs("-DLAMMPS_FFMPEG\n",fp);
   if (Info::has_exceptions()) fputs("-DLAMMPS_EXCEPTIONS\n",fp);
+#if defined(LAMMPS_BIGBIG)
+  fputs("-DLAMMPS_BIGBIG\n",fp);
+#elif defined(LAMMPS_SMALLBIG)
+  fputs("-DLAMMPS_SMALLBIG\n",fp);
+#else // defined(LAMMPS_SMALLSMALL)
+  fputs("-DLAMMPS_SMALLSMALL\n",fp);
+#endif
+  fprintf(fp,"\nsizeof(smallint): %3d-bit\n",(int)sizeof(smallint)*8);
+  fprintf(fp,"sizeof(imageint): %3d-bit\n",(int)sizeof(imageint)*8);
+  fprintf(fp,"sizeof(tagint):   %3d-bit\n",(int)sizeof(tagint)*8);
+  fprintf(fp,"sizeof(bigint):   %3d-bit\n",(int)sizeof(bigint)*8);
+
 
   fputs("\nInstalled packages:\n\n",fp);
   for (int i = 0; NULL != (pkg = installed_packages[i]); ++i) {

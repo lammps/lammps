@@ -570,6 +570,7 @@ dlopen
 dm
 dmax
 Dmax
+dmg
 dmi
 dnf
 Dobson

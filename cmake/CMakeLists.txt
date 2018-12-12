@@ -590,8 +590,8 @@ if(PKG_KIM)
     enable_language(Fortran)
     include(ExternalProject)
     ExternalProject_Add(kim_build
-      URL https://s3.openkim.org/kim-api/kim-api-v2.0.0-beta.2.txz
-      URL_MD5 1fbdbb734059cf0dc9d807e6dd6cc8ea
+      URL https://s3.openkim.org/kim-api/kim-api-v2-2.0.0-beta.3.txz
+      URL_MD5 67c103a00e84865848d004837262c76e
       BINARY_DIR build
       CMAKE_ARGS -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
                  -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
@@ -601,7 +601,7 @@ if(PKG_KIM)
       )
     ExternalProject_get_property(kim_build INSTALL_DIR)
     set(KIM-API-V2_INCLUDE_DIRS ${INSTALL_DIR}/include/kim-api-v2)
-    set(KIM-API-V2_LIBRARIES ${INSTALL_DIR}/lib/libkim-api-v2.2${CMAKE_SHARED_LIBRARY_SUFFIX})
+    set(KIM-API-V2_LDFLAGS ${INSTALL_DIR}/lib/libkim-api-v2.2${CMAKE_SHARED_LIBRARY_SUFFIX})
     list(APPEND LAMMPS_DEPS kim_build)
   else()
     find_package(KIM-API-V2)

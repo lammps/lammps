@@ -21,7 +21,7 @@ Syntax from lib dir: python Install.py -b -v version -a kim-name
 specify one or more options, order does not matter
 
   -v = version of KIM API library to use
-       default = kim-api-v2.0.0-beta.2 (current as of November 2018)
+       default = kim-api-v2.0.0-beta.3 (current as of December 2018)
   -b = download and build base KIM API library with example Models
        this will delete any previous installation in the current folder
   -n = do NOT download and build base KIM API library.
@@ -36,9 +36,9 @@ specify one or more options, order does not matter
 Examples:
 
 make lib-kim args="-b" # install KIM API lib with only example models
-make lib-kim args="-a Glue_Ercolessi_Adams_Al__MO_324507536345_002"  # Ditto plus one model
+make lib-kim args="-a EAM_ErcolessiAdams_1994_Al__MO_324507536345_002"  # Ditto plus one model
 make lib-kim args="-b -a everything"   # install KIM API lib with all models
-make lib-kim args="-n -a EAM_Dynamo_Ackland_W__MO_141627196590_003"   # only add one model or model driver
+make lib-kim args="-n -a EAM_Dynamo_Ackland_2003_W__MO_141627196590_005"   # only add one model or model driver
 
 See the list of KIM model drivers here:
 https://openkim.org/kim-items/model-drivers/alphabetical
@@ -109,7 +109,7 @@ nargs = len(args)
 if nargs == 0: error()
 
 thisdir = os.environ['PWD']
-version = "kim-api-v2.0.0-beta.2"
+version = "kim-api-v2-2.0.0-beta.3"
 
 buildflag = False
 everythingflag = False

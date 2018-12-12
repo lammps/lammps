@@ -1,22 +1,11 @@
---------------------------------------------------------------------------
-[[6116,1],1]: A high-performance Open MPI point-to-point messaging module
-was unable to find any relevant network interfaces:
-
-Module: OpenFabrics (openib)
-  Host: ubuntu-artful
-
-Another transport will be used instead, although this may result in
-lower performance.
-
-NOTE: You can disable this warning by setting the MCA parameter
-btl_base_warn_component_unused to 0.
---------------------------------------------------------------------------
-LAMMPS (22 Jun 2018)
+LAMMPS (24 Oct 2018)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:87)
+  using 1 OpenMP thread(s) per MPI task
 Lattice spacing in x,y,z = 4.43 4.43 4.43
 Created orthogonal box = (0 0 0) to (88.6 88.6 88.6)
   1 by 2 by 2 MPI processor grid
 Created 32000 atoms
-  Time spent = 0.00125703 secs
+  Time spent = 0.000934124 secs
 Neighbor list info ...
   update every 1 steps, delay 0 steps, check yes
   max neighbors/atom: 2000, page size: 100000
@@ -37,20 +26,20 @@ Per MPI rank memory allocation (min/avg/max) = 8.013 | 8.013 | 8.013 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0          200    6290.8194            0    7118.0584    129712.25 
      100    95.179725     6718.814            0     7112.496    133346.59 
-Loop time of 2.99901 on 4 procs for 100 steps with 32000 atoms
+Loop time of 0.76167 on 4 procs for 100 steps with 32000 atoms
 
-Performance: 2.881 ns/day, 8.331 hours/ns, 33.344 timesteps/s
-24.4% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 11.343 ns/day, 2.116 hours/ns, 131.290 timesteps/s
+99.7% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 1.3704     | 1.4012     | 1.439      |   2.3 | 46.72
-Neigh   | 0.252      | 0.27028    | 0.28236    |   2.2 |  9.01
-Comm    | 0.66355    | 0.73942    | 0.82223    |   6.5 | 24.66
-Output  | 0.0037821  | 0.0090774  | 0.016142   |   5.1 |  0.30
-Modify  | 0.0058855  | 0.019317   | 0.044855   |  11.4 |  0.64
-Other   |            | 0.5597     |            |       | 18.66
+Pair    | 0.65549    | 0.6589     | 0.66089    |   0.3 | 86.51
+Neigh   | 0.075691   | 0.075959   | 0.07641    |   0.1 |  9.97
+Comm    | 0.0073049  | 0.007397   | 0.0074785  |   0.1 |  0.97
+Output  | 5.6982e-05 | 0.00014746 | 0.00024986 |   0.0 |  0.02
+Modify  | 0.0068338  | 0.0068703  | 0.0068941  |   0.0 |  0.90
+Other   |            | 0.0124     |            |       |  1.63
 
 Nlocal:    8000 ave 8018 max 7967 min
 Histogram: 1 0 0 0 0 0 1 0 0 2
@@ -63,4 +52,4 @@ Total # of neighbors = 2523614
 Ave neighs/atom = 78.8629
 Neighbor list builds = 3
 Dangerous builds = 0
-Total wall time: 0:00:03
+Total wall time: 0:00:00

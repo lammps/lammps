@@ -621,8 +621,8 @@ The USER-ATC package requires the MANYBODY package also be installed.
 
 [CMake build]:
 
-No additional settings are needed besides "-D PKG_REAX=yes" and "-D
-PKG_MANYBODY=yes".
+No additional settings are needed besides "-D PKG_USER-ATC=yes"
+and "-D PKG_MANYBODY=yes".
 
 [Traditional make]:
 
@@ -735,58 +735,69 @@ from LAMMPS using the generic "plumed installation instructions"_plumedinstall.
 :link(plumedinstall,http://plumed.github.io/doc-master/user-doc/html/_installation.html)
 
 PLUMED can be linked into MD codes in three different modes: static,
-shared, and runtime.  With the "static" mode, all required PLUMED code
-is linked statically into the MD code. The MD code is then fully
-independent from the PLUMED installation, but also you have to
-rebuild/relink the MD code to update the PLUMED code inside it.  With
-"shared" linkage mode, the MD code is linked to a shared library
-containing the PLUMED code, preferably after it was installed in a
-globally accessible location. This way the same installed PLUMED code
-can be shared across multiple MD packages and can be updated, for as
-long as the shared PLUMED library is ABI-compatible. The third linkage
-mode is "runtime" which allows to switch the PLUMED kernel at runtime
-between different variants through setting the PLUMED_KERNEL environment
-variable, which has to point to the location of the libplumedKernel.so
-dynamical shared object, which is then loaded at runtime. This is
-particularly convenient for doing PLUMED development and comparing
-multiple PLUMED versions without having to recompile the hosting MD
-code. All three linkage modes are supported by LAMMPS on selected
-operating systems (e.g. Linux) and using either CMake or traditional
-make build. The "static" mode should be most portable, the "runtime"
-mode support in LAMMPS makes the most assumptions about operating
-system and compiler environment. If one mode does not work, try a
-different one, or switch to a different build system, or consider
-a global PLUMED installation or downloading it during building LAMMPS.
+shared, and runtime.  With the "static" mode, all the code that PLUMED
+requires is linked statically into LAMMPS. LAMMPS is then fully
+independent from the PLUMED installation, but you have to rebuild/relink
+it in order to update the PLUMED code inside it.  With the "shared"
+linkage mode, LAMMPS is linked to a shared library that contains the
+PLUMED code.  This library should preferably be installed in a globally
+accessible location. When PLUMED is linked in this way the same library
+can be used by multiple MD packages.  Furthermore, the PLUMED library
+LAMMPS uses can be updated without the need for a recompile of LAMMPS
+for as long as the shared PLUMED library is ABI-compatible.
+
+The third linkage mode is "runtime" which allows the user to specify
+which PLUMED kernel should be used at runtime by using the PLUMED_KERNEL
+environment variable. This variable should point to the location of the
+libplumedKernel.so dynamical shared object, which is then loaded at
+runtime. This mode of linking is particularly convenient for doing
+PLUMED development and comparing multiple PLUMED versions as these sorts
+of comparisons can be done without recompiling the hosting MD code. All
+three linkage modes are supported by LAMMPS on selected operating
+systems (e.g. Linux) and using either CMake or traditional make
+build. The "static" mode should be the most portable, while the
+"runtime" mode support in LAMMPS makes the most assumptions about
+operating system and compiler environment. If one mode does not work,
+try a different one, switch to a different build system, consider a
+global PLUMED installation or consider downloading PLUMED during the
+LAMMPS build.
 
 [CMake build]:
+
+When the "-D PKG_USER-PLUMED" flag is included in the cmake command you
+must ensure that GSL is installed in locations that are specified in
+your environment.  There are then two additional commands that control
+the manner in which PLUMED is obtained and linked into LAMMPS.
 
 -D DOWNLOAD_PLUMED=value   # download PLUMED for build, value = no (default) or yes
 -D PLUMED_MODE=value       # Linkage mode for PLUMED, value = static (default), shared, or runtime :pre
 
 If DOWNLOAD_PLUMED is set to "yes", the PLUMED library will be
-downloaded (the version of that is hard-coded to a vetted version of
-PLUMED, usually a recent stable release version) and built inside the
-CMake build directory.  If DOWNLOAD_PLUMED is set to "no" (the default),
-CMake will try to detect an installed version of PLUMED and link to
-that. For this to work, the PLUMED library has to be installed into a
-location where the pkg-config tool can find it or the PKG_CONFIG_PATH
-environment variable has to be set up accordingly.
+downloaded (the version of PLUMED that will be downloaded is hard-coded
+to a vetted version of PLUMED, usually a recent stable release version)
+and built inside the CMake build directory.  If DOWNLOAD_PLUMED is set
+to "no" (the default), CMake will try to detect and link to an installed
+version of PLUMED.  For this to work, the PLUMED library has to be
+installed into a location where the pkg-config tool can find it or the
+PKG_CONFIG_PATH environment variable has to be set up accordingly.
+PLUMED should be installed in such a location if you compile it using
+the default make; make install commands.
 
-The PLUMED_MODE setting determines the linkage mode of the PLUMED
-library.  Allowed values are "static" (default), "shared", or "runtime".
-For a discussion of PLUMED linkage modes, please see above.  When
-enabling DOWNLOAD_PLUMED, the static linkage mode is recommended.
+The PLUMED_MODE setting determines the linkage mode for the PLUMED
+library.  The allowed values for this flag are "static" (default),
+"shared", or "runtime".  For a discussion of PLUMED linkage modes,
+please see above.  When DOWNLOAD_PLUMED is enabled the static linkage
+mode is recommended.
 
 [Traditional make]:
 
-Before installing the USER-PLUMED package, first the PLUMED library
-needs to be configured so that LAMMPS can find the right settings when
-compiling and linking the LAMMPS executable itself. You can either
-download and build PLUMED inside the LAMMPS plumed library folder or use
-a previously installed PLUMED library and point LAMMPS to its
-location. You also have to choose the linkage mode: "static" (default),
-"shared" or "runtime".  For a discussion of PLUMED linkage modes, please
-see above.
+PLUMED needs to be installed before the USER-PLUMED package is installed
+so that LAMMPS can find the right settings when compiling and linking
+the LAMMPS executable.  You can either download and build PLUMED inside
+the LAMMPS plumed library folder or use a previously installed PLUMED
+library and point LAMMPS to its location. You also have to choose the
+linkage mode: "static" (default), "shared" or "runtime".  For a
+discussion of PLUMED linkage modes, please see above.
 
 Download/compilation/configuration of the plumed library can be done
 from the src folder through the following make args:
@@ -799,11 +810,11 @@ make lib-plumed args="-p /usr/local -m shared"  # use existing PLUMED installati
 :pre
 
 Note that 2 symbolic (soft) links, "includelink" and "liblink" are
-created in lib/plumed to point into the location of the PLUMED build to
-use and also a new file lib/plumed/Makefile.lammps is created with
-settings suitable for LAMMPS to compile and link PLUMED in the desired
-linkage mode. After this step is completed, you can install the
-USER-PLUMED package and compile LAMMPS in the usual manner:
+created in lib/plumed that point to the location of the PLUMED build to
+use. A new file lib/plumed/Makefile.lammps is also created with settings
+suitable for LAMMPS to compile and link PLUMED using the desired linkage
+mode. After this step is completed, you can install the USER-PLUMED
+package and compile LAMMPS in the usual manner:
 
 make yes-user-plumed
 make machine :pre

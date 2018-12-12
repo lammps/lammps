@@ -68,7 +68,7 @@ void DeleteAtoms::command(int narg, char **arg)
 
   if (allflag) {
     int igroup = group->find("all");
-    if ((igroup >= 0) && 
+    if ((igroup >= 0) &&
         modify->check_rigid_group_overlap(group->bitmask[igroup]))
       error->warning(FLERR,"Attempting to delete atoms in rigid bodies");
   } else {

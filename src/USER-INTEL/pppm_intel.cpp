@@ -586,7 +586,7 @@ void PPPMIntel::fieldforce_ik(IntelBuffers<flt_t,acc_t> *buffers)
     if (force->newton_pair) zl += atom->nghost;
     memset(f, 0, zl * sizeof(FORCE_T));
   }
-  
+
   #if defined(_OPENMP)
   #pragma omp parallel default(none) \
     shared(nlocal, nthr) if(!_use_lrt)
@@ -737,7 +737,7 @@ void PPPMIntel::fieldforce_ad(IntelBuffers<flt_t,acc_t> *buffers)
     if (force->newton_pair) zl += atom->nghost;
     memset(f, 0, zl * sizeof(FORCE_T));
   }
-  
+
   #if defined(_OPENMP)
   #pragma omp parallel default(none) \
     shared(nlocal, nthr) if(!_use_lrt)

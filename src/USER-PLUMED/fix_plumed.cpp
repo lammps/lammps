@@ -224,7 +224,8 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
   int ipe = modify->find_compute(id_pe);
   c_pe = modify->compute[ipe];
 
-// Define compute to calculate pressure tensor
+  // Define compute to calculate pressure tensor
+
   id_press = new char[9];
   id_press = (char *) "plmd_press";
   newarg = new char*[5];
@@ -268,6 +269,8 @@ FixPlumed::~FixPlumed()
   delete p;
   modify->delete_compute(id_pe);
   modify->delete_compute(id_press);
+  delete[] id_pe;
+  delete[] id_press;
   delete[] masses;
   delete[] charges;
   delete[] gatindex;
@@ -528,7 +531,8 @@ int FixPlumed::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"pe") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
-    modify->delete_compute(id_pe); delete [] id_pe;
+    modify->delete_compute(id_pe);
+    delete[] id_pe;
     int n = strlen(arg[1]) + 1;
     id_pe = new char[n];
     strcpy(id_pe,arg[1]);
@@ -546,7 +550,8 @@ int FixPlumed::modify_param(int narg, char **arg)
 
   } else if (strcmp(arg[0],"press") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
-    modify->delete_compute(id_press); delete [] id_press;
+    modify->delete_compute(id_press);
+    delete[] id_press;
     int n = strlen(arg[1]) + 1;
     id_press = new char[n];
     strcpy(id_press,arg[1]);

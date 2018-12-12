@@ -32,11 +32,10 @@ enhance the sampling of phase space.
 
 The documentation included here only describes the fix plumed command
 itself.  This command is LAMMPS specific, whereas most of the
-functionality implemented in PLUMED, however, will work with a range of
-MD codes, and when PLUMED is used as a stand alone code for analysis.
-The full "documentation for PLUMED"_plumeddocs is available online and
-included in the PLUMED source code.  The PLUMED library development is
-hosted at
+functionality implemented in PLUMED will work with a range of MD codes,
+and when PLUMED is used as a stand alone code for analysis.  The full
+"documentation for PLUMED"_plumeddocs is available online and included
+in the PLUMED source code.  The PLUMED library development is hosted at
 "https://github.com/plumed/plumed2"_https://github.com/plumed/plumed2
 A detailed discussion of the code can be found in "(PLUMED)"_#PLUMED.
 
@@ -54,11 +53,12 @@ have been set.
 
 The {group-ID} entry is ignored. LAMMPS will always pass all the atoms
 to PLUMED and there can only be one instance of the plumed fix at a
-time. The plumed fix communicates the minimum amount of information
-required and the PLUMED supports multiple, completely independent
-collective variables, multiple independent biases and multiple
-independent forms of analysis.  There is thus really no restriction in
-functionality by only allowing only one plumed fix in the LAMMPS input.
+time. The way the plumed fix is implemented ensures that the minimum
+amount of information required is communicated.  Furthermore, PLUMED
+supports multiple, completely independent collective variables, multiple
+independent biases and multiple independent forms of analysis.  There is
+thus really no restriction in functionality by only allowing only one
+plumed fix in the LAMMPS input.
 
 The {plumedfile} keyword allows the user to specify the name of the
 PLUMED input file.  Instructions as to what should be included in a

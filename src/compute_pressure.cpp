@@ -261,60 +261,6 @@ void ComputePressure::compute_vector()
   }
 }
 
-/* ----------------------------------------------------------------------
-   compute pressure tensor
-   assume KE tensor has already been computed
-------------------------------------------------------------------------- */
-
-void ComputePressure::compute_vector_ke_scalar()
-{
-  invoked_vector = update->ntimestep;
-  if (update->vflag_global != invoked_vector)
-    error->all(FLERR,"Virial was not tallied on needed timestep");
-
-  if (force->kspace && kspace_virial && force->kspace->scalar_pressure_flag)
-    error->all(FLERR,"Must use 'kspace_modify pressure/scalar no' for "
-               "tensor components with kspace_style msm");
-
-  // invoke temperature if it hasn't been already
-
-  double t;
-  if (keflag) {
-    if (temperature->invoked_scalar != update->ntimestep)
-      t = temperature->compute_scalar();
-    else t = temperature->scalar;
-  }
-
-  if (dimension == 3) {
-    inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
-    virial_compute(6,3);
-    if (keflag) {
-      double kescalar = temperature->dof * boltz * t / 3.0;
-      for (int i = 0; i < 3; i++)
-        vector[i] = (kescalar + virial[i]) * inv_volume * nktv2p;
-      for (int i = 3; i < 6; i++)
-        vector[i] = virial[i] * inv_volume * nktv2p;
-    } else
-      for (int i = 0; i < 6; i++)
-        vector[i] = virial[i] * inv_volume * nktv2p;
-  } else {
-    inv_volume = 1.0 / (domain->xprd * domain->yprd);
-    virial_compute(4,2);
-    if (keflag) {
-      double kescalar = temperature->dof * boltz * t / 2.0;
-      vector[0] = (kescalar + virial[0]) * inv_volume * nktv2p;
-      vector[1] = (kescalar + virial[1]) * inv_volume * nktv2p;
-      vector[3] = virial[3] * inv_volume * nktv2p;
-      vector[2] = vector[4] = vector[5] = 0.0;
-    } else {
-      vector[0] = virial[0] * inv_volume * nktv2p;
-      vector[1] = virial[1] * inv_volume * nktv2p;
-      vector[3] = virial[3] * inv_volume * nktv2p;
-      vector[2] = vector[4] = vector[5] = 0.0;
-    }
-  }
-}
-
 /* ---------------------------------------------------------------------- */
 
 void ComputePressure::virial_compute(int n, int ndiag)

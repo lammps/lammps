@@ -29,7 +29,6 @@
 #include "modify.h"
 #include "fix_deform.h"
 #include "compute.h"
-#include "compute_pressure.h"
 #include "kspace.h"
 #include "update.h"
 #include "respa.h"
@@ -778,7 +777,7 @@ void FixNH::setup(int /*vflag*/)
 
   if (pstat_flag) {
     if (pstyle == ISO) pressure->compute_scalar();
-    else ((ComputePressure *)pressure)->compute_vector_ke_scalar();
+    else pressure->compute_vector();
     couple();
     pressure->addstep(update->ntimestep+1);
   }
@@ -851,7 +850,7 @@ void FixNH::initial_integrate(int /*vflag*/)
       pressure->compute_scalar();
     } else {
       temperature->compute_vector();
-      ((ComputePressure *)pressure)->compute_vector_ke_scalar();
+      pressure->compute_vector();
     }
     couple();
     pressure->addstep(update->ntimestep+1);
@@ -913,7 +912,7 @@ void FixNH::final_integrate()
     if (pstyle == ISO) pressure->compute_scalar();
     else {
       temperature->compute_vector();
-      ((ComputePressure *)pressure)->compute_vector_ke_scalar();
+      pressure->compute_vector();
     }
     couple();
     pressure->addstep(update->ntimestep+1);
@@ -965,7 +964,7 @@ void FixNH::initial_integrate_respa(int /*vflag*/, int ilevel, int /*iloop*/)
         pressure->compute_scalar();
       } else {
         temperature->compute_vector();
-        ((ComputePressure *)pressure)->compute_vector_ke_scalar();
+        pressure->compute_vector();
       }
       couple();
       pressure->addstep(update->ntimestep+1);

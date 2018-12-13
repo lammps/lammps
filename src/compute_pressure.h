@@ -31,7 +31,6 @@ class ComputePressure : public Compute {
   virtual void init();
   virtual double compute_scalar();
   virtual void compute_vector();
-  void compute_vector_ke_scalar();
   void reset_extra_compute_fix(const char *);
 
  protected:

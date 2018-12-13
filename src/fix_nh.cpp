@@ -29,6 +29,7 @@
 #include "modify.h"
 #include "fix_deform.h"
 #include "compute.h"
+#include "compute_pressure.h"
 #include "kspace.h"
 #include "update.h"
 #include "respa.h"
@@ -777,7 +778,7 @@ void FixNH::setup(int /*vflag*/)
 
   if (pstat_flag) {
     if (pstyle == ISO) pressure->compute_scalar();
-    else pressure->compute_vector();
+    else ((ComputePressure *)pressure)->compute_vector_ke_scalar();
     couple();
     pressure->addstep(update->ntimestep+1);
   }
@@ -850,7 +851,7 @@ void FixNH::initial_integrate(int /*vflag*/)
       pressure->compute_scalar();
     } else {
       temperature->compute_vector();
-      pressure->compute_vector();
+      ((ComputePressure *)pressure)->compute_vector_ke_scalar();
     }
     couple();
     pressure->addstep(update->ntimestep+1);
@@ -904,9 +905,16 @@ void FixNH::final_integrate()
   t_current = temperature->compute_scalar();
   tdof = temperature->dof;
 
+  // need to recompute pressure to account for change in KE
+  // t_current is up-to-date, but compute_temperature is not
+  // compute appropriately coupled elements of mvv_current
+
   if (pstat_flag) {
     if (pstyle == ISO) pressure->compute_scalar();
-    else pressure->compute_vector();
+    else {
+      temperature->compute_vector();
+      ((ComputePressure *)pressure)->compute_vector_ke_scalar();
+    }
     couple();
     pressure->addstep(update->ntimestep+1);
   }
@@ -957,7 +965,7 @@ void FixNH::initial_integrate_respa(int /*vflag*/, int ilevel, int /*iloop*/)
         pressure->compute_scalar();
       } else {
         temperature->compute_vector();
-        pressure->compute_vector();
+        ((ComputePressure *)pressure)->compute_vector_ke_scalar();
       }
       couple();
       pressure->addstep(update->ntimestep+1);
@@ -1871,7 +1879,8 @@ void FixNH::nhc_press_integrate()
       }
   }
 
-  lkt_press = pdof * kt;
+  if (pstyle == ISO) lkt_press = kt;
+  else lkt_press = pdof * kt;
   etap_dotdot[0] = (kecurrent - lkt_press)/etap_mass[0];
 
   double ncfac = 1.0/nc_pchain;

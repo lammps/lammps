@@ -31,7 +31,7 @@ class Special : protected Pointers {
 
   // data used by rendezvous callback methods
 
-  int ncount;
+  int nrvous;
   tagint *atomIDs;
   int *procowner;
 
@@ -44,6 +44,8 @@ class Special : protected Pointers {
     tagint atomID,partnerID;
   };
 
+  // private methods
+  
   void atom_owners();
   void onetwo_build_newton();
   void onetwo_build_newton_off();
@@ -60,8 +62,7 @@ class Special : protected Pointers {
   // callback functions for rendezvous communication
 
   static int rendezvous_ids(int, char *, int &, int *&, char *&, void *);
-  static int rendezvous_1234(int, char *, int &, int *&, char *&, void *);
-  static int rendezvous_trim(int, char *, int &, int *&, char *&, void *);
+  static int rendezvous_pairs(int, char *, int &, int *&, char *&, void *);
 };
 
 }

@@ -516,13 +516,13 @@ void PairBuck6dCoulGaussLong::read_restart_settings(FILE *fp)
 
 void PairBuck6dCoulGaussLong::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->ntypes; i++)
-    if (!atom->chartypesflag) fprintf(fp,"%d %g %g %g %g %g\n",i,
+  for (int i = 1; i <= atom->ntypes; i++) {
+    fprintf(fp,"%d %g %g %g %g %g",i,
             buck6d1[i][i],buck6d2[i][i],buck6d3[i][i],
             buck6d4[i][i],alpha_ij[i][i]);
-    else fprintf(fp,"%d %g %g %g %g %g # %s\n",i,
-            buck6d1[i][i],buck6d2[i][i],buck6d3[i][i],
-            buck6d4[i][i],alpha_ij[i][i],atom->char_atomtype[i-1]);
+    if (!atom->chartypesflag) fprintf(fp,"\n");
+    else fprintf(fp," # %s\n",atom->char_atomtype[i]);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -532,14 +532,13 @@ void PairBuck6dCoulGaussLong::write_data(FILE *fp)
 void PairBuck6dCoulGaussLong::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    for (int j = i; j <= atom->ntypes; j++)
-      if (!atom->chartypesflag) fprintf(fp,"%d %d %g %g %g %g %g %g\n",i,j,
+    for (int j = i; j <= atom->ntypes; j++) {
+      fprintf(fp,"%d %d %g %g %g %g %g %g",i,j,
               buck6d1[i][j],buck6d2[i][j],buck6d3[i][j],
               buck6d4[i][j],alpha_ij[i][j],cut_lj[i][j]);
-      else fprintf(fp,"%d %d %g %g %g %g %g %g # %s %s\n",i,j,
-              buck6d1[i][j],buck6d2[i][j],buck6d3[i][j],
-              buck6d4[i][j],alpha_ij[i][j],cut_lj[i][j],
-                   atom->char_atomtype[i-1],atom->char_atomtype[j-1]);
+      if (!atom->chartypesflag) fprintf(fp,"\n");
+      else fprintf(fp," # %s %s\n",atom->char_atomtype[i],atom->char_atomtype[j]);
+    }
 }
 /* ---------------------------------------------------------------------- */
 

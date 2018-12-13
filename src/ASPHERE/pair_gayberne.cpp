@@ -530,15 +530,14 @@ void PairGayBerne::read_restart_settings(FILE *fp)
 
 void PairGayBerne::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->ntypes; i++)
-    if (!atom->chartypesflag) fprintf(fp,"%d %g %g %g %g %g %g %g %g\n",i,
+  for (int i = 1; i <= atom->ntypes; i++) {
+    fprintf(fp,"%d %g %g %g %g %g %g %g %g",i,
             epsilon[i][i],sigma[i][i],
             pow(well[i][0],-mu),pow(well[i][1],-mu),pow(well[i][2],-mu),
             pow(well[i][0],-mu),pow(well[i][1],-mu),pow(well[i][2],-mu));
-    else fprintf(fp,"%d %g %g %g %g %g %g %g %g # %s\n",i,
-            epsilon[i][i],sigma[i][i],
-            pow(well[i][0],-mu),pow(well[i][1],-mu),pow(well[i][2],-mu),
-            pow(well[i][0],-mu),pow(well[i][1],-mu),pow(well[i][2],-mu),atom->char_atomtype[i-1]);
+    if (!atom->chartypesflag) fprintf(fp,"\n");
+    else fprintf(fp," # %s\n",atom->char_atomtype[i]);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -548,18 +547,15 @@ void PairGayBerne::write_data(FILE *fp)
 void PairGayBerne::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    for (int j = i; j <= atom->ntypes; j++)
-      if (!atom->chartypesflag) fprintf(fp,"%d %d %g %g %g %g %g %g %g %g %g\n",i,j,
+    for (int j = i; j <= atom->ntypes; j++) {
+      fprintf(fp,"%d %d %g %g %g %g %g %g %g %g %g",i,j,
               epsilon[i][i],sigma[i][i],
               pow(well[i][0],-mu),pow(well[i][1],-mu),pow(well[i][2],-mu),
               pow(well[j][0],-mu),pow(well[j][1],-mu),pow(well[j][2],-mu),
               cut[i][j]);
-      else fprintf(fp,"%d %d %g %g %g %g %g %g %g %g %g # %s %s\n",i,j,
-              epsilon[i][i],sigma[i][i],
-              pow(well[i][0],-mu),pow(well[i][1],-mu),pow(well[i][2],-mu),
-              pow(well[j][0],-mu),pow(well[j][1],-mu),pow(well[j][2],-mu),
-              cut[i][j],
-                   atom->char_atomtype[i-1],atom->char_atomtype[j-1]);
+      if (!atom->chartypesflag) fprintf(fp,"\n");
+      else fprintf(fp," # %s %s\n",atom->char_atomtype[i],atom->char_atomtype[j]);
+    }
 }
 
 /* ----------------------------------------------------------------------

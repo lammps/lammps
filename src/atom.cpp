@@ -849,23 +849,23 @@ void Atom::deallocate_chartype_arrays()
   delete [] ichartype;
   delete [] jchartype;
 
-  for (i = 0; i < ntypes; i++)
+  for (i = 0; i < ntypes+1; i++)
     delete [] char_atomtype[i];
   memory->sfree(char_atomtype);
 
-  for (i = 0; i < nbondtypes; i++)
+  for (i = 0; i < nbondtypes+1; i++)
     delete [] char_bondtype[i];
   memory->sfree(char_bondtype);
 
-  for (i = 0; i < nangletypes; i++)
+  for (i = 0; i < nangletypes+1; i++)
     delete [] char_angletype[i];
   memory->sfree(char_angletype);
 
-  for (i = 0; i < ndihedraltypes; i++)
+  for (i = 0; i < ndihedraltypes+1; i++)
     delete [] char_dihedraltype[i];
   memory->sfree(char_dihedraltype);
 
-  for (i = 0; i < nimpropertypes; i++)
+  for (i = 0; i < nimpropertypes+1; i++)
     delete [] char_impropertype[i];
   memory->sfree(char_impropertype);
 }
@@ -1508,36 +1508,36 @@ void Atom::allocate_chartype_arrays()
   // allow for arbitrarily-long character-based types
   // initialize value to indicate no char type provided
   char_atomtype = (char **) memory->srealloc(char_atomtype,
-                 ntypes*sizeof(char *),"atom:char_atomtype");
-  for (int i = 0; i < ntypes; i++) {
+                           (ntypes+1)*sizeof(char *),"atom:char_atomtype");
+  for (int i = 0; i < ntypes+1; i++) {
     char_atomtype[i] = new char[MAXLINE];
     strcpy(char_atomtype[i],(char *) "nullptr");
   }
 
   char_bondtype = (char **) memory->srealloc(char_bondtype,
-                            nbondtypes*sizeof(char *),"atom:char_bondtype");
-  for (int i = 0; i < nbondtypes; i++) {
+                           (nbondtypes+1)*sizeof(char *),"atom:char_bondtype");
+  for (int i = 0; i < nbondtypes+1; i++) {
     char_bondtype[i] = new char[MAXLINE];
     strcpy(char_bondtype[i],"nullptr");
   }
 
   char_angletype = (char **) memory->srealloc(char_angletype,
-                            nangletypes*sizeof(char *),"atom:char_angletype");
-  for (int i = 0; i < nangletypes; i++) {
+                            (nangletypes+1)*sizeof(char *),"atom:char_angletype");
+  for (int i = 0; i < nangletypes+1; i++) {
     char_angletype[i] = new char[MAXLINE];
     strcpy(char_angletype[i],"nullptr");
   }
 
   char_dihedraltype = (char **) memory->srealloc(char_dihedraltype,
-                            ndihedraltypes*sizeof(char *),"atom:char_dihedraltype");
-  for (int i = 0; i < ndihedraltypes; i++) {
+                               (ndihedraltypes+1)*sizeof(char *),"atom:char_dihedraltype");
+  for (int i = 0; i < ndihedraltypes+1; i++) {
     char_dihedraltype[i] = new char[MAXLINE];
     strcpy(char_dihedraltype[i],"nullptr");
   }
 
   char_impropertype = (char **) memory->srealloc(char_impropertype,
-                            nimpropertypes*sizeof(char *),"atom:char_impropertype");
-  for (int i = 0; i < nimpropertypes; i++) {
+                               (nimpropertypes+1)*sizeof(char *),"atom:char_impropertype");
+  for (int i = 0; i < nimpropertypes+1; i++) {
     char_impropertype[i] = new char[MAXLINE];
     strcpy(char_impropertype[i],"nullptr");
   }

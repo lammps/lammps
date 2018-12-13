@@ -1116,7 +1116,7 @@ void PairOxdnaStk::read_restart_settings(FILE *fp)
 
 void PairOxdnaStk::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->ntypes; i++)
+  for (int i = 1; i <= atom->ntypes; i++) {
     fprintf(fp,"%d\
          %g %g %g %g %g %g\
          %g %g %g %g %g\
@@ -1124,8 +1124,7 @@ void PairOxdnaStk::write_data(FILE *fp)
          %g %g %g %g %g\
          %g %g %g %g %g\
          %g %g %g %g\
-         %g %g %g %g\
-         \n",i,
+         %g %g %g %g",i,
         epsilon_st[i][i],a_st[i][i],cut_st_0[i][i],cut_st_c[i][i],cut_st_lo[i][i],cut_st_hi[i][i],
         cut_st_lc[i][i],cut_st_hc[i][i],b_st_lo[i][i],b_st_hi[i][i],shift_st[i][i],
         a_st4[i][i],theta_st4_0[i][i],dtheta_st4_ast[i][i],b_st4[i][i],dtheta_st4_c[i][i],
@@ -1133,6 +1132,9 @@ void PairOxdnaStk::write_data(FILE *fp)
         a_st6[i][i],theta_st6_0[i][i],dtheta_st6_ast[i][i],b_st6[i][i],dtheta_st6_c[i][i],
         a_st1[i][i],cosphi_st1_ast[i][i],b_st1[i][i], cosphi_st1_c[i][i],
         a_st2[i][i],cosphi_st2_ast[i][i],b_st2[i][i], cosphi_st2_c[i][i]);
+    if (!atom->chartypesflag) fprintf(fp,"\n");
+    else fprintf(fp," # %s\n",atom->char_atomtype[i]);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1142,7 +1144,7 @@ void PairOxdnaStk::write_data(FILE *fp)
 void PairOxdnaStk::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    for (int j = i; j <= atom->ntypes; j++)
+    for (int j = i; j <= atom->ntypes; j++) {
       fprintf(fp,"%d %d\
          %g %g %g %g %g %g\
          %g %g %g %g %g\
@@ -1150,8 +1152,7 @@ void PairOxdnaStk::write_data_all(FILE *fp)
          %g %g %g %g %g\
          %g %g %g %g %g\
          %g %g %g %g\
-         %g %g %g %g\
-         \n",i,j,
+         %g %g %g %g",i,j,
         epsilon_st[i][j],a_st[i][j],cut_st_0[i][j],cut_st_c[i][j],cut_st_lo[i][j],cut_st_hi[i][j],
         cut_st_lc[i][j],cut_st_hc[i][j],b_st_lo[i][j],b_st_hi[i][j],shift_st[i][j],
         a_st4[i][j],theta_st4_0[i][j],dtheta_st4_ast[i][j],b_st4[i][j],dtheta_st4_c[i][j],
@@ -1159,6 +1160,9 @@ void PairOxdnaStk::write_data_all(FILE *fp)
         a_st6[i][j],theta_st6_0[i][j],dtheta_st6_ast[i][j],b_st6[i][j],dtheta_st6_c[i][j],
         a_st1[i][j],cosphi_st1_ast[i][j],b_st1[i][j],cosphi_st1_c[i][j],
         a_st2[i][j],cosphi_st2_ast[i][j],b_st2[i][j],cosphi_st2_c[i][j]);
+      if (!atom->chartypesflag) fprintf(fp,"\n");
+      else fprintf(fp," # %s %s\n",atom->char_atomtype[i],atom->char_atomtype[j]);
+    }
 }
 
 /* ---------------------------------------------------------------------- */

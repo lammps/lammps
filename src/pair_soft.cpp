@@ -290,9 +290,11 @@ void PairSoft::read_restart_settings(FILE *fp)
 
 void PairSoft::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->ntypes; i++)
-    if (!atom->chartypesflag) fprintf(fp,"%d %g\n",i,prefactor[i][i]);
-    else fprintf(fp,"%d %g # %s\n",i,prefactor[i][i],atom->char_atomtype[i-1]);
+  for (int i = 1; i <= atom->ntypes; i++) {
+    fprintf(fp,"%d %g",i,prefactor[i][i]);
+    if (!atom->chartypesflag) fprintf(fp,"\n");
+    else fprintf(fp," # %s\n",atom->char_atomtype[i]);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -302,10 +304,11 @@ void PairSoft::write_data(FILE *fp)
 void PairSoft::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    for (int j = i; j <= atom->ntypes; j++)
-      if (!atom->chartypesflag) fprintf(fp,"%d %d %g %g\n",i,j,prefactor[i][j],cut[i][j]);
-      else fprintf(fp,"%d %d %g %g # %s %s\n",i,j,prefactor[i][j],cut[i][j],
-                   atom->char_atomtype[i-1],atom->char_atomtype[j-1]);
+    for (int j = i; j <= atom->ntypes; j++) {
+      fprintf(fp,"%d %d %g %g",i,j,prefactor[i][j],cut[i][j]);
+      if (!atom->chartypesflag) fprintf(fp,"\n");
+      else fprintf(fp," # %s %s\n",atom->char_atomtype[i],atom->char_atomtype[j]);
+    }
 }
 
 /* ---------------------------------------------------------------------- */

@@ -1739,7 +1739,7 @@ void ReadData::paircoeffs()
     parse_coeffs(buf,NULL,1,2,toffset);
     if (narg == 0) error->all(FLERR,"Unexpected end of PairCoeffs section");
     force->pair->coeff(narg,arg);
-    if (atom->chartypesflag) strcpy(atom->char_atomtype[i],atom->ichartype);
+    if (atom->chartypesflag) strcpy(atom->char_atomtype[i+1],atom->ichartype);
     buf = next + 1;
   }
   delete [] original;
@@ -1767,8 +1767,8 @@ void ReadData::pairIJcoeffs()
       if (narg == 0) error->all(FLERR,"Unexpected end of PairCoeffs section");
       force->pair->coeff(narg,arg);
       if (atom->chartypesflag) {
-        strcpy(atom->char_atomtype[i],atom->ichartype);
-        strcpy(atom->char_atomtype[j],atom->jchartype);
+        strcpy(atom->char_atomtype[i+1],atom->ichartype);
+        strcpy(atom->char_atomtype[j+1],atom->jchartype);
       }
       buf = next + 1;
     }

@@ -960,11 +960,12 @@ void PairLJCharmmfswCoulLong::read_restart_settings(FILE *fp)
 
 void PairLJCharmmfswCoulLong::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->ntypes; i++)
-    if (!atom->chartypesflag) fprintf(fp,"%d %g %g %g %g\n",
+  for (int i = 1; i <= atom->ntypes; i++) {
+    fprintf(fp,"%d %g %g %g %g",
             i,epsilon[i][i],sigma[i][i],eps14[i][i],sigma14[i][i]);
-    else fprintf(fp,"%d %g %g %g %g # %s\n",
-            i,epsilon[i][i],sigma[i][i],eps14[i][i],sigma14[i][i],atom->char_atomtype[i-1]);
+    if (!atom->chartypesflag) fprintf(fp,"\n");
+    else fprintf(fp," # %s\n",atom->char_atomtype[i]);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -974,12 +975,12 @@ void PairLJCharmmfswCoulLong::write_data(FILE *fp)
 void PairLJCharmmfswCoulLong::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    for (int j = i; j <= atom->ntypes; j++)
-      if (!atom->chartypesflag) fprintf(fp,"%d %d %g %g %g %g\n",i,j,
+    for (int j = i; j <= atom->ntypes; j++) {
+      fprintf(fp,"%d %d %g %g %g %g",i,j,
               epsilon[i][j],sigma[i][j],eps14[i][j],sigma14[i][j]);
-      else fprintf(fp,"%d %d %g %g %g %g # %s %s\n",i,j,
-              epsilon[i][j],sigma[i][j],eps14[i][j],sigma14[i][j],
-                   atom->char_atomtype[i-1],atom->char_atomtype[j-1]);
+      if (!atom->chartypesflag) fprintf(fp,"\n");
+      else fprintf(fp," # %s %s\n",atom->char_atomtype[i],atom->char_atomtype[j]);
+    }
 }
 
 /* ---------------------------------------------------------------------- */

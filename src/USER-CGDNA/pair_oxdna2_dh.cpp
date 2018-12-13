@@ -512,13 +512,15 @@ void PairOxdna2Dh::read_restart_settings(FILE *fp)
 
 void PairOxdna2Dh::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->ntypes; i++)
+  for (int i = 1; i <= atom->ntypes; i++) {
     fprintf(fp,"%d\
          %g %g\
-         %g %g %g\
-         \n",i,
+         %g %g %g",i,
         kappa_dh[i][i],qeff_dh_pf[i][i],
         b_dh[i][i],cut_dh_ast[i][i],cut_dh_c[i][i]);
+    if (!atom->chartypesflag) fprintf(fp,"\n");
+    else fprintf(fp," # %s\n",atom->char_atomtype[i]);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -528,13 +530,15 @@ void PairOxdna2Dh::write_data(FILE *fp)
 void PairOxdna2Dh::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    for (int j = i; j <= atom->ntypes; j++)
+    for (int j = i; j <= atom->ntypes; j++) {
       fprintf(fp,"%d %d\
          %g %g\
-         %g %g %g\
-         \n",i,j,
+         %g %g %g",i,j,
         kappa_dh[i][j],qeff_dh_pf[i][j],
         b_dh[i][j],cut_dh_ast[i][j],cut_dh_c[i][j]);
+      if (!atom->chartypesflag) fprintf(fp,"\n");
+      else fprintf(fp," # %s %s\n",atom->char_atomtype[i],atom->char_atomtype[j]);
+    }
 }
 
 /* ---------------------------------------------------------------------- */

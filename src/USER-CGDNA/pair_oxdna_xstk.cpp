@@ -1084,7 +1084,7 @@ void PairOxdnaXstk::read_restart_settings(FILE *fp)
 
 void PairOxdnaXstk::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->ntypes; i++)
+  for (int i = 1; i <= atom->ntypes; i++) {
     fprintf(fp,"%d\
          %g %g %g %g %g\
          %g %g %g %g\
@@ -1093,8 +1093,7 @@ void PairOxdnaXstk::write_data(FILE *fp)
          %g %g %g %g %g\
          %g %g %g %g %g\
          %g %g %g %g %g\
-         %g %g %g %g %g\
-         \n",i,
+         %g %g %g %g %g",i,
         k_xst[i][i],cut_xst_0[i][i],cut_xst_c[i][i],cut_xst_lo[i][i],cut_xst_hi[i][i],
         cut_xst_lc[i][i],cut_xst_hc[i][i],b_xst_lo[i][i],b_xst_hi[i][i],
         a_xst1[i][i],theta_xst1_0[i][i],dtheta_xst1_ast[i][i],b_xst1[i][i],dtheta_xst1_c[i][i],
@@ -1103,6 +1102,9 @@ void PairOxdnaXstk::write_data(FILE *fp)
         a_xst4[i][i],theta_xst4_0[i][i],dtheta_xst4_ast[i][i],b_xst4[i][i],dtheta_xst4_c[i][i],
         a_xst7[i][i],theta_xst7_0[i][i],dtheta_xst7_ast[i][i],b_xst7[i][i],dtheta_xst7_c[i][i],
         a_xst8[i][i],theta_xst8_0[i][i],dtheta_xst8_ast[i][i],b_xst8[i][i],dtheta_xst8_c[i][i]);
+    if (!atom->chartypesflag) fprintf(fp,"\n");
+    else fprintf(fp," # %s\n",atom->char_atomtype[i]);
+  }
 
 }
 
@@ -1113,7 +1115,7 @@ void PairOxdnaXstk::write_data(FILE *fp)
 void PairOxdnaXstk::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    for (int j = i; j <= atom->ntypes; j++)
+    for (int j = i; j <= atom->ntypes; j++) {
       fprintf(fp,"%d %d\
          %g %g %g %g %g\
          %g %g %g %g\
@@ -1122,8 +1124,7 @@ void PairOxdnaXstk::write_data_all(FILE *fp)
          %g %g %g %g %g\
          %g %g %g %g %g\
          %g %g %g %g %g\
-         %g %g %g %g %g\
-         \n",i,j,
+         %g %g %g %g %g",i,j,
         k_xst[i][j],cut_xst_0[i][j],cut_xst_c[i][j],cut_xst_lo[i][j],cut_xst_hi[i][j],
         cut_xst_lc[i][j],cut_xst_hc[i][j],b_xst_lo[i][j],b_xst_hi[i][j],
         a_xst1[i][j],theta_xst1_0[i][j],dtheta_xst1_ast[i][j],b_xst1[i][j],dtheta_xst1_c[i][j],
@@ -1132,6 +1133,9 @@ void PairOxdnaXstk::write_data_all(FILE *fp)
         a_xst4[i][j],theta_xst4_0[i][j],dtheta_xst4_ast[i][j],b_xst4[i][j],dtheta_xst4_c[i][j],
         a_xst7[i][j],theta_xst7_0[i][j],dtheta_xst7_ast[i][j],b_xst7[i][j],dtheta_xst7_c[i][j],
         a_xst8[i][j],theta_xst8_0[i][j],dtheta_xst8_ast[i][j],b_xst8[i][j],dtheta_xst8_c[i][j]);
+      if (!atom->chartypesflag) fprintf(fp,"\n");
+      else fprintf(fp," # %s %s\n",atom->char_atomtype[i],atom->char_atomtype[j]);
+    }
 
 }
 

@@ -1119,7 +1119,7 @@ void PairOxdnaCoaxstk::read_restart_settings(FILE *fp)
 
 void PairOxdnaCoaxstk::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->ntypes; i++)
+  for (int i = 1; i <= atom->ntypes; i++) {
     fprintf(fp,"%d\
          %g %g %g %g %g\
          %g %g %g %g\
@@ -1128,8 +1128,7 @@ void PairOxdnaCoaxstk::write_data(FILE *fp)
          %g %g %g %g %g\
          %g %g %g %g %g\
          %g %g %g %g\
-         %g %g %g %g\
-         \n",i,
+         %g %g %g %g",i,
         k_cxst[i][i],cut_cxst_0[i][i],cut_cxst_c[i][i],cut_cxst_lo[i][i],cut_cxst_hi[i][i],
         cut_cxst_lc[i][i],cut_cxst_hc[i][i],b_cxst_lo[i][i],b_cxst_hi[i][i],
         a_cxst1[i][i],theta_cxst1_0[i][i],dtheta_cxst1_ast[i][i],b_cxst1[i][i],dtheta_cxst1_c[i][i],
@@ -1138,6 +1137,9 @@ void PairOxdnaCoaxstk::write_data(FILE *fp)
         a_cxst6[i][i],theta_cxst6_0[i][i],dtheta_cxst6_ast[i][i],b_cxst6[i][i],dtheta_cxst6_c[i][i],
         a_cxst3p[i][i],cosphi_cxst3p_ast[i][i],b_cxst3p[i][i], cosphi_cxst3p_c[i][i],
         a_cxst4p[i][i],cosphi_cxst4p_ast[i][i],b_cxst4p[i][i], cosphi_cxst4p_c[i][i]);
+    if (!atom->chartypesflag) fprintf(fp,"\n");
+    else fprintf(fp," # %s\n",atom->char_atomtype[i]);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1147,7 +1149,7 @@ void PairOxdnaCoaxstk::write_data(FILE *fp)
 void PairOxdnaCoaxstk::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    for (int j = i; j <= atom->ntypes; j++)
+    for (int j = i; j <= atom->ntypes; j++) {
       fprintf(fp,"%d %d\
          %g %g %g %g %g\
          %g %g %g %g\
@@ -1156,8 +1158,7 @@ void PairOxdnaCoaxstk::write_data_all(FILE *fp)
          %g %g %g %g %g\
          %g %g %g %g %g\
          %g %g %g %g\
-         %g %g %g %g\
-         \n",i,j,
+         %g %g %g %g",i,j,
         k_cxst[i][j],cut_cxst_0[i][j],cut_cxst_c[i][j],cut_cxst_lo[i][j],cut_cxst_hi[i][j],
         cut_cxst_lc[i][j],cut_cxst_hc[i][j],b_cxst_lo[i][j],b_cxst_hi[i][j],
         a_cxst1[i][j],theta_cxst1_0[i][j],dtheta_cxst1_ast[i][j],b_cxst1[i][j],dtheta_cxst1_c[i][j],
@@ -1166,6 +1167,9 @@ void PairOxdnaCoaxstk::write_data_all(FILE *fp)
         a_cxst6[i][j],theta_cxst6_0[i][j],dtheta_cxst6_ast[i][j],b_cxst6[i][j],dtheta_cxst6_c[i][j],
         a_cxst3p[i][j],cosphi_cxst3p_ast[i][j],b_cxst3p[i][j],cosphi_cxst3p_c[i][j],
         a_cxst4p[i][j],cosphi_cxst4p_ast[i][j],b_cxst4p[i][j],cosphi_cxst4p_c[i][j]);
+      if (!atom->chartypesflag) fprintf(fp,"\n");
+      else fprintf(fp," # %s %s\n",atom->char_atomtype[i],atom->char_atomtype[j]);
+    }
 
 }
 

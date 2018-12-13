@@ -362,9 +362,11 @@ void PairBuck::read_restart_settings(FILE *fp)
 
 void PairBuck::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->ntypes; i++)
-    if (!atom->chartypesflag) fprintf(fp,"%d %g %g %g\n",i,a[i][i],rho[i][i],c[i][i]);
-    else fprintf(fp,"%d %g %g %g # %s\n",i,a[i][i],rho[i][i],c[i][i],atom->char_atomtype[i-1]);
+  for (int i = 1; i <= atom->ntypes; i++) {
+    fprintf(fp,"%d %g %g %g",i,a[i][i],rho[i][i],c[i][i]);
+    if (!atom->chartypesflag) fprintf(fp,"\n");
+    else fprintf(fp," # %s\n",atom->char_atomtype[i]);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -374,12 +376,12 @@ void PairBuck::write_data(FILE *fp)
 void PairBuck::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    for (int j = i; j <= atom->ntypes; j++)
-      if (!atom->chartypesflag) fprintf(fp,"%d %d %g %g %g %g\n",i,j,
+    for (int j = i; j <= atom->ntypes; j++) {
+      fprintf(fp,"%d %d %g %g %g %g",i,j,
               a[i][j],rho[i][j],c[i][j],cut[i][j]);
-      else fprintf(fp,"%d %d %g %g %g %g # %s %s\n",i,j,
-              a[i][j],rho[i][j],c[i][j],cut[i][j],
-                   atom->char_atomtype[i-1],atom->char_atomtype[j-1]);
+      if (!atom->chartypesflag) fprintf(fp,"\n");
+      else fprintf(fp," # %s %s\n",atom->char_atomtype[i],atom->char_atomtype[j]);
+    }
 }
 
 /* ---------------------------------------------------------------------- */

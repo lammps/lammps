@@ -341,11 +341,12 @@ void PairMorseSoft::read_restart(FILE *fp)
 
 void PairMorseSoft::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->ntypes; i++)
-    if (!atom->chartypesflag) fprintf(fp,"%d %g %g %g %g\n",i,d0[i][i],alpha[i][i],r0[i][i],
+  for (int i = 1; i <= atom->ntypes; i++) {
+    fprintf(fp,"%d %g %g %g %g",i,d0[i][i],alpha[i][i],r0[i][i],
             lambda[i][i]);
-    else fprintf(fp,"%d %g %g %g %g # %s\n",i,d0[i][i],alpha[i][i],r0[i][i],
-            lambda[i][i],atom->char_atomtype[i-1]);
+    if (!atom->chartypesflag) fprintf(fp,"\n");
+    else fprintf(fp," # %s\n",atom->char_atomtype[i]);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -355,12 +356,12 @@ void PairMorseSoft::write_data(FILE *fp)
 void PairMorseSoft::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    for (int j = i; j <= atom->ntypes; j++)
-      if (!atom->chartypesflag) fprintf(fp,"%d %g %g %g %g\n",i,d0[i][j],alpha[i][j],r0[i][j],
+    for (int j = i; j <= atom->ntypes; j++) {
+      fprintf(fp,"%d %g %g %g %g",i,d0[i][j],alpha[i][j],r0[i][j],
               lambda[i][j]);
-      else fprintf(fp,"%d %g %g %g %g # %s %s\n",i,d0[i][j],alpha[i][j],r0[i][j],
-              lambda[i][j],
-                   atom->char_atomtype[i-1],atom->char_atomtype[j-1]);
+      if (!atom->chartypesflag) fprintf(fp,"\n");
+      else fprintf(fp," # %s %s\n",atom->char_atomtype[i],atom->char_atomtype[j]);
+    }
 }
 
 /* ---------------------------------------------------------------------- */

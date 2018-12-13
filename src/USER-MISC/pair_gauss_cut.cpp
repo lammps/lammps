@@ -357,9 +357,11 @@ void PairGaussCut::read_restart_settings(FILE *fp)
 
 void PairGaussCut::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->ntypes; i++)
-    if (!atom->chartypesflag) fprintf(fp,"%d %g %g %g\n",i,hgauss[i][i],rmh[i][i],sigmah[i][i]);
-    else fprintf(fp,"%d %g %g %g # %s\n",i,hgauss[i][i],rmh[i][i],sigmah[i][i],atom->char_atomtype[i-1]);
+  for (int i = 1; i <= atom->ntypes; i++) {
+    fprintf(fp,"%d %g %g %g",i,hgauss[i][i],rmh[i][i],sigmah[i][i]);
+    if (!atom->chartypesflag) fprintf(fp,"\n");
+    else fprintf(fp," # %s\n",atom->char_atomtype[i]);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -369,10 +371,11 @@ void PairGaussCut::write_data(FILE *fp)
 void PairGaussCut::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    for (int j = i; j <= atom->ntypes; j++)
-      if (!atom->chartypesflag) fprintf(fp,"%d %d %g %g %g %g\n",i,j,hgauss[i][j],rmh[i][j],sigmah[i][j],cut[i][j]);
-      else fprintf(fp,"%d %d %g %g %g %g # %s %s\n",i,j,hgauss[i][j],rmh[i][j],sigmah[i][j],cut[i][j],
-                   atom->char_atomtype[i-1],atom->char_atomtype[j-1]);
+    for (int j = i; j <= atom->ntypes; j++) {
+      fprintf(fp,"%d %d %g %g %g %g",i,j,hgauss[i][j],rmh[i][j],sigmah[i][j],cut[i][j]);
+      if (!atom->chartypesflag) fprintf(fp,"\n");
+      else fprintf(fp," # %s %s\n",atom->char_atomtype[i],atom->char_atomtype[j]);
+    }
 }
 
 /* ---------------------------------------------------------------------- */

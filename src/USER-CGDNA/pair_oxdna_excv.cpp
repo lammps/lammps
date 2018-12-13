@@ -792,15 +792,17 @@ void PairOxdnaExcv::read_restart_settings(FILE *fp)
 
 void PairOxdnaExcv::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->ntypes; i++)
+  for (int i = 1; i <= atom->ntypes; i++) {
     fprintf(fp,"%d\
          %g %g %g %g %g\
          %g %g %g %g %g\
-         %g %g %g %g %g\
-         \n",i,
+         %g %g %g %g %g",i,
         epsilon_ss[i][i],sigma_ss[i][i],cut_ss_ast[i][i],b_ss[i][i],cut_ss_c[i][i],
         epsilon_sb[i][i],sigma_sb[i][i],cut_sb_ast[i][i],b_sb[i][i],cut_sb_c[i][i],
         epsilon_bb[i][i],sigma_bb[i][i],cut_bb_ast[i][i],b_bb[i][i],cut_bb_c[i][i]);
+    if (!atom->chartypesflag) fprintf(fp,"\n");
+    else fprintf(fp," # %s\n",atom->char_atomtype[i]);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -810,15 +812,17 @@ void PairOxdnaExcv::write_data(FILE *fp)
 void PairOxdnaExcv::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    for (int j = i; j <= atom->ntypes; j++)
+    for (int j = i; j <= atom->ntypes; j++) {
       fprintf(fp,"%d %d\
          %g %g %g %g %g\
          %g %g %g %g %g\
-         %g %g %g %g %g\
-         \n",i,j,
+         %g %g %g %g %g",i,j,
         epsilon_ss[i][j],sigma_ss[i][j],cut_ss_ast[i][j],b_ss[i][j],cut_ss_c[i][j],
         epsilon_sb[i][j],sigma_sb[i][j],cut_sb_ast[i][j],b_sb[i][j],cut_sb_c[i][j],
         epsilon_bb[i][j],sigma_bb[i][j],cut_bb_ast[i][j],b_bb[i][j],cut_bb_c[i][j]);
+      if (!atom->chartypesflag) fprintf(fp,"\n");
+      else fprintf(fp," # %s %s\n",atom->char_atomtype[i],atom->char_atomtype[j]);
+    }
 }
 
 /* ---------------------------------------------------------------------- */

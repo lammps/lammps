@@ -414,9 +414,9 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
 
   if (comm->me == 0) {
     if (screen)
-      fprintf(screen,"  create_bodies CPU = %g secs\n",time2-time1);
+      fprintf(screen,"  create bodies CPU = %g secs\n",time2-time1);
     if (logfile)
-      fprintf(logfile,"  create_bodies CPU = %g secs\n",time2-time1);
+      fprintf(logfile,"  create bodies CPU = %g secs\n",time2-time1);
   }
 
   // set nlocal_body and allocate bodies I own
@@ -1748,6 +1748,8 @@ int FixRigidSmall::rendezvous_body(int n, char *inbuf,
   memory->destroy(idclose);
   memory->destroy(iclose);
   memory->destroy(rsqclose);
+
+  // flag = 2: new outbuf
 
   rflag = 2;
   return nout;

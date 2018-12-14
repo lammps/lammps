@@ -415,7 +415,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
       }
     }
 
-    if (universe->me == 0) {
+    if ((universe->me == 0) && !helpflag) {
       if (screen) fprintf(screen,"LAMMPS (%s)\n",universe->version);
       if (logfile) fprintf(logfile,"LAMMPS (%s)\n",universe->version);
     }
@@ -489,7 +489,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
 
     // screen and logfile messages for universe and world
 
-    if (universe->me == 0) {
+    if ((universe->me == 0) && (!helpflag)) {
       if (universe->uscreen) {
         fprintf(universe->uscreen,"LAMMPS (%s)\n",universe->version);
         fprintf(universe->uscreen,"Running on %d partitions of processors\n",
@@ -502,7 +502,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
       }
     }
 
-    if (me == 0) {
+    if ((me == 0) && (!helpflag)) {
       if (screen) {
         fprintf(screen,"LAMMPS (%s)\n",universe->version);
         fprintf(screen,"Processor partition = %d\n",universe->iworld);
@@ -587,16 +587,15 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     memory->destroy(plast);
   }
 
-  // allocate top-level classes
-
-  create();
-  post_create();
-
   // if helpflag set, print help and quit with "success" status
+  // otherwise allocate top level classes.
 
   if (helpflag) {
     if (universe->me == 0 && screen) help();
     error->done(0);
+  } else {
+    create();
+    post_create();
   }
 
   // if either restart conversion option was used, invoke 2 commands and quit

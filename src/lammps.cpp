@@ -1081,6 +1081,14 @@ void LAMMPS::print_config(FILE *fp)
   const char *pkg;
   int ncword, ncline = 0;
 
+  char *infobuf = Info::get_os_info();
+  fprintf(fp,"OS: %s\n\n",infobuf);
+  delete[] infobuf;
+
+  infobuf = Info::get_compiler_info();
+  fprintf(fp,"Compiler: %s\n\n",infobuf);
+  delete[] infobuf;
+
   fputs("Active compile time flags:\n\n",fp);
   if (Info::has_gzip_support()) fputs("-DLAMMPS_GZIP\n",fp);
   if (Info::has_png_support()) fputs("-DLAMMPS_PNG\n",fp);

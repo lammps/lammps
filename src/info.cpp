@@ -262,10 +262,19 @@ void Info::command(int narg, char **arg)
   if (flags & CONFIG) {
     fprintf(out,"\nLAMMPS version: %s / %s\n\n",
             universe->version, universe->num_ver);
+
+    char *infobuf = get_os_info();
+    fprintf(out,"\nOS information: %s\n",infobuf);
+    delete[] infobuf;
+
     fprintf(out,"sizeof(smallint): %3d-bit\n",(int)sizeof(smallint)*8);
     fprintf(out,"sizeof(imageint): %3d-bit\n",(int)sizeof(imageint)*8);
     fprintf(out,"sizeof(tagint):   %3d-bit\n",(int)sizeof(tagint)*8);
     fprintf(out,"sizeof(bigint):   %3d-bit\n",(int)sizeof(bigint)*8);
+
+    infobuf = get_compiler_info();
+    fprintf(out,"\nCompiler: %s\n",infobuf);
+    delete[] infobuf;
 
     fputs("\nActive compile time flags:\n\n",out);
     if (has_gzip_support()) fputs("-DLAMMPS_GZIP\n",out);
@@ -273,6 +282,14 @@ void Info::command(int narg, char **arg)
     if (has_jpeg_support()) fputs("-DLAMMPS_JPEG\n",out);
     if (has_ffmpeg_support()) fputs("-DLAMMPS_FFMPEG\n",out);
     if (has_exceptions()) fputs("-DLAMMPS_EXCEPTIONS\n",out);
+
+#if defined(LAMMPS_BIGBIG)
+    fputs("-DLAMMPS_BIGBIG\n",out);
+#elif defined(LAMMPS_SMALLBIG)
+    fputs("-DLAMMPS_SMALLBIG\n",out);
+#else // defined(LAMMPS_SMALLSMALL)
+    fputs("-DLAMMPS_SMALLSMALL\n",out);
+#endif
 
     const char *pkg;
     int ncword, ncline = 0;
@@ -288,44 +305,6 @@ void Info::command(int narg, char **arg)
       ncline += ncword + 1;
     }
     fputs("\n",out);
-
-#if defined(_WIN32)
-    DWORD fullversion,majorv,minorv,buildv=0;
-
-    fullversion = GetVersion();
-    majorv = (DWORD) (LOBYTE(LOWORD(fullversion)));
-    minorv = (DWORD) (HIBYTE(LOWORD(fullversion)));
-    if (fullversion < 0x80000000)
-      buildv = (DWORD) (HIWORD(fullversion));
-
-    SYSTEM_INFO si;
-    GetSystemInfo(&si);
-
-    const char *machine;
-    switch (si.wProcessorArchitecture) {
-    case PROCESSOR_ARCHITECTURE_AMD64:
-      machine = (const char *) "x86_64";
-      break;
-    case PROCESSOR_ARCHITECTURE_ARM:
-      machine = (const char *) "arm";
-      break;
-    case PROCESSOR_ARCHITECTURE_IA64:
-      machine = (const char *) "ia64";
-      break;
-    case PROCESSOR_ARCHITECTURE_INTEL:
-      machine = (const char *) "i386";
-      break;
-    default:
-      machine = (const char *) "(unknown)";
-    }
-    fprintf(out,"\nOS information: Windows %d.%d (%d) on %s\n",
-            majorv,minorv,buildv,machine);
-#else
-    struct utsname ut;
-    uname(&ut);
-    fprintf(out,"\nOS information: %s %s on %s\n",
-            ut.sysname, ut.release, ut.machine);
-#endif
   }
 
   if (flags & MEMORY) {
@@ -1101,6 +1080,68 @@ bool Info::has_package(const char * package_name) {
     }
   }
   return false;
+}
+
+/* ---------------------------------------------------------------------- */
+#define _INFOBUF_SIZE 256
+
+char *Info::get_os_info()
+{
+  char *buf = new char[_INFOBUF_SIZE];
+
+#if defined(_WIN32)
+  DWORD fullversion,majorv,minorv,buildv=0;
+
+  fullversion = GetVersion();
+  majorv = (DWORD) (LOBYTE(LOWORD(fullversion)));
+  minorv = (DWORD) (HIBYTE(LOWORD(fullversion)));
+  if (fullversion < 0x80000000)
+    buildv = (DWORD) (HIWORD(fullversion));
+
+  SYSTEM_INFO si;
+  GetSystemInfo(&si);
+
+  const char *machine;
+  switch (si.wProcessorArchitecture) {
+  case PROCESSOR_ARCHITECTURE_AMD64:
+    machine = (const char *) "x86_64";
+    break;
+  case PROCESSOR_ARCHITECTURE_ARM:
+    machine = (const char *) "arm";
+    break;
+  case PROCESSOR_ARCHITECTURE_IA64:
+    machine = (const char *) "ia64";
+    break;
+  case PROCESSOR_ARCHITECTURE_INTEL:
+    machine = (const char *) "i386";
+    break;
+  default:
+    machine = (const char *) "(unknown)";
+  }
+  snprintf(buf,_INFOBUF_SIZE,"Windows %d.%d (%d) on %s",
+           majorv,minorv,buildv,machine);
+#else
+  struct utsname ut;
+  uname(&ut);
+  snprintf(buf,_INFOBUF_SIZE,"%s %s on %s",
+           ut.sysname, ut.release, ut.machine);
+#endif
+  return buf;
+}
+
+char *Info::get_compiler_info()
+{
+  char *buf = new char[_INFOBUF_SIZE];
+#if __clang__
+  snprintf(buf,_INFOBUF_SIZE,"Clang C++ %s", __VERSION__);
+#elif __INTEL_COMPILER
+  snprintf(buf,_INFOBUF_SIZE,"Intel C++ %s", __VERSION__);
+#elif __GNUC__
+  snprintf(buf,_INFOBUF_SIZE,"GNU C++ %s",   __VERSION__);
+#else
+  snprintf(buf,_INFOBUF_SIZE,"(Unknown)");
+#endif
+  return buf;
 }
 
 /* ---------------------------------------------------------------------- */

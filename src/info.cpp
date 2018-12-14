@@ -264,7 +264,7 @@ void Info::command(int narg, char **arg)
             universe->version, universe->num_ver);
 
     char *infobuf = get_os_info();
-    fprintf(out,"\nOS information: %s\n",infobuf);
+    fprintf(out,"OS information: %s\n\n",infobuf);
     delete[] infobuf;
 
     fprintf(out,"sizeof(smallint): %3d-bit\n",(int)sizeof(smallint)*8);

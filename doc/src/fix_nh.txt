@@ -626,10 +626,10 @@ over time or the atom count becomes very small.
 
 [Default:]
 
-The keyword defaults are tchain = 3, pchain = 3, mtk = yes, tloop =
+The keyword defaults are tchain = 3, pchain = 3, mtk = yes, tloop = 1,
 ploop = 1, nreset = 0, drag = 0.0, dilate = all, couple = none,
-scaleyz = scalexz = scalexy = yes if periodic in 2nd dimension and
-not coupled to barostat, otherwise no.
+flip = yes, scaleyz = scalexz = scalexy = yes if periodic in 2nd
+dimension and not coupled to barostat, otherwise no.
 
 :line
 

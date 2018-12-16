@@ -107,6 +107,7 @@ fi
 
 if (test $1 = "RIGID") then
   depend USER-OMP
+  depend USER-SDPD
 fi
 
 if (test $1 = "SNAP") then

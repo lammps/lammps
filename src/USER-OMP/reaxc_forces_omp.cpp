@@ -79,7 +79,7 @@ void Init_Force_FunctionsOMP( control_params *control )
 void Compute_Bonded_ForcesOMP( reax_system *system, control_params *control,
                             simulation_data *data, storage *workspace,
                             reax_list **lists, output_controls *out_control,
-                            MPI_Comm comm )
+                            MPI_Comm /* comm */)
 {
   int i;
 
@@ -105,7 +105,7 @@ void Compute_Bonded_ForcesOMP( reax_system *system, control_params *control,
 void Compute_NonBonded_ForcesOMP( reax_system *system, control_params *control,
                                simulation_data *data, storage *workspace,
                                reax_list **lists, output_controls *out_control,
-                               MPI_Comm comm )
+                               MPI_Comm /* comm */)
 {
   /* van der Waals and Coulomb interactions */
 #ifdef OMP_TIMING
@@ -133,7 +133,7 @@ void Compute_NonBonded_ForcesOMP( reax_system *system, control_params *control,
    Saves enormous time & space! */
 void Compute_Total_ForceOMP( reax_system *system, control_params *control,
                           simulation_data *data, storage *workspace,
-                          reax_list **lists, mpi_datatypes *mpi_data )
+                          reax_list **lists, mpi_datatypes * /* mpi_data */)
 {
 #ifdef OMP_TIMING
   double startTimeBase,endTimeBase;
@@ -262,7 +262,7 @@ void Compute_Total_ForceOMP( reax_system *system, control_params *control,
 
 /* ---------------------------------------------------------------------- */
 
-void Validate_ListsOMP( reax_system *system, storage *workspace, reax_list **lists,
+void Validate_ListsOMP( reax_system *system, storage * /*workspace */, reax_list **lists,
                      int step, int n, int N, int numH, MPI_Comm comm )
 {
   int i, comp, Hindex;
@@ -329,7 +329,7 @@ void Validate_ListsOMP( reax_system *system, storage *workspace, reax_list **lis
 
 void Init_Forces_noQEq_OMP( reax_system *system, control_params *control,
                             simulation_data *data, storage *workspace,
-                            reax_list **lists, output_controls *out_control,
+                            reax_list **lists, output_controls * /* out_control */,
                             MPI_Comm comm ) {
 #ifdef OMP_TIMING
   double startTimeBase, endTimeBase;

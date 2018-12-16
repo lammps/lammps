@@ -235,7 +235,7 @@ E: Kspace style requires atom attribute q
 
 The atom style defined does not have these attributes.
 
-E: Cannot use nonperiodic boundaries with PPPM
+E: Cannot use non-periodic boundaries with PPPM
 
 For kspace style pppm, all 3 dimensions must have periodic boundaries
 unless you use the kspace_modify command to define a 2d slab with a

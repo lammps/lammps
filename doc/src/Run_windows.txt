@@ -41,7 +41,7 @@ path for the default location of this MPI package. After the
 installation of the MPICH2 software, it needs to be integrated into
 the system.  For this you need to start a Command Prompt in
 {Administrator Mode} (right click on the icon and select it). Change
-into the MPICH2 installation directory, then into the subdirectory
+into the MPICH2 installation directory, then into the sub-directory
 [bin] and execute [smpd.exe -install]. Exit the command window.
 
 Get a new, regular command prompt by going to Start->Run... ,

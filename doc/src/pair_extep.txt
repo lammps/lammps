@@ -35,6 +35,6 @@ interactions as described in "(Los2017)"_#Los2017.
 :line
 
 :link(Los2017)
-[(Los2017)] J. H. Los et al. "Extended Tersoff potential for boron nitride: 
-Energetics and elastic properties of pristine and defective h-BN", 
+[(Los2017)] J. H. Los et al. "Extended Tersoff potential for boron nitride:
+Energetics and elastic properties of pristine and defective h-BN",
 Phys. Rev. B 96 (184108), 2017.

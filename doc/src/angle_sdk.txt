@@ -28,7 +28,7 @@ The {sdk} angle style is a combination of the harmonic angle potential,
 where theta0 is the equilibrium value of the angle and K a prefactor,
 with the {repulsive} part of the non-bonded {lj/sdk} pair style
 between the atoms 1 and 3.  This angle potential is intended for
-coarse grained MD simulations with the CMM parametrization using the
+coarse grained MD simulations with the CMM parameterization using the
 "pair_style lj/sdk"_pair_sdk.html.  Relative to the pair_style
 {lj/sdk}, however, the energy is shifted by {epsilon}, to avoid sudden
 jumps.  Note that the usual 1/2 factor is included in K.

@@ -187,6 +187,12 @@ public:
     return std::sqrt(this->norm2());
   }
 
+  /// Sum of the components of this colvarvalue (if more than one dimension)
+  cvm::real sum() const;
+
+  /// Return a colvarvalue object of the same type and all components set to 1
+  colvarvalue ones() const;
+
   /// Square distance between this \link colvarvalue \endlink and another
   cvm::real dist2(colvarvalue const &x2) const;
 
@@ -272,17 +278,21 @@ public:
   /// Get a single colvarvalue out of elements of the vector
   colvarvalue const get_elem(int const i_begin, int const i_end, Type const vt) const;
 
+  /// Get a single colvarvalue out of elements of the vector
+  colvarvalue const get_elem(int const icv) const;
+
+  /// Set elements of the vector from a single colvarvalue (uses the rank of x
+  /// to compute the length)
+  void set_elem(int const icv, colvarvalue const &x);
+
   /// Set elements of the vector from a single colvarvalue
   void set_elem(int const i_begin, int const i_end, colvarvalue const &x);
 
   /// Make each element a random number in N(0,1)
   void set_random();
 
-  /// Get a single colvarvalue out of elements of the vector
-  colvarvalue const get_elem(int const icv) const;
-
-  /// Set elements of the vector from a single colvarvalue
-  void set_elem(int const icv, colvarvalue const &x);
+  /// Make each element equal to the given argument
+  void set_ones(cvm::real assigned_value = 1.0);
 
   /// Get a scalar number out of an element of the vector
   cvm::real operator [] (int const i) const;
@@ -676,6 +686,29 @@ inline cvm::real colvarvalue::norm2() const
       return vector1d_value.norm2();
     }
     break;
+  case colvarvalue::type_notset:
+  default:
+    return 0.0;
+  }
+}
+
+
+inline cvm::real colvarvalue::sum() const
+{
+  switch (value_type) {
+  case colvarvalue::type_scalar:
+    return (this->real_value);
+  case colvarvalue::type_3vector:
+  case colvarvalue::type_unit3vector:
+  case colvarvalue::type_unit3vectorderiv:
+    return (this->rvector_value).x + (this->rvector_value).y +
+      (this->rvector_value).z;
+  case colvarvalue::type_quaternion:
+  case colvarvalue::type_quaternionderiv:
+    return (this->quaternion_value).q0 + (this->quaternion_value).q1 +
+      (this->quaternion_value).q2 + (this->quaternion_value).q3;
+  case colvarvalue::type_vector:
+    return (this->vector1d_value).sum();
   case colvarvalue::type_notset:
   default:
     return 0.0;

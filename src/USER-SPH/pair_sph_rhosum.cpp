@@ -228,7 +228,7 @@ void PairSPHRhoSum::allocate() {
 void PairSPHRhoSum::settings(int narg, char **arg) {
   if (narg != 1)
     error->all(FLERR,
-        "Illegal number of setting arguments for pair_style sph/rhosum");
+        "Illegal number of arguments for pair_style sph/rhosum");
   nstep = force->inumeric(FLERR,arg[0]);
 }
 

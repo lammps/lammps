@@ -132,7 +132,7 @@ x1 y1 z1
 xN yN zN :pre
 
 where M = 6 + 3*N, and N is the number of sub-particles in the body
-particle.  
+particle.
 
 The integer line has a single value N.  The floating point line(s)
 list 6 moments of inertia followed by the coordinates of the N
@@ -315,7 +315,7 @@ x1 y1 z1
 ...
 xN yN zN
 0 1
-1 2 
+1 2
 2 3
 ...
 0 1 2 -1

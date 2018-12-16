@@ -15,7 +15,7 @@ compute ID group-ID pair pstyle \[nstyle\] \[evalue\]  :pre
 ID, group-ID are documented in "compute"_compute.html command :ulb,l
 pair = style name of this compute command :l
 pstyle = style name of a pair style that calculates additional values :l
-nsub = {n}-instance of a substyle, if a pair style is used multiple times in a hybrid style :l
+nsub = {n}-instance of a sub-style, if a pair style is used multiple times in a hybrid style :l
 {evalue} = {epair} or {evdwl} or {ecoul} or blank (optional) :l
 :ule
 

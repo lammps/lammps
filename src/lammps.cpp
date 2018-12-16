@@ -65,13 +65,15 @@ static void print_style(FILE *fp, const char *str, int &pos);
    input is allocated at end after MPI info is setup
 ------------------------------------------------------------------------- */
 
-LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
+LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
+  memory(NULL), error(NULL), universe(NULL), input(NULL), atom(NULL),
+  update(NULL), neighbor(NULL), comm(NULL), domain(NULL), force(NULL),
+  modify(NULL), group(NULL), output(NULL), timer(NULL), kokkos(NULL),
+  atomKK(NULL), memoryKK(NULL), python(NULL), citeme(NULL)
 {
   memory = new Memory(this);
   error = new Error(this);
   universe = new Universe(this,communicator);
-  output = NULL;
-  python = NULL;
 
   clientserver = 0;
   cslib = NULL;

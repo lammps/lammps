@@ -46,8 +46,6 @@ using namespace LAMMPS_NS;
 
 PairKolmogorovCrespiFull::PairKolmogorovCrespiFull(LAMMPS *lmp) : Pair(lmp)
 {
-  writedata = 1;
-
   // initialize element to parameter maps
   nelements = 0;
   elements = NULL;

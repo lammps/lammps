@@ -41,7 +41,7 @@ field.
 NOTE: The newer {charmmfsw} style was released in March 2017.  We
 recommend it be used instead of the older {charmm} style when running
 a simulation with the CHARMM force field, either with long-range
-Coulombics or a Coulomb cutoff, via the "pair_style
+Coulombics or a Coulombic cutoff, via the "pair_style
 lj/charmmfsw/coul/long"_pair_charmm.html and "pair_style
 lj/charmmfsw/coul/charmmfsh"_pair_charmm.html commands respectively.
 Otherwise the older {charmm} style is fine to use.  See the discussion
@@ -87,7 +87,7 @@ special_bonds 1-4 scaling factor to 0.0 (which is the
 default). Otherwise 1-4 non-bonded interactions in dihedrals will be
 computed twice.
 
-For simulations using the CHARMM force field with a Coulomb cutoff,
+For simulations using the CHARMM force field with a Coulombic cutoff,
 the difference between the {charmm} and {charmmfsw} styles is in the
 computation of the 1-4 non-bond interactions, though only if the
 distance between the two atoms is within the switching region of the

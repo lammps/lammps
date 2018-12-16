@@ -97,7 +97,7 @@ E: Cannot change box tilt factors for orthogonal box
 
 Cannot use tilt factors unless the simulation box is non-orthogonal.
 
-E: Cannot change box z boundary to nonperiodic for a 2d simulation
+E: Cannot change box z boundary to non-periodic for a 2d simulation
 
 Self-explanatory.
 

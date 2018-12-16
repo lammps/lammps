@@ -52,7 +52,7 @@ hydrogen-bonding interaction {oxdna/hbond} (see also documentation of
 "(Snodin)"_#oxdna2 bond style the analogous pair styles and an
 additional Debye-Hueckel pair style {oxdna2/dh} have to be defined.
 The coefficients in the above example have to be kept fixed and cannot
-be changed without reparametrizing the entire model.
+be changed without reparameterizing the entire model.
 
 Example input and data files for DNA duplexes can be found in
 examples/USER/cgdna/examples/oxDNA/ and /oxDNA2/.  A simple python

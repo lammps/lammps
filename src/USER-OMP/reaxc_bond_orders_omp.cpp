@@ -220,7 +220,8 @@ void Add_dBond_to_ForcesOMP( reax_system *system, int i, int pj,
 
 /* ---------------------------------------------------------------------- */
 
-void Add_dBond_to_Forces_NPTOMP( reax_system *system, int i, int pj, simulation_data *data,
+void Add_dBond_to_Forces_NPTOMP( reax_system *system, int i, int pj,
+                                 simulation_data * /* data */,
                                  storage *workspace, reax_list **lists ) {
   reax_list *bonds = (*lists) + BONDS;
   bond_data *nbr_j, *nbr_k;
@@ -343,9 +344,9 @@ void Add_dBond_to_Forces_NPTOMP( reax_system *system, int i, int pj, simulation_
 
 /* ---------------------------------------------------------------------- */
 
-int BOp_OMP( storage *workspace, reax_list *bonds, double bo_cut,
+int BOp_OMP( storage * /* workspace */, reax_list *bonds, double bo_cut,
              int i, int btop_i, far_neighbor_data *nbr_pj,
-             single_body_parameters *sbp_i, single_body_parameters *sbp_j,
+             single_body_parameters * /* sbp_i */, single_body_parameters * /* sbp_j */,
              two_body_parameters *twbp,
              int btop_j, double C12, double C34, double C56, double BO, double BO_s, double BO_pi, double BO_pi2) {
   int j;
@@ -419,8 +420,8 @@ int BOp_OMP( storage *workspace, reax_list *bonds, double bo_cut,
 
 /* ---------------------------------------------------------------------- */
 
-void BOOMP( reax_system *system, control_params *control, simulation_data *data,
-            storage *workspace, reax_list **lists, output_controls *out_control )
+void BOOMP( reax_system *system, control_params * /* control */, simulation_data * /* data */,
+            storage *workspace, reax_list **lists, output_controls * /* out_control */)
 {
 #ifdef OMP_TIMING
   double endTimeBase, startTimeBase;

@@ -134,7 +134,7 @@ run             100
 
 clear
 read_restart	restart.equil
-
+newton on on
 pair_style      tersoff/mod/c
 pair_coeff 	* * Si.tersoff.modc Si Si Si Si Si Si Si Si
 

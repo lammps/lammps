@@ -1,0 +1,167 @@
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
+# LJ test of msst shock dynamics
+
+# Energy in eV, time in ps, distance in angstroms.
+units		metal
+boundary        p p p
+
+atom_style	atomic
+timestep        1e-03
+
+lattice		fcc 5.3589
+Lattice spacing in x,y,z = 5.3589 5.3589 5.3589
+
+## Specify the box as a given number of unit cells.
+region		box1 block 0 18 0 18 0 18 units lattice
+
+## Instantiate the system.
+create_box	1 box1
+Created orthogonal box = (0 0 0) to (96.4602 96.4602 96.4602)
+  1 by 1 by 1 MPI processor grid
+create_atoms    1 region box1
+Created 23328 atoms
+  Time spent = 0.00902033 secs
+
+mass		1 40.00
+
+# Initial velocities correspond to around 300K.
+velocity   all create 600.0 9999
+
+pair_style	lj/cut  10
+pair_coeff	1 1 0.01032 3.405
+
+timestep 2e-3
+
+# Equilibrate the system
+fix	      2 all nve
+thermo		10
+
+run		100
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12
+  ghost atom cutoff = 12
+  binsize = 6, bins = 17 17 17
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 17.86 | 17.86 | 17.86 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0          600   -1943.9014            0   -134.75058    992.06384 
+      10    586.44651   -1917.3971            0   -149.11346      1306.17 
+      20    539.94305    -1778.786            0   -150.72199    2492.7873 
+      30    449.49509   -1506.4706            0   -151.12989    4667.6248 
+      40    331.86049   -1151.7344            0   -151.09164     7379.764 
+      50    258.27083    -929.8024            0   -151.05092     9103.558 
+      60     256.1869   -923.58742            0    -151.1195    9252.9158 
+      70    281.76061   -1000.7367            0    -151.1576    8739.2518 
+      80    300.28534    -1056.589            0   -151.15321    8324.8812 
+      90    305.83368   -1073.3097            0   -151.14426    8175.2478 
+     100    304.06857   -1067.9843            0   -151.14112     8191.234 
+Loop time of 3.49498 on 1 procs for 100 steps with 23328 atoms
+
+Performance: 4.944 ns/day, 4.854 hours/ns, 28.612 timesteps/s
+99.9% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 3.354      | 3.354      | 3.354      |   0.0 | 95.97
+Neigh   | 0.074059   | 0.074059   | 0.074059   |   0.0 |  2.12
+Comm    | 0.020118   | 0.020118   | 0.020118   |   0.0 |  0.58
+Output  | 0.0010924  | 0.0010924  | 0.0010924  |   0.0 |  0.03
+Modify  | 0.034063   | 0.034063   | 0.034063   |   0.0 |  0.97
+Other   |            | 0.01168    |            |       |  0.33
+
+Nlocal:    23328 ave 23328 max 23328 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    22235 ave 22235 max 22235 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    2.18372e+06 ave 2.18372e+06 max 2.18372e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 2183715
+Ave neighs/atom = 93.6092
+Neighbor list builds = 1
+Dangerous builds = 0
+unfix		 2
+
+# MSST fix
+fix		msst all msst z 28.0 q 200 mu 3e2 tscale 0.01
+MSST parameters:
+  Shock in z direction
+  Cell mass-like parameter qmass (units of mass^2/length^4) =  2.00000e+02
+  Shock velocity =  2.80000e+01
+  Artificial viscosity (units of mass/length/time) =  3.00000e+02
+  Initial pressure calculated on first step
+  Initial volume calculated on first step
+  Initial energy calculated on first step
+
+# this is needed to make etotal equal the MSST conserved quantity
+fix_modify msst energy yes
+
+variable dhug equal f_msst[1]
+variable dray equal f_msst[2]
+variable lgr_vel equal f_msst[3]
+variable lgr_pos equal f_msst[4]
+
+thermo_style custom step temp ke pe lx ly lz pxx pyy pzz etotal 	     v_dhug v_dray v_lgr_vel v_lgr_pos f_msst
+
+#dump		id all atom 50 dump.msst
+
+#dump		2 all image 25 image.*.jpg type type #		axes yes 0.8 0.02 view 60 -30
+#dump_modify	2 pad 3
+
+#dump		3 all movie 25 movie.mpg type type #		axes yes 0.8 0.02 view 60 -30
+#dump_modify	3 pad 3
+
+run	        100
+Fix MSST v0 =  8.97521e+05
+Fix MSST p0 =  8.10679e+03
+Fix MSST e0 = to be -1.51141e+02
+Fix MSST initial strain rate of -3.20112e-02 established by reducing temperature by factor of  1.00000e-02
+Per MPI rank memory allocation (min/avg/max) = 18.99 | 18.99 | 18.99 Mbytes
+Step Temp KinEng PotEng Lx Ly Lz Pxx Pyy Pzz TotEng v_dhug v_dray v_lgr_vel v_lgr_pos f_msst 
+     100    301.02788    907.67474   -1058.8159      96.4602      96.4602      96.4602    8242.1214    8202.9779    8095.8693   -151.14112    1.5203428   -10.919311            0            0    9.1684318 
+     110    297.71411    897.68288   -1048.8859      96.4602      96.4602    96.399397    8347.6253    8303.7121    8220.7572   -151.20299     1.439058    28.652258  0.017649501  -0.55980494    5.7336721 
+     120    295.64308    891.43821     -1042.72      96.4602      96.4602    96.340496    8431.6742    8379.2441    8331.5304   -151.28174    1.3655893    56.776734  0.034747125    -1.119263    2.3808018 
+     130    296.02228     892.5816   -1043.9407      96.4602      96.4602    96.283468    8456.2492    8412.6368    8392.5853   -151.35912    1.2945465    37.811981   0.05130089   -1.6783851  -0.87840575 
+     140    298.19024    899.11855   -1050.5482      96.4602      96.4602    96.228236    8430.5151    8415.6802    8414.2537   -151.42965    1.2243399    -18.01985  0.067333442   -2.2371818   -4.0330712 
+     150    300.86421    907.18122   -1058.6966      96.4602      96.4602    96.174681    8399.4697    8396.2236    8420.9004   -151.51534    1.1598278     -86.5197  0.082879112   -2.7956634   -7.0824881 
+     160    303.34119    914.64996   -1066.2388      96.4602      96.4602    96.122673    8388.3438    8360.5024     8428.751   -151.58881    1.0977647   -151.64553  0.097975827    -3.353839   -10.033902 
+     170    304.87769    919.28288    -1070.961      96.4602      96.4602    96.072088    8408.8694    8333.4337    8449.5665   -151.67812     1.044322   -201.80899   0.11265931   -3.9117174   -12.897768 
+     180       304.99    919.62151   -1071.3588      96.4602      96.4602    96.022824    8461.5542    8343.1436    8484.9824   -151.73733   0.99203387   -235.51793   0.12695926   -4.4693063   -15.685622 
+     190     305.1148    919.99782   -1071.7807      96.4602      96.4602      95.9748    8498.7562    8371.4217    8514.4473   -151.78288   0.93937416   -273.43964    0.1408996   -5.0266132   -18.403999 
+     200    306.45829     924.0488   -1075.8787      96.4602      96.4602    95.927931    8488.9509    8385.2408    8529.6443   -151.82991   0.88654815   -324.00777   0.15450451    -5.583645   -21.055149 
+Loop time of 5.50267 on 1 procs for 100 steps with 23328 atoms
+
+Performance: 3.140 ns/day, 7.643 hours/ns, 18.173 timesteps/s
+99.9% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 4.7512     | 4.7512     | 4.7512     |   0.0 | 86.34
+Neigh   | 0.14916    | 0.14916    | 0.14916    |   0.0 |  2.71
+Comm    | 0.020737   | 0.020737   | 0.020737   |   0.0 |  0.38
+Output  | 0.010999   | 0.010999   | 0.010999   |   0.0 |  0.20
+Modify  | 0.55965    | 0.55965    | 0.55965    |   0.0 | 10.17
+Other   |            | 0.01089    |            |       |  0.20
+
+Nlocal:    23328 ave 23328 max 23328 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    22205 ave 22205 max 22205 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    2.18349e+06 ave 2.18349e+06 max 2.18349e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 2183494
+Ave neighs/atom = 93.5997
+Neighbor list builds = 2
+Dangerous builds = 0
+Total wall time: 0:00:09

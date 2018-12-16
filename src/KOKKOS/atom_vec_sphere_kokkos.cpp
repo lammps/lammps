@@ -792,7 +792,7 @@ int AtomVecSphereKokkos::pack_comm_self(
   const int &n, const DAT::tdual_int_2d &list, const int &iswap,
   const int nfirst, const int &pbc_flag, const int* const pbc) {
   // Fallback to AtomVecKokkos if radvary == 0
-  if (radvary == 0) 
+  if (radvary == 0)
     return AtomVecKokkos::pack_comm_self(n,list,iswap,nfirst,pbc_flag,pbc);
   if(commKK->forward_comm_on_host) {
     sync(Host,X_MASK|RADIUS_MASK|RMASS_MASK);
@@ -1462,7 +1462,7 @@ struct AtomVecSphereKokkos_PackBorder {
     const int maxsend = (buf.extent(0)*buf.extent(1))/elements;
     _buf = typename ArrayTypes<DeviceType>::t_xfloat_2d_um(buf.data(),maxsend,elements);
   }
-  
+
   KOKKOS_INLINE_FUNCTION
   void operator() (const int& i) const {
     const int j = _list(_iswap,i);

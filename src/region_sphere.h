@@ -40,8 +40,11 @@ class RegSphere : public Region {
  private:
   double xc,yc,zc;
   double radius;
+  int xstyle,xvar;
+  int ystyle,yvar;
+  int zstyle,zvar;
   int rstyle,rvar;
-  char *rstr;
+  char *xstr,*ystr,*zstr,*rstr;
 
   void variable_check();
 };

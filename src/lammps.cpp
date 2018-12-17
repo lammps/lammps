@@ -761,26 +761,27 @@ void LAMMPS::post_create()
   // check that KOKKOS package classes were instantiated
   // check that GPU, INTEL, USER-OMP fixes were compiled with LAMMPS
 
-  if (!suffix_enable) return;
+  if (suffix_enable) {
 
-  if (strcmp(suffix,"gpu") == 0 && !modify->check_package("GPU"))
-    error->all(FLERR,"Using suffix gpu without GPU package installed");
-  if (strcmp(suffix,"intel") == 0 && !modify->check_package("INTEL"))
-    error->all(FLERR,"Using suffix intel without USER-INTEL package installed");
-  if (strcmp(suffix,"kk") == 0 &&
-      (kokkos == NULL || kokkos->kokkos_exists == 0))
-    error->all(FLERR,"Using suffix kk without KOKKOS package enabled");
-  if (strcmp(suffix,"omp") == 0 && !modify->check_package("OMP"))
-    error->all(FLERR,"Using suffix omp without USER-OMP package installed");
+    if (strcmp(suffix,"gpu") == 0 && !modify->check_package("GPU"))
+      error->all(FLERR,"Using suffix gpu without GPU package installed");
+    if (strcmp(suffix,"intel") == 0 && !modify->check_package("INTEL"))
+      error->all(FLERR,"Using suffix intel without USER-INTEL package installed");
+    if (strcmp(suffix,"kk") == 0 &&
+        (kokkos == NULL || kokkos->kokkos_exists == 0))
+      error->all(FLERR,"Using suffix kk without KOKKOS package enabled");
+    if (strcmp(suffix,"omp") == 0 && !modify->check_package("OMP"))
+      error->all(FLERR,"Using suffix omp without USER-OMP package installed");
 
-  if (strcmp(suffix,"gpu") == 0) input->one("package gpu 1");
-  if (strcmp(suffix,"intel") == 0) input->one("package intel 1");
-  if (strcmp(suffix,"omp") == 0) input->one("package omp 0");
+    if (strcmp(suffix,"gpu") == 0) input->one("package gpu 1");
+    if (strcmp(suffix,"intel") == 0) input->one("package intel 1");
+    if (strcmp(suffix,"omp") == 0) input->one("package omp 0");
 
-  if (suffix2) {
-    if (strcmp(suffix2,"gpu") == 0) input->one("package gpu 1");
-    if (strcmp(suffix2,"intel") == 0) input->one("package intel 1");
-    if (strcmp(suffix2,"omp") == 0) input->one("package omp 0");
+    if (suffix2) {
+      if (strcmp(suffix2,"gpu") == 0) input->one("package gpu 1");
+      if (strcmp(suffix2,"intel") == 0) input->one("package intel 1");
+      if (strcmp(suffix2,"omp") == 0) input->one("package omp 0");
+    }
   }
 
   // invoke any command-line package commands

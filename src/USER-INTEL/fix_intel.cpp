@@ -456,7 +456,7 @@ void FixIntel::pair_init_check(const bool cdmessage)
                  " exclusions with Intel");
   }
   #endif
-  
+
   int need_tag = 0;
   if (atom->molecular) need_tag = 1;
 

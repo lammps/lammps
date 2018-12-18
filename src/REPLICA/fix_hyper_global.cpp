@@ -44,7 +44,7 @@ using namespace FixConst;
 FixHyperGlobal::FixHyperGlobal(LAMMPS *lmp, int narg, char **arg) :
   FixHyper(lmp, narg, arg), blist(NULL), xold(NULL), tagold(NULL)
 {
-  if (atom->map_style == 0) 
+  if (atom->map_style == 0)
     error->all(FLERR,"Fix hyper/global command requires atom map");
 
   if (narg != 7) error->all(FLERR,"Illegal fix hyper/global command");
@@ -392,7 +392,7 @@ void FixHyperGlobal::grow_bond()
   maxbond += DELTA;
   if (maxbond < 0 || maxbond > MAXSMALLINT)
     error->one(FLERR,"Fix hyper/local per-processor bond count is too big");
-  blist = (OneBond *) 
+  blist = (OneBond *)
     memory->srealloc(blist,maxbond*sizeof(OneBond),"hyper/local:blist");
 }
 
@@ -429,7 +429,7 @@ double FixHyperGlobal::compute_vector(int i)
   // i = 7 = max bond length during this run
 
   // i = 8 = cummulative hyper time since fix created
-  // i = 9 = cummulative # of event timesteps since fix created 
+  // i = 9 = cummulative # of event timesteps since fix created
   // i = 10 = cummulative # of atoms in events since fix created
 
   if (i == 0) return outvec[1];
@@ -478,7 +478,7 @@ double FixHyperGlobal::query(int i)
 {
   if (i == 1) return compute_vector(8);  // cummulative hyper time
   if (i == 2) return compute_vector(9);  // nevent
-  if (i == 3) return compute_vector(10); // nevent_atom 
+  if (i == 3) return compute_vector(10); // nevent_atom
   if (i == 4) return compute_vector(4);  // ave bonds/atom
   if (i == 5) return compute_vector(6);  // maxdrift
   if (i == 6) return compute_vector(7);  // maxbondlen

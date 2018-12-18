@@ -86,6 +86,9 @@ package"_Build_package.html doc page for more info.
 Do not set "neigh_modify once yes" or else this fix will never be
 called.  Reneighboring is required.
 
+This fix is not compatible with a hybrid pair style, long-range dispersion,
+TIP4P water support, or long-range point dipole support.
+
 [Related commands:]
 
 "kspace_style"_kspace_style.html, "boundary"_boundary.html

@@ -854,7 +854,7 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     //dup_Cdbo    = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_Cdbo);
     //dup_Cdbopi  = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_Cdbopi);
     //dup_Cdbopi2 = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_Cdbopi2);
-  } else { 
+  } else {
     ndup_CdDelta = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_CdDelta);
     //ndup_Cdbo    = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_Cdbo);
     //ndup_Cdbopi  = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_Cdbopi);

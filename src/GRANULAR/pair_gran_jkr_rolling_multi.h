@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under
+   certain rights in this software.  This software is distributed under 
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -13,24 +13,24 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(gran/hooke/history,PairGranHookeHistory)
+PairStyle(gran/jkr/rolling/multi,PairGranJKRRollingMulti)
 
 #else
 
-#ifndef LMP_PAIR_GRAN_HOOKE_HISTORY_H
-#define LMP_PAIR_GRAN_HOOKE_HISTORY_H
+#ifndef LMP_PAIR_GRAN_JKR_ROLLING_MULTI_H
+#define LMP_PAIR_GRAN_JKR_ROLLING_MULTI_H
 
 #include "pair.h"
 
 namespace LAMMPS_NS {
 
-class PairGranHookeHistory : public Pair {
- public:
-  PairGranHookeHistory(class LAMMPS *);
-  virtual ~PairGranHookeHistory();
+class PairGranJKRRollingMulti : public Pair {
+public:
+  PairGranJKRRollingMulti(class LAMMPS *);
+  virtual ~PairGranJKRRollingMulti();
   virtual void compute(int, int);
   virtual void settings(int, char **);
-  void coeff(int, char **);
+  virtual void coeff(int, char **); // Made Virtual by IS Oct 7 2017
   void init_style();
   double init_one(int, int);
   void write_restart(FILE *);
@@ -42,11 +42,11 @@ class PairGranHookeHistory : public Pair {
   int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);
   double memory_usage();
-  int nondefault_history_transfer;
 
  protected:
-  double kn,kt,gamman,gammat,xmu;
-  int dampflag;
+  double cut_global;
+  double **E,**G,**alpha,**gamman,**muS,**Ecoh,**kR,**muR,**etaR,**cut;
+  int **normaldamp, **rollingdamp;
   double dt;
   int freeze_group_bit;
   int history;
@@ -54,8 +54,6 @@ class PairGranHookeHistory : public Pair {
   int neighprev;
   double *onerad_dynamic,*onerad_frozen;
   double *maxrad_dynamic,*maxrad_frozen;
-
-  int size_history;
 
   class FixNeighHistory *fix_history;
 
@@ -65,7 +63,12 @@ class PairGranHookeHistory : public Pair {
   double *mass_rigid;      // rigid mass for owned+ghost atoms
   int nmax;                // allocated size of mass_rigid
 
-  void allocate();
+  virtual void allocate(); // Made Virtual by IS Oct 7 2017
+
+private:
+	double mix_stiffnessE(double Eii, double Ejj, double Gii, double Gjj);
+	double mix_stiffnessG(double Eii, double Ejj, double Gii, double Gjj);
+	double mix_geom(double valii, double valjj);
 };
 
 }
@@ -81,30 +84,4 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair granular requires atom attributes radius, rmass
-
-The atom style defined does not have these attributes.
-
-E: Pair granular requires ghost atoms store velocity
-
-Use the comm_modify vel yes command to enable this.
-
-E: Could not find pair fix neigh history ID
-
-UNDOCUMENTED
-
-U: Pair granular with shear history requires newton pair off
-
-This is a current restriction of the implementation of pair
-granular styles with history.
-
-U: Could not find pair fix ID
-
-A fix is created internally by the pair style to store shear
-history information.  You cannot delete it.
-
-*/
+ */

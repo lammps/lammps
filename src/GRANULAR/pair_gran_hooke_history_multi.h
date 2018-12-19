@@ -13,24 +13,24 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(gran/hooke/history,PairGranHookeHistory)
+PairStyle(gran/hooke/history/multi,PairGranHookeHistoryMulti)
 
 #else
 
-#ifndef LMP_PAIR_GRAN_HOOKE_HISTORY_H
-#define LMP_PAIR_GRAN_HOOKE_HISTORY_H
+#ifndef LMP_PAIR_GRAN_HOOKE_HISTORY_MULTI_H
+#define LMP_PAIR_GRAN_HOOKE_HISTORY_MULTI_H
 
 #include "pair.h"
 
 namespace LAMMPS_NS {
 
-class PairGranHookeHistory : public Pair {
+class PairGranHookeHistoryMulti : public Pair {
  public:
-  PairGranHookeHistory(class LAMMPS *);
-  virtual ~PairGranHookeHistory();
+  PairGranHookeHistoryMulti(class LAMMPS *);
+  virtual ~PairGranHookeHistoryMulti();
   virtual void compute(int, int);
   virtual void settings(int, char **);
-  void coeff(int, char **);
+  virtual void coeff(int, char **); // Made Virtual by IS Oct 7 2017
   void init_style();
   double init_one(int, int);
   void write_restart(FILE *);
@@ -42,11 +42,11 @@ class PairGranHookeHistory : public Pair {
   int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);
   double memory_usage();
-  int nondefault_history_transfer;
 
  protected:
-  double kn,kt,gamman,gammat,xmu;
-  int dampflag;
+  double cut_global;
+  double **kn,**kt,**gamman,**gammat,**xmu,**cut;
+  int **dampflag;
   double dt;
   int freeze_group_bit;
   int history;
@@ -54,8 +54,6 @@ class PairGranHookeHistory : public Pair {
   int neighprev;
   double *onerad_dynamic,*onerad_frozen;
   double *maxrad_dynamic,*maxrad_frozen;
-
-  int size_history;
 
   class FixNeighHistory *fix_history;
 
@@ -65,7 +63,12 @@ class PairGranHookeHistory : public Pair {
   double *mass_rigid;      // rigid mass for owned+ghost atoms
   int nmax;                // allocated size of mass_rigid
 
-  void allocate();
+  virtual void allocate(); // Made Virtual by IS Oct 7 2017
+
+private:	
+	double mix_stiffness(double kii, double kjj);
+	double mix_damping(double gammaii, double gammajj);
+	double mix_friction(double xmuii, double xmujj);
 };
 
 }
@@ -93,16 +96,12 @@ E: Pair granular requires ghost atoms store velocity
 
 Use the comm_modify vel yes command to enable this.
 
-E: Could not find pair fix neigh history ID
-
-UNDOCUMENTED
-
-U: Pair granular with shear history requires newton pair off
+E: Pair granular with shear history requires newton pair off
 
 This is a current restriction of the implementation of pair
 granular styles with history.
 
-U: Could not find pair fix ID
+E: Could not find pair fix ID
 
 A fix is created internally by the pair style to store shear
 history information.  You cannot delete it.

@@ -15,11 +15,11 @@
    Contributing authors: Leo Silbert (SNL), Gary Grest (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include "pair_gran_hooke_history.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "pair_gran_hooke_history_multi.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "domain.h"
@@ -37,9 +37,11 @@
 
 using namespace LAMMPS_NS;
 
+#define BIG 1.0e20
+
 /* ---------------------------------------------------------------------- */
 
-PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
+PairGranHookeHistoryMulti::PairGranHookeHistoryMulti(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 1;
   no_virial_fdotr_compute = 1;
@@ -57,16 +59,12 @@ PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
   // set comm size needed by this Pair if used with fix rigid
 
   comm_forward = 1;
-
-  nondefault_history_transfer = 0; //keep default behavior of history[i][j] = -history[j][i]
 }
 
 /* ---------------------------------------------------------------------- */
 
-PairGranHookeHistory::~PairGranHookeHistory()
+PairGranHookeHistoryMulti::~PairGranHookeHistoryMulti()
 {
-  if (copymode) return;
-
   delete [] svector;
   if (fix_history) modify->delete_fix("NEIGH_HISTORY");
 
@@ -74,20 +72,27 @@ PairGranHookeHistory::~PairGranHookeHistory()
     memory->destroy(setflag);
     memory->destroy(cutsq);
 
+		memory->destroy(cut);
+    memory->destroy(kn);
+    memory->destroy(kt);
+    memory->destroy(gamman);
+    memory->destroy(gammat);
+    memory->destroy(xmu);
+    memory->destroy(dampflag);
+
     delete [] onerad_dynamic;
     delete [] onerad_frozen;
     delete [] maxrad_dynamic;
     delete [] maxrad_frozen;
   }
-
   memory->destroy(mass_rigid);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairGranHookeHistory::compute(int eflag, int vflag)
+void PairGranHookeHistoryMulti::compute(int eflag, int vflag)
 {
-  int i,j,ii,jj,inum,jnum;
+  int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,fx,fy,fz;
   double radi,radj,radsum,rsq,r,rinv,rsqinv;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
@@ -129,6 +134,7 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
+  int *type = atom->type;
   double **omega = atom->omega;
   double **torque = atom->torque;
   double *radius = atom->radius;
@@ -151,6 +157,7 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
+    itype = type[i];
     radi = radius[i];
     touch = firsttouch[i];
     allshear = firstshear[i];
@@ -165,6 +172,7 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
+      jtype = type[j];
       radj = radius[j];
       radsum = radi + radj;
 
@@ -225,8 +233,8 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
 
         // normal forces = Hookian contact + normal velocity damping
 
-        damp = meff*gamman*vnnr*rsqinv;
-        ccel = kn*(radsum-r)*rinv - damp;
+        damp = meff*gamman[itype][jtype]*vnnr*rsqinv;
+        ccel = kn[itype][jtype]*(radsum-r)*rinv - damp;
 
         // relative velocities
 
@@ -261,23 +269,26 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
 
         // tangential forces = shear + tangential velocity damping
 
-        fs1 = - (kt*shear[0] + meff*gammat*vtr1);
-        fs2 = - (kt*shear[1] + meff*gammat*vtr2);
-        fs3 = - (kt*shear[2] + meff*gammat*vtr3);
+        fs1 = - (kt[itype][jtype]*shear[0] + meff*gammat[itype][jtype]*vtr1);
+        fs2 = - (kt[itype][jtype]*shear[1] + meff*gammat[itype][jtype]*vtr2);
+        fs3 = - (kt[itype][jtype]*shear[2] + meff*gammat[itype][jtype]*vtr3);
 
         // rescale frictional displacements and forces if needed
 
         fs = sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
-        fn = xmu * fabs(ccel*r);
+        fn = xmu[itype][jtype] * fabs(ccel*r);
 
         if (fs > fn) {
           if (shrmag != 0.0) {
-            shear[0] = (fn/fs) * (shear[0] + meff*gammat*vtr1/kt) -
-              meff*gammat*vtr1/kt;
-            shear[1] = (fn/fs) * (shear[1] + meff*gammat*vtr2/kt) -
-              meff*gammat*vtr2/kt;
-            shear[2] = (fn/fs) * (shear[2] + meff*gammat*vtr3/kt) -
-              meff*gammat*vtr3/kt;
+            shear[0] = (fn/fs) * (shear[0] + 
+              meff*gammat[itype][jtype]*vtr1/kt[itype][jtype]) -
+              meff*gammat[itype][jtype]*vtr1/kt[itype][jtype];
+            shear[1] = (fn/fs) * (shear[1] + 
+              meff*gammat[itype][jtype]*vtr2/kt[itype][jtype]) -
+              meff*gammat[itype][jtype]*vtr2/kt[itype][jtype];
+            shear[2] = (fn/fs) * (shear[2] + 
+              meff*gammat[itype][jtype]*vtr3/kt[itype][jtype]) -
+              meff*gammat[itype][jtype]*vtr3/kt[itype][jtype];
             fs1 *= fn/fs;
             fs2 *= fn/fs;
             fs3 *= fn/fs;
@@ -322,7 +333,7 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
    allocate all arrays
 ------------------------------------------------------------------------- */
 
-void PairGranHookeHistory::allocate()
+void PairGranHookeHistoryMulti::allocate()
 {
   allocated = 1;
   int n = atom->ntypes;
@@ -333,6 +344,13 @@ void PairGranHookeHistory::allocate()
       setflag[i][j] = 0;
 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
+  memory->create(cut,n+1,n+1,"pair:cut");
+  memory->create(kn,n+1,n+1,"pair:kn");
+  memory->create(kt,n+1,n+1,"pair:kt");
+  memory->create(gamman,n+1,n+1,"pair:gamman");
+  memory->create(gammat,n+1,n+1,"pair:gammat");
+  memory->create(xmu,n+1,n+1,"pair:xmu");
+  memory->create(dampflag,n+1,n+1,"pair:dampflag");
 
   onerad_dynamic = new double[n+1];
   onerad_frozen = new double[n+1];
@@ -344,43 +362,75 @@ void PairGranHookeHistory::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairGranHookeHistory::settings(int narg, char **arg)
+void PairGranHookeHistoryMulti::settings(int narg, char **arg)
 {
-  if (narg != 6) error->all(FLERR,"Illegal pair_style command");
+  if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
-  kn = force->numeric(FLERR,arg[0]);
-  if (strcmp(arg[1],"NULL") == 0) kt = kn * 2.0/7.0;
-  else kt = force->numeric(FLERR,arg[1]);
+    if (strcmp(arg[0],"NULL") == 0 ) cut_global = -1.0;     
+    else cut_global = force->numeric(FLERR,arg[0]);
 
-  gamman = force->numeric(FLERR,arg[2]);
-  if (strcmp(arg[3],"NULL") == 0) gammat = 0.5 * gamman;
-  else gammat = force->numeric(FLERR,arg[3]);
-
-  xmu = force->numeric(FLERR,arg[4]);
-  dampflag = force->inumeric(FLERR,arg[5]);
-  if (dampflag == 0) gammat = 0.0;
-
-  if (kn < 0.0 || kt < 0.0 || gamman < 0.0 || gammat < 0.0 ||
-      xmu < 0.0 || xmu > 10000.0 || dampflag < 0 || dampflag > 1)
-    error->all(FLERR,"Illegal pair_style command");
+  // reset cutoffs that have been explicitly set
+    if (allocated) {
+      int i,j;
+      for (i = 1; i <= atom->ntypes; i++)
+        for (j = i; j <= atom->ntypes; j++)
+          if (setflag[i][j]) cut[i][j] = cut_global;
+    }
 }
 
 /* ----------------------------------------------------------------------
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairGranHookeHistory::coeff(int narg, char **arg)
+void PairGranHookeHistoryMulti::coeff(int narg, char **arg)
 {
-  if (narg > 2) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 8 || narg > 9) 
+    error->all(FLERR,"Incorrect args for pair coefficients");
+
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
   force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
   force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
+  double kn_one = force->numeric(FLERR,arg[2]);
+  double kt_one;
+  if (strcmp(arg[3],"NULL") == 0) kt_one = kn_one * 2.0/7.0;
+  else kt_one = force->numeric(FLERR,arg[3]);
+
+  double gamman_one = force->numeric(FLERR,arg[4]);
+  double gammat_one;
+  if (strcmp(arg[5],"NULL") == 0) gammat_one = 0.5 * gamman_one;
+  else gammat_one = force->numeric(FLERR,arg[5]);
+
+  double xmu_one = force->numeric(FLERR,arg[6]);
+  int dampflag_one = force->inumeric(FLERR,arg[7]);
+  if (dampflag_one == 0) gammat_one = 0.0;
+
+  if (kn_one < 0.0 || kt_one < 0.0 || gamman_one < 0.0 || gammat_one < 0.0 ||
+      xmu_one < 0.0 || xmu_one > 10000.0 || dampflag_one < 0 || dampflag_one > 1)
+    error->all(FLERR,"Illegal pair_style command");
+
+  // convert Kn and Kt from pressure units to force/distance^2
+  kn_one /= force->nktv2p;
+  kt_one /= force->nktv2p;
+
+  double cut_one = cut_global;
+  if (narg==9) {
+    if (strcmp(arg[8],"NULL") == 0) cut_one = -1.0;  
+    else cut_one = force->numeric(FLERR,arg[8]);
+  }
+
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
+      kn[i][j] = kn_one;
+      kt[i][j] = kt_one;
+      gamman[i][j] = gamman_one;
+      gammat[i][j] = gammat_one;
+      xmu[i][j] = xmu_one;
+      dampflag[i][j] = dampflag_one;
+      cut[i][j] = cut_one;
       setflag[i][j] = 1;
       count++;
     }
@@ -393,7 +443,7 @@ void PairGranHookeHistory::coeff(int narg, char **arg)
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-void PairGranHookeHistory::init_style()
+void PairGranHookeHistoryMulti::init_style()
 {
   int i;
 
@@ -412,11 +462,12 @@ void PairGranHookeHistory::init_style()
 
   dt = update->dt;
 
+  // if shear history is stored:
   // if first init, create Fix needed for storing shear history
 
   if (history && fix_history == NULL) {
     char dnumstr[16];
-    sprintf(dnumstr,"%d",size_history);
+    sprintf(dnumstr,"%d",3);
     char **fixarg = new char*[4];
     fixarg[0] = (char *) "NEIGH_HISTORY";
     fixarg[1] = (char *) "all";
@@ -477,7 +528,7 @@ void PairGranHookeHistory::init_style()
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
-  for (i = 0; i < nlocal; i++)
+  for (i = 0; i < nlocal; i++) 
     if (mask[i] & freeze_group_bit)
       onerad_frozen[type[i]] = MAX(onerad_frozen[type[i]],radius[i]);
     else
@@ -501,16 +552,52 @@ void PairGranHookeHistory::init_style()
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairGranHookeHistory::init_one(int i, int j)
+double PairGranHookeHistoryMulti::init_one(int i, int j)
 {
-  if (!allocated) allocate();
+  if (setflag[i][j] == 0) {
+    kn[i][j] = mix_stiffness(kn[i][i],kn[j][j]);
+    kt[i][j] = mix_stiffness(kt[i][i],kt[j][j]);
+    gamman[i][j] = mix_damping(gamman[i][i],gamman[j][j]);
+    gammat[i][j] = mix_damping(gammat[i][i],gammat[j][j]);
+    xmu[i][j] = mix_friction(xmu[i][i],xmu[j][j]);
 
-  // cutoff = sum of max I,J radii for
-  // dynamic/dynamic & dynamic/frozen interactions, but not frozen/frozen
+    dampflag[i][j] = 0;
+    if (dampflag[i][i] || dampflag[j][j]) dampflag[i][j] = 1; 
 
-  double cutoff = maxrad_dynamic[i]+maxrad_dynamic[j];
-  cutoff = MAX(cutoff,maxrad_frozen[i]+maxrad_dynamic[j]);
-  cutoff = MAX(cutoff,maxrad_dynamic[i]+maxrad_frozen[j]);
+  }
+
+	kn[j][i] = kn[i][j];
+	kt[j][i] = kt[i][j];
+	gamman[j][i] = gamman[i][j];
+	gammat[j][i] = gammat[i][j];
+	xmu[j][i] = xmu[i][j];
+	dampflag[j][i] = dampflag[i][j];
+
+  double cutoff = cut[i][j];
+
+	// It is likely that cut[i][j] at this point is still 0.0. This can happen when 
+	// there is a future fix_pour after the current run. A cut[i][j] = 0.0 creates
+	// problems because neighbor.cpp uses min(cut[i][j]) to decide on the bin size
+	// To avoid this issue,for cases involving  cut[i][j] = 0.0 (possible only
+	// if there is no current information about radius/cutoff of type i and j).
+	// we assign cutoff = min(cut[i][j]) for i,j such that cut[i][j] > 0.0.
+
+	if (cut[i][j] < 0.0) {
+		if (((maxrad_dynamic[i] > 0.0) && (maxrad_dynamic[j] > 0.0)) || ((maxrad_dynamic[i] > 0.0) && (maxrad_frozen[j] > 0.0)) ||
+				((maxrad_frozen[i] > 0.0) && (maxrad_dynamic[j] > 0.0))) { // radius info about both i and j exist
+			cutoff = maxrad_dynamic[i]+maxrad_dynamic[j];
+			cutoff = MAX(cutoff,maxrad_frozen[i]+maxrad_dynamic[j]);
+			cutoff = MAX(cutoff,maxrad_dynamic[i]+maxrad_frozen[j]);
+		}
+		else { // radius info about either i or j does not exist (i.e. not present and not about to get poured; set to largest value to not interfere with neighbor list)
+			double cutmax = 0.0;
+			for (int k = 1; k <= atom->ntypes; k++) {
+				cutmax = MAX(cutmax,2.0*maxrad_dynamic[k]);
+				cutmax = MAX(cutmax,2.0*maxrad_frozen[k]);
+			}
+			cutoff = cutmax;
+		}
+	}	
   return cutoff;
 }
 
@@ -518,82 +605,97 @@ double PairGranHookeHistory::init_one(int i, int j)
   proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairGranHookeHistory::write_restart(FILE *fp)
+void PairGranHookeHistoryMulti::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
 
   int i,j;
-  for (i = 1; i <= atom->ntypes; i++)
-    for (j = i; j <= atom->ntypes; j++)
+  for (i = 1; i <= atom->ntypes; i++) {
+    for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
+	    if (setflag[i][j]) {
+				fwrite(&kn[i][j],sizeof(double),1,fp);
+				fwrite(&kt[i][j],sizeof(double),1,fp);
+				fwrite(&gamman[i][j],sizeof(double),1,fp);
+				fwrite(&gammat[i][j],sizeof(double),1,fp);
+				fwrite(&xmu[i][j],sizeof(double),1,fp);
+				fwrite(&dampflag[i][j],sizeof(int),1,fp);
+				fwrite(&cut[i][j],sizeof(double),1,fp);
+			}
+		}
+	}
 }
 
 /* ----------------------------------------------------------------------
   proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairGranHookeHistory::read_restart(FILE *fp)
+void PairGranHookeHistoryMulti::read_restart(FILE *fp)
 {
   read_restart_settings(fp);
   allocate();
 
   int i,j;
   int me = comm->me;
-  for (i = 1; i <= atom->ntypes; i++)
+  for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
       if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
+			if (setflag[i][j]) {
+				if (me == 0) {
+					fread(&kn[i][j],sizeof(double),1,fp);
+					fread(&kt[i][j],sizeof(double),1,fp);
+					fread(&gamman[i][j],sizeof(double),1,fp);
+					fread(&gammat[i][j],sizeof(double),1,fp);
+					fread(&xmu[i][j],sizeof(double),1,fp);
+					fread(&dampflag[i][j],sizeof(int),1,fp);
+					fread(&cut[i][j],sizeof(double),1,fp);
+				}
+				MPI_Bcast(&kn[i][j],1,MPI_DOUBLE,0,world);
+				MPI_Bcast(&kt[i][j],1,MPI_DOUBLE,0,world);
+				MPI_Bcast(&gamman[i][j],1,MPI_DOUBLE,0,world);
+				MPI_Bcast(&gammat[i][j],1,MPI_DOUBLE,0,world);
+				MPI_Bcast(&xmu[i][j],1,MPI_DOUBLE,0,world);
+				MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
+				MPI_Bcast(&dampflag[i][j],1,MPI_INT,0,world);
+			}
     }
+	}
 }
 
 /* ----------------------------------------------------------------------
   proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairGranHookeHistory::write_restart_settings(FILE *fp)
+void PairGranHookeHistoryMulti::write_restart_settings(FILE *fp)
 {
-  fwrite(&kn,sizeof(double),1,fp);
-  fwrite(&kt,sizeof(double),1,fp);
-  fwrite(&gamman,sizeof(double),1,fp);
-  fwrite(&gammat,sizeof(double),1,fp);
-  fwrite(&xmu,sizeof(double),1,fp);
-  fwrite(&dampflag,sizeof(int),1,fp);
+	fwrite(&cut_global,sizeof(double),1,fp);
 }
 
 /* ----------------------------------------------------------------------
   proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairGranHookeHistory::read_restart_settings(FILE *fp)
+void PairGranHookeHistoryMulti::read_restart_settings(FILE *fp)
 {
-  if (comm->me == 0) {
-    fread(&kn,sizeof(double),1,fp);
-    fread(&kt,sizeof(double),1,fp);
-    fread(&gamman,sizeof(double),1,fp);
-    fread(&gammat,sizeof(double),1,fp);
-    fread(&xmu,sizeof(double),1,fp);
-    fread(&dampflag,sizeof(int),1,fp);
-  }
-  MPI_Bcast(&kn,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&kt,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&gamman,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&gammat,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&xmu,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&dampflag,1,MPI_INT,0,world);
+	if (comm->me == 0) {
+		fread(&cut_global,sizeof(double),1,fp);
+	}
+	MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairGranHookeHistory::reset_dt()
+void PairGranHookeHistoryMulti::reset_dt()
 {
   dt = update->dt;
 }
 
 /* ---------------------------------------------------------------------- */
 
-double PairGranHookeHistory::single(int i, int j, int /*itype*/, int /*jtype*/,
+double PairGranHookeHistoryMulti::single(int i, int j, int itype, int jtype,
                                     double rsq,
-                                    double /*factor_coul*/, double /*factor_lj*/,
+                                    double factor_coul, double factor_lj,
                                     double &fforce)
 {
   double radi,radj,radsum;
@@ -671,8 +773,8 @@ double PairGranHookeHistory::single(int i, int j, int /*itype*/, int /*jtype*/,
 
   // normal forces = Hookian contact + normal velocity damping
 
-  damp = meff*gamman*vnnr*rsqinv;
-  ccel = kn*(radsum-r)*rinv - damp;
+  damp = meff*gamman[itype][jtype]*vnnr*rsqinv;
+  ccel = kn[itype][jtype]*(radsum-r)*rinv - damp;
 
   // relative velocities
 
@@ -709,14 +811,14 @@ double PairGranHookeHistory::single(int i, int j, int /*itype*/, int /*jtype*/,
 
   // tangential forces = shear + tangential velocity damping
 
-  fs1 = - (kt*shear[0] + meff*gammat*vtr1);
-  fs2 = - (kt*shear[1] + meff*gammat*vtr2);
-  fs3 = - (kt*shear[2] + meff*gammat*vtr3);
+  fs1 = - (kt[itype][jtype]*shear[0] + meff*gammat[itype][jtype]*vtr1);
+  fs2 = - (kt[itype][jtype]*shear[1] + meff*gammat[itype][jtype]*vtr2);
+  fs3 = - (kt[itype][jtype]*shear[2] + meff*gammat[itype][jtype]*vtr3);
 
   // rescale frictional displacements and forces if needed
 
   fs = sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
-  fn = xmu * fabs(ccel*r);
+  fn = xmu[itype][jtype] * fabs(ccel*r);
 
   if (fs > fn) {
     if (shrmag != 0.0) {
@@ -749,8 +851,8 @@ double PairGranHookeHistory::single(int i, int j, int /*itype*/, int /*jtype*/,
 
 /* ---------------------------------------------------------------------- */
 
-int PairGranHookeHistory::pack_forward_comm(int n, int *list, double *buf,
-                                            int /*pbc_flag*/, int * /*pbc*/)
+int PairGranHookeHistoryMulti::pack_forward_comm(int n, int *list, double *buf,
+                                            int pbc_flag, int *pbc)
 {
   int i,j,m;
 
@@ -764,7 +866,7 @@ int PairGranHookeHistory::pack_forward_comm(int n, int *list, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
-void PairGranHookeHistory::unpack_forward_comm(int n, int first, double *buf)
+void PairGranHookeHistoryMulti::unpack_forward_comm(int n, int first, double *buf)
 {
   int i,m,last;
 
@@ -778,8 +880,36 @@ void PairGranHookeHistory::unpack_forward_comm(int n, int first, double *buf)
    memory usage of local atom-based arrays
 ------------------------------------------------------------------------- */
 
-double PairGranHookeHistory::memory_usage()
+double PairGranHookeHistoryMulti::memory_usage()
 {
   double bytes = nmax * sizeof(double);
   return bytes;
 }
+
+/* ----------------------------------------------------------------------
+   mixing of stiffness 
+------------------------------------------------------------------------- */
+
+double PairGranHookeHistoryMulti::mix_stiffness(double kii, double kjj)
+{
+    return kii*kjj/(kii + kjj); 
+}
+
+/* ----------------------------------------------------------------------
+   mixing of damping 
+------------------------------------------------------------------------- */
+
+double PairGranHookeHistoryMulti::mix_damping(double gammaii, double gammajj)
+{
+    return sqrt(gammaii*gammajj); 
+}
+
+/* ----------------------------------------------------------------------
+   mixing of friction 
+------------------------------------------------------------------------- */
+
+double PairGranHookeHistoryMulti::mix_friction(double xmuii, double xmujj)
+{
+    return MAX(xmuii,xmujj); 
+}
+

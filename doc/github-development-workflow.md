@@ -6,7 +6,7 @@ choices the LAMMPS developers have agreed on. Git and GitHub provide the
 tools, but do not set policies, so it is up to the developers to come to
 an agreement as to how to define and interpret policies. This document
 is likely to change as our experiences and needs change and we try to
-adapt accordingly. Last change 2018-11-15.
+adapt accordingly. Last change 2018-12-19.
 
 ## Table of Contents
 
@@ -129,17 +129,17 @@ Here are some items to check:
     * stdlib.h -> cstdlib
     * string.h -> cstring
     * time.h -> ctime
-  Do not replace (as they are C++-11): `inttypes.h` and `stdint.h`.
+    * Do NOT replace (as they are C++-11): `inttypes.h` and `stdint.h`.
   * Code should follow the C++-98 standard. C++-11 is only accepted
   in individual special purpose packages
-  * indentation is two spaces per level
-  * there should be no tabs and no trailing whitespace
+  * indentation is 2 spaces per level
+  * there should be NO tabs and no trailing whitespace
   * header files, especially of new styles, should not include any
   other headers, except the header with the base class or cstdio.
   Forward declarations should be used instead when possible.
   * iostreams should be avoided. LAMMPS uses stdio from the C-library.
   * use of STL in headers and class definitions should be avoided.
-  * there must not be any "using namespace XXX;" statements in headers.
+  * there MUST NOT be any "using namespace XXX;" statements in headers.
   * static class members should be avoided at all cost.
   * anything storing atom IDs should be using `tagint` and not `int`.
   This can be flagged by the compiler only for pointers and only when

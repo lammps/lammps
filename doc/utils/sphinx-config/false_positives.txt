@@ -436,6 +436,9 @@ CSiC
 csld
 cslib
 CSlib
+cstdio
+cstdlib
+cstring
 cstyle
 csvr
 Ctypes
@@ -1135,6 +1138,7 @@ inv
 invariants
 inversed
 ionocovalent
+iostreams
 iparam
 ipi
 ipp
@@ -2500,7 +2504,9 @@ Startstep
 statcoul
 statcoulombs
 statvolt
+stdlib
 stdin
+stdio
 steelblue
 Stegailov
 Steinbach

@@ -139,6 +139,7 @@ Here are some items to check:
   Forward declarations should be used instead when possible.
   * iostreams should be avoided. LAMMPS uses stdio from the C-library.
   * use of STL in headers and class definitions should be avoided.
+  * there must not be any "using namespace XXX;" statements in headers.
   * static class members should be avoided at all cost.
   * anything storing atom IDs should be using `tagint` and not `int`.
   This can be flagged by the compiler only for pointers and only when

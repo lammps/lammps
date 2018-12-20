@@ -87,11 +87,11 @@ linking to the C library interface (lammps-devel, lammps-mpich-devel,
 lammps-openmpi-devel), the header for compiling programs using
 the C library interface (lammps-headers), and the LAMMPS python
 module for Python 3. All packages can be installed at the same
-time and the name of the LAMMPS executable is {lmp} in all 3 cases.
-By default, {lmp} will refer to the serial executable, unless
-one of the MPI environment modules is loaded
+time and the name of the LAMMPS executable is {lmp} and {lmp_openmpi}
+or {lmp_mpich} respectively.  By default, {lmp} will refer to the
+serial executable, unless one of the MPI environment modules is loaded
 ("module load mpi/mpich-x86_64" or "module load mpi/openmpi-x86_64").
-Then the corresponding parallel LAMMPS executable is used.
+Then the corresponding parallel LAMMPS executable can be used.
 The same mechanism applies when loading the LAMMPS python module.
 
 To install LAMMPS with OpenMPI and run an input in.lj with 2 CPUs do:

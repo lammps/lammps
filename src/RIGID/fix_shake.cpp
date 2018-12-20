@@ -955,7 +955,7 @@ void FixShake::find_clusters()
 
   // -----------------------------------------------------
   // set shake_flag,shake_atom,shake_type for non-central atoms
-  // requires communication for off-proc atoms
+  // requires rendezvous communication for off-proc atoms
   // -----------------------------------------------------
 
   shake_info(npartner,partner_tag,partner_shake);
@@ -963,6 +963,9 @@ void FixShake::find_clusters()
   // -----------------------------------------------------
   // free local memory
   // -----------------------------------------------------
+
+  memory->destroy(atomIDs);
+  memory->destroy(procowner);
 
   memory->destroy(npartner);
   memory->destroy(nshake);
@@ -1390,24 +1393,24 @@ int FixShake::rendezvous_ids(int n, char *inbuf,
   FixShake *fsptr = (FixShake *) ptr;
   Memory *memory = fsptr->memory;
 
-  int *procowner;
   tagint *atomIDs;
+  int *procowner;
   
-  memory->create(procowner,n,"special:procowner");
   memory->create(atomIDs,n,"special:atomIDs");
+  memory->create(procowner,n,"special:procowner");
   
   IDRvous *in = (IDRvous *) inbuf;
 
   for (int i = 0; i < n; i++) {
-    procowner[i] = in[i].me;
     atomIDs[i] = in[i].atomID;
+    procowner[i] = in[i].me;
   }
 
   // store rendezvous data in FixShake class
   
   fsptr->nrvous = n;
-  fsptr->procowner = procowner;
   fsptr->atomIDs = atomIDs;
+  fsptr->procowner = procowner;
 
   // flag = 0: no 2nd irregular comm needed in comm->rendezvous
   

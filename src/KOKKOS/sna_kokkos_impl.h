@@ -327,29 +327,40 @@ void SNAKokkos<DeviceType>::compute_bi(const typename Kokkos::TeamPolicy<DeviceT
   clock_gettime(CLOCK_REALTIME, &starttime);
 #endif
 
-  Kokkos::parallel_for(Kokkos::ThreadVectorRange(team,idxj_max),
+  Kokkos::parallel_for(Kokkos::TeamThreadRange(team,idxj_full_max),
       [&] (const int& idx) {
-    const int j1 = idxj(idx).j1;
-    const int j2 = idxj(idx).j2;
-    const int j =  idxj(idx).j;
-    double b_j1_j2_j = 0.0;
+    const int j1 = idxj_full(idx).j1;
+    const int j2 = idxj_full(idx).j2;
+    const int j =  idxj_full(idx).j;
 
-    for(int mb = 0; 2*mb < j; mb++)
-      for(int ma = 0; ma <= j; ma++) {
-        b_j1_j2_j +=
+    const int bound = (j+2)/2;
+    double b_j1_j2_j = 0.0;
+    double b_j1_j2_j_temp = 0.0;
+    Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team,(j+1)*bound),
+        [&] (const int mbma, double& sum) {
+        //for(int mb = 0; 2*mb <= j; mb++)
+          //for(int ma = 0; ma <= j; ma++) {
+        const int ma = mbma%(j+1);
+        const int mb = mbma/(j+1);
+        if (2*mb == j) return;
+        sum +=
           uarraytot_r(j,ma,mb) * zarray_r(j1,j2,j,mb,ma) +
           uarraytot_i(j,ma,mb) * zarray_i(j1,j2,j,mb,ma);
-      } // end loop over ma, mb
+      },b_j1_j2_j_temp); // end loop over ma, mb
+      b_j1_j2_j += b_j1_j2_j_temp;
 
     // For j even, special treatment for middle column
 
     if (j%2 == 0) {
       const int mb = j/2;
-      for(int ma = 0; ma < mb; ma++) {
-        b_j1_j2_j +=
+      Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team, mb),
+          [&] (const int ma, double& sum) {
+      //for(int ma = 0; ma < mb; ma++) {
+        sum +=
           uarraytot_r(j,ma,mb) * zarray_r(j1,j2,j,mb,ma) +
           uarraytot_i(j,ma,mb) * zarray_i(j1,j2,j,mb,ma);
-      }
+      },b_j1_j2_j_temp); // end loop over ma
+      b_j1_j2_j += b_j1_j2_j_temp;
 
       const int ma = mb;
       b_j1_j2_j +=

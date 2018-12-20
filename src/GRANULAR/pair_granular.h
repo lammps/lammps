@@ -47,7 +47,7 @@ public:
   double cut_global;
   double dt;
   int freeze_group_bit;
-  int history;
+  int use_history;
 
   int neighprev;
   double *onerad_dynamic,*onerad_frozen;
@@ -62,11 +62,49 @@ public:
   int nmax;                // allocated size of mass_rigid
 
   virtual void allocate();
+  int beyond_contact;
+
+
+  // comment next line to turn off templating
+/*#define TEMPLATED_PAIR_GRANULAR
+#ifdef TEMPLATED_PAIR_GRANULAR
+  template < int Tp_coeff_types,
+  int Tp_normal, int Tp_damping, int Tp_tangential,
+  int Tp_rolling, int Tp_twisting >
+  void compute_templated(int eflag, int vflag);
+#else
+*/
+  void compute_untemplated(
+      int,
+      int, int, int,
+      int, int,
+      int, int);
+//#endif
 
  private:
+  int coeff_types;
   int size_history;
-  int num_coeffs;
-  double ***coeffs;
+
+  //Per-type models
+  int **normal, **damping, **tangential, **rolling, **twisting;
+
+  int normal_global, damping_global;
+  int tangential_global, rolling_global, twisting_global;
+
+  int tangential_history, rolling_history, twisting_history;
+  int tangential_history_index;
+  int rolling_history_index;
+  int twisting_history_index;
+
+  double *normal_coeffs_one;
+  double *tangential_coeffs_one;
+  double *rolling_coeffs_one;
+  double *twisting_coeffs_one;
+
+  double ***normal_coeffs;
+  double ***tangential_coeffs;
+  double ***rolling_coeffs;
+  double ***twisting_coeffs;
 
   double mix_stiffnessE(double Eii, double Ejj, double Gii, double Gjj);
   double mix_stiffnessG(double Eii, double Ejj, double Gii, double Gjj);

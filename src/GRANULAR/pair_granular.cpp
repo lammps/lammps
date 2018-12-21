@@ -493,8 +493,6 @@ void PairGranular::compute_untemplated
         vt3 = vr3 - vn3;
 
         // relative rotational velocity
-        // Luding Gran Matt 2008, v10,p235 suggests correcting radi and radj by subtracting
-        // delta/2, i.e. instead of radi, use distance to center of contact point?
         wr1 = (radi*omega[i][0] + radj*omega[j][0]);
         wr2 = (radi*omega[i][1] + radj*omega[j][1]);
         wr3 = (radi*omega[i][2] + radj*omega[j][2]);
@@ -508,7 +506,7 @@ void PairGranular::compute_untemplated
 
         // history effects
         touch[jj] = 1;
-        history = &allhistory[3*jj];
+        history = &allhistory[size_history*jj];
         shrmag = sqrt(history[0]*history[0] + history[1]*history[1] +
             history[2]*history[2]);
 
@@ -760,9 +758,9 @@ void PairGranular::settings(int narg, char **arg)
       if (coeff_types == MATERIAL) error->all(FLERR,"Illegal pair_coeff command, 'stiffness' coefficients required for Hooke");
       if (iarg + 2 >= narg) error->all(FLERR,"Illegal pair_style command, not enough parameters provided for Hooke option");
       normal_global = HOOKE;
-      memory->create(normal_coeffs_one, 2, "pair:normal_coeffs_one");
-      normal_coeffs_one[0] = force->numeric(FLERR,arg[iarg+1]); //kn
-      normal_coeffs_one[1] = force->numeric(FLERR,arg[iarg+2]); //damping
+      memory->create(normal_coeffs_global, 2, "pair:normal_coeffs_global");
+      normal_coeffs_global[0] = force->numeric(FLERR,arg[iarg+1]); //kn
+      normal_coeffs_global[1] = force->numeric(FLERR,arg[iarg+2]); //damping
       iarg += 3;
     }
     else if (strcmp(arg[iarg], "hertz") == 0){
@@ -770,21 +768,21 @@ void PairGranular::settings(int narg, char **arg)
       if (coeff_types == MATERIAL) num_coeffs += 1;
       if (iarg + offset >= narg) error->all(FLERR,"Illegal pair_style command, not enough parameters provided for Hertz option");
       normal_global = HERTZ;
-      memory->create(normal_coeffs_one, num_coeffs, "pair:normal_coeffs_one");
-      normal_coeffs_one[0] = force->numeric(FLERR,arg[iarg+1]); //kn or E
-      normal_coeffs_one[1] = force->numeric(FLERR,arg[iarg+2]); //damping
-      if (coeff_types == MATERIAL) normal_coeffs_one[2] = force->numeric(FLERR,arg[iarg+3]); //G (if 'material')
+      memory->create(normal_coeffs_global, num_coeffs, "pair:normal_coeffs_global");
+      normal_coeffs_global[0] = force->numeric(FLERR,arg[iarg+1]); //kn or E
+      normal_coeffs_global[1] = force->numeric(FLERR,arg[iarg+2]); //damping
+      if (coeff_types == MATERIAL) normal_coeffs_global[2] = force->numeric(FLERR,arg[iarg+3]); //G (if 'material')
       iarg += num_coeffs+1;
     }
     else if (strcmp(arg[iarg], "dmt") == 0){
       if (coeff_types == STIFFNESS) error->all(FLERR,"Illegal pair_style command, 'material' coefficients required for DMT");
       if (iarg + 4 >= narg) error->all(FLERR,"Illegal pair_style command, not enough parameters provided for Hertz option");
       normal_global = DMT;
-      memory->create(normal_coeffs_one, 4, "pair:normal_coeffs_one");
-      normal_coeffs_one[0] = force->numeric(FLERR,arg[iarg+1]); //E
-      normal_coeffs_one[1] = force->numeric(FLERR,arg[iarg+2]); //damping
-      normal_coeffs_one[2] = force->numeric(FLERR,arg[iarg+3]); //G
-      normal_coeffs_one[3] = force->numeric(FLERR,arg[iarg+3]); //cohesion
+      memory->create(normal_coeffs_global, 4, "pair:normal_coeffs_global");
+      normal_coeffs_global[0] = force->numeric(FLERR,arg[iarg+1]); //E
+      normal_coeffs_global[1] = force->numeric(FLERR,arg[iarg+2]); //damping
+      normal_coeffs_global[2] = force->numeric(FLERR,arg[iarg+3]); //G
+      normal_coeffs_global[3] = force->numeric(FLERR,arg[iarg+3]); //cohesion
       iarg += 5;
     }
     else if (strcmp(arg[iarg], "jkr") == 0){
@@ -792,11 +790,11 @@ void PairGranular::settings(int narg, char **arg)
       if (coeff_types == STIFFNESS) error->all(FLERR,"Illegal pair_style command, 'material' coefficients required for JKR");
       beyond_contact = 1;
       normal_global = JKR;
-      memory->create(normal_coeffs_one, 4, "pair:normal_coeffs_one");
-      normal_coeffs_one[0] = force->numeric(FLERR,arg[iarg+1]); //E
-      normal_coeffs_one[1] = force->numeric(FLERR,arg[iarg+2]); //damping
-      normal_coeffs_one[2] = force->numeric(FLERR,arg[iarg+3]); //G
-      normal_coeffs_one[3] = force->numeric(FLERR,arg[iarg+4]); //cohesion
+      memory->create(normal_coeffs_global, 4, "pair:normal_coeffs_global");
+      normal_coeffs_global[0] = force->numeric(FLERR,arg[iarg+1]); //E
+      normal_coeffs_global[1] = force->numeric(FLERR,arg[iarg+2]); //damping
+      normal_coeffs_global[2] = force->numeric(FLERR,arg[iarg+3]); //G
+      normal_coeffs_global[3] = force->numeric(FLERR,arg[iarg+4]); //cohesion
       iarg += 5;
     }
     else if (strcmp(arg[iarg], "damp_velocity") == 0){
@@ -820,10 +818,10 @@ void PairGranular::settings(int narg, char **arg)
         tangential_global = TANGENTIAL_MINDLIN;
         tangential_history = 1;
       }
-      memory->create(tangential_coeffs_one, 3, "pair:tangential_coeffs_one");
-      tangential_coeffs_one[0] = force->numeric(FLERR,arg[iarg+1]); //kt
-      tangential_coeffs_one[1] = force->numeric(FLERR,arg[iarg+2]); //gammat
-      tangential_coeffs_one[2] = force->numeric(FLERR,arg[iarg+3]); //friction coeff.
+      memory->create(tangential_coeffs_global, 3, "pair:tangential_coeffs_global");
+      tangential_coeffs_global[0] = force->numeric(FLERR,arg[iarg+1]); //kt
+      tangential_coeffs_global[1] = force->numeric(FLERR,arg[iarg+2]); //gammat
+      tangential_coeffs_global[2] = force->numeric(FLERR,arg[iarg+3]); //friction coeff.
       iarg += 4;
     }
     else if (strstr(arg[iarg], "rolling") != NULL){
@@ -835,17 +833,17 @@ void PairGranular::settings(int narg, char **arg)
         rolling_global = ROLLING_SDS;
         rolling_history = 1;
       }
-      memory->create(rolling_coeffs_one, 3, "pair:rolling_coeffs_one");
-      rolling_coeffs_one[0] = force->numeric(FLERR,arg[iarg+1]); //kt
-      rolling_coeffs_one[1] = force->numeric(FLERR,arg[iarg+2]); //gammat
-      rolling_coeffs_one[2] = force->numeric(FLERR,arg[iarg+3]); //friction coeff.
+      memory->create(rolling_coeffs_global, 3, "pair:rolling_coeffs_global");
+      rolling_coeffs_global[0] = force->numeric(FLERR,arg[iarg+1]); //kt
+      rolling_coeffs_global[1] = force->numeric(FLERR,arg[iarg+2]); //gammat
+      rolling_coeffs_global[2] = force->numeric(FLERR,arg[iarg+3]); //friction coeff.
       iarg += 4;
     }
     else if (strstr(arg[iarg], "twisting") != NULL){
       if (strstr(arg[iarg], "marshall") != NULL){
         twisting_global = TWISTING_MARSHALL;
         twisting_history = 1;
-        memory->create(twisting_coeffs_one, 3, "pair:twisting_coeffs_one"); //To be filled later
+        memory->create(twisting_coeffs_global, 3, "pair:twisting_coeffs_global"); //To be filled later
       }
       else{
         if (iarg + 3 >= narg) error->all(FLERR,"Illegal pair_style command, not enough parameters provided for twisting model");
@@ -856,13 +854,58 @@ void PairGranular::settings(int narg, char **arg)
           twisting_global = TWISTING_SDS;
           twisting_history = 1;
         }
-        memory->create(twisting_coeffs_one, 3, "pair:twisting_coeffs_one");
-        twisting_coeffs_one[0] = force->numeric(FLERR,arg[iarg+1]); //kt
-        twisting_coeffs_one[1] = force->numeric(FLERR,arg[iarg+2]); //gammat
-        twisting_coeffs_one[2] = force->numeric(FLERR,arg[iarg+3]); //friction coeff.
+        memory->create(twisting_coeffs_global, 3, "pair:twisting_coeffs_global");
+        twisting_coeffs_global[0] = force->numeric(FLERR,arg[iarg+1]); //kt
+        twisting_coeffs_global[1] = force->numeric(FLERR,arg[iarg+2]); //gammat
+        twisting_coeffs_global[2] = force->numeric(FLERR,arg[iarg+3]); //friction coeff.
         iarg += 4;
       }
     }
+  }
+
+  //Set all i-i entrie, which may be replaced by pair coeff commands
+  //It may also make sense to consider removing all of the above, and only
+  // having the option for pair_coeff to set the parameters, similar to most LAMMPS pair styles
+  // The reason for the current setup is to keep true to existing pair gran/hooke etc. syntax,
+  // where coeffs are set in the pair_style command, and a pair_coeff * * command is issued.
+  allocate();
+  double damp;
+  for (int i = 1; i <= atom->ntypes; i++){
+    normal[i][i] = normal_global;
+    damping[i][i] = damping_global;
+    tangential[i][i] = tangential_global;
+    rolling[i][i] = rolling_global;
+    twisting[i][i] = twisting_global;
+
+    if (damping_global == TSUJI){
+      double cor = normal_coeffs_global[1];
+      damp = 1.2728-4.2783*cor+11.087*pow(cor,2)-22.348*pow(cor,3)+
+          27.467*pow(cor,4)-18.022*pow(cor,5)+
+          4.8218*pow(cor,6);
+    }
+    else damp = normal_coeffs_global[1];
+    normal_coeffs[i][i][0] = normal_coeffs_global[0];
+    normal_coeffs[i][i][1] = damp;
+    if (coeff_types == MATERIAL) normal_coeffs[i][i][2] = normal_coeffs_global[2];
+    if ((normal_global == JKR) || (normal_global == DMT))
+      normal_coeffs[i][i][3] = normal_coeffs_global[3];
+
+    tangential[i][i] = tangential_global;
+    if (tangential_global != NONE)
+      for (int k = 0; k < 3; k++)
+        tangential_coeffs[i][i][k] = tangential_coeffs_global[k];
+
+    rolling[i][i] = rolling_global;
+    if (rolling_global != NONE)
+      for (int k = 0; k < 3; k++)
+        rolling_coeffs[i][i][k] = rolling_coeffs_global[k];
+
+    twisting[i][i] = twisting_global;
+    if (twisting_global != NONE)
+      for (int k = 0; k < 3; k++)
+        twisting_coeffs[i][i][k] = twisting_coeffs_local[k];
+
+    setflag[i][i] = 1;
   }
 
   //Additional checks
@@ -1005,7 +1048,7 @@ void PairGranular::coeff(int narg, char **arg)
   double damp;
   if (damping_local == TSUJI){
     double cor = normal_coeffs_local[1];
-    damp =1.2728-4.2783*cor+11.087*pow(cor,2)-22.348*pow(cor,3)+
+    damp = 1.2728-4.2783*cor+11.087*pow(cor,2)-22.348*pow(cor,3)+
         27.467*pow(cor,4)-18.022*pow(cor,5)+
         4.8218*pow(cor,6);
   }
@@ -1028,12 +1071,12 @@ void PairGranular::coeff(int narg, char **arg)
       rolling[i][j] = rolling_local;
       if (rolling_local != NONE)
         for (int k = 0; k < 3; k++)
-          rolling_coeffs[i][j][k] = tangential_coeffs_local[k];
+          rolling_coeffs[i][j][k] = rolling_coeffs_local[k];
 
       twisting[i][j] = twisting_local;
       if (twisting_local != NONE)
-              for (int k = 0; k < 3; k++)
-                rolling_coeffs[i][j][k] = tangential_coeffs_local[k];
+        for (int k = 0; k < 3; k++)
+          twisting_coeffs[i][j][k] = twisting_coeffs_local[k];
 
       setflag[i][j] = 1;
       count++;
@@ -1164,36 +1207,39 @@ double PairGranular::init_one(int i, int j)
         (rolling[i] != rolling[j]) ||
         (twisting[i] != twisting[j])){
 
-        char str[128];
-        sprintf(str,"Failed to open FFmpeg pipeline to file %s",filename);
-        error->one(FLERR,str);
+      char str[512];
+      sprintf(str,"Granular pair style functional forms are different, cannot mix coefficients for types %d and %d. \nThis combination must be set explicitly via pair_coeff command.",i,j);
+      error->one(FLERR,str);
     }
 
-    G[i][j] = mix_stiffnessG(G[i][i],E[j][j],G[i][i],G[j][j]);
-    if (normaldamp[i][j] == TSUJI) {
-      alpha[i][j] = mix_geom(alpha[i][i],alpha[j][j]);
+    if (coeff_types == MATERIAL){
+      normal_coeffs[i][j][0] = mix_stiffnessE(normal_coeffs[i][i][0], normal_coeffs[j][j][0],
+          normal_coeffs[i][i][2], normal_coeffs[j][j][2]);
+      normal_coeffs[i][j][2] = mix_stiffnessG(normal_coeffs[i][i][0], normal_coeffs[j][j][0],
+          normal_coeffs[i][i][2], normal_coeffs[j][j][2]);
     }
-    else if (normaldamp[i][j] == BRILLIANTOV) {
-      gamman[i][j] = mix_geom(gamman[i][i],gamman[j][j]);
+    else{
+      normal_coeffs[i][j][0] = mix_geom(normal_coeffs[i][i][0], normal_coeffs[j][j][0];)
     }
-    muS[i][j] = mix_geom(muS[i][i],muS[j][j]);
-    Ecoh[i][j] = mix_geom(Ecoh[i][i],Ecoh[j][j]);
-    kR[i][j] = mix_geom(kR[i][i],kR[j][j]);
-    etaR[i][j] = mix_geom(etaR[i][i],etaR[j][j]);
-    muR[i][j] = mix_geom(muR[i][i],muR[j][j]);
-  }
 
-  E[j][i] = E[i][j];
-  G[j][i] = G[i][j];
-  normaldamp[j][i] = normaldamp[i][j];
-  alpha[j][i] = alpha[i][j];
-  gamman[j][i] = gamman[i][j];
-  rollingdamp[j][i] = rollingdamp[i][j];
-  muS[j][i] = muS[i][j];
-  Ecoh[j][i] = Ecoh[i][j];
-  kR[j][i] = kR[i][j];
-  etaR[j][i] = etaR[i][j];
-  muR[j][i] = muR[i][j];
+    normal_coeffs[i][j][1] = mix_geom(normal_coeffs[i][i][1], normal_coeffs[j][j][1];)
+    if ((normal[i][i] == JKR) || (normal[i][i] == DMT))
+      normal_coeffs[i][j][3] = mix_geom(normal_coeffs[i][i][3], normal_coeffs[j][j][3]);
+
+    if (tangential[i][i] != NONE){
+      for (int k = 0; k < 3; k++)
+        tangential_coeffs[i][j][k] = mix_geom(tangential_coeffs[i][i][k], tangential_coeffs[j][j][k]);
+    }
+
+    if (rolling[i][i] != NONE){
+      for (int k = 0; k < 3; k++)
+        rolling_coeffs[i][j][k] = mix_geom(rolling_coeffs[i][i][k], rolling_coeffs[j][j][k]);
+    }
+
+    if (twisting[i][i] != NONE){
+      for (int k = 0; k < 3; k++)
+        twisting_coeffs[i][j][k] = mix_geom(twisting_coeffs[i][i][k], twisting_coeffs[j][j][k]);
+    }
 
   double cutoff = cut[i][j];
 
@@ -1559,7 +1605,7 @@ double PairGranular::memory_usage()
 }
 
 /* ----------------------------------------------------------------------
- mixing of stiffness (E)
+ mixing of Young's modulus (E)
 ------------------------------------------------------------------------- */
 
 double PairGranular::mix_stiffnessE(double Eii, double Ejj, double Gii, double Gjj)
@@ -1570,7 +1616,7 @@ double PairGranular::mix_stiffnessE(double Eii, double Ejj, double Gii, double G
 }
 
 /* ----------------------------------------------------------------------
-	 mixing of stiffness (G)
+	 mixing of shear modulus (G)
 	 ------------------------------------------------------------------------- */
 
 double PairGranular::mix_stiffnessG(double Eii, double Ejj, double Gii, double Gjj)

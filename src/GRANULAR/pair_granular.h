@@ -96,10 +96,10 @@ public:
   int rolling_history_index;
   int twisting_history_index;
 
-  double *normal_coeffs_one;
-  double *tangential_coeffs_one;
-  double *rolling_coeffs_one;
-  double *twisting_coeffs_one;
+  double *normal_coeffs_global;
+  double *tangential_coeffs_global;
+  double *rolling_coeffs_global;
+  double *twisting_coeffs_global;
 
   double ***normal_coeffs;
   double ***tangential_coeffs;

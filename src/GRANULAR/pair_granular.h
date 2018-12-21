@@ -52,6 +52,7 @@ public:
   int neighprev;
   double *onerad_dynamic,*onerad_frozen;
   double *maxrad_dynamic,*maxrad_frozen;
+  double **cut;
 
   class FixNeighHistory *fix_history;
 
@@ -64,24 +65,7 @@ public:
   virtual void allocate();
   int beyond_contact;
 
-
-  // comment next line to turn off templating
-/*#define TEMPLATED_PAIR_GRANULAR
-#ifdef TEMPLATED_PAIR_GRANULAR
-  template < int Tp_coeff_types,
-  int Tp_normal, int Tp_damping, int Tp_tangential,
-  int Tp_rolling, int Tp_twisting >
-  void compute_templated(int eflag, int vflag);
-#else
-*/
-  void compute_untemplated(
-      int,
-      int, int, int,
-      int, int,
-      int, int);
-//#endif
-
- private:
+private:
   int coeff_types;
   int size_history;
 
@@ -91,6 +75,7 @@ public:
   int normal_global, damping_global;
   int tangential_global, rolling_global, twisting_global;
 
+  int history_flag;
   int tangential_history, rolling_history, twisting_history;
   int tangential_history_index;
   int rolling_history_index;
@@ -109,6 +94,7 @@ public:
   double mix_stiffnessE(double Eii, double Ejj, double Gii, double Gjj);
   double mix_stiffnessG(double Eii, double Ejj, double Gii, double Gjj);
   double mix_geom(double valii, double valjj);
+  double pulloff_distance(double radius, int itype);
 };
 
 }

@@ -39,10 +39,12 @@ Contributing authors: Leo Silbert (SNL), Gary Grest (SNL),
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define ONETHIRD 0.33333333333333333
-#define TWOTHIRDS 0.66666666666666666
-#define POW6ONE 0.550321208149104 //6^(-1/3)
-#define POW6TWO 0.30285343213869  //6^(-2/3)
+#define PI27SQ 266.47931882941264802866    // 27*PI**2
+#define THREEROOT3 5.19615242270663202362  // 3*sqrt(3)
+#define SIXROOT6 14.69693845669906728801   // 6*sqrt(6)
+#define INVROOT6 0.40824829046386307274    // 1/sqrt(6)
+#define FOURTHIRDS 1.333333333333333       // 4/3
+#define TWOPI 6.28318530717959             // 2*PI
 
 #define EPSILON 1e-10
 
@@ -97,17 +99,6 @@ PairGranular::~PairGranular()
     memory->destroy(cutsq);
 
     memory->destroy(cut);
-    memory->destroy(E);
-    memory->destroy(G);
-    memory->destroy(normaldamp);
-    memory->destroy(rollingdamp);
-    memory->destroy(alpha);
-    memory->destroy(gamman);
-    memory->destroy(muS);
-    memory->destroy(Ecoh);
-    memory->destroy(kR);
-    memory->destroy(muR);
-    memory->destroy(etaR);
 
     delete [] onerad_dynamic;
     delete [] onerad_frozen;
@@ -117,215 +108,38 @@ PairGranular::~PairGranular()
   memory->destroy(mass_rigid);
 }
 
-void PairGranular::compute(int eflag, int vflag){
-  /*
-#ifdef TEMPLATED_PAIR_GRANULAR
-    if (normal == 0){
-      if (damping == 0){
-        if (tangential == 0){
-          if (rolling == 0){
-            if (twisting == 0)      compute_templated<0,0,0,0,0,0>(eflag, vflag);
-            else if (twisting == 1) compute_templated<0,0,0,0,0,1>(eflag, vflag);
-            else if (twisting == 2) compute_templated<0,0,0,0,0,2>(eflag, vflag);
-          }
-          else if (rolling == 1){
-            if (twisting == 0)      compute_templated<0,0,0,0,1,0>(eflag, vflag);
-            else if (twisting == 1) compute_templated<0,0,0,0,1,1>(eflag, vflag);
-            else if (twisting == 2) compute_templated<0,0,0,0,1,2>(eflag, vflag);
-          }
-          else if (rolling == 2){
-            if (twisting == 0)      compute_templated<0,0,0,0,2,0>(eflag, vflag);
-            else if (twisting == 1) compute_templated<0,0,0,0,2,1>(eflag, vflag);
-            else if (twisting == 2) compute_templated<0,0,0,0,2,2>(eflag, vflag);
-          }
-        }
-        else if (tangential == 1){
-          if (rolling == 0){
-            if (twisting == 0)      compute_templated<0,0,0,1,0,0>(eflag, vflag);
-            else if (twisting == 1) compute_templated<0,0,0,1,0,1>(eflag, vflag);
-            else if (twisting == 2) compute_templated<0,0,0,1,0,2>(eflag, vflag);
-          }
-          else if (rolling == 1){
-            if (twisting == 0)      compute_templated<0,0,0,1,1,0>(eflag, vflag);
-            else if (twisting == 1) compute_templated<0,0,0,1,1,1>(eflag, vflag);
-            else if (twisting == 2) compute_templated<0,0,0,1,1,2>(eflag, vflag);
-          }
-          else if (rolling == 2){
-            if (twisting == 0)      compute_templated<0,0,0,1,2,0>(eflag, vflag);
-            else if (twisting == 1) compute_templated<0,0,0,1,2,1>(eflag, vflag);
-            else if (twisting == 2) compute_templated<0,0,0,1,2,2>(eflag, vflag);
-          }
-        }
-        else if (tangential == 2){
-          if (rolling == 0){
-            if (twisting == 0)      compute_templated<0,0,0,2,0,0>(eflag, vflag);
-            else if (twisting == 1) compute_templated<0,0,0,2,0,1>(eflag, vflag);
-            else if (twisting == 2) compute_templated<0,0,0,2,0,2>(eflag, vflag);
-          }
-          else if (rolling == 1){
-            if (twisting == 0)      compute_templated<0,0,0,2,1,0>(eflag, vflag);
-            else if (twisting == 1) compute_templated<0,0,0,2,1,1>(eflag, vflag);
-            else if (twisting == 2) compute_templated<0,0,0,2,1,2>(eflag, vflag);
-          }
-          else if (rolling == 2){
-            if (twisting == 0)      compute_templated<0,0,0,2,2,0>(eflag, vflag);
-            else if (twisting == 1) compute_templated<0,0,0,2,2,1>(eflag, vflag);
-            else if (twisting == 2) compute_templated<0,0,0,2,2,2>(eflag, vflag);
-          }
-        }
-      }
-      else if (damping == 1){
-        if (tangential == 0){
-          if (rolling == 0){
-            if (twisting == 0)      compute_templated<0,0,1,0,0,0>(eflag, vflag);
-            else if (twisting == 1) compute_templated<0,0,1,0,0,1>(eflag, vflag);
-            else if (twisting == 2) compute_templated<0,0,1,0,0,2>(eflag, vflag);
-          }
-          else if (rolling == 1){
-            if (twisting == 0)      compute_templated<0,0,1,0,1,0>(eflag, vflag);
-            else if (twisting == 1) compute_templated<0,0,1,0,1,1>(eflag, vflag);
-            else if (twisting == 2) compute_templated<0,0,1,0,1,2>(eflag, vflag);
-          }
-          else if (rolling == 2){
-            if (twisting == 0)      compute_templated<0,0,1,0,2,0>(eflag, vflag);
-            else if (twisting == 1) compute_templated<0,0,1,0,2,1>(eflag, vflag);
-            else if (twisting == 2) compute_templated<0,0,1,0,2,2>(eflag, vflag);
-          }
-        }
-        else if (tangential == 1){
-          if (rolling == 0){
-            if (twisting == 0)      compute_templated<0,0,1,1,0,0>(eflag, vflag);
-            else if (twisting == 1) compute_templated<0,0,1,1,0,1>(eflag, vflag);
-            else if (twisting == 2) compute_templated<0,0,1,1,0,2>(eflag, vflag);
-          }
-          else if (rolling == 1){
-            if (twisting == 0)      compute_templated<0,0,1,1,1,0>(eflag, vflag);
-            else if (twisting == 1) compute_templated<0,0,1,1,1,1>(eflag, vflag);
-            else if (twisting == 2) compute_templated<0,0,1,1,1,2>(eflag, vflag);
-          }
-          else if (rolling == 2){
-            if (twisting == 0)      compute_templated<0,0,1,1,2,0>(eflag, vflag);
-            else if (twisting == 1) compute_templated<0,0,1,1,2,1>(eflag, vflag);
-            else if (twisting == 2) compute_templated<0,0,1,1,2,2>(eflag, vflag);
-          }
-        }
-        else if (tangential == 2){
-          if (rolling == 0){
-            if (twisting == 0)      compute_templated<0,0,1,2,0,0>(eflag, vflag);
-            else if (twisting == 1) compute_templated<0,0,1,2,0,1>(eflag, vflag);
-            else if (twisting == 2) compute_templated<0,0,1,2,0,2>(eflag, vflag);
-          }
-          else if (rolling == 1){
-            if (twisting == 0)      compute_templated<0,0,1,2,1,0>(eflag, vflag);
-            else if (twisting == 1) compute_templated<0,0,1,2,1,1>(eflag, vflag);
-            else if (twisting == 2) compute_templated<0,0,1,2,1,2>(eflag, vflag);
-          }
-          else if (rolling == 2){
-            if (twisting == 0)      compute_templated<0,0,1,2,2,0>(eflag, vflag);
-            else if (twisting == 1) compute_templated<0,0,1,2,2,1>(eflag, vflag);
-            else if (twisting == 2) compute_templated<0,0,1,2,2,2>(eflag, vflag);
-          }
-        }
-      }
-      else if (damping == 2){
-        if (tangential == 0){
-          if (rolling == 0){
-            if (twisting == 0)      compute_templated<0,0,2,0,0,0>(eflag, vflag);
-            else if (twisting == 1) compute_templated<0,0,2,0,0,1>(eflag, vflag);
-            else if (twisting == 2) compute_templated<0,0,2,0,0,2>(eflag, vflag);
-          }
-          else if (rolling == 1){
-            if (twisting == 0)      compute_templated<0,0,2,0,1,0>(eflag, vflag);
-            else if (twisting == 1) compute_templated<0,0,2,0,1,1>(eflag, vflag);
-            else if (twisting == 2) compute_templated<0,0,2,0,1,2>(eflag, vflag);
-          }
-          else if (rolling == 2){
-            if (twisting == 0)      compute_templated<0,0,2,0,2,0>(eflag, vflag);
-            else if (twisting == 1) compute_templated<0,0,2,0,2,1>(eflag, vflag);
-            else if (twisting == 2) compute_templated<0,0,2,0,2,2>(eflag, vflag);
-          }
-        }
-        else if (tangential == 1){
-          if (rolling == 0){
-            if (twisting == 0)      compute_templated<0,0,2,1,0,0>(eflag, vflag);
-            else if (twisting == 1) compute_templated<0,0,2,1,0,1>(eflag, vflag);
-            else if (twisting == 2) compute_templated<0,0,2,1,0,2>(eflag, vflag);
-          }
-          else if (rolling == 1){
-            if (twisting == 0)      compute_templated<0,0,2,1,1,0>(eflag, vflag);
-            else if (twisting == 1) compute_templated<0,0,2,1,1,1>(eflag, vflag);
-            else if (twisting == 2) compute_templated<0,0,2,1,1,2>(eflag, vflag);
-          }
-          else if (rolling == 2){
-            if (twisting == 0)      compute_templated<0,0,2,1,2,0>(eflag, vflag);
-            else if (twisting == 1) compute_templated<0,0,2,1,2,1>(eflag, vflag);
-            else if (twisting == 2) compute_templated<0,0,2,1,2,2>(eflag, vflag);
-          }
-        }
-        else if (tangential == 2){
-          if (rolling == 0){
-            if (twisting == 0)      compute_templated<0,0,2,2,0,0>(eflag, vflag);
-            else if (twisting == 1) compute_templated<0,0,2,2,0,1>(eflag, vflag);
-            else if (twisting == 2) compute_templated<0,0,2,2,0,2>(eflag, vflag);
-          }
-          else if (rolling == 1){
-            if (twisting == 0)      compute_templated<0,0,2,2,1,0>(eflag, vflag);
-            else if (twisting == 1) compute_templated<0,0,2,2,1,1>(eflag, vflag);
-            else if (twisting == 2) compute_templated<0,0,2,2,1,2>(eflag, vflag);
-          }
-          else if (rolling == 2){
-            if (twisting == 0)      compute_templated<0,0,2,2,2,0>(eflag, vflag);
-            else if (twisting == 1) compute_templated<0,0,2,2,2,1>(eflag, vflag);
-            else if (twisting == 2) compute_templated<0,0,2,2,2,2>(eflag, vflag);
-          }
-        }
-      }
-    }
-
-
-  }
-#else
-#endif
-*/
-  compute_untemplated(Tp_coeff_types, Tp_normal, Tp_damping, Tp_tangential,
-      Tp_rolling, Tp_twisting, eflag, vflag);
-}
-/* ---------------------------------------------------------------------- */
-/*#ifdef TEMPLATED_PAIR_GRANULAR
-template < int Tp_coeff_types,
-           int Tp_normal, int Tp_damping, int Tp_tangential,
-           int Tp_rolling, int Tp_twisting >
-void PairGranular::compute_templated(int eflag, int vflag)
-#else
-*/
-void PairGranular::compute_untemplated
-  (int Tp_coeff_types,
-   int Tp_normal, int Tp_damping, int Tp_tangential,
-   int Tp_rolling, int Tp_twisting,
-   int eflag, int vflag)
-//#endif
+void PairGranular::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,fx,fy,fz,nx,ny,nz;
-  double radi,radj,radsum,rsq,r,rinv,rsqinv,R,a;
+  double radi,radj,radsum,rsq,r,rinv,rsqinv;
+  double Reff, delta, dR, dR2, sqdR, knfac;
+
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
   double wr1,wr2,wr3;
   double vtr1,vtr2,vtr3,vrel;
-  double kn, kt, k_Q, k_R, eta_N, eta_T, eta_Q, eta_R;
+
+  double damp_normal, damp_tangential;
+  double kt;
   double Fne, Fdamp, Fntot, Fscrit, Frcrit;
 
   //For JKR
-  double R, R2, coh, delta_pulloff, dist_pulloff, a, E;
-  double overlap, olapsq, olapcubed, sqrtterm, tmp, a0;
-  double keyterm, keyterm2, keyterm3, aovera0, foverFc;
+  double R2, coh, delta_pulloff, dist_pulloff, a, a2, E;
+  double delta, t0, t1, t2, t3, t4, t5, t6;
+  double sqrt1, sqrt2, sqrt3, sqrt4;
 
   double mi,mj,meff,damp,ccel,tor1,tor2,tor3;
   double relrot1,relrot2,relrot3,vrl1,vrl2,vrl3,vrlmag,vrlmaginv;
+
+  //Rolling
   double rollmag, rolldotn, scalefac;
   double fr, fr1, fr2, fr3;
+
+  //Twisting
   double signtwist, magtwist, magtortwist, Mtcrit;
   double fs,fs1,fs2,fs3,roll1,roll2,roll3,torroll1,torroll2,torroll3;
   double tortwist1, tortwist2, tortwist3;
+
   double shrmag,rsht;
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *touch,**firsttouch;
@@ -378,15 +192,6 @@ void PairGranular::compute_untemplated
   firsttouch = fix_history->firstflag;
   firsthistory = fix_history->firstvalue;
 
-  double coh;
-  double **cohesion;
-  double **stiffness;
-  double **damping;
-  if (Tp_normal == JKR){
-    cohesion = coeffs[normal_coeff_inds[4]];
-  }
-
-
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     itype = type[i];
@@ -413,12 +218,13 @@ void PairGranular::compute_untemplated
       radsum = radi + radj;
       untouchflag = (rsq >= radsum*radsum);
 
+      E = normal_coeffs[itype][jtype][0];
+      Reff = radi*radj/(radi+radj);
       if (normal[itype][jtype] == JKR){
-        R = radi*radj/(radi+radj);
-        R2 = R*R;
-        coh = cohesion[itype][jtype];
+        R2 = Reff*Reff;
+        coh = normal_coeffs[itype][jtype][3];
         a = cbrt(9.0*M_PI*coh*R2/(4*E));
-        delta_pulloff = a*a/R - 2*sqrt(M_PI*coh*a/E);
+        delta_pulloff = a*a/Reff - 2*sqrt(M_PI*coh*a/E);
         dist_pulloff = radsum+delta_pulloff;
         untouchflag = (rsq >= (dist_pulloff)*(dist_pulloff));
       }
@@ -466,22 +272,52 @@ void PairGranular::compute_untemplated
         if (mask[i] & freeze_group_bit) meff = mj;
         if (mask[j] & freeze_group_bit) meff = mi;
 
-        //****************************************
-        //Normal force = JKR-adjusted Hertzian contact + damping
-        //****************************************
+        delta = radsum - r;
+
         if (normal[itype][jtype] == JKR){
-
+          dR = delta*Reff;
+          dR2 = dR*dR;
+          t0 = coh*coh*R2*R2*E;
+          t1 = PI27SQ*t0;
+          t2 = 8*dR*dR2*E*E*E;
+          t3 = 4*dR2*E;
+          sqrt1 = MAX(0, t0*(t1+2*t2)); //In case of sqrt(0) < 0 due to precision issues
+          t4 = cbrt(t1+t2+THREEROOT3*M_PI*sqrt(sqrt1));
+          t5 = t3/t4 + t4/E;
+          sqrt2 = MAX(0, 2*dR + t5);
+          t6 = sqrt(sqrt2);
+          sqrt3 = MAX(0, 4*dR - t5 + SIXROOT6*coh*M_PI*R2/(E*t6));
+          a = INVROOT6*(t6 + sqrt(sqrt3));
+          a2 = a*a;
+          knfac = FOURTHIRDS*E*a;
+          Fne = knfac*a2/Reff - TWOPI*a2*sqrt(4*coh*E/(M_PI*a));
         }
-        //Damping
-        kn = 4.0/3.0*E[itype][jtype]*a;
-        if (normaldamp[itype][jtype] == BRILLIANTOV) eta_N = a*meff*gamman[itype][jtype];
-        else if (normaldamp[itype][jtype] == TSUJI) eta_N=alpha[itype][jtype]*sqrt(meff*kn);
 
-        Fdamp = -eta_N*vnnr; //F_nd eq 23 and Zhao eq 19
+        else if (normal[itype][jtype] != HOOKE){  //HERTZ, DMT
+          a = sqdR = sqrt(dR);
+          knfac = FOURTHIRDS*E*sqdR;
+          Fne = knfac*delta;
+        }
+        else{ //Hooke
+          knfac = FOURTHIRDS*E;
+          Fne = knfac*delta;
+        }
+
+        //Consider restricting Hooke to only have 'velocity' as an option for damping?
+        if (damping[itype][jtype] == VELOCITY){
+          damp_normal = normal_coeffs[itype][jtype][1];
+        }
+        else if (damping[itype][jtype] == VISCOELASTIC){
+          if (normal[itype][jtype] == HOOKE) sqdR = sqrt(dR);
+          damp_normal = normal_coeffs[itype][jtype][1]*sqdR*meff;
+        }
+        else if (damping[itype][jtype] == TSUJI){
+          damp_normal = normal_coeffs[itype][jtype][1]*sqrt(meff*knfac);
+        }
+
+        Fdamp = -damp_normal*vnnr;
 
         Fntot = Fne + Fdamp;
-        //if (screen) fprintf(screen,"%d %d %16.16g %16.16g  \n",itype,jtype,Ecoh[itype][jtype],E[itype][jtype]);
-        //if (logfile) fprintf(logfile,"%d %d %16.16g %16.16g \n",itype,jtype,Ecoh[itype][jtype],E[itype][jtype]);
 
         //****************************************
         //Tangential force, including history effects
@@ -505,54 +341,58 @@ void PairGranular::compute_untemplated
         vrel = sqrt(vrel);
 
         // history effects
-        touch[jj] = 1;
-        history = &allhistory[size_history*jj];
-        shrmag = sqrt(history[0]*history[0] + history[1]*history[1] +
-            history[2]*history[2]);
+        if (tangential_history[itype][jtype]){
+          touch[jj] = 1;
+          history = &allhistory[size_history*jj];
+          shrmag = sqrt(history[0]*history[0] + history[1]*history[1] +
+              history[2]*history[2]);
 
-        // Rotate and update displacements.
-        // See e.g. eq. 17 of Luding, Gran. Matter 2008, v10,p235
-        if (historyupdate) {
-          rsht = history[0]*nx + history[1]*ny + history[2]*nz;
-          if (fabs(rsht) < EPSILON) rsht = 0;
-          if (rsht > 0){
-            scalefac = shrmag/(shrmag - rsht); //if rhst == shrmag, contacting pair has rotated 90 deg. in one step, in which case you deserve a crash!
-            history[0] -= rsht*nx;
-            history[1] -= rsht*ny;
-            history[2] -= rsht*nz;
-            //Also rescale to preserve magnitude
-            history[0] *= scalefac;
-            history[1] *= scalefac;
-            history[2] *= scalefac;
+          // Rotate and update displacements.
+          // See e.g. eq. 17 of Luding, Gran. Matter 2008, v10,p235
+          if (historyupdate) {
+            rsht = history[0]*nx + history[1]*ny + history[2]*nz;
+            if (fabs(rsht) < EPSILON) rsht = 0;
+            if (rsht > 0){
+              scalefac = shrmag/(shrmag - rsht); //if rhst == shrmag, contacting pair has rotated 90 deg. in one step, in which case you deserve a crash!
+              history[0] -= rsht*nx;
+              history[1] -= rsht*ny;
+              history[2] -= rsht*nz;
+              //Also rescale to preserve magnitude
+              history[0] *= scalefac;
+              history[1] *= scalefac;
+              history[2] *= scalefac;
+            }
+            //Update history
+            history[0] += vtr1*dt;
+            history[1] += vtr2*dt;
+            history[2] += vtr3*dt;
           }
-          //Update history
-          history[0] += vtr1*dt;
-          history[1] += vtr2*dt;
-          history[2] += vtr3*dt;
-        }
 
-        // tangential forces = history + tangential velocity damping
-        // following Zhao and Marshall Phys Fluids v20, p043302 (2008)
-        kt=8.0*G[itype][jtype]*a;
+          // tangential forces = history + tangential velocity damping
+          if (normal[itype][jtype] == HOOKE) a = sqdR = sqrt(dR);
+          kt=tangential_coeffs[itype][jtype][0]*a;
 
-        eta_T = eta_N; //Based on discussion in Marshall; eta_T can also be an independent parameter
-        fs1 = -kt*history[0] - eta_T*vtr1; //eq 26
-        fs2 = -kt*history[1] - eta_T*vtr2;
-        fs3 = -kt*history[2] - eta_T*vtr3;
+          damp_tangential = tangential_coeffs[itype][jtype][1]*damp_normal;
+          fs1 = -kt*history[0] - damp_tangential*vtr1;
+          fs2 = -kt*history[1] - damp_tangential*vtr2;
+          fs3 = -kt*history[2] - damp_tangential*vtr3;
 
-        // rescale frictional displacements and forces if needed
-        Fscrit = muS[itype][jtype] * fabs(Fne + 2*F_C);
-        // For JKR, use eq 43 of Marshall. For DMT, use Fne instead
+          // rescale frictional displacements and forces if needed
+          if (normal[itype][jtype] == JKR){
+            double Fpulloff = -3*M_PI*coh*Reff;
+            Fscrit = tangential_coeffs[itype][jtype][2] * fabs(Fne + 2*Fpulloff);
+          }
+          else{
+            Fscrit = tangential_coeffs[itype][jtype][2] * fabs(Fne);
+          }
+          // For JKR, use eq 43 of Marshall. For DMT, use Fne instead
 
         fs = sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
         if (fs > Fscrit) {
           if (shrmag != 0.0) {
-            //history[0] = (Fcrit/fs) * (history[0] + eta_T*vtr1/kt) - eta_T*vtr1/kt;
-            //history[1] = (Fcrit/fs) * (history[1] + eta_T*vtr1/kt) - eta_T*vtr1/kt;
-            //history[2] = (Fcrit/fs) * (history[2] + eta_T*vtr1/kt) - eta_T*vtr1/kt;
-            history[0] = -1.0/kt*(Fscrit*fs1/fs + eta_T*vtr1); //Same as above, but simpler (check!)
-            history[1] = -1.0/kt*(Fscrit*fs2/fs + eta_T*vtr2);
-            history[2] = -1.0/kt*(Fscrit*fs3/fs + eta_T*vtr3);
+            history[0] = -1.0/kt*(Fscrit*fs1/fs + damp_tangential*vtr1);
+            history[1] = -1.0/kt*(Fscrit*fs2/fs + damp_tangential*vtr2);
+            history[2] = -1.0/kt*(Fscrit*fs3/fs + damp_tangential*vtr3);
             fs1 *= Fscrit/fs;
             fs2 *= Fscrit/fs;
             fs3 *= Fscrit/fs;
@@ -715,6 +555,7 @@ void PairGranular::allocate()
       setflag[i][j] = 0;
 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
+  memory->create(cut,n+1,n+1,"pair:cut");
   memory->create(normal_coeffs,n+1,n+1,4,"pair:normal_coeffs");
   memory->create(tangential_coeffs,n+1,n+1,3,"pair:tangential_coeffs");
   memory->create(rolling_coeffs,n+1,n+1,3,"pair:rolling_coeffs");
@@ -770,6 +611,7 @@ void PairGranular::settings(int narg, char **arg)
       normal_global = HERTZ;
       memory->create(normal_coeffs_global, num_coeffs, "pair:normal_coeffs_global");
       normal_coeffs_global[0] = force->numeric(FLERR,arg[iarg+1]); //kn or E
+      if (coeff_types == STIFFNESS) normal_coeffs_global[0] /= FOURTHIRDS;
       normal_coeffs_global[1] = force->numeric(FLERR,arg[iarg+2]); //damping
       if (coeff_types == MATERIAL) normal_coeffs_global[2] = force->numeric(FLERR,arg[iarg+3]); //G (if 'material')
       iarg += num_coeffs+1;
@@ -956,6 +798,7 @@ void PairGranular::coeff(int narg, char **arg)
       if (iarg + offset >= narg) error->all(FLERR,"Illegal pair_coeff command, not enough parameters provided for Hertz option");
       normal_local = HERTZ;
       normal_coeffs_local[0] = force->numeric(FLERR,arg[iarg+1]); //kn or E
+      if (coeff_types == STIFFNESS) normal_coeffs_local[0] /= FOURTHIRDS;
       normal_coeffs_local[1] = force->numeric(FLERR,arg[iarg+2]); //damping
       if (coeff_types == MATERIAL) normal_coeffs_local[2] = force->numeric(FLERR,arg[iarg+3]); //G (if 'material')
       iarg += num_coeffs+1;
@@ -1079,6 +922,8 @@ void PairGranular::coeff(int narg, char **arg)
           twisting_coeffs[i][j][k] = twisting_coeffs_local[k];
 
       setflag[i][j] = 1;
+      double cut_one;
+
       count++;
     }
   }
@@ -1100,18 +945,36 @@ void PairGranular::init_style()
   if (comm->ghost_velocity == 0)
     error->all(FLERR,"Pair granular requires ghost atoms store velocity");
 
-  // need a granular neigh list
+  // Determine whether we need a granular neigh list, how large it needs to be
+  history_flag = tangential_history || rolling_history || twisting_history;
+  size_history = 3*tangential_history + 3*rolling_history + twisting_history;
+
+  //Determine location of tangential/rolling/twisting histories in array
+  if (rolling_history){
+    if (tangential_history) rolling_history_index = 3;
+    else rolling_history_index = 0;
+  }
+  if (twisting_history){
+    if (tangential_history){
+      if (rolling_history) twisting_history_index = 6;
+      else twisting_history_index = 3;
+    }
+    else{
+      if (rolling_history) twisting_history_index = 3;
+      else twisting_history_index = 0;
+    }
+  }
 
   int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->size = 1;
-  if (history) neighbor->requests[irequest]->history = 1;
+  if (history_flag) neighbor->requests[irequest]->history = 1;
 
   dt = update->dt;
 
   // if history is stored:
   // if first init, create Fix needed for storing history
 
-  if (history && fix_history == NULL) {
+  if (history_flag && fix_history == NULL) {
     char dnumstr[16];
     sprintf(dnumstr,"%d",size_history);
     char **fixarg = new char*[4];
@@ -1159,13 +1022,15 @@ void PairGranular::init_style()
     onerad_dynamic[i] = onerad_frozen[i] = 0.0;
     if (ipour >= 0) {
       itype = i;
-      onerad_dynamic[i] =
-          *((double *) modify->fix[ipour]->extract("radius",itype));
+      double radmax = *((double *) modify->fix[ipour]->extract("radius",itype));
+      if (normal[itype][itype] == JKR) radmax = radmax + 0.5*pulloff_distance(radmax, itype);
+      onerad_dynamic[i] = radmax;
     }
     if (idep >= 0) {
       itype = i;
-      onerad_dynamic[i] =
-          *((double *) modify->fix[idep]->extract("radius",itype));
+      double radmax = *((double *) modify->fix[idep]->extract("radius",itype));
+      if (normal[itype][itype] == JKR) radmax = radmax + 0.5*pulloff_distance(radmax, itype);
+      onerad_dynamic[i] = radmax;
     }
   }
 
@@ -1174,11 +1039,18 @@ void PairGranular::init_style()
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
-  for (i = 0; i < nlocal; i++) 
-    if (mask[i] & freeze_group_bit)
-      onerad_frozen[type[i]] = MAX(onerad_frozen[type[i]],radius[i]);
-    else
-      onerad_dynamic[type[i]] = MAX(onerad_dynamic[type[i]],radius[i]);
+  for (i = 0; i < nlocal; i++){
+    double radius_cut = radius[i];
+    if (normal[type[i]][type[i]] == JKR){
+      radius_cut = radius[i] + 0.5*pulloff_distance(radius[i], type[i]);
+    }
+    if (mask[i] & freeze_group_bit){
+      onerad_frozen[type[i]] = MAX(onerad_frozen[type[i]],radius_cut);
+    }
+    else{
+      onerad_dynamic[type[i]] = MAX(onerad_dynamic[type[i]],radius_cut);
+    }
+  }
 
   MPI_Allreduce(&onerad_dynamic[1],&maxrad_dynamic[1],atom->ntypes,
       MPI_DOUBLE,MPI_MAX,world);
@@ -1187,7 +1059,7 @@ void PairGranular::init_style()
 
   // set fix which stores history info
 
-  if (size_history > 0) {
+  if (size_history > 0){
     int ifix = modify->find_fix("NEIGH_HISTORY");
     if (ifix < 0) error->all(FLERR,"Could not find pair fix neigh history ID");
     fix_history = (FixNeighHistory *) modify->fix[ifix];
@@ -1219,10 +1091,11 @@ double PairGranular::init_one(int i, int j)
           normal_coeffs[i][i][2], normal_coeffs[j][j][2]);
     }
     else{
-      normal_coeffs[i][j][0] = mix_geom(normal_coeffs[i][i][0], normal_coeffs[j][j][0];)
+      normal_coeffs[i][j][0] = mix_geom(normal_coeffs[i][i][0], normal_coeffs[j][j][0]);
+      if (normal[i][j] == HERTZ) normal_coeffs[i][j][0] /= FOURTHIRDS;
     }
 
-    normal_coeffs[i][j][1] = mix_geom(normal_coeffs[i][i][1], normal_coeffs[j][j][1];)
+    normal_coeffs[i][j][1] = mix_geom(normal_coeffs[i][i][1], normal_coeffs[j][j][1]);
     if ((normal[i][i] == JKR) || (normal[i][i] == DMT))
       normal_coeffs[i][j][3] = mix_geom(normal_coeffs[i][i][3], normal_coeffs[j][j][3]);
 
@@ -1240,32 +1113,31 @@ double PairGranular::init_one(int i, int j)
       for (int k = 0; k < 3; k++)
         twisting_coeffs[i][j][k] = mix_geom(twisting_coeffs[i][i][k], twisting_coeffs[j][j][k]);
     }
+  }
 
-  double cutoff = cut[i][j];
-
-  // It is likely that cut[i][j] at this point is still 0.0. This can happen when 
+  // It is possible that cut[i][j] at this point is still 0.0. This can happen when
   // there is a future fix_pour after the current run. A cut[i][j] = 0.0 creates
   // problems because neighbor.cpp uses min(cut[i][j]) to decide on the bin size
-  // To avoid this issue,for cases involving  cut[i][j] = 0.0 (possible only
+  // To avoid this issue, for cases involving  cut[i][j] = 0.0 (possible only
   // if there is no current information about radius/cutoff of type i and j).
-  // we assign cutoff = min(cut[i][j]) for i,j such that cut[i][j] > 0.0.
+  // we assign cutoff = max(cut[i][j]) for i,j such that cut[i][j] > 0.0.
 
-  if (cut[i][j] < 0.0) {
-    if (((maxrad_dynamic[i] > 0.0) && (maxrad_dynamic[j] > 0.0)) || ((maxrad_dynamic[i] > 0.0) && (maxrad_frozen[j] > 0.0)) ||
-        ((maxrad_frozen[i] > 0.0) && (maxrad_dynamic[j] > 0.0))) { // radius info about both i and j exist
-      cutoff = maxrad_dynamic[i]+maxrad_dynamic[j];
-      cutoff = MAX(cutoff,maxrad_frozen[i]+maxrad_dynamic[j]);
-      cutoff = MAX(cutoff,maxrad_dynamic[i]+maxrad_frozen[j]);
-    }
-    else { // radius info about either i or j does not exist (i.e. not present and not about to get poured; set to largest value to not interfere with neighbor list)
-      double cutmax = 0.0;
-      for (int k = 1; k <= atom->ntypes; k++) {
-        cutmax = MAX(cutmax,2.0*maxrad_dynamic[k]);
-        cutmax = MAX(cutmax,2.0*maxrad_frozen[k]);
-      }
-      cutoff = cutmax;
-    }
+  if (((maxrad_dynamic[i] > 0.0) && (maxrad_dynamic[j] > 0.0)) ||
+      ((maxrad_dynamic[i] > 0.0) &&  (maxrad_frozen[j] > 0.0)) ||
+      ((maxrad_frozen[i] > 0.0)  && (maxrad_dynamic[j] > 0.0))) { // radius info about both i and j exist
+    cutoff = maxrad_dynamic[i]+maxrad_dynamic[j];
+    cutoff = MAX(cutoff,maxrad_frozen[i]+maxrad_dynamic[j]);
+    cutoff = MAX(cutoff,maxrad_dynamic[i]+maxrad_frozen[j]);
   }
+  else { // radius info about either i or j does not exist (i.e. not present and not about to get poured; set to largest value to not interfere with neighbor list)
+    double cutmax = 0.0;
+    for (int k = 1; k <= atom->ntypes; k++) {
+      cutmax = MAX(cutmax,2.0*maxrad_dynamic[k]);
+      cutmax = MAX(cutmax,2.0*maxrad_frozen[k]);
+    }
+    cutoff = cutmax;
+  }
+
   return cutoff;
 }
 
@@ -1628,9 +1500,25 @@ double PairGranular::mix_stiffnessG(double Eii, double Ejj, double Gii, double G
 
 /* ----------------------------------------------------------------------
 	 mixing of everything else 
-	 ------------------------------------------------------------------------- */
+------------------------------------------------------------------------- */
 
 double PairGranular::mix_geom(double valii, double valjj)
 {
-  return sqrt(valii*valjj); 
+  return sqrt(valii*valjj);
 }
+
+
+/* ----------------------------------------------------------------------
+     Compute pull-off distance (beyond contact) for a given radius and atom type
+------------------------------------------------------------------------- */
+
+double PairGranular::pulloff_distance(double radius, int itype)
+{
+  double R, E, coh, a, delta_pulloff;
+  coh = normal_coeffs[itype][itype][3];
+  E = mix_stiffnessE(normal_coeffs[itype][itype][0], normal_coeffs[itype][itype][0],
+      normal_coeffs[itype][itype][2], normal_coeffs[itype][itype][2]);
+  a = cbrt(9*M_PI*coh*R*R/(4*E));
+  return a*a/R - 2*sqrt(M_PI*coh*a/E);
+}
+

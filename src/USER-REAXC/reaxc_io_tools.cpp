@@ -38,7 +38,7 @@ int Init_Output_Files( reax_system *system, control_params *control,
                        output_controls *out_control, mpi_datatypes *mpi_data,
                        char *msg )
 {
-  char temp[MAX_STR];
+  char temp[MAX_STR+8];
   int ret;
 
   if( out_control->write_steps > 0 ){

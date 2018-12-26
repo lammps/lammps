@@ -496,12 +496,6 @@ E: Atom sort did not operate correctly
 This is an internal LAMMPS error.  Please report it to the
 developers.
 
-E: Atom sorting has bin size = 0.0
-
-The neighbor cutoff is being used as the bin size, but it is zero.
-Thus you must explicitly list a bin size in the atom_modify sort
-command or turn off sorting.
-
 E: Too many atom sorting bins
 
 This is likely due to an immense simulation box that has blown up

@@ -1,4 +1,4 @@
-#include <string.h>
+#include <cstring>
 #include <climits>
 #include <algorithm>
 #include "ptm_graph_tools.h"

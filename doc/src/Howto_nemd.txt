@@ -55,5 +55,5 @@ using the "fix flow/gauss"_fix_flow_gauss.html command.
 :line
 
 :link(Daivis-nemd)
-[(Daivis and Todd)] Daivis and Todd, Nonequilibrium Molecular Dyanmics (book),
+[(Daivis and Todd)] Daivis and Todd, Nonequilibrium Molecular Dynamics (book),
 Cambridge University Press, https://doi.org/10.1017/9781139017848, (2017).

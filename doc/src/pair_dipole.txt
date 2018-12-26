@@ -82,7 +82,7 @@ styles.
 
 Style {lj/sf/dipole/sf} computes "shifted-force" interactions between
 pairs of particles that each have a charge and/or a point dipole
-moment. In general, a shifted-force potential is a (sligthly) modified
+moment. In general, a shifted-force potential is a (slightly) modified
 potential containing extra terms that make both the energy and its
 derivative go to zero at the cutoff distance; this removes
 (cutoff-related) problems in energy conservation and any numerical
@@ -103,8 +103,8 @@ the two particles.  Note that Eqq and Fqq are simply Coulombic energy
 and force, Fij = -Fji as symmetric forces, and Tij != -Tji since the
 torques do not act symmetrically.  The shifted-force formula for the
 Lennard-Jones potential is reported in "(Stoddard)"_#Stoddard.  The
-original (unshifted) formulas for the electrostatic potentials, forces
-and torques can be found in "(Price)"_#Price2.  The shifted-force
+original (non-shifted) formulas for the electrostatic potentials,
+forces and torques can be found in "(Price)"_#Price2. The shifted-force
 electrostatic potentials have been obtained by applying equation 5.13
 of "(Allen)"_#Allen2. The formulas for the corresponding forces and
 torques have been obtained by applying the 'chain rule' as in appendix

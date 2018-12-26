@@ -454,7 +454,7 @@ DihedralTableCut::~DihedralTableCut()
 
 void DihedralTableCut::compute(int eflag, int vflag)
 {
-  
+
   int i1,i2,i3,i4,i,j,k,n,type;
   double edihedral;
   double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,vb2xm,vb2ym,vb2zm;
@@ -704,12 +704,12 @@ void DihedralTableCut::compute(int eflag, int vflag)
     double gptt = 0;
 
     if ( acos(costh12) > aat_theta0_1[type]) {
-      gt *= 1-da1*da1/dtheta/dtheta; 
+      gt *= 1-da1*da1/dtheta/dtheta;
       gpt = -aat_k[type]*2*da1/dtheta/dtheta;
     }
 
     if ( acos(costh23) > aat_theta0_1[type]) {
-      gtt *= 1-da2*da2/dtheta/dtheta; 
+      gtt *= 1-da2*da2/dtheta/dtheta;
       gptt = -aat_k[type]*2*da2/dtheta/dtheta;
     }
 
@@ -717,7 +717,7 @@ void DihedralTableCut::compute(int eflag, int vflag)
 
       for (i = 0; i < 4; i++)
         for (j = 0; j < 3; j++)
-          fabcd[i][j] -=  - gt*gtt*fpphi*dphidr[i][j] 
+          fabcd[i][j] -=  - gt*gtt*fpphi*dphidr[i][j]
             - gt*gptt*fphi*dthetadr[1][i][j] + gpt*gtt*fphi*dthetadr[0][i][j];
 
     // apply force to each of 4 atoms

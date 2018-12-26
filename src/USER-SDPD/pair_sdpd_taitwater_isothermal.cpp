@@ -14,7 +14,7 @@
 /* ----------------------------------------------------------------------
    Contributing author:
       Morteza Jalalvand (IASBS)  jalalvand.m AT gmail.com
-    
+
     references: Espanol and Revenga, Phys Rev E 67, 026705 (2003)
 ------------------------------------------------------------------------- */
 
@@ -169,7 +169,7 @@ void PairSDPDTaitwaterIsothermal::compute (int eflag, int vflag) {
         wiener[0][0] = gaussian (generator);
         wiener[1][1] = gaussian (generator);
         wiener[2][2] = gaussian (generator);
-        
+
         wiener[0][1] = wiener[1][0] = sqrt_2_inv * gaussian (generator);
         wiener[0][2] = wiener[2][0] = sqrt_2_inv * gaussian (generator);
         wiener[1][2] = wiener[2][1] = sqrt_2_inv * gaussian (generator);
@@ -177,18 +177,18 @@ void PairSDPDTaitwaterIsothermal::compute (int eflag, int vflag) {
         wiener[0][0] = random->gaussian ();
         wiener[1][1] = random->gaussian ();
         wiener[2][2] = random->gaussian ();
-        
+
         wiener[0][1] = wiener[1][0] = sqrt_2_inv * random->gaussian ();
         wiener[0][2] = wiener[2][0] = sqrt_2_inv * random->gaussian ();
         wiener[1][2] = wiener[2][1] = sqrt_2_inv * random->gaussian ();
 #endif
-        
+
         prefactor = sqrt (-4. * kBoltzmann*temperature * fvisc * dtinv) / r;
-        
+
         f_random[0] = prefactor * (wiener[0][0]*delx + wiener[0][1]*dely + wiener[0][2]*delz);
         f_random[1] = prefactor * (wiener[1][0]*delx + wiener[1][1]*dely + wiener[1][2]*delz);
         f_random[2] = prefactor * (wiener[2][0]*delx + wiener[2][1]*dely + wiener[2][2]*delz);
-        
+
         f[i][0] += delx * fpair + (velx + delx * delVdotDelR / rsq) * fvisc + f_random[0];
         f[i][1] += dely * fpair + (vely + dely * delVdotDelR / rsq) * fvisc + f_random[1];
         f[i][2] += delz * fpair + (velz + delz * delVdotDelR / rsq) * fvisc + f_random[2];
@@ -241,13 +241,13 @@ void PairSDPDTaitwaterIsothermal::settings (int narg, char **arg) {
   if (narg != 2 && narg != 3)
     error->all (FLERR, "Illegal number of arguments for "
                 "pair_style sdpd/taitwater/morris/isothermal");
-  
+
   temperature = force->numeric (FLERR, arg[0]);
   viscosity = force->numeric (FLERR, arg[1]);
-  
+
   if (temperature <= 0) error->all (FLERR, "Temperature must be positive");
   if (viscosity <= 0) error->all (FLERR, "Viscosity must be positive");
-  
+
   // seed is immune to underflow/overflow because it is unsigned
   seed = comm->nprocs + comm->me + atom->nlocal;
   if (narg == 3) seed += force->inumeric (FLERR, arg[2]);
@@ -266,7 +266,7 @@ void PairSDPDTaitwaterIsothermal::coeff (int narg, char **arg) {
   if (narg != 5)
     error->all (FLERR, "Incorrect args for pair_style "
                 "sph/taitwater/morris coefficients");
-  
+
   if (!allocated) allocate();
 
   int ilo, ihi, jlo, jhi;
@@ -277,7 +277,7 @@ void PairSDPDTaitwaterIsothermal::coeff (int narg, char **arg) {
   double soundspeed_one = force->numeric (FLERR,arg[3]);
   double cut_one = force->numeric (FLERR,arg[4]);
   double B_one = soundspeed_one * soundspeed_one * rho0_one / 7.0;
-  
+
   if (rho0_one <= 0) error->all (FLERR, "Density must be positive");
   if (soundspeed_one <= 0) error->all (FLERR, "Sound speed must be positive");
   if (cut_one <= 0) error->all (FLERR, "Cutoff must be positive");
@@ -304,7 +304,7 @@ void PairSDPDTaitwaterIsothermal::coeff (int narg, char **arg) {
  ------------------------------------------------------------------------- */
 
 double PairSDPDTaitwaterIsothermal::init_one (int i, int j) {
-  if (setflag[i][j] == 0) 
+  if (setflag[i][j] == 0)
     error->all(FLERR,"Not all pair sph/taitwater/morris coeffs are set");
 
   cut[j][i] = cut[i][j];

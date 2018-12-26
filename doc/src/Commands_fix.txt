@@ -7,7 +7,7 @@ Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :line
 
-"All commands"_Commands_all.html,
+"General commands"_Commands_all.html,
 "Fix styles"_Commands_fix.html,
 "Compute styles"_Commands_compute.html,
 "Pair styles"_Commands_pair.html,
@@ -235,4 +235,4 @@ OPT.
 "wall/reflect (k)"_fix_wall_reflect.html,
 "wall/region"_fix_wall_region.html,
 "wall/region/ees"_fix_wall_ees.html,
-"wall/srd"_fix_wall_srd.html :tb(c=8,ea=c)
+"wall/srd"_fix_wall_srd.html :tb(c=6,ea=c)

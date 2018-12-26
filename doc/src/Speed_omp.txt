@@ -131,7 +131,7 @@ effect worsens when using an increasing number of nodes. :l
 The system has a spatially inhomogeneous particle density which does
 not map well to the "domain decomposition scheme"_processors.html or
 "load-balancing"_balance.html options that LAMMPS provides.  This is
-because multi-threading achives parallelism over the number of
+because multi-threading achieves parallelism over the number of
 particles, not via their distribution in space. :l
 
 A machine is being used in "capability mode", i.e. near the point
@@ -143,7 +143,7 @@ the performance-limiting factor.  Using multi-threading allows less
 MPI tasks to be invoked and can speed-up the long-range solver, while
 increasing overall performance by parallelizing the pairwise and
 bonded calculations via OpenMP.  Likewise additional speedup can be
-sometimes be achived by increasing the length of the Coulombic cutoff
+sometimes be achieved by increasing the length of the Coulombic cutoff
 and thus reducing the work done by the long-range solver.  Using the
 "run_style verlet/split"_run_style.html command, which is compatible
 with the USER-OMP package, is an alternative way to reduce the number

@@ -52,6 +52,6 @@ void ImproperDeprecated::settings(int, char **)
     writemsg(lmp,"\nImproper style 'DEPRECATED' is a dummy style\n\n",0);
 
   }
-}  
+}
 
 

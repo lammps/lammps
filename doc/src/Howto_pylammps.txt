@@ -141,16 +141,16 @@ Python code if {L} was a lammps instance:
 L.command("region box block 0 10 0 5 -0.5 0.5") :pre
 
 With the PyLammps interface, any command can be split up into arbitrary parts
-separated by whitespace, passed as individual arguments to a region method.
+separated by white-space, passed as individual arguments to a region method.
 
 L.region("box block", 0, 10, 0, 5, -0.5, 0.5) :pre
 
 Note that each parameter is set as Python literal floating-point number. In the
 PyLammps interface, each command takes an arbitrary parameter list and transparently
-merges it to a single command string, separating individual parameters by whitespace.
+merges it to a single command string, separating individual parameters by white-space.
 
 The benefit of this approach is avoiding redundant command calls and easier
-parameterization. In the original interface parametrization needed to be done
+parameterization. In the original interface parameterization needed to be done
 manually by creating formatted strings.
 
 L.command("region box block %f %f %f %f %f %f" % (xlo, xhi, ylo, yhi, zlo, zhi)) :pre
@@ -328,7 +328,7 @@ jupyter notebook :pre
 IPyLammps Examples :h4
 
 Examples of IPython notebooks can be found in the python/examples/pylammps
-subdirectory. To open these notebooks launch {jupyter notebook} inside this
+sub-directory. To open these notebooks launch {jupyter notebook} inside this
 directory and navigate to one of them. If you compiled and installed
 a LAMMPS shared library with exceptions, PNG, JPEG and FFMPEG support
 you should be able to rerun all of these notebooks.

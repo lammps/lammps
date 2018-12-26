@@ -366,7 +366,7 @@ void FixPOEMS::init()
     int pflag = 0;
     for (i = 0; i < modify->nfix; i++) {
       if (strcmp(modify->fix[i]->style,"poems") == 0) pflag = 1;
-      if (pflag && (modify->fmask[i] & POST_FORCE) && 
+      if (pflag && (modify->fmask[i] & POST_FORCE) &&
           !modify->fix[i]->rigid_flag) {
         char str[128];
         snprintf(str,128,"Fix %s alters forces after fix poems",modify->fix[i]->id);

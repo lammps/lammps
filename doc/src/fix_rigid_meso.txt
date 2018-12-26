@@ -128,7 +128,7 @@ of particles that form rigid bodies.  An integer vector defined by the
 "fix property/atom"_fix_property_atom.html command can be used.  Or an
 "atom-style or atomfile-style variable"_variable.html can be used; the
 floating-point value produced by the variable is rounded to an
-integer.  As with bondstyle {molecule}, each set of particles in the fix
+integer.  As with bodystyle {molecule}, each set of particles in the fix
 groups with the same integer value is treated as a different rigid
 body.  Since fix property/atom vectors and atom-style variables
 produce values for all particles, you should be careful to use a fix group
@@ -160,7 +160,7 @@ unaffected by interactions with other particles.  Note that if you
 expect a rigid body not to move or rotate by using these keywords, you
 must insure its initial center-of-mass translational or angular
 velocity is 0.0. Otherwise the initial translational or angular
-momentum the body has will persist.
+momentum, the body has, will persist.
 
 An xflag, yflag, or zflag set to {off} means turn off the component of
 force or torque in that dimension.  A setting of {on} means turn on
@@ -287,9 +287,10 @@ bodies.  The number of columns is 28.  Thus for each rigid body, 28
 values are stored: the xyz coords of the center of mass (COM), the xyz
 components of the COM velocity, the xyz components of the force acting
 on the COM, the components of the 4-vector quaternion representing the
-orientation of the rigid body, the xyz components of the angular momentum
+orientation of the rigid body, the xyz components of the angular velocity
 of the body around its COM, the xyz components of the torque acting on the
-COM, the 3 principal components of the moment of inertia and the xyz image
+COM, the 3 principal components of the moment of inertia, the xyz components
+of the angular momentum of the body around its COM, and the xyz image
 flags of the COM.
 
 The center of mass (COM) for each body is similar to unwrapped
@@ -345,5 +346,5 @@ torque. Also reinit = yes.
 :line
 
 :link(Miller)
-[(Miller)] Miller, Eleftheriou, Pattnaik, Ndirango, and Newns, 
+[(Miller)] Miller, Eleftheriou, Pattnaik, Ndirango, and Newns,
 J Chem Phys, 116, 8649 (2002).

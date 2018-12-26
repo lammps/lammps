@@ -521,7 +521,7 @@ void PairDPDIntel::pack_force_const(ForceConst<flt_t> &fc,
     }
   }
   if (mytypes > 1 || atom->molecular) _onetype = 0;
-  
+
   for (int i = 0; i < 4; i++) {
     fc.special_lj[i] = force->special_lj[i];
     fc.special_lj[0] = 1.0;

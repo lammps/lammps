@@ -63,7 +63,7 @@ meso"_fix_meso.html command).  It is up to you to decide whether periodic
 boundaries are appropriate with the kind of particle motion you are
 prescribing with this fix.
 
-NOTE: As dicsussed below, particles are moved relative to their initial
+NOTE: As discussed below, particles are moved relative to their initial
 position at the time the fix is specified.  These initial coordinates
 are stored by the fix in "unwrapped" form, by using the image flags
 associated with each particle.  See the "dump custom"_dump.html command

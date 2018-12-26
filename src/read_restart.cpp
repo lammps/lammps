@@ -715,7 +715,7 @@ void ReadRestart::header(int incompatible)
       domain->dimension = dimension;
       if (domain->dimension == 2 && domain->zperiodic == 0)
         error->all(FLERR,
-                   "Cannot run 2d simulation with nonperiodic Z dimension");
+                   "Cannot run 2d simulation with non-periodic Z dimension");
 
     // read nprocs from restart file, warn if different
 

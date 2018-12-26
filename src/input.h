@@ -173,9 +173,9 @@ E: Unbalanced quotes in input line
 No matching end double quote was found following a leading double
 quote.
 
-E: Input line quote not followed by whitespace
+E: Input line quote not followed by white-space
 
-An end quote must be followed by whitespace.
+An end quote must be followed by white-space.
 
 E: Invalid variable name
 
@@ -337,7 +337,7 @@ after a read_data, read_restart, or create_box command.
 
 E: Package command after simulation box is defined
 
-The package command cannot be used afer a read_data, read_restart, or
+The package command cannot be used after a read_data, read_restart, or
 create_box command.
 
 E: Package gpu command without GPU package installed

@@ -96,7 +96,7 @@ machine to a directory with the name you chose. If none is given, it will
 default to "lammps". Typical names are "mylammps" or something similar.
 
 You can use this local clone to make changes and
-test them without interfering with the repository on Github.
+test them without interfering with the repository on GitHub.
 
 To pull changes from upstream into this copy, you can go to the directory
 and use git pull:
@@ -150,7 +150,7 @@ After the commit, the changes can be pushed to the same branch on GitHub:
 $ git push :pre
 
 Git will ask you for your user name and password on GitHub if you have
-not configured anything. If your local branch is not present on Github yet,
+not configured anything. If your local branch is not present on GitHub yet,
 it will ask you to add it by running
 
   $ git push --set-upstream origin github-tutorial-update :pre
@@ -254,20 +254,53 @@ them, or if a developer has requested that something needs to be changed
 before the feature can be accepted into the official LAMMPS version.
 After each push, the automated checks are run again.
 
+[Labels]
+
+LAMMPS developers may add labels to your pull request to assign it to
+categories (mostly for bookkeeping purposes), but a few of them are
+important: needs_work, work_in_progress, test-for-regression, and
+full-regression-test. The first two indicate, that your pull request
+is not considered to be complete. With "needs_work" the burden is on
+exclusively on you; while "work_in_progress" can also mean, that a
+LAMMPS developer may want to add changes. Please watch the comments
+to the pull requests. The two "test" labels are used to trigger
+extended tests before the code is merged. This is sometimes done by
+LAMMPS developers, if they suspect that there may be some subtle
+side effects from your changes. It is not done by default, because
+those tests are very time consuming.
+
+[Reviews]
+
+As of Summer 2018, a pull request needs at least 1 approving review
+from a LAMMPS developer with write access to the repository.
+In case your changes touch code that certain developers are associated
+with, they are auto-requested by the GitHub software.  Those associations
+are set in the file
+".github/CODEOWNERS"_https://github.com/lammps/lammps/blob/master/.github/CODEOWNERS
+Thus if you want to be automatically notified to review when anybody
+changes files or packages, that you have contributed to LAMMPS, you can
+add suitable patterns to that file, or a LAMMPS developer may add you.
+
+Otherwise, you can also manually request reviews from specific developers,
+or LAMMPS developers - in their assessment of your pull request - may
+determine who else should be reviewing your contribution and add that person.
+Through reviews, LAMMPS developers also may request specific changes from you.
+If those are not addressed, your pull requests cannot be merged.
+
 [Assignees]
 
-There is an assignee label for pull requests. If the request has not
+There is an assignee property for pull requests. If the request has not
 been reviewed by any developer yet, it is not assigned to anyone. After
 revision, a developer can choose to assign it to either a) you, b) a
-LAMMPS developer (including him/herself) or c) Steve Plimpton (sjplimp).
+LAMMPS developer (including him/herself) or c) Axel Kohlmeyer (akohlmey).
 
 Case a) happens if changes are required on your part :ulb,l
 Case b) means that at the moment, it is being tested and reviewed by a
 LAMMPS developer with the expectation that some changes would be required.
 After the review, the developer can choose to implement changes directly
 or suggest them to you. :l
-Case c) means that the pull request has been assigned to the lead
-developer Steve Plimpton and means it is considered ready for merging. :ule,l
+Case c) means that the pull request has been assigned to the developer
+overseeing the merging of pull requests into the master branch. :ule,l
 
 In this case, Axel assigned the tutorial to Steve:
 
@@ -336,7 +369,7 @@ commit and push again:
  $ git commit -m "Merged Axel's suggestions and updated text"
  $ git push git@github.com:Pakketeretet2/lammps :pre
 
-This merge also shows up on the lammps Github page:
+This merge also shows up on the lammps GitHub page:
 
 :c,image(JPG/tutorial_reverse_pull_request7.png)
 
@@ -381,3 +414,6 @@ Furthermore, the naming of the patches now follow the pattern
 "patch_<Day><Month><Year>" to simplify comparisons between releases.
 Finally, all patches and submissions are subject to automatic testing
 and code checks to make sure they at the very least compile.
+
+A discussion of the LAMMPS developer GitHub workflow can be found in the file
+"doc/github-development-workflow.md"_https://github.com/lammps/lammps/blob/master/doc/github-development-workflow.md

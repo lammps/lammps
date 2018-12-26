@@ -31,8 +31,8 @@ plane @ a b c x0 y0 z0 @ a*(x-x0) + b*(y-y0) + c*(z-z0) = 0 @ A plane with norma
 plane_wiggle @ a w @ z - a*sin(w*x) = 0 @ A plane with a sinusoidal modulation on z along x.
 sphere @ R @ x^2 + y^2 + z^2 - R^2 = 0 @ A sphere of radius R
 supersphere @ R q @ | x |^q + | y |^q + | z |^q - R^q = 0 @ A supersphere of hyperradius R
-spine @ a, A, B, B2, c @ -(x^2 + y^2) + (a^2 - z^2/f(z)^2)*(1 + (A*sin(g(z)*z^2))^4), f(z) = c if z > 0, 1 otherwise; g(z) = B if z > 0, B2 otherwise  @ An approximation to a dendtritic spine
-spine_two @ a, A, B, B2, c @ -(x^2 + y^2) + (a^2 - z^2/f(z)^2)*(1 + (A*sin(g(z)*z^2))^2), f(z) = c if z > 0, 1 otherwise; g(z) = B if z > 0, B2 otherwise  @ Another approximation to a dendtritic spine
+spine @ a, A, B, B2, c @ -(x^2 + y^2) + (a^2 - z^2/f(z)^2)*(1 + (A*sin(g(z)*z^2))^4), f(z) = c if z > 0, 1 otherwise; g(z) = B if z > 0, B2 otherwise  @ An approximation to a dendritic spine
+spine_two @ a, A, B, B2, c @ -(x^2 + y^2) + (a^2 - z^2/f(z)^2)*(1 + (A*sin(g(z)*z^2))^2), f(z) = c if z > 0, 1 otherwise; g(z) = B if z > 0, B2 otherwise  @ Another approximation to a dendritic spine
 thylakoid @ wB LB lB @ Various, see "(Paquay)"_#Paquay1 @ A model grana thylakoid consisting of two block-like compartments connected by a bridge of width wB, length LB and taper length lB
 torus @ R r  @  (R - sqrt( x^2 + y^2 ) )^2 + z^2 - r^2  @ A torus with large radius R and small radius r, centered on (0,0,0) :tb(s=@)
 

@@ -360,7 +360,7 @@ void FixMesoMove::init () {
 }
 
 void FixMesoMove::setup_pre_force (int /*vflag*/) {
-  // set vest equal to v 
+  // set vest equal to v
   double **v = atom->v;
   double **vest = atom->vest;
   int *mask = atom->mask;

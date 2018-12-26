@@ -47,8 +47,8 @@ using namespace LAMMPS_NS;
 
 void vdW_Coulomb_Energy_OMP( reax_system *system, control_params *control,
                              simulation_data *data, storage *workspace,
-                             reax_list **lists, output_controls *out_control ) {
-
+                             reax_list **lists, output_controls * /* out_control */ )
+{
   int natoms = system->n;
   reax_list *far_nbrs = (*lists) + FAR_NBRS;
   double p_vdW1 = system->reax_param.gp.l[28];
@@ -254,7 +254,7 @@ void vdW_Coulomb_Energy_OMP( reax_system *system, control_params *control,
 void Tabulated_vdW_Coulomb_Energy_OMP(reax_system *system,control_params *control,
                                       simulation_data *data, storage *workspace,
                                       reax_list **lists,
-                                      output_controls *out_control ) {
+                                      output_controls * /* out_control */) {
 
   double SMALL = 0.0001;
   int  natoms = system->n;

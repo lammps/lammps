@@ -60,7 +60,7 @@ same.  If it does not rotate around the axis perpendicular to its
 circular cross section, then it should have 5 dof instead of 6 in 3d.
 The latter is the case for uniaxial ellipsoids in a "GayBerne
 model"_pair_gayberne.html since there is no induced torque around the
-optical axis.  It will also be the case for biaxial ellipsoids when
+optical axis.  It will also be the case for bi-axial ellipsoids when
 exactly two of the semiaxes have the same length and the corresponding
 relative well depths are equal.
 

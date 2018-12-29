@@ -86,7 +86,7 @@ FixNVTManifoldRattle::FixNVTManifoldRattle(LAMMPS *lmp, int narg, char **arg,
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_nvt_manifold_rattle);
 
-  if( narg < 6 ) error->all(FLERR,"Illegal fix nvt/manifold/rattle command");
+  if (narg < 6 ) error->all(FLERR,"Illegal fix nvt/manifold/rattle command");
 
   // Set all bits/settings:
   dof_flag = 1;
@@ -105,7 +105,7 @@ FixNVTManifoldRattle::FixNVTManifoldRattle(LAMMPS *lmp, int narg, char **arg,
   while( argi < narg )
   {
     if (strcmp( arg[argi], "temp") == 0) {
-      if( argi+3 >= narg )
+      if (argi+3 >= narg)
         error->all(FLERR,"Keyword 'temp' needs 3 arguments");
 
       t_start  = force->numeric(FLERR, arg[argi+1]);
@@ -116,7 +116,7 @@ FixNVTManifoldRattle::FixNVTManifoldRattle(LAMMPS *lmp, int narg, char **arg,
 
       argi += 4;
     } else if (strcmp( arg[argi], "tchain" ) == 0) {
-      if( argi+1 >= narg )
+      if (argi+1 >= narg)
         error->all(FLERR,"Keyword 'tchain' needs 1 argument");
 
       mtchain = force->inumeric(FLERR, arg[argi+1]);
@@ -132,7 +132,7 @@ FixNVTManifoldRattle::FixNVTManifoldRattle(LAMMPS *lmp, int narg, char **arg,
 
   reset_dt();
 
-  if( !got_temp ) error->all(FLERR,"Fix nvt/manifold/rattle needs 'temp'!");
+  if (!got_temp ) error->all(FLERR,"Fix nvt/manifold/rattle needs 'temp'!");
 
   if (t_period < 0.0) {
     error->all(FLERR,"Fix nvt/manifold/rattle damping parameter must be > 0.0");
@@ -158,7 +158,7 @@ FixNVTManifoldRattle::FixNVTManifoldRattle(LAMMPS *lmp, int narg, char **arg,
                "does not exist");
   }
   temperature = modify->compute[icompute];
-  if( temperature->tempbias ) which = BIAS;
+  if (temperature->tempbias) which = BIAS;
   else                        which = NOBIAS;
 
   // Set t_freq from t_period
@@ -184,13 +184,13 @@ FixNVTManifoldRattle::FixNVTManifoldRattle(LAMMPS *lmp, int narg, char **arg,
 FixNVTManifoldRattle::~FixNVTManifoldRattle()
 {
   // Deallocate heap-allocated objects.
-  if( eta )        delete[] eta;
-  if( eta_dot )    delete[] eta_dot;
-  if( eta_dotdot ) delete[] eta_dotdot;
-  if( eta_mass )   delete[] eta_mass;
+  if (eta)        delete[] eta;
+  if (eta_dot)    delete[] eta_dot;
+  if (eta_dotdot) delete[] eta_dotdot;
+  if (eta_mass)   delete[] eta_mass;
 
   modify->delete_compute(id_temp);
-  if( id_temp )    delete[] id_temp;
+  if (id_temp)    delete[] id_temp;
 }
 
 
@@ -201,7 +201,7 @@ int FixNVTManifoldRattle::setmask()
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
   mask |= FINAL_INTEGRATE;
-  if( nevery > 0 ) mask |= END_OF_STEP;
+  if (nevery > 0) mask |= END_OF_STEP;
 
   return mask;
 }
@@ -222,7 +222,7 @@ void FixNVTManifoldRattle::init()
                "does not exist");
   }
   temperature = modify->compute[icompute];
-  if( temperature->tempbias ) which = BIAS;
+  if (temperature->tempbias) which = BIAS;
   else                        which = NOBIAS;
 
 }
@@ -341,7 +341,7 @@ void FixNVTManifoldRattle::nh_v_temp()
   double **v = atom->v;
   int *mask  = atom->mask;
   int nlocal = atom->nlocal;
-  if( igroup == atom->firstgroup) nlocal = atom->nfirst;
+  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
 
 

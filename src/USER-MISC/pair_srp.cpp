@@ -197,7 +197,7 @@ void PairSRP::compute(int eflag, int vflag)
         j = jlist[jj];
 
         // enforce 1-2 exclusions
-        if( (sbmask(j) & exclude) )
+        if ((sbmask(j) & exclude))
           continue;
 
         j &= NEIGHMASK;
@@ -274,7 +274,7 @@ void PairSRP::compute(int eflag, int vflag)
         j = jlist[jj];
 
         // enforce 1-2 exclusions
-        if( (sbmask(j) & exclude) )
+        if ((sbmask(j) & exclude))
           continue;
 
         j &= NEIGHMASK;

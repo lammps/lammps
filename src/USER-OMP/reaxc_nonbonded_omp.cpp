@@ -208,7 +208,7 @@ void vdW_Coulomb_Energy_OMP( reax_system *system, control_params *control,
           ( dTap -  Tap * r_ij / dr3gamij_1 ) / dr3gamij_3;
 
         /* tally into per-atom energy */
-        if( system->pair_ptr->evflag || system->pair_ptr->vflag_atom) {
+        if (system->pair_ptr->evflag || system->pair_ptr->vflag_atom) {
           pe_vdw = Tap * (e_vdW + e_core + e_lg);
           rvec_ScaledSum( delij, 1., system->my_atoms[i].x,
                           -1., system->my_atoms[j].x );
@@ -218,7 +218,7 @@ void vdW_Coulomb_Energy_OMP( reax_system *system, control_params *control,
                                              delij[0], delij[1], delij[2], thr);
         }
 
-        if( control->virial == 0 ) {
+        if (control->virial == 0) {
           rvec_ScaledAdd( workspace->f[i], -(CEvd + CEclmb), nbr_pj->dvec );
           rvec_ScaledAdd( workspace->forceReduction[reductionOffset+j],
                           +(CEvd + CEclmb), nbr_pj->dvec );
@@ -327,7 +327,7 @@ void Tabulated_vdW_Coulomb_Energy_OMP(reax_system *system,control_params *contro
 
         /* Cubic Spline Interpolation */
         r = (int)(r_ij * t->inv_dx);
-        if( r == 0 )  ++r;
+        if (r == 0)  ++r;
         base = (double)(r+1) * t->dx;
         dif = r_ij - base;
 
@@ -349,7 +349,7 @@ void Tabulated_vdW_Coulomb_Energy_OMP(reax_system *system,control_params *contro
         CEclmb *= system->my_atoms[i].q * system->my_atoms[j].q;
 
         /* tally into per-atom energy */
-        if( system->pair_ptr->evflag || system->pair_ptr->vflag_atom) {
+        if (system->pair_ptr->evflag || system->pair_ptr->vflag_atom) {
           rvec_ScaledSum( delij, 1., system->my_atoms[i].x,
                           -1., system->my_atoms[j].x );
           f_tmp = -(CEvd + CEclmb);
@@ -357,7 +357,7 @@ void Tabulated_vdW_Coulomb_Energy_OMP(reax_system *system,control_params *contro
                                             f_tmp, delij[0], delij[1], delij[2], thr);
         }
 
-        if( control->virial == 0 ) {
+        if (control->virial == 0) {
           rvec_ScaledAdd( workspace->f[i], -(CEvd + CEclmb), nbr_pj->dvec );
           rvec_ScaledAdd( workspace->forceReduction[froffset+j],
                           +(CEvd + CEclmb), nbr_pj->dvec );

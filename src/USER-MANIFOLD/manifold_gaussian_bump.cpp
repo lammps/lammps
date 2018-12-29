@@ -42,10 +42,10 @@ public:
 
   void test()
   {
-    if( fabs( x(0) - x0 ) > 1e-8 ) err->one(FLERR, "x0 wrong");
-    if( fabs( x(1) - x1 ) > 1e-8 ) err->one(FLERR, "x1 wrong");
-    if( fabs( y(0) - y0 ) > 1e-8 ) err->one(FLERR, "y0 wrong");
-    if( fabs( y(1) - y1 ) > 1e-8 ) err->one(FLERR, "y1 wrong");
+    if (fabs( x(0) - x0 ) > 1e-8 ) err->one(FLERR, "x0 wrong");
+    if (fabs( x(1) - x1 ) > 1e-8 ) err->one(FLERR, "x1 wrong");
+    if (fabs( y(0) - y0 ) > 1e-8 ) err->one(FLERR, "y0 wrong");
+    if (fabs( y(1) - y1 ) > 1e-8 ) err->one(FLERR, "y1 wrong");
   }
 
   double get_t_from_x( double xx ) const
@@ -139,8 +139,8 @@ manifold_gaussian_bump::manifold_gaussian_bump(class LAMMPS* lmp,
 
 manifold_gaussian_bump::~manifold_gaussian_bump()
 {
-  if( lut_z  ) delete lut_z;
-  if( lut_zp ) delete lut_zp;
+  if (lut_z ) delete lut_z;
+  if (lut_zp) delete lut_zp;
 }
 
 
@@ -349,7 +349,7 @@ void manifold_gaussian_bump::lut_get_z_and_zp( double rr, double &zz,
 void manifold_gaussian_bump::test_lut()
 {
   double x[3], nn[3];
-  if( comm->me != 0 ) return;
+  if (comm->me != 0) return;
 
   FILE *fp = fopen( "test_lut_gaussian.dat", "w" );
   double dx = 0.1;

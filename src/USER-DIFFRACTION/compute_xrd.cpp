@@ -247,7 +247,7 @@ ComputeXRD::~ComputeXRD()
 {
   memory->destroy(array);
   memory->destroy(store_tmp);
-  delete ztype;
+  delete[] ztype;
 }
 
 /* ---------------------------------------------------------------------- */

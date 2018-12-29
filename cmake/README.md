@@ -24,7 +24,7 @@ tasks, act as a reference and provide examples of typical use cases.
       * [Build directory vs. Source Directory](#build-directory-vs-source-directory)
    * [Defining and using presets](#defining-and-using-presets)
    * [Reference](#reference)
-      * [Common CMAKE Configuration Options](#common-cmake-configuration-options)
+      * [Common CMake Configuration Options](#common-cmake-configuration-options)
       * [LAMMPS Configuration Options](#lammps-configuration-options)
       * [Parallelization and Accelerator Packages](#parallelization-and-accelerator-packages)
       * [Default Packages](#default-packages)
@@ -179,7 +179,7 @@ cmake -C ../cmake/presets/std_nolib.cmake -D PKG_GPU=on ../cmake
 
 # Reference
 
-## Common CMAKE Configuration Options
+## Common CMake Configuration Options
 
 
 <table>
@@ -195,6 +195,7 @@ cmake -C ../cmake/presets/std_nolib.cmake -D PKG_GPU=on ../cmake
   <td><code>CMAKE_INSTALL_PREFIX</code></td>
   <td>Install location where LAMMPS files will be copied to. In the Unix/Linux case with Makefiles this controls what `make install` will do.</td>
   <td>
+   Default setting is <code>$HOME/.local</code>.
   </td>
 </tr>
 <tr>
@@ -204,6 +205,16 @@ cmake -C ../cmake/presets/std_nolib.cmake -D PKG_GPU=on ../cmake
   <dl>
   <dt><code>Release</code> (default)</dt>
   <dt><code>Debug</code></dt>
+  </dl>
+  </td>
+</tr>
+<tr>
+  <td><code><CMAKE_VERBOSE_MAKEFILE/code></td>
+  <td>Enable verbose output from Makefile builds (useful for debugging), the same can be achived by adding `VERBOSE=1` to the `make` call.</td>
+  <td>
+  <dl>
+    <dt><code>off</code> (default)</dt>
+    <dt><code>on</code></dt>
   </dl>
   </td>
 </tr>
@@ -1492,6 +1503,11 @@ target API.
   </dl>
   </td>
 </tr>
+<tr>
+  <td><code>BIN2C</code> (CUDA only)</td>
+  <td>Path to bin2c executable, will automatically pick up the first one in your $PATH.</td>
+  <td>(automatic)</td>
+</tr>
 </tbody>
 </table>
 
@@ -1647,9 +1663,8 @@ requires `gzip` to be in your `PATH`
 </tr>
 <tr>
   <td><code>GZIP_EXECUTABLE</code></td>
-  <td></td>
-  <td>
-  </td>
+  <td>Path to gzip executable, will automatically pick up the first one in your $PATH.</td>
+  <td>(automatic)</td>
 </tr>
 </tbody>
 </table>
@@ -1679,9 +1694,8 @@ requires `ffmpeg` to be in your `PATH`
 </tr>
 <tr>
   <td><code>FFMPEG_EXECUTABLE</code></td>
-  <td></td>
-  <td>
-  </td>
+  <td>Path to ffmpeg executable, will automatically pick up the first one in your $PATH.</td>
+  <td>(automatic)</td>
 </tr>
 </tbody>
 </table>
@@ -1723,6 +1737,13 @@ cache by setting the `CMAKE_C_COMPILER`, `CMAKE_CXX_COMPILER`,
   <td>C++ compiler which should be used by CMake</td>
   <td>
   value of `FC` environment variable at first `cmake` run
+  </td>
+</tr>
+<tr>
+  <td><code>CXX_COMPILER_LAUNCHER</code></td>
+  <td>CMake will run this tool and pass the compiler and its arguments to the tool. Some example tools are distcc and ccache.</td>
+  <td>
+  (empty)
   </td>
 </tr>
 </tbody>

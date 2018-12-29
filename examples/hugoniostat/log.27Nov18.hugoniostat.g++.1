@@ -1,0 +1,401 @@
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
+# This script reproduces stress trajectories from Fig. 1 in
+# Ravelo, Holian, Germann, and Lomdahl, PRB 70 014103 (2004)
+#
+# Three thermostatting scenarios are visited: undamped (nodrag),
+# damped (drag) and Nose-Hoover chain (nhchains).
+#
+# The axial and shear stress trajectories are printed to the
+# file "stress_vs_t.dat". For the damped case, the original figure
+# seems to be a plot of 2*tau, rather than tau.
+#
+# The script also demonstrates how to
+# orient a crystal along <110>,
+# and how to use the lj/cubic pair style.
+
+units           lj
+boundary        p p p
+
+atom_style      atomic
+
+# Set up FCC lattice with z axis along <110>
+
+lattice                fcc 1.4142136                        orient x 0 0 1                        orient y 1 -1 0                        orient z 1 1 0
+Lattice spacing in x,y,z = 1.41421 2 2
+
+region         mycell block 0.0 5.0 0.0 5.0 0.0 5.0 units lattice
+create_box     1 mycell
+Created orthogonal box = (0 0 0) to (7.07107 10 10)
+  1 by 1 by 1 MPI processor grid
+mass           * 1.0
+create_atoms   1 box
+Created 1000 atoms
+  Time spent = 0.000465155 secs
+
+# Using units of Rmin, so sigma = 2^-1/6 = 0.8908987
+
+pair_style lj/cubic
+pair_coeff * * 1.0 0.8908987
+
+# Relax box dimensions
+
+fix             3 all box/relax aniso 0.0 vmax 1.0e-4 nreset 100
+
+thermo          100
+thermo_style    custom step temp pe etotal pxx pyy pzz lx ly lz
+
+min_modify      line quadratic
+minimize        0.0 1.0e-6 10000 100000
+WARNING: Using 'neigh_modify every 1 delay 0 check yes' setting during minimization (src/min.cpp:168)
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.84754
+  ghost atom cutoff = 1.84754
+  binsize = 0.923769, bins = 8 11 11
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cubic, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.247 | 4.247 | 4.247 Mbytes
+Step Temp PotEng TotEng Pxx Pyy Pzz Lx Ly Lz 
+       0            0   -6.2937539   -6.2937539   -2.7722431   -2.7722431   -2.7722431    7.0710677    9.9999999    9.9999999 
+     100            0   -6.3319018   -6.3319018  -0.75971321  -0.75971321  -0.75971321    7.0003571    9.8999999    9.8999999 
+     134            0   -6.3344257   -6.3344257 -4.5005818e-13 -4.9677973e-13 -4.9219424e-13    6.9780266    9.8684199    9.8684199 
+Loop time of 0.0724094 on 1 procs for 134 steps with 1000 atoms
+
+99.9% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+Minimization stats:
+  Stopping criterion = force tolerance
+  Energy initial, next-to-last, final = 
+         -6.2937539309     -6.33442568056     -6.33442568056
+  Force two-norm initial, final = 3395.29 5.83329e-10
+  Force max component initial, final = 1960.27 3.42093e-10
+  Final line search alpha, max atom move = 1 3.42093e-10
+  Iterations, force evaluations = 134 137
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.054599   | 0.054599   | 0.054599   |   0.0 | 75.40
+Neigh   | 0.0011106  | 0.0011106  | 0.0011106  |   0.0 |  1.53
+Comm    | 0.002012   | 0.002012   | 0.002012   |   0.0 |  2.78
+Output  | 1.955e-05  | 1.955e-05  | 1.955e-05  |   0.0 |  0.03
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 0.01467    |            |       | 20.26
+
+Nlocal:    1000 ave 1000 max 1000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    1724 ave 1724 max 1724 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    21000 ave 21000 max 21000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 21000
+Ave neighs/atom = 21
+Neighbor list builds = 1
+Dangerous builds = 0
+
+# Define initial velocity
+
+velocity        all create 0.01 87287 mom yes rot yes dist gaussian
+write_restart restart.equil
+
+# Start Run #1
+
+clear
+  using 1 OpenMP thread(s) per MPI task
+read_restart restart.equil
+  restoring atom style atomic from restart
+  orthogonal box = (0.0465206 0.06579 0.06579) to (7.02455 9.93421 9.93421)
+  1 by 1 by 1 MPI processor grid
+  restoring pair style lj/cubic from restart
+  1000 atoms
+
+neighbor        0.2 bin
+neigh_modify    every 1 delay 0 check yes
+timestep        0.001
+reset_timestep 0
+
+# Pzz = 40.0, drag/damping term off
+
+fix myhug all nphug temp 1.0 1.0 10.0 z 40.0 40.0 70.0 drag 0.0 tchain 1 pchain 0
+
+# Specify reference state from paper, times 1000 atoms
+
+fix_modify myhug e0 -6334.0 p0 0.0 v0 680.73519
+
+# Add fix energy to ouput etotal
+
+fix_modify myhug energy yes
+
+# Define output
+
+variable dele  equal f_myhug[1] # energy delta [temperature]
+variable us    equal f_myhug[2] # shock velocity [distance/time]
+variable up    equal f_myhug[3] # particle velocity [distance/time]
+variable pzz   equal pzz  # axial stress
+variable tau equal 0.5*(pzz-0.5*(pxx+pyy)) # shear stress
+variable time equal dt*step
+
+thermo          1000
+thermo_style custom step temp ke epair etotal pzz v_tau lz f_myhug v_dele v_us v_up
+
+fix stress all print 10 "${time} ${pzz} ${tau} " screen no append stress_vs_t.dat title '#time pzz tau (no drag)'
+
+#dump           id all atom 500 dump.hugoniostat
+
+#dump           2 all image 500 image.*.jpg type type #               axes yes 0.8 0.02 view 60 -30
+#dump_modify    2 pad 5
+
+#dump           3 all movie 500 movie.mpg type type #               axes yes 0.8 0.02 view 60 -30
+#dump_modify    3 pad 5
+
+run             10000
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.74754
+  ghost atom cutoff = 1.74754
+  binsize = 0.873769, bins = 8 12 12
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cubic, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 2.771 | 2.771 | 2.771 Mbytes
+Step Temp KinEng E_pair TotEng Pzz v_tau Lz f_myhug v_dele v_us v_up 
+       0         0.01     0.014985   -6.3344257   -6.3194407  0.014381062 -0.0002397183    9.8684199            0 -0.0048551451    2.3814196 0.0041108654 
+    1000 0.0093381489  0.013993216    -2.170443   -6.3381216    129.15286    58.544417    8.3142516   -4.1816719   0.93744258    23.519053    3.7381989 
+    2000   0.24794909   0.37155171   -5.8915802   -6.0429087    8.3850692    1.3744507    9.5938765   -0.5228803   -0.2435043    13.910468    0.4103393 
+    3000   0.38920701    0.5832267    -3.768677   -6.6246124    72.742761    28.486747     8.623805    -3.439162  0.003825459    19.697379    2.5139668 
+    4000   0.67009971    1.0041444   -4.2080644   -6.1365367    35.596179    3.9344133    8.7508422   -2.9326167  -0.58039603    14.529822    1.6677129 
+    5000   0.41848975   0.62710689   -4.8393088   -6.1026724    30.626544    4.6387208    8.7827245   -1.8904705  -0.31996439    13.670884    1.5250343 
+    6000   0.22410139   0.33581594   -3.7652941   -6.0923259    50.807437    7.2229456    8.2549488   -2.6628477 -0.017396966      14.4806    2.3884652 
+    7000  0.095001485   0.14235972   -4.5436753   -6.7307217      35.8743    3.4938089    8.4476287   -2.3294061 -0.052272192    12.957528    1.8846881 
+    8000  0.043277437  0.064851239   -4.6264096   -6.2447456    39.658659    6.7266325    8.4327483   -1.6831873  0.070488482    13.553882    1.9918311 
+    9000  0.018271956  0.027380526   -4.4239627   -6.3085661    41.708324    5.9081923    8.3463321   -1.9119839  0.091057512    13.503882    2.1025305 
+   10000 0.0082840001  0.012413574    -4.622252   -6.3316699    39.830379    6.5596321    8.4109569   -1.7218314  0.099435465    13.482451    2.0110543 
+Loop time of 6.20702 on 1 procs for 10000 steps with 1000 atoms
+
+Performance: 139197.321 tau/day, 1611.080 timesteps/s
+98.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 5.0198     | 5.0198     | 5.0198     |   0.0 | 80.87
+Neigh   | 0.21405    | 0.21405    | 0.21405    |   0.0 |  3.45
+Comm    | 0.16164    | 0.16164    | 0.16164    |   0.0 |  2.60
+Output  | 0.00053501 | 0.00053501 | 0.00053501 |   0.0 |  0.01
+Modify  | 0.7419     | 0.7419     | 0.7419     |   0.0 | 11.95
+Other   |            | 0.06911    |            |       |  1.11
+
+Nlocal:    1000 ave 1000 max 1000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    1886 ave 1886 max 1886 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    20874 ave 20874 max 20874 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 20874
+Ave neighs/atom = 20.874
+Neighbor list builds = 188
+Dangerous builds = 0
+
+# Start Run #2
+
+clear
+  using 1 OpenMP thread(s) per MPI task
+read_restart restart.equil
+  restoring atom style atomic from restart
+  orthogonal box = (0.0465206 0.06579 0.06579) to (7.02455 9.93421 9.93421)
+  1 by 1 by 1 MPI processor grid
+  restoring pair style lj/cubic from restart
+  1000 atoms
+
+neighbor        0.2 bin
+neigh_modify    every 1 delay 0 check yes
+timestep        0.001
+reset_timestep 0
+
+# Pzz = 40.0, drag/damping term on
+
+fix myhug all nphug temp 1.0 1.0 1.0 z 40.0 40.0 70.0 drag 200.0 tchain 1 pchain 0
+
+# Specify reference state from paper, times 1000 atoms
+
+fix_modify myhug e0 -6334.0 p0 0.0 v0 680.73519
+
+# Add fix energy to ouput etotal
+
+fix_modify myhug energy yes
+
+# Define output
+
+variable dele  equal f_myhug[1] # energy delta [temperature]
+variable us    equal f_myhug[2] # shock velocity [distance/time]
+variable up    equal f_myhug[3] # particle velocity [distance/time]
+variable pzz   equal pzz  # axial stress
+variable tau equal 0.5*(pzz-0.5*(pxx+pyy)) # shear stress
+variable time equal dt*step
+
+thermo          1000
+thermo_style custom step temp ke epair etotal pzz v_tau lz f_myhug v_dele v_us v_up
+
+fix stress all print 10 "${time} ${pzz} ${tau} " screen no append stress_vs_t.dat title '#time pzz tau (with drag)'
+
+run             10000
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.74754
+  ghost atom cutoff = 1.74754
+  binsize = 0.873769, bins = 8 12 12
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cubic, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 2.771 | 2.771 | 2.771 Mbytes
+Step Temp KinEng E_pair TotEng Pzz v_tau Lz f_myhug v_dele v_us v_up 
+       0         0.01     0.014985   -6.3344257   -6.3194407  0.014381062 -0.0002397183    9.8684199            0 -0.0048551451    2.3814196 0.0041108654 
+    1000 0.0062572991 0.0093765627   -5.9890874     -7.64465    18.918117    7.5844397    9.2338165   -1.6649392   0.02341947    13.976996   0.92138738 
+    2000  0.006845108  0.010257394   -5.4565813   -7.9786876    37.064254    15.537266    8.9496404   -2.5323637    0.1023062    16.325405    1.5455017 
+    3000 0.0073276109  0.010980425   -5.3663425   -7.9938818    39.907292    16.807488    8.9154852   -2.6385197   0.11818131    16.639049    1.6326833 
+    4000 0.0069296915  0.010384143   -5.3623404   -8.0023271    40.010741    16.851482    8.9144328   -2.6503708   0.11868152    16.651571    1.6356847 
+    5000 0.0076142476   0.01140995   -5.3631447   -8.0108329    39.997648    16.846756    8.9145416   -2.6590981   0.11841154    16.649778    1.6353255 
+    6000 0.0077053839  0.011546518   -5.3628542   -8.0192007    39.991597    16.840313    8.9145803   -2.6678931   0.11818376    16.648851    1.6351691 
+    7000 0.0077405662  0.011599239   -5.3623534   -8.0275624    40.000448    16.844008    8.9145774   -2.6768081   0.11809914    16.650669    1.6353525 
+    8000  0.008067359  0.012088937   -5.3623759   -8.0359471    39.995327    16.840134    8.9146099   -2.6856601   0.11787118    16.649881    1.6352204 
+    9000 0.0083223114  0.012470984   -5.3622992   -8.0443714     40.00571    16.847763    8.9146503   -2.6945431   0.11781538    16.652389    1.6353987 
+   10000 0.0091249143  0.013673684   -5.3630142   -8.0529573    39.987196    16.837314    8.9146848   -2.7036168   0.11743028    16.648831    1.6349911 
+Loop time of 5.48047 on 1 procs for 10000 steps with 1000 atoms
+
+Performance: 157650.687 tau/day, 1824.661 timesteps/s
+98.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 4.5166     | 4.5166     | 4.5166     |   0.0 | 82.41
+Neigh   | 0.012162   | 0.012162   | 0.012162   |   0.0 |  0.22
+Comm    | 0.14168    | 0.14168    | 0.14168    |   0.0 |  2.59
+Output  | 0.00053787 | 0.00053787 | 0.00053787 |   0.0 |  0.01
+Modify  | 0.74394    | 0.74394    | 0.74394    |   0.0 | 13.57
+Other   |            | 0.06553    |            |       |  1.20
+
+Nlocal:    1000 ave 1000 max 1000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    1724 ave 1724 max 1724 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    21000 ave 21000 max 21000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 21000
+Ave neighs/atom = 21
+Neighbor list builds = 11
+Dangerous builds = 0
+
+# Start Run #3
+
+clear
+  using 1 OpenMP thread(s) per MPI task
+read_restart restart.equil
+  restoring atom style atomic from restart
+  orthogonal box = (0.0465206 0.06579 0.06579) to (7.02455 9.93421 9.93421)
+  1 by 1 by 1 MPI processor grid
+  restoring pair style lj/cubic from restart
+  1000 atoms
+
+neighbor        0.2 bin
+neigh_modify    every 1 delay 0 check yes
+timestep        0.001
+reset_timestep 0
+
+# Pzz = 40.0, drag/damping term off, Nose-Hoover chains
+
+fix myhug all nphug temp 1.0 1.0 1.0 z 40.0 40.0 70.0
+
+# Specify reference state from paper, times 1000 atoms
+
+fix_modify myhug e0 -6334.0 p0 0.0 v0 680.73519
+
+# Add fix energy to ouput etotal
+
+fix_modify myhug energy yes
+
+# Define output
+
+variable dele  equal f_myhug[1] # energy delta [temperature]
+variable us    equal f_myhug[2] # shock velocity [distance/time]
+variable up    equal f_myhug[3] # particle velocity [distance/time]
+variable pzz   equal pzz  # axial stress
+variable tau equal 0.5*(pzz-0.5*(pxx+pyy)) # shear stress
+variable time equal dt*step
+
+thermo          1000
+thermo_style custom step temp ke epair etotal pzz v_tau lz f_myhug v_dele v_us v_up
+
+fix stress all print 10 "${time} ${pzz} ${tau} " screen no append stress_vs_t.dat title '#time pzz tau (Nose-Hoover chain)'
+
+run             10000
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.74754
+  ghost atom cutoff = 1.74754
+  binsize = 0.873769, bins = 8 12 12
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cubic, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 2.771 | 2.771 | 2.771 Mbytes
+Step Temp KinEng E_pair TotEng Pzz v_tau Lz f_myhug v_dele v_us v_up 
+       0         0.01     0.014985   -6.3344257   -6.3194407  0.014381062 -0.0002397183    9.8684199            0 -0.0048551451    2.3814196 0.0041108654 
+    1000 0.0083300394  0.012482564   -5.5023188   -6.3233387    35.610076    14.886667    8.9677982  -0.83350251  0.093761848    16.159481     1.500112 
+    2000  0.020386462  0.030549113   -5.2949349   -6.2805556    41.760388    17.563305     8.896033   -1.0161699   0.11780863     16.85284    1.6868235 
+    3000  0.049693152  0.074465188   -5.3469434   -6.2493961    39.030372    16.123483    8.9325594   -0.9769179  0.073097387    16.601986    1.6003716 
+    4000   0.11859514   0.17771482    -5.207077   -6.3242752    40.941558    16.507785    8.9213147   -1.2949131  0.018189678    16.904156    1.6487282 
+    5000   0.13014573   0.19502337   -5.2610248    -6.269279    39.059628    15.609345    8.9431685   -1.2032776 -0.00023747376    16.701437    1.5920344 
+    6000    0.1381307   0.20698886    -5.171005   -6.2931942    40.904837    16.242165    8.9222854   -1.3291781 -0.0044770368    16.905086    1.6471589 
+    7000   0.12107326   0.18142828   -5.2602554   -6.2438099    39.060928     15.57765    8.9397525   -1.1649827 0.0055890257    16.671524     1.594944 
+    8000   0.14333636   0.21478954   -5.1717123    -6.304602    40.876188    16.205815    8.9218142   -1.3476793 -0.0069396327    16.895033    1.6469846 
+    9000   0.12159663   0.18221255   -5.2591911   -6.2587685    39.228648    15.677869    8.9376641     -1.18179 0.0077357066    16.688862    1.6001283 
+   10000   0.15321883   0.22959841   -5.1881787   -6.3448453    40.666451    16.146177     8.922851    -1.386265 -0.0091929687    16.860705    1.6418699 
+Loop time of 5.6426 on 1 procs for 10000 steps with 1000 atoms
+
+Performance: 153120.907 tau/day, 1772.233 timesteps/s
+98.7% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 4.5653     | 4.5653     | 4.5653     |   0.0 | 80.91
+Neigh   | 0.10885    | 0.10885    | 0.10885    |   0.0 |  1.93
+Comm    | 0.14695    | 0.14695    | 0.14695    |   0.0 |  2.60
+Output  | 0.00055218 | 0.00055218 | 0.00055218 |   0.0 |  0.01
+Modify  | 0.75364    | 0.75364    | 0.75364    |   0.0 | 13.36
+Other   |            | 0.0673     |            |       |  1.19
+
+Nlocal:    1000 ave 1000 max 1000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    1724 ave 1724 max 1724 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    20654 ave 20654 max 20654 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 20654
+Ave neighs/atom = 20.654
+Neighbor list builds = 94
+Dangerous builds = 0
+
+Total wall time: 0:00:17

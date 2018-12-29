@@ -70,15 +70,10 @@ other pairwise potential for several different atom type pairs in your
 model, then you should just list the sub-style once and use the
 pair_coeff command to assign parameters for the different type pairs.
 
-NOTE: There are two exceptions to this option to list an individual
-pair style multiple times.  The first is for pair styles implemented
-as Fortran libraries: "pair_style meam"_pair_meam.html and "pair_style
-reax"_pair_reax.html ("pair_style reax/c"_pair_reaxc.html is OK).
-This is because unlike a C++ class, they can not be instantiated
-multiple times, due to the manner in which they were coded in Fortran.
-The second is for GPU-enabled pair styles in the GPU package.  This is
-b/c the GPU package also currently assumes that only one instance of a
-pair style is being used.
+NOTE: There is one exception to this option to list an individual
+pair style multiple times: GPU-enabled pair styles in the GPU package.
+This is because the GPU package currently assumes that only one
+instance of a pair style is being used.
 
 In the pair_coeff commands, the name of a pair style must be added
 after the I,J type specification, with the remaining coefficients
@@ -229,7 +224,7 @@ For use with the various "compute */tally"_compute_tally.html
 computes, the "pair_modify compute/tally"_pair_modify.html
 command can be used to selectively turn off processing of
 the compute tally styles, for example, if those pair styles
-(e.g. manybody styles) do not support this feature.
+(e.g. many-body styles) do not support this feature.
 
 See the "pair_modify"_pair_modify.html doc page for details on
 the specific syntax, requirements and restrictions.
@@ -270,7 +265,7 @@ atoms when the potential computes 3-body or 4-body interactions.
 
 However, you can still use the pair_coeff none setting or the
 "neigh_modify exclude"_neigh_modify.html command to exclude certain
-type pairs from the neighbor list that will be passed to a manybody
+type pairs from the neighbor list that will be passed to a many-body
 sub-style.  This will alter the calculations made by a many-body
 potential, since it builds its list of 3-body, 4-body, etc
 interactions from the pair list.  You will need to think carefully as

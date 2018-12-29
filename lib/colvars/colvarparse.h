@@ -24,7 +24,7 @@
 /// need to parse input inherit from this
 class colvarparse {
 
-private:
+protected:
 
   /// \brief List of legal keywords for this object: this is updated
   /// by each call to colvarparse::get_keyval() or
@@ -47,7 +47,7 @@ private:
   /// \brief Remove all the values from the config string
   void strip_values(std::string &conf);
 
-  /// \brief Configuration string of the object
+  /// \brief Configuration string of the object (includes comments)
   std::string config_string;
 
 public:
@@ -72,7 +72,7 @@ public:
   }
 
   /// Set a new config string for this object
-  inline void init(const std::string& conf)
+  inline void init(std::string const &conf)
   {
     if (! config_string.size()) {
       init();
@@ -80,7 +80,8 @@ public:
     }
   }
 
-  inline const std::string& get_config()
+  /// Get the configuration string (includes comments)
+  inline std::string const & get_config() const
   {
     return config_string;
   }
@@ -284,14 +285,19 @@ public:
                   std::string *data = NULL,
                   size_t *save_pos = NULL);
 
+  /// \brief Reads a configuration line, adds it to config_string, and returns
+  /// the stream \param is Input stream \param s String that will hold the
+  /// configuration line, with comments stripped
+  std::istream & read_config_line(std::istream &is, std::string &line);
+
   /// \brief Works as std::getline() but also removes everything
   /// between a comment character and the following newline
-  static std::istream & getline_nocomments(std::istream &is,
-                                           std::string &s);
+  static std::istream & getline_nocomments(std::istream &is, std::string &s);
 
-  /// Check if the content of the file has matching braces
-  bool brace_check(std::string const &conf,
-                   size_t const start_pos = 0);
+  /// \brief Check if the content of a config string has matching braces
+  /// \param conf The configuration string \param start_pos Start the count
+  /// from this position
+  static int check_braces(std::string const &conf, size_t const start_pos);
 
 };
 

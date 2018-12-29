@@ -45,7 +45,7 @@ class ComputeADF : public Compute {
   double *rcutouterj, *rcutouterk; // list of outer cutoffs
 
   class NeighList *list;   // full neighbor list
- 
+
   int *iatomcount;               // local number of central atoms
   int *iatomcountall;            // total number of central atoms
   int **iatomflag;               // 1 if type is central atom in ADF

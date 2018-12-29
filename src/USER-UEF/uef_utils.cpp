@@ -150,7 +150,7 @@ void UEFBox::step_deform(const double ex, const double ey)
   theta[0] +=winv[0][0]*ex + winv[0][1]*ey;
   theta[1] +=winv[1][0]*ex + winv[1][1]*ey;
 
-  // deformation of the box. reduce() needs to be called regularly or 
+  // deformation of the box. reduce() needs to be called regularly or
   // calculation will become unstable
 
   double eps[3];
@@ -169,7 +169,7 @@ void UEFBox::step_deform(const double ex, const double ey)
 ------------------------------------------------------------------------- */
 bool UEFBox::reduce()
 {
-  // determine how many times to apply the automorphisms and find new theta 
+  // determine how many times to apply the automorphisms and find new theta
   // values
 
   int f1 = round(theta[0]);
@@ -184,7 +184,7 @@ bool UEFBox::reduce()
     for (int j=0;j<3;j++)
       r0[k][j]=r[k][j];
 
-  // this modifies the old change basis matrix to handle the case where the 
+  // this modifies the old change basis matrix to handle the case where the
   // automorphism transforms the box but the reduced basis doesn't change
   // (r0 should still equal r at the end)
 
@@ -417,7 +417,7 @@ void make_unique(double b[3][3], int r[3][3], int ri[3][3])
   if (fabs(b[0][0]) < fabs(b[0][1])) {
     col_swap(b,0,1);
     col_swap(r,0,1);
-    col_swap(ri,0,1); 
+    col_swap(ri,0,1);
   }
   if (fabs(b[0][0]) < fabs(b[0][2])) {
     col_swap(b,0,2);
@@ -433,7 +433,7 @@ void make_unique(double b[3][3], int r[3][3], int ri[3][3])
   if (b[0][0] < 0) {
     neg_col(b,0);
     neg_col(r,0);
-    neg_col(ri,0); 
+    neg_col(ri,0);
   }
   if (b[1][1] < 0) {
     neg_col(b,1);
@@ -442,8 +442,8 @@ void make_unique(double b[3][3], int r[3][3], int ri[3][3])
   }
   if (det(b) < 0) {
     neg_col(b,2);
-    neg_col(r,2); 
-    neg_col(ri,2); 
+    neg_col(r,2);
+    neg_col(ri,2);
   }
 }
 }}

@@ -39,7 +39,7 @@ enum{DIST,VELVIB,OMEGA,ENGTRANS,ENGVIB,ENGROT,ENGPOT,FORCE,VARIABLE};
 
 ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  bstyle(NULL), vstr(NULL), vvar(NULL), dstr(NULL), vlocal(NULL), alocal(NULL)
+  bstyle(NULL), vvar(NULL), dstr(NULL), vstr(NULL), vlocal(NULL), alocal(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute bond/local command");
 
@@ -55,7 +55,7 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
   bstyle = new int[nvalues];
   vstr = new char*[nvalues];
   vvar = new int[nvalues];
-  
+
   nvalues = 0;
   nvar = 0;
 
@@ -82,7 +82,7 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
 
   setflag = 0;
   dstr = NULL;
-  
+
   while (iarg < narg) {
     if (strcmp(arg[iarg],"set") == 0) {
       setflag = 1;
@@ -117,10 +117,10 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
       if (!input->variable->internalstyle(dvar))
         error->all(FLERR,"Variable for compute bond/local is invalid style");
     }
-  } else if (setflag) 
+  } else if (setflag)
     error->all(FLERR,"Compute bond/local set with no variable");
 
-  
+
   // set singleflag if need to call bond->single()
   // set velflag if compute any quantities based on velocities
 

@@ -50,6 +50,7 @@
 #include<TestTile.hpp>
 
 #include<TestViewCtorPropEmbeddedDim.hpp>
+#include<TestViewLayoutTiled.hpp>
 
 #include <mutex>
 

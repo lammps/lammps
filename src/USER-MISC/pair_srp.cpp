@@ -68,6 +68,7 @@ static int srp_instance = 0;
 PairSRP::PairSRP(LAMMPS *lmp) : Pair(lmp)
 {
   writedata = 1;
+  single_enable = 0;
 
   if (lmp->citeme) lmp->citeme->add(cite_srp);
 

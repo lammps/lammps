@@ -362,6 +362,8 @@ SharedAllocationRecord( const Kokkos::Experimental::ROCmSpace & arg_space
           , arg_label.c_str()
           , SharedAllocationHeader::maximum_label_length
           );
+  // Set last element zero, in case c_str is too long
+  header.m_label[SharedAllocationHeader::maximum_label_length - 1] = (char) 0;
 
   // Copy to device memory
   Kokkos::Impl::DeepCopy<Kokkos::Experimental::ROCmSpace,HostSpace>( RecordBase::m_alloc_ptr , & header , sizeof(SharedAllocationHeader) );
@@ -399,6 +401,8 @@ SharedAllocationRecord( const Kokkos::Experimental::ROCmHostPinnedSpace & arg_sp
           , arg_label.c_str()
           , SharedAllocationHeader::maximum_label_length
           );
+  // Set last element zero, in case c_str is too long
+  RecordBase::m_alloc_ptr->m_label[SharedAllocationHeader::maximum_label_length - 1] = (char) 0;
 }
 
 //----------------------------------------------------------------------------

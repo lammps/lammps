@@ -461,6 +461,9 @@ public:
   /// Convert a script object (Tcl or Python call argument) to a C string
   virtual char const *script_obj_to_str(unsigned char *obj);
 
+  /// Convert a script object (Tcl or Python call argument) to a vector of strings
+  virtual std::vector<std::string> script_obj_to_str_vector(unsigned char *obj);
+
   /// Pointer to the scripting interface object
   /// (does not need to be allocated in a new interface)
   colvarscript *script;

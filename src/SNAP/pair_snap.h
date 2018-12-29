@@ -173,4 +173,8 @@ E: Incorrect format in SNAP parameter file
 
 Incorrect number of words per line in the parameter file.
 
+E: Did not find all elements in SNAP coefficient file.
+
+One or more elements listed in the pair_coeff command were not found in the coefficient file.
+
 */

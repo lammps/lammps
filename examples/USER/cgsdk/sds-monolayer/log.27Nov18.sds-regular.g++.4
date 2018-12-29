@@ -1,0 +1,129 @@
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
+# coarse grained SDS surfactant monolayer
+
+units           real
+dimension       3
+atom_style      full
+processors  * * 1
+
+pair_style lj/sdk/coul/long 15.0
+bond_style      harmonic
+angle_style     sdk
+special_bonds   lj/coul 0.0 0.0 1.0
+
+read_data       data.sds.gz
+  orthogonal box = (-27.713 -27.713 -200) to (193.991 83.139 200)
+  4 by 1 by 1 MPI processor grid
+  reading atoms ...
+  31280 atoms
+  reading velocities ...
+  31280 velocities
+  scanning bonds ...
+  1 = max bonds/atom
+  scanning angles ...
+  1 = max angles/atom
+  reading bonds ...
+  4096 bonds
+  reading angles ...
+  3072 angles
+  2 = max # of 1-2 neighbors
+  2 = max # of 1-3 neighbors
+  4 = max # of special neighbors
+
+pair_coeff  1     1      lj9_6  0.7000 4.3210 # SO4  SO4
+pair_coeff  1     2      lj9_6  0.3830 4.4135 # SO4  CM
+pair_coeff  1     3      lj9_6  0.4050 4.4530 # SO4  CT
+pair_coeff  1     4      lj12_4 1.1000 4.1000 # SO4  SOD
+pair_coeff  1     5      lj12_4 1.1000 4.1000 # SO4  W
+pair_coeff  2     2      lj9_6  0.4200 4.5060 # CM   CM
+pair_coeff  2     3      lj9_6  0.4440 4.5455 # CT   CM
+pair_coeff  2     4      lj12_4 0.3400 4.4385 # SOD  CM
+pair_coeff  2     5      lj12_4 0.3400 4.4385 # W    CM
+pair_coeff  3     3      lj9_6  0.4690 4.5850 # CT   CT
+pair_coeff  3     4      lj12_4 0.3600 4.4780 # SOD  CT
+pair_coeff  3     5      lj12_4 0.3600 4.4780 # W    CT
+pair_coeff  4     4      lj12_4 0.3500 4.3710 # SOD  SOD
+pair_coeff  4     5      lj12_4 0.8950 4.3710 # SOD  W
+pair_coeff  5     5      lj12_4 0.8950 4.3710 # W    W
+
+kspace_style    pppm/cg 0.00001
+kspace_modify   order 3
+
+neighbor        2.0 bin
+neigh_modify    delay 4 every 2 check yes
+
+timestep        10.0
+
+fix             1 all nvt temp 310.0 310.0 100.0
+
+thermo          10
+
+run              100
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb (src/kspace.cpp:321)
+  G vector (1/distance) = 0.0789325
+  grid = 15 8 25
+  stencil order = 3
+  estimated absolute RMS force accuracy = 0.00275556
+  estimated relative force accuracy = 8.29828e-06
+  using double precision FFTs
+  3d grid and FFT values/proc = 2156 840
+Neighbor list info ...
+  update every 2 steps, delay 4 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 17
+  ghost atom cutoff = 17
+  binsize = 8.5, bins = 27 14 48
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/sdk/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+  PPPM/cg optimization cutoff: 1e-05
+  Total charged atoms: 6.5%
+  Min/max charged atoms/proc: 6.4% 6.7%
+Per MPI rank memory allocation (min/avg/max) = 17.32 | 17.32 | 17.32 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0     310.0934   -247030.21    2566.2036    -215551.9   -14.547393 
+      10    310.89138   -247061.61    2549.4854   -215525.62   -18.043512 
+      20    310.29287    -247017.8    2542.4491   -215544.65   -19.148631 
+      30    308.13371   -247024.82    2602.1061   -215693.32   -17.390902 
+      40    309.40426   -247058.41    2558.7402   -215651.82   -15.445066 
+      50    309.11317   -246753.92    2570.8603   -215362.36   -7.4232007 
+      60    312.52974   -246964.73    2618.8108   -215206.66    -15.23965 
+      70    310.11675   -246941.68    2591.8668   -215435.53   -16.153691 
+      80    310.48262   -247090.02    2595.0493   -215546.58   -18.080368 
+      90    309.60017    -247067.1    2604.6545   -215596.33   -14.583764 
+     100     309.7356   -247004.05    2604.8729   -215520.43    -12.78624 
+Loop time of 2.45408 on 4 procs for 100 steps with 31280 atoms
+
+Performance: 35.207 ns/day, 0.682 hours/ns, 40.748 timesteps/s
+99.1% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 2.0065     | 2.0143     | 2.0326     |   0.8 | 82.08
+Bond    | 0.0084255  | 0.0086145  | 0.0088007  |   0.1 |  0.35
+Kspace  | 0.033373   | 0.052041   | 0.060933   |   4.8 |  2.12
+Neigh   | 0.32741    | 0.32748    | 0.32754    |   0.0 | 13.34
+Comm    | 0.022403   | 0.023025   | 0.023735   |   0.4 |  0.94
+Output  | 0.00060058 | 0.00086623 | 0.0016549  |   0.0 |  0.04
+Modify  | 0.022533   | 0.022723   | 0.022876   |   0.1 |  0.93
+Other   |            | 0.005038   |            |       |  0.21
+
+Nlocal:    7820 ave 7866 max 7775 min
+Histogram: 1 1 0 0 0 0 0 1 0 1
+Nghost:    8679.75 ave 8699 max 8666 min
+Histogram: 1 0 1 0 1 0 0 0 0 1
+Neighs:    838026 ave 841202 max 834819 min
+Histogram: 1 1 0 0 0 0 0 0 1 1
+
+Total # of neighbors = 3352103
+Ave neighs/atom = 107.164
+Ave special neighs/atom = 0.458312
+Neighbor list builds = 10
+Dangerous builds = 0
+Total wall time: 0:00:02

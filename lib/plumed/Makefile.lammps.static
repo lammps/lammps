@@ -1,0 +1,7 @@
+# Settings that the LAMMPS build will import when this package library is used
+
+#  Use statically linked C++ interface to plumed
+
+plumed_SYSINC = -D__PLUMED_WRAPPER_CXX=1
+plumed_SYSLIB = $(PLUMED_LOAD)
+plumed_SYSPATH = 

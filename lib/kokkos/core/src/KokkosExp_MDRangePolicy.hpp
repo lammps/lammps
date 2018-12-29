@@ -46,6 +46,8 @@
 
 #include <initializer_list>
 
+#include <Kokkos_Layout.hpp>
+
 #include<impl/KokkosExp_Host_IterateTile.hpp>
 #include <Kokkos_ExecPolicy.hpp>
 #include <Kokkos_Parallel.hpp>
@@ -63,13 +65,15 @@
 namespace Kokkos {
 
 // ------------------------------------------------------------------ //
-
+// Moved to Kokkos_Layout.hpp for more general accessibility
+/*
 enum class Iterate
 {
   Default, // Default for the device
   Left,    // Left indices stride fastest
   Right,   // Right indices stride fastest
 };
+*/
 
 template <typename ExecSpace>
 struct default_outer_direction

@@ -97,12 +97,21 @@ do
         echo "Invalid compiler by --compiler command: '${COMPILER}'"
         exit
       fi
+      # ... valid compiler, ensure absolute path set 
+      WCOMPATH=`which $COMPILER`
+      COMPDIR=`dirname $WCOMPATH`
+      COMPNAME=`basename $WCOMPATH`
+      COMPILER=${COMPDIR}/${COMPNAME}
       ;;
     --with-options*)
       KOKKOS_OPT="${key#*=}"
       ;;
+    --gcc-toolchain*)
+      KOKKOS_GCC_TOOLCHAIN="${key#*=}"
+      ;;
     --help)
       echo "Kokkos configure options:"
+      echo ""
       echo "--kokkos-path=/Path/To/Kokkos:        Path to the Kokkos root directory."
       echo "--qthreads-path=/Path/To/Qthreads:    Path to Qthreads install directory."
       echo "                                        Overrides path given by --with-qthreads."
@@ -171,6 +180,7 @@ do
       echo "                                "
       echo "--with-cuda-options=[OPT]:    Additional options to CUDA:"
       echo "                                force_uvm, use_ldg, enable_lambda, rdc"
+      echo "--gcc-toolchain=/Path/To/GccRoot:  Set the gcc toolchain to use with clang (e.g. /usr)" 
       echo "--make-j=[NUM]:               DEPRECATED: call make with appropriate"
       echo "                                -j flag"
       exit 0
@@ -195,7 +205,7 @@ else
 fi
 
 if [ "${KOKKOS_PATH}"  = "${PWD}" ] || [ "${KOKKOS_PATH}"  = "${PWD}/" ]; then
-  echo "Running generate_makefile.sh in the Kokkos root directory is not allowed"
+  echo "Running generate_makefile.bash in the Kokkos root directory is not allowed"
   exit
 fi
 
@@ -204,8 +214,13 @@ KOKKOS_SRC_PATH=${KOKKOS_PATH}
 KOKKOS_SETTINGS="KOKKOS_SRC_PATH=${KOKKOS_SRC_PATH}"
 #KOKKOS_SETTINGS="KOKKOS_PATH=${KOKKOS_PATH}"
 
+# The double [[  ]] in the elif branch is not a typo
 if [ ${#COMPILER} -gt 0 ]; then
   KOKKOS_SETTINGS="${KOKKOS_SETTINGS} CXX=${COMPILER}"
+elif
+   [ ${#COMPILER} -eq 0 ] && [[ ${KOKKOS_DEVICES} =~ .*Cuda.* ]]; then
+  COMPILER="${KOKKOS_PATH}/bin/nvcc_wrapper"
+  KOKKOS_SETTINGS="${KOKKOS_SETTINGS} CXX=${COMPILER}"   
 fi
 
 if [ ${#KOKKOS_DEVICES} -gt 0 ]; then
@@ -265,6 +280,10 @@ if [ ${#KOKKOS_CUDA_OPT} -gt 0 ]; then
   KOKKOS_SETTINGS="${KOKKOS_SETTINGS} KOKKOS_CUDA_OPTIONS=${KOKKOS_CUDA_OPT}"
 fi
 
+if [ ${#KOKKOS_GCC_TOOLCHAIN} -gt 0 ]; then
+  KOKKOS_SETTINGS="${KOKKOS_SETTINGS} KOKKOS_INTERNAL_GCC_TOOLCHAIN=${KOKKOS_GCC_TOOLCHAIN}"
+fi
+
 KOKKOS_SETTINGS_NO_KOKKOS_PATH="${KOKKOS_SETTINGS}"
 
 KOKKOS_TEST_INSTALL_PATH="${PWD}/install"
@@ -276,7 +295,7 @@ fi
 
 mkdir -p install
 gen_makefile=Makefile.kokkos
-echo "#Makefile to satisfy existens of target kokkos-clean before installing the library" > install/${gen_makefile}
+echo "#Makefile to satisfy existence of target kokkos-clean before installing the library" > install/${gen_makefile}
 echo "kokkos-clean:" >> install/${gen_makefile}
 echo "" >> install/${gen_makefile}
 mkdir -p core

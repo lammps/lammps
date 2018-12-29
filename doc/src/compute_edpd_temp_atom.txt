@@ -24,7 +24,7 @@ compute 1 all edpd/temp/atom :pre
 Define a computation that calculates the per-atom temperature
 for each eDPD particle in a group.
 
-The temperature is a local temperature derived from the internal energy 
+The temperature is a local temperature derived from the internal energy
 of each eDPD particle based on the local equilibrium hypothesis.
 For more details please see "(Espanol1997)"_#Espanol1997 and
 "(Li2014)"_#Li2014a.

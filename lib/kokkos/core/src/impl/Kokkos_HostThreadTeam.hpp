@@ -144,6 +144,30 @@ public:
 
     return m_team_rank == 0;
   }
+  
+  inline
+  bool team_rendezvous(const int source_team_rank) const noexcept
+  {
+    int * ptr = (int *)(m_team_scratch + m_team_rendezvous);
+    HostBarrier::split_arrive( ptr
+                             , m_team_size
+                             , m_team_rendezvous_step
+                             );
+    if (m_team_rank != source_team_rank) {
+      HostBarrier::wait( ptr
+                       , m_team_size
+                       , m_team_rendezvous_step
+                       );
+    }
+    else {
+      HostBarrier::split_master_wait( ptr
+                                    , m_team_size
+                                    , m_team_rendezvous_step
+                                    );
+    }
+
+    return (m_team_rank == source_team_rank);
+  }
 
   inline
   void team_rendezvous_release() const noexcept
@@ -540,15 +564,16 @@ public:
     {
       if ( 1 < m_data.m_team_size ) {
         T volatile * const shared_value = (T*) m_data.team_reduce();
-
+		
         // Don't overwrite shared memory until all threads arrive
 
-        if ( m_data.team_rendezvous() ) {
+        if ( m_data.team_rendezvous(source_team_rank) ) {
+
           // All threads have entered 'team_rendezvous'
           // only this thread returned from 'team_rendezvous'
           // with a return value of 'true'
 
-          *shared_value = value ;
+          *shared_value = value;
 
           m_data.team_rendezvous_release();
           // This thread released all other threads from 'team_rendezvous'
@@ -574,7 +599,7 @@ public:
 
       // Don't overwrite shared memory until all threads arrive
 
-      if ( m_data.team_rendezvous() ) {
+      if ( m_data.team_rendezvous(source_team_rank) ) {
 
         // All threads have entered 'team_rendezvous'
         // only this thread returned from 'team_rendezvous'

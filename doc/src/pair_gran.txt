@@ -242,7 +242,7 @@ require a per-particle radius is stored.  The {sphere} atom style does
 all of this.
 
 This pair style requires you to use the "comm_modify vel
-yes"_comm_modify.html command so that velocites are stored by ghost
+yes"_comm_modify.html command so that velocities are stored by ghost
 atoms.
 
 These pair styles will not restart exactly when using the

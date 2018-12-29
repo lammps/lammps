@@ -40,7 +40,7 @@ Install Windows Subsystem for Linux :h5
 Next you must ensure that the Window Subsystem for Linux is installed. Again,
 search for "enable windows features" in the Settings dialog. This opens a
 dialog with a list of features you can install. Add a checkmark to Windows
-Subsystem for Linux (Beta) and press OK.   
+Subsystem for Linux (Beta) and press OK.
 
 :image(JPG/bow_tutorial_04_small.png,JPG/bow_tutorial_04.png)
 :image(JPG/bow_tutorial_05.png,JPG/bow_tutorial_05.png)
@@ -54,12 +54,12 @@ enter. This will then download Ubuntu for Windows.
 
 :image(JPG/bow_tutorial_06.png)
 :image(JPG/bow_tutorial_07.png)
-  
+
 During installation, you will be asked for a new password. This will be used
 for installing new software and running commands with sudo.
 
 :image(JPG/bow_tutorial_08.png)
- 
+
 Type exit to close the command-line window.
 
 Go to the Start menu and type "bash" again. This time you will see a "Bash on

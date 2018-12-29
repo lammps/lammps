@@ -40,7 +40,7 @@ enum{PHI,VARIABLE};
 
 ComputeDihedralLocal::ComputeDihedralLocal(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  bstyle(NULL), vstr(NULL), vvar(NULL), pstr(NULL), vlocal(NULL), alocal(NULL)
+  bstyle(NULL), vvar(NULL), pstr(NULL), vstr(NULL), vlocal(NULL), alocal(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute dihedral/local command");
 
@@ -56,7 +56,7 @@ ComputeDihedralLocal::ComputeDihedralLocal(LAMMPS *lmp, int narg, char **arg) :
   bstyle = new int[nvalues];
   vstr = new char*[nvalues];
   vvar = new int[nvalues];
-  
+
   nvalues = 0;
   nvar = 0;
 
@@ -77,11 +77,11 @@ ComputeDihedralLocal::ComputeDihedralLocal(LAMMPS *lmp, int narg, char **arg) :
 
   setflag = 0;
   pstr = NULL;
-  
+
   while (iarg < narg) {
     if (strcmp(arg[iarg],"set") == 0) {
       setflag = 1;
-      if (iarg+3 > narg) 
+      if (iarg+3 > narg)
         error->all(FLERR,"Illegal compute dihedral/local command");
       if (strcmp(arg[iarg+1],"phi") == 0) {
         delete [] pstr;
@@ -115,7 +115,7 @@ ComputeDihedralLocal::ComputeDihedralLocal(LAMMPS *lmp, int narg, char **arg) :
       if (!input->variable->internalstyle(pvar))
         error->all(FLERR,"Variable for compute dihedral/local is invalid style");
     }
-  } else if (setflag) 
+  } else if (setflag)
     error->all(FLERR,"Compute dihedral/local set with no variable");
 
   // initialize output
@@ -295,17 +295,17 @@ int ComputeDihedralLocal::compute_dihedrals(int flag)
       if (rasq > 0) ra2inv = 1.0/rasq;
       if (rbsq > 0) rb2inv = 1.0/rbsq;
       rabinv = sqrt(ra2inv*rb2inv);
-      
+
       c = (ax*bx + ay*by + az*bz)*rabinv;
       s = rg*rabinv*(ax*vb3x + ay*vb3y + az*vb3z);
-      
+
       if (c > 1.0) c = 1.0;
       if (c < -1.0) c = -1.0;
       phi = atan2(s,c);
 
       if (nvalues == 1) ptr = &vlocal[m];
       else ptr = alocal[m];
-      
+
       if (nvar) {
 	ivar = 0;
 	if (pstr) input->variable->internal_set(pvar,phi);

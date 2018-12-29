@@ -136,13 +136,13 @@ private:
 
   /// Write human-readable FE gradients and sample count, and DX file in dim > 2
   void write_gradients_samples(const std::string &prefix, bool append = false);
-  void write_last_gradients_samples(const std::string &prefix, bool append = false);
 
   /// Read human-readable FE gradients and sample count (if not using restart)
   void read_gradients_samples();
 
-  std::istream& read_state_data(std::istream&);
-  std::ostream& write_state_data(std::ostream&);
+  virtual std::istream& read_state_data(std::istream&);
+  virtual std::ostream& write_state_data(std::ostream&);
+  virtual int write_output_files();
 };
 
 #endif

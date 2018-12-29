@@ -1,0 +1,118 @@
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
+# This example demonstrates the use of various fix qeq variants with
+#   that defines and uses charges, in this case pair_style buck/coul/long
+
+units           metal
+atom_style      charge
+
+read_data 	data.aC
+  orthogonal box = (0 0 0) to (25.1583 25.1583 28.0203)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  1200 atoms
+replicate  	2 2 2
+  orthogonal box = (0 0 0) to (50.3166 50.3166 56.0405)
+  1 by 2 by 2 MPI processor grid
+  9600 atoms
+  Time spent = 0.000675201 secs
+
+pair_style 	buck/coul/long 12.0
+pair_coeff 	2 2 1388.77 .3623188 175.0
+pair_coeff  	1 2 18003   .2052124  133.5381
+pair_coeff 	1 1 0 .1 0
+kspace_style  	ewald 1e-6
+
+neighbor        1.0 bin
+neigh_modify    delay 0 every 1 check yes
+
+group    	type1 type 1
+3200 atoms in group type1
+compute   	charge1 type1 property/atom q
+compute   	q1 type1 reduce ave c_charge1
+group    	type2 type 2
+6400 atoms in group type2
+compute   	charge2 type2 property/atom q
+compute   	q2 type2 reduce ave c_charge2
+variable   	qtot equal count(type1)*c_q1+count(type2)*c_q2
+
+thermo_style  	custom step pe c_q1 c_q2 v_qtot spcpu
+thermo 		10
+
+timestep 	0.0001
+
+velocity  	all create 300.0 1281937
+fix  		1 all nve
+
+#fix        	2 all qeq/point    1 10 1.0e-6 100 param.qeq2
+#fix        	2 all qeq/shielded 1 10 1.0e-6 100 param.qeq2
+#fix         	2 all qeq/slater   1 10 1.0e-6 100 param.qeq2
+#fix       	2 all qeq/dynamic  1 10 1.0e-4 100 param.qeq2
+fix        	2 all qeq/fire     1 10 1.0e-4 100 param.qeq2
+
+run  		100
+Ewald initialization ...
+  using 12-bit tables for long-range coulomb (src/kspace.cpp:321)
+  G vector (1/distance) = 0.305064
+  estimated absolute RMS force accuracy = 2.07629e-05
+  estimated relative force accuracy = 1.44191e-06
+  KSpace vectors: actual max1d max3d = 13556 20 34460
+                  kxmax kymax kzmax  = 18 18 20
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 13
+  ghost atom cutoff = 13
+  binsize = 6.5, bins = 8 8 9
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair buck/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+  (2) fix qeq/fire, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 53.06 | 53.13 | 53.21 Mbytes
+Step PotEng c_q1 c_q2 v_qtot S/CPU 
+       0   -27457.215   0.85227886  -0.42613943 2.1373125e-11            0 
+      10   -27626.057   0.85486228  -0.42743114 3.0468073e-11    2.4245312 
+      20   -27975.085   0.85968531  -0.42984266 1.0095391e-10    2.0185316 
+      30   -28552.627   0.86755661   -0.4337783 1.3096724e-10    1.9605335 
+      40   -29133.643   0.87426387  -0.43713193 1.5279511e-10    1.9624139 
+      50    -29697.01    0.8794039  -0.43970195 1.6461854e-10    1.8113263 
+      60       -30342   0.88478594  -0.44239297 1.7826096e-10    1.9537722 
+      70   -31081.139   0.89069733  -0.44534866 1.4733814e-10     2.058406 
+      80   -31792.732   0.89506635  -0.44753317 1.3824319e-10    2.2160813 
+      90   -32424.752   0.89714841  -0.44857421 1.2914825e-10    2.0952145 
+     100   -32998.353   0.89755721  -0.44877861 1.4824764e-10    2.1292486 
+Loop time of 48.7541 on 4 procs for 100 steps with 9600 atoms
+
+Performance: 0.018 ns/day, 1354.281 hours/ns, 2.051 timesteps/s
+97.4% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 2.9747     | 3.0315     | 3.0758     |   2.1 |  6.22
+Kspace  | 27.873     | 28.264     | 28.63      |   5.3 | 57.97
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.53835    | 0.8523     | 1.2286     |  28.2 |  1.75
+Output  | 0.0012984  | 0.001591   | 0.0024178  |   1.2 |  0.00
+Modify  | 16.58      | 16.59      | 16.601     |   0.3 | 34.03
+Other   |            | 0.01409    |            |       |  0.03
+
+Nlocal:    2400 ave 2400 max 2400 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    11550 ave 11550 max 11550 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    735200 ave 740758 max 729642 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 2940800
+Ave neighs/atom = 306.333
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:49

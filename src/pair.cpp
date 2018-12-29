@@ -195,7 +195,7 @@ void Pair::init()
   if (tail_flag && domain->dimension == 2)
     error->all(FLERR,"Cannot use pair tail corrections with 2d simulations");
   if (tail_flag && domain->nonperiodic && comm->me == 0)
-    error->warning(FLERR,"Using pair tail corrections with nonperiodic system");
+    error->warning(FLERR,"Using pair tail corrections with non-periodic system");
   if (!compute_flag && tail_flag && comm->me == 0)
     error->warning(FLERR,"Using pair tail corrections with "
                    "pair_modify compute no");

@@ -119,7 +119,7 @@ Support for other dump format readers may be added in the future.
 Global information is first read from the dump file, namely timestep
 and box information.
 
-The dump file is scanned for a snapshot with a time stamp that matches
+The dump file is scanned for a snapshot with a timestamp that matches
 the specified {Nstep}.  This means the LAMMPS timestep the dump file
 snapshot was written on for the {native} format.  Note that the {xyz}
 and {molfile} formats do not store the timestep.  For these formats,

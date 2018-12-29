@@ -161,7 +161,7 @@ function.
 
 The keyword {bzeroflag} determines whether or not {B0}, the bispectrum
 components of an atom with no neighbors, are subtracted from
-the calculated bispectrum components. This optional keyword 
+the calculated bispectrum components. This optional keyword
 normally only affects compute {sna/atom}. However, when
 {quadraticflag} is on, it also affects {snad/atom} and {snav/atom}.
 

@@ -48,7 +48,7 @@ double manifold_spine::g_and_n( const double *x, double *nn )
   if( x[2] > 0 ){
     BB = B;
     cc = c;
-  }else{
+  } else {
     BB = B2;
     cc = 1.0;
   }
@@ -97,7 +97,7 @@ void manifold_spine::n( const double *x, double *nn )
   if( x[2] > 0 ){
     BB = B;
     cc = c;
-  }else{
+  } else {
     BB = B2;
     cc = 1.0;
   }
@@ -141,7 +141,7 @@ double manifold_spine::g( const double *x )
   if( x[2] > 0 ){
     BB = B;
     cc = c;
-  }else{
+  } else {
     BB = B2;
     cc = 1.0;
   }

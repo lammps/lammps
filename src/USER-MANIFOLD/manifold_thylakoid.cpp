@@ -87,7 +87,7 @@ double manifold_thylakoid::g( const double *x )
   double con_val = p->g(x);
   if( std::isfinite(con_val) ){
     return con_val;
-  }else{
+  } else {
     char msg[2048];
     sprintf(msg,"Error, thyla_part of type %d returned %f as constraint val!",
             p->type, con_val);
@@ -109,7 +109,7 @@ void   manifold_thylakoid::n( const double *x, double *n )
   p->n(x,n);
   if( std::isfinite(n[0]) && std::isfinite(n[1]) && std::isfinite(n[2]) ){
     return;
-  }else{
+  } else {
     char msg[2048];
     sprintf(msg,"Error, thyla_part of type %d returned (%f,%f,%f) as gradient!",
             p->type, n[0], n[1], n[2]);
@@ -532,11 +532,11 @@ int manifold_thylakoid::is_in_domain( thyla_part *part, const double *x )
 
     if( dist2 < RR2 ){
       return true;
-    }else{
+    } else {
       // Domain was ok, but radius not.
       return false;
     }
-  }else{
+  } else {
     return true;
   }
 }

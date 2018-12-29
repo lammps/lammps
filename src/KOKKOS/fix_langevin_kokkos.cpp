@@ -578,7 +578,7 @@ FSUM FixLangevinKokkos<DeviceType>::post_force_item(int i) const
       if (v(i,0) == 0.0) fran[0] = 0.0;
       if (v(i,1) == 0.0) fran[1] = 0.0;
       if (v(i,2) == 0.0) fran[2] = 0.0;
-    }else{
+    } else {
       fdrag[0] = gamma1*v(i,0);
       fdrag[1] = gamma1*v(i,1);
       fdrag[2] = gamma1*v(i,2);

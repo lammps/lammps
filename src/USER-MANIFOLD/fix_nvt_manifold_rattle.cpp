@@ -125,7 +125,7 @@ FixNVTManifoldRattle::FixNVTManifoldRattle(LAMMPS *lmp, int narg, char **arg,
       char msg[2048];
       sprintf(msg,"Error parsing arg \"%s\".\n", arg[argi]);
       error->all(FLERR, msg);
-    }else{
+    } else {
       argi += 1;
     }
   }
@@ -281,7 +281,7 @@ void FixNVTManifoldRattle::nhc_temp_integrate()
 
   if( eta_mass[0] > 0.0 ){
     eta_dotdot[0] = (kecurrent - ke_target)/eta_mass[0];
-  }else{
+  } else {
     eta_dotdot[0] = 0;
   }
 
@@ -314,7 +314,7 @@ void FixNVTManifoldRattle::nhc_temp_integrate()
 
   if( eta_mass[0] > 0.0 ){
     eta_dotdot[0] = (kecurrent - ke_target) / eta_mass[0];
-  }else{
+  } else {
     eta_dotdot[0] = 0.0;
   }
 

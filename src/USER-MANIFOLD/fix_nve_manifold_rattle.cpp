@@ -129,7 +129,7 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
       len = strlen(arg[i+6]) - 1; // -1 because -2 for v_, +1 for \0.
       is_var[i] = 1;
       offset = 2;
-    }else{
+    } else {
       force->numeric(FLERR,arg[i+6]); // Check if legal number.
       len = strlen( arg[i+6] ) + 1; // +1 for \0.
       is_var[i] = 0;
@@ -163,7 +163,7 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
       char msg[2048];
       sprintf(msg,"Error parsing arg \"%s\".\n", arg[argi]);
       error->all(FLERR, msg);
-    }else{
+    } else {
       argi += 1;
     }
   }
@@ -247,7 +247,7 @@ int FixNVEManifoldRattle::was_var( const char *str )
 {
   if( strlen(str) > 2 ){
     return (str[0] == 'v') && (str[1] == '_');
-  }else{
+  } else {
     return 0;
   }
 }
@@ -295,7 +295,7 @@ void FixNVEManifoldRattle::update_var_params()
         double new_val = input->variable->compute_equal(tvars[i]);
 
         ptr_params[i] = new_val;
-      }else{
+      } else {
         error->all(FLERR,
                    "Variable for fix nve/manifold/rattle is invalid style");
       }

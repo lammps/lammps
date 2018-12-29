@@ -163,7 +163,7 @@ double manifold_gaussian_bump::g( const double *x )
     double rr = sqrt( x2 );
     double z_taper_func = lut_get_z( rr );
     return x[2] - z_taper_func;
-  }else{
+  } else {
     return x[2];
   }
 }
@@ -193,7 +193,7 @@ void   manifold_gaussian_bump::n( const double *x, double *nn )
     nn[0] = der_part * x[0];
     nn[1] = der_part * x[1];
 
-  }else{
+  } else {
     nn[0] = nn[1] = 0.0;
   }
 }
@@ -226,7 +226,7 @@ double manifold_gaussian_bump::g_and_n( const double *x, double *nn )
     nn[1] = der_part * x[1];
 
     return x[2] - z_taper_func;
-  }else{
+  } else {
     nn[0] = nn[1] = 0.0;
     return x[2];
   }
@@ -364,7 +364,7 @@ void manifold_gaussian_bump::test_lut()
             taper_z = gaussian_bump(xx);
     }else if( xx < rc2 ){
             taper_z = lut_get_z( xx );
-    }else{
+    } else {
             taper_z = 0.0;
     }
     fprintf( fp, "%g %g %g %g %g %g %g\n", xx, gaussian_bump(xx), taper_z,

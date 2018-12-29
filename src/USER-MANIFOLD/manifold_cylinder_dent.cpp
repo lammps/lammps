@@ -21,7 +21,7 @@ double manifold_cylinder_dent::g( const double *x )
     double k = MathConst::MY_2PI / l;
     double c = R - 0.5*a*( 1.0 + cos(k*x[2]) );
     return c*c - r2;
-  }else{
+  } else {
     return R*R - r2;
   }
 }
@@ -36,7 +36,7 @@ void manifold_cylinder_dent::n( const double *x, double *n )
     n[0] = -2*x[0];
     n[1] = -2*x[1];
     n[2] = c*a*k*sin(k*x[2]);
-  }else{
+  } else {
     n[0] = -2*x[0];
     n[1] = -2*x[1];
     n[2] = 0.0;

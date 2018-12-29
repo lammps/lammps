@@ -231,7 +231,7 @@ a z wall velocity without implementing fixed BCs in z");
     initializeLB = &FixLbFluid::initializeLB15;
     equilibriumdist = &FixLbFluid::equilibriumdist15;
     update_full = &FixLbFluid::update_full15;
-  }else{
+  } else {
     initializeLB = &FixLbFluid::initializeLB19;
     equilibriumdist = &FixLbFluid::equilibriumdist19;
     update_full = &FixLbFluid::update_full19;
@@ -379,7 +379,7 @@ a z wall velocity without implementing fixed BCs in z");
     char str[128];
     if(setdx == 1){
       sprintf(str,"Using a lattice-Boltzmann grid of %i by %i by %i total grid points.  To change, use the dx keyword",Nbx,Nby,Nbz);
-    }else{
+    } else {
       sprintf(str,"Using a lattice-Boltzmann grid of %i by %i by %i total grid points.",Nbx,Nby,Nbz);
     }
     error->message(FLERR,str);
@@ -544,7 +544,7 @@ FixLbFluid::~FixLbFluid()
 
   if(setGamma == 1){
     delete [] Gamma;
-  }else{
+  } else {
     delete [] NodeArea;
   }
 }
@@ -841,7 +841,7 @@ void FixLbFluid::calc_fluidforce(void)
     if(mask[i] & groupbit){
       if(trilinear_stencil==1) {
         trilinear_interpolation(i);
-      }else{
+      } else {
         peskin_interpolation(i);
       }
 
@@ -1219,7 +1219,7 @@ require more frequent neighborlist rebuilds");
     massone = massone/dm_lb;
 
     gammavalue = 2.0*(mnode*massone)*dtoverdtcollision/(mnode+massone);
-  }else{
+  } else {
     gammavalue = Gamma[type[i]];
   }
 
@@ -1350,7 +1350,7 @@ void FixLbFluid::rescale(void)
     for(int i=0; i<= atom->ntypes; i++){
       NodeArea[i] = NodeArea[i]/dx_lb/dx_lb;
     }
-  }else{
+  } else {
     for(int i=0; i<= atom->ntypes; i++){
       Gamma[i] = Gamma[i]*dt_lb/dm_lb;
     }
@@ -1388,7 +1388,7 @@ satisfy the Courant condition.\n");
     noisefactor = 1.0;
     if(a_0 <= 0.333333333333333){
       K_0 = 5.17*(0.333333333333333 - a_0);
-    }else{
+    } else {
       K_0 = 2.57*(a_0 - 0.333333333333333);
     }
      dtoverdtcollision = dt_lb*6.0*viscosity/densityinit_real/dx_lb/dx_lb;
@@ -1821,7 +1821,7 @@ void FixLbFluid::initialize_feq(void)
   // If using the standary LB integrator, do not need to send feqn.
   if(typeLB == 1){
     numrequests = 4;
-  }else{
+  } else {
     numrequests = 8;
   }
 
@@ -1888,7 +1888,7 @@ void FixLbFluid::initialize_feq(void)
               feqoldn[i][j][k][p] = feqn[i][j][k][p];
             }
     }
-  }else{
+  } else {
     step = 1;
 
     read_restartfile();
@@ -2576,7 +2576,7 @@ void FixLbFluid::streamout(void)
             }
           }
         }
-      }else{
+      } else {
         for(i=1; i<subNbx-1; i++){
           for(j=1; j<subNby-1; j++){
             for(k=1; k<subNbz-1; k++){
@@ -2604,10 +2604,10 @@ void FixLbFluid::streamout(void)
     if(domain->periodicity[2]==0){
       if(comm->myloc[2]==comm->procgrid[2]-1){
         kstart=comm->myloc[2]*(subNbz-3);
-      }else{
+      } else {
         kstart=comm->myloc[2]*(subNbz-2);
       }
-    }else{
+    } else {
       kstart=comm->myloc[2]*(subNbz-2);
     }
     iend=istart+subNbx-2;
@@ -2659,7 +2659,7 @@ void FixLbFluid::update_full15(void)
    //--------------------------------------------------------------------------
    if(typeLB == 1){
      numrequests = 4;
-   }else{
+   } else {
      numrequests = 8;
    }
 
@@ -2777,7 +2777,7 @@ void FixLbFluid::update_full15(void)
              }
            }
          }
-       }else{
+       } else {
          update_periodic(1,subNbx-1,1,subNby-1,1,2);
        }
        if(comm->myloc[2]==comm->procgrid[2]-1){
@@ -3019,7 +3019,7 @@ void FixLbFluid::update_full19(void)
   //--------------------------------------------------------------------------
   if(typeLB == 1){
     numrequests = 4;
-  }else{
+  } else {
     numrequests = 8;
   }
 
@@ -3135,7 +3135,7 @@ void FixLbFluid::update_full19(void)
             }
           }
         }
-      }else{
+      } else {
         update_periodic(1,subNbx-1,1,subNby-1,1,2);
       }
       if(comm->myloc[2]==comm->procgrid[2]-1){

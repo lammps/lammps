@@ -387,7 +387,7 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
        if((mask[j] & groupbit) && (mask[j] & groupbit_lb_fluid) && (mask[j] & group->bitmask[igroupinner]))
          error->one(FLERR,"the inner nodes specified in lb/rigid/pc/sphere should not be included in the lb/fluid fix");
      }
-   }else{
+   } else {
      for(int j=0; j<nlocal; j++){
        if((mask[j] & groupbit) && !(mask[j] & groupbit_lb_fluid))
          error->one(FLERR,"use the innerNodes keyword in the lb/rigid/pc/sphere fix for atoms which do not interact with the lb/fluid");
@@ -536,7 +536,7 @@ void FixLbRigidPCSphere::init()
       if(!(mask[i] & group->bitmask[igroupinner])){
         sum[ibody][4] += massone;
       }
-    }else{
+    } else {
       sum[ibody][4] += massone;
     }
   }
@@ -581,7 +581,7 @@ void FixLbRigidPCSphere::init()
         sum[ibody][0] += dx*dx + dy*dy + dz*dz;
         sum[ibody][1] += Gamma[type[i]];
       }
-    }else{
+    } else {
       ibody = body[i];
 
       xbox = (image[i] & IMGMASK) - IMGMAX;
@@ -619,7 +619,7 @@ void FixLbRigidPCSphere::init()
         if(Gamma_MD[ibody]*dt_lb/dm_lb - Gamma[type[i]] > eps)
           error->one(FLERR,"All atoms in a rigid body must have the same gamma value");
       }
-    }else{
+    } else {
       ibody = body[i];
 
         if(Gamma_MD[ibody]*dt_lb/dm_lb - Gamma[type[i]] > eps)
@@ -798,7 +798,7 @@ void FixLbRigidPCSphere::initial_integrate(int vflag)
         sum[ibody][1] += up[i][1]*massone;
         sum[ibody][2] += up[i][2]*massone;
       }
-    }else{
+    } else {
       sum[ibody][0] += up[i][0]*massone;
       sum[ibody][1] += up[i][1]*massone;
       sum[ibody][2] += up[i][2]*massone;
@@ -841,7 +841,7 @@ void FixLbRigidPCSphere::initial_integrate(int vflag)
         sum[ibody][4] += -Gamma_MD[ibody]*(v[i][1]-up[i][1]);
         sum[ibody][5] += -Gamma_MD[ibody]*(v[i][2]-up[i][2]);
       }
-    }else{
+    } else {
       sum[ibody][0] += Gamma_MD[ibody]*(dy * ((up[i][2]-vcm[ibody][2])) -
                                         dz * ((up[i][1]-vcm[ibody][1])));
       sum[ibody][1] += Gamma_MD[ibody]*(dz * ((up[i][0]-vcm[ibody][0])) -
@@ -1054,7 +1054,7 @@ void FixLbRigidPCSphere::final_integrate()
         sum[ibody][5] += Gamma_MD[ibody]*(dx * ((up[i][1]-vcm[ibody][1])) -
                                           dy * ((up[i][0]-vcm[ibody][0])));
       }
-    }else{
+    } else {
       sum[ibody][0] += up[i][0]*massone;
       sum[ibody][1] += up[i][1]*massone;
       sum[ibody][2] += up[i][2]*massone;
@@ -1659,7 +1659,7 @@ double FixLbRigidPCSphere::compute_array(int i, int j)
             }
           }
         }
-      }else{
+      } else {
         FfP[0] = (1.-dx1)*(1.-dy1)*(1.-dz1);
         FfP[1] = (1.-dx1)*(1.-dy1)*dz1;
         FfP[2] = (1.-dx1)*dy1*(1.-dz1);

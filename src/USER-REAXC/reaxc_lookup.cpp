@@ -264,7 +264,7 @@ int Init_Lookup_Tables( reax_system *system, control_params *control,
           Natural_Cubic_Spline( &h[1], &fCEclmb[1],
                                 &(LR[i][j].CEclmb[1]), control->tabulate+1,
                                 comm );
-        } else{
+        } else {
           LR[i][j].n = 0;
         }
       }

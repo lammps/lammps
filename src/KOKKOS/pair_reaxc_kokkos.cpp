@@ -530,9 +530,7 @@ int PairReaxCKokkos<DeviceType>::Init_Lookup_Tables()
       Natural_Cubic_Spline( &h[1], &fCEclmb[1],
                             &(LR[i][j].CEclmb[1]), control->tabulate+1,
                             world );
-    }// else{
-     // LR[i][j].n = 0;
-    //}//
+    }
   }
   free(h);
   free(fh);
@@ -622,7 +620,7 @@ void PairReaxCKokkos<DeviceType>::LR_vdW_Coulomb( int i, int j, double r_ij, LR_
       lr->CEvd = dTap * twbp->D * (exp1 - 2.0 * exp2) -
         Tap * twbp->D * (twbp->alpha / twbp->r_vdW) * (exp1 - exp2) * dfn13;
     }
-  else{ // no shielding
+  else { // no shielding
     exp1 = exp( twbp->alpha * (1.0 - r_ij / twbp->r_vdW) );
     exp2 = exp( 0.5 * twbp->alpha * (1.0 - r_ij / twbp->r_vdW) );
 
@@ -2569,10 +2567,10 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeAngular<NEIGHFLAG,EV
   const F_FLOAT vlpex = Delta_e - 2.0 * (int)(Delta_e/2.0);
   const F_FLOAT explp1 = exp(-gp[15] * SQR(2.0 + vlpex));
   const F_FLOAT nlp = explp1 - (int)(Delta_e / 2.0);
-  if( vlpex >= 0.0 ){
+  if (vlpex >= 0.0) {
     vlpadj = 0.0;
     dSBO2 = prod_SBO - 1.0;
-  } else{
+  } else {
     vlpadj = nlp;
     dSBO2 = (prod_SBO - 1.0) * (1.0 - p_val8 * d_dDelta_lp[i]);
   }

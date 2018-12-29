@@ -383,7 +383,7 @@ void NeighborKokkosExecute<DeviceType>::
         if (which == 0){
           if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
           else n++;
-        }else if (minimum_image_check(delx,dely,delz)){
+        } else if (minimum_image_check(delx,dely,delz)){
           if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
           else n++;
         }
@@ -440,7 +440,7 @@ void NeighborKokkosExecute<DeviceType>::
             if (which == 0){
               if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
               else n++;
-            }else if (minimum_image_check(delx,dely,delz)){
+            } else if (minimum_image_check(delx,dely,delz)){
               if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
               else n++;
             }
@@ -567,7 +567,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemCuda(typename Kokkos::TeamPoli
           if (which == 0){
             if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
             else n++;
-          }else if (minimum_image_check(delx,dely,delz)){
+          } else if (minimum_image_check(delx,dely,delz)){
             if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
             else n++;
           }
@@ -645,7 +645,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemCuda(typename Kokkos::TeamPoli
             if (which == 0){
               if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
               else n++;
-            }else if (minimum_image_check(delx,dely,delz)){
+            } else if (minimum_image_check(delx,dely,delz)){
               if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
               else n++;
             }
@@ -738,7 +738,7 @@ void NeighborKokkosExecute<DeviceType>::
             if (which == 0){
               if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
               else n++;
-            }else if (minimum_image_check(delx,dely,delz)){
+            } else if (minimum_image_check(delx,dely,delz)){
               if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
               else n++;
             }

@@ -308,11 +308,10 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
       }
 
       // modifications to match Adri's code - 09/01/09
-      if( workspace->vlpex[j] >= 0 ){
+      if (workspace->vlpex[j] >= 0) {
         vlpadj = 0;
         dSBO2 = prod_SBO - 1;
-      }
-      else{
+      } else {
         vlpadj = workspace->nlp[j];
         dSBO2 = (prod_SBO - 1) * (1 - p_val8 * workspace->dDelta_lp[j]);
       }
@@ -543,8 +542,7 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
                                     CEval8, p_ijk->dcos_di );
                     rvec_ScaledAdd( workspace->forceReduction[reductionOffset+k],
                                     CEval8, p_ijk->dcos_dk );
-                  }
-                  else {
+                  } else {
                     /* terms not related to bond order derivatives are
                        added directly into forces and pressure vector/tensor */
                     rvec_Scale( force, CEval8, p_ijk->dcos_di );

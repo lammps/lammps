@@ -291,10 +291,10 @@ int Write_Init_Desc( reax_system *system, control_params * /*control*/,
              out_control->line, INIT_DESC_LEN+1 );
   }
 
-  if( me != MASTER_NODE )
+  if (me != MASTER_NODE) {
     MPI_Send( out_control->buffer, buffer_req-1, MPI_CHAR, MASTER_NODE,
               np * INIT_DESCS + me, mpi_data->world );
-  else{
+  } else {
     buffer_len = system->n * INIT_DESC_LEN;
     for( i = 0; i < np; ++i )
       if( i != MASTER_NODE ) {
@@ -344,8 +344,7 @@ int Init_Traj( reax_system *system, control_params *control,
   if( out_control->traj_method == REG_TRAJ) {
     if( system->my_rank == MASTER_NODE )
       out_control->strj = fopen( fname, "w" );
-  }
-  else {
+  } else {
     strcpy( msg, "init_traj: unknown trajectory option" );
     return FAILURE;
   }
@@ -540,10 +539,10 @@ int Write_Atoms( reax_system *system, control_params * /*control*/,
     strncpy( out_control->buffer + i*line_len, out_control->line, line_len+1 );
   }
 
-  if( me != MASTER_NODE )
+  if (me != MASTER_NODE) {
     MPI_Send( out_control->buffer, buffer_req-1, MPI_CHAR, MASTER_NODE,
               np*ATOM_LINES+me, mpi_data->world );
-  else{
+  } else {
     buffer_len = system->n * line_len;
     for( i = 0; i < np; ++i )
       if( i != MASTER_NODE ) {
@@ -630,10 +629,10 @@ int Write_Bonds(reax_system *system, control_params *control, reax_list *bonds,
     }
   }
 
-  if( me != MASTER_NODE )
+  if (me != MASTER_NODE) {
     MPI_Send( out_control->buffer, buffer_req-1, MPI_CHAR, MASTER_NODE,
               np*BOND_LINES+me, mpi_data->world );
-  else{
+  } else {
     buffer_len = my_bonds * line_len;
     for( i = 0; i < np; ++i )
       if( i != MASTER_NODE ) {
@@ -725,10 +724,10 @@ int Write_Angles( reax_system *system, control_params *control,
         }
     }
 
-  if( me != MASTER_NODE )
+  if (me != MASTER_NODE) {
     MPI_Send( out_control->buffer, buffer_req-1, MPI_CHAR, MASTER_NODE,
               np*ANGLE_LINES+me, mpi_data->world );
-  else{
+  } else {
     buffer_len = my_angles * line_len;
     for( i = 0; i < np; ++i )
       if( i != MASTER_NODE ) {

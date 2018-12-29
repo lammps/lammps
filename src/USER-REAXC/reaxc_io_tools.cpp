@@ -41,7 +41,7 @@ int Init_Output_Files( reax_system *system, control_params *control,
   char temp[MAX_STR+8];
   int ret;
 
-  if( out_control->write_steps > 0 ){
+  if (out_control->write_steps > 0) {
     ret = Init_Traj( system, control, out_control, mpi_data, msg );
     if( ret == FAILURE )
       return ret;
@@ -124,7 +124,7 @@ void Output_Results( reax_system *system, control_params *control,
         out_control->energy_update_freq > 0 &&
         data->step % out_control->energy_update_freq == 0 ) {
 
-      if( control->virial ){
+      if (control->virial) {
         fprintf( out_control->prs,
                  "%8d%13.6f%13.6f%13.6f%13.6f%13.6f%13.6f%13.6f\n",
                  data->step,

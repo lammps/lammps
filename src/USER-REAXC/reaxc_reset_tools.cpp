@@ -127,7 +127,7 @@ void Reset_Neighbor_Lists( reax_system *system, control_params *control,
   reax_list *bonds, *hbonds;
 
   /* bonds list */
-  if( system->N > 0 ){
+  if (system->N > 0) {
     bonds = (*lists) + BONDS;
     total_bonds = 0;
 

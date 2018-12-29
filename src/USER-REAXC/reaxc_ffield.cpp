@@ -258,8 +258,8 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
       val = atof(tmp[1]); reax->sbp[i].lgre           = val;
     }
 
-    if( reax->sbp[i].rcore2>0.01 && reax->sbp[i].acore2>0.01 ){ // Inner-wall
-      if( reax->sbp[i].gamma_w>0.5 ){ // Shielding vdWaals
+    if (reax->sbp[i].rcore2>0.01 && reax->sbp[i].acore2>0.01) { // Inner-wall
+      if (reax->sbp[i].gamma_w>0.5) { // Shielding vdWaals
         if( reax->gp.vdw_type != 0 && reax->gp.vdw_type != 3 ) {
           if (errorflag && (me == 0))
             fprintf( stderr, "Warning: inconsistent vdWaals-parameters\n" \
@@ -270,11 +270,10 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
                    "Keeping vdWaals-setting for earlier atoms.\n",
                    reax->sbp[i].name );
           errorflag = 0;
-        } else{
+        } else {
           reax->gp.vdw_type = 3;
         }
-      }
-      else {  // No shielding vdWaals parameters present
+      } else {  // No shielding vdWaals parameters present
         if( reax->gp.vdw_type != 0 && reax->gp.vdw_type != 2 ) {
           if (me == 0)
             fprintf( stderr, "Warning: inconsistent vdWaals-parameters\n" \
@@ -288,9 +287,8 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
           reax->gp.vdw_type = 2;
         }
       }
-    }
-    else{ // No Inner wall parameters present
-      if( reax->sbp[i].gamma_w>0.5 ){ // Shielding vdWaals
+    } else { // No Inner wall parameters present
+      if (reax->sbp[i].gamma_w>0.5) { // Shielding vdWaals
         if( reax->gp.vdw_type != 0 && reax->gp.vdw_type != 1 ) {
           if (me == 0)
             fprintf( stderr, "Warning: inconsistent vdWaals-parameters\n"  \
@@ -642,8 +640,7 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
         reax->fbp[j][k][m][n].prm[0].p_cot1 = val;
         reax->fbp[n][m][k][j].prm[0].p_cot1 = val;
       }
-    }
-    else { /* This means the entry is of the form 0-X-Y-0 */
+    } else { /* This means the entry is of the form 0-X-Y-0 */
       if( k < reax->num_atom_types && m < reax->num_atom_types )
         for( p = 0; p < reax->num_atom_types; p++ )
           for( o = 0; o < reax->num_atom_types; o++ ) {

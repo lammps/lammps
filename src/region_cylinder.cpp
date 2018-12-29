@@ -471,14 +471,14 @@ int RegCylinder::surface_exterior(double *x, double cutoff)
       if (x[0] < lo) xp = lo;
       else if (x[0] > hi)       xp = hi;
       else xp = x[0];
-    }
+
+    } else {
 
     // closest point on curved surface
 
-    else {
       dr = r - radius;
       dr2 = dr*dr;
-      if (!open_faces[2]){
+      if (!open_faces[2]) {
         yp = c1 + del1*radius/r;
         zp = c2 + del2*radius/r;
         if (x[0] < lo) {
@@ -504,7 +504,7 @@ int RegCylinder::surface_exterior(double *x, double cutoff)
         else d2 = dr2 + dx*dx;
         if (d2 < d2prev) {
           xp = lo;
-          if (r < radius){
+          if (r < radius) {
             yp = x[1];
             zp = x[2];
           }
@@ -565,11 +565,11 @@ int RegCylinder::surface_exterior(double *x, double cutoff)
       if (x[1] < lo) yp = lo;
       else if (x[1] > hi) yp = hi;
       else yp = x[1];
-    }
+
+    } else {
 
     // closest point on curved surface
 
-    else {
       dr = r - radius;
       dr2 = dr*dr;
       if (!open_faces[2]){
@@ -659,25 +659,23 @@ int RegCylinder::surface_exterior(double *x, double cutoff)
       if (x[2] < lo) zp = lo;
       else if (x[2] > hi) zp = hi;
       else zp = x[2];
-    }
+
+    } else {
 
     // closest point on curved surface
 
-    else {
       dr = r - radius;
       dr2 = dr*dr;
-      if (!open_faces[2]){
+      if (!open_faces[2]) {
         xp = c1 + del1*radius/r;
         yp = c2 + del2*radius/r;
         if (x[2] < lo) {
           dx = lo-x[2];
           zp = lo;
-        }
-        else if (x[2] > hi) {
+        } else if (x[2] > hi) {
           dx = x[2]-hi;
           zp = hi;
-        }
-        else {
+        } else {
           dx = 0;
           zp = x[2];
         }
@@ -795,17 +793,15 @@ void RegCylinder::variable_check()
 
 void RegCylinder::set_velocity_shape()
 {
-  if (axis == 'x'){
+  if (axis == 'x') {
     xcenter[0] = 0;
     xcenter[1] = c1;
     xcenter[2] = c2;
-  }
-  else if (axis == 'y'){
+  } else if (axis == 'y') {
     xcenter[0] = c1;
     xcenter[1] = 0;
     xcenter[2] = c2;
-  }
-  else{
+  } else {
     xcenter[0] = c1;
     xcenter[1] = c2;
     xcenter[2] = 0;
@@ -825,17 +821,15 @@ void RegCylinder::set_velocity_shape()
 void RegCylinder::velocity_contact_shape(double *vwall, double *xc)
 {
   double delx, dely, delz; // Displacement of contact point in x,y,z
-  if (axis == 'x'){
+  if (axis == 'x') {
     delx = 0;
     dely = (xc[1] - xcenter[1])*(1 - rprev/radius);
     delz = (xc[2] - xcenter[2])*(1 - rprev/radius);
-  }
-  else if (axis == 'y'){
+  } else if (axis == 'y') {
     delx = (xc[0] - xcenter[0])*(1 - rprev/radius);
     dely = 0;
     delz = (xc[2] - xcenter[2])*(1 - rprev/radius);
-  }
-  else{
+  } else {
     delx = (xc[0] - xcenter[0])*(1 - rprev/radius);
     dely = (xc[1] - xcenter[1])*(1 - rprev/radius);
     delz = 0;
@@ -843,6 +837,5 @@ void RegCylinder::velocity_contact_shape(double *vwall, double *xc)
   vwall[0] += delx/update->dt;
   vwall[1] += dely/update->dt;
   vwall[2] += delz/update->dt;
-  //printf ("R is %g, prev %g, velocity of wall at %g %g %g is %g %g %g\n",radius,rprev,xc[0],xc[1],xc[2],vwall[0],vwall[1],vwall[2]);
 }
 

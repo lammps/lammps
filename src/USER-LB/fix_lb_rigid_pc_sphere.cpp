@@ -178,7 +178,7 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
 
     delete [] igroups;
 
-  }else error->all(FLERR,"Illegal fix lb/rigid/pc/sphere command");
+  } else error->all(FLERR,"Illegal fix lb/rigid/pc/sphere command");
 
   // error check on nbody
 

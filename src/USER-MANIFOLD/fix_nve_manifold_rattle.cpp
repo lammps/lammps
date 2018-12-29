@@ -159,7 +159,7 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
                         nevery, next_output);
       }
       argi += 2;
-    }else if (error_on_unknown_keyword) {
+    } else if (error_on_unknown_keyword) {
       char msg[2048];
       sprintf(msg,"Error parsing arg \"%s\".\n", arg[argi]);
       error->all(FLERR, msg);

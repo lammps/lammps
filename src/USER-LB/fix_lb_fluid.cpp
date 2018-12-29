@@ -1391,7 +1391,7 @@ satisfy the Courant condition.\n");
       K_0 = 2.57*(a_0 - 0.333333333333333);
     }
      dtoverdtcollision = dt_lb*6.0*viscosity/densityinit_real/dx_lb/dx_lb;
-  }else if(typeLB==2){
+  } else if(typeLB==2){
     expminusdtovertau=exp(-1.0/tau);
     Dcoeff=(1.0-(1.0-expminusdtovertau)*tau);
     namp = 2.0*kB*T/3.;
@@ -2019,7 +2019,7 @@ void FixLbFluid::equilibriumdist15(int xstart, int xend, int ystart, int yend, i
             (u_lb[i][j][k][0]*drhoz+u_lb[i][j][k][2]*drhox);
           Pyz = kappa_lb*drhoy*drhoz+(tau-0.5)*(1.0/3.0-dPdrho)*
             (u_lb[i][j][k][1]*drhoz+u_lb[i][j][k][2]*drhoy);
-        }else if(typeLB==2){
+        } else if(typeLB==2){
           Pxx = p0 + kappa_lb*(drhox*drhox - 0.5*grs)+tau*(1.0/3.0-dPdrho)*
             (3.0*u_lb[i][j][k][0]*drhox+u_lb[i][j][k][1]*drhoy+u_lb[i][j][k][2]*drhoz);
           Pyy = p0 + kappa_lb*(drhoy*drhoy - 0.5*grs)+tau*(1.0/3.0-dPdrho)*
@@ -2197,7 +2197,7 @@ void FixLbFluid::equilibriumdist19(int xstart, int xend, int ystart, int yend, i
             (u_lb[i][j][k][0]*drhoz+u_lb[i][j][k][2]*drhox);
           Pyz = kappa_lb*drhoy*drhoz+(tau-0.5)*(1.0/3.0-dPdrho)*
             (u_lb[i][j][k][1]*drhoz+u_lb[i][j][k][2]*drhoy);
-        }else if(typeLB==2){
+        } else if(typeLB==2){
           Pxx = p0 + kappa_lb*(drhox*drhox - 0.5*grs)+tau*(1.0/3.0-dPdrho)*
             (3.0*u_lb[i][j][k][0]*drhox+u_lb[i][j][k][1]*drhoy+u_lb[i][j][k][2]*drhoz);
           Pyy = p0 + kappa_lb*(drhoy*drhoy - 0.5*grs)+tau*(1.0/3.0-dPdrho)*
@@ -2488,7 +2488,7 @@ void FixLbFluid::update_periodic(int xstart, int xend, int ystart, int yend, int
 
             fnew[i][j][k][m] = f_lb[imod][jmod][kmod][m] + (feq[imod][jmod][kmod][m]-f_lb[imod][jmod][kmod][m])/tau;
           }
-        }else if(typeLB==2){
+        } else if(typeLB==2){
           for(m=0; m<numvel; m++){
             imod = i-e[m][0];
             jmod = j-e[m][1];
@@ -2718,7 +2718,7 @@ void FixLbFluid::update_full15(void)
      if(typeLB==1){
        update_periodic(1,subNbx-1,1,subNby-1,1,2);
        update_periodic(1,subNbx-1,1,subNby-1,subNbz-2,subNbz-1);
-     }else if(typeLB==2){
+     } else if(typeLB==2){
        if(comm->myloc[2]==0){
          for(i=1; i<subNbx-1; i++){
            for(j=1;j<subNby-1;j++){
@@ -3074,7 +3074,7 @@ void FixLbFluid::update_full19(void)
     if(typeLB==1){
       update_periodic(1,subNbx-1,1,subNby-1,1,2);
       update_periodic(1,subNbx-1,1,subNby-1,subNbz-2,subNbz-1);
-    }else if(typeLB==2){
+    } else if(typeLB==2){
       if(comm->myloc[2]==0){
         for(i=1; i<subNbx-1; i++){
           for(j=1;j<subNby-1;j++){

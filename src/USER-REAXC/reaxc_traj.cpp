@@ -629,7 +629,7 @@ int Write_Bonds(reax_system *system, control_params *control, reax_list *bonds,
     }
   }
 
-  i(f me != MASTER_NODE) {
+  if (me != MASTER_NODE) {
     MPI_Send( out_control->buffer, buffer_req-1, MPI_CHAR, MASTER_NODE,
               np*BOND_LINES+me, mpi_data->world );
   } else {

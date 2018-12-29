@@ -491,11 +491,11 @@ void manifold_thylakoid::set_domain( thyla_part *p, const std::vector<double> &l
     char msg[2048];
     sprintf(msg,"xlo >= xhi (%f >= %f)",lo[0],hi[0]);
     error->one(FLERR,msg);
-  }else if (lo[1] >= hi[1]) {
+  } else if (lo[1] >= hi[1]) {
     char msg[2048];
     sprintf(msg,"ylo >= yhi (%f >= %f)",lo[1],hi[1]);
     error->one(FLERR,msg);
-  }else if (lo[2] >= hi[2]) {
+  } else if (lo[2] >= hi[2]) {
     char msg[2048];
     sprintf(msg,"zlo >= zhi (%f >= %f)",lo[2],hi[2]);
     error->one(FLERR,msg);

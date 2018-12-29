@@ -115,13 +115,13 @@ FixNVTManifoldRattle::FixNVTManifoldRattle(LAMMPS *lmp, int narg, char **arg,
       got_temp = 1;
 
       argi += 4;
-    }else if (strcmp( arg[argi], "tchain" ) == 0) {
+    } else if (strcmp( arg[argi], "tchain" ) == 0) {
       if( argi+1 >= narg )
         error->all(FLERR,"Keyword 'tchain' needs 1 argument");
 
       mtchain = force->inumeric(FLERR, arg[argi+1]);
       argi += 2;
-    }else if (error_on_unknown_keyword) {
+    } else if (error_on_unknown_keyword) {
       char msg[2048];
       sprintf(msg,"Error parsing arg \"%s\".\n", arg[argi]);
       error->all(FLERR, msg);
@@ -354,7 +354,7 @@ void FixNVTManifoldRattle::nh_v_temp()
         v[i][2] *= factor_eta;
       }
     }
-  }else if (which == BIAS) {
+  } else if (which == BIAS) {
     for( int i = 0; i < nlocal; ++i ){
       if (mask[i] & groupbit) {
         temperature->remove_bias(i,v[i]);

@@ -735,7 +735,7 @@ int PairReaxC::write_reax_lists()
       j &= NEIGHMASK;
       get_distance( x[j], x[i], &d_sqr, &dvec );
 
-      if( d_sqr <= (cutoff_sqr) ){
+      if (d_sqr <= (cutoff_sqr)) {
         dist[j] = sqrt( d_sqr );
         set_far_nbr( &far_list[num_nbrs], j, dist[j], dvec );
         ++num_nbrs;

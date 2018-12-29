@@ -140,7 +140,7 @@ void Valence_Angles( reax_system *system, control_params *control,
       prod_SBO *= exp( -temp );
     }
 
-    if( workspace->vlpex[j] >= 0 ){
+    if (workspace->vlpex[j] >= 0) {
       vlpadj = 0;
       dSBO2 = prod_SBO - 1;
     }

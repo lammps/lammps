@@ -489,7 +489,7 @@ void ReAllocate( reax_system *system, control_params *control,
 
   /* bonds list */
   num_bonds = est_3body = -1;
-  if( Nflag || realloc->bonds ){
+  if (Nflag || realloc->bonds) {
     Reallocate_Bonds_List( system, (*lists)+BONDS, &num_bonds,
                            &est_3body, comm );
     realloc->bonds = 0;

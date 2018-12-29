@@ -258,8 +258,8 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
       val = atof(tmp[1]); reax->sbp[i].lgre           = val;
     }
 
-    if( reax->sbp[i].rcore2>0.01 && reax->sbp[i].acore2>0.01 ){ // Inner-wall
-      if( reax->sbp[i].gamma_w>0.5 ){ // Shielding vdWaals
+    if (reax->sbp[i].rcore2>0.01 && reax->sbp[i].acore2>0.01) { // Inner-wall
+      if (reax->sbp[i].gamma_w>0.5) { // Shielding vdWaals
         if( reax->gp.vdw_type != 0 && reax->gp.vdw_type != 3 ) {
           if (errorflag && (me == 0))
             fprintf( stderr, "Warning: inconsistent vdWaals-parameters\n" \
@@ -290,7 +290,7 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
       }
     }
     else{ // No Inner wall parameters present
-      if( reax->sbp[i].gamma_w>0.5 ){ // Shielding vdWaals
+      if (reax->sbp[i].gamma_w>0.5) { // Shielding vdWaals
         if( reax->gp.vdw_type != 0 && reax->gp.vdw_type != 1 ) {
           if (me == 0)
             fprintf( stderr, "Warning: inconsistent vdWaals-parameters\n"  \

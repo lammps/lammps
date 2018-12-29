@@ -308,7 +308,7 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
       }
 
       // modifications to match Adri's code - 09/01/09
-      if( workspace->vlpex[j] >= 0 ){
+      if (workspace->vlpex[j] >= 0) {
         vlpadj = 0;
         dSBO2 = prod_SBO - 1;
       }

@@ -33,7 +33,7 @@ thyla_part::thyla_part( int type, double *args, double xlo, double ylo, double z
       params[4] = args[4]; // y0
       params[5] = args[5]; // z0
       params[6] = args[6]; // R
-      if( (args[0] != 0.0) && (args[1] != 0.0) && (args[2] != 0.0) ){
+      if ((args[0] != 0.0) && (args[1] != 0.0) && (args[2] != 0.0)) {
         err_flag = -1;
         return;
       }

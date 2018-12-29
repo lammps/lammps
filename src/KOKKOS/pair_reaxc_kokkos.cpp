@@ -2569,7 +2569,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeAngular<NEIGHFLAG,EV
   const F_FLOAT vlpex = Delta_e - 2.0 * (int)(Delta_e/2.0);
   const F_FLOAT explp1 = exp(-gp[15] * SQR(2.0 + vlpex));
   const F_FLOAT nlp = explp1 - (int)(Delta_e / 2.0);
-  if( vlpex >= 0.0 ){
+  if (vlpex >= 0.0) {
     vlpadj = 0.0;
     dSBO2 = prod_SBO - 1.0;
   } else{

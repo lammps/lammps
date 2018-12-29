@@ -218,7 +218,7 @@ void vdW_Coulomb_Energy_OMP( reax_system *system, control_params *control,
                                              delij[0], delij[1], delij[2], thr);
         }
 
-        if( control->virial == 0 ) {
+        if (control->virial == 0) {
           rvec_ScaledAdd( workspace->f[i], -(CEvd + CEclmb), nbr_pj->dvec );
           rvec_ScaledAdd( workspace->forceReduction[reductionOffset+j],
                           +(CEvd + CEclmb), nbr_pj->dvec );
@@ -327,7 +327,7 @@ void Tabulated_vdW_Coulomb_Energy_OMP(reax_system *system,control_params *contro
 
         /* Cubic Spline Interpolation */
         r = (int)(r_ij * t->inv_dx);
-        if( r == 0 )  ++r;
+        if (r == 0)  ++r;
         base = (double)(r+1) * t->dx;
         dif = r_ij - base;
 
@@ -357,7 +357,7 @@ void Tabulated_vdW_Coulomb_Energy_OMP(reax_system *system,control_params *contro
                                             f_tmp, delij[0], delij[1], delij[2], thr);
         }
 
-        if( control->virial == 0 ) {
+        if (control->virial == 0) {
           rvec_ScaledAdd( workspace->f[i], -(CEvd + CEclmb), nbr_pj->dvec );
           rvec_ScaledAdd( workspace->forceReduction[froffset+j],
                           +(CEvd + CEclmb), nbr_pj->dvec );

@@ -62,9 +62,9 @@ void Bonds( reax_system *system, control_params * /*control*/,
     for( pj = start_i; pj < end_i; ++pj ) {
       j = bonds->select.bond_list[pj].nbr;
 
-      if( system->my_atoms[i].orig_id > system->my_atoms[j].orig_id )
+      if (system->my_atoms[i].orig_id > system->my_atoms[j].orig_id)
         continue;
-      if( system->my_atoms[i].orig_id == system->my_atoms[j].orig_id ) {
+      if (system->my_atoms[i].orig_id == system->my_atoms[j].orig_id) {
         if (system->my_atoms[j].x[2] <  system->my_atoms[i].x[2]) continue;
         if (system->my_atoms[j].x[2] == system->my_atoms[i].x[2] &&
             system->my_atoms[j].x[1] <  system->my_atoms[i].x[1]) continue;
@@ -104,7 +104,7 @@ void Bonds( reax_system *system, control_params * /*control*/,
       bo_ij->Cdbopi2 -= (CEbo + twbp->De_pp);
 
       /* Stabilisation terminal triple bond */
-      if( bo_ij->BO >= 1.00 ) {
+      if (bo_ij->BO >= 1.00) {
         if( gp37 == 2 ||
             (sbp_i->mass == 12.0000 && sbp_j->mass == 15.9990) ||
             (sbp_j->mass == 12.0000 && sbp_i->mass == 15.9990) ) {

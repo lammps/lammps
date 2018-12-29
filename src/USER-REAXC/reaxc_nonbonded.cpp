@@ -181,7 +181,7 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
                         f_tmp,delij[0],delij[1],delij[2]);
       }
 
-      if( control->virial == 0 ) {
+      if (control->virial == 0) {
         rvec_ScaledAdd( workspace->f[i], -(CEvd + CEclmb), nbr_pj->dvec );
         rvec_ScaledAdd( workspace->f[j], +(CEvd + CEclmb), nbr_pj->dvec );
       } else { /* NPT, iNPT or sNPT */
@@ -263,7 +263,7 @@ void Tabulated_vdW_Coulomb_Energy( reax_system *system,control_params *control,
 
       /* Cubic Spline Interpolation */
       r = (int)(r_ij * t->inv_dx);
-      if( r == 0 )  ++r;
+      if (r == 0)  ++r;
       base = (double)(r+1) * t->dx;
       dif = r_ij - base;
 
@@ -293,7 +293,7 @@ void Tabulated_vdW_Coulomb_Energy( reax_system *system,control_params *control,
                         f_tmp,delij[0],delij[1],delij[2]);
       }
 
-      if( control->virial == 0 ) {
+      if (control->virial == 0) {
         rvec_ScaledAdd( workspace->f[i], -(CEvd + CEclmb), nbr_pj->dvec );
         rvec_ScaledAdd( workspace->f[j], +(CEvd + CEclmb), nbr_pj->dvec );
       } else { // NPT, iNPT or sNPT

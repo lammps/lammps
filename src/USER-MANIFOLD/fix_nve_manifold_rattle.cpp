@@ -182,9 +182,9 @@ FixNVEManifoldRattle::~FixNVEManifoldRattle()
     delete [] tstrs;
   }
 
-  if( tvars  ) delete [] tvars;
-  if( tstyle ) delete [] tstyle;
-  if( is_var ) delete [] is_var;
+  if (tvars ) delete [] tvars;
+  if (tstyle) delete [] tstyle;
+  if (is_var) delete [] is_var;
 }
 
 
@@ -261,7 +261,7 @@ int FixNVEManifoldRattle::setmask()
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
   mask |= FINAL_INTEGRATE;
-  if( nevery > 0 ) mask |= END_OF_STEP;
+  if (nevery > 0) mask |= END_OF_STEP;
 
   return mask;
 }
@@ -322,7 +322,7 @@ int FixNVEManifoldRattle::dof(int /*igroup*/)
   // Make sure that, if there is just no or one atom, no dofs are subtracted,
   // since for the first atom already 3 dofs are subtracted because of the
   // centre of mass corrections:
-  if( dofs <= 1 ) dofs = 0;
+  if (dofs <= 1) dofs = 0;
   stats.dofs_removed = dofs;
 
   return dofs;
@@ -549,7 +549,7 @@ void FixNVEManifoldRattle::rattle_manifold_x(double *x, double *v,
     res = infnorm<4>(R);
     ++iters;
 
-    if( (res < tolerance) || (iters >= max_iter) ) break;
+    if ((res < tolerance) || (iters >= max_iter)) break;
 
     // Update nn and g.
     gg = ptr_m->g(x);

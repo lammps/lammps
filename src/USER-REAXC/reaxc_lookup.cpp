@@ -198,9 +198,9 @@ int Init_Lookup_Tables( reax_system *system, control_params *control,
                  MPI_INT, MPI_SUM, mpi_data->world );
 
   for( i = 0; i < num_atom_types; ++i ) {
-    if( aggregated[i] ) {
+    if (aggregated[i]) {
       for( j = i; j < num_atom_types; ++j ) {
-        if( aggregated[j] ) {
+        if (aggregated[j]) {
           LR[i][j].xmin = 0;
           LR[i][j].xmax = control->nonb_cut;
           LR[i][j].n = control->tabulate + 2;
@@ -290,7 +290,7 @@ void Deallocate_Lookup_Tables( reax_system *system )
 
   for( i = 0; i < ntypes; ++i ) {
     for( j = i; j < ntypes; ++j )
-      if( LR[i][j].n ) {
+      if (LR[i][j].n) {
         sfree( LR[i][j].y, "LR[i,j].y" );
         sfree( LR[i][j].H, "LR[i,j].H" );
         sfree( LR[i][j].vdW, "LR[i,j].vdW" );

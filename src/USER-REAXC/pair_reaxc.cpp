@@ -137,9 +137,9 @@ PairReaxC::~PairReaxC()
 
     // deallocate reax data-structures
 
-    if( control->tabulate ) Deallocate_Lookup_Tables( system );
+    if (control->tabulate ) Deallocate_Lookup_Tables( system);
 
-    if( control->hbond_cut > 0 )  Delete_List( lists+HBONDS, world );
+    if (control->hbond_cut > 0 )  Delete_List( lists+HBONDS, world);
     Delete_List( lists+BONDS, world );
     Delete_List( lists+THREE_BODIES, world );
     Delete_List( lists+FAR_NBRS, world );
@@ -157,7 +157,7 @@ PairReaxC::~PairReaxC()
   memory->destroy( mpi_data );
 
   // deallocate interface storage
-  if( allocated ) {
+  if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
     memory->destroy(cutghost);
@@ -519,7 +519,7 @@ void PairReaxC::compute(int eflag, int vflag)
   Reset( system, control, data, workspace, &lists, world );
   workspace->realloc.num_far = write_reax_lists();
   // timing for filling in the reax lists
-  if( comm->me == 0 ) {
+  if (comm->me == 0) {
     t_end = MPI_Wtime();
     data->timing.nbrs = t_end - t_start;
   }
@@ -683,7 +683,7 @@ int PairReaxC::estimate_reax_lists()
       j &= NEIGHMASK;
       get_distance( x[j], x[i], &d_sqr, &dvec );
 
-      if( d_sqr <= SQR(control->nonb_cut) )
+      if (d_sqr <= SQR(control->nonb_cut))
         ++num_nbrs;
     }
   }

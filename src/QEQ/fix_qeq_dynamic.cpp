@@ -251,7 +251,7 @@ int FixQEqDynamic::pack_forward_comm(int n, int *list, double *buf,
 {
   int m=0;
 
-  if( pack_flag == 1 )
+  if (pack_flag == 1)
     for(m = 0; m < n; m++) buf[m] = atom->q[list[m]];
   else if( pack_flag == 2 )
     for(m = 0; m < n; m++) buf[m] = qf[list[m]];

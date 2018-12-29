@@ -123,7 +123,7 @@ thyla_part *manifold_thylakoid::get_thyla_part( const double *x, int * /*err_fla
   for( std::size_t i = 0; i < parts.size(); ++i ){
     thyla_part *p = parts[i];
     if (is_in_domain(p,x)) {
-      if( idx != NULL ) *idx = i;
+      if (idx != NULL) *idx = i;
       return p;
     }
   }
@@ -515,7 +515,7 @@ int manifold_thylakoid::is_in_domain( thyla_part *part, const double *x )
           (x[1] >= part->ylo) && (x[1] <= part->yhi) &&
           (x[2] >= part->zlo) && (x[2] <= part->zhi);
 
-  if( !domain_ok ) return false;
+  if (!domain_ok) return false;
 
   // From here on out, domain is ok.
 

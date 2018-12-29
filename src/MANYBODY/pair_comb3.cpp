@@ -1250,7 +1250,7 @@ void PairComb3::compute(int eflag, int vflag)
 
         // torsion: i-j-k-l: apply to all C-C bonds
 
-        if( params[iparam_ij].tor_flag != 0 ) {
+        if (params[iparam_ij].tor_flag != 0) {
           srmu = vec3_dot(delrj,delrk)/(sqrt(rsq1*rsq2));
           srmu = sqrt(1.0-srmu*srmu);
 
@@ -2578,7 +2578,7 @@ void PairComb3::tables()
         rvdw[1][inty] = params[iparam_ij].vsig * 0.950;
 
         // radius check: outer radius vs. sigma
-        if( rvdw[0][inty] > rvdw[1][inty] )
+        if (rvdw[0][inty] > rvdw[1][inty])
           error->all(FLERR,"Error in vdw spline: inner radius > outer radius");
 
         rrc[0] = rvdw[1][inty];

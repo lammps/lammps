@@ -252,7 +252,7 @@ void PairQUIP::coeff(int narg, char **arg)
       }
    }
 
-   if( narg != (4+n) ) {
+   if (narg != (4+n)) {
       char str[1024];
       sprintf(str,"Number of arguments %d is not correct, it should be %d", narg, 4+n);
       error->all(FLERR,str);

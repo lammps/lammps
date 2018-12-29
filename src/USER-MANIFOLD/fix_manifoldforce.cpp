@@ -89,7 +89,7 @@ FixManifoldForce::FixManifoldForce(LAMMPS *lmp, int narg, char **arg) :
 
   double *params = ptr_m->params;
   for( int i = 0; i < nvars; ++i ){
-    if( was_var( arg[i+4] ) )
+    if (was_var( arg[i+4] ))
       error->all(FLERR,"Equal-style variables not allowed with fix manifoldforce");
 
     // Use force->numeric to trigger an error if arg is not a number.

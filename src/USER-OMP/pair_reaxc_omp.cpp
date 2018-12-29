@@ -218,7 +218,7 @@ void PairReaxCOMP::compute(int eflag, int vflag)
   write_reax_lists();
 
   // timing for filling in the reax lists
-  if( comm->me == 0 ) {
+  if (comm->me == 0) {
     t_end = MPI_Wtime();
     data->timing.nbrs = t_end - t_start;
   }

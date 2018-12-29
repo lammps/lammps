@@ -2560,7 +2560,7 @@ void FixBondReact::update_everything()
         else {
           for (int j = 0; j < atom->num_improper[i]; j++) {
             int m = atom->map(atom->improper_atom2[i][j]);
-            if (m >= 0 && m < nlocal) delta_imprp;
+            if (m >= 0 && m < nlocal) delta_imprp++;
           }
         }
       }

@@ -208,7 +208,7 @@ void PairComb3::coeff(int narg, char **arg)
   nelements = 0;
   for (i = 3; i < narg; i++) {
     if ((strcmp(arg[i],"C") == 0) && (cflag == 0)) {
-      if( comm->me == 0 && screen) fprintf(screen,
+      if (comm->me == 0 && screen) fprintf(screen,
       " PairComb3: Found C: reading additional library file\n");
     read_lib();
     cflag = 1;
@@ -922,7 +922,7 @@ void PairComb3::Short_neigh()
 
       icontrol = params[iparam_ij].jelementgp;
 
-      if( icontrol == 1)
+      if (icontrol == 1)
           xcctmp[i] += comb_fc(rr1,&params[iparam_ij]) * params[iparam_ij].pcross;
       if (icontrol == 2)
           xchtmp[i] += comb_fc(rr1,&params[iparam_ij]) * params[iparam_ij].pcross;
@@ -1382,7 +1382,7 @@ void PairComb3::compute(int eflag, int vflag)
         }
 
         // torsion and radical: apply to all C-C bonds
-        if( params[iparam_ijk].tor_flag != 0 && fabs(ptorr)>1.0e-8) {
+        if (params[iparam_ijk].tor_flag != 0 && fabs(ptorr)>1.0e-8) {
           srmu = vec3_dot(delrj,delrk)/(sqrt(rsq1*rsq2));
           srmu = sqrt(1.0-srmu*srmu);
 

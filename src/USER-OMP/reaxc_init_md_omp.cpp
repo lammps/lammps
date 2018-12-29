@@ -166,7 +166,7 @@ void InitializeOMP( reax_system *system, control_params *control,
       MPI_Abort( mpi_data->world, CANNOT_INITIALIZE );
     }
 
-  if( Init_Output_Files(system,control,out_control,mpi_data,msg)== FAILURE) {
+  if (Init_Output_Files(system,control,out_control,mpi_data,msg)== FAILURE) {
     fprintf( stderr, "p%d: %s\n", system->my_rank, msg );
     fprintf( stderr, "p%d: could not open output files! terminating...\n",
              system->my_rank );

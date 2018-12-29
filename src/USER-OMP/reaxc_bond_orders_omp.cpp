@@ -113,7 +113,7 @@ void Add_dBond_to_ForcesOMP( reax_system *system, int i, int pj,
 
   rvec_Add(workspace->forceReduction[reductionOffset+i],temp );
 
-  if( system->pair_ptr->vflag_atom) {
+  if (system->pair_ptr->vflag_atom) {
     rvec_Scale(fi_tmp, -1.0, temp);
     rvec_ScaledSum( delij, 1., system->my_atoms[i].x,-1., system->my_atoms[j].x );
 
@@ -147,7 +147,7 @@ void Add_dBond_to_ForcesOMP( reax_system *system, int i, int pj,
 
   rvec_Add(workspace->forceReduction[reductionOffset+j],temp );
 
-  if( system->pair_ptr->vflag_atom) {
+  if (system->pair_ptr->vflag_atom) {
     rvec_Scale(fj_tmp, -1.0, temp);
     rvec_ScaledSum( delji, 1., system->my_atoms[j].x,-1., system->my_atoms[i].x );
 
@@ -490,7 +490,7 @@ void BOOMP( reax_system *system, control_params * /* control */, simulation_data
         if(type_j < 0) continue;
         bo_ij = &( bonds->select.bond_list[pj].bo_data );
 
-        if( i < j || workspace->bond_mark[j] > 3) {
+        if (i < j || workspace->bond_mark[j] > 3) {
           twbp = &( system->reax_param.tbp[type_i][type_j] );
 
           if (twbp->ovc < 0.001 && twbp->v13cor < 0.001) {
@@ -654,7 +654,7 @@ void BOOMP( reax_system *system, control_params * /* control */, simulation_data
         type_j = system->my_atoms[j].type;
         if(type_j < 0) continue;
 
-        if( i < j || workspace->bond_mark[j] > 3) {
+        if (i < j || workspace->bond_mark[j] > 3) {
           // Computed in previous for-loop
         } else {
           /* We only need to update bond orders from bo_ji

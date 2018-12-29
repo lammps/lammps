@@ -1534,7 +1534,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBuildListsFull, const int &
     // hbond list
     if (i < nlocal && cut_hbsq > 0.0 && (ihb == 1 || ihb == 2) && rsq <= cut_hbsq) {
       jhb = paramssing(jtype).p_hbond;
-      if( ihb == 1 && jhb == 2) {
+      if (ihb == 1 && jhb == 2) {
         const int jj_index = hb_index - hb_first_i;
         if (jj_index >= maxhb) {
           d_resize_hb() = 1;
@@ -1702,7 +1702,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBuildListsHalf<NEIGHFLAG>, 
     // hbond list
     if (i < nlocal && cut_hbsq > 0.0 && (ihb == 1 || ihb == 2) && rsq <= cut_hbsq) {
       jhb = paramssing(jtype).p_hbond;
-      if( ihb == 1 && jhb == 2) {
+      if (ihb == 1 && jhb == 2) {
         if (NEIGHFLAG == HALF) {
           j_index = hb_first_i + d_hb_num[i];
           d_hb_num[i]++;
@@ -1925,7 +1925,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBuildListsHalf_LessAtomics<
     // hbond list
     if (i < nlocal && cut_hbsq > 0.0 && (ihb == 1 || ihb == 2) && rsq <= cut_hbsq) {
       jhb = paramssing(jtype).p_hbond;
-      if( ihb == 1 && jhb == 2) {
+      if (ihb == 1 && jhb == 2) {
         if (NEIGHFLAG == HALF) {
           j_index = hb_first_i + d_hb_num[i];
           d_hb_num[i]++;
@@ -3476,7 +3476,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeBond1<NEIGHFLAG,EVFL
     F_FLOAT estriph = 0.0;
 
     if (BO_i >= 1.00) {
-      if( gp[37] == 2 || (imass == 12.0000 && jmass == 15.9990) ||
+      if (gp[37] == 2 || (imass == 12.0000 && jmass == 15.9990) ||
                          (jmass == 12.0000 && imass == 15.9990) ) {
         const F_FLOAT exphu = exp(-gp[7] * SQR(BO_i - 2.50) );
         const F_FLOAT exphua1 = exp(-gp[3] * (d_total_bo[i]-BO_i));

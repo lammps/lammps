@@ -128,7 +128,7 @@ void Atom_EnergyOMP( reax_system *system, control_params * /* control */,
     if(numbonds > 0) workspace->CdDelta[i] += CElp;  // lp - 1st term
 
     /* tally into per-atom energy */
-    if( system->pair_ptr->evflag)
+    if (system->pair_ptr->evflag)
       pair_reax_ptr->ev_tally_thr_proxy(system->pair_ptr, i, i, system->n, 1,
                                         e_lp, 0.0, 0.0, 0.0, 0.0, 0.0, thr);
 
@@ -155,7 +155,7 @@ void Atom_EnergyOMP( reax_system *system, control_params * /* control */,
             workspace->CdDelta[i] += deahu2dsbo;
 
             /* tally into per-atom energy */
-            if( system->pair_ptr->evflag)
+            if (system->pair_ptr->evflag)
               pair_reax_ptr->ev_tally_thr_proxy(system->pair_ptr, i, j, system->n, 1,
                                                 e_lph, 0.0, 0.0, 0.0, 0.0, 0.0, thr);
           }

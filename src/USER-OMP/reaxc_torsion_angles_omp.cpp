@@ -417,7 +417,7 @@ void Torsion_AnglesOMP( reax_system *system, control_params *control,
                   }
 
                   /* tally into per-atom virials */
-                  if( system->pair_ptr->vflag_atom || system->pair_ptr->evflag) {
+                  if (system->pair_ptr->vflag_atom || system->pair_ptr->evflag) {
 
                     // acquire vectors
                     rvec_ScaledSum( delil, 1., system->my_atoms[l].x,

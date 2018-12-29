@@ -95,7 +95,7 @@ void Bonds( reax_system *system, control_params * /*control*/,
         -twbp->De_pp * bo_ij->BO_pi2;
 
       /* tally into per-atom energy */
-      if( system->pair_ptr->evflag)
+      if (system->pair_ptr->evflag)
         system->pair_ptr->ev_tally(i,j,natoms,1,ebond,0.0,0.0,0.0,0.0,0.0);
 
       /* calculate derivatives of Bond Orders */
@@ -125,7 +125,7 @@ void Bonds( reax_system *system, control_params * /*control*/,
             (gp3*exphub1 + 25.0*gp4*exphuov*hulpov*(exphua1+exphub1));
 
           /* tally into per-atom energy */
-          if( system->pair_ptr->evflag)
+          if (system->pair_ptr->evflag)
             system->pair_ptr->ev_tally(i,j,natoms,1,estriph,0.0,0.0,0.0,0.0,0.0);
 
           bo_ij->Cdbo += decobdbo;

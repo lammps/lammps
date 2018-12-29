@@ -172,7 +172,7 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
         ( dTap -  Tap * r_ij / dr3gamij_1 ) / dr3gamij_3;
 
       /* tally into per-atom energy */
-      if( system->pair_ptr->evflag || system->pair_ptr->vflag_atom) {
+      if (system->pair_ptr->evflag || system->pair_ptr->vflag_atom) {
         pe_vdw = Tap * (e_vdW + e_core + e_lg);
         rvec_ScaledSum( delij, 1., system->my_atoms[i].x,
                               -1., system->my_atoms[j].x );
@@ -285,7 +285,7 @@ void Tabulated_vdW_Coulomb_Energy( reax_system *system,control_params *control,
       CEclmb *= system->my_atoms[i].q * system->my_atoms[j].q;
 
       /* tally into per-atom energy */
-      if( system->pair_ptr->evflag || system->pair_ptr->vflag_atom) {
+      if (system->pair_ptr->evflag || system->pair_ptr->vflag_atom) {
         rvec_ScaledSum( delij, 1., system->my_atoms[i].x,
                               -1., system->my_atoms[j].x );
         f_tmp = -(CEvd + CEclmb);
@@ -330,7 +330,7 @@ void Compute_Polarization_Energy( reax_system *system, simulation_data *data )
     data->my_en.e_pol += en_tmp;
 
     /* tally into per-atom energy */
-    if( system->pair_ptr->evflag)
+    if (system->pair_ptr->evflag)
       system->pair_ptr->ev_tally(i,i,system->n,1,0.0,en_tmp,0.0,0.0,0.0,0.0);
   }
 }

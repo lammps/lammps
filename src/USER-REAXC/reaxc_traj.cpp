@@ -341,7 +341,7 @@ int Init_Traj( reax_system *system, control_params *control,
   out_control->buffer = NULL;
 
   /* write trajectory header and atom info, if applicable */
-  if( out_control->traj_method == REG_TRAJ) {
+  if (out_control->traj_method == REG_TRAJ) {
     if (system->my_rank == MASTER_NODE)
       out_control->strj = fopen( fname, "w" );
   } else {

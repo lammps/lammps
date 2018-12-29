@@ -475,7 +475,7 @@ int FixQEq::pack_forward_comm(int n, int *list, double *buf,
 {
   int m;
 
-  if( pack_flag == 1)
+  if (pack_flag == 1)
     for(m = 0; m < n; m++) buf[m] = d[list[m]];
   else if( pack_flag == 2 )
     for(m = 0; m < n; m++) buf[m] = s[list[m]];
@@ -493,7 +493,7 @@ void FixQEq::unpack_forward_comm(int n, int first, double *buf)
 {
   int i, m;
 
-  if( pack_flag == 1)
+  if (pack_flag == 1)
     for(m = 0, i = first; m < n; m++, i++) d[i] = buf[m];
   else if( pack_flag == 2)
     for(m = 0, i = first; m < n; m++, i++) s[i] = buf[m];

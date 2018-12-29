@@ -86,7 +86,7 @@ FixNVTManifoldRattle::FixNVTManifoldRattle(LAMMPS *lmp, int narg, char **arg,
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_nvt_manifold_rattle);
 
-  if( narg < 6 ) error->all(FLERR,"Illegal fix nvt/manifold/rattle command");
+  if (narg < 6 ) error->all(FLERR,"Illegal fix nvt/manifold/rattle command");
 
   // Set all bits/settings:
   dof_flag = 1;
@@ -132,7 +132,7 @@ FixNVTManifoldRattle::FixNVTManifoldRattle(LAMMPS *lmp, int narg, char **arg,
 
   reset_dt();
 
-  if( !got_temp ) error->all(FLERR,"Fix nvt/manifold/rattle needs 'temp'!");
+  if (!got_temp ) error->all(FLERR,"Fix nvt/manifold/rattle needs 'temp'!");
 
   if (t_period < 0.0) {
     error->all(FLERR,"Fix nvt/manifold/rattle damping parameter must be > 0.0");
@@ -341,7 +341,7 @@ void FixNVTManifoldRattle::nh_v_temp()
   double **v = atom->v;
   int *mask  = atom->mask;
   int nlocal = atom->nlocal;
-  if( igroup == atom->firstgroup) nlocal = atom->nfirst;
+  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
 
 

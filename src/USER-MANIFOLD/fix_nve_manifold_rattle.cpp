@@ -84,8 +84,8 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
                                             int error_on_unknown_keyword )
   : Fix(lmp,narg,arg)
 {
-  if( lmp->citeme) lmp->citeme->add(cite_fix_nve_manifold_rattle);
-  if( narg < 6 ) error->all(FLERR, "Illegal fix nve/manifold/rattle command");
+  if (lmp->citeme) lmp->citeme->add(cite_fix_nve_manifold_rattle);
+  if (narg < 6 ) error->all(FLERR, "Illegal fix nve/manifold/rattle command");
 
   // Set all bits/settings:
   time_integrate = 1;
@@ -135,12 +135,12 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
       is_var[i] = 0;
     }
     tstrs[i] = new char[len];
-    if( tstrs[i] == NULL ) error->all(FLERR,"Error allocating space for args.");
+    if (tstrs[i] == NULL ) error->all(FLERR,"Error allocating space for args.");
     strcpy( tstrs[i], arg[i+6] + offset );
   }
 
   ptr_m->params = new double[nvars];
-  if( !ptr_m->params ) error->all(FLERR,"Failed to allocate params!");
+  if (!ptr_m->params ) error->all(FLERR,"Failed to allocate params!");
   for( int i = 0; i < nvars; ++i ){
     // If param i was variable type, it will be set later...
     ptr_m->params[i] = is_var[i] ? 0.0 : force->numeric( FLERR, arg[i+6] );

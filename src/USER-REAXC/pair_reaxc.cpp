@@ -510,7 +510,7 @@ void PairReaxC::compute(int eflag, int vflag)
   system->big_box.box_norms[0] = 0;
   system->big_box.box_norms[1] = 0;
   system->big_box.box_norms[2] = 0;
-  if( comm->me == 0 ) t_start = MPI_Wtime();
+  if (comm->me == 0 ) t_start = MPI_Wtime();
 
   // setup data structures
 

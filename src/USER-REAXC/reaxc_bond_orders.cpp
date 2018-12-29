@@ -189,7 +189,7 @@ void Add_dBond_to_Forces( reax_system *system, int i, int pj,
   rvec_ScaledAdd( temp, coef.C3dbopi2, workspace->dDeltap_self[i] );
   rvec_Add( workspace->f[i], temp );
 
-  if( system->pair_ptr->vflag_atom) {
+  if (system->pair_ptr->vflag_atom) {
     rvec_Scale(fi_tmp, -1.0, temp);
     rvec_ScaledSum( delij, 1., system->my_atoms[i].x,-1., system->my_atoms[j].x );
     system->pair_ptr->v_tally(i,fi_tmp,delij);
@@ -208,7 +208,7 @@ void Add_dBond_to_Forces( reax_system *system, int i, int pj,
   rvec_ScaledAdd( temp,  coef.C4dbopi2, workspace->dDeltap_self[j]);
   rvec_Add( workspace->f[j], temp );
 
-  if( system->pair_ptr->vflag_atom) {
+  if (system->pair_ptr->vflag_atom) {
     rvec_Scale(fj_tmp, -1.0, temp);
     rvec_ScaledSum( delji, 1., system->my_atoms[j].x,-1., system->my_atoms[i].x );
     system->pair_ptr->v_tally(j,fj_tmp,delji);

@@ -42,10 +42,10 @@ public:
 
   void test()
   {
-    if( fabs( x(0) - x0 ) > 1e-8 ) err->one(FLERR, "x0 wrong");
-    if( fabs( x(1) - x1 ) > 1e-8 ) err->one(FLERR, "x1 wrong");
-    if( fabs( y(0) - y0 ) > 1e-8 ) err->one(FLERR, "y0 wrong");
-    if( fabs( y(1) - y1 ) > 1e-8 ) err->one(FLERR, "y1 wrong");
+    if (fabs( x(0) - x0 ) > 1e-8 ) err->one(FLERR, "x0 wrong");
+    if (fabs( x(1) - x1 ) > 1e-8 ) err->one(FLERR, "x1 wrong");
+    if (fabs( y(0) - y0 ) > 1e-8 ) err->one(FLERR, "y0 wrong");
+    if (fabs( y(1) - y1 ) > 1e-8 ) err->one(FLERR, "y1 wrong");
   }
 
   double get_t_from_x( double xx ) const

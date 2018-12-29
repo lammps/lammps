@@ -271,7 +271,7 @@ void PairQUIP::coeff(int narg, char **arg)
 
    for (int i = 4; i < narg; i++) {
 
-      if( 0 == sscanf(arg[i],"%d",&map[i-4])) {
+      if (0 == sscanf(arg[i],"%d",&map[i-4])) {
          char str[1024];
          sprintf(str,"Incorrect atomic number %s at position %d",arg[i],i);
          error->all(FLERR,str);

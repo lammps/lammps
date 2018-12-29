@@ -260,7 +260,7 @@ void Init_Forces_noQEq( reax_system *system, control_params *control,
 
         if (local) {
           /* hydrogen bond lists */
-          if( control->hbond_cut > 0 && (ihb==1 || ihb==2) &&
+          if (control->hbond_cut > 0 && (ihb==1 || ihb==2) &&
               nbr_pj->d <= control->hbond_cut ) {
             // fprintf( stderr, "%d %d\n", atom1, atom2 );
             jhb = sbp_j->p_hbond;
@@ -282,7 +282,7 @@ void Init_Forces_noQEq( reax_system *system, control_params *control,
           }
         }
 
-        if( //(workspace->bond_mark[i] < 3 || workspace->bond_mark[j] < 3) &&
+        if (//(workspace->bond_mark[i] < 3 || workspace->bond_mark[j] < 3) &&
             nbr_pj->d <= control->bond_cut &&
             BOp( workspace, bonds, control->bo_cut,
                  i , btop_i, nbr_pj, sbp_i, sbp_j, twbp ) ) {
@@ -377,7 +377,7 @@ void Estimate_Storages( reax_system *system, control_params *control,
             ++(*Htop);
 
           /* hydrogen bond lists */
-          if( control->hbond_cut > 0.1 && (ihb==1 || ihb==2) &&
+          if (control->hbond_cut > 0.1 && (ihb==1 || ihb==2) &&
               nbr_pj->d <= control->hbond_cut ) {
             jhb = sbp_j->p_hbond;
             if (ihb == 1 && jhb == 2)
@@ -389,19 +389,19 @@ void Estimate_Storages( reax_system *system, control_params *control,
 
         /* uncorrected bond orders */
         if (nbr_pj->d <= control->bond_cut) {
-          if( sbp_i->r_s > 0.0 && sbp_j->r_s > 0.0) {
+          if (sbp_i->r_s > 0.0 && sbp_j->r_s > 0.0) {
             C12 = twbp->p_bo1 * pow( r_ij / twbp->r_s, twbp->p_bo2 );
             BO_s = (1.0 + control->bo_cut) * exp( C12 );
           }
           else BO_s = C12 = 0.0;
 
-          if( sbp_i->r_pi > 0.0 && sbp_j->r_pi > 0.0) {
+          if (sbp_i->r_pi > 0.0 && sbp_j->r_pi > 0.0) {
             C34 = twbp->p_bo3 * pow( r_ij / twbp->r_p, twbp->p_bo4 );
             BO_pi = exp( C34 );
           }
           else BO_pi = C34 = 0.0;
 
-          if( sbp_i->r_pi_pi > 0.0 && sbp_j->r_pi_pi > 0.0) {
+          if (sbp_i->r_pi_pi > 0.0 && sbp_j->r_pi_pi > 0.0) {
             C56 = twbp->p_bo5 * pow( r_ij / twbp->r_pp, twbp->p_bo6 );
             BO_pi2= exp( C56 );
           }

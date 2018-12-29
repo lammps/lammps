@@ -70,15 +70,10 @@ other pairwise potential for several different atom type pairs in your
 model, then you should just list the sub-style once and use the
 pair_coeff command to assign parameters for the different type pairs.
 
-NOTE: There are two exceptions to this option to list an individual
-pair style multiple times.  The first is for pair styles implemented
-as Fortran libraries: "pair_style meam"_pair_meam.html and "pair_style
-reax"_pair_reax.html ("pair_style reax/c"_pair_reaxc.html is OK).
-This is because unlike a C++ class, they can not be instantiated
-multiple times, due to the manner in which they were coded in Fortran.
-The second is for GPU-enabled pair styles in the GPU package.  This is
-b/c the GPU package also currently assumes that only one instance of a
-pair style is being used.
+NOTE: There is one exception to this option to list an individual
+pair style multiple times: GPU-enabled pair styles in the GPU package.
+This is because the GPU package currently assumes that only one
+instance of a pair style is being used.
 
 In the pair_coeff commands, the name of a pair style must be added
 after the I,J type specification, with the remaining coefficients

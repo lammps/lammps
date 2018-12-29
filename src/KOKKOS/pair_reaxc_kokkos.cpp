@@ -2572,7 +2572,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeAngular<NEIGHFLAG,EV
   if (vlpex >= 0.0) {
     vlpadj = 0.0;
     dSBO2 = prod_SBO - 1.0;
-  } else{
+  } else {
     vlpadj = nlp;
     dSBO2 = (prod_SBO - 1.0) * (1.0 - p_val8 * d_dDelta_lp[i]);
   }

@@ -1023,7 +1023,7 @@ void FixLbFluid::peskin_interpolation(int i)
       r=sqrt(rsq);
       if(rsq>1){
         weightx=(5.0-2.0*r-sqrt(-7.0+12.0*r-4.0*rsq))/8.;
-      } else{
+      } else {
         weightx=(3.0-2.0*r+sqrt(1.0+4.0*r-4.0*rsq))/8.;
       }
     }
@@ -1035,7 +1035,7 @@ void FixLbFluid::peskin_interpolation(int i)
         r=sqrt(rsq);
         if(rsq>1){
           weighty=(5.0-2.0*r-sqrt(-7.0+12.0*r-4.0*rsq))/8.;
-        } else{
+        } else {
           weighty=(3.0-2.0*r+sqrt(1.0+4.0*r-4.0*rsq))/8.;
         }
       }
@@ -1047,7 +1047,7 @@ void FixLbFluid::peskin_interpolation(int i)
           r=sqrt(rsq);
           if(rsq>1){
             weightz=(5.0-2.0*r-sqrt(-7.0+12.0*r-4.0*rsq))/8.;
-          } else{
+          } else {
             weightz=(3.0-2.0*r+sqrt(1.0+4.0*r-4.0*rsq))/8.;
           }
         }

@@ -270,7 +270,7 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
                    "Keeping vdWaals-setting for earlier atoms.\n",
                    reax->sbp[i].name );
           errorflag = 0;
-        } else{
+        } else {
           reax->gp.vdw_type = 3;
         }
       }

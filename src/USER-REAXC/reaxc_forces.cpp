@@ -215,8 +215,7 @@ void Init_Forces_noQEq( reax_system *system, control_params *control,
     if( i < system->n ) {
       local = 1;
       cutoff = MAX( control->hbond_cut, control->bond_cut );
-    }
-    else {
+    } else {
       local = 0;
       cutoff = control->bond_cut;
     }
@@ -240,8 +239,7 @@ void Init_Forces_noQEq( reax_system *system, control_params *control,
         if( nbr_pj->d <= cutoff )
           flag = 1;
         else flag = 0;
-      }
-      else{
+      } else {
         nbr_pj->dvec[0] = atom_j->x[0] - atom_i->x[0];
         nbr_pj->dvec[1] = atom_j->x[1] - atom_i->x[1];
         nbr_pj->dvec[2] = atom_j->x[2] - atom_i->x[2];
@@ -249,8 +247,7 @@ void Init_Forces_noQEq( reax_system *system, control_params *control,
         if( nbr_pj->d <= SQR(cutoff) ) {
           nbr_pj->d = sqrt(nbr_pj->d);
           flag = 1;
-        }
-        else {
+        } else {
           flag = 0;
         }
       }
@@ -357,8 +354,7 @@ void Estimate_Storages( reax_system *system, control_params *control,
       cutoff = control->nonb_cut;
       ++(*Htop);
       ihb = sbp_i->p_hbond;
-    }
-    else {
+    } else {
       local = 0;
       cutoff = control->bond_cut;
       ihb = -1;

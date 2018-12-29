@@ -127,7 +127,7 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
           CEvd = dTap * e_vdW -
             Tap * twbp->D * (twbp->alpha / twbp->r_vdW) * (exp1 - exp2) * dfn13;
         }
-      else{ // no shielding
+      else { // no shielding
         exp1 = exp( twbp->alpha * (1.0 - r_ij / twbp->r_vdW) );
         exp2 = exp( 0.5 * twbp->alpha * (1.0 - r_ij / twbp->r_vdW) );
 
@@ -184,8 +184,7 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
       if( control->virial == 0 ) {
         rvec_ScaledAdd( workspace->f[i], -(CEvd + CEclmb), nbr_pj->dvec );
         rvec_ScaledAdd( workspace->f[j], +(CEvd + CEclmb), nbr_pj->dvec );
-      }
-      else { /* NPT, iNPT or sNPT */
+      } else { /* NPT, iNPT or sNPT */
         rvec_Scale( temp, CEvd + CEclmb, nbr_pj->dvec );
 
         rvec_ScaledAdd( workspace->f[i], -1., temp );
@@ -297,8 +296,7 @@ void Tabulated_vdW_Coulomb_Energy( reax_system *system,control_params *control,
       if( control->virial == 0 ) {
         rvec_ScaledAdd( workspace->f[i], -(CEvd + CEclmb), nbr_pj->dvec );
         rvec_ScaledAdd( workspace->f[j], +(CEvd + CEclmb), nbr_pj->dvec );
-      }
-      else { // NPT, iNPT or sNPT
+      } else { // NPT, iNPT or sNPT
         rvec_Scale( temp, CEvd + CEclmb, nbr_pj->dvec );
 
         rvec_ScaledAdd( workspace->f[i], -1., temp );
@@ -388,7 +386,7 @@ void LR_vdW_Coulomb( reax_system *system, storage *workspace,
       lr->CEvd = dTap * twbp->D * (exp1 - 2.0 * exp2) -
         Tap * twbp->D * (twbp->alpha / twbp->r_vdW) * (exp1 - exp2) * dfn13;
     }
-  else{ // no shielding
+  else { // no shielding
     exp1 = exp( twbp->alpha * (1.0 - r_ij / twbp->r_vdW) );
     exp2 = exp( 0.5 * twbp->alpha * (1.0 - r_ij / twbp->r_vdW) );
 

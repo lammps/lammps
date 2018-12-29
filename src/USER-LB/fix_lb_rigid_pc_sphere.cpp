@@ -328,7 +328,7 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
   MPI_Allreduce(ncount,nrigid,nbody,MPI_INT,MPI_SUM,world);
 
   //count the number of atoms in the shell.
-  if(inner_nodes == 1){
+  if (inner_nodes == 1) {
     int *mask = atom->mask;
     for(ibody=0; ibody<nbody; ibody++) ncount[ibody] = 0;
     for(i=0; i<nlocal; i++){
@@ -338,7 +338,7 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
     }
 
     MPI_Allreduce(ncount,nrigid_shell,nbody,MPI_INT,MPI_SUM,world);
-  }else {
+  } else {
     for(ibody=0; ibody < nbody; ibody++) nrigid_shell[ibody]=nrigid[ibody];
   }
 
@@ -1336,8 +1336,9 @@ void FixLbRigidPCSphere::pre_neighbor()
     original = imagebody[ibody];
     domain->remap(xcm[ibody],imagebody[ibody]);
 
-    if (original == imagebody[ibody]) remapflag[ibody][3] = 0;
-    else {
+    if (original == imagebody[ibody]) {
+      remapflag[ibody][3] = 0;
+    } else {
       oldimage = original & IMGMASK;
       newimage = imagebody[ibody] & IMGMASK;
       remapflag[ibody][0] = newimage - oldimage;
@@ -1608,9 +1609,9 @@ double FixLbRigidPCSphere::compute_array(int i, int j)
         for(ii=-1; ii<3; ii++){
           rsq=(-dx1+ii)*(-dx1+ii);
 
-          if(rsq>=4)
+          if(rsq>=4) {
             weightx=0.0;
-          else{
+          } else {
             r=sqrt(rsq);
             if(rsq>1){
               weightx=(5.0-2.0*r-sqrt(-7.0+12.0*r-4.0*rsq))/8.;
@@ -1620,9 +1621,9 @@ double FixLbRigidPCSphere::compute_array(int i, int j)
           }
           for(jj=-1; jj<3; jj++){
             rsq=(-dy1+jj)*(-dy1+jj);
-            if(rsq>=4)
+            if(rsq>=4) {
               weighty=0.0;
-            else{
+            } else {
               r=sqrt(rsq);
               if(rsq>1){
                 weighty=(5.0-2.0*r-sqrt(-7.0+12.0*r-4.0*rsq))/8.;
@@ -1632,9 +1633,9 @@ double FixLbRigidPCSphere::compute_array(int i, int j)
             }
             for(kk=-1; kk<3; kk++){
               rsq=(-dz1+kk)*(-dz1+kk);
-              if(rsq>=4)
+              if(rsq>=4) {
                 weightz=0.0;
-              else{
+              } else {
                 r=sqrt(rsq);
                 if(rsq>1){
                   weightz=(5.0-2.0*r-sqrt(-7.0+12.0*r-4.0*rsq))/8.;

@@ -387,9 +387,9 @@ int FixLbPC::unpack_exchange(int nlocal, double *buf)
         for(ii=-1; ii<3; ii++){
           rsq=(-dx1+ii)*(-dx1+ii);
 
-          if(rsq>=4)
+          if(rsq>=4) {
             weightx=0.0;
-          else{
+          } else {
             r=sqrt(rsq);
             if(rsq>1){
               weightx=(5.0-2.0*r-sqrt(-7.0+12.0*r-4.0*rsq))/8.;
@@ -399,9 +399,9 @@ int FixLbPC::unpack_exchange(int nlocal, double *buf)
           }
           for(jj=-1; jj<3; jj++){
             rsq=(-dy1+jj)*(-dy1+jj);
-            if(rsq>=4)
+            if(rsq>=4) {
               weighty=0.0;
-            else{
+            } else {
               r=sqrt(rsq);
               if(rsq>1){
                 weighty=(5.0-2.0*r-sqrt(-7.0+12.0*r-4.0*rsq))/8.;
@@ -411,9 +411,9 @@ int FixLbPC::unpack_exchange(int nlocal, double *buf)
             }
             for(kk=-1; kk<3; kk++){
               rsq=(-dz1+kk)*(-dz1+kk);
-              if(rsq>=4)
+              if(rsq>=4) {
                 weightz=0.0;
-              else{
+              } else {
                 r=sqrt(rsq);
                 if(rsq>1){
                   weightz=(5.0-2.0*r-sqrt(-7.0+12.0*r-4.0*rsq))/8.;

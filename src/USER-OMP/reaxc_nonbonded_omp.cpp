@@ -162,7 +162,7 @@ void vdW_Coulomb_Energy_OMP( reax_system *system, control_params *control,
             CEvd = dTap * e_vdW -
               Tap * twbp->D * (twbp->alpha / twbp->r_vdW) * (exp1 - exp2) * dfn13;
           }
-        else{ // no shielding
+        else { // no shielding
           exp1 = exp( twbp->alpha * (1.0 - r_ij / twbp->r_vdW) );
           exp2 = exp( 0.5 * twbp->alpha * (1.0 - r_ij / twbp->r_vdW) );
 
@@ -222,8 +222,7 @@ void vdW_Coulomb_Energy_OMP( reax_system *system, control_params *control,
           rvec_ScaledAdd( workspace->f[i], -(CEvd + CEclmb), nbr_pj->dvec );
           rvec_ScaledAdd( workspace->forceReduction[reductionOffset+j],
                           +(CEvd + CEclmb), nbr_pj->dvec );
-        }
-        else { /* NPT, iNPT or sNPT */
+        } else { /* NPT, iNPT or sNPT */
           /* for pressure coupling, terms not related to bond order
              derivatives are added directly into pressure vector/tensor */
 
@@ -362,8 +361,7 @@ void Tabulated_vdW_Coulomb_Energy_OMP(reax_system *system,control_params *contro
           rvec_ScaledAdd( workspace->f[i], -(CEvd + CEclmb), nbr_pj->dvec );
           rvec_ScaledAdd( workspace->forceReduction[froffset+j],
                           +(CEvd + CEclmb), nbr_pj->dvec );
-        }
-        else { // NPT, iNPT or sNPT
+        } else { // NPT, iNPT or sNPT
           /* for pressure coupling, terms not related to bond order derivatives
              are added directly into pressure vector/tensor */
           rvec_Scale( temp, CEvd + CEclmb, nbr_pj->dvec );

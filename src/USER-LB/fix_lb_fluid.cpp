@@ -1017,9 +1017,9 @@ void FixLbFluid::peskin_interpolation(int i)
   for(ii=-1; ii<3; ii++){
     rsq=(-dx1+ii)*(-dx1+ii);
 
-    if(rsq>=4)
+    if(rsq>=4) {
       weightx=0.0;
-    else{
+    } else {
       r=sqrt(rsq);
       if(rsq>1){
         weightx=(5.0-2.0*r-sqrt(-7.0+12.0*r-4.0*rsq))/8.;
@@ -1029,9 +1029,9 @@ void FixLbFluid::peskin_interpolation(int i)
     }
     for(jj=-1; jj<3; jj++){
       rsq=(-dy1+jj)*(-dy1+jj);
-      if(rsq>=4)
+      if(rsq>=4) {
         weighty=0.0;
-      else{
+      } else {
         r=sqrt(rsq);
         if(rsq>1){
           weighty=(5.0-2.0*r-sqrt(-7.0+12.0*r-4.0*rsq))/8.;
@@ -1041,9 +1041,9 @@ void FixLbFluid::peskin_interpolation(int i)
       }
       for(kk=-1; kk<3; kk++){
         rsq=(-dz1+kk)*(-dz1+kk);
-        if(rsq>=4)
+        if(rsq>=4) {
           weightz=0.0;
-        else{
+        } else {
           r=sqrt(rsq);
           if(rsq>1){
             weightz=(5.0-2.0*r-sqrt(-7.0+12.0*r-4.0*rsq))/8.;
@@ -1090,8 +1090,7 @@ require more frequent neighborlist rebuilds");
     massone = massone/dm_lb;
 
     gammavalue = 2.0*(mnode*massone)*dtoverdtcollision/(mnode+massone);
-  }
-  else{
+  } else {
     gammavalue = Gamma[type[i]];
   }
 
@@ -2836,8 +2835,7 @@ void FixLbFluid::update_full15(void)
              }
            }
          }
-       }
-       else{
+       } else {
          update_periodic(1,subNbx-1,1,subNby-1,subNbz-2,subNbz-1);
        }
      }
@@ -2866,8 +2864,7 @@ void FixLbFluid::update_full15(void)
            if(typeLB == 1){
              fnew[i][j][k][5]=fnew[i][j][k-1][6];
              tmp1=fnew[i][j][k-1][11]+fnew[i][j][k-1][12]+fnew[i][j][k-1][13]+fnew[i][j][k-1][14];
-           }
-           else{
+           } else {
              fnew[i][j][k][5]=fnew[i][j][k-1][6] + (0.5-Dcoeff*(tau+0.5))*feqn[i][j][k+1][5];
              tmp1=fnew[i][j][k-1][11]+fnew[i][j][k-1][12]+fnew[i][j][k-1][13]+fnew[i][j][k-1][14] +
                (0.5-Dcoeff*(tau+0.5))*(feqn[i-1][j-1][k+1][7] + feqn[i+1][j-1][k+1][8] +
@@ -2908,8 +2905,7 @@ void FixLbFluid::update_full15(void)
            if(typeLB == 1){
              fnew[i][j][k][6]=fnew[i][j][k+1][5];
              tmp1=fnew[i][j][k+1][7]+fnew[i][j][k+1][8]+fnew[i][j][k+1][9]+fnew[i][j][k+1][10];
-           }
-           else{
+           } else {
              fnew[i][j][k][6]=fnew[i][j][k+1][5] + (0.5-Dcoeff*(tau+0.5))*feqn[i][j][k-1][6];
              tmp1=fnew[i][j][k+1][7]+fnew[i][j][k+1][8]+fnew[i][j][k+1][9]+fnew[i][j][k+1][10] +
                (0.5-Dcoeff*(tau+0.5))*(feqn[i-1][j-1][k-1][11] + feqn[i+1][j-1][k-1][12] +
@@ -2941,7 +2937,7 @@ void FixLbFluid::update_full15(void)
      //--------------------------------------------------------------------------
      // Periodic z boundary conditions.
      //--------------------------------------------------------------------------
-   }else {
+   } else {
 
      for(i=0; i<numrequests; i++)
        requests[i]=MPI_REQUEST_NULL;
@@ -3193,8 +3189,7 @@ void FixLbFluid::update_full19(void)
             }
           }
         }
-      }
-      else{
+      } else {
         update_periodic(1,subNbx-1,1,subNby-1,subNbz-2,subNbz-1);
       }
     }
@@ -3224,8 +3219,7 @@ void FixLbFluid::update_full19(void)
           if(typeLB == 1){
             fnew[i][j][k][5]=fnew[i][j][k-1][6];
             tmp1=fnew[i][j][k-1][12]+fnew[i][j][k-1][14]+fnew[i][j][k-1][16]+fnew[i][j][k-1][18];
-          }
-          else{
+          } else {
             fnew[i][j][k][5]=fnew[i][j][k-1][6] + (0.5-Dcoeff*(tau+0.5))*feqn[i][j][k+1][5];
             tmp1=fnew[i][j][k-1][12]+fnew[i][j][k-1][14]+fnew[i][j][k-1][16]+fnew[i][j][k-1][18] +
               (0.5-Dcoeff*(tau+0.5))*(feqn[i-1][j][k+1][11] + feqn[i+1][j][k+1][13] +
@@ -3261,8 +3255,7 @@ void FixLbFluid::update_full19(void)
           if(typeLB == 1){
             fnew[i][j][k][6]=fnew[i][j][k+1][5];
             tmp1=fnew[i][j][k+1][11]+fnew[i][j][k+1][13]+fnew[i][j][k+1][15]+fnew[i][j][k+1][17];
-          }
-          else{
+          } else {
             fnew[i][j][k][6]=fnew[i][j][k+1][5] + (0.5-Dcoeff*(tau+0.5))*feqn[i][j][k-1][6];
             tmp1=fnew[i][j][k+1][11]+fnew[i][j][k+1][13]+fnew[i][j][k+1][15]+fnew[i][j][k+1][17] +
               (0.5-Dcoeff*(tau+0.5))*(feqn[i-1][j][k-1][12] + feqn[i+1][j][k-1][14] +
@@ -3290,7 +3283,7 @@ void FixLbFluid::update_full19(void)
     //--------------------------------------------------------------------------
     // Periodic z boundary conditions.
     //--------------------------------------------------------------------------
-  }else {
+  } else {
 
     for(i=0; i<numrequests; i++)
       requests[i]=MPI_REQUEST_NULL;

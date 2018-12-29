@@ -143,8 +143,7 @@ void Valence_Angles( reax_system *system, control_params *control,
     if (workspace->vlpex[j] >= 0) {
       vlpadj = 0;
       dSBO2 = prod_SBO - 1;
-    }
-    else{
+    } else {
       vlpadj = workspace->nlp[j];
       dSBO2 = (prod_SBO - 1) * (1 - p_val8 * workspace->dDelta_lp[j]);
     }
@@ -359,8 +358,7 @@ void Valence_Angles( reax_system *system, control_params *control,
                   rvec_ScaledAdd( workspace->f[i], CEval8, p_ijk->dcos_di );
                   rvec_ScaledAdd( workspace->f[j], CEval8, p_ijk->dcos_dj );
                   rvec_ScaledAdd( workspace->f[k], CEval8, p_ijk->dcos_dk );
-                }
-                else {
+                } else {
                   rvec_Scale( force, CEval8, p_ijk->dcos_di );
                   rvec_Add( workspace->f[i], force );
                   rvec_iMultiply( ext_press, pbond_ij->rel_box, force );

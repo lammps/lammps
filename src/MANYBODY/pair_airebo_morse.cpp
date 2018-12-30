@@ -19,7 +19,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairAIREBOMorse::PairAIREBOMorse(LAMMPS *lmp) : PairAIREBO(lmp) {}
+PairAIREBOMorse::PairAIREBOMorse(LAMMPS *lmp) : PairAIREBO(lmp) {
+  variant = AIREBO_M;
+}
 
 /* ----------------------------------------------------------------------
    global settings

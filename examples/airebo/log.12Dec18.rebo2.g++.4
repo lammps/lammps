@@ -1,5 +1,4 @@
-LAMMPS (29 Jun 2018)
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:87)
+LAMMPS (12 Dec 2018)
   using 1 OpenMP thread(s) per MPI task
 # AIREBO polyethelene benchmark
 
@@ -16,7 +15,7 @@ replicate	    17 16 2
   orthogonal box = (-2.1 -2.1 0) to (69.3 65.1 51.158)
   2 by 2 by 1 MPI processor grid
   32640 atoms
-  Time spent = 0.00151467 secs
+  Time spent = 0.000644684 secs
 
 neighbor	    0.5 bin
 neigh_modify	    delay 5 every 1
@@ -50,27 +49,27 @@ Step Temp E_pair E_mol TotEng Press
       10    179.37985   -137931.27            0   -137174.48    15655.936 
       20    206.87654   -138046.99            0   -137174.19   -24042.627 
       30    150.80122   -137807.43            0   -137171.21   -16524.118 
-      40    173.24945   -137902.35            0   -137171.42   -5716.9118 
+      40    173.24945   -137902.35            0   -137171.42   -5716.9119 
       50    151.80455   -137812.36            0   -137171.91    3480.4584 
       60    199.08777   -138013.82            0   -137173.88    17881.372 
       70    217.85748   -138093.86            0   -137174.73   -12270.999 
-      80    202.37482   -138029.39            0   -137175.59    -7622.732 
+      80    202.37482   -138029.39            0   -137175.59   -7622.7319 
       90    194.90628   -137997.05            0   -137174.75   -32267.471 
      100    185.17818   -137954.51            0   -137173.26   -6901.7499 
-Loop time of 1.49632 on 4 procs for 100 steps with 32640 atoms
+Loop time of 1.4517 on 4 procs for 100 steps with 32640 atoms
 
-Performance: 2.887 ns/day, 8.313 hours/ns, 66.831 timesteps/s
-98.6% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 2.976 ns/day, 8.065 hours/ns, 68.885 timesteps/s
+99.4% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.93275    | 0.95717    | 0.97367    |   1.6 | 63.97
-Neigh   | 0.45634    | 0.46084    | 0.46749    |   0.6 | 30.80
-Comm    | 0.038283   | 0.062074   | 0.090508   |   7.6 |  4.15
-Output  | 0.00046492 | 0.00072992 | 0.0015128  |   0.0 |  0.05
-Modify  | 0.0088651  | 0.0090639  | 0.0093012  |   0.2 |  0.61
-Other   |            | 0.006436   |            |       |  0.43
+Pair    | 0.92079    | 0.93883    | 0.95524    |   1.6 | 64.67
+Neigh   | 0.45826    | 0.46013    | 0.46316    |   0.3 | 31.70
+Comm    | 0.02183    | 0.038046   | 0.052974   |   7.5 |  2.62
+Output  | 0.00044131 | 0.00057179 | 0.00093198 |   0.0 |  0.04
+Modify  | 0.0088243  | 0.0089917  | 0.0092998  |   0.2 |  0.62
+Other   |            | 0.005127   |            |       |  0.35
 
 Nlocal:    8160 ave 8163 max 8157 min
 Histogram: 1 1 0 0 0 0 0 0 1 1

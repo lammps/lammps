@@ -1,5 +1,4 @@
-LAMMPS (29 Jun 2018)
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:87)
+LAMMPS (12 Dec 2018)
   using 1 OpenMP thread(s) per MPI task
 # AIREBO polyethelene benchmark
 
@@ -8,15 +7,15 @@ atom_style	    atomic
 
 read_data	    data.airebo
   orthogonal box = (-2.1 -2.1 0) to (2.1 2.1 25.579)
-  1 by 1 by 1 MPI processor grid
+  1 by 1 by 4 MPI processor grid
   reading atoms ...
   60 atoms
 
 replicate	    17 16 2
   orthogonal box = (-2.1 -2.1 0) to (69.3 65.1 51.158)
-  1 by 1 by 1 MPI processor grid
+  2 by 2 by 1 MPI processor grid
   32640 atoms
-  Time spent = 0.00136042 secs
+  Time spent = 0.000664234 secs
 
 neighbor	    0.5 bin
 neigh_modify	    delay 5 every 1
@@ -44,45 +43,45 @@ Neighbor list info ...
       pair build: full/bin/ghost
       stencil: full/ghost/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 34.21 | 34.21 | 34.21 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 11.75 | 11.94 | 12.13 Mbytes
 Step Temp E_pair E_mol TotEng Press 
-       0          300   -138442.83            0   -137177.16    2463.0756 
-      10    179.38448   -137931.29            0   -137174.48    15656.689 
-      20    206.89283   -138047.05            0   -137174.19   -24047.407 
+       0          300   -138442.83            0   -137177.16    2463.0755 
+      10    179.38448   -137931.29            0   -137174.48     15656.69 
+      20    206.89283   -138047.06            0   -137174.19   -24047.407 
       30    150.81289   -137807.48            0   -137171.21   -16524.191 
       40    173.24289   -137902.32            0   -137171.42   -5721.7187 
       50    151.80722   -137812.37            0   -137171.91    3489.8954 
-      60    199.06038    -138013.7            0   -137173.88    17887.024 
+      60    199.06038    -138013.7            0   -137173.88    17887.025 
       70    217.84848   -138093.82            0   -137174.73    -12266.16 
-      80    202.34667   -138029.28            0   -137175.59   -7623.6635 
+      80    202.34667   -138029.28            0   -137175.59   -7623.6634 
       90    194.92367   -137997.12            0   -137174.75   -32277.173 
      100     185.2078   -137954.64            0   -137173.26   -6888.5104 
-Loop time of 5.00753 on 1 procs for 100 steps with 32640 atoms
+Loop time of 1.44469 on 4 procs for 100 steps with 32640 atoms
 
-Performance: 0.863 ns/day, 27.820 hours/ns, 19.970 timesteps/s
-99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 2.990 ns/day, 8.026 hours/ns, 69.219 timesteps/s
+99.7% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 3.4898     | 3.4898     | 3.4898     |   0.0 | 69.69
-Neigh   | 1.4697     | 1.4697     | 1.4697     |   0.0 | 29.35
-Comm    | 0.015885   | 0.015885   | 0.015885   |   0.0 |  0.32
-Output  | 0.00096607 | 0.00096607 | 0.00096607 |   0.0 |  0.02
-Modify  | 0.021901   | 0.021901   | 0.021901   |   0.0 |  0.44
-Other   |            | 0.009297   |            |       |  0.19
+Pair    | 0.92215    | 0.93812    | 0.95363    |   1.6 | 64.94
+Neigh   | 0.45592    | 0.45842    | 0.46002    |   0.2 | 31.73
+Comm    | 0.016539   | 0.03352    | 0.050276   |   8.6 |  2.32
+Output  | 0.00043154 | 0.00059217 | 0.001025   |   0.0 |  0.04
+Modify  | 0.0087888  | 0.0090455  | 0.0095809  |   0.3 |  0.63
+Other   |            | 0.004989   |            |       |  0.35
 
-Nlocal:    32640 ave 32640 max 32640 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    26460 ave 26460 max 26460 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:    8160 ave 8163 max 8157 min
+Histogram: 1 1 0 0 0 0 0 0 1 1
+Nghost:    11605.8 ave 11615 max 11593 min
+Histogram: 1 0 0 0 0 0 2 0 0 1
 Neighs:    0 ave 0 max 0 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs:  4.90213e+06 ave 4.90213e+06 max 4.90213e+06 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  1.22553e+06 ave 1.22734e+06 max 1.22455e+06 min
+Histogram: 2 0 0 1 0 0 0 0 0 1
 
 Total # of neighbors = 4902134
 Ave neighs/atom = 150.188
 Neighbor list builds = 9
 Dangerous builds = 0
-Total wall time: 0:00:05
+Total wall time: 0:00:01

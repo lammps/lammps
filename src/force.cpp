@@ -35,6 +35,7 @@
 #include "group.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -287,26 +288,13 @@ Pair *Force::pair_match(const char *word, int exact, int nsub)
   int iwhich,count;
 
   if (exact && strcmp(pair_style,word) == 0) return pair;
-  else if (!exact && strstr(pair_style,word)) return pair;
-
-  else if (strstr(pair_style,"hybrid/overlay")) {
-    PairHybridOverlay *hybrid = (PairHybridOverlay *) pair;
-    count = 0;
-    for (int i = 0; i < hybrid->nstyles; i++)
-      if ((exact && strcmp(hybrid->keywords[i],word) == 0) ||
-          (!exact && strstr(hybrid->keywords[i],word))) {
-        iwhich = i;
-        count++;
-        if (nsub == count) return hybrid->styles[iwhich];
-      }
-    if (count == 1) return hybrid->styles[iwhich];
-
-  } else if (strstr(pair_style,"hybrid")) {
+  else if (!exact && utils::strmatch(pair_style,word)) return pair;
+  else if (utils::strmatch(pair_style,"^hybrid")) {
     PairHybrid *hybrid = (PairHybrid *) pair;
     count = 0;
     for (int i = 0; i < hybrid->nstyles; i++)
       if ((exact && strcmp(hybrid->keywords[i],word) == 0) ||
-          (!exact && strstr(hybrid->keywords[i],word))) {
+          (!exact && utils::strmatch(hybrid->keywords[i],word))) {
         iwhich = i;
         count++;
         if (nsub == count) return hybrid->styles[iwhich];
@@ -327,7 +315,7 @@ char *Force::pair_match_ptr(Pair *ptr)
 {
   if (ptr == pair) return pair_style;
 
-  if (strstr(pair_style,"hybrid")) {
+  if (utils::strmatch(pair_style,"^hybrid")) {
     PairHybrid *hybrid = (PairHybrid *) pair;
     for (int i = 0; i < hybrid->nstyles; i++)
       if (ptr == hybrid->styles[i]) return hybrid->keywords[i];
@@ -741,7 +729,7 @@ KSpace *Force::kspace_creator(LAMMPS *lmp)
 KSpace *Force::kspace_match(const char *word, int exact)
 {
   if (exact && strcmp(kspace_style,word) == 0) return kspace;
-  else if (!exact && strstr(kspace_style,word)) return kspace;
+  else if (!exact && utils::strmatch(kspace_style,word)) return kspace;
   return NULL;
 }
 

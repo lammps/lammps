@@ -6,25 +6,25 @@
 
 :line
 
-pair_style lebedeva command :h3
+pair_style lebedeva/z command :h3
 
 [Syntax:]
 
-pair_style hybrid/overlay lebedeva cutoff :pre
+pair_style \[hybrid/overlay ...\] lebedeva/z cutoff :pre
 
 [Examples:]
 
-pair_style hybrid/overlay lebedeva 20.0
+pair_style hybrid/overlay lebedeva/z 20.0
 pair_coeff * * none
-pair_coeff 1 2 lebedeva  CC.Lebedeva   C C :pre
+pair_coeff 1 2 lebedeva/z  CC.Lebedeva   C C :pre
 
-pair_style hybrid/overlay rebo lebedeva 14.0
+pair_style hybrid/overlay rebo lebedeva/z 14.0
 pair_coeff * * rebo                 CH.airebo  C C
-pair_coeff 1 2 lebedeva  CC.Lebedeva      C C :pre
+pair_coeff 1 2 lebedeva/z  CC.Lebedeva      C C :pre
 
 [Description:]
 
-The {lebedeva} style computes the Lebedeva interaction
+The {lebedeva/z} style computes the Lebedeva interaction
 potential as described in "(Lebedeva et al.)"_#Leb01. An important simplification is made,
 which is to take all normals along the z-axis.
 
@@ -50,9 +50,12 @@ package"_Build_package.html doc page for more info.
 
 [Related commands:]
 
-"pair_coeff"_pair_coeff.html
-"pair_none"_pair_none.html
-"pair_style hybrid/overlay"_pair_hybrid.html
+"pair_coeff"_pair_coeff.html,
+"pair_style none"_pair_none.html,
+"pair_style hybrid/overlay"_pair_hybrid.html,
+"pair_style ilp/graphene/hbd"_pair_ilp_graphene_hbn.html,
+"pair_style kolmogorov/crespi/z"_pair_kolmogorov_crespi_z.html,
+"pair_style kolmogorov/crespi/full"_pair_kolmogorov_crespi_full.html.
 
 [Default:] none
 

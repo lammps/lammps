@@ -13,21 +13,21 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(lebedeva,PairLebedeva)
+PairStyle(lebedeva/z,PairLebedevaZ)
 
 #else
 
-#ifndef LMP_PAIR_LEBEDEVA_H
-#define LMP_PAIR_LEBEDEVA_H
+#ifndef LMP_PAIR_LEBEDEVA_Z_H
+#define LMP_PAIR_LEBEDEVA_Z_H
 
 #include "pair.h"
 
 namespace LAMMPS_NS {
 
-class PairLebedeva : public Pair {
+class PairLebedevaZ : public Pair {
  public:
-  PairLebedeva(class LAMMPS *);
-  virtual ~PairLebedeva();
+  PairLebedevaZ(class LAMMPS *);
+  virtual ~PairLebedevaZ();
 
   virtual void compute(int, int);
   void settings(int, char **);

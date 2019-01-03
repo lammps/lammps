@@ -50,6 +50,7 @@ Pair Styles :h1
    pair_kolmogorov_crespi_full
    pair_kolmogorov_crespi_z
    pair_lcbop
+   pair_lebedeva_z
    pair_line_lj
    pair_list
    pair_lj

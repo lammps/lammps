@@ -17,7 +17,7 @@
    e-mail: softquake at gmail dot com
    Writing this was based on C code of Kolmogorov-Crespi potential 
    of Jaap Kroes and others.
-  
+
    This is potential described in
    [Lebedeva et al., Physica E, 44(6), 949-954, 2012.]
 ------------------------------------------------------------------------- */
@@ -41,7 +41,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLebedeva::PairLebedeva(LAMMPS *lmp) : Pair(lmp)
+PairLebedevaZ::PairLebedevaZ(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
 
@@ -59,7 +59,7 @@ PairLebedeva::PairLebedeva(LAMMPS *lmp) : Pair(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-PairLebedeva::~PairLebedeva()
+PairLebedevaZ::~PairLebedevaZ()
 {
   if (allocated) {
     memory->destroy(setflag);
@@ -78,7 +78,7 @@ PairLebedeva::~PairLebedeva()
 
 /* ---------------------------------------------------------------------- */
 
-void PairLebedeva::compute(int eflag, int vflag)
+void PairLebedevaZ::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair,der;
@@ -122,7 +122,7 @@ void PairLebedeva::compute(int eflag, int vflag)
       rhosq = delx*delx + dely*dely;
       rho = sqrt(rhosq);
       rsq = rhosq + delz*delz;
-      
+
       if (rsq < cutsq[itype][jtype]) {
 
         int iparam_ij = elem2param[map[itype]][map[jtype]];
@@ -173,7 +173,7 @@ void PairLebedeva::compute(int eflag, int vflag)
    allocate all arrays
 ------------------------------------------------------------------------- */
 
-void PairLebedeva::allocate()
+void PairLebedevaZ::allocate()
 {
   allocated = 1;
   int n = atom->ntypes;
@@ -193,7 +193,7 @@ void PairLebedeva::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairLebedeva::settings(int narg, char **arg)
+void PairLebedevaZ::settings(int narg, char **arg)
 {
   if (narg != 1) error->all(FLERR,"Illegal pair_style command");
   if (strcmp(force->pair_style,"hybrid/overlay")!=0)
@@ -215,7 +215,7 @@ void PairLebedeva::settings(int narg, char **arg)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairLebedeva::coeff(int narg, char **arg)
+void PairLebedevaZ::coeff(int narg, char **arg)
 {
   int i,j,n; 
 
@@ -258,7 +258,7 @@ void PairLebedeva::coeff(int narg, char **arg)
 
 
   read_file(arg[2]);
-  
+
   double cut_one = cut_global;
 
   int count = 0;
@@ -278,7 +278,7 @@ void PairLebedeva::coeff(int narg, char **arg)
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairLebedeva::init_one(int i, int j)
+double PairLebedevaZ::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
@@ -296,7 +296,7 @@ double PairLebedeva::init_one(int i, int j)
    read Lebedeva potential file
 ------------------------------------------------------------------------- */
 
-void PairLebedeva::read_file(char *filename)
+void PairLebedevaZ::read_file(char *filename)
 {
   int params_per_line = 12;
   char **words = new char*[params_per_line+1];

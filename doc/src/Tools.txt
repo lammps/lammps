@@ -391,15 +391,16 @@ definition file.  This tool was used to create the system for the
 
 moltemplate tool :h4,link(moltemplate)
 
-The moltemplate sub-directory contains a Python-based tool for
-building molecular systems based on a text-file description, and
-creating LAMMPS data files that encode their molecular topology as
-lists of bonds, angles, dihedrals, etc.  See the README.TXT file for
-more information.
+The moltemplate sub-directory contains instructions for installing
+moltemplate, a Python-based tool for building molecular systems based
+on a text-file description, and creating LAMMPS data files that encode
+their molecular topology as lists of bonds, angles, dihedrals, etc.
+See the README.txt file for more information.
 
 This tool was written by Andrew Jewett (jewett.aij at gmail.com), who
 supports it.  It has its own WWW page at
 "http://moltemplate.org"_http://moltemplate.org.
+The latest sources can be found "on its GitHub page"_https://github.com/jewettaij/moltemplate/releases
 
 :line
 

@@ -56,13 +56,13 @@ void FixEnforce2DKokkos<DeviceType>::post_force(int vflag)
   v = atomKK->k_v.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
 
-  if( atomKK->omega_flag )
+  if (atomKK->omega_flag)
     omega  = atomKK->k_omega.view<DeviceType>();
 
-  if( atomKK->angmom_flag )
+  if (atomKK->angmom_flag)
     angmom = atomKK->k_angmom.view<DeviceType>();
 
-  if( atomKK->torque_flag )
+  if (atomKK->torque_flag)
     torque = atomKK->k_torque.view<DeviceType>();
 
 
@@ -72,9 +72,9 @@ void FixEnforce2DKokkos<DeviceType>::post_force(int vflag)
   if (igroup == atomKK->firstgroup) nlocal = atomKK->nfirst;
 
   int flag_mask = 0;
-  if( atomKK->omega_flag ) flag_mask  |= 1;
-  if( atomKK->angmom_flag ) flag_mask |= 2;
-  if( atomKK->torque_flag ) flag_mask |= 4;
+  if (atomKK->omega_flag) flag_mask  |= 1;
+  if (atomKK->angmom_flag) flag_mask |= 2;
+  if (atomKK->torque_flag) flag_mask |= 4;
 
   copymode = 1;
   switch( flag_mask ){

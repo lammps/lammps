@@ -28,7 +28,7 @@
 using namespace LAMMPS_NS;
 
 enum{SUM,MINN,MAXX};
-enum{COMPUTE,FIX,VARIABLE};
+enum{UNKNOWN=-1,COMPUTE,FIX,VARIABLE};
 
 #define INVOKED_PERATOM 8
 
@@ -74,6 +74,10 @@ ComputeReduceChunk::ComputeReduceChunk(LAMMPS *lmp, int narg, char **arg) :
   argindex = new int[nargnew];
   ids = new char*[nargnew];
   value2index = new int[nargnew];
+  for (int i=0; i < nargnew; ++i) {
+    which[i] = argindex[i] = value2index[i] = UNKNOWN;
+    ids[i] = NULL;
+  }
   nvalues = 0;
 
   iarg = 0;
@@ -123,46 +127,46 @@ ComputeReduceChunk::ComputeReduceChunk(LAMMPS *lmp, int narg, char **arg) :
     if (which[i] == COMPUTE) {
       int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
-	error->all(FLERR,"Compute ID for compute reduce/chunk does not exist");
+        error->all(FLERR,"Compute ID for compute reduce/chunk does not exist");
       if (!modify->compute[icompute]->peratom_flag)
-	error->all(FLERR,"Compute reduce/chunk compute does not "
-		   "calculate per-atom values");
+        error->all(FLERR,"Compute reduce/chunk compute does not "
+                   "calculate per-atom values");
       if (argindex[i] == 0 &&
-	  modify->compute[icompute]->size_peratom_cols != 0)
-	error->all(FLERR,"Compute reduce/chunk compute does not "
-		   "calculate a per-atom vector");
+          modify->compute[icompute]->size_peratom_cols != 0)
+        error->all(FLERR,"Compute reduce/chunk compute does not "
+                   "calculate a per-atom vector");
       if (argindex[i] && modify->compute[icompute]->size_peratom_cols == 0)
-	error->all(FLERR,"Compute reduce/chunk compute does not "
-		   "calculate a per-atom array");
+        error->all(FLERR,"Compute reduce/chunk compute does not "
+                   "calculate a per-atom array");
       if (argindex[i] &&
           argindex[i] > modify->compute[icompute]->size_peratom_cols)
-	error->all(FLERR,
-		   "Compute reduce/chunk compute array is accessed out-of-range");
+        error->all(FLERR,
+                   "Compute reduce/chunk compute array is accessed out-of-range");
 
     } else if (which[i] == FIX) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
-	error->all(FLERR,"Fix ID for compute reduce/chunk does not exist");
+        error->all(FLERR,"Fix ID for compute reduce/chunk does not exist");
       if (!modify->fix[ifix]->peratom_flag)
-	error->all(FLERR,"Compute reduce/chunk fix does not "
-		   "calculate per-atom values");
+        error->all(FLERR,"Compute reduce/chunk fix does not "
+                   "calculate per-atom values");
       if (argindex[i] == 0 &&
-	  modify->fix[ifix]->size_peratom_cols != 0)
-	error->all(FLERR,"Compute reduce/chunk fix does not "
-		   "calculate a per-atom vector");
+          modify->fix[ifix]->size_peratom_cols != 0)
+        error->all(FLERR,"Compute reduce/chunk fix does not "
+                   "calculate a per-atom vector");
       if (argindex[i] && modify->fix[ifix]->size_peratom_cols == 0)
-	error->all(FLERR,"Compute reduce/chunk fix does not "
-		   "calculate a per-atom array");
+        error->all(FLERR,"Compute reduce/chunk fix does not "
+                   "calculate a per-atom array");
       if (argindex[i] && argindex[i] > modify->fix[ifix]->size_peratom_cols)
-	error->all(FLERR,"Compute reduce/chunk fix array is "
+        error->all(FLERR,"Compute reduce/chunk fix array is "
                    "accessed out-of-range");
 
     } else if (which[i] == VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
-	error->all(FLERR,"Variable name for compute reduce/chunk does not exist");
+        error->all(FLERR,"Variable name for compute reduce/chunk does not exist");
       if (input->variable->atomstyle(ivariable) == 0)
-	error->all(FLERR,"Compute reduce/chunk variable is "
+        error->all(FLERR,"Compute reduce/chunk variable is "
                    "not atom-style variable");
     }
   }
@@ -354,10 +358,19 @@ void ComputeReduceChunk::compute_one(int m, double *vchunk, int nstride)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  int index;
+  int index = -1;
+  int vidx = value2index[m];
+
+  // initialization in case it has not yet been run, e.g. when
+  // the compute was invoked right after it has been created
+
+  if (vidx == UNKNOWN) {
+    init();
+    vidx = value2index[m];
+  }
 
   if (which[m] == COMPUTE) {
-    Compute *compute = modify->compute[value2index[m]];
+    Compute *compute = modify->compute[vidx];
 
     if (!(compute->invoked_flag & INVOKED_PERATOM)) {
       compute->compute_peratom();
@@ -367,26 +380,26 @@ void ComputeReduceChunk::compute_one(int m, double *vchunk, int nstride)
     if (argindex[m] == 0) {
       double *vcompute = compute->vector_atom;
       for (int i = 0; i < nlocal; i++) {
-	if (!(mask[i] & groupbit)) continue;
-	index = ichunk[i]-1;
-	if (index < 0) continue;
-	combine(vchunk[index*nstride],vcompute[i]);
+        if (!(mask[i] & groupbit)) continue;
+        index = ichunk[i]-1;
+        if (index < 0) continue;
+        combine(vchunk[index*nstride],vcompute[i]);
       }
     } else {
       double **acompute = compute->array_atom;
       int argindexm1 = argindex[m] - 1;
       for (int i = 0; i < nlocal; i++) {
-	if (!(mask[i] & groupbit)) continue;
-	index = ichunk[i]-1;
-	if (index < 0) continue;
-	combine(vchunk[index*nstride],acompute[i][argindexm1]);
+        if (!(mask[i] & groupbit)) continue;
+        index = ichunk[i]-1;
+        if (index < 0) continue;
+        combine(vchunk[index*nstride],acompute[i][argindexm1]);
       }
     }
 
   // access fix fields, check if fix frequency is a match
 
   } else if (which[m] == FIX) {
-    Fix *fix = modify->fix[value2index[m]];
+    Fix *fix = modify->fix[vidx];
     if (update->ntimestep % fix->peratom_freq)
       error->all(FLERR,"Fix used in compute reduce/chunk not "
                  "computed at compatible time");
@@ -394,19 +407,19 @@ void ComputeReduceChunk::compute_one(int m, double *vchunk, int nstride)
     if (argindex[m] == 0) {
       double *vfix = fix->vector_atom;
       for (int i = 0; i < nlocal; i++) {
-	if (!(mask[i] & groupbit)) continue;
-	index = ichunk[i]-1;
-	if (index < 0) continue;
-	combine(vchunk[index*nstride],vfix[i]);
+        if (!(mask[i] & groupbit)) continue;
+        index = ichunk[i]-1;
+        if (index < 0) continue;
+        combine(vchunk[index*nstride],vfix[i]);
       }
     } else {
       double **afix = fix->array_atom;
       int argindexm1 = argindex[m] - 1;
       for (int i = 0; i < nlocal; i++) {
-	if (!(mask[i] & groupbit)) continue;
-	index = ichunk[i]-1;
-	if (index < 0) continue;
-	combine(vchunk[index*nstride],afix[i][argindexm1]);
+        if (!(mask[i] & groupbit)) continue;
+        index = ichunk[i]-1;
+        if (index < 0) continue;
+        combine(vchunk[index*nstride],afix[i][argindexm1]);
       }
     }
 
@@ -419,7 +432,7 @@ void ComputeReduceChunk::compute_one(int m, double *vchunk, int nstride)
       memory->create(varatom,maxatom,"reduce/chunk:varatom");
     }
 
-    input->variable->compute_atom(value2index[m],igroup,varatom,1,0);
+    input->variable->compute_atom(vidx,igroup,varatom,1,0);
     for (int i = 0; i < nlocal; i++) {
       if (!(mask[i] & groupbit)) continue;
       index = ichunk[i]-1;

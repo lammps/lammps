@@ -174,8 +174,7 @@ int Region::surface(double x, double y, double z, double cutoff)
   if (!openflag) {
     if (interior) ncontact = surface_interior(xnear,cutoff);
     else ncontact = surface_exterior(xnear,cutoff);
-  }
-  else{
+  } else {
     // one of surface_int/ext() will return 0
     // so no need to worry about offset of contact indices
     ncontact = surface_exterior(xnear,cutoff) + surface_interior(xnear,cutoff);

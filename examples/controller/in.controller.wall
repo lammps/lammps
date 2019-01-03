@@ -1,0 +1,46 @@
+# 3d Lennard-Jones melt, thermostatted by fix controller
+
+units           lj
+atom_style      atomic
+boundary        p p m
+processors      * * 1
+lattice         fcc 0.8442
+region          box block 0 10 0 10 -4 14
+region          slab block 0 10 0 10 0 10
+create_box      1 box
+create_atoms    1 region slab
+mass            1 1.0
+
+velocity        all create 1.44 87287 loop geom
+
+pair_style      lj/cut 2.5
+pair_coeff      1 1 1.0 1.0 2.5
+
+neighbor        0.3 bin
+neigh_modify    delay 2 every 2 check yes
+
+fix             1 all nve
+fix             3 all langevin 1.5 1.5 0.5 412513
+
+variable        zhi internal $(10.5*zlat)
+variable        kwall equal 20.0
+fix             2 all wall/harmonic zlo -0.5 ${kwall} 0.0 2.5 zhi v_zhi ${kwall} 0.0 2.5
+
+variable        pzz equal pzz
+fix             ave all ave/time 10 10 100 v_pzz
+# equilibrate
+
+thermo_style    custom  step temp pxx pyy pzz f_ave v_zhi
+thermo           500
+run             2500
+
+# use time averaged pressure for control
+#fix             10 all controller 100 -0.05 20.0 0.0 0.0 f_ave 1.5 zhi
+
+# use instantaneous pressure for control
+fix             10 all controller 100 -0.05 50.0 0.0 0.0 v_pzz 1.5 zhi
+
+# run with controller
+
+run             5000
+

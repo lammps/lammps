@@ -107,6 +107,7 @@ OPT.
 "kolmogorov/crespi/full"_pair_kolmogorov_crespi_full.html,
 "kolmogorov/crespi/z"_pair_kolmogorov_crespi_z.html,
 "lcbop"_pair_lcbop.html,
+"lebedeva/z"_pair_lebedeva_z.html,
 "lennard/mdf"_pair_mdf.html,
 "line/lj"_pair_line_lj.html,
 "list"_pair_list.html,

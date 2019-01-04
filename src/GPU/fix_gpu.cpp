@@ -246,7 +246,7 @@ void FixGPU::init()
   if (force->pair_match("^hybrid",0) != NULL) {
     PairHybrid *hybrid = (PairHybrid *) force->pair;
     for (int i = 0; i < hybrid->nstyles; i++)
-      if (utils::strmatch(hybrid->keywords[i],"/gpu$") == NULL)
+      if (!utils::strmatch(hybrid->keywords[i],"/gpu$"))
         force->pair->no_virial_fdotr_compute = 1;
   }
 

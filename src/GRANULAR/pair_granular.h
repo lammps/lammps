@@ -35,8 +35,6 @@ public:
   double init_one(int, int);
   void write_restart(FILE *);
   void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
   void reset_dt();
   virtual double single(int, int, int, int, double, double, double, double &);
   int pack_forward_comm(int, int *, double *, int, int *);
@@ -70,26 +68,26 @@ private:
   int size_history;
 
   //Per-type models
-  int **normal, **damping, **tangential, **rolling, **twisting;
+  int **normal, **damping, **tangential, **roll, **twist;
 
   int normal_global, damping_global;
-  int tangential_global, rolling_global, twisting_global;
+  int tangential_global, roll_global, twist_global;
 
   int history_flag;
-  int tangential_history, rolling_history, twisting_history;
+  int tangential_history, roll_history, twist_history;
   int tangential_history_index;
-  int rolling_history_index;
-  int twisting_history_index;
+  int roll_history_index;
+  int twist_history_index;
 
   double *normal_coeffs_global;
   double *tangential_coeffs_global;
-  double *rolling_coeffs_global;
-  double *twisting_coeffs_global;
+  double *roll_coeffs_global;
+  double *twist_coeffs_global;
 
   double ***normal_coeffs;
   double ***tangential_coeffs;
-  double ***rolling_coeffs;
-  double ***twisting_coeffs;
+  double ***roll_coeffs;
+  double ***twist_coeffs;
 
   double mix_stiffnessE(double Eii, double Ejj, double Gii, double Gjj);
   double mix_stiffnessG(double Eii, double Ejj, double Gii, double Gjj);

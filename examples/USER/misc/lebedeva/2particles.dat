@@ -1,0 +1,14 @@
+Ideal graphene structure in YZ plane created with create_graphen.pl
+
+2 atoms
+
+2 atom types
+
+	0.0 20 xlo xhi
+	0.0 20 ylo yhi
+	0.0 5 zlo zhi
+
+Atoms
+
+ 1 1 10 10 0.0 
+ 2 2 0 0 3.35

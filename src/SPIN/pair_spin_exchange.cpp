@@ -134,7 +134,7 @@ void PairSpinExchange::coeff(int narg, char **arg)
       count++;
     }
   }
-  
+
   if (count == 0) error->all(FLERR,"Incorrect args in pair_style command");
 }
 
@@ -395,7 +395,7 @@ void PairSpinExchange::compute_exchange(int i, int j, double rsq, double fmi[3],
    compute the mechanical force due to the exchange interaction between atom i and atom j
 ------------------------------------------------------------------------- */
 
-void PairSpinExchange::compute_exchange_mech(int i, int j, double rsq, double eij[3], 
+void PairSpinExchange::compute_exchange_mech(int i, int j, double rsq, double eij[3],
     double fi[3],  double spi[3], double spj[3])
 {
   int *type = atom->type;

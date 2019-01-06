@@ -1886,7 +1886,7 @@ void Atom::setup_sort_bins()
   // check if neighbor cutoff = 0.0
   // and in that case, disable sorting
 
-  double binsize;
+  double binsize = 0.0;
   if (userbinsize > 0.0) binsize = userbinsize;
   else if (neighbor->cutneighmax > 0.0) binsize = 0.5 * neighbor->cutneighmax;
 

@@ -61,7 +61,7 @@ void NPairHalffullNewtonIntel::build_t(NeighList *list,
   const int * _noalias const numneigh_full = list->listfull->numneigh;
   const int ** _noalias const firstneigh_full =
     (const int ** const)list->listfull->firstneigh;
-  
+
   #if defined(_OPENMP)
   #pragma omp parallel
   #endif
@@ -148,7 +148,7 @@ void NPairHalffullNewtonIntel::build_t3(NeighList *list, int *numhalf)
   const int * _noalias const numneigh_full = numhalf;
   const int ** _noalias const firstneigh_full =
     (const int ** const)list->listfull->firstneigh;
-  
+
   int packthreads = 1;
   if (comm->nthreads > INTEL_HTHREADS) packthreads = comm->nthreads;
 

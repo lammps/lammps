@@ -263,7 +263,7 @@ void FixWallBodyPolygon::post_force(int /*vflag*/)
   }
 
   ndiscrete = nedge = 0;
-  for (i = 0; i < nlocal; i++) 
+  for (i = 0; i < nlocal; i++)
     dnum[i] = ednum[i] = 0;
 
   for (i = 0; i < nlocal; i++) {
@@ -675,7 +675,7 @@ void FixWallBodyPolygon::contact_forces(Contact& contact, double j_a,
   AtomVecBody::Bonus *bonus;
 
   ibody = contact.ibody;
-  
+
   // compute the velocity of the vertex in the space-fixed frame
 
   ibonus = atom->body[ibody];

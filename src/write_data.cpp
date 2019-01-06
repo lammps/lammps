@@ -255,7 +255,7 @@ void WriteData::header()
     }
   }
 
-  if (fixflag) 
+  if (fixflag)
     for (int i = 0; i < modify->nfix; i++)
       if (modify->fix[i]->wd_header)
         for (int m = 0; m < modify->fix[i]->wd_header; m++)

@@ -126,3 +126,6 @@ python/*              @rbberger
 doc/utils/*/*         @rbberger
 doc/Makefile          @rbberger
 doc/README            @rbberger
+
+# for releases
+src/version.h         @sjplimp

@@ -26,7 +26,7 @@ FixStyle(nve/sphere/kk/host,FixNVESphereKokkos<LMPHostType>)
 #include "kokkos_type.h"
 
 namespace LAMMPS_NS {
-  
+
 template<class DeviceType>
 class FixNVESphereKokkos : public FixNVESphere {
   public:
@@ -36,7 +36,7 @@ class FixNVESphereKokkos : public FixNVESphere {
     void init();
     void initial_integrate(int);
     void final_integrate();
-  
+
     KOKKOS_INLINE_FUNCTION
     void initial_integrate_item(const int i) const;
     KOKKOS_INLINE_FUNCTION

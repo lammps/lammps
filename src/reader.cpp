@@ -18,6 +18,8 @@
 
 using namespace LAMMPS_NS;
 
+// only proc 0 calls methods of this class, except for constructor/destructor
+
 /* ---------------------------------------------------------------------- */
 
 Reader::Reader(LAMMPS *lmp) : Pointers(lmp)

@@ -1,0 +1,100 @@
+LAMMPS (27 Nov 2018)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:87)
+  using 1 OpenMP thread(s) per MPI task
+variable	sname index h_molecule
+
+units 		real
+newton		on
+boundary        p p p
+processors      1 * *
+
+
+atom_style	wavepacket
+
+read_data  	data.${sname}
+read_data  	data.h_molecule
+  orthogonal box = (-0.529177 -0.529177 -0.529177) to (0.529177 0.529177 0.529177)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  4 atoms
+
+#neighbor        2.0 nsq
+
+pair_style      awpmd/cut -1. hartree ermscale 0.99 free flex_press
+pair_coeff 	    * *
+
+
+
+timestep        0.001
+
+fix             1 all nve/awpmd
+
+comm_modify	vel yes
+
+compute         energies all pair awpmd/cut
+variable        eke equal c_energies[1]
+variable        epauli equal c_energies[2]
+variable        estatics equal c_energies[3]
+variable        errestrain equal c_energies[4]
+
+compute         peratom all stress/atom NULL
+compute         p all reduce sum c_peratom[1] c_peratom[2] c_peratom[3]
+variable        press equal -(c_p[1]+c_p[2]+c_p[3])/(3*vol)
+
+thermo          1
+thermo_style    custom step etotal pe ke v_eke v_epauli v_estatics v_errestrain temp press v_press
+
+run 		10
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.52918
+  ghost atom cutoff = 2.52918
+  binsize = 1.26459, bins = 1 1 1
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair awpmd/cut, perpetual
+      attributes: half, newton off
+      pair build: half/bin/newtoff
+      stencil: half/bin/3d/newtoff
+      bin: standard
+WARNING: Proc sub-domain size < neighbor skin, could lead to lost atoms (src/domain.cpp:933)
+Per MPI rank memory allocation (min/avg/max) = 5.142 | 5.142 | 5.142 Mbytes
+Step TotEng PotEng KinEng v_eke v_epauli v_estatics v_errestrain Temp Press v_press 
+       0    30358.159    30358.159            0     39537.73 -1.5916157e-12   -9179.5713            0            0 1.3475994e+09           -0 
+       1     30360.49    30360.489 0.0009272222    39540.081 2.0463631e-12   -9179.5926            0   0.10368794 1.3476061e+09    35.753932 
+       2    67447.779    67447.776   0.00370884     80547.07 -1.1368684e-12   -13099.294            0   0.41474633 2.8529839e+09    143.01385 
+       3    3713046.5    3713046.5 0.0041850026    3803060.3 -1.29603e-10   -90013.788            0   0.46799388 1.4486958e+11     161.3748 
+       4    2445632.1      2445620    12.171486    2452194.4 -9.777068e-11   -6574.4062            0    1361.0937 -6.5572589e+08    469335.68 
+       5    2434860.1    2434845.9    14.215419    2433638.8 -1.0663825e-10    1207.1541            0    1589.6595   -359380.29    548150.31 
+       6    2444984.1    2444969.8    14.215428      2451100 5.1841198e-11   -6130.1373            0    1589.6605 -5.6327282e+08    548150.63 
+       7    2436128.7    2436110.9    17.793789    2434903.7 2.0190782e-10     1207.154            0    1989.8158   -221406.77    686133.18 
+       8    2444786.5    2444768.7    17.793798    2450583.8 -1.1027623e-10   -5815.0651            0    1989.8169 -5.0227031e+08    686133.54 
+       9    2437198.9    2437175.9    22.942086    2435968.8 2.2600943e-10    1207.1538            0    2565.5315   -22903.736    884652.88 
+      10    2444787.1    2444764.2    22.942097    2450333.1 -3.1832315e-11   -5568.9214            0    2565.5327 -4.5741803e+08     884653.3 
+Loop time of 0.00158453 on 1 procs for 10 steps with 4 atoms
+
+Performance: 0.545 ns/day, 44.015 hours/ns, 6311.020 timesteps/s
+85.9% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.00088882 | 0.00088882 | 0.00088882 |   0.0 | 56.09
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.00031352 | 0.00031352 | 0.00031352 |   0.0 | 19.79
+Output  | 0.00036216 | 0.00036216 | 0.00036216 |   0.0 | 22.86
+Modify  | 5.9605e-06 | 5.9605e-06 | 5.9605e-06 |   0.0 |  0.38
+Other   |            | 1.407e-05  |            |       |  0.89
+
+Nlocal:    4 ave 4 max 4 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    596 ave 596 max 596 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    966 ave 966 max 966 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 966
+Ave neighs/atom = 241.5
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:00

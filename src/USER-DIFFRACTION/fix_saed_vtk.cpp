@@ -287,6 +287,8 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
 FixSAEDVTK::~FixSAEDVTK()
 {
   delete [] extlist;
+  delete [] filename;
+  delete [] ids;
   memory->destroy(vector);
   memory->destroy(vector_total);
   if (fp && me == 0) fclose(fp);

@@ -61,11 +61,10 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 1;
   no_virial_fdotr_compute = 1;
-  use_history = 1;
   fix_history = NULL;
 
-  single_extra = 10;
-  svector = new double[10];
+  single_extra = 9;
+  svector = new double[single_extra];
 
   neighprev = 0;
 
@@ -83,6 +82,7 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
 
   comm_forward = 1;
 
+  use_history = 0;
   beyond_contact = 0;
   roll_history_index = twist_history_index = 0;
   tangential_history_index = -1;
@@ -351,7 +351,7 @@ void PairGranular::compute(int eflag, int vflag)
         vrel = sqrt(vrel);
 
         // If any history is needed:
-        if (history_flag){
+        if (use_history){
           touch[jj] = 1;
           history = &allhistory[size_history*jj];
         }
@@ -520,7 +520,9 @@ void PairGranular::compute(int eflag, int vflag)
             mu_twist = twist_coeffs[itype][jtype][2];
           }
           if (twist_history){
-            history[twist_history_index] += magtwist*dt;
+            if (historyupdate){
+              history[twist_history_index] += magtwist*dt;
+            }
             magtortwist = -k_twist*history[twist_history_index] - damp_twist*magtwist;//M_t torque (eq 30)
             signtwist = (magtwist > 0) - (magtwist < 0);
             Mtcrit = TWOTHIRDS*a*Fscrit;//critical torque (eq 44)
@@ -1017,7 +1019,7 @@ void PairGranular::init_style()
     error->all(FLERR,"Pair granular requires ghost atoms store velocity");
 
   // Determine whether we need a granular neigh list, how large it needs to be
-  history_flag = tangential_history || roll_history || twist_history;
+  use_history = tangential_history || roll_history || twist_history;
   size_history = 3*tangential_history + 3*roll_history + twist_history;
 
   //Determine location of tangential/roll/twist histories in array
@@ -1038,14 +1040,14 @@ void PairGranular::init_style()
 
   int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->size = 1;
-  if (history_flag) neighbor->requests[irequest]->history = 1;
+  if (use_history) neighbor->requests[irequest]->history = 1;
 
   dt = update->dt;
 
   // if history is stored:
   // if first init, create Fix needed for storing history
 
-  if (history_flag && fix_history == NULL) {
+  if (use_history && fix_history == NULL) {
     char dnumstr[16];
     sprintf(dnumstr,"%d",size_history);
     char **fixarg = new char*[4];
@@ -1294,8 +1296,11 @@ double PairGranular::single(int i, int j, int itype, int jtype,
 {
   double radi,radj,radsum;
   double r,rinv,rsqinv,delx,dely,delz, nx, ny, nz, Reff;
+  double dR, dR2, sqdR;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3,wr1,wr2,wr3;
   double vtr1,vtr2,vtr3,vrel;
+  double mi,mj,meff,damp,ccel,tor1,tor2,tor3;
+  double relrot1,relrot2,relrot3,vrl1,vrl2,vrl3,vrlmag,vrlmaginv;
 
   double knfac, damp_normal;
   double k_tangential, damp_tangential;
@@ -1307,8 +1312,6 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   double delta, t0, t1, t2, t3, t4, t5, t6;
   double sqrt1, sqrt2, sqrt3, sqrt4;
 
-  double mi,mj,meff,damp,ccel,tor1,tor2,tor3;
-  double relrot1,relrot2,relrot3,vrl1,vrl2,vrl3,vrlmag,vrlmaginv;
 
   //Rolling
   double k_roll, damp_roll;
@@ -1371,20 +1374,26 @@ double PairGranular::single(int i, int j, int itype, int jtype,
 
   // normal component
 
-  double **x = atom->x;
-  delx = x[i][0] - x[j][0];
-  dely = x[i][1] - x[j][1];
-  delz = x[i][2] - x[j][2];
-
-  nx = delx*rinv;
-  ny = dely*rinv;
-  nz = delz*rinv;
-
-
   vnnr = vr1*nx + vr2*ny + vr3*nz;
   vn1 = nx*vnnr;
   vn2 = ny*vnnr;
   vn3 = nz*vnnr;
+
+  double *rmass = atom->rmass;
+  int *mask = atom->mask;
+  mi = rmass[i];
+  mj = rmass[j];
+  if (fix_rigid) {
+    if (mass_rigid[i] > 0.0) mi = mass_rigid[i];
+    if (mass_rigid[j] > 0.0) mj = mass_rigid[j];
+  }
+
+  meff = mi*mj / (mi+mj);
+  if (mask[i] & freeze_group_bit) meff = mj;
+  if (mask[j] & freeze_group_bit) meff = mi;
+
+  delta = radsum - r;
+  dR = delta*Reff;
 
   // tangential component
 
@@ -1419,86 +1428,223 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   if (mask[i] & freeze_group_bit) meff = mj;
   if (mask[j] & freeze_group_bit) meff = mi;
 
+  delta = radsum - r;
+  dR = delta*Reff;
+  if (normal[itype][jtype] == JKR){
+    dR2 = dR*dR;
+    t0 = coh*coh*R2*R2*E;
+    t1 = PI27SQ*t0;
+    t2 = 8*dR*dR2*E*E*E;
+    t3 = 4*dR2*E;
+    sqrt1 = MAX(0, t0*(t1+2*t2)); //In case of sqrt(0) < 0 due to precision issues
+    t4 = cbrt(t1+t2+THREEROOT3*M_PI*sqrt(sqrt1));
+    t5 = t3/t4 + t4/E;
+    sqrt2 = MAX(0, 2*dR + t5);
+    t6 = sqrt(sqrt2);
+    sqrt3 = MAX(0, 4*dR - t5 + SIXROOT6*coh*M_PI*R2/(E*t6));
+    a = INVROOT6*(t6 + sqrt(sqrt3));
+    a2 = a*a;
+    knfac = FOURTHIRDS*E*a;
+    Fne = knfac*a2/Reff - TWOPI*a2*sqrt(4*coh*E/(M_PI*a));
+  }
+  else{
+    knfac = E; //Hooke
+    Fne = knfac*delta;
+    if (normal[itype][jtype] != HOOKE)
+      Fne *= a;
+    if (normal[itype][jtype] == DMT)
+      Fne -= 4*MY_PI*normal_coeffs[itype][jtype][3]*Reff;
+  }
 
-  // normal force = JKR
-  F_C = 3.0*R*M_PI*Ecoh[itype][jtype];
-  overlap = radsum - r;
-  olapsq = overlap*overlap;
-  olapcubed = olapsq*olapsq;
-  sqrtterm = sqrt(1.0 + olapcubed);
-  tmp = 2.0 + olapcubed + 2.0*sqrtterm;
-  keyterm = pow(tmp,ONETHIRD);
-  keyterm2 = olapsq/keyterm;
-  keyterm3 = sqrt(overlap + keyterm2 + keyterm);
-  aovera0 = POW6TWO * (keyterm3 +
-      sqrt(2.0*overlap - keyterm2 - keyterm + 4.0/keyterm3));// eq 41
-  a = aovera0*a0;
-  foverFc = 4.0*((aovera0*aovera0*aovera0) - pow(aovera0,1.5));//F_ne/F_C (eq 40)
+  //Consider restricting Hooke to only have 'velocity' as an option for damping?
+  if (damping[itype][jtype] == VELOCITY){
+    damp_normal = normal_coeffs[itype][jtype][1];
+  }
+  else if (damping[itype][jtype] == VISCOELASTIC){
+    if (normal[itype][jtype] == HOOKE) a = sqdR = sqrt(dR);
+    damp_normal = normal_coeffs[itype][jtype][1]*sqdR*meff;
+  }
+  else if (damping[itype][jtype] == TSUJI){
+    damp_normal = normal_coeffs[itype][jtype][1]*sqrt(meff*knfac);
+  }
 
-  Fne = F_C*foverFc;
-
-  //Damping
-  kn = 4.0/3.0*E[itype][jtype]*a;
-  if (normaldamp[itype][jtype] == BRILLIANTOV) eta_N = a*meff*gamman[itype][jtype];
-  else if (normaldamp[itype][jtype] == TSUJI) eta_N=alpha[itype][jtype]*sqrt(meff*kn);
-
-  Fdamp = -eta_N*vnnr; //F_nd eq 23 and Zhao eq 19
+  Fdamp = -damp_normal*vnnr;
 
   Fntot = Fne + Fdamp;
 
-  // relative velocities
+  int jnum = list->numneigh[i];
+  int *jlist = list->firstneigh[i];
+  double *allhistory, *history;
 
+  if (use_history){
+    allhistory = fix_history->firstvalue[i];
+    for (int jj = 0; jj < jnum; jj++) {
+      neighprev++;
+      if (neighprev >= jnum) neighprev = 0;
+      if (jlist[neighprev] == j) break;
+    }
+    history = &allhistory[size_history*neighprev];
+  }
+
+  //****************************************
+  //Tangential force, including history effects
+  //****************************************
+
+  // tangential component
+  vt1 = vr1 - vn1;
+  vt2 = vr2 - vn2;
+  vt3 = vr3 - vn3;
+
+  // relative rotational velocity
+  wr1 = (radi*omega[i][0] + radj*omega[j][0]);
+  wr2 = (radi*omega[i][1] + radj*omega[j][1]);
+  wr3 = (radi*omega[i][2] + radj*omega[j][2]);
+
+  // relative tangential velocities
   vtr1 = vt1 - (nz*wr2-ny*wr3);
   vtr2 = vt2 - (nx*wr3-nz*wr1);
   vtr3 = vt3 - (ny*wr1-nx*wr2);
   vrel = vtr1*vtr1 + vtr2*vtr2 + vtr3*vtr3;
   vrel = sqrt(vrel);
 
-  // history effects
-  // neighprev = index of found neigh on previous call
-  // search entire jnum list of neighbors of I for neighbor J
-  // start from neighprev, since will typically be next neighbor
-  // reset neighprev to 0 as necessary
-
-  int jnum = list->numneigh[i];
-  int *jlist = list->firstneigh[i];
-  double *allhistory = fix_history->firstvalue[i];
-
-  for (int jj = 0; jj < jnum; jj++) {
-    neighprev++;
-    if (neighprev >= jnum) neighprev = 0;
-    if (jlist[neighprev] == j) break;
+  Fcrit = fabs(Fne);
+  if (normal[itype][jtype] == JKR){
+    F_pulloff = 3*M_PI*coh*Reff;
+    Fcrit = fabs(Fne + 2*F_pulloff);
   }
 
-  double *history = &allhistory[3*neighprev];
-  shrmag = sqrt(history[0]*history[0] + history[1]*history[1] +
-      history[2]*history[2]);
+  //------------------------------
+  //Tangential forces
+  //------------------------------
+  k_tangential = tangential_coeffs[itype][jtype][0];
+  if (normal[itype][jtype] != HOOKE){
+    k_tangential *= a;
+  }
+  damp_tangential = tangential_coeffs[itype][jtype][1]*damp_normal;
 
-  // tangential forces = history + tangential velocity damping
-  kt=8.0*G[itype][jtype]*a;
+  if (tangential_history[itype][jtype]){
+    shrmag = sqrt(history[0]*history[0] + history[1]*history[1] +
+        history[2]*history[2]);
 
-  eta_T = eta_N; 
-  fs1 = -kt*history[0] - eta_T*vtr1;
-  fs2 = -kt*history[1] - eta_T*vtr2;
-  fs3 = -kt*history[2] - eta_T*vtr3;
+    // tangential forces = history + tangential velocity damping
+    fs1 = -k_tangential*history[0] - damp_tangential*vtr1;
+    fs2 = -k_tangential*history[1] - damp_tangential*vtr2;
+    fs3 = -k_tangential*history[2] - damp_tangential*vtr3;
 
-  // rescale frictional displacements and forces if needed
-
-  fs = sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
-  Fscrit= muS[itype][jtype] * fabs(Fne + 2*F_C);
-
-  if (fs > Fscrit) {
-    if (shrmag != 0.0) {
-      fs1 *= Fscrit/fs;
-      fs2 *= Fscrit/fs;
-      fs3 *= Fscrit/fs;
-      fs *= Fscrit/fs;
-    } else fs1 = fs2 = fs3 = fs = 0.0;
+    // rescale frictional displacements and forces if needed
+    Fscrit = tangential_coeffs[itype][jtype][2] * Fcrit;
+    fs = sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
+    if (fs > Fscrit) {
+      if (shrmag != 0.0) {
+        history[0] = -1.0/k_tangential*(Fscrit*fs1/fs + damp_tangential*vtr1);
+        history[1] = -1.0/k_tangential*(Fscrit*fs2/fs + damp_tangential*vtr2);
+        history[2] = -1.0/k_tangential*(Fscrit*fs3/fs + damp_tangential*vtr3);
+        fs1 *= Fscrit/fs;
+        fs2 *= Fscrit/fs;
+        fs3 *= Fscrit/fs;
+      } else fs1 = fs2 = fs3 = 0.0;
+    }
+  }
+  else{ //Classic pair gran/hooke (no history)
+    fs = meff*damp_tangential*vrel;
+    if (vrel != 0.0) Ft = MIN(Fne,fs) / vrel;
+    else Ft = 0.0;
+    fs1 = -Ft*vtr1;
+    fs2 = -Ft*vtr2;
+    fs3 = -Ft*vtr3;
   }
 
-  // set all forces and return no energy
+  //****************************************
+  // Rolling resistance
+  //****************************************
 
-  fforce = Fntot;
+  if (roll[itype][jtype] != NONE){
+    relrot1 = omega[i][0] - omega[j][0];
+    relrot2 = omega[i][1] - omega[j][1];
+    relrot3 = omega[i][2] - omega[j][2];
+
+    // rolling velocity, see eq. 31 of Wang et al, Particuology v 23, p 49 (2015)
+    // This is different from the Marshall papers, which use the Bagi/Kuhn formulation
+    // for rolling velocity (see Wang et al for why the latter is wrong)
+    vrl1 = Reff*(relrot2*nz - relrot3*ny); //- 0.5*((radj-radi)/radsum)*vtr1;
+    vrl2 = Reff*(relrot3*nx - relrot1*nz); //- 0.5*((radj-radi)/radsum)*vtr2;
+    vrl3 = Reff*(relrot1*ny - relrot2*nx); //- 0.5*((radj-radi)/radsum)*vtr3;
+    vrlmag = sqrt(vrl1*vrl1+vrl2*vrl2+vrl3*vrl3);
+    if (vrlmag != 0.0) vrlmaginv = 1.0/vrlmag;
+    else vrlmaginv = 0.0;
+
+    if (roll_history){
+      int rhist0 = roll_history_index;
+      int rhist1 = rhist0 + 1;
+      int rhist2 = rhist1 + 1;
+
+      // Rolling displacement
+      rollmag = sqrt(history[rhist0]*history[rhist0] +
+          history[rhist1]*history[rhist1] +
+          history[rhist2]*history[rhist2]);
+
+      rolldotn = history[rhist0]*nx + history[rhist1]*ny + history[rhist2]*nz;
+
+      k_roll = roll_coeffs[itype][jtype][0];
+      damp_roll = roll_coeffs[itype][jtype][1];
+      fr1 = -k_roll*history[rhist0] - damp_roll*vrl1;
+      fr2 = -k_roll*history[rhist1] - damp_roll*vrl2;
+      fr3 = -k_roll*history[rhist2] - damp_roll*vrl3;
+
+      // rescale frictional displacements and forces if needed
+      Frcrit = roll_coeffs[itype][jtype][2] * Fcrit;
+
+      fr = sqrt(fr1*fr1 + fr2*fr2 + fr3*fr3);
+      if (fr > Frcrit) {
+        if (rollmag != 0.0) {
+          history[rhist0] = -1.0/k_roll*(Frcrit*fr1/fr + damp_roll*vrl1);
+          history[rhist1] = -1.0/k_roll*(Frcrit*fr2/fr + damp_roll*vrl2);
+          history[rhist2] = -1.0/k_roll*(Frcrit*fr3/fr + damp_roll*vrl3);
+          fr1 *= Frcrit/fr;
+          fr2 *= Frcrit/fr;
+          fr3 *= Frcrit/fr;
+        } else fr1 = fr2 = fr3 = 0.0;
+      }
+    }
+    else{ //
+      fr = meff*roll_coeffs[itype][jtype][1]*vrlmag;
+      if (vrlmag != 0.0) fr = MIN(Fne, fr) / vrlmag;
+      else fr = 0.0;
+      fr1 = -fr*vrl1;
+      fr2 = -fr*vrl2;
+      fr3 = -fr*vrl3;
+    }
+  }
+
+  //****************************************
+  // Twisting torque, including history effects
+  //****************************************
+  if (twist[itype][jtype] != NONE){
+    magtwist = relrot1*nx + relrot2*ny + relrot3*nz; //Omega_T (eq 29 of Marshall)
+    if (twist[itype][jtype] == TWIST_MARSHALL){
+      k_twist = 0.5*k_tangential*a*a;; //eq 32
+      damp_twist = 0.5*damp_tangential*a*a;
+      mu_twist = TWOTHIRDS*a;
+    }
+    else{
+      k_twist = twist_coeffs[itype][jtype][0];
+      damp_twist = twist_coeffs[itype][jtype][1];
+      mu_twist = twist_coeffs[itype][jtype][2];
+    }
+    if (twist_history){
+      magtortwist = -k_twist*history[twist_history_index] - damp_twist*magtwist;//M_t torque (eq 30)
+      signtwist = (magtwist > 0) - (magtwist < 0);
+      Mtcrit = TWOTHIRDS*a*Fscrit;//critical torque (eq 44)
+      if (fabs(magtortwist) > Mtcrit) {
+        history[twist_history_index] = 1.0/k_twist*(Mtcrit*signtwist - damp_twist*magtwist);
+        magtortwist = -Mtcrit * signtwist; //eq 34
+      }
+    }
+    else{
+      if (magtwist > 0) magtortwist = -damp_twist*magtwist;
+      else magtortwist = 0;
+    }
+  }
 
   // set single_extra quantities
 
@@ -1506,12 +1652,11 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   svector[1] = fs2;
   svector[2] = fs3;
   svector[3] = fs;
-  svector[4] = vn1;
-  svector[5] = vn2;
-  svector[6] = vn3;
-  svector[7] = vt1;
-  svector[8] = vt2;
-  svector[9] = vt3;
+  svector[4] = fr1;
+  svector[5] = fr2;
+  svector[6] = fr3;
+  svector[7] = fr;
+  svector[8] = magtortwist;
   return 0.0;
 }
 

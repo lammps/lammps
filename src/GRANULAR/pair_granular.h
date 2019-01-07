@@ -73,7 +73,6 @@ private:
   int normal_global, damping_global;
   int tangential_global, roll_global, twist_global;
 
-  int history_flag;
   int tangential_history, roll_history, twist_history;
   int tangential_history_index;
   int roll_history_index;

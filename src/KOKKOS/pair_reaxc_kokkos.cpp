@@ -1434,14 +1434,6 @@ void PairReaxCKokkos<DeviceType>::allocate_array()
   d_CdDelta = typename AT::t_ffloat_1d("reax/c/kk:CdDelta",nmax);
   d_sum_ovun = typename AT::t_ffloat_2d_dl("reax/c/kk:sum_ovun",nmax,3);
 
-  // FixReaxCSpecies
-  if (fixspecies_flag) {
-    memoryKK->destroy_kokkos(k_tmpid,tmpid);
-    memoryKK->destroy_kokkos(k_tmpbo,tmpbo);
-    memoryKK->create_kokkos(k_tmpid,tmpid,nmax,MAXSPECBOND,"pair:tmpid");
-    memoryKK->create_kokkos(k_tmpbo,tmpbo,nmax,MAXSPECBOND,"pair:tmpbo");
-  }
-
   // FixReaxCBonds
   d_abo = typename AT::t_ffloat_2d("reax/c/kk:abo",nmax,maxbo);
   d_neighid = typename AT::t_tagint_2d("reax/c/kk:neighid",nmax,maxbo);
@@ -4237,6 +4229,14 @@ void PairReaxCKokkos<DeviceType>::pack_bond_buffer_item(int i, int &j, const boo
 template<class DeviceType>
 void PairReaxCKokkos<DeviceType>::FindBondSpecies()
 {
+
+  if (nmax > k_tmpid.extent(0)) {
+    memoryKK->destroy_kokkos(k_tmpid,tmpid);
+    memoryKK->destroy_kokkos(k_tmpbo,tmpbo);
+    memoryKK->create_kokkos(k_tmpid,tmpid,nmax,MAXSPECBOND,"pair:tmpid");
+    memoryKK->create_kokkos(k_tmpbo,tmpbo,nmax,MAXSPECBOND,"pair:tmpbo");
+  }
+
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFindBondSpeciesZero>(0,nmax),*this);
 

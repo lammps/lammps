@@ -37,7 +37,7 @@ pair_coeff * * ffield.reax C H O N :pre
 Style {reax/c} computes the ReaxFF potential of van Duin, Goddard and
 co-workers.  ReaxFF uses distance-dependent bond-order functions to
 represent the contributions of chemical bonding to the potential
-energy. There is more than one version of ReaxFF.  The version
+energy. There is more than one version of ReaxFF. The version
 implemented in LAMMPS uses the functional forms documented in the
 supplemental information of the following paper: "(Chenoweth et al.,
 2008)"_#Chenoweth_20082.  The version integrated into LAMMPS matches
@@ -56,11 +56,10 @@ consideration when using the {reax/c/kk} style is the choice of either
 half or full neighbor lists. This setting can be changed using the
 Kokkos "package"_package.html command.
 
-The {reax/c} style differs from the "pair_style reax"_pair_reax.html
-command in the lo-level implementation details.  The {reax} style is a
-Fortran library, linked to LAMMPS.  The {reax/c} style was initially
-implemented as stand-alone C code and is now integrated into LAMMPS as
-a package.
+The {reax/c} style differs from the (obsolete) "pair_style reax"
+command in the implementation details.  The {reax} style was a
+Fortran library, linked to LAMMPS.  The {reax} style has been removed
+from LAMMPS after the 12 December 2018 version.
 
 LAMMPS provides several different versions of ffield.reax in its
 potentials dir, each called potentials/ffield.reax.label.  These are
@@ -98,9 +97,8 @@ correspond to those used by Adri van Duin's stand-alone serial
 code. If these are changed by setting control variables in the control
 file, the results from LAMMPS and the serial code will not agree.
 
-Two examples using {pair_style reax/c} are provided in the examples/reax
-sub-directory, along with corresponding examples for
-"pair_style reax"_pair_reax.html.
+Examples using {pair_style reax/c} are provided in the examples/reax
+sub-directory.
 
 Use of this pair style requires that a charge be defined for every
 atom.  See the "atom_style"_atom_style.html and
@@ -193,8 +191,7 @@ where N is the number of LAMMPS atom types:
 filename
 N indices = ReaxFF elements :ul
 
-The filename is the ReaxFF potential file.  Unlike for the {reax}
-pair style, any filename can be used.
+The filename is the ReaxFF potential file.
 
 In the ReaxFF potential file, near the top, after the general
 parameters, is the atomic parameters section that contains element
@@ -337,9 +334,8 @@ appropriate units if your simulation doesn't use "real" units.
 [Related commands:]
 
 "pair_coeff"_pair_coeff.html, "fix qeq/reax"_fix_qeq_reax.html, "fix
-reax/c/bonds"_fix_reax_bonds.html, "fix
-reax/c/species"_fix_reaxc_species.html, "pair_style
-reax"_pair_reax.html
+reax/c/bonds"_fix_reaxc_bonds.html, "fix
+reax/c/species"_fix_reaxc_species.html
 
 [Default:]
 

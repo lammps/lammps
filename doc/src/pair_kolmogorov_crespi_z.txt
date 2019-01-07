@@ -10,7 +10,7 @@ pair_style kolmogorov/crespi/z command :h3
 
 [Syntax:]
 
-pair_style hybrid/overlay kolmogorov/crespi/z cutoff :pre
+pair_style \[hybrid/overlay ...\] kolmogorov/crespi/z cutoff :pre
 
 [Examples:]
 
@@ -56,9 +56,12 @@ package"_Build_package.html doc page for more info.
 
 [Related commands:]
 
-"pair_coeff"_pair_coeff.html
-"pair_none"_pair_none.html
-"pair_style hybrid/overlay"_pair_hybrid.html
+"pair_coeff"_pair_coeff.html,
+"pair_none"_pair_none.html,
+"pair_style hybrid/overlay"_pair_hybrid.html,
+"pair_style ilp/graphene/hbn"_pair_ilp_graphene_hbn.html.
+"pair_style kolmogorov/crespi/full"_pair_kolmogorov_crespi_full.html,
+"pair_style lebedeva/z"_pair_lebedeva_z.html
 
 [Default:] none
 

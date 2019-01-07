@@ -74,19 +74,19 @@ double Calculate_Omega( rvec dvec_ij, double r_ij,
   hnhe = r_ij * r_kl * sin_ijk * cos_jkl;
 
   poem = 2.0 * r_ij * r_kl * sin_ijk * sin_jkl;
-  if( poem < 1e-20 ) poem = 1e-20;
+  if (poem < 1e-20) poem = 1e-20;
 
   tel  = SQR( r_ij ) + SQR( r_jk ) + SQR( r_kl ) - SQR( r_li ) -
     2.0 * ( r_ij * r_jk * cos_ijk - r_ij * r_kl * cos_ijk * cos_jkl +
             r_jk * r_kl * cos_jkl );
 
   arg  = tel / poem;
-  if( arg >  1.0 ) arg =  1.0;
-  if( arg < -1.0 ) arg = -1.0;
+  if (arg >  1.0) arg =  1.0;
+  if (arg < -1.0) arg = -1.0;
 
-  if( sin_ijk >= 0 && sin_ijk <= MIN_SINE ) sin_ijk = MIN_SINE;
+  if (sin_ijk >= 0 && sin_ijk <= MIN_SINE) sin_ijk = MIN_SINE;
   else if( sin_ijk <= 0 && sin_ijk >= -MIN_SINE ) sin_ijk = -MIN_SINE;
-  if( sin_jkl >= 0 && sin_jkl <= MIN_SINE ) sin_jkl = MIN_SINE;
+  if (sin_jkl >= 0 && sin_jkl <= MIN_SINE) sin_jkl = MIN_SINE;
   else if( sin_jkl <= 0 && sin_jkl >= -MIN_SINE ) sin_jkl = -MIN_SINE;
 
   // dcos_omega_di
@@ -181,9 +181,9 @@ void Torsion_Angles( reax_system *system, control_params *control,
       bo_jk = &( pbond_jk->bo_data );
       BOA_jk = bo_jk->BO - control->thb_cut;
 
-      if( system->my_atoms[j].orig_id > system->my_atoms[k].orig_id )
+      if (system->my_atoms[j].orig_id > system->my_atoms[k].orig_id)
         continue;
-      if( system->my_atoms[j].orig_id == system->my_atoms[k].orig_id ) {
+      if (system->my_atoms[j].orig_id == system->my_atoms[k].orig_id) {
         if (system->my_atoms[k].x[2] <  system->my_atoms[j].x[2]) continue;
         if (system->my_atoms[k].x[2] == system->my_atoms[j].x[2] &&
             system->my_atoms[k].x[1] <  system->my_atoms[j].x[1]) continue;
@@ -192,10 +192,10 @@ void Torsion_Angles( reax_system *system, control_params *control,
             system->my_atoms[k].x[0] <  system->my_atoms[j].x[0]) continue;
       }
 
-      if( bo_jk->BO > control->thb_cut/*0*/ && Num_Entries(pk, thb_intrs) ) {
+      if (bo_jk->BO > control->thb_cut/*0*/ && Num_Entries(pk, thb_intrs)) {
         pj = pbond_jk->sym_index; // pj points to j on k's list
 
-        if( Num_Entries(pj, thb_intrs) ) {
+        if (Num_Entries(pj, thb_intrs)) {
           type_k = system->my_atoms[k].type;
           Delta_k = workspace->Delta_boc[k];
           r_jk = pbond_jk->d;
@@ -218,7 +218,7 @@ void Torsion_Angles( reax_system *system, control_params *control,
             pbond_ij = &( bonds->select.bond_list[pij] );
             bo_ij = &( pbond_ij->bo_data );
 
-            if( bo_ij->BO > control->thb_cut/*0*/ ) {
+            if (bo_ij->BO > control->thb_cut/*0*/) {
               i = p_ijk->thb;
               type_i = system->my_atoms[i].type;
               r_ij = pbond_ij->d;
@@ -228,7 +228,7 @@ void Torsion_Angles( reax_system *system, control_params *control,
               sin_ijk = sin( theta_ijk );
               cos_ijk = cos( theta_ijk );
               //tan_ijk_i = 1. / tan( theta_ijk );
-              if( sin_ijk >= 0 && sin_ijk <= MIN_SINE )
+              if (sin_ijk >= 0 && sin_ijk <= MIN_SINE)
                 tan_ijk_i = cos_ijk / MIN_SINE;
               else if( sin_ijk <= 0 && sin_ijk >= -MIN_SINE )
                 tan_ijk_i = cos_ijk / -MIN_SINE;
@@ -260,7 +260,7 @@ void Torsion_Angles( reax_system *system, control_params *control,
                   sin_jkl = sin( theta_jkl );
                   cos_jkl = cos( theta_jkl );
                   //tan_jkl_i = 1. / tan( theta_jkl );
-                  if( sin_jkl >= 0 && sin_jkl <= MIN_SINE )
+                  if (sin_jkl >= 0 && sin_jkl <= MIN_SINE)
                     tan_jkl_i = cos_jkl / MIN_SINE;
                   else if( sin_jkl <= 0 && sin_jkl >= -MIN_SINE )
                     tan_jkl_i = cos_jkl / -MIN_SINE;
@@ -357,7 +357,7 @@ void Torsion_Angles( reax_system *system, control_params *control,
                   bo_jk->Cdbo += (CEtors5 + CEconj2);
                   bo_kl->Cdbo += (CEtors6 + CEconj3);
 
-                  if( control->virial == 0 ) {
+                  if (control->virial == 0) {
                     /* dcos_theta_ijk */
                     rvec_ScaledAdd( workspace->f[i],
                                     CEtors7 + CEconj4, p_ijk->dcos_dk );
@@ -438,7 +438,7 @@ void Torsion_Angles( reax_system *system, control_params *control,
                   }
 
                   /* tally into per-atom virials */
-                  if( system->pair_ptr->vflag_atom || system->pair_ptr->evflag) {
+                  if (system->pair_ptr->vflag_atom || system->pair_ptr->evflag) {
 
                     // acquire vectors
                     rvec_ScaledSum( delil, 1., system->my_atoms[l].x,
@@ -463,9 +463,9 @@ void Torsion_Angles( reax_system *system, control_params *control,
 
                     // tally
                     eng_tmp = e_tor + e_con;
-                    if( system->pair_ptr->evflag)
+                    if (system->pair_ptr->evflag)
                             system->pair_ptr->ev_tally(j,k,natoms,1,eng_tmp,0.0,0.0,0.0,0.0,0.0);
-                    if( system->pair_ptr->vflag_atom)
+                    if (system->pair_ptr->vflag_atom)
                             system->pair_ptr->v_tally4(i,j,k,l,fi_tmp,fj_tmp,fk_tmp,delil,deljl,delkl);
                   }
                 } // pl check ends

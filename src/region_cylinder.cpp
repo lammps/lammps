@@ -30,7 +30,7 @@ enum{CONSTANT,VARIABLE};
 /* ---------------------------------------------------------------------- */
 
 RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
-  Region(lmp, narg, arg), rstr(NULL)
+  Region(lmp, narg, arg), c1str(NULL), c2str(NULL), rstr(NULL)
 {
   options(narg-8,&arg[8]);
 
@@ -44,17 +44,76 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
   axis = arg[2][0];
 
   if (axis == 'x') {
-    c1 = yscale*force->numeric(FLERR,arg[3]);
-    c2 = zscale*force->numeric(FLERR,arg[4]);
+    if (strstr(arg[3],"v_") == arg[3]) {
+      int n = strlen(arg[3]+2) + 1;
+      c1str = new char[n];
+      strcpy(c1str,arg[3]+2);
+      c1 = 0.0;
+      c1style = VARIABLE;
+      varshape = 1;
+    } else {
+      c1 = yscale*force->numeric(FLERR,arg[3]);
+      c1style = CONSTANT;
+    }
+    if (strstr(arg[4],"v_") == arg[4]) {
+      int n = strlen(arg[4]+2) + 1;
+      c2str = new char[n];
+      strcpy(c2str,arg[4]+2);
+      c2 = 0.0;
+      c2style = VARIABLE;
+      varshape = 1;
+    } else {
+      c2 = zscale*force->numeric(FLERR,arg[4]);
+      c2style = CONSTANT;
+    }
   } else if (axis == 'y') {
-    c1 = xscale*force->numeric(FLERR,arg[3]);
-    c2 = zscale*force->numeric(FLERR,arg[4]);
+    if (strstr(arg[3],"v_") == arg[3]) {
+      int n = strlen(arg[3]+2) + 1;
+      c1str = new char[n];
+      strcpy(c1str,arg[3]+2);
+      c1 = 0.0;
+      c1style = VARIABLE;
+      varshape = 1;
+    } else {
+      c1 = xscale*force->numeric(FLERR,arg[3]);
+      c1style = CONSTANT;
+    }
+    if (strstr(arg[4],"v_") == arg[4]) {
+      int n = strlen(arg[4]+2) + 1;
+      c2str = new char[n];
+      strcpy(c2str,arg[4]+2);
+      c2 = 0.0;
+      c2style = VARIABLE;
+      varshape = 1;
+    } else {
+      c2 = zscale*force->numeric(FLERR,arg[4]);
+      c2style = CONSTANT;
+    }
   } else if (axis == 'z') {
-    c1 = xscale*force->numeric(FLERR,arg[3]);
-    c2 = yscale*force->numeric(FLERR,arg[4]);
+    if (strstr(arg[3],"v_") == arg[3]) {
+      int n = strlen(arg[3]+2) + 1;
+      c1str = new char[n];
+      strcpy(c1str,arg[3]+2);
+      c1 = 0.0;
+      c1style = VARIABLE;
+      varshape = 1;
+    } else {
+      c1 = xscale*force->numeric(FLERR,arg[3]);
+      c1style = CONSTANT;
+    }
+    if (strstr(arg[4],"v_") == arg[4]) {
+      int n = strlen(arg[4]+2) + 1;
+      c2str = new char[n];
+      strcpy(c2str,arg[4]+2);
+      c2 = 0.0;
+      c2style = VARIABLE;
+      varshape = 1;
+    } else {
+      c2 = yscale*force->numeric(FLERR,arg[4]);
+      c2style = CONSTANT;
+    }
   }
 
-  rstr = NULL;
   if (strstr(arg[5],"v_") == arg[5]) {
     int n = strlen(&arg[5][2]) + 1;
     rstr = new char[n];
@@ -62,13 +121,16 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
     radius = 0.0;
     rstyle = VARIABLE;
     varshape = 1;
-    variable_check();
-    shape_update();
   } else {
     radius = force->numeric(FLERR,arg[5]);
     if (axis == 'x') radius *= yscale;
     else radius *= xscale;
     rstyle = CONSTANT;
+  }
+
+  if (varshape) {
+    variable_check();
+    shape_update();
   }
 
   if (strcmp(arg[6],"INF") == 0 || strcmp(arg[6],"EDGE") == 0) {
@@ -167,6 +229,8 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
 
 RegCylinder::~RegCylinder()
 {
+  delete [] c1str;
+  delete [] c2str;
   delete [] rstr;
   delete [] contact;
 }
@@ -176,7 +240,7 @@ RegCylinder::~RegCylinder()
 void RegCylinder::init()
 {
   Region::init();
-  if (rstr) variable_check();
+  if (varshape) variable_check();
 }
 
 /* ----------------------------------------------------------------------
@@ -407,14 +471,14 @@ int RegCylinder::surface_exterior(double *x, double cutoff)
       if (x[0] < lo) xp = lo;
       else if (x[0] > hi)       xp = hi;
       else xp = x[0];
-    }
+
+    } else {
 
     // closest point on curved surface
 
-    else {
       dr = r - radius;
       dr2 = dr*dr;
-      if (!open_faces[2]){
+      if (!open_faces[2]) {
         yp = c1 + del1*radius/r;
         zp = c2 + del2*radius/r;
         if (x[0] < lo) {
@@ -440,7 +504,7 @@ int RegCylinder::surface_exterior(double *x, double cutoff)
         else d2 = dr2 + dx*dx;
         if (d2 < d2prev) {
           xp = lo;
-          if (r < radius){
+          if (r < radius) {
             yp = x[1];
             zp = x[2];
           }
@@ -501,11 +565,11 @@ int RegCylinder::surface_exterior(double *x, double cutoff)
       if (x[1] < lo) yp = lo;
       else if (x[1] > hi) yp = hi;
       else yp = x[1];
-    }
+
+    } else {
 
     // closest point on curved surface
 
-    else {
       dr = r - radius;
       dr2 = dr*dr;
       if (!open_faces[2]){
@@ -595,25 +659,23 @@ int RegCylinder::surface_exterior(double *x, double cutoff)
       if (x[2] < lo) zp = lo;
       else if (x[2] > hi) zp = hi;
       else zp = x[2];
-    }
+
+    } else {
 
     // closest point on curved surface
 
-    else {
       dr = r - radius;
       dr2 = dr*dr;
-      if (!open_faces[2]){
+      if (!open_faces[2]) {
         xp = c1 + del1*radius/r;
         yp = c2 + del2*radius/r;
         if (x[2] < lo) {
           dx = lo-x[2];
           zp = lo;
-        }
-        else if (x[2] > hi) {
+        } else if (x[2] > hi) {
           dx = x[2]-hi;
           zp = hi;
-        }
-        else {
+        } else {
           dx = 0;
           zp = x[2];
         }
@@ -667,12 +729,27 @@ int RegCylinder::surface_exterior(double *x, double cutoff)
 
 void RegCylinder::shape_update()
 {
-  radius = input->variable->compute_equal(rvar);
-  if (radius < 0.0)
-    error->one(FLERR,"Variable evaluation in region gave bad value");
-  if (axis == 'x') radius *= xscale;
-  else if (axis == 'y') radius*= yscale;
-  else radius *= zscale;
+  if (c1style == VARIABLE) c1 = input->variable->compute_equal(c1var);
+  if (c2style == VARIABLE) c2 = input->variable->compute_equal(c2var);
+  if (rstyle == VARIABLE) {
+    radius = input->variable->compute_equal(rvar);
+    if (radius < 0.0)
+      error->one(FLERR,"Variable evaluation in region gave bad value");
+  }
+
+  if (axis == 'x') {
+    if (c1style == VARIABLE) c1 *= yscale;
+    if (c2style == VARIABLE) c2 *= zscale;
+    if (rstyle == VARIABLE)  radius *= yscale;
+  } else if (axis == 'y') {
+    if (c1style == VARIABLE) c1 *= xscale;
+    if (c2style == VARIABLE) c2 *= zscale;
+    if (rstyle == VARIABLE)  radius *= xscale;
+  } else { // axis == 'z'
+    if (c1style == VARIABLE) c1 *= xscale;
+    if (c2style == VARIABLE) c2 *= yscale;
+    if (rstyle == VARIABLE)  radius *= xscale;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -681,11 +758,29 @@ void RegCylinder::shape_update()
 
 void RegCylinder::variable_check()
 {
-  rvar = input->variable->find(rstr);
-  if (rvar < 0)
-    error->all(FLERR,"Variable name for region cylinder does not exist");
-  if (!input->variable->equalstyle(rvar))
-    error->all(FLERR,"Variable for region cylinder is invalid style");
+  if (c1style == VARIABLE) {
+    c1var = input->variable->find(c1str);
+    if (c1var < 0)
+      error->all(FLERR,"Variable name for region cylinder does not exist");
+    if (!input->variable->equalstyle(c1var))
+      error->all(FLERR,"Variable for region cylinder is invalid style");
+  }
+
+  if (c2style == VARIABLE) {
+    c2var = input->variable->find(c2str);
+    if (c2var < 0)
+      error->all(FLERR,"Variable name for region cylinder does not exist");
+    if (!input->variable->equalstyle(c2var))
+      error->all(FLERR,"Variable for region cylinder is invalid style");
+  }
+
+  if (rstyle == VARIABLE) {
+    rvar = input->variable->find(rstr);
+    if (rvar < 0)
+      error->all(FLERR,"Variable name for region cylinder does not exist");
+    if (!input->variable->equalstyle(rvar))
+      error->all(FLERR,"Variable for region cylinder is invalid style");
+  }
 }
 
 
@@ -698,17 +793,15 @@ void RegCylinder::variable_check()
 
 void RegCylinder::set_velocity_shape()
 {
-  if (axis == 'x'){
+  if (axis == 'x') {
     xcenter[0] = 0;
     xcenter[1] = c1;
     xcenter[2] = c2;
-  }
-  else if (axis == 'y'){
+  } else if (axis == 'y') {
     xcenter[0] = c1;
     xcenter[1] = 0;
     xcenter[2] = c2;
-  }
-  else{
+  } else {
     xcenter[0] = c1;
     xcenter[1] = c2;
     xcenter[2] = 0;
@@ -728,17 +821,15 @@ void RegCylinder::set_velocity_shape()
 void RegCylinder::velocity_contact_shape(double *vwall, double *xc)
 {
   double delx, dely, delz; // Displacement of contact point in x,y,z
-  if (axis == 'x'){
+  if (axis == 'x') {
     delx = 0;
     dely = (xc[1] - xcenter[1])*(1 - rprev/radius);
     delz = (xc[2] - xcenter[2])*(1 - rprev/radius);
-  }
-  else if (axis == 'y'){
+  } else if (axis == 'y') {
     delx = (xc[0] - xcenter[0])*(1 - rprev/radius);
     dely = 0;
     delz = (xc[2] - xcenter[2])*(1 - rprev/radius);
-  }
-  else{
+  } else {
     delx = (xc[0] - xcenter[0])*(1 - rprev/radius);
     dely = (xc[1] - xcenter[1])*(1 - rprev/radius);
     delz = 0;
@@ -746,6 +837,5 @@ void RegCylinder::velocity_contact_shape(double *vwall, double *xc)
   vwall[0] += delx/update->dt;
   vwall[1] += dely/update->dt;
   vwall[2] += delz/update->dt;
-  //printf ("R is %g, prev %g, velocity of wall at %g %g %g is %g %g %g\n",radius,rprev,xc[0],xc[1],xc[2],vwall[0],vwall[1],vwall[2]);
 }
 

@@ -69,8 +69,9 @@ Initiate complex covalent bonding (topology) changes. These topology
 changes will be referred to as 'reactions' throughout this
 documentation. Topology changes are defined in pre- and post-reaction
 molecule templates and can include creation and deletion of bonds,
-angles, dihedrals, impropers, bond-types, angle-types, dihedral-types,
-atom-types, or atomic charges.
+angles, dihedrals, impropers, bond types, angle types, dihedral types,
+atom types, or atomic charges. In addition, reaction by-products or
+other molecules can be identified and deleted.
 
 Fix bond/react does not use quantum mechanical (eg. fix qmmm) or
 pairwise bond-order potential (eg. Tersoff or AIREBO) methods to
@@ -203,15 +204,16 @@ A discussion of correctly handling this is also provided on the
 The map file is a text document with the following format:
 
 A map file has a header and a body. The header of map file the
-contains one mandatory keyword and two optional keywords. The
+contains one mandatory keyword and three optional keywords. The
 mandatory keyword is 'equivalences' and the optional keywords are
-'edgeIDs' and 'customIDs':
+'edgeIDs' and 'deleteIDs' and 'customIDs':
 
 N {equivalences} = # of atoms N in the reaction molecule templates
 N {edgeIDs} = # of edge atoms N in the pre-reacted molecule template
+N {deleteIDs} = # of atoms N that are specified for deletion
 N {customIDs} = # of atoms N that are specified for a custom update :pre
 
-The body of the map file contains two mandatory sections and two
+The body of the map file contains two mandatory sections and three
 optional sections. The first mandatory section begins with the keyword
 'BondingIDs' and lists the atom IDs of the bonding atom pair in the
 pre-reacted molecule template. The second mandatory section begins
@@ -222,10 +224,12 @@ second column is the corresponding atom ID of the post-reacted
 molecule template. The first optional section begins with the keyword
 'EdgeIDs' and lists the atom IDs of edge atoms in the pre-reacted
 molecule template. The second optional section begins with the keyword
-'Custom Edges' and allows for forcing the update of a specific atom's
-atomic charge. The first column is the ID of an atom near the edge of
-the pre-reacted molecule template, and the value of the second column
-is either 'none' or 'charges.' Further details are provided in the
+'DeleteIDs' and lists the atom IDs of pre-reaction template atoms to
+delete. The third optional section begins with the keyword 'Custom
+Edges' and allows for forcing the update of a specific atom's atomic
+charge. The first column is the ID of an atom near the edge of the
+pre-reacted molecule template, and the value of the second column is
+either 'none' or 'charges.' Further details are provided in the
 discussion of the 'update_edges' keyword.
 
 A sample map file is given below:
@@ -309,7 +313,16 @@ edge are unaffected by this setting.
 
 A few other considerations:
 
-It may be beneficial to ensure reacting atoms are at a certain
+Many reactions result in one or more atoms that are considered
+unwanted by-products. Therefore, bond/react provides the option to
+delete a user-specified set of atoms. These pre-reaction atoms are
+identified in the map file. A deleted atom must still be included in
+the post-reaction molecule template, in which it cannot be bonded to
+an atom that is not deleted. In addition to deleting unwanted reaction
+by-products, this feature can be used to remove specific topologies,
+such as small rings, that may be otherwise indistinguishable.
+
+Also, it may be beneficial to ensure reacting atoms are at a certain
 temperature before being released to the overall thermostat. For this,
 you can use the internally-created dynamic group named
 "bond_react_MASTER_group." For example, adding the following command

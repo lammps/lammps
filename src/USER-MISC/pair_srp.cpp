@@ -197,7 +197,7 @@ void PairSRP::compute(int eflag, int vflag)
         j = jlist[jj];
 
         // enforce 1-2 exclusions
-        if( (sbmask(j) & exclude) )
+        if ((sbmask(j) & exclude))
           continue;
 
         j &= NEIGHMASK;
@@ -258,8 +258,7 @@ void PairSRP::compute(int eflag, int vflag)
         }
       }
    }
- }
-  else{
+ } else {
   // using min distance option
 
     for (ii = 0; ii < inum; ii++) {
@@ -275,7 +274,7 @@ void PairSRP::compute(int eflag, int vflag)
         j = jlist[jj];
 
         // enforce 1-2 exclusions
-        if( (sbmask(j) & exclude) )
+        if ((sbmask(j) & exclude))
           continue;
 
         j &= NEIGHMASK;
@@ -361,9 +360,9 @@ void PairSRP::settings(int narg, char **arg)
 
   cut_global = force->numeric(FLERR,arg[0]);
   // wildcard
-  if (strcmp(arg[1],"*") == 0)
+  if (strcmp(arg[1],"*") == 0) {
     btype = 0;
-  else {
+  } else {
     btype = force->inumeric(FLERR,arg[1]);
     if ((btype > atom->nbondtypes) || (btype <= 0))
       error->all(FLERR,"Illegal pair_style command");

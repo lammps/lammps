@@ -460,7 +460,9 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAP<NEIGHFLAG,EVFLAG>,const
 
   if (quadraticflag) {
     my_sna.compute_bi(team);
+    team.team_barrier();
     my_sna.copy_bi2bvec(team);
+    team.team_barrier();
   }
 
   // for neighbors of I within cutoff:
@@ -564,7 +566,9 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAP<NEIGHFLAG,EVFLAG>,const
 
       if (!quadraticflag) {
         my_sna.compute_bi(team);
+        team.team_barrier();
         my_sna.copy_bi2bvec(team);
+        team.team_barrier();
       }
 
       // E = beta.B + 0.5*B^t.alpha.B
@@ -572,7 +576,7 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAP<NEIGHFLAG,EVFLAG>,const
       // coeff[k] = alpha_ii or
       // coeff[k] = alpha_ij = alpha_ji, j != i
 
-      Kokkos::single(Kokkos::PerThread(team), [&] () {
+      Kokkos::single(Kokkos::PerTeam(team), [&] () {
 
       // evdwl = energy of atom I, sum over coeffs_k * Bi_k
 

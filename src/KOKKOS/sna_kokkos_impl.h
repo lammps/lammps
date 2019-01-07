@@ -368,11 +368,13 @@ void SNAKokkos<DeviceType>::compute_bi(const typename Kokkos::TeamPolicy<DeviceT
          uarraytot_i(j,ma,mb) * zarray_i(j1,j2,j,mb,ma))*0.5;
     }
 
-    b_j1_j2_j *= 2.0;
-    if (bzero_flag)
-      b_j1_j2_j -= bzero[j];
+    Kokkos::single(Kokkos::PerThread(team), [&] () {
+      b_j1_j2_j *= 2.0;
+      if (bzero_flag)
+        b_j1_j2_j -= bzero[j];
 
-    barray(j1,j2,j) = b_j1_j2_j;
+      barray(j1,j2,j) = b_j1_j2_j;
+    });
   });
       //} // end loop over j
     //} // end loop over j1, j2
@@ -1039,6 +1041,8 @@ void SNAKokkos<DeviceType>::create_team_scratch_arrays(const typename Kokkos::Te
   uarraytot_i_a = uarraytot_i = t_sna_3d(team.team_scratch(1),jdim,jdim,jdim);
   zarray_r = t_sna_5d(team.team_scratch(1),jdim,jdim,jdim,jdim,jdim);
   zarray_i = t_sna_5d(team.team_scratch(1),jdim,jdim,jdim,jdim,jdim);
+  bvec = Kokkos::View<double*, Kokkos::LayoutRight, DeviceType>(team.team_scratch(1),ncoeff);
+  barray = t_sna_3d(team.team_scratch(1),jdim,jdim,jdim);
 
   rij = t_sna_2d(team.team_scratch(1),nmax,3);
   rcutij = t_sna_1d(team.team_scratch(1),nmax);
@@ -1057,6 +1061,8 @@ T_INT SNAKokkos<DeviceType>::size_team_scratch_arrays() {
   size += t_sna_3d::shmem_size(jdim,jdim,jdim); // uarraytot_i_a
   size += t_sna_5d::shmem_size(jdim,jdim,jdim,jdim,jdim); // zarray_r
   size += t_sna_5d::shmem_size(jdim,jdim,jdim,jdim,jdim); // zarray_i
+  size += Kokkos::View<double*, Kokkos::LayoutRight, DeviceType>::shmem_size(ncoeff); // bvec
+  size += t_sna_3d::shmem_size(jdim,jdim,jdim); // barray
 
   size += t_sna_2d::shmem_size(nmax,3); // rij
   size += t_sna_1d::shmem_size(nmax); // rcutij
@@ -1073,8 +1079,6 @@ KOKKOS_INLINE_FUNCTION
 void SNAKokkos<DeviceType>::create_thread_scratch_arrays(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team)
 {
   int jdim = twojmax + 1;
-  bvec = Kokkos::View<double*, Kokkos::LayoutRight, DeviceType>(team.thread_scratch(1),ncoeff);
-  barray = t_sna_3d(team.thread_scratch(1),jdim,jdim,jdim);
 
   dbvec = Kokkos::View<double*[3], Kokkos::LayoutRight, DeviceType>(team.thread_scratch(1),ncoeff);
   dbarray = t_sna_4d(team.thread_scratch(1),jdim,jdim,jdim);
@@ -1090,8 +1094,6 @@ inline
 T_INT SNAKokkos<DeviceType>::size_thread_scratch_arrays() {
   T_INT size = 0;
   int jdim = twojmax + 1;
-  size += Kokkos::View<double*, Kokkos::LayoutRight, DeviceType>::shmem_size(ncoeff); // bvec
-  size += t_sna_3d::shmem_size(jdim,jdim,jdim); // barray
 
   size += Kokkos::View<double*[3], Kokkos::LayoutRight, DeviceType>::shmem_size(ncoeff); // dbvec
   size += t_sna_4d::shmem_size(jdim,jdim,jdim); // dbarray

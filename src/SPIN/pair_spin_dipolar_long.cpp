@@ -181,10 +181,14 @@ void PairSpinDipolarLong::init_style()
 
   // insure use of KSpace long-range solver, set g_ewald
 
-  if (force->kspace == NULL)
-    error->all(FLERR,"Pair style requires a KSpace style");
+  //if (force->kspace == NULL)
+  //  error->all(FLERR,"Pair style requires a KSpace style");
 
-  g_ewald = force->kspace->g_ewald;
+  //g_ewald = force->kspace->g_ewald;
+
+  // test case 
+  g_ewald = 0.1;
+
 
 }
 
@@ -233,10 +237,11 @@ void PairSpinDipolarLong::compute(int eflag, int vflag)
   int i,j,ii,jj,inum,jnum,itype,jtype;  
   double r,rinv,r2inv,rsq;
   double grij,expm2,t,erfc;
-  double bij[4];
   double evdwl,ecoul;
-  double xi[3],rij[3];
-  double spi[4],spj[4],fi[3],fmi[3];
+  double bij[4];
+  double xi[3],rij[3],eij[3];
+  double spi[4],spj[4];
+  double fi[3],fmi[3];
   double local_cut2;
   double pre1,pre2,pre3;
   int *ilist,*jlist,*numneigh,**firstneigh;  
@@ -298,12 +303,16 @@ void PairSpinDipolarLong::compute(int eflag, int vflag)
       rij[1] = x[j][1] - xi[1];
       rij[2] = x[j][2] - xi[2];
       rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
+      rinv = 1.0/sqrt(rsq);
+      eij[0] = rij[0]*rinv;
+      eij[1] = rij[1]*rinv;
+      eij[2] = rij[2]*rinv;
 
       local_cut2 = cut_spin_long[itype][jtype]*cut_spin_long[itype][jtype];
 
       if (rsq < local_cut2) {
         r2inv = 1.0/rsq;
-        rinv = sqrt(r2inv);
+        //rinv = sqrt(r2inv);
 
         r = sqrt(rsq);
         grij = g_ewald * r;
@@ -316,18 +325,20 @@ void PairSpinDipolarLong::compute(int eflag, int vflag)
         bij[2] = (3.0*bij[1] + pre2*expm2) * r2inv;
         bij[3] = (5.0*bij[2] + pre3*expm2) * r2inv;
 
-	compute_long(i,j,rij,bij,fmi,spi,spj);
-	compute_long_mech(i,j,rij,bij,fmi,spi,spj);
+	compute_long(i,j,eij,bij,fmi,spi,spj);
+	compute_long_mech(i,j,eij,bij,fmi,spi,spj);
+	//compute_long(i,j,rij,bij,fmi,spi,spj);
+	//compute_long_mech(i,j,rij,bij,fmi,spi,spj);
       }
 
       // force accumulation
 
-      f[i][0] += fi[0] * mub2mu0;	 
-      f[i][1] += fi[1] * mub2mu0;	  	  
-      f[i][2] += fi[2] * mub2mu0;
-      fm[i][0] += fmi[0] * mub2mu0hbinv;	 
-      fm[i][1] += fmi[1] * mub2mu0hbinv;	  	  
-      fm[i][2] += fmi[2] * mub2mu0hbinv;
+      f[i][0] += fi[0];	 
+      f[i][1] += fi[1];	  	  
+      f[i][2] += fi[2];
+      fm[i][0] += fmi[0];	 
+      fm[i][1] += fmi[1];	  	  
+      fm[i][2] += fmi[2];
 
       if (newton_pair || j < nlocal) {
 	f[j][0] -= fi[0];	 
@@ -360,7 +371,8 @@ void PairSpinDipolarLong::compute_single_pair(int ii, double fmi[3])
   int i,j,jj,jnum,itype,jtype;  
   double r,rinv,r2inv,rsq;
   double grij,expm2,t,erfc;
-  double bij[4],xi[3],rij[3];
+  double bij[4];
+  double xi[3],rij[3],eij[3];
   double spi[4],spj[4];
   double local_cut2;
   double pre1,pre2,pre3;
@@ -411,12 +423,16 @@ void PairSpinDipolarLong::compute_single_pair(int ii, double fmi[3])
     rij[1] = x[j][1] - xi[1];
     rij[2] = x[j][2] - xi[2];
     rsq = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
+    rinv = 1.0/sqrt(rsq);
+    eij[0] = rij[0]*rinv;
+    eij[1] = rij[1]*rinv;
+    eij[2] = rij[2]*rinv;
 
     local_cut2 = cut_spin_long[itype][jtype]*cut_spin_long[itype][jtype];
 
     if (rsq < local_cut2) {
       r2inv = 1.0/rsq;
-      rinv = sqrt(r2inv);
+      //rinv = sqrt(r2inv);
 
       r = sqrt(rsq);
       grij = g_ewald * r;
@@ -429,7 +445,7 @@ void PairSpinDipolarLong::compute_single_pair(int ii, double fmi[3])
       bij[2] = (3.0*bij[1] + pre2*expm2) * r2inv;
       bij[3] = (5.0*bij[2] + pre3*expm2) * r2inv;
 
-      compute_long(i,j,rij,bij,fmi,spi,spj);
+      compute_long(i,j,eij,bij,fmi,spi,spj);
     }
   }
 
@@ -447,21 +463,22 @@ void PairSpinDipolarLong::compute_single_pair(int ii, double fmi[3])
    compute dipolar interaction between spins i and j
 ------------------------------------------------------------------------- */
 
-void PairSpinDipolarLong::compute_long(int i, int j, double rij[3], 
+void PairSpinDipolarLong::compute_long(int i, int j, double eij[3], 
     double bij[4], double fmi[3], double spi[4], double spj[4])
 {
-  double sjdotr;
+  double sjeij,pre;
   double b1,b2,gigj;
 
   gigj = spi[3] * spj[3];
-  sjdotr = spj[0]*rij[0] + spj[1]*rij[1] + spj[2]*rij[2];
+  pre = gigj*mub2mu0hbinv;
+  sjeij = spj[0]*eij[0] + spj[1]*eij[1] + spj[2]*eij[2];
 
   b1 = bij[1];
   b2 = bij[2];
 
-  fmi[0] += mub2mu0hbinv * gigj * (b2 * sjdotr *rij[0] - b1 * spj[0]);
-  fmi[1] += mub2mu0hbinv * gigj * (b2 * sjdotr *rij[1] - b1 * spj[1]);
-  fmi[2] += mub2mu0hbinv * gigj * (b2 * sjdotr *rij[2] - b1 * spj[2]);
+  fmi[0] += pre * (b2 * sjeij * eij[0] - b1 * spj[0]);
+  fmi[1] += pre * (b2 * sjeij * eij[1] - b1 * spj[1]);
+  fmi[2] += pre * (b2 * sjeij * eij[2] - b1 * spj[2]);
 }
 
 /* ----------------------------------------------------------------------
@@ -469,29 +486,27 @@ void PairSpinDipolarLong::compute_long(int i, int j, double rij[3],
    atom i and atom j
 ------------------------------------------------------------------------- */
 
-void PairSpinDipolarLong::compute_long_mech(int i, int j, double rij[3],
+void PairSpinDipolarLong::compute_long_mech(int i, int j, double eij[3],
     double bij[4], double fi[3], double spi[3], double spj[3])
 {
-  double sdots,sidotr,sjdotr,b2,b3;
-  double g1,g2,g1b2_g2b3,gigj;
+  double sisj,sieij,sjeij,b2,b3;
+  double g1,g2,g1b2_g2b3,gigj,pre;
 
   gigj = spi[3] * spj[3];
-  sdots = spi[0]*spj[0] + spi[1]*spj[1] + spi[2]*spj[2];
-  sidotr = spi[0]*rij[0] + spi[1]*rij[1] + spi[2]*rij[2];
-  sjdotr = spj[0]*rij[0] + spj[1]*rij[1] + spj[2]*rij[2];
+  pre = gigj*mub2mu0;
+  sisj = spi[0]*spj[0] + spi[1]*spj[1] + spi[2]*spj[2];
+  sieij = spi[0]*eij[0] + spi[1]*eij[1] + spi[2]*eij[2];
+  sjeij = spj[0]*eij[0] + spj[1]*eij[1] + spj[2]*eij[2];
 
   b2 = bij[2];
   b3 = bij[3];
-  g1 = sdots;
-  g2 = -sidotr*sjdotr;
+  g1 = sisj;
+  g2 = -sieij*sjeij;
   g1b2_g2b3 = g1*b2 + g2*b3;
 
-  fi[0] += gigj * (rij[0] * g1b2_g2b3 + 
-      b2 * (sjdotr*spi[0] + sidotr*spj[0]));
-  fi[1] += gigj * (rij[1] * g1b2_g2b3 + 
-      b2 * (sjdotr*spi[1] + sidotr*spj[1]));
-  fi[2] += gigj * (rij[2] * g1b2_g2b3 + 
-      b2 * (sjdotr*spi[2] + sidotr*spj[2]));
+  fi[0] += pre * (eij[0] * g1b2_g2b3 + b2 * (sjeij*spi[0] + sieij*spj[0]));
+  fi[1] += pre * (eij[1] * g1b2_g2b3 + b2 * (sjeij*spi[1] + sieij*spj[1]));
+  fi[2] += pre * (eij[2] * g1b2_g2b3 + b2 * (sjeij*spi[2] + sieij*spj[2]));
 }
 
 

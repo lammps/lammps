@@ -561,8 +561,6 @@ void EwaldDipole::eik_dot_r()
 
   // loop on different k-directions
   // loop on n kpoints and nlocal atoms
-  // store (n x nlocal) tab. of values of (mu_i dot k)
-  // store n values of sum_j[ (mu_j dot k) exp(-k dot r_j) ]
 
   // (k,0,0), (0,l,0), (0,0,m)
   

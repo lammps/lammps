@@ -48,12 +48,11 @@ using namespace MathConst;
 
 #define EPSILON 1e-10
 
-enum {STIFFNESS, MATERIAL};
 enum {VELOCITY, VISCOELASTIC, TSUJI};
-enum {HOOKE, HERTZ, DMT, JKR};
+enum {HOOKE, HERTZ, HERTZ_MATERIAL, DMT, JKR};
 enum {TANGENTIAL_MINDLIN, TANGENTIAL_NOHISTORY};
-enum {NONE, TWIST_NOHISTORY, TWIST_SDS, TWIST_MARSHALL};
-enum {NONE, ROLL_NOHISTORY, ROLL_SDS};
+enum {TWIST_NONE, TWIST_NOHISTORY, TWIST_SDS, TWIST_MARSHALL};
+enum {ROLL_NONE, ROLL_NOHISTORY, ROLL_SDS};
 
 /* ---------------------------------------------------------------------- */
 
@@ -84,8 +83,10 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
 
   use_history = 0;
   beyond_contact = 0;
+  nondefault_history_transfer = 0;
+  tangential_history_index = 0;
   roll_history_index = twist_history_index = 0;
-  tangential_history_index = -1;
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -136,7 +137,7 @@ void PairGranular::compute(int eflag, int vflag)
 
   //For JKR
   double R2, coh, F_pulloff, delta_pulloff, dist_pulloff, a, a2, E;
-  double delta, t0, t1, t2, t3, t4, t5, t6;
+  double t0, t1, t2, t3, t4, t5, t6;
   double sqrt1, sqrt2, sqrt3, sqrt4;
 
   double mi,mj,meff,damp,ccel,tor1,tor2,tor3;
@@ -158,7 +159,7 @@ void PairGranular::compute(int eflag, int vflag)
   int *touch,**firsttouch;
   double *history,*allhistory,**firsthistory;
 
-  bool untouchflag;
+  bool touchflag;
 
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
@@ -232,19 +233,26 @@ void PairGranular::compute(int eflag, int vflag)
 
       E = normal_coeffs[itype][jtype][0];
       Reff = radi*radj/(radi+radj);
+      touchflag = false;
+
       if (normal[itype][jtype] == JKR){
-        R2 = Reff*Reff;
-        coh = normal_coeffs[itype][jtype][3];
-        a = cbrt(9.0*M_PI*coh*R2/(4*E));
-        delta_pulloff = a*a/Reff - 2*sqrt(M_PI*coh*a/E);
-        dist_pulloff = radsum+delta_pulloff;
-        untouchflag = (rsq >= dist_pulloff*dist_pulloff);
+        if (touch[jj]){
+          R2 = Reff*Reff;
+          coh = normal_coeffs[itype][jtype][3];
+          a = cbrt(9.0*M_PI*coh*R2/(4*E));
+          delta_pulloff = a*a/Reff - 2*sqrt(M_PI*coh*a/E);
+          dist_pulloff = radsum-delta_pulloff;
+          touchflag = (rsq <= dist_pulloff*dist_pulloff);
+        }
+        else{
+          touchflag = (rsq <= radsum*radsum);
+        }
       }
       else{
-        untouchflag = (rsq >= radsum*radsum);
+        touchflag = (rsq <= radsum*radsum);
       }
 
-      if (untouchflag){
+      if (!touchflag){
         // unset non-touching neighbors
         touch[jj] = 0;
         history = &allhistory[size_history*jj];
@@ -252,6 +260,7 @@ void PairGranular::compute(int eflag, int vflag)
       }
       else{
         r = sqrt(rsq);
+        rinv = 1.0/r;
 
         nx = delx*rinv;
         ny = dely*rinv;
@@ -288,6 +297,7 @@ void PairGranular::compute(int eflag, int vflag)
         delta = radsum - r;
         dR = delta*Reff;
         if (normal[itype][jtype] == JKR){
+          touch[jj] = 1;
           dR2 = dR*dR;
           t0 = coh*coh*R2*R2*E;
           t1 = PI27SQ*t0;
@@ -308,6 +318,7 @@ void PairGranular::compute(int eflag, int vflag)
           knfac = E; //Hooke
           Fne = knfac*delta;
           if (normal[itype][jtype] != HOOKE)
+            a = sqdR = sqrt(dR);
             Fne *= a;
           if (normal[itype][jtype] == DMT)
             Fne -= 4*MY_PI*normal_coeffs[itype][jtype][3]*Reff;
@@ -366,12 +377,9 @@ void PairGranular::compute(int eflag, int vflag)
         //Tangential forces
         //------------------------------
         k_tangential = tangential_coeffs[itype][jtype][0];
-        if (normal[itype][jtype] != HOOKE){
-          k_tangential *= a;
-        }
         damp_tangential = tangential_coeffs[itype][jtype][1]*damp_normal;
 
-        if (tangential_history[itype][jtype]){
+        if (tangential_history){
           shrmag = sqrt(history[0]*history[0] + history[1]*history[1] +
               history[2]*history[2]);
 
@@ -428,7 +436,7 @@ void PairGranular::compute(int eflag, int vflag)
         // Rolling resistance
         //****************************************
 
-        if (roll[itype][jtype] != NONE){
+        if (roll[itype][jtype] != ROLL_NONE){
           relrot1 = omega[i][0] - omega[j][0];
           relrot2 = omega[i][1] - omega[j][1];
           relrot3 = omega[i][2] - omega[j][2];
@@ -507,7 +515,7 @@ void PairGranular::compute(int eflag, int vflag)
         //****************************************
         // Twisting torque, including history effects
         //****************************************
-        if (twist[itype][jtype] != NONE){
+        if (twist[itype][jtype] != TWIST_NONE){
           magtwist = relrot1*nx + relrot2*ny + relrot3*nz; //Omega_T (eq 29 of Marshall)
           if (twist[itype][jtype] == TWIST_MARSHALL){
             k_twist = 0.5*k_tangential*a*a;; //eq 32
@@ -554,7 +562,7 @@ void PairGranular::compute(int eflag, int vflag)
         torque[i][1] -= radi*tor2;
         torque[i][2] -= radi*tor3;
 
-        if (twist[itype][jtype] != NONE){
+        if (twist[itype][jtype] != TWIST_NONE){
           tortwist1 = magtortwist * nx;
           tortwist2 = magtortwist * ny;
           tortwist3 = magtortwist * nz;
@@ -564,7 +572,7 @@ void PairGranular::compute(int eflag, int vflag)
           torque[i][2] += tortwist3;
         }
 
-        if (roll[itype][jtype] != NONE){
+        if (roll[itype][jtype] != ROLL_NONE){
           torroll1 = Reff*(ny*fr3 - nz*fr2); //n cross fr
           torroll2 = Reff*(nz*fr1 - nx*fr3);
           torroll3 = Reff*(nx*fr2 - ny*fr1);
@@ -583,12 +591,12 @@ void PairGranular::compute(int eflag, int vflag)
           torque[j][1] -= radj*tor2;
           torque[j][2] -= radj*tor3;
 
-          if (roll[itype][jtype] != NONE){
+          if (twist[itype][jtype] != TWIST_NONE){
             torque[j][0] -= tortwist1;
             torque[j][1] -= tortwist2;
             torque[j][2] -= tortwist3;
           }
-          if (roll[itype][jtype] != NONE){
+          if (roll[itype][jtype] != ROLL_NONE){
             torque[j][0] -= torroll1;
             torque[j][1] -= torroll2;
             torque[j][2] -= torroll3;
@@ -646,22 +654,21 @@ void PairGranular::settings(int narg, char **arg)
   int iarg = 0;
 
   //Some defaults
+  normal_global = HERTZ;
   damping_global = VISCOELASTIC;
-  coeff_types = STIFFNESS;
-  tangential_global = -1; //Needs to be explicitly set, since it requires parameters
-  roll_global = NONE;
-  twist_global = NONE;
+  tangential_global = TANGENTIAL_MINDLIN;
+  roll_global = ROLL_NONE;
+  twist_global = TWIST_NONE;
   tangential_history = roll_history = twist_history = 0;
 
-  if (strcmp(arg[iarg], "material") == 0){
-    coeff_types = MATERIAL;
-    iarg += 1;
-  }
+  int normal_set, tangential_set;
+  normal_set = tangential_set = 0;
+
   while (iarg < narg){
     if (strcmp(arg[iarg], "hooke") == 0){
-      if (coeff_types == MATERIAL) error->all(FLERR,"Illegal pair_coeff command, 'stiffness' coefficients required for Hooke");
       if (iarg + 2 >= narg) error->all(FLERR,"Illegal pair_style command, not enough parameters provided for Hooke option");
       normal_global = HOOKE;
+      normal_set = 1;
       memory->create(normal_coeffs_global, 2, "pair:normal_coeffs_global");
       normal_coeffs_global[0] = force->numeric(FLERR,arg[iarg+1]); //kn
       normal_coeffs_global[1] = force->numeric(FLERR,arg[iarg+2]); //damping
@@ -669,20 +676,29 @@ void PairGranular::settings(int narg, char **arg)
     }
     else if (strcmp(arg[iarg], "hertz") == 0){
       int num_coeffs = 2;
-      if (coeff_types == MATERIAL) num_coeffs += 1;
       if (iarg + num_coeffs >= narg) error->all(FLERR,"Illegal pair_style command, not enough parameters provided for Hertz option");
       normal_global = HERTZ;
+      normal_set = 1;
       memory->create(normal_coeffs_global, num_coeffs, "pair:normal_coeffs_global");
-      normal_coeffs_global[0] = force->numeric(FLERR,arg[iarg+1]); //kn or E
-      if (coeff_types == MATERIAL) normal_coeffs_global[0] *= FOURTHIRDS;
+      normal_coeffs_global[0] = force->numeric(FLERR,arg[iarg+1]); //kn
       normal_coeffs_global[1] = force->numeric(FLERR,arg[iarg+2]); //damping
-      if (coeff_types == MATERIAL) normal_coeffs_global[2] = force->numeric(FLERR,arg[iarg+3]); //G (if 'material')
+      iarg += num_coeffs+1;
+    }
+    else if (strcmp(arg[iarg], "hertz/material") == 0){
+      int num_coeffs = 3;
+      if (iarg + num_coeffs >= narg) error->all(FLERR,"Illegal pair_style command, not enough parameters provided for Hertz option");
+      normal_global = HERTZ_MATERIAL;
+      normal_set = 1;
+      memory->create(normal_coeffs_global, num_coeffs, "pair:normal_coeffs_global");
+      normal_coeffs_global[0] = force->numeric(FLERR,arg[iarg+1])*FOURTHIRDS; //E (Young's modulus)
+      normal_coeffs_global[1] = force->numeric(FLERR,arg[iarg+2]); //damping
+      normal_coeffs_global[2] = force->numeric(FLERR,arg[iarg+3]); //G (shear modulus)
       iarg += num_coeffs+1;
     }
     else if (strcmp(arg[iarg], "dmt") == 0){
-      if (coeff_types == STIFFNESS) error->all(FLERR,"Illegal pair_style command, 'material' coefficients required for DMT");
       if (iarg + 4 >= narg) error->all(FLERR,"Illegal pair_style command, not enough parameters provided for Hertz option");
       normal_global = DMT;
+      normal_set = 1;
       memory->create(normal_coeffs_global, 4, "pair:normal_coeffs_global");
       normal_coeffs_global[0] = force->numeric(FLERR,arg[iarg+1])*FOURTHIRDS; //4/3 E
       normal_coeffs_global[1] = force->numeric(FLERR,arg[iarg+2]); //damping
@@ -692,9 +708,9 @@ void PairGranular::settings(int narg, char **arg)
     }
     else if (strcmp(arg[iarg], "jkr") == 0){
       if (iarg + 4 >= narg) error->all(FLERR,"Illegal pair_style command, not enough parameters provided for JKR option");
-      if (coeff_types == STIFFNESS) error->all(FLERR,"Illegal pair_style command, 'material' coefficients required for JKR");
       beyond_contact = 1;
       normal_global = JKR;
+      normal_set = 1;
       memory->create(normal_coeffs_global, 4, "pair:normal_coeffs_global");
       normal_coeffs_global[0] = force->numeric(FLERR,arg[iarg+1]); //E
       normal_coeffs_global[1] = force->numeric(FLERR,arg[iarg+2]); //damping
@@ -715,57 +731,80 @@ void PairGranular::settings(int narg, char **arg)
       iarg += 1;
     }
     else if (strstr(arg[iarg], "tangential") != NULL){
-      if (iarg + 3 >= narg) error->all(FLERR,"Illegal pair_style command, not enough parameters provided for tangential model");
-      if (strstr(arg[iarg], "nohistory") != NULL){
+      if (iarg + 4 >= narg) error->all(FLERR,"Illegal pair_style command, not enough parameters provided for tangential model");
+      if (strstr(arg[iarg+1], "nohistory") != NULL){
         tangential_global = TANGENTIAL_NOHISTORY;
+        tangential_set = 1;
       }
-      else{
+      else if (strstr(arg[iarg+1], "mindlin") != NULL){
         tangential_global = TANGENTIAL_MINDLIN;
         tangential_history = 1;
+        tangential_set = 1;
+      }
+      else{
+        error->all(FLERR, "Illegal pair_style command, unrecognized sliding friction model");
       }
       memory->create(tangential_coeffs_global, 3, "pair:tangential_coeffs_global");
-      tangential_coeffs_global[0] = force->numeric(FLERR,arg[iarg+1]); //kt
-      tangential_coeffs_global[1] = force->numeric(FLERR,arg[iarg+2]); //gammat
-      tangential_coeffs_global[2] = force->numeric(FLERR,arg[iarg+3]); //friction coeff.
-      iarg += 4;
+      tangential_coeffs_global[0] = force->numeric(FLERR,arg[iarg+2]); //kt
+      tangential_coeffs_global[1] = force->numeric(FLERR,arg[iarg+3]); //gammat
+      tangential_coeffs_global[2] = force->numeric(FLERR,arg[iarg+4]); //friction coeff.
+      iarg += 5;
     }
     else if (strstr(arg[iarg], "roll") != NULL){
-      if (iarg + 3 >= narg) error->all(FLERR,"Illegal pair_style command, not enough parameters provided for rolling model");
-      if (strstr(arg[iarg], "nohistory") != NULL){
-        roll_global = ROLL_NOHISTORY;
+      if (strstr(arg[iarg+1], "none") != NULL){
+        roll_global = ROLL_NONE;
+        iarg += 2;
       }
       else{
-        roll_global = ROLL_SDS;
-        roll_history = 1;
-      }
-      memory->create(roll_coeffs_global, 3, "pair:roll_coeffs_global");
-      roll_coeffs_global[0] = force->numeric(FLERR,arg[iarg+1]); //kt
-      roll_coeffs_global[1] = force->numeric(FLERR,arg[iarg+2]); //gammat
-      roll_coeffs_global[2] = force->numeric(FLERR,arg[iarg+3]); //friction coeff.
-      iarg += 4;
-    }
-    else if (strstr(arg[iarg], "twist") != NULL){
-      if (strstr(arg[iarg], "marshall") != NULL){
-        twist_global = TWIST_MARSHALL;
-        twist_history = 1;
-        memory->create(twist_coeffs_global, 3, "pair:twist_coeffs_global"); //To be filled later
-      }
-      else{
-        if (iarg + 3 >= narg) error->all(FLERR,"Illegal pair_style command, not enough parameters provided for twist model");
-        if (strstr(arg[iarg], "nohistory") != NULL){
-          twist_global = TWIST_NOHISTORY;
+        if (iarg + 4 >= narg) error->all(FLERR,"Illegal pair_style command, not enough parameters provided for rolling model");
+        if (strstr(arg[iarg+1], "nohistory") != NULL){
+          roll_global = ROLL_NOHISTORY;
+        }
+        else if (strstr(arg[iarg+1], "sds") != NULL){
+          roll_global = ROLL_SDS;
+          roll_history = 1;
         }
         else{
+          error->all(FLERR, "Illegal pair_style command, unrecognized rolling friction model");
+        }
+        memory->create(roll_coeffs_global, 3, "pair:roll_coeffs_global");
+        roll_coeffs_global[0] = force->numeric(FLERR,arg[iarg+2]); //kR
+        roll_coeffs_global[1] = force->numeric(FLERR,arg[iarg+3]); //gammaR
+        roll_coeffs_global[2] = force->numeric(FLERR,arg[iarg+4]); //friction coeff.
+        iarg += 5;
+      }
+    }
+    else if (strstr(arg[iarg], "twist") != NULL){
+      if (strstr(arg[iarg+1], "none") != NULL){
+        twist_global = TWIST_NONE;
+        iarg += 2;
+      }
+      else if (strstr(arg[iarg+1], "marshall") != NULL){
+        twist_global = TWIST_MARSHALL;
+        twist_history = 1;
+        iarg += 2;
+      }
+      else{
+        if (iarg + 4 >= narg) error->all(FLERR,"Illegal pair_style command, not enough parameters provided for twist model");
+        memory->create(twist_coeffs_global, 3, "pair:twist_coeffs_global"); //To be filled later
+        if (strstr(arg[iarg+1], "nohistory") != NULL){
+          twist_global = TWIST_NOHISTORY;
+        }
+        else if (strstr(arg[iarg+1], "sds") != NULL){
           twist_global = TWIST_SDS;
           twist_history = 1;
         }
+        else{
+          error->all(FLERR, "Illegal pair_style command, unrecognized twisting friction model");
+        }
         memory->create(twist_coeffs_global, 3, "pair:twist_coeffs_global");
-        twist_coeffs_global[0] = force->numeric(FLERR,arg[iarg+1]); //kt
-        twist_coeffs_global[1] = force->numeric(FLERR,arg[iarg+2]); //gammat
-        twist_coeffs_global[2] = force->numeric(FLERR,arg[iarg+3]); //friction coeff.
-        iarg += 4;
+        twist_coeffs_global[0] = force->numeric(FLERR,arg[iarg+2]); //ktwist
+        twist_coeffs_global[1] = force->numeric(FLERR,arg[iarg+3]); //gammatwist
+        twist_coeffs_global[2] = force->numeric(FLERR,arg[iarg+4]); //friction coeff.
+        iarg += 5;
       }
     }
+    else error->all(FLERR, "Illegal pair_style granular command");
   }
 
   //Set all i-i entries, which may be replaced by pair coeff commands
@@ -774,10 +813,9 @@ void PairGranular::settings(int narg, char **arg)
   // The reason for the current setup is to remain true to existing pair gran/hooke etc. syntax,
   // where coeffs are set in the pair_style command, and a pair_coeff * * command is issued.
 
-
-  //Other option is to have two pair styles, e.g. pair gran and pair gran/multi,
-  // where gran/multi allows per-type coefficients, pair gran does not (would also
-  // allow minor speed-up for pair gran)
+  //Other option is to have two pair styles, e.g. pair granular and pair granular/multi,
+  // where granular/multi allows per-type coefficients, pair granular does not (this would also
+  // allow minor speed-up by templating pair granular)
   allocate();
   double damp;
   for (int i = 1; i <= atom->ntypes; i++){
@@ -787,40 +825,38 @@ void PairGranular::settings(int narg, char **arg)
     roll[i][i] = roll_global;
     twist[i][i] = twist_global;
 
-    if (damping_global == TSUJI){
-      double cor = normal_coeffs_global[1];
-      damp = 1.2728-4.2783*cor+11.087*pow(cor,2)-22.348*pow(cor,3)+
-          27.467*pow(cor,4)-18.022*pow(cor,5)+
-          4.8218*pow(cor,6);
+    if (normal_set){
+      if (damping_global == TSUJI){
+        double cor = normal_coeffs_global[1];
+        damp = 1.2728-4.2783*cor+11.087*pow(cor,2)-22.348*pow(cor,3)+
+            27.467*pow(cor,4)-18.022*pow(cor,5)+
+            4.8218*pow(cor,6);
+      }
+      else damp = normal_coeffs_global[1];
+      normal_coeffs[i][i][0] = normal_coeffs_global[0];
+      normal_coeffs[i][i][1] = damp;
+      if (normal[i][i] != HOOKE && normal[i][i] != HERTZ){
+        normal_coeffs[i][i][2] = normal_coeffs_global[2];
+      }
+      if ((normal_global == JKR) || (normal_global == DMT))
+        normal_coeffs[i][i][3] = normal_coeffs_global[3];
     }
-    else damp = normal_coeffs_global[1];
-    normal_coeffs[i][i][0] = normal_coeffs_global[0];
-    normal_coeffs[i][i][1] = damp;
-    if (coeff_types == MATERIAL) normal_coeffs[i][i][2] = normal_coeffs_global[2];
-    if ((normal_global == JKR) || (normal_global == DMT))
-      normal_coeffs[i][i][3] = normal_coeffs_global[3];
-
-    tangential[i][i] = tangential_global;
-    if (tangential_global != NONE)
+    if(tangential_set){
+      tangential[i][i] = tangential_global;
       for (int k = 0; k < 3; k++)
         tangential_coeffs[i][i][k] = tangential_coeffs_global[k];
-
+    }
     roll[i][i] = roll_global;
-    if (roll_global != NONE)
+    if (roll_global != ROLL_NONE)
       for (int k = 0; k < 3; k++)
         roll_coeffs[i][i][k] = roll_coeffs_global[k];
 
     twist[i][i] = twist_global;
-    if (twist_global != NONE)
+    if (twist_global != TWIST_NONE && twist_global != TWIST_MARSHALL)
       for (int k = 0; k < 3; k++)
         twist_coeffs[i][i][k] = twist_coeffs_global[k];
 
-    setflag[i][i] = 1;
-  }
-
-  //Additional checks
-  if (tangential_global == -1){
-    error->all(FLERR, "Illegal pair_style command: must specify tangential model");
+    if (normal_set && tangential_set) setflag[i][i] = 1;
   }
 }
 
@@ -850,10 +886,12 @@ void PairGranular::coeff(int narg, char **arg)
   force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
   force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
+  normal_local = tangential_local = roll_local = twist_local = -1;
+  damping_local = -1;
+
   int iarg = 2;
   while (iarg < narg){
     if (strcmp(arg[iarg], "hooke") == 0){
-      if (coeff_types == MATERIAL) error->all(FLERR,"Illegal pair_coeff command, 'stiffness' coefficients required for Hooke");
       if (iarg + 2 >= narg) error->all(FLERR,"Illegal pair_coeff command, not enough parameters provided for Hooke option");
       normal_local = HOOKE;
       normal_coeffs_local[0] = force->numeric(FLERR,arg[iarg+1]); //kn
@@ -862,20 +900,25 @@ void PairGranular::coeff(int narg, char **arg)
     }
     else if (strcmp(arg[iarg], "hertz") == 0){
       int num_coeffs = 2;
-      if (coeff_types == MATERIAL) num_coeffs += 1;
-      if (iarg + offset >= narg) error->all(FLERR,"Illegal pair_coeff command, not enough parameters provided for Hertz option");
+      if (iarg + num_coeffs >= narg) error->all(FLERR,"Illegal pair_coeff command, not enough parameters provided for Hertz option");
       normal_local = HERTZ;
-      normal_coeffs_local[0] = force->numeric(FLERR,arg[iarg+1]); //kn or E
-      if (coeff_types == STIFFNESS) normal_coeffs_local[0] /= FOURTHIRDS;
+      normal_coeffs_local[0] = force->numeric(FLERR,arg[iarg+1]); //kn
       normal_coeffs_local[1] = force->numeric(FLERR,arg[iarg+2]); //damping
-      if (coeff_types == MATERIAL) normal_coeffs_local[2] = force->numeric(FLERR,arg[iarg+3]); //G (if 'material')
+      iarg += num_coeffs+1;
+    }
+    else if (strcmp(arg[iarg], "hertz/material") == 0){
+      int num_coeffs = 3;
+      if (iarg + num_coeffs >= narg) error->all(FLERR,"Illegal pair_coeff command, not enough parameters provided for Hertz option");
+      normal_local = HERTZ;
+      normal_coeffs_local[0] = force->numeric(FLERR,arg[iarg+1])*FOURTHIRDS; //E
+      normal_coeffs_local[1] = force->numeric(FLERR,arg[iarg+2]); //damping
+      normal_coeffs_local[2] = force->numeric(FLERR,arg[iarg+3]); //G
       iarg += num_coeffs+1;
     }
     else if (strcmp(arg[iarg], "dmt") == 0){
-      if (coeff_types == STIFFNESS) error->all(FLERR,"Illegal pair_coeff command, 'material' coefficients required for DMT");
       if (iarg + 4 >= narg) error->all(FLERR,"Illegal pair_coeff command, not enough parameters provided for Hertz option");
       normal_local = DMT;
-      normal_coeffs_local[0] = force->numeric(FLERR,arg[iarg+1]); //E
+      normal_coeffs_local[0] = force->numeric(FLERR,arg[iarg+1])*FOURTHIRDS; //E
       normal_coeffs_local[1] = force->numeric(FLERR,arg[iarg+2]); //damping
       normal_coeffs_local[2] = force->numeric(FLERR,arg[iarg+3]); //G
       normal_coeffs_local[3] = force->numeric(FLERR,arg[iarg+3]); //cohesion
@@ -883,7 +926,6 @@ void PairGranular::coeff(int narg, char **arg)
     }
     else if (strcmp(arg[iarg], "jkr") == 0){
       if (iarg + 4 >= narg) error->all(FLERR,"Illegal pair_coeff command, not enough parameters provided for JKR option");
-      if (coeff_types == STIFFNESS) error->all(FLERR,"Illegal pair_coeff command, 'material' coefficients required for JKR");
       beyond_contact = 1;
       normal_local = JKR;
       normal_coeffs_local[0] = force->numeric(FLERR,arg[iarg+1]); //E
@@ -905,91 +947,128 @@ void PairGranular::coeff(int narg, char **arg)
       iarg += 1;
     }
     else if (strstr(arg[iarg], "tangential") != NULL){
-      if (iarg + 3 >= narg) error->all(FLERR,"Illegal pair_coeff command, not enough parameters provided for tangential model");
-      if (strstr(arg[iarg], "nohistory") != NULL){
+      if (iarg + 4 >= narg) error->all(FLERR,"Illegal pair_coeff command, not enough parameters provided for tangential model");
+      if (strstr(arg[iarg+1], "nohistory") != NULL){
         tangential_local = TANGENTIAL_NOHISTORY;
       }
-      else{
+      else if (strstr(arg[iarg+1], "mindlin") != NULL){
         tangential_local = TANGENTIAL_MINDLIN;
         tangential_history = 1;
       }
-      tangential_coeffs_local[0] = force->numeric(FLERR,arg[iarg+1]); //kt
-      tangential_coeffs_local[1] = force->numeric(FLERR,arg[iarg+2]); //gammat
-      tangential_coeffs_local[2] = force->numeric(FLERR,arg[iarg+3]); //friction coeff.
-      iarg += 4;
+      else{
+        error->all(FLERR, "Illegal pair_coeff command, tangential model not recognized");
+      }
+      tangential_coeffs_local[0] = force->numeric(FLERR,arg[iarg+2]); //kt
+      tangential_coeffs_local[1] = force->numeric(FLERR,arg[iarg+3]); //gammat
+      tangential_coeffs_local[2] = force->numeric(FLERR,arg[iarg+4]); //friction coeff.
+      iarg += 5;
     }
     else if (strstr(arg[iarg], "rolling") != NULL){
-      if (iarg + 3 >= narg) error->all(FLERR,"Illegal pair_coeff command, not enough parameters provided for rolling model");
-      if (strstr(arg[iarg], "nohistory") != NULL){
-        roll_local = ROLL_NOHISTORY;
+      if (iarg + 1 >= narg) error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
+      if (strstr(arg[iarg+1], "none") != NULL){
+        roll_local = ROLL_NONE;
+        iarg += 2;
       }
       else{
-        roll_local = ROLL_SDS;
-        roll_history = 1;
-      }
-      roll_coeffs_local[0] = force->numeric(FLERR,arg[iarg+1]); //kt
-      roll_coeffs_local[1] = force->numeric(FLERR,arg[iarg+2]); //gammat
-      roll_coeffs_local[2] = force->numeric(FLERR,arg[iarg+3]); //friction coeff.
-      iarg += 4;
-    }
-    else if (strstr(arg[iarg], "twist") != NULL){
-      if (strstr(arg[iarg], "marshall") != NULL){
-        twist_local = TWIST_MARSHALL;
-        twist_history = 1;
-      }
-      else{
-        if (iarg + 3 >= narg) error->all(FLERR,"Illegal pair_coeff command, not enough parameters provided for twist model");
-        if (strstr(arg[iarg], "nohistory") != NULL){
-          twist_local = TWIST_NOHISTORY;
+        if (iarg + 4 >= narg) error->all(FLERR,"Illegal pair_coeff command, not enough parameters provided for rolling model");
+        if (strstr(arg[iarg+1], "nohistory") != NULL){
+          roll_local = ROLL_NOHISTORY;
+        }
+        else if (strstr(arg[iarg+1], "sds") != NULL){
+          roll_local = ROLL_SDS;
+          roll_history = 1;
         }
         else{
-          twist_local = TWIST_SDS;
-          twist_history = 1;
-          size_history += 1;
+          error->all(FLERR, "Illegal pair_coeff command, rolling friction model not recognized");
         }
-        twist_coeffs_local[0] = force->numeric(FLERR,arg[iarg+1]); //kt
-        twist_coeffs_local[1] = force->numeric(FLERR,arg[iarg+2]); //gammat
-        twist_coeffs_local[2] = force->numeric(FLERR,arg[iarg+3]); //friction coeff.
-        iarg += 4;
+        roll_coeffs_local[0] = force->numeric(FLERR,arg[iarg+2]); //kt
+        roll_coeffs_local[1] = force->numeric(FLERR,arg[iarg+3]); //gammat
+        roll_coeffs_local[2] = force->numeric(FLERR,arg[iarg+4]); //friction coeff.
+        iarg += 5;
       }
     }
+    else if (strstr(arg[iarg], "twist") != NULL){
+      if (iarg + 1 >= narg) error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
+      if (strstr(arg[iarg+1], "none") != NULL){
+        twist_local = TWIST_NONE;
+        iarg += 2;
+      }
+      else if (strstr(arg[iarg+1], "marshall") != NULL){
+        twist_local = TWIST_MARSHALL;
+        twist_history = 1;
+        iarg += 2;
+      }
+      else{
+        if (iarg + 4 >= narg) error->all(FLERR,"Illegal pair_coeff command, not enough parameters provided for twist model");
+        if (strstr(arg[iarg+1], "nohistory") != NULL){
+          twist_local = TWIST_NOHISTORY;
+        }
+        else if (strstr(arg[iarg+1], "sds") != NULL){
+          twist_local = TWIST_SDS;
+          twist_history = 1;
+        }
+        else{
+          error->all(FLERR, "Illegal pair_coeff command, twisting friction model not recognized");
+        }
+        twist_coeffs_local[0] = force->numeric(FLERR,arg[iarg+2]); //kt
+        twist_coeffs_local[1] = force->numeric(FLERR,arg[iarg+3]); //gammat
+        twist_coeffs_local[2] = force->numeric(FLERR,arg[iarg+4]); //friction coeff.
+        iarg += 5;
+      }
+    }
+    else error->all(FLERR, "Illegal pair coeff command");
   }
 
   int count = 0;
   double damp;
-  if (damping_local == TSUJI){
-    double cor = normal_coeffs_local[1];
-    damp = 1.2728-4.2783*cor+11.087*pow(cor,2)-22.348*pow(cor,3)+
-        27.467*pow(cor,4)-18.022*pow(cor,5)+
-        4.8218*pow(cor,6);
+  if (damping_local >= 0){
+    if (normal_local == -1)
+      error->all(FLERR, "Illegal pair_coeff command, must specify normal model when setting damping model");
+    if (damping_local == TSUJI){
+      double cor;
+      cor = normal_coeffs_local[1];
+      damp = 1.2728-4.2783*cor+11.087*pow(cor,2)-22.348*pow(cor,3)+
+          27.467*pow(cor,4)-18.022*pow(cor,5)+
+          4.8218*pow(cor,6);
+    }
+    else damp = normal_coeffs_local[1];
   }
-  else damp = normal_coeffs_local[1];
 
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
-      normal[i][j] = normal_local;
-      normal_coeffs[i][j][0] = normal_coeffs_local[0];
-      normal_coeffs[i][j][1] = damp;
-      if (coeff_types == MATERIAL) normal_coeffs[i][j][2] = normal_coeffs_local[2];
-      if ((normal_local == JKR) || (normal_local == DMT))
+      if (normal_local >= 0){
+        normal[i][j] = normal_local;
+        normal_coeffs[i][j][0] = normal_coeffs_local[0];
+        if (damping_local == -1){
+          damp = normal_coeffs_global[1];
+        }
+        normal_coeffs[i][j][1] = damp;
+        if (normal_local != HERTZ && normal_local != HOOKE) normal_coeffs[i][j][2] = normal_coeffs_local[2];
+        if ((normal_local == JKR) || (normal_local == DMT))
           normal_coeffs[i][j][3] = normal_coeffs_local[3];
-
-      tangential[i][j] = tangential_local;
-      if (tangential_local != NONE)
+      }
+      if (damping_local >= 0){
+        damping[i][j] = damping_local;
+      }
+      if (tangential_local >= 0){
+        tangential[i][j] = tangential_local;
         for (int k = 0; k < 3; k++)
           tangential_coeffs[i][j][k] = tangential_coeffs_local[k];
+      }
+      if (roll_local >= 0){
+        roll[i][j] = roll_local;
+        if (roll_local != ROLL_NONE)
+          for (int k = 0; k < 3; k++)
+            roll_coeffs[i][j][k] = roll_coeffs_local[k];
+      }
+      if (twist_local >= 0){
+        twist[i][j] = twist_local;
+        if (twist_local != TWIST_NONE && twist_local != TWIST_MARSHALL)
+          for (int k = 0; k < 3; k++)
+            twist_coeffs[i][j][k] = twist_coeffs_local[k];
+      }
 
-      roll[i][j] = roll_local;
-      if (roll_local != NONE)
-        for (int k = 0; k < 3; k++)
-          roll_coeffs[i][j][k] = roll_coeffs_local[k];
-
-      twist[i][j] = twist_local;
-      if (twist_local != NONE)
-        for (int k = 0; k < 3; k++)
-          twist_coeffs[i][j][k] = twist_coeffs_local[k];
-
-      setflag[i][j] = 1;
+      if (normal_local >= 0 && tangential_local >= 0) setflag[i][j] = 1;
 
       count++;
     }
@@ -1020,6 +1099,12 @@ void PairGranular::init_style()
 
   // Determine whether we need a granular neigh list, how large it needs to be
   use_history = tangential_history || roll_history || twist_history;
+
+  //For JKR, will need fix/neigh/history to keep track of touch arrays
+  for (int i = 1; i <= atom->ntypes; i++)
+    for (int j = 1; j <= atom->ntypes; j++)
+      if (normal[i][j] == JKR) use_history = 1;
+
   size_history = 3*tangential_history + 3*roll_history + twist_history;
 
   //Determine location of tangential/roll/twist histories in array
@@ -1145,6 +1230,7 @@ void PairGranular::init_style()
 
 double PairGranular::init_one(int i, int j)
 {
+  double cutoff;
   if (setflag[i][j] == 0) {
     if ((normal[i] != normal[j]) ||
         (damping[i] != damping[j]) ||
@@ -1157,7 +1243,7 @@ double PairGranular::init_one(int i, int j)
       error->one(FLERR,str);
     }
 
-    if (coeff_types == MATERIAL){
+    if (normal[i][j] != HOOKE && normal[i][j] != HERTZ){
       normal_coeffs[i][j][0] = mix_stiffnessE(normal_coeffs[i][i][0], normal_coeffs[j][j][0],
           normal_coeffs[i][i][2], normal_coeffs[j][j][2]);
       normal_coeffs[i][j][2] = mix_stiffnessG(normal_coeffs[i][i][0], normal_coeffs[j][j][0],
@@ -1165,24 +1251,22 @@ double PairGranular::init_one(int i, int j)
     }
     else{
       normal_coeffs[i][j][0] = mix_geom(normal_coeffs[i][i][0], normal_coeffs[j][j][0]);
-      if (normal[i][j] == HERTZ) normal_coeffs[i][j][0] /= FOURTHIRDS;
     }
 
     normal_coeffs[i][j][1] = mix_geom(normal_coeffs[i][i][1], normal_coeffs[j][j][1]);
     if ((normal[i][i] == JKR) || (normal[i][i] == DMT))
       normal_coeffs[i][j][3] = mix_geom(normal_coeffs[i][i][3], normal_coeffs[j][j][3]);
 
-    if (tangential[i][i] != NONE){
-      for (int k = 0; k < 3; k++)
-        tangential_coeffs[i][j][k] = mix_geom(tangential_coeffs[i][i][k], tangential_coeffs[j][j][k]);
-    }
+    for (int k = 0; k < 3; k++)
+      tangential_coeffs[i][j][k] = mix_geom(tangential_coeffs[i][i][k], tangential_coeffs[j][j][k]);
 
-    if (roll[i][i] != NONE){
+
+    if (roll[i][i] != ROLL_NONE){
       for (int k = 0; k < 3; k++)
         roll_coeffs[i][j][k] = mix_geom(roll_coeffs[i][i][k], roll_coeffs[j][j][k]);
     }
 
-    if (twist[i][i] != NONE){
+    if (twist[i][i] != TWIST_NONE && twist[i][i] != TWIST_MARSHALL){
       for (int k = 0; k < 3; k++)
         twist_coeffs[i][j][k] = mix_geom(twist_coeffs[i][i][k], twist_coeffs[j][j][k]);
     }
@@ -1325,6 +1409,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   double tortwist1, tortwist2, tortwist3;
 
   double shrmag,rsht;
+  int jnum;
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *touch,**firsttouch;
   double *history,*allhistory,**firsthistory;
@@ -1335,20 +1420,20 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   radsum = radi + radj;
   Reff = radi*radj/(radi+radj);
 
-  bool untouchflag;
+  bool touchflag;
   if (normal[itype][jtype] == JKR){
     R2 = Reff*Reff;
     coh = normal_coeffs[itype][jtype][3];
     a = cbrt(9.0*M_PI*coh*R2/(4*E));
     delta_pulloff = a*a/Reff - 2*sqrt(M_PI*coh*a/E);
     dist_pulloff = radsum+delta_pulloff;
-    untouchflag = (rsq >= dist_pulloff*dist_pulloff);
+    touchflag = (rsq <= dist_pulloff*dist_pulloff);
   }
   else{
-    untouchflag = (rsq >= radsum*radsum);
+    touchflag = (rsq <= radsum*radsum);
   }
 
-  if (untouchflag){
+  if (touchflag){
     fforce = 0.0;
     for (int m = 0; m < single_extra; m++) svector[m] = 0.0;
     return 0.0;
@@ -1412,9 +1497,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   // if I or J part of rigid body, use body mass
   // if I or J is frozen, meff is other particle
 
-  double *rmass = atom->rmass;
   int *type = atom->type;
-  int *mask = atom->mask;
 
   mi = rmass[i];
   mj = rmass[j];
@@ -1446,11 +1529,13 @@ double PairGranular::single(int i, int j, int itype, int jtype,
     a2 = a*a;
     knfac = FOURTHIRDS*E*a;
     Fne = knfac*a2/Reff - TWOPI*a2*sqrt(4*coh*E/(M_PI*a));
+    if (damping[itype][jtype] == VISCOELASTIC) sqdR = sqrt(dR);
   }
   else{
-    knfac = E; //Hooke
+    knfac = E;
     Fne = knfac*delta;
     if (normal[itype][jtype] != HOOKE)
+      a = sqdR = sqrt(dR);
       Fne *= a;
     if (normal[itype][jtype] == DMT)
       Fne -= 4*MY_PI*normal_coeffs[itype][jtype][3]*Reff;
@@ -1462,6 +1547,8 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   }
   else if (damping[itype][jtype] == VISCOELASTIC){
     if (normal[itype][jtype] == HOOKE) a = sqdR = sqrt(dR);
+
+
     damp_normal = normal_coeffs[itype][jtype][1]*sqdR*meff;
   }
   else if (damping[itype][jtype] == TSUJI){
@@ -1472,9 +1559,8 @@ double PairGranular::single(int i, int j, int itype, int jtype,
 
   Fntot = Fne + Fdamp;
 
-  int jnum = list->numneigh[i];
-  int *jlist = list->firstneigh[i];
-  double *allhistory, *history;
+  jnum = list->numneigh[i];
+  jlist = list->firstneigh[i];
 
   if (use_history){
     allhistory = fix_history->firstvalue[i];
@@ -1522,7 +1608,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   }
   damp_tangential = tangential_coeffs[itype][jtype][1]*damp_normal;
 
-  if (tangential_history[itype][jtype]){
+  if (tangential_history){
     shrmag = sqrt(history[0]*history[0] + history[1]*history[1] +
         history[2]*history[2]);
 
@@ -1558,7 +1644,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   // Rolling resistance
   //****************************************
 
-  if (roll[itype][jtype] != NONE){
+  if (roll[itype][jtype] != ROLL_NONE){
     relrot1 = omega[i][0] - omega[j][0];
     relrot2 = omega[i][1] - omega[j][1];
     relrot3 = omega[i][2] - omega[j][2];
@@ -1619,7 +1705,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   //****************************************
   // Twisting torque, including history effects
   //****************************************
-  if (twist[itype][jtype] != NONE){
+  if (twist[itype][jtype] != TWIST_NONE){
     magtwist = relrot1*nx + relrot2*ny + relrot3*nz; //Omega_T (eq 29 of Marshall)
     if (twist[itype][jtype] == TWIST_MARSHALL){
       k_twist = 0.5*k_tangential*a*a;; //eq 32

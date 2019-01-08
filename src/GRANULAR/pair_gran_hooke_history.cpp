@@ -44,6 +44,7 @@ PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
   single_enable = 1;
   no_virial_fdotr_compute = 1;
   history = 1;
+  size_history = 3;
   fix_history = NULL;
 
   single_extra = 10;
@@ -347,6 +348,10 @@ void PairGranHookeHistory::allocate()
 void PairGranHookeHistory::settings(int narg, char **arg)
 {
   if (narg != 6) error->all(FLERR,"Illegal pair_style command");
+
+
+
+
 
   kn = force->numeric(FLERR,arg[0]);
   if (strcmp(arg[1],"NULL") == 0) kt = kn * 2.0/7.0;

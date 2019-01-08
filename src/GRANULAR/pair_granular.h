@@ -62,9 +62,9 @@ public:
 
   virtual void allocate();
   int beyond_contact;
+  int nondefault_history_transfer;
 
 private:
-  int coeff_types;
   int size_history;
 
   //Per-type models

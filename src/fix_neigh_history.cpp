@@ -408,7 +408,8 @@ void FixNeighHistory::pre_exchange_newton()
         m = npartner[j]++;
         partner[j][m] = tag[i];
         jvalues = &valuepartner[j][dnum*m];
-        for (n = 0; n < dnum; n++) jvalues[n] = -onevalues[n];
+        if (pair->nondefault_history_transfer) pair->transfer_history(onevalues, jvalues);
+        else for (n = 0; n < dnum; n++) jvalues[n] = -onevalues[n];
       }
     }
   }
@@ -520,7 +521,8 @@ void FixNeighHistory::pre_exchange_no_newton()
           m = npartner[j]++;
           partner[j][m] = tag[i];
           jvalues = &valuepartner[j][dnum*m];
-          for (n = 0; n < dnum; n++) jvalues[n] = -onevalues[n];
+          if (pair->nondefault_history_transfer) pair->transfer_history(onevalues, jvalues);
+          else for (n = 0; n < dnum; n++) jvalues[n] = -onevalues[n];
         }
       }
     }
@@ -604,7 +606,7 @@ void FixNeighHistory::post_neighbor()
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      rflag = sbmask(j);
+      rflag = sbmask(j) | pair->beyond_contact;
       j &= NEIGHMASK;
       jlist[jj] = j;
 

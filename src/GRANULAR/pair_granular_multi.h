@@ -13,34 +13,22 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(granular,PairGranular)
+PairStyle(granular/multi,PairGranularMulti)
 
 #else
 
-#ifndef LMP_PAIR_GRANULAR_H
-#define LMP_PAIR_GRANULAR_H
+#ifndef LMP_PAIR_GRANULAR_MULTI_H
+#define LMP_PAIR_GRANULAR_MULTI_H
 
 #include "pair.h"
 
 namespace LAMMPS_NS {
 
-class PairGranular : public Pair {
+class PairGranularMulti : public Pair {
 public:
-  PairGranular(class LAMMPS *);
-  virtual ~PairGranular();
-
-  void compute(int, int);
-  // comment next line to turn off templating
-#define TEMPLATED_PAIR_GRANULAR
-#ifdef TEMPLATED_PAIR_GRANULAR
-  template < int Tp_normal, int Tp_damping, int Tp_tangential,
-             int Tp_roll, int Tp_twist>
-  void compute_templated(int, int);
-#else
-  void compute_untemplated(int, int, int, int, int,
-      int, int);
-#endif
-
+  PairGranularMulti(class LAMMPS *);
+  virtual ~PairGranularMulti();
+  virtual void compute(int, int);
   virtual void settings(int, char **);
   virtual void coeff(int, char **);
   void init_style();
@@ -77,23 +65,22 @@ public:
 private:
   int size_history;
 
-  //Models
-  int normal, damping, tangential, roll, twist;
+  //Per-type models
+  int **normal, **damping, **tangential, **roll, **twist;
 
-  //History flags
+  int normal_global, damping_global;
+  int tangential_global, roll_global, twist_global;
+
   int tangential_history, roll_history, twist_history;
+  int tangential_history_index;
+  int roll_history_index;
+  int twist_history_index;
 
-  //Indices of history entries
-  int tangential_history_index, roll_history_index, twist_history_index;
-
-  //Coefficients declared in pair style command, used as default unless
-  // overwritten in pair coeff command
   double *normal_coeffs_global;
   double *tangential_coeffs_global;
   double *roll_coeffs_global;
   double *twist_coeffs_global;
 
-  //Per-type coefficients declared in pair coeff command
   double ***normal_coeffs;
   double ***tangential_coeffs;
   double ***roll_coeffs;

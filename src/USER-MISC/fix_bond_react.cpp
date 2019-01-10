@@ -393,6 +393,7 @@ FixBondReact::~FixBondReact()
   memory->destroy(edge);
   memory->destroy(equivalences);
   memory->destroy(reverse_equiv);
+  memory->destroy(landlocked_atoms);
   memory->destroy(custom_edges);
   memory->destroy(delete_atoms);
 
@@ -431,7 +432,6 @@ FixBondReact::~FixBondReact()
     memory->destroy(restore);
     memory->destroy(glove);
     memory->destroy(pioneers);
-    memory->destroy(landlocked_atoms);
     memory->destroy(local_mega_glove);
     memory->destroy(ghostly_mega_glove);
   }

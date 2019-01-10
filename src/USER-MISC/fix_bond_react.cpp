@@ -379,9 +379,6 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
 
 FixBondReact::~FixBondReact()
 {
-  // unregister callbacks to this fix from Atom class
-  atom->delete_callback(id,0);
-
   for (int i = 0; i < nreacts; i++) {
     delete random[i];
   }
@@ -452,7 +449,7 @@ FixBondReact::~FixBondReact()
     delete [] id_fix3;
   }
 
-  if (id_fix2 == NULL && modify->nfix) modify->delete_fix(id_fix2);
+  if (id_fix2 && modify->nfix) modify->delete_fix(id_fix2);
   delete [] id_fix2;
 
   delete [] statted_id;

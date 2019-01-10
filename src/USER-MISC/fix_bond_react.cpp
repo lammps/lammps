@@ -445,10 +445,10 @@ FixBondReact::~FixBondReact()
     delete [] exclude_group;
 
     // check nfix in case all fixes have already been deleted
-    if (id_fix1 == NULL && modify->nfix) modify->delete_fix(id_fix1);
+    if (id_fix1 && modify->nfix) modify->delete_fix(id_fix1);
     delete [] id_fix1;
 
-    if (id_fix3 == NULL && modify->nfix) modify->delete_fix(id_fix3);
+    if (id_fix3 && modify->nfix) modify->delete_fix(id_fix3);
     delete [] id_fix3;
   }
 

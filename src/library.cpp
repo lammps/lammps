@@ -39,6 +39,8 @@
 #include "error.h"
 #include "force.h"
 #include "info.h"
+#include "neighbor.h"
+#include "neigh_list.h"
 
 using namespace LAMMPS_NS;
 
@@ -1611,3 +1613,30 @@ int lammps_get_last_error_message(void *ptr, char * buffer, int buffer_size) {
 }
 
 #endif
+
+int lammps_get_num_neighlists(void *ptr) {
+  LAMMPS *  lmp = (LAMMPS *) ptr;
+  Neighbor * neighbor = lmp->neighbor;
+  return neighbor->nlist;
+}
+
+int lammps_get_neighlist(void *ptr, int idx, int * inum, int ** ilist, int ** numneigh, int ***firstneigh) {
+  LAMMPS *  lmp = (LAMMPS *) ptr;
+  Neighbor * neighbor = lmp->neighbor;
+
+  if(idx < 0 || idx >= neighbor->nlist) {
+    *inum = 0;
+    *ilist = NULL;
+    *numneigh = NULL;
+    *firstneigh = NULL;
+    return -1;
+  }
+
+  NeighList * list = neighbor->lists[idx];
+  *inum = list->inum;
+  *ilist = list->ilist;
+  *numneigh = list->numneigh;
+  *firstneigh = list->firstneigh;
+
+  return 0;
+}

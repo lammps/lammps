@@ -65,6 +65,9 @@ int lammps_config_has_jpeg_support();
 int lammps_config_has_ffmpeg_support();
 int lammps_config_has_exceptions();
 
+int lammps_get_num_neighlists(void *ptr);
+int lammps_get_neighlist(void *ptr, int idx, int * inum, int ** ilist, int ** numneigh, int ***firstneigh);
+
 // lammps_create_atoms() takes tagint and imageint as args
 // ifdef insures they are compatible with rest of LAMMPS
 // caller must match to how LAMMPS library is built

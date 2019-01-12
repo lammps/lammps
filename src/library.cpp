@@ -1652,35 +1652,34 @@ int lammps_neighlist_element(void * ptr, int idx, int ii) {
 
 int lammps_neighlist_element_neighbor_count(void * ptr, int idx, int i) {
   LAMMPS *  lmp = (LAMMPS *) ptr;
-  Atom * atom = lmp->atom;
   Neighbor * neighbor = lmp->neighbor;
 
   if(idx < 0 || idx >= neighbor->nlist) {
     return -1;
   }
 
-  if(i < 0 || i >= (atom->nlocal + atom->nghost)) {
+  NeighList * list = neighbor->lists[idx];
+
+  if(i < 0 || i >= list->maxatom) {
     return -1;
   }
 
-  NeighList * list = neighbor->lists[idx];
   return list->numneigh[i];
 }
 
 int lammps_neighlist_element_neighbor(void * ptr, int idx, int i, int jj) {
   LAMMPS *  lmp = (LAMMPS *) ptr;
-  Atom * atom = lmp->atom;
   Neighbor * neighbor = lmp->neighbor;
 
   if(idx < 0 || idx >= neighbor->nlist) {
     return -1;
   }
 
-  if(i < 0 || i >= (atom->nlocal + atom->nghost)) {
+  NeighList * list = neighbor->lists[idx];
+
+  if(i < 0 || i >= list->maxatom) {
     return -1;
   }
-
-  NeighList * list = neighbor->lists[idx];
 
   if(jj < 0 || jj >= list->numneigh[i]) {
     return -1;

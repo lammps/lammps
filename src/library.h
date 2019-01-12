@@ -65,8 +65,11 @@ int lammps_config_has_jpeg_support();
 int lammps_config_has_ffmpeg_support();
 int lammps_config_has_exceptions();
 
-int lammps_get_num_neighlists(void *ptr);
-int lammps_get_neighlist(void *ptr, int idx, int * inum, int ** ilist, int ** numneigh, int ***firstneigh);
+int lammps_neighlist_count(void* ptr);
+int lammps_neighlist_size(void* ptr, int idx);
+int lammps_neighlist_element(void* ptr, int idx, int ii);
+int lammps_neighlist_element_neighbor_count(void* ptr, int idx, int i);
+int lammps_neighlist_element_neighbor(void* ptr, int idx, int i, int jj);
 
 // lammps_create_atoms() takes tagint and imageint as args
 // ifdef insures they are compatible with rest of LAMMPS

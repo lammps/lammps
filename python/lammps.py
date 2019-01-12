@@ -50,33 +50,30 @@ class NeighList:
     def __init__(self, lmp, idx):
         self.lmp = lmp
         self.idx = idx
-        self._inum = c_int(0)
-        self._ilist = POINTER(c_int)()
-        self._numneigh = POINTER(c_int)()
-        self._firstneigh = POINTER(POINTER(c_int))()
-        self.lmp.lib.lammps_get_neighlist(self.lmp.lmp, self.idx, byref(self._inum), byref(self._ilist), byref(self._numneigh), byref(self._firstneigh))
 
     def __str__(self):
-        return "Neighbor List ({} atoms)".format(self._inum.value)
+        return "Neighbor List ({} atoms)".format(self.size)
 
     def __repr__(self):
         return self.__str__()
 
+    @property
+    def size(self):
+        return self.lmp.lib.lammps_neighlist_size(self.lmp.lmp, self.idx)
+
     def __iter__(self):
-        class Neighbors:
-            def __init__(self, numneigh, neighs):
-                self._numneigh = numneigh
-                self._neighs = neighs
+        inum = self.size
 
-            def __iter__(self):
-                for jj in range(self._numneigh):
-                    yield self._neighs[jj] & 0x3FFFFFFF
+        for ii in range(inum):
+            iatom = self.lmp.lib.lammps_neighlist_element(self.lmp.lmp, self.idx, ii)
+            numneigh = self.lmp.lib.lammps_neighlist_element_neighbor_count(self.lmp.lmp, self.idx, iatom)
 
-        for ii in range(self._inum.value):
-            iatom = self._ilist[ii]
-            numneigh = self._numneigh[iatom]
-            neighs = Neighbors(numneigh, self._firstneigh[iatom])
-            yield iatom, numneigh, neighs
+            def neighbors():
+                for jj in range(numneigh):
+                    jatom = self.lmp.lib.lammps_neighlist_element_neighbor(self.lmp.lmp, self.idx, iatom, jj)
+                    yield jatom & 0x3FFFFFFF
+
+            yield iatom, numneigh, neighbors()
 
 class lammps(object):
 
@@ -631,7 +628,7 @@ class lammps(object):
 
   @property
   def neighbor_lists(self):
-    nlist = self.lib.lammps_get_num_neighlists(self.lmp)
+    nlist = self.lib.lammps_neighlist_count(self.lmp)
     lists = []
 
     for i in range(nlist):

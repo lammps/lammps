@@ -1614,29 +1614,77 @@ int lammps_get_last_error_message(void *ptr, char * buffer, int buffer_size) {
 
 #endif
 
-int lammps_get_num_neighlists(void *ptr) {
+
+int lammps_neighlist_count(void * ptr) {
   LAMMPS *  lmp = (LAMMPS *) ptr;
   Neighbor * neighbor = lmp->neighbor;
   return neighbor->nlist;
 }
 
-int lammps_get_neighlist(void *ptr, int idx, int * inum, int ** ilist, int ** numneigh, int ***firstneigh) {
+int lammps_neighlist_size(void * ptr, int idx) {
   LAMMPS *  lmp = (LAMMPS *) ptr;
   Neighbor * neighbor = lmp->neighbor;
 
   if(idx < 0 || idx >= neighbor->nlist) {
-    *inum = 0;
-    *ilist = NULL;
-    *numneigh = NULL;
-    *firstneigh = NULL;
     return -1;
   }
 
   NeighList * list = neighbor->lists[idx];
-  *inum = list->inum;
-  *ilist = list->ilist;
-  *numneigh = list->numneigh;
-  *firstneigh = list->firstneigh;
+  return list->inum;
+}
 
-  return 0;
+int lammps_neighlist_element(void * ptr, int idx, int ii) {
+  LAMMPS *  lmp = (LAMMPS *) ptr;
+  Neighbor * neighbor = lmp->neighbor;
+
+  if(idx < 0 || idx >= neighbor->nlist) {
+    return -1;
+  }
+
+  NeighList * list = neighbor->lists[idx];
+
+  if(ii < 0 || ii >= list->inum) {
+    return -1;
+  }
+
+  return list->ilist[ii];
+}
+
+int lammps_neighlist_element_neighbor_count(void * ptr, int idx, int i) {
+  LAMMPS *  lmp = (LAMMPS *) ptr;
+  Atom * atom = lmp->atom;
+  Neighbor * neighbor = lmp->neighbor;
+
+  if(idx < 0 || idx >= neighbor->nlist) {
+    return -1;
+  }
+
+  if(i < 0 || i >= (atom->nlocal + atom->nghost)) {
+    return -1;
+  }
+
+  NeighList * list = neighbor->lists[idx];
+  return list->numneigh[i];
+}
+
+int lammps_neighlist_element_neighbor(void * ptr, int idx, int i, int jj) {
+  LAMMPS *  lmp = (LAMMPS *) ptr;
+  Atom * atom = lmp->atom;
+  Neighbor * neighbor = lmp->neighbor;
+
+  if(idx < 0 || idx >= neighbor->nlist) {
+    return -1;
+  }
+
+  if(i < 0 || i >= (atom->nlocal + atom->nghost)) {
+    return -1;
+  }
+
+  NeighList * list = neighbor->lists[idx];
+
+  if(jj < 0 || jj >= list->numneigh[i]) {
+    return -1;
+  }
+
+  return list->firstneigh[i][jj];
 }

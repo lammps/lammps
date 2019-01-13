@@ -54,7 +54,7 @@ class FixBondReact : public Fix {
   FILE *fp;
   int *iatomtype,*jatomtype;
   int *seed;
-  double **cutsq,*fraction;
+  double **cutsq,*fraction,*max_rxn;
   tagint lastcheck;
   int stabilization_flag;
   int custom_exclude_flag;

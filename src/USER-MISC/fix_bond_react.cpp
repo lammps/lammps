@@ -161,6 +161,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   memory->create(unreacted_mol,nreacts,"bond/react:unreacted_mol");
   memory->create(reacted_mol,nreacts,"bond/react:reacted_mol");
   memory->create(fraction,nreacts,"bond/react:fraction");
+  memory->create(max_rxn,nreacts,"bond/react:max_rxn");
   memory->create(seed,nreacts,"bond/react:seed");
   memory->create(limit_duration,nreacts,"bond/react:limit_duration");
   memory->create(stabilize_steps_flag,nreacts,"bond/react:stabilize_steps_flag");
@@ -179,6 +180,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   for (int i = 0; i < nreacts; i++) {
     fraction[i] = 1;
     seed[i] = 12345;
+    max_rxn[i] = BIG;
     stabilize_steps_flag[i] = 0;
     update_edges_flag[i] = 0;
     // set default limit duration to 60 timesteps
@@ -244,6 +246,13 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
         if (seed[rxn] <= 0) error->all(FLERR,"Illegal fix bond/react command: "
                                        "probability seed must be positive");
         iarg += 3;
+      } else if (strcmp(arg[iarg],"max_rxn") == 0) {
+	      if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
+	      			                        "'max_rxn' has too few arguments");
+	      max_rxn[rxn] = force->inumeric(FLERR,arg[iarg+1]);
+	      if (max_rxn[rxn] < 0) error->all(FLERR,"Illegal fix bond/react command: "
+	      				                         "'max_rxn' cannot be negative");
+	      iarg += 2;
       } else if (strcmp(arg[iarg],"stabilize_steps") == 0) {
         if (stabilization_flag == 0) error->all(FLERR,"Stabilize_steps keyword "
                                                 "used without stabilization keyword");
@@ -379,9 +388,6 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
 
 FixBondReact::~FixBondReact()
 {
-  // unregister callbacks to this fix from Atom class
-  atom->delete_callback(id,0);
-
   for (int i = 0; i < nreacts; i++) {
     delete random[i];
   }
@@ -396,6 +402,7 @@ FixBondReact::~FixBondReact()
   memory->destroy(edge);
   memory->destroy(equivalences);
   memory->destroy(reverse_equiv);
+  memory->destroy(landlocked_atoms);
   memory->destroy(custom_edges);
   memory->destroy(delete_atoms);
 
@@ -405,6 +412,7 @@ FixBondReact::~FixBondReact()
   memory->destroy(reacted_mol);
   memory->destroy(fraction);
   memory->destroy(seed);
+  memory->destroy(max_rxn);
   memory->destroy(limit_duration);
   memory->destroy(stabilize_steps_flag);
   memory->destroy(update_edges_flag);
@@ -434,7 +442,6 @@ FixBondReact::~FixBondReact()
     memory->destroy(restore);
     memory->destroy(glove);
     memory->destroy(pioneers);
-    memory->destroy(landlocked_atoms);
     memory->destroy(local_mega_glove);
     memory->destroy(ghostly_mega_glove);
   }
@@ -452,7 +459,7 @@ FixBondReact::~FixBondReact()
     delete [] id_fix3;
   }
 
-  if (id_fix2 == NULL && modify->nfix) modify->delete_fix(id_fix2);
+  if (id_fix2 && modify->nfix) modify->delete_fix(id_fix2);
   delete [] id_fix2;
 
   delete [] statted_id;
@@ -748,6 +755,7 @@ void FixBondReact::post_integrate()
 
   int j;
   for (rxnID = 0; rxnID < nreacts; rxnID++) {
+    if (max_rxn[rxnID] <= reaction_count_total[rxnID]) continue;
     for (int ii = 0; ii < nall; ii++) {
       partner[ii] = 0;
       finalpartner[ii] = 0;
@@ -1148,11 +1156,12 @@ void FixBondReact::superimpose_algorithm()
   for (int i = 0; i < nreacts; i++)
     reaction_count_total[i] += reaction_count[i];
 
-  // this assumes compute_vector is called from process 0
-  // ...so doesn't bother to bcast ghostly_rxn_count
   if (me == 0)
     for (int i = 0; i < nreacts; i++)
       reaction_count_total[i] += ghostly_rxn_count[i];
+
+  //  bcast ghostly_rxn_count
+  MPI_Bcast(&reaction_count_total[0], nreacts, MPI_INT, 0, world);
 
   // this updates topology next step
   next_reneighbor = update->ntimestep;

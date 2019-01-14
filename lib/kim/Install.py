@@ -50,10 +50,10 @@ in the "What is in the KIM API source package?" section
 pgroup = parser.add_mutually_exclusive_group()
 pgroup.add_argument("-b", "--build", action="store_true",
                     help="download and build base KIM API library with example Models.")
-pgroup.add_argument("-n", "--nochange", action="store_true",
-                    help="no changes to the base KIM API. Use currently configured one. ")
+pgroup.add_argument("-n", "--nobuild", action="store_true",
+                    help="use the previously downloaded and compiled base KIM API.")
 pgroup.add_argument("-p", "--path",
-                    help="specify location of KIM API installation.")
+                    help="specify location of existing KIM API installation.")
 parser.add_argument("-v", "--version", default=version,
                     help="set version of KIM API library to download and build (default: %s)" % version)
 parser.add_argument("-a", "--add",
@@ -64,7 +64,7 @@ parser.add_argument("-vv", "--verbose", action="store_true",
 args = parser.parse_args()
 
 # print help message and exit, if neither build nor path options are given
-if args.build == False and not args.path and args.nochange == False:
+if args.build == False and not args.path and args.nobuild == False:
   parser.print_help()
   sys.exit(help)
 
@@ -79,6 +79,7 @@ if addflag and addmodelname == "everything":
 verboseflag = args.verbose
 
 if pathflag:
+  buildflag = False
   kimdir = args.path
   if not os.path.isdir(kimdir): sys.exit("KIM API path %s does not exist" % kimdir)
   kimdir = fullpath(kimdir)
@@ -98,6 +99,8 @@ if pathflag:
   print("Created %s/Makefile.KIM_DIR\n  using %s" % (thisdir,kimdir))
 else:
   kimdir = os.path.join(os.path.abspath(thisdir), "installed-" + version)
+  if args.nobuild and not os.path.isdir(kimdir):
+    sys.exit("Cannot use -n/--nobuild without first building the KIM API with -b")
 
 # download KIM tarball, unpack, build KIM
 if buildflag:

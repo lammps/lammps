@@ -59,7 +59,8 @@ homepath = fullpath(".")
 homedir = "%s/%s" % (homepath,version)
 
 if (pathflag):
-    if not os.path.isdir(voropath): error("Voro++ path does not exist")
+    if not os.path.isdir(voropath):
+      sys.exit("Voro++ path %s does not exist" % voropath)
     homedir = voropath
 
 # download and unpack Voro++ tarball

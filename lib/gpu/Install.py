@@ -89,7 +89,7 @@ if args.output:
 # reset EXTRAMAKE, CUDA_HOME, CUDA_ARCH, CUDA_PRECISION if requested
 
 if not os.path.exists("Makefile.%s" % isuffix):
-  error("lib/gpu/Makefile.%s does not exist" % isuffix)
+  sys.exit("lib/gpu/Makefile.%s does not exist" % isuffix)
 
 lines = open("Makefile.%s" % isuffix,'r').readlines()
 fp = open("Makefile.auto",'w')
@@ -129,9 +129,9 @@ if makeflag:
     sys.exit(1)
 
   if not os.path.exists("libgpu.a"):
-    error("Build of lib/gpu/libgpu.a was NOT successful")
+    sys.exit("Build of lib/gpu/libgpu.a was NOT successful")
   if not os.path.exists("Makefile.lammps"):
-    error("lib/gpu/Makefile.lammps was NOT created")
+    sys.exit("lib/gpu/Makefile.lammps was NOT created")
 
 # copy new Makefile.auto to Makefile.osuffix
 

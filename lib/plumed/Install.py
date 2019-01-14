@@ -68,8 +68,9 @@ homepath = fullpath('.')
 homedir = "%s/plumed2" % (homepath)
 
 if (pathflag):
-    if not os.path.isdir(plumedpath): error("Plumed2 path does not exist")
-    homedir = plumedpath
+    if not os.path.isdir(plumedpath):
+      sys.exit("Plumed2 path %s does not exist" % plumedpath)
+    homedir = fullpath(plumedpath)
 
 # download and unpack plumed2 tarball
 
@@ -82,7 +83,7 @@ if buildflag:
   # verify downloaded archive integrity via md5 checksum, if known.
   if version in checksums:
     if not checkmd5sum(checksums[version],filename):
-      error("Checksum for plumed2 library does not match")
+      sys.exit("Checksum for plumed2 library does not match")
 
   print("Unpacking plumed2 source tarball ...")
   if os.path.exists("%s/plumed-%s" % (homepath,version)):
@@ -103,7 +104,7 @@ if buildflag:
   except subprocess.CalledProcessError as e:
     print("Make failed with:\n %s" % e.output.decode('UTF-8'))
     sys.exit(1)
- 
+
 # create 2 links in lib/plumed to plumed2 installation dir
 
 print("Creating links to plumed2 include and lib files")

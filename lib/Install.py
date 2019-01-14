@@ -53,7 +53,7 @@ lib = os.path.basename(cwd)
 # reset EXTRAMAKE if requested
 
 if not os.path.exists("Makefile.%s" % machine):
-  error("lib/%s/Makefile.%s does not exist" % (lib,machine))
+  sys.exit("lib/%s/Makefile.%s does not exist" % (lib,machine))
 
 lines = open("Makefile.%s" % machine,'r').readlines()
 fp = open("Makefile.auto",'w')
@@ -82,7 +82,7 @@ except subprocess.CalledProcessError as e:
   sys.exit(1)
 
 if os.path.exists("lib%s.a" % lib): print("Build was successful")
-else: error("Build of lib/%s/lib%s.a was NOT successful" % (lib,lib))
+else: sys.exit("Build of lib/%s/lib%s.a was NOT successful" % (lib,lib))
 
 if has_extramake and not os.path.exists("Makefile.lammps"):
   print("WARNING: lib/%s/Makefile.lammps was NOT created" % lib)

@@ -73,8 +73,9 @@ homepath = fullpath('.')
 homedir = "%s/%s" % (homepath,tardir)
 
 if (pathflag):
-    if not os.path.isdir(mscgpath): error("MS-CG path does not exist")
-    homedir = mscgpath
+    if not os.path.isdir(mscgpath):
+      sys.exit("MS-CG path %s does not exist" % mscgpath)
+    homedir = fullpath(mscgpath)
 
 # download and unpack MS-CG tarfile
 
@@ -104,7 +105,7 @@ if buildflag:
     cmd = 'cd "%s/src"; cp ../../Makefile.%s .; make -f Makefile.%s' % \
         (homedir,msuffix,msuffix)
   else:
-    error("Cannot find Makefile.%s" % msuffix)
+    sys.exit("Cannot find Makefile.%s" % msuffix)
   try:
     txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
     print(txt.decode('UTF-8'))

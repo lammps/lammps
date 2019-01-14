@@ -614,8 +614,8 @@ if(PKG_USER-SMD)
     message(STATUS "Eigen3 download requested - we will build our own")
     include(ExternalProject)
     ExternalProject_Add(Eigen3_build
-      URL http://bitbucket.org/eigen/eigen/get/3.3.4.tar.gz
-      URL_MD5 1a47e78efe365a97de0c022d127607c3
+      URL http://bitbucket.org/eigen/eigen/get/3.3.7.tar.gz
+      URL_MD5 f2a417d083fe8ca4b8ed2bc613d20f07
       CONFIGURE_COMMAND "" BUILD_COMMAND "" INSTALL_COMMAND ""
     )
     ExternalProject_get_property(Eigen3_build SOURCE_DIR)

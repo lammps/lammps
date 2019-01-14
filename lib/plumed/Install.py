@@ -14,7 +14,7 @@ parser = ArgumentParser(prog='Install.py',
 
 # settings
 
-version = "2.4.3"
+version = "2.4.4"
 mode = "static"
 
 # help message
@@ -38,7 +38,8 @@ make lib-plumed args="-p $HOME/plumed2 -m shared" # use existing Plumed2 install
 checksums = { \
         '2.4.2' : '88188743a6e03ef076e5377d03ebb0e7', \
         '2.4.3' : 'b1be7c48971627febc11c61b70767fc5', \
-        '2.5b'  : 'e341bdef469be1da058b8a0b97a3db22', \
+        '2.4.4' : '71ed465bdc7c2059e282dbda8d564e71', \
+        '2.5.0' : '6224cd089493661e19ceacccd35cf911', \
         }
 
 # parse and process arguments
@@ -67,7 +68,7 @@ plumedpath= args.path
 homepath = fullpath('.')
 homedir = "%s/plumed2" % (homepath)
 
-if (pathflag):
+if pathflag:
     if not os.path.isdir(plumedpath):
       sys.exit("Plumed2 path %s does not exist" % plumedpath)
     homedir = fullpath(plumedpath)

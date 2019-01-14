@@ -69,7 +69,7 @@ version = args.version
 suffixflag = args.machine != None
 suffix = args.machine
 
-if (pathflag):
+if pathflag:
   lattedir = args.path
   if not os.path.isdir(lattedir): sys.exit("LATTE path %s does not exist" % lattedir)
   lattedir = fullpath(lattedir)

@@ -63,7 +63,7 @@ voropath = args.path
 homepath = fullpath(".")
 homedir = "%s/%s" % (homepath,version)
 
-if (pathflag):
+if pathflag:
     if not os.path.isdir(voropath):
       sys.exit("Voro++ path %s does not exist" % voropath)
     homedir = voropath

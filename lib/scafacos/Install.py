@@ -60,7 +60,7 @@ version = args.version
 homepath = fullpath(".")
 scafacospath = "%s/scafacos-%s" % (homepath,version)
 
-if (pathflag):
+if pathflag:
   scafacospath = args.path
   if not os.path.isdir("%s/include" % scafacospath):
     sys.exit("ScaFaCoS include path for %s does not exist" % scafacospath)

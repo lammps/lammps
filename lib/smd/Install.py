@@ -63,7 +63,7 @@ buildflag = args.build
 pathflag = args.path != None
 version = args.version
 
-if (pathflag):
+if pathflag:
   eigenpath = args.path
   if not os.path.isdir(eigenpath): sys.exit("Eigen path %s does not exist" % eigenpath)
   eigenpath = fullpath(eigenpath)

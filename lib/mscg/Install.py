@@ -72,7 +72,7 @@ tardir = "MSCG-release-%s" % mscgver
 homepath = fullpath('.')
 homedir = "%s/%s" % (homepath,tardir)
 
-if (pathflag):
+if pathflag:
     if not os.path.isdir(mscgpath):
       sys.exit("MS-CG path %s does not exist" % mscgpath)
     homedir = fullpath(mscgpath)

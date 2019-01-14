@@ -6,7 +6,7 @@
 from __future__ import print_function
 import sys,os,re,subprocess,shutil
 sys.path.append('..')
-from install_helpers import get_cpus,fullpath,geturl
+from install_helpers import get_cpus,fullpath,geturl,checkmd5sum
 from argparse import ArgumentParser
 
 parser = ArgumentParser(prog='Install.py',
@@ -16,6 +16,11 @@ parser = ArgumentParser(prog='Install.py',
 
 version = "voro++-0.4.6"
 url = "http://math.lbl.gov/voro++/download/dir/%s.tar.gz" % version
+
+# known checksums for different Voro++ versions. used to validate the download.
+checksums = { \
+        'voro++-0.4.6' : '2338b824c3b7b25590e18e8df5d68af9' \
+        }
 
 # extra help message
 
@@ -68,6 +73,11 @@ if (pathflag):
 if buildflag:
   print("Downloading Voro++ ...")
   geturl(url,"%s/%s.tar.gz" % (homepath,version))
+
+  # verify downloaded archive integrity via md5 checksum, if known.
+  if version in checksums:
+    if not checkmd5sum(checksums[version],'%s/%s.tar.gz' % (homepath,version)):
+      sys.exit("Checksum for Voro++ library does not match")
 
   print("Unpacking Voro++ tarball ...")
   if os.path.exists("%s/%s" % (homepath,version)):

@@ -6,7 +6,11 @@
 from __future__ import print_function
 import sys,os,re,subprocess
 sys.path.append('..')
-from install_helpers import error,get_cpus,fullpath,which
+from install_helpers import get_cpus,fullpath
+from argparse import ArgumentParser
+
+parser = ArgumentParser(prog='Install.py',
+                        description="LAMMPS library build wrapper script")
 
 # help message
 
@@ -16,46 +20,30 @@ Syntax from src dir: make lib-message args="-m"
 Syntax from lib dir: python Install.py -m
                  or: python Install.py -s -z 
 
-specify zero or more options, order does not matter
-
-  -m = parallel build of CSlib library
-  -s = serial build of CSlib library
-  -z = build CSlib library with ZMQ socket support, default = no ZMQ support
-
 Example:
 
 make lib-message args="-m -z"   # build parallel CSlib with ZMQ support
 make lib-message args="-s"   # build serial CSlib with no ZMQ support
 """
 
-# parse args
+pgroup = parser.add_mutually_exclusive_group()
+pgroup.add_argument("-m", "--mpi", action="store_true",
+                    help="parallel build of CSlib with MPI")
+pgroup.add_argument("-s", "--serial", action="store_true",
+                    help="serial build of CSlib")
+parser.add_argument("-z", "--zmq", default=False, action="store_true",
+                    help="build CSlib with ZMQ socket support, default ()")
 
-args = sys.argv[1:]
-nargs = len(args)
-if nargs == 0: error(help=help)
+args = parser.parse_args()
 
-mpiflag = False
-serialflag = False
-zmqflag = False
+# print help message and exit, if neither build nor path options are given
+if args.mpi == False and args.serial == False:
+  parser.print_help()
+  sys.exit(help)
 
-iarg = 0
-while iarg < nargs:
-  if args[iarg] == "-m":
-    mpiflag = True
-    iarg += 1
-  elif args[iarg] == "-s":
-    serialflag = True
-    iarg += 1
-  elif args[iarg] == "-z":
-    zmqflag = True
-    iarg += 1
-  else: error(help=help)
-
-if (not mpiflag and not serialflag):
-  error("Must use either -m or -s flag")
-
-if (mpiflag and serialflag):
-  error("Cannot use -m and -s flag at the same time")
+mpiflag = args.mpi
+serialflag = args.serial
+zmqflag = args.zmq
 
 # build CSlib
 # copy resulting lib to cslib/src/libmessage.a

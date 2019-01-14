@@ -6,7 +6,17 @@
 from __future__ import print_function
 import sys,os,re,glob,subprocess,shutil
 sys.path.append('..')
-from install_helpers import error,get_cpus,fullpath,which,geturl
+from install_helpers import fullpath,geturl
+
+from argparse import ArgumentParser
+
+parser = ArgumentParser(prog='Install.py',
+                        description="LAMMPS library build wrapper script")
+
+# settings
+
+version = '3.3.4'
+tarball = "eigen.tar.gz"
 
 # help message
 
@@ -18,64 +28,37 @@ Syntax from lib dir: python Install.py -b
                  or: python Install.py -p /usr/include/eigen3"
                  or: python Install.py -v 3.3.4 -b
 
-specify one or more options, order does not matter
-
-  -b = download and unpack/configure the Eigen library
-  -p = specify folder holding an existing installation of Eigen
-  -v = set version of Eigen library to download and set up (default = 3.3.4)
-
-
 Example:
 
 make lib-smd args="-b"   # download/build in default lib/smd/eigen-eigen-*
 make lib-smd args="-p /usr/include/eigen3" # use existing Eigen installation in /usr/include/eigen3
 """
 
-# settings
+pgroup = parser.add_mutually_exclusive_group()
+pgroup.add_argument("-b", "--build", action="store_true",
+                    help="download and build the Eigen3 library")
+pgroup.add_argument("-p", "--path",
+                    help="specify folder of existing Eigen installation")
+parser.add_argument("-v", "--version", default=version,
+                    help="set version of Eigen to download and build (default: %s)" % version)
 
-version = '3.3.4'
-tarball = "eigen.tar.gz"
+args = parser.parse_args()
 
+# print help message and exit, if neither build nor path options are given
+if args.build == False and not args.path:
+  parser.print_help()
+  sys.exit(help)
 
-# parse args
+homepath = fullpath(".")
+eigenpath = "%s/eigen3" % homepath
 
-args = sys.argv[1:]
-nargs = len(args)
-if nargs == 0: error(help=help)
-
-homepath = "."
-homedir = "eigen3"
-
-buildflag = False
-pathflag = False
-linkflag = True
-
-iarg = 0
-while iarg < nargs:
-  if args[iarg] == "-v":
-    if iarg+2 > nargs: error(help=help)
-    version = args[iarg+1]
-    iarg += 2
-  elif args[iarg] == "-p":
-    if iarg+2 > nargs: error(help=help)
-    eigenpath = fullpath(args[iarg+1])
-    pathflag = True
-    iarg += 2
-  elif args[iarg] == "-b":
-    buildflag = True
-    iarg += 1
-  else: error(help=help)
-
-homepath = fullpath(homepath)
+buildflag = args.build
+pathflag = args.path != None
 
 if (pathflag):
-  if not os.path.isdir(eigenpath): error("Eigen path does not exist")
-
-if (buildflag and pathflag):
-    error("Cannot use -b and -p flag at the same time")
-
-if (not buildflag and not pathflag):
-    error("Have to use either -b or -p flag")
+  eigenpath = args.path
+  if not os.path.isdir(eigenpath): sys.exit("Eigen path %s does not exist" % eigenpath)
+  eigenpath = fullpath(eigenpath)
 
 # download and unpack Eigen tarball
 # use glob to find name of dir it unpacks to
@@ -85,24 +68,25 @@ if buildflag:
   url = "http://bitbucket.org/eigen/eigen/get/%s.tar.gz" % version
   geturl(url,"%s/%s" % (homepath,tarball))
 
-  print("Unpacking Eigen tarball ...")
+  print("Cleaning up old folders ...")
   edir = glob.glob("%s/eigen-eigen-*" % homepath)
+  edir.append(eigenpath)
   for one in edir:
     if os.path.isdir(one):
       shutil.rmtree(one)
+
+  print("Unpacking Eigen tarball ...")
   cmd = 'cd "%s"; tar -xzvf %s' % (homepath,tarball)
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   edir = glob.glob("%s/eigen-eigen-*" % homepath)
-  os.rename(edir[0],"%s/%s" % (homepath,homedir))
+  os.rename(edir[0],eigenpath)
   os.remove(tarball)
 
 # create link in lib/smd to Eigen src dir
 
-if linkflag:
-  print("Creating link to Eigen files")
-  if os.path.isfile("includelink") or os.path.islink("includelink"):
-    os.remove("includelink")
-  if pathflag: linkdir = eigenpath
-  else: linkdir = "%s/%s" % (homepath,homedir)
-  cmd = 'ln -s "%s" includelink' % linkdir
-  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+print("Creating link to Eigen include folder")
+if os.path.isfile("includelink") or os.path.islink("includelink"):
+  os.remove("includelink")
+linkdir = eigenpath
+cmd = 'ln -s "%s" includelink' % linkdir
+subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)

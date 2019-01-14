@@ -55,6 +55,7 @@ if args.build == False and not args.path:
 
 buildflag = args.build
 pathflag = args.path != None
+version = args.version
 
 homepath = fullpath(".")
 scafacospath = "%s/scafacos-%s" % (homepath,version)

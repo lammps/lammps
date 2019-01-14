@@ -6,8 +6,7 @@
 from __future__ import print_function
 import sys,os,re,glob,subprocess,shutil
 sys.path.append('..')
-from install_helpers import fullpath,geturl
-
+from install_helpers import fullpath,geturl,checkmd5sum
 from argparse import ArgumentParser
 
 parser = ArgumentParser(prog='Install.py',
@@ -25,7 +24,6 @@ checksums = { \
               '3.3.6' : 'd1be14064b50310b0eb2b49e402c64d7', \
               '3.3.7' : 'f2a417d083fe8ca4b8ed2bc613d20f07' \
 }
-
 
 # help message
 
@@ -63,6 +61,7 @@ eigenpath = "%s/eigen3" % homepath
 
 buildflag = args.build
 pathflag = args.path != None
+version = args.version
 
 if (pathflag):
   eigenpath = args.path
@@ -76,6 +75,13 @@ if buildflag:
   print("Downloading Eigen ...")
   url = "http://bitbucket.org/eigen/eigen/get/%s.tar.gz" % version
   geturl(url,"%s/%s" % (homepath,tarball))
+
+  # verify downloaded archive integrity via md5 checksum, if known.
+  if version in checksums:
+    print("checking version %s\n" % version)
+    if not checkmd5sum(checksums[version],'%s/%s' % (homepath,tarball)):
+      sys.exit("Checksum for Eigen library does not match")
+
 
   print("Cleaning up old folders ...")
   edir = glob.glob("%s/eigen-eigen-*" % homepath)

@@ -15,7 +15,7 @@ parser = ArgumentParser(prog='Install.py',
 
 # settings
 
-version = '3.3.4'
+version = '3.3.7'
 tarball = "eigen.tar.gz"
 
 # help message

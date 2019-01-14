@@ -6,7 +6,7 @@
 from __future__ import print_function
 import sys,os,re,subprocess,shutil
 sys.path.append('..')
-from install_helpers import fullpath,geturl,get_cpus
+from install_helpers import fullpath,geturl,get_cpus,checkmd5sum
 from argparse import ArgumentParser
 
 parser = ArgumentParser(prog='Install.py',
@@ -16,6 +16,11 @@ parser = ArgumentParser(prog='Install.py',
 
 version = "1.0.1"
 url = "https://github.com/scafacos/scafacos/releases/download/v%s/scafacos-%s.tar.gz" % (version, version)
+
+# known checksums for different ScaFaCoS versions. used to validate the download.
+checksums = { \
+        '1.0.1' : 'bd46d74e3296bd8a444d731bb10c1738' \
+        }
 
 # extra help message
 
@@ -68,6 +73,11 @@ if (pathflag):
 if buildflag:
   print("Downloading ScaFaCoS ...")
   geturl(url,"%s/scafacos-%s.tar.gz" % (homepath,version))
+
+  # verify downloaded archive integrity via md5 checksum, if known.
+  if version in checksums:
+    if not checkmd5sum(checksums[version],'%s/scafacos-%s.tar.gz' % (homepath,version)):
+      sys.exit("Checksum for ScaFaCoS library does not match")
 
   print("Unpacking ScaFaCoS tarball ...")
   if os.path.exists(scafacospath):

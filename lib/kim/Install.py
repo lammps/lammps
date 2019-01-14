@@ -6,7 +6,16 @@
 from __future__ import print_function
 import sys,os,re,subprocess,shutil
 sys.path.append('..')
-from install_helpers import error,fullpath,which,geturl
+from install_helpers import fullpath,geturl
+from argparse import ArgumentParser
+
+parser = ArgumentParser(prog='Install.py',
+                        description="LAMMPS library build wrapper script")
+
+# settings
+
+thisdir = fullpath('.')
+version = "kim-api-v1.9.5"
 
 # help message
 
@@ -20,27 +29,12 @@ Syntax from lib dir: python Install.py -b -v version  -a kim-name
                  or: python Install.py -n -a kim-name
                  or: python Install.py -p /usr/local/open-kim -a kim-name
 
-specify one or more options, order does not matter
-
-  -v = version of KIM API library to use
-       default = kim-api-v1.9.5 (current as of May 2018)
-  -b = download and build base KIM API library with example Models
-       this will delete any previous installation in the current folder
-  -n = do NOT download and build base KIM API library.
-       Use an existing installation
-  -p = specify location of KIM API installation (implies -n)
-  -a = add single KIM model or model driver with kim-name
-       to existing KIM API lib (see example below).
-       If kim-name = everything, then rebuild KIM API library with
-       *all* available OpenKIM Models (make take a long time).
-  -vv = be more verbose about what is happening while the script runs
-
 Examples:
 
 make lib-kim args="-b" # install KIM API lib with only example models
-make lib-kim args="-a Glue_Ercolessi_Adams_Al__MO_324507536345_001"  # Ditto plus one model
+make lib-kim args="-b -a Glue_Ercolessi_Adams_Al__MO_324507536345_001" # Ditto plus one model
 make lib-kim args="-b -a everything"   # install KIM API lib with all models
-make lib-kim args="-n -a EAM_Dynamo_Ackland_W__MO_141627196590_002"   # only add one model or model driver
+make lib-kim args="-n -a EAM_Dynamo_Ackland_W__MO_141627196590_002"    # only add one model or model driver
 
 See the list of KIM model drivers here:
 https://openkim.org/kim-items/model-drivers/alphabetical
@@ -53,62 +47,47 @@ https://openkim.org/kim-api
 in the "What is in the KIM API source package?" section
 """
 
-# parse args
+pgroup = parser.add_mutually_exclusive_group()
+pgroup.add_argument("-b", "--build", action="store_true",
+                    help="download and build base KIM API library with example Models.")
+pgroup.add_argument("-n", "--nochange", action="store_true",
+                    help="no changes to the base KIM API. Use currently configured one. ")
+pgroup.add_argument("-p", "--path",
+                    help="specify location of KIM API installation.")
+parser.add_argument("-v", "--version", default=version,
+                    help="set version of KIM API library to download and build (default: %s)" % version)
+parser.add_argument("-a", "--add",
+                    help="add single KIM model or model driver. If adding 'everything', then all available OpenKIM models are added (may take a long time)")
+parser.add_argument("-vv", "--verbose", action="store_true",
+                    help="be more verbose about is happening while this script runs")
 
-args = sys.argv[1:]
-nargs = len(args)
-if nargs == 0: error(help=help)
+args = parser.parse_args()
 
-thisdir = fullpath('.')
-version = "kim-api-v1.9.5"
+# print help message and exit, if neither build nor path options are given
+if args.build == False and not args.path and args.nochange == False:
+  parser.print_help()
+  sys.exit(help)
 
-buildflag = False
+buildflag = args.build
+pathflag = args.path != None
+addflag = args.add != None
+addmodelname = args.add
 everythingflag = False
-addflag = False
-verboseflag = False
-pathflag = False
+if addflag and addmodelname == "everything":
+  everythingflag = True
+  buildflag = True
+verboseflag = args.verbose
 
-iarg = 0
-while iarg < len(args):
-  if args[iarg] == "-v":
-    if iarg+2 > len(args): error(help=help)
-    version = args[iarg+1]
-    iarg += 2
-  elif args[iarg] == "-b":
-    buildflag = True
-    iarg += 1
-  elif args[iarg] == "-n":
-    buildflag = False
-    iarg += 1
-  elif args[iarg] == "-p":
-    if iarg+2 > len(args): error(help=help)
-    kimdir = fullpath(args[iarg+1])
-    pathflag = True
-    buildflag = False
-    iarg += 2
-  elif args[iarg] == "-a":
-    addflag = True
-    if iarg+2 > len(args): error(help=help)
-    addmodelname = args[iarg+1]
-    if addmodelname == "everything":
-      buildflag = True
-      everythingflag = True
-      addflag = False
-    iarg += 2
-  elif args[iarg] == "-vv":
-    verboseflag = True
-    iarg += 1
-  else: error(help=help)
+if pathflag:
+  kimdir = args.path
+  if not os.path.isdir(kimdir): sys.exit("KIM API path %s does not exist" % kimdir)
+  kimdir = fullpath(kimdir)
 
 url = "https://s3.openkim.org/kim-api/%s.txz" % version
 
 # set KIM API directory
 
 if pathflag:
-  if not os.path.isdir(kimdir):
-    print("\nkim-api is not installed at %s" % kimdir)
-    error(help=help)
-
   # configure LAMMPS to use existing kim-api installation
   with open("%s/Makefile.KIM_DIR" % thisdir, 'w') as mkfile:
     mkfile.write("KIM_INSTALL_DIR=%s\n\n" % kimdir)
@@ -196,8 +175,7 @@ if addflag:
     kimdir = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
 
   if not os.path.isdir(kimdir):
-    print("\nkim-api is not installed")
-    error(help=help)
+    sys.exit("\nkim-api is not installed")
 
   # download single model
   cmd = '%s/bin/kim-api-v1-collections-management install system %s' % (kimdir.decode("UTF-8"), addmodelname)

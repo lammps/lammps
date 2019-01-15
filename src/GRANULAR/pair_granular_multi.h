@@ -65,26 +65,25 @@ public:
 private:
   int size_history;
 
-  //Per-type models
+  //Models
   int **normal, **damping, **tangential, **roll, **twist;
 
-  int normal_global, damping_global;
-  int tangential_global, roll_global, twist_global;
-
+  //History flags
   int tangential_history, roll_history, twist_history;
+
+  //Indices of history entries
   int tangential_history_index;
   int roll_history_index;
   int twist_history_index;
 
-  double *normal_coeffs_global;
-  double *tangential_coeffs_global;
-  double *roll_coeffs_global;
-  double *twist_coeffs_global;
-
+  //Per-type coefficients, set in pair coeff command
   double ***normal_coeffs;
   double ***tangential_coeffs;
   double ***roll_coeffs;
   double ***twist_coeffs;
+
+  //Optional user-specified global cutoff
+  double cutoff_global;
 
   double mix_stiffnessE(double Eii, double Ejj, double Gii, double Gjj);
   double mix_stiffnessG(double Eii, double Ejj, double Gii, double Gjj);

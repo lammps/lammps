@@ -86,18 +86,17 @@ private:
   //Indices of history entries
   int tangential_history_index, roll_history_index, twist_history_index;
 
-  //Coefficients declared in pair style command, used as default unless
-  // overwritten in pair coeff command
-  double *normal_coeffs_global;
-  double *tangential_coeffs_global;
-  double *roll_coeffs_global;
-  double *twist_coeffs_global;
+  //Flags for whether model choices have been set
+  int normal_set, tangential_set, damping_set, roll_set, twist_set;
 
-  //Per-type coefficients declared in pair coeff command
+  //Per-type coefficients, set in pair coeff command
   double ***normal_coeffs;
   double ***tangential_coeffs;
   double ***roll_coeffs;
   double ***twist_coeffs;
+
+  //Optional user-specified global cutoff
+  double global_cutoff;
 
   double mix_stiffnessE(double Eii, double Ejj, double Gii, double Gjj);
   double mix_stiffnessG(double Eii, double Ejj, double Gii, double Gjj);

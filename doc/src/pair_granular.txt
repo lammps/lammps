@@ -92,7 +92,11 @@ and their required arguments are:
 {no_history}: k_t, tangential_damping, friction coefficient
 {mindlin}: k_t, tangential_damping, friction coefficient
  
-For {no_history}, the tangential force is computed according to 
+For {no_history}, the tangential force is computed according to:
+:c,image{Eqs/tangential_nohistory.jpg}
+
+For {mindlin}, tangential force is:
+:c,image{Eqs/tangential_mindlin.jpg}
 
 The total force on a particle is the sum of the normal and tangential forces from all interactions. The tangential
 force also induces a torque on both particles in a contacting pair. Additionally, rolling and twisting friction

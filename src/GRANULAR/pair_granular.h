@@ -96,7 +96,7 @@ private:
   double ***twist_coeffs;
 
   //Optional user-specified global cutoff
-  double global_cutoff;
+  double cutoff_global;
 
   double mix_stiffnessE(double Eii, double Ejj, double Gii, double Gjj);
   double mix_stiffnessG(double Eii, double Ejj, double Gii, double Gjj);

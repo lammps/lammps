@@ -825,12 +825,12 @@ void PairGranular::compute(int eflag, int vflag){
 
 #ifdef TEMPLATED_PAIR_GRANULAR
 template < int Tp_normal, int Tp_damping, int Tp_tangential,
-           int Tp_roll, int Tp_twist >
+           int Tp_twist, int Tp_roll >
 void PairGranular::compute_templated(int eflag, int vflag)
 #else
 void PairGranular::compute_untemplated
   (int Tp_normal, int Tp_damping, int Tp_tangential,
-   int Tp_roll, int Tp_twist, int eflag, int vflag)
+   int Tp_twist, int Tp_roll, int eflag, int vflag)
 #endif
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
@@ -1040,17 +1040,17 @@ void PairGranular::compute_untemplated
 
         //Consider restricting Hooke to only have 'velocity' as an option for damping?
         if (Tp_damping == VELOCITY){
-          damp_normal = normal_coeffs[itype][jtype][1];
+          damp_normal = 1;
         }
         else if (Tp_damping == VISCOELASTIC){
           if (Tp_normal == HOOKE) a = sqrt(dR);
-          damp_normal = normal_coeffs[itype][jtype][1]*a*meff;
+          damp_normal = a*meff;
         }
         else if (Tp_damping == TSUJI){
-          damp_normal = normal_coeffs[itype][jtype][1]*sqrt(meff*knfac);
+          damp_normal = sqrt(meff*knfac);
         }
 
-        Fdamp = -damp_normal*vnnr;
+        Fdamp = -normal_coeffs[itype][jtype][1]*damp_normal*vnnr;
 
         Fntot = Fne + Fdamp;
 
@@ -1196,7 +1196,6 @@ void PairGranular::compute_untemplated
               history[rhist1] += vrl2*dt;
               history[rhist2] += vrl3*dt;
             }
-
 
             k_roll = roll_coeffs[itype][jtype][0];
             damp_roll = roll_coeffs[itype][jtype][1];
@@ -1361,7 +1360,7 @@ void PairGranular::allocate()
 void PairGranular::settings(int narg, char **arg)
 {
   if (narg == 1){
-    cutoff_global = force->numeric(FLERR,arg[0])
+    cutoff_global = force->numeric(FLERR,arg[0]);
   }
   else{
     cutoff_global = -1; //Will be set based on particle sizes, model choice
@@ -1377,10 +1376,10 @@ void PairGranular::settings(int narg, char **arg)
 
 void PairGranular::coeff(int narg, char **arg)
 {
-  normal_coeffs_local = new double[4];
-  tangential_coeffs_local = new double[4];
-  roll_coeffs_local = new double[4];
-  twist_coeffs_local = new double[4];
+  double normal_coeffs_local[4];
+  double tangential_coeffs_local[4];
+  double roll_coeffs_local[4];
+  double twist_coeffs_local[4];
 
   if (narg < 2)
     error->all(FLERR,"Incorrect args for pair coefficients");
@@ -1415,7 +1414,7 @@ void PairGranular::coeff(int narg, char **arg)
     else if (strcmp(arg[iarg], "hertz/material") == 0){
       int num_coeffs = 3;
       if (iarg + num_coeffs >= narg) error->all(FLERR,"Illegal pair_coeff command, not enough parameters provided for Hertz option");
-      if (!normal_set) normal = HERTZ/MATERIAL;
+      if (!normal_set) normal = HERTZ_MATERIAL;
       else if (normal != HERTZ) if (normal != HOOKE) error->all(FLERR, "Illegal pair_coeff command, choice of normal contact model must be the same for all types");
       normal_coeffs_local[0] = force->numeric(FLERR,arg[iarg+1])*FOURTHIRDS; //E
       normal_coeffs_local[1] = force->numeric(FLERR,arg[iarg+2]); //damping
@@ -1448,7 +1447,7 @@ void PairGranular::coeff(int narg, char **arg)
     }
     else if (strcmp(arg[iarg], "damp") == 0){
       if (iarg+1 >= narg) error->all(FLERR, "Illegal pair_coeff command, not enough parameters provided for damping model");
-      if (strcmp(arg[iarg+1]), "velocity") == 0){
+      if (strcmp(arg[iarg+1], "velocity") == 0){
         if (!damping_set) damping = VELOCITY;
         else if (damping != VELOCITY) error->all(FLERR, "Illegal pair_coeff command, choice of damping contact model must be the same for all types");
       }
@@ -1461,7 +1460,7 @@ void PairGranular::coeff(int narg, char **arg)
         if (damping != TSUJI) error->all(FLERR, "Illegal pair_coeff command, choice of damping contact model must be the same for all types");
       }
       damping_set = 1;
-      iarg += 1;
+      iarg += 2;
     }
     else if (strcmp(arg[iarg], "tangential") == 0){
       if (iarg + 4 >= narg) error->all(FLERR,"Illegal pair_coeff command, not enough parameters provided for tangential model");
@@ -1505,16 +1504,16 @@ void PairGranular::coeff(int narg, char **arg)
           error->all(FLERR, "Illegal pair_coeff command, rolling friction model not recognized");
         }
         roll_set =1 ;
-        roll_coeffs_local[0] = force->numeric(FLERR,arg[iarg+2]); //kt
-        roll_coeffs_local[1] = force->numeric(FLERR,arg[iarg+3]); //gammat
-        roll_coeffs_local[2] = force->numeric(FLERR,arg[iarg+4]); //friction coeff.
+        roll_coeffs_local[0] = force->numeric(FLERR,arg[iarg+2]); //kR
+        roll_coeffs_local[1] = force->numeric(FLERR,arg[iarg+3]); //gammaR
+        roll_coeffs_local[2] = force->numeric(FLERR,arg[iarg+4]); //rolling friction coeff.
         iarg += 5;
       }
     }
     else if (strcmp(arg[iarg], "twisting") == 0){
       if (iarg + 1 >= narg) error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
       if (strcmp(arg[iarg+1], "none") == 0){
-        if (!twist_set) twist = TWIST_NOHISTORY;
+        if (!twist_set) twist = TWIST_NONE;
         else if (twist != TWIST_NONE) error->all(FLERR, "Illegal pair_coeff command, choice of twisting friction model must be the same for all types");
         iarg += 2;
       }
@@ -1522,12 +1521,13 @@ void PairGranular::coeff(int narg, char **arg)
         if (!twist_set) twist = TWIST_MARSHALL;
         else if (twist != TWIST_MARSHALL) error->all(FLERR, "Illegal pair_coeff command, choice of twisting friction model must be the same for all types");
         twist_history = 1;
+        twist_set = 1;
         iarg += 2;
       }
       else{
         if (iarg + 4 >= narg) error->all(FLERR,"Illegal pair_coeff command, not enough parameters provided for twist model");
-        if (!twist_set) twist = TWIST_NOHISTORY;
         else if (strcmp(arg[iarg+1], "nohistory") == 0){
+          if (!twist_set) twist = TWIST_NOHISTORY;
           if (twist != TWIST_NOHISTORY) error->all(FLERR, "Illegal pair_coeff command, choice of twisting friction model must be the same for all types");
         }
         else if (strcmp(arg[iarg+1], "sds") == 0){
@@ -1556,6 +1556,7 @@ void PairGranular::coeff(int narg, char **arg)
   if (!damping_set) damping = VISCOELASTIC;
   if (!roll_set) roll = ROLL_NONE;
   if (!twist_set) twist = TWIST_NONE;
+  damping_set = roll_set = twist_set = 1;
 
   int count = 0;
   double damp;

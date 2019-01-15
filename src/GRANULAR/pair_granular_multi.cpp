@@ -329,17 +329,17 @@ void PairGranularMulti::compute(int eflag, int vflag)
 
         //Consider restricting Hooke to only have 'velocity' as an option for damping?
         if (damping[itype][jtype] == VELOCITY){
-          damp_normal = normal_coeffs[itype][jtype][1];
+          damp_normal = 1;
         }
         else if (damping[itype][jtype] == VISCOELASTIC){
           if (normal[itype][jtype] == HOOKE) a = sqrt(dR);
-          damp_normal = normal_coeffs[itype][jtype][1]*a*meff;
+          damp_normal = a*meff;
         }
         else if (damping[itype][jtype] == TSUJI){
-          damp_normal = normal_coeffs[itype][jtype][1]*sqrt(meff*knfac);
+          damp_normal = sqrt(meff*knfac);
         }
 
-        Fdamp = -damp_normal*vnnr;
+        Fdamp = -normal_coeffs[itype][jtype][1]*damp_normal*vnnr;
 
         Fntot = Fne + Fdamp;
 
@@ -655,7 +655,7 @@ void PairGranularMulti::allocate()
 void PairGranularMulti::settings(int narg, char **arg)
 {
   if (narg == 1){
-    cutoff_global = force->numeric(FLERR,arg[0])
+    cutoff_global = force->numeric(FLERR,arg[0]);
   }
   else{
     cutoff_global = -1; //Will be set based on particle sizes, model choice
@@ -673,10 +673,10 @@ void PairGranularMulti::coeff(int narg, char **arg)
 {
   int normal_local, damping_local, tangential_local, roll_local, twist_local;
 
-  normal_coeffs_local = new double[4];
-  tangential_coeffs_local = new double[4];
-  roll_coeffs_local = new double[4];
-  twist_coeffs_local = new double[4];
+  double normal_coeffs_local[4];
+  double tangential_coeffs_local[4];
+  double roll_coeffs_local[4];
+  double twist_coeffs_local[4];
 
   if (narg < 2)
     error->all(FLERR,"Incorrect args for pair coefficients");
@@ -739,7 +739,7 @@ void PairGranularMulti::coeff(int narg, char **arg)
     }
     else if (strcmp(arg[iarg], "damp") == 0){
       if (iarg+1 >= narg) error->all(FLERR, "Illegal pair_coeff command, not enough parameters provided for damping model");
-      if (strcmp(arg[iarg+1]), "velocity") == 0){
+      if (strcmp(arg[iarg+1], "velocity") == 0){
         damping_local = VELOCITY;
         iarg += 1;
       }
@@ -787,9 +787,9 @@ void PairGranularMulti::coeff(int narg, char **arg)
         else{
           error->all(FLERR, "Illegal pair_coeff command, rolling friction model not recognized");
         }
-        roll_coeffs_local[0] = force->numeric(FLERR,arg[iarg+2]); //kt
-        roll_coeffs_local[1] = force->numeric(FLERR,arg[iarg+3]); //gammat
-        roll_coeffs_local[2] = force->numeric(FLERR,arg[iarg+4]); //friction coeff.
+        roll_coeffs_local[0] = force->numeric(FLERR,arg[iarg+2]); //kR
+        roll_coeffs_local[1] = force->numeric(FLERR,arg[iarg+3]); //gammaR
+        roll_coeffs_local[2] = force->numeric(FLERR,arg[iarg+4]); //rolling friction coeff.
         iarg += 5;
       }
     }
@@ -826,7 +826,7 @@ void PairGranularMulti::coeff(int narg, char **arg)
   }
 
   //It is an error not to specify normal or tangential model
-  if ((normal_set < 0) || (tangential_set < 0)) error->all(FLERR, "Illegal pair coeff command, must specify normal contact model");))
+  if ((normal_local < 0) || (tangential_local < 0)) error->all(FLERR, "Illegal pair coeff command, must specify normal contact model");
 
   int count = 0;
   double damp;

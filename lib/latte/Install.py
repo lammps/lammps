@@ -4,7 +4,7 @@
 # used to automate the steps described in the README file in this dir
 
 from __future__ import print_function
-import sys,os,re,subprocess,shutil
+import sys,os,re,subprocess,shutil,tarfile
 sys.path.append('..')
 from install_helpers import get_cpus,fullpath,geturl,checkmd5sum
 from argparse import ArgumentParser
@@ -46,13 +46,13 @@ make lib-latte args="-p $HOME/latte"   # use existing LATTE installation
 
 pgroup = parser.add_mutually_exclusive_group()
 pgroup.add_argument("-b", "--build", action="store_true",
-                    help="download and build the Eigen3 library")
+                    help="download and build the LATTE library")
 pgroup.add_argument("-p", "--path",
-                    help="specify folder of existing Eigen installation")
+                    help="specify folder of existing LATTE installation")
 parser.add_argument("-m", "--machine", choices=['gfortran','ifort','linalg','serial','mpi'],
                     help="suffix of a Makefile.lammps.* file used for linking LAMMPS with this library")
 parser.add_argument("-v", "--version", default=version,
-                    help="set version of Eigen to download and build (default: %s)" % version)
+                    help="set version of LATTE to download and build (default: %s)" % version)
 
 args = parser.parse_args()
 
@@ -79,7 +79,7 @@ homedir = "LATTE-%s" % version
 if buildflag:
   url = "https://github.com/lanl/LATTE/archive/v%s.tar.gz" % version
   lattepath = fullpath(homepath)
-  lattedir = "%s/%s" % (lattepath,homedir)
+  lattedir = os.path.join(lattepath,homedir)
 
 # download and unpack LATTE tarball
 
@@ -95,13 +95,14 @@ if buildflag:
   print("Unpacking LATTE ...")
   if os.path.exists(lattedir):
     shutil.rmtree(lattedir)
-  cmd = 'cd "%s"; tar zxvf LATTE.tar.gz' % lattepath
-  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  os.remove("%s/LATTE.tar.gz" % lattepath)
+  if tarfile.is_tarfile('LATTE.tar.gz'):
+    tgz = tarfile.open('LATTE.tar.gz')
+    tgz.extractall()
+    os.remove('LATTE.tar.gz')
+  else:
+    sys.exit("File LATTE.tar.gz is not a supported archive")
 
-# build LATTE
-
-if buildflag:
+  # build LATTE
   print("Building LATTE ...")
   cmd = 'cd "%s"; make' % lattedir
   try:
@@ -119,17 +120,14 @@ if os.path.isfile("liblink") or os.path.islink("liblink"):
   os.remove("liblink")
 if os.path.isfile("filelink.o") or os.path.islink("filelink.o"):
   os.remove("filelink.o")
-cmd = 'ln -s "%s/src" includelink' % lattedir
-subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-cmd = 'ln -s "%s" liblink' % lattedir
-subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-cmd = 'ln -s "%s/src/latte_c_bind.o" filelink.o' % lattedir
-subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+os.symlink(os.path.join(lattedir,'src'),'includelink')
+os.symlink(lattedir,'liblink')
+os.symlink(os.path.join(lattedir,'src','latte_c_bind.o'),'filelink.o')
 
 # copy Makefile.lammps.suffix to Makefile.lammps
 
 if suffixflag or not os.path.exists("Makefile.lammps"):
+  if suffix == None: suffix = 'gfortran'
   print("Creating Makefile.lammps")
   if os.path.exists("Makefile.lammps.%s" % suffix):
-    cmd = 'cp Makefile.lammps.%s Makefile.lammps' % suffix
-    subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+    shutil.copyfile("Makefile.lammps.%s" % suffix, 'Makefile.lammps')

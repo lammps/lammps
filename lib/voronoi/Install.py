@@ -4,7 +4,7 @@
 # used to automate the steps described in the README file in this dir
 
 from __future__ import print_function
-import sys,os,re,subprocess,shutil
+import sys,os,re,subprocess,shutil,tarfile
 sys.path.append('..')
 from install_helpers import get_cpus,fullpath,geturl,checkmd5sum
 from argparse import ArgumentParser
@@ -61,34 +61,37 @@ pathflag = args.path != None
 voropath = args.path
 
 homepath = fullpath(".")
-homedir = "%s/%s" % (homepath,version)
+homedir = os.path.join(homepath,version)
 
 if pathflag:
     if not os.path.isdir(voropath):
       sys.exit("Voro++ path %s does not exist" % voropath)
-    homedir = voropath
+    homedir = fullpath(voropath)
 
 # download and unpack Voro++ tarball
 
 if buildflag:
   print("Downloading Voro++ ...")
-  geturl(url,"%s/%s.tar.gz" % (homepath,version))
+  vorotar = os.path.join(homepath,version) + '.tar.gz'
+  geturl(url,vorotar)
 
   # verify downloaded archive integrity via md5 checksum, if known.
   if version in checksums:
-    if not checkmd5sum(checksums[version],'%s/%s.tar.gz' % (homepath,version)):
+    if not checkmd5sum(checksums[version],vorotar):
       sys.exit("Checksum for Voro++ library does not match")
 
   print("Unpacking Voro++ tarball ...")
-  if os.path.exists("%s/%s" % (homepath,version)):
-    shutil.rmtree("%s/%s" % (homepath,version))
-  cmd = 'cd "%s"; tar -xzvf %s.tar.gz' % (homepath,version)
-  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  os.remove("%s/%s.tar.gz" % (homepath,version))
+  srcpath = os.path.join(homepath,version)
+  if os.path.exists(srcpath): shutil.rmtree(srcpath)
+  if tarfile.is_tarfile(vorotar):
+    tgz = tarfile.open(vorotar)
+    tgz.extractall(path=homepath)
+    os.remove(vorotar)
+  else:
+    sys.exit("File %s is not a supported archive" % vorotar)
   if os.path.basename(homedir) != version:
-    if os.path.exists(homedir):
-      shutil.rmtree(homedir)
-    os.rename("%s/%s" % (homepath,version),homedir)
+    if os.path.exists(homedir): shutil.rmtree(homedir)
+    os.rename(srcpath,homedir)
 
 # build Voro++
 
@@ -109,7 +112,5 @@ if os.path.isfile("includelink") or os.path.islink("includelink"):
   os.remove("includelink")
 if os.path.isfile("liblink") or os.path.islink("liblink"):
   os.remove("liblink")
-cmd = 'ln -s "%s/src" includelink' % homedir
-subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-cmd = 'ln -s "%s/src" liblink' % homedir
-subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+os.symlink(os.path.join(homedir,'src'),'includelink')
+os.symlink(os.path.join(homedir,'src'),'liblink')

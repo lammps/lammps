@@ -4,7 +4,7 @@
 # used to automate the steps described in the README file in this dir
 
 from __future__ import print_function
-import sys,os,re,glob,subprocess,shutil
+import sys,os,re,glob,subprocess,shutil,tarfile
 sys.path.append('..')
 from install_helpers import fullpath,geturl,checkmd5sum
 from argparse import ArgumentParser
@@ -57,7 +57,7 @@ if args.build == False and not args.path:
   sys.exit(help)
 
 homepath = fullpath(".")
-eigenpath = "%s/eigen3" % homepath
+eigenpath = os.path.join(homepath,"eigen3")
 
 buildflag = args.build
 pathflag = args.path != None
@@ -73,29 +73,33 @@ if pathflag:
 
 if buildflag:
   print("Downloading Eigen ...")
+  eigentar = os.path.join(homepath,tarball)
   url = "http://bitbucket.org/eigen/eigen/get/%s.tar.gz" % version
-  geturl(url,"%s/%s" % (homepath,tarball))
+  geturl(url,eigentar)
 
   # verify downloaded archive integrity via md5 checksum, if known.
   if version in checksums:
     print("checking version %s\n" % version)
-    if not checkmd5sum(checksums[version],'%s/%s' % (homepath,tarball)):
+    if not checkmd5sum(checksums[version],eigentar):
       sys.exit("Checksum for Eigen library does not match")
 
 
   print("Cleaning up old folders ...")
-  edir = glob.glob("%s/eigen-eigen-*" % homepath)
+  edir = glob.glob(os.path.join(homepath,"eigen-eigen-*"))
   edir.append(eigenpath)
   for one in edir:
     if os.path.isdir(one):
       shutil.rmtree(one)
 
   print("Unpacking Eigen tarball ...")
-  cmd = 'cd "%s"; tar -xzvf %s' % (homepath,tarball)
-  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  edir = glob.glob("%s/eigen-eigen-*" % homepath)
+  if tarfile.is_tarfile(eigentar):
+    tgz = tarfile.open(eigentar)
+    tgz.extractall(path=homepath)
+    os.remove(eigentar)
+  else:
+    sys.exit("File %s is not a supported archive" % eigentar)
+  edir = glob.glob(os.path.join(homepath,"eigen-eigen-*"))
   os.rename(edir[0],eigenpath)
-  os.remove(tarball)
 
 # create link in lib/smd to Eigen src dir
 
@@ -103,5 +107,4 @@ print("Creating link to Eigen include folder")
 if os.path.isfile("includelink") or os.path.islink("includelink"):
   os.remove("includelink")
 linkdir = eigenpath
-cmd = 'ln -s "%s" includelink' % linkdir
-subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+os.symlink(linkdir,'includelink')

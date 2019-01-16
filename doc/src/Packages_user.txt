@@ -75,7 +75,8 @@ Package, Description, Doc page, Example, Library
 "USER-SPH"_Packages_details.html#PKG-USER-SPH, smoothed particle hydrodynamics,"SPH User Guide"_PDF/SPH_LAMMPS_userguide.pdf, USER/sph, no
 "USER-TALLY"_Packages_details.html#PKG-USER-TALLY, pairwise tally computes,"compute XXX/tally"_compute_tally.html, USER/tally, no
 "USER-UEF"_Packages_details.html#PKG-USER-UEF, extensional flow,"fix nvt/uef"_fix_nh_uef.html, USER/uef, no
-"USER-VTK"_Packages_details.html#PKG-USER-VTK, dump output via VTK, "compute vtk"_dump_vtk.html, n/a, ext :tb(ea=c,ca1=l)
+"USER-VTK"_Packages_details.html#PKG-USER-VTK, dump output via VTK, "compute vtk"_dump_vtk.html, n/a, ext
+"USER-YAFF"_Packages_details.html#PKG-USER-YAFF, additional styles implemented in YAFF, "angle_style cross"_angle_cross.html, USER/yaff, no :tb(ea=c,ca1=l)
 
 :link(MOFplus,https://www.mofplus.org/content/show/MOF-FF)
 :link(PLUMED,http://www.plumed.org)

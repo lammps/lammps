@@ -78,11 +78,13 @@ more of (g,i,k,o,t) to indicate which accelerated styles exist.
 "cossq"_improper_cossq.html - improper with a cosine squared term
 "cvff"_improper_cvff.html - CVFF improper
 "distance"_improper_distance.html - improper based on distance between atom planes
+"distharm"_improper_distharm.html - improper that is harmonic in the out-of-plane distance
 "fourier"_improper_fourier.html - improper with multiple cosine terms
 "harmonic"_improper_harmonic.html - harmonic improper
 "inversion/harmonic"_improper_inversion_harmonic.html - harmonic improper with Wilson-Decius out-of-plane definition
 "ring"_improper_ring.html - improper which prevents planar conformations
 "umbrella"_improper_umbrella.html - DREIDING improper :ul
+"sqdistharm"_improper_sqdistharm.html - improper that is harmonic in the square of the out-of-plane distance
 
 :line
 

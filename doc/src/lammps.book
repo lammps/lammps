@@ -687,11 +687,13 @@ angle_cosine_periodic.html
 angle_cosine_shift.html
 angle_cosine_shift_exp.html
 angle_cosine_squared.html
+angle_cross.html
 angle_dipole.html
 angle_fourier.html
 angle_fourier_simple.html
 angle_harmonic.html
 angle_hybrid.html
+angle_mm3.html
 angle_none.html
 angle_quartic.html
 angle_sdk.html
@@ -725,6 +727,7 @@ improper_class2.html
 improper_cossq.html
 improper_cvff.html
 improper_distance.html
+improper_distharm.html
 improper_fourier.html
 improper_harmonic.html
 improper_hybrid.html
@@ -732,6 +735,7 @@ improper_inversion_harmonic.html
 improper_none.html
 improper_ring.html
 improper_umbrella.html
+improper_sqdistharm.html
 improper_zero.html
 
 lammps_commands_kspace.html

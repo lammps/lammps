@@ -154,6 +154,7 @@ OPT.
 "lj/sf/dipole/sf (go)"_pair_dipole.html,
 "lj/smooth (o)"_pair_lj_smooth.html,
 "lj/smooth/linear (o)"_pair_lj_smooth_linear.html,
+"lj/switch3/coulgauss/long"_pair_lj_switch3_coulgauss.html,
 "lj96/cut (go)"_pair_lj96.html,
 "lubricate (o)"_pair_lubricate.html,
 "lubricate/poly (o)"_pair_lubricate.html,

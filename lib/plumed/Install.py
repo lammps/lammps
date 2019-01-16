@@ -93,7 +93,7 @@ if buildflag:
     shutil.rmtree(homedir)
   cmd = 'cd "%s"; tar -xzvf %s' % (homepath,filename)
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  os.remove("%s/%s" % (homepath,filename))
+  os.remove(os.path.join(homepath,filename))
 
   # build plumed
   print("Building plumed ...")
@@ -113,12 +113,20 @@ if os.path.isfile("includelink") or os.path.islink("includelink"):
   os.remove("includelink")
 if os.path.isfile("liblink") or os.path.islink("liblink"):
   os.remove("liblink")
-cmd = 'ln -s "%s/include" includelink' % homedir
-subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-cmd = 'ln -s "%s/lib" liblink' % homedir
-subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+os.symlink(os.path.join(homedir,'include'),'includelink')
+libpath=os.path.join(homedir,'lib64')
+if no os.path.exists(libpath): libpath=os.path.join(homedir,'lib')
+os.symlink(libpath,'liblink')
 if os.path.isfile("Makefile.lammps.%s" % mode):
   print("Creating Makefile.lammps")
-  cmd = 'echo PLUMED_LIBDIR="%s/lib" > Makefile.lammps; cat liblink/plumed/src/lib/Plumed.inc.%s Makefile.lammps.%s >> Makefile.lammps' % (homedir,mode,mode)
-  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+  plumedinc = os.path.join('liblink','plumed','src','lib','Plumed.inc.' + mode)
+  lines1 = open(plumedinc,'r').readlines()
+  lines2 = open("Makefile.lammps.%s" % mode,'r').readlines()
+  fp open("Makefile.lammps",'w')
+  fp.write(os.path.join("PLUMED_LIBDIR=",homedir,"lib\n"))
+  for line in lines1:
+    fp.write(line)
+  for line in lines2:
+    fp.write(line)
+  fp.close()
 

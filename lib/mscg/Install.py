@@ -4,7 +4,7 @@
 # used to automate the steps described in the README file in this dir
 
 from __future__ import print_function
-import sys,os,re,subprocess,shutil
+import sys,os,re,subprocess,shutil,tarfile
 sys.path.append('..')
 from install_helpers import get_cpus,fullpath,get_cpus,geturl
 
@@ -70,7 +70,7 @@ tarfile = "MS-CG-%s.tar.gz" % mscgver
 tardir = "MSCG-release-%s" % mscgver
 
 homepath = fullpath('.')
-homedir = "%s/%s" % (homepath,tardir)
+homedir = os.path.join(homepath,tardir)
 
 if pathflag:
     if not os.path.isdir(mscgpath):
@@ -81,7 +81,7 @@ if pathflag:
 
 if buildflag:
   print("Downloading MS-CG ...")
-  geturl(url,"%s/%s" % (homepath,tarfile))
+  geturl(url,os.path.join(homepath,tarfile))
 
   print("Unpacking MS-CG tarfile ...")
   if os.path.exists("%s/%s" % (homepath,tardir)):
@@ -116,10 +116,9 @@ if buildflag:
   if not os.path.exists("Makefile.lammps"):
     print("Creating Makefile.lammps")
     if os.path.exists("Makefile.lammps.%s" % msuffix):
-      cmd = 'cp Makefile.lammps.%s Makefile.lammps' % msuffix
+      shutil.copyfile('Makefile.lammps.%s' % msuffix,'Makefile.lammps')
     else:
-      cmd = 'cp Makefile.lammps.default Makefile.lammps'
-    subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+      shutil.copyfile('Makefile.lammps.default','Makefile.lammps')
   else: print("Makefile.lammps exists. Please check its settings")
 
 # create 2 links in lib/mscg to MS-CG src dir
@@ -129,7 +128,5 @@ if os.path.isfile("includelink") or os.path.islink("includelink"):
   os.remove("includelink")
 if os.path.isfile("liblink") or os.path.islink("liblink"):
   os.remove("liblink")
-cmd = 'ln -s "%s/src" includelink' % homedir
-subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-cmd = 'ln -s "%s/src" liblink' % homedir
-subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+os.symlink(os.path.join(homedir,'src'),'includelink')
+os.symlink(os.path.join(homedir,'src'),'liblink')

@@ -356,7 +356,7 @@ fix_qeq_comb.html
 fix_qeq_reax.html
 fix_qmmm.html
 fix_qtb.html
-fix_reax_bonds.html
+fix_reaxc_bonds.html
 fix_reaxc_species.html
 fix_recenter.html
 fix_restrain.html
@@ -585,6 +585,7 @@ pair_kim.html
 pair_kolmogorov_crespi_full.html
 pair_kolmogorov_crespi_z.html
 pair_lcbop.html
+pair_lebedeva_z.html
 pair_line_lj.html
 pair_list.html
 pair_lj.html
@@ -598,7 +599,7 @@ pair_lj_soft.html
 pair_lubricate.html
 pair_lubricateU.html
 pair_mdf.html
-pair_meam.html
+pair_meamc.html
 pair_meam_spline.html
 pair_meam_sw_spline.html
 pair_meso.html
@@ -617,7 +618,6 @@ pair_peri.html
 pair_polymorphic.html
 pair_python.html
 pair_quip.html
-pair_reax.html
 pair_reaxc.html
 pair_resquared.html
 pair_sdk.html

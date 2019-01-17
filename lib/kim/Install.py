@@ -4,7 +4,9 @@
 # used to automate the steps described in the README file in this dir
 
 from __future__ import print_function
-import sys,os,re,subprocess
+import sys,os,re,subprocess,shutil
+sys.path.append('..')
+from install_helpers import error,fullpath,which,geturl
 
 # help message
 
@@ -51,64 +53,13 @@ https://openkim.org/kim-api
 in the "What is in the KIM API source package?" section
 """
 
-def error(str=None):
-  if not str: print(help)
-  else: print("ERROR",str)
-  sys.exit()
-
-# expand to full path name
-# process leading '~' or relative path
-
-def fullpath(path):
-  return os.path.abspath(os.path.expanduser(path))
-
-def which(program):
-  def is_exe(fpath):
-    return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
-
-  fpath, fname = os.path.split(program)
-  if fpath:
-    if is_exe(program):
-      return program
-  else:
-    for path in os.environ["PATH"].split(os.pathsep):
-      path = path.strip('"')
-      exe_file = os.path.join(path, program)
-      if is_exe(exe_file):
-        return exe_file
-
-  return None
-
-def geturl(url,fname):
-  success = False
-
-  if which('curl') != None:
-    cmd = 'curl -L -o "%s" %s' % (fname,url)
-    try:
-      subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-      success = True
-    except subprocess.CalledProcessError as e:
-      print("Calling curl failed with: %s" % e.output.decode('UTF-8'))
-
-  if not success and which('wget') != None:
-    cmd = 'wget -O "%s" %s' % (fname,url)
-    try:
-      subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-      success = True
-    except subprocess.CalledProcessError as e:
-      print("Calling wget failed with: %s" % e.output.decode('UTF-8'))
-
-  if not success:
-    error("Failed to download source code with 'curl' or 'wget'")
-  return
-
 # parse args
 
 args = sys.argv[1:]
 nargs = len(args)
-if nargs == 0: error()
+if nargs == 0: error(help=help)
 
-thisdir = os.environ['PWD']
+thisdir = fullpath('.')
 version = "kim-api-v2-2.0.0-beta.3"
 
 buildflag = False
@@ -120,7 +71,7 @@ pathflag = False
 iarg = 0
 while iarg < len(args):
   if args[iarg] == "-v":
-    if iarg+2 > len(args): error()
+    if iarg+2 > len(args): error(help=help)
     version = args[iarg+1]
     iarg += 2
   elif args[iarg] == "-b":
@@ -130,14 +81,14 @@ while iarg < len(args):
     buildflag = False
     iarg += 1
   elif args[iarg] == "-p":
-    if iarg+2 > len(args): error()
+    if iarg+2 > len(args): error(help=help)
     kimdir = fullpath(args[iarg+1])
     pathflag = True
     buildflag = False
     iarg += 2
   elif args[iarg] == "-a":
     addflag = True
-    if iarg+2 > len(args): error()
+    if iarg+2 > len(args): error(help=help)
     addmodelname = args[iarg+1]
     if addmodelname == "everything":
       buildflag = True
@@ -147,9 +98,8 @@ while iarg < len(args):
   elif args[iarg] == "-vv":
     verboseflag = True
     iarg += 1
-  else: error()
+  else: error(help=help)
 
-thisdir = os.path.abspath(thisdir)
 url = "https://s3.openkim.org/kim-api/%s.txz" % version
 
 # set KIM API directory
@@ -157,7 +107,7 @@ url = "https://s3.openkim.org/kim-api/%s.txz" % version
 if pathflag:
   if not os.path.isdir(kimdir):
     print("\nkim-api is not installed at %s" % kimdir)
-    error()
+    error(help=help)
 
   # configure LAMMPS to use existing kim-api installation
   with open("%s/kim-prefix.txt" % thisdir, 'w') as pffile:
@@ -174,8 +124,7 @@ if buildflag:
 
   if os.path.isdir(kimdir):
     print("kim-api is already installed at %s.\nRemoving it for re-install" % kimdir)
-    cmd = 'rm -rf "%s"' % kimdir
-    subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+    shutil.rmtree(kimdir)
 
   # configure LAMMPS to use kim-api to be installed
 
@@ -235,7 +184,7 @@ if addflag:
 
   if not os.path.isdir(kimdir):
     print("\nkim-api is not installed")
-    error()
+    error(help=help)
 
   # download single model
   cmd = '%s/bin/kim-api-v2-collections-management install system %s' % (kimdir.decode("UTF-8"), addmodelname)

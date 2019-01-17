@@ -108,9 +108,13 @@ your contribution(s) to be added to main LAMMPS code or one of its
 standard packages, it needs to be written in a style compatible with
 other LAMMPS source files. This means: 2-character indentation per
 level, [no tabs], no lines over 80 characters. I/O is done via
-the C-style stdio library, class header files should not import any
-system headers outside <stdio.h>, STL containers should be avoided
-in headers, and forward declarations used where possible or needed.
+the C-style stdio library (mixing of stdio and iostreams is generally
+discouraged), class header files should not import any system headers
+outside of <cstdio>, STL containers should be avoided in headers,
+system header from the C library should use the C++-style names
+(<cstdlib>, <cstdio>, or <cstring>) instead of the C-style names
+<stdlib.h>, <stdio.h>, or <string.h>), and forward declarations
+used where possible or needed to avoid including headers.
 All added code should be placed into the LAMMPS_NS namespace or a
 sub-namespace; global or static variables should be avoided, as they
 conflict with the modular nature of LAMMPS and the C++ class structure.

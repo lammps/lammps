@@ -6,34 +6,8 @@
 
 from __future__ import print_function
 import sys,os,subprocess
-
-# help message
-
-help = """
-Syntax from src dir: make lib-libname args="-m machine -e suffix"
-Syntax from lib dir: python Install.py -m machine -e suffix
-
-libname = name of lib dir (e.g. atc, h5md, meam, poems, etc)
-specify -m and optionally -e, order does not matter
-
-  -m = peform a clean followed by "make -f Makefile.machine"
-       machine = suffix of a lib/Makefile.* file
-  -e = set EXTRAMAKE variable in Makefile.machine to Makefile.lammps.suffix
-       does not alter existing Makefile.machine
-
-Examples:
-
-make lib-poems args="-m serial" # build POEMS lib with same settings as in the serial Makefile in src
-make lib-colvars args="-m mpi"  # build USER-COLVARS lib with same settings as in the mpi Makefile in src
-make lib-meam args="-m ifort"   # build MEAM lib with custom Makefile.ifort (using Intel Fortran)
-"""
-
-# print error message or help
-
-def error(str=None):
-  if not str: print(help)
-  else: print("ERROR",str)
-  sys.exit()
+sys.path.append('..')
+from install_helpers import error,get_cpus
 
 # parse args
 
@@ -83,17 +57,16 @@ for line in lines:
 fp.close()
 
 # make the library via Makefile.auto optionally with parallel make
-
-try:
-  import multiprocessing
-  n_cpus = multiprocessing.cpu_count()
-except:
-  n_cpus = 1
+n_cpus = get_cpus()
 
 print("Building lib%s.a ..." % lib)
 cmd = "make -f Makefile.auto clean; make -f Makefile.auto -j%d" % n_cpus
-txt = subprocess.check_output(cmd,shell=True,stderr=subprocess.STDOUT)
-print(txt.decode('UTF-8'))
+try:
+  txt = subprocess.check_output(cmd,shell=True,stderr=subprocess.STDOUT)
+  print(txt.decode('UTF-8'))
+except subprocess.CalledProcessError as e:
+    print("Make failed with:\n %s" % e.output.decode('UTF-8'))
+    sys.exit(1)
 
 if os.path.exists("lib%s.a" % lib): print("Build was successful")
 else: error("Build of lib/%s/lib%s.a was NOT successful" % (lib,lib))

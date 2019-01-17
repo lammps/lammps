@@ -45,7 +45,6 @@ as contained in the file name.
 "LATTE"_#PKG-LATTE,
 "MANYBODY"_#PKG-MANYBODY,
 "MC"_#PKG-MC,
-"MEAM"_#PKG-MEAM,
 "MESSAGE"_#PKG-MESSAGE,
 "MISC"_#PKG-MISC,
 "MOLECULE"_#PKG-MOLECULE,
@@ -56,7 +55,6 @@ as contained in the file name.
 "POEMS"_#PKG-POEMS,
 "PYTHON"_#PKG-PYTHON,
 "QEQ"_#PKG-QEQ,
-"REAX"_#PKG-REAX,
 "REPLICA"_#PKG-REPLICA2,
 "RIGID"_#PKG-RIGID,
 "SHOCK"_#PKG-SHOCK,
@@ -532,37 +530,6 @@ http://lammps.sandia.gov/movies.html#gcmc :ul
 
 :line
 
-MEAM package :link(PKG-MEAM),h4
-
-[Contents:]
-
-A pair style for the modified embedded atom (MEAM) potential.
-
-Please note that the use of the MEAM package is discouraged as
-it has been superseded by the "USER-MEAMC"_#PKG-USER-MEAMC package,
-which is a direct translation of the MEAM package to C++.
-USER-MEAMC contains additional optimizations making it run faster
-than MEAM on most machines, while providing the identical features
-and user interface.
-
-[Author:] Greg Wagner (Northwestern U) while at Sandia.
-
-[Install:]
-
-This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
-extras"_Build_extras.html doc page.
-
-[Supporting info:]
-
-src/MEAM: filenames -> commands
-src/meam/README
-lib/meam/README
-"pair_style meam"_pair_meam.html
-examples/meam :ul
-
-:line
-
 MESSAGE package :link(PKG-MESSAGE),h4
 
 [Contents:]
@@ -830,38 +797,6 @@ src/QEQ: filenames -> commands
 "fix qeq/*"_fix_qeq.html
 examples/qeq
 examples/streitz :ul
-
-:line
-
-REAX package :link(PKG-REAX),h4
-
-[Contents:]
-
-NOTE: the use of the REAX package is discouraged, as it is no longer
-maintained. Please use the "USER-REAXC"_#PKG-USER-REAXC package instead,
-and possibly the KOKKOS enabled variant of that, which has a more robust
-memory management.
-
-A pair style which wraps a Fortran library which implements the ReaxFF
-potential, which is a universal reactive force field.  Also included is
-a "fix reax/bonds"_fix_reax_bonds.html command for monitoring molecules
-as bonds are created and destroyed.
-
-[Author:] Aidan Thompson (Sandia).
-
-[Install:]
-
-This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
-extras"_Build_extras.html doc page.
-
-[Supporting info:]
-
-src/REAX: filenames -> commands
-lib/reax/README
-"pair_style reax"_pair_reax.html
-"fix reax/bonds"_fix_reax_bonds.html
-examples/reax :ul
 
 :line
 
@@ -1551,10 +1486,9 @@ USER-MEAMC package :link(PKG-USER-MEAMC),h4
 [Contents:]
 
 A pair style for the modified embedded atom (MEAM) potential
-translated from the Fortran version in the "MEAM"_#PKG-MEAM package
-to plain C++. In contrast to the MEAM package, no library
-needs to be compiled and the pair style can be instantiated
-multiple times.
+translated from the Fortran version in the (obsolete) "MEAM" package
+to plain C++. The USER-MEAMC fully replaces the MEAM package, which
+has been removed from LAMMPS after the 12 December 2018 version.
 
 [Author:] Sebastian Huetter, (Otto-von-Guericke University Magdeburg)
 based on the Fortran version of Greg Wagner (Northwestern U) while at
@@ -1564,8 +1498,8 @@ Sandia.
 
 src/USER-MEAMC: filenames -> commands
 src/USER-MEAMC/README
-"pair_style meam/c"_pair_meam.html
-examples/meam :ul
+"pair_style meam/c"_pair_meamc.html
+examples/meamc :ul
 
 :line
 
@@ -1893,9 +1827,8 @@ USER-REAXC package :link(PKG-USER-REAXC),h4
 
 [Contents:]
 
-A pair style which implements the ReaxFF potential in C/C++ (in
-contrast to the "REAX package"_#PKG-REAX and its Fortran library).  ReaxFF
-is universal reactive force field.  See the src/USER-REAXC/README file
+A pair style which implements the ReaxFF potential in C/C++.  ReaxFF
+is a universal reactive force field.  See the src/USER-REAXC/README file
 for more info on differences between the two packages.  Also two fixes
 for monitoring molecules as bonds are created and destroyed.
 
@@ -1906,7 +1839,7 @@ for monitoring molecules as bonds are created and destroyed.
 src/USER-REAXC: filenames -> commands
 src/USER-REAXC/README
 "pair_style reax/c"_pair_reaxc.html
-"fix reax/c/bonds"_fix_reax_bonds.html
+"fix reax/c/bonds"_fix_reaxc_bonds.html
 "fix reax/c/species"_fix_reaxc_species.html
 examples/reax :ul
 

@@ -36,7 +36,6 @@ This is the list of packages that may require additional steps.
 "OPT"_#opt,
 "POEMS"_#poems,
 "PYTHON"_#python,
-"REAX"_#reax,
 "VORONOI"_#voronoi,
 "USER-ATC"_#user-atc,
 "USER-AWPMD"_#user-awpmd,
@@ -529,45 +528,6 @@ The build uses the lib/python/Makefile.lammps file in the compile/link
 process to find Python.  You should only need to create a new
 Makefile.lammps.* file (and copy it to Makefile.lammps) if the LAMMPS
 build fails.
-
-:line
-
-REAX package :h4,link(reax)
-
-NOTE: the use of the REAX package and its "pair_style
-reax"_pair_reax.html command is discouraged, as it is no longer
-maintained.  Please use the USER-REAXC package and its "pair_style
-reax/c"_pair_reaxc.html command instead, and possibly its KOKKOS
-enabled variant (pair_style reax/c/kk), which has a more robust memory
-management.  See the "pair_style reax/c"_pair_reaxc.html doc page for
-details.
-
-[CMake build]:
-
-No additional settings are needed besides "-D PKG_REAX=yes".
-
-[Traditional make]:
-
-Before building LAMMPS, you must build the REAX library in lib/reax.
-You can do this manually if you prefer; follow the instructions in
-lib/reax/README.  You can also do it in one step from the lammps/src
-dir, using a command like these, which simply invoke the
-lib/reax/Install.py script with the specified args:
-
-make lib-reax                    # print help message
-make lib-reax args="-m serial"   # build with GNU Fortran compiler (settings as with "make serial")
-make lib-reax args="-m mpi"      # build with default MPI Fortran compiler (settings as with "make mpi")
-make lib-reax args="-m ifort"    # build with Intel ifort compiler :pre
-
-The build should produce two files: lib/reax/libreax.a and
-lib/reax/Makefile.lammps.  The latter is copied from an existing
-Makefile.lammps.* and has settings needed to link C++ (LAMMPS) with
-Fortran (REAX library).  Typically the two compilers used for LAMMPS
-and the REAX library need to be consistent (e.g. both Intel or both
-GNU compilers).  If necessary, you can edit/create a new
-lib/reax/Makefile.machine file for your system, which should define an
-EXTRAMAKE variable to specify a corresponding Makefile.lammps.machine
-file.
 
 :line
 

@@ -174,11 +174,9 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (need_dup) {
     dup_f     = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(f);
     dup_vatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_vatom);
-    dup_eatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_eatom);
   } else {
     ndup_f     = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(f);
     ndup_vatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_vatom);
-    ndup_eatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_eatom);
   }
 
   /*
@@ -258,10 +256,7 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
 
-
   if (eflag_atom) {
-    if (need_dup)
-      Kokkos::Experimental::contribute(d_eatom, dup_eatom);
     k_eatom.template modify<DeviceType>();
     k_eatom.template sync<LMPHostType>();
   }
@@ -281,7 +276,6 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (need_dup) {
     dup_f     = decltype(dup_f)();
     dup_vatom = decltype(dup_vatom)();
-    dup_eatom = decltype(dup_eatom)();
   }
 }
 
@@ -578,11 +572,13 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAP<NEIGHFLAG,EVFLAG>,const
 
       Kokkos::single(Kokkos::PerTeam(team), [&] () {
 
-      // evdwl = energy of atom I, sum over coeffs_k * Bi_k
+        // evdwl = energy of atom I, sum over coeffs_k * Bi_k
 
-      double evdwl = d_coeffi[0];
+        double evdwl = d_coeffi[0];
 
-      // linear contributions
+        // linear contributions
+        // could use thread vector range on this loop
+
         for (int k = 1; k <= ncoeff; k++)
           evdwl += d_coeffi[k]*my_sna.bvec[k-1];
 
@@ -598,17 +594,10 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAP<NEIGHFLAG,EVFLAG>,const
             }
           }
         }
-//        ev_tally_full(i,2.0*evdwl,0.0,0.0,0.0,0.0,0.0);
-        if (eflag_either) {
-          if (eflag_global) ev.evdwl += evdwl;
-          if (eflag_atom) {
-            // The eatom array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
-            
-            auto v_eatom = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_eatom),decltype(ndup_eatom)>::get(dup_eatom,ndup_eatom);
-            auto a_eatom = v_eatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
-            a_eatom[i] += evdwl;
-          }
-        }
+
+        //ev_tally_full(i,2.0*evdwl,0.0,0.0,0.0,0.0,0.0);
+        if (eflag_global) ev.evdwl += evdwl;
+        if (eflag_atom) d_eatom[i] += evdwl;
       });
     }
   }

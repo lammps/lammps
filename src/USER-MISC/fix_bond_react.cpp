@@ -162,6 +162,8 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   memory->create(reacted_mol,nreacts,"bond/react:reacted_mol");
   memory->create(fraction,nreacts,"bond/react:fraction");
   memory->create(max_rxn,nreacts,"bond/react:max_rxn");
+  memory->create(nlocalskips,nreacts,"bond/react:nlocalskips");
+  memory->create(nghostlyskips,nreacts,"bond/react:nghostlyskips");
   memory->create(seed,nreacts,"bond/react:seed");
   memory->create(limit_duration,nreacts,"bond/react:limit_duration");
   memory->create(stabilize_steps_flag,nreacts,"bond/react:stabilize_steps_flag");
@@ -180,7 +182,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   for (int i = 0; i < nreacts; i++) {
     fraction[i] = 1;
     seed[i] = 12345;
-    max_rxn[i] = BIG;
+    max_rxn[i] = INT_MAX;
     stabilize_steps_flag[i] = 0;
     update_edges_flag[i] = 0;
     // set default limit duration to 60 timesteps
@@ -413,6 +415,8 @@ FixBondReact::~FixBondReact()
   memory->destroy(fraction);
   memory->destroy(seed);
   memory->destroy(max_rxn);
+  memory->destroy(nlocalskips);
+  memory->destroy(nghostlyskips);
   memory->destroy(limit_duration);
   memory->destroy(stabilize_steps_flag);
   memory->destroy(update_edges_flag);
@@ -684,6 +688,8 @@ void FixBondReact::post_integrate()
     reaction_count[i] = 0;
     local_rxn_count[i] = 0;
     ghostly_rxn_count[i] = 0;
+    nlocalskips[i] = 0;
+    nghostlyskips[i] = 0;
   }
 
   if (nevery_check) {
@@ -1153,15 +1159,43 @@ void FixBondReact::superimpose_algorithm()
 
   MPI_Allreduce(&local_rxn_count[0],&reaction_count[0],nreacts,MPI_INT,MPI_SUM,world);
 
-  for (int i = 0; i < nreacts; i++)
-    reaction_count_total[i] += reaction_count[i];
-
   if (me == 0)
     for (int i = 0; i < nreacts; i++)
-      reaction_count_total[i] += ghostly_rxn_count[i];
+      reaction_count_total[i] += reaction_count[i] + ghostly_rxn_count[i];
 
-  //  bcast ghostly_rxn_count
   MPI_Bcast(&reaction_count_total[0], nreacts, MPI_INT, 0, world);
+
+  // check if we overstepped our reaction limit
+  for (int i = 0; i < nreacts; i++) {
+    if (reaction_count_total[i] > max_rxn[i]) {
+      // let's randomly choose rxns to skip, unbiasedly from local and ghostly
+      int local_rxncounts[nprocs];
+      int all_localskips[nprocs];
+      MPI_Gather(&local_rxn_count[i],1,MPI_INT,local_rxncounts,1,MPI_INT,0,world);
+      if (me == 0) {
+        int overstep = reaction_count_total[i] - max_rxn[i];
+        int delta_rxn = reaction_count[i] + ghostly_rxn_count[i];
+        int rxn_by_proc[delta_rxn];
+        for (int j = 0; j < delta_rxn; j++)
+          rxn_by_proc[j] = -1; // corresponds to ghostly
+        int itemp = 0;
+        for (int j = 0; j < nprocs; j++)
+          for (int k = 0; k < local_rxn_count[j]; k++)
+            rxn_by_proc[itemp++] = j;
+        std::random_shuffle(&rxn_by_proc[0],&rxn_by_proc[delta_rxn]);
+        for (int j = 0; j < nprocs; j++)
+          all_localskips[j] = 0;
+        nghostlyskips[i] = 0;
+        for (int j = 0; j < overstep; j++) {
+          if (rxn_by_proc[j] == -1) nghostlyskips[i]++;
+          else all_localskips[rxn_by_proc[j]]++;
+        }
+      }
+      reaction_count_total[i] = max_rxn[i];
+      MPI_Scatter(&all_localskips[0],1,MPI_INT,&nlocalskips[i],1,MPI_INT,0,world);
+      MPI_Bcast(&nghostlyskips[i],1,MPI_INT,0,world);
+    }
+  }
 
   // this updates topology next step
   next_reneighbor = update->ntimestep;
@@ -1957,19 +1991,19 @@ void FixBondReact::glove_ghostcheck()
   // 'ghosts of another' indication taken from comm->sendlist
 
   int ghostly = 0;
-  if (comm->style == 0) {
-    for (int i = 0; i < onemol->natoms; i++) {
-      int ilocal = atom->map(glove[i][1]);
-      if (ilocal >= atom->nlocal || localsendlist[ilocal] == 1) {
-        ghostly = 1;
-        break;
+  #if !defined(MPI_STUBS)
+    if (comm->style == 0) {
+      for (int i = 0; i < onemol->natoms; i++) {
+        int ilocal = atom->map(glove[i][1]);
+        if (ilocal >= atom->nlocal || localsendlist[ilocal] == 1) {
+          ghostly = 1;
+          break;
+        }
       }
-    }
-  } else {
-    #if !defined(MPI_STUBS)
+    } else {
       ghostly = 1;
-    #endif
-  }
+    }
+  #endif
 
   if (ghostly == 1) {
     ghostly_mega_glove[0][ghostly_num_mega] = rxnID;
@@ -2104,18 +2138,26 @@ void FixBondReact::update_everything()
   memory->create(update_mega_glove,max_natoms+1,MAX(local_num_mega,global_megasize),"bond/react:update_mega_glove");
 
   for (int pass = 0; pass < 2; pass++) {
-
+    update_num_mega = 0;
+    int iskip[nreacts];
+    for (int i = 0; i < nreacts; i++) iskip[i] = 0;
     if (pass == 0) {
-      update_num_mega = local_num_mega;
-      for (int i = 0; i < update_num_mega; i++) {
+      for (int i = 0; i < local_num_mega; i++) {
+        rxnID = local_mega_glove[0][i];
+        // reactions already shuffled from dedup procedure, so can skip first N
+        if (iskip[rxnID]++ < nlocalskips[rxnID]) continue;
         for (int j = 0; j < max_natoms+1; j++)
-          update_mega_glove[j][i] = local_mega_glove[j][i];
+          update_mega_glove[j][update_num_mega] = local_mega_glove[j][i];
+        update_num_mega++;
       }
     } else if (pass == 1) {
-      update_num_mega = global_megasize;
       for (int i = 0; i < global_megasize; i++) {
+        rxnID = global_mega_glove[0][i];
+        // reactions already shuffled from dedup procedure, so can skip first N
+        if (iskip[rxnID]++ < nghostlyskips[rxnID]) continue;
         for (int j = 0; j < max_natoms+1; j++)
-          update_mega_glove[j][i] = global_mega_glove[j][i];
+          update_mega_glove[j][update_num_mega] = global_mega_glove[j][i];
+        update_num_mega++;
       }
     }
 

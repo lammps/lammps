@@ -122,7 +122,7 @@ if os.path.isfile("Makefile.lammps.%s" % mode):
   plumedinc = os.path.join('liblink','plumed','src','lib','Plumed.inc.' + mode)
   lines1 = open(plumedinc,'r').readlines()
   lines2 = open("Makefile.lammps.%s" % mode,'r').readlines()
-  fp open("Makefile.lammps",'w')
+  fp = open("Makefile.lammps",'w')
   fp.write(os.path.join("PLUMED_LIBDIR=",homedir,"lib\n"))
   for line in lines1:
     fp.write(line)

@@ -986,7 +986,7 @@ class PyLammps(object):
       elif line.startswith("Dihedrals"):
         parts = self._split_values(line)
         system['ndihedrals'] = int(self._get_pair(parts[0])[1])
-        system['nangletypes'] = int(self._get_pair(parts[1])[1])
+        system['ndihedraltypes'] = int(self._get_pair(parts[1])[1])
         system['dihedral_style'] = self._get_pair(parts[2])[1]
       elif line.startswith("Impropers"):
         parts = self._split_values(line)

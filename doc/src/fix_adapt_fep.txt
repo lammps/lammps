@@ -116,15 +116,21 @@ styles and their energy formulas for the meaning of these parameters:
 "buck"_pair_buck.html: a,c: type pairs:
 "buck/mdf"_pair_mdf.html: a,c: type pairs:
 "coul/cut"_pair_coul.html: scale: type pairs:
+"coul/cut/soft"_pair_lj_soft.html: lambda: type pairs:
 "coul/debye"_pair_coul.html: scale: type pairs:
+"coul/dsf"_pair_coul.html: coulombic_cutoff: type pairs:
 "coul/long"_pair_coul.html: scale: type pairs:
+"eam, eam/alloy, eam/fs"_pair_eam.html: scale: type pairs:
 "gauss"_pair_gauss.html: a: type pairs:
 "lennard/mdf"_pair_mdf.html: A,B: type pairs:
 "lj/class2"_pair_class2.html: epsilon,sigma: type pairs:
 "lj/class2/coul/cut"_pair_class2.html: epsilon,sigma,coulombic_cutoff: type pairs:
 "lj/cut"_pair_lj.html: epsilon,sigma: type pairs:
+"lj/cut/coul/cut"_pair_lj.html: epsilon,sigma,coulombic_cutoff: type pairs:
+"lj/cut/soft"_pair_lj_soft.html: epsilon,sigma,lambda: type pairs:
 "lj/expand"_pair_lj_expand.html: epsilon,sigma,delta: type pairs:
 "lj/mdf"_pair_mdf.html: epsilon,sigma: type pairs:
+"lj/sf/dipole/sf"_pair_dipole.html: epsilon,sigma,scale: type pairs:
 "lubricate"_pair_lubricate.html: mu: global:
 "mie/cut"_pair_mie.html: epsilon,sigma,gamma_repulsive,gamma_attractive: type pairs:
 "morse"_pair_morse.html: D0,R0,alpha: type pairs:

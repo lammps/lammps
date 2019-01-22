@@ -29,6 +29,7 @@ src/USER-MEAMC/*      @martok
 src/USER-MOFFF/*      @hheenen
 src/USER-MOLFILE/*    @akohlmey
 src/USER-NETCDF/*     @pastewka
+src/USER-PLUMED/*     @gtribello
 src/USER-PHONON/*     @lingtikong
 src/USER-PTM/*        @pmla
 src/USER-OMP/*        @akohlmey
@@ -125,3 +126,6 @@ python/*              @rbberger
 doc/utils/*/*         @rbberger
 doc/Makefile          @rbberger
 doc/README            @rbberger
+
+# for releases
+src/version.h         @sjplimp

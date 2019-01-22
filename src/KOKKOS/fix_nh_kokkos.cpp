@@ -269,7 +269,10 @@ void FixNHKokkos<DeviceType>::final_integrate()
     //atomKK->sync(pressure->execution_space,pressure->datamask_read);
     //atomKK->modified(pressure->execution_space,pressure->datamask_modify);
     if (pstyle == ISO) pressure->compute_scalar();
-    else pressure->compute_vector();
+    else {
+      temperature->compute_vector();
+      pressure->compute_vector();
+    }
     couple();
     pressure->addstep(update->ntimestep+1);
   }

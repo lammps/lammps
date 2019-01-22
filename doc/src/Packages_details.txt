@@ -45,7 +45,6 @@ as contained in the file name.
 "LATTE"_#PKG-LATTE,
 "MANYBODY"_#PKG-MANYBODY,
 "MC"_#PKG-MC,
-"MEAM"_#PKG-MEAM,
 "MESSAGE"_#PKG-MESSAGE,
 "MISC"_#PKG-MISC,
 "MOLECULE"_#PKG-MOLECULE,
@@ -56,7 +55,6 @@ as contained in the file name.
 "POEMS"_#PKG-POEMS,
 "PYTHON"_#PKG-PYTHON,
 "QEQ"_#PKG-QEQ,
-"REAX"_#PKG-REAX,
 "REPLICA"_#PKG-REPLICA2,
 "RIGID"_#PKG-RIGID,
 "SHOCK"_#PKG-SHOCK,
@@ -89,12 +87,14 @@ as contained in the file name.
 "USER-NETCDF"_#PKG-USER-NETCDF,
 "USER-OMP"_#PKG-USER-OMP,
 "USER-PHONON"_#PKG-USER-PHONON,
+"USER-PLUMED"_#PKG-USER-PLUMED,
 "USER-PTM"_#PKG-USER-PTM,
 "USER-QMMM"_#PKG-USER-QMMM,
 "USER-QTB"_#PKG-USER-QTB,
 "USER-QUIP"_#PKG-USER-QUIP,
 "USER-REAXC"_#PKG-USER-REAXC,
 "USER-SCAFACOS"_#PKG-USER-SCAFACOS,
+"USER-SDPD"_#PKG-USER-SDPD,
 "USER-SMD"_#PKG-USER-SMD,
 "USER-SMTBQ"_#PKG-USER-SMTBQ,
 "USER-SPH"_#PKG-USER-SPH,
@@ -203,7 +203,7 @@ available on your system.
 
 [Author:] Axel Kohlmeyer (Temple U).
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -284,7 +284,7 @@ also the "KOKKOS"_#PKG-KOKKOS package, which has GPU-enabled styles.
 [Authors:] Mike Brown (Intel) while at Sandia and ORNL and Trung Nguyen
 (Northwestern U) while at ORNL.
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -352,7 +352,7 @@ API which the "pair_style kim"_pair_kim.html command uses.  He
 developed the pair style in collaboration with Valeriu Smirichinski (U
 Minnesota).
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -398,7 +398,7 @@ which was developed by Carter Edwards, Christian Trott, and others at
 Sandia, and which is included in the LAMMPS distribution in
 lib/kokkos.
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -492,7 +492,7 @@ MANYBODY package :link(PKG-MANYBODY),h4
 
 [Contents:]
 
-A variety of manybody and bond-order potentials.  These include
+A variety of many-body and bond-order potentials.  These include
 (AI)REBO, BOP, EAM, EIM, Stillinger-Weber, and Tersoff potentials.
 
 [Supporting info:]
@@ -516,7 +516,7 @@ MC package :link(PKG-MC),h4
 Several fixes and a pair style that have Monte Carlo (MC) or MC-like
 attributes.  These include fixes for creating, breaking, and swapping
 bonds, for performing atomic swaps, and performing grand-canonical MC
-(GCMC) in conjuction with dynamics.
+(GCMC) in conjunction with dynamics.
 
 [Supporting info:]
 
@@ -528,37 +528,6 @@ src/MC: filenames -> commands
 "fix gcmc"_fix_gcmc.html
 "pair_style dsmc"_pair_dsmc.html
 http://lammps.sandia.gov/movies.html#gcmc :ul
-
-:line
-
-MEAM package :link(PKG-MEAM),h4
-
-[Contents:]
-
-A pair style for the modified embedded atom (MEAM) potential.
-
-Please note that the use of the MEAM package is discouraged as
-it has been superseded by the "USER-MEAMC"_#PKG-USER-MEAMC package,
-which is a direct translation of the MEAM package to C++.
-USER-MEAMC contains additional optimizations making it run faster
-than MEAM on most machines, while providing the identical features
-and user interface.
-
-[Author:] Greg Wagner (Northwestern U) while at Sandia.
-
-[Install:] 
-
-This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
-extras"_Build_extras.html doc page.
-
-[Supporting info:]
-
-src/MEAM: filenames -> commands
-src/meam/README
-lib/meam/README
-"pair_style meam"_pair_meam.html
-examples/meam :ul
 
 :line
 
@@ -679,7 +648,7 @@ system.
 library was developed by Jacob Wagner in Greg Voth's group at the
 University of Chicago.
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -711,7 +680,7 @@ have styles optimized for CPU performance.
 [Authors:] James Fischer (High Performance Technologies), David Richie,
 and Vincent Natoli (Stone Ridge Technolgy).
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -768,7 +737,7 @@ connections at hinge points.
 
 [Author:] Rudra Mukherjee (JPL) while at RPI.
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -800,7 +769,7 @@ shared library available on your system, which needs to be a Python 2
 version, 2.6 or later.  Python 3 is not yet supported.  See the
 lib/python/README for more details.
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -829,38 +798,6 @@ src/QEQ: filenames -> commands
 "fix qeq/*"_fix_qeq.html
 examples/qeq
 examples/streitz :ul
-
-:line
-
-REAX package :link(PKG-REAX),h4
-
-[Contents:]
-
-NOTE: the use of the REAX package is discouraged, as it is no longer
-maintained. Please use the "USER-REAXC"_#PKG-USER-REAXC package instead,
-and possibly the KOKKOS enabled variant of that, which has a more robust
-memory management.
-
-A pair style which wraps a Fortran library which implements the ReaxFF
-potential, which is a universal reactive force field.  Also included is
-a "fix reax/bonds"_fix_reax_bonds.html command for monitoring molecules
-as bonds are created and destroyed.
-
-[Author:] Aidan Thompson (Sandia).
-
-[Install:] 
-
-This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
-extras"_Build_extras.html doc page.
-
-[Supporting info:]
-
-src/REAX: filenames -> commands
-lib/reax/README
-"pair_style reax"_pair_reax.html
-"fix reax/bonds"_fix_reax_bonds.html
-examples/reax :ul
 
 :line
 
@@ -1021,7 +958,7 @@ system.
 library was written by Chris Rycroft (Harvard U) while at UC Berkeley
 and LBNL.
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -1048,7 +985,7 @@ atomic information to continuum fields.
 
 [Authors:] Reese Jones, Jeremy Templeton, Jon Zimmerman (Sandia).
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -1075,7 +1012,7 @@ model.
 
 [Author:] Ilya Valuev (JIHT, Russia).
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -1098,7 +1035,7 @@ This package provides "fix bocs"_fix_bocs.html, a modified version
 of "fix npt"_fix_nh.html which includes the pressure correction to
 the barostat as outlined in:
 
-N. J. H. Dunn and W. G. Noid, "Bottom-up coarse-grained models that 
+N. J. H. Dunn and W. G. Noid, "Bottom-up coarse-grained models that
 accurately describe the structure, pressure, and compressibility of
 molecular liquids," J. Chem. Phys. 143, 243148 (2015).
 
@@ -1183,10 +1120,10 @@ and Jerome Henin (LISM, CNRS, Marseille, France), originally for
 the NAMD MD code, but with portability in mind.  Axel Kohlmeyer
 (Temple U) provided the interface to LAMMPS.
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
-instructions"_Build_extras.html#gpu on the "Build
+instructions"_Build_extras.html#user-colvars on the "Build
 extras"_Build_extras.html doc page.
 
 [Supporting info:]
@@ -1197,6 +1134,36 @@ src/USER-COLVARS/README
 lib/colvars/README
 "fix colvars"_fix_colvars.html
 examples/USER/colvars :ul
+
+:line
+
+USER-PLUMED package :link(PKG-USER-PLUMED),h4
+
+[Contents:]
+
+The fix plumed command allows you to use the PLUMED free energy plugin
+for molecular dynamics to analyze and bias your LAMMPS trajectory on
+the fly.  The PLUMED library is called from within the LAMMPS input
+script by using the "fix plumed _fix_plumed.html command.
+
+[Authors:] The "PLUMED library"_#PLUMED is written and maintained by
+Massimilliano Bonomi, Giovanni Bussi, Carlo Camiloni and Gareth
+Tribello.
+
+:link(PLUMED,http://www.plumed.org)
+
+[Install:]
+
+This package has "specific installation
+instructions"_Build_extras.html#gpu on the "Build
+extras"_Build_extras.html doc page.
+
+[Supporting info:]
+
+src/USER-PLUMED/README
+lib/plumed/README
+"fix plumed"_fix_plumed.html
+examples/USER/plumed :ul
 
 :line
 
@@ -1363,7 +1330,7 @@ system.
 [Author:] Pierre de Buyl (KU Leuven) created both the package and the
 H5MD format.
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -1401,7 +1368,7 @@ NOTE: the USER-INTEL package contains styles that require using the
 
 [Author:] Mike Brown (Intel).
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -1520,10 +1487,9 @@ USER-MEAMC package :link(PKG-USER-MEAMC),h4
 [Contents:]
 
 A pair style for the modified embedded atom (MEAM) potential
-translated from the Fortran version in the "MEAM"_#PKG-MEAM package
-to plain C++. In contrast to the MEAM package, no library
-needs to be compiled and the pair style can be instantiated
-multiple times.
+translated from the Fortran version in the (obsolete) "MEAM" package
+to plain C++. The USER-MEAMC fully replaces the MEAM package, which
+has been removed from LAMMPS after the 12 December 2018 version.
 
 [Author:] Sebastian Huetter, (Otto-von-Guericke University Magdeburg)
 based on the Fortran version of Greg Wagner (Northwestern U) while at
@@ -1533,8 +1499,8 @@ Sandia.
 
 src/USER-MEAMC: filenames -> commands
 src/USER-MEAMC/README
-"pair_style meam/c"_pair_meam.html
-examples/meam :ul
+"pair_style meam/c"_pair_meamc.html
+examples/meamc :ul
 
 :line
 
@@ -1571,17 +1537,17 @@ USER-MOFFF package :link(PKG-USER-MOFFF),h4
 [Contents:]
 
 Pair, angle and improper styles needed to employ the MOF-FF
-force field by Schmid and coworkers with LAMMPS. 
+force field by Schmid and coworkers with LAMMPS.
 MOF-FF is a first principles derived force field with the primary aim
-to simulate MOFs and related porous framework materials, using spherical 
+to simulate MOFs and related porous framework materials, using spherical
 Gaussian charges. It is described in S. Bureekaew et al., Phys. Stat. Sol. B
 2013, 250, 1128-1141.
-For the usage of MOF-FF see the example in the example directory as 
+For the usage of MOF-FF see the example in the example directory as
 well as the "MOF+"_MOFplus website.
 
 :link(MOFplus,https://www.mofplus.org/content/show/MOF-FF)
 
-[Author:] Hendrik Heenen (Technical U of Munich), 
+[Author:] Hendrik Heenen (Technical U of Munich),
 Rochus Schmid (Ruhr-University Bochum).
 
 [Supporting info:]
@@ -1622,7 +1588,7 @@ at
 
 [Author:] Axel Kohlmeyer (Temple U).
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -1662,7 +1628,7 @@ tools:
 
 [Author:] Lars Pastewka (Karlsruhe Institute of Technology).
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -1706,7 +1672,7 @@ See src/MAKE/OPTIONS/Makefile.omp for an example.
 Once you have an appropriate Makefile.machine, you can
 install/un-install the package and build LAMMPS in the usual manner:
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -1785,7 +1751,7 @@ without changes to LAMMPS itself.
 
 [Author:] Axel Kohlmeyer (Temple U).
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -1843,7 +1809,7 @@ on your system.
 
 [Author:] Albert Bartok (Cambridge University)
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -1862,9 +1828,8 @@ USER-REAXC package :link(PKG-USER-REAXC),h4
 
 [Contents:]
 
-A pair style which implements the ReaxFF potential in C/C++ (in
-contrast to the "REAX package"_#PKG-REAX and its Fortran library).  ReaxFF
-is universal reactive force field.  See the src/USER-REAXC/README file
+A pair style which implements the ReaxFF potential in C/C++.  ReaxFF
+is a universal reactive force field.  See the src/USER-REAXC/README file
 for more info on differences between the two packages.  Also two fixes
 for monitoring molecules as bonds are created and destroyed.
 
@@ -1875,7 +1840,7 @@ for monitoring molecules as bonds are created and destroyed.
 src/USER-REAXC: filenames -> commands
 src/USER-REAXC/README
 "pair_style reax/c"_pair_reaxc.html
-"fix reax/c/bonds"_fix_reax_bonds.html
+"fix reax/c/bonds"_fix_reaxc_bonds.html
 "fix reax/c/species"_fix_reaxc_species.html
 examples/reax :ul
 
@@ -1916,6 +1881,31 @@ examples/USER/scafacos :ul
 
 :line
 
+USER-SDPD package :link(PKG-USER-SDPD),h4
+
+[Contents:]
+
+A pair style for smoothed dissipative particle dynamics (SDPD), which
+is an extension of smoothed particle hydrodynamics (SPH) to mesoscale
+where thermal fluctuations are important (see the
+"USER-SPH package"_#PKG-USER-SPH).
+Also two fixes for moving and rigid body integration of SPH/SDPD particles
+(particles of atom_style meso).
+
+[Author:] Morteza Jalalvand (Institute for Advanced Studies in Basic
+Sciences, Iran).
+
+[Supporting info:]
+
+src/USER-SDPD: filenames -> commands
+src/USER-SDPD/README
+"pair_style sdpd/taitwater/isothermal"_pair_sdpd_taitwater_isothermal.html
+"fix meso/move"_fix_meso_move.html
+"fix rigid/meso"_fix_rigid_meso.html
+examples/USER/sdpd :ul
+
+:line
+
 USER-SMD package :link(PKG-USER-SMD),h4
 
 [Contents:]
@@ -1937,7 +1927,7 @@ specified as surface geometries from *.STL files.
 [Author:] Georg Ganzenmuller (Fraunhofer-Institute for High-Speed
 Dynamics, Ernst Mach Institute, Germany).
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build
@@ -2063,7 +2053,7 @@ system.
 
 [Authors:] Richard Berger (JKU) and Daniel Queteschiner (DCS Computing).
 
-[Install:] 
+[Install:]
 
 This package has "specific installation
 instructions"_Build_extras.html#gpu on the "Build

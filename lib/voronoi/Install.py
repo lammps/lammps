@@ -4,7 +4,9 @@
 # used to automate the steps described in the README file in this dir
 
 from __future__ import print_function
-import sys,os,re,subprocess
+import sys,os,re,subprocess,shutil
+sys.path.append('..')
+from install_helpers import error,get_cpus,fullpath,which,geturl
 
 # help message
 
@@ -33,64 +35,12 @@ make lib-voronoi args="-p $HOME/voro++-0.4.6" # use existing Voro++ installation
 version = "voro++-0.4.6"
 url = "http://math.lbl.gov/voro++/download/dir/%s.tar.gz" % version
 
-# print error message or help
-
-def error(str=None):
-  if not str: print(help)
-  else: print("ERROR",str)
-  sys.exit()
-
-# expand to full path name
-# process leading '~' or relative path
-
-def fullpath(path):
-  return os.path.abspath(os.path.expanduser(path))
-
-def which(program):
-  def is_exe(fpath):
-    return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
-
-  fpath, fname = os.path.split(program)
-  if fpath:
-    if is_exe(program):
-      return program
-  else:
-    for path in os.environ["PATH"].split(os.pathsep):
-      path = path.strip('"')
-      exe_file = os.path.join(path, program)
-      if is_exe(exe_file):
-        return exe_file
-
-  return None
-
-def geturl(url,fname):
-  success = False
-
-  if which('curl') != None:
-    cmd = 'curl -L -o "%s" %s' % (fname,url)
-    try:
-      subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-      success = True
-    except subprocess.CalledProcessError as e:
-      print("Calling curl failed with: %s" % e.output.decode('UTF-8'))
-
-  if not success and which('wget') != None:
-    cmd = 'wget -O "%s" %s' % (fname,url)
-    try:
-      subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-      success = True
-    except subprocess.CalledProcessError as e:
-      print("Calling wget failed with: %s" % e.output.decode('UTF-8'))
-
-  if not success:
-    error("Failed to download source code with 'curl' or 'wget'")
-  return
 
 # parse args
 
 args = sys.argv[1:]
 nargs = len(args)
-if nargs == 0: error()
+if nargs == 0: error(help=help)
 
 homepath = "."
 homedir = version
@@ -102,18 +52,18 @@ linkflag = True
 iarg = 0
 while iarg < nargs:
   if args[iarg] == "-v":
-    if iarg+2 > nargs: error()
+    if iarg+2 > nargs: error(help=help)
     version = args[iarg+1]
     iarg += 2
   elif args[iarg] == "-p":
-    if iarg+2 > nargs: error()
+    if iarg+2 > nargs: error(help=help)
     voropath = fullpath(args[iarg+1])
     pathflag = True
     iarg += 2
   elif args[iarg] == "-b":
     buildflag = True
     iarg += 1
-  else: error()
+  else: error(help=help)
 
 homepath = fullpath(homepath)
 homedir = "%s/%s" % (homepath,version)
@@ -136,15 +86,13 @@ if buildflag:
 
   print("Unpacking Voro++ tarball ...")
   if os.path.exists("%s/%s" % (homepath,version)):
-    cmd = 'rm -rf "%s/%s"' % (homepath,version)
-    subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+    shutil.rmtree("%s/%s" % (homepath,version))
   cmd = 'cd "%s"; tar -xzvf %s.tar.gz' % (homepath,version)
   subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   os.remove("%s/%s.tar.gz" % (homepath,version))
   if os.path.basename(homedir) != version:
     if os.path.exists(homedir):
-      cmd = 'rm -rf "%s"' % homedir
-      subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+      shutil.rmtree(homedir)
     os.rename("%s/%s" % (homepath,version),homedir)
 
 # build Voro++
@@ -152,8 +100,12 @@ if buildflag:
 if buildflag:
   print("Building Voro++ ...")
   cmd = 'cd "%s"; make CXX=g++ CFLAGS="-fPIC -O3"' % homedir
-  txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  print(txt.decode('UTF-8'))
+  try:
+    txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+    print(txt.decode('UTF-8'))
+  except subprocess.CalledProcessError as e:
+    print("Make failed with:\n %s" % e.output.decode('UTF-8'))
+    sys.exit(1)
 
 # create 2 links in lib/voronoi to Voro++ src dir
 

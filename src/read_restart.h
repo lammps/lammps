@@ -31,11 +31,13 @@ class ReadRestart : protected Pointers {
   void command(int, char **);
 
  private:
-  int me,nprocs,nprocs_file,multiproc_file;
+  int me,nprocs;
   FILE *fp;
 
-  int multiproc;             // 0 = proc 0 writes for all
-                             // else # of procs writing files
+  int multiproc;             // 0 = restart file is a single file
+                             // 1 = restart file is parallel (multiple files)
+  int multiproc_file;        // # of parallel files in restart
+  int nprocs_file;           // total # of procs that wrote restart file
 
   // MPI-IO values
 
@@ -141,7 +143,7 @@ E: Bigint setting in lmptype.h is not compatible
 Format of bigint stored in restart file is not consistent with LAMMPS
 version you are running.  See the settings in src/lmptype.h
 
-E: Cannot run 2d simulation with nonperiodic Z dimension
+E: Cannot run 2d simulation with non-periodic Z dimension
 
 Use the boundary command to make the z dimension periodic in order to
 run a 2d simulation.

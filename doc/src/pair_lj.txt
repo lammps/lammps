@@ -223,7 +223,7 @@ Note that the neighbor list cutoff for Coulomb interactions is
 effectively extended by a distance 2*qdist when using the TIP4P pair
 style, to account for the offset distance of the fictitious charges on
 O atoms in water molecules.  Thus it is typically best in an
-efficiency sense to use a LJ cutoff >= Coulomb cutoff + 2*qdist, to
+efficiency sense to use a LJ cutoff >= Coulombic cutoff + 2*qdist, to
 shrink the size of the neighbor list.  This leads to slightly larger
 cost for the long-range calculation, so you can test the trade-off for
 your model.

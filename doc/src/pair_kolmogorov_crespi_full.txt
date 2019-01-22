@@ -13,7 +13,7 @@ pair_style kolmogorov/crespi/full command :h3
 pair_style hybrid/overlay kolmogorov/crespi/full cutoff tap_flag :pre
 
 cutoff = global cutoff (distance units)
-tap_flag = 0/1 to turn off/on the taper function 
+tap_flag = 0/1 to turn off/on the taper function
 
 [Examples:]
 
@@ -100,6 +100,7 @@ units.
 "pair_coeff"_pair_coeff.html,
 "pair_none"_pair_none.html,
 "pair_style hybrid/overlay"_pair_hybrid.html,
+"pair_style pair_lebedeva_z"_pair_lebedeva_z.html,
 "pair_style kolmogorov/crespi/z"_pair_kolmogorov_crespi_z.html,
 "pair_style ilp/graphene/hbn"_pair_ilp_graphene_hbn.html.
 

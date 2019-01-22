@@ -794,9 +794,10 @@
         $ids{$tmp[1]}           = $tmp[2];
         $masses{$tmp[1]}        = $tmp[3];
         $max_id                 = $tmp[1] if ($max_id<$tmp[1]);
+      } elsif ($read&&($tmp[0] eq "ATOM")) {
+        # quit reading when hitting the "ATOM" section
+        last;
       }
-      # $names{$tmp[1]} = $tmp[4] if ($read&&($tmp[0] eq "MASS"));
-      last if ($read&&!scalar(@tmp));                   # quit reading
     }
     AddMass(HT, 1.00800);
     AddMass(OT, 15.99940);

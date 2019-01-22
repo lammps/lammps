@@ -149,7 +149,9 @@ Step 5: This step can be done on any SEMS machine (e.g. kokkos-dev). Actually, t
         git clone -b kokkos-develop git@github.com:trilinos/Trilinos.git
         TRILINOS_PATH=$PWD/Trilinos
 
-  5.2. Snapshot Kokkos into Trilinos - this requires python/2.7.9 and that both Trilinos and Kokkos be clean - no untracked or modified files. Run the following outside of the Kokkos and Trilinos source trees.
+  5.2. Snapshot Kokkos into Trilinos - this requires python/2.7.9 and that both Trilinos and Kokkos be clean - no untracked or modified files. Run the following outside of the Kokkos and Trilinos source trees. 
+
+      * Use the master branch of Kokkos for this.
 
         module load sems-python/2.7.9
         python $KOKKOS_PATH/scripts/snapshot.py $KOKKOS_PATH $TRILINOS_PATH/packages
@@ -173,20 +175,22 @@ Step 5: This step can be done on any SEMS machine (e.g. kokkos-dev). Actually, t
 
        ## KokkosKernels Changelog
 
-  5.4. Run checkin-test to push to trilinos using the CI build modules (gcc/4.9.3)
-
-       cd $TRILINOS_PATH
-       mkdir CHECKIN
-       cd CHECKIN
-       nohup ../cmake/std/sems/checkin-test-sems.sh --do-all --push &
-
-       Although Trilinos has experimental Pull Request testing, it is not good enough to replace the checkin script yet.
+  5.4. Wait for Trilinos Autotester results
 
   5.5. If there are failures, fix and backtrack. Otherwise, go to next step
 
 // -------------------------------------------------------------------------------- //
 
-Step 6: Push Kokkos master to GitHub (requires Owner permission).
+Step 6: Push Kokkos master and develop to GitHub (requires Owner permission).
       
+  6.1. Master branch:
        cd KOKKOS_PATH
+       git checkout master
        git push --follow-tags origin master 
+
+  6.2. Develop branch: First merge (--no-ff) master back into develop
+       cd KOKKOS_PATH
+       git checkout develop
+       git merge --no-ff maseter
+       git push origin develop 
+

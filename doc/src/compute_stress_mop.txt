@@ -60,7 +60,7 @@ Between one and three keywords can be used to indicate which
 contributions to the stress must be computed: kinetic stress (kin),
 configurational stress (conf), and/or total stress (total).
 
-NOTE 1: The configurational stress is computed considering all pairs of atoms where at least one atom belongs to group group-ID. 
+NOTE 1: The configurational stress is computed considering all pairs of atoms where at least one atom belongs to group group-ID.
 
 NOTE 2: The local stress does not include any Lennard-Jones tail
 corrections to the pressure added by the "pair_modify tail
@@ -80,11 +80,11 @@ keywords have been declared). For each keyword, the profiles of stress
 tensor components are ordered as follows: stress_dir,x; stress_dir,y;
 and stress_dir,z.
 
-The values are in pressure "units"_units.html. 
+The values are in pressure "units"_units.html.
 
 The values produced by this compute can be accessed by various "output commands"_Howto_output.html. For instance, the results can be written to a file using the "fix ave/time"_fix_ave_time.html command. Please see the example in the examples/USER/mop folder.
 
-[Restrictions:] 
+[Restrictions:]
 
 These styles are part of the USER-MISC package. They are only enabled if
 LAMMPS is built with that package. See the "Build package"_Build_package.html
@@ -107,5 +107,5 @@ intra-molecular interactions, and long range (kspace) interactions.
 :line
 
 :link(mop-todd)
-[(Todd)] B. D. Todd, Denis J. Evans, and Peter J. Daivis: "Pressure tensor for inhomogeneous fluids", 
+[(Todd)] B. D. Todd, Denis J. Evans, and Peter J. Daivis: "Pressure tensor for inhomogeneous fluids",
 Phys. Rev. E 52, 1627 (1995).

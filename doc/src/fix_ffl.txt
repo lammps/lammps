@@ -82,7 +82,7 @@ sense, a restarted simulation should produce the same behavior.
 Note however that you should use a different seed each time you
 restart, otherwise the same sequence of random numbers will be used
 each time, which might lead to stochastic synchronization and
-subtle artefacts in the sampling.
+subtle artifacts in the sampling.
 
 This fix can ramp its target temperature over multiple runs, using the
 {start} and {stop} keywords of the "run"_run.html command.  See the

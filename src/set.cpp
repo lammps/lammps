@@ -890,7 +890,7 @@ void Set::set(int keyword)
     // enforce quat rotation vector in z dir for 2d systems
 
     else if (keyword == QUAT) {
-      double *quat;
+      double *quat = NULL;
       if (avec_ellipsoid && atom->ellipsoid[i] >= 0)
         quat = avec_ellipsoid->bonus[atom->ellipsoid[i]].quat;
       else if (avec_tri && atom->tri[i] >= 0)

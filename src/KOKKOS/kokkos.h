@@ -46,10 +46,10 @@ class KokkosLMP : protected Pointers {
   int need_dup()
   {
     int value = 0;
-  
+
     if (neighflag == HALFTHREAD)
       value = NeedDup<HALFTHREAD,DeviceType>::value;
-  
+
     return value;
   }
 

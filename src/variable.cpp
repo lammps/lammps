@@ -182,7 +182,7 @@ void Variable::set(int narg, char **arg)
     if (find(arg[0]) >= 0) return;
     if (nvar == maxvar) grow();
     style[nvar] = LOOP;
-    int nfirst,nlast;
+    int nfirst = 0,nlast = 0;
     if (narg == 3 || (narg == 4 && strcmp(arg[3],"pad") == 0)) {
       nfirst = 1;
       nlast = force->inumeric(FLERR,arg[2]);
@@ -956,7 +956,7 @@ double Variable::compute_equal(char *str)
 void Variable::compute_atom(int ivar, int igroup,
                             double *result, int stride, int sumflag)
 {
-  Tree *tree;
+  Tree *tree = NULL;
   double *vstore;
 
   if (eval_in_progress[ivar])
@@ -971,6 +971,7 @@ void Variable::compute_atom(int ivar, int igroup,
   } else vstore = reader[ivar]->fixstore->vstore;
 
   if (result == NULL) {
+    if (style[ivar] == ATOM) free_tree(tree);
     eval_in_progress[ivar] = 0;
     return;
   }
@@ -1028,7 +1029,7 @@ void Variable::compute_atom(int ivar, int igroup,
 
 int Variable::compute_vector(int ivar, double **result)
 {
-  Tree *tree;
+  Tree *tree = NULL;
   if (vecs[ivar].currentstep == update->ntimestep) {
     *result = vecs[ivar].values;
     return vecs[ivar].n;
@@ -1215,7 +1216,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
       // evaluate contents and push on stack
 
       if (tree) {
-        Tree *newtree;
+        Tree *newtree = NULL;
         evaluate(contents,&newtree,ivar);
         treestack[ntreestack++] = newtree;
       } else argstack[nargstack++] = evaluate(contents,NULL,ivar);
@@ -1915,7 +1916,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             print_var_error(FLERR,"Atom-style variable in "
                             "vector-style variable formula",ivar);
 
-          Tree *newtree;
+          Tree *newtree = NULL;
           evaluate(data[ivar][0],&newtree,ivar);
           treestack[ntreestack++] = newtree;
 
@@ -3325,7 +3326,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
   char *args[MAXFUNCARG];
   int narg = parse_args(contents,args);
 
-  Tree *newtree;
+  Tree *newtree = NULL;
   double value1,value2;
   double values[MAXFUNCARG-2];
 
@@ -3333,7 +3334,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
     newtree = new Tree();
     newtree->first = newtree->second = NULL;
     newtree->nextra = 0;
-    Tree *argtree;
+    Tree *argtree = NULL;
     evaluate(args[0],&argtree,ivar);
     newtree->first = argtree;
     if (narg > 1) {
@@ -3983,7 +3984,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
       strcmp(word,"max") == 0 || strcmp(word,"ave") == 0 ||
       strcmp(word,"trap") == 0 || strcmp(word,"slope") == 0) {
 
-    int method;
+    int method = 0;
     if (strcmp(word,"sum") == 0) method = SUM;
     else if (strcmp(word,"min") == 0) method = XMIN;
     else if (strcmp(word,"max") == 0) method = XMAX;

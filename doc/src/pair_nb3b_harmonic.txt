@@ -19,7 +19,7 @@ pair_coeff * * MgOH.nb3bharmonic Mg O H :pre
 
 [Description:]
 
-This pair style computes a nonbonded 3-body harmonic potential for the
+This pair style computes a non-bonded 3-body harmonic potential for the
 energy E of a system of atoms as
 
 :c,image(Eqs/pair_nb3b_harmonic.jpg)
@@ -60,7 +60,7 @@ other potentials. An example of a pair_coeff command for use with the
 
 pair_coeff * * nb3b/harmonic MgOH.nb3b.harmonic Mg O H
 
-Three-body nonbonded harmonic files in the {potentials} directory of
+Three-body non-bonded harmonic files in the {potentials} directory of
 the LAMMPS distribution have a ".nb3b.harmonic" suffix.  Lines that
 are not blank or comments (starting with #) define parameters for a
 triplet of elements.

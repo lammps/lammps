@@ -20,7 +20,10 @@ then
   TRILINOS_PRISTINE_BRANCH=develop
 fi
 
-module load devpack/openmpi/1.10.4/gcc/5.4.0/cuda/8.0.44
+module load devpack/20180521/openmpi/2.1.2/gcc/7.2.0/cuda/9.2.88
+module swap openblas/0.2.20/gcc/7.2.0 netlib/3.8.0/gcc/7.2.0
+# Trilinos now requires cmake version >= 3.10.0
+module swap cmake/3.9.6 cmake/3.12.3
 export OMP_NUM_THREADS=8
 export JENKINS_DO_CUDA=OFF
 export JENKINS_DO_OPENMP=ON
@@ -28,6 +31,7 @@ export JENKINS_DO_PTHREAD=OFF
 export JENKINS_DO_SERIAL=OFF
 export JENKINS_DO_COMPLEX=OFF
 
+export JENKINS_ARCH="Power8"
 export JENKINS_ARCH_CXX_FLAG="-mcpu=power8"
 export JENKINS_ARCH_C_FLAG="-mcpu=power8"
 export BLAS_LIBRARIES="${BLAS_ROOT}/lib/libblas.a;gfortran;gomp"

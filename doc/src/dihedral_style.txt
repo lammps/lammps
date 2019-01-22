@@ -80,10 +80,16 @@ Here is an alphabetic list of dihedral styles defined in LAMMPS.  Click on
 the style to display the formula it computes and coefficients
 specified by the associated "dihedral_coeff"_dihedral_coeff.html command.
 
-Note that there are also additional dihedral styles submitted by users
-which are included in the LAMMPS distribution.  The full list of all
-dihedral styles is on the "Commands bond"_Commands_bond.html#dihedral
-doc page.
+Click on the style to display the formula it computes, any additional
+arguments specified in the dihedral_style command, and coefficients
+specified by the associated "dihedral_coeff"_dihedral_coeff.html
+command.
+
+There are also additional accelerated pair styles included in the
+LAMMPS distribution for faster performance on CPUs, GPUs, and KNLs.
+The individual style names on the "Commands
+dihedral"_Commands_bond.html#dihedral doc page are followed by one or
+more of (g,i,k,o,t) to indicate which accelerated styles exist.
 
 "none"_dihedral_none.html - turn off dihedral interactions
 "zero"_dihedral_zero.html - topology but no interactions

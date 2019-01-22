@@ -10,10 +10,10 @@ pair_style ilp/graphene/hbn command :h3
 
 [Syntax:]
 
-pair_style hybrid/overlay ilp/graphene/hbn cutoff tap_flag :pre
+pair_style \[hybrid/overlay ...\] ilp/graphene/hbn cutoff tap_flag :pre
 
 cutoff = global cutoff (distance units)
-tap_flag = 0/1 to turn off/on the taper function 
+tap_flag = 0/1 to turn off/on the taper function
 
 [Examples:]
 
@@ -40,7 +40,7 @@ in "(Kolmogorov)"_#Kolmogorov2.
 
 Where Tap(r_ij) is the taper function which provides a continuous
 cutoff (up to third derivative) for interatomic separations larger than
-r_c "(Maaravi)"_#Maaravi2. The definitons of each parameter in the above
+r_c "(Maaravi)"_#Maaravi2. The definitions of each parameter in the above
 equation can be found in "(Leven1)"_#Leven1 and "(Maaravi)"_#Maaravi2.
 
 
@@ -110,6 +110,7 @@ units, if your simulation does not use {metal} units.
 "pair_style hybrid/overlay"_pair_hybrid.html,
 "pair_style pair_kolmogorov_crespi_z"_pair_kolmogorov_crespi_z.html,
 "pair_style pair_kolmogorov_crespi_full"_pair_kolmogorov_crespi_full.html,
+"pair_style pair_lebedeva_z"_pair_lebedeva_z.html,
 "pair_style pair_coul_shield"_pair_coul_shield.html.
 
 [Default:] tap_flag = 1

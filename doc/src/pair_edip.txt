@@ -99,7 +99,7 @@ specify EDIP parameters for all permutations of the two elements
 interacting in three-body configurations.  Thus for 3 elements, 27
 entries would be required, etc.
 
-At the moment, only a single element parametrization is
+At the moment, only a single element parameterization is
 implemented. However, the author is not aware of other
 multi-element EDIP parameterization. If you know any and
 you are interest in that, please contact the author of

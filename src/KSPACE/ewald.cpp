@@ -72,7 +72,7 @@ void Ewald::settings(int narg, char **arg)
   if (narg != 1) error->all(FLERR,"Illegal kspace_style ewald command");
 
   accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
-}  
+}
 
 /* ----------------------------------------------------------------------
    free all memory
@@ -105,7 +105,7 @@ void Ewald::init()
   if (!atom->q_flag) error->all(FLERR,"Kspace style requires atom attribute q");
 
   if (slabflag == 0 && domain->nonperiodic > 0)
-    error->all(FLERR,"Cannot use nonperiodic boundaries with Ewald");
+    error->all(FLERR,"Cannot use non-periodic boundaries with Ewald");
   if (slabflag) {
     if (domain->xperiodic != 1 || domain->yperiodic != 1 ||
         domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)

@@ -33,7 +33,7 @@ class ComputeDihedralLocal : public Compute {
   double memory_usage();
 
  private:
-  int nvalues,nvar,ncount,setflag,tflag;
+  int nvalues,nvar,ncount,setflag;
 
   int pvar;
   int *bstyle,*vvar;

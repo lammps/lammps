@@ -252,8 +252,9 @@ void PairLJClass2CoulLong::settings(int narg, char **arg)
 
 void PairLJClass2CoulLong::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 6)
+  if (narg < 4 || narg > 5)
     error->all(FLERR,"Incorrect args for pair coefficients");
+
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -549,5 +550,8 @@ void *PairLJClass2CoulLong::extract(const char *str, int &dim)
 {
   dim = 0;
   if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
+  dim = 2;
+  if (strcmp(str,"epsilon") == 0) return (void *) epsilon;
+  if (strcmp(str,"sigma") == 0) return (void *) sigma;
   return NULL;
 }

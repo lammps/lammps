@@ -46,7 +46,6 @@ Package, Description, Doc page, Example, Library
 "LATTE"_Packages_details.html#PKG-LATTE, quantum DFTB forces via LATTE, "fix latte"_fix_latte.html, latte, ext
 "MANYBODY"_Packages_details.html#PKG-MANYBODY, many-body potentials, "pair_style tersoff"_pair_tersoff.html, shear, no
 "MC"_Packages_details.html#PKG-MC, Monte Carlo options, "fix gcmc"_fix_gcmc.html, n/a, no
-"MEAM"_Packages_details.html#PKG-MEAM, modified EAM potential, "pair_style meam"_pair_meam.html, meam, int
 "MESSAGE"_Packages_details.html#PKG-MESSAGE, client/server messaging, "message"_message.html, message, int
 "MISC"_Packages_details.html#PKG-MISC, miscellaneous single-file commands, n/a, no, no
 "MOLECULE"_Packages_details.html#PKG-MOLECULE, molecular system force fields, "Howto bioFF"_Howto_bioFF.html, peptide, no
@@ -57,7 +56,6 @@ Package, Description, Doc page, Example, Library
 "POEMS"_Packages_details.html#PKG-POEMS, coupled rigid body motion, "fix poems"_fix_poems.html, rigid, int
 "PYTHON"_Packages_details.html#PKG-PYTHON, embed Python code in an input script, "python"_python.html, python, sys
 "QEQ"_Packages_details.html#PKG-QEQ, QEq charge equilibration, "fix qeq"_fix_qeq.html, qeq, no
-"REAX"_Packages_details.html#PKG-REAX, ReaxFF potential (Fortran), "pair_style reax"_pair_reax.html, reax, int
 "REPLICA"_Packages_details.html#PKG-REPLICA2, multi-replica methods, "Howto replica"_Howto_replica.html, tad, no
 "RIGID"_Packages_details.html#PKG-RIGID, rigid bodies and constraints, "fix rigid"_fix_rigid.html, rigid, no
 "SHOCK"_Packages_details.html#PKG-SHOCK, shock loading methods, "fix msst"_fix_msst.html, n/a, no

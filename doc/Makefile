@@ -1,7 +1,7 @@
 # Makefile for LAMMPS documentation
 
-SHELL 	      = /bin/bash
-SHA1          = $(shell echo $USER-$PWD | python utils/sha1sum.py)
+SHELL         = /bin/bash
+SHA1          = $(shell echo ${USER}-${PWD} | python utils/sha1sum.py)
 BUILDDIR      = /tmp/lammps-docs-$(SHA1)
 RSTDIR        = $(BUILDDIR)/rst
 VENV          = $(BUILDDIR)/docenv
@@ -48,6 +48,7 @@ help:
 	@echo "  clean-all  reset the entire build environment"
 	@echo "  txt2html   build txt2html tool"
 	@echo "  anchor_check  scan for duplicate anchor labels"
+	@echo "  spelling   spell-check the manual"
 
 # ------------------------------------------
 
@@ -176,7 +177,6 @@ $(VENV):
 		$(VIRTUALENV) -p $(PYTHON) $(VENV); \
 		. $(VENV)/bin/activate; \
 		pip install Sphinx; \
-		pip install sphinxcontrib-images; \
 		deactivate;\
 	)
 

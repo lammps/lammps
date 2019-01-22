@@ -87,7 +87,7 @@ are read in separately anyway, e.g. from an include file.
 The {nofix} keyword requests that no extra sections read by fixes
 should be written to the data file (see the {fix} option of the
 "read_data"_read_data.html command for details). For example, this
-option excludes sections for user-created per-atom properties 
+option excludes sections for user-created per-atom properties
 from "fix property/atom"_fix_property_atom.html.
 
 The {pair} keyword lets you specify in what format the pair

@@ -48,7 +48,7 @@ others.
 
 If the {com} option is set to {yes} then the effect of any drift in
 the center-of-mass of the group of atoms is subtracted out before the
-displacment of each atom is calculated.
+displacement of each atom is calculated.
 
 See the "compute msd"_compute_msd.html doc page for further important
 NOTEs, which also apply to this compute.

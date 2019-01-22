@@ -13,9 +13,9 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstring>
+#include <cstdlib>
 
 #include "msg.h"
 
@@ -23,7 +23,7 @@ using namespace CSLIB_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Msg::Msg(int csflag, const void *ptr, MPI_Comm cworld)
+Msg::Msg(int csflag, const void * /* ptr */, MPI_Comm cworld)
 {
   world = cworld;
   MPI_Comm_rank(world,&me);
@@ -34,7 +34,7 @@ Msg::Msg(int csflag, const void *ptr, MPI_Comm cworld)
 
 /* ---------------------------------------------------------------------- */
 
-Msg::Msg(int csflag, const void *ptr)
+Msg::Msg(int csflag, const void * /* ptr */)
 {
   world = 0;
   me = 0;
@@ -57,7 +57,7 @@ void Msg::init(int csflag)
 /* ---------------------------------------------------------------------- */
 
 void Msg::allocate(int nheader, int &maxheader, int *&header,
-		   int nbuf, int &maxbuf, char *&buf)
+                   int nbuf, int &maxbuf, char *&buf)
 {
   if (nheader > maxheader) {
     sfree(header);

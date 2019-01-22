@@ -235,3 +235,7 @@ install(FILES
 # Install the export set for use with the install-tree
 INSTALL(EXPORT KokkosTargets DESTINATION
        "${INSTALL_CMAKE_DIR}")
+
+# build and install pkgconfig file
+CONFIGURE_FILE(core/src/kokkos.pc.in kokkos.pc @ONLY)
+INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/kokkos.pc DESTINATION lib/pkgconfig)

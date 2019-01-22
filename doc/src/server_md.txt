@@ -15,7 +15,7 @@ server md :pre
 md = the protocol argument to the "server"_server.html command
 
 [Examples:]
-  
+
 server md :pre
 
 [Description:]
@@ -119,7 +119,7 @@ The units for various quantities that are sent and received iva
 messages are defined for atomic-scale simulations in the table below.
 The client and server codes (including LAMMPS) can use internal units
 different than these (e.g. "real units"_units.html in LAMMPS), so long
-as they convert to these units for meesaging.
+as they convert to these units for messaging.
 
 COORDS, ORIGIN, BOX = Angstroms
 CHARGE = multiple of electron charge (1.0 is a proton)

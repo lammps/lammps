@@ -123,7 +123,12 @@ of {Tdamp}.  If {Tdamp} is too small, the temperature can fluctuate
 wildly; if it is too large, the temperature will take a very long time
 to equilibrate.  A good choice for many models is a {Tdamp} of around
 100 timesteps.  Note that this is NOT the same as 100 time units for
-most "units"_units.html settings.
+most "units"_units.html settings. A simple way to ensure this, is
+via using an "immediate variable"_variable.html expression accessing
+the thermo property 'dt', which is the length of the time step. Example:
+
+fix 1 all nvt temp 300.0 300.0 $(100.0*dt) :pre
+
 
 :line
 
@@ -281,7 +286,7 @@ negligible.
 
 The keyword {tloop} can be used to improve the accuracy of integration
 scheme at little extra cost.  The initial and final updates of the
-thermostat variables are broken up into {tloop} substeps, each of
+thermostat variables are broken up into {tloop} sub-steps, each of
 length {dt}/{tloop}. This corresponds to using a first-order
 Suzuki-Yoshida scheme "(Tuckerman)"_#nh-Tuckerman.  The keyword {ploop}
 does the same thing for the barostat thermostat.
@@ -357,7 +362,7 @@ The flip operation is described in more detail in the doc page for
 "fix deform"_fix_deform.html.  Both the barostat dynamics and the atom
 trajectories are unaffected by this operation.  However, if a tilt
 factor is incremented by a large amount (1.5 times the box length) on
-a single timestep, LAMMPS can not accomodate this event and will
+a single timestep, LAMMPS can not accommodate this event and will
 terminate the simulation with an error. This error typically indicates
 that there is something badly wrong with how the simulation was
 constructed, such as specifying values of {Pstart} that are too far
@@ -621,10 +626,10 @@ over time or the atom count becomes very small.
 
 [Default:]
 
-The keyword defaults are tchain = 3, pchain = 3, mtk = yes, tloop =
+The keyword defaults are tchain = 3, pchain = 3, mtk = yes, tloop = 1,
 ploop = 1, nreset = 0, drag = 0.0, dilate = all, couple = none,
-scaleyz = scalexz = scalexy = yes if periodic in 2nd dimension and
-not coupled to barostat, otherwise no.
+flip = yes, scaleyz = scalexz = scalexy = yes if periodic in 2nd
+dimension and not coupled to barostat, otherwise no.
 
 :line
 

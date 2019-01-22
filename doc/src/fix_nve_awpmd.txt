@@ -29,7 +29,7 @@ ensemble.
 
 The operation of this fix is exactly like that described by the "fix
 nve"_fix_nve.html command, except that the width and width-velocity of
-the electron wavefunctions are also updated.
+the electron wave functions are also updated.
 
 :line
 

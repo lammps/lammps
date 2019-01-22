@@ -57,6 +57,8 @@ Fixes :h1
    fix_grem
    fix_halt
    fix_heat
+   fix_hyper_global
+   fix_hyper_local
    fix_imd
    fix_indent
    fix_ipi
@@ -73,6 +75,7 @@ Fixes :h1
    fix_lineforce
    fix_manifoldforce
    fix_meso
+   fix_meso_move
    fix_meso_stationary
    fix_momentum
    fix_move
@@ -117,6 +120,7 @@ Fixes :h1
    fix_phonon
    fix_pimd
    fix_planeforce
+   fix_plumed
    fix_poems
    fix_pour
    fix_precession_spin
@@ -131,12 +135,13 @@ Fixes :h1
    fix_qeq_reax
    fix_qmmm
    fix_qtb
-   fix_reax_bonds
+   fix_reaxc_bonds
    fix_reaxc_species
    fix_recenter
    fix_restrain
    fix_rhok
    fix_rigid
+   fix_rigid_meso
    fix_rx
    fix_saed_vtk
    fix_setforce

@@ -373,7 +373,7 @@ This may indicate a problem with your simulation parameters.
 
 E: Big particle in fix srd cannot be point particle
 
-Big particles must be extended spheriods or ellipsoids.
+Big particles must be extended spheroids or ellipsoids.
 
 E: Cannot use lines with fix srd unless overlap is set
 

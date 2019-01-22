@@ -75,7 +75,7 @@ E: Incorrect args for pair coefficients
 
 Self-explanatory.  Check the input script or data file.
 
-E: Pair style lj/cut/coul/long requires atom attribute q
+E: Pair style lj/switch3/coulgauss/long requires atom attribute q
 
 The atom style defined does not have this attribute.
 

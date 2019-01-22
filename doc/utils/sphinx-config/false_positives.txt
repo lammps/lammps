@@ -60,6 +60,7 @@ Alejandre
 alessandro
 Alessandro
 aliceblue
+Allinger
 allocaters
 allosws
 AlO
@@ -410,6 +411,7 @@ cossq
 costheta
 Couette
 coul
+coulgauss
 coulombic
 Coulombic
 Coulombics
@@ -566,6 +568,7 @@ discretized
 disp
 dissipative
 Dissipative
+distharm
 dl
 dlambda
 DLAMMPS
@@ -2493,6 +2496,7 @@ Springer
 springgreen
 spx
 spz
+sqdistharm
 sqrt
 src
 srd
@@ -2801,6 +2805,8 @@ Valone
 valuev
 Valuev
 Vanden
+Vandenbrande
+Vanduyfhuys
 varavg
 Varshalovich
 Varshney
@@ -2958,6 +2964,8 @@ xy
 xyz
 xz
 xzhou
+YAFF
+yaff
 Yamada
 Yazdani
 Ybar
@@ -2976,6 +2984,7 @@ ys
 ysu
 yu
 Yu
+Yuh
 yukawa
 Yukawa
 Yusof

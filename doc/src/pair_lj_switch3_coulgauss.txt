@@ -30,7 +30,7 @@ pair_coeff 1  0.2 2.5 1.2 :pre
 [Description:]
 
 The {lj/switch3/coulgauss} style evaluates the LJ
-vdW potentia
+vdW potential
 
 :c,image(Eqs/pair_lj_switch3.jpg)
 

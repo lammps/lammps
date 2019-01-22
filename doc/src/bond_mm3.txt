@@ -26,7 +26,7 @@ as defined in "(Allinger)"_#mm3-allinger1989
 
 where r0 is the equilibrium value of the bond, and K is a
 prefactor. The anharmonic prefactors have units angstrom^(-n):
--2.55 angstrom^(-1) and (7/12)2.55$2 angstrom^(-2). The code takes
+-2.55 angstrom^(-1) and (7/12)2.55^2 angstrom^(-2). The code takes
 care of the necessary unit conversion for these factors internally.
 Note that the MM3 papers contains an error in Eq (1):
 (7/12)2.55 should be replaced with (7/12)2.55^2
@@ -54,5 +54,5 @@ page for more info.
 :line
 
 :link(mm3-allinger1989)
-[(Allinger)] Allinger, Yuh, Lii, JACS, 111,94, 8551-8566
-(1990),
+[(Allinger)] Allinger, Yuh, Lii, JACS, 111(23), 8551-8566
+(1989),

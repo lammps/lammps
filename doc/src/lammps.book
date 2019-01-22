@@ -596,6 +596,7 @@ pair_lj_long.html
 pair_lj_smooth.html
 pair_lj_smooth_linear.html
 pair_lj_soft.html
+pair_lj_switch3_coulgauss.html
 pair_lubricate.html
 pair_lubricateU.html
 pair_mdf.html
@@ -605,6 +606,7 @@ pair_meam_sw_spline.html
 pair_meso.html
 pair_mgpt.html
 pair_mie.html
+pair_mm3_switch3_coulgauss.html
 pair_momb.html
 pair_morse.html
 pair_multi_lucy.html
@@ -668,6 +670,7 @@ bond_harmonic_shift.html
 bond_harmonic_shift_cut.html
 bond_hybrid.html
 bond_morse.html
+bond_mm3.html
 bond_none.html
 bond_nonlinear.html
 bond_oxdna.html

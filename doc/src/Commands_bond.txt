@@ -128,5 +128,5 @@ OPT.
 "harmonic (iko)"_improper_harmonic.html,
 "inversion/harmonic"_improper_inversion_harmonic.html,
 "ring (o)"_improper_ring.html,
-"umbrella (o)"_improper_umbrella.html,
-"sqdistharm"_improper_sqdistharm.html :tb(c=4,ea=c)
+"sqdistharm"_improper_sqdistharm.html,
+"umbrella (o)"_improper_umbrella.html :tb(c=4,ea=c)

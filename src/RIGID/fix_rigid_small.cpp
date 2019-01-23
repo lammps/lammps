@@ -1576,8 +1576,9 @@ void FixRigidSmall::create_bodies(tagint *bodyID)
   // func = compute bbox of each body, find atom closest to geometric center
 
   char *buf;
-  int nreturn = comm->rendezvous(ncount,proclist,(char *) inbuf,sizeof(InRvous),
-                                 rendezvous_body,buf,sizeof(OutRvous),
+  int nreturn = comm->rendezvous(1,ncount,(char *) inbuf,sizeof(InRvous),
+                                 0,proclist,
+                                 rendezvous_body,0,buf,sizeof(OutRvous),
                                  (void *) this);
   OutRvous *outbuf = (OutRvous *) buf;
   

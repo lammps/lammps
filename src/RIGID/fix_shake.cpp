@@ -1068,9 +1068,9 @@ void FixShake::atom_owners()
   // each proc assigned every 1/Pth atom
   
   char *buf;
-  comm->rendezvous(nlocal,proclist, 
-                   (char *) idbuf,sizeof(IDRvous),
-                   rendezvous_ids,buf,0,(void *) this);
+  comm->rendezvous(1,nlocal,(char *) idbuf,sizeof(IDRvous),
+                   0,proclist,
+                   rendezvous_ids,0,buf,0,(void *) this);
 
   memory->destroy(proclist);
   memory->sfree(idbuf);
@@ -1174,9 +1174,10 @@ void FixShake::partner_info(int *npartner, tagint **partner_tag,
   // receives all data needed to populate un-owned partner 4 values
 
   char *buf;
-  int nreturn = comm->rendezvous(nsend,proclist, 
-                                 (char *) inbuf,sizeof(PartnerInfo),
-                                 rendezvous_partners_info,buf,sizeof(PartnerInfo),
+  int nreturn = comm->rendezvous(1,nsend,(char *) inbuf,sizeof(PartnerInfo),
+                                 0,proclist,
+                                 rendezvous_partners_info,
+                                 0,buf,sizeof(PartnerInfo),
                                  (void *) this);
   PartnerInfo *outbuf = (PartnerInfo *) buf;
     
@@ -1194,7 +1195,8 @@ void FixShake::partner_info(int *npartner, tagint **partner_tag,
     partner_type[i][j] = outbuf[m].type;
     partner_massflag[i][j] = outbuf[m].massflag;
 
-    // only set partner_bondtype if my atom did not set it when setting up rendezvous
+    // only set partner_bondtype if my atom did not set it
+    //   when setting up rendezvous
     // if this proc set it, then sender of this datum set outbuf.bondtype = 0
     
     if (partner_bondtype[i][j] == 0)
@@ -1261,9 +1263,9 @@ void FixShake::nshake_info(int *npartner, tagint **partner_tag,
   // receives all data needed to populate un-owned partner nshake
 
   char *buf;
-  int nreturn = comm->rendezvous(nsend,proclist, 
-                                 (char *) inbuf,sizeof(NShakeInfo),
-                                 rendezvous_nshake,buf,sizeof(NShakeInfo),
+  int nreturn = comm->rendezvous(1,nsend,(char *) inbuf,sizeof(NShakeInfo),
+                                 0,proclist,
+                                 rendezvous_nshake,0,buf,sizeof(NShakeInfo),
                                  (void *) this);
   NShakeInfo *outbuf = (NShakeInfo *) buf;
     
@@ -1354,9 +1356,9 @@ void FixShake::shake_info(int *npartner, tagint **partner_tag,
   // receives all data needed to populate un-owned shake info
 
   char *buf;
-  int nreturn = comm->rendezvous(nsend,proclist, 
-                                 (char *) inbuf,sizeof(ShakeInfo),
-                                 rendezvous_shake,buf,sizeof(ShakeInfo),
+  int nreturn = comm->rendezvous(1,nsend,(char *) inbuf,sizeof(ShakeInfo),
+                                 0,proclist,
+                                 rendezvous_shake,0,buf,sizeof(ShakeInfo),
                                  (void *) this);
   ShakeInfo *outbuf = (ShakeInfo *) buf;
     
@@ -1412,7 +1414,7 @@ int FixShake::rendezvous_ids(int n, char *inbuf,
   fsptr->atomIDs = atomIDs;
   fsptr->procowner = procowner;
 
-  // flag = 0: no 2nd irregular comm needed in comm->rendezvous
+  // flag = 0: no second comm needed in rendezvous
   
   flag = 0;
   return 0;

@@ -172,10 +172,9 @@ void Special::atom_owners()
   IDRvous *idbuf = (IDRvous *) 
     memory->smalloc((bigint) nlocal*sizeof(IDRvous),"special:idbuf");
 
-  // setup input buf to rendezvous comm
-  // input datums = pairs of bonded atoms
-  // owning proc for each datum = random hash of atomID
+  // setup input buf for rendezvous comm
   // one datum for each owned atom: datum = owning proc, atomID
+  // each proc assigned every 1/Pth atom
 
   for (int i = 0; i < nlocal; i++) {
     proclist[i] = tag[i] % nprocs;
@@ -184,19 +183,18 @@ void Special::atom_owners()
   }
 
   // perform rendezvous operation
-  // each proc assigned every 1/Pth atom
   
   char *buf;
-  comm->rendezvous(nlocal,proclist, 
-                   (char *) idbuf,sizeof(IDRvous),
-                   rendezvous_ids,buf,0,(void *) this);
+  comm->rendezvous(1,nlocal,(char *) idbuf,sizeof(IDRvous),0,proclist,
+                   rendezvous_ids,0,buf,0,(void *) this);
 
   memory->destroy(proclist);
   memory->sfree(idbuf);
 }
 
 /* ----------------------------------------------------------------------
-   onetwo build
+   onetwo build when newton_bond flag on
+   uses rendezvous comm
 ------------------------------------------------------------------------- */
 
 void Special::onetwo_build_newton()
@@ -225,9 +223,8 @@ void Special::onetwo_build_newton()
     memory->smalloc((bigint) nsend*sizeof(PairRvous),"special:inbuf");
 
   // setup input buf to rendezvous comm
-  // input datums = pairs of bonded atoms
-  // owning proc for each datum = atomID % nprocs
-  // one datum for each bond partner: bond partner ID, atomID
+  // one datum for each unowned bond partner: bond partner ID, atomID
+  // owning proc for each datum = bond partner ID % nprocs
 
   nsend = 0;
   for (i = 0; i < nlocal; i++) {
@@ -242,19 +239,19 @@ void Special::onetwo_build_newton()
   }
   
   // perform rendezvous operation
-  // each proc owns random subset of atoms
 
   char *buf;
-  int nreturn = comm->rendezvous(nsend,proclist, 
-                                 (char *) inbuf,sizeof(PairRvous),
-                                 rendezvous_pairs,buf,sizeof(PairRvous),
+  int nreturn = comm->rendezvous(1,nsend,(char *) inbuf,sizeof(PairRvous),
+                                 0,proclist,
+                                 rendezvous_pairs,0,buf,sizeof(PairRvous),
                                  (void *) this);
   PairRvous *outbuf = (PairRvous *) buf;
     
   memory->destroy(proclist);
   memory->sfree(inbuf);
 
-  // set nspecial[0] and onetwo for all owned atoms based on output info
+  // set nspecial[0] and onetwo for all owned atoms
+  // based on owned info plus rendezvous output info
   // output datums = pairs of atoms that are 1-2 neighbors
 
   for (i = 0; i < nlocal; i++) {
@@ -327,8 +324,8 @@ void Special::onetwo_build_newton_off()
 }
 
 /* ----------------------------------------------------------------------
-   onetwo build with newton_bond flag off
-   no need for rendezvous comm
+   onethree build
+   uses rendezvous comm
 ------------------------------------------------------------------------- */
 
 void Special::onethree_build()
@@ -355,10 +352,10 @@ void Special::onethree_build()
     memory->smalloc((bigint) nsend*sizeof(PairRvous),"special:inbuf");
 
   // setup input buf to rendezvous comm
-  // input datums = all pairs of onetwo atoms (they are 1-3 neighbors)
-  // owning proc for each datum = random hash of atomID
-  // one datum for each owned atom: datum = owning proc, atomID
-  // one datum for each onetwo pair: datum = atomID1, atomID2
+  // datums = pairs of onetwo partners where either is unknown
+  //          these pairs are onethree neighbors
+  //          datum = onetwo ID, onetwo ID
+  // owning proc for each datum = onetwo ID % nprocs
 
   nsend = 0;
   for (i = 0; i < nlocal; i++) {
@@ -377,20 +374,19 @@ void Special::onethree_build()
   }
 
   // perform rendezvous operation
-  // each proc owns random subset of atoms
-  // receives all info to form and return their onethree lists
 
   char *buf;
-  int nreturn = comm->rendezvous(nsend,proclist,
-                                 (char *) inbuf,sizeof(PairRvous),
-                                 rendezvous_pairs,buf,sizeof(PairRvous),
+  int nreturn = comm->rendezvous(1,nsend,(char *) inbuf,sizeof(PairRvous),
+                                 0,proclist,
+                                 rendezvous_pairs,0,buf,sizeof(PairRvous),
                                  (void *) this);
   PairRvous *outbuf = (PairRvous *) buf;
 
   memory->destroy(proclist);
   memory->sfree(inbuf);
 
-  // set nspecial[1] and onethree for all owned atoms based on output info
+  // set nspecial[1] and onethree for all owned atoms
+  // based on owned info plus rendezvous output info
   // output datums = pairs of atoms that are 1-3 neighbors
 
   for (i = 0; i < nlocal; i++) {
@@ -434,7 +430,8 @@ void Special::onethree_build()
 }
 
 /* ----------------------------------------------------------------------
-   remove duplicates within each of onetwo, onethree, onefour individually
+   onefour build
+   uses rendezvous comm
 ------------------------------------------------------------------------- */
 
 void Special::onefour_build()
@@ -446,7 +443,6 @@ void Special::onefour_build()
   int nlocal = atom->nlocal;
 
   // nsend = # of my datums to send
-  // include nlocal datums with owner of each atom
 
   int nsend = 0;
   for (i = 0; i < nlocal; i++) {
@@ -462,10 +458,10 @@ void Special::onefour_build()
     memory->smalloc((bigint) nsend*sizeof(PairRvous),"special:inbuf");
 
   // setup input buf to rendezvous comm
-  // input datums = all pairs of onethree and onetwo atoms (they're 1-4 neighbors)
-  // owning proc for each datum = random hash of atomID
-  // one datum for each owned atom: datum = owning proc, atomID
-  // one datum for each onethree/onetwo pair: datum = atomID1, atomID2
+  // datums = pairs of onethree and onetwo partners where onethree is unknown
+  //          these pairs are onefour neighbors
+  //          datum = onetwo ID, onetwo ID
+  // owning proc for each datum = onethree ID % nprocs
 
   nsend = 0;
   for (i = 0; i < nlocal; i++) {
@@ -483,20 +479,19 @@ void Special::onefour_build()
   }
 
   // perform rendezvous operation
-  // each proc owns random subset of atoms
-  // receives all info to form and return their onefour lists
 
   char *buf;
-  int nreturn = comm->rendezvous(nsend,proclist,
-                                 (char *) inbuf,sizeof(PairRvous),
-                                 rendezvous_pairs,buf,sizeof(PairRvous),
+  int nreturn = comm->rendezvous(1,nsend,(char *) inbuf,sizeof(PairRvous),
+                                 0,proclist,
+                                 rendezvous_pairs,0,buf,sizeof(PairRvous),
                                  (void *) this);
   PairRvous *outbuf = (PairRvous *) buf;
 
   memory->destroy(proclist);
   memory->sfree(inbuf);
 
-  // set nspecial[2] and onefour for all owned atoms based on output info
+  // set nspecial[2] and onefour for all owned atoms
+  // based on owned info plus rendezvous output info
   // output datums = pairs of atoms that are 1-4 neighbors
 
   for (i = 0; i < nlocal; i++) {
@@ -780,6 +775,7 @@ void Special::combine()
    trim list of 1-3 neighbors by checking defined angles
    delete a 1-3 neigh if they are not end atoms of a defined angle
      and if they are not 1,3 or 2,4 atoms of a defined dihedral
+   uses rendezvous comm
 ------------------------------------------------------------------------- */
 
 void Special::angle_trim()
@@ -849,6 +845,10 @@ void Special::angle_trim()
       memory->smalloc((bigint) nsend*sizeof(PairRvous),"special:inbuf");
 
     // setup input buf to rendezvous comm
+    // datums = pairs of onetwo partners where either is unknown
+    //          these pairs are onethree neighbors
+    //          datum = onetwo ID, onetwo ID
+    // owning proc for each datum = onetwo ID % nprocs
 
     nsend = 0;
     for (i = 0; i < nlocal; i++) {
@@ -902,14 +902,11 @@ void Special::angle_trim()
     }
 
     // perform rendezvous operation
-    // each proc owns random subset of atoms
-    // func = compute bbox of each body, flag atom closest to geometric center
-    // when done: each atom has atom ID of owning atom of its body
     
     char *buf;
-    int nreturn = comm->rendezvous(nsend,proclist,
-                                   (char *) inbuf,sizeof(PairRvous),
-                                   rendezvous_pairs,buf,sizeof(PairRvous),
+    int nreturn = comm->rendezvous(1,nsend,(char *) inbuf,sizeof(PairRvous),
+                                   0,proclist,
+                                   rendezvous_pairs,0,buf,sizeof(PairRvous),
                                    (void *) this);
     PairRvous *outbuf = (PairRvous *) buf;
 
@@ -931,6 +928,8 @@ void Special::angle_trim()
 	flag[i][j] = 0;
     
     // reset nspecial[1] and onethree for all owned atoms based on output info
+    // based on owned info plus rendezvous output info
+    // output datums = pairs of atoms that are 1-3 neighbors
     
     for (i = 0; i < nlocal; i++) {
       for (j = 0; j < num_angle[i]; j++) {
@@ -1036,8 +1035,9 @@ void Special::angle_trim()
 }
 
 /* ----------------------------------------------------------------------
-   trim list of 1-4 neighbors by checking defined dihedrals
+   trim list of 1-4 neighbors by checking all defined dihedrals
    delete a 1-4 neigh if they are not end atoms of a defined dihedral
+   uses rendezvous comm
 ------------------------------------------------------------------------- */
 
 void Special::dihedral_trim()
@@ -1068,12 +1068,11 @@ void Special::dihedral_trim()
               "  %g = # of 1-4 neighbors before dihedral trim\n",allcount);
   }
 
-  // if dihedrals are defined, rendezvous dihedral 1-4 pairs
+  // if dihedrals are defined, rendezvous the dihedral 1-4 pairs
 
   if (num_dihedral && atom->ndihedrals) {
 
     // nsend = # of my datums to send
-    // latter is only for dihedrals where I own atom2 (newton bond off)
 
     int nsend = 0;
     for (i = 0; i < nlocal; i++) {
@@ -1092,6 +1091,11 @@ void Special::dihedral_trim()
       memory->smalloc((bigint) nsend*sizeof(PairRvous),"special:inbuf");
     
     // setup input buf to rendezvous comm
+    // datums = pairs of onefour atom IDs in a dihedral defined for my atoms
+    //          only dihedrals where I own atom2 (in case newton_bond off)
+    //          datum = atom1 ID and atom4 ID
+    //          send the datum twice, to owner of atom1 ID and atom4 ID
+    // owning procs for each datum = atom1 or atom4 ID % nprocs
 
     nsend = 0;
     for (i = 0; i < nlocal; i++) {
@@ -1117,21 +1121,18 @@ void Special::dihedral_trim()
     }
 
     // perform rendezvous operation
-    // each proc owns random subset of atoms
-    // func = compute bbox of each body, flag atom closest to geometric center
-    // when done: each atom has atom ID of owning atom of its body
     
     char *buf;
-    int nreturn = comm->rendezvous(nsend,proclist,
-                                   (char *) inbuf,sizeof(PairRvous),
-                                   rendezvous_pairs,buf,sizeof(PairRvous),
+    int nreturn = comm->rendezvous(1,nsend,(char *) inbuf,sizeof(PairRvous),
+                                   0,proclist,
+                                   rendezvous_pairs,0,buf,sizeof(PairRvous),
                                    (void *) this);
     PairRvous *outbuf = (PairRvous *) buf;
 
     memory->destroy(proclist);
     memory->sfree(inbuf);
 
-    // flag all onefour atoms to keep
+    // flag all of my onefour IDs to keep
 
     int max = 0;
     for (i = 0; i < nlocal; i++)
@@ -1145,8 +1146,6 @@ void Special::dihedral_trim()
       for (j = 0; j < nspecial[i][2]; j++)
 	flag[i][j] = 0;
     
-    // reset nspecial[2] and onefour for all owned atoms based on output info
-
     for (i = 0; i < nlocal; i++) {
       for (j = 0; j < num_dihedral[i]; j++) {
 	if (tag[i] != dihedral_atom2[i][j]) continue;
@@ -1251,7 +1250,7 @@ int Special::rendezvous_ids(int n, char *inbuf,
   sptr->procowner = procowner;
   sptr->atomIDs = atomIDs;
 
-  // flag = 0: no 2nd irregular comm needed in comm->rendezvous
+  // flag = 0: no second comm needed in rendezvous
   
   flag = 0;
   return 0;
@@ -1272,7 +1271,7 @@ int Special::rendezvous_pairs(int n, char *inbuf,
   Atom *atom = sptr->atom;
   Memory *memory = sptr->memory;
 
-  // clear atom map so it can be here as a hash table
+  // clear atom map so it can be used here as a hash table
   // faster than an STL map for large atom counts
 
   atom->map_clear();

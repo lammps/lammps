@@ -33,6 +33,7 @@ class Irregular : protected Pointers {
                      int *procassign = NULL);
   int migrate_check();
   int create_data(int, int *, int sortflag = 0);
+  int create_data_grouped(int, int *, int sortflag = 0);
   void exchange_data(char *, int, char *);
   void destroy_data();
   bigint memory_usage();
@@ -48,6 +49,7 @@ class Irregular : protected Pointers {
   double *dbuf;                     // double buf for largest single atom send
   int maxbuf;                       // size of char buf in bytes
   char *buf;                        // char buf for largest single data send
+  int maxindex;                     // combined size of index_send + index_self
 
   int *mproclist,*msizes;           // persistent vectors in migrate_atoms
   int maxlocal;                     // allocated size of mproclist and msizes

@@ -16,7 +16,10 @@ pair_style lj/cut/tip4p/long/soft command :h3
 pair_style lj/cut/tip4p/long/soft/omp command :h3
 pair_style lj/charmm/coul/long/soft command :h3
 pair_style lj/charmm/coul/long/soft/omp command :h3
-pair_style coul/cut/soft command :h3
+pair_style lj/class2/soft command :h3
+pair_style lj/class2/coul/cut/soft command :h3
+pair_style lj/class2/coul/long/soft command :h3
+ pair_style coul/cut/soft command :h3
 pair_style coul/cut/soft/omp command :h3
 pair_style coul/long/soft command :h3
 pair_style coul/long/soft/omp command :h3
@@ -27,7 +30,9 @@ pair_style tip4p/long/soft/omp command :h3
 
 pair_style style args :pre
 
-style = {lj/cut/soft} or {lj/cut/coul/cut/soft} or {lj/cut/coul/long/soft} or {lj/cut/tip4p/long/soft} or {lj/charmm/coul/long/soft} or {coul/cut/soft} or {coul/long/soft} or {tip4p/long/soft}
+style = {lj/cut/soft} or {lj/cut/coul/cut/soft} or {lj/cut/coul/long/soft} or
+{lj/cut/tip4p/long/soft} or {lj/charmm/coul/long/soft} or {lj/class2/soft} or {lj/class2/coul/cut/soft} or {lj/class2/coul/long/soft} or {coul/cut/soft} or
+{coul/long/soft} or {tip4p/long/soft} 
 args = list of arguments for a particular style :ul
   {lj/cut/soft} args = n alpha_lj cutoff
     n, alpha_LJ = parameters of soft-core potential
@@ -51,6 +56,17 @@ args = list of arguments for a particular style :ul
     n, alpha_LJ, alpha_C = parameters of the soft-core potential
     inner, outer = global switching cutoffs for LJ (and Coulombic if only 5 args)
     cutoff = global cutoff for Coulombic (optional, outer is Coulombic cutoff if only 5 args)
+  {lj/class2/soft} args = n alpha_lj cutoff
+    n, alpha_LJ = parameters of soft-core potential
+    cutoff = global cutoff for Lennard-Jones interactions (distance units)
+  {lj/class2/coul/cut/soft} args = n alpha_LJ alpha_C cutoff (cutoff2)
+    n, alpha_LJ, alpha_C = parameters of soft-core potential
+    cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
+    cutoff2 = global cutoff for Coulombic (optional) (distance units)
+  {lj/class2/coul/long/soft} args = n alpha_LJ alpha_C cutoff (cutoff2)
+    n, alpha_LJ, alpha_C = parameters of soft-core potential
+    cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
+    cutoff2 = global cutoff for Coulombic (optional) (distance units)
   {coul/cut/soft} args = n alpha_C cutoff
     n, alpha_C = parameters of the soft-core potential
     cutoff = global cutoff for Coulomb interactions (distance units)
@@ -103,10 +119,13 @@ pair_coeff 1 1 1.0 9.5 :pre
 
 [Description:]
 
-The {lj/cut/soft} style and sub-styles compute the 12/6 Lennard-Jones
-and Coulomb potential modified by a soft core, in order to avoid
-singularities during free energy calculations when sites are created
-or annihilated "(Beutler)"_#Beutler,
+The {lj/cut/soft} style and sub-styles compute the 12/6 or 9/6 Lennard-Jones and
+Coulomb potentials modified by a soft core, in order to avoid singularities
+during free energy calculations when sites are created or annihilated
+"(Beutler)"_#Beutler. These pair styles are suited for "alchemical" free energy
+calculations using the "fix adapt/fep"_fix_adapt_fep.html and "compute
+fep"_compute_fep.html commands.  For example, the 12-6 Lennard-Jones modified
+with a soft core has functional form
 
 :c,image(Eqs/pair_lj_soft.jpg)
 
@@ -131,7 +150,7 @@ The parameters n, alpha_LJ and alpha_C are set in the
 "pair_style"_pair_style.html command, before the cutoffs.  Usual
 choices for the exponent are n = 2 or n = 1. For the remaining
 coefficients alpha_LJ = 0.5 and alpha_C = 10 Angstrom^2 are
-appropriate choices. Plots of the LJ and Coulomb terms are shown
+appropriate choices. Plots of the 12/6 LJ and Coulomb terms are shown
 below, for lambda ranging from 1 to 0 every 0.1.
 
 :image(JPG/lj_soft.jpg),image(JPG/coul_soft.jpg)
@@ -178,6 +197,9 @@ epsilon and sigma in the "pair_coeff"_pair_coeff.html command (and
 before the optional eps14 and sigma14). The parameters n,
 alpha_LJ and alpha_C are set in the "pair_style"_pair_style.html
 command, before the cutoffs.
+
+Style {lj/class2/soft} implements a soft-core version of the 9/6 potential used
+in the COMPASS class2 force field. 
 
 The {coul/cut/soft}, {coul/long/soft} and {tip4p/long/soft} sub-styles
 are designed to be combined with other pair potentials via the
@@ -259,7 +281,7 @@ similar sub-style can be used via the
 :line
 
 All of the plain {soft} pair styles are part of the USER-FEP package.
-The {long} styles also requires the KSPACE package to be installed.
+The {long} styles also require the KSPACE package to be installed.
 They are only enabled if LAMMPS was built with those packages.  See
 the "Build package"_Build_package.html doc page for more info.
 

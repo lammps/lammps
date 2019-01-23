@@ -58,7 +58,8 @@ static const char cite_fix_bond_react[] =
 #define BIG 1.0e20
 #define DELTA 16
 #define MAXLINE 256
-#define MAXGUESS 20
+#define MAXGUESS 20 // max # of guesses allowed by superimpose algorithm
+#define MAXCONARGS 5 // max # of arguments for any type of constraint
 
 // various statuses of superimpose algorithm:
 // ACCEPT: site successfully matched to pre-reacted template
@@ -168,6 +169,8 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   memory->create(limit_duration,nreacts,"bond/react:limit_duration");
   memory->create(stabilize_steps_flag,nreacts,"bond/react:stabilize_steps_flag");
   memory->create(update_edges_flag,nreacts,"bond/react:update_edges_flag");
+  memory->create(nconstraints,nreacts,"bond/react:nconstraints");
+  memory->create(constraints,nreacts,MAXCONARGS,"bond/react:constraints");
   memory->create(iatomtype,nreacts,"bond/react:iatomtype");
   memory->create(jatomtype,nreacts,"bond/react:jatomtype");
   memory->create(ibonding,nreacts,"bond/react:ibonding");
@@ -185,6 +188,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     max_rxn[i] = INT_MAX;
     stabilize_steps_flag[i] = 0;
     update_edges_flag[i] = 0;
+    nconstraints[i] = 0;
     // set default limit duration to 60 timesteps
     limit_duration[i] = 60;
     reaction_count[i] = 0;
@@ -958,6 +962,7 @@ void FixBondReact::far_partner()
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
+      domain->minimum_image(delx,dely,delz); // ghost location fix
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq >= cutsq[rxnID][1] || rsq <= cutsq[rxnID][0]) {
@@ -1139,7 +1144,7 @@ void FixBondReact::superimpose_algorithm()
           }
         }
 
-        if (status == ACCEPT) { // reaction site found successfully!
+        if (status == ACCEPT && check_constraints()) { // reaction site found successfully!
           glove_ghostcheck();
         }
         hang_catch++;
@@ -1570,6 +1575,32 @@ void FixBondReact::ring_check()
       }
     }
   }
+}
+
+/* ----------------------------------------------------------------------
+evaluate constraints: return 0 if any aren't satisfied
+------------------------------------------------------------------------- */
+
+int FixBondReact::check_constraints()
+{
+  tagint atom1,atom2;
+  double delx,dely,delz,rsq;
+
+  double **x = atom->x;
+
+  for (int i = 0; i < nconstraints[rxnID]; i++) {
+    if (constraints[rxnID][0] == 0) { // 'distance' type
+      atom1 = atom->map(glove[(int) constraints[rxnID][1]-1][1]);
+      atom2 = atom->map(glove[(int) constraints[rxnID][2]-1][1]);
+      delx = x[atom1][0] - x[atom2][0];
+      dely = x[atom1][1] - x[atom2][1];
+      delz = x[atom1][2] - x[atom2][2];
+      domain->minimum_image(delx,dely,delz); // ghost location fix
+      rsq = delx*delx + dely*dely + delz*delz;
+      if (rsq < constraints[rxnID][3] || rsq > constraints[rxnID][4]) return 0;
+    }
+  }
+  return 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -2677,6 +2708,7 @@ void FixBondReact::read(int myrxn)
     else if (strstr(line,"equivalences")) sscanf(line,"%d",&nequivalent);
     else if (strstr(line,"customIDs")) sscanf(line,"%d",&ncustom);
     else if (strstr(line,"deleteIDs")) sscanf(line,"%d",&ndelete);
+    else if (strstr(line,"constraints")) sscanf(line,"%d",&nconstraints[myrxn]);
     else break;
   }
 
@@ -2708,6 +2740,8 @@ void FixBondReact::read(int myrxn)
       CustomEdges(line, myrxn);
     } else if (strcmp(keyword,"DeleteIDs") == 0) {
       DeleteAtoms(line, myrxn);
+    } else if (strcmp(keyword,"Constraints") == 0) {
+      Constraints(line, myrxn);
     } else error->one(FLERR,"Unknown section in superimpose file");
 
     parse_keyword(1,line,keyword);
@@ -2781,6 +2815,27 @@ void FixBondReact::DeleteAtoms(char *line, int myrxn)
     sscanf(line,"%d",&tmp);
     delete_atoms[tmp-1][myrxn] = 1;
   }
+}
+
+void FixBondReact::Constraints(char *line, int myrxn)
+{
+  double tmp[MAXCONARGS];
+  int n = strlen("distance") + 1;
+  char *constraint_type = new char[n];
+  for (int i = 0; i < nconstraints[myrxn]; i++) {
+    readline(line);
+    sscanf(line,"%s",constraint_type);
+    if (strcmp(constraint_type,"distance") == 0) {
+      constraints[myrxn][0] = 0; // 0 = 'distance' ...maybe use another enum eventually
+      sscanf(line,"%*s %lg %lg %lg %lg",&tmp[0],&tmp[1],&tmp[2],&tmp[3]);
+      constraints[myrxn][1] = tmp[0];
+      constraints[myrxn][2] = tmp[1];
+      constraints[myrxn][3] = tmp[2]*tmp[2]; // using square of distance
+      constraints[myrxn][4] = tmp[3]*tmp[3];
+    } else
+      error->one(FLERR,"Illegal constraint type in 'Constraints' section of map file");
+  }
+  delete [] constraint_type;
 }
 
 void FixBondReact::open(char *file)

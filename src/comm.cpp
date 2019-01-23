@@ -766,18 +766,14 @@ int Comm::
 rendezvous(int which, int n, char *inbuf, int insize,
            int inorder, int *procs,
            int (*callback)(int, char *, int &, int *&, char *&, void *),
-           int outorder, char *&outbuf, int outsize, void *ptr)
+           int outorder, char *&outbuf, int outsize, void *ptr, int statflag)
 {
-  int nout;
-
   if (which == 0)
-    nout = rendezvous_irregular(n,inbuf,insize,inorder,procs,callback,
-                                outorder,outbuf,outsize,ptr);
+    return rendezvous_irregular(n,inbuf,insize,inorder,procs,callback,
+                                outorder,outbuf,outsize,ptr,statflag);
   else
-    nout = rendezvous_all2all(n,inbuf,insize,inorder,procs,callback,
-                              outorder,outbuf,outsize,ptr);
-
-  return nout;
+    return rendezvous_all2all(n,inbuf,insize,inorder,procs,callback,
+                              outorder,outbuf,outsize,ptr,statflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -786,7 +782,7 @@ int Comm::
 rendezvous_irregular(int n, char *inbuf, int insize, int inorder, int *procs,
                      int (*callback)(int, char *, int &, int *&, char *&, void *),
                      int outorder, char *&outbuf, 
-                     int outsize, void *ptr)
+                     int outsize, void *ptr, int statflag)
 {
   // irregular comm of inbuf from caller decomp to rendezvous decomp
   
@@ -837,8 +833,82 @@ rendezvous_irregular(int n, char *inbuf, int insize, int inorder, int *procs,
   memory->destroy(procs_rvous);
   memory->sfree(outbuf_rvous);
 
-  // approximate memory tally
+  // return number of output datums
 
+  if (!statflag) return nout;
+
+  // memory info for caller and rendezvous decompositions
+
+  bigint size_in_all,size_in_max,size_in_min;
+  bigint size_out_all,size_out_max,size_out_min;
+  bigint size_inrvous_all,size_inrvous_max,size_inrvous_min;
+  bigint size_outrvous_all,size_outrvous_max,size_outrvous_min;
+
+  bigint size = (bigint) n*insize;
+  MPI_Allreduce(&size,&size_in_all,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  MPI_Allreduce(&size,&size_in_max,1,MPI_LMP_BIGINT,MPI_MAX,world);
+  MPI_Allreduce(&size,&size_in_min,1,MPI_LMP_BIGINT,MPI_MIN,world);
+
+  size = (bigint) nout*outsize;
+  MPI_Allreduce(&size,&size_out_all,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  MPI_Allreduce(&size,&size_out_max,1,MPI_LMP_BIGINT,MPI_MAX,world);
+  MPI_Allreduce(&size,&size_out_min,1,MPI_LMP_BIGINT,MPI_MIN,world);
+
+  size = (bigint) nrvous*insize;
+  MPI_Allreduce(&size,&size_inrvous_all,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  MPI_Allreduce(&size,&size_inrvous_max,1,MPI_LMP_BIGINT,MPI_MAX,world);
+  MPI_Allreduce(&size,&size_inrvous_min,1,MPI_LMP_BIGINT,MPI_MIN,world);
+
+  size = (bigint) nrvous_out*insize;
+  MPI_Allreduce(&size,&size_outrvous_all,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  MPI_Allreduce(&size,&size_outrvous_max,1,MPI_LMP_BIGINT,MPI_MAX,world);
+  MPI_Allreduce(&size,&size_outrvous_min,1,MPI_LMP_BIGINT,MPI_MIN,world);
+
+  int mbytes = 1024*1024;
+
+  if (me == 0) {
+    if (screen) {
+      fprintf(screen,"Rendezvous balance and memory info:\n");
+      fprintf(screen,"  input datum count "
+              "(tot,ave,max,min): " BIGINT_FORMAT " %g "
+              BIGINT_FORMAT " " BIGINT_FORMAT "\n",
+              size_in_all/insize,1.0*size_in_all/nprocs/insize,
+              size_in_max/insize,size_in_min/insize);
+      fprintf(screen,"  input data (MB) "
+              "(tot,ave,max,min): %g %g %g %g\n",
+              1.0*size_in_all/mbytes,1.0*size_in_all/nprocs/mbytes,
+              1.0*size_in_max/mbytes,1.0*size_in_min/mbytes);
+      fprintf(screen,"  output datum count "
+              "(tot,ave,max,min): " BIGINT_FORMAT " %g "
+              BIGINT_FORMAT " " BIGINT_FORMAT "\n",
+              size_out_all/outsize,1.0*size_out_all/nprocs/outsize,
+              size_out_max/outsize,size_out_min/outsize);
+      fprintf(screen,"  output data (MB) "
+              "(tot,ave,max,min): %g %g %g %g\n",
+              1.0*size_out_all/mbytes,1.0*size_out_all/nprocs/mbytes,
+              1.0*size_out_max/mbytes,1.0*size_out_min/mbytes);
+      fprintf(screen,"  input rvous datum count "
+              "(tot,ave,max,min): " BIGINT_FORMAT " %g "
+              BIGINT_FORMAT " " BIGINT_FORMAT "\n",
+              size_inrvous_all/insize,1.0*size_inrvous_all/nprocs/insize,
+              size_inrvous_max/insize,size_inrvous_min/insize);
+      fprintf(screen,"  input rvous data (MB) "
+              "(tot,ave,max,min): %g %g %g %g\n",
+              1.0*size_inrvous_all/mbytes,1.0*size_inrvous_all/nprocs/mbytes,
+              1.0*size_inrvous_max/mbytes,1.0*size_inrvous_min/mbytes);
+      fprintf(screen,"  output rvous datum count "
+              "(tot,ave,max,min): " BIGINT_FORMAT " %g "
+              BIGINT_FORMAT " " BIGINT_FORMAT "\n",
+              size_outrvous_all/outsize,1.0*size_outrvous_all/nprocs/outsize,
+              size_outrvous_max/outsize,size_outrvous_min/outsize);
+      fprintf(screen,"  output rvous data (MB) "
+              "(tot,ave,max,min): %g %g %g %g\n",
+              1.0*size_outrvous_all/mbytes,1.0*size_outrvous_all/nprocs/mbytes,
+              1.0*size_outrvous_max/mbytes,1.0*size_outrvous_min/mbytes);
+    }
+  }
+
+  /*
   bigint rvous_bytes = 0;
   rvous_bytes += n*insize;                                // inbuf
   rvous_bytes += nout*outsize;                            // outbuf
@@ -846,8 +916,7 @@ rendezvous_irregular(int n, char *inbuf, int insize, int inorder, int *procs,
   rvous_bytes += nrvous_out*outsize;                      // outbuf_rvous
   rvous_bytes += nrvous_out*sizeof(int);                  // procs_rvous
   rvous_bytes += MAX(irregular1_bytes,irregular2_bytes);  // max of 2 comms
-
-  // return number of output datums
+  */
 
   return nout;
 }
@@ -857,7 +926,8 @@ rendezvous_irregular(int n, char *inbuf, int insize, int inorder, int *procs,
 int Comm::
 rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
                    int (*callback)(int, char *, int &, int *&, char *&, void *),
-                   int outorder, char *&outbuf, int outsize, void *ptr)
+                   int outorder, char *&outbuf, int outsize, void *ptr,
+                   int statflag)
 {
   int iproc;
   bigint all2all1_bytes,all2all2_bytes;
@@ -956,7 +1026,13 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
                             procs_rvous,outbuf_rvous,ptr);
 
   if (flag != 1) memory->sfree(inbuf_rvous);  // outbuf_rvous = inbuf_vous
-  if (flag == 0) return 0;    // all nout_rvous are 0, no 2nd irregular
+  if (flag == 0) {
+    memory->destroy(sendcount);
+    memory->destroy(recvcount);
+    memory->destroy(sdispls);
+    memory->destroy(rdispls);
+    return 0;    // all nout_rvous are 0, no 2nd irregular
+  }
 
   // create procs and outbuf for All2all if necesary
   
@@ -1044,8 +1120,82 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
   memory->destroy(sdispls);
   memory->destroy(rdispls);
 
-  // approximate memory tally
+  // return number of output datums
 
+  if (!statflag) return nout;
+
+  // memory info for caller and rendezvous decompositions
+
+  bigint size_in_all,size_in_max,size_in_min;
+  bigint size_out_all,size_out_max,size_out_min;
+  bigint size_inrvous_all,size_inrvous_max,size_inrvous_min;
+  bigint size_outrvous_all,size_outrvous_max,size_outrvous_min;
+
+  bigint size = (bigint) n*insize;
+  MPI_Allreduce(&size,&size_in_all,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  MPI_Allreduce(&size,&size_in_max,1,MPI_LMP_BIGINT,MPI_MAX,world);
+  MPI_Allreduce(&size,&size_in_min,1,MPI_LMP_BIGINT,MPI_MIN,world);
+
+  size = (bigint) nout*outsize;
+  MPI_Allreduce(&size,&size_out_all,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  MPI_Allreduce(&size,&size_out_max,1,MPI_LMP_BIGINT,MPI_MAX,world);
+  MPI_Allreduce(&size,&size_out_min,1,MPI_LMP_BIGINT,MPI_MIN,world);
+
+  size = (bigint) nrvous*insize;
+  MPI_Allreduce(&size,&size_inrvous_all,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  MPI_Allreduce(&size,&size_inrvous_max,1,MPI_LMP_BIGINT,MPI_MAX,world);
+  MPI_Allreduce(&size,&size_inrvous_min,1,MPI_LMP_BIGINT,MPI_MIN,world);
+
+  size = (bigint) nrvous_out*insize;
+  MPI_Allreduce(&size,&size_outrvous_all,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  MPI_Allreduce(&size,&size_outrvous_max,1,MPI_LMP_BIGINT,MPI_MAX,world);
+  MPI_Allreduce(&size,&size_outrvous_min,1,MPI_LMP_BIGINT,MPI_MIN,world);
+
+  int mbytes = 1024*1024;
+
+  if (me == 0) {
+    if (screen) {
+      fprintf(screen,"Rendezvous balance and memory info:\n");
+      fprintf(screen,"  input datum count "
+              "(tot,ave,max,min): " BIGINT_FORMAT " %g "
+              BIGINT_FORMAT " " BIGINT_FORMAT "\n",
+              size_in_all/insize,1.0*size_in_all/nprocs/insize,
+              size_in_max/insize,size_in_min/insize);
+      fprintf(screen,"  input data (MB) "
+              "(tot,ave,max,min): %g %g %g %g\n",
+              1.0*size_in_all/mbytes,1.0*size_in_all/nprocs/mbytes,
+              1.0*size_in_max/mbytes,1.0*size_in_min/mbytes);
+      fprintf(screen,"  output datum count "
+              "(tot,ave,max,min): " BIGINT_FORMAT " %g "
+              BIGINT_FORMAT " " BIGINT_FORMAT "\n",
+              size_out_all/outsize,1.0*size_out_all/nprocs/outsize,
+              size_out_max/outsize,size_out_min/outsize);
+      fprintf(screen,"  output data (MB) "
+              "(tot,ave,max,min): %g %g %g %g\n",
+              1.0*size_out_all/mbytes,1.0*size_out_all/nprocs/mbytes,
+              1.0*size_out_max/mbytes,1.0*size_out_min/mbytes);
+      fprintf(screen,"  input rvous datum count "
+              "(tot,ave,max,min): " BIGINT_FORMAT " %g "
+              BIGINT_FORMAT " " BIGINT_FORMAT "\n",
+              size_inrvous_all/insize,1.0*size_inrvous_all/nprocs/insize,
+              size_inrvous_max/insize,size_inrvous_min/insize);
+      fprintf(screen,"  input rvous data (MB) "
+              "(tot,ave,max,min): %g %g %g %g\n",
+              1.0*size_inrvous_all/mbytes,1.0*size_inrvous_all/nprocs/mbytes,
+              1.0*size_inrvous_max/mbytes,1.0*size_inrvous_min/mbytes);
+      fprintf(screen,"  output rvous datum count "
+              "(tot,ave,max,min): " BIGINT_FORMAT " %g "
+              BIGINT_FORMAT " " BIGINT_FORMAT "\n",
+              size_outrvous_all/outsize,1.0*size_outrvous_all/nprocs/outsize,
+              size_outrvous_max/outsize,size_outrvous_min/outsize);
+      fprintf(screen,"  output rvous data (MB) "
+              "(tot,ave,max,min): %g %g %g %g\n",
+              1.0*size_outrvous_all/mbytes,1.0*size_outrvous_all/nprocs/mbytes,
+              1.0*size_outrvous_max/mbytes,1.0*size_outrvous_min/mbytes);
+    }
+  }
+
+  /*
   bigint rvous_bytes = 0;
   rvous_bytes += n*insize;                                // inbuf
   rvous_bytes += nout*outsize;                            // outbuf
@@ -1054,8 +1204,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
   rvous_bytes += nrvous_out*sizeof(int);                  // procs_rvous
   rvous_bytes += 4*nprocs*sizeof(int);                    // all2all vectors
   rvous_bytes += MAX(all2all1_bytes,all2all2_bytes);      // reorder ops
-
-  // return number of datums
+  */
 
   return nout;
 }

@@ -966,10 +966,11 @@ void Irregular::exchange_data(char *sendbuf, int nbytes, char *recvbuf)
   if (nrecv_proc) MPI_Waitall(nrecv_proc,request,status);
 
   // approximate memory tally
+  // DEBUG lines
 
-  bigint irregular_bytes = 2*nprocs*sizeof(int);
-  irregular_bytes += maxindex*sizeof(int);
-  irregular_bytes += maxbuf;
+  //bigint irregular_bytes = 2*nprocs*sizeof(int);
+  //irregular_bytes += maxindex*sizeof(int);
+  //irregular_bytes += maxbuf;
 }
 
 /* ----------------------------------------------------------------------

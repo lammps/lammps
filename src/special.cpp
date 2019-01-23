@@ -186,7 +186,7 @@ void Special::atom_owners()
   
   char *buf;
   comm->rendezvous(1,nlocal,(char *) idbuf,sizeof(IDRvous),0,proclist,
-                   rendezvous_ids,0,buf,0,(void *) this);
+                   rendezvous_ids,0,buf,0,(void *) this,1);
 
   memory->destroy(proclist);
   memory->sfree(idbuf);
@@ -244,7 +244,7 @@ void Special::onetwo_build_newton()
   int nreturn = comm->rendezvous(1,nsend,(char *) inbuf,sizeof(PairRvous),
                                  0,proclist,
                                  rendezvous_pairs,0,buf,sizeof(PairRvous),
-                                 (void *) this);
+                                 (void *) this,1);
   PairRvous *outbuf = (PairRvous *) buf;
     
   memory->destroy(proclist);
@@ -379,7 +379,7 @@ void Special::onethree_build()
   int nreturn = comm->rendezvous(1,nsend,(char *) inbuf,sizeof(PairRvous),
                                  0,proclist,
                                  rendezvous_pairs,0,buf,sizeof(PairRvous),
-                                 (void *) this);
+                                 (void *) this,1);
   PairRvous *outbuf = (PairRvous *) buf;
 
   memory->destroy(proclist);
@@ -484,7 +484,7 @@ void Special::onefour_build()
   int nreturn = comm->rendezvous(1,nsend,(char *) inbuf,sizeof(PairRvous),
                                  0,proclist,
                                  rendezvous_pairs,0,buf,sizeof(PairRvous),
-                                 (void *) this);
+                                 (void *) this,1);
   PairRvous *outbuf = (PairRvous *) buf;
 
   memory->destroy(proclist);
@@ -907,7 +907,7 @@ void Special::angle_trim()
     int nreturn = comm->rendezvous(1,nsend,(char *) inbuf,sizeof(PairRvous),
                                    0,proclist,
                                    rendezvous_pairs,0,buf,sizeof(PairRvous),
-                                   (void *) this);
+                                   (void *) this,1);
     PairRvous *outbuf = (PairRvous *) buf;
 
     memory->destroy(proclist);
@@ -1126,7 +1126,7 @@ void Special::dihedral_trim()
     int nreturn = comm->rendezvous(1,nsend,(char *) inbuf,sizeof(PairRvous),
                                    0,proclist,
                                    rendezvous_pairs,0,buf,sizeof(PairRvous),
-                                   (void *) this);
+                                   (void *) this,1);
     PairRvous *outbuf = (PairRvous *) buf;
 
     memory->destroy(proclist);

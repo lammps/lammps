@@ -1070,7 +1070,7 @@ void FixShake::atom_owners()
   char *buf;
   comm->rendezvous(1,nlocal,(char *) idbuf,sizeof(IDRvous),
                    0,proclist,
-                   rendezvous_ids,0,buf,0,(void *) this);
+                   rendezvous_ids,0,buf,0,(void *) this,1);
 
   memory->destroy(proclist);
   memory->sfree(idbuf);
@@ -1178,7 +1178,7 @@ void FixShake::partner_info(int *npartner, tagint **partner_tag,
                                  0,proclist,
                                  rendezvous_partners_info,
                                  0,buf,sizeof(PartnerInfo),
-                                 (void *) this);
+                                 (void *) this,1);
   PartnerInfo *outbuf = (PartnerInfo *) buf;
     
   memory->destroy(proclist);
@@ -1266,7 +1266,7 @@ void FixShake::nshake_info(int *npartner, tagint **partner_tag,
   int nreturn = comm->rendezvous(1,nsend,(char *) inbuf,sizeof(NShakeInfo),
                                  0,proclist,
                                  rendezvous_nshake,0,buf,sizeof(NShakeInfo),
-                                 (void *) this);
+                                 (void *) this,1);
   NShakeInfo *outbuf = (NShakeInfo *) buf;
     
   memory->destroy(proclist);
@@ -1359,7 +1359,7 @@ void FixShake::shake_info(int *npartner, tagint **partner_tag,
   int nreturn = comm->rendezvous(1,nsend,(char *) inbuf,sizeof(ShakeInfo),
                                  0,proclist,
                                  rendezvous_shake,0,buf,sizeof(ShakeInfo),
-                                 (void *) this);
+                                 (void *) this,1);
   ShakeInfo *outbuf = (ShakeInfo *) buf;
     
   memory->destroy(proclist);

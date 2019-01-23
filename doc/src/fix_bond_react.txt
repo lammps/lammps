@@ -277,7 +277,9 @@ distance {ID1} {ID2} {rmin} {rmax} :pre
 
 where 'distance' is the required keyword, {ID1} and {ID2} are
 pre-reaction atom IDs, and these two atoms must be separated by a
-distance between {rmin} and {rmax} for the reaction to occur.
+distance between {rmin} and {rmax} for the reaction to occur. This
+constraint can be used to enforce a certain orientation between
+reacting molecules.
 
 Once a reaction site has been successfully identified, data structures
 within LAMMPS that store bond topology are updated to reflect the

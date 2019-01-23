@@ -317,7 +317,7 @@ void DumpNetCDF::openfile()
           else {
             sprintf(dimstr, "vec%i", dims);
           }
-          if (dims != 1) {
+          if (dims != 1) {
             NCERRX( nc_inq_dimid(ncid, dimstr, &vector_dim[dims]),
                     dimstr );
           }

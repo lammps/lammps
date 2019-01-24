@@ -186,8 +186,11 @@ accelerated styles exist.
 "lj/charmmfsw/coul/charmmfsh"_pair_charmm.html - CHARMM with force switching and shifting
 "lj/charmmfsw/coul/long"_pair_charmm.html - CHARMM with force switching and long-rnage Coulombics
 "lj/class2"_pair_class2.html - COMPASS (class 2) force field with no Coulomb
+"lj/class2/soft"_pair_fep_soft.html - COMPASS (class 2) force field with no Coulomb with a soft core
 "lj/class2/coul/cut"_pair_class2.html - COMPASS with cutoff Coulomb
+"lj/class2/coul/cut/soft"_pair_fep_soft.html - COMPASS with cutoff Coulomb with a soft core
 "lj/class2/coul/long"_pair_class2.html - COMPASS with long-range Coulomb
+"lj/class2/coul/long/soft"_pair_fep_soft.html - COMPASS with long-range Coulomb with a soft core
 "lj/cubic"_pair_lj_cubic.html - LJ with cubic after inflection point
 "lj/cut"_pair_lj.html - cutoff Lennard-Jones potential with no Coulomb
 "lj/cut/coul/cut"_pair_lj.html - LJ with cutoff Coulomb

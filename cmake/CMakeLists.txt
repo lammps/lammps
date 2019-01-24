@@ -2,7 +2,22 @@
 # CMake build system
 # This file is part of LAMMPS
 # Created by Christoph Junghans and Richard Berger
-cmake_minimum_required(VERSION 2.8.12)
+if(PKG_USER-ADIOS)
+  message(STATUS "Force newer standards because using ADIOS")
+  cmake_minimum_required(VERSION 3.6)
+  # Force C++11 and C99
+  set(CMAKE_CXX_STANDARD 11)
+  set(CMAKE_CXX_STANDARD_REQUIRED True)
+  # Use meta-compile features if available, otherwise use specific language
+  # features
+#  if(NOT (CMAKE_VERSION VERSION_LESS 3.9))
+#    set(ADIOS2_CXX11_FEATURES cxx_std_11)
+#  else()
+#    set(ADIOS2_CXX11_FEATURES cxx_auto_type cxx_nullptr)
+#  endif()
+else()
+  cmake_minimum_required(VERSION 2.8.12)
+endif()
 
 project(lammps CXX)
 set(SOVERSION 0)
@@ -178,7 +193,7 @@ set(DEFAULT_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS DIPOLE GRANULAR
   USER-MEAMC USER-MGPT USER-MISC USER-MOFFF USER-MOLFILE USER-NETCDF
   USER-PHONON USER-PLUMED USER-PTM USER-QTB USER-REAXC USER-SCAFACOS
   USER-SDPD USER-SMD USER-SMTBQ USER-SPH USER-TALLY USER-UEF USER-VTK
-  USER-QUIP USER-QMMM USER-YAFF)
+  USER-QUIP USER-QMMM USER-YAFF USER-ADIOS)
 set(ACCEL_PACKAGES USER-OMP KOKKOS OPT USER-INTEL GPU)
 set(OTHER_PACKAGES CORESHELL QEQ)
 foreach(PKG ${DEFAULT_PACKAGES})
@@ -612,6 +627,7 @@ if(PKG_USER-NETCDF)
   list(APPEND LAMMPS_LINK_LIBS ${NETCDF_LIBRARIES})
   add_definitions(-DLMP_HAS_NETCDF -DNC_64BIT_DATA=0x0020)
 endif()
+
 
 if(PKG_USER-SMD)
   option(DOWNLOAD_EIGEN3 "Download Eigen3 instead of using an already installed one)" OFF)
@@ -1351,6 +1367,34 @@ if(BUILD_EXE)
   install(FILES ${LAMMPS_DOC_DIR}/lammps.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 RENAME ${LAMMPS_BINARY}.1)
   if(ENABLE_TESTING)
     add_test(ShowHelp ${LAMMPS_BINARY} -help)
+  endif()
+endif()
+
+#if(PKG_USER-ADIOS)
+#  cmake_minimum_required(VERSION 3.6)
+#  enable_language(C)
+#
+#  find_package(ADIOS2 REQUIRED)
+##  find_package(MPI REQUIRED)
+#  include_directories(${ADIOS2_INCLUDE_DIRS})
+##  include_directories(/opt/adios2/include)
+##  list(APPEND LAMMPS_LINK_LIBS ${ADIOS2_LIBRARIES})
+#  list(APPEND LAMMPS_LINK_LIBS ${MPI_C_LIBRARIES})
+#  if(BUILD_LIB)
+##    target_link_libraries(lammps adios2::adios2 MPI::MPI_C)
+##    #target_include_directories(lammps PRIVATE ${ADIOS_INCLUDE_DIRS})
+#  elseif(BUILD_EXE)
+##    target_link_libraries(lmp adios2::adios2 MPI::MPI_C)
+#  endif()
+#endif(PKG_USER-ADIOS)
+
+if(PKG_USER-ADIOS)
+  enable_language(C)
+  find_package(ADIOS2 REQUIRED)
+  if(BUILD_LIB)
+    target_link_libraries(lammps adios2::adios2)
+  elseif(BUILD_EXE)
+    target_link_libraries(lmp adios2::adios2)
   endif()
 endif()
 

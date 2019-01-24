@@ -1,0 +1,22 @@
+
+# -D LAMMPS_SIZES=value   # smallbig (default) or bigbig or smallsmall
+
+export HDF5_ROOT=/opt/hdf5-serial
+export ADIOS2_DIR=/opt/adios2
+
+cmake -D CMAKE_INSTALL_PREFIX=/opt/lammps \
+      -D CMAKE_BUILD_TYPE=Debug \
+      -D BUILD_MPI=yes \
+      -D LAMMPS_MACHINE=adiosvm \
+      -D BUILD_EXE=yes \
+      -D BUILD_LIB=no \
+      -D BUILD_SHARED_LIBS=no \
+      -D BUILD_DOC=no \
+      -D LAMMPS_SIZES=smallbig \
+      -D PKG_USER-H5MD=yes \
+      -D PKG_USER-ADIOS=yes \
+      ../cmake
+
+
+
+

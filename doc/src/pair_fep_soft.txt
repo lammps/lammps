@@ -131,7 +131,7 @@ pair_coeff 1 1 100.0 2.0 1.5 1.0 3.0 :pre
 
 [Description:]
 
-These pair styles have a soft repulsive core, tuneable by a parameter lambda,
+These pair styles have a soft repulsive core, tunable by a parameter lambda,
 in order to avoid singularities during free energy calculations when sites are
 created or annihilated "(Beutler)"_#Beutler.  When lambda tends to 0 the pair
 interaction vanishes with a soft repulsive core.  When lambda tends to 1, the pair
@@ -324,7 +324,7 @@ cutoffs greater than 2.5 sigma and alpha_LJ = 0.5, the error affecting the tail
 correction is below 0.2% when lambda = 0 (worse case). This error disappears as
 lambda approaches 1. Note that this is the error affecting the long-range tail
 (itself a correction to the interaction energy) which includes other
-approximations, namely that the system is homogenous (local density equal the
+approximations, namely that the system is homogeneous (local density equal the
 average density) beyond the cutoff.
 
 The {morse/soft} pair style does not support the "pair_modify"_pair_modify.html

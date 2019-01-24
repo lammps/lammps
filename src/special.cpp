@@ -27,6 +27,8 @@
 
 using namespace LAMMPS_NS;
 
+#define RVOUS 1   // 0 for irregular, 1 for all2all
+
 /* ---------------------------------------------------------------------- */
 
 Special::Special(LAMMPS *lmp) : Pointers(lmp)
@@ -185,7 +187,7 @@ void Special::atom_owners()
   // perform rendezvous operation
   
   char *buf;
-  comm->rendezvous(1,nlocal,(char *) idbuf,sizeof(IDRvous),0,proclist,
+  comm->rendezvous(RVOUS,nlocal,(char *) idbuf,sizeof(IDRvous),0,proclist,
                    rendezvous_ids,0,buf,0,(void *) this,1);
 
   memory->destroy(proclist);
@@ -241,7 +243,7 @@ void Special::onetwo_build_newton()
   // perform rendezvous operation
 
   char *buf;
-  int nreturn = comm->rendezvous(1,nsend,(char *) inbuf,sizeof(PairRvous),
+  int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(PairRvous),
                                  0,proclist,
                                  rendezvous_pairs,0,buf,sizeof(PairRvous),
                                  (void *) this,1);
@@ -376,7 +378,7 @@ void Special::onethree_build()
   // perform rendezvous operation
 
   char *buf;
-  int nreturn = comm->rendezvous(1,nsend,(char *) inbuf,sizeof(PairRvous),
+  int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(PairRvous),
                                  0,proclist,
                                  rendezvous_pairs,0,buf,sizeof(PairRvous),
                                  (void *) this,1);
@@ -481,7 +483,7 @@ void Special::onefour_build()
   // perform rendezvous operation
 
   char *buf;
-  int nreturn = comm->rendezvous(1,nsend,(char *) inbuf,sizeof(PairRvous),
+  int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(PairRvous),
                                  0,proclist,
                                  rendezvous_pairs,0,buf,sizeof(PairRvous),
                                  (void *) this,1);
@@ -904,7 +906,7 @@ void Special::angle_trim()
     // perform rendezvous operation
     
     char *buf;
-    int nreturn = comm->rendezvous(1,nsend,(char *) inbuf,sizeof(PairRvous),
+    int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(PairRvous),
                                    0,proclist,
                                    rendezvous_pairs,0,buf,sizeof(PairRvous),
                                    (void *) this,1);
@@ -1123,7 +1125,7 @@ void Special::dihedral_trim()
     // perform rendezvous operation
     
     char *buf;
-    int nreturn = comm->rendezvous(1,nsend,(char *) inbuf,sizeof(PairRvous),
+    int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(PairRvous),
                                    0,proclist,
                                    rendezvous_pairs,0,buf,sizeof(PairRvous),
                                    (void *) this,1);

@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<adios-config>
+
+    <!-- example engines 
+
+        <engine type="BPFile">
+        <engine type="HDF5">
+        <engine type="InSituMPI">
+        <engine type="SST">
+        <engine type="DataMan">
+
+    -->
+
+    <!-- example operations 
+        These operations go inside an IO group (but not inside engine group)
+
+    <io name="custom">
+        <variable name="T">
+            <operation type="zfp">
+                <parameter key="accuracy" value="0.01"/>
+            </operation>
+        </variable>
+    </io>
+    -->
+
+    <!--====================================================
+           Configuration for the dump atom/adios command
+        ====================================================-->
+
+    <io name="atom">
+        <engine type="BPFile">
+        </engine>
+    </io>
+
+    <!--====================================================
+           Configuration for the dump custom/adios command
+        ====================================================-->
+
+    <io name="custom">
+        <engine type="BPFile">
+        </engine>
+    </io>
+
+
+</adios-config>

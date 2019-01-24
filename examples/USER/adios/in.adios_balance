@@ -1,0 +1,56 @@
+# 2d circle of particles inside a box with LJ walls
+
+variable        b index 0
+
+variable	x index 50
+variable	y index 20
+variable	d index 20
+variable	v index 5
+variable	w index 2
+                
+units		lj
+dimension       2
+atom_style	atomic
+boundary        f f p
+
+lattice		hex 0.85
+region		box block 0 $x 0 $y -0.5 0.5
+create_box	1 box
+region		circle sphere $(v_d/2+1) $(v_d/2/sqrt(3.0)+1) 0.0 $(v_d/2)
+create_atoms	1 region circle
+mass		1 1.0
+
+velocity	all create 0.5 87287 loop geom
+velocity        all set $v $w 0 sum yes
+
+pair_style	lj/cut 2.5
+pair_coeff	1 1 10.0 1.0 2.5
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 1 check yes
+
+fix		1 all nve
+
+fix             2 all wall/lj93 xlo 0.0 1 1 2.5 xhi $x 1 1 2.5
+fix             3 all wall/lj93 ylo 0.0 1 1 2.5 yhi $y 1 1 2.5
+
+comm_style      tiled
+fix             10 all balance 50 0.9 rcb
+
+compute         1 all property/atom proc
+variable        p atom c_1%10
+dump            2 all custom 50 balance.dump id v_p x y z
+dump            3 all custom/adios 50 balance_custom.bp id v_p x y z
+dump            4 all atom/adios 50 balance_atom.bp 
+
+#dump            3 all image 50 image.*.jpg v_p type &
+#                adiam 1.0 view 0 0 zoom 1.8 subbox yes 0.02
+#variable        colors string &
+#                "red green blue yellow white &
+#                purple pink orange lime gray"
+#dump_modify     3 pad 5 amap 0 10 sa 1 10 ${colors}
+
+thermo_style    custom step temp epair press f_10[3] f_10
+thermo          100                
+
+run		200

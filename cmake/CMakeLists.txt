@@ -216,6 +216,17 @@ endif()
 
 include_directories(${LAMMPS_SOURCE_DIR})
 
+
+if(PKG_USER-ADIOS)
+  # The search for ADIOS2 must come before MPI because
+  # it includes its own MPI search with the latest FindMPI.cmake
+  # script that defines the MPI::MPI_C target 
+  enable_language(C)
+  find_package(ADIOS2 REQUIRED)
+  list(APPEND LAMMPS_LINK_LIBS adios2::adios2)
+endif()
+
+
 # do MPI detection after language activation, if MPI for these language is required
 find_package(MPI QUIET)
 option(BUILD_MPI "Build MPI version" ${MPI_FOUND})
@@ -1370,33 +1381,6 @@ if(BUILD_EXE)
   endif()
 endif()
 
-#if(PKG_USER-ADIOS)
-#  cmake_minimum_required(VERSION 3.6)
-#  enable_language(C)
-#
-#  find_package(ADIOS2 REQUIRED)
-##  find_package(MPI REQUIRED)
-#  include_directories(${ADIOS2_INCLUDE_DIRS})
-##  include_directories(/opt/adios2/include)
-##  list(APPEND LAMMPS_LINK_LIBS ${ADIOS2_LIBRARIES})
-#  list(APPEND LAMMPS_LINK_LIBS ${MPI_C_LIBRARIES})
-#  if(BUILD_LIB)
-##    target_link_libraries(lammps adios2::adios2 MPI::MPI_C)
-##    #target_include_directories(lammps PRIVATE ${ADIOS_INCLUDE_DIRS})
-#  elseif(BUILD_EXE)
-##    target_link_libraries(lmp adios2::adios2 MPI::MPI_C)
-#  endif()
-#endif(PKG_USER-ADIOS)
-
-if(PKG_USER-ADIOS)
-  enable_language(C)
-  find_package(ADIOS2 REQUIRED)
-  if(BUILD_LIB)
-    target_link_libraries(lammps adios2::adios2)
-  elseif(BUILD_EXE)
-    target_link_libraries(lmp adios2::adios2)
-  endif()
-endif()
 
 ###############################################################################
 # Build documentation

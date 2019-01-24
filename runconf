@@ -1,7 +1,7 @@
 
 # -D LAMMPS_SIZES=value   # smallbig (default) or bigbig or smallsmall
 
-export HDF5_ROOT=/opt/hdf5-serial
+export HDF5_ROOT=/opt/hdf5-parallel
 export ADIOS2_DIR=/opt/adios2
 
 cmake -D CMAKE_INSTALL_PREFIX=/opt/lammps \

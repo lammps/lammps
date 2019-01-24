@@ -260,6 +260,14 @@ pair_style command.
 
 :line
 
+A version of these styles with a soft core, {lj/cut/soft}, suitable for use in
+free energy calculations, is part of the USER-FEP package and is documented with
+the "pair_fep_soft"_pair_fep_soft.html styles. The version with soft core is
+only available if LAMMPS was built with that package. See the "Build
+package"_Build_package.html doc page for more info.
+
+:line
+
 Styles with a {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available

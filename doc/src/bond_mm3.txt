@@ -1,0 +1,58 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+bond_style mm3 command :h3
+
+[Syntax:]
+
+bond_style mm3 :pre
+
+[Examples:]
+
+bond_style mm3
+bond_coeff 1 100.0 107.0 :pre
+
+[Description:]
+
+The {mm3} bond style uses the potential that is anharmonic in the bond
+as defined in "(Allinger)"_#mm3-allinger1989
+
+:c,image(Eqs/bond_mm3.jpg)
+
+where r0 is the equilibrium value of the bond, and K is a
+prefactor. The anharmonic prefactors have units angstrom^(-n):
+-2.55 angstrom^(-1) and (7/12)2.55^2 angstrom^(-2). The code takes
+care of the necessary unit conversion for these factors internally.
+Note that the MM3 papers contains an error in Eq (1):
+(7/12)2.55 should be replaced with (7/12)2.55^2
+
+The following coefficients must be defined for each bond type via the
+"bond_coeff"_bond_coeff.html command as in the example above, or in
+the data file or restart files read by the "read_data"_read_data.html
+or "read_restart"_read_restart.html commands:
+
+K (energy/distance^2)
+r0 (distance) :ul
+
+[Restrictions:]
+
+This bond style can only be used if LAMMPS was built with the
+USER_YAFF package.  See the "Build package"_Build_package.html doc
+page for more info.
+
+[Related commands:]
+
+"bond_coeff"_bond_coeff.html
+
+[Default:] none
+
+:line
+
+:link(mm3-allinger1989)
+[(Allinger)] Allinger, Yuh, Lii, JACS, 111(23), 8551-8566
+(1989),

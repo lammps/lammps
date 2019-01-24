@@ -39,6 +39,8 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
+#define RVOUS 1   // 0 for irregular, 1 for all2all
+
 #define BIG 1.0e20
 #define MASSDELTA 0.1
 
@@ -1068,7 +1070,7 @@ void FixShake::atom_owners()
   // each proc assigned every 1/Pth atom
   
   char *buf;
-  comm->rendezvous(1,nlocal,(char *) idbuf,sizeof(IDRvous),
+  comm->rendezvous(RVOUS,nlocal,(char *) idbuf,sizeof(IDRvous),
                    0,proclist,
                    rendezvous_ids,0,buf,0,(void *) this,1);
 
@@ -1174,7 +1176,7 @@ void FixShake::partner_info(int *npartner, tagint **partner_tag,
   // receives all data needed to populate un-owned partner 4 values
 
   char *buf;
-  int nreturn = comm->rendezvous(1,nsend,(char *) inbuf,sizeof(PartnerInfo),
+  int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(PartnerInfo),
                                  0,proclist,
                                  rendezvous_partners_info,
                                  0,buf,sizeof(PartnerInfo),
@@ -1263,7 +1265,7 @@ void FixShake::nshake_info(int *npartner, tagint **partner_tag,
   // receives all data needed to populate un-owned partner nshake
 
   char *buf;
-  int nreturn = comm->rendezvous(1,nsend,(char *) inbuf,sizeof(NShakeInfo),
+  int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(NShakeInfo),
                                  0,proclist,
                                  rendezvous_nshake,0,buf,sizeof(NShakeInfo),
                                  (void *) this,1);
@@ -1356,7 +1358,7 @@ void FixShake::shake_info(int *npartner, tagint **partner_tag,
   // receives all data needed to populate un-owned shake info
 
   char *buf;
-  int nreturn = comm->rendezvous(1,nsend,(char *) inbuf,sizeof(ShakeInfo),
+  int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(ShakeInfo),
                                  0,proclist,
                                  rendezvous_shake,0,buf,sizeof(ShakeInfo),
                                  (void *) this,1);

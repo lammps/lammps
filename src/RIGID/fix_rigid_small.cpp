@@ -28,6 +28,7 @@
 #include "modify.h"
 #include "group.h"
 #include "comm.h"
+#include "neighbor.h"
 #include "force.h"
 #include "input.h"
 #include "output.h"
@@ -43,6 +44,8 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
+
+#define RVOUS 1   // 0 for irregular, 1 for all2all
 
 #define MAXLINE 1024
 #define CHUNK 1024
@@ -585,11 +588,21 @@ void FixRigidSmall::init()
       if (rflag && (modify->fmask[i] & POST_FORCE) &&
           !modify->fix[i]->rigid_flag) {
         char str[128];
-        snprintf(str,128,"Fix %s alters forces after fix rigid",modify->fix[i]->id);
+        snprintf(str,128,"Fix %s alters forces after fix rigid",
+                 modify->fix[i]->id);
         error->warning(FLERR,str);
       }
     }
   }
+
+  // error if maxextent > comm->cutghost
+  // NOTE: could just warn if an override flag set
+  // NOTE: this could fail for comm multi mode if user sets a wrong cutoff
+  //       for atom types in rigid bodies - need a more careful test
+
+  double cutghost = MAX(neighbor->cutneighmax,comm->cutghostuser);
+  if (maxextent > cutghost) 
+    error->all(FLERR,"Rigid body extent > ghost cutoff - use comm_modify cutoff");
 
   // error if npt,nph fix comes before rigid fix
 
@@ -1576,10 +1589,10 @@ void FixRigidSmall::create_bodies(tagint *bodyID)
   // func = compute bbox of each body, find atom closest to geometric center
 
   char *buf;
-  int nreturn = comm->rendezvous(1,ncount,(char *) inbuf,sizeof(InRvous),
+  int nreturn = comm->rendezvous(RVOUS,ncount,(char *) inbuf,sizeof(InRvous),
                                  0,proclist,
                                  rendezvous_body,0,buf,sizeof(OutRvous),
-                                 (void *) this);
+                                 (void *) this,1);
   OutRvous *outbuf = (OutRvous *) buf;
   
   memory->destroy(proclist);

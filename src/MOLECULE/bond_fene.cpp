@@ -236,8 +236,11 @@ void BondFENE::read_restart(FILE *fp)
 
 void BondFENE::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->nbondtypes; i++)
-    fprintf(fp,"%d %g %g %g %g\n",i,k[i],r0[i],epsilon[i],sigma[i]);
+  for (int i = 1; i <= atom->nbondtypes; i++) {
+    fprintf(fp,"%d %g %g %g %g",i,k[i],r0[i],epsilon[i],sigma[i]);
+    if (!atom->chartypesflag) fprintf(fp,"\n");
+    else fprintf(fp," # %s\n",atom->char_bondtype[i]);
+  }
 }
 
 /* ---------------------------------------------------------------------- */

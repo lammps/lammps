@@ -1794,6 +1794,7 @@ void ReadData::bondcoeffs()
     parse_coeffs(buf,NULL,0,1,boffset);
     if (narg == 0) error->all(FLERR,"Unexpected end of BondCoeffs section");
     force->bond->coeff(narg,arg);
+    if (atom->chartypesflag) strcpy(atom->char_bondtype[i+1],atom->ichartype);
     buf = next + 1;
   }
   delete [] original;

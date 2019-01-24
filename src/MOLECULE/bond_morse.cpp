@@ -190,8 +190,11 @@ void BondMorse::read_restart(FILE *fp)
 
 void BondMorse::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->nbondtypes; i++)
-    fprintf(fp,"%d %g %g %g\n",i,d0[i],alpha[i],r0[i]);
+  for (int i = 1; i <= atom->nbondtypes; i++) {
+    fprintf(fp,"%d %g %g %g",i,d0[i],alpha[i],r0[i]);
+    if (!atom->chartypesflag) fprintf(fp,"\n");
+    else fprintf(fp," # %s\n",atom->char_bondtype[i]);
+  }
 }
 
 /* ---------------------------------------------------------------------- */

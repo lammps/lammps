@@ -185,8 +185,11 @@ void BondNonlinear::read_restart(FILE *fp)
 
 void BondNonlinear::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->nbondtypes; i++)
-    fprintf(fp,"%d %g %g %g\n",i,epsilon[i],r0[i],lamda[i]);
+  for (int i = 1; i <= atom->nbondtypes; i++) {
+    fprintf(fp,"%d %g %g %g",i,epsilon[i],r0[i],lamda[i]);
+    if (!atom->chartypesflag) fprintf(fp,"\n");
+    else fprintf(fp," # %s\n",atom->char_bondtype[i]);
+  }
 }
 
 /* ---------------------------------------------------------------------- */

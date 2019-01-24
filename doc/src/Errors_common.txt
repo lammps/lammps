@@ -74,7 +74,7 @@ is an integer or floating-point number, respectively, and reject the
 input with an error message (for instance, when an integer is required,
 but a floating-point number 1.0 is provided):
 
-ERROR: Expected integer parameter in input script or data file :pre
+ERROR: Expected integer parameter instead of '1.0' in input script or data file :pre
 
 Some commands allow for using variable references in place of numeric
 constants so that the value can be evaluated and may change over the
@@ -85,6 +85,9 @@ reading the input and before parsing commands,
 
 NOTE: Using a variable reference (i.e. {v_name}) is only allowed if
 the documentation of the corresponding command explicitly says it is.
+Otherwise, you will receive an error message of this kind:
+
+ERROR: Expected floating point parameter instead of 'v_name' in input script or data file :pre
 
 Generally, LAMMPS will print a message to the screen and logfile and
 exit gracefully when it encounters a fatal error.  Sometimes it will

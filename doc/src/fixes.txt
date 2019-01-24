@@ -135,7 +135,7 @@ Fixes :h1
    fix_qeq_reax
    fix_qmmm
    fix_qtb
-   fix_reax_bonds
+   fix_reaxc_bonds
    fix_reaxc_species
    fix_recenter
    fix_restrain

@@ -70,7 +70,7 @@ static xdr_uint32_t xdr_swapbytes(xdr_uint32_t x)
 static xdr_uint32_t xdr_htonl(xdr_uint32_t x)
 {
   short s=0x0F00;
-  if( *((char *)&s)==(char)0x0F) {
+  if (*((char *)&s)==(char)0x0F) {
     /* bigendian, do nothing */
     return x;
   } else {
@@ -82,7 +82,7 @@ static xdr_uint32_t xdr_htonl(xdr_uint32_t x)
 static xdr_uint32_t xdr_ntohl(xdr_uint32_t x)
 {
   short s=0x0F00;
-  if( *((char *)&s)==(char)0x0F) {
+  if (*((char *)&s)==(char)0x0F) {
     /* bigendian, do nothing */
     return x;
   } else {

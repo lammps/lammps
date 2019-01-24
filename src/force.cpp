@@ -934,20 +934,21 @@ void Force::boundsbig(const char *file, int line, char *str,
 
 double Force::numeric(const char *file, int line, char *str)
 {
-  if (!str)
-    error->all(file,line,"Expected floating point parameter "
-               "in input script or data file");
-  int n = strlen(str);
+  int n = 0;
+
+  if (str) n = strlen(str);
   if (n == 0)
-    error->all(file,line,"Expected floating point parameter "
-               "in input script or data file");
+    error->all(file,line,"Expected floating point parameter instead of"
+               " NULL or empty string in input script or data file");
 
   for (int i = 0; i < n; i++) {
     if (isdigit(str[i])) continue;
     if (str[i] == '-' || str[i] == '+' || str[i] == '.') continue;
     if (str[i] == 'e' || str[i] == 'E') continue;
-    error->all(file,line,"Expected floating point parameter "
-               "in input script or data file");
+    char msg[256];
+    snprintf(msg,256,"Expected floating point parameter instead of "
+                    "'%s' in input script or data file",str);
+    error->all(file,line,msg);
   }
 
   return atof(str);
@@ -961,18 +962,19 @@ double Force::numeric(const char *file, int line, char *str)
 
 int Force::inumeric(const char *file, int line, char *str)
 {
-  if (!str)
-    error->all(file,line,
-               "Expected integer parameter in input script or data file");
-  int n = strlen(str);
+  int n = 0;
+
+  if (str) n = strlen(str);
   if (n == 0)
-    error->all(file,line,
-               "Expected integer parameter in input script or data file");
+    error->all(file,line,"Expected integer parameter instead of "
+               "NULL or empty string in input script or data file");
 
   for (int i = 0; i < n; i++) {
     if (isdigit(str[i]) || str[i] == '-' || str[i] == '+') continue;
-    error->all(file,line,
-               "Expected integer parameter in input script or data file");
+    char msg[256];
+    snprintf(msg,256,"Expected integer parameter instead of "
+                    "'%s' in input script or data file",str);
+    error->all(file,line,msg);
   }
 
   return atoi(str);
@@ -986,18 +988,19 @@ int Force::inumeric(const char *file, int line, char *str)
 
 bigint Force::bnumeric(const char *file, int line, char *str)
 {
-  if (!str)
-    error->all(file,line,
-               "Expected integer parameter in input script or data file");
-  int n = strlen(str);
+  int n = 0;
+
+  if (str) n = strlen(str);
   if (n == 0)
-    error->all(file,line,
-               "Expected integer parameter in input script or data file");
+    error->all(file,line,"Expected integer parameter instead of "
+               "NULL or empty string in input script or data file");
 
   for (int i = 0; i < n; i++) {
     if (isdigit(str[i]) || str[i] == '-' || str[i] == '+') continue;
-    error->all(file,line,
-               "Expected integer parameter in input script or data file");
+    char msg[256];
+    snprintf(msg,256,"Expected integer parameter instead of "
+                    "'%s' in input script or data file",str);
+    error->all(file,line,msg);
   }
 
   return ATOBIGINT(str);
@@ -1011,18 +1014,19 @@ bigint Force::bnumeric(const char *file, int line, char *str)
 
 tagint Force::tnumeric(const char *file, int line, char *str)
 {
-  if (!str)
-    error->all(file,line,
-               "Expected integer parameter in input script or data file");
-  int n = strlen(str);
+  int n = 0;
+
+  if (str) n = strlen(str);
   if (n == 0)
-    error->all(file,line,
-               "Expected integer parameter in input script or data file");
+    error->all(file,line,"Expected integer parameter instead of "
+               "NULL or empty string in input script or data file");
 
   for (int i = 0; i < n; i++) {
     if (isdigit(str[i]) || str[i] == '-' || str[i] == '+') continue;
-    error->all(file,line,
-               "Expected integer parameter in input script or data file");
+    char msg[256];
+    snprintf(msg,256,"Expected integer parameter instead of "
+                    "'%s' in input script or data file",str);
+    error->all(file,line,msg);
   }
 
   return ATOTAGINT(str);

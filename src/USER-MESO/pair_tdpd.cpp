@@ -161,7 +161,7 @@ void PairTDPD::compute(int eflag, int vflag)
         f[i][2] += delz*fpair;
 
         // chemical concentration transport
-        if( r < cutcc[itype][jtype]) {
+        if (r < cutcc[itype][jtype]) {
           for(int k=0; k<cc_species; k++) {
             double wcr = 1.0 - r/cutcc[itype][jtype];
             wcr = MAX(0,wcr);

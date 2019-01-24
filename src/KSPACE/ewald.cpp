@@ -72,7 +72,7 @@ void Ewald::settings(int narg, char **arg)
   if (narg != 1) error->all(FLERR,"Illegal kspace_style ewald command");
 
   accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
-}  
+}
 
 /* ----------------------------------------------------------------------
    free all memory

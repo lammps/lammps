@@ -55,6 +55,7 @@ class FixBondReact : public Fix {
   int *iatomtype,*jatomtype;
   int *seed;
   double **cutsq,*fraction;
+  int *max_rxn,*nlocalskips,*nghostlyskips;
   tagint lastcheck;
   int stabilization_flag;
   int custom_exclude_flag;
@@ -101,7 +102,7 @@ class FixBondReact : public Fix {
 
   int *ibonding,*jbonding;
   int *closeneigh; // indicates if bonding atoms of a rxn are 1-2, 1-3, or 1-4 neighbors
-  int nedge,nequivalent,ncustom; // number of edge, equivalent, custom atoms in mapping file
+  int nedge,nequivalent,ncustom,ndelete; // number of edge, equivalent, custom atoms in mapping file
   int attempted_rxn; // there was an attempt!
   int *local_rxn_count;
   int *ghostly_rxn_count;
@@ -116,6 +117,7 @@ class FixBondReact : public Fix {
   int ***reverse_equiv; // re-ordered equivalences
   int **landlocked_atoms; // all atoms at least three bonds away from edge atoms
   int **custom_edges; // atoms in molecule templates with incorrect valences
+  int **delete_atoms; // atoms in pre-reacted templates to delete
 
   int **nxspecial,**onemol_nxspecial,**twomol_nxspecial; // full number of 1-4 neighbors
   tagint **xspecial,**onemol_xspecial,**twomol_xspecial; // full 1-4 neighbor list
@@ -138,6 +140,7 @@ class FixBondReact : public Fix {
   void EdgeIDs(char *,int);
   void Equivalences(char *,int);
   void CustomEdges(char *,int);
+  void DeleteAtoms(char *,int);
 
   void make_a_guess ();
   void neighbor_loop();

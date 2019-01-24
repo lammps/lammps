@@ -48,7 +48,7 @@ ComputeDisplaceAtom::ComputeDisplaceAtom(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 3;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"refresh") == 0) {
-      if (iarg+2 > narg) 
+      if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute displace/atom command");
       refreshflag = 1;
       delete [] rvar;
@@ -63,7 +63,7 @@ ComputeDisplaceAtom::ComputeDisplaceAtom(LAMMPS *lmp, int narg, char **arg) :
 
   if (refreshflag) {
     ivar = input->variable->find(rvar);
-    if (ivar < 0) 
+    if (ivar < 0)
       error->all(FLERR,"Variable name for compute displace/atom does not exist");
     if (input->variable->atomstyle(ivar) == 0)
       error->all(FLERR,"Compute displace/atom variable "

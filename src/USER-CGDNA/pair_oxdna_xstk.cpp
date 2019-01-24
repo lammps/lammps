@@ -64,6 +64,7 @@ PairOxdnaXstk::~PairOxdnaXstk()
     memory->destroy(cut_xst_hc);
     memory->destroy(b_xst_lo);
     memory->destroy(b_xst_hi);
+    memory->destroy(cutsq_xst_hc);
 
     memory->destroy(a_xst1);
     memory->destroy(theta_xst1_0);

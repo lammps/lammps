@@ -82,7 +82,7 @@ class FixHyperLocal : public FixHyper {
   double allboost;       // sum of boostcoeff on all bonds on this step
 
   int nnewbond;              // running tally of number of new bonds created
-  int maxbondperatom;        // max # of bonds any atom ever has        
+  int maxbondperatom;        // max # of bonds any atom ever has
   int commflag;              // flag for communication mode
   int nevent;                // # of events that trigger bond rebuild
   int nevent_atom;           // # of atoms that experienced an event
@@ -115,7 +115,7 @@ class FixHyperLocal : public FixHyper {
 
   double **xold;               // coords of owned+ghost atoms when bonds created
   tagint *tagold;              // global IDs of owned+ghost atoms when b created
-             
+
   int maxold;                  // allocated size of old2now
   int maxbond;                 // allocated size of bonds
   int old_nall;                // nlocal+nghost when old2now was last setup

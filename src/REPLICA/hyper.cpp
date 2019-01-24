@@ -40,7 +40,7 @@ enum{NOHYPER,GLOBAL,LOCAL};
 
 /* ---------------------------------------------------------------------- */
 
-Hyper::Hyper(LAMMPS *lmp) : 
+Hyper::Hyper(LAMMPS *lmp) :
   Pointers(lmp), dumplist(NULL)
 {}
 
@@ -73,7 +73,7 @@ void Hyper::command(int narg, char **arg)
 
   // total # of timesteps must be multiple of t_event
 
-  if (t_event <= 0) 
+  if (t_event <= 0)
     error->all(FLERR,"Invalid t_event in hyper command");
   if (nsteps % t_event)
     error->all(FLERR,"Hyper nsteps must be multiple of t_event");
@@ -209,7 +209,7 @@ void Hyper::command(int narg, char **arg)
     dynamics(t_event,time_dynamics);
     fix_event->store_state_quench();
     quench(0);
-    
+
     ecount = compute_event->all_events();
 
     if (ecount) {
@@ -226,7 +226,7 @@ void Hyper::command(int narg, char **arg)
       fix_event->store_event();
       if (hyperenable) fix_hyper->build_bond_list(ecount);
     }
-    
+
     fix_event->restore_state_quench();
     istep = update->ntimestep - update->beginstep;
   }
@@ -519,7 +519,7 @@ void Hyper::options(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal hyper command");
       dumpflag = 1;
       int idump = output->find_dump(arg[iarg+1]);
-      if (idump < 0) 
+      if (idump < 0)
         error->all(FLERR,"Dump ID in hyper command does not exist");
       memory->grow(dumplist,ndump+1,"hyper:dumplist");
       dumplist[ndump++] = idump;

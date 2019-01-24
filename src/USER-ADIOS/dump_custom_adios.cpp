@@ -63,7 +63,7 @@ DumpCustomADIOS::DumpCustomADIOS(LAMMPS *lmp, int narg, char **arg) :
     //if (screen) fprintf(screen, "DumpCustomADIOS constructor: nvariable=%d id_variable=%p, variables=%p, nfield=%d, earg=%p\n", nvariable, id_variable, variable, nfield, earg);
     columnNames.reserve(nfield);
     for (int i = 0; i < nfield; ++i) {
-        columnNames[i]=std::string(earg[i]);
+        columnNames.push_back(earg[i]);
         //if (screen) fprintf(screen, "earg[%d] = '%s'\n", i, earg[i]);
     }
 }
@@ -294,7 +294,7 @@ void DumpCustomADIOS::init_style()
     }
 
     /* Define the group of variables for the atom style here since it's a fixed set */
-    adios2::IO io = ad->DeclareIO(ioName);
+    io = ad->DeclareIO(ioName);
     if (!io.InConfigFile())
     {
         // if not defined by user, we can change the default settings

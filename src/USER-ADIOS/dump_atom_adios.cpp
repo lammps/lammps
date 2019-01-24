@@ -254,7 +254,7 @@ void DumpAtomADIOS::init_style()
         pack_choice = &DumpAtomADIOS::pack_noscale_image;
 
     /* Define the group of variables for the atom style here since it's a fixed set */
-    adios2::IO io = ad->DeclareIO(ioName);
+    io = ad->DeclareIO(ioName);
     if (!io.InConfigFile())
     {
         // if not defined by user, we can change the default settings

@@ -1306,7 +1306,7 @@ src/USER-FEP: filenames -> commands
 src/USER-FEP/README
 "fix adapt/fep"_fix_adapt_fep.html
 "compute fep"_compute_fep.html
-"pair_style */soft"_pair_lj_soft.html
+"pair_style */soft"_pair_fep_soft.html
 examples/USER/fep
 tools/fep/README
 tools/fep :ul

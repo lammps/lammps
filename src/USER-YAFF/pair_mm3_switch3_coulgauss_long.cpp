@@ -386,18 +386,18 @@ double PairMM3Switch3CoulGaussLong::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) {
     epsilon[i][j] = sqrt(epsilon[i][i]*epsilon[j][j]);
-    sigma[i][j] = sigma[i][i] + sigma[j][j];
+    sigma[i][j] = 0.5*(sigma[i][i] + sigma[j][j]);
     gamma[i][j] = 1.0/sqrt(gamma[i][i]*gamma[i][i]+gamma[j][j]*gamma[j][j]);
     cut_lj[i][j] = mix_distance(cut_lj[i][i],cut_lj[j][j]);
   }
 
   double cut = MAX(cut_lj[i][j],cut_coul+2.0*qdist);
   cut_ljsq[i][j] = cut_lj[i][j] * cut_lj[i][j];
-  lj1[i][j] = 12.0 / (sigma[i][j]);
+  lj1[i][j] = 12.0 / (2.0*sigma[i][j]);
   if (gamma[i][i]==0.0 && gamma[j][j]==0.0) lj2[i][j] = 0.0;
   else lj2[i][j] = 1.0/sqrt(gamma[i][i]*gamma[i][i]+gamma[j][j]*gamma[j][j]);
   lj3[i][j] = 1.84e5 * epsilon[i][j];
-  lj4[i][j] = 2.25 * epsilon[i][j] * pow(sigma[i][j],6.0);
+  lj4[i][j] = 2.25 * epsilon[i][j] * pow(2.0*sigma[i][j],6.0);
 
   if (offset_flag && (cut_lj[i][j] > 0.0)) {
     // Truncation is active, so offset is zero, except if truncw==0.0

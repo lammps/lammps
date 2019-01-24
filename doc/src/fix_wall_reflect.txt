@@ -41,7 +41,7 @@ fix top all wall/reflect zhi v_pressdown :pre
 [Description:]
 
 Bound the simulation with one or more walls which reflect particles
-in the specified group when they attempt to move thru them.
+in the specified group when they attempt to move through them.
 
 Reflection means that if an atom moves outside the wall on a timestep
 by a distance delta (e.g. due to "fix nve"_fix_nve.html), then it is

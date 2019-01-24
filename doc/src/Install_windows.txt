@@ -42,7 +42,7 @@ environment manipulations.
 
 Note that to update to a newer version of LAMMPS, you should typically
 uninstall the version you currently have, download a new installer,
-and go thru the install procedure described above.  I.e. the same
+and go through the install procedure described above.  I.e. the same
 procedure for installing/updating most Windows programs.  You can
 install multiple versions of LAMMPS (in different directories), but
 only the executable for the last-installed package will be found

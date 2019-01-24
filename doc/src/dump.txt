@@ -312,7 +312,7 @@ so that any machine which supports XDR should be able to read them.
 The number of atoms per snapshot cannot change with the {xtc} style.
 The {unwrap} option of the "dump_modify"_dump_modify.html command allows
 XTC coordinates to be written "unwrapped" by the image flags for each
-atom.  Unwrapped means that if the atom has passed thru a periodic
+atom.  Unwrapped means that if the atom has passed through a periodic
 boundary one or more times, the value is printed for what the
 coordinate would be if it had not been wrapped back into the periodic
 box.  Note that these coordinates may thus be far outside the box size
@@ -534,7 +534,7 @@ on the "Howto triclinic"_Howto_triclinic.html doc page.
 
 Use {xu}, {yu}, {zu} if you want the coordinates "unwrapped" by the
 image flags for each atom.  Unwrapped means that if the atom has
-passed thru a periodic boundary one or more times, the value is
+passed through a periodic boundary one or more times, the value is
 printed for what the coordinate would be if it had not been wrapped
 back into the periodic box.  Note that using {xu}, {yu}, {zu} means
 that the coordinate values may be far outside the box bounds printed

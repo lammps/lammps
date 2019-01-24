@@ -87,7 +87,7 @@ commands to LAMMPS to execute, the same as if they were coming from an
 input script.
 
 Via these functions, the calling code can read or generate a series of
-LAMMPS commands one or multiple at a time and pass it thru the library
+LAMMPS commands one or multiple at a time and pass it through the library
 interface to setup a problem and then run it in stages.  The caller
 can interleave the command function calls with operations it performs,
 calls to extract information from or set information within LAMMPS, or

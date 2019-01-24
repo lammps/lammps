@@ -37,7 +37,7 @@ they can be used to measure properties of a system.
 This compute calculates the 3 components of the torque vector for eqch
 chunk, due to the forces on the individual atoms in the chunk around
 the center-of-mass of the chunk.  The calculation includes all effects
-due to atoms passing thru periodic boundaries.
+due to atoms passing through periodic boundaries.
 
 Note that only atoms in the specified group contribute to the
 calculation.  The "compute chunk/atom"_compute_chunk_atom.html command

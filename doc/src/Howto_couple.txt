@@ -50,7 +50,7 @@ In this scenario, the other code can be called as a library, as in
 (1), or it could be a stand-alone code, invoked by a system() call
 made by the command (assuming your parallel machine allows one or more
 processors to start up another program).  In the latter case the
-stand-alone code could communicate with LAMMPS thru files that the
+stand-alone code could communicate with LAMMPS through files that the
 command writes and reads.
 
 See the "Modify command"_Modify_command.html doc page for info on how

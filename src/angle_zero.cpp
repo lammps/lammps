@@ -142,8 +142,11 @@ void AngleZero::read_restart(FILE *fp)
 
 void AngleZero::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->nangletypes; i++)
-    fprintf(fp,"%d %g\n",i,theta0[i]/MY_PI*180.0);
+  for (int i = 1; i <= atom->nangletypes; i++) {
+    fprintf(fp,"%d %g",i,theta0[i]/MY_PI*180.0);
+    if (!atom->chartypesflag) fprintf(fp,"\n");
+    else fprintf(fp," # %s\n",atom->char_angletype[i]);
+  }
 }
 
 /* ---------------------------------------------------------------------- */

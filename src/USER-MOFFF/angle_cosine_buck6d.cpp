@@ -353,7 +353,9 @@ void AngleCosineBuck6d::read_restart(FILE *fp)
 void AngleCosineBuck6d::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->nangletypes; i++) {
-    fprintf(fp,"%d %g %d %g\n",i,k[i],multiplicity[i],th0[i]);
+    fprintf(fp,"%d %g %d %g",i,k[i],multiplicity[i],th0[i]);
+    if (!atom->chartypesflag) fprintf(fp,"\n");
+    else fprintf(fp," # %s\n",atom->char_angletype[i]);
   }
 }
 

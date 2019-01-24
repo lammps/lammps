@@ -283,8 +283,11 @@ void AngleCosineShiftExp::read_restart(FILE *fp)
 
 void AngleCosineShiftExp::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->nangletypes; i++)
-    fprintf(fp,"%d %g %g %g\n",i,umin[i],theta0[i]/MY_PI*180.0,a[i]);
+  for (int i = 1; i <= atom->nangletypes; i++) {
+    fprintf(fp,"%d %g %g %g",i,umin[i],theta0[i]/MY_PI*180.0,a[i]);
+    if (!atom->chartypesflag) fprintf(fp,"\n");
+    else fprintf(fp," # %s\n",atom->char_angletype[i]);
+  }
 }
 
 /* ---------------------------------------------------------------------- */

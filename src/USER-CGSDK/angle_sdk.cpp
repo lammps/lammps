@@ -350,8 +350,11 @@ void AngleSDK::read_restart(FILE *fp)
 
 void AngleSDK::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->nangletypes; i++)
-    fprintf(fp,"%d %g %g\n",i,k[i],theta0[i]/MY_PI*180.0);
+  for (int i = 1; i <= atom->nangletypes; i++) {
+    fprintf(fp,"%d %g %g",i,k[i],theta0[i]/MY_PI*180.0);
+    if (!atom->chartypesflag) fprintf(fp,"\n");
+    else fprintf(fp," # %s\n",atom->char_angletype[i]);
+  }
 }
 
 /* ---------------------------------------------------------------------- */

@@ -114,14 +114,14 @@ styles and their energy formulas for the meaning of these parameters:
 
 "born"_pair_born.html: a,b,c: type pairs:
 "buck"_pair_buck.html: a,c: type pairs:
-"buck/mdf"_pair_mdf.html: aparm,cparm: type pairs:
+"buck/mdf"_pair_mdf.html: a,c: type pairs:
 "coul/cut"_pair_coul.html: scale: type pairs:
 "coul/cut/soft"_pair_fep_soft.html: lambda: type pairs:
 "coul/long, coul/msm"_pair_coul.html: scale: type pairs:
 "coul/long/soft"_pair_fep_soft.html: scale, lambda: type pairs:
 "eam"_pair_eam.html: scale: type pairs:
 "gauss"_pair_gauss.html: a: type pairs:
-"lennard/mdf"_pair_mdf.html: aparm,bparm: type pairs:
+"lennard/mdf"_pair_mdf.html: a,b: type pairs:
 "lj/class2"_pair_class2.html: epsilon,sigma: type pairs:
 "lj/class2/coul/cut, lj/class2/coul/long"_pair_class2.html: epsilon,sigma: type pairs:
 "lj/cut"_pair_lj.html: epsilon,sigma: type pairs:

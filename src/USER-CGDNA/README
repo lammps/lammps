@@ -74,10 +74,10 @@ pair_oxdna_coaxstk.cpp:  coaxial stacking interaction between nucleotides
 
 
 pair_oxdna2_excv.cpp, pair_oxdna2_stk.cpp, pair_oxdna2_coaxstk.cpp:
-		     corresponding pair styles in oxDNA2 (see [3])
+                     corresponding pair styles in oxDNA2 (see [3])
 
 pair_oxdna2_dh.cpp:  Debye-Hueckel electrostatic interaction between backbone
-		     sites
+                     sites
 
 ** Fixes provided by this package:
 

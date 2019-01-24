@@ -265,7 +265,7 @@ class lammps(object):
 
   def extract_setting(self, name):
     if name: name = name.encode()
-    self.lib.lammps_extract_atom.restype = c_int
+    self.lib.lammps_extract_setting.restype = c_int
     return int(self.lib.lammps_extract_setting(self.lmp,name))
 
   # extract global info

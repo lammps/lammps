@@ -353,6 +353,9 @@ void ImproperCvff::read_restart(FILE *fp)
 
 void ImproperCvff::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->nimpropertypes; i++)
-    fprintf(fp,"%d %g %d %d\n",i,k[i],sign[i],multiplicity[i]);
+  for (int i = 1; i <= atom->nimpropertypes; i++) {
+    fprintf(fp,"%d %g %d %d",i,k[i],sign[i],multiplicity[i]);
+    if (!atom->chartypesflag) fprintf(fp,"\n");
+    else fprintf(fp," # %s\n",atom->char_impropertype[i]);
+  }
 }

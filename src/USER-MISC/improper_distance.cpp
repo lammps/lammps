@@ -265,6 +265,9 @@ void ImproperDistance::read_restart(FILE *fp)
 
 void ImproperDistance::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->nimpropertypes; i++)
-    fprintf(fp,"%d %g %g\n",i,k[i],chi[i]);
+  for (int i = 1; i <= atom->nimpropertypes; i++) {
+    fprintf(fp,"%d %g %g",i,k[i],chi[i]);
+    if (!atom->chartypesflag) fprintf(fp,"\n");
+    else fprintf(fp," # %s\n",atom->char_impropertype[i]);
+  }
 }

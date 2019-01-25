@@ -335,6 +335,9 @@ void ImproperUmbrella::read_restart(FILE *fp)
 
 void ImproperUmbrella::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->nimpropertypes; i++)
-    fprintf(fp,"%d %g %g\n",i,kw[i],w0[i]/MY_PI*180.0);
+  for (int i = 1; i <= atom->nimpropertypes; i++) {
+    fprintf(fp,"%d %g %g",i,kw[i],w0[i]/MY_PI*180.0);
+    if (!atom->chartypesflag) fprintf(fp,"\n");
+    else fprintf(fp," # %s\n",atom->char_impropertype[i]);
+  }
 }

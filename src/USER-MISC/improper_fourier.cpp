@@ -350,6 +350,9 @@ void ImproperFourier::read_restart(FILE *fp)
 
 void ImproperFourier::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->nimpropertypes; i++)
-    fprintf(fp,"%d %g %g %g %g %d\n",i,k[i],C0[i],C1[i],C2[i],all[i]);
+  for (int i = 1; i <= atom->nimpropertypes; i++) {
+    fprintf(fp,"%d %g %g %g %g %d",i,k[i],C0[i],C1[i],C2[i],all[i]);
+    if (!atom->chartypesflag) fprintf(fp,"\n");
+    else fprintf(fp," # %s\n",atom->char_impropertype[i]);
+  }
 }

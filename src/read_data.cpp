@@ -1879,6 +1879,8 @@ void ReadData::impropercoeffs(int which)
     else if (which == 1) parse_coeffs(buf,"aa",0,1,ioffset);
     if (narg == 0) error->all(FLERR,"Unexpected end of ImproperCoeffs section");
     force->improper->coeff(narg,arg);
+    if (atom->chartypesflag && which == 0)
+      strcpy(atom->char_impropertype[i+1],atom->ichartype);
     buf = next + 1;
   }
   delete [] original;

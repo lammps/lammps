@@ -852,8 +852,11 @@ double ImproperClass2::dot(double *a, double *b)
 
 void ImproperClass2::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->nimpropertypes; i++)
-    fprintf(fp,"%d %g %g\n",i,k0[i],chi0[i]);
+  for (int i = 1; i <= atom->nimpropertypes; i++) {
+    fprintf(fp,"%d %g %g",i,k0[i],chi0[i]);
+    if (!atom->chartypesflag) fprintf(fp,"\n");
+    else fprintf(fp," # %s\n",atom->char_impropertype[i]);
+  }
 
   fprintf(fp,"\nAngleAngle Coeffs\n\n");
   for (int i = 1; i <= atom->nimpropertypes; i++)

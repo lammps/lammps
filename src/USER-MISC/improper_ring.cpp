@@ -344,6 +344,9 @@ void ImproperRing::read_restart(FILE *fp)
 
 void ImproperRing::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->nimpropertypes; i++)
-    fprintf(fp,"%d %g %g\n",i,k[i],acos(chi[i])/MY_PI*180.0);
+  for (int i = 1; i <= atom->nimpropertypes; i++) {
+    fprintf(fp,"%d %g %g",i,k[i],acos(chi[i])/MY_PI*180.0);
+    if (!atom->chartypesflag) fprintf(fp,"\n");
+    else fprintf(fp," # %s\n",atom->char_impropertype[i]);
+  }
 }

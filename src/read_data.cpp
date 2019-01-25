@@ -1821,7 +1821,8 @@ void ReadData::anglecoeffs(int which)
     else if (which == 2) parse_coeffs(buf,"ba",0,1,aoffset);
     if (narg == 0) error->all(FLERR,"Unexpected end of AngleCoeffs section");
     force->angle->coeff(narg,arg);
-    if (atom->chartypesflag) strcpy(atom->char_angletype[i+1],atom->ichartype);
+    if (atom->chartypesflag && which == 0)
+      strcpy(atom->char_angletype[i+1],atom->ichartype);
     buf = next + 1;
   }
   delete [] original;

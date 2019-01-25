@@ -89,9 +89,10 @@ styles defined, or to read a data file for a different force field.
 
 The {chartypes} keyword tells read_data to interpret comments as
 character-based types, on certain lines that define interaction
-coefficients. Currently, this option only serves to remember atom
-types defined in this way in the pair coefficient section of the
-last-read data file. Currently, there is no support for restart files.
+coefficients. Currently, this option only serves to remember data file
+comments, in the Pair, PairIJ, Bond, Angle, Dihedral and Improper
+Coeffs sections of the last-read data file. Currently, there is no
+support for restart files.
 
 The use of the {fix} keyword is discussed below.
 

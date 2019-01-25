@@ -278,6 +278,9 @@ void DumpNetCDFMPIIO::openfile()
 
   // get total number of atoms
   ntotalgr = group->count(igroup);
+  for (int i = 0; i < DUMP_NC_MPIIO_MAX_DIMS; i++) {
+    vector_dim[i] = -1;
+  }
 
   if (append_flag && !multifile && access(filecurrent, F_OK) != -1) {
     // Fixme! Perform checks if dimensions and variables conform with
@@ -294,15 +297,32 @@ void DumpNetCDFMPIIO::openfile()
 
     // dimensions
     NCERRX( ncmpi_inq_dimid(ncid, NC_FRAME_STR, &frame_dim), NC_FRAME_STR );
-    NCERRX( ncmpi_inq_dimid(ncid, NC_SPATIAL_STR, &spatial_dim),
-            NC_SPATIAL_STR );
-    NCERRX( ncmpi_inq_dimid(ncid, NC_VOIGT_STR, &Voigt_dim), NC_VOIGT_STR );
     NCERRX( ncmpi_inq_dimid(ncid, NC_ATOM_STR, &atom_dim), NC_ATOM_STR );
     NCERRX( ncmpi_inq_dimid(ncid, NC_CELL_SPATIAL_STR, &cell_spatial_dim),
             NC_CELL_SPATIAL_STR );
     NCERRX( ncmpi_inq_dimid(ncid, NC_CELL_ANGULAR_STR, &cell_angular_dim),
             NC_CELL_ANGULAR_STR );
     NCERRX( ncmpi_inq_dimid(ncid, NC_LABEL_STR, &label_dim), NC_LABEL_STR );
+
+    for (int i = 0; i < n_perat; i++) {
+      int dims = perat[i].dims;
+      if (vector_dim[dims] < 0) {
+        char dimstr[1024];
+        if (dims == 3) {
+          strcpy(dimstr, NC_SPATIAL_STR);
+        }
+        else if (dims == 6) {
+          strcpy(dimstr, NC_VOIGT_STR);
+        }
+        else {
+          sprintf(dimstr, "vec%i", dims);
+        }
+        if (dims != 1) {
+          NCERRX( ncmpi_inq_dimid(ncid, dimstr, &vector_dim[dims]),
+                  dimstr );
+        }
+      }
+    }
 
     // default variables
     NCERRX( ncmpi_inq_varid(ncid, NC_SPATIAL_STR, &spatial_var),
@@ -358,10 +378,6 @@ void DumpNetCDFMPIIO::openfile()
     // dimensions
     NCERRX( ncmpi_def_dim(ncid, NC_FRAME_STR, NC_UNLIMITED, &frame_dim),
             NC_FRAME_STR );
-    NCERRX( ncmpi_def_dim(ncid, NC_SPATIAL_STR, 3, &spatial_dim),
-            NC_SPATIAL_STR );
-    NCERRX( ncmpi_def_dim(ncid, NC_VOIGT_STR, 6, &Voigt_dim),
-            NC_VOIGT_STR );
     NCERRX( ncmpi_def_dim(ncid, NC_ATOM_STR, ntotalgr, &atom_dim),
             NC_ATOM_STR );
     NCERRX( ncmpi_def_dim(ncid, NC_CELL_SPATIAL_STR, 3, &cell_spatial_dim),
@@ -371,13 +387,33 @@ void DumpNetCDFMPIIO::openfile()
     NCERRX( ncmpi_def_dim(ncid, NC_LABEL_STR, 10, &label_dim),
             NC_LABEL_STR );
 
+    for (int i = 0; i < n_perat; i++) {
+      int dims = perat[i].dims;
+      if (vector_dim[dims] < 0) {
+        char dimstr[1024];
+        if (dims == 3) {
+          strcpy(dimstr, NC_SPATIAL_STR);
+        }
+        else if (dims == 6) {
+          strcpy(dimstr, NC_VOIGT_STR);
+        }
+        else {
+          sprintf(dimstr, "vec%i", dims);
+        }
+        if (dims != 1) {
+          NCERRX( ncmpi_def_dim(ncid, dimstr, dims, &vector_dim[dims]),
+                  dimstr );
+        }
+      }
+    }
+
     // default variables
-    dims[0] = spatial_dim;
+    dims[0] = vector_dim[3];
     NCERRX( ncmpi_def_var(ncid, NC_SPATIAL_STR, NC_CHAR, 1, dims, &spatial_var),
             NC_SPATIAL_STR );
     NCERRX( ncmpi_def_var(ncid, NC_CELL_SPATIAL_STR, NC_CHAR, 1, dims,
                           &cell_spatial_var), NC_CELL_SPATIAL_STR );
-    dims[0] = spatial_dim;
+    dims[0] = vector_dim[3];
     dims[1] = label_dim;
     NCERRX( ncmpi_def_var(ncid, NC_CELL_ANGULAR_STR, NC_CHAR, 2, dims,
                           &cell_angular_var), NC_CELL_ANGULAR_STR );
@@ -399,7 +435,7 @@ void DumpNetCDFMPIIO::openfile()
     // variables specified in the input file
     dims[0] = frame_dim;
     dims[1] = atom_dim;
-    dims[2] = spatial_dim;
+    dims[2] = vector_dim[3];
 
     for (int i = 0; i < n_perat; i++) {
       nc_type xtype;
@@ -416,28 +452,15 @@ void DumpNetCDFMPIIO::openfile()
           xtype = NC_FLOAT;
       }
 
-      if (perat[i].dims == 6) {
-        // this is a tensor in Voigt notation
-        dims[2] = Voigt_dim;
-        NCERRX( ncmpi_def_var(ncid, perat[i].name, xtype, 3, dims,
-                                &perat[i].var), perat[i].name );
-      }
-      else if (perat[i].dims == 3) {
-        // this is a vector, we need to store x-, y- and z-coordinates
-        dims[2] = spatial_dim;
-        NCERRX( ncmpi_def_var(ncid, perat[i].name, xtype, 3, dims,
-                              &perat[i].var), perat[i].name );
-      }
-      else if (perat[i].dims == 1) {
+      if (perat[i].dims == 1) {
         NCERRX( ncmpi_def_var(ncid, perat[i].name, xtype, 2, dims,
                               &perat[i].var), perat[i].name );
       }
       else {
-        char errstr[1024];
-        sprintf(errstr, "%i dimensions for '%s'. Not sure how to write "
-                "this to the NetCDF trajectory file.", perat[i].dims,
-                perat[i].name);
-        error->all(FLERR,errstr);
+        // this is a vector
+        dims[2] = vector_dim[perat[i].dims];
+        NCERRX( ncmpi_def_var(ncid, perat[i].name, xtype, 3, dims,
+                              &perat[i].var), perat[i].name );
       }
     }
 

@@ -822,7 +822,8 @@ void DihedralSpherical::write_data(FILE *fp)
               theta1_mult[i][j], theta1_shift[i][j], theta1_offset[i][j],
               theta2_mult[i][j], theta2_shift[i][j], theta2_offset[i][j]);
     }
-    fprintf(fp,"\n");
+    if (!atom->chartypesflag) fprintf(fp,"\n");
+    else fprintf(fp," # %s\n",atom->char_dihedraltype[i]);
   }
 }
 

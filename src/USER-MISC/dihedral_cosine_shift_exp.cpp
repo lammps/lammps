@@ -346,7 +346,10 @@ void DihedralCosineShiftExp::read_restart(FILE *fp)
 
 void DihedralCosineShiftExp::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->ndihedraltypes; i++)
-    fprintf(fp,"%d %g %g %g\n",i,umin[i],
+  for (int i = 1; i <= atom->ndihedraltypes; i++) {
+    fprintf(fp,"%d %g %g %g",i,umin[i],
             theta[i]*180.0/MathConst::MY_PI,a[i]);
+    if (!atom->chartypesflag) fprintf(fp,"\n");
+    else fprintf(fp," # %s\n",atom->char_dihedraltype[i]);
+  }
 }

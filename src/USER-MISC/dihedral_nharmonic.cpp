@@ -349,7 +349,8 @@ void DihedralNHarmonic::write_data(FILE *fp)
     for (int j = 0; j < nterms[i]; j++ )
       fprintf(fp, " %g", a[i][j]);
 
-    fprintf(fp, "\n");
+    if (!atom->chartypesflag) fprintf(fp,"\n");
+    else fprintf(fp," # %s\n",atom->char_dihedraltype[i]);
   }
 
 }

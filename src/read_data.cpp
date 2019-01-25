@@ -1852,6 +1852,8 @@ void ReadData::dihedralcoeffs(int which)
     else if (which == 5) parse_coeffs(buf,"bb13",0,1,doffset);
     if (narg == 0) error->all(FLERR,"Unexpected end of DihedralCoeffs section");
     force->dihedral->coeff(narg,arg);
+    if (atom->chartypesflag && which == 0)
+      strcpy(atom->char_dihedraltype[i+1],atom->ichartype);
     buf = next + 1;
   }
   delete [] original;

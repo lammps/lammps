@@ -415,7 +415,8 @@ void DihedralFourier::write_data(FILE *fp)
     fprintf(fp,"%d %d",i,nterms[i]);
     for(int j = 0; j < nterms[i]; j++)
        fprintf(fp," %g %d %g",k[i][j],multiplicity[i][j],shift[i][j]);
-    fprintf(fp,"\n");
+    if (!atom->chartypesflag) fprintf(fp,"\n");
+    else fprintf(fp," # %s\n",atom->char_dihedraltype[i]);
   }
 }
 

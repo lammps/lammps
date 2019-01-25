@@ -116,6 +116,9 @@ void DihedralZero::read_restart(FILE * /*fp*/)
 ------------------------------------------------------------------------- */
 
 void DihedralZero::write_data(FILE *fp) {
-  for (int i = 1; i <= atom->ndihedraltypes; i++)
-    fprintf(fp,"%d\n",i);
+  for (int i = 1; i <= atom->ndihedraltypes; i++) {
+    fprintf(fp,"%d",i);
+    if (!atom->chartypesflag) fprintf(fp,"\n");
+    else fprintf(fp," # %s\n",atom->char_dihedraltype[i]);
+  }
 }

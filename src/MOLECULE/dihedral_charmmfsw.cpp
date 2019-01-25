@@ -494,7 +494,10 @@ void DihedralCharmmfsw::read_restart(FILE *fp)
 
 void DihedralCharmmfsw::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->ndihedraltypes; i++)
-    fprintf(fp,"%d %g %d %d %g\n",i,k[i],multiplicity[i],shift[i],weight[i]);
+  for (int i = 1; i <= atom->ndihedraltypes; i++) {
+    fprintf(fp,"%d %g %d %d %g",i,k[i],multiplicity[i],shift[i],weight[i]);
+    if (!atom->chartypesflag) fprintf(fp,"\n");
+    else fprintf(fp," # %s\n",atom->char_dihedraltype[i]);
+  }
 }
 

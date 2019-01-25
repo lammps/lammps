@@ -339,6 +339,9 @@ void DihedralHelix::read_restart(FILE *fp)
 
 void DihedralHelix::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->ndihedraltypes; i++)
-    fprintf(fp,"%d %g %g %g\n",i,aphi[i],bphi[i],cphi[i]);
+  for (int i = 1; i <= atom->ndihedraltypes; i++) {
+    fprintf(fp,"%d %g %g %g",i,aphi[i],bphi[i],cphi[i]);
+    if (!atom->chartypesflag) fprintf(fp,"\n");
+    else fprintf(fp," # %s\n",atom->char_dihedraltype[i]);
+  }
 }

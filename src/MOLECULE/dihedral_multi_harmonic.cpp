@@ -338,6 +338,9 @@ void DihedralMultiHarmonic::read_restart(FILE *fp)
 
 void DihedralMultiHarmonic::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->ndihedraltypes; i++)
-    fprintf(fp,"%d %g %g %g %g %g\n",i,a1[i],a2[i],a3[i],a4[i],a5[i]);
+  for (int i = 1; i <= atom->ndihedraltypes; i++) {
+    fprintf(fp,"%d %g %g %g %g %g",i,a1[i],a2[i],a3[i],a4[i],a5[i]);
+    if (!atom->chartypesflag) fprintf(fp,"\n");
+    else fprintf(fp," # %s\n",atom->char_dihedraltype[i]);
+  }
 }

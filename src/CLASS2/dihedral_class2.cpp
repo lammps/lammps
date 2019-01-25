@@ -927,11 +927,14 @@ void DihedralClass2::read_restart(FILE *fp)
 
 void DihedralClass2::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->ndihedraltypes; i++)
-    fprintf(fp,"%d %g %g %g %g %g %g\n",i,
+  for (int i = 1; i <= atom->ndihedraltypes; i++) {
+    fprintf(fp,"%d %g %g %g %g %g %g",i,
             k1[i],phi1[i]*180.0/MY_PI,
             k2[i],phi2[i]*180.0/MY_PI,
             k3[i],phi3[i]*180.0/MY_PI);
+    if (!atom->chartypesflag) fprintf(fp,"\n");
+    else fprintf(fp," # %s\n",atom->char_dihedraltype[i]);
+  }
 
   fprintf(fp,"\nAngleAngleTorsion Coeffs\n\n");
   for (int i = 1; i <= atom->ndihedraltypes; i++)

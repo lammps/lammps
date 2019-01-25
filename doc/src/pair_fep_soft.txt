@@ -319,13 +319,14 @@ interaction.
 
 NOTE: The analytical form of the tail corrections for energy and pressure used
 in the {lj/cut/soft} potentials are approximate, being identical to that of the
-corresponding non-soft potentials scaled by a factor lambda^n. For real-space
-cutoffs greater than 2.5 sigma and alpha_LJ = 0.5, the error affecting the tail
-correction is below 0.2% when lambda = 0 (worse case). This error disappears as
-lambda approaches 1. Note that this is the error affecting the long-range tail
-(itself a correction to the interaction energy) which includes other
-approximations, namely that the system is homogenous (local density equal the
-average density) beyond the cutoff.
+corresponding non-soft potentials scaled by a factor lambda^n. The errors due to
+this approximation should be negligible. For example, for a cutoff of 2.5 sigma
+this approximation leads to maximum relative errors in tail corrections of the
+order of 1e-4 for energy and virial (alpha_LJ = 0.5, n = 2). The error vanishes
+when lambda approaches 0 or 1. Note that these are the errors affecting the
+long-range tail (itself a correction to the interaction energy) which includes
+other approximations, namely that the system is homogenous (local density equal
+the average density) beyond the cutoff.
 
 The {morse/soft} pair style does not support the "pair_modify"_pair_modify.html
 tail option for adding long-range tail corrections to energy and pressure.

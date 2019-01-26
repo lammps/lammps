@@ -105,7 +105,7 @@ void DynamicalMatrix::setup()
 
 /* ---------------------------------------------------------------------- */
 
-void DynamicalMatrix::command(tagint narg, char **arg)
+void DynamicalMatrix::command(int narg, char **arg)
 {
     MPI_Comm_rank(world,&me);
 
@@ -130,10 +130,10 @@ void DynamicalMatrix::command(tagint narg, char **arg)
     if (igroup == -1) error->all(FLERR,"Could not find dynamical matrix group ID");
     groupbit = group->bitmask[igroup];
     dynlen = (group->count(igroup))*3;
-    memory->create(dynmat,tagint(dynlen),tagint(dynlen),"dynamic_matrix:dynmat");
+    memory->create(dynmat,int(dynlen),int(dynlen),"dynamic_matrix:dynmat");
     update->setupflag = 1;
 
-    tagint style = -1;
+    int style = -1;
     if (strcmp(arg[1],"regular") == 0) style = REGULAR;
     else if (strcmp(arg[1],"eskm") == 0) style = ESKM;
     else error->all(FLERR,"Illegal Dynamical Matrix command");
@@ -176,10 +176,10 @@ void DynamicalMatrix::command(tagint narg, char **arg)
    parse optional parameters
 ------------------------------------------------------------------------- */
 
-void DynamicalMatrix::options(tagint narg, char **arg)
+void DynamicalMatrix::options(int narg, char **arg)
 {
     if (narg < 0) error->all(FLERR,"Illegal dynamical_matrix command");
-    tagint iarg = 0;
+    int iarg = 0;
     const char* filename;
     while (iarg < narg) {
         if (strcmp(arg[iarg],"binary") == 0) {
@@ -245,13 +245,13 @@ void DynamicalMatrix::openfile(const char* filename)
 
 void DynamicalMatrix::calculateMatrix(char *arg)
 {
-    tagint nlocal = atom->nlocal;
-    tagint plocal;
-    tagint id;
-    tagint group_flag = 0;
-    tagint *mask = atom->mask;
-    tagint *type = atom->type;
-    tagint *aid = atom->tag;                               //atom id
+    int nlocal = atom->nlocal;
+    int plocal;
+    int id;
+    int group_flag = 0;
+    int *mask = atom->mask;
+    int *type = atom->type;
+    int *aid = atom->tag;                               //atom id
     double dyn_element[nlocal][3];
     double imass;
     double del = force->numeric(FLERR, arg);
@@ -259,8 +259,8 @@ void DynamicalMatrix::calculateMatrix(char *arg)
     double **x = atom->x;
     double **f = atom->f;
 
-    for (tagint i=0; i < dynlen; i++)
-        for (tagint j=0; j < dynlen; j++)
+    for (int i=0; i < dynlen; i++)
+        for (int j=0; j < dynlen; j++)
             dynmat[i][j] = 0.;
 
 
@@ -275,29 +275,29 @@ void DynamicalMatrix::calculateMatrix(char *arg)
 
     if (comm->me == 0 && screen) fprintf(screen,"Calculating Dynamical Matrix...\n");
 
-    for (tagint proc=0; proc < comm->nprocs; proc++) {
+    for (int proc=0; proc < comm->nprocs; proc++) {
         plocal = atom->nlocal;
         MPI_Bcast(&plocal, 1, MPI_INT, proc, MPI_COMM_WORLD);
-        for (tagint i = 0; i < plocal; i++){
+        for (int i = 0; i < plocal; i++){
             if (me == proc && mask[i] && groupbit)
                 group_flag = 1;
             MPI_Bcast(&group_flag, 1, MPI_INT, proc, MPI_COMM_WORLD);
             if (group_flag) {
                 if (me == proc) id = aid[i];
                 MPI_Bcast(&id, 1, MPI_INT, proc, MPI_COMM_WORLD);
-                for (tagint alpha = 0; alpha < 3; alpha++) {
+                for (int alpha = 0; alpha < 3; alpha++) {
                     if (me == proc) x[i][alpha] += del;
                     energy_force(0);
-                    for (tagint beta = 0; beta < 3; beta++) {
-                        for (tagint j = 0; j < nlocal; j++)
+                    for (int beta = 0; beta < 3; beta++) {
+                        for (int j = 0; j < nlocal; j++)
                             if (mask[j] & groupbit) {
                                 dyn_element[j][beta] = -f[j][beta];
                             }
                     }
                     if (me == proc) x[i][alpha] -= 2 * del;
                     energy_force(0);
-                    for (tagint beta = 0; beta < 3; beta++) {
-                        for (tagint j = 0; j < nlocal; j++)
+                    for (int beta = 0; beta < 3; beta++) {
+                        for (int j = 0; j < nlocal; j++)
                             if (mask[j] & groupbit) {
                                 imass = sqrt(m[type[id - 1]] * m[type[aid[j] - 1]]);
                                 dyn_element[j][beta] += f[j][beta];
@@ -312,9 +312,9 @@ void DynamicalMatrix::calculateMatrix(char *arg)
         }
     }
 
-    memory->create(final_dynmat,tagint(dynlen),tagint(dynlen),"dynamic_matrix_buffer:buf");
-    for (tagint i = 0; i < dynlen; i++)
-        MPI_Reduce(dynmat[i], final_dynmat[i], tagint(dynlen), MPI_DOUBLE, MPI_SUM, 0, world);
+    memory->create(final_dynmat,int(dynlen),int(dynlen),"dynamic_matrix_buffer:buf");
+    for (int i = 0; i < dynlen; i++)
+        MPI_Reduce(dynmat[i], final_dynmat[i], int(dynlen), MPI_DOUBLE, MPI_SUM, 0, world);
 
 
     duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
@@ -333,8 +333,8 @@ void DynamicalMatrix::writeMatrix()
     // print file comment lines
     if (!binaryflag && fp) {
         clearerr(fp);
-        for (tagint i = 0; i < dynlen; i++) {
-            for (tagint j = 0; j < dynlen; j++) {
+        for (int i = 0; i < dynlen; i++) {
+            for (int j = 0; j < dynlen; j++) {
                 if ((j+1)%3==0) fprintf(fp, "%4.8f\n", final_dynmat[j][i]);
                 else fprintf(fp, "%4.8f ",final_dynmat[j][i]);
             }
@@ -358,11 +358,11 @@ void DynamicalMatrix::writeMatrix()
    return negative gradient for nextra_global dof in fextra
 ------------------------------------------------------------------------- */
 
-void DynamicalMatrix::energy_force(tagint resetflag)
+void DynamicalMatrix::energy_force(int resetflag)
 {
     // check for reneighboring
     // always communicate since atoms move
-    tagint nflag = neighbor->decide();
+    int nflag = neighbor->decide();
 
     if (nflag == 0) {
         timer->stamp();

@@ -23,17 +23,17 @@ namespace LAMMPS_NS {
         void setup();
 
     protected:
-        tagint eflag,vflag;            // flags for energy/virial computation
-        tagint external_force_clear;   // clear forces locally or externally
+        int eflag,vflag;            // flags for energy/virial computation
+        int external_force_clear;   // clear forces locally or externally
 
 
-        tagint triclinic;              // 0 if domain is orthog, 1 if triclinic
-        tagint pairflag;
+        int triclinic;              // 0 if domain is orthog, 1 if triclinic
+        int pairflag;
 
-        tagint pair_compute_flag;            // 0 if pair->compute is skipped
-        tagint kspace_compute_flag;          // 0 if kspace->compute is skipped
+        int pair_compute_flag;            // 0 if pair->compute is skipped
+        int kspace_compute_flag;          // 0 if kspace->compute is skipped
 
-        tagint nvec;                   // local atomic dof = length of xvec
+        int nvec;                   // local atomic dof = length of xvec
 
         void energy_force(int);
         void force_clear();
@@ -49,9 +49,9 @@ namespace LAMMPS_NS {
         double conv_energy;
         double conv_distance;
         double conv_mass;
-        tagint igroup,groupbit;
-        tagint scaleflag;
-        tagint me;
+        int igroup,groupbit;
+        int scaleflag;
+        int me;
         bigint dynlen;
         double **dynmat;
         double **final_dynmat;

@@ -24,17 +24,17 @@ namespace LAMMPS_NS {
         void setup();
 
     protected:
-        tagint eflag,vflag;            // flags for energy/virial computation
-        tagint external_force_clear;   // clear forces locally or externally
+        int eflag,vflag;            // flags for energy/virial computation
+        int external_force_clear;   // clear forces locally or externally
 
 
-        tagint triclinic;              // 0 if domain is orthog, 1 if triclinic
-        tagint pairflag;
+        int triclinic;              // 0 if domain is orthog, 1 if triclinic
+        int pairflag;
 
-        tagint pair_compute_flag;            // 0 if pair->compute is skipped
-        tagint kspace_compute_flag;          // 0 if kspace->compute is skipped
+        int pair_compute_flag;            // 0 if pair->compute is skipped
+        int kspace_compute_flag;          // 0 if kspace->compute is skipped
 
-        tagint nvec;                   // local atomic dof = length of xvec
+        int nvec;                   // local atomic dof = length of xvec
 
         void energy_force(int);
         void force_clear();
@@ -50,14 +50,14 @@ namespace LAMMPS_NS {
         double conv_energy;
         double conv_distance;
         double conv_mass;
-        tagint igroup,groupbit;
-        tagint scaleflag;
-        tagint me;
+        int igroup,groupbit;
+        int scaleflag;
+        int me;
 
-        tagint compressed;            // 1 if dump file is written compressed, 0 no
-        tagint binaryflag;            // 1 if dump file is written binary, 0 no
-        tagint file_opened;           // 1 if openfile method has been called, 0 no
-        tagint file_flag;             // 1 custom file name, 0 dynmat.dat
+        int compressed;            // 1 if dump file is written compressed, 0 no
+        int binaryflag;            // 1 if dump file is written binary, 0 no
+        int file_opened;           // 1 if openfile method has been called, 0 no
+        int file_flag;             // 1 custom file name, 0 dynmat.dat
 
         FILE *fp;
     };

@@ -100,7 +100,7 @@ void ThirdOrder::setup()
 
 /* ---------------------------------------------------------------------- */
 
-void ThirdOrder::command(int narg, char **arg)
+void ThirdOrder::command(tagint narg, char **arg)
 {
     MPI_Comm_rank(world,&me);
 
@@ -126,7 +126,7 @@ void ThirdOrder::command(int narg, char **arg)
     groupbit = group->bitmask[igroup];
     update->setupflag = 1;
 
-    int style = -1;
+    tagint style = -1;
     if (strcmp(arg[1],"regular") == 0) style = REGULAR;
     else if (strcmp(arg[1],"ballistico") == 0) style = BALLISTICO;
     else error->all(FLERR,"Illegal Dynamical Matrix command");
@@ -167,10 +167,10 @@ void ThirdOrder::command(int narg, char **arg)
    parse optional parameters
 ------------------------------------------------------------------------- */
 
-void ThirdOrder::options(int narg, char **arg)
+void ThirdOrder::options(tagint narg, char **arg)
 {
     if (narg < 0) error->all(FLERR,"Illegal dynamical_matrix command");
-    int iarg = 0;
+    tagint iarg = 0;
     const char *filename;
     std::stringstream fss;
 
@@ -238,15 +238,15 @@ void ThirdOrder::openfile(const char* filename)
 
 void ThirdOrder::calculateMatrix(char *arg)
 {
-    int nlocal = atom->nlocal;
-    int plocal1;
-    int plocal2;
-    int id1;
-    int id2;
-    int group_flag_1=0;
-    int group_flag_2=0;
-    int *mask = atom->mask;
-    int *aid = atom->tag;                               //atom id
+    tagint nlocal = atom->nlocal;
+    tagint plocal1;
+    tagint plocal2;
+    tagint id1;
+    tagint id2;
+    tagint group_flag_1=0;
+    tagint group_flag_2=0;
+    tagint *mask = atom->mask;
+    tagint *aid = atom->tag;                               //atom id
     double first_derv[nlocal][3];
     double del = force->numeric(FLERR, arg);
     double **x = atom->x;
@@ -267,36 +267,36 @@ void ThirdOrder::calculateMatrix(char *arg)
 
     if (comm->me == 0 && screen) fprintf(screen,"Calculating Anharmonic Dynamical Matrix...\n");
 
-    for (int proc1=0; proc1 < comm->nprocs; proc1++) {
+    for (tagint proc1=0; proc1 < comm->nprocs; proc1++) {
         plocal1 = atom->nlocal;  // 1 proc nlocal = 8
         MPI_Bcast(&plocal1, 1, MPI_INT, proc1, MPI_COMM_WORLD); // plocal1 = 8
-        for (int i = 0; i < plocal1; i++) {
+        for (tagint i = 0; i < plocal1; i++) {
             if (me==proc1 & mask[i] & groupbit) 
 		group_flag_1 = 1;
             MPI_Bcast(&group_flag_1, 1, MPI_INT, proc1, MPI_COMM_WORLD);
             if (group_flag_1) {
                 if (me == proc1) id1 = aid[i];
                 MPI_Bcast(&id1, 1, MPI_INT, proc1, MPI_COMM_WORLD);
-                for (int alpha = 0; alpha < 3; alpha++) {
-                    for (int proc2 = 0; proc2 < comm->nprocs; proc2++) {
+                for (tagint alpha = 0; alpha < 3; alpha++) {
+                    for (tagint proc2 = 0; proc2 < comm->nprocs; proc2++) {
                         plocal2 = atom->nlocal;
                         MPI_Bcast(&plocal2, 1, MPI_INT, proc2, MPI_COMM_WORLD);
-                        for (int j = 0; j < plocal2; j++) {
+                        for (tagint j = 0; j < plocal2; j++) {
                             if (me==proc2 & mask[j] & groupbit) 
 				group_flag_2 = 1;
                             MPI_Bcast(&group_flag_2, 1, MPI_INT, proc2, MPI_COMM_WORLD);
                             if (mask[j] & groupbit) {
                                 if (me == proc2) id2 = aid[j];
                                 MPI_Bcast(&id2, 1, MPI_INT, proc2, MPI_COMM_WORLD);
-                                for (int beta = 0; beta < 3; beta++) {
+                                for (tagint beta = 0; beta < 3; beta++) {
 
                                     if (me == proc1) x[i][alpha] += del;
 
                                     if (me == proc2) x[j][beta] += del;
                                     energy_force(0);
 //
-                                    for (int gamma = 0; gamma < 3; gamma++) {
-                                        for (int k = 0; k < nlocal; k++)
+                                    for (tagint gamma = 0; gamma < 3; gamma++) {
+                                        for (tagint k = 0; k < nlocal; k++)
                                             if (mask[k] & groupbit) {
                                                 first_derv[k][gamma] = f[k][gamma];
                                             }
@@ -305,8 +305,8 @@ void ThirdOrder::calculateMatrix(char *arg)
                                     if (me == proc2) x[j][beta] -= 2 * del;
                                     energy_force(0);
 //
-                                    for (int gamma = 0; gamma < 3; gamma++) {
-                                        for (int k = 0; k < nlocal; k++)
+                                    for (tagint gamma = 0; gamma < 3; gamma++) {
+                                        for (tagint k = 0; k < nlocal; k++)
                                             if (mask[k] & groupbit) {
                                                 first_derv[k][gamma] -= f[k][gamma];
                                             }
@@ -318,8 +318,8 @@ void ThirdOrder::calculateMatrix(char *arg)
 
                                     energy_force(0);
 //
-                                    for (int gamma = 0; gamma < 3; gamma++) {
-                                        for (int k = 0; k < nlocal; k++)
+                                    for (tagint gamma = 0; gamma < 3; gamma++) {
+                                        for (tagint k = 0; k < nlocal; k++)
                                             if (mask[k] & groupbit) {
                                                 first_derv[k][gamma] -= f[k][gamma];
                                             }
@@ -328,9 +328,9 @@ void ThirdOrder::calculateMatrix(char *arg)
                                     if (me == proc2) x[j][beta] -= 2 * del;
                                     energy_force(0);
 //
-                                    for (int k = 0; k < nlocal; k++)
+                                    for (tagint k = 0; k < nlocal; k++)
                                         if (mask[k] & groupbit) {
-                                            for (int gamma = 0; gamma < 3; gamma++) {
+                                            for (tagint gamma = 0; gamma < 3; gamma++) {
                                                 //imass = sqrt(m[type[id1 - 1]]*m[type[id2 - 1]]*m[type[aid[k] - 1]]);
                                                 first_derv[k][gamma] += f[k][gamma];
                                                 first_derv[k][gamma] /= -4*del*del;
@@ -377,11 +377,11 @@ void ThirdOrder::calculateMatrix(char *arg)
    return negative gradient for nextra_global dof in fextra
 ------------------------------------------------------------------------- */
 
-void ThirdOrder::energy_force(int resetflag)
+void ThirdOrder::energy_force(tagint resetflag)
 {
     // check for reneighboring
     // always communicate since atoms move
-    int nflag = neighbor->decide();
+    tagint nflag = neighbor->decide();
 
     if (nflag == 0) {
         timer->stamp();

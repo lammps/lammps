@@ -98,7 +98,7 @@ if buildflag:
   # build plumed
   print("Building plumed ...")
   n_cpus = get_cpus()
-  cmd = 'cd %s/plumed-%s; ./configure --prefix=%s --enable-static-patch ; make -j%d ; make install' % (homepath,version,homedir,n_cpus)
+  cmd = 'cd %s/plumed-%s; ./configure --prefix=%s --enable-modules=all --enable-static-patch ; make -j%d ; make install' % (homepath,version,homedir,n_cpus)
   try:
     txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
     print(txt.decode('UTF-8'))

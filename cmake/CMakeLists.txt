@@ -562,7 +562,12 @@ if(PKG_USER-PLUMED)
       URL https://github.com/plumed/plumed2/releases/download/v2.4.4/plumed-src-2.4.4.tgz
       URL_MD5 71ed465bdc7c2059e282dbda8d564e71
       BUILD_IN_SOURCE 1
-      CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> ${CONFIGURE_REQUEST_PIC})
+      CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
+                                               ${CONFIGURE_REQUEST_PIC}
+                                                --enable-modules=all
+                                               CXX=${CMAKE_MPI_CXX_COMPILER}
+                                               CC=${CMAKE_MPI_C_COMPILER}
+    )
     ExternalProject_get_property(plumed_build INSTALL_DIR)
     set(PLUMED_INSTALL_DIR ${INSTALL_DIR})
     list(APPEND LAMMPS_DEPS plumed_build)

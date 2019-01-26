@@ -251,7 +251,7 @@ void DynamicalMatrix::calculateMatrix(char *arg)
     int group_flag = 0;
     int *mask = atom->mask;
     int *type = atom->type;
-    int *aid = atom->tag;                               //atom id
+    tagint *aid = atom->tag;                               //atom id
     double dyn_element[nlocal][3];
     double imass;
     double del = force->numeric(FLERR, arg);

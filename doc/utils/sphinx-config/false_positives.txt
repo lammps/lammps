@@ -60,10 +60,10 @@ Alejandre
 alessandro
 Alessandro
 aliceblue
+Allinger
 allocaters
 allosws
 AlO
-alond
 Alonso
 amap
 Amatrix
@@ -411,6 +411,7 @@ cossq
 costheta
 Couette
 coul
+coulgauss
 coulombic
 Coulombic
 Coulombics
@@ -436,6 +437,9 @@ CSiC
 csld
 cslib
 CSlib
+cstdio
+cstdlib
+cstring
 cstyle
 csvr
 Ctypes
@@ -507,6 +511,7 @@ deepskyblue
 defgrad
 deformable
 del
+deleteIDs
 Dellago
 delocalization
 delocalized
@@ -563,6 +568,7 @@ discretized
 disp
 dissipative
 Dissipative
+distharm
 dl
 dlambda
 DLAMMPS
@@ -571,6 +577,7 @@ dlopen
 dm
 dmax
 Dmax
+dmg
 dmi
 dnf
 Dobson
@@ -1134,6 +1141,7 @@ inv
 invariants
 inversed
 ionocovalent
+iostreams
 iparam
 ipi
 ipp
@@ -1271,6 +1279,7 @@ Klapp
 Kloss
 kmax
 Kmax
+Knizhnik
 knl
 Kohlmeyer
 Kohn
@@ -1343,6 +1352,8 @@ lcbop
 ld
 ldfftw
 ldg
+Lebedeva
+lebedeva
 Lebold
 Lechman
 Lehoucq
@@ -1438,6 +1449,7 @@ Lorant
 lorenz
 lossless
 lossy
+Lozovik
 lps
 lpsapi
 lrt
@@ -1522,6 +1534,7 @@ mdf
 mdpd
 mDPD
 meam
+meamc
 MEAMC
 meamf
 meanDist
@@ -2081,12 +2094,14 @@ polydisperse
 polydispersity
 polyhedra
 popen
+Popov
 popstore
 Poresag
 pos
 Poschel
 posix
 Postma
+Potapkin
 potin
 Pourtois
 powderblue
@@ -2481,6 +2496,7 @@ Springer
 springgreen
 spx
 spz
+sqdistharm
 sqrt
 src
 srd
@@ -2499,7 +2515,9 @@ Startstep
 statcoul
 statcoulombs
 statvolt
+stdlib
 stdin
+stdio
 steelblue
 Stegailov
 Steinbach
@@ -2787,6 +2805,8 @@ Valone
 valuev
 Valuev
 Vanden
+Vandenbrande
+Vanduyfhuys
 varavg
 Varshalovich
 Varshney
@@ -2944,6 +2964,8 @@ xy
 xyz
 xz
 xzhou
+YAFF
+yaff
 Yamada
 Yazdani
 Ybar
@@ -2962,6 +2984,7 @@ ys
 ysu
 yu
 Yu
+Yuh
 yukawa
 Yukawa
 Yusof

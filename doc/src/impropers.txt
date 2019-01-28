@@ -9,6 +9,7 @@ Improper Styles :h1
    improper_cossq
    improper_cvff
    improper_distance
+   improper_distharm
    improper_fourier
    improper_harmonic
    improper_hybrid
@@ -16,6 +17,7 @@ Improper Styles :h1
    improper_none
    improper_ring
    improper_umbrella
+   improper_sqdistharm
    improper_zero
 
 END_RST -->

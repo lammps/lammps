@@ -85,7 +85,7 @@ void PairKolmogorovCrespiZ::compute(int eflag, int vflag)
   double rsq,r,rhosq,exp1,exp2,r6,r8;
   double frho,sumC,sumC2,sumCff,fsum,rdsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  
+
   evdwl = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
@@ -121,7 +121,7 @@ void PairKolmogorovCrespiZ::compute(int eflag, int vflag)
       // rho^2 = r^2 - (n,r) = r^2 - z^2
       rhosq = delx*delx + dely*dely;
       rsq = rhosq + delz*delz;
-      
+
       if (rsq < cutsq[itype][jtype]) {
 
         int iparam_ij = elem2param[map[itype]][map[jtype]];
@@ -137,7 +137,7 @@ void PairKolmogorovCrespiZ::compute(int eflag, int vflag)
         exp2 = exp(-rdsq);
 
         // note that f(rho_ij) equals f(rho_ji) as normals are all along z
-        sumC = p.C0+p.C2*rdsq+p.C4*rdsq*rdsq; 
+        sumC = p.C0+p.C2*rdsq+p.C4*rdsq*rdsq;
         sumC2 = (2*p.C2+4*p.C4*rdsq)*p.delta2inv;
         frho = exp2*sumC;
         sumCff = p.C + 2*frho;
@@ -221,9 +221,9 @@ void PairKolmogorovCrespiZ::settings(int narg, char **arg)
 
 void PairKolmogorovCrespiZ::coeff(int narg, char **arg)
 {
-  int i,j,n; 
+  int i,j,n;
 
-  if (narg != 3 + atom->ntypes) 
+  if (narg != 3 + atom->ntypes)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
@@ -262,7 +262,7 @@ void PairKolmogorovCrespiZ::coeff(int narg, char **arg)
 
 
   read_file(arg[2]);
-  
+
   double cut_one = cut_global;
 
   int count = 0;
@@ -407,7 +407,7 @@ void PairKolmogorovCrespiZ::read_file(char *filename)
     params[nparams].S        = atof(words[10]);
 
     // energies in meV further scaled by S
-    double meV = 1.0e-3*params[nparams].S; 
+    double meV = 1.0e-3*params[nparams].S;
     params[nparams].C *= meV;
     params[nparams].A *= meV;
     params[nparams].C0 *= meV;

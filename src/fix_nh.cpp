@@ -904,9 +904,16 @@ void FixNH::final_integrate()
   t_current = temperature->compute_scalar();
   tdof = temperature->dof;
 
+  // need to recompute pressure to account for change in KE
+  // t_current is up-to-date, but compute_temperature is not
+  // compute appropriately coupled elements of mvv_current
+
   if (pstat_flag) {
     if (pstyle == ISO) pressure->compute_scalar();
-    else pressure->compute_vector();
+    else {
+      temperature->compute_vector();
+      pressure->compute_vector();
+    }
     couple();
     pressure->addstep(update->ntimestep+1);
   }
@@ -1871,7 +1878,8 @@ void FixNH::nhc_press_integrate()
       }
   }
 
-  lkt_press = pdof * kt;
+  if (pstyle == ISO) lkt_press = kt;
+  else lkt_press = pdof * kt;
   etap_dotdot[0] = (kecurrent - lkt_press)/etap_mass[0];
 
   double ncfac = 1.0/nc_pchain;

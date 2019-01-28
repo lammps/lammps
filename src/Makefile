@@ -53,9 +53,9 @@ endif
 # PACKEXT    = subset that require an external (downloaded) library
 
 PACKAGE = asphere body class2 colloid compress coreshell dipole gpu \
-	  granular kim kokkos kspace latte manybody mc meam message misc \
+	  granular kim kokkos kspace latte manybody mc message misc \
 	  molecule mpiio mscg opt peri poems \
-	  python qeq reax replica rigid shock snap spin srd voronoi
+	  python qeq replica rigid shock snap spin srd voronoi
 
 PACKUSER = user-atc user-awpmd user-bocs user-cgdna user-cgsdk user-colvars \
 	   user-diffraction user-dpd user-drude user-eff user-fep user-h5md \
@@ -63,17 +63,17 @@ PACKUSER = user-atc user-awpmd user-bocs user-cgdna user-cgsdk user-colvars \
 	   user-mgpt user-misc user-mofff user-molfile \
 	   user-netcdf user-omp user-phonon user-plumed user-ptm user-qmmm \
 	   user-qtb user-quip user-reaxc user-scafacos user-smd user-smtbq \
-	   user-sdpd user-sph user-tally user-uef user-vtk
+	   user-sdpd user-sph user-tally user-uef user-vtk user-yaff
 
-PACKLIB = compress gpu kim kokkos latte meam message mpiio mscg poems \
-	  python reax voronoi \
+PACKLIB = compress gpu kim kokkos latte message mpiio mscg poems \
+	  python voronoi \
 	  user-atc user-awpmd user-colvars user-h5md user-lb user-molfile \
 	  user-netcdf user-plumed user-qmmm user-quip user-scafacos \
 	  user-smd user-vtk
 
 PACKSYS = compress mpiio python user-lb
 
-PACKINT = gpu kokkos meam message poems reax user-atc user-awpmd user-colvars
+PACKINT = gpu kokkos message poems user-atc user-awpmd user-colvars
 
 PACKEXT = kim latte mscg voronoi \
 	  user-h5md user-molfile user-netcdf user-plumed user-qmmm user-quip \

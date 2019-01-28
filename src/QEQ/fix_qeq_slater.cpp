@@ -114,9 +114,9 @@ void FixQEqSlater::pre_force(int /*vflag*/)
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
 
-  if( atom->nmax > nmax ) reallocate_storage();
+  if (atom->nmax > nmax) reallocate_storage();
 
-  if( nlocal > n_cap*DANGER_ZONE || m_fill > m_cap*DANGER_ZONE )
+  if (nlocal > n_cap*DANGER_ZONE || m_fill > m_cap*DANGER_ZONE)
     reallocate_matrix();
 
   init_matvec();

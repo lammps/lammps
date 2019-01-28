@@ -147,12 +147,12 @@ int NBinSSA::coord2ssaAIR(const double *x)
   if(iz < 0){
     return -1;
   } else if(iz == 0){
-    if( iy<0 ) return -1; // bottom left/middle/right
-    if( (iy==0) && (ix<0)  ) return -1; // left atoms
-    if( (iy==0) && (ix==0) ) return 0; // Locally owned atoms
-    if( (iy==0) && (ix>0)  ) return 2; // Right atoms
-    if( (iy>0)  && (ix==0) ) return 1; // Top-middle atoms
-    if( (iy>0)  && (ix!=0) ) return 3; // Top-right and top-left atoms
+    if (iy<0) return -1; // bottom left/middle/right
+    if ((iy==0) && (ix<0) ) return -1; // left atoms
+    if ((iy==0) && (ix==0)) return 0; // Locally owned atoms
+    if ((iy==0) && (ix>0) ) return 2; // Right atoms
+    if ((iy>0)  && (ix==0)) return 1; // Top-middle atoms
+    if ((iy>0)  && (ix!=0)) return 3; // Top-right and top-left atoms
   } else { // iz > 0
     if((ix==0) && (iy==0)) return 4; // Back atoms
     if((ix==0) && (iy!=0)) return 5; // Top-back and bottom-back atoms

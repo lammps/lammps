@@ -53,7 +53,7 @@ Package, Description, Doc page, Example, Library
 "USER-INTEL"_Packages_details.html#PKG-USER-INTEL, optimized Intel CPU and KNL styles,"Speed intel"_Speed_intel.html, "Benchmarks"_http://lammps.sandia.gov/bench.html, no
 "USER-LB"_Packages_details.html#PKG-USER-LB, Lattice Boltzmann fluid,"fix lb/fluid"_fix_lb_fluid.html, USER/lb, no
 "USER-MANIFOLD"_Packages_details.html#PKG-USER-MANIFOLD, motion on 2d surfaces,"fix manifoldforce"_fix_manifoldforce.html, USER/manifold, no
-"USER-MEAMC"_Packages_details.html#PKG-USER-MEAMC, modified EAM potential (C++), "pair_style meam/c"_pair_meam.html, meam, no
+"USER-MEAMC"_Packages_details.html#PKG-USER-MEAMC, modified EAM potential (C++), "pair_style meam/c"_pair_meamc.html, meamc, no
 "USER-MESO"_Packages_details.html#PKG-USER-MESO, mesoscale DPD models, "pair_style edpd"_pair_meso.html, USER/meso, no
 "USER-MGPT"_Packages_details.html#PKG-USER-MGPT, fast MGPT multi-ion potentials, "pair_style mgpt"_pair_mgpt.html, USER/mgpt, no
 "USER-MISC"_Packages_details.html#PKG-USER-MISC, single-file contributions, USER-MISC/README, USER/misc, no
@@ -75,7 +75,8 @@ Package, Description, Doc page, Example, Library
 "USER-SPH"_Packages_details.html#PKG-USER-SPH, smoothed particle hydrodynamics,"SPH User Guide"_PDF/SPH_LAMMPS_userguide.pdf, USER/sph, no
 "USER-TALLY"_Packages_details.html#PKG-USER-TALLY, pairwise tally computes,"compute XXX/tally"_compute_tally.html, USER/tally, no
 "USER-UEF"_Packages_details.html#PKG-USER-UEF, extensional flow,"fix nvt/uef"_fix_nh_uef.html, USER/uef, no
-"USER-VTK"_Packages_details.html#PKG-USER-VTK, dump output via VTK, "compute vtk"_dump_vtk.html, n/a, ext :tb(ea=c,ca1=l)
+"USER-VTK"_Packages_details.html#PKG-USER-VTK, dump output via VTK, "compute vtk"_dump_vtk.html, n/a, ext
+"USER-YAFF"_Packages_details.html#PKG-USER-YAFF, additional styles implemented in YAFF, "angle_style cross"_angle_cross.html, USER/yaff, no :tb(ea=c,ca1=l)
 
 :link(MOFplus,https://www.mofplus.org/content/show/MOF-FF)
 :link(PLUMED,http://www.plumed.org)

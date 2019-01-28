@@ -210,7 +210,7 @@ void CommKokkos::forward_comm_device(int dummy)
                            space,X_MASK);
         }
       } else if (ghost_velocity) {
-        if (size_forward_recv[iswap]) { 
+        if (size_forward_recv[iswap]) {
           MPI_Irecv(k_buf_recv.view<DeviceType>().data(),
                     size_forward_recv[iswap],MPI_DOUBLE,
                     recvproc[iswap],0,world,&request);

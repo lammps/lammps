@@ -1,5 +1,0 @@
-      character*2 qa       
-      common
-     $/cbkqa/ qa(nattot)
-
-

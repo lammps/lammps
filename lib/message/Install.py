@@ -5,6 +5,8 @@
 
 from __future__ import print_function
 import sys,os,re,subprocess
+sys.path.append('..')
+from install_helpers import error,get_cpus,fullpath,which
 
 # help message
 
@@ -26,41 +28,11 @@ make lib-message args="-m -z"   # build parallel CSlib with ZMQ support
 make lib-message args="-s"   # build serial CSlib with no ZMQ support
 """
 
-# print error message or help
-
-def error(str=None):
-  if not str: print(help)
-  else: print("ERROR",str)
-  sys.exit()
-
-# expand to full path name
-# process leading '~' or relative path
-
-def fullpath(path):
-  return os.path.abspath(os.path.expanduser(path))
-
-def which(program):
-  def is_exe(fpath):
-    return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
-
-  fpath, fname = os.path.split(program)
-  if fpath:
-    if is_exe(program):
-      return program
-  else:
-    for path in os.environ["PATH"].split(os.pathsep):
-      path = path.strip('"')
-      exe_file = os.path.join(path, program)
-      if is_exe(exe_file):
-        return exe_file
-
-  return None
-
 # parse args
 
 args = sys.argv[1:]
 nargs = len(args)
-if nargs == 0: error()
+if nargs == 0: error(help=help)
 
 mpiflag = False
 serialflag = False
@@ -77,7 +49,7 @@ while iarg < nargs:
   elif args[iarg] == "-z":
     zmqflag = True
     iarg += 1
-  else: error()
+  else: error(help=help)
 
 if (not mpiflag and not serialflag):
   error("Must use either -m or -s flag")
@@ -102,8 +74,12 @@ elif not mpiflag and not zmqflag:
   cmd = "cd %s; make lib_serial zmq=no" % srcdir
   
 print(cmd)
-txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-print(txt.decode('UTF-8'))
+try:
+  txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+  print(txt.decode('UTF-8'))
+except subprocess.CalledProcessError as e:
+    print("Make failed with:\n %s" % e.output.decode('UTF-8'))
+    sys.exit(1)
 
 if mpiflag: cmd = "cd %s; cp libcsmpi.a libmessage.a" % srcdir
 else: cmd = "cd %s; cp libcsnompi.a libmessage.a" % srcdir

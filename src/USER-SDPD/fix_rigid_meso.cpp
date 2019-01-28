@@ -20,7 +20,7 @@
 /* ----------------------------------------------------------------------
    Contributing author:
       Morteza Jalalvand (IASBS)  jalalvand.m AT gmail.com
-    
+
     This is an extension of fix/rigid/nve to SPH/SDPD particles
     You can see the original copyright notice of fix/rigid authors above
     Note that the Kamberaj paper was related to the nvt variant
@@ -53,10 +53,10 @@ FixRigid (lmp, narg, arg) {
   if ((atom->e_flag != 1) || (atom->rho_flag != 1))
     error->all (FLERR, "fix rigid/meso command requires atom_style with"
                 " both energy and density");
-  
+
   if (langflag || tstat_flag)
     error->all (FLERR,"Can not use thermostat with fix rigid/meso");
-  
+
   if (pstat_flag)
     error->all (FLERR,"Can not use barostat with fix rigid/meso");
 
@@ -277,11 +277,11 @@ void FixRigidMeso::set_xv () {
 
   for (int i = 0; i < nlocal; i++) {
     if (body[i] < 0) continue;
-    
+
     // half-step update of particle internal energy and density
     e[i] += dtf * de[i];
     rho[i] += dtf * drho[i];
-    
+
     ibody = body[i];
 
     xbox = (xcmimage[i] & IMGMASK) - IMGMAX;
@@ -301,7 +301,7 @@ void FixRigidMeso::set_xv () {
         x2 = x[i][2] + zbox*zprd;
       }
     }
-    
+
     v0 = v[i][0];
     v1 = v[i][1];
     v2 = v[i][2];
@@ -319,7 +319,7 @@ void FixRigidMeso::set_xv () {
       vcm[ibody][1];
     v[i][2] = omega[ibody][0]*x[i][1] - omega[ibody][1]*x[i][0] +
       vcm[ibody][2];
-    
+
     vest[i][0] = 2*v[i][0] - v0;
     vest[i][1] = 2*v[i][1] - v1;
     vest[i][2] = 2*v[i][2] - v2;
@@ -406,11 +406,11 @@ void FixRigidMeso::set_v () {
 
   for (int i = 0; i < nlocal; i++) {
     if (body[i] < 0) continue;
-    
+
     // half-step update of particle internal energy and density
     e[i] += dtf * de[i];
     rho[i] += dtf * drho[i];
-    
+
     const int ibody = body[i];
 
     MathExtra::matvec (ex_space[ibody],ey_space[ibody],

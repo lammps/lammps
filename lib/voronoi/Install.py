@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 
-# Install.py tool to download, unpack, build, and link to the Voro++ library
-# used to automate the steps described in the README file in this dir
+"""
+Install.py tool to download, unpack, build, and link to the Voro++ library
+used to automate the steps described in the README file in this dir
+"""
 
 from __future__ import print_function
-import sys,os,re,subprocess,shutil,tarfile
-sys.path.append('..')
-from install_helpers import get_cpus,fullpath,geturl,checkmd5sum
+import sys, os, subprocess, shutil, tarfile
 from argparse import ArgumentParser
+
+sys.path.append('..')
+from install_helpers import fullpath, geturl, checkmd5sum
 
 parser = ArgumentParser(prog='Install.py',
                         description="LAMMPS library build wrapper script")
@@ -24,7 +27,7 @@ checksums = { \
 
 # extra help message
 
-help = """
+HELP = """
 Syntax from src dir: make lib-voronoi args="-b"
                  or: make lib-voronoi args="-p /usr/local/voro++-0.4.6"
                  or: make lib-voronoi args="-b -v voro++-0.4.6"
@@ -52,16 +55,16 @@ parser.add_argument("-v", "--version", default=version,
 args = parser.parse_args()
 
 # print help message and exit, if neither build nor path options are given
-if args.build == False and not args.path:
+if not args.build and not args.path:
   parser.print_help()
-  sys.exit(help)
+  sys.exit(HELP)
 
 buildflag = args.build
-pathflag = args.path != None
+pathflag = args.path is not None
 voropath = args.path
 
 homepath = fullpath(".")
-homedir = os.path.join(homepath,version)
+homedir = os.path.join(homepath, version)
 
 if pathflag:
     if not os.path.isdir(voropath):
@@ -72,17 +75,18 @@ if pathflag:
 
 if buildflag:
   print("Downloading Voro++ ...")
-  vorotar = os.path.join(homepath,version) + '.tar.gz'
-  geturl(url,vorotar)
+  vorotar = os.path.join(homepath, version) + '.tar.gz'
+  geturl(url, vorotar)
 
   # verify downloaded archive integrity via md5 checksum, if known.
   if version in checksums:
-    if not checkmd5sum(checksums[version],vorotar):
+    if not checkmd5sum(checksums[version], vorotar):
       sys.exit("Checksum for Voro++ library does not match")
 
   print("Unpacking Voro++ tarball ...")
-  srcpath = os.path.join(homepath,version)
-  if os.path.exists(srcpath): shutil.rmtree(srcpath)
+  srcpath = os.path.join(homepath, version)
+  if os.path.exists(srcpath):
+    shutil.rmtree(srcpath)
   if tarfile.is_tarfile(vorotar):
     tgz = tarfile.open(vorotar)
     tgz.extractall(path=homepath)
@@ -90,8 +94,9 @@ if buildflag:
   else:
     sys.exit("File %s is not a supported archive" % vorotar)
   if os.path.basename(homedir) != version:
-    if os.path.exists(homedir): shutil.rmtree(homedir)
-    os.rename(srcpath,homedir)
+    if os.path.exists(homedir):
+      shutil.rmtree(homedir)
+    os.rename(srcpath, homedir)
 
 # build Voro++
 
@@ -99,7 +104,7 @@ if buildflag:
   print("Building Voro++ ...")
   cmd = 'cd "%s"; make CXX=g++ CFLAGS="-fPIC -O3"' % homedir
   try:
-    txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+    txt = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
     print(txt.decode('UTF-8'))
   except subprocess.CalledProcessError as e:
     print("Make failed with:\n %s" % e.output.decode('UTF-8'))
@@ -112,5 +117,5 @@ if os.path.isfile("includelink") or os.path.islink("includelink"):
   os.remove("includelink")
 if os.path.isfile("liblink") or os.path.islink("liblink"):
   os.remove("liblink")
-os.symlink(os.path.join(homedir,'src'),'includelink')
-os.symlink(os.path.join(homedir,'src'),'liblink')
+os.symlink(os.path.join(homedir, 'src'), 'includelink')
+os.symlink(os.path.join(homedir, 'src'), 'liblink')

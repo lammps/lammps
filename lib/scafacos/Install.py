@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 
-# Install.py tool to download, unpack, build, and link to the ScaFaCoS library
-# used to automate the steps described in the README file in this dir
+"""
+Install.py tool to download, unpack, build, and link to the ScaFaCoS library
+used to automate the steps described in the README file in this dir
+"""
 
 from __future__ import print_function
-import sys,os,re,subprocess,shutil,tarfile
-sys.path.append('..')
-from install_helpers import fullpath,geturl,get_cpus,checkmd5sum
+import sys, os, subprocess, shutil, tarfile
 from argparse import ArgumentParser
+
+sys.path.append('..')
+from install_helpers import fullpath, geturl, get_cpus, checkmd5sum
 
 parser = ArgumentParser(prog='Install.py',
                         description="LAMMPS library build wrapper script")
@@ -24,7 +27,7 @@ checksums = { \
 
 # extra help message
 
-help = """
+HELP = """
 Syntax from src dir: make lib-scafacos args="-b"
                  or: make lib-scafacos args="-p /usr/local/scafacos"
 Syntax from lib dir: python Install.py -b
@@ -49,23 +52,23 @@ parser.add_argument("-v", "--version", default=version,
 args = parser.parse_args()
 
 # print help message and exit, if neither build nor path options are given
-if args.build == False and not args.path:
+if not args.build and not args.path:
   parser.print_help()
-  sys.exit(help)
+  sys.exit(HELP)
 
 buildflag = args.build
-pathflag = args.path != None
+pathflag = args.path is not None
 version = args.version
 
 homepath = fullpath(".")
-scafacospath = os.path.join(homepath,"scafacos-%s" % version)
+scafacospath = os.path.join(homepath, "scafacos-%s" % version)
 
 if pathflag:
   scafacospath = args.path
-  if not os.path.isdir(os.path.join(scafacospath,"include")):
+  if not os.path.isdir(os.path.join(scafacospath, "include")):
     sys.exit("ScaFaCoS include path for %s does not exist" % scafacospath)
-  if (not os.path.isdir(os.path.join(scafacospath,"lib64"))) \
-     and (not os.path.isdir(os.path.join(scafacospath,"lib"))):
+  if (not os.path.isdir(os.path.join(scafacospath, "lib64"))) \
+     and (not os.path.isdir(os.path.join(scafacospath, "lib"))):
     sys.exit("ScaFaCoS lib path for %s does not exist" % scafacospath)
   scafacospath = fullpath(scafacospath)
 
@@ -73,19 +76,19 @@ if pathflag:
 
 if buildflag:
   print("Downloading ScaFaCoS ...")
-  geturl(url,"%s/scafacos-%s.tar.gz" % (homepath,version))
+  geturl(url, "%s/scafacos-%s.tar.gz" % (homepath, version))
 
   # verify downloaded archive integrity via md5 checksum, if known.
   if version in checksums:
-    if not checkmd5sum(checksums[version],'%s/scafacos-%s.tar.gz' % (homepath,version)):
+    if not checkmd5sum(checksums[version], '%s/scafacos-%s.tar.gz' % (homepath, version)):
       sys.exit("Checksum for ScaFaCoS library does not match")
 
   print("Unpacking ScaFaCoS tarball ...")
   if os.path.exists(scafacospath):
     shutil.rmtree(scafacospath)
-  tarname = os.path.join(homepath,"%s.tar.gz" % scafacospath)
+  tarname = os.path.join(homepath, "%s.tar.gz" % scafacospath)
   if tarfile.is_tarfile(tarname):
-    tgz=tarfile.open(tarname)
+    tgz = tarfile.open(tarname)
     tgz.extractall(path=homepath)
     os.remove(tarname)
   else:
@@ -94,9 +97,9 @@ if buildflag:
   # build ScaFaCoS
   print("Building ScaFaCoS ...")
   n_cpu = get_cpus()
-  cmd = 'cd "%s"; ./configure --prefix="%s" --disable-doc --enable-fcs-solvers=fmm,p2nfft,direct,ewald,p3m --with-internal-fftw --with-internal-pfft --with-internal-pnfft CC=mpicc FC=mpif90 CXX=mpicxx F77=; make -j%d; make install' % (scafacospath,os.path.join(homepath,'build'),n_cpu)
+  cmd = 'cd "%s"; ./configure --prefix="%s" --disable-doc --enable-fcs-solvers=fmm,p2nfft,direct,ewald,p3m --with-internal-fftw --with-internal-pfft --with-internal-pnfft CC=mpicc FC=mpif90 CXX=mpicxx F77=; make -j%d; make install' % (scafacospath, os.path.join(homepath, 'build'), n_cpu)
   try:
-    txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+    txt = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
     print(txt.decode('UTF-8'))
   except subprocess.CalledProcessError as e:
     sys.exit("Make failed with:\n %s" % e.output.decode('UTF-8'))
@@ -109,11 +112,11 @@ if os.path.isfile("includelink") or os.path.islink("includelink"):
 if os.path.isfile("liblink") or os.path.islink("liblink"):
   os.remove("liblink")
 if buildflag:
-  os.symlink(os.path.join(homepath,'build','include'),'includelink')
-  os.symlink(os.path.join(homepath,'build','lib'),'liblink')
+  os.symlink(os.path.join(homepath, 'build', 'include'), 'includelink')
+  os.symlink(os.path.join(homepath, 'build', 'lib'), 'liblink')
 else:
-  os.symlink(os.path.join(scafacospath,'include'),'includelink')
-  if os.path.isdir(os.path.join(scafacospath,"lib64")):
-    os.symlink(os.path.join(scafacospath,'lib64'),'liblink')
+  os.symlink(os.path.join(scafacospath, 'include'), 'includelink')
+  if os.path.isdir(os.path.join(scafacospath, "lib64")):
+    os.symlink(os.path.join(scafacospath, 'lib64'), 'liblink')
   else:
-    os.symlink(os.path.join(scafacospath,'lib'),'liblink')
+    os.symlink(os.path.join(scafacospath, 'lib'), 'liblink')

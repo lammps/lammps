@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 
-# install.py tool to download, compile, and setup the kim-api library
-# used to automate the steps described in the README file in this dir
+"""
+Install.py tool to download, compile, and setup the kim-api library
+used to automate the steps described in the README file in this dir
+"""
 
 from __future__ import print_function
-import sys,os,re,subprocess,shutil
-sys.path.append('..')
-from install_helpers import fullpath,geturl
+import sys, os, subprocess, shutil
 from argparse import ArgumentParser
+
+sys.path.append('..')
+from install_helpers import fullpath, geturl
 
 parser = ArgumentParser(prog='Install.py',
                         description="LAMMPS library build wrapper script")
@@ -19,7 +22,7 @@ version = "kim-api-v1.9.5"
 
 # help message
 
-help = """
+HELP = """
 Syntax from src dir: make lib-kim args="-b -v version  -a kim-name"
                  or: make lib-kim args="-b -a everything"
                  or: make lib-kim args="-n -a kim-name"
@@ -64,13 +67,13 @@ parser.add_argument("-vv", "--verbose", action="store_true",
 args = parser.parse_args()
 
 # print help message and exit, if neither build nor path options are given
-if args.build == False and not args.path and args.nobuild == False:
+if not args.build and not args.path and not args.nobuild:
   parser.print_help()
-  sys.exit(help)
+  sys.exit(HELP)
 
 buildflag = args.build
-pathflag = args.path != None
-addflag = args.add != None
+pathflag = args.path is not None
+addflag = args.add is not None
 addmodelname = args.add
 everythingflag = False
 if addflag and addmodelname == "everything":
@@ -81,7 +84,8 @@ verboseflag = args.verbose
 if pathflag:
   buildflag = False
   kimdir = args.path
-  if not os.path.isdir(kimdir): sys.exit("KIM API path %s does not exist" % kimdir)
+  if not os.path.isdir(kimdir):
+    sys.exit("KIM API path %s does not exist" % kimdir)
   kimdir = fullpath(kimdir)
 
 url = "https://s3.openkim.org/kim-api/%s.txz" % version
@@ -96,7 +100,7 @@ if pathflag:
     mkfile.write("print_dir:\n")
     mkfile.write("	@printf $(KIM_INSTALL_DIR)\n")
 
-  print("Created %s/Makefile.KIM_DIR\n  using %s" % (thisdir,kimdir))
+  print("Created %s/Makefile.KIM_DIR\n  using %s" % (thisdir, kimdir))
 else:
   kimdir = os.path.join(os.path.abspath(thisdir), "installed-" + version)
   if args.nobuild and not os.path.isdir(kimdir):
@@ -119,55 +123,60 @@ if buildflag:
     mkfile.write("print_dir:\n")
     mkfile.write("	@printf $(KIM_INSTALL_DIR)\n")
 
-  print("Created %s/Makefile.KIM_DIR\n  using %s" % (thisdir,kimdir))
+  print("Created %s/Makefile.KIM_DIR\n  using %s" % (thisdir, kimdir))
 
   # download entire kim-api tarball
 
   print("Downloading kim-api tarball ...")
-  geturl(url,"%s/%s.txz" % (thisdir,version))
+  geturl(url, "%s/%s.txz" % (thisdir, version))
   print("Unpacking kim-api tarball ...")
-  cmd = 'cd "%s"; rm -rf "%s"; tar -xJvf %s.txz' % (thisdir,version,version)
-  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+  cmd = 'cd "%s"; rm -rf "%s"; tar -xJvf %s.txz' % (thisdir, version, version)
+  subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
 
   # configure kim-api
 
   print("Configuring kim-api ...")
-  cmd = 'cd "%s/%s"; ./configure --prefix="%s"' % (thisdir,version,kimdir)
-  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+  cmd = 'cd "%s/%s"; ./configure --prefix="%s"' % (thisdir, version, kimdir)
+  subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
 
   # build kim-api
   print("Building kim-api ...")
-  cmd = 'cd "%s/%s"; make' % (thisdir,version)
-  txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  if verboseflag: print(txt.decode("UTF-8"))
+  cmd = 'cd "%s/%s"; make' % (thisdir, version)
+  txt = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+  if verboseflag:
+    print(txt.decode("UTF-8"))
 
   # install kim-api
 
   print("Installing kim-api ...")
-  cmd = 'cd "%s/%s"; make install' % (thisdir,version)
-  txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  if verboseflag: print(txt.decode("UTF-8"))
+  cmd = 'cd "%s/%s"; make install' % (thisdir, version)
+  txt = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+  if verboseflag:
+    print(txt.decode("UTF-8"))
 
   # remove source files
 
   print("Building and installing example Models")
-  cmd = 'cd "%s/%s/examples"; make model-drivers-all-system' % (thisdir,version)
-  txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  if verboseflag: print (txt.decode("UTF-8"))
-  cmd = 'cd "%s/%s/examples"; make models-all-system' % (thisdir,version)
-  txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  if verboseflag: print (txt.decode("UTF-8"))
+  cmd = 'cd "%s/%s/examples"; make model-drivers-all-system' % (thisdir, version)
+  txt = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+  if verboseflag:
+    print(txt.decode("UTF-8"))
+  cmd = 'cd "%s/%s/examples"; make models-all-system' % (thisdir, version)
+  txt = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+  if verboseflag:
+    print(txt.decode("UTF-8"))
 
   print("Removing kim-api source and build files ...")
-  cmd = 'cd "%s"; rm -rf %s; rm -rf %s.txz' % (thisdir,version,version)
-  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+  cmd = 'cd "%s"; rm -rf %s; rm -rf %s.txz' % (thisdir, version, version)
+  subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
 
   # add all OpenKIM models, if desired
   if everythingflag:
     print("Adding all OpenKIM models, this will take a while ...")
     cmd = '%s/bin/kim-api-v1-collections-management install system OpenKIM' % (kimdir)
-    txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-    if verboseflag: print(txt.decode("UTF-8"))
+    txt = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+    if verboseflag:
+      print(txt.decode("UTF-8"))
 
 # add single OpenKIM model
 if addflag:
@@ -175,12 +184,13 @@ if addflag:
   makefile_path = os.path.join(thisdir, "Makefile.KIM_DIR")
   if os.path.isfile(makefile_path):
     cmd = 'make --no-print-directory -f %s print_dir' % makefile_path
-    kimdir = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+    kimdir = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
 
   if not os.path.isdir(kimdir):
     sys.exit("\nkim-api is not installed")
 
   # download single model
   cmd = '%s/bin/kim-api-v1-collections-management install system %s' % (kimdir.decode("UTF-8"), addmodelname)
-  txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  if verboseflag: print (txt.decode("UTF-8"))
+  txt = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+  if verboseflag:
+    print(txt.decode("UTF-8"))

@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 
-# Install.py tool to download, unpack, and point to the Eigen library
-# used to automate the steps described in the README file in this dir
+"""
+Install.py tool to download, unpack, and point to the Eigen library
+used to automate the steps described in the README file in this dir
+"""
 
 from __future__ import print_function
-import sys,os,re,glob,subprocess,shutil,tarfile
-sys.path.append('..')
-from install_helpers import fullpath,geturl,checkmd5sum
+import sys, os, glob, shutil, tarfile
 from argparse import ArgumentParser
+
+sys.path.append('..')
+from install_helpers import fullpath, geturl, checkmd5sum
 
 parser = ArgumentParser(prog='Install.py',
                         description="LAMMPS library build wrapper script")
@@ -27,7 +30,7 @@ checksums = { \
 
 # help message
 
-help = """
+HELP = """
 Syntax from src dir: make lib-smd args="-b"
                  or: make lib-smd args="-p /usr/include/eigen3"
 
@@ -52,20 +55,21 @@ parser.add_argument("-v", "--version", default=version,
 args = parser.parse_args()
 
 # print help message and exit, if neither build nor path options are given
-if args.build == False and not args.path:
+if not args.build and not args.path:
   parser.print_help()
-  sys.exit(help)
+  sys.exit(HELP)
 
 homepath = fullpath(".")
-eigenpath = os.path.join(homepath,"eigen3")
+eigenpath = os.path.join(homepath, "eigen3")
 
 buildflag = args.build
-pathflag = args.path != None
+pathflag = args.path is not None
 version = args.version
 
 if pathflag:
   eigenpath = args.path
-  if not os.path.isdir(eigenpath): sys.exit("Eigen path %s does not exist" % eigenpath)
+  if not os.path.isdir(eigenpath):
+    sys.exit("Eigen path %s does not exist" % eigenpath)
   eigenpath = fullpath(eigenpath)
 
 # download and unpack Eigen tarball
@@ -73,19 +77,19 @@ if pathflag:
 
 if buildflag:
   print("Downloading Eigen ...")
-  eigentar = os.path.join(homepath,tarball)
+  eigentar = os.path.join(homepath, tarball)
   url = "http://bitbucket.org/eigen/eigen/get/%s.tar.gz" % version
-  geturl(url,eigentar)
+  geturl(url, eigentar)
 
   # verify downloaded archive integrity via md5 checksum, if known.
   if version in checksums:
     print("checking version %s\n" % version)
-    if not checkmd5sum(checksums[version],eigentar):
+    if not checkmd5sum(checksums[version], eigentar):
       sys.exit("Checksum for Eigen library does not match")
 
 
   print("Cleaning up old folders ...")
-  edir = glob.glob(os.path.join(homepath,"eigen-eigen-*"))
+  edir = glob.glob(os.path.join(homepath, "eigen-eigen-*"))
   edir.append(eigenpath)
   for one in edir:
     if os.path.isdir(one):
@@ -98,8 +102,8 @@ if buildflag:
     os.remove(eigentar)
   else:
     sys.exit("File %s is not a supported archive" % eigentar)
-  edir = glob.glob(os.path.join(homepath,"eigen-eigen-*"))
-  os.rename(edir[0],eigenpath)
+  edir = glob.glob(os.path.join(homepath, "eigen-eigen-*"))
+  os.rename(edir[0], eigenpath)
 
 # create link in lib/smd to Eigen src dir
 
@@ -107,4 +111,4 @@ print("Creating link to Eigen include folder")
 if os.path.isfile("includelink") or os.path.islink("includelink"):
   os.remove("includelink")
 linkdir = eigenpath
-os.symlink(linkdir,'includelink')
+os.symlink(linkdir, 'includelink')

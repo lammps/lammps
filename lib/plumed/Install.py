@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 
-# Install.py tool to download, unpack, build, and link to the plumed2 library
-# used to automate the steps described in the README file in this dir
+"""
+Install.py tool to download, unpack, build, and link to the plumed2 library
+used to automate the steps described in the README file in this dir
+"""
 
 from __future__ import print_function
-import sys,os,re,subprocess,hashlib,shutil
-sys.path.append('..')
-from install_helpers import get_cpus,fullpath,geturl,checkmd5sum
+import sys, os, subprocess, shutil
 from argparse import ArgumentParser
+
+sys.path.append('..')
+from install_helpers import get_cpus, fullpath, geturl, checkmd5sum
 
 parser = ArgumentParser(prog='Install.py',
                         description="LAMMPS library build wrapper script")
@@ -19,7 +22,7 @@ mode = "static"
 
 # help message
 
-help = """
+HELP = """
 Syntax from src dir: make lib-plumed args="-b"
                  or: make lib-plumed args="-b -v 2.4.3"
                  or: make lib-plumed args="-p /usr/local/plumed2 -m shared"
@@ -57,13 +60,13 @@ parser.add_argument("-m", "--mode", default=mode, choices=['static', 'shared', '
 args = parser.parse_args()
 
 # print help message and exit, if neither build nor path options are given
-if args.build == False and not args.path:
+if not args.build and not args.path:
   parser.print_help()
-  sys.exit(help)
+  sys.exit(HELP)
 
 buildflag = args.build
-pathflag = args.path != None
-plumedpath= args.path
+pathflag = args.path is not None
+plumedpath = args.path
 
 homepath = fullpath('.')
 homedir = "%s/plumed2" % (homepath)
@@ -76,31 +79,31 @@ if pathflag:
 # download and unpack plumed2 tarball
 
 if buildflag:
-  url = "https://github.com/plumed/plumed2/releases/download/v%s/plumed-src-%s.tgz" % (version,version)
+  url = "https://github.com/plumed/plumed2/releases/download/v%s/plumed-src-%s.tgz" % (version, version)
   filename = "plumed-src-%s.tar.gz" %version
   print("Downloading plumed  ...")
-  geturl(url,filename)
+  geturl(url, filename)
 
   # verify downloaded archive integrity via md5 checksum, if known.
   if version in checksums:
-    if not checkmd5sum(checksums[version],filename):
+    if not checkmd5sum(checksums[version], filename):
       sys.exit("Checksum for plumed2 library does not match")
 
   print("Unpacking plumed2 source tarball ...")
-  if os.path.exists("%s/plumed-%s" % (homepath,version)):
-    shutil.rmtree("%s/plumed-%s" % (homepath,version))
+  if os.path.exists("%s/plumed-%s" % (homepath, version)):
+    shutil.rmtree("%s/plumed-%s" % (homepath, version))
   if os.path.exists(homedir):
     shutil.rmtree(homedir)
-  cmd = 'cd "%s"; tar -xzvf %s' % (homepath,filename)
-  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  os.remove(os.path.join(homepath,filename))
+  cmd = 'cd "%s"; tar -xzvf %s' % (homepath, filename)
+  subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+  os.remove(os.path.join(homepath, filename))
 
   # build plumed
   print("Building plumed ...")
   n_cpus = get_cpus()
-  cmd = 'cd %s/plumed-%s; ./configure --prefix=%s --enable-modules=all --enable-static-patch ; make -j%d ; make install' % (homepath,version,homedir,n_cpus)
+  cmd = 'cd %s/plumed-%s; ./configure --prefix=%s --enable-modules=all --enable-static-patch ; make -j%d ; make install' % (homepath, version, homedir, n_cpus)
   try:
-    txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+    txt = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
     print(txt.decode('UTF-8'))
   except subprocess.CalledProcessError as e:
     print("Make failed with:\n %s" % e.output.decode('UTF-8'))
@@ -113,20 +116,20 @@ if os.path.isfile("includelink") or os.path.islink("includelink"):
   os.remove("includelink")
 if os.path.isfile("liblink") or os.path.islink("liblink"):
   os.remove("liblink")
-os.symlink(os.path.join(homedir,'include'),'includelink')
-libpath=os.path.join(homedir,'lib64')
-if not os.path.exists(libpath): libpath=os.path.join(homedir,'lib')
-os.symlink(libpath,'liblink')
+os.symlink(os.path.join(homedir, 'include'), 'includelink')
+libpath = os.path.join(homedir, 'lib64')
+if not os.path.exists(libpath):
+  libpath = os.path.join(homedir, 'lib')
+os.symlink(libpath, 'liblink')
 if os.path.isfile("Makefile.lammps.%s" % mode):
   print("Creating Makefile.lammps")
-  plumedinc = os.path.join('liblink','plumed','src','lib','Plumed.inc.' + mode)
-  lines1 = open(plumedinc,'r').readlines()
-  lines2 = open("Makefile.lammps.%s" % mode,'r').readlines()
-  fp = open("Makefile.lammps",'w')
-  fp.write(os.path.join("PLUMED_LIBDIR=",homedir,"lib\n"))
+  plumedinc = os.path.join('liblink', 'plumed', 'src', 'lib', 'Plumed.inc.' + mode)
+  lines1 = open(plumedinc, 'r').readlines()
+  lines2 = open("Makefile.lammps.%s" % mode, 'r').readlines()
+  fp = open("Makefile.lammps", 'w')
+  fp.write(os.path.join("PLUMED_LIBDIR=", homedir, "lib\n"))
   for line in lines1:
     fp.write(line)
   for line in lines2:
     fp.write(line)
   fp.close()
-

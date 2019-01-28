@@ -115,7 +115,7 @@ if os.path.isfile("liblink") or os.path.islink("liblink"):
   os.remove("liblink")
 os.symlink(os.path.join(homedir,'include'),'includelink')
 libpath=os.path.join(homedir,'lib64')
-if no os.path.exists(libpath): libpath=os.path.join(homedir,'lib')
+if not os.path.exists(libpath): libpath=os.path.join(homedir,'lib')
 os.symlink(libpath,'liblink')
 if os.path.isfile("Makefile.lammps.%s" % mode):
   print("Creating Makefile.lammps")

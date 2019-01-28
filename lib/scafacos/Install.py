@@ -4,7 +4,7 @@
 # used to automate the steps described in the README file in this dir
 
 from __future__ import print_function
-import sys,os,re,subprocess,shutil
+import sys,os,re,subprocess,shutil,tarfile
 sys.path.append('..')
 from install_helpers import fullpath,geturl,get_cpus,checkmd5sum
 from argparse import ArgumentParser
@@ -58,14 +58,14 @@ pathflag = args.path != None
 version = args.version
 
 homepath = fullpath(".")
-scafacospath = "%s/scafacos-%s" % (homepath,version)
+scafacospath = os.path.join(homepath,"scafacos-%s" % version)
 
 if pathflag:
   scafacospath = args.path
-  if not os.path.isdir("%s/include" % scafacospath):
+  if not os.path.isdir(os.path.join(scafacospath,"include")):
     sys.exit("ScaFaCoS include path for %s does not exist" % scafacospath)
-  if (not os.path.isdir("%s/lib64" % scafacospath)) \
-     and (not os.path.isdir("%s/lib" % scafacospath)):
+  if (not os.path.isdir(os.path.join(scafacospath,"lib64"))) \
+     and (not os.path.isdir(os.path.join(scafacospath,"lib"))):
     sys.exit("ScaFaCoS lib path for %s does not exist" % scafacospath)
   scafacospath = fullpath(scafacospath)
 
@@ -83,14 +83,18 @@ if buildflag:
   print("Unpacking ScaFaCoS tarball ...")
   if os.path.exists(scafacospath):
     shutil.rmtree(scafacospath)
-  cmd = 'cd "%s"; tar -xzvf %s.tar.gz' % (homepath,scafacospath)
-  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  os.remove("%s.tar.gz" % scafacospath)
+  tarname = os.path.join(homepath,"%s.tar.gz" % scafacospath)
+  if tarfile.is_tarfile(tarname):
+    tgz=tarfile.open(tarname)
+    tgz.extractall(path=homepath)
+    os.remove(tarname)
+  else:
+    sys.exit("File %s is not a supported archive" % tarname)
 
   # build ScaFaCoS
   print("Building ScaFaCoS ...")
   n_cpu = get_cpus()
-  cmd = 'cd "%s"; ./configure --prefix="%s/build" --disable-doc --enable-fcs-solvers=fmm,p2nfft,direct,ewald,p3m --with-internal-fftw --with-internal-pfft --with-internal-pnfft CC=mpicc FC=mpif90 CXX=mpicxx F77=; make -j%d; make install' % (scafacospath,homepath,n_cpu)
+  cmd = 'cd "%s"; ./configure --prefix="%s" --disable-doc --enable-fcs-solvers=fmm,p2nfft,direct,ewald,p3m --with-internal-fftw --with-internal-pfft --with-internal-pnfft CC=mpicc FC=mpif90 CXX=mpicxx F77=; make -j%d; make install' % (scafacospath,os.path.join(homepath,'build'),n_cpu)
   try:
     txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
     print(txt.decode('UTF-8'))
@@ -105,15 +109,11 @@ if os.path.isfile("includelink") or os.path.islink("includelink"):
 if os.path.isfile("liblink") or os.path.islink("liblink"):
   os.remove("liblink")
 if buildflag:
-  cmd = 'ln -s "%s/build/include" includelink' % homepath
-  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  cmd = 'ln -s "%s/build/lib" liblink' % homepath
-  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+  os.symlink(os.path.join(homepath,'build','include'),'includelink')
+  os.symlink(os.path.join(homepath,'build','lib'),'liblink')
 else:
-  cmd = 'ln -s "%s/include" includelink' % scafacospath
-  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  if os.path.isdir("%s/lib64" % scafacospath):
-    cmd = 'ln -s "%s/lib64" liblink' % scafacospath
+  os.symlink(os.path.join(scafacospath,'include'),'includelink')
+  if os.path.isdir(os.path.join(scafacospath,"lib64")):
+    os.symlink(os.path.join(scafacospath,'lib64'),'liblink')
   else:
-    cmd = 'ln -s "%s/lib" liblink' % scafacospath
-  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+    os.symlink(os.path.join(scafacospath,'lib'),'liblink')

@@ -4,7 +4,7 @@
 # used to automate the steps described in the README file in this dir
 
 from __future__ import print_function
-import sys,os,re,subprocess
+import sys,os,re,subprocess,shutil
 sys.path.append('..')
 from install_helpers import get_cpus,fullpath
 from argparse import ArgumentParser
@@ -50,16 +50,16 @@ zmqflag = args.zmq
 # copy appropriate Makefile.lammps.* to Makefile.lammps
 
 print("Building CSlib ...")
-srcdir = fullpath("./cslib/src")
+srcdir = fullpath(os.path.join("cslib","src"))
 
 if mpiflag and zmqflag:
-  cmd = "cd %s; make lib_parallel" % srcdir
+  cmd = "make -C %s lib_parallel" % srcdir
 elif mpiflag and not zmqflag:
-  cmd = "cd %s; make lib_parallel zmq=no" % srcdir
+  cmd = "make -C %s lib_parallel zmq=no" % srcdir
 elif not mpiflag and zmqflag:
-  cmd = "cd %s; make lib_serial" % srcdir
+  cmd = "make -C %s lib_serial" % srcdir
 elif not mpiflag and not zmqflag:
-  cmd = "cd %s; make lib_serial zmq=no" % srcdir
+  cmd = "make -C %s lib_serial zmq=no" % srcdir
   
 print(cmd)
 try:
@@ -69,14 +69,11 @@ except subprocess.CalledProcessError as e:
     print("Make failed with:\n %s" % e.output.decode('UTF-8'))
     sys.exit(1)
 
-if mpiflag: cmd = "cd %s; cp libcsmpi.a libmessage.a" % srcdir
-else: cmd = "cd %s; cp libcsnompi.a libmessage.a" % srcdir
-print(cmd)
-txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-print(txt.decode('UTF-8'))
+slb=os.path.join(srcdir,"libcsnompi.a")
+if mpiflag: slb = os.path.join(srcdir,"libcsmpi.a")
+shutil.copyfile(slb,os.path.join(srcdir,"libmessage.a"))
 
-if zmqflag: cmd = "cp Makefile.lammps.zmq Makefile.lammps"
-else: cmd = "cp Makefile.lammps.nozmq Makefile.lammps"
-print(cmd)
-txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-print(txt.decode('UTF-8'))
+smk="Makefile.lammps.nozmq"
+if zmqflag: smk="Makefile.lammps.zmq"
+shutil.copyfile(smk,"Makefile.lammps")
+print("Using %s for Makefile.lammps" % smk)

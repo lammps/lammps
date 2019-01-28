@@ -47,7 +47,7 @@ pgroup.add_argument("-p", "--path",
                     help="specify folder of existing MSCG installation")
 parser.add_argument("-v", "--version", default=version, choices=checksums.keys(),
                     help="set version of MSCG to download and build (default: %s)" % version)
-parser.add_argument("-m", "--machine", default=machine, choices=['g++_simple','intel_simple','lapack', 'mac'],
+parser.add_argument("-m", "--machine", default=machine, choices=['mpi','serial','g++_simple','intel_simple','lapack', 'mac'],
                     help="set machine suffix specifies which src/Make/Makefile.suffix to use. (default: %s)" % machine)
 
 args = parser.parse_args()
@@ -66,7 +66,7 @@ mscgver = args.version
 # settings
 
 url = "https://github.com/uchicago-voth/MSCG-release/archive/%s.tar.gz" % mscgver
-tarfile = "MS-CG-%s.tar.gz" % mscgver
+tarname = "MS-CG-%s.tar.gz" % mscgver
 tardir = "MSCG-release-%s" % mscgver
 
 homepath = fullpath('.')
@@ -81,32 +81,40 @@ if pathflag:
 
 if buildflag:
   print("Downloading MS-CG ...")
-  geturl(url,os.path.join(homepath,tarfile))
+  tarname = os.path.join(homepath,tarname)
+  geturl(url,tarname)
 
   print("Unpacking MS-CG tarfile ...")
-  if os.path.exists("%s/%s" % (homepath,tardir)):
-    shutil.rmtree("%s/%s" % (homepath,tardir))
-  cmd = 'cd "%s"; tar -xzvf %s' % (homepath,tarfile)
-  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  os.remove("%s/%s" % (homepath,tarfile))
+
+  if os.path.exists(os.path.join(homepath,tardir)):
+    shutil.rmtree(os.path.join(homepath,tardir))
+  
+  if tarfile.is_tarfile(tarname):
+    tgz = tarfile.open(tarname)
+    tgz.extractall(path=homepath)
+    os.remove(tarname)
+  else:
+    sys.exit("File %s is not a supported archive",tarname)
+
   if os.path.basename(homedir) != tardir:
     if os.path.exists(homedir):
       shutil.rmtree(homedir)
-    os.rename("%s/%s" % (homepath,tardir),homedir)
+    os.rename(os.path.join(homepath,tardir),homedir)
 
 # build MS-CG
 
 if buildflag:
   print("Building MS-CG ...")
-  if os.path.exists("%s/src/Make/Makefile.%s" % (homedir,msuffix)):
-    cmd = 'cd "%s/src"; cp Make/Makefile.%s .; make -f Makefile.%s' % \
-        (homedir,msuffix,msuffix)
+  mkf="Makefile.%s" % msuffix
+  mkp=os.path.join(homedir,'src','Make',mkf)
+  if os.path.exists(mkp):
+    shutil.copyfile(mkp,os.path.join(homedir,'src',mkf))
   elif os.path.exists("Makefile.%s" % msuffix):
-    cmd = 'cd "%s/src"; cp ../../Makefile.%s .; make -f Makefile.%s' % \
-        (homedir,msuffix,msuffix)
+    shutil.copyfile("Makefile.%s" % msuffix,os.path.join(homedir,'src',mkf))
   else:
     sys.exit("Cannot find Makefile.%s" % msuffix)
   try:
+    cmd = 'make -C %s -f Makefile.%s' % (os.path.join(homedir,'src'),msuffix)
     txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
     print(txt.decode('UTF-8'))
   except subprocess.CalledProcessError as e:

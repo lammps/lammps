@@ -837,96 +837,61 @@ void CreateAtoms::add_lattice()
 
 void CreateAtoms::lattice_mask()
 {
-  int nboxme;
+  int i,j,temp,irand,nboxme;
   if (nprocs > 1) {
     int *allnlattpts = new int[nprocs]();
-    int *allnboxmes = new int[nprocs];
-    int *cumsum_lattpts = new int[nprocs];
-    for (size_t i = 0; i < nprocs; i++)
-      allnboxmes[i] = 0;
+    int *allnboxmes = new int[nprocs]();
 
    MPI_Allgather(&nlattpts, 1, MPI_INT, allnlattpts, 1, MPI_INT, world);
 
    if (me == 0) {
-      int total_lattpts = 0;
-      for (int i = 0; i < nprocs; i++) {
-        total_lattpts += allnlattpts[i];
-        cumsum_lattpts[i] = total_lattpts;
-      }
+     int total_lattpts = 0;
+     for (i = 0; i < nprocs; i++)
+       total_lattpts += allnlattpts[i];
 
      if (randnpos > total_lattpts)
         error->one(FLERR,"Attempting to insert more particles than available lattice points");
 
-      // using proc 0, let's insert N particles onto available lattice points by instead
-      // poking [nlattpts - N] holes into the lattice, randomly
-      int *allNmask = new int[total_lattpts];
-      for (int i = 0; i < total_lattpts; i++)
-        allNmask[i] = 1;
-      int nholes = total_lattpts - randnpos;
-      int noptions = total_lattpts;
-      for (int i = 0; i < nholes; i++) {
-        int hindex = ceil(ranbox->uniform()*noptions);
-        int optcount = 0;
-        for (int j = 0; j < total_lattpts; j++) {
-          if (allNmask[j] == 1) {
-            optcount++;
-            if (optcount == hindex) {
-              allNmask[j] = 0;
-              noptions--;
-              break;
-            }
-          }
-        }
+      // using proc 0, let's randomly choose how many lattice points filled for each proc
+      int *allNmask = new int[total_lattpts]();
+
+      int ilatt = 0;
+      for (i = 0; i < nprocs; i++)
+        for (j = 0; j < allnlattpts[i]; j++)
+          allNmask[ilatt++] = i;
+
+      // shuffle lattice points, labelled by proc
+      for (i = total_lattpts-1; i > 0; --i) {
+        irand = floor(ranbox->uniform()*(i+1));
+        temp = allNmask[i];
+        allNmask[i] = allNmask[irand];
+        allNmask[irand] = temp;
       }
 
-      // tell individual procs their nboxme (personal # to insert)
-      int iproc = 0;
-      while (allnlattpts[iproc] == 0 && iproc < nprocs)
-        iproc++;
-      for (int i = 0; i < total_lattpts; i++) {
-        if (i == cumsum_lattpts[iproc]) {
-          iproc++;
-          while (allnlattpts[iproc] == 0 && iproc < nprocs)
-            iproc++;
-        }
-        allnboxmes[iproc] += allNmask[i];
-      }
-      delete [] allNmask;
+      for (i = 0; i < randnpos; i++)
+        allnboxmes[allNmask[i]]++;
     }
 
     MPI_Scatter(allnboxmes, 1, MPI_INT, &nboxme, 1, MPI_INT, 0, world);
     delete [] allnlattpts;
     delete [] allnboxmes;
-    delete [] cumsum_lattpts;
   } else {
     if (randnpos > nlattpts)
        error->one(FLERR,"Attempting to insert more particles than available lattice points");
     nboxme = randnpos;
   }
 
-  // probably faster to have individual processors 're-choose' their random points
-  // Nmask will be used to indicate which lattice points to insert
-  Nmask = new int[nlattpts];
-  for (int i = 0; i < nlattpts; i++)
+  // each processor chooses its random lattice points
+  Nmask = new int[nlattpts]();
+  for (i = 0; i < nboxme; i++)
     Nmask[i] = 1;
 
-  // let's insert N particles onto available lattice points by instead
-  // poking [nlattpts - N] holes into the lattice, randomly
-  int nholes = nlattpts - nboxme;
-  int noptions = nlattpts;
-  for (int i = 0; i < nholes; i++) {
-    int hindex = ceil(ranbox->uniform()*noptions);
-    int optcount = 0;
-    for (int j = 0; j < nlattpts; j++) {
-      if (Nmask[j] == 1) {
-        optcount++;
-        if (optcount == hindex) {
-          Nmask[j] = 0;
-          noptions--;
-          break;
-        }
-      }
-    }
+  // shuffle filled lattice points
+  for (i = nlattpts-1; i > 0; --i) {
+    irand = floor(ranbox->uniform()*(i+1));
+    temp = Nmask[i];
+    Nmask[i] = Nmask[irand];
+    Nmask[irand] = temp;
   }
 }
 

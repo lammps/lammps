@@ -40,6 +40,9 @@ class CreateAtoms : protected Pointers {
   char *vstr,*xstr,*ystr,*zstr;
   char *xstr_copy,*ystr_copy,*zstr_copy;
 
+  int nlattpts,randnpos,randnflag;
+  int *Nmask;                 // used to insert N number of particles on lattice
+
   class Molecule *onemol;
   class RanMars *ranmol;
   class RanMars *ranbox;
@@ -52,9 +55,6 @@ class CreateAtoms : protected Pointers {
   void add_lattice();
   void lattice_mask();
   void add_molecule(double *, double * = NULL);
-  int nlattpts;                // number of eligible lattice points
-  int *Nmask;                  // used to insert N number of particles on lattice
-  int randnpos,randnflag;
   int vartest(double *);       // evaluate a variable with new atom position
 };
 

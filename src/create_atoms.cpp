@@ -839,10 +839,10 @@ void CreateAtoms::lattice_mask()
 {
   int i,j,temp,irand,nboxme;
   if (nprocs > 1) {
-    int *allnlattpts = new int[nprocs]();
-    int *allnboxmes = new int[nprocs]();
+    int allnlattpts[nprocs];
+    int allnboxmes[nprocs];
 
-   MPI_Allgather(&nlattpts, 1, MPI_INT, allnlattpts, 1, MPI_INT, world);
+   MPI_Allgather(&nlattpts, 1, MPI_INT, &allnlattpts, 1, MPI_INT, world);
 
    if (me == 0) {
      int total_lattpts = 0;
@@ -868,13 +868,14 @@ void CreateAtoms::lattice_mask()
         allNmask[irand] = temp;
       }
 
+      for (i = 0; i < nprocs; i++)
+        allnboxmes[i] = 0;
+
       for (i = 0; i < randnpos; i++)
         allnboxmes[allNmask[i]]++;
     }
 
-    MPI_Scatter(allnboxmes, 1, MPI_INT, &nboxme, 1, MPI_INT, 0, world);
-    delete [] allnlattpts;
-    delete [] allnboxmes;
+    MPI_Scatter(&allnboxmes, 1, MPI_INT, &nboxme, 1, MPI_INT, 0, world);
   } else {
     if (randnpos > nlattpts)
        error->one(FLERR,"Attempting to insert more particles than available lattice points");

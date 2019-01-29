@@ -1,0 +1,100 @@
+# bcc iron in a 3d periodic box
+
+clear 
+units 		metal
+atom_style 	spin
+
+dimension 	3
+boundary 	p p f
+
+# necessary for the serial algorithm (sametag)
+atom_modify 	map array 
+
+lattice 	bcc 2.8665
+region 		box block 0.0 4.0 0.0 4.0 0.0 1.0
+#create_box 	1 box
+#create_atoms 	1 box
+
+read_data        ../examples/SPIN/gneb_bfo/initial.iron_spin
+
+# setting mass, mag. moments, and interactions for bcc iron
+
+mass		1 55.845
+set 		group all spin 2.2 -1.0 0.0 0.0
+
+pair_style 	spin/exchange 3.5
+pair_coeff 	* * exchange 3.4 0.02726 0.2171 1.841
+
+neighbor 	0.1 bin
+neigh_modify 	every 10 check yes delay 20
+
+fix 		1 all precession/spin zeeman 0.0 0.0 0.0 1.0
+fix 		2 all langevin/spin 0.0 0.0 21
+fix		2 nebatoms neb_spin 1.0 
+#parallel ideal
+
+min_style	quickmin
+neb		0.0 0.1 1000 1000 100 final ../examples/SPIN/gneb_bfo/final.iron_spin
+
+
+#############################################################
+
+# 2d NEB surface simulation, hop from surface to become adatom
+
+
+variable	u uloop 20
+
+# create geometry with flat surface
+
+lattice		hex 0.9
+region		box block 0 20 0 10 -0.25 0.25
+
+#create_box	3 box
+#create_atoms	1 box
+#mass		* 1.0
+#write_data      initial.hop1
+
+read_data        ../examples/SPIN/gneb_bfo/initial.hop1
+
+# LJ potentials
+
+pair_style	lj/cut 2.5
+pair_coeff	* * 1.0 1.0 2.5
+pair_modify	shift yes
+
+# initial minimization to relax surface
+
+minimize	1.0e-6 1.0e-4 1000 10000
+reset_timestep	0
+
+# define groups
+
+region	        1 block INF INF INF 1.25 INF INF
+group		lower region 1
+group		mobile subtract all lower
+set		group lower type 2
+
+timestep	0.05
+
+# group of NEB atoms - either block or single atom ID 412
+
+region		surround block 10 18 17 20 0 0 units box
+group		nebatoms region surround
+#group		nebatoms id 412
+set		group nebatoms type 3
+group		nonneb subtract all nebatoms
+
+fix		1 lower setforce 0.0 0.0 0.0
+fix		2 nebatoms neb 1.0 parallel ideal
+fix		3 all enforce2d
+
+thermo		100
+
+#dump		1 nebatoms atom 10 dump.neb.$u
+#dump		2 nonneb atom 10 dump.nonneb.$u
+
+# run NEB for 2000 steps or to force tolerance
+
+min_style	quickmin
+
+neb		0.0 0.1 1000 1000 100 final ../examples/SPIN/gneb_bfo/final.hop1

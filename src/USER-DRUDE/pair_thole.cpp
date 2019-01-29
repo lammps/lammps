@@ -414,7 +414,7 @@ double PairThole::single(int i, int j, int itype, int jtype,
 
 void *PairThole::extract(const char *str, int &dim)
 {
-  dim = 4;
+  dim = 2;
   if (strcmp(str,"scale") == 0) return (void *) scale;
   if (strcmp(str,"polar") == 0) return (void *) polar;
   if (strcmp(str,"thole") == 0) return (void *) thole;

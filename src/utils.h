@@ -64,8 +64,8 @@ namespace LAMMPS_NS {
      *  \param filename file name associated with fp (for error message)
      *  \param error    pointer to Error class instance (for abort)
      */
-    void sfgets(char* srcname, int srcline, char *s, int size,
-                FILE *fp, std::string filename, Error *error);
+    void sfgets(const char *srcname, int srcline, char *s, int size,
+                FILE *fp, const char *filename, Error *error);
   }
 }
 

@@ -20,7 +20,7 @@
 /*
  * Mini regex-module adapted from https://github.com/kokke/tiny-regex-c
  * which is in the public domain.
- * 
+ *
  * Supports:
  * ---------
  *   '.'        Dot, matches any character
@@ -98,8 +98,8 @@ int utils::cfvarg(std::string mode, const char *arg, char *&cfv_id)
 }
 
 /* like fgets() but aborts with an error or EOF is encountered */
-void utils::sfgets(char* srcname, int srcline, char *s, int size,
-                   FILE *fp, std::string filename, Error *error)
+void utils::sfgets(const char *srcname, int srcline, char *s, int size,
+                   FILE *fp, const char *filename, Error *error)
 {
   char *rv = fgets(s,size,fp);
   if (rv == NULL) { // something went wrong
@@ -112,7 +112,8 @@ void utils::sfgets(char* srcname, int srcline, char *s, int size,
     } else {
       errmsg = "Unexpected short read while reading file '";
     }
-    errmsg += filename + "'";
+    errmsg += filename;
+    errmsg += "'";
 
     if (error) error->one(srcname,srcline,errmsg.c_str());
     if (s) *s = '\0'; // truncate string to empty in case error is NULL
@@ -181,11 +182,11 @@ extern "C" {
 
         do {
           idx += 1;
-        
+
           if (matchpattern(pattern, text)) {
             if (text[0] == '\0')
               return -1;
-        
+
             return idx;
           }
         }
@@ -235,7 +236,7 @@ extern "C" {
           case 's': {    re_compiled[j].type = WHITESPACE;       } break;
           case 'S': {    re_compiled[j].type = NOT_WHITESPACE;   } break;
 
-            /* Escaped character, e.g. '.' or '$' */ 
+            /* Escaped character, e.g. '.' or '$' */
           default: {
             re_compiled[j].type = CHAR;
             re_compiled[j].ch = pattern[i];
@@ -260,7 +261,7 @@ extern "C" {
 
         /* Copy characters inside [..] to buffer */
         while ((pattern[++i] != ']') && (pattern[i] != '\0')) {
-          /* Missing ] */ 
+          /* Missing ] */
           if (pattern[i] == '\\') {
             if (ccl_bufidx >= MAX_CHAR_CLASS_LEN - 1) {
               return 0;

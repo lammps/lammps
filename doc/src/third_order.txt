@@ -17,7 +17,7 @@ style = {regular} or {ballistico} :l
   {regular} args = gamma
     gamma = finite difference displacement length (distance units)
   {ballistico} args = gamma
-    gamma = finite difference displacement length (distance units)
+    gamma = finite difference displacement length (distance units) :pre
 
 zero or more keyword/value pairs may be appended :l
 keyword = {file} or {binary} :l

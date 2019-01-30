@@ -13,11 +13,11 @@ dynamical_matrix command :h3
 dynamical_matrix group-ID style args keyword value ... :pre
 
 group-ID = ID of group of atoms to use in dynamical matrix calculation :ulb,l
-style = {regular} or {eskm} :l
+style = {regular} or {eskm} :ule,l
   {regular} args = gamma
     gamma = finite difference displacement length (distance units)
   {eskm} args = gamma
-    gamma = finite difference displacement length (distance units)
+    gamma = finite difference displacement length (distance units) :pre
 
 zero or more keyword/value pairs may be appended :l
 keyword = {file} or {binary} :l

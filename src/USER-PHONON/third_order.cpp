@@ -142,19 +142,20 @@ void ThirdOrder::command(int narg, char **arg)
     if (style == REGULAR) options(narg-3,&arg[3]);  //COME BACK
     else if (style == BALLISTICO) options(narg-3,&arg[3]); //COME BACK
     else if (comm->me == 0 && screen) fprintf(screen,"Illegal Dynamical Matrix command\n");
+    del = force->numeric(FLERR, arg[2]);
 
     // move atoms by 3-vector or specified variable(s)
 
     if (style == REGULAR) {
         setup();
-        calculateMatrix(arg[2]);
+        calculateMatrix();
     }
 
     if (style == BALLISTICO) {
         setup();
         convert_units(update->unit_style);
         conversion = conv_energy/conv_distance/conv_distance;
-        calculateMatrix(arg[2]);
+        calculateMatrix();
     }
 
     Finish finish(lmp);
@@ -234,7 +235,7 @@ void ThirdOrder::openfile(const char* filename)
    create dynamical matrix
 ------------------------------------------------------------------------- */
 
-void ThirdOrder::calculateMatrix(char *arg)
+void ThirdOrder::calculateMatrix()
 {
     int nlocal = atom->nlocal;
     int plocal1;
@@ -245,16 +246,16 @@ void ThirdOrder::calculateMatrix(char *arg)
     int group_flag_2=0;
     int *mask = atom->mask;
     tagint *aid = atom->tag;                               //atom id
-    double first_derv[nlocal][3];
-    double del = force->numeric(FLERR, arg);
     double **x = atom->x;
     double **f = atom->f;
+
+    double *first_derv = new double[3*nlocal];
+    for (int i=0; i < 3*nlocal; i++)
+        first_derv[i] = 0.;
 
     //int *type = atom->type;
     //double imass;
     //double *m = atom->mass;
-
-    if (strstr(arg,"v_") == arg) error->all(FLERR,"Variable for dynamical_matrix is not supported");
 
     energy_force(0);
 
@@ -291,7 +292,7 @@ void ThirdOrder::calculateMatrix(char *arg)
                                     for (int gamma = 0; gamma < 3; gamma++) {
                                         for (int k = 0; k < nlocal; k++)
                                             if (mask[k] & groupbit) {
-                                                first_derv[k][gamma] = f[k][gamma];
+                                                first_derv[k*3+gamma] = f[k][gamma];
                                             }
                                     }
 
@@ -301,7 +302,7 @@ void ThirdOrder::calculateMatrix(char *arg)
                                     for (int gamma = 0; gamma < 3; gamma++) {
                                         for (int k = 0; k < nlocal; k++)
                                             if (mask[k] & groupbit) {
-                                                first_derv[k][gamma] -= f[k][gamma];
+                                                first_derv[k*3+gamma] -= f[k][gamma];
                                             }
                                     }
 
@@ -314,7 +315,7 @@ void ThirdOrder::calculateMatrix(char *arg)
                                     for (int gamma = 0; gamma < 3; gamma++) {
                                         for (int k = 0; k < nlocal; k++)
                                             if (mask[k] & groupbit) {
-                                                first_derv[k][gamma] -= f[k][gamma];
+                                                first_derv[k*3+gamma] -= f[k][gamma];
                                             }
                                     }
 //
@@ -324,19 +325,19 @@ void ThirdOrder::calculateMatrix(char *arg)
                                     for (int k = 0; k < nlocal; k++)
                                         if (mask[k] & groupbit) {
                                             for (int gamma = 0; gamma < 3; gamma++) {
-                                                first_derv[k][gamma] += f[k][gamma];
-                                                first_derv[k][gamma] /= -4*del*del;
+                                                first_derv[k*3+gamma] += f[k][gamma];
+                                                first_derv[k*3+gamma] /= -4*del*del;
                                             }
-                                            double norm = pow(first_derv[k][0], 2)
-                                                          + pow(first_derv[k][1], 2)
-                                                          + pow(first_derv[k][2], 2);
+                                            double norm = pow(first_derv[k*3], 2)
+                                                          + pow(first_derv[k*3+1], 2)
+                                                          + pow(first_derv[k+3+2], 2);
                                             if (fp && norm > 1.0e-16)
                                                 fprintf(fp,
                                                         "%d %d %d %d %d %7.8f %7.8f %7.8f\n",
                                                         id1, alpha + 1, id2, beta + 1, aid[k],
-                                                        first_derv[k][0] * conversion,
-                                                        first_derv[k][1] * conversion,
-                                                        first_derv[k][2] * conversion);
+                                                        first_derv[k*3] * conversion,
+                                                        first_derv[k*3+1] * conversion,
+                                                        first_derv[k*3+2] * conversion);
                                         }
 //
                                     if (me == proc2) x[j][beta] += del;

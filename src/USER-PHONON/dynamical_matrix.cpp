@@ -133,6 +133,7 @@ void DynamicalMatrix::command(int narg, char **arg)
     if (strcmp(arg[1],"regular") == 0) style = REGULAR;
     else if (strcmp(arg[1],"eskm") == 0) style = ESKM;
     else error->all(FLERR,"Illegal Dynamical Matrix command");
+    del = force->numeric(FLERR, arg[2]);
 
     // set option defaults
 
@@ -152,7 +153,7 @@ void DynamicalMatrix::command(int narg, char **arg)
 
     if (style == REGULAR) {
         setup();
-        calculateMatrix(arg[2]);
+        calculateMatrix();
         if (me ==0) writeMatrix();
     }
 
@@ -160,7 +161,7 @@ void DynamicalMatrix::command(int narg, char **arg)
         setup();
         convert_units(update->unit_style);
         conversion = conv_energy/conv_distance/conv_mass;
-        calculateMatrix(arg[2]);
+        calculateMatrix();
         if (me ==0) writeMatrix();
     }
 
@@ -239,7 +240,7 @@ void DynamicalMatrix::openfile(const char* filename)
    create dynamical matrix
 ------------------------------------------------------------------------- */
 
-void DynamicalMatrix::calculateMatrix(char *arg)
+void DynamicalMatrix::calculateMatrix()
 {
     int nlocal = atom->nlocal;
     int plocal;
@@ -248,22 +249,20 @@ void DynamicalMatrix::calculateMatrix(char *arg)
     int *mask = atom->mask;
     int *type = atom->type;
     tagint *aid = atom->tag; //atom id
-    double dyn_element[nlocal][3]; //first index is nlocal (important)
     double moaoi; //mass of atom of interest
     double imass;
-    double del = force->numeric(FLERR, arg);
     double *m = atom->mass;
     double **x = atom->x;
     double **f = atom->f;
 
+    double *dyn_element = new double[3*nlocal];
+    for (int i=0; i < 3*nlocal; i++)
+        dyn_element[i] = 0.;
 
     //initialize dynmat to all zeros
     for (int i=0; i < dynlen; i++)
         for (int j=0; j < dynlen; j++)
             dynmat[i][j] = 0.;
-
-
-    if (strstr(arg,"v_") == arg) error->all(FLERR,"Variable for dynamical_matrix is not supported");
 
     energy_force(0);
 
@@ -296,7 +295,7 @@ void DynamicalMatrix::calculateMatrix(char *arg)
                         moaoi = m[type[i]];
                 }
                 //broadcast mass of aoi
-                MPI_Bcast(&moaoi, 1, MPI_INT, proc, MPI_COMM_WORLD);
+                MPI_Bcast(&moaoi, 1, MPI_DOUBLE, proc, MPI_COMM_WORLD);
                 //obtain global id of local atom of interest (aoi)
                 if (me == proc) id = aid[i];
                 //broadcast global id of aoi to other procs
@@ -314,7 +313,7 @@ void DynamicalMatrix::calculateMatrix(char *arg)
                             //check if other atom is in group
                             if (mask[j] & groupbit) {
                                 //a different dyn_element matrix belongs to every proc
-                                dyn_element[j][beta] = -f[j][beta];
+                                dyn_element[j*3+beta] = -f[j][beta];
                             }
                             //no else statement needed since dynmat is already initialized to 0
                     }
@@ -331,11 +330,12 @@ void DynamicalMatrix::calculateMatrix(char *arg)
                                     imass = sqrt(moaoi * m[j]);
                                 else
                                     imass = sqrt(moaoi * m[type[j]]);
-                                dyn_element[j][beta] += f[j][beta];
-                                dyn_element[j][beta] /= (2 * del * imass);
+                                dyn_element[j*3+beta] += f[j][beta];
+                                dyn_element[j*3+beta] /= (2 * del * imass);
+                                //if (screen) fprintf(screen,"%f with %f\n",dyn_element[j*3+beta],imass);
                                 //dynmat entries are set based on global atom index
                                 dynmat[3 * id + beta - 3][3 * aid[j] + alpha - 3] =
-                                        conversion * dyn_element[j][beta];
+                                        conversion * dyn_element[j*3+beta];
                             }
                     }
                     //move atom back
@@ -349,6 +349,7 @@ void DynamicalMatrix::calculateMatrix(char *arg)
     for (int i = 0; i < dynlen; i++)
         MPI_Reduce(dynmat[i], final_dynmat[i], int(dynlen), MPI_DOUBLE, MPI_SUM, 0, world);
 
+    delete [] dyn_element;
 
     if (screen && me ==0 ) fprintf(screen,"Finished Calculating Dynamical Matrix\n");
 }

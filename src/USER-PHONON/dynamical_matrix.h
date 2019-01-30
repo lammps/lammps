@@ -41,7 +41,7 @@ namespace LAMMPS_NS {
 
     private:
         void options(int, char **);
-        void calculateMatrix(char *arg);
+        void calculateMatrix();
         void writeMatrix();
         void convert_units(const char *style);
 
@@ -49,6 +49,7 @@ namespace LAMMPS_NS {
         double conv_energy;
         double conv_distance;
         double conv_mass;
+        double del;
         int igroup,groupbit;
         int scaleflag;
         int me;

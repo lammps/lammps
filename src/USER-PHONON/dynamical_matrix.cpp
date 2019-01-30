@@ -3,8 +3,7 @@
 //
 
 #include <mpi.h>
-#include <stdlib.h>
-#include <iostream>
+#include <cstdlib>
 #include "dynamical_matrix.h"
 #include "atom.h"
 #include "modify.h"
@@ -24,7 +23,6 @@
 #include "pair.h"
 #include "timer.h"
 #include "finish.h"
-#include "ctime"
 
 
 using namespace LAMMPS_NS;
@@ -99,8 +97,6 @@ void DynamicalMatrix::setup()
 
     //modify->setup_pre_reverse(eflag,vflag);
     if (force->newton) comm->reverse_comm();
-
-    openfile("dynmat.dyn");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -180,7 +176,7 @@ void DynamicalMatrix::options(int narg, char **arg)
 {
     if (narg < 0) error->all(FLERR,"Illegal dynamical_matrix command");
     int iarg = 0;
-    const char* filename;
+    const char* filename = "dynmat.dyn";
     while (iarg < narg) {
         if (strcmp(arg[iarg],"binary") == 0) {
             if (iarg + 2 > narg) error->all(FLERR, "Illegal dynamical_matrix command");
@@ -251,14 +247,17 @@ void DynamicalMatrix::calculateMatrix(char *arg)
     int group_flag = 0;
     int *mask = atom->mask;
     int *type = atom->type;
-    tagint *aid = atom->tag;                               //atom id
-    double dyn_element[nlocal][3];
+    tagint *aid = atom->tag; //atom id
+    double dyn_element[nlocal][3]; //first index is nlocal (important)
+    double moaoi; //mass of atom of interest
     double imass;
     double del = force->numeric(FLERR, arg);
     double *m = atom->mass;
     double **x = atom->x;
     double **f = atom->f;
 
+
+    //initialize dynmat to all zeros
     for (int i=0; i < dynlen; i++)
         for (int j=0; j < dynlen; j++)
             dynmat[i][j] = 0.;
@@ -268,44 +267,78 @@ void DynamicalMatrix::calculateMatrix(char *arg)
 
     energy_force(0);
 
-    std::clock_t start;
-    double duration;
-
-    start = std::clock();
 
     if (comm->me == 0 && screen) fprintf(screen,"Calculating Dynamical Matrix...\n");
 
+    //loop through procs and set one to proc of interest (poi)
     for (int proc=0; proc < comm->nprocs; proc++) {
+        // obtain nlocal of poi
+        // atoms 0->nlocal-1 belong to poi
         plocal = atom->nlocal;
+        //broadcast poi's nlocal to other procs
         MPI_Bcast(&plocal, 1, MPI_INT, proc, MPI_COMM_WORLD);
+        //every proc loops over poi's nlocal count
         for (int i = 0; i < plocal; i++){
+            //ask if atom belongs to group
             if (me == proc && mask[i] && groupbit)
                 group_flag = 1;
+            //broadcast answer to other procs
             MPI_Bcast(&group_flag, 1, MPI_INT, proc, MPI_COMM_WORLD);
+            //only evaluate if atom did belong to group
             if (group_flag) {
+                //obtain mass of aoi
+                if (me == proc)
+                {
+                    if (atom->rmass_flag == 1) {
+                        moaoi = m[i];
+                    }
+                    else
+                        moaoi = m[type[i]];
+                }
+                //broadcast mass of aoi
+                MPI_Bcast(&moaoi, 1, MPI_INT, proc, MPI_COMM_WORLD);
+                //obtain global id of local atom of interest (aoi)
                 if (me == proc) id = aid[i];
+                //broadcast global id of aoi to other procs
                 MPI_Bcast(&id, 1, MPI_INT, proc, MPI_COMM_WORLD);
+                //loop over x, y, z
                 for (int alpha = 0; alpha < 3; alpha++) {
+                    //move aoi
                     if (me == proc) x[i][alpha] += del;
+                    //calculate forces
+                    //I believe I disabled atoms moving to other procs (essential assumption)
                     energy_force(0);
+                    //loop over every other atoms components
                     for (int beta = 0; beta < 3; beta++) {
                         for (int j = 0; j < nlocal; j++)
+                            //check if other atom is in group
                             if (mask[j] & groupbit) {
+                                //a different dyn_element matrix belongs to every proc
                                 dyn_element[j][beta] = -f[j][beta];
                             }
+                            //no else statement needed since dynmat is already initialized to 0
                     }
+                    //move aoi
                     if (me == proc) x[i][alpha] -= 2 * del;
+                    //calculate forces
                     energy_force(0);
+                    //loop over every other atoms components
                     for (int beta = 0; beta < 3; beta++) {
                         for (int j = 0; j < nlocal; j++)
                             if (mask[j] & groupbit) {
-                                imass = sqrt(m[type[id - 1]] * m[type[aid[j] - 1]]);
+                                //Fixed imass (I believe)
+                                if (atom->rmass_flag == 1)
+                                    imass = sqrt(moaoi * m[j]);
+                                else
+                                    imass = sqrt(moaoi * m[type[j]]);
                                 dyn_element[j][beta] += f[j][beta];
                                 dyn_element[j][beta] /= (2 * del * imass);
+                                //dynmat entries are set based on global atom index
                                 dynmat[3 * id + beta - 3][3 * aid[j] + alpha - 3] =
                                         conversion * dyn_element[j][beta];
                             }
                     }
+                    //move atom back
                     if (me == proc) x[i][alpha] += del;
                 }
             }
@@ -316,10 +349,6 @@ void DynamicalMatrix::calculateMatrix(char *arg)
     for (int i = 0; i < dynlen; i++)
         MPI_Reduce(dynmat[i], final_dynmat[i], int(dynlen), MPI_DOUBLE, MPI_SUM, 0, world);
 
-
-    duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
-
-    if (me==0 && screen) fprintf(screen,"Dynamical Matrix calculation took %f seconds\n",duration);
 
     if (screen && me ==0 ) fprintf(screen,"Finished Calculating Dynamical Matrix\n");
 }

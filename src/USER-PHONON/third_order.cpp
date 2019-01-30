@@ -4,8 +4,7 @@
 
 
 #include <mpi.h>
-#include <stdlib.h>
-#include <iostream>
+#include <cstdlib>
 #include "third_order.h"
 #include "atom.h"
 #include "complex"
@@ -24,7 +23,6 @@
 #include "pair.h"
 #include "timer.h"
 #include "finish.h"
-#include "ctime"
 
 
 using namespace LAMMPS_NS;
@@ -171,7 +169,7 @@ void ThirdOrder::options(int narg, char **arg)
 {
     if (narg < 0) error->all(FLERR,"Illegal dynamical_matrix command");
     int iarg = 0;
-    const char *filename;
+    const char *filename = "third_order.txt";
     std::stringstream fss;
 
     while (iarg < narg) {
@@ -260,11 +258,6 @@ void ThirdOrder::calculateMatrix(char *arg)
 
     energy_force(0);
 
-    std::clock_t start;
-    double duration;
-
-    start = std::clock();
-
     if (comm->me == 0 && screen) fprintf(screen,"Calculating Anharmonic Dynamical Matrix...\n");
 
     for (int proc1=0; proc1 < comm->nprocs; proc1++) {
@@ -331,7 +324,6 @@ void ThirdOrder::calculateMatrix(char *arg)
                                     for (int k = 0; k < nlocal; k++)
                                         if (mask[k] & groupbit) {
                                             for (int gamma = 0; gamma < 3; gamma++) {
-                                                //imass = sqrt(m[type[id1 - 1]]*m[type[id2 - 1]]*m[type[aid[k] - 1]]);
                                                 first_derv[k][gamma] += f[k][gamma];
                                                 first_derv[k][gamma] /= -4*del*del;
                                             }
@@ -360,10 +352,6 @@ void ThirdOrder::calculateMatrix(char *arg)
         }
     }
 //
-
-    duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
-
-    if (me==0 && screen) fprintf(screen,"Third Order calculation took %f seconds\n",duration);
 
     if (screen && me ==0 ) fprintf(screen,"Finished Calculating Third Order Tensor\n");
 

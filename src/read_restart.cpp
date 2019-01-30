@@ -64,7 +64,8 @@ enum{VERSION,SMALLINT,TAGINT,BIGINT,
      ATOM_ID,ATOM_MAP_STYLE,ATOM_MAP_USER,ATOM_SORTFREQ,ATOM_SORTBIN,
      COMM_MODE,COMM_CUTOFF,COMM_VEL,NO_PAIR,
      EXTRA_BOND_PER_ATOM,EXTRA_ANGLE_PER_ATOM,EXTRA_DIHEDRAL_PER_ATOM,
-     EXTRA_IMPROPER_PER_ATOM,EXTRA_SPECIAL_PER_ATOM,ATOM_MAXSPECIAL};
+     EXTRA_IMPROPER_PER_ATOM,EXTRA_SPECIAL_PER_ATOM,ATOM_MAXSPECIAL,
+     CHARTYPES};
 
 #define LB_FACTOR 1.1
 
@@ -1038,11 +1039,41 @@ void ReadRestart::force_fields()
       }
       force->improper->read_restart(fp);
 
+    } else if (flag == CHARTYPES) {
+      atom->chartypesflag = 1;
+      atom->allocate_chartype_arrays();
+      if (comm->me ==0) {
+        if (screen) fprintf(screen,"  restoring character-based types "
+                            "from restart\n");
+        if (logfile) fprintf(logfile,"  restoring character-based types "
+                            "from restart\n");
+      }
+      read_chartypes();
+
     } else error->all(FLERR,
                       "Invalid flag in force field section of restart file");
 
     flag = read_int();
   }
+}
+
+/* ----------------------------------------------------------------------
+   write out character-based types
+------------------------------------------------------------------------- */
+
+void ReadRestart::read_chartypes()
+{
+  int i;
+  for (i = 0; i < atom->ntypes+1; i++)
+    atom->char_atomtype[i] = read_string();
+  for (i = 0; i < atom->nbondtypes+1; i++)
+    atom->char_bondtype[i] = read_string();
+  for (i = 0; i < atom->nangletypes+1; i++)
+    atom->char_angletype[i] = read_string();
+  for (i = 0; i < atom->ndihedraltypes+1; i++)
+    atom->char_dihedraltype[i] = read_string();
+  for (i = 0; i < atom->nimpropertypes+1; i++)
+    atom->char_impropertype[i] = read_string();
 }
 
 /* ---------------------------------------------------------------------- */

@@ -63,7 +63,8 @@ enum{VERSION,SMALLINT,TAGINT,BIGINT,
      ATOM_ID,ATOM_MAP_STYLE,ATOM_MAP_USER,ATOM_SORTFREQ,ATOM_SORTBIN,
      COMM_MODE,COMM_CUTOFF,COMM_VEL,NO_PAIR,
      EXTRA_BOND_PER_ATOM,EXTRA_ANGLE_PER_ATOM,EXTRA_DIHEDRAL_PER_ATOM,
-     EXTRA_IMPROPER_PER_ATOM,EXTRA_SPECIAL_PER_ATOM,ATOM_MAXSPECIAL};
+     EXTRA_IMPROPER_PER_ATOM,EXTRA_SPECIAL_PER_ATOM,ATOM_MAXSPECIAL,
+     CHARTYPES};
 
 /* ---------------------------------------------------------------------- */
 
@@ -585,11 +586,32 @@ void WriteRestart::force_fields()
     write_string(IMPROPER,force->improper_style);
     force->improper->write_restart(fp);
   }
-
+  if (atom->chartypesflag) write_chartypes();
   // -1 flag signals end of force field info
 
   int flag = -1;
   fwrite(&flag,sizeof(int),1,fp);
+}
+
+/* ----------------------------------------------------------------------
+   write out character-based types
+------------------------------------------------------------------------- */
+
+void WriteRestart::write_chartypes()
+{
+  int flag = CHARTYPES;
+  fwrite(&flag,sizeof(int),1,fp);
+  int i;
+  for (i = 0; i < atom->ntypes+1; i++)
+    write_char(atom->char_atomtype[i]);
+  for (i = 0; i < atom->nbondtypes+1; i++)
+    write_char(atom->char_bondtype[i]);
+  for (i = 0; i < atom->nangletypes+1; i++)
+    write_char(atom->char_angletype[i]);
+  for (i = 0; i < atom->ndihedraltypes+1; i++)
+    write_char(atom->char_dihedraltype[i]);
+  for (i = 0; i < atom->nimpropertypes+1; i++)
+    write_char(atom->char_impropertype[i]);
 }
 
 /* ----------------------------------------------------------------------
@@ -699,6 +721,17 @@ void WriteRestart::write_string(int flag, const char *value)
 {
   int n = strlen(value) + 1;
   fwrite(&flag,sizeof(int),1,fp);
+  fwrite(&n,sizeof(int),1,fp);
+  fwrite(value,sizeof(char),n,fp);
+}
+
+/* ----------------------------------------------------------------------
+   write a char string (including NULL) into restart file
+------------------------------------------------------------------------- */
+
+void WriteRestart::write_char(const char *value)
+{
+  int n = strlen(value) + 1;
   fwrite(&n,sizeof(int),1,fp);
   fwrite(value,sizeof(char),n,fp);
 }

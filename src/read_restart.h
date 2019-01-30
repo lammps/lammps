@@ -50,6 +50,7 @@ class ReadRestart : protected Pointers {
   void header(int);
   void type_arrays();
   void force_fields();
+  void read_chartypes();
 
   void magic_string();
   void endian();

@@ -54,6 +54,7 @@ class WriteRestart : protected Pointers {
   void header();
   void type_arrays();
   void force_fields();
+  void write_chartypes();
   void file_layout(int);
 
   void magic_string();
@@ -64,6 +65,7 @@ class WriteRestart : protected Pointers {
   void write_bigint(int, bigint);
   void write_double(int, double);
   void write_string(int, const char *);
+  void write_char(const char *);
   void write_int_vec(int, int, int *);
   void write_double_vec(int, int, double *);
 };

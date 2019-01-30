@@ -841,28 +841,28 @@ void PairGranularMulti::coeff(int narg, char **arg)
 
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
-      normal[i][j] = normal_local;
-      normal_coeffs[i][j][0] = normal_coeffs_local[0];
-      normal_coeffs[i][j][1] = damp;
+      normal[i][j] = normal[j][i] = normal_local;
+      normal_coeffs[i][j][0] = normal_coeffs[j][i][0] = normal_coeffs_local[0];
+      normal_coeffs[i][j][1] = normal_coeffs[j][i][1] = damp;
       if (normal_local != HERTZ && normal_local != HOOKE) normal_coeffs[i][j][2] = normal_coeffs_local[2];
       if ((normal_local == JKR) || (normal_local == DMT))
-        normal_coeffs[i][j][3] = normal_coeffs_local[3];
+        normal_coeffs[i][j][3] = normal_coeffs[j][i][3] = normal_coeffs_local[3];
 
-      damping[i][j] = damping_local;
+      damping[i][j] = damping[j][i] = damping_local;
 
-      tangential[i][j] = tangential_local;
+      tangential[i][j] = tangential[j][i] = tangential_local;
         for (int k = 0; k < 3; k++)
-          tangential_coeffs[i][j][k] = tangential_coeffs_local[k];
+          tangential_coeffs[i][j][k] = tangential_coeffs[j][i][k] = tangential_coeffs_local[k];
 
-      roll[i][j] = roll_local;
+      roll[i][j] = roll[j][i] = roll_local;
       if (roll_local != ROLL_NONE)
         for (int k = 0; k < 3; k++)
-          roll_coeffs[i][j][k] = roll_coeffs_local[k];
+          roll_coeffs[i][j][k] = roll_coeffs[j][i][k] = roll_coeffs_local[k];
 
-      twist[i][j] = twist_local;
+      twist[i][j] = twist[j][i] = twist_local;
         if (twist_local != TWIST_NONE && twist_local != TWIST_MARSHALL)
           for (int k = 0; k < 3; k++)
-            twist_coeffs[i][j][k] = twist_coeffs_local[k];
+            twist_coeffs[i][j][k] = twist_coeffs[j][i][k] = twist_coeffs_local[k];
 
       setflag[i][j] = 1;
       count++;
@@ -1033,31 +1033,31 @@ double PairGranularMulti::init_one(int i, int j)
     }
 
     if (normal[i][j] != HOOKE && normal[i][j] != HERTZ){
-      normal_coeffs[i][j][0] = mix_stiffnessE(normal_coeffs[i][i][0], normal_coeffs[j][j][0],
+      normal_coeffs[i][j][0] = normal_coeffs[j][i][0] = mix_stiffnessE(normal_coeffs[i][i][0], normal_coeffs[j][j][0],
           normal_coeffs[i][i][2], normal_coeffs[j][j][2]);
-      normal_coeffs[i][j][2] = mix_stiffnessG(normal_coeffs[i][i][0], normal_coeffs[j][j][0],
+      normal_coeffs[i][j][2] = normal_coeffs[j][i][2] = mix_stiffnessG(normal_coeffs[i][i][0], normal_coeffs[j][j][0],
           normal_coeffs[i][i][2], normal_coeffs[j][j][2]);
     }
     else{
-      normal_coeffs[i][j][0] = mix_geom(normal_coeffs[i][i][0], normal_coeffs[j][j][0]);
+      normal_coeffs[i][j][0] = normal_coeffs[j][i][0] = mix_geom(normal_coeffs[i][i][0], normal_coeffs[j][j][0]);
     }
 
-    normal_coeffs[i][j][1] = mix_geom(normal_coeffs[i][i][1], normal_coeffs[j][j][1]);
+    normal_coeffs[i][j][1] = normal_coeffs[j][i][1] = mix_geom(normal_coeffs[i][i][1], normal_coeffs[j][j][1]);
     if ((normal[i][i] == JKR) || (normal[i][i] == DMT))
-      normal_coeffs[i][j][3] = mix_geom(normal_coeffs[i][i][3], normal_coeffs[j][j][3]);
+      normal_coeffs[i][j][3] = normal_coeffs[j][i][3] = mix_geom(normal_coeffs[i][i][3], normal_coeffs[j][j][3]);
 
     for (int k = 0; k < 3; k++)
-      tangential_coeffs[i][j][k] = mix_geom(tangential_coeffs[i][i][k], tangential_coeffs[j][j][k]);
+      tangential_coeffs[i][j][k] = normal_coeffs[j][i][k] = mix_geom(tangential_coeffs[i][i][k], tangential_coeffs[j][j][k]);
 
 
     if (roll[i][i] != ROLL_NONE){
       for (int k = 0; k < 3; k++)
-        roll_coeffs[i][j][k] = mix_geom(roll_coeffs[i][i][k], roll_coeffs[j][j][k]);
+        roll_coeffs[i][j][k] = roll_coeffs[j][i][k] = mix_geom(roll_coeffs[i][i][k], roll_coeffs[j][j][k]);
     }
 
     if (twist[i][i] != TWIST_NONE && twist[i][i] != TWIST_MARSHALL){
       for (int k = 0; k < 3; k++)
-        twist_coeffs[i][j][k] = mix_geom(twist_coeffs[i][i][k], twist_coeffs[j][j][k]);
+        twist_coeffs[i][j][k] = twist_coeffs[j][i][k] = mix_geom(twist_coeffs[i][i][k], twist_coeffs[j][j][k]);
     }
   }
 

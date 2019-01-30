@@ -1571,22 +1571,22 @@ void PairGranular::coeff(int narg, char **arg)
 
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
-      normal_coeffs[i][j][0] = normal_coeffs_local[0];
-      normal_coeffs[i][j][1] = damp;
+      normal_coeffs[i][j][0] = normal_coeffs[j][i][0] = normal_coeffs_local[0];
+      normal_coeffs[i][j][1] = normal_coeffs[j][i][1] = damp;
       if (normal != HERTZ && normal != HOOKE) normal_coeffs[i][j][2] = normal_coeffs_local[2];
       if ((normal == JKR) || (normal == DMT))
-        normal_coeffs[i][j][3] = normal_coeffs_local[3];
+        normal_coeffs[i][j][3] = normal_coeffs[j][i][3] = normal_coeffs_local[3];
 
       for (int k = 0; k < 3; k++)
-        tangential_coeffs[i][j][k] = tangential_coeffs_local[k];
+        tangential_coeffs[i][j][k] = tangential_coeffs[j][i][k] = tangential_coeffs_local[k];
 
       if (roll != ROLL_NONE)
         for (int k = 0; k < 3; k++)
-          roll_coeffs[i][j][k] = roll_coeffs_local[k];
+          roll_coeffs[i][j][k] = roll_coeffs[j][i][k] = roll_coeffs_local[k];
 
       if (twist != TWIST_NONE && twist != TWIST_MARSHALL)
         for (int k = 0; k < 3; k++)
-          twist_coeffs[i][j][k] = twist_coeffs_local[k];
+          twist_coeffs[i][j][k] = twist_coeffs[j][i][k] = twist_coeffs_local[k];
 
       setflag[i][j] = 1;
       count++;
@@ -1746,31 +1746,31 @@ double PairGranular::init_one(int i, int j)
   if (setflag[i][j] == 0) {
 
     if (normal != HOOKE && normal != HERTZ){
-      normal_coeffs[i][j][0] = mix_stiffnessE(normal_coeffs[i][i][0], normal_coeffs[j][j][0],
+      normal_coeffs[i][j][0] = normal_coeffs[j][i][0] = mix_stiffnessE(normal_coeffs[i][i][0], normal_coeffs[j][j][0],
           normal_coeffs[i][i][2], normal_coeffs[j][j][2]);
-      normal_coeffs[i][j][2] = mix_stiffnessG(normal_coeffs[i][i][0], normal_coeffs[j][j][0],
+      normal_coeffs[i][j][2] = normal_coeffs[j][i][2] = mix_stiffnessG(normal_coeffs[i][i][0], normal_coeffs[j][j][0],
           normal_coeffs[i][i][2], normal_coeffs[j][j][2]);
     }
     else{
-      normal_coeffs[i][j][0] = mix_geom(normal_coeffs[i][i][0], normal_coeffs[j][j][0]);
+      normal_coeffs[i][j][0] = normal_coeffs[j][i][0] = mix_geom(normal_coeffs[i][i][0], normal_coeffs[j][j][0]);
     }
 
-    normal_coeffs[i][j][1] = mix_geom(normal_coeffs[i][i][1], normal_coeffs[j][j][1]);
+    normal_coeffs[i][j][1] = normal_coeffs[j][i][1] = mix_geom(normal_coeffs[i][i][1], normal_coeffs[j][j][1]);
     if ((normal == JKR) || (normal == DMT))
-      normal_coeffs[i][j][3] = mix_geom(normal_coeffs[i][i][3], normal_coeffs[j][j][3]);
+      normal_coeffs[i][j][3] = normal_coeffs[j][i][3] = mix_geom(normal_coeffs[i][i][3], normal_coeffs[j][j][3]);
 
     for (int k = 0; k < 3; k++)
-      tangential_coeffs[i][j][k] = mix_geom(tangential_coeffs[i][i][k], tangential_coeffs[j][j][k]);
+      tangential_coeffs[i][j][k] = tangential_coeffs[j][i][k] = mix_geom(tangential_coeffs[i][i][k], tangential_coeffs[j][j][k]);
 
 
     if (roll != ROLL_NONE){
       for (int k = 0; k < 3; k++)
-        roll_coeffs[i][j][k] = mix_geom(roll_coeffs[i][i][k], roll_coeffs[j][j][k]);
+        roll_coeffs[i][j][k] = roll_coeffs[j][i][k] = mix_geom(roll_coeffs[i][i][k], roll_coeffs[j][j][k]);
     }
 
     if (twist != TWIST_NONE && twist != TWIST_MARSHALL){
       for (int k = 0; k < 3; k++)
-        twist_coeffs[i][j][k] = mix_geom(twist_coeffs[i][i][k], twist_coeffs[j][j][k]);
+        twist_coeffs[i][j][k] = twist_coeffs[j][i][k] = mix_geom(twist_coeffs[i][i][k], twist_coeffs[j][j][k]);
     }
   }
 

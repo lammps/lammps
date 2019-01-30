@@ -14,16 +14,16 @@ dynamical_matrix group-ID style args keyword value ... :pre
 
 group-ID = ID of group of atoms to use in dynamical matrix calculation :ulb,l
 style = {regular} or {eskm} :l
-  {regular} args = gamma 
+  {regular} args = gamma
     gamma = finite difference displacement length (distance units)
-  {eskm} args = gamma 
+  {eskm} args = gamma
     gamma = finite difference displacement length (distance units)
 
 zero or more keyword/value pairs may be appended :l
 keyword = {file} or {binary} :l
   {file} value = output_file
     output_file = name of file to dump the dynamical matrix into
-  {binary} values = {yes} or {no} or {gzip}:pre
+  {binary} values = {yes} or {no} or {gzip} :pre
 :ule
 
 [Examples:]

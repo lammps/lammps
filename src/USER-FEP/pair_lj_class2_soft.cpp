@@ -108,7 +108,7 @@ void PairLJClass2Soft::compute(int eflag, int vflag)
       if (rsq < cutsq[itype][jtype]) {
         denlj = lj3[itype][jtype] + pow(rsq, 3) * pow(sigma[itype][jtype], -6.0);
         r4sig6 = rsq*rsq / lj2[itype][jtype];
-        forcelj = lj1[itype][jtype] * epsilon[itype][jtype] * 
+        forcelj = lj1[itype][jtype] * epsilon[itype][jtype] *
             (18.0*r4sig6*pow(denlj, -2.5) - 18.0*r4sig6*pow(denlj, -2));
         fpair = factor_lj*forcelj;
 
@@ -370,7 +370,7 @@ void PairLJClass2Soft::read_restart_settings(FILE *fp)
     fread(&tail_flag,sizeof(int),1,fp);
   }
   MPI_Bcast(&nlambda,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&alphalj,1,MPI_DOUBLE,0,world);  
+  MPI_Bcast(&alphalj,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
@@ -397,7 +397,7 @@ void PairLJClass2Soft::write_data_all(FILE *fp)
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
       fprintf(fp,"%d %d %g %g %g %g\n",i,j,epsilon[i][j],sigma[i][j],
-	               lambda[i][j],cut[i][j]);
+              lambda[i][j],cut[i][j]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -412,7 +412,7 @@ double PairLJClass2Soft::single(int /*i*/, int /*j*/, int itype, int jtype, doub
   if (rsq < cutsq[itype][jtype]) {
     r4sig6 = rsq*rsq / lj2[itype][jtype];
     denlj = lj3[itype][jtype] + rsq*r4sig6;
-    forcelj = lj1[itype][jtype] * epsilon[itype][jtype] * 
+    forcelj = lj1[itype][jtype] * epsilon[itype][jtype] *
       (18.0*r4sig6/(denlj*denlj*sqrt(denlj)) - 18.0*r4sig6/(denlj*denlj));
   } else forcelj = 0.0;
   fforce = factor_lj*forcelj;
@@ -422,7 +422,7 @@ double PairLJClass2Soft::single(int /*i*/, int /*j*/, int itype, int jtype, doub
     philj = lj1[itype][jtype] * epsilon[itype][jtype] * (2.0/(denlj*sqrt(denlj)) - 3.0/denlj) -
       offset[itype][jtype];
   } else philj = 0.0;
-  
+
   return factor_lj*philj;
 }
 

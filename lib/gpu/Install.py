@@ -30,6 +30,9 @@ optionally uses Makefile.auto to build the GPU library -> libgpu.a
   and to copy a Makefile.lammps.esuffix -> Makefile.lammps
 optionally copies Makefile.auto to a new Makefile.osuffix
 
+See lib/gpu/README and the LAMMPS manual for more information
+on which settings to use and how to build.
+
 Examples:
 
 make lib-gpu args="-b"      # build GPU lib with default Makefile.linux

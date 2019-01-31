@@ -68,6 +68,7 @@ void CreateAtoms::command(int narg, char **arg)
   if (strcmp(arg[1],"box") == 0) {
     style = BOX;
     iarg = 2;
+    nregion = -1;
   } else if (strcmp(arg[1],"region") == 0) {
     style = REGION;
     if (narg < 3) error->all(FLERR,"Illegal create_atoms command");
@@ -708,6 +709,7 @@ void CreateAtoms::add_lattice()
   xmin = ymin = zmin = BIG;
   xmax = ymax = zmax = -BIG;
 
+  // convert to lattice coordinates and set bounding box
   domain->lattice->bbox(1,bboxlo[0],bboxlo[1],bboxlo[2],
                         xmin,ymin,zmin,xmax,ymax,zmax);
   domain->lattice->bbox(1,bboxhi[0],bboxlo[1],bboxlo[2],
@@ -727,13 +729,15 @@ void CreateAtoms::add_lattice()
 
   // narrow down min/max further by extent of the region, if possible
 
-  if (domain->regions[nregion]->bboxflag) {
-    const double rxmin = domain->regions[nregion]->extent_xlo;
-    const double rxmax = domain->regions[nregion]->extent_xhi;
-    const double rymin = domain->regions[nregion]->extent_ylo;
-    const double rymax = domain->regions[nregion]->extent_yhi;
-    const double rzmin = domain->regions[nregion]->extent_zlo;
-    const double rzmax = domain->regions[nregion]->extent_zhi;
+  if ((style == REGION) && domain->regions[nregion]->bboxflag) {
+    double rxmin = domain->regions[nregion]->extent_xlo;
+    double rxmax = domain->regions[nregion]->extent_xhi;
+    double rymin = domain->regions[nregion]->extent_ylo;
+    double rymax = domain->regions[nregion]->extent_yhi;
+    double rzmin = domain->regions[nregion]->extent_zlo;
+    double rzmax = domain->regions[nregion]->extent_zhi;
+    domain->lattice->box2lattice(rxmin,rymin,rzmin);
+    domain->lattice->box2lattice(rxmax,rymax,rzmax);
 
     if (rxmin > xmin) xmin = (rxmin > xmax) ? xmax : rxmin;
     if (rxmax < xmax) xmax = (rxmax < xmin) ? xmin : rxmax;

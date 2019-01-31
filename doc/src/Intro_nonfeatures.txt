@@ -15,7 +15,7 @@ functionality for setting up simulations and analyzing their output.
 
 Specifically, LAMMPS was not conceived and designed for:
 
-being run thru a GUI
+being run through a GUI
 building molecular systems, or building molecular topologies
 assign force-field coefficients automagically
 perform sophisticated analysis of your MD simulation

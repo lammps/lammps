@@ -29,7 +29,7 @@ compute 1 upper msd com yes average yes :pre
 
 Define a computation that calculates the mean-squared displacement
 (MSD) of the group of atoms, including all effects due to atoms
-passing thru periodic boundaries.  For computation of the non-Gaussian
+passing through periodic boundaries.  For computation of the non-Gaussian
 parameter of mean-squared displacement, see the "compute
 msd/nongauss"_compute_msd_nongauss.html command.
 

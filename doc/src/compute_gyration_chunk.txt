@@ -40,7 +40,7 @@ doc pages for details of how chunks can be defined and examples of how
 they can be used to measure properties of a system.
 
 This compute calculates the radius of gyration Rg for each chunk,
-which includes all effects due to atoms passing thru periodic
+which includes all effects due to atoms passing through periodic
 boundaries.
 
 Rg is a measure of the size of a chunk, and is computed by this

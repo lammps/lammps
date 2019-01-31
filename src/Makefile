@@ -13,6 +13,7 @@ ARLIB =  liblammps_$@.a
 SHLIB =	 liblammps_$@.so
 ARLINK = liblammps.a
 SHLINK = liblammps.so
+TMPNAME= tmp_$@_name
 
 OBJDIR =   Obj_$@
 OBJSHDIR = Obj_shared_$@
@@ -154,17 +155,17 @@ help:
 
 lmpinstalledpkgs.h: $(SRC) $(INC)
 	@echo 'Gathering installed package information (may take a little while)'
-	@echo '#ifndef LMP_INSTALLED_PKGS_H' >  lmpinstalledpkgs.tmp
-	@echo '#define LMP_INSTALLED_PKGS_H' >> lmpinstalledpkgs.tmp
-	@echo 'const char * LAMMPS_NS::LAMMPS::installed_packages[] = {' >> lmpinstalledpkgs.tmp
+	@echo '#ifndef LMP_INSTALLED_PKGS_H' >  ${TMPNAME}.lmpinstalled
+	@echo '#define LMP_INSTALLED_PKGS_H' >> ${TMPNAME}.lmpinstalled
+	@echo 'const char * LAMMPS_NS::LAMMPS::installed_packages[] = {' >> ${TMPNAME}.lmpinstalled
 	@for p in $(PACKAGEUC) $(PACKUSERUC); do info=$$($(SHELL) Package.sh $$p installed); \
-             [ -n "$$info" ] && echo "\"$$info\"" | sed -e 's/".*package \(.*\)"/"\1",/' >> lmpinstalledpkgs.tmp || :; done
-	@echo ' NULL };' >> lmpinstalledpkgs.tmp
-	@echo '#endif' >> lmpinstalledpkgs.tmp
+             [ -n "$$info" ] && echo "\"$$info\"" | sed -e 's/".*package \(.*\)"/"\1",/' >> ${TMPNAME}.lmpinstalled || :; done
+	@echo ' NULL };' >> ${TMPNAME}.lmpinstalled
+	@echo '#endif' >> ${TMPNAME}.lmpinstalled
 	@if [ -f lmpinstalledpkgs.h ]; \
-          then test "`diff --brief lmpinstalledpkgs.tmp lmpinstalledpkgs.h`" != "" && \
-	        mv lmpinstalledpkgs.tmp lmpinstalledpkgs.h || rm lmpinstalledpkgs.tmp ; \
-        else mv lmpinstalledpkgs.tmp lmpinstalledpkgs.h ; fi
+          then test "`diff --brief ${TMPNAME}.lmpinstalled lmpinstalledpkgs.h`" != "" && \
+	        mv ${TMPNAME}.lmpinstalled lmpinstalledpkgs.h || rm ${TMPNAME}.lmpinstalled ; \
+        else mv ${TMPNAME}.lmpinstalled lmpinstalledpkgs.h ; fi
 
 # Build LAMMPS in one of 4 modes
 # exe =   exe with static compile in Obj_machine (default)

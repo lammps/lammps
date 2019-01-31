@@ -38,7 +38,7 @@ This compute calculates the 3 components of the angular velocity
 vector for each chunk, via the formula L = Iw where L is the angular
 momentum vector of the chunk, I is its moment of inertia tensor, and w
 is omega = angular velocity of the chunk.  The calculation includes
-all effects due to atoms passing thru periodic boundaries.
+all effects due to atoms passing through periodic boundaries.
 
 Note that only atoms in the specified group contribute to the
 calculation.  The "compute chunk/atom"_compute_chunk_atom.html command

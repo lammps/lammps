@@ -298,7 +298,7 @@ variable dysame equal 5*sin(2*PI*elaplong*dt/100)
 region 2 sphere 10.0 10.0 0.0 5 move NULL v_dy NULL :pre
 
 The {rotate} keyword rotates the region around a rotation axis {R} =
-(Rx,Ry,Rz) that goes thru a point {P} = (Px,Py,Pz).  The rotation
+(Rx,Ry,Rz) that goes through a point {P} = (Px,Py,Pz).  The rotation
 angle is calculated, presumably as a function of time, by a variable
 specified as v_theta, where theta is the variable name.  The variable
 should generate its result in radians.  The direction of rotation for

@@ -532,6 +532,12 @@ void Info::command(int narg, char **arg)
       fprintf(out,"Region[%3d]: %s,  style = %s,  side = %s\n",
               i, regs[i]->id, regs[i]->style,
               regs[i]->interior ? "in" : "out");
+      if (regs[i]->bboxflag)
+        fprintf(out,"     Boundary: lo %g %g %g  hi %g %g %g\n",
+                regs[i]->extent_xlo, regs[i]->extent_ylo,
+                regs[i]->extent_zlo, regs[i]->extent_xhi,
+                regs[i]->extent_yhi, regs[i]->extent_zhi);
+      else fprintf(out,"     No Boundary\n");
     }
   }
 

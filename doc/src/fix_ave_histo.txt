@@ -241,7 +241,7 @@ first bin and values > {hi} are counted in the last bin.  If {beyond}
 is set to {extend} then two extra bins are created, so that there are
 Nbins+2 total bins.  Values < {lo} are counted in the first bin and
 values > {hi} are counted in the last bin (Nbins+1).  Values between
-{lo} and {hi} (inclusive) are counted in bins 2 thru Nbins+1.  The
+{lo} and {hi} (inclusive) are counted in bins 2 through Nbins+1.  The
 "coordinate" stored and printed for these two extra bins is {lo} and
 {hi}.
 

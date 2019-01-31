@@ -15,7 +15,7 @@ things that are possible when Python wraps LAMMPS.  If you create your
 own scripts, send them to us and we can include them in the LAMMPS
 distribution.
 
-trivial.py, read/run a LAMMPS input script thru Python,
+trivial.py, read/run a LAMMPS input script through Python,
 demo.py, invoke various LAMMPS library interface routines,
 simple.py, run in parallel, similar to examples/COUPLE/simple/simple.cpp,
 split.py, same as simple.py but running in parallel on a subset of procs,

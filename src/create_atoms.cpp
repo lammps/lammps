@@ -68,6 +68,7 @@ void CreateAtoms::command(int narg, char **arg)
   if (strcmp(arg[1],"box") == 0) {
     style = BOX;
     iarg = 2;
+    nregion = -1;
   } else if (strcmp(arg[1],"region") == 0) {
     style = REGION;
     if (narg < 3) error->all(FLERR,"Illegal create_atoms command");
@@ -727,7 +728,7 @@ void CreateAtoms::add_lattice()
 
   // narrow down min/max further by extent of the region, if possible
 
-  if (domain->regions[nregion]->bboxflag) {
+  if ((style == REGION) && domain->regions[nregion]->bboxflag) {
     const double rxmin = domain->regions[nregion]->extent_xlo;
     const double rxmax = domain->regions[nregion]->extent_xhi;
     const double rymin = domain->regions[nregion]->extent_ylo;

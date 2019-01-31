@@ -38,6 +38,7 @@ Pair Styles :h1
    pair_eim
    pair_exp6_rx
    pair_extep
+   pair_fep_soft
    pair_gauss
    pair_gayberne
    pair_gran
@@ -60,7 +61,6 @@ Pair Styles :h1
    pair_lj_long
    pair_lj_smooth
    pair_lj_smooth_linear
-   pair_lj_soft
    pair_lj_switch3_coulgauss
    pair_lubricate
    pair_lubricateU

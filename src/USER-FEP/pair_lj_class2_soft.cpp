@@ -11,15 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   Contributing author: Paolo Raiteri (Curtin University)
-------------------------------------------------------------------------- */
-
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_buck_mdf.h"
+#include "pair_lj_class2_soft.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -33,39 +29,43 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairBuckMDF::PairBuckMDF(LAMMPS *lmp) : Pair(lmp) {}
+PairLJClass2Soft::PairLJClass2Soft(LAMMPS *lmp) : Pair(lmp)
+{
+  writedata = 1;
+  allocated = 0;
+}
 
 /* ---------------------------------------------------------------------- */
 
-PairBuckMDF::~PairBuckMDF()
+PairLJClass2Soft::~PairLJClass2Soft()
 {
-  if (allocated) {
-    memory->destroy(setflag);
-    memory->destroy(cutsq);
+  if (!copymode) {
+    if (allocated) {
+      memory->destroy(setflag);
+      memory->destroy(cutsq);
 
-    memory->destroy(cut);
-    memory->destroy(cut_inner);
-    memory->destroy(cut_inner_sq);
-    memory->destroy(a);
-    memory->destroy(rho);
-    memory->destroy(c);
-    memory->destroy(rhoinv);
-    memory->destroy(buck1);
-    memory->destroy(buck2);
-    memory->destroy(offset);
+      memory->destroy(cut);
+      memory->destroy(epsilon);
+      memory->destroy(sigma);
+      memory->destroy(lambda);
+      memory->destroy(lj1);
+      memory->destroy(lj2);
+      memory->destroy(lj3);
+      memory->destroy(offset);
+      allocated=0;
+    }
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairBuckMDF::compute(int eflag, int vflag)
+void PairLJClass2Soft::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,r2inv,r6inv,forcebuck,factor_lj;
-  double r,rexp,phibuck;
+  double rsq,forcelj,factor_lj;
+  double denlj, r4sig6;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  double dp, d, tt, dt, dd;
 
   evdwl = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
@@ -106,27 +106,11 @@ void PairBuckMDF::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-        r2inv = 1.0/rsq;
-        r6inv = r2inv*r2inv*r2inv;
-        r = sqrt(rsq);
-        rexp = exp(-r*rhoinv[itype][jtype]);
-        forcebuck = buck1[itype][jtype]*r*rexp - buck2[itype][jtype]*r6inv;
-         if (rsq > cut_inner_sq[itype][jtype]) {
-           phibuck = a[itype][jtype]*rexp - c[itype][jtype]*r6inv;
-           dp = (cut[itype][jtype] - cut_inner[itype][jtype]);
-           d = (r-cut_inner[itype][jtype]) / dp;
-           dd = 1.-d;
- // taperig function - mdf style
-           tt = (1. + 3.*d + 6.*d*d)*dd*dd*dd;
- // minus the derivative of the tapering function
-           dt = 30.* d*d * dd*dd * r / dp;
-
-           forcebuck = forcebuck*tt + phibuck*dt;
-         } else {
-           tt = 1;
-         }
-
-        fpair = factor_lj*forcebuck*r2inv;
+        denlj = lj3[itype][jtype] + pow(rsq, 3) * pow(sigma[itype][jtype], -6.0);
+        r4sig6 = rsq*rsq / lj2[itype][jtype];
+        forcelj = lj1[itype][jtype] * epsilon[itype][jtype] *
+            (18.0*r4sig6*pow(denlj, -2.5) - 18.0*r4sig6*pow(denlj, -2));
+        fpair = factor_lj*forcelj;
 
         f[i][0] += delx*fpair;
         f[i][1] += dely*fpair;
@@ -138,9 +122,9 @@ void PairBuckMDF::compute(int eflag, int vflag)
         }
 
         if (eflag) {
-          evdwl = a[itype][jtype]*rexp - c[itype][jtype]*r6inv;
-          if (rsq > cut_inner_sq[itype][jtype]) evdwl *= tt;
-
+          denlj = lj3[itype][jtype] + pow(rsq, 3) * pow(sigma[itype][jtype], -6.0);
+          evdwl = lj1[itype][jtype] * epsilon[itype][jtype] * (2.0/(denlj*sqrt(denlj)) - 3.0/denlj) -
+            offset[itype][jtype];
           evdwl *= factor_lj;
         }
 
@@ -157,7 +141,7 @@ void PairBuckMDF::compute(int eflag, int vflag)
    allocate all arrays
 ------------------------------------------------------------------------- */
 
-void PairBuckMDF::allocate()
+void PairLJClass2Soft::allocate()
 {
   allocated = 1;
   int n = atom->ntypes;
@@ -169,15 +153,13 @@ void PairBuckMDF::allocate()
 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
-  memory->create(cut,n+1,n+1,"pair:cut_lj");
-  memory->create(cut_inner,n+1,n+1,"pair:cut_inner");
-  memory->create(cut_inner_sq,n+1,n+1,"pair:cut_inner_sq");
-  memory->create(a,n+1,n+1,"pair:a");
-  memory->create(rho,n+1,n+1,"pair:rho");
-  memory->create(c,n+1,n+1,"pair:c");
-  memory->create(rhoinv,n+1,n+1,"pair:rhoinv");
-  memory->create(buck1,n+1,n+1,"pair:buck1");
-  memory->create(buck2,n+1,n+1,"pair:buck2");
+  memory->create(cut,n+1,n+1,"pair:cut");
+  memory->create(epsilon,n+1,n+1,"pair:epsilon");
+  memory->create(sigma,n+1,n+1,"pair:sigma");
+  memory->create(lambda,n+1,n+1,"pair:lambda");
+  memory->create(lj1,n+1,n+1,"pair:lj1");
+  memory->create(lj2,n+1,n+1,"pair:lj2");
+  memory->create(lj3,n+1,n+1,"pair:lj3");
   memory->create(offset,n+1,n+1,"pair:offset");
 }
 
@@ -185,12 +167,14 @@ void PairBuckMDF::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairBuckMDF::settings(int narg, char **arg)
+void PairLJClass2Soft::settings(int narg, char **arg)
 {
-  if (narg != 2) error->all(FLERR,"Illegal pair_style command");
+  if (narg != 3) error->all(FLERR,"Illegal pair_style command");
 
-  cut_inner_global = force->numeric(FLERR,arg[0]);
-  cut_global = force->numeric(FLERR,arg[1]);
+  nlambda = force->numeric(FLERR,arg[0]);
+  alphalj = force->numeric(FLERR,arg[1]);
+
+  cut_global = force->numeric(FLERR,arg[2]);
 
   // reset cutoffs that have been explicitly set
 
@@ -206,39 +190,30 @@ void PairBuckMDF::settings(int narg, char **arg)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairBuckMDF::coeff(int narg, char **arg)
+void PairLJClass2Soft::coeff(int narg, char **arg)
 {
-  if (narg != 5 && narg != 7) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 5 || narg > 6) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
   force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
   force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
-  double a_one = force->numeric(FLERR,arg[2]);
-  double rho_one = force->numeric(FLERR,arg[3]);
-  if (rho_one <= 0) error->all(FLERR,"Incorrect args for pair coefficients");
-  double c_one = force->numeric(FLERR,arg[4]);
+  double epsilon_one = force->numeric(FLERR,arg[2]);
+  double sigma_one = force->numeric(FLERR,arg[3]);
+  double lambda_one = force->numeric(FLERR,arg[4]);
+  if (sigma_one <= 0.0) error->all(FLERR,"Incorrect args for pair coefficients");
 
-  double cut_inner_one = cut_inner_global;
   double cut_one = cut_global;
-  if (narg == 7) {
-    cut_inner_one = force->numeric(FLERR,arg[5]);
-    cut_one = force->numeric(FLERR,arg[6]);
-  }
-  if (cut_inner_global <= 0.0 || cut_inner_global > cut_global)
-    error->all(FLERR,"Illegal pair_style command");
+  if (narg == 6) cut_one = force->numeric(FLERR,arg[5]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
-      a[i][j] = a_one;
-      rho[i][j] = rho_one;
-      c[i][j] = c_one;
+      epsilon[i][j] = epsilon_one;
+      sigma[i][j] = sigma_one;
+      lambda[i][j] = lambda_one;
       cut[i][j] = cut_one;
-      cut[j][i] = cut_one;
-      cut_inner[i][j] = cut_inner_one;
-      cut_inner[j][i] = cut_inner_one;
       setflag[i][j] = 1;
       count++;
     }
@@ -251,28 +226,38 @@ void PairBuckMDF::coeff(int narg, char **arg)
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairBuckMDF::init_one(int i, int j)
+double PairLJClass2Soft::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  // always mix epsilon,sigma via sixthpower rules
+  // mix distance via user-defined rule
 
-  rhoinv[i][j] = 1.0/rho[i][j];
-  buck1[i][j] = a[i][j]/rho[i][j];
-  buck2[i][j] = 6.0*c[i][j];
+  if (setflag[i][j] == 0) {
+    epsilon[i][j] = 2.0 * sqrt(epsilon[i][i]*epsilon[j][j]) *
+      pow(sigma[i][i],3.0) * pow(sigma[j][j],3.0) /
+      (pow(sigma[i][i],6.0) + pow(sigma[j][j],6.0));
+    sigma[i][j] =
+      pow((0.5 * (pow(sigma[i][i],6.0) + pow(sigma[j][j],6.0))),1.0/6.0);
+    if (lambda[i][i] != lambda[j][j])
+      error->all(FLERR,"Pair lj/class2/coul/cut/soft different lambda values in mix");
+    lambda[i][j] = lambda[i][i];
+    cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
+  }
+
+  lj1[i][j] = pow(lambda[i][j], nlambda);
+  lj2[i][j] = pow(sigma[i][j], 6.0);
+  lj3[i][j] = alphalj * (1.0 - lambda[i][j])*(1.0 - lambda[i][j]);
 
   if (offset_flag && (cut[i][j] > 0.0)) {
-    double rexp = exp(-cut[i][j]/rho[i][j]);
-    offset[i][j] = a[i][j]*rexp - c[i][j]/pow(cut[i][j],6.0);
+    double denlj = lj3[i][j] + pow(cut[i][j] / sigma[i][j], 6.0);
+    offset[i][j] = lj1[i][j] * epsilon[i][j] * (2.0/(denlj*sqrt(denlj)) - 3.0/denlj);
   } else offset[i][j] = 0.0;
 
-  cut_inner[j][i] = cut_inner[i][j];
-  cut_inner_sq[i][j] = cut_inner[i][j]*cut_inner[i][j];
-  cut_inner_sq[j][i] = cut_inner_sq[i][j];
-
-  a[j][i] = a[i][j];
-  c[j][i] = c[i][j];
-  rhoinv[j][i] = rhoinv[i][j];
-  buck1[j][i] = buck1[i][j];
-  buck2[j][i] = buck2[i][j];
+  epsilon[j][i] = epsilon[i][j];
+  sigma[j][i] = sigma[i][j];
+  lambda[j][i] = lambda[i][j];
+  lj1[j][i] = lj1[i][j];
+  lj2[j][i] = lj2[i][j];
+  lj3[j][i] = lj3[i][j];
   offset[j][i] = offset[i][j];
 
   // compute I,J contribution to long-range tail correction
@@ -290,28 +275,25 @@ double PairBuckMDF::init_one(int i, int j)
     }
     MPI_Allreduce(count,all,2,MPI_DOUBLE,MPI_SUM,world);
 
-    double rho1 = rho[i][j];
-    double rho2 = rho1*rho1;
-    double rho3 = rho2*rho1;
-    double rc = cut[i][j];
-    double rc2 = rc*rc;
-    double rc3 = rc2*rc;
-    etail_ij = 2.0*MY_PI*all[0]*all[1]*
-      (a[i][j]*exp(-rc/rho1)*rho1*(rc2 + 2.0*rho1*rc + 2.0*rho2) -
-       c[i][j]/(3.0*rc3));
-    ptail_ij = (-1/3.0)*2.0*MY_PI*all[0]*all[1]*
-      (-a[i][j]*exp(-rc/rho1)*
-       (rc3 + 3.0*rho1*rc2 + 6.0*rho2*rc + 6.0*rho3) + 2.0*c[i][j]/rc3);
+    double sig3 = sigma[i][j]*sigma[i][j]*sigma[i][j];
+    double sig6 = sig3*sig3;
+    double rc3 = cut[i][j]*cut[i][j]*cut[i][j];
+    double rc6 = rc3*rc3;
+    // check the following expressions for etail_lj & ptail_ij they are not correct !
+    etail_ij = 2.0*MY_PI*all[0]*all[1]*lj1[i][j] *epsilon[i][j] *
+      sig6 * (sig3 - 3.0*rc3) / (3.0*rc6);
+    ptail_ij = 2.0*MY_PI*all[0]*all[1]*lj1[i][j] *epsilon[i][j] *
+      sig6 * (sig3 - 2.0*rc3) / rc6;
   }
 
   return cut[i][j];
 }
 
 /* ----------------------------------------------------------------------
-  proc 0 writes to restart file
+   proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairBuckMDF::write_restart(FILE *fp)
+void PairLJClass2Soft::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
 
@@ -320,22 +302,21 @@ void PairBuckMDF::write_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
-        fwrite(&a[i][j],sizeof(double),1,fp);
-        fwrite(&rho[i][j],sizeof(double),1,fp);
-        fwrite(&c[i][j],sizeof(double),1,fp);
+        fwrite(&epsilon[i][j],sizeof(double),1,fp);
+        fwrite(&sigma[i][j],sizeof(double),1,fp);
+        fwrite(&lambda[i][j],sizeof(double),1,fp);
         fwrite(&cut[i][j],sizeof(double),1,fp);
       }
     }
 }
 
 /* ----------------------------------------------------------------------
-  proc 0 reads from restart file, bcasts
+   proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairBuckMDF::read_restart(FILE *fp)
+void PairLJClass2Soft::read_restart(FILE *fp)
 {
   read_restart_settings(fp);
-
   allocate();
 
   int i,j;
@@ -346,25 +327,27 @@ void PairBuckMDF::read_restart(FILE *fp)
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&a[i][j],sizeof(double),1,fp);
-          fread(&rho[i][j],sizeof(double),1,fp);
-          fread(&c[i][j],sizeof(double),1,fp);
+          fread(&epsilon[i][j],sizeof(double),1,fp);
+          fread(&sigma[i][j],sizeof(double),1,fp);
+          fread(&lambda[i][j],sizeof(double),1,fp);
           fread(&cut[i][j],sizeof(double),1,fp);
         }
-        MPI_Bcast(&a[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&rho[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&c[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&lambda[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
       }
     }
 }
 
 /* ----------------------------------------------------------------------
-  proc 0 writes to restart file
+   proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairBuckMDF::write_restart_settings(FILE *fp)
+void PairLJClass2Soft::write_restart_settings(FILE *fp)
 {
+  fwrite(&nlambda,sizeof(double),1,fp);
+  fwrite(&alphalj,sizeof(double),1,fp);
   fwrite(&cut_global,sizeof(double),1,fp);
   fwrite(&offset_flag,sizeof(int),1,fp);
   fwrite(&mix_flag,sizeof(int),1,fp);
@@ -372,62 +355,84 @@ void PairBuckMDF::write_restart_settings(FILE *fp)
 }
 
 /* ----------------------------------------------------------------------
-  proc 0 reads from restart file, bcasts
+   proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairBuckMDF::read_restart_settings(FILE *fp)
+void PairLJClass2Soft::read_restart_settings(FILE *fp)
 {
-  if (comm->me == 0) {
+  int me = comm->me;
+  if (me == 0) {
+    fread(&nlambda,sizeof(double),1,fp);
+    fread(&alphalj,sizeof(double),1,fp);
     fread(&cut_global,sizeof(double),1,fp);
     fread(&offset_flag,sizeof(int),1,fp);
     fread(&mix_flag,sizeof(int),1,fp);
     fread(&tail_flag,sizeof(int),1,fp);
   }
+  MPI_Bcast(&nlambda,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&alphalj,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
   MPI_Bcast(&tail_flag,1,MPI_INT,0,world);
 }
 
-/* ---------------------------------------------------------------------- */
 
-double PairBuckMDF::single(int /*i*/, int /*j*/, int itype, int jtype,
-                        double rsq, double /*factor_coul*/, double factor_lj,
-                        double &fforce)
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void PairLJClass2Soft::write_data(FILE *fp)
 {
-  double r2inv,r6inv,r,rexp,forcebuck,phibuck;
-  double dp, d, tt, dt, dd;
+  for (int i = 1; i <= atom->ntypes; i++)
+    fprintf(fp,"%d %g %g %g\n",i,epsilon[i][i],sigma[i][i],lambda[i][i]);
+}
 
-  r2inv = 1.0/rsq;
-  r6inv = r2inv*r2inv*r2inv;
-  r = sqrt(rsq);
-  rexp = exp(-r*rhoinv[itype][jtype]);
-  forcebuck = buck1[itype][jtype]*r*rexp - buck2[itype][jtype]*r6inv;
-  phibuck = a[itype][jtype]*rexp - c[itype][jtype]*r6inv;
+/* ----------------------------------------------------------------------
+   proc 0 writes all pairs to data file
+------------------------------------------------------------------------- */
 
-  if (rsq > cut_inner_sq[itype][jtype]) {
-
-    dp = (cut[itype][jtype] - cut_inner[itype][jtype]);
-    d = (r - cut_inner[itype][jtype]) / dp;
-    dd = 1-d;
-    tt = (1. + 3.*d + 6.*d*d)* dd*dd*dd;
-    dt = 30.* d*d * dd*dd * r / dp;
-
-    forcebuck = forcebuck*tt + phibuck*dt;
-    phibuck *= tt;
-  }
-
-  fforce = factor_lj*forcebuck*r2inv;
-
-  return factor_lj*phibuck;
+void PairLJClass2Soft::write_data_all(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    for (int j = i; j <= atom->ntypes; j++)
+      fprintf(fp,"%d %d %g %g %g %g\n",i,j,epsilon[i][j],sigma[i][j],
+              lambda[i][j],cut[i][j]);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void *PairBuckMDF::extract(const char *str, int &dim)
+double PairLJClass2Soft::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
+                            double /*factor_coul*/, double factor_lj,
+                            double &fforce)
+{
+  double forcelj,philj;
+  double r4sig6, denlj;
+
+  if (rsq < cutsq[itype][jtype]) {
+    r4sig6 = rsq*rsq / lj2[itype][jtype];
+    denlj = lj3[itype][jtype] + rsq*r4sig6;
+    forcelj = lj1[itype][jtype] * epsilon[itype][jtype] *
+      (18.0*r4sig6/(denlj*denlj*sqrt(denlj)) - 18.0*r4sig6/(denlj*denlj));
+  } else forcelj = 0.0;
+  fforce = factor_lj*forcelj;
+
+  if (rsq < cutsq[itype][jtype]) {
+    denlj = lj3[itype][jtype] + rsq*rsq*rsq / lj2[itype][jtype];
+    philj = lj1[itype][jtype] * epsilon[itype][jtype] * (2.0/(denlj*sqrt(denlj)) - 3.0/denlj) -
+      offset[itype][jtype];
+  } else philj = 0.0;
+
+  return factor_lj*philj;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void *PairLJClass2Soft::extract(const char *str, int &dim)
 {
   dim = 2;
-  if (strcmp(str,"a") == 0) return (void *) a;
-  if (strcmp(str,"c") == 0) return (void *) c;
+  if (strcmp(str,"epsilon") == 0) return (void *) epsilon;
+  if (strcmp(str,"sigma") == 0) return (void *) sigma;
+  if (strcmp(str,"lambda") == 0) return (void *) lambda;
   return NULL;
 }

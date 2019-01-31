@@ -114,23 +114,36 @@ styles and their energy formulas for the meaning of these parameters:
 
 "born"_pair_born.html: a,b,c: type pairs:
 "buck"_pair_buck.html: a,c: type pairs:
+"buck/mdf"_pair_mdf.html: a,c: type pairs:
 "coul/cut"_pair_coul.html: scale: type pairs:
-"coul/debye"_pair_coul.html: scale: type pairs:
-"coul/long"_pair_coul.html: scale: type pairs:
-"lj/cut"_pair_lj.html: epsilon,sigma: type pairs:
-"lj/expand"_pair_lj_expand.html: epsilon,sigma,delta: type pairs:
-"lubricate"_pair_lubricate.html: mu: global:
+"coul/cut/soft"_pair_fep_soft.html: lambda: type pairs:
+"coul/long, coul/msm"_pair_coul.html: scale: type pairs:
+"coul/long/soft"_pair_fep_soft.html: scale, lambda: type pairs:
+"eam"_pair_eam.html: scale: type pairs:
 "gauss"_pair_gauss.html: a: type pairs:
+"lennard/mdf"_pair_mdf.html: a,b: type pairs:
+"lj/class2"_pair_class2.html: epsilon,sigma: type pairs:
+"lj/class2/coul/cut, lj/class2/coul/long"_pair_class2.html: epsilon,sigma: type pairs:
+"lj/cut"_pair_lj.html: epsilon,sigma: type pairs:
+"lj/cut/soft"_pair_fep_soft.html: epsilon,sigma,lambda: type pairs:
+"lj/cut/coul/cut, lj/cut/coul/long, lj/cut/coul/msm"_pair_lj.html: epsilon,sigma: type pairs:
+"lj/cut/coul/cut/soft, lj/cut/coul/long/soft"_pair_fep_soft.html: epsilon,sigma,lambda: type pairs:
+"lj/cut/tip4p/cut, lj/cut/tip4p/long"_pair_lj.html: epsilon,sigma: type pairs:
+"lj/cut/tip4p/long/soft"_pair_fep_soft.html: epsilon,sigma,lambda: type pairs:
+"lj/expand"_pair_lj_expand.html: epsilon,sigma,delta: type pairs:
+"lj/mdf"_pair_mdf.html: epsilon,sigma: type pairs:
+"lj/sf/dipole/sf"_pair_dipole.html: epsilon,sigma,scale: type pairs:
+"mie/cut"_pair_mie.html: epsilon,sigma,gamR,gamA: type pairs:
+"morse, morse/smooth/linear"_pair_morse.html: d0,r0,alpha: type pairs:
+"morse/soft"_pair_morse.html: d0,r0,alpha,lambda: type pairs:
+"nm/cut"_pair_nm.html: e0,r0,nn,mm: type pairs:
+"nm/cut/coul/cut, nm/cut/coul/long"_pair_nm.html: e0,r0,nn,mm: type pairs:
+"ufm"_pair_ufm.html: epsilon,sigma,scale: type pairs:
 "soft"_pair_soft.html: a: type pairs :tb(c=3,s=:)
 
 NOTE: It is easy to add new potentials and their parameters to this
 list.  All it typically takes is adding an extract() method to the
 pair_*.cpp file associated with the potential.
-
-Some parameters are global settings for the pair style, e.g. the
-viscosity setting "mu" for "pair_style lubricate"_pair_lubricate.html.
-Other parameters apply to atom type pairs within the pair style,
-e.g. the prefactor "a" for "pair_style soft"_pair_soft.html.
 
 Note that for many of the potentials, the parameter that can be varied
 is effectively a prefactor on the entire energy expression for the
@@ -253,7 +266,7 @@ minimization"_minimize.html.
 [Related commands:]
 
 "compute fep"_compute_fep.html, "fix adapt"_fix_adapt.html, "compute
-ti"_compute_ti.html
+ti"_compute_ti.html, "pair_fep_soft"_pair_fep_soft.html
 
 [Default:]
 

@@ -361,7 +361,8 @@ void PairReaxC::init_style( )
 
   int iqeq;
   for (iqeq = 0; iqeq < modify->nfix; iqeq++)
-    if (strstr(modify->fix[iqeq]->style,"qeq/reax")) break;
+    if (strstr(modify->fix[iqeq]->style,"qeq/reax")
+       || strstr(modify->fix[iqeq]->style,"qeq/shielded")) break;
   if (iqeq == modify->nfix && qeqflag == 1)
     error->all(FLERR,"Pair reax/c requires use of fix qeq/reax");
 

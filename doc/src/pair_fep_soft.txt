@@ -344,7 +344,7 @@ USER-FEP package. The {long} versions also require the KSPACE package to be
 installed. The soft {tip4p} versions also require the MOLECULE package to be
 installed. These styles are only enabled if LAMMPS was built with those
 packages.  See the "Build package"_Build_package.html doc page for more
-info. Note that the KSPACE and MOLECULE packages are installed by default.
+info.
 
 [Related commands:]
 

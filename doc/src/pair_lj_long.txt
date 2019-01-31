@@ -219,8 +219,7 @@ different levels of the rRESPA hierarchy.  See the
 
 These styles are part of the KSPACE package.  They are only enabled if
 LAMMPS was built with that package.  See the "Build
-package"_Build_package.html doc page for more info.  Note that the
-KSPACE package is installed by default.
+package"_Build_package.html doc page for more info.
 
 [Related commands:]
 

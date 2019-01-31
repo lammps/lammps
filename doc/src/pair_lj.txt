@@ -329,8 +329,7 @@ The {lj/cut/coul/long} and {lj/cut/tip4p/long} styles are part of the
 KSPACE package. The {lj/cut/tip4p/cut} style is part of the MOLECULE
 package. These styles are only enabled if LAMMPS was built with those
 packages.  See the "Build package"_Build_package.html doc page for
-more info.  Note that the KSPACE and MOLECULE packages are installed
-by default.
+more info.
 
 [Related commands:]
 

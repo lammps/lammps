@@ -220,6 +220,7 @@ accelerated styles exist.
 "lj/sf/dipole/sf"_pair_dipole.html - LJ with dipole interaction with shifted forces
 "lj/smooth"_pair_lj_smooth.html - smoothed Lennard-Jones potential
 "lj/smooth/linear"_pair_lj_smooth_linear.html - linear smoothed LJ potential
+"lj/switch3/coulgauss"_pair_lj_switch3_coulgauss - smoothed LJ vdW potential with Gaussian electrostatics
 "lj96/cut"_pair_lj96.html - Lennard-Jones 9/6 potential
 "lubricate"_pair_lubricate.html - hydrodynamic lubrication forces
 "lubricate/poly"_pair_lubricate.html - hydrodynamic lubrication forces with polydispersity
@@ -232,6 +233,7 @@ accelerated styles exist.
 "meam/sw/spline"_pair_meam_sw_spline.html - splined version of MEAM with a Stillinger-Weber term
 "mgpt"_pair_mgpt.html - simplified model generalized pseudopotential theory (MGPT) potential
 "mie/cut"_pair_mie.html - Mie potential
+"mm3/switch3/coulgauss"_pair_mm3_switch3_coulgauss - smoothed MM3 vdW potential with Gaussian electrostatics
 "momb"_pair_momb.html - Many-Body Metal-Organic (MOMB) force field
 "morse"_pair_morse.html - Morse potential
 "morse/smooth/linear"_pair_morse.html - linear smoothed Morse potential

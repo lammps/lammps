@@ -55,11 +55,14 @@ class FixBondReact : public Fix {
   int *iatomtype,*jatomtype;
   int *seed;
   double **cutsq,*fraction;
+  int *max_rxn,*nlocalskips,*nghostlyskips;
   tagint lastcheck;
   int stabilization_flag;
   int custom_exclude_flag;
   int *stabilize_steps_flag;
   int *update_edges_flag;
+  int *nconstraints;
+  double **constraints;
   int status;
   int *groupbits;
 
@@ -140,6 +143,7 @@ class FixBondReact : public Fix {
   void Equivalences(char *,int);
   void CustomEdges(char *,int);
   void DeleteAtoms(char *,int);
+  void Constraints(char *,int);
 
   void make_a_guess ();
   void neighbor_loop();
@@ -147,6 +151,7 @@ class FixBondReact : public Fix {
   void crosscheck_the_neighbor();
   void inner_crosscheck_loop();
   void ring_check();
+  int check_constraints();
 
   void open(char *);
   void readline(char *);

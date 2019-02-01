@@ -559,10 +559,15 @@ if(PKG_USER-PLUMED)
     message(STATUS "PLUMED download requested - we will build our own")
     include(ExternalProject)
     ExternalProject_Add(plumed_build
-      URL https://github.com/plumed/plumed2/releases/download/v2.4.3/plumed-src-2.4.3.tgz
-      URL_MD5 b1be7c48971627febc11c61b70767fc5
+      URL https://github.com/plumed/plumed2/releases/download/v2.4.4/plumed-src-2.4.4.tgz
+      URL_MD5 71ed465bdc7c2059e282dbda8d564e71
       BUILD_IN_SOURCE 1
-      CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> ${CONFIGURE_REQUEST_PIC})
+      CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
+                                               ${CONFIGURE_REQUEST_PIC}
+                                                --enable-modules=all
+                                               CXX=${CMAKE_MPI_CXX_COMPILER}
+                                               CC=${CMAKE_MPI_C_COMPILER}
+    )
     ExternalProject_get_property(plumed_build INSTALL_DIR)
     set(PLUMED_INSTALL_DIR ${INSTALL_DIR})
     list(APPEND LAMMPS_DEPS plumed_build)
@@ -614,8 +619,8 @@ if(PKG_USER-SMD)
     message(STATUS "Eigen3 download requested - we will build our own")
     include(ExternalProject)
     ExternalProject_Add(Eigen3_build
-      URL http://bitbucket.org/eigen/eigen/get/3.3.4.tar.gz
-      URL_MD5 1a47e78efe365a97de0c022d127607c3
+      URL http://bitbucket.org/eigen/eigen/get/3.3.7.tar.gz
+      URL_MD5 f2a417d083fe8ca4b8ed2bc613d20f07
       CONFIGURE_COMMAND "" BUILD_COMMAND "" INSTALL_COMMAND ""
     )
     ExternalProject_get_property(Eigen3_build SOURCE_DIR)

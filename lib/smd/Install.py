@@ -1,16 +1,36 @@
 #!/usr/bin/env python
 
-# Install.py tool to download, unpack, and point to the Eigen library
-# used to automate the steps described in the README file in this dir
+"""
+Install.py tool to download, unpack, and point to the Eigen library
+used to automate the steps described in the README file in this dir
+"""
 
 from __future__ import print_function
-import sys,os,re,glob,subprocess,shutil
+import sys, os, glob, shutil, tarfile
+from argparse import ArgumentParser
+
 sys.path.append('..')
-from install_helpers import error,get_cpus,fullpath,which,geturl
+from install_helpers import fullpath, geturl, checkmd5sum
+
+parser = ArgumentParser(prog='Install.py',
+                        description="LAMMPS library build wrapper script")
+
+# settings
+
+version = '3.3.7'
+tarball = "eigen.tar.gz"
+
+# known checksums for different Eigen versions. used to validate the download.
+checksums = { \
+              '3.3.4' : '1a47e78efe365a97de0c022d127607c3', \
+              '3.3.5' : 'ee48cafede2f51fe33984ff5c9f48026', \
+              '3.3.6' : 'd1be14064b50310b0eb2b49e402c64d7', \
+              '3.3.7' : 'f2a417d083fe8ca4b8ed2bc613d20f07' \
+}
 
 # help message
 
-help = """
+HELP = """
 Syntax from src dir: make lib-smd args="-b"
                  or: make lib-smd args="-p /usr/include/eigen3"
 
@@ -18,91 +38,77 @@ Syntax from lib dir: python Install.py -b
                  or: python Install.py -p /usr/include/eigen3"
                  or: python Install.py -v 3.3.4 -b
 
-specify one or more options, order does not matter
-
-  -b = download and unpack/configure the Eigen library
-  -p = specify folder holding an existing installation of Eigen
-  -v = set version of Eigen library to download and set up (default = 3.3.4)
-
-
 Example:
 
 make lib-smd args="-b"   # download/build in default lib/smd/eigen-eigen-*
 make lib-smd args="-p /usr/include/eigen3" # use existing Eigen installation in /usr/include/eigen3
 """
 
-# settings
+pgroup = parser.add_mutually_exclusive_group()
+pgroup.add_argument("-b", "--build", action="store_true",
+                    help="download and build the Eigen3 library")
+pgroup.add_argument("-p", "--path",
+                    help="specify folder of existing Eigen installation")
+parser.add_argument("-v", "--version", default=version,
+                    help="set version of Eigen to download and build (default: %s)" % version)
 
-version = '3.3.4'
-tarball = "eigen.tar.gz"
+args = parser.parse_args()
 
+# print help message and exit, if neither build nor path options are given
+if not args.build and not args.path:
+  parser.print_help()
+  sys.exit(HELP)
 
-# parse args
+homepath = fullpath(".")
+eigenpath = os.path.join(homepath, "eigen3")
 
-args = sys.argv[1:]
-nargs = len(args)
-if nargs == 0: error(help=help)
+buildflag = args.build
+pathflag = args.path is not None
+version = args.version
 
-homepath = "."
-homedir = "eigen3"
-
-buildflag = False
-pathflag = False
-linkflag = True
-
-iarg = 0
-while iarg < nargs:
-  if args[iarg] == "-v":
-    if iarg+2 > nargs: error(help=help)
-    version = args[iarg+1]
-    iarg += 2
-  elif args[iarg] == "-p":
-    if iarg+2 > nargs: error(help=help)
-    eigenpath = fullpath(args[iarg+1])
-    pathflag = True
-    iarg += 2
-  elif args[iarg] == "-b":
-    buildflag = True
-    iarg += 1
-  else: error(help=help)
-
-homepath = fullpath(homepath)
-
-if (pathflag):
-  if not os.path.isdir(eigenpath): error("Eigen path does not exist")
-
-if (buildflag and pathflag):
-    error("Cannot use -b and -p flag at the same time")
-
-if (not buildflag and not pathflag):
-    error("Have to use either -b or -p flag")
+if pathflag:
+  eigenpath = args.path
+  if not os.path.isdir(eigenpath):
+    sys.exit("Eigen path %s does not exist" % eigenpath)
+  eigenpath = fullpath(eigenpath)
 
 # download and unpack Eigen tarball
 # use glob to find name of dir it unpacks to
 
 if buildflag:
   print("Downloading Eigen ...")
+  eigentar = os.path.join(homepath, tarball)
   url = "http://bitbucket.org/eigen/eigen/get/%s.tar.gz" % version
-  geturl(url,"%s/%s" % (homepath,tarball))
+  geturl(url, eigentar)
 
-  print("Unpacking Eigen tarball ...")
-  edir = glob.glob("%s/eigen-eigen-*" % homepath)
+  # verify downloaded archive integrity via md5 checksum, if known.
+  if version in checksums:
+    print("checking version %s\n" % version)
+    if not checkmd5sum(checksums[version], eigentar):
+      sys.exit("Checksum for Eigen library does not match")
+
+
+  print("Cleaning up old folders ...")
+  edir = glob.glob(os.path.join(homepath, "eigen-eigen-*"))
+  edir.append(eigenpath)
   for one in edir:
     if os.path.isdir(one):
       shutil.rmtree(one)
-  cmd = 'cd "%s"; tar -xzvf %s' % (homepath,tarball)
-  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  edir = glob.glob("%s/eigen-eigen-*" % homepath)
-  os.rename(edir[0],"%s/%s" % (homepath,homedir))
-  os.remove(tarball)
+
+  print("Unpacking Eigen tarball ...")
+  if tarfile.is_tarfile(eigentar):
+    tgz = tarfile.open(eigentar)
+    tgz.extractall(path=homepath)
+    os.remove(eigentar)
+  else:
+    sys.exit("File %s is not a supported archive" % eigentar)
+  edir = glob.glob(os.path.join(homepath, "eigen-eigen-*"))
+  os.rename(edir[0], eigenpath)
 
 # create link in lib/smd to Eigen src dir
 
-if linkflag:
-  print("Creating link to Eigen files")
-  if os.path.isfile("includelink") or os.path.islink("includelink"):
-    os.remove("includelink")
-  if pathflag: linkdir = eigenpath
-  else: linkdir = "%s/%s" % (homepath,homedir)
-  cmd = 'ln -s "%s" includelink' % linkdir
-  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+print("Creating link to Eigen include folder")
+if os.path.isfile("includelink") or os.path.islink("includelink"):
+  os.remove("includelink")
+linkdir = eigenpath
+os.symlink(linkdir, 'includelink')

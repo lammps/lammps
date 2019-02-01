@@ -24,14 +24,14 @@ style = {box} or {region} or {single} or {random} :l
     seed = random # seed (positive integer)
     region-ID = create atoms within this region, use NULL for entire simulation box :pre
 zero or more keyword/value pairs may be appended :l
-keyword = {mol} or {basis} or {randnpos} or {remap} or {var} or {set} or {units} :l
+keyword = {mol} or {basis} or {subset} or {remap} or {var} or {set} or {units} :l
   {mol} value = template-ID seed
     template-ID = ID of molecule template specified in a separate "molecule"_molecule.html command
     seed = random # seed (positive integer)
   {basis} values = M itype
     M = which basis atom
     itype = atom type (1-N) to assign to this basis atom
-  {randnpos} value = N = number of particles to add at lattice points
+  {subset} value = N = number of particles to add at lattice points
   {remap} value = {yes} or {no}
   {var} value = name = variable name to evaluate for test of atom creation
   {set} values = dim name
@@ -194,7 +194,7 @@ command for specifics on how basis atoms are defined for the unit cell
 of the lattice.  By default, all created atoms are assigned the
 argument {type} as their atom type.
 
-The {randnpos} keyword can be used in conjunction with the {box} or
+The {subset} keyword can be used in conjunction with the {box} or
 {region} styles to limit the total number of particles inserted. The
 specified number of particles N are placed randomly on the available
 lattice points.

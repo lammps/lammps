@@ -40,12 +40,12 @@ class CreateAtoms : protected Pointers {
   char *vstr,*xstr,*ystr,*zstr;
   char *xstr_copy,*ystr_copy,*zstr_copy;
 
-  int nlattpts,randnpos,randnflag;
-  int *Nmask;                 // used to insert N number of particles on lattice
+  int nlatt,nsubset,subsetflag;
+  int *flag;                  // used to insert N number of particles on lattice
 
   class Molecule *onemol;
   class RanMars *ranmol;
-  class RanMars *ranbox;
+  class RanMars *ranlatt;
 
   int triclinic;
   double sublo[3],subhi[3];   // epsilon-extended proc sub-box for adding atoms
@@ -53,9 +53,9 @@ class CreateAtoms : protected Pointers {
   void add_single();
   void add_random();
   void add_lattice();
-  void lattice_mask();
+  void get_subset();
   void add_molecule(double *, double * = NULL);
-  int vartest(double *);       // evaluate a variable with new atom position
+  int vartest(double *);      // evaluate a variable with new atom position
 };
 
 }

@@ -35,6 +35,7 @@
 #include "math_extra.h"
 #include "math_const.h"
 #include "error.h"
+#include "memory.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -109,12 +110,12 @@ void CreateAtoms::command(int narg, char **arg)
   remapflag = 0;
   mode = ATOM;
   int molseed;
-  int randnseed;
+  int subsetseed;
   varflag = 0;
   vstr = xstr = ystr = zstr = NULL;
   quatone[0] = quatone[1] = quatone[2] = 0.0;
-  nlattpts = randnpos = randnflag = 0;
-  Nmask = NULL;
+  nlatt = nsubset = subsetflag = 0;
+  flag = NULL;
 
   nbasis = domain->lattice->nbasis;
   basistype = new int[nbasis];
@@ -197,15 +198,15 @@ void CreateAtoms::command(int narg, char **arg)
       MathExtra::norm3(axisone);
       MathExtra::axisangle_to_quat(axisone,thetaone,quatone);
       iarg += 5;
-    } else if (strcmp(arg[iarg],"randnpos") == 0) {
+    } else if (strcmp(arg[iarg],"subset") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal create_atoms command");
-      randnpos = force->inumeric(FLERR,arg[iarg+1]);
-      randnseed = force->inumeric(FLERR,arg[iarg+2]);
-      if (randnpos > 0) randnflag = 1;
+      nsubset = force->inumeric(FLERR,arg[iarg+1]);
+      subsetseed = force->inumeric(FLERR,arg[iarg+2]);
+      if (nsubset > 0) subsetflag = 1;
       else {
-        if (me == 0) error->warning(FLERR,"Specifying an 'randnpos' value of "
-                                 "'0' is equivalent to no 'randnpos' keyword");
-        randnflag = 0;
+        if (me == 0) error->warning(FLERR,"Specifying an 'subset' value of "
+                                 "'0' is equivalent to no 'subset' keyword");
+        subsetflag = 0;
       }
       iarg += 3;
     } else error->all(FLERR,"Illegal create_atoms command");
@@ -245,8 +246,8 @@ void CreateAtoms::command(int narg, char **arg)
     ranmol = new RanMars(lmp,molseed+me);
   }
 
-  if (randnflag) {
-    ranbox = new RanMars(lmp,randnseed+me);
+  if (subsetflag) {
+    ranlatt = new RanMars(lmp,subsetseed+me);
   }
 
   // error check and further setup for variable test
@@ -545,7 +546,7 @@ void CreateAtoms::command(int narg, char **arg)
   delete [] xstr;
   delete [] ystr;
   delete [] zstr;
-  delete [] Nmask;
+  memory->destroy(flag);
 
   // print status
 
@@ -779,14 +780,14 @@ void CreateAtoms::add_lattice()
 
   int i,j,k,m;
 
-  // one pass for default mode, two passes for randnpos mode:
+  // one pass for default mode, two passes for subset mode:
   // first pass: count how many particles will be inserted
   // second pass: filter to N number of particles (and insert)
-  int maskcntr = 0;
+  int iflag = 0;
   int npass = 1;
-  if (randnflag) npass = 2;
+  if (subsetflag) npass = 2;
   for (int pass = 0; pass < npass; pass++) {
-    if (pass == 1) lattice_mask();
+    if (pass == 1) get_subset();
     for (k = klo; k <= khi; k++)
       for (j = jlo; j <= jhi; j++)
         for (i = ilo; i <= ihi; i++)
@@ -821,9 +822,9 @@ void CreateAtoms::add_lattice()
                 coord[2] < sublo[2] || coord[2] >= subhi[2]) continue;
 
             // add the atom or entire molecule to my list of atoms
-            if (randnflag && pass == 0) nlattpts++;
+            if (subsetflag && pass == 0) nlatt++;
             else {
-              if (!randnflag || Nmask[maskcntr++] == 1)
+              if (!subsetflag || flag[iflag++] == 1)
                 if (mode == ATOM) atom->avec->create_atom(basistype[m],x);
                 else add_molecule(x);
             }
@@ -835,64 +836,78 @@ void CreateAtoms::add_lattice()
    define a random mask to insert only N particles on lattice
 ------------------------------------------------------------------------- */
 
-void CreateAtoms::lattice_mask()
+void CreateAtoms::get_subset()
 {
-  int i,j,temp,irand,nboxme;
+  enum{ATOMS,HOLES};
+  int i,j,temp,irand,mysubset,npicks,pickmode;
+  double myrand;
   if (nprocs > 1) {
-    int allnlattpts[nprocs];
-    int allnboxmes[nprocs];
+    int allnlatts[nprocs];
+    int allsubsets[nprocs];
+    double proc_sects[nprocs];
 
-   MPI_Allgather(&nlattpts, 1, MPI_INT, &allnlattpts, 1, MPI_INT, world);
+    MPI_Allgather(&nlatt, 1, MPI_INT, &allnlatts, 1, MPI_INT, world);
 
-   if (me == 0) {
-     int total_lattpts = 0;
-     for (i = 0; i < nprocs; i++)
-       total_lattpts += allnlattpts[i];
-
-     if (randnpos > total_lattpts)
-        error->one(FLERR,"Attempting to insert more particles than available lattice points");
-
-      // using proc 0, let's randomly choose how many lattice points filled for each proc
-      int *allNmask = new int[total_lattpts]();
-
-      int ilatt = 0;
+    if (me == 0) {
+      int ntotal = 0;
       for (i = 0; i < nprocs; i++)
-        for (j = 0; j < allnlattpts[i]; j++)
-          allNmask[ilatt++] = i;
+        ntotal += allnlatts[i];
 
-      // shuffle lattice points, labelled by proc
-      for (i = total_lattpts-1; i > 0; --i) {
-        irand = floor(ranbox->uniform()*(i+1));
-        temp = allNmask[i];
-        allNmask[i] = allNmask[irand];
-        allNmask[irand] = temp;
+      if (nsubset > ntotal)
+         error->one(FLERR,"Attempting to insert more particles than available lattice points");
+
+      // define regions of unity based on a proc's fraction of total lattice points
+      proc_sects[0] = allnlatts[0]/ntotal;
+      for (i = 1; i < nprocs; i++)
+        proc_sects[i] = proc_sects[i-1] + (double) allnlatts[i] / (double) ntotal;
+
+      if (nsubset > ntotal/2) {
+        pickmode = HOLES;
+        npicks = ntotal - nsubset;
+      } else {
+        pickmode = ATOMS;
+        npicks = nsubset;
       }
 
       for (i = 0; i < nprocs; i++)
-        allnboxmes[i] = 0;
+        allsubsets[i] = 0;
 
-      for (i = 0; i < randnpos; i++)
-        allnboxmes[allNmask[i]]++;
+      for (i = 0; i < npicks; i++) {
+        myrand = ranlatt->uniform();
+        for (j = 0; j < nprocs; j++)
+          if (myrand < proc_sects[j]) {
+            allsubsets[j]++;
+            break;
+          }
+      }
+
+      if (pickmode == HOLES)
+        for (i = 0; i < nprocs; i++)
+          allsubsets[i] = allnlatts[i] - allsubsets[i];
     }
 
-    MPI_Scatter(&allnboxmes, 1, MPI_INT, &nboxme, 1, MPI_INT, 0, world);
+    MPI_Scatter(&allsubsets, 1, MPI_INT, &mysubset, 1, MPI_INT, 0, world);
   } else {
-    if (randnpos > nlattpts)
+    if (nsubset > nlatt)
        error->one(FLERR,"Attempting to insert more particles than available lattice points");
-    nboxme = randnpos;
+    mysubset = nsubset;
   }
 
   // each processor chooses its random lattice points
-  Nmask = new int[nlattpts]();
-  for (i = 0; i < nboxme; i++)
-    Nmask[i] = 1;
+  memory->create(flag,nlatt,"create_atoms:flag");
+
+  for (i = 0; i < nlatt; i++)
+    if (i < mysubset)
+      flag[i] = 1;
+    else
+      flag[i] = 0;
 
   // shuffle filled lattice points
-  for (i = nlattpts-1; i > 0; --i) {
-    irand = floor(ranbox->uniform()*(i+1));
-    temp = Nmask[i];
-    Nmask[i] = Nmask[irand];
-    Nmask[irand] = temp;
+  for (i = nlatt-1; i > 0; --i) {
+    irand = floor(ranlatt->uniform()*(i+1));
+    temp = flag[i];
+    flag[i] = flag[irand];
+    flag[irand] = temp;
   }
 }
 

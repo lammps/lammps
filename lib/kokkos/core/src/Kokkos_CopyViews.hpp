@@ -1401,7 +1401,33 @@ void deep_copy
   typedef typename src_type::memory_space     src_memory_space ;
   typedef typename dst_type::value_type       dst_value_type ;
   typedef typename src_type::value_type       src_value_type ;
-  if(dst.data() == NULL && src.data() == NULL) {
+  if(dst.data() == NULL || src.data() == NULL) {
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
+    // do nothing
+#else
+    // throw if dimension mismatch
+    if ( (src.extent(0) != dst.extent(0)) ||
+         (src.extent(1) != dst.extent(1)) ||
+         (src.extent(2) != dst.extent(2)) ||
+         (src.extent(3) != dst.extent(3)) ||
+         (src.extent(4) != dst.extent(4)) ||
+         (src.extent(5) != dst.extent(5)) ||
+         (src.extent(6) != dst.extent(6)) ||
+         (src.extent(7) != dst.extent(7))
+       ) {
+      std::string message("Deprecation Error: Kokkos::deep_copy extents of views don't match: ");
+      message += dst.label(); message += "(";
+      for(int r = 0; r<dst_type::Rank-1; r++)
+        { message+= std::to_string(dst.extent(r)); message += ","; }
+      message+= std::to_string(dst.extent(dst_type::Rank-1)); message += ") ";
+      message += src.label(); message += "(";
+      for(int r = 0; r<src_type::Rank-1; r++)
+        { message+= std::to_string(src.extent(r)); message += ","; }
+      message+= std::to_string(src.extent(src_type::Rank-1)); message += ") ";
+
+      Kokkos::Impl::throw_runtime_exception(message);
+    }
+#endif
     Kokkos::fence();
     return;
   }
@@ -1646,7 +1672,33 @@ void deep_copy
   typedef typename dst_type::value_type       dst_value_type ;
   typedef typename src_type::value_type       src_value_type ;
 
-  if(dst.data() == NULL && src.data() == NULL) {
+  if(dst.data() == NULL || src.data() == NULL) {
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
+    // do nothing
+#else
+    // throw if dimension mismatch
+    if ( (src.extent(0) != dst.extent(0)) ||
+         (src.extent(1) != dst.extent(1)) ||
+         (src.extent(2) != dst.extent(2)) ||
+         (src.extent(3) != dst.extent(3)) ||
+         (src.extent(4) != dst.extent(4)) ||
+         (src.extent(5) != dst.extent(5)) ||
+         (src.extent(6) != dst.extent(6)) ||
+         (src.extent(7) != dst.extent(7))
+       ) {
+      std::string message("Deprecation Error: Kokkos::deep_copy extents of views don't match: ");
+      message += dst.label(); message += "(";
+      for(int r = 0; r<dst_type::Rank-1; r++)
+        { message+= std::to_string(dst.extent(r)); message += ","; }
+      message+= std::to_string(dst.extent(dst_type::Rank-1)); message += ") ";
+      message += src.label(); message += "(";
+      for(int r = 0; r<src_type::Rank-1; r++)
+        { message+= std::to_string(src.extent(r)); message += ","; }
+      message+= std::to_string(src.extent(src_type::Rank-1)); message += ") ";
+
+      Kokkos::Impl::throw_runtime_exception(message);
+    }
+#endif
     exec_space.fence();
     return;
   }

@@ -22,6 +22,11 @@ else: pydir = ""
 # copy lammps.py to pydir if it exists
 # if pydir not specified, install in site-packages via distutils setup()
 
+if sys.platform == 'darwin':
+  lib_ext = ".dylib"
+else: 
+  lib_ext = ".so"
+
 if pydir:
   if not os.path.isdir(pydir):
     print( "ERROR: pydir %s does not exist" % pydir)
@@ -36,10 +41,7 @@ if pydir:
   str = "cp ../src/liblammps.so %s" % pydir
   print(str)
   try:
-     if sys.platform == 'darwin':
-        shutil.copyfile("../src/liblammps.dylib", os.path.join(pydir,"liblammps.dylib") )
-     else:
-        shutil.copyfile("../src/liblammps.so", os.path.join(pydir,"liblammps.so") )
+     shutil.copyfile("../src/liblammps" + lib_ext, os.path.join(pydir,"liblammps" + lib_ext) )
   except shutil.Error:
     pass # source and destination are identical
   sys.exit()
@@ -68,7 +70,7 @@ try:
         url = "http://lammps.sandia.gov",
         description = "LAMMPS molecular dynamics library",
         py_modules = ["lammps"],
-        data_files = [(get_python_lib(), ["../src/liblammps.so"])])
+        data_files = [(get_python_lib(), ["../src/liblammps" + lib_ext])])
 except:
   tryuser=True
   print ("Installation into global site-packages dir failed.\nTrying user site dir %s now." % site.USER_SITE)
@@ -84,7 +86,7 @@ if tryuser:
     url = "http://lammps.sandia.gov",
     description = "LAMMPS molecular dynamics library",
     py_modules = ["lammps"],
-    data_files = [(site.USER_SITE, ["../src/liblammps.so"])])
+    data_files = [(site.USER_SITE, ["../src/liblammps" + lib_ext])])
   except: 
     print("Installation into user site package dir failed.\nGo to ../python and install manually.")
 

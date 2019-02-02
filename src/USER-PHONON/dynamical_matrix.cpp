@@ -244,7 +244,8 @@ void DynamicalMatrix::calculateMatrix()
 {
     int local_idx; // local index
     int local_jdx; // second local index
-    int natoms = atom->natoms;
+    int nlocal = atom->nlocal;
+    bigint natoms = atom->natoms;
     int *mask = atom->mask;
     int *type = atom->type;
     double imass; // dynamical matrix element
@@ -262,13 +263,14 @@ void DynamicalMatrix::calculateMatrix()
 
     for (int i=1; i<=natoms; i++){
         local_idx = atom->map(i);
+        //if (screen) fprintf(screen, "local idx = %i on proc %i with %i local\n",local_idx, comm->me, nlocal);
         if (local_idx >= 0){
             for (int alpha=0; alpha<3; alpha++){
                 displace_atom(local_idx, alpha, 1);
                 energy_force(0);
                 for (int j=1; j<=natoms; j++){
                     local_jdx = atom->map(j);
-                    if (local_jdx >= 0){
+                    if (local_jdx >= 0  && local_idx < nlocal){
                         for (int beta=0; beta<3; beta++){
                             dynmat[(i-1)*3+alpha][(j-1)*3+beta] += -f[j-1][beta];
                         }
@@ -278,7 +280,7 @@ void DynamicalMatrix::calculateMatrix()
                 energy_force(0);
                 for (int j=1; j<=natoms; j++){
                     local_jdx = atom->map(j);
-                    if (local_jdx >= 0){
+                    if (local_jdx >= 0 && local_idx < nlocal){
                         for (int beta=0; beta<3; beta++){
                             if (atom->rmass_flag == 1)
                                 imass = sqrt(m[i] * m[j]);
@@ -365,31 +367,31 @@ void DynamicalMatrix::displace_atom(int local_idx, int direction, int magnitude)
 
 void DynamicalMatrix::energy_force(int resetflag)
 {
-    // check for reneighboring
-    // always communicate since atoms move
-    int nflag = neighbor->check_distance();
-
-    if (nflag == 0) {
-    //if (comm->me == 0 && screen) fprintf(screen,"b\n");
-        timer->stamp();
-        comm->forward_comm();
-        timer->stamp(Timer::COMM);
-    //if (comm->me == 0 && screen) fprintf(screen,"c\n");
-    } else {
-        if (triclinic) domain->x2lamda(atom->nlocal);
-        domain->pbc();
-        if (domain->box_change) {
-            domain->reset_box();
-            comm->setup();
-            if (neighbor->style) neighbor->setup_bins();
-        }
-        timer->stamp();
-        comm->borders();
-        if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
-        timer->stamp(Timer::COMM);
-        neighbor->build(1);
-        timer->stamp(Timer::NEIGH);
-    }
+    //// check for reneighboring
+    //// always communicate since atoms move
+    //int nflag = neighbor->check_distance();
+//
+    //if (nflag == 0) {
+    ////if (comm->me == 0 && screen) fprintf(screen,"b\n");
+    //    timer->stamp();
+    //    comm->forward_comm();
+    //    timer->stamp(Timer::COMM);
+    ////if (comm->me == 0 && screen) fprintf(screen,"c\n");
+    //} else {
+    //    if (triclinic) domain->x2lamda(atom->nlocal);
+    //    domain->pbc();
+    //    if (domain->box_change) {
+    //        domain->reset_box();
+    //        comm->setup();
+    //        if (neighbor->style) neighbor->setup_bins();
+    //    }
+    //    timer->stamp();
+    //    comm->borders();
+    //    if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+    //    timer->stamp(Timer::COMM);
+    //    neighbor->build(1);
+    //    timer->stamp(Timer::NEIGH);
+    //}
     force_clear();
 
     if (pair_compute_flag) {

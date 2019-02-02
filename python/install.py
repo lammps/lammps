@@ -36,7 +36,10 @@ if pydir:
   str = "cp ../src/liblammps.so %s" % pydir
   print(str)
   try:
-     shutil.copyfile("../src/liblammps.so", os.path.join(pydir,"liblammps.so") )
+     if sys.platform == 'darwin':
+        shutil.copyfile("../src/liblammps.dylib", os.path.join(pydir,"liblammps.dylib") )
+     else:
+        shutil.copyfile("../src/liblammps.so", os.path.join(pydir,"liblammps.so") )
   except shutil.Error:
     pass # source and destination are identical
   sys.exit()

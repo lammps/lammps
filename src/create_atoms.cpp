@@ -68,6 +68,7 @@ void CreateAtoms::command(int narg, char **arg)
   if (strcmp(arg[1],"box") == 0) {
     style = BOX;
     iarg = 2;
+    nregion = -1;
   } else if (strcmp(arg[1],"region") == 0) {
     style = REGION;
     if (narg < 3) error->all(FLERR,"Illegal create_atoms command");
@@ -708,6 +709,7 @@ void CreateAtoms::add_lattice()
   xmin = ymin = zmin = BIG;
   xmax = ymax = zmax = -BIG;
 
+  // convert to lattice coordinates and set bounding box
   domain->lattice->bbox(1,bboxlo[0],bboxlo[1],bboxlo[2],
                         xmin,ymin,zmin,xmax,ymax,zmax);
   domain->lattice->bbox(1,bboxhi[0],bboxlo[1],bboxlo[2],
@@ -724,6 +726,26 @@ void CreateAtoms::add_lattice()
                         xmin,ymin,zmin,xmax,ymax,zmax);
   domain->lattice->bbox(1,bboxhi[0],bboxhi[1],bboxhi[2],
                         xmin,ymin,zmin,xmax,ymax,zmax);
+
+  // narrow down min/max further by extent of the region, if possible
+
+  if ((style == REGION) && domain->regions[nregion]->bboxflag) {
+    double rxmin = domain->regions[nregion]->extent_xlo;
+    double rxmax = domain->regions[nregion]->extent_xhi;
+    double rymin = domain->regions[nregion]->extent_ylo;
+    double rymax = domain->regions[nregion]->extent_yhi;
+    double rzmin = domain->regions[nregion]->extent_zlo;
+    double rzmax = domain->regions[nregion]->extent_zhi;
+    domain->lattice->box2lattice(rxmin,rymin,rzmin);
+    domain->lattice->box2lattice(rxmax,rymax,rzmax);
+
+    if (rxmin > xmin) xmin = (rxmin > xmax) ? xmax : rxmin;
+    if (rxmax < xmax) xmax = (rxmax < xmin) ? xmin : rxmax;
+    if (rymin > ymin) ymin = (rymin > ymax) ? ymax : rymin;
+    if (rymax < ymax) ymax = (rymax < ymin) ? ymin : rymax;
+    if (rzmin > zmin) zmin = (rzmin > zmax) ? zmax : rzmin;
+    if (rzmax < zmax) zmax = (rzmax < zmin) ? zmin : rzmax;
+  }
 
   // ilo:ihi,jlo:jhi,klo:khi = loop bounds for lattice overlap of my subbox
   // overlap = any part of a unit cell (face,edge,pt) in common with my subbox
@@ -751,15 +773,32 @@ void CreateAtoms::add_lattice()
   // convert lattice coords to box coords
   // add atom or molecule (on each basis point) if it meets all criteria
 
-  double **basis = domain->lattice->basis;
-  double x[3],lamda[3];
-  double *coord;
+  const double * const * const basis = domain->lattice->basis;
+
+  // rough estimate of total time used for create atoms.
+  // one inner loop takes about 25ns on a typical desktop CPU core in 2019
+  double testimate = 2.5e-8/3600.0; // convert seconds to hours
+  testimate *= static_cast<double>(khi-klo+1);
+  testimate *= static_cast<double>(jhi-jlo+1);
+  testimate *= static_cast<double>(ihi-ilo+1);
+  testimate *= static_cast<double>(nbasis);
+  double maxestimate = 0.0;
+  MPI_Reduce(&testimate,&maxestimate,1,MPI_DOUBLE,MPI_MAX,0,world);
+
+  if ((comm->me == 0) && (maxestimate > 0.01)) {
+    if (screen) fprintf(screen,"WARNING: create_atoms will take "
+                        "approx. %.2f hours to complete\n",maxestimate);
+    if (logfile) fprintf(logfile,"WARNING: create_atoms will take "
+                         "approx. %.2f hours to complete\n",maxestimate);
+  }
 
   int i,j,k,m;
-  for (k = klo; k <= khi; k++)
-    for (j = jlo; j <= jhi; j++)
-      for (i = ilo; i <= ihi; i++)
+  for (k = klo; k <= khi; k++) {
+    for (j = jlo; j <= jhi; j++) {
+      for (i = ilo; i <= ihi; i++) {
         for (m = 0; m < nbasis; m++) {
+          double *coord;
+          double x[3],lamda[3];
 
           x[0] = i + basis[m][0];
           x[1] = j + basis[m][1];
@@ -794,7 +833,11 @@ void CreateAtoms::add_lattice()
           if (mode == ATOM) atom->avec->create_atom(basistype[m],x);
           else add_molecule(x);
         }
+      }
+    }
+  }
 }
+
 
 /* ----------------------------------------------------------------------
    add a randomly rotated molecule with its center at center

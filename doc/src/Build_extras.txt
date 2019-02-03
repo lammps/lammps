@@ -95,6 +95,7 @@ which GPU hardware to build for.
 
 GPU_ARCH settings for different GPU hardware is as follows:
 
+sm_12 or sm_13 for GT200 (supported by CUDA 3.2 until CUDA 6.5)
 sm_20 or sm_21 for Fermi (supported by CUDA 3.2 until CUDA 7.5)
 sm_30 or sm_35 or sm_37 for Kepler (supported since CUDA 5)
 sm_50 or sm_52 for Maxwell (supported since CUDA 6)
@@ -135,7 +136,7 @@ specified by the "-m" switch.  For your convenience, machine makefiles
 for "mpi" and "serial" are provided, which have the same settings as
 the corresponding machine makefiles in the main LAMMPS source
 folder. In addition you can alter 4 important settings in the
-Makefile.machine you start from via the corresponding -h, -a, -p, -e
+Makefile.machine you start from via the corresponding -c, -a, -p, -e
 switches (as in the examples above), and also save a copy of the new
 Makefile if desired:
 

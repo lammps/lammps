@@ -83,7 +83,7 @@ used in such a way that the displacement of a particular atom is the
 same, regardless of how many processors are being used.
 
 The {rotate} style rotates each atom in the group by the angle {theta}
-around a rotation axis {R} = (Rx,Ry,Rz) that goes thru a point {P} =
+around a rotation axis {R} = (Rx,Ry,Rz) that goes through a point {P} =
 (Px,Py,Pz).  The direction of rotation for the atoms around the
 rotation axis is consistent with the right-hand rule: if your
 right-hand thumb points along {R}, then your fingers wrap around the

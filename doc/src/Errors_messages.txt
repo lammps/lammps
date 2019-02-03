@@ -6917,7 +6917,7 @@ types. :dd
 
 {Invalid use of library file() function} :dt
 
-This function is called thru the library interface.  This
+This function is called through the library interface.  This
 error should not occur.  Contact the developers if it does. :dd
 
 {Invalid value in set command} :dt

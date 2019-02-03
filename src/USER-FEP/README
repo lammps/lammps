@@ -16,3 +16,7 @@ Pair style morse/soft was contributed by Stefan Paquay, s.paquay at tue.nl
 Applied Physics/Theory of Polymers and Soft Matter,
 Eindhoven University of Technology (TU/e), The Netherlands
 Contact him in case of problems with this pair style.
+
+Pair styles lj/class2/soft were contributed by Evangelos Voyiatzis at 
+Technical University of Darmstadt (e.voyiatzis at theo.chemie.tu-darmstadt.de)
+Contact him in case of problems with these pair styles.

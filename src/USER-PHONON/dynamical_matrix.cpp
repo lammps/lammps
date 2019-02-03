@@ -40,6 +40,7 @@ DynamicalMatrix::DynamicalMatrix(LAMMPS *lmp) : Pointers(lmp), fp(NULL)
 DynamicalMatrix::~DynamicalMatrix()
 {
     if (fp && me == 0) fclose(fp);
+    memory->destroy(groupmap);
     memory->destroy(dynmat);
     memory->destroy(final_dynmat);
     fp = NULL;
@@ -97,6 +98,13 @@ void DynamicalMatrix::setup()
 
     //modify->setup_pre_reverse(eflag,vflag);
     if (force->newton) comm->reverse_comm();
+
+    //if all then skip communication groupmap population
+    if (group->count(igroup) == atom->natoms)
+        for (int i=0; i<atom->natoms; i++)
+            groupmap[i] = i;
+    else
+        create_groupmap();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -126,6 +134,7 @@ void DynamicalMatrix::command(int narg, char **arg)
     if (igroup == -1) error->all(FLERR,"Could not find dynamical matrix group ID");
     groupbit = group->bitmask[igroup];
     dynlen = (group->count(igroup))*3;
+    memory->create(groupmap,atom->natoms,"total_group_map:totalgm");
     memory->create(dynmat,int(dynlen),int(dynlen),"dynamic_matrix:dynmat");
     update->setupflag = 1;
 
@@ -246,8 +255,8 @@ void DynamicalMatrix::calculateMatrix()
     int local_jdx; // second local index
     int nlocal = atom->nlocal;
     bigint natoms = atom->natoms;
-    int *mask = atom->mask;
     int *type = atom->type;
+    int *gm = groupmap;
     double imass; // dynamical matrix element
     double *m = atom->mass;
     double **f = atom->f;
@@ -263,16 +272,15 @@ void DynamicalMatrix::calculateMatrix()
 
     for (int i=1; i<=natoms; i++){
         local_idx = atom->map(i);
-        //if (screen) fprintf(screen, "local idx = %i on proc %i with %i local\n",local_idx, comm->me, nlocal);
         if (local_idx >= 0){
             for (int alpha=0; alpha<3; alpha++){
                 displace_atom(local_idx, alpha, 1);
                 energy_force(0);
                 for (int j=1; j<=natoms; j++){
                     local_jdx = atom->map(j);
-                    if (local_jdx >= 0  && local_idx < nlocal){
+                    if (local_jdx >= 0 && local_idx < nlocal && gm[i-1] >= 0 && gm[j-1] >= 0){
                         for (int beta=0; beta<3; beta++){
-                            dynmat[(i-1)*3+alpha][(j-1)*3+beta] += -f[j-1][beta];
+                            dynmat[(gm[i-1])*3+alpha][(gm[j-1])*3+beta] += -f[j-1][beta];
                         }
                     }
                 }
@@ -280,21 +288,15 @@ void DynamicalMatrix::calculateMatrix()
                 energy_force(0);
                 for (int j=1; j<=natoms; j++){
                     local_jdx = atom->map(j);
-                    if (local_jdx >= 0 && local_idx < nlocal){
+                    if (local_jdx >= 0 && local_idx < nlocal && gm[i-1] >= 0 && gm[j-1] >= 0){
                         for (int beta=0; beta<3; beta++){
                             if (atom->rmass_flag == 1)
-                                imass = sqrt(m[i] * m[j]);
+                                imass = sqrt(m[local_idx] * m[local_jdx]);
                             else
-                                imass = sqrt(m[type[i]] * m[type[j]]);
-                            //dynmat has length dynlen
-                            //dynlen = (group->count(igroup))*3;
-                            //currently dynmat is being called to natoms*3
-                            //Also with this implementation
-                            //I am not recovering the correct dynamical matrix
-                            //if I have more than 1 core
-                            dynmat[(i-1)*3+alpha][(j-1)*3+beta] -= -f[j-1][beta];
-                            dynmat[(i-1)*3+alpha][(j-1)*3+beta] /= (2 * del * imass);
-                            dynmat[(i-1)*3+alpha][(j-1)*3+beta] *= conversion;
+                                imass = sqrt(m[type[local_idx]] * m[type[local_jdx]]);
+                            dynmat[(gm[i-1])*3+alpha][(gm[j-1])*3+beta] -= -f[j-1][beta];
+                            dynmat[(gm[i-1])*3+alpha][(gm[j-1])*3+beta] /= (2 * del * imass);
+                            dynmat[(gm[i-1])*3+alpha][(gm[j-1])*3+beta] *= conversion;
                         }
                     }
                 }
@@ -367,31 +369,6 @@ void DynamicalMatrix::displace_atom(int local_idx, int direction, int magnitude)
 
 void DynamicalMatrix::energy_force(int resetflag)
 {
-    //// check for reneighboring
-    //// always communicate since atoms move
-    //int nflag = neighbor->check_distance();
-//
-    //if (nflag == 0) {
-    ////if (comm->me == 0 && screen) fprintf(screen,"b\n");
-    //    timer->stamp();
-    //    comm->forward_comm();
-    //    timer->stamp(Timer::COMM);
-    ////if (comm->me == 0 && screen) fprintf(screen,"c\n");
-    //} else {
-    //    if (triclinic) domain->x2lamda(atom->nlocal);
-    //    domain->pbc();
-    //    if (domain->box_change) {
-    //        domain->reset_box();
-    //        comm->setup();
-    //        if (neighbor->style) neighbor->setup_bins();
-    //    }
-    //    timer->stamp();
-    //    comm->borders();
-    //    if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
-    //    timer->stamp(Timer::COMM);
-    //    neighbor->build(1);
-    //    timer->stamp(Timer::NEIGH);
-    //}
     force_clear();
 
     if (pair_compute_flag) {
@@ -488,4 +465,69 @@ void DynamicalMatrix::convert_units(const char *style)
 
     } else error->all(FLERR,"Units Type Conversion Not Found");
 
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DynamicalMatrix::create_groupmap()
+{
+    //Create a group map which maps atom order onto group
+
+    int local_idx; // local index
+    int gid = 0; //group index
+    int nlocal = atom->nlocal;
+    int *mask = atom->mask;
+    bigint natoms = atom->natoms;
+    int *recv = new int[comm->nprocs];
+    int *displs = new int[comm->nprocs];
+    int *temp_groupmap = new int[natoms];
+
+    //find number of local atoms in the group (final_gid)
+    for (int i=1; i<=natoms; i++){
+        local_idx = atom->map(i);
+        if (mask[local_idx] & groupbit && local_idx < nlocal)
+            gid += 1; // gid at the end of loop is final_Gid
+    }
+    //create an array of length final_gid
+    int *sub_groupmap = new int[gid];
+
+    gid = 0;
+    //create a map between global atom id and group atom id for each proc
+    for (int i=1; i<=natoms; i++){
+        local_idx = atom->map(i);
+        if (mask[local_idx] & groupbit && local_idx < nlocal){
+            sub_groupmap[gid] = i;
+            gid += 1;
+        }
+    }
+
+    //populate arrays for Allgatherv
+    for (int i=0; i<comm->nprocs; i++){
+        recv[i] = 0;
+    }
+    recv[comm->me] = gid;
+    MPI_Allreduce(recv,displs,4,MPI_INT,MPI_SUM,world);
+    for (int i=0; i<comm->nprocs; i++){
+        recv[i]=displs[i];
+        if (i>0) displs[i] = displs[i-1]+recv[i-1];
+        else displs[i] = 0;
+    }
+
+    //combine subgroup maps into total temporary groupmap
+    MPI_Allgatherv(sub_groupmap,gid,MPI_INT,temp_groupmap,recv,displs,MPI_INT,world);
+    std::sort(temp_groupmap,temp_groupmap+group->count(igroup));
+
+    //populate member groupmap based on temp groupmap
+    for (int i=0; i<natoms; i++){
+        if (i==temp_groupmap[i]-1)
+            groupmap[i] = temp_groupmap[i]-1;
+        else
+            groupmap[i] = -1;
+    }
+
+    //free that memory!
+    delete[] recv;
+    delete[] displs;
+    delete[] sub_groupmap;
+    delete[] temp_groupmap;
 }

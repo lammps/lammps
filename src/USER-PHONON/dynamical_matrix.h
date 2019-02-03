@@ -42,6 +42,7 @@ namespace LAMMPS_NS {
     private:
         void options(int, char **);
         void calculateMatrix();
+        void create_groupmap();
         void writeMatrix();
         void convert_units(const char *style);
         void displace_atom(int local_idx, int direction, int magnitude);
@@ -55,6 +56,7 @@ namespace LAMMPS_NS {
         int scaleflag;
         int me;
         bigint dynlen;
+        int *groupmap;
         double **dynmat;
         double **final_dynmat;
 

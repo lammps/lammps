@@ -401,9 +401,9 @@ double PairPython::init_one(int, int)
 
 /* ---------------------------------------------------------------------- */
 
-double PairPython::single(int i, int j, int itype, int jtype, double rsq,
-                         double factor_coul, double factor_lj,
-                         double &fforce)
+double PairPython::single(int /* i */, int /* j */, int itype, int jtype,
+                         double rsq, double /* factor_coul */,
+                         double factor_lj, double &fforce)
 {
   // with hybrid/overlay we might get called for skipped types
   if (skip_types[itype] || skip_types[jtype]) {

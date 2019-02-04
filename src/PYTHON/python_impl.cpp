@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include <Python.h>
-#include "python.h"
+#include "lmppython.h"
 #include "force.h"
 #include "input.h"
 #include "variable.h"

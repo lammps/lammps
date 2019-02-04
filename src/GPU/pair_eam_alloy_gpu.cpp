@@ -29,6 +29,8 @@
 #include "neigh_request.h"
 #include "gpu_extra.h"
 #include "domain.h"
+#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -374,10 +376,10 @@ void PairEAMAlloyGPU::read_file(char *filename)
 
   int n;
   if (me == 0) {
-    fgets(line,MAXLINE,fptr);
-    fgets(line,MAXLINE,fptr);
-    fgets(line,MAXLINE,fptr);
-    fgets(line,MAXLINE,fptr);
+    utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
+    utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
+    utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
+    utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
     n = strlen(line) + 1;
   }
   MPI_Bcast(&n,1,MPI_INT,0,world);
@@ -402,7 +404,7 @@ void PairEAMAlloyGPU::read_file(char *filename)
   delete [] words;
 
   if (me == 0) {
-    fgets(line,MAXLINE,fptr);
+    utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
     sscanf(line,"%d %lg %d %lg %lg",
            &file->nrho,&file->drho,&file->nr,&file->dr,&file->cut);
   }
@@ -422,7 +424,7 @@ void PairEAMAlloyGPU::read_file(char *filename)
   int i,j,tmp;
   for (i = 0; i < file->nelements; i++) {
     if (me == 0) {
-      fgets(line,MAXLINE,fptr);
+      utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
       sscanf(line,"%d %lg",&tmp,&file->mass[i]);
     }
     MPI_Bcast(&file->mass[i],1,MPI_DOUBLE,0,world);

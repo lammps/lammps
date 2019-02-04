@@ -97,7 +97,7 @@ void PairSpinExchange::settings(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   set coeffs for one or more type spin pairs (only one for now)
+   set coeffs for one or more type spin pairs
 ------------------------------------------------------------------------- */
 
 void PairSpinExchange::coeff(int narg, char **arg)

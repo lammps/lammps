@@ -142,7 +142,6 @@ void PairSpinMagelec::coeff(int narg, char **arg)
   }
   if (count == 0)
     error->all(FLERR,"Incorrect args in pair_style command");
-
 }
 
 /* ----------------------------------------------------------------------
@@ -287,7 +286,7 @@ void PairSpinMagelec::compute(int eflag, int vflag)
       // compute me interaction
 
       if (rsq <= local_cut2) {
-        compute_magelec(i,j,rsq,eij,fmi,spj);
+        compute_magelec(i,j,eij,fmi,spj);
         if (lattice_flag) {
           compute_magelec_mech(i,j,fi,spi,spj);
         }
@@ -332,55 +331,63 @@ void PairSpinMagelec::compute_single_pair(int ii, double fmi[3])
   double delx,dely,delz;
   double spj[3];
 
-  int i,j,jnum,itype,jtype;
+  int i,j,inum,jnum,itype,jtype;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   double rsq, inorm;
 
+  inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  i = ilist[ii];
-  itype = type[i];
+  // compute pair if  
 
-  xi[0] = x[i][0];
-  xi[1] = x[i][1];
-  xi[2] = x[i][2];
+  if (ii < inum) {
 
-  jlist = firstneigh[i];
-  jnum = numneigh[i];
-
-  for (int jj = 0; jj < jnum; jj++) {
-
-    j = jlist[jj];
-    j &= NEIGHMASK;
-    jtype = type[j];
-    local_cut2 = cut_spin_magelec[itype][jtype]*cut_spin_magelec[itype][jtype];
-
-    spj[0] = sp[j][0];
-    spj[1] = sp[j][1];
-    spj[2] = sp[j][2];
-
-    delx = xi[0] - x[j][0];
-    dely = xi[1] - x[j][1];
-    delz = xi[2] - x[j][2];
-    rsq = delx*delx + dely*dely + delz*delz;
-    inorm = 1.0/sqrt(rsq);
-    eij[0] = -inorm*delx;
-    eij[1] = -inorm*dely;
-    eij[2] = -inorm*delz;
-
-    if (rsq <= local_cut2) {
-      compute_magelec(i,j,rsq,eij,fmi,spj);
+    i = ilist[ii];
+    itype = type[i];
+    
+    xi[0] = xi[1] = xi[2] = 0.0;
+    xi[0] = x[i][0];
+    xi[1] = x[i][1];
+    xi[2] = x[i][2];
+    
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+    
+    for (int jj = 0; jj < jnum; jj++) {
+    
+      j = jlist[jj];
+      j &= NEIGHMASK;
+      jtype = type[j];
+      local_cut2 = cut_spin_magelec[itype][jtype]*cut_spin_magelec[itype][jtype];
+    
+      spj[0] = sp[j][0];
+      spj[1] = sp[j][1];
+      spj[2] = sp[j][2];
+    
+      delx = xi[0] - x[j][0];
+      dely = xi[1] - x[j][1];
+      delz = xi[2] - x[j][2];
+      rsq = delx*delx + dely*dely + delz*delz;
+      inorm = 1.0/sqrt(rsq);
+      eij[0] = -inorm*delx;
+      eij[1] = -inorm*dely;
+      eij[2] = -inorm*delz;
+    
+      if (rsq <= local_cut2) {
+        compute_magelec(i,j,eij,fmi,spj);
+      }
     }
-  }
+  
+    }
 
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairSpinMagelec::compute_magelec(int i, int j, double /*rsq*/, double eij[3], double fmi[3], double spj[3])
+void PairSpinMagelec::compute_magelec(int i, int j, double eij[3], double fmi[3], double spj[3])
 {
   int *type = atom->type;
   int itype, jtype;

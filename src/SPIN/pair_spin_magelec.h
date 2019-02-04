@@ -37,7 +37,7 @@ class PairSpinMagelec : public PairSpin {
   void compute(int, int);
   void compute_single_pair(int, double *);
 
-  void compute_magelec(int, int, double, double *, double *, double *);
+  void compute_magelec(int, int, double *, double *, double *);
   void compute_magelec_mech(int, int, double *, double *, double *);
 
   void write_restart(FILE *);

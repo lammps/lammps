@@ -13,8 +13,8 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(neb,FixNEB)
-FixStyle(neb_spin,FixNEB_spin)
+//FixStyle(neb,FixNEB)
+FixStyle(neb/spin,FixNEB_spin)
 
 #else
 
@@ -36,6 +36,8 @@ class FixNEB_spin : public Fix {
   void init();
   void min_setup(int);
   void min_post_force(int);
+  void advance_spins(double);
+  double evaluate_dt();
 
  private:
   int me,nprocs,nprocs_universe;
@@ -79,6 +81,7 @@ class FixNEB_spin : public Fix {
 
   int *counts,*displacements;   // used for MPI_Gather
 
+  double geodesic_distance(double *, double *);
   void inter_replica_comm();
   void reallocate();
 };

@@ -13,7 +13,8 @@
 
 #ifdef COMMAND_CLASS
 
-CommandStyle(neb_spin,NEB_SPIN)
+CommandStyle(neb/spin,NEB_spin)
+//CommandStyle(neb,NEB_spin)
 
 #else
 
@@ -56,7 +57,11 @@ class NEB_spin : protected Pointers {
   double *freplica;            // force on an image
   double *fmaxatomInRepl;      // force on an image
 
+  //double geodesic_distance2(double *, double *);
+  //double evaluate_dt();
+  //void advance_spins(double); 
   void readfile(char *, int);
+  void initial_rotation(double *, double *, double);
   void open(char *);
   void print_status();
 };

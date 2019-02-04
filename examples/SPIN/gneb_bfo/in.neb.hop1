@@ -1,4 +1,5 @@
 # 2d NEB surface simulation, hop from surface to become adatom
+print "Test 1"
 
 dimension	2
 boundary	p s p

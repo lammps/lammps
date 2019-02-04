@@ -13,7 +13,7 @@
 
 // lmptype.h must be first b/c this file uses MAXBIGINT and includes mpi.h
 // due to OpenMPI bug which sets INT64_MAX via its mpi.h
-//   before lmptype.h can set flags to insure it is done correctly
+// before lmptype.h can set flags to insure it is done correctly
 
 #include "lmptype.h"
 #include <mpi.h>
@@ -21,7 +21,10 @@
 #include <cstdlib>
 #include <cstring>
 //#include "neb.h"
+// test spin
 #include "neb_spin.h"
+#include "compute.h"
+
 #include "universe.h"
 #include "atom.h"
 #include "update.h"
@@ -30,7 +33,10 @@
 #include "min.h"
 #include "modify.h"
 #include "fix.h"
-#include "fix_neb.h"
+//#include "fix_neb.h"
+// test spin
+#include "fix_neb_spin.h"
+
 #include "output.h"
 #include "thermo.h"
 #include "finish.h"
@@ -46,7 +52,7 @@ using namespace MathConst;
 #define MAXLINE 256
 #define CHUNK 1024
 //#define ATTRIBUTE_PERLINE 4
-// 8 attributes: tag number, coords, spin norm, spin dir.
+// 8 attributes: tag, spin norm, position (3), spin direction (3)
 #define ATTRIBUTE_PERLINE 8
 
 /* ---------------------------------------------------------------------- */
@@ -61,7 +67,8 @@ NEB_spin::NEB_spin(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in,
          int n2steps_in, int nevery_in, double *buf_init, double *buf_final)
   : Pointers(lmp)
 {
-  double delx,dely,delz;
+  //double delx,dely,delz;
+  double delspx,delspy,delspz;
 
   etol = etol_in;
   ftol = ftol_in;
@@ -82,19 +89,40 @@ NEB_spin::NEB_spin(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in,
   double fraction = ireplica/(nreplica-1.0);
 
   double **x = atom->x;
+  // spin quantitites
   double **sp = atom->sp;
   int nlocal = atom->nlocal;
 
-  // modif interp.
   int ii = 0;
+  double spinit[3],spfinal[3];
   for (int i = 0; i < nlocal; i++) {
-    delx = buf_final[ii] - buf_init[ii];
-    dely = buf_final[ii+1] - buf_init[ii+1];
-    delz = buf_final[ii+2] - buf_init[ii+2];
-    domain->minimum_image(delx,dely,delz);
-    x[i][0] = buf_init[ii] + fraction*delx;
-    x[i][1] = buf_init[ii+1] + fraction*dely;
-    x[i][2] = buf_init[ii+2] + fraction*delz;
+
+    spinit[0] = buf_init[ii];
+    spinit[1] = buf_init[ii+1];
+    spinit[2] = buf_init[ii+2];
+    spfinal[0] = buf_final[ii];
+    spfinal[1] = buf_final[ii+1];
+    spfinal[2] = buf_final[ii+2];
+
+    initial_rotation(spinit,spfinal,fraction);
+
+    sp[i][0] = spfinal[0];
+    sp[i][1] = spfinal[1];
+    sp[i][2] = spfinal[2];
+
+    //delx = buf_final[ii] - buf_init[ii];
+    //dely = buf_final[ii+1] - buf_init[ii+1];
+    //delz = buf_final[ii+2] - buf_init[ii+2];
+    
+    // adjust distance if pbc
+    // not implemented yet
+    //domain->minimum_image(delx,dely,delz);
+   
+    // need to define a procedure for circular initialization
+
+    //x[i][0] = buf_init[ii] + fraction*delx;
+    //x[i][1] = buf_init[ii+1] + fraction*dely;
+    //x[i][2] = buf_init[ii+2] + fraction*delz;
     ii += 3;
   }
 }
@@ -114,6 +142,15 @@ NEB_spin::~NEB_spin()
 
 void NEB_spin::command(int narg, char **arg)
 {
+
+  printf("test 1 \n");
+
+  // test 1
+  double **sp1 = atom->sp;
+  printf("test 1 atom: i=%d,%g,%g,%g \n",1,sp1[1][0],sp1[1][1],sp1[1][2]);
+  //error->all(FLERR,"end neb_spin test");
+
+
   if (domain->box_exist == 0)
     error->all(FLERR,"NEB_spin command before simulation box is defined");
 
@@ -141,6 +178,13 @@ void NEB_spin::command(int narg, char **arg)
   uworld = universe->uworld;
   MPI_Comm_rank(world,&me);
 
+  // check metal units and spin atom/style 
+
+  if (!atom->sp_flag)
+    error->all(FLERR,"neb/spin requires atom/spin style");
+  if (strcmp(update->unit_style,"metal") != 0)
+    error->all(FLERR,"neb/spin simulation requires metal unit style");
+
   // error checks
 
   if (nreplica == 1) error->all(FLERR,"Cannot use NEB_spin with a single replica");
@@ -149,6 +193,7 @@ void NEB_spin::command(int narg, char **arg)
 
   // process file-style setting to setup initial configs for all replicas
 
+  // check what options are available
   if (strcmp(arg[5],"final") == 0) {
     if (narg != 7 && narg !=8) error->universe_all(FLERR,"Illegal NEB_spin command");
     infile = arg[6];
@@ -163,6 +208,13 @@ void NEB_spin::command(int narg, char **arg)
 
   verbose=false;
   if (strcmp(arg[narg-1],"verbose") == 0) verbose=true;
+  
+
+  // test 1
+  double **sp = atom->sp;
+  printf("test 2 atom: i=%d,%g,%g,%g \n",1,sp[1][0],sp[1][1],sp[1][2]);
+  error->all(FLERR,"end neb_spin test");
+
   // run the NEB_spin calculation
 
   run();
@@ -181,17 +233,13 @@ void NEB_spin::run()
   else color = 1;
   MPI_Comm_split(uworld,color,0,&roots);
 
+  // search for neb_spin fix, allocate it
   int ineb;
   for (ineb = 0; ineb < modify->nfix; ineb++)
-    if (strcmp(modify->fix[ineb]->style,"neb_spin") == 0) break;
-  if (ineb == modify->nfix) error->all(FLERR,"NEB_spin requires use of fix neb_spin");
-  //int ineb;
-  //for (ineb = 0; ineb < modify->nfix; ineb++)
-  //  if (strcmp(modify->fix[ineb]->style,"neb") == 0) break;
-  //if (ineb == modify->nfix) error->all(FLERR,"NEB_spin requires use of fix neb");
+    if (strcmp(modify->fix[ineb]->style,"neb/spin") == 0) break;
+  if (ineb == modify->nfix) error->all(FLERR,"NEB_spin requires use of fix neb/spin");
 
-  //fneb = (FixNEB_spin *) modify->fix[ineb];
-  fneb_spin = (FixNEB_spin *) modify->fix[ineb];
+  fneb = (FixNEB_spin *) modify->fix[ineb];
   if (verbose) numall =7;
   else  numall = 4;
   memory->create(all,nreplica,numall,"neb:all");
@@ -206,8 +254,10 @@ void NEB_spin::run()
 
   lmp->init();
 
-  if (update->minimize->searchflag)
-    error->all(FLERR,"NEB_spin requires damped dynamics minimizer");
+  // put flag to check gilbert damping procedure is set
+  
+  //if (update->minimize->searchflag)
+  //  error->all(FLERR,"NEB_spin requires damped dynamics minimizer");
 
   // setup regular NEB_spin minimization
   FILE *uscreen = universe->uscreen;
@@ -264,8 +314,19 @@ void NEB_spin::run()
   timer->init();
   timer->barrier_start();
 
+  double dts;
   while (update->minimize->niter < n1steps) {
-    update->minimize->run(nevery);
+    //dts = evaluate_dt();
+    //advance_spins(dts);
+    dts = fneb->evaluate_dt();
+    fneb->advance_spins(dts);
+    
+    // no minimizer for spins
+    //update->minimize->run(nevery);
+    //
+    // evaluate dts
+    // loop on spins, damped advance
+    //
     print_status();
     if (update->minimize->stop_condition) break;
   }
@@ -309,8 +370,7 @@ void NEB_spin::run()
     error->all(FLERR,"Too many timesteps");
 
   update->minimize->init();
-  //fneb->rclimber = top;
-  fneb_spin->rclimber = top;
+  fneb->rclimber = top;
   update->minimize->setup();
 
   if (me_universe == 0) {
@@ -356,7 +416,11 @@ void NEB_spin::run()
   timer->barrier_start();
 
   while (update->minimize->niter < n2steps) {
-    update->minimize->run(nevery);
+    //dts = evaluate_dt();
+    //advance_spins(dts);
+    dts = fneb->evaluate_dt();
+    fneb->advance_spins(dts);
+    //update->minimize->run(nevery);
     print_status();
     if (update->minimize->stop_condition) break;
   }
@@ -372,6 +436,174 @@ void NEB_spin::run()
   update->firststep = update->laststep = 0;
   update->beginstep = update->endstep = 0;
 }
+
+/* ----------------------------------------------------------------------
+   geodesic distance calculation (Vincenty's formula)
+------------------------------------------------------------------------- */
+
+//double NEB_spin::geodesic_distance2(double spi[3], double spj[3])
+//{
+//  double dist;
+//  double crossx,crossy,crossz;
+//  double dotx,doty,dotz;
+//  double crosslen,dots;
+//
+//  crossx = spi[1]*spj[2]-spi[2]*spj[1];
+//  crossy = spi[2]*spj[0]-spi[0]*spj[2];
+//  crossz = spi[0]*spj[1]-spi[1]*spj[0];
+//  crosslen = sqrt(crossx*crossx + crossy*crossy + crossz*crossz);
+//  dotx = spi[0]*spj[0];
+//  doty = spi[1]*spj[1];
+//  dotz = spi[2]*spj[2];
+//  dots = dotx+doty+dotz;
+//
+//  dist = atan2(crosslen,dots);
+//
+//  return dist;
+//}
+
+/* ----------------------------------------------------------------------
+   evaluate max timestep
+---------------------------------------------------------------------- */
+
+//double NEB_spin::evaluate_dt()
+//{
+//  double dtmax;
+//  double fmsq;
+//  double fmaxsqone,fmaxsqloc,fmaxsqall;
+//  int nlocal = atom->nlocal;
+//  int *mask = atom->mask;
+//  double **fm = atom->fm;
+//
+//  // finding max fm on this proc. 
+//  
+//  fmsq = fmaxsqone = fmaxsqloc = fmaxsqall = 0.0;
+//  for (int i = 0; i < nlocal; i++)
+//    if (mask[i] & groupbit) {
+//      fmsq = fm[i][0]*fm[i][0]+fm[i][1]*fm[i][1]+fm[i][2]*fm[i][2];
+//      fmaxsqone = MAX(fmaxsqone,fmsq);
+//    }
+//
+//  // finding max fm on this replica
+// 
+//  fmaxsqloc = fmaxsqone; 
+//  MPI_Allreduce(&fmaxsqone,&fmaxsqloc,1,MPI_DOUBLE,MPI_MAX,world); 
+//
+//  // finding max fm over all replicas, if necessary
+//  // this communicator would be invalid for multiprocess replicas
+//
+//  if (update->multireplica == 1) {
+//    fmaxsqall = fmaxsqloc;
+//    MPI_Allreduce(&fmaxsqloc,&fmaxsqall,1,MPI_DOUBLE,MPI_MAX,universe->uworld);
+//  }
+//   
+//  if (fmaxsqall < fmaxsqloc)
+//    error->all(FLERR,"Incorrect fmaxall calc.");
+//
+//  // define max timestep
+//  // dividing by 10 the inverse of max frequency
+//
+//  dtmax = MY_2PI/(10.0*sqrt(fmaxsqall));
+//
+//  return dtmax;
+//}
+
+/* ----------------------------------------------------------------------
+   geometric damped advance os spins
+---------------------------------------------------------------------- */
+
+//void NEB_spin::advance_spins(double dts)
+//{
+//  //int j=0;
+//  //int *sametag = atom->sametag;
+//  int nlocal = atom->nlocal;
+//  int *mask = atom->mask;
+//  double **sp = atom->sp;
+//  double **fm = atom->fm;
+//  double tdampx,tdampy,tdampz;
+//  double msq,scale,fm2,energy,dts2;
+//  double alpha;
+//  double spi[3],fmi[3];
+//  double cp[3],g[3];
+//
+//  //cp[0] = cp[1] = cp[2] = 0.0;
+//  //g[0] = g[1] = g[2] = 0.0;
+//  dts2 = dts*dts;		
+//
+//  // fictitious Gilbert damping of 1
+//  alpha = 1.0;
+//
+//  // loop on all spins on proc.
+//
+//  if (ireplica != nreplica-1 && ireplica != 0)
+//    for (int i = 0; i < nlocal; i++)
+//      if (mask[i] & groupbit) {
+//
+//	spi[0] = sp[i][0];
+//	spi[1] = sp[i][1];
+//	spi[2] = sp[i][2];
+//
+//	fmi[0] = fm[i][0];
+//	fmi[1] = fm[i][1];
+//	fmi[2] = fm[i][2];
+//
+//        // calc. damping torque
+//      
+//        tdampx = -alpha*(fmi[1]*spi[2] - fmi[2]*spi[1]);
+//        tdampy = -alpha*(fmi[2]*spi[0] - fmi[0]*spi[2]);
+//        tdampz = -alpha*(fmi[0]*spi[1] - fmi[1]*spi[0]);
+//      
+//        // apply advance algorithm (geometric, norm preserving)
+//        
+//        fm2 = (tdampx*tdampx+tdampy*tdampy+tdampz*tdampz);
+//        energy = (sp[i][0]*tdampx)+(sp[i][1]*tdampy)+(sp[i][2]*tdampz);
+//        
+//        cp[0] = tdampy*sp[i][2]-tdampz*sp[i][1];
+//        cp[1] = tdampz*sp[i][0]-tdampx*sp[i][2];
+//        cp[2] = tdampx*sp[i][1]-tdampy*sp[i][0];
+//      
+//        g[0] = sp[i][0]+cp[0]*dts;
+//        g[1] = sp[i][1]+cp[1]*dts;
+//        g[2] = sp[i][2]+cp[2]*dts;
+//      			
+//        g[0] += (fm[i][0]*energy-0.5*sp[i][0]*fm2)*0.5*dts2;
+//        g[1] += (fm[i][1]*energy-0.5*sp[i][1]*fm2)*0.5*dts2;
+//        g[2] += (fm[i][2]*energy-0.5*sp[i][2]*fm2)*0.5*dts2;
+//      			
+//        g[0] /= (1+0.25*fm2*dts2);
+//        g[1] /= (1+0.25*fm2*dts2);
+//        g[2] /= (1+0.25*fm2*dts2);
+//      
+//        sp[i][0] = g[0];
+//        sp[i][1] = g[1];
+//        sp[i][2] = g[2];			
+//      
+//        // renormalization (check if necessary)
+//      
+//        msq = g[0]*g[0] + g[1]*g[1] + g[2]*g[2];
+//        scale = 1.0/sqrt(msq);
+//        sp[i][0] *= scale;
+//        sp[i][1] *= scale;
+//        sp[i][2] *= scale;
+//      
+//        // comm. sp[i] to atoms with same tag (for serial algo)
+//      
+//        // no need for simplecticity
+//        //if (sector_flag == 0) {
+//        //  if (sametag[i] >= 0) {
+//        //    j = sametag[i];
+//        //    while (j >= 0) {
+//        //      sp[j][0] = sp[i][0];
+//        //      sp[j][1] = sp[i][1];
+//        //      sp[j][2] = sp[i][2];
+//        //      j = sametag[j];
+//        //    }
+//        //  }
+//        //}
+//        //
+//
+//      }
+//}
 
 /* ----------------------------------------------------------------------
    read initial config atom coords from file
@@ -395,8 +627,9 @@ void NEB_spin::readfile(char *file, int flag)
   char *eof,*start,*next,*buf;
   char line[MAXLINE];
   double xx,yy,zz,delx,dely,delz;
-  // creating new temp. sp
-  double spx,spy,spz,delspx,delspy,delspz;
+  // spin quantities
+  double musp,spx,spy,spz;
+    //,delx,dely,delz;
 
   if (me_universe == 0 && screen)
     fprintf(screen,"Reading NEB_spin coordinate file(s) ...\n");
@@ -440,9 +673,16 @@ void NEB_spin::readfile(char *file, int flag)
   double fraction = ireplica/(nreplica-1.0);
 
   double **x = atom->x;
-  // spin table
+  // spin quantities
   double **sp = atom->sp;
+  double spinit[3],spfinal[3];
   int nlocal = atom->nlocal;
+
+  // test 1.2
+  //double **sp = atom->sp;
+  printf("test 1.2 atom: i=%d,%g,%g,%g \n",1,sp[1][0],sp[1][1],sp[1][2]);
+  //error->all(FLERR,"end neb_spin test");
+
 
   // loop over chunks of lines read from file
   // two versions of read_lines_from_file() for world vs universe bcast
@@ -493,22 +733,59 @@ void NEB_spin::readfile(char *file, int flag)
       m = atom->map(tag);
       if (m >= 0 && m < nlocal) {
         ncount++;
-        xx = atof(values[1]);
-        yy = atof(values[2]);
-        zz = atof(values[3]);
+	musp = atof(values[1]);
+	xx = atof(values[2]);
+        yy = atof(values[3]);
+        zz = atof(values[4]);
+        spx = atof(values[5]);
+        spy = atof(values[6]);
+        spz = atof(values[7]);
+	//xx = atof(values[1]);
+        //yy = atof(values[2]);
+        //zz = atof(values[3]);
 
         if (flag == 0) {
-          delx = xx - x[m][0];
-          dely = yy - x[m][1];
-          delz = zz - x[m][2];
-          domain->minimum_image(delx,dely,delz);
-          x[m][0] += fraction*delx;
-          x[m][1] += fraction*dely;
-          x[m][2] += fraction*delz;
+          
+	  // here, function interp. spin states
+
+	  //spinit[0] = x[m][0];
+	  //spinit[1] = x[m][1];
+	  //spinit[2] = x[m][2];
+	  spinit[0] = sp[m][0];
+	  spinit[1] = sp[m][1];
+	  spinit[2] = sp[m][2];
+	  spfinal[0] = spx;
+	  spfinal[1] = spy;
+	  spfinal[2] = spz;
+          //domain->minimum_image(delx,dely,delz);
+
+	  // test 
+	  printf("spinit: %g %g %g \n",spinit[0],spinit[1],spinit[2]);
+	  printf("spfinal bef: %g %g %g \n",spfinal[0],spfinal[1],spfinal[2]);
+
+	  initial_rotation(spinit,spfinal,fraction);
+	  
+	  // test 
+	  printf("spfinal aft: %g %g %g \n",spfinal[0],spfinal[1],spfinal[2]);
+
+	  sp[m][0] = spfinal[0];
+	  sp[m][1] = spfinal[1];
+	  sp[m][2] = spfinal[2];
+	  sp[m][3] = musp;
+	  //delx = xx - x[m][0];
+          //dely = yy - x[m][1];
+          //delz = zz - x[m][2];
+          //x[m][0] += fraction*delx;
+          //x[m][1] += fraction*dely;
+          //x[m][2] += fraction*delz;
         } else {
-          x[m][0] = xx;
+          sp[m][3] = musp;
+	  x[m][0] = xx;
           x[m][1] = yy;
           x[m][2] = zz;
+	  sp[m][0] = spx;
+	  sp[m][1] = spy; 
+	  sp[m][2] = spz; 
         }
       }
 
@@ -517,6 +794,12 @@ void NEB_spin::readfile(char *file, int flag)
 
     nread += nchunk;
   }
+
+  // test 1.3
+  //double **sp = atom->sp;
+  printf("test 1.3 atom: i=%d,%g,%g,%g \n",1,sp[1][0],sp[1][1],sp[1][2]);
+  //error->all(FLERR,"end neb_spin test");
+
 
   // check that all atom IDs in file were found by a proc
 
@@ -548,6 +831,75 @@ void NEB_spin::readfile(char *file, int flag)
       else fclose(fp);
     }
   }
+}
+
+/* ----------------------------------------------------------------------
+   initial configuration of spin sploc using Rodrigues' formula
+   interpolates between initial (spi) and final (stored in sploc) 
+------------------------------------------------------------------------- */
+
+void NEB_spin::initial_rotation(double *spi, double *sploc, double fraction)
+{
+  
+  
+  // implementing initial rotation using atan2
+  
+  //atan2(crosslen,dots);
+  
+  
+  
+  double theta,spdot;
+  double inormdot,ispinorm;
+  double kix,kiy,kiz;
+  double kinorm, ikinorm;
+  double crossx,crossy,crossz;
+
+  //printf("inside rot, spi %g, spf %g \n",spi[0],sploc[0]);
+
+  spdot = spi[0]*sploc[0]+spi[1]*sploc[1]+spi[2]*sploc[2];
+  theta = fraction*acos(spdot);
+ 
+  printf("inside rot, theta %g \n",theta);
+
+  kix = spi[1]*sploc[2]-spi[2]*sploc[1];
+  kiy = spi[2]*sploc[0]-spi[0]*sploc[2];
+  kiz = spi[0]*sploc[1]-spi[1]*sploc[0];
+  
+  //printf("inside rot1.1, ki %g %g %g \n",kix,kiy,kiz);
+
+  inormdot = 1.0/sqrt(spdot);
+  kinorm = kix*kix+kiy*kiy+kiz*kiz;
+  if (kinorm == 0.0) {
+    kix = 0.0; 
+    kiy = 0.0; 
+    kiz = 0.0;
+  } else {
+    ikinorm = 1.0/kinorm; 
+    kix *= ikinorm;
+    kiy *= ikinorm;
+    kiz *= ikinorm;
+  }
+ 
+  //printf("inside rot1.2, kin %g %g %g \n",kix,kiy,kiz);
+
+  crossx = kiy*spi[2]-kiz*spi[1];
+  crossy = kiz*spi[0]-kix*spi[2];
+  crossz = kix*spi[1]-kiy*spi[0];
+  
+  //printf("inside rot1.3, cross %g %g %g \n",crossx,crossy,crossz);
+
+  sploc[0] = spi[0]*cos(theta)+crossx*sin(theta);
+  sploc[1] = spi[1]*cos(theta)+crossy*sin(theta);
+  sploc[2] = spi[2]*cos(theta)+crossz*sin(theta);
+  
+  //printf("inside rot2, spf %g %g %g \n",sploc[0],sploc[1],sploc[2]);
+
+  ispinorm = 1.0/sqrt(sploc[0]*sploc[0]+sploc[1]*sploc[1]+sploc[2]*sploc[2]);
+
+  sploc[0] *= ispinorm;
+  sploc[1] *= ispinorm;
+  sploc[2] *= ispinorm;
+  printf("inside rot2, spf %g %g %g \n",sploc[0],sploc[1],sploc[2]);
 }
 
 /* ----------------------------------------------------------------------
@@ -606,22 +958,15 @@ void NEB_spin::print_status()
   }
 
   double one[7];
-  //one[0] = fneb->veng;
-  //one[1] = fneb->plen;
-  //one[2] = fneb->nlen;
-  //one[3] = fneb->gradlen;
-  one[0] = fneb_neb->veng;
-  one[1] = fneb_neb->plen;
-  one[2] = fneb_neb->nlen;
-  one[3] = fneb_neb->gradlen;
+  one[0] = fneb->veng;
+  one[1] = fneb->plen;
+  one[2] = fneb->nlen;
+  one[3] = fneb->gradlen;
 
   if (verbose) {
-    //one[4] = fneb->dotpath;
-    //one[5] = fneb->dottangrad;
-    //one[6] = fneb->dotgrad;
-    one[4] = fneb_spin->dotpath;
-    one[5] = fneb_spin->dottangrad;
-    one[6] = fneb_spin->dotgrad;
+    one[4] = fneb->dotpath;
+    one[5] = fneb->dottangrad;
+    one[6] = fneb->dotgrad;
   }
 
   if (output->thermo->normflag) one[0] /= atom->natoms;

@@ -4,23 +4,10 @@
     <!-- example engines 
 
         <engine type="BPFile">
+            <parameter key="substreams" value="10"/>
+        </engine>
         <engine type="HDF5">
-        <engine type="InSituMPI">
-        <engine type="SST">
-        <engine type="DataMan">
 
-    -->
-
-    <!-- example operations 
-        These operations go inside an IO group (but not inside engine group)
-
-    <io name="custom">
-        <variable name="T">
-            <operation type="zfp">
-                <parameter key="accuracy" value="0.01"/>
-            </operation>
-        </variable>
-    </io>
     -->
 
     <!--====================================================

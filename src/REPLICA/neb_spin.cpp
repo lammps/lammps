@@ -143,11 +143,11 @@ NEB_spin::~NEB_spin()
 void NEB_spin::command(int narg, char **arg)
 {
 
-  printf("test 1 \n");
+  //printf("test 1 \n");
 
   // test 1
   double **sp1 = atom->sp;
-  printf("test 1 atom: i=%d,%g,%g,%g \n",1,sp1[1][0],sp1[1][1],sp1[1][2]);
+  //printf("test 1 atom: i=%d,%g,%g,%g \n",1,sp1[1][0],sp1[1][1],sp1[1][2]);
   //error->all(FLERR,"end neb_spin test");
 
 
@@ -212,8 +212,8 @@ void NEB_spin::command(int narg, char **arg)
 
   // test 1
   double **sp = atom->sp;
-  printf("test 2 atom: i=%d,%g,%g,%g \n",1,sp[1][0],sp[1][1],sp[1][2]);
-  error->all(FLERR,"end neb_spin test");
+  //printf("test 2 atom: i=%d,%g,%g,%g \n",1,sp[1][0],sp[1][1],sp[1][2]);
+  //error->all(FLERR,"end neb_spin test");
 
   // run the NEB_spin calculation
 
@@ -680,7 +680,7 @@ void NEB_spin::readfile(char *file, int flag)
 
   // test 1.2
   //double **sp = atom->sp;
-  printf("test 1.2 atom: i=%d,%g,%g,%g \n",1,sp[1][0],sp[1][1],sp[1][2]);
+  //printf("test 1.2 atom: i=%d,%g,%g,%g \n",1,sp[1][0],sp[1][1],sp[1][2]);
   //error->all(FLERR,"end neb_spin test");
 
 
@@ -760,13 +760,13 @@ void NEB_spin::readfile(char *file, int flag)
           //domain->minimum_image(delx,dely,delz);
 
 	  // test 
-	  printf("spinit: %g %g %g \n",spinit[0],spinit[1],spinit[2]);
-	  printf("spfinal bef: %g %g %g \n",spfinal[0],spfinal[1],spfinal[2]);
+	  //printf("spinit: %g %g %g \n",spinit[0],spinit[1],spinit[2]);
+	  //printf("spfinal bef: %g %g %g \n",spfinal[0],spfinal[1],spfinal[2]);
 
 	  initial_rotation(spinit,spfinal,fraction);
 	  
 	  // test 
-	  printf("spfinal aft: %g %g %g \n",spfinal[0],spfinal[1],spfinal[2]);
+	  //printf("spfinal aft: %g %g %g \n",spfinal[0],spfinal[1],spfinal[2]);
 
 	  sp[m][0] = spfinal[0];
 	  sp[m][1] = spfinal[1];
@@ -797,7 +797,7 @@ void NEB_spin::readfile(char *file, int flag)
 
   // test 1.3
   //double **sp = atom->sp;
-  printf("test 1.3 atom: i=%d,%g,%g,%g \n",1,sp[1][0],sp[1][1],sp[1][2]);
+  //printf("test 1.3 atom: i=%d,%g,%g,%g \n",1,sp[1][0],sp[1][1],sp[1][2]);
   //error->all(FLERR,"end neb_spin test");
 
 
@@ -841,65 +841,101 @@ void NEB_spin::readfile(char *file, int flag)
 void NEB_spin::initial_rotation(double *spi, double *sploc, double fraction)
 {
   
-  
   // implementing initial rotation using atan2
-  
   //atan2(crosslen,dots);
-  
-  
-  
-  double theta,spdot;
-  double inormdot,ispinorm;
-  double kix,kiy,kiz;
-  double kinorm, ikinorm;
-  double crossx,crossy,crossz;
 
-  //printf("inside rot, spi %g, spf %g \n",spi[0],sploc[0]);
+  // this is not a sufficient routine, 
+  // we need more accurate verifications
 
-  spdot = spi[0]*sploc[0]+spi[1]*sploc[1]+spi[2]*sploc[2];
-  theta = fraction*acos(spdot);
+
+  // initial and final and inter ang. values 
+  double itheta,iphi,ftheta,fphi,ktheta,kphi;
+  double spix,spiy,spiz,spfx,spfy,spfz;
+  double spkx,spky,spkz,iknorm;
+
+  spix = spi[0];
+  spiy = spi[1];
+  spiz = spi[2];
+
+  spfx = sploc[0];
+  spfy = sploc[1];
+  spfz = sploc[2];
+
+  iphi = acos(spiz);
+  itheta = acos(spix/sin(iphi));
+
+  fphi = acos(spfz);
+  ftheta = acos(spfx/sin(fphi));
  
-  printf("inside rot, theta %g \n",theta);
-
-  kix = spi[1]*sploc[2]-spi[2]*sploc[1];
-  kiy = spi[2]*sploc[0]-spi[0]*sploc[2];
-  kiz = spi[0]*sploc[1]-spi[1]*sploc[0];
-  
-  //printf("inside rot1.1, ki %g %g %g \n",kix,kiy,kiz);
-
-  inormdot = 1.0/sqrt(spdot);
-  kinorm = kix*kix+kiy*kiy+kiz*kiz;
-  if (kinorm == 0.0) {
-    kix = 0.0; 
-    kiy = 0.0; 
-    kiz = 0.0;
-  } else {
-    ikinorm = 1.0/kinorm; 
-    kix *= ikinorm;
-    kiy *= ikinorm;
-    kiz *= ikinorm;
-  }
+  kphi = iphi + fraction*(fphi-iphi);
+  ktheta = itheta + fraction*(ftheta-itheta);
  
-  //printf("inside rot1.2, kin %g %g %g \n",kix,kiy,kiz);
+  spkx = cos(ktheta)*sin(kphi);
+  spky = sin(ktheta)*sin(kphi);
+  spkz = cos(kphi);
 
-  crossx = kiy*spi[2]-kiz*spi[1];
-  crossy = kiz*spi[0]-kix*spi[2];
-  crossz = kix*spi[1]-kiy*spi[0];
-  
-  //printf("inside rot1.3, cross %g %g %g \n",crossx,crossy,crossz);
+  iknorm = spkx*spkx+spky*spky+spkz*spkz;
 
-  sploc[0] = spi[0]*cos(theta)+crossx*sin(theta);
-  sploc[1] = spi[1]*cos(theta)+crossy*sin(theta);
-  sploc[2] = spi[2]*cos(theta)+crossz*sin(theta);
+  spkx *= iknorm;
+  spky *= iknorm;
+  spkz *= iknorm;
+
+  sploc[0] = spkx;
+  sploc[1] = spky;
+  sploc[2] = spkz;
   
+  //double theta,spdot;
+  //double inormdot,ispinorm;
+  //double kix,kiy,kiz;
+  //double kinorm, ikinorm;
+  //double crossx,crossy,crossz;
+
+  ////printf("inside rot, spi %g, spf %g \n",spi[0],sploc[0]);
+
+  //spdot = spi[0]*sploc[0]+spi[1]*sploc[1]+spi[2]*sploc[2];
+  //theta = fraction*acos(spdot);
+ 
+  //printf("inside rot, theta %g \n",theta);
+
+  //kix = spi[1]*sploc[2]-spi[2]*sploc[1];
+  //kiy = spi[2]*sploc[0]-spi[0]*sploc[2];
+  //kiz = spi[0]*sploc[1]-spi[1]*sploc[0];
+  //
+  ////printf("inside rot1.1, ki %g %g %g \n",kix,kiy,kiz);
+
+  //inormdot = 1.0/sqrt(spdot);
+  //kinorm = kix*kix+kiy*kiy+kiz*kiz;
+  //if (kinorm == 0.0) {
+  //  kix = 0.0; 
+  //  kiy = 0.0; 
+  //  kiz = 0.0;
+  //} else {
+  //  ikinorm = 1.0/kinorm; 
+  //  kix *= ikinorm;
+  //  kiy *= ikinorm;
+  //  kiz *= ikinorm;
+  //}
+ 
+  ////printf("inside rot1.2, kin %g %g %g \n",kix,kiy,kiz);
+
+  //crossx = kiy*spi[2]-kiz*spi[1];
+  //crossy = kiz*spi[0]-kix*spi[2];
+  //crossz = kix*spi[1]-kiy*spi[0];
+  //
+  ////printf("inside rot1.3, cross %g %g %g \n",crossx,crossy,crossz);
+
+  //sploc[0] = spi[0]*cos(theta)+crossx*sin(theta);
+  //sploc[1] = spi[1]*cos(theta)+crossy*sin(theta);
+  //sploc[2] = spi[2]*cos(theta)+crossz*sin(theta);
+  //
+  ////printf("inside rot2, spf %g %g %g \n",sploc[0],sploc[1],sploc[2]);
+
+  //ispinorm = 1.0/sqrt(sploc[0]*sploc[0]+sploc[1]*sploc[1]+sploc[2]*sploc[2]);
+
+  //sploc[0] *= ispinorm;
+  //sploc[1] *= ispinorm;
+  //sploc[2] *= ispinorm;
   //printf("inside rot2, spf %g %g %g \n",sploc[0],sploc[1],sploc[2]);
-
-  ispinorm = 1.0/sqrt(sploc[0]*sploc[0]+sploc[1]*sploc[1]+sploc[2]*sploc[2]);
-
-  sploc[0] *= ispinorm;
-  sploc[1] *= ispinorm;
-  sploc[2] *= ispinorm;
-  printf("inside rot2, spf %g %g %g \n",sploc[0],sploc[1],sploc[2]);
 }
 
 /* ----------------------------------------------------------------------
@@ -943,7 +979,20 @@ void NEB_spin::open(char *file)
 
 void NEB_spin::print_status()
 {
-  double fnorm2 = sqrt(update->minimize->fnorm_sqr());
+  
+  //double fnorm2 = sqrt(update->minimize->fnorm_sqr());
+  
+  // test fmax spin
+  int nlocal = atom->nlocal;
+  double **fm = atom->fm;
+  double fnorm2;
+  for (int i = 0; i < nlocal; i++)
+    fnorm2 += (fm[i][0]*fm[i][0]+fm[i][1]*fm[i][1]+fm[i][2]*fm[i][2]);
+  //for (int i = 0; i < nlocal; i++)
+  //  if (mask[i] & groupbit) {
+  //    fnorm2 += (fm[i][0]*fm[i][0]+fm[i][1]*fm[i][1]+fm[i][2]*fm[i][2]);
+  //  }
+  
   double fmaxreplica;
   MPI_Allreduce(&fnorm2,&fmaxreplica,1,MPI_DOUBLE,MPI_MAX,roots);
   double fnorminf = update->minimize->fnorm_inf();

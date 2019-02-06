@@ -17,15 +17,15 @@ _Please specify precisely which LAMMPS version this issue was detected with (the
 
 **Expected Behavior**
 
-_Describe the expected behavior. Quote from the LAMMPS manual where needed, or explain why the expected behavior is meaningful, especially when it differs from the manual_
+_Describe the expected behavior.  Quote from the LAMMPS manual where needed, or explain why the expected behavior is meaningful, especially when it differs from the manual_
 
 **Actual Behavior**
 
-_Describe the actual behavior, how it differs from the expected behavior, and how this can be observed. Try to be specific and do **not* use vague terms like "doesn't work" or "wrong result". Do not assume that the person reading this has any experience with or knowledge of your specific research._
+_Describe the actual behavior, how it differs from the expected behavior, and how this can be observed.  Try to be specific and do **not** use vague terms like "doesn't work" or "wrong result".  Do not assume that the person reading this has any experience with or knowledge of your specific area of research._
 
 **Steps to Reproduce**
 
-_Describe the steps required to quickly reproduce the issue. You can attach (small) files to the section below or add URLs where to download an archive with all necessary files. Please try to create an input that are as minimal and small as possible and reproduces as quickly as possible. NOTE: the less effort and time it takes to reproduce your issue, the more likely, that somebody will look into it._
+_Describe the steps required to (quickly) reproduce the issue. You can attach (small) files to the section below or add URLs where to download an archive with all necessary files. Please try to create an input set that is as minimal and small as possible and reproduces the bug as quickly as possible. **NOTE:** the less effort and time it takes to reproduce your reported bug, the more likely it becomes, that somebody will look into it and fix the problem._
 
 **Further Information, Files, and Links**
 

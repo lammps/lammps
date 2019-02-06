@@ -47,6 +47,7 @@ namespace LAMMPS_NS {
         void calculateMatrix();
         void convert_units(const char *style);
         void displace_atom(int local_idx, int direction, int magnitude);
+        void writeMatrix(double *, int, int, int, int);
 
         double conversion;
         double conv_energy;
@@ -54,6 +55,7 @@ namespace LAMMPS_NS {
         double conv_mass;
         double del;
         int igroup,groupbit;
+        bigint dynlen;
         int scaleflag;
         int me;
         int gcount;  // number of atoms in group

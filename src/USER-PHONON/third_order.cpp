@@ -79,7 +79,7 @@ void ThirdOrder::setup()
     vflag=0;
 
     if (gcount == atom->natoms)
-        for (int i=0; i<atom->natoms; i++)
+        for (bigint i=0; i<atom->natoms; i++)
             groupmap[i] = i;
     else
         create_groupmap();
@@ -111,6 +111,8 @@ void ThirdOrder::command(int narg, char **arg)
     igroup = group->find(arg[0]);
     if (igroup == -1) error->all(FLERR,"Could not find dynamical matrix group ID");
     groupbit = group->bitmask[igroup];
+    gcount = group->count(igroup);
+    dynlen = (gcount)*3;
     update->setupflag = 1;
 
     int style = -1;
@@ -187,7 +189,7 @@ void ThirdOrder::options(int narg, char **arg)
             iarg += 2;
         } else error->all(FLERR,"Illegal dynamical_matrix command");
     }
-    if (file_flag == 1) {
+    if (file_flag == 1 and me == 0) {
         openfile(filename);
     }
 }
@@ -240,17 +242,20 @@ void ThirdOrder::calculateMatrix()
     int *gm = groupmap;
     double **f = atom->f;
 
-    update_force();
+    double *dynmat = new double[3*dynlen];
+    double *fdynmat = new double[3*dynlen];
+    memset(&dynmat[0],0,dynlen*sizeof(double));
+    memset(&fdynmat[0],0,dynlen*sizeof(double));
 
     if (comm->me == 0 && screen) fprintf(screen,"Calculating Anharmonic Dynamical Matrix...\n");
 
     for (bigint i=1; i<=natoms; i++){
         local_idx = atom->map(i);
         for (bigint alpha=0; alpha<3; alpha++){
-            displace_atom(local_idx, alpha, 1);
             for (bigint j=1; j<=natoms; j++){
                 local_jdx = atom->map(j);
                 for (int beta=0; beta<3; beta++){
+                    displace_atom(local_idx, alpha, 1);
                     displace_atom(local_jdx, beta, 1);
                     update_force();
                     for (bigint k=1; k<=natoms; k++){
@@ -259,7 +264,7 @@ void ThirdOrder::calculateMatrix()
                             if (local_idx >= 0 && local_jdx >= 0 && local_kdx >= 0
                                 && gm[i-1] >= 0 && gm[j-1] >= 0 && gm[k-1] >= 0
                                 && local_kdx < nlocal) {
-                                //first_derv[k*3+gamma] = f[k][gamma];
+                                dynmat[gm[k-1]*3+gamma] += f[local_kdx][gamma];
                             }
                         }
                     }
@@ -271,16 +276,12 @@ void ThirdOrder::calculateMatrix()
                             if (local_idx >= 0 && local_jdx >= 0 && local_kdx >= 0
                                 && gm[i-1] >= 0 && gm[j-1] >= 0 && gm[k-1] >= 0
                                 && local_kdx < nlocal) {
+                                dynmat[gm[k-1]*3+gamma] -= f[local_kdx][gamma];
                             }
                         }
                     }
                     displace_atom(local_jdx, beta, 1);
-                }
-            }
-            displace_atom(local_idx,alpha,-2);
-            for (bigint j=1; j<=natoms; j++){
-                local_jdx = atom->map(j);
-                for (int beta=0; beta<3; beta++){
+                    displace_atom(local_idx,alpha,-2);
                     displace_atom(local_jdx, beta, 1);
                     update_force();
                     for (bigint k=1; k<=natoms; k++){
@@ -289,6 +290,7 @@ void ThirdOrder::calculateMatrix()
                             if (local_idx >= 0 && local_jdx >= 0 && local_kdx >= 0
                                 && gm[i-1] >= 0 && gm[j-1] >= 0 && gm[k-1] >= 0
                                 && local_kdx < nlocal) {
+                                dynmat[gm[k-1]*3+gamma] -= f[local_kdx][gamma];
                             }
                         }
                     }
@@ -300,110 +302,59 @@ void ThirdOrder::calculateMatrix()
                             if (local_idx >= 0 && local_jdx >= 0 && local_kdx >= 0
                                 && gm[i-1] >= 0 && gm[j-1] >= 0 && gm[k-1] >= 0
                                 && local_kdx < nlocal) {
+                                dynmat[gm[k-1]*3+gamma] += f[local_kdx][gamma];
+                                dynmat[gm[k-1]*3+gamma] /= -(4 * del * del);
                             }
                         }
                     }
                     displace_atom(local_jdx, beta, 1);
+                    displace_atom(local_idx, alpha, 1);
+                    MPI_Reduce(dynmat,fdynmat,3*dynlen,MPI_DOUBLE,MPI_SUM,0,world);
+                    if (me == 0){
+                        writeMatrix(fdynmat, gm[i-1], alpha, gm[j-1], beta);
+                    }
+                    memset(&dynmat[0],0,dynlen*sizeof(double));
                 }
             }
-            displace_atom(local_idx,alpha,1);
         }
     }
 
-    //for (int proc1=0; proc1 < comm->nprocs; proc1++) {
-    //    plocal1 = atom->nlocal;  // 1 proc nlocal = 8
-    //    MPI_Bcast(&plocal1, 1, MPI_INT, proc1, MPI_COMM_WORLD); // plocal1 = 8
-    //    for (int i = 0; i < plocal1; i++) {
-    //        if (me==proc1 & mask[i] & groupbit)
-	//	group_flag_1 = 1;
-    //        MPI_Bcast(&group_flag_1, 1, MPI_INT, proc1, MPI_COMM_WORLD);
-    //        if (group_flag_1) {
-    //            if (me == proc1) id1 = aid[i];
-    //            MPI_Bcast(&id1, 1, MPI_INT, proc1, MPI_COMM_WORLD);
-    //            for (int alpha = 0; alpha < 3; alpha++) {
-    //                for (int proc2 = 0; proc2 < comm->nprocs; proc2++) {
-    //                    plocal2 = atom->nlocal;
-    //                    MPI_Bcast(&plocal2, 1, MPI_INT, proc2, MPI_COMM_WORLD);
-    //                    for (int j = 0; j < plocal2; j++) {
-    //                        if (me==proc2 & mask[j] & groupbit)
-	//			group_flag_2 = 1;
-    //                        MPI_Bcast(&group_flag_2, 1, MPI_INT, proc2, MPI_COMM_WORLD);
-    //                        if (mask[j] & groupbit) {
-    //                            if (me == proc2) id2 = aid[j];
-    //                            MPI_Bcast(&id2, 1, MPI_INT, proc2, MPI_COMM_WORLD);
-    //                            for (int beta = 0; beta < 3; beta++) {
-//
-    //                                if (me == proc1) x[i][alpha] += del;
-//
-    //                                if (me == proc2) x[j][beta] += del;
-    //                                energy_force(0);
-////
-    //                                for (int gamma = 0; gamma < 3; gamma++) {
-    //                                    for (int k = 0; k < nlocal; k++)
-    //                                        if (mask[k] & groupbit) {
-    //                                            first_derv[k*3+gamma] = f[k][gamma];
-    //                                        }
-    //                                }
-//
-    //                                if (me == proc2) x[j][beta] -= 2 * del;
-    //                                energy_force(0);
-////
-    //                                for (int gamma = 0; gamma < 3; gamma++) {
-    //                                    for (int k = 0; k < nlocal; k++)
-    //                                        if (mask[k] & groupbit) {
-    //                                            first_derv[k*3+gamma] -= f[k][gamma];
-    //                                        }
-    //                                }
-//
-    //                                if (me == proc2) x[j][beta] += 2 * del;
-//
-    //                                if (me == proc1) x[i][alpha] -= 2 * del;
-//
-    //                                energy_force(0);
-////
-    //                                for (int gamma = 0; gamma < 3; gamma++) {
-    //                                    for (int k = 0; k < nlocal; k++)
-    //                                        if (mask[k] & groupbit) {
-    //                                            first_derv[k*3+gamma] -= f[k][gamma];
-    //                                        }
-    //                                }
-////
-    //                                if (me == proc2) x[j][beta] -= 2 * del;
-    //                                energy_force(0);
-////
-    //                                for (int k = 0; k < nlocal; k++)
-    //                                    if (mask[k] & groupbit) {
-    //                                        for (int gamma = 0; gamma < 3; gamma++) {
-    //                                            first_derv[k*3+gamma] += f[k][gamma];
-    //                                            first_derv[k*3+gamma] /= -4*del*del;
-    //                                        }
-    //                                        double norm = pow(first_derv[k*3], 2)
-    //                                                      + pow(first_derv[k*3+1], 2)
-    //                                                      + pow(first_derv[k+3+2], 2);
-    //                                        if (fp && norm > 1.0e-16)
-    //                                            fprintf(fp,
-    //                                                    "%d %d %d %d %d %7.8f %7.8f %7.8f\n",
-    //                                                    id1, alpha + 1, id2, beta + 1, aid[k],
-    //                                                    first_derv[k*3] * conversion,
-    //                                                    first_derv[k*3+1] * conversion,
-    //                                                    first_derv[k*3+2] * conversion);
-    //                                    }
-////
-    //                                if (me == proc2) x[j][beta] += del;
-//
-    //                                if (me == proc1) x[i][alpha] += del;
-    //                            }
-    //                        }
-    //                    }
-    //                }
-////
-    //            }
-    //        }
-    //    }
-    //}
-//
+    delete [] dynmat;
+    delete [] fdynmat;
 
     if (screen && me ==0 ) fprintf(screen,"Finished Calculating Third Order Tensor\n");
+
+}
+
+/* ----------------------------------------------------------------------
+   write dynamical matrix
+------------------------------------------------------------------------- */
+
+void ThirdOrder::writeMatrix(double *dynmat, int i, int a, int j, int b)
+{
+    if (me != 0)
+        return;
+
+    if (!binaryflag && fp) {
+        clearerr(fp);
+        for (int k = 0; k < gcount; k++){
+            double norm = pow(dynmat[k*3], 2)
+                          + pow(dynmat[k*3+1], 2)
+                          + pow(dynmat[k+3+2], 2);
+            if (norm > 1.0e-16)
+                fprintf(fp,
+                        "%d %d %d %d %d %7.8f %7.8f %7.8f\n",
+                        i+1, a + 1, j+1, b + 1, groupmap[k]+1,
+                        dynmat[k*3] * conversion,
+                        dynmat[k*3+1] * conversion,
+                        dynmat[k*3+2] * conversion);
+        }
+    }
+    else if (binaryflag && fp){
+        clearerr(fp);
+        fwrite(&dynmat[0], sizeof(double), dynlen, fp);
+    }
+    if (ferror(fp)) error->one(FLERR,"Error writing to file");
 
 }
 
@@ -413,6 +364,8 @@ void ThirdOrder::calculateMatrix()
 
 void ThirdOrder::displace_atom(int local_idx, int direction, int magnitude)
 {
+    if (local_idx < 0) return;
+
     double **x = atom->x;
     int *sametag = atom->sametag;
     int j = local_idx;
@@ -554,7 +507,7 @@ void ThirdOrder::create_groupmap()
     int *temp_groupmap = new int[natoms];
 
     //find number of local atoms in the group (final_gid)
-    for (int i=1; i<=natoms; i++){
+    for (bigint i=1; i<=natoms; i++){
         local_idx = atom->map(i);
         if ((local_idx >= 0) && (local_idx < nlocal) && mask[local_idx] & groupbit)
             gid += 1; // gid at the end of loop is final_Gid
@@ -564,7 +517,7 @@ void ThirdOrder::create_groupmap()
 
     gid = 0;
     //create a map between global atom id and group atom id for each proc
-    for (int i=1; i<=natoms; i++){
+    for (bigint i=1; i<=natoms; i++){
         local_idx = atom->map(i);
         if ((local_idx >= 0) && (local_idx < nlocal) && mask[local_idx] & groupbit){
             sub_groupmap[gid] = i;
@@ -589,7 +542,7 @@ void ThirdOrder::create_groupmap()
     std::sort(temp_groupmap,temp_groupmap+gcount);
 
     //populate member groupmap based on temp groupmap
-    for (int i=0; i<natoms; i++){
+    for (bigint i=0; i<natoms; i++){
         if (i==temp_groupmap[i]-1)
             groupmap[i] = temp_groupmap[i]-1;
         else

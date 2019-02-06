@@ -81,7 +81,7 @@ void DynamicalMatrix::setup()
 
     //if all then skip communication groupmap population
     if (gcount == atom->natoms)
-        for (int i=0; i<atom->natoms; i++)
+        for (bigint i=0; i<atom->natoms; i++)
             groupmap[i] = i;
     else
         create_groupmap();
@@ -268,7 +268,7 @@ void DynamicalMatrix::calculateMatrix()
                 if (local_idx >= 0 && local_jdx >= 0 && local_jdx < nlocal
                     && gm[i-1] >= 0 && gm[j-1] >= 0){
                     for (int beta=0; beta<3; beta++){
-                        dynmat[alpha][(gm[j-1])*3+beta] = -f[local_jdx][beta];
+                        dynmat[alpha][(gm[j-1])*3+beta] -= f[local_jdx][beta];
                     }
                 }
             }
@@ -321,7 +321,7 @@ void DynamicalMatrix::writeMatrix(double **dynmat)
     if (!binaryflag && fp) {
         clearerr(fp);
         for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < dynlen; j++) {
+            for (bigint j = 0; j < dynlen; j++) {
                 if ((j+1)%3==0) fprintf(fp, "%4.8f\n", dynmat[i][j]);
                 else fprintf(fp, "%4.8f ",dynmat[i][j]);
             }
@@ -344,6 +344,8 @@ void DynamicalMatrix::writeMatrix(double **dynmat)
 
 void DynamicalMatrix::displace_atom(int local_idx, int direction, int magnitude)
 {
+    if (local_idx < 0) return;
+
     double **x = atom->x;
     int *sametag = atom->sametag;
     int j = local_idx;
@@ -496,7 +498,7 @@ void DynamicalMatrix::create_groupmap()
     int *temp_groupmap = new int[natoms];
 
     //find number of local atoms in the group (final_gid)
-    for (int i=1; i<=natoms; i++){
+    for (bigint i=1; i<=natoms; i++){
         local_idx = atom->map(i);
         if ((local_idx >= 0) && (local_idx < nlocal) && mask[local_idx] & groupbit)
             gid += 1; // gid at the end of loop is final_Gid
@@ -506,7 +508,7 @@ void DynamicalMatrix::create_groupmap()
 
     gid = 0;
     //create a map between global atom id and group atom id for each proc
-    for (int i=1; i<=natoms; i++){
+    for (bigint i=1; i<=natoms; i++){
         local_idx = atom->map(i);
         if ((local_idx >= 0) && (local_idx < nlocal) && mask[local_idx] & groupbit){
             sub_groupmap[gid] = i;
@@ -531,7 +533,7 @@ void DynamicalMatrix::create_groupmap()
     std::sort(temp_groupmap,temp_groupmap+gcount);
 
     //populate member groupmap based on temp groupmap
-    for (int i=0; i<natoms; i++){
+    for (bigint i=0; i<natoms; i++){
         if (i==temp_groupmap[i]-1)
             groupmap[i] = temp_groupmap[i]-1;
         else

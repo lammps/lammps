@@ -36,13 +36,14 @@ namespace LAMMPS_NS {
 
         int nvec;                   // local atomic dof = length of xvec
 
-        void energy_force(int);
+        void update_force();
         void force_clear();
         virtual void openfile(const char* filename);
 
 
     private:
         void options(int, char **);
+        void create_groupmap();
         void calculateMatrix();
         void convert_units(const char *style);
         void displace_atom(int local_idx, int direction, int magnitude);
@@ -55,6 +56,8 @@ namespace LAMMPS_NS {
         int igroup,groupbit;
         int scaleflag;
         int me;
+        int gcount;  // number of atoms in group
+        int *groupmap;
 
         int compressed;            // 1 if dump file is written compressed, 0 no
         int binaryflag;            // 1 if dump file is written binary, 0 no

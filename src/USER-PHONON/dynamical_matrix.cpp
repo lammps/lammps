@@ -80,7 +80,7 @@ void DynamicalMatrix::setup()
     update_force();
 
     //if all then skip communication groupmap population
-    if (ngatoms == atom->natoms)
+    if (gcount == atom->natoms)
         for (int i=0; i<atom->natoms; i++)
             groupmap[i] = i;
     else
@@ -113,8 +113,8 @@ void DynamicalMatrix::command(int narg, char **arg)
     igroup = group->find(arg[0]);
     if (igroup == -1) error->all(FLERR,"Could not find dynamical matrix group ID");
     groupbit = group->bitmask[igroup];
-    ngatoms = group->count(igroup);
-    dynlen = (ngatoms)*3;
+    gcount = group->count(igroup);
+    dynlen = (gcount)*3;
     memory->create(groupmap,atom->natoms,"total_group_map:totalgm");
     update->setupflag = 1;
 
@@ -260,44 +260,42 @@ void DynamicalMatrix::calculateMatrix()
 
     for (bigint i=1; i<=natoms; i++){
         local_idx = atom->map(i);
-        if (local_idx >= 0){
-            for (bigint alpha=0; alpha<3; alpha++){
-                displace_atom(local_idx, alpha, 1);
-                update_force();
-                for (bigint j=1; j<=natoms; j++){
-                    local_jdx = atom->map(j);
-                    if (local_jdx >= 0 && local_jdx < nlocal
-                        && gm[i-1] >= 0 && gm[j-1] >= 0){
-                        for (int beta=0; beta<3; beta++){
-                            dynmat[alpha][(gm[j-1])*3+beta] = -f[local_jdx][beta];
-                        }
+        for (bigint alpha=0; alpha<3; alpha++){
+            displace_atom(local_idx, alpha, 1);
+            update_force();
+            for (bigint j=1; j<=natoms; j++){
+                local_jdx = atom->map(j);
+                if (local_idx >= 0 && local_jdx >= 0 && local_jdx < nlocal
+                    && gm[i-1] >= 0 && gm[j-1] >= 0){
+                    for (int beta=0; beta<3; beta++){
+                        dynmat[alpha][(gm[j-1])*3+beta] = -f[local_jdx][beta];
                     }
                 }
-                displace_atom(local_idx,alpha,-2);
-                update_force();
-                for (bigint j=1; j<=natoms; j++){
-                    local_jdx = atom->map(j);
-                    if (local_jdx >= 0 && local_jdx < nlocal
-                        && gm[i-1] >= 0 && gm[j-1] >= 0){
-                        for (bigint beta=0; beta<3; beta++){
-                            if (atom->rmass_flag == 1)
-                                imass = sqrt(m[local_idx] * m[local_jdx]);
-                            else
-                                imass = sqrt(m[type[local_idx]] * m[type[local_jdx]]);
-                            dynmat[alpha][(gm[j-1])*3+beta] -= -f[local_jdx][beta];
-                            dynmat[alpha][(gm[j-1])*3+beta] /= (2 * del * imass);
-                            dynmat[alpha][(gm[j-1])*3+beta] *= conversion;
-                        }
-                    }
-                }
-                displace_atom(local_idx,alpha,1);
             }
-            for (int k=0; k<3; k++)
-                MPI_Reduce(dynmat[k],fdynmat[k],dynlen,MPI_DOUBLE,MPI_SUM,0,world);
-            if (me == 0)
-                writeMatrix(fdynmat);
-            dynmat_clear(dynmat);
+            displace_atom(local_idx,alpha,-2);
+            update_force();
+            for (bigint j=1; j<=natoms; j++){
+                local_jdx = atom->map(j);
+                if (local_idx >= 0 && local_jdx >= 0 && local_jdx < nlocal
+                    && gm[i-1] >= 0 && gm[j-1] >= 0){
+                    for (bigint beta=0; beta<3; beta++){
+                        if (atom->rmass_flag == 1)
+                            imass = sqrt(m[local_idx] * m[local_jdx]);
+                        else
+                            imass = sqrt(m[type[local_idx]] * m[type[local_jdx]]);
+                        dynmat[alpha][(gm[j-1])*3+beta] -= -f[local_jdx][beta];
+                        dynmat[alpha][(gm[j-1])*3+beta] /= (2 * del * imass);
+                        dynmat[alpha][(gm[j-1])*3+beta] *= conversion;
+                    }
+                }
+            }
+            displace_atom(local_idx,alpha,1);
         }
+        for (int k=0; k<3; k++)
+            MPI_Reduce(dynmat[k],fdynmat[k],dynlen,MPI_DOUBLE,MPI_SUM,0,world);
+        if (me == 0)
+            writeMatrix(fdynmat);
+        dynmat_clear(dynmat);
     }
 
     for (int i=0; i < 3; i++)
@@ -530,7 +528,7 @@ void DynamicalMatrix::create_groupmap()
 
     //combine subgroup maps into total temporary groupmap
     MPI_Allgatherv(sub_groupmap,gid,MPI_INT,temp_groupmap,recv,displs,MPI_INT,world);
-    std::sort(temp_groupmap,temp_groupmap+ngatoms);
+    std::sort(temp_groupmap,temp_groupmap+gcount);
 
     //populate member groupmap based on temp groupmap
     for (int i=0; i<natoms; i++){

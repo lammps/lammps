@@ -54,7 +54,7 @@ namespace LAMMPS_NS {
         double conv_mass;
         double del;
         int igroup,groupbit;
-        int ngatoms; // number of atoms in the group
+        int gcount;  // number of atoms in group
         int scaleflag;
         int me;
         bigint dynlen;

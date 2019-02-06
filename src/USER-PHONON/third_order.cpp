@@ -23,6 +23,7 @@
 #include "pair.h"
 #include "timer.h"
 #include "finish.h"
+#include <algorithm>
 
 
 using namespace LAMMPS_NS;
@@ -72,28 +73,16 @@ void ThirdOrder::setup()
     neighbor->ndanger = 0;
 
     // compute all forces
-    force_clear();
+    update_force();
     external_force_clear = 0;
-
     eflag=0;
     vflag=0;
-    if (pair_compute_flag) force->pair->compute(eflag,vflag);
-    else if (force->pair) force->pair->compute_dummy(eflag,vflag);
 
-    if (atom->molecular) {
-        if (force->bond) force->bond->compute(eflag,vflag);
-        if (force->angle) force->angle->compute(eflag,vflag);
-        if (force->dihedral) force->dihedral->compute(eflag,vflag);
-        if (force->improper) force->improper->compute(eflag,vflag);
-    }
-
-    if (force->kspace) {
-        force->kspace->setup();
-        if (kspace_compute_flag) force->kspace->compute(eflag,vflag);
-        else force->kspace->compute_dummy(eflag,vflag);
-    }
-
-    if (force->newton) comm->reverse_comm();
+    if (gcount == atom->natoms)
+        for (int i=0; i<atom->natoms; i++)
+            groupmap[i] = i;
+    else
+        create_groupmap();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -148,14 +137,20 @@ void ThirdOrder::command(int narg, char **arg)
 
     if (style == REGULAR) {
         setup();
+        timer->init();
+        timer->barrier_start();
         calculateMatrix();
+        timer->barrier_stop();
     }
 
     if (style == BALLISTICO) {
         setup();
         convert_units(update->unit_style);
         conversion = conv_energy/conv_distance/conv_distance;
+        timer->init();
+        timer->barrier_start();
         calculateMatrix();
+        timer->barrier_stop();
     }
 
     Finish finish(lmp);
@@ -240,37 +235,78 @@ void ThirdOrder::calculateMatrix()
     int local_idx; // local index
     int local_jdx; // second local index
     int local_kdx; // third local index
+    int nlocal = atom->nlocal;
     int natoms = atom->natoms;
-    int *mask = atom->mask;
+    int *gm = groupmap;
     double **f = atom->f;
 
-    energy_force(0);
+    update_force();
 
     if (comm->me == 0 && screen) fprintf(screen,"Calculating Anharmonic Dynamical Matrix...\n");
 
-    for (int i=1; i<=natoms; i++){
+    for (bigint i=1; i<=natoms; i++){
         local_idx = atom->map(i);
-        if (local_idx >= 0 && mask[local_idx] && groupbit){
-            for (int alpha=0; alpha<3; alpha++){
-                displace_atom(local_idx, alpha, 1);
-                for (int j=1; j<=natoms; j++){
-                    local_jdx = atom->map(j);
-                    if (local_jdx >= 0&& mask[local_jdx] && groupbit){
-                        for (int beta=0; beta<3; beta++){
+        for (bigint alpha=0; alpha<3; alpha++){
+            displace_atom(local_idx, alpha, 1);
+            for (bigint j=1; j<=natoms; j++){
+                local_jdx = atom->map(j);
+                for (int beta=0; beta<3; beta++){
+                    displace_atom(local_jdx, beta, 1);
+                    update_force();
+                    for (bigint k=1; k<=natoms; k++){
+                        local_kdx = atom->map(k);
+                        for (int gamma=0; gamma<3; gamma++){
+                            if (local_idx >= 0 && local_jdx >= 0 && local_kdx >= 0
+                                && gm[i-1] >= 0 && gm[j-1] >= 0 && gm[k-1] >= 0
+                                && local_kdx < nlocal) {
+                                //first_derv[k*3+gamma] = f[k][gamma];
+                            }
                         }
                     }
-                }
-                displace_atom(local_idx,alpha,-2);
-                for (int j=1; j<=natoms; j++){
-                    local_jdx = atom->map(j);
-                    if (local_jdx >= 0 && mask[local_jdx] && groupbit){
-                        for (int beta=0; beta<3; beta++){
-
+                    displace_atom(local_jdx, beta, -2);
+                    update_force();
+                    for (bigint k=1; k<=natoms; k++){
+                        local_kdx = atom->map(k);
+                        for (int gamma=0; gamma<3; gamma++){
+                            if (local_idx >= 0 && local_jdx >= 0 && local_kdx >= 0
+                                && gm[i-1] >= 0 && gm[j-1] >= 0 && gm[k-1] >= 0
+                                && local_kdx < nlocal) {
+                            }
                         }
                     }
+                    displace_atom(local_jdx, beta, 1);
                 }
-                displace_atom(local_idx,alpha,1);
             }
+            displace_atom(local_idx,alpha,-2);
+            for (bigint j=1; j<=natoms; j++){
+                local_jdx = atom->map(j);
+                for (int beta=0; beta<3; beta++){
+                    displace_atom(local_jdx, beta, 1);
+                    update_force();
+                    for (bigint k=1; k<=natoms; k++){
+                        local_kdx = atom->map(k);
+                        for (int gamma=0; gamma<3; gamma++){
+                            if (local_idx >= 0 && local_jdx >= 0 && local_kdx >= 0
+                                && gm[i-1] >= 0 && gm[j-1] >= 0 && gm[k-1] >= 0
+                                && local_kdx < nlocal) {
+                            }
+                        }
+                    }
+                    displace_atom(local_jdx, beta, -2);
+                    update_force();
+                    for (bigint k=1; k<=natoms; k++){
+                        local_kdx = atom->map(k);
+                        for (int gamma=0; gamma<3; gamma++){
+                            if (local_idx >= 0 && local_jdx >= 0 && local_kdx >= 0
+                                && gm[i-1] >= 0 && gm[j-1] >= 0 && gm[k-1] >= 0
+                                && local_kdx < nlocal) {
+                            }
+                        }
+                    }
+                    displace_atom(local_jdx, beta, 1);
+                }
+            }
+            displace_atom(local_idx,alpha,1);
         }
     }
 
@@ -397,34 +433,8 @@ void ThirdOrder::displace_atom(int local_idx, int direction, int magnitude)
    return negative gradient for nextra_global dof in fextra
 ------------------------------------------------------------------------- */
 
-void ThirdOrder::energy_force(int resetflag)
+void ThirdOrder::update_force()
 {
-    // check for reneighboring
-    // always communicate since atoms move
-    int nflag = neighbor->decide();
-
-    if (nflag == 0) {
-        timer->stamp();
-        comm->forward_comm();
-        timer->stamp(Timer::COMM);
-    } else {
-        if (triclinic) domain->x2lamda(atom->nlocal);
-        domain->pbc();
-        if (domain->box_change) {
-            domain->reset_box();
-            comm->setup();
-            if (neighbor->style) neighbor->setup_bins();
-        }
-        timer->stamp();
-
-        comm->borders();
-        if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
-        timer->stamp(Timer::COMM);
-
-        neighbor->build(1);
-        timer->stamp(Timer::NEIGH);
-    }
-
     force_clear();
 
     timer->stamp();
@@ -526,4 +536,69 @@ void ThirdOrder::convert_units(const char *style)
 
     } else error->all(FLERR,"Units Type Conversion Not Found");
 
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ThirdOrder::create_groupmap()
+{
+    //Create a group map which maps atom order onto group
+
+    int local_idx; // local index
+    int gid = 0; //group index
+    int nlocal = atom->nlocal;
+    int *mask = atom->mask;
+    bigint natoms = atom->natoms;
+    int *recv = new int[comm->nprocs];
+    int *displs = new int[comm->nprocs];
+    int *temp_groupmap = new int[natoms];
+
+    //find number of local atoms in the group (final_gid)
+    for (int i=1; i<=natoms; i++){
+        local_idx = atom->map(i);
+        if ((local_idx >= 0) && (local_idx < nlocal) && mask[local_idx] & groupbit)
+            gid += 1; // gid at the end of loop is final_Gid
+    }
+    //create an array of length final_gid
+    int *sub_groupmap = new int[gid];
+
+    gid = 0;
+    //create a map between global atom id and group atom id for each proc
+    for (int i=1; i<=natoms; i++){
+        local_idx = atom->map(i);
+        if ((local_idx >= 0) && (local_idx < nlocal) && mask[local_idx] & groupbit){
+            sub_groupmap[gid] = i;
+            gid += 1;
+        }
+    }
+
+    //populate arrays for Allgatherv
+    for (int i=0; i<comm->nprocs; i++){
+        recv[i] = 0;
+    }
+    recv[comm->me] = gid;
+    MPI_Allreduce(recv,displs,4,MPI_INT,MPI_SUM,world);
+    for (int i=0; i<comm->nprocs; i++){
+        recv[i]=displs[i];
+        if (i>0) displs[i] = displs[i-1]+recv[i-1];
+        else displs[i] = 0;
+    }
+
+    //combine subgroup maps into total temporary groupmap
+    MPI_Allgatherv(sub_groupmap,gid,MPI_INT,temp_groupmap,recv,displs,MPI_INT,world);
+    std::sort(temp_groupmap,temp_groupmap+gcount);
+
+    //populate member groupmap based on temp groupmap
+    for (int i=0; i<natoms; i++){
+        if (i==temp_groupmap[i]-1)
+            groupmap[i] = temp_groupmap[i]-1;
+        else
+            groupmap[i] = -1;
+    }
+
+    //free that memory!
+    delete[] recv;
+    delete[] displs;
+    delete[] sub_groupmap;
+    delete[] temp_groupmap;
 }

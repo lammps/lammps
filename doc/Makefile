@@ -126,8 +126,13 @@ pdf: $(OBJECTS) $(ANCHORCHECK)
                 deactivate ;\
 	)
 	@cd latex && \
-	  sed -i '' 's/\\begin{equation}//g' LAMMPS.tex && \
-	  sed -i '' 's/\\end{equation}//g' LAMMPS.tex && \
+          sed 's/latexmk -pdf -dvi- -ps-/pdflatex/g' Makefile > temp && \
+	  mv temp Makefile && \
+	  sed 's/\\begin{equation}//g' LAMMPS.tex > tmp.tex && \
+	  mv tmp.tex LAMMPS.tex && \
+	  sed 's/\\end{equation}//g' LAMMPS.tex > tmp.tex && \
+	  mv tmp.tex LAMMPS.tex && \
+	  make && \
 	  make && \
 	  mv LAMMPS.pdf ../Manual.pdf && \
 	  cd ../; 

@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "python.h"
+#include "lmppython.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

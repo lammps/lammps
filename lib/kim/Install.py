@@ -18,7 +18,7 @@ parser = ArgumentParser(prog='Install.py',
 # settings
 
 thisdir = fullpath('.')
-version = "kim-api-v2-2.0.0-beta.3"
+version = "kim-api-v2-2.0.0"
 
 # help message
 
@@ -35,19 +35,15 @@ Syntax from lib dir: python Install.py -b -v version  -a kim-name
 Examples:
 
 make lib-kim args="-b" # install KIM API lib with only example models
-make lib-kim args="-b -a Glue_Ercolessi_Adams_Al__MO_324507536345_001" # Ditto plus one model
+make lib-kim args="-b -a EAM_ErcolessiAdams_1994_Al__MO_324507536345_002" # Ditto plus one model
 make lib-kim args="-b -a everything"   # install KIM API lib with all models
-make lib-kim args="-n -a EAM_Dynamo_Ackland_W__MO_141627196590_002"    # only add one model or model driver
+make lib-kim args="-n -a EAM_Dynamo_Ackland_2003_W__MO_141627196590_005"    # only add one model or model driver
 
 See the list of KIM model drivers here:
 https://openkim.org/kim-items/model-drivers/alphabetical
 
 See the list of all KIM models here:
 https://openkim.org/kim-items/models/by-model-drivers
-
-See the list of example KIM models included by default here:
-https://openkim.org/kim-api
-in the "What is in the KIM API source package?" section
 """
 
 pgroup = parser.add_mutually_exclusive_group()

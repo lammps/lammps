@@ -56,7 +56,7 @@ clean-all: clean
 	rm -rf $(BUILDDIR)/* utils/txt2html/txt2html.exe
 
 clean:
-	rm -rf $(RSTDIR) html old epub
+	rm -rf $(RSTDIR) html old epub latex
 	rm -rf spelling
 
 clean-spelling:
@@ -115,21 +115,39 @@ mobi: epub
 	@ebook-convert LAMMPS.epub LAMMPS.mobi
 	@echo "Conversion finished. The MOBI manual file is created."
 
-pdf: utils/txt2html/txt2html.exe
+pdf: $(OBJECTS) $(ANCHORCHECK)
 	@(\
-		set -e; \
+                . $(VENV)/bin/activate ;\
+                cp -r src/* $(RSTDIR)/ ;\
+                sphinx-build $(SPHINXEXTRA) -b latex -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) latex ;\
+                echo "############################################" ;\
+                doc_anchor_check src/*.txt ;\
+                echo "############################################" ;\
+                deactivate ;\
+	)
+	@cd latex && \
+	  sed -i '' 's/\\begin{equation}//g' LAMMPS.tex && \
+	  sed -i '' 's/\\end{equation}//g' LAMMPS.tex && \
+	  make && \
+	  mv LAMMPS.pdf ../Manual.pdf && \
+	  cd ../; 
+	@(\
 		cd src/Developer; \
 		pdflatex developer; \
 		pdflatex developer; \
 		mv developer.pdf ../../Developer.pdf; \
-		cd ..; \
-		../utils/txt2html/txt2html.exe -b *.txt; \
-		htmldoc --batch lammps.book;          \
-		for s in `echo *.txt | sed -e 's/ \(pairs\|bonds\|angles\|dihedrals\|impropers\|commands_list\|fixes\|computes\).txt/ /g' | sed -e 's,\.txt,\.html,g'` ; \
-			do grep -q ^$$s lammps.book || \
-			echo WARNING: doc file $$s missing in src/lammps.book; done; \
-		rm *.html; \
+		cd ../../; \
 	)
+	@rm -rf latex/_sources
+	@rm -rf latex/PDF
+	@rm -rf latex/USER
+	@cp -r src/PDF latex/PDF
+	@cp -r src/USER latex/USER
+	@rm -rf latex/PDF/.[sg]*
+	@rm -rf latex/USER/.[sg]*
+	@rm -rf latex/USER/*/.[sg]*
+	@rm -rf latex/USER/*/*.[sg]*
+	@echo "Build finished. Manual.pdf and Developer.pdf are in this directory."
 
 old: utils/txt2html/txt2html.exe
 	@rm -rf old

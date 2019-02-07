@@ -3,18 +3,11 @@
 # This file is part of LAMMPS
 # Created by Christoph Junghans and Richard Berger
 if(PKG_USER-ADIOS)
-  message(STATUS "Force newer standards because using ADIOS")
+  message(STATUS "Force newer standards because of using ADIOS")
   cmake_minimum_required(VERSION 3.6)
   # Force C++11 and C99
   set(CMAKE_CXX_STANDARD 11)
   set(CMAKE_CXX_STANDARD_REQUIRED True)
-  # Use meta-compile features if available, otherwise use specific language
-  # features
-#  if(NOT (CMAKE_VERSION VERSION_LESS 3.9))
-#    set(ADIOS2_CXX11_FEATURES cxx_std_11)
-#  else()
-#    set(ADIOS2_CXX11_FEATURES cxx_auto_type cxx_nullptr)
-#  endif()
 else()
   cmake_minimum_required(VERSION 2.8.12)
 endif()

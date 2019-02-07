@@ -12,59 +12,51 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DUMP_CLASS
-
-DumpStyle(atom/adios,DumpAtomADIOS)
-
+// clang-format off
+DumpStyle(atom/adios, DumpAtomADIOS)
+// clang-format on
 #else
 
 #ifndef LMP_DUMP_ATOM_ADIOS_H
 #define LMP_DUMP_ATOM_ADIOS_H
 
 #include "dump_atom.h"
-#include <stdlib.h>
-#include <stdint.h>
-#include "adios2.h"
 
-namespace LAMMPS_NS {
+namespace LAMMPS_NS
+{
 
-class DumpAtomADIOS : public DumpAtom {
+class DumpAtomADIOSInternal;
 
- public:
-  DumpAtomADIOS(class LAMMPS *, int, char **);
-  virtual ~DumpAtomADIOS();
+class DumpAtomADIOS : public DumpAtom
+{
 
- protected:
+public:
+    DumpAtomADIOS(class LAMMPS *, int, char **);
+    virtual ~DumpAtomADIOS();
 
-  const std::string ioName="atom";   // name of adios group, referrable in adios2_config.xml
-  adios2::ADIOS *ad = nullptr; // adios object
-  adios2::IO io;    // adios group of variables and attributes in this dump
-  adios2::Engine fh; // adios file/stream handle object
-  adios2::Variable<double> varAtoms; // one ADIOS output variable we need to change
-  uint64_t groupSize; // pre-calculate # of bytes written per processor in a step before writing anything
-  uint64_t groupTotalSize; // ADIOS buffer size returned by adios_group_size(), valid only if size is > default 16MB ADIOS buffer
-  std::string filecurrent;  // name of file for this round (with % and * replaced)
+protected:
+    virtual void openfile();
+    virtual void write();
+    virtual void init_style();
 
-  virtual void openfile();
-  virtual void write();
-  virtual void init_style();
-
+private:
+    DumpAtomADIOSInternal *internal;
 };
-
 }
 
 #endif
 #endif
 
-/* ERROR/WARNING messages:
+    /* ERROR/WARNING messages:
 
-E: Cannot open dump file %s
+    E: Cannot open dump file %s
 
-The output file for the dump command cannot be opened.  Check that the
-path and name are correct.
+    The output file for the dump command cannot be opened.  Check that the
+    path and name are correct.
 
-E: Too much per-proc info for dump
+    E: Too much per-proc info for dump
 
-Number of local atoms times number of columns must fit in a 32-bit
-integer for dump.
+    Number of local atoms times number of columns must fit in a 32-bit
+    integer for dump.
 
-*/
+    */

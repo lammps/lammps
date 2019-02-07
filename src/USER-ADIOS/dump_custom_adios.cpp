@@ -15,25 +15,25 @@
    Contributing author: Paul Coffman (IBM)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
 #include "dump_custom_adios.h"
 #include "atom.h"
-#include "force.h"
+#include "compute.h"
 #include "domain.h"
-#include "region.h"
+#include "error.h"
+#include "fix.h"
+#include "force.h"
 #include "group.h"
 #include "input.h"
-#include "variable.h"
-#include "update.h"
-#include "modify.h"
-#include "compute.h"
-#include "fix.h"
-#include "universe.h"
 #include "memory.h"
-#include "error.h"
-#include <stdlib.h>
+#include "modify.h"
+#include "region.h"
+#include "universe.h"
+#include "update.h"
+#include "variable.h"
+#include <cmath>
+#include <cstring>
+
+#include "adios2.h"
 
 using namespace LAMMPS_NS;
 
@@ -41,30 +41,107 @@ using namespace LAMMPS_NS;
 #define DUMP_BUF_CHUNK_SIZE 16384
 #define DUMP_BUF_INCREMENT_SIZE 4096
 
-enum{ID,MOL,TYPE,ELEMENT,MASS,
-     X,Y,Z,XS,YS,ZS,XSTRI,YSTRI,ZSTRI,XU,YU,ZU,XUTRI,YUTRI,ZUTRI,
-     XSU,YSU,ZSU,XSUTRI,YSUTRI,ZSUTRI,
-     IX,IY,IZ,
-     VX,VY,VZ,FX,FY,FZ,
-     Q,MUX,MUY,MUZ,MU,RADIUS,DIAMETER,
-     OMEGAX,OMEGAY,OMEGAZ,ANGMOMX,ANGMOMY,ANGMOMZ,
-     TQX,TQY,TQZ,SPIN,ERADIUS,ERVEL,ERFORCE,
-     COMPUTE,FIX,VARIABLE};
-enum{LT,LE,GT,GE,EQ,NEQ};
-enum{INT,DOUBLE,STRING,BIGINT};    // same as in DumpCustom
+enum {
+    ID,
+    MOL,
+    TYPE,
+    ELEMENT,
+    MASS,
+    X,
+    Y,
+    Z,
+    XS,
+    YS,
+    ZS,
+    XSTRI,
+    YSTRI,
+    ZSTRI,
+    XU,
+    YU,
+    ZU,
+    XUTRI,
+    YUTRI,
+    ZUTRI,
+    XSU,
+    YSU,
+    ZSU,
+    XSUTRI,
+    YSUTRI,
+    ZSUTRI,
+    IX,
+    IY,
+    IZ,
+    VX,
+    VY,
+    VZ,
+    FX,
+    FY,
+    FZ,
+    Q,
+    MUX,
+    MUY,
+    MUZ,
+    MU,
+    RADIUS,
+    DIAMETER,
+    OMEGAX,
+    OMEGAY,
+    OMEGAZ,
+    ANGMOMX,
+    ANGMOMY,
+    ANGMOMZ,
+    TQX,
+    TQY,
+    TQZ,
+    SPIN,
+    ERADIUS,
+    ERVEL,
+    ERFORCE,
+    COMPUTE,
+    FIX,
+    VARIABLE
+};
+enum { LT, LE, GT, GE, EQ, NEQ };
+enum { INT, DOUBLE, STRING, BIGINT }; // same as in DumpCustom
+
+namespace LAMMPS_NS
+{
+class DumpCustomADIOSInternal
+{
+
+public:
+    DumpCustomADIOSInternal(){};
+    ~DumpCustomADIOSInternal() = default;
+
+    // name of adios group, referrable in adios2_config.xml
+    const std::string ioName = "custom";
+    adios2::ADIOS *ad = nullptr; // adios object
+    adios2::IO io;     // adios group of variables and attributes in this dump
+    adios2::Engine fh; // adios file/stream handle object
+    // one ADIOS output variable we need to change every step
+    adios2::Variable<double> varAtoms;
+    // list of column names for the atom table
+    // (individual list of 'columns' string)
+    std::vector<std::string> columnNames;
+};
+}
 
 /* ---------------------------------------------------------------------- */
 
-DumpCustomADIOS::DumpCustomADIOS(LAMMPS *lmp, int narg, char **arg) :
-  DumpCustom(lmp, narg, arg)
+DumpCustomADIOS::DumpCustomADIOS(LAMMPS *lmp, int narg, char **arg)
+: DumpCustom(lmp, narg, arg)
 {
-    ad = new adios2::ADIOS("adios2_config.xml", world, adios2::DebugON);
-    groupsize = 0;
-    //if (screen) fprintf(screen, "DumpCustomADIOS constructor: nvariable=%d id_variable=%p, variables=%p, nfield=%d, earg=%p\n", nvariable, id_variable, variable, nfield, earg);
-    columnNames.reserve(nfield);
+    internal = new DumpCustomADIOSInternal();
+    internal->ad =
+        new adios2::ADIOS("adios2_config.xml", world, adios2::DebugON);
+
+    // if (screen) fprintf(screen, "DumpCustomADIOS constructor: nvariable=%d
+    // id_variable=%p, variables=%p, nfield=%d, earg=%p\n", nvariable,
+    // id_variable, variable, nfield, earg);
+    internal->columnNames.reserve(nfield);
     for (int i = 0; i < nfield; ++i) {
-        columnNames.push_back(earg[i]);
-        //if (screen) fprintf(screen, "earg[%d] = '%s'\n", i, earg[i]);
+        internal->columnNames.push_back(earg[i]);
+        // if (screen) fprintf(screen, "earg[%d] = '%s'\n", i, earg[i]);
     }
 }
 
@@ -72,11 +149,11 @@ DumpCustomADIOS::DumpCustomADIOS(LAMMPS *lmp, int narg, char **arg) :
 
 DumpCustomADIOS::~DumpCustomADIOS()
 {
-    columnNames.clear();
-    if (fh)
-    {
-        fh.Close();
+    internal->columnNames.clear();
+    if (internal->fh) {
+        internal->fh.Close();
     }
+    delete internal->ad;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -87,39 +164,37 @@ void DumpCustomADIOS::openfile()
         // if one file per timestep, replace '*' with current timestep
         char *filestar = strdup(filename);
         char *filecurrent = new char[strlen(filestar) + 16];
-        char *ptr = strchr(filestar,'*');
+        char *ptr = strchr(filestar, '*');
         *ptr = '\0';
         if (padflag == 0)
-            sprintf(filecurrent,"%s" BIGINT_FORMAT "%s",
-                    filestar,update->ntimestep,ptr+1);
+            sprintf(filecurrent, "%s" BIGINT_FORMAT "%s", filestar,
+                    update->ntimestep, ptr + 1);
         else {
-            char bif[8],pad[16];
-            strcpy(bif,BIGINT_FORMAT);
-            sprintf(pad,"%%s%%0%d%s%%s",padflag,&bif[1]);
-            sprintf(filecurrent,pad,filestar,update->ntimestep,ptr+1);
+            char bif[8], pad[16];
+            strcpy(bif, BIGINT_FORMAT);
+            sprintf(pad, "%%s%%0%d%s%%s", padflag, &bif[1]);
+            sprintf(filecurrent, pad, filestar, update->ntimestep, ptr + 1);
         }
-        fh = io.Open(filecurrent, adios2::Mode::Write, world);
-        if (!fh) {
+        internal->fh =
+            internal->io.Open(filecurrent, adios2::Mode::Write, world);
+        if (!internal->fh) {
             char str[128];
-            sprintf(str,"Cannot open dump file %s",filecurrent);
-            error->one(FLERR,str);
+            sprintf(str, "Cannot open dump file %s", filecurrent);
+            error->one(FLERR, str);
         }
         free(filestar);
-        delete [] filecurrent;
-    }
-    else
-    {
-        if (!singlefile_opened)
-        {
-            fh = io.Open(filename, adios2::Mode::Write, world);
-            if (!fh) {
+        delete[] filecurrent;
+    } else {
+        if (!singlefile_opened) {
+            internal->fh =
+                internal->io.Open(filename, adios2::Mode::Write, world);
+            if (!internal->fh) {
                 char str[128];
-                sprintf(str,"Cannot open dump file %s",filename);
-                error->one(FLERR,str);
+                sprintf(str, "Cannot open dump file %s", filename);
+                error->one(FLERR, str);
             }
             singlefile_opened = 1;
         }
-
     }
 }
 
@@ -154,20 +229,20 @@ void DumpCustomADIOS::write()
     // atomOffset = sum of # of atoms up to this proc (exclusive prefix sum)
 
     bigint bnme = nme;
-    MPI_Allreduce(&bnme,&ntotal,1,MPI_LMP_BIGINT,MPI_SUM,world);
+    MPI_Allreduce(&bnme, &ntotal, 1, MPI_LMP_BIGINT, MPI_SUM, world);
 
     bigint atomOffset; // sum of all atoms on processes 0..me-1
-    MPI_Scan (&bnme, &atomOffset, 1, MPI_LMP_BIGINT, MPI_SUM, world);
+    MPI_Scan(&bnme, &atomOffset, 1, MPI_LMP_BIGINT, MPI_SUM, world);
     atomOffset -= nme; // exclusive prefix sum needed
 
     // Now we know the global size and the local subset size and offset
-    // of the atoms table 
+    // of the atoms table
     size_t nAtomsGlobal = static_cast<size_t>(ntotal);
     size_t startRow = static_cast<size_t>(atomOffset);
     size_t nAtomsLocal = static_cast<size_t>(nme);
     size_t nColumns = static_cast<size_t>(size_one);
-    varAtoms.SetShape({nAtomsGlobal,nColumns});
-    varAtoms.SetSelection({{startRow, 0}, {nAtomsLocal,nColumns}});
+    internal->varAtoms.SetShape({nAtomsGlobal, nColumns});
+    internal->varAtoms.SetSelection({{startRow, 0}, {nAtomsLocal, nColumns}});
 
     // insure filewriter proc can receive everyone's info
     // limit nmax*size_one to int since used as arg in MPI_Rsend() below
@@ -176,64 +251,57 @@ void DumpCustomADIOS::write()
     // sort buf as needed
 
     if (nme > maxbuf) {
-        if ((bigint) nme * size_one > MAXSMALLINT)
-            error->all(FLERR,"Too much per-proc info for dump");
+        if ((bigint)nme * size_one > MAXSMALLINT)
+            error->all(FLERR, "Too much per-proc info for dump");
         maxbuf = nme;
         memory->destroy(buf);
-        memory->create(buf,(maxbuf*size_one),"dump:buf");
+        memory->create(buf, (maxbuf * size_one), "dump:buf");
     }
     if (sort_flag && sortcol == 0 && nme > maxids) {
         maxids = nme;
         memory->destroy(ids);
-        memory->create(ids,maxids,"dump:ids");
+        memory->create(ids, maxids, "dump:ids");
     }
 
-    if (sort_flag && sortcol == 0) pack(ids);
-    else pack(NULL);
-    if (sort_flag) sort();
-
-    // Calculate data size written by this process
-    groupsize = nme * size_one * sizeof(double); // size of atoms data on this process
-    groupsize += 3*sizeof(uint64_t) + 1*sizeof(int); // scalars written by each process
-    if (me == 0) {
-        groupsize += 1*sizeof(uint64_t) + 1*sizeof(int) + 6*sizeof(double); // scalars
-        if (domain->triclinic) {
-            groupsize += 3*sizeof(double); // boxxy, boxxz, boxyz
-        }
-    }
+    if (sort_flag && sortcol == 0)
+        pack(ids);
+    else
+        pack(NULL);
+    if (sort_flag)
+        sort();
 
     openfile();
-    fh.BeginStep();
+    internal->fh.BeginStep();
     // write info on data as scalars (by me==0)
     if (me == 0) {
-        fh.Put<uint64_t>("ntimestep",   update->ntimestep);
-        fh.Put<int>("nprocs",      nprocs);
+        internal->fh.Put<uint64_t>("ntimestep", update->ntimestep);
+        internal->fh.Put<int>("nprocs", nprocs);
 
-        fh.Put<double>("boxxlo", boxxlo);
-        fh.Put<double>("boxxhi", boxxhi);
-        fh.Put<double>("boxylo", boxylo);
-        fh.Put<double>("boxyhi", boxyhi);
-        fh.Put<double>("boxzlo", boxzlo);
-        fh.Put<double>("boxzhi", boxzhi);
+        internal->fh.Put<double>("boxxlo", boxxlo);
+        internal->fh.Put<double>("boxxhi", boxxhi);
+        internal->fh.Put<double>("boxylo", boxylo);
+        internal->fh.Put<double>("boxyhi", boxyhi);
+        internal->fh.Put<double>("boxzlo", boxzlo);
+        internal->fh.Put<double>("boxzhi", boxzhi);
 
         if (domain->triclinic) {
-            fh.Put<double>("boxxy", boxxy);
-            fh.Put<double>("boxxz", boxxz);
-            fh.Put<double>("boxyz", boxyz);
+            internal->fh.Put<double>("boxxy", boxxy);
+            internal->fh.Put<double>("boxxz", boxxz);
+            internal->fh.Put<double>("boxyz", boxyz);
         }
     }
-    // Everyone needs to write scalar variables that are used as dimensions and offsets of arrays
-    fh.Put<uint64_t>("natoms",   ntotal);
-    fh.Put<int>("ncolumns", size_one);
-    fh.Put<uint64_t>("nme",      bnme);
-    fh.Put<uint64_t>("offset",   atomOffset);
+    // Everyone needs to write scalar variables that are used as dimensions and
+    // offsets of arrays
+    internal->fh.Put<uint64_t>("natoms", ntotal);
+    internal->fh.Put<int>("ncolumns", size_one);
+    internal->fh.Put<uint64_t>("nme", bnme);
+    internal->fh.Put<uint64_t>("offset", atomOffset);
     // now write the atoms
-    fh.Put<double>("atoms",    buf);
-    fh.EndStep();// I/O will happen now...
+    internal->fh.Put<double>("atoms", buf);
+    internal->fh.EndStep(); // I/O will happen now...
 
-    if (multifile)
-    {
-        fh.Close();
+    if (multifile) {
+        internal->fh.Close();
     }
 }
 
@@ -246,43 +314,49 @@ void DumpCustomADIOS::init_style()
 
     domain->boundary_string(boundstr);
 
-    // remove % from filename since ADIOS always writes a global file with data/metadata
+    // remove % from filename since ADIOS always writes a global file with
+    // data/metadata
     int len = strlen(filename);
-    char *ptr = strchr(filename,'%');
+    char *ptr = strchr(filename, '%');
     if (ptr) {
         *ptr = '\0';
-        char *s = new char[len-1];
-        sprintf(s,"%s%s",filename,ptr+1);
-        strncpy(filename,s,len);
+        char *s = new char[len - 1];
+        sprintf(s, "%s%s", filename, ptr + 1);
+        strncpy(filename, s, len);
     }
 
-    /* The next four loops are copied from dump_custom_mpiio, but nothing is done with them.
+    /* The next four loops are copied from dump_custom_mpiio, but nothing is
+     * done with them.
      * It is unclear why we need them here.
-     * For metadata, variable[] will be written out as an ADIOS attribute if nvariable>0
+     * For metadata, variable[] will be written out as an ADIOS attribute if
+     * nvariable>0
      */
     // find current ptr for each compute,fix,variable
     // check that fix frequency is acceptable
     int icompute;
     for (int i = 0; i < ncompute; i++) {
         icompute = modify->find_compute(id_compute[i]);
-        if (icompute < 0) error->all(FLERR,"Could not find dump custom compute ID");
+        if (icompute < 0)
+            error->all(FLERR, "Could not find dump custom compute ID");
         compute[i] = modify->compute[icompute];
     }
 
     int ifix;
     for (int i = 0; i < nfix; i++) {
         ifix = modify->find_fix(id_fix[i]);
-        if (ifix < 0) error->all(FLERR,"Could not find dump custom fix ID");
+        if (ifix < 0)
+            error->all(FLERR, "Could not find dump custom fix ID");
         fix[i] = modify->fix[ifix];
         if (nevery % modify->fix[ifix]->peratom_freq)
-            error->all(FLERR,"Dump custom and fix not computed at compatible times");
+            error->all(FLERR,
+                       "Dump custom and fix not computed at compatible times");
     }
 
     int ivariable;
     for (int i = 0; i < nvariable; i++) {
         ivariable = input->variable->find(id_variable[i]);
         if (ivariable < 0)
-            error->all(FLERR,"Could not find dump custom variable name");
+            error->all(FLERR, "Could not find dump custom variable name");
         variable[i] = ivariable;
     }
 
@@ -290,65 +364,71 @@ void DumpCustomADIOS::init_style()
     if (iregion >= 0) {
         iregion = domain->find_region(idregion);
         if (iregion == -1)
-            error->all(FLERR,"Region ID for dump custom does not exist");
+            error->all(FLERR, "Region ID for dump custom does not exist");
     }
 
-    /* Define the group of variables for the atom style here since it's a fixed set */
-    io = ad->DeclareIO(ioName);
-    if (!io.InConfigFile())
-    {
+    /* Define the group of variables for the atom style here since it's a fixed
+     * set */
+    internal->io = internal->ad->DeclareIO(internal->ioName);
+    if (!internal->io.InConfigFile()) {
         // if not defined by user, we can change the default settings
         // BPFile is the default writer
-        io.SetEngine("BPFile");
+        internal->io.SetEngine("BPFile");
         int num_aggregators = multiproc;
         if (num_aggregators == 0)
             num_aggregators = 1;
         char nstreams[128];
-        sprintf (nstreams, "%d", num_aggregators);
-        io.SetParameters({{"substreams", nstreams}});
-        if (me==0 && screen) fprintf(screen, "ADIOS method for %s is n-to-m (aggregation with %s writers)\n", filename, nstreams);
+        sprintf(nstreams, "%d", num_aggregators);
+        internal->io.SetParameters({{"substreams", nstreams}});
+        if (me == 0 && screen)
+            fprintf(
+                screen,
+                "ADIOS method for %s is n-to-m (aggregation with %s writers)\n",
+                filename, nstreams);
     }
 
+    internal->io.DefineVariable<uint64_t>("ntimestep");
+    internal->io.DefineVariable<uint64_t>("natoms");
 
-    io.DefineVariable<uint64_t>("ntimestep");
-    io.DefineVariable<uint64_t>("natoms");
+    internal->io.DefineVariable<int>("nprocs");
+    internal->io.DefineVariable<int>("ncolumns");
 
-    io.DefineVariable<int>("nprocs");
-    io.DefineVariable<int>("ncolumns");
+    internal->io.DefineVariable<double>("boxxlo");
+    internal->io.DefineVariable<double>("boxxhi");
+    internal->io.DefineVariable<double>("boxylo");
+    internal->io.DefineVariable<double>("boxyhi");
+    internal->io.DefineVariable<double>("boxzlo");
+    internal->io.DefineVariable<double>("boxzhi");
 
-    io.DefineVariable<double>("boxxlo");
-    io.DefineVariable<double>("boxxhi");
-    io.DefineVariable<double>("boxylo");
-    io.DefineVariable<double>("boxyhi");
-    io.DefineVariable<double>("boxzlo");
-    io.DefineVariable<double>("boxzhi");
+    internal->io.DefineVariable<double>("boxxy");
+    internal->io.DefineVariable<double>("boxxz");
+    internal->io.DefineVariable<double>("boxyz");
 
-    io.DefineVariable<double>("boxxy");
-    io.DefineVariable<double>("boxxz");
-    io.DefineVariable<double>("boxyz");
+    internal->io.DefineAttribute<int>("triclinic", domain->triclinic);
 
-    io.DefineAttribute<int>("triclinic",  domain->triclinic);
-
-    int *boundaryptr = reinterpret_cast<int*>(domain->boundary);
-    io.DefineAttribute<int>("boundary", boundaryptr, 6);
+    int *boundaryptr = reinterpret_cast<int *>(domain->boundary);
+    internal->io.DefineAttribute<int>("boundary", boundaryptr, 6);
 
     size_t nColumns = static_cast<size_t>(size_one);
-    io.DefineAttribute<std::string>("columns",  columnNames.data(), nColumns);
-    io.DefineAttribute<std::string>("columnstr", columns);
-    io.DefineAttribute<std::string>("boundarystr",  boundstr);
-    io.DefineAttribute<std::string>("LAMMPS/dump_style",  "atom");
-    io.DefineAttribute<std::string>("LAMMPS/version",  universe->version);
-    io.DefineAttribute<std::string>("LAMMPS/num_ver",  universe->num_ver);
+    internal->io.DefineAttribute<std::string>(
+        "columns", internal->columnNames.data(), nColumns);
+    internal->io.DefineAttribute<std::string>("columnstr", columns);
+    internal->io.DefineAttribute<std::string>("boundarystr", boundstr);
+    internal->io.DefineAttribute<std::string>("LAMMPS/dump_style", "atom");
+    internal->io.DefineAttribute<std::string>("LAMMPS/version",
+                                              universe->version);
+    internal->io.DefineAttribute<std::string>("LAMMPS/num_ver",
+                                              universe->num_ver);
 
-    io.DefineVariable<uint64_t>("nme", {adios2::LocalValueDim}); // local dimension variable
-    io.DefineVariable<uint64_t>("offset", {adios2::LocalValueDim}); // local dimension variable
+    internal->io.DefineVariable<uint64_t>(
+        "nme", {adios2::LocalValueDim}); // local dimension variable
+    internal->io.DefineVariable<uint64_t>(
+        "offset", {adios2::LocalValueDim}); // local dimension variable
 
     // atom table size is not known at the moment
     // it will be correctly defined at the moment of write
     size_t UnknownSizeYet = 1;
-    varAtoms = io.DefineVariable<double>("atoms", 
-                                         {UnknownSizeYet,nColumns}, 
-                                         {UnknownSizeYet, 0}, 
-                                         {UnknownSizeYet,nColumns});
-
+    internal->varAtoms = internal->io.DefineVariable<double>(
+        "atoms", {UnknownSizeYet, nColumns}, {UnknownSizeYet, 0},
+        {UnknownSizeYet, nColumns});
 }

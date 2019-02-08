@@ -727,26 +727,6 @@ void CreateAtoms::add_lattice()
   domain->lattice->bbox(1,bboxhi[0],bboxhi[1],bboxhi[2],
                         xmin,ymin,zmin,xmax,ymax,zmax);
 
-  // narrow down min/max further by extent of the region, if possible
-
-  if ((style == REGION) && domain->regions[nregion]->bboxflag) {
-    double rxmin = domain->regions[nregion]->extent_xlo;
-    double rxmax = domain->regions[nregion]->extent_xhi;
-    double rymin = domain->regions[nregion]->extent_ylo;
-    double rymax = domain->regions[nregion]->extent_yhi;
-    double rzmin = domain->regions[nregion]->extent_zlo;
-    double rzmax = domain->regions[nregion]->extent_zhi;
-    domain->lattice->box2lattice(rxmin,rymin,rzmin);
-    domain->lattice->box2lattice(rxmax,rymax,rzmax);
-
-    if (rxmin > xmin) xmin = (rxmin > xmax) ? xmax : rxmin;
-    if (rxmax < xmax) xmax = (rxmax < xmin) ? xmin : rxmax;
-    if (rymin > ymin) ymin = (rymin > ymax) ? ymax : rymin;
-    if (rymax < ymax) ymax = (rymax < ymin) ? ymin : rymax;
-    if (rzmin > zmin) zmin = (rzmin > zmax) ? zmax : rzmin;
-    if (rzmax < zmax) zmax = (rzmax < zmin) ? zmin : rzmax;
-  }
-
   // ilo:ihi,jlo:jhi,klo:khi = loop bounds for lattice overlap of my subbox
   // overlap = any part of a unit cell (face,edge,pt) in common with my subbox
   // in lattice space, subbox is a tilted box

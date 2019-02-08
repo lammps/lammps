@@ -2290,7 +2290,7 @@ int Atom::memcheck(const char *str)
     return 0;
   }
 
-  if (strlen(memstr) + n >= memlength) {
+  if ((int)strlen(memstr) + n >= memlength) {
     memlength += DELTA_MEMSTR;
     memory->grow(memstr,memlength,"atom:memstr");
   }

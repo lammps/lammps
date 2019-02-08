@@ -197,8 +197,8 @@ double PairLJClass2CoulLongGPU::memory_usage()
 /* ---------------------------------------------------------------------- */
 
 void PairLJClass2CoulLongGPU::cpu_compute(int start, int inum, int eflag,
-                                       int vflag, int *ilist, int *numneigh,
-                                       int **firstneigh)
+                                          int /* vflag */, int *ilist,
+                                          int *numneigh, int **firstneigh)
 {
   int i,j,ii,jj,jnum,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;

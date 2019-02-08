@@ -4988,7 +4988,7 @@ void PairBOP::read_table(char *filename)
       fgets(s,MAXLINE,fp);
       nws=0;
       ws=1;
-      for(j=0;j<strlen(s);j++) {
+      for(j=0;j<(int)strlen(s);j++) {
         if(ws==1) {
           if(isspace(s[j])) {
             ws=1;
@@ -5015,7 +5015,7 @@ void PairBOP::read_table(char *filename)
     nws=0;
     ws=1;
     fgets(s,MAXLINE,fp);
-    for(j=0;j<strlen(s);j++) {
+    for(j=0;j<(int)strlen(s);j++) {
       if(ws==1) {
         if(isspace(s[j])) {
           ws=1;

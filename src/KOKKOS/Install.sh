@@ -49,6 +49,8 @@ action angle_charmm_kokkos.cpp angle_charmm.cpp
 action angle_charmm_kokkos.h angle_charmm.h
 action angle_class2_kokkos.cpp angle_class2.cpp 
 action angle_class2_kokkos.h angle_class2.h
+action angle_cosine_kokkos.cpp angle_cosine.cpp 
+action angle_cosine_kokkos.h angle_cosine.h
 action angle_harmonic_kokkos.cpp angle_harmonic.cpp 
 action angle_harmonic_kokkos.h angle_harmonic.h 
 action atom_kokkos.cpp

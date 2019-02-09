@@ -85,7 +85,7 @@ class lammps(object):
     # fall back to loading with a relative path,
     #   typically requires LD_LIBRARY_PATH to be set appropriately
 
-    if sys.platform == 'darwin':
+    if 'liblammps.dylib' in os.listdir(modpath):
       lib_ext = ".dylib"
     else:
       lib_ext = ".so"

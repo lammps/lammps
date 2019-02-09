@@ -22,7 +22,7 @@ else: pydir = ""
 # copy lammps.py to pydir if it exists
 # if pydir not specified, install in site-packages via distutils setup()
 
-if sys.platform == 'darwin':
+if 'liblammps.dylib' in os.listdir('../src/'):
   lib_ext = ".dylib"
 else: 
   lib_ext = ".so"

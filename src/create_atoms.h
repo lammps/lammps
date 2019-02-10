@@ -162,7 +162,7 @@ E: Attempting to insert more particles than available lattice points
 
 Self-explanatory.
 
-W: Specifying an 'randnpos' value of '0' is equivalent to no 'randnpos' keyword
+W: Specifying an 'subset' value of '0' is equivalent to no 'subset' keyword
 
 Self-explanatory.
 

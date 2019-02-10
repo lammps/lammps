@@ -839,65 +839,61 @@ void CreateAtoms::add_lattice()
 void CreateAtoms::get_subset()
 {
   enum{ATOMS,HOLES};
-  int i,j,temp,irand,mysubset,npicks,pickmode;
+  int i,j,temp,irand,npicks,mynpicks,pickmode;
   double myrand;
-  if (nprocs > 1) {
-    int allnlatts[nprocs];
-    int allsubsets[nprocs];
-    double proc_sects[nprocs];
+  int allnlatts[nprocs];
+  int allsubsets[nprocs];
+  int localpicks[nprocs];
+  double proc_sects[nprocs];
 
-    MPI_Allgather(&nlatt, 1, MPI_INT, &allnlatts, 1, MPI_INT, world);
+  MPI_Allgather(&nlatt, 1, MPI_INT, &allnlatts, 1, MPI_INT, world);
 
-    if (me == 0) {
-      int ntotal = 0;
-      for (i = 0; i < nprocs; i++)
-        ntotal += allnlatts[i];
+  int ntotal = 0;
+  for (i = 0; i < nprocs; i++)
+    ntotal += allnlatts[i];
 
-      if (nsubset > ntotal)
-         error->one(FLERR,"Attempting to insert more particles than available lattice points");
+  if (nsubset > ntotal)
+     error->all(FLERR,"Attempting to insert more particles than available lattice points");
 
-      // define regions of unity based on a proc's fraction of total lattice points
-      proc_sects[0] = allnlatts[0]/ntotal;
-      for (i = 1; i < nprocs; i++)
-        proc_sects[i] = proc_sects[i-1] + (double) allnlatts[i] / (double) ntotal;
+  // define regions of unity based on a proc's fraction of total lattice points
+  proc_sects[0] = (double) allnlatts[0] / (double) ntotal;
+  for (i = 1; i < nprocs; i++)
+    proc_sects[i] = proc_sects[i-1] + (double) allnlatts[i] / (double) ntotal;
 
-      if (nsubset > ntotal/2) {
-        pickmode = HOLES;
-        npicks = ntotal - nsubset;
-      } else {
-        pickmode = ATOMS;
-        npicks = nsubset;
-      }
-
-      for (i = 0; i < nprocs; i++)
-        allsubsets[i] = 0;
-
-      for (i = 0; i < npicks; i++) {
-        myrand = ranlatt->uniform();
-        for (j = 0; j < nprocs; j++)
-          if (myrand < proc_sects[j]) {
-            allsubsets[j]++;
-            break;
-          }
-      }
-
-      if (pickmode == HOLES)
-        for (i = 0; i < nprocs; i++)
-          allsubsets[i] = allnlatts[i] - allsubsets[i];
-    }
-
-    MPI_Scatter(&allsubsets, 1, MPI_INT, &mysubset, 1, MPI_INT, 0, world);
+  if (nsubset > ntotal/2) {
+    pickmode = HOLES;
+    npicks = ntotal - nsubset;
   } else {
-    if (nsubset > nlatt)
-       error->one(FLERR,"Attempting to insert more particles than available lattice points");
-    mysubset = nsubset;
+    pickmode = ATOMS;
+    npicks = nsubset;
   }
+
+  mynpicks = npicks/nprocs;
+  if (me == 0) mynpicks = npicks - (nprocs-1)*(mynpicks);
+
+  for (i = 0; i < nprocs; i++)
+    localpicks[i] = 0;
+
+  for (i = 0; i < mynpicks; i++) {
+    myrand = ranlatt->uniform();
+    for (j = 0; j < nprocs; j++)
+      if (myrand < proc_sects[j]) {
+        localpicks[j]++;
+        break;
+      }
+  }
+
+  MPI_Allreduce(&localpicks[0],&allsubsets[0],nprocs,MPI_INT,MPI_SUM,world);
+
+  if (pickmode == HOLES)
+    for (i = 0; i < nprocs; i++)
+      allsubsets[i] = allnlatts[i] - allsubsets[i];
 
   // each processor chooses its random lattice points
   memory->create(flag,nlatt,"create_atoms:flag");
 
   for (i = 0; i < nlatt; i++)
-    if (i < mysubset)
+    if (i < allsubsets[me])
       flag[i] = 1;
     else
       flag[i] = 0;

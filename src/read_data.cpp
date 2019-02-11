@@ -872,9 +872,9 @@ void ReadData::command(int narg, char **arg)
   if (domain->nonperiodic == 2) {
     if (domain->triclinic) domain->x2lamda(atom->nlocal);
     domain->reset_box();
-    comm->init();
-    comm->exchange();
-    if (atom->map_style) atom->map_set();
+    Irregular *irregular = new Irregular(lmp);
+    irregular->migrate_atoms(1);
+    delete irregular;
     if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
     bigint natoms;
@@ -1963,7 +1963,7 @@ void ReadData::parse_keyword(int first)
     }
     while (eof == 0 && done == 0) {
       int blank = strspn(line," \t\n\r");
-      if ((blank == (int)strlen(line)) || (line[blank] == '#')) {
+      if ((blank == strlen(line)) || (line[blank] == '#')) {
         if (fgets(line,MAXLINE,fp) == NULL) eof = 1;
       } else done = 1;
     }

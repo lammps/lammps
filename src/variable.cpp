@@ -34,7 +34,7 @@
 #include "random_mars.h"
 #include "math_const.h"
 #include "atom_masks.h"
-#include "python.h"
+#include "lmppython.h"
 #include "memory.h"
 #include "info.h"
 #include "error.h"

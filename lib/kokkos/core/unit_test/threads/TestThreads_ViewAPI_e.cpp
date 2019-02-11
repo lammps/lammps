@@ -43,3 +43,4 @@
 
 #include <threads/TestThreads_Category.hpp>
 #include <TestViewAPI_e.hpp>
+#include <TestViewCopy.hpp>

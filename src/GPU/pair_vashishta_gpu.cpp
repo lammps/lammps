@@ -151,7 +151,7 @@ void PairVashishtaGPU::init_style()
   if (force->newton_pair != 0)
     error->all(FLERR,"Pair style vashishta/gpu requires newton pair off");
 
-  double *cutsq, *r0, *r0eps, *gamma, *eta;
+  double *cutsq, *r0, *gamma, *eta;
   double *lam1inv, *lam4inv, *zizj, *mbigd;
   double *dvrc, *big6w, *heta, *bigh;
   double *bigw, *c0, *costheta, *bigb;

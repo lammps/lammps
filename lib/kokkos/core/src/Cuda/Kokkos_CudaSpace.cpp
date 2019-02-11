@@ -829,7 +829,8 @@ void* cuda_resize_scratch_space(std::int64_t bytes, bool force_shrink) {
   }
   if(bytes > current_size) {
     current_size = bytes;
-    ptr = Kokkos::kokkos_realloc<Kokkos::CudaSpace>(ptr,current_size);
+    Kokkos::kokkos_free<Kokkos::CudaSpace>(ptr);
+    ptr = Kokkos::kokkos_malloc<Kokkos::CudaSpace>("CudaSpace::ScratchMemory",current_size);
   }
   if((bytes < current_size) && (force_shrink)) {
     current_size = bytes;

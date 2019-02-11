@@ -46,7 +46,7 @@
 #include "accelerator_kokkos.h"
 #include "accelerator_omp.h"
 #include "timer.h"
-#include "python.h"
+#include "lmppython.h"
 #include "version.h"
 #include "memory.h"
 #include "error.h"

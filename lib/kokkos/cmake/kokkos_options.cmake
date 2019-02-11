@@ -104,6 +104,7 @@ list(APPEND KOKKOS_ARCH_LIST
      Pascal61        # (GPU) NVIDIA Pascal generation CC 6.1
      Volta70         # (GPU) NVIDIA Volta generation CC 7.0
      Volta72         # (GPU) NVIDIA Volta generation CC 7.2
+     Turing75         # (GPU) NVIDIA Turing generation CC 7.5
     )
 
 # List of possible device architectures.

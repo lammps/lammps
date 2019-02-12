@@ -168,13 +168,11 @@ void ThirdOrder::options(int narg, char **arg)
     if (narg < 0) error->all(FLERR,"Illegal dynamical_matrix command");
     int iarg = 0;
     const char *filename = "third_order.txt";
-    std::stringstream fss;
 
     while (iarg < narg) {
         if (strcmp(arg[iarg],"file") == 0) {
             if (iarg+2 > narg) error->all(FLERR, "Illegal dynamical_matrix command");
-            fss << arg[iarg + 1] << me;
-            filename = fss.str().c_str();
+            filename = arg[iarg + 1];
             file_flag = 1;
             iarg += 2;
         }
@@ -189,7 +187,7 @@ void ThirdOrder::options(int narg, char **arg)
             iarg += 2;
         } else error->all(FLERR,"Illegal dynamical_matrix command");
     }
-    if (file_flag == 1 and me == 0) {
+    if (file_flag == 1 && me == 0) {
         openfile(filename);
     }
 }
@@ -338,10 +336,9 @@ void ThirdOrder::writeMatrix(double *dynmat, int i, int a, int j, int b)
     if (!binaryflag && fp) {
         clearerr(fp);
         for (int k = 0; k < gcount; k++){
-            double norm = pow(dynmat[k*3], 2)
-                          + pow(dynmat[k*3+1], 2)
-                          + pow(dynmat[k+3+2], 2);
-            if (norm > 1.0e-16)
+            if (dynmat[k*3] > 1.0e-16
+                && dynmat[k*3+1] > 1.0e-16
+                && dynmat[k*3+2] > 1.0e-16)
                 fprintf(fp,
                         "%d %d %d %d %d %7.8f %7.8f %7.8f\n",
                         i+1, a + 1, j+1, b + 1, groupmap[k]+1,

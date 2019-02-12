@@ -100,6 +100,7 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
   q1 = NULL;
   q2 = NULL;
   streitz_flag = 0;
+  reax_flag = 0;
   qv = NULL;
 
   comm_forward = comm_reverse = 1;
@@ -117,6 +118,8 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
 
   if (strcmp(arg[7],"coul/streitz") == 0) {
     streitz_flag = 1;
+  } else if (strcmp(arg[7],"reax/c") == 0) {
+    reax_flag = 1;
   } else {
     read_file(arg[7]);
   }
@@ -138,7 +141,7 @@ FixQEq::~FixQEq()
 
   memory->destroy(shld);
 
-  if (!streitz_flag) {
+  if (!streitz_flag && !reax_flag) {
     memory->destroy(chi);
     memory->destroy(eta);
     memory->destroy(gamma);

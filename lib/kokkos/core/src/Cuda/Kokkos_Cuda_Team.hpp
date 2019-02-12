@@ -290,7 +290,7 @@ public:
       // Intra vector lane shuffle reduction:
       typename ReducerType::value_type tmp ( reducer.reference() );
 
-      unsigned mask = blockDim.x==32?0xffffffff:((1<<blockDim.x)-1)<<(threadIdx.y%(32/blockDim.x))*blockDim.x;
+      unsigned mask = blockDim.x==32?0xffffffff:((1<<blockDim.x)-1)<<((threadIdx.y%(32/blockDim.x))*blockDim.x);
 
       for ( int i = blockDim.x ; ( i >>= 1 ) ; ) {
         cuda_shfl_down( reducer.reference() , tmp , i , blockDim.x , mask );
@@ -742,7 +742,7 @@ void parallel_for
   #ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
   KOKKOS_IMPL_CUDA_SYNCWARP_MASK(blockDim.x==32?0xffffffff:((1<<blockDim.x)-1)<<(threadIdx.y%(32/blockDim.x))*blockDim.x);
   #else
-  KOKKOS_IMPL_CUDA_SYNCWARP_MASK;
+  KOKKOS_IMPL_CUDA_SYNCWARP;
   #endif
 #endif
 }
@@ -915,7 +915,7 @@ void single(const Impl::VectorSingleStruct<Impl::CudaTeamMember>& , const Functo
   #ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
   KOKKOS_IMPL_CUDA_SYNCWARP_MASK(blockDim.x==32?0xffffffff:((1<<blockDim.x)-1)<<(threadIdx.y%(32/blockDim.x))*blockDim.x);
   #else
-  KOKKOS_IMPL_CUDA_SYNCWARP_MASK;
+  KOKKOS_IMPL_CUDA_SYNCWARP;
   #endif
 #endif
 }
@@ -928,7 +928,7 @@ void single(const Impl::ThreadSingleStruct<Impl::CudaTeamMember>& , const Functo
   #ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
   KOKKOS_IMPL_CUDA_SYNCWARP_MASK(blockDim.x==32?0xffffffff:((1<<blockDim.x)-1)<<(threadIdx.y%(32/blockDim.x))*blockDim.x);
   #else
-  KOKKOS_IMPL_CUDA_SYNCWARP_MASK;
+  KOKKOS_IMPL_CUDA_SYNCWARP;
   #endif
 #endif
 }
@@ -938,7 +938,7 @@ KOKKOS_INLINE_FUNCTION
 void single(const Impl::VectorSingleStruct<Impl::CudaTeamMember>& , const FunctorType& lambda, ValueType& val) {
 #ifdef __CUDA_ARCH__
   if(threadIdx.x == 0) lambda(val);
-  unsigned mask = blockDim.x==32?0xffffffff:((1<<blockDim.x)-1)<<(threadIdx.y%(32/blockDim.x))*blockDim.x;
+  unsigned mask = blockDim.x==32?0xffffffff:((1<<blockDim.x)-1)<<((threadIdx.y%(32/blockDim.x))*blockDim.x);
   Impl::cuda_shfl(val,val,0,blockDim.x,mask);
 #endif
 }

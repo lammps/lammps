@@ -79,7 +79,7 @@ and after such a LAMMPS run.
 Here is an example of running a series of simulations using the next
 command with an {index}-style variable.  If this input script is named
 in.polymer, 8 simulations would be run using data files from
-directories run1 thru run8.
+directories run1 through run8.
 
 variable d index run1 run2 run3 run4 run5 run6 run7 run8
 shell cd $d
@@ -114,7 +114,7 @@ jump in.script :pre
 
 Here is an example of a double loop which uses the "if"_if.html and
 "jump"_jump.html commands to break out of the inner loop when a
-condition is met, then continues iterating thru the outer loop.
+condition is met, then continues iterating through the outer loop.
 
 label       loopa
 variable    a loop 5

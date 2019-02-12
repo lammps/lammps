@@ -205,6 +205,8 @@ FixHyperLocal::~FixHyperLocal()
   memory->destroy(bonds);
   memory->destroy(numbond);
 
+  atom->delete_callback(id,0);
+
   memory->destroy(maxstrain);
   memory->destroy(maxstrain_region);
   memory->destroy(maxstrain_bondindex);

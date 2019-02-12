@@ -198,6 +198,7 @@ struct ViewTraits< void >
   typedef void  HostMirrorSpace ;
   typedef void  array_layout ;
   typedef void  memory_traits ;
+  typedef void  specialize ;
 };
 
 template< class ... Prop >
@@ -209,6 +210,7 @@ struct ViewTraits< void , void , Prop ... >
   typedef typename ViewTraits<void,Prop...>::HostMirrorSpace  HostMirrorSpace ;
   typedef typename ViewTraits<void,Prop...>::array_layout     array_layout ;
   typedef typename ViewTraits<void,Prop...>::memory_traits    memory_traits ;
+  typedef typename ViewTraits<void,Prop...>::specialize       specialize ;
 };
 
 template< class ArrayLayout , class ... Prop >
@@ -221,6 +223,7 @@ struct ViewTraits< typename std::enable_if< Kokkos::Impl::is_array_layout<ArrayL
   typedef typename ViewTraits<void,Prop...>::HostMirrorSpace  HostMirrorSpace ;
   typedef          ArrayLayout                                array_layout ;
   typedef typename ViewTraits<void,Prop...>::memory_traits    memory_traits ;
+  typedef typename ViewTraits<void,Prop...>::specialize       specialize ;
 };
 
 template< class Space , class ... Prop >
@@ -239,6 +242,7 @@ struct ViewTraits< typename std::enable_if< Kokkos::Impl::is_space<Space>::value
   typedef typename Kokkos::Impl::HostMirror< Space >::Space HostMirrorSpace ;
   typedef typename execution_space::array_layout            array_layout ;
   typedef typename ViewTraits<void,Prop...>::memory_traits  memory_traits ;
+  typedef typename ViewTraits<void,Prop...>::specialize       specialize ;
 };
 
 template< class MemoryTraits , class ... Prop >
@@ -257,6 +261,7 @@ struct ViewTraits< typename std::enable_if< Kokkos::Impl::is_memory_traits<Memor
   typedef void          HostMirrorSpace ;
   typedef void          array_layout ;
   typedef MemoryTraits  memory_traits ;
+  typedef void          specialize ;
 };
 
 
@@ -335,7 +340,12 @@ public:
 
   typedef ArrayLayout                         array_layout ;
   typedef typename data_analysis::dimension   dimension ;
-  typedef typename data_analysis::specialize  specialize /* mapping specialization tag */ ;
+
+  typedef typename std::conditional<
+                      std::is_same<typename data_analysis::specialize,void>::value
+                      ,typename prop::specialize
+                      ,typename data_analysis::specialize>::type
+                   specialize ; /* mapping specialization tag */
 
   enum { rank         = dimension::rank };
   enum { rank_dynamic = dimension::rank_dynamic };
@@ -542,7 +552,7 @@ public:
 
 private:
 
-  typedef Kokkos::Impl::ViewMapping< traits , void > map_type ;
+  typedef Kokkos::Impl::ViewMapping< traits , typename traits::specialize > map_type ;
   typedef Kokkos::Impl::SharedAllocationTracker      track_type ;
 
   track_type  m_track ;
@@ -608,13 +618,18 @@ public:
   template< typename iType >
   KOKKOS_INLINE_FUNCTION constexpr
   typename std::enable_if< std::is_integral<iType>::value , size_t >::type
-  extent( const iType & r ) const
+  extent( const iType & r ) const noexcept
     { return m_map.extent(r); }
+
+  static KOKKOS_INLINE_FUNCTION constexpr
+  size_t
+  static_extent( const unsigned r ) noexcept
+    { return map_type::static_extent(r); }
 
   template< typename iType >
   KOKKOS_INLINE_FUNCTION constexpr
   typename std::enable_if< std::is_integral<iType>::value , int >::type
-  extent_int( const iType & r ) const
+  extent_int( const iType & r ) const noexcept
     { return static_cast<int>(m_map.extent(r)); }
 
   KOKKOS_INLINE_FUNCTION constexpr
@@ -709,11 +724,11 @@ public:
 
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE
   KOKKOS_INLINE_FUNCTION
-  const Kokkos::Impl::ViewMapping< traits , void > &
+  const Kokkos::Impl::ViewMapping< traits , typename traits::specialize > &
   implementation_map() const { return m_map ; }
 #endif
   KOKKOS_INLINE_FUNCTION
-  const Kokkos::Impl::ViewMapping< traits , void > &
+  const Kokkos::Impl::ViewMapping< traits , typename traits::specialize > &
   impl_map() const { return m_map ; }
   KOKKOS_INLINE_FUNCTION
   const Kokkos::Impl::SharedAllocationTracker &
@@ -1955,7 +1970,7 @@ public:
     , m_map()
     {
       typedef typename View<RT,RP...>::traits  SrcTraits ;
-      typedef Kokkos::Impl::ViewMapping< traits , SrcTraits , void >  Mapping ;
+      typedef Kokkos::Impl::ViewMapping< traits , SrcTraits , typename traits::specialize >  Mapping ;
       static_assert( Mapping::is_assignable , "Incompatible View copy construction" );
       Mapping::assign( m_map , rhs.m_map , rhs.m_track );
     }
@@ -1965,7 +1980,7 @@ public:
   View & operator = ( const View<RT,RP...> & rhs )
     {
       typedef typename View<RT,RP...>::traits  SrcTraits ;
-      typedef Kokkos::Impl::ViewMapping< traits , SrcTraits , void >  Mapping ;
+      typedef Kokkos::Impl::ViewMapping< traits , SrcTraits , typename traits::specialize >  Mapping ;
       static_assert( Mapping::is_assignable , "Incompatible View copy assignment" );
       Mapping::assign( m_map , rhs.m_map , rhs.m_track );
       m_track.assign( rhs.m_track , traits::is_managed );
@@ -1992,7 +2007,7 @@ public:
 
       typedef typename Mapping::type DstType ;
 
-      static_assert( Kokkos::Impl::ViewMapping< traits , typename DstType::traits , void >::is_assignable
+      static_assert( Kokkos::Impl::ViewMapping< traits , typename DstType::traits , typename traits::specialize >::is_assignable
         , "Subview construction requires compatible view and subview arguments" );
 
       Mapping::assign( m_map, src_view.m_map, arg0 , args... );
@@ -2266,10 +2281,10 @@ public:
     }
   template <class Traits>
   KOKKOS_INLINE_FUNCTION
-  View( const track_type & track,  const Kokkos::Impl::ViewMapping< Traits , void >  &map ) :
+  View( const track_type & track,  const Kokkos::Impl::ViewMapping< Traits , typename Traits::specialize >  &map ) :
   m_track(track), m_map()
   {
-    typedef Kokkos::Impl::ViewMapping< traits , Traits , void >  Mapping ;
+    typedef Kokkos::Impl::ViewMapping< traits , Traits , typename traits::specialize >  Mapping ;
     static_assert( Mapping::is_assignable , "Incompatible View copy construction" );
     Mapping::assign( m_map , map , track );
   }

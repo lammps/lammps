@@ -38,7 +38,7 @@ they can be used to measure properties of a system.
 
 This compute calculates the x,y,z coordinates of the dipole vector
 and the total dipole moment for each chunk, which includes all effects
-due to atoms passing thru periodic boundaries. For chunks with a net
+due to atoms passing through periodic boundaries. For chunks with a net
 charge the resulting dipole is made position independent by subtracting
 the position vector of the center of mass or geometric center times the
 net charge from the computed dipole vector.

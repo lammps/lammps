@@ -40,7 +40,7 @@ General features :h4,link(general)
   syntax for defining and using variables and formulas
   syntax for looping over runs and breaking out of loops
   run one or multiple simulations simultaneously (in parallel) from one script
-  build as library, invoke LAMMPS thru library interface or provided Python wrapper
+  build as library, invoke LAMMPS through library interface or provided Python wrapper
   couple with other codes: LAMMPS calls other code, other code calls LAMMPS, umbrella code calls both :ul
 
 Particle and model types :h4,link(particle)

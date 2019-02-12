@@ -78,7 +78,7 @@ description of the Python interface to LAMMPS, which wraps the C-style
 interface.
 
 See the sample codes in examples/COUPLE/simple for examples of C++ and
-C and Fortran codes that invoke LAMMPS thru its library interface.
+C and Fortran codes that invoke LAMMPS through its library interface.
 Other examples in the COUPLE directory use coupling ideas discussed on
 the "Howto couple"_Howto_couple.html doc page.
 

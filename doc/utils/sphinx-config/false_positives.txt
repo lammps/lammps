@@ -891,6 +891,8 @@ fz
 Gahler
 gainsboro
 Galindo
+gamA
+gamR
 gammaA
 gammaFactor
 gammaR
@@ -2730,6 +2732,7 @@ ttm
 tu
 Tuckerman
 tue
+tunable
 Turkand
 Tutein
 tweakable

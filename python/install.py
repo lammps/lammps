@@ -22,11 +22,6 @@ else: pydir = ""
 # copy lammps.py to pydir if it exists
 # if pydir not specified, install in site-packages via distutils setup()
 
-if 'liblammps.dylib' in os.listdir('../src/'):
-  lib_ext = ".dylib"
-else: 
-  lib_ext = ".so"
-
 if pydir:
   if not os.path.isdir(pydir):
     print( "ERROR: pydir %s does not exist" % pydir)
@@ -41,7 +36,7 @@ if pydir:
   str = "cp ../src/liblammps.so %s" % pydir
   print(str)
   try:
-     shutil.copyfile("../src/liblammps" + lib_ext, os.path.join(pydir,"liblammps" + lib_ext) )
+     shutil.copyfile("../src/liblammps.so", os.path.join(pydir,"liblammps.so") )
   except shutil.Error:
     pass # source and destination are identical
   sys.exit()
@@ -70,7 +65,7 @@ try:
         url = "http://lammps.sandia.gov",
         description = "LAMMPS molecular dynamics library",
         py_modules = ["lammps"],
-        data_files = [(get_python_lib(), ["../src/liblammps" + lib_ext])])
+        data_files = [(get_python_lib(), ["../src/liblammps.so"])])
 except:
   tryuser=True
   print ("Installation into global site-packages dir failed.\nTrying user site dir %s now." % site.USER_SITE)
@@ -86,9 +81,8 @@ if tryuser:
     url = "http://lammps.sandia.gov",
     description = "LAMMPS molecular dynamics library",
     py_modules = ["lammps"],
-    data_files = [(site.USER_SITE, ["../src/liblammps" + lib_ext])])
+    data_files = [(site.USER_SITE, ["../src/liblammps.so"])])
   except: 
     print("Installation into user site package dir failed.\nGo to ../python and install manually.")
-
 
 

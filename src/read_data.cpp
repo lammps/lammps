@@ -1963,7 +1963,7 @@ void ReadData::parse_keyword(int first)
     }
     while (eof == 0 && done == 0) {
       int blank = strspn(line," \t\n\r");
-      if ((blank == strlen(line)) || (line[blank] == '#')) {
+      if ((blank == (int)strlen(line)) || (line[blank] == '#')) {
         if (fgets(line,MAXLINE,fp) == NULL) eof = 1;
       } else done = 1;
     }

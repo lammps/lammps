@@ -11,8 +11,9 @@ See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-Contributing authors: Leo Silbert (SNL), Gary Grest (SNL),
-		      Jeremy Lechman (SNL), Dan Bolintineanu (SNL), Ishan Srivastava (SNL)
+Contributing authors:
+Dan Bolintineanu (SNL), Ishan Srivastava (SNL), Jeremy Lechman(SNL)
+Leo Silbert (SNL), Gary Grest (SNL)
 ----------------------------------------------------------------------- */
 
 #include <math.h>
@@ -50,7 +51,7 @@ using namespace MathConst;
 
 enum {HOOKE, HERTZ, HERTZ_MATERIAL, DMT, JKR};
 enum {VELOCITY, VISCOELASTIC, TSUJI};
-enum {TANGENTIAL_NOHISTORY, TANGENTIAL_MINDLIN};
+enum {TANGENTIAL_NOHISTORY, TANGENTIAL_HISTORY, TANGENTIAL_MINDLIN};
 enum {TWIST_NONE, TWIST_NOHISTORY, TWIST_SDS, TWIST_MARSHALL};
 enum {ROLL_NONE, ROLL_NOHISTORY, ROLL_SDS};
 
@@ -98,12 +99,23 @@ PairGranular::~PairGranular()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    memory->destroy(cut);
+    memory->destroy(cutoff_type);
 
     memory->destroy(normal_coeffs);
     memory->destroy(tangential_coeffs);
     memory->destroy(roll_coeffs);
     memory->destroy(twist_coeffs);
+
+    memory->destroy(Emod);
+    memory->destroy(poiss);
+
+    memory->destroy(normal_model);
+    memory->destroy(damping_model);
+    memory->destroy(tangential_model);
+    memory->destroy(roll_model);
+    memory->destroy(twist_model);
+
+
 
     delete [] onerad_dynamic;
     delete [] onerad_frozen;
@@ -113,725 +125,7 @@ PairGranular::~PairGranular()
   memory->destroy(mass_rigid);
 }
 
-void PairGranular::compute(int eflag, int vflag){
-#ifdef TEMPLATED_PAIR_GRANULAR
-  if (normal == HOOKE){
-    if (damping == VELOCITY){
-      if (tangential == TANGENTIAL_NOHISTORY){
-        if (twist == TWIST_NONE){
-          if (roll == ROLL_NONE)              compute_templated<0,0,0,0,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<0,0,0,0,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<0,0,0,0,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_NOHISTORY){
-          if (roll == ROLL_NONE)              compute_templated<0,0,0,1,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<0,0,0,1,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<0,0,0,1,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_SDS){
-          if (roll == ROLL_NONE)              compute_templated<0,0,0,2,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<0,0,0,2,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<0,0,0,2,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_MARSHALL){
-          if (roll == ROLL_NONE)              compute_templated<0,0,0,3,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<0,0,0,3,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<0,0,0,3,2>(eflag, vflag);
-        }
-      }
-      else if (tangential == TANGENTIAL_MINDLIN){
-        if (twist == TWIST_NONE){
-          if (roll == ROLL_NONE)              compute_templated<0,0,1,0,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<0,0,1,0,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<0,0,1,0,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_NOHISTORY){
-          if (roll == ROLL_NONE)              compute_templated<0,0,1,1,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<0,0,1,1,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<0,0,1,1,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_SDS){
-          if (roll == ROLL_NONE)              compute_templated<0,0,1,2,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<0,0,1,2,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<0,0,1,2,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_MARSHALL){
-          if (roll == ROLL_NONE)              compute_templated<0,0,1,3,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<0,0,1,3,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<0,0,1,3,2>(eflag, vflag);
-        }
-      }
-    }
-    else if (damping == VISCOELASTIC){
-      if (tangential == TANGENTIAL_NOHISTORY){
-        if (twist == TWIST_NONE){
-          if (roll == ROLL_NONE)              compute_templated<0,1,0,0,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<0,1,0,0,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<0,1,0,0,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_NOHISTORY){
-          if (roll == ROLL_NONE)              compute_templated<0,1,0,1,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<0,1,0,1,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<0,1,0,1,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_SDS){
-          if (roll == ROLL_NONE)              compute_templated<0,1,0,2,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<0,1,0,2,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<0,1,0,2,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_MARSHALL){
-          if (roll == ROLL_NONE)              compute_templated<0,1,0,3,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<0,1,0,3,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<0,1,0,3,2>(eflag, vflag);
-        }
-      }
-      else if (tangential == TANGENTIAL_MINDLIN){
-        if (twist == TWIST_NONE){
-          if (roll == ROLL_NONE)              compute_templated<0,1,1,0,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<0,1,1,0,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<0,1,1,0,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_NOHISTORY){
-          if (roll == ROLL_NONE)              compute_templated<0,1,1,1,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<0,1,1,1,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<0,1,1,1,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_SDS){
-          if (roll == ROLL_NONE)              compute_templated<0,1,1,2,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<0,1,1,2,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<0,1,1,2,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_MARSHALL){
-          if (roll == ROLL_NONE)              compute_templated<0,1,1,3,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<0,1,1,3,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<0,1,1,3,2>(eflag, vflag);
-        }
-      }
-    }
-    else if (damping == TSUJI){
-      if (tangential == TANGENTIAL_NOHISTORY){
-        if (twist == TWIST_NONE){
-          if (roll == ROLL_NONE)              compute_templated<0,2,0,0,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<0,2,0,0,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<0,2,0,0,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_NOHISTORY){
-          if (roll == ROLL_NONE)              compute_templated<0,2,0,1,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<0,2,0,1,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<0,2,0,1,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_SDS){
-          if (roll == ROLL_NONE)              compute_templated<0,2,0,2,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<0,2,0,2,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<0,2,0,2,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_MARSHALL){
-          if (roll == ROLL_NONE)              compute_templated<0,2,0,3,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<0,2,0,3,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<0,2,0,3,2>(eflag, vflag);
-        }
-      }
-      else if (tangential == TANGENTIAL_MINDLIN){
-        if (twist == TWIST_NONE){
-          if (roll == ROLL_NONE)              compute_templated<0,2,1,0,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<0,2,1,0,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<0,2,1,0,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_NOHISTORY){
-          if (roll == ROLL_NONE)              compute_templated<0,2,1,1,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<0,2,1,1,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<0,2,1,1,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_SDS){
-          if (roll == ROLL_NONE)              compute_templated<0,2,1,2,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<0,2,1,2,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<0,2,1,2,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_MARSHALL){
-          if (roll == ROLL_NONE)              compute_templated<0,2,1,3,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<0,2,1,3,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<0,2,1,3,2>(eflag, vflag);
-        }
-      }
-    }
-  }
-  else if (normal == HERTZ){
-    if (damping == VELOCITY){
-      if (tangential == TANGENTIAL_NOHISTORY){
-        if (twist == TWIST_NONE){
-          if (roll == ROLL_NONE)              compute_templated<1,0,0,0,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<1,0,0,0,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<1,0,0,0,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_NOHISTORY){
-          if (roll == ROLL_NONE)              compute_templated<1,0,0,1,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<1,0,0,1,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<1,0,0,1,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_SDS){
-          if (roll == ROLL_NONE)              compute_templated<1,0,0,2,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<1,0,0,2,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<1,0,0,2,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_MARSHALL){
-          if (roll == ROLL_NONE)              compute_templated<1,0,0,3,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<1,0,0,3,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<1,0,0,3,2>(eflag, vflag);
-        }
-      }
-      else if (tangential == TANGENTIAL_MINDLIN){
-        if (twist == TWIST_NONE){
-          if (roll == ROLL_NONE)              compute_templated<1,0,1,0,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<1,0,1,0,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<1,0,1,0,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_NOHISTORY){
-          if (roll == ROLL_NONE)              compute_templated<1,0,1,1,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<1,0,1,1,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<1,0,1,1,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_SDS){
-          if (roll == ROLL_NONE)              compute_templated<1,0,1,2,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<1,0,1,2,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<1,0,1,2,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_MARSHALL){
-          if (roll == ROLL_NONE)              compute_templated<1,0,1,3,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<1,0,1,3,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<1,0,1,3,2>(eflag, vflag);
-        }
-      }
-    }
-    else if (damping == VISCOELASTIC){
-      if (tangential == TANGENTIAL_NOHISTORY){
-        if (twist == TWIST_NONE){
-          if (roll == ROLL_NONE)              compute_templated<1,1,0,0,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<1,1,0,0,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<1,1,0,0,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_NOHISTORY){
-          if (roll == ROLL_NONE)              compute_templated<1,1,0,1,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<1,1,0,1,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<1,1,0,1,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_SDS){
-          if (roll == ROLL_NONE)              compute_templated<1,1,0,2,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<1,1,0,2,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<1,1,0,2,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_MARSHALL){
-          if (roll == ROLL_NONE)              compute_templated<1,1,0,3,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<1,1,0,3,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<1,1,0,3,2>(eflag, vflag);
-        }
-      }
-      else if (tangential == TANGENTIAL_MINDLIN){
-        if (twist == TWIST_NONE){
-          if (roll == ROLL_NONE)              compute_templated<1,1,1,0,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<1,1,1,0,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<1,1,1,0,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_NOHISTORY){
-          if (roll == ROLL_NONE)              compute_templated<1,1,1,1,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<1,1,1,1,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<1,1,1,1,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_SDS){
-          if (roll == ROLL_NONE)              compute_templated<1,1,1,2,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<1,1,1,2,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<1,1,1,2,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_MARSHALL){
-          if (roll == ROLL_NONE)              compute_templated<1,1,1,3,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<1,1,1,3,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<1,1,1,3,2>(eflag, vflag);
-        }
-      }
-    }
-    else if (damping == TSUJI){
-      if (tangential == TANGENTIAL_NOHISTORY){
-        if (twist == TWIST_NONE){
-          if (roll == ROLL_NONE)              compute_templated<1,2,0,0,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<1,2,0,0,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<1,2,0,0,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_NOHISTORY){
-          if (roll == ROLL_NONE)              compute_templated<1,2,0,1,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<1,2,0,1,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<1,2,0,1,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_SDS){
-          if (roll == ROLL_NONE)              compute_templated<1,2,0,2,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<1,2,0,2,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<1,2,0,2,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_MARSHALL){
-          if (roll == ROLL_NONE)              compute_templated<1,2,0,3,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<1,2,0,3,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<1,2,0,3,2>(eflag, vflag);
-        }
-      }
-      else if (tangential == TANGENTIAL_MINDLIN){
-        if (twist == TWIST_NONE){
-          if (roll == ROLL_NONE)              compute_templated<1,2,1,0,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<1,2,1,0,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<1,2,1,0,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_NOHISTORY){
-          if (roll == ROLL_NONE)              compute_templated<1,2,1,1,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<1,2,1,1,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<1,2,1,1,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_SDS){
-          if (roll == ROLL_NONE)              compute_templated<1,2,1,2,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<1,2,1,2,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<1,2,1,2,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_MARSHALL){
-          if (roll == ROLL_NONE)              compute_templated<1,2,1,3,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<1,2,1,3,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<1,2,1,3,2>(eflag, vflag);
-        }
-      }
-    }
-  }
-  else if (normal == HERTZ_MATERIAL){
-    if (damping == VELOCITY){
-      if (tangential == TANGENTIAL_NOHISTORY){
-        if (twist == TWIST_NONE){
-          if (roll == ROLL_NONE)              compute_templated<2,0,0,0,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<2,0,0,0,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<2,0,0,0,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_NOHISTORY){
-          if (roll == ROLL_NONE)              compute_templated<2,0,0,1,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<2,0,0,1,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<2,0,0,1,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_SDS){
-          if (roll == ROLL_NONE)              compute_templated<2,0,0,2,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<2,0,0,2,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<2,0,0,2,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_MARSHALL){
-          if (roll == ROLL_NONE)              compute_templated<2,0,0,3,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<2,0,0,3,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<2,0,0,3,2>(eflag, vflag);
-        }
-      }
-      else if (tangential == TANGENTIAL_MINDLIN){
-        if (twist == TWIST_NONE){
-          if (roll == ROLL_NONE)              compute_templated<2,0,1,0,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<2,0,1,0,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<2,0,1,0,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_NOHISTORY){
-          if (roll == ROLL_NONE)              compute_templated<2,0,1,1,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<2,0,1,1,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<2,0,1,1,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_SDS){
-          if (roll == ROLL_NONE)              compute_templated<2,0,1,2,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<2,0,1,2,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<2,0,1,2,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_MARSHALL){
-          if (roll == ROLL_NONE)              compute_templated<2,0,1,3,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<2,0,1,3,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<2,0,1,3,2>(eflag, vflag);
-        }
-      }
-    }
-    else if (damping == VISCOELASTIC){
-      if (tangential == TANGENTIAL_NOHISTORY){
-        if (twist == TWIST_NONE){
-          if (roll == ROLL_NONE)              compute_templated<2,1,0,0,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<2,1,0,0,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<2,1,0,0,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_NOHISTORY){
-          if (roll == ROLL_NONE)              compute_templated<2,1,0,1,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<2,1,0,1,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<2,1,0,1,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_SDS){
-          if (roll == ROLL_NONE)              compute_templated<2,1,0,2,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<2,1,0,2,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<2,1,0,2,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_MARSHALL){
-          if (roll == ROLL_NONE)              compute_templated<2,1,0,3,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<2,1,0,3,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<2,1,0,3,2>(eflag, vflag);
-        }
-      }
-      else if (tangential == TANGENTIAL_MINDLIN){
-        if (twist == TWIST_NONE){
-          if (roll == ROLL_NONE)              compute_templated<2,1,1,0,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<2,1,1,0,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<2,1,1,0,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_NOHISTORY){
-          if (roll == ROLL_NONE)              compute_templated<2,1,1,1,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<2,1,1,1,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<2,1,1,1,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_SDS){
-          if (roll == ROLL_NONE)              compute_templated<2,1,1,2,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<2,1,1,2,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<2,1,1,2,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_MARSHALL){
-          if (roll == ROLL_NONE)              compute_templated<2,1,1,3,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<2,1,1,3,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<2,1,1,3,2>(eflag, vflag);
-        }
-      }
-    }
-    else if (damping == TSUJI){
-      if (tangential == TANGENTIAL_NOHISTORY){
-        if (twist == TWIST_NONE){
-          if (roll == ROLL_NONE)              compute_templated<2,2,0,0,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<2,2,0,0,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<2,2,0,0,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_NOHISTORY){
-          if (roll == ROLL_NONE)              compute_templated<2,2,0,1,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<2,2,0,1,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<2,2,0,1,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_SDS){
-          if (roll == ROLL_NONE)              compute_templated<2,2,0,2,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<2,2,0,2,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<2,2,0,2,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_MARSHALL){
-          if (roll == ROLL_NONE)              compute_templated<2,2,0,3,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<2,2,0,3,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<2,2,0,3,2>(eflag, vflag);
-        }
-      }
-      else if (tangential == TANGENTIAL_MINDLIN){
-        if (twist == TWIST_NONE){
-          if (roll == ROLL_NONE)              compute_templated<2,2,1,0,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<2,2,1,0,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<2,2,1,0,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_NOHISTORY){
-          if (roll == ROLL_NONE)              compute_templated<2,2,1,1,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<2,2,1,1,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<2,2,1,1,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_SDS){
-          if (roll == ROLL_NONE)              compute_templated<2,2,1,2,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<2,2,1,2,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<2,2,1,2,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_MARSHALL){
-          if (roll == ROLL_NONE)              compute_templated<2,2,1,3,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<2,2,1,3,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<2,2,1,3,2>(eflag, vflag);
-        }
-      }
-    }
-  }
-  else if (normal == DMT){
-    if (damping == VELOCITY){
-      if (tangential == TANGENTIAL_NOHISTORY){
-        if (twist == TWIST_NONE){
-          if (roll == ROLL_NONE)              compute_templated<3,0,0,0,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<3,0,0,0,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<3,0,0,0,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_NOHISTORY){
-          if (roll == ROLL_NONE)              compute_templated<3,0,0,1,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<3,0,0,1,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<3,0,0,1,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_SDS){
-          if (roll == ROLL_NONE)              compute_templated<3,0,0,2,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<3,0,0,2,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<3,0,0,2,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_MARSHALL){
-          if (roll == ROLL_NONE)              compute_templated<3,0,0,3,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<3,0,0,3,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<3,0,0,3,2>(eflag, vflag);
-        }
-      }
-      else if (tangential == TANGENTIAL_MINDLIN){
-        if (twist == TWIST_NONE){
-          if (roll == ROLL_NONE)              compute_templated<3,0,1,0,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<3,0,1,0,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<3,0,1,0,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_NOHISTORY){
-          if (roll == ROLL_NONE)              compute_templated<3,0,1,1,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<3,0,1,1,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<3,0,1,1,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_SDS){
-          if (roll == ROLL_NONE)              compute_templated<3,0,1,2,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<3,0,1,2,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<3,0,1,2,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_MARSHALL){
-          if (roll == ROLL_NONE)              compute_templated<3,0,1,3,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<3,0,1,3,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<3,0,1,3,2>(eflag, vflag);
-        }
-      }
-    }
-    else if (damping == VISCOELASTIC){
-      if (tangential == TANGENTIAL_NOHISTORY){
-        if (twist == TWIST_NONE){
-          if (roll == ROLL_NONE)              compute_templated<3,1,0,0,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<3,1,0,0,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<3,1,0,0,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_NOHISTORY){
-          if (roll == ROLL_NONE)              compute_templated<3,1,0,1,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<3,1,0,1,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<3,1,0,1,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_SDS){
-          if (roll == ROLL_NONE)              compute_templated<3,1,0,2,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<3,1,0,2,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<3,1,0,2,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_MARSHALL){
-          if (roll == ROLL_NONE)              compute_templated<3,1,0,3,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<3,1,0,3,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<3,1,0,3,2>(eflag, vflag);
-        }
-      }
-      else if (tangential == TANGENTIAL_MINDLIN){
-        if (twist == TWIST_NONE){
-          if (roll == ROLL_NONE)              compute_templated<3,1,1,0,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<3,1,1,0,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<3,1,1,0,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_NOHISTORY){
-          if (roll == ROLL_NONE)              compute_templated<3,1,1,1,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<3,1,1,1,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<3,1,1,1,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_SDS){
-          if (roll == ROLL_NONE)              compute_templated<3,1,1,2,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<3,1,1,2,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<3,1,1,2,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_MARSHALL){
-          if (roll == ROLL_NONE)              compute_templated<3,1,1,3,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<3,1,1,3,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<3,1,1,3,2>(eflag, vflag);
-        }
-      }
-    }
-    else if (damping == TSUJI){
-      if (tangential == TANGENTIAL_NOHISTORY){
-        if (twist == TWIST_NONE){
-          if (roll == ROLL_NONE)              compute_templated<3,2,0,0,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<3,2,0,0,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<3,2,0,0,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_NOHISTORY){
-          if (roll == ROLL_NONE)              compute_templated<3,2,0,1,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<3,2,0,1,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<3,2,0,1,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_SDS){
-          if (roll == ROLL_NONE)              compute_templated<3,2,0,2,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<3,2,0,2,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<3,2,0,2,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_MARSHALL){
-          if (roll == ROLL_NONE)              compute_templated<3,2,0,3,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<3,2,0,3,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<3,2,0,3,2>(eflag, vflag);
-        }
-      }
-      else if (tangential == TANGENTIAL_MINDLIN){
-        if (twist == TWIST_NONE){
-          if (roll == ROLL_NONE)              compute_templated<3,2,1,0,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<3,2,1,0,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<3,2,1,0,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_NOHISTORY){
-          if (roll == ROLL_NONE)              compute_templated<3,2,1,1,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<3,2,1,1,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<3,2,1,1,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_SDS){
-          if (roll == ROLL_NONE)              compute_templated<3,2,1,2,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<3,2,1,2,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<3,2,1,2,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_MARSHALL){
-          if (roll == ROLL_NONE)              compute_templated<3,2,1,3,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<3,2,1,3,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<3,2,1,3,2>(eflag, vflag);
-        }
-      }
-    }
-  }
-  else if (normal == JKR){
-    if (damping == VELOCITY){
-      if (tangential == TANGENTIAL_NOHISTORY){
-        if (twist == TWIST_NONE){
-          if (roll == ROLL_NONE)              compute_templated<4,0,0,0,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<4,0,0,0,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<4,0,0,0,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_NOHISTORY){
-          if (roll == ROLL_NONE)              compute_templated<4,0,0,1,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<4,0,0,1,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<4,0,0,1,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_SDS){
-          if (roll == ROLL_NONE)              compute_templated<4,0,0,2,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<4,0,0,2,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<4,0,0,2,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_MARSHALL){
-          if (roll == ROLL_NONE)              compute_templated<4,0,0,3,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<4,0,0,3,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<4,0,0,3,2>(eflag, vflag);
-        }
-      }
-      else if (tangential == TANGENTIAL_MINDLIN){
-        if (twist == TWIST_NONE){
-          if (roll == ROLL_NONE)              compute_templated<4,0,1,0,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<4,0,1,0,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<4,0,1,0,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_NOHISTORY){
-          if (roll == ROLL_NONE)              compute_templated<4,0,1,1,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<4,0,1,1,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<4,0,1,1,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_SDS){
-          if (roll == ROLL_NONE)              compute_templated<4,0,1,2,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<4,0,1,2,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<4,0,1,2,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_MARSHALL){
-          if (roll == ROLL_NONE)              compute_templated<4,0,1,3,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<4,0,1,3,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<4,0,1,3,2>(eflag, vflag);
-        }
-      }
-    }
-    else if (damping == VISCOELASTIC){
-      if (tangential == TANGENTIAL_NOHISTORY){
-        if (twist == TWIST_NONE){
-          if (roll == ROLL_NONE)              compute_templated<4,1,0,0,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<4,1,0,0,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<4,1,0,0,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_NOHISTORY){
-          if (roll == ROLL_NONE)              compute_templated<4,1,0,1,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<4,1,0,1,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<4,1,0,1,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_SDS){
-          if (roll == ROLL_NONE)              compute_templated<4,1,0,2,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<4,1,0,2,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<4,1,0,2,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_MARSHALL){
-          if (roll == ROLL_NONE)              compute_templated<4,1,0,3,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<4,1,0,3,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<4,1,0,3,2>(eflag, vflag);
-        }
-      }
-      else if (tangential == TANGENTIAL_MINDLIN){
-        if (twist == TWIST_NONE){
-          if (roll == ROLL_NONE)              compute_templated<4,1,1,0,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<4,1,1,0,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<4,1,1,0,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_NOHISTORY){
-          if (roll == ROLL_NONE)              compute_templated<4,1,1,1,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<4,1,1,1,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<4,1,1,1,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_SDS){
-          if (roll == ROLL_NONE)              compute_templated<4,1,1,2,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<4,1,1,2,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<4,1,1,2,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_MARSHALL){
-          if (roll == ROLL_NONE)              compute_templated<4,1,1,3,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<4,1,1,3,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<4,1,1,3,2>(eflag, vflag);
-        }
-      }
-    }
-    else if (damping == TSUJI){
-      if (tangential == TANGENTIAL_NOHISTORY){
-        if (twist == TWIST_NONE){
-          if (roll == ROLL_NONE)              compute_templated<4,2,0,0,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<4,2,0,0,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<4,2,0,0,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_NOHISTORY){
-          if (roll == ROLL_NONE)              compute_templated<4,2,0,1,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<4,2,0,1,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<4,2,0,1,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_SDS){
-          if (roll == ROLL_NONE)              compute_templated<4,2,0,2,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<4,2,0,2,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<4,2,0,2,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_MARSHALL){
-          if (roll == ROLL_NONE)              compute_templated<4,2,0,3,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<4,2,0,3,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<4,2,0,3,2>(eflag, vflag);
-        }
-      }
-      else if (tangential == TANGENTIAL_MINDLIN){
-        if (twist == TWIST_NONE){
-          if (roll == ROLL_NONE)              compute_templated<4,2,1,0,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<4,2,1,0,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<4,2,1,0,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_NOHISTORY){
-          if (roll == ROLL_NONE)              compute_templated<4,2,1,1,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<4,2,1,1,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<4,2,1,1,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_SDS){
-          if (roll == ROLL_NONE)              compute_templated<4,2,1,2,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<4,2,1,2,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<4,2,1,2,2>(eflag, vflag);
-        }
-        else if (twist == TWIST_MARSHALL){
-          if (roll == ROLL_NONE)              compute_templated<4,2,1,3,0>(eflag, vflag);
-          else if (roll == ROLL_NOHISTORY)    compute_templated<4,2,1,3,1>(eflag, vflag);
-          else if (roll == ROLL_SDS)          compute_templated<4,2,1,3,2>(eflag, vflag);
-        }
-      }
-    }
-  }
-
-#else
-  compute_untemplated(Tp_normal, Tp_damping, Tp_tangential,
-      Tp_roll, Tp_twist,
-      eflag, vflag);
-#endif
-}
-
-#ifdef TEMPLATED_PAIR_GRANULAR
-template < int Tp_normal, int Tp_damping, int Tp_tangential,
-           int Tp_twist, int Tp_roll >
-void PairGranular::compute_templated(int eflag, int vflag)
-#else
-void PairGranular::compute_untemplated
-  (int Tp_normal, int Tp_damping, int Tp_tangential,
-   int Tp_twist, int Tp_roll, int eflag, int vflag)
-#endif
+void PairGranular::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,fx,fy,fz,nx,ny,nz;
@@ -847,13 +141,13 @@ void PairGranular::compute_untemplated
   double Fne, Ft, Fdamp, Fntot, Fcrit, Fscrit, Frcrit;
   double fs, fs1, fs2, fs3;
 
+  double mi,mj,meff,damp,ccel,tor1,tor2,tor3;
+  double relrot1,relrot2,relrot3,vrl1,vrl2,vrl3,vrlmag,vrlmaginv;
+
   //For JKR
   double R2, coh, F_pulloff, delta_pulloff, dist_pulloff, a, a2, E;
   double t0, t1, t2, t3, t4, t5, t6;
   double sqrt1, sqrt2, sqrt3, sqrt4;
-
-  double mi,mj,meff,damp,ccel,tor1,tor2,tor3;
-  double relrot1,relrot2,relrot3,vrl1,vrl2,vrl3,vrlmag,vrlmaginv;
 
   //Rolling
   double k_roll, damp_roll;
@@ -947,7 +241,7 @@ void PairGranular::compute_untemplated
       Reff = radi*radj/(radi+radj);
       touchflag = false;
 
-      if (Tp_normal == JKR){
+      if (normal_model[itype][jtype] == JKR){
         if (touch[jj]){
           R2 = Reff*Reff;
           coh = normal_coeffs[itype][jtype][3];
@@ -1008,7 +302,7 @@ void PairGranular::compute_untemplated
 
         delta = radsum - r;
         dR = delta*Reff;
-        if (Tp_normal == JKR){
+        if (normal_model[itype][jtype] == JKR){
           touch[jj] = 1;
           R2=Reff*Reff;
           coh = normal_coeffs[itype][jtype][3];
@@ -1031,22 +325,21 @@ void PairGranular::compute_untemplated
         else{
           knfac = E; //Hooke
           Fne = knfac*delta;
-          if (Tp_normal != HOOKE)
-            a = sqrt(dR);
+          a = sqrt(dR);
+          if (normal_model[itype][jtype] != HOOKE)
             Fne *= a;
-          if (Tp_normal == DMT)
+          if (normal_model[itype][jtype] == DMT)
             Fne -= 4*MY_PI*normal_coeffs[itype][jtype][3]*Reff;
         }
 
         //Consider restricting Hooke to only have 'velocity' as an option for damping?
-        if (Tp_damping == VELOCITY){
+        if (damping_model[itype][jtype] == VELOCITY){
           damp_normal = 1;
         }
-        else if (Tp_damping == VISCOELASTIC){
-          if (Tp_normal == HOOKE) a = sqrt(dR);
+        else if (damping_model[itype][jtype] == VISCOELASTIC){
           damp_normal = a*meff;
         }
-        else if (Tp_damping == TSUJI){
+        else if (damping_model[itype][jtype] == TSUJI){
           damp_normal = sqrt(meff*knfac);
         }
 
@@ -1081,8 +374,7 @@ void PairGranular::compute_untemplated
           history = &allhistory[size_history*jj];
         }
 
-
-        if (Tp_normal == JKR){
+        if (normal_model[itype][jtype] == JKR){
           F_pulloff = 3*M_PI*coh*Reff;
           Fcrit = fabs(Fne + 2*F_pulloff);
         }
@@ -1096,7 +388,7 @@ void PairGranular::compute_untemplated
         k_tangential = tangential_coeffs[itype][jtype][0];
         damp_tangential = tangential_coeffs[itype][jtype][1]*damp_normal;
 
-        if (Tp_tangential > 0){
+        if (tangential_history){
           shrmag = sqrt(history[0]*history[0] + history[1]*history[1] +
               history[2]*history[2]);
 
@@ -1153,7 +445,7 @@ void PairGranular::compute_untemplated
         // Rolling resistance
         //****************************************
 
-        if (Tp_roll != ROLL_NONE){
+        if (roll_model[itype][jtype] != ROLL_NONE){
           relrot1 = omega[i][0] - omega[j][0];
           relrot2 = omega[i][1] - omega[j][1];
           relrot3 = omega[i][2] - omega[j][2];
@@ -1168,7 +460,7 @@ void PairGranular::compute_untemplated
           if (vrlmag != 0.0) vrlmaginv = 1.0/vrlmag;
           else vrlmaginv = 0.0;
 
-          if (Tp_roll > 1){
+          if (roll_history){
             int rhist0 = roll_history_index;
             int rhist1 = rhist0 + 1;
             int rhist2 = rhist1 + 1;
@@ -1196,6 +488,7 @@ void PairGranular::compute_untemplated
               history[rhist1] += vrl2*dt;
               history[rhist2] += vrl3*dt;
             }
+
 
             k_roll = roll_coeffs[itype][jtype][0];
             damp_roll = roll_coeffs[itype][jtype][1];
@@ -1231,9 +524,9 @@ void PairGranular::compute_untemplated
         //****************************************
         // Twisting torque, including history effects
         //****************************************
-        if (Tp_twist != TWIST_NONE){
+        if (twist_model[itype][jtype] != TWIST_NONE){
           magtwist = relrot1*nx + relrot2*ny + relrot3*nz; //Omega_T (eq 29 of Marshall)
-          if (Tp_twist == TWIST_MARSHALL){
+          if (twist_model[itype][jtype] == TWIST_MARSHALL){
             k_twist = 0.5*k_tangential*a*a;; //eq 32
             damp_twist = 0.5*damp_tangential*a*a;
             mu_twist = TWOTHIRDS*a;
@@ -1243,7 +536,7 @@ void PairGranular::compute_untemplated
             damp_twist = twist_coeffs[itype][jtype][1];
             mu_twist = twist_coeffs[itype][jtype][2];
           }
-          if (Tp_twist > 1){
+          if (twist_model[itype][jtype] > 1){
             if (historyupdate){
               history[twist_history_index] += magtwist*dt;
             }
@@ -1278,7 +571,7 @@ void PairGranular::compute_untemplated
         torque[i][1] -= radi*tor2;
         torque[i][2] -= radi*tor3;
 
-        if (Tp_twist != TWIST_NONE){
+        if (twist_model[itype][jtype] != TWIST_NONE){
           tortwist1 = magtortwist * nx;
           tortwist2 = magtortwist * ny;
           tortwist3 = magtortwist * nz;
@@ -1288,7 +581,7 @@ void PairGranular::compute_untemplated
           torque[i][2] += tortwist3;
         }
 
-        if (Tp_roll != ROLL_NONE){
+        if (roll_model[itype][jtype] != ROLL_NONE){
           torroll1 = Reff*(ny*fr3 - nz*fr2); //n cross fr
           torroll2 = Reff*(nz*fr1 - nx*fr3);
           torroll3 = Reff*(nx*fr2 - ny*fr1);
@@ -1307,12 +600,12 @@ void PairGranular::compute_untemplated
           torque[j][1] -= radj*tor2;
           torque[j][2] -= radj*tor3;
 
-          if (Tp_twist != TWIST_NONE){
+          if (twist_model[itype][jtype] != TWIST_NONE){
             torque[j][0] -= tortwist1;
             torque[j][1] -= tortwist2;
             torque[j][2] -= tortwist3;
           }
-          if (Tp_roll != ROLL_NONE){
+          if (roll_model[itype][jtype] != ROLL_NONE){
             torque[j][0] -= torroll1;
             torque[j][1] -= torroll2;
             torque[j][2] -= torroll3;
@@ -1341,11 +634,20 @@ void PairGranular::allocate()
       setflag[i][j] = 0;
 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
-  memory->create(cut,n+1,n+1,"pair:cut");
+  memory->create(cutoff_type,n+1,n+1,"pair:cutoff_type");
   memory->create(normal_coeffs,n+1,n+1,4,"pair:normal_coeffs");
   memory->create(tangential_coeffs,n+1,n+1,3,"pair:tangential_coeffs");
   memory->create(roll_coeffs,n+1,n+1,3,"pair:roll_coeffs");
   memory->create(twist_coeffs,n+1,n+1,3,"pair:twist_coeffs");
+
+  memory->create(Emod,n+1,n+1,"pair:Emod");
+  memory->create(poiss,n+1,n+1,"pair:poiss");
+
+  memory->create(normal_model,n+1,n+1,"pair:normal_model");
+  memory->create(damping_model,n+1,n+1,"pair:damping_model");
+  memory->create(tangential_model,n+1,n+1,"pair:tangential_model");
+  memory->create(roll_model,n+1,n+1,"pair:roll_model");
+  memory->create(twist_model,n+1,n+1,"pair:twist_model");
 
   onerad_dynamic = new double[n+1];
   onerad_frozen = new double[n+1];
@@ -1365,9 +667,9 @@ void PairGranular::settings(int narg, char **arg)
   else{
     cutoff_global = -1; //Will be set based on particle sizes, model choice
   }
-  tangential_history = 0;
+
+  normal_history = tangential_history = 0;
   roll_history = twist_history = 0;
-  normal_set = tangential_set = damping_set = roll_set = twist_set = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -1376,10 +678,15 @@ void PairGranular::settings(int narg, char **arg)
 
 void PairGranular::coeff(int narg, char **arg)
 {
-  double normal_coeffs_local[4];
-  double tangential_coeffs_local[4];
-  double roll_coeffs_local[4];
-  double twist_coeffs_local[4];
+  int normal_model_one, damping_model_one;
+  int tangential_model_one, roll_model_one, twist_model_one;
+
+  double normal_coeffs_one[4];
+  double tangential_coeffs_one[4];
+  double roll_coeffs_one[4];
+  double twist_coeffs_one[4];
+
+  double cutoff_one = -1;
 
   if (narg < 2)
     error->all(FLERR,"Incorrect args for pair coefficients");
@@ -1390,209 +697,200 @@ void PairGranular::coeff(int narg, char **arg)
   force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
   force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
+  //Defaults
+  normal_model_one = tangential_model_one = -1;
+  roll_model_one = twist_model_one = 0;
+  damping_model_one = VISCOELASTIC;
+
   int iarg = 2;
   while (iarg < narg){
     if (strcmp(arg[iarg], "hooke") == 0){
       if (iarg + 2 >= narg) error->all(FLERR,"Illegal pair_coeff command, not enough parameters provided for Hooke option");
-      if (!normal_set) normal = HOOKE;
-      else if (normal != HOOKE) error->all(FLERR, "Illegal pair_coeff command, choice of normal contact model must be the same for all types");
-      normal_coeffs_local[0] = force->numeric(FLERR,arg[iarg+1]); //kn
-      normal_coeffs_local[1] = force->numeric(FLERR,arg[iarg+2]); //damping
-      normal_set = 1;
+      normal_model_one = HOOKE;
+      normal_coeffs_one[0] = force->numeric(FLERR,arg[iarg+1]); //kn
+      normal_coeffs_one[1] = force->numeric(FLERR,arg[iarg+2]); //damping
       iarg += 3;
     }
     else if (strcmp(arg[iarg], "hertz") == 0){
       int num_coeffs = 2;
       if (iarg + num_coeffs >= narg) error->all(FLERR,"Illegal pair_coeff command, not enough parameters provided for Hertz option");
-      if (!normal_set) normal = HERTZ;
-      else if (normal_set && normal != HERTZ) if (normal != HOOKE) error->all(FLERR, "Illegal pair_coeff command, choice of normal contact model must be the same for all types");
-      normal_coeffs_local[0] = force->numeric(FLERR,arg[iarg+1]); //kn
-      normal_coeffs_local[1] = force->numeric(FLERR,arg[iarg+2]); //damping
-      normal_set = 1;
+      normal_model_one = HERTZ;
+      normal_coeffs_one[0] = force->numeric(FLERR,arg[iarg+1]); //kn
+      normal_coeffs_one[1] = force->numeric(FLERR,arg[iarg+2]); //damping
       iarg += num_coeffs+1;
     }
     else if (strcmp(arg[iarg], "hertz/material") == 0){
       int num_coeffs = 3;
       if (iarg + num_coeffs >= narg) error->all(FLERR,"Illegal pair_coeff command, not enough parameters provided for Hertz option");
-      if (!normal_set) normal = HERTZ_MATERIAL;
-      else if (normal != HERTZ) if (normal != HOOKE) error->all(FLERR, "Illegal pair_coeff command, choice of normal contact model must be the same for all types");
-      normal_coeffs_local[0] = force->numeric(FLERR,arg[iarg+1])*FOURTHIRDS; //E
-      normal_coeffs_local[1] = force->numeric(FLERR,arg[iarg+2]); //damping
-      normal_coeffs_local[2] = force->numeric(FLERR,arg[iarg+3]); //G
-      normal_set = 1;
+      normal_model_one = HERTZ;
+      normal_coeffs_one[0] = force->numeric(FLERR,arg[iarg+1])*FOURTHIRDS; //E
+      normal_coeffs_one[1] = force->numeric(FLERR,arg[iarg+2]); //damping
+      normal_coeffs_one[2] = force->numeric(FLERR,arg[iarg+3]); //Poisson's ratio
       iarg += num_coeffs+1;
     }
     else if (strcmp(arg[iarg], "dmt") == 0){
       if (iarg + 4 >= narg) error->all(FLERR,"Illegal pair_coeff command, not enough parameters provided for Hertz option");
-      if (!normal_set) normal = DMT;
-      else if (normal != DMT) error->all(FLERR, "Illegal pair_coeff command, choice of normal contact model must be the same for all types");
-      normal_coeffs_local[0] = force->numeric(FLERR,arg[iarg+1])*FOURTHIRDS; //E
-      normal_coeffs_local[1] = force->numeric(FLERR,arg[iarg+2]); //damping
-      normal_coeffs_local[2] = force->numeric(FLERR,arg[iarg+3]); //G
-      normal_coeffs_local[3] = force->numeric(FLERR,arg[iarg+3]); //cohesion
-      normal_set = 1;
+      normal_model_one = DMT;
+      normal_coeffs_one[0] = force->numeric(FLERR,arg[iarg+1])*FOURTHIRDS; //E
+      normal_coeffs_one[1] = force->numeric(FLERR,arg[iarg+2]); //damping
+      normal_coeffs_one[2] = force->numeric(FLERR,arg[iarg+3]); //Poisson's ratio
+      normal_coeffs_one[3] = force->numeric(FLERR,arg[iarg+3]); //cohesion
       iarg += 5;
     }
     else if (strcmp(arg[iarg], "jkr") == 0){
       if (iarg + 4 >= narg) error->all(FLERR,"Illegal pair_coeff command, not enough parameters provided for JKR option");
       beyond_contact = 1;
-      if (!normal_set) normal = JKR;
-      else if (normal != JKR) error->all(FLERR, "Illegal pair_coeff command, choice of normal contact model must be the same for all types");
-      normal_coeffs_local[0] = force->numeric(FLERR,arg[iarg+1]); //E
-      normal_coeffs_local[1] = force->numeric(FLERR,arg[iarg+2]); //damping
-      normal_coeffs_local[2] = force->numeric(FLERR,arg[iarg+3]); //G
-      normal_coeffs_local[3] = force->numeric(FLERR,arg[iarg+4]); //cohesion
-      normal_set = 1;
+      normal_model_one = JKR;
+      normal_coeffs_one[0] = force->numeric(FLERR,arg[iarg+1]); //E
+      normal_coeffs_one[1] = force->numeric(FLERR,arg[iarg+2]); //damping
+      normal_coeffs_one[2] = force->numeric(FLERR,arg[iarg+3]); //Poisson's ratio
+      normal_coeffs_one[3] = force->numeric(FLERR,arg[iarg+4]); //cohesion
       iarg += 5;
     }
     else if (strcmp(arg[iarg], "damp") == 0){
       if (iarg+1 >= narg) error->all(FLERR, "Illegal pair_coeff command, not enough parameters provided for damping model");
       if (strcmp(arg[iarg+1], "velocity") == 0){
-        if (!damping_set) damping = VELOCITY;
-        else if (damping != VELOCITY) error->all(FLERR, "Illegal pair_coeff command, choice of damping contact model must be the same for all types");
+        damping_model_one = VELOCITY;
+        iarg += 1;
       }
       else if (strcmp(arg[iarg+1], "viscoelastic") == 0){
-        if (!damping_set) damping = VISCOELASTIC;
-        else if (damping != VISCOELASTIC) error->all(FLERR, "Illegal pair_coeff command, choice of damping contact model must be the same for all types");
+        damping_model_one = VISCOELASTIC;
+        iarg += 1;
       }
-      else if (strcmp(arg[iarg+1], "tsuji") == 0){
-        if (!damping_set) damping = TSUJI;
-        if (damping != TSUJI) error->all(FLERR, "Illegal pair_coeff command, choice of damping contact model must be the same for all types");
+      else if (strcmp(arg[iarg], "tsuji") == 0){
+        damping_model_one = TSUJI;
+        iarg += 1;
       }
-      damping_set = 1;
-      iarg += 2;
     }
     else if (strcmp(arg[iarg], "tangential") == 0){
       if (iarg + 4 >= narg) error->all(FLERR,"Illegal pair_coeff command, not enough parameters provided for tangential model");
-      if (strcmp(arg[iarg+1], "nohistory") == 0){
-        if (!tangential_set) tangential = TANGENTIAL_NOHISTORY;
-        else if (tangential != TANGENTIAL_NOHISTORY) error->all(FLERR, "Illegal pair_coeff command, choice of tangential contact model must be the same for all types");
+      if (strcmp(arg[iarg+1], "linear_nohistory") == 0){
+        tangential_model_one = TANGENTIAL_NOHISTORY;
       }
-      else if (strcmp(arg[iarg+1], "mindlin") == 0){
-        if (!tangential_set) tangential = TANGENTIAL_MINDLIN;
-        else if (tangential != TANGENTIAL_MINDLIN) error->all(FLERR, "Illegal pair_coeff command, choice of tangential contact model must be the same for all types");;
+      else if (strcmp(arg[iarg+1], "linear_history") == 0){
+        tangential_model_one = TANGENTIAL_HISTORY;
         tangential_history = 1;
       }
       else{
         error->all(FLERR, "Illegal pair_coeff command, tangential model not recognized");
       }
-      tangential_set = 1;
-      tangential_coeffs_local[0] = force->numeric(FLERR,arg[iarg+2]); //kt
-      tangential_coeffs_local[1] = force->numeric(FLERR,arg[iarg+3]); //gammat
-      tangential_coeffs_local[2] = force->numeric(FLERR,arg[iarg+4]); //friction coeff.
+      tangential_coeffs_one[0] = force->numeric(FLERR,arg[iarg+2]); //kt
+      tangential_coeffs_one[1] = force->numeric(FLERR,arg[iarg+3]); //gammat
+      tangential_coeffs_one[2] = force->numeric(FLERR,arg[iarg+4]); //friction coeff.
       iarg += 5;
     }
     else if (strcmp(arg[iarg], "rolling") == 0){
       if (iarg + 1 >= narg) error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
       if (strcmp(arg[iarg+1], "none") == 0){
-        if (!roll_set) roll = ROLL_NONE;
-        else if (roll != ROLL_NONE) error->all(FLERR, "Illegal pair_coeff command, choice of rolling friction model must be the same for all types");
+        roll_model_one = ROLL_NONE;
         iarg += 2;
       }
       else{
         if (iarg + 4 >= narg) error->all(FLERR,"Illegal pair_coeff command, not enough parameters provided for rolling model");
         if (strcmp(arg[iarg+1], "nohistory") == 0){
-          if (!roll_set) roll = ROLL_NOHISTORY;
-          else if (roll != ROLL_NOHISTORY) error->all(FLERR, "Illegal pair_coeff command, choice of rolling friction model must be the same for all types");
+          roll_model_one = ROLL_NOHISTORY;
         }
         else if (strcmp(arg[iarg+1], "sds") == 0){
-          if (!roll_set) roll = ROLL_SDS;
-          else if (roll != ROLL_SDS) error->all(FLERR, "Illegal pair_coeff command, choice of rolling friction model must be the same for all types");
+          roll_model_one = ROLL_SDS;
           roll_history = 1;
         }
         else{
           error->all(FLERR, "Illegal pair_coeff command, rolling friction model not recognized");
         }
-        roll_set =1 ;
-        roll_coeffs_local[0] = force->numeric(FLERR,arg[iarg+2]); //kR
-        roll_coeffs_local[1] = force->numeric(FLERR,arg[iarg+3]); //gammaR
-        roll_coeffs_local[2] = force->numeric(FLERR,arg[iarg+4]); //rolling friction coeff.
+        roll_coeffs_one[0] = force->numeric(FLERR,arg[iarg+2]); //kR
+        roll_coeffs_one[1] = force->numeric(FLERR,arg[iarg+3]); //gammaR
+        roll_coeffs_one[2] = force->numeric(FLERR,arg[iarg+4]); //rolling friction coeff.
         iarg += 5;
       }
     }
     else if (strcmp(arg[iarg], "twisting") == 0){
       if (iarg + 1 >= narg) error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
       if (strcmp(arg[iarg+1], "none") == 0){
-        if (!twist_set) twist = TWIST_NONE;
-        else if (twist != TWIST_NONE) error->all(FLERR, "Illegal pair_coeff command, choice of twisting friction model must be the same for all types");
+        twist_model_one = TWIST_NONE;
         iarg += 2;
       }
       else if (strcmp(arg[iarg+1], "marshall") == 0){
-        if (!twist_set) twist = TWIST_MARSHALL;
-        else if (twist != TWIST_MARSHALL) error->all(FLERR, "Illegal pair_coeff command, choice of twisting friction model must be the same for all types");
+        twist_model_one = TWIST_MARSHALL;
         twist_history = 1;
-        twist_set = 1;
         iarg += 2;
       }
       else{
         if (iarg + 4 >= narg) error->all(FLERR,"Illegal pair_coeff command, not enough parameters provided for twist model");
-        else if (strcmp(arg[iarg+1], "nohistory") == 0){
-          if (!twist_set) twist = TWIST_NOHISTORY;
-          if (twist != TWIST_NOHISTORY) error->all(FLERR, "Illegal pair_coeff command, choice of twisting friction model must be the same for all types");
+        if (strcmp(arg[iarg+1], "nohistory") == 0){
+          twist_model_one = TWIST_NOHISTORY;
         }
         else if (strcmp(arg[iarg+1], "sds") == 0){
-          if (!twist_set) twist = TWIST_SDS;
-          else if (twist != TWIST_SDS) error->all(FLERR, "Illegal pair_coeff command, choice of twisting friction model must be the same for all types");
+          twist_model_one = TWIST_SDS;
           twist_history = 1;
         }
         else{
           error->all(FLERR, "Illegal pair_coeff command, twisting friction model not recognized");
         }
-        twist_set = 1;
-        twist_coeffs_local[0] = force->numeric(FLERR,arg[iarg+2]); //kt
-        twist_coeffs_local[1] = force->numeric(FLERR,arg[iarg+3]); //gammat
-        twist_coeffs_local[2] = force->numeric(FLERR,arg[iarg+4]); //friction coeff.
+        twist_coeffs_one[0] = force->numeric(FLERR,arg[iarg+2]); //kt
+        twist_coeffs_one[1] = force->numeric(FLERR,arg[iarg+3]); //gammat
+        twist_coeffs_one[2] = force->numeric(FLERR,arg[iarg+4]); //friction coeff.
         iarg += 5;
       }
+    }
+    else if (strcmp(arg[iarg], "cutoff") == 0){
+      if (iarg + 1 >= narg) error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
+      cutoff_one = force->numeric(FLERR,arg[iarg+1]);
     }
     else error->all(FLERR, "Illegal pair coeff command");
   }
 
   //It is an error not to specify normal or tangential model
-  if (!normal_set) error->all(FLERR, "Illegal pair coeff command, must specify normal contact model");
-  if (!tangential_set) error->all(FLERR, "Illegal pair coeff command, must specify tangential contact model");
-
-  //If unspecified, set damping to VISCOELASTIC, twist/roll to NONE (cannot be changed by subsequent pair_coeff commands)
-  if (!damping_set) damping = VISCOELASTIC;
-  if (!roll_set) roll = ROLL_NONE;
-  if (!twist_set) twist = TWIST_NONE;
-  damping_set = roll_set = twist_set = 1;
+  if ((normal_model_one < 0) || (tangential_model_one < 0)) error->all(FLERR, "Illegal pair coeff command, must specify normal contact model");
 
   int count = 0;
   double damp;
-  if (damping == TSUJI){
+  if (damping_model_one == TSUJI){
     double cor;
-    cor = normal_coeffs_local[1];
+    cor = normal_coeffs_one[1];
     damp = 1.2728-4.2783*cor+11.087*pow(cor,2)-22.348*pow(cor,3)+
         27.467*pow(cor,4)-18.022*pow(cor,5)+
         4.8218*pow(cor,6);
   }
-  else damp = normal_coeffs_local[1];
+  else damp = normal_coeffs_one[1];
 
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
-      normal_coeffs[i][j][0] = normal_coeffs[j][i][0] = normal_coeffs_local[0];
+      normal_model[i][j] = normal_model[j][i] = normal_model_one;
       normal_coeffs[i][j][1] = normal_coeffs[j][i][1] = damp;
-      if (normal != HERTZ && normal != HOOKE) normal_coeffs[i][j][2] = normal_coeffs_local[2];
-      if ((normal == JKR) || (normal == DMT))
-        normal_coeffs[i][j][3] = normal_coeffs[j][i][3] = normal_coeffs_local[3];
+      if (normal_model_one != HERTZ && normal_model_one != HOOKE){
+        Emod[i][j] = Emod[j][i] = normal_coeffs_one[0];
+        poiss[i][j] = poiss[j][i] = normal_coeffs_one[2];
+        normal_coeffs[i][j][0] = normal_coeffs[j][i][0] = mix_stiffnessE(Emod[i][j], Emod[i][j], poiss[i][j], poiss[i][j]);
+      }
+      else{
+        normal_coeffs[i][j][0] = normal_coeffs[j][i][0] = normal_coeffs_one[0];
+      }
+      if ((normal_model_one == JKR) || (normal_model_one == DMT))
+        normal_coeffs[i][j][3] = normal_coeffs[j][i][3] = normal_coeffs_one[3];
 
+      damping_model[i][j] = damping_model[j][i] = damping_model_one;
+
+      tangential_model[i][j] = tangential_model[j][i] = tangential_model_one;
       for (int k = 0; k < 3; k++)
-        tangential_coeffs[i][j][k] = tangential_coeffs[j][i][k] = tangential_coeffs_local[k];
+        tangential_coeffs[i][j][k] = tangential_coeffs[j][i][k] = tangential_coeffs_one[k];
 
-      if (roll != ROLL_NONE)
+      roll_model[i][j] = roll_model[j][i] = roll_model_one;
+      if (roll_model_one != ROLL_NONE)
         for (int k = 0; k < 3; k++)
-          roll_coeffs[i][j][k] = roll_coeffs[j][i][k] = roll_coeffs_local[k];
+          roll_coeffs[i][j][k] = roll_coeffs[j][i][k] = roll_coeffs_one[k];
 
-      if (twist != TWIST_NONE && twist != TWIST_MARSHALL)
+      twist_model[i][j] = twist_model[j][i] = twist_model_one;
+      if (twist_model_one != TWIST_NONE && twist_model_one != TWIST_MARSHALL)
         for (int k = 0; k < 3; k++)
-          twist_coeffs[i][j][k] = twist_coeffs[j][i][k] = twist_coeffs_local[k];
+          twist_coeffs[i][j][k] = twist_coeffs[j][i][k] = twist_coeffs_one[k];
+
+
+      cutoff_type[i][j] = cutoff_type[j][i] = cutoff_one;
 
       setflag[i][j] = 1;
       count++;
     }
   }
-
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
@@ -1615,7 +913,9 @@ void PairGranular::init_style()
   use_history = tangential_history || roll_history || twist_history;
 
   //For JKR, will need fix/neigh/history to keep track of touch arrays
-  if (normal == JKR) use_history = 1;
+  for (int i = 1; i <= atom->ntypes; i++)
+    for (int j = 1; j <= atom->ntypes; j++)
+      if (normal_model[i][j] == JKR) use_history = 1;
 
   size_history = 3*tangential_history + 3*roll_history + twist_history;
 
@@ -1693,13 +993,11 @@ void PairGranular::init_style()
     if (ipour >= 0) {
       itype = i;
       double radmax = *((double *) modify->fix[ipour]->extract("radius",itype));
-      if (normal == JKR) radmax = radmax - 0.5*pulloff_distance(radmax, itype);
       onerad_dynamic[i] = radmax;
     }
     if (idep >= 0) {
       itype = i;
       double radmax = *((double *) modify->fix[idep]->extract("radius",itype));
-      if (normal == JKR) radmax = radmax - 0.5*pulloff_distance(radmax, itype);
       onerad_dynamic[i] = radmax;
     }
   }
@@ -1711,9 +1009,6 @@ void PairGranular::init_style()
 
   for (i = 0; i < nlocal; i++){
     double radius_cut = radius[i];
-    if (normal == JKR){
-      radius_cut = radius[i] - 0.5*pulloff_distance(radius[i], type[i]);
-    }
     if (mask[i] & freeze_group_bit){
       onerad_frozen[type[i]] = MAX(onerad_frozen[type[i]],radius_cut);
     }
@@ -1743,32 +1038,38 @@ void PairGranular::init_style()
 double PairGranular::init_one(int i, int j)
 {
   double cutoff;
-  if (setflag[i][j] == 0) {
 
-    if (normal != HOOKE && normal != HERTZ){
-      normal_coeffs[i][j][0] = normal_coeffs[j][i][0] = mix_stiffnessE(normal_coeffs[i][i][0], normal_coeffs[j][j][0],
-          normal_coeffs[i][i][2], normal_coeffs[j][j][2]);
-      normal_coeffs[i][j][2] = normal_coeffs[j][i][2] = mix_stiffnessG(normal_coeffs[i][i][0], normal_coeffs[j][j][0],
-          normal_coeffs[i][i][2], normal_coeffs[j][j][2]);
+  if (setflag[i][j] == 0){
+    if ((normal_model[i][i] != normal_model[j][j]) ||
+        (damping_model[i][i] != damping_model[j][j]) ||
+        (tangential_model[i][i] != tangential_model[j][j]) ||
+        (roll_model[i][i] != roll_model[j][j]) ||
+        (twist_model[i][i] != twist_model[j][j])){
+
+      char str[512];
+      sprintf(str,"Granular pair style functional forms are different, cannot mix coefficients for types %d and %d. \nThis combination must be set explicitly via pair_coeff command.",i,j);
+      error->one(FLERR,str);
     }
-    else{
+
+    if (normal_model[i][j] == HERTZ || normal_model[i][j] == HOOKE)
       normal_coeffs[i][j][0] = normal_coeffs[j][i][0] = mix_geom(normal_coeffs[i][i][0], normal_coeffs[j][j][0]);
-    }
+    else
+      normal_coeffs[i][j][0] = normal_coeffs[j][i][0] = mix_stiffnessE(Emod[i][i], Emod[j][j], poiss[i][i], poiss[j][j]);
 
     normal_coeffs[i][j][1] = normal_coeffs[j][i][1] = mix_geom(normal_coeffs[i][i][1], normal_coeffs[j][j][1]);
-    if ((normal == JKR) || (normal == DMT))
+    if ((normal_model[i][j] == JKR) || (normal_model[i][j] == DMT))
       normal_coeffs[i][j][3] = normal_coeffs[j][i][3] = mix_geom(normal_coeffs[i][i][3], normal_coeffs[j][j][3]);
 
     for (int k = 0; k < 3; k++)
       tangential_coeffs[i][j][k] = tangential_coeffs[j][i][k] = mix_geom(tangential_coeffs[i][i][k], tangential_coeffs[j][j][k]);
 
 
-    if (roll != ROLL_NONE){
+    if (roll_model[i][j] != ROLL_NONE){
       for (int k = 0; k < 3; k++)
         roll_coeffs[i][j][k] = roll_coeffs[j][i][k] = mix_geom(roll_coeffs[i][i][k], roll_coeffs[j][j][k]);
     }
 
-    if (twist != TWIST_NONE && twist != TWIST_MARSHALL){
+    if (twist_model[i][j] != TWIST_NONE && twist_model[i][j] != TWIST_MARSHALL){
       for (int k = 0; k < 3; k++)
         twist_coeffs[i][j][k] = twist_coeffs[j][i][k] = mix_geom(twist_coeffs[i][i][k], twist_coeffs[j][j][k]);
     }
@@ -1780,22 +1081,40 @@ double PairGranular::init_one(int i, int j)
   // To avoid this issue, for cases involving  cut[i][j] = 0.0 (possible only
   // if there is no current information about radius/cutoff of type i and j).
   // we assign cutoff = max(cut[i][j]) for i,j such that cut[i][j] > 0.0.
-
+  double pulloff;
   if (cutoff_global < 0){
-    if (((maxrad_dynamic[i] > 0.0) && (maxrad_dynamic[j] > 0.0)) ||
-        ((maxrad_dynamic[i] > 0.0) &&  (maxrad_frozen[j] > 0.0)) ||
-        ((maxrad_frozen[i] > 0.0)  && (maxrad_dynamic[j] > 0.0))) { // radius info about both i and j exist
-      cutoff = maxrad_dynamic[i]+maxrad_dynamic[j];
-      cutoff = MAX(cutoff,maxrad_frozen[i]+maxrad_dynamic[j]);
-      cutoff = MAX(cutoff,maxrad_dynamic[i]+maxrad_frozen[j]);
-    }
-    else { // radius info about either i or j does not exist (i.e. not present and not about to get poured; set to largest value to not interfere with neighbor list)
-      double cutmax = 0.0;
-      for (int k = 1; k <= atom->ntypes; k++) {
-        cutmax = MAX(cutmax,2.0*maxrad_dynamic[k]);
-        cutmax = MAX(cutmax,2.0*maxrad_frozen[k]);
+    if (cutoff_type[i][j] < 0){
+      if (((maxrad_dynamic[i] > 0.0) && (maxrad_dynamic[j] > 0.0)) ||
+          ((maxrad_dynamic[i] > 0.0) &&  (maxrad_frozen[j] > 0.0)) ||
+          ((maxrad_frozen[i] > 0.0)  && (maxrad_dynamic[j] > 0.0))) { // radius info about both i and j exist
+        cutoff = maxrad_dynamic[i]+maxrad_dynamic[j];
+        if (normal_model[i][j] == JKR){
+          pulloff = pulloff_distance(maxrad_dynamic[i], maxrad_dynamic[j], i, j);
+          cutoff += pulloff;
+        }
+        else{
+          pulloff = 0;
+        }
+
+        if (normal_model[i][j] == JKR)
+          pulloff = pulloff_distance(maxrad_frozen[i], maxrad_dynamic[j], i, j);
+        cutoff = MAX(cutoff, maxrad_frozen[i]+maxrad_dynamic[j]+pulloff);
+
+        if (normal_model[i][j] == JKR)
+          pulloff = pulloff_distance(maxrad_dynamic[i], maxrad_frozen[j], i, j);
+        cutoff = MAX(cutoff,maxrad_dynamic[i]+maxrad_frozen[j]+pulloff);
       }
-      cutoff = cutmax;
+      else { // radius info about either i or j does not exist (i.e. not present and not about to get poured; set to largest value to not interfere with neighbor list)
+        double cutmax = 0.0;
+        for (int k = 1; k <= atom->ntypes; k++) {
+          cutmax = MAX(cutmax,2.0*maxrad_dynamic[k]);
+          cutmax = MAX(cutmax,2.0*maxrad_frozen[k]);
+        }
+        cutoff = cutmax;
+      }
+    }
+    else{
+      cutoff = cutoff_type[i][j];
     }
   }
   else{
@@ -1804,7 +1123,6 @@ double PairGranular::init_one(int i, int j)
   return cutoff;
 }
 
-
 /* ----------------------------------------------------------------------
 	 proc 0 writes to restart file
 	 ------------------------------------------------------------------------- */
@@ -1812,15 +1130,15 @@ double PairGranular::init_one(int i, int j)
 void PairGranular::write_restart(FILE *fp)
 {
   int i,j;
-  fwrite(&normal,sizeof(int),1,fp);
-  fwrite(&damping,sizeof(int),1,fp);
-  fwrite(&tangential,sizeof(int),1,fp);
-  fwrite(&roll,sizeof(int),1,fp);
-  fwrite(&twist,sizeof(int),1,fp);
   for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
+        fwrite(&normal_model[i][j],sizeof(int),1,fp);
+        fwrite(&damping_model[i][j],sizeof(int),1,fp);
+        fwrite(&tangential_model[i][j],sizeof(int),1,fp);
+        fwrite(&roll_model[i][j],sizeof(int),1,fp);
+        fwrite(&twist_model[i][j],sizeof(int),1,fp);
         fwrite(&normal_coeffs[i][j],sizeof(double),4,fp);
         fwrite(&tangential_coeffs[i][j],sizeof(double),3,fp);
         fwrite(&roll_coeffs[i][j],sizeof(double),3,fp);
@@ -1840,30 +1158,28 @@ void PairGranular::read_restart(FILE *fp)
   allocate();
   int i,j;
   int me = comm->me;
-  if (me == 0){
-    fread(&normal,sizeof(int),1,fp);
-    fread(&damping,sizeof(int),1,fp);
-    fread(&tangential,sizeof(int),1,fp);
-    fread(&roll,sizeof(int),1,fp);
-    fread(&twist,sizeof(int),1,fp);
-  }
-  MPI_Bcast(&normal,1,MPI_INT,0,world);
-  MPI_Bcast(&damping,1,MPI_INT,0,world);
-  MPI_Bcast(&tangential,1,MPI_INT,0,world);
-  MPI_Bcast(&roll,1,MPI_INT,0,world);
-  MPI_Bcast(&twist,1,MPI_INT,0,world);
   for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
       if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
+          fread(&normal_model[i][j],sizeof(int),1,fp);
+          fread(&damping_model[i][j],sizeof(int),1,fp);
+          fread(&tangential_model[i][j],sizeof(int),1,fp);
+          fread(&roll_model[i][j],sizeof(int),1,fp);
+          fread(&twist_model[i][j],sizeof(int),1,fp);
           fread(&normal_coeffs[i][j],sizeof(double),4,fp);
           fread(&tangential_coeffs[i][j],sizeof(double),3,fp);
           fread(&roll_coeffs[i][j],sizeof(double),3,fp);
           fread(&twist_coeffs[i][j],sizeof(double),3,fp);
           fread(&cut[i][j],sizeof(double),1,fp);
         }
+        MPI_Bcast(&normal_model[i][j],1,MPI_INT,0,world);
+        MPI_Bcast(&damping_model[i][j],1,MPI_INT,0,world);
+        MPI_Bcast(&tangential_model[i][j],1,MPI_INT,0,world);
+        MPI_Bcast(&roll_model[i][j],1,MPI_INT,0,world);
+        MPI_Bcast(&twist_model[i][j],1,MPI_INT,0,world);
         MPI_Bcast(&normal_coeffs[i][j],4,MPI_DOUBLE,0,world);
         MPI_Bcast(&tangential_coeffs[i][j],3,MPI_DOUBLE,0,world);
         MPI_Bcast(&roll_coeffs[i][j],3,MPI_DOUBLE,0,world);
@@ -1930,7 +1246,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   Reff = radi*radj/(radi+radj);
 
   bool touchflag;
-  if (normal == JKR){
+  if (normal_model[itype][jtype] == JKR){
     R2 = Reff*Reff;
     coh = normal_coeffs[itype][jtype][3];
     a = cbrt(9.0*M_PI*coh*R2/(4*E));
@@ -2022,7 +1338,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
 
   delta = radsum - r;
   dR = delta*Reff;
-  if (normal == JKR){
+  if (normal_model[itype][jtype] == JKR){
     dR2 = dR*dR;
     t0 = coh*coh*R2*R2*E;
     t1 = PI27SQ*t0;
@@ -2042,22 +1358,21 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   else{
     knfac = E;
     Fne = knfac*delta;
-    if (normal != HOOKE)
-      a = sqrt(dR);
+    a = sqrt(dR);
+    if (normal_model[itype][jtype] != HOOKE)
       Fne *= a;
-    if (normal == DMT)
+    if (normal_model[itype][jtype] == DMT)
       Fne -= 4*MY_PI*normal_coeffs[itype][jtype][3]*Reff;
   }
 
   //Consider restricting Hooke to only have 'velocity' as an option for damping?
-  if (damping == VELOCITY){
+  if (damping_model[itype][jtype] == VELOCITY){
     damp_normal = normal_coeffs[itype][jtype][1];
   }
-  else if (damping == VISCOELASTIC){
-    if (normal == HOOKE) a = sqrt(dR);
+  else if (damping_model[itype][jtype] == VISCOELASTIC){
     damp_normal = normal_coeffs[itype][jtype][1]*a*meff;
   }
-  else if (damping == TSUJI){
+  else if (damping_model[itype][jtype] == TSUJI){
     damp_normal = normal_coeffs[itype][jtype][1]*sqrt(meff*knfac);
   }
 
@@ -2099,17 +1414,19 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   vrel = vtr1*vtr1 + vtr2*vtr2 + vtr3*vtr3;
   vrel = sqrt(vrel);
 
-  Fcrit = fabs(Fne);
-  if (normal == JKR){
+  if (normal_model[itype][jtype] == JKR){
     F_pulloff = 3*M_PI*coh*Reff;
     Fcrit = fabs(Fne + 2*F_pulloff);
+  }
+  else{
+    Fcrit = fabs(Fne);
   }
 
   //------------------------------
   //Tangential forces
   //------------------------------
   k_tangential = tangential_coeffs[itype][jtype][0];
-  if (normal != HOOKE){
+  if (normal_model[itype][jtype] != HOOKE){
     k_tangential *= a;
   }
   damp_tangential = tangential_coeffs[itype][jtype][1]*damp_normal;
@@ -2150,7 +1467,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   // Rolling resistance
   //****************************************
 
-  if (roll != ROLL_NONE){
+  if (roll_model[itype][jtype] != ROLL_NONE){
     relrot1 = omega[i][0] - omega[j][0];
     relrot2 = omega[i][1] - omega[j][1];
     relrot3 = omega[i][2] - omega[j][2];
@@ -2211,9 +1528,9 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   //****************************************
   // Twisting torque, including history effects
   //****************************************
-  if (twist != TWIST_NONE){
+  if (twist_model[itype][jtype] != TWIST_NONE){
     magtwist = relrot1*nx + relrot2*ny + relrot3*nz; //Omega_T (eq 29 of Marshall)
-    if (twist == TWIST_MARSHALL){
+    if (twist_model[itype][jtype] == TWIST_MARSHALL){
       k_twist = 0.5*k_tangential*a*a;; //eq 32
       damp_twist = 0.5*damp_tangential*a*a;
       mu_twist = TWOTHIRDS*a;
@@ -2293,22 +1610,18 @@ double PairGranular::memory_usage()
  mixing of Young's modulus (E)
 ------------------------------------------------------------------------- */
 
-double PairGranular::mix_stiffnessE(double Eii, double Ejj, double Gii, double Gjj)
+double PairGranular::mix_stiffnessE(double Eii, double Ejj, double poisii, double poisjj)
 {
-  double poisii = Eii/(2.0*Gii) - 1.0;
-  double poisjj = Ejj/(2.0*Gjj) - 1.0;
-  return 1/((1-poisii*poisjj)/Eii+(1-poisjj*poisjj)/Ejj);
+  return 1/((1-poisii*poisii)/Eii+(1-poisjj*poisjj)/Ejj);
 }
 
 /* ----------------------------------------------------------------------
 	 mixing of shear modulus (G)
-	 ------------------------------------------------------------------------- */
+------------------------------------------------------------------------ */
 
-double PairGranular::mix_stiffnessG(double Eii, double Ejj, double Gii, double Gjj)
+double PairGranular::mix_stiffnessG(double Gii, double Gjj, double poisii, double poisjj)
 {
-  double poisii = Eii/(2.0*Gii) - 1.0;
-  double poisjj = Ejj/(2.0*Gjj) - 1.0;
-  return 1/((2.0 -poisjj)/Gii+(2.0-poisjj)/Gjj);
+  return 1/((2.0 -poisii)/Gii+(2.0-poisjj)/Gjj);
 }
 
 /* ----------------------------------------------------------------------
@@ -2325,13 +1638,14 @@ double PairGranular::mix_geom(double valii, double valjj)
      Compute pull-off distance (beyond contact) for a given radius and atom type
 ------------------------------------------------------------------------- */
 
-double PairGranular::pulloff_distance(double radius, int itype)
+double PairGranular::pulloff_distance(double radi, double radj, int itype, int jtype)
 {
-  double E, coh, a, delta_pulloff;
+  double E, coh, a, delta_pulloff, Reff;
+  Reff = radi*radj/(radi+radj);
+  if (Reff <= 0) return 0;
   coh = normal_coeffs[itype][itype][3];
-  E = mix_stiffnessE(normal_coeffs[itype][itype][0], normal_coeffs[itype][itype][0],
-      normal_coeffs[itype][itype][2], normal_coeffs[itype][itype][2]);
-  a = cbrt(9*M_PI*coh*radius*radius/(4*E));
-  return a*a/radius - 2*sqrt(M_PI*coh*a/E);
+  E = normal_coeffs[itype][jtype][0];
+  a = cbrt(9*M_PI*coh*Reff/(4*E));
+  return a*a/Reff - 2*sqrt(M_PI*coh*a/E);
 }
 

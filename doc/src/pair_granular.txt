@@ -1,3 +1,10 @@
+<script type="text/javascript"
+  src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({ TeX: { equationNumbers: {autoNumber: "AMS"} } });
+</script>
+
 "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :link(lws,http://lammps.sandia.gov)
@@ -14,323 +21,185 @@ pair_style granular/multi command :h3
 pair_style style cutoff :pre
 
 style = {granular} or {granular/multi} :ulb,l
-cutoff = global cutoff (optional). See discussion below.
+cutoff = global cutoff (optional). See discussion below. :l
+:ule
 
 [Examples:]
 
 pair_style granular
-pair coeff 1 1 hertz 1000.0 50.0 tangential mindlin 800.0 50.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall 
-pair coeff 2 2 hertz 200.0 20.0 tangential mindlin 300.0 50.0 0.1 rolling sds 200.0 100.0 0.1 twisting marshall
+pair_coeff * * hertz 1000.0 50.0 tangential mindlin 800.0 50.0 0.4 :pre
+
+pair_style granular
+pair_coeff 1 1 hertz 1000.0 50.0 tangential mindlin 800.0 50.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall 
+pair_coeff 2 2 hertz 200.0 20.0 tangential mindlin 300.0 50.0 0.1 rolling sds 200.0 100.0 0.1 twisting marshall :pre
 
 pair_style granular/multi
-pair coeff 1 1 hertz 1000.0 50.0 tangential mindlin 800.0 50.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall 
-pair coeff 2 2 dmt 1000.0 50.0 800.0 10.0 tangential mindlin 800.0 50.0 0.1 roll sds 500.0 200.0 0.1 twisting marshall
-pair coeff 1 2 dmt 1000.0 50.0 800.0 10.0 tangential mindlin 800.0 50.0 0.1 roll sds 500.0 200.0 0.1 twisting marshall
+pair_coeff 1 1 hertz 1000.0 50.0 tangential mindlin 800.0 50.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall 
+pair_coeff 2 2 dmt 1000.0 50.0 800.0 10.0 tangential mindlin 800.0 50.0 0.1 roll sds 500.0 200.0 0.1 twisting marshall
+pair_coeff 1 2 dmt 1000.0 50.0 800.0 10.0 tangential mindlin 800.0 50.0 0.1 roll sds 500.0 200.0 0.1 twisting marshall :pre
 
 
 [Description:]
 
 The {granular} styles support a variety of options for the normal, tangential, rolling and twisting
-forces resulting from contact between two granular particles. The computed force depends on the combination
-of choices for these models.
+forces resulting from contact between two granular particles. This expands on the options offered
+by the "pair gran/*"_pair_gran.html options. The total computed forces and torques depend on the combination
+of choices for these various modes of motion.
 
 All model options and parameters are entered in the "pair_coeff"_pair_coeff.html command, as described below. 
 Unlike e.g. "pair gran/hooke"_pair_gran.html, coefficient values are not global, but can be set to different values for 
 various combinations of particle types, as determined by the "pair_coeff"_pair_coeff.html command.
-In the case of {granular}, coefficients
-can vary between particle types, but model choices cannot. For instance, in the first 
-example above, the stiffness, damping, and tangential friction are different for type 1 - type 1 and type 2 - type 2 interactions, but
-both 1-1 and 2-2 interactions must have the same model form, hence all keywords are identical between the two types. Cross-coefficients
-for 1-2 interactions for the case of the {hertz} model above are set via simple geometric mixing rules. The {granular/multi}
+For {pair_style granular}, coefficients can vary between particle types, but model choices 
+cannot. For instance, in the first 
+example above, the stiffness, damping, and tangential friction are different for 
+type 1 - type 1 and type 2 - type 2 interactions, but
+both 1-1 and 2-2 interactions must have the same model form, hence all keywords are 
+identical between the two types. Cross-coefficients
+for 1-2 interactions for the case of the {hertz} model above are set via simple 
+geometric mixing rules. The {granular/multi}
 style removes this restriction at a small cost in computational efficiency, so that different particle types
 can potentially interact via different model forms. As shown in the second example,
 1-1 interactions are based on a Hertzian contact model and 2-2 interactions are based on a {dmt} model (see below). 
 In the case that 1-1 and 2-2 interactions have different model forms, mixing of coefficients cannot be 
 determined, so 1-2 interactions must be explicitly defined via the pair coeff command, otherwise an error results.
 
-The first required keyword for the pair coeff command is the normal contact model. Currently supported options and
-the required arguments are:
+:line
 
-{hooke} : k_n, damping
-{hertz} : k_n, damping
+The first required keyword for the {pair_coeff} command is the normal contact model. Currently supported options 
+for normal contact models and their required arguments are:
+
+{hooke} : \(k_n\), damping
+{hertz} : \(k_n\), damping
 {hertz/material} : E, damping, G
 {dmt} : E, damping, G, cohesion
-{jkr} : E, damping, G, cohesion
+{jkr} : E, damping, G, cohesion :ol
    
-Here, k_n is spring stiffness, damping is a damping constant or a coefficient of restitution, depending on
+Here, \(k_n\) is spring stiffness, damping is a damping constant or a coefficient of restitution, depending on
 the choice of damping model (see below), E and G are Young's modulus and shear modulus, in units of pressure, 
 and cohesion is a surface energy density, in units of energy/length^2. 
 
-For the {hooke} model, the normal component of force is given by:
-:c,image(Eqs/hooke_normal.jpg)
+For the {hooke} model, the normal (elastic) component of force between two particles {i} and {j} is given by:
+\begin\{equation\}
+\mathbf\{F\}_\{ne, Hooke\} = k_N \delta_\{ij\} \mathbf\{n\}
+\end\{equation\}
 
-For {hertz}, the normal force is given by:
-:c,image{Eqs/hertz_normal.jpg}
+Where \(\delta =  R_i + R_j - \|\mathbf\{r\}_\{ij\}\|\) is the particle overlap,
+\(R_i, R_j\) are the particle radii, 
+\(\mathbf\{r\}_\{ij\} = \mathbf\{r\}_j - \mathbf\{r\}_i\) is the vector separating the
+two particle centers 
+and \(\mathbf\{n\} = \frac\{\mathbf\{r\}_\{ij\}\}\{\|\mathbf\{r\}_\{ij\}\|\}\).
 
-For both [hooke] and [hertz], stiffness for unspecified cross-terms is given by simple geometric mixing
-(e.g. if stiffness is specified for type 1 and type 2 particles as k_n_1 and k_n_2, respectively, 
-type 1 - type 2 contacts use a stiffness given by k_n_{12} = sqrt(k_n_1*k_n_2))
+For the {hertz} model, the normal component of force is given by:
+\begin\{equation\}
+\mathbf\{F\}_\{ne, Hertz\} = k_N R_\{eff\}^\{1/2\}\delta_\{ij\}^\{3/2\} \mathbf\{n\}
+\end\{equation\}
 
-For {hertz/material}, the form is the same as above, but coefficients are computed differently, and mixing follows
-a different rule based on shear modulus:
-:c,image{Eqs/hertz_material_normal.jpg}
+Here, \(R_\{eff\} = \frac\{R_i R_j\}\{R_i + R_j\}\) is the effective radius, denoted for simplicity as {R} from here on.
 
-For {dmt}, the normal force is given by:
-:c,image{Eqs/dmt_normal.jpg}
+For the {hertz/material} model, the force is given by:
+\begin\{equation\}
+\mathbf\{F\}_\{ne, Hertz/material\} = \frac\{4\}\{3\} E_\{eff\} R_\{eff\}^\{1/2\}\delta_\{ij\}^\{3/2\} \mathbf\{n\}
+\end\{equation\}
 
-Where gamma is cohesion.
+Here, \(E_\{eff\} = E = \left(\frac\{1-\nu_i^2\}\{E_i\} + \frac\{1-\nu_j^2\}\{E_j\}\right)^\{-1\}\) 
+is the effectve Young's modulus,
+with \(\nu_i, \nu_j \) the Poisson ratios of the particles, which are related to the
+input shear and Young's moduli by \(\nu_i = E_i/2G_i - 1\). Thus, if the elastic and shear moduli of the 
+two particles are the same, the {hertz/material}
+model is equivalent to the {hertz} model with \(k_N = 4/3 E_\{eff\}\)
 
-For {jkr}, the normal force is given by:
-:c,image{Eqs/jkr_normal.jpg}
+The {dmt} model corresponds to the Derjaguin-Muller-Toporov model, 
+where the force is simply Hertz with an additional attractive cohesion term:
+\begin\{equation\}
+\mathbf\{F\}_\{ne, dmt\} = \left(\frac\{4\}\{3\} E R^\{1/2\}\delta_\{ij\}^\{3/2\} - 4\pi\gamma R\right)\mathbf\{n\}
+\end\{equation\}
 
-The same mixing rule for stiffness as for {hertz/material} is used by both the {dmt} and {jkr} models. 
+The {jkr} model is the Johnson-Kendall-Roberts model, where the force is computed as:
+\begin\{equation\}
+\label\{eq:force_jkr\}
+\mathbf\{F\}_\{ne, jkr\} = \left(\frac\{4Ea^3\}\{3R\} - 2\pi a^2\sqrt\{\frac\{4\gamma E\}\{\pi a\}\}\right)\mathbf\{n\}
+\end\{equation\}
+
+Here, {a} is the radius of the contact zone, related to the overlap \(\delta\) according to:
+\begin\{equation\}
+\delta = a^2/R - 2\sqrt\{\pi \gamma a/E\}
+\end\{equation\}
  
-The tangential contact model must also be specified, which follows
-the required {tangential} keyword. Currently supported options
-and their required arguments are:
+LAMMPS internally inverts the equation above to solve for {a} in terms of \(\delta\), then solves for
+the force in the previous equation. Additionally, note that the JKR model allows for a tensile force beyond 
+contact (i.e. for \(\delta < 0\)), up to a maximum tensile force of \(-3\pi\gamma R\) (also known as
+the 'pull-off' force).
+Note that this is a hysteretic effect, where particles that are not contacting initially
+will not experience force until they come into contact \(\delta \geq 0\); as they move apart
+and (\(\delta < 0\)), they experience a tensile force up to \(-3\pi\gamma R\), 
+at which point they will lose contact. 
 
-{no_history}: k_t, tangential_damping, friction coefficient
-{mindlin}: k_t, tangential_damping, friction coefficient
+In addition to the above options, the normal force is augmented by a damping term. The optional
+{damping} keyword to the {pair_coeff} command followed by the model choice determines the form of the damping. 
+The damping coefficient that was specified for the normal model
+settings is used in computing the damping term, as described below. Note this damping parameter
+may be interpreted differently depending on the model choice.
+The options for the damping model currently supported are:
+
+{velocity}
+{viscoelastic}
+{tsuji} :ol
+
+If the {damping} keyword is not specified, the {viscoelastic} model is used by default.
+
+For {damping velocity}, the normal damping is simply proportional to the velocity:
+\begin\{equation\}
+F_\{N,damp\} = -\gamma_N\mathbf\{v\}_\{N,rel\}
+\end\{equation\}
+
+Here, \(\gamma_N\) is the damping coefficient, in units of {mass}/{time}, 
+\(\mathbf\{v\}_\{N,rel\} = (\mathbf\{v\}_i - \mathbf\{v\}_j) \cdot \mathbf\{n\}\)
+is the component of relative velocity along the direction of the vector \(\mathbf\{n\}\) that connects the centers of 
+particles {i} and {j}.
+
+The {damping viscoelastic} model is based on the viscoelastic treatment of "(Brilliantov et al)"_#Brill1996,
+where the normal damping is given by:
+\begin\{equation\}
+F_\{N,damp\} = -\gamma_N a m_\{eff\} \mathbf\{v\}_\{N,rel\}
+\end\{equation\}
+
+Here, \(m_\{eff\} = m_i m_j/(m_i + m_j)\) is the effective mass, {a} is the contact radius, given by \(a =\sqrt\{R\delta\}\)
+for all models except {jkr}, for which it is given implicitly according to \(delta = a^2/R - 2\sqrt\{\pi \gamma a/E\}\).
+In this case, \(\gamma_N\) is the damping coefficient, in units of 1/({time}*{distance}).
+
+The {tsuji} model is based on the work of "(Tsuji et al)"_#Tsuji1992. Here, the 
+
+ :line
+
+Following the normal contact model settings, the {pair_coeff} command requires specification 
+of the tangential contact model. The required keyword {tangential} is expected, followed by the model choice and associated
+parameters. Currently supported tangential model choices and their expected parameters are as follows:
  
-For {no_history}, the tangential force is computed according to:
-:c,image{Eqs/tangential_nohistory.jpg}
+{nohistory} : \(\gamma_t\), \(\mu_s\)
+{history} : \(k_t\), \(\gamma_t\), \(\mu_s\) :ol
 
-For {mindlin}, tangential force is:
-:c,image{Eqs/tangential_mindlin.jpg}
+Here, \(\gamma_t\) is the tangential damping coefficient, \(\mu_s\) is the tangential (or sliding) friction
+coefficient, and \(k_t\) is the tangential stiffness. 
 
-The total force on a particle is the sum of the normal and tangential forces from all interactions. The tangential
-force also induces a torque on both particles in a contacting pair. Additionally, rolling and twisting friction
-models can also be applied, which may induce additional torques (but no force). The following options are
-supported for the rolling friction model
+For {nohistory}, a simple velocity-dependent Coulomb friction criterion is used, which reproduces the behavior
+of the {pair gran/hooke} style. The tangential force (\mathbf\{F\}_t\) is given by:
 
+\begin\{equation\}
+\mathbf\{F\}_t =  -min(\mu_s \|\mathbf\{F\}_n\|, \gamma_t m_\{eff\}\|\mathbf\{v\}_\{t, rel\}\|) \mathbf\{t\}
+\end\{equation\}
+
+Where \(\|\mathbf\{F\}_n\) is the magnitude of the normal force,  
+\(\mathbf\{v\}_\{t, rel\} = \mathbf\{v\}_\{t\} - (R_i\Omega_i + R_j\Omega_j) \times \mathbf\{n\}\) is the relative tangential
+velocity at the point of contact, \(\mathbf\{v\}_\{t\} = \mathbf\{v\}_n - \)
+
+
+ :link(Brill1996)
+[(Brilliantov et al, 1996)] Brilliantov, N. V., Spahn, F., Hertzsch, J. M., & Poschel, T. (1996). 
+Model for collisions in granular gases. Physical review E, 53(5), 5382.
  
-The first required keyword 
-in the pair coeff command is the choice
-of normal force contact model, for which current opitons are {hooke}, {hertz} 
+ :link(Tsuji1992)
+ [(Tsuji et al, 1992)] Tsuji, Y., Tanaka, T., & Ishida, T. (1992). Lagrangian numerical simulation of plug flow of 
+ cohesionless particles in a horizontal pipe. Powder technology, 71(3), 239-250.
  
-The {gran} styles use the following formulas for the frictional force
-between two granular particles, as described in
-"(Brilliantov)"_#Brilliantov, "(Silbert)"_#Silbert, and
-"(Zhang)"_#Zhang3, when the distance r between two particles of radii
-Ri and Rj is less than their contact distance d = Ri + Rj.  There is
-no force between the particles when r > d.
-
-The two Hookean styles use this formula:
-
-:c,image(Eqs/pair_gran_hooke.jpg)
-
-The Hertzian style uses this formula:
-
-:c,image(Eqs/pair_gran_hertz.jpg)
-
-In both equations the first parenthesized term is the normal force
-between the two particles and the second parenthesized term is the
-tangential force.  The normal force has 2 terms, a contact force and a
-damping force.  The tangential force also has 2 terms: a shear force
-and a damping force.  The shear force is a "history" effect that
-accounts for the tangential displacement between the particles for the
-duration of the time they are in contact.  This term is included in
-pair styles {hooke/history} and {hertz/history}, but is not included
-in pair style {hooke}.  The tangential damping force term is included
-in all three pair styles if {dampflag} is set to 1; it is not included
-if {dampflag} is set to 0.
-
-The other quantities in the equations are as follows:
-
-delta = d - r = overlap distance of 2 particles
-Kn = elastic constant for normal contact
-Kt = elastic constant for tangential contact
-gamma_n = viscoelastic damping constant for normal contact
-gamma_t = viscoelastic damping constant for tangential contact
-m_eff = Mi Mj / (Mi + Mj) = effective mass of 2 particles of mass Mi and Mj
-Delta St = tangential displacement vector between 2 particles \
-      which is truncated to satisfy a frictional yield criterion
-n_ij = unit vector along the line connecting the centers of the 2 particles
-Vn = normal component of the relative velocity of the 2 particles
-Vt = tangential component of the relative velocity of the 2 particles :ul
-
-The Kn, Kt, gamma_n, and gamma_t coefficients are specified as
-parameters to the pair_style command.  If a NULL is used for Kt, then
-a default value is used where Kt = 2/7 Kn.  If a NULL is used for
-gamma_t, then a default value is used where gamma_t = 1/2 gamma_n.
-
-The interpretation and units for these 4 coefficients are different in
-the Hookean versus Hertzian equations.
-
-The Hookean model is one where the normal push-back force for two
-overlapping particles is a linear function of the overlap distance.
-Thus the specified Kn is in units of (force/distance).  Note that this
-push-back force is independent of absolute particle size (in the
-monodisperse case) and of the relative sizes of the two particles (in
-the polydisperse case).  This model also applies to the other terms in
-the force equation so that the specified gamma_n is in units of
-(1/time), Kt is in units of (force/distance), and gamma_t is in units
-of (1/time).
-
-The Hertzian model is one where the normal push-back force for two
-overlapping particles is proportional to the area of overlap of the
-two particles, and is thus a non-linear function of overlap distance.
-Thus Kn has units of force per area and is thus specified in units of
-(pressure).  The effects of absolute particle size (monodispersity)
-and relative size (polydispersity) are captured in the radii-dependent
-pre-factors.  When these pre-factors are carried through to the other
-terms in the force equation it means that the specified gamma_n is in
-units of (1/(time*distance)), Kt is in units of (pressure), and
-gamma_t is in units of (1/(time*distance)).
-
-Note that in the Hookean case, Kn can be thought of as a linear spring
-constant with units of force/distance.  In the Hertzian case, Kn is
-like a non-linear spring constant with units of force/area or
-pressure, and as shown in the "(Zhang)"_#Zhang3 paper, Kn = 4G /
-(3(1-nu)) where nu = the Poisson ratio, G = shear modulus = E /
-(2(1+nu)), and E = Young's modulus.  Similarly, Kt = 4G / (2-nu).
-(NOTE: in an earlier version of the manual, we incorrectly stated that
-Kt = 8G / (2-nu).)
-
-Thus in the Hertzian case Kn and Kt can be set to values that
-corresponds to properties of the material being modeled.  This is also
-true in the Hookean case, except that a spring constant must be chosen
-that is appropriate for the absolute size of particles in the model.
-Since relative particle sizes are not accounted for, the Hookean
-styles may not be a suitable model for polydisperse systems.
-
-NOTE: In versions of LAMMPS before 9Jan09, the equation for Hertzian
-interactions did not include the sqrt(RiRj/Ri+Rj) term and thus was
-not as accurate for polydisperse systems.  For monodisperse systems,
-sqrt(RiRj/Ri+Rj) is a constant factor that effectively scales all 4
-coefficients: Kn, Kt, gamma_n, gamma_t.  Thus you can set the values
-of these 4 coefficients appropriately in the current code to reproduce
-the results of a previous Hertzian monodisperse calculation.  For
-example, for the common case of a monodisperse system with particles
-of diameter 1, all 4 of these coefficients should now be set 2x larger
-than they were previously.
-
-Xmu is also specified in the pair_style command and is the upper limit
-of the tangential force through the Coulomb criterion Ft = xmu*Fn,
-where Ft and Fn are the total tangential and normal force components
-in the formulas above.  Thus in the Hookean case, the tangential force
-between 2 particles grows according to a tangential spring and
-dash-pot model until Ft/Fn = xmu and is then held at Ft = Fn*xmu until
-the particles lose contact.  In the Hertzian case, a similar analogy
-holds, though the spring is no longer linear.
-
-NOTE: Normally, xmu should be specified as a fractional value between
-0.0 and 1.0, however LAMMPS allows large values (up to 1.0e4) to allow
-for modeling of systems which can sustain very large tangential
-forces.
-
-The effective mass {m_eff} is given by the formula above for two
-isolated particles.  If either particle is part of a rigid body, its
-mass is replaced by the mass of the rigid body in the formula above.
-This is determined by searching for a "fix rigid"_fix_rigid.html
-command (or its variants).
-
-For granular styles there are no additional coefficients to set for
-each pair of atom types via the "pair_coeff"_pair_coeff.html command.
-All settings are global and are made via the pair_style command.
-However you must still use the "pair_coeff"_pair_coeff.html for all
-pairs of granular atom types.  For example the command
-
-pair_coeff * * :pre
-
-should be used if all atoms in the simulation interact via a granular
-potential (i.e. one of the pair styles above is used).  If a granular
-potential is used as a sub-style of "pair_style
-hybrid"_pair_hybrid.html, then specific atom types can be used in the
-pair_coeff command to determine which atoms interact via a granular
-potential.
-
-:line
-
-Styles with a {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the "Speed packages"_Speed_packages.html doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the "Build
-package"_Build_package.html doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the "-suffix command-line
-switch"_Run_options.html when you invoke LAMMPS, or you can use the
-"suffix"_suffix.html command in your input script.
-
-See the "Speed packages"_Speed_packages.html doc page for more
-instructions on how to use the accelerated styles effectively.
-
-:line
-
-[Mixing, shift, table, tail correction, restart, rRESPA info]:
-
-The "pair_modify"_pair_modify.html mix, shift, table, and tail options
-are not relevant for granular pair styles.
-
-These pair styles write their information to "binary restart
-files"_restart.html, so a pair_style command does not need to be
-specified in an input script that reads a restart file.
-
-These pair styles can only be used via the {pair} keyword of the
-"run_style respa"_run_style.html command.  They do not support the
-{inner}, {middle}, {outer} keywords.
-
-The single() function of these pair styles returns 0.0 for the energy
-of a pairwise interaction, since energy is not conserved in these
-dissipative potentials.  It also returns only the normal component of
-the pairwise interaction force.  However, the single() function also
-calculates 10 extra pairwise quantities.  The first 3 are the
-components of the tangential force between particles I and J, acting
-on particle I.  The 4th is the magnitude of this tangential force.
-The next 3 (5-7) are the components of the relative velocity in the
-normal direction (along the line joining the 2 sphere centers).  The
-last 3 (8-10) the components of the relative velocity in the
-tangential direction.
-
-These extra quantities can be accessed by the "compute
-pair/local"_compute_pair_local.html command, as {p1}, {p2}, ...,
-{p10}.
-
-:line
-
-[Restrictions:]
-
-All the granular pair styles are part of the GRANULAR package.  It is
-only enabled if LAMMPS was built with that package.  See the "Build
-package"_Build_package.html doc page for more info.
-
-These pair styles require that atoms store torque and angular velocity
-(omega) as defined by the "atom_style"_atom_style.html.  They also
-require a per-particle radius is stored.  The {sphere} atom style does
-all of this.
-
-This pair style requires you to use the "comm_modify vel
-yes"_comm_modify.html command so that velocities are stored by ghost
-atoms.
-
-These pair styles will not restart exactly when using the
-"read_restart"_read_restart.html command, though they should provide
-statistically similar results.  This is because the forces they
-compute depend on atom velocities.  See the
-"read_restart"_read_restart.html command for more details.
-
-[Related commands:]
-
-"pair_coeff"_pair_coeff.html
-
-[Default:] none
-
-:line
-
-:link(Brilliantov)
-[(Brilliantov)] Brilliantov, Spahn, Hertzsch, Poschel, Phys Rev E, 53,
-p 5382-5392 (1996).
-
-:link(Silbert)
-[(Silbert)] Silbert, Ertas, Grest, Halsey, Levine, Plimpton, Phys Rev
-E, 64, p 051302 (2001).
-
-:link(Zhang3)
-[(Zhang)] Zhang and Makse, Phys Rev E, 72, p 011301 (2005).
+ 
+ 

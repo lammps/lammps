@@ -1087,7 +1087,7 @@ void LAMMPS::print_config(FILE *fp)
   delete[] infobuf;
 
   infobuf = Info::get_compiler_info();
-  fprintf(fp,"Compiler: %s\n\n",infobuf);
+  fprintf(fp,"Compiler: %s with %s\n\n",infobuf,Info::get_openmp_info());
   delete[] infobuf;
 
   fputs("Active compile time flags:\n\n",fp);

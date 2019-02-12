@@ -14,7 +14,6 @@
 :line
 
 pair_style granular command :h3
-pair_style granular/multi command :h3
 
 [Syntax:]
 
@@ -33,7 +32,7 @@ pair_style granular
 pair_coeff 1 1 hertz 1000.0 50.0 tangential mindlin 800.0 50.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall 
 pair_coeff 2 2 hertz 200.0 20.0 tangential mindlin 300.0 50.0 0.1 rolling sds 200.0 100.0 0.1 twisting marshall :pre
 
-pair_style granular/multi
+pair_style granular
 pair_coeff 1 1 hertz 1000.0 50.0 tangential mindlin 800.0 50.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall 
 pair_coeff 2 2 dmt 1000.0 50.0 800.0 10.0 tangential mindlin 800.0 50.0 0.1 roll sds 500.0 200.0 0.1 twisting marshall
 pair_coeff 1 2 dmt 1000.0 50.0 800.0 10.0 tangential mindlin 800.0 50.0 0.1 roll sds 500.0 200.0 0.1 twisting marshall :pre
@@ -44,24 +43,17 @@ pair_coeff 1 2 dmt 1000.0 50.0 800.0 10.0 tangential mindlin 800.0 50.0 0.1 roll
 The {granular} styles support a variety of options for the normal, tangential, rolling and twisting
 forces resulting from contact between two granular particles. This expands on the options offered
 by the "pair gran/*"_pair_gran.html options. The total computed forces and torques depend on the combination
-of choices for these various modes of motion.
+of models selected for these various modes of motion.
 
 All model options and parameters are entered in the "pair_coeff"_pair_coeff.html command, as described below. 
 Unlike e.g. "pair gran/hooke"_pair_gran.html, coefficient values are not global, but can be set to different values for 
 various combinations of particle types, as determined by the "pair_coeff"_pair_coeff.html command.
-For {pair_style granular}, coefficients can vary between particle types, but model choices 
-cannot. For instance, in the first 
-example above, the stiffness, damping, and tangential friction are different for 
-type 1 - type 1 and type 2 - type 2 interactions, but
-both 1-1 and 2-2 interactions must have the same model form, hence all keywords are 
-identical between the two types. Cross-coefficients
-for 1-2 interactions for the case of the {hertz} model above are set via simple 
-geometric mixing rules. The {granular/multi}
-style removes this restriction at a small cost in computational efficiency, so that different particle types
-can potentially interact via different model forms. As shown in the second example,
-1-1 interactions are based on a Hertzian contact model and 2-2 interactions are based on a {dmt} model (see below). 
-In the case that 1-1 and 2-2 interactions have different model forms, mixing of coefficients cannot be 
-determined, so 1-2 interactions must be explicitly defined via the pair coeff command, otherwise an error results.
+For {pair_style granular}, coefficients as well as model options can vary between particle types.
+As shown in the second example,
+type 1- type 1 interactions are based on a Hertzian normal contact model and 2-2 interactions are based on a {dmt} model (see below). 
+In that example, 1-1 and 2-2 interactions have different model forms, in which case 
+mixing of coefficients cannot be  determined, so 1-2 interactions must be explicitly defined via the 
+pair coeff command, otherwise an error would result.
 
 :line
 
@@ -70,12 +62,13 @@ for normal contact models and their required arguments are:
 
 {hooke} : \(k_n\), damping
 {hertz} : \(k_n\), damping
-{hertz/material} : E, damping, G
-{dmt} : E, damping, G, cohesion
-{jkr} : E, damping, G, cohesion :ol
+{hertz/material} : E, damping, \(\nu\)
+{dmt} : E, damping, \(\nu\), cohesion
+{jkr} : E, damping, \(\nu\), cohesion :ol
    
-Here, \(k_n\) is spring stiffness, damping is a damping constant or a coefficient of restitution, depending on
-the choice of damping model (see below), E and G are Young's modulus and shear modulus, in units of pressure, 
+Here, \(k_n\) is spring stiffness (with units that depend on model choice, see below); 
+damping is a damping constant or a coefficient of restitution, depending on
+the choice of damping model; E is Young's modulus in units of force/length^2; \(\nu\) is Poisson's ratio 
 and cohesion is a surface energy density, in units of energy/length^2. 
 
 For the {hooke} model, the normal (elastic) component of force between two particles {i} and {j} is given by:
@@ -88,6 +81,8 @@ Where \(\delta =  R_i + R_j - \|\mathbf\{r\}_\{ij\}\|\) is the particle overlap,
 \(\mathbf\{r\}_\{ij\} = \mathbf\{r\}_j - \mathbf\{r\}_i\) is the vector separating the
 two particle centers 
 and \(\mathbf\{n\} = \frac\{\mathbf\{r\}_\{ij\}\}\{\|\mathbf\{r\}_\{ij\}\|\}\).
+Therefore, for {hooke}, the units of the spring constant \(k_n\) are {force}/{distance}, 
+or equivalently {mass}/{time^2}. 
 
 For the {hertz} model, the normal component of force is given by:
 \begin\{equation\}
@@ -95,6 +90,8 @@ For the {hertz} model, the normal component of force is given by:
 \end\{equation\}
 
 Here, \(R_\{eff\} = \frac\{R_i R_j\}\{R_i + R_j\}\) is the effective radius, denoted for simplicity as {R} from here on.
+For {hertz}, the units of the spring constant \(k_n\) are {force}/{distance}^2, or equivalently
+{pressure}.
 
 For the {hertz/material} model, the force is given by:
 \begin\{equation\}
@@ -102,9 +99,9 @@ For the {hertz/material} model, the force is given by:
 \end\{equation\}
 
 Here, \(E_\{eff\} = E = \left(\frac\{1-\nu_i^2\}\{E_i\} + \frac\{1-\nu_j^2\}\{E_j\}\right)^\{-1\}\) 
-is the effectve Young's modulus,
-with \(\nu_i, \nu_j \) the Poisson ratios of the particles, which are related to the
-input shear and Young's moduli by \(\nu_i = E_i/2G_i - 1\). Thus, if the elastic and shear moduli of the 
+is the effective Young's modulus,
+with \(\nu_i, \nu_j \) the Poisson ratios of the particles of types {i} and {j}. Note that
+ if the elastic and shear moduli of the 
 two particles are the same, the {hertz/material}
 model is equivalent to the {hertz} model with \(k_N = 4/3 E_\{eff\}\)
 
@@ -127,12 +124,12 @@ Here, {a} is the radius of the contact zone, related to the overlap \(\delta\) a
  
 LAMMPS internally inverts the equation above to solve for {a} in terms of \(\delta\), then solves for
 the force in the previous equation. Additionally, note that the JKR model allows for a tensile force beyond 
-contact (i.e. for \(\delta < 0\)), up to a maximum tensile force of \(-3\pi\gamma R\) (also known as
+contact (i.e. for \(\delta < 0\)), up to a maximum of \(3\pi\gamma R\) (also known as
 the 'pull-off' force).
 Note that this is a hysteretic effect, where particles that are not contacting initially
 will not experience force until they come into contact \(\delta \geq 0\); as they move apart
-and (\(\delta < 0\)), they experience a tensile force up to \(-3\pi\gamma R\), 
-at which point they will lose contact. 
+and (\(\delta < 0\)), they experience a tensile force up to \(3\pi\gamma R\), 
+at which point they lose contact. 
 
 In addition to the above options, the normal force is augmented by a damping term. The optional
 {damping} keyword to the {pair_coeff} command followed by the model choice determines the form of the damping. 
@@ -167,7 +164,19 @@ Here, \(m_\{eff\} = m_i m_j/(m_i + m_j)\) is the effective mass, {a} is the cont
 for all models except {jkr}, for which it is given implicitly according to \(delta = a^2/R - 2\sqrt\{\pi \gamma a/E\}\).
 In this case, \(\gamma_N\) is the damping coefficient, in units of 1/({time}*{distance}).
 
-The {tsuji} model is based on the work of "(Tsuji et al)"_#Tsuji1992. Here, the 
+The {tsuji} model is based on the work of "(Tsuji et al)"_#Tsuji1992. Here, the
+damping term is given by:
+\begin\{equation\}
+F_\{N,damp\} = -\alpha (m_\{eff\}k_N)^\{l/2\} \mathbf\{v\}_\{N,rel\}
+\end\{equation\}
+
+For normal contact models based on material parameters, \(k_N = 4/3Ea\).
+The parameter \(\alpha\) is related to the restitution coefficient {e} according to:
+\begin{equation}
+\alpha = 1.2728-4.2783e+11.087e^2-22.348e^3+27.467e^4-18.022e^5+4.8218e^6
+\end{equation} 
+
+For further details, see "(Tsuji et al)"_#Tsuji1992.
 
  :line
 
@@ -175,13 +184,13 @@ Following the normal contact model settings, the {pair_coeff} command requires s
 of the tangential contact model. The required keyword {tangential} is expected, followed by the model choice and associated
 parameters. Currently supported tangential model choices and their expected parameters are as follows:
  
-{nohistory} : \(\gamma_t\), \(\mu_s\)
-{history} : \(k_t\), \(\gamma_t\), \(\mu_s\) :ol
+{linear_nohistory} : \(\gamma_t\), \(\mu_s\)
+{linear_history} : \(k_t\), \(\gamma_t\), \(\mu_s\) :ol
 
 Here, \(\gamma_t\) is the tangential damping coefficient, \(\mu_s\) is the tangential (or sliding) friction
-coefficient, and \(k_t\) is the tangential stiffness. 
+coefficient, and \(k_t\) is the tangential stiffness coefficient. 
 
-For {nohistory}, a simple velocity-dependent Coulomb friction criterion is used, which reproduces the behavior
+For {linear_nohistory}, a simple velocity-dependent Coulomb friction criterion is used, which reproduces the behavior
 of the {pair gran/hooke} style. The tangential force (\mathbf\{F\}_t\) is given by:
 
 \begin\{equation\}
@@ -190,7 +199,33 @@ of the {pair gran/hooke} style. The tangential force (\mathbf\{F\}_t\) is given 
 
 Where \(\|\mathbf\{F\}_n\) is the magnitude of the normal force,  
 \(\mathbf\{v\}_\{t, rel\} = \mathbf\{v\}_\{t\} - (R_i\Omega_i + R_j\Omega_j) \times \mathbf\{n\}\) is the relative tangential
-velocity at the point of contact, \(\mathbf\{v\}_\{t\} = \mathbf\{v\}_n - \)
+velocity at the point of contact, \(\mathbf\{v\}_\{t\} = \mathbf\{v\}_R - \mathbf\{v\}_R\cdot\mathbf\{n\}\),
+\(\mathbf\{v\}_R = \mathbf\{v\}_i - \mathbf\{v\}_j.
+
+For {linear_history}, the total tangential displacement \(\mathbf\{\xi\}\) is accumulated during the entire
+duration of the contact:
+
+\begin\{equation\}
+\mathbf\{\xi\} = \int_\{t0\}^t \mathbf\{v\}_\{t,rel\}(\tau) \mathrm\{d\}\tau 
+\end\{equation\}
+
+The tangential displacement must  in the frame of reference of the contacting pair of particles, 
+
+\begin\{equation\}
+\mathbf\{\xi\} = \mathbf\{\xi'\} - \mathbf\{n\}(\mathbf\{n\} \cdot \mathbf\{\xi'\})
+\end\{equation\}
+
+\noindent Since the goal here is a `rotation', the equation above should be accompanied by a rescaling, so that at each step, 
+the displacement is first rotated into the current frame of reference $\mathbf\{\xi\}$, then updated:
+
+\begin\{equation\}
+\mathbf\{\xi\} = \left(\mathbf\{\xi'\} - (\mathbf\{n\} \cdot \mathbf\{\xi'\})\mathbf\{n\}\right) \frac\{\|\mathbf\{\xi'\}\|\}\{\|\mathbf\{\xi'\}\| - \mathbf\{n\}\cdot\mathbf\{\xi'\}\}
+\label\{eq:rotate_displacements\}
+\end\{equation\}
+
+
+a simple velocity-dependent Coulomb friction criterion is used, which reproduces the behavior
+of the {pair gran/hooke} style. The tangential force (\mathbf\{F\}_t\) is given by:
 
 
  :link(Brill1996)

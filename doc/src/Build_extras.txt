@@ -932,7 +932,9 @@ LINKFLAGS: -fopenmp             # for GNU Compilers
 LINKFLAGS: -qopenmp             # for Intel compilers on Linux :pre
 
 For other platforms and compilers, please consult the documentation
-about OpenMP support for your compiler.
+about OpenMP support for your compiler. Please see the note about
+how to address compatibility "issues with the 'default(none)'
+directive"_Build_basics.html#default-none-issues of some compilers.
 
 :line
 

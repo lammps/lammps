@@ -86,3 +86,4 @@ if tryuser:
     print("Installation into user site package dir failed.\nGo to ../python and install manually.")
 
 
+

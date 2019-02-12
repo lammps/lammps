@@ -1163,7 +1163,9 @@ const char *Info::get_openmp_info()
 #if _OPENMP > 201811
   return (const char *)"OpenMP newer than v5.0";
 #elif _OPENMP == 201811
-  return (const char *)"OpenMP v5.0 or newer";
+  return (const char *)"OpenMP v5.0";
+#elif _OPENMP == 201611
+  return (const char *)"OpenMP v5.0 preview 1";
 #elif _OPENMP == 201511
   return (const char *)"OpenMP v4.5";
 #elif _OPENMP == 201307

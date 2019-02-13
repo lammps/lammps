@@ -27,6 +27,7 @@
 #include "variable.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -87,6 +88,7 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
 
   // parse values until one isn't recognized
 
+  char *suffix = NULL;
   which = new int[nargnew];
   argindex = new int[nargnew];
   flavor = new int[nargnew];
@@ -132,26 +134,18 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
       which[nvalues] = F;
       argindex[nvalues++] = 2;
 
-    } else if (strncmp(arg[iarg],"c_",2) == 0 ||
-               strncmp(arg[iarg],"f_",2) == 0 ||
-               strncmp(arg[iarg],"v_",2) == 0) {
-      if (arg[iarg][0] == 'c') which[nvalues] = COMPUTE;
-      else if (arg[iarg][0] == 'f') which[nvalues] = FIX;
-      else if (arg[iarg][0] == 'v') which[nvalues] = VARIABLE;
-
-      int n = strlen(arg[iarg]);
-      char *suffix = new char[n];
-      strcpy(suffix,&arg[iarg][2]);
+    } else if ((which[nvalues] = utils::cfvarg("cfv",arg[iarg],suffix))
+               != utils::NONE ) {
 
       char *ptr = strchr(suffix,'[');
       if (ptr) {
-        if (suffix[strlen(suffix)-1] != ']')
+        if (!utils::strmatch(suffix,"\\[[0-9]+\\]$"))
           error->all(FLERR,"Illegal compute reduce command");
         argindex[nvalues] = atoi(ptr+1);
         *ptr = '\0';
       } else argindex[nvalues] = 0;
 
-      n = strlen(suffix) + 1;
+      int n = strlen(suffix) + 1;
       ids[nvalues] = new char[n];
       strcpy(ids[nvalues],suffix);
       nvalues++;

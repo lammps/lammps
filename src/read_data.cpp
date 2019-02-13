@@ -872,9 +872,9 @@ void ReadData::command(int narg, char **arg)
   if (domain->nonperiodic == 2) {
     if (domain->triclinic) domain->x2lamda(atom->nlocal);
     domain->reset_box();
-    comm->init();
-    comm->exchange();
-    if (atom->map_style) atom->map_set();
+    Irregular *irregular = new Irregular(lmp);
+    irregular->migrate_atoms(1);
+    delete irregular;
     if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
     bigint natoms;

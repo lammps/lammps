@@ -39,7 +39,7 @@ help:
 	@echo "Please use \`make <target>' where <target> is one of"
 	@echo "  html       create HTML doc pages in html dir"
 	@echo "  pdf        create Developer.pdf and Manual.pdf in this dir"
-	@echo "  old        create old-style HTML doc pages in old dir"
+	@echo "  old        create old-style HTML doc pages and Manual.pdf in old dir"
 	@echo "  fetch      fetch HTML and PDF files from LAMMPS web site"
 	@echo "  epub       create ePUB format manual for e-book readers"
 	@echo "  mobi       convert ePUB to MOBI format manual for e-book readers (e.g. Kindle)"
@@ -162,6 +162,18 @@ old: utils/txt2html/txt2html.exe
 	  cp Eqs/*.jpg ../old/Eqs; \
 	  cp JPG/* ../old/JPG; \
 	  cp PDF/* ../old/PDF;
+	@(      set -e;\
+		cd src/Developer; \
+		pdflatex developer; \
+		pdflatex developer; \
+		mv developer.pdf ../../old/Developer.pdf; \
+		cd ../../old; \
+	        for s in `echo ../src/*.txt | sed -e 's,\.\./src/,,g' -e 's/ \(pairs\|bonds\|angles\|dihedrals\|impropers\|commands_list\|fixes\|computes\).txt/ /g' | sed -e 's,\.txt,\.html,g'` ; \
+			do grep -q ^$$s ../src/lammps.book || \
+			echo WARNING: doc file $$s missing in src/lammps.book; done; \
+		htmldoc --batch ../src/lammps.book;          \
+	)
+
 
 fetch:
 	@rm -rf html_www Manual_www.pdf Developer_www.pdf

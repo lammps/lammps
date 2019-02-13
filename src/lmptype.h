@@ -200,6 +200,38 @@ typedef int bigint;
 #define _noalias
 #endif
 
+// Identify compilers that use OpenMP 4.0 and later semantics
+// on const variable sharing and thus require different,
+// incompatible OpenMP pragmas.  If LMP_OPENMP_MUST_SHARE_CONST
+// is defined, const variables must be explicitly listed in
+// "shared()", while otherwise they must not.
+//
+// Known compilers
+// GNU g++ enforces OpenMP 4.0 (Jul/2013) semantics only with
+//         OpenMP 5.0 (Nov/2018) support added to GNU g++ 9.x
+// Intel icpc 2017 supports OpenMP 4.5 (Nov/2015) and both kinds
+//         of sharing semantics so we don't need to find the
+//         exact point where this is switched over
+// Clang 7.0 supports OpenMP 3.1 (Jul/2011) only.
+// by default we follow the standard and enforce new sharing
+// semantics with OpenMP 4.0 and later
+
+#if defined(_OPENMP)
+#  if defined(__INTEL_COMPILER)
+#    if _OPENMP >= 201511
+#      define LMP_OPENMP_MUST_SHARE_CONST 1
+#    endif
+#  elif defined(__GNUC__)
+#    if (_OPENMP >= 201811)
+#      define LMP_OPENMP_MUST_SHARE_CONST 1
+#    endif
+#  else
+#    if (_OPENMP >= 201307)
+#      define LMP_OPENMP_MUST_SHARE_CONST 1
+#    endif
+#  endif
+#endif
+
 // settings to enable LAMMPS to build under Windows
 
 #ifdef _WIN32

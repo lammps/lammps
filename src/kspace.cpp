@@ -275,7 +275,11 @@ void KSpace::qsum_qsq()
   double qsum_local(0.0), qsqsum_local(0.0);
 
 #if defined(_OPENMP)
+#if defined(LMP_OPENMP_MUST_SHARE_CONST)
+#pragma omp parallel for default(none) shared(nlocal,q) reduction(+:qsum_local,qsqsum_local)
+#else
 #pragma omp parallel for default(none) reduction(+:qsum_local,qsqsum_local)
+#endif
 #endif
   for (int i = 0; i < nlocal; i++) {
     qsum_local += q[i];

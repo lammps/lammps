@@ -37,7 +37,7 @@ enum{NODLM,DLM};
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVESphereOMP::initial_integrate(int vflag)
+void FixNVESphereOMP::initial_integrate(int /* vflag */)
 {
   double * const * const x = atom->x;
   double * const * const v = atom->v;

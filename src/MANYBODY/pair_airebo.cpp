@@ -2116,7 +2116,7 @@ but of the vector r_ij.
 
 */
 
-double PairAIREBO::bondorderLJ(int i, int j, double /*rij_mod*/[3], double rijmag_mod,
+double PairAIREBO::bondorderLJ(int i, int j, double /* rij_mod */[3], double rijmag_mod,
                                double VA, double rij[3], double rijmag,
                                double **f, int vflag_atom)
 {

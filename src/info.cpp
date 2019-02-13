@@ -1161,23 +1161,23 @@ const char *Info::get_openmp_info()
 // specifications as posted at https://www.openmp.org/specifications/
 
 #if _OPENMP > 201811
-  return (const char *)"OpenMP newer than v5.0";
+  return (const char *)"OpenMP newer than version 5.0";
 #elif _OPENMP == 201811
-  return (const char *)"OpenMP v5.0";
+  return (const char *)"OpenMP 5.0";
 #elif _OPENMP == 201611
-  return (const char *)"OpenMP v5.0 preview 1";
+  return (const char *)"OpenMP 5.0 preview 1";
 #elif _OPENMP == 201511
-  return (const char *)"OpenMP v4.5";
+  return (const char *)"OpenMP 4.5";
 #elif _OPENMP == 201307
-  return (const char *)"OpenMP v4.0";
+  return (const char *)"OpenMP 4.0";
 #elif _OPENMP == 201107
-  return (const char *)"OpenMP v3.1";
+  return (const char *)"OpenMP 3.1";
 #elif _OPENMP == 200805
-  return (const char *)"OpenMP v3.0";
+  return (const char *)"OpenMP 3.0";
 #elif _OPENMP == 200505
-  return (const char *)"OpenMP v2.5";
+  return (const char *)"OpenMP 2.5";
 #elif _OPENMP == 200203
-  return (const char *)"OpenMP v2.0";
+  return (const char *)"OpenMP 2.0";
 #else
   return (const char *)"unknown OpenMP version";
 #endif

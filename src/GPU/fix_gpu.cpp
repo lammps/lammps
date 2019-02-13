@@ -283,7 +283,7 @@ void FixGPU::min_setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixGPU::post_force(int vflag)
+void FixGPU::post_force(int /* vflag */)
 {
   if (!force->pair) return;
 
@@ -315,7 +315,7 @@ void FixGPU::min_post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixGPU::post_force_respa(int vflag, int ilevel, int iloop)
+void FixGPU::post_force_respa(int vflag, int /* ilevel */, int /* iloop */)
 {
   post_force(vflag);
 }

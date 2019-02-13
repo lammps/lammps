@@ -174,8 +174,9 @@ double PairLJCubicGPU::memory_usage()
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCubicGPU::cpu_compute(int start, int inum, int eflag, int vflag,
-                               int *ilist, int *numneigh, int **firstneigh) {
+void PairLJCubicGPU::cpu_compute(int start, int inum, int eflag,
+                                 int /* vflag */, int *ilist,
+                                 int *numneigh, int **firstneigh) {
   int i,j,ii,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,r2inv,r6inv,forcelj,factor_lj;

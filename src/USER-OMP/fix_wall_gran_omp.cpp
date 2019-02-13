@@ -37,7 +37,7 @@ FixWallGranOMP::FixWallGranOMP(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-void FixWallGranOMP::post_force(int vflag)
+void FixWallGranOMP::post_force(int /* vflag */)
 {
   double vwall[3];
 
@@ -48,7 +48,7 @@ void FixWallGranOMP::post_force(int vflag)
 
   if (neighbor->ago == 0 && fix_rigid) {
     int tmp;
-    const int * const body = (const int * const) fix_rigid->extract("body",tmp);
+    const int * const body = (const int *) fix_rigid->extract("body",tmp);
     double *mass_body = (double *) fix_rigid->extract("masstotal",tmp);
     if (atom->nmax > nmax) {
       memory->destroy(mass_rigid);
@@ -180,7 +180,7 @@ void FixWallGranOMP::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixWallGranOMP::post_force_respa(int vflag, int ilevel, int iloop)
+void FixWallGranOMP::post_force_respa(int vflag, int ilevel, int /* iloop */)
 {
   if (ilevel == nlevels_respa-1) post_force(vflag);
 }

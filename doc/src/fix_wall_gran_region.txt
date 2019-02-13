@@ -71,12 +71,13 @@ exterior surfaces of regions.
 Regions can either be primitive shapes (block, sphere, cylinder, etc)
 or combinations of primitive shapes specified via the {union} or
 {intersect} region styles.  These latter styles can be used to
-construct particle containers with complex shapes.  Regions can also
-move dynamically via the "region"_region.html command keywords (move)
-and {rotate}, or change their shape by use of variables as inputs to
-the "region"_region.html command.  If such a region is used with this
-fix, then the region surface will move in time in the corresponding
-manner.
+construct particle containers with complex shapes.
+
+Regions can also move dynamically via the "region"_region.html command
+keywords (move) and {rotate}, or change their shape by use of variables
+as inputs to the "region"_region.html command.  If such a region is used
+with this fix, then the region surface will move in time in the
+corresponding manner.
 
 NOTE: As discussed on the "region"_region.html command doc page,
 regions in LAMMPS do not get wrapped across periodic boundaries.  It

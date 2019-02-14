@@ -24,7 +24,7 @@
 #include "update.h"
 #include "respa.h"
 #include "error.h"
-#include "python.h"
+#include "lmppython.h"
 #include "python_compat.h"
 
 using namespace LAMMPS_NS;

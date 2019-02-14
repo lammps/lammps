@@ -60,6 +60,7 @@ Alejandre
 alessandro
 Alessandro
 aliceblue
+Allinger
 allocaters
 allosws
 AlO
@@ -410,6 +411,7 @@ cossq
 costheta
 Couette
 coul
+coulgauss
 coulombic
 Coulombic
 Coulombics
@@ -566,6 +568,7 @@ discretized
 disp
 dissipative
 Dissipative
+distharm
 dl
 dlambda
 DLAMMPS
@@ -888,6 +891,8 @@ fz
 Gahler
 gainsboro
 Galindo
+gamA
+gamR
 gammaA
 gammaFactor
 gammaR
@@ -1946,6 +1951,7 @@ ons
 OO
 openKIM
 OpenMP
+openmp
 openmpi
 opls
 Oppelstrup
@@ -2039,6 +2045,7 @@ peru
 Peskin
 Pettifor
 pfactor
+pgi
 ph
 Phillpot
 phiphi
@@ -2493,6 +2500,7 @@ Springer
 springgreen
 spx
 spz
+sqdistharm
 sqrt
 src
 srd
@@ -2726,6 +2734,7 @@ ttm
 tu
 Tuckerman
 tue
+tunable
 Turkand
 Tutein
 tweakable
@@ -2801,6 +2810,8 @@ Valone
 valuev
 Valuev
 Vanden
+Vandenbrande
+Vanduyfhuys
 varavg
 Varshalovich
 Varshney
@@ -2958,6 +2969,8 @@ xy
 xyz
 xz
 xzhou
+YAFF
+yaff
 Yamada
 Yazdani
 Ybar
@@ -2976,6 +2989,7 @@ ys
 ysu
 yu
 Yu
+Yuh
 yukawa
 Yukawa
 Yusof

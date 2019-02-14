@@ -51,7 +51,7 @@ integrated by other fixes (e.g. "fix nve"_fix_nve.html, "fix
 nvt"_fix_nh.html), since that will change their positions and
 velocities twice.
 
-NOTE: As atoms move due to this fix, they will pass thru periodic
+NOTE: As atoms move due to this fix, they will pass through periodic
 boundaries and be remapped to the other side of the simulation box,
 just as they would during normal time integration (e.g. via the "fix
 nve"_fix_nve.html command).  It is up to you to decide whether
@@ -121,7 +121,7 @@ variable v equal v_omega*($A-cwiggle(0.0,$A,$T))
 fix 1 boundary move variable v_x NULL NULL v_v NULL NULL :pre
 
 The {rotate} style rotates atoms around a rotation axis {R} =
-(Rx,Ry,Rz) that goes thru a point {P} = (Px,Py,Pz).  The {period} of
+(Rx,Ry,Rz) that goes through a point {P} = (Px,Py,Pz).  The {period} of
 the rotation is also specified.  The direction of rotation for the
 atoms around the rotation axis is consistent with the right-hand rule:
 if your right-hand thumb points along {R}, then your fingers wrap

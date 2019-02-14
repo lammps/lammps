@@ -29,7 +29,7 @@ FixNVEOMP::FixNVEOMP(LAMMPS *lmp, int narg, char **arg) :
    allow for both per-type and per-atom mass
 ------------------------------------------------------------------------- */
 
-void FixNVEOMP::initial_integrate(int vflag)
+void FixNVEOMP::initial_integrate(int /* vflag */)
 {
   // update v and x of atoms in group
 

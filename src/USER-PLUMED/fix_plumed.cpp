@@ -213,8 +213,8 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
 
   // Define compute to calculate potential energy
 
-  id_pe = new char[7];
-  id_pe = (char *) "plmd_pe";
+  id_pe = new char[8];
+  strcpy(id_pe,"plmd_pe");
   char **newarg = new char*[3];
   newarg[0] = id_pe;
   newarg[1] = (char *) "all";
@@ -226,8 +226,8 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
 
   // Define compute to calculate pressure tensor
 
-  id_press = new char[9];
-  id_press = (char *) "plmd_press";
+  id_press = new char[11];
+  strcpy(id_press,"plmd_press");
   newarg = new char*[5];
   newarg[0] = id_press;
   newarg[1] = (char *) "all";

@@ -213,8 +213,8 @@ void FixWallBodyPolyhedron::setup(int vflag)
 
 void FixWallBodyPolyhedron::post_force(int /*vflag*/)
 {
-  double vwall[3],dx,dy,dz,del1,del2,rsq,eradi,rradi,wall_pos;
-  int i,ni,npi,ifirst,nei,iefirst,nfi,iffirst,side;
+  double vwall[3],dx,dy,dz,del1,del2,rsq,wall_pos;
+  int i,ni,npi,ifirst,nei,iefirst,side;
   double facc[3];
 
   // set position of wall to initial settings and velocity to 0.0
@@ -330,10 +330,6 @@ void FixWallBodyPolyhedron::post_force(int /*vflag*/)
       ifirst = dfirst[i];
       nei = ednum[i];
       iefirst = edfirst[i];
-      nfi = facnum[i];
-      iffirst = facfirst[i];
-      eradi = enclosing_radius[i];
-      rradi = rounded_radius[i];
 
       if (npi == 1) {
         sphere_against_wall(i, wall_pos, side, vwall, x, v, f, angmom, torque);
@@ -356,13 +352,13 @@ void FixWallBodyPolyhedron::post_force(int /*vflag*/)
         edge[iefirst+ni][5] = 0;
       }
 
-      int interact, num_contacts;
+      int num_contacts;
       Contact contact_list[MAX_CONTACTS];
 
       num_contacts = 0;
       facc[0] = facc[1] = facc[2] = 0;
-      interact = edge_against_wall(i, wall_pos, side, vwall, x, f, torque,
-                                   contact_list, num_contacts, facc);
+      edge_against_wall(i, wall_pos, side, vwall, x, f, torque,
+                        contact_list, num_contacts, facc);
 
     } // group bit
   }
@@ -544,7 +540,7 @@ int FixWallBodyPolyhedron::edge_against_wall(int i, double wall_pos,
      int side, double* vwall, double** x, double** /*f*/, double** /*torque*/,
      Contact* /*contact_list*/, int &/*num_contacts*/, double* /*facc*/)
 {
-  int ni, nei, mode, contact;
+  int ni, nei, contact;
   double rradi;
 
   nei = ednum[i];
@@ -555,8 +551,7 @@ int FixWallBodyPolyhedron::edge_against_wall(int i, double wall_pos,
   // loop through body i's edges
 
   for (ni = 0; ni < nei; ni++)
-    mode = compute_distance_to_wall(i, ni, x[i], rradi, wall_pos, side, vwall,
-                                    contact);
+    compute_distance_to_wall(i, ni, x[i], rradi, wall_pos, side, vwall, contact);
 
   return contact;
 }

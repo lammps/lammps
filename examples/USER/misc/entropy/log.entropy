@@ -1,4 +1,4 @@
-LAMMPS (30 Mar 2018)
+LAMMPS (4 Jan 2019)
 
 units		metal
 atom_style	full
@@ -45,10 +45,10 @@ fix             1 all nph x 1. 1. 10.
 fix             2 all temp/csvr 350. 350. 0.1 64582
 
 run             1000
-WARNING: More than one compute entropy/atom (../compute_entropy_atom.cpp:138)
-WARNING: More than one compute entropy/atom (../compute_entropy_atom.cpp:138)
-WARNING: More than one compute entropy/atom (../compute_entropy_atom.cpp:138)
-WARNING: More than one compute entropy/atom (../compute_entropy_atom.cpp:138)
+WARNING: More than one compute entropy/atom (../compute_entropy_atom.cpp:139)
+WARNING: More than one compute entropy/atom (../compute_entropy_atom.cpp:139)
+WARNING: More than one compute entropy/atom (../compute_entropy_atom.cpp:139)
+WARNING: More than one compute entropy/atom (../compute_entropy_atom.cpp:139)
 Neighbor list info ...
   update every 1 steps, delay 10 steps, check yes
   max neighbors/atom: 2000, page size: 100000
@@ -56,27 +56,27 @@ Neighbor list info ...
   ghost atom cutoff = 13.2
   binsize = 6.6, bins = 21 6 6
   5 neighbor lists, perpetual/occasional/extra = 5 0 0
-  (1) pair eam/fs, perpetual
+  (1) pair eam/fs, perpetual, half/full from (2)
       attributes: half, newton on
-      pair build: half/bin/newton/tri
-      stencil: half/bin/3d/newton/tri
-      bin: standard
+      pair build: halffull/newton
+      stencil: none
+      bin: none
   (2) compute entropy/atom, perpetual
+      attributes: full, newton on
+      pair build: full/bin
+      stencil: full/bin/3d
+      bin: standard
+  (3) compute entropy/atom, perpetual, copy from (2)
+      attributes: full, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+  (4) compute entropy/atom, perpetual
       attributes: full, newton on, ghost
       pair build: full/bin/ghost
       stencil: full/ghost/bin/3d
       bin: standard
-  (3) compute entropy/atom, perpetual, copy from (2)
-      attributes: full, newton on, ghost
-      pair build: copy
-      stencil: none
-      bin: none
-  (4) compute entropy/atom, perpetual, copy from (2)
-      attributes: full, newton on, ghost
-      pair build: copy
-      stencil: none
-      bin: none
-  (5) compute entropy/atom, perpetual, copy from (2)
+  (5) compute entropy/atom, perpetual, copy from (4)
       attributes: full, newton on, ghost
       pair build: copy
       stencil: none
@@ -85,34 +85,34 @@ Setting up Verlet run ...
   Unit style    : metal
   Current step  : 0
   Time step     : 0.002
-Per MPI rank memory allocation (min/avg/max) = 25.68 | 25.69 | 25.69 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 19.6 | 19.6 | 19.6 Mbytes
 Step Temp E_pair E_mol TotEng Press Volume 
        0    346.29871    -4285.222            0   -4101.9191    594.65353    165399.75 
-     500    359.33758    -4285.247            0   -4095.0423    471.98587    165847.18 
-    1000    348.99659   -4276.2274            0   -4091.4964    149.27188    166966.18 
-Loop time of 5.3437 on 4 procs for 1000 steps with 4096 atoms
+     500    359.33769   -4285.2472            0   -4095.0424    472.02043    165847.09 
+    1000    348.99683   -4276.2282            0   -4091.4971    149.38771    166965.86 
+Loop time of 4.4394 on 4 procs for 1000 steps with 4096 atoms
 
-Performance: 32.337 ns/day, 0.742 hours/ns, 187.136 timesteps/s
-99.8% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 38.924 ns/day, 0.617 hours/ns, 225.256 timesteps/s
+99.5% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 4.2832     | 4.3257     | 4.3839     |   1.8 | 80.95
-Bond    | 0.00018309 | 0.00019825 | 0.00021418 |   0.0 |  0.00
-Neigh   | 0.42195    | 0.42512    | 0.42739    |   0.3 |  7.96
-Comm    | 0.051679   | 0.1101     | 0.14916    |  10.8 |  2.06
-Output  | 0.40909    | 0.4091     | 0.40911    |   0.0 |  7.66
-Modify  | 0.060869   | 0.061921   | 0.06327    |   0.4 |  1.16
-Other   |            | 0.01161    |            |       |  0.22
+Pair    | 3.5298     | 3.5931     | 3.6669     |   2.6 | 80.94
+Bond    | 8.2099e-05 | 0.00011444 | 0.00014673 |   0.0 |  0.00
+Neigh   | 0.43384    | 0.4445     | 0.45558    |   1.4 | 10.01
+Comm    | 0.048904   | 0.11122    | 0.16728    |  12.7 |  2.51
+Output  | 0.22595    | 0.22595    | 0.22596    |   0.0 |  5.09
+Modify  | 0.053103   | 0.053795   | 0.054549   |   0.3 |  1.21
+Other   |            | 0.01068    |            |       |  0.24
 
 Nlocal:    1024 ave 1040 max 1001 min
 Histogram: 1 0 0 0 0 0 2 0 0 1
 Nghost:    4614.25 ave 4700 max 4540 min
 Histogram: 1 1 0 0 0 0 0 1 0 1
-Neighs:    121747 ave 126398 max 116931 min
+Neighs:    121747 ave 126398 max 116930 min
 Histogram: 1 0 0 1 0 0 1 0 0 1
-FullNghs:  243494 ave 252523 max 233842 min
+FullNghs:  243494 ave 252523 max 233841 min
 Histogram: 1 0 0 1 0 0 1 0 0 1
 
 Total # of neighbors = 973974
@@ -121,4 +121,4 @@ Ave special neighs/atom = 0
 Neighbor list builds = 13
 Dangerous builds = 0
 
-Total wall time: 0:00:05
+Total wall time: 0:00:04

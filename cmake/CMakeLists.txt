@@ -178,7 +178,7 @@ set(DEFAULT_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS DIPOLE GRANULAR
   USER-MEAMC USER-MGPT USER-MISC USER-MOFFF USER-MOLFILE USER-NETCDF
   USER-PHONON USER-PLUMED USER-PTM USER-QTB USER-REAXC USER-SCAFACOS
   USER-SDPD USER-SMD USER-SMTBQ USER-SPH USER-TALLY USER-UEF USER-VTK
-  USER-QUIP USER-QMMM)
+  USER-QUIP USER-QMMM USER-YAFF)
 set(ACCEL_PACKAGES USER-OMP KOKKOS OPT USER-INTEL GPU)
 set(OTHER_PACKAGES CORESHELL QEQ)
 foreach(PKG ${DEFAULT_PACKAGES})
@@ -453,7 +453,7 @@ if(PKG_VORONOI)
     set(VORO_BUILD_OPTIONS CXX=${CMAKE_CXX_COMPILER} CFLAGS=${VORO_BUILD_CFLAGS})
 
     ExternalProject_Add(voro_build
-      URL http://math.lbl.gov/voro++/download/dir/voro++-0.4.6.tar.gz
+      URL https://download.lammps.org/thirdparty/voro++-0.4.6.tar.gz
       URL_MD5 2338b824c3b7b25590e18e8df5d68af9
       CONFIGURE_COMMAND "" BUILD_COMMAND make ${VORO_BUILD_OPTIONS} BUILD_IN_SOURCE 1 INSTALL_COMMAND ""
       )
@@ -559,10 +559,15 @@ if(PKG_USER-PLUMED)
     message(STATUS "PLUMED download requested - we will build our own")
     include(ExternalProject)
     ExternalProject_Add(plumed_build
-      URL https://github.com/plumed/plumed2/releases/download/v2.4.3/plumed-src-2.4.3.tgz
-      URL_MD5 b1be7c48971627febc11c61b70767fc5
+      URL https://github.com/plumed/plumed2/releases/download/v2.4.4/plumed-src-2.4.4.tgz
+      URL_MD5 71ed465bdc7c2059e282dbda8d564e71
       BUILD_IN_SOURCE 1
-      CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> ${CONFIGURE_REQUEST_PIC})
+      CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
+                                               ${CONFIGURE_REQUEST_PIC}
+                                                --enable-modules=all
+                                               CXX=${CMAKE_MPI_CXX_COMPILER}
+                                               CC=${CMAKE_MPI_C_COMPILER}
+    )
     ExternalProject_get_property(plumed_build INSTALL_DIR)
     set(PLUMED_INSTALL_DIR ${INSTALL_DIR})
     list(APPEND LAMMPS_DEPS plumed_build)
@@ -614,8 +619,8 @@ if(PKG_USER-SMD)
     message(STATUS "Eigen3 download requested - we will build our own")
     include(ExternalProject)
     ExternalProject_Add(Eigen3_build
-      URL http://bitbucket.org/eigen/eigen/get/3.3.4.tar.gz
-      URL_MD5 1a47e78efe365a97de0c022d127607c3
+      URL http://bitbucket.org/eigen/eigen/get/3.3.7.tar.gz
+      URL_MD5 f2a417d083fe8ca4b8ed2bc613d20f07
       CONFIGURE_COMMAND "" BUILD_COMMAND "" INSTALL_COMMAND ""
     )
     ExternalProject_get_property(Eigen3_build SOURCE_DIR)
@@ -756,7 +761,7 @@ endif()
 # Basic system tests (standard libraries, headers, functions, types)   #
 ########################################################################
 include(CheckIncludeFileCXX)
-foreach(HEADER math.h)
+foreach(HEADER cmath)
   check_include_file_cxx(${HEADER} FOUND_${HEADER})
   if(NOT FOUND_${HEADER})
     message(FATAL_ERROR "Could not find needed header - ${HEADER}")

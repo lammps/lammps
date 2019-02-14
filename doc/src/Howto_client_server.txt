@@ -82,7 +82,7 @@ Monte Carlo client code as the driver.
 
 The lammps_vasp dir shows how to couple LAMMPS as a client code
 running MD timestepping to VASP acting as a server providing quantum
-DFT forces, thru a Python wrapper script on VASP.
+DFT forces, through a Python wrapper script on VASP.
 
 Here is how to launch a client and server code together for any of the
 4 modes of message exchange that the "message"_message.html command

@@ -50,8 +50,8 @@ This is indicated by who the pull request is assigned to. LAMMPS core
 developers can self-assign or they can decide to assign a pull request
 to a different LAMMPS developer. Being assigned to a pull request means,
 that this pull request may need some work and the assignee is tasked to
-determine what this might be needed or not, and may either implement the
-required changes or ask the submitter of the pull request to implement
+determine whether this might be needed or not, and may either implement
+the required changes or ask the submitter of the pull request to implement
 them.  Even though, all LAMMPS developers may have write access to pull
 requests (if enabled by the submitter, which is the default), only the
 submitter or the assignee of a pull request may do so.  During this
@@ -76,12 +76,15 @@ People can be assigned to review a pull request in two ways:
 Reviewers are requested to state their appraisal of the proposed changes
 and either approve or request changes. People may unassign themselves
 from review, if they feel not competent about the changes proposed. At
-least one review from a LAMMPS developer with write access is required
-before merging in addition to the automated compilation tests.  The
-feature, that reviews from code owners are "hard" reviews (i.e. they
-must all be approved before merging is allowed), is currently disabled
-and it is in the discretion of the merge maintainer to assess when
-a sufficient degree of approval has been reached.  Reviews may be
+least two approvals from LAMMPS developers with write access are required
+before merging in addition to the automated compilation tests.
+Merging counts as implicit approval, so does submission of a pull request
+(by a LAMMPS developer). So the person doing the merge may not also submit
+an approving review. The feature, that reviews from code owners are "hard"
+reviews (i.e. they must all be approved before merging is allowed), is
+currently disabled and it is in the discretion of the merge maintainer to
+assess when a sufficient degree of approval, especially from external
+contributors, has been reached in these cases.  Reviews may be
 (automatically) dismissed, when the reviewed code has been changed,
 and then approval is required a second time.
 
@@ -120,7 +123,7 @@ Here are some items to check:
     * float.h -> cfloat
     * limits.h -> climits
     * math.h -> cmath
-    * omplex.h -> complex
+    * complex.h -> complex
     * setjmp.h -> csetjmp
     * signal.h -> csignal
     * stddef.h -> cstddef

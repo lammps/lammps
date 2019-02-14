@@ -107,7 +107,7 @@ print "ALL DONE" :pre
 
 Here is an example of a double loop which uses the if and
 "jump"_jump.html commands to break out of the inner loop when a
-condition is met, then continues iterating thru the outer loop.
+condition is met, then continues iterating through the outer loop.
 
 label       loopa
 variable    a loop 5

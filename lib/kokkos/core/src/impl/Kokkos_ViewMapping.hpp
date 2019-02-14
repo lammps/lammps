@@ -195,7 +195,7 @@ struct ViewDimension
     {}
 
   KOKKOS_INLINE_FUNCTION
-  constexpr size_t extent( const unsigned r ) const
+  constexpr size_t extent( const unsigned r ) const noexcept
     {
       return r == 0 ? N0 : (
              r == 1 ? N1 : (
@@ -205,6 +205,19 @@ struct ViewDimension
              r == 5 ? N5 : (
              r == 6 ? N6 : (
              r == 7 ? N7 : 0 )))))));
+    }
+
+  static KOKKOS_INLINE_FUNCTION
+  constexpr size_t static_extent( const unsigned r ) noexcept
+    {
+      return r == 0 ? ArgN0 : (
+             r == 1 ? ArgN1 : (
+             r == 2 ? ArgN2 : (
+             r == 3 ? ArgN3 : (
+             r == 4 ? ArgN4 : (
+             r == 5 ? ArgN5 : (
+             r == 6 ? ArgN6 : (
+             r == 7 ? ArgN7 : 0 )))))));
     }
 
   template< size_t N >
@@ -2639,6 +2652,12 @@ public:
   template< typename iType >
   KOKKOS_INLINE_FUNCTION constexpr size_t extent( const iType & r ) const
     { return m_impl_offset.m_dim.extent(r); }
+
+  static KOKKOS_INLINE_FUNCTION constexpr size_t static_extent( const unsigned r ) noexcept
+    {
+      using dim_type = typename offset_type::dimension_type;
+      return dim_type::static_extent(r);
+    }
 
   KOKKOS_INLINE_FUNCTION constexpr
   typename Traits::array_layout layout() const

@@ -12,7 +12,7 @@ Download an executable for Windows :h3
 Pre-compiled Windows installers which install LAMMPS executables on a
 Windows system can be downloaded from this site:
 
-"http://rpm.lammps.org/windows.html"_http://rpm.lammps.org/windows.html
+"http://packages.lammps.org/windows.html"_http://packages.lammps.org/windows.html
 
 Note that each installer package has a date in its name, which
 corresponds to the LAMMPS version of the same date.  Installers for
@@ -42,7 +42,7 @@ environment manipulations.
 
 Note that to update to a newer version of LAMMPS, you should typically
 uninstall the version you currently have, download a new installer,
-and go thru the install procedure described above.  I.e. the same
+and go through the install procedure described above.  I.e. the same
 procedure for installing/updating most Windows programs.  You can
 install multiple versions of LAMMPS (in different directories), but
 only the executable for the last-installed package will be found

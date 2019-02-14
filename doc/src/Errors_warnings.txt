@@ -178,12 +178,6 @@ When using fixes like box/relax, the potential energy used by the minimizer
 is augmented by an additional energy provided by the fix. Thus the printed
 converged energy may be different from the total potential energy. :dd
 
-{Energy tally does not account for 'zero yes'} :dt
-
-The energy removed by using the 'zero yes' flag is not accounted
-for in the energy tally and thus energy conservation cannot be
-monitored in this case. :dd
-
 {Estimated error in splitting of dispersion coeffs is %g} :dt
 
 Error is greater than 0.0001 percent. :dd

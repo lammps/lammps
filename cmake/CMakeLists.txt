@@ -453,7 +453,7 @@ if(PKG_VORONOI)
     set(VORO_BUILD_OPTIONS CXX=${CMAKE_CXX_COMPILER} CFLAGS=${VORO_BUILD_CFLAGS})
 
     ExternalProject_Add(voro_build
-      URL http://math.lbl.gov/voro++/download/dir/voro++-0.4.6.tar.gz
+      URL https://download.lammps.org/thirdparty/voro++-0.4.6.tar.gz
       URL_MD5 2338b824c3b7b25590e18e8df5d68af9
       CONFIGURE_COMMAND "" BUILD_COMMAND make ${VORO_BUILD_OPTIONS} BUILD_IN_SOURCE 1 INSTALL_COMMAND ""
       )

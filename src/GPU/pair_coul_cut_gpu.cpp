@@ -186,9 +186,9 @@ double PairCoulCutGPU::memory_usage()
 
 /* ---------------------------------------------------------------------- */
 
-void PairCoulCutGPU::cpu_compute(int start, int inum, int eflag, int vflag,
-                                      int *ilist, int *numneigh,
-                                      int **firstneigh)
+void PairCoulCutGPU::cpu_compute(int start, int inum, int eflag,
+                                 int /* vflag */, int *ilist,
+                                 int *numneigh, int **firstneigh)
 {
   int i,j,ii,jj,jnum,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,ecoul,fpair;

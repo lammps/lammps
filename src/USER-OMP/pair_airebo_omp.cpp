@@ -1869,7 +1869,7 @@ there probably also need to be performed here.
 
 */
 
-double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij_mod[3], double rijmag_mod,
+double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double /* rij_mod */[3], double rijmag_mod,
                                       double VA, double rij[3], double rijmag,
                                       int vflag_atom, ThrData * const thr)
 {

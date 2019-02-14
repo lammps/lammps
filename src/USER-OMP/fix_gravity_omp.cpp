@@ -42,7 +42,7 @@ FixGravityOMP::FixGravityOMP(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-void FixGravityOMP::post_force(int vflag)
+void FixGravityOMP::post_force(int /* vflag */)
 {
   // update gravity due to variables
 
@@ -106,7 +106,7 @@ void FixGravityOMP::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixGravityOMP::post_force_respa(int vflag, int ilevel, int iloop)
+void FixGravityOMP::post_force_respa(int vflag, int ilevel, int /* iloop */)
 {
   if (ilevel == ilevel_respa) post_force(vflag);
 }

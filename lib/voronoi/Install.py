@@ -18,7 +18,7 @@ parser = ArgumentParser(prog='Install.py',
 # settings
 
 version = "voro++-0.4.6"
-url = "http://math.lbl.gov/voro++/download/dir/%s.tar.gz" % version
+url = "https://download.lammps.org/thirdparty/%s.tar.gz" % version
 
 # known checksums for different Voro++ versions. used to validate the download.
 checksums = { \

@@ -61,7 +61,7 @@ OPT.
 "charmm (iko)"_angle_charmm.html,
 "class2 (ko)"_angle_class2.html,
 "class2/p6"_angle_class2.html,
-"cosine (o)"_angle_cosine.html,
+"cosine (ko)"_angle_cosine.html,
 "cosine/buck6d"_angle_cosine_buck6d.html,
 "cosine/delta (o)"_angle_cosine_delta.html,
 "cosine/periodic (o)"_angle_cosine_periodic.html,

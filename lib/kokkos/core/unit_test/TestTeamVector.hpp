@@ -532,7 +532,11 @@ struct functor_vec_single {
   typedef ExecutionSpace execution_space;
 
   Kokkos::View< int, Kokkos::LayoutLeft, ExecutionSpace > flag;
-  functor_vec_single( Kokkos::View< int, Kokkos::LayoutLeft, ExecutionSpace > flag_ ) : flag( flag_ ) {}
+  int nStart;
+  int nEnd;
+
+  functor_vec_single( Kokkos::View< int, Kokkos::LayoutLeft, ExecutionSpace > flag_, const int start_, const int end_ ) : 
+                           flag( flag_ ), nStart(start_), nEnd(end_) {}
 
   KOKKOS_INLINE_FUNCTION
   void operator()( typename policy_type::member_type team ) const {
@@ -541,7 +545,7 @@ struct functor_vec_single {
     // inside a parallel_for and write to it.
     Scalar value = 0;
 
-    Kokkos::parallel_for( Kokkos::ThreadVectorRange( team, 0, 13 ), [&] ( int i )
+    Kokkos::parallel_for( Kokkos::ThreadVectorRange( team, nStart, nEnd ), [&] ( int i )
     {
       value = i; // This write is violating Kokkos semantics for nested parallelism.
     });
@@ -552,12 +556,12 @@ struct functor_vec_single {
     }, value );
 
     Scalar value2 = 0;
-    Kokkos::parallel_reduce( Kokkos::ThreadVectorRange( team, 0, 13 ), [&] ( int i, Scalar & val )
+    Kokkos::parallel_reduce( Kokkos::ThreadVectorRange( team, nStart, nEnd ), [&] ( int i, Scalar & val )
     {
       val += value;
     }, value2 );
 
-    if ( value2 != ( value * 13 ) ) {
+    if ( value2 != ( value * (nEnd-nStart) ) ) {
       printf( "FAILED vector_single broadcast %i %i %f %f\n",
               team.league_rank(), team.team_rank(), (double) value2, (double) value );
 
@@ -746,12 +750,6 @@ bool test_scalar( int nteams, int team_size, int test ) {
                           functor_vec_red< Scalar, ExecutionSpace >( d_flag ) );
   }
   else if ( test == 1 ) {
-    // WORKAROUND CUDA
-    #if defined(KOKKOS_ENABLE_CUDA)
-    #if defined(KOKKOS_IMPL_CUDA_CLANG_WORKAROUND) || defined(KOKKOS_ARCH_PASCAL)
-    if(!std::is_same<ExecutionSpace,Kokkos::Cuda>::value)
-    #endif
-    #endif
     Kokkos::parallel_for( Kokkos::TeamPolicy< ExecutionSpace >( nteams, team_size, 8 ),
                           functor_vec_red_reducer< Scalar, ExecutionSpace >( d_flag ) );
   }
@@ -765,7 +763,7 @@ bool test_scalar( int nteams, int team_size, int test ) {
   }
   else if ( test == 4 ) {
     Kokkos::parallel_for( "B", Kokkos::TeamPolicy< ExecutionSpace >( nteams, team_size, 8 ),
-                          functor_vec_single< Scalar, ExecutionSpace >( d_flag ) );
+                          functor_vec_single< Scalar, ExecutionSpace >( d_flag, 0, 13 ) );
   }
   else if ( test == 5 ) {
     Kokkos::parallel_for( Kokkos::TeamPolicy< ExecutionSpace >( nteams, team_size ),
@@ -790,6 +788,10 @@ bool test_scalar( int nteams, int team_size, int test ) {
   else if ( test == 10 ) {
     Kokkos::parallel_for( Kokkos::TeamPolicy< ExecutionSpace >( nteams, team_size, 8 ),
                           functor_team_vector_reduce_reducer< Scalar, ExecutionSpace >( d_flag ) );
+  }
+  else if ( test == 11 ) {
+    Kokkos::parallel_for( "B", Kokkos::TeamPolicy< ExecutionSpace >( nteams, team_size, 8 ),
+                          functor_vec_single< Scalar, ExecutionSpace >( d_flag, 4, 13 ) );
   }
 
   Kokkos::deep_copy( h_flag, d_flag );
@@ -938,6 +940,7 @@ TEST_F( TEST_CATEGORY, team_vector )
   ASSERT_TRUE( ( TestTeamVector::Test< TEST_EXECSPACE >( 8 ) ) );
   ASSERT_TRUE( ( TestTeamVector::Test< TEST_EXECSPACE >( 9 ) ) );
   ASSERT_TRUE( ( TestTeamVector::Test< TEST_EXECSPACE >( 10 ) ) );
+  ASSERT_TRUE( ( TestTeamVector::Test< TEST_EXECSPACE >( 11 ) ) );
 }
 #endif
 

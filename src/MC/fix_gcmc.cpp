@@ -46,9 +46,8 @@
 #include "thermo.h"
 #include "output.h"
 #include "neighbor.h"
-#include <iostream>
+#include "utils.h"
 
-using namespace std;
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
@@ -478,8 +477,8 @@ void FixGCMC::init()
     if ((force->kspace) ||
         (force->pair == NULL) ||
         (force->pair->single_enable == 0) ||
-        (force->pair_match("hybrid",0)) ||
-        (force->pair_match("eam",0)) ||
+        (force->pair_match("^hybrid",0)) ||
+        (force->pair_match("^eam",0)) ||
         (force->pair->tail_flag)
         ) {
       full_flag = true;

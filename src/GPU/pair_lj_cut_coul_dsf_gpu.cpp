@@ -198,9 +198,9 @@ double PairLJCutCoulDSFGPU::memory_usage()
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCutCoulDSFGPU::cpu_compute(int start, int inum, int eflag, int vflag,
-                                      int *ilist, int *numneigh,
-                                      int **firstneigh)
+void PairLJCutCoulDSFGPU::cpu_compute(int start, int inum, int eflag,
+                                      int /* vflag */, int *ilist,
+                                      int *numneigh, int **firstneigh)
 {
   int i,j,ii,jj,jnum,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;

@@ -605,6 +605,11 @@ void FixLangevin::post_force_untemplated
         f[i][0] -= fsumall[0];
         f[i][1] -= fsumall[1];
         f[i][2] -= fsumall[2];
+        if (Tp_TALLY) {
+          flangevin[i][0] -= fsumall[0];
+          flangevin[i][1] -= fsumall[1];
+          flangevin[i][2] -= fsumall[2];
+        }
       }
     }
   }

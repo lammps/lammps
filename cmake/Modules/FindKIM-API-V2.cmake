@@ -28,11 +28,6 @@
 #    Ryan S. Elliott
 #
 
-#
-# Release: This file is part of the kim-api.git repository.
-#
-
-
 # - Find KIM-API-V2
 #
 # sets standard pkg_check_modules variables plus:

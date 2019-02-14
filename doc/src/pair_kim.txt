@@ -48,8 +48,8 @@ building LAMMPS.
 
 See the examples/kim dir for an input script that uses a KIM model (potential)
 for Lennard-Jones.  Note, for this example input script, the example models
-shipped with with kim-api package must be installed.  See the "Making
-LAMMPS"_Section_start.html#start_3 section and the ./lib/kim/README for details
+shipped with with kim-api package must be installed.  See the "Build
+package"_Build_package.html section and the ./lib/kim/README for details
 on how to build LAMMSPS with the kim-api and how to install the example models.
 
 :line
@@ -115,7 +115,7 @@ LAMMPS was built with that package.  See the "Build
 package"_Build_package.html doc page for more info.
 
 This current version of pair_style kim is compatible with the
-kim-api package version 2.0.0-beta.2 and higher.
+kim-api package version 2.0.0 and higher.
 
 [Related commands:]
 

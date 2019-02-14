@@ -146,18 +146,18 @@ A bonding atom pair will be identified if several conditions are met.
 First, a pair of atoms I,J within the specified react-group-ID of type
 itype and jtype must be separated by a distance between {Rmin} and
 {Rmax}. It is possible that multiple bonding atom pairs are
-identified: if the bonding atoms in the pre-reacted template are not
-1-2, 1-3, or 1-4 neighbors, the closest bonding atom partner is set as
-its bonding partner; otherwise, the farthest potential partner is
-chosen. Then, if both an atom I and atom J have each other as their
-nearest bonding partners, these two atoms are identified as the
-bonding atom pair of the reaction site. Once this unique bonding atom
-pair is identified for each reaction, there could two or more
-reactions that involve a given atom on the same timestep. If this is
-the case, only one such reaction is permitted to occur. This reaction
-is chosen randomly from all potential reactions. This capability
-allows e.g. for different reaction pathways to proceed from identical
-reaction sites with user-specified probabilities.
+identified: if the bonding atoms in the pre-reacted template are  1-2
+neighbors, i.e. directly bonded, the farthest bonding atom partner is
+set as its bonding partner; otherwise, the closest potential partner
+is chosen. Then, if both an atom I and atom J have each other as their
+bonding partners, these two atoms are identified as the bonding atom
+pair of the reaction site. Once this unique bonding atom pair is
+identified for each reaction, there could two or more reactions that
+involve a given atom on the same timestep. If this is the case, only
+one such reaction is permitted to occur. This reaction is chosen
+randomly from all potential reactions. This capability allows e.g. for
+different reaction pathways to proceed from identical reaction sites
+with user-specified probabilities.
 
 The pre-reacted molecule template is specified by a molecule command.
 This molecule template file contains a sample reaction site and its

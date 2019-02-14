@@ -1022,13 +1022,24 @@ void FixBondReact::close_partner()
       rsq = delx*delx + dely*dely + delz*delz;
       if (rsq >= cutsq[rxnID][1] || rsq <= cutsq[rxnID][0]) continue;
 
-      if (rsq > distsq[i1][0]) {
-        partner[i1] = tag[i2];
-        distsq[i1][0] = rsq;
-      }
-      if (rsq > distsq[i2][0]) {
-        partner[i2] = tag[i1];
-        distsq[i2][0] = rsq;
+      if (closeneigh[rxnID] == 0) {
+        if (rsq > distsq[i1][0]) {
+          partner[i1] = tag[i2];
+          distsq[i1][0] = rsq;
+        }
+        if (rsq > distsq[i2][0]) {
+          partner[i2] = tag[i1];
+          distsq[i2][0] = rsq;
+        }
+      } else {
+        if (rsq < distsq[i1][1]) {
+          partner[i1] = tag[i2];
+          distsq[i1][1] = rsq;
+        }
+        if (rsq < distsq[i2][1]) {
+          partner[i2] = tag[i1];
+          distsq[i2][1] = rsq;
+        }
       }
     }
   }
@@ -3027,7 +3038,7 @@ int FixBondReact::pack_reverse_comm(int n, int first, double *buf)
 
   for (i = first; i < last; i++) {
     buf[m++] = ubuf(partner[i]).d;
-    if (closeneigh[rxnID] < 0)
+    if (closeneigh[rxnID] != 0)
       buf[m++] = distsq[i][1];
     else
       buf[m++] = distsq[i][0];
@@ -3046,11 +3057,11 @@ void FixBondReact::unpack_reverse_comm(int n, int *list, double *buf)
   if (commflag != 1) {
     for (i = 0; i < n; i++) {
       j = list[i];
-      if (closeneigh[rxnID] < 0)
+      if (closeneigh[rxnID] != 0)
         if (buf[m+1] < distsq[j][1]) {
         partner[j] = (tagint) ubuf(buf[m++]).i;
           distsq[j][1] = buf[m++];
-      } else m += 2;
+        } else m += 2;
       else
         if (buf[m+1] > distsq[j][0]) {
           partner[j] = (tagint) ubuf(buf[m++]).i;

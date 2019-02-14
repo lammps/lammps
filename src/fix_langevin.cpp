@@ -177,8 +177,6 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
-  if (tallyflag && zeroflag && comm->me == 0)
-    error->warning(FLERR,"Energy tally does not account for 'zero yes'");
 }
 
 /* ---------------------------------------------------------------------- */

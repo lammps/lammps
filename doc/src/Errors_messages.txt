@@ -10179,8 +10179,6 @@ valid. :dd
 
 Self-explanatory. :dd
 
-{Unrecognized virial argument in pair_style command} :dt
-
 {Unsupported mixing rule in kspace_style ewald/disp} :dt
 
 Only geometric mixing is supported. :dd

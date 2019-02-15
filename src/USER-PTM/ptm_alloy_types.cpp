@@ -1,3 +1,12 @@
+/*Copyright (c) 2016 PM Larsen
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+
 #include <algorithm>
 #include "ptm_constants.h"
 #include "ptm_initialize_data.h"
@@ -6,8 +15,8 @@ namespace ptm {
 
 #define NUM_ALLOY_TYPES 3
 static uint32_t typedata[NUM_ALLOY_TYPES][3] = {
-	{PTM_MATCH_FCC, PTM_ALLOY_L10,    0x000001fe},
-	{PTM_MATCH_FCC, PTM_ALLOY_L12_CU, 0x0000001e},
+	{PTM_MATCH_FCC, PTM_ALLOY_L10,    0x00000db6},
+	{PTM_MATCH_FCC, PTM_ALLOY_L12_CU, 0x00000492},
 	{PTM_MATCH_FCC, PTM_ALLOY_L12_AU, 0x00001ffe},
 };
 
@@ -78,6 +87,10 @@ static int32_t canonical_alloy_representation(const refdata_t* ref, int8_t* mapp
 
 int32_t find_alloy_type(const refdata_t* ref, int8_t* mapping, int32_t* numbers)
 {
+	for (int i=0;i<ref->num_nbrs+1;i++)
+		if (numbers[i] == -1)
+			return PTM_ALLOY_NONE;
+
 	if (test_pure(ref->num_nbrs, numbers))
 		return PTM_ALLOY_PURE;
 
@@ -96,6 +109,11 @@ int32_t find_alloy_type(const refdata_t* ref, int8_t* mapping, int32_t* numbers)
 	if (ref->type == PTM_MATCH_DCUB || ref->type == PTM_MATCH_DHEX)
 		if (test_shell_structure(ref, mapping, numbers, 4))
 			return PTM_ALLOY_SIC;
+
+
+	if (ref->type == PTM_MATCH_GRAPHENE)
+		if (test_shell_structure(ref, mapping, numbers, 3))
+			return PTM_ALLOY_BN;
 
 	return PTM_ALLOY_NONE;
 }

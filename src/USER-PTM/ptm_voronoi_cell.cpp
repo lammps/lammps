@@ -1,3 +1,45 @@
+/*
+Voro++ Copyright (c) 2008, The Regents of the University of California, through
+Lawrence Berkeley National Laboratory (subject to receipt of any required
+approvals from the U.S. Dept. of Energy). All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met: 
+
+(1) Redistributions of source code must retain the above copyright notice, this
+list of conditions and the following disclaimer. 
+
+(2) Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation
+and/or other materials provided with the distribution. 
+
+(3) Neither the name of the University of California, Lawrence Berkeley
+National Laboratory, U.S. Dept. of Energy nor the names of its contributors may
+be used to endorse or promote products derived from this software without
+specific prior written permission. 
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+
+You are under no obligation whatsoever to provide any bug fixes, patches, or
+upgrades to the features, functionality or performance of the source code
+("Enhancements") to anyone; however, if you choose to make your Enhancements
+available either publicly, or directly to Lawrence Berkeley National
+Laboratory, without imposing a separate written license agreement for such
+Enhancements, then you hereby grant the following license: a  non-exclusive,
+royalty-free perpetual license to install, use, modify, prepare derivative
+works, incorporate into other computer software, distribute, and sublicense
+such enhancements or derivative works thereof, in binary and source code form.
+*/
+
 // Voro++, a 3D cell-based Voronoi library
 //
 // Author   : Chris H. Rycroft (LBL / UC Berkeley)
@@ -267,6 +309,7 @@ inline bool voronoicell_base::search_for_outside_edge(vc_class &vc,int &up) {
  * \param[in,out] stackp2 a pointer to the end of the stack entries. */
 template<class vc_class>
 inline void voronoicell_base::add_to_stack(vc_class &vc,int lp,int *&stackp2) {
+(void)vc;
 	for(int *k(ds2);k<stackp2;k++) if(*k==lp) return;
 	if(stackp2==stacke2) add_memory_ds2(stackp2);
 	*(stackp2++)=lp;
@@ -1355,6 +1398,71 @@ void voronoicell_neighbor::neighbors(std::vector<int> &v) {
 				l=cycle_up(ed[k][nu[k]+l],m);
 				k=m;
 			} while (k!=i);
+		}
+	}
+	reset_edges();
+}
+
+/** Returns the number of faces of a computed Voronoi cell.
+ * \return The number of faces. */
+int voronoicell_base::number_of_faces() {
+	int i,j,k,l,m,s=0;
+	for(i=1;i<p;i++) for(j=0;j<nu[i];j++) {
+		k=ed[i][j];
+		if(k>=0) {
+			s++;
+			ed[i][j]=-1-k;
+			l=cycle_up(ed[i][nu[i]+j],k);
+			do {
+				m=ed[k][l];
+				ed[k][l]=-1-m;
+				l=cycle_up(ed[k][nu[k]+l],m);
+				k=m;
+			} while (k!=i);
+
+		}
+	}
+	reset_edges();
+	return s;
+}
+
+/** Returns a vector of the vertex vectors in the global coordinate system.
+ * \param[out] v the vector to store the results in.
+ * \param[in] (x,y,z) the position vector of the particle in the global
+ *                    coordinate system. */
+void voronoicell_base::vertices(double x,double y,double z,std::vector<double> &v) {
+	v.resize(3*p);
+	double *ptsp=pts;
+	for(int i=0;i<3*p;i+=3) {
+		v[i]=x+*(ptsp++)*0.5;
+		v[i+1]=y+*(ptsp++)*0.5;
+		v[i+2]=z+*(ptsp++)*0.5;
+	}
+}
+
+/** For each face, this routine outputs a bracketed sequence of numbers
+ * containing a list of all the vertices that make up that face.
+ * \param[out] v the vector to store the results in. */
+void voronoicell_base::face_vertices(std::vector<int> &v) {
+	int i,j,k,l,m,vp(0),vn;
+	v.clear();
+	for(i=1;i<p;i++) for(j=0;j<nu[i];j++) {
+		k=ed[i][j];
+		if(k>=0) {
+			v.push_back(0);
+			v.push_back(i);
+			ed[i][j]=-1-k;
+			l=cycle_up(ed[i][nu[i]+j],k);
+			do {
+				v.push_back(k);
+				m=ed[k][l];
+				ed[k][l]=-1-m;
+				l=cycle_up(ed[k][nu[k]+l],m);
+				k=m;
+			} while (k!=i);
+			vn=v.size();
+			v[vp]=vn-vp-1;
+			vp=vn;
 		}
 	}
 	reset_edges();

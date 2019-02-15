@@ -1,6 +1,15 @@
+/*Copyright (c) 2016 PM Larsen
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+
 #include <cstdio>
 #include <cstdlib>
-#include <cstring>
+#include <string.h>
 #include <cmath>
 #include <cfloat>
 #include <cassert>
@@ -290,6 +299,75 @@ int match_dcub_dhex(double (*ch_points)[3], double (*points)[3], int32_t flags, 
 
 	if (flags & PTM_CHECK_DCUB)	check_graphs(&structure_dcub, hash, canonical_labelling, normalized, res);
 	if (flags & PTM_CHECK_DHEX)	check_graphs(&structure_dhex, hash, canonical_labelling, normalized, res);
+
+	return PTM_NO_ERROR;
+}
+
+
+static void check_graphs_graphene(	const refdata_t* s,
+					int num_points,
+					const double (*ideal_points)[3],
+					double (*normalized)[3],
+					int8_t* mapping, 
+					result_t* res)
+{
+	double G1 = 0, G2 = 0;
+	for (int i=0;i<num_points;i++)
+	{
+		double x1 = ideal_points[i][0];
+		double y1 = ideal_points[i][1];
+		double z1 = ideal_points[i][2];
+
+		double x2 = normalized[i][0];
+		double y2 = normalized[i][1];
+		double z2 = normalized[i][2];
+
+		G1 += x1 * x1 + y1 * y1 + z1 * z1;
+		G2 += x2 * x2 + y2 * y2 + z2 * z2;
+	}
+	double E0 = (G1 + G2) / 2;
+
+	double q[4], scale = 0;
+	double rmsd = calc_rmsd(num_points, ideal_points, normalized, mapping, G1, G2, E0, q, &scale);
+	if (rmsd < res->rmsd)
+	{
+		res->rmsd = rmsd;
+		res->scale = scale;
+		res->ref_struct = s;
+		memcpy(res->q, q, 4 * sizeof(double));
+		memcpy(res->mapping, mapping, sizeof(int8_t) * num_points);
+	}
+}
+
+int match_graphene(double (*points)[3], result_t* res)
+{
+	int num_nbrs = structure_graphene.num_nbrs;
+	int num_points = num_nbrs + 1;
+	const double (*ideal_points)[3] = structure_graphene.points;
+
+	double normalized[PTM_MAX_POINTS][3];
+	subtract_barycentre(num_points, points, normalized);
+
+	int8_t mapping[PTM_MAX_POINTS];
+	for (int i=0;i<num_points;i++)
+		mapping[i] = i;
+
+	for (int i=0;i<2;i++)
+	{
+		std::swap(mapping[4], mapping[5]);
+
+		for (int j=0;j<2;j++)
+		{
+			std::swap(mapping[6], mapping[7]);
+
+			for (int k=0;k<2;k++)
+			{
+				std::swap(mapping[8], mapping[9]);
+
+				check_graphs_graphene(&structure_graphene, num_points, ideal_points, normalized, mapping, res);
+			}
+		}
+	}
 
 	return PTM_NO_ERROR;
 }

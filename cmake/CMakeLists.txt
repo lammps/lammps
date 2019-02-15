@@ -670,7 +670,7 @@ if(PKG_KIM)
                  -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
                  -DCMAKE_Fortran_COMPILER=${CMAKE_Fortran_COMPILER}
                  -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
-                 -DCMAKE_BUILD_TYPE=Release
+                 -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
       )
     ExternalProject_get_property(kim_build INSTALL_DIR)
     set(KIM-API-V2_INCLUDE_DIRS ${INSTALL_DIR}/include/kim-api-v2)

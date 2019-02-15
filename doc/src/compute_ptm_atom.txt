@@ -93,7 +93,7 @@ interatomic distance
 qw
 qx
 qy
-qw :ul
+qz :ul
 
 The type is a number from 0 to 8.  The rmsd is a positive real number.
 The interatomic distance is computed from the scale factor in the RMSD equation.

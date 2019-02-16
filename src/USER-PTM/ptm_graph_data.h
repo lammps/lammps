@@ -17,12 +17,12 @@ namespace ptm {
 
 typedef struct
 {
-	int id;
-	uint64_t hash;
-	int automorphism_index;
-	int num_automorphisms;
-	int8_t canonical_labelling[PTM_MAX_POINTS];
-	int8_t facets[PTM_MAX_FACETS][3];
+        int id;
+        uint64_t hash;
+        int automorphism_index;
+        int num_automorphisms;
+        int8_t canonical_labelling[PTM_MAX_POINTS];
+        int8_t facets[PTM_MAX_FACETS][3];
 } graph_t;
 
 #define NUM_SC_GRAPHS 1

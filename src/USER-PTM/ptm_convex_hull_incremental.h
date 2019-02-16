@@ -19,14 +19,14 @@ namespace ptm {
 
 typedef struct
 {
-	int8_t facets[PTM_MAX_FACETS][3];
-	double plane_normal[PTM_MAX_FACETS][3];
-	bool processed[PTM_MAX_POINTS];
-	int initial_vertices[4];
-	double barycentre[3];
-	int num_facets;
-	int num_prev;
-	bool ok;
+        int8_t facets[PTM_MAX_FACETS][3];
+        double plane_normal[PTM_MAX_FACETS][3];
+        bool processed[PTM_MAX_POINTS];
+        int initial_vertices[4];
+        double barycentre[3];
+        int num_facets;
+        int num_prev;
+        bool ok;
 
 } convexhull_t;
 

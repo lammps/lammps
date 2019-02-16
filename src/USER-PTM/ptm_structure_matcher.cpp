@@ -308,7 +308,7 @@ static void check_graphs_graphene(	const refdata_t* s,
 					int num_points,
 					const double (*ideal_points)[3],
 					double (*normalized)[3],
-					int8_t* mapping, 
+					int8_t* mapping,
 					result_t* res)
 {
 	double G1 = 0, G2 = 0;

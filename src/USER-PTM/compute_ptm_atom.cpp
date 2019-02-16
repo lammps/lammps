@@ -154,7 +154,7 @@ void ComputePTMAtom::init() {
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePTMAtom::init_list(int id, NeighList *ptr) { list = ptr; }
+void ComputePTMAtom::init_list(int /* id */, NeighList *ptr) { list = ptr; }
 
 /* ---------------------------------------------------------------------- */
 
@@ -266,7 +266,6 @@ void ComputePTMAtom::compute_peratom() {
 
   double **x = atom->x;
   int *mask = atom->mask;
-  int nlocal = atom->nlocal;
   ptmnbrdata_t nbrlist = {x, numneigh, firstneigh, ilist, atom->nlocal};
 
   for (int ii = 0; ii < inum; ii++) {

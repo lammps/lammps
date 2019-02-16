@@ -87,7 +87,7 @@
 
 #include <cmath>
 #include <algorithm>
-#include <string.h>
+#include <cstring>
 #include "ptm_quat.h"
 
 

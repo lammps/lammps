@@ -9,7 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include <cstdio>
 #include <cstdlib>
-#include <string.h>
+#include <cstring>
 #include <cmath>
 #include <cfloat>
 #include <cassert>

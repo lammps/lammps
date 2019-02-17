@@ -1443,7 +1443,7 @@ void AtomVecTri::data_atom(double *coord, imageint imagetmp, char **values)
   tri[nlocal] = atoi(values[3]);
   if (tri[nlocal] == 0) tri[nlocal] = -1;
   else if (tri[nlocal] == 1) tri[nlocal] = 0;
-  else error->one(FLERR,"Invalid atom type in Atoms section of data file");
+  else error->one(FLERR,"Invalid triflag in Atoms section of data file");
 
   rmass[nlocal] = atof(values[4]);
   if (rmass[nlocal] <= 0.0)

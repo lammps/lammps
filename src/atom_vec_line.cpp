@@ -1044,7 +1044,7 @@ void AtomVecLine::data_atom(double *coord, imageint imagetmp, char **values)
   line[nlocal] = atoi(values[3]);
   if (line[nlocal] == 0) line[nlocal] = -1;
   else if (line[nlocal] == 1) line[nlocal] = 0;
-  else error->one(FLERR,"Invalid atom type in Atoms section of data file");
+  else error->one(FLERR,"Invalid lineflag in Atoms section of data file");
 
   rmass[nlocal] = atof(values[4]);
   if (rmass[nlocal] <= 0.0)

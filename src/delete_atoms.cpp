@@ -140,19 +140,19 @@ void DeleteAtoms::command(int narg, char **arg)
 
   if (atom->nellipsoids > 0) {
     nlocal_bonus = avec_ellipsoid->nlocal_bonus;
-    MPI_Allreduce(&nlocal_bonus,&atom->nellipsoids,1,MPI_LMP_BIGINT,MPI_MIN,world);
+    MPI_Allreduce(&nlocal_bonus,&atom->nellipsoids,1,MPI_LMP_BIGINT,MPI_SUM,world);
   }
   if (atom->nlines > 0) {
     nlocal_bonus = avec_line->nlocal_bonus;
-    MPI_Allreduce(&nlocal_bonus,&atom->nlines,1,MPI_LMP_BIGINT,MPI_MIN,world);
+    MPI_Allreduce(&nlocal_bonus,&atom->nlines,1,MPI_LMP_BIGINT,MPI_SUM,world);
   }
   if (atom->ntris > 0) {
     nlocal_bonus = avec_tri->nlocal_bonus;
-    MPI_Allreduce(&nlocal_bonus,&atom->ntris,1,MPI_LMP_BIGINT,MPI_MIN,world);
+    MPI_Allreduce(&nlocal_bonus,&atom->ntris,1,MPI_LMP_BIGINT,MPI_SUM,world);
   }
   if (atom->nbodies > 0) {
     nlocal_bonus = avec_body->nlocal_bonus;
-    MPI_Allreduce(&nlocal_bonus,&atom->nbodies,1,MPI_LMP_BIGINT,MPI_MIN,world);
+    MPI_Allreduce(&nlocal_bonus,&atom->nbodies,1,MPI_LMP_BIGINT,MPI_SUM,world);
   }
 
   // reset atom->map if it exists

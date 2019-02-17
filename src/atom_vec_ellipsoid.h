@@ -83,6 +83,8 @@ class AtomVecEllipsoid : public AtomVec {
 
   void set_shape(int, double, double, double);
 
+  int nlocal_bonus;
+
  private:
   tagint *tag;
   int *type,*mask;
@@ -92,7 +94,7 @@ class AtomVecEllipsoid : public AtomVec {
   double **angmom,**torque;
   int *ellipsoid;
 
-  int nlocal_bonus,nghost_bonus,nmax_bonus;
+  int nghost_bonus,nmax_bonus;
 
   void grow_bonus();
   void copy_bonus(int, int);

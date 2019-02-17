@@ -85,6 +85,8 @@ class AtomVecTri : public AtomVec {
 
   void set_equilateral(int, double);
 
+  int nlocal_bonus;
+
  private:
   tagint *tag;
   int *type,*mask;
@@ -95,7 +97,7 @@ class AtomVecTri : public AtomVec {
   double **omega,**angmom,**torque;
   int *tri;
 
-  int nlocal_bonus,nghost_bonus,nmax_bonus;
+  int nghost_bonus,nmax_bonus;
 
   void grow_bonus();
   void copy_bonus(int, int);

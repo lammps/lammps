@@ -396,7 +396,8 @@ void ReadData::command(int narg, char **arg)
 
   // values in this data file
 
-  natoms = ntypes = 0;
+  natoms = 0;
+  ntypes = 0;
   nbonds = nangles = ndihedrals = nimpropers = 0;
   nbondtypes = nangletypes = ndihedraltypes = nimpropertypes = 0;
 
@@ -993,18 +994,29 @@ void ReadData::header(int firstpass)
       if (!avec_ellipsoid)
         error->all(FLERR,"No ellipsoids allowed with this atom style");
       sscanf(line,BIGINT_FORMAT,&nellipsoids);
+      if (addflag == NONE) atom->nellipsoids = nellipsoids;
+      else if (firstpass) atom->nellipsoids += nellipsoids;
+
     } else if (strstr(line,"lines")) {
       if (!avec_line)
         error->all(FLERR,"No lines allowed with this atom style");
       sscanf(line,BIGINT_FORMAT,&nlines);
+      if (addflag == NONE) atom->nlines = nlines;
+      else if (firstpass) atom->nlines += nlines;
+
     } else if (strstr(line,"triangles")) {
       if (!avec_tri)
         error->all(FLERR,"No triangles allowed with this atom style");
       sscanf(line,BIGINT_FORMAT,&ntris);
+      if (addflag == NONE) atom->ntris = ntris;
+      else if (firstpass) atom->ntris += ntris;
+
     } else if (strstr(line,"bodies")) {
       if (!avec_body)
         error->all(FLERR,"No bodies allowed with this atom style");
       sscanf(line,BIGINT_FORMAT,&nbodies);
+      if (addflag == NONE) atom->nbodies = nbodies;
+      else if (firstpass) atom->nbodies += nbodies;
 
     } else if (strstr(line,"bonds")) {
       sscanf(line,BIGINT_FORMAT,&nbonds);
@@ -1084,6 +1096,10 @@ void ReadData::header(int firstpass)
   // error check on total system size
 
   if (atom->natoms < 0 || atom->natoms >= MAXBIGINT ||
+      atom->nellipsoids < 0 || atom->nellipsoids >= MAXBIGINT ||
+      atom->nlines < 0 || atom->nlines >= MAXBIGINT ||
+      atom->ntris < 0 || atom->ntris >= MAXBIGINT ||
+      atom->nbodies < 0 || atom->nbodies >= MAXBIGINT ||
       atom->nbonds < 0 || atom->nbonds >= MAXBIGINT ||
       atom->nangles < 0 || atom->nangles >= MAXBIGINT ||
       atom->ndihedrals < 0 || atom->ndihedrals >= MAXBIGINT ||
@@ -1173,6 +1189,10 @@ void ReadData::atoms()
   // check that atom IDs are valid
 
   atom->tag_check();
+
+  // check that bonus data has been reserved as needed
+
+  atom->bonus_check();
 
   // create global mapping of atoms
 

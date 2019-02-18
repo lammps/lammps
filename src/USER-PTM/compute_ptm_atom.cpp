@@ -20,6 +20,7 @@ under
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <vector>
 
 #include "atom.h"
 #include "comm.h"
@@ -174,7 +175,6 @@ typedef struct {
   double d;
 } ptmnbr_t;
 
-
 static bool sorthelper_compare(ptmnbr_t const &a, ptmnbr_t const &b) {
   return a.d < b.d;
 }
@@ -197,9 +197,8 @@ static int get_neighbours(void* vdata, size_t central_index, size_t atom_index, 
     jnum = data->numneigh[central_index];
   }
 
-  ptmnbr_t *nbr_order = new ptmnbr_t[jnum];
+  std::vector<ptmnbr_t> nbr_order;
 
-  int count = 0;
   for (int jj = 0; jj < jnum; jj++) {
     int j = jlist[jj];
     j &= NEIGHMASK;
@@ -211,13 +210,12 @@ static int get_neighbours(void* vdata, size_t central_index, size_t atom_index, 
     double dz = pos[2] - x[j][2];
     double rsq = dx * dx + dy * dy + dz * dz;
 
-    nbr_order[count].index = j;
-    nbr_order[count].d = rsq;
-    count++;
+    ptmnbr_t nbr = {j, rsq};
+    nbr_order.push_back(nbr);
   }
 
-  std::sort(nbr_order, nbr_order + count, &sorthelper_compare);
-  int num_nbrs = std::min(num - 1, count);
+  std::sort(nbr_order.begin(), nbr_order.end(), &sorthelper_compare);
+  int num_nbrs = std::min(num - 1, (int)nbr_order.size());
 
   nbr_pos[0][0] = nbr_pos[0][1] = nbr_pos[0][2] = 0;
   nbr_indices[0] = atom_index;
@@ -233,7 +231,6 @@ static int get_neighbours(void* vdata, size_t central_index, size_t atom_index, 
     numbers[jj + 1] = 0;
   }
 
-  delete[] nbr_order;
   return num_nbrs + 1;
 }
 

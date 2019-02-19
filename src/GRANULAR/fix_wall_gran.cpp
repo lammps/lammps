@@ -1021,9 +1021,8 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
     double radius, double meff, double *history,
     double *contact)
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype;
- double xtmp,ytmp,ztmp,delx,dely,delz,fx,fy,fz,nx,ny,nz;
- double radi,radj,radsum,r,rinv,rsqinv;
+ double fx,fy,fz,nx,ny,nz;
+ double radsum,r,rinv;
  double Reff, delta, dR, dR2;
 
  double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
@@ -1035,17 +1034,17 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
  double Fne, Ft, Fdamp, Fntot, Fncrit, Fscrit, Frcrit;
  double fs, fs1, fs2, fs3;
 
- double mi,mj,damp,ccel,tor1,tor2,tor3;
+ double tor1,tor2,tor3;
  double relrot1,relrot2,relrot3,vrl1,vrl2,vrl3,vrlmag,vrlmaginv;
 
  //For JKR
- double R2, coh, F_pulloff, delta_pulloff, dist_pulloff, a, a2, E;
+ double R2, coh, F_pulloff, a, a2, E;
  double t0, t1, t2, t3, t4, t5, t6;
- double sqrt1, sqrt2, sqrt3, sqrt4;
+ double sqrt1, sqrt2, sqrt3;
 
  //Rolling
  double k_roll, damp_roll;
- double roll1, roll2, roll3, torroll1, torroll2, torroll3;
+ double torroll1, torroll2, torroll3;
  double rollmag, rolldotn, scalefac;
  double fr, fr1, fr2, fr3;
 
@@ -1055,9 +1054,6 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
  double tortwist1, tortwist2, tortwist3;
 
  double shrmag,rsht;
- int *ilist,*jlist,*numneigh,**firstneigh;
- int *touch,**firsttouch;
- double *allhistory,**firsthistory;
 
  r = sqrt(rsq);
  radsum = rwall + radius;

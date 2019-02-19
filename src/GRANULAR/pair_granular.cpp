@@ -130,7 +130,7 @@ void PairGranular::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,fx,fy,fz,nx,ny,nz;
-  double radi,radj,radsum,rsq,r,rinv,rsqinv;
+  double radi,radj,radsum,rsq,r,rinv;
   double Reff, delta, dR, dR2;
 
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
@@ -140,19 +140,19 @@ void PairGranular::compute(int eflag, int vflag)
   double knfac, damp_normal, damp_normal_prefactor;
   double k_tangential, damp_tangential;
   double Fne, Ft, Fdamp, Fntot, Fncrit, Fscrit, Frcrit;
-  double fs, fs1, fs2, fs3;
+  double fs, fs1, fs2, fs3, tor1, tor2, tor3;
 
-  double mi,mj,meff,damp,ccel,tor1,tor2,tor3;
-  double relrot1,relrot2,relrot3,vrl1,vrl2,vrl3,vrlmag,vrlmaginv;
+  double mi,mj,meff;
+  double relrot1,relrot2,relrot3,vrl1,vrl2,vrl3;
 
   //For JKR
   double R2, coh, F_pulloff, delta_pulloff, dist_pulloff, a, a2, E;
   double t0, t1, t2, t3, t4, t5, t6;
-  double sqrt1, sqrt2, sqrt3, sqrt4;
+  double sqrt1, sqrt2, sqrt3;
 
   //Rolling
   double k_roll, damp_roll;
-  double roll1, roll2, roll3, torroll1, torroll2, torroll3;
+  double torroll1, torroll2, torroll3;
   double rollmag, rolldotn, scalefac;
   double fr, fr1, fr2, fr3;
 
@@ -204,7 +204,6 @@ void PairGranular::compute(int eflag, int vflag)
   double *rmass = atom->rmass;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  int newton_pair = force->newton_pair;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -465,9 +464,6 @@ void PairGranular::compute(int eflag, int vflag)
           vrl1 = Reff*(relrot2*nz - relrot3*ny); //- 0.5*((radj-radi)/radsum)*vtr1;
           vrl2 = Reff*(relrot3*nx - relrot1*nz); //- 0.5*((radj-radi)/radsum)*vtr2;
           vrl3 = Reff*(relrot1*ny - relrot2*nx); //- 0.5*((radj-radi)/radsum)*vtr3;
-          vrlmag = sqrt(vrl1*vrl1+vrl2*vrl2+vrl3*vrl3);
-          if (vrlmag != 0.0) vrlmaginv = 1.0/vrlmag;
-          else vrlmaginv = 0.0;
 
           int rhist0 = roll_history_index;
           int rhist1 = rhist0 + 1;
@@ -1192,12 +1188,12 @@ double PairGranular::single(int i, int j, int itype, int jtype,
     double rsq, double factor_coul, double factor_lj, double &fforce)
 {
   double radi,radj,radsum;
-  double r,rinv,rsqinv,delx,dely,delz, nx, ny, nz, Reff;
+  double r,rinv,delx,dely,delz, nx, ny, nz, Reff;
   double dR, dR2;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3,wr1,wr2,wr3;
   double vtr1,vtr2,vtr3,vrel;
-  double mi,mj,meff,damp,ccel,tor1,tor2,tor3;
-  double relrot1,relrot2,relrot3,vrl1,vrl2,vrl3,vrlmag,vrlmaginv;
+  double mi,mj,meff;
+  double relrot1,relrot2,relrot3,vrl1,vrl2,vrl3;
 
   double knfac, damp_normal, damp_normal_prefactor;
   double k_tangential, damp_tangential;
@@ -1207,25 +1203,22 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   //For JKR
   double R2, coh, F_pulloff, delta_pulloff, dist_pulloff, a, a2, E;
   double delta, t0, t1, t2, t3, t4, t5, t6;
-  double sqrt1, sqrt2, sqrt3, sqrt4;
+  double sqrt1, sqrt2, sqrt3;
 
 
   //Rolling
   double k_roll, damp_roll;
-  double roll1, roll2, roll3, torroll1, torroll2, torroll3;
-  double rollmag, rolldotn, scalefac;
+  double rollmag;
   double fr, fr1, fr2, fr3;
 
   //Twisting
   double k_twist, damp_twist, mu_twist;
   double signtwist, magtwist, magtortwist, Mtcrit;
-  double tortwist1, tortwist2, tortwist3;
 
-  double shrmag,rsht;
+  double shrmag;
   int jnum;
-  int *ilist,*jlist,*numneigh,**firstneigh;
-  int *touch,**firsttouch;
-  double *history,*allhistory,**firsthistory;
+  int *jlist;
+  double *history,*allhistory;
 
   double *radius = atom->radius;
   radi = radius[i];
@@ -1312,8 +1305,6 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   // if I or J part of rigid body, use body mass
   // if I or J is frozen, meff is other particle
 
-  int *type = atom->type;
-
   mi = rmass[i];
   mj = rmass[j];
   if (fix_rigid) {
@@ -1348,11 +1339,11 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   else{
     knfac = E;
     a = sqrt(dR);
+    Fne = knfac*delta;
     if (normal_model[itype][jtype] != HOOKE){
       Fne *= a;
       knfac *= a;
     }
-    Fne = knfac*delta;
     if (normal_model[itype][jtype] == DMT)
       Fne -= 4*MY_PI*normal_coeffs[itype][jtype][3]*Reff;
   }
@@ -1471,9 +1462,6 @@ double PairGranular::single(int i, int j, int itype, int jtype,
     vrl1 = Reff*(relrot2*nz - relrot3*ny); //- 0.5*((radj-radi)/radsum)*vtr1;
     vrl2 = Reff*(relrot3*nx - relrot1*nz); //- 0.5*((radj-radi)/radsum)*vtr2;
     vrl3 = Reff*(relrot1*ny - relrot2*nx); //- 0.5*((radj-radi)/radsum)*vtr3;
-    vrlmag = sqrt(vrl1*vrl1+vrl2*vrl2+vrl3*vrl3);
-    if (vrlmag != 0.0) vrlmaginv = 1.0/vrlmag;
-    else vrlmaginv = 0.0;
 
     int rhist0 = roll_history_index;
     int rhist1 = rhist0 + 1;
@@ -1483,8 +1471,6 @@ double PairGranular::single(int i, int j, int itype, int jtype,
     rollmag = sqrt(history[rhist0]*history[rhist0] +
         history[rhist1]*history[rhist1] +
         history[rhist2]*history[rhist2]);
-
-    rolldotn = history[rhist0]*nx + history[rhist1]*ny + history[rhist2]*nz;
 
     k_roll = roll_coeffs[itype][jtype][0];
     damp_roll = roll_coeffs[itype][jtype][1];
@@ -1498,9 +1484,6 @@ double PairGranular::single(int i, int j, int itype, int jtype,
     fr = sqrt(fr1*fr1 + fr2*fr2 + fr3*fr3);
     if (fr > Frcrit) {
       if (rollmag != 0.0) {
-        history[rhist0] = -1.0/k_roll*(Frcrit*fr1/fr + damp_roll*vrl1);
-        history[rhist1] = -1.0/k_roll*(Frcrit*fr2/fr + damp_roll*vrl2);
-        history[rhist2] = -1.0/k_roll*(Frcrit*fr3/fr + damp_roll*vrl3);
         fr1 *= Frcrit/fr;
         fr2 *= Frcrit/fr;
         fr3 *= Frcrit/fr;
@@ -1528,7 +1511,6 @@ double PairGranular::single(int i, int j, int itype, int jtype,
     signtwist = (magtwist > 0) - (magtwist < 0);
     Mtcrit = mu_twist*Fncrit;//critical torque (eq 44)
     if (fabs(magtortwist) > Mtcrit) {
-      history[twist_history_index] = 1.0/k_twist*(Mtcrit*signtwist - damp_twist*magtwist);
       magtortwist = -Mtcrit * signtwist; //eq 34
     }
   }
@@ -1621,7 +1603,7 @@ double PairGranular::mix_geom(double valii, double valjj)
 
 double PairGranular::pulloff_distance(double radi, double radj, int itype, int jtype)
 {
-  double E, coh, a, delta_pulloff, Reff;
+  double E, coh, a, Reff;
   Reff = radi*radj/(radi+radj);
   if (Reff <= 0) return 0;
   coh = normal_coeffs[itype][itype][3];

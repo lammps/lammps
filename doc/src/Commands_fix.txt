@@ -61,6 +61,7 @@ OPT.
 "edpd/source"_fix_dpd_source.html,
 "efield"_fix_efield.html,
 "ehex"_fix_ehex.html,
+"elstop"_fix_elstop.html,
 "enforce2d (k)"_fix_enforce2d.html,
 "eos/cv"_fix_eos_cv.html,
 "eos/table"_fix_eos_table.html,

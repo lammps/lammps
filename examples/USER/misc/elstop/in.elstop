@@ -1,0 +1,38 @@
+# Test case / example for the electronic stopping fix elstop
+# Perfect Si lattice with one primary knock-on atom.
+#
+# Also uses fix dt/reset, as one should when energies are high
+# enough to require electronic stopping.
+
+units metal
+boundary p p p
+timestep 0.0001
+
+lattice fcc 5.431
+
+region rbox block -10 10 -10 10 -10 10
+create_box 1 rbox
+
+mass 1 28.0855
+
+create_atoms 1 box
+
+velocity all create 300 42534 mom yes rot yes
+
+group gPKA id 1
+velocity gPKA set 1120 1620 389
+
+pair_style sw
+pair_coeff * * Si.sw Si
+
+fix fdt all dt/reset 1 NULL 0.001 0.1 emax 20.0
+fix fel all elstop 1.0 Si.Si.elstop
+fix fnve all nve
+
+thermo 10
+thermo_style custom step time dt f_fel
+
+#compute ek all ke/atom
+#dump mydump all custom 200 elstop.dump id x y z vx vy vz fx fy fz c_ek
+
+run 5000

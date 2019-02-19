@@ -1,0 +1,39 @@
+# Test case / example for the electronic stopping fix elstop
+# One fast atom, no other interactions.
+# Elstop only applied in a smaller box in the middle.
+#
+# Also uses fix dt/reset, as one should when energies are high
+# enough to require electronic stopping.
+
+units metal
+boundary p p p
+timestep 0.0001
+
+lattice fcc 1
+
+region rbox block -100 100 -100 100 -100 100
+region rsmallbox block -90 90 -90 90 -90 90
+
+create_box 1 rbox
+
+mass 1 28.0855
+
+create_atoms 1 single 0 0 0
+velocity all set 1120 1620 389
+
+pair_style zero 1
+pair_coeff * * 1
+
+fix fdt all dt/reset 1 NULL 0.001 0.1 emax 20.0
+fix fel all elstop 1.0 Si.Si.elstop minneigh 0 region rsmallbox
+fix fnve all nve
+
+compute ek all ke/atom
+compute ektot all reduce sum c_ek
+
+thermo 100
+thermo_style custom step time dt f_fel c_ektot
+
+#dump mydump all custom 200 elstop.only.dump id x y z vx vy vz fx fy fz c_ek
+
+run 10000

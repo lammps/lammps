@@ -45,6 +45,7 @@ using namespace MathConst;
 #define SIXROOT6 14.69693845669906728801   // 6*sqrt(6)
 #define INVROOT6 0.40824829046386307274    // 1/sqrt(6)
 #define FOURTHIRDS 1.333333333333333       // 4/3
+#define THREEQUARTERS 0.75                 // 3/4
 #define TWOPI 6.28318530717959             // 2*PI
 
 #define EPSILON 1e-10
@@ -63,7 +64,7 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   no_virial_fdotr_compute = 1;
   fix_history = NULL;
 
-  single_extra = 9;
+  single_extra = 12;
   svector = new double[single_extra];
 
   neighprev = 0;
@@ -238,10 +239,11 @@ void PairGranular::compute(int eflag, int vflag)
       radsum = radi + radj;
 
       E = normal_coeffs[itype][jtype][0];
-      Reff = radi*radj/(radi+radj);
+      Reff = radi*radj/radsum;
       touchflag = false;
 
       if (normal_model[itype][jtype] == JKR){
+        E *= THREEQUARTERS;
         if (touch[jj]){
           R2 = Reff*Reff;
           coh = normal_coeffs[itype][jtype][3];
@@ -319,17 +321,17 @@ void PairGranular::compute(int eflag, int vflag)
           sqrt3 = MAX(0, 4*dR - t5 + SIXROOT6*coh*M_PI*R2/(E*t6));
           a = INVROOT6*(t6 + sqrt(sqrt3));
           a2 = a*a;
-          knfac = FOURTHIRDS*E*a;
+          knfac = normal_coeffs[itype][jtype][0]*a;
           Fne = knfac*a2/Reff - TWOPI*a2*sqrt(4*coh*E/(M_PI*a));
         }
         else{
           knfac = E; //Hooke
+          Fne = knfac*delta;
           a = sqrt(dR);
           if (normal_model[itype][jtype] != HOOKE){
             Fne *= a;
             knfac *= a;
           }
-          Fne = knfac*delta;
           if (normal_model[itype][jtype] == DMT)
             Fne -= 4*MY_PI*normal_coeffs[itype][jtype][3]*Reff;
         }
@@ -711,9 +713,9 @@ void PairGranular::coeff(int narg, char **arg)
     }
     else if (strcmp(arg[iarg], "hertz/material") == 0){
       int num_coeffs = 3;
-      if (iarg + num_coeffs >= narg) error->all(FLERR,"Illegal pair_coeff command, not enough parameters provided for Hertz option");
-      normal_model_one = HERTZ;
-      normal_coeffs_one[0] = force->numeric(FLERR,arg[iarg+1])*FOURTHIRDS; //E
+      if (iarg + num_coeffs >= narg) error->all(FLERR,"Illegal pair_coeff command, not enough parameters provided for Hertz/material option");
+      normal_model_one = HERTZ_MATERIAL;
+      normal_coeffs_one[0] = force->numeric(FLERR,arg[iarg+1]); //E
       normal_coeffs_one[1] = force->numeric(FLERR,arg[iarg+2]); //damping
       normal_coeffs_one[2] = force->numeric(FLERR,arg[iarg+3]); //Poisson's ratio
       iarg += num_coeffs+1;
@@ -721,10 +723,10 @@ void PairGranular::coeff(int narg, char **arg)
     else if (strcmp(arg[iarg], "dmt") == 0){
       if (iarg + 4 >= narg) error->all(FLERR,"Illegal pair_coeff command, not enough parameters provided for Hertz option");
       normal_model_one = DMT;
-      normal_coeffs_one[0] = force->numeric(FLERR,arg[iarg+1])*FOURTHIRDS; //E
+      normal_coeffs_one[0] = force->numeric(FLERR,arg[iarg+1]); //E
       normal_coeffs_one[1] = force->numeric(FLERR,arg[iarg+2]); //damping
       normal_coeffs_one[2] = force->numeric(FLERR,arg[iarg+3]); //Poisson's ratio
-      normal_coeffs_one[3] = force->numeric(FLERR,arg[iarg+3]); //cohesion
+      normal_coeffs_one[3] = force->numeric(FLERR,arg[iarg+4]); //cohesion
       iarg += 5;
     }
     else if (strcmp(arg[iarg], "jkr") == 0){
@@ -755,21 +757,27 @@ void PairGranular::coeff(int narg, char **arg)
       iarg += 1;
     }
     else if (strcmp(arg[iarg], "tangential") == 0){
-      if (iarg + 4 >= narg) error->all(FLERR,"Illegal pair_coeff command, not enough parameters provided for tangential model");
+      if (iarg + 1 >= narg) error->all(FLERR,"Illegal pair_coeff command, must specify tangential model after 'tangential' keyword");
       if (strcmp(arg[iarg+1], "linear_nohistory") == 0){
+        if (iarg + 3 >= narg) error->all(FLERR,"Illegal pair_coeff command, not enough parameters provided for tangential model");
         tangential_model_one = TANGENTIAL_NOHISTORY;
+        tangential_coeffs_one[0] = 0;
+        tangential_coeffs_one[1] = force->numeric(FLERR,arg[iarg+2]); //gammat
+        tangential_coeffs_one[2] = force->numeric(FLERR,arg[iarg+3]); //friction coeff.
+        iarg += 4;
       }
       else if (strcmp(arg[iarg+1], "linear_history") == 0){
+        if (iarg + 4 >= narg) error->all(FLERR,"Illegal pair_coeff command, not enough parameters provided for tangential model");
         tangential_model_one = TANGENTIAL_HISTORY;
         tangential_history = 1;
+        tangential_coeffs_one[0] = force->numeric(FLERR,arg[iarg+2]); //kt
+        tangential_coeffs_one[1] = force->numeric(FLERR,arg[iarg+3]); //gammat
+        tangential_coeffs_one[2] = force->numeric(FLERR,arg[iarg+4]); //friction coeff.
+        iarg += 5;
       }
       else{
         error->all(FLERR, "Illegal pair_coeff command, tangential model not recognized");
       }
-      tangential_coeffs_one[0] = force->numeric(FLERR,arg[iarg+2]); //kt
-      tangential_coeffs_one[1] = force->numeric(FLERR,arg[iarg+3]); //gammat
-      tangential_coeffs_one[2] = force->numeric(FLERR,arg[iarg+4]); //friction coeff.
-      iarg += 5;
     }
     else if (strcmp(arg[iarg], "rolling") == 0){
       if (iarg + 1 >= narg) error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
@@ -842,7 +850,7 @@ void PairGranular::coeff(int narg, char **arg)
       if (normal_model_one != HERTZ && normal_model_one != HOOKE){
         Emod[i][j] = Emod[j][i] = normal_coeffs_one[0];
         poiss[i][j] = poiss[j][i] = normal_coeffs_one[2];
-        normal_coeffs[i][j][0] = normal_coeffs[j][i][0] = mix_stiffnessE(Emod[i][j], Emod[i][j], poiss[i][j], poiss[i][j]);
+        normal_coeffs[i][j][0] = normal_coeffs[j][i][0] = FOURTHIRDS*mix_stiffnessE(Emod[i][j], Emod[i][j], poiss[i][j], poiss[i][j]);
       }
       else{
         normal_coeffs[i][j][0] = normal_coeffs[j][i][0] = normal_coeffs_one[0];
@@ -1068,13 +1076,12 @@ double PairGranular::init_one(int i, int j)
     if (((maxrad_dynamic[i] > 0.0) && (maxrad_dynamic[j] > 0.0)) ||
         ((maxrad_dynamic[i] > 0.0) &&  (maxrad_frozen[j] > 0.0)) ||
         ((maxrad_frozen[i] > 0.0)  && (maxrad_dynamic[j] > 0.0))) { // radius info about both i and j exist
+
       cutoff = maxrad_dynamic[i]+maxrad_dynamic[j];
+      pulloff = 0.0;
       if (normal_model[i][j] == JKR){
         pulloff = pulloff_distance(maxrad_dynamic[i], maxrad_dynamic[j], i, j);
         cutoff += pulloff;
-      }
-      else{
-        pulloff = 0;
       }
 
       if (normal_model[i][j] == JKR)
@@ -1224,10 +1231,12 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   radi = radius[i];
   radj = radius[j];
   radsum = radi + radj;
-  Reff = radi*radj/(radi+radj);
+  Reff = radi*radj/radsum;
 
   bool touchflag;
+  E = normal_coeffs[itype][jtype][0];
   if (normal_model[itype][jtype] == JKR){
+    E *= THREEQUARTERS;
     R2 = Reff*Reff;
     coh = normal_coeffs[itype][jtype][3];
     a = cbrt(9.0*M_PI*coh*R2/(4*E));
@@ -1333,7 +1342,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
     sqrt3 = MAX(0, 4*dR - t5 + SIXROOT6*coh*M_PI*R2/(E*t6));
     a = INVROOT6*(t6 + sqrt(sqrt3));
     a2 = a*a;
-    knfac = FOURTHIRDS*E*a;
+    knfac = normal_coeffs[itype][jtype][0]*a;
     Fne = knfac*a2/Reff - TWOPI*a2*sqrt(4*coh*E/(M_PI*a));
   }
   else{
@@ -1348,7 +1357,6 @@ double PairGranular::single(int i, int j, int itype, int jtype,
       Fne -= 4*MY_PI*normal_coeffs[itype][jtype][3]*Reff;
   }
 
-  //Consider restricting Hooke to only have 'velocity' as an option for damping?
   if (damping_model[itype][jtype] == VELOCITY){
     damp_normal = normal_coeffs[itype][jtype][1];
   }
@@ -1536,6 +1544,9 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   svector[6] = fr3;
   svector[7] = fr;
   svector[8] = magtortwist;
+  svector[9] = delx;
+  svector[10] = dely;
+  svector[11] = delz;
   return 0.0;
 }
 
@@ -1614,7 +1625,7 @@ double PairGranular::pulloff_distance(double radi, double radj, int itype, int j
   Reff = radi*radj/(radi+radj);
   if (Reff <= 0) return 0;
   coh = normal_coeffs[itype][itype][3];
-  E = normal_coeffs[itype][jtype][0];
+  E = normal_coeffs[itype][jtype][0]*THREEQUARTERS;
   a = cbrt(9*M_PI*coh*Reff/(4*E));
   return a*a/Reff - 2*sqrt(M_PI*coh*a/E);
 }

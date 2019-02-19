@@ -65,9 +65,9 @@ public:
 private:
   int size_history;
 
-  //Models choices
+  //Model choices
   int **normal_model, **damping_model;
-  double **tangential_model, **roll_model, **twist_model;
+  int **tangential_model, **roll_model, **twist_model;
 
   //History flags
   int normal_history, tangential_history, roll_history, twist_history;

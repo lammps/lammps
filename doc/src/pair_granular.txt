@@ -533,14 +533,16 @@ the pairwise interaction force.  However, the single() function also
 calculates 10 extra pairwise quantities.  The first 3 are the
 components of the tangential force between particles I and J, acting
 on particle I.  The 4th is the magnitude of this tangential force.
-The next 3 (5-7) are the components of the relative velocity in the
-normal direction (along the line joining the 2 sphere centers).  The
-last 3 (8-10) the components of the relative velocity in the
-tangential direction.
+The next 3 (5-7) are the components of the rolling torque acting on 
+particle I. The next entry (8) is the magnitude of the rolling torque.
+The next entry (9) is the magnitude of the twisting torque acting
+about the vector connecting the two particle centers.
+The last 3 (10-12) are the components of the vector connecting
+the centers of the two particles (x_I - x_J).
 
 These extra quantities can be accessed by the "compute
 pair/local"_compute_pair_local.html command, as {p1}, {p2}, ...,
-{p10}.
+{p12}.
 
 :line
 
@@ -568,6 +570,7 @@ compute depend on atom velocities.  See the
 [Related commands:]
 
 "pair_coeff"_pair_coeff.html
+"pair gran/*"_pair_gran.html
 
 [Default:] 
 

@@ -39,7 +39,8 @@ using namespace MathConst;
 
 // same as FixWallGran
 
-enum{HOOKE,HOOKE_HISTORY,HERTZ_HISTORY,JKR_ROLLING,DMT_ROLLING};
+enum{HOOKE,HOOKE_HISTORY,HERTZ_HISTORY,GRANULAR};
+enum {NORMAL_HOOKE, NORMAL_HERTZ, HERTZ_MATERIAL, DMT, JKR};
 
 #define BIG 1.0e20
 
@@ -47,7 +48,7 @@ enum{HOOKE,HOOKE_HISTORY,HERTZ_HISTORY,JKR_ROLLING,DMT_ROLLING};
 
 FixWallGranRegion::FixWallGranRegion(LAMMPS *lmp, int narg, char **arg) :
       FixWallGran(lmp, narg, arg), region(NULL), region_style(NULL), ncontact(NULL),
-      walls(NULL), shearmany(NULL), c2r(NULL)
+      walls(NULL), history_many(NULL), c2r(NULL)
 {
   restart_global = 1;
   motion_resetflag = 0;
@@ -66,17 +67,17 @@ FixWallGranRegion::FixWallGranRegion(LAMMPS *lmp, int narg, char **arg) :
   // re-allocate atom-based arrays with nshear
   // do not register with Atom class, since parent class did that
 
-  memory->destroy(shearone);
-  shearone = NULL;
+  memory->destroy(history_one);
+  history_one = NULL;
 
   ncontact = NULL;
   walls = NULL;
-  shearmany = NULL;
+  history_many = NULL;
   grow_arrays(atom->nmax);
 
   // initialize shear history as if particle is not touching region
 
-  if (history) {
+  if (use_history) {
     int nlocal = atom->nlocal;
     for (int i = 0; i < nlocal; i++)
       ncontact[i] = 0;
@@ -92,7 +93,7 @@ FixWallGranRegion::~FixWallGranRegion()
 
   memory->destroy(ncontact);
   memory->destroy(walls);
-  memory->destroy(shearmany);
+  memory->destroy(history_many);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -138,8 +139,8 @@ void FixWallGranRegion::post_force(int /*vflag*/)
 
   // do not update shear history during setup
 
-  shearupdate = 1;
-  if (update->setupflag) shearupdate = 0;
+  history_update = 1;
+  if (update->setupflag) history_update = 0;
 
   // if just reneighbored:
   // update rigid body masses for owned atoms if using FixRigid
@@ -188,7 +189,12 @@ void FixWallGranRegion::post_force(int /*vflag*/)
     if (mask[i] & groupbit) {
       if (!region->match(x[i][0],x[i][1],x[i][2])) continue;
 
-      nc = region->surface(x[i][0],x[i][1],x[i][2],radius[i]);
+      if (pairstyle == GRANULAR && normal_model == JKR){
+        nc = region->surface(x[i][0],x[i][1],x[i][2],radius[i]+pulloff_distance(radius[i]));
+      }
+      else{
+        nc = region->surface(x[i][0],x[i][1],x[i][2],radius[i]);
+      }
       if (nc > tmax)
         error->one(FLERR,"Too many wall/gran/region contacts for one particle");
 
@@ -198,7 +204,7 @@ void FixWallGranRegion::post_force(int /*vflag*/)
       // also set c2r[] = indices into region->contact[] for each of N contacts
       // process zero or one contact here, otherwise invoke update_contacts()
 
-      if (history) {
+      if (use_history) {
         if (nc == 0) {
           ncontact[i] = 0;
           continue;
@@ -209,8 +215,8 @@ void FixWallGranRegion::post_force(int /*vflag*/)
           if (ncontact[i] == 0) {
             ncontact[i] = 1;
             walls[i][0] = iwall;
-            for (m = 0; m < sheardim; m++)
-              shearmany[i][0][m] = 0.0;
+            for (m = 0; m < size_history; m++)
+              history_many[i][0][m] = 0.0;
           } else if (ncontact[i] > 1 || iwall != walls[i][0])
             update_contacts(i,nc);
         } else update_contacts(i,nc);
@@ -224,12 +230,19 @@ void FixWallGranRegion::post_force(int /*vflag*/)
 
         rsq = region->contact[ic].r*region->contact[ic].r;
 
+        if (pairstyle == GRANULAR && normal_model == JKR){
+          if (history_many[i][c2r[ic]][0] == 0.0 && rsq > radius[i]*radius[i]){
+            for (m = 0; m < size_history; m++)
+              history_many[i][0][m] = 0.0;
+            continue;
+          }
+        }
+
         dx = region->contact[ic].delx;
         dy = region->contact[ic].dely;
         dz = region->contact[ic].delz;
 
         if (regiondynamic) region->velocity_contact(vwall, x[i], ic);
-
 
         // meff = effective mass of sphere
         // if I is part of rigid body, use body mass
@@ -259,13 +272,13 @@ void FixWallGranRegion::post_force(int /*vflag*/)
         else if (pairstyle == HOOKE_HISTORY)
           hooke_history(rsq,dx,dy,dz,vwall,v[i],f[i],
               omega[i],torque[i],radius[i],meff,
-              shearmany[i][c2r[ic]], contact);
+              history_many[i][c2r[ic]], contact);
         else if (pairstyle == HERTZ_HISTORY)
           hertz_history(rsq,dx,dy,dz,vwall,region->contact[ic].radius,
               v[i],f[i],omega[i],torque[i],
-              radius[i],meff,shearmany[i][c2r[ic]], contact);
-        else if (pairstyle == DMT_ROLLING)
-          dmt_rolling(rsq,dx,dy,dz,vwall,region->contact[ic].radius, v[i],f[i],omega[i],torque[i], radius[i],meff,shearmany[i][c2r[ic]], contact);
+              radius[i],meff,history_many[i][c2r[ic]], contact);
+        else if (pairstyle == GRANULAR)
+          granular(rsq,dx,dy,dz,vwall,region->contact[ic].radius, v[i],f[i],omega[i],torque[i], radius[i],meff,history_many[i][c2r[ic]], contact);
 
       }
     }
@@ -294,8 +307,8 @@ void FixWallGranRegion::update_contacts(int i, int nc)
       if (region->contact[m].iwall == walls[i][iold]) break;
     if (m >= nc) {
       ilast = ncontact[i]-1;
-      for (j = 0; j < sheardim; j++)
-        shearmany[i][iold][j] = shearmany[i][ilast][j];
+      for (j = 0; j < size_history; j++)
+        history_many[i][iold][j] = history_many[i][ilast][j];
       walls[i][iold] = walls[i][ilast];
       ncontact[i]--;
     } else iold++;
@@ -317,8 +330,8 @@ void FixWallGranRegion::update_contacts(int i, int nc)
       iadd = ncontact[i];
 
       c2r[iadd] = inew;
-      for (j = 0; j < sheardim; j++)
-        shearmany[i][iadd][j] = 0.0;
+      for (j = 0; j < size_history; j++)
+        history_many[i][iadd][j] = 0.0;
       walls[i][iadd] = iwall;
       ncontact[i]++;
     }
@@ -333,10 +346,10 @@ double FixWallGranRegion::memory_usage()
 {
   int nmax = atom->nmax;
   double bytes = 0.0;
-  if (history) {                                   // shear history
+  if (use_history) {                                   // shear history
     bytes += nmax * sizeof(int);                   // ncontact
     bytes += nmax*tmax * sizeof(int);              // walls
-    bytes += nmax*tmax*sheardim * sizeof(double);  // shearmany
+    bytes += nmax*tmax*size_history * sizeof(double);  // history_many
   }
   if (fix_rigid) bytes += nmax * sizeof(int);      // mass_rigid
   return bytes;
@@ -348,10 +361,10 @@ double FixWallGranRegion::memory_usage()
 
 void FixWallGranRegion::grow_arrays(int nmax)
 {
-  if (history) {
+  if (use_history) {
     memory->grow(ncontact,nmax,"fix_wall_gran:ncontact");
     memory->grow(walls,nmax,tmax,"fix_wall_gran:walls");
-    memory->grow(shearmany,nmax,tmax,sheardim,"fix_wall_gran:shearmany");
+    memory->grow(history_many,nmax,tmax,size_history,"fix_wall_gran:history_many");
   }
   if (peratom_flag){
     memory->grow(array_atom,nmax,size_peratom_cols,"fix_wall_gran:array_atom");
@@ -366,12 +379,12 @@ void FixWallGranRegion::copy_arrays(int i, int j, int /*delflag*/)
 {
   int m,n,iwall;
 
-  if (history){
+  if (use_history){
     n = ncontact[i];
     for (iwall = 0; iwall < n; iwall++) {
       walls[j][iwall] = walls[i][iwall];
-      for (m = 0; m < sheardim; m++)
-        shearmany[j][iwall][m] = shearmany[i][iwall][m];
+      for (m = 0; m < size_history; m++)
+        history_many[j][iwall][m] = history_many[i][iwall][m];
     }
     ncontact[j] = ncontact[i];
   }
@@ -388,7 +401,7 @@ void FixWallGranRegion::copy_arrays(int i, int j, int /*delflag*/)
 
 void FixWallGranRegion::set_arrays(int i)
 {
-  if (history)
+  if (use_history)
     ncontact[i] = 0;
   if (peratom_flag){
     for (int m = 0; m < size_peratom_cols; m++)
@@ -405,13 +418,13 @@ int FixWallGranRegion::pack_exchange(int i, double *buf)
   int m;
 
   int n = 0;
-  if (history){
+  if (use_history){
     int count = ncontact[i];
     buf[n++] = ubuf(count).d;
     for (int iwall = 0; iwall < count; iwall++) {
       buf[n++] = ubuf(walls[i][iwall]).d;
-      for (m = 0; m < sheardim; m++)
-        buf[n++] = shearmany[i][iwall][m];
+      for (m = 0; m < size_history; m++)
+        buf[n++] = history_many[i][iwall][m];
     }
   }
   if (peratom_flag){
@@ -432,12 +445,12 @@ int FixWallGranRegion::unpack_exchange(int nlocal, double *buf)
 
 
   int n = 0;
-  if (history){
+  if (use_history){
     int count = ncontact[nlocal] = (int) ubuf(buf[n++]).i;
     for (int iwall = 0; iwall < count; iwall++) {
       walls[nlocal][iwall] = (int) ubuf(buf[n++]).i;
-      for (m = 0; m < sheardim; m++)
-        shearmany[nlocal][iwall][m] = buf[n++];
+      for (m = 0; m < size_history; m++)
+        history_many[nlocal][iwall][m] = buf[n++];
     }
   }
   if (peratom_flag){
@@ -456,7 +469,7 @@ int FixWallGranRegion::pack_restart(int i, double *buf)
 {
   int m;
 
-  if (!history) return 0;
+  if (!use_history) return 0;
 
   int n = 1;
   int count = ncontact[i];
@@ -464,8 +477,8 @@ int FixWallGranRegion::pack_restart(int i, double *buf)
   buf[n++] = ubuf(count).d;
   for (int iwall = 0; iwall < count; iwall++) {
     buf[n++] = ubuf(walls[i][iwall]).d;
-    for (m = 0; m < sheardim; m++)
-      buf[n++] = shearmany[i][iwall][m];
+    for (m = 0; m < size_history; m++)
+      buf[n++] = history_many[i][iwall][m];
   }
   buf[0] = n;
   return n;
@@ -479,7 +492,7 @@ void FixWallGranRegion::unpack_restart(int nlocal, int nth)
 {
   int k;
 
-  if (!history) return;
+  if (!use_history) return;
 
   double **extra = atom->extra;
 
@@ -492,8 +505,8 @@ void FixWallGranRegion::unpack_restart(int nlocal, int nth)
   int count = ncontact[nlocal] = (int) ubuf(extra[nlocal][m++]).i;
   for (int iwall = 0; iwall < count; iwall++) {
     walls[nlocal][iwall] = (int) ubuf(extra[nlocal][m++]).i;
-    for (k = 0; k < sheardim; k++)
-      shearmany[nlocal][iwall][k] = extra[nlocal][m++];
+    for (k = 0; k < size_history; k++)
+      history_many[nlocal][iwall][k] = extra[nlocal][m++];
   }
 }
 
@@ -503,8 +516,8 @@ void FixWallGranRegion::unpack_restart(int nlocal, int nth)
 
 int FixWallGranRegion::maxsize_restart()
 {
-  if (!history) return 0;
-  return 2 + tmax*(sheardim+1);
+  if (!use_history) return 0;
+  return 2 + tmax*(size_history+1);
 }
 
 /* ----------------------------------------------------------------------
@@ -513,8 +526,8 @@ int FixWallGranRegion::maxsize_restart()
 
 int FixWallGranRegion::size_restart(int nlocal)
 {
-  if (!history) return 0;
-  return 2 + ncontact[nlocal]*(sheardim+1);
+  if (!use_history) return 0;
+  return 2 + ncontact[nlocal]*(size_history+1);
 }
 
 /* ----------------------------------------------------------------------

@@ -54,12 +54,11 @@ class FixWallGran : public Fix {
   void hertz_history(double, double, double, double, double *, double,
       double *, double *, double *, double *, double, double,
       double *, double *);
-  void dmt_rolling(double, double, double, double, double *, double,
-      double *, double *, double *, double *, double, double,
-      double *, double *);
- // void jkr_rolling(double, double, double, double, double *, double,
- //     double *, double *, double *, double *, double, double,
- //     double *, double *);
+  void granular(double, double, double, double, double *, double,
+        double *, double *, double *, double *, double, double,
+        double *, double *);
+
+  double pulloff_distance(double);
 
  protected:
   int wallstyle,wiggle,wshear,axis;
@@ -67,23 +66,43 @@ class FixWallGran : public Fix {
   bigint time_origin;
   double kn,kt,gamman,gammat,xmu;
 
-  //For DMT/ROLLING
-  int normaldamp, rollingdamp;
-  double Emod, Gmod, alpha, Ecoh, kR, muR, etaR;
+  //For granular
+  //Model choices
+  int normal_model, damping_model;
+  int tangential_model, roll_model, twist_model;
 
+  int beyond_contact;
+
+  //History flags
+  int normal_history, tangential_history, roll_history, twist_history;
+
+  //Indices of history entries
+  int normal_history_index;
+  int tangential_history_index;
+  int roll_history_index;
+  int twist_history_index;
+
+  //Material coefficients
+  double Emod, poiss, Gmod;
+
+  //Contact model coefficients
+  double normal_coeffs[4];
+  double tangential_coeffs[3];
+  double roll_coeffs[3];
+  double twist_coeffs[3];
 
   double lo,hi,cylradius;
   double amplitude,period,omega,vshear;
   double dt;
   char *idregion;
 
-  int history;       // if particle/wall interaction stores history
-  int shearupdate;   // flag for whether shear history is updated
-  int sheardim;      // # of shear history values per contact
+  int use_history;       // if particle/wall interaction stores history
+  int history_update;   // flag for whether shear history is updated
+  int size_history;      // # of shear history values per contact
 
   // shear history for single contact per particle
 
-  double **shearone;
+  double **history_one;
 
   // rigid body masses for use in granular interactions
 

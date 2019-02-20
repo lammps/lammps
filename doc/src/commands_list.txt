@@ -32,6 +32,7 @@ Commands :h1
    dimension
    displace_atoms
    dump
+   dump_adios
    dump_cfg_uef
    dump_h5md
    dump_image

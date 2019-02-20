@@ -54,3 +54,4 @@ thermo_style    custom step temp epair press f_10[3] f_10
 thermo          100                
 
 run		200
+write_dump      all atom/adios balance_atom_final.bp 

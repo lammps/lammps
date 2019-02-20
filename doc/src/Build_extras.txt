@@ -37,6 +37,7 @@ This is the list of packages that may require additional steps.
 "POEMS"_#poems,
 "PYTHON"_#python,
 "VORONOI"_#voronoi,
+"USER-ADIOS"_#user-adios,
 "USER-ATC"_#user-atc,
 "USER-AWPMD"_#user-awpmd,
 "USER-COLVARS"_#user-colvars,
@@ -573,6 +574,28 @@ Note that 2 symbolic (soft) links, "includelink" and "liblink", are
 created in lib/voronoi to point to the Voro++ src dir.  When LAMMPS
 builds in src it will use these links.  You should not need to edit
 the lib/voronoi/Makefile.lammps file.
+
+:line
+
+USER-ADIOS package :h4,link(user-adios)
+
+The USER-ADIOS package requires the "ADIOS I/O library"_https://github.com/ornladios/ADIOS2, version 2.3.1 or newer.
+Make sure that you have ADIOS built with/without MPI if you build LAMMPS with/without MPI, respectively.
+
+[CMake build]:
+
+-D ADIOS2_DIR=path        # path is where ADIOS 2.x is installed
+-D PKG_USER-ADIOS=yes     :pre
+
+[Traditional make]:
+
+Turn on the USER-ADIOS package before building LAMMPS. If the ADIOS 2.x software is installed in PATH, there is nothing else to do:
+
+make yes-user-adios                       :pre
+
+otherwise, set ADIOS2_DIR environment variable when turning on the package:
+
+ADIOS2_DIR=path make yes-user-adios   # path is where ADIOS 2.x is installed :pre
 
 :line
 

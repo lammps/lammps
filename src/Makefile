@@ -68,7 +68,7 @@ PACKUSER = user-adios user-atc user-awpmd user-bocs user-cgdna user-cgsdk user-c
 
 PACKLIB = compress gpu kim kokkos latte message mpiio mscg poems \
 	  python voronoi \
-	  user-atc user-awpmd user-colvars user-h5md user-lb user-molfile \
+	  user-adios user-atc user-awpmd user-colvars user-h5md user-lb user-molfile \
 	  user-netcdf user-plumed user-qmmm user-quip user-scafacos \
 	  user-smd user-vtk
 
@@ -77,7 +77,7 @@ PACKSYS = compress mpiio python user-lb
 PACKINT = gpu kokkos message poems user-atc user-awpmd user-colvars
 
 PACKEXT = kim latte mscg voronoi \
-	  user-h5md user-molfile user-netcdf user-plumed user-qmmm user-quip \
+	  user-adios user-h5md user-molfile user-netcdf user-plumed user-qmmm user-quip \
 	  user-smd user-vtk
 
 PACKALL = $(PACKAGE) $(PACKUSER)

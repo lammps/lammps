@@ -6,8 +6,15 @@
         <engine type="BPFile">
             <parameter key="substreams" value="10"/>
         </engine>
+
         <engine type="HDF5">
 
+
+        The 'substreams' parameter in BPFile controls how many 
+        files on disk are created. This number should be proportional 
+        to the number of servers in the parallel file system, 
+        NOT to the number of processes. 
+        substreams=1 is generally a very inefficient setting for large parallel runs.
     -->
 
     <!--====================================================
@@ -16,6 +23,7 @@
 
     <io name="atom">
         <engine type="BPFile">
+            <parameter key="substreams" value="1"/>
         </engine>
     </io>
 
@@ -25,6 +33,7 @@
 
     <io name="custom">
         <engine type="BPFile">
+            <parameter key="substreams" value="1"/>
         </engine>
     </io>
 

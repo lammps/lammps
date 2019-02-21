@@ -1951,6 +1951,7 @@ ons
 OO
 openKIM
 OpenMP
+openmp
 openmpi
 opls
 Oppelstrup
@@ -2044,6 +2045,7 @@ peru
 Peskin
 Pettifor
 pfactor
+pgi
 ph
 Phillpot
 phiphi

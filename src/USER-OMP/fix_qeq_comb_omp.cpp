@@ -73,7 +73,7 @@ void FixQEQCombOMP::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEQCombOMP::post_force(int vflag)
+void FixQEQCombOMP::post_force(int /* vflag */)
 {
   int i,ii,iloop,loopmax,inum,*ilist;
   double heatpq,qmass,dtq,dtq2;

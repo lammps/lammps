@@ -58,9 +58,7 @@ void AngleMM3::compute(int eflag, int vflag)
   double delx1,dely1,delz1,delx2,dely2,delz2;
   double eangle,f1[3],f3[3];
   double dtheta,dtheta2,dtheta3,dtheta4,de_angle;
-  double dr1,dr2,tk1,tk2,aa1,aa2,aa11,aa12,aa21,aa22;
-  double rsq1,rsq2,r1,r2,c,s,a,a11,a12,a22,b1,b2;
-  double vx11,vx12,vy11,vy12,vz11,vz12,vx21,vx22,vy21,vy22,vz21,vz22;
+  double rsq1,rsq2,r1,r2,c,s,a,a11,a12,a22;
 
   eangle = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);

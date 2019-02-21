@@ -1363,9 +1363,11 @@ void lammps_scatter_atoms_subset(void *ptr, char *name,
       int *dptr = (int *) data;
 
       if (count == 1) {
-        for (i = 0; i < ndata; i++)
-          if ((m = lmp->atom->map(i+1)) >= 0)
+        for (i = 0; i < ndata; i++) {
+          id = ids[i];
+          if ((m = lmp->atom->map(id)) >= 0)
             vector[m] = dptr[i];
+        }
 
       } else if (imgpack) {
         for (i = 0; i < ndata; i++) {

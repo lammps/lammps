@@ -861,14 +861,19 @@ void CreateAtoms::add_lattice()
 void CreateAtoms::get_subset()
 {
   enum{ATOMS,HOLES};
-  int i,j,temp,irand,npicks,mynpicks,pickmode;
+  int i,j,temp,irand,offlag,npicks,pickmode,mynpicks,mysubset;
   double myrand;
-  int allnlatts[nprocs];
-  int allsubsets[nprocs];
-  int localpicks[nprocs];
-  double proc_sects[nprocs];
+  int *allnlatts;
+  int *allsubsets;
+  int *localpicks;
+  double *proc_sects;
 
-  MPI_Allgather(&nlatt, 1, MPI_INT, &allnlatts, 1, MPI_INT, world);
+  memory->create(allnlatts,nprocs,"create_atoms:allnlatts");
+  memory->create(allsubsets,nprocs,"create_atoms:allsubsets");
+  memory->create(localpicks,nprocs,"create_atoms:localpicks");
+  memory->create(proc_sects,nprocs,"create_atoms:proc_sects");
+
+  MPI_Allgather(&nlatt, 1, MPI_INT, &allnlatts[0], 1, MPI_INT, world);
 
   int ntotal = 0;
   for (i = 0; i < nprocs; i++)
@@ -911,11 +916,39 @@ void CreateAtoms::get_subset()
     for (i = 0; i < nprocs; i++)
       allsubsets[i] = allnlatts[i] - allsubsets[i];
 
+  mysubset = allsubsets[me];
+
+  // it's possible, but statistically unlikely, that a proc was assigned too many
+  // proc 0 will fix this
+  offlag = 0;
+  npicks = 0;
+  for (i = 0; i < nprocs; i++) {
+    if (allsubsets[i] > allnlatts[i]) {
+      offlag = 1;
+      npicks += allsubsets[i] - allnlatts[i];
+    }
+  }
+
+  if (offlag == 1) {
+    if (me == 0) {
+      while (npicks > 0) { // while loop
+        myrand = ranlatt->uniform();
+        for (j = 0; j < nprocs; j++)
+          if (myrand < proc_sects[j]) break;
+        if (allsubsets[j] < allnlatts[j]) {
+          allsubsets[j]++;
+          npicks--;
+        }
+      }
+    }
+    MPI_Scatter(&allsubsets[0], 1, MPI_INT, &mysubset, 1, MPI_INT, 0, world);
+  }
+
   // each processor chooses its random lattice points
   memory->create(flag,nlatt,"create_atoms:flag");
 
   for (i = 0; i < nlatt; i++)
-    if (i < allsubsets[me])
+    if (i < mysubset)
       flag[i] = 1;
     else
       flag[i] = 0;
@@ -927,6 +960,11 @@ void CreateAtoms::get_subset()
     flag[i] = flag[irand];
     flag[irand] = temp;
   }
+
+  memory->destroy(allnlatts);
+  memory->destroy(allsubsets);
+  memory->destroy(localpicks);
+  memory->destroy(proc_sects);
 }
 
 

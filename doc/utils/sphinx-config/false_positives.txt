@@ -1384,6 +1384,7 @@ libfftw
 libgcc
 libgpu
 libjpeg
+libkim
 liblammps
 Liblammps
 liblink

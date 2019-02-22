@@ -346,12 +346,11 @@ system.
 
 Information about the KIM project can be found at its website:
 https://openkim.org.  The KIM project is led by Ellad Tadmor and Ryan
-Elliott (U Minnesota) and James Sethna (Cornell U).
+Elliott (U Minnesota).
 
 [Authors:] Ryan Elliott (U Minnesota) is the main developer for the KIM
 API which the "pair_style kim"_pair_kim.html command uses.  He
-developed the pair style in collaboration with Valeriu Smirichinski (U
-Minnesota).
+developed the pair style.
 
 [Install:]
 
@@ -2102,5 +2101,3 @@ src/USER-YAFF/README
 "pair_style mm3/switch3/coulgauss/long"_pair_mm3_switch3_coulgauss.html
 "pair_style lj/switch3/coulgauss/long"_pair_lj_switch3_coulgauss.html
 examples/USER/yaff :ul
-
-

@@ -3,10 +3,9 @@ is required to use the KIM package and its pair_style kim command in a
 LAMMPS input script.
 
 Information about the KIM project can be found at https://openkim.org.
-The KIM project is lead by Ellad Tadmor and Ryan Elliott (U Minn) and
-James Sethna (Cornell U).  Ryan Elliott is the main developer for the
-KIM API and he also maintains the code that implements the pair_style
-kim command.
+The KIM project is lead by Ellad Tadmor and Ryan Elliott (U Minn).
+Ryan Elliott is the main developer for the KIM API and he also
+maintains the code that implements the pair_style kim command.
 
 You can type "make lib-kim" from the src directory to see help on
 how to download and build this library via make commands, or you can
@@ -21,33 +20,34 @@ Instructions:
 1. Configure lammps for use with the kim-api library installed in this directory
 
 # replace X.Y.Z as appropriate here and below
-$ printf "KIM_INSTALL_DIR=${PWD}/installed-kim-api-vX.Y.Z\n" > ./Makefile.KIM_DIR
+$ printf "${PWD}/installed-kim-api-vX-X.Y.Z" > ./kim-prefix.txt
 
 2. Download and unpack the kim-api
 
-$ wget http://s3.openkim.org/kim-api/kim-api-vX.Y.Z.txz
-$ tar zxvf kim-api-vX.Y.Z.txz
+$ wget http://s3.openkim.org/kim-api/kim-api-vX-X.Y.Z.txz
+$ tar zxvf kim-api-vX-X.Y.Z.txz
 
 # configure the kim-api
-$ cd kim-api-vX.Y.Z
-$ ./configure --prefix=${PWD}/../installed-kim-api-vX.Y.Z
+$ cd kim-api-vX-X.Y.Z
+$ mkdir build && cd build
+$ cmake ..  -DCMAKE_INSTALL_PREFIX=${PWD}/../../installed-kim-api-vX-X.Y.Z
 
 3. Build and install the kim-api and model
 
 $ make
 $ make install
-$ cd ..
 
 4. Remove source and build files
 
-$ rm -rf kim-api-vX.Y.Z
-$ rm -rf kim-api-vX.Y.Z.txz
+$ cd ../../
+$ rm -rf kim-api-vX-X.Y.Z
+$ rm -rf kim-api-vX-X.Y.Z.txz
 
 5. To add items do the following (replace the kim item name with your
    desired value)
 
-$ source ${PWD}/kim-api-vX.Y.Z/bin/kim-api-v1-activate
-$ kim-api-v1-collections-management install system Pair_Johnson_Fe__MO_857282754307_002
+$ source ${PWD}/kim-api-vX-X.Y.Z/bin/kim-api-vX-activate
+$ kim-api-vX-collections-management install system Pair_Johnson_Fe__MO_857282754307_002
 
 
 -----------------
@@ -59,6 +59,6 @@ $ cd lammpos/src
 $ make yes-kim
 $ make g++ (or whatever target you wish)
 
-Note that the Makefile.lammps and Makefile.KIM_DIR files in this directory
-are required to allow the LAMMPS build to find the necessary KIM files.
-You should not normally need to edit these files.
+Note that the Makefile.lammps file in this directory is required to
+allow the LAMMPS build to find the necessary KIM files.  You should
+not normally need to edit these files.

@@ -242,10 +242,15 @@ void CommKokkos::forward_comm_device(int dummy)
       }
     } else {
       if (!ghost_velocity) {
-        if (sendnum[iswap])
-          n = avec->pack_comm_self(sendnum[iswap],k_sendlist,iswap,
-                                   firstrecv[iswap],pbc_flag[iswap],pbc[iswap]);
-        DeviceType::fence();
+        if (1) {
+          n = avec->pack_comm_self_squash(totalsend,k_sendlist,k_sendnum_scan,
+                          k_firstrecv,k_pbc_flag,k_pbc);
+        } else {
+          if (sendnum[iswap])
+            n = avec->pack_comm_self(sendnum[iswap],k_sendlist,iswap,
+                                     firstrecv[iswap],pbc_flag[iswap],pbc[iswap]);
+          DeviceType::fence();
+        }
       } else {
         n = avec->pack_comm_vel_kokkos(sendnum[iswap],k_sendlist,iswap,
                                        k_buf_send,pbc_flag[iswap],pbc[iswap]);
@@ -1035,6 +1040,36 @@ void CommKokkos::borders_device() {
   if (map_style) {
     atomKK->sync(Host,TAG_MASK);
     atom->map_set();
+  }
+
+  if (1) {
+     k_pbc          = DAT::tdual_int_2d("comm:pbc",nswap,6);
+     k_pbc_flag     = DAT::tdual_int_1d("comm:pbc_flag",nswap);
+     k_firstrecv    = DAT::tdual_int_1d("comm:firstrecv",nswap);
+     k_sendnum_scan = DAT::tdual_int_1d("comm:sendnum_scan",nswap);
+    int scan = 0;
+    for (int iswap = 0; iswap < nswap; iswap++) {
+      scan += sendnum[iswap];
+      k_sendnum_scan.h_view[iswap] = scan;
+      k_firstrecv.h_view[iswap] = firstrecv[iswap];
+      k_pbc_flag.h_view[iswap] = pbc_flag[iswap];
+      k_pbc.h_view(iswap,0) = pbc[iswap][0];
+      k_pbc.h_view(iswap,1) = pbc[iswap][1];
+      k_pbc.h_view(iswap,2) = pbc[iswap][2];
+      k_pbc.h_view(iswap,3) = pbc[iswap][3];
+      k_pbc.h_view(iswap,4) = pbc[iswap][4];
+      k_pbc.h_view(iswap,5) = pbc[iswap][5];
+    }
+    totalsend = scan;
+    k_pbc         .modify<LMPHostType>();
+    k_pbc_flag    .modify<LMPHostType>();
+    k_firstrecv   .modify<LMPHostType>();
+    k_sendnum_scan.modify<LMPHostType>();
+
+    k_pbc         .sync<LMPDeviceType>();
+    k_pbc_flag    .sync<LMPDeviceType>();    
+    k_firstrecv   .sync<LMPDeviceType>();    
+    k_sendnum_scan.sync<LMPDeviceType>();    
   }
 }
 /* ----------------------------------------------------------------------

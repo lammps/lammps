@@ -192,6 +192,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   forward_comm_on_host = 0;
   reverse_comm_on_host = 0;
   gpu_direct_flag = 1;
+  team_flag = 0;
 
 #if KOKKOS_USE_CUDA
   // only if we can safely detect, that GPU-direct is not available, change default
@@ -228,6 +229,7 @@ void KokkosLMP::accelerator(int narg, char **arg)
   exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 0;
   exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 0;
   gpu_direct_flag = 1;
+  team_flag = 0;
 
   int iarg = 0;
   while (iarg < narg) {
@@ -315,6 +317,12 @@ void KokkosLMP::accelerator(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
       if (strcmp(arg[iarg+1],"off") == 0) gpu_direct_flag = 0;
       else if (strcmp(arg[iarg+1],"on") == 0) gpu_direct_flag = 1;
+      else error->all(FLERR,"Illegal package kokkos command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"team") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
+      if (strcmp(arg[iarg+1],"off") == 0) team_flag = 0;
+      else if (strcmp(arg[iarg+1],"on") == 0) team_flag = 1;
       else error->all(FLERR,"Illegal package kokkos command");
       iarg += 2;
     } else error->all(FLERR,"Illegal package kokkos command");

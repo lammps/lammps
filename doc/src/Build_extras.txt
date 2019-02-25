@@ -191,16 +191,12 @@ package?" page.
 
 [CMake build]:
 
--D DOWNLOAD_KIM=value    # download OpenKIM API v1 for build, value = no (default) or yes
--D KIM_LIBRARY=path      # KIM library file (only needed if a custom location)
--D KIM_INCLUDE_DIR=path  # KIM include directory (only needed if a custom location) :pre
+-D DOWNLOAD_KIM=value           # download OpenKIM API v2 for build, value = no (default) or yes :pre
 
 If DOWNLOAD_KIM is set, the KIM library will be downloaded and built
 inside the CMake build directory.  If the KIM library is already on
-your system (in a location CMake cannot find it), KIM_LIBRARY is the
-filename (plus path) of the KIM library file, not the directory the
-library file is in.  KIM_INCLUDE_DIR is the directory the KIM include
-file is in.
+your system (in a location CMake cannot find it), set the PKG_CONFIG_PATH
+environment variable so that libkim-api-v2 can be found.
 
 [Traditional make]:
 
@@ -214,8 +210,8 @@ make lib-kim args="-b "   # (re-)install KIM API lib with only example models
 make lib-kim args="-b -a Glue_Ercolessi_Adams_Al__MO_324507536345_001"  # ditto plus one model
 make lib-kim args="-b -a everything"     # install KIM API lib with all models
 make lib-kim args="-n -a EAM_Dynamo_Ackland_W__MO_141627196590_002"       # add one model or model driver
-make lib-kim args="-p /usr/local/kim-api" # use an existing KIM API installation at the provided location
-make lib-kim args="-p /usr/local/kim-api -a EAM_Dynamo_Ackland_W__MO_141627196590_002" # ditto but add one model or driver :pre
+make lib-kim args="-p /usr/local" # use an existing KIM API installation at the provided location
+make lib-kim args="-p /usr/local -a EAM_Dynamo_Ackland_W__MO_141627196590_002" # ditto but add one model or driver :pre
 
 :line
 

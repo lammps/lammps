@@ -448,6 +448,52 @@ struct s_EV_FLOAT_REAX {
 };
 typedef struct s_EV_FLOAT_REAX EV_FLOAT_REAX;
 
+struct s_FEV_FLOAT {
+  F_FLOAT f[3];
+  E_FLOAT evdwl;
+  E_FLOAT ecoul;
+  E_FLOAT v[6];
+  KOKKOS_INLINE_FUNCTION
+  s_FEV_FLOAT() {
+    f[0] = 0; f[1] = 0; f[2] = 0;
+    evdwl = 0;
+    ecoul = 0;
+    v[0] = 0; v[1] = 0; v[2] = 0;
+    v[3] = 0; v[4] = 0; v[5] = 0;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator+=(const s_FEV_FLOAT &rhs) {
+    f[0] += rhs.f[0];
+    f[1] += rhs.f[1];
+    f[2] += rhs.f[2];
+    evdwl += rhs.evdwl;
+    ecoul += rhs.ecoul;
+    v[0] += rhs.v[0];
+    v[1] += rhs.v[1];
+    v[2] += rhs.v[2];
+    v[3] += rhs.v[3];
+    v[4] += rhs.v[4];
+    v[5] += rhs.v[5];
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator+=(const volatile s_FEV_FLOAT &rhs) volatile {
+    f[0] += rhs.f[0];
+    f[1] += rhs.f[1];
+    f[2] += rhs.f[2];
+    evdwl += rhs.evdwl;
+    ecoul += rhs.ecoul;
+    v[0] += rhs.v[0];
+    v[1] += rhs.v[1];
+    v[2] += rhs.v[2];
+    v[3] += rhs.v[3];
+    v[4] += rhs.v[4];
+    v[5] += rhs.v[5];
+  }
+};
+typedef struct s_FEV_FLOAT FEV_FLOAT;
+
 #ifndef PREC_POS
 #define PREC_POS PRECISION
 #endif

@@ -158,12 +158,6 @@ the pair_*.cpp file associated with the potential.
 
 Some parameters are global settings for the pair style, e.g. the
 viscosity setting "mu" for "pair_style lubricate"_pair_lubricate.html.
-For "pair_kim"_pair_kim.html, all free parameters supported by the
-KIM Model are available (e.g., PARAM_FREE_sigmas provided by the
-LennardJones612_Universal__MO_826355984548_001 Model).  If the free
-parameter corresponds to an array, then the particular array element
-to be adapted must be specified (e.g., "PARAM_FREE_sigmas:10", to
-adapt the tenth entry of the sigmas array).
 Other parameters apply to atom type pairs within the pair style,
 e.g. the prefactor "a" for "pair_style soft"_pair_soft.html.
 

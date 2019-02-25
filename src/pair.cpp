@@ -1619,7 +1619,7 @@ void Pair::write_file(int narg, char **arg)
   eamfp[0] = eamfp[1] = 0.0;
   double *eamfp_hold;
 
-  Pair *epair = force->pair_match("eam",0);
+  Pair *epair = force->pair_match("^eam",0);
   if (epair) epair->swap_eam(eamfp,&eamfp_hold);
 
   // if atom style defines charge, swap in dummy q vec

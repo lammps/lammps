@@ -104,12 +104,6 @@ E: Fix langevin period must be > 0.0
 
 The time window for temperature relaxation must be > 0
 
-W: Energy tally does not account for 'zero yes'
-
-The energy removed by using the 'zero yes' flag is not accounted
-for in the energy tally and thus energy conservation cannot be
-monitored in this case.
-
 E: Fix langevin omega requires atom style sphere
 
 Self-explanatory.

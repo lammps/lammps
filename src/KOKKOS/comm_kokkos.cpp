@@ -187,6 +187,13 @@ void CommKokkos::forward_comm_device(int dummy)
   k_sendlist.sync<DeviceType>();
   atomKK->sync(ExecutionSpaceFromDevice<DeviceType>::space,X_MASK);
 
+  int comm_squash = 1;
+  if (comm_squash) {
+    n = avec->pack_comm_self_squash(totalsend,k_sendlist,k_sendnum_scan,
+                    k_firstrecv,k_pbc_flag,k_pbc);
+    DeviceType::fence();
+  } else {
+
   for (int iswap = 0; iswap < nswap; iswap++) {
     if (sendproc[iswap] != me) {
       if (comm_x_only) {
@@ -242,15 +249,10 @@ void CommKokkos::forward_comm_device(int dummy)
       }
     } else {
       if (!ghost_velocity) {
-        if (1) {
-          n = avec->pack_comm_self_squash(totalsend,k_sendlist,k_sendnum_scan,
-                          k_firstrecv,k_pbc_flag,k_pbc);
-        } else {
-          if (sendnum[iswap])
-            n = avec->pack_comm_self(sendnum[iswap],k_sendlist,iswap,
-                                     firstrecv[iswap],pbc_flag[iswap],pbc[iswap]);
-          DeviceType::fence();
-        }
+        if (sendnum[iswap])
+          n = avec->pack_comm_self(sendnum[iswap],k_sendlist,iswap,
+                                   firstrecv[iswap],pbc_flag[iswap],pbc[iswap]);
+        DeviceType::fence();
       } else {
         n = avec->pack_comm_vel_kokkos(sendnum[iswap],k_sendlist,iswap,
                                        k_buf_send,pbc_flag[iswap],pbc[iswap]);
@@ -259,6 +261,7 @@ void CommKokkos::forward_comm_device(int dummy)
         DeviceType::fence();
       }
     }
+  }
   }
 }
 

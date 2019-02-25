@@ -307,9 +307,10 @@ struct AtomVecKokkos_PackCommSelfSquash {
     int iswap = 0;
     while (ii >= _sendnum_scan[iswap]) iswap++;
     int i = ii;
-    if (iswap > 1)
+    if (iswap > 0)
       i = ii - _sendnum_scan[iswap-1];
     const int _nfirst = _firstrecv[iswap];
+
 
       const int j = _list(iswap,i);
       if (_pbc_flag(iswap) == 0) {

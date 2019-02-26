@@ -76,10 +76,12 @@ class FixHyperGlobal : public FixHyper {
   // coords and IDs of owned+ghost atoms when bonds were formed
   // persists on a proc from one event until the next
 
+  int nall_old;                 // nlocal+nghost for old atoms
   int maxold;                   // allocated size of old atoms
 
   double **xold;                // coords of atoms when bonds were formed
-  tagint *tagold;               // IDs of atoms when bonds were formed
+  tagint *tagold;               // IDs of atoms when bonds were forme
+  int *old2now;                 // o2n[i] = current local index of old atom I
 
   // MPI data struct for finding bond with max strain via Allreduce
 

@@ -32,12 +32,12 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define DELTA 16384
+#define DELTABOND 16384
 #define VECLEN 5
 
-// NOTE: count/output # of timesteps on which bias is non-zero
-// NOTE: should there be a virial contribution from boosted bond?
-// NOTE: allow newton off?  see Note in pre_reverse()
+// possible enhancements
+//   should there be a virial contribution from boosted bond?
+//   allow newton off?  see Note in pre_reverse()
 
 /* ---------------------------------------------------------------------- */
 
@@ -102,7 +102,6 @@ int FixHyperGlobal::setmask()
 {
   int mask = 0;
   mask |= PRE_NEIGHBOR;
-  mask |= PRE_FORCE;
   mask |= PRE_REVERSE;
   mask |= THERMO_ENERGY;
   return mask;
@@ -123,6 +122,10 @@ void FixHyperGlobal::init()
 {
   if (force->newton_pair == 0)
     error->all(FLERR,"Hyper global requires newton pair on");
+
+  if (atom->molecular && me == 0)
+    error->warning(FLERR,"Hyper global for molecular systems "
+                   "requires care in defining hyperdynamic bonds");
 
   dt = update->dt;
 
@@ -167,14 +170,55 @@ void FixHyperGlobal::setup_pre_reverse(int eflag, int vflag)
 
 void FixHyperGlobal::pre_neighbor()
 {
-  int m,iold,jold,ilocal,jlocal;
+  int i,m,iold,jold,ilocal,jlocal;
   double distsq;
 
-  // reset local IDs for owned bond atoms, since atoms have migrated
-  // uses xold and tagold from when bonds were created
+  // reset local indices for owned bond atoms, since atoms have migrated
   // must be done after ghost atoms are setup via comm->borders()
+  // first time this is done for a particular I or J atom:
+  //   use tagold and xold from when bonds were created
+  //   atom->map() finds atom ID if it exists, owned index if possible
+  //   closest current I or J atoms to old I may now be ghost atoms
+  //   closest_image() returns the ghost atom index in that case
+  // also compute max drift of any atom in a bond
+  //   drift = displacement from quenched coord while event has not yet occured
+
+  for (i = 0; i < nall_old; i++) old2now[i] = -1;
 
   double **x = atom->x;
+
+  for (m = 0; m < nblocal; m++) {
+    iold = blist[m].iold;
+    jold = blist[m].jold;
+    ilocal = old2now[iold];
+    jlocal = old2now[jold];
+
+    if (ilocal < 0) {
+      ilocal = atom->map(tagold[iold]);
+      ilocal = domain->closest_image(xold[iold],ilocal);
+      if (ilocal < 0)
+        error->one(FLERR,"Fix hyper/global bond atom not found");
+      old2now[iold] = ilocal;
+      distsq = MathExtra::distsq3(x[ilocal],xold[iold]);
+      maxdriftsq = MAX(distsq,maxdriftsq);
+    }
+    if (jlocal < 0) {
+      jlocal = atom->map(tagold[jold]);
+      jlocal = domain->closest_image(xold[iold],jlocal);   // closest to iold
+      if (jlocal < 0)
+        error->one(FLERR,"Fix hyper/global bond atom not found");
+      old2now[jold] = jlocal;
+      distsq = MathExtra::distsq3(x[jlocal],xold[jold]);
+      maxdriftsq = MAX(distsq,maxdriftsq);
+    }
+
+    blist[m].i = ilocal;
+    blist[m].j = jlocal;
+  }
+
+  /* old way - nblocal loop is re-doing index-find calculation
+
+  // NOTE: drift may not include J atoms moving (if not themselves bond owners)
 
   int flag = 0;
 
@@ -196,6 +240,8 @@ void FixHyperGlobal::pre_neighbor()
   }
 
   if (flag) error->one(FLERR,"Fix hyper/global bond atom not found");
+
+  */
 }
 
 /* ---------------------------------------------------------------------- */
@@ -204,15 +250,16 @@ void FixHyperGlobal::pre_reverse(int /* eflag */, int /* vflag */)
 {
   int i,j,m,imax,jmax;
   double delx,dely,delz;
-  double r,r0,estrain,rmax,r0max,emax,dt_boost;
-  double vbias,fbias,fbiasr;
+  double r,r0,estrain,rmax,r0max,dt_boost;
+  double ebias,vbias,fbias,fbiasr;
 
   // compute current strain of each owned bond
-  // emax = maximum strain of any bond I own
+  // eabs_max = maximum absolute value of strain of any bond I own
   // imax,jmax = local indices of my 2 atoms in that bond
+  // rmax,r0max = current and relaxed lengths of that bond
 
   double **x = atom->x;
-  emax = 0.0;
+  double estrain_maxabs = 0.0;
 
   for (m = 0; m < nblocal; m++) {
     i = blist[m].i;
@@ -225,8 +272,8 @@ void FixHyperGlobal::pre_reverse(int /* eflag */, int /* vflag */)
     r0 = blist[m].r0;
     estrain = fabs(r-r0) / r0;
 
-    if (estrain > emax) {
-      emax = estrain;
+    if (estrain > estrain_maxabs) {
+      estrain_maxabs = estrain;
       rmax = r;
       r0max = r0;
       imax = i;
@@ -238,7 +285,7 @@ void FixHyperGlobal::pre_reverse(int /* eflag */, int /* vflag */)
   // finds max strain and what proc owns it
   // owner = proc that owns that bond
 
-  pairme.value = emax;
+  pairme.value = estrain_maxabs;
   pairme.proc = me;
   MPI_Allreduce(&pairme,&pairall,1,MPI_DOUBLE_INT,MPI_MAXLOC,world);
   owner = pairall.proc;
@@ -255,25 +302,34 @@ void FixHyperGlobal::pre_reverse(int /* eflag */, int /* vflag */)
     return;
   }
 
-  // I own the bond with max strain
-  // compute Vbias and apply force to atoms imax,jmax
-  // NOTE: logic would need to be different for newton off
+  // I own the bond with max absolute value of strain
+  // compute bias force on atoms imax,jmax if strain < q, else zero
+  // Ebias = current strain = (r-r0) / r0
+  // Vbias = bias potential = Vmax (1 - Ebias^2/q^2)
+  // Fbias = bias force as function of strain
+  //       = -dVbias/dEbias = 2 Vmax Ebias / q^2
+  // Fix = x component of force on atom I
+  //     = Fbias dEbias/dr dr/dxi, dEbias/dr = 1/r0, dr/dxi = delx/r
+  // dt_boost = time boost factor = exp(Vbias/kT)
+  // NOTE: logic here would need to be different for newton off
 
   double **f = atom->f;
 
   vbias = fbias = 0.0;
   dt_boost = 1.0;
 
-  if (emax < qfactor) {
-    vbias = vmax * (1.0 - emax*emax*invqfactorsq);
-    fbias = 2.0 * vmax * emax / (qfactor*qfactor * r0max);
+  if (estrain_maxabs < qfactor) {
+    //ebias = (rmax-r0max) / r0max;
+    ebias = fabs(rmax-r0max) / r0max;
+    vbias = vmax * (1.0 - ebias*ebias*invqfactorsq);
+    fbias = 2.0 * vmax * ebias * invqfactorsq;
     dt_boost = exp(beta*vbias);
 
     delx = x[imax][0] - x[jmax][0];
     dely = x[imax][1] - x[jmax][1];
     delz = x[imax][2] - x[jmax][2];
 
-    fbiasr = fbias / rmax;
+    fbiasr = fbias / r0max / rmax;
     f[imax][0] += delx*fbiasr;
     f[imax][1] += dely*fbiasr;
     f[imax][2] += delz*fbiasr;
@@ -281,13 +337,14 @@ void FixHyperGlobal::pre_reverse(int /* eflag */, int /* vflag */)
     f[jmax][0] -= delx*fbiasr;
     f[jmax][1] -= dely*fbiasr;
     f[jmax][2] -= delz*fbiasr;
+
   } else nobias++;
 
   // output quantities
 
   outvec[0] = vbias;
   outvec[1] = dt_boost;
-  outvec[2] = emax;
+  outvec[2] = ebias;
   outvec[3] = atom->tag[imax];
   outvec[4] = atom->tag[jmax];
 
@@ -364,13 +421,16 @@ void FixHyperGlobal::build_bond_list(int natom)
   if (atom->nmax > maxold) {
     memory->destroy(xold);
     memory->destroy(tagold);
+    memory->destroy(old2now);
     maxold = atom->nmax;
     memory->create(xold,maxold,3,"hyper/global:xold");
     memory->create(tagold,maxold,"hyper/global:tagold");
+    memory->create(old2now,maxold,"hyper/global:old2now");
   }
 
   tagint *tag = atom->tag;
   int nall = atom->nlocal + atom->nghost;
+  nall_old = nall;
 
   for (i = 0; i < nall; i++) {
     xold[i][0] = x[i][0];
@@ -386,14 +446,11 @@ void FixHyperGlobal::build_bond_list(int natom)
 
 void FixHyperGlobal::grow_bond()
 {
-  // NOTE: could add int arg to do initial large alloc:
-  // maxbond = maxbond/DELTA * DELTA; maxbond += DELTA;
-
-  maxbond += DELTA;
-  if (maxbond < 0 || maxbond > MAXSMALLINT)
-    error->one(FLERR,"Fix hyper/local per-processor bond count is too big");
+  if (maxbond + DELTABOND > MAXSMALLINT)
+    error->one(FLERR,"Fix hyper/global bond count is too big");
+  maxbond += DELTABOND;
   blist = (OneBond *)
-    memory->srealloc(blist,maxbond*sizeof(OneBond),"hyper/local:blist");
+    memory->srealloc(blist,maxbond*sizeof(OneBond),"hyper/global:blist");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -419,7 +476,7 @@ double FixHyperGlobal::compute_vector(int i)
   // 11 vector outputs returned for i = 0-10
 
   // i = 0 = boost factor on this step
-  // i = 1 = max strain of any bond on this step
+  // i = 1 = max strain of any bond on this step (positive or negative)
   // i = 2 = ID of atom I in max-strain bond on this step
   // i = 3 = ID of atom J in max-strain bond on this step
   // i = 4 = ave bonds/atom on this step
@@ -438,8 +495,9 @@ double FixHyperGlobal::compute_vector(int i)
   if (i == 3) return outvec[4];
 
   if (i == 4) {
-    int allbonds;     // NOTE: bigint?
-    MPI_Allreduce(&nblocal,&allbonds,1,MPI_INT,MPI_SUM,world);
+    bigint mybonds = nblocal;
+    bigint allbonds;
+    MPI_Allreduce(&mybonds,&allbonds,1,MPI_LMP_BIGINT,MPI_SUM,world);
     return 2.0*allbonds/atom->natoms;
   }
 

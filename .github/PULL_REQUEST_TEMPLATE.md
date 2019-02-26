@@ -12,10 +12,7 @@ _Please state name and affiliation of the author or authors that should be credi
 
 **Licensing**
 
-By submitting this pull request, I agree, that my contribution will be included in LAMMPS and redistributed under the GNU General Public License version 2.
-
-_Please complete the following statement by adding "yes" or "no":_
-My contribution may be re-licensed as LGPL:
+By submitting this pull request, I agree, that my contribution will be included in LAMMPS and redistributed under either the GNU General Public License version 2 (GPL v2) or the GNU Lesser General Public License version 2.1 (LGPL v2.1).
 
 **Backward Compatibility**
 

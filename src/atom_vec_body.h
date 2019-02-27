@@ -92,6 +92,8 @@ class AtomVecBody : public AtomVec {
   double radius_body(int, int, int *, double *);
   void set_quat(int, double *);
 
+  int nlocal_bonus;
+
  private:
   tagint *tag;
   int *type,*mask;
@@ -102,7 +104,7 @@ class AtomVecBody : public AtomVec {
   double **angmom,**torque;
   int *body;
 
-  int nlocal_bonus,nghost_bonus,nmax_bonus;
+  int nghost_bonus,nmax_bonus;
   int intdoubleratio;       // sizeof(double) / sizeof(int)
 
   MyPoolChunk<int> *icp;
